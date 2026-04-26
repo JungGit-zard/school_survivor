@@ -1,0 +1,103 @@
+import { useRef, useEffect } from 'react'
+import { useFrame } from '@react-three/fiber'
+import { useKeyboardControls } from '@react-three/drei'
+import { RigidBody, CuboidCollider } from '@react-three/rapier'
+import { useGameStore } from '../store/useGameStore.js'
+import { playerFacing, playerPos } from '../lib/refs.js'
+import PlayerMesh from './PlayerMesh.jsx'
+
+const _v = { x: 0, y: 0, z: 0 }
+const INV_DURATION = 520
+const TURN_SPEED = 14
+
+function shortestAngleDiff(target, current) {
+  let diff = target - current
+  while (diff > Math.PI) diff -= Math.PI * 2
+  while (diff < -Math.PI) diff += Math.PI * 2
+  return diff
+}
+
+export default function Player() {
+  const rb        = useRef()
+  const meshGroup = useRef()
+  const movingRef = useRef(false)
+  const invTimer  = useRef(0)
+  const [, getKeys] = useKeyboardControls()
+  const speed           = useGameStore((s) => s.player.speed)
+  const phase           = useGameStore((s) => s.phase)
+  const endInvulnerable = useGameStore((s) => s.endInvulnerable)
+  const damagePlayer    = useGameStore((s) => s.damagePlayer)
+
+  // 적 투사체가 플레이어를 감지할 수 있도록 RigidBody ref에 핸들러 등록
+  useEffect(() => {
+    if (rb.current) rb.current._playerHit = (dmg) => damagePlayer(dmg)
+  })
+
+  useFrame((_, delta) => {
+    if (!rb.current) return
+    if (phase !== 'playing') { rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true); return }
+
+    const { up, down, left, right } = getKeys()
+
+    _v.x = (right ? 1 : 0) - (left ? 1 : 0)
+    _v.z = (down  ? 1 : 0) - (up   ? 1 : 0)
+
+    const len = Math.hypot(_v.x, _v.z)
+    movingRef.current = len > 0
+    if (len > 0) {
+      const nx = _v.x / len
+      const nz = _v.z / len
+      const targetY = Math.atan2(nx, nz)
+
+      if (meshGroup.current) {
+        const turnRatio = Math.min(1, delta * TURN_SPEED)
+        meshGroup.current.rotation.y += shortestAngleDiff(targetY, meshGroup.current.rotation.y) * turnRatio
+      }
+
+      _v.x = nx * speed
+      _v.z = nz * speed
+    }
+
+    rb.current.setLinvel({ x: _v.x, y: 0, z: _v.z }, true)
+
+    // 전역 위치 동기화
+    const t = rb.current.translation()
+    playerPos.set(t.x, t.y, t.z)
+
+    // 무적 타이머 (setTimeout 대신 useFrame에서 처리)
+    const inv = useGameStore.getState().player.invulnerable
+    if (inv) {
+      invTimer.current += delta * 1000
+      if (invTimer.current >= INV_DURATION) {
+        invTimer.current = 0
+        endInvulnerable()
+      }
+    } else {
+      invTimer.current = 0
+    }
+
+    // 무적 점멸 (80ms 간격)
+    if (meshGroup.current) {
+      meshGroup.current.visible = !inv || Math.floor(performance.now() / 80) % 2 === 0
+    }
+
+    // 이동 방향으로 메시 회전 (최단경로 보간 — ±π 경계 처리)
+    if (meshGroup.current) {
+      playerFacing.set(Math.sin(meshGroup.current.rotation.y), 0, Math.cos(meshGroup.current.rotation.y))
+    }
+  })
+
+  return (
+    <RigidBody
+      ref={rb}
+      type="dynamic"
+      position={[0, 0.32, 0]}   // 콜라이더 반높이(0.32) 만큼 올려 발이 바닥에 닿게
+      lockRotations
+      linearDamping={10}
+      colliders={false}
+    >
+      <CuboidCollider args={[0.136, 0.32, 0.136]} />
+      <PlayerMesh groupRef={meshGroup} movingRef={movingRef} />
+    </RigidBody>
+  )
+}
