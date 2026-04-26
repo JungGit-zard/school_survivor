@@ -197,7 +197,20 @@ export function SchoolBagSwing() {
     proximityRbRef.current?.setTranslation({ x: playerPos.x, y: playerPos.y + 0.16, z: playerPos.z }, true)
 
     const now = clock.elapsedTime * 1000
-    if (!swing && closeEnemiesRef.current.size > 0 && now - lastSwingRef.current >= w.cooldown) {
+    const triggerRange = w.triggerRange ?? 0.58
+    let hasVeryCloseEnemy = false
+    closeEnemiesRef.current.forEach(({ rb }, enemyId) => {
+      if (!rb?._enemyHit || rb._enemyDead) {
+        closeEnemiesRef.current.delete(enemyId)
+        return
+      }
+      const t = rb.translation()
+      const dx = t.x - playerPos.x
+      const dz = t.z - playerPos.z
+      if (Math.hypot(dx, dz) <= triggerRange) hasVeryCloseEnemy = true
+    })
+
+    if (!swing && hasVeryCloseEnemy && now - lastSwingRef.current >= w.cooldown) {
       lastSwingRef.current = now
       hitSetRef.current = new Set()
       pendingHitsRef.current = new Map()
@@ -265,14 +278,14 @@ export function SchoolBagSwing() {
         sensor
         onIntersectionEnter={({ other }) => {
           const rb = other.rigidBody
-          if (rb?._enemyHit) closeEnemiesRef.current.set(rb._enemyId, rb._enemyHit)
+          if (rb?._enemyHit) closeEnemiesRef.current.set(rb._enemyId, { rb })
         }}
         onIntersectionExit={({ other }) => {
           const rb = other.rigidBody
           if (rb?._enemyId !== undefined) closeEnemiesRef.current.delete(rb._enemyId)
         }}
       >
-        <BallCollider args={[weapons.schoolBag.triggerRange ?? 0.82]} sensor />
+        <BallCollider args={[weapons.schoolBag.triggerRange ?? 0.58]} sensor />
       </RigidBody>
       {swing && (
         <mesh ref={trailRef} rotation={[-Math.PI / 2, 0, 0]} position={[playerPos.x, 0.055, playerPos.z]} renderOrder={3}>

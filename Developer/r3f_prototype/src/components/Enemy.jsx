@@ -121,6 +121,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
       setHp(hpRef.current)
       if (hpRef.current <= 0) {
         dead.current = true
+        rb.current._enemyDead = true
+        rb.current._enemyHit = null
         const t = rb.current?.translation()
         onDeath?.(id, {
           pos: t ? [t.x, t.y, t.z] : [...spawnPos],

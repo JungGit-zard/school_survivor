@@ -10,7 +10,7 @@ const INITIAL_PLAYER = {
 
 const INITIAL_WEAPONS = {
   pencilThrow: { label: '연필', damage: 18, cooldown: 900, lastFired: 0, projectileCount: 1, pierce: 0, speed: 12, range: 22, active: true },
-  schoolBag:   { label: '책가방 휘두르기', damage: 22, cooldown: 1100, range: 0.95, triggerRange: 0.82, swingMs: 420, active: true },
+  schoolBag:   { label: '책가방 휘두르기', damage: 22, cooldown: 1100, range: 0.95, triggerRange: 0.58, swingMs: 420, active: true },
   tumbler:     { label: '텀블러', damage: 10, radius: 2.0, hitsPerSecond: 3.5, orbitSpeed: 2.8, active: true },
   bell:        { label: '벨', damage: 28, cooldown: 4200, lastFired: 0, directions: 8, speed: 10, active: false },
   stunGun:     { label: '전기', damage: 22, cooldown: 2800, lastFired: 0, chainCount: 2, active: false },
