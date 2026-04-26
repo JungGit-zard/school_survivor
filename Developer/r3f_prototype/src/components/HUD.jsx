@@ -2,23 +2,65 @@ import { useEffect } from 'react'
 import { useGameStore } from '../store/useGameStore.js'
 
 const UPGRADES = [
-  { key: 'pencilDamage', label: '연필 데미지 +6', desc: '투척 연필의 공격력 증가' },
-  { key: 'pencilCount',  label: '연필 발사 수 +1', desc: '동시에 날리는 연필 수 증가 (최대 4)' },
-  { key: 'pencilPierce', label: '연필 관통 +1',   desc: '연필이 적을 관통 (최대 3회)' },
-  { key: 'bagDamage',    label: '책가방 피해 +8',  desc: '휘두르기 타격 피해 증가' },
-  { key: 'bagRadius',    label: '책가방 사거리 +',  desc: '휘두르는 타격 범위 증가' },
-  { key: 'unlockBell',   label: '🔔 벨 해금',      desc: '8방향 충격파 스킬 해금' },
-  { key: 'bellDamage',   label: '벨 데미지 +10',   desc: '충격파 공격력 증가' },
-  { key: 'unlockStun',   label: '⚡ 전기충격 해금', desc: '체인 스턴건 스킬 해금' },
-  { key: 'stunChain',    label: '전기 연쇄 +1',    desc: '연쇄 대상 수 증가 (최대 4)' },
-  { key: 'moveSpeed',    label: '이동속도 +10%',   desc: '플레이어 이동속도 증가' },
-  { key: 'maxHealth',    label: '최대 체력 +20',   desc: '최대 HP 및 현재 HP 증가' },
+  { key: 'pencilDamage', icon: 'pencil', label: '연필 데미지 +3', desc: '투척 연필의 공격력 증가' },
+  { key: 'pencilCount',  icon: 'pencil', label: '연필 발사 수 +1', desc: '동시에 날리는 연필 수 증가 (최대 4)' },
+  { key: 'pencilPierce', icon: 'pencil', label: '연필 관통 +1',   desc: '연필이 적을 관통 (최대 3회)' },
+  { key: 'bagDamage',    icon: 'ruler', label: '30센치 자 피해 +8',  desc: '자 휘두르기 타격 피해 증가' },
+  { key: 'bagRadius',    icon: 'ruler', label: '30센치 자 사거리 +',  desc: '자 휘두르기 타격 범위 증가' },
+  { key: 'tumblerCount', icon: 'tumbler', label: '텀블러 개수 +1', desc: '회전 텀블러 개수 증가 (최대 3개)' },
+  { key: 'tumblerDamage', icon: 'tumbler', label: '텀블러 피해 +4', desc: '회전 텀블러 접촉 피해 증가' },
+  { key: 'unlockFlask',  icon: 'flask', label: '플라스크 해금', desc: '밀집한 적에게 광역 폭발 투척' },
+  { key: 'flaskDamage',  icon: 'flask', label: '플라스크 피해 +10', desc: '폭발 피해 증가' },
+  { key: 'flaskRadius',  icon: 'flask', label: '플라스크 범위 +', desc: '폭발 반경 증가' },
+  { key: 'unlockBell',   icon: 'bell', label: '벨 해금',      desc: '8방향 충격파 스킬 해금' },
+  { key: 'bellDamage',   icon: 'bell', label: '벨 데미지 +5',   desc: '충격파 공격력 증가' },
+  { key: 'unlockStun',   icon: 'stun', label: '전기충격 해금', desc: '체인 스턴건 스킬 해금' },
+  { key: 'stunChain',    icon: 'stun', label: '전기 연쇄 +1',    desc: '연쇄 대상 수 증가 (최대 4)' },
+  { key: 'moveSpeed',    icon: 'speed', label: '이동속도 +10%',   desc: '플레이어 이동속도 증가' },
+  { key: 'maxHealth',    icon: 'health', label: '최대 체력 +20',   desc: '최대 HP 및 현재 HP 증가' },
 ]
 
 function pickThree(level) {
-  const available = UPGRADES.filter((u) => !u.key.startsWith('bag') && u.key !== 'pencilCount')
+  const available = UPGRADES.slice()
   const shuffled = [...available].sort(() => Math.random() - 0.5)
   return shuffled.slice(0, 3)
+}
+
+function UpgradeIcon({ type }) {
+  return (
+    <div style={styles.iconBox}>
+      {type === 'pencil' && (
+        <div style={styles.pencilIcon}>
+          <span style={styles.pencilLead} />
+          <span style={styles.pencilBody} />
+          <span style={styles.pencilEraser} />
+        </div>
+      )}
+      {type === 'ruler' && (
+        <div style={styles.rulerIcon}>
+          <span style={styles.rulerEdge} />
+          <span style={styles.rulerMarkA} />
+          <span style={styles.rulerMarkB} />
+          <span style={styles.rulerMarkC} />
+        </div>
+      )}
+      {type === 'flask' && (
+        <div style={styles.flaskIcon}>
+          <span style={styles.flaskNeck} />
+          <span style={styles.flaskLiquid} />
+        </div>
+      )}
+      {type === 'tumbler' && (
+        <div style={styles.tumblerIcon}>
+          <span style={styles.tumblerCap} />
+        </div>
+      )}
+      {type === 'bell' && <div style={styles.bellIcon}><span /></div>}
+      {type === 'stun' && <div style={styles.stunIcon}>⚡</div>}
+      {type === 'speed' && <div style={styles.speedIcon}>»</div>}
+      {type === 'health' && <div style={styles.healthIcon}>+</div>}
+    </div>
+  )
 }
 
 export default function HUD() {
@@ -110,6 +152,7 @@ export default function HUD() {
             <div style={styles.choices}>
               {choices.map((c) => (
                 <button key={c.key} style={styles.choiceBtn} onClick={() => applyUpgrade(c.key)}>
+                  <UpgradeIcon type={c.icon} />
                   <div style={styles.choiceLabel}>{c.label}</div>
                   <div style={styles.choiceDesc}>{c.desc}</div>
                 </button>
@@ -200,8 +243,69 @@ const styles = {
   choices: { display: 'flex', gap: 16, justifyContent: 'center' },
   choiceBtn: {
     background: '#2a1840', border: '2px solid #8060c0', borderRadius: 10,
-    color: '#fff', cursor: 'pointer', padding: '16px 18px', width: 130,
+    color: '#fff', cursor: 'pointer', padding: '12px 14px 14px', width: 142,
     textAlign: 'center', transition: 'background 0.15s',
+  },
+  iconBox: {
+    position: 'relative', width: 54, height: 42, margin: '0 auto 10px',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  pencilIcon: { position: 'relative', width: 46, height: 12, transform: 'rotate(-22deg)' },
+  pencilLead: {
+    position: 'absolute', left: 0, top: 1, width: 0, height: 0,
+    borderTop: '5px solid transparent', borderBottom: '5px solid transparent', borderRight: '10px solid #1c1c22',
+  },
+  pencilBody: {
+    position: 'absolute', left: 9, top: 1, width: 27, height: 10,
+    background: '#ffcf24', border: '2px solid #111', boxSizing: 'border-box',
+  },
+  pencilEraser: {
+    position: 'absolute', right: 0, top: 1, width: 10, height: 10,
+    background: '#f05a78', border: '2px solid #111', boxSizing: 'border-box',
+  },
+  rulerIcon: {
+    position: 'relative', width: 12, height: 46, background: '#f6dd59',
+    border: '3px solid #111', borderRadius: 2, transform: 'rotate(-34deg)',
+  },
+  rulerEdge: {
+    position: 'absolute', right: 1, top: 4, width: 2, height: 34, background: '#fff2a3',
+  },
+  rulerMarkA: {
+    position: 'absolute', left: 0, top: 8, width: 8, height: 2, background: '#111',
+  },
+  rulerMarkB: {
+    position: 'absolute', left: 0, top: 20, width: 6, height: 2, background: '#111',
+  },
+  rulerMarkC: {
+    position: 'absolute', left: 0, top: 32, width: 8, height: 2, background: '#111',
+  },
+  flaskIcon: {
+    position: 'relative', width: 34, height: 31, background: '#9be9ff',
+    border: '3px solid #111', clipPath: 'polygon(38% 0, 62% 0, 62% 34%, 92% 100%, 8% 100%, 38% 34%)',
+  },
+  flaskNeck: {
+    position: 'absolute', left: 13, top: 0, width: 8, height: 14, background: '#9be9ff',
+  },
+  flaskLiquid: {
+    position: 'absolute', left: 5, right: 5, bottom: 4, height: 10, background: '#62e676',
+  },
+  tumblerIcon: {
+    position: 'relative', width: 19, height: 42, background: '#ff7a3d',
+    border: '3px solid #111', borderRadius: '7px 7px 9px 9px', transform: 'rotate(-24deg)',
+  },
+  tumblerCap: {
+    position: 'absolute', left: -2, top: -6, width: 23, height: 8,
+    background: '#f4f4f4', border: '3px solid #111', borderRadius: 5,
+  },
+  bellIcon: {
+    width: 34, height: 30, background: '#ffd040', border: '3px solid #111',
+    borderRadius: '16px 16px 8px 8px', position: 'relative',
+  },
+  stunIcon: { color: '#ffe65c', fontSize: 30, lineHeight: '36px', textShadow: '0 2px 0 #111' },
+  speedIcon: { color: '#8df0ff', fontSize: 36, fontWeight: 900, lineHeight: '34px', textShadow: '0 2px 0 #111' },
+  healthIcon: {
+    width: 32, height: 32, color: '#fff', background: '#e03040', border: '3px solid #111',
+    borderRadius: 6, fontSize: 28, fontWeight: 900, lineHeight: '28px',
   },
   choiceLabel: { fontSize: 14, fontWeight: 700, marginBottom: 6 },
   choiceDesc:  { fontSize: 11, color: '#bbb', lineHeight: 1.4 },

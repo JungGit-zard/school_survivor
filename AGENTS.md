@@ -10,7 +10,7 @@
 ## Project Context
 
 - This project is a game project named BangBang Survivor.
-- Treat `project_develop_policy.md` as the highest-priority project policy document when it has content.
+- Treat `project_develop_policy.md` as the highest-priority project policy document. Any non-empty rule written there is mandatory.
 - Before making planning, implementation, asset, QA, or Git workflow decisions, check whether `project_develop_policy.md` contains relevant rules.
 - If `project_develop_policy.md` conflicts with other project notes, follow `project_develop_policy.md` and mention the conflict to the user.
 - If `project_develop_policy.md` is empty or missing relevant rules, use `AGENTS.md`, planning documents, and the user's latest request as guidance.
@@ -18,7 +18,7 @@
 - Use feature branches for new work, such as `feature/player-movement` or `feature/combat-system`.
 - Use fix branches for bug fixes, such as `fix/collision-bug`.
 - Check the planning documents in `Planner/` before making gameplay or content decisions.
-- Use `project_develop_policy.md` for project-wide development policy when it has content.
+- Use `project_develop_policy.md` for project-wide development policy. Do not weaken, bypass, or reinterpret it through another project note.
 
 ## Working Rules
 
@@ -48,7 +48,10 @@
 ## Subagent Usage
 
 - Use subagents only when the user explicitly asks for subagents or names a specific subagent.
+- Codex subagents are not silently spawned by default. When the user explicitly asks to use subagents and the task includes graphics, visual QA, game art direction, asset implementation, readability, HUD visuals, Phaser/Three.js visual integration, or image/asset pipeline work, route that graphics portion to `graphic_designer`.
+- The `graphic_designer` custom agent is defined in `.codex/agents/graphic-designer.toml`. Its working output and role records belong in `Graphic_designer/`; the agent configuration itself must stay in `.codex/agents/`.
 - Useful project subagents include:
+  - `graphic_designer` for game art direction, graphics implementation guidance, asset review, visual QA, readability, and Phaser/Three.js visual integration.
   - `game-developer` for gameplay systems and game-specific debugging.
   - `ui-designer` for HUD, layout, interaction, and visual direction.
   - `frontend-developer` for user-facing implementation.

@@ -6,7 +6,8 @@ import { playerPos } from '../lib/refs.js'
 import Player from './Player.jsx'
 import Floor from './Floor.jsx'
 import Enemies from './Enemies.jsx'
-import { PencilThrow, SchoolBagSwing, TumblerOrbit } from './Weapons.jsx'
+import LunchItems from './LunchItems.jsx'
+import { PencilThrow, SchoolBagSwing, TumblerOrbit, BellShockwave, ScienceFlaskSplash } from './Weapons.jsx'
 
 const _camTarget = new THREE.Vector3()
 
@@ -51,12 +52,15 @@ export default function Game() {
 
       {/* ── World ── */}
       <Floor />
+      <LunchItems />
 
       {/* ── Player + weapons ── */}
       <Player />
       <PencilThrow />
       <SchoolBagSwing />
       <TumblerOrbit />
+      <BellShockwave />
+      <ScienceFlaskSplash />
 
       {/* ── Enemies ── */}
       <Enemies />

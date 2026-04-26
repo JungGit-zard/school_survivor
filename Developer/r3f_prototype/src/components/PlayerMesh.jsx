@@ -77,13 +77,19 @@ export default function PlayerMesh({ groupRef, movingRef }) {
     if (bagSwingState.active) {
       const swingT = bagSwingState.progress
       const swingPower = Math.sin(swingT * Math.PI)
-      const sweep = -0.85 + swingT * 1.7
-      parts.slvR.rotation.x = -1.2 * swingPower
-      parts.slvR.rotation.z = -0.35 - sweep * 0.55
-      parts.slvL.rotation.x = -0.25 * swingPower
-      parts.slvL.rotation.z = 0.18 * swingPower
+      const sweep = -1.25 + swingT * 2.5
+      parts.slvR.rotation.x = -1.55 * swingPower
+      parts.slvR.rotation.y = -0.35 * swingPower
+      parts.slvR.rotation.z = -0.25 - sweep * 0.78
+      parts.slvL.rotation.x = -0.35 * swingPower
+      parts.slvL.rotation.z = 0.24 * swingPower
+    } else {
+      parts.slvR.rotation.y = 0
+      parts.bag.rotation.x = 0
     }
-    parts.bag.rotation.z = -0.05 + Math.sin(t * 5.5) * 0.03 * b
+    if (!bagSwingState.active) {
+      parts.bag.rotation.z = -0.05 + Math.sin(t * 5.5) * 0.03 * b
+    }
 
     if (parts.head) {
       const baseY = 1.4

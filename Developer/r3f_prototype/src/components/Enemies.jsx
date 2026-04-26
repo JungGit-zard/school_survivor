@@ -7,38 +7,35 @@ import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
 import XpOrb from './XpOrb.jsx'
 
 // ── 스폰 위치 ─────────────────────────────────────────────────────────────────
-const MAP_HALF     = 44
-const SPAWN_MARGIN = 2
-const BASE_COL_Y   = 0.24
+const BASE_COL_Y = 0.24
+const SPAWN_MIN_RADIUS = 8.5
+const SPAWN_MAX_RADIUS = 12.5
+const RANGED_SPAWN_MIN_RADIUS = 11.5
+const RANGED_SPAWN_MAX_RADIUS = 15.5
+
+function randomPointOnSpawnRing(minRadius, maxRadius) {
+  const angle = Math.random() * Math.PI * 2
+  const radius = minRadius + Math.random() * (maxRadius - minRadius)
+  return {
+    x: Math.sin(angle) * radius,
+    z: Math.cos(angle) * radius,
+  }
+}
 
 function randomSpawnPos(type) {
   const stats = ENEMY_STATS[type]
-  const edge  = Math.floor(Math.random() * 4)
-  const a     = (Math.random() - 0.5) * MAP_HALF * 2
-  const d     = MAP_HALF + SPAWN_MARGIN
+  const offset = randomPointOnSpawnRing(SPAWN_MIN_RADIUS, SPAWN_MAX_RADIUS)
   const px    = playerPos.x, pz = playerPos.z
   const y     = BASE_COL_Y * (stats?.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
-  switch (edge) {
-    case 0: return [px + a, y, pz - d]
-    case 1: return [px + a, y, pz + d]
-    case 2: return [px - d, y, pz + a]
-    default: return [px + d, y, pz + a]
-  }
+  return [px + offset.x, y, pz + offset.z]
 }
 
 // E04는 화면 가장자리 원거리에서 등장 (시나리오 주의사항)
 function rangedSpawnPos() {
-  const edge = Math.floor(Math.random() * 4)
-  const a    = (Math.random() - 0.5) * MAP_HALF * 2
-  const d    = MAP_HALF + SPAWN_MARGIN + 4
+  const offset = randomPointOnSpawnRing(RANGED_SPAWN_MIN_RADIUS, RANGED_SPAWN_MAX_RADIUS)
   const px   = playerPos.x, pz = playerPos.z
   const y    = BASE_COL_Y * (ENEMY_STATS.E04?.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
-  switch (edge) {
-    case 0: return [px + a, y, pz - d]
-    case 1: return [px + a, y, pz + d]
-    case 2: return [px - d, y, pz + a]
-    default: return [px + d, y, pz + a]
-  }
+  return [px + offset.x, y, pz + offset.z]
 }
 
 // ── 타임라인 페이즈 (시나리오 문서 직접 반영) ──────────────────────────────────
@@ -75,7 +72,7 @@ const BURST_EVENTS = [
   { sec: 220, type: 'E01', count: 15 },
   { sec: 220, type: 'E02', count: 12 },
   { sec: 220, type: 'E05', count:  6 },
-  { sec: 240, type: 'B01', count:  1 },
+  { sec: 300, type: 'B01', count:  1 },
   { sec: 280, type: 'E05', count:  5 },
 ]
 
@@ -102,7 +99,6 @@ export default function Enemies() {
   const maintainTimerRef         = useRef(0)      // 보충 스폰 간격 타이머
 
   const phase      = useGameStore((s) => s.phase)
-  const elapsedMs  = useGameStore((s) => s.elapsedMs)
   const bossSpawned = useGameStore((s) => s.bossSpawned)
   const spawnBoss   = useGameStore((s) => s.spawnBoss)
 
@@ -115,12 +111,15 @@ export default function Enemies() {
     enemiesRef.current = enemiesRef.current.filter((e) => e.id !== id)
     setEnemies([...enemiesRef.current])
     if (dropData?.pos) {
-      setCollapses((prev) => [...prev, {
-        id: ++_collapseId,
-        type: dropData.type,
-        position: dropData.pos,
-        visualScale: dropData.visualScale,
-      }])
+      setCollapses((prev) => {
+        const next = [...prev, {
+          id: ++_collapseId,
+          type: dropData.type,
+          position: dropData.pos,
+          visualScale: dropData.visualScale,
+        }]
+        return next.length > 12 ? next.slice(next.length - 12) : next
+      })
     }
     if (dropData?.xp > 0 && dropData?.pos) {
       setXpOrbs((prev) => [...prev, { id: ++_orbId, pos: dropData.pos, xp: dropData.xp }])
@@ -138,7 +137,7 @@ export default function Enemies() {
   useFrame((_, delta) => {
     if (phase !== 'playing') return
 
-    const sec = elapsedMs / 1000
+    const sec = useGameStore.getState().elapsedMs / 1000
 
     // ── 버스트 이벤트 ────────────────────────────────────────────────────
     BURST_EVENTS.forEach((evt, idx) => {

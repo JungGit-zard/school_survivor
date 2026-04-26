@@ -10,3 +10,5 @@ export const bagSwingState = {
   active: false,
   progress: 0,
 }
+
+export const enemyBodies = new Map()
