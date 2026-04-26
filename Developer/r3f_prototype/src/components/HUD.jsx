@@ -55,10 +55,30 @@ function UpgradeIcon({ type }) {
           <span style={styles.tumblerCap} />
         </div>
       )}
-      {type === 'bell' && <div style={styles.bellIcon}><span /></div>}
-      {type === 'stun' && <div style={styles.stunIcon}>⚡</div>}
-      {type === 'speed' && <div style={styles.speedIcon}>»</div>}
-      {type === 'health' && <div style={styles.healthIcon}>+</div>}
+      {type === 'bell' && (
+        <div style={styles.bellIcon}>
+          <span style={styles.bellKnob} />
+          <span style={styles.bellClapper} />
+        </div>
+      )}
+      {type === 'stun' && (
+        <div style={styles.stunIcon}>
+          <span style={styles.stunBolt} />
+        </div>
+      )}
+      {type === 'speed' && (
+        <div style={styles.speedIcon}>
+          <span style={styles.speedLine1} />
+          <span style={styles.speedLine2} />
+          <span style={styles.speedLine3} />
+        </div>
+      )}
+      {type === 'health' && (
+        <div style={styles.healthIcon}>
+          <span style={styles.healthH} />
+          <span style={styles.healthV} />
+        </div>
+      )}
     </div>
   )
 }
@@ -299,13 +319,53 @@ const styles = {
   },
   bellIcon: {
     width: 34, height: 30, background: '#ffd040', border: '3px solid #111',
-    borderRadius: '16px 16px 8px 8px', position: 'relative',
+    borderRadius: '50% 50% 8px 8px', position: 'relative', marginTop: 6,
   },
-  stunIcon: { color: '#ffe65c', fontSize: 30, lineHeight: '36px', textShadow: '0 2px 0 #111' },
-  speedIcon: { color: '#8df0ff', fontSize: 36, fontWeight: 900, lineHeight: '34px', textShadow: '0 2px 0 #111' },
+  bellKnob: {
+    position: 'absolute', top: -9, left: '50%', transform: 'translateX(-50%)',
+    width: 9, height: 9, background: '#ffd040', border: '3px solid #111', borderRadius: '50%',
+    display: 'block',
+  },
+  bellClapper: {
+    position: 'absolute', bottom: -8, left: '50%', transform: 'translateX(-50%)',
+    width: 8, height: 8, background: '#111', borderRadius: '50%', display: 'block',
+  },
+  stunIcon: {
+    position: 'relative', width: 22, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  stunBolt: {
+    display: 'block', width: 22, height: 38,
+    background: '#ffe65c', border: '2.5px solid #111',
+    clipPath: 'polygon(65% 0%, 100% 0%, 38% 50%, 82% 50%, 8% 100%, 28% 52%, 0% 52%)',
+  },
+  speedIcon: {
+    display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5,
+    width: 38, height: 38,
+  },
+  speedLine1: {
+    display: 'block', width: 36, height: 5,
+    background: '#8df0ff', border: '2px solid #111', borderRadius: 3,
+  },
+  speedLine2: {
+    display: 'block', width: 26, height: 5, marginLeft: 10,
+    background: '#8df0ff', border: '2px solid #111', borderRadius: 3,
+  },
+  speedLine3: {
+    display: 'block', width: 16, height: 5, marginLeft: 20,
+    background: '#8df0ff', border: '2px solid #111', borderRadius: 3,
+  },
   healthIcon: {
-    width: 32, height: 32, color: '#fff', background: '#e03040', border: '3px solid #111',
-    borderRadius: 6, fontSize: 28, fontWeight: 900, lineHeight: '28px',
+    position: 'relative', width: 34, height: 34,
+  },
+  healthH: {
+    position: 'absolute', top: '50%', left: 0, transform: 'translateY(-50%)',
+    display: 'block', width: 34, height: 12,
+    background: '#e03040', border: '2.5px solid #111', borderRadius: 2, boxSizing: 'border-box',
+  },
+  healthV: {
+    position: 'absolute', left: '50%', top: 0, transform: 'translateX(-50%)',
+    display: 'block', width: 12, height: 34,
+    background: '#e03040', border: '2.5px solid #111', borderRadius: 2, boxSizing: 'border-box',
   },
   choiceLabel: { fontSize: 14, fontWeight: 700, marginBottom: 6 },
   choiceDesc:  { fontSize: 11, color: '#bbb', lineHeight: 1.4 },
