@@ -17,6 +17,10 @@ const INITIAL_WEAPONS = {
   stunGun:     { label: '전기', damage: 22, cooldown: 2800, lastFired: 0, chainCount: 2, active: false },
 }
 
+INITIAL_WEAPONS.schoolBag.range = 0.633
+INITIAL_WEAPONS.schoolBag.triggerRange = 0.387
+INITIAL_WEAPONS.bell.radius = 1.7
+
 export const useGameStore = create(
   subscribeWithSelector((set, get) => ({
     player:      { ...INITIAL_PLAYER },
@@ -76,7 +80,7 @@ export const useGameStore = create(
       if (key === 'pencilCount')   w.pencilThrow = { ...w.pencilThrow, projectileCount: Math.min(4, (w.pencilThrow.projectileCount ?? 1) + 1) }
       if (key === 'pencilPierce')  w.pencilThrow = { ...w.pencilThrow, pierce: Math.min(3, w.pencilThrow.pierce + 1) }
       if (key === 'bagDamage')     w.schoolBag   = { ...w.schoolBag,   damage: w.schoolBag.damage + 8 }
-      if (key === 'bagRadius')     w.schoolBag   = { ...w.schoolBag,   range: Math.min(1.6, w.schoolBag.range + 0.12) }
+      if (key === 'bagRadius')     w.schoolBag   = { ...w.schoolBag,   range: Math.min(1.067, w.schoolBag.range + 0.08) }
       if (key === 'tumblerCount')  w.tumbler     = { ...w.tumbler,     count: Math.min(3, (w.tumbler.count ?? 1) + 1) }
       if (key === 'tumblerDamage') w.tumbler     = { ...w.tumbler,     damage: w.tumbler.damage + 4 }
       if (key === 'unlockFlask')   w.scienceFlask = { ...w.scienceFlask, active: true }

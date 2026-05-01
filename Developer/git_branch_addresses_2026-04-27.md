@@ -13,6 +13,14 @@
 - GitHub branch URL: https://github.com/JungGit-zard/school_survivor/tree/feature/next-gameplay-iteration
 - Pull request URL: https://github.com/JungGit-zard/school_survivor/pull/new/feature/next-gameplay-iteration
 
+## Claude 관리 브랜치 (신규)
+
+- Branch name: `claude/fixes-and-review`
+- Remote branch: `origin/claude/fixes-and-review`
+- GitHub branch URL: https://github.com/JungGit-zard/school_survivor/tree/claude/fixes-and-review
+- Pull request URL: https://github.com/JungGit-zard/school_survivor/pull/new/claude/fixes-and-review
+- 용도: 버그 수정, 코드 검수, 안정성 개선 — 검증 후 `feature/next-gameplay-iteration`으로 PR
+
 ## Previous Feature Branch
 
 - Branch name: `feature/player-ellipse-shadow`
@@ -50,8 +58,18 @@ npm install
 npm run dev
 ```
 
+## 브랜치 구조 요약
+
+```
+main
+├── feature/player-ellipse-shadow   (이전 피처 브랜치, 보존)
+├── feature/next-gameplay-iteration (현재 작업 브랜치)
+└── claude/fixes-and-review         (Claude 관리 — 버그픽스/검수)
+```
+
 ## Notes
 
-- Continue new work on `feature/next-gameplay-iteration`.
-- `feature/player-ellipse-shadow` is preserved as the previous feature branch.
-- `main` should remain the stable branch.
+- 신규 기능: `feature/next-gameplay-iteration`에서 작업
+- 버그 수정/검수: `claude/fixes-and-review`에서 작업 후 PR
+- `feature/player-ellipse-shadow`: 이전 피처, 보존
+- `main`: 안정 브랜치, 직접 커밋 금지
