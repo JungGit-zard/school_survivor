@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>BangBang Survivor — 스테이지 1 난이도 곡선</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0d0d1a; color: #e0e0f0; font-family: 'Segoe UI', sans-serif; padding: 32px; }
+  h1 { font-size: 20px; color: #ffd060; margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #888; margin-bottom: 32px; }
+  .chart-wrap { background: #13132a; border: 1px solid #2a2a4a; border-radius: 12px; padding: 28px 32px 20px; }
+  svg { display: block; }
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 20px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #bbb; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .phase-label { font-size: 11px; fill: #888; }
+  .event-label { font-size: 11px; fill: #ffcc44; font-weight: 600; }
+  .axis-label { font-size: 11px; fill: #666; }
+  .axis-title { font-size: 12px; fill: #aaa; }
+</style>
+</head>
+<body>
+<h1>BangBang Survivor — 스테이지 1 난이도 상승 그래프</h1>
+<p class="subtitle">기준: monster_spawn_scenario_5min_boss_4min.md / 2026-05-02</p>
+
+<div class="chart-wrap">
+<svg id="chart" width="860" height="480" viewBox="0 0 860 480"></svg>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#ff6b6b"></div> 동시 유지 몬스터 수</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#60d0a0"></div> 플레이어 예상 DPS</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#6090ff"></div> 종합 위험도 (몬스터 압박)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ffd060; border-radius:2px"></div> 신규 적 등장</div>
+</div>
+</div>
+
+<script>
+const svg = document.getElementById('chart');
+const W = 860, H = 480;
+const PAD = { top: 40, right: 40, bottom: 60, left: 60 };
+const CW = W - PAD.left - PAD.right;
+const CH = H - PAD.top - PAD.bottom;
+
+// 시간 데이터 (초 단위)
+// [시각(초), 동시유지수, 플레이어DPS, 위험도(0~100)]
+const data = [
+  [0,   12,  20,  8],
+  [30,  20,  24,  18],
+  [60,  30,  32,  28],
+  [90,  38,  42,  38],
+  [120, 48,  52,  50],
+  [150, 58,  62,  58],
+  [180, 68,  72,  66],
+  [200, 78,  80,  74],
+  [210, 85,  88,  82],  // 보스 직전 최고조
+  [240, 25,  110, 90],  // 보스 등장 - 잡몹 줄고 보스 압박↑
+  [260, 35,  118, 94],
+  [280, 45,  125, 98],
+  [300, 45,  130, 100],
+];
+
+const MAX_MONSTERS = 105;
+const MAX_DPS = 140;
+const MAX_DANGER = 100;
+
+const phases = [
+  { start: 0,   end: 30,  label: '적응',     color: 'rgba(100,200,100,0.06)' },
+  { start: 30,  end: 90,  label: '첫 압박',   color: 'rgba(200,200,100,0.06)' },
+  { start: 90,  end: 150, label: '무리 시작', color: 'rgba(220,180,80,0.06)' },
+  { start: 150, end: 210, label: '원거리 압박',color: 'rgba(220,120,60,0.07)' },
+  { start: 210, end: 240, label: '최고조',    color: 'rgba(220,60,60,0.08)' },
+  { start: 240, end: 300, label: '보스전',    color: 'rgba(180,60,200,0.10)' },
+];
+
+const events = [
+  { t: 0,   label: 'E01 등장',   color: '#aaffaa' },
+  { t: 30,  label: 'E02 등장',   color: '#ffdd88' },
+  { t: 60,  label: 'E03 등장',   color: '#ffaa44' },
+  { t: 120, label: 'E04 등장',   color: '#ff7766' },
+  { t: 165, label: 'E05 등장',   color: '#ff4444' },
+  { t: 200, label: 'E06 등장',   color: '#ff2222' },
+  { t: 240, label: '⚠ 보스 등장', color: '#cc44ff' },
+];
+
+function tx(sec) { return PAD.left + (sec / 300) * CW; }
+function ty(val, max) { return PAD.top + CH - (val / max) * CH; }
+
+function el(tag, attrs={}, parent=svg) {
+  const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const [k,v] of Object.entries(attrs)) e.setAttribute(k, v);
+  parent.appendChild(e);
+  return e;
+}
+function text(content, attrs={}, parent=svg) {
+  const e = el('text', attrs, parent);
+  e.textContent = content;
+  return e;
+}
+
+// 페이즈 배경
+phases.forEach(p => {
+  el('rect', {
+    x: tx(p.start), y: PAD.top,
+    width: tx(p.end) - tx(p.start), height: CH,
+    fill: p.color,
+  });
+  text(p.label, {
+    x: (tx(p.start) + tx(p.end)) / 2,
+    y: PAD.top + CH + 30,
+    'text-anchor': 'middle',
+    'font-size': '11',
+    fill: '#666',
+  });
+});
+
+// 그리드 수평선
+[0, 25, 50, 75, 100].forEach(v => {
+  const y = PAD.top + CH - (v / 100) * CH;
+  el('line', { x1: PAD.left, y1: y, x2: PAD.left + CW, y2: y,
+    stroke: '#1e1e3a', 'stroke-width': 1 });
+  text(v + '%', { x: PAD.left - 8, y: y + 4, 'text-anchor': 'end',
+    'font-size': '11', fill: '#444' });
+});
+
+// 그리드 수직선 (시간)
+[0, 60, 120, 180, 240, 300].forEach(t => {
+  const x = tx(t);
+  el('line', { x1: x, y1: PAD.top, x2: x, y2: PAD.top + CH,
+    stroke: '#1e1e3a', 'stroke-width': 1 });
+  const min = Math.floor(t/60);
+  const sec = t % 60;
+  text(`${min}:${String(sec).padStart(2,'0')}`, {
+    x: x, y: PAD.top + CH + 14,
+    'text-anchor': 'middle', 'font-size': '12', fill: '#555',
+  });
+});
+
+// 이벤트 수직선
+events.forEach(ev => {
+  const x = tx(ev.t);
+  el('line', { x1: x, y1: PAD.top, x2: x, y2: PAD.top + CH,
+    stroke: ev.color, 'stroke-width': 1, 'stroke-dasharray': '4,3', opacity: 0.6 });
+  const te = el('text', {
+    x: x + 3, y: PAD.top + 12,
+    'font-size': '10', fill: ev.color,
+    'writing-mode': 'tb', opacity: 0.9,
+  });
+  te.textContent = ev.label;
+});
+
+// 곡선 그리기
+function makePath(points) {
+  return points.map((p,i) => `${i===0?'M':'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+}
+
+// 위험도 영역
+const dangerPts = data.map(d => [tx(d[0]), ty(d[3], MAX_DANGER)]);
+const areaPath = makePath(dangerPts)
+  + ` L${tx(300)},${PAD.top+CH} L${tx(0)},${PAD.top+CH} Z`;
+el('path', { d: areaPath, fill: 'rgba(96,144,255,0.12)', stroke: 'none' });
+el('path', { d: makePath(dangerPts), fill: 'none',
+  stroke: '#6090ff', 'stroke-width': 2.5, 'stroke-linejoin': 'round' });
+
+// 플레이어 DPS (정규화 0~100%)
+const dpsPts = data.map(d => [tx(d[0]), ty((d[2]/MAX_DPS)*100, MAX_DANGER)]);
+el('path', { d: makePath(dpsPts), fill: 'none',
+  stroke: '#60d0a0', 'stroke-width': 2, 'stroke-dasharray': '6,3', 'stroke-linejoin': 'round' });
+
+// 동시 유지 몬스터 수 (정규화)
+const monPts = data.map(d => [tx(d[0]), ty((d[1]/MAX_MONSTERS)*100, MAX_DANGER)]);
+el('path', { d: makePath(monPts), fill: 'none',
+  stroke: '#ff6b6b', 'stroke-width': 2, 'stroke-linejoin': 'round' });
+
+// 보스 등장 강조
+const bx = tx(240);
+el('rect', { x: bx - 1, y: PAD.top, width: 2, height: CH, fill: '#cc44ff' });
+text('BOSS', { x: bx + 4, y: PAD.top + 26, 'font-size': '13', fill: '#cc44ff', 'font-weight': 'bold' });
+
+// 축
+el('line', { x1: PAD.left, y1: PAD.top, x2: PAD.left, y2: PAD.top+CH,
+  stroke: '#333', 'stroke-width': 1 });
+el('line', { x1: PAD.left, y1: PAD.top+CH, x2: PAD.left+CW, y2: PAD.top+CH,
+  stroke: '#333', 'stroke-width': 1 });
+
+// 축 타이틀
+text('난이도 (%)', { x: PAD.left - 42, y: PAD.top + CH/2,
+  'text-anchor': 'middle', transform: `rotate(-90, ${PAD.left-42}, ${PAD.top+CH/2})`,
+  'font-size': '12', fill: '#777' });
+text('게임 경과 시간', { x: PAD.left + CW/2, y: PAD.top + CH + 46,
+  'text-anchor': 'middle', 'font-size': '12', fill: '#777' });
+
+// 데이터 포인트
+data.forEach(d => {
+  el('circle', { cx: tx(d[0]), cy: ty(d[3], MAX_DANGER), r: 3,
+    fill: '#6090ff', stroke: '#0d0d1a', 'stroke-width': 1 });
+});
+</script>
+</body>
+</html>
