@@ -3,8 +3,9 @@ import { useFrame } from '@react-three/fiber'
 import { useKeyboardControls } from '@react-three/drei'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { useGameStore } from '../store/useGameStore.js'
-import { playerFacing, playerPos } from '../lib/refs.js'
+import { playerFacing, playerPos, joystickDir } from '../lib/refs.js'
 import PlayerMesh from './PlayerMesh.jsx'
+import MiniHealthBar from './MiniHealthBar.jsx'
 
 const _v = { x: 0, y: 0, z: 0 }
 const INV_DURATION = 520
@@ -25,6 +26,8 @@ export default function Player() {
   const [, getKeys] = useKeyboardControls()
   const speed           = useGameStore((s) => s.player.speed)
   const phase           = useGameStore((s) => s.phase)
+  const hp              = useGameStore((s) => s.player.hp)
+  const maxHp           = useGameStore((s) => s.player.maxHp)
   const endInvulnerable = useGameStore((s) => s.endInvulnerable)
   const damagePlayer    = useGameStore((s) => s.damagePlayer)
 
@@ -39,8 +42,13 @@ export default function Player() {
 
     const { up, down, left, right } = getKeys()
 
-    _v.x = (right ? 1 : 0) - (left ? 1 : 0)
-    _v.z = (down  ? 1 : 0) - (up   ? 1 : 0)
+    if (joystickDir.active) {
+      _v.x = joystickDir.x
+      _v.z = joystickDir.z
+    } else {
+      _v.x = (right ? 1 : 0) - (left ? 1 : 0)
+      _v.z = (down  ? 1 : 0) - (up   ? 1 : 0)
+    }
 
     const len = Math.hypot(_v.x, _v.z)
     movingRef.current = len > 0
@@ -98,6 +106,7 @@ export default function Player() {
     >
       <CuboidCollider args={[0.136, 0.32, 0.136]} />
       <PlayerMesh groupRef={meshGroup} movingRef={movingRef} />
+      <MiniHealthBar current={hp} max={maxHp} width={0.38} height={0.052} y={0.75} />
     </RigidBody>
   )
 }

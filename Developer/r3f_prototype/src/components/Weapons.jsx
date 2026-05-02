@@ -448,7 +448,7 @@ export function SchoolBagSwing() {
     proximityRbRef.current?.setTranslation({ x: playerPos.x, y: playerPos.y + 0.16, z: playerPos.z }, true)
 
     const now = clock.elapsedTime * 1000
-    const triggerRange = w.triggerRange ?? 0.58
+    const triggerRange = w.triggerRange ?? 0.387
     let hasVeryCloseEnemy = false
     closeEnemiesRef.current.forEach(({ rb }, enemyId) => {
       if (!rb?._enemyHit || rb._enemyDead) {
@@ -463,6 +463,8 @@ export function SchoolBagSwing() {
 
     if (!swing && hasVeryCloseEnemy && now - lastSwingRef.current >= w.cooldown) {
       lastSwingRef.current = now
+      bagSwingState.lastFired = now
+      bagSwingState.cooldown  = w.cooldown
       hitSetRef.current = new Set()
       pendingHitsRef.current = new Map()
       bagSwingState.active = true
@@ -495,7 +497,7 @@ export function SchoolBagSwing() {
     bagSwingState.progress = t
     const sweep = -1.18 + ease * 2.36
     const angle = swing.facing + sweep
-    const reach = w.range ?? 0.95
+    const reach = w.range ?? 0.633
     const x = playerPos.x + Math.sin(angle) * reach
     const z = playerPos.z + Math.cos(angle) * reach
     const y = playerPos.y + 0.16
@@ -518,7 +520,7 @@ export function SchoolBagSwing() {
     if (trailRef.current) {
       trailRef.current.position.set(playerPos.x, 0.055, playerPos.z)
       trailRef.current.rotation.set(-Math.PI / 2, 0, swing.facing - Math.PI / 2)
-      trailRef.current.scale.setScalar(0.78 + ease * 0.48)
+      trailRef.current.scale.setScalar(0.52 + ease * 0.32)
       trailRef.current.material.opacity = 0.88 * swingPower
     }
 
@@ -553,11 +555,11 @@ export function SchoolBagSwing() {
           if (rb?._enemyId !== undefined) closeEnemiesRef.current.delete(rb._enemyId)
         }}
       >
-        <BallCollider args={[weapons.schoolBag.triggerRange ?? 0.58]} sensor />
+        <BallCollider args={[weapons.schoolBag.triggerRange ?? 0.387]} sensor />
       </RigidBody>
       {swing && (
         <mesh ref={trailRef} rotation={[-Math.PI / 2, 0, 0]} position={[playerPos.x, 0.055, playerPos.z]} renderOrder={3}>
-          <ringGeometry args={[0.42, (weapons.schoolBag.range ?? 0.95) + 0.42, 72, 1, -1.18, 2.36]} />
+          <ringGeometry args={[0.28, (weapons.schoolBag.range ?? 0.633) + 0.28, 72, 1, -1.18, 2.36]} />
           <meshBasicMaterial color={0x7ee7ff} transparent opacity={0} side={THREE.DoubleSide} depthWrite={false} />
         </mesh>
       )}
@@ -574,11 +576,11 @@ export function SchoolBagSwing() {
           pendingHitsRef.current.set(rb._enemyId, rb._enemyHit)
         }}
       >
-        <CuboidCollider args={[0.48, 0.30, 0.38]} sensor />
+        <CuboidCollider args={[0.32, 0.20, 0.253]} sensor />
       </RigidBody>
       {swing && (
         <group ref={visualRef} position={[playerPos.x, playerPos.y, playerPos.z]}>
-          <group ref={bagArcRef} position={[0, 0.16, weapons.schoolBag.range ?? 0.95]}>
+          <group ref={bagArcRef} position={[0, 0.16, weapons.schoolBag.range ?? 0.633]}>
             <ThirtyCmRulerModel />
           </group>
         </group>
@@ -711,7 +713,7 @@ export function BellShockwave() {
     if (nowMs - lastFireRef.current < w.cooldown) return
     lastFireRef.current = nowMs
 
-    const radius = 3.4
+    const radius = w.radius ?? 1.7
     enemyBodies.forEach((rb) => {
       if (!rb?._enemyHit || rb._enemyDead) return
       const t = rb.translation()

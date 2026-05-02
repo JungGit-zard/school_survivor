@@ -4,7 +4,7 @@ import { useGameStore } from '../store/useGameStore.js'
 import { playerPos } from '../lib/refs.js'
 import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
-import XpOrb from './XpOrb.jsx'
+import GoldCoin from './GoldCoin.jsx'
 
 // ── 스폰 위치 ─────────────────────────────────────────────────────────────────
 const BASE_COL_Y = 0.24
@@ -193,7 +193,7 @@ export default function Enemies() {
         <Enemy key={e.id} id={e.id} type={e.type} spawnPos={e.pos} onDeath={onDeath} />
       ))}
       {xpOrbs.map((o) => (
-        <XpOrb key={o.id} id={o.id} pos={o.pos} xp={o.xp} onCollect={onOrbCollect} />
+        <GoldCoin key={o.id} id={o.id} pos={o.pos} xp={o.xp} onCollect={onOrbCollect} />
       ))}
       {collapses.map((c) => (
         <EnemyDeathCollapse key={c.id} {...c} onDone={onCollapseDone} />

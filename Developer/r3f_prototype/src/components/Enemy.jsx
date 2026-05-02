@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../lib/refs.js'
 import { useGameStore } from '../store/useGameStore.js'
 import ZombieMesh from './ZombieMesh.jsx'
+import MiniHealthBar from './MiniHealthBar.jsx'
 
 const _dir = new THREE.Vector3()
 const _pos = new THREE.Vector3()
@@ -77,20 +78,6 @@ function EnemyProjectile({ id, position, velocity, damage, onExpire }) {
 }
 
 // ── HP 바 ────────────────────────────────────────────────────────────────────
-function HpBar({ current, max, scale }) {
-  const ratio = Math.max(0, current / max)
-  const w = 0.30 * scale
-  const y = 0.62 * scale
-  return (
-    <group position={[0, y, 0]}>
-      <mesh><planeGeometry args={[w, 0.05]} /><meshBasicMaterial color={0x220000} /></mesh>
-      <mesh position={[-(w * (1 - ratio)) / 2, 0, 0.001]} scale={[ratio, 1, 1]}>
-        <planeGeometry args={[w, 0.05]} /><meshBasicMaterial color={0xff2244} />
-      </mesh>
-    </group>
-  )
-}
-
 // ── 메인 Enemy 컴포넌트 ───────────────────────────────────────────────────────
 export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
   const rb       = useRef()
@@ -333,8 +320,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
         <CuboidCollider args={colArgs} />
         <group ref={groupRef} scale={[cs * 0.333, cs * 0.333, cs * 0.333]}>
           <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} />
-          <HpBar current={hp} max={stats.hp} scale={cs} />
         </group>
+        <MiniHealthBar current={hp} max={stats.hp} width={0.32 * cs} height={0.045} y={0.72 * cs} />
       </RigidBody>
 
       {/* E04 / B01 투사체 */}

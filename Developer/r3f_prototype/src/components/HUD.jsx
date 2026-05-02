@@ -1,27 +1,36 @@
-import { useEffect } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useGameStore } from '../store/useGameStore.js'
+import { bagSwingState } from '../lib/refs.js'
 
 const UPGRADES = [
-  { key: 'pencilDamage', icon: 'pencil', label: '연필 데미지 +3', desc: '투척 연필의 공격력 증가' },
+  { key: 'pencilDamage', icon: 'pencil', labelFn: (w) => `연필 데미지 +${Math.round(3 / w.pencilThrow.damage * 100)}%`, desc: '투척 연필의 공격력 증가' },
   { key: 'pencilCount',  icon: 'pencil', label: '연필 발사 수 +1', desc: '동시에 날리는 연필 수 증가 (최대 4)' },
   { key: 'pencilPierce', icon: 'pencil', label: '연필 관통 +1',   desc: '연필이 적을 관통 (최대 3회)' },
-  { key: 'bagDamage',    icon: 'ruler', label: '30센치 자 피해 +8',  desc: '자 휘두르기 타격 피해 증가' },
-  { key: 'bagRadius',    icon: 'ruler', label: '30센치 자 사거리 +',  desc: '자 휘두르기 타격 범위 증가' },
+  { key: 'bagDamage',    icon: 'ruler',  labelFn: (w) => `30센치 자 피해 +${Math.round(8 / w.schoolBag.damage * 100)}%`, desc: '자 휘두르기 타격 피해 증가' },
+  { key: 'bagRadius',    icon: 'ruler',  label: '30센치 자 사거리 +',  desc: '자 휘두르기 타격 범위 증가' },
   { key: 'tumblerCount', icon: 'tumbler', label: '텀블러 개수 +1', desc: '회전 텀블러 개수 증가 (최대 3개)' },
-  { key: 'tumblerDamage', icon: 'tumbler', label: '텀블러 피해 +4', desc: '회전 텀블러 접촉 피해 증가' },
-  { key: 'unlockFlask',  icon: 'flask', label: '플라스크 해금', desc: '밀집한 적에게 광역 폭발 투척' },
-  { key: 'flaskDamage',  icon: 'flask', label: '플라스크 피해 +10', desc: '폭발 피해 증가' },
-  { key: 'flaskRadius',  icon: 'flask', label: '플라스크 범위 +', desc: '폭발 반경 증가' },
-  { key: 'unlockBell',   icon: 'bell', label: '벨 해금',      desc: '8방향 충격파 스킬 해금' },
-  { key: 'bellDamage',   icon: 'bell', label: '벨 데미지 +5',   desc: '충격파 공격력 증가' },
-  { key: 'unlockStun',   icon: 'stun', label: '전기충격 해금', desc: '체인 스턴건 스킬 해금' },
-  { key: 'stunChain',    icon: 'stun', label: '전기 연쇄 +1',    desc: '연쇄 대상 수 증가 (최대 4)' },
-  { key: 'moveSpeed',    icon: 'speed', label: '이동속도 +10%',   desc: '플레이어 이동속도 증가' },
+  { key: 'tumblerDamage', icon: 'tumbler', labelFn: (w) => `텀블러 피해 +${Math.round(4 / w.tumbler.damage * 100)}%`, desc: '회전 텀블러 접촉 피해 증가' },
+  { key: 'unlockFlask',  icon: 'flask',  label: '플라스크 해금', desc: '밀집한 적에게 광역 폭발 투척' },
+  { key: 'flaskDamage',  icon: 'flask',  labelFn: (w) => `플라스크 피해 +${Math.round(10 / w.scienceFlask.damage * 100)}%`, desc: '폭발 피해 증가' },
+  { key: 'flaskRadius',  icon: 'flask',  label: '플라스크 범위 +', desc: '폭발 반경 증가' },
+  { key: 'unlockBell',   icon: 'bell',   label: '벨 해금',      desc: '8방향 충격파 스킬 해금' },
+  { key: 'bellDamage',   icon: 'bell',   labelFn: (w) => `벨 데미지 +${Math.round(5 / w.bell.damage * 100)}%`, desc: '충격파 공격력 증가' },
+  { key: 'unlockStun',   icon: 'stun',   label: '전기충격 해금', desc: '체인 스턴건 스킬 해금' },
+  { key: 'stunChain',    icon: 'stun',   label: '전기 연쇄 +1',    desc: '연쇄 대상 수 증가 (최대 4)' },
+  { key: 'moveSpeed',    icon: 'speed',  label: '이동속도 +10%',   desc: '플레이어 이동속도 증가' },
   { key: 'maxHealth',    icon: 'health', label: '최대 체력 +20',   desc: '최대 HP 및 현재 HP 증가' },
 ]
 
-function pickThree(level) {
-  const available = UPGRADES.slice()
+function pickThree(level, weapons) {
+  const available = UPGRADES.filter((u) => {
+    if (u.key === 'unlockFlask')                          return !weapons.scienceFlask?.active
+    if (u.key === 'flaskDamage' || u.key === 'flaskRadius') return  weapons.scienceFlask?.active
+    if (u.key === 'unlockBell')                           return !weapons.bell?.active
+    if (u.key === 'bellDamage')                           return  weapons.bell?.active
+    if (u.key === 'unlockStun')                           return !weapons.stunGun?.active
+    if (u.key === 'stunChain')                            return  weapons.stunGun?.active
+    return true
+  })
   const shuffled = [...available].sort(() => Math.random() - 0.5)
   return shuffled.slice(0, 3)
 }
@@ -55,10 +64,30 @@ function UpgradeIcon({ type }) {
           <span style={styles.tumblerCap} />
         </div>
       )}
-      {type === 'bell' && <div style={styles.bellIcon}><span /></div>}
-      {type === 'stun' && <div style={styles.stunIcon}>⚡</div>}
-      {type === 'speed' && <div style={styles.speedIcon}>»</div>}
-      {type === 'health' && <div style={styles.healthIcon}>+</div>}
+      {type === 'bell' && (
+        <div style={styles.bellIcon}>
+          <span style={styles.bellKnob} />
+          <span style={styles.bellClapper} />
+        </div>
+      )}
+      {type === 'stun' && (
+        <div style={styles.stunIcon}>
+          <span style={styles.stunBolt} />
+        </div>
+      )}
+      {type === 'speed' && (
+        <div style={styles.speedIcon}>
+          <span style={styles.speedLine1} />
+          <span style={styles.speedLine2} />
+          <span style={styles.speedLine3} />
+        </div>
+      )}
+      {type === 'health' && (
+        <div style={styles.healthIcon}>
+          <span style={styles.healthH} />
+          <span style={styles.healthV} />
+        </div>
+      )}
     </div>
   )
 }
@@ -76,8 +105,23 @@ export default function HUD() {
   const mins = String(Math.floor(elapsed / 60000)).padStart(2, '0')
   const secs = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, '0')
 
-  const choices = phase === 'levelup' ? pickThree(player.level) : []
+  // phase가 'levelup'으로 바뀌는 순간 한 번만 고정 — RAF re-render에 흔들리지 않음
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const choices = useMemo(() => phase === 'levelup' ? pickThree(player.level, weapons) : [], [phase])
   const lowHp   = player.hp / player.maxHp < 0.3
+
+  // 자 쿨타임 비율 (1=준비됨, 0=쿨타임 시작 직후) — RAF로 DOM 갱신 없이 폴링
+  const [bagReady, setBagReady] = useState(1)
+  useEffect(() => {
+    let raf
+    const poll = () => {
+      const elapsed = performance.now() - bagSwingState.lastFired
+      setBagReady(Math.min(1, elapsed / bagSwingState.cooldown))
+      raf = requestAnimationFrame(poll)
+    }
+    raf = requestAnimationFrame(poll)
+    return () => cancelAnimationFrame(raf)
+  }, [])
 
   // CSS 키프레임 주입 (최초 1회)
   useEffect(() => {
@@ -144,6 +188,31 @@ export default function HUD() {
         ))}
       </div>
 
+      {/* ── 자 쿨타임 UI (HP바 좌상단, 원형) ── */}
+      <div style={styles.cdWrap}>
+        <div style={styles.cdRing}>
+          <svg width="42" height="42" viewBox="0 0 42 42" style={{ display: 'block' }}>
+            {/* 검정 배경 원 */}
+            <circle cx="21" cy="21" r="20" fill="#111" stroke="#333" strokeWidth="1" />
+            {/* 황색 진행 링 */}
+            <circle
+              cx="21" cy="21" r="15"
+              fill="none"
+              stroke={bagReady >= 1 ? '#ffd23c' : '#8a6800'}
+              strokeWidth="5"
+              strokeLinecap="butt"
+              strokeDasharray={`${2 * Math.PI * 15}`}
+              strokeDashoffset={`${2 * Math.PI * 15 * (1 - bagReady)}`}
+              transform="rotate(-90 21 21)"
+            />
+          </svg>
+          <span style={styles.cdIcon}>자</span>
+        </div>
+        <span style={styles.cdTime}>
+          {bagReady >= 1 ? 'OK' : `${((1 - bagReady) * (bagSwingState.cooldown / 1000)).toFixed(1)}s`}
+        </span>
+      </div>
+
       {/* ── Modals ── */}
       {phase === 'levelup' && (
         <div style={styles.overlay}>
@@ -153,7 +222,7 @@ export default function HUD() {
               {choices.map((c) => (
                 <button key={c.key} style={styles.choiceBtn} onClick={() => applyUpgrade(c.key)}>
                   <UpgradeIcon type={c.icon} />
-                  <div style={styles.choiceLabel}>{c.label}</div>
+                  <div style={styles.choiceLabel}>{c.labelFn ? c.labelFn(weapons) : c.label}</div>
                   <div style={styles.choiceDesc}>{c.desc}</div>
                 </button>
               ))}
@@ -225,6 +294,26 @@ const styles = {
   weaponChip: {
     background: 'rgba(0,0,0,0.55)', color: '#fff',
     fontSize: 12, padding: '3px 8px', borderRadius: 4, border: '1px solid #555',
+  },
+  cdWrap: {
+    position: 'absolute',
+    bottom: 68,
+    left: 'calc(50% - 160px)',
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+    pointerEvents: 'none',
+  },
+  cdRing: {
+    position: 'relative', width: 42, height: 42,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  cdIcon: {
+    position: 'absolute',
+    fontSize: 13, fontWeight: 700, color: '#ffd23c',
+    textShadow: '0 1px 3px #000', userSelect: 'none',
+  },
+  cdTime: {
+    color: '#ffd23c', fontSize: 10, fontWeight: 600,
+    textShadow: '0 1px 2px #000', letterSpacing: 0.5,
   },
   overlay: {
     position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)',
@@ -299,13 +388,53 @@ const styles = {
   },
   bellIcon: {
     width: 34, height: 30, background: '#ffd040', border: '3px solid #111',
-    borderRadius: '16px 16px 8px 8px', position: 'relative',
+    borderRadius: '50% 50% 8px 8px', position: 'relative', marginTop: 6,
   },
-  stunIcon: { color: '#ffe65c', fontSize: 30, lineHeight: '36px', textShadow: '0 2px 0 #111' },
-  speedIcon: { color: '#8df0ff', fontSize: 36, fontWeight: 900, lineHeight: '34px', textShadow: '0 2px 0 #111' },
+  bellKnob: {
+    position: 'absolute', top: -9, left: '50%', transform: 'translateX(-50%)',
+    width: 9, height: 9, background: '#ffd040', border: '3px solid #111', borderRadius: '50%',
+    display: 'block',
+  },
+  bellClapper: {
+    position: 'absolute', bottom: -8, left: '50%', transform: 'translateX(-50%)',
+    width: 8, height: 8, background: '#111', borderRadius: '50%', display: 'block',
+  },
+  stunIcon: {
+    position: 'relative', width: 22, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  stunBolt: {
+    display: 'block', width: 22, height: 38,
+    background: '#ffe65c', border: '2.5px solid #111',
+    clipPath: 'polygon(65% 0%, 100% 0%, 38% 50%, 82% 50%, 8% 100%, 28% 52%, 0% 52%)',
+  },
+  speedIcon: {
+    display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5,
+    width: 38, height: 38,
+  },
+  speedLine1: {
+    display: 'block', width: 36, height: 5,
+    background: '#8df0ff', border: '2px solid #111', borderRadius: 3,
+  },
+  speedLine2: {
+    display: 'block', width: 26, height: 5, marginLeft: 10,
+    background: '#8df0ff', border: '2px solid #111', borderRadius: 3,
+  },
+  speedLine3: {
+    display: 'block', width: 16, height: 5, marginLeft: 20,
+    background: '#8df0ff', border: '2px solid #111', borderRadius: 3,
+  },
   healthIcon: {
-    width: 32, height: 32, color: '#fff', background: '#e03040', border: '3px solid #111',
-    borderRadius: 6, fontSize: 28, fontWeight: 900, lineHeight: '28px',
+    position: 'relative', width: 34, height: 34,
+  },
+  healthH: {
+    position: 'absolute', top: '50%', left: 0, transform: 'translateY(-50%)',
+    display: 'block', width: 34, height: 12,
+    background: '#e03040', border: '2.5px solid #111', borderRadius: 2, boxSizing: 'border-box',
+  },
+  healthV: {
+    position: 'absolute', left: '50%', top: 0, transform: 'translateX(-50%)',
+    display: 'block', width: 12, height: 34,
+    background: '#e03040', border: '2.5px solid #111', borderRadius: 2, boxSizing: 'border-box',
   },
   choiceLabel: { fontSize: 14, fontWeight: 700, marginBottom: 6 },
   choiceDesc:  { fontSize: 11, color: '#bbb', lineHeight: 1.4 },

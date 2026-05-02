@@ -9,6 +9,10 @@ export const playerFacing = new THREE.Vector3(0, 0, 1)
 export const bagSwingState = {
   active: false,
   progress: 0,
+  lastFired: -Infinity,
+  cooldown: 1000,
 }
 
 export const enemyBodies = new Map()
+
+export const joystickDir = { x: 0, z: 0, active: false }
