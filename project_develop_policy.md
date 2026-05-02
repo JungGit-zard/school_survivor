@@ -9,6 +9,14 @@
 - Before planning, implementation, asset work, QA, Git workflow changes, folder-structure changes, or project-direction decisions, check this document for relevant rules.
 - If a rule in this document is unclear, follow the safest narrow interpretation and ask the user when the decision could change project direction.
 
+## Mandatory Session Continuity
+
+- Before starting a new substantial session, read `SESSION_CONTINUITY.md`.
+- Before planning or editing in a new session, read the newest Markdown file in `Session_Logs/`.
+- Every 3 hours of active project work or active conversation, create or update a Markdown summary in `Session_Logs/`.
+- The 3-hour summary must record important conversation content, program usage records, generated tools/components/documents/assets and their purposes, changed files, verification results, screenshots, Git status, unresolved issues, and next-session instructions.
+- Do not rely only on chat memory for project continuity. Important session knowledge must be saved as Markdown text in `Session_Logs/`.
+
 ## 기록 규칙
 
 - 이 문서에 적힌 비어 있지 않은 항목은 BangBang Survivor 프로젝트의 필수 규칙으로 취급한다.

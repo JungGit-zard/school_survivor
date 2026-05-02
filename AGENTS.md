@@ -24,6 +24,10 @@
 
 - Before editing code or documents, inspect the existing files and structure.
 - Before changing project direction, folder structure, branch strategy, or workflow rules, read `project_develop_policy.md`.
+- At the start of every new session, read `SESSION_CONTINUITY.md` and the newest Markdown file in `Session_Logs/` before planning or editing.
+- Every 3 hours of active project work or active conversation, create or update a Markdown summary in `Session_Logs/` following `SESSION_CONTINUITY.md`.
+- The 3-hour summary must include important conversation content, program usage records, generated tools/components/documents/assets and their purposes, changed files, verification results, screenshots, Git status, unresolved issues, and next-session instructions.
+- Do not continue substantial work in a new session until the latest `Session_Logs/` summary has been read.
 - Do not overwrite or delete user changes unless the user explicitly asks for it.
 - Keep changes scoped to the current request.
 - Prefer small, understandable steps over large hidden changes.

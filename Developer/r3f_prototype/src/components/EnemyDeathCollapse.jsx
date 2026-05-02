@@ -5,12 +5,12 @@ import { outlineMat, toonMat } from '../lib/toon.js'
 import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
 
 const BASE_PARTS = [
-  { key: 'head', size: [0.52, 0.48, 0.46], offset: [0, 0.82, 0], color: 'skin', mass: 0.75 },
-  { key: 'body', size: [0.56, 0.58, 0.40], offset: [0, 0.28, 0], color: 'body', mass: 1.4 },
-  { key: 'armL', size: [0.20, 0.50, 0.20], offset: [-0.44, 0.26, 0.08], color: 'body', mass: 0.45 },
-  { key: 'armR', size: [0.20, 0.50, 0.20], offset: [0.44, 0.26, 0.08], color: 'body', mass: 0.45 },
-  { key: 'legL', size: [0.22, 0.52, 0.26], offset: [-0.15, -0.26, 0.02], color: 'body', mass: 0.55 },
-  { key: 'legR', size: [0.22, 0.52, 0.26], offset: [0.15, -0.26, 0.02], color: 'body', mass: 0.55 },
+  { key: 'head', size: [0.36, 0.34, 0.32], offset: [0, 0.82, 0], color: 'skin', mass: 0.75 },
+  { key: 'body', size: [0.39, 0.41, 0.28], offset: [0, 0.28, 0], color: 'body', mass: 1.4 },
+  { key: 'armL', size: [0.14, 0.35, 0.14], offset: [-0.44, 0.26, 0.08], color: 'body', mass: 0.45 },
+  { key: 'armR', size: [0.14, 0.35, 0.14], offset: [0.44, 0.26, 0.08], color: 'body', mass: 0.45 },
+  { key: 'legL', size: [0.15, 0.36, 0.18], offset: [-0.15, -0.26, 0.02], color: 'body', mass: 0.55 },
+  { key: 'legR', size: [0.15, 0.36, 0.18], offset: [0.15, -0.26, 0.02], color: 'body', mass: 0.55 },
 ]
 
 const COLLAPSE_LIFETIME_MS = 800

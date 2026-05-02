@@ -10,15 +10,15 @@ const INITIAL_PLAYER = {
 
 const INITIAL_WEAPONS = {
   pencilThrow: { label: '연필', damage: 9, cooldown: 900, lastFired: 0, projectileCount: 1, pierce: 0, speed: 12, range: 22, active: true },
-  schoolBag:   { label: '30센치 자 휘두르기', damage: 22, cooldown: 1500, range: 0.95, triggerRange: 0.58, swingMs: 260, active: true },
+  schoolBag:   { label: '30센치 자 휘두르기', damage: 22, cooldown: 1000, range: 0.95, triggerRange: 1.0, swingMs: 260, active: true },
   tumbler:     { label: '텀블러', damage: 10, radius: 1.0, hitsPerSecond: 3.5, orbitSpeed: 2.8, count: 1, active: true },
-  scienceFlask:{ label: '과학 삼각플라스크', damage: 32, cooldown: 2600, radius: 1.6, range: 18, active: false },
+  scienceFlask:{ label: '과학 삼각플라스크', damage: 32, cooldown: 2600, radius: 1.6, range: 2, active: false },
   bell:        { label: '벨', damage: 14, cooldown: 4200, lastFired: 0, directions: 8, speed: 10, active: false },
   stunGun:     { label: '전기', damage: 22, cooldown: 2800, lastFired: 0, chainCount: 2, active: false },
 }
 
 INITIAL_WEAPONS.schoolBag.range = 0.633
-INITIAL_WEAPONS.schoolBag.triggerRange = 0.387
+INITIAL_WEAPONS.schoolBag.triggerRange = 1.0
 INITIAL_WEAPONS.bell.radius = 1.7
 
 export const useGameStore = create(

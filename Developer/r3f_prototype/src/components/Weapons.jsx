@@ -463,6 +463,8 @@ export function SchoolBagSwing() {
 
     if (!swing && hasVeryCloseEnemy && now - lastSwingRef.current >= w.cooldown) {
       lastSwingRef.current = now
+      bagSwingState.lastFired = now
+      bagSwingState.cooldown  = w.cooldown
       hitSetRef.current = new Set()
       pendingHitsRef.current = new Map()
       bagSwingState.active = true
