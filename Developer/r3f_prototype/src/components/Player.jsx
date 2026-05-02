@@ -4,6 +4,7 @@ import { useKeyboardControls } from '@react-three/drei'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { useGameStore } from '../store/useGameStore.js'
 import { playerFacing, playerPos } from '../lib/refs.js'
+import { joystickDir } from '../lib/joystick.js'
 import PlayerMesh from './PlayerMesh.jsx'
 
 const _v = { x: 0, y: 0, z: 0 }
@@ -39,8 +40,8 @@ export default function Player() {
 
     const { up, down, left, right } = getKeys()
 
-    _v.x = (right ? 1 : 0) - (left ? 1 : 0)
-    _v.z = (down  ? 1 : 0) - (up   ? 1 : 0)
+    _v.x = ((right ? 1 : 0) - (left ? 1 : 0)) || joystickDir.x
+    _v.z = ((down  ? 1 : 0) - (up   ? 1 : 0)) || joystickDir.z
 
     const len = Math.hypot(_v.x, _v.z)
     movingRef.current = len > 0
