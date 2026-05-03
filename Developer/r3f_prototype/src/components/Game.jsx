@@ -7,7 +7,7 @@ import Player from './Player.jsx'
 import Floor from './Floor.jsx'
 import Enemies from './Enemies.jsx'
 import LunchItems from './LunchItems.jsx'
-import { PencilThrow, SchoolBagSwing, TumblerOrbit, BellShockwave, ScienceFlaskSplash, GuidedMissileWeapon, StarlinkWeapon, OnigiiriWeapon } from './Weapons.jsx'
+import { PencilThrow, SchoolBagSwing, TumblerOrbit, BellShockwave, ScienceFlaskSplash, GuidedMissileWeapon, StarlinkWeapon, OnigiiriWeapon, StunGunWeapon } from './Weapons.jsx'
 
 const _camTarget = new THREE.Vector3()
 
@@ -64,6 +64,7 @@ export default function Game() {
       <GuidedMissileWeapon />
       <StarlinkWeapon />
       <OnigiiriWeapon />
+      <StunGunWeapon />
 
       {/* ── Enemies ── */}
       <Enemies />

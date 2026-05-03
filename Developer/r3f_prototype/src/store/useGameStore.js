@@ -17,7 +17,7 @@ const INITIAL_WEAPONS = {
   stunGun:       { label: '전기', damage: 22, cooldown: 2800, lastFired: 0, chainCount: 2, active: false },
   guidedMissile: { label: '보조배터리', damage: 16, cooldown: 4000, radius: 1.6, range: 22, count: 1, active: false },
   starlink:      { label: '고장난 스타링크', damage: 28, cooldown: 3800, radius: 1.2, strikeCount: 1, active: false },
-  onigiri:       { label: '오니기리', damage: 18, cooldown: 14400, bounces: 4, bounceRange: 4.5, range: 18, active: false },
+  onigiri:       { label: '오니기리', damage: 18, cooldown: 4800, bounces: 4, bounceRange: 4.5, range: 18, active: false },
 }
 
 INITIAL_WEAPONS.schoolBag.range = 0.633

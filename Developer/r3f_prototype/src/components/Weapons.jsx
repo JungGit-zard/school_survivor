@@ -12,6 +12,8 @@ let _bellPulseId = 0
 let _missileId  = 0
 let _starlinkId  = 0
 let _onigiiriId  = 0
+let _stunBoltId  = 0
+let _chainArcId  = 0
 
 function PencilModel() {
   const pencilOutlineMat = useMemo(() => outlineMat(0.98), [])
@@ -845,7 +847,22 @@ function MissileBody() {
   )
 }
 
-const MISSILE_CHARGE_TIME = 0.8  // 제자리 추진 준비 시간 (초)
+const MISSILE_CONTROL_TIME = 0.95
+
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3)
+}
+
+function smoothStep(t) {
+  return t * t * (3 - 2 * t)
+}
+
+function lerpAngle(a, b, t) {
+  let diff = b - a
+  while (diff >  Math.PI) diff -= Math.PI * 2
+  while (diff < -Math.PI) diff += Math.PI * 2
+  return a + diff * t
+}
 
 function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
   const groupRef    = useRef()
@@ -856,6 +873,13 @@ function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
   const explodedRef = useRef(false)
   const posRef      = useRef({ x: start[0], y: start[1], z: start[2] })
   const wobbleSeed  = useRef(Math.random() * 100)
+  const throwRef     = useRef({
+    angle: Math.random() * Math.PI * 2,
+    yawOffset: (Math.random() - 0.5) * Math.PI * 0.85,
+    pitch: (Math.random() - 0.5) * 1.3,
+    roll: (Math.random() > 0.5 ? 1 : -1) * (0.9 + Math.random() * 0.8),
+    hop: 0.12 + Math.random() * 0.12,
+  })
 
   // 첫 프레임 깜빡임 방지: opacity 0으로 초기화
   const flameMat = useMemo(() => new THREE.MeshBasicMaterial({
@@ -883,11 +907,12 @@ function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
     const dz = target.z - p.z
 
     // ── 충전 단계: 던져진 뒤 흔들리며 추진력 축적 ────────────────────────
-    if (ageRef.current < MISSILE_CHARGE_TIME) {
-      const chargeT = ageRef.current / MISSILE_CHARGE_TIME  // 0 → 1
+    if (ageRef.current < MISSILE_CONTROL_TIME) {
+      const chargeT = ageRef.current / MISSILE_CONTROL_TIME
+      const settleT = smoothStep(chargeT)
 
       // 스폰 팝인: 처음 0.12초 동안 0→1 스케일
-      const spawnScale = 1 - Math.pow(1 - Math.min(1, ageRef.current / 0.12), 3)
+      const spawnScale = easeOutCubic(Math.min(1, ageRef.current / 0.12))
       groupRef.current.scale.setScalar(spawnScale)
 
       // 목표 방향으로 미리 회전
@@ -896,15 +921,21 @@ function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
 
       // 랜덤 흔들림 — 차징 끝으로 갈수록 수렴해서 안정됨
       const seed = wobbleSeed.current
+      const throwData = throwRef.current
       const decay = 1 - chargeT * chargeT          // 1 → 0
       const freq  = 10 + Math.sin(seed) * 3
-      const wobX  = Math.sin(ageRef.current * freq       + seed)       * 0.13 * decay
-      const wobZ  = Math.cos(ageRef.current * freq * 0.7 + seed * 1.4) * 0.10 * decay
-      const tiltX = Math.sin(ageRef.current * freq * 0.9 + seed * 2.1) * 0.42 * decay
-      const tiltZ = Math.cos(ageRef.current * freq * 1.1 + seed * 0.8) * 0.30 * decay
+      const randomYaw = throwData.angle + throwData.yawOffset * decay + Math.sin(ageRef.current * freq + seed) * 0.32 * decay
+      const controlYaw = lerpAngle(randomYaw, baseYaw, settleT)
 
-      groupRef.current.position.set(p.x + wobX, start[1], p.z + wobZ)
-      groupRef.current.rotation.set(tiltX, baseYaw + tiltZ * 0.5, tiltZ)
+      const hopY = Math.sin(chargeT * Math.PI) * throwData.hop
+      const drift = 0.045 * (1 - settleT)
+      const wobbleX = Math.sin(throwData.angle) * drift + Math.sin(ageRef.current * freq + seed) * 0.018 * decay
+      const wobbleZ = Math.cos(throwData.angle) * drift + Math.cos(ageRef.current * freq * 0.7 + seed * 1.4) * 0.018 * decay
+      const tiltX = throwData.pitch * decay + Math.sin(ageRef.current * freq * 0.9 + seed * 2.1) * 0.25 * decay
+      const tiltZ = throwData.roll * decay + Math.cos(ageRef.current * freq * 1.1 + seed * 0.8) * 0.22 * decay
+
+      groupRef.current.position.set(p.x + wobbleX, start[1] + hopY, p.z + wobbleZ)
+      groupRef.current.rotation.set(tiltX, controlYaw, tiltZ)
 
       // 연기: 충전 초반엔 얇게, 끝으로 갈수록 뭉게뭉게
       if (smokeRef.current) {
@@ -921,6 +952,7 @@ function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
         flameMat.opacity     = 0.06 + chargeT * 0.22
         flameCoreMat.opacity = 0.08 + chargeT * 0.25
       }
+      speedRef.current = 0
       return
     }
 
@@ -966,11 +998,11 @@ function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
     <group ref={groupRef} position={start}>
       <MissileBody />
       {/* 발사 직후 연기 구름 — 꼬리 뒤쪽 */}
-      <mesh ref={smokeRef} renderOrder={3} material={smokeMat} position={[0, 0, -0.22]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.055, 0.10, 1, 8]} />
+      <mesh ref={smokeRef} renderOrder={3} material={smokeMat} position={[0, 0, -0.58]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.05, 0.09, 0.42, 8]} />
       </mesh>
       {/* 배기 화염 */}
-      <group ref={flameRef} position={[0, 0, -0.10]}>
+      <group ref={flameRef} position={[0, 0, -0.36]}>
         <mesh renderOrder={4} material={flameMat} rotation={[Math.PI / 2, 0, 0]}>
           <coneGeometry args={[0.038, 0.20, 8]} />
         </mesh>
@@ -1342,11 +1374,246 @@ export function StarlinkWeapon() {
   )
 }
 
+// ── 전기충격 (StunGun) ────────────────────────────────────────────────────────
+
+const BOLT_SPEED  = 16
+const CHAIN_RANGE = 4.5
+
+function LightningBoltModel() {
+  const boltMat = useMemo(() => toonMat(0xffe840, 0.55), [])
+  const coreMat = useMemo(() => toonMat(0xffffff, 0.9),  [])
+  const outMat  = useMemo(() => outlineMat(0.97), [])
+
+  const geo = useMemo(() => {
+    const shape = new THREE.Shape()
+    shape.moveTo( 0.06,  0.48)
+    shape.lineTo( 0.18,  0.48)
+    shape.lineTo(-0.04,  0.02)
+    shape.lineTo( 0.12,  0.02)
+    shape.lineTo(-0.06, -0.48)
+    shape.lineTo(-0.18, -0.48)
+    shape.lineTo( 0.04, -0.02)
+    shape.lineTo(-0.12, -0.02)
+    shape.closePath()
+    return new THREE.ExtrudeGeometry(shape, { depth: 0.12, bevelEnabled: false })
+  }, [])
+
+  return (
+    <group scale={[0.38, 0.38, 0.38]}>
+      <mesh renderOrder={1} geometry={geo} material={outMat}  scale={[1.15, 1.15, 1.15]} />
+      <mesh renderOrder={2} geometry={geo} material={boltMat} />
+      <mesh renderOrder={3} geometry={geo} material={coreMat} scale={[0.52, 0.52, 0.52]} position={[0, 0, 0.03]} />
+    </group>
+  )
+}
+
+function ChainArcVisual({ id, fromX, fromZ, toX, toZ, startMs, onDone }) {
+  const SEG_N       = 5
+  const ARC_SECS    = 0.22
+
+  const segData = useMemo(() => {
+    const dx = toX - fromX
+    const dz = toZ - fromZ
+    const len = Math.hypot(dx, dz) || 1
+    const px  = -dz / len
+    const pz  =  dx / len
+    const pts = Array.from({ length: SEG_N + 1 }, (_, i) => {
+      const t = i / SEG_N
+      const j = (i > 0 && i < SEG_N) ? Math.sin(i * 7.3 + (fromX + fromZ) * 5.1) * 0.40 : 0
+      return [fromX + dx * t + px * j, fromZ + dz * t + pz * j]
+    })
+    return Array.from({ length: SEG_N }, (_, i) => {
+      const [ax, az] = pts[i]
+      const [bx, bz] = pts[i + 1]
+      return {
+        midX: (ax + bx) / 2,
+        midZ: (az + bz) / 2,
+        segLen: Math.max(0.01, Math.hypot(bx - ax, bz - az)),
+        yaw: Math.atan2(bx - ax, bz - az),
+      }
+    })
+  }, [fromX, fromZ, toX, toZ])
+
+  const mats = useMemo(() => Array.from({ length: SEG_N }, () => {
+    const m = toonMat(0xffe840, 0.7)
+    m.transparent = true
+    m.depthWrite  = false
+    return m
+  }), [])
+
+  const outMats = useMemo(() => Array.from({ length: SEG_N }, () => {
+    const m = outlineMat(0.97)
+    m.transparent = true
+    m.depthWrite  = false
+    return m
+  }), [])
+
+  useFrame(() => {
+    const t = Math.min((performance.now() - startMs) / 1000 / ARC_SECS, 1)
+    if (t >= 1) { onDone(id); return }
+    const opacity = 1 - t * t
+    mats.forEach(m    => { m.opacity = opacity })
+    outMats.forEach(m => { m.opacity = opacity * 0.85 })
+  })
+
+  return (
+    <>
+      {segData.map((s, i) => (
+        <group key={i} position={[s.midX, 0.55, s.midZ]} rotation={[0, s.yaw, 0]}>
+          <mesh renderOrder={1} material={outMats[i]} scale={[1.35, 1.35, 1]}>
+            <boxGeometry args={[0.07, 0.07, s.segLen]} />
+          </mesh>
+          <mesh renderOrder={2} material={mats[i]}>
+            <boxGeometry args={[0.05, 0.05, s.segLen]} />
+          </mesh>
+        </group>
+      ))}
+    </>
+  )
+}
+
+function StunBoltProjectile({ id, startX, startZ, targetId, damage, hitSet, chainsLeft, onHit, onExpire }) {
+  const groupRef = useRef()
+  const posRef   = useRef({ x: startX, z: startZ })
+  const doneRef  = useRef(false)
+  const ageRef   = useRef(0)
+
+  useFrame((_, delta) => {
+    if (doneRef.current || !groupRef.current) return
+    ageRef.current += delta
+    if (ageRef.current > 2.5) { doneRef.current = true; onExpire(id); return }
+
+    const target = enemyBodies.get(targetId)
+    if (!target || target._enemyDead) { doneRef.current = true; onExpire(id); return }
+
+    const tt   = target.translation()
+    const dx   = tt.x - posRef.current.x
+    const dz   = tt.z - posRef.current.z
+    const dist = Math.hypot(dx, dz) || 0.001
+
+    if (dist < 0.4) {
+      doneRef.current = true
+      if (target._enemyHit) target._enemyHit(damage, { knockback: 2.2, knockbackMs: 80 })
+      onHit(id, startX, startZ, tt.x, tt.z, targetId, hitSet, chainsLeft)
+      return
+    }
+
+    posRef.current.x += (dx / dist) * BOLT_SPEED * delta
+    posRef.current.z += (dz / dist) * BOLT_SPEED * delta
+    groupRef.current.position.set(posRef.current.x, 0.55, posRef.current.z)
+    groupRef.current.rotation.y = Math.atan2(dx, dz)
+  })
+
+  return (
+    <group ref={groupRef} position={[startX, 0.55, startZ]}>
+      <LightningBoltModel />
+    </group>
+  )
+}
+
+export function StunGunWeapon() {
+  const active     = useGameStore(s => s.weapons.stunGun.active)
+  const cooldown   = useGameStore(s => s.weapons.stunGun.cooldown)
+  const damage     = useGameStore(s => s.weapons.stunGun.damage)
+  const chainCount = useGameStore(s => s.weapons.stunGun.chainCount)
+  const phase      = useGameStore(s => s.phase)
+
+  const lastFireRef = useRef(0)
+  const [bolts, setBolts] = useState([])
+  const [arcs,  setArcs]  = useState([])
+
+  const removeBolt = useCallback(id =>
+    setBolts(prev => prev.filter(b => b.id !== id)), [])
+
+  const removeArc = useCallback(id =>
+    setArcs(prev => prev.filter(a => a.id !== id)), [])
+
+  const onBoltHit = useCallback((id, fromX, fromZ, hitX, hitZ, hitEnemyId, hitSet, chainsLeft) => {
+    setBolts(prev => prev.filter(b => b.id !== id))
+    setArcs(prev => [...prev, {
+      id:      ++_chainArcId,
+      fromX, fromZ,
+      toX:     hitX,
+      toZ:     hitZ,
+      startMs: performance.now(),
+    }])
+    if (chainsLeft <= 0) return
+    let nextId = null, nextDist = Infinity
+    enemyBodies.forEach((rb, eid) => {
+      if (hitSet.has(eid) || rb._enemyDead) return
+      const t = rb.translation()
+      const d = Math.hypot(t.x - hitX, t.z - hitZ)
+      if (d < CHAIN_RANGE && d < nextDist) { nextDist = d; nextId = eid }
+    })
+    if (!nextId) return
+    hitSet.add(nextId)
+    setBolts(prev => [...prev, {
+      id:         ++_stunBoltId,
+      startX:     hitX,
+      startZ:     hitZ,
+      targetId:   nextId,
+      hitSet,
+      chainsLeft: chainsLeft - 1,
+    }])
+  }, [])
+
+  useFrame(() => {
+    if (!active || phase !== 'playing') return
+    const now = performance.now()
+    if (now - lastFireRef.current < cooldown) return
+    if (bolts.length > 0) return
+    lastFireRef.current = now
+
+    let nearestId = null, nearestDist = Infinity
+    enemyBodies.forEach((rb, eid) => {
+      if (rb._enemyDead) return
+      const t = rb.translation()
+      const d = Math.hypot(t.x - playerPos.x, t.z - playerPos.z)
+      if (d < nearestDist) { nearestDist = d; nearestId = eid }
+    })
+    if (!nearestId) return
+
+    const hitSet = new Set([nearestId])
+    setBolts([{
+      id:         ++_stunBoltId,
+      startX:     playerPos.x,
+      startZ:     playerPos.z,
+      targetId:   nearestId,
+      hitSet,
+      chainsLeft: chainCount - 1,
+    }])
+  })
+
+  if (!active) return null
+  return (
+    <>
+      {bolts.map(b => (
+        <StunBoltProjectile
+          key={b.id}
+          id={b.id}
+          startX={b.startX}
+          startZ={b.startZ}
+          targetId={b.targetId}
+          damage={damage}
+          hitSet={b.hitSet}
+          chainsLeft={b.chainsLeft}
+          onHit={onBoltHit}
+          onExpire={removeBolt}
+        />
+      ))}
+      {arcs.map(a => (
+        <ChainArcVisual key={a.id} {...a} onDone={removeArc} />
+      ))}
+    </>
+  )
+}
+
 // ── 오니기리 바운스 공격 ────────────────────────────────────────────────────────
 
 function OnigiiriModel() {
   const riceMat = useMemo(() => toonMat(0xfcf8f0, 0.06), [])
   const noriMat = useMemo(() => toonMat(0x192e13, 0.04), [])
+  const noriHiMat = useMemo(() => toonMat(0x36542c, 0.08), [])
   const bumpMat = useMemo(() => toonMat(0xe5e3d0, 0.08), [])
   const outMat  = useMemo(() => outlineMat(0.97), [])
 
@@ -1376,13 +1643,20 @@ function OnigiiriModel() {
           <sphereGeometry args={[0.095, 7, 5]} />
         </mesh>
       ))}
-      {/* 김(노리) 밴드 외곽선 */}
-      <mesh renderOrder={3} material={outMat} scale={[1.13, 1.06, 1.13]} position={[0, -0.19, 0]}>
-        <cylinderGeometry args={[0.39, 0.51, 0.28, 3]} />
+      {/* 김 조각 외곽선: 실제 오니기리처럼 아래 중앙에만 붙임 */}
+      <mesh renderOrder={3} material={outMat} position={[0, -0.23, 0.36]} scale={[1.08, 1.08, 1.08]}>
+        <boxGeometry args={[0.46, 0.36, 0.08]} />
       </mesh>
-      {/* 김(노리) 밴드 */}
-      <mesh renderOrder={4} material={noriMat} position={[0, -0.19, 0]}>
-        <cylinderGeometry args={[0.39, 0.51, 0.28, 3]} />
+      {/* 김 조각 */}
+      <mesh renderOrder={4} material={noriMat} position={[0, -0.23, 0.405]}>
+        <boxGeometry args={[0.42, 0.32, 0.065]} />
+      </mesh>
+      {/* 김의 단순 하이라이트 */}
+      <mesh renderOrder={5} material={noriHiMat} position={[-0.10, -0.12, 0.442]} rotation={[0, 0, -0.35]}>
+        <boxGeometry args={[0.18, 0.035, 0.018]} />
+      </mesh>
+      <mesh renderOrder={5} material={noriHiMat} position={[0.11, -0.28, 0.442]} rotation={[0, 0, 0.42]}>
+        <boxGeometry args={[0.16, 0.032, 0.018]} />
       </mesh>
     </group>
   )
