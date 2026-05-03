@@ -845,12 +845,14 @@ function MissileBody() {
   )
 }
 
+const MISSILE_CHARGE_TIME = 0.8  // 제자리 추진 준비 시간 (초)
+
 function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
   const groupRef    = useRef()
   const flameRef    = useRef()
   const smokeRef    = useRef()
   const ageRef      = useRef(0)
-  const speedRef    = useRef(0.09)   // 처음엔 매우 느림 (절반)
+  const speedRef    = useRef(0)      // 충전 후 0에서 가속 시작
   const explodedRef = useRef(false)
   const posRef      = useRef({ x: start[0], y: start[1], z: start[2] })
 
@@ -868,20 +870,48 @@ function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
     if (explodedRef.current || !groupRef.current) return
     ageRef.current += delta
 
-    if (ageRef.current > 5.5) {
+    if (ageRef.current > 9.0) {
       explodedRef.current = true
       onExplode(id, { x: posRef.current.x, z: posRef.current.z, radius, damage })
       return
     }
 
-    // 추진 가속 — 처음엔 천천히, 갈수록 빠르게 (절반 속도)
-    speedRef.current = Math.min(7.5, speedRef.current + 4.75 * delta)
-
     const p = posRef.current
     const dx = target.x - p.x
     const dz = target.z - p.z
-    const dist = Math.hypot(dx, dz)
 
+    // ── 충전 단계: 제자리에서 연기 증가 ──────────────────────────────
+    if (ageRef.current < MISSILE_CHARGE_TIME) {
+      const chargeT = ageRef.current / MISSILE_CHARGE_TIME  // 0 → 1
+
+      // 목표 방향으로 미리 회전 + 미세 떨림
+      const dist0 = Math.hypot(dx, dz)
+      if (dist0 > 0.001) groupRef.current.rotation.y = Math.atan2(dx / dist0, dz / dist0)
+      const shake = Math.sin(ageRef.current * 38) * 0.012 * chargeT
+      groupRef.current.position.set(p.x + shake, start[1], p.z + shake * 0.6)
+
+      // 연기: 충전 초반엔 얇게, 끝으로 갈수록 뭉게뭉게
+      if (smokeRef.current) {
+        smokeMat.opacity = chargeT * (0.58 + Math.sin(ageRef.current * 12) * 0.10)
+        smokeRef.current.scale.set(
+          0.38 + chargeT * 1.4,
+          1.0  + chargeT * 3.0,
+          0.38 + chargeT * 1.4,
+        )
+      }
+      // 초기 미약한 화염
+      if (flameRef.current) {
+        flameRef.current.scale.setScalar(0.06 + chargeT * 0.20)
+        flameMat.opacity     = 0.06 + chargeT * 0.22
+        flameCoreMat.opacity = 0.08 + chargeT * 0.25
+      }
+      return
+    }
+
+    // ── 비행 단계: 충전 완료 후 가속 ──────────────────────────────────
+    speedRef.current = Math.min(7.5, speedRef.current + 4.75 * delta)
+
+    const dist = Math.hypot(dx, dz)
     if (dist < 0.28) {
       explodedRef.current = true
       onExplode(id, { x: target.x, z: target.z, radius, damage })
@@ -894,7 +924,6 @@ function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
     p.z += nz * speedRef.current * delta
 
     groupRef.current.position.set(p.x, start[1], p.z)
-    // nose를 진행 방향으로 회전
     groupRef.current.rotation.y = Math.atan2(nx, nz)
 
     const t = speedRef.current / 7.5   // 0(발사직후) → 1(최고속)
@@ -907,10 +936,10 @@ function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
       flameCoreMat.opacity = 0.22 + t * 0.43
     }
 
-    // 발사 직후 연기 (속도 낮을수록 진함)
+    // 비행 초반 연기 (속도 낮을수록 진함)
     if (smokeRef.current) {
       const smokeT = 1 - t
-      smokeMat.opacity = smokeT * (0.45 + Math.sin(ageRef.current * 9) * 0.08)
+      smokeMat.opacity = smokeT * (0.50 + Math.sin(ageRef.current * 9) * 0.08)
       smokeRef.current.scale.set(
         pulse * (0.55 + smokeT * 0.9),
         1 + smokeT * 2.2,
