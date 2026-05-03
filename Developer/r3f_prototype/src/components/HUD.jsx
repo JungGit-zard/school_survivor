@@ -127,13 +127,12 @@ function UpgradeIcon({ type }) {
           <ellipse cx="21" cy="30" rx="5.0" ry="3.6" fill="#e8e6d6" />
           <ellipse cx="33" cy="30" rx="4.8" ry="3.4" fill="#e8e6d6" />
           <ellipse cx="41" cy="33" rx="3.8" ry="2.8" fill="#e8e6d6" />
-          {/* 노리(김) 밴드 — 하단 1/3 벨트 */}
-          <path d="M8 30 L42 30 L41 39 Q40 43 39 43 H11 Q10 43 9 39 Z" fill="#192e13" />
-          {/* 노리 상단 테두리 */}
-          <line x1="8" y1="30" x2="42" y2="30" stroke="#0a0a0a" strokeWidth="1.5" />
-          {/* 노리 질감 라인 */}
-          <line x1="10" y1="34" x2="40" y2="34" stroke="#243d1b" strokeWidth="1.0" />
-          <line x1="11" y1="38" x2="39" y2="38" stroke="#243d1b" strokeWidth="0.8" />
+          {/* 김 조각 — 아래 중앙에만 붙임 */}
+          <rect x="15" y="29" width="20" height="14" rx="2.5" fill="#111" />
+          <rect x="17" y="31" width="16" height="11" rx="2" fill="#192e13" />
+          {/* 김 질감 */}
+          <line x1="19" y1="34" x2="31" y2="32" stroke="#36542c" strokeWidth="1.2" />
+          <line x1="20" y1="39" x2="31" y2="37" stroke="#36542c" strokeWidth="1.0" />
         </svg>
       )}
       {type === 'speed' && (
