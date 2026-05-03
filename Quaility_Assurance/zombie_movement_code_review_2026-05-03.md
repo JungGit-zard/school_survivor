@@ -56,6 +56,13 @@
 
 ## Findings
 
+### Medium: Charger Facing Was Not Updated During Warn/Charge/Stun
+
+- Location: `Developer/r3f_prototype/src/components/Enemy.jsx`, charger state machine.
+- Symptom reported: red charger zombie sometimes looked sideways or away from the player while stopping and charging.
+- Cause: rotation was updated during `chase`, but `warn`, `charge`, and `stun` kept using the previous visual rotation.
+- Fix applied: the charger now keeps facing its locked charge direction during warning and charge, then turns back toward the player during stun.
+
 ### Medium: Charger State Can Carry Across Game Reset If Component Identity Survives Unexpectedly
 
 - Location: `Developer/r3f_prototype/src/components/Enemy.jsx`, charge refs around lines 103-107.
@@ -77,7 +84,7 @@
 - Behavior is unaffected, but movement logic is harder for a beginner to maintain.
 - Suggested cleanup: rewrite comments near enemy movement state machine and spawn rules in clear Korean.
 
-## No Critical Movement Bug Found
+## Remaining Movement Risk
 
 - Basic chase, ranged keep-distance, charge warning/charge/stun, boss fan attack, and contact damage all have clear execution paths.
 - `dist === 0` is unlikely because enemies spawn away from the player, and Three.js zero-vector normalize does not appear to create a crash path here.

@@ -182,13 +182,14 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
     }
 
     // ── 방향 회전 ──────────────────────────────────────────────────────────
-    const updateRotation = (dx, dz) => {
+    const updateRotation = (dx, dz, turnRate = 0.12) => {
       if (!groupRef.current) return
+      if (Math.hypot(dx, dz) <= 0.0001) return
       const targetY = Math.atan2(dx, dz)
       let diff = targetY - groupRef.current.rotation.y
       while (diff >  Math.PI) diff -= Math.PI * 2
       while (diff < -Math.PI) diff += Math.PI * 2
-      groupRef.current.rotation.y += diff * 0.12
+      groupRef.current.rotation.y += diff * turnRate
     }
 
     // ── E04: 원거리 감염체 ─────────────────────────────────────────────────
@@ -234,6 +235,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
           chargeState.current = 'warn'
           stateTimer.current = now
           chargeDir.current.copy(_dir)
+          updateRotation(chargeDir.current.x, chargeDir.current.z, 0.75)
           setAnimPhase('warn')
           rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
         }
@@ -257,17 +259,20 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
         }
 
       } else if (chargeState.current === 'warn') {
+        updateRotation(chargeDir.current.x, chargeDir.current.z, 0.45)
         if (now - stateTimer.current >= stats.warnDuration) {
           chargeState.current = 'charge'
           stateTimer.current = now
           setAnimPhase('charge')
           // 돌진 방향 고정
           chargeDir.current.normalize()
+          updateRotation(chargeDir.current.x, chargeDir.current.z, 1)
         }
 
       } else if (chargeState.current === 'charge') {
         const cd = chargeDir.current
         rb.current.setLinvel({ x: cd.x * stats.chargeSpeed, y: 0, z: cd.z * stats.chargeSpeed }, true)
+        updateRotation(cd.x, cd.z, 1)
 
         // 접촉 피해와 타임아웃을 if/else if로 분리 — 같은 프레임 중복 실행 방지
         if (dist < stats.contactDist * ENEMY_SIZE_MULTIPLIER * 1.5) {
@@ -287,6 +292,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
 
       } else if (chargeState.current === 'stun') {
         rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
+        if (dist > 0.0001) updateRotation(_dir.x / dist, _dir.z / dist, 0.22)
         if (now - stateTimer.current >= stats.stunDuration) {
           chargeState.current = 'chase'
           setAnimPhase('normal')
