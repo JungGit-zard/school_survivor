@@ -23,14 +23,14 @@ export const ENEMY_STATS = {
          ranged: true, rangedCooldown: 2200, rangedDmg: 8, rangedSpeed: 1.9,
          preferDist: 5.5, minDist: 3.5 },
   E05: { hp: 70,   speed: 0.5,  damage: 16, scale: 1.15, xp: 3,  contactDist: 0.32,
-         charger: true, chargeSpeed: 1.7, warnDist: 4.5, warnDuration: 700, stunDuration: 1000 },
+         charger: true, chargeSpeed: 1.7, warnDist: 4.5, warnDuration: 700, stunDuration: 1000, chargeDuration: 1200 },
   E06: { hp: 240,  speed: 0.6,  damage: 20, scale: 1.60, xp: 10, contactDist: 0.42 },
   B01: { hp: 1200, speed: 0.475, damage: 22, scale: 3.00, xp: 0,  contactDist: 0.80,
          boss: true,
          // 패턴2: 부채꼴 5발 투사체
          fanCooldown: 3000, fanDmg: 12, fanSpeed: 4.2, fanCount: 5,
          // 패턴3: 돌진
-         charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200 },
+         charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
 }
 
 // 콜라이더 기본 반크기 (scale=1 기준)
@@ -269,16 +269,16 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
         const cd = chargeDir.current
         rb.current.setLinvel({ x: cd.x * stats.chargeSpeed, y: 0, z: cd.z * stats.chargeSpeed }, true)
 
-        // 플레이어 접촉 피해
+        // 접촉 피해와 타임아웃을 if/else if로 분리 — 같은 프레임 중복 실행 방지
         if (dist < stats.contactDist * ENEMY_SIZE_MULTIPLIER * 1.5) {
+          // 플레이어 접촉 → 즉시 스턴
           damagePlayer(stats.damage)
           chargeState.current = 'stun'
           stateTimer.current = now
           setAnimPhase('stun')
           rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
-        }
-        // 타임아웃 (놓쳤을 때)
-        if (now - stateTimer.current > 1200) {
+        } else if (now - stateTimer.current > (stats.chargeDuration ?? 1200)) {
+          // 타임아웃 (놓쳤을 때) — stats.chargeDuration으로 적별 설정 가능
           chargeState.current = 'stun'
           stateTimer.current = now
           setAnimPhase('stun')
