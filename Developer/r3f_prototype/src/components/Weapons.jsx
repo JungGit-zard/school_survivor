@@ -852,15 +852,17 @@ function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
   const flameRef    = useRef()
   const smokeRef    = useRef()
   const ageRef      = useRef(0)
-  const speedRef    = useRef(0)      // 충전 후 0에서 가속 시작
+  const speedRef    = useRef(0)
   const explodedRef = useRef(false)
   const posRef      = useRef({ x: start[0], y: start[1], z: start[2] })
+  const wobbleSeed  = useRef(Math.random() * 100)
 
+  // 첫 프레임 깜빡임 방지: opacity 0으로 초기화
   const flameMat = useMemo(() => new THREE.MeshBasicMaterial({
-    color: 0xff6eb8, transparent: true, opacity: 0.55, depthWrite: false,
+    color: 0xff6eb8, transparent: true, opacity: 0, depthWrite: false,
   }), [])
   const flameCoreMat = useMemo(() => new THREE.MeshBasicMaterial({
-    color: 0xffd6f0, transparent: true, opacity: 0.65, depthWrite: false,
+    color: 0xffd6f0, transparent: true, opacity: 0, depthWrite: false,
   }), [])
   const smokeMat = useMemo(() => new THREE.MeshBasicMaterial({
     color: 0xdddddd, transparent: true, opacity: 0, depthWrite: false,
@@ -880,15 +882,29 @@ function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
     const dx = target.x - p.x
     const dz = target.z - p.z
 
-    // ── 충전 단계: 제자리에서 연기 증가 ──────────────────────────────
+    // ── 충전 단계: 던져진 뒤 흔들리며 추진력 축적 ────────────────────────
     if (ageRef.current < MISSILE_CHARGE_TIME) {
       const chargeT = ageRef.current / MISSILE_CHARGE_TIME  // 0 → 1
 
-      // 목표 방향으로 미리 회전 + 미세 떨림
+      // 스폰 팝인: 처음 0.12초 동안 0→1 스케일
+      const spawnScale = 1 - Math.pow(1 - Math.min(1, ageRef.current / 0.12), 3)
+      groupRef.current.scale.setScalar(spawnScale)
+
+      // 목표 방향으로 미리 회전
       const dist0 = Math.hypot(dx, dz)
-      if (dist0 > 0.001) groupRef.current.rotation.y = Math.atan2(dx / dist0, dz / dist0)
-      const shake = Math.sin(ageRef.current * 38) * 0.012 * chargeT
-      groupRef.current.position.set(p.x + shake, start[1], p.z + shake * 0.6)
+      const baseYaw = dist0 > 0.001 ? Math.atan2(dx / dist0, dz / dist0) : 0
+
+      // 랜덤 흔들림 — 차징 끝으로 갈수록 수렴해서 안정됨
+      const seed = wobbleSeed.current
+      const decay = 1 - chargeT * chargeT          // 1 → 0
+      const freq  = 10 + Math.sin(seed) * 3
+      const wobX  = Math.sin(ageRef.current * freq       + seed)       * 0.13 * decay
+      const wobZ  = Math.cos(ageRef.current * freq * 0.7 + seed * 1.4) * 0.10 * decay
+      const tiltX = Math.sin(ageRef.current * freq * 0.9 + seed * 2.1) * 0.42 * decay
+      const tiltZ = Math.cos(ageRef.current * freq * 1.1 + seed * 0.8) * 0.30 * decay
+
+      groupRef.current.position.set(p.x + wobX, start[1], p.z + wobZ)
+      groupRef.current.rotation.set(tiltX, baseYaw + tiltZ * 0.5, tiltZ)
 
       // 연기: 충전 초반엔 얇게, 끝으로 갈수록 뭉게뭉게
       if (smokeRef.current) {
@@ -899,7 +915,7 @@ function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
           0.38 + chargeT * 1.4,
         )
       }
-      // 초기 미약한 화염
+      // 화염: 충전이 쌓일수록 점점 밝아짐
       if (flameRef.current) {
         flameRef.current.scale.setScalar(0.06 + chargeT * 0.20)
         flameMat.opacity     = 0.06 + chargeT * 0.22
@@ -924,19 +940,17 @@ function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
     p.z += nz * speedRef.current * delta
 
     groupRef.current.position.set(p.x, start[1], p.z)
-    groupRef.current.rotation.y = Math.atan2(nx, nz)
+    groupRef.current.rotation.set(0, Math.atan2(nx, nz), 0)
 
-    const t = speedRef.current / 7.5   // 0(발사직후) → 1(최고속)
+    const t = speedRef.current / 7.5
     const pulse = 0.82 + Math.sin(ageRef.current * 28) * 0.18
 
-    // 배기 화염 (속도 오를수록 강해짐)
     if (flameRef.current) {
       flameRef.current.scale.setScalar(pulse * (0.18 + t * 0.60))
       flameMat.opacity     = 0.18 + t * 0.37
       flameCoreMat.opacity = 0.22 + t * 0.43
     }
 
-    // 비행 초반 연기 (속도 낮을수록 진함)
     if (smokeRef.current) {
       const smokeT = 1 - t
       smokeMat.opacity = smokeT * (0.50 + Math.sin(ageRef.current * 9) * 0.08)
@@ -1051,14 +1065,18 @@ export function GuidedMissileWeapon() {
     if (!target) return
     lastFireRef.current = now
 
+    // 목표 방향 기준 수직으로 옆에 던지듯 스폰
+    const facingAngle = Math.atan2(target.x - playerPos.x, target.z - playerPos.z)
     const newBatch = Array.from({ length: count }, (_, i) => {
-      const spread = count > 1 ? (i === 0 ? -0.22 : 0.22) : 0
+      const side = count > 1 ? (i === 0 ? 1 : -1) : (Math.random() > 0.5 ? 1 : -1)
+      const perpAngle = facingAngle + Math.PI / 2
+      const throwDist = 0.45 + Math.random() * 0.15
       return {
         id: ++_missileId,
         start: [
-          playerPos.x + Math.sin(spread) * 0.35,
+          playerPos.x + Math.sin(perpAngle) * side * throwDist,
           playerPos.y + 0.36,
-          playerPos.z + Math.cos(spread) * 0.35,
+          playerPos.z + Math.cos(perpAngle) * side * throwDist,
         ],
         target: { x: target.x, z: target.z },
         damage: w.damage,
