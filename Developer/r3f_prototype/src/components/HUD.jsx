@@ -111,11 +111,29 @@ function UpgradeIcon({ type }) {
         </div>
       )}
       {type === 'onigiri' && (
-        <div style={styles.onigiriIcon}>
-          <span style={styles.onigiriBody} />
-          <span style={styles.onigiriNori} />
-          <span style={styles.onigiriUme} />
-        </div>
+        <svg width="50" height="46" viewBox="0 0 50 46" style={{ display: 'block', margin: '0 auto' }}>
+          {/* 검은 외곽선 */}
+          <path d="M25 1 C20 10 3 30 3 37 Q3 44 10 44 H40 Q47 44 47 37 C47 30 30 10 25 1 Z" fill="#111" />
+          {/* 쌀 본체 */}
+          <path d="M25 4 C20 13 6 31 6 37 Q6 42 10 42 H40 Q44 42 44 37 C44 31 30 13 25 4 Z" fill="#f5f3e2" />
+          {/* 쌀 알갱이 질감 */}
+          <ellipse cx="17" cy="13" rx="2.8" ry="2.1" fill="#e5e3ce" />
+          <ellipse cx="33" cy="12" rx="2.8" ry="2.1" fill="#e5e3ce" />
+          <ellipse cx="13" cy="25" rx="2.4" ry="1.9" fill="#e5e3ce" />
+          <ellipse cx="37" cy="24" rx="2.2" ry="1.8" fill="#e5e3ce" />
+          <ellipse cx="21" cy="8"  rx="2.0" ry="1.6" fill="#e5e3ce" />
+          <ellipse cx="29" cy="8"  rx="2.0" ry="1.6" fill="#e5e3ce" />
+          <ellipse cx="25" cy="20" rx="2.2" ry="1.8" fill="#e5e3ce" />
+          {/* 노리(김) 밴드 */}
+          <path d="M8 31 L42 31 Q44 37 40 42 H10 Q6 37 8 31 Z" fill="#182e14" />
+          {/* 노리 상단 경계선 */}
+          <line x1="8" y1="31" x2="42" y2="31" stroke="#111" strokeWidth="1.8" />
+          {/* 노리 광택 */}
+          <path d="M10 34 L14 34 L14 40 Q11 40 10 38 Z" fill="#223d1a" opacity="0.7" />
+          {/* 우메보시(매실) */}
+          <circle cx="25" cy="19" r="6" fill="#cc1133" stroke="#111" strokeWidth="2" />
+          <circle cx="23" cy="17" r="2.2" fill="#ff4466" opacity="0.5" />
+        </svg>
       )}
       {type === 'speed' && (
         <div style={styles.speedIcon}>
@@ -526,29 +544,6 @@ const styles = {
     border: '1.5px solid #226688',
     opacity: 0.45,
     boxSizing: 'border-box',
-  },
-  onigiriIcon: { position: 'relative', width: 38, height: 38 },
-  onigiriBody: {
-    position: 'absolute', left: '50%', top: '50%',
-    transform: 'translate(-50%, -50%)',
-    display: 'block', width: 34, height: 34,
-    background: '#f8f8f0', border: '3px solid #111',
-    clipPath: 'polygon(50% 0%, 100% 75%, 75% 100%, 25% 100%, 0% 75%)',
-    boxSizing: 'border-box',
-  },
-  onigiriNori: {
-    position: 'absolute', left: '50%', bottom: 5,
-    transform: 'translateX(-50%)',
-    display: 'block', width: 24, height: 10,
-    background: '#1a2a10', border: '1.5px solid #111',
-    borderRadius: '0 0 4px 4px', boxSizing: 'border-box',
-  },
-  onigiriUme: {
-    position: 'absolute', left: '50%', top: 9,
-    transform: 'translateX(-50%)',
-    display: 'block', width: 9, height: 9,
-    background: '#e03060', border: '2px solid #111',
-    borderRadius: '50%', boxSizing: 'border-box',
   },
   choiceLabel: { fontSize: 14, fontWeight: 700, marginBottom: 6 },
   choiceDesc:  { fontSize: 11, color: '#bbb', lineHeight: 1.4 },

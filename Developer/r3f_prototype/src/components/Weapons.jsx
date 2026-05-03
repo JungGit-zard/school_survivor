@@ -1327,35 +1327,31 @@ export function StarlinkWeapon() {
 // ── 오니기리 바운스 공격 ────────────────────────────────────────────────────────
 
 function OnigiiriModel() {
-  const riceMat  = useMemo(() => toonMat(0xfcf8ed, 0.07), [])
-  const noriMat  = useMemo(() => toonMat(0x0e0e0e, 0.02), [])
-  const umeMat   = useMemo(() => toonMat(0xdd1133, 0.30), [])
-  const saltMat  = useMemo(() => toonMat(0xf0eee0, 0.10), [])
-  const outMat   = useMemo(() => outlineMat(0.97), [])
+  const riceMat = useMemo(() => toonMat(0xfcf8ed, 0.07), [])
+  const noriMat = useMemo(() => toonMat(0x162b12, 0.04), [])
+  const umeMat  = useMemo(() => toonMat(0xdd1133, 0.30), [])
+  const outMat  = useMemo(() => outlineMat(0.97), [])
 
   return (
-    <group scale={[0.28, 0.28, 0.28]}>
-      {/* 본체 삼각형 (3면 실린더) + 외곽선 */}
-      <mesh renderOrder={1} material={outMat} scale={[1.13, 1.08, 1.13]}>
-        <cylinderGeometry args={[0.37, 0.43, 0.66, 3]} />
+    <group scale={[0.40, 0.40, 0.40]}>
+      {/* 본체 외곽선 */}
+      <mesh renderOrder={1} material={outMat} scale={[1.15, 1.10, 1.15]}>
+        <cylinderGeometry args={[0.28, 0.48, 0.72, 3]} />
       </mesh>
+      {/* 쌀 본체 */}
       <mesh renderOrder={2} material={riceMat}>
-        <cylinderGeometry args={[0.37, 0.43, 0.66, 3]} />
+        <cylinderGeometry args={[0.28, 0.48, 0.72, 3]} />
       </mesh>
-      {/* 김(노리) 밴드 */}
-      <mesh renderOrder={3} material={noriMat} position={[0, -0.11, 0]}>
-        <cylinderGeometry args={[0.39, 0.44, 0.28, 3]} />
+      {/* 김(노리) 밴드 — 아래쪽 1/3 */}
+      <mesh renderOrder={2} material={outMat} scale={[1.13, 1.06, 1.13]} position={[0, -0.22, 0]}>
+        <cylinderGeometry args={[0.37, 0.49, 0.26, 3]} />
       </mesh>
-      {/* 소금 텍스처 점들 */}
-      {[0.28, -0.15, 0.12].map((y, i) => (
-        <mesh key={i} renderOrder={3} material={saltMat}
-          position={[Math.sin(i * 2.1) * 0.25, y, Math.cos(i * 2.1) * 0.28]}>
-          <sphereGeometry args={[0.055, 5, 5]} />
-        </mesh>
-      ))}
-      {/* 매실 (우메보시) */}
-      <mesh renderOrder={4} material={umeMat} position={[0, 0.13, 0.34]}>
-        <sphereGeometry args={[0.12, 8, 6]} />
+      <mesh renderOrder={3} material={noriMat} position={[0, -0.22, 0]}>
+        <cylinderGeometry args={[0.37, 0.49, 0.26, 3]} />
+      </mesh>
+      {/* 매실 (우메보시) — 앞면 중앙 상단 */}
+      <mesh renderOrder={4} material={umeMat} position={[0, 0.16, 0.26]}>
+        <sphereGeometry args={[0.16, 10, 8]} />
       </mesh>
     </group>
   )
