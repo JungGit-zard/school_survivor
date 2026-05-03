@@ -1345,31 +1345,44 @@ export function StarlinkWeapon() {
 // ── 오니기리 바운스 공격 ────────────────────────────────────────────────────────
 
 function OnigiiriModel() {
-  const riceMat = useMemo(() => toonMat(0xfcf8ed, 0.07), [])
-  const noriMat = useMemo(() => toonMat(0x162b12, 0.04), [])
-  const umeMat  = useMemo(() => toonMat(0xdd1133, 0.30), [])
+  const riceMat = useMemo(() => toonMat(0xfcf8f0, 0.06), [])
+  const noriMat = useMemo(() => toonMat(0x192e13, 0.04), [])
+  const bumpMat = useMemo(() => toonMat(0xe5e3d0, 0.08), [])
   const outMat  = useMemo(() => outlineMat(0.97), [])
 
+  // 앞면에 배치할 쌀알 범프 위치 (x, y, z)
+  const bumps = [
+    [0,     0.26,  0.29],
+    [-0.15, 0.12,  0.26],
+    [ 0.15, 0.12,  0.26],
+    [0,     0.00,  0.30],
+    [-0.13,-0.10,  0.27],
+    [ 0.13,-0.10,  0.27],
+  ]
+
   return (
-    <group scale={[0.40, 0.40, 0.40]}>
+    <group scale={[0.42, 0.42, 0.42]}>
       {/* 본체 외곽선 */}
       <mesh renderOrder={1} material={outMat} scale={[1.15, 1.10, 1.15]}>
-        <cylinderGeometry args={[0.28, 0.48, 0.72, 3]} />
+        <cylinderGeometry args={[0.26, 0.50, 0.74, 3]} />
       </mesh>
-      {/* 쌀 본체 */}
+      {/* 흰 쌀 본체 */}
       <mesh renderOrder={2} material={riceMat}>
-        <cylinderGeometry args={[0.28, 0.48, 0.72, 3]} />
+        <cylinderGeometry args={[0.26, 0.50, 0.74, 3]} />
       </mesh>
-      {/* 김(노리) 밴드 — 아래쪽 1/3 */}
-      <mesh renderOrder={2} material={outMat} scale={[1.13, 1.06, 1.13]} position={[0, -0.22, 0]}>
-        <cylinderGeometry args={[0.37, 0.49, 0.26, 3]} />
+      {/* 쌀알 타원 범프 */}
+      {bumps.map(([x, y, z], i) => (
+        <mesh key={i} renderOrder={3} material={bumpMat} position={[x, y, z]}>
+          <sphereGeometry args={[0.095, 7, 5]} />
+        </mesh>
+      ))}
+      {/* 김(노리) 밴드 외곽선 */}
+      <mesh renderOrder={3} material={outMat} scale={[1.13, 1.06, 1.13]} position={[0, -0.19, 0]}>
+        <cylinderGeometry args={[0.39, 0.51, 0.28, 3]} />
       </mesh>
-      <mesh renderOrder={3} material={noriMat} position={[0, -0.22, 0]}>
-        <cylinderGeometry args={[0.37, 0.49, 0.26, 3]} />
-      </mesh>
-      {/* 매실 (우메보시) — 앞면 중앙 상단 */}
-      <mesh renderOrder={4} material={umeMat} position={[0, 0.16, 0.26]}>
-        <sphereGeometry args={[0.16, 10, 8]} />
+      {/* 김(노리) 밴드 */}
+      <mesh renderOrder={4} material={noriMat} position={[0, -0.19, 0]}>
+        <cylinderGeometry args={[0.39, 0.51, 0.28, 3]} />
       </mesh>
     </group>
   )
@@ -1386,7 +1399,7 @@ function BounceFlash({ id, x, z, startMs, onDone }) {
     const age = clock.elapsedTime * 1000 - startMs
     const t   = Math.min(1, age / 160)
     if (ref.current) {
-      ref.current.scale.setScalar(0.1 + t * 0.55)
+      ref.current.scale.setScalar((0.1 + t * 0.55) / 5)   // 1/5 크기
       mat.opacity = 0.85 * (1 - t)
     }
     if (t >= 1) onDone(id)
@@ -1408,7 +1421,7 @@ function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, boun
   const hitSetRef  = useRef(new Set([initialTarget.enemyId]))
   const spinRef    = useRef(0)
   const doneRef    = useRef(false)
-  const SPEED      = 11
+  const SPEED      = 11 / 8   // 1/8 속도
 
   useFrame((_, delta) => {
     if (doneRef.current || !groupRef.current) return

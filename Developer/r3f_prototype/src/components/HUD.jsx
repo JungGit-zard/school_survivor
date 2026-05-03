@@ -112,27 +112,28 @@ function UpgradeIcon({ type }) {
       )}
       {type === 'onigiri' && (
         <svg width="50" height="46" viewBox="0 0 50 46" style={{ display: 'block', margin: '0 auto' }}>
-          {/* 검은 외곽선 */}
-          <path d="M25 1 C20 10 3 30 3 37 Q3 44 10 44 H40 Q47 44 47 37 C47 30 30 10 25 1 Z" fill="#111" />
-          {/* 쌀 본체 */}
-          <path d="M25 4 C20 13 6 31 6 37 Q6 42 10 42 H40 Q44 42 44 37 C44 31 30 13 25 4 Z" fill="#f5f3e2" />
-          {/* 쌀 알갱이 질감 */}
-          <ellipse cx="17" cy="13" rx="2.8" ry="2.1" fill="#e5e3ce" />
-          <ellipse cx="33" cy="12" rx="2.8" ry="2.1" fill="#e5e3ce" />
-          <ellipse cx="13" cy="25" rx="2.4" ry="1.9" fill="#e5e3ce" />
-          <ellipse cx="37" cy="24" rx="2.2" ry="1.8" fill="#e5e3ce" />
-          <ellipse cx="21" cy="8"  rx="2.0" ry="1.6" fill="#e5e3ce" />
-          <ellipse cx="29" cy="8"  rx="2.0" ry="1.6" fill="#e5e3ce" />
-          <ellipse cx="25" cy="20" rx="2.2" ry="1.8" fill="#e5e3ce" />
-          {/* 노리(김) 밴드 */}
-          <path d="M8 31 L42 31 Q44 37 40 42 H10 Q6 37 8 31 Z" fill="#182e14" />
-          {/* 노리 상단 경계선 */}
-          <line x1="8" y1="31" x2="42" y2="31" stroke="#111" strokeWidth="1.8" />
-          {/* 노리 광택 */}
-          <path d="M10 34 L14 34 L14 40 Q11 40 10 38 Z" fill="#223d1a" opacity="0.7" />
-          {/* 우메보시(매실) */}
-          <circle cx="25" cy="19" r="6" fill="#cc1133" stroke="#111" strokeWidth="2" />
-          <circle cx="23" cy="17" r="2.2" fill="#ff4466" opacity="0.5" />
+          {/* 두꺼운 검은 외곽선 */}
+          <path d="M25 1 C20 8 2 30 2 37 Q2 45 10 45 H40 Q48 45 48 37 C48 30 30 8 25 1 Z" fill="#111" />
+          {/* 흰 쌀 본체 */}
+          <path d="M25 5 C20 12 6 31 6 37 Q6 43 11 43 H39 Q44 43 44 37 C44 31 30 12 25 5 Z" fill="#f8f7f0" />
+          {/* 쌀알 타원 질감 — 크고 둥글게 */}
+          <ellipse cx="25" cy="9"  rx="5.5" ry="3.8" fill="#e8e6d6" />
+          <ellipse cx="17" cy="16" rx="5.8" ry="4.0" fill="#e8e6d6" />
+          <ellipse cx="33" cy="15" rx="5.5" ry="3.8" fill="#e8e6d6" />
+          <ellipse cx="12" cy="25" rx="5.2" ry="3.8" fill="#e8e6d6" />
+          <ellipse cx="25" cy="23" rx="6.0" ry="4.2" fill="#e8e6d6" />
+          <ellipse cx="38" cy="24" rx="4.8" ry="3.5" fill="#e8e6d6" />
+          <ellipse cx="9"  cy="33" rx="4.0" ry="2.9" fill="#e8e6d6" />
+          <ellipse cx="21" cy="30" rx="5.0" ry="3.6" fill="#e8e6d6" />
+          <ellipse cx="33" cy="30" rx="4.8" ry="3.4" fill="#e8e6d6" />
+          <ellipse cx="41" cy="33" rx="3.8" ry="2.8" fill="#e8e6d6" />
+          {/* 노리(김) 밴드 — 하단 1/3 벨트 */}
+          <path d="M8 30 L42 30 L41 39 Q40 43 39 43 H11 Q10 43 9 39 Z" fill="#192e13" />
+          {/* 노리 상단 테두리 */}
+          <line x1="8" y1="30" x2="42" y2="30" stroke="#0a0a0a" strokeWidth="1.5" />
+          {/* 노리 질감 라인 */}
+          <line x1="10" y1="34" x2="40" y2="34" stroke="#243d1b" strokeWidth="1.0" />
+          <line x1="11" y1="38" x2="39" y2="38" stroke="#243d1b" strokeWidth="0.8" />
         </svg>
       )}
       {type === 'speed' && (
