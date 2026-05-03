@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" shape-rendering="crispEdges">
+  <rect width="256" height="256" fill="#d99735"/>
+  <g>
+    <rect x="0" y="0" width="24" height="256" fill="#e9aa42"/>
+    <rect x="24" y="0" width="30" height="256" fill="#ca8028"/>
+    <rect x="54" y="0" width="18" height="256" fill="#e9aa42"/>
+    <rect x="72" y="0" width="34" height="256" fill="#ca8028"/>
+    <rect x="106" y="0" width="26" height="256" fill="#e9aa42"/>
+    <rect x="132" y="0" width="22" height="256" fill="#ca8028"/>
+    <rect x="154" y="0" width="32" height="256" fill="#e9aa42"/>
+    <rect x="186" y="0" width="20" height="256" fill="#ca8028"/>
+    <rect x="206" y="0" width="28" height="256" fill="#e9aa42"/>
+    <rect x="234" y="0" width="22" height="256" fill="#ca8028"/>
+  </g>
+  <g fill="#f6c967" opacity=".62">
+    <rect x="4" y="18" width="16" height="4"/>
+    <rect x="28" y="37" width="22" height="4"/>
+    <rect x="58" y="56" width="10" height="4"/>
+    <rect x="76" y="75" width="26" height="4"/>
+    <rect x="110" y="94" width="18" height="4"/>
+    <rect x="136" y="113" width="14" height="4"/>
+    <rect x="158" y="132" width="24" height="4"/>
+    <rect x="190" y="151" width="12" height="4"/>
+    <rect x="210" y="170" width="20" height="4"/>
+    <rect x="238" y="189" width="14" height="4"/>
+  </g>
+  <g stroke="#8b501f" stroke-width="2" opacity=".72">
+    <path d="M0 0v256M24 0v256M54 0v256M72 0v256M106 0v256M132 0v256M154 0v256M186 0v256M206 0v256M234 0v256"/>
+  </g>
+  <g stroke="#8b501f" stroke-width="1" opacity=".58">
+    <path d="M4 34h16M28 57h22M58 80h10M76 102h26M110 125h18M136 147h14M158 166h24M190 190h12M210 212h20M238 236h14"/>
+  </g>
+  <g fill="#ffe59a" opacity=".25">
+    <rect x="0" y="0" width="2" height="2"/>
+    <rect x="37" y="53" width="2" height="2"/>
+    <rect x="74" y="106" width="2" height="2"/>
+    <rect x="111" y="159" width="2" height="2"/>
+    <rect x="148" y="212" width="2" height="2"/>
+    <rect x="185" y="15" width="2" height="2"/>
+    <rect x="222" y="68" width="2" height="2"/>
+    <rect x="9" y="121" width="2" height="2"/>
+    <rect x="46" y="174" width="2" height="2"/>
+    <rect x="83" y="227" width="2" height="2"/>
+    <rect x="120" y="30" width="2" height="2"/>
+    <rect x="157" y="83" width="2" height="2"/>
+    <rect x="194" y="136" width="2" height="2"/>
+    <rect x="231" y="189" width="2" height="2"/>
+  </g>
+</svg>

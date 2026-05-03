@@ -1,0 +1,576 @@
+# BangBang Survivor Game Tech Stack Wording Guide
+
+## 1. Document Purpose
+
+이 문서는 BangBang Survivor의 게임 개발 기술스택 문서이다.
+
+기술 선택 자체를 단순히 나열하는 것이 아니라, 모든 표현을 "좀비에 감염된 학교를 탈출하는 생존 액션" 콘셉트에 맞춰 정리한다. 개발자, 기획자, 그래픽 담당자가 같은 단어를 사용하게 만드는 것이 목적이다.
+
+핵심 컨셉:
+
+- 감염된 학교
+- 5분 생존
+- 학교 부지 탈출
+- 자동 공격
+- 직접 이동 회피
+- 카툰 렌더링
+- Phaser 4 기반 2D 게임 로직
+- Three.js 기반 3D 카툰 캐릭터
+
+## 2. Core Game Expression
+
+### Game Genre
+
+사용 표현:
+
+- 모바일 세로형 서바이버라이크
+- 감염 학교 탈출 액션
+- 5분 생존 핵앤슬래시
+
+피할 표현:
+
+- 단순 슈팅 게임
+- 일반 좀비 게임
+- 공포 시뮬레이터
+- 던전 RPG
+
+정리:
+
+BangBang Survivor는 어두운 실사 공포 게임이 아니라, 감염된 학교에서 5분 동안 살아남고 탈출 기회를 잡는 카툰풍 서바이버라이크 게임이다.
+
+## 3. Engine Stack Naming
+
+### Phaser 4
+
+공식 역할 표현:
+
+- Phaser 4는 게임의 생존 로직 엔진이다.
+- Phaser 4는 입력, 충돌, 스폰, 투사체, UI, 타일맵을 담당한다.
+- Phaser 4는 감염된 학교 부지의 2D 월드를 제어한다.
+
+문서 내 권장 표현:
+
+- `Phaser Survival Scene`
+- `SchoolGroundScene`
+- `InfectedSchoolTilemap`
+- `EscapeCamera`
+- `SurvivalUILayer`
+- `ProjectileLayer`
+- `ContaminationVFXLayer`
+
+피할 표현:
+
+- 그냥 화면 엔진
+- 배경만 그리는 도구
+- 2D 보조 레이어
+
+### Three.js
+
+공식 역할 표현:
+
+- Three.js는 플레이어와 감염체 캐릭터를 보여주는 3D 카툰 캐릭터 렌더러이다.
+- Three.js는 Phaser 월드 좌표를 따라 캐릭터 모델을 시각적으로 동기화한다.
+- Three.js는 카툰 렌더링과 외곽선을 담당한다.
+
+문서 내 권장 표현:
+
+- `ToonCharacterRenderer`
+- `InfectedCharacterScene`
+- `StudentSurvivorModel`
+- `InfectedStudentModel`
+- `ToonOutlinePass`
+- `CharacterVisualSync`
+
+피할 표현:
+
+- 3D 게임 엔진
+- 전체 게임 월드 담당
+- 실사 그래픽 렌더러
+
+## 4. World and Stage Terms
+
+### Main Stage Name
+
+권장 명칭:
+
+- 감염된 학교 부지
+- 감염 학교 운동장
+- 봉쇄된 학교 본관 주변
+- 탈출 대기 구역
+
+영문 코드명:
+
+- `InfectedSchoolGround`
+- `SchoolEscapeZone`
+- `ContaminatedCampus`
+- `Stage01_InfectedSchool`
+
+피할 명칭:
+
+- 아레나
+- 맵 1
+- 일반 필드
+- 던전
+
+### Background Terms
+
+권장 표현:
+
+- 운동장 바닥
+- 흰색 트랙 라인
+- 감염 경고 테이프
+- 오염 웅덩이
+- 쓰러진 책상
+- 깨진 사물함
+- 본관 그림자
+- 찢어진 시험지
+- 임시 바리케이드
+
+코드명 예시:
+
+- `ground_track_line`
+- `warning_tape_infected`
+- `pollution_puddle_small`
+- `fallen_desk_obstacle`
+- `locker_contaminated`
+- `main_building_shadow`
+- `exam_paper_debris`
+
+## 5. Player Terms
+
+### Player Identity
+
+권장 표현:
+
+- 주인공 학생
+- 생존 학생
+- 탈출자
+- 학생 생존자
+
+영문 코드명:
+
+- `StudentSurvivor`
+- `PlayerStudent`
+- `EscapeStudent`
+
+피할 표현:
+
+- 용사
+- 병사
+- 헌터
+- 플레이어 유닛
+
+### Player State Terms
+
+권장 표현:
+
+- 정상
+- 피격
+- 체력 부족
+- 레벨업
+- 탈출 실패
+- 생존 성공
+
+영문 코드명:
+
+- `idle`
+- `run`
+- `hit`
+- `lowHealth`
+- `levelUp`
+- `escapeFailed`
+- `survived`
+
+## 6. Enemy Terms
+
+모든 적은 단순히 `enemy`라고만 부르지 말고, 가능하면 감염 학교 콘셉트에 맞는 이름을 사용한다.
+
+### Common Enemy Types
+
+| 기획 역할 | 표시 명칭 | 코드명 |
+| --- | --- | --- |
+| 기본 적 | 감염된 학생 | `InfectedStudent` |
+| 단단한 적 | 감염된 체육교사 | `InfectedPETeacher` |
+| 무리 적 | 소형 감염 학생 떼 | `InfectedStudentSwarm` |
+| 원거리 적 | 오염 침뱉개 | `PollutionSpitter` |
+| 돌진 적 | 광폭 질주 감염체 | `FrenzyRunner` |
+| 엘리트 | 특수 감염 교사 | `SpecialInfectedTeacher` |
+| 보스 | 교장 감염체 | `InfectedPrincipal` |
+
+### Enemy Group Terms
+
+권장 표현:
+
+- 감염체
+- 감염 학생
+- 오염체
+- 특수 감염체
+- 교장 감염체
+- 감염 웨이브
+
+피할 표현:
+
+- 몹
+- 잡몹
+- 괴물
+- 크리처
+- 일반 유닛
+
+초보자용 설명:
+
+개발 중에는 `enemy`라는 일반 단어를 변수명에 쓸 수 있지만, 문서와 데이터 이름에서는 가능하면 `InfectedStudent`, `PollutionSpitter`처럼 역할이 보이는 이름을 쓴다.
+
+## 7. Combat Terms
+
+### Player Weapons
+
+| 무기 역할 | 게임 내 명칭 | 코드명 |
+| --- | --- | --- |
+| 기본 단일 공격 | 연필 투척 | `PencilThrow` |
+| 근접 방어 | 책가방 휘두르기 | `SchoolBagSwing` |
+| 사방 공격 | 비상벨 충격파 | `EmergencyBellShockwave` |
+| 연쇄 공격 | 전기 스턴건 | `ElectricStunGun` |
+
+### Weapon Effect Terms
+
+권장 표현:
+
+- 연필 투사체
+- 책가방 회전 반경
+- 비상벨 파동
+- 전기 연쇄
+- 관통
+- 넉백
+- 자동 공격
+- 공격 주기
+
+코드명 예시:
+
+- `PencilProjectile`
+- `BagOrbitRadius`
+- `BellWavePulse`
+- `ElectricChainTarget`
+- `pierceCount`
+- `knockbackPower`
+- `autoAttackInterval`
+
+피할 표현:
+
+- 총알
+- 검기
+- 마법탄
+- 스킬샷
+
+## 8. Infection and Hazard Terms
+
+### Hazard Names
+
+권장 표현:
+
+- 오염 웅덩이
+- 감염 장판
+- 오염 분사
+- 돌진 예고선
+- 충격파 경고 범위
+- 감염 발광
+
+영문 코드명:
+
+- `PollutionPuddle`
+- `InfectionZone`
+- `ContaminationSpray`
+- `ChargeWarningLine`
+- `ShockwaveWarningCircle`
+- `InfectionGlow`
+
+피할 표현:
+
+- 독 장판
+- 마법 장판
+- 레이저
+- 폭발 구역
+
+## 9. Item and Reward Terms
+
+### Drop Items
+
+| 기능 | 게임 내 명칭 | 코드명 |
+| --- | --- | --- |
+| 경험치 | XP 오브 | `XPOrb` |
+| 회복 | 회복 오브 | `HealOrb` |
+| 흡수 | 자석 아이템 | `MagnetItem` |
+| 보스 보상 | 탈출 완료 보상 | `EscapeClearReward` |
+
+권장 표현:
+
+- XP 오브를 흡수한다.
+- 회복 오브가 드랍된다.
+- 자석 아이템이 주변 XP를 끌어온다.
+- 교장 감염체 처치 시 스테이지 클리어 처리한다.
+
+피할 표현:
+
+- 골드
+- 포션
+- 보물상자
+- 루팅
+
+## 10. UI Terms
+
+### Main HUD
+
+권장 표현:
+
+- 생존 시간
+- 체력
+- 현재 레벨
+- 장착 무기
+- 탈출까지 남은 시간
+- 감염체 접근 경고
+- 보스 출현 경고
+
+영문 코드명:
+
+- `SurvivalTimer`
+- `HealthBar`
+- `CurrentLevel`
+- `WeaponSlots`
+- `EscapeCountdown`
+- `InfectedWarningBanner`
+- `BossWarningBanner`
+
+피할 표현:
+
+- 점수판
+- 전투력
+- 퀘스트 UI
+- 던전 타이머
+
+### Level Up Selection
+
+권장 표현:
+
+- 생존 보급 선택
+- 임시 장비 강화
+- 학교 탈출 장비 선택
+- 3개 중 1개 선택
+
+영문 코드명:
+
+- `SurvivalSupplySelect`
+- `UpgradeChoiceCard`
+- `SchoolGearUpgrade`
+
+## 11. Scene and File Naming Guide
+
+### Scene Names
+
+권장:
+
+- `BootScene`
+- `PreloadScene`
+- `SchoolGroundScene`
+- `UpgradeSelectScene`
+- `GameOverScene`
+- `EscapeClearScene`
+
+피할 이름:
+
+- `MainScene`
+- `TestScene`
+- `StageScene`
+- `MapScene`
+
+`MainScene` 같은 이름은 처음에는 편하지만, 나중에 무엇을 담당하는지 헷갈린다. 이 프로젝트에서는 학교 탈출 콘셉트가 보이는 이름을 우선한다.
+
+### Folder Names
+
+권장:
+
+- `assets/school`
+- `assets/characters/student_survivor`
+- `assets/characters/infected`
+- `assets/effects/contamination`
+- `assets/ui/survival_hud`
+- `src/scenes/school`
+- `src/systems/combat`
+- `src/systems/infection`
+- `src/rendering/toon`
+
+## 12. Data Naming Guide
+
+### Enemy Data Fields
+
+권장 필드:
+
+- `id`
+- `displayName`
+- `infectedType`
+- `spawnStartSec`
+- `hp`
+- `attack`
+- `moveSpeed`
+- `attackPattern`
+- `xpDrop`
+- `isElite`
+- `phaseSpawnWeight`
+
+예시:
+
+```json
+{
+  "id": "infected_student",
+  "displayName": "감염된 학생",
+  "infectedType": "common",
+  "spawnStartSec": 0,
+  "hp": 18,
+  "attack": 8,
+  "moveSpeed": 1.9,
+  "attackPattern": "contact",
+  "xpDrop": 1,
+  "isElite": false
+}
+```
+
+### Weapon Data Fields
+
+권장 필드:
+
+- `id`
+- `displayName`
+- `schoolGearType`
+- `level`
+- `damage`
+- `cooldown`
+- `projectileCount`
+- `pierce`
+- `range`
+- `radius`
+- `specialEffect`
+
+예시:
+
+```json
+{
+  "id": "pencil_throw_lv1",
+  "displayName": "연필 투척",
+  "schoolGearType": "projectile",
+  "level": 1,
+  "damage": 20,
+  "cooldown": 0.9,
+  "projectileCount": 1,
+  "pierce": 0,
+  "range": 5.5
+}
+```
+
+## 13. Rendering Terms
+
+### Toon Rendering
+
+권장 표현:
+
+- 카툰 렌더링
+- 외곽선
+- 단순 명암
+- 감염 발광
+- 캐릭터 실루엣
+- 바닥 그림자
+
+영문 코드명:
+
+- `ToonMaterial`
+- `OutlineMesh`
+- `CelShading`
+- `InfectionEmission`
+- `CharacterSilhouette`
+- `BlobShadow`
+
+피할 표현:
+
+- 실사 렌더링
+- 리얼 광원
+- 피사계 심도
+- 영화식 조명
+
+### Phaser and Three.js Bridge
+
+권장 표현:
+
+- 캐릭터 시각 동기화
+- Phaser 월드 좌표
+- Three.js 캐릭터 좌표
+- 렌더 캔버스 합성
+
+영문 코드명:
+
+- `CharacterVisualSync`
+- `PhaserWorldPosition`
+- `ThreeCharacterPosition`
+- `RenderCanvasBridge`
+
+## 14. Sound and Feedback Terms
+
+기술 문서에서 사운드 시스템을 다룰 때도 학교 탈출 콘셉트에 맞춰 표현한다.
+
+권장 표현:
+
+- 비상벨 사운드
+- 복도 경고 방송
+- 감염체 접근음
+- 책가방 타격음
+- 연필 투척음
+- 오염 탄 착탄음
+- 보스 출현 경고음
+
+코드명 예시:
+
+- `sfx_emergency_bell`
+- `sfx_hallway_warning`
+- `sfx_infected_approach`
+- `sfx_bag_hit`
+- `sfx_pencil_throw`
+- `sfx_pollution_impact`
+- `sfx_boss_warning`
+
+## 15. Recommended Tech Stack Summary
+
+이 프로젝트의 기술스택은 아래처럼 표현한다.
+
+### Core Stack
+
+- Phaser 4: 감염 학교 생존 게임 로직 엔진
+- Three.js: 3D 카툰 캐릭터 렌더러
+- JavaScript 또는 TypeScript: 게임 구현 언어
+- JSON: 몬스터, 무기, 웨이브 데이터 정의
+- Canvas/WebGL: 브라우저 기반 렌더링
+
+### Visual Stack
+
+- Phaser Tilemap: 감염 학교 부지 타일맵
+- Phaser Particle/Graphics: 오염 장판, 경고선, 타격 이펙트
+- Three.js `MeshToonMaterial`: 플레이어와 감염체 카툰 재질
+- Three.js 외곽선 메쉬: 모바일 화면 가독성 확보
+
+### Data Stack
+
+- `enemyData`: 감염체 데이터
+- `weaponData`: 학교 장비 무기 데이터
+- `waveData`: 감염 웨이브 데이터
+- `upgradeData`: 생존 보급 선택지 데이터
+
+## 16. Global Wording Rule
+
+모든 문서, 코드 주석, 데이터 이름은 아래 원칙을 따른다.
+
+1. 일반적인 게임 단어보다 학교 감염 탈출 콘셉트 단어를 우선한다.
+2. `monster`보다 `infected`를 우선한다.
+3. `map`보다 `schoolGround`, `campus`, `escapeZone`을 우선한다.
+4. `skill`보다 `schoolGear`, `weapon`, `survivalSupply`를 우선한다.
+5. `poison`보다 `pollution`, `contamination`, `infection`을 우선한다.
+6. `clear`는 가능하면 `escapeClear`로 표현한다.
+7. 실사 공포 표현보다 카툰 액션 표현을 우선한다.
+
+## 17. Final One-Line Direction
+
+BangBang Survivor의 기술스택 문서는 "Phaser 4로 감염된 학교 생존 로직을 만들고, Three.js 카툰 렌더링으로 학생 생존자와 감염체를 명확하게 보여주는 모바일 세로형 탈출 액션 게임"이라는 표현을 기준으로 통일한다.
