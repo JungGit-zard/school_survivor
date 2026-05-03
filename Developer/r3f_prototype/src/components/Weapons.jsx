@@ -1382,7 +1382,6 @@ const CHAIN_RANGE = 4.5
 function LightningBoltModel() {
   const boltMat = useMemo(() => toonMat(0xffe840, 0.55), [])
   const coreMat = useMemo(() => toonMat(0xffffff, 0.9),  [])
-  const outMat  = useMemo(() => outlineMat(0.97), [])
 
   const geo = useMemo(() => {
     const shape = new THREE.Shape()
@@ -1400,7 +1399,6 @@ function LightningBoltModel() {
 
   return (
     <group scale={[0.38, 0.38, 0.38]}>
-      <mesh renderOrder={1} geometry={geo} material={outMat}  scale={[1.15, 1.15, 1.15]} />
       <mesh renderOrder={2} geometry={geo} material={boltMat} />
       <mesh renderOrder={3} geometry={geo} material={coreMat} scale={[0.52, 0.52, 0.52]} position={[0, 0, 0.03]} />
     </group>
@@ -1441,28 +1439,17 @@ function ChainArcVisual({ id, fromX, fromZ, toX, toZ, startMs, onDone }) {
     return m
   }), [])
 
-  const outMats = useMemo(() => Array.from({ length: SEG_N }, () => {
-    const m = outlineMat(0.97)
-    m.transparent = true
-    m.depthWrite  = false
-    return m
-  }), [])
-
   useFrame(() => {
     const t = Math.min((performance.now() - startMs) / 1000 / ARC_SECS, 1)
     if (t >= 1) { onDone(id); return }
     const opacity = 1 - t * t
     mats.forEach(m    => { m.opacity = opacity })
-    outMats.forEach(m => { m.opacity = opacity * 0.85 })
   })
 
   return (
     <>
       {segData.map((s, i) => (
         <group key={i} position={[s.midX, 0.55, s.midZ]} rotation={[0, s.yaw, 0]}>
-          <mesh renderOrder={1} material={outMats[i]} scale={[1.35, 1.35, 1]}>
-            <boxGeometry args={[0.07, 0.07, s.segLen]} />
-          </mesh>
           <mesh renderOrder={2} material={mats[i]}>
             <boxGeometry args={[0.05, 0.05, s.segLen]} />
           </mesh>
