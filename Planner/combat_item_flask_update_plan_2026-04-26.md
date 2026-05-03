@@ -12,3 +12,13 @@
 
 - This pass keeps all systems prototype-friendly and playable.
 - The flask is implemented as a simple auto-targeted area burst, not a full physics liquid simulation.
+
+## 2026-05-03 Current Flask Documentation Update
+
+- The current Science Flask implementation is accepted as-is.
+- Current values to document and preserve unless intentionally rebalanced:
+  - Damage: 32
+  - Cooldown: 2600 ms
+  - Target search range: 2 units (0.5 blocks)
+  - Splash radius: 1.6 units (0.4 blocks)
+- This means the flask is a short-range dense-cluster splash tool in the current prototype, not a long-range artillery tool.

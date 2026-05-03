@@ -17,7 +17,7 @@ function randomLunchPos() {
   const radius = 2.8 + Math.random() * 5.8
   return [
     playerPos.x + Math.sin(angle) * radius,
-    0.12,
+    0.38,
     playerPos.z + Math.cos(angle) * radius,
   ]
 }
@@ -83,7 +83,7 @@ function LunchItem({ item, onCollect }) {
   useFrame(({ clock }) => {
     if (!groupRef.current || useGameStore.getState().phase !== 'playing') return
     const ageMs = clock.elapsedTime * 1000 - item.spawnMs
-    groupRef.current.position.y = item.pos[1] + Math.sin(clock.elapsedTime * 4 + item.id) * 0.05
+    groupRef.current.position.y = item.pos[1] + Math.sin(clock.elapsedTime * 3.2 + item.id) * 0.08
     groupRef.current.rotation.y += 0.025
 
     const dx = playerPos.x - item.pos[0]

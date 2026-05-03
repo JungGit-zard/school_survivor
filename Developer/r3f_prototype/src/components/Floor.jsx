@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+﻿import { useMemo } from 'react'
 import * as THREE from 'three'
 import { RigidBody } from '@react-three/rapier'
 
@@ -6,13 +6,12 @@ const TILE_SIZE = 4
 const MAP_SIZE  = 24   // tiles per side
 const GRID_DENSITY_MULTIPLIER = 4
 
-// 첨부 이미지 기준 — 따뜻한 라이트 그레이베이지
+// 泥⑤? ?대?吏 湲곗? ???곕쑜???쇱씠??洹몃젅?대쿋?댁?
 const FLOOR_COLOR = 0xc8c4bc
-const GROUT_COLOR = 0xa8a49c   // 줄눈: 바닥보다 약간 어두운 동계열
-
+const GROUT_COLOR = 0x7f7a70
 export default function Floor() {
   const floorMat = useMemo(() => new THREE.MeshLambertMaterial({ color: FLOOR_COLOR }), [])
-  const lineMat  = useMemo(() => new THREE.LineBasicMaterial({ color: GROUT_COLOR, transparent: true, opacity: 0.85 }), [])
+  const lineMat  = useMemo(() => new THREE.LineBasicMaterial({ color: GROUT_COLOR, transparent: true, opacity: 1 }), [])
 
   const gridLines = useMemo(() => {
     const pts = []

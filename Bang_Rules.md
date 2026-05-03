@@ -135,3 +135,39 @@ BangBang_survivor/
 ---
 
 *최초 작성: 2026-05-01 | 작성자: Claude (claude/fixes-and-review 브랜치)*
+
+---
+
+## 2026-05-03 Current Implementation Addendum
+
+This section records the current accepted implementation values after the 2026-05-03 review.
+
+### Stage Timing
+
+- Boss B01 spawn timing: 240 seconds (4:00).
+- Stage clear timing: 300 seconds (5:00).
+
+### Starting Weapon Rule
+
+- Start active weapon count: 1.
+- Start active weapon: `pencilThrow`.
+- `schoolBag` / 30 cm ruler and `tumbler` start inactive and are unlocked from level-up choices.
+
+### Current Weapon Values
+
+| Weapon key | Current role | Start active | Core values |
+| --- | --- | --- | --- |
+| `pencilThrow` | Basic projectile | Yes | Damage 9, cooldown 900 ms, range 22 units (5.5 blocks) |
+| `schoolBag` | Close ruler swing defense | No | Damage 22, cooldown 1000 ms, range 0.633 units, trigger range 1.0 unit |
+| `tumbler` | Orbiting close defense | No | Damage 10, radius 1.0 unit (0.25 blocks), 3.5 hits/sec |
+| `scienceFlask` | Dense group splash | No | Damage 32, cooldown 2600 ms, target range 2 units (0.5 blocks), splash radius 1.6 units (0.4 blocks) |
+| `bell` | 8-direction shockwave | No | Damage 14, cooldown 4200 ms, radius 1.7 units |
+| `stunGun` | Chain attack | No | Damage 22, cooldown 2800 ms, chain count 2 |
+| `guidedMissile` | Power-bank missile splash | No | Damage 16, cooldown 4000 ms, range 22 units (5.5 blocks), radius 1.6 units |
+| `starlink` | Random nearby lightning | No | Damage 28, cooldown 3800 ms, strike center within 5 units (1.25 blocks), strike radius 1.2 units |
+| `onigiri` | Bouncing multi-target projectile | No | Damage 18, cooldown 1800 ms, range 18 units (4.5 blocks), 4 bounces, bounce range 4.5 units |
+
+### Notes
+
+- Science Flask keeps the current implemented range because the current feel was accepted.
+- Starlink documentation uses 5 units, not 5 blocks, because that is the current implementation.

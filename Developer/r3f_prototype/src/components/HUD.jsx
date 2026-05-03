@@ -1,24 +1,35 @@
-import { useEffect, useState, useMemo } from 'react'
+﻿import { useEffect, useState, useMemo } from 'react'
 import { useGameStore } from '../store/useGameStore.js'
 import { bagSwingState } from '../lib/refs.js'
 
 const UPGRADES = [
   { key: 'pencilDamage', icon: 'pencil', labelFn: (w) => `연필 데미지 +${Math.round(3 / w.pencilThrow.damage * 100)}%`, desc: '투척 연필의 공격력 증가' },
-  { key: 'pencilCount',  icon: 'pencil', label: '연필 발사 수 +1', desc: '동시에 날리는 연필 수 증가 (최대 4)' },
-  { key: 'pencilPierce', icon: 'pencil', label: '연필 관통 +1',   desc: '연필이 적을 관통 (최대 3회)' },
-  { key: 'bagDamage',    icon: 'ruler',  labelFn: (w) => `30센치 자 피해 +${Math.round(8 / w.schoolBag.damage * 100)}%`, desc: '자 휘두르기 타격 피해 증가' },
-  { key: 'bagRadius',    icon: 'ruler',  label: '30센치 자 사거리 +',  desc: '자 휘두르기 타격 범위 증가' },
+  { key: 'pencilCount', icon: 'pencil', label: '연필 발사 수 +1', desc: '동시에 날리는 연필 수 증가 (최대 4)' },
+  { key: 'pencilPierce', icon: 'pencil', label: '연필 관통 +1', desc: '연필이 적을 관통 (최대 3회)' },
+  { key: 'unlockBag', icon: 'ruler', label: '30cm 자 해금', desc: '가까운 적을 자 휘두르기로 방어' },
+  { key: 'bagDamage', icon: 'ruler', labelFn: (w) => `30cm 자 피해 +${Math.round(8 / w.schoolBag.damage * 100)}%`, desc: '자 휘두르기 타격 피해 증가' },
+  { key: 'bagRadius', icon: 'ruler', label: '30cm 자 사거리 +', desc: '자 휘두르기 타격 범위 증가' },
+  { key: 'unlockTumbler', icon: 'tumbler', label: '텀블러 해금', desc: '플레이어 주변을 회전하는 방어 무기' },
   { key: 'tumblerCount', icon: 'tumbler', label: '텀블러 개수 +1', desc: '회전 텀블러 개수 증가 (최대 3개)' },
   { key: 'tumblerDamage', icon: 'tumbler', labelFn: (w) => `텀블러 피해 +${Math.round(4 / w.tumbler.damage * 100)}%`, desc: '회전 텀블러 접촉 피해 증가' },
-  { key: 'unlockFlask',  icon: 'flask',  label: '플라스크 해금', desc: '밀집한 적에게 광역 폭발 투척' },
-  { key: 'flaskDamage',  icon: 'flask',  labelFn: (w) => `플라스크 피해 +${Math.round(10 / w.scienceFlask.damage * 100)}%`, desc: '폭발 피해 증가' },
-  { key: 'flaskRadius',  icon: 'flask',  label: '플라스크 범위 +', desc: '폭발 반경 증가' },
-  { key: 'unlockBell',   icon: 'bell',   label: '벨 해금',      desc: '8방향 충격파 스킬 해금' },
-  { key: 'bellDamage',   icon: 'bell',   labelFn: (w) => `벨 데미지 +${Math.round(5 / w.bell.damage * 100)}%`, desc: '충격파 공격력 증가' },
-  { key: 'unlockStun',   icon: 'stun',   label: '전기충격 해금', desc: '체인 스턴건 스킬 해금' },
-  { key: 'stunChain',    icon: 'stun',   label: '전기 연쇄 +1',    desc: '연쇄 대상 수 증가 (최대 4)' },
-  { key: 'moveSpeed',    icon: 'speed',  label: '이동속도 +10%',   desc: '플레이어 이동속도 증가' },
-  { key: 'maxHealth',    icon: 'health', label: '최대 체력 +20',   desc: '최대 HP 및 현재 HP 증가' },
+  { key: 'unlockFlask', icon: 'flask', label: '플라스크 해금', desc: '밀집한 적에게 광역 폭발 투척' },
+  { key: 'flaskDamage', icon: 'flask', labelFn: (w) => `플라스크 피해 +${Math.round(10 / w.scienceFlask.damage * 100)}%`, desc: '폭발 피해 증가' },
+  { key: 'flaskRadius', icon: 'flask', label: '플라스크 범위 +', desc: '폭발 반경 증가' },
+  { key: 'unlockBell', icon: 'bell', label: '벨 해금', desc: '8방향 충격파 스킬 해금' },
+  { key: 'bellDamage', icon: 'bell', labelFn: (w) => `벨 데미지 +${Math.round(5 / w.bell.damage * 100)}%`, desc: '충격파 공격력 증가' },
+  { key: 'unlockStun', icon: 'stun', label: '전기충격 해금', desc: '체인 스턴건 스킬 해금' },
+  { key: 'stunChain', icon: 'stun', label: '전기 연쇄 +1', desc: '연쇄 대상 수 증가 (최대 4)' },
+  { key: 'unlockMissile', icon: 'missile', label: '보조배터리 해금', desc: '서서히 가속해 밀집 지점을 폭격' },
+  { key: 'missileDamage', icon: 'missile', labelFn: (w) => `보조배터리 피해 +${Math.round(8 / w.guidedMissile.damage * 100)}%`, desc: '폭발 피해 증가' },
+  { key: 'missileCount', icon: 'missile', label: '보조배터리 동시 발사 +1', desc: '동시에 2발 발사 (최대 2발)' },
+  { key: 'unlockStarlink', icon: 'starlink', label: '고장난 스타링크 해금', desc: '5유닛 이내 무작위 낙뢰 (기본 1개)' },
+  { key: 'starlinkDamage', icon: 'starlink', labelFn: (w) => `스타링크 피해 +${Math.round(10 / w.starlink.damage * 100)}%`, desc: '낙뢰 피해 증가' },
+  { key: 'starlinkCount', icon: 'starlink', label: '스타링크 낙뢰 수 +1', desc: '볼리당 낙뢰 수 증가 (최대 6)' },
+  { key: 'unlockOnigiri', icon: 'onigiri', label: '오니기리 해금', desc: '적 사이를 튕기며 공격하는 주먹밥' },
+  { key: 'onigiiriBounce', icon: 'onigiri', label: '오니기리 바운스 +1', desc: '튕기는 횟수 증가 (최대 7회)' },
+  { key: 'onigiiriDamage', icon: 'onigiri', labelFn: (w) => `오니기리 피해 +${Math.round(6 / w.onigiri.damage * 100)}%`, desc: '충돌 피해 증가' },
+  { key: 'moveSpeed', icon: 'speed', label: '이동속도 +10%', desc: '플레이어 이동속도 증가' },
+  { key: 'maxHealth', icon: 'health', label: '최대 체력 +20', desc: '최대 HP 및 현재 HP 증가' },
 ]
 
 function pickThree(level, weapons) {
@@ -27,8 +38,18 @@ function pickThree(level, weapons) {
     if (u.key === 'flaskDamage' || u.key === 'flaskRadius') return  weapons.scienceFlask?.active
     if (u.key === 'unlockBell')                           return !weapons.bell?.active
     if (u.key === 'bellDamage')                           return  weapons.bell?.active
-    if (u.key === 'unlockStun')                           return !weapons.stunGun?.active
-    if (u.key === 'stunChain')                            return  weapons.stunGun?.active
+    if (u.key === 'unlockBag')                             return !weapons.schoolBag?.active
+    if (u.key === 'bagDamage' || u.key === 'bagRadius')     return  weapons.schoolBag?.active
+    if (u.key === 'unlockTumbler')                         return !weapons.tumbler?.active
+    if (u.key === 'tumblerCount' || u.key === 'tumblerDamage') return weapons.tumbler?.active
+    if (u.key === 'unlockStun')                            return !weapons.stunGun?.active
+    if (u.key === 'stunChain')                             return  weapons.stunGun?.active
+    if (u.key === 'unlockMissile')                             return !weapons.guidedMissile?.active
+    if (u.key === 'missileDamage' || u.key === 'missileCount') return  weapons.guidedMissile?.active
+    if (u.key === 'unlockStarlink')                            return !weapons.starlink?.active
+    if (u.key === 'starlinkDamage' || u.key === 'starlinkCount') return weapons.starlink?.active
+    if (u.key === 'unlockOnigiri')                              return !weapons.onigiri?.active
+    if (u.key === 'onigiiriBounce' || u.key === 'onigiiriDamage') return weapons.onigiri?.active
     return true
   })
   const shuffled = [...available].sort(() => Math.random() - 0.5)
@@ -75,6 +96,27 @@ function UpgradeIcon({ type }) {
           <span style={styles.stunBolt} />
         </div>
       )}
+      {type === 'missile' && (
+        <div style={styles.missileIcon}>
+          <span style={styles.missileBody} />
+          <span style={styles.missileNose} />
+          <span style={styles.missileFlame} />
+        </div>
+      )}
+      {type === 'starlink' && (
+        <div style={styles.starlinkIcon}>
+          <span style={styles.starlinkBolt} />
+          <span style={styles.starlinkRingA} />
+          <span style={styles.starlinkRingB} />
+        </div>
+      )}
+      {type === 'onigiri' && (
+        <div style={styles.onigiriIcon}>
+          <span style={styles.onigiriBody} />
+          <span style={styles.onigiriNori} />
+          <span style={styles.onigiriUme} />
+        </div>
+      )}
       {type === 'speed' && (
         <div style={styles.speedIcon}>
           <span style={styles.speedLine1} />
@@ -105,12 +147,12 @@ export default function HUD() {
   const mins = String(Math.floor(elapsed / 60000)).padStart(2, '0')
   const secs = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, '0')
 
-  // phase가 'levelup'으로 바뀌는 순간 한 번만 고정 — RAF re-render에 흔들리지 않음
+  // phase媛 'levelup'?쇰줈 諛붾뚮뒗 ?쒓컙 ??踰덈쭔 怨좎젙 ??RAF re-render???붾뱾由ъ? ?딆쓬
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const choices = useMemo(() => phase === 'levelup' ? pickThree(player.level, weapons) : [], [phase])
   const lowHp   = player.hp / player.maxHp < 0.3
 
-  // 자 쿨타임 비율 (1=준비됨, 0=쿨타임 시작 직후) — RAF로 DOM 갱신 없이 폴링
+  // ??荑⑦???鍮꾩쑉 (1=以鍮꾨맖, 0=荑⑦????쒖옉 吏곹썑) ??RAF濡?DOM 媛깆떊 ?놁씠 ?대쭅
   const [bagReady, setBagReady] = useState(1)
   useEffect(() => {
     let raf
@@ -123,7 +165,7 @@ export default function HUD() {
     return () => cancelAnimationFrame(raf)
   }, [])
 
-  // CSS 키프레임 주입 (최초 1회)
+  // CSS ?ㅽ봽?덉엫 二쇱엯 (理쒖큹 1??
   useEffect(() => {
     const style = document.createElement('style')
     style.id = 'hud-keyframes'
@@ -146,7 +188,7 @@ export default function HUD() {
 
   return (
     <div style={styles.root}>
-      {/* ── 저체력 뷰네트 ── */}
+      {/* ?? ?泥대젰 酉곕꽕???? */}
       {lowHp && (
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
@@ -154,13 +196,13 @@ export default function HUD() {
           animation: 'vignettePulse 0.8s ease-in-out infinite',
         }} />
       )}
-      {/* ── Top bar ── */}
+      {/* ?? Top bar ?? */}
       <div style={styles.topBar}>
         <div style={styles.timer}>{mins}:{secs}</div>
         <div style={styles.level}>Lv.{player.level}</div>
       </div>
 
-      {/* ── HP bar ── */}
+      {/* ?? HP bar ?? */}
       <div style={styles.hpRow}>
         <span style={styles.hpLabel}>HP</span>
         <div style={styles.barBg}>
@@ -174,27 +216,27 @@ export default function HUD() {
         <span style={styles.hpNum}>{player.hp}/{player.maxHp}</span>
       </div>
 
-      {/* ── XP bar ── */}
+      {/* ?? XP bar ?? */}
       <div style={styles.xpRow}>
         <div style={styles.barBg}>
           <div style={{ ...styles.barFill, width: `${(player.xp / player.xpToNext) * 100}%`, background: '#60d060' }} />
         </div>
       </div>
 
-      {/* ── Active weapons ── */}
+      {/* ?? Active weapons ?? */}
       <div style={styles.weaponRow}>
         {Object.entries(weapons).filter(([, w]) => w.active).map(([k, w]) => (
           <div key={k} style={styles.weaponChip}>{w.label}</div>
         ))}
       </div>
 
-      {/* ── 자 쿨타임 UI (HP바 좌상단, 원형) ── */}
+      {/* ?? ??荑⑦???UI (HP諛?醫뚯긽?? ?먰삎) ?? */}
       <div style={styles.cdWrap}>
         <div style={styles.cdRing}>
           <svg width="42" height="42" viewBox="0 0 42 42" style={{ display: 'block' }}>
-            {/* 검정 배경 원 */}
+            {/* 寃??諛곌꼍 ??*/}
             <circle cx="21" cy="21" r="20" fill="#111" stroke="#333" strokeWidth="1" />
-            {/* 황색 진행 링 */}
+            {/* ?⑹깋 吏꾪뻾 留?*/}
             <circle
               cx="21" cy="21" r="15"
               fill="none"
@@ -213,7 +255,7 @@ export default function HUD() {
         </span>
       </div>
 
-      {/* ── Modals ── */}
+      {/* ?? Modals ?? */}
       {phase === 'levelup' && (
         <div style={styles.overlay}>
           <div style={styles.modal}>
@@ -435,6 +477,78 @@ const styles = {
     position: 'absolute', left: '50%', top: 0, transform: 'translateX(-50%)',
     display: 'block', width: 12, height: 34,
     background: '#e03040', border: '2.5px solid #111', borderRadius: 2, boxSizing: 'border-box',
+  },
+  missileIcon: { position: 'relative', width: 36, height: 36 },
+  missileBody: {
+    position: 'absolute', left: '50%', top: '50%',
+    transform: 'translate(-50%, -50%) rotate(-45deg)',
+    display: 'block', width: 8, height: 22,
+    background: '#8a90b8', border: '2px solid #111', borderRadius: 3, boxSizing: 'border-box',
+  },
+  missileNose: {
+    position: 'absolute', left: '50%', top: 3,
+    transform: 'translateX(-50%) rotate(-45deg)',
+    display: 'block', width: 0, height: 0,
+    borderLeft: '5px solid transparent', borderRight: '5px solid transparent',
+    borderBottom: '9px solid #d0d8f0',
+  },
+  missileFlame: {
+    position: 'absolute', left: '50%', bottom: 3,
+    transform: 'translateX(-50%) rotate(-45deg)',
+    display: 'block', width: 0, height: 0,
+    borderLeft: '4px solid transparent', borderRight: '4px solid transparent',
+    borderTop: '8px solid #ff7020',
+  },
+  starlinkIcon: { position: 'relative', width: 36, height: 36 },
+  starlinkBolt: {
+    position: 'absolute', left: '50%', top: 2,
+    transform: 'translateX(-50%)',
+    display: 'block', width: 5, height: 28,
+    background: 'linear-gradient(to bottom, #88eeff 0%, #ffffff 40%, #44aaff 100%)',
+    border: '1.5px solid #111',
+    borderRadius: 2, boxSizing: 'border-box',
+    boxShadow: '0 0 5px #44eeff',
+  },
+  starlinkRingA: {
+    position: 'absolute', left: '50%', bottom: 5,
+    transform: 'translateX(-50%)',
+    display: 'block', width: 18, height: 18,
+    borderRadius: '50%',
+    border: '2px solid #44eeff',
+    opacity: 0.7,
+    boxSizing: 'border-box',
+  },
+  starlinkRingB: {
+    position: 'absolute', left: '50%', bottom: 2,
+    transform: 'translateX(-50%)',
+    display: 'block', width: 28, height: 28,
+    borderRadius: '50%',
+    border: '1.5px solid #226688',
+    opacity: 0.45,
+    boxSizing: 'border-box',
+  },
+  onigiriIcon: { position: 'relative', width: 38, height: 38 },
+  onigiriBody: {
+    position: 'absolute', left: '50%', top: '50%',
+    transform: 'translate(-50%, -50%)',
+    display: 'block', width: 34, height: 34,
+    background: '#f8f8f0', border: '3px solid #111',
+    clipPath: 'polygon(50% 0%, 100% 75%, 75% 100%, 25% 100%, 0% 75%)',
+    boxSizing: 'border-box',
+  },
+  onigiriNori: {
+    position: 'absolute', left: '50%', bottom: 5,
+    transform: 'translateX(-50%)',
+    display: 'block', width: 24, height: 10,
+    background: '#1a2a10', border: '1.5px solid #111',
+    borderRadius: '0 0 4px 4px', boxSizing: 'border-box',
+  },
+  onigiriUme: {
+    position: 'absolute', left: '50%', top: 9,
+    transform: 'translateX(-50%)',
+    display: 'block', width: 9, height: 9,
+    background: '#e03060', border: '2px solid #111',
+    borderRadius: '50%', boxSizing: 'border-box',
   },
   choiceLabel: { fontSize: 14, fontWeight: 700, marginBottom: 6 },
   choiceDesc:  { fontSize: 11, color: '#bbb', lineHeight: 1.4 },

@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState } from 'react'
+﻿import { useRef, useCallback, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGameStore } from '../store/useGameStore.js'
 import { playerPos } from '../lib/refs.js'
@@ -6,7 +6,7 @@ import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
 import GoldCoin from './GoldCoin.jsx'
 
-// ── 스폰 위치 ─────────────────────────────────────────────────────────────────
+// ?? ?ㅽ룿 ?꾩튂 ?????????????????????????????????????????????????????????????????
 const BASE_COL_Y = 0.24
 const SPAWN_MIN_RADIUS = 8.5
 const SPAWN_MAX_RADIUS = 12.5
@@ -30,7 +30,7 @@ function randomSpawnPos(type) {
   return [px + offset.x, y, pz + offset.z]
 }
 
-// E04는 화면 가장자리 원거리에서 등장 (시나리오 주의사항)
+// E04???붾㈃ 媛?μ옄由??먭굅由ъ뿉???깆옣 (?쒕굹由ъ삤 二쇱쓽?ы빆)
 function rangedSpawnPos() {
   const offset = randomPointOnSpawnRing(RANGED_SPAWN_MIN_RADIUS, RANGED_SPAWN_MAX_RADIUS)
   const px   = playerPos.x, pz = playerPos.z
@@ -38,23 +38,23 @@ function rangedSpawnPos() {
   return [px + offset.x, y, pz + offset.z]
 }
 
-// ── 타임라인 페이즈 (시나리오 문서 직접 반영) ──────────────────────────────────
-// weights 합은 1.0. bossPhase: true면 보스전 구간 (일반 몬스터만 유지)
+// ?? ??꾨씪???섏씠利?(?쒕굹由ъ삤 臾몄꽌 吏곸젒 諛섏쁺) ??????????????????????????????????
+// weights ?⑹? 1.0. bossPhase: true硫?蹂댁뒪??援ш컙 (?쇰컲 紐ъ뒪?곕쭔 ?좎?)
 const WAVE_PHASES = [
   { start:   0, end:  30, target: 12, weights: { E01: 1.00 } },
   { start:  30, end:  60, target: 20, weights: { E01: 0.85, E02: 0.15 } },
   { start:  60, end:  90, target: 30, weights: { E01: 0.65, E02: 0.25, E03: 0.10 } },
   { start:  90, end: 120, target: 38, weights: { E01: 0.45, E02: 0.25, E03: 0.30 } },
-  { start: 120, end: 150, target: 48, weights: { E01: 0.35, E02: 0.20, E03: 0.25, E04: 0.20 } },
-  { start: 150, end: 180, target: 58, weights: { E01: 0.30, E02: 0.25, E03: 0.25, E04: 0.20 } },
-  { start: 180, end: 210, target: 68, weights: { E01: 0.20, E02: 0.25, E03: 0.20, E04: 0.20, E05: 0.15 } },
-  { start: 210, end: 240, target: 78, weights: { E01: 0.15, E02: 0.25, E03: 0.20, E04: 0.20, E05: 0.15, E06: 0.05 } },
+  { start: 120, end: 150, target: 48, weights: { E01: 0.55, E02: 0.20, E03: 0.25, E04: 0.10 } },
+  { start: 150, end: 180, target: 58, weights: { E01: 0.40, E02: 0.25, E03: 0.25, E04: 0.10 } },
+  { start: 180, end: 210, target: 68, weights: { E01: 0.30, E02: 0.25, E03: 0.20, E04: 0.10, E05: 0.15 } },
+  { start: 210, end: 240, target: 78, weights: { E01: 0.25, E02: 0.25, E03: 0.20, E04: 0.10, E05: 0.15, E06: 0.05 } },
   { start: 240, end: 260, target: 25, weights: { E01: 0.60, E02: 0.40 }, bossPhase: true },
-  { start: 260, end: 280, target: 35, weights: { E02: 0.60, E04: 0.40 }, bossPhase: true },
+  { start: 260, end: 280, target: 35, weights: { E02: 0.80, E04: 0.20 }, bossPhase: true },
   { start: 280, end: 300, target: 45, weights: { E02: 0.50, E05: 0.50 }, bossPhase: true },
 ]
 
-// ── 버스트 이벤트 (특정 초에 일회성 스폰) ─────────────────────────────────────
+// ?? 踰꾩뒪???대깽??(?뱀젙 珥덉뿉 ?쇳쉶???ㅽ룿) ?????????????????????????????????????
 const BURST_EVENTS = [
   { sec:   0, type: 'E01', count:  8 },
   { sec:  15, type: 'E01', count:  8 },
@@ -64,15 +64,15 @@ const BURST_EVENTS = [
   { sec:  80, type: 'E03', count:  4 },
   { sec: 100, type: 'E01', count: 12 },
   { sec: 100, type: 'E02', count:  8 },
-  { sec: 120, type: 'E04', count:  6 },
-  { sec: 140, type: 'E04', count:  6 },
+  { sec: 120, type: 'E04', count:  3 },
+  { sec: 140, type: 'E04', count:  3 },
   { sec: 165, type: 'E05', count:  5 },
   { sec: 180, type: 'E05', count:  8 },
   { sec: 200, type: 'E06', count:  1 },
   { sec: 220, type: 'E01', count: 15 },
   { sec: 220, type: 'E02', count: 12 },
   { sec: 220, type: 'E05', count:  6 },
-  { sec: 300, type: 'B01', count:  1 },
+  { sec: 240, type: 'B01', count:  1 },
   { sec: 280, type: 'E05', count:  5 },
 ]
 
@@ -94,9 +94,9 @@ export default function Enemies() {
   const [enemies, setEnemies]   = useState([])
   const [xpOrbs, setXpOrbs]     = useState([])
   const [collapses, setCollapses] = useState([])
-  const enemiesRef               = useRef([])     // useFrame용 빠른 미러
-  const firedBurstsRef           = useRef(new Set()) // 발화된 버스트 인덱스
-  const maintainTimerRef         = useRef(0)      // 보충 스폰 간격 타이머
+  const enemiesRef               = useRef([])     // useFrame??鍮좊Ⅸ 誘몃윭
+  const firedBurstsRef           = useRef(new Set()) // 諛쒗솕??踰꾩뒪???몃뜳??
+  const maintainTimerRef         = useRef(0)      // 蹂댁땐 ?ㅽ룿 媛꾧꺽 ??대㉧
 
   const phase      = useGameStore((s) => s.phase)
   const bossSpawned = useGameStore((s) => s.bossSpawned)
@@ -139,7 +139,7 @@ export default function Enemies() {
 
     const sec = useGameStore.getState().elapsedMs / 1000
 
-    // ── 버스트 이벤트 ────────────────────────────────────────────────────
+    // ?? 踰꾩뒪???대깽??????????????????????????????????????????????????????
     BURST_EVENTS.forEach((evt, idx) => {
       if (firedBurstsRef.current.has(idx)) return
       if (sec < evt.sec) return
@@ -160,15 +160,15 @@ export default function Enemies() {
       addEnemies(newBatch)
     })
 
-    // ── 보충 스폰 (목표 생존 수 유지) ────────────────────────────────────
+    // ?? 蹂댁땐 ?ㅽ룿 (紐⑺몴 ?앹〈 ???좎?) ????????????????????????????????????
     maintainTimerRef.current -= delta * 1000
     if (maintainTimerRef.current > 0) return
-    maintainTimerRef.current = 600  // 600ms마다 보충 체크
+    maintainTimerRef.current = 600  // 600ms留덈떎 蹂댁땐 泥댄겕
 
-    // 현재 페이즈 결정
+    // ?꾩옱 ?섏씠利?寃곗젙
     const currentPhase = WAVE_PHASES.findLast((p) => sec >= p.start) ?? WAVE_PHASES[0]
 
-    // 보스 없는 구간이면 보스 제외한 일반 몬스터만 카운트
+    // 蹂댁뒪 ?녿뒗 援ш컙?대㈃ 蹂댁뒪 ?쒖쇅???쇰컲 紐ъ뒪?곕쭔 移댁슫??
     const normalCount = currentPhase.bossPhase
       ? enemiesRef.current.filter((e) => e.type !== 'B01').length
       : enemiesRef.current.length
@@ -176,7 +176,7 @@ export default function Enemies() {
     const shortage = currentPhase.target - normalCount
     if (shortage <= 0) return
 
-    // 한 번에 최대 4마리씩 보충
+    // ??踰덉뿉 理쒕? 4留덈━??蹂댁땐
     const toSpawn = Math.min(shortage, 4)
     const newBatch = []
     for (let i = 0; i < toSpawn; i++) {

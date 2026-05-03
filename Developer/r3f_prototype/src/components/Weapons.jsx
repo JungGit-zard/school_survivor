@@ -9,6 +9,9 @@ import { outlineMat, toonMat } from '../lib/toon.js'
 let _projId = 0
 let _flaskId = 0
 let _bellPulseId = 0
+let _missileId  = 0
+let _starlinkId  = 0
+let _onigiiriId  = 0
 
 function PencilModel() {
   const pencilOutlineMat = useMemo(() => outlineMat(0.98), [])
@@ -810,6 +813,678 @@ export function ScienceFlaskSplash() {
       ))}
       {explosions.map((explosion) => (
         <FlaskExplosion key={explosion.id} {...explosion} onDone={removeExplosion} />
+      ))}
+    </>
+  )
+}
+
+// ── 보조배터리 ──────────────────────────────────────────────────────────────────
+
+function MissileBody() {
+  const bodyMat  = useMemo(() => toonMat(0xff3d85, 0.22), [])   // 선명한 핑크
+  const labelMat = useMemo(() => toonMat(0xff80b8, 0.28), [])   // 밝은 핑크 밴드
+  const noseMat  = useMemo(() => toonMat(0xffaad0, 0.14), [])   // 연핑크 코
+  const outMat   = useMemo(() => outlineMat(0.97), [])
+
+  // scale 0.54 (2배 크기)
+  return (
+    <group rotation={[Math.PI / 2, 0, 0]} scale={[0.54, 0.54, 0.54]}>
+      <mesh renderOrder={1} material={outMat} scale={[1.14, 1.08, 1.14]}>
+        <cylinderGeometry args={[0.13, 0.15, 0.64, 8]} />
+      </mesh>
+      <mesh renderOrder={2} material={bodyMat}>
+        <cylinderGeometry args={[0.13, 0.15, 0.64, 8]} />
+      </mesh>
+      <mesh renderOrder={2} material={labelMat}>
+        <cylinderGeometry args={[0.135, 0.155, 0.22, 8]} />
+      </mesh>
+      <mesh renderOrder={2} material={noseMat} position={[0, 0.42, 0]}>
+        <coneGeometry args={[0.13, 0.18, 8]} />
+      </mesh>
+    </group>
+  )
+}
+
+function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
+  const groupRef    = useRef()
+  const flameRef    = useRef()
+  const smokeRef    = useRef()
+  const ageRef      = useRef(0)
+  const speedRef    = useRef(0.09)   // 처음엔 매우 느림 (절반)
+  const explodedRef = useRef(false)
+  const posRef      = useRef({ x: start[0], y: start[1], z: start[2] })
+
+  const flameMat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: 0xff6eb8, transparent: true, opacity: 0.55, depthWrite: false,
+  }), [])
+  const flameCoreMat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: 0xffd6f0, transparent: true, opacity: 0.65, depthWrite: false,
+  }), [])
+  const smokeMat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: 0xdddddd, transparent: true, opacity: 0, depthWrite: false,
+  }), [])
+
+  useFrame((_, delta) => {
+    if (explodedRef.current || !groupRef.current) return
+    ageRef.current += delta
+
+    if (ageRef.current > 5.5) {
+      explodedRef.current = true
+      onExplode(id, { x: posRef.current.x, z: posRef.current.z, radius, damage })
+      return
+    }
+
+    // 추진 가속 — 처음엔 천천히, 갈수록 빠르게 (절반 속도)
+    speedRef.current = Math.min(7.5, speedRef.current + 4.75 * delta)
+
+    const p = posRef.current
+    const dx = target.x - p.x
+    const dz = target.z - p.z
+    const dist = Math.hypot(dx, dz)
+
+    if (dist < 0.28) {
+      explodedRef.current = true
+      onExplode(id, { x: target.x, z: target.z, radius, damage })
+      return
+    }
+
+    const nx = dx / dist
+    const nz = dz / dist
+    p.x += nx * speedRef.current * delta
+    p.z += nz * speedRef.current * delta
+
+    groupRef.current.position.set(p.x, start[1], p.z)
+    // nose를 진행 방향으로 회전
+    groupRef.current.rotation.y = Math.atan2(nx, nz)
+
+    const t = speedRef.current / 7.5   // 0(발사직후) → 1(최고속)
+    const pulse = 0.82 + Math.sin(ageRef.current * 28) * 0.18
+
+    // 배기 화염 (속도 오를수록 강해짐)
+    if (flameRef.current) {
+      flameRef.current.scale.setScalar(pulse * (0.18 + t * 0.60))
+      flameMat.opacity     = 0.18 + t * 0.37
+      flameCoreMat.opacity = 0.22 + t * 0.43
+    }
+
+    // 발사 직후 연기 (속도 낮을수록 진함)
+    if (smokeRef.current) {
+      const smokeT = 1 - t
+      smokeMat.opacity = smokeT * (0.45 + Math.sin(ageRef.current * 9) * 0.08)
+      smokeRef.current.scale.set(
+        pulse * (0.55 + smokeT * 0.9),
+        1 + smokeT * 2.2,
+        pulse * (0.55 + smokeT * 0.9),
+      )
+    }
+  })
+
+  return (
+    <group ref={groupRef} position={start}>
+      <MissileBody />
+      {/* 발사 직후 연기 구름 — 꼬리 뒤쪽 */}
+      <mesh ref={smokeRef} renderOrder={3} material={smokeMat} position={[0, 0, -0.22]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.055, 0.10, 1, 8]} />
+      </mesh>
+      {/* 배기 화염 */}
+      <group ref={flameRef} position={[0, 0, -0.10]}>
+        <mesh renderOrder={4} material={flameMat} rotation={[Math.PI / 2, 0, 0]}>
+          <coneGeometry args={[0.038, 0.20, 8]} />
+        </mesh>
+        <mesh renderOrder={5} material={flameCoreMat} rotation={[Math.PI / 2, 0, 0]} scale={[0.52, 0.58, 0.52]}>
+          <coneGeometry args={[0.038, 0.20, 8]} />
+        </mesh>
+      </group>
+    </group>
+  )
+}
+
+// 폭발 연출 재사용 (플라스크와 동일 시스템, 색상만 다름)
+function MissileExplosion({ id, x, z, radius, onDone }) {
+  const meshRef = useRef(null)
+  const ringRef = useRef(null)
+  const ageRef  = useRef(0)
+
+  useFrame((_, delta) => {
+    ageRef.current += delta
+    const t = Math.min(1, ageRef.current / 0.40)
+    if (meshRef.current) {
+      meshRef.current.scale.setScalar(0.15 + radius * 2.2 * t)
+      meshRef.current.material.opacity = 0.44 * (1 - t)
+    }
+    if (ringRef.current) {
+      ringRef.current.scale.setScalar(0.1 + radius * 2.8 * t)
+      ringRef.current.material.opacity = 0.28 * (1 - t)
+    }
+    if (t >= 1) onDone(id)
+  })
+
+  return (
+    <>
+      <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.07, z]} renderOrder={4}>
+        <circleGeometry args={[0.5, 48]} />
+        <meshBasicMaterial color={0xff9933} transparent opacity={0.44} depthWrite={false} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.09, z]} renderOrder={5}>
+        <ringGeometry args={[0.3, 0.55, 48]} />
+        <meshBasicMaterial color={0xffee88} transparent opacity={0.28} depthWrite={false} side={THREE.DoubleSide} />
+      </mesh>
+    </>
+  )
+}
+
+export function GuidedMissileWeapon() {
+  const [missiles, setMissiles]     = useState([])
+  const [explosions, setExplosions] = useState([])
+  const activeMissilesRef           = useRef([])
+  const lastFireRef                 = useRef(0)
+  const phase   = useGameStore((s) => s.phase)
+  const weapons = useGameStore((s) => s.weapons)
+
+  const removeExplosion = useCallback((id) => {
+    setExplosions((prev) => prev.filter((e) => e.id !== id))
+  }, [])
+
+  const onExplode = useCallback((id, blast) => {
+    activeMissilesRef.current = activeMissilesRef.current.filter((m) => m.id !== id)
+    setMissiles([...activeMissilesRef.current])
+
+    const hit = new Set()
+    enemyBodies.forEach((rb, enemyId) => {
+      if (!rb?._enemyHit || rb._enemyDead || hit.has(enemyId)) return
+      const t = rb.translation()
+      const dx = t.x - blast.x
+      const dz = t.z - blast.z
+      if (dx * dx + dz * dz > blast.radius * blast.radius) return
+      hit.add(enemyId)
+      rb._enemyHit(blast.damage, {
+        source: { x: blast.x, z: blast.z },
+        knockback: 3.2,
+        knockbackMs: 120,
+      })
+    })
+
+    setExplosions((prev) => [...prev, { id, x: blast.x, z: blast.z, radius: blast.radius }])
+  }, [])
+
+  useFrame(({ clock }) => {
+    const w = weapons.guidedMissile
+    if (phase !== 'playing' || !w?.active) return
+
+    const now = clock.elapsedTime * 1000
+    if (now - lastFireRef.current < w.cooldown) return
+
+    const count = Math.max(1, Math.min(2, w.count ?? 1))
+    if (activeMissilesRef.current.length >= count) return
+
+    // 발사 시점의 좀비 밀도 최고 지점 탐색
+    const target = findBestSplashTarget(w.range ?? 22, w.radius ?? 1.6)
+    if (!target) return
+    lastFireRef.current = now
+
+    const newBatch = Array.from({ length: count }, (_, i) => {
+      const spread = count > 1 ? (i === 0 ? -0.22 : 0.22) : 0
+      return {
+        id: ++_missileId,
+        start: [
+          playerPos.x + Math.sin(spread) * 0.35,
+          playerPos.y + 0.36,
+          playerPos.z + Math.cos(spread) * 0.35,
+        ],
+        target: { x: target.x, z: target.z },
+        damage: w.damage,
+        radius: w.radius ?? 1.6,
+      }
+    })
+    activeMissilesRef.current = [...activeMissilesRef.current, ...newBatch]
+    setMissiles([...activeMissilesRef.current])
+  })
+
+  if (!weapons.guidedMissile?.active) return null
+
+  return (
+    <>
+      {missiles.map((m) => (
+        <MissileProjectile key={m.id} {...m} onExplode={onExplode} />
+      ))}
+      {explosions.map((e) => (
+        <MissileExplosion key={e.id} {...e} onDone={removeExplosion} />
+      ))}
+    </>
+  )
+}
+
+// ── 고장난 스타링크 ────────────────────────────────────────────────────────────
+
+const WARN_MS   = 680   // 경고 링 지속 (ms)
+const BOLT_MS   = 180   // 번개 플래시 지속 (ms)
+const BOLT_Y    = 4.2   // 번개 시작 높이
+
+// 지그재그 번개 세그먼트 생성 (시드 기반)
+function makeBoltSegs(seed) {
+  const segs = []
+  let cy = BOLT_Y, cx = 0, cz = 0
+  const segCount = 6
+  for (let i = 0; i < segCount; i++) {
+    const h  = 0.52 + (((seed * (i + 1.3)) % 1 + 1) % 1) * 0.38
+    const ox = ((seed * (i * 2.7 + 1.1)) % 1 - 0.5) * 0.22
+    const oz = ((seed * (i * 3.1 + 0.9)) % 1 - 0.5) * 0.22
+    const nx = cx + ox
+    const nz = cz + oz
+    const mx = (cx + nx) / 2
+    const mz = (cz + nz) / 2
+    const my = cy - h / 2
+    // rotation to align box from (cx,cy,cz) to (nx,cy-h,nz)
+    const rx = Math.atan2(nz - cz, h)
+    const rz = -Math.atan2(nx - cx, h)
+    segs.push({ mx, my, mz, h, rx, rz })
+    cx = nx; cz = nz; cy -= h
+  }
+  return segs
+}
+
+// 경고 링 (번개 낙하 전 예고)
+function StrikeWarning({ x, z, startMs, radius }) {
+  const outerRef = useRef()
+  const innerRef = useRef()
+  const crossH   = useRef()
+  const crossV   = useRef()
+
+  const warnMat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: 0x44eeff, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide,
+  }), [])
+  const crossMat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: 0xffffff, transparent: true, opacity: 0, depthWrite: false,
+  }), [])
+
+  useFrame(({ clock }) => {
+    const age = clock.elapsedTime * 1000 - startMs
+    const t   = Math.min(1, age / WARN_MS)
+    const blink = Math.sin(t * Math.PI * 7) > 0 ? 1 : 0.3
+    const op  = (0.55 + 0.45 * blink) * (1 - t * 0.3)
+
+    if (outerRef.current) {
+      outerRef.current.position.set(x, 0.04, z)
+      outerRef.current.scale.setScalar(0.5 + t * 0.7)
+      warnMat.opacity = op * 0.7
+    }
+    if (innerRef.current) {
+      innerRef.current.position.set(x, 0.05, z)
+      innerRef.current.scale.setScalar(0.18 + t * 0.25)
+    }
+    if (crossH.current) {
+      crossH.current.position.set(x, 0.055, z)
+      crossMat.opacity = op * 0.55
+    }
+    if (crossV.current) {
+      crossV.current.position.set(x, 0.055, z)
+    }
+  })
+
+  return (
+    <>
+      <mesh ref={outerRef} rotation={[-Math.PI / 2, 0, 0]} renderOrder={6}>
+        <ringGeometry args={[radius * 0.75, radius * 0.92, 48]} />
+        <primitive object={warnMat} attach="material" />
+      </mesh>
+      <mesh ref={innerRef} rotation={[-Math.PI / 2, 0, 0]} renderOrder={6}>
+        <circleGeometry args={[radius, 32]} />
+        <meshBasicMaterial color={0x44eeff} transparent opacity={0.08} depthWrite={false} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh ref={crossH} rotation={[-Math.PI / 2, 0, 0]} renderOrder={7}>
+        <planeGeometry args={[radius * 1.6, 0.04]} />
+        <primitive object={crossMat} attach="material" />
+      </mesh>
+      <mesh ref={crossV} rotation={[-Math.PI / 2, Math.PI / 2, 0]} renderOrder={7}>
+        <planeGeometry args={[radius * 1.6, 0.04]} />
+        <primitive object={crossMat} attach="material" />
+      </mesh>
+    </>
+  )
+}
+
+// 번개 볼트 플래시 + 피해
+function StrikeBolt({ id, x, z, startMs, radius, damage, seed, onDone }) {
+  const groupRef   = useRef()
+  const impactRef  = useRef()
+  const hasFiredRef = useRef(false)
+
+  const boltMat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: 0xccf4ff, transparent: true, opacity: 1, depthWrite: false,
+  }), [])
+  const coreMat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: 0xffffff, transparent: true, opacity: 1, depthWrite: false,
+  }), [])
+  const impactMat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: 0x88eeff, transparent: true, opacity: 0.7, depthWrite: false, side: THREE.DoubleSide,
+  }), [])
+
+  const segs = useMemo(() => makeBoltSegs(seed), [seed])
+
+  useFrame(({ clock }) => {
+    const age = clock.elapsedTime * 1000 - startMs
+    if (age < 0) return
+
+    // 피해는 볼트 등장 순간 1회만
+    if (!hasFiredRef.current) {
+      hasFiredRef.current = true
+      enemyBodies.forEach((rb, enemyId) => {
+        if (!rb?._enemyHit || rb._enemyDead) return
+        const t = rb.translation()
+        const dx = t.x - x; const dz = t.z - z
+        if (dx * dx + dz * dz > radius * radius) return
+        rb._enemyHit(damage, {
+          source: { x, z },
+          knockback: 4.5,
+          knockbackMs: 150,
+        })
+      })
+    }
+
+    const t  = Math.min(1, age / BOLT_MS)
+    const op = 1 - t * t   // 빠르게 페이드아웃
+
+    if (groupRef.current) {
+      groupRef.current.position.set(x, 0, z)
+      boltMat.opacity = op * 0.88
+      coreMat.opacity = op
+    }
+    if (impactRef.current) {
+      impactRef.current.scale.setScalar(0.3 + t * radius * 2.8)
+      impactMat.opacity = 0.7 * (1 - t)
+    }
+    if (t >= 1) onDone(id)
+  })
+
+  return (
+    <group ref={groupRef} position={[x, 0, z]}>
+      {/* 번개 세그먼트 (지그재그) */}
+      {segs.map((s, i) => (
+        <group key={i} position={[s.mx, s.my, s.mz]} rotation={[s.rx, 0, s.rz]}>
+          {/* 외곽 빛 */}
+          <mesh renderOrder={8} material={boltMat} scale={[3.5, 1, 3.5]}>
+            <boxGeometry args={[0.026, s.h, 0.026]} />
+          </mesh>
+          {/* 코어 백색 */}
+          <mesh renderOrder={9} material={coreMat}>
+            <boxGeometry args={[0.018, s.h, 0.018]} />
+          </mesh>
+        </group>
+      ))}
+      {/* 지면 충격 원 */}
+      <mesh ref={impactRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.06, 0]} renderOrder={7}>
+        <circleGeometry args={[0.5, 48]} />
+        <primitive object={impactMat} attach="material" />
+      </mesh>
+    </group>
+  )
+}
+
+export function StarlinkWeapon() {
+  const [strikes, setStrikes]   = useState([])  // { id, x, z, phase:'warn'|'bolt', startMs, ... }
+  const strikesRef              = useRef([])
+  const lastVolleyRef           = useRef(0)
+  const phase   = useGameStore((s) => s.phase)
+  const weapons = useGameStore((s) => s.weapons)
+
+  const removeBolt = useCallback((id) => {
+    strikesRef.current = strikesRef.current.filter((s) => s.id !== id && s.phase !== 'bolt' || s.id !== id)
+    setStrikes((prev) => prev.filter((s) => s.id !== id))
+  }, [])
+
+  useFrame(({ clock }) => {
+    const w = weapons.starlink
+    if (phase !== 'playing' || !w?.active) return
+
+    const nowMs = clock.elapsedTime * 1000
+
+    // warn → bolt 전환 체크
+    let changed = false
+    strikesRef.current = strikesRef.current.map((s) => {
+      if (s.phase === 'warn' && nowMs - s.startMs >= WARN_MS) {
+        changed = true
+        return { ...s, phase: 'bolt', startMs: nowMs }
+      }
+      return s
+    })
+    if (changed) setStrikes([...strikesRef.current])
+
+    // 새 볼리 발사
+    if (nowMs - lastVolleyRef.current < w.cooldown) return
+
+    // 활성 경고가 없을 때만 새 볼리
+    const hasWarn = strikesRef.current.some((s) => s.phase === 'warn')
+    if (hasWarn) return
+
+    lastVolleyRef.current = nowMs
+
+    const count = w.strikeCount ?? 1
+    const newBatch = Array.from({ length: count }, (_, i) => {
+      // 플레이어 5블록 이내 무작위 — 고장난 위성
+      const angle  = Math.random() * Math.PI * 2
+      const dist   = Math.random() * 5.0
+      const seed   = nowMs * 0.001 + i * 17.3
+      return {
+        id:      ++_starlinkId,
+        x:       playerPos.x + Math.cos(angle) * dist,
+        z:       playerPos.z + Math.sin(angle) * dist,
+        phase:   'warn',
+        startMs: nowMs,
+        radius:  w.radius ?? 1.2,
+        damage:  w.damage,
+        seed,
+      }
+    })
+
+    strikesRef.current = [...strikesRef.current, ...newBatch]
+    setStrikes([...strikesRef.current])
+  })
+
+  if (!weapons.starlink?.active) return null
+
+  return (
+    <>
+      {strikes.map((s) =>
+        s.phase === 'warn' ? (
+          <StrikeWarning key={s.id} x={s.x} z={s.z} startMs={s.startMs} radius={s.radius} />
+        ) : (
+          <StrikeBolt key={`bolt-${s.id}`} {...s} onDone={removeBolt} />
+        )
+      )}
+    </>
+  )
+}
+
+// ── 오니기리 바운스 공격 ────────────────────────────────────────────────────────
+
+function OnigiiriModel() {
+  const riceMat  = useMemo(() => toonMat(0xfcf8ed, 0.07), [])
+  const noriMat  = useMemo(() => toonMat(0x0e0e0e, 0.02), [])
+  const umeMat   = useMemo(() => toonMat(0xdd1133, 0.30), [])
+  const saltMat  = useMemo(() => toonMat(0xf0eee0, 0.10), [])
+  const outMat   = useMemo(() => outlineMat(0.97), [])
+
+  return (
+    <group scale={[0.28, 0.28, 0.28]}>
+      {/* 본체 삼각형 (3면 실린더) + 외곽선 */}
+      <mesh renderOrder={1} material={outMat} scale={[1.13, 1.08, 1.13]}>
+        <cylinderGeometry args={[0.37, 0.43, 0.66, 3]} />
+      </mesh>
+      <mesh renderOrder={2} material={riceMat}>
+        <cylinderGeometry args={[0.37, 0.43, 0.66, 3]} />
+      </mesh>
+      {/* 김(노리) 밴드 */}
+      <mesh renderOrder={3} material={noriMat} position={[0, -0.11, 0]}>
+        <cylinderGeometry args={[0.39, 0.44, 0.28, 3]} />
+      </mesh>
+      {/* 소금 텍스처 점들 */}
+      {[0.28, -0.15, 0.12].map((y, i) => (
+        <mesh key={i} renderOrder={3} material={saltMat}
+          position={[Math.sin(i * 2.1) * 0.25, y, Math.cos(i * 2.1) * 0.28]}>
+          <sphereGeometry args={[0.055, 5, 5]} />
+        </mesh>
+      ))}
+      {/* 매실 (우메보시) */}
+      <mesh renderOrder={4} material={umeMat} position={[0, 0.13, 0.34]}>
+        <sphereGeometry args={[0.12, 8, 6]} />
+      </mesh>
+    </group>
+  )
+}
+
+// 바운스 충격 플래시
+function BounceFlash({ id, x, z, startMs, onDone }) {
+  const ref = useRef()
+  const mat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: 0xfff0aa, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide,
+  }), [])
+
+  useFrame(({ clock }) => {
+    const age = clock.elapsedTime * 1000 - startMs
+    const t   = Math.min(1, age / 160)
+    if (ref.current) {
+      ref.current.scale.setScalar(0.1 + t * 0.55)
+      mat.opacity = 0.85 * (1 - t)
+    }
+    if (t >= 1) onDone(id)
+  })
+
+  return (
+    <mesh ref={ref} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.06, z]} renderOrder={6}>
+      <circleGeometry args={[0.5, 20]} />
+      <primitive object={mat} attach="material" />
+    </mesh>
+  )
+}
+
+function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, bounceRange, onDone, onBounceFlash }) {
+  const groupRef   = useRef()
+  const posRef     = useRef({ x: start[0], y: start[1] + 0.25, z: start[2] })
+  const targetRef  = useRef(initialTarget)
+  const bouncesRef = useRef(maxBounces)
+  const hitSetRef  = useRef(new Set([initialTarget.enemyId]))
+  const spinRef    = useRef(0)
+  const doneRef    = useRef(false)
+  const SPEED      = 11
+
+  useFrame((_, delta) => {
+    if (doneRef.current || !groupRef.current) return
+
+    spinRef.current += delta * 15
+
+    const target = targetRef.current
+    if (!target?.rb || target.rb._enemyDead || !target.rb._enemyHit) {
+      doneRef.current = true; onDone(id); return
+    }
+
+    const t  = target.rb.translation()
+    const p  = posRef.current
+    const dx = t.x - p.x
+    const dz = t.z - p.z
+    const dist = Math.hypot(dx, dz)
+
+    if (dist < 0.30) {
+      // 타격
+      onBounceFlash(t.x, t.z)
+      target.rb._enemyHit(damage, {
+        source: { x: p.x, z: p.z },
+        knockback: 3.2, knockbackMs: 90,
+      })
+      bouncesRef.current--
+      p.x = t.x; p.z = t.z
+
+      if (bouncesRef.current <= 0) {
+        doneRef.current = true; onDone(id); return
+      }
+
+      // 다음 바운스 대상: 현재 위치 기준 가장 가까운 미타격 적
+      let next = null
+      let minDSq = bounceRange * bounceRange
+      enemyBodies.forEach((rb, enemyId) => {
+        if (hitSetRef.current.has(enemyId) || !rb._enemyHit || rb._enemyDead) return
+        const et = rb.translation()
+        const dSq = (et.x - t.x) ** 2 + (et.z - t.z) ** 2
+        if (dSq < minDSq) { minDSq = dSq; next = { rb, enemyId } }
+      })
+
+      if (!next) { doneRef.current = true; onDone(id); return }
+      hitSetRef.current.add(next.enemyId)
+      targetRef.current = next
+      return
+    }
+
+    // 이동 + 바운스 호 (sin으로 위아래 튕기는 느낌)
+    p.x += (dx / dist) * SPEED * delta
+    p.z += (dz / dist) * SPEED * delta
+    p.y  = start[1] + 0.25 + Math.abs(Math.sin(spinRef.current * 0.45)) * 0.22
+
+    groupRef.current.position.set(p.x, p.y, p.z)
+    groupRef.current.rotation.y  = spinRef.current
+    groupRef.current.rotation.x  = Math.sin(spinRef.current * 0.8) * 0.35
+    groupRef.current.rotation.z  = Math.cos(spinRef.current * 0.6) * 0.25
+  })
+
+  return (
+    <group ref={groupRef} position={[start[0], start[1] + 0.25, start[2]]}>
+      <OnigiiriModel />
+    </group>
+  )
+}
+
+export function OnigiiriWeapon() {
+  const [projectiles, setProjectiles] = useState([])
+  const [flashes, setFlashes]         = useState([])
+  const projRef      = useRef([])
+  const lastFireRef  = useRef(0)
+  const flashIdRef   = useRef(0)
+  const phase   = useGameStore((s) => s.phase)
+  const weapons = useGameStore((s) => s.weapons)
+
+  const expire = useCallback((id) => {
+    projRef.current = projRef.current.filter((p) => p.id !== id)
+    setProjectiles([...projRef.current])
+  }, [])
+
+  const removeFlash = useCallback((id) => {
+    setFlashes((prev) => prev.filter((f) => f.id !== id))
+  }, [])
+
+  const addFlash = useCallback((x, z) => {
+    setFlashes((prev) => [...prev, { id: ++flashIdRef.current, x, z, startMs: performance.now() }])
+  }, [])
+
+  useFrame(({ clock }) => {
+    const w = weapons.onigiri
+    if (phase !== 'playing' || !w?.active) return
+    const now = clock.elapsedTime * 1000
+    if (now - lastFireRef.current < w.cooldown) return
+    if (projRef.current.length > 0) return   // 비행 중엔 다음 발사 안 함
+
+    const target = findClosestEnemy(w.range ?? 18)
+    if (!target) return
+    lastFireRef.current = now
+
+    const p = {
+      id:            ++_onigiiriId,
+      start:         [playerPos.x, playerPos.y, playerPos.z],
+      initialTarget: target,
+      maxBounces:    w.bounces ?? 4,
+      damage:        w.damage,
+      bounceRange:   w.bounceRange ?? 4.5,
+    }
+    projRef.current = [p]
+    setProjectiles([p])
+  })
+
+  if (!weapons.onigiri?.active) return null
+
+  return (
+    <>
+      {projectiles.map((p) => (
+        <OnigiiriProjectile key={p.id} {...p} onDone={expire} onBounceFlash={addFlash} />
+      ))}
+      {flashes.map((f) => (
+        <BounceFlash key={f.id} {...f} onDone={removeFlash} />
       ))}
     </>
   )

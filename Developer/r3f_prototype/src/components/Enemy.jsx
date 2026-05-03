@@ -1,9 +1,10 @@
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../lib/refs.js'
 import { useGameStore } from '../store/useGameStore.js'
+import { toonMat, outlineMat } from '../lib/toon.js'
 import ZombieMesh from './ZombieMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 
@@ -19,7 +20,7 @@ export const ENEMY_STATS = {
   E02: { hp: 55,   speed: 0.55, damage: 14, scale: 1.40, xp: 2,  contactDist: 0.36 },
   E03: { hp: 10,   speed: 1.1,  damage: 6,  scale: 0.75, xp: 1,  contactDist: 0.22 },
   E04: { hp: 35,   speed: 0.45, damage: 8,  scale: 0.90, xp: 2,  contactDist: 0.26,
-         ranged: true, rangedCooldown: 2200, rangedDmg: 8, rangedSpeed: 3.8,
+         ranged: true, rangedCooldown: 2200, rangedDmg: 8, rangedSpeed: 1.9,
          preferDist: 5.5, minDist: 3.5 },
   E05: { hp: 70,   speed: 0.5,  damage: 16, scale: 1.15, xp: 3,  contactDist: 0.32,
          charger: true, chargeSpeed: 1.7, warnDist: 4.5, warnDuration: 700, stunDuration: 1000 },
@@ -39,9 +40,11 @@ const BASE_COL = [0.14, 0.26, 0.10]
 let _projId = 0
 
 function EnemyProjectile({ id, position, velocity, damage, onExpire }) {
-  const rb     = useRef()
-  const ageRef = useRef(0)
-  const hitRef = useRef(false)
+  const rb      = useRef()
+  const ageRef  = useRef(0)
+  const hitRef  = useRef(false)
+  const projMat = useMemo(() => toonMat(0xff5500, 0.4), [])
+  const projOut = useMemo(() => outlineMat(0.97), [])
 
   useFrame((_, delta) => {
     if (!rb.current) return
@@ -69,9 +72,11 @@ function EnemyProjectile({ id, position, velocity, damage, onExpire }) {
       }}
     >
       <CuboidCollider args={[0.09, 0.09, 0.09]} sensor />
-      <mesh>
-        <sphereGeometry args={[0.09, 6, 6]} />
-        <meshBasicMaterial color={0xff6600} />
+      <mesh renderOrder={1} material={projOut} scale={[1.22, 1.22, 1.22]}>
+        <sphereGeometry args={[0.09, 8, 8]} />
+      </mesh>
+      <mesh renderOrder={2} material={projMat}>
+        <sphereGeometry args={[0.09, 8, 8]} />
       </mesh>
     </RigidBody>
   )

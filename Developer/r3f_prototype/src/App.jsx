@@ -3,7 +3,6 @@ import { Physics } from '@react-three/rapier'
 import { KeyboardControls } from '@react-three/drei'
 import Game from './components/Game.jsx'
 import HUD from './components/HUD.jsx'
-import VirtualJoystick from './components/VirtualJoystick.jsx'
 import { useGameStore } from './store/useGameStore.js'
 
 const keyMap = [
@@ -38,7 +37,6 @@ export default function App() {
           </Canvas>
         </KeyboardControls>
         <HUD />
-        <VirtualJoystick />
       </div>
     </div>
   )
