@@ -198,7 +198,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
       } else {
         rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
       }
-      if (_dir.length() > 0) updateRotation(groupRef, _dir.x / _dir.length(), _dir.z / _dir.length())
+      const dLen = _dir.length()
+      if (dLen > 0) updateRotation(groupRef, _dir.x / dLen, _dir.z / dLen)
 
       // 투사체 발사
       if (now - lastFireRef.current >= stats.rangedCooldown) {

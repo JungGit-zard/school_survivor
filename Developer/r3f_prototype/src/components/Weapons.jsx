@@ -173,7 +173,7 @@ export function PencilThrow() {
     if (now - lastFireRef.current < w.cooldown) return
     if (activeProjectilesRef.current.length > 0) return
 
-    const target = findClosestEnemy(w.range ?? 22)
+    const target = findClosestEnemy(w.range)
     if (!target) return
     lastFireRef.current = now
 
@@ -559,7 +559,7 @@ export function SchoolBagSwing() {
       </RigidBody>
       {swing && (
         <mesh ref={trailRef} rotation={[-Math.PI / 2, 0, 0]} position={[playerPos.x, 0.055, playerPos.z]} renderOrder={3}>
-          <ringGeometry args={[0.28, (weapons.schoolBag.range ?? 0.633) + 0.28, 72, 1, -1.18, 2.36]} />
+          <ringGeometry args={[0.28, weapons.schoolBag.range + 0.28, 72, 1, -1.18, 2.36]} />
           <meshBasicMaterial color={0x7ee7ff} transparent opacity={0} side={THREE.DoubleSide} depthWrite={false} />
         </mesh>
       )}
@@ -713,7 +713,7 @@ export function BellShockwave() {
     if (nowMs - lastFireRef.current < w.cooldown) return
     lastFireRef.current = nowMs
 
-    const radius = w.radius ?? 1.7
+    const radius = w.radius
     enemyBodies.forEach((rb) => {
       if (!rb?._enemyHit || rb._enemyDead) return
       const t = rb.translation()
@@ -785,7 +785,7 @@ export function ScienceFlaskSplash() {
     if (now - lastFireRef.current < w.cooldown) return
     if (activeFlasksRef.current.length > 0) return
 
-    const target = findBestSplashTarget(w.range ?? 18, w.radius ?? 1.6)
+    const target = findBestSplashTarget(w.range, w.radius)
     if (!target) return
     lastFireRef.current = now
 
