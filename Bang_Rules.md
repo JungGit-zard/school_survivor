@@ -171,3 +171,55 @@ This section records the current accepted implementation values after the 2026-0
 
 - Science Flask keeps the current implemented range because the current feel was accepted.
 - Starlink documentation uses 5 units, not 5 blocks, because that is the current implementation.
+
+---
+
+## 2026-05-06 Stage 1 Re-balance Addendum
+
+This section records the new accepted values after the 2026-05-06 full re-planning.
+근거: `Planner/stage1_replan_2026-05-06.md` and `Planner/Ref_Vampire_GameDesign/`.
+
+### Re-balance Principle
+
+- 데미지는 절대값보다 **"몇 방에 죽는가"** 기준 (게임데미지공식기획기준).
+- 후반 압박은 개별 HP 상승보다 **스폰 수와 적 조합** 으로 만든다.
+
+### New Weapon Values (Lv.1 base)
+
+| Weapon key | Lv.1 damage | Cooldown | Lv.5 damage |
+| --- | --- | --- | --- |
+| `pencilThrow` | 8 | 1100 ms | 20 |
+| `schoolBag` | 12 | 1300 ms | 32 |
+| `tumbler` | 4 | 0.4s tick | 12 |
+| `scienceFlask` | 30 | 2800 ms | 62 |
+| `bell` | 10 | 4500 ms | 26 |
+| `stunGun` | 18 | 3000 ms | 38 |
+| `guidedMissile` | 18 | 4200 ms | 42 |
+| `starlink` | 22 | 4000 ms | 50 |
+| `onigiri` | 14 | 2000 ms | 34 |
+
+### New Enemy Values
+
+| ID | 이름 | HP | 속도 | 접촉 데미지 | XP |
+| --- | --- | --- | --- | --- | --- |
+| E01 | 잡몹 | 12 | 0.95 | 8 | 1 |
+| E02 | 탱커 | 70 | 0.55 | 14 | 3 |
+| E03 | 러너 | 14 | 1.10 | 6 | 1 |
+| E04 | 원거리 | 32 | 0.45 | 8 | 2 |
+| E05 | 돌진 | 70 | 0.50 | 16 | 3 |
+| E06 | 거대 | 320 | 0.60 | 20 | 12 |
+| B01 | 보스 | 1400 | 0.475 | 22 | 0 |
+
+### Weapon Slot / Level Caps
+
+- Max owned weapons: 4
+- Max weapon level: Lv.5
+- Stage 1 target end-state: 2–3 weapons at Lv.5
+
+### Weapon Unlock Gating (1st service)
+
+- Schoolbag / Tumbler: card visible from Lv.2.
+- Flask / Bell: card visible from Lv.4.
+- StunGun / GuidedMissile: card visible from Lv.6.
+- Starlink / Onigiri: card visible from Lv.8.
+- Reserved (planned): `compass`, `umbrella`, `eraser`, `notebook`.

@@ -8,21 +8,19 @@ const INITIAL_PLAYER = {
   invulnerable: false,
 }
 
+// 2026-05-06 재밸런싱: "몇 방에 죽는가" 데미지 공식 + 5분 세션 5단계 성장 (Stage1 replan).
+// 각 무기 Lv.1 기준값. level 필드는 1~5, applyUpgrade에서 단계적으로 증가.
 const INITIAL_WEAPONS = {
-  pencilThrow:   { label: '연필', damage: 9, cooldown: 900, lastFired: 0, projectileCount: 1, pierce: 0, speed: 12, range: 22, active: true },
-  schoolBag:     { label: '30cm 자', damage: 22, cooldown: 1000, range: 0.95, triggerRange: 1.0, swingMs: 260, active: false },
-  tumbler:       { label: '텀블러', damage: 10, radius: 1.0, hitsPerSecond: 3.5, orbitSpeed: 2.8, count: 1, active: false },
-  scienceFlask:  { label: '과학 플라스크', damage: 32, cooldown: 2600, radius: 1.6, range: 2, active: false },
-  bell:          { label: '벨', damage: 14, cooldown: 4200, lastFired: 0, directions: 8, speed: 10, active: false },
-  stunGun:       { label: '전기', damage: 22, cooldown: 2800, lastFired: 0, chainCount: 2, active: false },
-  guidedMissile: { label: '보조배터리', damage: 16, cooldown: 4000, radius: 1.6, range: 22, count: 1, active: false },
-  starlink:      { label: '고장난 스타링크', damage: 28, cooldown: 3800, radius: 1.2, strikeCount: 1, active: false },
-  onigiri:       { label: '오니기리', damage: 18, cooldown: 4800, bounces: 4, bounceRange: 4.5, range: 18, active: false },
+  pencilThrow:   { label: '연필', level: 1, damage: 8,  cooldown: 1100, lastFired: 0, projectileCount: 1, pierce: 0, speed: 12, range: 22, active: true },
+  schoolBag:     { label: '30cm 자', level: 0, damage: 12, cooldown: 1300, range: 0.633, triggerRange: 1.0, swingMs: 260, active: false },
+  tumbler:       { label: '텀블러', level: 0, damage: 4,  radius: 1.0, hitsPerSecond: 2.5, orbitSpeed: 2.8, count: 1, active: false },
+  scienceFlask:  { label: '과학 플라스크', level: 0, damage: 30, cooldown: 2800, radius: 1.6, range: 2, active: false },
+  bell:          { label: '벨', level: 0, damage: 10, cooldown: 4500, lastFired: 0, directions: 8, speed: 10, radius: 1.7, active: false },
+  stunGun:       { label: '전기', level: 0, damage: 18, cooldown: 3000, lastFired: 0, chainCount: 2, active: false },
+  guidedMissile: { label: '보조배터리', level: 0, damage: 18, cooldown: 4200, radius: 1.6, range: 22, count: 1, active: false },
+  starlink:      { label: '고장난 스타링크', level: 0, damage: 22, cooldown: 4000, radius: 1.2, strikeCount: 1, active: false },
+  onigiri:       { label: '오니기리', level: 0, damage: 14, cooldown: 2000, bounces: 4, bounceRange: 4.5, range: 18, active: false },
 }
-
-INITIAL_WEAPONS.schoolBag.range = 0.633
-INITIAL_WEAPONS.schoolBag.triggerRange = 1.0
-INITIAL_WEAPONS.bell.radius = 1.7
 
 export const useGameStore = create(
   subscribeWithSelector((set, get) => ({
@@ -79,31 +77,33 @@ export const useGameStore = create(
     applyUpgrade: (key) => {
       const { player, weapons } = get()
       const w = { ...weapons }
-      if (key === 'pencilDamage')  w.pencilThrow = { ...w.pencilThrow, damage: w.pencilThrow.damage + 3 }
+      // 2026-05-06 재밸런싱: Lv.1 → Lv.5 점증
+      if (key === 'pencilDamage')  w.pencilThrow = { ...w.pencilThrow, damage: w.pencilThrow.damage + 3, level: Math.min(5, (w.pencilThrow.level ?? 1) + 1) }
       if (key === 'pencilCount')   w.pencilThrow = { ...w.pencilThrow, projectileCount: Math.min(4, (w.pencilThrow.projectileCount ?? 1) + 1) }
       if (key === 'pencilPierce')  w.pencilThrow = { ...w.pencilThrow, pierce: Math.min(3, w.pencilThrow.pierce + 1) }
-      if (key === 'unlockBag')     w.schoolBag   = { ...w.schoolBag,   active: true }
-      if (key === 'bagDamage')     w.schoolBag   = { ...w.schoolBag,   damage: w.schoolBag.damage + 8 }
+      if (key === 'unlockBag')     w.schoolBag   = { ...w.schoolBag,   active: true, level: 1 }
+      if (key === 'bagDamage')     w.schoolBag   = { ...w.schoolBag,   damage: w.schoolBag.damage + 5, level: Math.min(5, (w.schoolBag.level ?? 1) + 1) }
       if (key === 'bagRadius')     w.schoolBag   = { ...w.schoolBag,   range: Math.min(1.067, w.schoolBag.range + 0.08) }
-      if (key === 'unlockTumbler') w.tumbler     = { ...w.tumbler,     active: true }
+      if (key === 'unlockTumbler') w.tumbler     = { ...w.tumbler,     active: true, level: 1 }
       if (key === 'tumblerCount')  w.tumbler     = { ...w.tumbler,     count: Math.min(3, (w.tumbler.count ?? 1) + 1) }
-      if (key === 'tumblerDamage') w.tumbler     = { ...w.tumbler,     damage: w.tumbler.damage + 4 }
-      if (key === 'unlockFlask')   w.scienceFlask = { ...w.scienceFlask, active: true }
-      if (key === 'flaskDamage')   w.scienceFlask = { ...w.scienceFlask, damage: w.scienceFlask.damage + 10 }
+      if (key === 'tumblerDamage') w.tumbler     = { ...w.tumbler,     damage: w.tumbler.damage + 2, level: Math.min(5, (w.tumbler.level ?? 1) + 1) }
+      if (key === 'unlockFlask')   w.scienceFlask = { ...w.scienceFlask, active: true, level: 1 }
+      if (key === 'flaskDamage')   w.scienceFlask = { ...w.scienceFlask, damage: w.scienceFlask.damage + 8, level: Math.min(5, (w.scienceFlask.level ?? 1) + 1) }
       if (key === 'flaskRadius')   w.scienceFlask = { ...w.scienceFlask, radius: Math.min(2.4, w.scienceFlask.radius + 0.18) }
-      if (key === 'unlockBell')    w.bell        = { ...w.bell,        active: true }
-      if (key === 'bellDamage')    w.bell        = { ...w.bell,        damage: w.bell.damage + 5 }
-      if (key === 'unlockStun')       w.stunGun       = { ...w.stunGun,       active: true }
+      if (key === 'unlockBell')    w.bell        = { ...w.bell,        active: true, level: 1 }
+      if (key === 'bellDamage')    w.bell        = { ...w.bell,        damage: w.bell.damage + 4, level: Math.min(5, (w.bell.level ?? 1) + 1) }
+      if (key === 'unlockStun')       w.stunGun       = { ...w.stunGun,       active: true, level: 1 }
+      if (key === 'stunDamage')       w.stunGun       = { ...w.stunGun,       damage: w.stunGun.damage + 5, level: Math.min(5, (w.stunGun.level ?? 1) + 1) }
       if (key === 'stunChain')        w.stunGun       = { ...w.stunGun,       chainCount: Math.min(4, w.stunGun.chainCount + 1) }
-      if (key === 'unlockMissile')    w.guidedMissile = { ...w.guidedMissile, active: true }
-      if (key === 'missileDamage')    w.guidedMissile = { ...w.guidedMissile, damage: w.guidedMissile.damage + 8 }
+      if (key === 'unlockMissile')    w.guidedMissile = { ...w.guidedMissile, active: true, level: 1 }
+      if (key === 'missileDamage')    w.guidedMissile = { ...w.guidedMissile, damage: w.guidedMissile.damage + 6, level: Math.min(5, (w.guidedMissile.level ?? 1) + 1) }
       if (key === 'missileCount')     w.guidedMissile = { ...w.guidedMissile, count: Math.min(2, (w.guidedMissile.count ?? 1) + 1) }
-      if (key === 'unlockStarlink')   w.starlink      = { ...w.starlink,      active: true }
-      if (key === 'starlinkDamage')   w.starlink      = { ...w.starlink,      damage: w.starlink.damage + 10 }
+      if (key === 'unlockStarlink')   w.starlink      = { ...w.starlink,      active: true, level: 1 }
+      if (key === 'starlinkDamage')   w.starlink      = { ...w.starlink,      damage: w.starlink.damage + 7, level: Math.min(5, (w.starlink.level ?? 1) + 1) }
       if (key === 'starlinkCount')    w.starlink      = { ...w.starlink,      strikeCount: Math.min(6, (w.starlink.strikeCount ?? 1) + 1) }
-      if (key === 'unlockOnigiri')    w.onigiri       = { ...w.onigiri,       active: true }
+      if (key === 'unlockOnigiri')    w.onigiri       = { ...w.onigiri,       active: true, level: 1 }
       if (key === 'onigiiriBounce')   w.onigiri       = { ...w.onigiri,       bounces: Math.min(7, (w.onigiri.bounces ?? 4) + 1) }
-      if (key === 'onigiiriDamage')   w.onigiri       = { ...w.onigiri,       damage: w.onigiri.damage + 6 }
+      if (key === 'onigiiriDamage')   w.onigiri       = { ...w.onigiri,       damage: w.onigiri.damage + 5, level: Math.min(5, (w.onigiri.level ?? 1) + 1) }
       if (key === 'moveSpeed')     set({ player: { ...player, speed: Math.min(player.baseSpeed * 1.8, player.speed * 1.1) } })
       if (key === 'maxHealth')     set({ player: { ...player, maxHp: player.maxHp + 20, hp: player.hp + 20 } })
       set({ weapons: w, phase: 'playing' })

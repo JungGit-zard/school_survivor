@@ -14,18 +14,19 @@ const _chargeTarget = new THREE.Vector3()
 
 export const ENEMY_SIZE_MULTIPLIER = 4 / 3
 
-// ── 몬스터 스펙 (시나리오 문서 기준) ──────────────────────────────────────────
+// ── 몬스터 스펙 (2026-05-06 Stage1 재밸런싱 / "몇 방에 죽는가" 기준) ─────────
+// 근거: Planner/stage1_replan_2026-05-06.md 3-1, Bang_Rules.md 2026-05-06 Addendum
 export const ENEMY_STATS = {
-  E01: { hp: 18,   speed: 0.95, damage: 8,  scale: 1.00, xp: 1,  contactDist: 0.28 },
-  E02: { hp: 55,   speed: 0.55, damage: 14, scale: 1.40, xp: 2,  contactDist: 0.36 },
-  E03: { hp: 10,   speed: 1.1,  damage: 6,  scale: 0.75, xp: 1,  contactDist: 0.22 },
-  E04: { hp: 35,   speed: 0.45, damage: 8,  scale: 0.90, xp: 2,  contactDist: 0.26,
+  E01: { hp: 12,   speed: 0.95, damage: 8,  scale: 1.00, xp: 1,  contactDist: 0.28 },
+  E02: { hp: 70,   speed: 0.55, damage: 14, scale: 1.40, xp: 3,  contactDist: 0.36 },
+  E03: { hp: 14,   speed: 1.1,  damage: 6,  scale: 0.75, xp: 1,  contactDist: 0.22 },
+  E04: { hp: 32,   speed: 0.45, damage: 8,  scale: 0.90, xp: 2,  contactDist: 0.26,
          ranged: true, rangedCooldown: 2200, rangedDmg: 8, rangedSpeed: 1.9,
          preferDist: 5.5, minDist: 3.5 },
   E05: { hp: 70,   speed: 0.5,  damage: 16, scale: 1.15, xp: 3,  contactDist: 0.32,
          charger: true, chargeSpeed: 1.7, warnDist: 4.5, warnDuration: 700, stunDuration: 1000, chargeDuration: 1200 },
-  E06: { hp: 240,  speed: 0.6,  damage: 20, scale: 1.60, xp: 10, contactDist: 0.42 },
-  B01: { hp: 1200, speed: 0.475, damage: 22, scale: 3.00, xp: 0,  contactDist: 0.80,
+  E06: { hp: 320,  speed: 0.6,  damage: 20, scale: 1.60, xp: 12, contactDist: 0.42 },
+  B01: { hp: 1400, speed: 0.475, damage: 22, scale: 3.00, xp: 0,  contactDist: 0.80,
          boss: true,
          // 패턴2: 부채꼴 5발 투사체
          fanCooldown: 3000, fanDmg: 12, fanSpeed: 4.2, fanCount: 5,

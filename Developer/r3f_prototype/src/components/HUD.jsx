@@ -2,54 +2,77 @@
 import { useGameStore } from '../store/useGameStore.js'
 import { bagSwingState } from '../lib/refs.js'
 
+// 2026-05-06 재밸런싱: 무기당 Lv.1→Lv.5 점증, 해금카드 minLevel 게이팅 적용 (Stage1 replan).
 const UPGRADES = [
-  { key: 'pencilDamage', icon: 'pencil', labelFn: (w) => `연필 데미지 +${Math.round(3 / w.pencilThrow.damage * 100)}%`, desc: '투척 연필의 공격력 증가' },
+  { key: 'pencilDamage', icon: 'pencil', labelFn: (w) => `연필 데미지 +3 (Lv${(w.pencilThrow.level ?? 1) + 1})`, desc: '투척 연필의 공격력 증가' },
   { key: 'pencilCount', icon: 'pencil', label: '연필 발사 수 +1', desc: '동시에 날리는 연필 수 증가 (최대 4)' },
   { key: 'pencilPierce', icon: 'pencil', label: '연필 관통 +1', desc: '연필이 적을 관통 (최대 3회)' },
-  { key: 'unlockBag', icon: 'ruler', label: '30cm 자 해금', desc: '가까운 적을 자 휘두르기로 방어' },
-  { key: 'bagDamage', icon: 'ruler', labelFn: (w) => `30cm 자 피해 +${Math.round(8 / w.schoolBag.damage * 100)}%`, desc: '자 휘두르기 타격 피해 증가' },
+  { key: 'unlockBag', icon: 'ruler', label: '30cm 자 해금', desc: '가까운 적을 자 휘두르기로 방어', minLevel: 2 },
+  { key: 'bagDamage', icon: 'ruler', labelFn: (w) => `30cm 자 피해 +5 (Lv${(w.schoolBag.level ?? 1) + 1})`, desc: '자 휘두르기 타격 피해 증가' },
   { key: 'bagRadius', icon: 'ruler', label: '30cm 자 사거리 +', desc: '자 휘두르기 타격 범위 증가' },
-  { key: 'unlockTumbler', icon: 'tumbler', label: '텀블러 해금', desc: '플레이어 주변을 회전하는 방어 무기' },
+  { key: 'unlockTumbler', icon: 'tumbler', label: '텀블러 해금', desc: '플레이어 주변을 회전하는 방어 무기', minLevel: 2 },
   { key: 'tumblerCount', icon: 'tumbler', label: '텀블러 개수 +1', desc: '회전 텀블러 개수 증가 (최대 3개)' },
-  { key: 'tumblerDamage', icon: 'tumbler', labelFn: (w) => `텀블러 피해 +${Math.round(4 / w.tumbler.damage * 100)}%`, desc: '회전 텀블러 접촉 피해 증가' },
-  { key: 'unlockFlask', icon: 'flask', label: '플라스크 해금', desc: '밀집한 적에게 광역 폭발 투척' },
-  { key: 'flaskDamage', icon: 'flask', labelFn: (w) => `플라스크 피해 +${Math.round(10 / w.scienceFlask.damage * 100)}%`, desc: '폭발 피해 증가' },
+  { key: 'tumblerDamage', icon: 'tumbler', labelFn: (w) => `텀블러 피해 +2 (Lv${(w.tumbler.level ?? 1) + 1})`, desc: '회전 텀블러 접촉 피해 증가' },
+  { key: 'unlockFlask', icon: 'flask', label: '플라스크 해금', desc: '밀집한 적에게 광역 폭발 투척', minLevel: 4 },
+  { key: 'flaskDamage', icon: 'flask', labelFn: (w) => `플라스크 피해 +8 (Lv${(w.scienceFlask.level ?? 1) + 1})`, desc: '폭발 피해 증가' },
   { key: 'flaskRadius', icon: 'flask', label: '플라스크 범위 +', desc: '폭발 반경 증가' },
-  { key: 'unlockBell', icon: 'bell', label: '벨 해금', desc: '8방향 충격파 스킬 해금' },
-  { key: 'bellDamage', icon: 'bell', labelFn: (w) => `벨 데미지 +${Math.round(5 / w.bell.damage * 100)}%`, desc: '충격파 공격력 증가' },
-  { key: 'unlockStun', icon: 'stun', label: '전기충격 해금', desc: '체인 스턴건 스킬 해금' },
+  { key: 'unlockBell', icon: 'bell', label: '벨 해금', desc: '8방향 충격파 스킬 해금', minLevel: 4 },
+  { key: 'bellDamage', icon: 'bell', labelFn: (w) => `벨 데미지 +4 (Lv${(w.bell.level ?? 1) + 1})`, desc: '충격파 공격력 증가' },
+  { key: 'unlockStun', icon: 'stun', label: '전기충격 해금', desc: '체인 스턴건 스킬 해금', minLevel: 6 },
+  { key: 'stunDamage', icon: 'stun', labelFn: (w) => `전기 데미지 +5 (Lv${(w.stunGun.level ?? 1) + 1})`, desc: '체인 스턴 데미지 증가' },
   { key: 'stunChain', icon: 'stun', label: '전기 연쇄 +1', desc: '연쇄 대상 수 증가 (최대 4)' },
-  { key: 'unlockMissile', icon: 'missile', label: '보조배터리 해금', desc: '서서히 가속해 밀집 지점을 폭격' },
-  { key: 'missileDamage', icon: 'missile', labelFn: (w) => `보조배터리 피해 +${Math.round(8 / w.guidedMissile.damage * 100)}%`, desc: '폭발 피해 증가' },
+  { key: 'unlockMissile', icon: 'missile', label: '보조배터리 해금', desc: '서서히 가속해 밀집 지점을 폭격', minLevel: 6 },
+  { key: 'missileDamage', icon: 'missile', labelFn: (w) => `보조배터리 피해 +6 (Lv${(w.guidedMissile.level ?? 1) + 1})`, desc: '폭발 피해 증가' },
   { key: 'missileCount', icon: 'missile', label: '보조배터리 동시 발사 +1', desc: '동시에 2발 발사 (최대 2발)' },
-  { key: 'unlockStarlink', icon: 'starlink', label: '고장난 스타링크 해금', desc: '5유닛 이내 무작위 낙뢰 (기본 1개)' },
-  { key: 'starlinkDamage', icon: 'starlink', labelFn: (w) => `스타링크 피해 +${Math.round(10 / w.starlink.damage * 100)}%`, desc: '낙뢰 피해 증가' },
+  { key: 'unlockStarlink', icon: 'starlink', label: '고장난 스타링크 해금', desc: '5유닛 이내 무작위 낙뢰 (기본 1개)', minLevel: 8 },
+  { key: 'starlinkDamage', icon: 'starlink', labelFn: (w) => `스타링크 피해 +7 (Lv${(w.starlink.level ?? 1) + 1})`, desc: '낙뢰 피해 증가' },
   { key: 'starlinkCount', icon: 'starlink', label: '스타링크 낙뢰 수 +1', desc: '볼리당 낙뢰 수 증가 (최대 6)' },
-  { key: 'unlockOnigiri', icon: 'onigiri', label: '오니기리 해금', desc: '적 사이를 튕기며 공격하는 주먹밥' },
+  { key: 'unlockOnigiri', icon: 'onigiri', label: '오니기리 해금', desc: '적 사이를 튕기며 공격하는 주먹밥', minLevel: 8 },
   { key: 'onigiiriBounce', icon: 'onigiri', label: '오니기리 바운스 +1', desc: '튕기는 횟수 증가 (최대 7회)' },
-  { key: 'onigiiriDamage', icon: 'onigiri', labelFn: (w) => `오니기리 피해 +${Math.round(6 / w.onigiri.damage * 100)}%`, desc: '충돌 피해 증가' },
+  { key: 'onigiiriDamage', icon: 'onigiri', labelFn: (w) => `오니기리 피해 +5 (Lv${(w.onigiri.level ?? 1) + 1})`, desc: '충돌 피해 증가' },
   { key: 'moveSpeed', icon: 'speed', label: '이동속도 +10%', desc: '플레이어 이동속도 증가' },
   { key: 'maxHealth', icon: 'health', label: '최대 체력 +20', desc: '최대 HP 및 현재 HP 증가' },
 ]
 
+// 무기 레벨 상한 (Lv.5) 도달 시 해당 무기의 강화 카드를 풀에서 제외
+const WEAPON_OF_KEY = {
+  pencilDamage: 'pencilThrow', pencilCount: 'pencilThrow', pencilPierce: 'pencilThrow',
+  bagDamage: 'schoolBag', bagRadius: 'schoolBag',
+  tumblerDamage: 'tumbler', tumblerCount: 'tumbler',
+  flaskDamage: 'scienceFlask', flaskRadius: 'scienceFlask',
+  bellDamage: 'bell',
+  stunDamage: 'stunGun', stunChain: 'stunGun',
+  missileDamage: 'guidedMissile', missileCount: 'guidedMissile',
+  starlinkDamage: 'starlink', starlinkCount: 'starlink',
+  onigiiriDamage: 'onigiri', onigiiriBounce: 'onigiri',
+}
+
 function pickThree(level, weapons) {
   const available = UPGRADES.filter((u) => {
-    if (u.key === 'unlockFlask')                          return !weapons.scienceFlask?.active
-    if (u.key === 'flaskDamage' || u.key === 'flaskRadius') return  weapons.scienceFlask?.active
-    if (u.key === 'unlockBell')                           return !weapons.bell?.active
-    if (u.key === 'bellDamage')                           return  weapons.bell?.active
-    if (u.key === 'unlockBag')                             return !weapons.schoolBag?.active
-    if (u.key === 'bagDamage' || u.key === 'bagRadius')     return  weapons.schoolBag?.active
-    if (u.key === 'unlockTumbler')                         return !weapons.tumbler?.active
-    if (u.key === 'tumblerCount' || u.key === 'tumblerDamage') return weapons.tumbler?.active
-    if (u.key === 'unlockStun')                            return !weapons.stunGun?.active
-    if (u.key === 'stunChain')                             return  weapons.stunGun?.active
-    if (u.key === 'unlockMissile')                             return !weapons.guidedMissile?.active
-    if (u.key === 'missileDamage' || u.key === 'missileCount') return  weapons.guidedMissile?.active
-    if (u.key === 'unlockStarlink')                            return !weapons.starlink?.active
-    if (u.key === 'starlinkDamage' || u.key === 'starlinkCount') return weapons.starlink?.active
-    if (u.key === 'unlockOnigiri')                              return !weapons.onigiri?.active
-    if (u.key === 'onigiiriBounce' || u.key === 'onigiiriDamage') return weapons.onigiri?.active
+    // 1) 해금 카드: minLevel 미달이면 노출 금지
+    if (u.minLevel != null && level < u.minLevel) return false
+
+    // 2) 무기 Lv.5 도달 시 해당 무기 강화 카드 제외
+    const wKey = WEAPON_OF_KEY[u.key]
+    if (wKey && (weapons[wKey]?.level ?? 0) >= 5) return false
+
+    // 3) 활성/비활성 게이팅
+    if (u.key === 'unlockFlask')                                  return !weapons.scienceFlask?.active
+    if (u.key === 'flaskDamage' || u.key === 'flaskRadius')       return  weapons.scienceFlask?.active
+    if (u.key === 'unlockBell')                                   return !weapons.bell?.active
+    if (u.key === 'bellDamage')                                   return  weapons.bell?.active
+    if (u.key === 'unlockBag')                                    return !weapons.schoolBag?.active
+    if (u.key === 'bagDamage' || u.key === 'bagRadius')           return  weapons.schoolBag?.active
+    if (u.key === 'unlockTumbler')                                return !weapons.tumbler?.active
+    if (u.key === 'tumblerCount' || u.key === 'tumblerDamage')    return  weapons.tumbler?.active
+    if (u.key === 'unlockStun')                                   return !weapons.stunGun?.active
+    if (u.key === 'stunChain' || u.key === 'stunDamage')          return  weapons.stunGun?.active
+    if (u.key === 'unlockMissile')                                return !weapons.guidedMissile?.active
+    if (u.key === 'missileDamage' || u.key === 'missileCount')    return  weapons.guidedMissile?.active
+    if (u.key === 'unlockStarlink')                               return !weapons.starlink?.active
+    if (u.key === 'starlinkDamage' || u.key === 'starlinkCount')  return  weapons.starlink?.active
+    if (u.key === 'unlockOnigiri')                                return !weapons.onigiri?.active
+    if (u.key === 'onigiiriBounce' || u.key === 'onigiiriDamage') return  weapons.onigiri?.active
     return true
   })
   const shuffled = [...available].sort(() => Math.random() - 0.5)

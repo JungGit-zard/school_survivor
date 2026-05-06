@@ -40,40 +40,50 @@ function rangedSpawnPos() {
 
 // ?? ??꾨씪???섏씠利?(?쒕굹由ъ삤 臾몄꽌 吏곸젒 諛섏쁺) ??????????????????????????????????
 // weights ?⑹? 1.0. bossPhase: true硫?蹂댁뒪??援ш컙 (?쇰컲 紐ъ뒪?곕쭔 ?좎?)
+// 2026-05-06 재밸런싱 — vampire_5minite_monster.md 5단계 + Stage1 replan 11구간.
+// 1) 잡몹만 → 2) +러너 → 3) +탱커 → 4) +엘리트(원거리) → 5) +돌진+거대 → 보스
 const WAVE_PHASES = [
+  // 0:00–0:30 잡몹만 (먹이 구간)
   { start:   0, end:  30, target: 12, weights: { E01: 1.00 } },
-  { start:  30, end:  60, target: 20, weights: { E01: 0.85, E02: 0.15 } },
-  { start:  60, end:  90, target: 30, weights: { E01: 0.325, E02: 0.482, E03: 0.193 } },
-  { start:  90, end: 120, target: 38, weights: { E01: 0.225, E02: 0.352, E03: 0.423 } },
-  { start: 120, end: 150, target: 48, weights: { E01: 0.275, E02: 0.322, E03: 0.403, E04: 0.000 } },
-  { start: 150, end: 180, target: 58, weights: { E01: 0.200, E02: 0.333, E03: 0.333, E04: 0.134 } },
-  { start: 180, end: 210, target: 68, weights: { E01: 0.150, E02: 0.304, E03: 0.243, E04: 0.122, E05: 0.181 } },
-  { start: 210, end: 240, target: 78, weights: { E01: 0.125, E02: 0.292, E03: 0.233, E04: 0.117, E05: 0.175, E06: 0.058 } },
-  { start: 240, end: 260, target: 25, weights: { E01: 0.300, E02: 0.700 }, bossPhase: true },
-  { start: 260, end: 280, target: 35, weights: { E02: 0.80, E04: 0.20 }, bossPhase: true },
+  // 0:30–1:00 잡몹+러너 (이동 압박 시작)
+  { start:  30, end:  60, target: 18, weights: { E01: 0.90, E03: 0.10 } },
+  // 1:00–1:30 +탱커 등장
+  { start:  60, end:  90, target: 26, weights: { E01: 0.60, E03: 0.30, E02: 0.10 } },
+  // 1:30–2:00 압박 시작
+  { start:  90, end: 120, target: 34, weights: { E01: 0.50, E03: 0.30, E02: 0.20 } },
+  // 2:00–2:30 +엘리트(원거리) 도입
+  { start: 120, end: 150, target: 44, weights: { E01: 0.40, E03: 0.30, E02: 0.20, E04: 0.10 } },
+  // 2:30–3:00 빌드 완성 구간
+  { start: 150, end: 180, target: 54, weights: { E01: 0.35, E03: 0.25, E02: 0.25, E04: 0.15 } },
+  // 3:00–3:30 +돌진 도입
+  { start: 180, end: 210, target: 64, weights: { E01: 0.25, E03: 0.30, E02: 0.25, E04: 0.10, E05: 0.10 } },
+  // 3:30–4:00 +거대 등장
+  { start: 210, end: 240, target: 76, weights: { E01: 0.20, E03: 0.30, E02: 0.25, E04: 0.10, E05: 0.12, E06: 0.03 } },
+  // 4:00–4:20 보스 구간 1 (잡몹+탱커)
+  { start: 240, end: 260, target: 25, weights: { E01: 0.60, E02: 0.40 }, bossPhase: true },
+  // 4:20–4:40 보스 구간 2 (탱커+원거리)
+  { start: 260, end: 280, target: 35, weights: { E02: 0.60, E04: 0.40 }, bossPhase: true },
+  // 4:40–5:00 보스 구간 3 (탱커+돌진)
   { start: 280, end: 300, target: 45, weights: { E02: 0.50, E05: 0.50 }, bossPhase: true },
 ]
 
 // ?? 踰꾩뒪???대깽??(?뱀젙 珥덉뿉 ?쇳쉶???ㅽ룿) ?????????????????????????????????????
+// 2026-05-06 재정의 — 단계 도입 직전 러시 + 마지막 230s 보스 직전 대규모 러시.
 const BURST_EVENTS = [
-  { sec:   0, type: 'E01', count:  8 },
-  { sec:  15, type: 'E01', count:  8 },
-  { sec:  45, type: 'E02', count:  5 },
-  { sec:  60, type: 'E01', count:  5 },
-  { sec:  60, type: 'E02', count:  6 },
-  { sec:  80, type: 'E03', count:  4 },
-  { sec: 100, type: 'E01', count:  6 },
-  { sec: 100, type: 'E02', count:  8 },
-  { sec: 120, type: 'E04', count:  3 },
-  { sec: 140, type: 'E04', count:  3 },
-  { sec: 165, type: 'E05', count:  5 },
-  { sec: 180, type: 'E05', count:  8 },
-  { sec: 200, type: 'E06', count:  1 },
-  { sec: 220, type: 'E01', count:  8 },
-  { sec: 220, type: 'E02', count: 12 },
-  { sec: 220, type: 'E05', count:  6 },
-  { sec: 240, type: 'B01', count:  1 },
-  { sec: 280, type: 'E05', count:  5 },
+  { sec:   0, type: 'E01', count:  8 },  // 첫 처치 보장
+  { sec:  30, type: 'E01', count:  6 },  // 러너 직전 잡몹 러시
+  { sec:  60, type: 'E02', count:  4 },  // 탱커 첫 등장 신호
+  { sec:  90, type: 'E03', count:  6 },  // 러너 압박
+  { sec: 120, type: 'E01', count:  8 },  // 엘리트 직전 잡몹 러시
+  { sec: 120, type: 'E02', count:  4 },
+  { sec: 150, type: 'E04', count:  4 },  // 원거리 첫 압박
+  { sec: 180, type: 'E05', count:  4 },  // 돌진 첫 등장
+  { sec: 210, type: 'E06', count:  1 },  // 거대 첫 등장
+  { sec: 230, type: 'E01', count: 12 },  // 마지막 러시 (보스 직전)
+  { sec: 230, type: 'E02', count:  8 },
+  { sec: 230, type: 'E05', count:  4 },
+  { sec: 240, type: 'B01', count:  1 },  // 보스 등장
+  { sec: 270, type: 'E05', count:  5 },
 ]
 
 function pickTypeByWeight(weights) {
