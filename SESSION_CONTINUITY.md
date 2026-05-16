@@ -1,55 +1,131 @@
-# Session Continuity Protocol
+# Session Continuity Protocol — Single Source of Truth (LOCKED 2026-05-16)
 
-This document is mandatory for BangBang Survivor work.
+> **이 문서가 BangBang Survivor 프로젝트의 세션 메모리 관련 유일한 정본 규정이다.**
+> CLAUDE.md / AGENTS.md / project_develop_policy.md 등 다른 문서에 세션 메모리 관련 규정을 중복 작성하지 않는다. 다른 문서는 본 문서를 가리키는 한 줄 포인터만 둘 수 있다.
+> **본 규정은 2026-05-16에 사용자에 의해 고정(locked)되었다. 임의 변경 금지 — 사용자가 명시적으로 수정을 지시하기 전까지 모든 항목은 그대로 강제.**
+
+---
+
+## 핵심 사이클 — 3시간 / 9시간 룰
+
+- **저장소는 단 하나의 파일**: 프로젝트 루트의 [`SESSION_MEMORY.md`](SESSION_MEMORY.md). 영구 append-only 로그.
+- **3시간마다 1개 엔트리** 추가 (활성 대화 또는 활성 작업 시간 기준).
+- **9시간이 1 세션**. 3번째 엔트리를 작성하는 시점에 세션이 닫힌다.
+- **세션 종료 = 자동 초기화 권고**: 3번째 엔트리 작성 직후, 에이전트는 사용자에게 컨텍스트 초기화(`/clear` 또는 동등 명령)를 권고하고, 새 세션 시작을 안내한다.
+
+```
+┌── Session N (9 hours) ─────────────────────────────────────┐
+│  T+0h   세션 시작                                          │
+│  T+3h   Entry 1 작성 → SESSION_MEMORY.md 끝에 append       │
+│  T+6h   Entry 2 작성 → append                              │
+│  T+9h   Entry 3 작성 → append + "/clear 권고" 메시지       │
+└────────────────────────────────────────────────────────────┘
+                            ↓
+                       사용자가 /clear
+                            ↓
+┌── Session N+1 (9 hours) ───────────────────────────────────┐
+│  T'+0h  새 세션 시작 → SESSION_MEMORY.md 최근 엔트리 읽기  │
+│  ...                                                       │
+```
+
+결론적으로 **하나의 세션 = 9시간 = 3번 요약 + 1번 초기화**.
+
+---
 
 ## Required Startup Read
 
-At the start of every new agent session, read these files before planning or editing:
+새 에이전트 세션 시작 시, 계획/편집 전에 다음을 반드시 읽는다:
 
 1. `project_develop_policy.md`
 2. `Bang_Rules.md`
 3. `AGENTS.md`
 4. `CLAUDE.md`
-5. The newest Markdown file in `Session_Logs/`
+5. 이 문서 (`SESSION_CONTINUITY.md`)
+6. **`SESSION_MEMORY.md`의 가장 최근 엔트리 1개만** — 직전 3시간 요약을 리마인드 받는 용도. 그 이상의 과거 엔트리는 **자동으로 읽지 않는다**.
 
-If `Session_Logs/` has no summary yet, create the first summary before ending the session.
+### 과거 엔트리 접근 정책
 
-## 3-Hour Summary Rule
+- 최근 엔트리 1개를 넘어선 과거 컨텍스트가 필요하면, **사용자가 명시적으로 요구한 시점에만** `SESSION_MEMORY.md`를 직접 읽어 회수한다.
+- 자동 일괄 로드 금지. 컨텍스트 비용을 아끼고 리마인드 범위를 좁게 유지한다.
+- 사용자 요청 예시: "지난 세션에서 X 결정했었지?", "Session 2 / Entry 1 내용 보여줘" 등.
 
-Every 3 hours of active conversation or active project work, create or update a Markdown summary in `Session_Logs/`.
+`SESSION_MEMORY.md`가 비어 있다면 첫 엔트리를 직접 부트스트랩으로 작성한다.
 
-Use this filename format:
+---
 
-```text
-Session_Logs/session_summary_YYYY-MM-DD_HHMM.md
+## 3-Hour Entry Rule
+
+활성 대화 또는 활성 작업 시간이 3시간 누적될 때마다 `SESSION_MEMORY.md`의 **끝에 새 엔트리를 append**.
+
+엔트리 시작 헤더 포맷:
+
+```
+## Session N · Entry M · YYYY-MM-DD HHMM KST
 ```
 
-If the exact start time is unknown, use the current local time.
+- `N`: 세션 번호 (현재 세션이 몇 번째 9시간 사이클인지)
+- `M`: 1, 2, 또는 3 (해당 세션 내 엔트리 순번)
 
-## Required Summary Contents
+### 엔트리 필수 포함 항목
 
-Each 3-hour summary must include:
+각 엔트리는 다음을 포함한다:
 
-- Session date and local time.
-- Current branch and latest known Git status.
-- Important conversation points and user decisions.
-- Project rules or policy decisions confirmed during the session.
-- Program usage records, including important commands, builds, tests, dev server URLs, browser checks, and screenshots.
-- Generated tools, components, scripts, documents, assets, and their purposes.
-- Files created, edited, moved, or intentionally left untouched.
-- Verification results and known warnings.
-- Unresolved issues, next steps, and anything the next session must read first.
+- **시각** (KST)과 세션/엔트리 번호 (헤더에 표기)
+- **Git 상태**: 브랜치, 최신 커밋 해시/메시지, `git status --short --branch` 요약
+- **이번 3시간 작업 / 대화**: 중요한 결정사항, 사용자 지시, 정책 변경
+- **생성 / 수정 / 이동 파일 목록**과 각 파일의 목적
+- **명령 / 빌드 / 테스트 / 브라우저 검증 결과** + 스크린샷 경로
+- **확정된 룰 / 정책 변경**
+- **미해결 이슈 + 다음 단계** + 다음 세션이 가장 먼저 읽어야 할 항목
+
+### 엔트리 구분자
+
+각 엔트리 끝에 `---` 한 줄 (Markdown 수평선)로 다음 엔트리와 분리.
+
+---
+
+## 9-Hour Session Close Rule
+
+3번째 엔트리(M=3)를 작성한 직후, 에이전트는 반드시:
+
+1. 엔트리 본문에 **"세션 N 종료"** 라인을 명시
+2. 사용자에게 컨텍스트 초기화 권고 — 정확한 문구:
+   > "Session N (9시간) 마감되었습니다. `/clear`로 컨텍스트 초기화 후 새 세션을 시작해 주세요. 다음 세션은 `SESSION_MEMORY.md`의 최근 엔트리를 읽어 이어집니다."
+3. 권고만 한다. 사용자 동의 없이 임의 행동 추가 금지.
+
+사용자가 `/clear`를 실행하지 않고 계속 작업하면, 그 시점부터는 Session N+1의 T'+0h로 간주하고 새 사이클을 시작한다 (= 3시간 후 Session N+1 / Entry 1 작성).
+
+---
 
 ## Required End-of-Session Check
 
-Before ending any substantial session:
+세션 종료(어떤 이유든) 직전 반드시:
 
-1. Check whether 3 hours have passed since the last summary.
-2. If yes, create a new summary or update the latest one.
-3. Make sure the summary names the latest important files and decisions.
-4. Run `git status --short --branch` and record notable pending changes.
+1. 마지막 엔트리 작성 시각으로부터 3시간 경과 여부 확인
+2. 경과했다면 새 엔트리를 작성한 뒤 종료
+3. 엔트리에 최신 중요 파일과 결정사항을 명시
+4. `git status --short --branch` 실행해 미커밋 변경 기록
+
+---
 
 ## Force Rule
 
-Do not rely only on chat memory for project continuity.
-Important session knowledge must be preserved in `Session_Logs/` as Markdown text.
+채팅 메모리(컨텍스트 윈도우)에만 의존하지 않는다. 중요한 세션 지식은 반드시 `SESSION_MEMORY.md`에 Markdown 텍스트로 보존한다. 컨텍스트 윈도우는 휘발성이고, 9시간 사이클 종료 시 자동 초기화 권고에 의해 의도적으로 비워진다.
+
+---
+
+## Auto Memory System (참고)
+
+위 `SESSION_MEMORY.md` 규정과는 별개로, Claude Code 하니스 자체에 영구 메모리 시스템이 존재한다:
+
+- 위치: `~/.claude/projects/<sanitized-cwd>/memory/`
+- 인덱스: `MEMORY.md` (없으면 미사용)
+- 항목 종류: `user` / `feedback` / `project` / `reference`
+
+이 시스템은 에이전트의 세션 간 컨텍스트 유지를 돕는 보조 메커니즘이다. 프로젝트 영속화의 1차 책임은 `SESSION_MEMORY.md`가 진다. 두 시스템은 충돌하지 않고 보완한다.
+
+---
+
+## Legacy Archive
+
+`Session_Logs/` 디렉토리에 2026-05-16 이전의 분리된 요약 파일들이 보존되어 있다. 이는 과거 규정에 따른 산출물이며, 새 규정 이후로는 신규 쓰기를 하지 않는다. 과거 컨텍스트 회수가 필요할 때만 읽기 전용으로 참조한다.

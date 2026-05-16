@@ -1,12 +1,10 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { playerPos } from '../lib/refs.js'
 import { useGameStore } from '../store/useGameStore.js'
-import { toonMat, outlineMat } from '../lib/toon.js'
+import { toonMat, outlineMat, inflateScale } from '../lib/toon.js'
+import { stepMagnetPull } from '../lib/pickup.js'
 
-const PULL_RADIUS_SQ    = 1.5 * 1.5   // 이 거리 안에 들면 자석처럼 끌려옴
-const COLLECT_RADIUS_SQ = 0.22 * 0.22 // 이 거리 안에 들면 즉시 수집
 const R       = 0.097  // coin face radius (2/3 of original)
 const TH      = 0.020  // coin thickness  (2/3 of original)
 const FLOOR_Y = R + 0.10
@@ -54,7 +52,7 @@ function SparkleParticle({ startPos, angle, speed, birthTime }) {
 
   return (
     <group ref={ref} position={[startPos[0], startPos[1], startPos[2]]}>
-      <mesh renderOrder={5} material={outMat} scale={[1.18, 1.18, 1.18]}>
+      <mesh renderOrder={5} material={outMat} scale={inflateScale([1.18, 1.18, 1.18])}>
         <octahedronGeometry args={[1, 0]} />
       </mesh>
       <mesh renderOrder={6} material={mat}>
@@ -65,7 +63,7 @@ function SparkleParticle({ startPos, angle, speed, birthTime }) {
 }
 
 // ── 코인 본체 ─────────────────────────────────────────────────────────────────
-export default function GoldCoin({ id, pos, xp, onCollect }) {
+export default function GoldCoin({ id, pos, value, onCollect }) {
   const groupRef  = useRef()
   const spinRef   = useRef()
   const collected = useRef(false)
@@ -84,7 +82,7 @@ export default function GoldCoin({ id, pos, xp, onCollect }) {
   })
   const pRef = useRef({ x: pos[0], y: pos[1] + 0.1, z: pos[2] })
 
-  const gainXp = useGameStore((s) => s.gainXp)
+  const gainGold = useGameStore((s) => s.gainGold)
 
   // 머테리얼 (컴포넌트당 1회 생성)
   const bodyMat = useMemo(() => toonMat(0xFFD700, 0.28), [])
@@ -96,7 +94,7 @@ export default function GoldCoin({ id, pos, xp, onCollect }) {
     m.depthWrite = false
     return m
   }, [])
-  const outMat = useMemo(() => outlineMat(0.97), [])
+  const outMat = useMemo(() => outlineMat(0.96), [])
 
   // 반짝임 파티클 데이터 (6개, 균등 분산)
   const sparkles = useMemo(() => {
@@ -148,25 +146,15 @@ export default function GoldCoin({ id, pos, xp, onCollect }) {
       if (spinRef.current) spinRef.current.rotation.y = spinAngle.current
     }
 
-    // 자석 흡입 & 수집 판정
-    const dx     = playerPos.x - p.x
-    const dz     = playerPos.z - p.z
-    const distSq = dx * dx + dz * dz
-
-    if (distSq < COLLECT_RADIUS_SQ) {
+    const result = stepMagnetPull(pRef, delta)
+    if (result === 'collected') {
       collected.current = true
-      gainXp(xp)
+      gainGold(value)
       onCollect(id)
       return
     }
-
-    if (distSq < PULL_RADIUS_SQ) {
-      const dist = Math.sqrt(distSq)
-      // 가까울수록 빠르게 — 최소 3, 최대 18
-      const pullSpeed = 3.0 + (1 - dist / 1.5) * 15.0
-      p.x += (dx / dist) * pullSpeed * delta
-      p.z += (dz / dist) * pullSpeed * delta
-      // 비행 중이면 착지시킴
+    if (result === 'pulled') {
+      // 자석에 끌려오면 비행 중이라도 즉시 착지시킨다
       if (phaseRef.current === 'fly') {
         p.y = FLOOR_Y
         vRef.current.x = 0; vRef.current.y = 0; vRef.current.z = 0
@@ -194,7 +182,7 @@ export default function GoldCoin({ id, pos, xp, onCollect }) {
         {/* Y축 회전 그룹 */}
         <group ref={spinRef}>
           {/* 외곽선 (BackSide — 카툰 윤곽선) */}
-          <mesh renderOrder={1} material={outMat} rotation={[0, 0, Math.PI / 2]} scale={[1.16, 1.22, 1.16]}>
+          <mesh renderOrder={1} material={outMat} rotation={[0, 0, Math.PI / 2]} scale={inflateScale([1.16, 1.22, 1.16])}>
             <cylinderGeometry args={[R, R, TH, 22]} />
           </mesh>
 

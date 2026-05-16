@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { outlineMat, toonMat } from '../lib/toon.js'
+import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
 import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
 
 const BASE_PARTS = [
@@ -145,7 +145,7 @@ function CollapsePart({ part, index, origin, visualScale, palette, startedAt, st
       position={[pos.current.x, pos.current.y, pos.current.z]}
       rotation={[pos.current.rx, pos.current.ry, pos.current.rz]}
     >
-      <mesh ref={outlineRef} renderOrder={1} material={outMat} scale={[1.04, 1.04, 1.04]}>
+      <mesh ref={outlineRef} renderOrder={1} material={outMat} scale={inflateScale([1.04, 1.04, 1.04])}>
         <boxGeometry args={size} />
       </mesh>
       <mesh ref={meshRef} renderOrder={2} material={mat}>

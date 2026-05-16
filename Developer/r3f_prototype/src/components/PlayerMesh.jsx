@@ -2,7 +2,7 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { bagSwingState } from '../lib/refs.js'
-import { outlineMat, toonMat } from '../lib/toon.js'
+import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
 
 function Block({ size, position, rotation, color, emissive = 0.14 }) {
   const mat = useMemo(() => toonMat(color, emissive), [color, emissive])
@@ -18,7 +18,8 @@ function Block({ size, position, rotation, color, emissive = 0.14 }) {
 function OutlineBlock({ size, position, rotation, scale = 1.08 }) {
   const mat = useMemo(() => outlineMat(0.98), [])
   const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
-  return <mesh renderOrder={0} geometry={geo} material={mat} position={position} rotation={rotation} scale={[scale, scale, scale]} />
+  const s = inflateScale(scale)
+  return <mesh renderOrder={0} geometry={geo} material={mat} position={position} rotation={rotation} scale={[s, s, s]} />
 }
 
 function PlayerOuterOutline() {

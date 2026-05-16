@@ -4,7 +4,8 @@ import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../lib/refs.js'
 import { useGameStore } from '../store/useGameStore.js'
-import { toonMat, outlineMat } from '../lib/toon.js'
+import { toonMat, outlineMat, inflateScale } from '../lib/toon.js'
+import { triggerItemVfx } from '../lib/itemEffects.js'
 import ZombieMesh from './ZombieMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 
@@ -14,23 +15,19 @@ const _chargeTarget = new THREE.Vector3()
 
 export const ENEMY_SIZE_MULTIPLIER = 4 / 3
 
-// ── 몬스터 스펙 (2026-05-06 Stage1 재밸런싱 / "몇 방에 죽는가" 기준) ─────────
-// 근거: Planner/stage1_replan_2026-05-06.md 3-1, Bang_Rules.md 2026-05-06 Addendum
+// XP 값은 도라야키 30% 드랍률을 보정해 약 3.3배로 책정 (Planner/dual_drop_system_2026-05-08.md §7-2).
 export const ENEMY_STATS = {
-  E01: { hp: 12,   speed: 0.95, damage: 8,  scale: 1.00, xp: 1,  contactDist: 0.28 },
-  E02: { hp: 70,   speed: 0.55, damage: 14, scale: 1.40, xp: 3,  contactDist: 0.36 },
-  E03: { hp: 14,   speed: 1.1,  damage: 6,  scale: 0.75, xp: 1,  contactDist: 0.22 },
-  E04: { hp: 32,   speed: 0.45, damage: 8,  scale: 0.90, xp: 2,  contactDist: 0.26,
+  E01: { hp: 8,    speed: 0.475, damage: 8,  scale: 1.00, xp: 4,  contactDist: 0.28 },
+  E02: { hp: 70,   speed: 0.55, damage: 14, scale: 1.40, xp: 10, contactDist: 0.36 },
+  E03: { hp: 14,   speed: 1.1,  damage: 6,  scale: 0.75, xp: 3,  contactDist: 0.22 },
+  E04: { hp: 32,   speed: 0.45, damage: 8,  scale: 0.90, xp: 7,  contactDist: 0.26,
          ranged: true, rangedCooldown: 2200, rangedDmg: 8, rangedSpeed: 1.9,
          preferDist: 5.5, minDist: 3.5 },
-  E05: { hp: 70,   speed: 0.5,  damage: 16, scale: 1.15, xp: 3,  contactDist: 0.32,
+  E05: { hp: 70,   speed: 0.5,  damage: 16, scale: 1.15, xp: 10, contactDist: 0.32,
          charger: true, chargeSpeed: 1.7, warnDist: 4.5, warnDuration: 700, stunDuration: 1000, chargeDuration: 1200 },
-  E06: { hp: 320,  speed: 0.6,  damage: 20, scale: 1.60, xp: 12, contactDist: 0.42 },
+  E06: { hp: 320,  speed: 0.6,  damage: 20, scale: 1.60, xp: 40, contactDist: 0.42 },
+  // B01 1스테이지: 부채꼴 투사체 패턴 제거. 추격/돌진만 사용 (Bang_Rules 2026-05-09 부록).
   B01: { hp: 1400, speed: 0.475, damage: 22, scale: 3.00, xp: 0,  contactDist: 0.80,
-         boss: true,
-         // 패턴2: 부채꼴 5발 투사체
-         fanCooldown: 3000, fanDmg: 12, fanSpeed: 4.2, fanCount: 5,
-         // 패턴3: 돌진
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
 }
 
@@ -73,7 +70,7 @@ function EnemyProjectile({ id, position, velocity, damage, onExpire }) {
       }}
     >
       <CuboidCollider args={[0.09, 0.09, 0.09]} sensor />
-      <mesh renderOrder={1} material={projOut} scale={[1.22, 1.22, 1.22]}>
+      <mesh renderOrder={1} material={projOut} scale={inflateScale([1.22, 1.22, 1.22])}>
         <sphereGeometry args={[0.09, 8, 8]} />
       </mesh>
       <mesh renderOrder={2} material={projMat}>
@@ -239,24 +236,14 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
           updateRotation(chargeDir.current.x, chargeDir.current.z, 0.75)
           setAnimPhase('warn')
           rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
-        }
 
-        // B01 부채꼴 투사체
-        if (stats.boss && now - lastFireRef.current >= stats.fanCooldown) {
-          lastFireRef.current = now
-          const baseAngle = Math.atan2(_dir.x, _dir.z)
-          const spread = (Math.PI / 180) * 25
-          const newProjs = []
-          for (let i = 0; i < stats.fanCount; i++) {
-            const angle = baseAngle + spread * (i - Math.floor(stats.fanCount / 2))
-            newProjs.push({
-              id: ++_projId,
-              position: [_pos.x, _pos.y, _pos.z],
-              velocity: [Math.sin(angle) * stats.fanSpeed, 0, Math.cos(angle) * stats.fanSpeed],
-              damage: stats.fanDmg,
-            })
-          }
-          setProjectiles((prev) => [...prev, ...newProjs])
+          triggerItemVfx(type, 'onWarn', {
+            x: _pos.x, z: _pos.z,
+            angle: Math.atan2(chargeDir.current.x, chargeDir.current.z),
+            length: stats.chargeSpeed * stats.chargeDuration / 1000,
+            width:  stats.contactDist * ENEMY_SIZE_MULTIPLIER * 3,
+            life:   stats.warnDuration,
+          })
         }
 
       } else if (chargeState.current === 'warn') {
