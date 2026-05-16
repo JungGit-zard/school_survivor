@@ -1,7 +1,7 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { outlineMat, toonMat } from '../lib/toon.js'
+import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
 
 // 타입별 색상 팔레트
 export const ZOMBIE_PALETTE = {
@@ -20,9 +20,10 @@ function ZBlock({ size, position, rotation, color, emissive = 0.12, outlineScale
   const mat = useMemo(() => toonMat(displayColor, displayEmissive), [displayColor, displayEmissive])
   const outMat = useMemo(() => outlineMat(0.96), [])
   const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
+  const os = inflateScale(outlineScale)
   return (
     <group position={position} rotation={rotation}>
-      <mesh renderOrder={1} geometry={geo} material={outMat} scale={[outlineScale, outlineScale, outlineScale]} />
+      <mesh renderOrder={1} geometry={geo} material={outMat} scale={[os, os, os]} />
       <mesh renderOrder={2} geometry={geo} material={mat} />
     </group>
   )
@@ -31,7 +32,8 @@ function ZBlock({ size, position, rotation, color, emissive = 0.12, outlineScale
 function OutlineBlock({ size, position, rotation, scale = 1.08 }) {
   const mat = useMemo(() => outlineMat(0.96), [])
   const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
-  return <mesh renderOrder={0} geometry={geo} material={mat} position={position} rotation={rotation} scale={[scale, scale, scale]} />
+  const s = inflateScale(scale)
+  return <mesh renderOrder={0} geometry={geo} material={mat} position={position} rotation={rotation} scale={[s, s, s]} />
 }
 
 function ZombieOuterOutline() {

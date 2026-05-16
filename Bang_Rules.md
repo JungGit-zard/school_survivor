@@ -47,17 +47,17 @@
 
 | ID | 이름 | 속도 (units/s) | HP | 접촉 데미지 | 접촉 거리 (units) |
 |----|------|---------------|----|------------|-----------------|
-| E01 | 기본 | 0.95 | 18 | 8 | 0.28 |
+| E01 | 기본 | 0.475 | 8 | 8 | 0.28 |
 | E02 | 빠름 | 0.55 | 55 | 14 | 0.36 |
 | E03 | 유리 | 1.1 | 10 | 6 | 0.22 |
-| E04 | 원거리 | 0.45 | 35 | 8 | 3.5–5.5 유지 |
+| E04 | 1스테이지 제외 | 0.45 | 35 | 8 | 탄환형은 2스테이지 이후 보류 |
 | E05 | 돌진 | 0.5 | 70 | 16 | 돌진 시 1.7 |
 | E06 | 엘리트 | 0.6 | 240 | 20 | 0.42 |
 | B01 | 보스 | 0.475 | 1200 | 22 | — |
 
 **스폰 반경 기준:**
 - 일반 적: 플레이어 기준 8.5–12.5 units (2.1–3.1 블록)
-- E04 원거리: 11.5–15.5 units (2.9–3.9 블록)
+- E04 원거리: 1스테이지 미사용 (2스테이지 이후 보류)
 
 ---
 
@@ -88,9 +88,9 @@
 
 ## 7. XP & 레벨업 (Progression)
 
-- 초기 XP 임계값: **6**
+- 초기 XP 임계값: **4** (2026-05-16 CEO 리뷰로 6→4 인하 — 첫 레벨업 < 15s 보장)
 - 레벨업 후 임계값: `ceil(xpToNext × 1.24 + 2)`
-- 레벨업 시 랜덤 업그레이드 3종 선택 (총 16종 풀)
+- 레벨업 시 랜덤 업그레이드 3종 선택
 
 ---
 
@@ -100,7 +100,7 @@
 |------|--------|
 | 일반 구간 최대 동시 적 수 | 85 |
 | 보스 구간 최대 동시 적 수 | 45 |
-| 아이템 스폰 간격 | 5.2–7.4s |
+| 아이템 스폰 간격 | 60s (1분에 1개) |
 
 ---
 
@@ -135,6 +135,26 @@ BangBang_survivor/
 ---
 
 *최초 작성: 2026-05-01 | 작성자: Claude (claude/fixes-and-review 브랜치)*
+
+---
+
+## 2026-05-09 Stage 1 Projectile Enemy Removal Addendum
+
+This section records the accepted Stage 1 monster-direction change requested on 2026-05-09.
+
+### Mandatory Rules
+
+- Stage 1 must use only monsters that approach, chase, or charge toward the player.
+- Projectile-firing monsters are not allowed in Stage 1.
+- The monster introduced around 2 minutes must not fire bullets or projectiles in Stage 1.
+- `E04` ranged/projectile behavior is reserved for Stage 2 or later and must be removed from Stage 1 spawn tables.
+- `B01` Stage 1 boss pressure must be based on chase/charge behavior, not projectile fan shots.
+
+### Required Implementation Updates
+
+- Update `Developer/r3f_prototype/src/components/Enemies.jsx` so Stage 1 `WAVE_PHASES` and `BURST_EVENTS` do not spawn `E04`.
+- Update `Developer/r3f_prototype/src/components/Enemy.jsx` so `B01` does not fire projectile fan shots in Stage 1.
+- Stage 1 difficulty should come from enemy density, movement pressure, charge warnings, and boss charge behavior.
 
 ---
 
@@ -194,21 +214,27 @@ This section records the new accepted values after the 2026-05-06 full re-planni
 | `scienceFlask` | 30 | 2800 ms | 62 |
 | `bell` | 10 | 4500 ms | 26 |
 | `stunGun` | 18 | 3000 ms | 38 |
-| `guidedMissile` | 18 | 4200 ms | 42 |
-| `starlink` | 22 | 4000 ms | 50 |
 | `onigiri` | 14 | 2000 ms | 34 |
+
+> 2026-05-16 CEO 리뷰: `guidedMissile`, `starlink` 2종 제거 (flask/bell과 역할 중복). 9→7 무기로 축소.
 
 ### New Enemy Values
 
 | ID | 이름 | HP | 속도 | 접촉 데미지 | XP |
 | --- | --- | --- | --- | --- | --- |
-| E01 | 잡몹 | 12 | 0.95 | 8 | 1 |
+| E01 | 잡몹 | 8 | 0.475 | 8 | 1 |
 | E02 | 탱커 | 70 | 0.55 | 14 | 3 |
 | E03 | 러너 | 14 | 1.10 | 6 | 1 |
-| E04 | 원거리 | 32 | 0.45 | 8 | 2 |
+| E04 | 1스테이지 제외 | 32 | 0.45 | 8 | 2 |
 | E05 | 돌진 | 70 | 0.50 | 16 | 3 |
 | E06 | 거대 | 320 | 0.60 | 20 | 12 |
 | B01 | 보스 | 1400 | 0.475 | 22 | 0 |
+
+### 2026-05-09 E01 Early Speed Adjustment
+
+- 처음 등장하는 기본 좀비 `E01`의 Stage 1 이동속도는 기존 0.95에서 **0.475**로 절반 감소한다.
+- 목적: 첫 30초 구간에서 초보 유저가 이동, 자동 공격, XP 수집을 익히기 전에 너무 빨리 포위되지 않게 한다.
+- 이 변경은 기획 문서 기준이며, 코드 반영 시 `Developer/r3f_prototype/src/components/Enemy.jsx`의 `ENEMY_STATS.E01.speed`도 같은 값으로 맞춘다.
 
 ### Weapon Slot / Level Caps
 
@@ -216,10 +242,51 @@ This section records the new accepted values after the 2026-05-06 full re-planni
 - Max weapon level: Lv.5
 - Stage 1 target end-state: 2–3 weapons at Lv.5
 
-### Weapon Unlock Gating (1st service)
+### Weapon Unlock Gating (1st service — 2026-05-16 CEO 리뷰 후)
 
 - Schoolbag / Tumbler: card visible from Lv.2.
 - Flask / Bell: card visible from Lv.4.
-- StunGun / GuidedMissile: card visible from Lv.6.
-- Starlink / Onigiri: card visible from Lv.8.
+- StunGun / **Onigiri**: card visible from Lv.6.
+- (Lv.8 tier 제거 — 9→7 무기 축소에 따라 unlock 게이트도 3단으로 단순화)
 - Reserved (planned): `compass`, `umbrella`, `eraser`, `notebook`.
+
+---
+
+## 2026-05-09 Dual Drop System Addendum
+
+근거: `Planner/dual_drop_system_2026-05-08.md`.
+
+### Two Drop Currencies
+
+| 재화 | 키 | 역할 | 보존 |
+| --- | --- | --- | --- |
+| 교과서 | `xpTextbook` | 스테이지 내 XP / 레벨업 | 스테이지 종료 시 소멸 |
+| 황금 코인 | `goldCoin` | 계정 영구 패시브 재화 | localStorage `school_survivor:goldTotal` |
+
+### Drop Rules
+
+- 교과서: 일반 적 사망 시 **30% 확률** 드랍.
+- 황금 코인: **시간 기반 시계 드랍** — 25–35s 무작위 간격 (5분간 평균 약 10개). 위치는 화면 안 무작위 적 위치, 적이 없으면 플레이어 주변 3.0–6.0 units 링.
+
+### Boss / Elite Bonus
+
+| 적 | 교과서 | 황금 코인 |
+| --- | --- | --- |
+| E06 (거대) | 1 (확정) | 1 (확정) |
+| B01 (보스) | 3 (확정) | 5 (확정) |
+
+### Enemy XP Values
+
+교과서 30% 드랍률을 보정해 적별 XP를 약 3.3배로 올렸다 (5분 18–22 레벨업 목표 유지).
+
+| ID | XP |
+| --- | --- |
+| E01 | 4 |
+| E02 | 10 |
+| E03 | 3 |
+| E04 | 7 |
+| E05 | 10 |
+| E06 | 40 |
+| B01 | 0 |
+
+> 2026-05-16 CEO 리뷰: E01 XP 3→4 (초반 레벨업 가속). 함께 E01 HP 12→8로 1방 보장.

@@ -28,6 +28,7 @@ export default function App() {
             orthographic
             camera={{ zoom: 60, position: [0, 20, 20], near: 0.1, far: 500 }}
             shadows
+            gl={{ stencil: true }}
             style={{ width: '100%', height: '100%', background: '#c8c4bc', display: 'block' }}
           >
             {/* gameKey 변경 시 Physics 트리 전체 재마운트 → 리셋 */}

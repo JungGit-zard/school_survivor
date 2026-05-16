@@ -1,0 +1,9 @@
+// Weapons barrel — Game.jsx가 import { PencilThrow, ... } from './Weapons' 으로 사용.
+// 무기 추가 시 새 파일을 만들고 여기에 한 줄 re-export만 추가하면 됨.
+export { PencilThrow }       from './Pencil.jsx'
+export { SchoolBagSwing }    from './SchoolBag.jsx'
+export { TumblerOrbit }      from './Tumbler.jsx'
+export { BellShockwave }     from './Bell.jsx'
+export { ScienceFlaskSplash } from './Flask.jsx'
+export { StunGunWeapon }     from './StunGun.jsx'
+export { OnigiiriWeapon }    from './Onigiri.jsx'

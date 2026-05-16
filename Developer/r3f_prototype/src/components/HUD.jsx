@@ -1,80 +1,38 @@
 ﻿import { useEffect, useState, useMemo } from 'react'
 import { useGameStore } from '../store/useGameStore.js'
 import { bagSwingState } from '../lib/refs.js'
+import { UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
 
-// 2026-05-06 재밸런싱: 무기당 Lv.1→Lv.5 점증, 해금카드 minLevel 게이팅 적용 (Stage1 replan).
+const damageLabel = (name, weaponKey, upgradeKey) => (w) =>
+  `${name} +${UPGRADE_EFFECTS[upgradeKey].dmg} (Lv${(w[weaponKey].level ?? 1) + 1})`
+
 const UPGRADES = [
-  { key: 'pencilDamage', icon: 'pencil', labelFn: (w) => `연필 데미지 +3 (Lv${(w.pencilThrow.level ?? 1) + 1})`, desc: '투척 연필의 공격력 증가' },
+  { key: 'pencilDamage', icon: 'pencil', labelFn: damageLabel('연필 데미지', 'pencilThrow', 'pencilDamage'), desc: '투척 연필의 공격력 증가' },
   { key: 'pencilCount', icon: 'pencil', label: '연필 발사 수 +1', desc: '동시에 날리는 연필 수 증가 (최대 4)' },
   { key: 'pencilPierce', icon: 'pencil', label: '연필 관통 +1', desc: '연필이 적을 관통 (최대 3회)' },
-  { key: 'unlockBag', icon: 'ruler', label: '30cm 자 해금', desc: '가까운 적을 자 휘두르기로 방어', minLevel: 2 },
-  { key: 'bagDamage', icon: 'ruler', labelFn: (w) => `30cm 자 피해 +5 (Lv${(w.schoolBag.level ?? 1) + 1})`, desc: '자 휘두르기 타격 피해 증가' },
+  { key: 'unlockBag', icon: 'ruler', label: '30cm 자 해금', desc: '가까운 적을 자 휘두르기로 방어' },
+  { key: 'bagDamage', icon: 'ruler', labelFn: damageLabel('30cm 자 피해', 'schoolBag', 'bagDamage'), desc: '자 휘두르기 타격 피해 증가' },
   { key: 'bagRadius', icon: 'ruler', label: '30cm 자 사거리 +', desc: '자 휘두르기 타격 범위 증가' },
-  { key: 'unlockTumbler', icon: 'tumbler', label: '텀블러 해금', desc: '플레이어 주변을 회전하는 방어 무기', minLevel: 2 },
+  { key: 'unlockTumbler', icon: 'tumbler', label: '텀블러 해금', desc: '플레이어 주변을 회전하는 방어 무기' },
   { key: 'tumblerCount', icon: 'tumbler', label: '텀블러 개수 +1', desc: '회전 텀블러 개수 증가 (최대 3개)' },
-  { key: 'tumblerDamage', icon: 'tumbler', labelFn: (w) => `텀블러 피해 +2 (Lv${(w.tumbler.level ?? 1) + 1})`, desc: '회전 텀블러 접촉 피해 증가' },
-  { key: 'unlockFlask', icon: 'flask', label: '플라스크 해금', desc: '밀집한 적에게 광역 폭발 투척', minLevel: 4 },
-  { key: 'flaskDamage', icon: 'flask', labelFn: (w) => `플라스크 피해 +8 (Lv${(w.scienceFlask.level ?? 1) + 1})`, desc: '폭발 피해 증가' },
+  { key: 'tumblerDamage', icon: 'tumbler', labelFn: damageLabel('텀블러 피해', 'tumbler', 'tumblerDamage'), desc: '회전 텀블러 접촉 피해 증가' },
+  { key: 'unlockFlask', icon: 'flask', label: '플라스크 해금', desc: '밀집한 적에게 광역 폭발 투척' },
+  { key: 'flaskDamage', icon: 'flask', labelFn: damageLabel('플라스크 피해', 'scienceFlask', 'flaskDamage'), desc: '폭발 피해 증가' },
   { key: 'flaskRadius', icon: 'flask', label: '플라스크 범위 +', desc: '폭발 반경 증가' },
-  { key: 'unlockBell', icon: 'bell', label: '벨 해금', desc: '8방향 충격파 스킬 해금', minLevel: 4 },
-  { key: 'bellDamage', icon: 'bell', labelFn: (w) => `벨 데미지 +4 (Lv${(w.bell.level ?? 1) + 1})`, desc: '충격파 공격력 증가' },
-  { key: 'unlockStun', icon: 'stun', label: '전기충격 해금', desc: '체인 스턴건 스킬 해금', minLevel: 6 },
-  { key: 'stunDamage', icon: 'stun', labelFn: (w) => `전기 데미지 +5 (Lv${(w.stunGun.level ?? 1) + 1})`, desc: '체인 스턴 데미지 증가' },
+  { key: 'unlockBell', icon: 'bell', label: '벨 해금', desc: '8방향 충격파 스킬 해금' },
+  { key: 'bellDamage', icon: 'bell', labelFn: damageLabel('벨 데미지', 'bell', 'bellDamage'), desc: '충격파 공격력 증가' },
+  { key: 'unlockStun', icon: 'stun', label: '전기충격 해금', desc: '체인 스턴건 스킬 해금' },
+  { key: 'stunDamage', icon: 'stun', labelFn: damageLabel('전기 데미지', 'stunGun', 'stunDamage'), desc: '체인 스턴 데미지 증가' },
   { key: 'stunChain', icon: 'stun', label: '전기 연쇄 +1', desc: '연쇄 대상 수 증가 (최대 4)' },
-  { key: 'unlockMissile', icon: 'missile', label: '보조배터리 해금', desc: '서서히 가속해 밀집 지점을 폭격', minLevel: 6 },
-  { key: 'missileDamage', icon: 'missile', labelFn: (w) => `보조배터리 피해 +6 (Lv${(w.guidedMissile.level ?? 1) + 1})`, desc: '폭발 피해 증가' },
-  { key: 'missileCount', icon: 'missile', label: '보조배터리 동시 발사 +1', desc: '동시에 2발 발사 (최대 2발)' },
-  { key: 'unlockStarlink', icon: 'starlink', label: '고장난 스타링크 해금', desc: '5유닛 이내 무작위 낙뢰 (기본 1개)', minLevel: 8 },
-  { key: 'starlinkDamage', icon: 'starlink', labelFn: (w) => `스타링크 피해 +7 (Lv${(w.starlink.level ?? 1) + 1})`, desc: '낙뢰 피해 증가' },
-  { key: 'starlinkCount', icon: 'starlink', label: '스타링크 낙뢰 수 +1', desc: '볼리당 낙뢰 수 증가 (최대 6)' },
-  { key: 'unlockOnigiri', icon: 'onigiri', label: '오니기리 해금', desc: '적 사이를 튕기며 공격하는 주먹밥', minLevel: 8 },
+  { key: 'unlockOnigiri', icon: 'onigiri', label: '오니기리 해금', desc: '적 사이를 튕기며 공격하는 주먹밥' },
   { key: 'onigiiriBounce', icon: 'onigiri', label: '오니기리 바운스 +1', desc: '튕기는 횟수 증가 (최대 7회)' },
-  { key: 'onigiiriDamage', icon: 'onigiri', labelFn: (w) => `오니기리 피해 +5 (Lv${(w.onigiri.level ?? 1) + 1})`, desc: '충돌 피해 증가' },
+  { key: 'onigiiriDamage', icon: 'onigiri', labelFn: damageLabel('오니기리 피해', 'onigiri', 'onigiiriDamage'), desc: '충돌 피해 증가' },
   { key: 'moveSpeed', icon: 'speed', label: '이동속도 +10%', desc: '플레이어 이동속도 증가' },
   { key: 'maxHealth', icon: 'health', label: '최대 체력 +20', desc: '최대 HP 및 현재 HP 증가' },
 ]
 
-// 무기 레벨 상한 (Lv.5) 도달 시 해당 무기의 강화 카드를 풀에서 제외
-const WEAPON_OF_KEY = {
-  pencilDamage: 'pencilThrow', pencilCount: 'pencilThrow', pencilPierce: 'pencilThrow',
-  bagDamage: 'schoolBag', bagRadius: 'schoolBag',
-  tumblerDamage: 'tumbler', tumblerCount: 'tumbler',
-  flaskDamage: 'scienceFlask', flaskRadius: 'scienceFlask',
-  bellDamage: 'bell',
-  stunDamage: 'stunGun', stunChain: 'stunGun',
-  missileDamage: 'guidedMissile', missileCount: 'guidedMissile',
-  starlinkDamage: 'starlink', starlinkCount: 'starlink',
-  onigiiriDamage: 'onigiri', onigiiriBounce: 'onigiri',
-}
-
 function pickThree(level, weapons) {
-  const available = UPGRADES.filter((u) => {
-    // 1) 해금 카드: minLevel 미달이면 노출 금지
-    if (u.minLevel != null && level < u.minLevel) return false
-
-    // 2) 무기 Lv.5 도달 시 해당 무기 강화 카드 제외
-    const wKey = WEAPON_OF_KEY[u.key]
-    if (wKey && (weapons[wKey]?.level ?? 0) >= 5) return false
-
-    // 3) 활성/비활성 게이팅
-    if (u.key === 'unlockFlask')                                  return !weapons.scienceFlask?.active
-    if (u.key === 'flaskDamage' || u.key === 'flaskRadius')       return  weapons.scienceFlask?.active
-    if (u.key === 'unlockBell')                                   return !weapons.bell?.active
-    if (u.key === 'bellDamage')                                   return  weapons.bell?.active
-    if (u.key === 'unlockBag')                                    return !weapons.schoolBag?.active
-    if (u.key === 'bagDamage' || u.key === 'bagRadius')           return  weapons.schoolBag?.active
-    if (u.key === 'unlockTumbler')                                return !weapons.tumbler?.active
-    if (u.key === 'tumblerCount' || u.key === 'tumblerDamage')    return  weapons.tumbler?.active
-    if (u.key === 'unlockStun')                                   return !weapons.stunGun?.active
-    if (u.key === 'stunChain' || u.key === 'stunDamage')          return  weapons.stunGun?.active
-    if (u.key === 'unlockMissile')                                return !weapons.guidedMissile?.active
-    if (u.key === 'missileDamage' || u.key === 'missileCount')    return  weapons.guidedMissile?.active
-    if (u.key === 'unlockStarlink')                               return !weapons.starlink?.active
-    if (u.key === 'starlinkDamage' || u.key === 'starlinkCount')  return  weapons.starlink?.active
-    if (u.key === 'unlockOnigiri')                                return !weapons.onigiri?.active
-    if (u.key === 'onigiiriBounce' || u.key === 'onigiiriDamage') return  weapons.onigiri?.active
-    return true
-  })
+  const available = UPGRADES.filter((u) => isUpgradeAvailable(UPGRADE_EFFECTS[u.key], level, weapons))
   const shuffled = [...available].sort(() => Math.random() - 0.5)
   return shuffled.slice(0, 3)
 }
@@ -180,6 +138,8 @@ export default function HUD() {
   const weapons   = useGameStore((s) => s.weapons)
   const phase     = useGameStore((s) => s.phase)
   const elapsed   = useGameStore((s) => s.elapsedMs)
+  const goldSession = useGameStore((s) => s.goldSession)
+  const goldTotal   = useGameStore((s) => s.goldTotal)
   const applyUpgrade      = useGameStore((s) => s.applyUpgrade)
   const resumeFromLevelup = useGameStore((s) => s.resumeFromLevelup)
   const resetGame         = useGameStore((s) => s.resetGame)
@@ -188,12 +148,25 @@ export default function HUD() {
   const mins = String(Math.floor(elapsed / 60000)).padStart(2, '0')
   const secs = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, '0')
 
-  // phase媛 'levelup'?쇰줈 諛붾뚮뒗 ?쒓컙 ??踰덈쭔 怨좎젙 ??RAF re-render???붾뱾由ъ? ?딆쓬
+  // phase가 'levelup'으로 바뀌는 순간 한 번만 선택지를 고정한다.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const choices = useMemo(() => phase === 'levelup' ? pickThree(player.level, weapons) : [], [phase])
   const lowHp   = player.hp / player.maxHp < 0.3
 
-  // ??荑⑦???鍮꾩쑉 (1=以鍮꾨맖, 0=荑⑦????쒖옉 吏곹썑) ??RAF濡?DOM 媛깆떊 ?놁씠 ?대쭅
+  // 종료 화면 "다음 해금 가능 무기" 미리보기 — minLevel이 가장 낮은 미해금 무기 1개.
+  const nextUnlock = useMemo(() => {
+    if (phase !== 'gameover' && phase !== 'cleared') return null
+    const candidates = Object.entries(UPGRADE_EFFECTS)
+      .filter(([, eff]) => eff.kind === 'unlock' && !weapons[eff.weapon]?.active)
+      .map(([key, eff]) => ({ key, weapon: eff.weapon, minLevel: eff.minLevel ?? 0 }))
+      .sort((a, b) => a.minLevel - b.minLevel)
+    if (candidates.length === 0) return null
+    const top = candidates[0]
+    const entry = UPGRADES.find((u) => u.key === top.key)
+    return { ...top, icon: entry?.icon, label: weapons[top.weapon]?.label ?? top.weapon }
+  }, [phase, weapons])
+
+  // 자 쿨다운 비율. 1은 준비 완료, 0은 쿨다운 시작 직후다.
   const [bagReady, setBagReady] = useState(1)
   useEffect(() => {
     let raf
@@ -206,7 +179,7 @@ export default function HUD() {
     return () => cancelAnimationFrame(raf)
   }, [])
 
-  // CSS ?ㅽ봽?덉엫 二쇱엯 (理쒖큹 1??
+  // CSS 키프레임 주입. 최초 1회만 추가한다.
   useEffect(() => {
     const style = document.createElement('style')
     style.id = 'hud-keyframes'
@@ -229,7 +202,7 @@ export default function HUD() {
 
   return (
     <div style={styles.root}>
-      {/* ?? ?泥대젰 酉곕꽕???? */}
+      {/* 저체력 비네트 */}
       {lowHp && (
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
@@ -237,13 +210,13 @@ export default function HUD() {
           animation: 'vignettePulse 0.8s ease-in-out infinite',
         }} />
       )}
-      {/* ?? Top bar ?? */}
+      {/* Top bar */}
       <div style={styles.topBar}>
         <div style={styles.timer}>{mins}:{secs}</div>
         <div style={styles.level}>Lv.{player.level}</div>
       </div>
 
-      {/* ?? HP bar ?? */}
+      {/* HP bar */}
       <div style={styles.hpRow}>
         <span style={styles.hpLabel}>HP</span>
         <div style={styles.barBg}>
@@ -257,27 +230,27 @@ export default function HUD() {
         <span style={styles.hpNum}>{player.hp}/{player.maxHp}</span>
       </div>
 
-      {/* ?? XP bar ?? */}
+      {/* XP bar */}
       <div style={styles.xpRow}>
         <div style={styles.barBg}>
           <div style={{ ...styles.barFill, width: `${(player.xp / player.xpToNext) * 100}%`, background: '#60d060' }} />
         </div>
       </div>
 
-      {/* ?? Active weapons ?? */}
+      {/* Active weapons */}
       <div style={styles.weaponRow}>
         {Object.entries(weapons).filter(([, w]) => w.active).map(([k, w]) => (
           <div key={k} style={styles.weaponChip}>{w.label}</div>
         ))}
       </div>
 
-      {/* ?? ??荑⑦???UI (HP諛?醫뚯긽?? ?먰삎) ?? */}
+      {/* 자 쿨다운 UI */}
       <div style={styles.cdWrap}>
         <div style={styles.cdRing}>
           <svg width="42" height="42" viewBox="0 0 42 42" style={{ display: 'block' }}>
-            {/* 寃??諛곌꼍 ??*/}
+            {/* 검은 배경 */}
             <circle cx="21" cy="21" r="20" fill="#111" stroke="#333" strokeWidth="1" />
-            {/* ?⑹깋 吏꾪뻾 留?*/}
+            {/* 노란 진행 링 */}
             <circle
               cx="21" cy="21" r="15"
               fill="none"
@@ -296,7 +269,12 @@ export default function HUD() {
         </span>
       </div>
 
-      {/* ?? Modals ?? */}
+      {/* Modals */}
+      <div style={styles.goldChip}>
+        <span style={styles.goldDot} />
+        <span style={styles.goldNum}>{goldSession}</span>
+      </div>
+
       {phase === 'levelup' && (
         <div style={styles.overlay}>
           <div style={styles.modal}>
@@ -318,7 +296,22 @@ export default function HUD() {
         <div style={styles.overlay}>
           <div style={styles.modal}>
             <h2 style={{ ...styles.modalTitle, color: '#ff4060' }}>GAME OVER</h2>
-            <p style={{ color: '#ccc', marginBottom: 24 }}>생존 시간: {mins}:{secs}</p>
+            <p style={{ color: '#ccc', marginBottom: 8 }}>생존 시간: {mins}:{secs}</p>
+            <p style={{ color: '#ffd040', marginBottom: nextUnlock ? 12 : 20 }}>획득 골드: {goldSession} (누적 {goldTotal})</p>
+            {nextUnlock && (
+              <div style={styles.nextUnlock}>
+                <span style={styles.nextUnlockLabel}>다음에 만날 무기</span>
+                <div style={styles.nextUnlockBody}>
+                  <div style={styles.nextUnlockSilhouette}>
+                    <UpgradeIcon type={nextUnlock.icon} />
+                  </div>
+                  <div style={styles.nextUnlockText}>
+                    <div style={styles.nextUnlockName}>???</div>
+                    <div style={styles.nextUnlockHint}>Lv.{nextUnlock.minLevel} 도달 시 해금</div>
+                  </div>
+                </div>
+              </div>
+            )}
             <button style={styles.restartBtn} onClick={resetGame}>다시 시작</button>
           </div>
         </div>
@@ -336,7 +329,22 @@ export default function HUD() {
         <div style={styles.overlay}>
           <div style={styles.modal}>
             <h2 style={{ ...styles.modalTitle, color: '#ffd040' }}>STAGE CLEAR!</h2>
-            <p style={{ color: '#ccc', marginBottom: 24 }}>클리어 시간: {mins}:{secs}</p>
+            <p style={{ color: '#ccc', marginBottom: 8 }}>클리어 시간: {mins}:{secs}</p>
+            <p style={{ color: '#ffd040', marginBottom: nextUnlock ? 12 : 20 }}>획득 골드: {goldSession} (누적 {goldTotal})</p>
+            {nextUnlock && (
+              <div style={styles.nextUnlock}>
+                <span style={styles.nextUnlockLabel}>다음에 만날 무기</span>
+                <div style={styles.nextUnlockBody}>
+                  <div style={styles.nextUnlockSilhouette}>
+                    <UpgradeIcon type={nextUnlock.icon} />
+                  </div>
+                  <div style={styles.nextUnlockText}>
+                    <div style={styles.nextUnlockName}>???</div>
+                    <div style={styles.nextUnlockHint}>Lv.{nextUnlock.minLevel} 도달 시 해금</div>
+                  </div>
+                </div>
+              </div>
+            )}
             <button style={styles.restartBtn} onClick={resetGame}>다시 시작</button>
           </div>
         </div>
@@ -356,6 +364,23 @@ const styles = {
   },
   timer: { color: '#fff', fontSize: 28, fontWeight: 700, textShadow: '0 2px 6px #000' },
   level: { color: '#ffd040', fontSize: 20, fontWeight: 700, textShadow: '0 2px 6px #000' },
+  goldChip: {
+    position: 'absolute',
+    top: 16, right: 16,
+    display: 'flex', alignItems: 'center', gap: 6,
+    background: 'rgba(20,16,8,0.78)',
+    border: '1.5px solid #b88322',
+    borderRadius: 14,
+    padding: '4px 10px',
+    boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
+  },
+  goldDot: {
+    width: 14, height: 14, borderRadius: '50%',
+    background: 'radial-gradient(circle at 35% 35%, #fff5b0 0%, #ffd23c 55%, #aa7000 100%)',
+    border: '1.5px solid #5b3b08',
+    flexShrink: 0,
+  },
+  goldNum: { color: '#ffe18a', fontSize: 16, fontWeight: 800, textShadow: '0 2px 4px #000' },
   hpRow: {
     position: 'absolute', bottom: 52, left: '50%', transform: 'translateX(-50%)',
     display: 'flex', alignItems: 'center', gap: 8, width: 320,
@@ -574,5 +599,46 @@ const styles = {
     background: '#4030a0', border: 'none', borderRadius: 8,
     color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer',
     padding: '12px 32px',
+  },
+  nextUnlock: {
+    background: 'rgba(60, 40, 110, 0.4)',
+    border: '1.5px dashed #8060c0',
+    borderRadius: 10,
+    padding: '12px 16px',
+    marginBottom: 20,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 8,
+  },
+  nextUnlockLabel: {
+    color: '#a888d0',
+    fontSize: 11,
+    fontWeight: 600,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  nextUnlockBody: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+  },
+  nextUnlockSilhouette: {
+    filter: 'brightness(0.15) contrast(2)',
+    opacity: 0.85,
+  },
+  nextUnlockText: {
+    textAlign: 'left',
+  },
+  nextUnlockName: {
+    color: '#d0c0f0',
+    fontSize: 16,
+    fontWeight: 700,
+    letterSpacing: 2,
+  },
+  nextUnlockHint: {
+    color: '#a888d0',
+    fontSize: 12,
+    marginTop: 2,
   },
 }

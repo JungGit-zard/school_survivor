@@ -7,7 +7,8 @@ import Player from './Player.jsx'
 import Floor from './Floor.jsx'
 import Enemies from './Enemies.jsx'
 import LunchItems from './LunchItems.jsx'
-import { PencilThrow, SchoolBagSwing, TumblerOrbit, BellShockwave, ScienceFlaskSplash, GuidedMissileWeapon, StarlinkWeapon, OnigiiriWeapon, StunGunWeapon } from './Weapons.jsx'
+import VFXLayer from './VFXLayer.jsx'
+import { PencilThrow, SchoolBagSwing, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, StunGunWeapon } from './Weapons/index.js'
 
 const _camTarget = new THREE.Vector3()
 
@@ -61,10 +62,11 @@ export default function Game() {
       <TumblerOrbit />
       <BellShockwave />
       <ScienceFlaskSplash />
-      <GuidedMissileWeapon />
-      <StarlinkWeapon />
       <OnigiiriWeapon />
       <StunGunWeapon />
+
+      {/* ── Shared VFX Layer (적 위에 그릴 효과는 이쪽으로) ── */}
+      <VFXLayer />
 
       {/* ── Enemies ── */}
       <Enemies />

@@ -9,13 +9,9 @@
 - Before planning, implementation, asset work, QA, Git workflow changes, folder-structure changes, or project-direction decisions, check this document for relevant rules.
 - If a rule in this document is unclear, follow the safest narrow interpretation and ask the user when the decision could change project direction.
 
-## Mandatory Session Continuity
+## Session Memory
 
-- Before starting a new substantial session, read `SESSION_CONTINUITY.md`.
-- Before planning or editing in a new session, read the newest Markdown file in `Session_Logs/`.
-- Every 3 hours of active project work or active conversation, create or update a Markdown summary in `Session_Logs/`.
-- The 3-hour summary must record important conversation content, program usage records, generated tools/components/documents/assets and their purposes, changed files, verification results, screenshots, Git status, unresolved issues, and next-session instructions.
-- Do not rely only on chat memory for project continuity. Important session knowledge must be saved as Markdown text in `Session_Logs/`.
+세션 메모리 / 시작 시 필독 / 3시간 요약 관련 규정은 `SESSION_CONTINUITY.md` 단일 정본을 따른다. 본 정책 문서에 중복 기재하지 않는다.
 
 ## 기록 규칙
 

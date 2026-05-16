@@ -1,15 +1,28 @@
 ﻿import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
+import { UPGRADE_EFFECTS, applyUpgradeToWeapon } from '../lib/upgrades.js'
 
 const INITIAL_PLAYER = {
   hp: 100, maxHp: 100,
   speed: 3, baseSpeed: 3,
-  level: 1, xp: 0, xpToNext: 6,
+  level: 1, xp: 0, xpToNext: 4,
   invulnerable: false,
 }
 
-// 2026-05-06 재밸런싱: "몇 방에 죽는가" 데미지 공식 + 5분 세션 5단계 성장 (Stage1 replan).
-// 각 무기 Lv.1 기준값. level 필드는 1~5, applyUpgrade에서 단계적으로 증가.
+const GOLD_STORAGE_KEY = 'school_survivor:goldTotal'
+
+function loadGoldTotal() {
+  if (typeof localStorage === 'undefined') return 0
+  const raw = localStorage.getItem(GOLD_STORAGE_KEY)
+  const n = Number(raw)
+  return Number.isFinite(n) && n >= 0 ? n : 0
+}
+
+function saveGoldTotal(value) {
+  if (typeof localStorage === 'undefined') return
+  localStorage.setItem(GOLD_STORAGE_KEY, String(value))
+}
+
 const INITIAL_WEAPONS = {
   pencilThrow:   { label: '연필', level: 1, damage: 8,  cooldown: 1100, lastFired: 0, projectileCount: 1, pierce: 0, speed: 12, range: 22, active: true },
   schoolBag:     { label: '30cm 자', level: 0, damage: 12, cooldown: 1300, range: 0.633, triggerRange: 1.0, swingMs: 260, active: false },
@@ -17,8 +30,6 @@ const INITIAL_WEAPONS = {
   scienceFlask:  { label: '과학 플라스크', level: 0, damage: 30, cooldown: 2800, radius: 1.6, range: 2, active: false },
   bell:          { label: '벨', level: 0, damage: 10, cooldown: 4500, lastFired: 0, directions: 8, speed: 10, radius: 1.7, active: false },
   stunGun:       { label: '전기', level: 0, damage: 18, cooldown: 3000, lastFired: 0, chainCount: 2, active: false },
-  guidedMissile: { label: '보조배터리', level: 0, damage: 18, cooldown: 4200, radius: 1.6, range: 22, count: 1, active: false },
-  starlink:      { label: '고장난 스타링크', level: 0, damage: 22, cooldown: 4000, radius: 1.2, strikeCount: 1, active: false },
   onigiri:       { label: '오니기리', level: 0, damage: 14, cooldown: 2000, bounces: 4, bounceRange: 4.5, range: 18, active: false },
 }
 
@@ -30,18 +41,20 @@ export const useGameStore = create(
     elapsedMs:   0,
     bossSpawned: false,
     gameKey:     0,
+    goldSession: 0,
+    goldTotal:   loadGoldTotal(),
 
-    // ?? ??대㉧ ????????????????????????????????????????????????????????
+    // 타이머
     tickTime: (deltaMs) => set((s) => ({ elapsedMs: s.elapsedMs + deltaMs })),
 
-    // ?? ?뚮젅?댁뼱 ?쇳빐 ??????????????????????????????????????????????????
+    // 플레이어 피해
     damagePlayer: (amount) => {
       const { player } = get()
       if (player.invulnerable) return
       const hp = Math.max(0, player.hp - amount)
       if (hp <= 0) { set({ player: { ...player, hp }, phase: 'gameover' }); return }
       set({ player: { ...player, hp, invulnerable: true } })
-      // 臾댁쟻 ?댁젣??Player.jsx??useFrame?먯꽌 泥섎━ (setTimeout ?쒓굅)
+      // 무적 해제는 Player.jsx의 useFrame에서 처리한다. setTimeout을 쓰지 않는다.
     },
 
     endInvulnerable: () => set((s) => ({ player: { ...s.player, invulnerable: false } })),
@@ -50,7 +63,7 @@ export const useGameStore = create(
       player: { ...s.player, hp: Math.min(s.player.maxHp, s.player.hp + amount) },
     })),
 
-    // ?? 寃쏀뿕移?/ ?덈꺼?????????????????????????????????????????????????
+    // 경험치와 레벨업
     gainXp: (amount) => {
       const { player } = get()
       let { xp, xpToNext, level } = player
@@ -65,6 +78,14 @@ export const useGameStore = create(
       }
     },
 
+    gainGold: (amount) => {
+      if (!amount) return
+      const { goldSession, goldTotal } = get()
+      const nextTotal = goldTotal + amount
+      saveGoldTotal(nextTotal)
+      set({ goldSession: goldSession + amount, goldTotal: nextTotal })
+    },
+
     resumeFromLevelup: () => set({ phase: 'playing' }),
 
     togglePause: () => set((s) => {
@@ -73,47 +94,36 @@ export const useGameStore = create(
       return {}
     }),
 
-    // ?? ?낃렇?덉씠???곸슜 ???????????????????????????????????????????????
     applyUpgrade: (key) => {
-      const { player, weapons } = get()
-      const w = { ...weapons }
-      // 2026-05-06 재밸런싱: Lv.1 → Lv.5 점증
-      if (key === 'pencilDamage')  w.pencilThrow = { ...w.pencilThrow, damage: w.pencilThrow.damage + 3, level: Math.min(5, (w.pencilThrow.level ?? 1) + 1) }
-      if (key === 'pencilCount')   w.pencilThrow = { ...w.pencilThrow, projectileCount: Math.min(4, (w.pencilThrow.projectileCount ?? 1) + 1) }
-      if (key === 'pencilPierce')  w.pencilThrow = { ...w.pencilThrow, pierce: Math.min(3, w.pencilThrow.pierce + 1) }
-      if (key === 'unlockBag')     w.schoolBag   = { ...w.schoolBag,   active: true, level: 1 }
-      if (key === 'bagDamage')     w.schoolBag   = { ...w.schoolBag,   damage: w.schoolBag.damage + 5, level: Math.min(5, (w.schoolBag.level ?? 1) + 1) }
-      if (key === 'bagRadius')     w.schoolBag   = { ...w.schoolBag,   range: Math.min(1.067, w.schoolBag.range + 0.08) }
-      if (key === 'unlockTumbler') w.tumbler     = { ...w.tumbler,     active: true, level: 1 }
-      if (key === 'tumblerCount')  w.tumbler     = { ...w.tumbler,     count: Math.min(3, (w.tumbler.count ?? 1) + 1) }
-      if (key === 'tumblerDamage') w.tumbler     = { ...w.tumbler,     damage: w.tumbler.damage + 2, level: Math.min(5, (w.tumbler.level ?? 1) + 1) }
-      if (key === 'unlockFlask')   w.scienceFlask = { ...w.scienceFlask, active: true, level: 1 }
-      if (key === 'flaskDamage')   w.scienceFlask = { ...w.scienceFlask, damage: w.scienceFlask.damage + 8, level: Math.min(5, (w.scienceFlask.level ?? 1) + 1) }
-      if (key === 'flaskRadius')   w.scienceFlask = { ...w.scienceFlask, radius: Math.min(2.4, w.scienceFlask.radius + 0.18) }
-      if (key === 'unlockBell')    w.bell        = { ...w.bell,        active: true, level: 1 }
-      if (key === 'bellDamage')    w.bell        = { ...w.bell,        damage: w.bell.damage + 4, level: Math.min(5, (w.bell.level ?? 1) + 1) }
-      if (key === 'unlockStun')       w.stunGun       = { ...w.stunGun,       active: true, level: 1 }
-      if (key === 'stunDamage')       w.stunGun       = { ...w.stunGun,       damage: w.stunGun.damage + 5, level: Math.min(5, (w.stunGun.level ?? 1) + 1) }
-      if (key === 'stunChain')        w.stunGun       = { ...w.stunGun,       chainCount: Math.min(4, w.stunGun.chainCount + 1) }
-      if (key === 'unlockMissile')    w.guidedMissile = { ...w.guidedMissile, active: true, level: 1 }
-      if (key === 'missileDamage')    w.guidedMissile = { ...w.guidedMissile, damage: w.guidedMissile.damage + 6, level: Math.min(5, (w.guidedMissile.level ?? 1) + 1) }
-      if (key === 'missileCount')     w.guidedMissile = { ...w.guidedMissile, count: Math.min(2, (w.guidedMissile.count ?? 1) + 1) }
-      if (key === 'unlockStarlink')   w.starlink      = { ...w.starlink,      active: true, level: 1 }
-      if (key === 'starlinkDamage')   w.starlink      = { ...w.starlink,      damage: w.starlink.damage + 7, level: Math.min(5, (w.starlink.level ?? 1) + 1) }
-      if (key === 'starlinkCount')    w.starlink      = { ...w.starlink,      strikeCount: Math.min(6, (w.starlink.strikeCount ?? 1) + 1) }
-      if (key === 'unlockOnigiri')    w.onigiri       = { ...w.onigiri,       active: true, level: 1 }
-      if (key === 'onigiiriBounce')   w.onigiri       = { ...w.onigiri,       bounces: Math.min(7, (w.onigiri.bounces ?? 4) + 1) }
-      if (key === 'onigiiriDamage')   w.onigiri       = { ...w.onigiri,       damage: w.onigiri.damage + 5, level: Math.min(5, (w.onigiri.level ?? 1) + 1) }
-      if (key === 'moveSpeed')     set({ player: { ...player, speed: Math.min(player.baseSpeed * 1.8, player.speed * 1.1) } })
-      if (key === 'maxHealth')     set({ player: { ...player, maxHp: player.maxHp + 20, hp: player.hp + 20 } })
-      set({ weapons: w, phase: 'playing' })
+      const effect = UPGRADE_EFFECTS[key]
+
+      if (effect?.kind === 'player') {
+        const { player } = get()
+        if (key === 'moveSpeed') {
+          set({ player: { ...player, speed: Math.min(player.baseSpeed * 1.8, player.speed * 1.1) }, phase: 'playing' })
+        } else if (key === 'maxHealth') {
+          set({ player: { ...player, maxHp: player.maxHp + 20, hp: player.hp + 20 }, phase: 'playing' })
+        } else {
+          set({ phase: 'playing' })
+        }
+        return
+      }
+
+      if (!effect) { set({ phase: 'playing' }); return }
+
+      const { weapons } = get()
+      const wpn = weapons[effect.weapon]
+      set({
+        weapons: { ...weapons, [effect.weapon]: applyUpgradeToWeapon(wpn, effect) },
+        phase: 'playing',
+      })
     },
 
-    // ?? 蹂댁뒪 ??????????????????????????????????????????????????????????
+    // 보스
     spawnBoss: () => set({ bossSpawned: true }),
     clearStage: () => set({ phase: 'cleared' }),
 
-    // ?? 寃뚯엫 由ъ뀑 (gameKey 利앷?濡?Physics ?몃━ ?щ쭏?댄듃) ???????????????
+    // 게임 리셋. gameKey를 올려 Physics 트리를 새로 마운트한다.
     resetGame: () => set((s) => ({
       player:      { ...INITIAL_PLAYER },
       weapons:     { ...INITIAL_WEAPONS },
@@ -121,6 +131,7 @@ export const useGameStore = create(
       elapsedMs:   0,
       bossSpawned: false,
       gameKey:     s.gameKey + 1,
+      goldSession: 0,
     })),
   }))
 )
