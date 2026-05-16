@@ -1,13 +1,13 @@
 # Session Memory — Permanent Append-Only Log
 
 > **이 파일은 BangBang Survivor 프로젝트의 영구 세션 메모리이다.**
-> 3시간마다 1개 엔트리가 끝에 append된다. 4개 엔트리가 쌓이면(=12시간) 하나의 세션이 닫히고, 그 시점에 에이전트는 사용자에게 컨텍스트 초기화(`/clear`)를 권고한다.
+> 세션 시작점은 `Entry 0 (Bootstrap)`으로 기록할 수 있다. 이후 3시간마다 요약 엔트리 1개가 끝에 append된다. 요약 엔트리 4개가 쌓이면(=12시간) 하나의 세션이 닫히고, 그 시점에 에이전트는 사용자에게 컨텍스트 초기화(`/clear`)를 권고한다.
 > 규정 정본: [SESSION_CONTINUITY.md](SESSION_CONTINUITY.md)
 > 레거시 아카이브: `Session_Logs/` (2026-05-16 이전의 분리된 요약 파일들)
 
 ---
 
-## Session 1 · Entry 1 (Bootstrap) · 2026-05-16 00:45 KST
+## Session 1 · Entry 0 (Bootstrap) · 2026-05-16 00:45 KST
 
 **규칙 전환 시점**
 
@@ -44,12 +44,12 @@
 4. 타이틀/랜딩 화면 작업 착수 미진행 (`Planner/title_landing_screen_plan_2026-05-10.md`).
 5. 백엔드 미결정 — 리더보드/메타프로그레션 필요 시점에 검토.
 
-**다음 엔트리 예정**: Entry 2 — 2026-05-16 03:45 KST (이 시각 도달 시 또는 직후 사용자 활동 발생 시 작성)
-**세션 1 마감 예정**: 2026-05-16 09:45 KST — Entry 3 작성 후 `/clear` 권고
+**다음 엔트리 예정**: Entry 1 — 2026-05-16 03:45 KST (이 시각 도달 시 또는 직후 사용자 활동 발생 시 작성)
+**세션 1 마감 예정**: 2026-05-16 09:45 KST — 당시 9시간 규칙 기준 Entry 3 작성 후 `/clear` 권고
 
 ---
 
-## Session 2 · Entry 1 (Bootstrap, 규정 갱신 이후) · 2026-05-16 23:50 KST
+## Session 2 · Entry 0 (Bootstrap, 규정 갱신 이후) · 2026-05-16 23:50 KST
 
 **규정 갱신 요약**
 
@@ -77,6 +77,7 @@
 
 - 세션 메모리 정본은 계속 `SESSION_CONTINUITY.md` 단독이다.
 - 3시간마다 `SESSION_MEMORY.md`에 엔트리 1개를 append한다.
+- 세션 시작점은 `Entry 0 (Bootstrap)`으로 기록하고, 3시간 누적 요약은 Entry 1부터 시작한다.
 - 12시간이 1 세션이며, Entry 4 작성 직후 세션 종료와 `/clear` 권고를 수행한다.
 - 새 에이전트는 `SESSION_MEMORY.md`의 가장 최근 엔트리 1개만 자동으로 읽는다.
 
@@ -85,7 +86,7 @@
 - 다음 에이전트는 `SESSION_CONTINUITY.md`의 12시간 v2 규칙과 이 엔트리를 기준으로 이어가면 된다.
 - 기존 Session 1 엔트리의 9시간 언급은 당시 규칙의 역사 기록이므로 삭제하지 않는다.
 
-**다음 엔트리 예정**: Session 2 · Entry 2 — 2026-05-17 02:50 KST 전후
+**다음 엔트리 예정**: Session 2 · Entry 1 — 2026-05-17 02:50 KST 전후
 **세션 2 마감 예정**: 2026-05-17 11:50 KST — Entry 4 작성 후 `/clear` 권고
 
 ---
