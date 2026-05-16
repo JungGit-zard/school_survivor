@@ -124,7 +124,7 @@ BangBang Survivor의 1차 완성 기준은 더 많은 콘텐츠가 아니라,
 
 | 문서 | 성격 | 우선도 | 핵심 내용 |
 |---|---|---:|---|
-| `stage1_replan_2026-05-06.md` | 최신 무기 기본 기준 | 매우 높음 | 9종 무기 Lv.1/Lv.5 수치, 해금 레벨 |
+| `stage1_replan_2026-05-06.md` | 최신 무기 기본 기준 | 매우 높음 | 7종 무기 Lv.1/Lv.5 수치, 해금 레벨 |
 | `stage1_reverse_design_current_2026-05-09.md` | 현재 구현 무기 역기획 | 매우 높음 | 현재 무기 수치, 카드 구조, Lv.5 제한 |
 | `Weapons/weapon_upgrade_flow_and_unlock_plan_2026-05-14.md` | 무기 업그레이드 흐름/해금 정리 | 매우 높음 | 현재 구현 무기, 5분 업그레이드 흐름, 미구현 무기 해금 |
 | `Weapons/weapon_expansion_unlock_plan_2026-05-10.md` | 신규 무기 10종/누적 해금 | 높음 | 장기 해금 구조와 추가 무기 |

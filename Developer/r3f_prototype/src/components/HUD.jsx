@@ -2,6 +2,7 @@
 import { useGameStore } from '../store/useGameStore.js'
 import { bagSwingState } from '../lib/refs.js'
 import { UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
+import { buildPlaytestSummary } from '../lib/playtestLogger.js'
 
 const damageLabel = (name, weaponKey, upgradeKey) => (w) =>
   `${name} +${UPGRADE_EFFECTS[upgradeKey].dmg} (Lv${(w[weaponKey].level ?? 1) + 1})`
@@ -31,8 +32,8 @@ const UPGRADES = [
   { key: 'maxHealth', icon: 'health', label: '최대 체력 +20', desc: '최대 HP 및 현재 HP 증가' },
 ]
 
-function pickThree(level, weapons) {
-  const available = UPGRADES.filter((u) => isUpgradeAvailable(UPGRADE_EFFECTS[u.key], level, weapons))
+function pickThree(level, weapons, player) {
+  const available = UPGRADES.filter((u) => isUpgradeAvailable(UPGRADE_EFFECTS[u.key], level, weapons, player))
   const shuffled = [...available].sort(() => Math.random() - 0.5)
   return shuffled.slice(0, 3)
 }
@@ -140,6 +141,7 @@ export default function HUD() {
   const elapsed   = useGameStore((s) => s.elapsedMs)
   const goldSession = useGameStore((s) => s.goldSession)
   const goldTotal   = useGameStore((s) => s.goldTotal)
+  const levelUpChoiceSerial = useGameStore((s) => s.levelUpChoiceSerial)
   const applyUpgrade      = useGameStore((s) => s.applyUpgrade)
   const resumeFromLevelup = useGameStore((s) => s.resumeFromLevelup)
   const resetGame         = useGameStore((s) => s.resetGame)
@@ -150,7 +152,10 @@ export default function HUD() {
 
   // phase가 'levelup'으로 바뀌는 순간 한 번만 선택지를 고정한다.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const choices = useMemo(() => phase === 'levelup' ? pickThree(player.level, weapons) : [], [phase])
+  const choices = useMemo(
+    () => phase === 'levelup' ? pickThree(player.level, weapons, player) : [],
+    [phase, player.level, weapons, levelUpChoiceSerial],
+  )
   const lowHp   = player.hp / player.maxHp < 0.3
 
   // 종료 화면 "다음 해금 가능 무기" 미리보기 — minLevel이 가장 낮은 미해금 무기 1개.
@@ -165,6 +170,20 @@ export default function HUD() {
     const entry = UPGRADES.find((u) => u.key === top.key)
     return { ...top, icon: entry?.icon, label: weapons[top.weapon]?.label ?? top.weapon }
   }, [phase, weapons])
+
+  // 플레이테스트 로그 복사 (게임오버/클리어 모달의 "📋 로그 복사" 버튼).
+  const [copyStatus, setCopyStatus] = useState('idle')
+  const copyPlaytestLog = async () => {
+    try {
+      const summary = buildPlaytestSummary()
+      await navigator.clipboard.writeText(JSON.stringify(summary, null, 2))
+      setCopyStatus('copied')
+      setTimeout(() => setCopyStatus('idle'), 2000)
+    } catch {
+      setCopyStatus('error')
+      setTimeout(() => setCopyStatus('idle'), 2000)
+    }
+  }
 
   // 자 쿨다운 비율. 1은 준비 완료, 0은 쿨다운 시작 직후다.
   const [bagReady, setBagReady] = useState(1)
@@ -275,6 +294,12 @@ export default function HUD() {
         <span style={styles.goldNum}>{goldSession}</span>
       </div>
 
+      {(phase === 'playing' || phase === 'paused') && (
+        <button type="button" style={styles.pauseButton} onClick={togglePause}>
+          {phase === 'paused' ? '▶' : 'Ⅱ'}
+        </button>
+      )}
+
       {phase === 'levelup' && (
         <div style={styles.overlay}>
           <div style={styles.modal}>
@@ -312,7 +337,12 @@ export default function HUD() {
                 </div>
               </div>
             )}
-            <button style={styles.restartBtn} onClick={resetGame}>다시 시작</button>
+            <div style={styles.modalButtons}>
+              <button style={styles.copyBtn} onClick={copyPlaytestLog}>
+                {copyStatus === 'copied' ? '✓ 복사됨' : copyStatus === 'error' ? '복사 실패' : '📋 로그 복사'}
+              </button>
+              <button style={styles.restartBtn} onClick={resetGame}>다시 시작</button>
+            </div>
           </div>
         </div>
       )}
@@ -321,6 +351,7 @@ export default function HUD() {
         <div style={styles.overlay}>
           <div style={styles.pausePanel}>
             <h2 style={styles.modalTitle}>PAUSED</h2>
+            <button style={styles.restartBtn} onClick={togglePause}>계속하기</button>
           </div>
         </div>
       )}
@@ -345,7 +376,12 @@ export default function HUD() {
                 </div>
               </div>
             )}
-            <button style={styles.restartBtn} onClick={resetGame}>다시 시작</button>
+            <div style={styles.modalButtons}>
+              <button style={styles.copyBtn} onClick={copyPlaytestLog}>
+                {copyStatus === 'copied' ? '✓ 복사됨' : copyStatus === 'error' ? '복사 실패' : '📋 로그 복사'}
+              </button>
+              <button style={styles.restartBtn} onClick={resetGame}>다시 시작</button>
+            </div>
           </div>
         </div>
       )}
@@ -430,18 +466,38 @@ const styles = {
   },
   modal: {
     background: '#1a1028', border: '2px solid #6040a0',
-    borderRadius: 16, padding: '36px 40px', textAlign: 'center', minWidth: 440,
+    borderRadius: 16, padding: '24px 16px', textAlign: 'center',
+    width: 'calc(100% - 28px)', maxWidth: 440, boxSizing: 'border-box',
   },
   modalTitle: { color: '#fff', margin: '0 0 24px', fontSize: 26, fontWeight: 800 },
   pausePanel: {
     background: 'rgba(20, 14, 32, 0.82)', border: '2px solid #8060c0',
     borderRadius: 12, padding: '28px 44px', textAlign: 'center',
   },
-  choices: { display: 'flex', gap: 16, justifyContent: 'center' },
+  choices: { display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' },
   choiceBtn: {
     background: '#2a1840', border: '2px solid #8060c0', borderRadius: 10,
-    color: '#fff', cursor: 'pointer', padding: '12px 14px 14px', width: 142,
+    color: '#fff', cursor: 'pointer', padding: '10px 10px 12px',
+    width: 'min(118px, 31%)', minWidth: 104,
     textAlign: 'center', transition: 'background 0.15s',
+  },
+  pauseButton: {
+    position: 'absolute',
+    top: 14,
+    left: 14,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    border: '1.5px solid rgba(255,255,255,0.55)',
+    background: 'rgba(20,16,8,0.72)',
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 800,
+    lineHeight: '36px',
+    textAlign: 'center',
+    pointerEvents: 'auto',
+    cursor: 'pointer',
+    boxShadow: '0 2px 6px rgba(0,0,0,0.45)',
   },
   iconBox: {
     position: 'relative', width: 54, height: 42, margin: '0 auto 10px',
@@ -599,6 +655,14 @@ const styles = {
     background: '#4030a0', border: 'none', borderRadius: 8,
     color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer',
     padding: '12px 32px',
+  },
+  modalButtons: {
+    display: 'flex', gap: 10, justifyContent: 'center', alignItems: 'center',
+  },
+  copyBtn: {
+    background: 'transparent', border: '1.5px solid #8060c0', borderRadius: 8,
+    color: '#d0c0f0', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+    padding: '11px 16px',
   },
   nextUnlock: {
     background: 'rgba(60, 40, 110, 0.4)',

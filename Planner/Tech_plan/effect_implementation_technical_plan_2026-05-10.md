@@ -46,8 +46,6 @@ The current game uses one React Three Fiber scene:
   - tumbler orbit ring
   - bell shockwave pulse
   - science flask projectile and explosion
-  - guided missile flame/smoke/explosion
-  - Starlink warning and lightning bolt
   - stun gun bolt and chain arc
   - onigiri bounce flash
 - Enemy hit feedback exists through `ZombieMesh hitFlash`.
@@ -98,7 +96,7 @@ For this project, an effect is successful when the player can quickly understand
 - Use Three.js/R3F geometry-based effects for combat VFX.
 - Keep toon style through flat colors, clear silhouettes, and controlled opacity.
 - Use `MeshBasicMaterial` for flat transparent circles/rings/planes when lighting is unnecessary.
-- Use `MeshToonMaterial` for physical effect props such as missile, flask, pencil, tumbler, bell, debris.
+- Use `MeshToonMaterial` for physical effect props such as flask, pencil, tumbler, bell, debris.
 - Avoid realistic particles, bloom-heavy effects, and long smoke that hides the player.
 
 ## 4. Proposed Effect Architecture
@@ -164,7 +162,7 @@ Initial VFX event types:
 | `chargeWarningLine` | E05/B01 charge danger | 600-900 ms | orange translucent lane/arrow |
 | `areaWarningCircle` | delayed area danger | 450-900 ms | ring + faint fill |
 | `shockwaveRing` | bell/player radial attack | 400-600 ms | expanding ring |
-| `splashCircle` | flask/missile explosion | 300-450 ms | green or pink expanding circle |
+| `splashCircle` | flask explosion | 300-450 ms | green or pink expanding circle |
 | `chainArc` | stun gun chain | 180-260 ms | jagged segmented line |
 | `pickupPop` | XP/gold spawn feedback | 240-360 ms | tiny upward pop ring |
 | `levelUpGlow` | player level-up | 900-1200 ms | blue-white vertical glow ring |
@@ -277,7 +275,7 @@ Migration order:
 2. `ChainArcVisual` -> `VFXLayer`
 3. `FlaskExplosion` -> `VFXLayer`
 4. `BellPulse` -> `VFXLayer`
-5. Starlink `StrikeWarning` / `StrikeBolt` -> later, because it includes delayed damage logic
+5. Future delayed area effects -> later, because they include delayed damage logic
 
 Important rule:
 
@@ -350,4 +348,3 @@ Performance checks:
 Do not redesign the whole renderer yet.
 
 The current R3F/Three.js stack is valid for this project. The next best step is to add a small `VFXLayer` and event queue, then move only simple visual-only effects first. This keeps the solo beginner project manageable while preparing the codebase for more weapons, boss warnings, and mobile readability tuning.
-

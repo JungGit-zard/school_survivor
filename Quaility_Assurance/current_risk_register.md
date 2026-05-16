@@ -16,12 +16,12 @@ Last updated: 2026-05-16
 
 | ID | 위험 | 심각도 | 상태 | 검증 방법 |
 |---|---|---|---|---|
-| QA-001 | `gainXp`가 한 번에 한 레벨업만 처리 | P0 | open | store unit test, 수동 큰 XP 획득 |
-| QA-002 | B01 보너스 교과서 XP 0 | P0 | open | drop 보상 테스트, 보스 처치 수동 검증 |
-| QA-003 | 모바일 조이스틱 미연결 | P0 | open | gstack `snapshot -i`, 모바일 플레이 |
-| QA-004 | 모바일 pause/resume 버튼 없음 | P0 | open | gstack 모바일 viewport |
-| QA-005 | 레벨업/결과 모달 모바일 폭 초과 | P1 | open | gstack 375x812/390x844 캡처 |
-| QA-006 | `resetGame`이 `refs.js` 전역 상태를 초기화하지 않음 | P1 | open | reset 반복 테스트 |
+| QA-001 | `gainXp`가 한 번에 한 레벨업만 처리 | P0 | resolved | store unit test |
+| QA-002 | B01 보너스 교과서 XP 0 | P0 | resolved | drop 보상 테스트 |
+| QA-003 | 모바일 조이스틱 미연결 | P0 | testing | gstack `snapshot -i`, 모바일 플레이 |
+| QA-004 | 모바일 pause/resume 버튼 없음 | P0 | testing | gstack 모바일 viewport |
+| QA-005 | 레벨업/결과 모달 모바일 폭 초과 | P1 | testing | gstack 375x812/390x844 캡처 |
+| QA-006 | `resetGame`이 `refs.js` 전역 상태를 초기화하지 않음 | P1 | resolved | reset 반복 테스트 |
 | QA-007 | 시간 기반 골드 최악 분포 5분 8개 | P1 | open | 5분 시뮬레이션/수동 3회 기록 |
 | QA-008 | Stage 1 E04 투사체 회귀 위험 | P2 | open | spawn config 테스트, `rg E04` |
 | QA-009 | WebGL `ReadPixels` 성능 경고 | P2 | open | gstack console, DevTools performance |
@@ -35,10 +35,8 @@ Last updated: 2026-05-16
 
 ## 4. 다음 해결 순서
 
-1. QA-001
-2. QA-002
-3. QA-003
-4. QA-004
-5. QA-005
-6. QA-006
-7. QA-007
+1. QA-003
+2. QA-004
+3. QA-005
+4. QA-007
+5. QA-008
