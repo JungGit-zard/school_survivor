@@ -23,7 +23,7 @@ export const UPGRADE_EFFECTS = {
   unlockOnigiri:  { weapon: 'onigiri',       kind: 'unlock', minLevel: 6 },
   onigiiriDamage: { weapon: 'onigiri',       kind: 'damage', dmg: 5 },
   onigiiriBounce: { weapon: 'onigiri',       kind: 'stat',   stat: 'bounces',         step: 1,    cap: 7 },
-  moveSpeed:      { kind: 'player' },
+  moveSpeed:      { kind: 'player', stat: 'speed', capMultiplier: 1.8 },
   maxHealth:      { kind: 'player' },
 }
 
@@ -40,9 +40,14 @@ export function applyUpgradeToWeapon(wpn, effect) {
   return wpn
 }
 
-export function isUpgradeAvailable(effect, level, weapons) {
+export function isUpgradeAvailable(effect, level, weapons, player = null) {
   if (!effect) return true
-  if (effect.kind === 'player') return true
+  if (effect.kind === 'player') {
+    if (effect.stat === 'speed' && player?.baseSpeed) {
+      return player.speed < player.baseSpeed * effect.capMultiplier
+    }
+    return true
+  }
   if (effect.minLevel != null && level < effect.minLevel) return false
 
   const wpn = weapons[effect.weapon]

@@ -1,6 +1,7 @@
 ﻿import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { UPGRADE_EFFECTS, applyUpgradeToWeapon } from '../lib/upgrades.js'
+import { resetRuntimeRefs } from '../lib/refs.js'
 
 const INITIAL_PLAYER = {
   hp: 100, maxHp: 100,
@@ -33,6 +34,15 @@ const INITIAL_WEAPONS = {
   onigiri:       { label: '오니기리', level: 0, damage: 14, cooldown: 2000, bounces: 4, bounceRange: 4.5, range: 18, active: false },
 }
 
+function finishLevelupState(s) {
+  const pendingLevelUps = Math.max(0, (s.pendingLevelUps ?? 0) - 1)
+  return {
+    pendingLevelUps,
+    levelUpChoiceSerial: (s.levelUpChoiceSerial ?? 0) + 1,
+    phase: pendingLevelUps > 0 ? 'levelup' : 'playing',
+  }
+}
+
 export const useGameStore = create(
   subscribeWithSelector((set, get) => ({
     player:      { ...INITIAL_PLAYER },
@@ -43,6 +53,8 @@ export const useGameStore = create(
     gameKey:     0,
     goldSession: 0,
     goldTotal:   loadGoldTotal(),
+    pendingLevelUps: 0,
+    levelUpChoiceSerial: 0,
 
     // 타이머
     tickTime: (deltaMs) => set((s) => ({ elapsedMs: s.elapsedMs + deltaMs })),
@@ -65,17 +77,25 @@ export const useGameStore = create(
 
     // 경험치와 레벨업
     gainXp: (amount) => {
-      const { player } = get()
+      const { player, pendingLevelUps } = get()
       let { xp, xpToNext, level } = player
       xp += amount
-      if (xp >= xpToNext) {
+      let gainedLevelUps = 0
+      while (xp >= xpToNext) {
         xp -= xpToNext
         level += 1
+        gainedLevelUps += 1
         xpToNext = Math.ceil(xpToNext * 1.24 + 2)
-        set({ player: { ...player, xp, xpToNext, level }, phase: 'levelup' })
-      } else {
-        set({ player: { ...player, xp } })
       }
+      if (gainedLevelUps > 0) {
+        set({
+          player: { ...player, xp, xpToNext, level },
+          pendingLevelUps: pendingLevelUps + gainedLevelUps,
+          phase: 'levelup',
+        })
+        return
+      }
+      set({ player: { ...player, xp } })
     },
 
     gainGold: (amount) => {
@@ -86,7 +106,7 @@ export const useGameStore = create(
       set({ goldSession: goldSession + amount, goldTotal: nextTotal })
     },
 
-    resumeFromLevelup: () => set({ phase: 'playing' }),
+    resumeFromLevelup: () => set((s) => finishLevelupState(s)),
 
     togglePause: () => set((s) => {
       if (s.phase === 'playing') return { phase: 'paused' }
@@ -98,25 +118,30 @@ export const useGameStore = create(
       const effect = UPGRADE_EFFECTS[key]
 
       if (effect?.kind === 'player') {
-        const { player } = get()
         if (key === 'moveSpeed') {
-          set({ player: { ...player, speed: Math.min(player.baseSpeed * 1.8, player.speed * 1.1) }, phase: 'playing' })
+          set((s) => ({
+            player: { ...s.player, speed: Math.min(s.player.baseSpeed * 1.8, s.player.speed * 1.1) },
+            ...finishLevelupState(s),
+          }))
         } else if (key === 'maxHealth') {
-          set({ player: { ...player, maxHp: player.maxHp + 20, hp: player.hp + 20 }, phase: 'playing' })
+          set((s) => ({
+            player: { ...s.player, maxHp: s.player.maxHp + 20, hp: s.player.hp + 20 },
+            ...finishLevelupState(s),
+          }))
         } else {
-          set({ phase: 'playing' })
+          set((s) => finishLevelupState(s))
         }
         return
       }
 
-      if (!effect) { set({ phase: 'playing' }); return }
+      if (!effect) { set((s) => finishLevelupState(s)); return }
 
       const { weapons } = get()
       const wpn = weapons[effect.weapon]
-      set({
-        weapons: { ...weapons, [effect.weapon]: applyUpgradeToWeapon(wpn, effect) },
-        phase: 'playing',
-      })
+      set((s) => ({
+        weapons: { ...s.weapons, [effect.weapon]: applyUpgradeToWeapon(wpn, effect) },
+        ...finishLevelupState(s),
+      }))
     },
 
     // 보스
@@ -124,14 +149,19 @@ export const useGameStore = create(
     clearStage: () => set({ phase: 'cleared' }),
 
     // 게임 리셋. gameKey를 올려 Physics 트리를 새로 마운트한다.
-    resetGame: () => set((s) => ({
-      player:      { ...INITIAL_PLAYER },
-      weapons:     { ...INITIAL_WEAPONS },
-      phase:       'playing',
-      elapsedMs:   0,
-      bossSpawned: false,
-      gameKey:     s.gameKey + 1,
-      goldSession: 0,
-    })),
+    resetGame: () => {
+      resetRuntimeRefs()
+      set((s) => ({
+        player:      { ...INITIAL_PLAYER },
+        weapons:     { ...INITIAL_WEAPONS },
+        phase:       'playing',
+        elapsedMs:   0,
+        bossSpawned: false,
+        gameKey:     s.gameKey + 1,
+        goldSession: 0,
+        pendingLevelUps: 0,
+        levelUpChoiceSerial: s.levelUpChoiceSerial + 1,
+      }))
+    },
   }))
 )

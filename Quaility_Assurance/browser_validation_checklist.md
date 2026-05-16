@@ -68,10 +68,10 @@ C:\Users\admin\.claude\skills\gstack\browse\dist\browse.exe
 
 ## 4. 현재 알려진 실패
 
-- 모바일 인터랙티브 요소가 0개로 잡혔다.
-- 조이스틱이 실제 화면에 연결되지 않았다.
-- 모바일 pause/resume 버튼이 없다.
-- 하단 HUD가 안전 영역에 가깝다.
+- 모바일 pause 버튼은 `snapshot -i`에서 확인됐다.
+- pause 버튼 클릭 시 `PAUSED`와 `계속하기` 버튼이 확인됐다.
+- 조이스틱은 실제 화면에 연결됐다.
+- 하단 HUD 안전 영역과 실제 터치 드래그 이동감은 추가 실기기 확인이 필요하다.
 
 ## 5. 통과 기준
 

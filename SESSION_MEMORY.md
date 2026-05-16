@@ -1,7 +1,7 @@
 # Session Memory — Permanent Append-Only Log
 
 > **이 파일은 BangBang Survivor 프로젝트의 영구 세션 메모리이다.**
-> 3시간마다 1개 엔트리가 끝에 append된다. 3개 엔트리가 쌓이면(=9시간) 하나의 세션이 닫히고, 그 시점에 에이전트는 사용자에게 컨텍스트 초기화(`/clear`)를 권고한다.
+> 3시간마다 1개 엔트리가 끝에 append된다. 4개 엔트리가 쌓이면(=12시간) 하나의 세션이 닫히고, 그 시점에 에이전트는 사용자에게 컨텍스트 초기화(`/clear`)를 권고한다.
 > 규정 정본: [SESSION_CONTINUITY.md](SESSION_CONTINUITY.md)
 > 레거시 아카이브: `Session_Logs/` (2026-05-16 이전의 분리된 요약 파일들)
 
@@ -46,5 +46,46 @@
 
 **다음 엔트리 예정**: Entry 2 — 2026-05-16 03:45 KST (이 시각 도달 시 또는 직후 사용자 활동 발생 시 작성)
 **세션 1 마감 예정**: 2026-05-16 09:45 KST — Entry 3 작성 후 `/clear` 권고
+
+---
+
+## Session 2 · Entry 1 (Bootstrap, 규정 갱신 이후) · 2026-05-16 23:50 KST
+
+**규정 갱신 요약**
+
+- 사용자가 세션 메모리 규칙의 실제 운영 마찰을 점검했고, 9시간 세션이 너무 짧고 `/clear` 권고 부담이 크다는 판단에 따라 12시간 v2 규칙으로 완화하기로 결정했다.
+- 오늘 한 일 한 줄 요약: 세션 메모리 운영 규칙을 점검하고, 3시간 엔트리 유지 + 12시간 세션 종료 + Entry 4 종료 권고 방식으로 갱신했다.
+
+**Git 상태**
+
+- 브랜치: `feature/codex-gameplay-iteration`
+- 최신 커밋: `0a0c863` "Add gameplay QA and compound engineering structure"
+- `git status --short --branch` 요약: 다수의 기존 미커밋 변경이 있으며, 이번 규정 갱신 작업은 `SESSION_CONTINUITY.md`와 `SESSION_MEMORY.md`를 수정했다.
+
+**생성 / 수정 파일**
+
+- `SESSION_CONTINUITY.md`: LOCKED 표기를 `2026-05-16 v2`로 갱신하고, 세션 사이클을 9시간/Entry 3 종료에서 12시간/Entry 4 종료로 완화했다.
+- `SESSION_MEMORY.md`: 상단 요약을 12시간 규칙에 맞게 갱신하고, 본 Bootstrap 엔트리를 append했다.
+
+**명령 / 검증**
+
+- `git status --short --branch`로 작업트리 상태를 확인했다.
+- `git log -1 --pretty=format:"%h %s"`로 최신 커밋을 확인했다.
+- `rg`로 기존 9시간/Entry 3 관련 문구 위치를 확인했다.
+
+**확정된 룰 / 정책 변경**
+
+- 세션 메모리 정본은 계속 `SESSION_CONTINUITY.md` 단독이다.
+- 3시간마다 `SESSION_MEMORY.md`에 엔트리 1개를 append한다.
+- 12시간이 1 세션이며, Entry 4 작성 직후 세션 종료와 `/clear` 권고를 수행한다.
+- 새 에이전트는 `SESSION_MEMORY.md`의 가장 최근 엔트리 1개만 자동으로 읽는다.
+
+**미해결 / 다음 행동**
+
+- 다음 에이전트는 `SESSION_CONTINUITY.md`의 12시간 v2 규칙과 이 엔트리를 기준으로 이어가면 된다.
+- 기존 Session 1 엔트리의 9시간 언급은 당시 규칙의 역사 기록이므로 삭제하지 않는다.
+
+**다음 엔트리 예정**: Session 2 · Entry 2 — 2026-05-17 02:50 KST 전후
+**세션 2 마감 예정**: 2026-05-17 11:50 KST — Entry 4 작성 후 `/clear` 권고
 
 ---

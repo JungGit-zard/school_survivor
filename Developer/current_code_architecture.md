@@ -52,7 +52,7 @@ Browser Persistence
 | `src/components/Enemies.jsx` | 적 스폰, 웨이브, 버스트, 드롭 |
 | `src/components/Enemy.jsx` | 적 행동, 충돌, E05/B01 돌진, E04 원거리 잔존 코드 |
 | `src/components/HUD.jsx` | HP/XP/골드/타이머/레벨업/결과 UI |
-| `src/components/Weapons/` | 9종 무기 구현 |
+| `src/components/Weapons/` | 7종 무기 구현 |
 | `src/lib/upgrades.js` | 업그레이드 효과와 후보 필터 |
 | `src/lib/refs.js` | 프레임 루프용 전역 참조 |
 | `src/lib/itemEffects.js` | 적/아이템 효과 연결 |
@@ -62,6 +62,8 @@ Browser Persistence
 
 테스트 파일:
 - `src/lib/upgrades.test.js`
+- `src/store/useGameStore.test.js`
+- `src/components/Enemies.test.jsx`
 
 현재 범위:
 - `applyUpgradeToWeapon`
@@ -69,23 +71,16 @@ Browser Persistence
 - `UPGRADE_EFFECTS` 테이블 무결성
 
 아직 부족한 테스트:
-- XP 연속 레벨업
-- B01 보너스 XP
-- Stage 1 E04 제외 회귀
-- `resetGame` refs 초기화
 - 골드 드롭 최소/평균 분포
+- Stage 1 E04 제외 회귀
 - 모바일 HUD/조이스틱은 gstack 기반 검증 필요
 
 ## 6. 현재 반드시 조심할 코드 위험
 
 | 위험 | 위치 |
 |---|---|
-| 큰 XP 입력 시 연속 레벨업 누락 | `useGameStore.js` |
-| B01 보너스 교과서 XP 0 | `Enemy.jsx`, `Enemies.jsx` |
-| no-op 카드 후보 | `HUD.jsx`, `upgrades.js`, `useGameStore.js` |
-| refs 전역 상태 리셋 누락 | `refs.js`, `useGameStore.js` |
 | E04 투사체 회귀 | `Enemy.jsx`, `Enemies.jsx` |
-| 모바일 조이스틱 미연결 | `App.jsx`, `VirtualJoystick.jsx` |
+| 모바일 HUD 안전 영역 | `HUD.jsx`, `VirtualJoystick.jsx` |
 
 ## 7. 구현 변경 후 기본 검증
 

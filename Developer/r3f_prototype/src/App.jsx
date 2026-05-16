@@ -3,7 +3,11 @@ import { Physics } from '@react-three/rapier'
 import { KeyboardControls } from '@react-three/drei'
 import Game from './components/Game.jsx'
 import HUD from './components/HUD.jsx'
+import VirtualJoystick from './components/VirtualJoystick.jsx'
 import { useGameStore } from './store/useGameStore.js'
+import { initPlaytestLogger } from './lib/playtestLogger.js'
+
+initPlaytestLogger()
 
 const keyMap = [
   { name: 'up',    keys: ['ArrowUp',    'KeyW'] },
@@ -38,6 +42,7 @@ export default function App() {
           </Canvas>
         </KeyboardControls>
         <HUD />
+        <VirtualJoystick />
       </div>
     </div>
   )

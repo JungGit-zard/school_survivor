@@ -16,3 +16,16 @@ export const bagSwingState = {
 export const enemyBodies = new Map()
 
 export const joystickDir = { x: 0, z: 0, active: false }
+
+export function resetRuntimeRefs() {
+  playerPos.set(0, 0, 0)
+  playerFacing.set(0, 0, 1)
+  bagSwingState.active = false
+  bagSwingState.progress = 0
+  bagSwingState.lastFired = -Infinity
+  bagSwingState.cooldown = 1000
+  enemyBodies.clear()
+  joystickDir.x = 0
+  joystickDir.z = 0
+  joystickDir.active = false
+}

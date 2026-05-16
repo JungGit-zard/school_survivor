@@ -100,9 +100,8 @@ export default function VirtualJoystick() {
 const styles = {
   wrap: {
     position: 'absolute',
-    bottom: 36,
-    left: '50%',
-    transform: 'translateX(-50%)',
+    bottom: 150,
+    left: 20,
     zIndex: 100,
     pointerEvents: 'none',
     display: 'flex',

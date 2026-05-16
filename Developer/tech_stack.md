@@ -71,7 +71,7 @@
 | 슬라이스 / 키 | 내용 | 영속화 |
 |---|---|---|
 | `player` | hp, maxHp, speed, level, xp, invulnerable | 메모리 |
-| `weapons` | 9종 무기 객체 (각: active, level, damage, cooldown, range, …) | 메모리 |
+| `weapons` | 7종 무기 객체 (각: active, level, damage, cooldown, range, …) | 메모리 |
 | `phase` | `playing` / `levelup` / `gameover` / `cleared` | 메모리 |
 | `elapsedMs` | 게임 경과 시간 (ms) | 메모리 |
 | `bossSpawned` | 보스 등장 여부 | 메모리 |
@@ -226,7 +226,7 @@ useGameStore (Zustand)
     │         │
     │         └── playerPos (THREE.Vector3, refs.js) ─→ Enemy / Weapons / Game(카메라)
     │
-    ├── phase, weapons ─→ Weapons.jsx (9종 무기 컴포넌트)
+    ├── phase, weapons ─→ components/Weapons/ (7종 무기 컴포넌트)
     │
     └── phase, elapsedMs, bossSpawned ─→ Enemies.jsx
                 │
