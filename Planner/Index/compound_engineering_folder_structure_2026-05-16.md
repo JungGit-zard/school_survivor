@@ -1,8 +1,8 @@
-# Compound Engineering Folder Structure - 2026-05-16
+﻿# Compound Engineering Folder Structure - 2026-05-16
 
 ## 1. 목적
 
-이 문서는 BangBang Survivor 프로젝트에 컴파운드 엔지니어링 방식을 적용하기 위한 폴더 구조와 운영 규칙을 정리한다.
+이 문서는 Escape! zombie school 프로젝트에 컴파운드 엔지니어링 방식을 적용하기 위한 폴더 구조와 운영 규칙을 정리한다.
 
 컴파운드 엔지니어링은 작업을 한 번 하고 끝내는 방식이 아니다. 구현, 검증, 실패, 판단 기준을 다음 작업자가 재사용할 수 있는 문서, 테스트, 체크리스트, 정책으로 남겨 프로젝트가 점점 더 똑똑해지게 만드는 방식이다.
 
@@ -25,12 +25,24 @@ school_survivor/
 ├── SESSION_MEMORY.md                  # 세션 요약 누적 저장소
 │
 ├── Planner/
-│   ├── current_game_rules.md
-│   ├── subagent_validation_pipeline.md
-│   ├── compound_engineering_folder_structure_2026-05-16.md
-│   ├── Major_Review_Point/
-│   ├── Tech_plan/
-│   └── Weapons/
+│   ├── current_game_rules.md                # 루트 유지 (룰 정본)
+│   ├── Index/                               # 색인·파기 로그·폴더 구조 정책
+│   │   ├── planner_documents_by_field_2026-05-14.md
+│   │   ├── planner_disposal_log_2026-05-14.md
+│   │   └── compound_engineering_folder_structure_2026-05-16.md
+│   ├── Stage1_Balance/                      # 1스테이지 재기획/역기획
+│   │   ├── stage1_replan_2026-05-06.md
+│   │   └── stage1_reverse_design_current_2026-05-09.md
+│   ├── Rewards_Drops/                       # XP/골드 이원화
+│   │   └── dual_drop_system_2026-05-08.md
+│   ├── Subagent_Workflow/                   # 서브에이전트 운용
+│   │   ├── subagent_planner.md
+│   │   └── subagent_validation_pipeline.md
+│   ├── Essential_game_plan/                 # 타깃/UX/타이틀
+│   ├── Major_Review_Point/                  # 중간 점검
+│   ├── Ref_Vampire_GameDesign/              # 외부 레퍼런스
+│   ├── Tech_plan/                           # VFX/기술 기획
+│   └── Weapons/                             # 무기 기획
 │
 ├── Developer/
 │   ├── current_code_architecture.md
@@ -61,8 +73,11 @@ school_survivor/
 게임 규칙, 스테이지 구조, 난이도, 콘텐츠 진행 방식, 서브에이전트 검증 순서를 관리한다.
 
 핵심 현재 파일:
-- `Planner/current_game_rules.md`
-- `Planner/subagent_validation_pipeline.md`
+- `Planner/current_game_rules.md` (룰 정본 — 루트 유지)
+- `Planner/Subagent_Workflow/subagent_validation_pipeline.md`
+- `Planner/Index/planner_documents_by_field_2026-05-14.md` (분야별 색인)
+
+> 2026-05-17 정리: 루트에 흩어져 있던 9개 문서를 분야별 하위 폴더(`Index/`, `Stage1_Balance/`, `Rewards_Drops/`, `Subagent_Workflow/`, 그리고 `Essential_game_plan/`)로 이동했다. 자세한 매핑은 §3 트리 참조.
 
 ### Developer
 
@@ -78,7 +93,7 @@ school_survivor/
 3D 카툰 렌더링, 외곽선, HUD 가독성, VFX 판독성, 모바일 시각 기준을 관리한다.
 
 핵심 현재 파일:
-- `Graphic_designer/current_visual_rules.md`
+- `Graphic_designer/Concept_Rules/current_visual_rules.md`
 - `Graphic_designer/Bang_survivor_Graphic_concept.md`
 
 ### Quality Assurance

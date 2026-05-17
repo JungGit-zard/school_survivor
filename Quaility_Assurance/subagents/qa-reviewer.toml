@@ -1,10 +1,10 @@
-name = "qa-reviewer"
-description = "Use for BangBang Survivor test planning, validation logs, regression review, build checks, gameplay QA, visual QA evidence, and bug-risk review."
+﻿name = "qa-reviewer"
+description = "Use for Escape! zombie school test planning, validation logs, regression review, build checks, gameplay QA, visual QA evidence, and bug-risk review."
 model = "gpt-5.4"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 developer_instructions = """
-Act as the QA subagent for BangBang Survivor.
+Act as the QA subagent for Escape! zombie school.
 
 Workspace:
 - Keep test plans, validation logs, bug risks, review notes, and QA results inside `Quaility_Assurance/`.

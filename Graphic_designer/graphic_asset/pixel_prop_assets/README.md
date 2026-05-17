@@ -1,6 +1,6 @@
-# Pixel Prop Assets
+﻿# Pixel Prop Assets
 
-BangBang Survivor prototype school prop base assets.
+Escape! zombie school prototype school prop base assets.
 
 The current game creates matching Phaser textures in code with `Graphics.generateTexture()`.
 These SVG files are kept as source references for later PNG spritesheet replacement.

@@ -1,4 +1,4 @@
-# Toon Reference Implementation Summary
+﻿# Toon Reference Implementation Summary
 
 Date: 2026-04-25
 
@@ -6,7 +6,7 @@ Date: 2026-04-25
 
 This document summarizes the actual development requirements extracted from the graphic references in `Graphic_designer/Bang_survivor_Graphic_concept.md`.
 
-Use this document before implementing or reviewing BangBang Survivor graphics.
+Use this document before implementing or reviewing Escape! zombie school graphics.
 
 ## Mandatory Direction
 

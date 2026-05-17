@@ -1,10 +1,10 @@
-# Current Game Rules
+﻿# Current Game Rules
 
 Last updated: 2026-05-16
 
 ## 1. 게임 정체성
 
-BangBang Survivor는 학교 콘셉트의 5분 생존형 미니게임이다.
+Escape! zombie school는 학교 콘셉트의 5분 생존형 미니게임이다.
 
 현재 목표는 장식적인 구조보다 플레이 가능한 1스테이지 루프를 안정화하는 것이다.
 

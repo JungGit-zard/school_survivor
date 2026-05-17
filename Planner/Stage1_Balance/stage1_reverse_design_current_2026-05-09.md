@@ -1,4 +1,4 @@
-# BangBang Survivor Stage 1 Current Reverse Design
+﻿# Escape! zombie school Stage 1 Current Reverse Design
 
 > 작성일: 2026-05-09  
 > 기준: 현재 구현 코드 역기획  

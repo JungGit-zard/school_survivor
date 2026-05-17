@@ -51,10 +51,6 @@ function pickGoldDropPos() {
 const BASE_COL_Y = 0.24
 const SPAWN_MIN_RADIUS = 8.5
 const SPAWN_MAX_RADIUS = 12.5
-const OPENING_PRESSURE_DURATION_SEC = 20
-const OPENING_PRESSURE_MIN_COUNT = 3
-const OPENING_PRESSURE_MIN_RADIUS = 5.4
-const OPENING_PRESSURE_MAX_RADIUS = 6.6
 const RANGED_SPAWN_MIN_RADIUS = 11.5
 const RANGED_SPAWN_MAX_RADIUS = 15.5
 
@@ -75,13 +71,6 @@ function randomSpawnPos(type) {
   return [px + offset.x, y, pz + offset.z]
 }
 
-function openingPressureSpawnPos() {
-  const offset = randomPointOnSpawnRing(OPENING_PRESSURE_MIN_RADIUS, OPENING_PRESSURE_MAX_RADIUS)
-  const px = playerPos.x, pz = playerPos.z
-  const y = BASE_COL_Y * (ENEMY_STATS.E01?.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
-  return [px + offset.x, y, pz + offset.z]
-}
-
 // E04는 화면 가장자리 원거리 위치에서 등장한다. 1스테이지에서는 현재 사용하지 않는다.
 function rangedSpawnPos() {
   const offset = randomPointOnSpawnRing(RANGED_SPAWN_MIN_RADIUS, RANGED_SPAWN_MAX_RADIUS)
@@ -93,10 +82,10 @@ function rangedSpawnPos() {
 // 1스테이지는 추격/돌진형만 사용한다 (Bang_Rules 2026-05-09 부록 / stage1_replan §3-2).
 // 기존 E04 비중은 추격 압박을 늘리도록 E02/E03/E05로 재분배.
 const WAVE_PHASES = [
-  // 0:00–0:30 잡몹만 (먹이 구간)
-  { start:   0, end:  30, target: 12, weights: { E01: 1.00 } },
-  // 0:30–1:00 잡몹+러너 (이동 압박 시작)
-  { start:  30, end:  60, target: 18, weights: { E01: 0.90, E03: 0.10 } },
+  // 0:00–0:50 단일 좀비 구간. E01 밀도만 기존 대비 2배로 올린다.
+  { start:   0, end:  50, target: 24, weights: { E01: 1.00 } },
+  // 0:50–1:00 잡몹+러너 (이동 압박 시작)
+  { start:  50, end:  60, target: 18, weights: { E01: 0.90, E03: 0.10 } },
   // 1:00–1:30 +탱커 등장
   { start:  60, end:  90, target: 26, weights: { E01: 0.60, E03: 0.30, E02: 0.10 } },
   // 1:30–2:00 압박 시작
@@ -118,8 +107,8 @@ const WAVE_PHASES = [
 ]
 
 const BURST_EVENTS = [
-  { sec:   0, type: 'E01', count:  8 },  // 첫 처치 보장
-  { sec:  30, type: 'E01', count:  6 },  // 러너 직전 잡몹 러시
+  { sec:   0, type: 'E01', count: 16 },  // 50초 전 단일 좀비 구간 밀도 2배
+  { sec:  30, type: 'E01', count: 12 },  // 50초 전 단일 좀비 구간 밀도 2배
   { sec:  60, type: 'E02', count:  4 },  // 탱커 첫 등장 신호
   { sec:  90, type: 'E03', count:  6 },  // 러너 압박
   { sec: 120, type: 'E01', count:  8 },  // 엘리트 직전 잡몹 러시
@@ -133,12 +122,6 @@ const BURST_EVENTS = [
   { sec: 240, type: 'B01', count:  1 },  // 보스 등장
   { sec: 270, type: 'E05', count:  5 },
 ]
-
-export function getOpeningPressureShortage(enemies, sec) {
-  if (sec > OPENING_PRESSURE_DURATION_SEC) return 0
-  const aliveOpeningPressure = enemies.filter((enemy) => enemy.openingPressure && enemy.type !== 'B01').length
-  return Math.max(0, OPENING_PRESSURE_MIN_COUNT - aliveOpeningPressure)
-}
 
 function pickTypeByWeight(weights) {
   const r = Math.random()
@@ -258,20 +241,6 @@ export default function Enemies() {
     maintainTimerRef.current -= delta * 1000
     if (maintainTimerRef.current > 0) return
     maintainTimerRef.current = 600
-
-    const openingShortage = getOpeningPressureShortage(enemiesRef.current, sec)
-    if (openingShortage > 0) {
-      const newBatch = []
-      for (let i = 0; i < openingShortage; i++) {
-        newBatch.push({
-          id: ++_uid,
-          type: 'E01',
-          pos: openingPressureSpawnPos(),
-          openingPressure: true,
-        })
-      }
-      addEnemies(newBatch)
-    }
 
     const currentPhase = WAVE_PHASES.findLast((p) => sec >= p.start) ?? WAVE_PHASES[0]
 

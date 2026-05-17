@@ -1,8 +1,8 @@
-# Stage 6 gstack Browser Validation - 2026-05-16
+﻿# Stage 6 gstack Browser Validation - 2026-05-16
 
 ## 1. 목적
 
-이 문서는 BangBang Survivor 현재 구현을 실제 브라우저에서 열어 확인한 Stage 6 검증 기록이다.
+이 문서는 Escape! zombie school 현재 구현을 실제 브라우저에서 열어 확인한 Stage 6 검증 기록이다.
 
 gstack은 headless browser 기반 검증 도구이며, 여기서는 로컬 Vite 개발 서버를 띄운 뒤 화면 표시, 콘솔 오류, 반응형 화면, 일시정지 동작을 확인했다.
 

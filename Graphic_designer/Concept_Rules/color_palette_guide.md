@@ -1,4 +1,4 @@
-# BangBang Survivor 공식 컬러 팔레트 가이드
+﻿# Escape! zombie school 공식 컬러 팔레트 가이드
 
 기준일: 2026-04-20  
 근거 문서: `graphic_resource_research_v1.md`  

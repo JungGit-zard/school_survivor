@@ -1,8 +1,8 @@
-# Design Implementation Document
+﻿# Design Implementation Document
 
 ## Purpose
 
-This document defines how BangBang Survivor should implement readable mobile 2D pixel-art floor graphics.
+This document defines how Escape! zombie school should implement readable mobile 2D pixel-art floor graphics.
 
 The goal is not to make the floor visually loud. The goal is to make the school setting readable while keeping the player, monsters, projectiles, drops, and hazards easy to see.
 
@@ -33,7 +33,7 @@ Active texture key:
 
 Active source asset:
 
-- `Graphic_designer/tile_assets/tile_school_interior_floor.svg`
+- `Graphic_designer/graphic_asset/tile_assets/tile_school_interior_floor.svg`
 
 Implementation file:
 

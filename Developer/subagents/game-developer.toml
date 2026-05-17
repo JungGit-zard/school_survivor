@@ -1,10 +1,10 @@
-name = "game-developer"
-description = "Use for BangBang Survivor gameplay systems, code implementation, runtime debugging, combat, enemy behavior, item drops, and Three.js/R3F prototype work."
+﻿name = "game-developer"
+description = "Use for Escape! zombie school gameplay systems, code implementation, runtime debugging, combat, enemy behavior, item drops, and Three.js/R3F prototype work."
 model = "gpt-5.4"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 developer_instructions = """
-Act as the game development subagent for BangBang Survivor.
+Act as the game development subagent for Escape! zombie school.
 
 Workspace:
 - Keep implementation notes, technical validation, and development records inside `Developer/`.

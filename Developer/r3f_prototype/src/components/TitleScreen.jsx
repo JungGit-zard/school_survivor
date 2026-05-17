@@ -1,4 +1,4 @@
-import { Canvas } from '@react-three/fiber'
+﻿import { Canvas } from '@react-three/fiber'
 import TitleScene3D from './TitleScene3D.jsx'
 
 export default function TitleScreen({ onStart, onCoinShop }) {
@@ -16,10 +16,10 @@ export default function TitleScreen({ onStart, onCoinShop }) {
 
       <div style={styles.tint} />
       <div style={styles.content}>
-        <div style={styles.serviceName}>BangBang Survivor</div>
+        <div style={styles.serviceName}>Escape! zombie school</div>
         <h1 style={styles.title}>
-          <span>좀비락교</span>
-          <span style={styles.titleAccent}>탈출</span>
+          <span style={styles.titleAccent}>Escape!</span>
+          <span>zombie school</span>
         </h1>
         <p style={styles.subtitle}>5분만 버티면, 교문이 열린다</p>
       </div>

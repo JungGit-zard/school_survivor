@@ -1,16 +1,16 @@
-# Three.js Toon Modeling Method
+﻿# Three.js Toon Modeling Method
 
 Date: 2026-04-24
 
 ## Purpose
 
-This note records the Three.js toon modeling method requested for BangBang Survivor.
+This note records the Three.js toon modeling method requested for Escape! zombie school.
 
 Use this document when implementing or reviewing player, enemy, boss, or important object models in Three.js.
 
 For the current mandatory reference summary, also read:
 
-- `Graphic_designer/toon_reference_implementation_summary.md`
+- `Graphic_designer/Toon_3D_Characters/toon_reference_implementation_summary.md`
 
 ## Source References
 
@@ -115,7 +115,7 @@ This makes direction changes feel smooth instead of low-frame or sprite-like.
 
 ### 7. Model Shape Before Detail
 
-For BangBang Survivor, the order of importance is:
+For Escape! zombie school, the order of importance is:
 
 1. readable silhouette
 2. clear color role

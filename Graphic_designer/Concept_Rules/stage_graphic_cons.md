@@ -1,8 +1,8 @@
-# BangBang Survivor Stage Graphic Concept
+# Escape! zombie school Stage Graphic Concept
 
 ## 1. Graphic Goal
 
-이 문서는 `Planner/bangbang_main_contents_plan.md`의 5분 스테이지 기획을 기준으로, "좀비에 감염된 학교를 빠져나가는 주인공의 모험"을 실제 게임 화면으로 구현하기 위한 그래픽 컨셉안이다.
+이 문서는 `Planner/escape_zombie_school_main_contents_plan.md`의 5분 스테이지 기획을 기준으로, "좀비에 감염된 학교를 빠져나가는 주인공의 모험"을 실제 게임 화면으로 구현하기 위한 그래픽 컨셉안이다.
 
 첫 버전의 목표는 화려한 장식보다 즉시 플레이 가능한 화면 명확성이다.
 

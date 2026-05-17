@@ -1,4 +1,4 @@
-# BangBang Survivor Prototype Implementation Notes
+# Escape! zombie school Prototype Implementation Notes
 
 ## Active Prototype
 
@@ -44,9 +44,9 @@ src/components/HUD.jsx
 
 - `CEO/Game_service_purpose_target.md`
 - `CEO/game_cons_techstack` (stack updated)
-- `Planner/bangbang_main_contents_plan_ai_ready.readable.md`
-- `Graphic_designer/graphic_design_agent_notes.md`
-- `Graphic_designer/stage_graphic_cons.md`
+- `Planner/escape_zombie_school_main_contents_plan_ai_ready.readable.md`
+- `Graphic_designer/Workflow_Agent/graphic_design_agent_notes.md`
+- `Graphic_designer/Concept_Rules/stage_graphic_cons.md`
 
 ## Architecture
 

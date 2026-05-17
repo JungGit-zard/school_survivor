@@ -1,8 +1,8 @@
-# Effect Implementation Technical Plan
+﻿# Effect Implementation Technical Plan
 
 Date: 2026-05-10
 Role: Planner + Developer technical planning
-Scope: BangBang Survivor current R3F prototype effect/VFX implementation review and next implementation plan
+Scope: Escape! zombie school current R3F prototype effect/VFX implementation review and next implementation plan
 
 ## 1. Review Basis
 
@@ -16,10 +16,10 @@ This plan is based on the current implementation and project graphic rules in:
 - `Developer/r3f_prototype/src/components/EnemyDeathCollapse.jsx`
 - `Developer/r3f_prototype/src/components/ZombieMesh.jsx`
 - `Developer/r3f_prototype/src/lib/toon.js`
-- `Graphic_designer/toon_reference_implementation_summary.md`
-- `Graphic_designer/threejs_toon_modeling_method.md`
-- `Graphic_designer/color_palette_guide.md`
-- `Graphic_designer/stage_graphic_cons.md`
+- `Graphic_designer/Toon_3D_Characters/toon_reference_implementation_summary.md`
+- `Graphic_designer/Toon_3D_Characters/threejs_toon_modeling_method.md`
+- `Graphic_designer/Concept_Rules/color_palette_guide.md`
+- `Graphic_designer/Concept_Rules/stage_graphic_cons.md`
 
 ## 2. Current Graphics Technology State
 

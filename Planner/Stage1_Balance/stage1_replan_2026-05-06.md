@@ -1,4 +1,4 @@
-# BangBang Survivor — Stage 1 전면 재기획안
+﻿# Escape! zombie school — Stage 1 전면 재기획안
 
 > 작성일: 2026-05-06
 > 근거: `Planner/Ref_Vampire_GameDesign/` 의 7개 참조 문서

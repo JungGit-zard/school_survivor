@@ -1,12 +1,13 @@
-# Opening Pressure Validation - 2026-05-17
+# Opening Density Validation - 2026-05-17
 
 ## Scope
 
-- Ensure at least 3 close-range E01 zombies are sustained during the first 20 seconds.
-- Keep the change inside Stage 1 chase-only enemy rules.
+- Keep the first 50 seconds as E01-only.
+- Double only the E01 density in that opening one-type section.
+- Keep later enemy mix and wave values unchanged.
 
 ## Validation Status
 
-- `npm test`: passed, 3 test files / 28 tests.
+- `npm test`: passed, 3 test files / 26 tests.
 - `npm run build`: passed.
 - Build keeps the existing Vite large chunk warning.

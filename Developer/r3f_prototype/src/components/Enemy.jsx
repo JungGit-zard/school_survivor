@@ -15,7 +15,7 @@ const _chargeTarget = new THREE.Vector3()
 
 export const ENEMY_SIZE_MULTIPLIER = 4 / 3
 
-// XP 값은 도라야키 30% 드랍률을 보정해 약 3.3배로 책정 (Planner/dual_drop_system_2026-05-08.md §7-2).
+// XP 값은 교과서 30% 드랍률을 보정해 약 3.3배로 책정 (Planner/Rewards_Drops/dual_drop_system_2026-05-08.md §7-2).
 export const ENEMY_STATS = {
   E01: { hp: 8,    speed: 0.475, damage: 8,  scale: 1.00, xp: 6,  contactDist: 0.28 },
   E02: { hp: 70,   speed: 0.55, damage: 14, scale: 1.40, xp: 15, contactDist: 0.36 },

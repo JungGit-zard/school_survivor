@@ -1,10 +1,10 @@
-# Current Product Priorities
+﻿# Current Product Priorities
 
 Last updated: 2026-05-16
 
 ## 1. 제품 방향
 
-BangBang Survivor는 짧은 시간 안에 플레이 가능한 5분 생존형 미니게임을 목표로 한다.
+Escape! zombie school는 짧은 시간 안에 플레이 가능한 5분 생존형 미니게임을 목표로 한다.
 
 현재 우선순위는 새 콘텐츠 확장보다 Stage 1 기본 루프 안정화다.
 
