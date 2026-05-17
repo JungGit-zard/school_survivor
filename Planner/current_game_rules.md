@@ -50,7 +50,7 @@ BangBang Survivor는 학교 콘셉트의 5분 생존형 미니게임이다.
 
 ## 6. 무기 기준
 
-현재 코드 기준 무기는 7종이다.
+현재 코드 기준 활성 무기는 7종이다.
 
 - 연필
 - 30cm 자
@@ -60,13 +60,28 @@ BangBang Survivor는 학교 콘셉트의 5분 생존형 미니게임이다.
 - 전기
 - 오니기리
 
-보류/제외:
-- 보조배터리
-- 스타링크
+### 누적 플레이 해금 예정 (반드시 등장)
+
+다음 무기는 **누적 플레이 횟수 / 누적 조건이 충족된 계정에서 반드시 해금되어 등장**해야 한다. 1차 7무기 풀에서 일시적으로 제외된 상태이며, V.S 스타일 메타프로그레션이 도입되는 시점에 잠금 해제 카탈로그로 복귀한다.
+
+| 무기 | 한글명 | 해금 트리거 (잠정) | 코드 상태 |
+|---|---|---|---|
+| `guidedMissile` | 보조배터리 미사일 | 누적 플레이 N회 후 (TBD: 5–10회 권장) 또는 별도 도전 조건 | 코드 일시 제거 (`Weapons/Missile.jsx`, `UPGRADE_EFFECTS`의 `unlockMissile/missileDamage/missileCount`) — 복원 필요 |
+| `starlink` | 고장난 스타링크 | 누적 플레이 N회 후 (TBD: 10–20회 권장) 또는 누적 처치 5000마리 | 코드 일시 제거 (`Weapons/Starlink.jsx`, `UPGRADE_EFFECTS`의 `unlockStarlink/starlinkDamage/starlinkCount`) — 복원 필요 |
+
+### 메타 해금 처리 원칙
+
+- 활성 무기 풀이 7종이라도, 본 계정의 누적 조건이 충족된 경우 해금된 무기는 1스테이지 `levelup` 카드 후보에 포함된다.
+- 해금된 무기는 4-보유 상한과 Lv.5 상한 룰을 동일하게 따른다.
+- 누적 플레이 횟수 카운터(가칭 `runCount`)와 누적 처치 수(가칭 `kills`)는 `localStorage`에 영구 저장된다.
+- 정확한 트리거 수치, UI(해금 알림), 카탈로그 표시 등은 `Planner/Essential_game_plan/`에 별도 메타프로그레션 기획 문서가 작성된 이후 확정한다.
+
+> 작업 우선순위 메모: 단일 런 밸런스 검증과 출근길 친화 작업이 1차 완료된 뒤, 메타프로그레션 기획 → 본 절의 해금 무기 복원 → 코인상점 패시브 카탈로그(`commuter_friendly_implementation_request_2026-05-17.md` §7) 순서로 진행한다.
 
 구현 구조:
 - 기존 `Weapons.jsx` 단일 파일은 삭제됐다.
 - 현재는 `Developer/r3f_prototype/src/components/Weapons/` 아래 무기별 파일과 `index.js` barrel 구조를 쓴다.
+- 누적 해금 무기 복원 시 동일 폴더에 `Missile.jsx` / `Starlink.jsx`를 다시 추가하고, `index.js` barrel에 re-export 라인을 복원한다.
 
 ## 7. 다음 규칙 판단 시 주의
 
