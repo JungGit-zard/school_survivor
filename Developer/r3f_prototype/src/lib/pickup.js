@@ -1,7 +1,20 @@
 import { playerPos } from './refs.js'
 
-export const PULL_RADIUS_SQ    = 1.5 * 1.5
+const BASE_PULL_RADIUS = 1.5
+let _pullRadius = BASE_PULL_RADIUS
+let _pullRadiusSq = BASE_PULL_RADIUS * BASE_PULL_RADIUS
+
 export const COLLECT_RADIUS_SQ = 0.22 * 0.22
+
+export function setMagnetMultiplier(mult) {
+  const m = Number.isFinite(mult) && mult > 0 ? mult : 1
+  _pullRadius = BASE_PULL_RADIUS * m
+  _pullRadiusSq = _pullRadius * _pullRadius
+}
+
+export function getPullRadiusSq() {
+  return _pullRadiusSq
+}
 
 // 자석 흡입 + 수집 한 프레임 step.
 // 반환값으로 호출자가 추가 처리(획득/제거)를 한다.
@@ -15,10 +28,10 @@ export function stepMagnetPull(pRef, delta) {
   const distSq = dx * dx + dz * dz
 
   if (distSq < COLLECT_RADIUS_SQ) return 'collected'
-  if (distSq >= PULL_RADIUS_SQ)   return 'idle'
+  if (distSq >= _pullRadiusSq)    return 'idle'
 
   const dist = Math.sqrt(distSq)
-  const pullSpeed = 3.0 + (1 - dist / 1.5) * 15.0
+  const pullSpeed = 3.0 + (1 - dist / _pullRadius) * 15.0
   p.x += (dx / dist) * pullSpeed * delta
   p.z += (dz / dist) * pullSpeed * delta
   return 'pulled'
