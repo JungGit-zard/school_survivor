@@ -90,3 +90,69 @@
 **세션 2 마감 예정**: 2026-05-17 11:50 KST — Entry 4 작성 후 `/clear` 권고
 
 ---
+
+## Session 2 · Entry 1 · 2026-05-17 2226 KST
+
+**Git 상태**
+
+- 브랜치: `feature/codex-gameplay-iteration`
+- 최신 커밋: `8a136ca` "Rename project to Escape! zombie school"
+- `git status --short --branch` 요약:
+  - `.codex/agents/graphic-designer.toml` 수정됨
+  - `Planner/Essential_game_plan/passive_upgrade_catalog_plan_2026-05-17.md` 수정됨
+  - `Planner/Index/planner_documents_by_field_2026-05-14.md` 수정됨
+  - `.codex/agents/`에 VoltAgent awesome-codex-subagents 기반 신규 에이전트 다수 추가됨
+  - `CEO/ceo_review_passive_upgrade_catalog_2026-05-17.md` 신규
+  - `CEO/product_manager_review_passive_upgrade_catalog_2026-05-17.md` 신규
+  - `Developer/codex_subagents_install_2026-05-17.md` 신규
+
+**이번 작업 / 대화**
+
+- 사용자가 프로젝트 안에 `https://github.com/VoltAgent/awesome-codex-subagents` 설치 적용을 요청했다.
+- 해당 저장소를 임시 폴더에 clone하고, `categories/**`의 `.toml` 에이전트 136개를 프로젝트의 `.codex/agents/`에 복사했다.
+- 기존 커스텀 에이전트 `.codex/agents/graphic-designer.toml`은 덮어쓰지 않았다.
+- `graphic-designer.toml`은 TOML 파서 오류 원인이던 BOM만 제거해 UTF-8 no BOM으로 저장했다.
+- Python `tomllib` 검증 결과: 137개 TOML 확인, 오류 0개.
+- 사용자에게 설치된 기획 검수용 에이전트 후보를 정리했다.
+- 사용자가 `/product-manager` 에이전트로 패시브 업그레이드 관련 문서 검수를 요청했다.
+- 실제 설치된 TOML 이름을 직접 도구의 `agent_type`으로 호출할 수 없어, 기본 서브에이전트에 `.codex/agents/product-manager.toml`의 역할 지침을 전달해 제품 관리자 관점 검수를 수행했다.
+- 검수 결과를 CEO 기록으로 저장했다.
+- 사용자가 Codex 플러그인을 이 세션에서 쓰는 방법을 물었고, 새 플러그인은 보통 새 세션을 열어야 도구 목록에 로드된다고 안내했다.
+- 사용자가 세션을 껐다 켜도 세션 메모리 규칙대로 이어지는지 확인을 요청했다.
+
+**생성 / 수정 파일**
+
+- `.codex/agents/*.toml`: VoltAgent awesome-codex-subagents에서 136개 신규 에이전트 추가.
+- `.codex/agents/graphic-designer.toml`: 내용 변경 없이 BOM 제거로 TOML 파싱 가능하게 정리.
+- `Developer/codex_subagents_install_2026-05-17.md`: 서브에이전트 설치 기록.
+- `CEO/ceo_review_passive_upgrade_catalog_2026-05-17.md`: 패시브 업그레이드 CEO 리뷰 문서.
+- `CEO/product_manager_review_passive_upgrade_catalog_2026-05-17.md`: `/product-manager` 제품 관점 검수 결과.
+- `Planner/Essential_game_plan/passive_upgrade_catalog_plan_2026-05-17.md`: 이전 작업에서 패시브 업그레이드/코인 경제 기획 수정됨. 현재 파일은 일부 한글 인코딩이 깨져 보이는 상태.
+- `Planner/Index/planner_documents_by_field_2026-05-14.md`: 패시브 업그레이드 문서 색인 반영됨.
+
+**명령 / 검증**
+
+- `git status --short --branch`로 작업트리 상태 확인.
+- `git log -1 --pretty=format:'%h %s'`로 최신 커밋 확인.
+- `.codex/agents/*.toml` 137개를 Python `tomllib`으로 검증해 오류 0개 확인.
+- `SESSION_CONTINUITY.md`를 확인해 세션 메모리 정본 규칙이 12시간 v2 규칙으로 유지 중임을 확인.
+- `SESSION_MEMORY.md`의 최신 엔트리를 확인했고, 이 엔트리를 append해 최신 작업 회수 가능 상태로 갱신했다.
+
+**확정된 룰 / 정책 변경**
+
+- 새 정책 변경은 없음.
+- 세션 메모리 정본은 계속 `SESSION_CONTINUITY.md`.
+- 새 세션 시작 시 자동으로 읽을 세션 기록은 `SESSION_MEMORY.md`의 가장 최근 엔트리 1개만.
+- 서브에이전트는 프로젝트 규칙상 사용자가 명시적으로 요청하거나 이름을 지정했을 때만 사용한다.
+
+**미해결 / 다음 행동**
+
+1. 새 Codex 플러그인을 방금 설치했다면, 현재 세션 도구 목록에 없을 수 있으므로 새 세션을 열어 확인해야 한다.
+2. 패시브 업그레이드 원본 문서의 한글 인코딩 깨짐을 복구할 필요가 있다.
+3. MVP 구현 전 `coin 1 = goldTotal 1`인지 별도 환산 단위인지 확정해야 한다.
+4. 패시브 상점 MVP 범위는 `magnet`, `moveSpeed`, `maxHp`, `might`, `growth` 5종 Lv.3으로 유지하는 것이 현재 제품 검수 결론이다.
+5. 다음 세션에서 사용자가 "마지막 세션기록 말해줘"라고 하면 이 엔트리를 요약해서 알려주면 된다.
+
+**다음 엔트리 예정**: Session 2 · Entry 2 — 2026-05-18 0126 KST 전후
+
+---

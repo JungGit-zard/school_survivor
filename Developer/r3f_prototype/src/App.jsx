@@ -6,6 +6,7 @@ import Game from './components/Game.jsx'
 import HUD from './components/HUD.jsx'
 import TitleScreen from './components/TitleScreen.jsx'
 import VirtualJoystick from './components/VirtualJoystick.jsx'
+import CoinShop from './components/CoinShop.jsx'
 import { useGameStore } from './store/useGameStore.js'
 import { initPlaytestLogger } from './lib/playtestLogger.js'
 
@@ -27,7 +28,6 @@ export default function App() {
   const gameKey = useGameStore((s) => s.gameKey)
   const phase = useGameStore((s) => s.phase)
   const resetGame = useGameStore((s) => s.resetGame)
-  const goldTotal = useGameStore((s) => s.goldTotal)
 
   useEffect(() => {
     if (screen !== 'game') return
@@ -66,7 +66,7 @@ export default function App() {
         )}
 
         {screen === 'coinShop' && (
-          <CoinShopScreen goldTotal={goldTotal} onBack={() => setScreen('title')} />
+          <CoinShop onBack={() => setScreen('title')} />
         )}
 
         {screen === 'game' && (
@@ -93,17 +93,6 @@ export default function App() {
   )
 }
 
-function CoinShopScreen({ goldTotal, onBack }) {
-  return (
-    <div style={styles.blankScreen}>
-      <div style={styles.coinText}>보유 코인 {goldTotal}</div>
-      <button type="button" style={styles.secondaryButton} onClick={onBack}>
-        돌아가기
-      </button>
-    </div>
-  )
-}
-
 const styles = {
   viewport: {
     width: '100vw',
@@ -120,31 +109,5 @@ const styles = {
     aspectRatio: `${IPHONE_W} / ${IPHONE_H}`,
     overflow: 'hidden',
     background: '#16121d',
-  },
-  blankScreen: {
-    width: '100%',
-    height: '100%',
-    background: '#ffffff',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 14,
-  },
-  secondaryButton: {
-    width: 180,
-    height: 48,
-    border: '1px solid #111111',
-    borderRadius: 6,
-    background: '#ffffff',
-    color: '#111111',
-    fontSize: 18,
-    fontWeight: 700,
-    cursor: 'pointer',
-  },
-  coinText: {
-    color: '#111111',
-    fontSize: 18,
-    fontWeight: 700,
   },
 }

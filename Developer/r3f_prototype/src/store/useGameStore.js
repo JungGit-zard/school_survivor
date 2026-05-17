@@ -2,12 +2,43 @@
 import { subscribeWithSelector } from 'zustand/middleware'
 import { UPGRADE_EFFECTS, applyUpgradeToWeapon } from '../lib/upgrades.js'
 import { resetRuntimeRefs } from '../lib/refs.js'
+import { getAllLevels, purchase as purchasePassiveStorage } from '../lib/passiveUpgrades.js'
+import { setMagnetMultiplier } from '../lib/pickup.js'
 
-const INITIAL_PLAYER = {
+const BASE_PLAYER = {
   hp: 100, maxHp: 100,
   speed: 3, baseSpeed: 3,
   level: 1, xp: 0, xpToNext: 4,
   invulnerable: false,
+}
+
+function buildInitialPlayer(levels) {
+  const maxHp = BASE_PLAYER.maxHp + 6 * (levels.maxHp ?? 0)
+  const speed = BASE_PLAYER.speed * (1 + 0.03 * (levels.moveSpeed ?? 0))
+  return {
+    ...BASE_PLAYER,
+    hp: maxHp,
+    maxHp,
+    speed,
+    baseSpeed: speed,
+  }
+}
+
+function buildInitialWeapons(levels) {
+  const mightMult = 1 + 0.04 * (levels.might ?? 0)
+  const out = {}
+  for (const [key, w] of Object.entries(BASE_WEAPONS)) {
+    out[key] = { ...w, damage: Math.round(w.damage * mightMult * 10) / 10 }
+  }
+  return out
+}
+
+function buildGrowthMultiplier(levels) {
+  return 1 + 0.05 * (levels.growth ?? 0)
+}
+
+function applyMagnetPassive(levels) {
+  setMagnetMultiplier(1 + 0.08 * (levels.magnet ?? 0))
 }
 
 const GOLD_STORAGE_KEY = 'school_survivor:goldTotal'
@@ -31,7 +62,7 @@ function saveGoldTotal(value) {
   localStorage.setItem(GOLD_STORAGE_KEY, String(value))
 }
 
-const INITIAL_WEAPONS = {
+const BASE_WEAPONS = {
   pencilThrow:   { label: '연필', level: 1, damage: 8,  cooldown: 1100, lastFired: 0, projectileCount: 1, pierce: 0, speed: 12, range: 22, active: true },
   schoolBag:     { label: '30cm 자', level: 0, damage: 12, cooldown: 1300, range: 0.633, triggerRange: 1.0, swingMs: 260, active: false },
   tumbler:       { label: '텀블러', level: 0, damage: 4,  radius: 1.0, hitsPerSecond: 2.5, orbitSpeed: 2.8, count: 1, active: false },
@@ -50,10 +81,15 @@ function finishLevelupState(s) {
   }
 }
 
+const _initialLevels = getAllLevels()
+applyMagnetPassive(_initialLevels)
+
 export const useGameStore = create(
   subscribeWithSelector((set, get) => ({
-    player:      { ...INITIAL_PLAYER },
-    weapons:     { ...INITIAL_WEAPONS },
+    player:      buildInitialPlayer(_initialLevels),
+    weapons:     buildInitialWeapons(_initialLevels),
+    growthMultiplier: buildGrowthMultiplier(_initialLevels),
+    passiveVersion: 0,
     phase:       'playing',   // 'playing' | 'paused' | 'levelup' | 'gameover' | 'cleared'
     pauseSource: null,        // 'manual' | 'auto' | null
     elapsedMs:   0,
@@ -87,9 +123,9 @@ export const useGameStore = create(
 
     // 경험치와 레벨업
     gainXp: (amount) => {
-      const { player, pendingLevelUps } = get()
+      const { player, pendingLevelUps, growthMultiplier } = get()
       let { xp, xpToNext, level } = player
-      xp += amount
+      xp += Math.floor(amount * growthMultiplier)
       let gainedLevelUps = 0
       while (xp >= xpToNext) {
         xp -= xpToNext
@@ -114,6 +150,25 @@ export const useGameStore = create(
       const nextTotal = goldTotal + amount
       saveGoldTotal(nextTotal)
       set({ goldSession: goldSession + amount, goldTotal: nextTotal })
+    },
+
+    spendGold: (amount) => {
+      if (!amount || amount < 0) return false
+      const { goldTotal } = get()
+      if (goldTotal < amount) return false
+      const nextTotal = goldTotal - amount
+      saveGoldTotal(nextTotal)
+      set({ goldTotal: nextTotal })
+      return true
+    },
+
+    purchasePassive: (id) => {
+      const { goldTotal } = get()
+      const result = purchasePassiveStorage(id, goldTotal)
+      if (!result.ok) return result
+      saveGoldTotal(result.nextGold)
+      set((s) => ({ goldTotal: result.nextGold, passiveVersion: s.passiveVersion + 1 }))
+      return result
     },
 
     checkSurvivalMilestone: () => {
@@ -194,9 +249,12 @@ export const useGameStore = create(
     // 게임 리셋. gameKey를 올려 Physics 트리를 새로 마운트한다.
     resetGame: () => {
       resetRuntimeRefs()
+      const levels = getAllLevels()
+      applyMagnetPassive(levels)
       set((s) => ({
-        player:      { ...INITIAL_PLAYER },
-        weapons:     { ...INITIAL_WEAPONS },
+        player:      buildInitialPlayer(levels),
+        weapons:     buildInitialWeapons(levels),
+        growthMultiplier: buildGrowthMultiplier(levels),
         phase:       'playing',
         pauseSource: null,
         elapsedMs:   0,

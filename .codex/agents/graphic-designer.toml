@@ -1,4 +1,4 @@
-﻿name = "graphic_designer"
+name = "graphic_designer"
 description = "Use when a task needs Escape! zombie school game art direction, cartoon/toon rendering, 3D modeling, 3D animation, asset implementation guidance, visual QA, readability review, or graphics-related implementation for Phaser/Three.js gameplay."
 model = "gpt-5.4"
 model_reasoning_effort = "high"
