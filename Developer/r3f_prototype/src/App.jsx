@@ -59,14 +59,11 @@ export default function App() {
     <div style={styles.viewport}>
       <div style={styles.phoneFrame}>
         {screen === 'title' && (
-          <TitleScreen
-            onStart={startGame}
-            onCoinShop={() => setScreen('coinShop')}
-          />
+          <TitleScreen onStart={startGame} />
         )}
 
         {screen === 'coinShop' && (
-          <CoinShop onBack={() => setScreen('title')} />
+          <CoinShop onBack={() => setScreen('game')} />
         )}
 
         {screen === 'game' && (
@@ -84,7 +81,7 @@ export default function App() {
                 </Physics>
               </Canvas>
             </KeyboardControls>
-            <HUD />
+            <HUD onOpenCoinShop={() => setScreen('coinShop')} />
             <VirtualJoystick />
           </>
         )}
