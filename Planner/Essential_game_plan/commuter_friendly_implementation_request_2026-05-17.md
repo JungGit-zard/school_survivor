@@ -1,4 +1,4 @@
-# 출근길 친화 미구현 항목 구현 요청서
+﻿# 출근길 친화 미구현 항목 구현 요청서
 
 작성일: 2026-05-17
 출처: [`commuter_target_planning_2026-05-14.md`](commuter_target_planning_2026-05-14.md) §10 구현 점검 종합표
@@ -384,7 +384,7 @@ const bossWarning = useMemo(() => {
 function TitleScreen({ onStart, onCoinShop }) {
   return (
     <div style={styles.blankScreen}>
-      <div style={styles.titleText}>좀비락교 탈출</div>
+      <div style={styles.titleText}>Escape! zombie school</div>
       <div style={styles.subtitleText}>5분만 버티면, 교문이 열린다</div>
       <div style={styles.buttonGap} />
       <button type="button" style={styles.primaryButton} onClick={onStart}>
@@ -418,13 +418,13 @@ buttonGap: {
 
 ### 6-4. 검증 방법
 
-- 타이틀 화면 진입 → 큰 글씨 "좀비락교 탈출" + 작은 부제 "5분만 버티면, 교문이 열린다" 노출
+- 타이틀 화면 진입 → 큰 글씨 "Escape! zombie school" + 작은 부제 "5분만 버티면, 교문이 열린다" 노출
 - 아래에 기존 두 버튼 그대로
 - 모바일 폭에서도 깨지지 않음 (375px / 390px / 414px)
 
 ### 6-5. 카피 풀 (향후 A/B 가능)
 
-- "좀비락교 탈출 / 5분만 버티면, 교문이 열린다" (기본)
+- "Escape! zombie school / 5분만 버티면, 교문이 열린다" (기본)
 - "오늘도 5분만 버티자"
 - "한 판만 하고 출근"
 - "이번 역 전까지 살아남기"
@@ -462,7 +462,7 @@ buttonGap: {
 위 1~5번이 모두 적용된 상태에서 다음 풀플레이 시나리오 1회 통과:
 
 ### 시나리오 A. 5분 풀 클리어
-1. 타이틀 → "좀비락교 탈출" + 부제 노출 ✓ (#5)
+1. 타이틀 → "Escape! zombie school" + 부제 노출 ✓ (#5)
 2. 게임 시작 클릭 → 0:00부터 플레이
 3. 1:00 도달 → "1분 생존 보너스 +1 골드" 토스트 (#3)
 4. 3:00 도달 → "3분 돌파 보너스 +3 골드" 토스트 (#3)
@@ -552,7 +552,7 @@ buttonGap: {
 - 기술 스택: [`Planner/Tech_plan/tech_stakc.md`](../Tech_plan/tech_stakc.md)
 - 엔지니어링 디테일: [`Developer/tech_stack.md`](../../Developer/tech_stack.md)
 - VFX 효과 시스템: [`Planner/Tech_plan/effect_sloution.md`](../Tech_plan/effect_sloution.md)
-- 이중 화폐 기획: [`Planner/dual_drop_system_2026-05-08.md`](../dual_drop_system_2026-05-08.md)
+- 이중 화폐 기획: [`Planner/Rewards_Drops/dual_drop_system_2026-05-08.md`](../Rewards_Drops/dual_drop_system_2026-05-08.md)
 - 세션 메모리 정본: [`SESSION_CONTINUITY.md`](../../SESSION_CONTINUITY.md)
 
 ---

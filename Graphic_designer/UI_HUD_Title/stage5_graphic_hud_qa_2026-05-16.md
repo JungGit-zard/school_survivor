@@ -9,14 +9,14 @@ Target: `Developer/r3f_prototype`
 
 - `project_develop_policy.md`
 - `Graphic_designer/Bang_survivor_Graphic_concept.md`
-- `Graphic_designer/stage_graphic_cons.md`
-- `Graphic_designer/color_palette_guide.md`
-- `Graphic_designer/effect_visual_technical_review_2026-05-10.md`
-- `Graphic_designer/protagonist_screen_presence_rules.md`
-- `Graphic_designer/threejs_toon_modeling_method.md`
-- `Graphic_designer/toon_reference_implementation_summary.md`
-- `Planner/stage1_reverse_design_current_2026-05-09.md`
-- `Planner/stage1_replan_2026-05-06.md`
+- `Graphic_designer/Concept_Rules/stage_graphic_cons.md`
+- `Graphic_designer/Concept_Rules/color_palette_guide.md`
+- `Graphic_designer/Items_Effects_Feedback/effect_visual_technical_review_2026-05-10.md`
+- `Graphic_designer/Concept_Rules/protagonist_screen_presence_rules.md`
+- `Graphic_designer/Toon_3D_Characters/threejs_toon_modeling_method.md`
+- `Graphic_designer/Toon_3D_Characters/toon_reference_implementation_summary.md`
+- `Planner/Stage1_Balance/stage1_reverse_design_current_2026-05-09.md`
+- `Planner/Stage1_Balance/stage1_replan_2026-05-06.md`
 
 ## 2. 확인한 구현 파일
 

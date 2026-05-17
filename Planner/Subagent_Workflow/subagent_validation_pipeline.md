@@ -1,10 +1,10 @@
-# Subagent Validation Pipeline
+﻿# Subagent Validation Pipeline
 
 Last updated: 2026-05-16
 
 ## 1. 목적
 
-이 문서는 BangBang Survivor에서 기능 추가, 큰 수정, QA, 시각 검증을 할 때 사용할 표준 서브에이전트 순서를 정의한다.
+이 문서는 Escape! zombie school에서 기능 추가, 큰 수정, QA, 시각 검증을 할 때 사용할 표준 서브에이전트 순서를 정의한다.
 
 서브에이전트는 사용자가 명시적으로 요청했을 때만 사용한다.
 

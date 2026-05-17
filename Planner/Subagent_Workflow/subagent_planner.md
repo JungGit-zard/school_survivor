@@ -1,8 +1,8 @@
-# 기획안 평가용 서브에이전트 운용안
+﻿# 기획안 평가용 서브에이전트 운용안
 
 작성일: 2026-05-14  
 작성 위치: `Planner/`  
-목적: BangBang Survivor의 Planner 기획안을 평가하고 논의할 때 어떤 서브에이전트를 쓰면 좋은지 정리한다.
+목적: Escape! zombie school의 Planner 기획안을 평가하고 논의할 때 어떤 서브에이전트를 쓰면 좋은지 정리한다.
 
 ---
 
@@ -66,7 +66,7 @@ code-mapper
 
 잘 보는 것:
 
-- BangBang Survivor 정체성과 맞는가
+- Escape! zombie school 정체성과 맞는가
 - 5분 생존 구조를 지키는가
 - 초보자/솔로 프로젝트 범위를 넘지 않는가
 - 기획이 작은 구현 단계로 나뉘어 있는가
@@ -231,8 +231,8 @@ HUD, 카드, 결과창, 타이틀 메뉴 같은 UI 기획 평가에 적합하다
 ```text
 project_develop_policy.md
 Bang_Rules.md
-Planner/stage1_replan_2026-05-06.md
-Planner/stage1_reverse_design_current_2026-05-09.md
+Planner/Stage1_Balance/stage1_replan_2026-05-06.md
+Planner/Stage1_Balance/stage1_reverse_design_current_2026-05-09.md
 Planner/planner_all_documents_summary_2026-05-14.md
 ```
 
@@ -262,7 +262,7 @@ develop-director: 프로젝트 콘셉트 적합성
 
 | 항목 | 기준 문서 | 충돌 문서 | 판단 | 조치 |
 |---|---|---|---|---|
-| 1스테이지 탄환 몬스터 금지 | `stage1_replan_2026-05-06.md` | `monster_spawn_scenario_5min_boss_4min.md` | 최신 기준 우선 | E04는 2스테이지 후보로만 유지 |
+| 1스테이지 탄환 몬스터 금지 | `Stage1_Balance/stage1_replan_2026-05-06.md` | `monster_spawn_scenario_5min_boss_4min.md` | 최신 기준 우선 | E04는 2스테이지 후보로만 유지 |
 
 ### 4단계. 리스크 등급 부여
 
@@ -324,4 +324,4 @@ reviewer
 
 한 줄 결론:
 
-**BangBang Survivor의 기획안 평가는 `develop-director`가 방향성을 보고, `game-developer`가 재미와 구조를 보고, `reviewer`가 충돌과 리스크를 잡는 방식이 가장 안정적이다.**
+**Escape! zombie school의 기획안 평가는 `develop-director`가 방향성을 보고, `game-developer`가 재미와 구조를 보고, `reviewer`가 충돌과 리스크를 잡는 방식이 가장 안정적이다.**

@@ -1,10 +1,10 @@
-# Current Risk Register
+﻿# Current Risk Register
 
 Last updated: 2026-05-16
 
 ## 1. 목적
 
-현재 BangBang Survivor에서 반복 확인해야 하는 위험을 한 곳에 모은다.
+현재 Escape! zombie school에서 반복 확인해야 하는 위험을 한 곳에 모은다.
 
 상태 정의:
 - `open`: 아직 해결되지 않음

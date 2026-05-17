@@ -1,10 +1,10 @@
-# Current Visual Rules
+﻿# Current Visual Rules
 
 Last updated: 2026-05-16
 
 ## 1. 최상위 시각 원칙
 
-BangBang Survivor의 플레이어와 몬스터는 3D 카툰 렌더링을 사용한다.
+Escape! zombie school의 플레이어와 몬스터는 3D 카툰 렌더링을 사용한다.
 
 정책상 다음은 필수다.
 - Three.js 기반 3D 표현

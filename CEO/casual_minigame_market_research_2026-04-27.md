@@ -1,8 +1,8 @@
-# Casual Minigame Market Research - 2026-04-27
+﻿# Casual Minigame Market Research - 2026-04-27
 
 ## Executive Direction
 
-BangBang Survivor should be directed as a lightweight hybrid-casual mobile minigame:
+Escape! zombie school should be directed as a lightweight hybrid-casual mobile minigame:
 
 - It should be instantly understandable, short-session, and easy to replay.
 - It should have a simple survivor-like core loop with upgrades, pickups, and visible growth.
@@ -16,7 +16,7 @@ BangBang Survivor should be directed as a lightweight hybrid-casual mobile minig
 
 Current market commentary and reports point to a shift away from pure hypercasual toward hybrid-casual. The useful lesson is not to make the game complicated, but to add enough progression and retention hooks that players stay longer than one disposable session.
 
-Implication for BangBang Survivor:
+Implication for Escape! zombie school:
 - Keep controls simple: movement plus auto attack.
 - Add light progression: weapon unlocks, upgrade choices, collection, missions, school-themed goals.
 - Keep each run immediately playable.
@@ -25,7 +25,7 @@ Implication for BangBang Survivor:
 
 Sensor Tower's State of Mobile Gaming 2025 highlights rising hybrid-casual monetization, combining in-app purchases and ad monetization as an optimized strategy. Appodeal's 2025 casual benchmarks also emphasize that engagement and longevity are needed for ad-based monetization to work.
 
-Implication for BangBang Survivor:
+Implication for Escape! zombie school:
 - Build the game around replay loops and upgrade choices before adding aggressive monetization.
 - Rewarded ads should be designed around player desire, not random interruption.
 - Future IAP can remain optional, but the first version can focus on rewarded-ad hooks.
@@ -51,7 +51,7 @@ Guardrails:
 
 Google Play warns users when compressed app download size is above 200 MB on mobile data. For a casual minigame, the product bar should be much stricter than the platform limit because download hesitation damages installs.
 
-Implication for BangBang Survivor:
+Implication for Escape! zombie school:
 - Prefer simple 3D toon geometry, low texture count, and reusable materials.
 - Avoid large imported models until the core loop proves retention.
 - Keep startup fast and first play immediate.
@@ -70,7 +70,7 @@ When reviewing a feature, the CEO agent should ask:
 - Does it keep mobile performance and download size light?
 - Can a solo beginner project actually finish and tune it?
 
-## Direction For BangBang Survivor
+## Direction For Escape! zombie school
 
 The game should move toward:
 

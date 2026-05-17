@@ -1,6 +1,6 @@
-# Session Memory — Permanent Append-Only Log
+﻿# Session Memory — Permanent Append-Only Log
 
-> **이 파일은 BangBang Survivor 프로젝트의 영구 세션 메모리이다.**
+> **이 파일은 Escape! zombie school 프로젝트의 영구 세션 메모리이다.**
 > 세션 시작점은 `Entry 0 (Bootstrap)`으로 기록할 수 있다. 이후 3시간마다 요약 엔트리 1개가 끝에 append된다. 요약 엔트리 4개가 쌓이면(=12시간) 하나의 세션이 닫히고, 그 시점에 에이전트는 사용자에게 컨텍스트 초기화(`/clear`)를 권고한다.
 > 규정 정본: [SESSION_CONTINUITY.md](SESSION_CONTINUITY.md)
 > 레거시 아카이브: `Session_Logs/` (2026-05-16 이전의 분리된 요약 파일들)
@@ -41,7 +41,7 @@
 1. Vite dev 서버 재기동 필요 (`cd Developer/r3f_prototype && npm run dev`) — 이전 백그라운드 작업 exit 4.
 2. VFX wiring 미연결: 9 무기 onHit, 5 적 onDeath, 3 드랍 onSpawn, 글로벌 onLevelUp/onStageClear.
 3. dual_drop_system §3-3 보스 보너스 / §7 XP 보정 일부 미적용.
-4. 타이틀/랜딩 화면 작업 착수 미진행 (`Planner/title_landing_screen_plan_2026-05-10.md`).
+4. 타이틀/랜딩 화면 작업 착수 미진행 (`Planner/Essential_game_plan/title_landing_screen_plan_2026-05-10.md`).
 5. 백엔드 미결정 — 리더보드/메타프로그레션 필요 시점에 검토.
 
 **다음 엔트리 예정**: Entry 1 — 2026-05-16 03:45 KST (이 시각 도달 시 또는 직후 사용자 활동 발생 시 작성)

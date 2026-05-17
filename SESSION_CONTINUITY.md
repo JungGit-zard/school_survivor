@@ -1,6 +1,6 @@
-# Session Continuity Protocol — Single Source of Truth (LOCKED 2026-05-16 v2)
+﻿# Session Continuity Protocol — Single Source of Truth (LOCKED 2026-05-16 v2)
 
-> **이 문서가 BangBang Survivor 프로젝트의 세션 메모리 관련 유일한 정본 규정이다.**
+> **이 문서가 Escape! zombie school 프로젝트의 세션 메모리 관련 유일한 정본 규정이다.**
 > CLAUDE.md / AGENTS.md / project_develop_policy.md 등 다른 문서에 세션 메모리 관련 규정을 중복 작성하지 않는다. 다른 문서는 본 문서를 가리키는 한 줄 포인터만 둘 수 있다.
 > **본 규정은 2026-05-16 v2에 사용자에 의해 고정(locked)되었다. 임의 변경 금지 — 사용자가 명시적으로 수정을 지시하기 전까지 모든 항목은 그대로 강제.**
 

@@ -32,9 +32,23 @@ const UPGRADES = [
   { key: 'maxHealth', icon: 'health', label: '최대 체력 +20', desc: '최대 HP 및 현재 HP 증가' },
 ]
 
+const PENCIL_UPGRADE_KEYS = new Set(['pencilDamage', 'pencilCount', 'pencilPierce'])
+
+export function limitPencilUpgradeOptions(options, random = Math.random) {
+  const pencilOptions = options.filter((option) => PENCIL_UPGRADE_KEYS.has(option.key))
+  if (pencilOptions.length <= 1) return options
+
+  const selectedPencil = pencilOptions[Math.floor(random() * pencilOptions.length)]
+  return [
+    ...options.filter((option) => !PENCIL_UPGRADE_KEYS.has(option.key)),
+    selectedPencil,
+  ]
+}
+
 function pickThree(level, weapons, player) {
   const available = UPGRADES.filter((u) => isUpgradeAvailable(UPGRADE_EFFECTS[u.key], level, weapons, player))
-  const shuffled = [...available].sort(() => Math.random() - 0.5)
+  const limited = limitPencilUpgradeOptions(available)
+  const shuffled = [...limited].sort(() => Math.random() - 0.5)
   return shuffled.slice(0, 3)
 }
 

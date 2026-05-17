@@ -2,7 +2,7 @@
 
 ## Scope
 
-- Title landing implementation based on `Planner/title_landing_screen_plan_2026-05-10.md`.
+- Title landing implementation based on `Planner/Essential_game_plan/title_landing_screen_plan_2026-05-10.md`.
 - Verify title copy, start flow, coin shop entry point, and build stability.
 
 ## Validation Status

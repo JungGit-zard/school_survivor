@@ -1,4 +1,4 @@
-# BangBang Survivor — 기술스택 및 선택 이유 종합
+﻿# Escape! zombie school — 기술스택 및 선택 이유 종합
 
 > 작성일: 2026-05-17
 > 위치: `Planner/Tech_plan/tech_stakc.md`
@@ -246,7 +246,7 @@
 | 음식 (HP 회복) | 1분당 1개 스폰 | `LunchItems.jsx` |
 
 **이유**:
-- 이중 화폐: XP는 세션 내, 골드는 영구 (V.S 스타일 메타프로그레션 준비). `dual_drop_system_2026-05-08.md` 근거.
+- 이중 화폐: XP는 세션 내, 골드는 영구 (V.S 스타일 메타프로그레션 준비). `Planner/Rewards_Drops/dual_drop_system_2026-05-08.md` 근거.
 - 마그넷 풀 공유: GoldCoin/XpTextbook 모두 같은 흡입 로직 → 헬퍼 분리.
 
 ### 3-12. 영속화
@@ -393,5 +393,5 @@ V.S 스타일 메타프로그레션 도입 시 새로 들어올 기술 후보:
 - `Planner/Tech_plan/effect_sloution.md` — VFX/외곽선 구조
 - `Planner/Tech_plan/effect_implementation_technical_plan_2026-05-10.md` — VFX 마스터플랜
 - `Bang_Rules.md` — 게임 룰/콘텐츠 정책 (최우선)
-- `Planner/stage1_replan_2026-05-06.md` — Stage 1 재기획
+- `Planner/Stage1_Balance/stage1_replan_2026-05-06.md` — Stage 1 재기획
 - `SESSION_CONTINUITY.md` — 세션 메모리 정본 (LOCKED 2026-05-16 v2)

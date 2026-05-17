@@ -1,8 +1,8 @@
-# BangBang Survivor Service Purpose and Target
+﻿# Escape! zombie school Service Purpose and Target
 
 ## 1. 게임이 제공하고자 하는 것
 
-BangBang Survivor는 "좀비에 감염된 학교에서 빠져나가려는 주인공"의 5분 생존 경험을 제공하는 모바일 세로형 서바이버라이크 게임이다.
+Escape! zombie school는 "좀비에 감염된 학교에서 빠져나가려는 주인공"의 5분 생존 경험을 제공하는 모바일 세로형 서바이버라이크 게임이다.
 
 이 게임이 제공해야 하는 핵심 가치는 다음과 같다.
 
@@ -209,4 +209,4 @@ Three.js 담당:
 
 ## 4. 한 줄 정리
 
-BangBang Survivor는 "학생 생존자가 좀비에 감염된 학교에서 5분 동안 버티고 탈출 기회를 만드는 모바일 세로형 카툰 서바이버라이크"이며, 구현은 Phaser 4로 생존 게임 로직을 만들고 Three.js 카툰 렌더링으로 캐릭터를 명확하게 보여주는 방식으로 진행한다.
+Escape! zombie school는 "학생 생존자가 좀비에 감염된 학교에서 5분 동안 버티고 탈출 기회를 만드는 모바일 세로형 카툰 서바이버라이크"이며, 구현은 Phaser 4로 생존 게임 로직을 만들고 Three.js 카툰 렌더링으로 캐릭터를 명확하게 보여주는 방식으로 진행한다.

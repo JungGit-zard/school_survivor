@@ -16,18 +16,19 @@
 - 현재 구현/기획 판단에 혼동을 주는 오래된 구현 현황 문서.
 - 신규 무기/보상/타깃 기획으로 흡수된 과거 아이디어 문서.
 
-최신 기준으로 유지한 핵심 문서:
+최신 기준으로 유지한 핵심 문서 (2026-05-17 폴더 재정리 반영):
 
-- `stage1_replan_2026-05-06.md`
-- `stage1_reverse_design_current_2026-05-09.md`
-- `dual_drop_system_2026-05-08.md`
+- `Stage1_Balance/stage1_replan_2026-05-06.md`
+- `Stage1_Balance/stage1_reverse_design_current_2026-05-09.md`
+- `Rewards_Drops/dual_drop_system_2026-05-08.md`
 - `Weapons/weapon_expansion_unlock_plan_2026-05-10.md`
-- `commuter_target_planning_2026-05-14.md`
-- `title_landing_screen_plan_2026-05-10.md`
+- `Essential_game_plan/commuter_target_planning_2026-05-14.md`
+- `Essential_game_plan/title_landing_screen_plan_2026-05-10.md`
 - `Tech_plan/effect_implementation_technical_plan_2026-05-10.md`
 - `Tech_plan/effect_sloution.md`
-- `subagent_planner.md`
-- `planner_documents_by_field_2026-05-14.md`
+- `Subagent_Workflow/subagent_planner.md`
+- `Subagent_Workflow/subagent_validation_pipeline.md`
+- `Index/planner_documents_by_field_2026-05-14.md`
 
 ---
 
@@ -35,18 +36,18 @@
 
 | 파기 문서 | 파기 이유 | 대체/참조 기준 |
 |---|---|---|
-| `bangbang_main_contents_plan.md` | 초기 5분 밸런스 초안. 원거리 몬스터와 초기 수치가 최신 기준과 충돌 | `stage1_replan_2026-05-06.md`, `stage1_reverse_design_current_2026-05-09.md` |
-| `bangbang_main_contents_plan_ai_ready.readable.md` | 초기 엑셀 기반 데이터 표. 최신 수치와 다름 | `stage1_replan_2026-05-06.md` |
-| `monster_spawn_scenario_5min_boss_4min.md` | E04 원거리 몬스터와 B01 탄환 패턴 포함 | `stage1_replan_2026-05-06.md` 2026-05-09 부록 |
-| `current_weapon_and_boss_rules_2026-05-03.md` | 2026-05-03 구현값 기준. 2026-05-06 이후 재기획에 밀림 | `stage1_replan_2026-05-06.md`, `stage1_reverse_design_current_2026-05-09.md` |
-| `combat_item_flask_update_plan_2026-04-26.md` | 플라스크 초기 기획. 최신 무기/밸런스 문서에 흡수됨 | `stage1_replan_2026-05-06.md` |
+| `escape_zombie_school_main_contents_plan.md` | 초기 5분 밸런스 초안. 원거리 몬스터와 초기 수치가 최신 기준과 충돌 | `Stage1_Balance/stage1_replan_2026-05-06.md`, `Stage1_Balance/stage1_reverse_design_current_2026-05-09.md` |
+| `escape_zombie_school_main_contents_plan_ai_ready.readable.md` | 초기 엑셀 기반 데이터 표. 최신 수치와 다름 | `Stage1_Balance/stage1_replan_2026-05-06.md` |
+| `monster_spawn_scenario_5min_boss_4min.md` | E04 원거리 몬스터와 B01 탄환 패턴 포함 | `Stage1_Balance/stage1_replan_2026-05-06.md` 2026-05-09 부록 |
+| `current_weapon_and_boss_rules_2026-05-03.md` | 2026-05-03 구현값 기준. 2026-05-06 이후 재기획에 밀림 | `Stage1_Balance/stage1_replan_2026-05-06.md`, `Stage1_Balance/stage1_reverse_design_current_2026-05-09.md` |
+| `combat_item_flask_update_plan_2026-04-26.md` | 플라스크 초기 기획. 최신 무기/밸런스 문서에 흡수됨 | `Stage1_Balance/stage1_replan_2026-05-06.md` |
 | `cluster_weapon_reference_research_2026-05-03.md` | 군집 대응 무기 조사. 신규 무기 확장 문서에 방향이 흡수됨 | `Weapons/weapon_expansion_unlock_plan_2026-05-10.md` |
 | `cluster_weapon_concepts_2026-05-03.md` | 과거 후보 무기 2종. 신규 무기 10종 기획에 우선순위가 밀림 | `Weapons/weapon_expansion_unlock_plan_2026-05-10.md` |
-| `survivor_like_monster_wave_research.md` | 외부 웨이브 조사. 최신 스테이지 재기획에 반영 완료 | `stage1_replan_2026-05-06.md` |
-| `planner_content_index_2026-05-10.md` | 오래된 색인. 2026-05-14 최신 분야별 색인으로 대체 | `planner_documents_by_field_2026-05-14.md` |
-| `planner_all_documents_summary_2026-05-14.md` | 상세 전체 요약이지만 파기 전 문서까지 포함해 최신 색인과 중복/혼동 가능 | `planner_documents_by_field_2026-05-14.md` |
+| `survivor_like_monster_wave_research.md` | 외부 웨이브 조사. 최신 스테이지 재기획에 반영 완료 | `Stage1_Balance/stage1_replan_2026-05-06.md` |
+| `planner_content_index_2026-05-10.md` | 오래된 색인. 2026-05-14 최신 분야별 색인으로 대체 | `Index/planner_documents_by_field_2026-05-14.md` |
+| `planner_all_documents_summary_2026-05-14.md` | 상세 전체 요약이지만 파기 전 문서까지 포함해 최신 색인과 중복/혼동 가능 | `Index/planner_documents_by_field_2026-05-14.md` |
 | `effect_implementation_technical_plan_2026-05-10.md` | `Tech_plan/` 안의 같은 기술기획과 중복 | `Tech_plan/effect_implementation_technical_plan_2026-05-10.md` |
-| `Ref_Vampire_GameDesign/School_firearms_505.md` | 2026-05-05 구현 현황 참고 문서. E04/B01 탄환 등 최신 기준과 충돌 | `stage1_reverse_design_current_2026-05-09.md` |
+| `Ref_Vampire_GameDesign/School_firearms_505.md` | 2026-05-05 구현 현황 참고 문서. E04/B01 탄환 등 최신 기준과 충돌 | `Stage1_Balance/stage1_reverse_design_current_2026-05-09.md` |
 
 ---
 

@@ -1,4 +1,4 @@
-# BangBang Survivor Codex Instructions
+﻿# Escape! zombie school Codex Instructions
 
 ## Communication
 
@@ -9,7 +9,7 @@
 
 ## Project Context
 
-- This project is a game project named BangBang Survivor.
+- This project is a game project named Escape! zombie school.
 - Treat `project_develop_policy.md` as the highest-priority project policy document. Any non-empty rule written there is mandatory.
 - Before making planning, implementation, asset, QA, or Git workflow decisions, check whether `project_develop_policy.md` contains relevant rules.
 - If `project_develop_policy.md` conflicts with other project notes, follow `project_develop_policy.md` and mention the conflict to the user.

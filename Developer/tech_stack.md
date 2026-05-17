@@ -1,4 +1,4 @@
-# BangBang Survivor — 기술 스택 및 구현 정리
+﻿# Escape! zombie school — 기술 스택 및 구현 정리
 
 > 정리 시점: 2026-05-16. 이 문서는 현재 코드(`Developer/r3f_prototype/`)와 운영 환경 기준의 스냅샷이다.
 > 백엔드 없음 — 순수 클라이언트.
@@ -197,7 +197,7 @@
 | **XP 교과서** | `XpTextbook.jsx` | 적 처치 30% 확률 | 게임 내 (세션) |
 | **골드 코인** | `GoldCoin.jsx` | 시계태엽식 25–35초 (5분당 ~10개) | localStorage 누적 |
 
-- 상세 기획: `Planner/dual_drop_system_2026-05-08.md`
+- 상세 기획: `Planner/Rewards_Drops/dual_drop_system_2026-05-08.md`
 
 ### 4-7. 적 시스템 (`components/Enemy.jsx`, `Enemies.jsx`, `EnemyDeathCollapse.jsx`, `ZombieMesh.jsx`)
 
@@ -320,8 +320,8 @@ npm run preview     # 빌드 결과 로컬 검증
 
 - `Planner/Tech_plan/effect_sloution.md` — 외곽선 + VFX 효과 구조 / 레지스트리 설명
 - `Planner/Tech_plan/effect_implementation_technical_plan_2026-05-10.md` — VFX 구현 마스터플랜
-- `Planner/dual_drop_system_2026-05-08.md` — 골드/XP 이중 드랍 기획
-- `Planner/stage1_replan_2026-05-06.md` — Stage 1 재기획 (무기/적/스폰)
+- `Planner/Rewards_Drops/dual_drop_system_2026-05-08.md` — 골드/XP 이중 드랍 기획
+- `Planner/Stage1_Balance/stage1_replan_2026-05-06.md` — Stage 1 재기획 (무기/적/스폰)
 - `Bang_Rules.md` — 게임 룰/콘텐츠 정책
 - `project_develop_policy.md` — 부서별 정책 (최우선)
 - `SESSION_CONTINUITY.md` — 세션 메모리 규정 (LOCKED)

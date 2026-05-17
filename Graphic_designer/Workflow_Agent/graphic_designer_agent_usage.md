@@ -1,8 +1,8 @@
-# Graphic Designer Agent Usage
+﻿# Graphic Designer Agent Usage
 
 ## Purpose
 
-`graphic_designer` is the project custom agent for BangBang Survivor graphics work.
+`graphic_designer` is the project custom agent for Escape! zombie school graphics work.
 
 Use it for:
 
@@ -18,11 +18,11 @@ Use it for:
 
 The agent configuration lives here:
 
-`F:\2.The_Weekend_Work\codex_project\BangBang_survivor\.codex\agents\graphic-designer.toml`
+`F:\2.The_Weekend_Work\codex_project\Escape_zombie_school\.codex\agents\graphic-designer.toml`
 
 The working documents, review notes, asset specs, and graphics records live here:
 
-`F:\2.The_Weekend_Work\codex_project\BangBang_survivor\Graphic_designer`
+`F:\2.The_Weekend_Work\codex_project\Escape_zombie_school\Graphic_designer`
 
 So the agent itself cannot live directly inside `Graphic_designer/` if we follow the current OpenAI Codex custom-agent location rule. `Graphic_designer/` is the role workspace, not the Codex agent configuration folder.
 

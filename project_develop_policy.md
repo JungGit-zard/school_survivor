@@ -1,8 +1,8 @@
-# BangBang Survivor Project Development Policy
+﻿# Escape! zombie school Project Development Policy
 
 ## Policy Authority
 
-- This document is the highest-priority project policy for BangBang Survivor.
+- This document is the highest-priority project policy for Escape! zombie school.
 - Any non-empty rule written in this document is mandatory for project work.
 - When this document conflicts with `AGENTS.md`, role workspace notes, planning documents, or previous project notes, follow this document first.
 - If this document conflicts with the user's latest explicit request, stop and explain the conflict before changing files.
@@ -15,7 +15,7 @@
 
 ## 기록 규칙
 
-- 이 문서에 적힌 비어 있지 않은 항목은 BangBang Survivor 프로젝트의 필수 규칙으로 취급한다.
+- 이 문서에 적힌 비어 있지 않은 항목은 Escape! zombie school 프로젝트의 필수 규칙으로 취급한다.
 - 다른 문서와 충돌하면 이 문서를 우선한다.
 - 새 규칙을 추가할 때는 가능한 한 짧고 명확하게 작성한다.
 

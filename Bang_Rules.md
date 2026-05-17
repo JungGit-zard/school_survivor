@@ -1,5 +1,5 @@
-# Bang_Rules.md
-> **이 문서는 BangBang Survivor 프로젝트의 최상위 정책 문서입니다.**
+﻿# Bang_Rules.md
+> **이 문서는 Escape! zombie school 프로젝트의 최상위 정책 문서입니다.**
 > 기획·개발·디자인 작업 시 반드시 이 문서를 먼저 참조하고, 내용에 위배되는 수치·설계를 사용하지 마십시오.
 
 ---
@@ -118,7 +118,7 @@
 ## 10. 디렉터리 구조 요약 (Quick Reference)
 
 ```
-BangBang_survivor/
+Escape_zombie_school/
 ├── Bang_Rules.md              ← 이 문서 (최우선 참조)
 ├── Planner/                   ← 기획 문서
 ├── Graphic_designer/          ← 비주얼 가이드

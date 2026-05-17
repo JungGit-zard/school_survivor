@@ -1,10 +1,10 @@
-# Git Branch Addresses - 2026-04-27
+﻿# Git Branch Addresses - 2026-04-27
 
 ## Repository
 
 - GitHub repository: https://github.com/JungGit-zard/school_survivor
 - HTTPS clone URL: https://github.com/JungGit-zard/school_survivor.git
-- Local repository path: `F:/2.The_Weekend_Work/codex_project/BangBang_survivor`
+- Local repository path: `F:/2.The_Weekend_Work/codex_project/Escape_zombie_school`
 
 ## Current Working Branch
 
