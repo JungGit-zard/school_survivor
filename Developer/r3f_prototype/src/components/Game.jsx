@@ -1,7 +1,7 @@
-import { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useGameStore } from '../store/useGameStore.js'
+import { STAGE_DURATION_SEC } from '../lib/stageConfig.js'
 import { playerPos } from '../lib/refs.js'
 import Player from './Player.jsx'
 import Floor from './Floor.jsx'
@@ -17,12 +17,14 @@ export default function Game() {
   const tickTime   = useGameStore((s) => s.tickTime)
   const phase      = useGameStore((s) => s.phase)
   const clearStage = useGameStore((s) => s.clearStage)
+  const checkSurvivalMilestone = useGameStore((s) => s.checkSurvivalMilestone)
 
   useFrame((_, delta) => {
     if (phase === 'playing') {
       tickTime(delta * 1000)
+      checkSurvivalMilestone()
       // getState()로 최신 값 읽어 stale closure 방지
-      if (useGameStore.getState().elapsedMs >= 5 * 60 * 1000) {
+      if (useGameStore.getState().elapsedMs >= STAGE_DURATION_SEC * 1000) {
         clearStage()
       }
     }

@@ -12,6 +12,13 @@ const INITIAL_PLAYER = {
 
 const GOLD_STORAGE_KEY = 'school_survivor:goldTotal'
 
+export const SURVIVAL_MILESTONES = [
+  { atMs: 60_000, gold: 1, label: '1분 생존 보너스' },
+  { atMs: 180_000, gold: 3, label: '3분 돌파 보너스' },
+  { atMs: 240_000, gold: 4, label: '보스 조우 보너스' },
+  { atMs: 300_000, gold: 8, label: '학교 탈출 보너스' },
+]
+
 function loadGoldTotal() {
   if (typeof localStorage === 'undefined') return 0
   const raw = localStorage.getItem(GOLD_STORAGE_KEY)
@@ -48,11 +55,14 @@ export const useGameStore = create(
     player:      { ...INITIAL_PLAYER },
     weapons:     { ...INITIAL_WEAPONS },
     phase:       'playing',   // 'playing' | 'paused' | 'levelup' | 'gameover' | 'cleared'
+    pauseSource: null,        // 'manual' | 'auto' | null
     elapsedMs:   0,
     bossSpawned: false,
     gameKey:     0,
     goldSession: 0,
     goldTotal:   loadGoldTotal(),
+    survivalMilestonesHit: [],
+    recentMilestone: null,
     pendingLevelUps: 0,
     levelUpChoiceSerial: 0,
 
@@ -64,7 +74,7 @@ export const useGameStore = create(
       const { player } = get()
       if (player.invulnerable) return
       const hp = Math.max(0, player.hp - amount)
-      if (hp <= 0) { set({ player: { ...player, hp }, phase: 'gameover' }); return }
+      if (hp <= 0) { set({ player: { ...player, hp }, phase: 'gameover', pauseSource: null }); return }
       set({ player: { ...player, hp, invulnerable: true } })
       // 무적 해제는 Player.jsx의 useFrame에서 처리한다. setTimeout을 쓰지 않는다.
     },
@@ -106,11 +116,44 @@ export const useGameStore = create(
       set({ goldSession: goldSession + amount, goldTotal: nextTotal })
     },
 
+    checkSurvivalMilestone: () => {
+      const s = get()
+      const earned = SURVIVAL_MILESTONES.filter(
+        (milestone) => s.elapsedMs >= milestone.atMs && !s.survivalMilestonesHit.includes(milestone.atMs),
+      )
+      if (earned.length === 0) return
+
+      const gold = earned.reduce((sum, milestone) => sum + milestone.gold, 0)
+      const nextTotal = s.goldTotal + gold
+      saveGoldTotal(nextTotal)
+      set({
+        goldSession: s.goldSession + gold,
+        goldTotal: nextTotal,
+        survivalMilestonesHit: [
+          ...s.survivalMilestonesHit,
+          ...earned.map((milestone) => milestone.atMs),
+        ],
+        recentMilestone: earned[earned.length - 1],
+      })
+    },
+
+    clearMilestone: () => set({ recentMilestone: null }),
+
     resumeFromLevelup: () => set((s) => finishLevelupState(s)),
 
+    pauseGame: (source = 'manual') => set((s) => {
+      if (s.phase !== 'playing') return {}
+      return { phase: 'paused', pauseSource: source }
+    }),
+
+    resumeGame: () => set((s) => {
+      if (s.phase !== 'paused') return {}
+      return { phase: 'playing', pauseSource: null }
+    }),
+
     togglePause: () => set((s) => {
-      if (s.phase === 'playing') return { phase: 'paused' }
-      if (s.phase === 'paused') return { phase: 'playing' }
+      if (s.phase === 'playing') return { phase: 'paused', pauseSource: 'manual' }
+      if (s.phase === 'paused') return { phase: 'playing', pauseSource: null }
       return {}
     }),
 
@@ -146,7 +189,7 @@ export const useGameStore = create(
 
     // 보스
     spawnBoss: () => set({ bossSpawned: true }),
-    clearStage: () => set({ phase: 'cleared' }),
+    clearStage: () => set({ phase: 'cleared', pauseSource: null }),
 
     // 게임 리셋. gameKey를 올려 Physics 트리를 새로 마운트한다.
     resetGame: () => {
@@ -155,10 +198,13 @@ export const useGameStore = create(
         player:      { ...INITIAL_PLAYER },
         weapons:     { ...INITIAL_WEAPONS },
         phase:       'playing',
+        pauseSource: null,
         elapsedMs:   0,
         bossSpawned: false,
         gameKey:     s.gameKey + 1,
         goldSession: 0,
+        survivalMilestonesHit: [],
+        recentMilestone: null,
         pendingLevelUps: 0,
         levelUpChoiceSerial: s.levelUpChoiceSerial + 1,
       }))

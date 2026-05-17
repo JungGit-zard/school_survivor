@@ -49,4 +49,27 @@ describe('useGameStore XP and reset behavior', () => {
     expect(enemyBodies.size).toBe(0)
     expect(joystickDir).toEqual({ x: 0, z: 0, active: false })
   })
+
+  it('생존 마일스톤은 한 번만 골드를 지급한다', () => {
+    useGameStore.getState().tickTime(60_000)
+    useGameStore.getState().checkSurvivalMilestone()
+    useGameStore.getState().checkSurvivalMilestone()
+
+    const state = useGameStore.getState()
+    expect(state.goldSession).toBe(1)
+    expect(state.survivalMilestonesHit).toEqual([60_000])
+    expect(state.recentMilestone.label).toBe('1분 생존 보너스')
+  })
+
+  it('자동 일시정지는 출처를 기록하고 이어하기에서 해제한다', () => {
+    useGameStore.getState().pauseGame('auto')
+
+    expect(useGameStore.getState().phase).toBe('paused')
+    expect(useGameStore.getState().pauseSource).toBe('auto')
+
+    useGameStore.getState().resumeGame()
+
+    expect(useGameStore.getState().phase).toBe('playing')
+    expect(useGameStore.getState().pauseSource).toBeNull()
+  })
 })
