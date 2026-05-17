@@ -51,6 +51,10 @@ function pickGoldDropPos() {
 const BASE_COL_Y = 0.24
 const SPAWN_MIN_RADIUS = 8.5
 const SPAWN_MAX_RADIUS = 12.5
+const OPENING_PRESSURE_DURATION_SEC = 20
+const OPENING_PRESSURE_MIN_COUNT = 3
+const OPENING_PRESSURE_MIN_RADIUS = 5.4
+const OPENING_PRESSURE_MAX_RADIUS = 6.6
 const RANGED_SPAWN_MIN_RADIUS = 11.5
 const RANGED_SPAWN_MAX_RADIUS = 15.5
 
@@ -68,6 +72,13 @@ function randomSpawnPos(type) {
   const offset = randomPointOnSpawnRing(SPAWN_MIN_RADIUS, SPAWN_MAX_RADIUS)
   const px    = playerPos.x, pz = playerPos.z
   const y     = BASE_COL_Y * (stats?.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
+  return [px + offset.x, y, pz + offset.z]
+}
+
+function openingPressureSpawnPos() {
+  const offset = randomPointOnSpawnRing(OPENING_PRESSURE_MIN_RADIUS, OPENING_PRESSURE_MAX_RADIUS)
+  const px = playerPos.x, pz = playerPos.z
+  const y = BASE_COL_Y * (ENEMY_STATS.E01?.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
   return [px + offset.x, y, pz + offset.z]
 }
 
@@ -122,6 +133,12 @@ const BURST_EVENTS = [
   { sec: 240, type: 'B01', count:  1 },  // 보스 등장
   { sec: 270, type: 'E05', count:  5 },
 ]
+
+export function getOpeningPressureShortage(enemies, sec) {
+  if (sec > OPENING_PRESSURE_DURATION_SEC) return 0
+  const aliveOpeningPressure = enemies.filter((enemy) => enemy.openingPressure && enemy.type !== 'B01').length
+  return Math.max(0, OPENING_PRESSURE_MIN_COUNT - aliveOpeningPressure)
+}
 
 function pickTypeByWeight(weights) {
   const r = Math.random()
@@ -241,6 +258,20 @@ export default function Enemies() {
     maintainTimerRef.current -= delta * 1000
     if (maintainTimerRef.current > 0) return
     maintainTimerRef.current = 600
+
+    const openingShortage = getOpeningPressureShortage(enemiesRef.current, sec)
+    if (openingShortage > 0) {
+      const newBatch = []
+      for (let i = 0; i < openingShortage; i++) {
+        newBatch.push({
+          id: ++_uid,
+          type: 'E01',
+          pos: openingPressureSpawnPos(),
+          openingPressure: true,
+        })
+      }
+      addEnemies(newBatch)
+    }
 
     const currentPhase = WAVE_PHASES.findLast((p) => sec >= p.start) ?? WAVE_PHASES[0]
 

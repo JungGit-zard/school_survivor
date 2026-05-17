@@ -272,6 +272,12 @@ This section records the new accepted values after the 2026-05-06 full re-planni
 - Each milestone is awarded once per run.
 - Milestone gold increases both session gold and persistent `school_survivor:goldTotal`.
 
+### Opening Pressure Direction
+
+- During the first 20 seconds, maintain at least 3 close-range E01 zombies tagged as opening pressure.
+- Opening pressure zombies spawn around 5.4-6.6 units from the player so the player immediately sees zombies approaching.
+- This is presentation pressure, not a new enemy type; it should not bypass Stage 1 chase-only monster rules.
+
 ---
 
 ## 2026-05-09 Dual Drop System Addendum
