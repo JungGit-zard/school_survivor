@@ -4,3 +4,5 @@ dist/
 
 .claude/
 .codex/config.toml
+
+.compound-engineering/*.local.yaml

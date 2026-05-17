@@ -1,7 +1,7 @@
 ﻿import { Canvas } from '@react-three/fiber'
 import TitleScene3D from './TitleScene3D.jsx'
 
-export default function TitleScreen({ onStart, onCoinShop }) {
+export default function TitleScreen({ onStart }) {
   return (
     <div style={styles.root}>
       <Canvas
@@ -27,9 +27,6 @@ export default function TitleScreen({ onStart, onCoinShop }) {
       <div style={styles.actions}>
         <button type="button" style={styles.primaryButton} onClick={onStart}>
           게임 시작
-        </button>
-        <button type="button" style={styles.secondaryButton} onClick={onCoinShop}>
-          코인상점
         </button>
       </div>
     </div>
@@ -110,7 +107,6 @@ const styles = {
     bottom: 34,
     display: 'flex',
     flexDirection: 'column',
-    gap: 10,
   },
   primaryButton: {
     height: 54,
@@ -122,16 +118,5 @@ const styles = {
     fontWeight: 900,
     cursor: 'pointer',
     boxShadow: '0 5px 0 #050209, 0 0 16px rgba(89,199,255,0.45)',
-  },
-  secondaryButton: {
-    height: 48,
-    border: '2px solid rgba(248,247,242,0.9)',
-    borderRadius: 8,
-    background: 'rgba(5,2,9,0.48)',
-    color: '#f8f7f2',
-    fontSize: 17,
-    fontWeight: 800,
-    cursor: 'pointer',
-    boxShadow: '0 4px 0 rgba(5,2,9,0.8)',
   },
 }

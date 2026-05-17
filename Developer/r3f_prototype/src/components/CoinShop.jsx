@@ -42,7 +42,7 @@ export default function CoinShop({ onBack }) {
       </div>
 
       <button type="button" style={styles.backButton} onClick={onBack}>
-        돌아가기
+        결과로 돌아가기
       </button>
     </div>
   )
