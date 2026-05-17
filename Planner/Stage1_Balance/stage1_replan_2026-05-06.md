@@ -60,7 +60,7 @@
 | `stunGun` | 전기 스턴건 | Body bolt 체인 | 18 | 3000ms | 체인2 | 잠김 |
 | `onigiri` | 오니기리 튕김 | Knife/Bouncer | 14 | 2000ms | 4바운스 4.5 | 잠김 |
 
-> 2026-05-16 CEO 리뷰: `guidedMissile`, `starlink` 2종 제거. 9→7 무기로 축소. flask가 splash 정체성, bell이 omnidirectional AoE 정체성 단독 차지.
+> 2026-05-17 확정: 1차 서비스 무기 총수는 **9종 유지**. 기본 카드 풀에 7종이 즉시 등장하고, `guidedMissile`·`starlink` 2종은 계정 누적 해금으로 동일 카드 풀에 진입한다. flask는 splash 정체성, bell은 omnidirectional AoE 정체성을 단독 차지. 2026-05-16 "9→7 축소" 표기는 폐기.
 
 > **Lv.1 시작 데미지 인하 사유**: 기존 9/22/10/32/14/22/16/28/18 은 Vampire Survivors Whip 8–12 기준 대비 일부 무기가 비대칭 강함. 데미지 공식상 5분간 4단계 성장을 보장하기 위해 기본값을 한 단계 낮추고, 레벨업당 증가량을 명시한다.
 
@@ -81,6 +81,8 @@
 > 1차 서비스에서는 단순화: **레벨업 시 등장하는 "해금" 카드**를 통한 1단계 해금 + 시간 기반 자동 노출.
 > 향후 도감 / 업적 / 캐릭터 해금이 추가되면 보강.
 
+> 2026-05-17 확정: 본 표의 카드 게이트는 정본 `Planner/Weapons/weapon_upgrade_flow_and_unlock_plan_2026-05-14.md` §2와 일치시킨다.
+
 | Key | 해금 트리거 (1차) | 추후 도감 조건 (참고) |
 |---|---|---|
 | `schoolBag` | Lv.2부터 카드 등장 | – |
@@ -88,9 +90,11 @@
 | `scienceFlask` | Lv.4부터 카드 등장 | 누적 100마리 처치 |
 | `bell` | Lv.4부터 카드 등장 | 5분 1회 클리어 |
 | `stunGun` | Lv.6부터 카드 등장 | 누적 500마리 처치 |
-| `onigiri` | Lv.6부터 카드 등장 (2026-05-16 Lv.8→Lv.6 이동) | 점심 도시락 5회 획득 |
-| (예약) `compass` | Lv.10+ | 추후 추가 |
-| (예약) `umbrella` | Lv.10+ | 추후 추가 |
+| `onigiri` | Lv.8부터 카드 등장 (2026-05-17 정정: Lv.6 표기 폐기, weapon_upgrade_flow 정본 따름) | 점심 도시락 5회 획득 |
+| `guidedMissile` | 계정 누적 해금 후 Lv.6부터 카드 등장 (1차안) | 메타프로그레션 도입 시 확정 |
+| `starlink` | 계정 누적 해금 후 Lv.8부터 카드 등장 (1차안) | 메타프로그레션 도입 시 확정 |
+| (예약) `compassBlade` | Lv.3+ | `weapon_expansion_unlock_plan_2026-05-10.md` §7 |
+| (예약) `umbrellaGuard` | Lv.3+ | `weapon_expansion_unlock_plan_2026-05-10.md` §7 |
 
 ### 2-4. 추가 예정 무기 (구현 임의 / 1차 후보)
 > "무기는 진행에 따라 추가해금되는 임의 구현" — 1차 슬롯 확보용.

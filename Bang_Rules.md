@@ -197,7 +197,7 @@ This section records the current accepted implementation values after the 2026-0
 ## 2026-05-06 Stage 1 Re-balance Addendum
 
 This section records the new accepted values after the 2026-05-06 full re-planning.
-근거: `Planner/stage1_replan_2026-05-06.md` and `Planner/Ref_Vampire_GameDesign/`.
+근거: `Planner/Stage1_Balance/stage1_replan_2026-05-06.md` and `Planner/Ref_Vampire_GameDesign/`.
 
 ### Re-balance Principle
 
@@ -216,7 +216,7 @@ This section records the new accepted values after the 2026-05-06 full re-planni
 | `stunGun` | 18 | 3000 ms | 38 |
 | `onigiri` | 14 | 2000 ms | 34 |
 
-> 2026-05-16 CEO 리뷰: `guidedMissile`, `starlink` 2종 제거 (flask/bell과 역할 중복). 9→7 무기로 축소.
+> 2026-05-17 확정: 1차 서비스 무기 총수는 **9종 유지**. 기본 카드 풀에 7종(`pencilThrow`, `schoolBag`, `tumbler`, `scienceFlask`, `bell`, `stunGun`, `onigiri`)이 즉시 등장하고, `guidedMissile`·`starlink` 2종은 계정 누적 조건 충족 시 해금되어 카드 풀에 진입한다 (`Planner/current_game_rules.md` §6 참조). 2026-05-16 CEO 리뷰의 "9→7 축소" 표현은 폐기.
 
 ### New Enemy Values
 
@@ -242,13 +242,24 @@ This section records the new accepted values after the 2026-05-06 full re-planni
 - Max weapon level: Lv.5
 - Stage 1 target end-state: 2–3 weapons at Lv.5
 
-### Weapon Unlock Gating (1st service — 2026-05-16 CEO 리뷰 후)
+### Weapon Unlock Gating (1st service — 2026-05-17 확정)
 
-- Schoolbag / Tumbler: card visible from Lv.2.
-- Flask / Bell: card visible from Lv.4.
-- StunGun / **Onigiri**: card visible from Lv.6.
-- (Lv.8 tier 제거 — 9→7 무기 축소에 따라 unlock 게이트도 3단으로 단순화)
-- Reserved (planned): `compass`, `umbrella`, `eraser`, `notebook`.
+근거: `Planner/Weapons/weapon_upgrade_flow_and_unlock_plan_2026-05-14.md` §2 (4단 게이트 정본).
+
+- `pencilThrow`: 시작 지급.
+- `schoolBag` / `tumbler`: card visible from Lv.2.
+- `scienceFlask` / `bell`: card visible from Lv.4.
+- `stunGun`: card visible from Lv.6.
+- `onigiri`: card visible from Lv.8.
+- `guidedMissile` / `starlink`: 계정 누적 해금 (메타프로그레션 도입 시 트리거 확정 — `Planner/current_game_rules.md` §6). 해금 후 카드 등장 레벨은 1차안 Lv.6/Lv.8로 두되 메타프로그레션 기획에서 최종 결정.
+- 신규 무기 10종(`compassBlade`, `umbrellaGuard`, `eraserBomb`, `notebookBoomerang`, `chalkLine`, `deskPush`, `lockerDoor`, `cleaningMop`, `broadcastSpeaker`, `fireExtinguisher`)은 누적 해금 카탈로그. 게이트는 `Planner/Weapons/weapon_expansion_unlock_plan_2026-05-10.md` §7 표 사용.
+
+### Weapon Unlock Condition Policy (2026-05-17 확정)
+
+- 신규 무기(누적 해금 카탈로그)의 해금 조건은 **OR 원칙**으로 작성한다.
+- 실력 조건(예: 한 판 처치 120, 보스 처치 1회)과 누적 조건(예: 누적 처치 300, 누적 클리어 5회) 둘 중 하나만 만족하면 해금.
+- 목적: 실력이 부족한 플레이어도 반복 플레이를 통해 동일 카탈로그에 접근 가능.
+- 정본 표: `Planner/Weapons/weapon_expansion_unlock_plan_2026-05-10.md` §7 "대체 조건" 절.
 
 ---
 
@@ -272,17 +283,23 @@ This section records the new accepted values after the 2026-05-06 full re-planni
 - Each milestone is awarded once per run.
 - Milestone gold increases both session gold and persistent `school_survivor:goldTotal`.
 
-### Opening Pressure Direction
+### Opening Single-Type Density
 
-- During the first 20 seconds, maintain at least 3 close-range E01 zombies tagged as opening pressure.
-- Opening pressure zombies spawn around 5.4-6.6 units from the player so the player immediately sees zombies approaching.
-- This is presentation pressure, not a new enemy type; it should not bypass Stage 1 chase-only monster rules.
+- Before 50 seconds, the opening zombie mix must stay as E01 only.
+- In that one-type opening section, only E01 density is doubled: wave target 12 -> 24, 0s burst 8 -> 16, 30s burst 6 -> 12.
+- Other enemy mix and later wave values should remain unchanged unless separately requested.
+
+### Upgrade Choice UI Constraint
+
+- Level-up weapon upgrade choices may show at most one pencil upgrade card at a time.
+- Pencil upgrade cards are `pencilDamage`, `pencilCount`, and `pencilPierce`.
+- This only limits simultaneous UI choices; it does not remove pencil upgrades from the upgrade pool.
 
 ---
 
 ## 2026-05-09 Dual Drop System Addendum
 
-근거: `Planner/dual_drop_system_2026-05-08.md`.
+근거: `Planner/Rewards_Drops/dual_drop_system_2026-05-08.md`.
 
 ### Two Drop Currencies
 
