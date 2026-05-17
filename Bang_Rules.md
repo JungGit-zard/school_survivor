@@ -252,6 +252,28 @@ This section records the new accepted values after the 2026-05-06 full re-planni
 
 ---
 
+## 2026-05-17 Commuter-Friendly Session Addendum
+
+### Stage Duration Source
+
+- Stage 1 clear timing remains 300 seconds (5 minutes).
+- Code must read the duration from `Developer/r3f_prototype/src/lib/stageConfig.js` as `STAGE_DURATION_SEC = 300`.
+- Avoid reintroducing hard-coded `5 * 60 * 1000` checks in gameplay loop code.
+
+### Survival Milestone Gold Bonus
+
+| Time | Bonus | Label |
+| --- | ---: | --- |
+| 60s | +1 gold | 1분 생존 보너스 |
+| 180s | +3 gold | 3분 돌파 보너스 |
+| 240s | +4 gold | 보스 조우 보너스 |
+| 300s | +8 gold | 학교 탈출 보너스 |
+
+- Each milestone is awarded once per run.
+- Milestone gold increases both session gold and persistent `school_survivor:goldTotal`.
+
+---
+
 ## 2026-05-09 Dual Drop System Addendum
 
 근거: `Planner/dual_drop_system_2026-05-08.md`.

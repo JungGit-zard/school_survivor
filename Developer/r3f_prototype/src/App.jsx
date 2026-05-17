@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
 import { KeyboardControls } from '@react-three/drei'
@@ -27,6 +27,27 @@ export default function App() {
   const phase = useGameStore((s) => s.phase)
   const resetGame = useGameStore((s) => s.resetGame)
   const goldTotal = useGameStore((s) => s.goldTotal)
+
+  useEffect(() => {
+    if (screen !== 'game') return
+
+    const pauseIfPlaying = () => {
+      const { phase, pauseGame } = useGameStore.getState()
+      if (phase === 'playing') pauseGame('auto')
+    }
+    const handleVisibility = () => {
+      if (document.hidden || document.visibilityState === 'hidden') pauseIfPlaying()
+    }
+
+    document.addEventListener('visibilitychange', handleVisibility)
+    window.addEventListener('pagehide', pauseIfPlaying)
+    window.addEventListener('blur', pauseIfPlaying)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility)
+      window.removeEventListener('pagehide', pauseIfPlaying)
+      window.removeEventListener('blur', pauseIfPlaying)
+    }
+  }, [screen])
 
   const startGame = () => {
     resetGame()
@@ -76,6 +97,8 @@ export default function App() {
 function TitleScreen({ onStart, onCoinShop }) {
   return (
     <div style={styles.blankScreen}>
+      <div style={styles.titleText}>좀비락교 탈출</div>
+      <div style={styles.subtitleText}>5분만 버티면, 교문이 열린다</div>
       <button type="button" style={styles.primaryButton} onClick={onStart}>
         게임 시작
       </button>
@@ -122,6 +145,20 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: 14,
+  },
+  titleText: {
+    color: '#111111',
+    fontSize: 34,
+    fontWeight: 900,
+    letterSpacing: 0,
+    marginBottom: 4,
+  },
+  subtitleText: {
+    color: '#333333',
+    fontSize: 16,
+    fontWeight: 700,
+    letterSpacing: 0,
+    marginBottom: 20,
   },
   primaryButton: {
     width: 180,

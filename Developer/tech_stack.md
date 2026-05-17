@@ -292,6 +292,16 @@ npm run preview     # 빌드 결과 로컬 검증
 
 ---
 
+## 2026-05-17 Commuter-Friendly Implementation Notes
+
+- `Developer/r3f_prototype/src/lib/stageConfig.js` owns `STAGE_DURATION_SEC = 300` for Stage 1 clear timing.
+- `useGameStore` now tracks `pauseSource`, `survivalMilestonesHit`, and `recentMilestone`.
+- `pauseGame(source)` and `resumeGame()` distinguish manual pause from auto-pause caused by tab hide, page hide, or window blur.
+- Survival milestone bonuses grant persistent gold at 60s, 180s, 240s, and 300s.
+- `HUD.jsx` displays milestone reward toast and the 237s-240s boss countdown.
+
+---
+
 ## 9. 의도적 미사용 / Anti-patterns
 
 이 프로젝트에서 의도적으로 **쓰지 않는** 것들:

@@ -138,14 +138,19 @@ export default function HUD() {
   const player    = useGameStore((s) => s.player)
   const weapons   = useGameStore((s) => s.weapons)
   const phase     = useGameStore((s) => s.phase)
+  const pauseSource = useGameStore((s) => s.pauseSource)
   const elapsed   = useGameStore((s) => s.elapsedMs)
+  const bossSpawned = useGameStore((s) => s.bossSpawned)
   const goldSession = useGameStore((s) => s.goldSession)
   const goldTotal   = useGameStore((s) => s.goldTotal)
+  const recentMilestone = useGameStore((s) => s.recentMilestone)
+  const clearMilestone = useGameStore((s) => s.clearMilestone)
   const levelUpChoiceSerial = useGameStore((s) => s.levelUpChoiceSerial)
   const applyUpgrade      = useGameStore((s) => s.applyUpgrade)
   const resumeFromLevelup = useGameStore((s) => s.resumeFromLevelup)
   const resetGame         = useGameStore((s) => s.resetGame)
   const togglePause       = useGameStore((s) => s.togglePause)
+  const resumeGame        = useGameStore((s) => s.resumeGame)
 
   const mins = String(Math.floor(elapsed / 60000)).padStart(2, '0')
   const secs = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, '0')
@@ -187,6 +192,19 @@ export default function HUD() {
 
   // 자 쿨다운 비율. 1은 준비 완료, 0은 쿨다운 시작 직후다.
   const [bagReady, setBagReady] = useState(1)
+  const bossWarning = useMemo(() => {
+    if (bossSpawned || phase !== 'playing') return null
+    const elapsedSec = elapsed / 1000
+    if (elapsedSec < 237 || elapsedSec >= 240) return null
+    return Math.max(1, Math.ceil(240 - elapsedSec))
+  }, [bossSpawned, elapsed, phase])
+
+  useEffect(() => {
+    if (!recentMilestone) return undefined
+    const timer = setTimeout(clearMilestone, 2000)
+    return () => clearTimeout(timer)
+  }, [clearMilestone, recentMilestone])
+
   useEffect(() => {
     let raf
     const poll = () => {
@@ -205,6 +223,8 @@ export default function HUD() {
     style.textContent = `
       @keyframes hpBlink { 0%,100%{opacity:1} 50%{opacity:0.25} }
       @keyframes vignettePulse { 0%,100%{opacity:0.40} 50%{opacity:0.65} }
+      @keyframes milestonePop { 0%{transform:translate(-50%,-8px);opacity:0} 16%,82%{transform:translate(-50%,0);opacity:1} 100%{transform:translate(-50%,-8px);opacity:0} }
+      @keyframes bossPulse { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:0.95} 50%{transform:translate(-50%,-50%) scale(1.06);opacity:1} }
     `
     if (!document.getElementById('hud-keyframes')) document.head.appendChild(style)
     return () => document.getElementById('hud-keyframes')?.remove()
@@ -228,6 +248,18 @@ export default function HUD() {
           background: 'radial-gradient(ellipse at center, transparent 40%, rgba(200,0,0,0.55) 100%)',
           animation: 'vignettePulse 0.8s ease-in-out infinite',
         }} />
+      )}
+      {recentMilestone && (
+        <div style={styles.milestoneToast}>
+          <span style={styles.milestoneLabel}>{recentMilestone.label}</span>
+          <span style={styles.milestoneGold}>+{recentMilestone.gold} 골드</span>
+        </div>
+      )}
+      {bossWarning != null && (
+        <div style={styles.bossWarning}>
+          <div style={styles.bossWarningLabel}>보스 출현</div>
+          <div style={styles.bossWarningCount}>{bossWarning}</div>
+        </div>
       )}
       {/* Top bar */}
       <div style={styles.topBar}>
@@ -350,8 +382,15 @@ export default function HUD() {
       {phase === 'paused' && (
         <div style={styles.overlay}>
           <div style={styles.pausePanel}>
-            <h2 style={styles.modalTitle}>PAUSED</h2>
-            <button style={styles.restartBtn} onClick={togglePause}>계속하기</button>
+            <h2 style={styles.modalTitle}>
+              {pauseSource === 'auto' ? '자리를 비우셨네요' : 'PAUSED'}
+            </h2>
+            {pauseSource === 'auto' && (
+              <p style={styles.pauseMessage}>돌아오면 바로 이어서 플레이할 수 있어요.</p>
+            )}
+            <button style={styles.restartBtn} onClick={resumeGame}>
+              {pauseSource === 'auto' ? '이어하기' : '계속하기'}
+            </button>
           </div>
         </div>
       )}
@@ -397,6 +436,57 @@ const styles = {
   topBar: {
     position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
     display: 'flex', gap: 24, alignItems: 'center',
+  },
+  milestoneToast: {
+    position: 'absolute',
+    top: 58,
+    left: '50%',
+    transform: 'translateX(-50%)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    background: 'rgba(26, 18, 8, 0.9)',
+    border: '1.5px solid #ffd040',
+    borderRadius: 8,
+    padding: '7px 12px',
+    boxShadow: '0 3px 10px rgba(0,0,0,0.45)',
+    animation: 'milestonePop 2s ease-in-out forwards',
+  },
+  milestoneLabel: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: 800,
+  },
+  milestoneGold: {
+    color: '#ffd040',
+    fontSize: 13,
+    fontWeight: 900,
+  },
+  bossWarning: {
+    position: 'absolute',
+    left: '50%',
+    top: '43%',
+    transform: 'translate(-50%, -50%)',
+    minWidth: 158,
+    textAlign: 'center',
+    background: 'rgba(42, 0, 8, 0.82)',
+    border: '2px solid #ff3048',
+    borderRadius: 10,
+    padding: '14px 18px',
+    boxShadow: '0 0 22px rgba(255, 48, 72, 0.45)',
+    animation: 'bossPulse 0.8s ease-in-out infinite',
+  },
+  bossWarningLabel: {
+    color: '#ffd8d8',
+    fontSize: 16,
+    fontWeight: 900,
+  },
+  bossWarningCount: {
+    color: '#ffffff',
+    fontSize: 48,
+    fontWeight: 900,
+    lineHeight: 1,
+    marginTop: 4,
   },
   timer: { color: '#fff', fontSize: 28, fontWeight: 700, textShadow: '0 2px 6px #000' },
   level: { color: '#ffd040', fontSize: 20, fontWeight: 700, textShadow: '0 2px 6px #000' },
@@ -473,6 +563,13 @@ const styles = {
   pausePanel: {
     background: 'rgba(20, 14, 32, 0.82)', border: '2px solid #8060c0',
     borderRadius: 12, padding: '28px 44px', textAlign: 'center',
+  },
+  pauseMessage: {
+    color: '#d8d0e8',
+    fontSize: 14,
+    lineHeight: 1.5,
+    margin: '-12px 0 20px',
+    maxWidth: 220,
   },
   choices: { display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' },
   choiceBtn: {
