@@ -43,6 +43,7 @@
 - CEO, product direction, technical strategy, business judgment, and high-level decision work must be performed and documented in `CEO/`.
 - Do not place role-specific planning, development, graphics, QA, or CEO records outside their assigned workspace folder unless the user explicitly asks for a different location.
 - If a task spans multiple roles, create or update a record in each relevant workspace folder.
+- `docs/solutions/` — documented solutions to past problems (bugs, best practices, architecture/design patterns, conventions), organized by category with YAML frontmatter (`module`, `tags`, `problem_type`). Relevant when implementing or debugging in documented areas.
 - For UI work, consider layout, readability, keyboard/mouse interaction, and mobile or desktop fit.
 - For gameplay work, consider player controls, feedback, state changes, difficulty, and failure cases.
 
