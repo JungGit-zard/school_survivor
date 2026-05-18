@@ -1,14 +1,14 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest'
-import { STORAGE_KEY, load, getLevel, getAllLevels, purchase, _resetForTests } from './passiveUpgrades.js'
+import { STORAGE_KEY, getLevel, getAllLevels, purchase, _resetForTests } from './passiveUpgrades.js'
 
 describe('passiveUpgrades storage layer', () => {
   beforeEach(() => {
     _resetForTests()
   })
 
-  it('빈 저장소에서 load()는 모든 카탈로그 키를 0으로 채워 반환한다', () => {
-    const all = load()
+  it('빈 저장소에서 getAllLevels()는 모든 카탈로그 키를 0으로 채워 반환한다', () => {
+    const all = getAllLevels()
     expect(all.magnet).toBe(0)
     expect(all.moveSpeed).toBe(0)
     expect(all.maxHp).toBe(0)

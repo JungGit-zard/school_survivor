@@ -2,7 +2,8 @@
 // CEO 락 범위: magnet / moveSpeed / maxHp / might / growth × Lv.3.
 // armor / cooldown / greed는 enabled:false로만 등록해 둔다. 2차 확장은 enabled 토글 + maxLevel 상향 한 줄로 가능.
 
-export const BASE_PRICES = [20, 45, 90, 160, 260]
+// MVP는 Lv.3까지만 다룬다. 2차로 Lv.4-5를 열 때 [160, 260]을 이어 붙이고 maxLevel을 5로 올린다.
+export const BASE_PRICES = [20, 45, 90]
 
 export const PASSIVE_CATALOG = {
   magnet: {
@@ -79,13 +80,12 @@ export function formatEffectLabel(id, currentLevel) {
   const entry = PASSIVE_CATALOG[id]
   if (!entry) return ''
   const currentEffect = entry.perLevel * currentLevel
-  const sign = entry.unit === '%' ? '+' : '+'
   if (currentLevel >= entry.maxLevel) {
-    return `${entry.label} ${sign}${currentEffect}${entry.unit}`
+    return `${entry.label} +${currentEffect}${entry.unit}`
   }
   const nextEffect = entry.perLevel * (currentLevel + 1)
   if (currentLevel === 0) {
-    return `${entry.label} ${sign}${nextEffect}${entry.unit}`
+    return `${entry.label} +${nextEffect}${entry.unit}`
   }
-  return `${entry.label} ${sign}${currentEffect}${entry.unit} → +${nextEffect}${entry.unit}`
+  return `${entry.label} +${currentEffect}${entry.unit} → +${nextEffect}${entry.unit}`
 }
