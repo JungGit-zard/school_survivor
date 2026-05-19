@@ -141,6 +141,10 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
         rb.current._enemyDead = true
         rb.current._enemyHit = null
         enemyBodies.delete(id)
+        // 본 런 처치 카운터 + 보스 처치 즉시 누적
+        const store = useGameStore.getState()
+        store.recordKill()
+        if (type === 'B01') store.recordBossKill()
         const t = rb.current?.translation()
         onDeath?.(id, {
           pos: t ? [t.x, t.y, t.z] : [...spawnPos],
