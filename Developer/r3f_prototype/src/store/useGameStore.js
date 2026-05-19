@@ -4,6 +4,14 @@ import { UPGRADE_EFFECTS, applyUpgradeToWeapon } from '../lib/upgrades.js'
 import { resetRuntimeRefs } from '../lib/refs.js'
 import { getAllLevels, purchase as purchasePassiveStorage } from '../lib/passiveUpgrades.js'
 import { setMagnetMultiplier } from '../lib/pickup.js'
+import {
+  incrementRecord as incrementPlayerRecord,
+  setBestIfHigher as setBestPlayerRecord,
+  snapshot as snapshotPlayerRecords,
+  load as loadPlayerRecords,
+} from '../lib/playerRecords.js'
+import { evaluateUnlocks, isStarter } from '../lib/weaponCatalog.js'
+import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
 
 const BASE_PLAYER = {
   hp: 100, maxHp: 100,
@@ -97,6 +105,9 @@ export const useGameStore = create(
     gameKey:     0,
     goldSession: 0,
     goldTotal:   loadGoldTotal(),
+    runKills:    0,
+    runLevelUps: 0,
+    newlyUnlockedWeaponIds: [],
     survivalMilestonesHit: [],
     recentMilestone: null,
     pendingLevelUps: 0,
@@ -110,7 +121,11 @@ export const useGameStore = create(
       const { player } = get()
       if (player.invulnerable) return
       const hp = Math.max(0, player.hp - amount)
-      if (hp <= 0) { set({ player: { ...player, hp }, phase: 'gameover', pauseSource: null }); return }
+      if (hp <= 0) {
+        set({ player: { ...player, hp }, phase: 'gameover', pauseSource: null })
+        get()._onRunEnd('gameover')
+        return
+      }
       set({ player: { ...player, hp, invulnerable: true } })
       // 무적 해제는 Player.jsx의 useFrame에서 처리한다. setTimeout을 쓰지 않는다.
     },
@@ -123,7 +138,7 @@ export const useGameStore = create(
 
     // 경험치와 레벨업
     gainXp: (amount) => {
-      const { player, pendingLevelUps, growthMultiplier } = get()
+      const { player, pendingLevelUps, growthMultiplier, runLevelUps } = get()
       let { xp, xpToNext, level } = player
       xp += Math.floor(amount * growthMultiplier)
       let gainedLevelUps = 0
@@ -137,11 +152,60 @@ export const useGameStore = create(
         set({
           player: { ...player, xp, xpToNext, level },
           pendingLevelUps: pendingLevelUps + gainedLevelUps,
+          runLevelUps: runLevelUps + gainedLevelUps,
           phase: 'levelup',
         })
         return
       }
       set({ player: { ...player, xp } })
+    },
+
+    // 본 런 처치 카운터 +1. 인자 없는 단순 signature — per-type 카운터가 필요해지면 그때 분기 추가.
+    recordKill: () => set((s) => ({ runKills: s.runKills + 1 })),
+
+    // 보스 처치는 mid-run에 즉시 cumulative에 누적. B01은 한 런에 1회 이하이므로 안전.
+    recordBossKill: () => {
+      incrementPlayerRecord('bossKills', 1)
+    },
+
+    // 결과창 진입 1회: 본 런 카운터를 평가 → diff → unlock 저장 → store 알림 → cumulative snapshot.
+    // 호출 사이트: damagePlayer HP≤0 분기, clearStage.
+    // 순서가 정확성을 결정: 평가는 snapshot 전, 합본에 본 런 카운터 포함, snapshot은 평가 후.
+    _onRunEnd: (phaseName) => {
+      const s = get()
+      const runSurvivalSeconds = Math.floor(s.elapsedMs / 1000)
+
+      // 1. 합본 (snapshot 전). bossKills는 mid-run에 이미 cumulative에 들어 있음.
+      const evalInput = {
+        ...loadPlayerRecords(),
+        runKills: s.runKills,
+        runGold: s.goldSession,
+        runLevelUps: s.runLevelUps,
+        runSurvivalSeconds,
+      }
+
+      // 2. 평가 → diff (starter 제외, 이미 unlock된 것 제외)
+      const nextUnlocked = evaluateUnlocks(evalInput)
+      const prevUnlocked = getAllUnlocked()
+      const diff = []
+      for (const id of nextUnlocked) {
+        if (isStarter(id)) continue
+        if (prevUnlocked.has(id)) continue
+        diff.push(id)
+      }
+      diff.forEach((id) => setWeaponUnlocked(id))
+
+      // 3. 평가 후 누적 snapshot
+      snapshotPlayerRecords({
+        runKills: s.runKills,
+        runGold: s.goldSession,
+        runLevelUps: s.runLevelUps,
+        runSurvivalSeconds,
+      })
+      setBestPlayerRecord('bestSurvivalSeconds', runSurvivalSeconds)
+      if (phaseName === 'cleared') incrementPlayerRecord('stage1Clears', 1)
+
+      set({ newlyUnlockedWeaponIds: Object.freeze(diff) })
     },
 
     gainGold: (amount) => {
@@ -244,7 +308,10 @@ export const useGameStore = create(
 
     // 보스
     spawnBoss: () => set({ bossSpawned: true }),
-    clearStage: () => set({ phase: 'cleared', pauseSource: null }),
+    clearStage: () => {
+      set({ phase: 'cleared', pauseSource: null })
+      get()._onRunEnd('cleared')
+    },
 
     // 게임 리셋. gameKey를 올려 Physics 트리를 새로 마운트한다.
     resetGame: () => {
@@ -261,6 +328,9 @@ export const useGameStore = create(
         bossSpawned: false,
         gameKey:     s.gameKey + 1,
         goldSession: 0,
+        runKills:    0,
+        runLevelUps: 0,
+        newlyUnlockedWeaponIds: [],
         survivalMilestonesHit: [],
         recentMilestone: null,
         pendingLevelUps: 0,
