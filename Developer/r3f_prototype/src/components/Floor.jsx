@@ -1,49 +1,35 @@
-﻿import { useMemo } from 'react'
-import * as THREE from 'three'
+/**
+ * Floor — 경계 벽(Physics) + 시각 바닥은 ClassroomFloor에 위임.
+ *
+ * 변경 내역:
+ *  - 구 회색 타일 + 그리드 라인 제거
+ *  - 경계 RigidBody 4개 유지 (플레이어·적 이탈 방지)
+ *  - 바닥 평면 RigidBody 유지 (플레이어 낙하 방지)
+ */
+
 import { RigidBody } from '@react-three/rapier'
+import ClassroomFloor from './ClassroomFloor.jsx'
 
 const TILE_SIZE = 4
 const MAP_SIZE  = 24   // tiles per side
-const GRID_DENSITY_MULTIPLIER = 4
 
-// 泥⑤? ?대?吏 湲곗? ???곕쑜???쇱씠??洹몃젅?대쿋?댁?
-const FLOOR_COLOR = 0xc8c4bc
-const GROUT_COLOR = 0x7f7a70
 export default function Floor() {
-  const floorMat = useMemo(() => new THREE.MeshLambertMaterial({ color: FLOOR_COLOR }), [])
-  const lineMat  = useMemo(() => new THREE.LineBasicMaterial({ color: GROUT_COLOR, transparent: true, opacity: 1 }), [])
-
-  const gridLines = useMemo(() => {
-    const pts = []
-    const half = (MAP_SIZE * TILE_SIZE) / 2
-    const lineCount = MAP_SIZE * GRID_DENSITY_MULTIPLIER
-    const gridSize = TILE_SIZE / GRID_DENSITY_MULTIPLIER
-    for (let i = 0; i <= lineCount; i++) {
-      const v = -half + i * gridSize
-      pts.push(-half, 0.02, v,  half, 0.02, v)
-      pts.push(v, 0.02, -half,  v, 0.02,  half)
-    }
-    const geo = new THREE.BufferGeometry()
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3))
-    return geo
-  }, [])
-
   const half = (MAP_SIZE * TILE_SIZE) / 2
 
   return (
     <group>
-      {/* floor plane */}
+      {/* ── 시각 바닥: 교실 나무 마루 ── */}
+      <ClassroomFloor />
+
+      {/* ── 물리 바닥 평면 (보이지 않음, 낙하 방지용) ── */}
       <RigidBody type="fixed" colliders="cuboid">
-        <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} visible={false}>
           <planeGeometry args={[MAP_SIZE * TILE_SIZE, MAP_SIZE * TILE_SIZE]} />
-          <primitive object={floorMat} />
+          <meshBasicMaterial />
         </mesh>
       </RigidBody>
 
-      {/* grid overlay */}
-      <lineSegments geometry={gridLines} material={lineMat} />
-
-      {/* boundary walls (invisible) */}
+      {/* ── 경계 벽 (보이지 않음) ── */}
       {[
         [0, 0.5,  half, half * 2, 1, 1],
         [0, 0.5, -half, half * 2, 1, 1],
