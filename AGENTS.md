@@ -50,9 +50,14 @@
 ## Subagent Usage
 
 - Use subagents only when the user explicitly asks for subagents or names a specific subagent.
+- When the user asks to use two or more agents for discussion, review, planning, implementation, or comparison, run an Agent Room routing check before selecting agents.
+- The Agent Room routing check is defined in `Developer/agent_room/` and the executor agent is defined in `.codex/agents/agent-room-executor.toml`.
+- Subagents do not replace methodology. If Superpowers, Compound Engineering, g-stack, or `project_develop_policy.md` applies to the request, the selected agents must work inside that methodology instead of bypassing it.
+- If a new case-specific agent or temporary agent team is created, record its persona, role, main viewpoint, authority, methodology gates, and output folder in `Developer/agent_room/` using a `.toh` record.
 - Codex subagents are not silently spawned by default. When the user explicitly asks to use subagents and the task includes graphics, visual QA, game art direction, asset implementation, readability, HUD visuals, Phaser/Three.js visual integration, or image/asset pipeline work, route that graphics portion to `graphic_designer`.
 - The `graphic_designer` custom agent is defined in `.codex/agents/graphic-designer.toml`. Its working output and role records belong in `Graphic_designer/`; the agent configuration itself must stay in `.codex/agents/`.
 - Useful project subagents include:
+  - `agent-room-executor` for choosing between saved agents, newly created case agents, Superpowers, Compound Engineering, g-stack, and project-native policy.
   - `graphic_designer` for game art direction, graphics implementation guidance, asset review, visual QA, readability, and Phaser/Three.js visual integration.
   - `game-developer` for gameplay systems and game-specific debugging.
   - `ui-designer` for HUD, layout, interaction, and visual direction.
@@ -66,6 +71,7 @@
 
 - Use `git status --short --branch` before and after meaningful work.
 - Do not commit unless the user asks for a commit.
+- If the user says `뻐꾸기`, interpret it as the combined workflow: pull, commit, and push, in that order when safe.
 - Use clear commit messages, for example:
   - `Add project instructions`
   - `Add player movement`
