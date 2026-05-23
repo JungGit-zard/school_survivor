@@ -452,6 +452,7 @@ const styles = {
   topBar: {
     position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
     display: 'flex', gap: 24, alignItems: 'center',
+    pointerEvents: 'auto',
   },
   milestoneToast: {
     position: 'absolute',
@@ -467,6 +468,7 @@ const styles = {
     padding: '7px 12px',
     boxShadow: '0 3px 10px rgba(0,0,0,0.45)',
     animation: 'milestonePop 2s ease-in-out forwards',
+    pointerEvents: 'auto',
   },
   milestoneLabel: {
     color: '#ffffff',
@@ -491,6 +493,7 @@ const styles = {
     padding: '14px 18px',
     boxShadow: '0 0 22px rgba(255, 48, 72, 0.45)',
     animation: 'bossPulse 0.8s ease-in-out infinite',
+    pointerEvents: 'auto',
   },
   bossWarningLabel: {
     color: '#ffd8d8',
@@ -515,6 +518,7 @@ const styles = {
     borderRadius: 14,
     padding: '4px 10px',
     boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
+    pointerEvents: 'auto',
   },
   goldDot: {
     width: 14, height: 14, borderRadius: '50%',
@@ -526,12 +530,14 @@ const styles = {
   hpRow: {
     position: 'absolute', bottom: 52, left: '50%', transform: 'translateX(-50%)',
     display: 'flex', alignItems: 'center', gap: 8, width: 320,
+    pointerEvents: 'auto',
   },
   hpLabel: { color: '#fff', fontSize: 13, fontWeight: 700, width: 22 },
   hpNum:   { color: '#fff', fontSize: 12, width: 60, textAlign: 'right' },
   xpRow: {
     position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)',
     width: 320,
+    pointerEvents: 'auto',
   },
   barBg: {
     flex: 1, height: 10, background: '#333', borderRadius: 5, overflow: 'hidden',
@@ -540,6 +546,7 @@ const styles = {
   weaponRow: {
     position: 'absolute', bottom: 72, left: 16,
     display: 'flex', flexDirection: 'column', gap: 4,
+    pointerEvents: 'auto',
   },
   weaponChip: {
     background: 'rgba(0,0,0,0.55)', color: '#fff',
@@ -550,7 +557,7 @@ const styles = {
     bottom: 68,
     left: 'calc(50% - 160px)',
     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-    pointerEvents: 'none',
+    pointerEvents: 'auto',
   },
   cdRing: {
     position: 'relative', width: 42, height: 42,

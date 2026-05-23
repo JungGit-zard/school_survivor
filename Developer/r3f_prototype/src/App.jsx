@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
 import { KeyboardControls } from '@react-three/drei'
@@ -9,6 +9,7 @@ import VirtualJoystick from './components/VirtualJoystick.jsx'
 import CoinShop from './components/CoinShop.jsx'
 import { useGameStore } from './store/useGameStore.js'
 import { initPlaytestLogger } from './lib/playtestLogger.js'
+import { isMobileJoystickEnvironment } from './lib/mobileInput.js'
 
 initPlaytestLogger()
 
@@ -25,9 +26,26 @@ const IPHONE_H = 844
 
 export default function App() {
   const [screen, setScreen] = useState('title')
+  const [mobileJoystickEnabled, setMobileJoystickEnabled] = useState(false)
+  const phoneFrameRef = useRef(null)
   const gameKey = useGameStore((s) => s.gameKey)
   const phase = useGameStore((s) => s.phase)
   const resetGame = useGameStore((s) => s.resetGame)
+
+  useEffect(() => {
+    function updateMobileInputMode() {
+      setMobileJoystickEnabled(isMobileJoystickEnvironment())
+    }
+
+    updateMobileInputMode()
+    const media = window.matchMedia?.('(pointer: coarse)')
+    media?.addEventListener?.('change', updateMobileInputMode)
+    window.addEventListener('resize', updateMobileInputMode)
+    return () => {
+      media?.removeEventListener?.('change', updateMobileInputMode)
+      window.removeEventListener('resize', updateMobileInputMode)
+    }
+  }, [])
 
   useEffect(() => {
     if (screen !== 'game') return
@@ -57,7 +75,7 @@ export default function App() {
 
   return (
     <div style={styles.viewport}>
-      <div style={styles.phoneFrame}>
+      <div ref={phoneFrameRef} style={styles.phoneFrame}>
         {screen === 'title' && (
           <TitleScreen onStart={startGame} />
         )}
@@ -82,7 +100,9 @@ export default function App() {
               </Canvas>
             </KeyboardControls>
             <HUD onOpenCoinShop={() => setScreen('coinShop')} />
-            <VirtualJoystick />
+            {mobileJoystickEnabled && (
+              <VirtualJoystick enabled phase={phase} playAreaRef={phoneFrameRef} />
+            )}
           </>
         )}
       </div>

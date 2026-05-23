@@ -1,57 +1,124 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { joystickDir } from '../lib/refs.js'
 
-const OUTER_R = 52   // px – outer ring radius
-const KNOB_R  = 22   // px – knob radius
-const DEAD    = 0.08 // normalised dead-zone
+const OUTER_R = 52
+const KNOB_R = 22
+const DEAD_ZONE = 0.08
 
-export default function VirtualJoystick() {
-  const outerRef = useRef(null)
-  const knobRef  = useRef(null)
+const INTERACTIVE_SELECTOR = 'button, a, input, textarea, select, [role="button"]'
+
+function isInteractiveTarget(target) {
+  return Boolean(target?.closest?.(INTERACTIVE_SELECTOR))
+}
+
+function isCanvasTarget(target) {
+  return target?.tagName?.toLowerCase?.() === 'canvas'
+}
+
+function isPointInsideRect(x, y, rect) {
+  return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom
+}
+
+function resetJoystickInput() {
+  joystickDir.x = 0
+  joystickDir.z = 0
+  joystickDir.active = false
+}
+
+export default function VirtualJoystick({ enabled = false, phase = 'playing', playAreaRef = null }) {
   const stateRef = useRef({ active: false, touchId: null, cx: 0, cy: 0 })
+  const viewRef = useRef({ visible: false, cx: 0, cy: 0, knobX: 0, knobY: 0 })
+  const frameRef = useRef(null)
+  const [view, setView] = useState({ visible: false, cx: 0, cy: 0, knobX: 0, knobY: 0 })
 
   useEffect(() => {
-    const outer = outerRef.current
-    const knob  = knobRef.current
-    if (!outer || !knob) return
-
-    function setKnob(dx, dy) {
-      knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`
-    }
-
-    function onStart(e) {
-      e.preventDefault()
-      const s = stateRef.current
-      if (s.active) return
-      const touch = e.changedTouches[0]
-      const rect  = outer.getBoundingClientRect()
-      s.active  = true
-      s.touchId = touch.identifier
-      s.cx = rect.left + rect.width  / 2
-      s.cy = rect.top  + rect.height / 2
-      joystickDir.active = true
-    }
-
-    function onMove(e) {
-      e.preventDefault()
-      const s = stateRef.current
-      if (!s.active) return
-      let touch = null
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === s.touchId) { touch = e.changedTouches[i]; break }
+    function cancelScheduledView() {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current)
+        frameRef.current = null
       }
+    }
+
+    function publishView(nextView, immediate = false) {
+      viewRef.current = nextView
+      if (immediate) {
+        cancelScheduledView()
+        setView(nextView)
+        return
+      }
+      if (frameRef.current !== null) return
+      frameRef.current = requestAnimationFrame(() => {
+        frameRef.current = null
+        setView(viewRef.current)
+      })
+    }
+
+    function hideJoystick() {
+      cancelScheduledView()
+      publishView({ visible: false, cx: 0, cy: 0, knobX: 0, knobY: 0 }, true)
+    }
+
+    if (!enabled || phase !== 'playing') {
+      stateRef.current.active = false
+      stateRef.current.touchId = null
+      resetJoystickInput()
+      hideJoystick()
+      return undefined
+    }
+
+    function canStartFromTouch(event, touch) {
+      if (isInteractiveTarget(event.target) || !isCanvasTarget(event.target)) return false
+      const playArea = playAreaRef?.current
+      if (!playArea) return false
+      const rect = playArea.getBoundingClientRect()
+      return isPointInsideRect(touch.clientX, touch.clientY, rect)
+    }
+
+    function getLocalTouchPoint(touch) {
+      const rect = playAreaRef.current.getBoundingClientRect()
+      return {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top,
+      }
+    }
+
+    function onStart(event) {
+      const state = stateRef.current
+      if (state.active) return
+
+      const touch = event.changedTouches[0]
       if (!touch) return
-      const rawX = touch.clientX - s.cx
-      const rawY = touch.clientY - s.cy
-      const dist = Math.hypot(rawX, rawY)
-      const clamped = Math.min(dist, OUTER_R)
-      const nx = dist > 0 ? rawX / dist : 0
-      const ny = dist > 0 ? rawY / dist : 0
+      if (!canStartFromTouch(event, touch)) return
+
+      event.preventDefault()
+      state.active = true
+      state.touchId = touch.identifier
+      state.cx = touch.clientX
+      state.cy = touch.clientY
+      const local = getLocalTouchPoint(touch)
+      joystickDir.active = true
+      publishView({ visible: true, cx: local.x, cy: local.y, knobX: 0, knobY: 0 }, true)
+    }
+
+    function onMove(event) {
+      const state = stateRef.current
+      if (!state.active) return
+
+      const touch = Array.from(event.changedTouches).find((item) => item.identifier === state.touchId)
+      if (!touch) return
+
+      event.preventDefault()
+      const rawX = touch.clientX - state.cx
+      const rawY = touch.clientY - state.cy
+      const distance = Math.hypot(rawX, rawY)
+      const clamped = Math.min(distance, OUTER_R)
+      const nx = distance > 0 ? rawX / distance : 0
+      const ny = distance > 0 ? rawY / distance : 0
       const ratio = clamped / OUTER_R
 
-      setKnob(nx * clamped, ny * clamped)
+      publishView({ ...viewRef.current, knobX: nx * clamped, knobY: ny * clamped })
 
-      if (ratio > DEAD) {
+      if (ratio > DEAD_ZONE) {
         joystickDir.x = nx * ratio
         joystickDir.z = ny * ratio
       } else {
@@ -60,38 +127,46 @@ export default function VirtualJoystick() {
       }
     }
 
-    function onEnd(e) {
-      const s = stateRef.current
-      let found = false
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === s.touchId) { found = true; break }
-      }
-      if (!found) return
-      s.active  = false
-      s.touchId = null
-      joystickDir.x = 0
-      joystickDir.z = 0
-      joystickDir.active = false
-      setKnob(0, 0)
+    function onEnd(event) {
+      const state = stateRef.current
+      const released = Array.from(event.changedTouches).some((item) => item.identifier === state.touchId)
+      if (!released) return
+
+      state.active = false
+      state.touchId = null
+      resetJoystickInput()
+      hideJoystick()
     }
 
-    outer.addEventListener('touchstart',  onStart, { passive: false })
-    outer.addEventListener('touchmove',   onMove,  { passive: false })
-    outer.addEventListener('touchend',    onEnd,   { passive: false })
-    outer.addEventListener('touchcancel', onEnd,   { passive: false })
+    window.addEventListener('touchstart', onStart, { passive: false })
+    window.addEventListener('touchmove', onMove, { passive: false })
+    window.addEventListener('touchend', onEnd, { passive: false })
+    window.addEventListener('touchcancel', onEnd, { passive: false })
 
     return () => {
-      outer.removeEventListener('touchstart',  onStart)
-      outer.removeEventListener('touchmove',   onMove)
-      outer.removeEventListener('touchend',    onEnd)
-      outer.removeEventListener('touchcancel', onEnd)
+      window.removeEventListener('touchstart', onStart)
+      window.removeEventListener('touchmove', onMove)
+      window.removeEventListener('touchend', onEnd)
+      window.removeEventListener('touchcancel', onEnd)
+      cancelScheduledView()
+      resetJoystickInput()
     }
-  }, [])
+  }, [enabled, phase, playAreaRef])
+
+  if (!view.visible) return null
 
   return (
-    <div style={styles.wrap}>
-      <div ref={outerRef} style={{ ...styles.outer, width: OUTER_R * 2, height: OUTER_R * 2, borderRadius: OUTER_R }}>
-        <div ref={knobRef} style={{ ...styles.knob, width: KNOB_R * 2, height: KNOB_R * 2, borderRadius: KNOB_R }} />
+    <div style={{ ...styles.wrap, left: view.cx, top: view.cy }}>
+      <div style={{ ...styles.outer, width: OUTER_R * 2, height: OUTER_R * 2, borderRadius: OUTER_R }}>
+        <div
+          style={{
+            ...styles.knob,
+            width: KNOB_R * 2,
+            height: KNOB_R * 2,
+            borderRadius: KNOB_R,
+            transform: `translate(calc(-50% + ${view.knobX}px), calc(-50% + ${view.knobY}px))`,
+          }}
+        />
       </div>
     </div>
   )
@@ -100,16 +175,15 @@ export default function VirtualJoystick() {
 const styles = {
   wrap: {
     position: 'absolute',
-    bottom: 150,
-    left: 20,
     zIndex: 100,
     pointerEvents: 'none',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    transform: 'translate(-50%, -50%)',
   },
   outer: {
-    pointerEvents: 'auto',
+    pointerEvents: 'none',
     position: 'relative',
     background: 'rgba(255,255,255,0.12)',
     border: '2.5px solid rgba(255,255,255,0.35)',
@@ -122,7 +196,6 @@ const styles = {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    transform: 'translate(-50%, -50%)',
     background: 'rgba(255,210,60,0.82)',
     border: '2px solid rgba(255,255,255,0.6)',
     boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
