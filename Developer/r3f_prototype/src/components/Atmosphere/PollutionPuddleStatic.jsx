@@ -21,9 +21,10 @@ export default function PollutionPuddleStatic({ pos, rot = 0, scale = 1 }) {
       <mesh material={fillMat} position={[0, 0.006, 0]}>
         <cylinderGeometry args={[0.7, 0.7, 0.012, 18]} />
       </mesh>
-      {/* 밝은 외곽 ring — fill보다 살짝 위 + 살짝 더 큼 */}
-      <mesh material={rimMat} position={[0, 0.013, 0]}>
-        <ringGeometry args={[0.68, 0.74, 22]} rotation={[Math.PI / 2, 0, 0]} />
+      {/* 밝은 외곽 ring — fill보다 살짝 위 + 살짝 더 큼.
+          rotation은 mesh에 (geometry에 붙으면 silently ignored — XY 평면 ring이 세로로 섬). */}
+      <mesh material={rimMat} position={[0, 0.013, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.68, 0.74, 22]} />
       </mesh>
       {/* 작은 얼룩 2개 — 본체 옆에 살짝 떨어진 spot */}
       <mesh material={fillMat} position={[0.55, 0.006, 0.5]}>
