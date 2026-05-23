@@ -49,9 +49,17 @@ export function toonMat(hex, emissiveIntensity = 0.08) {
   return m
 }
 
-export function outlineMat(opacity = 0.96) {
+// 외곽선 위계 프리셋 — opacity·color 두 축을 prose가 아닌 코드에서 페어링.
+// PROP·ATMOSPHERE 추가 시 ATMOSPHERE는 색을 부드럽게(0x3a2a2a) + opacity 낮춤(0.5).
+export const OUTLINE_PRESETS = {
+  PROP:       { opacity: 0.96, color: 0x050209 },  // 캐릭터·props 기본 진한 외곽선
+  ATMOSPHERE: { opacity: 0.5,  color: 0x3a2a2a },  // 분위기 overlay 부드러운 약 외곽선
+}
+
+// color 기본값 0x050209는 캐릭터·props의 진한 외곽선 톤. 분위기 overlay는 softOutlineMat() 사용.
+export function outlineMat(opacity = 0.96, color = 0x050209) {
   const m = new THREE.MeshBasicMaterial({
-    color: 0x050209,
+    color,
     side: THREE.BackSide,
     transparent: true,
     opacity,
@@ -67,4 +75,10 @@ export function outlineMat(opacity = 0.96) {
   m.stencilFail  = THREE.KeepStencilOp
   m.stencilZFail = THREE.KeepStencilOp
   return m
+}
+
+// 분위기 overlay 전용 — 위계 페어링을 코드에서 강제.
+export function softOutlineMat() {
+  const { opacity, color } = OUTLINE_PRESETS.ATMOSPHERE
+  return outlineMat(opacity, color)
 }
