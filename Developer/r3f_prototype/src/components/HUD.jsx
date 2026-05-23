@@ -2,6 +2,7 @@
 import { useGameStore } from '../store/useGameStore.js'
 import { bagSwingState } from '../lib/refs.js'
 import { UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
+import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { buildPlaytestSummary } from '../lib/playtestLogger.js'
 
 const damageLabel = (name, weaponKey, upgradeKey) => (w) =>
@@ -28,6 +29,21 @@ const UPGRADES = [
   { key: 'unlockOnigiri', icon: 'onigiri', label: '오니기리 해금', desc: '적 사이를 튕기며 공격하는 주먹밥' },
   { key: 'onigiiriBounce', icon: 'onigiri', label: '오니기리 바운스 +1', desc: '튕기는 횟수 증가 (최대 7회)' },
   { key: 'onigiiriDamage', icon: 'onigiri', labelFn: damageLabel('오니기리 피해', 'onigiri', 'onigiiriDamage'), desc: '충돌 피해 증가' },
+  { key: 'unlockMissile', icon: 'missile', label: '보조배터리 미사일 해금', desc: '먼 적 무리를 호밍 폭발로 처리' },
+  { key: 'missileDamage', icon: 'missile', labelFn: damageLabel('미사일 피해', 'guidedMissile', 'missileDamage'), desc: '폭발 피해 증가' },
+  { key: 'missileRadius', icon: 'missile', label: '미사일 반경 +', desc: '폭발 반경 증가 (최대 2.2)' },
+  { key: 'unlockStarlink', icon: 'starlink', label: '고장난 스타링크 해금', desc: '주변에 무작위 낙뢰 발생' },
+  { key: 'starlinkDamage', icon: 'starlink', labelFn: damageLabel('낙뢰 피해', 'starlink', 'starlinkDamage'), desc: '낙뢰 한 발 피해 증가' },
+  { key: 'starlinkCount', icon: 'starlink', label: '낙뢰 개수 +1', desc: '동시 낙뢰 수 증가 (최대 3)' },
+  { key: 'unlockCompassBlade', icon: 'compassBlade', label: '나침반 칼날 해금', desc: '플레이어를 도는 회전 칼날' },
+  { key: 'compassBladeDamage', icon: 'compassBlade', labelFn: damageLabel('칼날 피해', 'compassBlade', 'compassBladeDamage'), desc: '회전 칼날 피해 증가' },
+  { key: 'compassBladeCount', icon: 'compassBlade', label: '칼날 개수 +1', desc: '회전 칼날 수 증가 (최대 3)' },
+  { key: 'unlockUmbrellaGuard', icon: 'umbrella', label: '우산 방어막 해금', desc: '주기적 펄스로 근접 적 밀어냄' },
+  { key: 'umbrellaDamage', icon: 'umbrella', labelFn: damageLabel('방어막 피해', 'umbrellaGuard', 'umbrellaDamage'), desc: '펄스 한 회 피해 증가' },
+  { key: 'umbrellaRadius', icon: 'umbrella', label: '방어막 반경 +', desc: '펄스 반경 증가' },
+  { key: 'unlockEraserBomb', icon: 'eraser', label: '지우개 폭탄 해금', desc: '느린 한 방 광역 폭발' },
+  { key: 'eraserDamage', icon: 'eraser', labelFn: damageLabel('폭탄 피해', 'eraserBomb', 'eraserDamage'), desc: '폭발 피해 증가' },
+  { key: 'eraserRadius', icon: 'eraser', label: '폭탄 반경 +', desc: '폭발 반경 증가' },
   { key: 'moveSpeed', icon: 'speed', label: '이동속도 +10%', desc: '플레이어 이동속도 증가' },
   { key: 'maxHealth', icon: 'health', label: '최대 체력 +20', desc: '최대 HP 및 현재 HP 증가' },
 ]
@@ -106,6 +122,24 @@ function UpgradeIcon({ type }) {
           <span style={styles.starlinkRingB} />
         </div>
       )}
+      {type === 'compassBlade' && (
+        <div style={styles.compassBladeIcon}>
+          <span style={styles.compassBladeBlade} />
+          <span style={styles.compassBladeHandle} />
+        </div>
+      )}
+      {type === 'umbrella' && (
+        <div style={styles.umbrellaIcon}>
+          <span style={styles.umbrellaCanopy} />
+          <span style={styles.umbrellaHandle} />
+        </div>
+      )}
+      {type === 'eraser' && (
+        <div style={styles.eraserIcon}>
+          <span style={styles.eraserBody} />
+          <span style={styles.eraserBand} />
+        </div>
+      )}
       {type === 'onigiri' && (
         <svg width="50" height="46" viewBox="0 0 50 46" style={{ display: 'block', margin: '0 auto' }}>
           {/* 두꺼운 검은 외곽선 */}
@@ -158,6 +192,7 @@ export default function HUD({ onOpenCoinShop }) {
   const goldSession = useGameStore((s) => s.goldSession)
   const goldTotal   = useGameStore((s) => s.goldTotal)
   const recentMilestone = useGameStore((s) => s.recentMilestone)
+  const newlyUnlockedWeaponIds = useGameStore((s) => s.newlyUnlockedWeaponIds)
   const clearMilestone = useGameStore((s) => s.clearMilestone)
   const levelUpChoiceSerial = useGameStore((s) => s.levelUpChoiceSerial)
   const applyUpgrade      = useGameStore((s) => s.applyUpgrade)
@@ -368,7 +403,18 @@ export default function HUD({ onOpenCoinShop }) {
           <div style={styles.modal}>
             <h2 style={{ ...styles.modalTitle, color: '#ff4060' }}>GAME OVER</h2>
             <p style={{ color: '#ccc', marginBottom: 8 }}>생존 시간: {mins}:{secs}</p>
-            <p style={{ color: '#ffd040', marginBottom: nextUnlock ? 12 : 20 }}>획득 골드: {goldSession} (누적 {goldTotal})</p>
+            <p style={{ color: '#ffd040', marginBottom: nextUnlock || (newlyUnlockedWeaponIds?.length > 0) ? 12 : 20 }}>획득 골드: {goldSession} (누적 {goldTotal})</p>
+            {newlyUnlockedWeaponIds?.length > 0 && (
+              <div style={styles.newlyUnlocked}>
+                <span style={styles.newlyUnlockedLabel}>🎉 새 무기 해금!</span>
+                {newlyUnlockedWeaponIds.map((id) => (
+                  <div key={id} style={styles.newlyUnlockedItem}>
+                    {WEAPON_CATALOG[id]?.label ?? id}
+                  </div>
+                ))}
+                <div style={styles.newlyUnlockedHint}>다음 판부터 카드에 등장합니다</div>
+              </div>
+            )}
             {nextUnlock && (
               <div style={styles.nextUnlock}>
                 <span style={styles.nextUnlockLabel}>다음에 만날 무기</span>
@@ -415,7 +461,18 @@ export default function HUD({ onOpenCoinShop }) {
           <div style={styles.modal}>
             <h2 style={{ ...styles.modalTitle, color: '#ffd040' }}>STAGE CLEAR!</h2>
             <p style={{ color: '#ccc', marginBottom: 8 }}>클리어 시간: {mins}:{secs}</p>
-            <p style={{ color: '#ffd040', marginBottom: nextUnlock ? 12 : 20 }}>획득 골드: {goldSession} (누적 {goldTotal})</p>
+            <p style={{ color: '#ffd040', marginBottom: nextUnlock || (newlyUnlockedWeaponIds?.length > 0) ? 12 : 20 }}>획득 골드: {goldSession} (누적 {goldTotal})</p>
+            {newlyUnlockedWeaponIds?.length > 0 && (
+              <div style={styles.newlyUnlocked}>
+                <span style={styles.newlyUnlockedLabel}>🎉 새 무기 해금!</span>
+                {newlyUnlockedWeaponIds.map((id) => (
+                  <div key={id} style={styles.newlyUnlockedItem}>
+                    {WEAPON_CATALOG[id]?.label ?? id}
+                  </div>
+                ))}
+                <div style={styles.newlyUnlockedHint}>다음 판부터 카드에 등장합니다</div>
+              </div>
+            )}
             {nextUnlock && (
               <div style={styles.nextUnlock}>
                 <span style={styles.nextUnlockLabel}>다음에 만날 무기</span>
@@ -767,6 +824,85 @@ const styles = {
     borderRadius: '50%',
     border: '1.5px solid #226688',
     opacity: 0.45,
+    boxSizing: 'border-box',
+  },
+  // ── compassBlade icon (회전 칼날) ──
+  compassBladeIcon: { position: 'relative', width: 36, height: 36 },
+  compassBladeBlade: {
+    position: 'absolute', left: '50%', top: '50%',
+    transform: 'translate(-50%, -50%) rotate(35deg)',
+    display: 'block', width: 28, height: 5,
+    background: 'linear-gradient(to right, #b7c0c7 0%, #f0f3f5 50%, #b7c0c7 100%)',
+    border: '1.5px solid #111',
+    borderRadius: 2, boxSizing: 'border-box',
+  },
+  compassBladeHandle: {
+    position: 'absolute', left: '50%', top: '50%',
+    transform: 'translate(-50%, -50%) rotate(35deg) translateX(-9px)',
+    display: 'block', width: 7, height: 7,
+    background: '#71353f',
+    border: '1.5px solid #111',
+    borderRadius: 2, boxSizing: 'border-box',
+  },
+  // ── umbrella icon (우산 방어막) ──
+  umbrellaIcon: { position: 'relative', width: 36, height: 36 },
+  umbrellaCanopy: {
+    position: 'absolute', left: 4, top: 5,
+    display: 'block', width: 28, height: 14,
+    background: '#351740',
+    borderRadius: '50% 50% 0 0 / 100% 100% 0 0',
+    border: '1.5px solid #111',
+    boxSizing: 'border-box',
+  },
+  umbrellaHandle: {
+    position: 'absolute', left: '50%', top: 18,
+    transform: 'translateX(-50%)',
+    display: 'block', width: 3, height: 14,
+    background: '#4b2933',
+    border: '1.5px solid #111',
+    borderRadius: '0 0 4px 4px',
+    boxSizing: 'border-box',
+  },
+  // ── newly-unlocked weapon alert (gameover/cleared modal) ──
+  newlyUnlocked: {
+    marginBottom: 14,
+    padding: '10px 12px',
+    background: 'rgba(233, 144, 57, 0.16)',
+    border: '1.5px solid #e99039',
+    borderRadius: 8,
+    textAlign: 'center',
+  },
+  newlyUnlockedLabel: {
+    display: 'block',
+    color: '#f4e27b',
+    fontSize: 13,
+    fontWeight: 700,
+    marginBottom: 6,
+  },
+  newlyUnlockedItem: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: 800,
+    margin: '2px 0',
+  },
+  newlyUnlockedHint: {
+    color: '#c9cb9f',
+    fontSize: 11,
+    marginTop: 6,
+  },
+  // ── eraser icon (지우개 폭탄) ──
+  eraserIcon: { position: 'relative', width: 36, height: 36 },
+  eraserBody: {
+    position: 'absolute', left: 3, top: 11,
+    display: 'block', width: 30, height: 14,
+    background: '#cea19d',
+    border: '1.5px solid #111',
+    borderRadius: 3, boxSizing: 'border-box',
+  },
+  eraserBand: {
+    position: 'absolute', left: 3, top: 16,
+    display: 'block', width: 30, height: 4,
+    background: '#4f1b30',
     boxSizing: 'border-box',
   },
   choiceLabel: { fontSize: 14, fontWeight: 700, marginBottom: 6 },

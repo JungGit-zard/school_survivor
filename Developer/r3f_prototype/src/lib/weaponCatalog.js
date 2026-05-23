@@ -71,7 +71,7 @@ export const WEAPON_CATALOG = {
   starlink: {
     id: 'starlink',
     label: '고장난 스타링크',
-    base: { damage: 28, cooldown: 3800, lastFired: 0, strikeCenter: 5, strikeRadius: 1.2 },
+    base: { damage: 28, cooldown: 3800, lastFired: 0, strikeCenter: 5, strikeRadius: 1.2, strikeCount: 1 },
     // 1차안.
     unlockConditions: [
       { type: 'totalRuns', value: 10 },

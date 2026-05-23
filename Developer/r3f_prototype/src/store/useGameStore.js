@@ -10,7 +10,7 @@ import {
   snapshot as snapshotPlayerRecords,
   load as loadPlayerRecords,
 } from '../lib/playerRecords.js'
-import { evaluateUnlocks, isStarter } from '../lib/weaponCatalog.js'
+import { evaluateUnlocks, isStarter, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
 
 const BASE_PLAYER = {
@@ -32,11 +32,21 @@ function buildInitialPlayer(levels) {
   }
 }
 
+// WEAPON_CATALOG가 무기 base 스탯의 단일 진실이다. starter 무기는 startsActive:true로 시작,
+// 나머지는 unlock 카드가 fire될 때 비로소 weapons[key].active = true로 활성화.
+// might passive multiplier는 모든 무기에 동일 적용.
 function buildInitialWeapons(levels) {
   const mightMult = 1 + 0.04 * (levels.might ?? 0)
   const out = {}
-  for (const [key, w] of Object.entries(BASE_WEAPONS)) {
-    out[key] = { ...w, damage: Math.round(w.damage * mightMult * 10) / 10 }
+  for (const [key, entry] of Object.entries(WEAPON_CATALOG)) {
+    const baseDamage = entry.base?.damage ?? 0
+    out[key] = {
+      ...entry.base,
+      label: entry.label,
+      level: entry.startsActive ? 1 : 0,
+      active: !!entry.startsActive,
+      damage: Math.round(baseDamage * mightMult * 10) / 10,
+    }
   }
   return out
 }
@@ -68,16 +78,6 @@ function loadGoldTotal() {
 function saveGoldTotal(value) {
   if (typeof localStorage === 'undefined') return
   localStorage.setItem(GOLD_STORAGE_KEY, String(value))
-}
-
-const BASE_WEAPONS = {
-  pencilThrow:   { label: '연필', level: 1, damage: 8,  cooldown: 1100, lastFired: 0, projectileCount: 1, pierce: 0, speed: 12, range: 22, active: true },
-  schoolBag:     { label: '30cm 자', level: 0, damage: 12, cooldown: 1300, range: 0.633, triggerRange: 1.0, swingMs: 260, active: false },
-  tumbler:       { label: '텀블러', level: 0, damage: 4,  radius: 1.0, hitsPerSecond: 2.5, orbitSpeed: 2.8, count: 1, active: false },
-  scienceFlask:  { label: '과학 플라스크', level: 0, damage: 30, cooldown: 2800, radius: 1.6, range: 2, active: false },
-  bell:          { label: '벨', level: 0, damage: 10, cooldown: 4500, lastFired: 0, directions: 8, speed: 10, radius: 1.7, active: false },
-  stunGun:       { label: '전기', level: 0, damage: 18, cooldown: 3000, lastFired: 0, chainCount: 2, active: false },
-  onigiri:       { label: '오니기리', level: 0, damage: 14, cooldown: 2000, bounces: 4, bounceRange: 4.5, range: 18, active: false },
 }
 
 function finishLevelupState(s) {

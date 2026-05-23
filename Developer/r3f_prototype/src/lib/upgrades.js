@@ -2,6 +2,8 @@
 // useGameStore.applyUpgrade 와 HUD.pickThree 가 함께 참조하므로
 // 카드 추가/수정 시 이 파일만 고치면 양쪽이 동기화된다.
 
+import { isUnlocked as isWeaponUnlocked } from './weaponUnlocks.js'
+
 export const UPGRADE_EFFECTS = {
   pencilDamage:   { weapon: 'pencilThrow',   kind: 'damage', dmg: 3 },
   pencilCount:    { weapon: 'pencilThrow',   kind: 'stat',   stat: 'projectileCount', step: 1,    cap: 4 },
@@ -23,6 +25,21 @@ export const UPGRADE_EFFECTS = {
   unlockOnigiri:  { weapon: 'onigiri',       kind: 'unlock', minLevel: 6 },
   onigiiriDamage: { weapon: 'onigiri',       kind: 'damage', dmg: 5 },
   onigiiriBounce: { weapon: 'onigiri',       kind: 'stat',   stat: 'bounces',         step: 1,    cap: 7 },
+  unlockMissile:  { weapon: 'guidedMissile', kind: 'unlock', minLevel: 6 },
+  missileDamage:  { weapon: 'guidedMissile', kind: 'damage', dmg: 6 },
+  missileRadius:  { weapon: 'guidedMissile', kind: 'stat',   stat: 'radius',          step: 0.15, cap: 2.2 },
+  unlockStarlink: { weapon: 'starlink',      kind: 'unlock', minLevel: 8 },
+  starlinkDamage: { weapon: 'starlink',      kind: 'damage', dmg: 10 },
+  starlinkCount:  { weapon: 'starlink',      kind: 'stat',   stat: 'strikeCount',     step: 1,    cap: 3 },
+  unlockCompassBlade:  { weapon: 'compassBlade',  kind: 'unlock', minLevel: 3 },
+  compassBladeDamage:  { weapon: 'compassBlade',  kind: 'damage', dmg: 2 },
+  compassBladeCount:   { weapon: 'compassBlade',  kind: 'stat',   stat: 'count',     step: 1,    cap: 3 },
+  unlockUmbrellaGuard: { weapon: 'umbrellaGuard', kind: 'unlock', minLevel: 3 },
+  umbrellaDamage:      { weapon: 'umbrellaGuard', kind: 'damage', dmg: 2 },
+  umbrellaRadius:      { weapon: 'umbrellaGuard', kind: 'stat',   stat: 'radius',    step: 0.09, cap: 1.36 },
+  unlockEraserBomb:    { weapon: 'eraserBomb',    kind: 'unlock', minLevel: 4 },
+  eraserDamage:        { weapon: 'eraserBomb',    kind: 'damage', dmg: 8 },
+  eraserRadius:        { weapon: 'eraserBomb',    kind: 'stat',   stat: 'radius',    step: 0.19, cap: 2.1 },
   moveSpeed:      { kind: 'player', stat: 'speed', capMultiplier: 1.8 },
   maxHealth:      { kind: 'player' },
 }
@@ -53,6 +70,8 @@ export function isUpgradeAvailable(effect, level, weapons, player = null) {
   const wpn = weapons[effect.weapon]
   if (effect.kind === 'unlock') {
     if (wpn?.active) return false
+    // 계정 해금 게이트: starter는 isWeaponUnlocked가 항상 true, 그 외는 weaponUnlocks 디스크 상태.
+    if (!isWeaponUnlocked(effect.weapon)) return false
     const ownedCount = Object.values(weapons).filter((w) => w.active).length
     return ownedCount < MAX_OWNED_WEAPONS
   }
