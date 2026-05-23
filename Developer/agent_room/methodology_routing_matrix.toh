@@ -1,0 +1,71 @@
+# Methodology Routing Matrix
+
+## Default Order
+
+1. Check `project_develop_policy.md`.
+2. Run Agent Room executor routing for any two-or-more-agent request.
+3. Pick the primary methodology.
+4. Select agents.
+5. Record new agent personas when needed.
+6. Execute work.
+7. Verify and record results.
+
+## Routing Table
+
+| Case Type | Primary Method | Supporting Agents | Required Record |
+| --- | --- | --- | --- |
+| New feature idea or behavior change | Superpowers brainstorming | product-manager, game-developer, ui-designer | `Planner/` or `Developer/agent_room/` |
+| Implementation plan | Superpowers writing-plans | agent-room-executor, game-developer, mobile-developer | `Developer/agent_room/` or `docs/superpowers/plans/` if requested |
+| Code implementation | Superpowers TDD or ce-work | frontend-developer, mobile-developer, game-developer | `Developer/` |
+| Code review | Compound Engineering ce-code-review | reviewer, code-reviewer, security-auditor when needed | `Quaility_Assurance/` |
+| Product or CEO review | g-stack CEO/product review or product-manager | product-manager, risk-manager | `CEO/` |
+| Gameplay/content rules | Project Planner policy | game-developer, product-manager | `Planner/` |
+| Graphics or visual QA | Graphic policy plus g-stack/browser validation | graphic_designer, ui-designer, qa-expert | `Graphic_designer/`, `Quaility_Assurance/` |
+| Mobile/touch runtime behavior | Superpowers TDD plus g-stack/browser validation | mobile-developer, reviewer, qa-expert | `Developer/`, `Quaility_Assurance/` |
+| Debugging | Superpowers systematic-debugging or ce-debug | debugger, reviewer, relevant specialist | `Developer/`, `Quaility_Assurance/` |
+| Knowledge compounding | Compound Engineering ce-compound | reviewer, documentation-engineer | `docs/solutions/` |
+
+## Superpowers Integration
+
+Use Superpowers when the task is about:
+
+- brainstorming
+- requirements shaping
+- implementation planning
+- TDD
+- systematic debugging
+- verification before completion
+- subagent-driven development
+
+Agent Room rule: if Superpowers is active, subagents must follow the active Superpowers gate instead of replacing it.
+
+## Compound Engineering Integration
+
+Use Compound Engineering when the task is about:
+
+- structured work execution
+- code review
+- resolving PR feedback
+- compounding a solved problem
+- simplifying recent code
+- release/PR-quality engineering workflow
+
+Agent Room rule: if Compound Engineering is active, agents must produce outputs that fit its review or compounding structure.
+
+## g-stack Integration
+
+Use g-stack when the task is about:
+
+- project-required Claude/g-stack checks
+- `/qa`, `/review`, `/ship`, `/investigate`, or equivalent g-stack workflows
+- browser/runtime validation already documented in project QA records
+- CEO/product review style when the user asks for g-stack review
+
+Agent Room rule: g-stack is not ignored just because Codex subagents are available. If the case matches a g-stack gate, the executor must name that gate.
+
+## Project Policy Integration
+
+`project_develop_policy.md` outranks Agent Room.
+
+If project policy says a record belongs in a role folder, the final record goes there even if the agent discussion starts in `Developer/agent_room/`.
+

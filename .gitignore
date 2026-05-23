@@ -6,3 +6,4 @@ dist/
 .codex/config.toml
 
 .compound-engineering/*.local.yaml
+.gstack/

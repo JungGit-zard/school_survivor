@@ -1,0 +1,41 @@
+# New Agent Case Template
+
+Copy this template when a new case-specific agent or temporary team is created.
+
+## Case
+
+- Date:
+- Case name:
+- User request:
+- Executor decision:
+
+## Method Route
+
+- Primary methodology:
+- Supporting methodology:
+- Project policy checked:
+- Required verification:
+
+## Agent Record
+
+### Agent name
+
+- Persona:
+- Role:
+- Main viewpoint:
+- Summon trigger:
+- Read/write authority:
+- Files or domains owned:
+- Methodology gates:
+- Output folder:
+- Expected output:
+- Residual risk:
+
+## Team Integration
+
+- Local work kept by parent Codex:
+- Delegated work:
+- Integration checkpoint:
+- Conflict resolution rule:
+- Final verification:
+
