@@ -3,7 +3,8 @@
     "allow": [
       "PowerShell(Start-Process \"http://localhost:5175/\")",
       "Bash(git log *)",
-      "PowerShell(Start-Process http://localhost:5175/)"
+      "PowerShell(Start-Process http://localhost:5175/)",
+      "Bash(git fetch *)"
     ]
   },
   "hooks": {
