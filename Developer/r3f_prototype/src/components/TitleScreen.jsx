@@ -6,7 +6,7 @@ export default function TitleScreen({ onStart }) {
     <div style={styles.root}>
       <Canvas
         orthographic
-        camera={{ zoom: 56, position: [0, 13, 18], near: 0.1, far: 100 }}
+        camera={{ zoom: 62, position: [0, 12, 17], near: 0.1, far: 100 }}
         gl={{ stencil: true, antialias: true }}
         shadows
         style={styles.canvas}
@@ -21,7 +21,7 @@ export default function TitleScreen({ onStart }) {
           <span style={styles.titleAccent}>Escape!</span>
           <span>zombie school</span>
         </h1>
-        <p style={styles.subtitle}>5분만 버티면, 교문이 열린다</p>
+        <p style={styles.subtitle}>감염된 학교에서 5분만 버티면, 교문이 열린다</p>
       </div>
 
       <div style={styles.actions}>
@@ -52,12 +52,12 @@ const styles = {
   tint: {
     position: 'absolute',
     inset: 0,
-    background: 'linear-gradient(180deg, rgba(13,10,18,0.28) 0%, rgba(13,10,18,0.08) 42%, rgba(13,10,18,0.58) 100%)',
+    background: 'linear-gradient(180deg, rgba(13,10,18,0.22) 0%, rgba(13,10,18,0.03) 43%, rgba(13,10,18,0.62) 100%)',
     pointerEvents: 'none',
   },
   content: {
     position: 'absolute',
-    top: '13%',
+    top: '9%',
     left: 22,
     right: 22,
     display: 'flex',
@@ -82,7 +82,7 @@ const styles = {
     gap: 8,
     flexWrap: 'wrap',
     color: '#f8f7f2',
-    fontSize: 48,
+    fontSize: 44,
     lineHeight: 0.96,
     fontWeight: 1000,
     letterSpacing: 0,
@@ -93,11 +93,12 @@ const styles = {
   },
   subtitle: {
     color: '#f8f7f2',
-    fontSize: 16,
+    fontSize: 14,
     lineHeight: 1.35,
     fontWeight: 800,
     letterSpacing: 0,
-    margin: '12px 0 0',
+    maxWidth: 270,
+    margin: '10px 0 0',
     textShadow: '0 3px 0 #050209, 0 0 8px rgba(0,0,0,0.45)',
   },
   actions: {

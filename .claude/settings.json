@@ -1,4 +1,10 @@
 {
+  "permissions": {
+    "allow": [
+      "PowerShell(Start-Process \"http://localhost:5175/\")",
+      "Bash(git log *)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
