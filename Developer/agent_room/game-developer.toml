@@ -1,4 +1,4 @@
-﻿name = "game-developer"
+name = "game-developer"
 description = "Use for Escape! zombie school gameplay systems, code implementation, runtime debugging, combat, enemy behavior, item drops, and Three.js/R3F prototype work."
 model = "gpt-5.4"
 model_reasoning_effort = "high"
