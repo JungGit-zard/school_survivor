@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "PowerShell(Start-Process \"http://localhost:5175/\")",
-      "Bash(git log *)"
+      "Bash(git log *)",
+      "PowerShell(Start-Process http://localhost:5175/)"
     ]
   },
   "hooks": {

@@ -5,7 +5,6 @@ import { STAGE_DURATION_SEC } from '../lib/stageConfig.js'
 import { playerPos } from '../lib/refs.js'
 import Player from './Player.jsx'
 import Floor from './Floor.jsx'
-import StageProps from './StageProps.jsx'
 import Enemies from './Enemies.jsx'
 import LunchItems from './LunchItems.jsx'
 import VFXLayer from './VFXLayer.jsx'
@@ -56,7 +55,6 @@ export default function Game() {
 
       {/* ── World ── */}
       <Floor />
-      <StageProps />
       <LunchItems />
 
       {/* ── Player + weapons ── */}

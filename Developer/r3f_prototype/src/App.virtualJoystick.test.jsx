@@ -70,6 +70,23 @@ afterEach(() => {
 })
 
 describe('App virtual joystick mounting', () => {
+  it('uses the full viewport width so narrow iPhone SE screens are not pillarboxed', () => {
+    setInputEnvironment({
+      maxTouchPoints: 5,
+      userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile/15E148',
+      coarse: true,
+    })
+
+    const view = renderAppAndStart()
+    const viewport = view.container.firstElementChild
+    const phoneFrame = viewport.firstElementChild
+
+    expect(phoneFrame.style.width).toBe('100vw')
+    expect(phoneFrame.style.height).toBe('100vh')
+    expect(phoneFrame.style.aspectRatio).toBe('')
+    view.unmount()
+  })
+
   it('does not mount the virtual joystick on desktop web environments', () => {
     setInputEnvironment({
       maxTouchPoints: 0,

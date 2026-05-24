@@ -586,14 +586,15 @@ const styles = {
   goldNum: { color: '#ffe18a', fontSize: 16, fontWeight: 800, textShadow: '0 2px 4px #000' },
   hpRow: {
     position: 'absolute', bottom: 52, left: '50%', transform: 'translateX(-50%)',
-    display: 'flex', alignItems: 'center', gap: 8, width: 320,
+    display: 'flex', alignItems: 'center', gap: 8,
+    width: 'calc(100% - 48px)', maxWidth: 320,
     pointerEvents: 'auto',
   },
   hpLabel: { color: '#fff', fontSize: 13, fontWeight: 700, width: 22 },
   hpNum:   { color: '#fff', fontSize: 12, width: 60, textAlign: 'right' },
   xpRow: {
     position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)',
-    width: 320,
+    width: 'calc(100% - 48px)', maxWidth: 320,
     pointerEvents: 'auto',
   },
   barBg: {
@@ -612,7 +613,7 @@ const styles = {
   cdWrap: {
     position: 'absolute',
     bottom: 68,
-    left: 'calc(50% - 160px)',
+    left: 16,
     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
     pointerEvents: 'auto',
   },
