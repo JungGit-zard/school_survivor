@@ -10,7 +10,7 @@ Use this document when implementing or reviewing player, enemy, boss, or importa
 
 For the current mandatory reference summary, also read:
 
-- `Graphic_designer/A.그래픽/A-2.캐릭터그래픽/Toon_3D_Characters/toon_reference_implementation_summary.md`
+- `Graphic_designer/A.graphic/A-2.character/Toon_3D_Characters/toon_reference_implementation_summary.md`
 
 ## Source References
 

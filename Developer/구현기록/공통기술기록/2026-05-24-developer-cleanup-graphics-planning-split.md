@@ -4,7 +4,7 @@
 
 **Goal:** 정본 정책을 지키면서 그래픽 구현 기록, 게임기획·밸런스 구현 기록, Developer 기술 기록을 분리하고 죽은 prop 구현 코드를 제거한다.
 
-**Architecture:** 그래픽 정본은 `Graphic_designer/A.그래픽/`, 게임기획·밸런스 정본은 `Planner/B.게임기획,밸런스 구현/`, 실행 코드는 `Developer/r3f_prototype/`에 둔다. Developer 루트 문서는 `Developer/구현기록/`으로 모아 실행 코드와 기록을 분리한다.
+**Architecture:** 그래픽 정본은 `Graphic_designer/A.graphic/`, 게임기획·밸런스 정본은 `Planner/B.게임기획,밸런스 구현/`, 실행 코드는 `Developer/r3f_prototype/`에 둔다. Developer 루트 문서는 `Developer/구현기록/`으로 모아 실행 코드와 기록을 분리한다.
 
 **Tech Stack:** React, React Three Fiber, Vite, Vitest, PowerShell file operations, Agent Room routing.
 
@@ -26,7 +26,7 @@ Agent Room 라우팅 결과를 기록한다.
 ### Task 2: Folder Structure
 
 **Files:**
-- Create: `Graphic_designer/A.그래픽/**/README.md`
+- Create: `Graphic_designer/A.graphic/**/README.md`
 - Create: `Planner/B.게임기획,밸런스 구현/**/README.md`
 - Create: `Developer/구현기록/**/README.md`
 
@@ -41,7 +41,7 @@ Agent Room 라우팅 결과를 기록한다.
 ### Task 3: Move Existing Records
 
 **Files:**
-- Move clear graphic records under `Graphic_designer/A.그래픽/`
+- Move clear graphic records under `Graphic_designer/A.graphic/`
 - Move clear planning records under `Planner/B.게임기획,밸런스 구현/`
 - Move Developer top-level implementation notes under `Developer/구현기록/`
 
