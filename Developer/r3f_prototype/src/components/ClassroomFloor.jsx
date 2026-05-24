@@ -1,17 +1,6 @@
-/**
- * ClassroomFloor — tile_school_interior_floor
- * Stage 1: "버려진 교실" 컨셉 — 바닥 텍스처 only.
- *
- * 색상 기준: 2026-05-20 stage-graphic-redesign-requirements
- *   주색   0xa99a73 / 밝은변형 0xc9cb9f / 어두운변형 0x805947 / 이음새 0x623333
- *
- * Props·atmosphere overlay는 별도 컴포넌트 (StageProps) 가 정본.
- *   src/lib/stagePropsLayout.js (데이터)
- *   src/components/StageProps.jsx (dispatch)
- *   src/components/Props/*, src/components/Atmosphere/* (구현)
- *
- * 본 파일에 인라인 prop 배치를 추가하지 말 것 — 이중 렌더링·중앙 침범 회귀가 됨.
- * 정책: docs/plans/2026-05-22-001-feat-stage1-abandoned-classroom-graphics-plan.md
+﻿/**
+ * ClassroomFloor - Stage 1 visible classroom floor background.
+ * Static prop overlays were removed from gameplay.
  */
 
 import { useMemo } from 'react'

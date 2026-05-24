@@ -23,11 +23,11 @@ All text planning documents under `Planner/` were read with UTF-8 decoding.
   - `Planner/Index/`
   - `Planner/Major_Review_Point/`
   - `Planner/Ref_Vampire_GameDesign/`
-  - `Planner/Rewards_Drops/`
-  - `Planner/Stage1_Balance/`
+  - `Planner/B.게임기획,밸런스 구현/B-1 캐릭터 성장,능력치 업그레이드 구조 구현/Rewards_Drops/`
+  - `Planner/B.게임기획,밸런스 구현/B-3 스테이지진행과 몬스터 등장구현/Stage1_Balance/`
   - `Planner/Subagent_Workflow/`
   - `Planner/Tech_plan/`
-  - `Planner/Weapons/`
+  - `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/`
 
 ## Applied Changes
 

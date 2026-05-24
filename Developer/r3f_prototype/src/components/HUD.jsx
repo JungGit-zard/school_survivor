@@ -4,6 +4,18 @@ import { bagSwingState } from '../lib/refs.js'
 import { UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
 import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { buildPlaytestSummary } from '../lib/playtestLogger.js'
+import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.png'
+import rulerIconSrc from '../assets/weapon_icon/02_wea_30ruller.png.png'
+import tumblerIconSrc from '../assets/weapon_icon/03_wea_tumbler.png.png'
+import flaskIconSrc from '../assets/weapon_icon/04_wea_science.png.png'
+import bellIconSrc from '../assets/weapon_icon/05_wea_bell.png.png'
+import stunIconSrc from '../assets/weapon_icon/06_wea_stungun.png.png'
+import onigiriIconSrc from '../assets/weapon_icon/07_wea_onigiri.png.png'
+import missileIconSrc from '../assets/weapon_icon/08_wea_extrabattery.png.png'
+import starlinkIconSrc from '../assets/weapon_icon/09_wea_starlink.png.png'
+import compassBladeIconSrc from '../assets/weapon_icon/10_wea_compass.png.png'
+import umbrellaIconSrc from '../assets/weapon_icon/11_wea_umb.png.png'
+import eraserIconSrc from '../assets/weapon_icon/12_wea_eraser.png.png'
 
 const damageLabel = (name, weaponKey, upgradeKey) => (w) =>
   `${name} +${UPGRADE_EFFECTS[upgradeKey].dmg} (Lv${(w[weaponKey].level ?? 1) + 1})`
@@ -50,6 +62,25 @@ const UPGRADES = [
 
 const PENCIL_UPGRADE_KEYS = new Set(['pencilDamage', 'pencilCount', 'pencilPierce'])
 
+const WEAPON_UPGRADE_ICON_SRC = {
+  pencil: pencilIconSrc,
+  ruler: rulerIconSrc,
+  tumbler: tumblerIconSrc,
+  flask: flaskIconSrc,
+  bell: bellIconSrc,
+  stun: stunIconSrc,
+  onigiri: onigiriIconSrc,
+  missile: missileIconSrc,
+  starlink: starlinkIconSrc,
+  compassBlade: compassBladeIconSrc,
+  umbrella: umbrellaIconSrc,
+  eraser: eraserIconSrc,
+}
+
+export function getWeaponUpgradeIconSrc(type) {
+  return WEAPON_UPGRADE_ICON_SRC[type] ?? null
+}
+
 export function limitPencilUpgradeOptions(options, random = Math.random) {
   const pencilOptions = options.filter((option) => PENCIL_UPGRADE_KEYS.has(option.key))
   if (pencilOptions.length <= 1) return options
@@ -69,8 +100,21 @@ function pickThree(level, weapons, player) {
 }
 
 function UpgradeIcon({ type }) {
+  const imageSrc = getWeaponUpgradeIconSrc(type)
+
   return (
     <div style={styles.iconBox}>
+      {imageSrc && (
+        <img
+          src={imageSrc}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          style={styles.weaponIconImage}
+        />
+      )}
+      {!imageSrc && (
+        <>
       {type === 'pencil' && (
         <div style={styles.pencilIcon}>
           <span style={styles.pencilLead} />
@@ -177,6 +221,8 @@ function UpgradeIcon({ type }) {
           <span style={styles.healthH} />
           <span style={styles.healthV} />
         </div>
+      )}
+        </>
       )}
     </div>
   )
@@ -678,8 +724,16 @@ const styles = {
     boxShadow: '0 2px 6px rgba(0,0,0,0.45)',
   },
   iconBox: {
-    position: 'relative', width: 54, height: 42, margin: '0 auto 10px',
+    position: 'relative', width: 62, height: 54, margin: '0 auto 10px',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  weaponIconImage: {
+    width: 54,
+    height: 54,
+    objectFit: 'contain',
+    display: 'block',
+    filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.5))',
+    userSelect: 'none',
   },
   pencilIcon: { position: 'relative', width: 46, height: 12, transform: 'rotate(-22deg)' },
   pencilLead: {

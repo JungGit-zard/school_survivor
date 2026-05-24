@@ -1,6 +1,6 @@
 import { playerPos } from './refs.js'
 
-const BASE_PULL_RADIUS = 1.5
+const BASE_PULL_RADIUS = 0.75
 let _pullRadius = BASE_PULL_RADIUS
 let _pullRadiusSq = BASE_PULL_RADIUS * BASE_PULL_RADIUS
 
