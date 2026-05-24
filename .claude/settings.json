@@ -13,7 +13,11 @@
       "Bash(Out-Null)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('valid JSON,', len\\(d['findings']\\), 'findings,', len\\(d['residual_risks']\\), 'risks,', len\\(d['testing_gaps']\\), 'gaps'\\)\")",
       "Bash(node -e \"const d=require\\('/tmp/compound-engineering/ce-code-review/20260525-013412-64b2fd8c/agent-native.json'\\); console.log\\('valid JSON,', d.findings.length, 'findings,', d.residual_risks.length, 'risks,', d.testing_gaps.length, 'gaps'\\)\")",
-      "Bash(node -e \"const fs=require\\('fs'\\); const d=JSON.parse\\(fs.readFileSync\\('d:/tmp/compound-engineering/ce-code-review/20260525-013412-64b2fd8c/agent-native.json','utf8'\\)\\); console.log\\('valid JSON,', d.findings.length, 'findings,', d.residual_risks.length, 'risks,', d.testing_gaps.length, 'gaps'\\)\")"
+      "Bash(node -e \"const fs=require\\('fs'\\); const d=JSON.parse\\(fs.readFileSync\\('d:/tmp/compound-engineering/ce-code-review/20260525-013412-64b2fd8c/agent-native.json','utf8'\\)\\); console.log\\('valid JSON,', d.findings.length, 'findings,', d.residual_risks.length, 'risks,', d.testing_gaps.length, 'gaps'\\)\")",
+      "Bash(git -C \"d:/JungSil/2.Minigame_project/school_survivor\" diff d0b381ee7da9bdf34a370b17f56371709e2405a3 --name-only)",
+      "Bash(grep -E \"\\\\.\\(js|jsx\\)$\")",
+      "Bash(cat \"C:/tmp/compound-engineering/ce-code-review/20260525-013412-64b2fd8c/scope.txt\" 2>/dev/null || echo \"NOT_FOUND\")",
+      "Read(//c/tmp/compound-engineering/ce-code-review/20260525-013412-64b2fd8c/**)"
     ],
     "additionalDirectories": [
       "\\tmp\\compound-engineering\\ce-code-review"
