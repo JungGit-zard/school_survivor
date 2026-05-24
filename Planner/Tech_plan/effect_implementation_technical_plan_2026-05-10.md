@@ -16,8 +16,8 @@ This plan is based on the current implementation and project graphic rules in:
 - `Developer/r3f_prototype/src/components/EnemyDeathCollapse.jsx`
 - `Developer/r3f_prototype/src/components/ZombieMesh.jsx`
 - `Developer/r3f_prototype/src/lib/toon.js`
-- `Graphic_designer/A.그래픽/A-2.캐릭터그래픽/Toon_3D_Characters/toon_reference_implementation_summary.md`
-- `Graphic_designer/A.그래픽/A-2.캐릭터그래픽/Toon_3D_Characters/threejs_toon_modeling_method.md`
+- `Graphic_designer/A.graphic/A-2.character/Toon_3D_Characters/toon_reference_implementation_summary.md`
+- `Graphic_designer/A.graphic/A-2.character/Toon_3D_Characters/threejs_toon_modeling_method.md`
 - `Graphic_designer/Concept_Rules/color_palette_guide.md`
 - `Graphic_designer/Concept_Rules/stage_graphic_cons.md`
 
