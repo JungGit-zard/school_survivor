@@ -4,7 +4,9 @@
       "PowerShell(Start-Process \"http://localhost:5175/\")",
       "Bash(git log *)",
       "PowerShell(Start-Process http://localhost:5175/)",
-      "Bash(git fetch *)"
+      "Bash(git fetch *)",
+      "Bash(python3 -c ' *)",
+      "Bash(py -3 -c ' *)"
     ]
   },
   "hooks": {
