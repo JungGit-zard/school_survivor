@@ -11,7 +11,7 @@ export const WEAPON_CATALOG = {
   pencilThrow: {
     id: 'pencilThrow',
     label: '연필',
-    base: { damage: 8, cooldown: 1100, lastFired: 0, projectileCount: 1, pierce: 0, speed: 12, range: 22 },
+    base: { damage: 5, cooldown: 1100, lastFired: 0, projectileCount: 1, pierce: 0, speed: 12, range: 22 },
     unlockConditions: STARTER,
     minLevelToAppear: 1,
     startsActive: true,

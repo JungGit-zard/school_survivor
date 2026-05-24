@@ -1,4 +1,4 @@
-﻿# 출근길 친화 미구현 항목 구현 요청서
+# 출근길 친화 미구현 항목 구현 요청서
 
 작성일: 2026-05-17
 출처: [`commuter_target_planning_2026-05-14.md`](commuter_target_planning_2026-05-14.md) §10 구현 점검 종합표
@@ -552,7 +552,7 @@ buttonGap: {
 - 기술 스택: [`Planner/Tech_plan/tech_stakc.md`](../Tech_plan/tech_stakc.md)
 - 엔지니어링 디테일: [`Developer/tech_stack.md`](../../Developer/tech_stack.md)
 - VFX 효과 시스템: [`Planner/Tech_plan/effect_sloution.md`](../Tech_plan/effect_sloution.md)
-- 이중 화폐 기획: [`Planner/Rewards_Drops/dual_drop_system_2026-05-08.md`](../Rewards_Drops/dual_drop_system_2026-05-08.md)
+- 이중 화폐 기획: [`Planner/B.게임기획,밸런스 구현/B-1 캐릭터 성장,능력치 업그레이드 구조 구현/Rewards_Drops/dual_drop_system_2026-05-08.md`](../Rewards_Drops/dual_drop_system_2026-05-08.md)
 - 세션 메모리 정본: [`SESSION_CONTINUITY.md`](../../SESSION_CONTINUITY.md)
 
 ---

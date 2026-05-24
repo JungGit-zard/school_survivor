@@ -1,4 +1,4 @@
-﻿# Bang_Rules.md
+# Bang_Rules.md
 > **이 문서는 Escape! zombie school 프로젝트의 최상위 정책 문서입니다.**
 > 기획·개발·디자인 작업 시 반드시 이 문서를 먼저 참조하고, 내용에 위배되는 수치·설계를 사용하지 마십시오.
 
@@ -65,7 +65,7 @@
 
 | 무기 | 쿨다운 (ms) | 기본 데미지 | 사거리 (units) | 비고 |
 |------|-----------|------------|--------------|------|
-| 연필 던지기 | 900 | 9 | 22 (5.5 블록) | 최대 4발, 관통 0–3 |
+| 연필 던지기 | 1100 | 5 | 22 (5.5 블록) | E01 체력 8 기준 약 2/3 피해, 성장 후 1방 가능 |
 | 책가방 휘두르기 | 1000 | 22 | 0.633 (근접) | 0.387 이내 적 있을 때 발동 |
 | 텀블러 궤도 | 상시 | 10 | 궤도 반경 1.0 | 초당 3.5회 타격, 1–3개 |
 | 과학 플라스크 | 2600 | 32 | 18 (4.5 블록) | 폭발 반경 1.6–2.4 |
@@ -177,7 +177,7 @@ This section records the current accepted implementation values after the 2026-0
 
 | Weapon key | Current role | Start active | Core values |
 | --- | --- | --- | --- |
-| `pencilThrow` | Basic projectile | Yes | Damage 9, cooldown 900 ms, range 22 units (5.5 blocks) |
+| `pencilThrow` | Basic projectile | Yes | Damage 5, cooldown 1100 ms, range 22 units (5.5 blocks). First E01 hit removes about 2/3 HP; damage growth enables one-shot later. |
 | `schoolBag` | Close ruler swing defense | No | Damage 22, cooldown 1000 ms, range 0.633 units, trigger range 1.0 unit |
 | `tumbler` | Orbiting close defense | No | Damage 10, radius 1.0 unit (0.25 blocks), 3.5 hits/sec |
 | `scienceFlask` | Dense group splash | No | Damage 32, cooldown 2600 ms, target range 2 units (0.5 blocks), splash radius 1.6 units (0.4 blocks) |
@@ -197,7 +197,7 @@ This section records the current accepted implementation values after the 2026-0
 ## 2026-05-06 Stage 1 Re-balance Addendum
 
 This section records the new accepted values after the 2026-05-06 full re-planning.
-근거: `Planner/Stage1_Balance/stage1_replan_2026-05-06.md` and `Planner/Ref_Vampire_GameDesign/`.
+근거: `Planner/B.게임기획,밸런스 구현/B-3 스테이지진행과 몬스터 등장구현/Stage1_Balance/stage1_replan_2026-05-06.md` and `Planner/Ref_Vampire_GameDesign/`.
 
 ### Re-balance Principle
 
@@ -208,7 +208,7 @@ This section records the new accepted values after the 2026-05-06 full re-planni
 
 | Weapon key | Lv.1 damage | Cooldown | Lv.5 damage |
 | --- | --- | --- | --- |
-| `pencilThrow` | 8 | 1100 ms | 20 |
+| `pencilThrow` | 5 | 1100 ms | 17 |
 | `schoolBag` | 12 | 1300 ms | 32 |
 | `tumbler` | 4 | 0.4s tick | 12 |
 | `scienceFlask` | 30 | 2800 ms | 62 |
@@ -244,7 +244,7 @@ This section records the new accepted values after the 2026-05-06 full re-planni
 
 ### Weapon Unlock Gating (1st service — 2026-05-17 확정)
 
-근거: `Planner/Weapons/weapon_upgrade_flow_and_unlock_plan_2026-05-14.md` §2 (4단 게이트 정본).
+근거: `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/weapon_upgrade_flow_and_unlock_plan_2026-05-14.md` §2 (4단 게이트 정본).
 
 - `pencilThrow`: 시작 지급.
 - `schoolBag` / `tumbler`: card visible from Lv.2.
@@ -252,14 +252,14 @@ This section records the new accepted values after the 2026-05-06 full re-planni
 - `stunGun`: card visible from Lv.6.
 - `onigiri`: card visible from Lv.8.
 - `guidedMissile` / `starlink`: 계정 누적 해금 (메타프로그레션 도입 시 트리거 확정 — `Planner/current_game_rules.md` §6). 해금 후 카드 등장 레벨은 1차안 Lv.6/Lv.8로 두되 메타프로그레션 기획에서 최종 결정.
-- 신규 무기 10종(`compassBlade`, `umbrellaGuard`, `eraserBomb`, `notebookBoomerang`, `chalkLine`, `deskPush`, `lockerDoor`, `cleaningMop`, `broadcastSpeaker`, `fireExtinguisher`)은 누적 해금 카탈로그. 게이트는 `Planner/Weapons/weapon_expansion_unlock_plan_2026-05-10.md` §7 표 사용.
+- 신규 무기 10종(`compassBlade`, `umbrellaGuard`, `eraserBomb`, `notebookBoomerang`, `chalkLine`, `deskPush`, `lockerDoor`, `cleaningMop`, `broadcastSpeaker`, `fireExtinguisher`)은 누적 해금 카탈로그. 게이트는 `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/weapon_expansion_unlock_plan_2026-05-10.md` §7 표 사용.
 
 ### Weapon Unlock Condition Policy (2026-05-17 확정)
 
 - 신규 무기(누적 해금 카탈로그)의 해금 조건은 **OR 원칙**으로 작성한다.
 - 실력 조건(예: 한 판 처치 120, 보스 처치 1회)과 누적 조건(예: 누적 처치 300, 누적 클리어 5회) 둘 중 하나만 만족하면 해금.
 - 목적: 실력이 부족한 플레이어도 반복 플레이를 통해 동일 카탈로그에 접근 가능.
-- 정본 표: `Planner/Weapons/weapon_expansion_unlock_plan_2026-05-10.md` §7 "대체 조건" 절.
+- 정본 표: `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/weapon_expansion_unlock_plan_2026-05-10.md` §7 "대체 조건" 절.
 
 ---
 
@@ -299,7 +299,7 @@ This section records the new accepted values after the 2026-05-06 full re-planni
 
 ## 2026-05-09 Dual Drop System Addendum
 
-근거: `Planner/Rewards_Drops/dual_drop_system_2026-05-08.md`.
+근거: `Planner/B.게임기획,밸런스 구현/B-1 캐릭터 성장,능력치 업그레이드 구조 구현/Rewards_Drops/dual_drop_system_2026-05-08.md`.
 
 ### Two Drop Currencies
 
@@ -334,5 +334,5 @@ This section records the new accepted values after the 2026-05-06 full re-planni
 | E06 | 56 |
 | B01 | 0 |
 
-> 2026-05-16 CEO 리뷰: E01 XP 3→4 (초반 레벨업 가속). 함께 E01 HP 12→8로 1방 보장.
+> 2026-05-25 밸런스 정정: E01 HP는 8로 유지하고 pencilThrow Lv.1 피해를 5로 조정한다. 첫 연필은 E01 체력의 약 2/3만 깎고, 연필 피해 성장 후 1방 처치가 가능해진다.
 > 2026-05-16 Run #1 실측 후: 5분 실제 Lv11 (목표 18-22의 절반). XP 전반 +50% 부스트 (E01 4→6, E02 10→15, E03 3→5, E04 7→10, E05 10→15, E06 40→56). 함께 5분 목표 Lv를 15-17로 하향.

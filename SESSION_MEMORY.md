@@ -1,4 +1,4 @@
-﻿# Session Memory — Permanent Append-Only Log
+# Session Memory — Permanent Append-Only Log
 
 > **이 파일은 Escape! zombie school 프로젝트의 영구 세션 메모리이다.**
 > 세션 시작점은 `Entry 0 (Bootstrap)`으로 기록할 수 있다. 이후 3시간마다 요약 엔트리 1개가 끝에 append된다. 요약 엔트리 4개가 쌓이면(=12시간) 하나의 세션이 닫히고, 그 시점에 에이전트는 사용자에게 컨텍스트 초기화(`/clear`)를 권고한다.
@@ -20,9 +20,6 @@
   - `Developer/r3f_prototype/src/lib/stagePropsLayout.test.js` 수정됨
   - `SESSION_CONTINUITY.md` 수정됨
   - `Developer/r3f_prototype/src/components/ClassroomFloor.test.jsx` 신규
-  - `Developer/stage1_floor_props_implementation_2026-05-24.md` 신규
-  - `Graphic_designer/Environment_Props/stage1_reference_image_implementation_plan_2026-05-24.md` 신규
-  - `Graphic_designer/Environment_Props/stage1_wood_floor_background_unified_plan_2026-05-24.md` 신규
   - `Graphic_designer/UI_HUD_Title/title_screen_reference_implementation_2026-05-24.md` 신규
   - `Quaility_Assurance/stage1_floor_props_validation_2026-05-24.md` 신규
   - `Quaility_Assurance/title_screen_reference_implementation_validation_2026-05-24.md` 신규
@@ -62,9 +59,6 @@ Split-Path -Leaf (git rev-parse --show-toplevel)
 Get-ChildItem C:\Users\admin\.codex\plugins\cache\compound-engineering-plugin\compound-engineering\3.8.2\skills\ce-sessions\scripts | Select-Object Name
 if (Get-Command bash -ErrorAction SilentlyContinue) { 'BASH_OK' } else { 'BASH_MISSING' }
 $skill='C:/Users/admin/.codex/plugins/cache/compound-engineering-plugin/compound-engineering/3.8.2/skills/ce-sessions'; bash -lc "cd '$skill' && scripts/discover-sessions.sh school_survivor 7 | tr '\n' '\0' | xargs -0 python3 scripts/extract-metadata.py --cwd-filter school_survivor --keyword stage1,floor,title,reference,props"
-Get-Content -Raw .\Developer\stage1_floor_props_implementation_2026-05-24.md
-Get-Content -Raw .\Graphic_designer\Environment_Props\stage1_reference_image_implementation_plan_2026-05-24.md
-Get-Content -Raw .\Graphic_designer\Environment_Props\stage1_wood_floor_background_unified_plan_2026-05-24.md
 Get-Content -Raw .\Graphic_designer\UI_HUD_Title\title_screen_reference_implementation_2026-05-24.md
 Get-Content -Raw .\Quaility_Assurance\stage1_floor_props_validation_2026-05-24.md
 Get-Content -Raw .\Quaility_Assurance\title_screen_reference_implementation_validation_2026-05-24.md

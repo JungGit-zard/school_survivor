@@ -1,6 +1,0 @@
-export { default as FallenDesk } from './FallenDesk.jsx'
-export { default as ChairPile } from './ChairPile.jsx'
-export { default as ContaminatedLocker } from './ContaminatedLocker.jsx'
-export { default as SafetyCone } from './SafetyCone.jsx'
-export { default as BarricadeSmall } from './BarricadeSmall.jsx'
-export { default as WarningTape } from './WarningTape.jsx'

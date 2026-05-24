@@ -6,7 +6,17 @@
       "PowerShell(Start-Process http://localhost:5175/)",
       "Bash(git fetch *)",
       "Bash(python3 -c ' *)",
-      "Bash(py -3 -c ' *)"
+      "Bash(py -3 -c ' *)",
+      "Bash(grep -E \"\\\\.\\(jsx|js\\)$\")",
+      "Bash(mkdir -p /tmp/compound-engineering/ce-code-review/20260525-013412-64b2fd8c)",
+      "Bash(New-Item -ItemType Directory -Force -Path \"/tmp/compound-engineering/ce-code-review/20260525-013412-64b2fd8c\")",
+      "Bash(Out-Null)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('valid JSON,', len\\(d['findings']\\), 'findings,', len\\(d['residual_risks']\\), 'risks,', len\\(d['testing_gaps']\\), 'gaps'\\)\")",
+      "Bash(node -e \"const d=require\\('/tmp/compound-engineering/ce-code-review/20260525-013412-64b2fd8c/agent-native.json'\\); console.log\\('valid JSON,', d.findings.length, 'findings,', d.residual_risks.length, 'risks,', d.testing_gaps.length, 'gaps'\\)\")",
+      "Bash(node -e \"const fs=require\\('fs'\\); const d=JSON.parse\\(fs.readFileSync\\('d:/tmp/compound-engineering/ce-code-review/20260525-013412-64b2fd8c/agent-native.json','utf8'\\)\\); console.log\\('valid JSON,', d.findings.length, 'findings,', d.residual_risks.length, 'risks,', d.testing_gaps.length, 'gaps'\\)\")"
+    ],
+    "additionalDirectories": [
+      "\\tmp\\compound-engineering\\ce-code-review"
     ]
   },
   "hooks": {
