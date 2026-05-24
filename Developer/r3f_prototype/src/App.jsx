@@ -20,10 +20,6 @@ const keyMap = [
   { name: 'right', keys: ['ArrowRight', 'KeyD'] },
 ]
 
-// iPhone 12 Pro logical resolution: 390 x 844
-const IPHONE_W = 390
-const IPHONE_H = 844
-
 export default function App() {
   const [screen, setScreen] = useState('title')
   const [mobileJoystickEnabled, setMobileJoystickEnabled] = useState(false)
@@ -121,9 +117,8 @@ const styles = {
   },
   phoneFrame: {
     position: 'relative',
-    width: `min(100vw, calc(100vh * ${IPHONE_W} / ${IPHONE_H}))`,
-    height: `min(100vh, calc(100vw * ${IPHONE_H} / ${IPHONE_W}))`,
-    aspectRatio: `${IPHONE_W} / ${IPHONE_H}`,
+    width: '100vw',
+    height: '100vh',
     overflow: 'hidden',
     background: '#16121d',
   },

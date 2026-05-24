@@ -7,6 +7,105 @@
 
 ---
 
+## Session 3 · Entry 0 (Bootstrap) · 2026-05-24 1419 KST
+
+**Git 상태**
+
+- 브랜치: `feature/codex-gameplay-iteration`
+- 최신 커밋: `fd85963 Update title screen direction and permission allowlist`
+- `git status --short --branch` 요약:
+  - `Developer/r3f_prototype/src/components/ClassroomFloor.jsx` 수정됨
+  - `Developer/r3f_prototype/src/components/TitleScene3D.jsx` 수정됨
+  - `Developer/r3f_prototype/src/lib/stagePropsLayout.js` 수정됨
+  - `Developer/r3f_prototype/src/lib/stagePropsLayout.test.js` 수정됨
+  - `SESSION_CONTINUITY.md` 수정됨
+  - `Developer/r3f_prototype/src/components/ClassroomFloor.test.jsx` 신규
+  - `Developer/stage1_floor_props_implementation_2026-05-24.md` 신규
+  - `Graphic_designer/Environment_Props/stage1_reference_image_implementation_plan_2026-05-24.md` 신규
+  - `Graphic_designer/Environment_Props/stage1_wood_floor_background_unified_plan_2026-05-24.md` 신규
+  - `Graphic_designer/UI_HUD_Title/title_screen_reference_implementation_2026-05-24.md` 신규
+  - `Quaility_Assurance/stage1_floor_props_validation_2026-05-24.md` 신규
+  - `Quaility_Assurance/title_screen_reference_implementation_validation_2026-05-24.md` 신규
+
+**이번 작업 / 대화**
+
+- 사용자가 "하던세션 다시불러"라고 요청해 프로젝트 시작 규칙, gstack 상태, 최근 세션 메모리, 현재 git 상태를 확인했다.
+- `ce-sessions` 스킬 기반 세션 검색을 시도했지만 WSL 오류로 실패했다.
+- 대신 `SESSION_CONTINUITY.md`, `SESSION_MEMORY.md`, 현재 작업트리, 2026-05-24 배경/타이틀 관련 문서를 기준으로 현재 작업 상태를 재구성했다.
+- 사용자가 "배경하던거 마저해"라고 요청해 배경 구현을 이어가려 했고, 관련 스킬과 파일을 확인했다.
+- 사용자가 "세션메모리 3시간 단위로 변경이 있던없던 무조건 남겨"라고 지시했다.
+- 사용자가 "3시간동안 있었던 모든 명령을 그대로 기억해"라고 지시했다.
+- 이에 따라 `SESSION_CONTINUITY.md`의 3시간 엔트리 규칙을 변경했다.
+
+**생성 / 수정 / 이동 파일 목록**
+
+- `SESSION_CONTINUITY.md`: 3시간마다 변경 유무와 무관하게 엔트리를 반드시 남기도록 수정했다. 또한 3시간 동안 실행한 모든 명령을 실행 순서대로 원문 그대로 기록하는 `명령 로그` 필수 항목을 추가했다.
+- `SESSION_MEMORY.md`: 현재 부트스트랩 엔트리를 추가했다.
+
+**명령 로그**
+
+```powershell
+Get-Content -Raw C:\Users\admin\.codex\plugins\cache\openai-curated\superpowers\dc902811\skills\using-superpowers\SKILL.md
+Get-Content -Raw C:\Users\admin\.codex\plugins\cache\compound-engineering-plugin\compound-engineering\3.8.2\skills\ce-sessions\SKILL.md
+if (Test-Path .\SESSION_CONTINUITY.md) { Get-Content -Raw .\SESSION_CONTINUITY.md } else { 'NO_SESSION_CONTINUITY' }
+git status --short --branch
+if (Test-Path .\project_develop_policy.md) { Get-Content -Raw .\project_develop_policy.md } else { 'MISSING project_develop_policy.md' }
+if (Test-Path .\Bang_Rules.md) { Get-Content -Raw .\Bang_Rules.md } else { 'MISSING Bang_Rules.md' }
+if (Test-Path .\AGENTS.md) { Get-Content -Raw .\AGENTS.md } else { 'MISSING AGENTS.md' }
+if (Test-Path .\CLAUDE.md) { Get-Content -Raw .\CLAUDE.md } else { 'MISSING CLAUDE.md' }
+if (Test-Path $HOME\.claude\skills\gstack\bin) { 'GSTACK_OK' } else { 'GSTACK_MISSING' }
+if (Test-Path .\SESSION_MEMORY.md) { Get-Content .\SESSION_MEMORY.md -Tail 120 } else { 'MISSING SESSION_MEMORY.md' }
+git log -1 --oneline
+rg --files Planner Developer Graphic_designer Quaility_Assurance | rg "(stage1|title|floor|reference|implementation|validation|wood|props)"
+git rev-parse --abbrev-ref HEAD
+Split-Path -Leaf (git rev-parse --show-toplevel)
+Get-ChildItem C:\Users\admin\.codex\plugins\cache\compound-engineering-plugin\compound-engineering\3.8.2\skills\ce-sessions\scripts | Select-Object Name
+if (Get-Command bash -ErrorAction SilentlyContinue) { 'BASH_OK' } else { 'BASH_MISSING' }
+$skill='C:/Users/admin/.codex/plugins/cache/compound-engineering-plugin/compound-engineering/3.8.2/skills/ce-sessions'; bash -lc "cd '$skill' && scripts/discover-sessions.sh school_survivor 7 | tr '\n' '\0' | xargs -0 python3 scripts/extract-metadata.py --cwd-filter school_survivor --keyword stage1,floor,title,reference,props"
+Get-Content -Raw .\Developer\stage1_floor_props_implementation_2026-05-24.md
+Get-Content -Raw .\Graphic_designer\Environment_Props\stage1_reference_image_implementation_plan_2026-05-24.md
+Get-Content -Raw .\Graphic_designer\Environment_Props\stage1_wood_floor_background_unified_plan_2026-05-24.md
+Get-Content -Raw .\Graphic_designer\UI_HUD_Title\title_screen_reference_implementation_2026-05-24.md
+Get-Content -Raw .\Quaility_Assurance\stage1_floor_props_validation_2026-05-24.md
+Get-Content -Raw .\Quaility_Assurance\title_screen_reference_implementation_validation_2026-05-24.md
+git diff -- Developer/r3f_prototype/src/components/ClassroomFloor.jsx Developer/r3f_prototype/src/lib/stagePropsLayout.js --stat
+git diff -- Developer/r3f_prototype/src/components/TitleScene3D.jsx --stat
+Get-Content -Raw C:\Users\admin\.codex\plugins\cache\openai-curated\superpowers\dc902811\skills\brainstorming\SKILL.md
+Get-Content -Raw C:\Users\admin\.codex\plugins\cache\compound-engineering-plugin\compound-engineering\3.8.2\skills\ce-frontend-design\SKILL.md
+git status --short --branch
+rg --files Developer/r3f_prototype/src | rg "(ClassroomFloor|StageProps|stagePropsLayout|TitleScene|Floor|Atmosphere|Props)"
+Get-Content -Raw .\Developer\r3f_prototype\src\components\StageProps.jsx
+Get-Content -Raw .\Developer\r3f_prototype\src\components\Atmosphere\ExamPaper.jsx
+Get-Content -Raw .\Developer\r3f_prototype\src\components\Atmosphere\PollutionPuddleStatic.jsx
+Get-Content -Raw .\Developer\r3f_prototype\src\components\Atmosphere\WindowShadowBroken.jsx
+rg -n "3시간|변경|활성|Entry|Required End" .\SESSION_CONTINUITY.md
+Get-Date -Format 'yyyy-MM-dd HHmm'
+git status --short --branch
+git status --short --branch
+git log -1 --oneline
+```
+
+**명령 / 빌드 / 테스트 / 브라우저 검증 결과**
+
+- gstack 설치 확인 결과: `GSTACK_OK`.
+- `ce-sessions` 세션 검색은 WSL 배포판/resolve 오류로 실패했다.
+- 이번 엔트리 작성 시점에는 새 빌드/테스트/브라우저 검증은 아직 실행하지 않았다.
+
+**확정된 룰 / 정책 변경**
+
+- 3시간 단위 세션 메모리는 변경이 있든 없든 무조건 남긴다.
+- 3시간 단위 엔트리에는 해당 3시간 동안 실행한 모든 명령을 실행 순서대로 원문 그대로 남긴다.
+
+**미해결 / 다음 단계**
+
+1. 배경 작업을 이어서 실제 화면 기준으로 확인하고 필요한 소품/바닥 분위기를 다듬는다.
+2. dev 서버를 실행해 브라우저에서 Stage 1 배경을 확인한다.
+3. 배경 변경 후 `npm test -- --run`과 필요한 브라우저 검증을 다시 수행한다.
+
+**다음 엔트리 예정**: Session 3 · Entry 1 — 2026-05-24 1719 KST 전후. 변경 사항이 없어도 반드시 작성한다.
+
+---
+
 ## Session 1 · Entry 0 (Bootstrap) · 2026-05-16 00:45 KST
 
 **규칙 전환 시점**

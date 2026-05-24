@@ -83,7 +83,7 @@ function TitlePlayer() {
   })
 
   return (
-    <group ref={ref} position={[1.02, 0.58, 2.18]} rotation={[0, -0.34, 0]} scale={1.18}>
+    <group ref={ref} position={[0.9, 0.58, 2.1]} rotation={[0, -0.16, 0]} scale={1.24}>
       <ToonBox position={[-0.04, 0.58, 0]} scale={[0.5, 0.62, 0.25]} color={0xd32836} emissive={0.1} />
       <ToonBox position={[-0.02, 0.58, 0.03]} scale={[0.34, 0.5, 0.26]} color={0xf8f7f2} emissive={0.12} />
       <ToonBox position={[-0.02, 0.78, 0.18]} scale={[0.36, 0.12, 0.08]} color={0xe42f4d} emissive={0.14} />
@@ -105,13 +105,15 @@ function TitlePlayer() {
       <ToonBox position={[0.43, 0.48, -0.2]} scale={[0.22, 0.62, 0.18]} color={0x2485d1} emissive={0.1} />
       <ToonBox position={[0.22, 0.68, 0.16]} scale={[0.06, 0.76, 0.06]} color={0x0e3e73} emissive={0.08} />
 
-      <ToonSphere position={[0, 1.03, 0.04]} scale={[0.42, 0.42, 0.36]} color={0xf3c49b} />
+      <ToonSphere position={[0, 1.03, 0.06]} scale={[0.42, 0.42, 0.36]} color={0xf3c49b} />
       <ToonSphere position={[-0.05, 1.22, 0.02]} scale={[0.54, 0.34, 0.38]} color={0xff79a8} emissive={0.12} />
       <ToonSphere position={[-0.4, 1.06, -0.02]} scale={[0.2, 0.38, 0.16]} color={0xff79a8} emissive={0.12} />
       <ToonSphere position={[0.36, 1.04, -0.02]} scale={[0.2, 0.36, 0.16]} color={0xff79a8} emissive={0.12} />
-      <ToonBox position={[-0.13, 1.04, 0.35]} scale={[0.07, 0.08, 0.04]} color={0x301422} emissive={0.04} />
-      <ToonBox position={[0.13, 1.04, 0.35]} scale={[0.07, 0.08, 0.04]} color={0x301422} emissive={0.04} />
-      <ToonBox position={[0, 0.92, 0.37]} scale={[0.2, 0.06, 0.04]} color={0x301422} emissive={0.04} />
+      <ToonBox position={[-0.14, 1.06, 0.42]} scale={[0.1, 0.11, 0.05]} color={0x5b1b44} emissive={0.08} />
+      <ToonBox position={[0.14, 1.06, 0.42]} scale={[0.1, 0.11, 0.05]} color={0x5b1b44} emissive={0.08} />
+      <ToonBox position={[-0.14, 1.07, 0.46]} scale={[0.045, 0.045, 0.025]} color={0xffd7eb} emissive={0.1} />
+      <ToonBox position={[0.14, 1.07, 0.46]} scale={[0.045, 0.045, 0.025]} color={0xffd7eb} emissive={0.1} />
+      <ToonBox position={[0, 0.91, 0.44]} scale={[0.2, 0.075, 0.05]} color={0x301422} emissive={0.04} />
     </group>
   )
 }
