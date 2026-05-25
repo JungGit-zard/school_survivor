@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+﻿// @vitest-environment jsdom
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { describe, expect, it } from 'vitest'
@@ -13,8 +13,8 @@ import {
 
 describe('upgrade choice filtering', () => {
   it('labels run weapon acquisition as 획득, not account 해금', () => {
-    expect(getUpgradeChoiceLabel({ key: 'unlockBag' })).toContain('획득')
-    expect(getUpgradeChoiceDesc({ key: 'unlockBell', desc: '벨 스킬 해금' })).toBe('벨 스킬 획득')
+    expect(getUpgradeChoiceLabel({ key: 'acquireBag' })).toContain('획득')
+    expect(getUpgradeChoiceDesc({ key: 'acquireBell', desc: '벨 스킬 해금' })).toBe('벨 스킬 획득')
   })
 
   it('limits pencil upgrade options to one card', () => {
@@ -22,7 +22,7 @@ describe('upgrade choice filtering', () => {
       { key: 'pencilDamage' },
       { key: 'pencilCount' },
       { key: 'pencilPierce' },
-      { key: 'unlockBag' },
+      { key: 'acquireBag' },
       { key: 'maxHealth' },
     ]
 
@@ -30,7 +30,7 @@ describe('upgrade choice filtering', () => {
     const pencilCount = filtered.filter((option) => option.key.startsWith('pencil')).length
 
     expect(pencilCount).toBe(1)
-    expect(filtered.map((option) => option.key)).toContain('unlockBag')
+    expect(filtered.map((option) => option.key)).toContain('acquireBag')
     expect(filtered.map((option) => option.key)).toContain('maxHealth')
   })
 

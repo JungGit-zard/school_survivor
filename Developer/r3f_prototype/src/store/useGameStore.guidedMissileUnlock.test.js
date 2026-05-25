@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+﻿// @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore } from './useGameStore.js'
 import { UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
@@ -41,8 +41,8 @@ describe('guidedMissile run-count unlock', () => {
     const weapons = useGameStore.getState().weapons
 
     expect(WEAPON_CATALOG.guidedMissile.minLevelToAppear).toBe(4)
-    expect(UPGRADE_EFFECTS.unlockMissile.minLevel).toBe(4)
-    expect(isUpgradeAvailable(UPGRADE_EFFECTS.unlockMissile, 4, weapons, useGameStore.getState().player)).toBe(true)
+    expect(UPGRADE_EFFECTS.acquireMissile.minLevel).toBe(4)
+    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireMissile, 4, weapons, useGameStore.getState().player)).toBe(true)
   })
 
   it('syncs existing totalRuns records into weapon unlock storage on reset', () => {
