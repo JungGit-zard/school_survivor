@@ -99,22 +99,28 @@ function pickThree(level, weapons, player) {
   return shuffled.slice(0, 3)
 }
 
-function UpgradeIcon({ type }) {
+export function UpgradeIcon({ type }) {
   const imageSrc = getWeaponUpgradeIconSrc(type)
+  const [imageFailed, setImageFailed] = useState(false)
+
+  useEffect(() => {
+    setImageFailed(false)
+  }, [imageSrc])
 
   return (
     <div style={styles.iconBox}>
-      {imageSrc && (
+      {imageSrc && !imageFailed && (
         <img
           src={imageSrc}
           alt=""
           aria-hidden="true"
           draggable={false}
           style={styles.weaponIconImage}
+          onError={() => setImageFailed(true)}
         />
       )}
-      {!imageSrc && (
-        <>
+      {(!imageSrc || imageFailed) && (
+        <span data-upgrade-fallback-icon={type} style={styles.fallbackIconWrap}>
       {type === 'pencil' && (
         <div style={styles.pencilIcon}>
           <span style={styles.pencilLead} />
@@ -222,7 +228,7 @@ function UpgradeIcon({ type }) {
           <span style={styles.healthV} />
         </div>
       )}
-        </>
+        </span>
       )}
     </div>
   )
@@ -726,6 +732,13 @@ const styles = {
   iconBox: {
     position: 'relative', width: 62, height: 54, margin: '0 auto 10px',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  fallbackIconWrap: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%',
   },
   weaponIconImage: {
     width: 54,
