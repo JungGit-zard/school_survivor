@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect } from 'vitest'
 import { applyUpgradeToWeapon, isUpgradeAvailable, UPGRADE_EFFECTS } from './upgrades.js'
 
 // 가상 무기 상태 빌더. weapons 객체의 한 항목 형태와 동일.
