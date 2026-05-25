@@ -1,0 +1,74 @@
+# Compass Blade Full Audit And 3D Rebuild - 2026-05-25
+
+## Case Name
+
+`compass_blade_full_audit_and_3d_rebuild_2026-05-25`
+
+## User Request
+
+- Review all code implemented as `compassBlade` / 나침반 칼날.
+- Rebuild the in-game 3D graphic using the connected icon image as the approved 2D source art.
+- Fix the current in-game manifestation bug.
+- Use three or more agents.
+
+## Classification
+
+- Debugging
+- Code review
+- Gameplay implementation
+- Graphics redesign
+- QA validation
+
+## Primary Methodology
+
+- Superpowers systematic debugging
+- Superpowers test-driven development
+- Project policy department ownership
+
+## Supporting Methodology
+
+- Agent Room routing
+- Project graphic policy: 2D source art first, then 3D toon implementation
+- Runtime/browser validation after implementation
+
+## Selected Agents
+
+- `code-mapper` - read-only
+  - Maps every `compassBlade` code and document touchpoint.
+- `reviewer` - read-only
+  - Reviews correctness, regressions, missing tests, and risky implementation details.
+- `game-developer` - read-only analysis first, write-capable only if explicitly reassigned
+  - Analyzes gameplay behavior, collision, orbit timing, and damage flow.
+- `graphic_designer` - read-only analysis first, graphics authority for `Graphic_designer/`
+  - Interprets `10_wea_compass.png.png` as source art and defines the 3D toon rebuild direction.
+- `qa-expert` - read-only analysis first, QA record authority for `Quaility_Assurance/`
+  - Defines regression and runtime validation gates.
+
+## Required Output Folders
+
+- `Developer/`
+  - Code map, implementation notes, and technical debugging record.
+- `Graphic_designer/`
+  - 2D source-art interpretation and 3D visual direction.
+- `Quaility_Assurance/`
+  - Test plan, validation result, and residual risk.
+- `Planner/`
+  - Reference only unless weapon role, balance, unlock condition, or progression rule changes.
+
+## Verification Gate
+
+- Confirm current implementation against Planner weapon rules.
+- Add a failing regression test before production code changes.
+- Fix the root cause, not only the symptom.
+- Verify with targeted tests and production build.
+- Confirm runtime icon/asset availability and visual behavior where possible.
+- Record QA result before claiming completion.
+
+## Do Not Skip
+
+- Do not bypass `project_develop_policy.md`.
+- Do not treat temporary shapes as final graphics.
+- Do not implement graphics without referencing `Graphic_designer/Bang_survivor_Graphic_concept.md`.
+- Do not change balance or unlock rules without Planner record.
+- Do not overwrite unrelated dirty work.
+
