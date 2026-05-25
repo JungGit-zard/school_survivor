@@ -2,9 +2,21 @@
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { describe, expect, it } from 'vitest'
-import { UpgradeIcon, getWeaponUpgradeIconSrc, limitPencilUpgradeOptions } from './HUD.jsx'
+import {
+  UpgradeIcon,
+  getUpgradeChoiceDesc,
+  getUpgradeChoiceLabel,
+  getWeaponUpgradeIconSrc,
+  limitDuplicateWeaponUpgradeOptions,
+  limitPencilUpgradeOptions,
+} from './HUD.jsx'
 
 describe('upgrade choice filtering', () => {
+  it('labels run weapon acquisition as 획득, not account 해금', () => {
+    expect(getUpgradeChoiceLabel({ key: 'unlockBag' })).toContain('획득')
+    expect(getUpgradeChoiceDesc({ key: 'unlockBell', desc: '벨 스킬 해금' })).toBe('벨 스킬 획득')
+  })
+
   it('limits pencil upgrade options to one card', () => {
     const options = [
       { key: 'pencilDamage' },
@@ -21,6 +33,24 @@ describe('upgrade choice filtering', () => {
     expect(filtered.map((option) => option.key)).toContain('unlockBag')
     expect(filtered.map((option) => option.key)).toContain('maxHealth')
   })
+
+  it('limits every weapon to one card in the three upgrade choices', () => {
+    const options = [
+      { key: 'umbrellaDamage' },
+      { key: 'umbrellaRadius' },
+      { key: 'onigiiriDamage' },
+      { key: 'onigiiriBounce' },
+      { key: 'maxHealth' },
+    ]
+
+    const filtered = limitDuplicateWeaponUpgradeOptions(options, () => 0.8)
+    const umbrellaCount = filtered.filter((option) => option.key.startsWith('umbrella')).length
+    const onigiriCount = filtered.filter((option) => option.key.startsWith('onigiiri')).length
+
+    expect(umbrellaCount).toBe(1)
+    expect(onigiriCount).toBe(1)
+    expect(filtered.map((option) => option.key)).toContain('maxHealth')
+  })
 })
 
 describe('weapon upgrade icon assets', () => {
@@ -28,6 +58,7 @@ describe('weapon upgrade icon assets', () => {
     const weaponIconTypes = [
       'pencil',
       'ruler',
+      'boxCutter',
       'tumbler',
       'flask',
       'bell',
@@ -41,7 +72,7 @@ describe('weapon upgrade icon assets', () => {
     ]
 
     for (const type of weaponIconTypes) {
-      expect(getWeaponUpgradeIconSrc(type), `${type} icon`).toMatch(/wea_|weapon_icon/)
+      expect(getWeaponUpgradeIconSrc(type), `${type} icon`).toMatch(/wea_|weapon_icon|^data:image\//)
     }
   })
 

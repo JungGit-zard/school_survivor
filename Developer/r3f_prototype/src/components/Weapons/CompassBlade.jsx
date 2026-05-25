@@ -1,10 +1,13 @@
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useState, useCallback } from 'react'
 import { useFrame } from '@react-three/fiber'
+import * as THREE from 'three'
 import { RigidBody, BallCollider } from '@react-three/rapier'
-import { playerPos } from '../../lib/refs.js'
+import { enemyBodies, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
-import { getCompassBladeOrbitPose } from '../../lib/compassBlade.js'
+import { getCompassBladeOrbitPose, resolveCompassBladeHitStack } from '../../lib/compassBlade.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
+
+let _compassExplosionId = 0
 
 function CompassLeg({ side = 1, main = false }) {
   const armMat = useMemo(() => toonMat(0x1f3d63, 0.08), [])
@@ -50,7 +53,7 @@ function CompassBladeModel() {
   const outMat = useMemo(() => outlineMat(0.96), [])
 
   return (
-    <group scale={[0.56, 0.56, 0.56]} rotation={[0.12, 0, 0]}>
+    <group scale={[0.373, 0.373, 0.373]} rotation={[0.12, 0, 0]}>
       <mesh material={trailMat} position={[0, -0.035, 0.02]} rotation={[Math.PI / 2, 0, -0.72]}>
         <torusGeometry args={[0.58, 0.026, 8, 40, 1.9]} />
       </mesh>
@@ -71,14 +74,98 @@ function CompassBladeModel() {
   )
 }
 
+function CompassBladeExplosion({ id, x, z, radius, onDone }) {
+  const groupRef = useRef(null)
+  const ageRef = useRef(0)
+  const ringMat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: 0xffd76a,
+    transparent: true,
+    opacity: 0.58,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  }), [])
+  const sparkMat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: 0xfff0a6,
+    transparent: true,
+    opacity: 0.92,
+    depthWrite: false,
+  }), [])
+
+  useFrame((_, delta) => {
+    ageRef.current += delta
+    const t = Math.min(1, ageRef.current / 0.34)
+    if (groupRef.current) {
+      groupRef.current.scale.setScalar(0.18 + radius * 1.95 * t)
+      groupRef.current.rotation.y += delta * 5.2
+      groupRef.current.children.forEach((child) => {
+        if (child.material) child.material.opacity = Math.max(0, 0.9 * (1 - t))
+      })
+    }
+    if (t >= 1) onDone(id)
+  })
+
+  return (
+    <group ref={groupRef} position={[x, 0.12, z]} renderOrder={5}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.28, 0.46, 48]} />
+        <primitive object={ringMat} attach="material" />
+      </mesh>
+      {Array.from({ length: 10 }, (_, index) => {
+        const angle = (index * Math.PI * 2) / 10
+        return (
+          <mesh
+            key={index}
+            material={sparkMat}
+            position={[Math.sin(angle) * 0.42, 0.04, Math.cos(angle) * 0.42]}
+            rotation={[0, angle, 0.32]}
+            scale={[0.08, 0.035, 0.28]}
+          >
+            <boxGeometry args={[1, 1, 1]} />
+          </mesh>
+        )
+      })}
+    </group>
+  )
+}
+
 export function CompassBladeWeapon() {
   const rbRefs = useRef([])
   const visualRefs = useRef([])
   const enemiesRef = useRef(new Map())
   const overlapCountRef = useRef(new Map())
   const lastHitRef = useRef(new Map())
+  const hitStackRef = useRef(0)
+  const [explosions, setExplosions] = useState([])
   const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
+
+  const removeExplosion = useCallback((id) => {
+    setExplosions((prev) => prev.filter((item) => item.id !== id))
+  }, [])
+
+  const explode = useCallback((blast) => {
+    const hitTargets = new Set()
+    enemyBodies.forEach((rb, enemyId) => {
+      if (!rb?._enemyHit || rb._enemyDead || hitTargets.has(enemyId)) return
+      const t = rb.translation()
+      const dx = t.x - blast.x
+      const dz = t.z - blast.z
+      if (dx * dx + dz * dz > blast.radius * blast.radius) return
+      hitTargets.add(enemyId)
+      rb._enemyHit(blast.damage, {
+        source: { x: blast.x, z: blast.z },
+        knockback: 3.2,
+        knockbackMs: 130,
+      })
+    })
+
+    setExplosions((prev) => [...prev, {
+      id: ++_compassExplosionId,
+      x: blast.x,
+      z: blast.z,
+      radius: blast.radius,
+    }])
+  }, [])
 
   useFrame(({ clock }) => {
     const w = weapons.compassBlade
@@ -108,11 +195,33 @@ export function CompassBladeWeapon() {
 
     const nowMs = nowSec * 1000
     const interval = 1000 / (w.hitsPerSecond ?? 2.5)
-    enemiesRef.current.forEach((hitFn, enemyId) => {
+    enemiesRef.current.forEach((rb, enemyId) => {
+      if (!rb?._enemyHit || rb._enemyDead) {
+        enemiesRef.current.delete(enemyId)
+        overlapCountRef.current.delete(enemyId)
+        lastHitRef.current.delete(enemyId)
+        return
+      }
       const lastHit = lastHitRef.current.get(enemyId) ?? 0
       if (nowMs - lastHit < interval) return
       lastHitRef.current.set(enemyId, nowMs)
-      hitFn(w.damage)
+      const t = rb.translation()
+      rb._enemyHit(w.damage)
+
+      const stackResult = resolveCompassBladeHitStack({
+        currentStack: hitStackRef.current,
+        hitDamage: w.damage,
+      })
+      hitStackRef.current = stackResult.stack
+
+      if (stackResult.exploded) {
+        explode({
+          x: t.x,
+          z: t.z,
+          damage: stackResult.explosionDamage,
+          radius: stackResult.explosionRadius,
+        })
+      }
     })
   })
 
@@ -151,7 +260,7 @@ export function CompassBladeWeapon() {
                 if (rb?._enemyId == null || !rb?._enemyHit) return
                 const nextCount = (overlapCountRef.current.get(rb._enemyId) ?? 0) + 1
                 overlapCountRef.current.set(rb._enemyId, nextCount)
-                enemiesRef.current.set(rb._enemyId, rb._enemyHit)
+                enemiesRef.current.set(rb._enemyId, rb)
               }}
               onIntersectionExit={({ other }) => {
                 const rb = other.rigidBody
@@ -191,6 +300,10 @@ export function CompassBladeWeapon() {
           </group>
         )
       })}
+
+      {explosions.map((explosion) => (
+        <CompassBladeExplosion key={explosion.id} {...explosion} onDone={removeExplosion} />
+      ))}
     </>
   )
 }

@@ -1,10 +1,10 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { findClosestEnemy } from '../../lib/weaponTargeting.js'
+import { createRiceBurstGrains, pickNextOnigiriTarget, shouldShowRiceBurst } from '../../lib/onigiri.js'
 
 let _onigiiriId  = 0
 
@@ -53,27 +53,66 @@ function OnigiiriModel() {
   )
 }
 
-function BounceFlash({ id, x, z, startMs, onDone }) {
-  const ref = useRef()
-  const mat = useMemo(() => new THREE.MeshBasicMaterial({
-    color: 0xfff0aa, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide,
-  }), [])
+function RiceGrain({ grain, startMs }) {
+  const groupRef = useRef(null)
+  const riceRef = useRef(null)
+  const riceMat = useMemo(() => {
+    const mat = toonMat(0xfffbef, 0.2)
+    mat.transparent = true
+    mat.opacity = 1
+    mat.depthWrite = false
+    mat.toneMapped = false
+    return mat
+  }, [])
 
   useFrame(({ clock }) => {
-    const age = clock.elapsedTime * 1000 - startMs
-    const t   = Math.min(1, age / 160)
-    if (ref.current) {
-      ref.current.scale.setScalar((0.1 + t * 0.55) / 5)
-      mat.opacity = 0.85 * (1 - t)
+    const age = clock.elapsedTime * 1000 - startMs - grain.delay
+    if (age < 0 || !groupRef.current) return
+
+    const t = Math.min(1, age / 520)
+    const arc = Math.sin(t * Math.PI)
+    const dist = grain.speed * t
+    const x = grain.x + Math.cos(grain.angle) * dist
+    const z = grain.z + Math.sin(grain.angle) * dist
+    const y = 0.08 + arc * grain.lift
+    const fade = Math.max(0, 1 - Math.max(0, t - 0.55) / 0.45)
+
+    groupRef.current.position.set(x, y, z)
+    groupRef.current.rotation.set(t * grain.spin, grain.angle, t * grain.spin * 0.7)
+    groupRef.current.scale.setScalar(0.65 + arc * 0.35)
+    if (riceRef.current) {
+      riceRef.current.material.opacity = fade
     }
-    if (t >= 1) onDone(id)
   })
 
   return (
-    <mesh ref={ref} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.06, z]} renderOrder={6}>
-      <circleGeometry args={[0.5, 20]} />
-      <primitive object={mat} attach="material" />
-    </mesh>
+    <group ref={groupRef} position={[grain.x, 0.08, grain.z]}>
+      <mesh ref={riceRef} material={riceMat} scale={[grain.size * 1.45, grain.size * 0.88, grain.size]} renderOrder={7}>
+        <sphereGeometry args={[1, 8, 5]} />
+      </mesh>
+    </group>
+  )
+}
+
+function RiceBurst({ id, x, z, startMs, onDone }) {
+  const doneRef = useRef(false)
+  const grains = useMemo(() => createRiceBurstGrains({ id, x, z, count: 18, radius: 1.05 }), [id, x, z])
+
+  useFrame(({ clock }) => {
+    if (doneRef.current) return
+    const age = clock.elapsedTime * 1000 - startMs
+    if (age >= 620) {
+      doneRef.current = true
+      onDone(id)
+    }
+  })
+
+  return (
+    <group>
+      {grains.map((grain) => (
+        <RiceGrain key={grain.key} grain={grain} startMs={startMs} />
+      ))}
+    </group>
   )
 }
 
@@ -94,7 +133,17 @@ function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, boun
 
     const target = targetRef.current
     if (!target?.rb || target.rb._enemyDead || !target.rb._enemyHit) {
-      doneRef.current = true; onDone(id); return
+      const next = pickNextOnigiriTarget({
+        enemyBodies,
+        from: posRef.current,
+        hitSet: hitSetRef.current,
+      })
+      if (!next) {
+        doneRef.current = true; onDone(id); return
+      }
+      hitSetRef.current.add(next.enemyId)
+      targetRef.current = next
+      return
     }
 
     const t  = target.rb.translation()
@@ -104,7 +153,6 @@ function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, boun
     const dist = Math.hypot(dx, dz)
 
     if (dist < 0.30) {
-      onBounceFlash(t.x, t.z)
       target.rb._enemyHit(damage, {
         source: { x: p.x, z: p.z },
         knockback: 3.2, knockbackMs: 90,
@@ -112,17 +160,16 @@ function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, boun
       bouncesRef.current--
       p.x = t.x; p.z = t.z
 
-      if (bouncesRef.current <= 0) {
+      if (shouldShowRiceBurst(bouncesRef.current)) {
+        onBounceFlash(t.x, t.z)
         doneRef.current = true; onDone(id); return
       }
 
-      let next = null
-      let minDSq = bounceRange * bounceRange
-      enemyBodies.forEach((rb, enemyId) => {
-        if (hitSetRef.current.has(enemyId) || !rb._enemyHit || rb._enemyDead) return
-        const et = rb.translation()
-        const dSq = (et.x - t.x) ** 2 + (et.z - t.z) ** 2
-        if (dSq < minDSq) { minDSq = dSq; next = { rb, enemyId } }
+      const next = pickNextOnigiriTarget({
+        enemyBodies,
+        from: { x: t.x, z: t.z },
+        hitSet: hitSetRef.current,
+        range: bounceRange,
       })
 
       if (!next) { doneRef.current = true; onDone(id); return }
@@ -201,7 +248,7 @@ export function OnigiiriWeapon() {
         <OnigiiriProjectile key={p.id} {...p} onDone={expire} onBounceFlash={addFlash} />
       ))}
       {flashes.map((f) => (
-        <BounceFlash key={f.id} {...f} onDone={removeFlash} />
+        <RiceBurst key={f.id} {...f} onDone={removeFlash} />
       ))}
     </>
   )

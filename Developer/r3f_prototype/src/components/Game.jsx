@@ -8,7 +8,7 @@ import Floor from './Floor.jsx'
 import Enemies from './Enemies.jsx'
 import LunchItems from './LunchItems.jsx'
 import VFXLayer from './VFXLayer.jsx'
-import { PencilThrow, SchoolBagSwing, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon } from './Weapons/index.js'
+import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon } from './Weapons/index.js'
 
 const _camTarget = new THREE.Vector3()
 
@@ -61,6 +61,7 @@ export default function Game() {
       <Player />
       <PencilThrow />
       <SchoolBagSwing />
+      <BoxCutterWeapon />
       <TumblerOrbit />
       <BellShockwave />
       <ScienceFlaskSplash />

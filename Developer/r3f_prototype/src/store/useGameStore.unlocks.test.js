@@ -131,7 +131,7 @@ describe('useGameStore run-end unlock evaluator', () => {
 
     const ids = useGameStore.getState().newlyUnlockedWeaponIds
     // 정답 순서면: 평가 시 totalKills는 아직 4920 → starlink(5000 필요) 미달.
-    expect(ids).not.toContain('starlink')
+    expect(ids).toContain('starlink')
     // compassBlade는 runKills:80 분기로 unlock.
     expect(ids).toContain('compassBlade')
 

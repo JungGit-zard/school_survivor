@@ -7,6 +7,7 @@ import * as THREE from 'three'
 import { subscribeVfx } from '../lib/vfxEvents.js'
 import { VFX_COLORS } from '../lib/vfxPalette.js'
 import { fadeAlpha } from '../lib/vfxMath.js'
+import { getChargeWarningArrowConfig } from '../lib/vfxGeometry.js'
 import { useGameStore } from '../store/useGameStore.js'
 
 // Plan §4-3 / §5 권장 동시 효과 상한.
@@ -49,9 +50,17 @@ function ChargeWarningLine({ event, onDone }) {
   const matRef  = useRef()
   const LIFE    = event.life ?? 700
   const length  = event.length ?? 4.5
-  const width   = event.width ?? 0.7
   const angle   = event.angle ?? 0
   const color   = event.color ?? VFX_COLORS.chargeOrange
+  const arrowShape = useMemo(() => {
+    const shape = new THREE.Shape()
+    const config = getChargeWarningArrowConfig({ width: event.width, length })
+    const [first, ...rest] = config.points
+    shape.moveTo(first[0], first[1])
+    rest.forEach(([x, y]) => shape.lineTo(x, y))
+    shape.closePath()
+    return shape
+  }, [event.width, length])
 
   useFrame(() => {
     const age = performance.now() - event.startMs
@@ -73,7 +82,7 @@ function ChargeWarningLine({ event, onDone }) {
       position={[cx, 0.03, cz]}
       rotation={[-Math.PI / 2, 0, -angle]}
     >
-      <planeGeometry args={[width, length]} />
+      <shapeGeometry args={[arrowShape]} />
       <meshBasicMaterial
         ref={matRef}
         color={color}

@@ -23,6 +23,13 @@ export const WEAPON_CATALOG = {
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },
+  boxCutter: {
+    id: 'boxCutter',
+    label: '커터칼',
+    base: { damage: 16, cooldown: 1100, range: 0.85, width: 0.22, slashMs: 240, knockback: 1.8 },
+    unlockConditions: STARTER,
+    minLevelToAppear: 2,
+  },
   tumbler: {
     id: 'tumbler',
     label: '텀블러',
@@ -54,7 +61,7 @@ export const WEAPON_CATALOG = {
   onigiri: {
     id: 'onigiri',
     label: '오니기리',
-    base: { damage: 14, cooldown: 2000, bounces: 4, bounceRange: 4.5, range: 18 },
+    base: { damage: 14, cooldown: 5000, bounces: 1, bounceRange: 4.5, range: 18 },
     unlockConditions: STARTER,
     minLevelToAppear: 8,
   },
@@ -66,7 +73,7 @@ export const WEAPON_CATALOG = {
     base: { damage: 16, cooldown: 4000, lastFired: 0, range: 22, radius: 1.6 },
     // 1차안 (메타프로그레션 정본 도입 시 확정).
     unlockConditions: [{ type: 'totalRuns', value: 5 }],
-    minLevelToAppear: 6,
+    minLevelToAppear: 4,
   },
   starlink: {
     id: 'starlink',
@@ -96,7 +103,14 @@ export const WEAPON_CATALOG = {
   umbrellaGuard: {
     id: 'umbrellaGuard',
     label: '우산 방어막',
-    base: { damage: 5, cooldown: 1800, radius: 1.0, knockback: 'medium', knockbackMs: 200 },
+    base: {
+      damage: 12,
+      cooldown: 3600,
+      radius: 1.25,
+      spinDurationMs: 1200,
+      knockback: 'strong',
+      knockbackMs: 220,
+    },
     unlockConditions: [
       { type: 'runSurvivalSeconds', value: 90 },
       { type: 'totalSurvivalSeconds', value: 300 },

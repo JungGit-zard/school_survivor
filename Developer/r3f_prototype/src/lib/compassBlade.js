@@ -1,3 +1,8 @@
+export const COMPASS_BLADE_STACKS_TO_EXPLODE = 10
+export const COMPASS_BLADE_EXPLOSION_DAMAGE_MULTIPLIER = 5
+// One tile is the player's current full visual footprint plus its 8 neighboring directions.
+export const COMPASS_BLADE_ONE_TILE_RADIUS = 0.5
+
 export function getCompassBladeOrbitPose({
   elapsedSec,
   index,
@@ -23,5 +28,26 @@ export function getCompassBladeOrbitPose({
       y: angle + Math.PI / 2,
       z: 0,
     },
+  }
+}
+
+export function resolveCompassBladeHitStack({ currentStack = 0, hitDamage = 0 }) {
+  const nextStack = currentStack + 1
+  const explosionRadius = COMPASS_BLADE_ONE_TILE_RADIUS
+
+  if (nextStack < COMPASS_BLADE_STACKS_TO_EXPLODE) {
+    return {
+      stack: nextStack,
+      exploded: false,
+      explosionDamage: 0,
+      explosionRadius,
+    }
+  }
+
+  return {
+    stack: 0,
+    exploded: true,
+    explosionDamage: hitDamage * COMPASS_BLADE_EXPLOSION_DAMAGE_MULTIPLIER,
+    explosionRadius,
   }
 }

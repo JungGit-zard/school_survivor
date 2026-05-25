@@ -6,7 +6,7 @@ const wpn = (overrides = {}) => ({ active: false, level: 0, damage: 5, ...overri
 
 describe('applyUpgradeToWeapon', () => {
   it('unlock effect: active=true, level=1로 초기화', () => {
-    const out = applyUpgradeToWeapon(wpn(), { kind: 'unlock' })
+    const out = applyUpgradeToWeapon(wpn(), { kind: 'acquire' })
     expect(out.active).toBe(true)
     expect(out.level).toBe(1)
   })
@@ -58,16 +58,16 @@ describe('isUpgradeAvailable', () => {
   })
 
   it('minLevel 미달: false', () => {
-    expect(isUpgradeAvailable({ weapon: 'bell', kind: 'unlock', minLevel: 4 }, 3, {})).toBe(false)
+    expect(isUpgradeAvailable({ weapon: 'bell', kind: 'acquire', minLevel: 4 }, 3, {})).toBe(false)
   })
 
   it('minLevel 도달: true', () => {
-    expect(isUpgradeAvailable({ weapon: 'bell', kind: 'unlock', minLevel: 4 }, 4, { bell: wpn() })).toBe(true)
+    expect(isUpgradeAvailable({ weapon: 'bell', kind: 'acquire', minLevel: 4 }, 4, { bell: wpn() })).toBe(true)
   })
 
   it('unlock: 이미 active이면 false', () => {
     expect(isUpgradeAvailable(
-      { weapon: 'bell', kind: 'unlock' }, 10,
+      { weapon: 'bell', kind: 'acquire' }, 10,
       { bell: wpn({ active: true }) },
     )).toBe(false)
   })
@@ -75,18 +75,18 @@ describe('isUpgradeAvailable', () => {
   // 'bell'은 starter (weaponCatalog) → isWeaponUnlocked 항상 true. 가상 candidate 무기는 unlock 게이트에 막힘.
   it('unlock: 4종 보유 상한 도달 시 false', () => {
     const weapons = { ...ownedWeapons(4), bell: wpn({ active: false }) }
-    expect(isUpgradeAvailable({ weapon: 'bell', kind: 'unlock' }, 10, weapons)).toBe(false)
+    expect(isUpgradeAvailable({ weapon: 'bell', kind: 'acquire' }, 10, weapons)).toBe(false)
   })
 
   it('unlock: 3종 보유면 가능', () => {
     const weapons = { ...ownedWeapons(3), bell: wpn({ active: false }) }
-    expect(isUpgradeAvailable({ weapon: 'bell', kind: 'unlock' }, 10, weapons)).toBe(true)
+    expect(isUpgradeAvailable({ weapon: 'bell', kind: 'acquire' }, 10, weapons)).toBe(true)
   })
 
   it('unlock: 카탈로그 미해금 무기(account-unlock 게이트)는 false', () => {
     // compassBlade는 starter 아니고 weaponUnlocks에 없음 → 미해금
     const weapons = { ...ownedWeapons(2), compassBlade: wpn({ active: false }) }
-    expect(isUpgradeAvailable({ weapon: 'compassBlade', kind: 'unlock' }, 10, weapons)).toBe(false)
+    expect(isUpgradeAvailable({ weapon: 'compassBlade', kind: 'acquire' }, 10, weapons)).toBe(false)
   })
 
   it('damage: 무기 비활성이면 false', () => {
