@@ -1,5 +1,8 @@
+// @vitest-environment jsdom
+import React, { act } from 'react'
+import { createRoot } from 'react-dom/client'
 import { describe, expect, it } from 'vitest'
-import { getWeaponUpgradeIconSrc, limitPencilUpgradeOptions } from './HUD.jsx'
+import { UpgradeIcon, getWeaponUpgradeIconSrc, limitPencilUpgradeOptions } from './HUD.jsx'
 
 describe('upgrade choice filtering', () => {
   it('limits pencil upgrade options to one card', () => {
@@ -45,5 +48,28 @@ describe('weapon upgrade icon assets', () => {
   it('leaves non-weapon upgrade icons on the fallback UI path', () => {
     expect(getWeaponUpgradeIconSrc('speed')).toBeNull()
     expect(getWeaponUpgradeIconSrc('health')).toBeNull()
+  })
+
+  it('falls back to the drawn weapon icon when an image asset fails to load', () => {
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    act(() => {
+      root.render(<UpgradeIcon type="pencil" />)
+    })
+
+    const image = container.querySelector('img')
+    expect(image).not.toBeNull()
+
+    act(() => {
+      image.dispatchEvent(new Event('error', { bubbles: true }))
+    })
+
+    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('[data-upgrade-fallback-icon="pencil"]')).not.toBeNull()
+
+    act(() => {
+      root.unmount()
+    })
   })
 })
