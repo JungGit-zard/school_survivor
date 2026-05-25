@@ -78,7 +78,7 @@ function CutterTrail({ facing, startMs, duration, range }) {
     <mesh
       ref={meshRef}
       position={[playerPos.x + dir.x * range * 0.48, 0.07, playerPos.z + dir.z * range * 0.48]}
-      rotation={[-Math.PI / 2, 0, -yaw]}
+      rotation={[-Math.PI / 2, Math.PI + yaw, 0]}
       renderOrder={4}
     >
       <shapeGeometry args={[trailShape]} />
