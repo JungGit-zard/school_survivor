@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { getCompassBladeOrbitPose } from '../../lib/compassBlade.js'
+import {
+  COMPASS_BLADE_EXPLOSION_DAMAGE_MULTIPLIER,
+  COMPASS_BLADE_ONE_TILE_RADIUS,
+  COMPASS_BLADE_STACKS_TO_EXPLODE,
+  getCompassBladeOrbitPose,
+  resolveCompassBladeHitStack,
+} from '../../lib/compassBlade.js'
 
 describe('CompassBladeWeapon orbit pose', () => {
   it('computes one shared world pose for the collider and visual blade', () => {
@@ -29,5 +35,34 @@ describe('CompassBladeWeapon orbit pose', () => {
     expect(pose.position.x).toBeCloseTo(Math.sin((Math.PI * 2) / 3) * 1.2, 5)
     expect(pose.position.y).toBe(0.16)
     expect(pose.position.z).toBeCloseTo(Math.cos((Math.PI * 2) / 3) * 1.2, 5)
+  })
+
+  it('builds one stack on each rotating contact hit before the explosion threshold', () => {
+    const result = resolveCompassBladeHitStack({
+      currentStack: 3,
+      hitDamage: 8,
+    })
+
+    expect(result).toEqual({
+      stack: 4,
+      exploded: false,
+      explosionDamage: 0,
+      explosionRadius: COMPASS_BLADE_ONE_TILE_RADIUS,
+    })
+  })
+
+  it('explodes on the tenth contact hit for five times the rotating hit damage in a one-tile radius', () => {
+    const hitDamage = 8
+    const result = resolveCompassBladeHitStack({
+      currentStack: COMPASS_BLADE_STACKS_TO_EXPLODE - 1,
+      hitDamage,
+    })
+
+    expect(result).toEqual({
+      stack: 0,
+      exploded: true,
+      explosionDamage: hitDamage * COMPASS_BLADE_EXPLOSION_DAMAGE_MULTIPLIER,
+      explosionRadius: COMPASS_BLADE_ONE_TILE_RADIUS,
+    })
   })
 })

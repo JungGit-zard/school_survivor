@@ -2,6 +2,7 @@
 // 무기 추가 시 새 파일을 만들고 여기에 한 줄 re-export만 추가하면 됨.
 export { PencilThrow }       from './Pencil.jsx'
 export { SchoolBagSwing }    from './SchoolBag.jsx'
+export { BoxCutterWeapon }   from './BoxCutter.jsx'
 export { TumblerOrbit }      from './Tumbler.jsx'
 export { BellShockwave }     from './Bell.jsx'
 export { ScienceFlaskSplash } from './Flask.jsx'

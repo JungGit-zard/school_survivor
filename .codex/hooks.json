@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor\\.codex\\hooks\\check-gstack.sh'"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -12,20 +12,24 @@ import {
 describe('weaponCatalog', () => {
   it('12종 entry 등록 + starter 7종', () => {
     const all = getAllWeaponIds()
-    expect(all.length).toBe(12)
+    expect(all.length).toBe(13)
     const starter = getStarterIds()
-    expect(starter).toEqual(['pencilThrow', 'schoolBag', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri'])
+    expect(starter).toEqual(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri'])
   })
 
   it('Starter base 스탯이 BASE_WEAPONS 정본 값과 일치한다', () => {
     expect(WEAPON_CATALOG.pencilThrow.base.damage).toBe(5)
     expect(WEAPON_CATALOG.pencilThrow.base.cooldown).toBe(1100)
     expect(WEAPON_CATALOG.schoolBag.base.damage).toBe(12)
+    expect(WEAPON_CATALOG.boxCutter.base.damage).toBe(16)
+    expect(WEAPON_CATALOG.boxCutter.base.range).toBe(0.85)
+    expect(WEAPON_CATALOG.boxCutter.base.width).toBe(0.22)
     expect(WEAPON_CATALOG.tumbler.base.hitsPerSecond).toBe(2.5)
     expect(WEAPON_CATALOG.scienceFlask.base.damage).toBe(30)
     expect(WEAPON_CATALOG.bell.base.directions).toBe(8)
     expect(WEAPON_CATALOG.stunGun.base.chainCount).toBe(2)
-    expect(WEAPON_CATALOG.onigiri.base.bounces).toBe(4)
+    expect(WEAPON_CATALOG.onigiri.base.cooldown).toBe(5000)
+    expect(WEAPON_CATALOG.onigiri.base.bounces).toBe(1)
   })
 
   it('복원 2종(R6) Lv.1 스탯 정확히 일치', () => {
@@ -43,9 +47,10 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.compassBlade.base.damage).toBe(7)
     expect(WEAPON_CATALOG.compassBlade.base.radius).toBe(1.15)
     expect(WEAPON_CATALOG.compassBlade.base.hitsPerSecond).toBe(2.5)
-    expect(WEAPON_CATALOG.umbrellaGuard.base.damage).toBe(5)
-    expect(WEAPON_CATALOG.umbrellaGuard.base.cooldown).toBe(1800)
-    expect(WEAPON_CATALOG.umbrellaGuard.base.radius).toBe(1.0)
+    expect(WEAPON_CATALOG.umbrellaGuard.base.damage).toBe(12)
+    expect(WEAPON_CATALOG.umbrellaGuard.base.cooldown).toBe(3600)
+    expect(WEAPON_CATALOG.umbrellaGuard.base.radius).toBe(1.25)
+    expect(WEAPON_CATALOG.umbrellaGuard.base.spinDurationMs).toBe(1200)
     expect(WEAPON_CATALOG.eraserBomb.base.damage).toBe(26)
     expect(WEAPON_CATALOG.eraserBomb.base.cooldown).toBe(3000)
     expect(WEAPON_CATALOG.eraserBomb.base.radius).toBe(1.35)
@@ -55,13 +60,13 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.compassBlade.minLevelToAppear).toBe(3)
     expect(WEAPON_CATALOG.umbrellaGuard.minLevelToAppear).toBe(3)
     expect(WEAPON_CATALOG.eraserBomb.minLevelToAppear).toBe(4)
-    expect(WEAPON_CATALOG.guidedMissile.minLevelToAppear).toBe(6)
+    expect(WEAPON_CATALOG.guidedMissile.minLevelToAppear).toBe(4)
     expect(WEAPON_CATALOG.starlink.minLevelToAppear).toBe(8)
   })
 
   it('evaluateUnlocks 빈 records → starter 7종만', () => {
     const u = evaluateUnlocks({})
-    expect(u.size).toBe(7)
+    expect(u.size).toBe(8)
     for (const id of getStarterIds()) expect(u.has(id)).toBe(true)
     expect(u.has('compassBlade')).toBe(false)
   })
@@ -111,7 +116,7 @@ describe('weaponCatalog', () => {
   it('null/undefined records 안전', () => {
     expect(() => evaluateUnlocks(null)).not.toThrow()
     expect(() => evaluateUnlocks(undefined)).not.toThrow()
-    expect(evaluateUnlocks(null).size).toBe(7) // starter only
+    expect(evaluateUnlocks(null).size).toBe(8) // starter only
   })
 
   it('isStarter / isValidWeaponId / STARTER 상수', () => {

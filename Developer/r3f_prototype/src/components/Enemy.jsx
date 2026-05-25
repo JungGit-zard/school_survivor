@@ -1,11 +1,11 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
+import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../lib/refs.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { toonMat, outlineMat, inflateScale } from '../lib/toon.js'
-import { triggerItemVfx } from '../lib/itemEffects.js'
 import ZombieMesh from './ZombieMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 
@@ -33,6 +33,40 @@ export const ENEMY_STATS = {
 
 // 콜라이더 기본 반크기 (scale=1 기준)
 const BASE_COL = [0.14, 0.26, 0.10]
+
+function GoSpeechBubble({ y }) {
+  return (
+    <Html position={[0, y, 0]} center sprite transform distanceFactor={8} style={{ pointerEvents: 'none' }}>
+      <div style={{
+        position: 'relative',
+        padding: '3px 7px',
+        borderRadius: 8,
+        border: '2px solid #35204c',
+        background: '#fff6e5',
+        color: '#e8323d',
+        fontSize: 11,
+        fontWeight: 900,
+        lineHeight: 1,
+        fontFamily: 'Segoe UI, sans-serif',
+        textTransform: 'uppercase',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+      }}>
+        go!
+        <span style={{
+          position: 'absolute',
+          left: '50%',
+          bottom: -6,
+          width: 8,
+          height: 8,
+          borderRight: '2px solid #35204c',
+          borderBottom: '2px solid #35204c',
+          background: '#fff6e5',
+          transform: 'translateX(-50%) rotate(45deg)',
+        }} />
+      </div>
+    </Html>
+  )
+}
 
 // ── 적 투사체 (E04 원거리 / B01 부채꼴) ──────────────────────────────────────
 let _projId = 0
@@ -240,14 +274,6 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
           updateRotation(chargeDir.current.x, chargeDir.current.z, 0.75)
           setAnimPhase('warn')
           rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
-
-          triggerItemVfx(type, 'onWarn', {
-            x: _pos.x, z: _pos.z,
-            angle: Math.atan2(chargeDir.current.x, chargeDir.current.z),
-            length: stats.chargeSpeed * stats.chargeDuration / 1000,
-            width:  stats.contactDist * ENEMY_SIZE_MULTIPLIER * 3,
-            life:   stats.warnDuration,
-          })
         }
 
       } else if (chargeState.current === 'warn') {
@@ -323,6 +349,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
         <CuboidCollider args={colArgs} />
         <group ref={groupRef} scale={[cs * 0.333, cs * 0.333, cs * 0.333]}>
           <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} />
+          {stats.charger && animPhase === 'warn' && <GoSpeechBubble y={2.45} />}
         </group>
         <MiniHealthBar current={hp} max={stats.hp} width={0.32 * cs} height={0.045} y={0.72 * cs} />
       </RigidBody>

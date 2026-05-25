@@ -6,6 +6,7 @@ import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { buildPlaytestSummary } from '../lib/playtestLogger.js'
 import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.png'
 import rulerIconSrc from '../assets/weapon_icon/02_wea_30ruller.png.png'
+import boxCutterIconSrc from '../assets/weapon_icon/13_wea_boxcutter.svg'
 import tumblerIconSrc from '../assets/weapon_icon/03_wea_tumbler.png.png'
 import flaskIconSrc from '../assets/weapon_icon/04_wea_science.png.png'
 import bellIconSrc from '../assets/weapon_icon/05_wea_bell.png.png'
@@ -21,6 +22,9 @@ const damageLabel = (name, weaponKey, upgradeKey) => (w) =>
   `${name} +${UPGRADE_EFFECTS[upgradeKey].dmg} (Lv${(w[weaponKey].level ?? 1) + 1})`
 
 const UPGRADES = [
+  { key: 'unlockBoxCutter', icon: 'boxCutter', label: '커터칼 해금', desc: '전방 좁은 범위를 찌르고 옆으로 베어냄' },
+  { key: 'boxCutterDamage', icon: 'boxCutter', labelFn: damageLabel('커터칼 피해', 'boxCutter', 'boxCutterDamage'), desc: '찌르기 피해 증가' },
+  { key: 'boxCutterRange', icon: 'boxCutter', label: '커터칼 사거리 +', desc: '전방 찌르기 사거리 증가' },
   { key: 'pencilDamage', icon: 'pencil', labelFn: damageLabel('연필 데미지', 'pencilThrow', 'pencilDamage'), desc: '투척 연필의 공격력 증가' },
   { key: 'pencilCount', icon: 'pencil', label: '연필 발사 수 +1', desc: '동시에 날리는 연필 수 증가 (최대 4)' },
   { key: 'pencilPierce', icon: 'pencil', label: '연필 관통 +1', desc: '연필이 적을 관통 (최대 3회)' },
@@ -60,11 +64,22 @@ const UPGRADES = [
   { key: 'maxHealth', icon: 'health', label: '최대 체력 +20', desc: '최대 HP 및 현재 HP 증가' },
 ]
 
+const UMBRELLA_UPGRADE_COPY = {
+  unlockUmbrellaGuard: { label: '우산 방어막 해금', desc: '펼쳐진 우산이 회전 후 폭발' },
+  umbrellaDamage: { labelFn: damageLabel('우산 폭발 피해', 'umbrellaGuard', 'umbrellaDamage'), desc: '마지막 폭발 피해 증가' },
+  umbrellaRadius: { label: '우산 폭발 범위 +', desc: '폭발 범위 증가' },
+}
+
+for (const upgrade of UPGRADES) {
+  if (UMBRELLA_UPGRADE_COPY[upgrade.key]) Object.assign(upgrade, UMBRELLA_UPGRADE_COPY[upgrade.key])
+}
+
 const PENCIL_UPGRADE_KEYS = new Set(['pencilDamage', 'pencilCount', 'pencilPierce'])
 
 const WEAPON_UPGRADE_ICON_SRC = {
   pencil: pencilIconSrc,
   ruler: rulerIconSrc,
+  boxCutter: boxCutterIconSrc,
   tumbler: tumblerIconSrc,
   flask: flaskIconSrc,
   bell: bellIconSrc,
@@ -78,7 +93,9 @@ const WEAPON_UPGRADE_ICON_SRC = {
 }
 
 export function getWeaponUpgradeIconSrc(type) {
-  return WEAPON_UPGRADE_ICON_SRC[type] ?? null
+  const src = WEAPON_UPGRADE_ICON_SRC[type]
+  if (!src) return null
+  return typeof src === 'string' ? src : (src.default ?? String(src))
 }
 
 export function limitPencilUpgradeOptions(options, random = Math.random) {
@@ -92,9 +109,49 @@ export function limitPencilUpgradeOptions(options, random = Math.random) {
   ]
 }
 
+function getUpgradeChoiceGroupKey(option) {
+  const effect = UPGRADE_EFFECTS[option.key]
+  if (effect?.weapon) return `weapon:${effect.weapon}`
+  return `nonWeapon:${option.key}`
+}
+
+export function limitDuplicateWeaponUpgradeOptions(options, random = Math.random) {
+  const groups = new Map()
+  for (const option of options) {
+    const groupKey = getUpgradeChoiceGroupKey(option)
+    const group = groups.get(groupKey)
+    if (group) group.push(option)
+    else groups.set(groupKey, [option])
+  }
+
+  const limited = []
+  for (const group of groups.values()) {
+    if (group.length === 1) {
+      limited.push(group[0])
+      continue
+    }
+    limited.push(group[Math.floor(random() * group.length)])
+  }
+  return limited
+}
+
+export function getUpgradeChoiceLabel(option, weapons = {}) {
+  const effect = UPGRADE_EFFECTS[option.key]
+  if (effect?.kind === 'acquire') {
+    return `${WEAPON_CATALOG[effect.weapon]?.label ?? weapons[effect.weapon]?.label ?? effect.weapon} 획득`
+  }
+  return option.labelFn ? option.labelFn(weapons) : option.label
+}
+
+export function getUpgradeChoiceDesc(option) {
+  const effect = UPGRADE_EFFECTS[option.key]
+  if (effect?.kind === 'acquire') return option.desc?.replaceAll('해금', '획득') ?? ''
+  return option.desc
+}
+
 function pickThree(level, weapons, player) {
   const available = UPGRADES.filter((u) => isUpgradeAvailable(UPGRADE_EFFECTS[u.key], level, weapons, player))
-  const limited = limitPencilUpgradeOptions(available)
+  const limited = limitDuplicateWeaponUpgradeOptions(available)
   const shuffled = [...limited].sort(() => Math.random() - 0.5)
   return shuffled.slice(0, 3)
 }
@@ -134,6 +191,13 @@ export function UpgradeIcon({ type }) {
           <span style={styles.rulerMarkA} />
           <span style={styles.rulerMarkB} />
           <span style={styles.rulerMarkC} />
+        </div>
+      )}
+      {type === 'boxCutter' && (
+        <div style={styles.boxCutterIcon}>
+          <span style={styles.boxCutterBlade} />
+          <span style={styles.boxCutterBody} />
+          <span style={styles.boxCutterGrip} />
         </div>
       )}
       {type === 'flask' && (
@@ -268,7 +332,7 @@ export default function HUD({ onOpenCoinShop }) {
   const nextUnlock = useMemo(() => {
     if (phase !== 'gameover' && phase !== 'cleared') return null
     const candidates = Object.entries(UPGRADE_EFFECTS)
-      .filter(([, eff]) => eff.kind === 'unlock' && !weapons[eff.weapon]?.active)
+      .filter(([, eff]) => eff.kind === 'acquire' && !weapons[eff.weapon]?.active)
       .map(([key, eff]) => ({ key, weapon: eff.weapon, minLevel: eff.minLevel ?? 0 }))
       .sort((a, b) => a.minLevel - b.minLevel)
     if (candidates.length === 0) return null
@@ -292,7 +356,7 @@ export default function HUD({ onOpenCoinShop }) {
   }
 
   // 자 쿨다운 비율. 1은 준비 완료, 0은 쿨다운 시작 직후다.
-  const [bagReady, setBagReady] = useState(1)
+  const [bagReady] = useState(1)
   const bossWarning = useMemo(() => {
     if (bossSpawned || phase !== 'playing') return null
     const elapsedSec = elapsed / 1000
@@ -305,17 +369,6 @@ export default function HUD({ onOpenCoinShop }) {
     const timer = setTimeout(clearMilestone, 2000)
     return () => clearTimeout(timer)
   }, [clearMilestone, recentMilestone])
-
-  useEffect(() => {
-    let raf
-    const poll = () => {
-      const elapsed = performance.now() - bagSwingState.lastFired
-      setBagReady(Math.min(1, elapsed / bagSwingState.cooldown))
-      raf = requestAnimationFrame(poll)
-    }
-    raf = requestAnimationFrame(poll)
-    return () => cancelAnimationFrame(raf)
-  }, [])
 
   // CSS 키프레임 주입. 최초 1회만 추가한다.
   useEffect(() => {
@@ -428,9 +481,14 @@ export default function HUD({ onOpenCoinShop }) {
       </div>
 
       {(phase === 'playing' || phase === 'paused') && (
-        <button type="button" style={styles.pauseButton} onClick={togglePause}>
+        <div style={styles.topLeftControls}>
+          <button type="button" style={styles.pauseButton} onClick={togglePause}>
           {phase === 'paused' ? '▶' : 'Ⅱ'}
-        </button>
+          </button>
+          <button type="button" style={styles.quickRestartButton} onClick={resetGame} aria-label="Restart" title="Restart">
+            R
+          </button>
+        </div>
       )}
 
       {phase === 'levelup' && (
@@ -441,8 +499,8 @@ export default function HUD({ onOpenCoinShop }) {
               {choices.map((c) => (
                 <button key={c.key} style={styles.choiceBtn} onClick={() => applyUpgrade(c.key)}>
                   <UpgradeIcon type={c.icon} />
-                  <div style={styles.choiceLabel}>{c.labelFn ? c.labelFn(weapons) : c.label}</div>
-                  <div style={styles.choiceDesc}>{c.desc}</div>
+                  <div style={styles.choiceLabel}>{getUpgradeChoiceLabel(c, weapons)}</div>
+                  <div style={styles.choiceDesc}>{getUpgradeChoiceDesc(c)}</div>
                 </button>
               ))}
             </div>
@@ -476,7 +534,7 @@ export default function HUD({ onOpenCoinShop }) {
                   </div>
                   <div style={styles.nextUnlockText}>
                     <div style={styles.nextUnlockName}>???</div>
-                    <div style={styles.nextUnlockHint}>Lv.{nextUnlock.minLevel} 도달 시 해금</div>
+                    <div style={styles.nextUnlockHint}>Lv.{nextUnlock.minLevel} 도달 시 획득 가능</div>
                   </div>
                 </div>
               </div>
@@ -534,7 +592,7 @@ export default function HUD({ onOpenCoinShop }) {
                   </div>
                   <div style={styles.nextUnlockText}>
                     <div style={styles.nextUnlockName}>???</div>
-                    <div style={styles.nextUnlockHint}>Lv.{nextUnlock.minLevel} 도달 시 해금</div>
+                    <div style={styles.nextUnlockHint}>Lv.{nextUnlock.minLevel} 도달 시 획득 가능</div>
                   </div>
                 </div>
               </div>
@@ -666,7 +724,7 @@ const styles = {
     position: 'absolute',
     bottom: 68,
     left: 16,
-    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+    display: 'none', flexDirection: 'column', alignItems: 'center', gap: 2,
     pointerEvents: 'auto',
   },
   cdRing: {
@@ -711,10 +769,15 @@ const styles = {
     width: 'min(118px, 31%)', minWidth: 104,
     textAlign: 'center', transition: 'background 0.15s',
   },
-  pauseButton: {
+  topLeftControls: {
     position: 'absolute',
     top: 14,
     left: 14,
+    display: 'flex',
+    gap: 8,
+    pointerEvents: 'auto',
+  },
+  pauseButton: {
     width: 38,
     height: 38,
     borderRadius: 12,
@@ -722,6 +785,21 @@ const styles = {
     background: 'rgba(20,16,8,0.72)',
     color: '#fff',
     fontSize: 18,
+    fontWeight: 800,
+    lineHeight: '36px',
+    textAlign: 'center',
+    pointerEvents: 'auto',
+    cursor: 'pointer',
+    boxShadow: '0 2px 6px rgba(0,0,0,0.45)',
+  },
+  quickRestartButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    border: '1.5px solid rgba(255,255,255,0.55)',
+    background: 'rgba(20,16,8,0.72)',
+    color: '#fff',
+    fontSize: 20,
     fontWeight: 800,
     lineHeight: '36px',
     textAlign: 'center',
@@ -776,6 +854,21 @@ const styles = {
   },
   rulerMarkC: {
     position: 'absolute', left: 0, top: 32, width: 8, height: 2, background: '#111',
+  },
+  boxCutterIcon: { position: 'relative', width: 42, height: 32, transform: 'rotate(-28deg)' },
+  boxCutterBlade: {
+    position: 'absolute', right: 0, top: 4,
+    display: 'block', width: 20, height: 9,
+    background: '#dce6ee', border: '2px solid #111', boxSizing: 'border-box',
+  },
+  boxCutterBody: {
+    position: 'absolute', left: 0, top: 12,
+    display: 'block', width: 32, height: 14,
+    background: '#ffc928', border: '2px solid #111', borderRadius: 3, boxSizing: 'border-box',
+  },
+  boxCutterGrip: {
+    position: 'absolute', left: 6, top: 16,
+    display: 'block', width: 20, height: 4, background: '#2e3747',
   },
   flaskIcon: {
     position: 'relative', width: 34, height: 31, background: '#9be9ff',

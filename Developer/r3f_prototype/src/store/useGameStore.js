@@ -80,6 +80,16 @@ function saveGoldTotal(value) {
   localStorage.setItem(GOLD_STORAGE_KEY, String(value))
 }
 
+function syncStoredWeaponUnlocksFromRecords() {
+  const nextUnlocked = evaluateUnlocks(loadPlayerRecords())
+  const prevUnlocked = getAllUnlocked()
+  for (const id of nextUnlocked) {
+    if (isStarter(id)) continue
+    if (prevUnlocked.has(id)) continue
+    setWeaponUnlocked(id)
+  }
+}
+
 function finishLevelupState(s) {
   const pendingLevelUps = Math.max(0, (s.pendingLevelUps ?? 0) - 1)
   return {
@@ -91,6 +101,7 @@ function finishLevelupState(s) {
 
 const _initialLevels = getAllLevels()
 applyMagnetPassive(_initialLevels)
+syncStoredWeaponUnlocksFromRecords()
 
 export const useGameStore = create(
   subscribeWithSelector((set, get) => ({
@@ -183,6 +194,11 @@ export const useGameStore = create(
         runLevelUps: s.runLevelUps,
         runSurvivalSeconds,
       }
+      evalInput.totalRuns = (evalInput.totalRuns ?? 0) + 1
+      evalInput.totalKills = (evalInput.totalKills ?? 0) + Math.max(0, Math.floor(s.runKills))
+      evalInput.totalGold = (evalInput.totalGold ?? 0) + Math.max(0, Math.floor(s.goldSession))
+      evalInput.totalLevelUps = (evalInput.totalLevelUps ?? 0) + Math.max(0, Math.floor(s.runLevelUps))
+      evalInput.totalSurvivalSeconds = (evalInput.totalSurvivalSeconds ?? 0) + runSurvivalSeconds
 
       // 2. 평가 → diff (starter 제외, 이미 unlock된 것 제외)
       const nextUnlocked = evaluateUnlocks(evalInput)
@@ -318,6 +334,7 @@ export const useGameStore = create(
       resetRuntimeRefs()
       const levels = getAllLevels()
       applyMagnetPassive(levels)
+      syncStoredWeaponUnlocksFromRecords()
       set((s) => ({
         player:      buildInitialPlayer(levels),
         weapons:     buildInitialWeapons(levels),
