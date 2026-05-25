@@ -1,6 +1,8 @@
 # Current Game Rules
 
-Last updated: 2026-05-16
+Last updated: 2026-05-26
+
+2026-05-26 update: 한 판에서 보유할 수 있는 무기 슬롯 상한은 8개다.
 
 ## 1. 게임 정체성
 
