@@ -74,12 +74,12 @@ describe('isUpgradeAvailable', () => {
 
   // 'bell'은 starter (weaponCatalog) → isWeaponUnlocked 항상 true. 가상 candidate 무기는 unlock 게이트에 막힘.
   it('unlock: 4종 보유 상한 도달 시 false', () => {
-    const weapons = { ...ownedWeapons(4), bell: wpn({ active: false }) }
+    const weapons = { ...ownedWeapons(8), bell: wpn({ active: false }) }
     expect(isUpgradeAvailable({ weapon: 'bell', kind: 'acquire' }, 10, weapons)).toBe(false)
   })
 
   it('unlock: 3종 보유면 가능', () => {
-    const weapons = { ...ownedWeapons(3), bell: wpn({ active: false }) }
+    const weapons = { ...ownedWeapons(7), bell: wpn({ active: false }) }
     expect(isUpgradeAvailable({ weapon: 'bell', kind: 'acquire' }, 10, weapons)).toBe(true)
   })
 
