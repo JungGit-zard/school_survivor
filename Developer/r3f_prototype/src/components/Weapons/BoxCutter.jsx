@@ -37,53 +37,97 @@ function BoxCutterModel() {
   )
 }
 
-function CutterTrail({ facing, startMs, duration, range }) {
-  const meshRef = useRef(null)
-  const mat = useMemo(() => new THREE.MeshBasicMaterial({
-    color: 0xdaf5ff,
-    transparent: true,
-    opacity: 0,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-    blending: THREE.AdditiveBlending,
+function BoxCutterStrikeEffect({ strike, duration }) {
+  const rootRef = useRef(null)
+  const thrustRef = useRef(null)
+  const leftCutRef = useRef(null)
+  const rightCutRef = useRef(null)
+  const tipRef = useRef(null)
+  const mats = useMemo(() => ({
+    thrust: new THREE.MeshBasicMaterial({
+      color: 0xf8fbff,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+    cut: new THREE.MeshBasicMaterial({
+      color: 0xfff1a8,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+    tip: new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
   }), [])
-  const trailShape = useMemo(() => {
-    const length = range * 1.16
-    const baseWidth = Math.max(0.42, range * 0.58)
-    const shape = new THREE.Shape()
-    shape.moveTo(0, length * 0.58)
-    shape.lineTo(baseWidth * 0.5, -length * 0.42)
-    shape.lineTo(-baseWidth * 0.5, -length * 0.42)
-    shape.closePath()
-    return shape
-  }, [range])
-  const dir = normalizePlanarFacing(facing)
-  const yaw = Math.atan2(dir.x, dir.z)
 
   useFrame(({ clock }) => {
-    const progress = Math.min(1, ((clock.elapsedTime * 1000) - startMs) / duration)
-    const pull = Math.max(0, (progress - 0.46) / 0.54)
-    if (meshRef.current) {
-      meshRef.current.position.set(
-        playerPos.x + dir.x * range * 0.48 + dir.z * pull * 0.16,
-        0.07,
-        playerPos.z + dir.z * range * 0.48 - dir.x * pull * 0.16,
-      )
-      meshRef.current.scale.set(1 + pull * 0.8, 1, 1)
-      meshRef.current.material.opacity = Math.max(0, Math.sin(progress * Math.PI) * 0.72)
+    if (!strike || !rootRef.current) return
+
+    const elapsed = clock.elapsedTime * 1000 - strike.startMs
+    const progress = THREE.MathUtils.clamp(elapsed / duration, 0, 1)
+    const dir = normalizePlanarFacing(strike.facing)
+    const yaw = Math.atan2(dir.x, dir.z)
+    const range = strike.range ?? 1.275
+    const width = strike.width ?? 0.22
+    const stabIn = THREE.MathUtils.clamp(progress / 0.18, 0, 1)
+    const stabFade = 1 - THREE.MathUtils.clamp((progress - 0.6) / 0.28, 0, 1)
+    const cutIn = THREE.MathUtils.clamp((progress - 0.36) / 0.18, 0, 1)
+    const cutFade = 1 - THREE.MathUtils.clamp((progress - 0.7) / 0.24, 0, 1)
+    const thrustLength = THREE.MathUtils.lerp(0.22, range * 0.96, stabIn)
+    const cutLength = THREE.MathUtils.lerp(0.2, range * 0.34, cutIn)
+    const thrustOpacity = 0.8 * stabFade
+    const cutOpacity = 0.68 * cutIn * cutFade
+
+    rootRef.current.position.set(playerPos.x, playerPos.y + 0.235, playerPos.z)
+    rootRef.current.rotation.set(0, yaw, 0)
+
+    if (thrustRef.current) {
+      thrustRef.current.position.set(0, 0.018, thrustLength * 0.5 + 0.08)
+      thrustRef.current.scale.set(1, 1, thrustLength)
     }
+    if (leftCutRef.current) {
+      leftCutRef.current.position.set(-width * 0.72, 0.035, range * 0.76)
+      leftCutRef.current.rotation.set(0, -0.52, 0.18)
+      leftCutRef.current.scale.set(1, 1, cutLength)
+    }
+    if (rightCutRef.current) {
+      rightCutRef.current.position.set(width * 0.72, 0.035, range * 0.76)
+      rightCutRef.current.rotation.set(0, 0.52, -0.18)
+      rightCutRef.current.scale.set(1, 1, cutLength)
+    }
+    if (tipRef.current) {
+      const pulse = 1 + Math.sin(progress * Math.PI) * 0.75
+      tipRef.current.position.set(0, 0.024, thrustLength + 0.12)
+      tipRef.current.scale.setScalar(pulse)
+    }
+
+    mats.thrust.opacity = thrustOpacity
+    mats.cut.opacity = cutOpacity
+    mats.tip.opacity = 0.72 * stabIn * stabFade
   })
 
   return (
-    <mesh
-      ref={meshRef}
-      position={[playerPos.x + dir.x * range * 0.48, 0.07, playerPos.z + dir.z * range * 0.48]}
-      rotation={[-Math.PI / 2, Math.PI + yaw, 0]}
-      renderOrder={4}
-    >
-      <shapeGeometry args={[trailShape]} />
-      <primitive object={mat} attach="material" />
-    </mesh>
+    <group ref={rootRef} renderOrder={20}>
+      <mesh ref={thrustRef} material={mats.thrust}>
+        <boxGeometry args={[0.028, 0.012, 1]} />
+      </mesh>
+      <mesh ref={leftCutRef} material={mats.cut}>
+        <boxGeometry args={[0.018, 0.01, 1]} />
+      </mesh>
+      <mesh ref={rightCutRef} material={mats.cut}>
+        <boxGeometry args={[0.018, 0.01, 1]} />
+      </mesh>
+      <mesh ref={tipRef} material={mats.tip}>
+        <octahedronGeometry args={[0.055, 0]} />
+      </mesh>
+    </group>
   )
 }
 
@@ -108,7 +152,7 @@ export function BoxCutterWeapon() {
       const yaw = Math.atan2(dir.x, dir.z)
       const stab = Math.min(1, progress / 0.46)
       const pull = Math.max(0, (progress - 0.46) / 0.54)
-      const forward = THREE.MathUtils.lerp(0.26, w.range ?? 0.85, stab) - pull * 0.12
+      const forward = THREE.MathUtils.lerp(0.26, w.range ?? 1.275, stab) - pull * 0.12
       const side = pull * 0.24
 
       if (visualRef.current) {
@@ -131,7 +175,7 @@ export function BoxCutterWeapon() {
       enemies: enemyBodies,
       origin: playerPos,
       facing,
-      range: w.range ?? 0.85,
+      range: w.range ?? 1.275,
       width: w.width ?? 0.22,
     })
     if (targets.length === 0) return
@@ -144,17 +188,17 @@ export function BoxCutterWeapon() {
         knockbackMs: 80,
       })
     })
-    setStrike({ startMs: now, facing })
+    setStrike({ startMs: now, facing, range: w.range ?? 1.275, width: w.width ?? 0.22 })
   })
 
   if (!weapons.boxCutter?.active || !strike) return null
 
   return (
     <>
-      <CutterTrail facing={strike.facing} startMs={strike.startMs} duration={weapons.boxCutter.slashMs ?? 240} range={weapons.boxCutter.range ?? 0.85} />
       <group ref={visualRef} position={[playerPos.x, playerPos.y + 0.22, playerPos.z]}>
         <BoxCutterModel />
       </group>
+      <BoxCutterStrikeEffect strike={strike} duration={weapons.boxCutter.slashMs ?? 240} />
     </>
   )
 }
