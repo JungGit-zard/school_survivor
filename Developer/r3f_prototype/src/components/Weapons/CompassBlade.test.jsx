@@ -51,13 +51,14 @@ describe('CompassBladeWeapon orbit pose', () => {
     })
   })
 
-  it('explodes on the tenth contact hit for five times the rotating hit damage in a one-tile radius', () => {
+  it('explodes on the fifth contact hit for five times the rotating hit damage in a one-tile radius', () => {
     const hitDamage = 8
     const result = resolveCompassBladeHitStack({
       currentStack: COMPASS_BLADE_STACKS_TO_EXPLODE - 1,
       hitDamage,
     })
 
+    expect(COMPASS_BLADE_STACKS_TO_EXPLODE).toBe(5)
     expect(result).toEqual({
       stack: 0,
       exploded: true,

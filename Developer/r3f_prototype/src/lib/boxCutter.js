@@ -9,7 +9,7 @@ export function isPointInBoxCutterStrike({
   origin,
   facing,
   point,
-  range = 0.85,
+  range = 1.275,
   width = 0.22,
 }) {
   if (!origin || !point) return false
@@ -27,7 +27,7 @@ export function pickBoxCutterTargets({
   enemies,
   origin,
   facing,
-  range = 0.85,
+  range = 1.275,
   width = 0.22,
 }) {
   const targets = []

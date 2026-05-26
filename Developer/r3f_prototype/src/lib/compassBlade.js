@@ -1,4 +1,4 @@
-export const COMPASS_BLADE_STACKS_TO_EXPLODE = 10
+export const COMPASS_BLADE_STACKS_TO_EXPLODE = 5
 export const COMPASS_BLADE_EXPLOSION_DAMAGE_MULTIPLIER = 5
 // One tile is the player's current full visual footprint plus its 8 neighboring directions.
 export const COMPASS_BLADE_ONE_TILE_RADIUS = 0.5

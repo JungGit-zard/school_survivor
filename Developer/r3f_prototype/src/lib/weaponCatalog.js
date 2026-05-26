@@ -26,7 +26,7 @@ export const WEAPON_CATALOG = {
   boxCutter: {
     id: 'boxCutter',
     label: '커터칼',
-    base: { damage: 16, cooldown: 1100, range: 0.85, width: 0.22, slashMs: 240, knockback: 1.8 },
+    base: { damage: 24, cooldown: 1100, range: 1.275, width: 0.22, slashMs: 240, knockback: 1.8 },
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },

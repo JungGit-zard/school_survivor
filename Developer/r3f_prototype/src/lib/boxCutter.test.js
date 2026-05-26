@@ -15,6 +15,15 @@ describe('box cutter strike targeting', () => {
     })).toBe(true)
   })
 
+  it('uses the boosted default range when range is omitted', () => {
+    expect(isPointInBoxCutterStrike({
+      origin,
+      facing,
+      point: { x: 0.04, z: 1.2 },
+      width: 0.22,
+    })).toBe(true)
+  })
+
   it('rejects enemies behind or outside the narrow lane', () => {
     expect(isPointInBoxCutterStrike({
       origin,

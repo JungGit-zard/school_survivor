@@ -13,7 +13,7 @@ export const UPGRADE_EFFECTS = {
   bagRadius:      { weapon: 'schoolBag',     kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.067 },
   acquireBoxCutter:{ weapon: 'boxCutter',      kind: 'acquire', minLevel: 2 },
   boxCutterDamage:{ weapon: 'boxCutter',      kind: 'damage', dmg: 5 },
-  boxCutterRange: { weapon: 'boxCutter',      kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.17 },
+  boxCutterRange: { weapon: 'boxCutter',      kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.755 },
   acquireTumbler:  { weapon: 'tumbler',       kind: 'acquire', minLevel: 2 },
   tumblerCount:   { weapon: 'tumbler',       kind: 'stat',   stat: 'count',           step: 1,    cap: 3 },
   tumblerDamage:  { weapon: 'tumbler',       kind: 'damage', dmg: 2 },
