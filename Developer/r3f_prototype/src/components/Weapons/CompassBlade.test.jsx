@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   COMPASS_BLADE_EXPLOSION_DAMAGE_MULTIPLIER,
   COMPASS_BLADE_ONE_TILE_RADIUS,
+  COMPASS_BLADE_RESPAWN_MS,
   COMPASS_BLADE_STACKS_TO_EXPLODE,
+  getCompassBladeRespawnUntilMs,
   getCompassBladeOrbitPose,
   resolveCompassBladeHitStack,
 } from '../../lib/compassBlade.js'
@@ -65,5 +67,11 @@ describe('CompassBladeWeapon orbit pose', () => {
       explosionDamage: hitDamage * COMPASS_BLADE_EXPLOSION_DAMAGE_MULTIPLIER,
       explosionRadius: COMPASS_BLADE_ONE_TILE_RADIUS,
     })
+  })
+
+  it('sets a five-second respawn window after an explosion', () => {
+    expect(COMPASS_BLADE_RESPAWN_MS).toBe(5000)
+    expect(getCompassBladeRespawnUntilMs({ exploded: true, nowMs: 1200 })).toBe(6200)
+    expect(getCompassBladeRespawnUntilMs({ exploded: false, nowMs: 1200 })).toBe(0)
   })
 })

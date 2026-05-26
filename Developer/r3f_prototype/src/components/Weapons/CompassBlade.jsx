@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { RigidBody, BallCollider } from '@react-three/rapier'
 import { enemyBodies, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
-import { getCompassBladeOrbitPose, resolveCompassBladeHitStack } from '../../lib/compassBlade.js'
+import { getCompassBladeOrbitPose, getCompassBladeRespawnUntilMs, resolveCompassBladeHitStack } from '../../lib/compassBlade.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 
 let _compassExplosionId = 0
@@ -76,49 +76,110 @@ function CompassBladeModel() {
 
 function CompassBladeExplosion({ id, x, z, radius, onDone }) {
   const groupRef = useRef(null)
+  const flashRef = useRef(null)
+  const innerRingRef = useRef(null)
+  const outerRingRef = useRef(null)
+  const burstRef = useRef(null)
   const ageRef = useRef(0)
-  const ringMat = useMemo(() => new THREE.MeshBasicMaterial({
-    color: 0xffd76a,
-    transparent: true,
-    opacity: 0.58,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-  }), [])
-  const sparkMat = useMemo(() => new THREE.MeshBasicMaterial({
-    color: 0xfff0a6,
-    transparent: true,
-    opacity: 0.92,
-    depthWrite: false,
+  const mats = useMemo(() => ({
+    flash: new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.86,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+    }),
+    innerRing: new THREE.MeshBasicMaterial({
+      color: 0xfff0a6,
+      transparent: true,
+      opacity: 0.82,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+    }),
+    outerRing: new THREE.MeshBasicMaterial({
+      color: 0xff8b35,
+      transparent: true,
+      opacity: 0.72,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+    }),
+    burst: new THREE.MeshBasicMaterial({
+      color: 0xffd76a,
+      transparent: true,
+      opacity: 0.68,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+    spark: new THREE.MeshBasicMaterial({
+      color: 0xfff0a6,
+      transparent: true,
+      opacity: 0.95,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
   }), [])
 
   useFrame((_, delta) => {
     ageRef.current += delta
-    const t = Math.min(1, ageRef.current / 0.34)
+    const t = Math.min(1, ageRef.current / 0.48)
+    const fastPop = 1 - Math.min(1, t / 0.34)
+    const lateFade = Math.max(0, 1 - t)
     if (groupRef.current) {
-      groupRef.current.scale.setScalar(0.18 + radius * 1.95 * t)
-      groupRef.current.rotation.y += delta * 5.2
-      groupRef.current.children.forEach((child) => {
-        if (child.material) child.material.opacity = Math.max(0, 0.9 * (1 - t))
-      })
+      groupRef.current.scale.setScalar(0.24 + radius * 2.9 * t)
+      groupRef.current.rotation.y += delta * 4.4
     }
+    if (flashRef.current) {
+      flashRef.current.scale.setScalar(0.65 + t * 0.7)
+      flashRef.current.material.opacity = 0.92 * fastPop
+    }
+    if (innerRingRef.current) {
+      innerRingRef.current.scale.setScalar(0.72 + t * 0.9)
+      innerRingRef.current.material.opacity = 0.84 * lateFade
+    }
+    if (outerRingRef.current) {
+      outerRingRef.current.scale.setScalar(0.95 + t * 1.4)
+      outerRingRef.current.material.opacity = 0.72 * lateFade
+    }
+    if (burstRef.current) {
+      burstRef.current.scale.set(1.2 + t * 0.8, 1.3 + t * 1.8, 1.2 + t * 0.8)
+      burstRef.current.material.opacity = 0.62 * fastPop
+    }
+    mats.spark.opacity = 0.9 * lateFade
     if (t >= 1) onDone(id)
   })
 
   return (
-    <group ref={groupRef} position={[x, 0.12, z]} renderOrder={5}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.28, 0.46, 48]} />
-        <primitive object={ringMat} attach="material" />
+    <group ref={groupRef} position={[x, 0.14, z]} renderOrder={15}>
+      <mesh ref={flashRef} rotation={[-Math.PI / 2, 0, 0]} userData={{ baseOpacity: 0.92 }}>
+        <circleGeometry args={[0.5, 48]} />
+        <primitive object={mats.flash} attach="material" />
       </mesh>
-      {Array.from({ length: 10 }, (_, index) => {
-        const angle = (index * Math.PI * 2) / 10
+      <mesh ref={innerRingRef} rotation={[-Math.PI / 2, 0, 0]} userData={{ baseOpacity: 0.84 }}>
+        <ringGeometry args={[0.28, 0.5, 56]} />
+        <primitive object={mats.innerRing} attach="material" />
+      </mesh>
+      <mesh ref={outerRingRef} rotation={[-Math.PI / 2, 0, 0]} userData={{ baseOpacity: 0.72 }}>
+        <ringGeometry args={[0.48, 0.72, 64]} />
+        <primitive object={mats.outerRing} attach="material" />
+      </mesh>
+      <mesh ref={burstRef} position={[0, 0.16, 0]} userData={{ baseOpacity: 0.62 }}>
+        <sphereGeometry args={[0.22, 12, 8]} />
+        <primitive object={mats.burst} attach="material" />
+      </mesh>
+      {Array.from({ length: 16 }, (_, index) => {
+        const angle = (index * Math.PI * 2) / 16
+        const longSpark = index % 2 === 0
         return (
           <mesh
             key={index}
-            material={sparkMat}
-            position={[Math.sin(angle) * 0.42, 0.04, Math.cos(angle) * 0.42]}
-            rotation={[0, angle, 0.32]}
-            scale={[0.08, 0.035, 0.28]}
+            material={mats.spark}
+            position={[Math.sin(angle) * (longSpark ? 0.68 : 0.5), 0.06, Math.cos(angle) * (longSpark ? 0.68 : 0.5)]}
+            rotation={[0, angle, longSpark ? 0.48 : -0.36]}
+            scale={[longSpark ? 0.08 : 0.055, 0.035, longSpark ? 0.46 : 0.3]}
+            userData={{ baseOpacity: longSpark ? 0.95 : 0.78 }}
           >
             <boxGeometry args={[1, 1, 1]} />
           </mesh>
@@ -135,7 +196,9 @@ export function CompassBladeWeapon() {
   const overlapCountRef = useRef(new Map())
   const lastHitRef = useRef(new Map())
   const hitStackRef = useRef(0)
+  const respawnUntilRef = useRef(0)
   const [explosions, setExplosions] = useState([])
+  const [isRespawning, setIsRespawning] = useState(false)
   const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
 
@@ -175,6 +238,17 @@ export function CompassBladeWeapon() {
     const count = Math.max(1, Math.min(3, w.count ?? 1))
     const radius = w.radius ?? 1.15
     const orbitSpeed = w.orbitSpeed ?? 3.4
+    const nowMs = nowSec * 1000
+
+    if (respawnUntilRef.current > nowMs) return
+
+    if (isRespawning) {
+      respawnUntilRef.current = 0
+      setIsRespawning(false)
+      enemiesRef.current.clear()
+      overlapCountRef.current.clear()
+      lastHitRef.current.clear()
+    }
 
     for (let i = 0; i < count; i += 1) {
       const pose = getCompassBladeOrbitPose({
@@ -193,7 +267,6 @@ export function CompassBladeWeapon() {
       }
     }
 
-    const nowMs = nowSec * 1000
     const interval = 1000 / (w.hitsPerSecond ?? 2.5)
     enemiesRef.current.forEach((rb, enemyId) => {
       if (!rb?._enemyHit || rb._enemyDead) {
@@ -221,6 +294,14 @@ export function CompassBladeWeapon() {
           damage: stackResult.explosionDamage,
           radius: stackResult.explosionRadius,
         })
+        respawnUntilRef.current = getCompassBladeRespawnUntilMs({
+          exploded: true,
+          nowMs,
+        })
+        setIsRespawning(true)
+        enemiesRef.current.clear()
+        overlapCountRef.current.clear()
+        lastHitRef.current.clear()
       }
     })
   })
@@ -233,7 +314,7 @@ export function CompassBladeWeapon() {
 
   return (
     <>
-      {Array.from({ length: bladeCount }, (_, idx) => {
+      {!isRespawning && Array.from({ length: bladeCount }, (_, idx) => {
         const pose = getCompassBladeOrbitPose({
           elapsedSec: 0,
           index: idx,
@@ -279,7 +360,7 @@ export function CompassBladeWeapon() {
         )
       })}
 
-      {Array.from({ length: bladeCount }, (_, idx) => {
+      {!isRespawning && Array.from({ length: bladeCount }, (_, idx) => {
         const pose = getCompassBladeOrbitPose({
           elapsedSec: 0,
           index: idx,

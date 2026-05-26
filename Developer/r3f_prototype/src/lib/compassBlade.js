@@ -1,4 +1,5 @@
 export const COMPASS_BLADE_STACKS_TO_EXPLODE = 5
+export const COMPASS_BLADE_RESPAWN_MS = 5000
 export const COMPASS_BLADE_EXPLOSION_DAMAGE_MULTIPLIER = 5
 // One tile is the player's current full visual footprint plus its 8 neighboring directions.
 export const COMPASS_BLADE_ONE_TILE_RADIUS = 0.5
@@ -50,4 +51,8 @@ export function resolveCompassBladeHitStack({ currentStack = 0, hitDamage = 0 })
     explosionDamage: hitDamage * COMPASS_BLADE_EXPLOSION_DAMAGE_MULTIPLIER,
     explosionRadius,
   }
+}
+
+export function getCompassBladeRespawnUntilMs({ exploded, nowMs = 0 }) {
+  return exploded ? nowMs + COMPASS_BLADE_RESPAWN_MS : 0
 }
