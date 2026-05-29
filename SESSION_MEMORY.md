@@ -7,6 +7,232 @@
 
 ---
 
+## Session 4 · Entry 1 (재세션 핸드오프 강화) · 2026-05-30 KST
+
+> 이 엔트리는 새 세션이 1엔트리만 읽고도 직전 작업 맥락을 즉시 이어가도록 강화한 핸드오프다. Entry 0 (오늘 08:51 KST) 위에 append한다. 새 세션은 본 엔트리를 먼저 읽으면 충분하며, 더 깊은 맥락이 필요할 때 Entry 0과 Session 3 Entry 2를 참조한다.
+
+### Git 상태 (HEAD = origin = `daace50`)
+
+- 브랜치: `feature/codex-gameplay-iteration`
+- 최신 커밋 5개 (신→구):
+  1. `daace50` Organize Developer root into 구현기록 buckets — Developer/ 폴더 재정리 (21 파일 rename, README 본문은 누락됨, 아래 참고)
+  2. `c0362d9` Improve compass blade explosion flow
+  3. `099e52a` Iterate box cutter effect direction and compass blade threshold — CompassBlade 10→5 임계
+  4. `3814bb5` Expand weapon slot limit to 8 — 무기 슬롯 4→8
+  5. `044fbfb` Tune box cutter trail orientation
+- 작업트리 미커밋: README 3건 (아래 "즉시 처리" 참고) + `tmp/` untracked PNG 스크린샷
+
+### 즉시 처리 — 직전 commit 누락 (꼭 첫 단계로)
+
+`daace50`는 21개 파일 rename만 들어가고, 동시 작성된 다음 3개 README 본문 변경(140+/7- 라인)이 staged 안 돼 빠졌다:
+
+- `Developer/구현기록/README.md` — placement 룰 안내
+- `Developer/구현기록/그래픽구현코드연결/README.md` — 토픽별 시간순 인덱스 + 대체 관계
+- `Developer/구현기록/게임기획밸런스구현코드연결/README.md` — 토픽별 시간순 인덱스 + 대체 관계
+
+→ 새 세션이 가장 먼저: `git status` → README diff 확인 → commit "Update 구현기록 README indexes (missed in daace50)" + push.
+
+### 5-26 → 5-29 진행 요약
+
+**BoxCutter (커터칼) — 13번째 신규 무기**
+
+- 2026-05-25 도입, 2026-05-26 base stat 1.5× 상향.
+- 2026-05-27 큰 삼각형 트레일 잔상 완전 제거.
+- 2026-05-27 전방 찌르기 + 끝점 대칭 절삭 효과 방향 도입.
+- **미해결**: 본체 모션의 `side` 측면 이동 + 강한 Z roll은 기획안 §"본체 중심선 유지" 위반. 5-페이즈(준비/찌르기/박힘/절삭/회수) + 4-piece VFX 구현 아직.
+- 정본: `Graphic_designer/boxcutter_all_angle_stab_slash_effect_proposal_2026-05-27.md`.
+
+**CompassBlade (나침반 칼날)**
+
+- 폭발 임계 10스택 → 5히트 변경 (2026-05-27, `Planner/compass_blade_five_hit_explosion_rule_2026-05-27.md`).
+- 폭발 후 칼날 재생성 (2026-05-27).
+- 폭발 가시화 이펙트 추가 (2026-05-27).
+- 5-25 10스택 룰은 *대체됨*. 슈퍼시드 관계는 `Developer/구현기록/게임기획밸런스구현코드연결/README.md`에 표기 (commit 누락분).
+
+**GuidedMissile (보조배터리 미사일) — 레거시 부활**
+
+- 2026-05-25 현재 호밍 단순화 버전을 폐기하고, 과거 핑크 보조배터리 2-단계(충전 0.95s + 가속 비행) 연출본으로 교체.
+- 정본 코드: `Developer/r3f_prototype/src/components/Weapons/Missile.jsx`.
+
+**무기 시스템**
+
+- 슬롯 상한 4 → 8 확장 (`3814bb5`).
+- 해금/획득/업그레이드 용어 정렬 (`16a65ef`).
+- 12-weapon 코드 검수 기록: `Quaility_Assurance/weapon_implementation_code_review_2026-05-25.md` (High 3 + Medium 3 + Low 2 발견, 대부분 미해결).
+
+**Developer/ 폴더 재정리 (오늘)**
+
+- 22개 .md를 루트에서 `구현기록/` 두 버킷으로 git mv 이동 (history 완전 보존).
+- 빈 `Developer/subagents/` 제거.
+- 새 룰 (README에 명시): 새 기록은 `Developer/` 루트에 두지 않고 항상 `구현기록/` 하위에 직접 추가.
+
+### 현재 무기 로스터 (13종, `Weapons/index.js` + BoxCutter)
+
+| # | id | label | unlock | 주요 변경 |
+|---|---|---|---|---|
+| 1 | pencilThrow | 연필 | starter | — |
+| 2 | schoolBag | 30cm 자 | starter (Lv2) | — |
+| 3 | tumbler | 텀블러 | starter (Lv2) | — |
+| 4 | scienceFlask | 과학 플라스크 | starter (Lv4) | — |
+| 5 | bell | 벨 | starter (Lv4) | — |
+| 6 | stunGun | 전기 | starter (Lv6) | code review High 1 (timebase) 미해결 |
+| 7 | onigiri | 오니기리 | starter (Lv8) | retarget + cushion explosion |
+| 8 | guidedMissile | 보조배터리 미사일 | account | **레거시 핑크 2-단계 본 부활** |
+| 9 | starlink | 고장난 스타링크 | account | High 2 (매-프레임 setState) 미해결 |
+| 10 | compassBlade | 나침반 칼날 | OR-unlock | **10→5 히트 폭발 + 재생성 + 가시화** |
+| 11 | umbrellaGuard | 우산 방어막 | OR-unlock | High 2/3 (setState, 위치 freeze) 미해결 |
+| 12 | eraserBomb | 지우개 폭탄 | OR-unlock | — |
+| 13 | boxCutter | 커터칼 | OR-unlock | **5-25 신규**, 효과 후속 정리 필요 |
+
+정본 카탈로그: `Developer/r3f_prototype/src/lib/weaponCatalog.js`.
+
+### 새 세션이 가장 먼저 읽어야 할 것
+
+1. 본 엔트리 (이미 읽고 있음).
+2. `SESSION_CONTINUITY.md` — 12시간 v2 + 3시간 엔트리 + 명령 로그 요구.
+3. `Bang_Rules.md` — 룰 정본 (§무기, §OR-unlock, §slot limit 8).
+4. `Developer/구현기록/README.md` — 새 placement 룰 (commit 누락분 처리 후).
+5. `Developer/구현기록/그래픽구현코드연결/README.md` & `게임기획밸런스구현코드연결/README.md` — 무기별 시간순 인덱스 + 대체 관계.
+6. `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/` — 무기 정본 기획서.
+7. `Quaility_Assurance/weapon_implementation_code_review_2026-05-25.md` — 12종 코드 검수 (대부분 미해결).
+8. CEO 탭 (현재 IDE open): `CEO/Game_service_purpose_target.md`, `current_product_priorities.md` — Stage 2는 §43 "Stage 1 안정화 후" 유지.
+
+### 미해결 / 다음 우선순위
+
+1. **즉시**: README 3건 commit + push.
+2. BoxCutter 본체 모션 `side`/roll 정리 (기획안 §"본체 중심선 유지" 적용).
+3. BoxCutter 5-페이즈 + 4-piece VFX (`BoxCutterStrikeEffect` 컴포넌트 분리).
+4. 12-weapon review High 3건:
+   - `StunGun.jsx` 시간축을 `performance.now()` → `clock.elapsedTime` 통일.
+   - `Starlink.jsx` / `UmbrellaGuard.jsx` 매-프레임 setState 제거, ref 기반으로.
+   - `UmbrellaGuard.jsx` 우산 위치를 매 프레임 player follow.
+5. 투사체 무기들(Missile/EraserBomb/Flask) phase 전환 시 active 정리 useEffect 추가.
+6. Stage 2 기획안 부재 — `CEO/current_product_priorities.md:43` "Stage 1 안정화 후" 유지.
+7. `tmp/` `.gitignore` 추가 후보 — 사용자 결정 대기.
+
+### 자동화 / 도구 메모
+
+- `.codex/hooks/check-gstack.sh` + `hooks.json` — gstack 설치 게이트.
+- 일부 작은 변경(예: `044fbfb`)은 codex hook이 자동 commit·push하는 경우 관찰됨.
+- gstack 확인 (`test -d ~/.claude/skills/gstack/bin`)이 모든 AI 작업 사전 조건.
+
+### "뻐꾸기" 단축어 (auto-memory 보조 참고)
+
+사용자가 "뻐꾸기"라고 말하면 `git pull → git commit → git push` 3-단계. 빈 변경 시 새 커밋 만들지 말고 보고. 메시지 스타일은 최근 git log 추론.
+
+### 정책 변경
+
+- Developer/ placement 룰 신설 (위 참조). 그 외 새 정책 변경 없음.
+- 세션 메모리 정본은 계속 `SESSION_CONTINUITY.md`.
+
+**다음 엔트리 예정**: Session 4 · Entry 2 — 2026-05-30 늦은 오후. 변경 유무 무관 작성.
+
+---
+
+## Session 4 · Entry 0 (Bootstrap) · 2026-05-30 0851 KST
+
+**Git 상태**
+
+- 브랜치: `feature/codex-gameplay-iteration`
+- 최신 커밋: `daace50 Organize Developer root into 구현기록 buckets`
+- `git status --short --branch` 요약:
+  - `## feature/codex-gameplay-iteration...origin/feature/codex-gameplay-iteration`
+  - 수정됨: `Developer/구현기록/README.md`
+  - 수정됨: `Developer/구현기록/게임기획밸런스구현코드연결/README.md`
+  - 수정됨: `Developer/구현기록/그래픽구현코드연결/README.md`
+  - 미추적: `tmp/` 임시 PNG 스크린샷 폴더
+- 주의: 위 README 3개 수정은 이 엔트리 작성 전에 이미 존재하던 변경이다. 다음 세션에서 절대 임의로 되돌리지 말고, 필요하면 내용을 확인한 뒤 이어서 정리한다.
+
+**이번 작업 / 대화**
+
+- 사용자가 "게임코드 검수하던거 했는지 봐봐"라고 요청했다.
+- 확인 결과, 게임 코드 검수 기록은 존재한다:
+  - `Quaility_Assurance/weapon_implementation_code_review_2026-05-25.md`
+  - `Quaility_Assurance/implementation_code_review_2026-05-16.md`
+- 결론: 검수는 완료되었지만, 2026-05-25 무기 구현 검수의 후속 수정은 일부만 반영된 상태다.
+- 아직 남아 보이는 대표 후속 항목:
+  - `StunGun.jsx`가 쿨다운 쪽에서 여전히 `performance.now()`를 사용한다.
+  - `Starlink.jsx`에 `Math.random()`, noop `<primitive attach="onUpdate">`, 매 프레임 `force()` 패턴이 남아 있다.
+  - `Missile.jsx`, `EraserBomb.jsx`, `Flask.jsx`는 `phase !== 'playing'`일 때 새 발사는 막지만, 이미 떠 있는 투사체를 phase 전환 시 비우는 정리 로직은 확인되지 않았다.
+- 사용자가 "풀 커밋 푸시"를 요청했다.
+  - `git pull --ff-only`: `Already up to date.`
+  - 커밋: 추적된 변경이 없어 새 커밋을 만들지 않았다. 당시에는 `tmp/`만 미추적이었다.
+  - `git push`: `Everything up-to-date.`
+- 이후 현재 시점에는 최신 커밋이 `daace50`으로 바뀌어 있고 README 3개 수정이 작업트리에 남아 있다. 이는 사용자 또는 다른 작업 흐름이 만든 변경으로 취급한다.
+- 사용자가 "직전작업 맥락을 리세션 이후 바로 인지할 수 있도록 세션메모리 잘 세팅해놔"라고 요청했다.
+- IDE open tabs는 CEO 쪽 문서들이다:
+  - `CEO/Game_service_purpose_target.md`
+  - `CEO/game_cons_techstack`
+  - `CEO/current_product_priorities.md`
+  - `CEO/ceo_review_passive_upgrade_catalog_2026-05-17.md`
+  - `CEO/casual_minigame_market_research_2026-04-27.md`
+  다음 세션이 제품 방향, 기술 전략, 우선순위, 시장성 판단을 이어가면 `CEO/` 작업으로 분류한다.
+
+**생성 / 수정 / 이동 파일**
+
+- 수정: `SESSION_MEMORY.md`
+  - 목적: 리세션 또는 `/clear` 이후 직전 작업 맥락을 바로 회수할 수 있도록 최신 부트스트랩 엔트리를 추가.
+- 이 엔트리 작성 중 다른 프로젝트 문서나 코드는 수정하지 않았다.
+- 기존 작업트리 수정으로 감지된 README 3개와 `tmp/`는 건드리지 않았다.
+
+**명령 로그**
+
+```powershell
+Get-Content -Path C:\Users\admin\.codex\plugins\cache\openai-curated\superpowers\fef63ecf\skills\using-superpowers\SKILL.md
+git status --short --branch
+Get-Content -Path project_develop_policy.md
+Get-Content -Path SESSION_CONTINUITY.md
+Select-String -Path SESSION_MEMORY.md -Pattern '^## Session' | Select-Object -Last 8
+Get-Content -Path SESSION_MEMORY.md -Tail 180
+git log -1 --oneline
+Get-Date -Format 'yyyy-MM-dd HHmm'
+git diff --stat
+git diff --name-only
+Get-ChildItem -Recurse -File Developer\구현기록 | Select-Object -First 30 FullName,LastWriteTime,Length
+git status --short --branch
+apply_patch
+Select-String -Path SESSION_MEMORY.md -Pattern 'Session 4|직전작업|StunGun|Developer/구현기록'
+Get-Content -Path SESSION_MEMORY.md -Tail 120
+git diff --stat
+git status --short --branch
+```
+
+**명령 / 빌드 / 테스트 / 브라우저 검증 결과**
+
+- 이번 엔트리 작성 시점에는 빌드, 테스트, 브라우저 검증을 새로 실행하지 않았다.
+- 파일/기록 확인만 수행했다.
+- `git diff --stat` 기준 현재 작업트리에는 README 3개에서 `140 insertions(+), 7 deletions(-)`가 있다.
+- PowerShell 출력에서 한글 경로가 octal escape처럼 보일 수 있으나 실제 경로는 `Developer/구현기록/...` 계열이다.
+
+**확정된 룰 / 정책 변경**
+
+- 새 정책 변경 없음.
+- 세션 메모리 규칙은 계속 `SESSION_CONTINUITY.md`가 단일 정본이다.
+- `project_develop_policy.md` 기준:
+  - 개발 구현과 기술 기록은 `Developer/`
+  - QA/검수 기록은 `Quaility_Assurance/`
+  - CEO/제품 방향/기술 전략/사업 판단은 `CEO/`
+  - 그래픽 콘셉트와 시각 검토는 `Graphic_designer/`
+
+**미해결 이슈 / 다음 단계**
+
+1. 먼저 `git status --short --branch`로 README 3개 수정과 `tmp/` 상태를 다시 확인한다.
+2. README 3개 수정은 직전 정리 작업의 일부로 보인다. 커밋 또는 추가 정리가 필요하면 내용을 읽고 의미를 파악한 뒤 진행한다.
+3. `tmp/`는 임시 PNG 스크린샷 폴더다. 사용자가 명시적으로 원하지 않는 한 커밋하지 않는다.
+4. 게임 코드 검수 후속 수정이 필요하면 우선순위는 다음과 같다:
+   - `StunGun.jsx` 시간축을 R3F `clock.elapsedTime` 기준으로 맞추기
+   - `Starlink.jsx`의 매 프레임 React state 강제 갱신 제거
+   - `UmbrellaGuard.jsx`/Starlink 시각 갱신 ref 기반 정리 여부 재확인
+   - 투사체 무기들의 phase 전환 cleanup 추가 여부 검토
+5. CEO 탭 문서 흐름을 이어가면 구현을 바로 바꾸지 말고, 먼저 `CEO/` 문서와 `project_develop_policy.md` 기준으로 제품 방향/우선순위 판단을 정리한다.
+
+**다음 세션이 가장 먼저 읽어야 할 항목**
+
+- 이 엔트리의 Git 상태와 미해결 이슈.
+- 특히 `Developer/구현기록/.../README.md` 3개 수정은 사용자 변경일 수 있으므로 보호하면서 이어간다.
+
+---
+
 ## Session 3 - Entry 2 - 2026-05-26 0013 KST
 
 **Time / Git status**
