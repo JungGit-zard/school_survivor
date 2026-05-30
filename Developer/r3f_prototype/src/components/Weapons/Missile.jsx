@@ -1,7 +1,8 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { enemyBodies, playerPos } from '../../lib/refs.js'
+import { enemyBodies, playerArmActionState, playerPos } from '../../lib/refs.js'
+import { startPlayerArmAction } from '../../lib/playerArmAction.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat } from '../../lib/toon.js'
 import { findBestSplashTarget } from '../../lib/weaponTargeting.js'
@@ -284,6 +285,7 @@ export function GuidedMissile() {
     const target = findBestSplashTarget(w.range ?? 22, w.radius ?? 1.6)
     if (!target) return
     lastFireRef.current = now
+    startPlayerArmAction(playerArmActionState, 'guidedMissileThrow', now)
 
     // 목표 방향 기준 수직으로 옆에 던지듯 스폰
     const facingAngle = Math.atan2(target.x - playerPos.x, target.z - playerPos.z)

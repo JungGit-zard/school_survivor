@@ -9,30 +9,57 @@ import { findBestSplashTarget } from '../../lib/weaponTargeting.js'
 let _flaskId = 0
 
 function FlaskModel() {
-  const glassMat = useMemo(() => toonMat(0x9be9ff, 0.1), [])
-  const liquidMat = useMemo(() => toonMat(0x62e676, 0.22), [])
-  const corkMat = useMemo(() => toonMat(0xc57a36, 0.08), [])
+  // 유리는 반투명 처리 — 불투명하면 안의 녹색 액체가 가려져 보이지 않는다.
+  // depthWrite=false로 두어 불투명 액체(먼저 렌더)가 비쳐 보이도록 한다.
+  const glassMat = useMemo(() => {
+    const m = toonMat(0xc2f2ff, 0.06)
+    m.transparent = true
+    m.opacity = 0.28
+    m.depthWrite = false
+    return m
+  }, [])
+  // 밝게 빛나는 라임그린 액체 — emissive를 높여 발광감을 준다.
+  const liquidMat = useMemo(() => toonMat(0x53e028, 0.5), [])
+  const bubbleMat = useMemo(() => toonMat(0xc7ffa6, 0.55), [])
+  const corkMat = useMemo(() => toonMat(0xd6ad77, 0.08), [])
   const outMat = useMemo(() => outlineMat(0.94), [])
 
   return (
     <group scale={[0.42, 0.42, 0.42]} rotation={[0.1, 0, -0.35]}>
-      <mesh material={outMat} scale={inflateScale([1.12, 1.12, 1.12])} position={[0, -0.08, 0]}>
-        <coneGeometry args={[0.34, 0.46, 5]} />
+      {/* 본체(원뿔) — 둥글게 보이도록 분할수를 높임 */}
+      <mesh material={outMat} scale={inflateScale([1.1, 1.1, 1.1])} position={[0, -0.08, 0]}>
+        <coneGeometry args={[0.34, 0.46, 24]} />
       </mesh>
       <mesh material={glassMat} position={[0, -0.08, 0]}>
-        <coneGeometry args={[0.34, 0.46, 5]} />
+        <coneGeometry args={[0.34, 0.46, 24]} />
       </mesh>
-      <mesh material={liquidMat} position={[0, -0.17, 0.01]} scale={[0.82, 0.42, 0.82]}>
-        <coneGeometry args={[0.32, 0.38, 5]} />
+      {/* 녹색 액체 — 원뿔 안쪽을 약 2/3까지 채우는 절두체, 윗면은 평평한 수면 */}
+      <mesh material={liquidMat} position={[0, -0.15, 0]}>
+        <cylinderGeometry args={[0.10, 0.31, 0.30, 24]} />
       </mesh>
+      {/* 기포 */}
+      <mesh material={bubbleMat} position={[0.07, -0.18, 0.05]}>
+        <sphereGeometry args={[0.035, 8, 8]} />
+      </mesh>
+      <mesh material={bubbleMat} position={[-0.06, -0.1, 0.04]}>
+        <sphereGeometry args={[0.028, 8, 8]} />
+      </mesh>
+      <mesh material={bubbleMat} position={[0.02, -0.23, -0.05]}>
+        <sphereGeometry args={[0.024, 8, 8]} />
+      </mesh>
+      {/* 목(투명 유리) */}
       <mesh material={outMat} scale={inflateScale([1.14, 1.1, 1.14])} position={[0, 0.25, 0]}>
-        <cylinderGeometry args={[0.09, 0.09, 0.32, 8]} />
+        <cylinderGeometry args={[0.09, 0.09, 0.32, 16]} />
       </mesh>
       <mesh material={glassMat} position={[0, 0.25, 0]}>
-        <cylinderGeometry args={[0.09, 0.09, 0.32, 8]} />
+        <cylinderGeometry args={[0.09, 0.09, 0.32, 16]} />
+      </mesh>
+      {/* 코르크 마개 */}
+      <mesh material={outMat} scale={inflateScale([1.12, 1.12, 1.12])} position={[0, 0.46, 0]}>
+        <cylinderGeometry args={[0.1, 0.1, 0.12, 16]} />
       </mesh>
       <mesh material={corkMat} position={[0, 0.46, 0]}>
-        <cylinderGeometry args={[0.1, 0.1, 0.1, 8]} />
+        <cylinderGeometry args={[0.1, 0.1, 0.12, 16]} />
       </mesh>
     </group>
   )

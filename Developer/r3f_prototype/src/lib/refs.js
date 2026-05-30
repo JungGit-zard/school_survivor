@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { createPlayerArmActionState, clearPlayerArmAction } from './playerArmAction.js'
 
 // 컴포넌트 간 플레이어 위치 공유 (re-render 없이)
 export const playerPos = new THREE.Vector3()
@@ -13,6 +14,8 @@ export const bagSwingState = {
   cooldown: 1000,
 }
 
+export const playerArmActionState = createPlayerArmActionState()
+
 export const enemyBodies = new Map()
 
 export const joystickDir = { x: 0, z: 0, active: false }
@@ -24,6 +27,7 @@ export function resetRuntimeRefs() {
   bagSwingState.progress = 0
   bagSwingState.lastFired = -Infinity
   bagSwingState.cooldown = 1000
+  clearPlayerArmAction(playerArmActionState)
   enemyBodies.clear()
   joystickDir.x = 0
   joystickDir.z = 0

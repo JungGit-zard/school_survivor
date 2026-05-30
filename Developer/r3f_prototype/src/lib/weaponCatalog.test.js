@@ -21,9 +21,9 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.pencilThrow.base.damage).toBe(5)
     expect(WEAPON_CATALOG.pencilThrow.base.cooldown).toBe(1100)
     expect(WEAPON_CATALOG.schoolBag.base.damage).toBe(12)
-    expect(WEAPON_CATALOG.boxCutter.base.damage).toBe(24)
-    expect(WEAPON_CATALOG.boxCutter.base.range).toBe(1.275)
-    expect(WEAPON_CATALOG.boxCutter.base.width).toBe(0.22)
+    expect(WEAPON_CATALOG.boxCutter.base.damage).toBe(24) // '30cm 자'(12)의 2배
+    expect(WEAPON_CATALOG.boxCutter.base.range).toBe(0.7) // 자보다 훨씬 좁은 근접 범위
+    expect(WEAPON_CATALOG.boxCutter.base.width).toBe(0.18)
     expect(WEAPON_CATALOG.tumbler.base.hitsPerSecond).toBe(2.5)
     expect(WEAPON_CATALOG.scienceFlask.base.damage).toBe(30)
     expect(WEAPON_CATALOG.bell.base.directions).toBe(8)
