@@ -6,6 +6,8 @@ import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../lib/refs.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { toonMat, outlineMat, inflateScale } from '../lib/toon.js'
+import { emitVfx } from '../lib/vfxEvents.js'
+import { createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
 import ZombieMesh from './ZombieMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 
@@ -150,22 +152,29 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
     enemyBodies.set(id, rb.current)
     rb.current._enemyHit = (dmg, impact = {}) => {
       if (dead.current) return
+      const hitPos = rb.current.translation()
+      emitVfx(createEnemyHitSparkEvent({
+        x: hitPos.x,
+        y: Math.max(0.34, 0.42 * cs),
+        z: hitPos.z,
+      }))
       setHitFlash(true)
       requestAnimationFrame(() => setHitFlash(false))
-      if (impact.knockback) {
-        const t = rb.current.translation()
-        const sx = impact.source?.x ?? playerPos.x
-        const sz = impact.source?.z ?? playerPos.z
+      const knockback = resolveEnemyHitKnockback(impact)
+      if (knockback.speed > 0) {
+        const t = hitPos
+        const sx = knockback.source?.x ?? playerPos.x
+        const sz = knockback.source?.z ?? playerPos.z
         const dx = t.x - sx
         const dz = t.z - sz
         const len = Math.hypot(dx, dz) || 1
         knockbackDir.current.set(dx / len, 0, dz / len)
-        knockbackSpeedRef.current = impact.knockback
-        knockbackUntilRef.current = performance.now() + (impact.knockbackMs ?? 120)
+        knockbackSpeedRef.current = knockback.speed
+        knockbackUntilRef.current = performance.now() + knockback.durationMs
         rb.current.setLinvel({
-          x: knockbackDir.current.x * impact.knockback,
+          x: knockbackDir.current.x * knockback.speed,
           y: 0,
-          z: knockbackDir.current.z * impact.knockback,
+          z: knockbackDir.current.z * knockback.speed,
         }, true)
       }
       hpRef.current -= dmg

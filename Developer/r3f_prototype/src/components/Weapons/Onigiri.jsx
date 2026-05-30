@@ -4,7 +4,7 @@ import { enemyBodies, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { findClosestEnemy } from '../../lib/weaponTargeting.js'
-import { createRiceBurstGrains, pickNextOnigiriTarget, shouldShowRiceBurst } from '../../lib/onigiri.js'
+import { createOnigiriBurstGrains, pickNextOnigiriTarget } from '../../lib/onigiri.js'
 
 let _onigiiriId  = 0
 
@@ -53,7 +53,7 @@ function OnigiiriModel() {
   )
 }
 
-function RiceGrain({ grain, startMs }) {
+function OnigiriBurstGrain({ grain, startMs }) {
   const groupRef = useRef(null)
   const riceRef = useRef(null)
   const riceMat = useMemo(() => {
@@ -66,42 +66,40 @@ function RiceGrain({ grain, startMs }) {
   }, [])
 
   useFrame(({ clock }) => {
-    const age = clock.elapsedTime * 1000 - startMs - grain.delay
+    const age = clock.elapsedTime * 1000 - startMs - grain.delayMs
     if (age < 0 || !groupRef.current) return
 
-    const t = Math.min(1, age / 520)
-    const arc = Math.sin(t * Math.PI)
+    const t = Math.min(1, age / 360)
+    const pop = Math.sin(t * Math.PI)
     const dist = grain.speed * t
-    const x = grain.x + Math.cos(grain.angle) * dist
-    const z = grain.z + Math.sin(grain.angle) * dist
-    const y = 0.08 + arc * grain.lift
-    const fade = Math.max(0, 1 - Math.max(0, t - 0.55) / 0.45)
+    const fade = Math.max(0, 1 - t)
 
-    groupRef.current.position.set(x, y, z)
-    groupRef.current.rotation.set(t * grain.spin, grain.angle, t * grain.spin * 0.7)
-    groupRef.current.scale.setScalar(0.65 + arc * 0.35)
-    if (riceRef.current) {
-      riceRef.current.material.opacity = fade
-    }
+    groupRef.current.position.set(
+      grain.x + Math.cos(grain.angle) * dist,
+      0.12 + pop * grain.lift,
+      grain.z + Math.sin(grain.angle) * dist,
+    )
+    groupRef.current.rotation.set(t * grain.spin, grain.angle, t * grain.spin * 0.6)
+    groupRef.current.scale.setScalar(1 + pop * 0.35)
+    if (riceRef.current) riceRef.current.material.opacity = fade
   })
 
   return (
-    <group ref={groupRef} position={[grain.x, 0.08, grain.z]}>
-      <mesh ref={riceRef} material={riceMat} scale={[grain.size * 1.45, grain.size * 0.88, grain.size]} renderOrder={7}>
+    <group ref={groupRef} position={[grain.x, 0.12, grain.z]}>
+      <mesh ref={riceRef} material={riceMat} scale={[grain.size * 1.65, grain.size * 0.9, grain.size]} renderOrder={7}>
         <sphereGeometry args={[1, 8, 5]} />
       </mesh>
     </group>
   )
 }
 
-function RiceBurst({ id, x, z, startMs, onDone }) {
+function OnigiriBurst({ id, x, z, startMs, onDone }) {
   const doneRef = useRef(false)
-  const grains = useMemo(() => createRiceBurstGrains({ id, x, z, count: 18, radius: 1.05 }), [id, x, z])
+  const grains = useMemo(() => createOnigiriBurstGrains({ id, x, z, count: 16 }), [id, x, z])
 
   useFrame(({ clock }) => {
     if (doneRef.current) return
-    const age = clock.elapsedTime * 1000 - startMs
-    if (age >= 620) {
+    if (clock.elapsedTime * 1000 - startMs >= 430) {
       doneRef.current = true
       onDone(id)
     }
@@ -110,13 +108,13 @@ function RiceBurst({ id, x, z, startMs, onDone }) {
   return (
     <group>
       {grains.map((grain) => (
-        <RiceGrain key={grain.key} grain={grain} startMs={startMs} />
+        <OnigiriBurstGrain key={grain.key} grain={grain} startMs={startMs} />
       ))}
     </group>
   )
 }
 
-function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, bounceRange, onDone, onBounceFlash }) {
+function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, bounceRange, onDone, onBurst }) {
   const groupRef   = useRef()
   const posRef     = useRef({ x: start[0], y: start[1] + 0.25, z: start[2] })
   const targetRef  = useRef(initialTarget)
@@ -126,7 +124,7 @@ function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, boun
   const doneRef    = useRef(false)
   const SPEED      = 11 / 8
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
     if (doneRef.current || !groupRef.current) return
 
     spinRef.current += delta * 15
@@ -160,11 +158,6 @@ function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, boun
       bouncesRef.current--
       p.x = t.x; p.z = t.z
 
-      if (shouldShowRiceBurst(bouncesRef.current)) {
-        onBounceFlash(t.x, t.z)
-        doneRef.current = true; onDone(id); return
-      }
-
       const next = pickNextOnigiriTarget({
         enemyBodies,
         from: { x: t.x, z: t.z },
@@ -172,7 +165,10 @@ function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, boun
         range: bounceRange,
       })
 
-      if (!next) { doneRef.current = true; onDone(id); return }
+      if (bouncesRef.current <= 0 || !next) {
+        onBurst(t.x, t.z, clock.elapsedTime * 1000)
+        doneRef.current = true; onDone(id); return
+      }
       hitSetRef.current.add(next.enemyId)
       targetRef.current = next
       return
@@ -197,10 +193,10 @@ function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, boun
 
 export function OnigiiriWeapon() {
   const [projectiles, setProjectiles] = useState([])
-  const [flashes, setFlashes]         = useState([])
+  const [bursts, setBursts]           = useState([])
   const projRef      = useRef([])
   const lastFireRef  = useRef(0)
-  const flashIdRef   = useRef(0)
+  const burstIdRef   = useRef(0)
   const phase   = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
 
@@ -209,12 +205,12 @@ export function OnigiiriWeapon() {
     setProjectiles([...projRef.current])
   }, [])
 
-  const removeFlash = useCallback((id) => {
-    setFlashes((prev) => prev.filter((f) => f.id !== id))
+  const addBurst = useCallback((x, z, startMs) => {
+    setBursts((prev) => [...prev, { id: ++burstIdRef.current, x, z, startMs }])
   }, [])
 
-  const addFlash = useCallback((x, z) => {
-    setFlashes((prev) => [...prev, { id: ++flashIdRef.current, x, z, startMs: performance.now() }])
+  const removeBurst = useCallback((id) => {
+    setBursts((prev) => prev.filter((burst) => burst.id !== id))
   }, [])
 
   useFrame(({ clock }) => {
@@ -245,10 +241,10 @@ export function OnigiiriWeapon() {
   return (
     <>
       {projectiles.map((p) => (
-        <OnigiiriProjectile key={p.id} {...p} onDone={expire} onBounceFlash={addFlash} />
+        <OnigiiriProjectile key={p.id} {...p} onDone={expire} onBurst={addBurst} />
       ))}
-      {flashes.map((f) => (
-        <RiceBurst key={f.id} {...f} onDone={removeFlash} />
+      {bursts.map((burst) => (
+        <OnigiriBurst key={burst.id} {...burst} onDone={removeBurst} />
       ))}
     </>
   )

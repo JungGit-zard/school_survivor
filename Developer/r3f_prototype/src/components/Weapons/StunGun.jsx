@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
+import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
 import { toonMat } from '../../lib/toon.js'
 
 let _stunBoltId  = 0
@@ -30,7 +31,7 @@ function LightningBoltModel() {
   }, [])
 
   return (
-    <group scale={[0.38, 0.38, 0.38]}>
+    <group scale={[scaleEffectVisual(0.38), scaleEffectVisual(0.38), scaleEffectVisual(0.38)]}>
       <mesh renderOrder={2} geometry={geo} material={boltMat} />
       <mesh renderOrder={3} geometry={geo} material={coreMat} scale={[0.52, 0.52, 0.52]} position={[0, 0, 0.03]} />
     </group>
@@ -49,7 +50,7 @@ function ChainArcVisual({ id, fromX, fromZ, toX, toZ, startMs, onDone }) {
     const pz  =  dx / len
     const pts = Array.from({ length: SEG_N + 1 }, (_, i) => {
       const t = i / SEG_N
-      const j = (i > 0 && i < SEG_N) ? Math.sin(i * 7.3 + (fromX + fromZ) * 5.1) * 0.40 : 0
+      const j = (i > 0 && i < SEG_N) ? Math.sin(i * 7.3 + (fromX + fromZ) * 5.1) * scaleEffectVisual(0.40) : 0
       return [fromX + dx * t + px * j, fromZ + dz * t + pz * j]
     })
     return Array.from({ length: SEG_N }, (_, i) => {
@@ -83,7 +84,7 @@ function ChainArcVisual({ id, fromX, fromZ, toX, toZ, startMs, onDone }) {
       {segData.map((s, i) => (
         <group key={i} position={[s.midX, 0.55, s.midZ]} rotation={[0, s.yaw, 0]}>
           <mesh renderOrder={2} material={mats[i]}>
-            <boxGeometry args={[0.05, 0.05, s.segLen]} />
+            <boxGeometry args={[scaleEffectVisual(0.05), scaleEffectVisual(0.05), s.segLen]} />
           </mesh>
         </group>
       ))}

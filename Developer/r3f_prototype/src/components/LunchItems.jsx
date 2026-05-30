@@ -119,10 +119,6 @@ function LunchItem({ item, onCollect }) {
 
   return (
     <group ref={groupRef} position={item.pos}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.07, 0]}>
-        <circleGeometry args={[0.34, 24]} />
-        <meshBasicMaterial color={0xffffff} transparent opacity={0.16} depthWrite={false} />
-      </mesh>
       <LunchModel kind={item.kind} />
     </group>
   )

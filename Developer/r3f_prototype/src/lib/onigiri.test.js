@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createRiceBurstGrains, pickNextOnigiriTarget, shouldShowRiceBurst } from './onigiri.js'
+import { createOnigiriBurstGrains, pickNextOnigiriTarget } from './onigiri.js'
 
 function rb(x, z, alive = true) {
   return {
@@ -27,18 +27,29 @@ describe('onigiri targeting', () => {
     expect(next.enemyId).toBe('near')
   })
 
-  it('creates deterministic scattered rice grains instead of a flat circle flash', () => {
-    const grains = createRiceBurstGrains({ id: 3, x: 1, z: -2, count: 14, radius: 1.1 })
+  it('returns null when no unhit living enemy remains so the projectile can expire immediately', () => {
+    const enemies = new Map([
+      ['already-hit', rb(1, 0)],
+      ['dead', rb(2, 0, false)],
+    ])
 
-    expect(grains).toHaveLength(14)
-    expect(grains[0]).toMatchObject({ key: '3-0', x: 1, z: -2 })
-    expect(grains.every((grain) => grain.speed > 0 && grain.lift > 0)).toBe(true)
-    expect(new Set(grains.map((grain) => grain.angle.toFixed(3))).size).toBeGreaterThan(8)
+    const next = pickNextOnigiriTarget({
+      enemyBodies: enemies,
+      from: { x: 0, z: 0 },
+      hitSet: new Set(['already-hit']),
+      range: 8,
+    })
+
+    expect(next).toBeNull()
   })
 
-  it('uses bounces as cushions, then bursts on the next enemy contact', () => {
-    expect(shouldShowRiceBurst(1)).toBe(false)
-    expect(shouldShowRiceBurst(0)).toBe(false)
-    expect(shouldShowRiceBurst(-1)).toBe(true)
+  it('creates short scattered rice grains for the instant disappearance burst', () => {
+    const grains = createOnigiriBurstGrains({ id: 5, x: 1, z: -2, count: 12 })
+
+    expect(grains).toHaveLength(12)
+    expect(grains[0]).toMatchObject({ key: '5-0', x: 1, z: -2 })
+    expect(grains.every((grain) => grain.speed > 0 && grain.lift > 0 && grain.size > 0)).toBe(true)
+    expect(Math.max(...grains.map((grain) => grain.delayMs))).toBeLessThan(24)
+    expect(new Set(grains.map((grain) => grain.angle.toFixed(3))).size).toBeGreaterThan(8)
   })
 })

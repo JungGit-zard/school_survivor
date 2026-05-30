@@ -18,29 +18,44 @@ function HitSpark({ event, onDone }) {
   const ref = useRef()
   const matRef = useRef()
   const LIFE = event.life ?? 220
+  const shardAngles = useMemo(() => [0, Math.PI / 2, Math.PI, Math.PI * 1.5], [])
 
   useFrame(() => {
     if (!ref.current) return
     const age = performance.now() - event.startMs
     if (age >= LIFE) { onDone(event.id); return }
     const t = age / LIFE
-    const scale = 0.18 + t * 0.30
+    const pop = Math.sin(t * Math.PI)
+    const scale = (event.baseScale ?? 0.18) + t * (event.growScale ?? 0.30)
     ref.current.scale.setScalar(scale)
-    ref.current.rotation.y += 0.18
-    if (matRef.current) matRef.current.opacity = 1 - t * t
+    ref.current.rotation.y += 0.32
+    if (matRef.current) matRef.current.opacity = Math.max(0, 1 - t * t) * (0.75 + pop * 0.25)
   })
 
   return (
-    <mesh ref={ref} position={[event.x, event.y ?? 0.42, event.z]}>
-      <octahedronGeometry args={[1, 0]} />
-      <meshBasicMaterial
-        ref={matRef}
-        color={event.color ?? VFX_COLORS.stunYellow}
-        transparent
-        opacity={1}
-        depthWrite={false}
-      />
-    </mesh>
+    <group ref={ref} position={[event.x, event.y ?? 0.42, event.z]}>
+      <mesh>
+        <octahedronGeometry args={[1, 0]} />
+        <meshBasicMaterial
+          ref={matRef}
+          color={event.color ?? VFX_COLORS.stunYellow}
+          transparent
+          opacity={1}
+          depthWrite={false}
+        />
+      </mesh>
+      {shardAngles.map((angle) => (
+        <mesh key={angle} position={[Math.sin(angle) * 0.9, 0, Math.cos(angle) * 0.9]} rotation={[0, angle, 0]}>
+          <boxGeometry args={[0.24, 0.08, 0.52]} />
+          <meshBasicMaterial
+            color={event.color ?? VFX_COLORS.stunYellow}
+            transparent
+            opacity={0.86}
+            depthWrite={false}
+          />
+        </mesh>
+      ))}
+    </group>
   )
 }
 

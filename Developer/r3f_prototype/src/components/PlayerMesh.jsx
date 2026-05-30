@@ -1,7 +1,8 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { bagSwingState } from '../lib/refs.js'
+import { bagSwingState, playerArmActionState } from '../lib/refs.js'
+import { getActivePlayerArmAction, getPlayerArmPose } from '../lib/playerArmAction.js'
 import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
 
 function Block({ size, position, rotation, color, emissive = 0.14 }) {
@@ -55,7 +56,7 @@ export default function PlayerMesh({ groupRef, movingRef }) {
     if (el) p.current[key] = el
   }
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
     const parts = p.current
     if (!parts.legL) return
 
@@ -71,10 +72,14 @@ export default function PlayerMesh({ groupRef, movingRef }) {
 
     parts.legL.rotation.x = sw
     parts.legR.rotation.x = -sw
-    parts.slvL.rotation.x = -sw * 0.55
-    parts.slvL.rotation.z = 0
-    parts.slvR.rotation.x = sw * 0.55
-    parts.slvR.rotation.z = 0
+    const armAction = getActivePlayerArmAction(playerArmActionState, clock.elapsedTime * 1000)
+    const armPose = getPlayerArmPose({ action: armAction, walkSwing: sw })
+    parts.slvL.rotation.x = armPose.slvL.x
+    parts.slvL.rotation.y = armPose.slvL.y
+    parts.slvL.rotation.z = armPose.slvL.z
+    parts.slvR.rotation.x = armPose.slvR.x
+    parts.slvR.rotation.y = armPose.slvR.y
+    parts.slvR.rotation.z = armPose.slvR.z
     if (bagSwingState.active) {
       const swingT = bagSwingState.progress
       const swingPower = Math.sin(swingT * Math.PI)
@@ -85,7 +90,6 @@ export default function PlayerMesh({ groupRef, movingRef }) {
       parts.slvL.rotation.x = -0.35 * swingPower
       parts.slvL.rotation.z = 0.24 * swingPower
     } else {
-      parts.slvR.rotation.y = 0
       parts.bag.rotation.x = 0
     }
     if (!bagSwingState.active) {

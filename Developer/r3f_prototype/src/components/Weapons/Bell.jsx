@@ -3,6 +3,8 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
+import { getBellSonicRingConfigs } from '../../lib/bell.js'
+import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 
 let _bellPulseId = 0
@@ -38,48 +40,39 @@ function BellModel() {
 }
 
 function BellPulse({ id, startMs, radius, onDone }) {
-  const ringRef = useRef(null)
-  const raysRef = useRef([])
+  const ringRefs = useRef([])
+  const ringConfigs = useMemo(() => getBellSonicRingConfigs(), [])
 
   useFrame(({ clock }) => {
     const age = clock.elapsedTime * 1000 - startMs
     const t = Math.min(1, age / 520)
     const ease = 1 - Math.pow(1 - t, 3)
-    const scale = 0.2 + radius * 2 * ease
-    const opacity = 0.55 * (1 - t)
 
-    if (ringRef.current) {
-      ringRef.current.position.set(playerPos.x, 0.075, playerPos.z)
-      ringRef.current.scale.setScalar(scale)
-      ringRef.current.material.opacity = opacity
-    }
-    raysRef.current.forEach((ray, idx) => {
-      if (!ray) return
-      const angle = (Math.PI * 2 * idx) / 8
-      const rayDist = radius * 0.46 * ease
-      ray.position.set(playerPos.x + Math.sin(angle) * rayDist, 0.09, playerPos.z + Math.cos(angle) * rayDist)
-      ray.rotation.set(-Math.PI / 2, 0, -angle)
-      ray.scale.set(0.12 + ease * 1.15, 1, 1)
-      ray.material.opacity = opacity * 0.78
+    ringRefs.current.forEach((ring, idx) => {
+      if (!ring) return
+      const config = ringConfigs[idx]
+      const waveProgress = Math.min(1, ease + config.scaleOffset)
+      const scale = scaleEffectVisual(0.2 + radius * 2 * waveProgress)
+      const opacity = 0.55 * (1 - t) * config.opacityMult
+      ring.position.set(playerPos.x, 0.075 + idx * 0.003, playerPos.z)
+      ring.scale.setScalar(scale)
+      ring.material.opacity = opacity
     })
     if (t >= 1) onDone(id)
   })
 
   return (
     <>
-      <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[playerPos.x, 0.075, playerPos.z]} renderOrder={5}>
-        <ringGeometry args={[0.42, 0.52, 72]} />
-        <meshBasicMaterial color={0xffdf5a} transparent opacity={0} side={THREE.DoubleSide} depthWrite={false} />
-      </mesh>
-      {Array.from({ length: 8 }, (_, idx) => (
+      {ringConfigs.map((config, idx) => (
         <mesh
-          key={idx}
-          ref={(node) => { raysRef.current[idx] = node }}
-          position={[playerPos.x, 0.09, playerPos.z]}
+          key={`${config.shape}-${idx}`}
+          ref={(node) => { ringRefs.current[idx] = node }}
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[playerPos.x, 0.075 + idx * 0.003, playerPos.z]}
           renderOrder={5}
         >
-          <planeGeometry args={[0.72, 0.06]} />
-          <meshBasicMaterial color={0xfff1a0} transparent opacity={0} side={THREE.DoubleSide} depthWrite={false} />
+          <torusGeometry args={[0.48, 0.035, 8, 96]} />
+          <meshBasicMaterial color={0xffdf5a} transparent opacity={0} side={THREE.DoubleSide} depthWrite={false} />
         </mesh>
       ))}
     </>

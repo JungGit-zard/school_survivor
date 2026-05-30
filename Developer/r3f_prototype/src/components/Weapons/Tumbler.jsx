@@ -1,6 +1,5 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import * as THREE from 'three'
 import { RigidBody, BallCollider } from '@react-three/rapier'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -29,7 +28,6 @@ function TumblerModel() {
 export function TumblerOrbit() {
   const rbRefs = useRef([])
   const visualRefs = useRef([])
-  const ringRef = useRef(null)
   const enemiesRef = useRef(new Map())
   const overlapCountRef = useRef(new Map())
   const lastHitRef = useRef(new Map())
@@ -55,7 +53,6 @@ export function TumblerOrbit() {
         visualRefs.current[i].rotation.set(0.2, angle, nowSec * 8 + i * 0.8)
       }
     }
-    ringRef.current?.position.set(playerPos.x, 0.035, playerPos.z)
 
     const nowMs = nowSec * 1000
     const interval = 1000 / w.hitsPerSecond
@@ -103,10 +100,6 @@ export function TumblerOrbit() {
           <BallCollider args={[0.12]} sensor />
         </RigidBody>
       ))}
-      <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[playerPos.x, 0.035, playerPos.z]}>
-        <ringGeometry args={[weapons.tumbler.radius - 0.03, weapons.tumbler.radius + 0.03, 72]} />
-        <meshBasicMaterial color={0xff9a3d} transparent opacity={0.16} side={THREE.DoubleSide} depthWrite={false} />
-      </mesh>
       {Array.from({ length: tumblerCount }, (_, idx) => (
         <group key={`tumbler-visual-${idx}`} ref={(node) => { visualRefs.current[idx] = node }}>
           <TumblerModel />

@@ -11,7 +11,7 @@ import XpTextbook from './XpTextbook.jsx'
 const GOLD_INTERVAL_MIN_MS = 25_000
 const GOLD_INTERVAL_MAX_MS = 35_000
 const GOLD_VISIBLE_RADIUS = 10  // 플레이어 기준 이 거리 내 적에서 드랍 시도
-const TEXTBOOK_DROP_RATE = 0.30  // 일반 적 사망 시 도라야키 드랍 확률
+export const TEXTBOOK_DROP_RATE = 0.30  // 일반 적 사망 시 교과서 드랍 확률
 
 // 보스/엘리트 사망 시 추가 보너스 (기획서 §3-3)
 const ELITE_BONUS = {
@@ -23,6 +23,10 @@ export function getEliteBonusTextbookXp(type, fallbackXp) {
   const bonus = ELITE_BONUS[type]
   if (!bonus) return fallbackXp
   return bonus.textbookXp ?? fallbackXp
+}
+
+export function shouldDropTextbook(dropData, roll = Math.random()) {
+  return (dropData?.xp ?? 0) > 0 && roll < TEXTBOOK_DROP_RATE
 }
 
 const nextGoldInterval = () =>
@@ -81,7 +85,7 @@ function rangedSpawnPos() {
 
 // 1스테이지는 추격/돌진형만 사용한다 (Bang_Rules 2026-05-09 부록 / stage1_replan §3-2).
 // 기존 E04 비중은 추격 압박을 늘리도록 E02/E03/E05로 재분배.
-const WAVE_PHASES = [
+export const WAVE_PHASES = [
   // 0:00–0:50 단일 좀비 구간. E01 밀도만 기존 대비 2배로 올린다.
   { start:   0, end:  50, target: 24, weights: { E01: 1.00 } },
   // 0:50–1:00 잡몹+러너 (이동 압박 시작)
@@ -97,7 +101,7 @@ const WAVE_PHASES = [
   // 3:00–3:30 돌진 본격 도입
   { start: 180, end: 210, target: 64, weights: { E01: 0.25, E03: 0.30, E02: 0.30, E05: 0.15 } },
   // 3:30–4:00 +거대 등장
-  { start: 210, end: 240, target: 76, weights: { E01: 0.20, E03: 0.30, E02: 0.30, E05: 0.17, E06: 0.03 } },
+  { start: 210, end: 240, target: 76, weights: { E01: 0.21, E03: 0.30, E02: 0.30, E05: 0.17, E06: 0.02 } },
   // 4:00–4:20 보스 구간 1 (잡몹+탱커)
   { start: 240, end: 260, target: 25, weights: { E01: 0.60, E02: 0.40 }, bossPhase: true },
   // 4:20–4:40 보스 구간 2 (탱커+돌진)
@@ -188,7 +192,7 @@ export default function Enemies() {
       return
     }
 
-    if (dropData.xp > 0 && Math.random() < TEXTBOOK_DROP_RATE) {
+    if (shouldDropTextbook(dropData)) {
       dropTextbook(dropData.pos, dropData.xp)
     }
   }, [dropTextbook, dropGoldCoin])
