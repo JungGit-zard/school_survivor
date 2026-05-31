@@ -7,6 +7,7 @@ import {
   ENEMY_DEATH_COLLAPSE_LIFETIME_MS,
   ZOMBIE_COLLAPSE_PARTS,
   createCollapseMotion,
+  pickEnemyDeathCollapseStyle,
   seededCollapseNoise,
 } from '../lib/enemyDeathCollapse.js'
 import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
@@ -16,7 +17,7 @@ function resolvePartColor(part, palette) {
   return palette[part.color] ?? palette.body
 }
 
-function CollapsePart({ part, index, origin, visualScale, palette, startedAt }) {
+function CollapsePart({ part, index, origin, visualScale, palette, startedAt, style }) {
   const groupRef = useRef(null)
   const meshRef = useRef(null)
   const outlineRef = useRef(null)
@@ -44,7 +45,7 @@ function CollapsePart({ part, index, origin, visualScale, palette, startedAt }) 
   }, [part.color])
 
   const seed = origin[0] * 17.1 + origin[2] * 31.7 + index * 13.37
-  const motion = useRef(createCollapseMotion({ seed, part, index }))
+  const motion = useRef(createCollapseMotion({ seed, part, index, style }))
   const size = useMemo(() => part.size.map((value) => value * visualScale), [part.size, visualScale])
   const baseRotation = part.rotation ?? [0, 0, 0]
 
@@ -68,17 +69,18 @@ function CollapsePart({ part, index, origin, visualScale, palette, startedAt }) 
     if (activeMs >= 0) {
       v.y -= v.gravity * delta
 
-      const linDamping = Math.max(0, 1 - 2.6 * delta)
-      const spinDamping = Math.max(0, 1 - 1.1 * delta)
+      const linDamping = Math.max(0, 1 - (v.linearDamping ?? 2.6) * delta)
+      const spinDamping = Math.max(0, 1 - (v.spinDamping ?? 1.1) * delta)
       v.x *= linDamping
       v.z *= linDamping
       v.rx *= spinDamping
       v.ry *= spinDamping
       v.rz *= spinDamping
 
-      p.x += v.x * delta * visualScale
-      p.y += v.y * delta * visualScale
-      p.z += v.z * delta * visualScale
+      const motionScale = v.distanceScale ?? visualScale
+      p.x += v.x * delta * motionScale
+      p.y += v.y * delta * motionScale
+      p.z += v.z * delta * motionScale
       p.rx += v.rx * delta
       p.ry += v.ry * delta
       p.rz += v.rz * delta
@@ -125,6 +127,7 @@ function CollapsePart({ part, index, origin, visualScale, palette, startedAt }) 
 export default function EnemyDeathCollapse({ id, type, position, visualScale, onDone }) {
   const palette = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
   const startedAtRef = useRef(performance.now())
+  const style = useMemo(() => pickEnemyDeathCollapseStyle(), [])
 
   useEffect(() => {
     const timer = window.setTimeout(() => onDone?.(id), ENEMY_DEATH_COLLAPSE_LIFETIME_MS)
@@ -142,6 +145,7 @@ export default function EnemyDeathCollapse({ id, type, position, visualScale, on
           visualScale={visualScale}
           palette={palette}
           startedAt={startedAtRef.current}
+          style={style}
         />
       ))}
     </group>

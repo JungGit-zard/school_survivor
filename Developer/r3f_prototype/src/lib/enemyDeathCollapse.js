@@ -1,5 +1,6 @@
 export const ENEMY_DEATH_COLLAPSE_LIFETIME_MS = 780
 export const ENEMY_DEATH_COLLAPSE_FADE_START_MS = 430
+export const ENEMY_DEATH_COLLAPSE_STYLES = ['bodyCollapse', 'scatter', 'crumble']
 
 export const ZOMBIE_COLLAPSE_PARTS = [
   { key: 'head', size: [0.52, 0.48, 0.46], offset: [0, 0.82, 0], color: 'skin', outlineScale: 1.08, mass: 0.8 },
@@ -21,7 +22,65 @@ export function seededCollapseNoise(seed) {
   return x - Math.floor(x)
 }
 
-export function createCollapseMotion({ seed, part, index }) {
+export function pickEnemyDeathCollapseStyle(roll = Math.random()) {
+  const index = Math.min(ENEMY_DEATH_COLLAPSE_STYLES.length - 1, Math.floor(roll * ENEMY_DEATH_COLLAPSE_STYLES.length))
+  return ENEMY_DEATH_COLLAPSE_STYLES[index]
+}
+
+function createScatterMotion({ seed, part, index }) {
+  const n0 = seededCollapseNoise(seed)
+  const n1 = seededCollapseNoise(seed + 1)
+  const n2 = seededCollapseNoise(seed + 2)
+  const n3 = seededCollapseNoise(seed + 3)
+  const n4 = seededCollapseNoise(seed + 4)
+  const angle = n0 * Math.PI * 2
+  const speed = 4.0 + n1 * 5.4
+  const lift = 1.6 + n2 * 2.3
+  const spin = 8.0 + n3 * 10.5
+
+  return {
+    x: Math.sin(angle) * speed,
+    y: lift,
+    z: Math.cos(angle) * speed,
+    rx: (n2 - 0.5) * spin,
+    ry: (n3 - 0.5) * spin,
+    rz: (n4 - 0.5) * spin,
+    gravity: 0,
+    delayMs: Math.min(index, 4) * 3,
+    settleY: -0.06,
+    distanceScale: 1,
+    linearDamping: 1.15,
+    spinDamping: 0.75,
+  }
+}
+
+function createCrumbleMotion({ seed, part, index }) {
+  const [ox, oy, oz] = part.offset
+  const n0 = seededCollapseNoise(seed)
+  const n1 = seededCollapseNoise(seed + 1)
+  const n2 = seededCollapseNoise(seed + 2)
+  const n3 = seededCollapseNoise(seed + 3)
+  const n4 = seededCollapseNoise(seed + 4)
+  const angle = n0 * Math.PI * 2
+  const topBias = Math.max(0, Math.min(1, (oy + 0.6) / 1.5))
+  const sideDist = 0.12 + n1 * 0.34 + Math.hypot(ox, oz) * 0.18
+  const lift = 0.08 + topBias * 0.42 + n2 * 0.16
+  const spin = 3.0 + n3 * 5.2
+
+  return {
+    x: Math.sin(angle) * sideDist,
+    y: lift,
+    z: Math.cos(angle) * sideDist,
+    rx: (n2 - 0.5) * spin,
+    ry: (n3 - 0.5) * spin,
+    rz: (n4 - 0.5) * spin,
+    gravity: 12 + topBias * 5 + part.mass * 1.4,
+    delayMs: index * 10,
+    settleY: -0.14,
+  }
+}
+
+function createBodyCollapseMotion({ seed, part, index }) {
   const [ox, oy, oz] = part.offset
   const sideLen = Math.hypot(ox, oz) || 1
   const sideX = ox / sideLen
@@ -45,4 +104,10 @@ export function createCollapseMotion({ seed, part, index }) {
     delayMs: index * 8,
     settleY: -0.12,
   }
+}
+
+export function createCollapseMotion({ seed, part, index, style = 'bodyCollapse' }) {
+  if (style === 'scatter') return createScatterMotion({ seed, part, index })
+  if (style === 'crumble') return createCrumbleMotion({ seed, part, index })
+  return createBodyCollapseMotion({ seed, part, index })
 }
