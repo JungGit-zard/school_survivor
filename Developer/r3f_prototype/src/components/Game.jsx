@@ -29,8 +29,8 @@ export default function Game() {
       }
     }
 
-    // smooth camera follow
-    _camTarget.set(playerPos.x, 20, playerPos.z + 20)
+    // smooth camera follow (거리 17 = 원근 깊이감 유지하며 살짝 당긴 줌)
+    _camTarget.set(playerPos.x, 17, playerPos.z + 17)
     camera.position.lerp(_camTarget, 0.08)
     camera.lookAt(playerPos.x, 0, playerPos.z)
   })
