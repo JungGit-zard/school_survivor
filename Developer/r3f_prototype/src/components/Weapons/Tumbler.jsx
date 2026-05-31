@@ -36,7 +36,7 @@ export function TumblerOrbit() {
 
   useFrame(({ clock }) => {
     const w = weapons.tumbler
-    if (phase !== 'playing' || !w.active) return
+    if (phase !== 'playing' || !w?.active) return
 
     const nowSec = clock.elapsedTime
     const count = Math.max(1, Math.min(3, w.count ?? 1))
@@ -64,7 +64,7 @@ export function TumblerOrbit() {
     })
   })
 
-  if (!weapons.tumbler.active) return null
+  if (!weapons.tumbler?.active) return null
   const tumblerCount = Math.max(1, Math.min(3, weapons.tumbler.count ?? 1))
 
   return (

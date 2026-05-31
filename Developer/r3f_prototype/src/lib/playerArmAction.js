@@ -1,11 +1,29 @@
+// 커터칼 팔/칼 동작 전체 길이(ms). 슬래시 잔상보다 길게 잡아 '앞으로→위로' 2단 동작이
+// 또렷이 보이게 한다. 팔 포즈와 칼 메시(BoxCutter.jsx)가 같은 값을 쓰도록 단일 정의.
+export const BOX_CUTTER_ACTION_MS = 460
+
 export const PLAYER_ARM_ACTIONS = {
   boxCutter: {
-    // 슬래시 이펙트(240ms)보다 길게 잡아 '앞으로→위로' 2단 동작이 또렷이 보이게 한다.
-    durationMs: 460,
+    durationMs: BOX_CUTTER_ACTION_MS,
   },
   guidedMissileThrow: {
     durationMs: 360,
   },
+}
+
+// 커터칼 2단 동작 위상. progress(0..1) → { thrust, raise, env }.
+// (1) thrust: 앞으로 빠르게 내밀기(easeOut), (2) raise: 위로 들기(smoothstep),
+// env: 마지막 구간 복귀 envelope. 팔 포즈와 칼 메시가 동일 타이밍을 쓰도록 단일 정의.
+export function computeBoxCutterActionPhases(progress) {
+  const p = Math.max(0, Math.min(1, progress))
+  const t1 = Math.min(1, p / 0.22)                       // 1단: 전방 찌르기 (빠르게)
+  const t2 = Math.min(1, Math.max(0, (p - 0.26) / 0.42)) // 2단: 위로 들기 (p≈0.68에 정점)
+  const settle = Math.min(1, Math.max(0, (p - 0.86) / 0.14)) // 마지막에만 복귀
+  return {
+    thrust: 1 - (1 - t1) * (1 - t1),  // easeOut
+    raise: t2 * t2 * (3 - 2 * t2),    // smoothstep
+    env: 1 - settle,
+  }
 }
 
 export function createPlayerArmActionState() {
@@ -57,12 +75,7 @@ export function getPlayerArmPose({ action, walkSwing = 0 }) {
   if (action.type === 'boxCutter') {
     // 2단 동작: (1) 팔을 앞으로 빠르게 쭉 내밀고 → (2) 팔을 머리 위로 크게 든다.
     // slvR.x 음수가 클수록 어깨가 앞→위로 회전(-1.5 ≈ 전방 수평, -2.75 ≈ 머리 위).
-    const t1 = Math.min(1, p / 0.22)                       // 1단: 전방 찌르기 (빠르게)
-    const t2 = Math.min(1, Math.max(0, (p - 0.26) / 0.42)) // 2단: 위로 들기 (p≈0.68에 정점)
-    const settle = Math.min(1, Math.max(0, (p - 0.86) / 0.14)) // 마지막에만 복귀(정점에서 잠깐 유지)
-    const thrust = 1 - (1 - t1) * (1 - t1)    // easeOut — 빠른 시작
-    const raise = t2 * t2 * (3 - 2 * t2)      // smoothstep
-    const env = 1 - settle
+    const { thrust, raise, env } = computeBoxCutterActionPhases(p)
     pose.slvR.x = (-1.5 * thrust - 1.25 * raise) * env  // 전방 수평 → 머리 위
     pose.slvR.y = (-0.2 * thrust + 0.15 * raise) * env
     pose.slvR.z = (-0.45 * thrust + 0.3 * raise) * env
