@@ -27,7 +27,7 @@ export const WEAPON_CATALOG = {
     id: 'boxCutter',
     label: '커터칼',
     // 공격력 24 = '30cm 자'(12)의 2배. 범위(range·width)는 자의 부채꼴보다 훨씬 좁은 전방 근접 찌르기.
-    base: { damage: 24, cooldown: 1100, range: 0.7, width: 0.18, slashMs: 240, knockback: 1.8 },
+    base: { damage: 24, cooldown: 1100, range: 0.7, width: 0.18, knockback: 1.8 },
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },

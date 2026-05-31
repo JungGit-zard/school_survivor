@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { enemyBodies, playerArmActionState, playerFacing, playerPos } from '../../lib/refs.js'
 import { pickBoxCutterTargets, normalizePlanarFacing } from '../../lib/boxCutter.js'
-import { startPlayerArmAction } from '../../lib/playerArmAction.js'
+import { startPlayerArmAction, computeBoxCutterActionPhases, BOX_CUTTER_ACTION_MS } from '../../lib/playerArmAction.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 
@@ -57,9 +57,8 @@ const SLASH_PATH = [
 // 분리된 시각 전용 값이라, 범위를 좁혀도 잔상 그래픽 크기는 여기서 독립적으로 정한다.
 const VISUAL_REACH = 1.275 * (2 / 3)
 
-// 캐릭터 팔/칼 동작 전체 길이(ms). 슬래시 잔상(240ms 느낌)보다 길게 잡아
-// '앞으로 내밀고 → 위로 드는' 동작이 또렷이 보이게 한다. (PLAYER_ARM_ACTIONS.boxCutter와 일치)
-const ACTION_MS = 460
+// 동작 길이는 playerArmAction의 단일 정의(BOX_CUTTER_ACTION_MS)를 그대로 사용한다.
+const ACTION_MS = BOX_CUTTER_ACTION_MS
 
 function buildSlashRibbon(points, halfWidth) {
   const n = points.length
@@ -191,13 +190,8 @@ export function BoxCutterWeapon() {
       const progress = Math.min(1, elapsed / duration)
       const dir = normalizePlanarFacing(strike.facing)
       const yaw = Math.atan2(dir.x, dir.z)
-      // 칼도 팔과 동일하게 (1) 앞으로 쭉 → (2) 위로 들어올린다. (playerArmAction과 타이밍 일치)
-      const t1 = Math.min(1, progress / 0.22)
-      const t2 = Math.min(1, Math.max(0, (progress - 0.26) / 0.42))
-      const settle = Math.min(1, Math.max(0, (progress - 0.86) / 0.14))
-      const thrust = 1 - (1 - t1) * (1 - t1)
-      const raise = t2 * t2 * (3 - 2 * t2)
-      const env = 1 - settle
+      // 칼도 팔과 동일한 위상으로 (1) 앞으로 쭉 → (2) 위로 들어올린다. (공용 헬퍼로 타이밍 일치)
+      const { thrust, raise, env } = computeBoxCutterActionPhases(progress)
       const forward = (THREE.MathUtils.lerp(0.26, 0.66, thrust) - raise * 0.32) * env
       const lift = (0.22 + raise * 0.66) - (1 - env) * raise * 0.66 // 위로 들었다 마지막에 복귀
 

@@ -65,7 +65,7 @@ function FlaskModel() {
   )
 }
 
-function FlaskProjectile({ id, start, target, speed, radius, damage, onExplode }) {
+function FlaskProjectile({ id, start, target, radius, damage, onExplode }) {
   const groupRef = useRef(null)
   const ageRef = useRef(0)
   const explodedRef = useRef(false)
@@ -172,9 +172,10 @@ export function ScienceFlaskSplash() {
       id: ++_flaskId,
       start: [playerPos.x, playerPos.y + 0.36, playerPos.z],
       target: { x: target.x, z: target.z },
-      speed: 8.5,
-      radius: w.radius,
-      damage: w.damage,
+      // 발사 게이트(167줄)와 동일한 폴백을 둬, radius가 undefined여도 폭발 거리 판정이
+      // NaN(전 적 타격)이 되지 않게 한다.
+      radius: w.radius ?? 1.6,
+      damage: w.damage ?? 30,
     }
     activeFlasksRef.current = [next]
     setFlasks([next])
