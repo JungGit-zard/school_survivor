@@ -2,7 +2,7 @@
 
 ## 연결 파일
 
-- 기획: `Planner/xp_textbook_drop_rule_guard_2026-05-30.md`
+- 기획: `Planner/B.게임기획,밸런스 구현/B-1 캐릭터 성장,능력치 업그레이드 구조 구현/Rewards_Drops/xp_textbook_drop_rule_guard_2026-05-30.md`
 - 구현: `Developer/r3f_prototype/src/components/Enemies.jsx`
 - 테스트: `Developer/r3f_prototype/src/components/Enemies.test.jsx`
 

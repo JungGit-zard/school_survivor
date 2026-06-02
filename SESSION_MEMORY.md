@@ -44,7 +44,7 @@
 
 **CompassBlade (나침반 칼날)**
 
-- 폭발 임계 10스택 → 5히트 변경 (2026-05-27, `Planner/compass_blade_five_hit_explosion_rule_2026-05-27.md`).
+- 폭발 임계 10스택 → 5히트 변경 (2026-05-27, `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/CompassBlade/compass_blade_five_hit_explosion_rule_2026-05-27.md`).
 - 폭발 후 칼날 재생성 (2026-05-27).
 - 폭발 가시화 이펙트 추가 (2026-05-27).
 - 5-25 10스택 룰은 *대체됨*. 슈퍼시드 관계는 `Developer/구현기록/게임기획밸런스구현코드연결/README.md`에 표기 (commit 누락분).
