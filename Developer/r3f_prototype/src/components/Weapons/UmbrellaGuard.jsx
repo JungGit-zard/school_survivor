@@ -1,8 +1,9 @@
 import { useRef, useState, useMemo, useCallback } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { enemyBodies, playerPos } from '../../lib/refs.js'
+import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
+import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 
 const OPEN_DURATION_MS = 420
@@ -192,19 +193,9 @@ export function UmbrellaGuardWeapon() {
     activePulsesRef.current = activePulsesRef.current.filter((item) => item.id !== id)
     setPulses([...activePulsesRef.current])
 
-    const hitTargets = new Set()
-    enemyBodies.forEach((rb, enemyId) => {
-      if (!rb?._enemyHit || rb._enemyDead || hitTargets.has(enemyId)) return
-      const t = rb.translation()
-      const dx = t.x - blast.x
-      const dz = t.z - blast.z
-      if (dx * dx + dz * dz > blast.radius * blast.radius) return
-      hitTargets.add(enemyId)
-      rb._enemyHit(blast.damage, {
-        source: { x: blast.x, z: blast.z },
-        knockback: 3.0,
-        knockbackMs: blast.knockbackMs ?? 220,
-      })
+    applyRadialDamage({
+      x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
+      knockback: 3.0, knockbackMs: blast.knockbackMs ?? 220,
     })
 
     setExplosions((prev) => [...prev, { id, x: blast.x, z: blast.z, radius: blast.radius }])
