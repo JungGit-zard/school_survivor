@@ -5,6 +5,7 @@ import {
   ENEMY_DEATH_COLLAPSE_LIFETIME_MS,
   ENEMY_DEATH_COLLAPSE_STYLES,
   ZOMBIE_COLLAPSE_PARTS,
+  collapsePieceScaleForStyle,
   collapseStyleForIntensity,
   createCollapseMotion,
   pickEnemyDeathCollapseStyle,
@@ -123,5 +124,12 @@ describe('death shatter intensity by killing-hit power', () => {
 
   it('defaults to weak for an empty/no-power kill', () => {
     expect(resolveCollapseIntensity()).toBe('weak')
+  })
+
+  it('halves fragment piece size only for the strongest (scatter) shatter', () => {
+    expect(collapsePieceScaleForStyle('scatter')).toBe(0.5)
+    expect(collapsePieceScaleForStyle('bodyCollapse')).toBe(1)
+    expect(collapsePieceScaleForStyle('crumble')).toBe(1)
+    expect(collapsePieceScaleForStyle(undefined)).toBe(1)
   })
 })

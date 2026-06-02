@@ -52,6 +52,15 @@ export function collapseStyleForIntensity(intensity) {
   return COLLAPSE_INTENSITY_STYLE[intensity] ?? 'bodyCollapse'
 }
 
+// 스타일별 파편 조각 크기 배수. scatter(강)는 가장 세게 흩날리므로 조각을 절반 크기로 줄인다.
+export const COLLAPSE_STYLE_PIECE_SCALE = {
+  scatter: 0.5,
+}
+
+export function collapsePieceScaleForStyle(style) {
+  return COLLAPSE_STYLE_PIECE_SCALE[style] ?? 1
+}
+
 function createScatterMotion({ seed, part, index }) {
   const n0 = seededCollapseNoise(seed)
   const n1 = seededCollapseNoise(seed + 1)
