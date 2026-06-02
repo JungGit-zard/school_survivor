@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
+import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 
 // starlink / 고장난 스타링크
 // 역할: 플레이어 주변 strikeCenter 안에서 적이 있는 지점에 무작위 낙뢰.
@@ -59,7 +60,6 @@ function StrikeVisual({ x, z, age }) {
             depthWrite={false}
             side={THREE.DoubleSide}
           />
-          <primitive attach="onUpdate" object={() => { /* noop */ }} />
         </mesh>
       )}
       {/* 외곽 ring */}
@@ -88,20 +88,7 @@ function StrikeWrapper({ id, x, z, damage, radius, onDone }) {
     // strike가 떨어진 직후(t≈0.3-0.5 구간)에 1회 데미지 적용.
     if (!damageDealtRef.current && ageRef.current >= STRIKE_DURATION_MS * 0.3) {
       damageDealtRef.current = true
-      const hit = new Set()
-      enemyBodies.forEach((rb, eid) => {
-        if (!rb?._enemyHit || rb._enemyDead || hit.has(eid)) return
-        const t = rb.translation()
-        const dx = t.x - x
-        const dz = t.z - z
-        if (dx * dx + dz * dz > radius * radius) return
-        hit.add(eid)
-        rb._enemyHit(damage, {
-          source: { x, z },
-          knockback: 1.4,
-          knockbackMs: 80,
-        })
-      })
+      applyRadialDamage({ x, z, radius, damage, knockback: 1.4, knockbackMs: 80 })
     }
 
     force((n) => n + 1)

@@ -1,10 +1,10 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { enemyBodies, playerPos } from '../../lib/refs.js'
+import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
-import { findBestSplashTarget } from '../../lib/weaponTargeting.js'
+import { findBestSplashTarget, applyRadialDamage } from '../../lib/weaponTargeting.js'
 
 // eraserBomb / 지우개 폭탄
 // 역할: Flask 패턴 + 더 느린 cooldown + 강한 한 방. 큰 지우개가 날아가 먼지 폭발.
@@ -102,19 +102,9 @@ export function EraserBombWeapon() {
     activeErasersRef.current = activeErasersRef.current.filter((item) => item.id !== eid)
     setErasers([...activeErasersRef.current])
 
-    const hit = new Set()
-    enemyBodies.forEach((rb, enemyId) => {
-      if (!rb?._enemyHit || rb._enemyDead || hit.has(enemyId)) return
-      const t = rb.translation()
-      const dx = t.x - blast.x
-      const dz = t.z - blast.z
-      if (dx * dx + dz * dz > blast.radius * blast.radius) return
-      hit.add(enemyId)
-      rb._enemyHit(blast.damage, {
-        source: { x: blast.x, z: blast.z },
-        knockback: 2.5,
-        knockbackMs: 120,
-      })
+    applyRadialDamage({
+      x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
+      knockback: 2.5, knockbackMs: 120,
     })
 
     setExplosions((prev) => [...prev, { id: eid, x: blast.x, z: blast.z, radius: blast.radius }])

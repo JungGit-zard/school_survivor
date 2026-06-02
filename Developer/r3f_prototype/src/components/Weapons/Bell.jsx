@@ -1,9 +1,10 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { enemyBodies, playerPos } from '../../lib/refs.js'
+import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { getBellSonicRingConfigs } from '../../lib/bell.js'
+import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 
@@ -114,17 +115,9 @@ export function BellShockwave() {
     lastFireRef.current = nowMs
 
     const radius = w.radius ?? 1.7
-    enemyBodies.forEach((rb) => {
-      if (!rb?._enemyHit || rb._enemyDead) return
-      const t = rb.translation()
-      const dx = t.x - playerPos.x
-      const dz = t.z - playerPos.z
-      if (dx * dx + dz * dz > radius * radius) return
-      rb._enemyHit(w.damage, {
-        source: { x: playerPos.x, z: playerPos.z },
-        knockback: 4.8,
-        knockbackMs: 180,
-      })
+    applyRadialDamage({
+      x: playerPos.x, z: playerPos.z, radius, damage: w.damage,
+      knockback: 4.8, knockbackMs: 180,
     })
 
     setPulses((prev) => [...prev, { id: ++_bellPulseId, startMs: nowMs, radius }])

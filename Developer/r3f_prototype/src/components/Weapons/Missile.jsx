@@ -1,11 +1,11 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { enemyBodies, playerArmActionState, playerPos } from '../../lib/refs.js'
+import { playerArmActionState, playerPos } from '../../lib/refs.js'
 import { startPlayerArmAction } from '../../lib/playerArmAction.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat } from '../../lib/toon.js'
-import { findBestSplashTarget } from '../../lib/weaponTargeting.js'
+import { findBestSplashTarget, applyRadialDamage } from '../../lib/weaponTargeting.js'
 
 // guidedMissile / 보조배터리 미사일 — legacy 2단계(충전 → 비행) 연출 부활본.
 // 던지면 0.95s 동안 흔들리며 추진력 축적, 그 뒤 가속 비행해 target 좌표에 폭발.
@@ -253,19 +253,9 @@ export function GuidedMissile() {
     activeMissilesRef.current = activeMissilesRef.current.filter((m) => m.id !== id)
     setMissiles([...activeMissilesRef.current])
 
-    const hit = new Set()
-    enemyBodies.forEach((rb, enemyId) => {
-      if (!rb?._enemyHit || rb._enemyDead || hit.has(enemyId)) return
-      const t = rb.translation()
-      const dx = t.x - blast.x
-      const dz = t.z - blast.z
-      if (dx * dx + dz * dz > blast.radius * blast.radius) return
-      hit.add(enemyId)
-      rb._enemyHit(blast.damage, {
-        source: { x: blast.x, z: blast.z },
-        knockback: 3.2,
-        knockbackMs: 120,
-      })
+    applyRadialDamage({
+      x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
+      knockback: 3.2, knockbackMs: 120,
     })
 
     setExplosions((prev) => [...prev, { id, x: blast.x, z: blast.z, radius: blast.radius }])

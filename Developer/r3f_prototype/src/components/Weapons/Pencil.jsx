@@ -116,7 +116,7 @@ export function PencilThrow() {
   useFrame(({ clock }) => {
     if (phase !== 'playing') return
     const w = weapons.pencilThrow
-    if (!w.active) return
+    if (!w?.active) return
 
     const now = clock.elapsedTime * 1000
     if (now - lastFireRef.current < w.cooldown) return
