@@ -8,6 +8,7 @@ import {
   ZOMBIE_COLLAPSE_PARTS,
   createCollapseMotion,
   collapseStyleForIntensity,
+  collapsePieceScaleForStyle,
   seededCollapseNoise,
 } from '../lib/enemyDeathCollapse.js'
 import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
@@ -17,7 +18,7 @@ function resolvePartColor(part, palette) {
   return palette[part.color] ?? palette.body
 }
 
-function CollapsePart({ part, index, origin, visualScale, palette, startedAt, style }) {
+function CollapsePart({ part, index, origin, visualScale, palette, startedAt, style, pieceScale }) {
   const groupRef = useRef(null)
   const meshRef = useRef(null)
   const outlineRef = useRef(null)
@@ -46,7 +47,7 @@ function CollapsePart({ part, index, origin, visualScale, palette, startedAt, st
 
   const seed = origin[0] * 17.1 + origin[2] * 31.7 + index * 13.37
   const motion = useRef(createCollapseMotion({ seed, part, index, style }))
-  const size = useMemo(() => part.size.map((value) => value * visualScale), [part.size, visualScale])
+  const size = useMemo(() => part.size.map((value) => value * visualScale * pieceScale), [part.size, visualScale, pieceScale])
   const baseRotation = part.rotation ?? [0, 0, 0]
 
   const pos = useRef({
@@ -129,6 +130,8 @@ export default function EnemyDeathCollapse({ id, type, position, visualScale, in
   const startedAtRef = useRef(performance.now())
   // 박살 강도(약/중/강) → 모션 스타일. intensity가 없으면 중간(bodyCollapse)으로 폴백.
   const style = useMemo(() => collapseStyleForIntensity(intensity), [intensity])
+  // scatter(강)는 조각을 절반 크기로 — 가장 세게 터질 때 파편을 잘게.
+  const pieceScale = useMemo(() => collapsePieceScaleForStyle(style), [style])
 
   useEffect(() => {
     const timer = window.setTimeout(() => onDone?.(id), ENEMY_DEATH_COLLAPSE_LIFETIME_MS)
@@ -147,6 +150,7 @@ export default function EnemyDeathCollapse({ id, type, position, visualScale, in
           palette={palette}
           startedAt={startedAtRef.current}
           style={style}
+          pieceScale={pieceScale}
         />
       ))}
     </group>
