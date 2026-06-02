@@ -180,6 +180,7 @@ export default function Enemies() {
         type: dropData.type,
         position: dropData.pos,
         visualScale: dropData.visualScale,
+        intensity: dropData.intensity,
       }]
       return next.length > 12 ? next.slice(next.length - 12) : next
     })
