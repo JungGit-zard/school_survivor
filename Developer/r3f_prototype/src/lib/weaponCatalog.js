@@ -34,7 +34,8 @@ export const WEAPON_CATALOG = {
   tumbler: {
     id: 'tumbler',
     label: '텀블러',
-    base: { damage: 4, radius: 1.0, hitsPerSecond: 2.5, orbitSpeed: 2.8, count: 1 },
+    // 기본 위력 1.5배(4→6). 레벨업 가중치(tumblerDamage +2/레벨)는 가산식이라 이 6 위에 더해진다(6→8→10…).
+    base: { damage: 6, radius: 1.0, hitsPerSecond: 2.5, orbitSpeed: 2.8, count: 1 },
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },
