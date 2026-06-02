@@ -30,7 +30,9 @@ export const ENEMY_STATS = {
          charger: true, chargeSpeed: 1.7, warnDist: 4.5, warnDuration: 700, stunDuration: 1000, chargeDuration: 1200 },
   E06: { hp: 320,  speed: 0.6,  damage: 20, scale: 1.60, xp: 56, contactDist: 0.42 },
   // B01 1스테이지: 부채꼴 투사체 패턴 제거. 추격/돌진만 사용 (Bang_Rules 2026-05-09 부록).
-  B01: { hp: 1400, speed: 0.475, damage: 22, scale: 3.00, xp: 0,  contactDist: 0.80,
+  // contactDist 0.36: 돌진 접촉 = 0.36 × 4/3(크기배수) × 1.5 ≈ 0.72 ≈ 본체 반폭(0.14×cs=0.56) + 플레이어 반폭(0.136).
+  // 이전 0.80은 접촉 반경이 ~1.6이라 본체 외형보다 훨씬 커서 "안 닿아도 피격"되는 문제가 있었다.
+  B01: { hp: 1400, speed: 0.475, damage: 22, scale: 3.00, xp: 0,  contactDist: 0.36,
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
 }
 
