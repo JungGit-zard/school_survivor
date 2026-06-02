@@ -8,12 +8,14 @@ describe('ClassroomFloor tiling', () => {
     expect(FLOOR_TILE.src).toMatch(/tile_stage01/)
   })
 
-  it('repeats the tile enough times to read as a plank floor in the game camera', () => {
-    expect(FLOOR_TILE.repeat).toBeGreaterThanOrEqual(4)
-    expect(FLOOR_TILE.repeat).toBeLessThanOrEqual(16)
+  it('keeps a consistent plank size regardless of floor size (tile world size ~4-10)', () => {
+    const tileWorldSize = FLOOR_TILE.floorSize / FLOOR_TILE.repeat
+    expect(tileWorldSize).toBeGreaterThan(4)
+    expect(tileWorldSize).toBeLessThan(10)
   })
 
-  it('covers the full playable map area (±48 units)', () => {
-    expect(FLOOR_TILE.floorSize).toBeGreaterThanOrEqual(96)
+  it('extends well beyond the playable map (±48) so the floor never runs out under the follow camera', () => {
+    // floor must cover the play area plus the camera view margin on every side
+    expect(FLOOR_TILE.floorSize).toBeGreaterThanOrEqual(160)
   })
 })
