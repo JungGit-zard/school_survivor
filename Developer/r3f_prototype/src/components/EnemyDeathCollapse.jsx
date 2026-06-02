@@ -7,7 +7,7 @@ import {
   ENEMY_DEATH_COLLAPSE_LIFETIME_MS,
   ZOMBIE_COLLAPSE_PARTS,
   createCollapseMotion,
-  pickEnemyDeathCollapseStyle,
+  collapseStyleForIntensity,
   seededCollapseNoise,
 } from '../lib/enemyDeathCollapse.js'
 import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
@@ -124,10 +124,11 @@ function CollapsePart({ part, index, origin, visualScale, palette, startedAt, st
   )
 }
 
-export default function EnemyDeathCollapse({ id, type, position, visualScale, onDone }) {
+export default function EnemyDeathCollapse({ id, type, position, visualScale, intensity = 'medium', onDone }) {
   const palette = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
   const startedAtRef = useRef(performance.now())
-  const style = useMemo(() => pickEnemyDeathCollapseStyle(), [])
+  // 박살 강도(약/중/강) → 모션 스타일. intensity가 없으면 중간(bodyCollapse)으로 폴백.
+  const style = useMemo(() => collapseStyleForIntensity(intensity), [intensity])
 
   useEffect(() => {
     const timer = window.setTimeout(() => onDone?.(id), ENEMY_DEATH_COLLAPSE_LIFETIME_MS)

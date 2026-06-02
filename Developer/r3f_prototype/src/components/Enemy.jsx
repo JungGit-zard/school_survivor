@@ -8,6 +8,7 @@ import { useGameStore } from '../store/useGameStore.js'
 import { toonMat, outlineMat, inflateScale } from '../lib/toon.js'
 import { emitVfx } from '../lib/vfxEvents.js'
 import { createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
+import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import ZombieMesh from './ZombieMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 
@@ -189,11 +190,18 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
         store.recordKill()
         if (type === 'B01') store.recordBossKill()
         const t = rb.current?.translation()
+        // 막타 위력으로 박살 강도(약/중/강) 결정. impact.knockback은 무기 원천 넉백(없으면 0).
+        const intensity = resolveCollapseIntensity({
+          killingDamage: dmg,
+          maxHp: stats.hp,
+          knockback: impact.knockback ?? 0,
+        })
         onDeath?.(id, {
           pos: t ? [t.x, t.y, t.z] : [...spawnPos],
           xp: stats.xp,
           type,
           visualScale: cs * 0.333,
+          intensity,
         })
       }
     }

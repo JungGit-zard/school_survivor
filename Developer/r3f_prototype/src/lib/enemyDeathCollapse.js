@@ -27,6 +27,31 @@ export function pickEnemyDeathCollapseStyle(roll = Math.random()) {
   return ENEMY_DEATH_COLLAPSE_STYLES[index]
 }
 
+// 박살 강도 3단계. 막타 위력(killingDamage/maxHp 비중 + 넉백)으로 결정한다.
+export const COLLAPSE_INTENSITIES = ['weak', 'medium', 'strong']
+
+// 강도 → 모션 스타일 매핑. 약=제자리 부서짐, 중=몸 무너짐, 강=사방 흩날림.
+export const COLLAPSE_INTENSITY_STYLE = {
+  weak: 'crumble',
+  medium: 'bodyCollapse',
+  strong: 'scatter',
+}
+
+// 막타 위력 → 'weak' | 'medium' | 'strong'.
+// damageRatio: 막타가 최대 HP에서 차지하는 비중(최대 1.5로 캡). knockback: 막타의 원천 넉백(0~약4.8).
+export function resolveCollapseIntensity({ killingDamage = 0, maxHp = 1, knockback = 0 } = {}) {
+  const damageRatio = Math.min(1.5, killingDamage / Math.max(1, maxHp))
+  const knockbackBoost = Math.min(1, Math.max(0, knockback) / 4.5)
+  const power = damageRatio * 0.6 + knockbackBoost
+  if (power >= 1.1) return 'strong'
+  if (power >= 0.5) return 'medium'
+  return 'weak'
+}
+
+export function collapseStyleForIntensity(intensity) {
+  return COLLAPSE_INTENSITY_STYLE[intensity] ?? 'bodyCollapse'
+}
+
 function createScatterMotion({ seed, part, index }) {
   const n0 = seededCollapseNoise(seed)
   const n1 = seededCollapseNoise(seed + 1)
