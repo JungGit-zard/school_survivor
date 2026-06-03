@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -72,7 +72,7 @@ function ChainArcVisual({ id, fromX, fromZ, toX, toZ, startMs, onDone }) {
     return m
   }), [])
 
-  useFrame(() => {
+  usePlayingFrame(() => {
     const t = Math.min((performance.now() - startMs) / 1000 / ARC_SECS, 1)
     if (t >= 1) { onDone(id); return }
     const opacity = 1 - t * t
@@ -98,7 +98,7 @@ function StunBoltProjectile({ id, startX, startZ, targetId, damage, hitSet, chai
   const doneRef  = useRef(false)
   const ageRef   = useRef(0)
 
-  useFrame((_, delta) => {
+  usePlayingFrame((_, delta) => {
     if (doneRef.current || !groupRef.current) return
     ageRef.current += delta
     if (ageRef.current > 2.5) { doneRef.current = true; onExpire(id); return }
@@ -177,7 +177,7 @@ export function StunGunWeapon() {
     }])
   }, [])
 
-  useFrame(() => {
+  usePlayingFrame(() => {
     if (!active || phase !== 'playing') return
     const now = performance.now()
     if (now - lastFireRef.current < cooldown) return

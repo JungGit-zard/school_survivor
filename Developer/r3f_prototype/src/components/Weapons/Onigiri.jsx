@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { enemyBodies, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
@@ -65,7 +65,7 @@ function OnigiriBurstGrain({ grain, startMs }) {
     return mat
   }, [])
 
-  useFrame(({ clock }) => {
+  usePlayingFrame(({ clock }) => {
     const age = clock.elapsedTime * 1000 - startMs - grain.delayMs
     if (age < 0 || !groupRef.current) return
 
@@ -97,7 +97,7 @@ function OnigiriBurst({ id, x, z, startMs, onDone }) {
   const doneRef = useRef(false)
   const grains = useMemo(() => createOnigiriBurstGrains({ id, x, z, count: 16 }), [id, x, z])
 
-  useFrame(({ clock }) => {
+  usePlayingFrame(({ clock }) => {
     if (doneRef.current) return
     if (clock.elapsedTime * 1000 - startMs >= 430) {
       doneRef.current = true
@@ -124,7 +124,7 @@ function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, boun
   const doneRef    = useRef(false)
   const SPEED      = 11 / 8
 
-  useFrame(({ clock }, delta) => {
+  usePlayingFrame(({ clock }, delta) => {
     if (doneRef.current || !groupRef.current) return
 
     spinRef.current += delta * 15
@@ -213,7 +213,7 @@ export function OnigiiriWeapon() {
     setBursts((prev) => prev.filter((burst) => burst.id !== id))
   }, [])
 
-  useFrame(({ clock }) => {
+  usePlayingFrame(({ clock }) => {
     const w = weapons.onigiri
     if (phase !== 'playing' || !w?.active) return
     const now = clock.elapsedTime * 1000

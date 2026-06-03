@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import * as THREE from 'three'
 import { playerArmActionState, playerPos } from '../../lib/refs.js'
 import { startPlayerArmAction } from '../../lib/playerArmAction.js'
@@ -81,7 +81,7 @@ function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
     color: 0xdddddd, transparent: true, opacity: 0, depthWrite: false,
   }), [])
 
-  useFrame((_, delta) => {
+  usePlayingFrame((_, delta) => {
     if (explodedRef.current || !groupRef.current) return
     ageRef.current += delta
 
@@ -209,7 +209,7 @@ function MissileExplosion({ id, x, z, radius, onDone }) {
   const ringRef = useRef(null)
   const ageRef  = useRef(0)
 
-  useFrame((_, delta) => {
+  usePlayingFrame((_, delta) => {
     ageRef.current += delta
     const t = Math.min(1, ageRef.current / 0.40)
     if (meshRef.current) {
@@ -261,7 +261,7 @@ export function GuidedMissile() {
     setExplosions((prev) => [...prev, { id, x: blast.x, z: blast.z, radius: blast.radius }])
   }, [])
 
-  useFrame(({ clock }) => {
+  usePlayingFrame(({ clock }) => {
     const w = weapons.guidedMissile
     if (phase !== 'playing' || !w?.active) return
 

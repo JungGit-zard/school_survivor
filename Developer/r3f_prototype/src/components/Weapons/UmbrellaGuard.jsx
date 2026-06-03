@@ -1,5 +1,5 @@
 import { useRef, useState, useMemo, useCallback } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import * as THREE from 'three'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -113,7 +113,7 @@ function UmbrellaExplosion({ id, x, z, radius, onDone }) {
     side: THREE.DoubleSide,
   }), [])
 
-  useFrame((_, delta) => {
+  usePlayingFrame((_, delta) => {
     ageRef.current += delta
     const t = Math.min(1, ageRef.current / (EXPLOSION_DURATION_MS / 1000))
     if (groupRef.current) {
@@ -157,7 +157,7 @@ function UmbrellaPulse({ id, x, z, damage, radius, spinDurationMs, knockbackMs, 
   const [visual, setVisual] = useState({ openProgress: 0, spin: 0 })
   const totalMs = OPEN_DURATION_MS + spinDurationMs
 
-  useFrame((_, delta) => {
+  usePlayingFrame((_, delta) => {
     if (!groupRef.current || explodedRef.current) return
     ageRef.current += delta * 1000
     const openProgress = Math.min(1, ageRef.current / OPEN_DURATION_MS)
@@ -201,7 +201,7 @@ export function UmbrellaGuardWeapon() {
     setExplosions((prev) => [...prev, { id, x: blast.x, z: blast.z, radius: blast.radius }])
   }, [])
 
-  useFrame(({ clock }) => {
+  usePlayingFrame(({ clock }) => {
     const w = weapons.umbrellaGuard
     if (phase !== 'playing' || !w?.active) return
 
