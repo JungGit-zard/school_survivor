@@ -25,7 +25,7 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.boxCutter.base.range).toBe(0.7) // 자보다 훨씬 좁은 근접 범위
     expect(WEAPON_CATALOG.boxCutter.base.width).toBe(0.18)
     expect(WEAPON_CATALOG.tumbler.base.hitsPerSecond).toBe(2.5)
-    expect(WEAPON_CATALOG.scienceFlask.base.damage).toBe(30)
+    expect(WEAPON_CATALOG.scienceFlask.base.damage).toBe(15)
     expect(WEAPON_CATALOG.bell.base.directions).toBe(8)
     expect(WEAPON_CATALOG.stunGun.base.chainCount).toBe(2)
     expect(WEAPON_CATALOG.onigiri.base.cooldown).toBe(5000)
