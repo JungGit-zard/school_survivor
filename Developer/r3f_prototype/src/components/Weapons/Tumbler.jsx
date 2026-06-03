@@ -11,7 +11,7 @@ function TumblerModel() {
   const outMat = useMemo(() => outlineMat(0.92), [])
 
   return (
-    <group rotation={[0, 0, Math.PI / 2]} scale={[0.425, 0.425, 0.425]}>
+    <group rotation={[0, 0, Math.PI / 2]} scale={[0.6375, 0.6375, 0.6375]}>
       <mesh material={outMat} scale={inflateScale([1.12, 1.12, 1.08])}>
         <cylinderGeometry args={[0.15, 0.20, 0.58, 10]} />
       </mesh>
@@ -61,10 +61,10 @@ export function TumblerOrbit() {
       if (nowMs - lastHit < interval) return
       lastHitRef.current.set(enemyId, nowMs)
       // 플레이어를 source로 줘서 오로지 바깥쪽(반경 방향)으로만 밀려나게 하고,
-      // 기본 넉백(speed 0.85) 대비 2배(1.7)로 더 멀리 밀어낸다. (durationMs는 기본 70)
+      // 우산 폭발과 동일한 세기(knockback 3.0, knockbackMs 220)로 뒤로 밀어낸다.
       hitFn(w.damage, {
-        knockback: 1.7,
-        knockbackMs: 70,
+        knockback: 3.0,
+        knockbackMs: 220,
         source: { x: playerPos.x, z: playerPos.z },
       })
     })

@@ -5,6 +5,9 @@ import { toonMat, outlineMat, inflateScale } from '../lib/toon.js'
 import { stepMagnetPull } from '../lib/pickup.js'
 
 const FLOOR_Y = 0.13
+const TOSS_MS = 460       // 휘리릭 날아가 착지하기까지 시간
+const HOP_HEIGHT = 0.85   // 포물선 최고 높이
+const easeOut = (t) => 1 - (1 - t) * (1 - t)
 
 export default function XpTextbook({ id, pos, value, onCollect }) {
   const groupRef  = useRef()
@@ -12,6 +15,15 @@ export default function XpTextbook({ id, pos, value, onCollect }) {
   const pRef      = useRef({ x: pos[0], y: FLOOR_Y, z: pos[2] })
   const seed      = pos[0] * 11.3 + pos[2] * 7.7
   const birthSec  = useRef(performance.now() / 1000)
+  const tossMsRef = useRef(0)
+  const landedRef = useRef(false)
+
+  // 좀비 사망 위치(pos)에서 근처 바닥 랜덤 지점으로 튕겨 떨어진다 (마운트당 1회 결정).
+  const land = useMemo(() => {
+    const ang = Math.random() * Math.PI * 2
+    const dist = 0.7 + Math.random() * 0.9 // 0.7~1.6 유닛
+    return { x: pos[0] + Math.sin(ang) * dist, z: pos[2] + Math.cos(ang) * dist }
+  }, [pos])
 
   const gainXp = useGameStore((s) => s.gainXp)
 
@@ -27,6 +39,34 @@ export default function XpTextbook({ id, pos, value, onCollect }) {
     if (collected.current || !groupRef.current) return
     if (useGameStore.getState().phase !== 'playing') return
 
+    // 1) 던지기: pos에서 근처 랜덤 지점으로 휘리릭 포물선 비행 → 툭 착지
+    if (!landedRef.current) {
+      tossMsRef.current += delta * 1000
+      const t = Math.min(1, tossMsRef.current / TOSS_MS)
+      const e = easeOut(t) // 수평은 감속하며 도착
+      const x = pos[0] + (land.x - pos[0]) * e
+      const z = pos[2] + (land.z - pos[2]) * e
+      const hop = Math.sin(t * Math.PI) * HOP_HEIGHT
+      pRef.current.x = x
+      pRef.current.z = z
+      groupRef.current.position.set(x, FLOOR_Y + hop, z)
+      // 휘리릭 회전 — 착지로 갈수록 잦아듦
+      const spin = (1 - t) * 18 + 2
+      groupRef.current.rotation.x += delta * spin
+      groupRef.current.rotation.y += delta * spin * 0.7
+      groupRef.current.rotation.z += delta * spin * 0.5
+      if (t >= 1) {
+        landedRef.current = true
+        pRef.current.x = land.x
+        pRef.current.y = FLOOR_Y
+        pRef.current.z = land.z
+        // 착지 시 평평하게 눕힘 (이후 둥둥 플로트가 y축 회전만 사용)
+        groupRef.current.rotation.set(0, 0, 0)
+      }
+      return
+    }
+
+    // 2) 착지 후: 자석 끌림 + 둥둥 플로트
     const result = stepMagnetPull(pRef, delta)
     if (result === 'collected') {
       collected.current = true

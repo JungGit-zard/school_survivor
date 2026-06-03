@@ -42,7 +42,8 @@ export const WEAPON_CATALOG = {
   scienceFlask: {
     id: 'scienceFlask',
     label: '과학 플라스크',
-    base: { damage: 30, cooldown: 2800, radius: 1.6, range: 2 },
+    // 초기 위력을 기존(30)의 절반인 15로. 레벨업(flaskDamage +8)은 이 위에 가산.
+    base: { damage: 15, cooldown: 2800, radius: 1.6, range: 2 },
     unlockConditions: STARTER,
     minLevelToAppear: 4,
   },
