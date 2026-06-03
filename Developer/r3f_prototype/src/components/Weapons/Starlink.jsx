@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -78,7 +78,7 @@ function StrikeWrapper({ id, x, z, damage, radius, onDone }) {
   const damageDealtRef = useRef(false)
   const [, force] = useState(0)
 
-  useFrame((_, delta) => {
+  usePlayingFrame((_, delta) => {
     ageRef.current += delta * 1000
     if (ageRef.current > STRIKE_DURATION_MS) {
       onDone(id)
@@ -109,7 +109,7 @@ export function StarlinkWeapon() {
     setStrikes([...activeStrikesRef.current])
   }, [])
 
-  useFrame(({ clock }) => {
+  usePlayingFrame(({ clock }) => {
     const w = weapons.starlink
     if (phase !== 'playing' || !w?.active) return
     const now = clock.elapsedTime * 1000

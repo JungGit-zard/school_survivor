@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import * as THREE from 'three'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -72,7 +72,7 @@ function FlaskProjectile({ id, start, target, radius, damage, onExplode }) {
   const posRef = useRef(new THREE.Vector3(start[0], start[1], start[2]))
   const durationRef = useRef(1.55)
 
-  useFrame((_, delta) => {
+  usePlayingFrame((_, delta) => {
     if (!groupRef.current) return
     if (explodedRef.current) return
     ageRef.current += delta
@@ -105,7 +105,7 @@ function FlaskExplosion({ id, x, z, radius, onDone }) {
   const meshRef = useRef(null)
   const ageRef = useRef(0)
 
-  useFrame((_, delta) => {
+  usePlayingFrame((_, delta) => {
     ageRef.current += delta
     const t = Math.min(1, ageRef.current / 0.36)
     if (meshRef.current) {
@@ -147,7 +147,7 @@ export function ScienceFlaskSplash() {
     setExplosions((prev) => [...prev, { id, x: blast.x, z: blast.z, radius: blast.radius }])
   }, [])
 
-  useFrame(({ clock }) => {
+  usePlayingFrame(({ clock }) => {
     const w = weapons.scienceFlask
     if (phase !== 'playing' || !w?.active) return
     const now = clock.elapsedTime * 1000
