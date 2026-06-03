@@ -19,7 +19,7 @@
 - `Developer/r3f_prototype/src/store/useGameStore.passives.test.js`
 - `Planner/B.게임기획,밸런스 구현/B-3 스테이지진행과 몬스터 등장구현/Stage1_Balance/stage1_replan_2026-05-06.md`
 - `Planner/B.게임기획,밸런스 구현/B-3 스테이지진행과 몬스터 등장구현/Stage1_Balance/stage1_reverse_design_current_2026-05-09.md`
-- `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/weapon_upgrade_flow_and_unlock_plan_2026-05-14.md`
+- `Planner/game_contents/weapons/weapon_upgrade_flow_and_unlock_plan_2026-05-14.md`
 - `Bang_Rules.md`
 
 ## 검증

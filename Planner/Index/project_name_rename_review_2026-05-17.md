@@ -27,7 +27,7 @@ All text planning documents under `Planner/` were read with UTF-8 decoding.
   - `Planner/B.게임기획,밸런스 구현/B-3 스테이지진행과 몬스터 등장구현/Stage1_Balance/`
   - `Planner/Subagent_Workflow/`
   - `Planner/Tech_plan/`
-  - `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/`
+  - `Planner/game_contents/weapons/`
 
 ## Applied Changes
 

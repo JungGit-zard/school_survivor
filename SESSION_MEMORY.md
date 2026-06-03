@@ -44,7 +44,7 @@
 
 **CompassBlade (나침반 칼날)**
 
-- 폭발 임계 10스택 → 5히트 변경 (2026-05-27, `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/CompassBlade/compass_blade_five_hit_explosion_rule_2026-05-27.md`).
+- 폭발 임계 10스택 → 5히트 변경 (2026-05-27, `Planner/game_contents/weapons/compass_blade/compass_blade_five_hit_explosion_rule_2026-05-27.md`).
 - 폭발 후 칼날 재생성 (2026-05-27).
 - 폭발 가시화 이펙트 추가 (2026-05-27).
 - 5-25 10스택 룰은 *대체됨*. 슈퍼시드 관계는 `Developer/구현기록/게임기획밸런스구현코드연결/README.md`에 표기 (commit 누락분).
@@ -93,7 +93,7 @@
 3. `Bang_Rules.md` — 룰 정본 (§무기, §OR-unlock, §slot limit 8).
 4. `Developer/구현기록/README.md` — 새 placement 룰 (commit 누락분 처리 후).
 5. `Developer/구현기록/그래픽구현코드연결/README.md` & `게임기획밸런스구현코드연결/README.md` — 무기별 시간순 인덱스 + 대체 관계.
-6. `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/` — 무기 정본 기획서.
+6. `Planner/game_contents/weapons/` — 무기 정본 기획서.
 7. `Quaility_Assurance/weapon_implementation_code_review_2026-05-25.md` — 12종 코드 검수 (대부분 미해결).
 8. CEO 탭 (현재 IDE open): `CEO/Game_service_purpose_target.md`, `current_product_priorities.md` — Stage 2는 §43 "Stage 1 안정화 후" 유지.
 

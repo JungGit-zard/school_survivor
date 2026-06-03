@@ -1,7 +1,7 @@
-﻿# Weapons Modify Plan
+# Weapons Modify Plan
 
 ?묒꽦?? 2026-05-17
-?묒꽦 ?꾩튂: `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/`
+?묒꽦 ?꾩튂: `Planner/game_contents/weapons/`
 
 ## 1. 臾몄젣 ?몄떇
 
