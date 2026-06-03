@@ -10,6 +10,13 @@ import MiniHealthBar from './MiniHealthBar.jsx'
 const _v = { x: 0, y: 0, z: 0 }
 const INV_DURATION = 520
 const TURN_SPEED = 14
+// 플레이어 이동 한계. 카메라가 45°로 비스듬해 시야 여백이 축마다 달라, 축별로 다르게 막는다.
+// - 세로(z): 위쪽 시야 여백(reachUp≈12.5)이 커서 벽(±48)까지 가면 화면 밖으로 크게 빠짐 → 안쪽 ±44.
+// - 가로(x): 좌우 시야 여백(reachSide≈4.6)이 작아 ±48이면 화면 끝을 넘어 절반이 밖으로 나감
+//   → 화면 끝 살짝 안쪽 ±46에서 멈춰 "좌우 끝 가까이"까지 보이는 상태로.
+const PLAYER_BOUND_X = 46
+const PLAYER_BOUND_Z = 44
+const clampAbs = (v, bound) => Math.min(bound, Math.max(-bound, v))
 
 function shortestAngleDiff(target, current) {
   let diff = target - current
@@ -68,9 +75,16 @@ export default function Player() {
 
     rb.current.setLinvel({ x: _v.x, y: 0, z: _v.z }, true)
 
-    // 전역 위치 동기화
+    // 화면 밖으로 못 나가게 축별 경계로 클램프 (가로 ±46, 세로 ±44)
     const t = rb.current.translation()
-    playerPos.set(t.x, t.y, t.z)
+    const cx = clampAbs(t.x, PLAYER_BOUND_X)
+    const cz = clampAbs(t.z, PLAYER_BOUND_Z)
+    if (cx !== t.x || cz !== t.z) {
+      rb.current.setTranslation({ x: cx, y: t.y, z: cz }, true)
+    }
+
+    // 전역 위치 동기화
+    playerPos.set(cx, t.y, cz)
 
     // 무적 타이머 (setTimeout 대신 useFrame에서 처리)
     const inv = useGameStore.getState().player.invulnerable
