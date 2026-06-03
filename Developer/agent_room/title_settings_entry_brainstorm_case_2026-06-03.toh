@@ -1,0 +1,68 @@
+# Agent Room Case - Title Settings Entry Brainstorm
+
+## Case
+
+- Date: 2026-06-03
+- Case name: title_settings_entry_brainstorm_2026-06-03
+- User request: 타이틀 화면에 설정 화면 진입점을 만들 예정이며, 어떤 설정 사항들이 필요한지 기획 에이전트 3명 정도로 논의 시작
+- Executor decision: Use Agent Room routing before subagents. Primary methodology is Superpowers brainstorming. No implementation in this phase.
+
+## Method Route
+
+- Primary methodology: Superpowers brainstorming
+- Supporting methodology: project_develop_policy.md, Planner existing title-screen records, Agent Room routing
+- Project policy checked: yes
+- Implementation status: implemented on 2026-06-04
+
+## Selected Agents
+
+### product-manager
+
+- Role: define MVP scope, first-screen priority, commute-time user value
+- Main viewpoint: settings must not weaken fast game start from title
+- Authority: read-only discussion
+- Output target: Planner/Essential_game_plan/ synthesis by parent Codex
+
+### ui-designer
+
+- Role: define title settings entry location, modal/screen structure, interaction states, mobile readability
+- Main viewpoint: 9:16 portrait, one-thumb interaction, low visual clutter
+- Authority: read-only discussion
+- Output target: Planner/Essential_game_plan/ synthesis by parent Codex
+
+### game-developer
+
+- Role: evaluate implementation realism for persisted settings, runtime effects, state transitions, and current code fit
+- Main viewpoint: avoid expensive settings that require unfinished audio/graphics/control systems
+- Authority: read-only discussion
+- Output target: Developer/ technical notes if implementation planning starts
+
+## Required Output Folders
+
+- Routing record: Developer/agent_room/
+- Planning synthesis: Planner/Essential_game_plan/
+- Graphics record: Graphic_designer/ only if visual concept expands beyond entry placement and interaction
+- QA record: Quaility_Assurance/ only after implementation or validation planning
+
+## Verification Gate
+
+- Discussion phase completed before implementation.
+- Existing title-screen purpose remains intact: fast first game start.
+- MVP settings and later settings are separated.
+- The setting entry point does not reintroduce coin shop or other non-MVP title actions.
+- User approved implementation with top-right gear entry and floating modal.
+
+## Implementation Result
+
+- Entry point: top-right gear button on `Developer/r3f_prototype/src/components/TitleScreen.jsx`
+- Modal style: compact floating popup over the title screen
+- MVP settings implemented: vibration toggle, reduced-effects toggle, controls help panel
+- Persistence: `localStorage` key `school_survivor:titleSettings`
+- Regression coverage: `Developer/r3f_prototype/src/components/TitleScreen.settings.test.jsx`
+
+## Do-Not-Skip Rules
+
+- Do not bypass Superpowers brainstorming.
+- Do not let subagents replace project policy or write implementation code.
+- Do not add title-screen complexity that competes with the primary start action.
+- Do not create graphics/3D implementation work from planning text alone.
