@@ -1,4 +1,4 @@
-﻿# Escape! zombie school — Stage 1 전면 재기획안
+# Escape! zombie school — Stage 1 전면 재기획안
 
 > 작성일: 2026-05-06
 > 근거: `Planner/Ref_Vampire_GameDesign/` 의 7개 참조 문서
@@ -81,7 +81,7 @@
 > 1차 서비스에서는 단순화: **레벨업 시 등장하는 "해금" 카드**를 통한 1단계 해금 + 시간 기반 자동 노출.
 > 향후 도감 / 업적 / 캐릭터 해금이 추가되면 보강.
 
-> 2026-05-17 확정: 본 표의 카드 게이트는 정본 `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/weapon_upgrade_flow_and_unlock_plan_2026-05-14.md` §2와 일치시킨다.
+> 2026-05-17 확정: 본 표의 카드 게이트는 정본 `Planner/game_contents/weapons/weapon_upgrade_flow_and_unlock_plan_2026-05-14.md` §2와 일치시킨다.
 
 | Key | 해금 트리거 (1차) | 추후 도감 조건 (참고) |
 |---|---|---|
