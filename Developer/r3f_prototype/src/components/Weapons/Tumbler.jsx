@@ -56,13 +56,20 @@ export function TumblerOrbit() {
 
     const nowMs = nowSec * 1000
     const interval = 1000 / w.hitsPerSecond
-    enemiesRef.current.forEach((hitFn, enemyId) => {
+    enemiesRef.current.forEach((rb, enemyId) => {
+      // 죽었거나 사라진 적은 추적 맵에서 정리 (onIntersectionExit가 항상 보장되지 않음).
+      if (!rb?._enemyHit || rb._enemyDead) {
+        enemiesRef.current.delete(enemyId)
+        overlapCountRef.current.delete(enemyId)
+        lastHitRef.current.delete(enemyId)
+        return
+      }
       const lastHit = lastHitRef.current.get(enemyId) ?? 0
       if (nowMs - lastHit < interval) return
       lastHitRef.current.set(enemyId, nowMs)
       // 플레이어를 source로 줘서 오로지 바깥쪽(반경 방향)으로만 밀려나게 하고,
       // 우산 폭발과 동일한 세기(knockback 3.0, knockbackMs 220)로 뒤로 밀어낸다.
-      hitFn(w.damage, {
+      rb._enemyHit(w.damage, {
         knockback: 3.0,
         knockbackMs: 220,
         source: { x: playerPos.x, z: playerPos.z },
@@ -88,7 +95,7 @@ export function TumblerOrbit() {
             if (!rb?._enemyHit) return
             const nextCount = (overlapCountRef.current.get(rb._enemyId) ?? 0) + 1
             overlapCountRef.current.set(rb._enemyId, nextCount)
-            enemiesRef.current.set(rb._enemyId, rb._enemyHit)
+            enemiesRef.current.set(rb._enemyId, rb)
           }}
           onIntersectionExit={({ other }) => {
             const rb = other.rigidBody
@@ -103,7 +110,7 @@ export function TumblerOrbit() {
             lastHitRef.current.delete(rb._enemyId)
           }}
         >
-          <BallCollider args={[0.12]} sensor />
+          <BallCollider args={[0.18]} sensor />
         </RigidBody>
       ))}
       {Array.from({ length: tumblerCount }, (_, idx) => (
