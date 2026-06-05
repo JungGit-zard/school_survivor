@@ -15,6 +15,7 @@ export default function TitleScreen({ onStart }) {
       </Canvas>
 
       <div style={styles.tint} />
+      <div style={styles.vignette} />
       <div style={styles.content}>
         <div style={styles.serviceName}>Escape! zombie school</div>
         <h1 style={styles.title}>
@@ -55,6 +56,12 @@ const styles = {
     background: 'linear-gradient(180deg, rgba(13,10,18,0.22) 0%, rgba(13,10,18,0.03) 43%, rgba(13,10,18,0.62) 100%)',
     pointerEvents: 'none',
   },
+  vignette: {
+    position: 'absolute',
+    inset: 0,
+    background: 'radial-gradient(120% 88% at 50% 44%, rgba(0,0,0,0) 46%, rgba(8,6,12,0.58) 100%)',
+    pointerEvents: 'none',
+  },
   content: {
     position: 'absolute',
     top: '9%',
@@ -86,7 +93,8 @@ const styles = {
     lineHeight: 0.96,
     fontWeight: 1000,
     letterSpacing: 0,
-    textShadow: '0 4px 0 #050209, 0 0 16px rgba(65,116,90,0.75)',
+    WebkitTextStroke: '2px #050209',
+    textShadow: '0 4px 0 #050209, 0 0 18px rgba(255,170,80,0.45), 0 0 30px rgba(65,116,90,0.5)',
   },
   titleAccent: {
     color: '#ff8a37',
@@ -112,12 +120,13 @@ const styles = {
   primaryButton: {
     height: 54,
     border: '2px solid #050209',
-    borderRadius: 8,
-    background: '#59c7ff',
-    color: '#050209',
+    borderRadius: 10,
+    background: 'linear-gradient(180deg, #8ad9ff 0%, #46b6f5 100%)',
+    color: '#062033',
     fontSize: 20,
     fontWeight: 900,
+    letterSpacing: 1,
     cursor: 'pointer',
-    boxShadow: '0 5px 0 #050209, 0 0 16px rgba(89,199,255,0.45)',
+    boxShadow: '0 5px 0 #050209, 0 0 22px rgba(89,199,255,0.55)',
   },
 }
