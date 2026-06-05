@@ -175,15 +175,25 @@ function WarningLight({ position, delay }) {
 
 function ExitGlow() {
   const ref = useRef()
-  const mat = useMemo(() => new THREE.MeshBasicMaterial({ color: 0xfff3ba, transparent: true, opacity: 0.38 }), [])
+  const poolRef = useRef()
+  const mat = useMemo(() => new THREE.MeshBasicMaterial({ color: 0xfff3ba, transparent: true, opacity: 0.5, depthWrite: false }), [])
+  const poolMat = useMemo(() => new THREE.MeshBasicMaterial({ color: 0xffe6a8, transparent: true, opacity: 0.22, depthWrite: false }), [])
   useFrame((state) => {
-    if (!ref.current) return
-    ref.current.material.opacity = 0.34 + Math.sin(state.clock.elapsedTime * 1.6) * 0.08
+    const pulse = Math.sin(state.clock.elapsedTime * 1.6)
+    if (ref.current) ref.current.material.opacity = 0.46 + pulse * 0.1
+    if (poolRef.current) poolRef.current.material.opacity = 0.2 + pulse * 0.06
   })
   return (
-    <mesh ref={ref} position={[0, 1.35, -4.35]} material={mat}>
-      <boxGeometry args={[2.8, 2.12, 0.08]} />
-    </mesh>
+    <group>
+      {/* 출구 문틀에서 쏟아지는 빛 */}
+      <mesh ref={ref} position={[0, 1.35, -4.35]} material={mat}>
+        <boxGeometry args={[2.95, 2.3, 0.08]} />
+      </mesh>
+      {/* 바닥으로 흘러나오는 따뜻한 빛 웅덩이 */}
+      <mesh ref={poolRef} position={[0, 0.015, -3.4]} rotation={[-Math.PI / 2, 0, 0]} material={poolMat} renderOrder={1}>
+        <circleGeometry args={[2.6, 36]} />
+      </mesh>
+    </group>
   )
 }
 
@@ -205,10 +215,14 @@ export default function TitleScene3D() {
 
   return (
     <>
-      <ambientLight intensity={0.55} color={0xb8d0c0} />
-      <directionalLight position={[-5, 10, 6]} intensity={2.55} castShadow />
-      <directionalLight position={[2, 4, -5]} intensity={1.2} color={0xfff0bc} />
-      <directionalLight position={[5, 4, -4]} intensity={0.65} color={0xffa34f} />
+      {/* 어둑한 보라 안개로 뒤쪽 좀비·복도를 머금어 깊이감과 긴장감을 준다 */}
+      <fog attach="fog" args={[0x140f1c, 16, 34]} />
+      <ambientLight intensity={0.4} color={0x9fb0c4} />
+      <directionalLight position={[-5, 10, 6]} intensity={2.35} castShadow />
+      <directionalLight position={[2, 4, -5]} intensity={1.35} color={0xfff0bc} />
+      <directionalLight position={[5, 4, -4]} intensity={0.7} color={0xffa34f} />
+      {/* 교문에서 새어나오는 따뜻한 빛 — 탈출의 희망(플레이어·좀비를 뒤에서 림라이트) */}
+      <pointLight position={[0, 1.1, -3.7]} intensity={5.5} color={0xffdf9a} distance={11} decay={2} />
 
       <group rotation={[0, -0.09, 0]} position={[0, -1.15, 0]}>
         <mesh receiveShadow position={[0, -0.02, 0]} rotation={[-Math.PI / 2, 0, 0]} material={floorMat}>
