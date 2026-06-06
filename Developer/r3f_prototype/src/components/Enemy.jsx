@@ -9,6 +9,7 @@ import { toonMat, outlineMat, inflateScale } from '../lib/toon.js'
 import { emitVfx } from '../lib/vfxEvents.js'
 import { createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
+import { canE04FireProjectile } from '../lib/stage2ProjectileRules.js'
 import ZombieMesh from './ZombieMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 
@@ -78,7 +79,7 @@ function EnemyProjectile({ id, position, velocity, damage, onExpire }) {
   const rb      = useRef()
   const ageRef  = useRef(0)
   const hitRef  = useRef(false)
-  const projMat = useMemo(() => toonMat(0xff5500, 0.4), [])
+  const projMat = useMemo(() => toonMat(0x34d6b8, 0.45), [])
   const projOut = useMemo(() => outlineMat(0.97), [])
 
   useFrame((_, delta) => {
@@ -134,6 +135,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
   const knockbackDir          = useRef(new THREE.Vector3())
   const knockbackSpeedRef     = useRef(3.8)
   const lastContactDmgRef     = useRef(0)
+  const spawnedAtRef          = useRef(performance.now())
 
   // E05 / B01 돌진 상태 머신
   const [animPhase, setAnimPhase] = useState('normal') // normal|warn|charge|stun
@@ -147,6 +149,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
 
   const damagePlayer = useGameStore((s) => s.damagePlayer)
   const phase        = useGameStore((s) => s.phase)
+  const currentStageId = useGameStore((s) => s.currentStageId)
 
   useEffect(() => {
     if (!rb.current) return
@@ -260,8 +263,20 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
       }
       if (_dir.length() > 0) updateRotation(_dir.x / _dir.length(), _dir.z / _dir.length())
 
+      const elapsedSec = useGameStore.getState().elapsedMs / 1000
+      const canFire = currentStageId === 'stage2' && canE04FireProjectile({
+        elapsedSec,
+        ageMs: now - spawnedAtRef.current,
+        activeProjectileCount: projectiles.length,
+        distanceToPlayer: dist,
+        lastFireElapsedMs: lastFireRef.current,
+        nowMs: now,
+        cooldownMs: stats.rangedCooldown,
+        bossPressure: elapsedSec >= 237 && elapsedSec < 250,
+      })
+
       // 투사체 발사
-      if (now - lastFireRef.current >= stats.rangedCooldown) {
+      if (canFire) {
         lastFireRef.current = now
         const dir = new THREE.Vector3().copy(_dir).normalize()
         setProjectiles((prev) => [...prev, {
