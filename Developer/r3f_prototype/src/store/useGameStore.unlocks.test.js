@@ -61,6 +61,28 @@ describe('useGameStore run-end unlock evaluator', () => {
     expect(records.stage1Clears).toBe(1)
   })
 
+  it('Stage 2 clear increments stage2Clears without touching stage1Clears', () => {
+    useGameStore.getState().resetGame('stage2')
+    useGameStore.setState({ elapsedMs: 300_000 })
+
+    useGameStore.getState()._onRunEnd('cleared')
+
+    const records = JSON.parse(localStorage.getItem(RECORDS_KEY))
+    expect(records.stage2Clears).toBe(1)
+    expect(records.stage2BestSurvivalSec).toBe(300)
+    expect(records.stage1Clears).toBeUndefined()
+  })
+
+  it('Stage 1 run at or after 180 seconds counts toward Stage 2 unlock progress', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({ elapsedMs: 180_000 })
+
+    useGameStore.getState()._onRunEnd('gameover')
+
+    const records = JSON.parse(localStorage.getItem(RECORDS_KEY))
+    expect(records.stage1Survival180Runs).toBe(1)
+  })
+
   it('gameover phase는 stage1Clears 누적 안 함', () => {
     useGameStore.setState({ elapsedMs: 200_000 })
     useGameStore.getState()._onRunEnd('gameover')

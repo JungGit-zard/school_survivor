@@ -56,7 +56,7 @@ Escape! zombie school는 학교 콘셉트의 5분 생존형 미니게임이다.
 
 1차 서비스 무기 카탈로그는 **총 9종**이다. 7종은 플레이어 레벨 카드 게이트로 즉시 접근 가능하며, 2종은 계정 누적 조건이 충족된 계정에서 추가 해금되어 동일한 카드 풀에 진입한다.
 
-### 카드 게이트 (정본: `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/weapon_upgrade_flow_and_unlock_plan_2026-05-14.md` §2)
+### 카드 게이트 (정본: `Planner/game_contents/weapons/weapon_upgrade_flow_and_unlock_plan_2026-05-14.md` §2)
 
 | 무기 | 카드 등장 조건 | 비고 |
 |---|---|---|
@@ -85,7 +85,7 @@ Escape! zombie school는 학교 콘셉트의 5분 생존형 미니게임이다.
 - 해금된 무기는 4-보유 상한과 Lv.5 상한 룰을 동일하게 따른다.
 - 누적 플레이 횟수 카운터(가칭 `runCount`)와 누적 처치 수(가칭 `kills`)는 `localStorage`에 영구 저장된다.
 - 정확한 트리거 수치, UI(해금 알림), 카탈로그 표시 등은 `Planner/Essential_game_plan/`에 별도 메타프로그레션 기획 문서가 작성된 이후 확정한다.
-- 신규 무기 10종(`compassBlade` 외)의 해금 조건은 **OR 원칙**(실력 조건 ∨ 누적 조건)으로 작성한다. 정본은 `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/weapon_expansion_unlock_plan_2026-05-10.md` §7.
+- 신규 무기 10종(`compassBlade` 외)의 해금 조건은 **OR 원칙**(실력 조건 ∨ 누적 조건)으로 작성한다. 정본은 `Planner/game_contents/weapons/weapon_expansion_unlock_plan_2026-05-10.md` §7.
 
 > 작업 우선순위 메모: 단일 런 밸런스 검증과 출근길 친화 작업이 1차 완료된 뒤, 메타프로그레션 기획 → 본 절의 해금 무기 복원 → 코인상점 패시브 카탈로그(`commuter_friendly_implementation_request_2026-05-17.md` §7) 순서로 진행한다.
 

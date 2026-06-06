@@ -2,7 +2,7 @@
 
 ## Purpose
 
-All weapon graphics references and visual implementation notes must be preserved by weapon under `Graphic_designer/Weapon_Graphics`.
+All weapon graphics references and visual implementation notes must be preserved by weapon under `Graphic_designer/graphic_asset/weapon_graphics`.
 
 ## Completed
 
@@ -13,7 +13,7 @@ All weapon graphics references and visual implementation notes must be preserved
   - `implementation/`
   - `qa_reference/`
 - Added archive index:
-  - `Graphic_designer/Weapon_Graphics/README.md`
+  - `Graphic_designer/graphic_asset/weapon_graphics/README.md`
 - Copied current weapon-specific concept notes into their matching archive folders:
   - Onigiri
   - Compass Blade

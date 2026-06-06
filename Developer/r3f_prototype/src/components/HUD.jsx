@@ -3,7 +3,9 @@ import { useGameStore } from '../store/useGameStore.js'
 import { bagSwingState } from '../lib/refs.js'
 import { UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
 import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
+import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { buildPlaytestSummary } from '../lib/playtestLogger.js'
+import { getStageConfig } from '../lib/stageConfig.js'
 import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.png'
 import rulerIconSrc from '../assets/weapon_icon/02_wea_30ruller.png.png'
 import boxCutterIconSrc from '../assets/weapon_icon/13_wea_boxcutter.svg'
@@ -156,6 +158,18 @@ function pickThree(level, weapons, player) {
   return shuffled.slice(0, 3)
 }
 
+export function getNextUnlockPreview(phase, weapons) {
+  if (phase !== 'gameover' && phase !== 'cleared') return null
+  const candidates = Object.entries(UPGRADE_EFFECTS)
+    .filter(([, eff]) => eff.kind === 'acquire' && !weapons[eff.weapon]?.active && isWeaponUnlocked(eff.weapon))
+    .map(([key, eff]) => ({ key, weapon: eff.weapon, minLevel: eff.minLevel ?? 0 }))
+    .sort((a, b) => a.minLevel - b.minLevel)
+  if (candidates.length === 0) return null
+  const top = candidates[0]
+  const entry = UPGRADES.find((u) => u.key === top.key)
+  return { ...top, icon: entry?.icon, label: weapons[top.weapon]?.label ?? WEAPON_CATALOG[top.weapon]?.label ?? top.weapon }
+}
+
 export function UpgradeIcon({ type }) {
   const imageSrc = getWeaponUpgradeIconSrc(type)
   const [imageFailed, setImageFailed] = useState(false)
@@ -304,6 +318,7 @@ export default function HUD({ onOpenCoinShop }) {
   const phase     = useGameStore((s) => s.phase)
   const pauseSource = useGameStore((s) => s.pauseSource)
   const elapsed   = useGameStore((s) => s.elapsedMs)
+  const currentStageId = useGameStore((s) => s.currentStageId)
   const bossSpawned = useGameStore((s) => s.bossSpawned)
   const goldSession = useGameStore((s) => s.goldSession)
   const goldTotal   = useGameStore((s) => s.goldTotal)
@@ -319,6 +334,7 @@ export default function HUD({ onOpenCoinShop }) {
 
   const mins = String(Math.floor(elapsed / 60000)).padStart(2, '0')
   const secs = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, '0')
+  const stageConfig = getStageConfig(currentStageId)
 
   // phase가 'levelup'으로 바뀌는 순간 한 번만 선택지를 고정한다.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -329,17 +345,7 @@ export default function HUD({ onOpenCoinShop }) {
   const lowHp   = player.hp / player.maxHp < 0.3
 
   // 종료 화면 "다음 해금 가능 무기" 미리보기 — minLevel이 가장 낮은 미해금 무기 1개.
-  const nextUnlock = useMemo(() => {
-    if (phase !== 'gameover' && phase !== 'cleared') return null
-    const candidates = Object.entries(UPGRADE_EFFECTS)
-      .filter(([, eff]) => eff.kind === 'acquire' && !weapons[eff.weapon]?.active)
-      .map(([key, eff]) => ({ key, weapon: eff.weapon, minLevel: eff.minLevel ?? 0 }))
-      .sort((a, b) => a.minLevel - b.minLevel)
-    if (candidates.length === 0) return null
-    const top = candidates[0]
-    const entry = UPGRADES.find((u) => u.key === top.key)
-    return { ...top, icon: entry?.icon, label: weapons[top.weapon]?.label ?? top.weapon }
-  }, [phase, weapons])
+  const nextUnlock = useMemo(() => getNextUnlockPreview(phase, weapons), [phase, weapons])
 
   // 플레이테스트 로그 복사 (게임오버/클리어 모달의 "📋 로그 복사" 버튼).
   const [copyStatus, setCopyStatus] = useState('idle')
@@ -360,9 +366,18 @@ export default function HUD({ onOpenCoinShop }) {
   const bossWarning = useMemo(() => {
     if (bossSpawned || phase !== 'playing') return null
     const elapsedSec = elapsed / 1000
-    if (elapsedSec < 237 || elapsedSec >= 240) return null
-    return Math.max(1, Math.ceil(240 - elapsedSec))
-  }, [bossSpawned, elapsed, phase])
+    const warningSec = stageConfig.bossWarningSec ?? 240
+    if (elapsedSec < warningSec - 3 || elapsedSec >= warningSec) return null
+    return Math.max(1, Math.ceil(warningSec - elapsedSec))
+  }, [bossSpawned, elapsed, phase, stageConfig.bossWarningSec])
+
+  const e04IntroWarning = useMemo(() => {
+    if (currentStageId !== 'stage2' || phase !== 'playing') return null
+    const introSec = stageConfig.e04IntroSec ?? 90
+    const elapsedSec = elapsed / 1000
+    if (elapsedSec < introSec - 3 || elapsedSec >= introSec) return null
+    return Math.max(1, Math.ceil(introSec - elapsedSec))
+  }, [currentStageId, elapsed, phase, stageConfig.e04IntroSec])
 
   useEffect(() => {
     if (!recentMilestone) return undefined
@@ -415,8 +430,15 @@ export default function HUD({ onOpenCoinShop }) {
           <div style={styles.bossWarningCount}>{bossWarning}</div>
         </div>
       )}
+      {e04IntroWarning != null && (
+        <div style={styles.projectileWarning}>
+          <div style={styles.projectileWarningLabel}>복도 탄환 주의</div>
+          <div style={styles.projectileWarningCount}>{e04IntroWarning}</div>
+        </div>
+      )}
       {/* Top bar */}
       <div style={styles.topBar}>
+        <div style={styles.stageChip}>{stageConfig.label}</div>
         <div style={styles.timer}>{mins}:{secs}</div>
         <div style={styles.level}>Lv.{player.level}</div>
       </div>
@@ -485,7 +507,7 @@ export default function HUD({ onOpenCoinShop }) {
           <button type="button" style={styles.pauseButton} onClick={togglePause}>
           {phase === 'paused' ? '▶' : 'Ⅱ'}
           </button>
-          <button type="button" style={styles.quickRestartButton} onClick={resetGame} aria-label="Restart" title="Restart">
+          <button type="button" style={styles.quickRestartButton} onClick={() => resetGame(currentStageId)} aria-label="Restart" title="Restart">
             R
           </button>
         </div>
@@ -544,7 +566,7 @@ export default function HUD({ onOpenCoinShop }) {
                 {copyStatus === 'copied' ? '✓ 복사됨' : copyStatus === 'error' ? '복사 실패' : '📋 로그 복사'}
               </button>
               <button style={styles.shopBtn} onClick={onOpenCoinShop}>코인상점</button>
-              <button style={styles.restartBtn} onClick={resetGame}>다시 시작</button>
+              <button style={styles.restartBtn} onClick={() => resetGame(currentStageId)}>다시 시작</button>
             </div>
           </div>
         </div>
@@ -569,7 +591,7 @@ export default function HUD({ onOpenCoinShop }) {
       {phase === 'cleared' && (
         <div style={styles.overlay}>
           <div style={styles.modal}>
-            <h2 style={{ ...styles.modalTitle, color: '#ffd040' }}>STAGE CLEAR!</h2>
+            <h2 style={{ ...styles.modalTitle, color: '#ffd040' }}>{currentStageId === 'stage2' ? 'STAGE 2 CLEAR!' : 'STAGE CLEAR!'}</h2>
             <p style={{ color: '#ccc', marginBottom: 8 }}>클리어 시간: {mins}:{secs}</p>
             <p style={{ color: '#ffd040', marginBottom: nextUnlock || (newlyUnlockedWeaponIds?.length > 0) ? 12 : 20 }}>획득 골드: {goldSession} (누적 {goldTotal})</p>
             {newlyUnlockedWeaponIds?.length > 0 && (
@@ -602,7 +624,7 @@ export default function HUD({ onOpenCoinShop }) {
                 {copyStatus === 'copied' ? '✓ 복사됨' : copyStatus === 'error' ? '복사 실패' : '📋 로그 복사'}
               </button>
               <button style={styles.shopBtn} onClick={onOpenCoinShop}>코인상점</button>
-              <button style={styles.restartBtn} onClick={resetGame}>다시 시작</button>
+              <button style={styles.restartBtn} onClick={() => resetGame(currentStageId)}>다시 시작</button>
             </div>
           </div>
         </div>
@@ -673,6 +695,39 @@ const styles = {
     fontWeight: 900,
     lineHeight: 1,
     marginTop: 4,
+  },
+  projectileWarning: {
+    position: 'absolute',
+    left: '50%',
+    top: '35%',
+    transform: 'translate(-50%, -50%)',
+    minWidth: 170,
+    textAlign: 'center',
+    background: 'rgba(6, 38, 40, 0.82)',
+    border: '2px solid #54e0c8',
+    borderRadius: 10,
+    padding: '11px 16px',
+    boxShadow: '0 0 20px rgba(84, 224, 200, 0.35)',
+    animation: 'bossPulse 0.8s ease-in-out infinite',
+    pointerEvents: 'auto',
+  },
+  projectileWarningLabel: {
+    color: '#d8fffa',
+    fontSize: 15,
+    fontWeight: 900,
+  },
+  projectileWarningCount: {
+    color: '#ffffff',
+    fontSize: 40,
+    fontWeight: 900,
+    lineHeight: 1,
+    marginTop: 3,
+  },
+  stageChip: {
+    color: '#d8fffa',
+    fontSize: 13,
+    fontWeight: 900,
+    textShadow: '0 2px 6px #000',
   },
   timer: { color: '#fff', fontSize: 28, fontWeight: 700, textShadow: '0 2px 6px #000' },
   level: { color: '#ffd040', fontSize: 20, fontWeight: 700, textShadow: '0 2px 6px #000' },

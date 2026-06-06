@@ -12,6 +12,7 @@ import {
 } from '../lib/playerRecords.js'
 import { evaluateUnlocks, isStarter, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
+import { DEFAULT_STAGE_ID, getStageConfig } from '../lib/stageConfig.js'
 
 const BASE_PLAYER = {
   hp: 100, maxHp: 100,
@@ -112,6 +113,7 @@ export const useGameStore = create(
     phase:       'playing',   // 'playing' | 'paused' | 'levelup' | 'gameover' | 'cleared'
     pauseSource: null,        // 'manual' | 'auto' | null
     elapsedMs:   0,
+    currentStageId: DEFAULT_STAGE_ID,
     bossSpawned: false,
     gameKey:     0,
     goldSession: 0,
@@ -185,6 +187,7 @@ export const useGameStore = create(
     _onRunEnd: (phaseName) => {
       const s = get()
       const runSurvivalSeconds = Math.floor(s.elapsedMs / 1000)
+      const stage = getStageConfig(s.currentStageId)
 
       // 1. 합본 (snapshot 전). bossKills는 mid-run에 이미 cumulative에 들어 있음.
       const evalInput = {
@@ -219,7 +222,11 @@ export const useGameStore = create(
         runSurvivalSeconds,
       })
       setBestPlayerRecord('bestSurvivalSeconds', runSurvivalSeconds)
-      if (phaseName === 'cleared') incrementPlayerRecord('stage1Clears', 1)
+      setBestPlayerRecord(stage.bestRecordKey, runSurvivalSeconds)
+      if (s.currentStageId === 'stage1' && runSurvivalSeconds >= 180) {
+        incrementPlayerRecord('stage1Survival180Runs', 1)
+      }
+      if (phaseName === 'cleared') incrementPlayerRecord(stage.clearRecordKey, 1)
 
       set({ newlyUnlockedWeaponIds: Object.freeze(diff) })
     },
@@ -253,7 +260,8 @@ export const useGameStore = create(
 
     checkSurvivalMilestone: () => {
       const s = get()
-      const earned = SURVIVAL_MILESTONES.filter(
+      const milestones = getStageConfig(s.currentStageId).survivalMilestones ?? SURVIVAL_MILESTONES
+      const earned = milestones.filter(
         (milestone) => s.elapsedMs >= milestone.atMs && !s.survivalMilestonesHit.includes(milestone.atMs),
       )
       if (earned.length === 0) return
@@ -330,7 +338,7 @@ export const useGameStore = create(
     },
 
     // 게임 리셋. gameKey를 올려 Physics 트리를 새로 마운트한다.
-    resetGame: () => {
+    resetGame: (stageId = DEFAULT_STAGE_ID) => {
       resetRuntimeRefs()
       const levels = getAllLevels()
       applyMagnetPassive(levels)
@@ -342,6 +350,7 @@ export const useGameStore = create(
         phase:       'playing',
         pauseSource: null,
         elapsedMs:   0,
+        currentStageId: getStageConfig(stageId).id,
         bossSpawned: false,
         gameKey:     s.gameKey + 1,
         goldSession: 0,

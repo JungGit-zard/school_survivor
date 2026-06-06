@@ -1,15 +1,22 @@
 ﻿// @vitest-environment jsdom
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import {
   UpgradeIcon,
+  getNextUnlockPreview,
   getUpgradeChoiceDesc,
   getUpgradeChoiceLabel,
   getWeaponUpgradeIconSrc,
   limitDuplicateWeaponUpgradeOptions,
   limitPencilUpgradeOptions,
 } from './HUD.jsx'
+import { WEAPON_CATALOG, isStarter } from '../lib/weaponCatalog.js'
+import { _resetForTests as resetWeaponUnlocks, setUnlocked } from '../lib/weaponUnlocks.js'
+
+afterEach(() => {
+  resetWeaponUnlocks()
+})
 
 describe('upgrade choice filtering', () => {
   it('labels run weapon acquisition as 획득, not account 해금', () => {
@@ -51,7 +58,33 @@ describe('upgrade choice filtering', () => {
     expect(onigiriCount).toBe(1)
     expect(filtered.map((option) => option.key)).toContain('maxHealth')
   })
+
+  it('does not preview account-locked weapons as next run cards', () => {
+    const weapons = buildWeaponsWithStarterWeaponsOwned()
+
+    expect(getNextUnlockPreview('gameover', weapons)).toBeNull()
+
+    setUnlocked('guidedMissile')
+
+    expect(getNextUnlockPreview('gameover', weapons)).toMatchObject({
+      weapon: 'guidedMissile',
+      minLevel: 4,
+    })
+  })
 })
+
+function buildWeaponsWithStarterWeaponsOwned() {
+  const weapons = {}
+  for (const [id, entry] of Object.entries(WEAPON_CATALOG)) {
+    weapons[id] = {
+      ...entry.base,
+      label: entry.label,
+      active: isStarter(id),
+      level: isStarter(id) ? 1 : 0,
+    }
+  }
+  return weapons
+}
 
 describe('weapon upgrade icon assets', () => {
   it('maps every weapon upgrade icon type to an image asset', () => {

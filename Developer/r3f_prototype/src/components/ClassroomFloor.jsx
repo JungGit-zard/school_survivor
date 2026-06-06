@@ -25,6 +25,13 @@ export const FLOOR_TILE = {
   floorSize: FLOOR_SIZE,
 }
 
+export const STAGE2_CORRIDOR_LANES = {
+  laneCount: 3,
+  laneWidth: 6,
+  centerLineColor: '#40525f',
+  safeLaneColor: '#4e725f',
+}
+
 function buildFloorTexture() {
   if (typeof document === 'undefined') return null
   const tex = new THREE.TextureLoader().load(FLOOR_TILE.src)
@@ -35,7 +42,7 @@ function buildFloorTexture() {
   return tex
 }
 
-export default function ClassroomFloor() {
+export default function ClassroomFloor({ stageId = 'stage1' }) {
   const floorTex = useMemo(() => buildFloorTexture(), [])
   const floorMat = useMemo(
     () => new THREE.MeshLambertMaterial({ map: floorTex }),
@@ -43,9 +50,30 @@ export default function ClassroomFloor() {
   )
 
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow renderOrder={0}>
-      <planeGeometry args={[FLOOR_SIZE, FLOOR_SIZE]} />
-      <primitive object={floorMat} />
-    </mesh>
+    <group>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow renderOrder={0}>
+        <planeGeometry args={[FLOOR_SIZE, FLOOR_SIZE]} />
+        <primitive object={floorMat} />
+      </mesh>
+
+      {stageId === 'stage2' && (
+        <group position={[0, 0.012, 0]}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
+            <planeGeometry args={[26, FLOOR_SIZE]} />
+            <meshBasicMaterial color={0x2f3942} transparent opacity={0.28} depthWrite={false} />
+          </mesh>
+          {[-6, 0, 6].map((x) => (
+            <mesh key={x} position={[x, 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={2}>
+              <planeGeometry args={[0.16, FLOOR_SIZE]} />
+              <meshBasicMaterial color={0x40525f} transparent opacity={0.72} depthWrite={false} />
+            </mesh>
+          ))}
+          <mesh position={[0, 0.004, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={2}>
+            <planeGeometry args={[5.2, FLOOR_SIZE]} />
+            <meshBasicMaterial color={0x4e725f} transparent opacity={0.10} depthWrite={false} />
+          </mesh>
+        </group>
+      )}
+    </group>
   )
 }

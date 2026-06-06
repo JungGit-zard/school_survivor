@@ -366,8 +366,8 @@ Planner/
 - `Graphic_designer/UI_HUD_Title/title_landing_visual_plan_2026-05-10.md`
 - `Graphic_designer/UI_HUD_Title/stage5_graphic_hud_qa_2026-05-16.md`
 - `Planner/Tech_plan/tech_stakc.md`
-- `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/weapon_expansion_unlock_plan_2026-05-10.md`
-- `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/weapon_upgrade_flow_and_unlock_plan_2026-05-14.md`
+- `Planner/game_contents/weapons/weapon_expansion_unlock_plan_2026-05-10.md`
+- `Planner/game_contents/weapons/weapon_upgrade_flow_and_unlock_plan_2026-05-14.md`
 - `Planner/Essential_game_plan/commuter_target_planning_2026-05-14.md`
 - `Planner/Essential_game_plan/commuter_friendly_implementation_request_2026-05-17.md`
 - `Planner/Subagent_Workflow/subagent_planner.md`
