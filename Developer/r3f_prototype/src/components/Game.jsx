@@ -1,7 +1,7 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useGameStore } from '../store/useGameStore.js'
-import { STAGE_DURATION_SEC } from '../lib/stageConfig.js'
+import { getStageDurationSec } from '../lib/stageConfig.js'
 import { playerPos } from '../lib/refs.js'
 import Player from './Player.jsx'
 import Floor from './Floor.jsx'
@@ -16,6 +16,7 @@ export default function Game() {
   const { camera } = useThree()
   const tickTime   = useGameStore((s) => s.tickTime)
   const phase      = useGameStore((s) => s.phase)
+  const currentStageId = useGameStore((s) => s.currentStageId)
   const clearStage = useGameStore((s) => s.clearStage)
   const checkSurvivalMilestone = useGameStore((s) => s.checkSurvivalMilestone)
 
@@ -24,7 +25,7 @@ export default function Game() {
       tickTime(delta * 1000)
       checkSurvivalMilestone()
       // getState()로 최신 값 읽어 stale closure 방지
-      if (useGameStore.getState().elapsedMs >= STAGE_DURATION_SEC * 1000) {
+      if (useGameStore.getState().elapsedMs >= getStageDurationSec(currentStageId) * 1000) {
         clearStage()
       }
     }
@@ -54,7 +55,7 @@ export default function Game() {
       <directionalLight position={[10, 12, -10]} intensity={0.85} color={0xffe2b0} />
 
       {/* ── World ── */}
-      <Floor />
+      <Floor stageId={currentStageId} />
       <LunchItems />
 
       {/* ── Player + weapons ── */}

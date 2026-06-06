@@ -6,6 +6,7 @@ import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
 import GoldCoin from './GoldCoin.jsx'
 import XpTextbook from './XpTextbook.jsx'
+import { getStage2E04Cap } from '../lib/stage2ProjectileRules.js'
 
 // 황금 코인 시계 드랍: 5분에 약 10개 → 25–35s 무작위 간격
 const GOLD_INTERVAL_MIN_MS = 25_000
@@ -110,6 +111,20 @@ export const WAVE_PHASES = [
   { start: 280, end: 300, target: 45, weights: { E02: 0.50, E05: 0.50 }, bossPhase: true },
 ]
 
+export const STAGE2_WAVE_PHASES = [
+  { start:   0, end:  30, target: 18, weights: { E01: 1.00 } },
+  { start:  30, end:  60, target: 22, weights: { E01: 0.72, E03: 0.28 } },
+  { start:  60, end:  90, target: 28, weights: { E01: 0.48, E02: 0.22, E03: 0.30 } },
+  { start:  90, end: 120, target: 30, weights: { E01: 0.55, E03: 0.30, E04: 0.15 } },
+  { start: 120, end: 150, target: 32, weights: { E02: 0.62, E04: 0.38 } },
+  { start: 150, end: 180, target: 38, weights: { E01: 0.45, E03: 0.35, E05: 0.15, E04: 0.05 } },
+  { start: 180, end: 210, target: 42, weights: { E03: 0.44, E04: 0.28, E05: 0.28 } },
+  { start: 210, end: 240, target: 44, weights: { E02: 0.50, E04: 0.32, E06: 0.18 } },
+  { start: 240, end: 260, target: 24, weights: { E01: 0.40, E02: 0.40, E04: 0.20 }, bossPhase: true },
+  { start: 260, end: 280, target: 32, weights: { E02: 0.45, E05: 0.35, E04: 0.20 }, bossPhase: true },
+  { start: 280, end: 300, target: 38, weights: { E03: 0.34, E04: 0.30, E05: 0.36 }, bossPhase: true },
+]
+
 const BURST_EVENTS = [
   { sec:   0, type: 'E01', count: 16 },  // 50초 전 단일 좀비 구간 밀도 2배
   { sec:  30, type: 'E01', count: 12 },  // 50초 전 단일 좀비 구간 밀도 2배
@@ -126,6 +141,30 @@ const BURST_EVENTS = [
   { sec: 240, type: 'B01', count:  1 },  // 보스 등장
   { sec: 270, type: 'E05', count:  5 },
 ]
+
+export const STAGE2_BURST_EVENTS = [
+  { sec:   0, type: 'E01', count: 10 },
+  { sec:  30, type: 'E03', count:  4 },
+  { sec:  60, type: 'E02', count:  3 },
+  { sec:  90, type: 'E04', count:  1 },
+  { sec: 120, type: 'E04', count:  2 },
+  { sec: 150, type: 'E05', count:  3 },
+  { sec: 180, type: 'E04', count:  2 },
+  { sec: 180, type: 'E05', count:  3 },
+  { sec: 210, type: 'E06', count:  1 },
+  { sec: 230, type: 'E04', count:  2 },
+  { sec: 240, type: 'B01', count:  1 },
+  { sec: 270, type: 'E05', count:  4 },
+  { sec: 270, type: 'E04', count:  2 },
+]
+
+export function getWavePhasesForStage(stageId) {
+  return stageId === 'stage2' ? STAGE2_WAVE_PHASES : WAVE_PHASES
+}
+
+export function getBurstEventsForStage(stageId) {
+  return stageId === 'stage2' ? STAGE2_BURST_EVENTS : BURST_EVENTS
+}
 
 function pickTypeByWeight(weights) {
   const r = Math.random()
@@ -155,6 +194,7 @@ export default function Enemies() {
   const phase      = useGameStore((s) => s.phase)
   const bossSpawned = useGameStore((s) => s.bossSpawned)
   const spawnBoss   = useGameStore((s) => s.spawnBoss)
+  const currentStageId = useGameStore((s) => s.currentStageId)
 
   const addEnemies = useCallback((newList) => {
     enemiesRef.current.push(...newList)
@@ -221,8 +261,9 @@ export default function Enemies() {
       goldTimerRef.current = nextGoldInterval()
     }
 
-    if (firedBurstsRef.current.size < BURST_EVENTS.length) {
-      BURST_EVENTS.forEach((evt, idx) => {
+    const burstEvents = getBurstEventsForStage(currentStageId)
+    if (firedBurstsRef.current.size < burstEvents.length) {
+      burstEvents.forEach((evt, idx) => {
         if (firedBurstsRef.current.has(idx)) return
         if (sec < evt.sec) return
         firedBurstsRef.current.add(idx)
@@ -234,8 +275,13 @@ export default function Enemies() {
           return
         }
 
+        const currentE04Count = enemiesRef.current.filter((e) => e.type === 'E04').length
+        const e04Room = currentStageId === 'stage2' && evt.type === 'E04'
+          ? Math.max(0, getStage2E04Cap(sec) - currentE04Count)
+          : evt.count
+        const spawnCount = evt.type === 'E04' ? Math.min(evt.count, e04Room) : evt.count
         const newBatch = []
-        for (let i = 0; i < evt.count; i++) {
+        for (let i = 0; i < spawnCount; i++) {
           const pos = evt.type === 'E04' ? rangedSpawnPos() : randomSpawnPos(evt.type)
           newBatch.push({ id: ++_uid, type: evt.type, pos })
         }
@@ -247,7 +293,8 @@ export default function Enemies() {
     if (maintainTimerRef.current > 0) return
     maintainTimerRef.current = 600
 
-    const currentPhase = WAVE_PHASES.findLast((p) => sec >= p.start) ?? WAVE_PHASES[0]
+    const wavePhases = getWavePhasesForStage(currentStageId)
+    const currentPhase = wavePhases.findLast((p) => sec >= p.start) ?? wavePhases[0]
 
     const normalCount = currentPhase.bossPhase
       ? enemiesRef.current.filter((e) => e.type !== 'B01').length
@@ -259,7 +306,11 @@ export default function Enemies() {
     const toSpawn = Math.min(shortage, 4)
     const newBatch = []
     for (let i = 0; i < toSpawn; i++) {
-      const type = pickTypeByWeight(currentPhase.weights)
+      let type = pickTypeByWeight(currentPhase.weights)
+      if (currentStageId === 'stage2' && type === 'E04') {
+        const currentE04Count = enemiesRef.current.filter((e) => e.type === 'E04').length + newBatch.filter((e) => e.type === 'E04').length
+        if (currentE04Count >= getStage2E04Cap(sec)) type = 'E03'
+      }
       const pos  = type === 'E04' ? rangedSpawnPos() : randomSpawnPos(type)
       newBatch.push({ id: ++_uid, type, pos })
     }

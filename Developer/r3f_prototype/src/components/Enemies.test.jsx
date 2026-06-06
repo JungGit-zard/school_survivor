@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { getEliteBonusTextbookXp, shouldDropTextbook, TEXTBOOK_DROP_RATE, WAVE_PHASES } from './Enemies.jsx'
+import {
+  getEliteBonusTextbookXp,
+  getWavePhasesForStage,
+  getBurstEventsForStage,
+  shouldDropTextbook,
+  TEXTBOOK_DROP_RATE,
+  WAVE_PHASES,
+} from './Enemies.jsx'
 
 describe('elite bonus rewards', () => {
   it('B01 bonus textbooks use explicit XP instead of B01 base XP 0', () => {
@@ -17,6 +24,19 @@ describe('stage 1 E06 spawn pressure', () => {
 
     expect(giantPhase.weights.E06).toBe(0.02)
     expect(Object.values(giantPhase.weights).reduce((sum, weight) => sum + weight, 0)).toBe(1)
+  })
+
+  it('keeps E04 out of every stage 1 wave and burst event', () => {
+    expect(getWavePhasesForStage('stage1').some((phase) => phase.weights.E04)).toBe(false)
+    expect(getBurstEventsForStage('stage1').some((event) => event.type === 'E04')).toBe(false)
+  })
+
+  it('introduces E04 only in stage 2 after the 90 second tutorial window', () => {
+    const stage2Phases = getWavePhasesForStage('stage2')
+    const firstE04Phase = stage2Phases.find((phase) => phase.weights.E04)
+
+    expect(firstE04Phase.start).toBeGreaterThanOrEqual(90)
+    expect(getBurstEventsForStage('stage2').filter((event) => event.type === 'E04').every((event) => event.sec >= 90)).toBe(true)
   })
 })
 

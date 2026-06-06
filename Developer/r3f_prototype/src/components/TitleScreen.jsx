@@ -1,19 +1,30 @@
 import { useEffect, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import TitleScene3D from './TitleScene3D.jsx'
+import { getAllWeaponIds, isStarter } from '../lib/weaponCatalog.js'
+import { setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
+import { load as loadPlayerRecords } from '../lib/playerRecords.js'
+import { getStageConfig, isStageUnlocked } from '../lib/stageConfig.js'
 
 const SETTINGS_STORAGE_KEY = 'school_survivor:titleSettings'
 const DEFAULT_SETTINGS = {
   vibration: true,
   reducedEffects: false,
+  unlockAllWeaponsCheat: false,
 }
 
 export default function TitleScreen({ onStart }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [controlsOpen, setControlsOpen] = useState(false)
   const [settings, setSettings] = useState(loadTitleSettings)
+  const [selectedStageId, setSelectedStageId] = useState('stage1')
   const titleStyle = settings.reducedEffects ? styles.titleReduced : styles.title
   const primaryButtonStyle = settings.reducedEffects ? styles.primaryButtonReduced : styles.primaryButton
+  const records = loadPlayerRecords()
+  const stage1 = getStageConfig('stage1')
+  const stage2 = getStageConfig('stage2')
+  const stage2Unlocked = isStageUnlocked('stage2', records)
+  const playableStageId = selectedStageId === 'stage2' && !stage2Unlocked ? 'stage1' : selectedStageId
 
   useEffect(() => {
     saveTitleSettings(settings)
@@ -46,6 +57,9 @@ export default function TitleScreen({ onStart }) {
 
       if (key === 'vibration' && next.vibration && typeof navigator !== 'undefined' && navigator.vibrate) {
         navigator.vibrate(18)
+      }
+      if (key === 'unlockAllWeaponsCheat' && next.unlockAllWeaponsCheat) {
+        unlockAllNonStarterWeapons()
       }
 
       return next
@@ -91,7 +105,29 @@ export default function TitleScreen({ onStart }) {
       </div>
 
       <div style={styles.actions}>
-        <button type="button" style={primaryButtonStyle} onClick={onStart}>
+        <div style={styles.stageSelect} aria-label="스테이지 선택">
+          <button
+            type="button"
+            style={styles.stageButton(selectedStageId === 'stage1', false)}
+            onClick={() => setSelectedStageId('stage1')}
+          >
+            <span style={styles.stageButtonLabel}>{stage1.label}</span>
+            <span style={styles.stageButtonDesc}>교실 생존</span>
+          </button>
+          <button
+            type="button"
+            style={styles.stageButton(selectedStageId === 'stage2', !stage2Unlocked)}
+            disabled={!stage2Unlocked}
+            onClick={() => setSelectedStageId('stage2')}
+          >
+            <span style={styles.stageButtonLabel}>{stage2.label}</span>
+            <span style={styles.stageButtonDesc}>{stage2Unlocked ? '복도 탄환' : '잠김'}</span>
+          </button>
+        </div>
+        {!stage2Unlocked && (
+          <div style={styles.stageLockHint}>Stage 2: Stage 1 클리어 또는 180초 생존 3회 필요</div>
+        )}
+        <button type="button" style={primaryButtonStyle} onClick={() => onStart(playableStageId)}>
           게임 시작
         </button>
       </div>
@@ -154,6 +190,22 @@ export default function TitleScreen({ onStart }) {
                 <p style={styles.controlLine}>일시정지: 전투 화면의 일시정지 버튼을 사용합니다.</p>
               </div>
             )}
+
+            <div style={styles.sectionLabel}>개발 치트</div>
+            <button
+              type="button"
+              aria-label={settings.unlockAllWeaponsCheat ? '모든 무기 해금 치트 끄기' : '모든 무기 해금 치트 켜기'}
+              style={styles.settingRow}
+              onClick={() => toggleSetting('unlockAllWeaponsCheat')}
+            >
+              <span style={styles.rowText}>
+                <strong style={styles.rowTitle}>모든 무기 해금</strong>
+                <span style={styles.rowDescription}>켜면 다음 판부터 모든 무기 카드가 열림</span>
+              </span>
+              <span style={styles.toggleTrack(settings.unlockAllWeaponsCheat)}>
+                <span style={styles.toggleKnob(settings.unlockAllWeaponsCheat)} />
+              </span>
+            </button>
           </section>
         </div>
       )}
@@ -172,9 +224,16 @@ function loadTitleSettings() {
     return {
       vibration: typeof parsed.vibration === 'boolean' ? parsed.vibration : DEFAULT_SETTINGS.vibration,
       reducedEffects: typeof parsed.reducedEffects === 'boolean' ? parsed.reducedEffects : DEFAULT_SETTINGS.reducedEffects,
+      unlockAllWeaponsCheat: typeof parsed.unlockAllWeaponsCheat === 'boolean' ? parsed.unlockAllWeaponsCheat : DEFAULT_SETTINGS.unlockAllWeaponsCheat,
     }
   } catch {
     return DEFAULT_SETTINGS
+  }
+}
+
+function unlockAllNonStarterWeapons() {
+  for (const id of getAllWeaponIds()) {
+    if (!isStarter(id)) setWeaponUnlocked(id)
   }
 }
 
@@ -290,6 +349,49 @@ const styles = {
     bottom: 34,
     display: 'flex',
     flexDirection: 'column',
+  },
+  stageSelect: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 8,
+    marginBottom: 8,
+    pointerEvents: 'auto',
+  },
+  stageButton: (selected, locked) => ({
+    minHeight: 48,
+    border: '2px solid #050209',
+    borderRadius: 8,
+    background: locked ? 'rgba(92,86,104,0.78)' : selected ? '#f7d17e' : 'rgba(248,247,242,0.9)',
+    color: '#050209',
+    cursor: locked ? 'not-allowed' : 'pointer',
+    boxShadow: '0 4px 0 #050209',
+    opacity: locked ? 0.82 : 1,
+  }),
+  stageButtonLabel: {
+    display: 'block',
+    fontSize: 14,
+    lineHeight: 1.15,
+    fontWeight: 1000,
+  },
+  stageButtonDesc: {
+    display: 'block',
+    marginTop: 2,
+    fontSize: 11,
+    lineHeight: 1.15,
+    fontWeight: 800,
+  },
+  stageLockHint: {
+    margin: '0 0 8px',
+    padding: '5px 8px',
+    border: '1.5px solid #050209',
+    borderRadius: 8,
+    background: 'rgba(22,18,29,0.82)',
+    color: '#f8f7f2',
+    fontSize: 11,
+    lineHeight: 1.3,
+    fontWeight: 800,
+    textAlign: 'center',
+    pointerEvents: 'none',
   },
   primaryButton: {
     height: 54,
