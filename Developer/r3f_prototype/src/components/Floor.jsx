@@ -4,12 +4,12 @@ import ClassroomFloor from './ClassroomFloor.jsx'
 const TILE_SIZE = 4
 const MAP_SIZE = 24
 
-export default function Floor() {
+export default function Floor({ stageId = 'stage1' }) {
   const half = (MAP_SIZE * TILE_SIZE) / 2
 
   return (
     <group>
-      <ClassroomFloor />
+      <ClassroomFloor stageId={stageId} />
 
       <RigidBody type="fixed" colliders="cuboid">
         <mesh rotation={[-Math.PI / 2, 0, 0]} visible={false}>

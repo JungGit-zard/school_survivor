@@ -1,7 +1,7 @@
-﻿# Escape! zombie school 무기 업그레이드 흐름과 해금 정리
+# Escape! zombie school 무기 업그레이드 흐름과 해금 정리
 
-작성일: 2026-05-14  
-작성 위치: `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/`  
+작성일: 2026-05-14
+작성 위치: `Planner/game_contents/weapons/`
 목적: 현재 구현된 무기 7종을 기준으로, 5분 생존 흐름 안에서 어떤 무기를 언제 얻고 강화해야 하는지 정리하고, 아직 구현하지 않은 신규 무기와 해금 방안을 한 문서로 묶는다.
 
 2026-05-17 확정: 1차 서비스 무기 총수는 **9종**이다. 본문 §2-§5는 즉시 카드 풀에 등장하는 기본 7종(`pencilThrow`, `schoolBag`, `tumbler`, `scienceFlask`, `bell`, `stunGun`, `onigiri`)을 기준으로 5분 흐름을 설계한다. 나머지 2종(`guidedMissile`, `starlink`)은 계정 누적 조건이 충족된 경우 동일한 카드 풀에 추가 진입한다. 2026-05-16 "7종 정정" 표기는 폐기.
@@ -10,7 +10,7 @@
 
 - `Planner/B.게임기획,밸런스 구현/B-3 스테이지진행과 몬스터 등장구현/Stage1_Balance/stage1_replan_2026-05-06.md`
 - `Planner/B.게임기획,밸런스 구현/B-3 스테이지진행과 몬스터 등장구현/Stage1_Balance/stage1_reverse_design_current_2026-05-09.md`
-- `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/weapon_expansion_unlock_plan_2026-05-10.md`
+- `Planner/game_contents/weapons/weapon_expansion_unlock_plan_2026-05-10.md`
 - `Planner/Essential_game_plan/commuter_target_planning_2026-05-14.md`
 - `Bang_Rules.md`
 

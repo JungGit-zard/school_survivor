@@ -64,8 +64,8 @@ export default function App() {
     }
   }, [screen])
 
-  const startGame = () => {
-    resetGame()
+  const startGame = (stageId) => {
+    resetGame(stageId)
     setScreen('game')
   }
 

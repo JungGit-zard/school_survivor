@@ -1,10 +1,10 @@
-﻿# Escape! zombie school 무기 10종 추가 및 누적기록 해금 기획
+# Escape! zombie school 무기 10종 추가 및 누적기록 해금 기획
 
-작성일: 2026-05-10  
-작성 위치: `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/`  
+작성일: 2026-05-10
+작성 위치: `Planner/game_contents/weapons/`
 참고 문서:
 
-- `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/Vampire_5minute_Firearms.md`
+- `Planner/game_contents/weapons/references/Vampire_5minute_Firearms.md`
 - `Planner/B.게임기획,밸런스 구현/B-3 스테이지진행과 몬스터 등장구현/Stage1_Balance/stage1_replan_2026-05-06.md`
 - `Bang_Rules.md`
 - `Planner/Index/planner_documents_by_field_2026-05-14.md`

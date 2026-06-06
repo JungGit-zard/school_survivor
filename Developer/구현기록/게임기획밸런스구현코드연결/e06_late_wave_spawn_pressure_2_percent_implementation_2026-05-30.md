@@ -2,7 +2,7 @@
 
 ## 연결 파일
 
-- 기획: `Planner/e06_late_wave_spawn_pressure_2_percent_2026-05-30.md`
+- 기획: `Planner/B.게임기획,밸런스 구현/B-3 스테이지진행과 몬스터 등장구현/Monster_Wave/e06_late_wave_spawn_pressure_2_percent_2026-05-30.md`
 - 구현: `Developer/r3f_prototype/src/components/Enemies.jsx`
 - 테스트: `Developer/r3f_prototype/src/components/Enemies.test.jsx`
 

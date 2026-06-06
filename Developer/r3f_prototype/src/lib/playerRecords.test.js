@@ -23,6 +23,14 @@ describe('playerRecords storage layer', () => {
     }
   })
 
+  it('Stage 2 records default to 0 for old save data compatibility', () => {
+    const all = load()
+
+    expect(all.stage2Clears).toBe(0)
+    expect(all.stage2BestSurvivalSec).toBe(0)
+    expect(all.stage1Survival180Runs).toBe(0)
+  })
+
   it('incrementRecord는 카탈로그 키만 갱신한다', () => {
     incrementRecord('totalKills', 5)
     expect(getRecord('totalKills')).toBe(5)
