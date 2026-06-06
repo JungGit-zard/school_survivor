@@ -3,6 +3,8 @@ dist/
 *.log
 
 .claude/
+.superpowers/
+tmp/
 .codex/config.toml
 
 .compound-engineering/*.local.yaml
