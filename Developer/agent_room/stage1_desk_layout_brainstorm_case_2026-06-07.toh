@@ -1,0 +1,27 @@
+# Agent Room Record: Stage 1 Desk Layout Brainstorm
+
+date: 2026-06-07
+request: Stage 1에 교실 책상을 배치하되, 좀비에 의해 흐트러진 느낌과 뒤집히거나 버려진 패턴을 포함한다.
+
+## Routing
+
+- agent-room-executor: 기존 프로젝트 정책, 역할별 기록 위치, 필요한 검토 역할을 확인했다.
+- graphic_designer: 책상 오브젝트의 시각 변형과 교실이 흐트러진 인상을 담당한다.
+- game-developer: Stage 1 플레이 공간을 침해하지 않는 좌표와 데이터 구조를 담당한다.
+- reviewer/QA 관점: 중앙 생존 구역, 모바일 시야, 향후 오브젝트 확장 위험을 확인한다.
+
+## Decision
+
+1차 구현은 `StageObjects` 데이터 기반 배치로 진행한다.
+
+- 책상 모델은 `variant`로 상태를 나눈다.
+- Stage 1에는 정상, 버려짐, 기울어짐, 뒤집힘을 섞는다.
+- 중앙 구역은 비운다.
+- 이번 단계에서는 충돌체를 추가하지 않는다.
+
+## Output Folders
+
+- 기획 기록: `Planner/`
+- 개발 구현 기록: `Developer/`
+- 그래픽 방향 기록: `Graphic_designer/`
+- QA 기록: `Quaility_Assurance/`
