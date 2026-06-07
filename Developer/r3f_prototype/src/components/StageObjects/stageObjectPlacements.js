@@ -1,0 +1,86 @@
+export const STAGE_OBJECT_PLACEMENTS = {
+  stage1: [
+    {
+      id: 'stage1-desk-nw-01',
+      type: 'classroomDesk',
+      position: [-21, 0, -19],
+      rotation: [0, 0.42, 0],
+      scale: 1.04,
+      props: { variant: 'upright' },
+    },
+    {
+      id: 'stage1-desk-ne-01',
+      type: 'classroomDesk',
+      position: [20, 0, -17],
+      rotation: [0, -0.72, 0],
+      scale: 0.98,
+      props: { variant: 'abandoned' },
+    },
+    {
+      id: 'stage1-desk-sw-01',
+      type: 'classroomDesk',
+      position: [-22, 0, 15],
+      rotation: [0, 1.35, 0],
+      scale: 1.02,
+      props: { variant: 'overturned' },
+    },
+    {
+      id: 'stage1-desk-se-01',
+      type: 'classroomDesk',
+      position: [21, 0, 18],
+      rotation: [0, -1.18, 0],
+      scale: 1,
+      props: { variant: 'abandoned' },
+    },
+    {
+      id: 'stage1-desk-west-02',
+      type: 'classroomDesk',
+      position: [-27, 0, -3],
+      rotation: [0, 2.55, 0],
+      scale: 0.96,
+      props: { variant: 'tilted' },
+    },
+    {
+      id: 'stage1-desk-east-02',
+      type: 'classroomDesk',
+      position: [27, 0, 5],
+      rotation: [0, -2.35, 0],
+      scale: 0.94,
+      props: { variant: 'abandoned' },
+    },
+  ],
+  stage2: [
+    {
+      id: 'stage2-desk-left-top',
+      type: 'classroomDesk',
+      position: [-10.4, 0, -22],
+      rotation: [0, Math.PI / 2, 0],
+      scale: 0.96,
+    },
+    {
+      id: 'stage2-desk-right-mid',
+      type: 'classroomDesk',
+      position: [10.3, 0, -8],
+      rotation: [0, -Math.PI / 2, 0],
+      scale: 0.94,
+    },
+    {
+      id: 'stage2-desk-left-low',
+      type: 'classroomDesk',
+      position: [-10.1, 0, 10],
+      rotation: [0, Math.PI / 2 - 0.08, 0],
+      scale: 0.98,
+    },
+    {
+      id: 'stage2-desk-right-bottom',
+      type: 'classroomDesk',
+      position: [10.2, 0, 24],
+      rotation: [0, -Math.PI / 2 + 0.06, 0],
+      scale: 1,
+    },
+  ],
+}
+
+export function getStageObjectPlacements(stageId = 'stage1') {
+  return STAGE_OBJECT_PLACEMENTS[stageId] ?? []
+}

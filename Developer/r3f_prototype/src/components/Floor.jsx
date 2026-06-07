@@ -1,5 +1,6 @@
 import { RigidBody } from '@react-three/rapier'
 import ClassroomFloor from './ClassroomFloor.jsx'
+import { StageObjectLayer } from './StageObjects/index.js'
 
 const TILE_SIZE = 4
 const MAP_SIZE = 24
@@ -10,6 +11,7 @@ export default function Floor({ stageId = 'stage1' }) {
   return (
     <group>
       <ClassroomFloor stageId={stageId} />
+      <StageObjectLayer stageId={stageId} />
 
       <RigidBody type="fixed" colliders="cuboid">
         <mesh rotation={[-Math.PI / 2, 0, 0]} visible={false}>
