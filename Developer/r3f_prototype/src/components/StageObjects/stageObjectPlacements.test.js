@@ -1,13 +1,17 @@
 import { describe, expect, it } from 'vitest'
+import { CLASSROOM_CHAIR_VARIANTS } from './ClassroomChair.jsx'
 import { CLASSROOM_DESK_VARIANTS } from './ClassroomDesk.jsx'
+import { UNCONSCIOUS_STUDENT_VARIANTS } from './UnconsciousStudent.jsx'
 import { getStageObjectPlacements } from './stageObjectPlacements.js'
 
 describe('stage object placements', () => {
-  it('provides classroom desk props for both playable stages', () => {
+  it('provides supported stage object props for both playable stages', () => {
+    const supportedTypes = new Set(['classroomChair', 'classroomDesk', 'unconsciousStudent'])
+
     expect(getStageObjectPlacements('stage1').length).toBeGreaterThan(0)
     expect(getStageObjectPlacements('stage2').length).toBeGreaterThan(0)
-    expect(getStageObjectPlacements('stage1').every((item) => item.type === 'classroomDesk')).toBe(true)
-    expect(getStageObjectPlacements('stage2').every((item) => item.type === 'classroomDesk')).toBe(true)
+    expect(getStageObjectPlacements('stage1').every((item) => supportedTypes.has(item.type))).toBe(true)
+    expect(getStageObjectPlacements('stage2').every((item) => supportedTypes.has(item.type))).toBe(true)
   })
 
   it('keeps Stage 1 desks away from the central spawn/play zone', () => {
@@ -18,7 +22,9 @@ describe('stage object placements', () => {
 
   it('uses disrupted Stage 1 desk variants for a zombie-scattered classroom feel', () => {
     const variants = new Set(
-      getStageObjectPlacements('stage1').map(({ props }) => props?.variant ?? 'upright')
+      getStageObjectPlacements('stage1')
+        .filter(({ type }) => type === 'classroomDesk')
+        .map(({ props }) => props?.variant ?? 'upright')
     )
 
     expect(variants).toContain('overturned')
@@ -26,6 +32,34 @@ describe('stage object placements', () => {
     expect(variants).toContain('abandoned')
     expect([...variants].every((variant) => CLASSROOM_DESK_VARIANTS[variant])).toBe(true)
     expect(CLASSROOM_DESK_VARIANTS.overturned.modelRotation[2]).toBeCloseTo(Math.PI)
+  })
+
+  it('mixes desks, chairs, and unconscious students in Stage 1 classroom clutter', () => {
+    const stage1Types = new Set(getStageObjectPlacements('stage1').map(({ type }) => type))
+
+    expect(stage1Types).toContain('classroomDesk')
+    expect(stage1Types).toContain('classroomChair')
+    expect(stage1Types).toContain('unconsciousStudent')
+  })
+
+  it('uses zombie-disrupted chair and unconscious student variants in Stage 1', () => {
+    const stage1 = getStageObjectPlacements('stage1')
+    const chairVariants = new Set(
+      stage1
+        .filter(({ type }) => type === 'classroomChair')
+        .map(({ props }) => props?.variant ?? 'upright')
+    )
+    const studentVariants = new Set(
+      stage1
+        .filter(({ type }) => type === 'unconsciousStudent')
+        .map(({ props }) => props?.variant ?? 'faceUp')
+    )
+
+    expect(chairVariants).toContain('overturned')
+    expect(chairVariants).toContain('tilted')
+    expect([...chairVariants].every((variant) => CLASSROOM_CHAIR_VARIANTS[variant])).toBe(true)
+    expect(studentVariants.size).toBeGreaterThanOrEqual(2)
+    expect([...studentVariants].every((variant) => UNCONSCIOUS_STUDENT_VARIANTS[variant])).toBe(true)
   })
 
   it('keeps Stage 2 desks near corridor edges instead of the center lane', () => {
