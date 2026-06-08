@@ -73,16 +73,17 @@ function ToonCylinder({ position, rotation = [0, 0, 0], scale, color, emissive =
 
 function TitlePlayer() {
   const ref = useRef()
+  // base y 0.95: PlayerMesh 발이 바닥 평면 위에 서도록 올린다(이전 0.04는 다리가 바닥 밑에 잠겼음).
   useFrame((state) => {
     if (!ref.current) return
-    ref.current.position.y = 0.04 + Math.sin(state.clock.elapsedTime * 2.4) * 0.045
+    ref.current.position.y = 0.95 + Math.sin(state.clock.elapsedTime * 2.4) * 0.045
     ref.current.rotation.y = -0.36 + Math.sin(state.clock.elapsedTime * 1.7) * 0.06
   })
 
   // 인게임 플레이어 모델(PlayerMesh)을 그대로 사용. PlayerMesh가 내부 스케일(0.2664)을
   // 가지므로 타이틀에서 보이도록 바깥 그룹에서 키운다. (movingRef 없음 → idle 포즈)
   return (
-    <group ref={ref} position={[0.9, 0.04, 2.1]} rotation={[0, -0.16, 0]} scale={2.7}>
+    <group ref={ref} position={[0.9, 0.95, 2.1]} rotation={[0, -0.16, 0]} scale={2.7}>
       <PlayerMesh />
     </group>
   )
@@ -90,22 +91,36 @@ function TitlePlayer() {
 
 function TitleZombie({ position, delay = 0, scale = 1 }) {
   const ref = useRef()
+  const armL = useRef()
+  const armR = useRef()
   useFrame((state) => {
     if (!ref.current) return
     const t = state.clock.elapsedTime + delay
     ref.current.position.x = position[0] + Math.sin(t * 1.2) * 0.07
     ref.current.position.y = position[1] + Math.sin(t * 2.1) * 0.035
     ref.current.rotation.z = Math.sin(t * 1.5) * 0.055
+    // 주인공(+z) 쪽으로 약간 기운 추격 자세
+    ref.current.rotation.x = 0.14 + Math.sin(t * 1.8) * 0.04
+    // 앞으로 뻗은 팔이 늘어지듯 까딱까딱 (좌우 위상차)
+    if (armL.current) armL.current.rotation.x = 1.9 + Math.sin(t * 2.6) * 0.12
+    if (armR.current) armR.current.rotation.x = 1.9 + Math.sin(t * 2.6 + 0.7) * 0.12
   })
 
   return (
     <group ref={ref} position={position} scale={scale}>
       <ToonBox position={[0, 0.42, 0]} scale={[0.46, 0.62, 0.26]} color={0x41745a} />
       <ToonBox position={[0, 0.91, 0]} scale={[0.34, 0.34, 0.32]} color={0x95bf91} />
-      <ToonBox position={[0, 1.0, 0.23]} scale={[0.08, 0.06, 0.04]} color={0xff8bb6} emissive={0.2} />
-      <ToonBox position={[0.18, 1.0, 0.23]} scale={[0.08, 0.06, 0.04]} color={0xff8bb6} emissive={0.2} />
-      <ToonBox position={[-0.33, 0.42, 0.02]} scale={[0.15, 0.52, 0.15]} color={0x78a470} />
-      <ToonBox position={[0.33, 0.42, 0.02]} scale={[0.15, 0.52, 0.15]} color={0x78a470} />
+      <ToonBox position={[-0.1, 1.0, 0.23]} scale={[0.08, 0.06, 0.04]} color={0xff8bb6} emissive={0.2} />
+      <ToonBox position={[0.1, 1.0, 0.23]} scale={[0.08, 0.06, 0.04]} color={0xff8bb6} emissive={0.2} />
+      {/* 앞으로 뻗어 늘어진 팔 (주인공 추격) — 어깨 피벗에서 +z로 뻗고 약간 처짐 */}
+      <group ref={armL} position={[-0.28, 0.6, 0.07]} rotation={[1.9, 0, 0.05]}>
+        <ToonBox position={[0, 0.27, 0]} scale={[0.14, 0.54, 0.15]} color={0x78a470} />
+        <ToonBox position={[0, 0.56, 0]} scale={[0.15, 0.13, 0.16]} color={0x95bf91} />
+      </group>
+      <group ref={armR} position={[0.28, 0.6, 0.07]} rotation={[1.9, 0, -0.05]}>
+        <ToonBox position={[0, 0.27, 0]} scale={[0.14, 0.54, 0.15]} color={0x78a470} />
+        <ToonBox position={[0, 0.56, 0]} scale={[0.15, 0.13, 0.16]} color={0x95bf91} />
+      </group>
       <ToonBox position={[-0.14, -0.08, 0]} scale={[0.15, 0.5, 0.15]} color={0x2d2738} />
       <ToonBox position={[0.14, -0.08, 0]} scale={[0.15, 0.5, 0.15]} color={0x2d2738} />
     </group>
