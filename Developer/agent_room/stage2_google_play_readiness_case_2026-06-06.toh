@@ -1,0 +1,109 @@
+# Agent Room Case - Stage 2 Google Play Readiness
+
+## Case
+
+- Date: 2026-06-06
+- Case name: stage2_google_play_readiness
+- User request: Stage 2가 마무리된 뒤 Google Play Console에 AAB를 등록하고 내부 테스트와 테스터 모집까지 이어갈 계획이므로, 지금 단계에서 해야 할 일 전체와 필요한 서브에이전트 구성을 라우팅해 달라는 요청.
+- Executor decision: 구현 없이 Agent Room 라우팅만 수행한다. Primary methodology는 Superpowers brainstorming이며, release readiness와 부서 기록 위치는 project policy와 QA gate를 따른다.
+
+## Method Route
+
+- Primary methodology: Superpowers brainstorming
+- Supporting methodology: project_develop_policy.md, Planner policy, QA gate, g-stack style mobile/browser validation for later runtime verification
+- Project policy checked: yes
+- Required verification: 현재 턴은 라우팅 검증만. 실제 진행 전에는 Android AAB 재빌드 검증, 내부 테스트 트랙 업로드 확인, 정책/App content 체크, 스토어 에셋 점검, QA 기록 작성이 필요
+
+## Agent Records
+
+### agent-room-executor
+
+- Persona: method-aware routing judge
+- Role: multi-agent route, authority, gate, output folder 결정
+- Main viewpoint: 방법론 보존, 부서 분리, 누락 방지
+- Read/write authority: read-only
+- Files or domains owned: routing decision only
+- Methodology gates: project policy first, then Agent Room, then Superpowers
+- Output folder: `Developer/agent_room/`
+- Expected output: case routing record and parent agent handoff
+- Residual risk: 실제 실행 전 각 부서 문서가 비어 있으면 후속 작업 착수 기준이 흐려질 수 있음
+
+### product-manager
+
+- Persona: product/release framing specialist
+- Role: 테스트 목표, 모집 범위, MVP 출시 기준, 운영 우선순위 정리
+- Main viewpoint: 사용자 가치, 출시 순서, production access readiness
+- Read/write authority: read-only
+- Files or domains owned: release scope, tester cohort policy, launch sequencing
+- Methodology gates: Superpowers brainstorming inside project policy
+- Output folder: `CEO/` and `Planner/`
+- Expected output: internal/closed test 목적, 모집 기준, production 전환 조건
+- Residual risk: 출시 욕심으로 Stage 2 범위를 과하게 늘릴 수 있음
+
+### mobile-developer
+
+- Persona: Android release and device behavior specialist
+- Role: AAB readiness, Play App Signing, versioning, device/runtime 위험 검토
+- Main viewpoint: package name, versionCode, signing, lifecycle, touch/device QA
+- Read/write authority: read-only for this case
+- Files or domains owned: Android build/release pipeline and device constraints
+- Methodology gates: existing build record reuse + later verification-before-completion
+- Output folder: `Developer/` and `Quaility_Assurance/`
+- Expected output: AAB 준비 체크리스트와 업로드 전 기술 게이트
+- Residual risk: keystore, versionCode, package name, reviewer access 정보 누락
+
+### qa-expert
+
+- Persona: release validation strategist
+- Role: internal test QA 범위, repro checklist, blocker 기준 정리
+- Main viewpoint: 테스트 재현성, 출시 차단 조건, residual risk 기록
+- Read/write authority: read-only for this case
+- Files or domains owned: QA checklist, bug triage, test evidence
+- Methodology gates: verification-before-completion and mobile/browser validation
+- Output folder: `Quaility_Assurance/`
+- Expected output: 내부 테스트 전용 QA 계획과 pass/fail gate
+- Residual risk: 플레이 감각만 보고 출시해 기기/복구/오프라인 이슈를 놓칠 수 있음
+
+### graphic_designer
+
+- Persona: store presence and visual QA specialist
+- Role: 스토어 에셋, 아이콘, 스크린샷, feature graphic, 인게임 가독성 검토
+- Main viewpoint: 브랜드 일관성, 3D toon 정책, 스토어 전환력
+- Read/write authority: read-only for this case
+- Files or domains owned: store graphics and visual review
+- Methodology gates: Graphic policy and Bang_survivor_Graphic_concept reference first
+- Output folder: `Graphic_designer/`
+- Expected output: 스토어 비주얼 준비 목록과 캡처 가이드
+- Residual risk: 실제 게임과 다른 과장 스크린샷 또는 정책 위반 그래픽
+
+### security-auditor
+
+- Persona: privacy, policy, abuse-risk reviewer
+- Role: 개인정보, Data safety, 계정/데이터 삭제, 결제/광고/권한, 무결성 검토
+- Main viewpoint: 정책 위반 예방, 사용자 데이터 최소화, 악용 방지
+- Read/write authority: read-only
+- Files or domains owned: privacy/policy/security checklist
+- Methodology gates: project policy + Play policy review before production intent
+- Output folder: `Developer/` and `Quaility_Assurance/`
+- Expected output: 개인정보/보안/정책 준비 목록
+- Residual risk: account deletion, ads declaration, sensitive permission, reviewer access 누락
+
+### reviewer
+
+- Persona: evidence-driven final risk reviewer
+- Role: 모든 부서 산출물과 release gate의 누락 점검
+- Main viewpoint: 회귀, 누락, 과신 방지
+- Read/write authority: read-only
+- Files or domains owned: final risk review only
+- Methodology gates: verification-before-completion
+- Output folder: `Quaility_Assurance/`
+- Expected output: go/no-go review summary
+- Residual risk: 일정 압박으로 known issue를 허용 범위 밖까지 끌고 갈 수 있음
+
+## Team Integration
+
+- Local work kept by parent Codex: 정책 확인, 공식 문서 확인, 최종 라우팅 요약
+- Delegated work: 이후 부서별 상세 문서 작성과 검증 실행
+- Integration checkpoint: Stage 2 scope freeze 후 CEO/Planner/Developer/Graphic_designer/Quaility_Assurance 문서가 모두 채워졌는지 확인
+- Conflict resolution rule: `project_develop_policy.md` > latest user instruction > CEO > Planner > Developer > Graphic_designer > Quaility_Assurance
+- Final verification: Android AAB build evidence, Play Console testing track setup evidence, App content completion evidence, store assets evidence, QA pass/fail summary
