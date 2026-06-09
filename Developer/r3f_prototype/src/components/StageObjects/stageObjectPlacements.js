@@ -5,7 +5,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       type: 'classroomDesk',
       position: [-15.6, 0, -15.8],
       rotation: [0, 0.42, 0],
-      scale: 1.04,
+      scale: 0.832,
       props: { variant: 'upright' },
     },
     {
@@ -13,7 +13,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       type: 'classroomChair',
       position: [-13.4, 0, -13.2],
       rotation: [0, -0.92, 0],
-      scale: 0.92,
+      scale: 0.736,
       props: { variant: 'tilted' },
     },
     {
@@ -21,7 +21,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       type: 'classroomDesk',
       position: [15.8, 0, -15.2],
       rotation: [0, -0.72, 0],
-      scale: 0.98,
+      scale: 0.784,
       props: { variant: 'abandoned' },
     },
     {
@@ -29,7 +29,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       type: 'classroomChair',
       position: [13.2, 0, -13.6],
       rotation: [0, 1.28, 0],
-      scale: 0.88,
+      scale: 0.704,
       props: { variant: 'overturned' },
     },
     {
@@ -37,7 +37,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       type: 'classroomDesk',
       position: [-15.8, 0, 14.6],
       rotation: [0, 1.35, 0],
-      scale: 1.02,
+      scale: 0.816,
       props: { variant: 'overturned' },
     },
     {
@@ -53,7 +53,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       type: 'classroomDesk',
       position: [15.6, 0, 15.4],
       rotation: [0, -1.18, 0],
-      scale: 1,
+      scale: 0.8,
       props: { variant: 'abandoned' },
     },
     {
@@ -69,7 +69,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       type: 'classroomDesk',
       position: [-17.4, 0, -4.2],
       rotation: [0, 2.55, 0],
-      scale: 0.96,
+      scale: 0.768,
       props: { variant: 'tilted' },
     },
     {
@@ -77,7 +77,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       type: 'classroomChair',
       position: [-16.2, 0, 4.8],
       rotation: [0, -2.8, 0],
-      scale: 0.86,
+      scale: 0.688,
       props: { variant: 'abandoned' },
     },
     {
@@ -85,7 +85,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       type: 'classroomDesk',
       position: [17.4, 0, 4.4],
       rotation: [0, -2.35, 0],
-      scale: 0.94,
+      scale: 0.752,
       props: { variant: 'abandoned' },
     },
     {
@@ -93,7 +93,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       type: 'classroomChair',
       position: [16.1, 0, -4.8],
       rotation: [0, 2.7, 0],
-      scale: 0.84,
+      scale: 0.672,
       props: { variant: 'tilted' },
     },
   ],
@@ -103,28 +103,28 @@ export const STAGE_OBJECT_PLACEMENTS = {
       type: 'classroomDesk',
       position: [-10.4, 0, -22],
       rotation: [0, Math.PI / 2, 0],
-      scale: 0.96,
+      scale: 0.768,
     },
     {
       id: 'stage2-desk-right-mid',
       type: 'classroomDesk',
       position: [10.3, 0, -8],
       rotation: [0, -Math.PI / 2, 0],
-      scale: 0.94,
+      scale: 0.752,
     },
     {
       id: 'stage2-desk-left-low',
       type: 'classroomDesk',
       position: [-10.1, 0, 10],
       rotation: [0, Math.PI / 2 - 0.08, 0],
-      scale: 0.98,
+      scale: 0.784,
     },
     {
       id: 'stage2-desk-right-bottom',
       type: 'classroomDesk',
       position: [10.2, 0, 24],
       rotation: [0, -Math.PI / 2 + 0.06, 0],
-      scale: 1,
+      scale: 0.8,
     },
   ],
 }

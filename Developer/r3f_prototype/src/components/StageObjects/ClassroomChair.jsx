@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import { inflateScale, outlineMat, toonMat } from '../../lib/toon.js'
+import { outlineMat, toonMat } from '../../lib/toon.js'
+import { getPropOutlineScale, STAGE_PROP_MESH_RENDERING } from './propRendering.js'
 
 export const CLASSROOM_CHAIR_VARIANTS = {
   upright: {
@@ -27,11 +28,11 @@ function ChairBox({
   material,
   outline,
 }) {
-  const outlineScale = useMemo(() => inflateScale(scale), [scale])
+  const outlineScale = useMemo(() => getPropOutlineScale(scale), [scale])
 
   return (
     <group position={position} rotation={rotation}>
-      <mesh castShadow receiveShadow scale={scale} material={material}>
+      <mesh {...STAGE_PROP_MESH_RENDERING} scale={scale} material={material}>
         <boxGeometry args={[1, 1, 1]} />
       </mesh>
       <mesh scale={outlineScale} material={outline}>
