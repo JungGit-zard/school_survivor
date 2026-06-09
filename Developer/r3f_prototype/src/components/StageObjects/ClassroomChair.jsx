@@ -1,31 +1,22 @@
 import { useMemo } from 'react'
-import * as THREE from 'three'
 import { inflateScale, outlineMat, toonMat } from '../../lib/toon.js'
 
 export const CLASSROOM_CHAIR_VARIANTS = {
   upright: {
     modelPosition: [0, 0, 0],
     modelRotation: [0, 0, 0],
-    shadowScale: [0.78, 0.78, 1],
-    shadowOpacity: 0.17,
   },
   abandoned: {
     modelPosition: [0, 0.02, 0],
     modelRotation: [0.02, 0, -0.12],
-    shadowScale: [0.86, 0.74, 1],
-    shadowOpacity: 0.19,
   },
   tilted: {
     modelPosition: [0, 0.07, 0],
     modelRotation: [0.08, 0, 0.2],
-    shadowScale: [0.94, 0.68, 1],
-    shadowOpacity: 0.2,
   },
   overturned: {
     modelPosition: [0, 0.74, 0],
     modelRotation: [0, 0, Math.PI],
-    shadowScale: [1.02, 0.64, 1],
-    shadowOpacity: 0.22,
   },
 }
 
@@ -58,28 +49,9 @@ export default function ClassroomChair({ variant = 'upright', ...props }) {
   const boltMat = useMemo(() => toonMat(0x7a7a7a, 0.02), [])
   const capMat = useMemo(() => toonMat(0x333333, 0), [])
   const outline = useMemo(() => outlineMat(0.9, 0x24170f), [])
-  const shadowMat = useMemo(
-    () => new THREE.MeshBasicMaterial({
-      color: 0x150f12,
-      transparent: true,
-      opacity: variantConfig.shadowOpacity,
-      depthWrite: false,
-    }),
-    [variantConfig.shadowOpacity]
-  )
 
   return (
     <group {...props}>
-      <mesh
-        position={[0, 0.02, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        scale={variantConfig.shadowScale}
-        material={shadowMat}
-        renderOrder={1}
-      >
-        <circleGeometry args={[0.78, 20]} />
-      </mesh>
-
       <group position={variantConfig.modelPosition} rotation={variantConfig.modelRotation}>
         <ChairBox position={[0, 0.54, 0]} scale={[1.02, 0.11, 0.9]} material={woodMat} outline={outline} />
         <ChairBox position={[0, 0.6, 0]} scale={[0.84, 0.025, 0.74]} material={woodHighlightMat} outline={outline} />

@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import * as THREE from 'three'
 import { inflateScale, outlineMat, toonMat } from '../../lib/toon.js'
 
 export const UNCONSCIOUS_STUDENT_VARIANTS = {
@@ -7,22 +6,16 @@ export const UNCONSCIOUS_STUDENT_VARIANTS = {
     modelPosition: [0, 0.34, 0],
     modelRotation: [Math.PI / 2, 0, 0],
     bodyRotation: [0, 0, 0],
-    shadowScale: [1.26, 0.66, 1],
-    shadowOpacity: 0.22,
   },
   sideLeft: {
     modelPosition: [0, 0.36, 0],
     modelRotation: [Math.PI / 2, 0, -0.24],
     bodyRotation: [0, 0.2, 0],
-    shadowScale: [1.2, 0.72, 1],
-    shadowOpacity: 0.22,
   },
   sideRight: {
     modelPosition: [0, 0.36, 0],
     modelRotation: [Math.PI / 2, 0, 0.22],
     bodyRotation: [0, -0.18, 0],
-    shadowScale: [1.2, 0.72, 1],
-    shadowOpacity: 0.22,
   },
 }
 
@@ -61,28 +54,9 @@ export default function UnconsciousStudent({ variant = 'faceUp', ...props }) {
   const tieMat = useMemo(() => toonMat(0xa32727, 0.05), [])
   const badgeMat = useMemo(() => toonMat(0xf2c14e, 0.12), [])
   const outline = useMemo(() => outlineMat(0.9, 0x130d0d), [])
-  const shadowMat = useMemo(
-    () => new THREE.MeshBasicMaterial({
-      color: 0x150f12,
-      transparent: true,
-      opacity: variantConfig.shadowOpacity,
-      depthWrite: false,
-    }),
-    [variantConfig.shadowOpacity]
-  )
 
   return (
     <group {...props}>
-      <mesh
-        position={[0, 0.02, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        scale={variantConfig.shadowScale}
-        material={shadowMat}
-        renderOrder={1}
-      >
-        <circleGeometry args={[1.04, 24]} />
-      </mesh>
-
       <group position={variantConfig.modelPosition} rotation={variantConfig.modelRotation}>
         <group rotation={variantConfig.bodyRotation}>
           <StudentBox position={[0, 0.48, 0]} scale={[0.62, 0.78, 0.28]} material={uniformMat} outline={outline} />

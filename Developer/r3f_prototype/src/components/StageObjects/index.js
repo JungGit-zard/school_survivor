@@ -1,4 +1,4 @@
-export { default as ClassroomDesk } from './ClassroomDesk.jsx'
+export { default as ClassroomDesk, CLASSROOM_DESK_VARIANTS } from './ClassroomDesk.jsx'
 export { default as ClassroomChair, CLASSROOM_CHAIR_VARIANTS } from './ClassroomChair.jsx'
 export { default as StageObjectLayer } from './StageObjectLayer.jsx'
 export { default as UnconsciousStudent, UNCONSCIOUS_STUDENT_VARIANTS } from './UnconsciousStudent.jsx'

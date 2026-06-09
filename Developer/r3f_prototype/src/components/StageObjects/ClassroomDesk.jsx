@@ -1,31 +1,22 @@
 import { useMemo } from 'react'
-import * as THREE from 'three'
 import { inflateScale, outlineMat, toonMat } from '../../lib/toon.js'
 
 export const CLASSROOM_DESK_VARIANTS = {
   upright: {
     modelPosition: [0, 0, 0],
     modelRotation: [0, 0, 0],
-    shadowScale: [1, 1, 1],
-    shadowOpacity: 0.18,
   },
   abandoned: {
     modelPosition: [0, 0.02, 0],
     modelRotation: [0.03, 0, -0.1],
-    shadowScale: [1.08, 0.92, 1],
-    shadowOpacity: 0.2,
   },
   tilted: {
     modelPosition: [0, 0.08, 0],
     modelRotation: [0.1, 0, 0.18],
-    shadowScale: [1.16, 0.86, 1],
-    shadowOpacity: 0.2,
   },
   overturned: {
     modelPosition: [0, 0.92, 0],
     modelRotation: [0, 0, Math.PI],
-    shadowScale: [1.22, 0.82, 1],
-    shadowOpacity: 0.22,
   },
 }
 
@@ -59,28 +50,9 @@ export default function ClassroomDesk({ variant = 'upright', ...props }) {
   const storageMat = useMemo(() => toonMat(0x7a7a7a, 0.02), [])
   const capMat = useMemo(() => toonMat(0x333333, 0), [])
   const outline = useMemo(() => outlineMat(0.9, 0x24170f), [])
-  const shadowMat = useMemo(
-    () => new THREE.MeshBasicMaterial({
-      color: 0x150f12,
-      transparent: true,
-      opacity: variantConfig.shadowOpacity,
-      depthWrite: false,
-    }),
-    [variantConfig.shadowOpacity]
-  )
 
   return (
     <group {...props}>
-      <mesh
-        position={[0, 0.02, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        scale={variantConfig.shadowScale}
-        material={shadowMat}
-        renderOrder={1}
-      >
-        <circleGeometry args={[0.98, 20]} />
-      </mesh>
-
       <group position={variantConfig.modelPosition} rotation={variantConfig.modelRotation}>
         <DeskBox position={[0, 0.78, 0]} scale={[1.76, 0.12, 1.04]} material={topMat} outline={outline} />
         <DeskBox position={[0, 0.845, 0]} scale={[1.56, 0.03, 0.86]} material={topHighlightMat} outline={outline} />
