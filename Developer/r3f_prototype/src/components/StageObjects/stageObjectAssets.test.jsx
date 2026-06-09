@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   CLASSROOM_CHAIR_VARIANTS,
+  CLASSROOM_DESK_VARIANTS,
   ClassroomChair,
   UNCONSCIOUS_STUDENT_VARIANTS,
   UnconsciousStudent,
@@ -20,6 +21,21 @@ describe('stage object asset catalog', () => {
       'upright',
     ])
     expect(CLASSROOM_CHAIR_VARIANTS.overturned.modelRotation[2]).toBeCloseTo(Math.PI)
+  })
+
+  it('does not use dark blob shadow fields on prop variants', () => {
+    const variantSets = [
+      CLASSROOM_CHAIR_VARIANTS,
+      CLASSROOM_DESK_VARIANTS,
+      UNCONSCIOUS_STUDENT_VARIANTS,
+    ]
+
+    for (const variants of variantSets) {
+      for (const variant of Object.values(variants)) {
+        expect(variant.shadowOpacity).toBeUndefined()
+        expect(variant.shadowScale).toBeUndefined()
+      }
+    }
   })
 
   it('defines reusable low-poly lying variants for unconscious students', () => {

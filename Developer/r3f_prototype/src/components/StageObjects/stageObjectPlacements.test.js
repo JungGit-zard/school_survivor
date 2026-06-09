@@ -62,6 +62,15 @@ describe('stage object placements', () => {
     expect([...studentVariants].every((variant) => UNCONSCIOUS_STUDENT_VARIANTS[variant])).toBe(true)
   })
 
+  it('keeps mixed Stage 1 clutter close enough to read from the starting classroom view', () => {
+    const readableProps = getStageObjectPlacements('stage1').filter(({ type, position: [x, , z] }) => (
+      ['classroomChair', 'classroomDesk', 'unconsciousStudent'].includes(type) &&
+      Math.max(Math.abs(x), Math.abs(z)) <= 18
+    ))
+
+    expect(readableProps.length).toBeGreaterThanOrEqual(8)
+  })
+
   it('keeps Stage 2 desks near corridor edges instead of the center lane', () => {
     expect(
       getStageObjectPlacements('stage2').every(({ position: [x] }) => Math.abs(x) >= 9.5)

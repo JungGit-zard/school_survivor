@@ -3,7 +3,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage1-desk-nw-01',
       type: 'classroomDesk',
-      position: [-22, 0, -19],
+      position: [-15.6, 0, -15.8],
       rotation: [0, 0.42, 0],
       scale: 1.04,
       props: { variant: 'upright' },
@@ -11,7 +11,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage1-chair-nw-01',
       type: 'classroomChair',
-      position: [-19.4, 0, -17.2],
+      position: [-13.4, 0, -13.2],
       rotation: [0, -0.92, 0],
       scale: 0.92,
       props: { variant: 'tilted' },
@@ -19,7 +19,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage1-desk-ne-01',
       type: 'classroomDesk',
-      position: [21, 0, -18],
+      position: [15.8, 0, -15.2],
       rotation: [0, -0.72, 0],
       scale: 0.98,
       props: { variant: 'abandoned' },
@@ -27,7 +27,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage1-chair-ne-01',
       type: 'classroomChair',
-      position: [18.5, 0, -15.4],
+      position: [13.2, 0, -13.6],
       rotation: [0, 1.28, 0],
       scale: 0.88,
       props: { variant: 'overturned' },
@@ -35,7 +35,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage1-desk-sw-01',
       type: 'classroomDesk',
-      position: [-22, 0, 15],
+      position: [-15.8, 0, 14.6],
       rotation: [0, 1.35, 0],
       scale: 1.02,
       props: { variant: 'overturned' },
@@ -43,7 +43,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage1-student-sw-01',
       type: 'unconsciousStudent',
-      position: [-18.6, 0, 17.4],
+      position: [-13.2, 0, 15.8],
       rotation: [0, -0.68, 0],
       scale: 0.88,
       props: { variant: 'faceUp' },
@@ -51,7 +51,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage1-desk-se-01',
       type: 'classroomDesk',
-      position: [21, 0, 18],
+      position: [15.6, 0, 15.4],
       rotation: [0, -1.18, 0],
       scale: 1,
       props: { variant: 'abandoned' },
@@ -59,7 +59,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage1-student-se-01',
       type: 'unconsciousStudent',
-      position: [18.2, 0, 14.2],
+      position: [13.4, 0, 14.2],
       rotation: [0, 0.86, 0],
       scale: 0.82,
       props: { variant: 'sideLeft' },
@@ -67,7 +67,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage1-desk-west-02',
       type: 'classroomDesk',
-      position: [-27, 0, -3],
+      position: [-17.4, 0, -4.2],
       rotation: [0, 2.55, 0],
       scale: 0.96,
       props: { variant: 'tilted' },
@@ -75,7 +75,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage1-chair-west-02',
       type: 'classroomChair',
-      position: [-25.4, 0, 3.8],
+      position: [-16.2, 0, 4.8],
       rotation: [0, -2.8, 0],
       scale: 0.86,
       props: { variant: 'abandoned' },
@@ -83,7 +83,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage1-desk-east-02',
       type: 'classroomDesk',
-      position: [27, 0, 5],
+      position: [17.4, 0, 4.4],
       rotation: [0, -2.35, 0],
       scale: 0.94,
       props: { variant: 'abandoned' },
@@ -91,7 +91,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage1-chair-east-02',
       type: 'classroomChair',
-      position: [24.8, 0, -4.5],
+      position: [16.1, 0, -4.8],
       rotation: [0, 2.7, 0],
       scale: 0.84,
       props: { variant: 'tilted' },
