@@ -17,7 +17,13 @@
       "Bash(git -C \"d:/JungSil/2.Minigame_project/school_survivor\" diff d0b381ee7da9bdf34a370b17f56371709e2405a3 --name-only)",
       "Bash(grep -E \"\\\\.\\(js|jsx\\)$\")",
       "Bash(cat \"C:/tmp/compound-engineering/ce-code-review/20260525-013412-64b2fd8c/scope.txt\" 2>/dev/null || echo \"NOT_FOUND\")",
-      "Read(//c/tmp/compound-engineering/ce-code-review/20260525-013412-64b2fd8c/**)"
+      "Read(//c/tmp/compound-engineering/ce-code-review/20260525-013412-64b2fd8c/**)",
+      "Read(//d/JungSil/2.Minigame_project/school_survivor-claude/CEO/docs/brainstorms/**)",
+      "Skill(run)",
+      "Skill(run:*)",
+      "Bash(cmd.exe /c start http://localhost:5177/)",
+      "Bash(git tag *)",
+      "Bash(git branch *)"
     ],
     "additionalDirectories": [
       "\\tmp\\compound-engineering\\ce-code-review"
