@@ -62,6 +62,21 @@ describe('stage object placements', () => {
     expect([...studentVariants].every((variant) => UNCONSCIOUS_STUDENT_VARIANTS[variant])).toBe(true)
   })
 
+  it('keeps classroom desks and chairs compact after the prop scale reduction', () => {
+    const deskAndChairScales = ['stage1', 'stage2'].flatMap((stageId) => (
+      getStageObjectPlacements(stageId)
+        .filter(({ type }) => ['classroomChair', 'classroomDesk'].includes(type))
+        .map(({ scale = 1 }) => scale)
+    ))
+    const stage1StudentScales = getStageObjectPlacements('stage1')
+      .filter(({ type }) => type === 'unconsciousStudent')
+      .map(({ scale = 1 }) => scale)
+
+    expect(Math.max(...deskAndChairScales)).toBeLessThanOrEqual(0.832)
+    expect(Math.min(...deskAndChairScales)).toBeGreaterThanOrEqual(0.672)
+    expect(stage1StudentScales).toEqual([0.88, 0.82])
+  })
+
   it('keeps mixed Stage 1 clutter close enough to read from the starting classroom view', () => {
     const readableProps = getStageObjectPlacements('stage1').filter(({ type, position: [x, , z] }) => (
       ['classroomChair', 'classroomDesk', 'unconsciousStudent'].includes(type) &&
