@@ -1,6 +1,5 @@
 ﻿import { useEffect, useState, useMemo } from 'react'
 import { useGameStore } from '../store/useGameStore.js'
-import { bagSwingState } from '../lib/refs.js'
 import { UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
 import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
@@ -361,8 +360,6 @@ export default function HUD({ onOpenCoinShop }) {
     }
   }
 
-  // 자 쿨다운 비율. 1은 준비 완료, 0은 쿨다운 시작 직후다.
-  const [bagReady] = useState(1)
   const bossWarning = useMemo(() => {
     if (bossSpawned || phase !== 'playing') return null
     const elapsedSec = elapsed / 1000
@@ -469,31 +466,6 @@ export default function HUD({ onOpenCoinShop }) {
         {Object.entries(weapons).filter(([, w]) => w.active).map(([k, w]) => (
           <div key={k} style={styles.weaponChip}>{w.label}</div>
         ))}
-      </div>
-
-      {/* 자 쿨다운 UI */}
-      <div style={styles.cdWrap}>
-        <div style={styles.cdRing}>
-          <svg width="42" height="42" viewBox="0 0 42 42" style={{ display: 'block' }}>
-            {/* 검은 배경 */}
-            <circle cx="21" cy="21" r="20" fill="#111" stroke="#333" strokeWidth="1" />
-            {/* 노란 진행 링 */}
-            <circle
-              cx="21" cy="21" r="15"
-              fill="none"
-              stroke={bagReady >= 1 ? '#ffd23c' : '#8a6800'}
-              strokeWidth="5"
-              strokeLinecap="butt"
-              strokeDasharray={`${2 * Math.PI * 15}`}
-              strokeDashoffset={`${2 * Math.PI * 15 * (1 - bagReady)}`}
-              transform="rotate(-90 21 21)"
-            />
-          </svg>
-          <span style={styles.cdIcon}>자</span>
-        </div>
-        <span style={styles.cdTime}>
-          {bagReady >= 1 ? 'OK' : `${((1 - bagReady) * (bagSwingState.cooldown / 1000)).toFixed(1)}s`}
-        </span>
       </div>
 
       {/* Modals */}
@@ -774,26 +746,6 @@ const styles = {
   weaponChip: {
     background: 'rgba(0,0,0,0.55)', color: '#fff',
     fontSize: 12, padding: '3px 8px', borderRadius: 4, border: '1px solid #555',
-  },
-  cdWrap: {
-    position: 'absolute',
-    bottom: 68,
-    left: 16,
-    display: 'none', flexDirection: 'column', alignItems: 'center', gap: 2,
-    pointerEvents: 'auto',
-  },
-  cdRing: {
-    position: 'relative', width: 42, height: 42,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-  },
-  cdIcon: {
-    position: 'absolute',
-    fontSize: 13, fontWeight: 700, color: '#ffd23c',
-    textShadow: '0 1px 3px #000', userSelect: 'none',
-  },
-  cdTime: {
-    color: '#ffd23c', fontSize: 10, fontWeight: 600,
-    textShadow: '0 1px 2px #000', letterSpacing: 0.5,
   },
   overlay: {
     position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)',
