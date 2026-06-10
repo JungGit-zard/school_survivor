@@ -1,13 +1,13 @@
-// 12종 무기의 단일 진실 카탈로그.
-// 7종 base는 useGameStore.js의 BASE_WEAPONS와 정확히 동일한 base 스탯.
-// 2종 복원(guidedMissile, starlink)과 3종 신규(compassBlade, umbrellaGuard, eraserBomb)는
-// 본 플랜에서 카탈로그에 먼저 등록만 하고 컴포넌트·카드 효과 wiring은 U5-U7에서 처리한다.
+// 13종 무기의 단일 진실 카탈로그 (8 starter + 복원 2 + 신규 3).
+// starter 8종 base는 buildInitialWeapons(useGameStore.js)가 그대로 사용하는 base 스탯.
+// 복원 2종(guidedMissile, starlink)·신규 3종(compassBlade, umbrellaGuard, eraserBomb)은
+// 컴포넌트·카드 효과 wiring까지 완료된 상태다.
 
 // Sentinel for weapons that are always unlocked.
 export const STARTER = 'starter'
 
 export const WEAPON_CATALOG = {
-  // ─── Starter 7종 (Lv.1 base 스탯은 현재 BASE_WEAPONS와 1:1 동일해야 한다) ───
+  // ─── Starter 8종 (Lv.1 base 스탯은 buildInitialWeapons가 그대로 사용한다) ───
   pencilThrow: {
     id: 'pencilThrow',
     label: '연필',

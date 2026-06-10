@@ -1,7 +1,9 @@
 export const STAGE2_E04_INTRO_SEC = 90
 export const STAGE2_E04_FIRST_FIRE_DELAY_MS = 900
 export const STAGE2_E04_MAX_PROJECTILES = 6
-export const STAGE2_E04_MIN_FIRE_DISTANCE = 3.0
+// E04 스탯 minDist(3.5, Enemy.jsx ENEMY_STATS.E04)와 일치시킨다. 이전 3.0은
+// E04가 3.5 미만에서 항상 후퇴하므로 사실상 발동하지 않는 죽은 가드였다.
+export const STAGE2_E04_MIN_FIRE_DISTANCE = 3.5
 
 export function getStage2E04Cap(elapsedSec) {
   if (elapsedSec < 120) return 2

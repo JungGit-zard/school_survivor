@@ -74,7 +74,7 @@ function GoSpeechBubble({ y }) {
   )
 }
 
-// ── 적 투사체 (E04 원거리 / B01 부채꼴) ──────────────────────────────────────
+// ── 적 투사체 (E04 원거리 전용. B01 부채꼴 패턴은 2026-05-09 폐기) ──────────────
 let _projId = 0
 
 function EnemyProjectile({ id, position, velocity, damage, onExpire }) {
@@ -388,7 +388,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
         <MiniHealthBar current={hp} max={stats.hp} width={0.32 * cs} height={0.045} y={0.72 * cs} />
       </RigidBody>
 
-      {/* E04 / B01 투사체 */}
+      {/* E04 투사체 */}
       {projectiles.map((p) => (
         <EnemyProjectile key={p.id} {...p} onExpire={expireProjectile} />
       ))}
