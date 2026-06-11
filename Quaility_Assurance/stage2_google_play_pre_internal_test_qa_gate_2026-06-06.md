@@ -1,5 +1,7 @@
 # Stage 2 Google Play Pre-Internal-Test QA Gate
 
+> 🔄 **2026-06-11 — 스테이지 길이 5분→4분:** 클리어 300→240s, 보스 240→192s, E04 도입 90→72s 등 타임라인 ×0.8 비례 축소. 본 게이트의 5분/300초 기준 항목은 ×0.8로 재계산해 검증할 것. 현행 정본: 코드 + `Planner/B. GAME_DESIGN/Stage_balance_summary.md`.
+
 - 작성일: 2026-06-06
 - 문서 위치: `Quaility_Assurance/`
 - 목적: Stage 2 완료 후 Google Play Console에 AAB를 올리고 테스터를 모집하기 전에 반드시 끝내야 할 QA 체크리스트와 Go/No-Go 기준을 고정한다.

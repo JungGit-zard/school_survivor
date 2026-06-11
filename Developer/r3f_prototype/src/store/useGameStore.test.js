@@ -57,8 +57,8 @@ describe('useGameStore XP and reset behavior', () => {
 
     const state = useGameStore.getState()
     expect(state.goldSession).toBe(1)
-    expect(state.survivalMilestonesHit).toEqual([60_000])
-    expect(state.recentMilestone.label).toBe('1분 생존 보너스')
+    expect(state.survivalMilestonesHit).toEqual([48_000])
+    expect(state.recentMilestone.label).toBe('초반 생존 보너스')
   })
 
   it('자동 일시정지는 출처를 기록하고 이어하기에서 해제한다', () => {

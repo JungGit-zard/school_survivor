@@ -20,7 +20,7 @@ describe('elite bonus rewards', () => {
 
 describe('stage 1 E06 spawn pressure', () => {
   it('keeps the late giant zombie wave at two thirds of the old three percent pressure', () => {
-    const giantPhase = WAVE_PHASES.find((phase) => phase.start === 210)
+    const giantPhase = WAVE_PHASES.find((phase) => phase.start === 168)
 
     expect(giantPhase.weights.E06).toBe(0.02)
     expect(Object.values(giantPhase.weights).reduce((sum, weight) => sum + weight, 0)).toBe(1)
@@ -31,12 +31,12 @@ describe('stage 1 E06 spawn pressure', () => {
     expect(getBurstEventsForStage('stage1').some((event) => event.type === 'E04')).toBe(false)
   })
 
-  it('introduces E04 only in stage 2 after the 90 second tutorial window', () => {
+  it('introduces E04 only in stage 2 after the 72 second tutorial window', () => {
     const stage2Phases = getWavePhasesForStage('stage2')
     const firstE04Phase = stage2Phases.find((phase) => phase.weights.E04)
 
-    expect(firstE04Phase.start).toBeGreaterThanOrEqual(90)
-    expect(getBurstEventsForStage('stage2').filter((event) => event.type === 'E04').every((event) => event.sec >= 90)).toBe(true)
+    expect(firstE04Phase.start).toBeGreaterThanOrEqual(72)
+    expect(getBurstEventsForStage('stage2').filter((event) => event.type === 'E04').every((event) => event.sec >= 72)).toBe(true)
   })
 })
 

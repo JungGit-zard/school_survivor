@@ -1,5 +1,7 @@
 ﻿# Escape! zombie school Stage 1 Current Reverse Design
 
+> 🔄 **2026-06-11 — 스테이지 길이 5분→4분:** 스테이지가 300초(5분)→**240초(4분)**로 단축, 전체 타임라인 ×0.8 비례 축소 (보스 240→192s, 마일스톤 60/180/240/300→48/144/192/240s, 웨이브·버스트 ×0.8). 본 문서의 5분/300초 수치는 ×0.8로 재계산해 읽을 것. 현행 정본: 코드 + `Planner/B. GAME_DESIGN/Stage_balance_summary.md`.
+
 > 작성일: 2026-05-09  
 > 기준: 현재 구현 코드 역기획  
 > 주요 참조 코드: `Developer/r3f_prototype/src/components/Enemies.jsx`, `Enemy.jsx`, `Weapons.jsx`, `HUD.jsx`, `Game.jsx`, `store/useGameStore.js`, `lib/upgrades.js`

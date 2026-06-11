@@ -1,5 +1,7 @@
 # Stage 2 Corridor QA Plan And Initial Validation · 2026-06-04
 
+> 🔄 **2026-06-11 — 스테이지 길이 5분→4분:** 검증 기준 타임라인이 ×0.8 비례 축소됨 (클리어 300→240s, 보스 240→192s, E04 도입 90→72s). 본 문서의 5분/300초 기준 항목은 ×0.8로 재계산해 검증할 것. 현행 정본: 코드 + `Planner/B. GAME_DESIGN/Stage_balance_summary.md`.
+
 ## Scope
 
 Stage 2 복도형 원거리 투사체 MVP 구현의 자동 테스트 기준과 수동 검증 항목을 기록한다.

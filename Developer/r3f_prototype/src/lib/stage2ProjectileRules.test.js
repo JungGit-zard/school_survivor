@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { canE04FireProjectile, getStage2E04Cap } from './stage2ProjectileRules.js'
 
 describe('stage 2 E04 projectile rules', () => {
-  it('blocks E04 before the 90 second introduction window', () => {
+  it('blocks E04 before the 72 second introduction window', () => {
     expect(canE04FireProjectile({
-      elapsedSec: 89.9,
+      elapsedSec: 71.9,
       ageMs: 2000,
       activeProjectileCount: 0,
       distanceToPlayer: 5,
@@ -49,9 +49,9 @@ describe('stage 2 E04 projectile rules', () => {
   })
 
   it('raises E04 cap over the stage timeline', () => {
-    expect(getStage2E04Cap(100)).toBe(2)
-    expect(getStage2E04Cap(150)).toBe(3)
-    expect(getStage2E04Cap(240)).toBe(3)
-    expect(getStage2E04Cap(280)).toBe(4)
+    expect(getStage2E04Cap(80)).toBe(2)
+    expect(getStage2E04Cap(120)).toBe(3)
+    expect(getStage2E04Cap(200)).toBe(3)
+    expect(getStage2E04Cap(220)).toBe(4)
   })
 })

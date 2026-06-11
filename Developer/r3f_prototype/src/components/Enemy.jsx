@@ -274,7 +274,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
         lastFireElapsedMs: lastFireRef.current,
         nowMs: now,
         cooldownMs: stats.rangedCooldown,
-        bossPressure: elapsedSec >= 237 && elapsedSec < 250,
+        bossPressure: elapsedSec >= 190 && elapsedSec < 200,
       })
 
       // 투사체 발사
