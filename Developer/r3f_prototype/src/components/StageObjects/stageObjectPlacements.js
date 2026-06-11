@@ -1,3 +1,5 @@
+import { UNCONSCIOUS_STUDENT_PLAYER_SCALE } from '../../lib/characterVisualScale.js'
+
 export const STAGE_OBJECT_PLACEMENTS = {
   stage1: [
     {
@@ -45,8 +47,24 @@ export const STAGE_OBJECT_PLACEMENTS = {
       type: 'unconsciousStudent',
       position: [-13.2, 0, 15.8],
       rotation: [0, -0.68, 0],
-      scale: 0.88,
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
       props: { variant: 'faceUp' },
+    },
+    {
+      id: 'stage1-student-sw-02',
+      type: 'unconsciousStudent',
+      position: [-17.1, 0, 11.8],
+      rotation: [0, 2.16, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'sideRight' },
+    },
+    {
+      id: 'stage1-student-south-01',
+      type: 'unconsciousStudent',
+      position: [-7.4, 0, 17.2],
+      rotation: [0, 1.42, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'sideLeft' },
     },
     {
       id: 'stage1-desk-se-01',
@@ -61,8 +79,24 @@ export const STAGE_OBJECT_PLACEMENTS = {
       type: 'unconsciousStudent',
       position: [13.4, 0, 14.2],
       rotation: [0, 0.86, 0],
-      scale: 0.82,
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
       props: { variant: 'sideLeft' },
+    },
+    {
+      id: 'stage1-student-se-02',
+      type: 'unconsciousStudent',
+      position: [17.2, 0, 10.8],
+      rotation: [0, -2.28, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'faceUp' },
+    },
+    {
+      id: 'stage1-student-south-02',
+      type: 'unconsciousStudent',
+      position: [6.6, 0, 17.0],
+      rotation: [0, -1.68, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'sideRight' },
     },
     {
       id: 'stage1-desk-west-02',
@@ -81,6 +115,22 @@ export const STAGE_OBJECT_PLACEMENTS = {
       props: { variant: 'abandoned' },
     },
     {
+      id: 'stage1-student-west-01',
+      type: 'unconsciousStudent',
+      position: [-18.2, 0, 0.6],
+      rotation: [0, -2.02, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'faceUp' },
+    },
+    {
+      id: 'stage1-student-nw-01',
+      type: 'unconsciousStudent',
+      position: [-17.0, 0, -10.4],
+      rotation: [0, 0.52, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'sideLeft' },
+    },
+    {
       id: 'stage1-desk-east-02',
       type: 'classroomDesk',
       position: [17.4, 0, 4.4],
@@ -95,6 +145,22 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, 2.7, 0],
       scale: 0.672,
       props: { variant: 'tilted' },
+    },
+    {
+      id: 'stage1-student-east-01',
+      type: 'unconsciousStudent',
+      position: [18.0, 0, -0.4],
+      rotation: [0, 1.94, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'sideRight' },
+    },
+    {
+      id: 'stage1-student-ne-01',
+      type: 'unconsciousStudent',
+      position: [16.8, 0, -10.2],
+      rotation: [0, -0.48, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'faceUp' },
     },
   ],
   stage2: [

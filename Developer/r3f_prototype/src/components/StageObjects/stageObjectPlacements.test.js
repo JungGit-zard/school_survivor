@@ -3,6 +3,11 @@ import { CLASSROOM_CHAIR_VARIANTS } from './ClassroomChair.jsx'
 import { CLASSROOM_DESK_VARIANTS } from './ClassroomDesk.jsx'
 import { UNCONSCIOUS_STUDENT_VARIANTS } from './UnconsciousStudent.jsx'
 import { getStageObjectPlacements } from './stageObjectPlacements.js'
+import {
+  PLAYER_MESH_WORLD_HEIGHT,
+  UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+  UNCONSCIOUS_STUDENT_RAW_LENGTH,
+} from '../../lib/characterVisualScale.js'
 
 describe('stage object placements', () => {
   it('provides supported stage object props for both playable stages', () => {
@@ -62,19 +67,34 @@ describe('stage object placements', () => {
     expect([...studentVariants].every((variant) => UNCONSCIOUS_STUDENT_VARIANTS[variant])).toBe(true)
   })
 
+  it('increases Stage 1 unconscious student placement density fivefold', () => {
+    const stage1Students = getStageObjectPlacements('stage1')
+      .filter(({ type }) => type === 'unconsciousStudent')
+
+    expect(stage1Students).toHaveLength(10)
+  })
+
   it('keeps classroom desks and chairs compact after the prop scale reduction', () => {
     const deskAndChairScales = ['stage1', 'stage2'].flatMap((stageId) => (
       getStageObjectPlacements(stageId)
         .filter(({ type }) => ['classroomChair', 'classroomDesk'].includes(type))
         .map(({ scale = 1 }) => scale)
     ))
+
+    expect(Math.max(...deskAndChairScales)).toBeLessThanOrEqual(0.832)
+    expect(Math.min(...deskAndChairScales)).toBeGreaterThanOrEqual(0.672)
+  })
+
+  it('keeps unconscious students at a 1:1 visual scale with the player character', () => {
     const stage1StudentScales = getStageObjectPlacements('stage1')
       .filter(({ type }) => type === 'unconsciousStudent')
       .map(({ scale = 1 }) => scale)
 
-    expect(Math.max(...deskAndChairScales)).toBeLessThanOrEqual(0.832)
-    expect(Math.min(...deskAndChairScales)).toBeGreaterThanOrEqual(0.672)
-    expect(stage1StudentScales).toEqual([0.88, 0.82])
+    expect(stage1StudentScales.every((scale) => scale === UNCONSCIOUS_STUDENT_PLAYER_SCALE)).toBe(true)
+
+    for (const scale of stage1StudentScales) {
+      expect(scale * UNCONSCIOUS_STUDENT_RAW_LENGTH).toBeCloseTo(PLAYER_MESH_WORLD_HEIGHT, 3)
+    }
   })
 
   it('keeps mixed Stage 1 clutter close enough to read from the starting classroom view', () => {
