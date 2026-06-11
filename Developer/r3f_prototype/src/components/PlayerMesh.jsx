@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { bagSwingState, playerArmActionState } from '../lib/refs.js'
 import { getActivePlayerArmAction, getPlayerArmPose } from '../lib/playerArmAction.js'
 import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
+import { PLAYER_MESH_SCALE } from '../lib/characterVisualScale.js'
 
 function Block({ size, position, rotation, color, emissive = 0.14 }) {
   const mat = useMemo(() => toonMat(color, emissive), [color, emissive])
@@ -111,7 +112,7 @@ export default function PlayerMesh({ groupRef, movingRef }) {
   })
 
   return (
-    <group ref={groupRef} scale={[0.2664, 0.2664, 0.2664]}>
+    <group ref={groupRef} scale={[PLAYER_MESH_SCALE, PLAYER_MESH_SCALE, PLAYER_MESH_SCALE]}>
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, -1.08, 0.02]}
