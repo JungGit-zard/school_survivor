@@ -8,9 +8,9 @@ import GoldCoin from './GoldCoin.jsx'
 import XpTextbook from './XpTextbook.jsx'
 import { getStage2E04Cap } from '../lib/stage2ProjectileRules.js'
 
-// 황금 코인 시계 드랍: 5분에 약 10개 → 25–35s 무작위 간격
-const GOLD_INTERVAL_MIN_MS = 25_000
-const GOLD_INTERVAL_MAX_MS = 35_000
+// 황금 코인 시계 드랍: 4분에 약 10개 → 20–28s 무작위 간격 (5분 기준 ×0.8)
+const GOLD_INTERVAL_MIN_MS = 20_000
+const GOLD_INTERVAL_MAX_MS = 28_000
 const GOLD_VISIBLE_RADIUS = 10  // 플레이어 기준 이 거리 내 적에서 드랍 시도
 export const TEXTBOOK_DROP_RATE = 0.30  // 일반 적 사망 시 교과서 드랍 확률
 
@@ -86,76 +86,80 @@ function rangedSpawnPos() {
 
 // 1스테이지는 추격/돌진형만 사용한다 (Bang_Rules 2026-05-09 부록 / stage1_replan §3-2).
 // 기존 E04 비중은 추격 압박을 늘리도록 E02/E03/E05로 재분배.
+// 4분(240초) 타임라인. 5분 기준에서 전체 ×0.8 비례 축소.
 export const WAVE_PHASES = [
-  // 0:00–0:50 단일 좀비 구간. E01 밀도만 기존 대비 2배로 올린다.
-  { start:   0, end:  50, target: 24, weights: { E01: 1.00 } },
-  // 0:50–1:00 잡몹+러너 (이동 압박 시작)
-  { start:  50, end:  60, target: 18, weights: { E01: 0.90, E03: 0.10 } },
-  // 1:00–1:30 +탱커 등장
-  { start:  60, end:  90, target: 26, weights: { E01: 0.60, E03: 0.30, E02: 0.10 } },
-  // 1:30–2:00 압박 시작
-  { start:  90, end: 120, target: 34, weights: { E01: 0.50, E03: 0.30, E02: 0.20 } },
-  // 2:00–2:30 추격형 밀도 상승
-  { start: 120, end: 150, target: 44, weights: { E01: 0.40, E03: 0.35, E02: 0.25 } },
-  // 2:30–3:00 돌진 예고 구간 (E05 첫 등장)
-  { start: 150, end: 180, target: 54, weights: { E01: 0.35, E03: 0.30, E02: 0.25, E05: 0.10 } },
-  // 3:00–3:30 돌진 본격 도입
-  { start: 180, end: 210, target: 64, weights: { E01: 0.25, E03: 0.30, E02: 0.30, E05: 0.15 } },
-  // 3:30–4:00 +거대 등장
-  { start: 210, end: 240, target: 76, weights: { E01: 0.21, E03: 0.30, E02: 0.30, E05: 0.17, E06: 0.02 } },
-  // 4:00–4:20 보스 구간 1 (잡몹+탱커)
-  { start: 240, end: 260, target: 25, weights: { E01: 0.60, E02: 0.40 }, bossPhase: true },
-  // 4:20–4:40 보스 구간 2 (탱커+돌진)
-  { start: 260, end: 280, target: 35, weights: { E02: 0.60, E05: 0.40 }, bossPhase: true },
-  // 4:40–5:00 보스 구간 3 (탱커+돌진)
-  { start: 280, end: 300, target: 45, weights: { E02: 0.50, E05: 0.50 }, bossPhase: true },
+  // 0:00–0:40 단일 좀비 구간. E01 밀도만 기존 대비 2배로 올린다.
+  { start:   0, end:  40, target: 24, weights: { E01: 1.00 } },
+  // 0:40–0:48 잡몹+러너 (이동 압박 시작)
+  { start:  40, end:  48, target: 18, weights: { E01: 0.90, E03: 0.10 } },
+  // 0:48–1:12 +탱커 등장
+  { start:  48, end:  72, target: 26, weights: { E01: 0.60, E03: 0.30, E02: 0.10 } },
+  // 1:12–1:36 압박 시작
+  { start:  72, end:  96, target: 34, weights: { E01: 0.50, E03: 0.30, E02: 0.20 } },
+  // 1:36–2:00 추격형 밀도 상승
+  { start:  96, end: 120, target: 44, weights: { E01: 0.40, E03: 0.35, E02: 0.25 } },
+  // 2:00–2:24 돌진 예고 구간 (E05 첫 등장)
+  { start: 120, end: 144, target: 54, weights: { E01: 0.35, E03: 0.30, E02: 0.25, E05: 0.10 } },
+  // 2:24–2:48 돌진 본격 도입
+  { start: 144, end: 168, target: 64, weights: { E01: 0.25, E03: 0.30, E02: 0.30, E05: 0.15 } },
+  // 2:48–3:12 +거대 등장
+  { start: 168, end: 192, target: 76, weights: { E01: 0.21, E03: 0.30, E02: 0.30, E05: 0.17, E06: 0.02 } },
+  // 3:12–3:28 보스 구간 1 (잡몹+탱커)
+  { start: 192, end: 208, target: 25, weights: { E01: 0.60, E02: 0.40 }, bossPhase: true },
+  // 3:28–3:44 보스 구간 2 (탱커+돌진)
+  { start: 208, end: 224, target: 35, weights: { E02: 0.60, E05: 0.40 }, bossPhase: true },
+  // 3:44–4:00 보스 구간 3 (탱커+돌진)
+  { start: 224, end: 240, target: 45, weights: { E02: 0.50, E05: 0.50 }, bossPhase: true },
 ]
 
+// 4분(240초) 타임라인. 5분 기준에서 전체 ×0.8 비례 축소.
 export const STAGE2_WAVE_PHASES = [
-  { start:   0, end:  30, target: 18, weights: { E01: 1.00 } },
-  { start:  30, end:  60, target: 22, weights: { E01: 0.72, E03: 0.28 } },
-  { start:  60, end:  90, target: 28, weights: { E01: 0.48, E02: 0.22, E03: 0.30 } },
-  { start:  90, end: 120, target: 30, weights: { E01: 0.55, E03: 0.30, E04: 0.15 } },
-  { start: 120, end: 150, target: 32, weights: { E02: 0.62, E04: 0.38 } },
-  { start: 150, end: 180, target: 38, weights: { E01: 0.45, E03: 0.35, E05: 0.15, E04: 0.05 } },
-  { start: 180, end: 210, target: 42, weights: { E03: 0.44, E04: 0.28, E05: 0.28 } },
-  { start: 210, end: 240, target: 44, weights: { E02: 0.50, E04: 0.32, E06: 0.18 } },
-  { start: 240, end: 260, target: 24, weights: { E01: 0.40, E02: 0.40, E04: 0.20 }, bossPhase: true },
-  { start: 260, end: 280, target: 32, weights: { E02: 0.45, E05: 0.35, E04: 0.20 }, bossPhase: true },
-  { start: 280, end: 300, target: 38, weights: { E03: 0.34, E04: 0.30, E05: 0.36 }, bossPhase: true },
+  { start:   0, end:  24, target: 18, weights: { E01: 1.00 } },
+  { start:  24, end:  48, target: 22, weights: { E01: 0.72, E03: 0.28 } },
+  { start:  48, end:  72, target: 28, weights: { E01: 0.48, E02: 0.22, E03: 0.30 } },
+  { start:  72, end:  96, target: 30, weights: { E01: 0.55, E03: 0.30, E04: 0.15 } },
+  { start:  96, end: 120, target: 32, weights: { E02: 0.62, E04: 0.38 } },
+  { start: 120, end: 144, target: 38, weights: { E01: 0.45, E03: 0.35, E05: 0.15, E04: 0.05 } },
+  { start: 144, end: 168, target: 42, weights: { E03: 0.44, E04: 0.28, E05: 0.28 } },
+  { start: 168, end: 192, target: 44, weights: { E02: 0.50, E04: 0.32, E06: 0.18 } },
+  { start: 192, end: 208, target: 24, weights: { E01: 0.40, E02: 0.40, E04: 0.20 }, bossPhase: true },
+  { start: 208, end: 224, target: 32, weights: { E02: 0.45, E05: 0.35, E04: 0.20 }, bossPhase: true },
+  { start: 224, end: 240, target: 38, weights: { E03: 0.34, E04: 0.30, E05: 0.36 }, bossPhase: true },
 ]
 
+// 4분 타임라인. 5분 기준 sec ×0.8.
 const BURST_EVENTS = [
-  { sec:   0, type: 'E01', count: 16 },  // 50초 전 단일 좀비 구간 밀도 2배
-  { sec:  30, type: 'E01', count: 12 },  // 50초 전 단일 좀비 구간 밀도 2배
-  { sec:  60, type: 'E02', count:  4 },  // 탱커 첫 등장 신호
-  { sec:  90, type: 'E03', count:  6 },  // 러너 압박
-  { sec: 120, type: 'E01', count:  8 },  // 엘리트 직전 잡몹 러시
-  { sec: 120, type: 'E02', count:  4 },
-  { sec: 150, type: 'E05', count:  4 },  // 돌진 첫 등장 (E04 탄환형 폐기 — 2026-05-09)
-  { sec: 180, type: 'E05', count:  4 },  // 돌진 압박 강화
-  { sec: 210, type: 'E06', count:  1 },  // 거대 첫 등장
-  { sec: 230, type: 'E01', count: 12 },  // 마지막 러시 (보스 직전)
-  { sec: 230, type: 'E02', count:  8 },
-  { sec: 230, type: 'E05', count:  4 },
-  { sec: 240, type: 'B01', count:  1 },  // 보스 등장
-  { sec: 270, type: 'E05', count:  5 },
+  { sec:   0, type: 'E01', count: 16 },  // 40초 전 단일 좀비 구간 밀도 2배
+  { sec:  24, type: 'E01', count: 12 },  // 40초 전 단일 좀비 구간 밀도 2배
+  { sec:  48, type: 'E02', count:  4 },  // 탱커 첫 등장 신호
+  { sec:  72, type: 'E03', count:  6 },  // 러너 압박
+  { sec:  96, type: 'E01', count:  8 },  // 엘리트 직전 잡몹 러시
+  { sec:  96, type: 'E02', count:  4 },
+  { sec: 120, type: 'E05', count:  4 },  // 돌진 첫 등장 (E04 탄환형 폐기 — 2026-05-09)
+  { sec: 144, type: 'E05', count:  4 },  // 돌진 압박 강화
+  { sec: 168, type: 'E06', count:  1 },  // 거대 첫 등장
+  { sec: 184, type: 'E01', count: 12 },  // 마지막 러시 (보스 직전)
+  { sec: 184, type: 'E02', count:  8 },
+  { sec: 184, type: 'E05', count:  4 },
+  { sec: 192, type: 'B01', count:  1 },  // 보스 등장
+  { sec: 216, type: 'E05', count:  5 },
 ]
 
+// 4분 타임라인. 5분 기준 sec ×0.8.
 export const STAGE2_BURST_EVENTS = [
   { sec:   0, type: 'E01', count: 10 },
-  { sec:  30, type: 'E03', count:  4 },
-  { sec:  60, type: 'E02', count:  3 },
-  { sec:  90, type: 'E04', count:  1 },
-  { sec: 120, type: 'E04', count:  2 },
-  { sec: 150, type: 'E05', count:  3 },
-  { sec: 180, type: 'E04', count:  2 },
-  { sec: 180, type: 'E05', count:  3 },
-  { sec: 210, type: 'E06', count:  1 },
-  { sec: 230, type: 'E04', count:  2 },
-  { sec: 240, type: 'B01', count:  1 },
-  { sec: 270, type: 'E05', count:  4 },
-  { sec: 270, type: 'E04', count:  2 },
+  { sec:  24, type: 'E03', count:  4 },
+  { sec:  48, type: 'E02', count:  3 },
+  { sec:  72, type: 'E04', count:  1 },
+  { sec:  96, type: 'E04', count:  2 },
+  { sec: 120, type: 'E05', count:  3 },
+  { sec: 144, type: 'E04', count:  2 },
+  { sec: 144, type: 'E05', count:  3 },
+  { sec: 168, type: 'E06', count:  1 },
+  { sec: 184, type: 'E04', count:  2 },
+  { sec: 192, type: 'B01', count:  1 },
+  { sec: 216, type: 'E05', count:  4 },
+  { sec: 216, type: 'E04', count:  2 },
 ]
 
 export function getWavePhasesForStage(stageId) {

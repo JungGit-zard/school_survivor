@@ -63,10 +63,10 @@ function applyMagnetPassive(levels) {
 const GOLD_STORAGE_KEY = 'school_survivor:goldTotal'
 
 export const SURVIVAL_MILESTONES = [
-  { atMs: 60_000, gold: 1, label: '1분 생존 보너스' },
-  { atMs: 180_000, gold: 3, label: '3분 돌파 보너스' },
-  { atMs: 240_000, gold: 4, label: '보스 조우 보너스' },
-  { atMs: 300_000, gold: 8, label: '학교 탈출 보너스' },
+  { atMs: 48_000, gold: 1, label: '초반 생존 보너스' },
+  { atMs: 144_000, gold: 3, label: '중반 돌파 보너스' },
+  { atMs: 192_000, gold: 4, label: '보스 조우 보너스' },
+  { atMs: 240_000, gold: 8, label: '학교 탈출 보너스' },
 ]
 
 function loadGoldTotal() {

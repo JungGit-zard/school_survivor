@@ -1,5 +1,7 @@
 # Stage 2 Corridor Implementation Plan
 
+> 🔄 **2026-06-11 — 스테이지 길이 5분→4분:** 스테이지가 300초(5분)→**240초(4분)**로 단축, 전체 타임라인 ×0.8 비례 축소 (보스 240→192s, E04 도입 90→72s, 마일스톤 ×0.8, 웨이브·버스트 ×0.8). 본 문서의 5분/300초 수치는 ×0.8로 재계산해 읽을 것. 현행 정본: 코드 + `Planner/B. GAME_DESIGN/Stage_balance_summary.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use Superpowers TDD and verification before implementation completion. Steps use checkbox syntax for tracking.
 
 **Goal:** Stage 2를 Stage 1과 분리된 300초 복도형 원거리 투사체 스테이지로 실제 플레이 가능하게 만든다.

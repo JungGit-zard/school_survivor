@@ -54,8 +54,8 @@ describe('useGameStore run-end unlock evaluator', () => {
     expect(useGameStore.getState().newlyUnlockedWeaponIds).toEqual([])
   })
 
-  it('5분 클리어 → stage1Clears 누적 +1', () => {
-    useGameStore.setState({ elapsedMs: 300_000 })
+  it('4분 클리어 → stage1Clears 누적 +1', () => {
+    useGameStore.setState({ elapsedMs: 240_000 })
     useGameStore.getState()._onRunEnd('cleared')
     const records = JSON.parse(localStorage.getItem(RECORDS_KEY))
     expect(records.stage1Clears).toBe(1)
@@ -63,13 +63,13 @@ describe('useGameStore run-end unlock evaluator', () => {
 
   it('Stage 2 clear increments stage2Clears without touching stage1Clears', () => {
     useGameStore.getState().resetGame('stage2')
-    useGameStore.setState({ elapsedMs: 300_000 })
+    useGameStore.setState({ elapsedMs: 240_000 })
 
     useGameStore.getState()._onRunEnd('cleared')
 
     const records = JSON.parse(localStorage.getItem(RECORDS_KEY))
     expect(records.stage2Clears).toBe(1)
-    expect(records.stage2BestSurvivalSec).toBe(300)
+    expect(records.stage2BestSurvivalSec).toBe(240)
     expect(records.stage1Clears).toBeUndefined()
   })
 

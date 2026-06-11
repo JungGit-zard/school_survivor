@@ -1,5 +1,7 @@
 # Stage 2 복도형 원거리 투사체 스테이지 기획
 
+> 🔄 **2026-06-11 — 스테이지 길이 5분→4분:** 스테이지가 300초(5분)→**240초(4분)**로 단축, 전체 타임라인 ×0.8 비례 축소 (보스 240→192s, E04 도입 90→72s, E04 캡 임계 120/270→96/216s, 마일스톤 60/180/240/300→48/144/192/240s, 웨이브·버스트 ×0.8). 본 문서의 5분/300초 수치는 ×0.8로 재계산해 읽을 것. 현행 정본: 코드 + `Planner/B. GAME_DESIGN/Stage_balance_summary.md`.
+
 - 작성일: 2026-06-03
 - 작성 방식: Superpowers brainstorming + Agent Room 서브에이전트 논의
 - 논의 참여: code-mapper, game-developer, product-manager, reviewer

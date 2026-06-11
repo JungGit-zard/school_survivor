@@ -7,9 +7,9 @@ import {
 } from './stageConfig.js'
 
 describe('stage configuration registry', () => {
-  it('keeps stage 1 as the default 300 second survival stage', () => {
+  it('keeps stage 1 as the default 240 second survival stage', () => {
     expect(DEFAULT_STAGE_ID).toBe('stage1')
-    expect(getStageDurationSec('stage1')).toBe(300)
+    expect(getStageDurationSec('stage1')).toBe(240)
     expect(getStageConfig('stage1')).toMatchObject({
       id: 'stage1',
       label: 'Stage 1',
@@ -17,14 +17,14 @@ describe('stage configuration registry', () => {
     })
   })
 
-  it('defines stage 2 as a separate 300 second corridor projectile stage', () => {
-    expect(getStageDurationSec('stage2')).toBe(300)
+  it('defines stage 2 as a separate 240 second corridor projectile stage', () => {
+    expect(getStageDurationSec('stage2')).toBe(240)
     expect(getStageConfig('stage2')).toMatchObject({
       id: 'stage2',
       label: 'Stage 2',
       clearRecordKey: 'stage2Clears',
       bestRecordKey: 'stage2BestSurvivalSec',
-      e04IntroSec: 90,
+      e04IntroSec: 72,
     })
   })
 
