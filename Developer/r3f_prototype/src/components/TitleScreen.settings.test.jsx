@@ -87,6 +87,27 @@ describe('TitleScreen settings modal', () => {
     cleanup()
   })
 
+  it('unlocks every non-starter weapon when typing the title cheat key sequence', () => {
+    const { cleanup } = renderTitleScreen()
+
+    act(() => {
+      for (const key of 'unlockall') {
+        window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
+      }
+    })
+
+    const unlocks = JSON.parse(localStorage.getItem(WEAPON_UNLOCKS_KEY))
+    const nonStarterIds = Object.keys(WEAPON_CATALOG).filter((id) => !isStarter(id))
+
+    for (const id of nonStarterIds) {
+      expect(unlocks[id], id).toBe(1)
+    }
+
+    expect(JSON.parse(localStorage.getItem(SETTINGS_KEY)).unlockAllWeaponsCheat).toBe(true)
+
+    cleanup()
+  })
+
   it('shows Stage 2 as locked before the unlock condition is met', () => {
     const { container, cleanup } = renderTitleScreen()
 
