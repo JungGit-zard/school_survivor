@@ -10,11 +10,11 @@ import {
 } from './weaponCatalog.js'
 
 describe('weaponCatalog', () => {
-  it('12종 entry 등록 + starter 7종', () => {
+  it('14종 entry 등록 + starter 9종', () => {
     const all = getAllWeaponIds()
-    expect(all.length).toBe(13)
+    expect(all.length).toBe(14)
     const starter = getStarterIds()
-    expect(starter).toEqual(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri'])
+    expect(starter).toEqual(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'chibiko'])
   })
 
   it('Starter base 스탯이 BASE_WEAPONS 정본 값과 일치한다', () => {
@@ -30,6 +30,9 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.stunGun.base.chainCount).toBe(2)
     expect(WEAPON_CATALOG.onigiri.base.cooldown).toBe(5000)
     expect(WEAPON_CATALOG.onigiri.base.bounces).toBe(1)
+    expect(WEAPON_CATALOG.chibiko.base.damage).toBe(5)
+    expect(WEAPON_CATALOG.chibiko.base.cooldown).toBe(1100)
+    expect(WEAPON_CATALOG.chibiko.base.followDistance).toBe(0.72)
   })
 
   it('복원 2종(R6) Lv.1 스탯 정확히 일치', () => {
@@ -62,11 +65,12 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.eraserBomb.minLevelToAppear).toBe(4)
     expect(WEAPON_CATALOG.guidedMissile.minLevelToAppear).toBe(4)
     expect(WEAPON_CATALOG.starlink.minLevelToAppear).toBe(8)
+    expect(WEAPON_CATALOG.chibiko.minLevelToAppear).toBe(8)
   })
 
-  it('evaluateUnlocks 빈 records → starter 7종만', () => {
+  it('evaluateUnlocks 빈 records → starter 9종만', () => {
     const u = evaluateUnlocks({})
-    expect(u.size).toBe(8)
+    expect(u.size).toBe(9)
     for (const id of getStarterIds()) expect(u.has(id)).toBe(true)
     expect(u.has('compassBlade')).toBe(false)
   })
@@ -116,7 +120,7 @@ describe('weaponCatalog', () => {
   it('null/undefined records 안전', () => {
     expect(() => evaluateUnlocks(null)).not.toThrow()
     expect(() => evaluateUnlocks(undefined)).not.toThrow()
-    expect(evaluateUnlocks(null).size).toBe(8) // starter only
+    expect(evaluateUnlocks(null).size).toBe(9) // starter only
   })
 
   it('isStarter / isValidWeaponId / STARTER 상수', () => {

@@ -65,6 +65,13 @@ describe('isUpgradeAvailable', () => {
     expect(isUpgradeAvailable({ weapon: 'bell', kind: 'acquire', minLevel: 4 }, 4, { bell: wpn() })).toBe(true)
   })
 
+  it('치비코 획득은 Lv.8 최고 레벨 카드로만 가능', () => {
+    const weapons = { chibiko: wpn({ active: false }) }
+    expect(UPGRADE_EFFECTS.acquireChibiko).toMatchObject({ weapon: 'chibiko', kind: 'acquire', minLevel: 8 })
+    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireChibiko, 7, weapons)).toBe(false)
+    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireChibiko, 8, weapons)).toBe(true)
+  })
+
   it('unlock: 이미 active이면 false', () => {
     expect(isUpgradeAvailable(
       { weapon: 'bell', kind: 'acquire' }, 10,

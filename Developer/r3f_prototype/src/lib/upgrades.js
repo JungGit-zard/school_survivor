@@ -43,6 +43,7 @@ export const UPGRADE_EFFECTS = {
   acquireEraserBomb:    { weapon: 'eraserBomb',    kind: 'acquire', minLevel: 4 },
   eraserDamage:        { weapon: 'eraserBomb',    kind: 'damage', dmg: 8 },
   eraserRadius:        { weapon: 'eraserBomb',    kind: 'stat',   stat: 'radius',    step: 0.19, cap: 2.1 },
+  acquireChibiko:       { weapon: 'chibiko',       kind: 'acquire', minLevel: 8 },
   moveSpeed:      { kind: 'player', stat: 'speed', capMultiplier: 1.8 },
   maxHealth:      { kind: 'player' },
 }
