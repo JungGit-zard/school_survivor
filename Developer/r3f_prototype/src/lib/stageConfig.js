@@ -13,6 +13,9 @@ export const STAGE_CONFIGS = {
     clearRecordKey: 'stage1Clears',
     bestRecordKey: 'bestSurvivalSeconds',
     bossWarningSec: 192,
+    // 맵 경계(월드 유닛, 중심 0). 교실 구도에 맞춰 세로로 긴 직사각형 — 화면 세로=Z, 가로=X.
+    mapHalfX: 34,
+    mapHalfZ: 54,
     survivalMilestones: [
       { atMs: 48_000, gold: 1, label: '초반 생존 보너스' },
       { atMs: 144_000, gold: 3, label: '중반 돌파 보너스' },
@@ -30,6 +33,9 @@ export const STAGE_CONFIGS = {
     bestRecordKey: 'stage2BestSurvivalSec',
     bossWarningSec: 192,
     e04IntroSec: 72,
+    // 복도형: 현재 정사각 경계 유지 (코리도 시각 연출은 ClassroomFloor에서 별도 처리).
+    mapHalfX: 48,
+    mapHalfZ: 48,
     survivalMilestones: [
       { atMs: 48_000, gold: 2, label: '복도 적응 보너스' },
       { atMs: 144_000, gold: 4, label: '탄환 회피 보너스' },
@@ -45,6 +51,18 @@ export function getStageConfig(stageId = DEFAULT_STAGE_ID) {
 
 export function getStageDurationSec(stageId = DEFAULT_STAGE_ID) {
   return getStageConfig(stageId).durationSec
+}
+
+// 맵 경계 반-크기(중심 0 기준). 바닥·벽·카메라 클램프·플레이어 바운드·스폰 클램프가 모두 참조하는 단일 진실.
+export const DEFAULT_MAP_HALF_X = 48
+export const DEFAULT_MAP_HALF_Z = 48
+
+export function getStageBounds(stageId = DEFAULT_STAGE_ID) {
+  const config = getStageConfig(stageId)
+  return {
+    halfX: config.mapHalfX ?? DEFAULT_MAP_HALF_X,
+    halfZ: config.mapHalfZ ?? DEFAULT_MAP_HALF_Z,
+  }
 }
 
 export function isStageUnlocked(stageId, records = {}) {

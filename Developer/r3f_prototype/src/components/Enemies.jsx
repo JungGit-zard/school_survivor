@@ -7,6 +7,7 @@ import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
 import GoldCoin from './GoldCoin.jsx'
 import XpTextbook from './XpTextbook.jsx'
 import { getStage2E04Cap } from '../lib/stage2ProjectileRules.js'
+import { getStageBounds } from '../lib/stageConfig.js'
 
 // 황금 코인 시계 드랍: 4분에 약 10개 → 20–28s 무작위 간격 (5분 기준 ×0.8)
 const GOLD_INTERVAL_MIN_MS = 20_000
@@ -33,7 +34,7 @@ export function shouldDropTextbook(dropData, roll = Math.random()) {
 const nextGoldInterval = () =>
   GOLD_INTERVAL_MIN_MS + Math.random() * (GOLD_INTERVAL_MAX_MS - GOLD_INTERVAL_MIN_MS)
 
-function pickGoldDropPos() {
+function pickGoldDropPos(bounds) {
   const live = []
   enemyBodies.forEach((rb) => {
     if (!rb || rb._enemyDead) return
@@ -46,10 +47,11 @@ function pickGoldDropPos() {
     const t = live[Math.floor(Math.random() * live.length)]
     return [t.x, t.y, t.z]
   }
-  // 폴백: 플레이어 주변 3.0–6.0 링
+  // 폴백: 플레이어 주변 3.0–6.0 링 (맵 경계 안으로 클램프)
   const ang = Math.random() * Math.PI * 2
   const r = 3.0 + Math.random() * 3.0
-  return [playerPos.x + Math.sin(ang) * r, 0.13, playerPos.z + Math.cos(ang) * r]
+  const [x, z] = clampToBounds(playerPos.x + Math.sin(ang) * r, playerPos.z + Math.cos(ang) * r, bounds)
+  return [x, 0.13, z]
 }
 
 // 스폰 위치
@@ -58,6 +60,17 @@ const SPAWN_MIN_RADIUS = 8.5
 const SPAWN_MAX_RADIUS = 12.5
 const RANGED_SPAWN_MIN_RADIUS = 11.5
 const RANGED_SPAWN_MAX_RADIUS = 15.5
+// 스폰은 플레이어 기준 링이라 좁은 맵에서 벽 밖으로 나갈 수 있다 → 맵 경계 안쪽으로 클램프해 적이 벽에 끼지 않게 한다.
+const SPAWN_INSET = 1.5
+
+function clampToBounds(x, z, bounds) {
+  const limX = bounds.halfX - SPAWN_INSET
+  const limZ = bounds.halfZ - SPAWN_INSET
+  return [
+    Math.min(limX, Math.max(-limX, x)),
+    Math.min(limZ, Math.max(-limZ, z)),
+  ]
+}
 
 function randomPointOnSpawnRing(minRadius, maxRadius) {
   const angle = Math.random() * Math.PI * 2
@@ -68,20 +81,20 @@ function randomPointOnSpawnRing(minRadius, maxRadius) {
   }
 }
 
-function randomSpawnPos(type) {
+function randomSpawnPos(type, bounds) {
   const stats = ENEMY_STATS[type]
   const offset = randomPointOnSpawnRing(SPAWN_MIN_RADIUS, SPAWN_MAX_RADIUS)
-  const px    = playerPos.x, pz = playerPos.z
   const y     = BASE_COL_Y * (stats?.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
-  return [px + offset.x, y, pz + offset.z]
+  const [x, z] = clampToBounds(playerPos.x + offset.x, playerPos.z + offset.z, bounds)
+  return [x, y, z]
 }
 
 // E04는 화면 가장자리 원거리 위치에서 등장한다. 1스테이지에서는 현재 사용하지 않는다.
-function rangedSpawnPos() {
+function rangedSpawnPos(bounds) {
   const offset = randomPointOnSpawnRing(RANGED_SPAWN_MIN_RADIUS, RANGED_SPAWN_MAX_RADIUS)
-  const px   = playerPos.x, pz = playerPos.z
   const y    = BASE_COL_Y * (ENEMY_STATS.E04?.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
-  return [px + offset.x, y, pz + offset.z]
+  const [x, z] = clampToBounds(playerPos.x + offset.x, playerPos.z + offset.z, bounds)
+  return [x, y, z]
 }
 
 // 1스테이지는 추격/돌진형만 사용한다 (Bang_Rules 2026-05-09 부록 / stage1_replan §3-2).
@@ -258,10 +271,11 @@ export default function Enemies() {
     if (phase !== 'playing') return
 
     const sec = useGameStore.getState().elapsedMs / 1000
+    const bounds = getStageBounds(currentStageId)
 
     goldTimerRef.current -= delta * 1000
     if (goldTimerRef.current <= 0) {
-      dropGoldCoin(pickGoldDropPos())
+      dropGoldCoin(pickGoldDropPos(bounds))
       goldTimerRef.current = nextGoldInterval()
     }
 
@@ -275,7 +289,7 @@ export default function Enemies() {
         if (evt.type === 'B01') {
           if (bossSpawned) return
           spawnBoss()
-          addEnemies([{ id: ++_uid, type: 'B01', pos: randomSpawnPos('B01') }])
+          addEnemies([{ id: ++_uid, type: 'B01', pos: randomSpawnPos('B01', bounds) }])
           return
         }
 
@@ -286,7 +300,7 @@ export default function Enemies() {
         const spawnCount = evt.type === 'E04' ? Math.min(evt.count, e04Room) : evt.count
         const newBatch = []
         for (let i = 0; i < spawnCount; i++) {
-          const pos = evt.type === 'E04' ? rangedSpawnPos() : randomSpawnPos(evt.type)
+          const pos = evt.type === 'E04' ? rangedSpawnPos(bounds) : randomSpawnPos(evt.type, bounds)
           newBatch.push({ id: ++_uid, type: evt.type, pos })
         }
         addEnemies(newBatch)
@@ -315,7 +329,7 @@ export default function Enemies() {
         const currentE04Count = enemiesRef.current.filter((e) => e.type === 'E04').length + newBatch.filter((e) => e.type === 'E04').length
         if (currentE04Count >= getStage2E04Cap(sec)) type = 'E03'
       }
-      const pos  = type === 'E04' ? rangedSpawnPos() : randomSpawnPos(type)
+      const pos  = type === 'E04' ? rangedSpawnPos(bounds) : randomSpawnPos(type, bounds)
       newBatch.push({ id: ++_uid, type, pos })
     }
     addEnemies(newBatch)

@@ -1,7 +1,7 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useGameStore } from '../store/useGameStore.js'
-import { getStageDurationSec } from '../lib/stageConfig.js'
+import { getStageDurationSec, getStageBounds } from '../lib/stageConfig.js'
 import { playerPos } from '../lib/refs.js'
 import Player from './Player.jsx'
 import Floor from './Floor.jsx'
@@ -13,9 +13,8 @@ import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwa
 const _camTarget = new THREE.Vector3()
 
 // 카메라 경계 클램프 설정.
-// MAP_HALF: 플레이 경계(벽, Floor.jsx의 ±48과 일치). 카메라 시야가 이 밖으로 안 나가게 한다.
-// CAM_HEIGHT/CAM_BACK: 카메라가 focus 기준 (0, +17, +17) 오프셋 → 45° 내려다봄.
-const MAP_HALF = 48
+// 카메라가 focus 기준 (0, +17, +17) 오프셋 → 45° 내려다봄.
+// 맵 경계(halfX/halfZ)는 스테이지별로 다르므로 clampFocus에 half를 인자로 넘긴다.
 const CAM_HEIGHT = 17
 const CAM_BACK = 17
 
@@ -35,9 +34,9 @@ function groundReach(camera) {
 }
 
 // 시야가 맵을 넘지 않도록 카메라 focus를 맵 안으로 클램프. 맵이 시야보다 좁은 축은 중앙 정렬.
-function clampFocus(value, reachNeg, reachPos) {
-  const lo = -MAP_HALF + reachNeg
-  const hi = MAP_HALF - reachPos
+function clampFocus(value, reachNeg, reachPos, half) {
+  const lo = -half + reachNeg
+  const hi = half - reachPos
   if (lo > hi) return (lo + hi) / 2
   return Math.min(hi, Math.max(lo, value))
 }
@@ -64,8 +63,9 @@ export default function Game() {
     // 플레이어를 따라가되, 카메라 시야가 맵(±48)을 넘으면 focus를 맵 안으로 고정한다.
     // → 가장자리에서 스크롤이 멈추고 캐릭터는 화면 끝(벽)까지만, 빈/잘린 바닥이 안 보인다.
     const reach = groundReach(camera)
-    const fx = clampFocus(playerPos.x, reach.reachSide, reach.reachSide)
-    const fz = clampFocus(playerPos.z, reach.reachUp, reach.reachDown)
+    const { halfX, halfZ } = getStageBounds(currentStageId)
+    const fx = clampFocus(playerPos.x, reach.reachSide, reach.reachSide, halfX)
+    const fz = clampFocus(playerPos.z, reach.reachUp, reach.reachDown, halfZ)
     _camTarget.set(fx, CAM_HEIGHT, fz + CAM_BACK)
     camera.position.lerp(_camTarget, 0.08)
     camera.lookAt(fx, 0, fz)
