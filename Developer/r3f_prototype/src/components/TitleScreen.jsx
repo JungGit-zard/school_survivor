@@ -5,6 +5,7 @@ import { getAllWeaponIds, isStarter } from '../lib/weaponCatalog.js'
 import { setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { getStageConfig, isStageUnlocked } from '../lib/stageConfig.js'
+import { useGameStore } from '../store/useGameStore.js'
 
 const SETTINGS_STORAGE_KEY = 'school_survivor:titleSettings'
 const UNLOCK_ALL_WEAPONS_CHEAT_CODE = 'unlockall'
@@ -19,6 +20,7 @@ export default function TitleScreen({ onStart }) {
   const [controlsOpen, setControlsOpen] = useState(false)
   const [settings, setSettings] = useState(loadTitleSettings)
   const [selectedStageId, setSelectedStageId] = useState('stage1')
+  const resetPassiveUpgrades = useGameStore((s) => s.resetPassiveUpgrades)
   const cheatBufferRef = useRef('')
   const titleStyle = settings.reducedEffects ? styles.titleReduced : styles.title
   const primaryButtonStyle = settings.reducedEffects ? styles.primaryButtonReduced : styles.primaryButton
@@ -93,6 +95,17 @@ export default function TitleScreen({ onStart }) {
     })
   }
 
+  const handleUnlockAllWeapons = () => {
+    unlockAllNonStarterWeapons()
+    setSettings((current) => (
+      current.unlockAllWeaponsCheat ? current : { ...current, unlockAllWeaponsCheat: true }
+    ))
+  }
+
+  const handleResetPassiveUpgrades = () => {
+    resetPassiveUpgrades()
+  }
+
   const closeSettings = () => {
     setSettingsOpen(false)
     setControlsOpen(false)
@@ -157,6 +170,14 @@ export default function TitleScreen({ onStart }) {
         <button type="button" style={primaryButtonStyle} onClick={() => onStart(playableStageId)}>
           게임 시작
         </button>
+        <div style={styles.cheatActions}>
+          <button type="button" style={styles.cheatButton} onClick={handleUnlockAllWeapons}>
+            모든 무기 해금
+          </button>
+          <button type="button" style={styles.resetButton} onClick={handleResetPassiveUpgrades}>
+            코인 레벨업 초기화
+          </button>
+        </div>
       </div>
 
       {settingsOpen && (
@@ -449,6 +470,37 @@ const styles = {
     fontWeight: 900,
     cursor: 'pointer',
     boxShadow: '0 5px 0 #050209',
+  },
+  cheatActions: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 8,
+    marginTop: 10,
+    pointerEvents: 'auto',
+  },
+  cheatButton: {
+    minHeight: 40,
+    border: '2px solid #050209',
+    borderRadius: 8,
+    background: '#f7d17e',
+    color: '#050209',
+    fontSize: 13,
+    lineHeight: 1.15,
+    fontWeight: 1000,
+    cursor: 'pointer',
+    boxShadow: '0 4px 0 #050209',
+  },
+  resetButton: {
+    minHeight: 40,
+    border: '2px solid #050209',
+    borderRadius: 8,
+    background: '#f8f7f2',
+    color: '#050209',
+    fontSize: 13,
+    lineHeight: 1.15,
+    fontWeight: 1000,
+    cursor: 'pointer',
+    boxShadow: '0 4px 0 #050209',
   },
   modalLayer: {
     position: 'absolute',

@@ -63,8 +63,12 @@ export function purchase(id, currentGold) {
   return { ok: true, nextLevel, price, nextGold: currentGold - price }
 }
 
-// 테스트용. 운영 코드에서는 호출하지 않는다.
-export function _resetForTests() {
+export function resetAllLevels() {
   if (typeof localStorage === 'undefined') return
   localStorage.removeItem(STORAGE_KEY)
+}
+
+// 테스트용. 운영 코드에서는 호출하지 않는다.
+export function _resetForTests() {
+  resetAllLevels()
 }
