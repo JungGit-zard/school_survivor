@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import TitleScene3D from './TitleScene3D.jsx'
 import { getAllWeaponIds, isStarter } from '../lib/weaponCatalog.js'
@@ -7,6 +7,7 @@ import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { getStageConfig, isStageUnlocked } from '../lib/stageConfig.js'
 
 const SETTINGS_STORAGE_KEY = 'school_survivor:titleSettings'
+const UNLOCK_ALL_WEAPONS_CHEAT_CODE = 'unlockall'
 const DEFAULT_SETTINGS = {
   vibration: true,
   reducedEffects: false,
@@ -18,6 +19,7 @@ export default function TitleScreen({ onStart }) {
   const [controlsOpen, setControlsOpen] = useState(false)
   const [settings, setSettings] = useState(loadTitleSettings)
   const [selectedStageId, setSelectedStageId] = useState('stage1')
+  const cheatBufferRef = useRef('')
   const titleStyle = settings.reducedEffects ? styles.titleReduced : styles.title
   const primaryButtonStyle = settings.reducedEffects ? styles.primaryButtonReduced : styles.primaryButton
   const records = loadPlayerRecords()
@@ -50,6 +52,31 @@ export default function TitleScreen({ onStart }) {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [settingsOpen])
+
+  useEffect(() => {
+    const handleCheatKeyDown = (event) => {
+      if (event.ctrlKey || event.altKey || event.metaKey) return
+      if (typeof event.key !== 'string' || event.key.length !== 1) return
+
+      const key = event.key.toLowerCase()
+      if (key < 'a' || key > 'z') {
+        cheatBufferRef.current = ''
+        return
+      }
+
+      cheatBufferRef.current = `${cheatBufferRef.current}${key}`.slice(-UNLOCK_ALL_WEAPONS_CHEAT_CODE.length)
+      if (cheatBufferRef.current !== UNLOCK_ALL_WEAPONS_CHEAT_CODE) return
+
+      unlockAllNonStarterWeapons()
+      cheatBufferRef.current = ''
+      setSettings((current) => (
+        current.unlockAllWeaponsCheat ? current : { ...current, unlockAllWeaponsCheat: true }
+      ))
+    }
+
+    window.addEventListener('keydown', handleCheatKeyDown)
+    return () => window.removeEventListener('keydown', handleCheatKeyDown)
+  }, [])
 
   const toggleSetting = (key) => {
     setSettings((current) => {
