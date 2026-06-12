@@ -47,14 +47,16 @@ function HairBlock({ position, rotation = [0, 0, 0], scale, material, outline })
 
 export default function UnconsciousStudent({ variant = 'faceUp', ...props }) {
   const variantConfig = UNCONSCIOUS_STUDENT_VARIANTS[variant] ?? UNCONSCIOUS_STUDENT_VARIANTS.faceUp
-  const skinMat = useMemo(() => toonMat(0xf2cba3, 0.08), [])
-  const hairMat = useMemo(() => toonMat(0x3d2e22, 0.03), [])
-  const uniformMat = useMemo(() => toonMat(0x1f2d4d, 0.06), [])
-  const pantsMat = useMemo(() => toonMat(0x7a7a7a, 0.02), [])
-  const shoeMat = useMemo(() => toonMat(0x1c1c1c, 0), [])
-  const tieMat = useMemo(() => toonMat(0xa32727, 0.05), [])
+  // 색·발광은 어두운 마루 바닥 대비 가독성 기준으로 책정 — 45° 탑다운에서 누운 자세는
+  // 화면 점유가 작아, 어두운 남색/회색이면 잔해처럼 보인다 (2026-06-13 인게임 검증).
+  const skinMat = useMemo(() => toonMat(0xf2cba3, 0.12), [])
+  const hairMat = useMemo(() => toonMat(0x55402c, 0.06), [])
+  const uniformMat = useMemo(() => toonMat(0x3f5fa8, 0.12), [])
+  const pantsMat = useMemo(() => toonMat(0x9aa1ad, 0.06), [])
+  const shoeMat = useMemo(() => toonMat(0x2a2a30, 0.02), [])
+  const tieMat = useMemo(() => toonMat(0xc23535, 0.08), [])
   const badgeMat = useMemo(() => toonMat(0xf2c14e, 0.12), [])
-  const outline = useMemo(() => outlineMat(0.9, 0x130d0d), [])
+  const outline = useMemo(() => outlineMat(0.96, 0x130d0d), [])
 
   return (
     <group {...props}>
