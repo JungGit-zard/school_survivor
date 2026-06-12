@@ -21,6 +21,7 @@ afterEach(() => {
 describe('upgrade choice filtering', () => {
   it('labels run weapon acquisition as 획득, not account 해금', () => {
     expect(getUpgradeChoiceLabel({ key: 'acquireBag' })).toContain('획득')
+    expect(getUpgradeChoiceLabel({ key: 'acquireChibiko' })).toBe('치비코 획득')
     expect(getUpgradeChoiceDesc({ key: 'acquireBell', desc: '벨 스킬 해금' })).toBe('벨 스킬 획득')
   })
 
@@ -102,6 +103,7 @@ describe('weapon upgrade icon assets', () => {
       'compassBlade',
       'umbrella',
       'eraser',
+      'chibiko',
     ]
 
     for (const type of weaponIconTypes) {

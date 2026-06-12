@@ -18,6 +18,7 @@ import starlinkIconSrc from '../assets/weapon_icon/09_wea_starlink.png.png'
 import compassBladeIconSrc from '../assets/weapon_icon/10_wea_compass.png.png'
 import umbrellaIconSrc from '../assets/weapon_icon/11_wea_umb.png.png'
 import eraserIconSrc from '../assets/weapon_icon/12_wea_eraser.png.png'
+import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
 
 const damageLabel = (name, weaponKey, upgradeKey) => (w) =>
   `${name} +${UPGRADE_EFFECTS[upgradeKey].dmg} (Lv${(w[weaponKey].level ?? 1) + 1})`
@@ -61,6 +62,7 @@ const UPGRADES = [
   { key: 'acquireEraserBomb', icon: 'eraser', label: '지우개 폭탄 해금', desc: '느린 한 방 광역 폭발' },
   { key: 'eraserDamage', icon: 'eraser', labelFn: damageLabel('폭탄 피해', 'eraserBomb', 'eraserDamage'), desc: '폭발 피해 증가' },
   { key: 'eraserRadius', icon: 'eraser', label: '폭탄 반경 +', desc: '폭발 반경 증가' },
+  { key: 'acquireChibiko', icon: 'chibiko', label: '치비코 해금', desc: '뒤따라다니며 레벨1 연필을 던짐' },
   { key: 'moveSpeed', icon: 'speed', label: '이동속도 +10%', desc: '플레이어 이동속도 증가' },
   { key: 'maxHealth', icon: 'health', label: '최대 체력 +20', desc: '최대 HP 및 현재 HP 증가' },
 ]
@@ -91,12 +93,22 @@ const WEAPON_UPGRADE_ICON_SRC = {
   compassBlade: compassBladeIconSrc,
   umbrella: umbrellaIconSrc,
   eraser: eraserIconSrc,
+  chibiko: chibikoIconSrc,
+}
+
+function resolveAssetSrc(src, depth = 0) {
+  if (!src) return null
+  if (typeof src === 'string') return src
+  if (depth > 4) return String(src)
+  if (typeof src.default === 'string') return src.default
+  if (typeof src.src === 'string') return src.src
+  return resolveAssetSrc(src.default ?? src.src ?? src.href, depth + 1)
 }
 
 export function getWeaponUpgradeIconSrc(type) {
   const src = WEAPON_UPGRADE_ICON_SRC[type]
   if (!src) return null
-  return typeof src === 'string' ? src : (src.default ?? String(src))
+  return resolveAssetSrc(src)
 }
 
 export function limitPencilUpgradeOptions(options, random = Math.random) {

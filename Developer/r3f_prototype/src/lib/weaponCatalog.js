@@ -1,5 +1,5 @@
-// 13종 무기의 단일 진실 카탈로그 (8 starter + 복원 2 + 신규 3).
-// starter 8종 base는 buildInitialWeapons(useGameStore.js)가 그대로 사용하는 base 스탯.
+// 14종 무기의 단일 진실 카탈로그 (9 starter + 복원 2 + 신규 3).
+// starter 9종 base는 buildInitialWeapons(useGameStore.js)가 그대로 사용하는 base 스탯.
 // 복원 2종(guidedMissile, starlink)·신규 3종(compassBlade, umbrellaGuard, eraserBomb)은
 // 컴포넌트·카드 효과 wiring까지 완료된 상태다.
 
@@ -65,6 +65,13 @@ export const WEAPON_CATALOG = {
     id: 'onigiri',
     label: '오니기리',
     base: { damage: 14, cooldown: 5000, bounces: 1, bounceRange: 4.5, range: 18 },
+    unlockConditions: STARTER,
+    minLevelToAppear: 8,
+  },
+  chibiko: {
+    id: 'chibiko',
+    label: '치비코',
+    base: { damage: 5, cooldown: 1100, lastFired: 0, range: 22, speed: 12, followDistance: 0.72, sideOffset: -0.28 },
     unlockConditions: STARTER,
     minLevelToAppear: 8,
   },
