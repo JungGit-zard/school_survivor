@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest'
-import { STORAGE_KEY, getLevel, getAllLevels, purchase, _resetForTests } from './passiveUpgrades.js'
+import { STORAGE_KEY, getLevel, getAllLevels, purchase, resetAllLevels, _resetForTests } from './passiveUpgrades.js'
 
 describe('passiveUpgrades storage layer', () => {
   beforeEach(() => {
@@ -24,6 +24,17 @@ describe('passiveUpgrades storage layer', () => {
     expect(r.price).toBe(20)
     expect(r.nextGold).toBe(10)
     expect(getLevel('magnet')).toBe(1)
+  })
+
+  it('resetAllLevels clears every saved coin passive level', () => {
+    purchase('magnet', 9999)
+    purchase('might', 9999)
+
+    resetAllLevels()
+
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
+    expect(getLevel('magnet')).toBe(0)
+    expect(getLevel('might')).toBe(0)
   })
 
   it('코인 부족이면 ok:false, 저장 변경 없음', () => {

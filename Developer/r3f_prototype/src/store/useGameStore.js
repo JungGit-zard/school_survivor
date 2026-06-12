@@ -2,7 +2,7 @@
 import { subscribeWithSelector } from 'zustand/middleware'
 import { UPGRADE_EFFECTS, applyUpgradeToWeapon } from '../lib/upgrades.js'
 import { resetRuntimeRefs } from '../lib/refs.js'
-import { getAllLevels, purchase as purchasePassiveStorage } from '../lib/passiveUpgrades.js'
+import { getAllLevels, purchase as purchasePassiveStorage, resetAllLevels as resetPassiveStorage } from '../lib/passiveUpgrades.js'
 import { setMagnetMultiplier } from '../lib/pickup.js'
 import {
   incrementRecord as incrementPlayerRecord,
@@ -256,6 +256,19 @@ export const useGameStore = create(
       saveGoldTotal(result.nextGold)
       set((s) => ({ goldTotal: result.nextGold, passiveVersion: s.passiveVersion + 1 }))
       return result
+    },
+
+    resetPassiveUpgrades: () => {
+      resetPassiveStorage()
+      const levels = getAllLevels()
+      applyMagnetPassive(levels)
+      set((s) => ({
+        player: buildInitialPlayer(levels),
+        weapons: buildInitialWeapons(levels),
+        growthMultiplier: buildGrowthMultiplier(levels),
+        passiveVersion: s.passiveVersion + 1,
+        levelUpChoiceSerial: s.levelUpChoiceSerial + 1,
+      }))
     },
 
     checkSurvivalMilestone: () => {

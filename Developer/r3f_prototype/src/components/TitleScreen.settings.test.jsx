@@ -6,6 +6,7 @@ import { act } from 'react-dom/test-utils'
 import TitleScreen from './TitleScreen.jsx'
 import { WEAPON_CATALOG, isStarter } from '../lib/weaponCatalog.js'
 import { STORAGE_KEY as WEAPON_UNLOCKS_KEY, _resetForTests as resetWeaponUnlocks } from '../lib/weaponUnlocks.js'
+import { STORAGE_KEY as PASSIVE_STORAGE_KEY, purchase as purchasePassiveStorage } from '../lib/passiveUpgrades.js'
 import { STORAGE_KEY as RECORDS_KEY } from '../lib/playerRecords.js'
 
 vi.mock('@react-three/fiber', () => ({
@@ -21,6 +22,7 @@ const SETTINGS_KEY = 'school_survivor:titleSettings'
 afterEach(() => {
   localStorage.removeItem(SETTINGS_KEY)
   localStorage.removeItem(RECORDS_KEY)
+  localStorage.removeItem(PASSIVE_STORAGE_KEY)
   resetWeaponUnlocks()
   document.documentElement.removeAttribute('data-reduced-effects')
 })
@@ -83,6 +85,41 @@ describe('TitleScreen settings modal', () => {
     }
 
     expect(JSON.parse(localStorage.getItem(SETTINGS_KEY)).unlockAllWeaponsCheat).toBe(true)
+
+    cleanup()
+  })
+
+  it('unlocks every non-starter weapon from the visible title cheat button', () => {
+    const { container, cleanup } = renderTitleScreen()
+
+    act(() => {
+      Array.from(container.querySelectorAll('button'))
+        .find((button) => button.textContent.includes('모든 무기 해금'))
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    const unlocks = JSON.parse(localStorage.getItem(WEAPON_UNLOCKS_KEY))
+    const nonStarterIds = Object.keys(WEAPON_CATALOG).filter((id) => !isStarter(id))
+
+    for (const id of nonStarterIds) {
+      expect(unlocks[id], id).toBe(1)
+    }
+
+    cleanup()
+  })
+
+  it('resets coin passive levels from the visible title reset button', () => {
+    purchasePassiveStorage('magnet', 9999)
+    purchasePassiveStorage('might', 9999)
+    const { container, cleanup } = renderTitleScreen()
+
+    act(() => {
+      Array.from(container.querySelectorAll('button'))
+        .find((button) => button.textContent.includes('코인 레벨업 초기화'))
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(localStorage.getItem(PASSIVE_STORAGE_KEY)).toBeNull()
 
     cleanup()
   })
