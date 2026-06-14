@@ -55,7 +55,7 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.umbrellaGuard.base.radius).toBe(1.25)
     expect(WEAPON_CATALOG.umbrellaGuard.base.spinDurationMs).toBe(1200)
     expect(WEAPON_CATALOG.eraserBomb.base.damage).toBe(26)
-    expect(WEAPON_CATALOG.eraserBomb.base.cooldown).toBe(3000)
+    expect(WEAPON_CATALOG.eraserBomb.base.cooldown).toBe(6000)
     expect(WEAPON_CATALOG.eraserBomb.base.radius).toBe(1.35)
   })
 

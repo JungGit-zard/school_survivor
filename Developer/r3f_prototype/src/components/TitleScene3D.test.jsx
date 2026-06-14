@@ -19,7 +19,7 @@ describe('TitleScene3D direction', () => {
       exitGlow: true,
       infectionStreaks: 2,
       warningLights: 2,
-      zombieStudents: 3,
+      zombieStudents: 5,
       largeZombieSilhouette: 1,
     })
   })
