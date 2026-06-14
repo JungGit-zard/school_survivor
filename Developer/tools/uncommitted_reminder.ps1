@@ -79,11 +79,19 @@ $msgExe = Join-Path $env:WINDIR 'System32\msg.exe'
 if (Test-Path -LiteralPath $msgExe) {
   & $msgExe $env:USERNAME /time:60 $message | Out-Null
   if ($LASTEXITCODE -eq 0) { exit 0 }
+  Write-ReminderLog "msg.exe notification failed with exit code $LASTEXITCODE."
 }
 
 try {
-  Add-Type -AssemblyName PresentationFramework
-  [System.Windows.MessageBox]::Show($message, 'Uncommitted Git Changes') | Out-Null
+  $escapedMessage = $message.Replace("'", "''")
+  $popupCode = @"
+Add-Type -AssemblyName PresentationFramework
+[System.Windows.MessageBox]::Show('$escapedMessage', 'Uncommitted Git Changes') | Out-Null
+"@
+  $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($popupCode))
+  Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList "-NoProfile -EncodedCommand $encoded" | Out-Null
 } catch {
   Write-ReminderLog 'Notification UI failed; log-only reminder was recorded.'
 }
+
+exit 0
