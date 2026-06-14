@@ -34,7 +34,7 @@ function Get-RepoDirtySummary {
   $modified = @($statusLines | Where-Object { $_ -match '^[ MARC][MD]' -or $_ -match '^M' }).Count
   $added = @($statusLines | Where-Object { $_ -match '^A' -or $_ -match '^[ MARC]A' }).Count
   $deleted = @($statusLines | Where-Object { $_ -match '^[ MARC]D' -or $_ -match '^D' }).Count
-  $untracked = @($statusLines | Where-Object { $_ -like '?? *' }).Count
+  $untracked = @($statusLines | Where-Object { $_ -match '^\?\? ' }).Count
 
   [pscustomobject]@{
     Name = Split-Path -Leaf $RepoRoot
