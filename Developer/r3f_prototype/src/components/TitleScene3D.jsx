@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { inflateScale, outlineMat, toonMat } from '../lib/toon.js'
 import PlayerMesh from './PlayerMesh.jsx'
@@ -18,9 +18,17 @@ export const TITLE_SCENE_DIRECTION = {
     exitGlow: true,
     infectionStreaks: 2,
     warningLights: 2,
-    zombieStudents: 3,
+    zombieStudents: 5,
     largeZombieSilhouette: 1,
   },
+}
+
+function TitleCameraRig() {
+  const { camera } = useThree()
+  useFrame(() => {
+    camera.lookAt(0.1, 0.48, -1.35)
+  })
+  return null
 }
 
 function ToonBox({ position, rotation = [0, 0, 0], scale, color, emissive = 0.08 }) {
@@ -76,14 +84,19 @@ function TitlePlayer() {
   // base y 0.95: PlayerMesh 발이 바닥 평면 위에 서도록 올린다(이전 0.04는 다리가 바닥 밑에 잠겼음).
   useFrame((state) => {
     if (!ref.current) return
-    ref.current.position.y = 0.95 + Math.sin(state.clock.elapsedTime * 2.4) * 0.045
-    ref.current.rotation.y = -0.36 + Math.sin(state.clock.elapsedTime * 1.7) * 0.06
+    const t = state.clock.elapsedTime
+    ref.current.position.x = 0.72 + Math.sin(t * 4.2) * 0.04
+    ref.current.position.y = 0.95 + Math.sin(t * 8.4) * 0.055
+    ref.current.position.z = 1.82 + Math.sin(t * 3.2) * 0.045
+    ref.current.rotation.x = -0.12 + Math.sin(t * 4.4) * 0.018
+    ref.current.rotation.y = Math.PI - 0.48 + Math.sin(t * 2.2) * 0.055
+    ref.current.rotation.z = 0.05 + Math.sin(t * 7.8) * 0.025
   })
 
   // 인게임 플레이어 모델(PlayerMesh)을 그대로 사용. PlayerMesh가 내부 스케일(0.2664)을
   // 가지므로 타이틀에서 보이도록 바깥 그룹에서 키운다. (movingRef 없음 → idle 포즈)
   return (
-    <group ref={ref} position={[0.9, 0.95, 2.1]} rotation={[0, -0.16, 0]} scale={2.7}>
+    <group ref={ref} position={[0.72, 0.95, 1.82]} rotation={[-0.12, Math.PI - 0.48, 0.05]} scale={2.34}>
       <PlayerMesh />
     </group>
   )
@@ -144,6 +157,47 @@ function LargeZombieSilhouette() {
   )
 }
 
+function ZombieHeadSilhouette({ position, delay = 0, scale = 1 }) {
+  const ref = useRef()
+  useFrame((state) => {
+    if (!ref.current) return
+    const t = state.clock.elapsedTime + delay
+    ref.current.position.x = position[0] + Math.sin(t * 0.9) * 0.045
+    ref.current.position.y = position[1] + Math.sin(t * 1.7) * 0.025
+    ref.current.rotation.z = Math.sin(t * 1.3) * 0.04
+  })
+  return (
+    <group ref={ref} position={position} scale={scale}>
+      <ToonBox position={[0, 0.62, 0]} scale={[0.42, 0.5, 0.24]} color={0x26352e} emissive={0.02} />
+      <ToonBox position={[-0.12, 0.72, 0.18]} scale={[0.08, 0.055, 0.035]} color={0xff8bb6} emissive={0.2} />
+      <ToonBox position={[0.12, 0.72, 0.18]} scale={[0.08, 0.055, 0.035]} color={0xff8bb6} emissive={0.2} />
+    </group>
+  )
+}
+
+function SpeedStreak({ position, scale, delay = 0 }) {
+  const ref = useRef()
+  const mat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: 0xfff3ba,
+    transparent: true,
+    opacity: 0.22,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
+  }), [])
+  useFrame((state) => {
+    if (!ref.current) return
+    const t = state.clock.elapsedTime + delay
+    ref.current.material.opacity = 0.12 + Math.sin(t * 4.5) * 0.07
+    ref.current.position.z = position[2] + Math.sin(t * 2.2) * 0.08
+  })
+  return (
+    <mesh ref={ref} position={position} rotation={[-Math.PI / 2, 0, 0]} material={mat} renderOrder={2}>
+      <planeGeometry args={scale} />
+    </mesh>
+  )
+}
+
 function WarningLight({ position, delay }) {
   const ref = useRef()
   const mat = useMemo(() => new THREE.MeshBasicMaterial({ color: 0xe99039, transparent: true, opacity: 0.7 }), [])
@@ -200,6 +254,7 @@ export default function TitleScene3D() {
 
   return (
     <>
+      <TitleCameraRig />
       {/* 어둑한 보라 안개로 뒤쪽 좀비·복도를 머금어 깊이감과 긴장감을 준다 */}
       <fog attach="fog" args={[0x140f1c, 16, 34]} />
       <ambientLight intensity={0.4} color={0x9fb0c4} />
@@ -231,13 +286,18 @@ export default function TitleScene3D() {
         <ToonBox position={[-2.62, 0.1, 2.1]} scale={[0.16, 0.12, 1.6]} color={0x95bf91} emissive={0.16} />
         <ToonBox position={[2.5, 0.12, 0.7]} scale={[0.16, 0.12, 1.1]} color={0x95bf91} emissive={0.16} />
         <ToonCylinder position={[-1.75, 0.08, 0.45]} rotation={[0, 0, Math.PI / 2]} scale={[0.15, 1.0, 0.15]} color={0x95bf91} emissive={0.14} />
+        <SpeedStreak position={[-0.98, 0.055, 1.9]} scale={[0.11, 1.8]} delay={0.3} />
+        <SpeedStreak position={[0.02, 0.055, 1.3]} scale={[0.09, 2.25]} delay={1.0} />
+        <SpeedStreak position={[1.06, 0.055, 0.98]} scale={[0.1, 1.75]} delay={1.7} />
         <WarningLight position={[-2.3, 0.03, -1.5]} delay={0} />
         <WarningLight position={[2.15, 0.03, 1.3]} delay={1.4} />
 
         <LargeZombieSilhouette />
-        <TitleZombie position={[-1.82, 0.42, -2.05]} delay={0.2} scale={0.9} />
-        <TitleZombie position={[1.32, 0.38, -2.62]} delay={1.0} scale={0.78} />
-        <TitleZombie position={[-0.46, 0.32, -3.05]} delay={2.1} scale={0.66} />
+        <ZombieHeadSilhouette position={[-2.25, 0.58, -3.42]} delay={0.4} scale={0.82} />
+        <ZombieHeadSilhouette position={[2.0, 0.54, -3.18]} delay={1.6} scale={0.74} />
+        <TitleZombie position={[-1.95, 0.42, -1.55]} delay={0.2} scale={0.98} />
+        <TitleZombie position={[1.56, 0.38, -2.08]} delay={1.0} scale={0.84} />
+        <TitleZombie position={[-0.42, 0.32, -2.72]} delay={2.1} scale={0.68} />
         <TitlePlayer />
       </group>
     </>

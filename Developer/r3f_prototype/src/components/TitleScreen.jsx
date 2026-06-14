@@ -114,8 +114,7 @@ export default function TitleScreen({ onStart }) {
   return (
     <div style={styles.root}>
       <Canvas
-        orthographic
-        camera={{ zoom: 62, position: [0, 12, 17], near: 0.1, far: 100 }}
+        camera={{ fov: 34, position: [0, 6.8, 11.8], near: 0.1, far: 100 }}
         gl={{ stencil: true, antialias: true }}
         shadows
         style={styles.canvas}
@@ -309,7 +308,7 @@ const styles = {
   tint: {
     position: 'absolute',
     inset: 0,
-    background: 'linear-gradient(180deg, rgba(13,10,18,0.22) 0%, rgba(13,10,18,0.03) 43%, rgba(13,10,18,0.62) 100%)',
+    background: 'linear-gradient(180deg, rgba(13,10,18,0.42) 0%, rgba(13,10,18,0.02) 36%, rgba(13,10,18,0.72) 100%)',
     pointerEvents: 'none',
   },
   vignette: {
@@ -338,7 +337,7 @@ const styles = {
   },
   content: {
     position: 'absolute',
-    top: 'max(9%, calc(env(safe-area-inset-top, 0px) + 64px))',
+    top: 'max(7%, calc(env(safe-area-inset-top, 0px) + 52px))',
     left: 22,
     right: 22,
     display: 'flex',
@@ -346,6 +345,7 @@ const styles = {
     alignItems: 'center',
     textAlign: 'center',
     pointerEvents: 'none',
+    zIndex: 2,
   },
   serviceName: {
     color: '#f7d17e',
@@ -363,7 +363,7 @@ const styles = {
     gap: 8,
     flexWrap: 'wrap',
     color: '#f8f7f2',
-    fontSize: 44,
+    fontSize: 'clamp(36px, 10.8vw, 50px)',
     lineHeight: 0.96,
     fontWeight: 1000,
     letterSpacing: 0,
@@ -378,7 +378,7 @@ const styles = {
     gap: 8,
     flexWrap: 'wrap',
     color: '#f8f7f2',
-    fontSize: 44,
+    fontSize: 'clamp(36px, 10.8vw, 50px)',
     lineHeight: 0.96,
     fontWeight: 1000,
     letterSpacing: 0,
@@ -389,7 +389,7 @@ const styles = {
   },
   subtitle: {
     color: '#f8f7f2',
-    fontSize: 14,
+    fontSize: 'clamp(12px, 3.7vw, 15px)',
     lineHeight: 1.35,
     fontWeight: 800,
     letterSpacing: 0,
@@ -399,11 +399,12 @@ const styles = {
   },
   actions: {
     position: 'absolute',
-    left: 24,
-    right: 24,
-    bottom: 'max(34px, calc(env(safe-area-inset-bottom, 0px) + 12px))',
+    left: 'max(20px, calc(env(safe-area-inset-left, 0px) + 18px))',
+    right: 'max(20px, calc(env(safe-area-inset-right, 0px) + 18px))',
+    bottom: 'max(58px, calc(env(safe-area-inset-bottom, 0px) + 46px))',
     display: 'flex',
     flexDirection: 'column',
+    zIndex: 3,
   },
   stageSelect: {
     display: 'grid',
@@ -413,7 +414,7 @@ const styles = {
     pointerEvents: 'auto',
   },
   stageButton: (selected, locked) => ({
-    minHeight: 48,
+    minHeight: 45,
     border: '2px solid #050209',
     borderRadius: 8,
     background: locked ? 'rgba(92,86,104,0.78)' : selected ? '#f7d17e' : 'rgba(248,247,242,0.9)',
@@ -449,19 +450,19 @@ const styles = {
     pointerEvents: 'none',
   },
   primaryButton: {
-    height: 54,
+    minHeight: 60,
     border: '2px solid #050209',
     borderRadius: 10,
     background: 'linear-gradient(180deg, #8ad9ff 0%, #46b6f5 100%)',
     color: '#062033',
-    fontSize: 20,
+    fontSize: 21,
     fontWeight: 900,
     letterSpacing: 1,
     cursor: 'pointer',
     boxShadow: '0 5px 0 #050209, 0 0 22px rgba(89,199,255,0.55)',
   },
   primaryButtonReduced: {
-    height: 54,
+    minHeight: 60,
     border: '2px solid #050209',
     borderRadius: 8,
     background: '#59c7ff',
@@ -472,35 +473,39 @@ const styles = {
     boxShadow: '0 5px 0 #050209',
   },
   cheatActions: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: -38,
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
-    gap: 8,
-    marginTop: 10,
+    gap: 6,
+    opacity: 0.78,
     pointerEvents: 'auto',
   },
   cheatButton: {
-    minHeight: 40,
+    minHeight: 30,
     border: '2px solid #050209',
     borderRadius: 8,
-    background: '#f7d17e',
+    background: 'rgba(247,209,126,0.88)',
     color: '#050209',
-    fontSize: 13,
+    fontSize: 11,
     lineHeight: 1.15,
     fontWeight: 1000,
     cursor: 'pointer',
-    boxShadow: '0 4px 0 #050209',
+    boxShadow: '0 2px 0 #050209',
   },
   resetButton: {
-    minHeight: 40,
+    minHeight: 30,
     border: '2px solid #050209',
     borderRadius: 8,
-    background: '#f8f7f2',
+    background: 'rgba(248,247,242,0.88)',
     color: '#050209',
-    fontSize: 13,
+    fontSize: 11,
     lineHeight: 1.15,
     fontWeight: 1000,
     cursor: 'pointer',
-    boxShadow: '0 4px 0 #050209',
+    boxShadow: '0 2px 0 #050209',
   },
   modalLayer: {
     position: 'absolute',
