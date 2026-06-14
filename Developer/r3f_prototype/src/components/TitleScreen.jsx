@@ -144,6 +144,9 @@ export default function TitleScreen({ onStart, onOpenCoinShop }) {
       </div>
 
       <div style={styles.actions}>
+        <button type="button" style={primaryButtonStyle} onClick={() => onStart(playableStageId)}>
+          게임 시작
+        </button>
         <div style={styles.stageSelect} aria-label="스테이지 선택">
           <button
             type="button"
@@ -166,9 +169,6 @@ export default function TitleScreen({ onStart, onOpenCoinShop }) {
         {!stage2Unlocked && (
           <div style={styles.stageLockHint}>Stage 2: Stage 1 클리어 또는 180초 생존 3회 필요</div>
         )}
-        <button type="button" style={primaryButtonStyle} onClick={() => onStart(playableStageId)}>
-          게임 시작
-        </button>
         <button type="button" style={styles.coinShopButton} onClick={onOpenCoinShop}>
           🪙 코인상점
         </button>
@@ -413,6 +413,7 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
     gap: 8,
+    marginTop: 8,
     marginBottom: 8,
     pointerEvents: 'auto',
   },
