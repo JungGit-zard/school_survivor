@@ -393,7 +393,7 @@ const styles = {
     lineHeight: 1.35,
     fontWeight: 800,
     letterSpacing: 0,
-    maxWidth: 270,
+    maxWidth: 336,
     margin: '10px 0 0',
     textShadow: '0 3px 0 #050209, 0 0 8px rgba(0,0,0,0.45)',
   },
