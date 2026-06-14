@@ -7,6 +7,7 @@ import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { findBestSplashTarget, applyRadialDamage } from '../../lib/weaponTargeting.js'
 
 let _flaskId = 0
+const FLASK_FLIGHT_DURATION = 1.55
 
 function FlaskModel() {
   // 유리는 반투명 처리 — 불투명하면 안의 녹색 액체가 가려져 보이지 않는다.
@@ -70,13 +71,12 @@ function FlaskProjectile({ id, start, target, radius, damage, onExplode }) {
   const ageRef = useRef(0)
   const explodedRef = useRef(false)
   const posRef = useRef(new THREE.Vector3(start[0], start[1], start[2]))
-  const durationRef = useRef(1.55)
 
   usePlayingFrame((_, delta) => {
     if (!groupRef.current) return
     if (explodedRef.current) return
     ageRef.current += delta
-    const t = Math.min(1, ageRef.current / durationRef.current)
+    const t = Math.min(1, ageRef.current / FLASK_FLIGHT_DURATION)
     const ease = 1 - Math.pow(1 - t, 2)
 
     posRef.current.x = THREE.MathUtils.lerp(start[0], target.x, ease)
@@ -154,7 +154,7 @@ export function ScienceFlaskSplash() {
     if (now - lastFireRef.current < w.cooldown) return
     if (activeFlasksRef.current.length > 0) return
 
-    const target = findBestSplashTarget(w.range ?? 18, w.radius ?? 1.6)
+    const target = findBestSplashTarget(w.range ?? 2, w.radius ?? 1.6)
     if (!target) return
     lastFireRef.current = now
 
@@ -165,7 +165,7 @@ export function ScienceFlaskSplash() {
       // 발사 게이트(167줄)와 동일한 폴백을 둬, radius가 undefined여도 폭발 거리 판정이
       // NaN(전 적 타격)이 되지 않게 한다.
       radius: w.radius ?? 1.6,
-      damage: w.damage ?? 30,
+      damage: w.damage ?? 15,
     }
     activeFlasksRef.current = [next]
     setFlasks([next])
