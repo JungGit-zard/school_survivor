@@ -1,0 +1,26 @@
+# Chibiko Three_Mini Routing Case
+
+## Trigger
+
+User explicitly required graphics work to use:
+
+`Graphic_designer/subagents/Three_Mini.toml`
+
+## Routing
+
+- Read the Three_Mini TOML profile.
+- Used `graphic_designer` as the runtime carrier because no dedicated Codex `Three_Mini` process type was available.
+- Runtime subagent nickname: `Pixel Lead`.
+- Main implementation remained in the primary Codex session.
+
+## Authority
+
+- `project_develop_policy.md` remains the project authority.
+- Three_Mini supplied graphics implementation guidance only.
+
+## Output Folders
+
+- Planning: `Planner/game_contents/weapons/`
+- Development: `Developer/구현기록/게임기획밸런스구현코드연결/`
+- Graphics: `Graphic_designer/`
+- QA: `Quaility_Assurance/`
