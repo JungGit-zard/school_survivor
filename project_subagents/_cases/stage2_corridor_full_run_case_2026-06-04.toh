@@ -1,0 +1,45 @@
+# Stage 2 Corridor Full Run Case · 2026-06-04
+
+## Case
+
+- 사용자 요청: Stage 2 구현 계획서를 바탕으로 서브에이전트 검토, 구현기획서 작성, Superpowers 검토, 개발/그래픽 담당 서브에이전트를 활용한 실제 구현 완료.
+- 기준 기획서: `Planner/B.게임기획,밸런스 구현/B-3 스테이지진행과 몬스터 등장구현/Stage2_Corridor_Projectile/stage2_corridor_projectile_plan_2026-06-03.md`
+- 기본 방향: Stage 2는 복도형 원거리 투사체 스테이지이며, 300초 생존 클리어를 유지한다.
+
+## Routing
+
+- Primary policy: `project_develop_policy.md`
+- Session policy: `SESSION_CONTINUITY.md`
+- Required environment gate: gstack installed
+- Multi-agent gate: Agent Room routing
+- Methodology gate: Superpowers writing-plans, TDD, verification-before-completion
+
+## Agents
+
+- `agent-room-executor`: 멀티에이전트 라우팅 결정.
+- `game-developer`: Stage 2 런타임 구현 범위, 위험, 테스트 순서 검토.
+- `graphic_designer`: 복도형 배경, E04 탄환 경고, 안전 레인, 모바일 가독성 검토.
+- `code-mapper`: 영향 파일 맵과 최소 변경 파일 세트 확인.
+- `reviewer` / `test-automator`: 구현 후 QA 및 회귀 검증에 사용한다.
+
+## Required Outputs
+
+- Planner: Stage 2 구현기획서와 확정 MVP 범위.
+- Developer: 코드 구현 기록과 테스트 기록.
+- Graphic_designer: Stage 2 시각 가독성 기준.
+- Quaility_Assurance: Stage 1 회귀, Stage 2 공정성, 모바일 가독성 검증 결과.
+- Developer/agent_room: 본 케이스 라우팅 기록.
+
+## Gates
+
+- Stage 1에 E04가 다시 등장하지 않는다.
+- Stage 1 B01에 탄환 패턴을 다시 붙이지 않는다.
+- Stage 2 기록은 `stage1Clears`와 분리한다.
+- E04는 Stage 2에서 90초 이후 도입한다.
+- E04는 첫 발사 지연, 전역 탄환 상한, 근접 즉발 금지, 보스 구간 억제 규칙을 가진다.
+- 그래픽은 캐릭터/몬스터 three.js 카툰 렌더링과 외곽선 정책을 유지한다.
+
+## Current Dirty-Tree Warning
+
+- 기존 수정 파일: `HUD.jsx`, `HUD.test.jsx`, `TitleScreen.jsx`, `TitleScreen.settings.test.jsx`, `Developer/구현기록/title_settings_modal_implementation_2026-06-04.md`
+- Stage 2 UI는 위 파일과 충돌하기 쉬우므로 기존 변경을 되돌리지 않고 그 위에 좁게 추가한다.

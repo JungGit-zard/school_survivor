@@ -1,0 +1,36 @@
+# r3f_classroom_chair_desk_black_shape_case_2026-06-09
+
+## Case
+
+- Request: Remove black shapes around classroom chair and desk props.
+- Classification: graphics bug debugging, visual QA, adversarial validation.
+- Primary method: Superpowers systematic-debugging.
+- Supporting method: Agent Room routing, project department records, runtime verification.
+
+## Selected Agents
+
+- `graphic_designer`: read-only visual diagnosis and style validation.
+- `game-developer`: read-only R3F render-path diagnosis.
+- `qa-expert`: read-only QA gate and regression-risk definition.
+- `reviewer`: read-only adversarial validation.
+
+## Root Cause Summary
+
+- The old fake circular blob shadows had already been removed.
+- A second shadow path remained: StageObject body meshes used `castShadow receiveShadow`, while the app had `Canvas shadows`, a shadow-casting directional light, and a shadow-receiving classroom floor.
+- A separate outline issue also existed: StageObject boxes used the global `inflateScale()` helper, which turns thin dimensions below `0.5` into negative outline scales. Example: `0.12 -> -0.76`, `0.03 -> -0.94`, `0.08 -> -0.84`. This could render black backside outline geometry as oversized or flipped slabs.
+
+## Authority And Outputs
+
+- Code changes: `Developer/r3f_prototype/src/components/StageObjects/`
+- Graphics record: `Graphic_designer/classroom_prop_black_blob_visual_audit_2026-06-09.md`
+- Developer record: `Developer/r3f_prototype/classroom_prop_black_blob_fix_2026-06-09.md`
+- QA record: `Quaility_Assurance/classroom_prop_black_blob_validation_2026-06-09.md`
+
+## Verification Gate
+
+- StageObject components must not directly use `castShadow` or `receiveShadow`.
+- StageObject outline scales must remain positive and only slightly larger than source mesh scales.
+- StageObject tests must pass.
+- Production build must pass.
+- Runtime should be opened from `http://127.0.0.1:5178/?prop-shadow-fix=1` or a refreshed equivalent.
