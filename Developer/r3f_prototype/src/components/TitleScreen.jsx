@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import TitleScene3D from './TitleScene3D.jsx'
+import GoogleAccountPanel from './GoogleAccountPanel.jsx'
 import { getAllWeaponIds, isStarter } from '../lib/weaponCatalog.js'
 import { setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
@@ -124,6 +125,7 @@ export default function TitleScreen({ onStart, onOpenCoinShop }) {
 
       <div style={styles.tint} />
       <div style={styles.vignette} />
+      <GoogleAccountPanel />
       <button
         type="button"
         aria-label="설정 열기"
