@@ -44,6 +44,9 @@ export const UPGRADE_EFFECTS = {
   eraserDamage:        { weapon: 'eraserBomb',    kind: 'damage', dmg: 8 },
   eraserRadius:        { weapon: 'eraserBomb',    kind: 'stat',   stat: 'radius',    step: 0.19, cap: 2.1 },
   acquireChibiko:       { weapon: 'chibiko',       kind: 'acquire', minLevel: 8 },
+  acquireSharkMissile:  { weapon: 'sharkMissile',  kind: 'acquire', minLevel: 8 },
+  sharkMissileDamage:  { weapon: 'sharkMissile',  kind: 'damage', dmg: 10 },
+  sharkMissileRadius:  { weapon: 'sharkMissile',  kind: 'stat',   stat: 'radius',    step: 0.2, cap: 2.6 },
   moveSpeed:      { kind: 'player', stat: 'speed', capMultiplier: 1.8 },
   maxHealth:      { kind: 'player' },
 }

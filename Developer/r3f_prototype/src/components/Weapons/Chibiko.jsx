@@ -2,8 +2,13 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { useGameStore } from '../../store/useGameStore.js'
-import { playerFacing, playerPos } from '../../lib/refs.js'
-import { getChibikoFollowTarget, createChibikoAttackConfig } from '../../lib/chibiko.js'
+import { playerPos } from '../../lib/refs.js'
+import {
+  createChibikoAttackConfig,
+  createChibikoTrail,
+  getChibikoTrailTarget,
+  recordChibikoTrailPoint,
+} from '../../lib/chibiko.js'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { findClosestEnemy } from '../../lib/weaponTargeting.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
@@ -201,6 +206,7 @@ export function ChibikoWeapon() {
   const groupRef = useRef()
   const posRef = useRef(new THREE.Vector3())
   const targetRef = useRef(new THREE.Vector3())
+  const trailRef = useRef(createChibikoTrail())
   const initializedRef = useRef(false)
   const attackPhaseRef = useRef(0)
   const targetYawRef = useRef(0)
@@ -221,22 +227,28 @@ export function ChibikoWeapon() {
     const w = weapons.chibiko
     if (!w?.active || !groupRef.current) return
 
-    const follow = getChibikoFollowTarget(playerPos, playerFacing, {
+    const now = clock.elapsedTime * 1000
+    recordChibikoTrailPoint(trailRef.current, playerPos, now)
+    const follow = getChibikoTrailTarget(trailRef.current, now, {
       followDistance: w.followDistance,
-      sideOffset: w.sideOffset,
     })
     targetRef.current.set(follow.x, follow.y, follow.z)
     if (!initializedRef.current) {
       posRef.current.copy(targetRef.current)
       initializedRef.current = true
     }
+
+    const moveX = targetRef.current.x - posRef.current.x
+    const moveZ = targetRef.current.z - posRef.current.z
     posRef.current.lerp(targetRef.current, Math.min(1, delta * 6.2))
 
     const bob = Math.sin(clock.elapsedTime * 4.1) * 0.025
     groupRef.current.position.set(posRef.current.x, 0.14 + bob, posRef.current.z)
 
-    const followYaw = Math.atan2(playerFacing.x, playerFacing.z)
-    const desiredYaw = attackPhaseRef.current > 0 ? targetYawRef.current : followYaw
+    const trailYaw = Math.hypot(moveX, moveZ) > 0.001
+      ? Math.atan2(moveX, moveZ)
+      : groupRef.current.rotation.y
+    const desiredYaw = attackPhaseRef.current > 0 ? targetYawRef.current : trailYaw
     let diff = desiredYaw - groupRef.current.rotation.y
     while (diff > Math.PI) diff -= Math.PI * 2
     while (diff < -Math.PI) diff += Math.PI * 2
@@ -245,7 +257,6 @@ export function ChibikoWeapon() {
     attackPhaseRef.current = Math.max(0, attackPhaseRef.current - delta)
 
     const attack = createChibikoAttackConfig(w)
-    const now = clock.elapsedTime * 1000
     if (now - lastFireRef.current < attack.cooldown) return
     if (activeProjectilesRef.current.length > 0) return
 

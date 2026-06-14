@@ -30,6 +30,9 @@ Before creating or revising 3D weapon assets, first prepare or confirm a 2D conc
 | 11 | `umbrellaGuard` | 우산 방어막 | Defensive knockback weapon |
 | 12 | `eraserBomb` | 지우개 폭탄 | Thrown splash bomb |
 
+| 13 | `chibiko` | 치비코 | Companion follower that throws pencils |
+| 14 | `sharkMissile` | 상어미사일 | Slow smart homing missile for dense zombie groups |
+
 ## Runtime Component Map
 
 | Weapon key | Component |
@@ -46,3 +49,5 @@ Before creating or revising 3D weapon assets, first prepare or confirm a 2D conc
 | `compassBlade` | `CompassBladeWeapon` |
 | `umbrellaGuard` | `UmbrellaGuardWeapon` |
 | `eraserBomb` | `EraserBombWeapon` |
+| `chibiko` | `ChibikoWeapon` |
+| `sharkMissile` | `SharkMissileWeapon` |

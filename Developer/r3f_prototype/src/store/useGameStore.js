@@ -202,6 +202,9 @@ export const useGameStore = create(
       evalInput.totalGold = (evalInput.totalGold ?? 0) + Math.max(0, Math.floor(s.goldSession))
       evalInput.totalLevelUps = (evalInput.totalLevelUps ?? 0) + Math.max(0, Math.floor(s.runLevelUps))
       evalInput.totalSurvivalSeconds = (evalInput.totalSurvivalSeconds ?? 0) + runSurvivalSeconds
+      if (phaseName === 'cleared') {
+        evalInput[stage.clearRecordKey] = (evalInput[stage.clearRecordKey] ?? 0) + 1
+      }
 
       // 2. 평가 → diff (starter 제외, 이미 unlock된 것 제외)
       const nextUnlocked = evaluateUnlocks(evalInput)

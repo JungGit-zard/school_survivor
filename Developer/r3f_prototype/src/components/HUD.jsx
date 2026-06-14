@@ -19,6 +19,7 @@ import compassBladeIconSrc from '../assets/weapon_icon/10_wea_compass.png.png'
 import umbrellaIconSrc from '../assets/weapon_icon/11_wea_umb.png.png'
 import eraserIconSrc from '../assets/weapon_icon/12_wea_eraser.png.png'
 import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
+import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
 
 const damageLabel = (name, weaponKey, upgradeKey) => (w) =>
   `${name} +${UPGRADE_EFFECTS[upgradeKey].dmg} (Lv${(w[weaponKey].level ?? 1) + 1})`
@@ -63,6 +64,9 @@ const UPGRADES = [
   { key: 'eraserDamage', icon: 'eraser', labelFn: damageLabel('폭탄 피해', 'eraserBomb', 'eraserDamage'), desc: '폭발 피해 증가' },
   { key: 'eraserRadius', icon: 'eraser', label: '폭탄 반경 +', desc: '폭발 반경 증가' },
   { key: 'acquireChibiko', icon: 'chibiko', label: '치비코 해금', desc: '뒤따라다니며 레벨1 연필을 던짐' },
+  { key: 'acquireSharkMissile', icon: 'sharkMissile', label: '상어미사일 해금', desc: '가장 빽빽한 좀비 무리로 호밍 폭발' },
+  { key: 'sharkMissileDamage', icon: 'sharkMissile', labelFn: damageLabel('상어미사일 피해', 'sharkMissile', 'sharkMissileDamage'), desc: '폭발 피해 증가' },
+  { key: 'sharkMissileRadius', icon: 'sharkMissile', label: '상어미사일 반경 +', desc: '폭발 반경 증가' },
   { key: 'moveSpeed', icon: 'speed', label: '이동속도 +10%', desc: '플레이어 이동속도 증가' },
   { key: 'maxHealth', icon: 'health', label: '최대 체력 +20', desc: '최대 HP 및 현재 HP 증가' },
 ]
@@ -94,6 +98,7 @@ const WEAPON_UPGRADE_ICON_SRC = {
   umbrella: umbrellaIconSrc,
   eraser: eraserIconSrc,
   chibiko: chibikoIconSrc,
+  sharkMissile: sharkMissileIconSrc,
 }
 
 function resolveAssetSrc(src, depth = 0) {

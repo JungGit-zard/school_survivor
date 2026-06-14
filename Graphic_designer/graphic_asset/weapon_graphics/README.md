@@ -29,12 +29,15 @@ Do not remove or overwrite `original_icon.png`. If an icon changes, add a dated 
 | 10 | `compassBlade` | Compass Blade | `10_compassBlade/` | `original_icon.png` |
 | 11 | `umbrellaGuard` | Umbrella Guard | `11_umbrellaGuard/` | `original_icon.png` |
 | 12 | `eraserBomb` | Eraser Bomb | `12_eraserBomb/` | `original_icon.png` |
+| 14 | `sharkMissile` | Shark Missile | `14_shark_missile/` | `original_icon.png` |
 
 ## Current Concept Notes
 
 - `07_onigiri/concept/onigiri_rice_burst_concept_2026-05-25.md`
 - `10_compassBlade/concept/compass_blade_icon_to_3d_concept_2026-05-25.md`
 - `11_umbrellaGuard/concept/umbrella_guard_icon_remake_2026-05-25.md`
+- `14_shark_missile/concept/shark_missile_concept_notes_2026-06-11.md`
+- `14_shark_missile/implementation/shark_missile_threejs_implementation_2026-06-11.md`
 
 ## Maintenance Rule
 

@@ -149,4 +149,24 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
       }
     }
   })
+
+  it('상어미사일 획득/강화 카드를 제공한다', () => {
+    expect(UPGRADE_EFFECTS.acquireSharkMissile).toMatchObject({
+      weapon: 'sharkMissile',
+      kind: 'acquire',
+      minLevel: 8,
+    })
+    expect(UPGRADE_EFFECTS.sharkMissileDamage).toMatchObject({
+      weapon: 'sharkMissile',
+      kind: 'damage',
+      dmg: 10,
+    })
+    expect(UPGRADE_EFFECTS.sharkMissileRadius).toMatchObject({
+      weapon: 'sharkMissile',
+      kind: 'stat',
+      stat: 'radius',
+      step: 0.2,
+      cap: 2.6,
+    })
+  })
 })
