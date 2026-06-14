@@ -7,27 +7,38 @@ import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { findBestSplashTarget, applyRadialDamage } from '../../lib/weaponTargeting.js'
 
 // eraserBomb / 지우개 폭탄
-// 역할: Flask 패턴 + 더 느린 cooldown + 강한 한 방. 큰 지우개가 날아가 먼지 폭발.
+// 역할: 원거리 투척 폭탄. range:12, cooldown:6000ms — 느리지만 안전 거리에서 강한 한 방.
+// 하얀 지우개가 높은 포물선을 그리며 날아가 먼지 폭발 (쓰리미니 설계 2026-06-14).
 
 let _eraserId = 0
-const FLIGHT_DURATION = 1.2
+const FLIGHT_DURATION = 2.0  // 1.2→2.0: 사거리 2배에 맞춰 비행 시간 연장
 
 function EraserModel() {
-  const bodyMat   = useMemo(() => toonMat(0xcea19d, 0.06), [])  // 살구색 (지우개 본체)
-  const stripeMat = useMemo(() => toonMat(0x4f1b30, 0.10), [])  // 짙은 적자 (브랜드 띠)
-  const outMat    = useMemo(() => outlineMat(0.96), [])
+  // 하얀 지우개: 따뜻한 오프화이트 본체 + 파란 브랜드 띠 + 닳은 끝부분 디테일
+  const bodyMat   = useMemo(() => toonMat(0xf5f0e8, 0.08), [])  // 오프화이트 (지우개 본체)
+  const stripeMat = useMemo(() => toonMat(0x1a3a7a, 0.10), [])  // 파란 브랜드 띠
+  const wornMat   = useMemo(() => toonMat(0xe8e0d0, 0.06), [])  // 살짝 어두운 오프화이트 (닳은 끝)
+  // 흰 오브젝트는 기본 검은 outline이 흐려지므로 opacity를 높이고 약간 짙은 회색 사용
+  const outMat    = useMemo(() => outlineMat(0.98, 0x1a1a1a), [])
 
+  // 2배 크기: scale [0.4 → 0.8]
   return (
-    <group scale={[0.4, 0.4, 0.4]}>
+    <group scale={[0.8, 0.8, 0.8]}>
+      {/* 외곽선 hull */}
       <mesh material={outMat} scale={inflateScale([1.08, 1.16, 1.16])}>
         <boxGeometry args={[0.5, 0.22, 0.22]} />
       </mesh>
+      {/* 지우개 본체 */}
       <mesh material={bodyMat}>
         <boxGeometry args={[0.5, 0.22, 0.22]} />
       </mesh>
-      {/* 가운데 띠 */}
+      {/* 파란 브랜드 띠 — 본체 중앙 */}
       <mesh material={stripeMat} position={[0, 0, 0]}>
-        <boxGeometry args={[0.52, 0.06, 0.225]} />
+        <boxGeometry args={[0.52, 0.065, 0.225]} />
+      </mesh>
+      {/* 닳은 끝부분 디테일 — 한쪽 끝 약간 좁은 블록으로 표현 */}
+      <mesh material={wornMat} position={[0.22, 0, 0]}>
+        <boxGeometry args={[0.06, 0.20, 0.21]} />
       </mesh>
     </group>
   )
@@ -46,7 +57,7 @@ function EraserProjectile({ id, start, target, damage, radius, onExplode }) {
 
     const x = THREE.MathUtils.lerp(start[0], target.x, ease)
     const z = THREE.MathUtils.lerp(start[2], target.z, ease)
-    const y = start[1] + Math.sin(t * Math.PI) * 1.2 - t * 0.2
+    const y = start[1] + Math.sin(t * Math.PI) * 2.4 - t * 0.4  // 사거리 2배 → 포물선 높이 2배
     groupRef.current.position.set(x, y, z)
     groupRef.current.rotation.x += delta * 3.2
     groupRef.current.rotation.z -= delta * 4.0
@@ -117,7 +128,7 @@ export function EraserBombWeapon() {
     if (now - lastFireRef.current < w.cooldown) return
     if (activeErasersRef.current.length > 0) return
 
-    const target = findBestSplashTarget(w.range ?? 6, w.radius ?? 1.35)
+    const target = findBestSplashTarget(w.range ?? 12, w.radius ?? 1.35)
     if (!target) return
 
     lastFireRef.current = now

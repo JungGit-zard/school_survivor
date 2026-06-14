@@ -130,7 +130,7 @@ export const WEAPON_CATALOG = {
   eraserBomb: {
     id: 'eraserBomb',
     label: '지우개 폭탄',
-    base: { damage: 26, cooldown: 3000, lastFired: 0, radius: 1.35, range: 6 },
+    base: { damage: 26, cooldown: 6000, lastFired: 0, radius: 1.35, range: 12 },
     unlockConditions: [
       { type: 'runGold', value: 80 },
       { type: 'totalGold', value: 200 },
