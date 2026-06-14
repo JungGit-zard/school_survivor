@@ -328,7 +328,7 @@ export function UpgradeIcon({ type }) {
   )
 }
 
-export default function HUD({ onOpenCoinShop }) {
+export default function HUD({ onOpenCoinShop, onGoToTitle }) {
   const player    = useGameStore((s) => s.player)
   const weapons   = useGameStore((s) => s.weapons)
   const phase     = useGameStore((s) => s.phase)
@@ -554,6 +554,7 @@ export default function HUD({ onOpenCoinShop }) {
               <button style={styles.copyBtn} onClick={copyPlaytestLog}>
                 {copyStatus === 'copied' ? '✓ 복사됨' : copyStatus === 'error' ? '복사 실패' : '📋 로그 복사'}
               </button>
+              <button style={styles.titleBtn} onClick={onGoToTitle}>타이틀로</button>
               <button style={styles.shopBtn} onClick={onOpenCoinShop}>코인상점</button>
               <button style={styles.restartBtn} onClick={() => resetGame(currentStageId)}>다시 시작</button>
             </div>
@@ -612,6 +613,7 @@ export default function HUD({ onOpenCoinShop }) {
               <button style={styles.copyBtn} onClick={copyPlaytestLog}>
                 {copyStatus === 'copied' ? '✓ 복사됨' : copyStatus === 'error' ? '복사 실패' : '📋 로그 복사'}
               </button>
+              <button style={styles.titleBtn} onClick={onGoToTitle}>타이틀로</button>
               <button style={styles.shopBtn} onClick={onOpenCoinShop}>코인상점</button>
               <button style={styles.restartBtn} onClick={() => resetGame(currentStageId)}>다시 시작</button>
             </div>
@@ -1096,6 +1098,11 @@ const styles = {
     background: '#4030a0', border: 'none', borderRadius: 8,
     color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer',
     padding: '12px 32px',
+  },
+  titleBtn: {
+    background: 'transparent', border: '1.5px solid #6080c0', borderRadius: 8,
+    color: '#a0b8e8', fontSize: 15, fontWeight: 600, cursor: 'pointer',
+    padding: '11px 20px',
   },
   shopBtn: {
     background: '#ffd040',
