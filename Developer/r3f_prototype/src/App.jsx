@@ -97,7 +97,7 @@ export default function App() {
                 </Physics>
               </Canvas>
             </KeyboardControls>
-            <HUD onOpenCoinShop={() => setScreen('coinShop')} />
+            <HUD onOpenCoinShop={() => setScreen('coinShop')} onGoToTitle={() => setScreen('title')} />
             {mobileJoystickEnabled && (
               <VirtualJoystick enabled phase={phase} playAreaRef={phoneFrameRef} />
             )}
