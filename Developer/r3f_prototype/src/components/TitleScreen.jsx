@@ -15,7 +15,7 @@ const DEFAULT_SETTINGS = {
   unlockAllWeaponsCheat: false,
 }
 
-export default function TitleScreen({ onStart }) {
+export default function TitleScreen({ onStart, onOpenCoinShop }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [controlsOpen, setControlsOpen] = useState(false)
   const [settings, setSettings] = useState(loadTitleSettings)
@@ -168,6 +168,9 @@ export default function TitleScreen({ onStart }) {
         )}
         <button type="button" style={primaryButtonStyle} onClick={() => onStart(playableStageId)}>
           게임 시작
+        </button>
+        <button type="button" style={styles.coinShopButton} onClick={onOpenCoinShop}>
+          🪙 코인상점
         </button>
         <div style={styles.cheatActions}>
           <button type="button" style={styles.cheatButton} onClick={handleUnlockAllWeapons}>
@@ -471,6 +474,19 @@ const styles = {
     fontWeight: 900,
     cursor: 'pointer',
     boxShadow: '0 5px 0 #050209',
+  },
+  coinShopButton: {
+    marginTop: 8,
+    minHeight: 44,
+    border: '2px solid #050209',
+    borderRadius: 10,
+    background: 'linear-gradient(180deg, #ffe066 0%, #f7c94b 100%)',
+    color: '#050209',
+    fontSize: 16,
+    fontWeight: 900,
+    letterSpacing: 0.5,
+    cursor: 'pointer',
+    boxShadow: '0 4px 0 #050209, 0 0 14px rgba(247,209,78,0.45)',
   },
   cheatActions: {
     position: 'absolute',
