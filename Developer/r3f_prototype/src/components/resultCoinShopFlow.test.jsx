@@ -16,12 +16,12 @@ vi.mock('./TitleScene3D.jsx', () => ({
   default: () => <div data-testid="mock-title-scene" />,
 }))
 
-describe('result-only coin shop flow', () => {
-  it('title screen does not expose the coin shop entry', () => {
+describe('coin shop entry flow', () => {
+  it('title screen exposes the coin shop entry', () => {
     const html = renderToStaticMarkup(<TitleScreen onStart={() => {}} />)
 
     expect(html).toContain('게임 시작')
-    expect(html).not.toContain('코인상점')
+    expect(html).toContain('코인상점')
   })
 
   it('game over result exposes the coin shop entry', () => {
