@@ -22,6 +22,7 @@ const keyMap = [
 
 export default function App() {
   const [screen, setScreen] = useState('title')
+  const [prevScreen, setPrevScreen] = useState('title')
   const [mobileJoystickEnabled, setMobileJoystickEnabled] = useState(false)
   const phoneFrameRef = useRef(null)
   const gameKey = useGameStore((s) => s.gameKey)
@@ -73,11 +74,11 @@ export default function App() {
     <div style={styles.viewport}>
       <div ref={phoneFrameRef} style={styles.phoneFrame}>
         {screen === 'title' && (
-          <TitleScreen onStart={startGame} onOpenCoinShop={() => setScreen('coinShop')} />
+          <TitleScreen onStart={startGame} onOpenCoinShop={() => { setPrevScreen('title'); setScreen('coinShop') }} />
         )}
 
         {screen === 'coinShop' && (
-          <CoinShop onBack={() => setScreen('game')} />
+          <CoinShop onBack={() => setScreen(prevScreen === 'game' ? 'game' : 'title')} />
         )}
 
         {screen === 'game' && (
@@ -97,7 +98,10 @@ export default function App() {
                 </Physics>
               </Canvas>
             </KeyboardControls>
-            <HUD onOpenCoinShop={() => setScreen('coinShop')} onGoToTitle={() => setScreen('title')} />
+            <HUD
+              onOpenCoinShop={() => { setPrevScreen('game'); setScreen('coinShop') }}
+              onGoToTitle={() => setScreen('title')}
+            />
             {mobileJoystickEnabled && (
               <VirtualJoystick enabled phase={phase} playAreaRef={phoneFrameRef} />
             )}

@@ -169,7 +169,7 @@ export default function TitleScreen({ onStart, onOpenCoinShop }) {
         {!stage2Unlocked && (
           <div style={styles.stageLockHint}>Stage 2: Stage 1 클리어 또는 180초 생존 3회 필요</div>
         )}
-        <button type="button" style={styles.coinShopButton} onClick={onOpenCoinShop}>
+        <button type="button" style={styles.coinShopButton} onClick={() => onOpenCoinShop?.()}>
           🪙 코인상점
         </button>
         <div style={styles.cheatActions}>

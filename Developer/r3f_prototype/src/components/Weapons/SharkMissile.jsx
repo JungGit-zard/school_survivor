@@ -7,8 +7,15 @@ import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 import { findSharkMissileClusterTarget } from '../../lib/sharkMissileTargeting.js'
+import { canFireSharkMissile, createSharkMissileLaunch } from '../../lib/sharkMissileRuntime.js'
 
 let _sharkMissileId = 0
+
+function reportSharkMissileDebug(type, payload = {}) {
+  if (typeof window === 'undefined') return
+  if (!Array.isArray(window.__sharkMissileDebug)) return
+  window.__sharkMissileDebug.push({ type, payload })
+}
 
 function SharkPart({ args, position, rotation, material, outlineScale = [1.08, 1.08, 1.08] }) {
   const outMat = useMemo(() => outlineMat(0.96), [])
@@ -201,7 +208,7 @@ export function SharkMissileWeapon() {
   const [missiles, setMissiles] = useState([])
   const [explosions, setExplosions] = useState([])
   const activeMissilesRef = useRef([])
-  const lastFireRef = useRef(0)
+  const lastFireRef = useRef(null)
   const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
 
@@ -212,6 +219,7 @@ export function SharkMissileWeapon() {
   const explode = useCallback((id, blast) => {
     activeMissilesRef.current = activeMissilesRef.current.filter((item) => item.id !== id)
     setMissiles([...activeMissilesRef.current])
+    reportSharkMissileDebug('explode', blast)
 
     applyRadialDamage({
       x: blast.x,
@@ -227,29 +235,33 @@ export function SharkMissileWeapon() {
 
   usePlayingFrame(({ clock }) => {
     const w = weapons.sharkMissile
-    if (phase !== 'playing' || !w?.active) return
     const now = clock.elapsedTime * 1000
-    if (now - lastFireRef.current < w.cooldown) return
-    if (activeMissilesRef.current.length > 0) return
+    if (!canFireSharkMissile({
+      phase,
+      weapon: w,
+      nowMs: now,
+      lastFireMs: lastFireRef.current,
+      activeMissileCount: activeMissilesRef.current.length,
+    })) return
 
     const radius = w.radius ?? 1.8
     const range = w.range ?? 28
     const target = findSharkMissileClusterTarget({ range, radius })
-    if (!target) return
+    if (!target) {
+      reportSharkMissileDebug('no-target', { range, radius })
+      return
+    }
 
     lastFireRef.current = now
     startPlayerArmAction(playerArmActionState, 'guidedMissileThrow', now)
 
-    const next = {
+    const next = createSharkMissileLaunch({
       id: ++_sharkMissileId,
-      start: [playerPos.x, playerPos.y + 0.46, playerPos.z],
-      initialTarget: { x: target.x, z: target.z },
-      damage: w.damage ?? 30,
-      radius,
-      range,
-      speed: w.speed ?? 8.5,
-      retargetIntervalMs: w.retargetIntervalMs ?? 300,
-    }
+      playerPosition: playerPos,
+      target,
+      weapon: w,
+    })
+    reportSharkMissileDebug('launch', next)
     activeMissilesRef.current = [next]
     setMissiles([next])
   })
