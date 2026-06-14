@@ -85,9 +85,9 @@ function TitlePlayer() {
   useFrame((state) => {
     if (!ref.current) return
     const t = state.clock.elapsedTime
-    ref.current.position.x = 0.72 + Math.sin(t * 4.2) * 0.04
-    ref.current.position.y = 0.95 + Math.sin(t * 8.4) * 0.055
-    ref.current.position.z = 1.82 + Math.sin(t * 3.2) * 0.045
+    ref.current.position.x = 0.48 + Math.sin(t * 4.2) * 0.04
+    ref.current.position.y = 0.88 + Math.sin(t * 8.4) * 0.055
+    ref.current.position.z = 0.08 + Math.sin(t * 3.2) * 0.045
     ref.current.rotation.x = -0.12 + Math.sin(t * 4.4) * 0.018
     ref.current.rotation.y = Math.PI - 0.48 + Math.sin(t * 2.2) * 0.055
     ref.current.rotation.z = 0.05 + Math.sin(t * 7.8) * 0.025
@@ -96,7 +96,7 @@ function TitlePlayer() {
   // 인게임 플레이어 모델(PlayerMesh)을 그대로 사용. PlayerMesh가 내부 스케일(0.2664)을
   // 가지므로 타이틀에서 보이도록 바깥 그룹에서 키운다. (movingRef 없음 → idle 포즈)
   return (
-    <group ref={ref} position={[0.72, 0.95, 1.82]} rotation={[-0.12, Math.PI - 0.48, 0.05]} scale={2.34}>
+    <group ref={ref} position={[0.48, 0.88, 0.08]} rotation={[-0.12, Math.PI - 0.48, 0.05]} scale={2}>
       <PlayerMesh />
     </group>
   )
