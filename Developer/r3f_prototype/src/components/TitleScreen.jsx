@@ -141,7 +141,7 @@ export default function TitleScreen({ onStart }) {
           <span style={styles.titleAccent}>Escape!</span>
           <span>zombie school</span>
         </h1>
-        <p style={styles.subtitle}>감염된 학교에서 5분만 버티면, 교문이 열린다</p>
+        <p style={styles.subtitle}>감염된 학교에서 4분만 버티면, 교문이 열린다</p>
       </div>
 
       <div style={styles.actions}>
@@ -320,8 +320,8 @@ const styles = {
   },
   settingsButton: {
     position: 'absolute',
-    top: 16,
-    right: 16,
+    top: 'max(16px, calc(env(safe-area-inset-top, 0px) + 8px))',
+    right: 'max(16px, calc(env(safe-area-inset-right, 0px) + 8px))',
     width: 44,
     height: 44,
     display: 'grid',
@@ -338,7 +338,7 @@ const styles = {
   },
   content: {
     position: 'absolute',
-    top: '9%',
+    top: 'max(9%, calc(env(safe-area-inset-top, 0px) + 64px))',
     left: 22,
     right: 22,
     display: 'flex',
@@ -401,7 +401,7 @@ const styles = {
     position: 'absolute',
     left: 24,
     right: 24,
-    bottom: 34,
+    bottom: 'max(34px, calc(env(safe-area-inset-bottom, 0px) + 12px))',
     display: 'flex',
     flexDirection: 'column',
   },
@@ -521,10 +521,10 @@ const styles = {
   settingsModal: {
     position: 'absolute',
     top: '50%',
-    left: 24,
-    right: 24,
+    left: 'max(24px, calc(env(safe-area-inset-left, 0px) + 16px))',
+    right: 'max(24px, calc(env(safe-area-inset-right, 0px) + 16px))',
     transform: 'translateY(-50%)',
-    maxHeight: '58%',
+    maxHeight: '68%',
     overflow: 'auto',
     padding: 14,
     border: '2px solid #050209',
