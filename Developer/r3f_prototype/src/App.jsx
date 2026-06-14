@@ -73,7 +73,7 @@ export default function App() {
     <div style={styles.viewport}>
       <div ref={phoneFrameRef} style={styles.phoneFrame}>
         {screen === 'title' && (
-          <TitleScreen onStart={startGame} />
+          <TitleScreen onStart={startGame} onOpenCoinShop={() => setScreen('coinShop')} />
         )}
 
         {screen === 'coinShop' && (
