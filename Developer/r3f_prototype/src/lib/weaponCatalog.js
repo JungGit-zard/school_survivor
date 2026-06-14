@@ -85,6 +85,24 @@ export const WEAPON_CATALOG = {
     unlockConditions: [{ type: 'totalRuns', value: 5 }],
     minLevelToAppear: 4,
   },
+  sharkMissile: {
+    id: 'sharkMissile',
+    label: '상어미사일',
+    base: {
+      damage: 30,
+      cooldown: 14000,
+      lastFired: 0,
+      range: 28,
+      radius: 1.8,
+      speed: 8.5,
+      retargetIntervalMs: 300,
+    },
+    unlockConditions: [
+      { type: 'stage1Clears', value: 1 },
+      { type: 'totalRuns', value: 8 },
+    ],
+    minLevelToAppear: 8,
+  },
   starlink: {
     id: 'starlink',
     label: '고장난 스타링크',

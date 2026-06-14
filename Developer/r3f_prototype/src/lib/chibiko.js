@@ -7,22 +7,116 @@ export const CHIBIKO_LEVEL1_PENCIL = {
   sideOffset: -0.28,
 }
 
-export function getChibikoFollowTarget(player, facing, options = {}) {
-  const followDistance = options.followDistance ?? CHIBIKO_LEVEL1_PENCIL.followDistance
-  const sideOffset = options.sideOffset ?? CHIBIKO_LEVEL1_PENCIL.sideOffset
-  const fx = Number.isFinite(facing?.x) ? facing.x : 0
-  const fz = Number.isFinite(facing?.z) ? facing.z : 1
-  const len = Math.hypot(fx, fz) || 1
-  const nx = fx / len
-  const nz = fz / len
-  const sideX = nz
-  const sideZ = -nx
+export const CHIBIKO_TRAIL_MAX_POINTS = 160
+export const CHIBIKO_TRAIL_MIN_STEP = 0.04
 
+const fallbackPoint = Object.freeze({ x: 0, y: 0, z: 0 })
+
+function toTrailPoint(position, timeMs) {
   return {
-    x: (player?.x ?? 0) - nx * followDistance + sideX * sideOffset,
-    y: player?.y ?? 0,
-    z: (player?.z ?? 0) - nz * followDistance + sideZ * sideOffset,
+    x: Number.isFinite(position?.x) ? position.x : 0,
+    y: Number.isFinite(position?.y) ? position.y : 0,
+    z: Number.isFinite(position?.z) ? position.z : 0,
+    timeMs: Number.isFinite(timeMs) ? timeMs : 0,
   }
+}
+
+function copyPoint(point = fallbackPoint) {
+  return {
+    x: point.x ?? 0,
+    y: point.y ?? 0,
+    z: point.z ?? 0,
+  }
+}
+
+function interpolatePoint(a, b, t) {
+  return {
+    x: a.x + (b.x - a.x) * t,
+    y: a.y + (b.y - a.y) * t,
+    z: a.z + (b.z - a.z) * t,
+  }
+}
+
+export function createChibikoTrail() {
+  return []
+}
+
+export function recordChibikoTrailPoint(trail, position, timeMs, options = {}) {
+  if (!Array.isArray(trail)) return trail
+
+  const point = toTrailPoint(position, timeMs)
+  const minStep = options.minStep ?? CHIBIKO_TRAIL_MIN_STEP
+  const maxPoints = options.maxPoints ?? CHIBIKO_TRAIL_MAX_POINTS
+  const last = trail[trail.length - 1]
+  if (last) {
+    const dx = point.x - last.x
+    const dz = point.z - last.z
+    if (dx * dx + dz * dz < minStep * minStep) {
+      last.y = point.y
+      last.timeMs = point.timeMs
+      return trail
+    }
+  }
+
+  trail.push(point)
+  while (trail.length > maxPoints) trail.shift()
+  return trail
+}
+
+function getTrailTargetByTime(trail, targetTimeMs) {
+  if (trail.length === 0) return copyPoint()
+  if (targetTimeMs <= trail[0].timeMs) return copyPoint(trail[0])
+
+  for (let i = 1; i < trail.length; i += 1) {
+    const prev = trail[i - 1]
+    const next = trail[i]
+    if (targetTimeMs > next.timeMs) continue
+
+    const duration = next.timeMs - prev.timeMs
+    const t = duration > 0 ? (targetTimeMs - prev.timeMs) / duration : 1
+    return interpolatePoint(prev, next, Math.max(0, Math.min(1, t)))
+  }
+
+  return copyPoint(trail[trail.length - 1])
+}
+
+function getTrailTargetByDistance(trail, followDistance) {
+  if (trail.length === 0) return copyPoint()
+  if (!Number.isFinite(followDistance) || followDistance <= 0) return copyPoint(trail[trail.length - 1])
+
+  let remaining = followDistance
+  for (let i = trail.length - 1; i > 0; i -= 1) {
+    const latest = trail[i]
+    const previous = trail[i - 1]
+    const dx = latest.x - previous.x
+    const dy = latest.y - previous.y
+    const dz = latest.z - previous.z
+    const segmentLength = Math.hypot(dx, dy, dz)
+    if (segmentLength <= 0.0001) continue
+
+    if (remaining <= segmentLength) {
+      const t = 1 - remaining / segmentLength
+      return interpolatePoint(previous, latest, Math.max(0, Math.min(1, t)))
+    }
+    remaining -= segmentLength
+  }
+
+  return copyPoint(trail[0])
+}
+
+export function getChibikoTrailTarget(trail, currentTimeMs, options = {}) {
+  if (!Array.isArray(trail) || trail.length === 0) return copyPoint()
+
+  if (Number.isFinite(options.followDistance)) {
+    return getTrailTargetByDistance(trail, options.followDistance)
+  }
+
+  const followDelayMs = options.followDelayMs ?? 0
+  if (Number.isFinite(followDelayMs) && followDelayMs > 0) {
+    return getTrailTargetByTime(trail, currentTimeMs - followDelayMs)
+  }
+
+  return copyPoint(trail[trail.length - 1])
 }
 
 export function createChibikoAttackConfig(weapon = {}) {

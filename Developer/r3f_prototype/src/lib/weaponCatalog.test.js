@@ -12,7 +12,7 @@ import {
 describe('weaponCatalog', () => {
   it('14종 entry 등록 + starter 9종', () => {
     const all = getAllWeaponIds()
-    expect(all.length).toBe(14)
+    expect(all.length).toBe(15)
     const starter = getStarterIds()
     expect(starter).toEqual(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'chibiko'])
   })
@@ -66,6 +66,29 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.guidedMissile.minLevelToAppear).toBe(4)
     expect(WEAPON_CATALOG.starlink.minLevelToAppear).toBe(8)
     expect(WEAPON_CATALOG.chibiko.minLevelToAppear).toBe(8)
+    expect(WEAPON_CATALOG.sharkMissile.minLevelToAppear).toBe(8)
+  })
+
+  it('defines sharkMissile as a high-impact cluster homing weapon based on scienceFlask', () => {
+    const flask = WEAPON_CATALOG.scienceFlask.base
+
+    expect(WEAPON_CATALOG.sharkMissile).toMatchObject({
+      id: 'sharkMissile',
+      label: '상어미사일',
+      base: {
+        damage: flask.damage * 2,
+        cooldown: flask.cooldown * 5,
+        range: 28,
+        radius: 1.8,
+        speed: 8.5,
+        retargetIntervalMs: 300,
+      },
+      unlockConditions: [
+        { type: 'stage1Clears', value: 1 },
+        { type: 'totalRuns', value: 8 },
+      ],
+      minLevelToAppear: 8,
+    })
   })
 
   it('evaluateUnlocks 빈 records → starter 9종만', () => {
@@ -111,6 +134,16 @@ describe('weaponCatalog', () => {
     expect(u.has('starlink')).toBe(true)
   })
 
+  it('evaluateUnlocks(stage1Clears:1) unlocks sharkMissile', () => {
+    const u = evaluateUnlocks({ stage1Clears: 1 })
+    expect(u.has('sharkMissile')).toBe(true)
+  })
+
+  it('evaluateUnlocks(totalRuns:8) unlocks sharkMissile fallback path', () => {
+    const u = evaluateUnlocks({ totalRuns: 8 })
+    expect(u.has('sharkMissile')).toBe(true)
+  })
+
   it('미지정 type은 false 처리 + 다른 OR 분기 계속 평가', () => {
     // bogus type + totalKills 200 → compassBlade 여전히 해금
     const u = evaluateUnlocks({ bogusType: 9999, totalKills: 200 })
@@ -128,6 +161,7 @@ describe('weaponCatalog', () => {
     expect(isStarter('pencilThrow')).toBe(true)
     expect(isStarter('compassBlade')).toBe(false)
     expect(isValidWeaponId('guidedMissile')).toBe(true)
+    expect(isValidWeaponId('sharkMissile')).toBe(true)
     expect(isValidWeaponId('bogus')).toBe(false)
   })
 })
