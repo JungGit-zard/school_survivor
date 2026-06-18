@@ -2,7 +2,7 @@ import { useGameStore } from '../store/useGameStore.js'
 import { PASSIVE_CATALOG, getMvpPassiveIds, getPriceFor, formatEffectLabel } from '../lib/passiveCatalog.js'
 import { getLevel } from '../lib/passiveUpgrades.js'
 
-export default function CoinShop({ onBack }) {
+export default function CoinShop({ onBack, backLabel = '결과로 돌아가기' }) {
   const goldTotal = useGameStore((s) => s.goldTotal)
   const passiveVersion = useGameStore((s) => s.passiveVersion)
   const purchasePassive = useGameStore((s) => s.purchasePassive)
@@ -42,7 +42,7 @@ export default function CoinShop({ onBack }) {
       </div>
 
       <button type="button" style={styles.backButton} onClick={onBack}>
-        결과로 돌아가기
+        {backLabel}
       </button>
     </div>
   )
