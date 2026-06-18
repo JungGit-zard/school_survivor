@@ -78,7 +78,10 @@ export default function App() {
         )}
 
         {screen === 'coinShop' && (
-          <CoinShop onBack={() => setScreen(prevScreen === 'game' ? 'game' : 'title')} />
+          <CoinShop
+            onBack={() => setScreen(prevScreen === 'game' ? 'game' : 'title')}
+            backLabel={prevScreen === 'game' ? '결과로 돌아가기' : '타이틀로 돌아가기'}
+          />
         )}
 
         {screen === 'game' && (
