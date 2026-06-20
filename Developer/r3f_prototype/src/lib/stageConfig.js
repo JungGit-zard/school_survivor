@@ -34,7 +34,7 @@ export const STAGE_CONFIGS = {
     bossWarningSec: 192,
     e04IntroSec: 72,
     // 복도형: 현재 정사각 경계 유지 (코리도 시각 연출은 ClassroomFloor에서 별도 처리).
-    mapHalfX: 48,
+    mapHalfX: 10,
     mapHalfZ: 48,
     survivalMilestones: [
       { atMs: 48_000, gold: 2, label: '복도 적응 보너스' },
