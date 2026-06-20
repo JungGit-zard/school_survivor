@@ -13,6 +13,7 @@ import {
 import { evaluateUnlocks, isStarter, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { DEFAULT_STAGE_ID, getStageConfig } from '../lib/stageConfig.js'
+import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
 
 const BASE_PLAYER = {
   hp: 100, maxHp: 100,
@@ -232,6 +233,7 @@ export const useGameStore = create(
       if (phaseName === 'cleared') incrementPlayerRecord(stage.clearRecordKey, 1)
 
       set({ newlyUnlockedWeaponIds: Object.freeze(diff) })
+      requestCloudProgressSave()
     },
 
     gainGold: (amount) => {
@@ -240,6 +242,7 @@ export const useGameStore = create(
       const nextTotal = goldTotal + amount
       saveGoldTotal(nextTotal)
       set({ goldSession: goldSession + amount, goldTotal: nextTotal })
+      requestCloudProgressSave()
     },
 
     spendGold: (amount) => {
@@ -249,6 +252,7 @@ export const useGameStore = create(
       const nextTotal = goldTotal - amount
       saveGoldTotal(nextTotal)
       set({ goldTotal: nextTotal })
+      requestCloudProgressSave()
       return true
     },
 
@@ -258,6 +262,7 @@ export const useGameStore = create(
       if (!result.ok) return result
       saveGoldTotal(result.nextGold)
       set((s) => ({ goldTotal: result.nextGold, passiveVersion: s.passiveVersion + 1 }))
+      requestCloudProgressSave()
       return result
     },
 
@@ -272,6 +277,7 @@ export const useGameStore = create(
         passiveVersion: s.passiveVersion + 1,
         levelUpChoiceSerial: s.levelUpChoiceSerial + 1,
       }))
+      requestCloudProgressSave()
     },
 
     checkSurvivalMilestone: () => {
@@ -294,6 +300,7 @@ export const useGameStore = create(
         ],
         recentMilestone: earned[earned.length - 1],
       })
+      requestCloudProgressSave()
     },
 
     clearMilestone: () => set({ recentMilestone: null }),

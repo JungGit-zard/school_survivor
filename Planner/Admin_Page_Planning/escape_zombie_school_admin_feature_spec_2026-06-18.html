@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Escape! zombie school — 게임 어드민 기능기획서</title>
+<style>
+:root{--bg:#0d1020;--panel:#151a2e;--line:#303a62;--ink:#eef3ff;--muted:#aeb9d5;--mint:#6ee7c8;--red:#ff6b88;--gold:#ffd166;--blue:#86b7ff}*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#090b14,#12172b 42%,#111827);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",Arial,sans-serif;line-height:1.55}.wrap{max-width:1180px;margin:0 auto;padding:34px 22px 80px}.hero,.card{border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.025));border-radius:24px;box-shadow:0 24px 80px rgba(0,0,0,.28)}.hero{padding:34px;background:radial-gradient(circle at 18% 0%,rgba(110,231,200,.18),transparent 34%),linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.025))}h1{font-size:42px;line-height:1.08;margin:0 0 12px}h2{font-size:25px;margin:34px 0 14px}h3{font-size:18px;margin:20px 0 8px;color:#dfe8ff}p{margin:0 0 12px}.sub{color:var(--muted);font-size:16px;max-width:900px}.badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.badge{border:1px solid var(--line);background:rgba(255,255,255,.06);padding:7px 11px;border-radius:999px;color:#d8e2ff;font-size:13px}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin-top:18px}.card{grid-column:span 6;padding:20px}.card.full{grid-column:1/-1}.card.third{grid-column:span 4}.kicker{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mint);font-weight:800}.list{padding-left:20px;margin:10px 0 0}.list li{margin:7px 0;color:#d9e2fa}.table{width:100%;border-collapse:separate;border-spacing:0 8px}.table th{color:#9fb0d7;text-align:left;font-size:13px;font-weight:700;padding:0 10px}.table td{background:rgba(255,255,255,.045);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 10px;color:#e5ecff}.table td:first-child{border-left:1px solid var(--line);border-radius:12px 0 0 12px;font-weight:800;color:white}.table td:last-child{border-right:1px solid var(--line);border-radius:0 12px 12px 0}.pill{display:inline-flex;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:800}.p0{background:rgba(255,107,136,.15);color:#ffb3c2}.p1{background:rgba(255,209,102,.16);color:#ffe39a}.p2{background:rgba(110,231,200,.14);color:#a9f4e5}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.step{border:1px solid var(--line);background:#10162a;border-radius:16px;padding:14px;min-height:112px}.step b{display:block;color:white;margin-bottom:6px}.note{border-left:4px solid var(--mint);background:rgba(110,231,200,.08);border-radius:14px;padding:14px 16px;color:#dffdf7}.warn{border-left-color:var(--gold);background:rgba(255,209,102,.08)}code{background:rgba(0,0,0,.3);padding:2px 6px;border-radius:6px;color:#b8ffe8}@media(max-width:900px){.card,.card.third{grid-column:1/-1}.flow{grid-template-columns:1fr}h1{font-size:32px}}
+</style>
+</head>
+<body><main class="wrap">
+<section class="hero">
+<div class="kicker">Admin Feature Specification · 2026-06-18</div>
+<h1>Escape! zombie school<br/>게임 어드민 기능기획서</h1>
+<p class="sub">현재 프로젝트는 React + Three.js/R3F 기반 모바일 세로형 생존 액션 게임이다. Stage 1은 240초 교실 생존, Stage 2는 복도 투사체 시험으로 구성되어 있고, 무기/패시브/스테이지/웨이브/보상/플레이어 기록이 로컬 저장 및 코드 카탈로그 중심으로 관리된다. 본 어드민은 운영자가 이 데이터를 코드 수정 없이 점검·튜닝·배포 승인할 수 있게 하는 내부 관리 페이지를 목표로 한다.</p>
+<div class="badges"><span class="badge">프로젝트: school_survivor-integration</span><span class="badge">클라이언트: Developer/r3f_prototype</span><span class="badge">React · R3F · Rapier · Zustand</span><span class="badge">밸런스/스테이지/상점/QA</span></div>
+</section>
+
+<section class="grid">
+<article class="card third"><div class="kicker">Game Read</div><h2>게임 파악 요약</h2><ul class="list"><li>타이틀 → 스테이지 선택 → 게임 → HUD/레벨업/게임오버 → 코인상점 루프.</li><li>Stage 1: 감염된 교실에서 240초 생존, 192초 보스 조우.</li><li>Stage 2: Stage 1 클리어 또는 180초 생존 3회 후 해금되는 복도 탄환 생존.</li><li>무기 14종과 코인상점 패시브 성장 구조.</li></ul></article>
+<article class="card third"><div class="kicker">Admin Goal</div><h2>어드민 목표</h2><ul class="list"><li>게임 밸런스 변경사항을 한 화면에서 확인하고 승인.</li><li>무기/적/웨이브/보상 수치를 테이블 기반으로 관리.</li><li>운영 공지, 이벤트, 코인상점 상태를 빠르게 점검.</li><li>QA 스크린샷/브라우저 플레이테스트 결과를 연결.</li></ul></article>
+<article class="card third"><div class="kicker">MVP Scope</div><h2>1차 범위</h2><ul class="list"><li>읽기 중심 대시보드 + 안전한 임시 편집.</li><li>변경안 저장은 draft 상태로 시작.</li><li>실제 게임 반영 전 리뷰/승인 플로우 필수.</li><li>모바일 세로 게임 특성상 390×844 프리뷰 우선.</li></ul></article>
+</section>
+
+<h2>핵심 메뉴 구조</h2>
+<table class="table"><thead><tr><th>메뉴</th><th>주요 기능</th><th>데이터 출처/연동 후보</th><th>우선순위</th></tr></thead><tbody>
+<tr><td>Dashboard</td><td>실시간 운영 요약, 최근 빌드, 주요 밸런스 변경, QA 상태</td><td>package/build 로그, dogfood-output, git metadata</td><td><span class="pill p0">P0</span></td></tr>
+<tr><td>Stages</td><td>Stage 1/2 지속시간, 보스 경고 시간, 맵 크기, 해금 조건 관리</td><td><code>stageConfig.js</code></td><td><span class="pill p0">P0</span></td></tr>
+<tr><td>Waves</td><td>시간대별 적 구성, target 밀도, burst event, 보스 구간 관리</td><td><code>Enemies.jsx</code></td><td><span class="pill p0">P0</span></td></tr>
+<tr><td>Weapons</td><td>무기 base stat, unlock condition, minLevel, active 여부 점검</td><td><code>weaponCatalog.js</code>, <code>upgrades.js</code></td><td><span class="pill p0">P0</span></td></tr>
+<tr><td>Economy</td><td>코인 획득 마일스톤, 코인상점 패시브 가격/효과 관리</td><td><code>passiveCatalog.js</code>, <code>useGameStore.js</code></td><td><span class="pill p1">P1</span></td></tr>
+<tr><td>Players</td><td>누적 기록, 해금 상태, 테스트 계정 리셋/부여</td><td><code>playerRecords.js</code>, Google/Firebase 후보</td><td><span class="pill p1">P1</span></td></tr>
+<tr><td>QA Lab</td><td>브라우저 플레이테스트 스크린샷, 이슈/회귀 체크리스트</td><td><code>dogfood-output</code>, QA 문서</td><td><span class="pill p1">P1</span></td></tr>
+<tr><td>Notices</td><td>공지/이벤트/Discord 안내문 초안 관리</td><td>운영 수동 입력, Discord 게시 기록</td><td><span class="pill p2">P2</span></td></tr>
+</tbody></table>
+
+<section class="grid"><article class="card full"><div class="kicker">User Roles</div><h2>권한 설계</h2><table class="table"><tbody>
+<tr><td>Owner/Admin</td><td>모든 수치 편집, 승인, 배포 요청 가능. 위험 조작은 2단계 확인.</td><td>P0</td></tr>
+<tr><td>Planner</td><td>스테이지/웨이브/무기 밸런스 draft 작성 가능, 배포 불가.</td><td>P0</td></tr>
+<tr><td>QA</td><td>QA 결과 업로드, 회귀 체크, 스크린샷 주석 작성 가능.</td><td>P1</td></tr>
+<tr><td>Viewer</td><td>읽기 전용. 라이브 데이터와 draft 비교만 가능.</td><td>P1</td></tr>
+</tbody></table></article></section>
+
+<h2>주요 기능 상세</h2>
+<section class="grid">
+<article class="card"><h3>1. 운영 대시보드</h3><ul class="list"><li>현재 빌드 상태, 최근 테스트 통과 여부, Stage별 주요 지표 표시.</li><li>Stage 1/2 카드: 지속시간, 해금 조건, 보스 시간, 맵 크기.</li><li>최근 변경안: 누가 어떤 수치를 바꿨는지 diff 형태로 표시.</li><li>긴급 버튼: 테스트 데이터 리셋, 빌드 확인, QA 리포트 열기.</li></ul></article>
+<article class="card"><h3>2. 스테이지/웨이브 관리</h3><ul class="list"><li>Stage config 편집: durationSec, bossWarningSec, mapHalfX/Z, unlock condition.</li><li>Wave timeline 시각화: 0–240초 구간을 막대그래프로 표시.</li><li>Enemy weights 편집: E01/E02/E03/E04/E05/E06/B01 비율 합계 검증.</li><li>Burst event: 특정 초에 등장하는 적 타입/수량 관리.</li></ul></article>
+<article class="card"><h3>3. 무기/업그레이드 관리</h3><ul class="list"><li>무기별 base stat: damage, cooldown, range, radius, count, speed 등.</li><li>Starter/Unlock 조건 구분, OR 조건 시각화.</li><li>레벨업 카드 출현 minLevel 및 설명문 관리.</li><li>상향/하향 변경 시 예상 영향 태그: 초반 안정성, 보스전, 광역 처리, 단일딜.</li></ul></article>
+<article class="card"><h3>4. 경제/상점 관리</h3><ul class="list"><li>생존 마일스톤 코인 보상 48/144/192/240초 관리.</li><li>코인상점 패시브 레벨, 가격, 효과, maxLevel 테이블.</li><li>테스트 계정 goldTotal 부여/차감/초기화.</li><li>구매 가능/코인 부족/최대 레벨 상태 미리보기.</li></ul></article>
+<article class="card"><h3>5. 플레이어 기록/해금 관리</h3><ul class="list"><li>totalRuns, totalKills, totalGold, totalSurvivalSeconds, bestSurvivalSeconds.</li><li>무기 해금 상태 확인 및 테스트용 일괄 해금.</li><li>Stage 2 해금 조건 상태: Stage 1 클리어 또는 180초 생존 3회.</li><li>Google 계정 연동 이후 유저 검색/세그먼트 기능 확장.</li></ul></article>
+<article class="card"><h3>6. QA Lab</h3><ul class="list"><li>타이틀/코인상점/게임시작/게임오버 스크린샷 목록화.</li><li>브라우저 플레이테스트 결과와 이슈 severity 표시.</li><li>모바일 390×844 기준 회귀 체크리스트.</li><li>승인 전 필수 체크: 빌드, 테스트, 플레이 1회, 상점 이동.</li></ul></article>
+</section>
+
+<h2>변경 승인 플로우</h2>
+<section class="flow"><div class="step"><b>1 Draft</b>기획자/운영자가 수치를 수정하지만 라이브에는 반영하지 않는다.</div><div class="step"><b>2 Validate</b>합계, 범위, 음수, 과도한 cooldown 등 자동 검증.</div><div class="step"><b>3 Preview</b>390×844 게임 프리뷰와 diff 비교.</div><div class="step"><b>4 QA</b>브라우저 플레이테스트 및 스크린샷 확인.</div><div class="step"><b>5 Approve</b>Owner 승인 후 적용/배포 요청.</div></section>
+
+<section class="grid"><article class="card full"><div class="kicker">Data Safety</div><h2>안전장치</h2><ul class="list"><li>라이브 반영 전 모든 변경은 draft와 diff로 보관.</li><li>Stage duration, boss timing, unlock condition 변경은 위험 변경으로 표시.</li><li>삭제 대신 비활성화 우선. 웨이브/무기 항목 삭제는 2단계 확인.</li><li>수치 범위 guard: cooldown 0 이하 금지, weight 합계 1.0 자동 보정/경고, mapHalf 최소값 제한.</li><li>운영 어드민은 게임 클라이언트 번들에 포함하지 않고 별도 내부 페이지로 분리.</li></ul><div class="note warn">1차 구현은 실제 데이터 저장보다 “게임 상태를 정확히 읽고, 안전하게 조정안을 만드는 도구”에 집중하는 것이 좋다. 바로 라이브 수정 기능부터 붙이면 밸런스 사고 위험이 커진다.</div></article></section>
+</main></body></html>
