@@ -119,9 +119,14 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
   const targetRef = useRef(initialTarget)
   const retargetAtRef = useRef(0)
   const posRef = useRef({ x: start[0], y: start[1], z: start[2] })
-  const yawRef = useRef(0)
   const explodedRef = useRef(false)
   const flameRef = useRef(null)
+
+  // 발사 시점에 목표 방향으로 yaw 초기화 — useRef(0)이면 항상 +Z(정면)로 날아간 뒤 뒤늦게 꺾임
+  const initDx = initialTarget.x - start[0]
+  const initDz = initialTarget.z - start[2]
+  const initDist = Math.hypot(initDx, initDz)
+  const yawRef = useRef(initDist > 0.001 ? Math.atan2(initDx / initDist, initDz / initDist) : 0)
 
   usePlayingFrame((_, delta) => {
     if (!groupRef.current || explodedRef.current) return
@@ -149,7 +154,9 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
     const nx = dist > 0.001 ? dx / dist : Math.sin(yawRef.current)
     const nz = dist > 0.001 ? dz / dist : Math.cos(yawRef.current)
     const desiredYaw = Math.atan2(nx, nz)
-    yawRef.current = THREE.MathUtils.lerp(yawRef.current, desiredYaw, Math.min(1, delta * 5))
+    // THREE.MathUtils.lerp은 ±π 경계에서 긴 쪽으로 돌아가는 wrap 버그가 있어 최단 각도 보간으로 교체
+    const angleDiff = ((desiredYaw - yawRef.current + Math.PI) % (2 * Math.PI)) - Math.PI
+    yawRef.current += angleDiff * Math.min(1, delta * 5)
 
     p.x += Math.sin(yawRef.current) * speed * delta
     p.z += Math.cos(yawRef.current) * speed * delta
