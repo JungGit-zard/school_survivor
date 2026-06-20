@@ -71,7 +71,7 @@ describe('stage object placements', () => {
     const stage1Students = getStageObjectPlacements('stage1')
       .filter(({ type }) => type === 'unconsciousStudent')
 
-    expect(stage1Students).toHaveLength(10)
+    expect(stage1Students).toHaveLength(30)
   })
 
   it('keeps classroom desks and chairs compact after the prop scale reduction', () => {
