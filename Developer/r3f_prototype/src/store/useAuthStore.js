@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { createFirebaseAuthClient, isFirebaseAuthConfigured } from '../lib/firebaseAuth.js'
+import { saveLocalProgressToCloud, setCloudProgressUser } from '../lib/firebaseProgress.js'
 
 let authClientPromise = null
 let unsubscribeAuth = null
@@ -28,6 +29,7 @@ export const useAuthStore = create((set, get) => ({
 
       unsubscribeAuth?.()
       unsubscribeAuth = client.subscribe((user) => {
+        syncCloudProgressUser(user)
         set({
           status: user ? 'signedIn' : 'signedOut',
           user,
@@ -55,6 +57,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const client = await getAuthClient()
       const user = await client.signInWithGoogle()
+      syncCloudProgressUser(user)
       set({ status: 'signedIn', user, signingIn: false, error: null })
       return user
     } catch (error) {
@@ -72,6 +75,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const client = await getAuthClient()
       await client.signOut()
+      syncCloudProgressUser(null)
       set({ status: 'signedOut', user: null, signingIn: false, error: null })
     } catch (error) {
       set({ status: 'error', error: getErrorMessage(error), signingIn: false })
@@ -95,6 +99,16 @@ export function _resetAuthStoreForTests() {
 function getAuthClient() {
   if (!authClientPromise) authClientPromise = createFirebaseAuthClient()
   return authClientPromise
+}
+
+function syncCloudProgressUser(user) {
+  setCloudProgressUser(user)
+  if (!user) return
+  void saveLocalProgressToCloud(user).catch((error) => {
+    if (typeof console !== 'undefined') {
+      console.warn('Firebase progress save failed.', error)
+    }
+  })
 }
 
 function getErrorMessage(error) {

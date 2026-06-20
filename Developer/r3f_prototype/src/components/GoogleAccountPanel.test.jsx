@@ -21,8 +21,8 @@ describe('GoogleAccountPanelView', () => {
       <GoogleAccountPanelView status="signedOut" signingIn={false} onSignIn={onSignIn} onSignOut={() => {}} />,
     )
 
-    expect(html).toContain('Google로 로그인')
-    expect(html).toContain('계정 연동 전')
+    expect(html).toContain('Google 로그인')
+    expect(html).toContain('계정 연동 가능')
   })
 
   it('shows account identity and sign out when signed in', () => {

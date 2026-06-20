@@ -613,3 +613,224 @@ git log -1 --oneline
 **다음 엔트리 예정**: Session 2 · Entry 2 — 2026-05-18 0126 KST 전후
 
 ---
+
+## Session 5 · Entry 0 (Bootstrap) · 2026-06-16 0115 KST
+
+### Git 상태
+
+- 브랜치: `main`
+- 원격 상태: `main...origin/main` 동기화 완료
+- 최신 커밋:
+  - `6d876cb chore(tools): remove uncommitted reminder automation`
+  - `44342d6 docs(solutions): document untracked-file build error and coinshop navigation bug`
+  - `0c39b3b feat(auth): add Google login on title screen`
+  - `9bc5d7e merge(review): apply P1+P2 fixes from code review`
+- `git status --short --branch`: `## main...origin/main`
+- 현재 작업트리: 이 엔트리 작성 전에는 깨끗했고, 이 엔트리 작성으로 `SESSION_MEMORY.md`만 수정됨.
+
+### 이번 작업 / 대화 요약
+
+- Google 계정 로그인 1차 구현은 이미 `main`에 반영되어 있다.
+- 구현 커밋: `0c39b3b feat(auth): add Google login on title screen`
+- 타이틀 화면에 `GoogleAccountPanel`이 연결되어 있다.
+- Firebase Auth 기반 Google popup 로그인/로그아웃 코드가 있다.
+- Firebase 설정은 `Developer/r3f_prototype/.env.example` 형식으로 안내되어 있으며, 실제 `.env`는 `.gitignore`로 커밋 차단된다.
+- 현재 실제 Google 로그인을 작동시키려면 Firebase 콘솔에서 프로젝트를 만들고 Google provider를 켠 뒤 `Developer/r3f_prototype/.env`에 실제 값을 넣어야 한다.
+- 아직 Firestore/Cloud Functions를 통한 계정별 코인, 패시브, 무기해금, 기록 저장은 구현되지 않았다. 이 부분이 다음 큰 단계다.
+- 사용자가 “미커밋 알림은 안 해도 된다”고 지시했고 자동화 삭제를 완료했다.
+- 삭제 커밋: `6d876cb chore(tools): remove uncommitted reminder automation`
+- Windows 작업 스케줄러의 `EscapeZombieSchool_Uncommitted_Reminder` 삭제 확인.
+- `Developer/tools/uncommitted_reminder.ps1` 삭제 및 푸시 완료.
+
+### 생성 / 수정 / 이동 파일 목록
+
+- 최근 완료된 로그인 구현 관련 파일:
+  - `Developer/r3f_prototype/src/lib/firebaseAuth.js`: Firebase Auth 설정/Google provider 클라이언트 생성.
+  - `Developer/r3f_prototype/src/store/useAuthStore.js`: 로그인 상태, 사용자 정보, 로그인/로그아웃 액션 상태 저장.
+  - `Developer/r3f_prototype/src/components/GoogleAccountPanel.jsx`: 타이틀 화면 로그인 UI.
+  - `Developer/r3f_prototype/src/components/TitleScreen.jsx`: `GoogleAccountPanel` 마운트.
+  - `Developer/r3f_prototype/.env.example`: Firebase Vite 환경변수 예시.
+  - `Planner/Tech_plan/google_login_title_auth_milestone_2026-06-15.md`: 로그인 1차 마일스톤 범위.
+  - `Developer/구현기록/공통기술기록/google_login_title_auth_implementation_2026-06-15.md`: 구현 기록.
+  - `Quaility_Assurance/google_login_title_auth_validation_2026-06-15.md`: 검증 기록.
+- 최근 삭제된 자동화:
+  - `Developer/tools/uncommitted_reminder.ps1`: 미커밋 알림 스크립트 삭제.
+- 이번 엔트리에서 수정:
+  - `SESSION_MEMORY.md`: 리세션 대비 최신 요약 및 메모리 법칙 기록.
+
+### 명령 로그
+
+최근 대화에서 실행한 주요 명령:
+
+```powershell
+Get-Content -Path project_develop_policy.md
+git status --short --branch
+git log --oneline -5
+rg -n "GoogleAccountPanel|firebaseAuth|useAuthStore|VITE_FIREBASE|Google로 로그인|Google 로그인" Developer/r3f_prototype/src Developer/r3f_prototype/.env.example Developer/r3f_prototype/package.json Planner/Tech_plan Quaility_Assurance -S
+Get-ScheduledTask -TaskName EscapeZombieSchool_Uncommitted_Reminder
+Unregister-ScheduledTask -TaskName EscapeZombieSchool_Uncommitted_Reminder -Confirm:$false
+git pull --ff-only origin main
+git checkout -b chore/remove-uncommitted-reminder
+git add -- Developer/tools/uncommitted_reminder.ps1
+git commit -m "chore(tools): remove uncommitted reminder automation"
+git push
+git checkout main
+git pull --ff-only origin main
+Get-Content -Path SESSION_CONTINUITY.md
+Get-Content -Path SESSION_MEMORY.md -TotalCount 220
+Get-Date -Format 'yyyy-MM-dd HHmm KST'
+apply_patch
+Add-Content -LiteralPath SESSION_MEMORY.md -Value <this entry>
+```
+
+### 검증 결과
+
+- 로그인 구현 당시 검증:
+  - `npm test -- --run`: 42 files / 248 tests 통과.
+  - `npm run build`: 통과.
+  - Playwright 390x844 타이틀 화면 smoke check 통과.
+  - 스크린샷: `Quaility_Assurance/google_login_title_auth_390x844_2026-06-15.png`
+- 자동화 삭제 검증:
+  - 작업 스케줄러에서 `EscapeZombieSchool_Uncommitted_Reminder` 미검색 확인.
+  - 저장소에서 `uncommitted_reminder`, `EscapeZombieSchool_Uncommitted_Reminder`, `uncommitted-reminder` 참조 미검색 확인.
+  - 로컬 로그 `EscapeZombieSchool/uncommitted-reminder.log` 제거 또는 부재 확인.
+
+### 확정된 룰 / 리세션 메모리 법칙
+
+- 세션 메모리 단일 정본은 `SESSION_CONTINUITY.md`이며, 실제 영구 로그는 `SESSION_MEMORY.md`다.
+- 새 세션 또는 리세션 시작 시 필독 순서:
+  1. `project_develop_policy.md`
+  2. `Bang_Rules.md`
+  3. `AGENTS.md`
+  4. `CLAUDE.md`
+  5. `SESSION_CONTINUITY.md`
+  6. `SESSION_MEMORY.md`의 가장 최근 엔트리 1개
+- 과거 엔트리 전체 자동 로드는 금지. 사용자가 “대화 기록 뒤져”, “지난 세션 확인”처럼 명시적으로 요구할 때만 추가로 읽는다.
+- 중요한 작업 지식은 채팅 기억에만 두지 말고 반드시 `SESSION_MEMORY.md`에 Markdown으로 남긴다.
+- 3시간마다 `SESSION_MEMORY.md` 끝에 새 엔트리를 append한다.
+- 한 세션은 12시간이며 Entry 1~4까지 쓰면 세션 종료 및 `/clear` 권고를 한다.
+- 커밋/푸시 여부는 반드시 실제 `git status`, `git log`, `git push` 출력으로 확인한다.
+- 최근 작업에서 특히 기억할 점: Google 로그인 “코드”는 붙어 있고, 실제 로그인 활성화는 Firebase `.env` 값 연결이 필요하다.
+
+### 미해결 이슈 / 다음 단계
+
+1. Firebase 콘솔에서 프로젝트 생성.
+2. Authentication에서 Google provider 활성화.
+3. `Developer/r3f_prototype/.env`에 실제 Firebase Web App 설정 입력.
+4. `npm run dev -- --host 127.0.0.1 --port 5178` 또는 기존 5178 서버에서 실제 Google 로그인 popup 검증.
+5. 다음 큰 개발 단계: Firestore + Cloud Functions로 계정별 코인, 패시브, 무기해금, 기록 저장 구현.
+6. 그 단계에서는 클라이언트가 직접 `goldTotal`, `passiveUpgrades`, `weaponUnlocks`, `records`를 쓰지 않고 서버 함수가 검증 후 저장해야 한다.
+
+다음 세션이 가장 먼저 읽어야 할 항목: 이 엔트리의 “이번 작업 / 대화 요약”과 “미해결 이슈 / 다음 단계”.
+
+---
+
+## Session 5 · Entry 1 · 2026-06-19 2338 KST
+
+### Git 상태
+
+- 브랜치: `main`
+- 원격 상태: `main...origin/main`
+- 최신 커밋: `f761c44 fix(ui): show correct label on CoinShop back button based on origin screen`
+- `git status --short --branch` 요약:
+
+```text
+## main...origin/main
+ M SESSION_MEMORY.md
+?? Developer/stage1_vertical_classroom_map_implementation_notes_2026-06-18.md
+?? Graphic_designer/stage1_vertical_classroom_visual_layout_2026-06-18.md
+?? Planner/Admin_Page_Planning/
+?? "Planner/B. GAME_DESIGN/B-2_Stage_process_difficulty/Stage1_Balance/stage1_vertical_classroom_map_plan_2026-06-18.md"
+?? Quaility_Assurance/browser_play_after_2026-06-18.png
+?? Quaility_Assurance/browser_play_game_start_2026-06-18.png
+?? Quaility_Assurance/browser_play_title_2026-06-18.png
+?? Quaility_Assurance/browser_playtest_validation_2026-06-18.md
+?? Quaility_Assurance/stage1_vertical_classroom_map_validation_plan_2026-06-18.md
+?? dogfood-output/
+```
+
+### 이번 3시간 작업 / 대화
+
+- 사용자가 리세션 대비를 요청했다.
+- 세션 연속성 규칙에 따라 `project_develop_policy.md`, `SESSION_CONTINUITY.md`, `Bang_Rules.md`, `AGENTS.md`, `CLAUDE.md`, `SESSION_MEMORY.md` 최근 엔트리를 확인했다.
+- `CLAUDE.md`의 gstack 확인 규칙에 따라 로컬 gstack 설치 여부를 확인했고 `GSTACK_OK`였다.
+- 직전 작업에서 사용자는 "기획문서도 모두 검수하고 스테이지 1도 교실처럼 가로보다 세로가 긴 구도로 맵 크기조절 계획세워줘, 관련 에이전트 다 동원해"라고 요청했다.
+- 이에 따라 문서 정합성, 구현 가능성, 그래픽/모바일 UX, 제품 관점, 적대적 검증, 코드 매핑 관점의 에이전트 검수를 통합했다.
+- 핵심 결론: Stage 1은 이미 코드상 `mapHalfX = 34`, `mapHalfZ = 54`인 세로형 맵이며 실제 크기는 `68 x 108 units`다. 따라서 당장 맵을 더 늘리는 것보다, 모바일 세로 화면에서 긴 교실로 읽히도록 오브젝트 배치, 시각 기준, QA 기준을 맞추는 계획을 우선한다.
+- 1차 계획은 현재 수치 유지, 2차 후보는 QA 후 `mapHalfZ = 60`, 금지 방향은 `mapHalfX < 32`와 `mapHalfZ > 60`이다.
+- 책상/의자는 현재 blocking collider, 즉 플레이어/좀비를 막는 충돌체다. 쓰러진 학생은 non-blocking 배경 오브젝트다.
+- Stage 1 기획 문서 중 일부는 여전히 5분/300초 기준을 포함하지만, 현행 정본은 코드와 `Planner/B. GAME_DESIGN/Stage_balance_summary.md`의 4분/240초 기준이다.
+- 이번 리세션 대비 작업에서는 코드 구현, 테스트, 커밋, 푸시는 하지 않았다.
+
+### 생성 / 수정 / 이동 파일 목록
+
+- 이번 리세션 대비로 수정:
+  - `SESSION_MEMORY.md`: 이 엔트리를 append해 최신 작업과 현재 미커밋 상태를 보존.
+- 직전 Stage 1 세로형 교실 계획 작업에서 생성:
+  - `Planner/B. GAME_DESIGN/B-2_Stage_process_difficulty/Stage1_Balance/stage1_vertical_classroom_map_plan_2026-06-18.md`: Stage 1 세로형 교실 맵 정본 수치와 조절 계획.
+  - `Graphic_designer/stage1_vertical_classroom_visual_layout_2026-06-18.md`: 모바일 세로 화면 기준 그래픽 배치 규칙.
+  - `Developer/stage1_vertical_classroom_map_implementation_notes_2026-06-18.md`: 구현 변경 후보, 위험 결합점, 테스트 계획.
+  - `Quaility_Assurance/stage1_vertical_classroom_map_validation_plan_2026-06-18.md`: 문서 정합성 이슈와 브라우저 QA 체크리스트.
+- 기존 미커밋/미추적 항목:
+  - `Quaility_Assurance/browser_play_after_2026-06-18.png`
+  - `Quaility_Assurance/browser_play_game_start_2026-06-18.png`
+  - `Quaility_Assurance/browser_play_title_2026-06-18.png`
+  - `Quaility_Assurance/browser_playtest_validation_2026-06-18.md`
+  - `Planner/Admin_Page_Planning/escape_zombie_school_admin_layout_spec_tuner_2026-06-18.html`
+  - `Planner/Admin_Page_Planning/escape_zombie_school_admin_feature_spec_2026-06-18.html`
+  - `dogfood-output/`
+
+### 명령 로그
+
+이번 엔트리 작성 과정에서 실행한 명령:
+
+```powershell
+Get-Content -Raw project_develop_policy.md
+Get-Content -Raw SESSION_CONTINUITY.md
+git status --short --branch
+Get-Content -Tail 160 SESSION_MEMORY.md
+Get-Content -Raw -Encoding UTF8 Bang_Rules.md
+Get-Content -Raw -Encoding UTF8 AGENTS.md
+Get-Content -Raw -Encoding UTF8 CLAUDE.md
+Get-Content -Tail 240 -Encoding UTF8 SESSION_MEMORY.md
+git log -1 --pretty=format:"%h %s"
+rg --files Planner/Admin_Page_Planning
+if (Test-Path "$env:USERPROFILE\.claude\skills\gstack\bin") { 'GSTACK_OK' } else { 'GSTACK_MISSING' }
+Get-Date -Format 'yyyy-MM-dd HHmm KST'
+apply_patch
+```
+
+### 명령 / 빌드 / 테스트 / 브라우저 검증 결과
+
+- `git status --short --branch`: 위 Git 상태와 같음.
+- `git log -1 --pretty=format:"%h %s"`: `f761c44 fix(ui): show correct label on CoinShop back button based on origin screen`
+- `rg --files Planner/Admin_Page_Planning`: admin 기획 HTML 2개 확인.
+- gstack 확인: `GSTACK_OK`
+- 이번 리세션 대비 작업에서는 `npm test`, `npm run build`, 브라우저 QA를 새로 실행하지 않았다.
+- 직전 브라우저 플레이 검증 기록은 `Quaility_Assurance/browser_playtest_validation_2026-06-18.md`와 스크린샷 3개에 남아 있다.
+
+### 확정된 룰 / 정책 변경
+
+- 새 정책 변경 없음.
+- 세션 메모리 단일 정본은 계속 `SESSION_CONTINUITY.md`.
+- 새 세션은 `SESSION_MEMORY.md`의 가장 최근 엔트리 1개만 자동으로 읽는다.
+- `project_develop_policy.md`가 최고 우선순위이며, 역할별 기록은 해당 폴더에 저장한다.
+- 현재 맵/시간 정본은 코드와 `Stage_balance_summary.md`를 우선한다. 오래된 5분/300초 문서는 직접 구현 기준으로 쓰지 않는다.
+
+### 미해결 이슈 + 다음 단계
+
+1. Stage 1 세로형 교실 계획 문서 4개가 아직 미커밋이다.
+2. Stage 1 세로형 교실 계획은 문서화까지만 완료됐다. 실제 구현은 아직 하지 않았다.
+3. 다음 구현 시 우선순위:
+   - `stageConfig.test.js`에 Stage 1 `mapHalfX = 34`, `mapHalfZ = 54` 정본 테스트 추가.
+   - `stageObjectPlacements.test.js`에 중앙 비움, 맵 경계 안 배치, 세로 구간별 최소 배치 테스트 추가.
+   - `stageObjectPlacements.js`에서 책상/의자/학생 일부를 `z = ±26`, `z = ±38` 근처까지 분산.
+   - 필요하면 `ClassroomFloor.jsx`에 Stage 1 경계감 또는 교실 방향감을 주는 시각 요소 추가.
+   - 경계 근처 적 스폰이 플레이어에게 너무 가까워지지 않는지 검증.
+   - 모바일 `375 x 812`, `390 x 844` 브라우저 QA 수행.
+4. `Planner/Admin_Page_Planning/`의 HTML 2개는 현재 미추적 상태다. 이 엔트리 작성자는 내용 변경하지 않았으므로 다음 작업자가 필요 여부를 확인해야 한다.
+5. `dogfood-output/`도 미추적 상태이며 이번 작업에서 건드리지 않았다.
+
+다음 세션이 가장 먼저 읽어야 할 항목: 이 엔트리의 “이번 3시간 작업 / 대화”와 “미해결 이슈 + 다음 단계”.
+
+---

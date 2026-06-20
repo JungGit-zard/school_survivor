@@ -1,11 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { FLOOR_TILE } from './ClassroomFloor.jsx'
+import { FLOOR_TILE, STAGE_FLOOR_TILES, STAGE2_CORRIDOR_END } from './ClassroomFloor.jsx'
 
 describe('ClassroomFloor tiling', () => {
   it('uses the stage01 tile asset as the repeating floor pattern', () => {
     expect(typeof FLOOR_TILE.src).toBe('string')
     expect(FLOOR_TILE.src.length).toBeGreaterThan(0)
     expect(FLOOR_TILE.src).toMatch(/tile_stage01/)
+  })
+
+  it('uses a dedicated corridor tile and end-wall asset for Stage 2', () => {
+    expect(STAGE_FLOOR_TILES.stage1.src).toMatch(/tile_stage01/)
+    expect(STAGE_FLOOR_TILES.stage2.src).toMatch(/tile_stage02_corridor/)
+    expect(STAGE2_CORRIDOR_END.src).toMatch(/stage02_corridor_end_wall/)
+    expect(STAGE2_CORRIDOR_END.positionZ).toBeGreaterThan(45)
   })
 
   it('keeps a consistent plank size regardless of floor size (tile world size ~4-10)', () => {
