@@ -14,7 +14,7 @@ export const STAGE_CONFIGS = {
     bestRecordKey: 'bestSurvivalSeconds',
     bossWarningSec: 192,
     // 맵 경계(월드 유닛, 중심 0). 교실 구도에 맞춰 세로로 긴 직사각형 — 화면 세로=Z, 가로=X.
-    mapHalfX: 17,
+    mapHalfX: 14,
     mapHalfZ: 54,
     survivalMilestones: [
       { atMs: 48_000, gold: 1, label: '초반 생존 보너스' },
