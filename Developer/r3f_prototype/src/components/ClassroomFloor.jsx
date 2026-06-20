@@ -7,6 +7,8 @@ import stage2EndWallUrl from '../assets/background_floor/stage02_corridor_end_wa
 const FLOOR_SIZE = 200
 const STAGE1_TILE_WORLD_SIZE = 6.9
 const STAGE2_TILE_WORLD_SIZE = 30
+const STAGE2_TILE_DENSITY_MULTIPLIER = 10
+const STAGE2_END_WALL_SCALE = 1 / 5
 
 export const FLOOR_TILE = {
   src: stage1TileUrl,
@@ -18,16 +20,19 @@ export const STAGE_FLOOR_TILES = {
   stage1: FLOOR_TILE,
   stage2: {
     src: stage2TileUrl,
-    repeat: Math.round(FLOOR_SIZE / STAGE2_TILE_WORLD_SIZE),
+    repeat: Math.round(FLOOR_SIZE / STAGE2_TILE_WORLD_SIZE) * STAGE2_TILE_DENSITY_MULTIPLIER,
     floorSize: FLOOR_SIZE,
   },
 }
 
 export const STAGE2_CORRIDOR_END = {
   src: stage2EndWallUrl,
-  width: 34,
-  height: 5.15,
-  positionZ: 48.4,
+  width: 36,
+  height: 5.5,
+  displayWidth: 36 * STAGE2_END_WALL_SCALE,
+  displayHeight: 5.5 * STAGE2_END_WALL_SCALE,
+  repeatX: 5,
+  positionZ: -43.5,
 }
 
 export const STAGE2_CORRIDOR_LANES = {
@@ -47,9 +52,9 @@ function buildRepeatingTexture(tile) {
   return tex
 }
 
-function buildSingleTexture(src) {
+function buildEndWallTexture(config) {
   if (typeof document === 'undefined') return null
-  const tex = new THREE.TextureLoader().load(src)
+  const tex = new THREE.TextureLoader().load(config.src)
   tex.anisotropy = 8
   tex.colorSpace = THREE.SRGBColorSpace
   return tex
@@ -58,7 +63,7 @@ function buildSingleTexture(src) {
 export default function ClassroomFloor({ stageId = 'stage1' }) {
   const floorTile = STAGE_FLOOR_TILES[stageId] ?? STAGE_FLOOR_TILES.stage1
   const floorTex = useMemo(() => buildRepeatingTexture(floorTile), [floorTile])
-  const endWallTex = useMemo(() => buildSingleTexture(STAGE2_CORRIDOR_END.src), [])
+  const endWallTex = useMemo(() => buildEndWallTexture(STAGE2_CORRIDOR_END), [])
   const floorMat = useMemo(
     () => new THREE.MeshLambertMaterial({ map: floorTex }),
     [floorTex],
@@ -91,13 +96,24 @@ export default function ClassroomFloor({ stageId = 'stage1' }) {
             <planeGeometry args={[5.2, FLOOR_SIZE]} />
             <meshBasicMaterial color={0x4e725f} transparent opacity={0.07} depthWrite={false} />
           </mesh>
-          <mesh
-            position={[0, STAGE2_CORRIDOR_END.height / 2, STAGE2_CORRIDOR_END.positionZ]}
-            renderOrder={3}
-            material={endWallMat}
-          >
-            <planeGeometry args={[STAGE2_CORRIDOR_END.width, STAGE2_CORRIDOR_END.height]} />
-          </mesh>
+          {Array.from({ length: STAGE2_CORRIDOR_END.repeatX }, (_, i) => {
+            const centerOffset = i - (STAGE2_CORRIDOR_END.repeatX - 1) / 2
+            return (
+              <mesh
+                key={i}
+                position={[
+                  centerOffset * STAGE2_CORRIDOR_END.displayWidth,
+                  0.018,
+                  STAGE2_CORRIDOR_END.positionZ,
+                ]}
+                rotation={[-Math.PI / 2, 0, 0]}
+                renderOrder={3}
+                material={endWallMat}
+              >
+                <planeGeometry args={[STAGE2_CORRIDOR_END.displayWidth, STAGE2_CORRIDOR_END.displayHeight]} />
+              </mesh>
+            )
+          })}
         </group>
       )}
     </group>
