@@ -13,6 +13,7 @@ import {
 import { evaluateUnlocks, isStarter, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { DEFAULT_STAGE_ID, getStageConfig } from '../lib/stageConfig.js'
+import { getAdminBalanceConfig } from '../lib/adminConfig.js'
 import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
 
 const BASE_PLAYER = {
@@ -23,8 +24,9 @@ const BASE_PLAYER = {
 }
 
 function buildInitialPlayer(levels) {
-  const maxHp = BASE_PLAYER.maxHp + 6 * (levels.maxHp ?? 0)
-  const speed = BASE_PLAYER.speed * (1 + 0.03 * (levels.moveSpeed ?? 0))
+  const adminBalance = getAdminBalanceConfig()
+  const maxHp = BASE_PLAYER.maxHp + 6 * (levels.maxHp ?? 0) + adminBalance.player.maxHpBonus
+  const speed = BASE_PLAYER.speed * (1 + 0.03 * (levels.moveSpeed ?? 0)) * adminBalance.player.speedMultiplier
   return {
     ...BASE_PLAYER,
     hp: maxHp,

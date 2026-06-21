@@ -1,12 +1,17 @@
 // @vitest-environment jsdom
 import React from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import UserRanking from './UserRanking.jsx'
+import { saveAdminConfig } from '../lib/adminConfig.js'
 
 describe('UserRanking', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   it('renders ranking rows from 1st through 100th place', () => {
     const html = renderToStaticMarkup(
       <UserRanking
@@ -22,6 +27,22 @@ describe('UserRanking', () => {
     expect(html).toContain('330점')
     expect(html).toContain('4:00')
     expect(html).toContain('기록 없음')
+  })
+
+  it('renders the configured ranking season and reward summary', () => {
+    saveAdminConfig({
+      rankingSeason: {
+        seasonName: '방학 생존 시즌',
+        rewardTiers: [
+          { rankTo: 1, label: '1위', gold: 777, badge: '방학왕' },
+        ],
+      },
+    })
+
+    const html = renderToStaticMarkup(<UserRanking onBack={() => {}} entries={[]} />)
+
+    expect(html).toContain('방학 생존 시즌')
+    expect(html).toContain('1위 777G')
   })
 
   it('returns to the title screen from the back button', () => {

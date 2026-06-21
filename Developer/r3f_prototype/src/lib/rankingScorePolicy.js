@@ -1,3 +1,5 @@
+import { getAdminRankingSeasonConfig } from './adminConfig.js'
+
 export const SCORE_TYPE = 'survival_v1'
 export const CLEAR_BONUS = 30
 export const STAGE_BONUS = {
@@ -10,10 +12,21 @@ const STAGE_PRIORITY = {
   stage2: 2,
 }
 
-export function getRankingScore({ stageId = 'stage1', survivalSeconds = 0, cleared = false } = {}) {
+export function getRankingScore({ stageId = 'stage1', survivalSeconds = 0, cleared = false } = {}, policy = getRankingScorePolicy()) {
   return readNonNegativeInt(survivalSeconds)
-    + readNonNegativeInt(STAGE_BONUS[stageId])
-    + (cleared ? CLEAR_BONUS : 0)
+    + readNonNegativeInt(policy.stageBonus?.[stageId])
+    + (cleared ? readNonNegativeInt(policy.clearBonus) : 0)
+}
+
+export function getRankingScorePolicy(seasonConfig = getAdminRankingSeasonConfig()) {
+  const scorePolicy = seasonConfig?.scorePolicy ?? {}
+  return {
+    stageBonus: {
+      stage1: readNonNegativeInt(scorePolicy.stageBonus?.stage1 ?? STAGE_BONUS.stage1),
+      stage2: readNonNegativeInt(scorePolicy.stageBonus?.stage2 ?? STAGE_BONUS.stage2),
+    },
+    clearBonus: readNonNegativeInt(scorePolicy.clearBonus ?? CLEAR_BONUS),
+  }
 }
 
 export function getStagePriority(stageId = 'stage1') {
