@@ -3,12 +3,12 @@ import * as THREE from 'three'
 import stage1TileUrl from '../assets/background_floor/tile_stage01.png.png'
 import stage2TileUrl from '../assets/background_floor/tile_stage02_corridor.png'
 import stage2EndWallUrl from '../assets/background_floor/stage02_corridor_end_wall.png'
+import { getStage2CorridorWallDisplay } from '../lib/stage2CorridorWall.js'
 
 const FLOOR_SIZE = 200
 const STAGE1_TILE_WORLD_SIZE = 6.9
 const STAGE2_TILE_WORLD_SIZE = 30
 const STAGE2_TILE_DENSITY_MULTIPLIER = 10
-const STAGE2_END_WALL_SCALE = 1 / 5
 
 export const FLOOR_TILE = {
   src: stage1TileUrl,
@@ -27,12 +27,7 @@ export const STAGE_FLOOR_TILES = {
 
 export const STAGE2_CORRIDOR_END = {
   src: stage2EndWallUrl,
-  width: 36,
-  height: 5.5,
-  displayWidth: 36 * STAGE2_END_WALL_SCALE,
-  displayHeight: 5.5 * STAGE2_END_WALL_SCALE,
-  repeatX: 5,
-  positionZ: -43.5,
+  ...getStage2CorridorWallDisplay(),
 }
 
 export const STAGE2_CORRIDOR_LANES = {

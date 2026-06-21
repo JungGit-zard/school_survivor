@@ -13,9 +13,11 @@ describe('ClassroomFloor tiling', () => {
     expect(STAGE_FLOOR_TILES.stage2.src).toMatch(/tile_stage02_corridor/)
     expect(STAGE_FLOOR_TILES.stage2.repeat).toBe(70)
     expect(STAGE2_CORRIDOR_END.src).toMatch(/stage02_corridor_end_wall/)
-    expect(STAGE2_CORRIDOR_END.displayWidth).toBeCloseTo(STAGE2_CORRIDOR_END.width / 5)
-    expect(STAGE2_CORRIDOR_END.displayHeight).toBeCloseTo(STAGE2_CORRIDOR_END.height / 5)
+    expect(STAGE2_CORRIDOR_END.displayWidth).toBeCloseTo(STAGE2_CORRIDOR_END.width * 2 / 5)
+    expect(STAGE2_CORRIDOR_END.displayHeight).toBeCloseTo(STAGE2_CORRIDOR_END.height * 2 / 5)
     expect(STAGE2_CORRIDOR_END.repeatX).toBe(5)
+    expect(STAGE2_CORRIDOR_END.positionZ + STAGE2_CORRIDOR_END.displayHeight / 2)
+      .toBeCloseTo(STAGE2_CORRIDOR_END.bottomZ)
     expect(STAGE2_CORRIDOR_END.positionZ).toBeLessThan(-40)
   })
 
