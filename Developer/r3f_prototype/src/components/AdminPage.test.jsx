@@ -5,6 +5,8 @@ import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import AdminPage from './AdminPage.jsx'
 import { loadAdminConfig } from '../lib/adminConfig.js'
+import { getStageConfig } from '../lib/stageConfig.js'
+import { useGameStore } from '../store/useGameStore.js'
 
 describe('AdminPage', () => {
   let container
@@ -51,5 +53,37 @@ describe('AdminPage', () => {
     })
 
     expect(loadAdminConfig().balance.stageDurationSec.stage1).toBe(180)
+  })
+
+  it('applies saved admin balance inputs to game stage and player startup config', () => {
+    act(() => {
+      root.render(<AdminPage />)
+    })
+
+    const updateNumberInput = (name, value) => {
+      const input = container.querySelector(`input[name="${name}"]`)
+      act(() => {
+        input.value = String(value)
+        input.dispatchEvent(new Event('input', { bubbles: true }))
+      })
+    }
+
+    updateNumberInput('stage1DurationSec', 180)
+    updateNumberInput('maxHpBonus', 40)
+    updateNumberInput('speedMultiplier', 1.2)
+    updateNumberInput('goldMultiplier', 2)
+
+    const saveButton = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent.includes('저장'))
+    act(() => {
+      saveButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(getStageConfig('stage1').durationSec).toBe(180)
+    expect(getStageConfig('stage1').survivalMilestones.map((milestone) => milestone.gold)).toEqual([2, 6, 8, 16])
+
+    useGameStore.getState().resetGame('stage1')
+    expect(useGameStore.getState().player.maxHp).toBe(140)
+    expect(useGameStore.getState().player.speed).toBeCloseTo(3.6)
   })
 })
