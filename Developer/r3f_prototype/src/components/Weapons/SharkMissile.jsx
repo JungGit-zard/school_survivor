@@ -145,7 +145,7 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
     const dz = target.z - p.z
     const dist = Math.hypot(dx, dz)
 
-    if (ageRef.current > 8 || dist < 0.32) {
+    if (ageRef.current > 8 || dist < 1.2) {
       explodedRef.current = true
       onExplode(id, { x: p.x, z: p.z, damage, radius })
       return
@@ -156,7 +156,7 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
     const desiredYaw = Math.atan2(nx, nz)
     // THREE.MathUtils.lerp은 ±π 경계에서 긴 쪽으로 돌아가는 wrap 버그가 있어 최단 각도 보간으로 교체
     const angleDiff = ((desiredYaw - yawRef.current + Math.PI) % (2 * Math.PI)) - Math.PI
-    yawRef.current += angleDiff * Math.min(1, delta * 5)
+    yawRef.current += angleDiff * Math.min(1, delta * 9)
 
     p.x += Math.sin(yawRef.current) * speed * delta
     p.z += Math.cos(yawRef.current) * speed * delta
