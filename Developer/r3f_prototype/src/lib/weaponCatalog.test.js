@@ -77,7 +77,7 @@ describe('weaponCatalog', () => {
       label: '상어미사일',
       base: {
         damage: flask.damage * 2,
-        cooldown: flask.cooldown * 5,
+        cooldown: 7000,
         range: 28,
         radius: 1.8,
         speed: 8.5,

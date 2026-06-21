@@ -4,7 +4,7 @@ import { canFireSharkMissile, createSharkMissileLaunch } from './sharkMissileRun
 describe('shark missile runtime firing rules', () => {
   const activeWeapon = {
     active: true,
-    cooldown: 14000,
+    cooldown: 7000,
     damage: 30,
     radius: 1.8,
     range: 28,
@@ -26,7 +26,7 @@ describe('shark missile runtime firing rules', () => {
     expect(canFireSharkMissile({
       phase: 'playing',
       weapon: activeWeapon,
-      nowMs: 10_000,
+      nowMs: 5_000,
       lastFireMs: 0,
       activeMissileCount: 0,
     })).toBe(false)
@@ -34,7 +34,7 @@ describe('shark missile runtime firing rules', () => {
     expect(canFireSharkMissile({
       phase: 'playing',
       weapon: activeWeapon,
-      nowMs: 14_000,
+      nowMs: 7_000,
       lastFireMs: 0,
       activeMissileCount: 0,
     })).toBe(true)
