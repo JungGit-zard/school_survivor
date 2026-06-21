@@ -42,6 +42,19 @@ describe('box cutter strike targeting', () => {
     })).toBe(false)
   })
 
+  it('weapon level 1 stats (range 0.7, width 0.18) — hits inside lane', () => {
+    // 카탈로그 base: range 0.7, width 0.18
+    expect(isPointInBoxCutterStrike({ origin, facing, point: { x: 0.04, z: 0.5 }, range: 0.7, width: 0.18 })).toBe(true)
+  })
+
+  it('weapon level 1 stats — rejects beyond range 0.7', () => {
+    expect(isPointInBoxCutterStrike({ origin, facing, point: { x: 0.04, z: 0.75 }, range: 0.7, width: 0.18 })).toBe(false)
+  })
+
+  it('weapon level 1 stats — rejects beyond narrow width 0.18', () => {
+    expect(isPointInBoxCutterStrike({ origin, facing, point: { x: 0.12, z: 0.5 }, range: 0.7, width: 0.18 })).toBe(false)
+  })
+
   it('returns only living enemy targets inside the forward cutter lane', () => {
     const enemies = new Map([
       ['front', { _enemyHit: () => {}, _enemyDead: false, translation: () => ({ x: 0.04, z: 0.62 }) }],

@@ -1,6 +1,6 @@
 import { useRef, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
 import { RigidBody, BallCollider } from '@react-three/rapier'
+import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
@@ -31,12 +31,11 @@ export function TumblerOrbit() {
   const enemiesRef = useRef(new Map())
   const overlapCountRef = useRef(new Map())
   const lastHitRef = useRef(new Map())
-  const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
 
-  useFrame(({ clock }) => {
+  usePlayingFrame(({ clock }) => {
     const w = weapons.tumbler
-    if (phase !== 'playing' || !w?.active) return
+    if (!w?.active) return
 
     const nowSec = clock.elapsedTime
     const count = Math.max(1, Math.min(3, w.count ?? 1))

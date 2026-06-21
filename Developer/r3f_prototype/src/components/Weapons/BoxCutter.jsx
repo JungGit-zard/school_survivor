@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
-import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { enemyBodies, playerArmActionState, playerFacing, playerPos } from '../../lib/refs.js'
 import { pickBoxCutterTargets, normalizePlanarFacing } from '../../lib/boxCutter.js'
 import { startPlayerArmAction, computeBoxCutterActionPhases, BOX_CUTTER_ACTION_MS } from '../../lib/playerArmAction.js'
@@ -131,7 +131,7 @@ function BoxCutterStrikeEffect({ strike, duration }) {
     }),
   }), [])
 
-  useFrame(({ clock }) => {
+  usePlayingFrame(({ clock }) => {
     if (!strike || !rootRef.current) return
 
     const elapsed = clock.elapsedTime * 1000 - strike.startMs
@@ -172,15 +172,14 @@ function BoxCutterStrikeEffect({ strike, duration }) {
 }
 
 export function BoxCutterWeapon() {
-  const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
   const [strike, setStrike] = useState(null)
   const visualRef = useRef(null)
   const lastFireRef = useRef(-Infinity)
 
-  useFrame(({ clock }) => {
+  usePlayingFrame(({ clock }) => {
     const w = weapons.boxCutter
-    if (phase !== 'playing' || !w?.active) return
+    if (!w?.active) return
 
     const now = clock.elapsedTime * 1000
     const duration = ACTION_MS

@@ -1,6 +1,6 @@
 import { useRef, useState, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { RigidBody, CuboidCollider, BallCollider } from '@react-three/rapier'
 import { bagSwingState, playerFacing, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -34,7 +34,6 @@ function ThirtyCmRulerModel() {
 }
 
 export function SchoolBagSwing() {
-  const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
   const [swing, setSwing] = useState(null)
   const lastSwingRef = useRef(0)
@@ -47,9 +46,9 @@ export function SchoolBagSwing() {
   const pendingHitsRef = useRef(new Map())
   const hitSetRef = useRef(new Set())
 
-  useFrame(({ clock }) => {
+  usePlayingFrame(({ clock }) => {
     const w = weapons.schoolBag
-    if (phase !== 'playing' || !w.active) return
+    if (!w.active) return
     proximityRbRef.current?.setTranslation({ x: playerPos.x, y: playerPos.y + 0.16, z: playerPos.z }, true)
 
     const now = clock.elapsedTime * 1000

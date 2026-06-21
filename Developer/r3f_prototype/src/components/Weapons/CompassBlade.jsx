@@ -1,6 +1,6 @@
 import { useRef, useMemo, useState, useCallback } from 'react'
-import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { RigidBody, BallCollider } from '@react-three/rapier'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -123,7 +123,7 @@ function CompassBladeExplosion({ id, x, z, radius, onDone }) {
     }),
   }), [])
 
-  useFrame((_, delta) => {
+  usePlayingFrame((_, delta) => {
     ageRef.current += delta
     const t = Math.min(1, ageRef.current / 0.48)
     const fastPop = 1 - Math.min(1, t / 0.34)
@@ -200,7 +200,6 @@ export function CompassBladeWeapon() {
   const respawnUntilRef = useRef(0)
   const [explosions, setExplosions] = useState([])
   const [isRespawning, setIsRespawning] = useState(false)
-  const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
 
   const removeExplosion = useCallback((id) => {
@@ -221,9 +220,9 @@ export function CompassBladeWeapon() {
     }])
   }, [])
 
-  useFrame(({ clock }) => {
+  usePlayingFrame(({ clock }) => {
     const w = weapons.compassBlade
-    if (phase !== 'playing' || !w?.active) return
+    if (!w?.active) return
 
     const nowSec = clock.elapsedTime
     const count = Math.max(1, Math.min(3, w.count ?? 1))
