@@ -2,6 +2,7 @@ import { getFirebaseConfig, isFirebaseAuthConfigured } from './firebaseAuth.js'
 import { load as loadPlayerRecords } from './playerRecords.js'
 import { getAllLevels } from './passiveUpgrades.js'
 import { getAllUnlocked } from './weaponUnlocks.js'
+import { getSavedNickname } from './userNickname.js'
 
 const DATABASE_URL_KEY = 'VITE_FIREBASE_DATABASE_URL'
 const GOLD_STORAGE_KEY = 'school_survivor:goldTotal'
@@ -27,6 +28,7 @@ export function buildCloudUserProfile(user = cloudUser) {
     displayName: readString(user.displayName),
     email: readString(user.email),
     photoURL: readString(user.photoURL),
+    nickname: getSavedNickname(user),
   }
 }
 

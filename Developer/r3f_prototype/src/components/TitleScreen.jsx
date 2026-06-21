@@ -4,8 +4,10 @@ import TitleScene3D from './TitleScene3D.jsx'
 import GoogleAccountPanel from './GoogleAccountPanel.jsx'
 import { getAllWeaponIds, isStarter } from '../lib/weaponCatalog.js'
 import { setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
-import { load as loadPlayerRecords } from '../lib/playerRecords.js'
-import { getStageConfig, isStageUnlocked } from '../lib/stageConfig.js'
+import { getStageConfig } from '../lib/stageConfig.js'
+import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
+import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
+import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 
 const SETTINGS_STORAGE_KEY = 'school_survivor:titleSettings'
@@ -16,20 +18,23 @@ const DEFAULT_SETTINGS = {
   unlockAllWeaponsCheat: false,
 }
 
-export default function TitleScreen({ onStart, onOpenCoinShop }) {
+export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [cheatOpen, setCheatOpen] = useState(false)
   const [controlsOpen, setControlsOpen] = useState(false)
+  const [nicknameOpen, setNicknameOpen] = useState(false)
+  const [nicknameInput, setNicknameInput] = useState('')
+  const [nicknameError, setNicknameError] = useState('')
+  const [pendingStageId, setPendingStageId] = useState('stage1')
   const [settings, setSettings] = useState(loadTitleSettings)
   const [selectedStageId, setSelectedStageId] = useState('stage1')
+  const authUser = useAuthStore((s) => s.user)
   const resetPassiveUpgrades = useGameStore((s) => s.resetPassiveUpgrades)
   const cheatBufferRef = useRef('')
   const titleStyle = settings.reducedEffects ? styles.titleReduced : styles.title
   const primaryButtonStyle = settings.reducedEffects ? styles.primaryButtonReduced : styles.primaryButton
-  const records = loadPlayerRecords()
   const stage1 = getStageConfig('stage1')
   const stage2 = getStageConfig('stage2')
-  const stage2Unlocked = isStageUnlocked('stage2', records)
-  const playableStageId = selectedStageId === 'stage2' && !stage2Unlocked ? 'stage1' : selectedStageId
 
   useEffect(() => {
     saveTitleSettings(settings)
@@ -43,18 +48,20 @@ export default function TitleScreen({ onStart, onOpenCoinShop }) {
   }, [settings])
 
   useEffect(() => {
-    if (!settingsOpen) return undefined
+    if (!settingsOpen && !cheatOpen && !nicknameOpen) return undefined
 
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
         setSettingsOpen(false)
+        setCheatOpen(false)
+        setNicknameOpen(false)
         setControlsOpen(false)
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [settingsOpen])
+  }, [settingsOpen, cheatOpen, nicknameOpen])
 
   useEffect(() => {
     const handleCheatKeyDown = (event) => {
@@ -107,9 +114,38 @@ export default function TitleScreen({ onStart, onOpenCoinShop }) {
     resetPassiveUpgrades()
   }
 
+  const handleStartClick = () => {
+    const savedNickname = getSavedNickname(authUser)
+    setPendingStageId(selectedStageId)
+    setNicknameInput(savedNickname || normalizeInitialNickname(authUser?.displayName))
+    setNicknameError('')
+    setCheatOpen(false)
+    setSettingsOpen(false)
+    setNicknameOpen(true)
+  }
+
+  const handleNicknameSubmit = (event) => {
+    event.preventDefault()
+    const result = saveNicknameForUser(authUser, nicknameInput)
+    if (!result.ok) {
+      setNicknameError(result.error)
+      return
+    }
+
+    setNicknameInput(result.nickname)
+    setNicknameError('')
+    setNicknameOpen(false)
+    requestCloudProgressSave()
+    onStart(pendingStageId)
+  }
+
   const closeSettings = () => {
     setSettingsOpen(false)
     setControlsOpen(false)
+  }
+
+  const closeCheat = () => {
+    setCheatOpen(false)
   }
 
   return (
@@ -126,6 +162,16 @@ export default function TitleScreen({ onStart, onOpenCoinShop }) {
       <div style={styles.tint} />
       <div style={styles.vignette} />
       <GoogleAccountPanel />
+      <button
+        type="button"
+        aria-label="치트 메뉴 열기"
+        aria-haspopup="dialog"
+        aria-expanded={cheatOpen}
+        style={styles.cheatMenuButton}
+        onClick={() => setCheatOpen(true)}
+      >
+        치트
+      </button>
       <button
         type="button"
         aria-label="설정 열기"
@@ -146,47 +192,103 @@ export default function TitleScreen({ onStart, onOpenCoinShop }) {
       </div>
 
       <div style={styles.actions}>
-        <button type="button" style={primaryButtonStyle} onClick={() => onStart(playableStageId)}>
-          게임 시작
-        </button>
-        <div style={styles.stageSelectLabel}>스테이지 선택</div>
-        <div style={styles.stageSelect} aria-label="스테이지 선택">
-          <button
-            type="button"
-            style={styles.stageButton(selectedStageId === 'stage1', false)}
-            onClick={() => setSelectedStageId('stage1')}
-          >
-            <span style={styles.stageButtonLabel}>{stage1.label}</span>
-            <span style={styles.stageButtonDesc}>교실 생존</span>
+        <div style={styles.mainActionStack}>
+          <button type="button" style={{ ...primaryButtonStyle, ...styles.mainActionButton }} onClick={handleStartClick}>
+            게임 시작
           </button>
-          <button
-            type="button"
-            style={styles.stageButton(selectedStageId === 'stage2', !stage2Unlocked)}
-            disabled={!stage2Unlocked}
-            onClick={() => setSelectedStageId('stage2')}
-          >
-            <span style={styles.stageButtonLabel}>{stage2.label}</span>
-            <span style={styles.stageButtonDesc}>{stage2Unlocked ? '복도 탄환' : '잠김'}</span>
+          <button type="button" style={{ ...styles.coinShopButton, ...styles.mainActionButton }} onClick={() => onOpenCoinShop?.()}>
+            🪙 코인상점
           </button>
-        </div>
-        {!stage2Unlocked && (
-          <div style={styles.stageLockHint}>Stage 2: Stage 1 클리어 또는 180초 생존 3회 필요</div>
-        )}
-        <button type="button" style={styles.coinShopButton} onClick={() => onOpenCoinShop?.()}>
-          🪙 코인상점
-        </button>
-        <div style={styles.cheatActions}>
-          <div style={styles.cheatLabel}>🔧 개발 치트</div>
-          <div style={styles.cheatButtons}>
-            <button type="button" style={styles.cheatButton} onClick={handleUnlockAllWeapons}>
-              모든 무기 해금
-            </button>
-            <button type="button" style={styles.resetButton} onClick={handleResetPassiveUpgrades}>
-              코인 레벨업 초기화
-            </button>
-          </div>
+          <button type="button" style={{ ...styles.rankingButton, ...styles.mainActionButton }} onClick={() => onOpenRanking?.()}>
+            유저랭킹
+          </button>
         </div>
       </div>
+
+      {cheatOpen && (
+        <div style={styles.modalLayer}>
+          <button type="button" aria-label="치트 메뉴 닫기 배경" style={styles.modalScrim} onClick={closeCheat} />
+          <section role="dialog" aria-modal="true" aria-labelledby="title-cheat-heading" style={styles.cheatModal}>
+            <div style={styles.modalHeader}>
+              <h2 id="title-cheat-heading" style={styles.modalTitle}>치트 메뉴</h2>
+              <button type="button" aria-label="닫기" style={styles.closeButton} onClick={closeCheat}>
+                ×
+              </button>
+            </div>
+
+            <div style={styles.sectionLabel}>시작 스테이지</div>
+            <div style={styles.stageSelect} aria-label="시작 스테이지 선택">
+              <button
+                type="button"
+                style={styles.stageButton(selectedStageId === 'stage1', false)}
+                onClick={() => setSelectedStageId('stage1')}
+              >
+                <span style={styles.stageButtonLabel}>{stage1.label}</span>
+                <span style={styles.stageButtonDesc}>교실 생존</span>
+              </button>
+              <button
+                type="button"
+                style={styles.stageButton(selectedStageId === 'stage2', false)}
+                onClick={() => setSelectedStageId('stage2')}
+              >
+                <span style={styles.stageButtonLabel}>{stage2.label}</span>
+                <span style={styles.stageButtonDesc}>복도 탄환</span>
+              </button>
+            </div>
+
+            <div style={styles.sectionLabel}>개발 기능</div>
+            <div style={styles.cheatButtons}>
+              <button type="button" style={styles.cheatButton} onClick={handleUnlockAllWeapons}>
+                모든 무기 해금
+              </button>
+              <button type="button" style={styles.resetButton} onClick={handleResetPassiveUpgrades}>
+                코인 레벨업 초기화
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {nicknameOpen && (
+        <div style={styles.modalLayer}>
+          <button type="button" aria-label="닉네임 입력 닫기 배경" style={styles.modalScrim} onClick={() => setNicknameOpen(false)} />
+          <section role="dialog" aria-modal="true" aria-labelledby="title-nickname-heading" style={styles.nicknameModal}>
+            <div style={styles.modalHeader}>
+              <h2 id="title-nickname-heading" style={styles.modalTitle}>닉네임 설정</h2>
+              <button type="button" aria-label="닫기" style={styles.closeButton} onClick={() => setNicknameOpen(false)}>
+                ×
+              </button>
+            </div>
+
+            <form style={styles.nicknameForm} onSubmit={handleNicknameSubmit}>
+              <label style={styles.nicknameLabel} htmlFor="title-nickname-input">
+                유저 닉네임
+              </label>
+              <input
+                id="title-nickname-input"
+                aria-label="유저 닉네임"
+                value={nicknameInput}
+                maxLength={12}
+                style={styles.nicknameInput}
+                onChange={(event) => {
+                  setNicknameInput(event.target.value)
+                  if (nicknameError) {
+                    const result = validateNickname(event.target.value)
+                    if (result.ok) setNicknameError('')
+                  }
+                }}
+                autoFocus
+              />
+              <p style={nicknameError ? styles.nicknameError : styles.nicknameHint}>
+                {nicknameError || 'Google 로그인 중이면 이 닉네임이 계정 진행도에 함께 저장됩니다.'}
+              </p>
+              <button type="submit" style={styles.nicknameSubmitButton}>
+                저장하고 시작
+              </button>
+            </form>
+          </section>
+        </div>
+      )}
 
       {settingsOpen && (
         <div style={styles.modalLayer}>
@@ -247,26 +349,16 @@ export default function TitleScreen({ onStart, onOpenCoinShop }) {
               </div>
             )}
 
-            <div style={styles.sectionLabel}>개발 치트</div>
-            <button
-              type="button"
-              aria-label={settings.unlockAllWeaponsCheat ? '모든 무기 해금 치트 끄기' : '모든 무기 해금 치트 켜기'}
-              style={styles.settingRow}
-              onClick={() => toggleSetting('unlockAllWeaponsCheat')}
-            >
-              <span style={styles.rowText}>
-                <strong style={styles.rowTitle}>모든 무기 해금</strong>
-                <span style={styles.rowDescription}>켜면 다음 판부터 모든 무기 카드가 열림</span>
-              </span>
-              <span style={styles.toggleTrack(settings.unlockAllWeaponsCheat)}>
-                <span style={styles.toggleKnob(settings.unlockAllWeaponsCheat)} />
-              </span>
-            </button>
           </section>
         </div>
       )}
     </div>
   )
+}
+
+function normalizeInitialNickname(value) {
+  if (typeof value !== 'string') return ''
+  return value.replace(/\s+/g, ' ').trim().slice(0, 12)
 }
 
 function loadTitleSettings() {
@@ -344,6 +436,25 @@ const styles = {
     boxShadow: '0 4px 0 #050209, 0 0 12px rgba(247,209,126,0.35)',
     zIndex: 3,
   },
+  cheatMenuButton: {
+    position: 'absolute',
+    top: 'max(16px, calc(env(safe-area-inset-top, 0px) + 8px))',
+    right: 'max(72px, calc(env(safe-area-inset-right, 0px) + 64px))',
+    width: 56,
+    height: 44,
+    display: 'grid',
+    placeItems: 'center',
+    border: '2px solid #050209',
+    borderRadius: 8,
+    background: 'rgba(247,209,126,0.94)',
+    color: '#050209',
+    fontSize: 13,
+    lineHeight: 1,
+    fontWeight: 1000,
+    cursor: 'pointer',
+    boxShadow: '0 4px 0 #050209, 0 0 12px rgba(247,209,126,0.35)',
+    zIndex: 3,
+  },
   content: {
     position: 'absolute',
     top: 'max(7%, calc(env(safe-area-inset-top, 0px) + 52px))',
@@ -413,7 +524,21 @@ const styles = {
     bottom: 'max(16px, calc(env(safe-area-inset-bottom, 0px) + 8px))',
     display: 'flex',
     flexDirection: 'column',
+    alignItems: 'center',
     zIndex: 3,
+  },
+  mainActionStack: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 10,
+    pointerEvents: 'auto',
+  },
+  mainActionButton: {
+    width: '50%',
+    minWidth: 180,
+    maxWidth: 230,
   },
   stageSelectLabel: {
     marginTop: 8,
@@ -491,7 +616,6 @@ const styles = {
     boxShadow: '0 5px 0 #050209',
   },
   coinShopButton: {
-    marginTop: 8,
     minHeight: 44,
     border: '2px solid #050209',
     borderRadius: 10,
@@ -502,6 +626,18 @@ const styles = {
     letterSpacing: 0.5,
     cursor: 'pointer',
     boxShadow: '0 4px 0 #050209, 0 0 14px rgba(247,209,78,0.45)',
+  },
+  rankingButton: {
+    minHeight: 44,
+    border: '2px solid #050209',
+    borderRadius: 10,
+    background: 'linear-gradient(180deg, #f8f7f2 0%, #d7d0e5 100%)',
+    color: '#050209',
+    fontSize: 16,
+    fontWeight: 900,
+    letterSpacing: 0,
+    cursor: 'pointer',
+    boxShadow: '0 4px 0 #050209, 0 0 14px rgba(89,199,255,0.28)',
   },
   cheatActions: {
     marginTop: 8,
@@ -578,6 +714,32 @@ const styles = {
     color: '#f8f7f2',
     boxShadow: '0 6px 0 #050209, 0 18px 34px rgba(0,0,0,0.45)',
   },
+  cheatModal: {
+    position: 'absolute',
+    top: '50%',
+    left: 'max(24px, calc(env(safe-area-inset-left, 0px) + 16px))',
+    right: 'max(24px, calc(env(safe-area-inset-right, 0px) + 16px))',
+    transform: 'translateY(-50%)',
+    padding: 14,
+    border: '2px solid #050209',
+    borderRadius: 10,
+    background: 'linear-gradient(180deg, #2b2435 0%, #211c2b 100%)',
+    color: '#f8f7f2',
+    boxShadow: '0 6px 0 #050209, 0 18px 34px rgba(0,0,0,0.45)',
+  },
+  nicknameModal: {
+    position: 'absolute',
+    top: '50%',
+    left: 'max(24px, calc(env(safe-area-inset-left, 0px) + 16px))',
+    right: 'max(24px, calc(env(safe-area-inset-right, 0px) + 16px))',
+    transform: 'translateY(-50%)',
+    padding: 14,
+    border: '2px solid #050209',
+    borderRadius: 10,
+    background: 'linear-gradient(180deg, #2b2435 0%, #211c2b 100%)',
+    color: '#f8f7f2',
+    boxShadow: '0 6px 0 #050209, 0 18px 34px rgba(0,0,0,0.45)',
+  },
   modalHeader: {
     display: 'flex',
     alignItems: 'center',
@@ -611,6 +773,61 @@ const styles = {
     fontSize: 12,
     fontWeight: 900,
     letterSpacing: 0,
+  },
+  nicknameForm: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+  },
+  nicknameLabel: {
+    color: '#f7d17e',
+    fontSize: 12,
+    lineHeight: 1,
+    fontWeight: 900,
+  },
+  nicknameInput: {
+    width: '100%',
+    minHeight: 46,
+    padding: '0 11px',
+    border: '2px solid #050209',
+    borderRadius: 8,
+    background: '#f8f7f2',
+    color: '#050209',
+    fontSize: 17,
+    lineHeight: 1,
+    fontWeight: 900,
+    outline: 'none',
+    boxShadow: '0 3px 0 #050209',
+    boxSizing: 'border-box',
+  },
+  nicknameHint: {
+    minHeight: 30,
+    margin: 0,
+    color: '#c8c1d7',
+    fontSize: 11,
+    lineHeight: 1.35,
+    fontWeight: 800,
+  },
+  nicknameError: {
+    minHeight: 30,
+    margin: 0,
+    color: '#ff8a37',
+    fontSize: 11,
+    lineHeight: 1.35,
+    fontWeight: 900,
+  },
+  nicknameSubmitButton: {
+    width: '100%',
+    minHeight: 46,
+    border: '2px solid #050209',
+    borderRadius: 8,
+    background: '#59c7ff',
+    color: '#050209',
+    fontSize: 16,
+    lineHeight: 1,
+    fontWeight: 1000,
+    cursor: 'pointer',
+    boxShadow: '0 4px 0 #050209',
   },
   settingRow: {
     width: '100%',

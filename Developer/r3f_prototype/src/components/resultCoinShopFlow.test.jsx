@@ -22,6 +22,7 @@ describe('coin shop entry flow', () => {
 
     expect(html).toContain('게임 시작')
     expect(html).toContain('코인상점')
+    expect(html).toContain('유저랭킹')
   })
 
   it('game over result exposes the coin shop entry', () => {

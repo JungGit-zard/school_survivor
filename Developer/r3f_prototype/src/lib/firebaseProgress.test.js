@@ -9,6 +9,7 @@ import {
 import { STORAGE_KEY as RECORDS_KEY } from './playerRecords.js'
 import { STORAGE_KEY as PASSIVES_KEY } from './passiveUpgrades.js'
 import { STORAGE_KEY as UNLOCKS_KEY } from './weaponUnlocks.js'
+import { saveNicknameForUser } from './userNickname.js'
 
 const COMPLETE_ENV = {
   VITE_FIREBASE_API_KEY: 'api-key',
@@ -37,6 +38,8 @@ describe('firebase progress cloud sync helpers', () => {
   })
 
   it('normalizes the Google user profile stored under the user path', () => {
+    saveNicknameForUser({ uid: 'uid-1' }, '생존왕')
+
     expect(buildCloudUserProfile({
       uid: 'uid-1',
       displayName: 'Tester',
@@ -47,6 +50,7 @@ describe('firebase progress cloud sync helpers', () => {
       displayName: 'Tester',
       email: 'tester@example.com',
       photoURL: 'https://example.com/me.png',
+      nickname: '생존왕',
     })
   })
 
