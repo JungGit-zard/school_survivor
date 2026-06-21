@@ -64,7 +64,7 @@ export default function ClassroomFloor({ stageId = 'stage1' }) {
     [floorTex],
   )
   const endWallMat = useMemo(
-    () => new THREE.MeshBasicMaterial({ map: endWallTex, side: THREE.DoubleSide, transparent: true }),
+    () => new THREE.MeshBasicMaterial({ map: endWallTex, side: THREE.DoubleSide, transparent: true, depthWrite: false }),
     [endWallTex],
   )
 
@@ -82,7 +82,7 @@ export default function ClassroomFloor({ stageId = 'stage1' }) {
             <meshBasicMaterial color={0x2f3942} transparent opacity={0.16} depthWrite={false} />
           </mesh>
           {[-6, 0, 6].map((x) => (
-            <mesh key={x} position={[x, 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={2}>
+            <mesh key={x} position={[x, 0.006, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={3}>
               <planeGeometry args={[0.16, FLOOR_SIZE]} />
               <meshBasicMaterial color={0x40525f} transparent opacity={0.45} depthWrite={false} />
             </mesh>
