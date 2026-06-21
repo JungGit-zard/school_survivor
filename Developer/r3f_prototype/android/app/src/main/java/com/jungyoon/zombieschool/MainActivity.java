@@ -1,4 +1,4 @@
-package com.jungsil.escapezombieschool;
+package com.jungyoon.zombieschool;
 
 import com.getcapacitor.BridgeActivity;
 
