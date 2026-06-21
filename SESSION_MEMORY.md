@@ -7,6 +7,350 @@
 
 ---
 
+### 추가 작업 — 2026-06-21 2016 KST
+
+- 사용자의 목표: 회의 결과에 따라 점수체계를 정립해 `rank_score.md`를 `Planner/B. GAME_DESIGN/`에 저장하고, 이에 따라 게임에 적용한 뒤 테스트까지 완료.
+- 생성:
+  - `Planner/B. GAME_DESIGN/rank_score.md`: 랭킹 점수 정책 정본 문서. `rankScore = survivalSeconds + stageBonus + clearBonus`, Stage 2 보너스 60, 클리어 보너스 30 명시.
+  - `Developer/r3f_prototype/src/lib/rankingScorePolicy.js`: 점수 계산과 동점 정렬 정책 순수 함수.
+  - `Developer/r3f_prototype/src/lib/rankingScorePolicy.test.js`: Stage 1/2 점수와 동점 처리 테스트.
+  - `Developer/ranking_score_policy_implementation_2026-06-21.md`: 구현 기록.
+  - `Quaility_Assurance/ranking_score_policy_validation_2026-06-21.md`: TDD RED, focused/full/browser 검증 기록.
+  - `Quaility_Assurance/ranking_score_policy_page_2026-06-21.png`: 점수 정책 반영 랭킹 화면 스크린샷.
+- 수정:
+  - `Developer/r3f_prototype/src/lib/userRanking.js`: 기존 생존초 정렬에서 `survival_v1` 점수 정책 기반 정렬로 변경. 로컬 기록은 Stage 1/2 중 더 높은 점수를 선택.
+  - `Developer/r3f_prototype/src/components/UserRanking.jsx`: 랭킹 주 표시값을 생존 시간에서 점수(`330점`)로 변경하고 보조줄에 Stage/생존시간/클리어 표시.
+  - `Developer/r3f_prototype/src/lib/userRanking.test.js`: Stage 보너스/클리어 보너스 반영 기대값으로 갱신.
+  - `Developer/r3f_prototype/src/components/UserRanking.test.jsx`: Stage 2 클리어가 `330점`으로 표시되는지 검증.
+  - `Quaility_Assurance/ranking_score_policy_validation_2026-06-21.md`: 전체 테스트, 빌드, 브라우저 검증 결과 추가.
+- 검증:
+  - RED: `npm test -- src/lib/rankingScorePolicy.test.js src/lib/userRanking.test.js src/components/UserRanking.test.jsx`가 `rankingScorePolicy.js` 누락과 `330점` 미표시로 실패.
+  - Focused GREEN: 같은 명령이 `Test Files 3 passed (3)`, `Tests 9 passed (9)`.
+  - Full test: `npm test`가 `Test Files 51 passed (51)`, `Tests 280 passed (280)`.
+  - Build: `npm run build` 성공. Vite 대형 chunk 경고는 기존 대형 에셋/번들 경고.
+  - Browser: `http://127.0.0.1:5189/`에서 Stage 2 클리어 로컬 기록 주입 후 첫 행이 `1위테스트 생존자ME330점Stage 2 · 4:00 · 클리어`, 행 수 100개로 확인됨.
+- 완료 감사:
+  - `Planner/B. GAME_DESIGN/rank_score.md` 존재 확인.
+  - 문서에 공식, Stage 2 보너스 60, 클리어 보너스 30 확인.
+  - 코드에 `CLEAR_BONUS`, `STAGE_BONUS`, `formatRankScore`, UI `점수` 표시 확인.
+- 현재 작업트리는 여러 이전 작업 변경과 함께 미커밋 상태다. 이번 작업 외 `Bell.jsx`, `BoxCutter.jsx`, `CompassBlade.jsx`, `Starlink.jsx` 등 무기 파일 변경도 보이지만 이번 랭킹 점수 정책 작업에서 수정한 파일은 아니다.
+
+---
+
+## Session 5 · Entry 3 · 2026-06-21 1947 KST
+
+### Git 상태
+
+- 브랜치: `feature/stage2-corridor-floor-graphics...origin/feature/stage2-corridor-floor-graphics [ahead 2]`
+- 최신 커밋: `a53f371 feat(title): make cheat buttons visible and clarify stage select layout`
+- `git status --short --branch` 요약:
+  - 기존 미커밋 변경: Stage 2 벽/이동 경계 정리, Planner 문서 이동, 타이틀 레이아웃 리워크 관련 코드/문서/스크린샷.
+  - 이번 추가 변경: 유저랭킹 화면, 랭킹 유틸, 테스트, 역할별 기록, QA 스크린샷.
+
+### 이번 3시간 작업 / 대화
+
+- 사용자가 타이틀 화면에서 들어갈 수 있는 유저랭킹을 요청했다.
+- 타이틀 주요 버튼 묶음에 `유저랭킹` 버튼을 추가했다.
+- `App.jsx`에 `ranking` 화면 상태를 추가하고 `UserRanking` 페이지를 연결했다.
+- 랭킹 화면은 1위부터 100위까지 항상 표시되도록 구현했다.
+- 현재 Firebase 저장 구조가 개인 진행도 저장 중심이고 클라이언트 기록 조작 위험이 있어, 공개 온라인 경쟁 랭킹 제출은 이번 범위에서 제외했다.
+- 현재 구현은 로컬 최고 생존 기록을 랭킹 표시 유틸에 태울 수 있는 구조이며, 기록이 없으면 1~100위가 `기록 없음`으로 채워진다.
+
+### 생성 / 수정 / 이동 파일 목록
+
+- 생성:
+  - `Developer/r3f_prototype/src/components/UserRanking.jsx`: 유저랭킹 화면.
+  - `Developer/r3f_prototype/src/components/UserRanking.test.jsx`: 랭킹 화면 렌더링/뒤로가기 테스트.
+  - `Developer/r3f_prototype/src/lib/userRanking.js`: 랭킹 정렬, 100개 슬롯 보정, 생존 시간 포맷 유틸.
+  - `Developer/r3f_prototype/src/lib/userRanking.test.js`: 랭킹 유틸 테스트.
+  - `Planner/game_contents/user_ranking_page_plan_2026-06-21.md`: 랭킹 페이지 기획 기록.
+  - `Developer/user_ranking_page_implementation_2026-06-21.md`: 랭킹 구현 기록.
+  - `Graphic_designer/user_ranking_page_visual_direction_2026-06-21.md`: 랭킹 화면 시각 방향 기록.
+  - `Quaility_Assurance/user_ranking_page_validation_2026-06-21.md`: 랭킹 검증 기록.
+  - `Quaility_Assurance/user_ranking_title_button_2026-06-21.png`: 타이틀 버튼 브라우저 검증 스크린샷.
+  - `Quaility_Assurance/user_ranking_page_2026-06-21.png`: 랭킹 화면 브라우저 검증 스크린샷.
+- 수정:
+  - `Developer/r3f_prototype/src/App.jsx`: `ranking` 화면 전환 추가.
+  - `Developer/r3f_prototype/src/components/TitleScreen.jsx`: `유저랭킹` 버튼과 콜백 추가.
+  - `Developer/r3f_prototype/src/components/TitleScreen.settings.test.jsx`: 랭킹 버튼 콜백 테스트 추가.
+  - `Developer/r3f_prototype/src/components/resultCoinShopFlow.test.jsx`: 타이틀 랭킹 버튼 노출 검증 추가.
+  - `SESSION_MEMORY.md`: 이번 엔트리 append.
+
+### 명령 로그
+
+```powershell
+Get-Content -Encoding UTF8 project_develop_policy.md
+Get-Content -Encoding UTF8 CLAUDE.md
+git status --short --branch
+if (Test-Path "$env:USERPROFILE\.claude\skills\gstack\bin") { 'GSTACK_OK' } else { 'GSTACK_MISSING' }
+Get-Content -Encoding UTF8 SESSION_CONTINUITY.md
+Get-Content -Encoding UTF8 Developer/r3f_prototype/src/App.jsx
+Get-Content -Encoding UTF8 Developer/r3f_prototype/src/components/TitleScreen.jsx
+Get-Content -Encoding UTF8 Bang_Rules.md
+Get-Content -Encoding UTF8 SESSION_MEMORY.md -Tail 120
+Get-Content -Encoding UTF8 Developer/r3f_prototype/src/lib/firebaseAuth.js
+Get-Content -Encoding UTF8 Developer/r3f_prototype/src/lib/firebaseProgress.js
+Get-Content -Encoding UTF8 Developer/r3f_prototype/src/lib/playerRecords.js
+Get-Content -Encoding UTF8 Developer/r3f_prototype/src/components/CoinShop.jsx
+Get-Content -Encoding UTF8 Developer/r3f_prototype/package.json
+Get-Content -Encoding UTF8 Developer/r3f_prototype/src/components/TitleScreen.settings.test.jsx
+Get-Content -Encoding UTF8 Developer/r3f_prototype/src/components/resultCoinShopFlow.test.jsx
+rg "bestSurvivalSeconds|stage2BestSurvivalSec|playerRecords|snapshot\(" -n Developer/r3f_prototype/src
+Get-Content -Encoding UTF8 Developer/r3f_prototype/src/lib/stageConfig.js
+Get-Content -Encoding UTF8 Developer/r3f_prototype/src/store/useGameStore.js | Select-Object -First 280
+Get-Content -Encoding UTF8 Developer/r3f_prototype/src/components/GoogleAccountPanel.jsx
+Get-Content -Encoding UTF8 Developer/r3f_prototype/src/store/useAuthStore.js
+Get-Content -Encoding UTF8 Developer/firebase_realtime_database_security_review_2026-06-21.md | Select-Object -First 160
+apply_patch
+apply_patch
+apply_patch
+apply_patch
+apply_patch
+apply_patch
+npm test -- src/lib/userRanking.test.js src/components/UserRanking.test.jsx src/components/TitleScreen.settings.test.jsx src/components/resultCoinShopFlow.test.jsx
+npm run build
+try { (Invoke-WebRequest -UseBasicParsing http://127.0.0.1:5173/ -TimeoutSec 5).StatusCode } catch { $_.Exception.Message }
+Start-Process -FilePath 'npm.cmd' -ArgumentList 'run','dev','--','--host','127.0.0.1','--port','5189' -WorkingDirectory 'D:\JungSil\2.Minigame_project\school_survivor-integration\Developer\r3f_prototype' -WindowStyle Hidden -PassThru
+node --input-type=module
+apply_patch
+apply_patch
+apply_patch
+apply_patch
+npm test
+git status --short --branch
+Get-Date -Format 'yyyy-MM-dd HHmm KST'
+git log -1 --pretty=format:'%h %s'
+git diff --stat
+Select-String -Path SESSION_MEMORY.md -Pattern '^## Session' | Select-Object -Last 5
+Get-Content -Encoding UTF8 SESSION_MEMORY.md -Tail 80
+apply_patch
+```
+
+### 명령 / 빌드 / 테스트 / 브라우저 검증 결과
+
+- gstack 확인: `GSTACK_OK`
+- 관련 테스트:
+
+```text
+npm test -- src/lib/userRanking.test.js src/components/UserRanking.test.jsx src/components/TitleScreen.settings.test.jsx src/components/resultCoinShopFlow.test.jsx
+Test Files 4 passed (4)
+Tests 19 passed (19)
+```
+
+- 전체 테스트:
+
+```text
+npm test
+Test Files 49 passed (49)
+Tests 270 passed (270)
+```
+
+- 빌드:
+
+```text
+npm run build
+✓ built in 755ms
+```
+
+- 빌드는 성공했지만 Vite가 500 kB 초과 chunk 경고를 출력했다. 기존 대형 에셋/번들 경고 성격이다.
+- 브라우저 검증:
+
+```json
+{
+  "rowCount": 100,
+  "firstRow": "1위기록 없음-",
+  "lastRow": "100위기록 없음-",
+  "buttonCount": 1,
+  "lastButtonText": "타이틀로 돌아가기"
+}
+```
+
+- 스크린샷:
+  - `Quaility_Assurance/user_ranking_title_button_2026-06-21.png`
+  - `Quaility_Assurance/user_ranking_page_2026-06-21.png`
+
+### 확정된 룰 / 정책 변경
+
+- 새 정책 변경 없음.
+- 공개 경쟁 랭킹은 클라이언트 로컬 기록을 그대로 믿지 않고, 추후 서버 검증 계층을 둔 뒤 제출하는 방향이 적합하다는 구현 판단을 기록했다.
+
+### 미해결 이슈 + 다음 단계
+
+1. 현재 작업트리에 이전 작업 변경과 이번 랭킹 변경이 함께 미커밋 상태로 남아 있다.
+2. 개발 서버 `http://127.0.0.1:5189/`를 띄워 브라우저 검증에 사용했다.
+3. 실제 온라인 전체 유저 랭킹은 아직 아니다. 다음 단계는 Firebase/Cloud Functions 기반의 검증된 랭킹 제출 설계다.
+4. 다음 세션이 가장 먼저 읽어야 할 항목: `Developer/user_ranking_page_implementation_2026-06-21.md`, `Quaility_Assurance/user_ranking_page_validation_2026-06-21.md`.
+
+---
+## Session 5 · Entry 3 · 2026-06-21 1820 KST
+
+### Git 상태
+
+- 브랜치: `feature/stage2-corridor-floor-graphics`
+- 원격 상태: `feature/stage2-corridor-floor-graphics...origin/feature/stage2-corridor-floor-graphics [ahead 2]`
+- 최신 커밋: `a53f371 feat(title): make cheat buttons visible and clarify stage select layout`
+- `git status --short --branch` 요약:
+
+```text
+## feature/stage2-corridor-floor-graphics...origin/feature/stage2-corridor-floor-graphics [ahead 2]
+ M Developer/r3f_prototype/src/components/Player.jsx
+ M Developer/r3f_prototype/src/components/TitleScreen.jsx
+ M Developer/r3f_prototype/src/components/TitleScreen.settings.test.jsx
+ M Developer/r3f_prototype/src/lib/playerMovementBounds.js
+ M Developer/r3f_prototype/src/lib/stage2CorridorWall.js
+ M Planner/Planning_Methodology/Planner_Index/planner_documents_by_field_2026-06-03.md
+ D Planner/stage1_classroom_prop_mixed_layout_2026-06-09.md
+ D Planner/stage1_unconscious_student_density_2026-06-11.md
+ D Planner/title_unlock_all_weapons_cheat_2026-06-12.md
+ M Quaility_Assurance/stage1_vertical_classroom_map_validation_plan_2026-06-18.md
+ M SESSION_MEMORY.md
+?? Developer/title_layout_rework_implementation_2026-06-21.md
+?? Graphic_designer/title_layout_rework_visual_direction_2026-06-21.md
+?? Planner/B. GAME_DESIGN/B-2_Stage_process_difficulty/Stage1_Balance/stage1_classroom_prop_mixed_layout_2026-06-09.md
+?? Planner/B. GAME_DESIGN/B-2_Stage_process_difficulty/Stage1_Balance/stage1_unconscious_student_density_2026-06-11.md
+?? Planner/game_contents/title_unlock_all_weapons_cheat_2026-06-12.md
+?? Quaility_Assurance/title_layout_rework_cheat_modal_2026-06-21.png
+?? Quaility_Assurance/title_layout_rework_main_2026-06-21.png
+?? Quaility_Assurance/title_layout_rework_validation_2026-06-21.md
+```
+
+### 이번 3시간 작업 / 대화
+
+- 사용자의 지속 목표: 타이틀 화면 레이아웃 전면 개편.
+- 첨부 이미지 기준으로 기존 하단 노출형 `개발 치트` 영역이 화면을 차지하고 있음을 확인했다.
+- 메인 하단에는 `게임 시작`과 `코인상점`만 남기고, 두 버튼을 같은 가로 폭의 중앙 정렬 버튼으로 조정했다.
+- 우상단 설정 버튼 왼쪽에 `치트` 버튼을 추가했다.
+- Stage 선택, 모든 무기 해금, 코인 레벨업 초기화 기능을 새 `치트 메뉴` 팝업 안으로 이동했다.
+- 치트 팝업의 Stage 2 선택은 개발 확인용이므로 잠금 조건 없이 시작 스테이지를 바꾸도록 했다.
+- 기존 `unlockall` 키 입력 치트는 유지했다.
+- 역할별 기록을 추가했다: Developer 구현 기록, Graphic_designer 시각 방향 기록, QA 검증 기록.
+
+### 생성 / 수정 / 이동 파일 목록
+
+- 수정:
+  - `Developer/r3f_prototype/src/components/TitleScreen.jsx`: 메인 CTA 재배치, 치트 버튼/팝업 추가, 하단 개발 치트 영역 제거.
+  - `Developer/r3f_prototype/src/components/TitleScreen.settings.test.jsx`: 새 치트 팝업 구조와 Stage 2 선택 시작 테스트 반영.
+  - `SESSION_MEMORY.md`: 이번 엔트리 append.
+- 생성:
+  - `Developer/title_layout_rework_implementation_2026-06-21.md`: 구현 기록.
+  - `Graphic_designer/title_layout_rework_visual_direction_2026-06-21.md`: 시각 방향 기록.
+  - `Quaility_Assurance/title_layout_rework_validation_2026-06-21.md`: 검증 기록.
+  - `Quaility_Assurance/title_layout_rework_main_2026-06-21.png`: 메인 화면 검증 스크린샷.
+  - `Quaility_Assurance/title_layout_rework_cheat_modal_2026-06-21.png`: 치트 팝업 검증 스크린샷.
+- 기존 미커밋 변경:
+  - Stage 2 복도 벽/이동 경계 정리 변경과 Planner 문서 이동 변경이 계속 작업트리에 남아 있다.
+
+### 명령 로그
+
+```powershell
+Get-Content -LiteralPath 'C:\Users\admin\.codex\plugins\cache\openai-curated\superpowers\202e9242\skills\using-superpowers\SKILL.md'
+Get-Content -LiteralPath 'C:\Users\admin\.codex\plugins\cache\openai-curated\superpowers\202e9242\skills\brainstorming\SKILL.md'
+Get-Content -LiteralPath 'C:\Users\admin\.codex\plugins\cache\compound-engineering-plugin\compound-engineering\3.13.1\skills\ce-frontend-design\SKILL.md'
+Get-Content -LiteralPath 'C:\Users\admin\.codex\plugins\cache\openai-curated\superpowers\202e9242\skills\verification-before-completion\SKILL.md'
+git status --short --branch
+Get-Content -Encoding UTF8 -LiteralPath 'project_develop_policy.md'
+if (Test-Path -LiteralPath "$env:USERPROFILE\.claude\skills\gstack\bin") { 'GSTACK_OK' } else { 'GSTACK_MISSING' }
+rg -n "게임시작|코인상점|CoinShop|coin shop|unlockall|title|Title|stage|Stage|menu|Menu|cheat|Cheat" Developer/r3f_prototype/src
+view_image C:\Users\admin\.codex\attachments\8732639e-c7b3-4ecc-9f65-23f64e62a40f\image-1.png
+Get-Content -Encoding UTF8 -LiteralPath 'Developer\r3f_prototype\src\components\TitleScreen.jsx'
+Get-Content -Encoding UTF8 -LiteralPath 'Developer\r3f_prototype\src\App.jsx'
+Get-Content -Encoding UTF8 -LiteralPath 'Developer\r3f_prototype\src\lib\weaponUnlocks.js'
+Get-Content -LiteralPath 'C:\Users\admin\.codex\plugins\cache\openai-curated\superpowers\202e9242\skills\test-driven-development\SKILL.md'
+Get-Content -Encoding UTF8 -LiteralPath 'Developer\r3f_prototype\src\components\resultCoinShopFlow.test.jsx'
+rg -n "TitleScreen|unlockall|unlockAll|코인 레벨업 초기화|Stage 2|스테이지 선택" Developer/r3f_prototype/src/**/*.test.* Developer/r3f_prototype/src/**/**/*.test.*
+rg -n "resetPassiveUpgrades|passiveUpgrades|goldTotal|coin" Developer/r3f_prototype/src/store Developer/r3f_prototype/src/lib Developer/r3f_prototype/src/components
+Get-Content -Encoding UTF8 -LiteralPath 'Developer\r3f_prototype\src\components\TitleScreen.settings.test.jsx'
+Get-Content -Encoding UTF8 -LiteralPath 'Developer\r3f_prototype\src\lib\weaponCatalog.js'
+Get-Content -Encoding UTF8 -LiteralPath 'Developer\r3f_prototype\src\store\useGameStore.js' | Select-Object -First 310
+apply_patch
+npm test -- src/components/TitleScreen.settings.test.jsx
+apply_patch
+apply_patch
+apply_patch
+npm test -- src/components/TitleScreen.settings.test.jsx
+npm test -- src/components/TitleScreen.settings.test.jsx src/components/resultCoinShopFlow.test.jsx
+npm run build
+Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue | Select-Object LocalAddress,LocalPort,State,OwningProcess
+node --input-type=module
+view_image D:\JungSil\2.Minigame_project\school_survivor-integration\Quaility_Assurance\title_layout_rework_main_2026-06-21.png
+view_image D:\JungSil\2.Minigame_project\school_survivor-integration\Quaility_Assurance\title_layout_rework_cheat_modal_2026-06-21.png
+apply_patch
+Get-Date -Format 'yyyy-MM-dd HHmm KST'
+git log -1 --pretty=format:'%h %s'
+git status --short --branch
+git diff --stat
+Remove-Item -LiteralPath 'Quaility_Assurance\title_layout_rework_debug_2026-06-21.png'
+apply_patch
+```
+
+### 명령 / 빌드 / 테스트 / 브라우저 검증 결과
+
+- gstack 확인: `GSTACK_OK`
+- TDD RED 확인:
+
+```text
+npm test -- src/components/TitleScreen.settings.test.jsx
+Test Files 1 failed (1)
+Tests 5 failed | 4 passed (9)
+```
+
+실패 이유는 새 요구사항인 치트 메뉴 버튼/팝업 부재와 기존 하단 개발 치트 노출이었다.
+
+- 구현 후 관련 테스트:
+
+```text
+npm test -- src/components/TitleScreen.settings.test.jsx
+Test Files 1 passed (1)
+Tests 9 passed (9)
+```
+
+- 주변 흐름 테스트:
+
+```text
+npm test -- src/components/TitleScreen.settings.test.jsx src/components/resultCoinShopFlow.test.jsx
+Test Files 2 passed (2)
+Tests 12 passed (12)
+```
+
+- 빌드:
+
+```text
+npm run build
+✓ built in 3.19s
+```
+
+Vite의 기존 500 kB 초과 chunk 경고만 출력했다.
+
+- 브라우저 측정:
+
+```text
+게임 시작: x=133, y=482, width=225, height=60
+코인상점: x=133, y=552, width=225, height=44
+치트 버튼: x=362, y=16, width=56, height=44
+설정 버튼: x=430, y=16, width=44, height=44
+메인 Stage 선택 노출: false
+메인 개발 기능 노출: false
+치트 팝업 텍스트: 치트 메뉴 / 시작 스테이지 / Stage 1 / Stage 2 / 모든 무기 해금 / 코인 레벨업 초기화
+```
+
+- 스크린샷:
+  - `Quaility_Assurance/title_layout_rework_main_2026-06-21.png`
+  - `Quaility_Assurance/title_layout_rework_cheat_modal_2026-06-21.png`
+
+### 확정된 룰 / 정책 변경
+
+- 새 정책 변경 없음.
+- 치트 UI는 일반 타이틀 하단에 노출하지 않고 우상단 치트 팝업으로 숨긴다.
+- `project_develop_policy.md`의 역할별 기록 규칙에 따라 Developer, Graphic_designer, QA 기록을 각각 남겼다.
+
+### 미해결 이슈 + 다음 단계
+
+1. 현재 작업트리에 이전 Stage 2 경계 정리, Planner 문서 이동, 이번 타이틀 레이아웃 개편이 모두 미커밋 상태로 남아 있다.
+2. 사용자가 원하면 다음 단계는 관련 변경을 논리 단위로 나눠 커밋하는 것이다.
+3. 다음 세션이 가장 먼저 읽어야 할 항목: 이 엔트리의 "이번 3시간 작업 / 대화", "명령 / 빌드 / 테스트 / 브라우저 검증 결과".
+
+---
+
 ## Session 4 · Entry 1 (재세션 핸드오프 강화) · 2026-05-30 KST
 
 > 이 엔트리는 새 세션이 1엔트리만 읽고도 직전 작업 맥락을 즉시 이어가도록 강화한 핸드오프다. Entry 0 (오늘 08:51 KST) 위에 append한다. 새 세션은 본 엔트리를 먼저 읽으면 충분하며, 더 깊은 맥락이 필요할 때 Entry 0과 Session 3 Entry 2를 참조한다.
@@ -832,5 +1176,167 @@ apply_patch
 5. `dogfood-output/`도 미추적 상태이며 이번 작업에서 건드리지 않았다.
 
 다음 세션이 가장 먼저 읽어야 할 항목: 이 엔트리의 “이번 3시간 작업 / 대화”와 “미해결 이슈 + 다음 단계”.
+
+---
+## Session 5 · Entry 2 · 2026-06-21 1117 KST
+
+### Git 상태
+
+- 브랜치: `feature/stage2-corridor-floor-graphics`
+- 원격 상태: `feature/stage2-corridor-floor-graphics...origin/feature/stage2-corridor-floor-graphics [ahead 1]`
+- 최신 커밋: `d1b25ec feat(stage2): extract corridor wall/bounds logic into dedicated modules`
+- `git status --short --branch` 요약:
+
+```text
+## feature/stage2-corridor-floor-graphics...origin/feature/stage2-corridor-floor-graphics [ahead 1]
+ M Developer/r3f_prototype/src/components/Player.jsx
+ M Developer/r3f_prototype/src/lib/playerMovementBounds.js
+ M Developer/r3f_prototype/src/lib/stage2CorridorWall.js
+ M SESSION_MEMORY.md
+```
+
+### 이번 3시간 작업 / 대화
+
+- 사용자가 "직전 작업 리마인드"를 요청해 최근 세션 메모리와 현재 Git 상태를 확인했다.
+- 직전 작업은 Stage 2 복도 바닥/끝 벽 그래픽과 플레이어 벽 경계 처리였고, 현재 변경 대부분은 `d1b25ec` 커밋에 정리되어 있음을 확인했다.
+- 사용자가 "해줘, 적합한 방향으로 모두 정리해줘"라고 요청해 Stage 2 복도 벽/이동 경계 코드를 정리하고 검증했다.
+- `stage2CorridorWall.js`에 `getStage2CorridorPlayerStopZ()`를 추가해 플레이어 정지선 계산을 한 곳으로 모았다.
+- `playerMovementBounds.js`가 새 정지선 함수를 사용하도록 바꾸고, 플레이어 이동 inset 설명 주석을 실제 경계 계산 모듈로 옮겼다.
+- `Player.jsx`에서는 이동 경계 주석을 제거해 컴포넌트가 프레임 동작 중심으로 읽히게 정리했다.
+- 명시적인 커밋 요청은 없었으므로 커밋은 만들지 않았다.
+
+### 생성 / 수정 / 이동 파일 목록
+
+- 수정:
+  - `Developer/r3f_prototype/src/lib/stage2CorridorWall.js`: Stage 2 복도 끝 벽의 플레이어 정지선 계산 함수를 추가하고 표시 설정에서 재사용.
+  - `Developer/r3f_prototype/src/lib/playerMovementBounds.js`: Stage 2 정지선 계산을 벽 모듈 함수로 위임하고 이동 inset 설명 주석을 배치.
+  - `Developer/r3f_prototype/src/components/Player.jsx`: 이동 경계 세부 주석 제거.
+  - `SESSION_MEMORY.md`: 이번 정리와 검증 기록 append.
+- 새 파일 없음.
+- 이동 파일 없음.
+
+### 명령 로그
+
+```powershell
+Get-Content -LiteralPath 'C:\Users\admin\.codex\plugins\cache\compound-engineering-plugin\compound-engineering\3.13.1\skills\ce-work\SKILL.md'
+Get-Content -LiteralPath 'C:\Users\admin\.codex\plugins\cache\compound-engineering-plugin\compound-engineering\3.13.1\skills\ce-simplify-code\SKILL.md'
+Get-Content -LiteralPath 'C:\Users\admin\.codex\plugins\cache\openai-curated\superpowers\202e9242\skills\verification-before-completion\SKILL.md'
+if (Test-Path -LiteralPath "$env:USERPROFILE\.claude\skills\gstack\bin") { 'GSTACK_OK' } else { 'GSTACK_MISSING' }
+Get-Content -LiteralPath 'C:\Users\admin\.codex\plugins\cache\openai-curated\superpowers\202e9242\skills\test-driven-development\SKILL.md'
+Get-Content -LiteralPath 'Developer\r3f_prototype\package.json'
+git status --short --branch
+rg --files Developer/r3f_prototype/src/lib Developer/r3f_prototype/src/components | rg "(stageConfig|MovementBounds|CorridorWall|ClassroomFloor|Player).*\.(test\.)?[jt]sx?$"
+git diff --name-only
+git log --oneline -5
+git show --stat --oneline --name-status HEAD
+Get-Content -LiteralPath 'Developer\r3f_prototype\src\lib\stage2CorridorWall.js'
+npm test -- src/components/ClassroomFloor.test.jsx src/lib/playerMovementBounds.test.js src/lib/stage2CorridorWall.test.js
+rg "STAGE2_CORRIDOR_WALL|stage2CorridorWall|getStage2CorridorWallDisplay|clampPlayerPosition|getPlayerMovementBounds|PLAYER_INSET" -n Developer/r3f_prototype/src
+Get-Content -Encoding UTF8 -LiteralPath 'Developer\firebase_realtime_database_security_review_2026-06-21.md' | Select-Object -First 80
+Get-Content -Encoding UTF8 -LiteralPath 'Developer\stage2_corridor_floor_implementation_2026-06-20.md'
+Get-ChildItem -LiteralPath 'Developer\r3f_prototype\src\lib' | Select-Object Name,Length,LastWriteTime
+Get-Content -Encoding UTF8 -LiteralPath 'Developer\r3f_prototype\src\lib\stageConfig.js'
+Get-Content -Encoding UTF8 -LiteralPath 'Developer\r3f_prototype\src\components\ClassroomFloor.jsx'
+Get-Content -Encoding UTF8 -LiteralPath 'Developer\r3f_prototype\src\components\Player.jsx' | Select-Object -First 140
+Get-Content -Encoding UTF8 -LiteralPath 'Quaility_Assurance\stage2_corridor_floor_graphics_validation_2026-06-20.md'
+apply_patch
+apply_patch
+apply_patch
+npm test -- src/components/ClassroomFloor.test.jsx src/lib/playerMovementBounds.test.js src/lib/stage2CorridorWall.test.js
+npm test
+npm run build
+Get-Date -Format 'yyyy-MM-dd HHmm KST'
+git status --short --branch
+git log -1 --pretty=format:'%h %s'
+git diff -- Developer/r3f_prototype/src/lib/stage2CorridorWall.js Developer/r3f_prototype/src/lib/playerMovementBounds.js Developer/r3f_prototype/src/components/Player.jsx
+Get-Content -LiteralPath 'C:\Users\admin\.codex\plugins\cache\compound-engineering-plugin\compound-engineering\3.13.1\skills\ce-work\references\shipping-workflow.md'
+git diff --stat
+git diff -- Developer/r3f_prototype/src/lib/stage2CorridorWall.js Developer/r3f_prototype/src/lib/playerMovementBounds.js Developer/r3f_prototype/src/components/Player.jsx SESSION_MEMORY.md
+apply_patch
+apply_patch
+Get-Content -Encoding UTF8 -LiteralPath 'SESSION_MEMORY.md' | Select-Object -Last 35
+git status --short --branch
+git diff --stat
+git diff -- SESSION_MEMORY.md | Select-Object -First 40
+apply_patch
+```
+
+### 명령 / 빌드 / 테스트 / 브라우저 검증 결과
+
+- gstack 확인: `GSTACK_OK`
+- 관련 테스트:
+
+```text
+npm test -- src/components/ClassroomFloor.test.jsx src/lib/playerMovementBounds.test.js src/lib/stage2CorridorWall.test.js
+Test Files 3 passed (3)
+Tests 9 passed (9)
+```
+
+- 전체 테스트:
+
+```text
+npm test
+Test Files 47 passed (47)
+Tests 262 passed (262)
+```
+
+- 빌드:
+
+```text
+npm run build
+✓ built in 1.57s
+```
+
+- 빌드는 성공했지만 Vite가 500 kB 초과 chunk 경고를 출력했다. 기존 번들 크기 경고로 보이며 이번 정리의 실패는 아니다.
+- 브라우저 검증은 이번 정리에서 새로 실행하지 않았다. 기존 증거 스크린샷은 `Quaility_Assurance/stage2_corridor_wall_block_2x_inset_2026-06-21.png`에 있다.
+
+### 확정된 룰 / 정책 변경
+
+- 새 정책 변경 없음.
+- `project_develop_policy.md`가 계속 최고 우선순위 문서다.
+- 명시 요청 없는 서브에이전트 사용 금지 규칙에 따라 `ce-simplify-code`의 3-agent 리뷰 단계는 수동 리뷰로 대체했다.
+
+### 미해결 이슈 + 다음 단계
+
+1. 현재 작업트리에 커밋되지 않은 정리 변경이 남아 있다.
+2. 사용자가 원하면 다음 단계는 이 정리 변경을 커밋하는 것이다.
+3. 브랜치는 원격보다 1커밋 앞서 있으며, 이번 정리 변경까지 포함하면 추가 커밋 대상이 된다.
+4. 다음 세션이 가장 먼저 읽어야 할 항목: 이 엔트리의 "이번 3시간 작업 / 대화"와 "명령 / 빌드 / 테스트 / 브라우저 검증 결과".
+
+### 추가 작업 — 2026-06-21 1253 KST
+
+- 사용자가 `Planner/current_game_rules.md`, `Planner/stage1_classroom_prop_mixed_layout_2026-06-09.md`, `Planner/stage1_unconscious_student_density_2026-06-11.md`, `Planner/title_unlock_all_weapons_cheat_2026-06-12.md` 점검과 맥락별 폴더 정리를 요청했다.
+- `Planner/current_game_rules.md`는 여러 색인과 문서가 "현재 규칙 정본, 루트 유지"로 참조하므로 그대로 두었다.
+- Stage 1 교실 소품/학생 밀도 문서 2개는 `Planner/B. GAME_DESIGN/B-2_Stage_process_difficulty/Stage1_Balance/`로 이동했다.
+- 타이틀 `unlockall` 개발 치트 문서는 `Planner/game_contents/`로 이동했다.
+- `Quaility_Assurance/stage1_vertical_classroom_map_validation_plan_2026-06-18.md`의 이전 루트 경로 참조를 새 경로로 갱신했다.
+- `Planner/Planning_Methodology/Planner_Index/planner_documents_by_field_2026-06-03.md`에 2026-06-21 정리 내역, 현재 Planner 문서 수 78개, 이동된 문서 3개의 색인을 추가했다.
+- 검증: 새 위치 4개 존재 확인, 이전 루트 위치 3개 제거 확인, 이전 루트 경로 참조 `NO_OLD_REFERENCES` 확인.
+
+---
+
+### 추가 작업 — 2026-06-21 1958 KST
+
+- 사용자가 `게임 시작` 버튼을 누르면 유저 닉네임을 정할 수 있는 입력 UI와 Google 계정 매칭 닉네임 저장 시스템을 요청했다.
+- `TitleScreen.jsx`에서 `게임 시작` 버튼을 누르면 바로 게임에 들어가지 않고 `닉네임 설정` 모달을 열도록 변경했다.
+- 닉네임은 2~12글자로 검증하고, 저장 후에만 선택된 스테이지로 게임을 시작한다.
+- `userNickname.js`를 추가해 닉네임 정규화, 검증, Google `uid` 또는 `local` 키 기준 저장/읽기를 분리했다.
+- `firebaseProgress.js`의 `buildCloudUserProfile()`이 `profile.nickname`을 포함하도록 확장했다.
+- `userRanking.js`는 저장된 닉네임을 Google 표시명보다 우선 사용하도록 변경했다.
+- 역할별 기록을 추가했다:
+  - `Planner/game_contents/title_nickname_start_flow_plan_2026-06-21.md`
+  - `Developer/title_nickname_start_flow_implementation_2026-06-21.md`
+  - `Graphic_designer/title_nickname_modal_visual_direction_2026-06-21.md`
+  - `Quaility_Assurance/title_nickname_start_flow_validation_2026-06-21.md`
+- QA 스크린샷을 추가했다:
+  - `Quaility_Assurance/title_nickname_modal_2026-06-21.png`
+  - `Quaility_Assurance/title_nickname_start_flow_2026-06-21.png`
+- 검증:
+  - `npm test -- src/lib/userNickname.test.js src/lib/firebaseProgress.test.js src/components/TitleScreen.settings.test.jsx`는 RED 단계에서 `userNickname.js` 누락으로 실패한 뒤 구현 후 통과했다.
+  - `npm test -- src/lib/userRanking.test.js`는 저장 닉네임 우선 표시 테스트에서 실패한 뒤 구현 후 통과했다.
+  - `npm test`: `Test Files 50 passed (50)`, `Tests 275 passed (275)`.
+  - `npm run build`: 성공. Vite 대형 chunk 경고는 기존 대형 에셋/번들 경고다.
+  - 브라우저 검증: `storedNicknames.local`이 `테스트 생존자`로 저장되고, 닉네임 저장 후 게임 HUD(`Stage 1`, `HP100/100`)가 표시됨을 확인했다.
+- 현재 작업트리에는 이전 작업 변경, 랭킹 변경, 이번 닉네임 변경이 함께 미커밋 상태로 남아 있다. `Developer/r3f_prototype/src/components/Weapons/Starlink.jsx` 변경도 보이지만 이번 작업에서 수정한 파일은 아니다.
 
 ---

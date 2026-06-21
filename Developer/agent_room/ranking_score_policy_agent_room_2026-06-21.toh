@@ -1,0 +1,58 @@
+# Agent Room Record: Ranking Score Policy - 2026-06-21
+
+## Routing Check
+
+- User explicitly requested gstack CEO and subagents for a meeting.
+- Project-native `Developer/agent_room/` was checked first.
+- `.codex/agents/agent-room-executor.toml` was not present in the repository, so the available multi-agent tool roles were used.
+- `gstack` installation check returned `GSTACK_OK`.
+
+## Participants
+
+- CEO/Product lens: product direction, ranking identity, 1st release risk.
+- Game planning/spec flow: score formula alternatives and tie-breakers.
+- Security lens: client-side manipulation risk and server validation boundary.
+- Architecture strategist: data model, separation of progress and public leaderboard.
+
+## Discussion Summary
+
+All participants agreed that the ranking should not be based primarily on kills, gold, weapon unlocks, or passive upgrade state.
+Those values are too affected by balance, farming routes, and client-side manipulation.
+
+The shared direction is:
+
+- Make survival/progression the primary ranking identity.
+- Keep the first version simple enough for beginners to understand.
+- Treat current local/Firebase progress as personal or unofficial data.
+- Split future public leaderboard entries from personal progress data.
+
+## Recommended Policy
+
+1st playable ranking display:
+
+```text
+Personal/unofficial ranking score = best stage progress + survival time
+```
+
+Official server-validated ranking later:
+
+```text
+scoreType = survival_v1
+score = stage progress score + survival seconds + clear bonus
+```
+
+Tie-breakers:
+
+```text
+cleared desc
+stagePriority desc
+survivalSeconds desc
+kills desc
+submittedAt asc
+nickname asc
+```
+
+## Notes
+
+- Public competitive ranking should wait for server validation.
+- Ranking data should eventually live in a separate leaderboard path, not only under `users/{uid}/progress`.

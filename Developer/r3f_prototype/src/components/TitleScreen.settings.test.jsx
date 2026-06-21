@@ -8,6 +8,8 @@ import { WEAPON_CATALOG, isStarter } from '../lib/weaponCatalog.js'
 import { STORAGE_KEY as WEAPON_UNLOCKS_KEY, _resetForTests as resetWeaponUnlocks } from '../lib/weaponUnlocks.js'
 import { STORAGE_KEY as PASSIVE_STORAGE_KEY, purchase as purchasePassiveStorage } from '../lib/passiveUpgrades.js'
 import { STORAGE_KEY as RECORDS_KEY } from '../lib/playerRecords.js'
+import { STORAGE_KEY as NICKNAME_STORAGE_KEY } from '../lib/userNickname.js'
+import { useAuthStore, _resetAuthStoreForTests } from '../store/useAuthStore.js'
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }) => <div data-testid="mock-canvas">{children}</div>,
@@ -23,7 +25,9 @@ afterEach(() => {
   localStorage.removeItem(SETTINGS_KEY)
   localStorage.removeItem(RECORDS_KEY)
   localStorage.removeItem(PASSIVE_STORAGE_KEY)
+  localStorage.removeItem(NICKNAME_STORAGE_KEY)
   resetWeaponUnlocks()
+  _resetAuthStoreForTests()
   document.documentElement.removeAttribute('data-reduced-effects')
 })
 
@@ -67,36 +71,82 @@ describe('TitleScreen settings modal', () => {
     cleanup()
   })
 
-  it('unlocks every non-starter weapon when the cheat toggle is enabled', () => {
+  it('keeps weapon unlock cheats out of the settings modal', () => {
     const { container, cleanup } = renderTitleScreen()
 
     act(() => {
       container.querySelector('[aria-label="설정 열기"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
-    act(() => {
-      container.querySelector('[aria-label="모든 무기 해금 치트 켜기"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
 
-    const unlocks = JSON.parse(localStorage.getItem(WEAPON_UNLOCKS_KEY))
-    const nonStarterIds = Object.keys(WEAPON_CATALOG).filter((id) => !isStarter(id))
-
-    for (const id of nonStarterIds) {
-      expect(unlocks[id], id).toBe(1)
-    }
-
-    expect(JSON.parse(localStorage.getItem(SETTINGS_KEY)).unlockAllWeaponsCheat).toBe(true)
+    expect(container.textContent).toContain('설정')
+    expect(container.textContent).not.toContain('모든 무기 해금')
+    expect(container.textContent).not.toContain('코인 레벨업 초기화')
 
     cleanup()
   })
 
-  it('unlocks every non-starter weapon from the visible title cheat button', () => {
+  it('keeps development controls behind the top cheat menu button', () => {
     const { container, cleanup } = renderTitleScreen()
 
+    expect(container.textContent).not.toContain('모든 무기 해금')
+    expect(container.textContent).not.toContain('코인 레벨업 초기화')
+    expect(container.textContent).not.toContain('시작 스테이지')
+
     act(() => {
-      Array.from(container.querySelectorAll('button'))
-        .find((button) => button.textContent.includes('모든 무기 해금'))
-        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      container.querySelector('[aria-label="치트 메뉴 열기"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
+
+    expect(container.textContent).toContain('치트 메뉴')
+    expect(container.textContent).toContain('시작 스테이지')
+    expect(container.textContent).toContain('Stage 1')
+    expect(container.textContent).toContain('Stage 2')
+    expect(container.textContent).toContain('모든 무기 해금')
+    expect(container.textContent).toContain('코인 레벨업 초기화')
+
+    cleanup()
+  })
+
+  it('opens the user ranking page from the title action stack', () => {
+    const onOpenRanking = vi.fn()
+    const { container, cleanup } = renderTitleScreen(() => {}, onOpenRanking)
+
+    clickButtonByText(container, '유저랭킹')
+
+    expect(onOpenRanking).toHaveBeenCalledTimes(1)
+
+    cleanup()
+  })
+
+  it('asks for a nickname before starting and saves it for the Google user', () => {
+    useAuthStore.setState({
+      status: 'signedIn',
+      user: { uid: 'uid-1', displayName: 'Tester', email: 'tester@example.com', photoURL: '' },
+      initialized: true,
+    })
+    const onStart = vi.fn()
+    const { container, cleanup } = renderTitleScreen(onStart)
+
+    clickButtonByText(container, '게임 시작')
+
+    expect(onStart).not.toHaveBeenCalled()
+    expect(container.textContent).toContain('닉네임')
+
+    setInputValue(container.querySelector('[aria-label="유저 닉네임"]'), '  교실 생존자  ')
+    clickButtonByText(container, '저장하고 시작')
+
+    expect(onStart).toHaveBeenCalledWith('stage1')
+    expect(JSON.parse(localStorage.getItem(NICKNAME_STORAGE_KEY))).toEqual({
+      'uid-1': '교실 생존자',
+    })
+
+    cleanup()
+  })
+
+  it('unlocks every non-starter weapon from the cheat modal action', () => {
+    const { container, cleanup } = renderTitleScreen()
+
+    openCheatMenu(container)
+    clickButtonByText(container, '모든 무기 해금')
 
     const unlocks = JSON.parse(localStorage.getItem(WEAPON_UNLOCKS_KEY))
     const nonStarterIds = Object.keys(WEAPON_CATALOG).filter((id) => !isStarter(id))
@@ -113,11 +163,8 @@ describe('TitleScreen settings modal', () => {
     purchasePassiveStorage('might', 9999)
     const { container, cleanup } = renderTitleScreen()
 
-    act(() => {
-      Array.from(container.querySelectorAll('button'))
-        .find((button) => button.textContent.includes('코인 레벨업 초기화'))
-        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
+    openCheatMenu(container)
+    clickButtonByText(container, '코인 레벨업 초기화')
 
     expect(localStorage.getItem(PASSIVE_STORAGE_KEY)).toBeNull()
 
@@ -145,27 +192,28 @@ describe('TitleScreen settings modal', () => {
     cleanup()
   })
 
-  it('shows Stage 2 as locked before the unlock condition is met', () => {
+  it('opens Stage selection inside the cheat modal', () => {
     const { container, cleanup } = renderTitleScreen()
 
+    expect(container.textContent).not.toContain('스테이지 선택')
+    openCheatMenu(container)
+
+    expect(container.textContent).toContain('시작 스테이지')
+    expect(container.textContent).toContain('Stage 1')
     expect(container.textContent).toContain('Stage 2')
-    expect(container.textContent).toContain('잠김')
-    expect(container.textContent).toContain('180초 생존 3회')
 
     cleanup()
   })
 
-  it('starts Stage 2 when the record unlock condition is met and selected', () => {
-    localStorage.setItem(RECORDS_KEY, JSON.stringify({ stage1Clears: 1 }))
+  it('starts Stage 2 when selected from the cheat modal', () => {
     const onStart = vi.fn()
     const { container, cleanup } = renderTitleScreen(onStart)
 
-    act(() => {
-      Array.from(container.querySelectorAll('button')).find((button) => button.textContent.includes('Stage 2')).dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-    act(() => {
-      Array.from(container.querySelectorAll('button')).find((button) => button.textContent.includes('게임 시작')).dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
+    openCheatMenu(container)
+    clickButtonByText(container, 'Stage 2')
+    clickButtonByText(container, '게임 시작')
+    setInputValue(container.querySelector('[aria-label="유저 닉네임"]'), '복도 생존자')
+    clickButtonByText(container, '저장하고 시작')
 
     expect(onStart).toHaveBeenCalledWith('stage2')
 
@@ -173,13 +221,13 @@ describe('TitleScreen settings modal', () => {
   })
 })
 
-function renderTitleScreen(onStart = () => {}) {
+function renderTitleScreen(onStart = () => {}, onOpenRanking = () => {}) {
   const container = document.createElement('div')
   document.body.appendChild(container)
   const root = createRoot(container)
 
   act(() => {
-    root.render(<TitleScreen onStart={onStart} />)
+    root.render(<TitleScreen onStart={onStart} onOpenRanking={onOpenRanking} />)
   })
 
   return {
@@ -191,4 +239,26 @@ function renderTitleScreen(onStart = () => {}) {
       container.remove()
     },
   }
+}
+
+function openCheatMenu(container) {
+  act(() => {
+    container.querySelector('[aria-label="치트 메뉴 열기"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
+}
+
+function clickButtonByText(container, text) {
+  act(() => {
+    Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent.includes(text))
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
+}
+
+function setInputValue(input, value) {
+  act(() => {
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
+    setter.call(input, value)
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+  })
 }

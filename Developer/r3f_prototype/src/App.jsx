@@ -7,6 +7,7 @@ import HUD from './components/HUD.jsx'
 import TitleScreen from './components/TitleScreen.jsx'
 import VirtualJoystick from './components/VirtualJoystick.jsx'
 import CoinShop from './components/CoinShop.jsx'
+import UserRanking from './components/UserRanking.jsx'
 import { useGameStore } from './store/useGameStore.js'
 import { initPlaytestLogger } from './lib/playtestLogger.js'
 import { isMobileJoystickEnvironment } from './lib/mobileInput.js'
@@ -74,7 +75,11 @@ export default function App() {
     <div style={styles.viewport}>
       <div ref={phoneFrameRef} style={styles.phoneFrame}>
         {screen === 'title' && (
-          <TitleScreen onStart={startGame} onOpenCoinShop={() => { setPrevScreen('title'); setScreen('coinShop') }} />
+          <TitleScreen
+            onStart={startGame}
+            onOpenCoinShop={() => { setPrevScreen('title'); setScreen('coinShop') }}
+            onOpenRanking={() => setScreen('ranking')}
+          />
         )}
 
         {screen === 'coinShop' && (
@@ -82,6 +87,10 @@ export default function App() {
             onBack={() => setScreen(prevScreen === 'game' ? 'game' : 'title')}
             backLabel={prevScreen === 'game' ? '결과로 돌아가기' : '타이틀로 돌아가기'}
           />
+        )}
+
+        {screen === 'ranking' && (
+          <UserRanking onBack={() => setScreen('title')} />
         )}
 
         {screen === 'game' && (
