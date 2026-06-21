@@ -1,9 +1,8 @@
 // @vitest-environment jsdom
-import React from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import React, { act } from 'react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createRoot } from 'react-dom/client'
-import { act } from 'react-dom/test-utils'
 import TitleScreen from './TitleScreen.jsx'
 import HUD from './HUD.jsx'
 import { useGameStore } from '../store/useGameStore.js'
@@ -16,6 +15,11 @@ vi.mock('./TitleScene3D.jsx', () => ({
   default: () => <div data-testid="mock-title-scene" />,
 }))
 
+afterEach(() => {
+  vi.useRealTimers()
+  useGameStore.getState().resetGame()
+})
+
 describe('coin shop entry flow', () => {
   it('title screen exposes the coin shop entry', () => {
     const html = renderToStaticMarkup(<TitleScreen onStart={() => {}} />)
@@ -26,9 +30,10 @@ describe('coin shop entry flow', () => {
   })
 
   it('game over result exposes the coin shop entry', () => {
+    vi.useFakeTimers()
     useGameStore.setState({ phase: 'gameover', goldSession: 12, goldTotal: 30 })
 
-    const html = renderHud()
+    const html = renderHud({ advanceMs: 1000 })
 
     expect(html).toContain('GAME OVER')
     expect(html).toContain('코인상점')
@@ -46,13 +51,18 @@ describe('coin shop entry flow', () => {
   })
 })
 
-function renderHud() {
+function renderHud({ advanceMs = 0 } = {}) {
   const container = document.createElement('div')
   document.body.appendChild(container)
   const root = createRoot(container)
   act(() => {
     root.render(<HUD onOpenCoinShop={() => {}} />)
   })
+  if (advanceMs > 0) {
+    act(() => {
+      vi.advanceTimersByTime(advanceMs)
+    })
+  }
   const html = container.innerHTML
   act(() => {
     root.unmount()
