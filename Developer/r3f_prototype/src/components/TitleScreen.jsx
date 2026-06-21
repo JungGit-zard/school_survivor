@@ -149,6 +149,7 @@ export default function TitleScreen({ onStart, onOpenCoinShop }) {
         <button type="button" style={primaryButtonStyle} onClick={() => onStart(playableStageId)}>
           게임 시작
         </button>
+        <div style={styles.stageSelectLabel}>스테이지 선택</div>
         <div style={styles.stageSelect} aria-label="스테이지 선택">
           <button
             type="button"
@@ -175,12 +176,15 @@ export default function TitleScreen({ onStart, onOpenCoinShop }) {
           🪙 코인상점
         </button>
         <div style={styles.cheatActions}>
-          <button type="button" style={styles.cheatButton} onClick={handleUnlockAllWeapons}>
-            모든 무기 해금
-          </button>
-          <button type="button" style={styles.resetButton} onClick={handleResetPassiveUpgrades}>
-            코인 레벨업 초기화
-          </button>
+          <div style={styles.cheatLabel}>🔧 개발 치트</div>
+          <div style={styles.cheatButtons}>
+            <button type="button" style={styles.cheatButton} onClick={handleUnlockAllWeapons}>
+              모든 무기 해금
+            </button>
+            <button type="button" style={styles.resetButton} onClick={handleResetPassiveUpgrades}>
+              코인 레벨업 초기화
+            </button>
+          </div>
         </div>
       </div>
 
@@ -406,16 +410,24 @@ const styles = {
     position: 'absolute',
     left: 'max(20px, calc(env(safe-area-inset-left, 0px) + 18px))',
     right: 'max(20px, calc(env(safe-area-inset-right, 0px) + 18px))',
-    bottom: 'max(58px, calc(env(safe-area-inset-bottom, 0px) + 46px))',
+    bottom: 'max(16px, calc(env(safe-area-inset-bottom, 0px) + 8px))',
     display: 'flex',
     flexDirection: 'column',
     zIndex: 3,
+  },
+  stageSelectLabel: {
+    marginTop: 8,
+    marginBottom: 4,
+    color: '#c8c1d7',
+    fontSize: 10,
+    fontWeight: 900,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   stageSelect: {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
     gap: 8,
-    marginTop: 8,
     marginBottom: 8,
     pointerEvents: 'auto',
   },
@@ -492,15 +504,24 @@ const styles = {
     boxShadow: '0 4px 0 #050209, 0 0 14px rgba(247,209,78,0.45)',
   },
   cheatActions: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: -38,
+    marginTop: 8,
+    border: '1.5px solid rgba(247,209,126,0.35)',
+    borderRadius: 8,
+    padding: '6px 8px',
+    background: 'rgba(22,18,29,0.72)',
+    pointerEvents: 'auto',
+  },
+  cheatLabel: {
+    color: '#f7d17e',
+    fontSize: 10,
+    fontWeight: 900,
+    marginBottom: 5,
+    letterSpacing: 0.5,
+  },
+  cheatButtons: {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
     gap: 6,
-    opacity: 0.78,
-    pointerEvents: 'auto',
   },
   cheatButton: {
     minHeight: 30,
