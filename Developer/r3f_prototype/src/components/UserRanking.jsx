@@ -6,6 +6,7 @@ import {
   formatSurvivalTime,
   loadLocalRankingEntries,
 } from '../lib/userRanking.js'
+import { getAdminRankingSeasonConfig } from '../lib/adminConfig.js'
 
 export default function UserRanking({ onBack, entries }) {
   const user = useAuthStore((s) => s.user)
@@ -15,6 +16,10 @@ export default function UserRanking({ onBack, entries }) {
   )
   const rows = useMemo(() => createRankingRows(rankingEntries), [rankingEntries])
   const bestRow = rows.find((row) => !row.empty)
+  const season = useMemo(() => getAdminRankingSeasonConfig(), [])
+  const rewardSummary = useMemo(() => (
+    season.rewardTiers.map((tier) => `${tier.label} ${tier.gold}G`).join(' · ')
+  ), [season.rewardTiers])
 
   return (
     <div style={styles.root}>
@@ -34,6 +39,12 @@ export default function UserRanking({ onBack, entries }) {
         <span>유저</span>
         <span>점수</span>
       </div>
+
+      <section style={styles.seasonPanel}>
+        <span style={styles.seasonLabel}>시즌</span>
+        <strong style={styles.seasonName}>{season.seasonName}</strong>
+        <span style={styles.seasonReward}>{rewardSummary}</span>
+      </section>
 
       <ol style={styles.list} aria-label="유저랭킹 1위부터 100위까지">
         {rows.map((row) => (
@@ -132,6 +143,43 @@ const styles = {
     fontSize: 11,
     lineHeight: 1,
     fontWeight: 900,
+  },
+  seasonPanel: {
+    display: 'grid',
+    gridTemplateColumns: '42px minmax(0, 1fr)',
+    gap: '2px 8px',
+    padding: '8px 10px',
+    border: '2px solid #050209',
+    borderRadius: 8,
+    background: '#59c7ff',
+    color: '#050209',
+    boxShadow: '0 3px 0 #050209',
+  },
+  seasonLabel: {
+    gridRow: '1 / span 2',
+    alignSelf: 'center',
+    fontSize: 11,
+    lineHeight: 1,
+    fontWeight: 1000,
+  },
+  seasonName: {
+    minWidth: 0,
+    overflow: 'hidden',
+    fontSize: 13,
+    lineHeight: 1.1,
+    fontWeight: 1000,
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
+  },
+  seasonReward: {
+    minWidth: 0,
+    overflow: 'hidden',
+    color: 'rgba(5,2,9,0.7)',
+    fontSize: 10,
+    lineHeight: 1,
+    fontWeight: 900,
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
   },
   list: {
     flex: 1,

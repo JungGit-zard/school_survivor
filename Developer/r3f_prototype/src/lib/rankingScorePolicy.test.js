@@ -4,6 +4,7 @@ import {
   STAGE_BONUS,
   compareRankingEntries,
   getRankingScore,
+  getRankingScorePolicy,
 } from './rankingScorePolicy.js'
 
 describe('ranking score policy', () => {
@@ -26,5 +27,18 @@ describe('ranking score policy', () => {
     ].sort(compareRankingEntries)
 
     expect(rows.map((row) => row.displayName)).toEqual(['지안', '하린', '민수'])
+  })
+
+  it('can score runs with an admin-configured ranking season policy', () => {
+    const policy = getRankingScorePolicy({
+      scorePolicy: {
+        stageBonus: { stage1: 0, stage2: 90 },
+        clearBonus: 45,
+      },
+    })
+
+    expect(policy.stageBonus.stage2).toBe(90)
+    expect(policy.clearBonus).toBe(45)
+    expect(getRankingScore({ stageId: 'stage2', survivalSeconds: 240, cleared: true }, policy)).toBe(375)
   })
 })

@@ -1,4 +1,6 @@
 // Stage timing and progression rules live in one place so future modes can reuse them.
+import { getAdminBalanceConfig } from './adminConfig.js'
+
 export const DEFAULT_STAGE_ID = 'stage1'
 
 export const STAGE_DURATION_SEC = 240
@@ -46,7 +48,8 @@ export const STAGE_CONFIGS = {
 }
 
 export function getStageConfig(stageId = DEFAULT_STAGE_ID) {
-  return STAGE_CONFIGS[stageId] ?? STAGE_CONFIGS[DEFAULT_STAGE_ID]
+  const base = STAGE_CONFIGS[stageId] ?? STAGE_CONFIGS[DEFAULT_STAGE_ID]
+  return applyAdminStageOverrides(base)
 }
 
 export function getStageDurationSec(stageId = DEFAULT_STAGE_ID) {
@@ -71,4 +74,18 @@ export function isStageUnlocked(stageId, records = {}) {
     return (records.stage1Clears ?? 0) >= 1 || (records.stage1Survival180Runs ?? 0) >= 3
   }
   return false
+}
+
+function applyAdminStageOverrides(base) {
+  const balance = getAdminBalanceConfig()
+  const durationSec = balance.stageDurationSec?.[base.id] ?? base.durationSec
+  const goldMultiplier = balance.rewards?.goldMultiplier ?? 1
+  return {
+    ...base,
+    durationSec,
+    survivalMilestones: base.survivalMilestones.map((milestone) => ({
+      ...milestone,
+      gold: Math.max(0, Math.round(milestone.gold * goldMultiplier)),
+    })),
+  }
 }

@@ -1,12 +1,18 @@
-import { describe, expect, it } from 'vitest'
+// @vitest-environment jsdom
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
   DEFAULT_STAGE_ID,
   getStageConfig,
   getStageDurationSec,
   isStageUnlocked,
 } from './stageConfig.js'
+import { saveAdminConfig } from './adminConfig.js'
 
 describe('stage configuration registry', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   it('keeps stage 1 as the default 240 second survival stage', () => {
     expect(DEFAULT_STAGE_ID).toBe('stage1')
     expect(getStageDurationSec('stage1')).toBe(240)
@@ -33,5 +39,20 @@ describe('stage configuration registry', () => {
     expect(isStageUnlocked('stage2', { stage1Clears: 1 })).toBe(true)
     expect(isStageUnlocked('stage2', { stage1Survival180Runs: 3 })).toBe(true)
     expect(isStageUnlocked('stage2', { stage1Survival180Runs: 2 })).toBe(false)
+  })
+
+  it('applies admin balance duration and gold reward overrides', () => {
+    saveAdminConfig({
+      balance: {
+        stageDurationSec: { stage1: 180 },
+        rewards: { goldMultiplier: 2 },
+      },
+    })
+
+    const stage = getStageConfig('stage1')
+
+    expect(getStageDurationSec('stage1')).toBe(180)
+    expect(stage.durationSec).toBe(180)
+    expect(stage.survivalMilestones.map((milestone) => milestone.gold)).toEqual([2, 6, 8, 16])
   })
 })

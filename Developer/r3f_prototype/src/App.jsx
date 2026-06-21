@@ -8,6 +8,7 @@ import TitleScreen from './components/TitleScreen.jsx'
 import VirtualJoystick from './components/VirtualJoystick.jsx'
 import CoinShop from './components/CoinShop.jsx'
 import UserRanking from './components/UserRanking.jsx'
+import AdminPage from './components/AdminPage.jsx'
 import { useGameStore } from './store/useGameStore.js'
 import { initPlaytestLogger } from './lib/playtestLogger.js'
 import { isMobileJoystickEnvironment } from './lib/mobileInput.js'
@@ -22,6 +23,9 @@ const keyMap = [
 ]
 
 export default function App() {
+  const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
+  if (isAdminRoute) return <AdminPage />
+
   const [screen, setScreen] = useState('title')
   const [prevScreen, setPrevScreen] = useState('title')
   const [mobileJoystickEnabled, setMobileJoystickEnabled] = useState(false)
