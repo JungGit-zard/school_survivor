@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -44,7 +44,7 @@ function Projectile({ id, position, yaw, damage, speed, target, onExpire }) {
   const hitRef = useRef(false)
   const ageRef = useRef(0)
 
-  useFrame((_, delta) => {
+  usePlayingFrame((_, delta) => {
     if (!rb.current) return
     if (hitRef.current) return
     ageRef.current += delta
@@ -102,7 +102,6 @@ export function PencilThrow() {
   const [projectiles, setProjectiles] = useState([])
   const activeProjectilesRef = useRef([])
   const lastFireRef = useRef(0)
-  const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
 
   const expire = useCallback((id) => {
@@ -113,8 +112,7 @@ export function PencilThrow() {
     })
   }, [])
 
-  useFrame(({ clock }) => {
-    if (phase !== 'playing') return
+  usePlayingFrame(({ clock }) => {
     const w = weapons.pencilThrow
     if (!w?.active) return
 

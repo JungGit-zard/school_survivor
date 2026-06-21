@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { getBellSonicRingConfigs } from '../../lib/bell.js'
@@ -44,7 +44,7 @@ function BellPulse({ id, startMs, radius, onDone }) {
   const ringRefs = useRef([])
   const ringConfigs = useMemo(() => getBellSonicRingConfigs(), [])
 
-  useFrame(({ clock }) => {
+  usePlayingFrame(({ clock }) => {
     const age = clock.elapsedTime * 1000 - startMs
     const t = Math.min(1, age / 520)
     const ease = 1 - Math.pow(1 - t, 3)
@@ -84,14 +84,13 @@ export function BellShockwave() {
   const bellRef = useRef(null)
   const lastFireRef = useRef(0)
   const [pulses, setPulses] = useState([])
-  const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
 
   const removePulse = useCallback((id) => {
     setPulses((prev) => prev.filter((pulse) => pulse.id !== id))
   }, [])
 
-  useFrame(({ clock }) => {
+  usePlayingFrame(({ clock }) => {
     const w = weapons.bell
     if (!w?.active) return
 
@@ -110,7 +109,6 @@ export function BellShockwave() {
       bellRef.current.rotation.set(0.15, 0.28, ringShake)
     }
 
-    if (phase !== 'playing') return
     if (nowMs - lastFireRef.current < w.cooldown) return
     lastFireRef.current = nowMs
 
