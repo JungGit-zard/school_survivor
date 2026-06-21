@@ -11,9 +11,7 @@ import MiniHealthBar from './MiniHealthBar.jsx'
 const _v = { x: 0, y: 0, z: 0 }
 const INV_DURATION = 520
 const TURN_SPEED = 14
-// 플레이어 이동 한계 = 스테이지 맵 경계에서 안쪽 inset. 카메라 45° 시야 여백 차이로 축별 inset이 다르다.
-// - 세로(z): 위쪽 시야 여백(reachUp≈12.5)이 커서 벽까지 가면 화면 밖으로 크게 빠짐 → inset 4.
-// - 가로(x): 좌우 시야 여백(reachSide≈4.6)이 작아 inset 2에서 멈춰 좌우 끝 가까이까지 보이게.
+
 function shortestAngleDiff(target, current) {
   let diff = target - current
   while (diff > Math.PI) diff -= Math.PI * 2
