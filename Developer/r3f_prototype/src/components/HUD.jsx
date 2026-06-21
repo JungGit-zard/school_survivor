@@ -21,6 +21,8 @@ import eraserIconSrc from '../assets/weapon_icon/12_wea_eraser.png.png'
 import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
 import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
 
+const GAMEOVER_TRANSITION_MS = 1000
+
 const damageLabel = (name, weaponKey, upgradeKey) => (w) =>
   `${name} +${UPGRADE_EFFECTS[upgradeKey].dmg} (Lv${(w[weaponKey].level ?? 1) + 1})`
 
@@ -359,6 +361,8 @@ export default function HUD({ onOpenCoinShop, onGoToTitle }) {
     [phase, player.level, weapons, levelUpChoiceSerial],
   )
   const lowHp   = player.hp / player.maxHp < 0.3
+  const isGameover = phase === 'gameover'
+  const [gameoverModalReady, setGameoverModalReady] = useState(false)
 
   // 종료 화면 "다음 해금 가능 무기" 미리보기 — minLevel이 가장 낮은 미해금 무기 1개.
   const nextUnlock = useMemo(() => getNextUnlockPreview(phase, weapons), [phase, weapons])
@@ -399,6 +403,17 @@ export default function HUD({ onOpenCoinShop, onGoToTitle }) {
     return () => clearTimeout(timer)
   }, [clearMilestone, recentMilestone])
 
+  useEffect(() => {
+    if (!isGameover) {
+      setGameoverModalReady(false)
+      return undefined
+    }
+
+    setGameoverModalReady(false)
+    const timer = setTimeout(() => setGameoverModalReady(true), GAMEOVER_TRANSITION_MS)
+    return () => clearTimeout(timer)
+  }, [isGameover])
+
   // CSS 키프레임 주입. 최초 1회만 추가한다.
   useEffect(() => {
     const style = document.createElement('style')
@@ -408,6 +423,10 @@ export default function HUD({ onOpenCoinShop, onGoToTitle }) {
       @keyframes vignettePulse { 0%,100%{opacity:0.40} 50%{opacity:0.65} }
       @keyframes milestonePop { 0%{transform:translate(-50%,-8px);opacity:0} 16%,82%{transform:translate(-50%,0);opacity:1} 100%{transform:translate(-50%,-8px);opacity:0} }
       @keyframes bossPulse { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:0.95} 50%{transform:translate(-50%,-50%) scale(1.06);opacity:1} }
+      @keyframes gameoverGrayscaleFade {
+        0%{opacity:0;backdrop-filter:grayscale(0);-webkit-backdrop-filter:grayscale(0)}
+        100%{opacity:1;backdrop-filter:grayscale(1);-webkit-backdrop-filter:grayscale(1)}
+      }
     `
     if (!document.getElementById('hud-keyframes')) document.head.appendChild(style)
     return () => document.getElementById('hud-keyframes')?.remove()
@@ -519,8 +538,16 @@ export default function HUD({ onOpenCoinShop, onGoToTitle }) {
         </div>
       )}
 
-      {phase === 'gameover' && (
-        <div style={styles.overlay}>
+      {isGameover && (
+        <div
+          data-testid="gameover-grayscale-transition"
+          aria-hidden="true"
+          style={styles.gameoverGrayscaleTransition}
+        />
+      )}
+
+      {isGameover && gameoverModalReady && (
+        <div data-testid="gameover-result-overlay" style={styles.overlay}>
           <div style={styles.modal}>
             <h2 style={{ ...styles.modalTitle, color: '#ff4060' }}>GAME OVER</h2>
             <p style={{ color: '#ccc', marginBottom: 8 }}>생존 시간: {mins}:{secs}</p>
@@ -770,6 +797,15 @@ const styles = {
     position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     pointerEvents: 'auto',
+  },
+  gameoverGrayscaleTransition: {
+    position: 'absolute',
+    inset: 0,
+    background: 'rgba(8, 8, 10, 0.08)',
+    backdropFilter: 'grayscale(1)',
+    WebkitBackdropFilter: 'grayscale(1)',
+    animation: `gameoverGrayscaleFade ${GAMEOVER_TRANSITION_MS}ms ease forwards`,
+    pointerEvents: 'none',
   },
   modal: {
     background: '#1a1028', border: '2px solid #6040a0',

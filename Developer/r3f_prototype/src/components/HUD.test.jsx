@@ -1,8 +1,8 @@
 ﻿// @vitest-environment jsdom
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
-import { afterEach, describe, expect, it } from 'vitest'
-import {
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import HUD, {
   UpgradeIcon,
   getNextUnlockPreview,
   getUpgradeChoiceDesc,
@@ -12,9 +12,12 @@ import {
   limitPencilUpgradeOptions,
 } from './HUD.jsx'
 import { WEAPON_CATALOG, isStarter } from '../lib/weaponCatalog.js'
+import { useGameStore } from '../store/useGameStore.js'
 import { _resetForTests as resetWeaponUnlocks, setUnlocked } from '../lib/weaponUnlocks.js'
 
 afterEach(() => {
+  vi.useRealTimers()
+  useGameStore.getState().resetGame()
   resetWeaponUnlocks()
 })
 
@@ -139,5 +142,49 @@ describe('weapon upgrade icon assets', () => {
     act(() => {
       root.unmount()
     })
+  })
+})
+
+describe('gameover presentation', () => {
+  it('runs a one-second grayscale transition before showing the result popup', () => {
+    vi.useFakeTimers()
+    useGameStore.getState().resetGame()
+    useGameStore.setState({
+      phase: 'gameover',
+      elapsedMs: 65_000,
+      goldSession: 7,
+      goldTotal: 19,
+    })
+
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      expect(container.querySelector('[data-testid="gameover-grayscale-transition"]')).not.toBeNull()
+      expect(container.querySelector('[data-testid="gameover-result-overlay"]')).toBeNull()
+      expect(container.textContent).not.toContain('GAME OVER')
+
+      act(() => {
+        vi.advanceTimersByTime(999)
+      })
+
+      expect(container.querySelector('[data-testid="gameover-result-overlay"]')).toBeNull()
+      expect(container.textContent).not.toContain('GAME OVER')
+
+      act(() => {
+        vi.advanceTimersByTime(1)
+      })
+
+      expect(container.querySelector('[data-testid="gameover-result-overlay"]')).not.toBeNull()
+      expect(container.textContent).toContain('GAME OVER')
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
   })
 })
