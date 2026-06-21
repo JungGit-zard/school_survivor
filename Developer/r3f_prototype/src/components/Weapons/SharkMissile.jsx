@@ -113,6 +113,12 @@ function FlameTrail({ flameRef }) {
   )
 }
 
+// 선회 파라미터
+const ORBIT_RADIUS = 1.4                          // 선회 반경 (world units)
+const ORBIT_SPEED = (2 * Math.PI) / 1.5          // 각속도 rad/s → 1.5초/바퀴
+const ORBITS_TO_EXPLODE = 2                       // 2바퀴 완료 시 폭발
+const ORBIT_ENTRY_DIST = ORBIT_RADIUS + 1.0      // 이 거리 이하 진입 시 호밍 → 선회 전환
+
 function SharkMissileProjectile({ id, start, initialTarget, damage, radius, range, speed, retargetIntervalMs, onExplode }) {
   const groupRef = useRef(null)
   const ageRef = useRef(0)
@@ -121,8 +127,11 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
   const posRef = useRef({ x: start[0], y: start[1], z: start[2] })
   const explodedRef = useRef(false)
   const flameRef = useRef(null)
+  const phaseRef = useRef('homing')        // 'homing' | 'orbiting'
+  const orbitCenterRef = useRef(null)
+  const orbitStartAngleRef = useRef(0)
+  const orbitTotalAngleRef = useRef(0)
 
-  // 발사 시점에 목표 방향으로 yaw 초기화 — useRef(0)이면 항상 +Z(정면)로 날아간 뒤 뒤늦게 꺾임
   const initDx = initialTarget.x - start[0]
   const initDz = initialTarget.z - start[2]
   const initDist = Math.hypot(initDx, initDz)
@@ -132,35 +141,61 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
     if (!groupRef.current || explodedRef.current) return
     ageRef.current += delta
     const nowMs = ageRef.current * 1000
-
-    if (nowMs >= retargetAtRef.current) {
-      const nextTarget = findSharkMissileClusterTarget({ range, radius })
-      if (nextTarget) targetRef.current = { x: nextTarget.x, z: nextTarget.z }
-      retargetAtRef.current = nowMs + retargetIntervalMs
-    }
-
-    const target = targetRef.current
     const p = posRef.current
-    const dx = target.x - p.x
-    const dz = target.z - p.z
-    const dist = Math.hypot(dx, dz)
 
-    if (ageRef.current > 8 || dist < 1.2) {
+    if (ageRef.current > 14) {
       explodedRef.current = true
       onExplode(id, { x: p.x, z: p.z, damage, radius })
       return
     }
 
-    const nx = dist > 0.001 ? dx / dist : Math.sin(yawRef.current)
-    const nz = dist > 0.001 ? dz / dist : Math.cos(yawRef.current)
-    const desiredYaw = Math.atan2(nx, nz)
-    // THREE.MathUtils.lerp은 ±π 경계에서 긴 쪽으로 돌아가는 wrap 버그가 있어 최단 각도 보간으로 교체
-    const angleDiff = ((desiredYaw - yawRef.current + Math.PI) % (2 * Math.PI)) - Math.PI
-    yawRef.current += angleDiff * Math.min(1, delta * 9)
+    if (phaseRef.current === 'homing') {
+      if (nowMs >= retargetAtRef.current) {
+        const nextTarget = findSharkMissileClusterTarget({ range, radius })
+        if (nextTarget) targetRef.current = { x: nextTarget.x, z: nextTarget.z }
+        retargetAtRef.current = nowMs + retargetIntervalMs
+      }
 
-    p.x += Math.sin(yawRef.current) * speed * delta
-    p.z += Math.cos(yawRef.current) * speed * delta
-    p.y = start[1] + Math.sin(ageRef.current * 10) * 0.04
+      const target = targetRef.current
+      const dx = target.x - p.x
+      const dz = target.z - p.z
+      const dist = Math.hypot(dx, dz)
+
+      if (dist < ORBIT_ENTRY_DIST) {
+        // 선회 진입: 클러스터 중심 고정, 현재 각도로 진입각 스냅
+        phaseRef.current = 'orbiting'
+        orbitCenterRef.current = { x: target.x, z: target.z }
+        orbitStartAngleRef.current = Math.atan2(p.x - target.x, p.z - target.z)
+        orbitTotalAngleRef.current = 0
+      } else {
+        const nx = dx / dist
+        const nz = dz / dist
+        const desiredYaw = Math.atan2(nx, nz)
+        const angleDiff = ((desiredYaw - yawRef.current + Math.PI) % (2 * Math.PI)) - Math.PI
+        yawRef.current += angleDiff * Math.min(1, delta * 9)
+        p.x += Math.sin(yawRef.current) * speed * delta
+        p.z += Math.cos(yawRef.current) * speed * delta
+        p.y = start[1] + Math.sin(ageRef.current * 10) * 0.04
+      }
+    }
+
+    if (phaseRef.current === 'orbiting') {
+      const center = orbitCenterRef.current
+      orbitTotalAngleRef.current += ORBIT_SPEED * delta
+
+      if (orbitTotalAngleRef.current >= ORBITS_TO_EXPLODE * 2 * Math.PI) {
+        explodedRef.current = true
+        onExplode(id, { x: p.x, z: p.z, damage, radius })
+        return
+      }
+
+      const angle = orbitStartAngleRef.current + orbitTotalAngleRef.current
+      p.x = center.x + Math.sin(angle) * ORBIT_RADIUS
+      p.z = center.z + Math.cos(angle) * ORBIT_RADIUS
+      p.y = start[1] + Math.sin(ageRef.current * 10) * 0.04
+      // 원 접선 방향 yaw: d/dθ(sin θ, cos θ) = (cos θ, -sin θ)
+      yawRef.current = Math.atan2(Math.cos(angle), -Math.sin(angle))
+    }
 
     groupRef.current.position.set(p.x, p.y, p.z)
     groupRef.current.rotation.set(0.06 * Math.sin(ageRef.current * 8), yawRef.current, 0.16 * Math.sin(ageRef.current * 5))

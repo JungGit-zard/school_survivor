@@ -90,7 +90,7 @@ export const WEAPON_CATALOG = {
     label: '상어미사일',
     base: {
       damage: 30,
-      cooldown: 14000,
+      cooldown: 7000,
       lastFired: 0,
       range: 28,
       radius: 1.8,
