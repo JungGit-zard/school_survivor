@@ -10,7 +10,7 @@ import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 // strikeCount만큼 번개를 동시에 떨어뜨려 strikeRadius 안 모든 적에 데미지.
 
 let _strikeId = 0
-const STRIKE_DURATION_MS = 380
+const STRIKE_DURATION_MS = 480
 
 function pickStrikeTargets(strikeCenter, strikeCount) {
   // 플레이어 주변 strikeCenter 안 적들을 모은 뒤 무작위로 strikeCount개 선택.
@@ -34,39 +34,66 @@ function pickStrikeTargets(strikeCenter, strikeCount) {
 }
 
 function StrikeVisual({ x, z, age }) {
-  // 0..1 진행도. 처음 60%는 번개 줄기, 나머지 40%는 ground flash.
+  // 0..1 진행도. 처음 55%는 번개 줄기, 나머지는 ground flash.
   const t = Math.min(1, age / STRIKE_DURATION_MS)
-  const boltOpacity = t < 0.6 ? 1 - t / 0.6 : 0
-  const flashOpacity = t >= 0.4 ? Math.max(0, 1 - (t - 0.4) / 0.6) : 0
-  const flashScale = 0.4 + t * 1.6
+  const boltOpacity = t < 0.55 ? 1 - t / 0.55 : 0
+  const flashOpacity = t >= 0.35 ? Math.max(0, 1 - (t - 0.35) / 0.65) : 0
+  const flashScale = 0.5 + t * 2.4
 
   return (
     <group position={[x, 0, z]}>
-      {/* 번개 줄기 — 위에서 아래로 떨어지는 cylinder */}
+      {/* 번개 줄기 외곽 — 선명한 청백색 두꺼운 기둥 */}
       {boltOpacity > 0 && (
-        <mesh position={[0, 1.6, 0]}>
-          <cylinderGeometry args={[0.06, 0.02, 3.2, 6]} />
-          <meshBasicMaterial color={0x7ca0f4} transparent opacity={boltOpacity} depthWrite={false} />
+        <mesh position={[0, 2.4, 0]}>
+          <cylinderGeometry args={[0.14, 0.06, 4.8, 8]} />
+          <meshBasicMaterial color={0x44aaff} transparent opacity={boltOpacity * 0.9} depthWrite={false} />
         </mesh>
       )}
-      {/* 충돌 지점 ground flash */}
+      {/* 번개 줄기 코어 — 순백색 날카로운 중심 */}
+      {boltOpacity > 0 && (
+        <mesh position={[0, 2.4, 0]}>
+          <cylinderGeometry args={[0.045, 0.016, 4.8, 6]} />
+          <meshBasicMaterial color={0xffffff} transparent opacity={boltOpacity} depthWrite={false} />
+        </mesh>
+      )}
+      {/* 충돌 지점 백색 코어 플래시 */}
       {flashOpacity > 0 && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0]} renderOrder={5}>
-          <circleGeometry args={[0.5, 24]} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]} renderOrder={6}>
+          <circleGeometry args={[0.5, 32]} />
           <meshBasicMaterial
-            color={0xf4e27b}
+            color={0xffffff}
             transparent
-            opacity={flashOpacity * 0.7}
+            opacity={flashOpacity * 0.95}
             depthWrite={false}
             side={THREE.DoubleSide}
           />
         </mesh>
       )}
-      {/* 외곽 ring */}
+      {/* 충돌 지점 노란 플래시 */}
       {flashOpacity > 0 && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]} scale={[flashScale, flashScale, 1]}>
-          <ringGeometry args={[0.42, 0.5, 24]} />
-          <meshBasicMaterial color={0xffffff} transparent opacity={flashOpacity * 0.5} depthWrite={false} side={THREE.DoubleSide} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0]} renderOrder={5}>
+          <circleGeometry args={[1.0, 32]} />
+          <meshBasicMaterial
+            color={0xffee00}
+            transparent
+            opacity={flashOpacity * 0.88}
+            depthWrite={false}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      )}
+      {/* 1차 확산 링 — 청백색 */}
+      {flashOpacity > 0 && (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.06, 0]} scale={[flashScale, flashScale, 1]} renderOrder={4}>
+          <ringGeometry args={[0.8, 1.05, 32]} />
+          <meshBasicMaterial color={0x88ddff} transparent opacity={flashOpacity * 0.9} depthWrite={false} side={THREE.DoubleSide} />
+        </mesh>
+      )}
+      {/* 2차 확산 링 — 넓게 퍼지는 옅은 황색 외곽 glow */}
+      {flashOpacity > 0 && (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 0]} scale={[flashScale * 1.6, flashScale * 1.6, 1]} renderOrder={3}>
+          <ringGeometry args={[0.85, 1.15, 32]} />
+          <meshBasicMaterial color={0xffff88} transparent opacity={flashOpacity * 0.45} depthWrite={false} side={THREE.DoubleSide} />
         </mesh>
       )}
     </group>
