@@ -30,6 +30,17 @@ export default function AdminPage() {
     setStatus('저장 필요')
   }
 
+  const updateOperations = (key, value) => {
+    setDraft((prev) => normalizeAdminConfig({
+      ...prev,
+      operations: {
+        ...prev.operations,
+        [key]: value,
+      },
+    }))
+    setStatus('저장 필요')
+  }
+
   const updateSeason = (key, value) => {
     setDraft((prev) => normalizeAdminConfig({
       ...prev,
@@ -132,7 +143,7 @@ export default function AdminPage() {
       <main style={styles.content}>
         <section style={styles.panel}>
           {activeTab === TAB_BALANCE ? (
-            <BalanceControls draft={draft} updateBalance={updateBalance} />
+            <BalanceControls draft={draft} updateBalance={updateBalance} updateOperations={updateOperations} />
           ) : (
             <RankingControls
               draft={draft}
@@ -173,8 +184,8 @@ export default function AdminPage() {
   )
 }
 
-function BalanceControls({ draft, updateBalance }) {
-  const { balance } = draft
+function BalanceControls({ draft, updateBalance, updateOperations }) {
+  const { balance, operations } = draft
   return (
     <div>
       <SectionTitle title="게임 밸런스" subtitle="생존 시간, 시작 능력치, 골드 보상 배율을 조정합니다." />
@@ -228,6 +239,15 @@ function BalanceControls({ draft, updateBalance }) {
           suffix="배"
           value={balance.rewards.goldMultiplier}
           onChange={(value) => updateBalance('rewards', 'goldMultiplier', value)}
+        />
+      </div>
+      <div style={styles.operationsGroup}>
+        <CheckboxField
+          name="cheatMenuButtonVisible"
+          label="치트 버튼 노출"
+          description="타이틀 화면 상단의 치트 메뉴 버튼을 외부 테스터에게 보여줄지 정합니다."
+          checked={operations.cheatMenuButtonVisible}
+          onChange={(checked) => updateOperations('cheatMenuButtonVisible', checked)}
         />
       </div>
     </div>
@@ -389,6 +409,28 @@ function TextField({ name, label, value, placeholder, onChange }) {
   )
 }
 
+function CheckboxField({ name, label, description, checked, onChange }) {
+  const handleChange = (event) => onChange(event.target.checked)
+  return (
+    <label style={styles.checkboxField}>
+      <input
+        name={name}
+        type="checkbox"
+        checked={checked}
+        onChange={handleChange}
+        style={styles.checkboxInput}
+      />
+      <span style={styles.checkboxCopy}>
+        <span style={styles.checkboxLabel}>{label}</span>
+        <span style={styles.checkboxDescription}>{description}</span>
+      </span>
+      <span style={styles.toggleTrack(checked)}>
+        <span style={styles.toggleKnob(checked)} />
+      </span>
+    </label>
+  )
+}
+
 function PreviewItem({ label, value }) {
   return (
     <>
@@ -531,6 +573,46 @@ const styles = {
     gridTemplateColumns: 'repeat(auto-fit, minmax(176px, 1fr))',
     gap: 10,
   },
+  operationsGroup: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTop: '1px solid #344052',
+  },
+  checkboxField: {
+    minHeight: 52,
+    display: 'grid',
+    gridTemplateColumns: 'auto minmax(0, 1fr) auto',
+    alignItems: 'center',
+    gap: 10,
+    padding: '8px 10px',
+    border: '1px solid #344052',
+    borderRadius: 8,
+    background: '#111922',
+    cursor: 'pointer',
+  },
+  checkboxInput: {
+    width: 18,
+    height: 18,
+    margin: 0,
+    accentColor: '#7ee4c8',
+    cursor: 'pointer',
+  },
+  checkboxCopy: {
+    display: 'grid',
+    gap: 3,
+    minWidth: 0,
+  },
+  checkboxLabel: {
+    color: '#f5f8fb',
+    fontSize: 13,
+    fontWeight: 900,
+  },
+  checkboxDescription: {
+    color: '#9caabc',
+    fontSize: 11,
+    lineHeight: 1.3,
+    fontWeight: 700,
+  },
   field: {
     display: 'grid',
     gap: 5,
@@ -644,6 +726,25 @@ const styles = {
     fontWeight: 900,
     cursor: 'pointer',
   },
+  toggleTrack: (enabled) => ({
+    flex: '0 0 auto',
+    width: 46,
+    height: 26,
+    padding: 3,
+    border: '1px solid #050b10',
+    borderRadius: 999,
+    background: enabled ? '#7ee4c8' : '#465368',
+    boxSizing: 'border-box',
+  }),
+  toggleKnob: (enabled) => ({
+    display: 'block',
+    width: 18,
+    height: 18,
+    borderRadius: '50%',
+    background: '#f5f8fb',
+    transform: enabled ? 'translateX(20px)' : 'translateX(0)',
+    transition: 'transform 120ms ease',
+  }),
   note: {
     margin: '12px 0 0',
     color: '#b9c4d4',

@@ -17,6 +17,9 @@ export const DEFAULT_ADMIN_CONFIG = Object.freeze({
       goldMultiplier: 1,
     },
   },
+  operations: {
+    cheatMenuButtonVisible: true,
+  },
   rankingSeason: {
     seasonId: 'season-001',
     seasonName: '첫 생존 시즌',
@@ -73,12 +76,17 @@ export function getAdminRankingSeasonConfig() {
   return loadAdminConfig().rankingSeason
 }
 
+export function getAdminOperationsConfig() {
+  return loadAdminConfig().operations
+}
+
 export function normalizeAdminConfig(input = {}) {
   const source = isObject(input) ? input : {}
   const balance = isObject(source.balance) ? source.balance : {}
   const duration = isObject(balance.stageDurationSec) ? balance.stageDurationSec : {}
   const player = isObject(balance.player) ? balance.player : {}
   const rewards = isObject(balance.rewards) ? balance.rewards : {}
+  const operations = isObject(source.operations) ? source.operations : {}
   const season = isObject(source.rankingSeason) ? source.rankingSeason : {}
   const scorePolicy = isObject(season.scorePolicy) ? season.scorePolicy : {}
   const stageBonus = isObject(scorePolicy.stageBonus) ? scorePolicy.stageBonus : {}
@@ -98,6 +106,12 @@ export function normalizeAdminConfig(input = {}) {
       rewards: {
         goldMultiplier: clampNumber(rewards.goldMultiplier, DEFAULT_ADMIN_CONFIG.balance.rewards.goldMultiplier, 0, 3, 2),
       },
+    },
+    operations: {
+      cheatMenuButtonVisible: readBoolean(
+        operations.cheatMenuButtonVisible,
+        DEFAULT_ADMIN_CONFIG.operations.cheatMenuButtonVisible,
+      ),
     },
     rankingSeason: {
       seasonId: readLimitedString(season.seasonId, 36) || DEFAULT_ADMIN_CONFIG.rankingSeason.seasonId,
@@ -158,4 +172,8 @@ function readLimitedString(value, limit) {
 
 function readString(value) {
   return typeof value === 'string' ? value : ''
+}
+
+function readBoolean(value, fallback) {
+  return typeof value === 'boolean' ? value : fallback
 }

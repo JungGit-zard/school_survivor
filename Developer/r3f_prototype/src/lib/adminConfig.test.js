@@ -19,6 +19,7 @@ describe('admin operations config', () => {
 
     expect(config.balance.stageDurationSec.stage1).toBe(240)
     expect(config.balance.player.speedMultiplier).toBe(1)
+    expect(config.operations.cheatMenuButtonVisible).toBe(true)
     expect(config.rankingSeason.scorePolicy.stageBonus.stage2).toBe(60)
     expect(config.rankingSeason.rewardTiers).toHaveLength(3)
   })
@@ -29,6 +30,9 @@ describe('admin operations config', () => {
         stageDurationSec: { stage1: 20, stage2: 900 },
         player: { maxHpBonus: -50, speedMultiplier: 9 },
         rewards: { goldMultiplier: -1 },
+      },
+      operations: {
+        cheatMenuButtonVisible: false,
       },
       rankingSeason: {
         seasonId: '',
@@ -43,6 +47,7 @@ describe('admin operations config', () => {
     expect(config.balance.player.maxHpBonus).toBe(0)
     expect(config.balance.player.speedMultiplier).toBe(1.5)
     expect(config.balance.rewards.goldMultiplier).toBe(0)
+    expect(config.operations.cheatMenuButtonVisible).toBe(false)
     expect(config.rankingSeason.seasonId).toBe(DEFAULT_ADMIN_CONFIG.rankingSeason.seasonId)
     expect(config.rankingSeason.status).toBe('draft')
     expect(config.rankingSeason.scorePolicy.stageBonus.stage2).toBe(0)
@@ -56,6 +61,9 @@ describe('admin operations config', () => {
         stageDurationSec: { stage1: 180 },
         player: { maxHpBonus: 20 },
       },
+      operations: {
+        cheatMenuButtonVisible: false,
+      },
       rankingSeason: {
         seasonName: '방학 생존 시즌',
       },
@@ -63,6 +71,7 @@ describe('admin operations config', () => {
 
     expect(JSON.parse(localStorage.getItem(ADMIN_CONFIG_STORAGE_KEY)).balance.stageDurationSec.stage1).toBe(180)
     expect(loadAdminConfig().balance.player.maxHpBonus).toBe(20)
+    expect(loadAdminConfig().operations.cheatMenuButtonVisible).toBe(false)
     expect(loadAdminConfig().rankingSeason.seasonName).toBe('방학 생존 시즌')
 
     resetAdminConfig()

@@ -7,6 +7,7 @@ import { setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { getStageConfig } from '../lib/stageConfig.js'
 import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
+import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 
@@ -33,6 +34,8 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
   const cheatBufferRef = useRef('')
   const titleStyle = settings.reducedEffects ? styles.titleReduced : styles.title
   const primaryButtonStyle = settings.reducedEffects ? styles.primaryButtonReduced : styles.primaryButton
+  const adminOperations = getAdminOperationsConfig()
+  const cheatMenuButtonVisible = adminOperations.cheatMenuButtonVisible
   const stage1 = getStageConfig('stage1')
   const stage2 = getStageConfig('stage2')
 
@@ -162,16 +165,18 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
       <div style={styles.tint} />
       <div style={styles.vignette} />
       <GoogleAccountPanel />
-      <button
-        type="button"
-        aria-label="치트 메뉴 열기"
-        aria-haspopup="dialog"
-        aria-expanded={cheatOpen}
-        style={styles.cheatMenuButton}
-        onClick={() => setCheatOpen(true)}
-      >
-        치트
-      </button>
+      {cheatMenuButtonVisible && (
+        <button
+          type="button"
+          aria-label="치트 메뉴 열기"
+          aria-haspopup="dialog"
+          aria-expanded={cheatOpen}
+          style={styles.cheatMenuButton}
+          onClick={() => setCheatOpen(true)}
+        >
+          치트
+        </button>
+      )}
       <button
         type="button"
         aria-label="설정 열기"
@@ -205,7 +210,7 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
         </div>
       </div>
 
-      {cheatOpen && (
+      {cheatOpen && cheatMenuButtonVisible && (
         <div style={styles.modalLayer}>
           <button type="button" aria-label="치트 메뉴 닫기 배경" style={styles.modalScrim} onClick={closeCheat} />
           <section role="dialog" aria-modal="true" aria-labelledby="title-cheat-heading" style={styles.cheatModal}>
