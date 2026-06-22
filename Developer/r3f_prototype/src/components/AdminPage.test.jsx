@@ -55,6 +55,27 @@ describe('AdminPage', () => {
     expect(loadAdminConfig().balance.stageDurationSec.stage1).toBe(180)
   })
 
+  it('saves cheat menu button visibility from the operations controls', () => {
+    act(() => {
+      root.render(<AdminPage />)
+    })
+
+    const visibilityInput = container.querySelector('input[name="cheatMenuButtonVisible"]')
+    expect(visibilityInput.checked).toBe(true)
+
+    act(() => {
+      visibilityInput.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    const saveButton = Array.from(container.querySelectorAll('button'))
+      .at(-2)
+    act(() => {
+      saveButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(loadAdminConfig().operations.cheatMenuButtonVisible).toBe(false)
+  })
+
   it('applies saved admin balance inputs to game stage and player startup config', () => {
     act(() => {
       root.render(<AdminPage />)

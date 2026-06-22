@@ -9,6 +9,7 @@ import { STORAGE_KEY as WEAPON_UNLOCKS_KEY, _resetForTests as resetWeaponUnlocks
 import { STORAGE_KEY as PASSIVE_STORAGE_KEY, purchase as purchasePassiveStorage } from '../lib/passiveUpgrades.js'
 import { STORAGE_KEY as RECORDS_KEY } from '../lib/playerRecords.js'
 import { STORAGE_KEY as NICKNAME_STORAGE_KEY } from '../lib/userNickname.js'
+import { ADMIN_CONFIG_STORAGE_KEY, saveAdminConfig } from '../lib/adminConfig.js'
 import { useAuthStore, _resetAuthStoreForTests } from '../store/useAuthStore.js'
 
 vi.mock('@react-three/fiber', () => ({
@@ -26,6 +27,7 @@ afterEach(() => {
   localStorage.removeItem(RECORDS_KEY)
   localStorage.removeItem(PASSIVE_STORAGE_KEY)
   localStorage.removeItem(NICKNAME_STORAGE_KEY)
+  localStorage.removeItem(ADMIN_CONFIG_STORAGE_KEY)
   resetWeaponUnlocks()
   _resetAuthStoreForTests()
   document.documentElement.removeAttribute('data-reduced-effects')
@@ -102,6 +104,20 @@ describe('TitleScreen settings modal', () => {
     expect(container.textContent).toContain('Stage 2')
     expect(container.textContent).toContain('모든 무기 해금')
     expect(container.textContent).toContain('코인 레벨업 초기화')
+
+    cleanup()
+  })
+
+  it('hides the top cheat menu button when admin operations disable it', () => {
+    saveAdminConfig({
+      operations: {
+        cheatMenuButtonVisible: false,
+      },
+    })
+
+    const { container, cleanup } = renderTitleScreen()
+
+    expect(container.textContent).not.toContain('移섑듃')
 
     cleanup()
   })
