@@ -247,10 +247,12 @@ function SchoolSign({ position, textColor = 0xf8f7f2, panel = 0xd32836 }) {
   )
 }
 
-export default function TitleScene3D() {
+export default function TitleScene3D({ studioGroupRef = null, studioTuning = null }) {
   const floorMat = useMemo(() => toonMat(0x4a4054, 0.05), [])
   const wallMat = useMemo(() => toonMat(0x2d2738, 0.05), [])
   const doorMat = useMemo(() => toonMat(0x805947, 0.05), [])
+  const studioScale = studioTuning?.scale ?? 1
+  const studioRotationY = THREE.MathUtils.degToRad(studioTuning?.rotationY ?? 0)
 
   return (
     <>
@@ -264,7 +266,7 @@ export default function TitleScene3D() {
       {/* 교문에서 새어나오는 따뜻한 빛 — 탈출의 희망(플레이어·좀비를 뒤에서 림라이트) */}
       <pointLight position={[0, 1.1, -3.7]} intensity={5.5} color={0xffdf9a} distance={11} decay={2} />
 
-      <group rotation={[0, -0.09, 0]} position={[0, -1.15, 0]}>
+      <group ref={studioGroupRef} rotation={[0, -0.09 + studioRotationY, 0]} position={[0, -1.15, 0]} scale={studioScale}>
         <mesh receiveShadow position={[0, -0.02, 0]} rotation={[-Math.PI / 2, 0, 0]} material={floorMat}>
           <planeGeometry args={[8.6, 12]} />
         </mesh>

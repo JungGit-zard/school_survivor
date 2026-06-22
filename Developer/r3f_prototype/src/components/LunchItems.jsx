@@ -24,7 +24,7 @@ function randomLunchPos() {
   ]
 }
 
-function LunchModel({ kind }) {
+export function LunchModel({ kind }) {
   const trayMat = useMemo(() => toonMat(0xa0a8b8, 0.10), [])
   const riceMat = useMemo(() => toonMat(0xffe289, 0.12), [])
   const sideMat = useMemo(() => toonMat(kind === 'milk' ? 0xfafdff : 0xff7415, 0.18), [kind])

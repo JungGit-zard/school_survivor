@@ -36,6 +36,7 @@ function SliderRow({ label, name, min, max, step, value, onChange }) {
 }
 
 function ColorRow({ label, name, value, onChange }) {
+  const handleInput = (event) => onChange(event.target.value)
   return (
     <label style={styles.colorRow}>
       <span style={styles.controlLabel}>{label}</span>
@@ -43,7 +44,8 @@ function ColorRow({ label, name, value, onChange }) {
         name={name}
         type="color"
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onInput={handleInput}
+        onChange={handleInput}
         style={styles.colorInput}
       />
       <span style={styles.hexValue}>{value}</span>
@@ -310,7 +312,7 @@ const styles = {
     cursor: 'pointer',
   },
   itemButtonSelected: {
-    borderColor: '#d3a53f',
+    border: '1px solid #d3a53f',
     background: '#2a2619',
     color: '#fff6cf',
   },
