@@ -6,6 +6,14 @@ import PlayerMesh from './PlayerMesh.jsx'
 import ZombieMesh from './ZombieMesh.jsx'
 import ClassroomFloor from './ClassroomFloor.jsx'
 import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'
+import GoldCoin from './GoldCoin.jsx'
+import XpTextbook from './XpTextbook.jsx'
+import XpOrb from './XpOrb.jsx'
+import { LunchModel } from './LunchItems.jsx'
+import MiniHealthBar from './MiniHealthBar.jsx'
+import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
+import TitleScene3D from './TitleScene3D.jsx'
+import { inflateScale, outlineMat, toonMat } from '../lib/toon.js'
 import { VFX_COLORS } from '../lib/vfxPalette.js'
 
 function isOutlineMaterial(material) {
@@ -110,6 +118,30 @@ function VfxPreview({ type }) {
     )
   }
 
+  if (type === 'pickupPop') {
+    return (
+      <group position={[0, 0.1, 0]}>
+        {[0, 0.2, 0.42].map((height, index) => (
+          <mesh
+            key={height}
+            position={[0, height, 0]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            scale={[1 + index * 0.5, 1 + index * 0.5, 1]}
+          >
+            <ringGeometry args={[0.34, 0.44, 24]} />
+            <meshBasicMaterial
+              color={index === 0 ? VFX_COLORS.xpGreen : VFX_COLORS.coinPink}
+              transparent
+              opacity={0.62 - index * 0.15}
+              depthWrite={false}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        ))}
+      </group>
+    )
+  }
+
   return (
     <group position={[0, 1.2, 0]}>
       {Array.from({ length: 10 }, (_, index) => {
@@ -125,6 +157,62 @@ function VfxPreview({ type }) {
           </mesh>
         )
       })}
+    </group>
+  )
+}
+
+function PickupPreview({ type }) {
+  if (type === 'goldCoin') {
+    return (
+      <group scale={7.5} rotation={[0, Math.PI / 2, 0]}>
+        <GoldCoin id="studio-gold" pos={[0, 0, 0]} value={1} onCollect={() => {}} />
+      </group>
+    )
+  }
+  if (type === 'xpTextbook') {
+    return (
+      <group scale={4.2}>
+        <XpTextbook id="studio-book" pos={[0, 0, 0]} value={5} onCollect={() => {}} />
+      </group>
+    )
+  }
+  if (type === 'xpOrb') {
+    return (
+      <group scale={5}>
+        <XpOrb id={17} pos={[0, 0.15, 0]} xp={1} onCollect={() => {}} />
+      </group>
+    )
+  }
+  if (type === 'lunchMilk') {
+    return (
+      <group scale={3.2}>
+        <LunchModel kind="milk" />
+      </group>
+    )
+  }
+  return (
+    <group scale={3.2}>
+      <LunchModel kind="meal" />
+    </group>
+  )
+}
+
+function EnemyProjectilePreview() {
+  const bodyMat = useMemo(() => toonMat(0x34d6b8, 0.45), [])
+  const outMat = useMemo(() => outlineMat(0.97), [])
+
+  return (
+    <group position={[0, 0.8, 0]}>
+      <mesh renderOrder={1} material={outMat} scale={inflateScale([1.32, 1.32, 1.32])}>
+        <sphereGeometry args={[0.36, 16, 12]} />
+      </mesh>
+      <mesh renderOrder={2} material={bodyMat}>
+        <sphereGeometry args={[0.36, 16, 12]} />
+      </mesh>
+      <mesh position={[0, 0, -0.52]} rotation={[Math.PI / 2, 0, 0]}>
+        <coneGeometry args={[0.28, 0.7, 16]} />
+        <meshBasicMaterial color={VFX_COLORS.electricCyan} transparent opacity={0.28} depthWrite={false} />
+      </mesh>
     </group>
   )
 }
@@ -148,6 +236,9 @@ function RenderPreviewItem({ item }) {
   if (item.previewKind === 'stageObject' && item.objectType === 'student') {
     return <UnconsciousStudent variant={item.variant} />
   }
+  if (item.previewKind === 'pickup') {
+    return <PickupPreview type={item.pickupType} />
+  }
   if (item.previewKind === 'floor') {
     return (
       <group scale={[0.04, 0.04, 0.04]} position={[0, -0.04, 0]}>
@@ -161,6 +252,19 @@ function RenderPreviewItem({ item }) {
   if (item.previewKind === 'vfx') {
     return <VfxPreview type={item.vfxType} />
   }
+  if (item.previewKind === 'projectile') {
+    return <EnemyProjectilePreview />
+  }
+  if (item.previewKind === 'enemyCollapse') {
+    return <EnemyDeathCollapse id="studio-collapse" type="E01" position={[0, 0.6, 0]} visualScale={1.25} intensity="heavy" onDone={() => {}} />
+  }
+  if (item.previewKind === 'healthBar') {
+    return (
+      <group position={[0, 0.8, 0]}>
+        <MiniHealthBar current={42} max={70} width={1.55} height={0.24} y={0} />
+      </group>
+    )
+  }
   return null
 }
 
@@ -172,6 +276,14 @@ function StudioScene({ selectedItem, tuning }) {
     : selectedItem
 
   useApplyStudioTuning(rootRef, tuning)
+
+  if (selectedItem.previewKind === 'titleScene') {
+    return (
+      <>
+        <TitleScene3D studioGroupRef={rootRef} studioTuning={tuning} />
+      </>
+    )
+  }
 
   return (
     <>
@@ -188,9 +300,13 @@ function StudioScene({ selectedItem, tuning }) {
 }
 
 export default function GraphicsStudioPreview({ selectedItem, tuning }) {
+  const titleCamera = selectedItem.previewKind === 'titleScene'
+    ? { position: [0, 6.8, 11.8], fov: 34, near: 0.1, far: 100 }
+    : { position: [4, 3.2, 5.6], fov: 38, near: 0.1, far: 100 }
+
   return (
     <Canvas
-      camera={{ position: [4, 3.2, 5.6], fov: 38, near: 0.1, far: 100 }}
+      camera={titleCamera}
       gl={{ stencil: true, antialias: true }}
       shadows
       style={{ width: '100%', height: '100%', background: '#171817' }}

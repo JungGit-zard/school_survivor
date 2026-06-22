@@ -19,15 +19,29 @@ describe('graphicsStudioConfig', () => {
     const ids = GRAPHICS_STUDIO_CATALOG.map((item) => item.id)
     const categories = new Set(GRAPHICS_STUDIO_CATALOG.map((item) => item.category))
 
-    expect(categories).toEqual(new Set(['actor', 'enemy', 'stageObject', 'floor', 'weapon', 'vfx']))
+    expect(categories).toEqual(new Set(['actor', 'enemy', 'pickup', 'stageObject', 'floor', 'weapon', 'vfx', 'title', 'ui']))
     expect(ids).toEqual(expect.arrayContaining([
       'player',
       'zombie-e01',
+      'pickup-gold-coin',
+      'pickup-xp-textbook',
+      'pickup-lunch-meal',
       'stage-object-desk',
       'stage-floor-stage1',
       'weapon-pencil',
       'vfx-hit-spark',
+      'enemy-death-collapse',
+      'title-scene',
+      'ui-mini-health-bar',
     ]))
+  })
+
+  it('keeps source and apply target metadata for every tunable item', () => {
+    expect(GRAPHICS_STUDIO_CATALOG.length).toBeGreaterThan(30)
+    GRAPHICS_STUDIO_CATALOG.forEach((item) => {
+      expect(item.source).toEqual(expect.any(String))
+      expect(item.applyTargets).toEqual(expect.arrayContaining([expect.any(String)]))
+    })
   })
 
   it('normalizes user tuning values into a safe visual range', () => {
@@ -86,6 +100,7 @@ describe('graphicsStudioConfig', () => {
     expect(parsed.tool).toBe('graphics-studio')
     expect(parsed.selectedItem.id).toBe('player')
     expect(parsed.selectedItem.label).toBe(item.label)
+    expect(parsed.selectedItem.applyTargets).toEqual(item.applyTargets)
     expect(parsed.tunings.player.scale).toBe(1.25)
     expect(parsed.tunings.player.outlineColor).toBe('#101820')
     expect(typeof parsed.generatedAt).toBe('string')
