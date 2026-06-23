@@ -1,6 +1,6 @@
 import { load as loadPlayerRecords } from './playerRecords.js'
 import { getStageConfig } from './stageConfig.js'
-import { compareRankingEntries, getRankingScore, SCORE_TYPE } from './rankingScorePolicy.js'
+import { compareRankingEntries, getRankingScore, getRankingScorePolicy, SCORE_TYPE } from './rankingScorePolicy.js'
 import { getSavedNickname } from './userNickname.js'
 
 export const RANKING_LIMIT = 100
@@ -8,8 +8,10 @@ export const RANKING_LIMIT = 100
 const DEFAULT_PLAYER_NAME = '내 기록'
 
 export function createRankingRows(entries = [], limit = RANKING_LIMIT) {
+  // policy를 상위에서 한 번만 읽는다 — 엔트리마다 localStorage를 파싱하는 N회 읽기 방지.
+  const policy = getRankingScorePolicy()
   const rankedEntries = entries
-    .map(normalizeRankingEntry)
+    .map((entry) => normalizeRankingEntry(entry, policy))
     .filter(Boolean)
     .sort(compareRankingEntries)
     .slice(0, limit)
@@ -92,7 +94,7 @@ function buildLocalStageEntry({ displayName, stageId, survivalSeconds, clearCoun
   })
 }
 
-function normalizeRankingEntry(entry) {
+function normalizeRankingEntry(entry, policy) {
   if (!entry || typeof entry !== 'object') return null
   const stageId = readStageId(entry.stageId, entry.stageLabel)
   const stage = getStageConfig(stageId)
@@ -100,9 +102,11 @@ function normalizeRankingEntry(entry) {
   if (survivalSeconds <= 0) return null
 
   const cleared = entry.cleared === true || survivalSeconds >= stage.durationSec
-  const score = Number.isFinite(Number(entry.score))
+  // entry.score가 null이면 Number(null)=0 으로 isFinite를 통과해 0점 오분류된다.
+  // null과 undefined 모두 명시적으로 제외해 누락된 score는 재계산 경로를 탄다.
+  const score = entry.score != null && Number.isFinite(Number(entry.score))
     ? readScore(entry.score)
-    : getRankingScore({ stageId, survivalSeconds, cleared })
+    : getRankingScore({ stageId, survivalSeconds, cleared }, policy)
 
   return {
     displayName: readDisplayName(entry.displayName) || DEFAULT_PLAYER_NAME,

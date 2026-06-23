@@ -171,15 +171,17 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
         const nx = dx / dist
         const nz = dz / dist
         const desiredYaw = Math.atan2(nx, nz)
-        const angleDiff = ((desiredYaw - yawRef.current + Math.PI) % (2 * Math.PI)) - Math.PI
+        // JS % 는 부호를 유지하므로 음수 입력 시 잘못된 방향으로 선회한다.
+        // ((diff + TWO_PI) % TWO_PI) 패턴으로 항상 양수 나머지를 보장한 뒤 [-π, π]로 변환.
+        const TWO_PI = 2 * Math.PI
+        const rawDiff = desiredYaw - yawRef.current
+        const angleDiff = ((rawDiff % TWO_PI) + TWO_PI) % TWO_PI - Math.PI
         yawRef.current += angleDiff * Math.min(1, delta * 9)
         p.x += Math.sin(yawRef.current) * speed * delta
         p.z += Math.cos(yawRef.current) * speed * delta
         p.y = start[1] + Math.sin(ageRef.current * 10) * 0.04
       }
-    }
-
-    if (phaseRef.current === 'orbiting') {
+    } else if (phaseRef.current === 'orbiting') {
       const center = orbitCenterRef.current
       orbitTotalAngleRef.current += ORBIT_SPEED * delta
 
