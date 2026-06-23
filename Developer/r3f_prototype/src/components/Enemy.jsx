@@ -1,17 +1,18 @@
-import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../lib/refs.js'
 import { useGameStore } from '../store/useGameStore.js'
-import { toonMat, outlineMat, inflateScale } from '../lib/toon.js'
+import { logKill } from '../lib/playtestLogger.js'
 import { emitVfx } from '../lib/vfxEvents.js'
 import { createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { canE04FireProjectile } from '../lib/stage2ProjectileRules.js'
 import ZombieMesh from './ZombieMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
+import EnemyProjectileVisual from './EnemyProjectileVisual.jsx'
 
 const _dir = new THREE.Vector3()
 const _pos = new THREE.Vector3()
@@ -81,8 +82,6 @@ function EnemyProjectile({ id, position, velocity, damage, onExpire }) {
   const rb      = useRef()
   const ageRef  = useRef(0)
   const hitRef  = useRef(false)
-  const projMat = useMemo(() => toonMat(0x34d6b8, 0.45), [])
-  const projOut = useMemo(() => outlineMat(0.97), [])
 
   useFrame((_, delta) => {
     if (!rb.current) return
@@ -110,18 +109,29 @@ function EnemyProjectile({ id, position, velocity, damage, onExpire }) {
       }}
     >
       <CuboidCollider args={[0.09, 0.09, 0.09]} sensor />
-      <mesh renderOrder={1} material={projOut} scale={inflateScale([1.22, 1.22, 1.22])}>
-        <sphereGeometry args={[0.09, 8, 8]} />
-      </mesh>
-      <mesh renderOrder={2} material={projMat}>
-        <sphereGeometry args={[0.09, 8, 8]} />
-      </mesh>
+      <EnemyProjectileVisual />
     </RigidBody>
   )
 }
 
 // ── HP 바 ────────────────────────────────────────────────────────────────────
 // ── 메인 Enemy 컴포넌트 ───────────────────────────────────────────────────────
+export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null }) {
+  const stats = ENEMY_STATS[type] ?? ENEMY_STATS.E01
+  const cs = stats.scale * ENEMY_SIZE_MULTIPLIER
+  const currentHp = hp ?? stats.hp
+
+  return (
+    <>
+      <group ref={groupRef} scale={[cs * 0.333, cs * 0.333, cs * 0.333]}>
+        <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} />
+        {stats.charger && animPhase === 'warn' && <GoSpeechBubble y={2.45} />}
+      </group>
+      {showHealthBar && <MiniHealthBar current={currentHp} max={stats.hp} width={0.32 * cs} height={0.045} y={0.72 * cs} />}
+    </>
+  )
+}
+
 export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
   const rb       = useRef()
   const groupRef = useRef()
@@ -194,6 +204,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
         const store = useGameStore.getState()
         store.recordKill()
         if (type === 'B01') store.recordBossKill()
+        logKill(type)
         const t = rb.current?.translation()
         // 막타 위력으로 박살 강도(약/중/강) 결정. impact.knockback은 무기 원천 넉백(없으면 0).
         const intensity = resolveCollapseIntensity({
@@ -381,11 +392,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
         colliders={false}
       >
         <CuboidCollider args={colArgs} />
-        <group ref={groupRef} scale={[cs * 0.333, cs * 0.333, cs * 0.333]}>
-          <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} />
-          {stats.charger && animPhase === 'warn' && <GoSpeechBubble y={2.45} />}
-        </group>
-        <MiniHealthBar current={hp} max={stats.hp} width={0.32 * cs} height={0.045} y={0.72 * cs} />
+        <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} />
       </RigidBody>
 
       {/* E04 투사체 */}

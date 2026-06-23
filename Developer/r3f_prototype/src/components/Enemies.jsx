@@ -1,6 +1,6 @@
 ﻿import { useRef, useCallback, useState } from 'react'
-import { useFrame } from '@react-three/fiber'
 import { useGameStore } from '../store/useGameStore.js'
+import { usePlayingFrame } from '../lib/usePlayingFrame.js'
 import { playerPos, enemyBodies } from '../lib/refs.js'
 import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
@@ -198,6 +198,10 @@ let _textbookId = 0
 let _coinId = 0
 let _collapseId = 0
 
+// 게임 시작 직후 플레이어가 방향을 잡을 시간 — 이 기간엔 유지 스폰을 차단.
+// 버스트 이벤트는 evt.sec 기준으로 독립 관리하므로 영향 없음.
+const SPAWN_GRACE_SEC = 5
+
 export default function Enemies() {
   const [enemies, setEnemies]     = useState([])
   const [textbooks, setTextbooks] = useState([])
@@ -208,7 +212,6 @@ export default function Enemies() {
   const maintainTimerRef          = useRef(0)
   const goldTimerRef              = useRef(nextGoldInterval())
 
-  const phase      = useGameStore((s) => s.phase)
   const bossSpawned = useGameStore((s) => s.bossSpawned)
   const spawnBoss   = useGameStore((s) => s.spawnBoss)
   const currentStageId = useGameStore((s) => s.currentStageId)
@@ -267,9 +270,7 @@ export default function Enemies() {
     setGoldCoins((prev) => prev.filter((o) => o.id !== id))
   }, [])
 
-  useFrame((_, delta) => {
-    if (phase !== 'playing') return
-
+  usePlayingFrame((_, delta) => {
     const sec = useGameStore.getState().elapsedMs / 1000
     const bounds = getStageBounds(currentStageId)
 
@@ -310,6 +311,8 @@ export default function Enemies() {
     maintainTimerRef.current -= delta * 1000
     if (maintainTimerRef.current > 0) return
     maintainTimerRef.current = 600
+
+    if (sec < SPAWN_GRACE_SEC) return
 
     const wavePhases = getWavePhasesForStage(currentStageId)
     const currentPhase = wavePhases.findLast((p) => sec >= p.start) ?? wavePhases[0]
