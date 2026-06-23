@@ -227,7 +227,12 @@ export const useGameStore = create(
         runLevelUps: s.runLevelUps,
         runSurvivalSeconds,
       })
-      setBestPlayerRecord('bestSurvivalSeconds', runSurvivalSeconds)
+      // stage1.bestRecordKey === 'bestSurvivalSeconds' 이므로 stage별 키만 기록하면 충분하다.
+      // 글로벌 bestSurvivalSeconds는 stage2 종료 시에도 함께 갱신해야 하므로 두 줄 유지하되
+      // stage1에서 동일 키 이중 기록되던 버그를 키 비교로 방지.
+      if (stage.bestRecordKey !== 'bestSurvivalSeconds') {
+        setBestPlayerRecord('bestSurvivalSeconds', runSurvivalSeconds)
+      }
       setBestPlayerRecord(stage.bestRecordKey, runSurvivalSeconds)
       if (s.currentStageId === 'stage1' && runSurvivalSeconds >= 180) {
         incrementPlayerRecord('stage1Survival180Runs', 1)
