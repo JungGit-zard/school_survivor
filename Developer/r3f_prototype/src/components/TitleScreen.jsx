@@ -26,6 +26,7 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
   const [nicknameOpen, setNicknameOpen] = useState(false)
   const [nicknameInput, setNicknameInput] = useState('')
   const [nicknameError, setNicknameError] = useState('')
+  const [nicknameFromSettings, setNicknameFromSettings] = useState(false)
   const [pendingStageId, setPendingStageId] = useState('stage1')
   const [settings, setSettings] = useState(loadTitleSettings)
   const [selectedStageId, setSelectedStageId] = useState('stage1')
@@ -120,9 +121,25 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
   const handleStartClick = () => {
     const savedNickname = getSavedNickname(authUser)
     setPendingStageId(selectedStageId)
-    setNicknameInput(savedNickname || normalizeInitialNickname(authUser?.displayName))
-    setNicknameError('')
     setCheatOpen(false)
+    setSettingsOpen(false)
+
+    if (savedNickname) {
+      // 이미 닉네임 설정됨 → 바로 시작
+      onStart(selectedStageId)
+    } else {
+      // 최초 진입 → 닉네임 입력 모달
+      setNicknameInput(normalizeInitialNickname(authUser?.displayName))
+      setNicknameError('')
+      setNicknameFromSettings(false)
+      setNicknameOpen(true)
+    }
+  }
+
+  const handleOpenNicknameFromSettings = () => {
+    setNicknameInput(getSavedNickname(authUser) || normalizeInitialNickname(authUser?.displayName))
+    setNicknameError('')
+    setNicknameFromSettings(true)
     setSettingsOpen(false)
     setNicknameOpen(true)
   }
@@ -139,7 +156,11 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
     setNicknameError('')
     setNicknameOpen(false)
     requestCloudProgressSave()
-    onStart(pendingStageId)
+
+    if (!nicknameFromSettings) {
+      onStart(pendingStageId)
+    }
+    setNicknameFromSettings(false)
   }
 
   const closeSettings = () => {
@@ -259,7 +280,7 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
           <button type="button" aria-label="닉네임 입력 닫기 배경" style={styles.modalScrim} onClick={() => setNicknameOpen(false)} />
           <section role="dialog" aria-modal="true" aria-labelledby="title-nickname-heading" style={styles.nicknameModal}>
             <div style={styles.modalHeader}>
-              <h2 id="title-nickname-heading" style={styles.modalTitle}>닉네임 설정</h2>
+              <h2 id="title-nickname-heading" style={styles.modalTitle}>{nicknameFromSettings ? '닉네임 변경' : '닉네임 설정'}</h2>
               <button type="button" aria-label="닫기" style={styles.closeButton} onClick={() => setNicknameOpen(false)}>
                 ×
               </button>
@@ -288,7 +309,7 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
                 {nicknameError || 'Google 로그인 중이면 이 닉네임이 계정 진행도에 함께 저장됩니다.'}
               </p>
               <button type="submit" style={styles.nicknameSubmitButton}>
-                저장하고 시작
+                {nicknameFromSettings ? '저장' : '저장하고 시작'}
               </button>
             </form>
           </section>
@@ -305,6 +326,17 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
                 ×
               </button>
             </div>
+
+            <div style={styles.sectionLabel}>프로필</div>
+            <button type="button" style={styles.settingRow} onClick={handleOpenNicknameFromSettings}>
+              <span style={styles.rowText}>
+                <strong style={styles.rowTitle}>닉네임</strong>
+                <span style={styles.rowDescription}>
+                  {getSavedNickname(authUser) || '미설정'}
+                </span>
+              </span>
+              <span style={styles.arrow}>›</span>
+            </button>
 
             <div style={styles.sectionLabel}>게임 환경</div>
             <button

@@ -158,6 +158,58 @@ describe('TitleScreen settings modal', () => {
     cleanup()
   })
 
+  it('skips nickname modal and starts immediately when nickname already saved', () => {
+    useAuthStore.setState({
+      status: 'signedIn',
+      user: { uid: 'uid-2', displayName: 'Returner', email: 'r@example.com', photoURL: '' },
+      initialized: true,
+    })
+    localStorage.setItem(NICKNAME_STORAGE_KEY, JSON.stringify({ 'uid-2': '재방문자' }))
+
+    const onStart = vi.fn()
+    const { container, cleanup } = renderTitleScreen(onStart)
+
+    clickButtonByText(container, '게임 시작')
+
+    expect(onStart).toHaveBeenCalledWith('stage1')
+    expect(container.textContent).not.toContain('닉네임 설정')
+
+    cleanup()
+  })
+
+  it('allows changing nickname from settings without starting the game', () => {
+    useAuthStore.setState({
+      status: 'signedIn',
+      user: { uid: 'uid-3', displayName: 'Changer', email: 'c@example.com', photoURL: '' },
+      initialized: true,
+    })
+    localStorage.setItem(NICKNAME_STORAGE_KEY, JSON.stringify({ 'uid-3': '기존닉네임' }))
+
+    const onStart = vi.fn()
+    const { container, cleanup } = renderTitleScreen(onStart)
+
+    // 설정 열기
+    act(() => {
+      container.querySelector('[aria-label="설정 열기"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+    expect(container.textContent).toContain('기존닉네임')
+
+    // 닉네임 버튼 클릭
+    clickButtonByText(container, '기존닉네임')
+
+    expect(container.textContent).toContain('닉네임 변경')
+
+    // 새 닉네임 입력 후 저장
+    setInputValue(container.querySelector('[aria-label="유저 닉네임"]'), '새닉네임')
+    clickButtonByText(container, '저장')
+
+    // 게임 시작 되면 안 됨
+    expect(onStart).not.toHaveBeenCalled()
+    expect(JSON.parse(localStorage.getItem(NICKNAME_STORAGE_KEY))['uid-3']).toBe('새닉네임')
+
+    cleanup()
+  })
+
   it('unlocks every non-starter weapon from the cheat modal action', () => {
     const { container, cleanup } = renderTitleScreen()
 
