@@ -135,7 +135,9 @@ function readScore(value) {
 
 function readDisplayName(value) {
   if (typeof value !== 'string') return ''
-  return value.trim().slice(0, 24)
+  // normalizeNickname과 동일한 공백 정규화(내부 연속 공백 → 단일 공백)를 적용한다.
+  // 기존: trim+slice만 하여 Firebase 엔트리와 로컬 저장 닉네임이 다르게 표시됐다.
+  return value.replace(/\s+/g, ' ').trim().slice(0, 24)
 }
 
 function readStageLabel(value) {

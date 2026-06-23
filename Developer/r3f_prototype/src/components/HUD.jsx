@@ -428,8 +428,11 @@ export default function HUD({ onOpenCoinShop, onGoToTitle }) {
         100%{opacity:1;backdrop-filter:grayscale(1);-webkit-backdrop-filter:grayscale(1)}
       }
     `
-    if (!document.getElementById('hud-keyframes')) document.head.appendChild(style)
-    return () => document.getElementById('hud-keyframes')?.remove()
+    // StrictMode에서 cleanup이 먼저 실행돼 style이 제거될 수 있으므로
+    // 항상 교체(remove → append) 방식으로 주입한다.
+    document.getElementById('hud-keyframes')?.remove()
+    document.head.appendChild(style)
+    return () => { if (document.getElementById('hud-keyframes') === style) style.remove() }
   }, [])
 
   useEffect(() => {

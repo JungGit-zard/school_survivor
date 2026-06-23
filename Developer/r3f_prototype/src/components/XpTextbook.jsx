@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { useGameStore } from '../store/useGameStore.js'
 import { toonMat, outlineMat, inflateScale } from '../lib/toon.js'
 import { stepMagnetPull } from '../lib/pickup.js'
+import { logPickup } from '../lib/playtestLogger.js'
 
 const FLOOR_Y = 0.13
 const TOSS_MS = 460       // 휘리릭 날아가 착지하기까지 시간
@@ -71,6 +72,7 @@ export default function XpTextbook({ id, pos, value, onCollect }) {
     if (result === 'collected') {
       collected.current = true
       gainXp(value)
+      logPickup('xp', value)
       onCollect(id)
       return
     }

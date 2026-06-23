@@ -8,12 +8,18 @@ import { useGameStore } from '../store/useGameStore.js'
 const events = []
 let startMs = null
 let lastLevel = 1
+let totalKills = 0
+let totalDamageTaken = 0
+let totalPickups = 0
 const seenWeapons = new Set()
 
 function reset() {
   events.length = 0
   startMs = performance.now()
   lastLevel = 1
+  totalKills = 0
+  totalDamageTaken = 0
+  totalPickups = 0
   seenWeapons.clear()
   events.push({ t: 0, type: 'start' })
   // 시작 시점에 이미 active인 무기(연필)는 기본 해금이므로 기록만 남긴다.
@@ -80,6 +86,22 @@ export function initPlaytestLogger() {
   )
 }
 
+// 외부 호출 — 게임 코드에서 킬/피격/픽업 시 호출한다.
+export function logKill(enemyType) {
+  totalKills += 1
+  record('kill', { enemyType, totalKills })
+}
+
+export function logDamageTaken(amount, hp) {
+  totalDamageTaken += amount
+  record('hit', { damage: amount, hp, totalDamageTaken })
+}
+
+export function logPickup(pickupType, value) {
+  totalPickups += 1
+  record('pickup', { pickupType, value, totalPickups })
+}
+
 function formatMs(ms) {
   const sec = Math.floor(ms / 1000)
   const m = String(Math.floor(sec / 60)).padStart(2, '0')
@@ -105,6 +127,7 @@ export function buildPlaytestSummary() {
     weapons: activeWeapons,
     goldSession: state.goldSession,
     goldTotal: state.goldTotal,
+    stats: { totalKills, totalDamageTaken, totalPickups },
     events: [...events],
   }
 }

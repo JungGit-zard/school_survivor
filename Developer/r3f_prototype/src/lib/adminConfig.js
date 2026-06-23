@@ -132,14 +132,19 @@ export function normalizeAdminConfig(input = {}) {
 }
 
 function normalizeRewardTiers(rewardTiers) {
-  const source = Array.isArray(rewardTiers) ? rewardTiers : []
-  return DEFAULT_ADMIN_CONFIG.rankingSeason.rewardTiers.map((defaultTier, index) => {
-    const tier = isObject(source[index]) ? source[index] : {}
+  // source 길이 기준으로 map — 기존 DEFAULT 슬롯 수(3)로 고정하면
+  // 어드민이 4번째 이상 티어를 추가해도 무음 손실됐다.
+  const defaults = DEFAULT_ADMIN_CONFIG.rankingSeason.rewardTiers
+  const source = Array.isArray(rewardTiers) && rewardTiers.length > 0 ? rewardTiers : defaults
+  const fallback = defaults[0]
+  return source.map((raw, index) => {
+    const tier = isObject(raw) ? raw : {}
+    const def = defaults[index] ?? fallback
     return {
-      rankTo: clampInt(tier.rankTo, defaultTier.rankTo, 1, 100),
-      label: readLimitedString(tier.label, 16) || defaultTier.label,
-      gold: clampInt(tier.gold, defaultTier.gold, 0, 99999),
-      badge: readLimitedString(tier.badge, 32) || defaultTier.badge,
+      rankTo: clampInt(tier.rankTo, def.rankTo, 1, 100),
+      label: readLimitedString(tier.label, 16) || def.label,
+      gold: clampInt(tier.gold, def.gold, 0, 99999),
+      badge: readLimitedString(tier.badge, 32) || def.badge,
     }
   })
 }

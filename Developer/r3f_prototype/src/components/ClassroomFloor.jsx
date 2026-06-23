@@ -56,8 +56,11 @@ function buildEndWallTexture(config) {
 }
 
 export default function ClassroomFloor({ stageId = 'stage1' }) {
+  // STAGE_FLOOR_TILES 값은 모듈 수준 상수 객체다 — stageId로 키를 선택해야
+  // 실제 의존이 stageId에 걸리게 된다. floorTile을 dep으로 쓰면 항상 같은
+  // 참조라 memo가 재실행되지 않아 stageId 전환 시 텍스처가 갱신되지 않는다.
   const floorTile = STAGE_FLOOR_TILES[stageId] ?? STAGE_FLOOR_TILES.stage1
-  const floorTex = useMemo(() => buildRepeatingTexture(floorTile), [floorTile])
+  const floorTex = useMemo(() => buildRepeatingTexture(floorTile), [stageId])
   const endWallTex = useMemo(() => buildEndWallTexture(STAGE2_CORRIDOR_END), [])
   const floorMat = useMemo(
     () => new THREE.MeshLambertMaterial({ map: floorTex }),

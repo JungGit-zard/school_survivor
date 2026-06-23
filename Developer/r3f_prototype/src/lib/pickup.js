@@ -1,10 +1,12 @@
 import { playerPos } from './refs.js'
 
-const BASE_PULL_RADIUS = 0.75
+// 자석 반경 1.5: 기존(0.75)의 2배. 쫓기는 상황에서도 교과서·코인 수집 가능.
+const BASE_PULL_RADIUS = 1.5
 let _pullRadius = BASE_PULL_RADIUS
 let _pullRadiusSq = BASE_PULL_RADIUS * BASE_PULL_RADIUS
 
-export const COLLECT_RADIUS_SQ = 0.22 * 0.22
+// 수집 판정 반경도 함께 확대 (0.22 → 0.38)
+export const COLLECT_RADIUS_SQ = 0.38 * 0.38
 
 export function setMagnetMultiplier(mult) {
   const m = Number.isFinite(mult) && mult > 0 ? mult : 1

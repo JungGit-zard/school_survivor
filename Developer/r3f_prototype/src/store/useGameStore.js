@@ -15,6 +15,7 @@ import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponU
 import { DEFAULT_STAGE_ID, getStageConfig } from '../lib/stageConfig.js'
 import { getAdminBalanceConfig } from '../lib/adminConfig.js'
 import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
+import { logDamageTaken } from '../lib/playtestLogger.js'
 
 const BASE_PLAYER = {
   hp: 100, maxHp: 100,
@@ -137,6 +138,7 @@ export const useGameStore = create(
       const { player } = get()
       if (player.invulnerable) return
       const hp = Math.max(0, player.hp - amount)
+      logDamageTaken(amount, hp)
       if (hp <= 0) {
         set({ player: { ...player, hp }, phase: 'gameover', pauseSource: null })
         get()._onRunEnd('gameover')

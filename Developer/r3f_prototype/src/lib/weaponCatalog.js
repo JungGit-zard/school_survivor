@@ -11,7 +11,8 @@ export const WEAPON_CATALOG = {
   pencilThrow: {
     id: 'pencilThrow',
     label: '연필',
-    base: { damage: 5, cooldown: 1100, lastFired: 0, projectileCount: 1, pierce: 0, speed: 12, range: 22 },
+    // damage 5→6: E01(HP 8) 2발 킬 유지하되 여유 확보. pierce 0→1: 1열 관통으로 초반 군집 대응.
+    base: { damage: 6, cooldown: 1100, lastFired: 0, projectileCount: 1, pierce: 1, speed: 12, range: 22 },
     unlockConditions: STARTER,
     minLevelToAppear: 1,
     startsActive: true,
