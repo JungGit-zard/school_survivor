@@ -7,7 +7,7 @@ Validate that the player head no longer floats above the torso after the shared 
 ## Automated Checks
 
 - `npm test -- PlayerMesh.test.js`: 2 tests passed.
-- `npx vitest run --maxWorkers=1 --no-file-parallelism`: 57 files passed, 304 tests passed.
+- `npm test -- --maxWorkers=1 --no-file-parallelism`: 58 files passed, 309 tests passed.
 - `npm run build`: production build completed.
 
 ## Visual Checks
