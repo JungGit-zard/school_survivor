@@ -3,14 +3,22 @@ import ClassroomFloor from './ClassroomFloor.jsx'
 import { StageObjectColliderLayer, StageObjectLayer } from './StageObjects/index.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 
+export function FloorVisual({ stageId = 'stage1' }) {
+  return (
+    <>
+      <ClassroomFloor stageId={stageId} />
+      <StageObjectLayer stageId={stageId} />
+    </>
+  )
+}
+
 export default function Floor({ stageId = 'stage1' }) {
   // 맵 경계는 스테이지별로 다르다 (stage1: 세로로 긴 직사각형, stage2: 정사각).
   const { halfX, halfZ } = getStageBounds(stageId)
 
   return (
     <group>
-      <ClassroomFloor stageId={stageId} />
-      <StageObjectLayer stageId={stageId} />
+      <FloorVisual stageId={stageId} />
       <StageObjectColliderLayer stageId={stageId} />
 
       <RigidBody type="fixed" colliders="cuboid">

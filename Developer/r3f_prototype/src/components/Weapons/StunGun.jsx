@@ -12,7 +12,7 @@ let _chainArcId  = 0
 const BOLT_SPEED  = 16
 const CHAIN_RANGE = 4.5
 
-function LightningBoltModel() {
+export function LightningBoltModel() {
   const boltMat = useMemo(() => toonMat(0xffe840, 0.55), [])
   const coreMat = useMemo(() => toonMat(0xffffff, 0.9),  [])
 

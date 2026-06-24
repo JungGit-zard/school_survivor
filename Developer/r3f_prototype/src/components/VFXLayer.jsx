@@ -14,7 +14,7 @@ import { useGameStore } from '../store/useGameStore.js'
 const MAX_ACTIVE = 80
 
 // ── 효과 1: HitSpark — 무기 적중 지점 작은 별/십자 ────────────────────────────
-function HitSpark({ event, onDone }) {
+export function HitSpark({ event, onDone }) {
   const ref = useRef()
   const matRef = useRef()
   const LIFE = event.life ?? 220
@@ -60,7 +60,7 @@ function HitSpark({ event, onDone }) {
 }
 
 // ── 효과 2: ChargeWarningLine — E05/B01 돌진 예고 라인 ────────────────────────
-function ChargeWarningLine({ event, onDone }) {
+export function ChargeWarningLine({ event, onDone }) {
   const meshRef = useRef()
   const matRef  = useRef()
   const LIFE    = event.life ?? 700
@@ -111,7 +111,7 @@ function ChargeWarningLine({ event, onDone }) {
 }
 
 // ── 효과 3: PickupPop — 드랍 스폰 시 살짝 솟는 링 ──────────────────────────────
-function PickupPop({ event, onDone }) {
+export function PickupPop({ event, onDone }) {
   const ref    = useRef()
   const matRef = useRef()
   const LIFE   = event.life ?? 300

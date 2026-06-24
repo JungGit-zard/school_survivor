@@ -1,0 +1,85 @@
+{
+  "baseUrl": "http://127.0.0.1:5192/",
+  "results": [
+    {
+      "label": "00-title",
+      "file": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Quaility_Assurance\\screenshots\\stage1-visual-loop-00-title-2026-06-24.png",
+      "text": "G\nGoogle 로그인 설정 필요\nFirebase .env 설정 후 사용\nGoogle 로그인\n치트\n⚙\nEscape! zombie school\nEscape!\nzombie school\n\n감염된 학교에서 4분만 버티면, 교문이 열린다\n\n게임 시작\n🪙 코인상점\n유저랭킹",
+      "url": "http://127.0.0.1:5192/"
+    },
+    {
+      "label": "01-initial-player-e01-floor-pencil",
+      "file": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Quaility_Assurance\\screenshots\\stage1-visual-loop-01-initial-player-e01-floor-pencil-2026-06-24.png",
+      "text": "Stage 1\n00:01\nLv.1\nHP\n100/100\n연필\n0\nⅡ\nR",
+      "url": "http://127.0.0.1:5192/"
+    },
+    {
+      "label": "02-e05-charge-weapons-pickups",
+      "file": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Quaility_Assurance\\screenshots\\stage1-visual-loop-02-e05-charge-weapons-pickups-2026-06-24.png",
+      "text": "Stage 1\n02:12\nLv.1\nHP\n100/100\n연필\n30cm 자\n커터칼\n텀블러\n과학 플라스크\n벨\n전기\n오니기리\n치비코\n보조배터리 미사일\n상어미사일\n고장난 스타링크\n나침반 칼날\n우산 방어막\n지우개 폭탄\n1\nⅡ\nR",
+      "url": "http://127.0.0.1:5192/"
+    },
+    {
+      "label": "03-b01-boss-loop",
+      "file": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Quaility_Assurance\\screenshots\\stage1-visual-loop-03-b01-boss-loop-2026-06-24.png",
+      "text": "Stage 1\n03:21\nLv.1\nHP\n100/100\n연필\n30cm 자\n커터칼\n텀블러\n과학 플라스크\n벨\n전기\n오니기리\n치비코\n보조배터리 미사일\n상어미사일\n고장난 스타링크\n나침반 칼날\n우산 방어막\n지우개 폭탄\n8\nⅡ\nR",
+      "url": "http://127.0.0.1:5192/"
+    }
+  ],
+  "errors": [
+    {
+      "message": "Cannot read properties of null (reading 'trim')",
+      "stack": "TypeError: Cannot read properties of null (reading 'trim')\n    at onFirstUse (http://127.0.0.1:5192/node_modules/.vite/deps/three.js?v=e8317799:11642:52)\n    at WebGLProgram.getUniforms (http://127.0.0.1:5192/node_modules/.vite/deps/three.js?v=e8317799:11677:34)\n    at setProgram (http://127.0.0.1:5192/node_modules/.vite/deps/three.js?v=e8317799:16514:31)\n    at WebGLRenderer.renderBufferDirect (http://127.0.0.1:5192/node_modules/.vite/deps/three.js?v=e8317799:16016:20)\n    at renderObject (http://127.0.0.1:5192/node_modules/.vite/deps/three.js?v=e8317799:12965:15)\n    at renderObject (http://127.0.0.1:5192/node_modules/.vite/deps/three.js?v=e8317799:12971:52)\n    at renderObject (http://127.0.0.1:5192/node_modules/.vite/deps/three.js?v=e8317799:12971:52)\n    at renderObject (http://127.0.0.1:5192/node_modules/.vite/deps/three.js?v=e8317799:12971:52)\n    at WebGLShadowMap.render (http://127.0.0.1:5192/node_modules/.vite/deps/three.js?v=e8317799:12869:5)\n    at WebGLRenderer.render (http://127.0.0.1:5192/node_modules/.vite/deps/three.js?v=e8317799:16186:14)"
+    }
+  ],
+  "logs": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "warning",
+      "text": "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost"
+    },
+    {
+      "type": "log",
+      "text": "THREE.WebGLRenderer: Context Lost."
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x2c9400190800] GL_OUT_OF_MEMORY: Error: 0x00000505, in ..\\..\\third_party\\angle\\src\\libANGLE\\renderer\\vulkan\\ContextVk.cpp, rx::ContextVk::initImageAllocation:7133. Internal Vulkan error (-2): A device memory allocation has failed."
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x2c9400190800] GL_CONTEXT_LOST_KHR: glFramebufferRenderbuffer: Context has been lost."
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x2c9400190800] GL_CONTEXT_LOST_KHR: glBindRenderbuffer: Context has been lost."
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x2c9400190800] GL_CONTEXT_LOST_KHR: glCheckFramebufferStatus: Context has been lost."
+    },
+    {
+      "type": "warning",
+      "text": "WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost"
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: WEBGL_lose_context extension not supported."
+    },
+    {
+      "type": "log",
+      "text": "THREE.WebGLRenderer: Context Lost."
+    }
+  ]
+}

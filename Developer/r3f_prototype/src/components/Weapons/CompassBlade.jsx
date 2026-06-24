@@ -47,7 +47,7 @@ function CompassLeg({ side = 1, main = false }) {
   )
 }
 
-function CompassBladeModel() {
+export function CompassBladeModel() {
   const hingeMat = useMemo(() => toonMat(0x123052, 0.08), [])
   const redMat = useMemo(() => toonMat(0xe8323d, 0.18), [])
   const trailMat = useMemo(() => toonMat(0xe99039, 0.28), [])

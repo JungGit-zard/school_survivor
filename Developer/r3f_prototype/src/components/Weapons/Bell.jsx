@@ -10,7 +10,7 @@ import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 
 let _bellPulseId = 0
 
-function BellModel() {
+export function BellModel() {
   const bellMat = useMemo(() => toonMat(0xffd040, 0.2), [])
   const rimMat = useMemo(() => toonMat(0xf0a820, 0.16), [])
   const handleMat = useMemo(() => toonMat(0x8a4a18, 0.08), [])

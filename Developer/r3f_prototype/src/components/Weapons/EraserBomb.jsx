@@ -13,7 +13,7 @@ import { findBestSplashTarget, applyRadialDamage } from '../../lib/weaponTargeti
 let _eraserId = 0
 const FLIGHT_DURATION = 2.0  // 1.2→2.0: 사거리 2배에 맞춰 비행 시간 연장
 
-function EraserModel() {
+export function EraserModel() {
   // 하얀 지우개: 따뜻한 오프화이트 본체 + 파란 브랜드 띠 + 닳은 끝부분 디테일
   const bodyMat   = useMemo(() => toonMat(0xf5f0e8, 0.08), [])  // 오프화이트 (지우개 본체)
   const stripeMat = useMemo(() => toonMat(0x1a3a7a, 0.10), [])  // 파란 브랜드 띠

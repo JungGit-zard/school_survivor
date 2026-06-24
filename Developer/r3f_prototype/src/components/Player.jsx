@@ -19,6 +19,15 @@ function shortestAngleDiff(target, current) {
   return diff
 }
 
+export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, showHealthBar = true }) {
+  return (
+    <>
+      <PlayerMesh groupRef={meshGroup} movingRef={movingRef} />
+      {showHealthBar && <MiniHealthBar current={hp} max={maxHp} width={0.38} height={0.052} y={0.75} />}
+    </>
+  )
+}
+
 export default function Player() {
   const rb        = useRef()
   const meshGroup = useRef()
@@ -113,8 +122,7 @@ export default function Player() {
       colliders={false}
     >
       <CuboidCollider args={[0.136, 0.32, 0.136]} />
-      <PlayerMesh groupRef={meshGroup} movingRef={movingRef} />
-      <MiniHealthBar current={hp} max={maxHp} width={0.38} height={0.052} y={0.75} />
+      <PlayerVisual meshGroup={meshGroup} movingRef={movingRef} hp={hp} maxHp={maxHp} />
     </RigidBody>
   )
 }

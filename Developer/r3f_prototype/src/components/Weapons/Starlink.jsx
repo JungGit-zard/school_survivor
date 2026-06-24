@@ -33,7 +33,7 @@ function pickStrikeTargets(strikeCenter, strikeCount) {
   return candidates.slice(0, Math.max(1, Math.floor(strikeCount)))
 }
 
-function StrikeVisual({ x, z, age }) {
+export function StrikeVisual({ x, z, age }) {
   // 0..1 진행도. 처음 55%는 번개 줄기, 나머지는 ground flash.
   const t = Math.min(1, age / STRIKE_DURATION_MS)
   const boltOpacity = t < 0.55 ? 1 - t / 0.55 : 0

@@ -1,9 +1,9 @@
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
-import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../lib/refs.js'
+import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { logKill } from '../lib/playtestLogger.js'
 import { emitVfx } from '../lib/vfxEvents.js'
@@ -41,37 +41,64 @@ export const ENEMY_STATS = {
 // 콜라이더 기본 반크기 (scale=1 기준)
 const BASE_COL = [0.14, 0.26, 0.10]
 
-function GoSpeechBubble({ y }) {
+export const CHARGE_CUE_LAYOUT = {
+  y: 1.75,
+  pulseScale: 0.10,
+  parts: {
+    mark: { size: [0.14, 0.52, 0.10], position: [0, 0.20, 0], outlineScale: 1.16 },
+    dot: { radius: 0.095, position: [0, -0.18, 0], outlineScale: 1.18 },
+    leftChevron: { size: [0.10, 0.18, 0.46], position: [-0.22, -0.08, 0.24], rotation: [0.28, 0.20, 0.46], outlineScale: 1.12 },
+    rightChevron: { size: [0.10, 0.18, 0.46], position: [0.22, -0.08, 0.24], rotation: [0.28, -0.20, -0.46], outlineScale: 1.12 },
+  },
+}
+
+function ChargeCueBlock({ size, position, rotation = [0, 0, 0], color, emissive = 0.22, outlineScale = 1.12 }) {
+  const mat = useMemo(() => toonMat(color, emissive), [color, emissive])
+  const outMat = useMemo(() => outlineMat(0.92), [])
+  const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
+  const os = inflateScale(outlineScale)
+
   return (
-    <Html position={[0, y, 0]} center sprite transform distanceFactor={8} style={{ pointerEvents: 'none' }}>
-      <div style={{
-        position: 'relative',
-        padding: '3px 7px',
-        borderRadius: 8,
-        border: '2px solid #35204c',
-        background: '#fff6e5',
-        color: '#e8323d',
-        fontSize: 11,
-        fontWeight: 900,
-        lineHeight: 1,
-        fontFamily: 'Segoe UI, sans-serif',
-        textTransform: 'uppercase',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-      }}>
-        go!
-        <span style={{
-          position: 'absolute',
-          left: '50%',
-          bottom: -6,
-          width: 8,
-          height: 8,
-          borderRight: '2px solid #35204c',
-          borderBottom: '2px solid #35204c',
-          background: '#fff6e5',
-          transform: 'translateX(-50%) rotate(45deg)',
-        }} />
-      </div>
-    </Html>
+    <group position={position} rotation={rotation}>
+      <mesh renderOrder={3} geometry={geo} material={outMat} scale={[os, os, os]} />
+      <mesh renderOrder={4} geometry={geo} material={mat} />
+    </group>
+  )
+}
+
+function ChargeCueDot({ radius, position, color, emissive = 0.26, outlineScale = 1.18 }) {
+  const mat = useMemo(() => toonMat(color, emissive), [color, emissive])
+  const outMat = useMemo(() => outlineMat(0.92), [])
+  const geo = useMemo(() => new THREE.SphereGeometry(radius, 12, 8), [radius])
+  const os = inflateScale(outlineScale)
+
+  return (
+    <group position={position}>
+      <mesh renderOrder={3} geometry={geo} material={outMat} scale={[os, os, os]} />
+      <mesh renderOrder={4} geometry={geo} material={mat} />
+    </group>
+  )
+}
+
+function ChargeToonCue({ y }) {
+  const ref = useRef()
+
+  useFrame(() => {
+    if (!ref.current) return
+    const t = performance.now() * 0.001
+    const pulse = 1 + Math.sin(t * 12) * CHARGE_CUE_LAYOUT.pulseScale
+    ref.current.scale.set(pulse, pulse, pulse)
+    ref.current.rotation.y += 0.035
+  })
+
+  const { parts } = CHARGE_CUE_LAYOUT
+  return (
+    <group ref={ref} position={[0, y, 0]}>
+      <ChargeCueBlock {...parts.mark} color={0xfff0a6} emissive={0.24} />
+      <ChargeCueDot {...parts.dot} color={0xff392e} emissive={0.32} />
+      <ChargeCueBlock {...parts.leftChevron} color={0xff7a18} emissive={0.26} />
+      <ChargeCueBlock {...parts.rightChevron} color={0xff7a18} emissive={0.26} />
+    </group>
   )
 }
 
@@ -125,7 +152,7 @@ export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = fal
     <>
       <group ref={groupRef} scale={[cs * 0.333, cs * 0.333, cs * 0.333]}>
         <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} />
-        {stats.charger && animPhase === 'warn' && <GoSpeechBubble y={2.45} />}
+        {stats.charger && animPhase === 'warn' && <ChargeToonCue y={CHARGE_CUE_LAYOUT.y} />}
       </group>
       {showHealthBar && <MiniHealthBar current={currentHp} max={stats.hp} width={0.32 * cs} height={0.045} y={0.72 * cs} />}
     </>

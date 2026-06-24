@@ -12,7 +12,7 @@ import { findBestSplashTarget, applyRadialDamage } from '../../lib/weaponTargeti
 
 let _missileId = 0
 
-function MissileBody() {
+export function MissileBody() {
   const bodyMat  = useMemo(() => toonMat(0xff3d85, 0.22), [])   // 선명한 핑크
   const labelMat = useMemo(() => toonMat(0xff80b8, 0.28), [])   // 밝은 핑크 밴드
   const noseMat  = useMemo(() => toonMat(0xffaad0, 0.14), [])   // 연핑크 코

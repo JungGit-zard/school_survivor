@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import { existsSync, readFileSync } from 'node:fs'
+import path from 'node:path'
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   DEFAULT_STUDIO_TUNING,
@@ -42,6 +44,102 @@ describe('graphicsStudioConfig', () => {
       expect(item.source).toEqual(expect.any(String))
       expect(item.applyTargets).toEqual(expect.arrayContaining([expect.any(String)]))
     })
+  })
+
+  it('points weapon entries at shared in-game model previews where models exist', () => {
+    expect(getStudioItemById('weapon-pencil')).toMatchObject({
+      previewKind: 'weaponModel',
+      weaponType: 'pencil',
+      source: 'components/Weapons/Pencil.jsx',
+    })
+    expect(getStudioItemById('weapon-shark-missile')).toMatchObject({
+      previewKind: 'weaponModel',
+      weaponType: 'sharkMissile',
+      source: 'components/Weapons/SharkMissile.jsx',
+    })
+    expect(getStudioItemById('weapon-extra-battery')).toMatchObject({
+      previewKind: 'image',
+      weaponType: 'extraBattery',
+    })
+  })
+
+  it('keeps runtime-parity previews tied to shared runtime sources and apply targets', () => {
+    const runtimeParityKinds = new Set(['player', 'zombie', 'floor', 'vfx', 'projectile', 'weaponModel'])
+    const expectedSharedSources = {
+      player: ['components/PlayerMesh.jsx'],
+      zombie: ['components/ZombieMesh.jsx'],
+      floor: ['components/Floor.jsx'],
+      vfx: ['components/VFXLayer.jsx'],
+      projectile: ['components/EnemyProjectileVisual.jsx'],
+    }
+    const expectedWeaponSources = {
+      pencil: 'components/Weapons/Pencil.jsx',
+      ruler: 'components/Weapons/SchoolBag.jsx',
+      tumbler: 'components/Weapons/Tumbler.jsx',
+      scienceFlask: 'components/Weapons/Flask.jsx',
+      bell: 'components/Weapons/Bell.jsx',
+      stunGun: 'components/Weapons/StunGun.jsx',
+      onigiri: 'components/Weapons/Onigiri.jsx',
+      starlink: 'components/Weapons/Starlink.jsx',
+      compass: 'components/Weapons/CompassBlade.jsx',
+      umbrella: 'components/Weapons/UmbrellaGuard.jsx',
+      eraser: 'components/Weapons/EraserBomb.jsx',
+      boxCutter: 'components/Weapons/BoxCutter.jsx',
+      chibiko: 'components/Weapons/Chibiko.jsx',
+      sharkMissile: 'components/Weapons/SharkMissile.jsx',
+    }
+    const expectedRuntimeComponents = {
+      player: new Set(['PlayerVisual']),
+      zombie: new Set(['EnemyVisual']),
+      floor: new Set(['FloorVisual']),
+      projectile: new Set(['EnemyProjectileVisual']),
+      vfx: new Set(['HitSpark', 'ChargeWarningLine', 'PickupPop']),
+      weaponModel: new Set([
+        'PencilModel',
+        'ThirtyCmRulerModel',
+        'TumblerModel',
+        'FlaskModel',
+        'BellModel',
+        'LightningBoltModel',
+        'OnigiiriModel',
+        'StrikeVisual',
+        'CompassBladeModel',
+        'UmbrellaModel',
+        'EraserModel',
+        'BoxCutterModel',
+        'ChibikoModel',
+        'SharkMissileModel',
+      ]),
+    }
+    const studioOnlyPattern = /GraphicsStudio|StudioPreview|stand-?in|placeholder|approximation|mock/i
+    const previewSource = readFileSync(path.join(process.cwd(), 'src/components/GraphicsStudioPreview.jsx'), 'utf8')
+
+    const parityItems = GRAPHICS_STUDIO_CATALOG.filter((item) => runtimeParityKinds.has(item.previewKind))
+    expect(parityItems.length).toBeGreaterThan(20)
+
+    parityItems.forEach((item) => {
+      const allowedSources = item.previewKind === 'weaponModel'
+        ? [expectedWeaponSources[item.weaponType]]
+        : expectedSharedSources[item.previewKind]
+      const runtimePreviewSource = item.runtimePreviewSource ?? item.source
+
+      expect(allowedSources).toContain(item.source)
+      expect(item.runtimePreviewComponent).toEqual(expect.any(String))
+      expect(expectedRuntimeComponents[item.previewKind]).toContain(item.runtimePreviewComponent)
+      expect(previewSource).toContain(item.runtimePreviewComponent)
+      expect(item.applyTargets).toEqual(expect.arrayContaining([item.source]))
+      expect(item.applyTargets).toEqual(expect.arrayContaining([runtimePreviewSource]))
+      expect(existsSync(path.join(process.cwd(), 'src', runtimePreviewSource))).toBe(true)
+      expect([item.source, runtimePreviewSource, item.runtimePreviewComponent, ...item.applyTargets].join('\n'))
+        .not.toMatch(studioOnlyPattern)
+    })
+  })
+
+  it('documents extra battery as the only image-preview weapon exception', () => {
+    const imagePreviewItems = GRAPHICS_STUDIO_CATALOG.filter((item) => item.previewKind === 'image')
+
+    expect(imagePreviewItems.map((item) => item.id)).toEqual(['weapon-extra-battery'])
+    expect(getStudioItemById('weapon-extra-battery').applyTargets).toEqual(expect.arrayContaining(['lib/upgrades.js']))
   })
 
   it('normalizes user tuning values into a safe visual range', () => {

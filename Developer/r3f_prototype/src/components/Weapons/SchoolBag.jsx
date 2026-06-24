@@ -6,7 +6,7 @@ import { bagSwingState, playerFacing, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 
-function ThirtyCmRulerModel() {
+export function ThirtyCmRulerModel() {
   const rulerMat = useMemo(() => toonMat(0xf6dd59, 0.18), [])
   const edgeMat = useMemo(() => toonMat(0xfff2a3, 0.12), [])
   const markMat = useMemo(() => toonMat(0x1c1c22, 0), [])

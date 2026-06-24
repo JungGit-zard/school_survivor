@@ -8,7 +8,7 @@ import { createOnigiriBurstGrains, pickNextOnigiriTarget } from '../../lib/onigi
 
 let _onigiiriId  = 0
 
-function OnigiiriModel() {
+export function OnigiiriModel() {
   const riceMat = useMemo(() => toonMat(0xfcf8f0, 0.06), [])
   const noriMat = useMemo(() => toonMat(0x192e13, 0.04), [])
   const noriHiMat = useMemo(() => toonMat(0x36542c, 0.08), [])
