@@ -19,7 +19,7 @@ const UMBRELLA_COLORS = {
 
 let _umbrellaId = 0
 
-function UmbrellaModel({ openProgress, spin = 0 }) {
+export function UmbrellaModel({ openProgress, spin = 0 }) {
   const panelMats = useMemo(() => [
     toonMat(UMBRELLA_COLORS.cottonCandyPink, 0.16),
     toonMat(UMBRELLA_COLORS.babyBlue, 0.14),

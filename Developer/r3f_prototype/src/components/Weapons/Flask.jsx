@@ -9,7 +9,7 @@ import { findBestSplashTarget, applyRadialDamage } from '../../lib/weaponTargeti
 let _flaskId = 0
 const FLASK_FLIGHT_DURATION = 1.55
 
-function FlaskModel() {
+export function FlaskModel() {
   // 유리는 반투명 처리 — 불투명하면 안의 녹색 액체가 가려져 보이지 않는다.
   // depthWrite=false로 두어 불투명 액체(먼저 렌더)가 비쳐 보이도록 한다.
   const glassMat = useMemo(() => {

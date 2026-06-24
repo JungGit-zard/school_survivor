@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef } from 'react'
 import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
-import PlayerMesh from './PlayerMesh.jsx'
-import ZombieMesh from './ZombieMesh.jsx'
-import ClassroomFloor from './ClassroomFloor.jsx'
+import { PlayerVisual } from './Player.jsx'
+import { ENEMY_STATS, EnemyVisual } from './Enemy.jsx'
+import { FloorVisual } from './Floor.jsx'
 import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'
 import GoldCoin from './GoldCoin.jsx'
 import XpTextbook from './XpTextbook.jsx'
@@ -12,9 +12,23 @@ import XpOrb from './XpOrb.jsx'
 import { LunchModel } from './LunchItems.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
+import EnemyProjectileVisual from './EnemyProjectileVisual.jsx'
 import TitleScene3D from './TitleScene3D.jsx'
-import { inflateScale, outlineMat, toonMat } from '../lib/toon.js'
-import { VFX_COLORS } from '../lib/vfxPalette.js'
+import { ChargeWarningLine, HitSpark, PickupPop } from './VFXLayer.jsx'
+import { PencilModel } from './Weapons/Pencil.jsx'
+import { ThirtyCmRulerModel } from './Weapons/SchoolBag.jsx'
+import { TumblerModel } from './Weapons/Tumbler.jsx'
+import { FlaskModel } from './Weapons/Flask.jsx'
+import { BellModel } from './Weapons/Bell.jsx'
+import { LightningBoltModel } from './Weapons/StunGun.jsx'
+import { OnigiiriModel } from './Weapons/Onigiri.jsx'
+import { StrikeVisual } from './Weapons/Starlink.jsx'
+import { CompassBladeModel } from './Weapons/CompassBlade.jsx'
+import { UmbrellaModel } from './Weapons/UmbrellaGuard.jsx'
+import { EraserModel } from './Weapons/EraserBomb.jsx'
+import { BoxCutterModel } from './Weapons/BoxCutter.jsx'
+import { ChibikoModel } from './Weapons/Chibiko.jsx'
+import { SharkMissileModel, FlameTrail } from './Weapons/SharkMissile.jsx'
 
 function isOutlineMaterial(material) {
   return material?.side === THREE.BackSide || material?.stencilFunc === THREE.NotEqualStencilFunc
@@ -91,130 +105,135 @@ function ImagePlane({ src }) {
   )
 }
 
-function VfxPreview({ type }) {
-  const sparkMat = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: VFX_COLORS.stunYellow, transparent: true, opacity: 0.9 }),
-    [],
-  )
-  const dangerMat = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: VFX_COLORS.dangerRed, transparent: true, opacity: 0.55 }),
-    [],
-  )
-  const cyanMat = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: VFX_COLORS.electricCyan, transparent: true, opacity: 0.7 }),
-    [],
-  )
+function StudioVfxPreview({ type }) {
+  const event = useMemo(() => {
+    const startMs = performance.now()
+    if (type === 'chargeWarning') {
+      return { id: 'studio-charge-warning', x: 0, z: -2.25, angle: 0, length: 4.5, width: 0.9, life: 120000, startMs }
+    }
+    if (type === 'pickupPop') {
+      return { id: 'studio-pickup-pop', x: 0, y: 0.18, z: 0, life: 120000, startMs }
+    }
+    return { id: 'studio-hit-spark', x: 0, y: 0.8, z: 0, life: 120000, startMs, baseScale: 0.28, growScale: 0.08 }
+  }, [type])
 
-  if (type === 'chargeWarning') {
-    return (
-      <group position={[0, 0.04, 0]}>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} material={dangerMat}>
-          <planeGeometry args={[0.9, 5.2]} />
-        </mesh>
-        <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} material={cyanMat}>
-          <planeGeometry args={[0.12, 5.6]} />
-        </mesh>
-      </group>
-    )
-  }
+  const onDone = () => {}
 
-  if (type === 'pickupPop') {
-    return (
-      <group position={[0, 0.1, 0]}>
-        {[0, 0.2, 0.42].map((height, index) => (
-          <mesh
-            key={height}
-            position={[0, height, 0]}
-            rotation={[-Math.PI / 2, 0, 0]}
-            scale={[1 + index * 0.5, 1 + index * 0.5, 1]}
-          >
-            <ringGeometry args={[0.34, 0.44, 24]} />
-            <meshBasicMaterial
-              color={index === 0 ? VFX_COLORS.xpGreen : VFX_COLORS.coinPink}
-              transparent
-              opacity={0.62 - index * 0.15}
-              depthWrite={false}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
-        ))}
-      </group>
-    )
-  }
-
-  return (
-    <group position={[0, 1.2, 0]}>
-      {Array.from({ length: 10 }, (_, index) => {
-        const angle = (Math.PI * 2 * index) / 10
-        return (
-          <mesh
-            key={index}
-            position={[Math.cos(angle) * 0.64, Math.sin(angle) * 0.64, 0]}
-            rotation={[0, 0, angle]}
-            material={sparkMat}
-          >
-            <boxGeometry args={[0.12, 0.46, 0.08]} />
-          </mesh>
-        )
-      })}
-    </group>
-  )
+  if (type === 'chargeWarning') return <ChargeWarningLine event={event} onDone={onDone} />
+  if (type === 'pickupPop') return <PickupPop event={event} onDone={onDone} />
+  return <HitSpark event={event} onDone={onDone} />
 }
 
 function PickupPreview({ type }) {
   if (type === 'goldCoin') {
-    return (
-      <group scale={7.5} rotation={[0, Math.PI / 2, 0]}>
-        <GoldCoin id="studio-gold" pos={[0, 0, 0]} value={1} onCollect={() => {}} />
-      </group>
-    )
+    return <GoldCoin id="studio-gold" pos={[0, 0.2, 0]} value={1} onCollect={() => {}} />
   }
   if (type === 'xpTextbook') {
-    return (
-      <group scale={4.2}>
-        <XpTextbook id="studio-book" pos={[0, 0, 0]} value={5} onCollect={() => {}} />
-      </group>
-    )
+    return <XpTextbook id="studio-book" pos={[0, 0, 0]} value={5} onCollect={() => {}} />
   }
   if (type === 'xpOrb') {
-    return (
-      <group scale={5}>
-        <XpOrb id={17} pos={[0, 0.15, 0]} xp={1} onCollect={() => {}} />
-      </group>
-    )
+    return <XpOrb id={17} pos={[0, 0.15, 0]} xp={1} onCollect={() => {}} />
   }
   if (type === 'lunchMilk') {
+    return <LunchModel kind="milk" />
+  }
+  return <LunchModel kind="meal" />
+}
+
+function WeaponModelPreview({ type }) {
+  const chibikoAttackPhase = useRef(0)
+
+  if (type === 'pencil') return <PencilModel />
+  if (type === 'ruler') return <ThirtyCmRulerModel />
+  if (type === 'tumbler') return <TumblerModel />
+  if (type === 'scienceFlask') return <FlaskModel />
+  if (type === 'bell') return <BellModel />
+  if (type === 'stunGun') return <LightningBoltModel />
+  if (type === 'onigiri') return <OnigiiriModel />
+  if (type === 'starlink') return <StrikeVisual x={0} z={0} age={180} />
+  if (type === 'compass') return <CompassBladeModel />
+  if (type === 'umbrella') return <UmbrellaModel openProgress={1} spin={0} />
+  if (type === 'eraser') return <EraserModel />
+  if (type === 'boxCutter') return <BoxCutterModel />
+  if (type === 'chibiko') {
     return (
-      <group scale={3.2}>
-        <LunchModel kind="milk" />
+      <group scale={[0.255, 0.255, 0.255]}>
+        <ChibikoModel attackPhaseRef={chibikoAttackPhase} />
       </group>
     )
   }
-  return (
-    <group scale={3.2}>
-      <LunchModel kind="meal" />
-    </group>
-  )
+  if (type === 'sharkMissile') {
+    return (
+      <>
+        <SharkMissileModel />
+        <FlameTrail />
+      </>
+    )
+  }
+  return null
 }
 
-function EnemyProjectilePreview() {
-  const bodyMat = useMemo(() => toonMat(0x34d6b8, 0.45), [])
-  const outMat = useMemo(() => outlineMat(0.97), [])
-
-  return (
-    <group position={[0, 0.8, 0]}>
-      <mesh renderOrder={1} material={outMat} scale={inflateScale([1.32, 1.32, 1.32])}>
-        <sphereGeometry args={[0.36, 16, 12]} />
-      </mesh>
-      <mesh renderOrder={2} material={bodyMat}>
-        <sphereGeometry args={[0.36, 16, 12]} />
-      </mesh>
-      <mesh position={[0, 0, -0.52]} rotation={[Math.PI / 2, 0, 0]}>
-        <coneGeometry args={[0.28, 0.7, 16]} />
-        <meshBasicMaterial color={VFX_COLORS.electricCyan} transparent opacity={0.28} depthWrite={false} />
-      </mesh>
-    </group>
-  )
+function getPreviewFrame(item) {
+  if (item.previewKind === 'titleScene') {
+    return {
+      camera: { position: [0, 6.8, 11.8], fov: 34, near: 0.1, far: 100 },
+      target: [0, 1.6, 0],
+    }
+  }
+  if (item.previewKind === 'floor') {
+    return {
+      camera: { position: [0, 17, 17], fov: 30, near: 0.1, far: 120 },
+      target: [0, 0, 0],
+      minDistance: 8,
+      maxDistance: 80,
+    }
+  }
+  if (item.previewKind === 'pickup') {
+    return {
+      camera: { position: [0.65, 0.52, 0.92], fov: 30, near: 0.01, far: 20 },
+      target: [0, 0.18, 0],
+      minDistance: 0.18,
+      maxDistance: 4,
+    }
+  }
+  if (item.previewKind === 'weaponModel') {
+    return {
+      camera: { position: [1.4, 1.05, 1.8], fov: 34, near: 0.01, far: 30 },
+      target: [0, 0.18, 0],
+      minDistance: 0.3,
+      maxDistance: 8,
+    }
+  }
+  if (item.previewKind === 'vfx') {
+    return {
+      camera: { position: [1.25, 1.1, 2.0], fov: 34, near: 0.01, far: 30 },
+      target: [0, 0.35, 0],
+      minDistance: 0.35,
+      maxDistance: 8,
+    }
+  }
+  if (item.previewKind === 'projectile') {
+    return {
+      camera: { position: [0.42, 0.34, 0.62], fov: 28, near: 0.01, far: 10 },
+      target: [0, 0, 0],
+      minDistance: 0.08,
+      maxDistance: 3,
+    }
+  }
+  if (item.previewKind === 'healthBar') {
+    return {
+      camera: { position: [0.8, 0.9, 1.4], fov: 34, near: 0.01, far: 20 },
+      target: [0, 0.8, 0],
+      minDistance: 0.4,
+      maxDistance: 5,
+    }
+  }
+  return {
+    camera: { position: [4, 3.2, 5.6], fov: 38, near: 0.1, far: 100 },
+    target: [0, 0.8, 0],
+    minDistance: 1.2,
+    maxDistance: 14,
+  }
 }
 
 function RenderPreviewItem({ item }) {
@@ -222,10 +241,10 @@ function RenderPreviewItem({ item }) {
   const playerRef = useRef(null)
 
   if (item.previewKind === 'player') {
-    return <PlayerMesh groupRef={playerRef} movingRef={movingRef} />
+    return <PlayerVisual meshGroup={playerRef} movingRef={movingRef} hp={100} maxHp={100} />
   }
   if (item.previewKind === 'zombie') {
-    return <ZombieMesh type={item.zombieType} animPhase={item.animation ?? 'normal'} />
+    return <EnemyVisual type={item.zombieType} animPhase={item.animation ?? 'normal'} hp={ENEMY_STATS[item.zombieType]?.hp} />
   }
   if (item.previewKind === 'stageObject' && item.objectType === 'desk') {
     return <ClassroomDesk variant={item.variant} />
@@ -240,20 +259,19 @@ function RenderPreviewItem({ item }) {
     return <PickupPreview type={item.pickupType} />
   }
   if (item.previewKind === 'floor') {
-    return (
-      <group scale={[0.04, 0.04, 0.04]} position={[0, -0.04, 0]}>
-        <ClassroomFloor stageId={item.stageId} />
-      </group>
-    )
+    return <FloorVisual stageId={item.stageId} />
   }
   if (item.previewKind === 'image') {
     return <ImagePlane src={item.assetUrl} />
   }
+  if (item.previewKind === 'weaponModel') {
+    return <WeaponModelPreview type={item.weaponType} />
+  }
   if (item.previewKind === 'vfx') {
-    return <VfxPreview type={item.vfxType} />
+    return <StudioVfxPreview type={item.vfxType} />
   }
   if (item.previewKind === 'projectile') {
-    return <EnemyProjectilePreview />
+    return <EnemyProjectileVisual />
   }
   if (item.previewKind === 'enemyCollapse') {
     return <EnemyDeathCollapse id="studio-collapse" type="E01" position={[0, 0.6, 0]} visualScale={1.25} intensity="heavy" onDone={() => {}} />
@@ -268,7 +286,7 @@ function RenderPreviewItem({ item }) {
   return null
 }
 
-function StudioScene({ selectedItem, tuning }) {
+function StudioScene({ selectedItem, tuning, frame }) {
   const rootRef = useRef(null)
   const rotationY = THREE.MathUtils.degToRad(tuning.rotationY)
   const item = selectedItem.previewKind === 'zombie'
@@ -287,32 +305,46 @@ function StudioScene({ selectedItem, tuning }) {
 
   return (
     <>
-      <ambientLight intensity={1.8} />
-      <directionalLight position={[4, 6, 5]} intensity={2.4} />
-      <directionalLight position={[-5, 3, -3]} intensity={0.8} color="#ffc69a" />
+      <ambientLight intensity={0.38} color={0x6d6780} />
+      <directionalLight
+        position={[-10, 22, 12]}
+        intensity={3.2}
+        castShadow
+        shadow-mapSize={[1024, 1024]}
+        shadow-camera-near={0.5}
+        shadow-camera-far={120}
+        shadow-camera-left={-40}
+        shadow-camera-right={40}
+        shadow-camera-top={40}
+        shadow-camera-bottom={-40}
+      />
+      <directionalLight position={[10, 12, -10]} intensity={0.85} color={0xffe2b0} />
       <group ref={rootRef} scale={[tuning.scale, tuning.scale, tuning.scale]} rotation={[0, rotationY, 0]}>
         <RenderPreviewItem item={item} />
       </group>
-      <gridHelper args={[8, 8, '#5f705d', '#343735']} position={[0, -0.04, 0]} />
-      <OrbitControls makeDefault target={[0, 0.8, 0]} enablePan={false} minDistance={2.5} maxDistance={10} />
+      <OrbitControls
+        makeDefault
+        target={frame.target}
+        enablePan={false}
+        minDistance={frame.minDistance ?? 1.2}
+        maxDistance={frame.maxDistance ?? 14}
+      />
     </>
   )
 }
 
 export default function GraphicsStudioPreview({ selectedItem, tuning }) {
-  const titleCamera = selectedItem.previewKind === 'titleScene'
-    ? { position: [0, 6.8, 11.8], fov: 34, near: 0.1, far: 100 }
-    : { position: [4, 3.2, 5.6], fov: 38, near: 0.1, far: 100 }
+  const frame = getPreviewFrame(selectedItem)
 
   return (
     <Canvas
-      camera={titleCamera}
+      camera={frame.camera}
       gl={{ stencil: true, antialias: true }}
       shadows
       style={{ width: '100%', height: '100%', background: '#171817' }}
     >
       <color attach="background" args={['#171817']} />
-      <StudioScene selectedItem={selectedItem} tuning={tuning} />
+      <StudioScene selectedItem={selectedItem} tuning={tuning} frame={frame} />
     </Canvas>
   )
 }

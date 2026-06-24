@@ -31,7 +31,7 @@ function SharkPart({ args, position, rotation, material, outlineScale = [1.08, 1
   )
 }
 
-function SharkMissileModel() {
+export function SharkMissileModel() {
   const bodyMat = useMemo(() => toonMat(0x28486f, 0.18), [])
   const topMat = useMemo(() => toonMat(0x4f78aa, 0.2), [])
   const bellyMat = useMemo(() => toonMat(0xf0dfbd, 0.06), [])
@@ -87,7 +87,7 @@ function SharkMissileModel() {
   )
 }
 
-function FlameTrail({ flameRef }) {
+export function FlameTrail({ flameRef }) {
   const flameMat = useMemo(() => new THREE.MeshBasicMaterial({
     color: 0xff7b1c,
     transparent: true,

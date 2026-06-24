@@ -7,7 +7,7 @@ import { startPlayerArmAction, computeBoxCutterActionPhases, BOX_CUTTER_ACTION_M
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 
-function BoxCutterModel() {
+export function BoxCutterModel() {
   const handleMat = useMemo(() => toonMat(0xffc928, 0.16), [])
   const gripMat = useMemo(() => toonMat(0x2e3747, 0.08), [])
   const bladeMat = useMemo(() => toonMat(0xdce6ee, 0.06), [])

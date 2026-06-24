@@ -1,0 +1,46 @@
+# Agent Room Record — Escape! zombie school subagent auto deployment
+
+Date: 2026-06-24 23:17 KST
+Requester: Terry
+Scope: Escape! zombie school 본격 개발 자동 투입
+Hermes board: `escape-zombie-school`
+Control doc: `C:/Users/admin/AppData/Local/hermes/sub-agent-room/escape-zombie-school-deployment/README.md`
+
+## Decision
+
+Terry instructed that the saved subagents should now be actively and automatically deployed into Escape! zombie school development.
+
+The saved custom subagent TOML files are preserved as canonical role/persona records, and matching Hermes profiles were created so the Kanban dispatcher can actually assign work to them.
+
+## Profile mapping
+
+- `threemini` → Three_Mini / 쓰리미니
+- `levelmini` → Level_Mini / 레벨미니
+- `balanceqa` → Balance_QA_Mini / 밸검미니
+- `bizmini` → Biz_Mini / 비즈미니
+- `launchmini` → Launch_Mini / 런치미니
+- `backendmini` → Backend_Mini / 백엔드미니
+- `englishgradmini` → English_Grad_Mini / 영문미니
+- `madangsue` → Madang_sue / 마당쇠
+- `jabdareminder` → Jabda_Reminder_Manager / 잡다알림관리자
+
+## Guardrails
+
+- Work must follow `project_develop_policy.md` first.
+- Role records must stay in their role folders: `Planner/`, `Developer/`, `Graphic_designer/`, `Quaility_Assurance/`, `CEO/`.
+- The current Git tree already contains many uncommitted changes; automatic worker tasks should begin with audit/planning/QA handoff unless a later card explicitly scopes implementation.
+- No commit, push, destructive git operation, or Google Play submission without Terry's explicit instruction.
+
+## Initial wave acceptance
+
+Each specialist should produce a concrete, project-local artifact and handoff:
+
+- exact files read
+- exact files created/updated
+- commands/tests run, if any
+- blockers and next recommended implementation cards
+- cross-role handoff notes
+
+## Notes
+
+This record intentionally does not duplicate full profile instructions. Each profile has its own `SOUL.md` under `C:/Users/admin/AppData/Local/hermes/profiles/<profile>/SOUL.md`.

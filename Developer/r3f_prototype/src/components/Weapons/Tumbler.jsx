@@ -5,7 +5,7 @@ import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 
-function TumblerModel() {
+export function TumblerModel() {
   const bodyMat = useMemo(() => toonMat(0xff7a3d, 0.16), [])
   const capMat = useMemo(() => toonMat(0xf4f4f4, 0.08), [])
   const outMat = useMemo(() => outlineMat(0.92), [])

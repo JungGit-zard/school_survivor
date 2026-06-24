@@ -28,7 +28,7 @@ function Part({ size, position, rotation = [0, 0, 0], material, outlineMaterial,
   )
 }
 
-function ChibikoModel({ attackPhaseRef }) {
+export function ChibikoModel({ attackPhaseRef }) {
   const parts = useRef({})
   const outline = useMemo(() => outlineMat(0.96), [])
   const hairMat = useMemo(() => toonMat(0x120d14, 0.05), [])
@@ -104,7 +104,7 @@ function ChibikoModel({ attackPhaseRef }) {
   )
 }
 
-function ChibikoPencilModel() {
+export function ChibikoPencilModel() {
   const outline = useMemo(() => outlineMat(0.98), [])
   const woodMat = useMemo(() => toonMat(0xd89646, 0.04), [])
   const graphiteMat = useMemo(() => toonMat(0x1c1c22, 0), [])

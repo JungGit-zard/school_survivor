@@ -9,7 +9,7 @@ import { findClosestEnemy } from '../../lib/weaponTargeting.js'
 
 let _projId = 0
 
-function PencilModel() {
+export function PencilModel() {
   const pencilOutlineMat = useMemo(() => outlineMat(0.98), [])
   const woodMat = useMemo(() => toonMat(0xd89646, 0.04), [])
   const graphiteMat = useMemo(() => toonMat(0x1c1c22, 0), [])
