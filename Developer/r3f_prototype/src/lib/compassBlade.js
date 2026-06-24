@@ -58,3 +58,7 @@ export function resolveCompassBladeHitStack({ currentStack = 0 }) {
 export function getCompassBladeRespawnUntilMs({ exploded, nowMs = 0 }) {
   return exploded ? nowMs + COMPASS_BLADE_RESPAWN_MS : 0
 }
+
+export function shouldRenderCompassBladeHitBodies({ active }) {
+  return !!active
+}

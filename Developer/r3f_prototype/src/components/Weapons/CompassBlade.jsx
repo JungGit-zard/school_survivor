@@ -4,11 +4,17 @@ import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { RigidBody, BallCollider } from '@react-three/rapier'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
-import { getCompassBladeOrbitPose, getCompassBladeRespawnUntilMs, resolveCompassBladeHitStack } from '../../lib/compassBlade.js'
+import {
+  getCompassBladeOrbitPose,
+  getCompassBladeRespawnUntilMs,
+  resolveCompassBladeHitStack,
+  shouldRenderCompassBladeHitBodies,
+} from '../../lib/compassBlade.js'
 import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 
 let _compassExplosionId = 0
+const PARKED_BLADE_POSITION = Object.freeze({ x: 9999, y: -9999, z: 9999 })
 
 function CompassLeg({ side = 1, main = false }) {
   const armMat = useMemo(() => toonMat(0x1f3d63, 0.08), [])
@@ -230,7 +236,13 @@ export function CompassBladeWeapon() {
     const orbitSpeed = w.orbitSpeed ?? 3.4
     const nowMs = nowSec * 1000
 
-    if (respawnUntilRef.current > nowMs) return
+    if (respawnUntilRef.current > nowMs) {
+      for (let i = 0; i < count; i += 1) {
+        rbRefs.current[i]?.setTranslation(PARKED_BLADE_POSITION, true)
+        if (visualRefs.current[i]) visualRefs.current[i].visible = false
+      }
+      return
+    }
 
     if (isRespawning) {
       respawnUntilRef.current = 0
@@ -252,6 +264,7 @@ export function CompassBladeWeapon() {
 
       rbRefs.current[i]?.setTranslation(pose.position, true)
       if (visualRefs.current[i]) {
+        visualRefs.current[i].visible = true
         visualRefs.current[i].position.set(pose.position.x, pose.position.y, pose.position.z)
         visualRefs.current[i].rotation.set(pose.rotation.x, pose.rotation.y, pose.rotation.z)
       }
@@ -301,10 +314,14 @@ export function CompassBladeWeapon() {
   const bladeCount = Math.max(1, Math.min(3, weapons.compassBlade.count ?? 1))
   const radius = weapons.compassBlade.radius ?? 1.15
   const orbitSpeed = weapons.compassBlade.orbitSpeed ?? 3.4
+  const renderHitBodies = shouldRenderCompassBladeHitBodies({
+    active: weapons.compassBlade?.active,
+    isRespawning,
+  })
 
   return (
     <>
-      {!isRespawning && Array.from({ length: bladeCount }, (_, idx) => {
+      {renderHitBodies && Array.from({ length: bladeCount }, (_, idx) => {
         const pose = getCompassBladeOrbitPose({
           elapsedSec: 0,
           index: idx,
@@ -317,9 +334,11 @@ export function CompassBladeWeapon() {
         return (
           <RigidBody
             key={`compassBlade-hit-${idx}`}
-            ref={(node) => { rbRefs.current[idx] = node }}
+            ref={(node) => { rbRefs.current[idx] = node ?? null }}
             type="kinematicPosition"
-            position={[pose.position.x, pose.position.y, pose.position.z]}
+            position={isRespawning
+              ? [PARKED_BLADE_POSITION.x, PARKED_BLADE_POSITION.y, PARKED_BLADE_POSITION.z]
+              : [pose.position.x, pose.position.y, pose.position.z]}
             colliders={false}
             sensor
           >
@@ -350,7 +369,7 @@ export function CompassBladeWeapon() {
         )
       })}
 
-      {!isRespawning && Array.from({ length: bladeCount }, (_, idx) => {
+      {Array.from({ length: bladeCount }, (_, idx) => {
         const pose = getCompassBladeOrbitPose({
           elapsedSec: 0,
           index: idx,
@@ -363,9 +382,10 @@ export function CompassBladeWeapon() {
         return (
           <group
             key={`compassBlade-visual-${idx}`}
-            ref={(node) => { visualRefs.current[idx] = node }}
+            ref={(node) => { visualRefs.current[idx] = node ?? null }}
             position={[pose.position.x, pose.position.y, pose.position.z]}
             rotation={[pose.rotation.x, pose.rotation.y, pose.rotation.z]}
+            visible={!isRespawning}
           >
             <CompassBladeModel />
           </group>
