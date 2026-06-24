@@ -1,4 +1,5 @@
 ﻿import { useEffect, useState, useMemo } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import { useGameStore } from '../store/useGameStore.js'
 import { UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
 import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
@@ -331,28 +332,41 @@ export function UpgradeIcon({ type }) {
 }
 
 export default function HUD({ onOpenCoinShop, onGoToTitle }) {
-  const player    = useGameStore((s) => s.player)
-  const weapons   = useGameStore((s) => s.weapons)
-  const phase     = useGameStore((s) => s.phase)
-  const pauseSource = useGameStore((s) => s.pauseSource)
-  const elapsed   = useGameStore((s) => s.elapsedMs)
-  const currentStageId = useGameStore((s) => s.currentStageId)
-  const bossSpawned = useGameStore((s) => s.bossSpawned)
-  const goldSession = useGameStore((s) => s.goldSession)
-  const goldTotal   = useGameStore((s) => s.goldTotal)
-  const recentMilestone = useGameStore((s) => s.recentMilestone)
-  const newlyUnlockedWeaponIds = useGameStore((s) => s.newlyUnlockedWeaponIds)
-  const clearMilestone = useGameStore((s) => s.clearMilestone)
-  const levelUpChoiceSerial = useGameStore((s) => s.levelUpChoiceSerial)
-  const applyUpgrade      = useGameStore((s) => s.applyUpgrade)
-  const resumeFromLevelup = useGameStore((s) => s.resumeFromLevelup)
-  const resetGame         = useGameStore((s) => s.resetGame)
-  const togglePause       = useGameStore((s) => s.togglePause)
-  const resumeGame        = useGameStore((s) => s.resumeGame)
+  const {
+    player, weapons, phase, pauseSource,
+    elapsed, currentStageId, bossSpawned,
+    goldSession, goldTotal, recentMilestone,
+    newlyUnlockedWeaponIds, levelUpChoiceSerial,
+    clearMilestone, applyUpgrade, resumeFromLevelup,
+    resetGame, togglePause, resumeGame,
+  } = useGameStore(useShallow((s) => ({
+    player:               s.player,
+    weapons:              s.weapons,
+    phase:                s.phase,
+    pauseSource:          s.pauseSource,
+    elapsed:              s.elapsedMs,
+    currentStageId:       s.currentStageId,
+    bossSpawned:          s.bossSpawned,
+    goldSession:          s.goldSession,
+    goldTotal:            s.goldTotal,
+    recentMilestone:      s.recentMilestone,
+    newlyUnlockedWeaponIds: s.newlyUnlockedWeaponIds,
+    levelUpChoiceSerial:  s.levelUpChoiceSerial,
+    clearMilestone:       s.clearMilestone,
+    applyUpgrade:         s.applyUpgrade,
+    resumeFromLevelup:    s.resumeFromLevelup,
+    resetGame:            s.resetGame,
+    togglePause:          s.togglePause,
+    resumeGame:           s.resumeGame,
+  })))
 
   const mins = String(Math.floor(elapsed / 60000)).padStart(2, '0')
   const secs = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, '0')
   const stageConfig = getStageConfig(currentStageId)
+  const activeWeapons = useMemo(
+    () => Object.entries(weapons).filter(([, w]) => w.active),
+    [weapons],
+  )
 
   // phase가 'levelup'으로 바뀌는 순간 한 번만 선택지를 고정한다.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -502,7 +516,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle }) {
 
       {/* Active weapons */}
       <div style={styles.weaponRow}>
-        {Object.entries(weapons).filter(([, w]) => w.active).map(([k, w]) => (
+        {activeWeapons.map(([k, w]) => (
           <div key={k} style={styles.weaponChip}>{w.label}</div>
         ))}
       </div>

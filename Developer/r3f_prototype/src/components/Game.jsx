@@ -50,8 +50,9 @@ export default function Game() {
   const checkSurvivalMilestone = useGameStore((s) => s.checkSurvivalMilestone)
 
   useFrame((_, delta) => {
+    const dt = Math.min(delta, 0.1)
     if (phase === 'playing') {
-      tickTime(delta * 1000)
+      tickTime(dt * 1000)
       checkSurvivalMilestone()
       // getState()로 최신 값 읽어 stale closure 방지
       if (useGameStore.getState().elapsedMs >= getStageDurationSec(currentStageId) * 1000) {

@@ -176,15 +176,18 @@ export default function VFXLayer() {
 
   useEffect(() => {
     return subscribeVfx((event) => {
-      const next = [...eventsRef.current, event]
-      // 상한 초과 시 가장 오래된 것부터 버림.
-      eventsRef.current = next.length > MAX_ACTIVE ? next.slice(next.length - MAX_ACTIVE) : next
+      eventsRef.current.push(event)
+      // 상한 초과 시 가장 오래된 것부터 버림 (in-place로 스프레드 없이 처리).
+      if (eventsRef.current.length > MAX_ACTIVE) {
+        eventsRef.current = eventsRef.current.slice(eventsRef.current.length - MAX_ACTIVE)
+      }
       flushPending()
     })
   }, [flushPending])
 
   const onDone = useCallback((id) => {
-    eventsRef.current = eventsRef.current.filter((e) => e.id !== id)
+    const idx = eventsRef.current.findIndex((e) => e.id === id)
+    if (idx !== -1) eventsRef.current.splice(idx, 1)
     flushPending()
   }, [flushPending])
 

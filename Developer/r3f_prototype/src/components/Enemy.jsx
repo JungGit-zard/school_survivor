@@ -17,6 +17,7 @@ import EnemyProjectileVisual from './EnemyProjectileVisual.jsx'
 const _dir = new THREE.Vector3()
 const _pos = new THREE.Vector3()
 const _chargeTarget = new THREE.Vector3()
+const _fireDir = new THREE.Vector3()
 
 export const ENEMY_SIZE_MULTIPLIER = 4 / 3
 
@@ -318,11 +319,11 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
       // 투사체 발사
       if (canFire) {
         lastFireRef.current = now
-        const dir = new THREE.Vector3().copy(_dir).normalize()
+        _fireDir.copy(_dir).normalize()
         setProjectiles((prev) => [...prev, {
           id: ++_projId,
           position: [_pos.x, _pos.y, _pos.z],
-          velocity: [dir.x * stats.rangedSpeed, 0, dir.z * stats.rangedSpeed],
+          velocity: [_fireDir.x * stats.rangedSpeed, 0, _fireDir.z * stats.rangedSpeed],
           damage: stats.rangedDmg,
         }])
       }
