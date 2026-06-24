@@ -8,6 +8,7 @@ import {
   getCompassBladeRespawnUntilMs,
   getCompassBladeOrbitPose,
   resolveCompassBladeHitStack,
+  shouldRenderCompassBladeHitBodies,
 } from '../../lib/compassBlade.js'
 
 describe('CompassBladeWeapon orbit pose', () => {
@@ -75,5 +76,11 @@ describe('CompassBladeWeapon orbit pose', () => {
     expect(COMPASS_BLADE_RESPAWN_MS).toBe(5000)
     expect(getCompassBladeRespawnUntilMs({ exploded: true, nowMs: 1200 })).toBe(6200)
     expect(getCompassBladeRespawnUntilMs({ exploded: false, nowMs: 1200 })).toBe(0)
+  })
+
+  it('keeps Rapier hit bodies mounted during the respawn window', () => {
+    expect(shouldRenderCompassBladeHitBodies({ active: true, isRespawning: true })).toBe(true)
+    expect(shouldRenderCompassBladeHitBodies({ active: true, isRespawning: false })).toBe(true)
+    expect(shouldRenderCompassBladeHitBodies({ active: false, isRespawning: true })).toBe(false)
   })
 })
