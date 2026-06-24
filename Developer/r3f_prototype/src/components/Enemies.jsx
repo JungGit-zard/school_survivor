@@ -36,13 +36,17 @@ const nextGoldInterval = () =>
 
 function pickGoldDropPos(bounds) {
   const live = []
-  enemyBodies.forEach((rb) => {
-    if (!rb || rb._enemyDead) return
+  const rSq = GOLD_VISIBLE_RADIUS * GOLD_VISIBLE_RADIUS
+  for (const rb of enemyBodies.values()) {
+    if (!rb || rb._enemyDead) continue
     const t = rb.translation()
     const dx = t.x - playerPos.x
     const dz = t.z - playerPos.z
-    if (dx * dx + dz * dz <= GOLD_VISIBLE_RADIUS * GOLD_VISIBLE_RADIUS) live.push(t)
-  })
+    if (dx * dx + dz * dz <= rSq) {
+      live.push(t)
+      if (live.length >= 8) break
+    }
+  }
   if (live.length > 0) {
     const t = live[Math.floor(Math.random() * live.length)]
     return [t.x, t.y, t.z]

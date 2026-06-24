@@ -14,6 +14,6 @@ export function shouldRunGameFrame(phase) {
 export function usePlayingFrame(callback) {
   useFrame((state, delta) => {
     if (!shouldRunGameFrame(useGameStore.getState().phase)) return
-    callback(state, delta)
+    callback(state, Math.min(delta, 0.1))
   })
 }
