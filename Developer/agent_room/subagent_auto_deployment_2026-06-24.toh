@@ -1,46 +1,59 @@
-# Agent Room Record — Escape! zombie school subagent auto deployment
+# Agent Room Record - Escape! zombie school Subagent Auto Deployment
 
 Date: 2026-06-24 23:17 KST
+Updated for readability: 2026-06-27
 Requester: Terry
-Scope: Escape! zombie school 본격 개발 자동 투입
+Scope: Escape! zombie school durable subagent deployment
 Hermes board: `escape-zombie-school`
-Control doc: `C:/Users/admin/AppData/Local/hermes/sub-agent-room/escape-zombie-school-deployment/README.md`
+Control room: `C:/Users/admin/AppData/Local/hermes/sub-agent-room/escape-zombie-school-deployment`
 
 ## Decision
 
-Terry instructed that the saved subagents should now be actively and automatically deployed into Escape! zombie school development.
+Terry instructed that saved subagents should be actively deployable for Escape! zombie school development instead of remaining as dormant persona notes.
 
-The saved custom subagent TOML files are preserved as canonical role/persona records, and matching Hermes profiles were created so the Kanban dispatcher can actually assign work to them.
+The durable execution path is Hermes Kanban:
 
-## Profile mapping
+```text
+IDE/project instruction -> escape-zombie-school Kanban board -> real Hermes profile worker -> project-local artifact
+```
 
-- `threemini` → Three_Mini / 쓰리미니
-- `levelmini` → Level_Mini / 레벨미니
-- `balanceqa` → Balance_QA_Mini / 밸검미니
-- `bizmini` → Biz_Mini / 비즈미니
-- `launchmini` → Launch_Mini / 런치미니
-- `backendmini` → Backend_Mini / 백엔드미니
-- `englishgradmini` → English_Grad_Mini / 영문미니
-- `madangsue` → Madang_sue / 마당쇠
-- `jabdareminder` → Jabda_Reminder_Manager / 잡다알림관리자
+## Current Spawnable Profiles
+
+Use these real Hermes profile names for durable Kanban cards:
+
+- `threemini`: Three.js/R3F graphics, toon rendering, VFX, runtime visuals.
+- `uimini`: UI/HUD/UX, responsive layout, touch targets, overlays, menus.
+- `levelmini`: gameplay loop, stage flow, leveling, difficulty, weapon/card planning.
+- `balanceqa`: QA gates, risk register, integration synthesis, browser/mobile validation.
+- `bizmini`: product scope, business model, monetization tradeoffs.
+- `launchmini`: Google Play, internal testing, policy, AAB/release readiness.
+- `backendmini`: Firebase/backend boundaries, privacy, account deletion architecture.
+- `englishgradmini`: English copy, store text, localization readiness.
+- `madangsue`: operations ledger, environment hygiene, smoke-test support.
+- `jabdareminder`: reminder and notification hygiene.
 
 ## Guardrails
 
-- Work must follow `project_develop_policy.md` first.
-- Role records must stay in their role folders: `Planner/`, `Developer/`, `Graphic_designer/`, `Quaility_Assurance/`, `CEO/`.
-- The current Git tree already contains many uncommitted changes; automatic worker tasks should begin with audit/planning/QA handoff unless a later card explicitly scopes implementation.
-- No commit, push, destructive git operation, or Google Play submission without Terry's explicit instruction.
+- Follow `project_develop_policy.md` first.
+- Role records must stay in their role folders: `Planner/`, `Developer/`, `Graphic_designer/`, `Quaility_Assurance/`, `CEO/`, or the relevant project-local folder.
+- Preserve existing uncommitted user/agent changes.
+- Do not commit, push, reset, delete, or submit to Google Play unless Terry explicitly asks.
+- Worker output must include exact files read, files changed, commands/tests run, blockers, risks, and handoff notes.
 
-## Initial wave acceptance
+## Acceptance Shape
 
-Each specialist should produce a concrete, project-local artifact and handoff:
+Each specialist wave should produce:
 
-- exact files read
-- exact files created/updated
-- commands/tests run, if any
-- blockers and next recommended implementation cards
-- cross-role handoff notes
+- concrete project-local artifact,
+- exact files inspected,
+- exact files created or updated,
+- commands/tests run,
+- blockers and next recommended cards,
+- cross-role handoff notes.
 
-## Notes
+## Current Canonical Docs
 
-This record intentionally does not duplicate full profile instructions. Each profile has its own `SOUL.md` under `C:/Users/admin/AppData/Local/hermes/profiles/<profile>/SOUL.md`.
+- Process: `Developer/agent_room/game_development_kanban_process.md`
+- General IDE handoff: `Developer/agent_room/ide_agent_subagent_autocall_handoff.md`
+- Antigravity handoff: `Developer/agent_room/antigravity_ide_subagent_handoff.md`
+- Ralph /goal note: `Developer/agent_room/ralph_goal_auto_agent_activation_2026-06-27.md`

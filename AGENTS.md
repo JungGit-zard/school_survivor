@@ -49,20 +49,32 @@
 
 ## Subagent Usage
 
-- Use subagents only when the user explicitly asks for subagents or names a specific subagent.
-- When the user asks to use two or more agents for discussion, review, planning, implementation, or comparison, run an Agent Room routing check before selecting agents.
-- The Agent Room routing check is defined in `Developer/agent_room/` and the executor agent is defined in `.codex/agents/agent-room-executor.toml`.
-- Subagents do not replace methodology. If Superpowers, Compound Engineering, g-stack, or `project_develop_policy.md` applies to the request, the selected agents must work inside that methodology instead of bypassing it.
+- Use subagents when the user explicitly asks for subagents, names a specific subagent, asks for autonomous agent deployment, or requests milestone-level multi-role game development work.
+- For Escape! zombie school milestone work, use `Developer/agent_room/game_development_kanban_process.md` and the `escape-zombie-school` Kanban board as the default durable development process.
+- IDE-side resident agents must read `Developer/agent_room/ide_agent_subagent_autocall_handoff.md` when deciding whether Terry's IDE command should auto-call the registered Hermes/Kanban subagents.
+- Antigravity IDE resident agents must also read `Developer/agent_room/antigravity_ide_subagent_handoff.md`; it contains the Antigravity-specific trigger rules, real spawnable profile names, Kanban CLI examples, smoke-test evidence, and the pasteable persistent-instruction block.
+- When the user asks to use two or more agents for discussion, review, planning, implementation, comparison, or game development execution, run an Agent Room/Kanban routing check before selecting agents.
+- The durable Agent Room/Kanban routing check is defined in `Developer/agent_room/`. Local Codex agent config files may exist in some checkouts, but Hermes/Kanban profiles are the canonical spawnable route for this project.
+- Subagents do not replace methodology. If Superpowers, Compound Engineering, g-stack, Kanban, or `project_develop_policy.md` applies to the request, the selected agents must work inside that methodology instead of bypassing it.
 - If a new case-specific agent or temporary agent team is created, record its persona, role, main viewpoint, authority, methodology gates, and output folder in `Developer/agent_room/` using a `.toh` record.
-- Codex subagents are not silently spawned by default. When the user explicitly asks to use subagents and the task includes graphics, visual QA, game art direction, asset implementation, readability, HUD visuals, Phaser/Three.js visual integration, or image/asset pipeline work, route that graphics portion to `graphic_designer`.
-- The `graphic_designer` custom agent is defined in `.codex/agents/graphic-designer.toml`. Its working output and role records belong in `Graphic_designer/`; the agent configuration itself must stay in `.codex/agents/`.
-- Useful project subagents include:
-  - `agent-room-executor` for choosing between saved agents, newly created case agents, Superpowers, Compound Engineering, g-stack, and project-native policy.
-  - `graphic_designer` for game art direction, graphics implementation guidance, asset review, visual QA, readability, and Phaser/Three.js visual integration.
-  - `game-developer` for gameplay systems and game-specific debugging.
+- Do not assign durable Kanban cards to non-spawnable placeholder assignees. Use the registered Hermes profiles: `threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`.
+- Codex subagents are not silently spawned for tiny one-step edits. For multi-role game development waves, Kanban dispatch is allowed because the user has requested this process for the project.
+- When the task includes UI, HUD, menus, responsive layout, touch targets, interaction states, readability, or accessibility, route that UI portion to `uimini`; when it includes graphics, visual QA, game art direction, asset implementation, Phaser/Three.js visual integration, or image/asset pipeline work, route that graphics portion to `threemini` or a local `graphic_designer` agent if one is available.
+- Graphic working output and role records belong in `Graphic_designer/`, regardless of whether the work is routed to Hermes `threemini` or a local IDE/Codex graphics agent.
+- Useful project subagents/profiles include:
+  - `agent-room-executor` or the Hermes/Kanban routing docs for choosing between saved agents, newly created case agents, Superpowers, Compound Engineering, g-stack, and project-native policy.
+  - `threemini` / `graphic_designer` for game art direction, graphics implementation guidance, asset review, visual QA, readability, and Phaser/Three.js visual integration.
+  - `uimini` for minigame UI/HUD/UX implementation guidance, responsive layout, mobile touch targets, interaction states, accessibility, menus, overlays, and small safe UI fixes.
+  - `levelmini` for gameplay loop, leveling, difficulty, stage structure, and weapon/card pool planning.
+  - `balanceqa` / `reviewer` for QA gates, code review, bug risk, missing tests, integration synthesis, and validation.
+  - `backendmini` for backend boundaries, Firebase, privacy, account deletion, and future architecture.
+  - `launchmini` for Google Play, internal testing, release readiness, policy, and AAB gates.
+  - `bizmini` for product scope, business model, monetization, and strategic tradeoffs.
+  - `englishgradmini` for English copy and localization readiness.
+  - `madangsue` and `jabdareminder` for operations, ledgers, scheduling, reminders, and agent-room hygiene.
+  - `game-developer` for gameplay systems and game-specific debugging when using Codex-local agents rather than Hermes Kanban.
   - `ui-designer` for HUD, layout, interaction, and visual direction.
   - `frontend-developer` for user-facing implementation.
-  - `reviewer` for code review, bug risk, and missing tests.
   - `code-mapper` for understanding existing code structure before changes.
   - `security-auditor` for cheat prevention, score validation, and security review.
   - `websocket-engineer` for real-time or multiplayer features.
