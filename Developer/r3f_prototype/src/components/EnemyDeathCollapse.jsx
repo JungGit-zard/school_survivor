@@ -9,6 +9,7 @@ import {
   createCollapseMotion,
   collapseStyleForIntensity,
   collapsePieceScaleForStyle,
+  scatterCollapseVariantForSeed,
   seededCollapseNoise,
 } from '../lib/enemyDeathCollapse.js'
 import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
@@ -18,7 +19,16 @@ function resolvePartColor(part, palette) {
   return palette[part.color] ?? palette.body
 }
 
-function CollapsePart({ part, index, origin, visualScale, palette, startedAt, style, pieceScale }) {
+function collapseVariantSeed(id, position) {
+  const numericId = Number(id)
+  const idSeed = Number.isFinite(numericId)
+    ? numericId
+    : String(id).split('').reduce((sum, char) => sum + char.charCodeAt(0), 0)
+  const [x = 0, , z = 0] = position ?? []
+  return idSeed * 17.17 + x * 19.31 + z * 23.73
+}
+
+function CollapsePart({ part, index, origin, visualScale, palette, startedAt, style, pieceScale, scatterVariant }) {
   const groupRef = useRef(null)
   const meshRef = useRef(null)
   const outlineRef = useRef(null)
@@ -46,7 +56,7 @@ function CollapsePart({ part, index, origin, visualScale, palette, startedAt, st
   }, [part.color])
 
   const seed = origin[0] * 17.1 + origin[2] * 31.7 + index * 13.37
-  const motion = useRef(createCollapseMotion({ seed, part, index, style }))
+  const motion = useRef(createCollapseMotion({ seed, part, index, style, scatterVariant }))
   const size = useMemo(() => part.size.map((value) => value * visualScale * pieceScale), [part.size, visualScale, pieceScale])
   const baseRotation = part.rotation ?? [0, 0, 0]
 
@@ -132,6 +142,10 @@ export default function EnemyDeathCollapse({ id, type, position, visualScale, in
   const style = useMemo(() => collapseStyleForIntensity(intensity), [intensity])
   // scatter(강)는 조각을 절반 크기로 — 가장 세게 터질 때 파편을 잘게.
   const pieceScale = useMemo(() => collapsePieceScaleForStyle(style), [style])
+  const scatterVariant = useMemo(() => {
+    if (style !== 'scatter') return undefined
+    return scatterCollapseVariantForSeed(collapseVariantSeed(id, position))
+  }, [id, position, style])
 
   useEffect(() => {
     const timer = window.setTimeout(() => onDone?.(id), ENEMY_DEATH_COLLAPSE_LIFETIME_MS)
@@ -151,6 +165,7 @@ export default function EnemyDeathCollapse({ id, type, position, visualScale, in
           startedAt={startedAtRef.current}
           style={style}
           pieceScale={pieceScale}
+          scatterVariant={scatterVariant}
         />
       ))}
     </group>

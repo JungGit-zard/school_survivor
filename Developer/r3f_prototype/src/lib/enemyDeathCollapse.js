@@ -1,6 +1,7 @@
 export const ENEMY_DEATH_COLLAPSE_LIFETIME_MS = 780
 export const ENEMY_DEATH_COLLAPSE_FADE_START_MS = 430
 export const ENEMY_DEATH_COLLAPSE_STYLES = ['bodyCollapse', 'scatter', 'crumble']
+export const SCATTER_COLLAPSE_VARIANTS = ['burst', 'spiral', 'wave']
 
 export const ZOMBIE_COLLAPSE_PARTS = [
   { key: 'head', size: [0.52, 0.48, 0.46], offset: [0, 0.82, 0], color: 'skin', outlineScale: 1.08, mass: 0.8 },
@@ -61,16 +62,55 @@ export function collapsePieceScaleForStyle(style) {
   return COLLAPSE_STYLE_PIECE_SCALE[style] ?? 1
 }
 
-function createScatterMotion({ seed, part, index }) {
+export function pickScatterCollapseVariant(roll = Math.random()) {
+  const index = Math.min(SCATTER_COLLAPSE_VARIANTS.length - 1, Math.floor(roll * SCATTER_COLLAPSE_VARIANTS.length))
+  return SCATTER_COLLAPSE_VARIANTS[index]
+}
+
+export function scatterCollapseVariantForSeed(seed = 0) {
+  return pickScatterCollapseVariant(seededCollapseNoise(seed + 91.7))
+}
+
+function normalizeScatterVariant(scatterVariant) {
+  return SCATTER_COLLAPSE_VARIANTS.includes(scatterVariant) ? scatterVariant : 'burst'
+}
+
+function createScatterMotion({ seed, part, index, scatterVariant = 'burst' }) {
   const n0 = seededCollapseNoise(seed)
   const n1 = seededCollapseNoise(seed + 1)
   const n2 = seededCollapseNoise(seed + 2)
   const n3 = seededCollapseNoise(seed + 3)
   const n4 = seededCollapseNoise(seed + 4)
-  const angle = n0 * Math.PI * 2
-  const speed = 4.0 + n1 * 5.4
-  const lift = 1.6 + n2 * 2.3
-  const spin = 8.0 + n3 * 10.5
+  const variant = normalizeScatterVariant(scatterVariant)
+  let angle = n0 * Math.PI * 2
+  let speed = 4.0 + n1 * 5.4
+  let lift = 1.6 + n2 * 2.3
+  let spin = 8.0 + n3 * 10.5
+  let delayMs = Math.min(index, 4) * 3
+  let distanceScale = 1
+  let linearDamping = 1.15
+  let spinDamping = 0.75
+
+  if (variant === 'spiral') {
+    angle += index * 0.72 + n4 * 0.45
+    speed = 3.6 + n1 * 4.8 + (index % 4) * 0.28
+    lift = 1.8 + n2 * 1.9
+    spin += 2.4
+    delayMs = Math.min(index, 8) * 5
+    distanceScale = 1.08
+    linearDamping = 0.95
+    spinDamping = 0.62
+  } else if (variant === 'wave') {
+    const wave = Math.sin(index * 1.7 + n0 * Math.PI)
+    angle += wave * 0.95
+    speed = 3.2 + n1 * 3.5 + (index % 3) * 0.65
+    lift = 1.2 + n2 * 1.5 + (index % 2) * 0.35
+    spin = 6.5 + n3 * 8.0
+    delayMs = (index % 6) * 8
+    distanceScale = 0.9
+    linearDamping = 1.35
+    spinDamping = 0.9
+  }
 
   return {
     x: Math.sin(angle) * speed,
@@ -80,11 +120,12 @@ function createScatterMotion({ seed, part, index }) {
     ry: (n3 - 0.5) * spin,
     rz: (n4 - 0.5) * spin,
     gravity: 0,
-    delayMs: Math.min(index, 4) * 3,
+    delayMs,
     settleY: -0.06,
-    distanceScale: 1,
-    linearDamping: 1.15,
-    spinDamping: 0.75,
+    distanceScale,
+    linearDamping,
+    spinDamping,
+    scatterVariant: variant,
   }
 }
 
@@ -140,8 +181,8 @@ function createBodyCollapseMotion({ seed, part, index }) {
   }
 }
 
-export function createCollapseMotion({ seed, part, index, style = 'bodyCollapse' }) {
-  if (style === 'scatter') return createScatterMotion({ seed, part, index })
+export function createCollapseMotion({ seed, part, index, style = 'bodyCollapse', scatterVariant }) {
+  if (style === 'scatter') return createScatterMotion({ seed, part, index, scatterVariant })
   if (style === 'crumble') return createCrumbleMotion({ seed, part, index })
   return createBodyCollapseMotion({ seed, part, index })
 }
