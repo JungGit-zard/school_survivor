@@ -67,6 +67,18 @@ export function loadLocalRankingEntries(profile = {}) {
   return localEntry ? [localEntry] : []
 }
 
+// cloud entries(raw Firebase objects)와 localEntry를 병합.
+// localEntry가 있으면 cloud에서 uid 일치 항목을 제거한 뒤 localEntry 삽입 → 재정렬.
+export function mergeCloudEntries(localEntry, cloudEntries, userUid) {
+  const policy = getRankingScorePolicy()
+  const base = cloudEntries
+    .filter((e) => e.uid !== userUid)
+    .map((e) => normalizeRankingEntry(e, policy))
+    .filter(Boolean)
+  if (localEntry) base.push(localEntry)
+  return base
+}
+
 export function formatSurvivalTime(seconds) {
   const value = readScore(seconds)
   const minutes = Math.floor(value / 60)

@@ -13,8 +13,12 @@ import {
 import { evaluateUnlocks, isStarter, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { DEFAULT_STAGE_ID, getStageConfig } from '../lib/stageConfig.js'
-import { getAdminBalanceConfig } from '../lib/adminConfig.js'
+import { getAdminBalanceConfig, getAdminRankingSeasonConfig } from '../lib/adminConfig.js'
 import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
+import { submitRankingEntry } from '../lib/firebaseRanking.js'
+import { useAuthStore } from './useAuthStore.js'
+import { getRankingScore, getRankingScorePolicy } from '../lib/rankingScorePolicy.js'
+import { getSavedNickname } from '../lib/userNickname.js'
 import { logDamageTaken } from '../lib/playtestLogger.js'
 
 const BASE_PLAYER = {
@@ -243,6 +247,26 @@ export const useGameStore = create(
 
       set({ newlyUnlockedWeaponIds: Object.freeze(diff) })
       requestCloudProgressSave()
+
+      // 랭킹 제출 — 로그인 상태 + Firebase 설정 시에만 동작 (실패해도 게임에 영향 없음).
+      const cleared = phaseName === 'cleared'
+      const user = useAuthStore.getState().user
+      if (user) {
+        const policy = getRankingScorePolicy()
+        const { seasonId } = getAdminRankingSeasonConfig()
+        const stageConfig = getStageConfig(s.currentStageId)
+        const entry = {
+          score: getRankingScore({ stageId: s.currentStageId, survivalSeconds: runSurvivalSeconds, cleared }, policy),
+          nickname: getSavedNickname(user) || user.displayName || '익명',
+          stageId: s.currentStageId,
+          stageLabel: stageConfig.label,
+          survivalSeconds: runSurvivalSeconds,
+          cleared,
+          kills: s.runKills,
+          submittedAt: new Date().toISOString(),
+        }
+        submitRankingEntry(user, entry, seasonId).catch(() => {})
+      }
     },
 
     gainGold: (amount) => {
