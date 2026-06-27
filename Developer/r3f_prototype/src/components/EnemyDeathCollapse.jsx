@@ -138,14 +138,15 @@ function CollapsePart({ part, index, origin, visualScale, palette, startedAt, st
 export default function EnemyDeathCollapse({ id, type, position, visualScale, intensity = 'medium', onDone }) {
   const palette = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
   const startedAtRef = useRef(performance.now())
+  const styleSeed = useMemo(() => collapseVariantSeed(id, position), [id, position])
   // 박살 강도(약/중/강) → 모션 스타일. intensity가 없으면 중간(bodyCollapse)으로 폴백.
-  const style = useMemo(() => collapseStyleForIntensity(intensity), [intensity])
+  const style = useMemo(() => collapseStyleForIntensity(intensity, styleSeed), [intensity, styleSeed])
   // scatter(강)는 조각을 절반 크기로 — 가장 세게 터질 때 파편을 잘게.
   const pieceScale = useMemo(() => collapsePieceScaleForStyle(style), [style])
   const scatterVariant = useMemo(() => {
     if (style !== 'scatter') return undefined
-    return scatterCollapseVariantForSeed(collapseVariantSeed(id, position))
-  }, [id, position, style])
+    return scatterCollapseVariantForSeed(styleSeed)
+  }, [style, styleSeed])
 
   useEffect(() => {
     const timer = window.setTimeout(() => onDone?.(id), ENEMY_DEATH_COLLAPSE_LIFETIME_MS)
