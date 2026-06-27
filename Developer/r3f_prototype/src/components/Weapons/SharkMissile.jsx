@@ -127,6 +127,7 @@ const ORBIT_RADIUS = 1.4                          // 선회 반경 (world units)
 const ORBIT_SPEED = (2 * Math.PI) / 1.5          // 각속도 rad/s → 1.5초/바퀴
 const ORBITS_TO_EXPLODE = 2                       // 2바퀴 완료 시 폭발
 const ORBIT_ENTRY_DIST = ORBIT_RADIUS + 1.0      // 이 거리 이하 진입 시 호밍 → 선회 전환
+const RETARGET_LOCK_DIST = ORBIT_ENTRY_DIST + 2.0 // 이 거리 이하면 재표적 금지 → 선회 진입 보장
 
 function SharkMissileProjectile({ id, start, initialTarget, damage, radius, range, speed, retargetIntervalMs, bounds, onExplode }) {
   const groupRef = useRef(null)
@@ -160,8 +161,11 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
 
     if (phaseRef.current === 'homing') {
       if (nowMs >= retargetAtRef.current) {
-        const nextTarget = findSharkMissileClusterTarget({ range, radius })
-        if (nextTarget) targetRef.current = clampToBounds(nextTarget.x, nextTarget.z, bounds)
+        // 표적에 근접(RETARGET_LOCK_DIST 이내)하면 재표적 건너뜀 → 선회 진입 보장
+        if (dist > RETARGET_LOCK_DIST) {
+          const nextTarget = findSharkMissileClusterTarget({ range, radius })
+          if (nextTarget) targetRef.current = clampToBounds(nextTarget.x, nextTarget.z, bounds)
+        }
         retargetAtRef.current = nowMs + retargetIntervalMs
       }
 
