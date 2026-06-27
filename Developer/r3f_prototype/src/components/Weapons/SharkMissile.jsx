@@ -160,6 +160,11 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
     }
 
     if (phaseRef.current === 'homing') {
+      const target = targetRef.current
+      const dx = target.x - p.x
+      const dz = target.z - p.z
+      const dist = Math.hypot(dx, dz)
+
       if (nowMs >= retargetAtRef.current) {
         // 표적에 근접(RETARGET_LOCK_DIST 이내)하면 재표적 건너뜀 → 선회 진입 보장
         if (dist > RETARGET_LOCK_DIST) {
@@ -168,11 +173,6 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
         }
         retargetAtRef.current = nowMs + retargetIntervalMs
       }
-
-      const target = targetRef.current
-      const dx = target.x - p.x
-      const dz = target.z - p.z
-      const dist = Math.hypot(dx, dz)
 
       if (dist < ORBIT_ENTRY_DIST) {
         // 선회 진입: ORBIT_RADIUS 버퍼로 클램핑 → 궤도 전체가 맵 안에 유지
