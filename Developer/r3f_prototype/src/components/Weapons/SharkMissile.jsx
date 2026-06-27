@@ -8,6 +8,15 @@ import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 import { findSharkMissileClusterTarget } from '../../lib/sharkMissileTargeting.js'
 import { canFireSharkMissile, createSharkMissileLaunch } from '../../lib/sharkMissileRuntime.js'
+import { getStageBounds } from '../../lib/stageConfig.js'
+
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
+function clampToBounds(x, z, bounds, margin = 0) {
+  return {
+    x: clamp(x, -bounds.halfX + margin, bounds.halfX - margin),
+    z: clamp(z, -bounds.halfZ + margin, bounds.halfZ - margin),
+  }
+}
 
 let _sharkMissileId = 0
 
@@ -119,7 +128,7 @@ const ORBIT_SPEED = (2 * Math.PI) / 1.5          // 각속도 rad/s → 1.5초/�
 const ORBITS_TO_EXPLODE = 2                       // 2바퀴 완료 시 폭발
 const ORBIT_ENTRY_DIST = ORBIT_RADIUS + 1.0      // 이 거리 이하 진입 시 호밍 → 선회 전환
 
-function SharkMissileProjectile({ id, start, initialTarget, damage, radius, range, speed, retargetIntervalMs, onExplode }) {
+function SharkMissileProjectile({ id, start, initialTarget, damage, radius, range, speed, retargetIntervalMs, bounds, onExplode }) {
   const groupRef = useRef(null)
   const ageRef = useRef(0)
   const targetRef = useRef(initialTarget)
@@ -152,7 +161,7 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
     if (phaseRef.current === 'homing') {
       if (nowMs >= retargetAtRef.current) {
         const nextTarget = findSharkMissileClusterTarget({ range, radius })
-        if (nextTarget) targetRef.current = { x: nextTarget.x, z: nextTarget.z }
+        if (nextTarget) targetRef.current = clampToBounds(nextTarget.x, nextTarget.z, bounds)
         retargetAtRef.current = nowMs + retargetIntervalMs
       }
 
@@ -162,10 +171,11 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
       const dist = Math.hypot(dx, dz)
 
       if (dist < ORBIT_ENTRY_DIST) {
-        // 선회 진입: 클러스터 중심 고정, 현재 각도로 진입각 스냅
+        // 선회 진입: ORBIT_RADIUS 버퍼로 클램핑 → 궤도 전체가 맵 안에 유지
         phaseRef.current = 'orbiting'
-        orbitCenterRef.current = { x: target.x, z: target.z }
-        orbitStartAngleRef.current = Math.atan2(p.x - target.x, p.z - target.z)
+        const clamped = clampToBounds(target.x, target.z, bounds, ORBIT_RADIUS)
+        orbitCenterRef.current = clamped
+        orbitStartAngleRef.current = Math.atan2(p.x - clamped.x, p.z - clamped.z)
         orbitTotalAngleRef.current = 0
       } else {
         const nx = dx / dist
@@ -255,6 +265,7 @@ export function SharkMissileWeapon() {
   const lastFireRef = useRef(null)
   const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
+  const currentStageId = useGameStore((s) => s.currentStageId)
 
   const removeExplosion = useCallback((id) => {
     setExplosions((prev) => prev.filter((item) => item.id !== id))
@@ -290,21 +301,27 @@ export function SharkMissileWeapon() {
 
     const radius = w.radius ?? 1.8
     const range = w.range ?? 28
-    const target = findSharkMissileClusterTarget({ range, radius })
-    if (!target) {
+    const rawTarget = findSharkMissileClusterTarget({ range, radius })
+    if (!rawTarget) {
       reportSharkMissileDebug('no-target', { range, radius })
       return
     }
 
+    const bounds = getStageBounds(currentStageId)
+    const target = clampToBounds(rawTarget.x, rawTarget.z, bounds)
+
     lastFireRef.current = now
     startPlayerArmAction(playerArmActionState, 'guidedMissileThrow', now)
 
-    const next = createSharkMissileLaunch({
-      id: ++_sharkMissileId,
-      playerPosition: playerPos,
-      target,
-      weapon: w,
-    })
+    const next = {
+      ...createSharkMissileLaunch({
+        id: ++_sharkMissileId,
+        playerPosition: playerPos,
+        target,
+        weapon: w,
+      }),
+      bounds,
+    }
     reportSharkMissileDebug('launch', next)
     activeMissilesRef.current = [next]
     setMissiles([next])
