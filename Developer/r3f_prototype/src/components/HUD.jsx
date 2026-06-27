@@ -709,8 +709,8 @@ const styles = {
   bossWarning: {
     position: 'absolute',
     left: '50%',
-    top: '43%',
-    transform: 'translate(-50%, -50%)',
+    top: 72,
+    transform: 'translateX(-50%)',
     minWidth: 158,
     textAlign: 'center',
     background: 'rgba(42, 0, 8, 0.82)',
@@ -736,8 +736,8 @@ const styles = {
   projectileWarning: {
     position: 'absolute',
     left: '50%',
-    top: '35%',
-    transform: 'translate(-50%, -50%)',
+    top: 72,
+    transform: 'translateX(-50%)',
     minWidth: 170,
     textAlign: 'center',
     background: 'rgba(6, 38, 40, 0.82)',
