@@ -1,19 +1,38 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import { useAuthStore } from '../store/useAuthStore.js'
 import {
   createRankingRows,
   formatRankScore,
   formatSurvivalTime,
   loadLocalRankingEntries,
+  buildLocalPlayerRankingEntry,
+  mergeCloudEntries,
 } from '../lib/userRanking.js'
+import { fetchTopRanking, isFirebaseRankingConfigured } from '../lib/firebaseRanking.js'
 import { getAdminRankingSeasonConfig } from '../lib/adminConfig.js'
 
 export default function UserRanking({ onBack, entries }) {
   const user = useAuthStore((s) => s.user)
-  const rankingEntries = useMemo(
-    () => entries ?? loadLocalRankingEntries(user ?? {}),
-    [entries, user],
-  )
+  const [cloudEntries, setCloudEntries] = useState(null)
+
+  const { seasonId } = useMemo(() => getAdminRankingSeasonConfig(), [])
+
+  useEffect(() => {
+    if (!isFirebaseRankingConfigured()) return
+    fetchTopRanking(seasonId)
+      .then(setCloudEntries)
+      .catch(() => {})
+  }, [seasonId])
+
+  const rankingEntries = useMemo(() => {
+    if (entries) return entries
+    if (cloudEntries) {
+      const localEntry = buildLocalPlayerRankingEntry(undefined, user ?? {})
+      return mergeCloudEntries(localEntry, cloudEntries, user?.uid)
+    }
+    return loadLocalRankingEntries(user ?? {})
+  }, [entries, cloudEntries, user])
+
   const rows = useMemo(() => createRankingRows(rankingEntries), [rankingEntries])
   const bestRow = rows.find((row) => !row.empty)
   const season = useMemo(() => getAdminRankingSeasonConfig(), [])

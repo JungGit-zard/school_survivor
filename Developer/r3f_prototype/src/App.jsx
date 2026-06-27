@@ -121,6 +121,7 @@ export default function App() {
             <HUD
               onOpenCoinShop={() => { setPrevScreen('game'); setScreen('coinShop') }}
               onGoToTitle={() => setScreen('title')}
+              onGoToRanking={() => setScreen('ranking')}
             />
             {mobileJoystickEnabled && (
               <VirtualJoystick enabled phase={phase} playAreaRef={phoneFrameRef} />

@@ -331,7 +331,7 @@ export function UpgradeIcon({ type }) {
   )
 }
 
-export default function HUD({ onOpenCoinShop, onGoToTitle }) {
+export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
   const {
     player, weapons, phase, pauseSource,
     elapsed, currentStageId, bossSpawned,
@@ -599,6 +599,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle }) {
                 {copyStatus === 'copied' ? '✓ 복사됨' : copyStatus === 'error' ? '복사 실패' : '📋 로그 복사'}
               </button>
               <button style={styles.titleBtn} onClick={onGoToTitle}>타이틀로</button>
+              {onGoToRanking && <button style={styles.rankingBtn} onClick={onGoToRanking}>🏆 랭킹</button>}
               <button style={styles.shopBtn} onClick={onOpenCoinShop}>코인상점</button>
               <button style={styles.restartBtn} onClick={() => resetGame(currentStageId)}>다시 시작</button>
             </div>
@@ -658,6 +659,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle }) {
                 {copyStatus === 'copied' ? '✓ 복사됨' : copyStatus === 'error' ? '복사 실패' : '📋 로그 복사'}
               </button>
               <button style={styles.titleBtn} onClick={onGoToTitle}>타이틀로</button>
+              {onGoToRanking && <button style={styles.rankingBtn} onClick={onGoToRanking}>🏆 랭킹</button>}
               <button style={styles.shopBtn} onClick={onOpenCoinShop}>코인상점</button>
               <button style={styles.restartBtn} onClick={() => resetGame(currentStageId)}>다시 시작</button>
             </div>
@@ -1155,6 +1157,11 @@ const styles = {
   titleBtn: {
     background: 'transparent', border: '1.5px solid #6080c0', borderRadius: 8,
     color: '#a0b8e8', fontSize: 15, fontWeight: 600, cursor: 'pointer',
+    padding: '11px 20px',
+  },
+  rankingBtn: {
+    background: 'transparent', border: '1.5px solid #ffd040', borderRadius: 8,
+    color: '#ffd040', fontSize: 15, fontWeight: 700, cursor: 'pointer',
     padding: '11px 20px',
   },
   shopBtn: {
