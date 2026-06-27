@@ -274,7 +274,7 @@ function RenderPreviewItem({ item }) {
     return <EnemyProjectileVisual />
   }
   if (item.previewKind === 'enemyCollapse') {
-    return <EnemyDeathCollapse id="studio-collapse" type="E01" position={[0, 0.6, 0]} visualScale={1.25} intensity="heavy" onDone={() => {}} />
+    return <EnemyDeathCollapse id="studio-slump" type="E01" position={[0, 0.6, 0]} visualScale={1.25} intensity="weak" onDone={() => {}} />
   }
   if (item.previewKind === 'healthBar') {
     return (

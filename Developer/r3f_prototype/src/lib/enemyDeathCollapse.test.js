@@ -5,11 +5,13 @@ import {
   ENEMY_DEATH_COLLAPSE_LIFETIME_MS,
   ENEMY_DEATH_COLLAPSE_STYLES,
   SCATTER_COLLAPSE_VARIANTS,
+  WEAK_COLLAPSE_STYLES,
   ZOMBIE_COLLAPSE_PARTS,
   collapsePieceScaleForStyle,
   collapseStyleForIntensity,
   createCollapseMotion,
   pickEnemyDeathCollapseStyle,
+  pickWeakCollapseStyle,
   resolveCollapseIntensity,
 } from './enemyDeathCollapse.js'
 
@@ -54,11 +56,12 @@ describe('enemy death collapse body pieces', () => {
     expect(Math.hypot(motion.x, motion.z)).toBeGreaterThan(0.2)
   })
 
-  it('chooses between the restored three death effects', () => {
-    expect(ENEMY_DEATH_COLLAPSE_STYLES).toEqual(['bodyCollapse', 'scatter', 'crumble'])
+  it('chooses between the restored death effects plus the slump pattern', () => {
+    expect(ENEMY_DEATH_COLLAPSE_STYLES).toEqual(['bodyCollapse', 'scatter', 'crumble', 'slump'])
     expect(pickEnemyDeathCollapseStyle(0)).toBe('bodyCollapse')
-    expect(pickEnemyDeathCollapseStyle(0.34)).toBe('scatter')
-    expect(pickEnemyDeathCollapseStyle(0.99)).toBe('crumble')
+    expect(pickEnemyDeathCollapseStyle(0.26)).toBe('scatter')
+    expect(pickEnemyDeathCollapseStyle(0.51)).toBe('crumble')
+    expect(pickEnemyDeathCollapseStyle(0.99)).toBe('slump')
   })
 
   it('restores the scatter shatter motion', () => {
@@ -112,6 +115,36 @@ describe('enemy death collapse body pieces', () => {
     expect(Math.hypot(motion.x, motion.z)).toBeLessThan(1)
     expect(motion.delayMs).toBe(30)
   })
+
+  it('creates a slump-down death motion that sits into place before fading', () => {
+    const head = createCollapseMotion({
+      seed: 12.5,
+      part: ZOMBIE_COLLAPSE_PARTS.find((part) => part.key === 'head'),
+      index: 0,
+      style: 'slump',
+    })
+    const body = createCollapseMotion({
+      seed: 13.5,
+      part: ZOMBIE_COLLAPSE_PARTS.find((part) => part.key === 'body'),
+      index: 3,
+      style: 'slump',
+    })
+    const leg = createCollapseMotion({
+      seed: 14.5,
+      part: ZOMBIE_COLLAPSE_PARTS.find((part) => part.key === 'legL'),
+      index: 8,
+      style: 'slump',
+    })
+
+    expect(head.y).toBeLessThan(0)
+    expect(body.y).toBeLessThan(0)
+    expect(Math.hypot(body.x, body.z)).toBeLessThan(0.45)
+    expect(body.gravity).toBeLessThan(8)
+    expect(head.settleY).toBeGreaterThan(body.settleY)
+    expect(leg.settleY).toBeLessThan(body.settleY)
+    expect(body.linearDamping).toBeGreaterThan(3)
+    expect(body.spinDamping).toBeGreaterThan(2)
+  })
 })
 
 describe('death shatter intensity by killing-hit power', () => {
@@ -126,6 +159,13 @@ describe('death shatter intensity by killing-hit power', () => {
     expect(collapseStyleForIntensity('strong')).toBe('scatter')
     // unknown/undefined falls back to the medium style
     expect(collapseStyleForIntensity(undefined)).toBe('bodyCollapse')
+  })
+
+  it('mixes weak deaths between crumble and the new slump pattern', () => {
+    expect(WEAK_COLLAPSE_STYLES).toEqual(['crumble', 'slump'])
+    expect(pickWeakCollapseStyle(0)).toBe('crumble')
+    expect(pickWeakCollapseStyle(0.99)).toBe('slump')
+    expect(WEAK_COLLAPSE_STYLES).toContain(collapseStyleForIntensity('weak', 12.5))
   })
 
   it('weak: a light finishing hit relative to max HP, no knockback', () => {
@@ -155,6 +195,7 @@ describe('death shatter intensity by killing-hit power', () => {
     expect(collapsePieceScaleForStyle('scatter')).toBe(0.5)
     expect(collapsePieceScaleForStyle('bodyCollapse')).toBe(1)
     expect(collapsePieceScaleForStyle('crumble')).toBe(1)
+    expect(collapsePieceScaleForStyle('slump')).toBe(1)
     expect(collapsePieceScaleForStyle(undefined)).toBe(1)
   })
 })

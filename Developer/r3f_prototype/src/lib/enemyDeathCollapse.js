@@ -1,7 +1,8 @@
 export const ENEMY_DEATH_COLLAPSE_LIFETIME_MS = 780
 export const ENEMY_DEATH_COLLAPSE_FADE_START_MS = 430
-export const ENEMY_DEATH_COLLAPSE_STYLES = ['bodyCollapse', 'scatter', 'crumble']
+export const ENEMY_DEATH_COLLAPSE_STYLES = ['bodyCollapse', 'scatter', 'crumble', 'slump']
 export const SCATTER_COLLAPSE_VARIANTS = ['burst', 'spiral', 'wave']
+export const WEAK_COLLAPSE_STYLES = ['crumble', 'slump']
 
 export const ZOMBIE_COLLAPSE_PARTS = [
   { key: 'head', size: [0.52, 0.48, 0.46], offset: [0, 0.82, 0], color: 'skin', outlineScale: 1.08, mass: 0.8 },
@@ -28,6 +29,11 @@ export function pickEnemyDeathCollapseStyle(roll = Math.random()) {
   return ENEMY_DEATH_COLLAPSE_STYLES[index]
 }
 
+export function pickWeakCollapseStyle(roll = Math.random()) {
+  const index = Math.min(WEAK_COLLAPSE_STYLES.length - 1, Math.floor(roll * WEAK_COLLAPSE_STYLES.length))
+  return WEAK_COLLAPSE_STYLES[index]
+}
+
 // 박살 강도 3단계. 막타 위력(killingDamage/maxHp 비중 + 넉백)으로 결정한다.
 export const COLLAPSE_INTENSITIES = ['weak', 'medium', 'strong']
 
@@ -49,7 +55,10 @@ export function resolveCollapseIntensity({ killingDamage = 0, maxHp = 1, knockba
   return 'weak'
 }
 
-export function collapseStyleForIntensity(intensity) {
+export function collapseStyleForIntensity(intensity, seed) {
+  if (intensity === 'weak' && Number.isFinite(seed)) {
+    return pickWeakCollapseStyle(seededCollapseNoise(seed + 151.3))
+  }
   return COLLAPSE_INTENSITY_STYLE[intensity] ?? 'bodyCollapse'
 }
 
@@ -155,6 +164,43 @@ function createCrumbleMotion({ seed, part, index }) {
   }
 }
 
+function settleYForSlumpPart(part) {
+  if (part.key === 'head' || part.key.startsWith('eye')) return 0.10
+  if (part.key === 'body') return -0.04
+  if (part.key.includes('arm') || part.key.includes('hand')) return -0.12
+  if (part.key.includes('leg')) return -0.30
+  if (part.key.includes('foot')) return -0.42
+  return -0.12
+}
+
+function createSlumpMotion({ seed, part, index }) {
+  const [ox, oy, oz] = part.offset
+  const n0 = seededCollapseNoise(seed)
+  const n1 = seededCollapseNoise(seed + 1)
+  const n2 = seededCollapseNoise(seed + 2)
+  const n3 = seededCollapseNoise(seed + 3)
+  const n4 = seededCollapseNoise(seed + 4)
+  const topBias = Math.max(0, Math.min(1, (oy + 0.6) / 1.5))
+  const limbBias = part.key.includes('arm') || part.key.includes('hand') || part.key.includes('leg') || part.key.includes('foot')
+  const foldForward = part.key === 'head' || part.key === 'body'
+    ? 0.12 + n1 * 0.10
+    : -oz * (0.10 + n1 * 0.08)
+
+  return {
+    x: -ox * (0.16 + n0 * 0.13) + (n1 - 0.5) * 0.06,
+    y: -(0.46 + topBias * 0.72 + n2 * 0.18),
+    z: foldForward + (n0 - 0.5) * 0.06,
+    rx: (part.key === 'head' || part.key === 'body' ? 2.6 : 1.0) + (n2 - 0.5) * (limbBias ? 2.8 : 1.4),
+    ry: (n3 - 0.5) * 1.2,
+    rz: (n4 - 0.5) * (limbBias ? 2.4 : 1.1),
+    gravity: 4.4 + topBias * 1.6 + part.mass * 0.45,
+    delayMs: Math.min(index, 8) * 6,
+    settleY: settleYForSlumpPart(part),
+    linearDamping: 3.8,
+    spinDamping: 2.6,
+  }
+}
+
 function createBodyCollapseMotion({ seed, part, index }) {
   const [ox, oy, oz] = part.offset
   const sideLen = Math.hypot(ox, oz) || 1
@@ -184,5 +230,6 @@ function createBodyCollapseMotion({ seed, part, index }) {
 export function createCollapseMotion({ seed, part, index, style = 'bodyCollapse', scatterVariant }) {
   if (style === 'scatter') return createScatterMotion({ seed, part, index, scatterVariant })
   if (style === 'crumble') return createCrumbleMotion({ seed, part, index })
+  if (style === 'slump') return createSlumpMotion({ seed, part, index })
   return createBodyCollapseMotion({ seed, part, index })
 }
