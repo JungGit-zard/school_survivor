@@ -4,6 +4,7 @@ import {
   ENEMY_DEATH_COLLAPSE_FADE_START_MS,
   ENEMY_DEATH_COLLAPSE_LIFETIME_MS,
   ENEMY_DEATH_COLLAPSE_STYLES,
+  SCATTER_COLLAPSE_VARIANTS,
   ZOMBIE_COLLAPSE_PARTS,
   collapsePieceScaleForStyle,
   collapseStyleForIntensity,
@@ -73,6 +74,30 @@ describe('enemy death collapse body pieces', () => {
     expect(motion.linearDamping).toBeLessThan(1.3)
     expect(Math.hypot(motion.x, motion.z)).toBeGreaterThan(4)
     expect(motion.y).toBeGreaterThan(1.5)
+  })
+
+  it('gives explosive scatter deaths three fragment patterns', () => {
+    expect(SCATTER_COLLAPSE_VARIANTS).toEqual(['burst', 'spiral', 'wave'])
+
+    const motions = SCATTER_COLLAPSE_VARIANTS.map((scatterVariant) => (
+      createCollapseMotion({
+        seed: 12.5,
+        part: ZOMBIE_COLLAPSE_PARTS[0],
+        index: 0,
+        style: 'scatter',
+        scatterVariant,
+      })
+    ))
+    const signatures = motions.map((motion) => (
+      `${motion.x.toFixed(3)}:${motion.z.toFixed(3)}:${motion.delayMs}:${motion.distanceScale}`
+    ))
+
+    expect(new Set(signatures).size).toBe(3)
+    motions.forEach((motion) => {
+      expect(motion.gravity).toBe(0)
+      expect(Math.hypot(motion.x, motion.z)).toBeGreaterThan(3)
+      expect(motion.y).toBeGreaterThan(1)
+    })
   })
 
   it('restores the in-place crumble motion', () => {
