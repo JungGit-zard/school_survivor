@@ -99,3 +99,19 @@
 ### 절대로 하면 안 되는 사항
 
 - 절대로 검증하지 않은 기능을 검증 완료로 기록하지 않는다.
+
+## Kanban 서브에이전트 개발 프로세스 정책
+
+### 반드시 지켜야 할 사항
+
+- 반드시 여러 역할이 필요한 게임 개발, 마일스톤, 릴리스 준비, QA 게이트, 그래픽/개발/기획 통합 작업은 `escape-zombie-school` Kanban 보드와 등록된 Hermes 프로필을 통해 분해·배정·검증한다.
+- 반드시 Kanban 서브에이전트 투입 절차는 `Developer/agent_room/game_development_kanban_process.md`를 따른다.
+- 반드시 Kanban 카드의 담당자는 실제 spawn 가능한 프로필명(`threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`) 중 하나로 지정한다.
+- 반드시 worker 실행 전 프로필 HOME의 `~/.claude/skills/gstack/bin` 게이트가 통과하는지 확인한다.
+- 반드시 implementation wave 완료 선언 전 `todo=0`, `ready=0`, `running=0`, `blocked=0` 상태를 확인한다.
+
+### 절대로 하면 안 되는 사항
+
+- 절대로 `game-developer`, `balance_qa`처럼 spawn 불가능한 임시 assignee를 그대로 방치하지 않는다.
+- 절대로 `review-required`로 막힌 코드 작업을 테스트/빌드/정적 점검 없이 완료 처리하지 않는다.
+- 절대로 Kanban worker가 만든 변경을 검증 없이 릴리스 가능 또는 완료로 취급하지 않는다.
