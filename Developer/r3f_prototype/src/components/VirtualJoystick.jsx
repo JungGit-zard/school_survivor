@@ -149,6 +149,8 @@ export default function VirtualJoystick({ enabled = false, phase = 'playing', pl
       window.removeEventListener('touchend', onEnd)
       window.removeEventListener('touchcancel', onEnd)
       cancelScheduledView()
+      stateRef.current.active = false
+      stateRef.current.touchId = null
       resetJoystickInput()
     }
   }, [enabled, phase, playAreaRef])
