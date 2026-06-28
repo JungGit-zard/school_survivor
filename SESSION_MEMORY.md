@@ -7,6 +7,7 @@
 
 ---
 
+
 ### 추가 작업 — 2026-06-21 2016 KST
 
 - 사용자의 목표: 회의 결과에 따라 점수체계를 정립해 `rank_score.md`를 `Planner/B. GAME_DESIGN/`에 저장하고, 이에 따라 게임에 적용한 뒤 테스트까지 완료.
@@ -1338,5 +1339,245 @@ npm run build
   - `npm run build`: 성공. Vite 대형 chunk 경고는 기존 대형 에셋/번들 경고다.
   - 브라우저 검증: `storedNicknames.local`이 `테스트 생존자`로 저장되고, 닉네임 저장 후 게임 HUD(`Stage 1`, `HP100/100`)가 표시됨을 확인했다.
 - 현재 작업트리에는 이전 작업 변경, 랭킹 변경, 이번 닉네임 변경이 함께 미커밋 상태로 남아 있다. `Developer/r3f_prototype/src/components/Weapons/Starlink.jsx` 변경도 보이지만 이번 작업에서 수정한 파일은 아니다.
+
+---
+
+## Session 5 · Entry 3 · 2026-06-28 1212 KST
+
+### Git 상태
+
+- 브랜치: `feature/stage2-corridor-floor-graphics...origin/feature/stage2-corridor-floor-graphics`
+- 최신 커밋: `1a295b9 feat(vfx): add zombie slump death pattern`
+- `git status --short --branch` 요약:
+  - 수정됨: `Developer/r3f_prototype/src/components/HUD.jsx`
+  - 수정됨: `Developer/r3f_prototype/src/components/HUD.test.jsx`
+  - 수정됨: `Developer/r3f_prototype/src/store/useGameStore.js`
+  - 새 파일: `Planner/pause_return_to_title_ranking_rule_2026-06-28.md`
+  - 새 파일: `Developer/pause_return_to_title_ranking_implementation_2026-06-28.md`
+  - 새 파일: `Graphic_designer/pause_return_to_title_confirm_ui_2026-06-28.md`
+  - 새 파일: `Quaility_Assurance/pause_return_to_title_ranking_validation_2026-06-28.md`
+  - 새 파일: `Quaility_Assurance/pause_return_title_game_2026-06-28.png`
+  - 새 파일: `Quaility_Assurance/pause_return_title_paused_2026-06-28.png`
+  - 새 파일: `Quaility_Assurance/pause_return_title_confirm_2026-06-28.png`
+  - 새 파일: `Quaility_Assurance/pause_return_title_after_confirm_2026-06-28.png`
+  - 기존 미커밋 수정도 존재: `Game.jsx`, `SharkMissile.jsx`, `refs.js`, `stageConfig.js`
+
+### 이번 3시간 작업 / 대화
+
+- 사용자 요청: 일시정지 UI에 `타이틀로 돌아가기`를 추가하고, 누르면 확인 후 타이틀로 돌아가며 그 시점까지의 점수를 랭킹에 반영.
+- TDD로 `HUD.test.jsx`에 실패 테스트를 먼저 추가했다.
+- `useGameStore`에 `quitPausedRun` 액션을 추가해 일시정지 상태에서만 `_onRunEnd('quit')`를 호출하도록 했다.
+- `HUD.jsx` 일시정지 패널에 `타이틀로 돌아가기` 버튼과 게임 내 확인 UI를 추가했다.
+- 확인 전에는 기록/이동하지 않고, `돌아가기` 확인 후 현재 생존 시간 기준 기록 저장과 타이틀 복귀가 일어난다.
+- 중도 종료는 `cleared: false`라서 클리어 횟수와 클리어 보너스를 주지 않는다.
+
+### 생성 / 수정 / 이동 파일 목록
+
+- `Developer/r3f_prototype/src/store/useGameStore.js`: 일시정지 중도 종료 기록 액션 `quitPausedRun` 추가.
+- `Developer/r3f_prototype/src/components/HUD.jsx`: 일시정지 패널의 타이틀 복귀 버튼, 확인 UI, 확인 후 기록/복귀 연결.
+- `Developer/r3f_prototype/src/components/HUD.test.jsx`: 일시정지 타이틀 복귀 확인/랭킹 기록 테스트 추가.
+- `Planner/pause_return_to_title_ranking_rule_2026-06-28.md`: 기획 규칙 기록.
+- `Developer/pause_return_to_title_ranking_implementation_2026-06-28.md`: 개발 구현 기록.
+- `Graphic_designer/pause_return_to_title_confirm_ui_2026-06-28.md`: UI 방향 기록.
+- `Quaility_Assurance/pause_return_to_title_ranking_validation_2026-06-28.md`: 테스트/빌드/브라우저 검증 기록.
+- `Quaility_Assurance/pause_return_title_game_2026-06-28.png`: 게임 진입 스크린샷.
+- `Quaility_Assurance/pause_return_title_paused_2026-06-28.png`: 일시정지 패널 스크린샷.
+- `Quaility_Assurance/pause_return_title_confirm_2026-06-28.png`: 타이틀 복귀 확인 UI 스크린샷.
+- `Quaility_Assurance/pause_return_title_after_confirm_2026-06-28.png`: 확인 후 타이틀 복귀 스크린샷.
+
+### 명령 로그
+
+- `rg -n "pause|paused|pausePanel|resume|restart|onGoToTitle|titleBtn|modalButtons|pauseGame|resumeGame|restart" Developer/r3f_prototype/src/components/HUD.jsx`
+- `rg -n "_onRunEnd|submitRankingEntry|ranking|clearStage|pauseGame|resumeGame|restartGame|phase|runSurvival|score" Developer/r3f_prototype/src/store/useGameStore.js`
+- `rg -n "save|local|Ranking|loadLocalRankingEntries|buildLocalPlayerRankingEntry|submit|score" Developer/r3f_prototype/src/lib/userRanking.js`
+- `rg -n "pause|paused|onGoToTitle|ranking|submit|localStorage|render\(<HUD|useGameStore" Developer/r3f_prototype/src/components/HUD.test.jsx`
+- `Get-Content C:\Users\admin\.codex\plugins\cache\openai-curated\superpowers\3fdeeb49\skills\test-driven-development\SKILL.md`
+- `Get-Content project_develop_policy.md`
+- `Get-Content SESSION_CONTINUITY.md`
+- `Get-Content Developer/r3f_prototype/src/components/HUD.jsx | Select-Object -Skip 520 -First 165`
+- `Get-Content Developer/r3f_prototype/src/components/HUD.jsx | Select-Object -Skip 1160 -First 90`
+- `Get-Content Developer/r3f_prototype/src/components/HUD.test.jsx | Select-Object -First 260`
+- `Get-Content Developer/r3f_prototype/src/store/useGameStore.js | Select-Object -Skip 180 -First 230`
+- `Get-Content Developer/r3f_prototype/src/store/useGameStore.js | Select-Object -First 180`
+- `Get-Content Developer/r3f_prototype/src/store/useGameStore.js | Select-Object -Skip 390 -First 105`
+- `Get-Content Developer/r3f_prototype/src/lib/userRanking.js | Select-Object -First 180`
+- `rg -n "setBestPlayerRecord|snapshotPlayerRecords|loadPlayerRecords|bestSurvivalSeconds|stage2Best" Developer/r3f_prototype/src/lib Developer/r3f_prototype/src/store`
+- `rg -n "function App|setScreen\('game'|resetGame\(|screen === 'game'|onGoToTitle|TitleScreen|CoinShop|Ranking" Developer/r3f_prototype/src/App.jsx`
+- `Get-Content Developer/r3f_prototype/src/lib/playerRecords.js | Select-Object -First 220`
+- `Get-Content Developer/r3f_prototype/src/store/useGameStore.unlocks.test.js | Select-Object -First 150`
+- `Get-Content Developer/r3f_prototype/src/lib/rankingScorePolicy.js | Select-Object -First 220`
+- `rg -n "_onRunEnd\(" Developer/r3f_prototype/src --glob "*.test.*"`
+- `npm test -- HUD.test.jsx` (RED, expected fail)
+- `Get-Content Developer/r3f_prototype/src/components/HUD.jsx | Select-Object -First 120`
+- `Get-Content Developer/r3f_prototype/src/components/HUD.jsx | Select-Object -Skip 320 -First 80`
+- `Get-Content Developer/r3f_prototype/src/components/HUD.jsx | Select-Object -Skip 850 -First 75`
+- `Get-Content Developer/r3f_prototype/src/components/HUD.jsx | Select-Object -Skip 1110 -First 75`
+- `npm test -- HUD.test.jsx` (GREEN)
+- `git diff -- Developer/r3f_prototype/src/components/HUD.jsx Developer/r3f_prototype/src/components/HUD.test.jsx Developer/r3f_prototype/src/store/useGameStore.js`
+- `git status --short --branch`
+- `Test-Path ...` role record existence check
+- `rg -n "타이틀로 돌아가기|quitPausedRun|일시정지" Planner Developer Graphic_designer Quaility_Assurance -g "*.md"`
+- `npm test`
+- `npm run build`
+- `rg -n "getPlayerMovementBounds|movementBounds|bounds|stage1" ...`
+- `git diff -- Developer/r3f_prototype/src/lib/playerMovementBounds.js Developer/r3f_prototype/src/lib/playerMovementBounds.test.js Developer/r3f_prototype/src/lib/stageConfig.js Developer/r3f_prototype/src/components/Game.jsx Developer/r3f_prototype/src/lib/refs.js`
+- `rg -n "function getPlayerMovementBounds|getPlayerMovementBounds|mapHalfX|PLAYER" Developer/r3f_prototype/src/lib/playerMovementBounds.js Developer/r3f_prototype/src/lib/playerMovementBounds.test.js Developer/r3f_prototype/src/lib/stageConfig.js`
+- `Get-Content Developer/r3f_prototype/src/lib/playerMovementBounds.js | Select-Object -First 120`
+- `Get-Content Developer/r3f_prototype/src/lib/playerMovementBounds.test.js | Select-Object -First 120`
+- `Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue | Select-Object -First 5 -Property LocalAddress,LocalPort,State,OwningProcess`
+- `Get-Process node -ErrorAction SilentlyContinue | Select-Object -First 10 -Property Id,ProcessName,Path`
+- `Invoke-WebRequest -Uri http://localhost:5173 -UseBasicParsing -TimeoutSec 5`
+- `Get-CimInstance Win32_Process -Filter "ProcessId = 21608" | Select-Object ProcessId,CommandLine`
+- Playwright/Chrome headless scripts for title, game, paused, confirm, and after-confirm screenshots.
+- `Remove-Item -LiteralPath ...pause_return_title_initial_2026-06-28.png, ...pause_return_title_after_start_2026-06-28.png`
+- `Get-Content C:\Users\admin\.codex\plugins\cache\openai-curated\superpowers\3fdeeb49\skills\verification-before-completion\SKILL.md`
+- `git diff --check`
+- `git status --short --branch`
+- `git log -1 --oneline`
+- `Get-Date -Format 'yyyy-MM-dd HHmm KST'`
+- `Get-Content SESSION_MEMORY.md | Select-Object -Last 40`
+
+### 명령 / 빌드 / 테스트 / 브라우저 검증 결과
+
+- `npm test -- HUD.test.jsx`: 처음에는 `타이틀로 돌아가기` 버튼 미존재로 실패, 구현 후 `9 passed`.
+- `npm run build`: 통과. Vite 큰 chunk 경고는 있음.
+- `npm test`: 실패 1건, 통과 319건. 실패는 `src/lib/playerMovementBounds.test.js`의 Stage 1 이동 범위 기대값 불일치.
+- `git diff --check`: 공백 오류 없음. CRLF 변환 경고만 표시.
+- 브라우저 검증: Chrome headless `390x844`에서 타이틀 → 닉네임 → 게임 → 일시정지 → 타이틀 복귀 확인 → 돌아가기 → 타이틀 복귀 및 `school_survivor:playerRecords` 기록 확인.
+- 스크린샷 경로:
+  - `Quaility_Assurance/pause_return_title_game_2026-06-28.png`
+  - `Quaility_Assurance/pause_return_title_paused_2026-06-28.png`
+  - `Quaility_Assurance/pause_return_title_confirm_2026-06-28.png`
+  - `Quaility_Assurance/pause_return_title_after_confirm_2026-06-28.png`
+
+### 확정된 룰 / 정책 변경
+
+- 새 프로젝트 정책 변경 없음.
+- 이번 기능 규칙: 일시정지에서 타이틀로 돌아갈 때는 확인 UI를 거치고, 확인 시점까지의 런 기록을 랭킹 후보에 반영한다. 클리어로 보지는 않는다.
+
+### 미해결 이슈 + 다음 단계
+
+- `npm test` 전체 실행은 `playerMovementBounds.test.js` 1건 실패 중.
+- 원인: 현재 `stageConfig.js`의 `stage1.mapHalfX`가 7로 수정되어 실제 이동 X 범위가 `-5~5`인데, 테스트는 기존 `-12~12`를 기대한다.
+- 이 수정은 이번 일시정지/랭킹 작업 범위가 아니며, 기존 워킹트리 수정으로 보인다. 다음 작업에서 Stage 1 폭 축소가 의도인지 확인한 뒤 테스트 또는 맵 경계값을 정리해야 한다.
+- 다음 세션이 가장 먼저 읽을 항목: `Quaility_Assurance/pause_return_to_title_ranking_validation_2026-06-28.md`, `Developer/pause_return_to_title_ranking_implementation_2026-06-28.md`, 그리고 `playerMovementBounds.test.js` 실패 내용.
+
+---
+## Session 5 · Entry 4 · 2026-06-28 2255 KST
+
+### Git 상태
+
+- 브랜치: `feature/stage2-corridor-floor-graphics...origin/feature/stage2-corridor-floor-graphics`
+- 최신 커밋: `1a295b9 feat(vfx): add zombie slump death pattern`
+- `git status --short --branch` 요약:
+  - 수정됨: `Developer/r3f_prototype/src/components/GraphicsStudioPreview.jsx`
+  - 수정됨: `Developer/r3f_prototype/src/components/StageObjects/stageObjectPlacements.test.js`
+  - 수정됨: `Developer/r3f_prototype/src/lib/graphicsStudioConfig.js`
+  - 수정됨: `Developer/r3f_prototype/src/lib/playerMovementBounds.test.js`
+  - 새 파일: `Developer/r3f_prototype/src/components/MatildaMesh.jsx`
+  - 새 파일: `Developer/matilda_graphics_studio_completion_2026-06-28.md`
+  - 새 파일: `Graphic_designer/matilda_graphics_studio_direction_2026-06-28.md`
+  - 새 파일: `Quaility_Assurance/matilda_graphics_studio_validation_2026-06-28.md`
+  - 기존 미커밋/미추적 변경 다수 유지. 되돌리지 않음.
+
+### 이번 3시간 작업 / 대화
+
+- 사용자 지시: "하던일 진행".
+- 최근 세션 메모리의 미해결 항목인 `playerMovementBounds.test.js` 실패부터 이어서 처리.
+- 원인: Stage 1 `mapHalfX`가 7로 줄었고 `stageObjectPlacements.js`도 이를 기준으로 조정됐으나, 이동 경계 테스트는 예전 `-12~12` 기대값에 머물러 있었다.
+- 추가 전체 테스트에서 발견된 미완성 항목 처리:
+  - `MatildaMesh.test.js`가 요구하는 `MatildaMesh.jsx`가 없었음.
+  - `graphicsStudioConfig.test.js`가 요구하는 `enemy-matilda` 등록이 없었음.
+  - Stage 1 중앙 플레이 구역 테스트가 예전 `abs(x) >= 12` 기준을 사용하고 있었음.
+- `UserRanking.test.jsx` 타임아웃은 단독 재현되지 않았고 통과. 최초 전체 병렬 테스트의 Node/Vitest worker OOM 영향으로 판단.
+
+### 생성 / 수정 / 이동 파일 목록
+
+- `Developer/r3f_prototype/src/lib/playerMovementBounds.test.js`: Stage 1 이동 가능 X 기대값을 현재 `mapHalfX=7`, inset 2 기준 `-5~5`로 갱신.
+- `Developer/r3f_prototype/src/components/MatildaMesh.jsx`: Matilda 모델 전용 3D toon/outline 블록아웃 추가.
+- `Developer/r3f_prototype/src/lib/graphicsStudioConfig.js`: `enemy-matilda` Graphics Studio 카탈로그 항목 등록.
+- `Developer/r3f_prototype/src/components/GraphicsStudioPreview.jsx`: Matilda 프리뷰 렌더링 연결.
+- `Developer/r3f_prototype/src/components/StageObjects/stageObjectPlacements.test.js`: Stage 1 중앙 비움 기준을 현재 배치 주석과 같은 `abs(x) >= 6 || abs(z) >= 12`로 갱신.
+- `Developer/matilda_graphics_studio_completion_2026-06-28.md`: 개발 기록.
+- `Graphic_designer/matilda_graphics_studio_direction_2026-06-28.md`: 그래픽 방향 기록.
+- `Quaility_Assurance/matilda_graphics_studio_validation_2026-06-28.md`: 검증 기록.
+
+### 명령 로그
+
+- `Get-Content -Raw C:\Users\admin\.codex\plugins\cache\openai-curated\superpowers\3fdeeb49\skills\using-superpowers\SKILL.md`
+- `git status --short --branch`
+- `if (Test-Path project_develop_policy.md) { Get-Content -Raw project_develop_policy.md } else { Write-Output '__MISSING__' }`
+- `if (Test-Path SESSION_CONTINUITY.md) { Get-Content -Raw SESSION_CONTINUITY.md } else { Write-Output '__MISSING__' }`
+- `Get-ChildItem -Force | Select-Object Mode,Length,LastWriteTime,Name`
+- `Get-Content -Raw Bang_Rules.md`
+- `Get-Content -Raw AGENTS.md`
+- `Get-Content -Raw CLAUDE.md`
+- `$text = Get-Content -Raw SESSION_MEMORY.md; $matches = [regex]::Matches($text, '(?m)^## Session .*$'); if ($matches.Count -eq 0) { $text } else { $start = $matches[$matches.Count-1].Index; $text.Substring($start) }`
+- `if (Test-Path $HOME\.claude\skills\gstack\bin) { Write-Output 'GSTACK_OK' } else { Write-Output 'GSTACK_MISSING' }`
+- `Get-Content -Raw C:\Users\admin\.codex\plugins\cache\openai-curated\superpowers\3fdeeb49\skills\systematic-debugging\SKILL.md`
+- `Get-Content -Raw C:\Users\admin\.codex\plugins\cache\openai-curated\superpowers\3fdeeb49\skills\test-driven-development\SKILL.md`
+- `npm test -- playerMovementBounds.test.js`
+- `git diff -- Developer/r3f_prototype/src/lib/playerMovementBounds.js Developer/r3f_prototype/src/lib/playerMovementBounds.test.js Developer/r3f_prototype/src/lib/stageConfig.js Developer/r3f_prototype/src/components/Game.jsx Developer/r3f_prototype/src/lib/refs.js`
+- `Get-Content -Raw Developer/r3f_prototype/src/lib/playerMovementBounds.js`
+- `Get-Content -Raw Developer/r3f_prototype/src/lib/playerMovementBounds.test.js`
+- `rg -n "mapHalfX|playerMovementBounds|Stage 1|stage1|movement bounds|이동 범위|맵 경계|교실" Planner Developer Graphic_designer Quaility_Assurance -g "*.md" -g "*.js" -g "*.jsx"`
+- `Get-Content -Raw Developer/r3f_prototype/src/lib/stageConfig.js`
+- `rg -n "getPlayerMovementBounds|clampPlayerPosition|PLAYER_INSET_X|PLAYER_INSET_Z|mapHalfX|mapHalfZ|getStageBounds" Developer/r3f_prototype/src`
+- `git diff --stat`
+- `rg -n "mapHalfX[:= ]+7|mapHalfX 7|mapHalfX=7|Stage 1.*map|세로형 교실|7" Developer Planner Graphic_designer Quaility_Assurance -g "*.md" -g "*.js" -g "*.jsx"`
+- `Get-Content Developer/r3f_prototype/src/components/StageObjects/stageObjectPlacements.js | Select-Object -First 35`
+- `if (Test-Path Developer/stage1_vertical_classroom_map_implementation_notes_2026-06-18.md) { Get-Content Developer/stage1_vertical_classroom_map_implementation_notes_2026-06-18.md | Select-Object -First 160 }`
+- `git log --oneline -- Developer/r3f_prototype/src/lib/playerMovementBounds.test.js Developer/r3f_prototype/src/lib/stageConfig.js | Select-Object -First 10`
+- `npm test -- playerMovementBounds.test.js`
+- `git diff -- Developer/r3f_prototype/src/lib/playerMovementBounds.test.js`
+- `npm test`
+- `npm run build`
+- `Get-Content -Raw Developer/r3f_prototype/src/components/MatildaMesh.test.js`
+- `Get-Content -Raw Developer/r3f_prototype/src/lib/graphicsStudioConfig.js`
+- `Get-Content -Raw Developer/r3f_prototype/src/lib/graphicsStudioConfig.test.js`
+- `Get-Content -Raw Developer/r3f_prototype/src/components/StageObjects/stageObjectPlacements.test.js`
+- `rg -n "Matilda|matilda|enemy-matilda|previewKind.*matilda|MatildaMesh" Developer/r3f_prototype/src Developer Graphic_designer Planner Quaility_Assurance -g "*.jsx" -g "*.js" -g "*.md"`
+- `Get-Content -Raw Developer/r3f_prototype/src/components/GraphicsStudioPreview.jsx`
+- `Get-Content -Raw Developer/r3f_prototype/src/components/PlayerMesh.jsx`
+- `Get-Content -Raw Developer/r3f_prototype/src/components/ZombieMesh.jsx`
+- `Get-Content -Raw Graphic_designer/Bang_survivor_Graphic_concept.md`
+- `Get-Content -Raw Developer/r3f_prototype/src/lib/characterVisualScale.js`
+- `Get-Content -Raw Developer/r3f_prototype/src/lib/toon.js`
+- `Get-Content Developer/r3f_prototype/src/components/GraphicsStudio.test.jsx | Select-Object -First 120`
+- `Get-Content Developer/r3f_prototype/src/components/UserRanking.test.jsx | Select-Object -First 120`
+- `npm test -- UserRanking.test.jsx`
+- `npm test -- graphicsStudioConfig.test.js MatildaMesh.test.js StageObjects/stageObjectPlacements.test.js`
+- `npm test -- graphicsStudioConfig.test.js MatildaMesh.test.js StageObjects/stageObjectPlacements.test.js GraphicsStudio.test.jsx`
+- `npx vitest run --maxWorkers=1 --no-file-parallelism`
+- `npm run build`
+- `Get-Content -Raw C:\Users\admin\.codex\plugins\cache\openai-curated\superpowers\3fdeeb49\skills\verification-before-completion\SKILL.md`
+- `Get-Date -Format 'yyyy-MM-dd HHmm KST'`
+- `git log -1 --oneline`
+- `git status --short --branch`
+
+### 명령 / 빌드 / 테스트 / 브라우저 검증 결과
+
+- `GSTACK_OK`.
+- `npm test -- playerMovementBounds.test.js`: 처음에는 Stage 1 X 경계 기대값 불일치로 실패, 수정 후 3 tests passed.
+- `npm test`: 기본 병렬 실행에서 4개 테스트 실패와 Node/Vitest worker OOM 발생.
+- `npm test -- UserRanking.test.jsx`: 3 tests passed.
+- `npm test -- graphicsStudioConfig.test.js MatildaMesh.test.js StageObjects/stageObjectPlacements.test.js`: 수정 전 3개 영역 실패 재현.
+- `npm test -- graphicsStudioConfig.test.js MatildaMesh.test.js StageObjects/stageObjectPlacements.test.js GraphicsStudio.test.jsx`: 수정 후 4 files / 24 tests passed.
+- `npx vitest run --maxWorkers=1 --no-file-parallelism`: 64 files / 335 tests passed.
+- `npm run build`: passed. Vite large chunk warning remains.
+- 브라우저 스크린샷 검증 없음.
+
+### 확정된 룰 / 정책 변경
+
+- 새 프로젝트 정책 변경 없음.
+- 현재 코드 기준 확인: Stage 1 `mapHalfX=7`이면 플레이어 이동 가능 X 경계는 inset 2를 적용해 `-5~5`.
+- 현재 Stage 1 오브젝트 중앙 비움 규칙은 `abs(x) >= 6 || abs(z) >= 12`.
+
+### 미해결 이슈 + 다음 단계
+
+- 기본 `npm test` 병렬 실행은 이 환경에서 Node/Vitest worker OOM이 날 수 있음. 전체 검증은 필요 시 `npx vitest run --maxWorkers=1 --no-file-parallelism` 사용.
+- Matilda 모델은 Graphics Studio용 최소 toon/outline 블록아웃이다. 최종 보스 아트 품질 작업은 별도 그래픽 작업으로 다뤄야 한다.
+- 기존 미커밋/미추적 변경 다수는 그대로 유지. 다음 세션은 먼저 `git status --short --branch`와 이 Entry 4를 확인할 것.
+- 세션 5 종료.
 
 ---

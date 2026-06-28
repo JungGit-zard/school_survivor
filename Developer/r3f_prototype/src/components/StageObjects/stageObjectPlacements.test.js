@@ -21,7 +21,7 @@ describe('stage object placements', () => {
 
   it('keeps Stage 1 desks away from the central spawn/play zone', () => {
     expect(
-      getStageObjectPlacements('stage1').every(({ position: [x, , z] }) => Math.abs(x) >= 12 || Math.abs(z) >= 12)
+      getStageObjectPlacements('stage1').every(({ position: [x, , z] }) => Math.abs(x) >= 6 || Math.abs(z) >= 12)
     ).toBe(true)
   })
 

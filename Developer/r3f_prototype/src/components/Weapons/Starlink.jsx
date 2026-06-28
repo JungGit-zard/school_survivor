@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { applyRadialDamage } from '../../lib/weaponTargeting.js'
+import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
 
 // starlink / 고장난 스타링크
 // 역할: 플레이어 주변 strikeCenter 안에서 적이 있는 지점에 무작위 낙뢰.
@@ -59,7 +60,7 @@ export function StrikeVisual({ x, z, age }) {
       {/* 충돌 지점 백색 코어 플래시 */}
       {flashOpacity > 0 && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]} renderOrder={6}>
-          <circleGeometry args={[0.5, 32]} />
+          <circleGeometry args={[scaleEffectVisual(0.5), 32]} />
           <meshBasicMaterial
             color={0xffffff}
             transparent
@@ -72,7 +73,7 @@ export function StrikeVisual({ x, z, age }) {
       {/* 충돌 지점 노란 플래시 */}
       {flashOpacity > 0 && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0]} renderOrder={5}>
-          <circleGeometry args={[1.0, 32]} />
+          <circleGeometry args={[scaleEffectVisual(1.0), 32]} />
           <meshBasicMaterial
             color={0xffee00}
             transparent
@@ -85,14 +86,14 @@ export function StrikeVisual({ x, z, age }) {
       {/* 1차 확산 링 — 청백색 */}
       {flashOpacity > 0 && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.06, 0]} scale={[flashScale, flashScale, 1]} renderOrder={4}>
-          <ringGeometry args={[0.8, 1.05, 32]} />
+          <ringGeometry args={[scaleEffectVisual(0.8), scaleEffectVisual(1.05), 32]} />
           <meshBasicMaterial color={0x88ddff} transparent opacity={flashOpacity * 0.9} depthWrite={false} side={THREE.DoubleSide} />
         </mesh>
       )}
       {/* 2차 확산 링 — 넓게 퍼지는 옅은 황색 외곽 glow */}
       {flashOpacity > 0 && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 0]} scale={[flashScale * 1.6, flashScale * 1.6, 1]} renderOrder={3}>
-          <ringGeometry args={[0.85, 1.15, 32]} />
+          <ringGeometry args={[scaleEffectVisual(0.85), scaleEffectVisual(1.15), 32]} />
           <meshBasicMaterial color={0xffff88} transparent opacity={flashOpacity * 0.45} depthWrite={false} side={THREE.DoubleSide} />
         </mesh>
       )}

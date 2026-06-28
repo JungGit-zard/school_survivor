@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canFireSharkMissile, createSharkMissileLaunch } from './sharkMissileRuntime.js'
+import { canFireSharkMissile, createSharkMissileLaunch, shortestAngleDelta } from './sharkMissileRuntime.js'
 
 describe('shark missile runtime firing rules', () => {
   const activeWeapon = {
@@ -74,5 +74,15 @@ describe('shark missile runtime firing rules', () => {
       speed: 8.5,
       retargetIntervalMs: 300,
     })
+  })
+
+  it('keeps homing yaw stable when the missile is already facing the target', () => {
+    expect(shortestAngleDelta(0, 0)).toBeCloseTo(0)
+    expect(shortestAngleDelta(Math.PI / 2, Math.PI / 2)).toBeCloseTo(0)
+  })
+
+  it('uses the shortest wraparound yaw turn near the -pi/pi boundary', () => {
+    expect(shortestAngleDelta(Math.PI - 0.1, -Math.PI + 0.1)).toBeCloseTo(0.2)
+    expect(shortestAngleDelta(-Math.PI + 0.1, Math.PI - 0.1)).toBeCloseTo(-0.2)
   })
 })

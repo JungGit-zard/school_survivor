@@ -17,7 +17,7 @@ import { getAdminBalanceConfig, getAdminRankingSeasonConfig } from '../lib/admin
 import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { submitRankingEntry } from '../lib/firebaseRanking.js'
 import { useAuthStore } from './useAuthStore.js'
-import { getRankingScore, getRankingScorePolicy } from '../lib/rankingScorePolicy.js'
+import { getRankingScore, getRankingScorePolicy, STAGE_BONUS, CLEAR_BONUS } from '../lib/rankingScorePolicy.js'
 import { getSavedNickname } from '../lib/userNickname.js'
 import { logDamageTaken } from '../lib/playtestLogger.js'
 
@@ -123,6 +123,9 @@ export const useGameStore = create(
     elapsedMs:   0,
     currentStageId: DEFAULT_STAGE_ID,
     bossSpawned: false,
+    escapePortalActive: false,
+    matildaSpawned: false,
+    bossBonus: 0,
     gameKey:     0,
     goldSession: 0,
     goldTotal:   loadGoldTotal(),
@@ -256,7 +259,7 @@ export const useGameStore = create(
         const { seasonId } = getAdminRankingSeasonConfig()
         const stageConfig = getStageConfig(s.currentStageId)
         const entry = {
-          score: getRankingScore({ stageId: s.currentStageId, survivalSeconds: runSurvivalSeconds, cleared }, policy),
+          score: getRankingScore({ stageId: s.currentStageId, survivalSeconds: runSurvivalSeconds, cleared, bossBonus: s.bossBonus }, policy),
           nickname: getSavedNickname(user) || user.displayName || '익명',
           stageId: s.currentStageId,
           stageLabel: stageConfig.label,
@@ -350,6 +353,14 @@ export const useGameStore = create(
       return { phase: 'playing', pauseSource: null }
     }),
 
+    quitPausedRun: () => {
+      const s = get()
+      if (s.phase !== 'paused') return false
+      set({ phase: 'gameover', pauseSource: null })
+      get()._onRunEnd('quit')
+      return true
+    },
+
     togglePause: () => set((s) => {
       if (s.phase === 'playing') return { phase: 'paused', pauseSource: 'manual' }
       if (s.phase === 'paused') return { phase: 'playing', pauseSource: null }
@@ -388,6 +399,24 @@ export const useGameStore = create(
 
     // 보스
     spawnBoss: () => set({ bossSpawned: true }),
+
+    activateEscapePortal: () => set({ escapePortalActive: true }),
+    spawnMatilda: () => set({ matildaSpawned: true }),
+
+    // B01 격퇴 시 호출 — 그 시점 총점의 20%를 bossBonus로 저장 후 클리어
+    clearStageWithBossBonus: () => {
+      const s = get()
+      if (s.phase !== 'playing') return
+      const policy = getRankingScorePolicy()
+      const survivalSec = Math.floor(s.elapsedMs / 1000)
+      const stageBonus = policy.stageBonus?.[s.currentStageId] ?? STAGE_BONUS[s.currentStageId] ?? 0
+      const clearBonus = policy.clearBonus ?? CLEAR_BONUS
+      const baseScore = survivalSec + stageBonus + clearBonus
+      const bonus = Math.floor(baseScore * 0.2)
+      set({ bossBonus: bonus, phase: 'cleared', pauseSource: null })
+      get()._onRunEnd('cleared')
+    },
+
     clearStage: () => {
       set({ phase: 'cleared', pauseSource: null })
       get()._onRunEnd('cleared')
@@ -408,6 +437,9 @@ export const useGameStore = create(
         elapsedMs:   0,
         currentStageId: getStageConfig(stageId).id,
         bossSpawned: false,
+        escapePortalActive: false,
+        matildaSpawned: false,
+        bossBonus: 0,
         gameKey:     s.gameKey + 1,
         goldSession: 0,
         runKills:    0,

@@ -1,4 +1,4 @@
-﻿import { useRef, useCallback, useState } from 'react'
+﻿import { useRef, useCallback, useState, useEffect } from 'react'
 import { useGameStore } from '../store/useGameStore.js'
 import { usePlayingFrame } from '../lib/usePlayingFrame.js'
 import { playerPos, enemyBodies } from '../lib/refs.js'
@@ -216,14 +216,40 @@ export default function Enemies() {
   const maintainTimerRef          = useRef(0)
   const goldTimerRef              = useRef(nextGoldInterval())
 
-  const bossSpawned = useGameStore((s) => s.bossSpawned)
-  const spawnBoss   = useGameStore((s) => s.spawnBoss)
+  const bossSpawned    = useGameStore((s) => s.bossSpawned)
+  const spawnBoss      = useGameStore((s) => s.spawnBoss)
+  const matildaSpawned = useGameStore((s) => s.matildaSpawned)
   const currentStageId = useGameStore((s) => s.currentStageId)
 
   const addEnemies = useCallback((newList) => {
     enemiesRef.current.push(...newList)
     setEnemies([...enemiesRef.current])
   }, [])
+
+  // 마틸다 스폰 — matildaSpawned가 true로 바뀌는 순간 1회만 실행
+  useEffect(() => {
+    if (!matildaSpawned) return
+    const bounds = getStageBounds(currentStageId)
+    const player = useGameStore.getState().player
+    // 플레이어 능력치 기준 동적 스탯: 이동속도 ×5, 나머지 ×3
+    const matildaStats = {
+      hp:          player.maxHp * 3,
+      speed:       player.speed * 5,
+      damage:      player.maxHp * 3,   // 3배 공격력 = 플레이어 최대 체력 3배로 즉사 수준
+      scale:       3.0,
+      contactDist: 0.36,
+      charger:     true,
+      chargeSpeed: player.speed * 5,
+      warnDist:    6.0,
+      warnDuration:    400,
+      stunDuration:    800,
+      chargeDuration: 1500,
+      xp: 0,
+    }
+    // 플레이어 근처 랜덤 스폰
+    const spawnPos = randomSpawnPos('B01', bounds)
+    addEnemies([{ id: ++_uid, type: 'B01', pos: spawnPos, statOverride: matildaStats, isMatilda: true }])
+  }, [matildaSpawned, currentStageId, addEnemies])
 
   const dropTextbook = useCallback((pos, value) => {
     setTextbooks((prev) => [...prev, { id: ++_textbookId, pos, value }])
@@ -345,7 +371,7 @@ export default function Enemies() {
   return (
     <>
       {enemies.map((e) => (
-        <Enemy key={e.id} id={e.id} type={e.type} spawnPos={e.pos} onDeath={onDeath} />
+        <Enemy key={e.id} id={e.id} type={e.type} spawnPos={e.pos} onDeath={onDeath} statOverride={e.statOverride} isMatilda={e.isMatilda} />
       ))}
       {textbooks.map((d) => (
         <XpTextbook key={d.id} id={d.id} pos={d.pos} value={d.value} onCollect={onTextbookCollect} />

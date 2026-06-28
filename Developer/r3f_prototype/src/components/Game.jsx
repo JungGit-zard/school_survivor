@@ -1,13 +1,14 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useGameStore } from '../store/useGameStore.js'
-import { getStageDurationSec, getStageBounds } from '../lib/stageConfig.js'
-import { playerPos } from '../lib/refs.js'
+import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
+import { playerPos, screenBounds } from '../lib/refs.js'
 import Player from './Player.jsx'
 import Floor from './Floor.jsx'
 import Enemies from './Enemies.jsx'
 import LunchItems from './LunchItems.jsx'
 import VFXLayer from './VFXLayer.jsx'
+import EscapePortal from './EscapePortal.jsx'
 import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon, ChibikoWeapon, SharkMissileWeapon } from './Weapons/index.js'
 
 const _camTarget = new THREE.Vector3()
@@ -46,7 +47,10 @@ export default function Game() {
   const tickTime   = useGameStore((s) => s.tickTime)
   const phase      = useGameStore((s) => s.phase)
   const currentStageId = useGameStore((s) => s.currentStageId)
-  const clearStage = useGameStore((s) => s.clearStage)
+  const escapePortalActive = useGameStore((s) => s.escapePortalActive)
+  const activateEscapePortal = useGameStore((s) => s.activateEscapePortal)
+  const spawnMatilda = useGameStore((s) => s.spawnMatilda)
+  const matildaSpawned = useGameStore((s) => s.matildaSpawned)
   const checkSurvivalMilestone = useGameStore((s) => s.checkSurvivalMilestone)
 
   useFrame((_, delta) => {
@@ -54,9 +58,15 @@ export default function Game() {
     if (phase === 'playing') {
       tickTime(dt * 1000)
       checkSurvivalMilestone()
-      // getState()로 최신 값 읽어 stale closure 방지
-      if (useGameStore.getState().elapsedMs >= getStageDurationSec(currentStageId) * 1000) {
-        clearStage()
+      const { elapsedMs } = useGameStore.getState()
+      const stageConfig = getStageConfig(currentStageId)
+      // 4:00 — 자동 클리어 대신 탈출구 등장
+      if (!escapePortalActive && elapsedMs >= stageConfig.escapePortalSec * 1000) {
+        activateEscapePortal()
+      }
+      // 7:00 — 마틸다 스폰
+      if (!matildaSpawned && elapsedMs >= stageConfig.matildaSec * 1000) {
+        spawnMatilda()
       }
     }
 
@@ -67,6 +77,10 @@ export default function Game() {
     const { halfX, halfZ } = getStageBounds(currentStageId)
     const fx = clampFocus(playerPos.x, reach.reachSide, reach.reachSide, halfX)
     const fz = clampFocus(playerPos.z, reach.reachUp, reach.reachDown, halfZ)
+    screenBounds.minX = fx - reach.reachSide
+    screenBounds.maxX = fx + reach.reachSide
+    screenBounds.minZ = fz - reach.reachUp
+    screenBounds.maxZ = fz + reach.reachDown
     _camTarget.set(fx, CAM_HEIGHT, fz + CAM_BACK)
     camera.position.lerp(_camTarget, 0.08)
     camera.lookAt(fx, 0, fz)
@@ -117,6 +131,9 @@ export default function Game() {
 
       {/* ── Enemies ── */}
       <Enemies />
+
+      {/* ── Escape Portal (4:00 이후 등장) ── */}
+      {escapePortalActive && <EscapePortal stageId={currentStageId} />}
     </>
   )
 }

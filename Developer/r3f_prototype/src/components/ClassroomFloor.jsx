@@ -84,7 +84,7 @@ export default function ClassroomFloor({ stageId = 'stage1' }) {
             <planeGeometry args={[26, FLOOR_SIZE]} />
             <meshBasicMaterial color={0x2f3942} transparent opacity={0.16} depthWrite={false} />
           </mesh>
-          {[-6, 0, 6].map((x) => (
+          {[-6, 6].map((x) => (
             <mesh key={x} position={[x, 0.006, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={3}>
               <planeGeometry args={[0.16, FLOOR_SIZE]} />
               <meshBasicMaterial color={0x40525f} transparent opacity={0.45} depthWrite={false} />

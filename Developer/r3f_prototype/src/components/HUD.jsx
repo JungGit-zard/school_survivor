@@ -6,6 +6,7 @@ import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { buildPlaytestSummary } from '../lib/playtestLogger.js'
 import { getStageConfig } from '../lib/stageConfig.js'
+import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.png'
 import rulerIconSrc from '../assets/weapon_icon/02_wea_30ruller.png.png'
@@ -24,6 +25,9 @@ import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
 import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
 
 const GAMEOVER_TRANSITION_MS = 1000
+const NEXT_STAGE_BY_STAGE = {
+  stage1: 'stage2',
+}
 
 const damageLabel = (name, weaponKey, upgradeKey) => (w) =>
   `${name} +${UPGRADE_EFFECTS[upgradeKey].dmg} (Lv${(w[weaponKey].level ?? 1) + 1})`
@@ -338,8 +342,9 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
     elapsed, currentStageId, bossSpawned,
     goldSession, goldTotal, recentMilestone,
     newlyUnlockedWeaponIds, levelUpChoiceSerial,
+    escapePortalActive, matildaSpawned, bossBonus,
     clearMilestone, applyUpgrade, resumeFromLevelup,
-    resetGame, togglePause, resumeGame,
+    resetGame, togglePause, resumeGame, quitPausedRun,
   } = useGameStore(useShallow((s) => ({
     player:               s.player,
     weapons:              s.weapons,
@@ -353,17 +358,23 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
     recentMilestone:      s.recentMilestone,
     newlyUnlockedWeaponIds: s.newlyUnlockedWeaponIds,
     levelUpChoiceSerial:  s.levelUpChoiceSerial,
+    escapePortalActive:   s.escapePortalActive,
+    matildaSpawned:       s.matildaSpawned,
+    bossBonus:            s.bossBonus,
     clearMilestone:       s.clearMilestone,
     applyUpgrade:         s.applyUpgrade,
     resumeFromLevelup:    s.resumeFromLevelup,
     resetGame:            s.resetGame,
     togglePause:          s.togglePause,
     resumeGame:           s.resumeGame,
+    quitPausedRun:        s.quitPausedRun,
   })))
 
   const mins = String(Math.floor(elapsed / 60000)).padStart(2, '0')
   const secs = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, '0')
   const stageConfig = getStageConfig(currentStageId)
+  const nextStageId = NEXT_STAGE_BY_STAGE[currentStageId] ?? null
+  const showResultDevTools = getAdminOperationsConfig().cheatMenuButtonVisible && (phase === 'gameover' || phase === 'cleared')
   const activeWeapons = useMemo(
     () => Object.entries(weapons).filter(([, w]) => w.active),
     [weapons],
@@ -378,11 +389,12 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
   const lowHp   = player.hp / player.maxHp < 0.3
   const isGameover = phase === 'gameover'
   const [gameoverModalReady, setGameoverModalReady] = useState(false)
+  const [isTitleReturnConfirmOpen, setIsTitleReturnConfirmOpen] = useState(false)
 
   // 종료 화면 "다음 해금 가능 무기" 미리보기 — minLevel이 가장 낮은 미해금 무기 1개.
   const nextUnlock = useMemo(() => getNextUnlockPreview(phase, weapons), [phase, weapons])
 
-  // 플레이테스트 로그 복사 (게임오버/클리어 모달의 "📋 로그 복사" 버튼).
+  // 플레이테스트 로그 복사는 개발용 치트 도구다. 결과 CTA와 섞지 않는다.
   const [copyStatus, setCopyStatus] = useState('idle')
   const copyPlaytestLog = async () => {
     try {
@@ -395,6 +407,13 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
       setTimeout(() => setCopyStatus('idle'), 2000)
     }
   }
+  const resultDevTools = showResultDevTools ? (
+    <div data-testid="result-dev-tools" style={styles.resultDevTools}>
+      <button type="button" style={styles.devCopyBtn} onClick={copyPlaytestLog}>
+        {copyStatus === 'copied' ? '개발 로그 복사됨' : copyStatus === 'error' ? '개발 로그 복사 실패' : '개발 로그 복사'}
+      </button>
+    </div>
+  ) : null
 
   const bossWarning = useMemo(() => {
     if (bossSpawned || phase !== 'playing') return null
@@ -412,6 +431,23 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
     return Math.max(1, Math.ceil(introSec - elapsedSec))
   }, [currentStageId, elapsed, phase, stageConfig.e04IntroSec])
 
+  // 마틸다 10초 카운트다운 (6:50 ~ 7:00)
+  const matildaWarning = useMemo(() => {
+    if (matildaSpawned || phase !== 'playing') return null
+    const elapsedSec = elapsed / 1000
+    const warnSec = stageConfig.matildaWarningSec ?? 410
+    const spawnSec = stageConfig.matildaSec ?? 420
+    if (elapsedSec < warnSec || elapsedSec >= spawnSec) return null
+    return Math.max(1, Math.ceil(spawnSec - elapsedSec))
+  }, [matildaSpawned, elapsed, phase, stageConfig.matildaWarningSec, stageConfig.matildaSec])
+
+  // 탈출구 등장 알림: 등장 직후 3초간 표시
+  const portalFlash = useMemo(() => {
+    if (!escapePortalActive || phase !== 'playing') return false
+    const portalMs = (stageConfig.escapePortalSec ?? 240) * 1000
+    return elapsed < portalMs + 3000
+  }, [escapePortalActive, elapsed, phase, stageConfig.escapePortalSec])
+
   useEffect(() => {
     if (!recentMilestone) return undefined
     const timer = setTimeout(clearMilestone, 2000)
@@ -428,6 +464,15 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
     const timer = setTimeout(() => setGameoverModalReady(true), GAMEOVER_TRANSITION_MS)
     return () => clearTimeout(timer)
   }, [isGameover])
+
+  useEffect(() => {
+    if (phase !== 'paused') setIsTitleReturnConfirmOpen(false)
+  }, [phase])
+
+  const confirmTitleReturn = () => {
+    if (!quitPausedRun()) return
+    onGoToTitle?.()
+  }
 
   // CSS 키프레임 주입. 최초 1회만 추가한다.
   useEffect(() => {
@@ -487,6 +532,17 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
           <div style={styles.projectileWarningCount}>{e04IntroWarning}</div>
         </div>
       )}
+      {matildaWarning != null && (
+        <div style={styles.matildaWarning}>
+          <div style={styles.matildaWarningLabel}>⚠ 사신 마틸다 출현</div>
+          <div style={styles.matildaWarningCount}>{matildaWarning}</div>
+        </div>
+      )}
+      {portalFlash && (
+        <div style={styles.portalFlash}>
+          탈출구가 나타났다!
+        </div>
+      )}
       {/* Top bar */}
       <div style={styles.topBar}>
         <div style={styles.stageChip}>{stageConfig.label}</div>
@@ -540,12 +596,17 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
       )}
 
       {phase === 'levelup' && (
-        <div style={styles.overlay}>
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>레벨 업! Lv.{player.level}</h2>
-            <div style={styles.choices}>
+        <div data-testid="levelup-upgrade-overlay" style={styles.levelupOverlay}>
+          <div data-testid="levelup-upgrade-panel" style={styles.levelupPanel}>
+            <h2 style={styles.levelupTitle}>레벨 업! Lv.{player.level}</h2>
+            <div data-testid="levelup-upgrade-choices" style={styles.levelupChoices}>
               {choices.map((c) => (
-                <button key={c.key} style={styles.choiceBtn} onClick={() => applyUpgrade(c.key)}>
+                <button
+                  key={c.key}
+                  data-testid="levelup-upgrade-choice"
+                  style={styles.levelupChoiceBtn}
+                  onClick={() => applyUpgrade(c.key)}
+                >
                   <UpgradeIcon type={c.icon} />
                   <div style={styles.choiceLabel}>{getUpgradeChoiceLabel(c, weapons)}</div>
                   <div style={styles.choiceDesc}>{getUpgradeChoiceDesc(c)}</div>
@@ -595,31 +656,56 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
                 </div>
               </div>
             )}
-            <div style={styles.modalButtons}>
-              <button style={styles.copyBtn} onClick={copyPlaytestLog}>
-                {copyStatus === 'copied' ? '✓ 복사됨' : copyStatus === 'error' ? '복사 실패' : '📋 로그 복사'}
-              </button>
+            <div data-testid="result-primary-actions" style={styles.modalButtons}>
               <button style={styles.titleBtn} onClick={onGoToTitle}>타이틀로</button>
               {onGoToRanking && <button style={styles.rankingBtn} onClick={onGoToRanking}>🏆 랭킹</button>}
               <button style={styles.shopBtn} onClick={onOpenCoinShop}>코인상점</button>
               <button style={styles.restartBtn} onClick={() => resetGame(currentStageId)}>다시 시작</button>
             </div>
           </div>
+          {resultDevTools}
         </div>
       )}
 
       {phase === 'paused' && (
         <div style={styles.overlay}>
-          <div style={styles.pausePanel}>
-            <h2 style={styles.modalTitle}>
-              {pauseSource === 'auto' ? '자리를 비우셨네요' : 'PAUSED'}
-            </h2>
-            {pauseSource === 'auto' && (
-              <p style={styles.pauseMessage}>돌아오면 바로 이어서 플레이할 수 있어요.</p>
+          <div
+            style={styles.pausePanel}
+            role="dialog"
+            aria-modal="true"
+            aria-label={isTitleReturnConfirmOpen ? '타이틀 복귀 확인' : '일시정지'}
+          >
+            {isTitleReturnConfirmOpen ? (
+              <>
+                <h2 style={styles.modalTitle}>정말 타이틀로 돌아갈까요?</h2>
+                <p style={styles.pauseMessage}>현재 생존 점수는 랭킹에 기록됩니다.</p>
+                <div style={styles.modalButtons}>
+                  <button style={styles.pauseCancelBtn} onClick={() => setIsTitleReturnConfirmOpen(false)}>
+                    취소
+                  </button>
+                  <button style={styles.pauseTitleReturnBtn} onClick={confirmTitleReturn}>
+                    돌아가기
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 style={styles.modalTitle}>
+                  {pauseSource === 'auto' ? '자리를 비우셨네요' : 'PAUSED'}
+                </h2>
+                {pauseSource === 'auto' && (
+                  <p style={styles.pauseMessage}>돌아오면 바로 이어서 플레이할 수 있어요.</p>
+                )}
+                <div style={styles.pauseActions}>
+                  <button style={styles.restartBtn} onClick={resumeGame}>
+                    {pauseSource === 'auto' ? '이어하기' : '계속하기'}
+                  </button>
+                  <button style={styles.titleBtn} onClick={() => setIsTitleReturnConfirmOpen(true)}>
+                    타이틀로 돌아가기
+                  </button>
+                </div>
+              </>
             )}
-            <button style={styles.restartBtn} onClick={resumeGame}>
-              {pauseSource === 'auto' ? '이어하기' : '계속하기'}
-            </button>
           </div>
         </div>
       )}
@@ -629,6 +715,11 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
           <div style={styles.modal}>
             <h2 style={{ ...styles.modalTitle, color: '#ffd040' }}>{currentStageId === 'stage2' ? 'STAGE 2 CLEAR!' : 'STAGE CLEAR!'}</h2>
             <p style={{ color: '#ccc', marginBottom: 8 }}>클리어 시간: {mins}:{secs}</p>
+            {bossBonus > 0 && (
+              <p style={{ color: '#ff88ff', marginBottom: 6, fontSize: 14 }}>
+                보스 격퇴 보너스: <strong>+{bossBonus}점</strong>
+              </p>
+            )}
             <p style={{ color: '#ffd040', marginBottom: nextUnlock || (newlyUnlockedWeaponIds?.length > 0) ? 12 : 20 }}>획득 골드: {goldSession} (누적 {goldTotal})</p>
             {newlyUnlockedWeaponIds?.length > 0 && (
               <div style={styles.newlyUnlocked}>
@@ -655,16 +746,19 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
                 </div>
               </div>
             )}
-            <div style={styles.modalButtons}>
-              <button style={styles.copyBtn} onClick={copyPlaytestLog}>
-                {copyStatus === 'copied' ? '✓ 복사됨' : copyStatus === 'error' ? '복사 실패' : '📋 로그 복사'}
-              </button>
+            <div data-testid="result-primary-actions" style={styles.modalButtons}>
+              {nextStageId && (
+                <button style={styles.nextStageBtn} onClick={() => resetGame(nextStageId)}>
+                  다음 스테이지로
+                </button>
+              )}
               <button style={styles.titleBtn} onClick={onGoToTitle}>타이틀로</button>
               {onGoToRanking && <button style={styles.rankingBtn} onClick={onGoToRanking}>🏆 랭킹</button>}
               <button style={styles.shopBtn} onClick={onOpenCoinShop}>코인상점</button>
               <button style={styles.restartBtn} onClick={() => resetGame(currentStageId)}>다시 시작</button>
             </div>
           </div>
+          {resultDevTools}
         </div>
       )}
     </div>
@@ -766,6 +860,50 @@ const styles = {
     fontWeight: 900,
     lineHeight: 1,
     marginTop: 3,
+  },
+  matildaWarning: {
+    position: 'absolute',
+    left: '50%',
+    top: 72,
+    transform: 'translateX(-50%)',
+    minWidth: 200,
+    textAlign: 'center',
+    background: 'rgba(60, 0, 80, 0.95)',
+    border: '2px solid #cc44ff',
+    borderRadius: 10,
+    padding: '14px 18px',
+    boxShadow: `${uiShadows.press}, 0 0 24px rgba(180, 0, 255, 0.5)`,
+    animation: 'bossPulse 0.5s ease-in-out infinite',
+    pointerEvents: 'auto',
+  },
+  matildaWarningLabel: {
+    color: '#f0aaff',
+    fontSize: 15,
+    fontWeight: 900,
+  },
+  matildaWarningCount: {
+    color: '#ffffff',
+    fontSize: 48,
+    fontWeight: 900,
+    lineHeight: 1,
+    marginTop: 4,
+  },
+  portalFlash: {
+    position: 'absolute',
+    left: '50%',
+    top: '38%',
+    transform: 'translateX(-50%)',
+    background: 'rgba(0, 255, 200, 0.15)',
+    border: '2px solid #00ffcc',
+    borderRadius: 12,
+    padding: '12px 24px',
+    color: '#00ffee',
+    fontSize: 20,
+    fontWeight: 900,
+    textAlign: 'center',
+    boxShadow: '0 0 28px rgba(0, 255, 200, 0.45)',
+    animation: 'bossPulse 0.8s ease-in-out infinite',
+    pointerEvents: 'none',
   },
   stageChip: {
     color: uiPalette.reward,
@@ -877,7 +1015,10 @@ const styles = {
   },
   pausePanel: {
     ...schoolPanel('dark'),
-    padding: '28px 44px', textAlign: 'center',
+    padding: '28px 34px', textAlign: 'center',
+    width: 'calc(100% - 56px)',
+    maxWidth: 340,
+    boxSizing: 'border-box',
   },
   pauseMessage: {
     color: uiPalette.mutedChalk,
@@ -886,13 +1027,69 @@ const styles = {
     margin: '-12px 0 20px',
     maxWidth: 220,
   },
-  choices: { display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' },
-  choiceBtn: {
+  pauseActions: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 10,
+    alignItems: 'stretch',
+  },
+  pauseCancelBtn: {
+    ...schoolButton('paper'),
+    fontSize: 15,
+    padding: '11px 20px',
+    boxShadow: uiShadows.pressSmall,
+  },
+  pauseTitleReturnBtn: {
+    ...schoolButton('primary'),
+    fontSize: 15,
+    padding: '11px 20px',
+  },
+  levelupOverlay: {
+    position: 'absolute',
+    left: '50%',
+    bottom: 18,
+    transform: 'translateX(-50%)',
+    width: 'min(760px, calc(100% - 24px))',
+    display: 'flex',
+    justifyContent: 'center',
+    pointerEvents: 'none',
+  },
+  levelupPanel: {
+    ...schoolPanel('dark'),
+    width: '100%',
+    padding: '12px',
+    boxSizing: 'border-box',
+    textAlign: 'center',
+    pointerEvents: 'auto',
+  },
+  levelupTitle: {
+    color: uiPalette.paperLight,
+    margin: '0 0 10px',
+    fontSize: 20,
+    fontWeight: uiType.weightHeavy,
+    textShadow: `0 2px 0 ${uiPalette.ink}`,
+  },
+  levelupChoices: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: 8,
+    alignItems: 'stretch',
+  },
+  levelupChoiceBtn: {
     ...schoolButton('paper'),
     color: uiPalette.ink,
-    padding: '10px 10px 12px',
-    width: 'min(118px, 31%)', minWidth: 104,
-    textAlign: 'center', transition: 'background 0.15s, transform 0.15s',
+    width: '100%',
+    minWidth: 0,
+    minHeight: 132,
+    padding: '8px 6px 10px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap: 4,
+    textAlign: 'center',
+    overflow: 'hidden',
+    transition: 'background 0.15s, transform 0.15s',
   },
   topLeftControls: {
     position: 'absolute',
@@ -1191,12 +1388,32 @@ const styles = {
     background: '#4f1b30',
     boxSizing: 'border-box',
   },
-  choiceLabel: { fontSize: 14, fontWeight: uiType.weightHeavy, marginBottom: 6 },
-  choiceDesc:  { fontSize: 11, color: '#493f4d', lineHeight: 1.4, fontWeight: 700 },
+  choiceLabel: {
+    fontSize: 13,
+    fontWeight: uiType.weightHeavy,
+    marginBottom: 2,
+    lineHeight: 1.15,
+    wordBreak: 'keep-all',
+    overflowWrap: 'anywhere',
+  },
+  choiceDesc: {
+    fontSize: 10,
+    color: '#493f4d',
+    lineHeight: 1.28,
+    fontWeight: 700,
+    wordBreak: 'keep-all',
+    overflowWrap: 'anywhere',
+  },
   restartBtn: {
     ...schoolButton('primary'),
     fontSize: 16,
     padding: '12px 32px',
+  },
+  nextStageBtn: {
+    ...schoolButton('primary'),
+    fontSize: 18,
+    padding: '14px 34px',
+    minWidth: 190,
   },
   titleBtn: {
     ...schoolButton('chalk'),
@@ -1219,10 +1436,16 @@ const styles = {
     display: 'flex', gap: 10, justifyContent: 'center', alignItems: 'center',
     flexWrap: 'wrap',
   },
-  copyBtn: {
+  resultDevTools: {
+    position: 'absolute',
+    top: 72,
+    right: 12,
+    pointerEvents: 'auto',
+  },
+  devCopyBtn: {
     ...schoolButton('chalk'),
-    fontSize: 13,
-    padding: '11px 16px',
+    fontSize: 12,
+    padding: '8px 12px',
     boxShadow: uiShadows.pressSmall,
   },
   nextUnlock: {
