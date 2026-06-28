@@ -25,6 +25,7 @@ describe('graphicsStudioConfig', () => {
     expect(ids).toEqual(expect.arrayContaining([
       'player',
       'zombie-e01',
+      'enemy-matilda',
       'pickup-gold-coin',
       'pickup-xp-textbook',
       'pickup-lunch-meal',
@@ -43,6 +44,17 @@ describe('graphicsStudioConfig', () => {
     GRAPHICS_STUDIO_CATALOG.forEach((item) => {
       expect(item.source).toEqual(expect.any(String))
       expect(item.applyTargets).toEqual(expect.arrayContaining([expect.any(String)]))
+    })
+  })
+
+  it('registers Matilda as a model-only enemy preview without enemy stat coupling', () => {
+    expect(getStudioItemById('enemy-matilda')).toMatchObject({
+      category: 'enemy',
+      label: 'Matilda',
+      source: 'components/MatildaMesh.jsx',
+      previewKind: 'matilda',
+      runtimePreviewComponent: 'MatildaMesh',
+      applyTargets: expect.arrayContaining(['components/MatildaMesh.jsx', 'lib/toon.js']),
     })
   })
 
