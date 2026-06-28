@@ -2,6 +2,7 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useGameStore } from '../store/useGameStore.js'
+import { emitSfx } from '../lib/sfxEvents.js'
 import { toonMat, outlineMat, inflateScale } from '../lib/toon.js'
 import { stepMagnetPull } from '../lib/pickup.js'
 
@@ -149,6 +150,7 @@ export default function GoldCoin({ id, pos, value, onCollect }) {
     const result = stepMagnetPull(pRef, delta)
     if (result === 'collected') {
       collected.current = true
+      emitSfx({ id: 'coinCollect' })
       gainGold(value)
       onCollect(id)
       return

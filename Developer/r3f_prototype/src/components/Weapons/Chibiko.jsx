@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -267,6 +268,7 @@ export function ChibikoWeapon() {
     targetYawRef.current = yaw
     attackPhaseRef.current = 0.34
     lastFireRef.current = now
+    emitSfx({ id: 'chibikoFire' })
 
     const projectile = {
       id: ++_chibikoPencilId,

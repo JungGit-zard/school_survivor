@@ -2,6 +2,7 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
+import MatildaMesh from './MatildaMesh.jsx'
 
 // 타입별 색상 팔레트
 export const ZOMBIE_PALETTE = {
@@ -191,8 +192,7 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
   })
 
   if (isMatilda) {
-    // ponytail: B01 비주얼 임시 사용. 에셋 준비 시 MatildaMesh 컴포넌트로 교체.
-    return <B01BossZombieMesh hitFlash={hitFlash} reg={reg} />
+    return <MatildaMesh />
   }
 
   if (type === 'B01') {

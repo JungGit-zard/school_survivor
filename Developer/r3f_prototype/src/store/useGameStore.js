@@ -20,6 +20,7 @@ import { useAuthStore } from './useAuthStore.js'
 import { getRankingScore, getRankingScorePolicy, STAGE_BONUS, CLEAR_BONUS } from '../lib/rankingScorePolicy.js'
 import { getSavedNickname } from '../lib/userNickname.js'
 import { logDamageTaken } from '../lib/playtestLogger.js'
+import { emitSfx } from '../lib/sfxEvents.js'
 
 const BASE_PLAYER = {
   hp: 100, maxHp: 100,
@@ -149,9 +150,11 @@ export const useGameStore = create(
       logDamageTaken(amount, hp)
       if (hp <= 0) {
         set({ player: { ...player, hp }, phase: 'gameover', pauseSource: null })
+        emitSfx({ id: 'playerDeath' })
         get()._onRunEnd('gameover')
         return
       }
+      emitSfx({ id: 'playerHit' })
       set({ player: { ...player, hp, invulnerable: true } })
       // 무적 해제는 Player.jsx의 useFrame에서 처리한다. setTimeout을 쓰지 않는다.
     },
@@ -175,6 +178,7 @@ export const useGameStore = create(
         xpToNext = Math.ceil(xpToNext * 1.24 + 2)
       }
       if (gainedLevelUps > 0) {
+        emitSfx({ id: 'levelUp' })
         set({
           player: { ...player, xp, xpToNext, level },
           pendingLevelUps: pendingLevelUps + gainedLevelUps,
@@ -248,6 +252,7 @@ export const useGameStore = create(
         incrementPlayerRecord('stage1Survival180Runs', 1)
       }
       if (phaseName === 'cleared') incrementPlayerRecord(stage.clearRecordKey, 1)
+      if (phaseName === 'gameover') emitSfx({ id: 'gameOver' })
 
       set({ newlyUnlockedWeaponIds: Object.freeze(diff) })
       requestCloudProgressSave()
@@ -324,7 +329,7 @@ export const useGameStore = create(
         (milestone) => s.elapsedMs >= milestone.atMs && !s.survivalMilestonesHit.includes(milestone.atMs),
       )
       if (earned.length === 0) return
-
+      emitSfx({ id: 'milestoneGold' })
       const gold = earned.reduce((sum, milestone) => sum + milestone.gold, 0)
       const nextTotal = s.goldTotal + gold
       saveGoldTotal(nextTotal)
@@ -415,11 +420,13 @@ export const useGameStore = create(
       const baseScore = survivalSec + stageBonus + clearBonus
       const bonus = Math.floor(baseScore * 0.2)
       set({ bossBonus: bonus, phase: 'cleared', pauseSource: null })
+      emitSfx({ id: 'bossClearJingle' })
       get()._onRunEnd('cleared')
     },
 
     clearStage: () => {
       set({ phase: 'cleared', pauseSource: null })
+      emitSfx({ id: 'stageClear' })
       get()._onRunEnd('cleared')
     },
 

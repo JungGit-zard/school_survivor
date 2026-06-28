@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
 import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
+import { emitSfx } from '../../lib/sfxEvents.js'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -123,6 +124,7 @@ export function PencilThrow() {
     const target = findClosestEnemy(w.range ?? 22)
     if (!target) return
     lastFireRef.current = now
+    emitSfx({ id: 'pencilFire' })
 
     const targetPos = target.rb.translation()
     const facingAngle = Math.atan2(targetPos.x - playerPos.x, targetPos.z - playerPos.z)

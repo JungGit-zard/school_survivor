@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
+import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -183,6 +184,7 @@ export function StunGunWeapon() {
     if (now - lastFireRef.current < cooldown) return
     if (bolts.length > 0) return
     lastFireRef.current = now
+    emitSfx({ id: 'stunGunFire' })
 
     let nearestId = null, nearestDist = Infinity
     enemyBodies.forEach((rb, eid) => {

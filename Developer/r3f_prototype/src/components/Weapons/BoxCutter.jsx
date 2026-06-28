@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
+import { emitSfx } from '../../lib/sfxEvents.js'
 import { enemyBodies, playerArmActionState, playerFacing, playerPos } from '../../lib/refs.js'
 import { pickBoxCutterTargets, normalizePlanarFacing } from '../../lib/boxCutter.js'
 import { startPlayerArmAction, computeBoxCutterActionPhases, BOX_CUTTER_ACTION_MS } from '../../lib/playerArmAction.js'
@@ -221,6 +222,7 @@ export function BoxCutterWeapon() {
     if (targets.length === 0) return
 
     lastFireRef.current = now
+    emitSfx({ id: 'boxCutterFire' })
     startPlayerArmAction(playerArmActionState, 'boxCutter', now, duration)
     targets.forEach(({ rb }) => {
       rb._enemyHit(w.damage, {

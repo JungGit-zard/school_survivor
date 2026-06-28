@@ -6,6 +6,7 @@ import { enemyBodies, playerPos } from '../lib/refs.js'
 import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { logKill } from '../lib/playtestLogger.js'
+import { emitSfx } from '../lib/sfxEvents.js'
 import { emitVfx } from '../lib/vfxEvents.js'
 import { createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
@@ -41,6 +42,13 @@ export const ENEMY_STATS = {
 
 // 콜라이더 기본 반크기 (scale=1 기준)
 const BASE_COL = [0.14, 0.26, 0.10]
+
+function deathSfxId(type, isMatilda) {
+  if (isMatilda) return 'matildaDeath'
+  if (type === 'B01') return 'bossDeath'
+  if (type === 'E06' || type === 'E02') return 'zombieHeavyDeath'
+  return 'zombieDeath'
+}
 
 export const CHARGE_CUE_LAYOUT = {
   y: 1.75,
@@ -204,6 +212,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       }))
       setHitFlash(true)
       requestAnimationFrame(() => setHitFlash(false))
+      if (impact?.sfxId) emitSfx({ id: impact.sfxId, volume: 0.6 })
       const knockback = resolveEnemyHitKnockback(impact)
       if (knockback.speed > 0) {
         const t = hitPos
@@ -231,7 +240,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         // 본 런 처치 카운터 + 보스 처치 즉시 누적
         const store = useGameStore.getState()
         store.recordKill()
-        if (type === 'B01') {
+        emitSfx({ id: deathSfxId(type, isMatilda) })
+        // 마틸다는 B01 비주얼을 쓰지만 클리어 처리하지 않는다
+        if (type === 'B01' && !isMatilda) {
           store.recordBossKill()
           store.clearStageWithBossBonus()
         }
@@ -423,7 +434,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         colliders={false}
       >
         <CuboidCollider args={colArgs} />
-        <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} />
+        <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} isMatilda={isMatilda} />
       </RigidBody>
 
       {/* E04 투사체 */}

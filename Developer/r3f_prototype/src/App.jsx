@@ -11,6 +11,7 @@ import UserRanking from './components/UserRanking.jsx'
 import AdminPage from './components/AdminPage.jsx'
 import GraphicsStudio from './components/GraphicsStudio.jsx'
 import { useGameStore } from './store/useGameStore.js'
+import SfxLayer from './components/SfxLayer.jsx'
 import { initPlaytestLogger } from './lib/playtestLogger.js'
 import { isMobileJoystickEnvironment } from './lib/mobileInput.js'
 
@@ -80,6 +81,7 @@ export default function App() {
 
   return (
     <div style={styles.viewport}>
+      <SfxLayer />
       <div ref={phoneFrameRef} style={styles.phoneFrame}>
         {screen === 'title' && (
           <TitleScreen

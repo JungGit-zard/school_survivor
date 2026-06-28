@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
+import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -157,6 +158,7 @@ export function ScienceFlaskSplash() {
     const target = findBestSplashTarget(w.range ?? 2, w.radius ?? 1.6)
     if (!target) return
     lastFireRef.current = now
+    emitSfx({ id: 'flaskFire' })
 
     const next = {
       id: ++_flaskId,
