@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState, useMemo } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useGameStore } from '../store/useGameStore.js'
+import { joystickDir } from '../lib/refs.js'
 import { UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
 import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
@@ -601,6 +602,9 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
           <button type="button" style={styles.quickRestartButton} onClick={() => resetGame(currentStageId)} aria-label="Restart" title="Restart">
             R
           </button>
+          <button type="button" style={styles.matildaBtn} onClick={() => { joystickDir.x = 0; joystickDir.z = 0; joystickDir.active = false; spawnMatilda() }} title="마틸다 소환">
+            M
+          </button>
         </div>
       )}
 
@@ -670,7 +674,6 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
               {onGoToRanking && <button style={styles.rankingBtn} onClick={onGoToRanking}>🏆 랭킹</button>}
               <button style={styles.shopBtn} onClick={onOpenCoinShop}>코인상점</button>
               <button style={styles.restartBtn} onClick={() => resetGame(currentStageId)}>다시 시작</button>
-              <button style={styles.matildaBtn} onClick={() => { resetGame(currentStageId); spawnMatilda() }}>마틸다</button>
             </div>
           </div>
           {resultDevTools}
@@ -766,7 +769,6 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
               {onGoToRanking && <button style={styles.rankingBtn} onClick={onGoToRanking}>🏆 랭킹</button>}
               <button style={styles.shopBtn} onClick={onOpenCoinShop}>코인상점</button>
               <button style={styles.restartBtn} onClick={() => resetGame(currentStageId)}>다시 시작</button>
-              <button style={styles.matildaBtn} onClick={() => { resetGame(currentStageId); spawnMatilda() }}>마틸다</button>
             </div>
           </div>
           {resultDevTools}
@@ -1421,9 +1423,19 @@ const styles = {
     padding: '12px 32px',
   },
   matildaBtn: {
-    ...schoolButton('reward'),
-    fontSize: 16,
-    padding: '12px 20px',
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    border: uiBorders.strong,
+    background: `linear-gradient(180deg, #ffe066 0%, ${uiPalette.reward} 100%)`,
+    color: uiPalette.ink,
+    fontSize: 18,
+    fontWeight: uiType.weightHeavy,
+    lineHeight: '36px',
+    textAlign: 'center',
+    pointerEvents: 'auto',
+    cursor: 'pointer',
+    boxShadow: uiShadows.pressSmall,
   },
   nextStageBtn: {
     ...schoolButton('primary'),

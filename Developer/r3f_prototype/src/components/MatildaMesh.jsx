@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
-import { useLoader } from '@react-three/fiber'
+import { useMemo, useRef } from 'react'
+import { useFrame, useLoader } from '@react-three/fiber'
 import * as THREE from 'three'
 import matildaFaceTextureUrl from '../assets/character/matilda_face_texture.png'
 import { PLAYER_MESH_RAW_HEIGHT, PLAYER_MESH_SCALE, PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
@@ -7,6 +7,14 @@ import { inflateScale, outlineMat, toonMat } from '../lib/toon.js'
 
 export const MATILDA_VISUAL_SCALE = PLAYER_MESH_SCALE * 2
 export const MATILDA_WORLD_HEIGHT = PLAYER_MESH_RAW_HEIGHT * MATILDA_VISUAL_SCALE
+
+export const MATILDA_IDLE_ANIMATION = {
+  floatBaseY: 0.18,
+  floatBobY: 0.045,
+  floatSpeed: 1.7,
+  forwardLeanX: 0.13,
+  swayZ: 0.025,
+}
 
 export const MATILDA_MODEL_PARTS = [
   'head',
@@ -124,50 +132,62 @@ function FaceSlot({ faceTextureUrl }) {
 
 export default function MatildaMesh({ faceTextureUrl = matildaFaceTextureUrl }) {
   const pal = MATILDA_PALETTE
+  const idleRef = useRef()
+  const upperRef = useRef()
+
+  useFrame(({ clock }) => {
+    if (!idleRef.current) return
+    const t = clock.elapsedTime
+    idleRef.current.position.y = MATILDA_IDLE_ANIMATION.floatBaseY + Math.sin(t * MATILDA_IDLE_ANIMATION.floatSpeed) * MATILDA_IDLE_ANIMATION.floatBobY
+    idleRef.current.rotation.z = Math.sin(t * 1.25) * MATILDA_IDLE_ANIMATION.swayZ
+    if (upperRef.current) upperRef.current.rotation.x = MATILDA_IDLE_ANIMATION.forwardLeanX
+  })
 
   return (
-    <group scale={[MATILDA_VISUAL_SCALE, MATILDA_VISUAL_SCALE, MATILDA_VISUAL_SCALE]}>
-      <Part size={[0.60, 0.56, 0.42]} position={[0, 1.43, 0]} color={pal.skin} emissive={0.12} />
-      <FaceSlot faceTextureUrl={faceTextureUrl} />
-      <Part size={[0.72, 0.34, 0.50]} position={[0, 1.70, -0.02]} color={pal.hair} emissive={0.14} />
-      <Part size={[0.56, 0.22, 0.10]} position={[0, 1.59, 0.245]} color={pal.hair} emissive={0.14} outlineScale={1.03} />
-      <Part size={[0.16, 0.34, 0.10]} position={[-0.23, 1.47, 0.25]} rotation={[0, 0, -0.12]} color={pal.hair} emissive={0.14} outlineScale={1.03} />
-      <Part size={[0.16, 0.34, 0.10]} position={[0.23, 1.47, 0.25]} rotation={[0, 0, 0.12]} color={pal.hair} emissive={0.14} outlineScale={1.03} />
-      <Part
-        size={[
-          MATILDA_BACK_HAIR_COVERAGE.backHairWidth,
-          MATILDA_BACK_HAIR_COVERAGE.backHairHeight,
-          0.20,
-        ]}
-        position={[0, MATILDA_BACK_HAIR_COVERAGE.backHairCenterY, MATILDA_BACK_HAIR_COVERAGE.backHairZ]}
-        color={pal.hair}
-        emissive={0.12}
-      />
-      <Part size={[0.22, 1.02, 0.22]} position={[-0.40, 0.98, -0.06]} color={pal.hair} emissive={0.12} />
-      <Part size={[0.22, 1.02, 0.22]} position={[0.40, 0.98, -0.06]} color={pal.hair} emissive={0.12} />
-      <Part size={[0.14, 0.42, 0.14]} position={[-0.25, 2.00, 0]} rotation={[0, 0, -0.34]} color={pal.horn} emissive={0.04} />
-      <Part size={[0.14, 0.42, 0.14]} position={[0.25, 2.00, 0]} rotation={[0, 0, 0.34]} color={pal.horn} emissive={0.04} />
-      <Part size={[0.20, 0.22, 0.08]} position={[-0.42, 1.43, 0.03]} rotation={[0, 0, -0.50]} color={pal.skin} emissive={0.08} />
-      <Part size={[0.20, 0.22, 0.08]} position={[0.42, 1.43, 0.03]} rotation={[0, 0, 0.50]} color={pal.skin} emissive={0.08} />
-      <Part size={[0.48, 0.48, 0.32]} position={[0, 0.82, 0]} color={pal.dress} emissive={0.12} />
-      <Part size={[0.72, 0.34, 0.42]} position={[0, 0.42, 0.02]} color={pal.dress} emissive={0.12} />
-      <Part size={[0.60, 0.10, 0.36]} position={[0, 0.70, 0.03]} color={pal.trim} emissive={0.22} />
-      <Part size={[0.24, 0.18, 0.08]} position={[-0.12, 0.74, 0.25]} rotation={[0, 0, 0.64]} color={pal.trim} emissive={0.24} />
-      <Part size={[0.24, 0.18, 0.08]} position={[0.12, 0.74, 0.26]} rotation={[0, 0, -0.64]} color={pal.trim} emissive={0.24} />
-      <Part size={[0.30, 0.28, 0.28]} position={[-0.50, 0.94, 0.04]} color={pal.dress} emissive={0.10} />
-      <Part size={[0.30, 0.28, 0.28]} position={[0.50, 0.94, 0.04]} color={pal.dress} emissive={0.10} />
-      <Part size={[0.22, 0.72, 0.18]} position={MATILDA_ARM_LAYOUT.left.center} rotation={[0, 0, MATILDA_ARM_LAYOUT.left.rotationZ]} color={pal.skin} emissive={0.08} />
-      <Part size={[0.22, 0.72, 0.18]} position={MATILDA_ARM_LAYOUT.right.center} rotation={[0, 0, MATILDA_ARM_LAYOUT.right.rotationZ]} color={pal.skin} emissive={0.08} />
+    <group ref={idleRef} scale={[MATILDA_VISUAL_SCALE, MATILDA_VISUAL_SCALE, MATILDA_VISUAL_SCALE]}>
+      <group ref={upperRef}>
+        <Part size={[0.60, 0.56, 0.42]} position={[0, 1.43, 0]} color={pal.skin} emissive={0.12} />
+        <FaceSlot faceTextureUrl={faceTextureUrl} />
+        <Part size={[0.72, 0.34, 0.50]} position={[0, 1.70, -0.02]} color={pal.hair} emissive={0.14} />
+        <Part size={[0.56, 0.22, 0.10]} position={[0, 1.59, 0.245]} color={pal.hair} emissive={0.14} outlineScale={1.03} />
+        <Part size={[0.16, 0.34, 0.10]} position={[-0.23, 1.47, 0.25]} rotation={[0, 0, -0.12]} color={pal.hair} emissive={0.14} outlineScale={1.03} />
+        <Part size={[0.16, 0.34, 0.10]} position={[0.23, 1.47, 0.25]} rotation={[0, 0, 0.12]} color={pal.hair} emissive={0.14} outlineScale={1.03} />
+        <Part
+          size={[
+            MATILDA_BACK_HAIR_COVERAGE.backHairWidth,
+            MATILDA_BACK_HAIR_COVERAGE.backHairHeight,
+            0.20,
+          ]}
+          position={[0, MATILDA_BACK_HAIR_COVERAGE.backHairCenterY, MATILDA_BACK_HAIR_COVERAGE.backHairZ]}
+          color={pal.hair}
+          emissive={0.12}
+        />
+        <Part size={[0.22, 1.02, 0.22]} position={[-0.40, 0.98, -0.06]} color={pal.hair} emissive={0.12} />
+        <Part size={[0.22, 1.02, 0.22]} position={[0.40, 0.98, -0.06]} color={pal.hair} emissive={0.12} />
+        <Part size={[0.14, 0.42, 0.14]} position={[-0.25, 2.00, 0]} rotation={[0, 0, -0.34]} color={pal.horn} emissive={0.04} />
+        <Part size={[0.14, 0.42, 0.14]} position={[0.25, 2.00, 0]} rotation={[0, 0, 0.34]} color={pal.horn} emissive={0.04} />
+        <Part size={[0.20, 0.22, 0.08]} position={[-0.42, 1.43, 0.03]} rotation={[0, 0, -0.50]} color={pal.skin} emissive={0.08} />
+        <Part size={[0.20, 0.22, 0.08]} position={[0.42, 1.43, 0.03]} rotation={[0, 0, 0.50]} color={pal.skin} emissive={0.08} />
+        <Part size={[0.48, 0.48, 0.32]} position={[0, 0.82, 0]} color={pal.dress} emissive={0.12} />
+        <Part size={[0.72, 0.34, 0.42]} position={[0, 0.42, 0.02]} color={pal.dress} emissive={0.12} />
+        <Part size={[0.60, 0.10, 0.36]} position={[0, 0.70, 0.03]} color={pal.trim} emissive={0.22} />
+        <Part size={[0.24, 0.18, 0.08]} position={[-0.12, 0.74, 0.25]} rotation={[0, 0, 0.64]} color={pal.trim} emissive={0.24} />
+        <Part size={[0.24, 0.18, 0.08]} position={[0.12, 0.74, 0.26]} rotation={[0, 0, -0.64]} color={pal.trim} emissive={0.24} />
+        <Part size={[0.30, 0.28, 0.28]} position={[-0.50, 0.94, 0.04]} color={pal.dress} emissive={0.10} />
+        <Part size={[0.30, 0.28, 0.28]} position={[0.50, 0.94, 0.04]} color={pal.dress} emissive={0.10} />
+        <Part size={[0.22, 0.72, 0.18]} position={MATILDA_ARM_LAYOUT.left.center} rotation={[0, 0, MATILDA_ARM_LAYOUT.left.rotationZ]} color={pal.skin} emissive={0.08} />
+        <Part size={[0.22, 0.72, 0.18]} position={MATILDA_ARM_LAYOUT.right.center} rotation={[0, 0, MATILDA_ARM_LAYOUT.right.rotationZ]} color={pal.skin} emissive={0.08} />
+        <Part size={[0.82, 0.66, 0.08]} position={[-0.72, 0.94, -0.18]} rotation={[0.12, 0.20, 0.32]} color={pal.wingMembrane} emissive={0.12} outlineScale={1.04} />
+        <Part size={[0.82, 0.66, 0.08]} position={[0.72, 0.94, -0.18]} rotation={[0.12, -0.20, -0.32]} color={pal.wingMembrane} emissive={0.12} outlineScale={1.04} />
+        <Part size={[0.32, 0.18, 0.08]} position={[-0.96, 1.20, -0.12]} rotation={[0, 0, -0.42]} color={pal.horn} emissive={0.05} outlineScale={1.02} />
+        <Part size={[0.32, 0.18, 0.08]} position={[0.96, 1.20, -0.12]} rotation={[0, 0, 0.42]} color={pal.horn} emissive={0.05} outlineScale={1.02} />
+        <Part size={[0.12, 0.78, 0.12]} position={[0, -0.02, -0.26]} rotation={[0.52, 0, 0]} color={pal.hair} emissive={0.12} />
+        <Part size={[0.16, 0.12, 0.08]} position={[0.02, -0.43, -0.18]} rotation={[0, 0, -0.55]} color={pal.horn} emissive={0.04} />
+      </group>
       <Part size={[0.22, 0.56, 0.20]} position={[-0.17, -0.07, 0.02]} color={pal.skin} emissive={0.08} />
       <Part size={[0.22, 0.56, 0.20]} position={[0.17, -0.07, 0.02]} color={pal.skin} emissive={0.08} />
       <Part size={[0.34, 0.24, 0.34]} position={[-0.17, -0.46, 0.07]} color={pal.horn} emissive={0.04} />
       <Part size={[0.34, 0.24, 0.34]} position={[0.17, -0.46, 0.07]} color={pal.horn} emissive={0.04} />
-      <Part size={[0.82, 0.66, 0.08]} position={[-0.72, 0.94, -0.18]} rotation={[0.12, 0.20, 0.32]} color={pal.wingMembrane} emissive={0.12} outlineScale={1.04} />
-      <Part size={[0.82, 0.66, 0.08]} position={[0.72, 0.94, -0.18]} rotation={[0.12, -0.20, -0.32]} color={pal.wingMembrane} emissive={0.12} outlineScale={1.04} />
-      <Part size={[0.32, 0.18, 0.08]} position={[-0.96, 1.20, -0.12]} rotation={[0, 0, -0.42]} color={pal.horn} emissive={0.05} outlineScale={1.02} />
-      <Part size={[0.32, 0.18, 0.08]} position={[0.96, 1.20, -0.12]} rotation={[0, 0, 0.42]} color={pal.horn} emissive={0.05} outlineScale={1.02} />
-      <Part size={[0.12, 0.78, 0.12]} position={[0, -0.02, -0.26]} rotation={[0.52, 0, 0]} color={pal.hair} emissive={0.12} />
-      <Part size={[0.16, 0.12, 0.08]} position={[0.02, -0.43, -0.18]} rotation={[0, 0, -0.55]} color={pal.horn} emissive={0.04} />
     </group>
   )
 }

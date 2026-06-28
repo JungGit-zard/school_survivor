@@ -4,6 +4,7 @@ import {
   MATILDA_BACK_HAIR_COVERAGE,
   MATILDA_DEFAULT_FACE_TEXTURE_SOURCE,
   MATILDA_FACE_TEXTURE_SLOT,
+  MATILDA_IDLE_ANIMATION,
   MATILDA_MODEL_PARTS,
   MATILDA_PALETTE,
   MATILDA_REFERENCE_FEATURES,
@@ -86,5 +87,12 @@ describe('MatildaMesh model contract', () => {
     expect(MATILDA_ARM_LAYOUT.right.shoulderY).toBeGreaterThan(MATILDA_ARM_LAYOUT.right.handY)
     expect(MATILDA_ARM_LAYOUT.left.rotationZ).toBeLessThan(0)
     expect(MATILDA_ARM_LAYOUT.right.rotationZ).toBeGreaterThan(0)
+  })
+
+  it('keeps Matilda floating with a slight forward idle lean', () => {
+    expect(MATILDA_IDLE_ANIMATION.floatBaseY).toBeGreaterThan(0)
+    expect(MATILDA_IDLE_ANIMATION.floatBobY).toBeGreaterThan(0)
+    expect(MATILDA_IDLE_ANIMATION.forwardLeanX).toBeGreaterThan(0)
+    expect(MATILDA_IDLE_ANIMATION.swayZ).toBeGreaterThan(0)
   })
 })

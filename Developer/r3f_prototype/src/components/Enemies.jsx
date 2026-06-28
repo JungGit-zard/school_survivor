@@ -235,12 +235,12 @@ export default function Enemies() {
     // 플레이어 능력치 기준 동적 스탯: 이동속도 ×5, 나머지 ×3
     const matildaStats = {
       hp:          player.maxHp * 3,
-      speed:       player.speed * 5,
+      speed:       player.speed * 1.4,
       damage:      player.maxHp * 3,   // 3배 공격력 = 플레이어 최대 체력 3배로 즉사 수준
       scale:       3.0,
       contactDist: 0.36,
       charger:     true,
-      chargeSpeed: player.speed * 5,
+      chargeSpeed: player.speed * 2.8,
       warnDist:    6.0,
       warnDuration:    400,
       stunDuration:    800,
