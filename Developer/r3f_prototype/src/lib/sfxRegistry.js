@@ -8,84 +8,102 @@ import { Howl } from 'howler'
 // 파일 위치: public/sfx/<category>/<id>.mp3
 const SOUND_MAP = {
   // ── 무기 발사음 (14종) ──────────────────────────────────────────────────────
-  pencilFire:     '/sfx/weapons/pencilFire.mp3',
-  rulerFire:      '/sfx/weapons/rulerFire.mp3',
-  boxCutterFire:  '/sfx/weapons/boxCutterFire.mp3',
-  tumblerFire:    '/sfx/weapons/tumblerFire.mp3',
-  bellFire:       '/sfx/weapons/bellFire.mp3',
-  flaskFire:      '/sfx/weapons/flaskFire.mp3',
-  onigiriFire:    '/sfx/weapons/onigiriFire.mp3',
-  stunGunFire:    '/sfx/weapons/stunGunFire.mp3',
-  missileFire:    '/sfx/weapons/missileFire.mp3',
-  starlinkFire:   '/sfx/weapons/starlinkFire.mp3',
-  compassFire:    '/sfx/weapons/compassFire.mp3',
-  umbrellaFire:   '/sfx/weapons/umbrellaFire.mp3',
-  eraserFire:     '/sfx/weapons/eraserFire.mp3',
-  chibikoFire:    '/sfx/weapons/chibikoFire.mp3',
-  sharkFire:      '/sfx/weapons/sharkFire.mp3',
+  pencilFire:     '/sfx/weapons/pencilFire.wav',
+  rulerFire:      '/sfx/weapons/rulerFire.wav',
+  boxCutterFire:  '/sfx/weapons/boxCutterFire.wav',
+  tumblerFire:    '/sfx/weapons/tumblerFire.wav',
+  bellFire:       '/sfx/weapons/bellFire.wav',
+  flaskFire:      '/sfx/weapons/flaskFire.wav',
+  onigiriFire:    '/sfx/weapons/onigiriFire.wav',
+  stunGunFire:    '/sfx/weapons/stunGunFire.wav',
+  missileFire:    '/sfx/weapons/missileFire.wav',
+  starlinkFire:   '/sfx/weapons/starlinkFire.wav',
+  compassFire:    '/sfx/weapons/compassFire.wav',
+  umbrellaFire:   '/sfx/weapons/umbrellaFire.wav',
+  eraserFire:     '/sfx/weapons/eraserFire.wav',
+  chibikoFire:    '/sfx/weapons/chibikoFire.wav',
+  sharkFire:      '/sfx/weapons/sharkFire.wav',
 
   // ── 무기 타격음 (14종) ──────────────────────────────────────────────────────
-  pencilHit:      '/sfx/weapons/pencilHit.mp3',
-  rulerHit:       '/sfx/weapons/rulerHit.mp3',
-  boxCutterHit:   '/sfx/weapons/boxCutterHit.mp3',
-  tumblerHit:     '/sfx/weapons/tumblerHit.mp3',
-  bellHit:        '/sfx/weapons/bellHit.mp3',
-  flaskHit:       '/sfx/weapons/flaskHit.mp3',
-  onigiriHit:     '/sfx/weapons/onigiriHit.mp3',
-  stunGunHit:     '/sfx/weapons/stunGunHit.mp3',
-  missileHit:     '/sfx/weapons/missileHit.mp3',
-  starlinkHit:    '/sfx/weapons/starlinkHit.mp3',
-  compassHit:     '/sfx/weapons/compassHit.mp3',
-  umbrellaHit:    '/sfx/weapons/umbrellaHit.mp3',
-  eraserHit:      '/sfx/weapons/eraserHit.mp3',
-  chibikoHit:     '/sfx/weapons/chibikoHit.mp3',
-  sharkHit:       '/sfx/weapons/sharkHit.mp3',
+  pencilHit:      '/sfx/weapons/pencilHit.wav',
+  rulerHit:       '/sfx/weapons/rulerHit.wav',
+  boxCutterHit:   '/sfx/weapons/boxCutterHit.wav',
+  tumblerHit:     '/sfx/weapons/tumblerHit.wav',
+  bellHit:        '/sfx/weapons/bellHit.wav',
+  flaskHit:       '/sfx/weapons/flaskHit.wav',
+  onigiriHit:     '/sfx/weapons/onigiriHit.wav',
+  stunGunHit:     '/sfx/weapons/stunGunHit.wav',
+  missileHit:     '/sfx/weapons/missileHit.wav',
+  starlinkHit:    '/sfx/weapons/starlinkHit.wav',
+  compassHit:     '/sfx/weapons/compassHit.wav',
+  umbrellaHit:    '/sfx/weapons/umbrellaHit.wav',
+  eraserHit:      '/sfx/weapons/eraserHit.wav',
+  chibikoHit:     '/sfx/weapons/chibikoHit.wav',
+  sharkHit:       '/sfx/weapons/sharkHit.wav',
 
   // ── 플레이어 ─────────────────────────────────────────────────────────────────
-  playerHit:      '/sfx/player/playerHit.mp3',
-  playerDeath:    '/sfx/player/playerDeath.mp3',
-  playerStep:     '/sfx/player/playerStep.mp3',
+  playerHit:      '/sfx/player/playerHit.wav',
+  playerDeath:    '/sfx/player/playerDeath.wav',
+  playerStep:     '/sfx/player/playerStep.wav',
 
   // ── 적 등장/공격 그로울 ───────────────────────────────────────────────────────
-  zombieGroan:        '/sfx/enemies/zombieGroan.mp3',
-  zombieTankGroan:    '/sfx/enemies/zombieTankGroan.mp3',
-  zombieRunnerScreech:'/sfx/enemies/zombieRunnerScreech.mp3',
-  zombieRangedShoot:  '/sfx/enemies/zombieRangedShoot.mp3',
-  zombieChargeRoar:   '/sfx/enemies/zombieChargeRoar.mp3',
-  zombieGiantThud:    '/sfx/enemies/zombieGiantThud.mp3',
-  bossRoar:           '/sfx/enemies/bossRoar.mp3',
-  matildaSpawn:       '/sfx/enemies/matildaSpawn.mp3',
+  zombieGroan:        '/sfx/enemies/zombieGroan.wav',
+  zombieTankGroan:    '/sfx/enemies/zombieTankGroan.wav',
+  zombieRunnerScreech:'/sfx/enemies/zombieRunnerScreech.wav',
+  zombieRangedShoot:  '/sfx/enemies/zombieRangedShoot.wav',
+  zombieChargeRoar:   '/sfx/enemies/zombieChargeRoar.wav',
+  zombieGiantThud:    '/sfx/enemies/zombieGiantThud.wav',
+  bossRoar:           '/sfx/enemies/bossRoar.wav',
+  matildaSpawn:       '/sfx/enemies/matildaSpawn.wav',
 
   // ── 적 사망음 ────────────────────────────────────────────────────────────────
-  zombieDeath:        '/sfx/enemies/zombieDeath.mp3',
-  zombieHeavyDeath:   '/sfx/enemies/zombieHeavyDeath.mp3',
-  bossDeath:          '/sfx/enemies/bossDeath.mp3',
-  matildaDeath:       '/sfx/enemies/matildaDeath.mp3',
+  zombieDeath:        '/sfx/enemies/zombieDeath.wav',
+  zombieHeavyDeath:   '/sfx/enemies/zombieHeavyDeath.wav',
+  bossDeath:          '/sfx/enemies/bossDeath.wav',
+  matildaDeath:       '/sfx/enemies/matildaDeath.wav',
 
   // ── UI ───────────────────────────────────────────────────────────────────────
-  buttonClick:    '/sfx/ui/buttonClick.mp3',
-  coinCollect:    '/sfx/ui/coinCollect.mp3',
-  levelUp:        '/sfx/ui/levelUp.mp3',
-  stageClear:     '/sfx/ui/stageClear.mp3',
-  gameOver:       '/sfx/ui/gameOver.mp3',
+  buttonClick:    '/sfx/ui/buttonClick.wav',
+  coinCollect:    '/sfx/ui/coinCollect.wav',
+  levelUp:        '/sfx/ui/levelUp.wav',
+  stageClear:     '/sfx/ui/stageClear.wav',
+  gameOver:       '/sfx/ui/gameOver.wav',
 
   // ── 특수 이벤트 ──────────────────────────────────────────────────────────────
-  bossWarning:        '/sfx/events/bossWarning.mp3',
-  bossSpawn:          '/sfx/events/bossSpawn.mp3',
-  portalAppear:       '/sfx/events/portalAppear.mp3',
-  portalSuction:      '/sfx/events/portalSuction.mp3',
-  matildaWarningTick: '/sfx/events/matildaWarningTick.mp3',
-  matildaCountdownEnd:'/sfx/events/matildaCountdownEnd.mp3',
-  escapePortalClear:  '/sfx/events/escapePortalClear.mp3',
-  bossClearJingle:    '/sfx/events/bossClearJingle.mp3',
-  milestoneGold:      '/sfx/events/milestoneGold.mp3',
+  bossWarning:        '/sfx/events/bossWarning.wav',
+  bossSpawn:          '/sfx/events/bossSpawn.wav',
+  portalAppear:       '/sfx/events/portalAppear.wav',
+  portalSuction:      '/sfx/events/portalSuction.wav',
+  matildaWarningTick: '/sfx/events/matildaWarningTick.wav',
+  matildaCountdownEnd:'/sfx/events/matildaCountdownEnd.wav',
+  escapePortalClear:  '/sfx/events/escapePortalClear.wav',
+  bossClearJingle:    '/sfx/events/bossClearJingle.wav',
+  milestoneGold:      '/sfx/events/milestoneGold.wav',
 }
 
 const _cache  = {}
 const _failed = new Set()
 
+// 동시 다발 사망 시 같은 사운드가 같은 프레임에 여러 번 울리는 걸 막는 쿨다운 맵.
+// 한 프레임(~16ms) 안에 같은 ID가 반복 emit돼도 1회만 재생.
+const _lastPlayed = {}
+const POLYPHONY_COOLDOWN = {
+  zombieDeath:      50,
+  zombieHeavyDeath: 50,
+  playerHit:        80,
+  coinCollect:      40,
+}
+
 export function playSfx(id, volume = 1) {
   if (!SOUND_MAP[id] || _failed.has(id)) return
+
+  const cooldown = POLYPHONY_COOLDOWN[id] ?? 0
+  if (cooldown > 0) {
+    const now = performance.now()
+    if (_lastPlayed[id] && now - _lastPlayed[id] < cooldown) return
+    _lastPlayed[id] = now
+  }
+
   if (!_cache[id]) {
     _cache[id] = new Howl({
       src: [SOUND_MAP[id]],
