@@ -86,6 +86,15 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     applyTargets: ['components/ZombieMesh.jsx', 'components/Enemy.jsx', 'lib/toon.js'],
   })),
   {
+    id: 'enemy-matilda',
+    category: 'enemy',
+    label: 'Matilda',
+    source: 'components/MatildaMesh.jsx',
+    previewKind: 'matilda',
+    runtimePreviewComponent: 'MatildaMesh',
+    applyTargets: ['components/MatildaMesh.jsx', 'lib/toon.js'],
+  },
+  {
     id: 'pickup-gold-coin',
     category: 'pickup',
     label: 'Gold Coin',

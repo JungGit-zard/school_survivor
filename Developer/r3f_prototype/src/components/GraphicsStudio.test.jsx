@@ -36,6 +36,7 @@ describe('GraphicsStudio', () => {
     expect(container.textContent).toContain('Graphics Studio')
     expect(container.textContent).toContain('Player')
     expect(container.textContent).toContain('Zombie E01')
+    expect(container.textContent).toContain('Matilda')
     expect(container.textContent).toContain('Weapon Model')
     expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player')
     expect(container.querySelector('input[name="scale"]')).toBeTruthy()

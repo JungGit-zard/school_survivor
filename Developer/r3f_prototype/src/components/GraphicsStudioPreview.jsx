@@ -11,6 +11,7 @@ import XpTextbook from './XpTextbook.jsx'
 import XpOrb from './XpOrb.jsx'
 import { LunchModel } from './LunchItems.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
+import MatildaMesh from './MatildaMesh.jsx'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
 import EnemyProjectileVisual from './EnemyProjectileVisual.jsx'
 import TitleScene3D from './TitleScene3D.jsx'
@@ -220,6 +221,14 @@ function getPreviewFrame(item) {
       maxDistance: 3,
     }
   }
+  if (item.previewKind === 'matilda') {
+    return {
+      camera: { position: [2.4, 2.5, 4.2], fov: 34, near: 0.01, far: 30 },
+      target: [0, 0.9, 0],
+      minDistance: 0.8,
+      maxDistance: 9,
+    }
+  }
   if (item.previewKind === 'healthBar') {
     return {
       camera: { position: [0.8, 0.9, 1.4], fov: 34, near: 0.01, far: 20 },
@@ -245,6 +254,9 @@ function RenderPreviewItem({ item }) {
   }
   if (item.previewKind === 'zombie') {
     return <EnemyVisual type={item.zombieType} animPhase={item.animation ?? 'normal'} hp={ENEMY_STATS[item.zombieType]?.hp} />
+  }
+  if (item.previewKind === 'matilda') {
+    return <MatildaMesh />
   }
   if (item.previewKind === 'stageObject' && item.objectType === 'desk') {
     return <ClassroomDesk variant={item.variant} />
