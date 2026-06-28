@@ -142,7 +142,8 @@ export const useGameStore = create(
 
     // 플레이어 피해
     damagePlayer: (amount) => {
-      const { player } = get()
+      const { player, phase } = get()
+      if (phase !== 'playing') return
       if (player.invulnerable) return
       const hp = Math.max(0, player.hp - amount)
       logDamageTaken(amount, hp)
