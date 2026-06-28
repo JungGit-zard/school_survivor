@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
+import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
 import { playerArmActionState, playerPos, screenBounds } from '../../lib/refs.js'
 import { startPlayerArmAction } from '../../lib/playerArmAction.js'
@@ -317,6 +318,7 @@ export function SharkMissileWeapon() {
     const target = clampToScreen(rawTarget.x, rawTarget.z)
 
     lastFireRef.current = now
+    emitSfx({ id: 'sharkFire' })
     startPlayerArmAction(playerArmActionState, 'guidedMissileThrow', now)
 
     const next = createSharkMissileLaunch({

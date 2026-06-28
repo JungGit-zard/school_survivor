@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
+import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -148,6 +149,7 @@ export function EraserBombWeapon() {
     const landTarget = { x: playerPos.x + dx * scale, z: playerPos.z + dz * scale }
 
     lastFireRef.current = now
+    emitSfx({ id: 'eraserFire' })
     const next = {
       id: ++_eraserId,
       start: [playerPos.x, playerPos.y + 0.36, playerPos.z],

@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
+import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -147,6 +148,7 @@ export function StarlinkWeapon() {
     if (targets.length === 0) return
 
     lastFireRef.current = now
+    emitSfx({ id: 'starlinkFire' })
     const nextStrikes = targets.map((t) => ({
       id: ++_strikeId,
       x: t.x,

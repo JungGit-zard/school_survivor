@@ -5,6 +5,7 @@ import { UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
 import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { buildPlaytestSummary } from '../lib/playtestLogger.js'
+import { emitSfx } from '../lib/sfxEvents.js'
 import { getStageConfig } from '../lib/stageConfig.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
@@ -344,7 +345,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
     newlyUnlockedWeaponIds, levelUpChoiceSerial,
     escapePortalActive, matildaSpawned, bossBonus,
     clearMilestone, applyUpgrade, resumeFromLevelup,
-    resetGame, togglePause, resumeGame, quitPausedRun,
+    resetGame, togglePause, resumeGame, quitPausedRun, spawnMatilda,
   } = useGameStore(useShallow((s) => ({
     player:               s.player,
     weapons:              s.weapons,
@@ -368,6 +369,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
     togglePause:          s.togglePause,
     resumeGame:           s.resumeGame,
     quitPausedRun:        s.quitPausedRun,
+    spawnMatilda:         s.spawnMatilda,
   })))
 
   const mins = String(Math.floor(elapsed / 60000)).padStart(2, '0')
@@ -440,6 +442,13 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
     if (elapsedSec < warnSec || elapsedSec >= spawnSec) return null
     return Math.max(1, Math.ceil(spawnSec - elapsedSec))
   }, [matildaSpawned, elapsed, phase, stageConfig.matildaWarningSec, stageConfig.matildaSec])
+
+  // 보스/마틸다 경고 카운트가 바뀔 때마다 틱 사운드 1회
+  useEffect(() => { if (bossWarning != null) emitSfx({ id: 'bossWarning', volume: 0.5 }) }, [bossWarning])
+  useEffect(() => {
+    if (matildaWarning == null) return
+    emitSfx({ id: matildaWarning === 1 ? 'matildaCountdownEnd' : 'matildaWarningTick', volume: 0.7 })
+  }, [matildaWarning])
 
   // 탈출구 등장 알림: 등장 직후 3초간 표시
   const portalFlash = useMemo(() => {
@@ -586,7 +595,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
 
       {(phase === 'playing' || phase === 'paused') && (
         <div style={styles.topLeftControls}>
-          <button type="button" style={styles.pauseButton} onClick={togglePause}>
+          <button type="button" style={styles.pauseButton} onClick={() => { emitSfx({ id: 'buttonClick' }); togglePause() }}>
           {phase === 'paused' ? '▶' : 'Ⅱ'}
           </button>
           <button type="button" style={styles.quickRestartButton} onClick={() => resetGame(currentStageId)} aria-label="Restart" title="Restart">
@@ -661,6 +670,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
               {onGoToRanking && <button style={styles.rankingBtn} onClick={onGoToRanking}>🏆 랭킹</button>}
               <button style={styles.shopBtn} onClick={onOpenCoinShop}>코인상점</button>
               <button style={styles.restartBtn} onClick={() => resetGame(currentStageId)}>다시 시작</button>
+              <button style={styles.matildaBtn} onClick={() => { resetGame(currentStageId); spawnMatilda() }}>마틸다</button>
             </div>
           </div>
           {resultDevTools}
@@ -756,6 +766,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
               {onGoToRanking && <button style={styles.rankingBtn} onClick={onGoToRanking}>🏆 랭킹</button>}
               <button style={styles.shopBtn} onClick={onOpenCoinShop}>코인상점</button>
               <button style={styles.restartBtn} onClick={() => resetGame(currentStageId)}>다시 시작</button>
+              <button style={styles.matildaBtn} onClick={() => { resetGame(currentStageId); spawnMatilda() }}>마틸다</button>
             </div>
           </div>
           {resultDevTools}
@@ -1408,6 +1419,11 @@ const styles = {
     ...schoolButton('primary'),
     fontSize: 16,
     padding: '12px 32px',
+  },
+  matildaBtn: {
+    ...schoolButton('reward'),
+    fontSize: 16,
+    padding: '12px 20px',
   },
   nextStageBtn: {
     ...schoolButton('primary'),

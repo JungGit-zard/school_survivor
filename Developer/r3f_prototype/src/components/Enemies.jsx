@@ -1,5 +1,6 @@
 ﻿import { useRef, useCallback, useState, useEffect } from 'react'
 import { useGameStore } from '../store/useGameStore.js'
+import { emitSfx } from '../lib/sfxEvents.js'
 import { usePlayingFrame } from '../lib/usePlayingFrame.js'
 import { playerPos, enemyBodies } from '../lib/refs.js'
 import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
@@ -248,6 +249,7 @@ export default function Enemies() {
     }
     // 플레이어 근처 랜덤 스폰
     const spawnPos = randomSpawnPos('B01', bounds)
+    emitSfx({ id: 'matildaSpawn' })
     addEnemies([{ id: ++_uid, type: 'B01', pos: spawnPos, statOverride: matildaStats, isMatilda: true }])
   }, [matildaSpawned, currentStageId, addEnemies])
 
@@ -320,6 +322,7 @@ export default function Enemies() {
         if (evt.type === 'B01') {
           if (bossSpawned) return
           spawnBoss()
+          emitSfx({ id: 'bossSpawn' })
           addEnemies([{ id: ++_uid, type: 'B01', pos: randomSpawnPos('B01', bounds) }])
           return
         }

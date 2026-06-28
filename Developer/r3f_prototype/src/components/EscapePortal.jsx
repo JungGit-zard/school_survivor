@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { playerPos } from '../lib/refs.js'
 import { useGameStore } from '../store/useGameStore.js'
+import { emitSfx } from '../lib/sfxEvents.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 import { STAGE_OBJECT_PLACEMENTS } from './StageObjects/stageObjectPlacements.js'
 
@@ -59,6 +60,7 @@ export default function EscapePortal({ stageId }) {
       suckingRef.current = true
       suckTimerRef.current = 0
       setSucking(true)
+      emitSfx({ id: 'portalSuction' })
     }
 
     if (suckingRef.current) {
@@ -69,6 +71,7 @@ export default function EscapePortal({ stageId }) {
 
       if (suckTimerRef.current >= SUCTION_DURATION && !clearedRef.current) {
         clearedRef.current = true
+        emitSfx({ id: 'escapePortalClear' })
         clearStage()
       }
     }

@@ -1,5 +1,6 @@
 import { useRef, useState, useMemo, useCallback } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
+import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -209,6 +210,7 @@ export function UmbrellaGuardWeapon() {
 
     if (now - lastFireRef.current >= w.cooldown) {
       lastFireRef.current = now
+      emitSfx({ id: 'umbrellaFire' })
       const next = {
         id: ++_umbrellaId,
         x: playerPos.x,

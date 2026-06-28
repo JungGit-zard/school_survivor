@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
 import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
+import { emitSfx } from '../../lib/sfxEvents.js'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { getBellSonicRingConfigs } from '../../lib/bell.js'
@@ -111,6 +112,7 @@ export function BellShockwave() {
 
     if (nowMs - lastFireRef.current < w.cooldown) return
     lastFireRef.current = nowMs
+    emitSfx({ id: 'bellFire' })
 
     const radius = w.radius ?? 1.7
     applyRadialDamage({

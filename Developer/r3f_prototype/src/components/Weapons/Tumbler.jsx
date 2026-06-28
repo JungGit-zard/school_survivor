@@ -1,6 +1,7 @@
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import { RigidBody, BallCollider } from '@react-three/rapier'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
+import { emitSfx } from '../../lib/sfxEvents.js'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
@@ -75,6 +76,9 @@ export function TumblerOrbit() {
       })
     })
   })
+
+  // ponytail: 텀블러는 항상 활성, fire 이벤트 없으므로 활성화 시점에 1회 emit
+  useEffect(() => { if (weapons.tumbler?.active) emitSfx({ id: 'tumblerFire' }) }, [weapons.tumbler?.active])
 
   if (!weapons.tumbler?.active) return null
   const tumblerCount = Math.max(1, Math.min(3, weapons.tumbler.count ?? 1))

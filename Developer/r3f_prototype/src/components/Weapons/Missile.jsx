@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
+import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
 import { playerArmActionState, playerPos } from '../../lib/refs.js'
 import { startPlayerArmAction } from '../../lib/playerArmAction.js'
@@ -275,6 +276,7 @@ export function GuidedMissile() {
     const target = findBestSplashTarget(w.range ?? 22, w.radius ?? 1.6)
     if (!target) return
     lastFireRef.current = now
+    emitSfx({ id: 'missileFire' })
     startPlayerArmAction(playerArmActionState, 'guidedMissileThrow', now)
 
     // 목표 방향 기준 수직으로 옆에 던지듯 스폰

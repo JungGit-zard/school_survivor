@@ -1,6 +1,7 @@
 import { useRef, useState, useMemo } from 'react'
 import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
+import { emitSfx } from '../../lib/sfxEvents.js'
 import { RigidBody, CuboidCollider, BallCollider } from '@react-three/rapier'
 import { bagSwingState, playerFacing, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -68,6 +69,7 @@ export function SchoolBagSwing() {
     if (!swing && hasVeryCloseEnemy && now - lastSwingRef.current >= w.cooldown) {
       lastSwingRef.current = now
       bagSwingState.lastFired = now
+      emitSfx({ id: 'rulerFire' })
       bagSwingState.cooldown  = w.cooldown
       hitSetRef.current = new Set()
       pendingHitsRef.current = new Map()

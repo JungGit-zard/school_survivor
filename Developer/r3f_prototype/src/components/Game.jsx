@@ -9,6 +9,7 @@ import Enemies from './Enemies.jsx'
 import LunchItems from './LunchItems.jsx'
 import VFXLayer from './VFXLayer.jsx'
 import EscapePortal from './EscapePortal.jsx'
+import { emitSfx } from '../lib/sfxEvents.js'
 import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon, ChibikoWeapon, SharkMissileWeapon } from './Weapons/index.js'
 
 const _camTarget = new THREE.Vector3()
@@ -63,6 +64,7 @@ export default function Game() {
       // 4:00 — 자동 클리어 대신 탈출구 등장
       if (!escapePortalActive && elapsedMs >= stageConfig.escapePortalSec * 1000) {
         activateEscapePortal()
+        emitSfx({ id: 'portalAppear' })
       }
       // 7:00 — 마틸다 스폰
       if (!matildaSpawned && elapsedMs >= stageConfig.matildaSec * 1000) {

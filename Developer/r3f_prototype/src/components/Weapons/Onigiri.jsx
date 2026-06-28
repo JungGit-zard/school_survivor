@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
+import { emitSfx } from '../../lib/sfxEvents.js'
 import { enemyBodies, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
@@ -223,6 +224,7 @@ export function OnigiiriWeapon() {
     const target = findClosestEnemy(w.range ?? 18)
     if (!target) return
     lastFireRef.current = now
+    emitSfx({ id: 'onigiriFire' })
 
     const p = {
       id:            ++_onigiiriId,

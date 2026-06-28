@@ -1,6 +1,7 @@
 import { useRef, useMemo, useState, useCallback } from 'react'
 import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
+import { emitSfx } from '../../lib/sfxEvents.js'
 import { RigidBody, BallCollider } from '@react-three/rapier'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -213,6 +214,7 @@ export function CompassBladeWeapon() {
   }, [])
 
   const explode = useCallback((blast) => {
+    emitSfx({ id: 'compassHit' })
     applyRadialDamage({
       x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
       knockback: 3.2, knockbackMs: 130,
