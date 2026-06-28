@@ -79,8 +79,8 @@ describe('enemy death collapse body pieces', () => {
     expect(motion.y).toBeGreaterThan(1.5)
   })
 
-  it('gives explosive scatter deaths three fragment patterns', () => {
-    expect(SCATTER_COLLAPSE_VARIANTS).toEqual(['burst', 'spiral', 'wave'])
+  it('gives explosive scatter deaths six fragment patterns', () => {
+    expect(SCATTER_COLLAPSE_VARIANTS).toEqual(['burst', 'spiral', 'wave', 'ring', 'fountain', 'cross'])
 
     const motions = SCATTER_COLLAPSE_VARIANTS.map((scatterVariant) => (
       createCollapseMotion({
@@ -95,12 +95,43 @@ describe('enemy death collapse body pieces', () => {
       `${motion.x.toFixed(3)}:${motion.z.toFixed(3)}:${motion.delayMs}:${motion.distanceScale}`
     ))
 
-    expect(new Set(signatures).size).toBe(3)
+    expect(new Set(signatures).size).toBe(6)
     motions.forEach((motion) => {
       expect(motion.gravity).toBe(0)
       expect(Math.hypot(motion.x, motion.z)).toBeGreaterThan(3)
       expect(motion.y).toBeGreaterThan(1)
     })
+  })
+
+  it('adds readable ring, fountain, and cross scatter silhouettes', () => {
+    const ring = createCollapseMotion({
+      seed: 12.5,
+      part: ZOMBIE_COLLAPSE_PARTS[0],
+      index: 0,
+      style: 'scatter',
+      scatterVariant: 'ring',
+    })
+    const fountain = createCollapseMotion({
+      seed: 12.5,
+      part: ZOMBIE_COLLAPSE_PARTS[0],
+      index: 0,
+      style: 'scatter',
+      scatterVariant: 'fountain',
+    })
+    const cross = createCollapseMotion({
+      seed: 12.5,
+      part: ZOMBIE_COLLAPSE_PARTS[4],
+      index: 4,
+      style: 'scatter',
+      scatterVariant: 'cross',
+    })
+
+    expect(ring.distanceScale).toBeGreaterThan(1.1)
+    expect(fountain.y).toBeGreaterThan(ring.y)
+    expect(Math.hypot(fountain.x, fountain.z)).toBeLessThan(Math.hypot(ring.x, ring.z))
+    expect(Math.max(Math.abs(cross.x), Math.abs(cross.z))).toBeGreaterThan(
+      Math.min(Math.abs(cross.x), Math.abs(cross.z)) * 3,
+    )
   })
 
   it('restores the in-place crumble motion', () => {

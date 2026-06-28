@@ -1,7 +1,7 @@
 export const ENEMY_DEATH_COLLAPSE_LIFETIME_MS = 780
 export const ENEMY_DEATH_COLLAPSE_FADE_START_MS = 430
 export const ENEMY_DEATH_COLLAPSE_STYLES = ['bodyCollapse', 'scatter', 'crumble', 'slump']
-export const SCATTER_COLLAPSE_VARIANTS = ['burst', 'spiral', 'wave']
+export const SCATTER_COLLAPSE_VARIANTS = ['burst', 'spiral', 'wave', 'ring', 'fountain', 'cross']
 export const WEAK_COLLAPSE_STYLES = ['crumble', 'slump']
 
 export const ZOMBIE_COLLAPSE_PARTS = [
@@ -119,6 +119,33 @@ function createScatterMotion({ seed, part, index, scatterVariant = 'burst' }) {
     distanceScale = 0.9
     linearDamping = 1.35
     spinDamping = 0.9
+  } else if (variant === 'ring') {
+    angle = index * 0.52 + (n0 - 0.5) * 0.24
+    speed = 4.7 + n1 * 1.4 + (index % 2) * 0.7
+    lift = 1.05 + n2 * 0.7
+    spin = 7.4 + n3 * 8.0
+    delayMs = (index % 12) * 2
+    distanceScale = 1.25
+    linearDamping = 0.75
+    spinDamping = 0.7
+  } else if (variant === 'fountain') {
+    angle += (n4 - 0.5) * 0.6
+    speed = 3.2 + n1 * 1.7
+    lift = 4.3 + n2 * 2.2
+    spin += 5.0
+    delayMs = Math.min(index, 8) * 4
+    distanceScale = 0.68
+    linearDamping = 1.05
+    spinDamping = 0.55
+  } else if (variant === 'cross') {
+    angle = (index % 4) * (Math.PI / 2) + (n0 - 0.5) * 0.18
+    speed = 4.8 + n1 * 3.2 + (index % 3) * 0.4
+    lift = 1.3 + n2 * 1.3
+    spin = 8.0 + n3 * 9.0
+    delayMs = Math.floor(index / 4) * 6
+    distanceScale = 1.12
+    linearDamping = 0.85
+    spinDamping = 0.7
   }
 
   return {
