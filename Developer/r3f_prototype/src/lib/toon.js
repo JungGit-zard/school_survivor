@@ -82,3 +82,36 @@ export function softOutlineMat() {
   const { opacity, color } = OUTLINE_PRESETS.ATMOSPHERE
   return outlineMat(opacity, color)
 }
+
+// ── 렌더링 캐시 (동일 파라미터 인스턴스 공유) ──────────────────────────────
+// BoxGeometry: 같은 크기의 박스를 여러 메쉬가 공유
+const _geoCache = new Map()
+export function getCachedBoxGeo(w, h, d) {
+  const key = `${w},${h},${d}`
+  let g = _geoCache.get(key)
+  if (!g) { g = new THREE.BoxGeometry(w, h, d); _geoCache.set(key, g) }
+  return g
+}
+
+// toonMat: 동일 색상+발광 조합의 머티리얼 공유
+const _toonMatCache = new Map()
+export function getCachedToonMat(color, emissive = 0.08) {
+  const key = `${color},${emissive}`
+  let m = _toonMatCache.get(key)
+  if (!m) { m = toonMat(color, emissive); _toonMatCache.set(key, m) }
+  return m
+}
+
+// outlineMat(0.96): 모든 캐릭터 아웃라인이 동일 → 싱글턴
+let _sharedOutlineMat = null
+export function getSharedOutlineMat() {
+  if (!_sharedOutlineMat) _sharedOutlineMat = outlineMat(0.96)
+  return _sharedOutlineMat
+}
+
+// 피격 플래시: 순백색 싱글턴 (모든 적이 공유해도 무방 — 머티리얼 교체 방식이라 상호 간섭 없음)
+let _flashMat = null
+export function getFlashMat() {
+  if (!_flashMat) _flashMat = toonMat(0xffffff, 1.0)
+  return _flashMat
+}

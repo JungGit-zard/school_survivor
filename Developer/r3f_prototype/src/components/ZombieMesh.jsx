@@ -1,7 +1,6 @@
-import { useRef, useMemo } from 'react'
+import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import * as THREE from 'three'
-import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
+import { inflateScale, getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat } from '../lib/toon.js'
 import MatildaMesh from './MatildaMesh.jsx'
 
 // 타입별 색상 팔레트
@@ -54,12 +53,10 @@ export const B01_BOSS_FACE_LAYOUT = {
 }
 
 function ZBlock({ size, position, rotation, color, emissive = 0.12, outlineScale = 1.08, flash = false }) {
-  const displayColor = flash ? 0xffffff : color
-  const displayEmissive = flash ? 1.0 : emissive
-  const mat = useMemo(() => toonMat(displayColor, displayEmissive), [displayColor, displayEmissive])
-  const outMat = useMemo(() => outlineMat(0.96), [])
-  const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
-  const os = inflateScale(outlineScale)
+  const geo    = getCachedBoxGeo(...size)
+  const outMat = getSharedOutlineMat()
+  const mat    = flash ? getFlashMat() : getCachedToonMat(color, emissive)
+  const os     = inflateScale(outlineScale)
   return (
     <group position={position} rotation={rotation}>
       <mesh renderOrder={1} geometry={geo} material={outMat} scale={[os, os, os]} />
@@ -126,9 +123,9 @@ function B01BossZombieMesh({ hitFlash, reg }) {
 }
 
 function OutlineBlock({ size, position, rotation, scale = 1.08 }) {
-  const mat = useMemo(() => outlineMat(0.96), [])
-  const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
-  const s = inflateScale(scale)
+  const geo = getCachedBoxGeo(...size)
+  const mat = getSharedOutlineMat()
+  const s   = inflateScale(scale)
   return <mesh renderOrder={0} geometry={geo} material={mat} position={position} rotation={rotation} scale={[s, s, s]} />
 }
 
@@ -148,13 +145,25 @@ function ZombieOuterOutline() {
 // animPhase: 'normal' | 'warn' | 'charge' | 'stun'
 export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false }) {
   const p    = useRef({})
-  const reg  = (k) => (el) => { if (el) p.current[k] = el }
   const pal  = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
 
-  useFrame((_, delta) => {
+  // 안정적인 ref 콜백 — 매 렌더마다 새 함수 생성 방지
+  const regRef = useRef(null)
+  if (!regRef.current) {
+    const pc = p
+    regRef.current = (k) => {
+      let cb = regRef.current._cbs[k]
+      if (!cb) { cb = (el) => { if (el) pc.current[k] = el }; regRef.current._cbs[k] = cb }
+      return cb
+    }
+    regRef.current._cbs = {}
+  }
+  const reg = regRef.current
+
+  useFrame((state, delta) => {
     const pt = p.current
     if (!pt.legL) return
-    const t   = performance.now() * 0.001
+    const t = state.clock.elapsedTime
 
     // warn: 몸통 빠른 진동 (돌진 예고)
     if (animPhase === 'warn') {

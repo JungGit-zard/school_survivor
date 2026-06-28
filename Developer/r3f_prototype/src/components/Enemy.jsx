@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import * as THREE from 'three'
 import { enemyBodies, playerPos } from '../lib/refs.js'
-import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
+import { getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat, inflateScale } from '../lib/toon.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { logKill } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
@@ -19,6 +19,19 @@ const _dir = new THREE.Vector3()
 const _pos = new THREE.Vector3()
 const _chargeTarget = new THREE.Vector3()
 const _fireDir = new THREE.Vector3()
+// setLinvel에 전달하는 재사용 객체 — 매 프레임 인라인 객체 생성 방지
+const _vel = { x: 0, y: 0, z: 0 }
+
+// 방향 회전 헬퍼 — useFrame 내 함수 재생성 방지를 위해 모듈 레벨
+function _applyRotation(groupRef, dx, dz, turnRate = 0.12) {
+  if (!groupRef.current) return
+  if (Math.hypot(dx, dz) <= 0.0001) return
+  const targetY = Math.atan2(dx, dz)
+  let diff = targetY - groupRef.current.rotation.y
+  while (diff >  Math.PI) diff -= Math.PI * 2
+  while (diff < -Math.PI) diff += Math.PI * 2
+  groupRef.current.rotation.y += diff * turnRate
+}
 
 export const ENEMY_SIZE_MULTIPLIER = 4 / 3
 
@@ -284,37 +297,31 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     const dist = _dir.length()
 
     if (performance.now() < knockbackUntilRef.current) {
-      rb.current.setLinvel({
-        x: knockbackDir.current.x * knockbackSpeedRef.current,
-        y: 0,
-        z: knockbackDir.current.z * knockbackSpeedRef.current,
-      }, true)
+      _vel.x = knockbackDir.current.x * knockbackSpeedRef.current
+      _vel.y = 0
+      _vel.z = knockbackDir.current.z * knockbackSpeedRef.current
+      rb.current.setLinvel(_vel, true)
       return
     }
 
-    // ── 방향 회전 ──────────────────────────────────────────────────────────
-    const updateRotation = (dx, dz, turnRate = 0.12) => {
-      if (!groupRef.current) return
-      if (Math.hypot(dx, dz) <= 0.0001) return
-      const targetY = Math.atan2(dx, dz)
-      let diff = targetY - groupRef.current.rotation.y
-      while (diff >  Math.PI) diff -= Math.PI * 2
-      while (diff < -Math.PI) diff += Math.PI * 2
-      groupRef.current.rotation.y += diff * turnRate
-    }
+    const updateRotation = (dx, dz, tr) => _applyRotation(groupRef, dx, dz, tr)
 
     // ── E04: 원거리 감염체 ─────────────────────────────────────────────────
     if (stats.ranged) {
       const now = performance.now()
       // 원하는 거리 유지: 너무 가까우면 후퇴, 너무 멀면 전진
+      _vel.y = 0
       if (dist < stats.minDist) {
         _dir.normalize()
-        rb.current.setLinvel({ x: -_dir.x * stats.speed, y: 0, z: -_dir.z * stats.speed }, true)
+        _vel.x = -_dir.x * stats.speed; _vel.z = -_dir.z * stats.speed
+        rb.current.setLinvel(_vel, true)
       } else if (dist > stats.preferDist) {
         _dir.normalize()
-        rb.current.setLinvel({ x: _dir.x * stats.speed, y: 0, z: _dir.z * stats.speed }, true)
+        _vel.x = _dir.x * stats.speed; _vel.z = _dir.z * stats.speed
+        rb.current.setLinvel(_vel, true)
       } else {
-        rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
+        _vel.x = 0; _vel.z = 0
+        rb.current.setLinvel(_vel, true)
       }
       if (_dir.length() > 0) updateRotation(_dir.x / _dir.length(), _dir.z / _dir.length())
 
@@ -348,10 +355,12 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     if (stats.charger) {
       const now = performance.now()
 
+      _vel.y = 0
       if (chargeState.current === 'chase') {
         // 일반 추격
         _dir.normalize()
-        rb.current.setLinvel({ x: _dir.x * stats.speed, y: 0, z: _dir.z * stats.speed }, true)
+        _vel.x = _dir.x * stats.speed; _vel.z = _dir.z * stats.speed
+        rb.current.setLinvel(_vel, true)
         updateRotation(_dir.x, _dir.z)
 
         if (dist < stats.warnDist) {
@@ -360,7 +369,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           chargeDir.current.copy(_dir)
           updateRotation(chargeDir.current.x, chargeDir.current.z, 0.75)
           setAnimPhase('warn')
-          rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
+          _vel.x = 0; _vel.z = 0
+          rb.current.setLinvel(_vel, true)
         }
 
       } else if (chargeState.current === 'warn') {
@@ -369,34 +379,34 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           chargeState.current = 'charge'
           stateTimer.current = now
           setAnimPhase('charge')
-          // 돌진 방향 고정
           chargeDir.current.normalize()
           updateRotation(chargeDir.current.x, chargeDir.current.z, 1)
         }
 
       } else if (chargeState.current === 'charge') {
         const cd = chargeDir.current
-        rb.current.setLinvel({ x: cd.x * stats.chargeSpeed, y: 0, z: cd.z * stats.chargeSpeed }, true)
+        _vel.x = cd.x * stats.chargeSpeed; _vel.z = cd.z * stats.chargeSpeed
+        rb.current.setLinvel(_vel, true)
         updateRotation(cd.x, cd.z, 1)
 
-        // 접촉 피해와 타임아웃을 if/else if로 분리 — 같은 프레임 중복 실행 방지
         if (dist < stats.contactDist * ENEMY_SIZE_MULTIPLIER * 1.5) {
-          // 플레이어 접촉 → 즉시 스턴
           damagePlayer(stats.damage)
           chargeState.current = 'stun'
           stateTimer.current = now
           setAnimPhase('stun')
-          rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
+          _vel.x = 0; _vel.z = 0
+          rb.current.setLinvel(_vel, true)
         } else if (now - stateTimer.current > (stats.chargeDuration ?? 1200)) {
-          // 타임아웃 (놓쳤을 때) — stats.chargeDuration으로 적별 설정 가능
           chargeState.current = 'stun'
           stateTimer.current = now
           setAnimPhase('stun')
-          rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
+          _vel.x = 0; _vel.z = 0
+          rb.current.setLinvel(_vel, true)
         }
 
       } else if (chargeState.current === 'stun') {
-        rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
+        _vel.x = 0; _vel.z = 0
+        rb.current.setLinvel(_vel, true)
         if (dist > 0.0001) updateRotation(_dir.x / dist, _dir.z / dist, 0.22)
         if (now - stateTimer.current >= stats.stunDuration) {
           chargeState.current = 'chase'
@@ -407,16 +417,19 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     }
 
     // ── 기본 추격 (E01, E02, E03, E06) ────────────────────────────────────
+    _vel.y = 0
     if (dist < stats.contactDist * ENEMY_SIZE_MULTIPLIER) {
       const now = performance.now()
       if (now - lastContactDmgRef.current >= 500) {
         lastContactDmgRef.current = now
         damagePlayer(stats.damage)
       }
-      rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
+      _vel.x = 0; _vel.z = 0
+      rb.current.setLinvel(_vel, true)
     } else {
       _dir.normalize()
-      rb.current.setLinvel({ x: _dir.x * stats.speed, y: 0, z: _dir.z * stats.speed }, true)
+      _vel.x = _dir.x * stats.speed; _vel.z = _dir.z * stats.speed
+      rb.current.setLinvel(_vel, true)
       updateRotation(_dir.x, _dir.z)
     }
   })
