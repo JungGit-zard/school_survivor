@@ -12,10 +12,11 @@ const STAGE_PRIORITY = {
   stage2: 2,
 }
 
-export function getRankingScore({ stageId = 'stage1', survivalSeconds = 0, cleared = false } = {}, policy = getRankingScorePolicy()) {
+export function getRankingScore({ stageId = 'stage1', survivalSeconds = 0, cleared = false, bossBonus = 0 } = {}, policy = getRankingScorePolicy()) {
   return readNonNegativeInt(survivalSeconds)
     + readNonNegativeInt(policy.stageBonus?.[stageId])
     + (cleared ? readNonNegativeInt(policy.clearBonus) : 0)
+    + readNonNegativeInt(bossBonus)
 }
 
 export function getRankingScorePolicy(seasonConfig = getAdminRankingSeasonConfig()) {

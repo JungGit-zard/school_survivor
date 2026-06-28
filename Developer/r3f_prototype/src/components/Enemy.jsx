@@ -144,7 +144,7 @@ function EnemyProjectile({ id, position, velocity, damage, onExpire }) {
 
 // ── HP 바 ────────────────────────────────────────────────────────────────────
 // ── 메인 Enemy 컴포넌트 ───────────────────────────────────────────────────────
-export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null }) {
+export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false }) {
   const stats = ENEMY_STATS[type] ?? ENEMY_STATS.E01
   const cs = stats.scale * ENEMY_SIZE_MULTIPLIER
   const currentHp = hp ?? stats.hp
@@ -152,7 +152,7 @@ export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = fal
   return (
     <>
       <group ref={groupRef} scale={[cs * 0.333, cs * 0.333, cs * 0.333]}>
-        <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} />
+        <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} isMatilda={isMatilda} />
         {stats.charger && animPhase === 'warn' && <ChargeToonCue y={CHARGE_CUE_LAYOUT.y} />}
       </group>
       {showHealthBar && <MiniHealthBar current={currentHp} max={stats.hp} width={0.32 * cs} height={0.045} y={0.72 * cs} />}
@@ -160,10 +160,10 @@ export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = fal
   )
 }
 
-export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
+export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverride, isMatilda = false }) {
   const rb       = useRef()
   const groupRef = useRef()
-  const stats    = ENEMY_STATS[type] ?? ENEMY_STATS.E01
+  const stats    = { ...(ENEMY_STATS[type] ?? ENEMY_STATS.E01), ...statOverride }
   const cs       = stats.scale * ENEMY_SIZE_MULTIPLIER
   const colArgs  = [BASE_COL[0] * cs, BASE_COL[1] * cs, BASE_COL[2] * cs]
 
@@ -231,7 +231,10 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath }) {
         // 본 런 처치 카운터 + 보스 처치 즉시 누적
         const store = useGameStore.getState()
         store.recordKill()
-        if (type === 'B01') store.recordBossKill()
+        if (type === 'B01') {
+          store.recordBossKill()
+          store.clearStageWithBossBonus()
+        }
         logKill(type)
         const t = rb.current?.translation()
         // 막타 위력으로 박살 강도(약/중/강) 결정. impact.knockback은 무기 원천 넉백(없으면 0).

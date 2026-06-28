@@ -15,8 +15,11 @@ export const STAGE_CONFIGS = {
     clearRecordKey: 'stage1Clears',
     bestRecordKey: 'bestSurvivalSeconds',
     bossWarningSec: 192,
+    escapePortalSec: 240,
+    matildaWarningSec: 410,
+    matildaSec: 420,
     // 맵 경계(월드 유닛, 중심 0). 교실 구도에 맞춰 세로로 긴 직사각형 — 화면 세로=Z, 가로=X.
-    mapHalfX: 14,
+    mapHalfX: 7,
     mapHalfZ: 54,
     survivalMilestones: [
       { atMs: 48_000, gold: 1, label: '초반 생존 보너스' },
@@ -35,6 +38,9 @@ export const STAGE_CONFIGS = {
     bestRecordKey: 'stage2BestSurvivalSec',
     bossWarningSec: 192,
     e04IntroSec: 72,
+    escapePortalSec: 240,
+    matildaWarningSec: 410,
+    matildaSec: 420,
     // 복도형: 현재 정사각 경계 유지 (코리도 시각 연출은 ClassroomFloor에서 별도 처리).
     mapHalfX: 10,
     mapHalfZ: 48,

@@ -5,8 +5,8 @@ import { STAGE2_CORRIDOR_WALL } from './stage2CorridorWall.js'
 describe('player movement bounds', () => {
   it('keeps Stage 1 movement symmetric inside the map inset', () => {
     expect(getPlayerMovementBounds('stage1')).toMatchObject({
-      minX: -12,
-      maxX: 12,
+      minX: -5,
+      maxX: 5,
       minZ: -50,
       maxZ: 50,
     })

@@ -1,4 +1,12 @@
 export const SHARK_MISSILE_START_HEIGHT = 0.46
+const TWO_PI = Math.PI * 2
+
+export function shortestAngleDelta(fromAngle, toAngle) {
+  let diff = toAngle - fromAngle
+  while (diff > Math.PI) diff -= TWO_PI
+  while (diff < -Math.PI) diff += TWO_PI
+  return diff
+}
 
 export function canFireSharkMissile({ phase, weapon, nowMs, lastFireMs, activeMissileCount }) {
   if (phase !== 'playing') return false

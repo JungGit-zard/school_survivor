@@ -1,20 +1,19 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import * as THREE from 'three'
-import { playerArmActionState, playerPos } from '../../lib/refs.js'
+import { playerArmActionState, playerPos, screenBounds } from '../../lib/refs.js'
 import { startPlayerArmAction } from '../../lib/playerArmAction.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 import { findSharkMissileClusterTarget } from '../../lib/sharkMissileTargeting.js'
-import { canFireSharkMissile, createSharkMissileLaunch } from '../../lib/sharkMissileRuntime.js'
-import { getStageBounds } from '../../lib/stageConfig.js'
+import { canFireSharkMissile, createSharkMissileLaunch, shortestAngleDelta } from '../../lib/sharkMissileRuntime.js'
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
-function clampToBounds(x, z, bounds, margin = 0) {
+function clampToScreen(x, z, margin = 0) {
   return {
-    x: clamp(x, -bounds.halfX + margin, bounds.halfX - margin),
-    z: clamp(z, -bounds.halfZ + margin, bounds.halfZ - margin),
+    x: clamp(x, screenBounds.minX + margin, screenBounds.maxX - margin),
+    z: clamp(z, screenBounds.minZ + margin, screenBounds.maxZ - margin),
   }
 }
 
@@ -129,7 +128,7 @@ const ORBITS_TO_EXPLODE = 2                       // 2바퀴 완료 시 폭발
 const ORBIT_ENTRY_DIST = ORBIT_RADIUS + 1.0      // 이 거리 이하 진입 시 호밍 → 선회 전환
 const RETARGET_LOCK_DIST = ORBIT_ENTRY_DIST + 2.0 // 이 거리 이하면 재표적 금지 → 선회 진입 보장
 
-function SharkMissileProjectile({ id, start, initialTarget, damage, radius, range, speed, retargetIntervalMs, bounds, onExplode }) {
+function SharkMissileProjectile({ id, start, initialTarget, damage, radius, range, speed, retargetIntervalMs, onExplode }) {
   const groupRef = useRef(null)
   const ageRef = useRef(0)
   const targetRef = useRef(initialTarget)
@@ -169,15 +168,15 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
         // 표적에 근접(RETARGET_LOCK_DIST 이내)하면 재표적 건너뜀 → 선회 진입 보장
         if (dist > RETARGET_LOCK_DIST) {
           const nextTarget = findSharkMissileClusterTarget({ range, radius })
-          if (nextTarget) targetRef.current = clampToBounds(nextTarget.x, nextTarget.z, bounds)
+          if (nextTarget) targetRef.current = clampToScreen(nextTarget.x, nextTarget.z)
         }
         retargetAtRef.current = nowMs + retargetIntervalMs
       }
 
       if (dist < ORBIT_ENTRY_DIST) {
-        // 선회 진입: ORBIT_RADIUS 버퍼로 클램핑 → 궤도 전체가 맵 안에 유지
+        // 선회 진입: ORBIT_RADIUS 버퍼로 클램핑 → 궤도 전체가 화면 안에 유지
         phaseRef.current = 'orbiting'
-        const clamped = clampToBounds(target.x, target.z, bounds, ORBIT_RADIUS)
+        const clamped = clampToScreen(target.x, target.z, ORBIT_RADIUS)
         orbitCenterRef.current = clamped
         orbitStartAngleRef.current = Math.atan2(p.x - clamped.x, p.z - clamped.z)
         orbitTotalAngleRef.current = 0
@@ -185,18 +184,23 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
         const nx = dx / dist
         const nz = dz / dist
         const desiredYaw = Math.atan2(nx, nz)
-        // JS % 는 부호를 유지하므로 음수 입력 시 잘못된 방향으로 선회한다.
-        // ((diff + TWO_PI) % TWO_PI) 패턴으로 항상 양수 나머지를 보장한 뒤 [-π, π]로 변환.
-        const TWO_PI = 2 * Math.PI
-        const rawDiff = desiredYaw - yawRef.current
-        const angleDiff = ((rawDiff % TWO_PI) + TWO_PI) % TWO_PI - Math.PI
+        // 목표 방향까지의 최단 회전량만 반영해 발사 직후 역회전을 막는다.
+        const angleDiff = shortestAngleDelta(yawRef.current, desiredYaw)
         yawRef.current += angleDiff * Math.min(1, delta * 9)
         p.x += Math.sin(yawRef.current) * speed * delta
         p.z += Math.cos(yawRef.current) * speed * delta
+        // 화면 밖으로 절대 나가지 않도록 매 프레임 강제 클램프
+        const sc = clampToScreen(p.x, p.z)
+        p.x = sc.x
+        p.z = sc.z
         p.y = start[1] + Math.sin(ageRef.current * 10) * 0.04
       }
     } else if (phaseRef.current === 'orbiting') {
       const center = orbitCenterRef.current
+      // 플레이어 이동으로 화면이 이동했을 경우 선회 중심을 화면 안으로 재클램프
+      const rc = clampToScreen(center.x, center.z, ORBIT_RADIUS)
+      center.x = rc.x
+      center.z = rc.z
       orbitTotalAngleRef.current += ORBIT_SPEED * delta
 
       if (orbitTotalAngleRef.current >= ORBITS_TO_EXPLODE * 2 * Math.PI) {
@@ -269,7 +273,6 @@ export function SharkMissileWeapon() {
   const lastFireRef = useRef(null)
   const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
-  const currentStageId = useGameStore((s) => s.currentStageId)
 
   const removeExplosion = useCallback((id) => {
     setExplosions((prev) => prev.filter((item) => item.id !== id))
@@ -311,21 +314,17 @@ export function SharkMissileWeapon() {
       return
     }
 
-    const bounds = getStageBounds(currentStageId)
-    const target = clampToBounds(rawTarget.x, rawTarget.z, bounds)
+    const target = clampToScreen(rawTarget.x, rawTarget.z)
 
     lastFireRef.current = now
     startPlayerArmAction(playerArmActionState, 'guidedMissileThrow', now)
 
-    const next = {
-      ...createSharkMissileLaunch({
-        id: ++_sharkMissileId,
-        playerPosition: playerPos,
-        target,
-        weapon: w,
-      }),
-      bounds,
-    }
+    const next = createSharkMissileLaunch({
+      id: ++_sharkMissileId,
+      playerPosition: playerPos,
+      target,
+      weapon: w,
+    })
     reportSharkMissileDebug('launch', next)
     activeMissilesRef.current = [next]
     setMissiles([next])

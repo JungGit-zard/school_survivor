@@ -2,6 +2,19 @@ import { useGameStore } from '../store/useGameStore.js'
 import { PASSIVE_CATALOG, getMvpPassiveIds, getPriceFor, formatEffectLabel } from '../lib/passiveCatalog.js'
 import { getLevel } from '../lib/passiveUpgrades.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType, warningSticker } from '../lib/uiStyle.js'
+import iconMagnet from '../assets/passive_icon/passive_magnet.png'
+import iconMoveSpeed from '../assets/passive_icon/passive_moveSpeed.png'
+import iconMight from '../assets/passive_icon/passive_might.png'
+import iconMaxHp from '../assets/passive_icon/passive_maxHp.png'
+import iconGrowth from '../assets/passive_icon/passive_growth.png'
+
+const PASSIVE_ICON_SRCS = {
+  magnet: iconMagnet,
+  moveSpeed: iconMoveSpeed,
+  might: iconMight,
+  maxHp: iconMaxHp,
+  growth: iconGrowth,
+}
 
 const PASSIVE_ICON_LABELS = {
   magnet: '회수 반경 아이콘',
@@ -119,63 +132,13 @@ function PassiveCard({ index, entry, currentLevel, isMax, price, canAfford, onBu
 }
 
 function PassiveIcon({ id, label }) {
-  const common = {
-    fill: 'none',
-    stroke: uiPalette.ink,
-    strokeWidth: 3,
-    strokeLinecap: 'round',
-    strokeLinejoin: 'round',
-    vectorEffect: 'non-scaling-stroke',
-  }
-
+  const src = PASSIVE_ICON_SRCS[id]
   return (
-    <svg
-      role="img"
-      aria-label={label}
-      viewBox="0 0 48 48"
+    <img
+      src={src}
+      alt={label}
       style={styles.passiveIcon}
-    >
-      {id === 'magnet' && (
-        <>
-          <path {...common} d="M14 13v15c0 7 4 11 10 11s10-4 10-11V13" />
-          <path {...common} d="M14 13h8v9h-8zM26 13h8v9h-8z" fill={uiPalette.paperLight} />
-          <circle cx="13" cy="34" r="3" fill={uiPalette.reward} stroke={uiPalette.ink} strokeWidth="2" />
-          <circle cx="35" cy="34" r="3" fill={uiPalette.reward} stroke={uiPalette.ink} strokeWidth="2" />
-        </>
-      )}
-      {id === 'moveSpeed' && (
-        <>
-          <path {...common} d="M10 30h6M7 23h9" />
-          <path {...common} d="M18 34h18c4 0 6-2 6-5 0-2-2-4-5-4h-6l-6-8-7 2 4 7h-4c-3 0-5 2-5 4s2 4 5 4z" fill={uiPalette.paperLight} />
-          <path {...common} d="M22 34l-3 5M35 34l3 5" />
-        </>
-      )}
-      {id === 'maxHp' && (
-        <>
-          <path {...common} d="M24 40C14 33 9 27 9 19c0-5 4-9 9-9 3 0 5 1 6 4 1-3 3-4 6-4 5 0 9 4 9 9 0 8-5 14-15 21z" fill="#ff6f8a" />
-          <path {...common} d="M24 18v12M18 24h12" stroke={uiPalette.paperLight} />
-        </>
-      )}
-      {id === 'might' && (
-        <>
-          <g transform="rotate(-35 24 24)">
-            <rect x="13" y="20" width="24" height="8" rx="2" fill={uiPalette.reward} stroke={uiPalette.ink} strokeWidth="3" />
-            <path d="M37 20l7 4-7 4z" fill={uiPalette.paperLight} stroke={uiPalette.ink} strokeWidth="3" strokeLinejoin="round" />
-            <path d="M9 20h6v8H9z" fill="#ff6f8a" stroke={uiPalette.ink} strokeWidth="3" strokeLinejoin="round" />
-            <path d="M28 20v8" stroke={uiPalette.ink} strokeWidth="2" strokeLinecap="round" />
-          </g>
-          <path {...common} d="M9 15l6 3M8 27h8M24 8l2 7" />
-        </>
-      )}
-      {id === 'growth' && (
-        <>
-          <path {...common} d="M9 15c6-3 11-2 15 2v24c-4-4-9-5-15-2z" fill={uiPalette.paperLight} />
-          <path {...common} d="M39 15c-6-3-11-2-15 2v24c4-4 9-5 15-2z" fill={uiPalette.paperLight} />
-          <path {...common} d="M24 17v24" />
-          <path {...common} d="M30 12l2 5 5 1-4 3 1 5-4-3-4 3 1-5-4-3 5-1z" fill={uiPalette.reward} />
-        </>
-      )}
-    </svg>
+    />
   )
 }
 

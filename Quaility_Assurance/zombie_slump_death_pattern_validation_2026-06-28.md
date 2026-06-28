@@ -40,3 +40,12 @@ Manual result:
 
 - The screenshot captures Graphics Studio preview, not a live combat kill frame.
 - The in-game pattern appears on weak kills through deterministic style selection, so it may not trigger on every single kill.
+
+## Recheck - 2026-06-28 19:03 KST
+
+- Confirmed current HEAD: `1a295b9 feat(vfx): add zombie slump death pattern`.
+- Re-ran `npm test -- enemyDeathCollapse.test.js GraphicsStudio.test.jsx graphicsStudioConfig.test.js`.
+- Result: 3 files passed, 25 tests passed.
+- Captured current Graphics Studio preview:
+  - `Quaility_Assurance/zombie_slump_death_pattern_current_graphics_studio_2026-06-28.png`
+- Current preview still shows the weak-kill collapse folding downward and fading, so no additional code wiring was required.

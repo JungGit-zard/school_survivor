@@ -14,11 +14,16 @@ import HUD, {
 import { WEAPON_CATALOG, isStarter } from '../lib/weaponCatalog.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { _resetForTests as resetWeaponUnlocks, setUnlocked } from '../lib/weaponUnlocks.js'
+import { STORAGE_KEY as PLAYER_RECORDS_KEY } from '../lib/playerRecords.js'
+import { buildLocalPlayerRankingEntry } from '../lib/userRanking.js'
+import { ADMIN_CONFIG_STORAGE_KEY, saveAdminConfig } from '../lib/adminConfig.js'
 
 afterEach(() => {
   vi.useRealTimers()
   useGameStore.getState().resetGame()
   resetWeaponUnlocks()
+  localStorage.removeItem(PLAYER_RECORDS_KEY)
+  localStorage.removeItem(ADMIN_CONFIG_STORAGE_KEY)
 })
 
 describe('upgrade choice filtering', () => {
@@ -188,3 +193,185 @@ describe('gameover presentation', () => {
     }
   })
 })
+
+describe('level-up upgrade layout', () => {
+  it('shows three upgrade choices side by side without a full-screen overlay', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState((state) => ({
+      phase: 'levelup',
+      player: { ...state.player, level: 2 },
+    }))
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const overlay = container.querySelector('[data-testid="levelup-upgrade-overlay"]')
+      const choices = container.querySelector('[data-testid="levelup-upgrade-choices"]')
+      const choiceButtons = container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')
+
+      expect(overlay).not.toBeNull()
+      expect(overlay.style.inset).toBe('')
+      expect(choices).not.toBeNull()
+      expect(choices.style.gridTemplateColumns).toBe('repeat(3, minmax(0, 1fr))')
+      expect(choiceButtons).toHaveLength(3)
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
+})
+
+describe('pause title return', () => {
+  it('asks before returning to title and records the paused score for ranking', () => {
+    localStorage.removeItem(PLAYER_RECORDS_KEY)
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({
+      phase: 'paused',
+      pauseSource: 'manual',
+      elapsedMs: 42_500,
+      runKills: 7,
+      goldSession: 3,
+      runLevelUps: 1,
+    })
+    const onGoToTitle = vi.fn()
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={onGoToTitle} />)
+      })
+
+      clickButtonByText(container, '타이틀로 돌아가기')
+
+      expect(onGoToTitle).not.toHaveBeenCalled()
+      expect(container.textContent).toContain('정말 타이틀로 돌아갈까요?')
+      expect(localStorage.getItem(PLAYER_RECORDS_KEY)).toBeNull()
+
+      clickButtonByText(container, '돌아가기')
+
+      expect(onGoToTitle).toHaveBeenCalledTimes(1)
+      const records = JSON.parse(localStorage.getItem(PLAYER_RECORDS_KEY))
+      expect(records.bestSurvivalSeconds).toBe(42)
+      expect(records.stage1Clears).toBeUndefined()
+
+      const localEntry = buildLocalPlayerRankingEntry(records, { displayName: 'Tester' })
+      expect(localEntry).toMatchObject({
+        displayName: 'Tester',
+        score: 42,
+        survivalSeconds: 42,
+        cleared: false,
+      })
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
+})
+
+describe('stage clear presentation', () => {
+  it('uses 다음 스테이지로 as the primary Stage 1 clear action', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({
+      phase: 'cleared',
+      elapsedMs: 240_000,
+      goldSession: 12,
+      goldTotal: 40,
+    })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const buttons = [...container.querySelectorAll('button')]
+      expect(buttons[0].textContent.trim()).toBe('다음 스테이지로')
+
+      clickButtonByText(container, '다음 스테이지로')
+
+      expect(useGameStore.getState()).toMatchObject({
+        currentStageId: 'stage2',
+        phase: 'playing',
+      })
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
+
+  it('keeps playtest log copy out of the primary result actions', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({
+      phase: 'cleared',
+      elapsedMs: 240_000,
+      goldSession: 12,
+      goldTotal: 40,
+    })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const primaryActions = container.querySelector('[data-testid="result-primary-actions"]')
+      const devTools = container.querySelector('[data-testid="result-dev-tools"]')
+
+      expect(primaryActions).not.toBeNull()
+      expect(primaryActions.textContent).not.toContain('로그 복사')
+      expect(devTools).not.toBeNull()
+      expect(devTools.textContent).toContain('개발 로그 복사')
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
+
+  it('hides the development log copy tool when cheat UI is hidden by admin operations', () => {
+    saveAdminConfig({
+      operations: { cheatMenuButtonVisible: false },
+    })
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({
+      phase: 'cleared',
+      elapsedMs: 240_000,
+      goldSession: 12,
+      goldTotal: 40,
+    })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      expect(container.querySelector('[data-testid="result-dev-tools"]')).toBeNull()
+      expect(container.textContent).not.toContain('로그 복사')
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
+})
+
+function clickButtonByText(container, label) {
+  const button = [...container.querySelectorAll('button')]
+    .find((item) => item.textContent.trim() === label)
+  expect(button).not.toBeUndefined()
+  act(() => {
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
+}
