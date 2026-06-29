@@ -74,9 +74,10 @@ describe('enemy death collapse body pieces', () => {
 
     expect(motion.gravity).toBe(0)
     expect(motion.distanceScale).toBe(1)
-    expect(motion.linearDamping).toBeLessThan(1.3)
-    expect(Math.hypot(motion.x, motion.z)).toBeGreaterThan(4)
-    expect(motion.y).toBeGreaterThan(1.5)
+    // 3단계 확산 혼합: tight/mid/wide 중 하나 — 최솟값은 tight 기준
+    expect(motion.linearDamping).toBeGreaterThan(0)
+    expect(Math.hypot(motion.x, motion.z)).toBeGreaterThan(0.5)
+    expect(motion.y).toBeGreaterThan(0.4)
   })
 
   it('gives explosive scatter deaths six fragment patterns', () => {
@@ -98,8 +99,9 @@ describe('enemy death collapse body pieces', () => {
     expect(new Set(signatures).size).toBe(6)
     motions.forEach((motion) => {
       expect(motion.gravity).toBe(0)
-      expect(Math.hypot(motion.x, motion.z)).toBeGreaterThan(3)
-      expect(motion.y).toBeGreaterThan(1)
+      // 3단계 확산 혼합 — tight 티어는 spread가 작을 수 있음
+      expect(Math.hypot(motion.x, motion.z)).toBeGreaterThan(0.5)
+      expect(motion.y).toBeGreaterThan(0.4)
     })
   })
 
