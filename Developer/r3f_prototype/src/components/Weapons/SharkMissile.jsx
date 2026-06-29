@@ -122,14 +122,13 @@ export function FlameTrail({ flameRef }) {
   )
 }
 
-// 선회 파라미터
-const ORBIT_RADIUS = 1.4                          // 선회 반경 (world units)
-const ORBIT_SPEED = (2 * Math.PI) / 1.5          // 각속도 rad/s → 1.5초/바퀴
-const ORBITS_TO_EXPLODE = 2                       // 2바퀴 완료 시 폭발
-const ORBIT_ENTRY_DIST = ORBIT_RADIUS + 1.0      // 이 거리 이하 진입 시 호밍 → 선회 전환
-const RETARGET_LOCK_DIST = ORBIT_ENTRY_DIST + 2.0 // 이 거리 이하면 재표적 금지 → 선회 진입 보장
+// dart 파라미터 — 발사 후 1.5초간 좀비 사이를 빠르게 이리저리 비행하다 폭발
+const DART_DURATION    = 1.5   // 총 비행 시간(초) → 폭발
+const DART_SPEED       = 18    // 빠른 속도 (기본 speed의 ~2×)
+const DART_RETARGET_MS = 220   // 표적 전환 주기 — 짧을수록 격렬한 지그재그
+const DART_TURN_RATE   = 14    // yaw 보간 속도
 
-function SharkMissileProjectile({ id, start, initialTarget, damage, radius, range, speed, retargetIntervalMs, onExplode }) {
+function SharkMissileProjectile({ id, start, initialTarget, damage, radius, range, onExplode }) {
   const groupRef = useRef(null)
   const ageRef = useRef(0)
   const targetRef = useRef(initialTarget)
@@ -137,10 +136,6 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
   const posRef = useRef({ x: start[0], y: start[1], z: start[2] })
   const explodedRef = useRef(false)
   const flameRef = useRef(null)
-  const phaseRef = useRef('homing')        // 'homing' | 'orbiting'
-  const orbitCenterRef = useRef(null)
-  const orbitStartAngleRef = useRef(0)
-  const orbitTotalAngleRef = useRef(0)
 
   const initDx = initialTarget.x - start[0]
   const initDz = initialTarget.z - start[2]
@@ -153,70 +148,36 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
     const nowMs = ageRef.current * 1000
     const p = posRef.current
 
-    if (ageRef.current > 14) {
+    // 1.5초 경과 → 현재 위치에서 폭발
+    if (ageRef.current >= DART_DURATION) {
       explodedRef.current = true
       onExplode(id, { x: p.x, z: p.z, damage, radius })
       return
     }
 
-    if (phaseRef.current === 'homing') {
-      const target = targetRef.current
-      const dx = target.x - p.x
-      const dz = target.z - p.z
-      const dist = Math.hypot(dx, dz)
-
-      if (nowMs >= retargetAtRef.current) {
-        // 표적에 근접(RETARGET_LOCK_DIST 이내)하면 재표적 건너뜀 → 선회 진입 보장
-        if (dist > RETARGET_LOCK_DIST) {
-          const nextTarget = findSharkMissileClusterTarget({ range, radius })
-          if (nextTarget) targetRef.current = clampToScreen(nextTarget.x, nextTarget.z)
-        }
-        retargetAtRef.current = nowMs + retargetIntervalMs
-      }
-
-      if (dist < ORBIT_ENTRY_DIST) {
-        // 선회 진입: ORBIT_RADIUS 버퍼로 클램핑 → 궤도 전체가 화면 안에 유지
-        phaseRef.current = 'orbiting'
-        const clamped = clampToScreen(target.x, target.z, ORBIT_RADIUS)
-        orbitCenterRef.current = clamped
-        orbitStartAngleRef.current = Math.atan2(p.x - clamped.x, p.z - clamped.z)
-        orbitTotalAngleRef.current = 0
-      } else {
-        const nx = dx / dist
-        const nz = dz / dist
-        const desiredYaw = Math.atan2(nx, nz)
-        // 목표 방향까지의 최단 회전량만 반영해 발사 직후 역회전을 막는다.
-        const angleDiff = shortestAngleDelta(yawRef.current, desiredYaw)
-        yawRef.current += angleDiff * Math.min(1, delta * 9)
-        p.x += Math.sin(yawRef.current) * speed * delta
-        p.z += Math.cos(yawRef.current) * speed * delta
-        // 화면 밖으로 절대 나가지 않도록 매 프레임 강제 클램프
-        const sc = clampToScreen(p.x, p.z)
-        p.x = sc.x
-        p.z = sc.z
-        p.y = start[1] + Math.sin(ageRef.current * 10) * 0.04
-      }
-    } else if (phaseRef.current === 'orbiting') {
-      const center = orbitCenterRef.current
-      // 플레이어 이동으로 화면이 이동했을 경우 선회 중심을 화면 안으로 재클램프
-      const rc = clampToScreen(center.x, center.z, ORBIT_RADIUS)
-      center.x = rc.x
-      center.z = rc.z
-      orbitTotalAngleRef.current += ORBIT_SPEED * delta
-
-      if (orbitTotalAngleRef.current >= ORBITS_TO_EXPLODE * 2 * Math.PI) {
-        explodedRef.current = true
-        onExplode(id, { x: p.x, z: p.z, damage, radius })
-        return
-      }
-
-      const angle = orbitStartAngleRef.current + orbitTotalAngleRef.current
-      p.x = center.x + Math.sin(angle) * ORBIT_RADIUS
-      p.z = center.z + Math.cos(angle) * ORBIT_RADIUS
-      p.y = start[1] + Math.sin(ageRef.current * 10) * 0.04
-      // 원 접선 방향 yaw: d/dθ(sin θ, cos θ) = (cos θ, -sin θ)
-      yawRef.current = Math.atan2(Math.cos(angle), -Math.sin(angle))
+    // 잦은 표적 재선정으로 이리저리 비행
+    if (nowMs >= retargetAtRef.current) {
+      const next = findSharkMissileClusterTarget({ range, radius })
+      if (next) targetRef.current = clampToScreen(next.x, next.z)
+      retargetAtRef.current = nowMs + DART_RETARGET_MS
     }
+
+    const target = targetRef.current
+    const dx = target.x - p.x
+    const dz = target.z - p.z
+    const dist = Math.hypot(dx, dz)
+    if (dist > 0.1) {
+      const desiredYaw = Math.atan2(dx / dist, dz / dist)
+      yawRef.current += shortestAngleDelta(yawRef.current, desiredYaw) * Math.min(1, delta * DART_TURN_RATE)
+    }
+
+    p.x += Math.sin(yawRef.current) * DART_SPEED * delta
+    p.z += Math.cos(yawRef.current) * DART_SPEED * delta
+    // 화면 밖 이탈 방지
+    const sc = clampToScreen(p.x, p.z)
+    p.x = sc.x
+    p.z = sc.z
+    p.y = start[1] + Math.sin(ageRef.current * 10) * 0.04
 
     groupRef.current.position.set(p.x, p.y, p.z)
     groupRef.current.rotation.set(0.06 * Math.sin(ageRef.current * 8), yawRef.current, 0.16 * Math.sin(ageRef.current * 5))
