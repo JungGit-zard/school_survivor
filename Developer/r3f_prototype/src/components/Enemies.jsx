@@ -65,6 +65,8 @@ const SPAWN_MIN_RADIUS = 8.5
 const SPAWN_MAX_RADIUS = 12.5
 const RANGED_SPAWN_MIN_RADIUS = 11.5
 const RANGED_SPAWN_MAX_RADIUS = 15.5
+const SPAWN_CANDIDATE_TRIES = 24
+const SPAWN_BATCH_MIN_GAP = 1.2
 // 스폰은 플레이어 기준 링이라 좁은 맵에서 벽 밖으로 나갈 수 있다 → 맵 경계 안쪽으로 클램프해 적이 벽에 끼지 않게 한다.
 const SPAWN_INSET = 1.5
 
@@ -77,29 +79,54 @@ function clampToBounds(x, z, bounds) {
   ]
 }
 
-function randomPointOnSpawnRing(minRadius, maxRadius) {
-  const angle = Math.random() * Math.PI * 2
-  const radius = minRadius + Math.random() * (maxRadius - minRadius)
+function isInsideSpawnBounds(x, z, bounds) {
+  const limX = bounds.halfX - SPAWN_INSET
+  const limZ = bounds.halfZ - SPAWN_INSET
+  return x >= -limX && x <= limX && z >= -limZ && z <= limZ
+}
+
+function hasSpawnGap(pos, taken) {
+  const minGapSq = SPAWN_BATCH_MIN_GAP * SPAWN_BATCH_MIN_GAP
+  return taken.every((other) => {
+    const dx = pos[0] - other[0]
+    const dz = pos[2] - other[2]
+    return dx * dx + dz * dz >= minGapSq
+  })
+}
+
+function randomPointOnSpawnRing(minRadius, maxRadius, random = Math.random) {
+  const angle = random() * Math.PI * 2
+  const radius = minRadius + random() * (maxRadius - minRadius)
   return {
     x: Math.sin(angle) * radius,
     z: Math.cos(angle) * radius,
   }
 }
 
-function randomSpawnPos(type, bounds) {
+function spawnPosOnValidRing(type, bounds, minRadius, maxRadius, taken = [], random = Math.random) {
   const stats = ENEMY_STATS[type]
-  const offset = randomPointOnSpawnRing(SPAWN_MIN_RADIUS, SPAWN_MAX_RADIUS)
   const y     = BASE_COL_Y * (stats?.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
+  let fallback = null
+  for (let i = 0; i < SPAWN_CANDIDATE_TRIES; i++) {
+    const offset = randomPointOnSpawnRing(minRadius, maxRadius, random)
+    const pos = [playerPos.x + offset.x, y, playerPos.z + offset.z]
+    if (!isInsideSpawnBounds(pos[0], pos[2], bounds)) continue
+    fallback ??= pos
+    if (hasSpawnGap(pos, taken)) return pos
+  }
+  if (fallback) return fallback
+  const offset = randomPointOnSpawnRing(minRadius, maxRadius, random)
   const [x, z] = clampToBounds(playerPos.x + offset.x, playerPos.z + offset.z, bounds)
   return [x, y, z]
 }
 
+export function randomSpawnPos(type, bounds, taken = [], random = Math.random) {
+  return spawnPosOnValidRing(type, bounds, SPAWN_MIN_RADIUS, SPAWN_MAX_RADIUS, taken, random)
+}
+
 // E04는 화면 가장자리 원거리 위치에서 등장한다. 1스테이지에서는 현재 사용하지 않는다.
-function rangedSpawnPos(bounds) {
-  const offset = randomPointOnSpawnRing(RANGED_SPAWN_MIN_RADIUS, RANGED_SPAWN_MAX_RADIUS)
-  const y    = BASE_COL_Y * (ENEMY_STATS.E04?.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
-  const [x, z] = clampToBounds(playerPos.x + offset.x, playerPos.z + offset.z, bounds)
-  return [x, y, z]
+function rangedSpawnPos(bounds, taken = [], random = Math.random) {
+  return spawnPosOnValidRing('E04', bounds, RANGED_SPAWN_MIN_RADIUS, RANGED_SPAWN_MAX_RADIUS, taken, random)
 }
 
 // 1스테이지는 추격/돌진형만 사용한다 (Bang_Rules 2026-05-09 부록 / stage1_replan §3-2).
@@ -108,10 +135,10 @@ function rangedSpawnPos(bounds) {
 export const WAVE_PHASES = [
   // 0:00–0:40 단일 좀비 구간. E01 밀도만 기존 대비 2배로 올린다.
   { start:   0, end:  40, target: 24, weights: { E01: 1.00 } },
-  // 0:40–0:48 잡몹+러너 (이동 압박 시작)
-  { start:  40, end:  48, target: 18, weights: { E01: 0.90, E03: 0.10 } },
-  // 0:48–1:12 +탱커 등장
-  { start:  48, end:  72, target: 26, weights: { E01: 0.60, E03: 0.30, E02: 0.10 } },
+  // 0:40–1:00 잡몹+러너 (이동 압박 시작) — 8초→20초로 확장해 전환 체감 부여
+  { start:  40, end:  60, target: 22, weights: { E01: 0.90, E03: 0.10 } },
+  // 1:00–1:12 +탱커 등장
+  { start:  60, end:  72, target: 26, weights: { E01: 0.60, E03: 0.30, E02: 0.10 } },
   // 1:12–1:36 압박 시작
   { start:  72, end:  96, target: 34, weights: { E01: 0.50, E03: 0.30, E02: 0.20 } },
   // 1:36–2:00 추격형 밀도 상승
@@ -120,14 +147,14 @@ export const WAVE_PHASES = [
   { start: 120, end: 144, target: 54, weights: { E01: 0.35, E03: 0.30, E02: 0.25, E05: 0.10 } },
   // 2:24–2:48 돌진 본격 도입
   { start: 144, end: 168, target: 64, weights: { E01: 0.25, E03: 0.30, E02: 0.30, E05: 0.15 } },
-  // 2:48–3:12 +거대 등장
-  { start: 168, end: 192, target: 76, weights: { E01: 0.21, E03: 0.30, E02: 0.30, E05: 0.17, E06: 0.02 } },
+  // 2:48–3:12 +거대 등장 — E06 2%→5%로 출현 확대
+  { start: 168, end: 192, target: 76, weights: { E01: 0.20, E03: 0.30, E02: 0.28, E05: 0.17, E06: 0.05 } },
   // 3:12–3:28 보스 구간 1 (잡몹+탱커)
   { start: 192, end: 208, target: 25, weights: { E01: 0.60, E02: 0.40 }, bossPhase: true },
   // 3:28–3:44 보스 구간 2 (탱커+돌진)
   { start: 208, end: 224, target: 35, weights: { E02: 0.60, E05: 0.40 }, bossPhase: true },
-  // 3:44–4:00 보스 구간 3 (탱커+돌진)
-  { start: 224, end: 240, target: 45, weights: { E02: 0.50, E05: 0.50 }, bossPhase: true },
+  // 3:44–4:00 보스 구간 3 — E01 15% 추가해 도망길 숨통 확보
+  { start: 224, end: 240, target: 45, weights: { E01: 0.15, E02: 0.45, E05: 0.40 }, bossPhase: true },
 ]
 
 // 4분(240초) 타임라인. 5분 기준에서 전체 ×0.8 비례 축소.
@@ -136,13 +163,13 @@ export const STAGE2_WAVE_PHASES = [
   { start:  24, end:  48, target: 22, weights: { E01: 0.72, E03: 0.28 } },
   { start:  48, end:  72, target: 28, weights: { E01: 0.48, E02: 0.22, E03: 0.30 } },
   { start:  72, end:  96, target: 30, weights: { E01: 0.55, E03: 0.30, E04: 0.15 } },
-  { start:  96, end: 120, target: 32, weights: { E02: 0.62, E04: 0.38 } },
+  { start:  96, end: 120, target: 28, weights: { E01: 0.20, E02: 0.50, E04: 0.30 } },
   { start: 120, end: 144, target: 38, weights: { E01: 0.45, E03: 0.35, E05: 0.15, E04: 0.05 } },
   { start: 144, end: 168, target: 42, weights: { E03: 0.44, E04: 0.28, E05: 0.28 } },
   { start: 168, end: 192, target: 44, weights: { E02: 0.50, E04: 0.32, E06: 0.18 } },
   { start: 192, end: 208, target: 24, weights: { E01: 0.40, E02: 0.40, E04: 0.20 }, bossPhase: true },
   { start: 208, end: 224, target: 32, weights: { E02: 0.45, E05: 0.35, E04: 0.20 }, bossPhase: true },
-  { start: 224, end: 240, target: 38, weights: { E03: 0.34, E04: 0.30, E05: 0.36 }, bossPhase: true },
+  { start: 224, end: 240, target: 38, weights: { E02: 0.20, E03: 0.28, E04: 0.24, E05: 0.28 }, bossPhase: true },
 ]
 
 // 4분 타임라인. 5분 기준 sec ×0.8.
@@ -156,9 +183,9 @@ const BURST_EVENTS = [
   { sec: 120, type: 'E05', count:  4 },  // 돌진 첫 등장 (E04 탄환형 폐기 — 2026-05-09)
   { sec: 144, type: 'E05', count:  4 },  // 돌진 압박 강화
   { sec: 168, type: 'E06', count:  1 },  // 거대 첫 등장
-  { sec: 184, type: 'E01', count: 12 },  // 마지막 러시 (보스 직전)
-  { sec: 184, type: 'E02', count:  8 },
-  { sec: 184, type: 'E05', count:  4 },
+  { sec: 184, type: 'E01', count:  8 },  // 마지막 러시 (보스 직전) — 과부하 완화
+  { sec: 184, type: 'E02', count:  5 },
+  { sec: 184, type: 'E05', count:  3 },
   { sec: 192, type: 'B01', count:  1 },  // 보스 등장
   { sec: 216, type: 'E05', count:  5 },
 ]
@@ -235,12 +262,12 @@ export default function Enemies() {
     // 플레이어 능력치 기준 동적 스탯: 이동속도 ×5, 나머지 ×3
     const matildaStats = {
       hp:          player.maxHp * 3,
-      speed:       player.speed * 1.4,
+      speed:       player.speed * 5,
       damage:      player.maxHp * 3,   // 3배 공격력 = 플레이어 최대 체력 3배로 즉사 수준
       scale:       3.0,
       contactDist: 0.36,
       charger:     true,
-      chargeSpeed: player.speed * 2.8,
+      chargeSpeed: player.speed * 5,
       warnDist:    6.0,
       warnDuration:    400,
       stunDuration:    800,
@@ -334,7 +361,8 @@ export default function Enemies() {
         const spawnCount = evt.type === 'E04' ? Math.min(evt.count, e04Room) : evt.count
         const newBatch = []
         for (let i = 0; i < spawnCount; i++) {
-          const pos = evt.type === 'E04' ? rangedSpawnPos(bounds) : randomSpawnPos(evt.type, bounds)
+          const taken = newBatch.map((e) => e.pos)
+          const pos = evt.type === 'E04' ? rangedSpawnPos(bounds, taken) : randomSpawnPos(evt.type, bounds, taken)
           newBatch.push({ id: ++_uid, type: evt.type, pos })
         }
         addEnemies(newBatch)
@@ -365,7 +393,8 @@ export default function Enemies() {
         const currentE04Count = enemiesRef.current.filter((e) => e.type === 'E04').length + newBatch.filter((e) => e.type === 'E04').length
         if (currentE04Count >= getStage2E04Cap(sec)) type = 'E03'
       }
-      const pos  = type === 'E04' ? rangedSpawnPos(bounds) : randomSpawnPos(type, bounds)
+      const taken = newBatch.map((e) => e.pos)
+      const pos  = type === 'E04' ? rangedSpawnPos(bounds, taken) : randomSpawnPos(type, bounds, taken)
       newBatch.push({ id: ++_uid, type, pos })
     }
     addEnemies(newBatch)

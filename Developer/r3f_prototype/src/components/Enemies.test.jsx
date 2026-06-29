@@ -3,10 +3,12 @@ import {
   getEliteBonusTextbookXp,
   getWavePhasesForStage,
   getBurstEventsForStage,
+  randomSpawnPos,
   shouldDropTextbook,
   TEXTBOOK_DROP_RATE,
   WAVE_PHASES,
 } from './Enemies.jsx'
+import { playerPos } from '../lib/refs.js'
 
 describe('elite bonus rewards', () => {
   it('B01 bonus textbooks use explicit XP instead of B01 base XP 0', () => {
@@ -19,10 +21,10 @@ describe('elite bonus rewards', () => {
 })
 
 describe('stage 1 E06 spawn pressure', () => {
-  it('keeps the late giant zombie wave at two thirds of the old three percent pressure', () => {
+  it('keeps the late giant zombie wave at five percent pressure', () => {
     const giantPhase = WAVE_PHASES.find((phase) => phase.start === 168)
 
-    expect(giantPhase.weights.E06).toBe(0.02)
+    expect(giantPhase.weights.E06).toBe(0.05)
     expect(Object.values(giantPhase.weights).reduce((sum, weight) => sum + weight, 0)).toBe(1)
   })
 
@@ -37,6 +39,20 @@ describe('stage 1 E06 spawn pressure', () => {
 
     expect(firstE04Phase.start).toBeGreaterThanOrEqual(72)
     expect(getBurstEventsForStage('stage2').filter((event) => event.type === 'E04').every((event) => event.sec >= 72)).toBe(true)
+  })
+})
+
+describe('enemy spawn placement', () => {
+  it('resamples hallway spawns instead of clamping a crowd onto one boundary line', () => {
+    playerPos.x = 0
+    playerPos.z = 0
+    const rolls = [0.25, 1, 0, 1]
+    const random = () => rolls.shift() ?? 0
+
+    const pos = randomSpawnPos('E01', { halfX: 10, halfZ: 48 }, [], random)
+
+    expect(pos[0]).toBeCloseTo(0)
+    expect(pos[2]).toBeCloseTo(12.5)
   })
 })
 
