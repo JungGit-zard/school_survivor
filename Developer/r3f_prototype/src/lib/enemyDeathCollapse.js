@@ -84,6 +84,13 @@ function normalizeScatterVariant(scatterVariant) {
   return SCATTER_COLLAPSE_VARIANTS.includes(scatterVariant) ? scatterVariant : 'burst'
 }
 
+// 파편 확산 3단계 배율: tight(좁게 떨어짐) / mid(일반) / wide(멀리 날아감)
+const SCATTER_SPREAD_TIERS = [
+  { speedMult: 0.28, liftMult: 0.55, dampMult: 2.2 },  // tight
+  { speedMult: 1.00, liftMult: 1.00, dampMult: 1.0 },  // mid
+  { speedMult: 2.65, liftMult: 1.70, dampMult: 0.55 }, // wide
+]
+
 function createScatterMotion({ seed, part, index, scatterVariant = 'burst' }) {
   const n0 = seededCollapseNoise(seed)
   const n1 = seededCollapseNoise(seed + 1)
@@ -147,6 +154,13 @@ function createScatterMotion({ seed, part, index, scatterVariant = 'burst' }) {
     linearDamping = 0.85
     spinDamping = 0.7
   }
+
+  // 파편마다 독립적인 확산 단계 결정 (seed+11 = 다른 파편과 겹치지 않는 오프셋)
+  const tierRoll = seededCollapseNoise(seed + 11)
+  const tier = SCATTER_SPREAD_TIERS[tierRoll < 0.33 ? 0 : tierRoll < 0.67 ? 1 : 2]
+  speed        *= tier.speedMult
+  lift         *= tier.liftMult
+  linearDamping *= tier.dampMult
 
   return {
     x: Math.sin(angle) * speed,
