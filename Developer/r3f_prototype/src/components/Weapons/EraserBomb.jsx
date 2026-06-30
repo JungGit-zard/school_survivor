@@ -139,6 +139,7 @@ export function EraserBombWeapon() {
     if (activeErasersRef.current.length > 0) return
 
     const raw = findBestSplashTarget(w.range ?? 12, w.radius ?? 1.35)
+    if (!raw) return   // 범위 내 적 없으면 쿨다운 소비 없이 스킵
 
     // 착지점: 클러스터 방향으로 최대 3유닛 이내 (수직 솟구침 스타일)
     const LAND_RADIUS = 3.0

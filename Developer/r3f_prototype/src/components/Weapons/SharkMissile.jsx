@@ -239,7 +239,7 @@ export function SharkMissileWeapon() {
   const [missiles, setMissiles] = useState([])
   const [explosions, setExplosions] = useState([])
   const activeMissilesRef = useRef([])
-  const lastFireRef = useRef(null)
+  const lastFireRef = useRef(0)
   const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
 
