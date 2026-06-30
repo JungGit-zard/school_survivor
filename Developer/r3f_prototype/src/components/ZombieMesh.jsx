@@ -165,37 +165,57 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     if (!pt.legL) return
     const t = state.clock.elapsedTime
 
-    // retreat: 역방향 뒷걸음 + 몸통 후방 틸트
+    // retreat: 역방향 뒷걸음 + 팔 크게 벌림 + 몸·머리 반응
     if (animPhase === 'retreat') {
+      // 몸통: 뒤로 강하게 기울고 좌우로 비틀림
       if (pt.body) {
         pt.body.scale.setScalar(1)
-        pt.body.rotation.x += (-0.3 - pt.body.rotation.x) * Math.min(1, delta * 15)
+        pt.body.rotation.x += (-0.52 - pt.body.rotation.x) * Math.min(1, delta * 18)
+        pt.body.rotation.z += (Math.sin(t * 8) * 0.14 - pt.body.rotation.z) * Math.min(1, delta * 12)
       }
-      const freq = type === 'E02' ? 9.0 : type === 'E03' ? 5.0 : 7.0
-      const sw = Math.sin(-t * freq * 1.4) * 0.42  // 역방향, 빠른 두 걸음
+      // 다리: 빠른 역방향 2보
+      const freq = type === 'E02' ? 10.0 : type === 'E03' ? 6.5 : 8.5
+      const sw = Math.sin(-t * freq * 1.6) * 0.55
       pt.legL.rotation.x =  sw
       pt.legR.rotation.x = -sw
-      const armBase = -1.15
-      pt.armL.rotation.x = armBase + Math.sin(-t * 2.8) * 0.10
-      pt.armR.rotation.x = armBase + Math.sin(-t * 2.8 + Math.PI) * 0.10
-      if (pt.head) pt.head.rotation.z = Math.sin(t * 1.6) * 0.07
+      // 팔: 좌우로 크게 벌어짐 (위에서 봐도 확실히 보임) + 뒤로 들림
+      const armFlail = Math.sin(t * 5.5) * 0.22
+      pt.armL.rotation.x = -0.70 + armFlail
+      pt.armR.rotation.x = -0.70 - armFlail
+      pt.armL.rotation.z =  0.95 + Math.sin(t * 3.8) * 0.18   // 오른쪽으로 크게 벌어짐
+      pt.armR.rotation.z = -0.95 - Math.sin(t * 3.8) * 0.18   // 왼쪽으로 크게 벌어짐
+      // 머리: 뒤로 젖혀지고 좌우로 흔들림
+      if (pt.head) {
+        pt.head.rotation.x += (0.42 - pt.head.rotation.x) * Math.min(1, delta * 20)
+        pt.head.rotation.z = Math.sin(t * 9) * 0.18
+      }
       return
     }
 
-    // warn: 몸통 빠른 진동 (돌진 예고) — retreat 후 틸트 잔존 방지
+    // warn: 몸통 빠른 진동 (돌진 예고) — retreat 후 틸트/팔/머리 잔존 방지
     if (animPhase === 'warn') {
       const fl = Math.floor(t * 14) % 2
       if (pt.body) {
         pt.body.scale.setScalar(fl ? 1.06 : 0.96)
         pt.body.rotation.x += (0 - pt.body.rotation.x) * Math.min(1, delta * 10)
+        pt.body.rotation.z += (0 - pt.body.rotation.z) * Math.min(1, delta * 10)
       }
+      if (pt.head) pt.head.rotation.x += (0 - pt.head.rotation.x) * Math.min(1, delta * 10)
+      pt.armL.rotation.z += (0 - pt.armL.rotation.z) * Math.min(1, delta * 8)
+      pt.armR.rotation.z += (0 - pt.armR.rotation.z) * Math.min(1, delta * 8)
       return
     }
     if (pt.body) pt.body.scale.setScalar(1)
 
-    // charge: 앞으로 기울임
+    // charge: 앞으로 기울임 / 그 외: retreat에서 남은 팔·머리 리셋
     const bodyTiltX = animPhase === 'charge' ? 0.45 : 0
-    if (pt.body) pt.body.rotation.x += (bodyTiltX - pt.body.rotation.x) * Math.min(1, delta * 12)
+    if (pt.body) {
+      pt.body.rotation.x += (bodyTiltX - pt.body.rotation.x) * Math.min(1, delta * 12)
+      pt.body.rotation.z += (0 - pt.body.rotation.z) * Math.min(1, delta * 8)
+    }
+    if (pt.head) pt.head.rotation.x += (0 - pt.head.rotation.x) * Math.min(1, delta * 8)
+    pt.armL.rotation.z += (0 - pt.armL.rotation.z) * Math.min(1, delta * 6)
+    pt.armR.rotation.z += (0 - pt.armR.rotation.z) * Math.min(1, delta * 6)
 
     // stun: 멈춤
     if (animPhase === 'stun') {
