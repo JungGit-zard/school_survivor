@@ -115,3 +115,16 @@ export function getFlashMat() {
   if (!_flashMat) _flashMat = toonMat(0xffffff, 1.0)
   return _flashMat
 }
+
+// HMR: 모듈 교체 시 WebGL 리소스 해제 (stale context 방지)
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    _toonMatCache.forEach((m) => m.dispose())
+    _toonMatCache.clear()
+    _sharedOutlineMat?.dispose(); _sharedOutlineMat = null
+    _flashMat?.dispose(); _flashMat = null
+    _geoCache.forEach((g) => g.dispose())
+    _geoCache.clear()
+    _gradient?.dispose(); _gradient = null
+  })
+}
