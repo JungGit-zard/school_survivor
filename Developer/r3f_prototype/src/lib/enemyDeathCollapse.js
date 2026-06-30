@@ -157,14 +157,6 @@ function createScatterMotion({ seed, part, index, scatterVariant = 'burst' }) {
     spinDamping = 0.7
   }
 
-  // halfBurst: 속도 절반, 나머지는 기본 burst와 동일
-  if (variant === 'halfBurst') {
-    speed *= 0.5
-    lift  *= 0.85
-    linearDamping *= 1.4
-    spinDamping   *= 1.2
-  }
-
   // 파편마다 독립적인 확산 단계 결정 (seed+11 = 다른 파편과 겹치지 않는 오프셋)
   const tierRoll = seededCollapseNoise(seed + 11)
   const tierIndex = tierRoll < 0.33 ? 0 : tierRoll < 0.67 ? 1 : 2
@@ -172,6 +164,14 @@ function createScatterMotion({ seed, part, index, scatterVariant = 'burst' }) {
   speed        *= tier.speedMult
   lift         *= tier.liftMult
   linearDamping *= tier.dampMult
+
+  // halfBurst: tier 적용 후 속도 절반 — wide tier와 조합해도 최종적으로 ×0.5 보장
+  if (variant === 'halfBurst') {
+    speed *= 0.5
+    lift  *= 0.85
+    linearDamping *= 1.4
+    spinDamping   *= 1.2
+  }
 
   return {
     x: Math.sin(angle) * speed,

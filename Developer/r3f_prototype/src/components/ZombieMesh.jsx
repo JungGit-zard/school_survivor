@@ -182,10 +182,13 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
       return
     }
 
-    // warn: 몸통 빠른 진동 (돌진 예고)
+    // warn: 몸통 빠른 진동 (돌진 예고) — retreat 후 틸트 잔존 방지
     if (animPhase === 'warn') {
       const fl = Math.floor(t * 14) % 2
-      if (pt.body) pt.body.scale.setScalar(fl ? 1.06 : 0.96)
+      if (pt.body) {
+        pt.body.scale.setScalar(fl ? 1.06 : 0.96)
+        pt.body.rotation.x += (0 - pt.body.rotation.x) * Math.min(1, delta * 10)
+      }
       return
     }
     if (pt.body) pt.body.scale.setScalar(1)
