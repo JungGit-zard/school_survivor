@@ -7,7 +7,7 @@ import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { buildPlaytestSummary } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
-import { getStageConfig } from '../lib/stageConfig.js'
+import { getNextStageId, getStageConfig } from '../lib/stageConfig.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.png'
@@ -27,9 +27,6 @@ import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
 import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
 
 const GAMEOVER_TRANSITION_MS = 1000
-const NEXT_STAGE_BY_STAGE = {
-  stage1: 'stage2',
-}
 
 const damageLabel = (name, weaponKey, upgradeKey) => (w) =>
   `${name} +${UPGRADE_EFFECTS[upgradeKey].dmg} (Lv${(w[weaponKey].level ?? 1) + 1})`
@@ -376,7 +373,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
   const mins = String(Math.floor(elapsed / 60000)).padStart(2, '0')
   const secs = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, '0')
   const stageConfig = getStageConfig(currentStageId)
-  const nextStageId = NEXT_STAGE_BY_STAGE[currentStageId] ?? null
+  const nextStageId = getNextStageId(currentStageId)
   const showResultDevTools = getAdminOperationsConfig().cheatMenuButtonVisible && (phase === 'gameover' || phase === 'cleared')
   const activeWeapons = useMemo(
     () => Object.entries(weapons).filter(([, w]) => w.active),

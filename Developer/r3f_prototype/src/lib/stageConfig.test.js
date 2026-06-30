@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   DEFAULT_STAGE_ID,
+  getNextStageId,
   getStageConfig,
   getStageDurationSec,
   isStageUnlocked,
@@ -39,6 +40,11 @@ describe('stage configuration registry', () => {
     expect(isStageUnlocked('stage2', { stage1Clears: 1 })).toBe(true)
     expect(isStageUnlocked('stage2', { stage1Survival180Runs: 3 })).toBe(true)
     expect(isStageUnlocked('stage2', { stage1Survival180Runs: 2 })).toBe(false)
+  })
+
+  it('maps portal progression from stage 1 to stage 2 only', () => {
+    expect(getNextStageId('stage1')).toBe('stage2')
+    expect(getNextStageId('stage2')).toBeNull()
   })
 
   it('applies admin balance duration and gold reward overrides', () => {

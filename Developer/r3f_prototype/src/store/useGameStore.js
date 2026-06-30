@@ -12,7 +12,7 @@ import {
 } from '../lib/playerRecords.js'
 import { evaluateUnlocks, isStarter, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
-import { DEFAULT_STAGE_ID, getStageConfig } from '../lib/stageConfig.js'
+import { DEFAULT_STAGE_ID, getNextStageId, getStageConfig } from '../lib/stageConfig.js'
 import { getAdminBalanceConfig, getAdminRankingSeasonConfig } from '../lib/adminConfig.js'
 import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { submitRankingEntry } from '../lib/firebaseRanking.js'
@@ -429,6 +429,20 @@ export const useGameStore = create(
       set({ phase: 'cleared', pauseSource: null })
       emitSfx({ id: 'stageClear' })
       get()._onRunEnd('cleared')
+    },
+
+    clearStageAndStartNext: () => {
+      const s = get()
+      if (s.phase !== 'playing') return false
+      const nextStageId = getNextStageId(s.currentStageId)
+      if (!nextStageId) {
+        get().clearStage()
+        return false
+      }
+      emitSfx({ id: 'stageClear' })
+      get()._onRunEnd('cleared')
+      get().resetGame(nextStageId)
+      return true
     },
 
     // 게임 리셋. gameKey를 올려 Physics 트리를 새로 마운트한다.

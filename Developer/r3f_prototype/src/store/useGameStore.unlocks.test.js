@@ -73,6 +73,48 @@ describe('useGameStore run-end unlock evaluator', () => {
     expect(records.stage1Clears).toBeUndefined()
   })
 
+  it('portal clear records Stage 1 then starts Stage 2 automatically', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({ elapsedMs: 240_000, runKills: 80, goldSession: 12 })
+    const beforeKey = useGameStore.getState().gameKey
+
+    expect(useGameStore.getState().clearStageAndStartNext()).toBe(true)
+
+    const s = useGameStore.getState()
+    expect(s).toMatchObject({
+      currentStageId: 'stage2',
+      phase: 'playing',
+      elapsedMs: 0,
+      escapePortalActive: false,
+      runKills: 0,
+      goldSession: 0,
+    })
+    expect(s.gameKey).toBe(beforeKey + 1)
+    const records = JSON.parse(localStorage.getItem(RECORDS_KEY))
+    expect(records.stage1Clears).toBe(1)
+    expect(records.bestSurvivalSeconds).toBe(240)
+    expect(records.totalKills).toBe(80)
+    expect(records.totalGold).toBe(12)
+  })
+
+  it('portal clear on final stage stays on the cleared result', () => {
+    useGameStore.getState().resetGame('stage2')
+    useGameStore.setState({ elapsedMs: 240_000 })
+    const beforeKey = useGameStore.getState().gameKey
+
+    expect(useGameStore.getState().clearStageAndStartNext()).toBe(false)
+
+    const s = useGameStore.getState()
+    expect(s).toMatchObject({
+      currentStageId: 'stage2',
+      phase: 'cleared',
+      elapsedMs: 240_000,
+    })
+    expect(s.gameKey).toBe(beforeKey)
+    const records = JSON.parse(localStorage.getItem(RECORDS_KEY))
+    expect(records.stage2Clears).toBe(1)
+  })
+
   it('Stage 1 run at or after 180 seconds counts toward Stage 2 unlock progress', () => {
     useGameStore.getState().resetGame('stage1')
     useGameStore.setState({ elapsedMs: 180_000 })

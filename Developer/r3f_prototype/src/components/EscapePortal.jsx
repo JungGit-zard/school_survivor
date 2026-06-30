@@ -34,7 +34,7 @@ function pickPortalPosition(stageId) {
 }
 
 export default function EscapePortal({ stageId }) {
-  const clearStage  = useGameStore((s) => s.clearStage)
+  const clearStageAndStartNext = useGameStore((s) => s.clearStageAndStartNext)
   const phase       = useGameStore((s) => s.phase)
 
   const pos      = useMemo(() => pickPortalPosition(stageId), [stageId])
@@ -72,7 +72,7 @@ export default function EscapePortal({ stageId }) {
       if (suckTimerRef.current >= SUCTION_DURATION && !clearedRef.current) {
         clearedRef.current = true
         emitSfx({ id: 'escapePortalClear' })
-        clearStage()
+        clearStageAndStartNext()
       }
     }
   })
