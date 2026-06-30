@@ -1,0 +1,239 @@
+/**
+ * ZombieInstanceLayer — renders ALL standard zombies (E01-E06) as InstancedMeshes.
+ *
+ * Instead of 76 enemies × 12 ZBlock × 2 meshes = 1,824 draw calls,
+ * this renders 12 body IMs + 12 outline IMs = 24 draw calls total.
+ *
+ * B01 boss and Matilda are excluded — they continue using React mesh components.
+ *
+ * Architecture:
+ *   Enemy.jsx writes { pos, yaw, type, phase, wt, vs, hitFlash } to zombieVisualRegistry.
+ *   ZombieInstanceLayer reads the registry every frame and updates InstancedMesh matrices.
+ */
+
+import { useMemo } from 'react'
+import { useFrame } from '@react-three/fiber'
+import * as THREE from 'three'
+import { zombieVisualRegistry } from '../lib/zombieVisualRegistry.js'
+import { getToonGradient } from '../lib/toon.js'
+import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
+
+const OUTLINE_STENCIL_REF = 1  // matches toon.js OUTLINE_STENCIL_REF
+
+// ── Part definitions (one entry per box in a standard zombie) ──────────────
+// grp = pivot group name (determines which animation applies)
+// col = color role: 'body' | 'skin' | 'eye' | 'foot'
+// sz  = BoxGeometry size
+// gOff = pivot group position (parent translate)
+// lOff = local offset inside the pivot group
+// os   = outline scale factor (for inflated BackSide hull)
+const PARTS = [
+  // HEAD pivot (0, 0.82, 0) — animates rotation.z
+  { key:'head',  grp:'head', col:'skin', sz:[0.52,0.48,0.46], gOff:[0,0.82,0],     lOff:[0,0,0],              os:1.08 },
+  { key:'eyeL',  grp:'head', col:'eye',  sz:[0.10,0.09,0.06], gOff:[0,0.82,0],     lOff:[-0.12,0.04,0.24],    os:1.0  },
+  { key:'eyeR',  grp:'head', col:'eye',  sz:[0.10,0.09,0.06], gOff:[0,0.82,0],     lOff:[ 0.12,0.04,0.24],    os:1.0  },
+  // BODY pivot (0, 0.28, 0) — animates rotation.x (tilt) + scale (warn)
+  { key:'body',  grp:'body', col:'body', sz:[0.56,0.58,0.40], gOff:[0,0.28,0],     lOff:[0,0,0],              os:1.09 },
+  // ARML pivot (-0.40, 0.52, 0) base rot (-1.15, 0, 0.12) — animates rotation.x
+  { key:'armL',  grp:'armL', col:'body', sz:[0.20,0.50,0.20], gOff:[-0.40,0.52,0], lOff:[0,-0.25,0],          os:1.05 },
+  { key:'handL', grp:'armL', col:'skin', sz:[0.18,0.16,0.18], gOff:[-0.40,0.52,0], lOff:[0,-0.55,0],          os:1.03 },
+  // ARMR pivot (0.40, 0.52, 0) base rot (-1.15, 0, -0.12) — animates rotation.x
+  { key:'armR',  grp:'armR', col:'body', sz:[0.20,0.50,0.20], gOff:[ 0.40,0.52,0], lOff:[0,-0.25,0],          os:1.05 },
+  { key:'handR', grp:'armR', col:'skin', sz:[0.18,0.16,0.18], gOff:[ 0.40,0.52,0], lOff:[0,-0.55,0],          os:1.03 },
+  // LEGL pivot (-0.15, 0, 0) — animates rotation.x
+  { key:'legL',  grp:'legL', col:'body', sz:[0.22,0.52,0.26], gOff:[-0.15,0,0],    lOff:[0,-0.26,0],          os:1.06 },
+  { key:'footL', grp:'legL', col:'foot', sz:[0.24,0.12,0.34], gOff:[-0.15,0,0],    lOff:[0,-0.57,0.05],       os:1.03 },
+  // LEGR pivot (0.15, 0, 0) — animates rotation.x
+  { key:'legR',  grp:'legR', col:'body', sz:[0.22,0.52,0.26], gOff:[ 0.15,0,0],    lOff:[0,-0.26,0],          os:1.06 },
+  { key:'footR', grp:'legR', col:'foot', sz:[0.24,0.12,0.34], gOff:[ 0.15,0,0],    lOff:[0,-0.57,0.05],       os:1.03 },
+]
+const N_PARTS = PARTS.length  // 12
+
+const MAX_ENEMIES = 110  // upper bound for InstancedMesh count
+const INFLAT = 2         // OUTLINE_THICKNESS_MULT (from toon.js)
+
+// ── Pre-allocated scratch matrices ────────────────────────────────────────
+const _tmp  = new THREE.Matrix4()
+const _euler = new THREE.Euler('XYZ')
+const _col  = new THREE.Color()
+const _ZERO = Object.freeze(new THREE.Matrix4().makeScale(0, 0, 0))
+
+// ── Pivot group animation rotations ────────────────────────────────────────
+function pivotEuler(grp, t, type, phase) {
+  const freq = type === 'E02' ? 9 : type === 'E03' ? 5 : 7
+  const amp  = phase === 'charge' ? 0.55 : 0.38
+  const sw   = phase === 'stun' ? 0 : Math.sin(t * freq) * amp
+  const AB   = -1.15
+  switch (grp) {
+    case 'head': return [0, 0, Math.sin(t * 1.6) * 0.07]
+    case 'body': return [phase === 'charge' ? 0.45 : 0, 0, 0]
+    case 'armL': return [AB + Math.sin(t * 2.8) * 0.06,           0,  0.12]
+    case 'armR': return [AB + Math.sin(t * 2.8 + Math.PI) * 0.06, 0, -0.12]
+    case 'legL': return [sw,  0, 0]
+    case 'legR': return [-sw, 0, 0]
+    default:     return [0, 0, 0]
+  }
+}
+
+// Build the world matrix for one body part of one enemy into dst.
+function buildPartMatrix(part, e, dst, outlineInflate = 1) {
+  const [prx, pry, prz] = pivotEuler(part.grp, e.wt, e.type, e.phase)
+
+  // Enemy root: T(pos) × Ry(yaw) × S(vs)
+  dst.makeTranslation(e.x, e.y, e.z)
+  _euler.set(0, e.yaw, 0)
+  _tmp.makeRotationFromEuler(_euler)
+  dst.multiply(_tmp)
+  _tmp.makeScale(e.vs, e.vs, e.vs)
+  dst.multiply(_tmp)
+
+  // Pivot: T(gOff) × R(pivotEuler) [× S(warn) for body in warn phase]
+  _tmp.makeTranslation(...part.gOff)
+  dst.multiply(_tmp)
+  _euler.set(prx, pry, prz)
+  _tmp.makeRotationFromEuler(_euler)
+  dst.multiply(_tmp)
+  if (part.grp === 'body' && e.phase === 'warn') {
+    const ws = Math.floor(e.wt * 14) % 2 ? 1.06 : 0.96
+    _tmp.makeScale(ws, ws, ws)
+    dst.multiply(_tmp)
+  }
+
+  // Local: T(lOff) [× S(outline)]
+  _tmp.makeTranslation(...part.lOff)
+  dst.multiply(_tmp)
+  if (outlineInflate !== 1) {
+    _tmp.makeScale(outlineInflate, outlineInflate, outlineInflate)
+    dst.multiply(_tmp)
+  }
+}
+
+// Resolve the display color for a part given enemy type and hit flash.
+function partColor(part, e) {
+  if (e.hitFlash) return 0xffffff
+  const pal = ZOMBIE_PALETTE[e.type] ?? ZOMBIE_PALETTE.E01
+  switch (part.col) {
+    case 'skin': return pal.skin
+    case 'eye':  return pal.eye
+    case 'foot': return 0x1a1a1a
+    default:     return pal.body
+  }
+}
+
+// ── Material factories (stencil mirrors toon.js) ───────────────────────────
+function makeBodyMat(emissiveIntensity) {
+  // White base — per-instance color via setColorAt() tints it
+  const m = new THREE.MeshToonMaterial({
+    color: 0xffffff,
+    gradientMap: getToonGradient(),
+    emissive: 0xffffff,
+    emissiveIntensity,
+  })
+  m.stencilWrite = true
+  m.stencilRef   = OUTLINE_STENCIL_REF
+  m.stencilFunc  = THREE.AlwaysStencilFunc
+  m.stencilZPass = THREE.ReplaceStencilOp
+  return m
+}
+
+function makeOutlineMat() {
+  const m = new THREE.MeshBasicMaterial({
+    color: 0x050209, side: THREE.BackSide,
+    transparent: true, opacity: 0.96, depthWrite: false,
+  })
+  m.stencilWrite = true
+  m.stencilRef   = OUTLINE_STENCIL_REF
+  m.stencilFunc  = THREE.NotEqualStencilFunc
+  m.stencilZPass = THREE.KeepStencilOp
+  m.stencilFail  = THREE.KeepStencilOp
+  m.stencilZFail = THREE.KeepStencilOp
+  return m
+}
+
+// ── InstancedMesh factory ─────────────────────────────────────────────────
+function makeIM(part, material, count) {
+  const geo = new THREE.BoxGeometry(...part.sz)
+  const im  = new THREE.InstancedMesh(geo, material, count)
+  im.frustumCulled = false  // we zero-scale hidden instances ourselves
+  im.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
+  if (im.instanceColor) im.instanceColor.setUsage(THREE.DynamicDrawUsage)
+  // Pre-hide all slots
+  for (let i = 0; i < count; i++) im.setMatrixAt(i, _ZERO)
+  im.instanceMatrix.needsUpdate = true
+  return im
+}
+
+// ── Component ─────────────────────────────────────────────────────────────
+export default function ZombieInstanceLayer() {
+  // One InstancedMesh per body part (body rendering) + per part (outline)
+  const { bodyIMs, outIMs, eyeMat } = useMemo(() => {
+    const normalMat = makeBodyMat(0.12)  // body / skin / foot parts
+    const em        = makeBodyMat(0.9)   // eye parts (high emissive glow)
+    const outMat    = makeOutlineMat()
+
+    const bIMs = PARTS.map(p => makeIM(p, p.col === 'eye' ? em : normalMat, MAX_ENEMIES))
+    const oIMs = PARTS.map(p => makeIM(p, outMat, MAX_ENEMIES))
+
+    return { bodyIMs: bIMs, outIMs: oIMs, eyeMat: em }
+  }, [])
+
+  useFrame(() => {
+    const reg = zombieVisualRegistry.entries
+
+    // Track which slots have been written this frame (others get zero-scale)
+    const used = new Uint8Array(MAX_ENEMIES)  // 1 = slot used
+
+    // Slot tracking: we use a simple counter approach.
+    // Each enemy gets a stable slot index via the registry's insertion order.
+    // We assign slots in iteration order and zero unused slots at the end.
+    let slot = 0
+    const dst = new THREE.Matrix4()  // local per-frame (tiny alloc, avoid module-level state)
+
+    for (const e of reg.values()) {
+      if (slot >= MAX_ENEMIES) break
+      used[slot] = 1
+
+      for (let pi = 0; pi < N_PARTS; pi++) {
+        const part = PARTS[pi]
+        buildPartMatrix(part, e, dst)
+        bodyIMs[pi].setMatrixAt(slot, dst)
+        _col.setHex(partColor(part, e))
+        bodyIMs[pi].setColorAt(slot, _col)
+
+        // Outline: same matrix but inflated
+        const os = 1 + (part.os - 1) * INFLAT
+        buildPartMatrix(part, e, dst, os)
+        outIMs[pi].setMatrixAt(slot, dst)
+      }
+
+      slot++
+    }
+
+    // Zero-scale all unused slots (makes them invisible without disposing)
+    for (let s = slot; s < MAX_ENEMIES; s++) {
+      if (used[s]) continue
+      for (let pi = 0; pi < N_PARTS; pi++) {
+        bodyIMs[pi].setMatrixAt(s, _ZERO)
+        outIMs[pi].setMatrixAt(s, _ZERO)
+      }
+    }
+
+    // Mark all IMs dirty
+    for (let pi = 0; pi < N_PARTS; pi++) {
+      bodyIMs[pi].instanceMatrix.needsUpdate = true
+      if (bodyIMs[pi].instanceColor) bodyIMs[pi].instanceColor.needsUpdate = true
+      outIMs[pi].instanceMatrix.needsUpdate = true
+    }
+  })
+
+  return (
+    <>
+      {PARTS.map((p, i) => (
+        <primitive key={`body-${p.key}`} object={bodyIMs[i]} renderOrder={2} />
+      ))}
+      {PARTS.map((p, i) => (
+        <primitive key={`out-${p.key}`} object={outIMs[i]} renderOrder={1} />
+      ))}
+    </>
+  )
+}
