@@ -67,6 +67,17 @@ const RANGED_SPAWN_MIN_RADIUS = 11.5
 const RANGED_SPAWN_MAX_RADIUS = 15.5
 const SPAWN_CANDIDATE_TRIES = 24
 const SPAWN_BATCH_MIN_GAP = 1.2
+const SPAWN_LINE_TOLERANCE = 0.45
+const SPAWN_FALLBACK_OFFSETS = [
+  [1.2, 0],
+  [-1.2, 0],
+  [0, 1.2],
+  [0, -1.2],
+  [1.2, 1.2],
+  [-1.2, 1.2],
+  [1.2, -1.2],
+  [-1.2, -1.2],
+]
 // 스폰은 플레이어 기준 링이라 좁은 맵에서 벽 밖으로 나갈 수 있다 → 맵 경계 안쪽으로 클램프해 적이 벽에 끼지 않게 한다.
 const SPAWN_INSET = 1.5
 
@@ -91,7 +102,34 @@ function hasSpawnGap(pos, taken) {
     const dx = pos[0] - other[0]
     const dz = pos[2] - other[2]
     return dx * dx + dz * dz >= minGapSq
-  })
+  }) && !formsSpawnLine(pos, taken)
+}
+
+function formsSpawnLine(pos, taken) {
+  for (let i = 0; i < taken.length; i++) {
+    for (let j = i + 1; j < taken.length; j++) {
+      const a = taken[i]
+      const b = taken[j]
+      const abx = b[0] - a[0]
+      const abz = b[2] - a[2]
+      const len = Math.hypot(abx, abz)
+      if (len < SPAWN_BATCH_MIN_GAP) continue
+      const distance = Math.abs(abx * (pos[2] - a[2]) - abz * (pos[0] - a[0])) / len
+      if (distance <= SPAWN_LINE_TOLERANCE) return true
+    }
+  }
+  return false
+}
+
+function breakSpawnLineFallback(pos, bounds, taken) {
+  if (hasSpawnGap(pos, taken)) return pos
+  for (const [dx, dz] of SPAWN_FALLBACK_OFFSETS) {
+    const candidate = [pos[0] + dx, pos[1], pos[2] + dz]
+    if (isInsideSpawnBounds(candidate[0], candidate[2], bounds) && hasSpawnGap(candidate, taken)) {
+      return candidate
+    }
+  }
+  return pos
 }
 
 function randomPointOnSpawnRing(minRadius, maxRadius, random = Math.random) {
@@ -114,10 +152,10 @@ function spawnPosOnValidRing(type, bounds, minRadius, maxRadius, taken = [], ran
     fallback ??= pos
     if (hasSpawnGap(pos, taken)) return pos
   }
-  if (fallback) return fallback
+  if (fallback) return breakSpawnLineFallback(fallback, bounds, taken)
   const offset = randomPointOnSpawnRing(minRadius, maxRadius, random)
   const [x, z] = clampToBounds(playerPos.x + offset.x, playerPos.z + offset.z, bounds)
-  return [x, y, z]
+  return breakSpawnLineFallback([x, y, z], bounds, taken)
 }
 
 export function randomSpawnPos(type, bounds, taken = [], random = Math.random) {
