@@ -203,25 +203,25 @@ describe('enemy death collapse body pieces', () => {
 })
 
 describe('death shatter intensity by killing-hit power', () => {
-  it('maps each intensity to weak/medium/strong shatter styles', () => {
-    expect(COLLAPSE_INTENSITY_STYLE).toEqual({
-      weak: 'crumble',
-      medium: 'bodyCollapse',
-      strong: 'scatter',
-    })
-    expect(collapseStyleForIntensity('weak')).toBe('crumble')
-    expect(collapseStyleForIntensity('medium')).toBe('bodyCollapse')
-    expect(collapseStyleForIntensity('strong')).toBe('scatter')
-    // unknown/undefined falls back to the medium style
-    expect(collapseStyleForIntensity(undefined)).toBe('bodyCollapse')
+  it('collapseStyleForIntensity returns one of all 5 styles for any intensity', () => {
+    // 모든 강도에서 전체 스타일 풀 랜덤 — 단일 고정 없음
+    const allStyles = ENEMY_DEATH_COLLAPSE_STYLES
+    expect(allStyles).toContain(collapseStyleForIntensity('weak', 12.5))
+    expect(allStyles).toContain(collapseStyleForIntensity('medium', 99.9))
+    expect(allStyles).toContain(collapseStyleForIntensity('strong', 42.0))
+    expect(allStyles).toContain(collapseStyleForIntensity(undefined))
+    // 씨드가 다르면 다른 결과 가능 — 5가지 스타일 중 2개 이상 발현
+    const results = new Set([0,1,2,3,4,5,6,7,8,9].map(i =>
+      collapseStyleForIntensity('medium', i * 31.7)
+    ))
+    expect(results.size).toBeGreaterThan(1)
   })
 
-  it('mixes weak deaths between crumble, slump, and kneel patterns', () => {
+  it('pickWeakCollapseStyle still works for crumble/slump/kneel ordering', () => {
     expect(WEAK_COLLAPSE_STYLES).toEqual(['crumble', 'slump', 'kneel'])
     expect(pickWeakCollapseStyle(0)).toBe('crumble')
     expect(pickWeakCollapseStyle(0.5)).toBe('slump')
     expect(pickWeakCollapseStyle(0.99)).toBe('kneel')
-    expect(WEAK_COLLAPSE_STYLES).toContain(collapseStyleForIntensity('weak', 12.5))
   })
 
   it('weak: a light finishing hit relative to max HP, no knockback', () => {
