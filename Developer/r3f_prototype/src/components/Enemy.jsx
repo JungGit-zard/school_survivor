@@ -14,6 +14,7 @@ import { canE04FireProjectile } from '../lib/stage2ProjectileRules.js'
 import ZombieMesh from './ZombieMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 import EnemyProjectileVisual from './EnemyProjectileVisual.jsx'
+import { zombieVisualRegistry } from '../lib/zombieVisualRegistry.js'
 
 const _dir = new THREE.Vector3()
 const _pos = new THREE.Vector3()
@@ -63,14 +64,25 @@ function deathSfxId(type, isMatilda) {
   return 'zombieDeath'
 }
 
+export const CHARGE_CUE_LABEL = 'GO!'
+
 export const CHARGE_CUE_LAYOUT = {
   y: 1.75,
-  pulseScale: 0.10,
+  pulseScale: 0.08,
+  billboard: true,
   parts: {
-    mark: { size: [0.14, 0.52, 0.10], position: [0, 0.20, 0], outlineScale: 1.16 },
-    dot: { radius: 0.095, position: [0, -0.18, 0], outlineScale: 1.18 },
-    leftChevron: { size: [0.10, 0.18, 0.46], position: [-0.22, -0.08, 0.24], rotation: [0.28, 0.20, 0.46], outlineScale: 1.12 },
-    rightChevron: { size: [0.10, 0.18, 0.46], position: [0.22, -0.08, 0.24], rotation: [0.28, -0.20, -0.46], outlineScale: 1.12 },
+    bubble: { size: [1.05, 0.46, 0.08], position: [0, 0.07, 0], outlineScale: 1.08 },
+    tail: { size: [0.22, 0.18, 0.08], position: [-0.28, -0.25, 0], rotation: [0, 0, 0.72], outlineScale: 1.08 },
+    gVertical: { size: [0.08, 0.27, 0.06], position: [-0.36, 0.08, 0.08], outlineScale: 1.04 },
+    gTop: { size: [0.22, 0.07, 0.06], position: [-0.26, 0.20, 0.08], outlineScale: 1.04 },
+    gBottom: { size: [0.22, 0.07, 0.06], position: [-0.26, -0.04, 0.08], outlineScale: 1.04 },
+    gMiddle: { size: [0.15, 0.07, 0.06], position: [-0.20, 0.06, 0.08], outlineScale: 1.04 },
+    oLeft: { size: [0.08, 0.27, 0.06], position: [0.02, 0.08, 0.08], outlineScale: 1.04 },
+    oRight: { size: [0.08, 0.27, 0.06], position: [0.22, 0.08, 0.08], outlineScale: 1.04 },
+    oTop: { size: [0.20, 0.07, 0.06], position: [0.12, 0.20, 0.08], outlineScale: 1.04 },
+    oBottom: { size: [0.20, 0.07, 0.06], position: [0.12, -0.04, 0.08], outlineScale: 1.04 },
+    bang: { size: [0.07, 0.25, 0.06], position: [0.42, 0.10, 0.08], outlineScale: 1.04 },
+    bangDot: { radius: 0.045, position: [0.42, -0.08, 0.08], outlineScale: 1.05 },
   },
 }
 
@@ -112,21 +124,29 @@ function ChargeCueDot({ radius, position, color, emissive = 0.26, outlineScale =
 function ChargeToonCue({ y }) {
   const ref = useRef()
 
-  useFrame(() => {
+  useFrame((state) => {
     if (!ref.current) return
     const t = performance.now() * 0.001
     const pulse = 1 + Math.sin(t * 12) * CHARGE_CUE_LAYOUT.pulseScale
     ref.current.scale.set(pulse, pulse, pulse)
-    ref.current.rotation.y += 0.035
+    ref.current.lookAt(state.camera.position)
   })
 
   const { parts } = CHARGE_CUE_LAYOUT
   return (
     <group ref={ref} position={[0, y, 0]}>
-      <ChargeCueBlock {...parts.mark} color={0xfff0a6} emissive={0.24} />
-      <ChargeCueDot {...parts.dot} color={0xff392e} emissive={0.32} />
-      <ChargeCueBlock {...parts.leftChevron} color={0xff7a18} emissive={0.26} />
-      <ChargeCueBlock {...parts.rightChevron} color={0xff7a18} emissive={0.26} />
+      <ChargeCueBlock {...parts.bubble} color={0xfff4d8} emissive={0.10} />
+      <ChargeCueBlock {...parts.tail} color={0xfff4d8} emissive={0.10} />
+      <ChargeCueBlock {...parts.gVertical} color={0x241426} emissive={0.08} />
+      <ChargeCueBlock {...parts.gTop} color={0x241426} emissive={0.08} />
+      <ChargeCueBlock {...parts.gBottom} color={0x241426} emissive={0.08} />
+      <ChargeCueBlock {...parts.gMiddle} color={0x241426} emissive={0.08} />
+      <ChargeCueBlock {...parts.oLeft} color={0x241426} emissive={0.08} />
+      <ChargeCueBlock {...parts.oRight} color={0x241426} emissive={0.08} />
+      <ChargeCueBlock {...parts.oTop} color={0x241426} emissive={0.08} />
+      <ChargeCueBlock {...parts.oBottom} color={0x241426} emissive={0.08} />
+      <ChargeCueBlock {...parts.bang} color={0xff392e} emissive={0.28} />
+      <ChargeCueDot {...parts.bangDot} color={0xff392e} emissive={0.32} />
     </group>
   )
 }
@@ -172,15 +192,20 @@ function EnemyProjectile({ id, position, velocity, damage, onExpire }) {
 
 // ── HP 바 ────────────────────────────────────────────────────────────────────
 // ── 메인 Enemy 컴포넌트 ───────────────────────────────────────────────────────
+// E01-E06 standard zombies render via ZombieInstanceLayer (instanced). B01 + Matilda use React mesh.
+const INSTANCED_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06'])
+
 export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false }) {
   const stats = ENEMY_STATS[type] ?? ENEMY_STATS.E01
   const cs = stats.scale * ENEMY_SIZE_MULTIPLIER
+  const useInstanced = !isMatilda && INSTANCED_TYPES.has(type)
   const currentHp = hp ?? stats.hp
 
   return (
     <>
       <group ref={groupRef} scale={[cs * 0.333, cs * 0.333, cs * 0.333]}>
-        <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} isMatilda={isMatilda} />
+        {/* E01-E06: rendered imperatively by ZombieInstanceLayer — no mesh here */}
+        {!useInstanced && <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} isMatilda={isMatilda} />}
         {stats.charger && animPhase === 'warn' && <ChargeToonCue y={CHARGE_CUE_LAYOUT.y} />}
       </group>
       {showHealthBar && <MiniHealthBar current={currentHp} max={stats.hp} width={0.32 * cs} height={0.045} y={0.72 * cs} />}
@@ -197,7 +222,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
   const [hp, setHp]           = useState(stats.hp)
   const [hitFlash, setHitFlash] = useState(false)
+  const hitFlashRef           = useRef(false)  // ref mirror for instanced renderer
   const hpRef                 = useRef(stats.hp)
+  const useInstanced = !isMatilda && INSTANCED_TYPES.has(type)
   const dead                  = useRef(false)
   const knockbackUntilRef     = useRef(0)
   const knockbackDir          = useRef(new THREE.Vector3())
@@ -235,7 +262,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         z: hitPos.z,
       }))
       setHitFlash(true)
-      requestAnimationFrame(() => setHitFlash(false))
+      hitFlashRef.current = true
+      requestAnimationFrame(() => { setHitFlash(false); hitFlashRef.current = false })
       if (impact?.sfxId) emitSfx({ id: impact.sfxId, volume: 0.6 })
       const knockback = resolveEnemyHitKnockback(impact)
       if (knockback.speed > 0) {
@@ -295,15 +323,20 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           visualScale: cs * 0.333,
           intensity,
           deathStyleMix: impact.deathStyleMix,
+          facingY: groupRef.current?.rotation.y ?? 0,
         })
       }
     }
     rb.current._enemyId   = id
     rb.current._enemyType = type
+    if (useInstanced) {
+      zombieVisualRegistry.register(id, { x: spawnPos[0], y: spawnPos[1], z: spawnPos[2], yaw: 0, type, phase: 'chase', wt: 0, vs: cs * 0.333, hitFlash: false })
+    }
     return () => {
       enemyBodies.delete(id)
+      if (useInstanced) zombieVisualRegistry.unregister(id)
     }
-  }, [id, onDeath, spawnPos, stats.xp, type, cs])
+  }, [id, onDeath, spawnPos, stats.xp, type, cs, useInstanced])
 
   const expireProjectile = useCallback((pid) => {
     setProjectiles((prev) => prev.filter((p) => p.id !== pid))
@@ -480,6 +513,19 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       _vel.x = _dir.x * stats.speed; _vel.z = _dir.z * stats.speed
       rb.current.setLinvel(_vel, true)
       updateRotation(_dir.x, _dir.z)
+    }
+
+    // Feed visual state to ZombieInstanceLayer
+    if (useInstanced) {
+      zombieVisualRegistry.update(id, {
+        x: t.x, y: t.y, z: t.z,
+        yaw: groupRef.current?.rotation.y ?? 0,
+        type,
+        phase: chargeState.current,
+        wt: ageRef.current,
+        vs: cs * 0.333,
+        hitFlash: hitFlashRef.current,
+      })
     }
   })
 
