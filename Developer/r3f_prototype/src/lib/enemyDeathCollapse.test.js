@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   ENEMY_DEATH_COLLAPSE_FADE_START_MS,
   ENEMY_DEATH_COLLAPSE_LIFETIME_MS,
@@ -205,7 +205,20 @@ describe('enemy death collapse body pieces', () => {
 })
 
 describe('death shatter intensity by killing-hit power', () => {
-  it('collapseStyleForIntensity returns one of all 5 styles for any intensity', () => {
+  it('collapseStyleForIntensity can pick any death style for any intensity', () => {
+    const randomSpy = vi.spyOn(Math, 'random')
+    try {
+      randomSpy.mockReturnValue(0)
+      expect(collapseStyleForIntensity('strong')).toBe('bodyCollapse')
+
+      randomSpy.mockReturnValue(0.99)
+      expect(collapseStyleForIntensity('weak')).toBe('scatter')
+    } finally {
+      randomSpy.mockRestore()
+    }
+  })
+
+  it('collapseStyleForIntensity returns one of all death styles for any intensity', () => {
     // 모든 강도에서 전체 스타일 풀 랜덤 — 단일 고정 없음
     const allStyles = ENEMY_DEATH_COLLAPSE_STYLES
     expect(allStyles).toContain(collapseStyleForIntensity('weak', 12.5))
@@ -249,7 +262,7 @@ describe('death shatter intensity by killing-hit power', () => {
     expect(resolveCollapseIntensity()).toBe('weak')
   })
 
-  it('halves fragment piece size only for the strongest (scatter) shatter', () => {
+  it('halves fragment piece size only for scatter shatter', () => {
     expect(collapsePieceScaleForStyle('scatter')).toBe(0.5)
     expect(collapsePieceScaleForStyle('bodyCollapse')).toBe(1)
     expect(collapsePieceScaleForStyle('crumble')).toBe(1)
