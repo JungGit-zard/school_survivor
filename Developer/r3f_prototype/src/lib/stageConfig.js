@@ -53,9 +53,17 @@ export const STAGE_CONFIGS = {
   },
 }
 
+const NEXT_STAGE_BY_STAGE = {
+  stage1: 'stage2',
+}
+
 export function getStageConfig(stageId = DEFAULT_STAGE_ID) {
   const base = STAGE_CONFIGS[stageId] ?? STAGE_CONFIGS[DEFAULT_STAGE_ID]
   return applyAdminStageOverrides(base)
+}
+
+export function getNextStageId(stageId = DEFAULT_STAGE_ID) {
+  return NEXT_STAGE_BY_STAGE[stageId] ?? null
 }
 
 export function getStageDurationSec(stageId = DEFAULT_STAGE_ID) {
