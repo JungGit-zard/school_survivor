@@ -58,10 +58,9 @@ export function resolveCollapseIntensity({ killingDamage = 0, maxHp = 1, knockba
 }
 
 export function collapseStyleForIntensity(intensity, seed) {
-  if (intensity === 'weak' && Number.isFinite(seed)) {
-    return pickWeakCollapseStyle(seededCollapseNoise(seed + 151.3))
-  }
-  return COLLAPSE_INTENSITY_STYLE[intensity] ?? 'bodyCollapse'
+  // 모든 강도에서 전체 5가지 스타일 랜덤 — 절대 한 가지로 고정하지 않는다
+  const roll = Number.isFinite(seed) ? seededCollapseNoise(seed + 151.3) : Math.random()
+  return pickEnemyDeathCollapseStyle(roll)
 }
 
 // 스타일별 파편 조각 크기 배수. scatter(강)는 가장 세게 흩날리므로 조각을 절반 크기로 줄인다.
