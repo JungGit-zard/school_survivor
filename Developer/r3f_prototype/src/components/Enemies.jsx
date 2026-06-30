@@ -5,6 +5,7 @@ import { usePlayingFrame } from '../lib/usePlayingFrame.js'
 import { playerPos, enemyBodies } from '../lib/refs.js'
 import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
+import ZombieDeathAnim from './ZombieDeathAnim.jsx'
 import GoldCoin from './GoldCoin.jsx'
 import XpTextbook from './XpTextbook.jsx'
 import { getStage2E04Cap } from '../lib/stage2ProjectileRules.js'
@@ -270,16 +271,18 @@ let _uid   = 0
 let _textbookId = 0
 let _coinId = 0
 let _collapseId = 0
+let _deathAnimId = 0
 
 // 게임 시작 직후 플레이어가 방향을 잡을 시간 — 이 기간엔 유지 스폰을 차단.
 // 버스트 이벤트는 evt.sec 기준으로 독립 관리하므로 영향 없음.
 const SPAWN_GRACE_SEC = 5
 
 export default function Enemies() {
-  const [enemies, setEnemies]     = useState([])
-  const [textbooks, setTextbooks] = useState([])
-  const [goldCoins, setGoldCoins] = useState([])
-  const [collapses, setCollapses] = useState([])
+  const [enemies, setEnemies]       = useState([])
+  const [textbooks, setTextbooks]   = useState([])
+  const [goldCoins, setGoldCoins]   = useState([])
+  const [collapses, setCollapses]   = useState([])
+  const [deathAnims, setDeathAnims] = useState([])
   const enemiesRef                = useRef([])
   const firedBurstsRef            = useRef(new Set())
   const maintainTimerRef          = useRef(0)
@@ -334,17 +337,34 @@ export default function Enemies() {
     setEnemies([...enemiesRef.current])
     if (!dropData?.pos) return
 
-    setCollapses((prev) => {
-      const next = [...prev, {
-        id: ++_collapseId,
-        type: dropData.type,
-        position: dropData.pos,
-        visualScale: dropData.visualScale,
-        intensity: dropData.intensity,
-        deathStyleMix: dropData.deathStyleMix,
-      }]
-      return next.length > 12 ? next.slice(next.length - 12) : next
-    })
+    const isBoss = dropData.type === 'B01'
+
+    if (!isBoss) {
+      // E01~E06: 털썩→퍽 애니메이션
+      setDeathAnims((prev) => {
+        const next = [...prev, {
+          id: ++_deathAnimId,
+          type: dropData.type,
+          position: dropData.pos,
+          visualScale: dropData.visualScale,
+          facingY: dropData.facingY,
+        }]
+        return next.length > 8 ? next.slice(next.length - 8) : next
+      })
+    } else {
+      // B01/마틸다: 기존 파편 산개 이펙트 유지
+      setCollapses((prev) => {
+        const next = [...prev, {
+          id: ++_collapseId,
+          type: dropData.type,
+          position: dropData.pos,
+          visualScale: dropData.visualScale,
+          intensity: dropData.intensity,
+          deathStyleMix: dropData.deathStyleMix,
+        }]
+        return next.length > 12 ? next.slice(next.length - 12) : next
+      })
+    }
 
     const bonus = ELITE_BONUS[dropData.type]
     if (bonus) {
@@ -359,8 +379,12 @@ export default function Enemies() {
     }
   }, [dropTextbook, dropGoldCoin])
 
-  const onCollapseDone = useCallback((id) => {
+  const onCollapseDone   = useCallback((id) => {
     setCollapses((prev) => prev.filter((c) => c.id !== id))
+  }, [])
+
+  const onDeathAnimDone = useCallback((id) => {
+    setDeathAnims((prev) => prev.filter((d) => d.id !== id))
   }, [])
 
   const onTextbookCollect = useCallback((id) => {
@@ -455,6 +479,9 @@ export default function Enemies() {
       ))}
       {collapses.map((c) => (
         <EnemyDeathCollapse key={c.id} {...c} onDone={onCollapseDone} />
+      ))}
+      {deathAnims.map((d) => (
+        <ZombieDeathAnim key={d.id} {...d} onDone={onDeathAnimDone} />
       ))}
     </>
   )
