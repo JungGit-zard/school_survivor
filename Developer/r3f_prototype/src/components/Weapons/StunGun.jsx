@@ -178,9 +178,9 @@ export function StunGunWeapon() {
     }])
   }, [])
 
-  usePlayingFrame(() => {
+  usePlayingFrame(({ clock }) => {
     if (!active || phase !== 'playing') return
-    const now = performance.now()
+    const now = clock.elapsedTime * 1000   // 다른 무기들과 동일한 타임소스
     if (now - lastFireRef.current < cooldown) return
     if (bolts.length > 0) return
     lastFireRef.current = now

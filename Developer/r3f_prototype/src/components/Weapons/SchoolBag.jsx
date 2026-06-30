@@ -49,7 +49,7 @@ export function SchoolBagSwing() {
 
   usePlayingFrame(({ clock }) => {
     const w = weapons.schoolBag
-    if (!w.active) return
+    if (!w?.active) return
     proximityRbRef.current?.setTranslation({ x: playerPos.x, y: playerPos.y + 0.16, z: playerPos.z }, true)
 
     const now = clock.elapsedTime * 1000

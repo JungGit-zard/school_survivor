@@ -39,29 +39,47 @@ export function PencilModel() {
   )
 }
 
-function Projectile({ id, position, yaw, damage, speed, target, onExpire }) {
+function Projectile({ id, position, yaw, damage, speed, pierce, target, onExpire }) {
   const rb = useRef()
   const visualRef = useRef()
-  const hitRef = useRef(false)
+  const hitsLeftRef = useRef(pierce ?? 1)    // pierce=N: N명까지 관통
+  const hitEnemyIds = useRef(new Set())      // 중복 타격 방지
+  const targetRef = useRef(target)           // 첫 타겟 참조 (homing용)
   const ageRef = useRef(0)
 
+  const tryHit = (enemyRb) => {
+    if (!enemyRb?._enemyHit || enemyRb._enemyDead) return false
+    const eid = enemyRb._enemyId
+    if (hitEnemyIds.current.has(eid)) return false
+    hitEnemyIds.current.add(eid)
+    enemyRb._enemyHit(damage, { deathStyleMix: 'kneel' })
+    hitsLeftRef.current -= 1
+    if (hitsLeftRef.current <= 0) onExpire(id)
+    return true
+  }
+
   usePlayingFrame((_, delta) => {
-    if (!rb.current) return
-    if (hitRef.current) return
+    if (!rb.current || hitsLeftRef.current <= 0) return
     ageRef.current += delta
     if (ageRef.current > 3.5) { onExpire(id); return }
-    if (!target?.rb?._enemyHit || target.rb._enemyDead) { onExpire(id); return }
+
+    // 타겟이 살아있는 동안 호밍
+    const tgt = targetRef.current
+    if (!tgt?.rb?._enemyHit || tgt.rb._enemyDead) {
+      // 첫 타겟 사망 → 이후 직선 비행으로 전환
+      targetRef.current = null
+      return
+    }
 
     const p = rb.current.translation()
-    const t = target.rb.translation()
+    const t = tgt.rb.translation()
     const dx = t.x - p.x
     const dz = t.z - p.z
     const len = Math.hypot(dx, dz)
     if (len < 0.001) return
     if (len <= 0.34) {
-      hitRef.current = true
-      target.rb._enemyHit(damage, { deathStyleMix: 'kneel' })
-      onExpire(id)
+      tryHit(tgt.rb)
+      targetRef.current = null   // 타겟 명중 후 직선 비행
       return
     }
     const vx = (dx / len) * speed
@@ -83,12 +101,8 @@ function Projectile({ id, position, yaw, damage, speed, target, onExpire }) {
       ccd
       sensor
       onIntersectionEnter={({ other }) => {
-        if (hitRef.current) return
-        const enemy = other.rigidBody?._enemyHit
-        if (!enemy) return
-        hitRef.current = true
-        enemy(damage, { deathStyleMix: 'kneel' })
-        onExpire(id)
+        if (hitsLeftRef.current <= 0) return
+        tryHit(other.rigidBody)
       }}
     >
       <CuboidCollider args={[0.06, 0.06, 0.16]} sensor />
@@ -147,6 +161,7 @@ export function PencilThrow() {
         yaw: facingAngle + spread,
         damage: w.damage,
         speed: w.speed,
+        pierce: w.pierce ?? 1,
         target,
       }))
       activeProjectilesRef.current = next
