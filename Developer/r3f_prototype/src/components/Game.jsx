@@ -11,6 +11,7 @@ import VFXLayer from './VFXLayer.jsx'
 import EscapePortal from './EscapePortal.jsx'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon, ChibikoWeapon, SharkMissileWeapon } from './Weapons/index.js'
+import ZombieInstanceLayer from './ZombieInstanceLayer.jsx'
 
 const _camTarget = new THREE.Vector3()
 
@@ -133,8 +134,9 @@ export default function Game() {
       {/* ── Shared VFX Layer (적 위에 그릴 효과는 이쪽으로) ── */}
       <VFXLayer />
 
-      {/* ── Enemies ── */}
+      {/* ── Enemies (AI + physics) + instanced visual layer ── */}
       <Enemies />
+      <ZombieInstanceLayer />
 
       {/* ── Escape Portal (4:00 이후 등장) ── */}
       {escapePortalActive && <EscapePortal stageId={currentStageId} />}
