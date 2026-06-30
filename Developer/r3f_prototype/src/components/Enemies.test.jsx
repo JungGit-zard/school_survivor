@@ -5,6 +5,7 @@ import {
   getBurstEventsForStage,
   randomSpawnPos,
   shouldDropTextbook,
+  createDeathCollapseEntry,
   TEXTBOOK_DROP_RATE,
   WAVE_PHASES,
 } from './Enemies.jsx'
@@ -123,5 +124,39 @@ describe('XP textbook drops', () => {
 
   it('does not drop random textbooks for zero-XP enemies', () => {
     expect(shouldDropTextbook({ xp: 0, type: 'B01' }, 0)).toBe(false)
+  })
+})
+
+describe('enemy death visuals', () => {
+  it('routes every zombie type through the same random collapse effect', () => {
+    const normal = createDeathCollapseEntry(7, {
+      type: 'E01',
+      pos: [1, 0.2, 3],
+      visualScale: 0.5,
+      intensity: 'strong',
+      deathStyleMix: 'slump',
+    })
+    const boss = createDeathCollapseEntry(8, {
+      type: 'B01',
+      pos: [2, 0.2, 4],
+      visualScale: 1,
+      intensity: 'weak',
+    })
+
+    expect(normal).toMatchObject({
+      id: 7,
+      type: 'E01',
+      position: [1, 0.2, 3],
+      visualScale: 0.5,
+      intensity: 'strong',
+    })
+    expect(normal).not.toHaveProperty('deathStyleMix')
+    expect(boss).toMatchObject({
+      id: 8,
+      type: 'B01',
+      position: [2, 0.2, 4],
+      visualScale: 1,
+      intensity: 'weak',
+    })
   })
 })

@@ -322,7 +322,6 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           type,
           visualScale: cs * 0.333,
           intensity,
-          deathStyleMix: impact.deathStyleMix,
           facingY: groupRef.current?.rotation.y ?? 0,
         })
       }

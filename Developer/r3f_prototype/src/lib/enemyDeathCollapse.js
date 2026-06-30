@@ -49,7 +49,7 @@ export function pickWeakCollapseStyle(roll = Math.random()) {
 // 박살 강도 3단계. 막타 위력(killingDamage/maxHp 비중 + 넉백)으로 결정한다.
 export const COLLAPSE_INTENSITIES = ['weak', 'medium', 'strong']
 
-// 강도 → 모션 스타일 매핑. 약=제자리 부서짐, 중=몸 무너짐, 강=사방 흩날림.
+// Legacy intensity labels. Death style selection is fully random.
 export const COLLAPSE_INTENSITY_STYLE = {
   weak: 'crumble',
   medium: 'bodyCollapse',
@@ -67,13 +67,11 @@ export function resolveCollapseIntensity({ killingDamage = 0, maxHp = 1, knockba
   return 'weak'
 }
 
-export function collapseStyleForIntensity(intensity, seed) {
-  // 강한 막타 → scatter(박살) 유지, 나머지 → 10가지 쓰러짐 중 랜덤
-  if (intensity === 'strong') return 'scatter'
-  return SOFT_FALL_STYLES[Math.floor(Math.random() * SOFT_FALL_STYLES.length)]
+export function collapseStyleForIntensity(_intensity, _seed) {
+  return pickEnemyDeathCollapseStyle()
 }
 
-// 스타일별 파편 조각 크기 배수. scatter(강)는 가장 세게 흩날리므로 조각을 절반 크기로 줄인다.
+// 스타일별 파편 조각 크기 배수. scatter는 흩날림이 커서 조각을 절반 크기로 줄인다.
 export const COLLAPSE_STYLE_PIECE_SCALE = {
   scatter: 0.5,
 }

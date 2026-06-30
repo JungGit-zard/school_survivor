@@ -52,7 +52,7 @@ function Projectile({ id, position, yaw, damage, speed, pierce, target, onExpire
     const eid = enemyRb._enemyId
     if (hitEnemyIds.current.has(eid)) return false
     hitEnemyIds.current.add(eid)
-    enemyRb._enemyHit(damage, { deathStyleMix: 'kneel' })
+    enemyRb._enemyHit(damage)
     hitsLeftRef.current -= 1
     if (hitsLeftRef.current <= 0) onExpire(id)
     return true
