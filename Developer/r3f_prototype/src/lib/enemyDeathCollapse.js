@@ -2,7 +2,17 @@ export const ENEMY_DEATH_COLLAPSE_LIFETIME_MS = 780
 export const ENEMY_DEATH_COLLAPSE_FADE_START_MS = 430
 export const FAR_SCATTER_FADE_START_MS = 260
 export const FAR_SCATTER_FADE_DURATION_MS = 250
-export const ENEMY_DEATH_COLLAPSE_STYLES = ['bodyCollapse', 'scatter', 'crumble', 'slump', 'kneel']
+// 쓰러지는 스타일 10가지 (박살 scatter는 별도 유지)
+export const SOFT_FALL_STYLES = [
+  'bodyCollapse', 'crumble', 'slump', 'kneel',
+  'faceDown',    // 앞으로 고꾸라짐
+  'backFall',    // 뒤로 쓰러짐
+  'leftFall',    // 왼쪽으로 쓰러짐
+  'rightFall',   // 오른쪽으로 쓰러짐
+  'spiralDown',  // 빙글 돌며 쓰러짐
+  'meltDown',    // 녹아내리듯 천천히 쓰러짐
+]
+export const ENEMY_DEATH_COLLAPSE_STYLES = [...SOFT_FALL_STYLES, 'scatter']
 export const SCATTER_COLLAPSE_VARIANTS = ['burst', 'spiral', 'wave', 'ring', 'fountain', 'cross', 'halfBurst']
 export const WEAK_COLLAPSE_STYLES = ['crumble', 'slump', 'kneel']
 
@@ -58,8 +68,9 @@ export function resolveCollapseIntensity({ killingDamage = 0, maxHp = 1, knockba
 }
 
 export function collapseStyleForIntensity(intensity, seed) {
-  // 씨드 무시 — 순수 Math.random()으로 매 죽음마다 완전 다른 스타일
-  return pickEnemyDeathCollapseStyle(Math.random())
+  // 강한 막타 → scatter(박살) 유지, 나머지 → 10가지 쓰러짐 중 랜덤
+  if (intensity === 'strong') return 'scatter'
+  return SOFT_FALL_STYLES[Math.floor(Math.random() * SOFT_FALL_STYLES.length)]
 }
 
 // 스타일별 파편 조각 크기 배수. scatter(강)는 가장 세게 흩날리므로 조각을 절반 크기로 줄인다.
@@ -386,10 +397,125 @@ function createKneelMotion({ seed, part }) {
   }
 }
 
+// ── 추가 쓰러짐 스타일 6종 ─────────────────────────────────────────────────
+
+function createFaceDownMotion({ seed, part, index }) {
+  // 앞으로 고꾸라짐: 상체가 +z 방향으로 무너짐
+  const [ox, oy] = part.offset
+  const topBias = Math.max(0, Math.min(1, (oy + 0.6) / 1.5))
+  const n0 = seededCollapseNoise(seed); const n1 = seededCollapseNoise(seed + 1)
+  const n2 = seededCollapseNoise(seed + 2); const n3 = seededCollapseNoise(seed + 3)
+  return {
+    x: (n0 - 0.5) * 0.18,
+    y: 0.05 + topBias * 0.25,
+    z: 0.5 + topBias * 0.7 + n1 * 0.2,  // 상체일수록 앞으로 많이
+    rx: 2.2 + topBias * 2.8 + (n2 - 0.5) * 0.8,
+    ry: (n3 - 0.5) * 0.6,
+    rz: (n0 - 0.5) * 0.4,
+    gravity: 9 + topBias * 5,
+    delayMs: Math.floor((1 - topBias) * 4) * 7,  // 하체 먼저
+    settleY: -0.08,
+    linearDamping: 3.5,
+    spinDamping: 2.8,
+  }
+}
+
+function createBackFallMotion({ seed, part, index }) {
+  // 뒤로 쓰러짐: -z 방향으로 젖혀져 쓰러짐
+  const [ox, oy] = part.offset
+  const topBias = Math.max(0, Math.min(1, (oy + 0.6) / 1.5))
+  const n0 = seededCollapseNoise(seed); const n1 = seededCollapseNoise(seed + 1)
+  const n2 = seededCollapseNoise(seed + 2); const n3 = seededCollapseNoise(seed + 3)
+  return {
+    x: (n0 - 0.5) * 0.15,
+    y: 0.1 + topBias * 0.3,
+    z: -(0.4 + topBias * 0.6 + n1 * 0.15),
+    rx: -(1.8 + topBias * 2.4 + (n2 - 0.5) * 0.6),
+    ry: (n3 - 0.5) * 0.5,
+    rz: (n0 - 0.5) * 0.3,
+    gravity: 8 + topBias * 4.5,
+    delayMs: index * 7,
+    settleY: -0.10,
+    linearDamping: 3.2,
+    spinDamping: 2.5,
+  }
+}
+
+function createSideFallMotion({ seed, part, index, direction }) {
+  // 좌(direction=-1) 또는 우(direction=+1)로 쓰러짐
+  const [ox, oy] = part.offset
+  const topBias = Math.max(0, Math.min(1, (oy + 0.6) / 1.5))
+  const n0 = seededCollapseNoise(seed); const n1 = seededCollapseNoise(seed + 1)
+  const n2 = seededCollapseNoise(seed + 2); const n3 = seededCollapseNoise(seed + 3)
+  return {
+    x: direction * (0.5 + topBias * 0.5 + n0 * 0.2),
+    y: 0.08 + topBias * 0.2,
+    z: (n1 - 0.5) * 0.15,
+    rx: (n2 - 0.5) * 1.2,
+    ry: (n3 - 0.5) * 0.5,
+    rz: direction * (1.8 + topBias * 2.2 + (n0 - 0.5) * 0.5),
+    gravity: 9 + topBias * 4,
+    delayMs: index * 6,
+    settleY: -0.10,
+    linearDamping: 3.0,
+    spinDamping: 2.4,
+  }
+}
+
+function createSpiralDownMotion({ seed, part, index }) {
+  // 빙글 돌며 쓰러짐: ry 회전 + 바깥 흩어짐 + 중력
+  const [ox, oy, oz] = part.offset
+  const topBias = Math.max(0, Math.min(1, (oy + 0.6) / 1.5))
+  const n0 = seededCollapseNoise(seed); const n1 = seededCollapseNoise(seed + 1)
+  const n2 = seededCollapseNoise(seed + 2); const n3 = seededCollapseNoise(seed + 3)
+  const angle = Math.atan2(ox, oz) + n0 * 0.6  // 원래 방향에서 약간 틀어짐
+  const radius = 0.15 + Math.hypot(ox, oz) * 0.4 + n1 * 0.1
+  return {
+    x: Math.sin(angle) * radius,
+    y: 0.12 + topBias * 0.28,
+    z: Math.cos(angle) * radius,
+    rx: (n2 - 0.5) * 3.0,
+    ry: (n0 > 0.5 ? 1 : -1) * (6.0 + n1 * 4.0),  // 같은 방향으로 빙글
+    rz: (n3 - 0.5) * 1.5,
+    gravity: 8 + topBias * 5,
+    delayMs: index * 5,
+    settleY: -0.10,
+    linearDamping: 2.5,
+    spinDamping: 1.2,
+  }
+}
+
+function createMeltDownMotion({ seed, part, index }) {
+  // 녹아내리듯 천천히 아래로 스르르 쓰러짐
+  const [ox, oy] = part.offset
+  const topBias = Math.max(0, Math.min(1, (oy + 0.6) / 1.5))
+  const n0 = seededCollapseNoise(seed); const n1 = seededCollapseNoise(seed + 1)
+  const n2 = seededCollapseNoise(seed + 2)
+  return {
+    x: ox * (0.08 + n0 * 0.06),  // 제자리에서 아주 조금만 옆으로
+    y: -(0.1 + topBias * 0.4),   // 위로 안 뜨고 바로 아래로
+    z: (n1 - 0.5) * 0.08,
+    rx: topBias * 0.8 + (n2 - 0.5) * 0.4,
+    ry: (n0 - 0.5) * 0.3,
+    rz: (n1 - 0.5) * 0.25,
+    gravity: 1.5 + topBias * 1.5,   // 중력 낮음 → 천천히
+    delayMs: (1 - topBias) * 6 * index,  // 하체부터 천천히
+    settleY: -0.16,
+    linearDamping: 5.5,
+    spinDamping: 4.0,
+  }
+}
+
 export function createCollapseMotion({ seed, part, index, style = 'bodyCollapse', scatterVariant }) {
-  if (style === 'scatter') return createScatterMotion({ seed, part, index, scatterVariant })
-  if (style === 'crumble') return createCrumbleMotion({ seed, part, index })
-  if (style === 'slump')   return createSlumpMotion({ seed, part, index })
-  if (style === 'kneel')   return createKneelMotion({ seed, part, index })
+  if (style === 'scatter')    return createScatterMotion({ seed, part, index, scatterVariant })
+  if (style === 'crumble')    return createCrumbleMotion({ seed, part, index })
+  if (style === 'slump')      return createSlumpMotion({ seed, part, index })
+  if (style === 'kneel')      return createKneelMotion({ seed, part, index })
+  if (style === 'faceDown')   return createFaceDownMotion({ seed, part, index })
+  if (style === 'backFall')   return createBackFallMotion({ seed, part, index })
+  if (style === 'leftFall')   return createSideFallMotion({ seed, part, index, direction: -1 })
+  if (style === 'rightFall')  return createSideFallMotion({ seed, part, index, direction: +1 })
+  if (style === 'spiralDown') return createSpiralDownMotion({ seed, part, index })
+  if (style === 'meltDown')   return createMeltDownMotion({ seed, part, index })
   return createBodyCollapseMotion({ seed, part, index })
 }

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import {
-  COLLAPSE_INTENSITY_STYLE,
   ENEMY_DEATH_COLLAPSE_FADE_START_MS,
   ENEMY_DEATH_COLLAPSE_LIFETIME_MS,
   ENEMY_DEATH_COLLAPSE_STYLES,
@@ -58,13 +57,16 @@ describe('enemy death collapse body pieces', () => {
     expect(Math.hypot(motion.x, motion.z)).toBeGreaterThan(0.2)
   })
 
-  it('chooses between the restored death effects plus slump and kneel patterns', () => {
-    expect(ENEMY_DEATH_COLLAPSE_STYLES).toEqual(['bodyCollapse', 'scatter', 'crumble', 'slump', 'kneel'])
+  it('has 10 soft fall styles plus scatter = 11 total death styles', () => {
+    expect(ENEMY_DEATH_COLLAPSE_STYLES).toHaveLength(11)
+    expect(ENEMY_DEATH_COLLAPSE_STYLES).toContain('scatter')
+    expect(ENEMY_DEATH_COLLAPSE_STYLES).toContain('bodyCollapse')
+    expect(ENEMY_DEATH_COLLAPSE_STYLES).toContain('faceDown')
+    expect(ENEMY_DEATH_COLLAPSE_STYLES).toContain('backFall')
+    expect(ENEMY_DEATH_COLLAPSE_STYLES).toContain('meltDown')
+    // index 0 = bodyCollapse, index 10 = scatter (last)
     expect(pickEnemyDeathCollapseStyle(0)).toBe('bodyCollapse')
-    expect(pickEnemyDeathCollapseStyle(0.21)).toBe('scatter')
-    expect(pickEnemyDeathCollapseStyle(0.41)).toBe('crumble')
-    expect(pickEnemyDeathCollapseStyle(0.61)).toBe('slump')
-    expect(pickEnemyDeathCollapseStyle(0.99)).toBe('kneel')
+    expect(pickEnemyDeathCollapseStyle(0.99)).toBe('scatter')
   })
 
   it('restores the scatter shatter motion', () => {
