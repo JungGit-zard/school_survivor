@@ -171,10 +171,17 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
       yawRef.current += shortestAngleDelta(yawRef.current, desiredYaw) * Math.min(1, delta * DART_TURN_RATE)
     }
 
+    const prevX = p.x
+    const prevZ = p.z
     p.x += Math.sin(yawRef.current) * DART_SPEED * delta
     p.z += Math.cos(yawRef.current) * DART_SPEED * delta
-    // 화면 밖 이탈 방지
+    // 화면 밖 이탈 방지 — 클램프 후 yaw도 보정해 벽면 허깅 방지
     const sc = clampToScreen(p.x, p.z)
+    if (sc.x !== p.x || sc.z !== p.z) {
+      const cdx = sc.x - prevX
+      const cdz = sc.z - prevZ
+      if (Math.hypot(cdx, cdz) > 0.001) yawRef.current = Math.atan2(cdx, cdz)
+    }
     p.x = sc.x
     p.z = sc.z
     p.y = start[1] + Math.sin(ageRef.current * 10) * 0.04

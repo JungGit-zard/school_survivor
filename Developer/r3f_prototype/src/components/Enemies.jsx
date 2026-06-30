@@ -139,22 +139,24 @@ export const WAVE_PHASES = [
   { start:  40, end:  60, target: 22, weights: { E01: 0.90, E03: 0.10 } },
   // 1:00–1:12 +탱커 등장
   { start:  60, end:  72, target: 26, weights: { E01: 0.60, E03: 0.30, E02: 0.10 } },
-  // 1:12–1:36 압박 시작
-  { start:  72, end:  96, target: 34, weights: { E01: 0.50, E03: 0.30, E02: 0.20 } },
+  // 1:12–1:30 압박 시작
+  { start:  72, end:  90, target: 34, weights: { E01: 0.50, E03: 0.30, E02: 0.20 } },
+  // 1:30 이후 좀비 수 2/3 완화
+  { start:  90, end:  96, target: 23, weights: { E01: 0.50, E03: 0.30, E02: 0.20 } },
   // 1:36–2:00 추격형 밀도 상승
-  { start:  96, end: 120, target: 44, weights: { E01: 0.40, E03: 0.35, E02: 0.25 } },
+  { start:  96, end: 120, target: 29, weights: { E01: 0.40, E03: 0.35, E02: 0.25 } },
   // 2:00–2:24 돌진 예고 구간 (E05 첫 등장)
-  { start: 120, end: 144, target: 54, weights: { E01: 0.35, E03: 0.30, E02: 0.25, E05: 0.10 } },
+  { start: 120, end: 144, target: 36, weights: { E01: 0.35, E03: 0.30, E02: 0.25, E05: 0.10 } },
   // 2:24–2:48 돌진 본격 도입
-  { start: 144, end: 168, target: 64, weights: { E01: 0.25, E03: 0.30, E02: 0.30, E05: 0.15 } },
+  { start: 144, end: 168, target: 43, weights: { E01: 0.25, E03: 0.30, E02: 0.30, E05: 0.15 } },
   // 2:48–3:12 +거대 등장 — E06 2%→5%로 출현 확대
-  { start: 168, end: 192, target: 76, weights: { E01: 0.20, E03: 0.30, E02: 0.28, E05: 0.17, E06: 0.05 } },
+  { start: 168, end: 192, target: 51, weights: { E01: 0.20, E03: 0.30, E02: 0.28, E05: 0.17, E06: 0.05 } },
   // 3:12–3:28 보스 구간 1 (잡몹+탱커)
-  { start: 192, end: 208, target: 25, weights: { E01: 0.60, E02: 0.40 }, bossPhase: true },
+  { start: 192, end: 208, target: 17, weights: { E01: 0.60, E02: 0.40 }, bossPhase: true },
   // 3:28–3:44 보스 구간 2 (탱커+돌진)
-  { start: 208, end: 224, target: 35, weights: { E02: 0.60, E05: 0.40 }, bossPhase: true },
+  { start: 208, end: 224, target: 23, weights: { E02: 0.60, E05: 0.40 }, bossPhase: true },
   // 3:44–4:00 보스 구간 3 — E01 15% 추가해 도망길 숨통 확보
-  { start: 224, end: 240, target: 45, weights: { E01: 0.15, E02: 0.45, E05: 0.40 }, bossPhase: true },
+  { start: 224, end: 240, target: 30, weights: { E01: 0.15, E02: 0.45, E05: 0.40 }, bossPhase: true },
 ]
 
 // 4분(240초) 타임라인. 5분 기준에서 전체 ×0.8 비례 축소.
@@ -162,14 +164,15 @@ export const STAGE2_WAVE_PHASES = [
   { start:   0, end:  24, target: 18, weights: { E01: 1.00 } },
   { start:  24, end:  48, target: 22, weights: { E01: 0.72, E03: 0.28 } },
   { start:  48, end:  72, target: 28, weights: { E01: 0.48, E02: 0.22, E03: 0.30 } },
-  { start:  72, end:  96, target: 30, weights: { E01: 0.55, E03: 0.30, E04: 0.15 } },
-  { start:  96, end: 120, target: 28, weights: { E01: 0.20, E02: 0.50, E04: 0.30 } },
-  { start: 120, end: 144, target: 38, weights: { E01: 0.45, E03: 0.35, E05: 0.15, E04: 0.05 } },
-  { start: 144, end: 168, target: 42, weights: { E03: 0.44, E04: 0.28, E05: 0.28 } },
-  { start: 168, end: 192, target: 44, weights: { E02: 0.50, E04: 0.32, E06: 0.18 } },
-  { start: 192, end: 208, target: 24, weights: { E01: 0.40, E02: 0.40, E04: 0.20 }, bossPhase: true },
-  { start: 208, end: 224, target: 32, weights: { E02: 0.45, E05: 0.35, E04: 0.20 }, bossPhase: true },
-  { start: 224, end: 240, target: 38, weights: { E02: 0.20, E03: 0.28, E04: 0.24, E05: 0.28 }, bossPhase: true },
+  { start:  72, end:  90, target: 30, weights: { E01: 0.55, E03: 0.30, E04: 0.15 } },
+  { start:  90, end:  96, target: 20, weights: { E01: 0.55, E03: 0.30, E04: 0.15 } },
+  { start:  96, end: 120, target: 19, weights: { E01: 0.20, E02: 0.50, E04: 0.30 } },
+  { start: 120, end: 144, target: 25, weights: { E01: 0.45, E03: 0.35, E05: 0.15, E04: 0.05 } },
+  { start: 144, end: 168, target: 28, weights: { E03: 0.44, E04: 0.28, E05: 0.28 } },
+  { start: 168, end: 192, target: 29, weights: { E02: 0.50, E04: 0.32, E06: 0.18 } },
+  { start: 192, end: 208, target: 16, weights: { E01: 0.40, E02: 0.40, E04: 0.20 }, bossPhase: true },
+  { start: 208, end: 224, target: 21, weights: { E02: 0.45, E05: 0.35, E04: 0.20 }, bossPhase: true },
+  { start: 224, end: 240, target: 25, weights: { E02: 0.20, E03: 0.28, E04: 0.24, E05: 0.28 }, bossPhase: true },
 ]
 
 // 4분 타임라인. 5분 기준 sec ×0.8.
@@ -178,16 +181,16 @@ const BURST_EVENTS = [
   { sec:  24, type: 'E01', count: 12 },  // 40초 전 단일 좀비 구간 밀도 2배
   { sec:  48, type: 'E02', count:  4 },  // 탱커 첫 등장 신호
   { sec:  72, type: 'E03', count:  6 },  // 러너 압박
-  { sec:  96, type: 'E01', count:  8 },  // 엘리트 직전 잡몹 러시
-  { sec:  96, type: 'E02', count:  4 },
-  { sec: 120, type: 'E05', count:  4 },  // 돌진 첫 등장 (E04 탄환형 폐기 — 2026-05-09)
-  { sec: 144, type: 'E05', count:  4 },  // 돌진 압박 강화
+  { sec:  96, type: 'E01', count:  5 },  // 엘리트 직전 잡몹 러시
+  { sec:  96, type: 'E02', count:  3 },
+  { sec: 120, type: 'E05', count:  3 },  // 돌진 첫 등장 (E04 탄환형 폐기 — 2026-05-09)
+  { sec: 144, type: 'E05', count:  3 },  // 돌진 압박 강화
   { sec: 168, type: 'E06', count:  1 },  // 거대 첫 등장
-  { sec: 184, type: 'E01', count:  8 },  // 마지막 러시 (보스 직전) — 과부하 완화
-  { sec: 184, type: 'E02', count:  5 },
-  { sec: 184, type: 'E05', count:  3 },
+  { sec: 184, type: 'E01', count:  5 },  // 마지막 러시 (보스 직전) — 과부하 완화
+  { sec: 184, type: 'E02', count:  3 },
+  { sec: 184, type: 'E05', count:  2 },
   { sec: 192, type: 'B01', count:  1 },  // 보스 등장
-  { sec: 216, type: 'E05', count:  5 },
+  { sec: 216, type: 'E05', count:  3 },
 ]
 
 // 4분 타임라인. 5분 기준 sec ×0.8.
@@ -196,15 +199,15 @@ export const STAGE2_BURST_EVENTS = [
   { sec:  24, type: 'E03', count:  4 },
   { sec:  48, type: 'E02', count:  3 },
   { sec:  72, type: 'E04', count:  1 },
-  { sec:  96, type: 'E04', count:  2 },
-  { sec: 120, type: 'E05', count:  3 },
-  { sec: 144, type: 'E04', count:  2 },
-  { sec: 144, type: 'E05', count:  3 },
+  { sec:  96, type: 'E04', count:  1 },
+  { sec: 120, type: 'E05', count:  2 },
+  { sec: 144, type: 'E04', count:  1 },
+  { sec: 144, type: 'E05', count:  2 },
   { sec: 168, type: 'E06', count:  1 },
-  { sec: 184, type: 'E04', count:  2 },
+  { sec: 184, type: 'E04', count:  1 },
   { sec: 192, type: 'B01', count:  1 },
-  { sec: 216, type: 'E05', count:  4 },
-  { sec: 216, type: 'E04', count:  2 },
+  { sec: 216, type: 'E05', count:  3 },
+  { sec: 216, type: 'E04', count:  1 },
 ]
 
 export function getWavePhasesForStage(stageId) {
@@ -259,15 +262,15 @@ export default function Enemies() {
     if (!matildaSpawned) return
     const bounds = getStageBounds(currentStageId)
     const player = useGameStore.getState().player
-    // 플레이어 능력치 기준 동적 스탯: 이동속도 ×5, 나머지 ×3
+    // 플레이어 능력치 기준 동적 스탯: 이동속도 ×1.4, 나머지 ×3
     const matildaStats = {
       hp:          player.maxHp * 3,
-      speed:       player.speed * 5,
+      speed:       player.speed * 1.4,
       damage:      player.maxHp * 3,   // 3배 공격력 = 플레이어 최대 체력 3배로 즉사 수준
       scale:       3.0,
       contactDist: 0.36,
       charger:     true,
-      chargeSpeed: player.speed * 5,
+      chargeSpeed: player.speed * 2.8,
       warnDist:    6.0,
       warnDuration:    400,
       stunDuration:    800,
@@ -300,6 +303,7 @@ export default function Enemies() {
         position: dropData.pos,
         visualScale: dropData.visualScale,
         intensity: dropData.intensity,
+        deathStyleMix: dropData.deathStyleMix,
       }]
       return next.length > 12 ? next.slice(next.length - 12) : next
     })

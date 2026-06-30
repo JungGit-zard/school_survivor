@@ -74,11 +74,18 @@ export const CHARGE_CUE_LAYOUT = {
   },
 }
 
+// outlineMat(0.92) for charge cue — zombie outline is 0.96, charge cue uses slightly lighter
+let _chargeCueOutlineMat = null
+const getChargeCueOutlineMat = () => {
+  if (!_chargeCueOutlineMat) _chargeCueOutlineMat = outlineMat(0.92)
+  return _chargeCueOutlineMat
+}
+
 function ChargeCueBlock({ size, position, rotation = [0, 0, 0], color, emissive = 0.22, outlineScale = 1.12 }) {
-  const mat = useMemo(() => toonMat(color, emissive), [color, emissive])
-  const outMat = useMemo(() => outlineMat(0.92), [])
-  const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
-  const os = inflateScale(outlineScale)
+  const geo    = getCachedBoxGeo(...size)
+  const outMat = getChargeCueOutlineMat()
+  const mat    = getCachedToonMat(color, emissive)
+  const os     = inflateScale(outlineScale)
 
   return (
     <group position={position} rotation={rotation}>
@@ -89,9 +96,9 @@ function ChargeCueBlock({ size, position, rotation = [0, 0, 0], color, emissive 
 }
 
 function ChargeCueDot({ radius, position, color, emissive = 0.26, outlineScale = 1.18 }) {
-  const mat = useMemo(() => toonMat(color, emissive), [color, emissive])
-  const outMat = useMemo(() => outlineMat(0.92), [])
-  const geo = useMemo(() => new THREE.SphereGeometry(radius, 12, 8), [radius])
+  const mat    = getCachedToonMat(color, emissive)
+  const outMat = getChargeCueOutlineMat()
+  const geo    = useMemo(() => new THREE.SphereGeometry(radius, 12, 8), [radius])
   const os = inflateScale(outlineScale)
 
   return (
@@ -199,10 +206,14 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const spawnedAtRef          = useRef(performance.now())
 
   // E05 / B01 돌진 상태 머신
-  const [animPhase, setAnimPhase] = useState('normal') // normal|warn|charge|stun
+  const [animPhase, setAnimPhase] = useState('normal') // normal|warn|charge|stun|retreat
   const chargeState  = useRef('chase')   // chase|warn|charge|stun
   const stateTimer   = useRef(0)
   const chargeDir    = useRef(new THREE.Vector3())
+
+  // 뒷걸음 상태 (1/50 피격 시)
+  const retreatUntilRef = useRef(0)
+  const retreatDirRef   = useRef(new THREE.Vector3())
 
   // E04 / B01 투사체
   const [projectiles, setProjectiles] = useState([])
@@ -243,6 +254,16 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           z: knockbackDir.current.z * knockback.speed,
         }, true)
       }
+      // 1/50 확률 뒷걸음 — E01~E06, charge 중 제외
+      if (type !== 'B01' && chargeState.current !== 'charge' && Math.random() < 1 / 50) {
+        const dx = hitPos.x - playerPos.x
+        const dz = hitPos.z - playerPos.z
+        const len = Math.hypot(dx, dz) || 1
+        retreatDirRef.current.set(dx / len, 0, dz / len)
+        // 넉백이 있으면 그 후부터, 없으면 즉시 시작
+        retreatUntilRef.current = Math.max(performance.now(), knockbackUntilRef.current) + 350
+      }
+
       hpRef.current -= dmg
       setHp(hpRef.current)
       if (hpRef.current <= 0) {
@@ -273,6 +294,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           type,
           visualScale: cs * 0.333,
           intensity,
+          deathStyleMix: impact.deathStyleMix,
         })
       }
     }
@@ -296,7 +318,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     _dir.y = 0
     const dist = _dir.length()
 
-    if (performance.now() < knockbackUntilRef.current) {
+    const now = performance.now()
+
+    if (now < knockbackUntilRef.current) {
       _vel.x = knockbackDir.current.x * knockbackSpeedRef.current
       _vel.y = 0
       _vel.z = knockbackDir.current.z * knockbackSpeedRef.current
@@ -305,6 +329,31 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     }
 
     const updateRotation = (dx, dz, tr) => _applyRotation(groupRef, dx, dz, tr)
+
+    // ── 뒷걸음 ───────────────────────────────────────────────────────────────
+    if (retreatUntilRef.current > now) {
+      if (animPhase !== 'retreat') setAnimPhase('retreat')
+      _vel.x = retreatDirRef.current.x * 4.0
+      _vel.y = 0
+      _vel.z = retreatDirRef.current.z * 4.0
+      rb.current.setLinvel(_vel, true)
+      // 플레이어를 바라보며 뒷걸음 (뒤통수X, 정면 유지)
+      updateRotation(-retreatDirRef.current.x, -retreatDirRef.current.z, 0.5)
+      return
+    }
+    if (animPhase === 'retreat') {
+      // retreat 종료 → 이전 상태 복원
+      if (stats.charger) {
+        setAnimPhase(
+          chargeState.current === 'charge' ? 'charge'
+          : chargeState.current === 'stun'   ? 'stun'
+          : chargeState.current === 'warn'   ? 'warn'
+          : 'normal'
+        )
+      } else {
+        setAnimPhase('normal')
+      }
+    }
 
     // ── E04: 원거리 감염체 ─────────────────────────────────────────────────
     if (stats.ranged) {
