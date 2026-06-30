@@ -289,7 +289,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         const len = Math.hypot(dx, dz) || 1
         retreatDirRef.current.set(dx / len, 0, dz / len)
         // 넉백이 있으면 그 후부터, 없으면 즉시 시작
-        retreatUntilRef.current = Math.max(performance.now(), knockbackUntilRef.current) + 350
+        retreatUntilRef.current = Math.max(performance.now(), knockbackUntilRef.current) + 550
       }
 
       hpRef.current -= dmg
@@ -366,9 +366,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     // ── 뒷걸음 ───────────────────────────────────────────────────────────────
     if (retreatUntilRef.current > now) {
       if (animPhase !== 'retreat') setAnimPhase('retreat')
-      _vel.x = retreatDirRef.current.x * 4.0
+      _vel.x = retreatDirRef.current.x * 6.0
       _vel.y = 0
-      _vel.z = retreatDirRef.current.z * 4.0
+      _vel.z = retreatDirRef.current.z * 6.0
       rb.current.setLinvel(_vel, true)
       // 플레이어를 바라보며 뒷걸음 (뒤통수X, 정면 유지)
       updateRotation(-retreatDirRef.current.x, -retreatDirRef.current.z, 0.5)
