@@ -80,6 +80,35 @@ describe('enemy spawn placement', () => {
     expect(pos[0]).toBeCloseTo(0)
     expect(pos[2]).toBeCloseTo(12.5)
   })
+
+  it('rejects a third spawn point that would extend a straight line', () => {
+    playerPos.x = 0
+    playerPos.z = 0
+    const taken = [
+      [0, 0.24, 7],
+      [0, 0.24, 13],
+    ]
+    const rolls = [0, 0.5, 0.125, 0.5]
+    const random = () => rolls.shift() ?? 0
+
+    const pos = randomSpawnPos('E01', { halfX: 10, halfZ: 48 }, taken, random)
+
+    expect(pos[0]).not.toBeCloseTo(0)
+  })
+
+  it('does not use a straight-line fallback when every ring candidate repeats the same line', () => {
+    playerPos.x = 0
+    playerPos.z = 0
+    const taken = [
+      [0, 0.24, 7],
+      [0, 0.24, 13],
+    ]
+    const random = () => 0
+
+    const pos = randomSpawnPos('E01', { halfX: 10, halfZ: 48 }, taken, random)
+
+    expect(pos[0]).not.toBeCloseTo(0)
+  })
 })
 
 describe('XP textbook drops', () => {
