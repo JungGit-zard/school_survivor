@@ -522,7 +522,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         yaw: groupRef.current?.rotation.y ?? 0,
         type,
         phase: chargeState.current,
-        wt: ageRef.current,
+        wt: performance.now() * 0.001,
         vs: cs * 0.333,
         hitFlash: hitFlashRef.current,
       })
