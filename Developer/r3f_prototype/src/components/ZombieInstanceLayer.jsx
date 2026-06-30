@@ -122,11 +122,13 @@ function partColor(part, e) {
 
 // ── Material factories (stencil mirrors toon.js) ───────────────────────────
 function makeBodyMat(emissiveIntensity) {
-  // White base — per-instance color via setColorAt() tints it
+  // White base — per-instance color via setColorAt() tints it.
+  // emissive는 0(검정)으로 고정: 흰색 emissive를 쓰면 인스턴스 색 위에
+  // 흰색이 덧씌워져 좀비 색감이 하얗게 바래는 버그가 발생한다.
   const m = new THREE.MeshToonMaterial({
     color: 0xffffff,
     gradientMap: getToonGradient(),
-    emissive: 0xffffff,
+    emissive: 0x000000,
     emissiveIntensity,
   })
   m.stencilWrite = true
