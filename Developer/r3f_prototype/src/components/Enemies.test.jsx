@@ -42,6 +42,32 @@ describe('stage 1 E06 spawn pressure', () => {
   })
 })
 
+describe('late zombie spawn relief', () => {
+  it('reduces all stage 1 wave targets from 90 seconds onward to about two thirds', () => {
+    expect(WAVE_PHASES.find((phase) => phase.start === 72).target).toBe(34)
+    expect(WAVE_PHASES.find((phase) => phase.start === 90).target).toBe(23)
+    expect(WAVE_PHASES.find((phase) => phase.start === 96).target).toBe(29)
+    expect(WAVE_PHASES.find((phase) => phase.start === 224).target).toBe(30)
+  })
+
+  it('reduces all stage 2 wave targets from 90 seconds onward to about two thirds', () => {
+    const phases = getWavePhasesForStage('stage2')
+
+    expect(phases.find((phase) => phase.start === 72).target).toBe(30)
+    expect(phases.find((phase) => phase.start === 90).target).toBe(20)
+    expect(phases.find((phase) => phase.start === 96).target).toBe(19)
+    expect(phases.find((phase) => phase.start === 224).target).toBe(25)
+  })
+
+  it('reduces burst zombie counts after 90 seconds without removing boss events', () => {
+    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 96 && event.type === 'E01').count).toBe(5)
+    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
+    expect(getBurstEventsForStage('stage2').find((event) => event.sec === 96 && event.type === 'E04').count).toBe(1)
+    expect(getBurstEventsForStage('stage2').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
+    expect(getBurstEventsForStage('stage2').find((event) => event.sec === 192 && event.type === 'B01').count).toBe(1)
+  })
+})
+
 describe('enemy spawn placement', () => {
   it('resamples hallway spawns instead of clamping a crowd onto one boundary line', () => {
     playerPos.x = 0

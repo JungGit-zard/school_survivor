@@ -19,10 +19,10 @@ function shortestAngleDiff(target, current) {
   return diff
 }
 
-export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, showHealthBar = true }) {
+export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 0, showHealthBar = true }) {
   return (
     <>
-      <PlayerMesh groupRef={meshGroup} movingRef={movingRef} />
+      <PlayerMesh groupRef={meshGroup} movingRef={movingRef} hitFlashToken={hitFlashToken} />
       {showHealthBar && <MiniHealthBar current={hp} max={maxHp} width={0.38} height={0.052} y={0.75} />}
     </>
   )
@@ -33,11 +33,14 @@ export default function Player() {
   const meshGroup = useRef()
   const movingRef = useRef(false)
   const invTimer  = useRef(0)
+  const lastVisibleHitFlashToken = useRef(0)
+  const hitFlashVisibleFrames = useRef(0)
   const [, getKeys] = useKeyboardControls()
   const speed           = useGameStore((s) => s.player.speed)
   const phase           = useGameStore((s) => s.phase)
   const hp              = useGameStore((s) => s.player.hp)
   const maxHp           = useGameStore((s) => s.player.maxHp)
+  const hitFlashToken   = useGameStore((s) => s.player.hitFlashToken)
   const endInvulnerable = useGameStore((s) => s.endInvulnerable)
   const damagePlayer    = useGameStore((s) => s.damagePlayer)
 
@@ -103,7 +106,12 @@ export default function Player() {
 
     // 무적 점멸 (80ms 간격)
     if (meshGroup.current) {
-      meshGroup.current.visible = !inv || Math.floor(performance.now() / 80) % 2 === 0
+      if (hitFlashToken !== lastVisibleHitFlashToken.current) {
+        lastVisibleHitFlashToken.current = hitFlashToken
+        hitFlashVisibleFrames.current = 1
+      }
+      meshGroup.current.visible = hitFlashVisibleFrames.current > 0 || !inv || Math.floor(performance.now() / 80) % 2 === 0
+      if (hitFlashVisibleFrames.current > 0) hitFlashVisibleFrames.current -= 1
     }
 
     // 이동 방향으로 메시 회전 (최단경로 보간 — ±π 경계 처리)
@@ -122,7 +130,7 @@ export default function Player() {
       colliders={false}
     >
       <CuboidCollider args={[0.136, 0.32, 0.136]} />
-      <PlayerVisual meshGroup={meshGroup} movingRef={movingRef} hp={hp} maxHp={maxHp} />
+      <PlayerVisual meshGroup={meshGroup} movingRef={movingRef} hp={hp} maxHp={maxHp} hitFlashToken={hitFlashToken} />
     </RigidBody>
   )
 }

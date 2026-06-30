@@ -4,6 +4,7 @@ import {
   ENEMY_DEATH_COLLAPSE_FADE_START_MS,
   ENEMY_DEATH_COLLAPSE_LIFETIME_MS,
   ENEMY_DEATH_COLLAPSE_STYLES,
+  FAR_SCATTER_FADE_START_MS,
   SCATTER_COLLAPSE_VARIANTS,
   WEAK_COLLAPSE_STYLES,
   ZOMBIE_COLLAPSE_PARTS,
@@ -12,6 +13,7 @@ import {
   createCollapseMotion,
   pickEnemyDeathCollapseStyle,
   pickWeakCollapseStyle,
+  resolveCollapsePartOpacity,
   resolveCollapseIntensity,
 } from './enemyDeathCollapse.js'
 
@@ -56,12 +58,13 @@ describe('enemy death collapse body pieces', () => {
     expect(Math.hypot(motion.x, motion.z)).toBeGreaterThan(0.2)
   })
 
-  it('chooses between the restored death effects plus the slump pattern', () => {
-    expect(ENEMY_DEATH_COLLAPSE_STYLES).toEqual(['bodyCollapse', 'scatter', 'crumble', 'slump'])
+  it('chooses between the restored death effects plus slump and kneel patterns', () => {
+    expect(ENEMY_DEATH_COLLAPSE_STYLES).toEqual(['bodyCollapse', 'scatter', 'crumble', 'slump', 'kneel'])
     expect(pickEnemyDeathCollapseStyle(0)).toBe('bodyCollapse')
-    expect(pickEnemyDeathCollapseStyle(0.26)).toBe('scatter')
-    expect(pickEnemyDeathCollapseStyle(0.51)).toBe('crumble')
-    expect(pickEnemyDeathCollapseStyle(0.99)).toBe('slump')
+    expect(pickEnemyDeathCollapseStyle(0.21)).toBe('scatter')
+    expect(pickEnemyDeathCollapseStyle(0.41)).toBe('crumble')
+    expect(pickEnemyDeathCollapseStyle(0.61)).toBe('slump')
+    expect(pickEnemyDeathCollapseStyle(0.99)).toBe('kneel')
   })
 
   it('restores the scatter shatter motion', () => {
@@ -80,8 +83,8 @@ describe('enemy death collapse body pieces', () => {
     expect(motion.y).toBeGreaterThan(0.4)
   })
 
-  it('gives explosive scatter deaths six fragment patterns', () => {
-    expect(SCATTER_COLLAPSE_VARIANTS).toEqual(['burst', 'spiral', 'wave', 'ring', 'fountain', 'cross'])
+  it('gives explosive scatter deaths seven fragment patterns including halfBurst', () => {
+    expect(SCATTER_COLLAPSE_VARIANTS).toEqual(['burst', 'spiral', 'wave', 'ring', 'fountain', 'cross', 'halfBurst'])
 
     const motions = SCATTER_COLLAPSE_VARIANTS.map((scatterVariant) => (
       createCollapseMotion({
@@ -96,7 +99,7 @@ describe('enemy death collapse body pieces', () => {
       `${motion.x.toFixed(3)}:${motion.z.toFixed(3)}:${motion.delayMs}:${motion.distanceScale}`
     ))
 
-    expect(new Set(signatures).size).toBe(6)
+    expect(new Set(signatures).size).toBe(7)
     motions.forEach((motion) => {
       expect(motion.gravity).toBe(0)
       // 3단계 확산 혼합 — tight 티어는 spread가 작을 수 있음
@@ -134,6 +137,25 @@ describe('enemy death collapse body pieces', () => {
     expect(Math.max(Math.abs(cross.x), Math.abs(cross.z))).toBeGreaterThan(
       Math.min(Math.abs(cross.x), Math.abs(cross.z)) * 3,
     )
+  })
+
+  it('fades far scatter fragments before the shared collapse fade starts', () => {
+    let farMotion = null
+    for (let i = 0; i < 200 && !farMotion; i++) {
+      const motion = createCollapseMotion({
+        seed: i + 0.25,
+        part: ZOMBIE_COLLAPSE_PARTS[0],
+        index: 0,
+        style: 'scatter',
+      })
+      if (motion.farFadeStartMs !== undefined) farMotion = motion
+    }
+
+    expect(farMotion).toBeTruthy()
+    expect(farMotion.farFadeStartMs).toBe(FAR_SCATTER_FADE_START_MS)
+    expect(resolveCollapsePartOpacity(FAR_SCATTER_FADE_START_MS - 1, farMotion)).toBe(1)
+    expect(resolveCollapsePartOpacity(FAR_SCATTER_FADE_START_MS + 80, farMotion)).toBeLessThan(1)
+    expect(resolveCollapsePartOpacity(ENEMY_DEATH_COLLAPSE_FADE_START_MS - 1, {})).toBe(1)
   })
 
   it('restores the in-place crumble motion', () => {
@@ -194,10 +216,11 @@ describe('death shatter intensity by killing-hit power', () => {
     expect(collapseStyleForIntensity(undefined)).toBe('bodyCollapse')
   })
 
-  it('mixes weak deaths between crumble and the new slump pattern', () => {
-    expect(WEAK_COLLAPSE_STYLES).toEqual(['crumble', 'slump'])
+  it('mixes weak deaths between crumble, slump, and kneel patterns', () => {
+    expect(WEAK_COLLAPSE_STYLES).toEqual(['crumble', 'slump', 'kneel'])
     expect(pickWeakCollapseStyle(0)).toBe('crumble')
-    expect(pickWeakCollapseStyle(0.99)).toBe('slump')
+    expect(pickWeakCollapseStyle(0.5)).toBe('slump')
+    expect(pickWeakCollapseStyle(0.99)).toBe('kneel')
     expect(WEAK_COLLAPSE_STYLES).toContain(collapseStyleForIntensity('weak', 12.5))
   })
 

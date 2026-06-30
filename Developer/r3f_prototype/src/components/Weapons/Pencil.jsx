@@ -60,7 +60,7 @@ function Projectile({ id, position, yaw, damage, speed, target, onExpire }) {
     if (len < 0.001) return
     if (len <= 0.34) {
       hitRef.current = true
-      target.rb._enemyHit(damage)
+      target.rb._enemyHit(damage, { deathStyleMix: 'kneel' })
       onExpire(id)
       return
     }
@@ -87,7 +87,7 @@ function Projectile({ id, position, yaw, damage, speed, target, onExpire }) {
         const enemy = other.rigidBody?._enemyHit
         if (!enemy) return
         hitRef.current = true
-        enemy(damage)
+        enemy(damage, { deathStyleMix: 'kneel' })
         onExpire(id)
       }}
     >

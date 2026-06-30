@@ -142,7 +142,7 @@ function ZombieOuterOutline() {
   )
 }
 
-// animPhase: 'normal' | 'warn' | 'charge' | 'stun'
+// animPhase: 'normal' | 'warn' | 'charge' | 'stun' | 'retreat'
 export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false }) {
   const p    = useRef({})
   const pal  = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
@@ -164,6 +164,23 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     const pt = p.current
     if (!pt.legL) return
     const t = state.clock.elapsedTime
+
+    // retreat: 역방향 뒷걸음 + 몸통 후방 틸트
+    if (animPhase === 'retreat') {
+      if (pt.body) {
+        pt.body.scale.setScalar(1)
+        pt.body.rotation.x += (-0.3 - pt.body.rotation.x) * Math.min(1, delta * 15)
+      }
+      const freq = type === 'E02' ? 9.0 : type === 'E03' ? 5.0 : 7.0
+      const sw = Math.sin(-t * freq * 1.4) * 0.42  // 역방향, 빠른 두 걸음
+      pt.legL.rotation.x =  sw
+      pt.legR.rotation.x = -sw
+      const armBase = -1.15
+      pt.armL.rotation.x = armBase + Math.sin(-t * 2.8) * 0.10
+      pt.armR.rotation.x = armBase + Math.sin(-t * 2.8 + Math.PI) * 0.10
+      if (pt.head) pt.head.rotation.z = Math.sin(t * 1.6) * 0.07
+      return
+    }
 
     // warn: 몸통 빠른 진동 (돌진 예고)
     if (animPhase === 'warn') {

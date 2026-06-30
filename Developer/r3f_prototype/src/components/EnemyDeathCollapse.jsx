@@ -3,7 +3,6 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
 import {
-  ENEMY_DEATH_COLLAPSE_FADE_START_MS,
   ENEMY_DEATH_COLLAPSE_LIFETIME_MS,
   ZOMBIE_COLLAPSE_PARTS,
   createCollapseMotion,
@@ -11,6 +10,7 @@ import {
   collapsePieceScaleForStyle,
   scatterCollapseVariantForSeed,
   seededCollapseNoise,
+  resolveCollapsePartOpacity,
 } from '../lib/enemyDeathCollapse.js'
 import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
 
@@ -109,12 +109,9 @@ function CollapsePart({ part, index, origin, visualScale, palette, startedAt, st
     groupRef.current.position.set(p.x, p.y - sink * 0.08 * visualScale, p.z)
     groupRef.current.rotation.set(p.rx, p.ry, p.rz)
 
-    if (elapsed >= ENEMY_DEATH_COLLAPSE_FADE_START_MS) {
-      const fadeDuration = ENEMY_DEATH_COLLAPSE_LIFETIME_MS - ENEMY_DEATH_COLLAPSE_FADE_START_MS
-      const opacity = Math.max(0, 1 - (elapsed - ENEMY_DEATH_COLLAPSE_FADE_START_MS) / fadeDuration)
-      if (meshRef.current) meshRef.current.material.opacity = opacity
-      if (outlineRef.current) outlineRef.current.material.opacity = opacity * (part.color === 'eye' ? 0.25 : 0.72)
-    }
+    const opacity = resolveCollapsePartOpacity(elapsed, v)
+    if (meshRef.current) meshRef.current.material.opacity = opacity
+    if (outlineRef.current) outlineRef.current.material.opacity = opacity * (part.color === 'eye' ? 0.25 : 0.72)
   })
 
   const outlineScale = inflateScale(part.outlineScale ?? 1.06)
@@ -135,12 +132,18 @@ function CollapsePart({ part, index, origin, visualScale, palette, startedAt, st
   )
 }
 
-export default function EnemyDeathCollapse({ id, type, position, visualScale, intensity = 'medium', onDone }) {
+export default function EnemyDeathCollapse({ id, type, position, visualScale, intensity = 'medium', deathStyleMix, onDone }) {
   const palette = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
   const startedAtRef = useRef(performance.now())
   const styleSeed = useMemo(() => collapseVariantSeed(id, position), [id, position])
   // 박살 강도(약/중/강) → 모션 스타일. intensity가 없으면 중간(bodyCollapse)으로 폴백.
-  const style = useMemo(() => collapseStyleForIntensity(intensity, styleSeed), [intensity, styleSeed])
+  // deathStyleMix가 있으면 정확히 2가지(deathStyleMix vs bodyCollapse)로 고정.
+  const style = useMemo(() => {
+    if (deathStyleMix) {
+      return seededCollapseNoise(styleSeed + 777) < 0.5 ? deathStyleMix : 'bodyCollapse'
+    }
+    return collapseStyleForIntensity(intensity, styleSeed)
+  }, [intensity, deathStyleMix, styleSeed])
   // scatter(강)는 조각을 절반 크기로 — 가장 세게 터질 때 파편을 잘게.
   const pieceScale = useMemo(() => collapsePieceScaleForStyle(style), [style])
   const scatterVariant = useMemo(() => {

@@ -27,6 +27,7 @@ const BASE_PLAYER = {
   speed: 3, baseSpeed: 3,
   level: 1, xp: 0, xpToNext: 4,
   invulnerable: false,
+  hitFlashToken: 0,
 }
 
 function buildInitialPlayer(levels) {
@@ -155,7 +156,7 @@ export const useGameStore = create(
         return
       }
       emitSfx({ id: 'playerHit' })
-      set({ player: { ...player, hp, invulnerable: true } })
+      set({ player: { ...player, hp, invulnerable: true, hitFlashToken: player.hitFlashToken + 1 } })
       // 무적 해제는 Player.jsx의 useFrame에서 처리한다. setTimeout을 쓰지 않는다.
     },
 
