@@ -1,8 +1,10 @@
 export const ENEMY_DEATH_COLLAPSE_LIFETIME_MS = 780
 export const ENEMY_DEATH_COLLAPSE_FADE_START_MS = 430
-export const ENEMY_DEATH_COLLAPSE_STYLES = ['bodyCollapse', 'scatter', 'crumble', 'slump']
-export const SCATTER_COLLAPSE_VARIANTS = ['burst', 'spiral', 'wave', 'ring', 'fountain', 'cross']
-export const WEAK_COLLAPSE_STYLES = ['crumble', 'slump']
+export const FAR_SCATTER_FADE_START_MS = 260
+export const FAR_SCATTER_FADE_DURATION_MS = 250
+export const ENEMY_DEATH_COLLAPSE_STYLES = ['bodyCollapse', 'scatter', 'crumble', 'slump', 'kneel']
+export const SCATTER_COLLAPSE_VARIANTS = ['burst', 'spiral', 'wave', 'ring', 'fountain', 'cross', 'halfBurst']
+export const WEAK_COLLAPSE_STYLES = ['crumble', 'slump', 'kneel']
 
 export const ZOMBIE_COLLAPSE_PARTS = [
   { key: 'head', size: [0.52, 0.48, 0.46], offset: [0, 0.82, 0], color: 'skin', outlineScale: 1.08, mass: 0.8 },
@@ -155,9 +157,18 @@ function createScatterMotion({ seed, part, index, scatterVariant = 'burst' }) {
     spinDamping = 0.7
   }
 
+  // halfBurst: 속도 절반, 나머지는 기본 burst와 동일
+  if (variant === 'halfBurst') {
+    speed *= 0.5
+    lift  *= 0.85
+    linearDamping *= 1.4
+    spinDamping   *= 1.2
+  }
+
   // 파편마다 독립적인 확산 단계 결정 (seed+11 = 다른 파편과 겹치지 않는 오프셋)
   const tierRoll = seededCollapseNoise(seed + 11)
-  const tier = SCATTER_SPREAD_TIERS[tierRoll < 0.33 ? 0 : tierRoll < 0.67 ? 1 : 2]
+  const tierIndex = tierRoll < 0.33 ? 0 : tierRoll < 0.67 ? 1 : 2
+  const tier = SCATTER_SPREAD_TIERS[tierIndex]
   speed        *= tier.speedMult
   lift         *= tier.liftMult
   linearDamping *= tier.dampMult
@@ -175,8 +186,25 @@ function createScatterMotion({ seed, part, index, scatterVariant = 'burst' }) {
     distanceScale,
     linearDamping,
     spinDamping,
+    farFadeStartMs: tierIndex === 2 ? FAR_SCATTER_FADE_START_MS : undefined,
+    farFadeDurationMs: tierIndex === 2 ? FAR_SCATTER_FADE_DURATION_MS : undefined,
     scatterVariant: variant,
   }
+}
+
+export function resolveCollapsePartOpacity(elapsedMs, motion = {}) {
+  const fadeDuration = ENEMY_DEATH_COLLAPSE_LIFETIME_MS - ENEMY_DEATH_COLLAPSE_FADE_START_MS
+  let opacity = elapsedMs >= ENEMY_DEATH_COLLAPSE_FADE_START_MS
+    ? Math.max(0, 1 - (elapsedMs - ENEMY_DEATH_COLLAPSE_FADE_START_MS) / fadeDuration)
+    : 1
+
+  if (motion.farFadeStartMs !== undefined) {
+    const farFadeDuration = motion.farFadeDurationMs ?? FAR_SCATTER_FADE_DURATION_MS
+    const farOpacity = Math.max(0, 1 - (elapsedMs - motion.farFadeStartMs) / farFadeDuration)
+    opacity = Math.min(opacity, farOpacity)
+  }
+
+  return opacity
 }
 
 function createCrumbleMotion({ seed, part, index }) {
@@ -268,9 +296,102 @@ function createBodyCollapseMotion({ seed, part, index }) {
   }
 }
 
+// 무릎 꿇고 쓰러지기 — 다리가 바깥으로 벌어지며 가라앉고, 상체가 앞으로 무너짐
+function createKneelMotion({ seed, part }) {
+  const [ox, oy] = part.offset
+  const n0 = seededCollapseNoise(seed)
+  const n1 = seededCollapseNoise(seed + 1)
+  const n2 = seededCollapseNoise(seed + 2)
+  const n3 = seededCollapseNoise(seed + 3)
+
+  const isLeg  = part.key === 'legL' || part.key === 'legR'
+  const isFoot = part.key === 'footL' || part.key === 'footR'
+  const isUpper = part.key === 'head' || part.key.startsWith('eye')
+  const isBody  = part.key === 'body'
+  const isArm   = part.key.includes('arm') || part.key.includes('hand')
+
+  // 다리: 바깥으로 벌어지며 제자리에서 하강 (무릎 꿇는 동작)
+  if (isLeg || isFoot) {
+    const side = ox >= 0 ? 1 : -1   // 왼발은 왼쪽, 오른발은 오른쪽으로
+    return {
+      x: side * (0.30 + n0 * 0.15),  // 좌우로 벌어짐
+      y: -(0.35 + n1 * 0.15),        // 아래로 천천히
+      z: isFoot ? 0.10 + n0 * 0.08 : 0.04 + n0 * 0.04,  // 발은 앞으로
+      rx: isLeg ? 1.0 + n2 * 0.5 : 0.3 + n2 * 0.3,      // 다리 앞으로 꺾임
+      ry: (n3 - 0.5) * 0.4,
+      rz: side * (0.3 + n2 * 0.2),
+      gravity: 6 + part.mass * 1.2,
+      delayMs: 0,
+      settleY: -0.48,
+      linearDamping: 5.0,
+      spinDamping:   3.5,
+    }
+  }
+
+  // 상체(머리/눈): 앞으로 고꾸라짐
+  if (isUpper) {
+    return {
+      x: (n0 - 0.5) * 0.08,
+      y: -(0.60 + n1 * 0.20),
+      z: 0.15 + n0 * 0.10,           // 앞쪽으로
+      rx: 2.8 + n2 * 0.8,            // 크게 앞으로 기울어짐
+      ry: (n3 - 0.5) * 0.8,
+      rz: (n2 - 0.5) * 0.6,
+      gravity: 8 + part.mass * 1.5,
+      delayMs: 80,                    // 다리 이후 무너짐
+      settleY: -0.20,
+      linearDamping: 4.2,
+      spinDamping:   2.8,
+    }
+  }
+
+  // 몸통: 천천히 앞으로 기울어지며 내려앉음
+  if (isBody) {
+    return {
+      x: (n0 - 0.5) * 0.06,
+      y: -(0.45 + n1 * 0.15),
+      z: 0.08 + n0 * 0.06,
+      rx: 1.6 + n2 * 0.5,
+      ry: (n3 - 0.5) * 0.5,
+      rz: (n2 - 0.5) * 0.4,
+      gravity: 7 + part.mass * 1.2,
+      delayMs: 40,
+      settleY: -0.30,
+      linearDamping: 4.8,
+      spinDamping:   3.2,
+    }
+  }
+
+  // 팔/손: 앞으로 늘어뜨리며 땅에 닿음
+  if (isArm) {
+    const side = ox >= 0 ? 1 : -1
+    return {
+      x: side * (0.12 + n0 * 0.10),
+      y: -(0.50 + n1 * 0.18),
+      z: 0.10 + n0 * 0.08,
+      rx: 1.2 + n2 * 0.6,
+      ry: (n3 - 0.5) * 0.6,
+      rz: side * (0.2 + n2 * 0.3),
+      gravity: 7 + part.mass * 1.0,
+      delayMs: 60,
+      settleY: -0.38,
+      linearDamping: 4.5,
+      spinDamping:   3.0,
+    }
+  }
+
+  // 폴백
+  return {
+    x: (n0 - 0.5) * 0.06, y: -(0.45 + oy * 0.3), z: (n1 - 0.5) * 0.06,
+    rx: (n2 - 0.5) * 1.0, ry: (n3 - 0.5) * 0.5, rz: (n2 - 0.5) * 0.5,
+    gravity: 7, delayMs: 50, settleY: -0.30, linearDamping: 4.5, spinDamping: 3.0,
+  }
+}
+
 export function createCollapseMotion({ seed, part, index, style = 'bodyCollapse', scatterVariant }) {
   if (style === 'scatter') return createScatterMotion({ seed, part, index, scatterVariant })
   if (style === 'crumble') return createCrumbleMotion({ seed, part, index })
-  if (style === 'slump') return createSlumpMotion({ seed, part, index })
+  if (style === 'slump')   return createSlumpMotion({ seed, part, index })
+  if (style === 'kneel')   return createKneelMotion({ seed, part, index })
   return createBodyCollapseMotion({ seed, part, index })
 }

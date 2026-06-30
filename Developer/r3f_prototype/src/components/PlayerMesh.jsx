@@ -68,9 +68,28 @@ function PlayerOuterOutline() {
   )
 }
 
-export default function PlayerMesh({ groupRef, movingRef }) {
+function setPlayerBodyFlash(root, flashMat, active) {
+  root.traverse((obj) => {
+    if (!obj.isMesh || obj.material?.type !== 'MeshToonMaterial') return
+    if (active) {
+      if (!obj.userData.playerBaseMaterial) obj.userData.playerBaseMaterial = obj.material
+      obj.material = flashMat
+      return
+    }
+    if (obj.userData.playerBaseMaterial) {
+      obj.material = obj.userData.playerBaseMaterial
+      delete obj.userData.playerBaseMaterial
+    }
+  })
+}
+
+export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0 }) {
+  const rootRef = useRef()
   const p = useRef({})
   const blend = useRef(0)
+  const lastHitFlashToken = useRef(hitFlashToken)
+  const hitFlashFrames = useRef(0)
+  const hitFlashMat = useMemo(() => toonMat(0xffffff, 1.0), [])
   const shadowMat = useMemo(
     () =>
       new THREE.MeshBasicMaterial({
@@ -83,6 +102,11 @@ export default function PlayerMesh({ groupRef, movingRef }) {
     []
   )
 
+  const setRoot = (el) => {
+    rootRef.current = el
+    if (groupRef) groupRef.current = el
+  }
+
   const reg = (key) => (el) => {
     if (el) p.current[key] = el
   }
@@ -90,6 +114,15 @@ export default function PlayerMesh({ groupRef, movingRef }) {
   useFrame(({ clock }, delta) => {
     const parts = p.current
     if (!parts.legL) return
+
+    if (hitFlashToken !== lastHitFlashToken.current) {
+      lastHitFlashToken.current = hitFlashToken
+      hitFlashFrames.current = 1
+    }
+    if (rootRef.current) {
+      setPlayerBodyFlash(rootRef.current, hitFlashMat, hitFlashFrames.current > 0)
+      if (hitFlashFrames.current > 0) hitFlashFrames.current -= 1
+    }
 
     const isMoving = movingRef?.current ?? false
     blend.current += ((isMoving ? 1 : 0) - blend.current) * Math.min(1, delta * 10)
@@ -142,7 +175,7 @@ export default function PlayerMesh({ groupRef, movingRef }) {
   })
 
   return (
-    <group ref={groupRef} scale={[PLAYER_MESH_SCALE, PLAYER_MESH_SCALE, PLAYER_MESH_SCALE]}>
+    <group ref={setRoot} scale={[PLAYER_MESH_SCALE, PLAYER_MESH_SCALE, PLAYER_MESH_SCALE]}>
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, -1.08, 0.02]}

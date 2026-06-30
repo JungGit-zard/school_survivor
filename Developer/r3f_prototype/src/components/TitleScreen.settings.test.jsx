@@ -34,6 +34,19 @@ afterEach(() => {
 })
 
 describe('TitleScreen settings modal', () => {
+  it('keeps the hero title fill explicit under WebKit text stroke', () => {
+    const { container, cleanup } = renderTitleScreen()
+
+    const title = Array.from(container.querySelectorAll('h1'))
+      .find((node) => node.textContent.includes('zombie school'))
+    const [accent] = title.querySelectorAll('span')
+
+    expect(title.style.getPropertyValue('-webkit-text-fill-color')).toBe('rgb(248, 247, 242)')
+    expect(accent.style.getPropertyValue('-webkit-text-fill-color')).toBe('rgb(255, 138, 55)')
+
+    cleanup()
+  })
+
   it('opens a floating settings modal from the gear button', () => {
     const { container, cleanup } = renderTitleScreen()
 

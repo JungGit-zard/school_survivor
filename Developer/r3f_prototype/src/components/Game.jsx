@@ -59,15 +59,17 @@ export default function Game() {
     if (phase === 'playing') {
       tickTime(dt * 1000)
       checkSurvivalMilestone()
-      const { elapsedMs } = useGameStore.getState()
+      // getState()로 최신 값 읽기 — React 클로저 stale 방지
+      const gs = useGameStore.getState()
+      const { elapsedMs } = gs
       const stageConfig = getStageConfig(currentStageId)
       // 4:00 — 자동 클리어 대신 탈출구 등장
-      if (!escapePortalActive && elapsedMs >= stageConfig.escapePortalSec * 1000) {
+      if (!gs.escapePortalActive && elapsedMs >= stageConfig.escapePortalSec * 1000) {
         activateEscapePortal()
         emitSfx({ id: 'portalAppear' })
       }
       // 7:00 — 마틸다 스폰
-      if (!matildaSpawned && elapsedMs >= stageConfig.matildaSec * 1000) {
+      if (!gs.matildaSpawned && elapsedMs >= stageConfig.matildaSec * 1000) {
         spawnMatilda()
       }
     }

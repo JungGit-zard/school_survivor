@@ -530,8 +530,9 @@ const styles = {
     lineHeight: 0.96,
     fontWeight: uiType.weightHeavy,
     letterSpacing: 0,
-    WebkitTextStroke: `2px ${uiPalette.ink}`,
-    textShadow: `0 4px 0 ${uiPalette.ink}, 0 0 18px rgba(255,170,80,0.45), 0 0 30px rgba(65,116,90,0.42)`,
+    WebkitTextFillColor: uiPalette.chalk,
+    WebkitTextStroke: `1.25px ${uiPalette.ink}`,
+    textShadow: `0 2px 0 ${uiPalette.ink}, 0 0 18px rgba(255,170,80,0.45), 0 0 30px rgba(65,116,90,0.42)`,
   },
   titleReduced: {
     margin: 0,
@@ -545,10 +546,12 @@ const styles = {
     lineHeight: 0.96,
     fontWeight: uiType.weightHeavy,
     letterSpacing: 0,
+    WebkitTextFillColor: uiPalette.chalk,
     textShadow: `0 3px 0 ${uiPalette.ink}`,
   },
   titleAccent: {
     color: uiPalette.warning,
+    WebkitTextFillColor: uiPalette.warning,
   },
   subtitle: {
     color: uiPalette.chalk,
