@@ -88,7 +88,7 @@ function CollapsePart({ part, index, origin, visualScale, palette, startedAt, st
       v.ry *= spinDamping
       v.rz *= spinDamping
 
-      const motionScale = v.distanceScale ?? visualScale
+      const motionScale = (v.distanceScale ?? visualScale) * 0.5
       p.x += v.x * delta * motionScale
       p.y += v.y * delta * motionScale
       p.z += v.z * delta * motionScale
