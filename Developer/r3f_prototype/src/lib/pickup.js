@@ -1,9 +1,9 @@
 import { playerPos } from './refs.js'
 
-// 자석 반경 0.75: 코인 업그레이드 없는 기본값. 업그레이드 시 최대 1.5.
+// BASE: 자석 Lv.1 이상일 때 곱해지는 기준 반경. 업그레이드 없으면 반경 0.
 const BASE_PULL_RADIUS = 0.75
-let _pullRadius = BASE_PULL_RADIUS
-let _pullRadiusSq = BASE_PULL_RADIUS * BASE_PULL_RADIUS
+let _pullRadius = 0
+let _pullRadiusSq = 0
 
 // 수집 판정 반경도 함께 확대 (0.22 → 0.38)
 export const COLLECT_RADIUS_SQ = 0.38 * 0.38
