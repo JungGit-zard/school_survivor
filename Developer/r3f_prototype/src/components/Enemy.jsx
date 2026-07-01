@@ -261,6 +261,11 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const currentStageId = useGameStore((s) => s.currentStageId)
 
   useEffect(() => {
+    // Registry registration must happen regardless of rb.current — the visual
+    // layer only needs spawn pos/type, not the physics body.
+    if (useInstanced) {
+      zombieVisualRegistry.register(id, { x: spawnPos[0], y: spawnPos[1], z: spawnPos[2], yaw: 0, type, phase: 'chase', wt: 0, vs: cs * 0.333, hitFlash: false })
+    }
     if (!rb.current) return
     enemyBodies.set(id, rb.current)
     rb.current._enemyHit = (dmg, impact = {}) => {
@@ -338,9 +343,6 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     }
     rb.current._enemyId   = id
     rb.current._enemyType = type
-    if (useInstanced) {
-      zombieVisualRegistry.register(id, { x: spawnPos[0], y: spawnPos[1], z: spawnPos[2], yaw: 0, type, phase: 'chase', wt: 0, vs: cs * 0.333, hitFlash: false })
-    }
     return () => {
       enemyBodies.delete(id)
       if (useInstanced) zombieVisualRegistry.unregister(id)
