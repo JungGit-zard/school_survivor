@@ -63,13 +63,13 @@ export function GoogleAccountPanelView({ status, user, error, signingIn, onSignI
 function getPanelLabel(status, signingIn) {
   if (signingIn) return 'Google 로그인 중'
   if (status === 'unconfigured') return 'Google 로그인 설정 필요'
-  if (status === 'checking') return '계정 확인 중'
+  if (status === 'checking') return '저장된 로그인 확인 중'
   if (status === 'error') return '로그인 오류'
   return '계정 연동 가능'
 }
 
 function getPanelDetail(status, error) {
-  if (status === 'unconfigured') return 'Firebase .env 설정 후 사용'
+  if (status === 'unconfigured') return 'Firebase .env 설정 필요'
   if (status === 'checking') return '저장된 로그인 확인 중'
   if (status === 'error') return error || '다시 시도해 주세요'
   return '진행 정보 클라우드 저장 준비'
