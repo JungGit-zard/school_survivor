@@ -8,14 +8,17 @@ test('shark missile fires and damages clustered enemies in the running game', as
   page.on('pageerror', (error) => errors.push(error.message))
 
   await page.setViewportSize({ width: 390, height: 844 })
+  await page.addInitScript(() => {
+    localStorage.setItem('school_survivor:userNicknames', JSON.stringify({ local: 'Playtest' }))
+  })
   await page.goto('http://127.0.0.1:5178', { waitUntil: 'networkidle' })
   await page.screenshot({
     path: path.resolve(process.cwd(), '..', '..', 'Quaility_Assurance', 'playwright_shark_title_2026-06-14.png'),
     fullPage: true,
   })
 
-  await page.locator('button').filter({ hasText: '모든 무기 해금' }).first().click()
-  await page.locator('button').filter({ hasText: '게임 시작' }).first().click()
+  for (const key of 'unlockall') await page.keyboard.press(key)
+  await page.getByRole('button', { name: '게임 시작' }).click()
   await page.waitForSelector('canvas', { timeout: 15_000 })
   await page.waitForTimeout(1000)
 
