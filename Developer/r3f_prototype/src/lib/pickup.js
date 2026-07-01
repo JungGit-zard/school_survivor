@@ -1,7 +1,7 @@
 import { playerPos } from './refs.js'
 
-// 자석 반경 1.5: 기존(0.75)의 2배. 쫓기는 상황에서도 교과서·코인 수집 가능.
-const BASE_PULL_RADIUS = 1.5
+// 자석 반경 0.75: 코인 업그레이드 없는 기본값. 업그레이드 시 최대 1.5.
+const BASE_PULL_RADIUS = 0.75
 let _pullRadius = BASE_PULL_RADIUS
 let _pullRadiusSq = BASE_PULL_RADIUS * BASE_PULL_RADIUS
 
