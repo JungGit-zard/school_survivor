@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, useLoader } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
+import { Html, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import { PlayerVisual } from './Player.jsx'
 import { ENEMY_STATS, EnemyVisual } from './Enemy.jsx'
@@ -13,6 +13,7 @@ import { LunchModel } from './LunchItems.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 import MatildaMesh from './MatildaMesh.jsx'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
+import { ENEMY_DEATH_COLLAPSE_STYLES } from '../lib/enemyDeathCollapse.js'
 import EnemyProjectileVisual from './EnemyProjectileVisual.jsx'
 import TitleScene3D from './TitleScene3D.jsx'
 import { ChargeWarningLine, HitSpark, PickupPop } from './VFXLayer.jsx'
@@ -237,6 +238,14 @@ function getPreviewFrame(item) {
       maxDistance: 5,
     }
   }
+  if (item.previewKind === 'enemyCollapse') {
+    return {
+      camera: { position: [2.4, 2.0, 3.7], fov: 36, near: 0.05, far: 40 },
+      target: [0, 0.58, 0],
+      minDistance: 1.2,
+      maxDistance: 8,
+    }
+  }
   return {
     camera: { position: [4, 3.2, 5.6], fov: 38, near: 0.1, far: 100 },
     target: [0, 0.8, 0],
@@ -248,6 +257,13 @@ function getPreviewFrame(item) {
 function RenderPreviewItem({ item }) {
   const movingRef = useRef(false)
   const playerRef = useRef(null)
+  const [deathReplayKey, setDeathReplayKey] = useState(0)
+
+  useEffect(() => {
+    if (item.previewKind !== 'enemyCollapse') return undefined
+    const timer = window.setInterval(() => setDeathReplayKey((key) => key + 1), 920)
+    return () => window.clearInterval(timer)
+  }, [item.previewKind])
 
   if (item.previewKind === 'player') {
     return <PlayerVisual meshGroup={playerRef} movingRef={movingRef} hp={100} maxHp={100} />
@@ -286,7 +302,40 @@ function RenderPreviewItem({ item }) {
     return <EnemyProjectileVisual />
   }
   if (item.previewKind === 'enemyCollapse') {
-    return <EnemyDeathCollapse id="studio-slump" type="E01" position={[0, 0.6, 0]} visualScale={1.25} intensity="weak" onDone={() => {}} />
+    const index = deathReplayKey % ENEMY_DEATH_COLLAPSE_STYLES.length
+    const style = ENEMY_DEATH_COLLAPSE_STYLES[index]
+    return (
+      <>
+        <EnemyDeathCollapse
+          key={`${deathReplayKey}-${style}`}
+          id={`studio-${style}`}
+          type="E01"
+          position={[0, 0.58, 0]}
+          visualScale={1.15}
+          styleOverride={style}
+          onDone={() => {}}
+        />
+        <Html center position={[0, 1.95, 0]} style={{ pointerEvents: 'none' }}>
+          <div
+            data-testid="death-style-label"
+            style={{
+              minWidth: 170,
+              padding: '6px 9px',
+              border: '2px solid #f2eee5',
+              borderRadius: 6,
+              background: 'rgba(18, 18, 16, 0.86)',
+              color: '#f7f0dc',
+              fontSize: 13,
+              fontWeight: 900,
+              textAlign: 'center',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {index + 1}/{ENEMY_DEATH_COLLAPSE_STYLES.length} {style}
+          </div>
+        </Html>
+      </>
+    )
   }
   if (item.previewKind === 'healthBar') {
     return (

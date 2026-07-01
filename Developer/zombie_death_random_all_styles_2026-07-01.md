@@ -1,13 +1,19 @@
 # Zombie Death Random All Styles
 
-## 구현 기록
+## Implementation
 
-- `collapseStyleForIntensity`가 더 이상 강한 막타를 `scatter`로 고정하지 않고 전체 죽음 스타일에서 랜덤 선택한다.
-- `Enemies`의 일반 좀비 전용 `ZombieDeathAnim` 경로를 제거하고 모든 좀비 사망을 `EnemyDeathCollapse`로 통합했다.
-- 미사용 `ZombieDeathAnim.jsx` 파일을 삭제했다.
+- `ENEMY_DEATH_COLLAPSE_STYLES` now matches the requested 11 styles exactly.
+- Runtime death selection uses a shuffled bag, so repeated kills visibly cycle through varied deaths.
+- `EnemyDeathCollapse` supports `styleOverride` only for Graphics Studio inspection; gameplay still uses the random bag.
+- `forwardFall`, `backwardFall`, `leftFall`, and `rightFall` now use stronger dominant direction and rotation values.
+- `leftFall` and `rightFall` now use a `sidePivot` renderer path around the falling-side foot tip.
+- `backstepFall` uses a staged renderer path: 3 backward steps, then fall and fade.
+- `backstepFall` leg and foot parts now swing on a fast walk cycle during the three steps.
+- `proneSink` uses a staged renderer path: prone pose, then sink down and fade.
 
-## 검증
+## Verification
 
-- `npm test`
-- `npm run build`
-
+- `npm test -- enemyDeathCollapse.test.js`: passed.
+- `npm test`: passed, 65 files / 356 tests.
+- `npm run build`: passed.
+- Graphics Studio browser check confirmed `1/11 forwardFall` through `11/11 shatter5`.

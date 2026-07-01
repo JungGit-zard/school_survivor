@@ -77,7 +77,10 @@ function useCompactLayout() {
 export default function GraphicsStudio() {
   const groupedCatalog = useMemo(groupCatalogByCategory, [])
   const compact = useCompactLayout()
-  const [selectedItemId, setSelectedItemId] = useState('player')
+  const [selectedItemId, setSelectedItemId] = useState(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#enemy-death-collapse') return 'enemy-death-collapse'
+    return 'player'
+  })
   const [confirmedTunings, setConfirmedTunings] = useState(() => loadStudioTunings())
   const selectedItem = getStudioItemById(selectedItemId)
   const [draftTuningById, setDraftTuningById] = useState(() => ({}))

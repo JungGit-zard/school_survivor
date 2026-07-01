@@ -1,8 +1,9 @@
 # Zombie Death Random All Styles
 
-## 결정
+## Decision
 
-- 모든 좀비 사망은 상황, 타입, 막타 강도와 관계없이 전체 죽음 연출 풀에서 1가지를 랜덤 선택한다.
-- 전체 풀은 10가지 쓰러짐 연출과 scatter 박살 연출을 포함한다.
-- 보스와 일반 좀비는 같은 사망 연출 규칙을 따른다.
-
+- Every zombie death uses one style from the requested 11-style pool.
+- Required fall styles: `forwardFall`, `backwardFall`, `leftFall`, `rightFall`, `backstepFall`, `proneSink`.
+- Fall styles must read as different actions: forward face-plant, backward fall, left fall, right fall, three backward steps then vanish, and prone sink into floor.
+- Required shatter styles: `shatter1`, `shatter2`, `shatter3`, `shatter4`, `shatter5`.
+- Styles are dealt from a shuffled bag, so gameplay shows varied deaths before repeating.
