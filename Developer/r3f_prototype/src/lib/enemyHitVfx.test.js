@@ -47,10 +47,10 @@ describe('common enemy hit VFX', () => {
     })
   })
 
-  it('keeps E02 purple zombies from sliding backward even when a weapon requests knockback', () => {
-    expect(resolveEnemyHitKnockback({ knockback: 4.8, knockbackMs: 180 }, { type: 'E02' })).toMatchObject({
-      speed: 0,
-      durationMs: 0,
+  it('applies weapon knockback to E02 purple zombies the same as other types', () => {
+    expect(resolveEnemyHitKnockback({ knockback: 4.8, knockbackMs: 180 })).toMatchObject({
+      speed: 4.8,
+      durationMs: 180,
     })
   })
 })

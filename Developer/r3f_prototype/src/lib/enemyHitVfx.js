@@ -20,15 +20,7 @@ export function createEnemyHitSparkEvent({ x, z, y = 0.46 }) {
   }
 }
 
-export function resolveEnemyHitKnockback(impact = {}, enemy = {}) {
-  if (enemy.type === 'E02') {
-    return {
-      speed: 0,
-      durationMs: 0,
-      source: impact.source,
-    }
-  }
-
+export function resolveEnemyHitKnockback(impact = {}) {
   return {
     speed: impact.knockback ?? COMMON_ENEMY_HIT_KNOCKBACK.speed,
     durationMs: impact.knockbackMs ?? COMMON_ENEMY_HIT_KNOCKBACK.durationMs,

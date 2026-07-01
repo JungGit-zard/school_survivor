@@ -276,7 +276,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       hitFlashRef.current = true
       requestAnimationFrame(() => { setHitFlash(false); hitFlashRef.current = false })
       if (impact?.sfxId) emitSfx({ id: impact.sfxId, volume: 0.6 })
-      const knockback = resolveEnemyHitKnockback(impact, { type })
+      const knockback = resolveEnemyHitKnockback(impact)
       if (knockback.speed > 0) {
         const t = hitPos
         const sx = knockback.source?.x ?? playerPos.x
