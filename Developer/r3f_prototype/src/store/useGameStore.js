@@ -67,7 +67,8 @@ function buildGrowthMultiplier(levels) {
 }
 
 function applyMagnetPassive(levels) {
-  setMagnetMultiplier(1 + 0.08 * (levels.magnet ?? 0))
+  const lvl = levels.magnet ?? 0
+  setMagnetMultiplier(lvl === 0 ? 0 : 1 + 0.08 * lvl)
 }
 
 const GOLD_STORAGE_KEY = 'school_survivor:goldTotal'

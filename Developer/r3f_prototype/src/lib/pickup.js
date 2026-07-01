@@ -9,7 +9,7 @@ let _pullRadiusSq = BASE_PULL_RADIUS * BASE_PULL_RADIUS
 export const COLLECT_RADIUS_SQ = 0.38 * 0.38
 
 export function setMagnetMultiplier(mult) {
-  const m = Number.isFinite(mult) && mult > 0 ? mult : 1
+  const m = Number.isFinite(mult) && mult >= 0 ? mult : 1
   _pullRadius = BASE_PULL_RADIUS * m
   _pullRadiusSq = _pullRadius * _pullRadius
 }
