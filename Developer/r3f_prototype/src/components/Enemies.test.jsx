@@ -9,7 +9,9 @@ import {
   TEXTBOOK_DROP_RATE,
   WAVE_PHASES,
 } from './Enemies.jsx'
+import { ENEMY_STATS } from './Enemy.jsx'
 import { playerPos } from '../lib/refs.js'
+import { resolveRangedEnemyVelocity } from './Enemy.jsx'
 
 describe('elite bonus rewards', () => {
   it('B01 bonus textbooks use explicit XP instead of B01 base XP 0', () => {
@@ -129,34 +131,41 @@ describe('XP textbook drops', () => {
 
 describe('enemy death visuals', () => {
   it('routes every zombie type through the same random collapse effect', () => {
-    const normal = createDeathCollapseEntry(7, {
-      type: 'E01',
-      pos: [1, 0.2, 3],
-      visualScale: 0.5,
-      intensity: 'strong',
-      deathStyleMix: 'slump',
+    const types = Object.keys(ENEMY_STATS)
+
+    types.forEach((type, index) => {
+      const entry = createDeathCollapseEntry(index + 1, {
+        type,
+        pos: [index, 0.2, index + 2],
+        visualScale: 0.5 + index * 0.1,
+        intensity: index % 2 === 0 ? 'strong' : 'weak',
+        deathStyleMix: 'slump',
+      })
+
+      expect(entry).toMatchObject({
+        id: index + 1,
+        type,
+        position: [index, 0.2, index + 2],
+        visualScale: 0.5 + index * 0.1,
+        intensity: index % 2 === 0 ? 'strong' : 'weak',
+      })
+      expect(entry).not.toHaveProperty('deathStyleMix')
     })
-    const boss = createDeathCollapseEntry(8, {
-      type: 'B01',
-      pos: [2, 0.2, 4],
-      visualScale: 1,
-      intensity: 'weak',
+  })
+})
+
+describe('ranged enemy movement', () => {
+  it('keeps E04 moving sideways at preferred range instead of standing still', () => {
+    const velocity = resolveRangedEnemyVelocity({
+      dirX: 1,
+      dirZ: 0,
+      dist: ENEMY_STATS.E04.preferDist - 0.5,
+      minDist: ENEMY_STATS.E04.minDist,
+      preferDist: ENEMY_STATS.E04.preferDist,
+      speed: ENEMY_STATS.E04.speed,
+      strafeSign: 1,
     })
 
-    expect(normal).toMatchObject({
-      id: 7,
-      type: 'E01',
-      position: [1, 0.2, 3],
-      visualScale: 0.5,
-      intensity: 'strong',
-    })
-    expect(normal).not.toHaveProperty('deathStyleMix')
-    expect(boss).toMatchObject({
-      id: 8,
-      type: 'B01',
-      position: [2, 0.2, 4],
-      visualScale: 1,
-      intensity: 'weak',
-    })
+    expect(Math.hypot(velocity.x, velocity.z)).toBeGreaterThan(0)
   })
 })

@@ -2,19 +2,22 @@ export const ENEMY_DEATH_COLLAPSE_LIFETIME_MS = 780
 export const ENEMY_DEATH_COLLAPSE_FADE_START_MS = 430
 export const FAR_SCATTER_FADE_START_MS = 260
 export const FAR_SCATTER_FADE_DURATION_MS = 250
-// 쓰러지는 스타일 10가지 (박살 scatter는 별도 유지)
-export const SOFT_FALL_STYLES = [
-  'bodyCollapse', 'crumble', 'slump', 'kneel',
-  'faceDown',    // 앞으로 고꾸라짐
-  'backFall',    // 뒤로 쓰러짐
-  'leftFall',    // 왼쪽으로 쓰러짐
-  'rightFall',   // 오른쪽으로 쓰러짐
-  'spiralDown',  // 빙글 돌며 쓰러짐
-  'meltDown',    // 녹아내리듯 천천히 쓰러짐
+// Runtime death pool: 6 fall/sink styles + 5 shatter strengths.
+export const ENEMY_DEATH_COLLAPSE_STYLES = [
+  'forwardFall',
+  'backwardFall',
+  'leftFall',
+  'rightFall',
+  'backstepFall',
+  'proneSink',
+  'shatter1',
+  'shatter2',
+  'shatter3',
+  'shatter4',
+  'shatter5',
 ]
-export const ENEMY_DEATH_COLLAPSE_STYLES = [...SOFT_FALL_STYLES, 'scatter']
+export const SOFT_FALL_STYLES = ENEMY_DEATH_COLLAPSE_STYLES.slice(0, 6)
 export const SCATTER_COLLAPSE_VARIANTS = ['burst', 'spiral', 'wave', 'ring', 'fountain', 'cross', 'halfBurst']
-export const WEAK_COLLAPSE_STYLES = ['crumble', 'slump', 'kneel']
 
 export const ZOMBIE_COLLAPSE_PARTS = [
   { key: 'head', size: [0.52, 0.48, 0.46], offset: [0, 0.82, 0], color: 'skin', outlineScale: 1.08, mass: 0.8 },
@@ -41,23 +44,31 @@ export function pickEnemyDeathCollapseStyle(roll = Math.random()) {
   return ENEMY_DEATH_COLLAPSE_STYLES[index]
 }
 
-export function pickWeakCollapseStyle(roll = Math.random()) {
-  const index = Math.min(WEAK_COLLAPSE_STYLES.length - 1, Math.floor(roll * WEAK_COLLAPSE_STYLES.length))
-  return WEAK_COLLAPSE_STYLES[index]
+let deathStyleBag = []
+
+export function createShuffledDeathStyleBag(random = Math.random) {
+  const bag = [...ENEMY_DEATH_COLLAPSE_STYLES]
+  for (let i = bag.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1))
+    ;[bag[i], bag[j]] = [bag[j], bag[i]]
+  }
+  return bag
 }
 
-// 박살 강도 3단계. 막타 위력(killingDamage/maxHp 비중 + 넉백)으로 결정한다.
+export function nextEnemyDeathCollapseStyle(random = Math.random) {
+  if (deathStyleBag.length === 0) deathStyleBag = createShuffledDeathStyleBag(random)
+  return deathStyleBag.pop()
+}
+
+export function resetDeathStyleBagForTests() {
+  deathStyleBag = []
+}
+
+
 export const COLLAPSE_INTENSITIES = ['weak', 'medium', 'strong']
 
-// Legacy intensity labels. Death style selection is fully random.
-export const COLLAPSE_INTENSITY_STYLE = {
-  weak: 'crumble',
-  medium: 'bodyCollapse',
-  strong: 'scatter',
-}
 
-// 막타 위력 → 'weak' | 'medium' | 'strong'.
-// damageRatio: 막타가 최대 HP에서 차지하는 비중(최대 1.5로 캡). knockback: 막타의 원천 넉백(0~약4.8).
+
 export function resolveCollapseIntensity({ killingDamage = 0, maxHp = 1, knockback = 0 } = {}) {
   const damageRatio = Math.min(1.5, killingDamage / Math.max(1, maxHp))
   const knockbackBoost = Math.min(1, Math.max(0, knockback) / 4.5)
@@ -68,12 +79,16 @@ export function resolveCollapseIntensity({ killingDamage = 0, maxHp = 1, knockba
 }
 
 export function collapseStyleForIntensity(_intensity, _seed) {
-  return pickEnemyDeathCollapseStyle()
+  return nextEnemyDeathCollapseStyle()
 }
 
-// 스타일별 파편 조각 크기 배수. scatter는 흩날림이 커서 조각을 절반 크기로 줄인다.
+
 export const COLLAPSE_STYLE_PIECE_SCALE = {
-  scatter: 0.5,
+  shatter1: 0.95,
+  shatter2: 0.82,
+  shatter3: 0.68,
+  shatter4: 0.54,
+  shatter5: 0.42,
 }
 
 export function collapsePieceScaleForStyle(style) {
@@ -93,7 +108,7 @@ function normalizeScatterVariant(scatterVariant) {
   return SCATTER_COLLAPSE_VARIANTS.includes(scatterVariant) ? scatterVariant : 'burst'
 }
 
-// 파편 확산 3단계 배율: tight(좁게 떨어짐) / mid(일반) / wide(멀리 날아감)
+
 const SCATTER_SPREAD_TIERS = [
   { speedMult: 0.28, liftMult: 0.55, dampMult: 2.2 },  // tight
   { speedMult: 1.00, liftMult: 1.00, dampMult: 1.0 },  // mid
@@ -164,7 +179,7 @@ function createScatterMotion({ seed, part, index, scatterVariant = 'burst' }) {
     spinDamping = 0.7
   }
 
-  // 파편마다 독립적인 확산 단계 결정 (seed+11 = 다른 파편과 겹치지 않는 오프셋)
+
   const tierRoll = seededCollapseNoise(seed + 11)
   const tierIndex = tierRoll < 0.33 ? 0 : tierRoll < 0.67 ? 1 : 2
   const tier = SCATTER_SPREAD_TIERS[tierIndex]
@@ -172,7 +187,7 @@ function createScatterMotion({ seed, part, index, scatterVariant = 'burst' }) {
   lift         *= tier.liftMult
   linearDamping *= tier.dampMult
 
-  // halfBurst: tier 적용 후 속도 절반 — wide tier와 조합해도 최종적으로 ×0.5 보장
+
   if (variant === 'halfBurst') {
     speed *= 0.5
     lift  *= 0.85
@@ -200,9 +215,10 @@ function createScatterMotion({ seed, part, index, scatterVariant = 'burst' }) {
 }
 
 export function resolveCollapsePartOpacity(elapsedMs, motion = {}) {
-  const fadeDuration = ENEMY_DEATH_COLLAPSE_LIFETIME_MS - ENEMY_DEATH_COLLAPSE_FADE_START_MS
-  let opacity = elapsedMs >= ENEMY_DEATH_COLLAPSE_FADE_START_MS
-    ? Math.max(0, 1 - (elapsedMs - ENEMY_DEATH_COLLAPSE_FADE_START_MS) / fadeDuration)
+  const fadeStartMs = motion.fadeStartMs ?? ENEMY_DEATH_COLLAPSE_FADE_START_MS
+  const fadeDuration = motion.fadeDurationMs ?? (ENEMY_DEATH_COLLAPSE_LIFETIME_MS - fadeStartMs)
+  let opacity = elapsedMs >= fadeStartMs
+    ? Math.max(0, 1 - (elapsedMs - fadeStartMs) / fadeDuration)
     : 1
 
   if (motion.farFadeStartMs !== undefined) {
@@ -303,7 +319,7 @@ function createBodyCollapseMotion({ seed, part, index }) {
   }
 }
 
-// 무릎 꿇고 쓰러지기 — 다리가 바깥으로 벌어지며 가라앉고, 상체가 앞으로 무너짐
+
 function createKneelMotion({ seed, part }) {
   const [ox, oy] = part.offset
   const n0 = seededCollapseNoise(seed)
@@ -317,14 +333,14 @@ function createKneelMotion({ seed, part }) {
   const isBody  = part.key === 'body'
   const isArm   = part.key.includes('arm') || part.key.includes('hand')
 
-  // 다리: 바깥으로 벌어지며 제자리에서 하강 (무릎 꿇는 동작)
+
   if (isLeg || isFoot) {
-    const side = ox >= 0 ? 1 : -1   // 왼발은 왼쪽, 오른발은 오른쪽으로
+    const side = ox >= 0 ? 1 : -1
     return {
-      x: side * (0.30 + n0 * 0.15),  // 좌우로 벌어짐
-      y: -(0.35 + n1 * 0.15),        // 아래로 천천히
-      z: isFoot ? 0.10 + n0 * 0.08 : 0.04 + n0 * 0.04,  // 발은 앞으로
-      rx: isLeg ? 1.0 + n2 * 0.5 : 0.3 + n2 * 0.3,      // 다리 앞으로 꺾임
+      x: side * (0.30 + n0 * 0.15),
+      y: -(0.35 + n1 * 0.15),
+      z: isFoot ? 0.10 + n0 * 0.08 : 0.04 + n0 * 0.04,
+      rx: isLeg ? 1.0 + n2 * 0.5 : 0.3 + n2 * 0.3,
       ry: (n3 - 0.5) * 0.4,
       rz: side * (0.3 + n2 * 0.2),
       gravity: 6 + part.mass * 1.2,
@@ -335,24 +351,24 @@ function createKneelMotion({ seed, part }) {
     }
   }
 
-  // 상체(머리/눈): 앞으로 고꾸라짐
+
   if (isUpper) {
     return {
       x: (n0 - 0.5) * 0.08,
       y: -(0.60 + n1 * 0.20),
-      z: 0.15 + n0 * 0.10,           // 앞쪽으로
-      rx: 2.8 + n2 * 0.8,            // 크게 앞으로 기울어짐
+      z: 0.15 + n0 * 0.10,
+      rx: 2.8 + n2 * 0.8,
       ry: (n3 - 0.5) * 0.8,
       rz: (n2 - 0.5) * 0.6,
       gravity: 8 + part.mass * 1.5,
-      delayMs: 80,                    // 다리 이후 무너짐
+      delayMs: 80,
       settleY: -0.20,
       linearDamping: 4.2,
       spinDamping:   2.8,
     }
   }
 
-  // 몸통: 천천히 앞으로 기울어지며 내려앉음
+
   if (isBody) {
     return {
       x: (n0 - 0.5) * 0.06,
@@ -369,7 +385,7 @@ function createKneelMotion({ seed, part }) {
     }
   }
 
-  // 팔/손: 앞으로 늘어뜨리며 땅에 닿음
+
   if (isArm) {
     const side = ox >= 0 ? 1 : -1
     return {
@@ -387,7 +403,7 @@ function createKneelMotion({ seed, part }) {
     }
   }
 
-  // 폴백
+
   return {
     x: (n0 - 0.5) * 0.06, y: -(0.45 + oy * 0.3), z: (n1 - 0.5) * 0.06,
     rx: (n2 - 0.5) * 1.0, ry: (n3 - 0.5) * 0.5, rz: (n2 - 0.5) * 0.5,
@@ -395,23 +411,23 @@ function createKneelMotion({ seed, part }) {
   }
 }
 
-// ── 추가 쓰러짐 스타일 6종 ─────────────────────────────────────────────────
+
 
 function createFaceDownMotion({ seed, part, index }) {
-  // 앞으로 고꾸라짐: 상체가 +z 방향으로 무너짐
+
   const [ox, oy] = part.offset
   const topBias = Math.max(0, Math.min(1, (oy + 0.6) / 1.5))
   const n0 = seededCollapseNoise(seed); const n1 = seededCollapseNoise(seed + 1)
   const n2 = seededCollapseNoise(seed + 2); const n3 = seededCollapseNoise(seed + 3)
   return {
-    x: (n0 - 0.5) * 0.18,
-    y: 0.05 + topBias * 0.25,
-    z: 0.5 + topBias * 0.7 + n1 * 0.2,  // 상체일수록 앞으로 많이
-    rx: 2.2 + topBias * 2.8 + (n2 - 0.5) * 0.8,
-    ry: (n3 - 0.5) * 0.6,
-    rz: (n0 - 0.5) * 0.4,
-    gravity: 9 + topBias * 5,
-    delayMs: Math.floor((1 - topBias) * 4) * 7,  // 하체 먼저
+    x: (n0 - 0.5) * 0.12,
+    y: 0.12 + topBias * 0.2,
+    z: 1.45 + topBias * 0.95 + n1 * 0.18,
+    rx: 4.05 + topBias * 1.25 + (n2 - 0.5) * 0.45,
+    ry: (n3 - 0.5) * 0.25,
+    rz: (n0 - 0.5) * 0.22,
+    gravity: 7.5 + topBias * 3.5,
+    delayMs: Math.floor((1 - topBias) * 4) * 7,
     settleY: -0.08,
     linearDamping: 3.5,
     spinDamping: 2.8,
@@ -419,19 +435,19 @@ function createFaceDownMotion({ seed, part, index }) {
 }
 
 function createBackFallMotion({ seed, part, index }) {
-  // 뒤로 쓰러짐: -z 방향으로 젖혀져 쓰러짐
+
   const [ox, oy] = part.offset
   const topBias = Math.max(0, Math.min(1, (oy + 0.6) / 1.5))
   const n0 = seededCollapseNoise(seed); const n1 = seededCollapseNoise(seed + 1)
   const n2 = seededCollapseNoise(seed + 2); const n3 = seededCollapseNoise(seed + 3)
   return {
-    x: (n0 - 0.5) * 0.15,
-    y: 0.1 + topBias * 0.3,
-    z: -(0.4 + topBias * 0.6 + n1 * 0.15),
-    rx: -(1.8 + topBias * 2.4 + (n2 - 0.5) * 0.6),
-    ry: (n3 - 0.5) * 0.5,
-    rz: (n0 - 0.5) * 0.3,
-    gravity: 8 + topBias * 4.5,
+    x: (n0 - 0.5) * 0.12,
+    y: 0.14 + topBias * 0.22,
+    z: -(1.45 + topBias * 0.95 + n1 * 0.18),
+    rx: -(4.05 + topBias * 1.25 + (n2 - 0.5) * 0.45),
+    ry: (n3 - 0.5) * 0.25,
+    rz: (n0 - 0.5) * 0.22,
+    gravity: 7.5 + topBias * 3.5,
     delayMs: index * 7,
     settleY: -0.10,
     linearDamping: 3.2,
@@ -440,19 +456,27 @@ function createBackFallMotion({ seed, part, index }) {
 }
 
 function createSideFallMotion({ seed, part, index, direction }) {
-  // 좌(direction=-1) 또는 우(direction=+1)로 쓰러짐
+
   const [ox, oy] = part.offset
   const topBias = Math.max(0, Math.min(1, (oy + 0.6) / 1.5))
   const n0 = seededCollapseNoise(seed); const n1 = seededCollapseNoise(seed + 1)
   const n2 = seededCollapseNoise(seed + 2); const n3 = seededCollapseNoise(seed + 3)
   return {
-    x: direction * (0.5 + topBias * 0.5 + n0 * 0.2),
-    y: 0.08 + topBias * 0.2,
-    z: (n1 - 0.5) * 0.15,
-    rx: (n2 - 0.5) * 1.2,
-    ry: (n3 - 0.5) * 0.5,
-    rz: direction * (1.8 + topBias * 2.2 + (n0 - 0.5) * 0.5),
-    gravity: 9 + topBias * 4,
+    mode: 'sidePivot',
+    pivotDirection: direction,
+    pivotXOffset: direction * 0.23,
+    pivotYOffset: -0.66,
+    pivotZOffset: 0.16,
+    pivotAngle: 1.52,
+    fadeStartMs: 610,
+    fadeDurationMs: 150,
+    x: direction * (1.45 + topBias * 0.95 + n0 * 0.18),
+    y: 0.12 + topBias * 0.18,
+    z: (n1 - 0.5) * 0.12,
+    rx: (n2 - 0.5) * 0.45,
+    ry: (n3 - 0.5) * 0.25,
+    rz: direction * (4.05 + topBias * 1.25 + (n0 - 0.5) * 0.45),
+    gravity: 7.8 + topBias * 3.5,
     delayMs: index * 6,
     settleY: -0.10,
     linearDamping: 3.0,
@@ -461,19 +485,19 @@ function createSideFallMotion({ seed, part, index, direction }) {
 }
 
 function createSpiralDownMotion({ seed, part, index }) {
-  // 빙글 돌며 쓰러짐: ry 회전 + 바깥 흩어짐 + 중력
+
   const [ox, oy, oz] = part.offset
   const topBias = Math.max(0, Math.min(1, (oy + 0.6) / 1.5))
   const n0 = seededCollapseNoise(seed); const n1 = seededCollapseNoise(seed + 1)
   const n2 = seededCollapseNoise(seed + 2); const n3 = seededCollapseNoise(seed + 3)
-  const angle = Math.atan2(ox, oz) + n0 * 0.6  // 원래 방향에서 약간 틀어짐
+  const angle = Math.atan2(ox, oz) + n0 * 0.6
   const radius = 0.15 + Math.hypot(ox, oz) * 0.4 + n1 * 0.1
   return {
     x: Math.sin(angle) * radius,
     y: 0.12 + topBias * 0.28,
     z: Math.cos(angle) * radius,
     rx: (n2 - 0.5) * 3.0,
-    ry: (n0 > 0.5 ? 1 : -1) * (6.0 + n1 * 4.0),  // 같은 방향으로 빙글
+    ry: (n0 > 0.5 ? 1 : -1) * (6.0 + n1 * 4.0),
     rz: (n3 - 0.5) * 1.5,
     gravity: 8 + topBias * 5,
     delayMs: index * 5,
@@ -484,36 +508,154 @@ function createSpiralDownMotion({ seed, part, index }) {
 }
 
 function createMeltDownMotion({ seed, part, index }) {
-  // 녹아내리듯 천천히 아래로 스르르 쓰러짐
+
   const [ox, oy] = part.offset
   const topBias = Math.max(0, Math.min(1, (oy + 0.6) / 1.5))
   const n0 = seededCollapseNoise(seed); const n1 = seededCollapseNoise(seed + 1)
   const n2 = seededCollapseNoise(seed + 2)
   return {
-    x: ox * (0.08 + n0 * 0.06),  // 제자리에서 아주 조금만 옆으로
-    y: -(0.1 + topBias * 0.4),   // 위로 안 뜨고 바로 아래로
+    x: ox * (0.08 + n0 * 0.06),
+    y: -(0.1 + topBias * 0.4),
     z: (n1 - 0.5) * 0.08,
     rx: topBias * 0.8 + (n2 - 0.5) * 0.4,
     ry: (n0 - 0.5) * 0.3,
     rz: (n1 - 0.5) * 0.25,
-    gravity: 1.5 + topBias * 1.5,   // 중력 낮음 → 천천히
-    delayMs: (1 - topBias) * 6 * index,  // 하체부터 천천히
+    gravity: 1.5 + topBias * 1.5,
+    delayMs: (1 - topBias) * 6 * index,
     settleY: -0.16,
     linearDamping: 5.5,
     spinDamping: 4.0,
   }
 }
 
-export function createCollapseMotion({ seed, part, index, style = 'bodyCollapse', scatterVariant }) {
-  if (style === 'scatter')    return createScatterMotion({ seed, part, index, scatterVariant })
-  if (style === 'crumble')    return createCrumbleMotion({ seed, part, index })
-  if (style === 'slump')      return createSlumpMotion({ seed, part, index })
-  if (style === 'kneel')      return createKneelMotion({ seed, part, index })
-  if (style === 'faceDown')   return createFaceDownMotion({ seed, part, index })
-  if (style === 'backFall')   return createBackFallMotion({ seed, part, index })
+function createTripRollMotion({ seed, part, index }) {
+  const [ox, oy, oz] = part.offset
+  const side = ox >= 0 ? 1 : -1
+  const n0 = seededCollapseNoise(seed); const n1 = seededCollapseNoise(seed + 1)
+  const n2 = seededCollapseNoise(seed + 2)
+  return {
+    x: side * (0.45 + n0 * 0.35),
+    y: 0.12 + Math.max(0, oy) * 0.18,
+    z: 0.35 + oz * 0.5 + n1 * 0.25,
+    rx: 2.8 + n2 * 2.8,
+    ry: side * (2.0 + n1 * 2.5),
+    rz: side * (3.4 + n0 * 2.0),
+    gravity: 10 + part.mass * 2.0,
+    delayMs: index * 4,
+    settleY: -0.12,
+    linearDamping: 2.8,
+    spinDamping: 1.1,
+  }
+}
+
+function createPopFallMotion({ seed, part, index }) {
+  const [ox, oy, oz] = part.offset
+  const n0 = seededCollapseNoise(seed); const n1 = seededCollapseNoise(seed + 1)
+  const n2 = seededCollapseNoise(seed + 2)
+  return {
+    x: ox * 0.35 + (n0 - 0.5) * 0.28,
+    y: 0.75 + Math.max(0, oy) * 0.55 + n1 * 0.25,
+    z: oz * 0.35 + (n2 - 0.5) * 0.28,
+    rx: (n2 - 0.5) * 5.5,
+    ry: (n0 - 0.5) * 5.0,
+    rz: (n1 - 0.5) * 5.0,
+    gravity: 15 + part.mass * 3.0,
+    delayMs: Math.min(index, 5) * 3,
+    settleY: -0.14,
+    linearDamping: 3.4,
+    spinDamping: 1.7,
+  }
+}
+
+function createTwistBackMotion({ seed, part, index }) {
+  const [ox, oy] = part.offset
+  const topBias = Math.max(0, Math.min(1, (oy + 0.6) / 1.5))
+  const n0 = seededCollapseNoise(seed); const n1 = seededCollapseNoise(seed + 1)
+  const n2 = seededCollapseNoise(seed + 2)
+  const isLeg = part.key.includes('leg')
+  const isFoot = part.key.includes('foot')
+  const isWalkingPart = isLeg || isFoot
+  const sidePhase = ox >= 0 ? Math.PI : 0
+  return {
+    mode: 'backstep',
+    steps: 3,
+    stepDistance: 0.46,
+    walkSwing: isWalkingPart ? (isLeg ? 0.58 : 0.42) : 0,
+    walkCycleMs: 190,
+    walkPhase: sidePhase,
+    fallStartMs: 520,
+    fadeStartMs: 620,
+    fadeDurationMs: 150,
+    x: ox * 0.2 + (n0 - 0.5) * 0.16,
+    y: 0.18 + topBias * 0.25,
+    z: -(1.35 + topBias * 0.55 + n1 * 0.18),
+    rx: -(3.85 + topBias * 0.9),
+    ry: (n0 > 0.5 ? 1 : -1) * (5.0 + n2 * 3.0),
+    rz: (n1 - 0.5) * 1.0,
+    gravity: 9 + topBias * 5,
+    delayMs: index * 5,
+    settleY: -0.12,
+    linearDamping: 2.7,
+    spinDamping: 1.0,
+  }
+}
+
+function createProneSinkMotion({ seed, part, index }) {
+  const [ox, oy, oz] = part.offset
+  const topBias = Math.max(0, Math.min(1, (oy + 0.6) / 1.5))
+  const n0 = seededCollapseNoise(seed); const n1 = seededCollapseNoise(seed + 1)
+  return {
+    mode: 'proneSink',
+    sinkDepth: 0.78,
+    fadeStartMs: 520,
+    fadeDurationMs: 220,
+    x: ox * 0.18 + (n0 - 0.5) * 0.06,
+    y: -(0.42 + topBias * 0.72),
+    z: 0.38 + oz * 0.25 + topBias * 0.22,
+    rx: 3.15 + topBias * 0.9,
+    ry: (n1 - 0.5) * 0.25,
+    rz: (n0 - 0.5) * 0.18,
+    gravity: 2.2 + topBias * 1.4,
+    delayMs: 120 + index * 6,
+    settleY: -0.48,
+    linearDamping: 7.2,
+    spinDamping: 5.5,
+  }
+}
+
+function createShatterStrengthMotion({ seed, part, index, strength }) {
+  const motion = createScatterMotion({
+    seed,
+    part,
+    index,
+    scatterVariant: ['burst', 'wave', 'spiral', 'ring', 'fountain'][strength - 1] ?? 'burst',
+  })
+  const spread = [0.28, 0.48, 0.72, 1.05, 1.42][strength - 1] ?? 0.72
+  const lift = [0.45, 0.65, 0.9, 1.12, 1.35][strength - 1] ?? 0.9
+  return {
+    ...motion,
+    x: motion.x * spread,
+    y: motion.y * lift,
+    z: motion.z * spread,
+    rx: motion.rx * (0.55 + strength * 0.15),
+    ry: motion.ry * (0.55 + strength * 0.15),
+    rz: motion.rz * (0.55 + strength * 0.15),
+    distanceScale: (motion.distanceScale ?? 1) * spread,
+    linearDamping: Math.max(0.55, motion.linearDamping / (0.8 + strength * 0.12)),
+  }
+}
+
+export function createCollapseMotion({ seed, part, index, style = 'forwardFall' }) {
+  if (style === 'shatter1')   return createShatterStrengthMotion({ seed, part, index, strength: 1 })
+  if (style === 'shatter2')   return createShatterStrengthMotion({ seed, part, index, strength: 2 })
+  if (style === 'shatter3')   return createShatterStrengthMotion({ seed, part, index, strength: 3 })
+  if (style === 'shatter4')   return createShatterStrengthMotion({ seed, part, index, strength: 4 })
+  if (style === 'shatter5')   return createShatterStrengthMotion({ seed, part, index, strength: 5 })
+  if (style === 'forwardFall') return createFaceDownMotion({ seed, part, index })
+  if (style === 'backwardFall') return createBackFallMotion({ seed, part, index })
   if (style === 'leftFall')   return createSideFallMotion({ seed, part, index, direction: -1 })
   if (style === 'rightFall')  return createSideFallMotion({ seed, part, index, direction: +1 })
-  if (style === 'spiralDown') return createSpiralDownMotion({ seed, part, index })
-  if (style === 'meltDown')   return createMeltDownMotion({ seed, part, index })
-  return createBodyCollapseMotion({ seed, part, index })
+  if (style === 'backstepFall') return createTwistBackMotion({ seed, part, index })
+  if (style === 'proneSink')  return createProneSinkMotion({ seed, part, index })
+  return createFaceDownMotion({ seed, part, index })
 }

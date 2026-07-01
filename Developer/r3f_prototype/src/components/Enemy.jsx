@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
+﻿import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import * as THREE from 'three'
@@ -20,10 +20,10 @@ const _dir = new THREE.Vector3()
 const _pos = new THREE.Vector3()
 const _chargeTarget = new THREE.Vector3()
 const _fireDir = new THREE.Vector3()
-// setLinvel에 전달하는 재사용 객체 — 매 프레임 인라인 객체 생성 방지
+// setLinvel???꾨떖?섎뒗 ?ъ궗??媛앹껜 ??留??꾨젅???몃씪??媛앹껜 ?앹꽦 諛⑹?
 const _vel = { x: 0, y: 0, z: 0 }
 
-// 방향 회전 헬퍼 — useFrame 내 함수 재생성 방지를 위해 모듈 레벨
+// 諛⑺뼢 ?뚯쟾 ?ы띁 ??useFrame ???⑥닔 ?ъ깮??諛⑹?瑜??꾪빐 紐⑤뱢 ?덈꺼
 function _applyRotation(groupRef, dx, dz, turnRate = 0.12) {
   if (!groupRef.current) return
   if (Math.hypot(dx, dz) <= 0.0001) return
@@ -36,7 +36,7 @@ function _applyRotation(groupRef, dx, dz, turnRate = 0.12) {
 
 export const ENEMY_SIZE_MULTIPLIER = 4 / 3
 
-// XP 값은 교과서 30% 드랍률을 보정해 약 3.3배로 책정 (Planner/B.게임기획,밸런스 구현/B-1 캐릭터 성장,능력치 업그레이드 구조 구현/Rewards_Drops/dual_drop_system_2026-05-08.md §7-2).
+// XP 媛믪? 援먭낵??30% ?쒕엻瑜좎쓣 蹂댁젙????3.3諛곕줈 梨낆젙 (Planner/B.寃뚯엫湲고쉷,諛몃윴??援ы쁽/B-1 罹먮┃???깆옣,?λ젰移??낃렇?덉씠??援ъ“ 援ы쁽/Rewards_Drops/dual_drop_system_2026-05-08.md 짠7-2).
 export const ENEMY_STATS = {
   E01: { hp: 8,    speed: 0.475, damage: 8,  scale: 1.00, xp: 6,  contactDist: 0.28 },
   E02: { hp: 70,   speed: 0.55, damage: 14, scale: 1.40, xp: 15, contactDist: 0.36 },
@@ -47,14 +47,24 @@ export const ENEMY_STATS = {
   E05: { hp: 70,   speed: 0.5,  damage: 16, scale: 1.15, xp: 15, contactDist: 0.32,
          charger: true, chargeSpeed: 1.7, warnDist: 4.5, warnDuration: 700, stunDuration: 1000, chargeDuration: 1200 },
   E06: { hp: 320,  speed: 0.6,  damage: 20, scale: 1.60, xp: 56, contactDist: 0.42 },
-  // B01 1스테이지: 부채꼴 투사체 패턴 제거. 추격/돌진만 사용 (Bang_Rules 2026-05-09 부록).
-  // contactDist 0.36: 돌진 접촉 = 0.36 × 4/3(크기배수) × 1.5 ≈ 0.72 ≈ 본체 반폭(0.14×cs=0.56) + 플레이어 반폭(0.136).
-  // 이전 0.80은 접촉 반경이 ~1.6이라 본체 외형보다 훨씬 커서 "안 닿아도 피격"되는 문제가 있었다.
+  // B01 1?ㅽ뀒?댁?: 遺梨꾧섦 ?ъ궗泥??⑦꽩 ?쒓굅. 異붽꺽/?뚯쭊留??ъ슜 (Bang_Rules 2026-05-09 遺濡?.
+  // contactDist 0.36: ?뚯쭊 ?묒큺 = 0.36 횞 4/3(?ш린諛곗닔) 횞 1.5 ??0.72 ??蹂몄껜 諛섑룺(0.14횞cs=0.56) + ?뚮젅?댁뼱 諛섑룺(0.136).
+  // ?댁쟾 0.80? ?묒큺 諛섍꼍??~1.6?대씪 蹂몄껜 ?명삎蹂대떎 ?⑥뵮 而ㅼ꽌 "???우븘???쇨꺽"?섎뒗 臾몄젣媛 ?덉뿀??
   B01: { hp: 1400, speed: 0.475, damage: 22, scale: 3.00, xp: 0,  contactDist: 0.36,
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
 }
 
-// 콜라이더 기본 반크기 (scale=1 기준)
+// 肄쒕씪?대뜑 湲곕낯 諛섑겕湲?(scale=1 湲곗?)
+export function resolveRangedEnemyVelocity({ dirX, dirZ, dist, minDist, preferDist, speed, strafeSign = 1 }) {
+  const len = Math.hypot(dirX, dirZ) || 1
+  const nx = dirX / len
+  const nz = dirZ / len
+  if (dist < minDist) return { x: -nx * speed, z: -nz * speed }
+  if (dist > preferDist) return { x: nx * speed, z: nz * speed }
+  const side = strafeSign >= 0 ? 1 : -1
+  return { x: -nz * speed * 0.75 * side, z: nx * speed * 0.75 * side }
+}
+
 const BASE_COL = [0.14, 0.26, 0.10]
 
 function deathSfxId(type, isMatilda) {
@@ -86,7 +96,7 @@ export const CHARGE_CUE_LAYOUT = {
   },
 }
 
-// outlineMat(0.92) for charge cue — zombie outline is 0.96, charge cue uses slightly lighter
+// outlineMat(0.92) for charge cue ??zombie outline is 0.96, charge cue uses slightly lighter
 let _chargeCueOutlineMat = null
 const getChargeCueOutlineMat = () => {
   if (!_chargeCueOutlineMat) _chargeCueOutlineMat = outlineMat(0.92)
@@ -151,7 +161,7 @@ function ChargeToonCue({ y }) {
   )
 }
 
-// ── 적 투사체 (E04 원거리 전용. B01 부채꼴 패턴은 2026-05-09 폐기) ──────────────
+// ?? ???ъ궗泥?(E04 ?먭굅由??꾩슜. B01 遺梨꾧섦 ?⑦꽩? 2026-05-09 ?먭린) ??????????????
 let _projId = 0
 
 function EnemyProjectile({ id, position, velocity, damage, onExpire }) {
@@ -190,8 +200,8 @@ function EnemyProjectile({ id, position, velocity, damage, onExpire }) {
   )
 }
 
-// ── HP 바 ────────────────────────────────────────────────────────────────────
-// ── 메인 Enemy 컴포넌트 ───────────────────────────────────────────────────────
+// ?? HP 諛?????????????????????????????????????????????????????????????????????
+// ?? 硫붿씤 Enemy 而댄룷?뚰듃 ???????????????????????????????????????????????????????
 // E01-E06 standard zombies render via ZombieInstanceLayer (instanced). B01 + Matilda use React mesh.
 const INSTANCED_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06'])
 
@@ -204,7 +214,7 @@ export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = fal
   return (
     <>
       <group ref={groupRef} scale={[cs * 0.333, cs * 0.333, cs * 0.333]}>
-        {/* E01-E06: rendered imperatively by ZombieInstanceLayer — no mesh here */}
+        {/* E01-E06: rendered imperatively by ZombieInstanceLayer ??no mesh here */}
         {!useInstanced && <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} isMatilda={isMatilda} />}
         {stats.charger && animPhase === 'warn' && <ChargeToonCue y={CHARGE_CUE_LAYOUT.y} />}
       </group>
@@ -232,17 +242,17 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const lastContactDmgRef     = useRef(0)
   const spawnedAtRef          = useRef(performance.now())
 
-  // E05 / B01 돌진 상태 머신
+  // E05 / B01 ?뚯쭊 ?곹깭 癒몄떊
   const [animPhase, setAnimPhase] = useState('normal') // normal|warn|charge|stun|retreat
   const chargeState  = useRef('chase')   // chase|warn|charge|stun
   const stateTimer   = useRef(0)
   const chargeDir    = useRef(new THREE.Vector3())
 
-  // 뒷걸음 상태 (1/50 피격 시)
+  // ?룰구???곹깭 (1/50 ?쇨꺽 ??
   const retreatUntilRef = useRef(0)
   const retreatDirRef   = useRef(new THREE.Vector3())
 
-  // E04 / B01 투사체
+  // E04 / B01 ?ъ궗泥?
   const [projectiles, setProjectiles] = useState([])
   const lastFireRef = useRef(0)
 
@@ -282,13 +292,13 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           z: knockbackDir.current.z * knockback.speed,
         }, true)
       }
-      // 1/50 확률 뒷걸음 — E01~E06, charge 중 제외
+      // 1/50 ?뺣쪧 ?룰구????E01~E06, charge 以??쒖쇅
       if (type !== 'B01' && chargeState.current !== 'charge' && Math.random() < 1 / 50) {
         const dx = hitPos.x - playerPos.x
         const dz = hitPos.z - playerPos.z
         const len = Math.hypot(dx, dz) || 1
         retreatDirRef.current.set(dx / len, 0, dz / len)
-        // 넉백이 있으면 그 후부터, 없으면 즉시 시작
+        // ?됰갚???덉쑝硫?洹??꾨??? ?놁쑝硫?利됱떆 ?쒖옉
         retreatUntilRef.current = Math.max(performance.now(), knockbackUntilRef.current) + 550
       }
 
@@ -299,18 +309,18 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         rb.current._enemyDead = true
         rb.current._enemyHit = null
         enemyBodies.delete(id)
-        // 본 런 처치 카운터 + 보스 처치 즉시 누적
+        // 蹂???泥섏튂 移댁슫??+ 蹂댁뒪 泥섏튂 利됱떆 ?꾩쟻
         const store = useGameStore.getState()
         store.recordKill()
         emitSfx({ id: deathSfxId(type, isMatilda) })
-        // 마틸다는 B01 비주얼을 쓰지만 클리어 처리하지 않는다
+        // 留덊떥?ㅻ뒗 B01 鍮꾩＜?쇱쓣 ?곗?留??대━??泥섎━?섏? ?딅뒗??
         if (type === 'B01' && !isMatilda) {
           store.recordBossKill()
           store.clearStageWithBossBonus()
         }
         logKill(type)
         const t = rb.current?.translation()
-        // 막타 위력으로 박살 강도(약/중/강) 결정. impact.knockback은 무기 원천 넉백(없으면 0).
+        // 留됲? ?꾨젰?쇰줈 諛뺤궡 媛뺣룄(??以?媛? 寃곗젙. impact.knockback? 臾닿린 ?먯쿇 ?됰갚(?놁쑝硫?0).
         const intensity = resolveCollapseIntensity({
           killingDamage: dmg,
           maxHp: stats.hp,
@@ -362,19 +372,19 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
     const updateRotation = (dx, dz, tr) => _applyRotation(groupRef, dx, dz, tr)
 
-    // ── 뒷걸음 ───────────────────────────────────────────────────────────────
+    // ?? ?룰구?????????????????????????????????????????????????????????????????
     if (retreatUntilRef.current > now) {
       if (animPhase !== 'retreat') setAnimPhase('retreat')
       _vel.x = retreatDirRef.current.x * 6.0
       _vel.y = 0
       _vel.z = retreatDirRef.current.z * 6.0
       rb.current.setLinvel(_vel, true)
-      // 플레이어를 바라보며 뒷걸음 (뒤통수X, 정면 유지)
+      // ?뚮젅?댁뼱瑜?諛붾씪蹂대ŉ ?룰구??(?ㅽ넻?쁙, ?뺣㈃ ?좎?)
       updateRotation(-retreatDirRef.current.x, -retreatDirRef.current.z, 0.5)
       return
     }
     if (animPhase === 'retreat') {
-      // retreat 종료 → 이전 상태 복원
+      // retreat 醫낅즺 ???댁쟾 ?곹깭 蹂듭썝
       if (stats.charger) {
         setAnimPhase(
           chargeState.current === 'charge' ? 'charge'
@@ -387,23 +397,23 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       }
     }
 
-    // ── E04: 원거리 감염체 ─────────────────────────────────────────────────
+    // ?? E04: ?먭굅由?媛먯뿼泥??????????????????????????????????????????????????
     if (stats.ranged) {
       const now = performance.now()
-      // 원하는 거리 유지: 너무 가까우면 후퇴, 너무 멀면 전진
+      // ?먰븯??嫄곕━ ?좎?: ?덈Т 媛源뚯슦硫??꾪눜, ?덈Т 硫硫??꾩쭊
       _vel.y = 0
-      if (dist < stats.minDist) {
-        _dir.normalize()
-        _vel.x = -_dir.x * stats.speed; _vel.z = -_dir.z * stats.speed
-        rb.current.setLinvel(_vel, true)
-      } else if (dist > stats.preferDist) {
-        _dir.normalize()
-        _vel.x = _dir.x * stats.speed; _vel.z = _dir.z * stats.speed
-        rb.current.setLinvel(_vel, true)
-      } else {
-        _vel.x = 0; _vel.z = 0
-        rb.current.setLinvel(_vel, true)
-      }
+      const rangedVelocity = resolveRangedEnemyVelocity({
+        dirX: _dir.x,
+        dirZ: _dir.z,
+        dist,
+        minDist: stats.minDist,
+        preferDist: stats.preferDist,
+        speed: stats.speed,
+        strafeSign: Number(id) % 2 === 0 ? 1 : -1,
+      })
+      _vel.x = rangedVelocity.x
+      _vel.z = rangedVelocity.z
+      rb.current.setLinvel(_vel, true)
       if (_dir.length() > 0) updateRotation(_dir.x / _dir.length(), _dir.z / _dir.length())
 
       const elapsedSec = useGameStore.getState().elapsedMs / 1000
@@ -418,7 +428,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         bossPressure: elapsedSec >= 190 && elapsedSec < 200,
       })
 
-      // 투사체 발사
+      // ?ъ궗泥?諛쒖궗
       if (canFire) {
         lastFireRef.current = now
         _fireDir.copy(_dir).normalize()
@@ -432,13 +442,13 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       return
     }
 
-    // ── E05 / B01 돌진 상태 머신 ───────────────────────────────────────────
+    // ?? E05 / B01 ?뚯쭊 ?곹깭 癒몄떊 ???????????????????????????????????????????
     if (stats.charger) {
       const now = performance.now()
 
       _vel.y = 0
       if (chargeState.current === 'chase') {
-        // 일반 추격
+        // ?쇰컲 異붽꺽
         _dir.normalize()
         _vel.x = _dir.x * stats.speed; _vel.z = _dir.z * stats.speed
         rb.current.setLinvel(_vel, true)
@@ -497,7 +507,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       return
     }
 
-    // ── 기본 추격 (E01, E02, E03, E06) ────────────────────────────────────
+    // ?? 湲곕낯 異붽꺽 (E01, E02, E03, E06) ????????????????????????????????????
     _vel.y = 0
     if (dist < stats.contactDist * ENEMY_SIZE_MULTIPLIER) {
       const now = performance.now()
@@ -544,7 +554,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} isMatilda={isMatilda} />
       </RigidBody>
 
-      {/* E04 투사체 */}
+      {/* E04 ?ъ궗泥?*/}
       {projectiles.map((p) => (
         <EnemyProjectile key={p.id} {...p} onExpire={expireProjectile} />
       ))}

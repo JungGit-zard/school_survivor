@@ -1,8 +1,12 @@
 # Zombie Death Random All Styles
 
-## 그래픽 기록
+## Visual Note
 
-- 몬스터 사망 연출은 기존 three.js 카툰 렌더링 파츠 기반 3D 연출을 유지한다.
-- 일반 좀비와 보스 모두 10가지 쓰러짐 연출 및 scatter 박살 연출 풀에서 랜덤 선택된다.
-- 별도 2D/스프라이트 사망 애니메이션 경로는 사용하지 않는다.
-
+- Zombie death visuals stay in the existing three.js toon-rendered 3D collapse system.
+- Graphics Studio plays the 11 requested death styles in order for inspection.
+- Gameplay uses the same 11 styles from a shuffled random bag.
+- Browser check confirmed the full sequence from `forwardFall` to `shatter5`.
+- Directional falls now exaggerate one clear axis so the silhouette reads differently.
+- Left and right falls pivot around the foot tip instead of sliding sideways.
+- `backstepFall` and `proneSink` use staged motion instead of another generic scatter.
+- `backstepFall` adds fast leg/foot swing during the backward steps.

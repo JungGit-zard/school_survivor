@@ -4,11 +4,11 @@ import * as THREE from 'three'
 import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
 import {
   ENEMY_DEATH_COLLAPSE_LIFETIME_MS,
+  ENEMY_DEATH_COLLAPSE_STYLES,
   ZOMBIE_COLLAPSE_PARTS,
   createCollapseMotion,
   collapseStyleForIntensity,
   collapsePieceScaleForStyle,
-  scatterCollapseVariantForSeed,
   seededCollapseNoise,
   resolveCollapsePartOpacity,
 } from '../lib/enemyDeathCollapse.js'
@@ -28,7 +28,15 @@ function collapseVariantSeed(id, position) {
   return idSeed * 17.17 + x * 19.31 + z * 23.73
 }
 
-function CollapsePart({ part, index, origin, visualScale, palette, startedAt, style, pieceScale, scatterVariant }) {
+function clamp01(value) {
+  return Math.max(0, Math.min(1, value))
+}
+
+function easeOut(value) {
+  return 1 - Math.pow(1 - clamp01(value), 3)
+}
+
+function CollapsePart({ part, index, origin, visualScale, palette, startedAt, style, pieceScale }) {
   const groupRef = useRef(null)
   const meshRef = useRef(null)
   const outlineRef = useRef(null)
@@ -56,7 +64,7 @@ function CollapsePart({ part, index, origin, visualScale, palette, startedAt, st
   }, [part.color])
 
   const seed = origin[0] * 17.1 + origin[2] * 31.7 + index * 13.37
-  const motion = useRef(createCollapseMotion({ seed, part, index, style, scatterVariant }))
+  const motion = useRef(createCollapseMotion({ seed, part, index, style }))
   const size = useMemo(() => part.size.map((value) => value * visualScale * pieceScale), [part.size, visualScale, pieceScale])
   const baseRotation = part.rotation ?? [0, 0, 0]
 
@@ -76,6 +84,91 @@ function CollapsePart({ part, index, origin, visualScale, palette, startedAt, st
     const v = motion.current
     const p = pos.current
     const activeMs = elapsed - v.delayMs
+
+    if (v.mode === 'sidePivot') {
+      const baseX = origin[0] + part.offset[0] * visualScale
+      const baseY = origin[1] + part.offset[1] * visualScale
+      const baseZ = origin[2] + part.offset[2] * visualScale
+      const pivotX = origin[0] + v.pivotXOffset * visualScale
+      const pivotY = origin[1] + v.pivotYOffset * visualScale
+      const pivotZ = origin[2] + v.pivotZOffset * visualScale
+      const fallT = easeOut(elapsed / 430)
+      const angle = -v.pivotDirection * v.pivotAngle * fallT
+      const cos = Math.cos(angle)
+      const sin = Math.sin(angle)
+      const dx = baseX - pivotX
+      const dy = baseY - pivotY
+
+      groupRef.current.position.set(
+        pivotX + dx * cos - dy * sin,
+        pivotY + dx * sin + dy * cos,
+        pivotZ + (baseZ - pivotZ) + v.z * visualScale * fallT,
+      )
+      groupRef.current.rotation.set(
+        pos.current.rx + v.rx * fallT,
+        pos.current.ry + v.ry * fallT,
+        pos.current.rz + angle,
+      )
+
+      const opacity = resolveCollapsePartOpacity(elapsed, v)
+      if (meshRef.current) meshRef.current.material.opacity = opacity
+      if (outlineRef.current) outlineRef.current.material.opacity = opacity * (part.color === 'eye' ? 0.25 : 0.72)
+      return
+    }
+
+    if (v.mode === 'backstep') {
+      const baseX = origin[0] + part.offset[0] * visualScale
+      const baseY = origin[1] + part.offset[1] * visualScale
+      const baseZ = origin[2] + part.offset[2] * visualScale
+      const step = Math.min(v.steps, Math.floor(elapsed / 145))
+      const stepT = easeOut((elapsed % 145) / 145)
+      const walked = Math.min(v.steps, step + stepT) * v.stepDistance * visualScale
+      const fallT = easeOut((elapsed - v.fallStartMs) / 180)
+      const walkCycle = v.walkCycleMs || 120
+      const gait = v.walkSwing ? Math.sin((elapsed / walkCycle) * Math.PI * 2 + v.walkPhase) : 0
+      const walkZ = gait * v.walkSwing * visualScale
+      const walkY = Math.abs(gait) * v.walkSwing * 0.12 * visualScale
+
+      groupRef.current.position.set(
+        baseX + v.x * 0.06 * fallT,
+        baseY + walkY - 0.12 * visualScale * fallT,
+        baseZ - walked + walkZ + v.z * 0.16 * fallT,
+      )
+      groupRef.current.rotation.set(
+        pos.current.rx + gait * 1.15 + v.rx * fallT,
+        pos.current.ry + v.ry * fallT,
+        pos.current.rz + v.rz * fallT,
+      )
+
+      const opacity = resolveCollapsePartOpacity(elapsed, v)
+      if (meshRef.current) meshRef.current.material.opacity = opacity
+      if (outlineRef.current) outlineRef.current.material.opacity = opacity * (part.color === 'eye' ? 0.25 : 0.72)
+      return
+    }
+
+    if (v.mode === 'proneSink') {
+      const baseX = origin[0] + part.offset[0] * visualScale
+      const baseY = origin[1] + part.offset[1] * visualScale
+      const baseZ = origin[2] + part.offset[2] * visualScale
+      const proneT = easeOut(elapsed / 300)
+      const sinkT = easeOut((elapsed - 380) / 260)
+
+      groupRef.current.position.set(
+        baseX + v.x * visualScale * proneT,
+        baseY + v.y * 0.45 * visualScale * proneT - v.sinkDepth * visualScale * sinkT,
+        baseZ + v.z * visualScale * proneT,
+      )
+      groupRef.current.rotation.set(
+        pos.current.rx + v.rx * proneT,
+        pos.current.ry + v.ry * proneT,
+        pos.current.rz + v.rz * proneT,
+      )
+
+      const opacity = resolveCollapsePartOpacity(elapsed, v)
+      if (meshRef.current) meshRef.current.material.opacity = opacity
+      if (outlineRef.current) outlineRef.current.material.opacity = opacity * (part.color === 'eye' ? 0.25 : 0.72)
+      return
+    }
 
     if (activeMs >= 0) {
       v.y -= v.gravity * delta
@@ -132,18 +225,17 @@ function CollapsePart({ part, index, origin, visualScale, palette, startedAt, st
   )
 }
 
-export default function EnemyDeathCollapse({ id, type, position, visualScale, intensity = 'medium', onDone }) {
+export default function EnemyDeathCollapse({ id, type, position, visualScale, intensity = 'medium', styleOverride, onDone }) {
   const palette = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
   const startedAtRef = useRef(performance.now())
   const styleSeed = useMemo(() => collapseVariantSeed(id, position), [id, position])
-  // 박살 강도(약/중/강) → 모션 스타일. intensity가 없으면 중간(bodyCollapse)으로 폴백.
-  const style = useMemo(() => collapseStyleForIntensity(intensity, styleSeed), [intensity, styleSeed])
-  // scatter는 조각을 절반 크기로 — 흩날림이 큰 파편을 잘게.
+  // Every kill draws from the same 11-style death pool; intensity no longer pins a style.
+  const style = useMemo(() => (
+    ENEMY_DEATH_COLLAPSE_STYLES.includes(styleOverride)
+      ? styleOverride
+      : collapseStyleForIntensity(intensity, styleSeed)
+  ), [intensity, styleOverride, styleSeed])
   const pieceScale = useMemo(() => collapsePieceScaleForStyle(style), [style])
-  const scatterVariant = useMemo(() => {
-    if (style !== 'scatter') return undefined
-    return scatterCollapseVariantForSeed(styleSeed)
-  }, [style, styleSeed])
 
   useEffect(() => {
     const timer = window.setTimeout(() => onDone?.(id), ENEMY_DEATH_COLLAPSE_LIFETIME_MS)
@@ -163,7 +255,6 @@ export default function EnemyDeathCollapse({ id, type, position, visualScale, in
           startedAt={startedAtRef.current}
           style={style}
           pieceScale={pieceScale}
-          scatterVariant={scatterVariant}
         />
       ))}
     </group>
