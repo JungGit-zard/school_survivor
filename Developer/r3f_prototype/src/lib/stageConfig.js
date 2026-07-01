@@ -20,7 +20,7 @@ export const STAGE_CONFIGS = {
     matildaSec: 420,
     // 맵 경계(월드 유닛, 중심 0). 교실 구도에 맞춰 세로로 긴 직사각형 — 화면 세로=Z, 가로=X.
     mapHalfX: 10,
-    mapHalfZ: 54,
+    mapHalfZ: 27,
     survivalMilestones: [
       { atMs: 48_000, gold: 1, label: '초반 생존 보너스' },
       { atMs: 144_000, gold: 3, label: '중반 돌파 보너스' },
