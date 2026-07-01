@@ -65,7 +65,7 @@ export const WEAPON_CATALOG = {
   onigiri: {
     id: 'onigiri',
     label: '오니기리',
-    base: { damage: 14, cooldown: 5000, bounces: 1, bounceRange: 4.5, range: 18 },
+    base: { damage: 14, cooldown: 5000, bounces: 2, bounceRange: 4.5, range: 18 },
     unlockConditions: STARTER,
     minLevelToAppear: 8,
   },

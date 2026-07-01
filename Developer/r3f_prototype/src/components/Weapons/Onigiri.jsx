@@ -230,7 +230,7 @@ export function OnigiiriWeapon() {
       id:            ++_onigiiriId,
       start:         [playerPos.x, playerPos.y, playerPos.z],
       initialTarget: target,
-      maxBounces:    w.bounces ?? 4,
+      maxBounces:    w.bounces ?? 2,
       damage:        w.damage,
       bounceRange:   w.bounceRange ?? 4.5,
     }
