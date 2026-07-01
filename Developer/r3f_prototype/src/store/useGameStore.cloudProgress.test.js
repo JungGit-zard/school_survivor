@@ -29,6 +29,36 @@ describe('useGameStore cloud progress integration', () => {
     expect(requestCloudProgressSave).toHaveBeenCalled()
   })
 
+  it('requests a cloud save after milestone gold changes', () => {
+    useGameStore.setState({ elapsedMs: 48_000 })
+
+    useGameStore.getState().checkSurvivalMilestone()
+
+    expect(requestCloudProgressSave).toHaveBeenCalled()
+  })
+
+  it('requests a cloud save after spending gold', () => {
+    useGameStore.setState({ goldTotal: 30 })
+
+    expect(useGameStore.getState().spendGold(5)).toBe(true)
+
+    expect(requestCloudProgressSave).toHaveBeenCalled()
+  })
+
+  it('requests a cloud save after buying a passive upgrade', () => {
+    useGameStore.setState({ goldTotal: 30 })
+
+    expect(useGameStore.getState().purchasePassive('magnet').ok).toBe(true)
+
+    expect(requestCloudProgressSave).toHaveBeenCalled()
+  })
+
+  it('requests a cloud save after resetting passive upgrades', () => {
+    useGameStore.getState().resetPassiveUpgrades()
+
+    expect(requestCloudProgressSave).toHaveBeenCalled()
+  })
+
   it('requests a cloud save after a run result is written to local records', () => {
     useGameStore.setState({ elapsedMs: 10_000, runKills: 4, goldSession: 2 })
     useGameStore.getState()._onRunEnd('gameover')
