@@ -248,10 +248,6 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const stateTimer   = useRef(0)
   const chargeDir    = useRef(new THREE.Vector3())
 
-  // ?룰구???곹깭 (1/50 ?쇨꺽 ??
-  const retreatUntilRef = useRef(0)
-  const retreatDirRef   = useRef(new THREE.Vector3())
-
   // E04 / B01 ?ъ궗泥?
   const [projectiles, setProjectiles] = useState([])
   const lastFireRef = useRef(0)
@@ -297,16 +293,6 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           z: knockbackDir.current.z * knockback.speed,
         }, true)
       }
-      // 1/50 ?뺣쪧 ?룰구????E01~E06, charge 以??쒖쇅
-      if (type !== 'B01' && chargeState.current !== 'charge' && Math.random() < 1 / 50) {
-        const dx = hitPos.x - playerPos.x
-        const dz = hitPos.z - playerPos.z
-        const len = Math.hypot(dx, dz) || 1
-        retreatDirRef.current.set(dx / len, 0, dz / len)
-        // ?됰갚???덉쑝硫?洹??꾨??? ?놁쑝硫?利됱떆 ?쒖옉
-        retreatUntilRef.current = Math.max(performance.now(), knockbackUntilRef.current) + 550
-      }
-
       hpRef.current -= dmg
       setHp(hpRef.current)
       if (hpRef.current <= 0) {
@@ -374,30 +360,6 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
     const updateRotation = (dx, dz, tr) => _applyRotation(groupRef, dx, dz, tr)
 
-    // ?? ?룰구?????????????????????????????????????????????????????????????????
-    if (retreatUntilRef.current > now) {
-      if (animPhase !== 'retreat') setAnimPhase('retreat')
-      _vel.x = retreatDirRef.current.x * 6.0
-      _vel.y = 0
-      _vel.z = retreatDirRef.current.z * 6.0
-      rb.current.setLinvel(_vel, true)
-      // ?뚮젅?댁뼱瑜?諛붾씪蹂대ŉ ?룰구??(?ㅽ넻?쁙, ?뺣㈃ ?좎?)
-      updateRotation(-retreatDirRef.current.x, -retreatDirRef.current.z, 0.5)
-      return
-    }
-    if (animPhase === 'retreat') {
-      // retreat 醫낅즺 ???댁쟾 ?곹깭 蹂듭썝
-      if (stats.charger) {
-        setAnimPhase(
-          chargeState.current === 'charge' ? 'charge'
-          : chargeState.current === 'stun'   ? 'stun'
-          : chargeState.current === 'warn'   ? 'warn'
-          : 'normal'
-        )
-      } else {
-        setAnimPhase('normal')
-      }
-    }
 
     // ?? E04: ?먭굅由?媛먯뿼泥??????????????????????????????????????????????????
     if (stats.ranged) {
