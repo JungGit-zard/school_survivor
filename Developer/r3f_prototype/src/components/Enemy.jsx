@@ -276,7 +276,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       hitFlashRef.current = true
       requestAnimationFrame(() => { setHitFlash(false); hitFlashRef.current = false })
       if (impact?.sfxId) emitSfx({ id: impact.sfxId, volume: 0.6 })
-      const knockback = resolveEnemyHitKnockback(impact)
+      const knockback = resolveEnemyHitKnockback(impact, { type })
       if (knockback.speed > 0) {
         const t = hitPos
         const sx = knockback.source?.x ?? playerPos.x
@@ -347,6 +347,19 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     _dir.copy(playerPos).sub(_pos)
     _dir.y = 0
     const dist = _dir.length()
+
+    // Update visual registry immediately — before any early return (knockback/ranged/charger)
+    if (useInstanced) {
+      zombieVisualRegistry.update(id, {
+        x: t.x, y: t.y, z: t.z,
+        yaw: groupRef.current?.rotation.y ?? 0,
+        type,
+        phase: chargeState.current,
+        wt: performance.now() * 0.001,
+        vs: cs * 0.333,
+        hitFlash: hitFlashRef.current,
+      })
+    }
 
     const now = performance.now()
 
@@ -488,18 +501,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       updateRotation(_dir.x, _dir.z)
     }
 
-    // Feed visual state to ZombieInstanceLayer
-    if (useInstanced) {
-      zombieVisualRegistry.update(id, {
-        x: t.x, y: t.y, z: t.z,
-        yaw: groupRef.current?.rotation.y ?? 0,
-        type,
-        phase: chargeState.current,
-        wt: performance.now() * 0.001,
-        vs: cs * 0.333,
-        hitFlash: hitFlashRef.current,
-      })
-    }
+
   })
 
   if (dead.current) return null
