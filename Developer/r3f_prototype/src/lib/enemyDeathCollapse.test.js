@@ -74,15 +74,10 @@ describe('enemy death collapse body pieces', () => {
     expect(right.rz).toBeGreaterThan(3.8)
   })
 
-  it('marks backstep and prone sink deaths as staged animations', () => {
+  it('marks prone sink death as a staged animation', () => {
     const body = ZOMBIE_COLLAPSE_PARTS.find((part) => part.key === 'body')
-    const backstep = createCollapseMotion({ seed: 12.5, part: body, index: 3, style: 'backstepFall' })
     const proneSink = createCollapseMotion({ seed: 12.5, part: body, index: 3, style: 'proneSink' })
 
-    expect(backstep.mode).toBe('backstep')
-    expect(backstep.steps).toBe(3)
-    expect(backstep.z).toBeLessThan(-1.2)
-    expect(backstep.fadeStartMs).toBeGreaterThanOrEqual(560)
     expect(proneSink.mode).toBe('proneSink')
     expect(proneSink.sinkDepth).toBeGreaterThan(0.6)
     expect(proneSink.rx).toBeGreaterThan(3)
@@ -104,26 +99,12 @@ describe('enemy death collapse body pieces', () => {
     expect(right.pivotXOffset).toBeGreaterThan(0)
   })
 
-  it('swings the legs at half speed during backstep death', () => {
-    const leg = ZOMBIE_COLLAPSE_PARTS.find((part) => part.key === 'legL')
-    const foot = ZOMBIE_COLLAPSE_PARTS.find((part) => part.key === 'footR')
-    const legMotion = createCollapseMotion({ seed: 12.5, part: leg, index: 8, style: 'backstepFall' })
-    const footMotion = createCollapseMotion({ seed: 12.5, part: foot, index: 11, style: 'backstepFall' })
-
-    expect(legMotion.mode).toBe('backstep')
-    expect(legMotion.walkSwing).toBeGreaterThan(0.45)
-    expect(legMotion.walkCycleMs).toBe(190)
-    expect(footMotion.walkSwing).toBeGreaterThan(0.35)
-    expect(footMotion.walkCycleMs).toBe(190)
-  })
-
-  it('uses the exact requested 11 death styles', () => {
+  it('uses the active 10 death styles', () => {
     expect(ENEMY_DEATH_COLLAPSE_STYLES).toEqual([
       'forwardFall',
       'backwardFall',
       'leftFall',
       'rightFall',
-      'backstepFall',
       'proneSink',
       'shatter1',
       'shatter2',
@@ -144,7 +125,7 @@ describe('enemy death collapse body pieces', () => {
 
   it('deals every death style once before the bag repeats', () => {
     resetDeathStyleBagForTests()
-    const drawn = Array.from({ length: 11 }, () => nextEnemyDeathCollapseStyle(() => 0.5))
+    const drawn = Array.from({ length: 10 }, () => nextEnemyDeathCollapseStyle(() => 0.5))
 
     expect(new Set(drawn)).toEqual(new Set(ENEMY_DEATH_COLLAPSE_STYLES))
   })

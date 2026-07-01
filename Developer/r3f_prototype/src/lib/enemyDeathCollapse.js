@@ -2,13 +2,12 @@ export const ENEMY_DEATH_COLLAPSE_LIFETIME_MS = 780
 export const ENEMY_DEATH_COLLAPSE_FADE_START_MS = 430
 export const FAR_SCATTER_FADE_START_MS = 260
 export const FAR_SCATTER_FADE_DURATION_MS = 250
-// Runtime death pool: 6 fall/sink styles + 5 shatter strengths.
+// Runtime death pool: 5 fall/sink styles + 5 shatter strengths.
 export const ENEMY_DEATH_COLLAPSE_STYLES = [
   'forwardFall',
   'backwardFall',
   'leftFall',
   'rightFall',
-  'backstepFall',
   'proneSink',
   'shatter1',
   'shatter2',
@@ -16,7 +15,7 @@ export const ENEMY_DEATH_COLLAPSE_STYLES = [
   'shatter4',
   'shatter5',
 ]
-export const SOFT_FALL_STYLES = ENEMY_DEATH_COLLAPSE_STYLES.slice(0, 6)
+export const SOFT_FALL_STYLES = ENEMY_DEATH_COLLAPSE_STYLES.slice(0, 5)
 export const SCATTER_COLLAPSE_VARIANTS = ['burst', 'spiral', 'wave', 'ring', 'fountain', 'cross', 'halfBurst']
 
 export const ZOMBIE_COLLAPSE_PARTS = [
@@ -567,39 +566,6 @@ function createPopFallMotion({ seed, part, index }) {
   }
 }
 
-function createTwistBackMotion({ seed, part, index }) {
-  const [ox, oy] = part.offset
-  const topBias = Math.max(0, Math.min(1, (oy + 0.6) / 1.5))
-  const n0 = seededCollapseNoise(seed); const n1 = seededCollapseNoise(seed + 1)
-  const n2 = seededCollapseNoise(seed + 2)
-  const isLeg = part.key.includes('leg')
-  const isFoot = part.key.includes('foot')
-  const isWalkingPart = isLeg || isFoot
-  const sidePhase = ox >= 0 ? Math.PI : 0
-  return {
-    mode: 'backstep',
-    steps: 3,
-    stepDistance: 0.46,
-    walkSwing: isWalkingPart ? (isLeg ? 0.58 : 0.42) : 0,
-    walkCycleMs: 190,
-    walkPhase: sidePhase,
-    fallStartMs: 520,
-    fadeStartMs: 620,
-    fadeDurationMs: 150,
-    x: ox * 0.2 + (n0 - 0.5) * 0.16,
-    y: 0.18 + topBias * 0.25,
-    z: -(1.35 + topBias * 0.55 + n1 * 0.18),
-    rx: -(3.85 + topBias * 0.9),
-    ry: (n0 > 0.5 ? 1 : -1) * (5.0 + n2 * 3.0),
-    rz: (n1 - 0.5) * 1.0,
-    gravity: 9 + topBias * 5,
-    delayMs: index * 5,
-    settleY: -0.12,
-    linearDamping: 2.7,
-    spinDamping: 1.0,
-  }
-}
-
 function createProneSinkMotion({ seed, part, index }) {
   const [ox, oy, oz] = part.offset
   const topBias = Math.max(0, Math.min(1, (oy + 0.6) / 1.5))
@@ -655,7 +621,6 @@ export function createCollapseMotion({ seed, part, index, style = 'forwardFall' 
   if (style === 'backwardFall') return createBackFallMotion({ seed, part, index })
   if (style === 'leftFall')   return createSideFallMotion({ seed, part, index, direction: -1 })
   if (style === 'rightFall')  return createSideFallMotion({ seed, part, index, direction: +1 })
-  if (style === 'backstepFall') return createTwistBackMotion({ seed, part, index })
   if (style === 'proneSink')  return createProneSinkMotion({ seed, part, index })
   return createFaceDownMotion({ seed, part, index })
 }

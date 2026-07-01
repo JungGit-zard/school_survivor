@@ -116,36 +116,6 @@ function CollapsePart({ part, index, origin, visualScale, palette, startedAt, st
       return
     }
 
-    if (v.mode === 'backstep') {
-      const baseX = origin[0] + part.offset[0] * visualScale
-      const baseY = origin[1] + part.offset[1] * visualScale
-      const baseZ = origin[2] + part.offset[2] * visualScale
-      const step = Math.min(v.steps, Math.floor(elapsed / 145))
-      const stepT = easeOut((elapsed % 145) / 145)
-      const walked = Math.min(v.steps, step + stepT) * v.stepDistance * visualScale
-      const fallT = easeOut((elapsed - v.fallStartMs) / 180)
-      const walkCycle = v.walkCycleMs || 120
-      const gait = v.walkSwing ? Math.sin((elapsed / walkCycle) * Math.PI * 2 + v.walkPhase) : 0
-      const walkZ = gait * v.walkSwing * visualScale
-      const walkY = Math.abs(gait) * v.walkSwing * 0.12 * visualScale
-
-      groupRef.current.position.set(
-        baseX + v.x * 0.06 * fallT,
-        baseY + walkY - 0.12 * visualScale * fallT,
-        baseZ - walked + walkZ + v.z * 0.16 * fallT,
-      )
-      groupRef.current.rotation.set(
-        pos.current.rx + gait * 1.15 + v.rx * fallT,
-        pos.current.ry + v.ry * fallT,
-        pos.current.rz + v.rz * fallT,
-      )
-
-      const opacity = resolveCollapsePartOpacity(elapsed, v)
-      if (meshRef.current) meshRef.current.material.opacity = opacity
-      if (outlineRef.current) outlineRef.current.material.opacity = opacity * (part.color === 'eye' ? 0.25 : 0.72)
-      return
-    }
-
     if (v.mode === 'proneSink') {
       const baseX = origin[0] + part.offset[0] * visualScale
       const baseY = origin[1] + part.offset[1] * visualScale
@@ -229,7 +199,7 @@ export default function EnemyDeathCollapse({ id, type, position, visualScale, in
   const palette = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
   const startedAtRef = useRef(performance.now())
   const styleSeed = useMemo(() => collapseVariantSeed(id, position), [id, position])
-  // Every kill draws from the same 11-style death pool; intensity no longer pins a style.
+  // Every kill draws from the same death pool; intensity no longer pins a style.
   const style = useMemo(() => (
     ENEMY_DEATH_COLLAPSE_STYLES.includes(styleOverride)
       ? styleOverride
