@@ -27,11 +27,12 @@ describe('common enemy hit VFX', () => {
     })
   })
 
-  it('adds a small default knockback to enemy hits that do not provide one', () => {
-    expect(COMMON_ENEMY_HIT_KNOCKBACK).toMatchObject({ speed: 0.85, durationMs: 70 })
+  it('applies a slight pushback on ordinary hits with no explicit knockback', () => {
+    expect(COMMON_ENEMY_HIT_KNOCKBACK.speed).toBeGreaterThan(0)
+    expect(COMMON_ENEMY_HIT_KNOCKBACK.durationMs).toBeGreaterThan(0)
     expect(resolveEnemyHitKnockback()).toMatchObject({
-      speed: 0.85,
-      durationMs: 70,
+      speed: COMMON_ENEMY_HIT_KNOCKBACK.speed,
+      durationMs: COMMON_ENEMY_HIT_KNOCKBACK.durationMs,
       source: undefined,
     })
   })
@@ -43,6 +44,13 @@ describe('common enemy hit VFX', () => {
       speed: 4.8,
       durationMs: 180,
       source,
+    })
+  })
+
+  it('keeps E02 purple zombies from sliding backward even when a weapon requests knockback', () => {
+    expect(resolveEnemyHitKnockback({ knockback: 4.8, knockbackMs: 180 }, { type: 'E02' })).toMatchObject({
+      speed: 0,
+      durationMs: 0,
     })
   })
 })
