@@ -108,6 +108,24 @@ const WEAPON_UPGRADE_ICON_SRC = {
   sharkMissile: sharkMissileIconSrc,
 }
 
+const WEAPON_KEY_TO_ICON = {
+  pencilThrow:   'pencil',
+  schoolBag:     'ruler',
+  boxCutter:     'boxCutter',
+  tumbler:       'tumbler',
+  scienceFlask:  'flask',
+  bell:          'bell',
+  stunGun:       'stun',
+  onigiri:       'onigiri',
+  guidedMissile: 'missile',
+  starlink:      'starlink',
+  compassBlade:  'compassBlade',
+  umbrellaGuard: 'umbrella',
+  eraserBomb:    'eraser',
+  chibiko:       'chibiko',
+  sharkMissile:  'sharkMissile',
+}
+
 function resolveAssetSrc(src, depth = 0) {
   if (!src) return null
   if (typeof src === 'string') return src
@@ -191,6 +209,17 @@ export function getNextUnlockPreview(phase, weapons) {
   const top = candidates[0]
   const entry = UPGRADES.find((u) => u.key === top.key)
   return { ...top, icon: entry?.icon, label: weapons[top.weapon]?.label ?? WEAPON_CATALOG[top.weapon]?.label ?? top.weapon }
+}
+
+function WeaponMiniIcon({ src }) {
+  const [failed, setFailed] = useState(false)
+  return (
+    <div style={styles.weaponMiniIcon}>
+      {!failed && (
+        <img src={src} alt="" draggable={false} style={styles.weaponMiniImg} onError={() => setFailed(true)} />
+      )}
+    </div>
+  )
 }
 
 export function UpgradeIcon({ type }) {
@@ -578,11 +607,13 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
         </div>
       </div>
 
-      {/* Active weapons */}
-      <div style={styles.weaponRow}>
-        {activeWeapons.map(([k, w]) => (
-          <div key={k} style={styles.weaponChip}>{w.label}</div>
-        ))}
+      {/* Active weapon icons — HP바 위 가로 나열 */}
+      <div style={styles.weaponIconBar}>
+        {activeWeapons.map(([k]) => {
+          const src = getWeaponUpgradeIconSrc(WEAPON_KEY_TO_ICON[k])
+          if (!src) return null
+          return <WeaponMiniIcon key={k} src={src} />
+        })}
       </div>
 
       {/* Modals */}
@@ -987,15 +1018,25 @@ const styles = {
     boxSizing: 'border-box',
   },
   barFill: { height: '100%', borderRadius: 5, transition: 'width 0.15s' },
-  weaponRow: {
-    position: 'absolute', bottom: 72, left: 16,
-    display: 'flex', flexDirection: 'column', gap: 4,
+  weaponIconBar: {
+    position: 'absolute', bottom: 86, left: '50%', transform: 'translateX(-50%)',
+    display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center',
     pointerEvents: 'auto',
   },
-  weaponChip: {
-    background: 'rgba(24,55,47,0.86)', color: uiPalette.paperLight,
-    fontSize: 12, fontWeight: 800, padding: '3px 8px', borderRadius: 6, border: uiBorders.chalk,
-    boxShadow: '0 2px 4px rgba(0,0,0,0.35)',
+  weaponMiniIcon: {
+    width: 28, height: 28,
+    background: 'rgba(24,55,47,0.86)',
+    border: uiBorders.chalk,
+    borderRadius: 5,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+  },
+  weaponMiniImg: {
+    width: 22, height: 22,
+    objectFit: 'contain',
+    display: 'block',
+    filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.5))',
+    userSelect: 'none',
   },
   overlay: {
     position: 'absolute', inset: 0, background: 'rgba(5,2,9,0.62)',
