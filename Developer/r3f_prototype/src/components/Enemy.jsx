@@ -50,7 +50,7 @@ export const ENEMY_STATS = {
   // B01 1?ㅽ뀒?댁?: 遺梨꾧섦 ?ъ궗泥??⑦꽩 ?쒓굅. 異붽꺽/?뚯쭊留??ъ슜 (Bang_Rules 2026-05-09 遺濡?.
   // contactDist 0.36: ?뚯쭊 ?묒큺 = 0.36 횞 4/3(?ш린諛곗닔) 횞 1.5 ??0.72 ??蹂몄껜 諛섑룺(0.14횞cs=0.56) + ?뚮젅?댁뼱 諛섑룺(0.136).
   // ?댁쟾 0.80? ?묒큺 諛섍꼍??~1.6?대씪 蹂몄껜 ?명삎蹂대떎 ?⑥뵮 而ㅼ꽌 "???우븘???쇨꺽"?섎뒗 臾몄젣媛 ?덉뿀??
-  B01: { hp: 1400, speed: 0.475, damage: 22, scale: 3.00, xp: 0,  contactDist: 0.36,
+  B01: { hp: 1150, speed: 0.475, damage: 22, scale: 3.00, xp: 0,  contactDist: 0.36,
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
 }
 
