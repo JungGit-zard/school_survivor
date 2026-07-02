@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { useGameStore } from '../store/useGameStore.js'
 import { toonMat, outlineMat, inflateScale } from '../lib/toon.js'
 import { stepMagnetPull } from '../lib/pickup.js'
+import { computeTextbookLanding } from '../lib/textbookLanding.js'
 import { logPickup } from '../lib/playtestLogger.js'
 
 const FLOOR_Y = 0.13
@@ -20,11 +21,9 @@ export default function XpTextbook({ id, pos, value, onCollect }) {
   const landedRef = useRef(false)
 
   // 좀비 사망 위치(pos)에서 근처 바닥 랜덤 지점으로 튕겨 떨어진다 (마운트당 1회 결정).
-  const land = useMemo(() => {
-    const ang = Math.random() * Math.PI * 2
-    const dist = 0.7 + Math.random() * 0.9 // 0.7~1.6 유닛
-    return { x: pos[0] + Math.sin(ang) * dist, z: pos[2] + Math.cos(ang) * dist }
-  }, [pos])
+  // 이동 경계 밖·책상 콜라이더 안에 떨어지면 자석 Lv0에서 영구 수집 불가 → 도달 가능 지점만 선택.
+  const stageId = useGameStore((s) => s.currentStageId)
+  const land = useMemo(() => computeTextbookLanding(pos, stageId), [pos, stageId])
 
   const gainXp = useGameStore((s) => s.gainXp)
 
