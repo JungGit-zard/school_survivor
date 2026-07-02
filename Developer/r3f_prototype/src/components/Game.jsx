@@ -98,14 +98,6 @@ export default function Game() {
       <directionalLight
         position={[-10, 22, 12]}
         intensity={3.2}
-        castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-near={0.5}
-        shadow-camera-far={120}
-        shadow-camera-left={-40}
-        shadow-camera-right={40}
-        shadow-camera-top={40}
-        shadow-camera-bottom={-40}
       />
       <directionalLight position={[10, 12, -10]} intensity={0.85} color={0xffe2b0} />
 

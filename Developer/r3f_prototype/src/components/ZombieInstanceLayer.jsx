@@ -11,7 +11,7 @@
  *   ZombieInstanceLayer reads the registry every frame and updates InstancedMesh matrices.
  */
 
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { zombieVisualRegistry } from '../lib/zombieVisualRegistry.js'
@@ -59,25 +59,24 @@ const _col  = new THREE.Color()
 const _ZERO = Object.freeze(new THREE.Matrix4().makeScale(0, 0, 0))
 
 // ── Pivot group animation rotations ────────────────────────────────────────
-function pivotEuler(grp, t, type, phase) {
+function setPivotEuler(dst, grp, t, type, phase) {
   const freq = type === 'E02' ? 9 : type === 'E03' ? 5 : 7
   const amp  = phase === 'charge' ? 0.55 : 0.38
   const sw   = phase === 'stun' ? 0 : Math.sin(t * freq) * amp
   const AB   = -1.15
   switch (grp) {
-    case 'head': return [0, 0, Math.sin(t * 1.6) * 0.07]
-    case 'body': return [phase === 'charge' ? 0.45 : 0, 0, 0]
-    case 'armL': return [AB + Math.sin(t * 2.8) * 0.06,           0,  0.12]
-    case 'armR': return [AB + Math.sin(t * 2.8 + Math.PI) * 0.06, 0, -0.12]
-    case 'legL': return [sw,  0, 0]
-    case 'legR': return [-sw, 0, 0]
-    default:     return [0, 0, 0]
+    case 'head': dst.set(0, 0, Math.sin(t * 1.6) * 0.07); break
+    case 'body': dst.set(phase === 'charge' ? 0.45 : 0, 0, 0); break
+    case 'armL': dst.set(AB + Math.sin(t * 2.8) * 0.06,           0,  0.12); break
+    case 'armR': dst.set(AB + Math.sin(t * 2.8 + Math.PI) * 0.06, 0, -0.12); break
+    case 'legL': dst.set(sw,  0, 0); break
+    case 'legR': dst.set(-sw, 0, 0); break
+    default:     dst.set(0, 0, 0); break
   }
 }
 
 // Build the world matrix for one body part of one enemy into dst.
 function buildPartMatrix(part, e, dst, outlineInflate = 1) {
-  const [prx, pry, prz] = pivotEuler(part.grp, e.wt, e.type, e.phase)
 
   // Enemy root: T(pos) × Ry(yaw) × S(vs)
   dst.makeTranslation(e.x, e.y, e.z)
@@ -90,7 +89,7 @@ function buildPartMatrix(part, e, dst, outlineInflate = 1) {
   // Pivot: T(gOff) × R(pivotEuler) [× S(warn) for body in warn phase]
   _tmp.makeTranslation(...part.gOff)
   dst.multiply(_tmp)
-  _euler.set(prx, pry, prz)
+  setPivotEuler(_euler, part.grp, e.wt, e.type, e.phase)
   _tmp.makeRotationFromEuler(_euler)
   dst.multiply(_tmp)
   if (part.grp === 'body' && e.phase === 'warn') {
@@ -167,6 +166,9 @@ function makeIM(part, material, count) {
 
 // ── Component ─────────────────────────────────────────────────────────────
 export default function ZombieInstanceLayer() {
+  const dstRef = useRef(new THREE.Matrix4())
+  const prevSlotCountRef = useRef(0)
+
   // One InstancedMesh per body part (body rendering) + per part (outline)
   const { bodyIMs, outIMs, eyeMat } = useMemo(() => {
     const normalMat = makeBodyMat(0.12)  // body / skin / foot parts
@@ -182,18 +184,14 @@ export default function ZombieInstanceLayer() {
   useFrame(() => {
     const reg = zombieVisualRegistry.entries
 
-    // Track which slots have been written this frame (others get zero-scale)
-    const used = new Uint8Array(MAX_ENEMIES)  // 1 = slot used
-
     // Slot tracking: we use a simple counter approach.
     // Each enemy gets a stable slot index via the registry's insertion order.
-    // We assign slots in iteration order and zero unused slots at the end.
+    // We assign slots in iteration order and zero only slots that stopped being used.
     let slot = 0
-    const dst = new THREE.Matrix4()  // local per-frame (tiny alloc, avoid module-level state)
+    const dst = dstRef.current
 
     for (const e of reg.values()) {
       if (slot >= MAX_ENEMIES) break
-      used[slot] = 1
 
       for (let pi = 0; pi < N_PARTS; pi++) {
         const part = PARTS[pi]
@@ -211,14 +209,14 @@ export default function ZombieInstanceLayer() {
       slot++
     }
 
-    // Zero-scale all unused slots (makes them invisible without disposing)
-    for (let s = slot; s < MAX_ENEMIES; s++) {
-      if (used[s]) continue
+    // Zero-scale slots that were visible last frame but are no longer used.
+    for (let s = slot; s < prevSlotCountRef.current; s++) {
       for (let pi = 0; pi < N_PARTS; pi++) {
         bodyIMs[pi].setMatrixAt(s, _ZERO)
         outIMs[pi].setMatrixAt(s, _ZERO)
       }
     }
+    prevSlotCountRef.current = slot
 
     // Mark all IMs dirty
     for (let pi = 0; pi < N_PARTS; pi++) {
