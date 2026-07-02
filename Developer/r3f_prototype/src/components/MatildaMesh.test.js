@@ -3,8 +3,11 @@ import {
   MATILDA_ARM_LAYOUT,
   MATILDA_BACK_HAIR_COVERAGE,
   MATILDA_DEFAULT_FACE_TEXTURE_SOURCE,
+  MATILDA_DEFAULT_MOVEMENT_POSE,
   MATILDA_FACE_TEXTURE_SLOT,
   MATILDA_IDLE_ANIMATION,
+  MATILDA_IDLE_POSE,
+  MATILDA_MOVEMENT_POSE,
   MATILDA_MODEL_PARTS,
   MATILDA_PALETTE,
   MATILDA_REFERENCE_FEATURES,
@@ -89,10 +92,26 @@ describe('MatildaMesh model contract', () => {
     expect(MATILDA_ARM_LAYOUT.right.rotationZ).toBeGreaterThan(0)
   })
 
-  it('keeps Matilda floating with a slight forward idle lean', () => {
+  it('keeps Matilda idle as a small ground-hover bob, not a chase lean', () => {
+    expect(MATILDA_DEFAULT_MOVEMENT_POSE).toBe(false)
     expect(MATILDA_IDLE_ANIMATION.floatBaseY).toBeGreaterThan(0)
     expect(MATILDA_IDLE_ANIMATION.floatBobY).toBeGreaterThan(0)
-    expect(MATILDA_IDLE_ANIMATION.forwardLeanX).toBeGreaterThan(0)
     expect(MATILDA_IDLE_ANIMATION.swayZ).toBeGreaterThan(0)
+    expect(MATILDA_IDLE_POSE.upperLeanX).toBe(0)
+    expect(MATILDA_IDLE_POSE.headLeanX).toBe(0)
+    expect(MATILDA_IDLE_POSE.leftFoot.positionZ).toBeGreaterThan(0)
+    expect(MATILDA_IDLE_POSE.rightFoot.positionZ).toBeGreaterThan(0)
+    expect(MATILDA_IDLE_POSE.leftFoot.rotationX).toBe(0)
+    expect(MATILDA_IDLE_POSE.rightFoot.rotationX).toBe(0)
+  })
+
+  it('keeps the movement pose separate from the idle hover', () => {
+    expect(MATILDA_MOVEMENT_POSE.rootFloatY).toBeGreaterThan(0)
+    expect(MATILDA_MOVEMENT_POSE.upperLeanX).toBeGreaterThan(MATILDA_IDLE_POSE.upperLeanX)
+    expect(MATILDA_MOVEMENT_POSE.headLeanX).toBeGreaterThan(0)
+    expect(MATILDA_MOVEMENT_POSE.leftFoot.rotationX).toBeLessThan(0)
+    expect(MATILDA_MOVEMENT_POSE.rightFoot.rotationX).toBeLessThan(0)
+    expect(MATILDA_MOVEMENT_POSE.leftFoot.positionZ).toBeLessThan(0)
+    expect(MATILDA_MOVEMENT_POSE.rightFoot.positionZ).toBeLessThan(0)
   })
 })

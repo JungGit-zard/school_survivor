@@ -241,7 +241,7 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
   })
 
   if (isMatilda) {
-    return <MatildaMesh />
+    return <MatildaMesh movementPose={animPhase !== 'stun'} />
   }
 
   if (type === 'B01') {

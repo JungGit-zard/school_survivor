@@ -12,8 +12,41 @@ export const MATILDA_IDLE_ANIMATION = {
   floatBaseY: 0.18,
   floatBobY: 0.045,
   floatSpeed: 1.7,
-  forwardLeanX: 0.13,
   swayZ: 0.025,
+}
+
+export const MATILDA_DEFAULT_MOVEMENT_POSE = false
+
+export const MATILDA_IDLE_POSE = {
+  rootFloatY: MATILDA_IDLE_ANIMATION.floatBaseY,
+  upperLeanX: 0,
+  headLeanX: 0,
+  leftFoot: {
+    position: [-0.17, -0.46, 0.07],
+    positionZ: 0.07,
+    rotationX: 0,
+  },
+  rightFoot: {
+    position: [0.17, -0.46, 0.07],
+    positionZ: 0.07,
+    rotationX: 0,
+  },
+}
+
+export const MATILDA_MOVEMENT_POSE = {
+  rootFloatY: 0.22,
+  upperLeanX: 0.22,
+  headLeanX: 0.08,
+  leftFoot: {
+    position: [-0.17, -0.46, -0.10],
+    positionZ: -0.10,
+    rotationX: -0.52,
+  },
+  rightFoot: {
+    position: [0.17, -0.46, -0.10],
+    positionZ: -0.10,
+    rotationX: -0.52,
+  },
 }
 
 export const MATILDA_MODEL_PARTS = [
@@ -96,21 +129,21 @@ export const MATILDA_ARM_LAYOUT = {
   },
 }
 
-function Part({ size, position, rotation = [0, 0, 0], color, emissive = 0.1, outlineScale = 1.06 }) {
+function Part({ groupRef = null, size, position, rotation = [0, 0, 0], color, emissive = 0.1, outlineScale = 1.06 }) {
   const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
   const mat = useMemo(() => toonMat(color, emissive), [color, emissive])
   const outMat = useMemo(() => outlineMat(0.96), [])
   const outline = inflateScale(outlineScale)
 
   return (
-    <group position={position} rotation={rotation}>
+    <group ref={groupRef} position={position} rotation={rotation}>
       <mesh renderOrder={0} geometry={geo} material={outMat} scale={[outline, outline, outline]} />
       <mesh renderOrder={1} geometry={geo} material={mat} />
     </group>
   )
 }
 
-function TexturedFace({ textureUrl }) {
+function TexturedFace({ textureUrl, local = false }) {
   const texture = useLoader(THREE.TextureLoader, textureUrl)
   texture.colorSpace = THREE.SRGBColorSpace
   texture.minFilter = THREE.NearestFilter
@@ -118,40 +151,55 @@ function TexturedFace({ textureUrl }) {
   texture.generateMipmaps = false
 
   return (
-    <mesh renderOrder={4} position={[MATILDA_FACE_TEXTURE_SLOT.x, MATILDA_FACE_TEXTURE_SLOT.y, MATILDA_FACE_TEXTURE_SLOT.z]}>
+    <mesh renderOrder={4} position={[MATILDA_FACE_TEXTURE_SLOT.x, local ? 0 : MATILDA_FACE_TEXTURE_SLOT.y, MATILDA_FACE_TEXTURE_SLOT.z]}>
       <planeGeometry args={[MATILDA_FACE_TEXTURE_SLOT.width, MATILDA_FACE_TEXTURE_SLOT.height]} />
       <meshBasicMaterial map={texture} transparent side={THREE.DoubleSide} toneMapped={false} />
     </mesh>
   )
 }
 
-function FaceSlot({ faceTextureUrl }) {
-  if (faceTextureUrl) return <TexturedFace textureUrl={faceTextureUrl} />
+function FaceSlot({ faceTextureUrl, local = false }) {
+  if (faceTextureUrl) return <TexturedFace textureUrl={faceTextureUrl} local={local} />
   return null
 }
 
-export default function MatildaMesh({ faceTextureUrl = matildaFaceTextureUrl }) {
+export default function MatildaMesh({ faceTextureUrl = matildaFaceTextureUrl, movementPose = MATILDA_DEFAULT_MOVEMENT_POSE }) {
   const pal = MATILDA_PALETTE
   const idleRef = useRef()
   const upperRef = useRef()
+  const headRef = useRef()
+  const leftFootRef = useRef()
+  const rightFootRef = useRef()
 
   useFrame(({ clock }) => {
     if (!idleRef.current) return
     const t = clock.elapsedTime
-    idleRef.current.position.y = MATILDA_IDLE_ANIMATION.floatBaseY + Math.sin(t * MATILDA_IDLE_ANIMATION.floatSpeed) * MATILDA_IDLE_ANIMATION.floatBobY
+    const pose = movementPose ? MATILDA_MOVEMENT_POSE : MATILDA_IDLE_POSE
+    idleRef.current.position.y = pose.rootFloatY + Math.sin(t * MATILDA_IDLE_ANIMATION.floatSpeed) * MATILDA_IDLE_ANIMATION.floatBobY
     idleRef.current.rotation.z = Math.sin(t * 1.25) * MATILDA_IDLE_ANIMATION.swayZ
-    if (upperRef.current) upperRef.current.rotation.x = MATILDA_IDLE_ANIMATION.forwardLeanX
+    if (upperRef.current) upperRef.current.rotation.x = pose.upperLeanX
+    if (headRef.current) headRef.current.rotation.x = pose.headLeanX
+    if (leftFootRef.current) leftFootRef.current.rotation.x = pose.leftFoot.rotationX
+    if (rightFootRef.current) rightFootRef.current.rotation.x = pose.rightFoot.rotationX
   })
+
+  const pose = movementPose ? MATILDA_MOVEMENT_POSE : MATILDA_IDLE_POSE
 
   return (
     <group ref={idleRef} scale={[MATILDA_VISUAL_SCALE, MATILDA_VISUAL_SCALE, MATILDA_VISUAL_SCALE]}>
       <group ref={upperRef}>
-        <Part size={[0.60, 0.56, 0.42]} position={[0, 1.43, 0]} color={pal.skin} emissive={0.12} />
-        <FaceSlot faceTextureUrl={faceTextureUrl} />
-        <Part size={[0.72, 0.34, 0.50]} position={[0, 1.70, -0.02]} color={pal.hair} emissive={0.14} />
-        <Part size={[0.56, 0.22, 0.10]} position={[0, 1.59, 0.245]} color={pal.hair} emissive={0.14} outlineScale={1.03} />
-        <Part size={[0.16, 0.34, 0.10]} position={[-0.23, 1.47, 0.25]} rotation={[0, 0, -0.12]} color={pal.hair} emissive={0.14} outlineScale={1.03} />
-        <Part size={[0.16, 0.34, 0.10]} position={[0.23, 1.47, 0.25]} rotation={[0, 0, 0.12]} color={pal.hair} emissive={0.14} outlineScale={1.03} />
+        <group ref={headRef} position={[0, 1.43, 0]}>
+          <Part size={[0.60, 0.56, 0.42]} position={[0, 0, 0]} color={pal.skin} emissive={0.12} />
+          <FaceSlot faceTextureUrl={faceTextureUrl} local />
+          <Part size={[0.72, 0.34, 0.50]} position={[0, 0.27, -0.02]} color={pal.hair} emissive={0.14} />
+          <Part size={[0.56, 0.22, 0.10]} position={[0, 0.16, 0.245]} color={pal.hair} emissive={0.14} outlineScale={1.03} />
+          <Part size={[0.16, 0.34, 0.10]} position={[-0.23, 0.04, 0.25]} rotation={[0, 0, -0.12]} color={pal.hair} emissive={0.14} outlineScale={1.03} />
+          <Part size={[0.16, 0.34, 0.10]} position={[0.23, 0.04, 0.25]} rotation={[0, 0, 0.12]} color={pal.hair} emissive={0.14} outlineScale={1.03} />
+          <Part size={[0.14, 0.42, 0.14]} position={[-0.25, 0.57, 0]} rotation={[0, 0, -0.34]} color={pal.horn} emissive={0.04} />
+          <Part size={[0.14, 0.42, 0.14]} position={[0.25, 0.57, 0]} rotation={[0, 0, 0.34]} color={pal.horn} emissive={0.04} />
+          <Part size={[0.20, 0.22, 0.08]} position={[-0.42, 0, 0.03]} rotation={[0, 0, -0.50]} color={pal.skin} emissive={0.08} />
+          <Part size={[0.20, 0.22, 0.08]} position={[0.42, 0, 0.03]} rotation={[0, 0, 0.50]} color={pal.skin} emissive={0.08} />
+        </group>
         <Part
           size={[
             MATILDA_BACK_HAIR_COVERAGE.backHairWidth,
@@ -164,10 +212,6 @@ export default function MatildaMesh({ faceTextureUrl = matildaFaceTextureUrl }) 
         />
         <Part size={[0.22, 1.02, 0.22]} position={[-0.40, 0.98, -0.06]} color={pal.hair} emissive={0.12} />
         <Part size={[0.22, 1.02, 0.22]} position={[0.40, 0.98, -0.06]} color={pal.hair} emissive={0.12} />
-        <Part size={[0.14, 0.42, 0.14]} position={[-0.25, 2.00, 0]} rotation={[0, 0, -0.34]} color={pal.horn} emissive={0.04} />
-        <Part size={[0.14, 0.42, 0.14]} position={[0.25, 2.00, 0]} rotation={[0, 0, 0.34]} color={pal.horn} emissive={0.04} />
-        <Part size={[0.20, 0.22, 0.08]} position={[-0.42, 1.43, 0.03]} rotation={[0, 0, -0.50]} color={pal.skin} emissive={0.08} />
-        <Part size={[0.20, 0.22, 0.08]} position={[0.42, 1.43, 0.03]} rotation={[0, 0, 0.50]} color={pal.skin} emissive={0.08} />
         <Part size={[0.48, 0.48, 0.32]} position={[0, 0.82, 0]} color={pal.dress} emissive={0.12} />
         <Part size={[0.72, 0.34, 0.42]} position={[0, 0.42, 0.02]} color={pal.dress} emissive={0.12} />
         <Part size={[0.60, 0.10, 0.36]} position={[0, 0.70, 0.03]} color={pal.trim} emissive={0.22} />
@@ -186,8 +230,8 @@ export default function MatildaMesh({ faceTextureUrl = matildaFaceTextureUrl }) 
       </group>
       <Part size={[0.22, 0.56, 0.20]} position={[-0.17, -0.07, 0.02]} color={pal.skin} emissive={0.08} />
       <Part size={[0.22, 0.56, 0.20]} position={[0.17, -0.07, 0.02]} color={pal.skin} emissive={0.08} />
-      <Part size={[0.34, 0.24, 0.34]} position={[-0.17, -0.46, 0.07]} color={pal.horn} emissive={0.04} />
-      <Part size={[0.34, 0.24, 0.34]} position={[0.17, -0.46, 0.07]} color={pal.horn} emissive={0.04} />
+      <Part groupRef={leftFootRef} size={[0.34, 0.24, 0.34]} position={pose.leftFoot.position} color={pal.horn} emissive={0.04} />
+      <Part groupRef={rightFootRef} size={[0.34, 0.24, 0.34]} position={pose.rightFoot.position} color={pal.horn} emissive={0.04} />
     </group>
   )
 }
