@@ -300,6 +300,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         rb.current._enemyDead = true
         rb.current._enemyHit = null
         enemyBodies.delete(id)
+        // 죽는 즉시 제거 — useEffect cleanup은 React 커밋 후라서 늦음
+        if (useInstanced) zombieVisualRegistry.unregister(id)
         // 蹂???泥섏튂 移댁슫??+ 蹂댁뒪 泥섏튂 利됱떆 ?꾩쟻
         const store = useGameStore.getState()
         store.recordKill()
