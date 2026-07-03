@@ -52,6 +52,7 @@
 
 - Use subagents when the user explicitly asks for subagents, names a specific subagent, asks for autonomous agent deployment, or requests milestone-level multi-role game development work.
 - For Escape! zombie school milestone work, use `Developer/agent_room/game_development_kanban_process.md` and the `escape-zombie-school` Kanban board as the default durable development process.
+- `Developer/agent_room/subagent_system_wiring_2026-07-03.md` is the project-local canonical wiring document that connects this repository, the global Hermes sub-agent room, and the runnable Kanban profiles.
 - IDE-side resident agents must read `Developer/agent_room/ide_agent_subagent_autocall_handoff.md` when deciding whether Terry's IDE command should auto-call the registered Hermes/Kanban subagents.
 - Antigravity IDE resident agents must also read `Developer/agent_room/antigravity_ide_subagent_handoff.md`; it contains the Antigravity-specific trigger rules, real spawnable profile names, Kanban CLI examples, smoke-test evidence, and the pasteable persistent-instruction block.
 - When the user asks to use two or more agents for discussion, review, planning, implementation, comparison, or game development execution, run an Agent Room/Kanban routing check before selecting agents.

@@ -22,9 +22,10 @@ Before deciding whether to work directly or call subagents, read and obey:
 2. `Bang_Rules.md`
 3. `AGENTS.md`
 4. `SESSION_CONTINUITY.md`
-5. `Developer/agent_room/game_development_kanban_process.md`
-6. This file
-7. `Developer/agent_room/antigravity_ide_subagent_handoff.md` when the IDE is Antigravity
+5. `Developer/agent_room/subagent_system_wiring_2026-07-03.md`
+6. `Developer/agent_room/game_development_kanban_process.md`
+7. This file
+8. `Developer/agent_room/antigravity_ide_subagent_handoff.md` when the IDE is Antigravity
 
 If there is a conflict, `project_develop_policy.md` wins.
 

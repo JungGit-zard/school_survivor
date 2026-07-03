@@ -106,6 +106,7 @@
 
 - 반드시 여러 역할이 필요한 게임 개발, 마일스톤, 릴리스 준비, QA 게이트, 그래픽/개발/기획 통합 작업은 `escape-zombie-school` Kanban 보드와 등록된 Hermes 프로필을 통해 분해·배정·검증한다.
 - 반드시 Kanban 서브에이전트 투입 절차는 `Developer/agent_room/game_development_kanban_process.md`를 따른다.
+- 반드시 프로젝트 내부 서브에이전트 연결 정본은 `Developer/agent_room/subagent_system_wiring_2026-07-03.md`로 확인한다.
 - 반드시 Kanban 카드의 담당자는 실제 spawn 가능한 프로필명(`threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`) 중 하나로 지정한다.
 - 반드시 worker 실행 전 프로필 HOME의 `~/.claude/skills/gstack/bin` 게이트가 통과하는지 확인한다.
 - 반드시 implementation wave 완료 선언 전 `todo=0`, `ready=0`, `running=0`, `blocked=0` 상태를 확인한다.

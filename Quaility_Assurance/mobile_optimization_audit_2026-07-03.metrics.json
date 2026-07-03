@@ -1,0 +1,801 @@
+{
+  "base": "http://127.0.0.1:5174/",
+  "outDir": "../../Quaility_Assurance/screenshots/mobile_optimization_audit_2026-07-03",
+  "results": [
+    {
+      "deviceName": "iPhone SE",
+      "errors": [
+        "warning:[.WebGL-0x7a9400182000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "warning:[.WebGL-0x7a9400182000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "warning:[.WebGL-0x7a9400182000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "warning:[.WebGL-0x7a9400182000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)",
+        "warning:Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab.",
+        "warning:Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab."
+      ],
+      "titleShot": "../../Quaility_Assurance/screenshots/mobile_optimization_audit_2026-07-03/iphone_se_01_title.png",
+      "shopShot": "../../Quaility_Assurance/screenshots/mobile_optimization_audit_2026-07-03/iphone_se_02_coin_shop.png",
+      "rankingShot": "../../Quaility_Assurance/screenshots/mobile_optimization_audit_2026-07-03/iphone_se_03_ranking.png",
+      "gameplayShot": "../../Quaility_Assurance/screenshots/mobile_optimization_audit_2026-07-03/iphone_se_04_gameplay_initial.png",
+      "joystickStartShot": "../../Quaility_Assurance/screenshots/mobile_optimization_audit_2026-07-03/iphone_se_05_joystick_touchstart.png",
+      "joystickMoveShot": "../../Quaility_Assurance/screenshots/mobile_optimization_audit_2026-07-03/iphone_se_06_joystick_touchmove.png",
+      "afterSoakShot": "../../Quaility_Assurance/screenshots/mobile_optimization_audit_2026-07-03/iphone_se_07_gameplay_12s_soak.png",
+      "coinDisabled": true,
+      "titleMetrics": {
+        "label": "iPhone SE title",
+        "href": "http://127.0.0.1:5174/",
+        "viewport": {
+          "w": 320,
+          "h": 568,
+          "dpr": 2
+        },
+        "document": {
+          "scrollWidth": 320,
+          "scrollHeight": 568,
+          "overflowX": false,
+          "overflowY": false
+        },
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "w": 320,
+          "h": 568,
+          "bottom": 568,
+          "right": 320
+        },
+        "buttonCount": 6,
+        "minButtonFinite": 35,
+        "buttons": [
+          {
+            "text": "Google 로그인",
+            "disabled": true,
+            "rect": {
+              "x": 89,
+              "y": 20,
+              "w": 84,
+              "h": 35,
+              "bottom": 55,
+              "right": 172
+            }
+          },
+          {
+            "text": "치트",
+            "disabled": false,
+            "rect": {
+              "x": 202,
+              "y": 14,
+              "w": 52,
+              "h": 44,
+              "bottom": 58,
+              "right": 254
+            }
+          },
+          {
+            "text": "⚙",
+            "disabled": false,
+            "rect": {
+              "x": 264,
+              "y": 14,
+              "w": 44,
+              "h": 44,
+              "bottom": 58,
+              "right": 308
+            }
+          },
+          {
+            "text": "게임 시작",
+            "disabled": false,
+            "rect": {
+              "x": 47,
+              "y": 364,
+              "w": 224,
+              "h": 58,
+              "bottom": 422,
+              "right": 271
+            }
+          },
+          {
+            "text": "🪙 코인상점",
+            "disabled": false,
+            "rect": {
+              "x": 48,
+              "y": 432,
+              "w": 224,
+              "h": 48,
+              "bottom": 480,
+              "right": 272
+            }
+          },
+          {
+            "text": "유저랭킹",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 490,
+              "w": 224,
+              "h": 48,
+              "bottom": 538,
+              "right": 273
+            }
+          }
+        ]
+      },
+      "shopMetrics": {
+        "label": "iPhone SE coin shop",
+        "href": "http://127.0.0.1:5174/",
+        "viewport": {
+          "w": 320,
+          "h": 568,
+          "dpr": 2
+        },
+        "document": {
+          "scrollWidth": 320,
+          "scrollHeight": 568,
+          "overflowX": false,
+          "overflowY": false
+        },
+        "canvas": null,
+        "buttonCount": 6,
+        "minButtonFinite": 37,
+        "buttons": [
+          {
+            "text": "코인 부족",
+            "disabled": true,
+            "rect": {
+              "x": 205,
+              "y": 138,
+              "w": 88,
+              "h": 37,
+              "bottom": 175,
+              "right": 293
+            }
+          },
+          {
+            "text": "코인 부족",
+            "disabled": true,
+            "rect": {
+              "x": 205,
+              "y": 227,
+              "w": 88,
+              "h": 37,
+              "bottom": 264,
+              "right": 293
+            }
+          },
+          {
+            "text": "코인 부족",
+            "disabled": true,
+            "rect": {
+              "x": 205,
+              "y": 316,
+              "w": 88,
+              "h": 37,
+              "bottom": 353,
+              "right": 293
+            }
+          },
+          {
+            "text": "코인 부족",
+            "disabled": true,
+            "rect": {
+              "x": 205,
+              "y": 405,
+              "w": 88,
+              "h": 37,
+              "bottom": 442,
+              "right": 293
+            }
+          },
+          {
+            "text": "코인 부족",
+            "disabled": true,
+            "rect": {
+              "x": 205,
+              "y": 494,
+              "w": 88,
+              "h": 37,
+              "bottom": 531,
+              "right": 293
+            }
+          },
+          {
+            "text": "타이틀로 돌아가기",
+            "disabled": false,
+            "rect": {
+              "x": 14,
+              "y": 507,
+              "w": 292,
+              "h": 49,
+              "bottom": 556,
+              "right": 306
+            }
+          }
+        ],
+        "fixedBack": {
+          "text": "타이틀로 돌아가기",
+          "disabled": false,
+          "rect": {
+            "x": 14,
+            "y": 507,
+            "w": 292,
+            "h": 49,
+            "bottom": 556,
+            "right": 306
+          }
+        }
+      },
+      "rankingMetrics": {
+        "label": "iPhone SE ranking",
+        "href": "http://127.0.0.1:5174/",
+        "viewport": {
+          "w": 320,
+          "h": 568,
+          "dpr": 2
+        },
+        "document": {
+          "scrollWidth": 320,
+          "scrollHeight": 568,
+          "overflowX": false,
+          "overflowY": false
+        },
+        "canvas": null,
+        "buttonCount": 1,
+        "minButtonFinite": 48,
+        "buttons": [
+          {
+            "text": "타이틀로 돌아가기",
+            "disabled": false,
+            "rect": {
+              "x": 14,
+              "y": 506,
+              "w": 292,
+              "h": 48,
+              "bottom": 554,
+              "right": 306
+            }
+          }
+        ],
+        "fixedBack": {
+          "text": "타이틀로 돌아가기",
+          "disabled": false,
+          "rect": {
+            "x": 14,
+            "y": 506,
+            "w": 292,
+            "h": 48,
+            "bottom": 554,
+            "right": 306
+          }
+        }
+      },
+      "gameplayMetrics": {
+        "label": "iPhone SE gameplay initial",
+        "href": "http://127.0.0.1:5174/",
+        "viewport": {
+          "w": 320,
+          "h": 568,
+          "dpr": 2
+        },
+        "document": {
+          "scrollWidth": 320,
+          "scrollHeight": 568,
+          "overflowX": false,
+          "overflowY": false
+        },
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "w": 320,
+          "h": 568,
+          "bottom": 568,
+          "right": 320
+        },
+        "buttonCount": 3,
+        "minButtonFinite": 40,
+        "buttons": [
+          {
+            "text": "Ⅱ",
+            "disabled": false,
+            "rect": {
+              "x": 14,
+              "y": 14,
+              "w": 40,
+              "h": 40,
+              "bottom": 54,
+              "right": 54
+            }
+          },
+          {
+            "text": "R",
+            "disabled": false,
+            "rect": {
+              "x": 62,
+              "y": 14,
+              "w": 40,
+              "h": 40,
+              "bottom": 54,
+              "right": 102
+            }
+          },
+          {
+            "text": "M",
+            "disabled": false,
+            "rect": {
+              "x": 110,
+              "y": 14,
+              "w": 40,
+              "h": 40,
+              "bottom": 54,
+              "right": 150
+            }
+          }
+        ]
+      },
+      "joystickProbe": [
+        {
+          "x": 38,
+          "y": 380,
+          "w": 104,
+          "h": 104
+        }
+      ],
+      "afterSoakMetrics": {
+        "label": "iPhone SE gameplay 12s soak",
+        "href": "http://127.0.0.1:5174/",
+        "viewport": {
+          "w": 320,
+          "h": 568,
+          "dpr": 2
+        },
+        "document": {
+          "scrollWidth": 320,
+          "scrollHeight": 568,
+          "overflowX": false,
+          "overflowY": false
+        },
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "w": 320,
+          "h": 568,
+          "bottom": 568,
+          "right": 320
+        },
+        "buttonCount": 3,
+        "minButtonFinite": 40,
+        "buttons": [
+          {
+            "text": "Ⅱ",
+            "disabled": false,
+            "rect": {
+              "x": 14,
+              "y": 14,
+              "w": 40,
+              "h": 40,
+              "bottom": 54,
+              "right": 54
+            }
+          },
+          {
+            "text": "R",
+            "disabled": false,
+            "rect": {
+              "x": 62,
+              "y": 14,
+              "w": 40,
+              "h": 40,
+              "bottom": 54,
+              "right": 102
+            }
+          },
+          {
+            "text": "M",
+            "disabled": false,
+            "rect": {
+              "x": 110,
+              "y": 14,
+              "w": 40,
+              "h": 40,
+              "bottom": 54,
+              "right": 150
+            }
+          }
+        ]
+      }
+    },
+    {
+      "deviceName": "Pixel 7",
+      "errors": [
+        "warning:Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab."
+      ],
+      "titleShot": "../../Quaility_Assurance/screenshots/mobile_optimization_audit_2026-07-03/pixel_7_01_title.png",
+      "shopShot": "../../Quaility_Assurance/screenshots/mobile_optimization_audit_2026-07-03/pixel_7_02_coin_shop.png",
+      "rankingShot": "../../Quaility_Assurance/screenshots/mobile_optimization_audit_2026-07-03/pixel_7_03_ranking.png",
+      "gameplayShot": "../../Quaility_Assurance/screenshots/mobile_optimization_audit_2026-07-03/pixel_7_04_gameplay_initial.png",
+      "joystickStartShot": "../../Quaility_Assurance/screenshots/mobile_optimization_audit_2026-07-03/pixel_7_05_joystick_touchstart.png",
+      "joystickMoveShot": "../../Quaility_Assurance/screenshots/mobile_optimization_audit_2026-07-03/pixel_7_06_joystick_touchmove.png",
+      "afterSoakShot": "../../Quaility_Assurance/screenshots/mobile_optimization_audit_2026-07-03/pixel_7_07_gameplay_12s_soak.png",
+      "coinDisabled": true,
+      "titleMetrics": {
+        "label": "Pixel 7 title",
+        "href": "http://127.0.0.1:5174/",
+        "viewport": {
+          "w": 412,
+          "h": 839,
+          "dpr": 2.625
+        },
+        "document": {
+          "scrollWidth": 412,
+          "scrollHeight": 839,
+          "overflowX": false,
+          "overflowY": false
+        },
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "w": 412,
+          "h": 839,
+          "bottom": 839,
+          "right": 412
+        },
+        "buttonCount": 6,
+        "minButtonFinite": 35,
+        "buttons": [
+          {
+            "text": "Google 로그인",
+            "disabled": true,
+            "rect": {
+              "x": 141,
+              "y": 19,
+              "w": 84,
+              "h": 35,
+              "bottom": 55,
+              "right": 224
+            }
+          },
+          {
+            "text": "치트",
+            "disabled": false,
+            "rect": {
+              "x": 294,
+              "y": 14,
+              "w": 52,
+              "h": 44,
+              "bottom": 58,
+              "right": 346
+            }
+          },
+          {
+            "text": "⚙",
+            "disabled": false,
+            "rect": {
+              "x": 356,
+              "y": 14,
+              "w": 44,
+              "h": 44,
+              "bottom": 58,
+              "right": 400
+            }
+          },
+          {
+            "text": "게임 시작",
+            "disabled": false,
+            "rect": {
+              "x": 93,
+              "y": 635,
+              "w": 224,
+              "h": 58,
+              "bottom": 693,
+              "right": 317
+            }
+          },
+          {
+            "text": "🪙 코인상점",
+            "disabled": false,
+            "rect": {
+              "x": 94,
+              "y": 703,
+              "w": 224,
+              "h": 48,
+              "bottom": 751,
+              "right": 318
+            }
+          },
+          {
+            "text": "유저랭킹",
+            "disabled": false,
+            "rect": {
+              "x": 95,
+              "y": 761,
+              "w": 224,
+              "h": 48,
+              "bottom": 809,
+              "right": 319
+            }
+          }
+        ]
+      },
+      "shopMetrics": {
+        "label": "Pixel 7 coin shop",
+        "href": "http://127.0.0.1:5174/",
+        "viewport": {
+          "w": 412,
+          "h": 839,
+          "dpr": 2.625
+        },
+        "document": {
+          "scrollWidth": 412,
+          "scrollHeight": 839,
+          "overflowX": false,
+          "overflowY": false
+        },
+        "canvas": null,
+        "buttonCount": 6,
+        "minButtonFinite": 37,
+        "buttons": [
+          {
+            "text": "코인 부족",
+            "disabled": true,
+            "rect": {
+              "x": 297,
+              "y": 138,
+              "w": 88,
+              "h": 37,
+              "bottom": 175,
+              "right": 385
+            }
+          },
+          {
+            "text": "코인 부족",
+            "disabled": true,
+            "rect": {
+              "x": 297,
+              "y": 232,
+              "w": 88,
+              "h": 37,
+              "bottom": 269,
+              "right": 385
+            }
+          },
+          {
+            "text": "코인 부족",
+            "disabled": true,
+            "rect": {
+              "x": 297,
+              "y": 326,
+              "w": 88,
+              "h": 37,
+              "bottom": 363,
+              "right": 385
+            }
+          },
+          {
+            "text": "코인 부족",
+            "disabled": true,
+            "rect": {
+              "x": 297,
+              "y": 420,
+              "w": 88,
+              "h": 37,
+              "bottom": 457,
+              "right": 385
+            }
+          },
+          {
+            "text": "코인 부족",
+            "disabled": true,
+            "rect": {
+              "x": 297,
+              "y": 514,
+              "w": 88,
+              "h": 37,
+              "bottom": 551,
+              "right": 385
+            }
+          },
+          {
+            "text": "타이틀로 돌아가기",
+            "disabled": false,
+            "rect": {
+              "x": 14,
+              "y": 778,
+              "w": 384,
+              "h": 49,
+              "bottom": 827,
+              "right": 398
+            }
+          }
+        ],
+        "fixedBack": {
+          "text": "타이틀로 돌아가기",
+          "disabled": false,
+          "rect": {
+            "x": 14,
+            "y": 778,
+            "w": 384,
+            "h": 49,
+            "bottom": 827,
+            "right": 398
+          }
+        }
+      },
+      "rankingMetrics": {
+        "label": "Pixel 7 ranking",
+        "href": "http://127.0.0.1:5174/",
+        "viewport": {
+          "w": 412,
+          "h": 839,
+          "dpr": 2.625
+        },
+        "document": {
+          "scrollWidth": 412,
+          "scrollHeight": 839,
+          "overflowX": false,
+          "overflowY": false
+        },
+        "canvas": null,
+        "buttonCount": 1,
+        "minButtonFinite": 48,
+        "buttons": [
+          {
+            "text": "타이틀로 돌아가기",
+            "disabled": false,
+            "rect": {
+              "x": 14,
+              "y": 777,
+              "w": 384,
+              "h": 48,
+              "bottom": 825,
+              "right": 398
+            }
+          }
+        ],
+        "fixedBack": {
+          "text": "타이틀로 돌아가기",
+          "disabled": false,
+          "rect": {
+            "x": 14,
+            "y": 777,
+            "w": 384,
+            "h": 48,
+            "bottom": 825,
+            "right": 398
+          }
+        }
+      },
+      "gameplayMetrics": {
+        "label": "Pixel 7 gameplay initial",
+        "href": "http://127.0.0.1:5174/",
+        "viewport": {
+          "w": 412,
+          "h": 839,
+          "dpr": 2.625
+        },
+        "document": {
+          "scrollWidth": 412,
+          "scrollHeight": 839,
+          "overflowX": false,
+          "overflowY": false
+        },
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "w": 412,
+          "h": 839,
+          "bottom": 839,
+          "right": 412
+        },
+        "buttonCount": 3,
+        "minButtonFinite": 40,
+        "buttons": [
+          {
+            "text": "Ⅱ",
+            "disabled": false,
+            "rect": {
+              "x": 14,
+              "y": 14,
+              "w": 40,
+              "h": 40,
+              "bottom": 54,
+              "right": 54
+            }
+          },
+          {
+            "text": "R",
+            "disabled": false,
+            "rect": {
+              "x": 62,
+              "y": 14,
+              "w": 40,
+              "h": 40,
+              "bottom": 54,
+              "right": 102
+            }
+          },
+          {
+            "text": "M",
+            "disabled": false,
+            "rect": {
+              "x": 110,
+              "y": 14,
+              "w": 40,
+              "h": 40,
+              "bottom": 54,
+              "right": 150
+            }
+          }
+        ]
+      },
+      "joystickProbe": [
+        {
+          "x": 40,
+          "y": 586,
+          "w": 104,
+          "h": 104
+        }
+      ],
+      "afterSoakMetrics": {
+        "label": "Pixel 7 gameplay 12s soak",
+        "href": "http://127.0.0.1:5174/",
+        "viewport": {
+          "w": 412,
+          "h": 839,
+          "dpr": 2.625
+        },
+        "document": {
+          "scrollWidth": 412,
+          "scrollHeight": 839,
+          "overflowX": false,
+          "overflowY": false
+        },
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "w": 412,
+          "h": 839,
+          "bottom": 839,
+          "right": 412
+        },
+        "buttonCount": 3,
+        "minButtonFinite": 40,
+        "buttons": [
+          {
+            "text": "Ⅱ",
+            "disabled": false,
+            "rect": {
+              "x": 14,
+              "y": 14,
+              "w": 40,
+              "h": 40,
+              "bottom": 54,
+              "right": 54
+            }
+          },
+          {
+            "text": "R",
+            "disabled": false,
+            "rect": {
+              "x": 62,
+              "y": 14,
+              "w": 40,
+              "h": 40,
+              "bottom": 54,
+              "right": 102
+            }
+          },
+          {
+            "text": "M",
+            "disabled": false,
+            "rect": {
+              "x": 110,
+              "y": 14,
+              "w": 40,
+              "h": 40,
+              "bottom": 54,
+              "right": 150
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

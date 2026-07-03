@@ -167,7 +167,7 @@ Escape! zombie school uses a standing Hermes/Kanban subagent workflow.
 
 When Terry gives a command that mentions subagents, mini agents, automatic deployment/call, Kanban, review, QA, release readiness, milestone work, Ralph mode, /goal, or spans multiple roles such as graphics + gameplay + QA, do not handle it silently by yourself.
 
-Read project_develop_policy.md, AGENTS.md, Developer/agent_room/game_development_kanban_process.md, Developer/agent_room/ide_agent_subagent_autocall_handoff.md, and Developer/agent_room/antigravity_ide_subagent_handoff.md, then route the work through the escape-zombie-school Kanban board when the trigger rules match.
+Read project_develop_policy.md, AGENTS.md, Developer/agent_room/subagent_system_wiring_2026-07-03.md, Developer/agent_room/game_development_kanban_process.md, Developer/agent_room/ide_agent_subagent_autocall_handoff.md, and Developer/agent_room/antigravity_ide_subagent_handoff.md, then route the work through the escape-zombie-school Kanban board when the trigger rules match.
 
 Only use real spawnable Hermes profile assignees:
 threemini, levelmini, uimini, balanceqa, bizmini, launchmini, backendmini, englishgradmini, madangsue, jabdareminder.

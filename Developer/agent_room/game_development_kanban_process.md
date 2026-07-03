@@ -1,7 +1,7 @@
 # Escape! zombie school Kanban Subagent Game Development Process
 
 Created: 2026-06-25
-Updated: 2026-06-27
+Updated: 2026-07-03
 Owner: Hana / Agent Room operations
 Board: `escape-zombie-school`
 Workdir: `D:/JungSil/2.Minigame_project/school_survivor-integration`
@@ -16,7 +16,7 @@ Small one-step edits can be handled directly by the IDE agent. Multi-role work s
 
 Before creating or dispatching cards:
 
-1. Read `project_develop_policy.md`, `Bang_Rules.md`, `AGENTS.md`, `SESSION_CONTINUITY.md`, and the role-relevant docs.
+1. Read `project_develop_policy.md`, `Bang_Rules.md`, `AGENTS.md`, `SESSION_CONTINUITY.md`, `Developer/agent_room/subagent_system_wiring_2026-07-03.md`, and the role-relevant docs.
 2. Verify the board exists:
 
    ```bash
@@ -46,7 +46,7 @@ Before creating or dispatching cards:
 Use only these Hermes profile names for durable Kanban cards:
 
 - `threemini`: Three.js/R3F graphics, toon rendering, runtime visuals, VFX, graphics regression guards.
-- `uimini`: UI/HUD/UX, responsive layout, mobile touch targets, menus, overlays, interaction states, accessibility, small safe UI fixes.
+- `uimini`: UI/HUD/UX, responsive layout, mobile touch targets, menus, overlays, interaction states, accessibility, small safe UI fixes. Also serves as the Mobile Optimization Resident; read `Developer/agent_room/uimini_mobile_optimization_resident_2026-07-03.md` for mobile QA/optimization tasks.
 - `levelmini`: gameplay loop, stage flow, leveling, difficulty, weapon/card pool planning.
 - `balanceqa`: QA gates, risk register, integration synthesis, browser/mobile validation, final acceptance.
 - `bizmini`: business model, product scope, monetization, strategic tradeoffs.
@@ -96,6 +96,7 @@ Required startup reads before action:
 - SESSION_CONTINUITY.md
 - Developer/agent_room/game_development_kanban_process.md
 - Developer/agent_room/ide_agent_subagent_autocall_handoff.md
+- Developer/agent_room/subagent_system_wiring_2026-07-03.md
 - Developer/agent_room/antigravity_ide_subagent_handoff.md
 - latest relevant role/project docs
 
