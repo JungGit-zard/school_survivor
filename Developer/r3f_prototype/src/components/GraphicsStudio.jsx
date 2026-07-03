@@ -78,7 +78,7 @@ export default function GraphicsStudio() {
   const groupedCatalog = useMemo(groupCatalogByCategory, [])
   const compact = useCompactLayout()
   const [selectedItemId, setSelectedItemId] = useState(() => {
-    if (typeof window !== 'undefined' && window.location.hash === '#enemy-death-collapse') return 'enemy-death-collapse'
+    if (typeof window !== 'undefined' && window.location.hash) return getStudioItemById(window.location.hash.slice(1)).id
     return 'player'
   })
   const [confirmedTunings, setConfirmedTunings] = useState(() => loadStudioTunings())

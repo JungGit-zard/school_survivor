@@ -18,6 +18,7 @@ describe('GraphicsStudio', () => {
 
   beforeEach(() => {
     localStorage.clear()
+    window.location.hash = ''
     container = document.createElement('div')
     document.body.appendChild(container)
     root = createRoot(container)
@@ -26,6 +27,7 @@ describe('GraphicsStudio', () => {
   afterEach(() => {
     act(() => root.unmount())
     container.remove()
+    window.location.hash = ''
   })
 
   it('renders the catalog, preview, sliders, and export panel', () => {
@@ -43,6 +45,17 @@ describe('GraphicsStudio', () => {
     expect(container.querySelector('input[name="outlineThickness"]')).toBeTruthy()
     expect(container.querySelector('input[name="color"]')).toBeTruthy()
     expect(container.querySelector('[data-testid="studio-export"]').value).toContain('"graphics-studio"')
+  })
+
+  it('opens directly to Matilda from the studio hash', () => {
+    window.location.hash = '#enemy-matilda'
+
+    act(() => {
+      root.render(<GraphicsStudio />)
+    })
+
+    expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('enemy-matilda')
+    expect(container.textContent).toContain('Enemy / Matilda')
   })
 
   it('confirms slider changes into local storage for later code application', () => {

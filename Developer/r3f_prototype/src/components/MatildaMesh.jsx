@@ -16,9 +16,16 @@ export const MATILDA_IDLE_ANIMATION = {
 }
 
 export const MATILDA_DEFAULT_MOVEMENT_POSE = false
+export const MATILDA_FORWARD_LEAN_RAD = Math.PI / 4
+export const MATILDA_BODY_CENTER_Y = 0.82
+const MATILDA_FORWARD_LEAN_OFFSET_Y = MATILDA_BODY_CENTER_Y * (1 - Math.cos(MATILDA_FORWARD_LEAN_RAD))
+const MATILDA_FORWARD_LEAN_OFFSET_Z = -MATILDA_BODY_CENTER_Y * Math.sin(MATILDA_FORWARD_LEAN_RAD)
 
 export const MATILDA_IDLE_POSE = {
   rootFloatY: MATILDA_IDLE_ANIMATION.floatBaseY,
+  rootOffsetZ: 0,
+  upperPivotOffsetY: 0,
+  upperPivotOffsetZ: 0,
   upperLeanX: 0,
   headLeanX: 0,
   leftFoot: {
@@ -34,18 +41,21 @@ export const MATILDA_IDLE_POSE = {
 }
 
 export const MATILDA_MOVEMENT_POSE = {
-  rootFloatY: 0.22,
-  upperLeanX: 0.22,
-  headLeanX: 0.08,
+  rootFloatY: MATILDA_IDLE_ANIMATION.floatBaseY,
+  rootOffsetZ: 0,
+  upperPivotOffsetY: MATILDA_FORWARD_LEAN_OFFSET_Y,
+  upperPivotOffsetZ: MATILDA_FORWARD_LEAN_OFFSET_Z,
+  upperLeanX: MATILDA_FORWARD_LEAN_RAD,
+  headLeanX: 0,
   leftFoot: {
-    position: [-0.17, -0.46, -0.10],
-    positionZ: -0.10,
-    rotationX: -0.52,
+    position: [-0.17, -0.46, 0.07],
+    positionZ: 0.07,
+    rotationX: 0,
   },
   rightFoot: {
-    position: [0.17, -0.46, -0.10],
-    positionZ: -0.10,
-    rotationX: -0.52,
+    position: [0.17, -0.46, 0.07],
+    positionZ: 0.07,
+    rotationX: 0,
   },
 }
 
@@ -176,8 +186,13 @@ export default function MatildaMesh({ faceTextureUrl = matildaFaceTextureUrl, mo
     const t = clock.elapsedTime
     const pose = movementPose ? MATILDA_MOVEMENT_POSE : MATILDA_IDLE_POSE
     idleRef.current.position.y = pose.rootFloatY + Math.sin(t * MATILDA_IDLE_ANIMATION.floatSpeed) * MATILDA_IDLE_ANIMATION.floatBobY
+    idleRef.current.position.z = pose.rootOffsetZ
     idleRef.current.rotation.z = Math.sin(t * 1.25) * MATILDA_IDLE_ANIMATION.swayZ
-    if (upperRef.current) upperRef.current.rotation.x = pose.upperLeanX
+    if (upperRef.current) {
+      upperRef.current.position.y = pose.upperPivotOffsetY
+      upperRef.current.position.z = pose.upperPivotOffsetZ
+      upperRef.current.rotation.x = pose.upperLeanX
+    }
     if (headRef.current) headRef.current.rotation.x = pose.headLeanX
     if (leftFootRef.current) leftFootRef.current.rotation.x = pose.leftFoot.rotationX
     if (rightFootRef.current) rightFootRef.current.rotation.x = pose.rightFoot.rotationX
@@ -227,11 +242,11 @@ export default function MatildaMesh({ faceTextureUrl = matildaFaceTextureUrl, mo
         <Part size={[0.32, 0.18, 0.08]} position={[0.96, 1.20, -0.12]} rotation={[0, 0, 0.42]} color={pal.horn} emissive={0.05} outlineScale={1.02} />
         <Part size={[0.12, 0.78, 0.12]} position={[0, -0.02, -0.26]} rotation={[0.52, 0, 0]} color={pal.hair} emissive={0.12} />
         <Part size={[0.16, 0.12, 0.08]} position={[0.02, -0.43, -0.18]} rotation={[0, 0, -0.55]} color={pal.horn} emissive={0.04} />
+        <Part size={[0.22, 0.56, 0.20]} position={[-0.17, -0.07, 0.02]} color={pal.skin} emissive={0.08} />
+        <Part size={[0.22, 0.56, 0.20]} position={[0.17, -0.07, 0.02]} color={pal.skin} emissive={0.08} />
+        <Part groupRef={leftFootRef} size={[0.34, 0.24, 0.34]} position={pose.leftFoot.position} color={pal.horn} emissive={0.04} />
+        <Part groupRef={rightFootRef} size={[0.34, 0.24, 0.34]} position={pose.rightFoot.position} color={pal.horn} emissive={0.04} />
       </group>
-      <Part size={[0.22, 0.56, 0.20]} position={[-0.17, -0.07, 0.02]} color={pal.skin} emissive={0.08} />
-      <Part size={[0.22, 0.56, 0.20]} position={[0.17, -0.07, 0.02]} color={pal.skin} emissive={0.08} />
-      <Part groupRef={leftFootRef} size={[0.34, 0.24, 0.34]} position={pose.leftFoot.position} color={pal.horn} emissive={0.04} />
-      <Part groupRef={rightFootRef} size={[0.34, 0.24, 0.34]} position={pose.rightFoot.position} color={pal.horn} emissive={0.04} />
     </group>
   )
 }

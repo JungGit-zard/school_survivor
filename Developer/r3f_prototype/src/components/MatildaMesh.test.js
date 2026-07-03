@@ -1,10 +1,13 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   MATILDA_ARM_LAYOUT,
   MATILDA_BACK_HAIR_COVERAGE,
+  MATILDA_BODY_CENTER_Y,
   MATILDA_DEFAULT_FACE_TEXTURE_SOURCE,
   MATILDA_DEFAULT_MOVEMENT_POSE,
   MATILDA_FACE_TEXTURE_SLOT,
+  MATILDA_FORWARD_LEAN_RAD,
   MATILDA_IDLE_ANIMATION,
   MATILDA_IDLE_POSE,
   MATILDA_MOVEMENT_POSE,
@@ -108,10 +111,27 @@ describe('MatildaMesh model contract', () => {
   it('keeps the movement pose separate from the idle hover', () => {
     expect(MATILDA_MOVEMENT_POSE.rootFloatY).toBeGreaterThan(0)
     expect(MATILDA_MOVEMENT_POSE.upperLeanX).toBeGreaterThan(MATILDA_IDLE_POSE.upperLeanX)
-    expect(MATILDA_MOVEMENT_POSE.headLeanX).toBeGreaterThan(0)
-    expect(MATILDA_MOVEMENT_POSE.leftFoot.rotationX).toBeLessThan(0)
-    expect(MATILDA_MOVEMENT_POSE.rightFoot.rotationX).toBeLessThan(0)
-    expect(MATILDA_MOVEMENT_POSE.leftFoot.positionZ).toBeLessThan(0)
-    expect(MATILDA_MOVEMENT_POSE.rightFoot.positionZ).toBeLessThan(0)
+    expect(MATILDA_MOVEMENT_POSE.headLeanX).toBe(0)
+    expect(MATILDA_MOVEMENT_POSE.leftFoot.rotationX).toBe(0)
+    expect(MATILDA_MOVEMENT_POSE.rightFoot.rotationX).toBe(0)
+  })
+
+  it('leans Matilda forward 45 degrees from her center while moving straight', () => {
+    expect(MATILDA_FORWARD_LEAN_RAD).toBeCloseTo(Math.PI / 4, 6)
+    expect(MATILDA_MOVEMENT_POSE.upperLeanX).toBe(MATILDA_FORWARD_LEAN_RAD)
+    expect(MATILDA_MOVEMENT_POSE.headLeanX).toBe(0)
+    expect(MATILDA_MOVEMENT_POSE.rootFloatY).toBe(MATILDA_IDLE_POSE.rootFloatY)
+    expect(MATILDA_MOVEMENT_POSE.rootOffsetZ).toBe(0)
+    expect(MATILDA_MOVEMENT_POSE.upperPivotOffsetY).toBeCloseTo(MATILDA_BODY_CENTER_Y * (1 - Math.cos(MATILDA_FORWARD_LEAN_RAD)), 6)
+    expect(MATILDA_MOVEMENT_POSE.upperPivotOffsetZ).toBeCloseTo(-MATILDA_BODY_CENTER_Y * Math.sin(MATILDA_FORWARD_LEAN_RAD), 6)
+    expect(MATILDA_MOVEMENT_POSE.leftFoot.positionZ).toBe(MATILDA_IDLE_POSE.leftFoot.positionZ)
+    expect(MATILDA_MOVEMENT_POSE.rightFoot.positionZ).toBe(MATILDA_IDLE_POSE.rightFoot.positionZ)
+  })
+
+  it('keeps legs and boots inside the moving body group', () => {
+    const source = readFileSync(new URL('./MatildaMesh.jsx', import.meta.url), 'utf8')
+
+    expect(source).not.toContain('</group>\n      <Part size={[0.22, 0.56, 0.20]} position={[-0.17, -0.07, 0.02]}')
+    expect(source).toContain('<Part groupRef={rightFootRef} size={[0.34, 0.24, 0.34]} position={pose.rightFoot.position}')
   })
 })

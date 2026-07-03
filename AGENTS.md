@@ -46,6 +46,7 @@
 - `docs/solutions/` — documented solutions to past problems (bugs, best practices, architecture/design patterns, conventions), organized by category with YAML frontmatter (`module`, `tags`, `problem_type`). Relevant when implementing or debugging in documented areas.
 - For UI work, consider layout, readability, keyboard/mouse interaction, and mobile or desktop fit.
 - For gameplay work, consider player controls, feedback, state changes, difficulty, and failure cases.
+- For R3F/Rapier vampire-survivor-like stability work, performance regression, monster disappearance, or physics anomalies, treat `Developer/agent_room/r3f_rapier_vampire_survivor_stability_rules.md` as the mandatory Agent-Ready checklist and run its §6 diagnostic protocol before proposing fixes.
 
 ## Subagent Usage
 

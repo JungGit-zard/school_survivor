@@ -269,10 +269,10 @@ function RenderPreviewItem({ item }) {
     return <PlayerVisual meshGroup={playerRef} movingRef={movingRef} hp={100} maxHp={100} />
   }
   if (item.previewKind === 'zombie') {
-    return <EnemyVisual type={item.zombieType} animPhase={item.animation ?? 'normal'} hp={ENEMY_STATS[item.zombieType]?.hp} />
+    return <EnemyVisual type={item.zombieType} animPhase={item.animation ?? 'normal'} hp={ENEMY_STATS[item.zombieType]?.hp} forceMesh />
   }
   if (item.previewKind === 'matilda') {
-    return <MatildaMesh />
+    return <MatildaMesh movementPose={item.animation === 'charge'} />
   }
   if (item.previewKind === 'stageObject' && item.objectType === 'desk') {
     return <ClassroomDesk variant={item.variant} />
@@ -350,7 +350,7 @@ function RenderPreviewItem({ item }) {
 function StudioScene({ selectedItem, tuning, frame }) {
   const rootRef = useRef(null)
   const rotationY = THREE.MathUtils.degToRad(tuning.rotationY)
-  const item = selectedItem.previewKind === 'zombie'
+  const item = selectedItem.previewKind === 'zombie' || selectedItem.previewKind === 'matilda'
     ? { ...selectedItem, animation: tuning.animation }
     : selectedItem
 
