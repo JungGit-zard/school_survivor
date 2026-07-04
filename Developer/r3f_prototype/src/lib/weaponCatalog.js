@@ -28,7 +28,8 @@ export const WEAPON_CATALOG = {
     id: 'boxCutter',
     label: '커터칼',
     // 공격력 24 = '30cm 자'(12)의 2배. 사거리 1.4 = 초기값(0.7)의 2배로 확장.
-    base: { damage: 24, cooldown: 1100, range: 1.4, width: 0.18, knockback: 1.8 },
+    // 쿨다운 650 = '30cm 자'(1300)의 절반 (기획 정본 2026-07-04).
+    base: { damage: 24, cooldown: 650, range: 1.4, width: 0.18, knockback: 1.8 },
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },
@@ -161,10 +162,28 @@ export const WEAPON_CATALOG = {
     ],
     minLevelToAppear: 4,
   },
+  studentLantern: {
+    id: 'studentLantern',
+    label: '학생용 랜턴',
+    // 신무기(2026-07-04): 전방을 빛으로 비추는 지속 무기. 빛이 켜진 durationMs 동안
+    // 전방 빛 상자 안 모든 적이 1초(hitIntervalMs)마다 피해를 받는다.
+    // - durationMs 1레벨 3초 → 3타 (점등 즉시 1타 + 이후 1초 간격). 레벨업마다 +1초=+1타.
+    // - 빛 범위 1.9×1.9 = E01(녹색좀비) 2마리 깊이 × 2마리 폭 (간격 ~0.8 밀집 기준).
+    // - damage: 연필 레벨1의 1.5배 — 카탈로그 선언 직후 주입.
+    // - cooldown 8000은 점등 시작 기준: Lv1 3초 점등/5초 소등 → Lv5 7초 점등/1초 소등.
+    base: { damage: 9, cooldown: 8000, lastFired: 0, durationMs: 3000, hitIntervalMs: 1000, lightLength: 1.9, lightWidth: 1.9 },
+    unlockConditions: [
+      { type: 'stage1Clears', value: 1 },
+      { type: 'totalRuns', value: 5 },
+    ],
+    minLevelToAppear: 5,
+  },
 }
 
 // 플라스크 웅덩이 틱 데미지 = 연필 레벨1 데미지 (기획 정본: 단일 출처 참조)
 WEAPON_CATALOG.scienceFlask.base.zoneTickDamage = WEAPON_CATALOG.pencilThrow.base.damage
+// 학생용 랜턴 위력 = 연필 레벨1의 1.5배 (기획 정본: 단일 출처 참조)
+WEAPON_CATALOG.studentLantern.base.damage = WEAPON_CATALOG.pencilThrow.base.damage * 1.5
 
 const ALL_IDS = Object.keys(WEAPON_CATALOG)
 const STARTER_IDS = ALL_IDS.filter((id) => WEAPON_CATALOG[id].unlockConditions === STARTER)

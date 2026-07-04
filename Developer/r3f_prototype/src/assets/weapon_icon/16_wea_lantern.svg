@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 학생용 랜턴 아이콘: 손잡이 + 몸통 유리 + 따뜻한 불빛 -->
+  <g stroke="#241a10" stroke-width="3" stroke-linejoin="round">
+    <!-- 손잡이 고리 -->
+    <path d="M24 14 Q32 4 40 14" fill="none" stroke-linecap="round"/>
+    <!-- 상단 뚜껑 -->
+    <rect x="20" y="14" width="24" height="7" rx="2.5" fill="#5b4632"/>
+    <!-- 유리 몸통 -->
+    <path d="M22 21 L42 21 L45 48 L19 48 Z" fill="#fff3c4"/>
+    <!-- 불꽃 -->
+    <path d="M32 28 Q37 34 34.5 40 Q33.8 42.6 32 43 Q30.2 42.6 29.5 40 Q27 34 32 28 Z" fill="#ffb52e" stroke-width="2.4"/>
+    <!-- 하단 받침 -->
+    <rect x="18" y="48" width="28" height="7" rx="2.5" fill="#5b4632"/>
+  </g>
+  <!-- 빛 퍼짐 -->
+  <g fill="#ffd964" opacity="0.85">
+    <polygon points="12,30 4,26 4,36"/>
+    <polygon points="52,30 60,26 60,36"/>
+    <polygon points="14,16 7,10 10,19"/>
+    <polygon points="50,16 57,10 54,19"/>
+  </g>
+</svg>

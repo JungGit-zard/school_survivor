@@ -25,6 +25,7 @@ import umbrellaIconSrc from '../assets/weapon_icon/11_wea_umb.png.png'
 import eraserIconSrc from '../assets/weapon_icon/12_wea_eraser.png.png'
 import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
 import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
+import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.svg'
 
 const GAMEOVER_TRANSITION_MS = 1000
 
@@ -70,6 +71,8 @@ const UPGRADES = [
   { key: 'acquireEraserBomb', icon: 'eraser', label: '지우개 폭탄 해금', desc: '느린 한 방 광역 폭발' },
   { key: 'eraserDamage', icon: 'eraser', labelFn: damageLabel('폭탄 피해', 'eraserBomb', 'eraserDamage'), desc: '폭발 피해 증가' },
   { key: 'eraserRadius', icon: 'eraser', label: '폭탄 반경 +', desc: '폭발 반경 증가' },
+  { key: 'acquireLantern', icon: 'lantern', label: '학생용 랜턴 해금', desc: '전방을 빛으로 비춰 빛 안의 적을 연타' },
+  { key: 'lanternDuration', icon: 'lantern', label: '랜턴 지속 +1초', desc: '점등 시간과 타격 횟수 증가' },
   { key: 'acquireChibiko', icon: 'chibiko', label: '치비코 해금', desc: '뒤따라다니며 레벨1 연필을 던짐' },
   { key: 'acquireSharkMissile', icon: 'sharkMissile', label: '상어미사일 해금', desc: '가장 빽빽한 좀비 무리로 호밍 폭발' },
   { key: 'sharkMissileDamage', icon: 'sharkMissile', labelFn: damageLabel('상어미사일 피해', 'sharkMissile', 'sharkMissileDamage'), desc: '폭발 피해 증가' },
@@ -106,6 +109,7 @@ const WEAPON_UPGRADE_ICON_SRC = {
   eraser: eraserIconSrc,
   chibiko: chibikoIconSrc,
   sharkMissile: sharkMissileIconSrc,
+  lantern: lanternIconSrc,
 }
 
 const WEAPON_KEY_TO_ICON = {
@@ -124,6 +128,7 @@ const WEAPON_KEY_TO_ICON = {
   eraserBomb:    'eraser',
   chibiko:       'chibiko',
   sharkMissile:  'sharkMissile',
+  studentLantern: 'lantern',
 }
 
 function resolveAssetSrc(src, depth = 0) {

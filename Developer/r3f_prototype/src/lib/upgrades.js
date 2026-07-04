@@ -45,6 +45,9 @@ export const UPGRADE_EFFECTS = {
   acquireEraserBomb:    { weapon: 'eraserBomb',    kind: 'acquire', minLevel: 4 },
   eraserDamage:        { weapon: 'eraserBomb',    kind: 'damage', dmg: 8 },
   eraserRadius:        { weapon: 'eraserBomb',    kind: 'stat',   stat: 'radius',    step: 0.19, cap: 2.1 },
+  acquireLantern:       { weapon: 'studentLantern', kind: 'acquire', minLevel: 5 },
+  // 기획: 레벨업마다 지속 +1초 = 타격 +1회 (초당 1타). cap 7000 = 무기 Lv5 상한(3+4초).
+  lanternDuration:     { weapon: 'studentLantern', kind: 'stat',   stat: 'durationMs', step: 1000, cap: 7000 },
   acquireChibiko:       { weapon: 'chibiko',       kind: 'acquire', minLevel: 8 },
   acquireSharkMissile:  { weapon: 'sharkMissile',  kind: 'acquire', minLevel: 8 },
   sharkMissileDamage:  { weapon: 'sharkMissile',  kind: 'damage', dmg: 10 },

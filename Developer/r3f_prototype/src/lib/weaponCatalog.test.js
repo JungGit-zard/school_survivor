@@ -12,7 +12,7 @@ import {
 describe('weaponCatalog', () => {
   it('14종 entry 등록 + starter 9종', () => {
     const all = getAllWeaponIds()
-    expect(all.length).toBe(15)
+    expect(all.length).toBe(16)
     const starter = getStarterIds()
     expect(starter).toEqual(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'chibiko'])
   })
@@ -24,6 +24,8 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.boxCutter.base.damage).toBe(24) // '30cm 자'(12)의 2배
     expect(WEAPON_CATALOG.boxCutter.base.range).toBe(1.4) // 사거리 2배 확장 (0.7 → 1.4)
     expect(WEAPON_CATALOG.boxCutter.base.width).toBe(0.18)
+    // 기획 정본(2026-07-04): 커터칼 쿨다운 = '30cm 자'의 절반
+    expect(WEAPON_CATALOG.boxCutter.base.cooldown).toBe(WEAPON_CATALOG.schoolBag.base.cooldown / 2)
     expect(WEAPON_CATALOG.tumbler.base.hitsPerSecond).toBe(2.5)
     expect(WEAPON_CATALOG.scienceFlask.base.damage).toBe(7.5) // 리워크: 착탄 데미지 절반, 웅덩이 존 추가
     expect(WEAPON_CATALOG.bell.base.directions).toBe(8)
@@ -76,6 +78,21 @@ describe('weaponCatalog', () => {
     expect(flask.zoneDurationMs).toBe(5000)  // 1레벨 5초
     // 존 틱 데미지 = 연필 레벨1 데미지 (단일 출처)
     expect(flask.zoneTickDamage).toBe(WEAPON_CATALOG.pencilThrow.base.damage)
+  })
+
+  it('studentLantern 스펙 (신무기 기획 정본)', () => {
+    const lantern = WEAPON_CATALOG.studentLantern.base
+    expect(lantern.damage).toBe(WEAPON_CATALOG.pencilThrow.base.damage * 1.5) // 연필 Lv1 ×1.5 = 9
+    expect(lantern.durationMs).toBe(3000)      // 1레벨 3초 점등 → 3타
+    expect(lantern.hitIntervalMs).toBe(1000)   // 초당 1타
+    expect(lantern.lightLength).toBe(1.9)      // 전방 E01 2마리 깊이
+    expect(lantern.lightWidth).toBe(1.9)       // 폭 E01 2마리
+    expect(WEAPON_CATALOG.studentLantern.minLevelToAppear).toBe(5)
+  })
+
+  it('evaluateUnlocks(stage1Clears:1) unlocks studentLantern', () => {
+    const u = evaluateUnlocks({ stage1Clears: 1 })
+    expect(u.has('studentLantern')).toBe(true)
   })
 
   it('defines sharkMissile at 1.3x guidedMissile damage (기획 정본)', () => {

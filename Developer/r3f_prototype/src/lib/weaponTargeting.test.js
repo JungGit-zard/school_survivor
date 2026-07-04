@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { enemyBodies, playerPos } from './refs.js'
-import { applyRadialDamage, findClosestEnemy } from './weaponTargeting.js'
+import { applyRadialDamage, findClosestEnemy, isInForwardBox, applyForwardBoxDamage } from './weaponTargeting.js'
 
 function fakeEnemy(x, z, { dead = false } = {}) {
   return {
@@ -36,6 +36,28 @@ describe('applyRadialDamage', () => {
     expect(dead._enemyHit).not.toHaveBeenCalled()
   })
 
+  it('forwards a forced death style to enemies hit by explosive weapons', () => {
+    const enemy = fakeEnemy(0.5, 0)
+    enemyBodies.set('enemy', enemy)
+
+    applyRadialDamage({
+      x: 0,
+      z: 0,
+      radius: 1,
+      damage: 99,
+      knockback: 3,
+      knockbackMs: 120,
+      deathStyleOverride: 'shatter5',
+    })
+
+    expect(enemy._enemyHit).toHaveBeenCalledWith(99, {
+      source: { x: 0, z: 0 },
+      knockback: 3,
+      knockbackMs: 120,
+      deathStyleOverride: 'shatter5',
+    })
+  })
+
   it('treats radius as a hard boundary (just-inside hits, just-outside misses)', () => {
     const inside = fakeEnemy(0.99, 0)
     const outside = fakeEnemy(1.01, 0)
@@ -52,6 +74,16 @@ describe('applyRadialDamage', () => {
     enemyBodies.set('broken', { _enemyDead: false, translation: () => ({ x: 0, z: 0 }) })
     const count = applyRadialDamage({ x: 0, z: 0, radius: 2, damage: 5, knockback: 1, knockbackMs: 50 })
     expect(count).toBe(0)
+  })
+
+  it('does not hit every enemy when radius is missing', () => {
+    const enemy = fakeEnemy(50, 50)
+    enemyBodies.set('enemy', enemy)
+
+    const count = applyRadialDamage({ x: 0, z: 0, radius: undefined, damage: 5, knockback: 0, knockbackMs: 0 })
+
+    expect(count).toBe(0)
+    expect(enemy._enemyHit).not.toHaveBeenCalled()
   })
 })
 
@@ -71,5 +103,44 @@ describe('findClosestEnemy', () => {
   it('returns null when no enemy is within range', () => {
     enemyBodies.set('far', fakeEnemy(10, 0))
     expect(findClosestEnemy(5)).toBeNull()
+  })
+})
+
+describe('isInForwardBox / applyForwardBoxDamage (학생용 랜턴)', () => {
+  it('전방 박스 안팎을 정확히 판정한다 (+z 방향)', () => {
+    const box = { length: 1.9, width: 1.9 }
+    const origin = { originX: 0, originZ: 0, dirX: 0, dirZ: 1 }
+
+    expect(isInForwardBox(origin, { x: 0, z: 1.0 }, box)).toBe(true)     // 정면 중앙
+    expect(isInForwardBox(origin, { x: 0.9, z: 1.8 }, box)).toBe(true)   // 모서리 안
+    expect(isInForwardBox(origin, { x: 0, z: 2.0 }, box)).toBe(false)    // 깊이 초과
+    expect(isInForwardBox(origin, { x: 1.0, z: 1.0 }, box)).toBe(false)  // 폭 초과
+    expect(isInForwardBox(origin, { x: 0, z: -0.5 }, box)).toBe(false)   // 후방
+  })
+
+  it('대각 방향에서도 회전된 박스로 판정한다', () => {
+    const d = Math.SQRT1_2
+    const origin = { originX: 0, originZ: 0, dirX: d, dirZ: d }
+    expect(isInForwardBox(origin, { x: 1, z: 1 }, { length: 1.9, width: 1.9 })).toBe(true)
+    expect(isInForwardBox(origin, { x: -1, z: 1 }, { length: 1.9, width: 1.9 })).toBe(false) // 측면 밖
+  })
+
+  it('빛 상자 안 전원 타격, 넉백 없음', () => {
+    const inFront = fakeEnemy(0.2, 1.2)
+    const behind = fakeEnemy(0, -1)
+    const side = fakeEnemy(1.5, 1.0)
+    enemyBodies.set('f', inFront)
+    enemyBodies.set('b', behind)
+    enemyBodies.set('s', side)
+
+    const hits = applyForwardBoxDamage({
+      originX: 0, originZ: 0, dirX: 0, dirZ: 1,
+      length: 1.9, width: 1.9, damage: 9,
+    })
+
+    expect(hits).toBe(1)
+    expect(inFront._enemyHit).toHaveBeenCalledWith(9, expect.objectContaining({ knockback: 0 }))
+    expect(behind._enemyHit).not.toHaveBeenCalled()
+    expect(side._enemyHit).not.toHaveBeenCalled()
   })
 })
