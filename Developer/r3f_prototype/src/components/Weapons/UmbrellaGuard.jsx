@@ -6,6 +6,7 @@ import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 const OPEN_DURATION_MS = 420
 const DEFAULT_SPIN_DURATION_MS = 1200
@@ -49,7 +50,8 @@ export function UmbrellaModel({ openProgress, spin = 0 }) {
   const panelArc = (Math.PI * 2) / panelMats.length
 
   return (
-    <group scale={[0.52, 0.52, 0.52]} rotation={[0.12, spin, -0.08]}>
+    <StudioTunedGroup itemId="weapon-umbrella">
+      <group scale={[0.52, 0.52, 0.52]} rotation={[0.12, spin, -0.08]}>
       <mesh material={outMat} position={[0, 0.24, 0]} scale={inflateScale(canopyScale)}>
         <sphereGeometry args={[0.78, 24, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
       </mesh>
@@ -93,7 +95,8 @@ export function UmbrellaModel({ openProgress, spin = 0 }) {
       <mesh material={gripMat} position={[0, -0.72, 0.22]} rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[0.12, 0.028, 8, 16, Math.PI * 1.25]} />
       </mesh>
-    </group>
+      </group>
+    </StudioTunedGroup>
   )
 }
 

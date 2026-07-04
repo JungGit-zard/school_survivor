@@ -42,9 +42,9 @@ describe('player arm action state', () => {
     expect(pose.slvR.z).toBeLessThan(-0.1)
   })
 
-  it('raises the right arm forward for lantern aiming', () => {
+  it('raises the right arm forward for the student flashlight animation', () => {
     const pose = getPlayerArmPose({
-      action: { type: 'lanternAim', progress: 0.5 },
+      action: { type: 'lanternFlashlight', progress: 0.5 },
       walkSwing: 0,
     })
 

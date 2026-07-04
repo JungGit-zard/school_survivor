@@ -5,6 +5,7 @@ import { inflateScale, outlineMat, toonMat } from '../lib/toon.js'
 import MatildaMesh from './MatildaMesh.jsx'
 import PlayerMesh from './PlayerMesh.jsx'
 import ZombieMesh from './ZombieMesh.jsx'
+import { getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'
 
 export const TITLE_SCENE_DIRECTION = {
@@ -223,8 +224,7 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
   const floorMat = useMemo(() => toonMat(0x4a4054, 0.05), [])
   const wallMat = useMemo(() => toonMat(0x2d2738, 0.05), [])
   const doorMat = useMemo(() => toonMat(0x805947, 0.05), [])
-  const studioScale = studioTuning?.scale ?? 1
-  const studioRotationY = THREE.MathUtils.degToRad(studioTuning?.rotationY ?? 0)
+  const studioTransform = getStudioTransformProps(studioTuning)
 
   return (
     <>
@@ -236,7 +236,12 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
       <directionalLight position={[5, 4, -4]} intensity={0.7} color={0xffa34f} />
       <pointLight position={[0, 1.1, -3.7]} intensity={5.5} color={0xffdf9a} distance={11} decay={2} />
 
-      <group ref={studioGroupRef} rotation={[0, -0.09 + studioRotationY, 0]} position={[0, -1.15, 0]} scale={studioScale}>
+      <group
+        ref={studioGroupRef}
+        rotation={[studioTransform.rotation[0], -0.09 + studioTransform.rotation[1], studioTransform.rotation[2]]}
+        position={[0, -1.15, 0]}
+        scale={studioTransform.scale}
+      >
         <mesh receiveShadow position={[0, -0.02, 0]} rotation={[-Math.PI / 2, 0, 0]} material={floorMat}>
           <planeGeometry args={[8.6, 12]} />
         </mesh>

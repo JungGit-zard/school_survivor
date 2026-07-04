@@ -7,6 +7,7 @@ import { pickBoxCutterTargets, normalizePlanarFacing } from '../../lib/boxCutter
 import { startPlayerArmAction, computeBoxCutterActionPhases, BOX_CUTTER_ACTION_MS } from '../../lib/playerArmAction.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 export function BoxCutterModel() {
   const handleMat = useMemo(() => toonMat(0xffc928, 0.16), [])
@@ -16,7 +17,8 @@ export function BoxCutterModel() {
   const outMat = useMemo(() => outlineMat(0.95), [])
 
   return (
-    <group scale={[0.42, 0.42, 0.42]} rotation={[0.12, 0, -0.08]}>
+    <StudioTunedGroup itemId="weapon-box-cutter">
+      <group scale={[0.42, 0.42, 0.42]} rotation={[0.12, 0, -0.08]}>
       <mesh material={outMat} position={[0, 0, -0.12]} scale={inflateScale([1.1, 1.12, 1.08])}>
         <boxGeometry args={[0.22, 0.18, 0.74]} />
       </mesh>
@@ -35,7 +37,8 @@ export function BoxCutterModel() {
       <mesh material={edgeMat} position={[0.045, 0.062, 0.42]}>
         <boxGeometry args={[0.022, 0.014, 0.48]} />
       </mesh>
-    </group>
+      </group>
+    </StudioTunedGroup>
   )
 }
 

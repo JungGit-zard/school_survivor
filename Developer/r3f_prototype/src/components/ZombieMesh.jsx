@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { inflateScale, getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat } from '../lib/toon.js'
 import MatildaMesh from './MatildaMesh.jsx'
+import StudioTunedGroup from './StudioTunedGroup.jsx'
 
 // 타입별 색상 팔레트
 export const ZOMBIE_PALETTE = {
@@ -246,11 +247,16 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
   }
 
   if (type === 'B01') {
-    return <B01BossZombieMesh hitFlash={hitFlash} reg={reg} />
+    return (
+      <StudioTunedGroup itemId="zombie-b01">
+        <B01BossZombieMesh hitFlash={hitFlash} reg={reg} />
+      </StudioTunedGroup>
+    )
   }
 
   return (
-    <group>
+    <StudioTunedGroup itemId={`zombie-${type.toLowerCase()}`}>
+      <group>
       {/* ── 머리 ── */}
       <group ref={reg('head')} position={[0, 0.82, 0]}>
         <ZBlock size={[0.52, 0.48, 0.46]} position={[0, 0, 0]}       color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash} />
@@ -287,6 +293,7 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
         <ZBlock size={[0.22, 0.52, 0.26]} position={[0, -0.26, 0]}   color={pal.body} emissive={0.10} outlineScale={1.06} flash={hitFlash} />
         <ZBlock size={[0.24, 0.12, 0.34]} position={[0, -0.57, 0.05]} color={0x1a1a1a} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
       </group>
-    </group>
+      </group>
+    </StudioTunedGroup>
   )
 }

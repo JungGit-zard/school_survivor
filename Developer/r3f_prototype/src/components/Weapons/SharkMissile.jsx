@@ -9,6 +9,7 @@ import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 import { findSharkMissileClusterTarget } from '../../lib/sharkMissileTargeting.js'
 import { SHARK_DART, canFireSharkMissile, createSharkMissileLaunch, isSharkHomingPhase, pickSharkWanderPoint, shortestAngleDelta } from '../../lib/sharkMissileRuntime.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
 function clampToScreen(x, z, margin = 0) {
@@ -53,7 +54,8 @@ export function SharkMissileModel() {
   const outMat = useMemo(() => outlineMat(0.96), [])
 
   return (
-    <group scale={[0.62, 0.62, 0.62]}>
+    <StudioTunedGroup itemId="weapon-shark-missile">
+      <group scale={[0.62, 0.62, 0.62]}>
       <SharkPart args={[0.44, 0.28, 0.9]} position={[0, 0, 0.02]} material={bodyMat} />
       <SharkPart args={[0.46, 0.12, 0.54]} position={[0, 0.09, 0.08]} material={topMat} outlineScale={[1.05, 1.12, 1.06]} />
       <SharkPart args={[0.46, 0.13, 0.44]} position={[0, -0.12, 0.18]} material={bellyMat} outlineScale={[1.05, 1.1, 1.06]} />
@@ -92,7 +94,8 @@ export function SharkMissileModel() {
       <mesh material={pupilMat} position={[-0.19, 0.05, 0.515]} rotation={[0, 0.25, 0]}>
         <boxGeometry args={[0.05, 0.035, 0.02]} />
       </mesh>
-    </group>
+      </group>
+    </StudioTunedGroup>
   )
 }
 

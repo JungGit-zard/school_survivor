@@ -6,6 +6,7 @@ import { enemyBodies, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
 import { toonMat } from '../../lib/toon.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _stunBoltId  = 0
 let _chainArcId  = 0
@@ -32,10 +33,12 @@ export function LightningBoltModel() {
   }, [])
 
   return (
-    <group scale={[scaleEffectVisual(0.38), scaleEffectVisual(0.38), scaleEffectVisual(0.38)]}>
+    <StudioTunedGroup itemId="weapon-stun-gun">
+      <group scale={[scaleEffectVisual(0.38), scaleEffectVisual(0.38), scaleEffectVisual(0.38)]}>
       <mesh renderOrder={2} geometry={geo} material={boltMat} />
       <mesh renderOrder={3} geometry={geo} material={coreMat} scale={[0.52, 0.52, 0.52]} position={[0, 0, 0.03]} />
-    </group>
+      </group>
+    </StudioTunedGroup>
   )
 }
 

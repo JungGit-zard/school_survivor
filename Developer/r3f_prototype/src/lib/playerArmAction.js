@@ -12,6 +12,9 @@ export const PLAYER_ARM_ACTIONS = {
   lanternAim: {
     durationMs: 320,
   },
+  lanternFlashlight: {
+    durationMs: 320,
+  },
 }
 
 // 커터칼 2단 동작 위상. progress(0..1) → { thrust, raise, env }.
@@ -94,7 +97,7 @@ export function getPlayerArmPose({ action, walkSwing = 0 }) {
     pose.slvL.z = 0.06 * power
   }
 
-  if (action.type === 'lanternAim') {
+  if (action.type === 'lanternAim' || action.type === 'lanternFlashlight') {
     pose.slvR.x = -1.5
     pose.slvR.y = -0.04
     pose.slvR.z = 0

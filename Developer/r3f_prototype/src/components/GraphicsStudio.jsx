@@ -96,16 +96,19 @@ export default function GraphicsStudio() {
   )
 
   const updateTuning = (patch) => {
-    setDraftTuningById((current) => ({
-      ...current,
-      [selectedItem.id]: normalizeStudioTuning({
-        ...tuning,
-        ...patch,
-      }),
-    }))
+    setDraftTuningById((current) => {
+      const currentTuning = normalizeStudioTuning(current[selectedItem.id] ?? savedTuning)
+      return {
+        ...current,
+        [selectedItem.id]: normalizeStudioTuning({
+          ...currentTuning,
+          ...patch,
+        }),
+      }
+    })
   }
 
-  const confirmCurrent = () => {
+  const applyCurrent = () => {
     const next = saveStudioTunings({
       ...confirmedTunings,
       [selectedItem.id]: tuning,
@@ -171,6 +174,9 @@ export default function GraphicsStudio() {
           <h2 style={styles.panelTitle}>Inspector</h2>
           <div style={styles.controls}>
             <SliderRow label="Scale" name="scale" min="0.35" max="2.5" step="0.01" value={tuning.scale} onChange={(scale) => updateTuning({ scale })} />
+            <SliderRow label="Width X" name="scaleX" min="0.35" max="2.5" step="0.01" value={tuning.scaleX} onChange={(scaleX) => updateTuning({ scaleX })} />
+            <SliderRow label="Height Y" name="scaleY" min="0.35" max="2.5" step="0.01" value={tuning.scaleY} onChange={(scaleY) => updateTuning({ scaleY })} />
+            <SliderRow label="Depth Z" name="scaleZ" min="0.35" max="2.5" step="0.01" value={tuning.scaleZ} onChange={(scaleZ) => updateTuning({ scaleZ })} />
             <SliderRow label="Outline" name="outlineThickness" min="0.4" max="2.2" step="0.01" value={tuning.outlineThickness} onChange={(outlineThickness) => updateTuning({ outlineThickness })} />
             <SliderRow label="Opacity" name="outlineOpacity" min="0" max="1" step="0.01" value={tuning.outlineOpacity} onChange={(outlineOpacity) => updateTuning({ outlineOpacity })} />
             <ColorRow label="Outline Color" name="outlineColor" value={tuning.outlineColor} onChange={(outlineColor) => updateTuning({ outlineColor })} />
@@ -179,7 +185,9 @@ export default function GraphicsStudio() {
             <SliderRow label="Saturation" name="saturation" min="0.1" max="1.8" step="0.01" value={tuning.saturation} onChange={(saturation) => updateTuning({ saturation })} />
             <SliderRow label="Brightness" name="brightness" min="0.35" max="1.8" step="0.01" value={tuning.brightness} onChange={(brightness) => updateTuning({ brightness })} />
             <SliderRow label="Emissive" name="emissiveIntensity" min="0" max="1.2" step="0.01" value={tuning.emissiveIntensity} onChange={(emissiveIntensity) => updateTuning({ emissiveIntensity })} />
+            <SliderRow label="Rotate X" name="rotationX" min="-180" max="180" step="1" value={tuning.rotationX} onChange={(rotationX) => updateTuning({ rotationX })} />
             <SliderRow label="Rotate Y" name="rotationY" min="-180" max="180" step="1" value={tuning.rotationY} onChange={(rotationY) => updateTuning({ rotationY })} />
+            <SliderRow label="Rotate Z" name="rotationZ" min="-180" max="180" step="1" value={tuning.rotationZ} onChange={(rotationZ) => updateTuning({ rotationZ })} />
             <label style={styles.selectRow}>
               <span style={styles.controlLabel}>Motion</span>
               <select
@@ -193,11 +201,12 @@ export default function GraphicsStudio() {
                 <option value="charge">charge</option>
                 <option value="stun">stun</option>
                 <option value="lantern">lantern</option>
+                <option value="lanternFlashlight">lanternFlashlight</option>
               </select>
             </label>
           </div>
           <div style={styles.actions}>
-            <button type="button" onClick={confirmCurrent} style={styles.primaryButton}>Confirm</button>
+            <button type="button" onClick={applyCurrent} style={styles.primaryButton}>Apply</button>
             <button type="button" onClick={resetCurrent} style={styles.secondaryButton}>Reset</button>
             <button type="button" onClick={copyExport} style={styles.secondaryButton}>Copy JSON</button>
           </div>

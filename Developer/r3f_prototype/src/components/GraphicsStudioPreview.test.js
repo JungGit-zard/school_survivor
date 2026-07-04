@@ -15,4 +15,28 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(source).toContain("previewKind === 'matilda'")
     expect(source).toContain("movementPose={item.animation === 'charge'}")
   })
+
+  it('can preview separated Starlink crash phases and fixed zombie death styles', () => {
+    const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain("previewKind === 'starlinkCrash'")
+    expect(source).toContain("item.crashPhase === 'impact'")
+    expect(source).toContain('item.deathStyle ?? ENEMY_DEATH_COLLAPSE_STYLES[index]')
+  })
+
+  it('maps the named player flashlight animation to the runtime arm action', () => {
+    const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('PLAYER_STUDIO_ARM_ACTIONS')
+    expect(source).toContain("lanternFlashlight: 'lanternFlashlight'")
+  })
+
+  it('uses the shared studio transform for per-axis scale and default rotation preview', () => {
+    const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('getStudioTransformProps(tuning)')
+    expect(source).toContain('scale={transform.scale}')
+    expect(source).toContain('rotation={transform.rotation}')
+    expect(source).toContain('StudioTuningPreviewProvider')
+  })
 })

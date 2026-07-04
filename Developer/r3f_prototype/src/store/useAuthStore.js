@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { createFirebaseAuthClient, isFirebaseAuthConfigured } from '../lib/firebaseAuth.js'
 import { loadCloudProgressFromCloud, saveLocalProgressToCloud, setCloudProgressUser } from '../lib/firebaseProgress.js'
+import { isE2EAuthBypass, getE2EUser } from '../lib/e2eAuth.js'
 
 let authClientPromise = null
 let unsubscribeAuth = null
@@ -14,6 +15,12 @@ export const useAuthStore = create((set, get) => ({
 
   initializeAuth: async () => {
     if (get().initialized) return
+    // DEV 전용 E2E 우회 — 가짜 유저로 즉시 signedIn. syncCloudProgressUser를
+    // 호출하지 않아 클라우드 저장/로드는 전부 no-op (e2eAuth.js 참조).
+    if (isE2EAuthBypass()) {
+      set({ status: 'signedIn', user: getE2EUser(), initialized: true, error: null, signingIn: false })
+      return
+    }
     if (!isFirebaseAuthConfigured()) {
       set({ status: 'unconfigured', initialized: true, user: null, error: null })
       return
@@ -48,6 +55,11 @@ export const useAuthStore = create((set, get) => ({
   },
 
   signInWithGoogle: async () => {
+    if (isE2EAuthBypass()) {
+      const user = getE2EUser()
+      set({ status: 'signedIn', user, signingIn: false, error: null })
+      return user
+    }
     if (!isFirebaseAuthConfigured()) {
       set({ status: 'unconfigured', user: null, error: null, signingIn: false })
       return null

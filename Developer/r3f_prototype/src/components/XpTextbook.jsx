@@ -5,6 +5,7 @@ import { toonMat, outlineMat, inflateScale } from '../lib/toon.js'
 import { stepMagnetPull } from '../lib/pickup.js'
 import { computeTextbookLanding } from '../lib/textbookLanding.js'
 import { logPickup } from '../lib/playtestLogger.js'
+import StudioTunedGroup from './StudioTunedGroup.jsx'
 
 const FLOOR_Y = 0.13
 const TOSS_MS = 460       // 휘리릭 날아가 착지하기까지 시간
@@ -87,6 +88,7 @@ export default function XpTextbook({ id, pos, value, onCollect }) {
 
   return (
     <group ref={groupRef} position={[pos[0], FLOOR_Y, pos[2]]} scale={[0.8, 0.8, 0.8]}>
+      <StudioTunedGroup itemId="pickup-xp-textbook">
       {/* 외곽선 */}
       <mesh renderOrder={1} material={outMat} scale={inflateScale([1.06, 1.18, 1.08])}>
         <boxGeometry args={[0.36, 0.08, 0.26]} />
@@ -111,6 +113,7 @@ export default function XpTextbook({ id, pos, value, onCollect }) {
       <mesh renderOrder={6} material={titleAccentMat} position={[0.018, 0.0465, 0]}>
         <boxGeometry args={[0.16, 0.001, 0.012]} />
       </mesh>
+      </StudioTunedGroup>
     </group>
   )
 }

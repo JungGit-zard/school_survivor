@@ -8,6 +8,7 @@ import { getBellSonicRingConfigs, BELL_VISUAL_SCALE, BELL_NOTE_LIFETIME_MS, crea
 import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _bellPulseId = 0
 
@@ -18,7 +19,8 @@ export function BellModel() {
   const outMat = useMemo(() => outlineMat(0.94), [])
 
   return (
-    <group scale={[0.36, 0.36, 0.36]}>
+    <StudioTunedGroup itemId="weapon-bell">
+      <group scale={[0.36, 0.36, 0.36]}>
       <mesh material={outMat} scale={inflateScale([1.12, 1.1, 1.12])} position={[0, -0.05, 0]}>
         <coneGeometry args={[0.34, 0.48, 12]} />
       </mesh>
@@ -37,7 +39,8 @@ export function BellModel() {
       <mesh material={outMat} position={[0, -0.42, 0]}>
         <sphereGeometry args={[0.08, 8, 8]} />
       </mesh>
-    </group>
+      </group>
+    </StudioTunedGroup>
   )
 }
 

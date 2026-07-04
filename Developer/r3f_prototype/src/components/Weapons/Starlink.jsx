@@ -1,18 +1,34 @@
-import { useRef, useState, useCallback, useMemo } from 'react'
+import { useRef, useState, useCallback, useMemo, useEffect } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
-import { enemyBodies, playerPos } from '../../lib/refs.js'
+import { enemyBodies, playerPos, screenBounds } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
+import { advanceCrashCounter } from '../../lib/starlinkCrash.js'
+import { StarlinkCrashSequence } from './StarlinkSatellite.jsx'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 // starlink / 고장난 스타링크
 // 역할: 플레이어 주변 strikeCenter 안에서 적이 있는 지점에 무작위 낙뢰.
 // strikeCount만큼 번개를 동시에 떨어뜨려 strikeRadius 안 모든 적에 데미지.
 
 let _strikeId = 0
+let _crashId = 0
 const STRIKE_DURATION_MS = 480
+export const STARLINK_CHEAT_CRASH_EVENT = 'escape-zombie-school:starlink-cheat-crash'
+
+export function dispatchStarlinkCheatCrash() {
+  window.dispatchEvent(new CustomEvent(STARLINK_CHEAT_CRASH_EVENT))
+}
+
+export function getScreenCenterCrashLandingPoint() {
+  return {
+    x: (screenBounds.minX + screenBounds.maxX) / 2,
+    z: (screenBounds.minZ + screenBounds.maxZ) / 2,
+  }
+}
 
 function pickStrikeTargets(strikeCenter, strikeCount) {
   // 플레이어 주변 strikeCenter 안 적들을 모은 뒤 무작위로 strikeCount개 선택.
@@ -44,6 +60,7 @@ export function StrikeVisual({ x, z, age }) {
 
   return (
     <group position={[x, 0, z]}>
+      <StudioTunedGroup itemId="weapon-starlink">
       {/* 번개 줄기 외곽 — 선명한 청백색 두꺼운 기둥 */}
       {boltOpacity > 0 && (
         <mesh position={[0, 2.4, 0]}>
@@ -98,6 +115,7 @@ export function StrikeVisual({ x, z, age }) {
           <meshBasicMaterial color={0xffff88} transparent opacity={flashOpacity * 0.45} depthWrite={false} side={THREE.DoubleSide} />
         </mesh>
       )}
+      </StudioTunedGroup>
     </group>
   )
 }
@@ -130,12 +148,28 @@ export function StarlinkWeapon() {
   const [strikes, setStrikes] = useState([])
   const activeStrikesRef = useRef([])
   const lastFireRef = useRef(0)
+  // 추락 연출: 30회 발사마다 위성이 추락한다 (순수 연출 — 발사는 계속된다)
+  const fireCountRef = useRef(0)
+  const [crashes, setCrashes] = useState([])
   const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
 
   const removeStrike = useCallback((sid) => {
     activeStrikesRef.current = activeStrikesRef.current.filter((s) => s.id !== sid)
     setStrikes([...activeStrikesRef.current])
+  }, [])
+
+  const removeCrash = useCallback((cid) => {
+    setCrashes((cs) => cs.filter((c) => c.id !== cid))
+  }, [])
+
+  useEffect(() => {
+    const triggerCrash = () => {
+      const land = getScreenCenterCrashLandingPoint()
+      setCrashes((cs) => [...cs, { id: ++_crashId, x: land.x, z: land.z }])
+    }
+    window.addEventListener(STARLINK_CHEAT_CRASH_EVENT, triggerCrash)
+    return () => window.removeEventListener(STARLINK_CHEAT_CRASH_EVENT, triggerCrash)
   }, [])
 
   usePlayingFrame(({ clock }) => {
@@ -158,14 +192,26 @@ export function StarlinkWeapon() {
     }))
     activeStrikesRef.current = [...activeStrikesRef.current, ...nextStrikes]
     setStrikes([...activeStrikesRef.current])
+
+    // 30회 발사 카운트 — trigger 시 위성 추락 연출 시작, 카운터 리셋(새 위성 도착).
+    // 공격 로직·스탯에는 어떤 영향도 없다.
+    const adv = advanceCrashCounter(fireCountRef.current)
+    fireCountRef.current = adv.count
+    if (adv.trigger) {
+      const land = getScreenCenterCrashLandingPoint()
+      setCrashes((cs) => [...cs, { id: ++_crashId, x: land.x, z: land.z }])
+    }
   })
 
-  if (!weapons.starlink?.active) return null
+  if (!weapons.starlink?.active && strikes.length === 0 && crashes.length === 0) return null
 
   return (
     <>
       {strikes.map((s) => (
         <StrikeWrapper key={s.id} {...s} onDone={removeStrike} />
+      ))}
+      {crashes.map((c) => (
+        <StarlinkCrashSequence key={c.id} x={c.x} z={c.z} onDone={() => removeCrash(c.id)} />
       ))}
     </>
   )

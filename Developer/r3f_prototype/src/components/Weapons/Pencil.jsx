@@ -7,8 +7,10 @@ import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { findClosestEnemy } from '../../lib/weaponTargeting.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _projId = 0
+export const PENCIL_MODEL_SCALE = 0.29 * 1.5
 
 export function PencilModel() {
   const pencilOutlineMat = useMemo(() => outlineMat(0.98), [])
@@ -25,7 +27,8 @@ export function PencilModel() {
   const eraserGeo = useMemo(() => new THREE.CylinderGeometry(0.073, 0.073, 0.14, 6), [])
 
   return (
-    <group rotation={[Math.PI / 2, 0, 0]} scale={[0.29, 0.29, 0.29]}>
+    <StudioTunedGroup itemId="weapon-pencil">
+      <group rotation={[Math.PI / 2, 0, 0]} scale={[PENCIL_MODEL_SCALE, PENCIL_MODEL_SCALE, PENCIL_MODEL_SCALE]}>
       <mesh geometry={bodyGeo} material={pencilOutlineMat} scale={inflateScale([1.55, 1.55, 1.14])} />
       <mesh geometry={tipGeo} material={pencilOutlineMat} position={[0, 0.40, 0]} scale={inflateScale([1.55, 1.42, 1.55])} />
       <mesh geometry={eraserGeo} material={pencilOutlineMat} position={[0, -0.43, 0]} scale={inflateScale([1.52, 1.40, 1.52])} />
@@ -35,7 +38,8 @@ export function PencilModel() {
       <mesh geometry={leadGeo} material={graphiteMat} position={[0, 0.56, 0]} />
       <mesh geometry={bandGeo} material={bandMat} position={[0, -0.33, 0]} />
       <mesh geometry={eraserGeo} material={eraserMat} position={[0, -0.43, 0]} />
-    </group>
+      </group>
+    </StudioTunedGroup>
   )
 }
 

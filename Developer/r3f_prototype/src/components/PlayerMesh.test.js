@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
 import { PLAYER_MESH_LAYOUT } from './PlayerMesh.jsx'
 
 describe('PlayerMesh layout', () => {
@@ -20,7 +21,18 @@ describe('PlayerMesh layout', () => {
   })
 
   it('places the lantern prop at the right hand tip', () => {
-    expect(PLAYER_MESH_LAYOUT.lantern.position).toEqual([0, -0.76, 0.18])
-    expect(PLAYER_MESH_LAYOUT.lantern.bodySize).toEqual([0.28, 0.30, 0.22])
+    expect(PLAYER_MESH_LAYOUT.lantern.position).toEqual([0, -0.76, 0.2])
+    expect(PLAYER_MESH_LAYOUT.lantern.bodySize).toEqual([0.34, 0.2, 0.24])
+    expect(PLAYER_MESH_LAYOUT.lantern.headSize).toEqual([0.18, 0.24, 0.28])
+    expect(PLAYER_MESH_LAYOUT.lantern.handleSize).toEqual([0.24, 0.06, 0.11])
+  })
+
+  it('renders a light cone from the hand flashlight model', () => {
+    const source = readFileSync(new URL('./PlayerMesh.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('PlayerLanternLight')
+    expect(source).toContain('coneGeometry')
+    expect(PLAYER_MESH_LAYOUT.lantern.lightLength).toBeCloseTo(2.08 / 3 / 0.2664)
+    expect(PLAYER_MESH_LAYOUT.lantern.lightRadius).toBeCloseTo((3.6 / 2) / 3 / 0.2664)
   })
 })

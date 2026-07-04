@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { outlineMat, toonMat } from '../../lib/toon.js'
 import { getPropOutlineScale, STAGE_PROP_MESH_RENDERING } from './propRendering.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 export const UNCONSCIOUS_STUDENT_VARIANTS = {
   faceUp: {
@@ -8,14 +9,29 @@ export const UNCONSCIOUS_STUDENT_VARIANTS = {
     modelRotation: [Math.PI / 2, 0, 0],
     bodyRotation: [0, 0, 0],
   },
+  faceUpFlipped: {
+    modelPosition: [0, 0.34, 0],
+    modelRotation: [-Math.PI / 2, 0, 0],
+    bodyRotation: [0, 0, 0],
+  },
   sideLeft: {
     modelPosition: [0, 0.36, 0],
     modelRotation: [Math.PI / 2, 0, -0.24],
     bodyRotation: [0, 0.2, 0],
   },
+  sideLeftFlipped: {
+    modelPosition: [0, 0.36, 0],
+    modelRotation: [-Math.PI / 2, 0, -0.24],
+    bodyRotation: [0, 0.2, 0],
+  },
   sideRight: {
     modelPosition: [0, 0.36, 0],
     modelRotation: [Math.PI / 2, 0, 0.22],
+    bodyRotation: [0, -0.18, 0],
+  },
+  sideRightFlipped: {
+    modelPosition: [0, 0.36, 0],
+    modelRotation: [-Math.PI / 2, 0, 0.22],
     bodyRotation: [0, -0.18, 0],
   },
 }
@@ -60,8 +76,9 @@ export default function UnconsciousStudent({ variant = 'faceUp', ...props }) {
 
   return (
     <group {...props}>
-      <group position={variantConfig.modelPosition} rotation={variantConfig.modelRotation}>
-        <group rotation={variantConfig.bodyRotation}>
+      <StudioTunedGroup itemId="stage-object-unconscious-student">
+        <group position={variantConfig.modelPosition} rotation={variantConfig.modelRotation}>
+          <group rotation={variantConfig.bodyRotation}>
           <StudentBox position={[0, 0.48, 0]} scale={[0.62, 0.78, 0.28]} material={uniformMat} outline={outline} />
           <StudentBox position={[0, 0.82, 0.17]} scale={[0.18, 0.36, 0.045]} material={tieMat} outline={outline} />
           <StudentBox position={[0.26, 0.66, 0.18]} scale={[0.09, 0.09, 0.035]} material={badgeMat} outline={outline} />
@@ -86,8 +103,9 @@ export default function UnconsciousStudent({ variant = 'faceUp', ...props }) {
           <StudentBox position={[0.13, 1.24, 0.25]} rotation={[0, 0, 0.72]} scale={[0.13, 0.035, 0.025]} material={shoeMat} outline={outline} />
           <StudentBox position={[0.13, 1.24, 0.25]} rotation={[0, 0, -0.72]} scale={[0.13, 0.035, 0.025]} material={shoeMat} outline={outline} />
           <StudentBox position={[0, 1.08, 0.27]} scale={[0.18, 0.055, 0.03]} material={shoeMat} outline={outline} />
+          </group>
         </group>
-      </group>
+      </StudioTunedGroup>
     </group>
   )
 }

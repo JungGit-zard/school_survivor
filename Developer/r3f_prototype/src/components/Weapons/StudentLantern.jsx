@@ -6,6 +6,7 @@ import { playerPos, playerFacing, playerArmActionState } from '../../lib/refs.js
 import { useGameStore } from '../../store/useGameStore.js'
 import { applyForwardConeDamage } from '../../lib/weaponTargeting.js'
 import { startPlayerArmAction } from '../../lib/playerArmAction.js'
+import { PLAYER_MESH_SCALE } from '../../lib/characterVisualScale.js'
 
 const lanternBeamVertexShader = `
   varying vec2 vLocal;
@@ -48,7 +49,10 @@ function setLanternBeamOpacity(mesh, opacity) {
   if (uniforms?.uOpacity) uniforms.uOpacity.value = opacity
 }
 
-const LANTERN_BEAM_FORWARD_OFFSET = 0.28
+const LANTERN_LENS_FORWARD_OFFSET = 0.46
+const LANTERN_HAND_LIGHT_CONE_RAW_LENGTH = 0.62
+const LANTERN_BEAM_FORWARD_OFFSET = LANTERN_LENS_FORWARD_OFFSET + LANTERN_HAND_LIGHT_CONE_RAW_LENGTH * PLAYER_MESH_SCALE
+const LANTERN_BEAM_VISUAL_SCALE = 1 / 3
 
 export function getLanternBeamOrigin(player, facing) {
   const rawDirX = facing?.x ?? 0
@@ -79,9 +83,9 @@ export function StudentLanternWeapon() {
   const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
   const w = weapons.studentLantern
-  const renderLength = w?.lightLength ?? 2.6
-  const renderWidth = w?.lightWidth ?? 1.8
-  const renderBaseWidth = w?.lightBaseWidth ?? 0.35
+  const renderLength = (w?.lightLength ?? 2.08) * LANTERN_BEAM_VISUAL_SCALE
+  const renderWidth = (w?.lightWidth ?? 3.6) * LANTERN_BEAM_VISUAL_SCALE
+  const renderBaseWidth = (w?.lightBaseWidth ?? 0.35) * LANTERN_BEAM_VISUAL_SCALE
   const renderCoreLength = renderLength * 0.68
   const renderCoreBaseWidth = renderBaseWidth * 0.65
   const renderCoreWidth = renderWidth * 0.48
@@ -116,9 +120,9 @@ export function StudentLanternWeapon() {
     if (!w?.active) return
     const now = clock.elapsedTime * 1000
     const durationMs = w.durationMs ?? 3000
-    const intervalMs = w.hitIntervalMs ?? 1000
-    const length = w.lightLength ?? 2.6
-    const width = w.lightWidth ?? 1.8
+    const intervalMs = w.hitIntervalMs ?? 300
+    const length = w.lightLength ?? 2.08
+    const width = w.lightWidth ?? 3.6
     const baseWidth = w.lightBaseWidth ?? 0.35
 
     // 소등 상태: 쿨다운(점등 시작 기준) 경과 시 점등
@@ -142,7 +146,7 @@ export function StudentLanternWeapon() {
     }
 
     // 빛을 플레이어 위치·시선에 정렬
-    startPlayerArmAction(playerArmActionState, 'lanternAim', now)
+    startPlayerArmAction(playerArmActionState, 'lanternFlashlight', now)
     const yaw = Math.atan2(playerFacing.x, playerFacing.z)
     if (groupRef.current) {
       const beamOrigin = getLanternBeamOrigin(playerPos, playerFacing)
@@ -159,11 +163,12 @@ export function StudentLanternWeapon() {
     tickTimerRef.current += delta * 1000
     if (tickTimerRef.current >= intervalMs) {
       tickTimerRef.current -= intervalMs
-      applyForwardConeDamage({
+      const hits = applyForwardConeDamage({
         originX: playerPos.x, originZ: playerPos.z,
         dirX: playerFacing.x, dirZ: playerFacing.z,
-        length, width, baseWidth, damage: w.damage ?? 9,
+        length, width, baseWidth, damage: w.damage ?? 0.6,
       })
+      if (hits > 0) emitSfx({ id: 'pencilHit' })
     }
   })
 

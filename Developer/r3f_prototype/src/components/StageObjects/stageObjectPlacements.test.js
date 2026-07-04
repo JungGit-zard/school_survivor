@@ -64,6 +64,8 @@ describe('stage object placements', () => {
     expect(chairVariants).toContain('tilted')
     expect([...chairVariants].every((variant) => CLASSROOM_CHAIR_VARIANTS[variant])).toBe(true)
     expect(studentVariants.size).toBeGreaterThanOrEqual(2)
+    expect([...studentVariants].some((variant) => variant.endsWith('Flipped'))).toBe(true)
+    expect([...studentVariants].some((variant) => !variant.endsWith('Flipped'))).toBe(true)
     expect([...studentVariants].every((variant) => UNCONSCIOUS_STUDENT_VARIANTS[variant])).toBe(true)
   })
 

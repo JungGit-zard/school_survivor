@@ -18,6 +18,8 @@ const SOUND_MAP = {
   stunGunFire:    '/sfx/weapons/stunGunFire.ogg',
   missileFire:    '/sfx/weapons/missileFire.ogg',
   starlinkFire:   '/sfx/weapons/starlinkFire.ogg',
+  starlinkFall:   '/sfx/weapons/starlinkFall.ogg',
+  starlinkExplosion: '/sfx/weapons/starlinkExplosion.ogg',
   compassFire:    '/sfx/weapons/compassFire.ogg',
   umbrellaFire:   '/sfx/weapons/umbrellaFire.ogg',
   eraserFire:     '/sfx/weapons/eraserFire.ogg',
@@ -95,8 +97,18 @@ const POLYPHONY_COOLDOWN = {
   coinCollect:      40,
 }
 
+const AUTH_OVERLAY_ALLOWED_SFX = new Set([
+  'buttonClick',
+])
+
+export function isSfxAllowedForAuthOverlay(id, authOverlayActive = false) {
+  if (!authOverlayActive) return true
+  return AUTH_OVERLAY_ALLOWED_SFX.has(id)
+}
+
 export function playSfx(id, volume = 1, options = {}) {
   if (!SOUND_MAP[id] || _failed.has(id)) return
+  if (!isSfxAllowedForAuthOverlay(id, options.authOverlayActive)) return
 
   const cooldown = POLYPHONY_COOLDOWN[id] ?? 0
   if (cooldown > 0) {

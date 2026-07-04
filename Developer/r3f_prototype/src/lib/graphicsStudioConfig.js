@@ -16,11 +16,16 @@ import eraserIconUrl from '../assets/weapon_icon/12_wea_eraser.png.png'
 import boxCutterIconUrl from '../assets/weapon_icon/13_wea_boxcutter.svg'
 import chibikoIconUrl from '../assets/weapon_icon/14_wea_chibiko.svg'
 import sharkMissileIconUrl from '../assets/weapon_icon/14_wea_shark_missile.svg'
+import { ENEMY_DEATH_COLLAPSE_STYLES } from './enemyDeathCollapse.js'
 
 export const GRAPHICS_STUDIO_STORAGE_KEY = 'escape-zombie-school.graphicsStudioTunings.v1'
+export const GRAPHICS_STUDIO_TUNING_EVENT = 'escape-zombie-school.graphicsStudioTunings.changed'
 
 export const DEFAULT_STUDIO_TUNING = Object.freeze({
   scale: 1,
+  scaleX: 1,
+  scaleY: 1,
+  scaleZ: 1,
   outlineThickness: 1,
   outlineOpacity: 0.96,
   outlineColor: '#050209',
@@ -29,7 +34,9 @@ export const DEFAULT_STUDIO_TUNING = Object.freeze({
   saturation: 1,
   brightness: 1,
   emissiveIntensity: 0.14,
+  rotationX: 0,
   rotationY: 0,
+  rotationZ: 0,
   animation: 'normal',
 })
 
@@ -198,6 +205,43 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
       'assets/background_floor/stage02_corridor_end_wall.png',
     ],
   },
+  {
+    id: 'weapon-starlink-satellite',
+    category: 'weapon',
+    label: 'Starlink Satellite Model',
+    source: 'components/Weapons/StarlinkSatellite.jsx',
+    previewKind: 'starlinkSatellite',
+    assetUrl: starlinkIconUrl,
+    applyTargets: ['components/Weapons/StarlinkSatellite.jsx', 'lib/starlinkCrash.js', 'lib/toon.js'],
+  },
+  {
+    id: 'weapon-starlink-crash-fall',
+    category: 'weapon',
+    label: 'Starlink Crash 01 - Falling',
+    source: 'components/Weapons/StarlinkSatellite.jsx',
+    previewKind: 'starlinkCrash',
+    crashPhase: 'falling',
+    assetUrl: starlinkIconUrl,
+    applyTargets: ['components/Weapons/StarlinkSatellite.jsx', 'lib/starlinkCrash.js', 'lib/toon.js'],
+  },
+  {
+    id: 'weapon-starlink-crash-impact',
+    category: 'weapon',
+    label: 'Starlink Crash 02 - Impact',
+    source: 'components/Weapons/StarlinkSatellite.jsx',
+    previewKind: 'starlinkCrash',
+    crashPhase: 'impact',
+    assetUrl: starlinkIconUrl,
+    applyTargets: ['components/Weapons/StarlinkSatellite.jsx', 'lib/starlinkCrash.js', 'lib/toon.js'],
+  },
+  {
+    id: 'actor-zomlonbisk',
+    category: 'actor',
+    label: 'Zomlonbisk',
+    source: 'components/Weapons/StarlinkSatellite.jsx',
+    previewKind: 'zomlonbisk',
+    applyTargets: ['components/Weapons/StarlinkSatellite.jsx', 'lib/starlinkCrash.js', 'lib/toon.js'],
+  },
   ...weaponVisuals.map(([id, label, weaponType, assetUrl, implementationTarget, previewKind = 'weaponModel', runtimePreviewComponent]) => ({
     id,
     category: 'weapon',
@@ -253,11 +297,24 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
   {
     id: 'enemy-death-collapse',
     category: 'vfx',
-    label: 'Enemy Death Collapse',
+    label: 'Zombie Death 00 - Cycle',
     source: 'components/EnemyDeathCollapse.jsx',
     previewKind: 'enemyCollapse',
     applyTargets: ['components/EnemyDeathCollapse.jsx', 'lib/enemyDeathCollapse.js', 'components/ZombieMesh.jsx', 'lib/toon.js'],
   },
+  ...ENEMY_DEATH_COLLAPSE_STYLES.map((deathStyle, index) => {
+    const number = String(index + 1).padStart(2, '0')
+    return {
+      id: `enemy-death-${number}`,
+      category: 'vfx',
+      label: `Zombie Death ${number} - ${deathStyle}`,
+      source: 'components/EnemyDeathCollapse.jsx',
+      previewKind: 'enemyCollapse',
+      deathStyle,
+      deathStyleIndex: index,
+      applyTargets: ['components/EnemyDeathCollapse.jsx', 'lib/enemyDeathCollapse.js', 'components/ZombieMesh.jsx', 'lib/toon.js'],
+    }
+  }),
   {
     id: 'title-scene',
     category: 'title',
@@ -278,16 +335,21 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
 
 const NUMERIC_RANGES = Object.freeze({
   scale: [0.35, 2.5],
+  scaleX: [0.35, 2.5],
+  scaleY: [0.35, 2.5],
+  scaleZ: [0.35, 2.5],
   outlineThickness: [0.4, 2.2],
   outlineOpacity: [0, 1],
   colorStrength: [0, 1],
   saturation: [0.1, 1.8],
   brightness: [0.35, 1.8],
   emissiveIntensity: [0, 1.2],
+  rotationX: [-180, 180],
   rotationY: [-180, 180],
+  rotationZ: [-180, 180],
 })
 
-const VALID_ANIMATIONS = new Set(['normal', 'warn', 'charge', 'stun', 'lantern'])
+const VALID_ANIMATIONS = new Set(['normal', 'warn', 'charge', 'stun', 'lantern', 'lanternFlashlight'])
 
 function getStorage(storage) {
   if (storage) return storage
@@ -321,13 +383,18 @@ export function normalizeStudioTuning(input = {}) {
   }
 
   normalized.scale = Number(normalized.scale.toFixed(2))
+  normalized.scaleX = Number(normalized.scaleX.toFixed(2))
+  normalized.scaleY = Number(normalized.scaleY.toFixed(2))
+  normalized.scaleZ = Number(normalized.scaleZ.toFixed(2))
   normalized.outlineThickness = Number(normalized.outlineThickness.toFixed(2))
   normalized.outlineOpacity = Number(normalized.outlineOpacity.toFixed(2))
   normalized.colorStrength = Number(normalized.colorStrength.toFixed(2))
   normalized.saturation = Number(normalized.saturation.toFixed(2))
   normalized.brightness = Number(normalized.brightness.toFixed(2))
   normalized.emissiveIntensity = Number(normalized.emissiveIntensity.toFixed(2))
+  normalized.rotationX = Math.round(normalized.rotationX)
   normalized.rotationY = Math.round(normalized.rotationY)
+  normalized.rotationZ = Math.round(normalized.rotationZ)
   normalized.outlineColor = normalizeHexColor(source.outlineColor, DEFAULT_STUDIO_TUNING.outlineColor)
   normalized.color = normalizeHexColor(source.color, DEFAULT_STUDIO_TUNING.color)
   normalized.animation = VALID_ANIMATIONS.has(source.animation) ? source.animation : DEFAULT_STUDIO_TUNING.animation
@@ -362,6 +429,9 @@ export function saveStudioTunings(tunings, storage) {
     Object.entries(tunings ?? {}).map(([itemId, tuning]) => [itemId, normalizeStudioTuning(tuning)]),
   )
   targetStorage?.setItem(GRAPHICS_STUDIO_STORAGE_KEY, JSON.stringify(normalized))
+  if (!storage && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(GRAPHICS_STUDIO_TUNING_EVENT, { detail: normalized }))
+  }
   return normalized
 }
 

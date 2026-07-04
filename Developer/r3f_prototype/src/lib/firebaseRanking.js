@@ -1,4 +1,5 @@
 import { getFirebaseConfig } from './firebaseAuth.js'
+import { isE2EAuthBypass } from './e2eAuth.js'
 
 const DATABASE_URL_KEY = 'VITE_FIREBASE_DATABASE_URL'
 
@@ -31,6 +32,8 @@ async function createClient() {
 
 export async function submitRankingEntry(user, entry, seasonId) {
   if (!user?.uid || !isFirebaseRankingConfigured()) return
+  // E2E 우회 유저 점수는 실랭킹에 오염되지 않게 차단
+  if (isE2EAuthBypass()) return
   const { db, mod } = await getClient()
   const entryRef = mod.ref(db, `rankings/${seasonId}/entries/${user.uid}`)
   const nextScore = readScore(entry.score)

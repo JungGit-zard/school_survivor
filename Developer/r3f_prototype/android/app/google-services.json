@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1081021544915",
+    "firebase_url": "https://escape-zombie-school-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "escape-zombie-school",
+    "storage_bucket": "escape-zombie-school.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1081021544915:android:1c9140672e7d5e1fa09726",
+        "android_client_info": {
+          "package_name": "com.jungyoon.zombieschool"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1081021544915-f8c5e8p5ib04tm5in7hc47r4odtl4m1o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.jungyoon.zombieschool",
+            "certificate_hash": "1220bd60777625e1a3e1ba4df26d2e780f9824fa"
+          }
+        },
+        {
+          "client_id": "1081021544915-eb4g5p1vtq6gl79rdt0gfe6ks16n6peg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABD9Vehn_JrmOu0swbAFhHsPje2dvdGyY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1081021544915-eb4g5p1vtq6gl79rdt0gfe6ks16n6peg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

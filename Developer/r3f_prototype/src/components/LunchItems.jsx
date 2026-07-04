@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { playerPos } from '../lib/refs.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
+import StudioTunedGroup from './StudioTunedGroup.jsx'
 
 const MAX_ITEMS = 5
 // 2026-05-10: 1분에 1개 (요청).
@@ -32,9 +33,12 @@ export function LunchModel({ kind }) {
   const capMat = useMemo(() => toonMat(0x1d6dc4, 0.20), [])
   const outMat = useMemo(() => outlineMat(0.96), [])
 
+  const itemId = kind === 'milk' ? 'pickup-lunch-milk' : 'pickup-lunch-meal'
+
   if (kind === 'milk') {
     return (
-      <group scale={[0.42, 0.42, 0.42]}>
+      <StudioTunedGroup itemId={itemId}>
+        <group scale={[0.42, 0.42, 0.42]}>
         {/* 본체 외곽선 + 본체 */}
         <mesh material={outMat} position={[0, -0.04, 0]} scale={inflateScale([1.12, 1.06, 1.12])}>
           <cylinderGeometry args={[0.17, 0.2, 0.46, 12]} />
@@ -66,12 +70,14 @@ export function LunchModel({ kind }) {
         <mesh material={riceMat} position={[0, 0.02, 0.18]}>
           <boxGeometry args={[0.2, 0.11, 0.045]} />
         </mesh>
-      </group>
+        </group>
+      </StudioTunedGroup>
     )
   }
 
   return (
-    <group scale={[0.45, 0.45, 0.45]}>
+    <StudioTunedGroup itemId={itemId}>
+      <group scale={[0.45, 0.45, 0.45]}>
       {/* 트레이 외곽선 + 본체 */}
       <mesh material={outMat} scale={inflateScale([1.08, 1.08, 1.08])}>
         <boxGeometry args={[0.76, 0.12, 0.5]} />
@@ -93,7 +99,8 @@ export function LunchModel({ kind }) {
       <mesh material={sideMat} position={[0.18, 0.1, 0]}>
         <sphereGeometry args={[0.13, 10, 8]} />
       </mesh>
-    </group>
+      </group>
+    </StudioTunedGroup>
   )
 }
 

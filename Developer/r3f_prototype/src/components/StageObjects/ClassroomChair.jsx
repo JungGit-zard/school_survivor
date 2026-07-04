@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { outlineMat, toonMat } from '../../lib/toon.js'
 import { getPropOutlineScale, STAGE_PROP_MESH_RENDERING } from './propRendering.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 export const CLASSROOM_CHAIR_VARIANTS = {
   upright: {
@@ -53,7 +54,8 @@ export default function ClassroomChair({ variant = 'upright', ...props }) {
 
   return (
     <group {...props}>
-      <group position={variantConfig.modelPosition} rotation={variantConfig.modelRotation}>
+      <StudioTunedGroup itemId="stage-object-chair">
+        <group position={variantConfig.modelPosition} rotation={variantConfig.modelRotation}>
         <ChairBox position={[0, 0.54, 0]} scale={[1.02, 0.11, 0.9]} material={woodMat} outline={outline} />
         <ChairBox position={[0, 0.6, 0]} scale={[0.84, 0.025, 0.74]} material={woodHighlightMat} outline={outline} />
         <ChairBox position={[0, 1.18, -0.36]} scale={[1.02, 0.44, 0.1]} material={woodMat} outline={outline} />
@@ -84,7 +86,8 @@ export default function ClassroomChair({ variant = 'upright', ...props }) {
         ].map(([x, y, z]) => (
           <ChairBox key={`${x}:${y}:${z}`} position={[x, y, z]} scale={[0.055, 0.055, 0.025]} material={boltMat} outline={outline} />
         ))}
-      </group>
+        </group>
+      </StudioTunedGroup>
     </group>
   )
 }

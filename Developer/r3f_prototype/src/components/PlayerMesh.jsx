@@ -5,6 +5,7 @@ import { bagSwingState, playerArmActionState } from '../lib/refs.js'
 import { getActivePlayerArmAction, getPlayerArmPose } from '../lib/playerArmAction.js'
 import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
 import { PLAYER_MESH_SCALE } from '../lib/characterVisualScale.js'
+import StudioTunedGroup from './StudioTunedGroup.jsx'
 
 const PLAYER_BODY_SIZE = [0.75, 0.72, 0.5]
 const PLAYER_BODY_POSITION = [0, 0.46, 0]
@@ -14,8 +15,13 @@ const PLAYER_IDLE_BREATHE_Y = 0.018
 const PLAYER_WALK_BOB_Y = 0.022
 const PLAYER_MAX_HEAD_BOB_Y = Math.max(PLAYER_IDLE_BREATHE_Y, PLAYER_WALK_BOB_Y)
 const PLAYER_HEAD_OUTLINE_OFFSET_Y = 0.19
-const PLAYER_LANTERN_POSITION = [0, -0.76, 0.18]
-const PLAYER_LANTERN_BODY_SIZE = [0.28, 0.30, 0.22]
+const PLAYER_LANTERN_POSITION = [0, -0.76, 0.2]
+const PLAYER_LANTERN_BODY_SIZE = [0.34, 0.2, 0.24]
+const PLAYER_LANTERN_HEAD_SIZE = [0.18, 0.24, 0.28]
+const PLAYER_LANTERN_HANDLE_SIZE = [0.24, 0.06, 0.11]
+const PLAYER_LANTERN_LIGHT_LENGTH = 2.08 / 3 / PLAYER_MESH_SCALE
+const PLAYER_LANTERN_LIGHT_RADIUS = 1.8 / 3 / PLAYER_MESH_SCALE
+const PLAYER_LANTERN_LENS_Y = -0.36
 
 export const PLAYER_MESH_LAYOUT = {
   body: {
@@ -39,6 +45,10 @@ export const PLAYER_MESH_LAYOUT = {
   lantern: {
     position: PLAYER_LANTERN_POSITION,
     bodySize: PLAYER_LANTERN_BODY_SIZE,
+    headSize: PLAYER_LANTERN_HEAD_SIZE,
+    handleSize: PLAYER_LANTERN_HANDLE_SIZE,
+    lightLength: PLAYER_LANTERN_LIGHT_LENGTH,
+    lightRadius: PLAYER_LANTERN_LIGHT_RADIUS,
   },
 }
 
@@ -60,6 +70,22 @@ function OutlineBlock({ size, position, rotation, scale = 1.08 }) {
   return <mesh renderOrder={0} geometry={geo} material={mat} position={position} rotation={rotation} scale={[s, s, s]} />
 }
 
+function PlayerLanternLight() {
+  const mat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: 0xffdf72,
+    transparent: true,
+    opacity: 0.34,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  }), [])
+
+  return (
+    <mesh position={[0, PLAYER_LANTERN_LENS_Y - PLAYER_MESH_LAYOUT.lantern.lightLength / 2, 0.02]} renderOrder={3} material={mat}>
+      <coneGeometry args={[PLAYER_MESH_LAYOUT.lantern.lightRadius, PLAYER_MESH_LAYOUT.lantern.lightLength, 4, 1, true]} />
+    </mesh>
+  )
+}
+
 function PlayerOuterOutline() {
   return (
     <group>
@@ -70,6 +96,23 @@ function PlayerOuterOutline() {
       <OutlineBlock size={[0.28, 1.0, 0.36]} position={[-0.24, -0.68, 0.03]} scale={1.07} />
       <OutlineBlock size={[0.28, 1.0, 0.36]} position={[0.24, -0.68, 0.03]} scale={1.07} />
       <OutlineBlock size={[0.56, 0.78, 0.36]} position={[-0.54, 0.46, -0.22]} scale={1.07} />
+    </group>
+  )
+}
+
+function PlayerLanternModel() {
+  return (
+    <group rotation={[0, 0, -0.05]}>
+      <OutlineBlock size={PLAYER_MESH_LAYOUT.lantern.bodySize} position={[0, -0.02, 0]} scale={1.05} />
+      <Block size={PLAYER_MESH_LAYOUT.lantern.bodySize} position={[0, -0.02, 0]} color={0x1f63c9} emissive={0.18} />
+      <Block size={[0.22, 0.08, 0.1]} position={[0, 0.09, 0.03]} color={0x17498f} emissive={0.12} />
+      <Block size={PLAYER_MESH_LAYOUT.lantern.handleSize} position={[0, 0.15, 0.04]} color={0x123f82} emissive={0.1} />
+      <Block size={[0.12, 0.05, 0.08]} position={[0, 0.21, 0.06]} color={0xffd33d} emissive={0.45} />
+      <OutlineBlock size={PLAYER_MESH_LAYOUT.lantern.headSize} position={[0, -0.24, 0.02]} scale={1.05} />
+      <Block size={PLAYER_MESH_LAYOUT.lantern.headSize} position={[0, -0.24, 0.02]} color={0x202633} emissive={0.04} />
+      <Block size={[0.13, 0.035, 0.16]} position={[0, -0.36, 0.02]} color={0xf2f4ff} emissive={0.85} />
+      <PlayerLanternLight />
+      <Block size={[0.04, 0.14, 0.05]} position={[0, 0.27, -0.02]} color={0x111111} emissive={0.02} />
     </group>
   )
 }
@@ -146,7 +189,7 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
       ? { type: previewArmAction, progress: 0.5 }
       : getActivePlayerArmAction(playerArmActionState, clock.elapsedTime * 1000)
     const armPose = getPlayerArmPose({ action: armAction, walkSwing: sw })
-    if (parts.lantern) parts.lantern.visible = armAction?.type === 'lanternAim'
+    if (parts.lantern) parts.lantern.visible = armAction?.type === 'lanternAim' || armAction?.type === 'lanternFlashlight'
     parts.slvL.rotation.x = armPose.slvL.x
     parts.slvL.rotation.y = armPose.slvL.y
     parts.slvL.rotation.z = armPose.slvL.z
@@ -184,16 +227,18 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
   })
 
   return (
-    <group ref={setRoot} scale={[PLAYER_MESH_SCALE, PLAYER_MESH_SCALE, PLAYER_MESH_SCALE]}>
-      <mesh
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, -1.08, 0.02]}
-        scale={[1.08, 0.58, 1]}
-        renderOrder={-1}
-        material={shadowMat}
-      >
-        <circleGeometry args={[1, 36]} />
-      </mesh>
+    <group ref={setRoot}>
+      <StudioTunedGroup itemId="player">
+        <group scale={[PLAYER_MESH_SCALE, PLAYER_MESH_SCALE, PLAYER_MESH_SCALE]}>
+          <mesh
+            rotation={[-Math.PI / 2, 0, 0]}
+            position={[0, -1.08, 0.02]}
+            scale={[1.08, 0.58, 1]}
+            renderOrder={-1}
+            material={shadowMat}
+          >
+            <circleGeometry args={[1, 36]} />
+          </mesh>
 
       <PlayerOuterOutline />
 
@@ -249,10 +294,7 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
         <Block size={[0.36, 0.66, 0.36]} position={[0, -0.33, 0]} color={0xd42020} emissive={0.2} />
         <Block size={[0.26, 0.26, 0.26]} position={[0, -0.76, 0]} color={0xffc39b} emissive={0.1} />
         <group ref={reg('lantern')} position={PLAYER_MESH_LAYOUT.lantern.position} visible={false}>
-          <OutlineBlock size={[0.34, 0.36, 0.28]} position={[0, -0.02, 0]} scale={1.05} />
-          <Block size={[0.12, 0.18, 0.08]} position={[0, 0.17, 0]} color={0x111111} emissive={0.02} />
-          <Block size={PLAYER_MESH_LAYOUT.lantern.bodySize} position={[0, -0.02, 0]} color={0xffdf4a} emissive={0.55} />
-          <Block size={[0.22, 0.09, 0.16]} position={[0, -0.22, 0]} color={0x242832} emissive={0.04} />
+          <PlayerLanternModel />
         </group>
       </group>
 
@@ -271,6 +313,8 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
           <Block size={[0.4, 0.1, 0.46]} position={[0, -0.15, 0]} color={0x4a5566} emissive={0.08} />
         </group>
       </group>
+        </group>
+      </StudioTunedGroup>
     </group>
   )
 }

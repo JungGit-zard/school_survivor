@@ -11,12 +11,14 @@
  *   ZombieInstanceLayer reads the registry every frame and updates InstancedMesh matrices.
  */
 
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { zombieVisualRegistry } from '../lib/zombieVisualRegistry.js'
 import { getToonGradient } from '../lib/toon.js'
 import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
+import { GRAPHICS_STUDIO_TUNING_EVENT, loadStudioTunings } from '../lib/graphicsStudioConfig.js'
+import { getStudioTransformProps } from './StudioTunedGroup.jsx'
 
 const OUTLINE_STENCIL_REF = 1  // matches toon.js OUTLINE_STENCIL_REF
 
@@ -76,14 +78,20 @@ function setPivotEuler(dst, grp, t, type, phase) {
 }
 
 // Build the world matrix for one body part of one enemy into dst.
-function buildPartMatrix(part, e, dst, outlineInflate = 1) {
+function buildPartMatrix(part, e, dst, outlineInflate = 1, studioTransform = null) {
 
   // Enemy root: T(pos) × Ry(yaw) × S(vs)
   dst.makeTranslation(e.x, e.y, e.z)
   _euler.set(0, e.yaw, 0)
   _tmp.makeRotationFromEuler(_euler)
   dst.multiply(_tmp)
-  _tmp.makeScale(e.vs, e.vs, e.vs)
+  if (studioTransform) {
+    _euler.set(...studioTransform.rotation)
+    _tmp.makeRotationFromEuler(_euler)
+    dst.multiply(_tmp)
+  }
+  const studioScale = studioTransform?.scale ?? [1, 1, 1]
+  _tmp.makeScale(e.vs * studioScale[0], e.vs * studioScale[1], e.vs * studioScale[2])
   dst.multiply(_tmp)
 
   // Pivot: T(gOff) × R(pivotEuler) [× S(warn) for body in warn phase]
@@ -105,6 +113,14 @@ function buildPartMatrix(part, e, dst, outlineInflate = 1) {
     _tmp.makeScale(outlineInflate, outlineInflate, outlineInflate)
     dst.multiply(_tmp)
   }
+}
+
+function loadZombieStudioTransforms() {
+  const tunings = loadStudioTunings()
+  return Object.fromEntries(['E01', 'E02', 'E03', 'E04', 'E05', 'E06'].map((type) => [
+    type,
+    getStudioTransformProps(tunings[`zombie-${type.toLowerCase()}`]),
+  ]))
 }
 
 // Resolve the display color for a part given enemy type and hit flash.
@@ -168,6 +184,7 @@ function makeIM(part, material, count) {
 export default function ZombieInstanceLayer() {
   const dstRef = useRef(new THREE.Matrix4())
   const prevSlotCountRef = useRef(0)
+  const zombieTransformsRef = useRef(loadZombieStudioTransforms())
 
   // One InstancedMesh per body part (body rendering) + per part (outline)
   const { bodyIMs, outIMs, eyeMat } = useMemo(() => {
@@ -179,6 +196,18 @@ export default function ZombieInstanceLayer() {
     const oIMs = PARTS.map(p => makeIM(p, outMat, MAX_ENEMIES))
 
     return { bodyIMs: bIMs, outIMs: oIMs, eyeMat: em }
+  }, [])
+
+  useEffect(() => {
+    const update = () => {
+      zombieTransformsRef.current = loadZombieStudioTransforms()
+    }
+    window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
+    window.addEventListener('storage', update)
+    return () => {
+      window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
+      window.removeEventListener('storage', update)
+    }
   }, [])
 
   useFrame(() => {
@@ -195,14 +224,15 @@ export default function ZombieInstanceLayer() {
 
       for (let pi = 0; pi < N_PARTS; pi++) {
         const part = PARTS[pi]
-        buildPartMatrix(part, e, dst)
+        const studioTransform = zombieTransformsRef.current[e.type]
+        buildPartMatrix(part, e, dst, 1, studioTransform)
         bodyIMs[pi].setMatrixAt(slot, dst)
         _col.setHex(partColor(part, e))
         bodyIMs[pi].setColorAt(slot, _col)
 
         // Outline: same matrix but inflated
         const os = 1 + (part.os - 1) * INFLAT
-        buildPartMatrix(part, e, dst, os)
+        buildPartMatrix(part, e, dst, os, studioTransform)
         outIMs[pi].setMatrixAt(slot, dst)
       }
 

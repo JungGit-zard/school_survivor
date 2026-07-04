@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { outlineMat, toonMat } from '../../lib/toon.js'
 import { getPropOutlineScale, STAGE_PROP_MESH_RENDERING } from './propRendering.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 export const CLASSROOM_DESK_VARIANTS = {
   upright: {
@@ -54,7 +55,8 @@ export default function ClassroomDesk({ variant = 'upright', ...props }) {
 
   return (
     <group {...props}>
-      <group position={variantConfig.modelPosition} rotation={variantConfig.modelRotation}>
+      <StudioTunedGroup itemId="stage-object-desk">
+        <group position={variantConfig.modelPosition} rotation={variantConfig.modelRotation}>
         <DeskBox position={[0, 0.78, 0]} scale={[1.76, 0.12, 1.04]} material={topMat} outline={outline} />
         <DeskBox position={[0, 0.845, 0]} scale={[1.56, 0.03, 0.86]} material={topHighlightMat} outline={outline} />
 
@@ -73,7 +75,8 @@ export default function ClassroomDesk({ variant = 'upright', ...props }) {
             <DeskBox position={[0, -0.39, 0]} scale={[0.13, 0.06, 0.13]} material={capMat} outline={outline} />
           </group>
         ))}
-      </group>
+        </group>
+      </StudioTunedGroup>
     </group>
   )
 }

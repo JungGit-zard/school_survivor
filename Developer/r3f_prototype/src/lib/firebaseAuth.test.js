@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getFirebaseConfig, isFirebaseAuthConfigured, toAuthUser } from './firebaseAuth.js'
+import { getFirebaseConfig, isFirebaseAuthConfigured, shouldUseNativeGoogleSignIn, toAuthUser } from './firebaseAuth.js'
 
 const COMPLETE_ENV = {
   VITE_FIREBASE_API_KEY: 'api-key',
@@ -45,5 +45,21 @@ describe('firebase auth configuration', () => {
       email: 'tester@example.com',
       photoURL: 'https://example.com/me.png',
     })
+  })
+
+  it('uses native Google sign-in inside Capacitor shells only', () => {
+    expect(shouldUseNativeGoogleSignIn({
+      location: { protocol: 'capacitor:' },
+      navigator: { userAgent: 'Mozilla/5.0' },
+    })).toBe(true)
+    expect(shouldUseNativeGoogleSignIn({
+      Capacitor: { getPlatform: () => 'android', isNativePlatform: () => true },
+      location: { protocol: 'http:' },
+      navigator: { userAgent: 'Mozilla/5.0' },
+    })).toBe(true)
+    expect(shouldUseNativeGoogleSignIn({
+      location: { protocol: 'https:' },
+      navigator: { userAgent: 'Mozilla/5.0 (Linux; Android 15; Mobile)' },
+    })).toBe(false)
   })
 })

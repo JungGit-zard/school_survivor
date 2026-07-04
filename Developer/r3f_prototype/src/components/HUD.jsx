@@ -10,6 +10,7 @@ import { emitSfx } from '../lib/sfxEvents.js'
 import { getNextStageId, getStageConfig } from '../lib/stageConfig.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
+import { dispatchStarlinkCheatCrash } from './Weapons/Starlink.jsx'
 import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.png'
 import rulerIconSrc from '../assets/weapon_icon/02_wea_30ruller.png.png'
 import boxCutterIconSrc from '../assets/weapon_icon/13_wea_boxcutter.svg'
@@ -25,7 +26,7 @@ import umbrellaIconSrc from '../assets/weapon_icon/11_wea_umb.png.png'
 import eraserIconSrc from '../assets/weapon_icon/12_wea_eraser.png.png'
 import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
 import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
-import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.svg'
+import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.webp'
 
 const GAMEOVER_TRANSITION_MS = 1000
 
@@ -652,6 +653,9 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking, devChe
               </button>
               <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => setWeaponCheatOpen((open) => !open)} aria-label="무기 치트" title="무기 치트">
                 W
+              </button>
+              <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => { emitSfx({ id: 'buttonClick' }); dispatchStarlinkCheatCrash() }} aria-label="스타링크 추락 치트" title="스타링크 즉시 추락">
+                S
               </button>
             </>
           )}

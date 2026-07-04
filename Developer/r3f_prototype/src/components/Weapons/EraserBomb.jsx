@@ -7,6 +7,7 @@ import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { findBestSplashTarget, applyRadialDamage } from '../../lib/weaponTargeting.js'
 import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 // eraserBomb / 지우개 폭탄
 // 역할: 원거리 투척 폭탄. range:12, cooldown:6000ms — 느리지만 안전 거리에서 강한 한 방.
@@ -29,11 +30,12 @@ export function EraserModel() {
   const outMat    = useMemo(() => outlineMat(0.98, 0x1a1a1a), [])
 
   return (
-    <group scale={[
-      ERASER_MODEL_VISUAL_SCALE,
-      ERASER_MODEL_VISUAL_SCALE,
-      ERASER_MODEL_VISUAL_SCALE,
-    ]}>
+    <StudioTunedGroup itemId="weapon-eraser">
+      <group scale={[
+        ERASER_MODEL_VISUAL_SCALE,
+        ERASER_MODEL_VISUAL_SCALE,
+        ERASER_MODEL_VISUAL_SCALE,
+      ]}>
       {/* 외곽선 hull */}
       <mesh material={outMat} scale={inflateScale([1.08, 1.16, 1.16])}>
         <boxGeometry args={[0.5, 0.22, 0.22]} />
@@ -50,7 +52,8 @@ export function EraserModel() {
       <mesh material={wornMat} position={[0.22, 0, 0]}>
         <boxGeometry args={[0.06, 0.20, 0.21]} />
       </mesh>
-    </group>
+      </group>
+    </StudioTunedGroup>
   )
 }
 

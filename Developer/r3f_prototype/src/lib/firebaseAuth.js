@@ -1,3 +1,5 @@
+import { Capacitor } from '@capacitor/core'
+
 const REQUIRED_ENV_KEYS = [
   'VITE_FIREBASE_API_KEY',
   'VITE_FIREBASE_AUTH_DOMAIN',
@@ -42,7 +44,16 @@ export function toAuthUser(user) {
   }
 }
 
-export async function createFirebaseAuthClient(env = getDefaultEnv()) {
+export function shouldUseNativeGoogleSignIn(globalScope = getDefaultGlobalScope(), capacitorBridge = Capacitor) {
+  const injectedCapacitor = globalScope?.Capacitor
+  const bridge = injectedCapacitor ?? capacitorBridge
+  const platform = typeof bridge?.getPlatform === 'function' ? bridge.getPlatform() : ''
+  const isNative = typeof bridge?.isNativePlatform === 'function' ? bridge.isNativePlatform() : false
+
+  return isNative || platform === 'android' || platform === 'ios' || globalScope?.location?.protocol === 'capacitor:'
+}
+
+export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScope = getDefaultGlobalScope()) {
   if (!isFirebaseAuthConfigured(env)) {
     return {
       configured: false,
@@ -65,15 +76,61 @@ export async function createFirebaseAuthClient(env = getDefaultEnv()) {
   const auth = authModule.getAuth(app)
   const provider = new authModule.GoogleAuthProvider()
   provider.setCustomParameters({ prompt: 'select_account' })
+  const useNativeGoogle = shouldUseNativeGoogleSignIn(globalScope)
 
   return {
     configured: true,
-    subscribe: (onChange) => authModule.onAuthStateChanged(auth, (user) => onChange(toAuthUser(user))),
+    subscribe: (onChange) => {
+      const unsubscribe = authModule.onAuthStateChanged(auth, (user) => onChange(toAuthUser(user)))
+      return unsubscribe
+    },
     signInWithGoogle: async () => {
+      if (useNativeGoogle) {
+        return signInWithNativeGoogle(authModule, auth)
+      }
       const credential = await authModule.signInWithPopup(auth, provider)
       return toAuthUser(credential.user)
     },
-    signOut: () => authModule.signOut(auth),
+    signOut: async () => {
+      await authModule.signOut(auth)
+      if (useNativeGoogle) {
+        await signOutNativeGoogle()
+      }
+    },
+  }
+}
+
+async function signInWithNativeGoogle(authModule, auth) {
+  const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication')
+  const result = await FirebaseAuthentication.signInWithGoogle({ skipNativeAuth: true }).catch((error) => {
+    throw getNativeGoogleSignInError(error)
+  })
+  const idToken = result?.credential?.idToken ?? null
+  const accessToken = result?.credential?.accessToken ?? null
+
+  if (!idToken && !accessToken) {
+    throw new Error('Google native login did not return a Firebase credential.')
+  }
+
+  const googleCredential = authModule.GoogleAuthProvider.credential(idToken, accessToken)
+  const userCredential = await authModule.signInWithCredential(auth, googleCredential)
+  return toAuthUser(userCredential.user)
+}
+
+function getNativeGoogleSignInError(error) {
+  const message = error instanceof Error ? error.message : String(error ?? '')
+  if (message.includes('default_web_client_id') || message.includes('Resources$NotFoundException')) {
+    return new Error('모바일 Google 로그인 설정이 완료되지 않았습니다. Firebase Android google-services.json과 SHA 인증서를 확인하세요.')
+  }
+  return error instanceof Error ? error : new Error('Mobile Google login failed.')
+}
+
+async function signOutNativeGoogle() {
+  try {
+    const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication')
+    await FirebaseAuthentication.signOut()
+  } catch (error) {
+    if (typeof console !== 'undefined') console.warn('Native Google sign-out failed.', error)
   }
 }
 
@@ -84,4 +141,8 @@ function readEnv(env, key) {
 
 function getDefaultEnv() {
   return import.meta.env ?? {}
+}
+
+function getDefaultGlobalScope() {
+  return typeof window !== 'undefined' ? window : globalThis
 }

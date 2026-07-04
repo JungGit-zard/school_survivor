@@ -13,6 +13,7 @@ import {
 } from '../../lib/compassBlade.js'
 import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _compassExplosionId = 0
 const PARKED_BLADE_POSITION = Object.freeze({ x: 9999, y: -9999, z: 9999 })
@@ -61,7 +62,8 @@ export function CompassBladeModel() {
   const outMat = useMemo(() => outlineMat(0.96), [])
 
   return (
-    <group scale={[0.373, 0.373, 0.373]} rotation={[0.12, 0, 0]}>
+    <StudioTunedGroup itemId="weapon-compass">
+      <group scale={[0.373, 0.373, 0.373]} rotation={[0.12, 0, 0]}>
       <mesh material={trailMat} position={[0, -0.035, 0.02]} rotation={[Math.PI / 2, 0, -0.72]}>
         <torusGeometry args={[0.58, 0.026, 8, 40, 1.9]} />
       </mesh>
@@ -78,7 +80,8 @@ export function CompassBladeModel() {
       <mesh material={redMat} position={[0, 0.085, -0.31]}>
         <cylinderGeometry args={[0.105, 0.105, 0.045, 16]} />
       </mesh>
-    </group>
+      </group>
+    </StudioTunedGroup>
   )
 }
 

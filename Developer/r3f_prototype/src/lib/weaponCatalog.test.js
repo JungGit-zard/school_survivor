@@ -83,11 +83,11 @@ describe('weaponCatalog', () => {
 
   it('studentLantern 스펙 (신무기 기획 정본)', () => {
     const lantern = WEAPON_CATALOG.studentLantern.base
-    expect(lantern.damage).toBe(WEAPON_CATALOG.pencilThrow.base.damage * 1.5) // 연필 Lv1 ×1.5 = 9
+    expect(lantern.damage).toBe(WEAPON_CATALOG.pencilThrow.base.damage * 0.1)
     expect(lantern.durationMs).toBe(3000)      // 1레벨 3초 점등 → 3타
-    expect(lantern.hitIntervalMs).toBe(1000)   // 초당 1타
-    expect(lantern.lightLength).toBe(2.6)
-    expect(lantern.lightWidth).toBe(1.8)
+    expect(lantern.hitIntervalMs).toBe(300)
+    expect(lantern.lightLength).toBe(2.08)
+    expect(lantern.lightWidth).toBe(3.6)
     expect(lantern.lightBaseWidth).toBe(0.35)
     expect(WEAPON_CATALOG.studentLantern.minLevelToAppear).toBe(5)
   })

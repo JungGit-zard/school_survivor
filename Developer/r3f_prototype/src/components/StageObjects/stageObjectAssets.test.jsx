@@ -83,9 +83,13 @@ describe('stage object asset catalog', () => {
   it('defines reusable low-poly lying variants for unconscious students', () => {
     expect(Object.keys(UNCONSCIOUS_STUDENT_VARIANTS).sort()).toEqual([
       'faceUp',
+      'faceUpFlipped',
       'sideLeft',
+      'sideLeftFlipped',
       'sideRight',
+      'sideRightFlipped',
     ])
     expect(UNCONSCIOUS_STUDENT_VARIANTS.faceUp.modelRotation[0]).toBeCloseTo(Math.PI / 2)
+    expect(UNCONSCIOUS_STUDENT_VARIANTS.faceUpFlipped.modelRotation[0]).toBeCloseTo(-Math.PI / 2)
   })
 })

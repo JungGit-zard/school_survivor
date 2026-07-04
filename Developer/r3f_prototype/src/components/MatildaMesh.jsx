@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import matildaFaceTextureUrl from '../assets/character/matilda_face_texture.png'
 import { PLAYER_MESH_RAW_HEIGHT, PLAYER_MESH_SCALE, PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { inflateScale, outlineMat, toonMat } from '../lib/toon.js'
+import StudioTunedGroup from './StudioTunedGroup.jsx'
 
 export const MATILDA_VISUAL_SCALE = PLAYER_MESH_SCALE * 2
 export const MATILDA_WORLD_HEIGHT = PLAYER_MESH_RAW_HEIGHT * MATILDA_VISUAL_SCALE
@@ -201,8 +202,9 @@ export default function MatildaMesh({ faceTextureUrl = matildaFaceTextureUrl, mo
   const pose = movementPose ? MATILDA_MOVEMENT_POSE : MATILDA_IDLE_POSE
 
   return (
-    <group ref={idleRef} scale={[MATILDA_VISUAL_SCALE, MATILDA_VISUAL_SCALE, MATILDA_VISUAL_SCALE]}>
-      <group ref={upperRef}>
+    <StudioTunedGroup itemId="enemy-matilda">
+      <group ref={idleRef} scale={[MATILDA_VISUAL_SCALE, MATILDA_VISUAL_SCALE, MATILDA_VISUAL_SCALE]}>
+        <group ref={upperRef}>
         <group ref={headRef} position={[0, 1.43, 0]}>
           <Part size={[0.60, 0.56, 0.42]} position={[0, 0, 0]} color={pal.skin} emissive={0.12} />
           <FaceSlot faceTextureUrl={faceTextureUrl} local />
@@ -246,8 +248,9 @@ export default function MatildaMesh({ faceTextureUrl = matildaFaceTextureUrl, mo
         <Part size={[0.22, 0.56, 0.20]} position={[0.17, -0.07, 0.02]} color={pal.skin} emissive={0.08} />
         <Part groupRef={leftFootRef} size={[0.34, 0.24, 0.34]} position={pose.leftFoot.position} color={pal.horn} emissive={0.04} />
         <Part groupRef={rightFootRef} size={[0.34, 0.24, 0.34]} position={pose.rightFoot.position} color={pal.horn} emissive={0.04} />
+        </group>
       </group>
-    </group>
+    </StudioTunedGroup>
   )
 }
 

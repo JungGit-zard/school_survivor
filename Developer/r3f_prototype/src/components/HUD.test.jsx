@@ -114,11 +114,13 @@ describe('weapon upgrade icon assets', () => {
       'eraser',
       'chibiko',
       'sharkMissile',
+      'lantern',
     ]
 
     for (const type of weaponIconTypes) {
       expect(getWeaponUpgradeIconSrc(type), `${type} icon`).toMatch(/wea_|weapon_icon|^data:image\//)
     }
+    expect(getWeaponUpgradeIconSrc('lantern')).toContain('16_wea_lantern.webp')
   })
 
   it('leaves non-weapon upgrade icons on the fallback UI path', () => {

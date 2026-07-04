@@ -13,6 +13,7 @@ import {
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { findClosestEnemy } from '../../lib/weaponTargeting.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _chibikoPencilId = 0
 
@@ -71,7 +72,8 @@ export function ChibikoModel({ attackPhaseRef }) {
   })
 
   return (
-    <group ref={reg('root')}>
+    <StudioTunedGroup itemId="weapon-chibiko">
+      <group ref={reg('root')}>
       <Part size={[0.56, 0.46, 0.46]} position={[0, 0.9, 0]} material={skinMat} outlineMaterial={outline} />
 
       <Part size={[0.72, 0.34, 0.58]} position={[0, 1.18, 0.02]} material={hairMat} outlineMaterial={outline} outlineScale={1.05} />
@@ -101,7 +103,8 @@ export function ChibikoModel({ attackPhaseRef }) {
       <Part size={[0.14, 0.28, 0.16]} position={[0.16, -0.3, 0]} material={skinMat} />
       <Part size={[0.24, 0.12, 0.24]} position={[-0.16, -0.5, 0.04]} material={shoeMat} outlineMaterial={outline} outlineScale={1.04} />
       <Part size={[0.24, 0.12, 0.24]} position={[0.16, -0.5, 0.04]} material={shoeMat} outlineMaterial={outline} outlineScale={1.04} />
-    </group>
+      </group>
+    </StudioTunedGroup>
   )
 }
 

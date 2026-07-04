@@ -6,6 +6,7 @@ import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { findClosestEnemy } from '../../lib/weaponTargeting.js'
 import { createOnigiriBurstGrains, pickNextOnigiriTarget } from '../../lib/onigiri.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _onigiiriId  = 0
 
@@ -26,7 +27,8 @@ export function OnigiiriModel() {
   ]
 
   return (
-    <group scale={[0.42, 0.42, 0.42]}>
+    <StudioTunedGroup itemId="weapon-onigiri">
+      <group scale={[0.42, 0.42, 0.42]}>
       <mesh renderOrder={1} material={outMat} scale={inflateScale([1.15, 1.10, 1.15])}>
         <cylinderGeometry args={[0.26, 0.50, 0.74, 3]} />
       </mesh>
@@ -50,7 +52,8 @@ export function OnigiiriModel() {
       <mesh renderOrder={5} material={noriHiMat} position={[0.11, -0.28, 0.442]} rotation={[0, 0, 0.42]}>
         <boxGeometry args={[0.16, 0.032, 0.018]} />
       </mesh>
-    </group>
+      </group>
+    </StudioTunedGroup>
   )
 }
 

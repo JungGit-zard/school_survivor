@@ -5,6 +5,7 @@ import { emitSfx } from '../../lib/sfxEvents.js'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 export function TumblerModel() {
   const bodyMat = useMemo(() => toonMat(0xff7a3d, 0.16), [])
@@ -12,7 +13,8 @@ export function TumblerModel() {
   const outMat = useMemo(() => outlineMat(0.92), [])
 
   return (
-    <group rotation={[0, 0, Math.PI / 2]} scale={[0.6375, 0.6375, 0.6375]}>
+    <StudioTunedGroup itemId="weapon-tumbler">
+      <group rotation={[0, 0, Math.PI / 2]} scale={[0.6375, 0.6375, 0.6375]}>
       <mesh material={outMat} scale={inflateScale([1.12, 1.12, 1.08])}>
         <cylinderGeometry args={[0.15, 0.20, 0.58, 10]} />
       </mesh>
@@ -22,7 +24,8 @@ export function TumblerModel() {
       <mesh material={capMat} position={[0, 0.34, 0]}>
         <cylinderGeometry args={[0.16, 0.16, 0.10, 10]} />
       </mesh>
-    </group>
+      </group>
+    </StudioTunedGroup>
   )
 }
 

@@ -8,7 +8,7 @@ import { loadStudioTunings } from '../lib/graphicsStudioConfig.js'
 
 vi.mock('./GraphicsStudioPreview.jsx', () => ({
   default: ({ selectedItem, tuning }) => (
-    <div data-testid="graphics-preview">{selectedItem.id}:{tuning.scale}:{tuning.animation}</div>
+    <div data-testid="graphics-preview">{selectedItem.id}:{tuning.scale}:{tuning.scaleX}:{tuning.animation}</div>
   ),
 }))
 
@@ -42,6 +42,12 @@ describe('GraphicsStudio', () => {
     expect(container.textContent).toContain('Weapon Model')
     expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player')
     expect(container.querySelector('input[name="scale"]')).toBeTruthy()
+    expect(container.querySelector('input[name="scaleX"]')).toBeTruthy()
+    expect(container.querySelector('input[name="scaleY"]')).toBeTruthy()
+    expect(container.querySelector('input[name="scaleZ"]')).toBeTruthy()
+    expect(container.querySelector('input[name="rotationX"]')).toBeTruthy()
+    expect(container.querySelector('input[name="rotationY"]')).toBeTruthy()
+    expect(container.querySelector('input[name="rotationZ"]')).toBeTruthy()
     expect(container.querySelector('input[name="outlineThickness"]')).toBeTruthy()
     expect(container.querySelector('input[name="color"]')).toBeTruthy()
     expect(container.querySelector('[data-testid="studio-export"]').value).toContain('"graphics-studio"')
@@ -58,40 +64,49 @@ describe('GraphicsStudio', () => {
     expect(container.textContent).toContain('Enemy / Matilda')
   })
 
-  it('confirms slider changes into local storage for later code application', () => {
+  it('applies transform slider changes into local storage for game application', () => {
     act(() => {
       root.render(<GraphicsStudio />)
     })
 
     const scale = container.querySelector('input[name="scale"]')
+    const scaleX = container.querySelector('input[name="scaleX"]')
+    const rotationZ = container.querySelector('input[name="rotationZ"]')
     act(() => {
       scale.value = '1.45'
       scale.dispatchEvent(new Event('input', { bubbles: true }))
+      scaleX.value = '1.25'
+      scaleX.dispatchEvent(new Event('input', { bubbles: true }))
+      rotationZ.value = '-30'
+      rotationZ.dispatchEvent(new Event('input', { bubbles: true }))
     })
 
-    const confirmButton = Array.from(container.querySelectorAll('button'))
-      .find((button) => button.textContent.includes('Confirm'))
+    const applyButton = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent.includes('Apply'))
     act(() => {
-      confirmButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      applyButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
 
     expect(loadStudioTunings().player.scale).toBe(1.45)
+    expect(loadStudioTunings().player.scaleX).toBe(1.25)
+    expect(loadStudioTunings().player.rotationZ).toBe(-30)
     expect(container.querySelector('[data-testid="studio-export"]').value).toContain('"scale": 1.45')
+    expect(container.querySelector('[data-testid="studio-export"]').value).toContain('"scaleX": 1.25')
   })
 
-  it('offers the lantern player animation in the motion control', () => {
+  it('offers the named flashlight lantern player animation in the motion control', () => {
     act(() => {
       root.render(<GraphicsStudio />)
     })
 
     const motion = container.querySelector('select[name="animation"]')
-    expect(Array.from(motion.options).map((option) => option.value)).toContain('lantern')
+    expect(Array.from(motion.options).map((option) => option.value)).toContain('lanternFlashlight')
 
     act(() => {
-      motion.value = 'lantern'
+      motion.value = 'lanternFlashlight'
       motion.dispatchEvent(new Event('change', { bubbles: true }))
     })
 
-    expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1:lantern')
+    expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1:1:lanternFlashlight')
   })
 })

@@ -6,6 +6,7 @@ import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { findBestSplashTarget, applyRadialDamage } from '../../lib/weaponTargeting.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _flaskId = 0
 const FLASK_FLIGHT_DURATION = 1.55
@@ -27,7 +28,8 @@ export function FlaskModel() {
   const outMat = useMemo(() => outlineMat(0.94), [])
 
   return (
-    <group scale={[0.42, 0.42, 0.42]} rotation={[0.1, 0, -0.35]}>
+    <StudioTunedGroup itemId="weapon-science-flask">
+      <group scale={[0.42, 0.42, 0.42]} rotation={[0.1, 0, -0.35]}>
       {/* 본체(원뿔) — 둥글게 보이도록 분할수를 높임 */}
       <mesh material={outMat} scale={inflateScale([1.1, 1.1, 1.1])} position={[0, -0.08, 0]}>
         <coneGeometry args={[0.34, 0.46, 24]} />
@@ -63,7 +65,8 @@ export function FlaskModel() {
       <mesh material={corkMat} position={[0, 0.46, 0]}>
         <cylinderGeometry args={[0.1, 0.1, 0.12, 16]} />
       </mesh>
-    </group>
+      </group>
+    </StudioTunedGroup>
   )
 }
 
@@ -150,12 +153,12 @@ function ChemicalZone({ id, x, z, radius, durationMs, tickDamage, onDone }) {
   return (
     <group position={[x, 0, z]}>
       {/* 웅덩이 본체 — 산성 그린 반투명 원판 */}
-      <mesh ref={poolRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.075, 0]} renderOrder={3}>
+      <mesh ref={poolRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.012, 0]} renderOrder={1}>
         <circleGeometry args={[1, 40]} />
         <meshBasicMaterial color={0x46c81e} transparent opacity={0.46} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
       {/* 중심 발광 코어 — 더 밝은 라임 */}
-      <mesh ref={coreRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.085, 0]} renderOrder={4}>
+      <mesh ref={coreRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.014, 0]} renderOrder={2}>
         <circleGeometry args={[1, 32]} />
         <meshBasicMaterial color={0x86ff4f} transparent opacity={0.5} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>

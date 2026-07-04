@@ -5,6 +5,7 @@ import { useGameStore } from '../store/useGameStore.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { toonMat, outlineMat, inflateScale } from '../lib/toon.js'
 import { stepMagnetPull } from '../lib/pickup.js'
+import StudioTunedGroup from './StudioTunedGroup.jsx'
 
 const R       = 0.097  // coin face radius (2/3 of original)
 const TH      = 0.020  // coin thickness  (2/3 of original)
@@ -181,6 +182,7 @@ export default function GoldCoin({ id, pos, value, onCollect }) {
 
       {/* 코인 (이동 그룹) */}
       <group ref={groupRef} position={[pos[0], pos[1], pos[2]]}>
+        <StudioTunedGroup itemId="pickup-gold-coin">
         {/* Y축 회전 그룹 */}
         <group ref={spinRef}>
           {/* 외곽선 (BackSide — 카툰 윤곽선) */}
@@ -208,6 +210,7 @@ export default function GoldCoin({ id, pos, value, onCollect }) {
             <circleGeometry args={[R * 0.50, 18]} />
           </mesh>
         </group>
+        </StudioTunedGroup>
       </group>
     </group>
   )

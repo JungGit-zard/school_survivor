@@ -1,6 +1,8 @@
+import { useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useGameStore } from '../store/useGameStore.js'
+import { isE2EAuthBypass, applyE2EOverridesToStore } from '../lib/e2eAuth.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { playerPos, screenBounds } from '../lib/refs.js'
 import Player from './Player.jsx'
@@ -54,6 +56,15 @@ export default function Game() {
   const spawnMatilda = useGameStore((s) => s.spawnMatilda)
   const matildaSpawned = useGameStore((s) => s.matildaSpawned)
   const checkSurvivalMilestone = useGameStore((s) => s.checkSurvivalMilestone)
+  const gameKey = useGameStore((s) => s.gameKey)
+
+  // DEV E2E 전용: resetGame이 상태를 초기화한 뒤(매 런 시작 = gameKey 증가) URL 쿼리로
+  // 지정한 무기 무장·쿨다운·hp를 덮어쓴다. e2e 우회가 아니면 완전 no-op(프로덕션은 데드 브랜치).
+  useEffect(() => {
+    if (isE2EAuthBypass()) {
+      applyE2EOverridesToStore(useGameStore)
+    }
+  }, [gameKey])
 
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.1)

@@ -525,6 +525,43 @@ export const STAGE_OBJECT_PLACEMENTS = {
   ],
 }
 
+const FLIPPED_UNCONSCIOUS_STUDENT_VARIANTS = {
+  faceUp: 'faceUpFlipped',
+  sideLeft: 'sideLeftFlipped',
+  sideRight: 'sideRightFlipped',
+}
+
+function shouldFlipUnconsciousStudent(id) {
+  let hash = 0
+
+  for (let index = 0; index < id.length; index += 1) {
+    hash += id.charCodeAt(index) * (index + 1)
+  }
+
+  return hash % 2 === 0
+}
+
+function withMixedUnconsciousStudentFacing(item) {
+  if (item.type !== 'unconsciousStudent' || !shouldFlipUnconsciousStudent(item.id)) {
+    return item
+  }
+
+  const variant = item.props?.variant ?? 'faceUp'
+  const flippedVariant = FLIPPED_UNCONSCIOUS_STUDENT_VARIANTS[variant]
+
+  if (!flippedVariant) {
+    return item
+  }
+
+  return {
+    ...item,
+    props: {
+      ...item.props,
+      variant: flippedVariant,
+    },
+  }
+}
+
 export function getStageObjectPlacements(stageId = 'stage1') {
-  return STAGE_OBJECT_PLACEMENTS[stageId] ?? []
+  return (STAGE_OBJECT_PLACEMENTS[stageId] ?? []).map(withMixedUnconsciousStudentFacing)
 }

@@ -171,7 +171,7 @@ export const WEAPON_CATALOG = {
     // - 빛 범위 1.9×1.9 = E01(녹색좀비) 2마리 깊이 × 2마리 폭 (간격 ~0.8 밀집 기준).
     // - damage: 연필 레벨1의 1.5배 — 카탈로그 선언 직후 주입.
     // - cooldown 8000은 점등 시작 기준: Lv1 3초 점등/5초 소등 → Lv5 7초 점등/1초 소등.
-    base: { damage: 9, cooldown: 8000, lastFired: 0, durationMs: 3000, hitIntervalMs: 1000, lightLength: 2.6, lightWidth: 1.8, lightBaseWidth: 0.35 },
+    base: { damage: 0.6, cooldown: 8000, lastFired: 0, durationMs: 3000, hitIntervalMs: 300, lightLength: 2.08, lightWidth: 3.6, lightBaseWidth: 0.35 },
     unlockConditions: [
       { type: 'stage1Clears', value: 1 },
       { type: 'totalRuns', value: 5 },
@@ -182,8 +182,8 @@ export const WEAPON_CATALOG = {
 
 // 플라스크 웅덩이 틱 데미지 = 연필 레벨1 데미지 (기획 정본: 단일 출처 참조)
 WEAPON_CATALOG.scienceFlask.base.zoneTickDamage = WEAPON_CATALOG.pencilThrow.base.damage
-// 학생용 랜턴 위력 = 연필 레벨1의 1.5배 (기획 정본: 단일 출처 참조)
-WEAPON_CATALOG.studentLantern.base.damage = WEAPON_CATALOG.pencilThrow.base.damage * 1.5
+// 학생용 랜턴 위력 = 연필 레벨1의 1/10 (기획 정본: 단일 출처 참조)
+WEAPON_CATALOG.studentLantern.base.damage = WEAPON_CATALOG.pencilThrow.base.damage * 0.1
 
 const ALL_IDS = Object.keys(WEAPON_CATALOG)
 const STARTER_IDS = ALL_IDS.filter((id) => WEAPON_CATALOG[id].unlockConditions === STARTER)

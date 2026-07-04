@@ -6,6 +6,7 @@ import { RigidBody, CuboidCollider, BallCollider } from '@react-three/rapier'
 import { bagSwingState, playerFacing, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 export function ThirtyCmRulerModel() {
   const rulerMat = useMemo(() => toonMat(0xf6dd59, 0.18), [])
@@ -15,7 +16,8 @@ export function ThirtyCmRulerModel() {
   const marks = useMemo(() => Array.from({ length: 11 }, (_, i) => -0.48 + i * 0.096), [])
 
   return (
-    <group scale={[0.55, 0.55, 0.55]}>
+    <StudioTunedGroup itemId="weapon-ruler">
+      <group scale={[0.55, 0.55, 0.55]}>
       <mesh material={outMat} scale={inflateScale([1.14, 1.06, 1.25])}>
         <boxGeometry args={[0.14, 1.18, 0.045]} />
       </mesh>
@@ -30,7 +32,8 @@ export function ThirtyCmRulerModel() {
           <boxGeometry args={[idx % 5 === 0 ? 0.09 : 0.055, 0.012, 0.012]} />
         </mesh>
       ))}
-    </group>
+      </group>
+    </StudioTunedGroup>
   )
 }
 

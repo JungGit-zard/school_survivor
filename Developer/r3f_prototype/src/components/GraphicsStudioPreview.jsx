@@ -31,6 +31,14 @@ import { EraserModel } from './Weapons/EraserBomb.jsx'
 import { BoxCutterModel } from './Weapons/BoxCutter.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
 import { SharkMissileModel, FlameTrail } from './Weapons/SharkMissile.jsx'
+import { CrashExplosionVisual, StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
+import { StudioTuningPreviewProvider, getStudioTransformProps } from './StudioTunedGroup.jsx'
+import { getCrashPose } from '../lib/starlinkCrash.js'
+
+const PLAYER_STUDIO_ARM_ACTIONS = {
+  lantern: 'lanternAim',
+  lanternFlashlight: 'lanternFlashlight',
+}
 
 function isOutlineMaterial(material) {
   return material?.side === THREE.BackSide || material?.stencilFunc === THREE.NotEqualStencilFunc
@@ -230,6 +238,30 @@ function getPreviewFrame(item) {
       maxDistance: 9,
     }
   }
+  if (item.previewKind === 'starlinkSatellite') {
+    return {
+      camera: { position: [1.9, 1.5, 2.4], fov: 34, near: 0.01, far: 30 },
+      target: [0, 0.35, 0],
+      minDistance: 0.5,
+      maxDistance: 9,
+    }
+  }
+  if (item.previewKind === 'starlinkCrash') {
+    return {
+      camera: { position: [2.6, 2.1, 4.0], fov: 36, near: 0.01, far: 40 },
+      target: [0, 0.75, 0],
+      minDistance: 0.8,
+      maxDistance: 10,
+    }
+  }
+  if (item.previewKind === 'zomlonbisk') {
+    return {
+      camera: { position: [1.7, 1.7, 3.0], fov: 34, near: 0.01, far: 30 },
+      target: [0, 0.6, 0],
+      minDistance: 0.6,
+      maxDistance: 9,
+    }
+  }
   if (item.previewKind === 'healthBar') {
     return {
       camera: { position: [0.8, 0.9, 1.4], fov: 34, near: 0.01, far: 20 },
@@ -258,6 +290,7 @@ function RenderPreviewItem({ item }) {
   const movingRef = useRef(false)
   const playerRef = useRef(null)
   const [deathReplayKey, setDeathReplayKey] = useState(0)
+  const [crashReplayKey, setCrashReplayKey] = useState(0)
 
   useEffect(() => {
     if (item.previewKind !== 'enemyCollapse') return undefined
@@ -265,8 +298,14 @@ function RenderPreviewItem({ item }) {
     return () => window.clearInterval(timer)
   }, [item.previewKind])
 
+  useEffect(() => {
+    if (item.previewKind !== 'starlinkCrash') return undefined
+    const timer = window.setInterval(() => setCrashReplayKey((key) => key + 1), 33)
+    return () => window.clearInterval(timer)
+  }, [item.previewKind])
+
   if (item.previewKind === 'player') {
-    return <PlayerVisual meshGroup={playerRef} movingRef={movingRef} hp={100} maxHp={100} previewArmAction={item.animation === 'lantern' ? 'lanternAim' : null} />
+    return <PlayerVisual meshGroup={playerRef} movingRef={movingRef} hp={100} maxHp={100} previewArmAction={PLAYER_STUDIO_ARM_ACTIONS[item.animation] ?? null} />
   }
   if (item.previewKind === 'zombie') {
     return <EnemyVisual type={item.zombieType} animPhase={item.animation ?? 'normal'} hp={ENEMY_STATS[item.zombieType]?.hp} forceMesh />
@@ -295,6 +334,31 @@ function RenderPreviewItem({ item }) {
   if (item.previewKind === 'weaponModel') {
     return <WeaponModelPreview type={item.weaponType} />
   }
+  if (item.previewKind === 'starlinkSatellite') {
+    return (
+      <group position={[0, 0.35, 0]}>
+        <StarlinkSatelliteModel />
+      </group>
+    )
+  }
+  if (item.previewKind === 'starlinkCrash') {
+    const t = (crashReplayKey % 24) / 23
+    if (item.crashPhase === 'impact') return <CrashExplosionVisual x={0} z={0} t={t} />
+
+    const pose = getCrashPose({ x: 0, z: 0 }, t)
+    return (
+      <group position={[pose.x, pose.y, pose.z]} rotation={[pose.tilt, pose.spin, pose.tilt * 0.6]}>
+        <StarlinkSatelliteModel />
+      </group>
+    )
+  }
+  if (item.previewKind === 'zomlonbisk') {
+    return (
+      <group position={[0, 0.57, 0]}>
+        <ZomlonbiskModel running />
+      </group>
+    )
+  }
   if (item.previewKind === 'vfx') {
     return <StudioVfxPreview type={item.vfxType} />
   }
@@ -302,8 +366,8 @@ function RenderPreviewItem({ item }) {
     return <EnemyProjectileVisual />
   }
   if (item.previewKind === 'enemyCollapse') {
-    const index = deathReplayKey % ENEMY_DEATH_COLLAPSE_STYLES.length
-    const style = ENEMY_DEATH_COLLAPSE_STYLES[index]
+    const index = item.deathStyleIndex ?? deathReplayKey % ENEMY_DEATH_COLLAPSE_STYLES.length
+    const style = item.deathStyle ?? ENEMY_DEATH_COLLAPSE_STYLES[index]
     return (
       <>
         <EnemyDeathCollapse
@@ -349,7 +413,7 @@ function RenderPreviewItem({ item }) {
 
 function StudioScene({ selectedItem, tuning, frame }) {
   const rootRef = useRef(null)
-  const rotationY = THREE.MathUtils.degToRad(tuning.rotationY)
+  const transform = getStudioTransformProps(tuning)
   const item = selectedItem.previewKind === 'player' || selectedItem.previewKind === 'zombie' || selectedItem.previewKind === 'matilda'
     ? { ...selectedItem, animation: tuning.animation }
     : selectedItem
@@ -380,7 +444,7 @@ function StudioScene({ selectedItem, tuning, frame }) {
         shadow-camera-bottom={-40}
       />
       <directionalLight position={[10, 12, -10]} intensity={0.85} color={0xffe2b0} />
-      <group ref={rootRef} scale={[tuning.scale, tuning.scale, tuning.scale]} rotation={[0, rotationY, 0]}>
+      <group ref={rootRef} scale={transform.scale} rotation={transform.rotation}>
         <RenderPreviewItem item={item} />
       </group>
       <OrbitControls
@@ -404,8 +468,10 @@ export default function GraphicsStudioPreview({ selectedItem, tuning }) {
       shadows
       style={{ width: '100%', height: '100%', background: '#171817' }}
     >
-      <color attach="background" args={['#171817']} />
-      <StudioScene selectedItem={selectedItem} tuning={tuning} frame={frame} />
+      <StudioTuningPreviewProvider>
+        <color attach="background" args={['#171817']} />
+        <StudioScene selectedItem={selectedItem} tuning={tuning} frame={frame} />
+      </StudioTuningPreviewProvider>
     </Canvas>
   )
 }

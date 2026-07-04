@@ -1,5 +1,11 @@
 {
   "appId": "com.jungyoon.zombieschool",
   "appName": "Escape Zombie School",
-  "webDir": "dist"
+  "webDir": "dist",
+  "plugins": {
+    "FirebaseAuthentication": {
+      "skipNativeAuth": true,
+      "providers": ["google.com"]
+    }
+  }
 }
