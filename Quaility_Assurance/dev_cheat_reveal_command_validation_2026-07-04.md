@@ -9,5 +9,5 @@ npm test -- src/components/HUD.test.jsx -t "development weapon cheat panel|playt
 
 Result:
 - Title cheat controls stay hidden until the command sequence reveals them.
-- HUD development buttons and development log copy stay hidden unless `devCheatsVisible` is enabled.
+- HUD pause stays visible, while development buttons and development log copy stay hidden unless `devCheatsVisible` is enabled.
 - Existing cheat menu actions still work after reveal.

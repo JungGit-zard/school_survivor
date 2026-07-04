@@ -237,7 +237,8 @@ describe('development weapon cheat panel', () => {
         root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
       })
 
-      expect(container.textContent).not.toContain('R')
+      expect(container.textContent).toContain('Ⅱ')
+      expect(container.querySelector('[aria-label="Restart"]')).toBeNull()
       expect(container.textContent).not.toContain('M')
       expect(container.textContent).not.toContain('W')
       expect(container.querySelector('[data-testid="weapon-cheat-panel"]')).toBeNull()

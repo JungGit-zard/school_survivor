@@ -637,20 +637,24 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking, devChe
         <span style={styles.goldNum}>{goldSession}</span>
       </div>
 
-      {devCheatsVisible && (phase === 'playing' || phase === 'paused') && (
+      {(phase === 'playing' || phase === 'paused') && (
         <div style={styles.topLeftControls}>
           <button type="button" style={styles.pauseButton} onClick={() => { emitSfx({ id: 'buttonClick' }); togglePause() }}>
           {phase === 'paused' ? '▶' : 'Ⅱ'}
           </button>
-          <button type="button" style={styles.quickRestartButton} onClick={() => resetGame(currentStageId)} aria-label="Restart" title="Restart">
-            R
-          </button>
-          <button type="button" style={styles.matildaBtn} onClick={() => { joystickDir.x = 0; joystickDir.z = 0; joystickDir.active = false; spawnMatilda() }} title="마틸다 소환">
-            M
-          </button>
-          <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => setWeaponCheatOpen((open) => !open)} aria-label="무기 치트" title="무기 치트">
-            W
-          </button>
+          {devCheatsVisible && (
+            <>
+              <button type="button" style={styles.quickRestartButton} onClick={() => resetGame(currentStageId)} aria-label="Restart" title="Restart">
+                R
+              </button>
+              <button type="button" style={styles.matildaBtn} onClick={() => { joystickDir.x = 0; joystickDir.z = 0; joystickDir.active = false; spawnMatilda() }} title="마틸다 소환">
+                M
+              </button>
+              <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => setWeaponCheatOpen((open) => !open)} aria-label="무기 치트" title="무기 치트">
+                W
+              </button>
+            </>
+          )}
         </div>
       )}
 
