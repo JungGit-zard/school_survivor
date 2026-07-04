@@ -43,7 +43,7 @@ Stage 1 관련 Planner 산출물:
 
 - `Planner/B. GAME_DESIGN/Stage_balance_summary.md`
 - `Planner/auto_deploy_stage1_loop_leveling_plan_2026-06-24.md`
-- `Planner/stage1_weapon_roster_card_pool_drift_resolution_2026-06-24.md`
+- `Planner/game_contents/weapons/stage1_weapon_roster_card_pool_drift_resolution_2026-06-24.md`
 
 ## 3. 변경/생성한 파일
 

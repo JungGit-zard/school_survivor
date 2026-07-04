@@ -44,8 +44,8 @@ git -C D:\JungSil\2.Minigame_project\school_survivor-integration ls-files |
 - `Graphic_designer/graphic_asset/weapon_graphics/14_shark_missile/...`
 - `Planner/game_contents/weapons/shark_missile_runtime_integration_2026-06-14.md`
 - `Planner/game_contents/weapons/shark_missile_unlock_plan_2026-06-11.md`
-- `Quaility_Assurance/shark_missile_integration_validation_2026-06-14.md`
-- `Quaility_Assurance/shark_missile_validation_2026-06-11.md`
+- `Quaility_Assurance/weapons/shark_missile_integration_validation_2026-06-14.md`
+- `Quaility_Assurance/weapons/shark_missile_validation_2026-06-11.md`
 
 결론: 현재 main에는 상어미사일이 존재한다.
 

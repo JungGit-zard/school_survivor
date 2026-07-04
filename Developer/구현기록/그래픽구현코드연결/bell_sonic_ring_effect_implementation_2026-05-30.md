@@ -2,7 +2,7 @@
 
 ## 연결 파일
 
-- 그래픽 방향: `Graphic_designer/bell_sonic_ring_effect_2026-05-30.md`
+- 그래픽 방향: `Graphic_designer/weapons/bell_sonic_ring_effect_2026-05-30.md`
 - 구현: `Developer/r3f_prototype/src/components/Weapons/Bell.jsx`
 - 설정: `Developer/r3f_prototype/src/lib/bell.js`
 - 테스트: `Developer/r3f_prototype/src/lib/bell.test.js`

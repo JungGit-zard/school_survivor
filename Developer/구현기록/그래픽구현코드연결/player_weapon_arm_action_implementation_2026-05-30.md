@@ -3,7 +3,7 @@
 ## 연결 파일
 
 - 기획: `Planner/game_contents/weapons/combat_feedback/player_weapon_arm_action_rules_2026-05-30.md`
-- 그래픽 방향: `Graphic_designer/player_weapon_arm_action_2026-05-30.md`
+- 그래픽 방향: `Graphic_designer/weapons/player_weapon_arm_action_2026-05-30.md`
 - 구현:
   - `Developer/r3f_prototype/src/lib/playerArmAction.js`
   - `Developer/r3f_prototype/src/lib/refs.js`

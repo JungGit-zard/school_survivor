@@ -152,7 +152,7 @@ fbb39b0 feat(weapons): add sharkMissile + chibiko trail-follow (Codex 2026-06-14
 - `Developer/r3f_prototype/src/store/useGameStore.sharkMissileUnlock.test.js`
 - `Graphic_designer/graphic_asset/weapon_graphics/14_shark_missile/`
 - `Planner/game_contents/weapons/shark_missile_unlock_plan_2026-06-11.md`
-- `Quaility_Assurance/shark_missile_validation_2026-06-11.md`
+- `Quaility_Assurance/weapons/shark_missile_validation_2026-06-11.md`
 
 현재 통합 커밋:
 
