@@ -190,7 +190,7 @@ const BURST_EVENTS = [
   { sec:   0, type: 'E01', count: 16 },  // 40초 전 단일 좀비 구간 밀도 2배
   { sec:  24, type: 'E01', count: 12 },  // 40초 전 단일 좀비 구간 밀도 2배
   { sec:  48, type: 'E02', count:  4 },  // 탱커 첫 등장 신호
-  { sec:  72, type: 'E03', count:  6 },  // 러너 압박
+  { sec:  72, type: 'E03', count:  2 },  // 러너 압박 — 6→2 (E03 전 구간 ×1/3, 2026-07-04)
   { sec:  96, type: 'E01', count:  5 },  // 엘리트 직전 잡몹 러시
   { sec:  96, type: 'E02', count:  3 },
   { sec: 120, type: 'E05', count:  3 },  // 돌진 첫 등장 (E04 탄환형 폐기 — 2026-05-09)
