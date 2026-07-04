@@ -13,14 +13,14 @@ import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 
 const SETTINGS_STORAGE_KEY = 'school_survivor:titleSettings'
-const UNLOCK_ALL_WEAPONS_CHEAT_CODE = 'unlockall'
+const REVEAL_CHEATS_CODE = ['arrowup', 'arrowdown', 'arrowup', 'arrowdown', 'a', 's', 'd']
 const DEFAULT_SETTINGS = {
   vibration: true,
   reducedEffects: false,
   unlockAllWeaponsCheat: false,
 }
 
-export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) {
+export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking, devCheatsVisible = false, onRevealDevCheats }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [cheatOpen, setCheatOpen] = useState(false)
   const [controlsOpen, setControlsOpen] = useState(false)
@@ -31,15 +31,16 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
   const [pendingStageId, setPendingStageId] = useState('stage1')
   const [settings, setSettings] = useState(loadTitleSettings)
   const [selectedStageId, setSelectedStageId] = useState('stage1')
+  const [cheatRevealMessage, setCheatRevealMessage] = useState(false)
   const authUser = useAuthStore((s) => s.user)
   const signingIn = useAuthStore((s) => s.signingIn)
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle)
   const resetPassiveUpgrades = useGameStore((s) => s.resetPassiveUpgrades)
-  const cheatBufferRef = useRef('')
+  const cheatBufferRef = useRef([])
   const titleStyle = settings.reducedEffects ? styles.titleReduced : styles.title
   const primaryButtonStyle = settings.reducedEffects ? styles.primaryButtonReduced : styles.primaryButton
   const adminOperations = getAdminOperationsConfig()
-  const cheatMenuButtonVisible = adminOperations.cheatMenuButtonVisible
+  const cheatMenuButtonVisible = devCheatsVisible && adminOperations.cheatMenuButtonVisible
   const stage1 = getStageConfig('stage1')
   const stage2 = getStageConfig('stage2')
 
@@ -73,27 +74,27 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
   useEffect(() => {
     const handleCheatKeyDown = (event) => {
       if (event.ctrlKey || event.altKey || event.metaKey) return
-      if (typeof event.key !== 'string' || event.key.length !== 1) return
 
-      const key = event.key.toLowerCase()
-      if (key < 'a' || key > 'z') {
-        cheatBufferRef.current = ''
-        return
-      }
+      const key = normalizeRevealCheatKey(event.key)
+      if (!key) return
 
-      cheatBufferRef.current = `${cheatBufferRef.current}${key}`.slice(-UNLOCK_ALL_WEAPONS_CHEAT_CODE.length)
-      if (cheatBufferRef.current !== UNLOCK_ALL_WEAPONS_CHEAT_CODE) return
+      cheatBufferRef.current = [...cheatBufferRef.current, key].slice(-REVEAL_CHEATS_CODE.length)
+      if (!REVEAL_CHEATS_CODE.every((part, index) => cheatBufferRef.current[index] === part)) return
 
-      unlockAllNonStarterWeapons()
-      cheatBufferRef.current = ''
-      setSettings((current) => (
-        current.unlockAllWeaponsCheat ? current : { ...current, unlockAllWeaponsCheat: true }
-      ))
+      cheatBufferRef.current = []
+      onRevealDevCheats?.()
+      setCheatRevealMessage(true)
     }
 
     window.addEventListener('keydown', handleCheatKeyDown)
     return () => window.removeEventListener('keydown', handleCheatKeyDown)
-  }, [])
+  }, [onRevealDevCheats])
+
+  useEffect(() => {
+    if (!cheatRevealMessage) return undefined
+    const timer = setTimeout(() => setCheatRevealMessage(false), 1800)
+    return () => clearTimeout(timer)
+  }, [cheatRevealMessage])
 
   const toggleSetting = (key) => {
     setSettings((current) => {
@@ -197,6 +198,9 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
       <div style={styles.tint} />
       <div style={styles.vignette} />
       <GoogleAccountPanel />
+      {cheatRevealMessage && (
+        <div style={styles.cheatRevealToast}>치트키가 보입니다</div>
+      )}
       {cheatMenuButtonVisible && (
         <button
           type="button"
@@ -409,6 +413,14 @@ function normalizeInitialNickname(value) {
   return value.replace(/\s+/g, ' ').trim().slice(0, 12)
 }
 
+function normalizeRevealCheatKey(key) {
+  if (key === 'ArrowUp') return 'arrowup'
+  if (key === 'ArrowDown') return 'arrowdown'
+  if (typeof key !== 'string' || key.length !== 1) return null
+  const lower = key.toLowerCase()
+  return lower >= 'a' && lower <= 'z' ? lower : null
+}
+
 function loadTitleSettings() {
   if (typeof localStorage === 'undefined') return DEFAULT_SETTINGS
 
@@ -502,6 +514,24 @@ const styles = {
     cursor: 'pointer',
     boxShadow: uiShadows.pressSmall,
     zIndex: 3,
+  },
+  cheatRevealToast: {
+    position: 'absolute',
+    top: 'max(68px, calc(env(safe-area-inset-top, 0px) + 62px))',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    padding: '8px 12px',
+    border: uiBorders.strong,
+    borderRadius: 8,
+    background: uiPalette.chalkboard,
+    color: uiPalette.reward,
+    fontSize: 13,
+    lineHeight: 1,
+    fontWeight: uiType.weightHeavy,
+    boxShadow: uiShadows.pressSmall,
+    zIndex: 4,
+    pointerEvents: 'none',
+    whiteSpace: 'nowrap',
   },
   content: {
     position: 'absolute',

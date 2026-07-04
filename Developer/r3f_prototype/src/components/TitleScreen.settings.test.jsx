@@ -100,7 +100,7 @@ describe('TitleScreen settings modal', () => {
     cleanup()
   })
 
-  it('keeps development controls behind the top cheat menu button', () => {
+  it('keeps development controls behind the title command and top cheat menu button', () => {
     const { container, cleanup } = renderTitleScreen()
 
     expect(container.textContent).not.toContain('모든 무기 해금')
@@ -275,23 +275,15 @@ describe('TitleScreen settings modal', () => {
     cleanup()
   })
 
-  it('unlocks every non-starter weapon when typing the title cheat key sequence', () => {
-    const { cleanup } = renderTitleScreen()
+  it('reveals cheat controls when typing the title command sequence', () => {
+    const { container, cleanup } = renderTitleScreen(() => {}, () => {}, false)
 
-    act(() => {
-      for (const key of 'unlockall') {
-        window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
-      }
-    })
+    expect(container.querySelector('[aria-label="치트 메뉴 열기"]')).toBeNull()
 
-    const unlocks = JSON.parse(localStorage.getItem(WEAPON_UNLOCKS_KEY))
-    const nonStarterIds = Object.keys(WEAPON_CATALOG).filter((id) => !isStarter(id))
+    revealCheats()
 
-    for (const id of nonStarterIds) {
-      expect(unlocks[id], id).toBe(1)
-    }
-
-    expect(JSON.parse(localStorage.getItem(SETTINGS_KEY)).unlockAllWeaponsCheat).toBe(true)
+    expect(container.textContent).toContain('치트키가 보입니다')
+    expect(container.querySelector('[aria-label="치트 메뉴 열기"]')).not.toBeNull()
 
     cleanup()
   })
@@ -330,13 +322,25 @@ describe('TitleScreen settings modal', () => {
   })
 })
 
-function renderTitleScreen(onStart = () => {}, onOpenRanking = () => {}) {
+function renderTitleScreen(onStart = () => {}, onOpenRanking = () => {}, initialDevCheatsVisible = true) {
   const container = document.createElement('div')
   document.body.appendChild(container)
   const root = createRoot(container)
 
+  function Harness() {
+    const [devCheatsVisible, setDevCheatsVisible] = React.useState(initialDevCheatsVisible)
+    return (
+      <TitleScreen
+        onStart={onStart}
+        onOpenRanking={onOpenRanking}
+        devCheatsVisible={devCheatsVisible}
+        onRevealDevCheats={() => setDevCheatsVisible(true)}
+      />
+    )
+  }
+
   act(() => {
-    root.render(<TitleScreen onStart={onStart} onOpenRanking={onOpenRanking} />)
+    root.render(<Harness />)
   })
 
   return {
@@ -351,8 +355,18 @@ function renderTitleScreen(onStart = () => {}, onOpenRanking = () => {}) {
 }
 
 function openCheatMenu(container) {
+  revealCheats()
   act(() => {
     container.querySelector('[aria-label="치트 메뉴 열기"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
+}
+
+function revealCheats() {
+  const keys = ['ArrowUp', 'ArrowDown', 'ArrowUp', 'ArrowDown', 'a', 's', 'd']
+  act(() => {
+    for (const key of keys) {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
+    }
   })
 }
 

@@ -227,6 +227,27 @@ describe('level-up upgrade layout', () => {
 })
 
 describe('development weapon cheat panel', () => {
+  it('hides development run buttons until cheat UI is revealed', () => {
+    useGameStore.getState().resetGame('stage1')
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      expect(container.textContent).not.toContain('R')
+      expect(container.textContent).not.toContain('M')
+      expect(container.textContent).not.toContain('W')
+      expect(container.querySelector('[data-testid="weapon-cheat-panel"]')).toBeNull()
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
+
   it('opens from the W button and acquires the selected weapon for the current run', () => {
     useGameStore.getState().resetGame('stage1')
     expect(useGameStore.getState().weapons.guidedMissile.active).toBe(false)
@@ -236,7 +257,7 @@ describe('development weapon cheat panel', () => {
 
     try {
       act(() => {
-        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} devCheatsVisible />)
       })
 
       clickButtonByText(container, 'W')
@@ -352,7 +373,7 @@ describe('stage clear presentation', () => {
 
     try {
       act(() => {
-        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} devCheatsVisible />)
       })
 
       const buttons = [...container.querySelectorAll('button')]
@@ -384,7 +405,7 @@ describe('stage clear presentation', () => {
 
     try {
       act(() => {
-        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} devCheatsVisible />)
       })
 
       const primaryActions = container.querySelector('[data-testid="result-primary-actions"]')
@@ -417,7 +438,7 @@ describe('stage clear presentation', () => {
 
     try {
       act(() => {
-        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} devCheatsVisible />)
       })
 
       expect(container.querySelector('[data-testid="result-dev-tools"]')).toBeNull()

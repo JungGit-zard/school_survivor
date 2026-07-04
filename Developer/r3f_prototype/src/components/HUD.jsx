@@ -369,7 +369,7 @@ export function UpgradeIcon({ type }) {
   )
 }
 
-export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
+export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking, devCheatsVisible = false }) {
   const {
     player, weapons, phase, pauseSource,
     elapsed, currentStageId, bossSpawned,
@@ -409,7 +409,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
   const secs = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, '0')
   const stageConfig = getStageConfig(currentStageId)
   const nextStageId = getNextStageId(currentStageId)
-  const showResultDevTools = getAdminOperationsConfig().cheatMenuButtonVisible && (phase === 'gameover' || phase === 'cleared')
+  const showResultDevTools = devCheatsVisible && getAdminOperationsConfig().cheatMenuButtonVisible && (phase === 'gameover' || phase === 'cleared')
   const activeWeapons = useMemo(
     () => Object.entries(weapons).filter(([, w]) => w.active),
     [weapons],
@@ -637,7 +637,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
         <span style={styles.goldNum}>{goldSession}</span>
       </div>
 
-      {(phase === 'playing' || phase === 'paused') && (
+      {devCheatsVisible && (phase === 'playing' || phase === 'paused') && (
         <div style={styles.topLeftControls}>
           <button type="button" style={styles.pauseButton} onClick={() => { emitSfx({ id: 'buttonClick' }); togglePause() }}>
           {phase === 'paused' ? '▶' : 'Ⅱ'}
@@ -654,7 +654,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
         </div>
       )}
 
-      {weaponCheatOpen && (phase === 'playing' || phase === 'paused') && (
+      {devCheatsVisible && weaponCheatOpen && (phase === 'playing' || phase === 'paused') && (
         <div data-testid="weapon-cheat-panel" style={styles.weaponCheatPanel}>
           <div style={styles.weaponCheatTitle}>모든 무기</div>
           <div style={styles.weaponCheatGrid}>

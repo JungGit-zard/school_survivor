@@ -28,6 +28,7 @@ export default function App() {
   const [screen, setScreen] = useState('title')
   const [prevScreen, setPrevScreen] = useState('title')
   const [mobileJoystickEnabled, setMobileJoystickEnabled] = useState(false)
+  const [devCheatsVisible, setDevCheatsVisible] = useState(false)
   const phoneFrameRef = useRef(null)
   const gameKey = useGameStore((s) => s.gameKey)
   const phase = useGameStore((s) => s.phase)
@@ -83,6 +84,8 @@ export default function App() {
             onStart={startGame}
             onOpenCoinShop={() => { setPrevScreen('title'); setScreen('coinShop') }}
             onOpenRanking={() => setScreen('ranking')}
+            devCheatsVisible={devCheatsVisible}
+            onRevealDevCheats={() => setDevCheatsVisible(true)}
           />
         )}
 
@@ -117,6 +120,7 @@ export default function App() {
               onOpenCoinShop={() => { setPrevScreen('game'); setScreen('coinShop') }}
               onGoToTitle={() => setScreen('title')}
               onGoToRanking={() => setScreen('ranking')}
+              devCheatsVisible={devCheatsVisible}
             />
             {mobileJoystickEnabled && (
               <VirtualJoystick enabled phase={phase} playAreaRef={phoneFrameRef} />
