@@ -16,6 +16,7 @@ Durable board: `escape-zombie-school`
    - `Developer/agent_room/ide_agent_subagent_autocall_handoff.md`
    - `Developer/agent_room/antigravity_ide_subagent_handoff.md`
    - 이 문서: `Developer/agent_room/subagent_system_wiring_2026-07-03.md`
+   - Claude Code 자동발현 레이어: `.claude/agents/` (2026-07-04 추가 — §10 참조)
 2. **Hermes 전역 Agent Room 정본**
    - Registry: `C:/Users/admin/AppData/Local/hermes/sub-agent-room/registry.toml`
    - Agent TOMLs: `C:/Users/admin/AppData/Local/hermes/sub-agent-room/agents/`
@@ -161,3 +162,24 @@ R3F/Rapier 안정성:
 - 기존 역할을 교육할 때는 새 프로필을 만들지 말고 해당 TOML, workspace, profile `SOUL.md`, 프로젝트 Agent Room 문서를 갱신한다.
 - worker가 만든 코드 변경은 독립 검증 전 완료로 취급하지 않는다.
 - commit/push/Google Play 제출은 Terry가 명시적으로 요청할 때만 한다.
+
+## 10. Claude Code 자동발현 레이어 (2026-07-04 추가)
+
+Claude Code(이 프로젝트 루트에서 실행되는 세션)는 `.claude/agents/*.md`를 읽어
+관련 입력이 오면 해당 서브에이전트를 **자동 위임(auto-delegation)** 한다.
+개발수행 핵심 5종을 Hermes 프로필의 **미러**로 배치했다 (새 역할 창조 아님):
+
+| Claude Code 에이전트 | 미러 원본 (Hermes) | 자동발현 트리거 |
+| --- | --- | --- |
+| `threemini` | Three_Mini | Three.js/R3F, 툰 셰이딩, 좀비/보스 비주얼, VFX |
+| `uimini` | UI_Mini | UI/HUD, 터치 타깃, 반응형, 모바일 최적화 |
+| `levelmini` | Level_Mini | 웨이브/스폰/난이도/무기 풀/XP 페이싱 |
+| `balanceqa` | Balance_QA_Mini | QA/검수/회귀/acceptance |
+| `backendmini` | Backend_Mini | Firebase/Auth/클라우드 저장/보안 규칙 |
+
+규칙:
+
+- 페르소나 내용 수정은 Hermes 정본(TOML/SOUL.md)에서 먼저 하고 미러에 반영한다.
+- Kanban 자동 투입(Hermes spawn)과 별개 레이어다 — Claude Code 세션 내부 위임용.
+- `bizmini`/`launchmini`/`englishgradmini`/`madangsue`/`jabdareminder`는 개발수행
+  범위 밖이라 미러하지 않았다. 필요 시 같은 패턴으로 추가한다.
