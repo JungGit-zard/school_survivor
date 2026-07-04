@@ -1,3 +1,5 @@
+import { normalizeWaveEntries } from './waveControl.js'
+
 export const ADMIN_CONFIG_STORAGE_KEY = 'school_survivor:adminConfig'
 export const ADMIN_CONFIG_SCHEMA_VERSION = 1
 
@@ -19,6 +21,12 @@ export const DEFAULT_ADMIN_CONFIG = Object.freeze({
   },
   operations: {
     cheatMenuButtonVisible: true,
+  },
+  // 스테이지별 웨이브 컨트롤: null = 기본 타임라인(waveTimelines.js) 사용.
+  // 커스텀은 편집 entry 배열: { start, end, bossPhase, counts: { E01..E06 } }.
+  waveControl: {
+    stage1: null,
+    stage2: null,
   },
   rankingSeason: {
     seasonId: 'season-001',
@@ -80,6 +88,10 @@ export function getAdminOperationsConfig() {
   return loadAdminConfig().operations
 }
 
+export function getAdminWaveControlConfig() {
+  return loadAdminConfig().waveControl
+}
+
 export function normalizeAdminConfig(input = {}) {
   const source = isObject(input) ? input : {}
   const balance = isObject(source.balance) ? source.balance : {}
@@ -127,6 +139,10 @@ export function normalizeAdminConfig(input = {}) {
         clearBonus: clampInt(scorePolicy.clearBonus, DEFAULT_ADMIN_CONFIG.rankingSeason.scorePolicy.clearBonus, 0, 200),
       },
       rewardTiers: normalizeRewardTiers(season.rewardTiers),
+    },
+    waveControl: {
+      stage1: normalizeWaveEntries(isObject(source.waveControl) ? source.waveControl.stage1 : null),
+      stage2: normalizeWaveEntries(isObject(source.waveControl) ? source.waveControl.stage2 : null),
     },
   }
 }

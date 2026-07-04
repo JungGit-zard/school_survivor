@@ -6,9 +6,27 @@ import {
   resetAdminConfig,
   saveAdminConfig,
 } from '../lib/adminConfig.js'
+import { getDefaultWavePhases } from '../lib/waveTimelines.js'
+import {
+  WAVE_ZOMBIE_TYPES,
+  phaseToEditorEntry,
+  minSecToSec,
+  secToMin,
+  secToRemainder,
+} from '../lib/waveControl.js'
 
 const TAB_BALANCE = 'balance'
 const TAB_RANKING = 'ranking'
+const TAB_WAVES = 'waves'
+
+const ZOMBIE_LABELS = {
+  E01: 'E01 기본',
+  E02: 'E02 탱커',
+  E03: 'E03 러너',
+  E04: 'E04 원거리',
+  E05: 'E05 돌진',
+  E06: 'E06 거대',
+}
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState(TAB_BALANCE)
@@ -99,6 +117,51 @@ export default function AdminPage() {
     setStatus('저장 필요')
   }
 
+  // ── 스테이지별 웨이브 컨트롤 ──────────────────────────────────────────────
+  const setWaveEntries = (stageId, entries) => {
+    setDraft((prev) => normalizeAdminConfig({
+      ...prev,
+      waveControl: { ...prev.waveControl, [stageId]: entries },
+    }))
+    setStatus('저장 필요')
+  }
+
+  // 커스텀이 없으면 기본 타임라인을 편집 entry로 변환해 편집 시작점으로 복사
+  const ensureWaveEntries = (stageId) =>
+    draft.waveControl[stageId] ?? getDefaultWavePhases(stageId).map(phaseToEditorEntry)
+
+  const updateWaveEntry = (stageId, index, patch) => {
+    const entries = ensureWaveEntries(stageId).map((entry, i) => (
+      i === index ? { ...entry, ...patch } : entry
+    ))
+    setWaveEntries(stageId, entries)
+  }
+
+  const updateWaveCount = (stageId, index, type, count) => {
+    const entries = ensureWaveEntries(stageId).map((entry, i) => (
+      i === index ? { ...entry, counts: { ...entry.counts, [type]: count } } : entry
+    ))
+    setWaveEntries(stageId, entries)
+  }
+
+  const addWaveEntry = (stageId) => {
+    const entries = ensureWaveEntries(stageId)
+    const lastEnd = entries.length > 0 ? Math.max(...entries.map((e) => e.end)) : 0
+    const counts = Object.fromEntries(WAVE_ZOMBIE_TYPES.map((t) => [t, 0]))
+    setWaveEntries(stageId, [...entries, {
+      start: lastEnd, end: lastEnd + 20, bossPhase: false, counts: { ...counts, E01: 10 },
+    }])
+  }
+
+  const removeWaveEntry = (stageId, index) => {
+    const entries = ensureWaveEntries(stageId).filter((_, i) => i !== index)
+    setWaveEntries(stageId, entries.length > 0 ? entries : null)
+  }
+
+  const resetWaveEntries = (stageId) => {
+    setWaveEntries(stageId, null)
+  }
+
   const saveDraft = () => {
     setDraft(saveAdminConfig(draft))
     setStatus('저장 완료')
@@ -138,19 +201,38 @@ export default function AdminPage() {
         >
           랭킹/시즌
         </button>
+        <button
+          type="button"
+          style={styles.tab(activeTab === TAB_WAVES)}
+          onClick={() => setActiveTab(TAB_WAVES)}
+        >
+          스테이지별 웨이브 컨트롤
+        </button>
       </nav>
 
       <main style={styles.content}>
         <section style={styles.panel}>
-          {activeTab === TAB_BALANCE ? (
+          {activeTab === TAB_BALANCE && (
             <BalanceControls draft={draft} updateBalance={updateBalance} updateOperations={updateOperations} />
-          ) : (
+          )}
+          {activeTab === TAB_RANKING && (
             <RankingControls
               draft={draft}
               updateSeason={updateSeason}
               updateScorePolicy={updateScorePolicy}
               updateStageBonus={updateStageBonus}
               updateRewardTier={updateRewardTier}
+            />
+          )}
+          {activeTab === TAB_WAVES && (
+            <WaveControls
+              draft={draft}
+              ensureWaveEntries={ensureWaveEntries}
+              updateWaveEntry={updateWaveEntry}
+              updateWaveCount={updateWaveCount}
+              addWaveEntry={addWaveEntry}
+              removeWaveEntry={removeWaveEntry}
+              resetWaveEntries={resetWaveEntries}
             />
           )}
         </section>
@@ -180,6 +262,120 @@ export default function AdminPage() {
           </p>
         </aside>
       </main>
+    </div>
+  )
+}
+
+// ── 스테이지별 웨이브 컨트롤 탭 ─────────────────────────────────────────────
+// 각 웨이브(행) = 시작~끝 시각 + 좀비별 등장 수. 엔진에는 target(합계)+weights(비율)로
+// 변환되어 유지 스폰 타임라인이 된다. 커스텀 없으면 기본 타임라인 표시.
+function WaveControls({ draft, ensureWaveEntries, updateWaveEntry, updateWaveCount, addWaveEntry, removeWaveEntry, resetWaveEntries }) {
+  const [stageId, setStageId] = useState('stage1')
+  const isCustom = draft.waveControl[stageId] != null
+  const entries = ensureWaveEntries(stageId)
+
+  return (
+    <div>
+      <SectionTitle
+        title="스테이지별 웨이브 컨트롤"
+        subtitle="웨이브 = 해당 시간 구간에 유지되는 좀비 구성. 좀비를 체크하고 마리 수를 입력하면 그 비율·총량으로 스폰됩니다. 저장 후 새 게임부터 적용."
+      />
+
+      <div style={styles.waveStageRow}>
+        {['stage1', 'stage2'].map((id) => (
+          <button key={id} type="button" style={styles.tab(stageId === id)} onClick={() => setStageId(id)}>
+            {id === 'stage1' ? 'Stage 1 (교실)' : 'Stage 2 (복도)'}
+          </button>
+        ))}
+        <span style={styles.waveBadge(isCustom)}>
+          {isCustom ? '커스텀 타임라인 사용 중' : '기본 타임라인 (편집하면 커스텀으로 전환)'}
+        </span>
+      </div>
+
+      <div style={styles.waveList}>
+        {entries.map((entry, index) => (
+          <WaveRow
+            key={index}
+            entry={entry}
+            index={index}
+            onTime={(patch) => updateWaveEntry(stageId, index, patch)}
+            onCount={(type, count) => updateWaveCount(stageId, index, type, count)}
+            onRemove={() => removeWaveEntry(stageId, index)}
+          />
+        ))}
+      </div>
+
+      <div style={styles.waveActions}>
+        <button type="button" style={styles.saveButton} onClick={() => addWaveEntry(stageId)}>
+          ＋ 웨이브 더하기
+        </button>
+        <button type="button" style={styles.resetButton} onClick={() => resetWaveEntries(stageId)} disabled={!isCustom}>
+          기본 타임라인으로 되돌리기
+        </button>
+      </div>
+      <p style={styles.note}>
+        좀비 합계가 0이거나 끝 시각이 시작 이하인 웨이브는 무시됩니다. 시간이 겹치면 나중 시작 웨이브가 우선합니다.
+      </p>
+    </div>
+  )
+}
+
+function WaveTimeInput({ label, sec, onChange }) {
+  return (
+    <label style={styles.waveTimeGroup}>
+      <span style={styles.waveTimeLabel}>{label}</span>
+      <input
+        type="number" min={0} max={7} value={secToMin(sec)} style={styles.waveTimeInput}
+        onChange={(e) => onChange(minSecToSec(e.target.value, secToRemainder(sec)))}
+      />
+      <span style={styles.waveTimeUnit}>분</span>
+      <input
+        type="number" min={0} max={59} value={secToRemainder(sec)} style={styles.waveTimeInput}
+        onChange={(e) => onChange(minSecToSec(secToMin(sec), e.target.value))}
+      />
+      <span style={styles.waveTimeUnit}>초</span>
+    </label>
+  )
+}
+
+function WaveRow({ entry, index, onTime, onCount, onRemove }) {
+  const total = WAVE_ZOMBIE_TYPES.reduce((sum, t) => sum + (entry.counts[t] ?? 0), 0)
+  return (
+    <div style={styles.waveRow}>
+      <div style={styles.waveRowHead}>
+        <strong style={styles.waveRowTitle}>웨이브 {index + 1}</strong>
+        <WaveTimeInput label="시작" sec={entry.start} onChange={(start) => onTime({ start })} />
+        <WaveTimeInput label="끝" sec={entry.end} onChange={(end) => onTime({ end })} />
+        <label style={styles.waveBossLabel}>
+          <input type="checkbox" checked={entry.bossPhase} onChange={(e) => onTime({ bossPhase: e.target.checked })} />
+          보스 구간
+        </label>
+        <span style={styles.waveTotal}>합계 {total}마리</span>
+        <button type="button" style={styles.waveRemoveButton} onClick={onRemove}>－ 웨이브 빼기</button>
+      </div>
+      <div style={styles.waveZombieGrid}>
+        {WAVE_ZOMBIE_TYPES.map((type) => {
+          const count = entry.counts[type] ?? 0
+          const enabled = count > 0
+          return (
+            <div key={type} style={styles.waveZombieCell(enabled)}>
+              <label style={styles.waveZombieCheck}>
+                <input
+                  type="checkbox"
+                  checked={enabled}
+                  onChange={(e) => onCount(type, e.target.checked ? Math.max(1, count) : 0)}
+                />
+                {ZOMBIE_LABELS[type]}
+              </label>
+              <input
+                type="number" min={0} max={200} value={count} disabled={!enabled}
+                style={styles.waveZombieCount}
+                onChange={(e) => onCount(type, e.target.value)}
+              />
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -461,6 +657,37 @@ function buildPreview(config) {
 }
 
 const styles = {
+  // ── 웨이브 컨트롤 탭 ──
+  waveStageRow: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' },
+  waveBadge: (custom) => ({
+    fontSize: 12, padding: '4px 10px', borderRadius: 999,
+    background: custom ? '#3b2f13' : '#1c2431',
+    color: custom ? '#ffd35c' : '#8fa3bf',
+    border: `1px solid ${custom ? '#8a6d1f' : '#2c3a4f'}`,
+  }),
+  waveList: { display: 'flex', flexDirection: 'column', gap: 10, maxHeight: '52vh', overflowY: 'auto', paddingRight: 4 },
+  waveRow: { border: '1px solid #2c3a4f', borderRadius: 10, padding: '10px 12px', background: '#161c27' },
+  waveRowHead: { display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 8 },
+  waveRowTitle: { fontSize: 13, color: '#dfe8f5', minWidth: 64 },
+  waveTimeGroup: { display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#8fa3bf' },
+  waveTimeLabel: { marginRight: 2 },
+  waveTimeInput: { width: 46, padding: '4px 6px', borderRadius: 6, border: '1px solid #2c3a4f', background: '#0f141d', color: '#eef4fd' },
+  waveTimeUnit: { color: '#65758c' },
+  waveBossLabel: { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#e8b4ff' },
+  waveTotal: { fontSize: 12, color: '#8fa3bf', marginLeft: 'auto' },
+  waveRemoveButton: { padding: '5px 10px', borderRadius: 8, border: '1px solid #5c2c34', background: '#2a161b', color: '#ff9aa6', cursor: 'pointer', fontSize: 12 },
+  waveZombieGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 6 },
+  waveZombieCell: (enabled) => ({
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6,
+    padding: '6px 8px', borderRadius: 8,
+    border: `1px solid ${enabled ? '#33507a' : '#222c3b'}`,
+    background: enabled ? '#182338' : '#131822',
+    opacity: enabled ? 1 : 0.65,
+  }),
+  waveZombieCheck: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#dfe8f5', whiteSpace: 'nowrap' },
+  waveZombieCount: { width: 54, padding: '4px 6px', borderRadius: 6, border: '1px solid #2c3a4f', background: '#0f141d', color: '#eef4fd' },
+  waveActions: { display: 'flex', gap: 8, marginTop: 12 },
+
   page: {
     height: '100vh',
     minHeight: 560,
