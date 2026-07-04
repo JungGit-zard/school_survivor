@@ -1,9 +1,9 @@
 import { useRef, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { useKeyboardControls } from '@react-three/drei'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { useGameStore } from '../store/useGameStore.js'
 import { playerFacing, playerPos, joystickDir } from '../lib/refs.js'
+import { moveKeys } from '../lib/keyboardInput.js'
 import { clampPlayerPosition } from '../lib/playerMovementBounds.js'
 import PlayerMesh from './PlayerMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
@@ -35,7 +35,6 @@ export default function Player() {
   const invTimer  = useRef(0)
   const lastVisibleHitFlashToken = useRef(0)
   const hitFlashVisibleFrames = useRef(0)
-  const [, getKeys] = useKeyboardControls()
   const speed           = useGameStore((s) => s.player.speed)
   const phase           = useGameStore((s) => s.phase)
   const hp              = useGameStore((s) => s.player.hp)
@@ -53,7 +52,7 @@ export default function Player() {
     if (!rb.current) return
     if (phase !== 'playing') { rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true); return }
 
-    const { up, down, left, right } = getKeys()
+    const { up, down, left, right } = moveKeys
 
     if (joystickDir.active) {
       _v.x = joystickDir.x

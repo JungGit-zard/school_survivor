@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
-import { KeyboardControls } from '@react-three/drei'
 import Game from './components/Game.jsx'
 import HUD from './components/HUD.jsx'
 import TitleScreen from './components/TitleScreen.jsx'
@@ -14,15 +13,11 @@ import { useGameStore } from './store/useGameStore.js'
 import SfxLayer from './components/SfxLayer.jsx'
 import { initPlaytestLogger } from './lib/playtestLogger.js'
 import { isMobileJoystickEnvironment } from './lib/mobileInput.js'
+import { initKeyboardInput } from './lib/keyboardInput.js'
 
 initPlaytestLogger()
-
-const keyMap = [
-  { name: 'up', keys: ['ArrowUp', 'KeyW'] },
-  { name: 'down', keys: ['ArrowDown', 'KeyS'] },
-  { name: 'left', keys: ['ArrowLeft', 'KeyA'] },
-  { name: 'right', keys: ['ArrowRight', 'KeyD'] },
-]
+// 이동 키 추적 — blur/숨김 시 키 상태 자동 리셋 (알트탭 keyup 유실 → 6시 자동 이동 버그 방지)
+initKeyboardInput()
 
 export default function App() {
   const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
@@ -104,8 +99,7 @@ export default function App() {
 
         {screen === 'game' && (
           <>
-            <KeyboardControls map={keyMap}>
-              <Canvas
+            <Canvas
                 // 살짝 원근(perspective) — 좁은 화각(fov)으로 직교에 가깝되,
                 // 상단(먼 쪽)으로 갈수록 아주 미세하게 멀어지는 3D 깊이감을 준다.
                 // 화각이 좁을수록 원근감이 약해지고(직교에 가까움), 넓을수록 강해진다.
@@ -119,7 +113,6 @@ export default function App() {
                   <Game />
                 </Physics>
               </Canvas>
-            </KeyboardControls>
             <HUD
               onOpenCoinShop={() => { setPrevScreen('game'); setScreen('coinShop') }}
               onGoToTitle={() => setScreen('title')}
