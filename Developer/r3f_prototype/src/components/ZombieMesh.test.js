@@ -38,15 +38,28 @@ describe('Stage 1 boss visual reference', () => {
       leftEye: { size: [0.12, 0.09, 0.035], position: [-0.14, 0.05, 0.265], color: 'dark' },
       rightEye: { size: [0.14, 0.105, 0.035], position: [0.14, 0.05, 0.265], color: 'light' },
       rightPupil: { size: [0.045, 0.045, 0.02], position: [0.14, 0.045, 0.292] },
+      leftBrow: { size: [0.18, 0.055, 0.035], position: [-0.14, 0.14, 0.292], rotation: [0, 0, -0.14] },
+      rightBrow: { size: [0.2, 0.055, 0.035], position: [0.14, 0.15, 0.292], rotation: [0, 0, 0.12] },
       mouth: { size: [0.18, 0.105, 0.04], position: [0.01, -0.16, 0.27] },
       tooth: { size: [0.055, 0.04, 0.035], position: [-0.005, -0.125, 0.295] },
       cheekShadow: { size: [0.07, 0.16, 0.035], position: [0.275, -0.02, 0.20] },
     })
+
+    expect(B01_BOSS_FACE_LAYOUT.leftBrow.position[1]).toBeGreaterThan(B01_BOSS_FACE_LAYOUT.leftEye.position[1])
+    expect(B01_BOSS_FACE_LAYOUT.rightBrow.position[1]).toBeGreaterThan(B01_BOSS_FACE_LAYOUT.rightEye.position[1])
   })
 
   it('uses Matilda idle by default but enables her movement pose in the enemy runtime path', () => {
     const source = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
 
     expect(source).toContain('<MatildaMesh movementPose={animPhase !== \'stun\'} />')
+  })
+
+  it('keeps the B01 eye area clear of the old square side-hair blocks', () => {
+    const source = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
+
+    expect(source).not.toContain('position={[-0.23, 0.12, 0.16]}')
+    expect(source).not.toContain('position={[0.24, 0.11, 0.12]}')
+    expect(source).not.toContain('position={[0.03, 0.12, 0.18]}')
   })
 })

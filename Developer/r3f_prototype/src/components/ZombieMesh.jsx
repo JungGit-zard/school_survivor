@@ -47,6 +47,8 @@ export const B01_BOSS_FACE_LAYOUT = {
   leftEye: { size: [0.12, 0.09, 0.035], position: [-0.14, 0.05, 0.265], color: 'dark' },
   rightEye: { size: [0.14, 0.105, 0.035], position: [0.14, 0.05, 0.265], color: 'light' },
   rightPupil: { size: [0.045, 0.045, 0.02], position: [0.14, 0.045, 0.292] },
+  leftBrow: { size: [0.18, 0.055, 0.035], position: [-0.14, 0.14, 0.292], rotation: [0, 0, -0.14] },
+  rightBrow: { size: [0.2, 0.055, 0.035], position: [0.14, 0.15, 0.292], rotation: [0, 0, 0.12] },
   mouth: { size: [0.18, 0.105, 0.04], position: [0.01, -0.16, 0.27] },
   tooth: { size: [0.055, 0.04, 0.035], position: [-0.005, -0.125, 0.295] },
   cheekShadow: { size: [0.07, 0.16, 0.035], position: [0.275, -0.02, 0.20] },
@@ -74,9 +76,8 @@ function B01BossZombieMesh({ hitFlash, reg }) {
       <group ref={reg('head')} position={[0, 0.88, 0]}>
         <ZBlock size={[0.58, 0.50, 0.48]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash} />
         <ZBlock size={[0.60, 0.18, 0.46]} position={[-0.02, 0.25, -0.02]} rotation={[0.06, 0, -0.08]} color={pal.hair} emissive={0.04} outlineScale={1.06} flash={hitFlash} />
-        <ZBlock size={[0.24, 0.20, 0.18]} position={[-0.23, 0.12, 0.16]} rotation={[0, 0.18, -0.32]} color={pal.hair} emissive={0.04} outlineScale={1.05} flash={hitFlash} />
-        <ZBlock size={[0.22, 0.22, 0.18]} position={[0.03, 0.12, 0.18]} rotation={[0, -0.1, 0.22]} color={pal.hair} emissive={0.04} outlineScale={1.05} flash={hitFlash} />
-        <ZBlock size={[0.24, 0.18, 0.20]} position={[0.24, 0.11, 0.12]} rotation={[0, -0.2, 0.18]} color={pal.hair} emissive={0.04} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock size={face.leftBrow.size} position={face.leftBrow.position} rotation={face.leftBrow.rotation} color={pal.hair} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock size={face.rightBrow.size} position={face.rightBrow.position} rotation={face.rightBrow.rotation} color={pal.hair} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
         <ZBlock size={face.leftEye.size} position={face.leftEye.position} color={pal.pupil} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
         <ZBlock size={face.rightEye.size} position={face.rightEye.position} color={pal.eye} emissive={0.18} outlineScale={1.0} flash={hitFlash} />
         <ZBlock size={face.rightPupil.size} position={face.rightPupil.position} color={pal.pupil} emissive={0.04} outlineScale={1.0} flash={hitFlash} />

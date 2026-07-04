@@ -5,6 +5,7 @@ import {
   buildLocalPlayerRankingEntry,
   createRankingRows,
   formatSurvivalTime,
+  mergeCloudEntries,
 } from './userRanking.js'
 import { saveNicknameForUser } from './userNickname.js'
 
@@ -68,5 +69,15 @@ describe('user ranking helpers', () => {
     expect(formatSurvivalTime(0)).toBe('0:00')
     expect(formatSurvivalTime(82)).toBe('1:22')
     expect(formatSurvivalTime(240)).toBe('4:00')
+  })
+
+  it('keeps every cloud score even when the same Google uid has multiple entries', () => {
+    const merged = mergeCloudEntries(null, [
+      { uid: 'uid-1', displayName: 'A', survivalSeconds: 120, stageId: 'stage1' },
+      { uid: 'uid-1', displayName: 'A', survivalSeconds: 180, stageId: 'stage1' },
+      { uid: 'uid-2', displayName: 'B', survivalSeconds: 150, stageId: 'stage2' },
+    ], 'uid-1')
+
+    expect(merged).toHaveLength(3)
   })
 })

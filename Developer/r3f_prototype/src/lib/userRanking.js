@@ -72,7 +72,6 @@ export function loadLocalRankingEntries(profile = {}) {
 export function mergeCloudEntries(localEntry, cloudEntries, userUid) {
   const policy = getRankingScorePolicy()
   const base = cloudEntries
-    .filter((e) => e.uid !== userUid)
     .map((e) => normalizeRankingEntry(e, policy))
     .filter(Boolean)
   if (localEntry) base.push(localEntry)
