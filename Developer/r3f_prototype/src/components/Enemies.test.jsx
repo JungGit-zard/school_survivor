@@ -48,9 +48,9 @@ describe('stage 1 E06 spawn pressure', () => {
 describe('late zombie spawn relief', () => {
   it('reduces all stage 1 wave targets from 90 seconds onward to about two thirds', () => {
     expect(WAVE_PHASES.find((phase) => phase.start === 72).target).toBe(34)
-    expect(WAVE_PHASES.find((phase) => phase.start === 90).target).toBe(23)
-    expect(WAVE_PHASES.find((phase) => phase.start === 108).target).toBe(29)
-    expect(WAVE_PHASES.find((phase) => phase.start === 224).target).toBe(26)
+    expect(WAVE_PHASES.find((phase) => phase.start === 90).target).toBe(15)
+    expect(WAVE_PHASES.find((phase) => phase.start === 108).target).toBe(19)
+    expect(WAVE_PHASES.find((phase) => phase.start === 224).target).toBe(17)
   })
 
   it('reduces all stage 2 wave targets from 90 seconds onward to about two thirds', () => {

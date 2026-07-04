@@ -189,22 +189,23 @@ export const WAVE_PHASES = [
   { start:  60, end:  72, target: 26, weights: { E01: 0.60, E03: 0.30, E02: 0.10 } },
   // 1:12–1:30 압박 시작 — E02 20%→15% (초보자 첫 사망 구간 완화)
   { start:  72, end:  90, target: 34, weights: { E01: 0.55, E03: 0.30, E02: 0.15 } },
+  // ── 1:30 이후 전 페이즈 (2026-07-04 완화): target ×2/3, E03(러너) 비중 절반(빈 비중은 E01로) ──
   // 1:30–1:48 완화 구간 (18초로 연장 — 6초는 체감 거의 없음)
-  { start:  90, end: 108, target: 23, weights: { E01: 0.50, E03: 0.30, E02: 0.20 } },
+  { start:  90, end: 108, target: 15, weights: { E01: 0.65, E03: 0.15, E02: 0.20 } },
   // 1:48–2:00 추격형 밀도 상승
-  { start: 108, end: 120, target: 29, weights: { E01: 0.40, E03: 0.35, E02: 0.25 } },
+  { start: 108, end: 120, target: 19, weights: { E01: 0.58, E03: 0.17, E02: 0.25 } },
   // 2:00–2:24 돌진 예고 구간 (E05 첫 등장)
-  { start: 120, end: 144, target: 36, weights: { E01: 0.35, E03: 0.30, E02: 0.25, E05: 0.10 } },
+  { start: 120, end: 144, target: 24, weights: { E01: 0.50, E03: 0.15, E02: 0.25, E05: 0.10 } },
   // 2:24–2:48 돌진 본격 도입
-  { start: 144, end: 168, target: 43, weights: { E01: 0.25, E03: 0.30, E02: 0.30, E05: 0.15 } },
+  { start: 144, end: 168, target: 29, weights: { E01: 0.40, E03: 0.15, E02: 0.30, E05: 0.15 } },
   // 2:48–3:12 +거대 등장 — E06 5%→3% (버스트 +1 포함 최대 4마리 동시 과부하 방지)
-  { start: 168, end: 192, target: 51, weights: { E01: 0.22, E03: 0.30, E02: 0.28, E05: 0.17, E06: 0.03 } },
+  { start: 168, end: 192, target: 34, weights: { E01: 0.37, E03: 0.15, E02: 0.28, E05: 0.17, E06: 0.03 } },
   // 3:12–3:28 보스 구간 1 (잡몹+탱커)
-  { start: 192, end: 208, target: 17, weights: { E01: 0.60, E02: 0.40 }, bossPhase: true },
+  { start: 192, end: 208, target: 11, weights: { E01: 0.60, E02: 0.40 }, bossPhase: true },
   // 3:28–3:44 보스 구간 2 (탱커+돌진)
-  { start: 208, end: 224, target: 23, weights: { E02: 0.60, E05: 0.40 }, bossPhase: true },
-  // 3:44–4:00 보스 구간 3 — target 30→26, E05 40%→30%, E01 25%로 보스 막판 이동공간 확보
-  { start: 224, end: 240, target: 26, weights: { E01: 0.25, E02: 0.45, E05: 0.30 }, bossPhase: true },
+  { start: 208, end: 224, target: 15, weights: { E02: 0.60, E05: 0.40 }, bossPhase: true },
+  // 3:44–4:00 보스 구간 3 — E05 40%→30%, E01 25%로 보스 막판 이동공간 확보
+  { start: 224, end: 240, target: 17, weights: { E01: 0.25, E02: 0.45, E05: 0.30 }, bossPhase: true },
 ]
 
 // 4분(240초) 타임라인. 5분 기준에서 전체 ×0.8 비례 축소.
