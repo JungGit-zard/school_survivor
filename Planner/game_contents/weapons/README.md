@@ -17,6 +17,7 @@
 
 ## 핵심 문서
 
+- `weapon_docs_index.md`: **무기별 전체 문서 인덱스** — 16종 각각의 기획·구현·그래픽·QA 문서 위치 (2026-07-04)
 - `weapon_list.md`: 현재 구현 무기 목록 정본 후보
 - `weapon_docs_runtime_match_audit_2026-06-03.md`: 현재 구현과 주요 무기 기획 문서 4개의 정합성 검수
 - `weapon_upgrade_flow_and_unlock_plan_2026-05-14.md`: 5분 플레이 흐름과 해금 설계 참고 문서
