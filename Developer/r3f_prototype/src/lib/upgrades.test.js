@@ -44,6 +44,23 @@ describe('applyUpgradeToWeapon', () => {
     })
     expect(out.pierce).toBe(1)
   })
+
+  it('bonus 필드: 주 효과와 함께 부가 스탯도 증가 (플라스크 존 지속 +1s/레벨)', () => {
+    const flask = wpn({ active: true, level: 1, damage: 7.5, zoneDurationMs: 5000, radius: 1.6 })
+
+    const afterDamage = applyUpgradeToWeapon(flask, UPGRADE_EFFECTS.flaskDamage)
+    expect(afterDamage.damage).toBe(11.5)          // 7.5 + 4 (착탄 능력 절반)
+    expect(afterDamage.zoneDurationMs).toBe(6000)  // 레벨업 → 존 +1초
+
+    const afterRadius = applyUpgradeToWeapon(afterDamage, UPGRADE_EFFECTS.flaskRadius)
+    expect(afterRadius.zoneDurationMs).toBe(7000)  // 어느 카드든 존 +1초
+    expect(afterRadius.radius).toBeCloseTo(1.78)
+  })
+
+  it('bonus 없는 effect는 기존과 동일하게 동작', () => {
+    const out = applyUpgradeToWeapon(wpn({ active: true, level: 1, damage: 10 }), { kind: 'damage', dmg: 3 })
+    expect(out.zoneDurationMs).toBeUndefined()
+  })
 })
 
 describe('isUpgradeAvailable', () => {
@@ -167,6 +184,14 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
       stat: 'radius',
       step: 0.2,
       cap: 2.6,
+    })
+  })
+
+  it('오니기리 공격력 레벨업 증가량은 기존 5의 1.3배다', () => {
+    expect(UPGRADE_EFFECTS.onigiiriDamage).toMatchObject({
+      weapon: 'onigiri',
+      kind: 'damage',
+      dmg: 6.5,
     })
   })
 })

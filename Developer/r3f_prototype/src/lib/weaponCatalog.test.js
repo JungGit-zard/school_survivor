@@ -25,7 +25,7 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.boxCutter.base.range).toBe(1.4) // 사거리 2배 확장 (0.7 → 1.4)
     expect(WEAPON_CATALOG.boxCutter.base.width).toBe(0.18)
     expect(WEAPON_CATALOG.tumbler.base.hitsPerSecond).toBe(2.5)
-    expect(WEAPON_CATALOG.scienceFlask.base.damage).toBe(15)
+    expect(WEAPON_CATALOG.scienceFlask.base.damage).toBe(7.5) // 리워크: 착탄 데미지 절반, 웅덩이 존 추가
     expect(WEAPON_CATALOG.bell.base.directions).toBe(8)
     expect(WEAPON_CATALOG.stunGun.base.chainCount).toBe(2)
     expect(WEAPON_CATALOG.onigiri.base.damage).toBe(21)
@@ -68,6 +68,14 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.starlink.minLevelToAppear).toBe(8)
     expect(WEAPON_CATALOG.chibiko.minLevelToAppear).toBe(8)
     expect(WEAPON_CATALOG.sharkMissile.minLevelToAppear).toBe(8)
+  })
+
+  it('scienceFlask 웅덩이 존 스펙 (리워크 기획 정본)', () => {
+    const flask = WEAPON_CATALOG.scienceFlask.base
+    expect(flask.zoneRadius).toBe(1.4)       // E01 9마리 3×3 밀집 대형 커버
+    expect(flask.zoneDurationMs).toBe(5000)  // 1레벨 5초
+    // 존 틱 데미지 = 연필 레벨1 데미지 (단일 출처)
+    expect(flask.zoneTickDamage).toBe(WEAPON_CATALOG.pencilThrow.base.damage)
   })
 
   it('defines sharkMissile at 1.3x guidedMissile damage (기획 정본)', () => {

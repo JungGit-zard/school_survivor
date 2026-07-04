@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { WEAPON_CATALOG } from '../../lib/weaponCatalog.js'
 import {
   COMPASS_BLADE_EXPLOSION_DAMAGE,
   COMPASS_BLADE_ONE_TILE_RADIUS,
@@ -55,7 +54,7 @@ describe('CompassBladeWeapon orbit pose', () => {
     })
   })
 
-  it('explodes on the fifth contact hit for twice the science flask base damage in a one-tile radius', () => {
+  it('explodes on the fifth contact hit for fixed 30 damage in a one-tile radius', () => {
     const hitDamage = 8
     const result = resolveCompassBladeHitStack({
       currentStack: COMPASS_BLADE_STACKS_TO_EXPLODE - 1,
@@ -66,7 +65,7 @@ describe('CompassBladeWeapon orbit pose', () => {
     expect(result).toEqual({
       stack: 0,
       exploded: true,
-      explosionDamage: WEAPON_CATALOG.scienceFlask.base.damage * 2,
+      explosionDamage: COMPASS_BLADE_EXPLOSION_DAMAGE, // 30 고정 (플라스크 리워크로 파생 해제)
       explosionRadius: COMPASS_BLADE_ONE_TILE_RADIUS,
     })
     expect(COMPASS_BLADE_EXPLOSION_DAMAGE).toBe(30)

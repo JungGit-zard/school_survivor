@@ -43,8 +43,12 @@ export const WEAPON_CATALOG = {
   scienceFlask: {
     id: 'scienceFlask',
     label: '과학 플라스크',
-    // 초기 위력을 기존(30)의 절반인 15로. 레벨업(flaskDamage +8)은 이 위에 가산.
-    base: { damage: 15, cooldown: 2800, radius: 1.6, range: 2 },
+    // 리워크(2026-07-04): 범위폭탄 → 화학 웅덩이 존 무기.
+    // 착탄 폭발 데미지는 직전(15)의 절반 7.5, 대신 깨진 자리에 웅덩이 존 생성.
+    // zoneRadius 1.4 = E01(녹색좀비) 9마리 3×3 밀집 대형(간격 ~0.8, 한 변 ~2.8) 커버.
+    // zoneDurationMs: 1레벨 5초, 레벨업마다 +1초 (upgrades.js flask 효과의 bonus).
+    // zoneTickDamage: 연필 레벨1 데미지 — 카탈로그 선언 직후 pencilThrow.base.damage 주입.
+    base: { damage: 7.5, cooldown: 2800, radius: 1.6, range: 2, zoneRadius: 1.4, zoneDurationMs: 5000 },
     unlockConditions: STARTER,
     minLevelToAppear: 4,
   },
@@ -158,6 +162,9 @@ export const WEAPON_CATALOG = {
     minLevelToAppear: 4,
   },
 }
+
+// 플라스크 웅덩이 틱 데미지 = 연필 레벨1 데미지 (기획 정본: 단일 출처 참조)
+WEAPON_CATALOG.scienceFlask.base.zoneTickDamage = WEAPON_CATALOG.pencilThrow.base.damage
 
 const ALL_IDS = Object.keys(WEAPON_CATALOG)
 const STARTER_IDS = ALL_IDS.filter((id) => WEAPON_CATALOG[id].unlockConditions === STARTER)

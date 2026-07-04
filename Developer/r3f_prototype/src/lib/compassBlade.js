@@ -1,8 +1,9 @@
-import { WEAPON_CATALOG } from './weaponCatalog.js'
-
 export const COMPASS_BLADE_STACKS_TO_EXPLODE = 5
 export const COMPASS_BLADE_RESPAWN_MS = 5000
-export const COMPASS_BLADE_EXPLOSION_DAMAGE = WEAPON_CATALOG.scienceFlask.base.damage * 2
+// 30 고정. 과거엔 scienceFlask base(15)×2 파생이었으나, 플라스크가 웅덩이 존
+// 무기로 리워크되며 착탄 데미지가 절반(7.5)이 됨 — 컴퍼스 위력은 리워크 대상이
+// 아니므로 파생을 끊고 기존 값을 유지한다 (2026-07-04).
+export const COMPASS_BLADE_EXPLOSION_DAMAGE = 30
 // One tile is the player's current full visual footprint plus its 8 neighboring directions.
 export const COMPASS_BLADE_ONE_TILE_RADIUS = 0.5
 

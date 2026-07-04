@@ -102,6 +102,67 @@ function FlaskProjectile({ id, start, target, radius, damage, onExplode }) {
   )
 }
 
+// ── 화학 웅덩이 존 (리워크 2026-07-04) ─────────────────────────────────
+// 플라스크가 깨진 자리에 남는 원형 화학액체 웅덩이. durationMs 동안 유지되며
+// 위에 있는 모든 좀비에게 1초마다 tickDamage(연필 Lv1)를 입힌다.
+const ZONE_TICK_MS = 1000
+const ZONE_FADE_SEC = 0.7   // 종료 직전 페이드아웃 구간
+
+function ChemicalZone({ id, x, z, radius, durationMs, tickDamage, onDone }) {
+  const ageRef = useRef(0)
+  const tickTimerRef = useRef(0)
+  const doneRef = useRef(false)
+  const poolRef = useRef(null)
+  const coreRef = useRef(null)
+
+  usePlayingFrame((_, delta) => {
+    if (doneRef.current) return
+    ageRef.current += delta
+    const ageMs = ageRef.current * 1000
+
+    if (ageMs >= durationMs) {
+      doneRef.current = true
+      onDone(id)
+      return
+    }
+
+    // 1초마다 웅덩이 위 좀비 전원에게 틱 데미지 (넉백 없음 — 지속 피해 존)
+    tickTimerRef.current += delta * 1000
+    if (tickTimerRef.current >= ZONE_TICK_MS) {
+      tickTimerRef.current -= ZONE_TICK_MS
+      applyRadialDamage({ x, z, radius, damage: tickDamage, knockback: 0, knockbackMs: 0 })
+    }
+
+    // 표면 일렁임 + 종료 직전 페이드아웃
+    const remainSec = durationMs / 1000 - ageRef.current
+    const fade = Math.min(1, remainSec / ZONE_FADE_SEC)
+    const wobble = 1 + Math.sin(ageRef.current * 3.1) * 0.025
+    if (poolRef.current) {
+      poolRef.current.scale.setScalar(radius * wobble)
+      poolRef.current.material.opacity = 0.46 * fade
+    }
+    if (coreRef.current) {
+      coreRef.current.scale.setScalar(radius * 0.62 * (2 - wobble))
+      coreRef.current.material.opacity = 0.5 * fade
+    }
+  })
+
+  return (
+    <group position={[x, 0, z]}>
+      {/* 웅덩이 본체 — 산성 그린 반투명 원판 */}
+      <mesh ref={poolRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.075, 0]} renderOrder={3}>
+        <circleGeometry args={[1, 40]} />
+        <meshBasicMaterial color={0x46c81e} transparent opacity={0.46} depthWrite={false} side={THREE.DoubleSide} />
+      </mesh>
+      {/* 중심 발광 코어 — 더 밝은 라임 */}
+      <mesh ref={coreRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.085, 0]} renderOrder={4}>
+        <circleGeometry args={[1, 32]} />
+        <meshBasicMaterial color={0x86ff4f} transparent opacity={0.5} depthWrite={false} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  )
+}
+
 function FlaskExplosion({ id, x, z, radius, onDone }) {
   const meshRef = useRef(null)
   const ageRef = useRef(0)
@@ -127,6 +188,7 @@ function FlaskExplosion({ id, x, z, radius, onDone }) {
 export function ScienceFlaskSplash() {
   const [flasks, setFlasks] = useState([])
   const [explosions, setExplosions] = useState([])
+  const [zones, setZones] = useState([])
   const activeFlasksRef = useRef([])
   const lastFireRef = useRef(0)
   const phase = useGameStore((s) => s.phase)
@@ -134,6 +196,10 @@ export function ScienceFlaskSplash() {
 
   const removeExplosion = useCallback((id) => {
     setExplosions((prev) => prev.filter((item) => item.id !== id))
+  }, [])
+
+  const removeZone = useCallback((id) => {
+    setZones((prev) => prev.filter((item) => item.id !== id))
   }, [])
 
   const explode = useCallback((id, blast) => {
@@ -146,6 +212,11 @@ export function ScienceFlaskSplash() {
     })
 
     setExplosions((prev) => [...prev, { id, x: blast.x, z: blast.z, radius: blast.radius }])
+    // 깨진 자리에 화학 웅덩이 존 생성 (쿨다운 2.8s < 지속 5s+ → 다중 존 허용)
+    setZones((prev) => [...prev, {
+      id, x: blast.x, z: blast.z,
+      radius: blast.zoneRadius, durationMs: blast.zoneDurationMs, tickDamage: blast.zoneTickDamage,
+    }])
   }, [])
 
   usePlayingFrame(({ clock }) => {
@@ -167,7 +238,10 @@ export function ScienceFlaskSplash() {
       // 발사 게이트(167줄)와 동일한 폴백을 둬, radius가 undefined여도 폭발 거리 판정이
       // NaN(전 적 타격)이 되지 않게 한다.
       radius: w.radius ?? 1.6,
-      damage: w.damage ?? 15,
+      damage: w.damage ?? 7.5,
+      zoneRadius: w.zoneRadius ?? 1.4,
+      zoneDurationMs: w.zoneDurationMs ?? 5000,
+      zoneTickDamage: w.zoneTickDamage ?? 6,
     }
     activeFlasksRef.current = [next]
     setFlasks([next])
@@ -182,6 +256,9 @@ export function ScienceFlaskSplash() {
       ))}
       {explosions.map((explosion) => (
         <FlaskExplosion key={explosion.id} {...explosion} onDone={removeExplosion} />
+      ))}
+      {zones.map((zone) => (
+        <ChemicalZone key={zone.id} {...zone} onDone={removeZone} />
       ))}
     </>
   )

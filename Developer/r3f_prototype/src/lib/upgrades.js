@@ -18,15 +18,17 @@ export const UPGRADE_EFFECTS = {
   tumblerCount:   { weapon: 'tumbler',       kind: 'stat',   stat: 'count',           step: 1,    cap: 3 },
   tumblerDamage:  { weapon: 'tumbler',       kind: 'damage', dmg: 2 },
   acquireFlask:    { weapon: 'scienceFlask',  kind: 'acquire', minLevel: 4 },
-  flaskDamage:    { weapon: 'scienceFlask',  kind: 'damage', dmg: 8 },
-  flaskRadius:    { weapon: 'scienceFlask',  kind: 'stat',   stat: 'radius',          step: 0.18, cap: 2.4 },
+  // 리워크(2026-07-04): 착탄 데미지 능력 절반(dmg 8→4). 모든 플라스크 레벨업은
+  // bonus로 웅덩이 존 지속시간 +1초 (기획: 1레벨 5초, 레벨업마다 +1초).
+  flaskDamage:    { weapon: 'scienceFlask',  kind: 'damage', dmg: 4, bonus: { stat: 'zoneDurationMs', step: 1000 } },
+  flaskRadius:    { weapon: 'scienceFlask',  kind: 'stat',   stat: 'radius',          step: 0.18, cap: 2.4, bonus: { stat: 'zoneDurationMs', step: 1000 } },
   acquireBell:     { weapon: 'bell',          kind: 'acquire', minLevel: 4 },
   bellDamage:     { weapon: 'bell',          kind: 'damage', dmg: 4 },
   acquireStun:     { weapon: 'stunGun',       kind: 'acquire', minLevel: 6 },
   stunDamage:     { weapon: 'stunGun',       kind: 'damage', dmg: 5 },
   stunChain:      { weapon: 'stunGun',       kind: 'stat',   stat: 'chainCount',      step: 1,    cap: 4 },
   acquireOnigiri:  { weapon: 'onigiri',       kind: 'acquire', minLevel: 6 },
-  onigiiriDamage: { weapon: 'onigiri',       kind: 'damage', dmg: 5 },
+  onigiiriDamage: { weapon: 'onigiri',       kind: 'damage', dmg: 6.5 },
   onigiiriBounce: { weapon: 'onigiri',       kind: 'stat',   stat: 'bounces',         step: 1,    cap: 7 },
   acquireMissile:  { weapon: 'guidedMissile', kind: 'acquire', minLevel: 4 },
   missileDamage:  { weapon: 'guidedMissile', kind: 'damage', dmg: 6 },
@@ -59,8 +61,12 @@ const bumpLevel = (wpn) => Math.min(MAX_WEAPON_LEVEL, (wpn.level ?? 1) + 1)
 
 export function applyUpgradeToWeapon(wpn, effect) {
   if (effect.kind === 'acquire') return { ...wpn, active: true, level: 1 }
-  if (effect.kind === 'damage') return { ...wpn, damage: wpn.damage + effect.dmg, level: bumpLevel(wpn) }
-  if (effect.kind === 'stat')   return { ...wpn, [effect.stat]: Math.min(effect.cap, (wpn[effect.stat] ?? 0) + effect.step), level: bumpLevel(wpn) }
+  // bonus: 주 효과와 별개로 함께 오르는 부가 스탯 (예: 플라스크 존 지속시간 +1s/레벨)
+  const withBonus = (w) => effect.bonus
+    ? { ...w, [effect.bonus.stat]: (w[effect.bonus.stat] ?? 0) + effect.bonus.step }
+    : w
+  if (effect.kind === 'damage') return withBonus({ ...wpn, damage: wpn.damage + effect.dmg, level: bumpLevel(wpn) })
+  if (effect.kind === 'stat')   return withBonus({ ...wpn, [effect.stat]: Math.min(effect.cap, (wpn[effect.stat] ?? 0) + effect.step), level: bumpLevel(wpn) })
   return wpn
 }
 
