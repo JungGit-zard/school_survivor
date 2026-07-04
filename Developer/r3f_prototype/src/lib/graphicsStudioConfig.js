@@ -287,7 +287,7 @@ const NUMERIC_RANGES = Object.freeze({
   rotationY: [-180, 180],
 })
 
-const VALID_ANIMATIONS = new Set(['normal', 'warn', 'charge', 'stun'])
+const VALID_ANIMATIONS = new Set(['normal', 'warn', 'charge', 'stun', 'lantern'])
 
 function getStorage(storage) {
   if (storage) return storage

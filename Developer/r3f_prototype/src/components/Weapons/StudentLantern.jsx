@@ -7,6 +7,62 @@ import { useGameStore } from '../../store/useGameStore.js'
 import { applyForwardConeDamage } from '../../lib/weaponTargeting.js'
 import { startPlayerArmAction } from '../../lib/playerArmAction.js'
 
+const lanternBeamVertexShader = `
+  varying vec2 vLocal;
+  void main() {
+    vLocal = position.xy;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+const lanternBeamFragmentShader = `
+  uniform vec3 uColor;
+  uniform float uOpacity;
+  uniform float uLength;
+  uniform float uWidth;
+  uniform float uBaseWidth;
+  varying vec2 vLocal;
+
+  void main() {
+    float y01 = clamp(vLocal.y / max(uLength, 0.001), 0.0, 1.0);
+    float halfWidth = mix(uBaseWidth * 0.5, uWidth * 0.5, y01);
+    float edge01 = clamp(abs(vLocal.x) / max(halfWidth, 0.001), 0.0, 1.0);
+    float sideAlpha = 1.0 - smoothstep(0.18, 1.0, edge01);
+    float tipAlpha = 1.0 - smoothstep(0.78, 1.0, y01);
+    gl_FragColor = vec4(uColor, uOpacity * sideAlpha * tipAlpha);
+  }
+`
+
+function createLanternBeamUniforms(color, opacity, length, width, baseWidth) {
+  return {
+    uColor: { value: new THREE.Color(color) },
+    uOpacity: { value: opacity },
+    uLength: { value: length },
+    uWidth: { value: width },
+    uBaseWidth: { value: baseWidth },
+  }
+}
+
+function setLanternBeamOpacity(mesh, opacity) {
+  const uniforms = mesh?.material?.uniforms
+  if (uniforms?.uOpacity) uniforms.uOpacity.value = opacity
+}
+
+const LANTERN_BEAM_FORWARD_OFFSET = 0.28
+
+export function getLanternBeamOrigin(player, facing) {
+  const rawDirX = facing?.x ?? 0
+  const rawDirZ = facing?.z ?? 1
+  const len = Math.hypot(rawDirX, rawDirZ) || 1
+  const dirX = rawDirX / len
+  const dirZ = rawDirZ / len
+
+  return {
+    x: player.x + dirX * LANTERN_BEAM_FORWARD_OFFSET,
+    z: player.z + dirZ * LANTERN_BEAM_FORWARD_OFFSET,
+  }
+}
+
 // 학생용 랜턴 (신무기 2026-07-04, 스탯 정본: weaponCatalog.studentLantern)
 // 점등하면 durationMs 동안 전방으로 퍼지는 빛 콘(lightLength × lightWidth)을 비추고,
 // 그 안의 모든 적이 hitIntervalMs마다 피해를 받는다. 점등 즉시 1타 →
@@ -26,6 +82,9 @@ export function StudentLanternWeapon() {
   const renderLength = w?.lightLength ?? 2.6
   const renderWidth = w?.lightWidth ?? 1.8
   const renderBaseWidth = w?.lightBaseWidth ?? 0.35
+  const renderCoreLength = renderLength * 0.68
+  const renderCoreBaseWidth = renderBaseWidth * 0.65
+  const renderCoreWidth = renderWidth * 0.48
   const beamShape = useMemo(() => {
     const shape = new THREE.Shape()
     shape.moveTo(-renderBaseWidth / 2, 0)
@@ -36,17 +95,22 @@ export function StudentLanternWeapon() {
     return shape
   }, [renderBaseWidth, renderLength, renderWidth])
   const coreShape = useMemo(() => {
-    const coreLength = renderLength * 0.68
-    const coreBase = renderBaseWidth * 0.65
-    const coreWidth = renderWidth * 0.48
     const shape = new THREE.Shape()
-    shape.moveTo(-coreBase / 2, 0)
-    shape.lineTo(coreBase / 2, 0)
-    shape.lineTo(coreWidth / 2, coreLength)
-    shape.lineTo(-coreWidth / 2, coreLength)
+    shape.moveTo(-renderCoreBaseWidth / 2, 0)
+    shape.lineTo(renderCoreBaseWidth / 2, 0)
+    shape.lineTo(renderCoreWidth / 2, renderCoreLength)
+    shape.lineTo(-renderCoreWidth / 2, renderCoreLength)
     shape.closePath()
     return shape
-  }, [renderBaseWidth, renderLength, renderWidth])
+  }, [renderCoreBaseWidth, renderCoreLength, renderCoreWidth])
+  const beamUniforms = useMemo(
+    () => createLanternBeamUniforms(0xffd964, 0.3, renderLength, renderWidth, renderBaseWidth),
+    [renderBaseWidth, renderLength, renderWidth],
+  )
+  const coreUniforms = useMemo(
+    () => createLanternBeamUniforms(0xfff0b0, 0.38, renderCoreLength, renderCoreWidth, renderCoreBaseWidth),
+    [renderCoreBaseWidth, renderCoreLength, renderCoreWidth],
+  )
 
   usePlayingFrame(({ clock }, delta) => {
     if (!w?.active) return
@@ -81,13 +145,14 @@ export function StudentLanternWeapon() {
     startPlayerArmAction(playerArmActionState, 'lanternAim', now)
     const yaw = Math.atan2(playerFacing.x, playerFacing.z)
     if (groupRef.current) {
+      const beamOrigin = getLanternBeamOrigin(playerPos, playerFacing)
       groupRef.current.visible = true
-      groupRef.current.position.set(playerPos.x, 0, playerPos.z)
+      groupRef.current.position.set(beamOrigin.x, 0, beamOrigin.z)
       groupRef.current.rotation.y = yaw
       // 촛불 흔들림 느낌의 밝기 플리커
       const flicker = 0.9 + Math.sin(litAgeRef.current * 17) * 0.08 + Math.sin(litAgeRef.current * 5.3) * 0.05
-      if (beamRef.current) beamRef.current.material.opacity = 0.30 * flicker
-      if (coreRef.current) coreRef.current.material.opacity = 0.38 * flicker
+      setLanternBeamOpacity(beamRef.current, 0.30 * flicker)
+      setLanternBeamOpacity(coreRef.current, 0.38 * flicker)
     }
 
     // hitIntervalMs마다 빛 콘 안 전원 타격
@@ -109,11 +174,25 @@ export function StudentLanternWeapon() {
       {/* 넓어지는 랜턴 콘 - 플레이어 앞에서 시작해 12시 방향으로 퍼진다. */}
       <mesh ref={beamRef} rotation={[Math.PI / 2, 0, 0]} position={[0, 0.08, 0]} renderOrder={3}>
         <shapeGeometry args={[beamShape]} />
-        <meshBasicMaterial color={0xffd964} transparent opacity={0.3} depthWrite={false} side={THREE.DoubleSide} />
+        <shaderMaterial
+          transparent
+          depthWrite={false}
+          side={THREE.DoubleSide}
+          vertexShader={lanternBeamVertexShader}
+          fragmentShader={lanternBeamFragmentShader}
+          uniforms={beamUniforms}
+        />
       </mesh>
       <mesh ref={coreRef} rotation={[Math.PI / 2, 0, 0]} position={[0, 0.09, 0]} renderOrder={4}>
         <shapeGeometry args={[coreShape]} />
-        <meshBasicMaterial color={0xfff0b0} transparent opacity={0.38} depthWrite={false} side={THREE.DoubleSide} />
+        <shaderMaterial
+          transparent
+          depthWrite={false}
+          side={THREE.DoubleSide}
+          vertexShader={lanternBeamVertexShader}
+          fragmentShader={lanternBeamFragmentShader}
+          uniforms={coreUniforms}
+        />
       </mesh>
     </group>
   )

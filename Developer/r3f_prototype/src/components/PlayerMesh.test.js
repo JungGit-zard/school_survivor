@@ -18,4 +18,9 @@ describe('PlayerMesh layout', () => {
       PLAYER_MESH_LAYOUT.head.baseY + PLAYER_MESH_LAYOUT.outline.headOffsetY
     )
   })
+
+  it('places the lantern prop at the right hand tip', () => {
+    expect(PLAYER_MESH_LAYOUT.lantern.position).toEqual([0, -0.76, 0.18])
+    expect(PLAYER_MESH_LAYOUT.lantern.bodySize).toEqual([0.28, 0.30, 0.22])
+  })
 })

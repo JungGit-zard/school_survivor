@@ -19,10 +19,10 @@ function shortestAngleDiff(target, current) {
   return diff
 }
 
-export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 0, showHealthBar = true }) {
+export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 0, showHealthBar = true, previewArmAction = null }) {
   return (
     <>
-      <PlayerMesh groupRef={meshGroup} movingRef={movingRef} hitFlashToken={hitFlashToken} />
+      <PlayerMesh groupRef={meshGroup} movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />
       {showHealthBar && <MiniHealthBar current={hp} max={maxHp} width={0.38} height={0.052} y={0.75} />}
     </>
   )

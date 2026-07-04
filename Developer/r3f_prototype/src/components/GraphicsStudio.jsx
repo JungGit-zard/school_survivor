@@ -192,6 +192,7 @@ export default function GraphicsStudio() {
                 <option value="warn">warn</option>
                 <option value="charge">charge</option>
                 <option value="stun">stun</option>
+                <option value="lantern">lantern</option>
               </select>
             </label>
           </div>

@@ -266,7 +266,7 @@ function RenderPreviewItem({ item }) {
   }, [item.previewKind])
 
   if (item.previewKind === 'player') {
-    return <PlayerVisual meshGroup={playerRef} movingRef={movingRef} hp={100} maxHp={100} />
+    return <PlayerVisual meshGroup={playerRef} movingRef={movingRef} hp={100} maxHp={100} previewArmAction={item.animation === 'lantern' ? 'lanternAim' : null} />
   }
   if (item.previewKind === 'zombie') {
     return <EnemyVisual type={item.zombieType} animPhase={item.animation ?? 'normal'} hp={ENEMY_STATS[item.zombieType]?.hp} forceMesh />
@@ -350,7 +350,7 @@ function RenderPreviewItem({ item }) {
 function StudioScene({ selectedItem, tuning, frame }) {
   const rootRef = useRef(null)
   const rotationY = THREE.MathUtils.degToRad(tuning.rotationY)
-  const item = selectedItem.previewKind === 'zombie' || selectedItem.previewKind === 'matilda'
+  const item = selectedItem.previewKind === 'player' || selectedItem.previewKind === 'zombie' || selectedItem.previewKind === 'matilda'
     ? { ...selectedItem, animation: tuning.animation }
     : selectedItem
 

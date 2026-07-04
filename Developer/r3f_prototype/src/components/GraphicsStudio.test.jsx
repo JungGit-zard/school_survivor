@@ -8,7 +8,7 @@ import { loadStudioTunings } from '../lib/graphicsStudioConfig.js'
 
 vi.mock('./GraphicsStudioPreview.jsx', () => ({
   default: ({ selectedItem, tuning }) => (
-    <div data-testid="graphics-preview">{selectedItem.id}:{tuning.scale}</div>
+    <div data-testid="graphics-preview">{selectedItem.id}:{tuning.scale}:{tuning.animation}</div>
   ),
 }))
 
@@ -77,5 +77,21 @@ describe('GraphicsStudio', () => {
 
     expect(loadStudioTunings().player.scale).toBe(1.45)
     expect(container.querySelector('[data-testid="studio-export"]').value).toContain('"scale": 1.45')
+  })
+
+  it('offers the lantern player animation in the motion control', () => {
+    act(() => {
+      root.render(<GraphicsStudio />)
+    })
+
+    const motion = container.querySelector('select[name="animation"]')
+    expect(Array.from(motion.options).map((option) => option.value)).toContain('lantern')
+
+    act(() => {
+      motion.value = 'lantern'
+      motion.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+
+    expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1:lantern')
   })
 })

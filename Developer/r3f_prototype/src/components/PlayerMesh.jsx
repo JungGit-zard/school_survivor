@@ -14,6 +14,8 @@ const PLAYER_IDLE_BREATHE_Y = 0.018
 const PLAYER_WALK_BOB_Y = 0.022
 const PLAYER_MAX_HEAD_BOB_Y = Math.max(PLAYER_IDLE_BREATHE_Y, PLAYER_WALK_BOB_Y)
 const PLAYER_HEAD_OUTLINE_OFFSET_Y = 0.19
+const PLAYER_LANTERN_POSITION = [0, -0.76, 0.18]
+const PLAYER_LANTERN_BODY_SIZE = [0.28, 0.30, 0.22]
 
 export const PLAYER_MESH_LAYOUT = {
   body: {
@@ -33,6 +35,10 @@ export const PLAYER_MESH_LAYOUT = {
     headSize: [1.04, 0.98, 0.82],
     headOffsetY: PLAYER_HEAD_OUTLINE_OFFSET_Y,
     headPosition: [0, PLAYER_HEAD_BASE_Y + PLAYER_HEAD_OUTLINE_OFFSET_Y, 0.04],
+  },
+  lantern: {
+    position: PLAYER_LANTERN_POSITION,
+    bodySize: PLAYER_LANTERN_BODY_SIZE,
   },
 }
 
@@ -83,7 +89,7 @@ function setPlayerBodyFlash(root, flashMat, active) {
   })
 }
 
-export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0 }) {
+export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null }) {
   const rootRef = useRef()
   const p = useRef({})
   const blend = useRef(0)
@@ -136,8 +142,11 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0 }) {
 
     parts.legL.rotation.x = sw
     parts.legR.rotation.x = -sw
-    const armAction = getActivePlayerArmAction(playerArmActionState, clock.elapsedTime * 1000)
+    const armAction = previewArmAction
+      ? { type: previewArmAction, progress: 0.5 }
+      : getActivePlayerArmAction(playerArmActionState, clock.elapsedTime * 1000)
     const armPose = getPlayerArmPose({ action: armAction, walkSwing: sw })
+    if (parts.lantern) parts.lantern.visible = armAction?.type === 'lanternAim'
     parts.slvL.rotation.x = armPose.slvL.x
     parts.slvL.rotation.y = armPose.slvL.y
     parts.slvL.rotation.z = armPose.slvL.z
@@ -239,6 +248,12 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0 }) {
       <group ref={reg('slvR')} position={[0.6, 0.72, 0]}>
         <Block size={[0.36, 0.66, 0.36]} position={[0, -0.33, 0]} color={0xd42020} emissive={0.2} />
         <Block size={[0.26, 0.26, 0.26]} position={[0, -0.76, 0]} color={0xffc39b} emissive={0.1} />
+        <group ref={reg('lantern')} position={PLAYER_MESH_LAYOUT.lantern.position} visible={false}>
+          <OutlineBlock size={[0.34, 0.36, 0.28]} position={[0, -0.02, 0]} scale={1.05} />
+          <Block size={[0.12, 0.18, 0.08]} position={[0, 0.17, 0]} color={0x111111} emissive={0.02} />
+          <Block size={PLAYER_MESH_LAYOUT.lantern.bodySize} position={[0, -0.02, 0]} color={0xffdf4a} emissive={0.55} />
+          <Block size={[0.22, 0.09, 0.16]} position={[0, -0.22, 0]} color={0x242832} emissive={0.04} />
+        </group>
       </group>
 
       <group ref={reg('legL')} position={[-0.22, -0.34, 0]}>
