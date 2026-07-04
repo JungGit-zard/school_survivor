@@ -8,7 +8,7 @@ import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 import { findSharkMissileClusterTarget } from '../../lib/sharkMissileTargeting.js'
-import { canFireSharkMissile, createSharkMissileLaunch, shortestAngleDelta } from '../../lib/sharkMissileRuntime.js'
+import { SHARK_DART, canFireSharkMissile, createSharkMissileLaunch, isSharkHomingPhase, pickSharkWanderPoint, shortestAngleDelta } from '../../lib/sharkMissileRuntime.js'
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
 function clampToScreen(x, z, margin = 0) {
@@ -122,11 +122,11 @@ export function FlameTrail({ flameRef }) {
   )
 }
 
-// dart 파라미터 — 발사 후 1.5초간 좀비 사이를 빠르게 이리저리 비행하다 폭발
-const DART_DURATION    = 1.5   // 총 비행 시간(초) → 폭발
-const DART_SPEED       = 18    // 빠른 속도 (기본 speed의 ~2×)
-const DART_RETARGET_MS = 220   // 표적 전환 주기 — 짧을수록 격렬한 지그재그
-const DART_TURN_RATE   = 14    // yaw 보간 속도
+// dart 비행 2단계 (파라미터 정본: sharkMissileRuntime.js SHARK_DART)
+// ① 방랑(0~1.05s): 화면 안 랜덤 웨이포인트를 오가는 "어디로 갈지 모르는" 지그재그
+// ② 귀소(1.05~1.5s): 밀집지역으로 급선회 → 도착 즉시 or 1.5s에 폭발
+// 이전 방식(밀집점만 220ms 재조준)은 표적이 고정점이라 도착 후 제자리 궤도
+// 선회(≈3바퀴)로 보이는 문제가 있었다.
 
 function SharkMissileProjectile({ id, start, initialTarget, damage, radius, range, onExplode }) {
   const groupRef = useRef(null)
@@ -147,34 +147,48 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
     ageRef.current += delta
     const nowMs = ageRef.current * 1000
     const p = posRef.current
+    const homing = isSharkHomingPhase(ageRef.current)
 
-    // 1.5초 경과 → 현재 위치에서 폭발
-    if (ageRef.current >= DART_DURATION) {
+    const explode = () => {
       explodedRef.current = true
       onExplode(id, { x: p.x, z: p.z, damage, radius })
-      return
     }
 
-    // 잦은 표적 재선정으로 이리저리 비행
-    if (nowMs >= retargetAtRef.current) {
-      const next = findSharkMissileClusterTarget({ range, radius })
-      if (next) targetRef.current = clampToScreen(next.x, next.z)
-      retargetAtRef.current = nowMs + DART_RETARGET_MS
-    }
+    // 총 비행 시간 만료 → 현재 위치에서 폭발
+    if (ageRef.current >= SHARK_DART.DURATION_SEC) { explode(); return }
 
     const target = targetRef.current
-    const dx = target.x - p.x
-    const dz = target.z - p.z
-    const dist = Math.hypot(dx, dz)
+    let dx = target.x - p.x
+    let dz = target.z - p.z
+    let dist = Math.hypot(dx, dz)
+
+    if (homing) {
+      // 귀소: 밀집점 추적, 도착 즉시 폭발 (제자리 궤도 선회 방지)
+      if (nowMs >= retargetAtRef.current) {
+        const next = findSharkMissileClusterTarget({ range, radius })
+        if (next) targetRef.current = clampToScreen(next.x, next.z)
+        retargetAtRef.current = nowMs + 150
+      }
+      if (dist < SHARK_DART.HOMING_HIT_DIST) { explode(); return }
+    } else if (nowMs >= retargetAtRef.current || dist < SHARK_DART.WANDER_ARRIVE_DIST) {
+      // 방랑: 주기 만료 또는 웨이포인트 도착 → 화면 안 새 랜덤 지점
+      targetRef.current = pickSharkWanderPoint(screenBounds)
+      retargetAtRef.current = nowMs + SHARK_DART.WANDER_RETARGET_MS
+      dx = targetRef.current.x - p.x
+      dz = targetRef.current.z - p.z
+      dist = Math.hypot(dx, dz)
+    }
+
     if (dist > 0.1) {
       const desiredYaw = Math.atan2(dx / dist, dz / dist)
-      yawRef.current += shortestAngleDelta(yawRef.current, desiredYaw) * Math.min(1, delta * DART_TURN_RATE)
+      const turnRate = homing ? SHARK_DART.TURN_RATE_HOMING : SHARK_DART.TURN_RATE_WANDER
+      yawRef.current += shortestAngleDelta(yawRef.current, desiredYaw) * Math.min(1, delta * turnRate)
     }
 
     const prevX = p.x
     const prevZ = p.z
-    p.x += Math.sin(yawRef.current) * DART_SPEED * delta
-    p.z += Math.cos(yawRef.current) * DART_SPEED * delta
+    p.x += Math.sin(yawRef.current) * SHARK_DART.SPEED * delta
+    p.z += Math.cos(yawRef.current) * SHARK_DART.SPEED * delta
     // 화면 밖 이탈 방지 — 클램프 후 yaw도 보정해 벽면 허깅 방지
     const sc = clampToScreen(p.x, p.z)
     if (sc.x !== p.x || sc.z !== p.z) {
@@ -259,6 +273,7 @@ export function SharkMissileWeapon() {
       damage: blast.damage,
       knockback: 3.6,
       knockbackMs: 150,
+      deathStyleOverride: 'shatter5',
     })
 
     setExplosions((prev) => [...prev, { id, x: blast.x, z: blast.z, radius: blast.radius }])

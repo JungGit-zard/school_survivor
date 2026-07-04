@@ -23,7 +23,7 @@ Durable board: `escape-zombie-school`
    - Workspaces: `C:/Users/admin/AppData/Local/hermes/sub-agent-room/global-agent-room/`
 3. **실행 가능한 Hermes/Kanban 런타임**
    - Board: `escape-zombie-school`
-   - Real spawnable profiles: `threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`
+   - Real spawnable profiles: `threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`
 
 따라서 IDE/Codex/Antigravity/Hermes가 이 프로젝트 루트에서 작업할 때는 프로젝트 내부 문서를 통해 Agent Room을 발견하고, 실제 자동 투입은 Hermes Kanban 보드와 spawnable profile을 통해 수행한다.
 
@@ -49,6 +49,7 @@ Durable board: `escape-zombie-school`
 - 출시/스토어/정책/내부테스트
 - BM/수익화/광고/IAP/제품 범위
 - 영문 카피/현지화
+- 사운드/효과음/BGM/음성/보이스/8비트/저용량 오디오/WebAudio
 - 장시간 정리, 다중 파일 리팩터, 독립 검증이 필요한 작업
 
 작은 오타 수정, 한 파일 읽기, 좁은 단일 변경은 직접 처리 가능하다. 단, Terry가 명시적으로 서브에이전트 투입을 말하면 작은 작업도 라우팅한다.
@@ -63,6 +64,7 @@ Durable board: `escape-zombie-school`
 - Google Play/내부테스트/AAB/정책/출시 readiness → `launchmini`
 - Firebase/Auth/DB/API/개인정보/계정삭제/anti-cheat boundary → `backendmini`
 - 영문 카피/스토어 문구/현지화 → `englishgradmini`
+- 무료 게임 사운드/효과음/BGM/음성/8-bit/chiptune/WebAudio/저용량 오디오/라이선스 검토 → `soundmini`
 - 운영 장부/agent-room hygiene/스모크 테스트/환경 정리 → `madangsue`
 - 리마인더/예약/알림 위생 → `jabdareminder`
 
@@ -118,16 +120,20 @@ Antigravity:
 
 - `Developer/agent_room/uimini_mobile_optimization_resident_2026-07-03.md`
 
+사운드/오디오:
+
+- `Developer/agent_room/soundmini_free_game_audio_rnd_2026-07-04.md`
+
 R3F/Rapier 안정성:
 
 - `Developer/agent_room/r3f_rapier_vampire_survivor_stability_rules.md`
 
 ## 6. 현재 구성 확인 결과
 
-2026-07-03 10:13 KST 기준 확인:
+2026-07-03 10:13 KST 기준 확인, 2026-07-04 10:04 KST `soundmini` 추가 확인:
 
 - Hermes profiles 존재:
-  - `threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`
+  - `threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`
 - 각 profile `SOUL.md` 존재 확인.
 - Board `escape-zombie-school` 존재 확인.
 - Board 현재 상태:
@@ -138,6 +144,7 @@ R3F/Rapier 안정성:
   - `done=21`
 - Project policy already mandates Kanban for multi-role/milestone/release/QA work.
 - `AGENTS.md` already points subagent usage to the project-local Agent Room/Kanban docs.
+- `soundmini` was added as the project sound/audio R&D route for free/low-size SFX, BGM, voice, WebAudio, and licensing checks.
 - Antigravity smoke task previously verified: `t_9629b409` done by `madangsue`.
 
 ## 7. 보완 사항

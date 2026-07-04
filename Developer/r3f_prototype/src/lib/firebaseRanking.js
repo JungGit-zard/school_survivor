@@ -32,7 +32,10 @@ async function createClient() {
 export async function submitRankingEntry(user, entry, seasonId) {
   if (!user?.uid || !isFirebaseRankingConfigured()) return
   const { db, mod } = await getClient()
-  const entryRef = mod.push(mod.ref(db, `rankings/${seasonId}/entries`))
+  const entryRef = mod.ref(db, `rankings/${seasonId}/entries/${user.uid}`)
+  const nextScore = readScore(entry.score)
+  const existing = await mod.get(entryRef)
+  if (existing.exists() && readScore(existing.val()?.score) >= nextScore) return
   await mod.set(entryRef, {
     ...entry,
     uid: user.uid,
@@ -57,4 +60,9 @@ export async function fetchTopRanking(seasonId, limit = 100) {
     entries.push({ entryId: child.key, uid: value.uid ?? child.key, ...value })
   })
   return entries.reverse() // limitToLast 오름차순 → 뒤집어 내림차순
+}
+
+function readScore(value) {
+  const score = Number(value)
+  return Number.isFinite(score) && score > 0 ? Math.floor(score) : 0
 }

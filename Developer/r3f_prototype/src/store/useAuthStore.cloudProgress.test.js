@@ -25,11 +25,12 @@ vi.mock('../lib/firebaseAuth.js', () => ({
 
 vi.mock('../lib/firebaseProgress.js', () => ({
   setCloudProgressUser: vi.fn(),
+  loadCloudProgressFromCloud: vi.fn(async () => false),
   saveLocalProgressToCloud: vi.fn(async () => true),
 }))
 
 const { useAuthStore, _resetAuthStoreForTests } = await import('./useAuthStore.js')
-const { setCloudProgressUser, saveLocalProgressToCloud } = await import('../lib/firebaseProgress.js')
+const { setCloudProgressUser, loadCloudProgressFromCloud, saveLocalProgressToCloud } = await import('../lib/firebaseProgress.js')
 
 describe('useAuthStore cloud progress integration', () => {
   beforeEach(() => {
@@ -43,13 +44,15 @@ describe('useAuthStore cloud progress integration', () => {
     authChange(authUser)
 
     expect(setCloudProgressUser).toHaveBeenCalledWith(authUser)
-    expect(saveLocalProgressToCloud).toHaveBeenCalledWith(authUser)
+    await vi.waitFor(() => expect(loadCloudProgressFromCloud).toHaveBeenCalledWith(authUser))
+    await vi.waitFor(() => expect(saveLocalProgressToCloud).toHaveBeenCalledWith(authUser))
   })
 
   it('registers and saves the authenticated user after Google sign in', async () => {
     await useAuthStore.getState().signInWithGoogle()
 
     expect(setCloudProgressUser).toHaveBeenCalledWith(authUser)
-    expect(saveLocalProgressToCloud).toHaveBeenCalledWith(authUser)
+    await vi.waitFor(() => expect(loadCloudProgressFromCloud).toHaveBeenCalledWith(authUser))
+    await vi.waitFor(() => expect(saveLocalProgressToCloud).toHaveBeenCalledWith(authUser))
   })
 })

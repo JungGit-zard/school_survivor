@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { createFirebaseAuthClient, isFirebaseAuthConfigured } from '../lib/firebaseAuth.js'
-import { saveLocalProgressToCloud, setCloudProgressUser } from '../lib/firebaseProgress.js'
+import { loadCloudProgressFromCloud, saveLocalProgressToCloud, setCloudProgressUser } from '../lib/firebaseProgress.js'
 
 let authClientPromise = null
 let unsubscribeAuth = null
@@ -104,11 +104,20 @@ function getAuthClient() {
 function syncCloudProgressUser(user) {
   setCloudProgressUser(user)
   if (!user) return
-  void saveLocalProgressToCloud(user).catch((error) => {
+  void (async () => {
+    await loadCloudProgressFromCloud(user)
+    await refreshGameStoreFromStorage().catch(() => {})
+    await saveLocalProgressToCloud(user)
+  })().catch((error) => {
     if (typeof console !== 'undefined') {
-      console.warn('Firebase progress save failed.', error)
+      console.warn('Firebase progress sync failed.', error)
     }
   })
+}
+
+async function refreshGameStoreFromStorage() {
+  const mod = await import('./useGameStore.js')
+  mod.useGameStore.getState().reloadPersistentProgress?.()
 }
 
 function getErrorMessage(error) {

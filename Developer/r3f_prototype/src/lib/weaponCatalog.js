@@ -65,7 +65,7 @@ export const WEAPON_CATALOG = {
   onigiri: {
     id: 'onigiri',
     label: '오니기리',
-    base: { damage: 14, cooldown: 5000, bounces: 2, bounceRange: 4.5, range: 18 },
+    base: { damage: 21, cooldown: 5000, bounces: 2, bounceRange: 4.5, range: 18 },
     unlockConditions: STARTER,
     minLevelToAppear: 8,
   },
@@ -90,7 +90,8 @@ export const WEAPON_CATALOG = {
     id: 'sharkMissile',
     label: '상어미사일',
     base: {
-      damage: 30,
+      // 기획 정본: 레벨1 공격력 = 보조배터리 미사일(guidedMissile 16)의 1.3배
+      damage: 20.8,
       cooldown: 7000,
       lastFired: 0,
       range: 28,

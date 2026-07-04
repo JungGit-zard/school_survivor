@@ -324,6 +324,19 @@ export const useGameStore = create(
       requestCloudProgressSave()
     },
 
+    reloadPersistentProgress: () => {
+      const levels = getAllLevels()
+      applyMagnetPassive(levels)
+      syncStoredWeaponUnlocksFromRecords()
+      set((s) => ({
+        goldTotal: loadGoldTotal(),
+        player: buildInitialPlayer(levels),
+        weapons: buildInitialWeapons(levels),
+        growthMultiplier: buildGrowthMultiplier(levels),
+        passiveVersion: s.passiveVersion + 1,
+      }))
+    },
+
     checkSurvivalMilestone: () => {
       const s = get()
       const milestones = getStageConfig(s.currentStageId).survivalMilestones ?? SURVIVAL_MILESTONES

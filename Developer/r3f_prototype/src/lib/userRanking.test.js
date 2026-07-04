@@ -71,13 +71,14 @@ describe('user ranking helpers', () => {
     expect(formatSurvivalTime(240)).toBe('4:00')
   })
 
-  it('keeps every cloud score even when the same Google uid has multiple entries', () => {
+  it('keeps only the best cloud score for each Google uid', () => {
     const merged = mergeCloudEntries(null, [
       { uid: 'uid-1', displayName: 'A', survivalSeconds: 120, stageId: 'stage1' },
       { uid: 'uid-1', displayName: 'A', survivalSeconds: 180, stageId: 'stage1' },
       { uid: 'uid-2', displayName: 'B', survivalSeconds: 150, stageId: 'stage2' },
     ], 'uid-1')
 
-    expect(merged).toHaveLength(3)
+    expect(merged).toHaveLength(2)
+    expect(merged.find((entry) => entry.uid === 'uid-1')).toMatchObject({ score: 180 })
   })
 })

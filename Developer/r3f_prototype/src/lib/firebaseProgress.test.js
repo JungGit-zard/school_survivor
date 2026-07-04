@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
+  applyCloudProgressSnapshot,
   buildCloudProgressSnapshot,
   buildCloudUserProfile,
   getUserProgressPath,
@@ -77,5 +78,24 @@ describe('firebase progress cloud sync helpers', () => {
         }),
       },
     })
+  })
+
+  it('applies a cloud progress snapshot to local account storage', () => {
+    applyCloudProgressSnapshot({
+      profile: { nickname: 'Cloud Nick' },
+      progress: {
+        goldTotal: 77,
+        records: { totalRuns: 4, totalKills: 9 },
+        weaponUnlocks: { guidedMissile: 1 },
+        passiveUpgrades: { magnet: 2 },
+        titleSettings: { vibration: false },
+      },
+    }, { uid: 'uid-cloud' })
+
+    expect(localStorage.getItem('school_survivor:goldTotal')).toBe('77')
+    expect(JSON.parse(localStorage.getItem(RECORDS_KEY))).toMatchObject({ totalRuns: 4, totalKills: 9 })
+    expect(JSON.parse(localStorage.getItem(UNLOCKS_KEY))).toEqual({ guidedMissile: 1 })
+    expect(JSON.parse(localStorage.getItem(PASSIVES_KEY))).toMatchObject({ magnet: 2 })
+    expect(buildCloudUserProfile({ uid: 'uid-cloud' }).nickname).toBe('Cloud Nick')
   })
 })

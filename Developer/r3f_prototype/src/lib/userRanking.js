@@ -71,11 +71,22 @@ export function loadLocalRankingEntries(profile = {}) {
 // localEntry가 있으면 cloud에서 uid 일치 항목을 제거한 뒤 localEntry 삽입 → 재정렬.
 export function mergeCloudEntries(localEntry, cloudEntries, userUid) {
   const policy = getRankingScorePolicy()
-  const base = cloudEntries
-    .map((e) => normalizeRankingEntry(e, policy))
-    .filter(Boolean)
-  if (localEntry) base.push(localEntry)
-  return base
+  const anonymousEntries = []
+  const bestByUid = new Map()
+  const addEntry = (entry) => {
+    const normalized = normalizeRankingEntry(entry, policy)
+    if (!normalized) return
+    if (!normalized.uid) {
+      anonymousEntries.push(normalized)
+      return
+    }
+    const current = bestByUid.get(normalized.uid)
+    if (!current || compareRankingEntries(normalized, current) < 0) bestByUid.set(normalized.uid, normalized)
+  }
+
+  cloudEntries.forEach(addEntry)
+  if (localEntry) addEntry(userUid ? { ...localEntry, uid: userUid } : localEntry)
+  return [...anonymousEntries, ...bestByUid.values()]
 }
 
 export function formatSurvivalTime(seconds) {
@@ -120,6 +131,7 @@ function normalizeRankingEntry(entry, policy) {
     : getRankingScore({ stageId, survivalSeconds, cleared }, policy)
 
   return {
+    uid: readString(entry.uid),
     displayName: readDisplayName(entry.displayName) || DEFAULT_PLAYER_NAME,
     score,
     scoreType: SCORE_TYPE,

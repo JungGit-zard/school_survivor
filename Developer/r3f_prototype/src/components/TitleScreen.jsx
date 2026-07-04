@@ -120,6 +120,7 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
   }
 
   const handleStartClick = () => {
+    if (!authUser?.uid) return
     const savedNickname = getSavedNickname(authUser)
     setPendingStageId(selectedStageId)
     setCheatOpen(false)
@@ -138,6 +139,7 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
   }
 
   const handleOpenNicknameFromSettings = () => {
+    if (!authUser?.uid) return
     setNicknameInput(getSavedNickname(authUser) || normalizeInitialNickname(authUser?.displayName))
     setNicknameError('')
     setNicknameFromSettings(true)

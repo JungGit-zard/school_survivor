@@ -171,6 +171,23 @@ describe('TitleScreen settings modal', () => {
     cleanup()
   })
 
+  it('does not start or create a local nickname when Google is signed out', () => {
+    useAuthStore.setState({
+      status: 'signedOut',
+      user: null,
+      initialized: true,
+    })
+    localStorage.setItem(NICKNAME_STORAGE_KEY, JSON.stringify({ local: 'Local Player' }))
+    const onStart = vi.fn()
+    const { container, cleanup } = renderTitleScreen(onStart)
+
+    clickButtonAt(container, 3)
+
+    expect(onStart).not.toHaveBeenCalled()
+
+    cleanup()
+  })
+
   it('skips nickname modal and starts immediately when nickname already saved', () => {
     useAuthStore.setState({
       status: 'signedIn',
@@ -287,6 +304,11 @@ describe('TitleScreen settings modal', () => {
   })
 
   it('starts Stage 2 when selected from the cheat modal', () => {
+    useAuthStore.setState({
+      status: 'signedIn',
+      user: { uid: 'uid-stage-2', displayName: 'Stage Tester', email: 'stage@example.com', photoURL: '' },
+      initialized: true,
+    })
     const onStart = vi.fn()
     const { container, cleanup } = renderTitleScreen(onStart)
 
@@ -332,6 +354,13 @@ function clickButtonByText(container, text) {
   act(() => {
     Array.from(container.querySelectorAll('button'))
       .find((button) => button.textContent.includes(text))
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
+}
+
+function clickButtonAt(container, index) {
+  act(() => {
+    container.querySelectorAll('button')[index]
       .dispatchEvent(new MouseEvent('click', { bubbles: true }))
   })
 }

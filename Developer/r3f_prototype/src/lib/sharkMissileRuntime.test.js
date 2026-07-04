@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canFireSharkMissile, createSharkMissileLaunch, shortestAngleDelta } from './sharkMissileRuntime.js'
+import { SHARK_DART, canFireSharkMissile, createSharkMissileLaunch, isSharkHomingPhase, pickSharkWanderPoint, shortestAngleDelta } from './sharkMissileRuntime.js'
 
 describe('shark missile runtime firing rules', () => {
   const activeWeapon = {
@@ -84,5 +84,38 @@ describe('shark missile runtime firing rules', () => {
   it('uses the shortest wraparound yaw turn near the -pi/pi boundary', () => {
     expect(shortestAngleDelta(Math.PI - 0.1, -Math.PI + 0.1)).toBeCloseTo(0.2)
     expect(shortestAngleDelta(-Math.PI + 0.1, Math.PI - 0.1)).toBeCloseTo(-0.2)
+  })
+})
+
+describe('shark missile dart flight plan (기획 정본)', () => {
+  it('총 비행 시간은 1.5초, 마지막 0.45초만 밀집점 귀소', () => {
+    expect(SHARK_DART.DURATION_SEC).toBe(1.5)
+    expect(isSharkHomingPhase(0)).toBe(false)
+    expect(isSharkHomingPhase(1.0)).toBe(false)
+    expect(isSharkHomingPhase(SHARK_DART.HOMING_START_SEC)).toBe(true)
+    expect(isSharkHomingPhase(1.4)).toBe(true)
+  })
+
+  it('방랑 웨이포인트는 항상 화면 경계 안(여백 1유닛)에 생성된다', () => {
+    const bounds = { minX: -8, maxX: 8, minZ: -12, maxZ: 12 }
+    let s = 7
+    const random = () => { s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296 }
+    for (let i = 0; i < 200; i++) {
+      const p = pickSharkWanderPoint(bounds, random)
+      expect(p.x).toBeGreaterThanOrEqual(bounds.minX + 1)
+      expect(p.x).toBeLessThanOrEqual(bounds.maxX - 1)
+      expect(p.z).toBeGreaterThanOrEqual(bounds.minZ + 1)
+      expect(p.z).toBeLessThanOrEqual(bounds.maxZ - 1)
+    }
+  })
+
+  it('레벨1 공격력 기본값은 보조배터리(16)의 1.3배', () => {
+    const launch = createSharkMissileLaunch({
+      id: 1,
+      playerPosition: { x: 0, y: 0, z: 0 },
+      target: { x: 1, z: 1 },
+      weapon: { radius: 1.8, range: 28 }, // damage 미지정 → 기본값
+    })
+    expect(launch.damage).toBe(16 * 1.3)
   })
 })

@@ -1,8 +1,8 @@
 import { getFirebaseConfig, isFirebaseAuthConfigured } from './firebaseAuth.js'
-import { load as loadPlayerRecords } from './playerRecords.js'
-import { getAllLevels } from './passiveUpgrades.js'
-import { getAllUnlocked } from './weaponUnlocks.js'
-import { getSavedNickname } from './userNickname.js'
+import { load as loadPlayerRecords, STORAGE_KEY as RECORDS_STORAGE_KEY } from './playerRecords.js'
+import { getAllLevels, STORAGE_KEY as PASSIVE_STORAGE_KEY } from './passiveUpgrades.js'
+import { getAllUnlocked, STORAGE_KEY as UNLOCKS_STORAGE_KEY } from './weaponUnlocks.js'
+import { getSavedNickname, saveNicknameForUser } from './userNickname.js'
 
 const DATABASE_URL_KEY = 'VITE_FIREBASE_DATABASE_URL'
 const GOLD_STORAGE_KEY = 'school_survivor:goldTotal'
@@ -62,6 +62,34 @@ export async function saveLocalProgressToCloud(user = cloudUser) {
   return true
 }
 
+export async function loadCloudProgressFromCloud(user = cloudUser) {
+  const path = getUserProgressPath(user)
+  if (!path || !isFirebaseProgressConfigured()) return false
+
+  const client = await getProgressClient()
+  const snapshot = await client.load(path)
+  applyCloudProgressSnapshot(snapshot, user)
+  return !!snapshot
+}
+
+export function applyCloudProgressSnapshot(snapshot, user = cloudUser) {
+  if (typeof localStorage === 'undefined') return false
+  const progress = snapshot?.progress
+
+  if (!progress || typeof progress !== 'object') {
+    clearLocalProgress()
+    return false
+  }
+
+  localStorage.setItem(GOLD_STORAGE_KEY, String(readNonNegativeInt(progress.goldTotal)))
+  writeJsonObject(RECORDS_STORAGE_KEY, progress.records)
+  writeJsonObject(UNLOCKS_STORAGE_KEY, progress.weaponUnlocks)
+  writeJsonObject(PASSIVE_STORAGE_KEY, progress.passiveUpgrades)
+  writeJsonObject(TITLE_SETTINGS_STORAGE_KEY, progress.titleSettings)
+  if (snapshot.profile?.nickname) saveNicknameForUser(user, snapshot.profile.nickname)
+  return true
+}
+
 export function requestCloudProgressSave() {
   if (!cloudUser || !isFirebaseProgressConfigured()) return
   void saveLocalProgressToCloud().catch((error) => {
@@ -87,6 +115,10 @@ async function createFirebaseProgressClient(env = getDefaultEnv()) {
 
   return {
     save: (path, value) => databaseModule.update(databaseModule.ref(database, path), value),
+    load: async (path) => {
+      const snap = await databaseModule.get(databaseModule.ref(database, path))
+      return snap.exists() ? snap.val() : null
+    },
   }
 }
 
@@ -113,6 +145,26 @@ function readJsonObject(key) {
   } catch {
     return {}
   }
+}
+
+function writeJsonObject(key, value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    localStorage.removeItem(key)
+    return
+  }
+  localStorage.setItem(key, JSON.stringify(value))
+}
+
+function clearLocalProgress() {
+  localStorage.setItem(GOLD_STORAGE_KEY, '0')
+  localStorage.removeItem(RECORDS_STORAGE_KEY)
+  localStorage.removeItem(UNLOCKS_STORAGE_KEY)
+  localStorage.removeItem(PASSIVE_STORAGE_KEY)
+}
+
+function readNonNegativeInt(value) {
+  const number = Number(value)
+  return Number.isFinite(number) && number >= 0 ? Math.floor(number) : 0
 }
 
 function readEnv(env, key) {

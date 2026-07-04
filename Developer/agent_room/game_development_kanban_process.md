@@ -32,7 +32,7 @@ Before creating or dispatching cards:
 4. Verify worker profile gstack readiness:
 
    ```bash
-   for p in threemini levelmini uimini balanceqa bizmini launchmini backendmini englishgradmini madangsue jabdareminder; do
+   for p in threemini levelmini uimini balanceqa bizmini launchmini backendmini englishgradmini madangsue jabdareminder soundmini; do
      h="/c/Users/admin/AppData/Local/hermes/profiles/$p/home"
      test -d "$h/.claude/skills/gstack/bin" && echo "$p GSTACK_OK" || echo "$p GSTACK_MISSING"
    done
@@ -55,6 +55,7 @@ Use only these Hermes profile names for durable Kanban cards:
 - `englishgradmini`: English copy, store text, localization readiness, no invented unimplemented features.
 - `madangsue`: operations ledger, environment hygiene, smoke-test support, agent-room records.
 - `jabdareminder`: reminder hygiene, schedule cleanliness, notification-related agent-room hygiene.
+- `soundmini`: free/low-size game SFX, BGM loop direction, 8-bit/chiptune audio, WebAudio/ZzFX/jsfxr pipeline, voice bark/pseudo-voice design, and audio licensing checks.
 
 Do not assign durable cards to placeholder names such as `planner`, `reviewer`, `researcher`, `game-developer`, `graphic_designer`, `balance_qa`, `qa-reviewer`, or `product-manager`. Map those concepts to the closest real profile.
 
@@ -65,6 +66,7 @@ For a milestone-level request, create independent cards first, then synthesis an
 ```text
 T1  graphics/visual audit or implementation guidance -> threemini
 T1b UI/HUD/interaction audit or implementation guidance -> uimini
+T1c sound/SFX/BGM/voice/audio licensing audit or implementation guidance -> soundmini
 T2  gameplay/level/content plan -> levelmini
 T3  QA/risk/acceptance gate -> balanceqa
 T4  release/store gate, if relevant -> launchmini

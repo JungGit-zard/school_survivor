@@ -28,6 +28,7 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.scienceFlask.base.damage).toBe(15)
     expect(WEAPON_CATALOG.bell.base.directions).toBe(8)
     expect(WEAPON_CATALOG.stunGun.base.chainCount).toBe(2)
+    expect(WEAPON_CATALOG.onigiri.base.damage).toBe(21)
     expect(WEAPON_CATALOG.onigiri.base.cooldown).toBe(5000)
     expect(WEAPON_CATALOG.onigiri.base.bounces).toBe(2)
     expect(WEAPON_CATALOG.chibiko.base.damage).toBe(5)
@@ -69,14 +70,14 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.sharkMissile.minLevelToAppear).toBe(8)
   })
 
-  it('defines sharkMissile as a high-impact cluster homing weapon based on scienceFlask', () => {
-    const flask = WEAPON_CATALOG.scienceFlask.base
+  it('defines sharkMissile at 1.3x guidedMissile damage (기획 정본)', () => {
+    const battery = WEAPON_CATALOG.guidedMissile.base
 
     expect(WEAPON_CATALOG.sharkMissile).toMatchObject({
       id: 'sharkMissile',
       label: '상어미사일',
       base: {
-        damage: flask.damage * 2,
+        damage: battery.damage * 1.3,
         cooldown: 7000,
         range: 28,
         radius: 1.8,
