@@ -9,6 +9,9 @@ export const PLAYER_ARM_ACTIONS = {
   guidedMissileThrow: {
     durationMs: 360,
   },
+  lanternAim: {
+    durationMs: 320,
+  },
 }
 
 // 커터칼 2단 동작 위상. progress(0..1) → { thrust, raise, env }.
@@ -89,6 +92,13 @@ export function getPlayerArmPose({ action, walkSwing = 0 }) {
     pose.slvR.z = -0.22 * power
     pose.slvL.x = -0.12 * power
     pose.slvL.z = 0.06 * power
+  }
+
+  if (action.type === 'lanternAim') {
+    pose.slvR.x = -1.5
+    pose.slvR.y = -0.04
+    pose.slvR.z = 0
+    pose.slvL.x = -0.2
   }
 
   return pose

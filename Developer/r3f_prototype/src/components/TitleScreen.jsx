@@ -32,6 +32,8 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
   const [settings, setSettings] = useState(loadTitleSettings)
   const [selectedStageId, setSelectedStageId] = useState('stage1')
   const authUser = useAuthStore((s) => s.user)
+  const signingIn = useAuthStore((s) => s.signingIn)
+  const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle)
   const resetPassiveUpgrades = useGameStore((s) => s.resetPassiveUpgrades)
   const cheatBufferRef = useRef('')
   const titleStyle = settings.reducedEffects ? styles.titleReduced : styles.title
@@ -119,9 +121,15 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
     resetPassiveUpgrades()
   }
 
-  const handleStartClick = () => {
-    if (!authUser?.uid) return
-    const savedNickname = getSavedNickname(authUser)
+  const handleStartClick = async () => {
+    let user = authUser
+    if (!user?.uid) {
+      if (signingIn) return
+      user = await signInWithGoogle()
+      if (!user?.uid) return
+    }
+
+    const savedNickname = getSavedNickname(user)
     setPendingStageId(selectedStageId)
     setCheatOpen(false)
     setSettingsOpen(false)
@@ -131,7 +139,7 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking }) 
       onStart(selectedStageId)
     } else {
       // 최초 진입 → 닉네임 입력 모달
-      setNicknameInput(normalizeInitialNickname(authUser?.displayName))
+      setNicknameInput(normalizeInitialNickname(user?.displayName))
       setNicknameError('')
       setNicknameFromSettings(false)
       setNicknameOpen(true)

@@ -23,6 +23,7 @@ const SOUND_MAP = {
   eraserFire:     '/sfx/weapons/eraserFire.ogg',
   chibikoFire:    '/sfx/weapons/chibikoFire.ogg',
   sharkFire:      '/sfx/weapons/sharkFire.ogg',
+  lanternFire:    '/sfx/weapons/lanternFire.ogg',
 
   // ── 무기 타격음 (14종) ──────────────────────────────────────────────────────
   pencilHit:      '/sfx/weapons/pencilHit.ogg',
@@ -94,7 +95,7 @@ const POLYPHONY_COOLDOWN = {
   coinCollect:      40,
 }
 
-export function playSfx(id, volume = 1) {
+export function playSfx(id, volume = 1, options = {}) {
   if (!SOUND_MAP[id] || _failed.has(id)) return
 
   const cooldown = POLYPHONY_COOLDOWN[id] ?? 0
@@ -113,7 +114,8 @@ export function playSfx(id, volume = 1) {
       onloaderror: () => { _failed.add(id); delete _cache[id] },
     })
   }
-  _cache[id].play()
+  const soundId = _cache[id].play()
+  if (options.rate) _cache[id].rate(options.rate, soundId)
 }
 
 // 볼륨 조절 (뮤트/글로벌 볼륨 슬라이더 연동용)

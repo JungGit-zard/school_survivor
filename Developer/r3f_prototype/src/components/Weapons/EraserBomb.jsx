@@ -14,7 +14,7 @@ import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
 
 let _eraserId = 0
 const FLIGHT_DURATION = 2.0  // 1.2→2.0: 사거리 2배에 맞춰 비행 시간 연장
-export const ERASER_MODEL_VISUAL_SCALE = scaleEffectVisual(0.8)
+export const ERASER_MODEL_VISUAL_SCALE = scaleEffectVisual(1.2)
 
 export function getEraserExplosionVisualScale(radius, progress) {
   return scaleEffectVisual(0.3 + radius * 2 * progress)
@@ -125,7 +125,7 @@ export function EraserBombWeapon() {
 
     applyRadialDamage({
       x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
-      knockback: 2.5, knockbackMs: 120,
+      knockback: 2.5, knockbackMs: 120, deathStyleOverride: 'shatter5',
     })
 
     setExplosions((prev) => [...prev, { id: eid, x: blast.x, z: blast.z, radius: blast.radius }])

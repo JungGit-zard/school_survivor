@@ -226,6 +226,69 @@ describe('level-up upgrade layout', () => {
   })
 })
 
+describe('development weapon cheat panel', () => {
+  it('opens from the W button and acquires the selected weapon for the current run', () => {
+    useGameStore.getState().resetGame('stage1')
+    expect(useGameStore.getState().weapons.guidedMissile.active).toBe(false)
+
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      clickButtonByText(container, 'W')
+
+      const panel = container.querySelector('[data-testid="weapon-cheat-panel"]')
+      expect(panel).not.toBeNull()
+      expect(panel.textContent).toContain(WEAPON_CATALOG.guidedMissile.label)
+
+      clickButtonByText(panel, WEAPON_CATALOG.guidedMissile.label)
+
+      expect(useGameStore.getState().weapons.guidedMissile).toMatchObject({
+        active: true,
+        level: 1,
+      })
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
+})
+
+describe('result action layout', () => {
+  it('shows ranking above title on the game over result buttons', () => {
+    vi.useFakeTimers()
+    useGameStore.setState({ phase: 'gameover', goldSession: 8, goldTotal: 20 })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} onGoToRanking={() => {}} />)
+      })
+      act(() => {
+        vi.advanceTimersByTime(1000)
+      })
+
+      const labels = [...container.querySelector('[data-testid="result-primary-actions"]').querySelectorAll('button')]
+        .map((button) => button.textContent.trim())
+      const primaryActions = container.querySelector('[data-testid="result-primary-actions"]')
+
+      expect(labels.slice(0, 4)).toEqual(['🏆 랭킹', '타이틀로', '코인상점', '다시 시작'])
+      expect(primaryActions.style.flexDirection).toBe('column')
+      expect([...primaryActions.querySelectorAll('button')].every((button) => button.style.width === '136px')).toBe(true)
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
+})
+
 describe('pause title return', () => {
   it('asks before returning to title and records the paused score for ranking', () => {
     localStorage.removeItem(PLAYER_RECORDS_KEY)

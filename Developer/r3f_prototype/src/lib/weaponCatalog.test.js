@@ -74,6 +74,7 @@ describe('weaponCatalog', () => {
 
   it('scienceFlask 웅덩이 존 스펙 (리워크 기획 정본)', () => {
     const flask = WEAPON_CATALOG.scienceFlask.base
+    expect(flask.cooldown).toBe(8400)
     expect(flask.zoneRadius).toBe(1.4)       // E01 9마리 3×3 밀집 대형 커버
     expect(flask.zoneDurationMs).toBe(5000)  // 1레벨 5초
     // 존 틱 데미지 = 연필 레벨1 데미지 (단일 출처)
@@ -85,8 +86,9 @@ describe('weaponCatalog', () => {
     expect(lantern.damage).toBe(WEAPON_CATALOG.pencilThrow.base.damage * 1.5) // 연필 Lv1 ×1.5 = 9
     expect(lantern.durationMs).toBe(3000)      // 1레벨 3초 점등 → 3타
     expect(lantern.hitIntervalMs).toBe(1000)   // 초당 1타
-    expect(lantern.lightLength).toBe(1.9)      // 전방 E01 2마리 깊이
-    expect(lantern.lightWidth).toBe(1.9)       // 폭 E01 2마리
+    expect(lantern.lightLength).toBe(2.6)
+    expect(lantern.lightWidth).toBe(1.8)
+    expect(lantern.lightBaseWidth).toBe(0.35)
     expect(WEAPON_CATALOG.studentLantern.minLevelToAppear).toBe(5)
   })
 

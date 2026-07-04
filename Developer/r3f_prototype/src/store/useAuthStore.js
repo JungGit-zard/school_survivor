@@ -106,8 +106,8 @@ function syncCloudProgressUser(user) {
   if (!user) return
   void (async () => {
     await loadCloudProgressFromCloud(user)
-    await refreshGameStoreFromStorage().catch(() => {})
     await saveLocalProgressToCloud(user)
+    await refreshGameStoreFromStorage().catch(() => {})
   })().catch((error) => {
     if (typeof console !== 'undefined') {
       console.warn('Firebase progress sync failed.', error)

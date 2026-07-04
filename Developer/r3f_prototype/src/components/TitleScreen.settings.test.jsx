@@ -171,19 +171,25 @@ describe('TitleScreen settings modal', () => {
     cleanup()
   })
 
-  it('does not start or create a local nickname when Google is signed out', () => {
+  it('starts Google login from the start button when Google is signed out', async () => {
+    const googleUser = { uid: 'uid-login', displayName: 'Login Tester', email: 'login@example.com', photoURL: '' }
+    const signInWithGoogle = vi.fn(async () => googleUser)
     useAuthStore.setState({
       status: 'signedOut',
       user: null,
       initialized: true,
+      signInWithGoogle,
     })
     localStorage.setItem(NICKNAME_STORAGE_KEY, JSON.stringify({ local: 'Local Player' }))
     const onStart = vi.fn()
     const { container, cleanup } = renderTitleScreen(onStart)
 
-    clickButtonAt(container, 3)
+    await clickButtonAtAsync(container, 3)
 
+    expect(signInWithGoogle).toHaveBeenCalledTimes(1)
     expect(onStart).not.toHaveBeenCalled()
+    expect(container.querySelector('#title-nickname-input')).not.toBeNull()
+    expect(JSON.parse(localStorage.getItem(NICKNAME_STORAGE_KEY))).toEqual({ local: 'Local Player' })
 
     cleanup()
   })
@@ -354,6 +360,13 @@ function clickButtonByText(container, text) {
   act(() => {
     Array.from(container.querySelectorAll('button'))
       .find((button) => button.textContent.includes(text))
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
+}
+
+async function clickButtonAtAsync(container, index) {
+  await act(async () => {
+    container.querySelectorAll('button')[index]
       .dispatchEvent(new MouseEvent('click', { bubbles: true }))
   })
 }

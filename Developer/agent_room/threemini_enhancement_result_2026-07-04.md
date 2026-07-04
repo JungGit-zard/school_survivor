@@ -10,6 +10,7 @@
 - `C:/Users/admin/AppData/Local/hermes/sub-agent-room/global-agent-room/mini_game_graphics_implementation_agent/ledger.md`
 - `C:/Users/admin/AppData/Local/hermes/sub-agent-room/global-agent-room/mini_game_graphics_implementation_agent/knowledge/source_index.md`
 - `C:/Users/admin/AppData/Local/hermes/sub-agent-room/global-agent-room/mini_game_graphics_implementation_agent/knowledge/knowledge_base.md`
+- `C:/Users/admin/AppData/Local/hermes/sub-agent-room/global-agent-room/mini_game_graphics_implementation_agent/knowledge/graphics_rendering_knowledge_base.md`
 - `D:/JungSil/2.Minigame_project/school_survivor-integration/Developer/agent_room/threemini_enhancement_result_2026-07-04.md`
 - `D:/JungSil/2.Minigame_project/school_survivor-integration/Graphic_designer/threemini_visual_guard_enhancement_2026-07-04.md`
 

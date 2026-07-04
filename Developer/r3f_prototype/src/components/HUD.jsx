@@ -376,7 +376,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
     goldSession, goldTotal, recentMilestone,
     newlyUnlockedWeaponIds, levelUpChoiceSerial,
     escapePortalActive, matildaSpawned, bossBonus,
-    clearMilestone, applyUpgrade, resumeFromLevelup,
+    clearMilestone, applyUpgrade, cheatAcquireWeapon, resumeFromLevelup,
     resetGame, togglePause, resumeGame, quitPausedRun, spawnMatilda,
   } = useGameStore(useShallow((s) => ({
     player:               s.player,
@@ -396,6 +396,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
     bossBonus:            s.bossBonus,
     clearMilestone:       s.clearMilestone,
     applyUpgrade:         s.applyUpgrade,
+    cheatAcquireWeapon:   s.cheatAcquireWeapon,
     resumeFromLevelup:    s.resumeFromLevelup,
     resetGame:            s.resetGame,
     togglePause:          s.togglePause,
@@ -424,6 +425,11 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
   const isGameover = phase === 'gameover'
   const [gameoverModalReady, setGameoverModalReady] = useState(false)
   const [isTitleReturnConfirmOpen, setIsTitleReturnConfirmOpen] = useState(false)
+  const [weaponCheatOpen, setWeaponCheatOpen] = useState(false)
+  const weaponCheatItems = useMemo(
+    () => Object.entries(WEAPON_CATALOG).map(([id, entry]) => ({ id, label: entry.label, icon: WEAPON_KEY_TO_ICON[id] })),
+    [],
+  )
 
   // 종료 화면 "다음 해금 가능 무기" 미리보기 — minLevel이 가장 낮은 미해금 무기 1개.
   const nextUnlock = useMemo(() => getNextUnlockPreview(phase, weapons), [phase, weapons])
@@ -513,6 +519,10 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
   const confirmTitleReturn = () => {
     if (!quitPausedRun()) return
     onGoToTitle?.()
+  }
+
+  const handleCheatAcquireWeapon = (id) => {
+    if (cheatAcquireWeapon(id)) emitSfx({ id: 'buttonClick' })
   }
 
   // CSS 키프레임 주입. 최초 1회만 추가한다.
@@ -638,6 +648,32 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
           <button type="button" style={styles.matildaBtn} onClick={() => { joystickDir.x = 0; joystickDir.z = 0; joystickDir.active = false; spawnMatilda() }} title="마틸다 소환">
             M
           </button>
+          <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => setWeaponCheatOpen((open) => !open)} aria-label="무기 치트" title="무기 치트">
+            W
+          </button>
+        </div>
+      )}
+
+      {weaponCheatOpen && (phase === 'playing' || phase === 'paused') && (
+        <div data-testid="weapon-cheat-panel" style={styles.weaponCheatPanel}>
+          <div style={styles.weaponCheatTitle}>모든 무기</div>
+          <div style={styles.weaponCheatGrid}>
+            {weaponCheatItems.map(({ id, label, icon }) => {
+              const active = !!weapons[id]?.active
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  style={{ ...styles.weaponCheatItem, opacity: active ? 0.58 : 1 }}
+                  onClick={() => handleCheatAcquireWeapon(id)}
+                  disabled={active}
+                >
+                  <UpgradeIcon type={icon} />
+                  <span style={styles.weaponCheatLabel}>{label}</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
       )}
 
@@ -702,11 +738,11 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
                 </div>
               </div>
             )}
-            <div data-testid="result-primary-actions" style={styles.modalButtons}>
-              <button style={styles.titleBtn} onClick={onGoToTitle}>타이틀로</button>
-              {onGoToRanking && <button style={styles.rankingBtn} onClick={onGoToRanking}>🏆 랭킹</button>}
-              <button style={styles.shopBtn} onClick={onOpenCoinShop}>코인상점</button>
-              <button style={styles.restartBtn} onClick={() => resetGame(currentStageId)}>다시 시작</button>
+            <div data-testid="result-primary-actions" style={styles.resultButtons}>
+              {onGoToRanking && <button style={{ ...styles.rankingBtn, ...styles.resultActionBtn }} onClick={onGoToRanking}>🏆 랭킹</button>}
+              <button style={{ ...styles.titleBtn, ...styles.resultActionBtn }} onClick={onGoToTitle}>타이틀로</button>
+              <button style={{ ...styles.shopBtn, ...styles.resultActionBtn }} onClick={onOpenCoinShop}>코인상점</button>
+              <button style={{ ...styles.restartBtn, ...styles.resultActionBtn }} onClick={() => resetGame(currentStageId)}>다시 시작</button>
             </div>
           </div>
           {resultDevTools}
@@ -792,16 +828,16 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking }) {
                 </div>
               </div>
             )}
-            <div data-testid="result-primary-actions" style={styles.modalButtons}>
+            <div data-testid="result-primary-actions" style={styles.resultButtons}>
               {nextStageId && (
                 <button style={styles.nextStageBtn} onClick={() => resetGame(nextStageId)}>
                   다음 스테이지로
                 </button>
               )}
-              <button style={styles.titleBtn} onClick={onGoToTitle}>타이틀로</button>
-              {onGoToRanking && <button style={styles.rankingBtn} onClick={onGoToRanking}>🏆 랭킹</button>}
-              <button style={styles.shopBtn} onClick={onOpenCoinShop}>코인상점</button>
-              <button style={styles.restartBtn} onClick={() => resetGame(currentStageId)}>다시 시작</button>
+              {onGoToRanking && <button style={{ ...styles.rankingBtn, ...styles.resultActionBtn }} onClick={onGoToRanking}>🏆 랭킹</button>}
+              <button style={{ ...styles.titleBtn, ...styles.resultActionBtn }} onClick={onGoToTitle}>타이틀로</button>
+              <button style={{ ...styles.shopBtn, ...styles.resultActionBtn }} onClick={onOpenCoinShop}>코인상점</button>
+              <button style={{ ...styles.restartBtn, ...styles.resultActionBtn }} onClick={() => resetGame(currentStageId)}>다시 시작</button>
             </div>
           </div>
           {resultDevTools}
@@ -1480,6 +1516,68 @@ const styles = {
     cursor: 'pointer',
     boxShadow: uiShadows.pressSmall,
   },
+  weaponCheatToggleBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    border: uiBorders.strong,
+    background: uiPalette.paper,
+    color: uiPalette.ink,
+    fontSize: 18,
+    fontWeight: uiType.weightHeavy,
+    lineHeight: '36px',
+    textAlign: 'center',
+    pointerEvents: 'auto',
+    cursor: 'pointer',
+    boxShadow: uiShadows.pressSmall,
+  },
+  weaponCheatPanel: {
+    position: 'absolute',
+    top: 62,
+    left: 14,
+    width: 302,
+    maxHeight: '64vh',
+    padding: 10,
+    overflowY: 'auto',
+    background: 'rgba(30, 24, 38, 0.96)',
+    border: uiBorders.strong,
+    borderRadius: 8,
+    boxShadow: uiShadows.press,
+    pointerEvents: 'auto',
+    zIndex: 20,
+  },
+  weaponCheatTitle: {
+    color: uiPalette.paperLight,
+    fontSize: 14,
+    fontWeight: uiType.weightHeavy,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  weaponCheatGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: 8,
+  },
+  weaponCheatItem: {
+    ...schoolButton('paper'),
+    minWidth: 0,
+    minHeight: 96,
+    padding: '7px 4px',
+    color: uiPalette.ink,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap: 2,
+    cursor: 'pointer',
+  },
+  weaponCheatLabel: {
+    fontSize: 10,
+    fontWeight: uiType.weightHeavy,
+    lineHeight: 1.15,
+    wordBreak: 'keep-all',
+    overflowWrap: 'anywhere',
+  },
   nextStageBtn: {
     ...schoolButton('primary'),
     fontSize: 18,
@@ -1506,6 +1604,17 @@ const styles = {
   modalButtons: {
     display: 'flex', gap: 10, justifyContent: 'center', alignItems: 'center',
     flexWrap: 'wrap',
+  },
+  resultButtons: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  resultActionBtn: {
+    width: 136,
+    textAlign: 'center',
   },
   resultDevTools: {
     position: 'absolute',

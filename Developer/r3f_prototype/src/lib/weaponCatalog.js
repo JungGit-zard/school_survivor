@@ -49,7 +49,7 @@ export const WEAPON_CATALOG = {
     // zoneRadius 1.4 = E01(녹색좀비) 9마리 3×3 밀집 대형(간격 ~0.8, 한 변 ~2.8) 커버.
     // zoneDurationMs: 1레벨 5초, 레벨업마다 +1초 (upgrades.js flask 효과의 bonus).
     // zoneTickDamage: 연필 레벨1 데미지 — 카탈로그 선언 직후 pencilThrow.base.damage 주입.
-    base: { damage: 7.5, cooldown: 2800, radius: 1.6, range: 2, zoneRadius: 1.4, zoneDurationMs: 5000 },
+    base: { damage: 7.5, cooldown: 8400, radius: 1.6, range: 2, zoneRadius: 1.4, zoneDurationMs: 5000 },
     unlockConditions: STARTER,
     minLevelToAppear: 4,
   },
@@ -171,7 +171,7 @@ export const WEAPON_CATALOG = {
     // - 빛 범위 1.9×1.9 = E01(녹색좀비) 2마리 깊이 × 2마리 폭 (간격 ~0.8 밀집 기준).
     // - damage: 연필 레벨1의 1.5배 — 카탈로그 선언 직후 주입.
     // - cooldown 8000은 점등 시작 기준: Lv1 3초 점등/5초 소등 → Lv5 7초 점등/1초 소등.
-    base: { damage: 9, cooldown: 8000, lastFired: 0, durationMs: 3000, hitIntervalMs: 1000, lightLength: 1.9, lightWidth: 1.9 },
+    base: { damage: 9, cooldown: 8000, lastFired: 0, durationMs: 3000, hitIntervalMs: 1000, lightLength: 2.6, lightWidth: 1.8, lightBaseWidth: 0.35 },
     unlockConditions: [
       { type: 'stage1Clears', value: 1 },
       { type: 'totalRuns', value: 5 },

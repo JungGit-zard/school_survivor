@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
 import {
   getEliteBonusTextbookXp,
   getWavePhasesForStage,
@@ -24,6 +25,10 @@ describe('elite bonus rewards', () => {
 })
 
 describe('stage 1 E06 spawn pressure', () => {
+  it('sets the stage 1 boss visual scale to two thirds of the previous size', () => {
+    expect(ENEMY_STATS.B01.scale).toBe(2)
+  })
+
   it('keeps the late giant zombie wave at five percent pressure', () => {
     const giantPhase = WAVE_PHASES.find((phase) => phase.start === 168)
 
@@ -151,6 +156,27 @@ describe('enemy death visuals', () => {
       })
       expect(entry).not.toHaveProperty('deathStyleMix')
     })
+  })
+
+  it('passes through a forced shatter style for explosive weapon kills', () => {
+    const entry = createDeathCollapseEntry(99, {
+      type: 'E01',
+      pos: [1, 0.2, 2],
+      visualScale: 0.5,
+      intensity: 'strong',
+      styleOverride: 'shatter5',
+    })
+
+    expect(entry.styleOverride).toBe('shatter5')
+  })
+})
+
+describe('Matilda spawn audio', () => {
+  it('triggers Matilda spawn without pitch-shifting the old audio file', () => {
+    const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain("emitSfx({ id: 'matildaSpawn' })")
+    expect(source).not.toContain("id: 'matildaSpawn', rate")
   })
 })
 

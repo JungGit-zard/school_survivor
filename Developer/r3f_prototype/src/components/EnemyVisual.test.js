@@ -1,8 +1,15 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { CHARGE_CUE_LABEL, CHARGE_CUE_LAYOUT, ENEMY_STATS } from './Enemy.jsx'
+import { CHARGE_CUE_LABEL, CHARGE_CUE_LAYOUT, ENEMY_SIZE_MULTIPLIER, ENEMY_STATS, getBodyContactDistance, getChargeHitDistance } from './Enemy.jsx'
 
 describe('Enemy charge warning cue', () => {
+  it('only lets Matilda deal charge damage at the normal body contact distance', () => {
+    const stats = { contactDist: 0.36, scale: 3 }
+
+    expect(getChargeHitDistance(stats, true)).toBeCloseTo(getBodyContactDistance(stats))
+    expect(getChargeHitDistance(stats, false)).toBeCloseTo(stats.contactDist * ENEMY_SIZE_MULTIPLIER * 1.5)
+  })
+
   it('keeps E05 and B01 charge warning readable with a non-HTML 3D toon speech bubble', () => {
     expect(ENEMY_STATS.E05.charger).toBe(true)
     expect(ENEMY_STATS.B01.charger).toBe(true)

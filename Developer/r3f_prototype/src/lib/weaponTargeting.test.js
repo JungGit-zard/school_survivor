@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { enemyBodies, playerPos } from './refs.js'
-import { applyRadialDamage, findClosestEnemy, isInForwardBox, applyForwardBoxDamage } from './weaponTargeting.js'
+import { applyRadialDamage, findClosestEnemy, isInForwardBox, applyForwardBoxDamage, isInForwardCone, applyForwardConeDamage } from './weaponTargeting.js'
 
 function fakeEnemy(x, z, { dead = false } = {}) {
   return {
@@ -13,6 +13,37 @@ function fakeEnemy(x, z, { dead = false } = {}) {
 afterEach(() => {
   enemyBodies.clear()
   playerPos.set(0, 0, 0)
+})
+
+describe('isInForwardCone / applyForwardConeDamage (student lantern)', () => {
+  it('widens from the player toward the 12 o clock direction', () => {
+    const cone = { length: 5.2, width: 3.6, baseWidth: 0.35 }
+    const origin = { originX: 0, originZ: 0, dirX: 0, dirZ: 1 }
+
+    expect(isInForwardCone(origin, { x: 0, z: 4.2 }, cone)).toBe(true)
+    expect(isInForwardCone(origin, { x: 1.45, z: 4.2 }, cone)).toBe(true)
+    expect(isInForwardCone(origin, { x: 1.2, z: 0.4 }, cone)).toBe(false)
+    expect(isInForwardCone(origin, { x: 0, z: -0.2 }, cone)).toBe(false)
+  })
+
+  it('damages enemies inside the lantern cone without hitting near-side enemies outside the beam', () => {
+    const center = fakeEnemy(0, 3.8)
+    const farSide = fakeEnemy(1.2, 3.5)
+    const nearSide = fakeEnemy(1.2, 0.4)
+    enemyBodies.set('center', center)
+    enemyBodies.set('farSide', farSide)
+    enemyBodies.set('nearSide', nearSide)
+
+    const hits = applyForwardConeDamage({
+      originX: 0, originZ: 0, dirX: 0, dirZ: 1,
+      length: 5.2, width: 3.6, baseWidth: 0.35, damage: 9,
+    })
+
+    expect(hits).toBe(2)
+    expect(center._enemyHit).toHaveBeenCalledWith(9, expect.objectContaining({ knockback: 0 }))
+    expect(farSide._enemyHit).toHaveBeenCalledWith(9, expect.objectContaining({ knockback: 0 }))
+    expect(nearSide._enemyHit).not.toHaveBeenCalled()
+  })
 })
 
 describe('applyRadialDamage', () => {

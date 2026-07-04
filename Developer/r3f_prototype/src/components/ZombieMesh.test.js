@@ -4,11 +4,11 @@ import { ENEMY_STATS } from './Enemy.jsx'
 import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS } from './ZombieMesh.jsx'
 
 describe('Stage 1 boss visual reference', () => {
-  it('defines B01 as the blocky green suit zombie boss without changing gameplay stats', () => {
+  it('defines B01 as the blocky green suit zombie boss at the current gameplay scale', () => {
     expect(ENEMY_STATS.B01).toMatchObject({
       hp: 1150,
       speed: 0.475,
-      scale: 3,
+      scale: 2,
       charger: true,
     })
 

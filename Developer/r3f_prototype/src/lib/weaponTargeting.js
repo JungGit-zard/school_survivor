@@ -75,6 +75,36 @@ export function applyForwardBoxDamage({ originX, originZ, dirX, dirZ, length, wi
   return hits
 }
 
+export function isInForwardCone({ originX, originZ, dirX, dirZ }, { x, z }, { length, width, baseWidth = 0 }) {
+  const len = Math.hypot(dirX, dirZ)
+  if (!Number.isFinite(length) || !Number.isFinite(width) || length <= 0 || width <= 0 || len <= 0) return false
+  const nx = dirX / len
+  const nz = dirZ / len
+  const rx = x - originX
+  const rz = z - originZ
+  const fwd = rx * nx + rz * nz
+  if (fwd < 0 || fwd > length) return false
+  const lat = Math.abs(rx * nz - rz * nx)
+  const halfWidth = baseWidth / 2 + ((width - baseWidth) / 2) * (fwd / length)
+  return lat <= halfWidth
+}
+
+export function applyForwardConeDamage({ originX, originZ, dirX, dirZ, length, width, baseWidth, damage }) {
+  if (!Number.isFinite(damage) || !Number.isFinite(length) || length <= 0) return 0
+  let hits = 0
+  enemyBodies.forEach((rb, enemyId) => {
+    if (!rb?._enemyHit || rb._enemyDead) {
+      enemyBodies.delete(enemyId)
+      return
+    }
+    const t = rb.translation()
+    if (!isInForwardCone({ originX, originZ, dirX, dirZ }, { x: t.x, z: t.z }, { length, width, baseWidth })) return
+    hits += 1
+    rb._enemyHit(damage, { source: { x: originX, z: originZ }, knockback: 0, knockbackMs: 0 })
+  })
+  return hits
+}
+
 // 스플래시 무기용: maxRange 안에서 radius 클러스터 점수가 가장 높은 적을 고른다.
 export function findBestSplashTarget(maxRange, radius) {
   let best = null

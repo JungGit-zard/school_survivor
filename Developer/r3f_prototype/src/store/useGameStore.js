@@ -418,6 +418,21 @@ export const useGameStore = create(
       }))
     },
 
+    cheatAcquireWeapon: (id) => {
+      if (!WEAPON_CATALOG[id]) return false
+      set((s) => {
+        const wpn = s.weapons[id]
+        if (!wpn) return {}
+        return {
+          weapons: {
+            ...s.weapons,
+            [id]: { ...wpn, active: true, level: Math.max(1, wpn.level ?? 0) },
+          },
+        }
+      })
+      return true
+    },
+
     // 보스
     spawnBoss: () => set({ bossSpawned: true }),
 

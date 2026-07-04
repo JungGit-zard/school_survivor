@@ -67,7 +67,7 @@ export function FlaskModel() {
   )
 }
 
-function FlaskProjectile({ id, start, target, radius, damage, onExplode }) {
+function FlaskProjectile({ id, start, target, radius, damage, zoneRadius, zoneDurationMs, zoneTickDamage, onExplode }) {
   const groupRef = useRef(null)
   const ageRef = useRef(0)
   const explodedRef = useRef(false)
@@ -90,7 +90,7 @@ function FlaskProjectile({ id, start, target, radius, damage, onExplode }) {
 
     if (t >= 1) {
       explodedRef.current = true
-      onExplode(id, { x: target.x, z: target.z, radius, damage })
+      onExplode(id, { x: target.x, z: target.z, radius, damage, zoneRadius, zoneDurationMs, zoneTickDamage })
       return
     }
   })

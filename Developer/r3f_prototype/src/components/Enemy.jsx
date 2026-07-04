@@ -35,6 +35,19 @@ function _applyRotation(groupRef, dx, dz, turnRate = 0.12) {
 }
 
 export const ENEMY_SIZE_MULTIPLIER = 4 / 3
+const BASE_COL = [0.14, 0.26, 0.10]
+const PLAYER_CONTACT_HALF_EXTENT = 0.136
+
+export function getBodyContactDistance(stats) {
+  const enemyHalfExtent = Math.max(BASE_COL[0], BASE_COL[2]) * (stats.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
+  return enemyHalfExtent + PLAYER_CONTACT_HALF_EXTENT
+}
+
+export function getChargeHitDistance(stats, isMatilda = false) {
+  return isMatilda
+    ? getBodyContactDistance(stats)
+    : stats.contactDist * ENEMY_SIZE_MULTIPLIER * 1.5
+}
 
 // XP 媛믪? 援먭낵??30% ?쒕엻瑜좎쓣 蹂댁젙????3.3諛곕줈 梨낆젙 (Planner/B.寃뚯엫湲고쉷,諛몃윴??援ы쁽/B-1 罹먮┃???깆옣,?λ젰移??낃렇?덉씠??援ъ“ 援ы쁽/Rewards_Drops/dual_drop_system_2026-05-08.md 짠7-2).
 export const ENEMY_STATS = {
@@ -48,9 +61,9 @@ export const ENEMY_STATS = {
          charger: true, chargeSpeed: 1.7, warnDist: 4.5, warnDuration: 700, stunDuration: 1000, chargeDuration: 1200 },
   E06: { hp: 320,  speed: 0.6,  damage: 20, scale: 1.60, xp: 56, contactDist: 0.42 },
   // B01 1?ㅽ뀒?댁?: 遺梨꾧섦 ?ъ궗泥??⑦꽩 ?쒓굅. 異붽꺽/?뚯쭊留??ъ슜 (Bang_Rules 2026-05-09 遺濡?.
-  // contactDist 0.36: ?뚯쭊 ?묒큺 = 0.36 횞 4/3(?ш린諛곗닔) 횞 1.5 ??0.72 ??蹂몄껜 諛섑룺(0.14횞cs=0.56) + ?뚮젅?댁뼱 諛섑룺(0.136).
+  // contactDist 0.36: regular charge keeps the 1.5x grace distance; Matilda charge uses exact body contact only.
   // ?댁쟾 0.80? ?묒큺 諛섍꼍??~1.6?대씪 蹂몄껜 ?명삎蹂대떎 ?⑥뵮 而ㅼ꽌 "???우븘???쇨꺽"?섎뒗 臾몄젣媛 ?덉뿀??
-  B01: { hp: 1150, speed: 0.475, damage: 22, scale: 3.00, xp: 0,  contactDist: 0.36,
+  B01: { hp: 1150, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
 }
 
@@ -64,8 +77,6 @@ export function resolveRangedEnemyVelocity({ dirX, dirZ, dist, minDist, preferDi
   const side = strafeSign >= 0 ? 1 : -1
   return { x: -nz * speed * 0.75 * side, z: nx * speed * 0.75 * side }
 }
-
-const BASE_COL = [0.14, 0.26, 0.10]
 
 function deathSfxId(type, isMatilda) {
   if (isMatilda) return 'matildaDeath'
@@ -325,6 +336,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           type,
           visualScale: cs * 0.333,
           intensity,
+          styleOverride: impact.deathStyleOverride,
           facingY: groupRef.current?.rotation.y ?? 0,
         })
       }
@@ -459,7 +471,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         rb.current.setLinvel(_vel, true)
         updateRotation(cd.x, cd.z, 1)
 
-        if (dist < stats.contactDist * ENEMY_SIZE_MULTIPLIER * 1.5) {
+        if (dist < getChargeHitDistance(stats, isMatilda)) {
           damagePlayer(stats.damage)
           chargeState.current = 'stun'
           stateTimer.current = now
