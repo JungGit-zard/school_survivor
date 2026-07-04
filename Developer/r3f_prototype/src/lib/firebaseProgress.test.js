@@ -41,6 +41,7 @@ describe('firebase progress cloud sync helpers', () => {
   it('normalizes the Google user profile stored under the user path', () => {
     saveNicknameForUser({ uid: 'uid-1' }, '생존왕')
 
+    // 개인정보 최소화: email/photoURL은 입력에 있어도 프로필 결과에서 제외된다.
     expect(buildCloudUserProfile({
       uid: 'uid-1',
       displayName: 'Tester',
@@ -49,8 +50,6 @@ describe('firebase progress cloud sync helpers', () => {
     })).toEqual({
       uid: 'uid-1',
       displayName: 'Tester',
-      email: 'tester@example.com',
-      photoURL: 'https://example.com/me.png',
       nickname: '생존왕',
     })
   })

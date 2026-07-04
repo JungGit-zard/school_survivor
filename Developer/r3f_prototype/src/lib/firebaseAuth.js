@@ -73,6 +73,7 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
     import('firebase/auth'),
   ])
   const app = getApps().length > 0 ? getApp() : initializeApp(getFirebaseConfig(env))
+  await maybeInitAppCheck(app, env)
   const auth = authModule.getAuth(app)
   const provider = new authModule.GoogleAuthProvider()
   provider.setCustomParameters({ prompt: 'select_account' })
@@ -98,6 +99,21 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
       }
     },
   }
+}
+
+// App Check(reCAPTCHA v3)은 site key가 있을 때만 1회 초기화한다.
+// 키가 없으면 완전 no-op이라 dev/CI에서 firebase/app-check를 불러오지 않는다.
+let appCheckInitialized = false
+async function maybeInitAppCheck(app, env) {
+  if (appCheckInitialized) return
+  const siteKey = readEnv(env, 'VITE_FIREBASE_APPCHECK_KEY')
+  if (!siteKey) return
+  const { initializeAppCheck, ReCaptchaV3Provider } = await import('firebase/app-check')
+  initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider(siteKey),
+    isTokenAutoRefreshEnabled: true,
+  })
+  appCheckInitialized = true
 }
 
 async function signInWithNativeGoogle(authModule, auth) {

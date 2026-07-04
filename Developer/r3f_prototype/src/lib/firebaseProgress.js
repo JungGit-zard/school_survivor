@@ -23,11 +23,11 @@ export function getUserProgressPath(user = cloudUser) {
 
 export function buildCloudUserProfile(user = cloudUser) {
   if (!user) return null
+  // 개인정보 최소화: email/photoURL은 DB에 저장하지 않는다.
+  // UI(GoogleAccountPanel)는 live auth user에서 직접 읽으므로 영향 없음.
   return {
     uid: readString(user.uid),
     displayName: readString(user.displayName),
-    email: readString(user.email),
-    photoURL: readString(user.photoURL),
     nickname: getSavedNickname(user),
   }
 }

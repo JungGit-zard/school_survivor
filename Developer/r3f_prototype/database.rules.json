@@ -1,0 +1,56 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+
+        "schemaVersion": { ".validate": "newData.isNumber()" },
+        "updatedAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
+
+        "profile": {
+          "uid": { ".validate": "newData.isString() && newData.val() === $uid" },
+          "displayName": { ".validate": "newData.isString() && newData.val().length <= 100" },
+          "nickname": { ".validate": "newData.isString() && newData.val().length <= 100" },
+          "$other": { ".validate": false }
+        },
+
+        "progress": {
+          "goldTotal": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000000" },
+          "records": { ".validate": "newData.hasChildren() || newData.val() == null" },
+          "weaponUnlocks": { ".validate": "newData.hasChildren() || newData.val() == null" },
+          "passiveUpgrades": { ".validate": "newData.hasChildren() || newData.val() == null" },
+          "titleSettings": { ".validate": "newData.hasChildren() || newData.val() == null" }
+        }
+      }
+    },
+
+    "rankings": {
+      "$seasonId": {
+        "entries": {
+          ".read": "auth != null",
+          ".indexOn": ["score"],
+
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && (!data.exists() || newData.child('score').val() >= data.child('score').val())",
+
+            "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
+            "uid": { ".validate": "newData.isString() && newData.val() === $uid" },
+            "displayName": { ".validate": "newData.isString() && newData.val().length <= 100" },
+            "nickname": { ".validate": "newData.isString() && newData.val().length <= 100" },
+            "stageId": { ".validate": "newData.isString() && newData.val().length <= 40" },
+            "stageLabel": { ".validate": "newData.isString() && newData.val().length <= 100" },
+            "survivalSeconds": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "cleared": { ".validate": "newData.isBoolean()" },
+            "kills": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "submittedAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
+            "$other": { ".validate": false }
+          }
+        }
+      }
+    }
+  }
+}
