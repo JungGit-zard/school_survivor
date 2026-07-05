@@ -81,4 +81,10 @@ describe('user ranking helpers', () => {
     expect(merged).toHaveLength(2)
     expect(merged.find((entry) => entry.uid === 'uid-1')).toMatchObject({ score: 180 })
   })
+
+  it('accepts cloud aggregate rows that only carry timeMs', () => {
+    const rows = createRankingRows([{ uid: 'uid-1', displayName: '합산왕', score: 500, timeMs: 120000 }], 1)
+
+    expect(rows[0]).toMatchObject({ displayName: '합산왕', score: 500, survivalSeconds: 120, empty: false })
+  })
 })

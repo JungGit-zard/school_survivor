@@ -19,6 +19,10 @@ describe('elite bonus rewards', () => {
     expect(getEliteBonusTextbookXp('B01', 0)).toBe(40)
   })
 
+  it('B02 stage 2 boss uses the same boss reward bucket', () => {
+    expect(getEliteBonusTextbookXp('B02', 0)).toBe(40)
+  })
+
   it('E06 bonus textbooks keep the existing enemy XP value', () => {
     expect(getEliteBonusTextbookXp('E06', 40)).toBe(40)
   })
@@ -27,6 +31,10 @@ describe('elite bonus rewards', () => {
 describe('stage 1 E06 spawn pressure', () => {
   it('sets the stage 1 boss visual scale to two thirds of the previous size', () => {
     expect(ENEMY_STATS.B01.scale).toBe(2)
+  })
+
+  it('keeps the stage 2 boss at the same gameplay scale as stage 1 boss', () => {
+    expect(ENEMY_STATS.B02.scale).toBe(2)
   })
 
   it('keeps the late giant zombie wave at five percent pressure', () => {
@@ -72,7 +80,8 @@ describe('late zombie spawn relief', () => {
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
     expect(getBurstEventsForStage('stage2').find((event) => event.sec === 96 && event.type === 'E04').count).toBe(1)
     expect(getBurstEventsForStage('stage2').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
-    expect(getBurstEventsForStage('stage2').find((event) => event.sec === 192 && event.type === 'B01').count).toBe(1)
+    expect(getBurstEventsForStage('stage2').find((event) => event.sec === 192 && event.type === 'B02').count).toBe(1)
+    expect(getBurstEventsForStage('stage2').some((event) => event.sec === 192 && event.type === 'B01')).toBe(false)
   })
 })
 

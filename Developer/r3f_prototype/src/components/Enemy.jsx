@@ -67,6 +67,8 @@ export const ENEMY_STATS = {
   // ?댁쟾 0.80? ?묒큺 諛섍꼍??~1.6?대씪 蹂몄껜 ?명삎蹂대떎 ?⑥뵮 而ㅼ꽌 "???우븘???쇨꺽"?섎뒗 臾몄젣媛 ?덉뿀??
   B01: { hp: 1150, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
+  B02: { hp: 1150, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
+         charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
 }
 
 // 肄쒕씪?대뜑 湲곕낯 諛섑겕湲?(scale=1 湲곗?)
@@ -82,7 +84,7 @@ export function resolveRangedEnemyVelocity({ dirX, dirZ, dist, minDist, preferDi
 
 function deathSfxId(type, isMatilda) {
   if (isMatilda) return 'matildaDeath'
-  if (type === 'B01') return 'bossDeath'
+  if (type === 'B01' || type === 'B02') return 'bossDeath'
   if (type === 'E06' || type === 'E02') return 'zombieHeavyDeath'
   return 'zombieDeath'
 }
@@ -359,7 +361,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         store.recordKill()
         emitSfx({ id: deathSfxId(type, isMatilda) })
         // 留덊떥?ㅻ뒗 B01 鍮꾩＜?쇱쓣 ?곗?留??대━??泥섎━?섏? ?딅뒗??
-        if (type === 'B01' && !isMatilda) {
+        if ((type === 'B01' || type === 'B02') && !isMatilda) {
           store.recordBossKill()
           store.clearStageWithBossBonus()
         }

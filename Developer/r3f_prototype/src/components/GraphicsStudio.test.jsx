@@ -4,8 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import GraphicsStudio from './GraphicsStudio.jsx'
-import { loadStudioTunings, saveStudioTunings } from '../lib/graphicsStudioConfig.js'
+import { loadStageBossPreview, loadStudioTunings, saveStudioTunings } from '../lib/graphicsStudioConfig.js'
 import { loadSfxTunings } from '../lib/sfxRegistry.js'
+
+vi.mock('@react-three/fiber', () => ({
+  Canvas: () => <div data-testid="stage-boss-preview-canvas" />,
+}))
 
 vi.mock('./GraphicsStudioPreview.jsx', () => ({
   default: ({ selectedItem, tuning, focusedPartTuning, onPartFocus }) => (
@@ -49,7 +53,9 @@ describe('GraphicsStudio', () => {
     expect(container.textContent).toContain('Matilda')
     expect(container.textContent).toContain('Weapon Model')
     expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player')
+    expect(container.querySelector('[data-testid="studio-stage-boss-preview"]')).toBeTruthy()
     expect(container.querySelector('input[name="scale"]')).toBeTruthy()
+    expect(container.querySelector('input[name="stageBossPreviewZoom"]')).toBeTruthy()
     expect(container.querySelector('input[name="scaleX"]')).toBeTruthy()
     expect(container.querySelector('input[name="scaleY"]')).toBeTruthy()
     expect(container.querySelector('input[name="scaleZ"]')).toBeTruthy()
@@ -145,6 +151,92 @@ describe('GraphicsStudio', () => {
         tunings: expect.objectContaining({
           player: expect.objectContaining({ scale: 1.55 }),
         }),
+      }),
+      'http://localhost:5173',
+    )
+  })
+
+  it('uses Zombie B02 for the stage boss preview and game sync when B02 is selected', () => {
+    const postMessage = vi.fn()
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false, postMessage })
+
+    act(() => {
+      root.render(<GraphicsStudio />)
+    })
+
+    act(() => {
+      Array.from(container.querySelectorAll('button'))
+        .find((button) => button.textContent.includes('Zombie B02'))
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(container.querySelector('[data-testid="studio-stage-boss-preview"]').dataset.bossType).toBe('B02')
+
+    const gameUrl = container.querySelector('input[name="gameUrl"]')
+    act(() => {
+      gameUrl.value = 'http://localhost:5173/'
+      gameUrl.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    const connect = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent === 'Connect')
+    act(() => {
+      connect.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    const scale = container.querySelector('input[name="scale"]')
+    act(() => {
+      scale.value = '1.62'
+      scale.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    expect(loadStudioTunings()['zombie-b02'].scale).toBe(1.62)
+    expect(postMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        type: 'escape-zombie-school.studioGameSync.v1',
+        tunings: expect.objectContaining({
+          'zombie-b02': expect.objectContaining({ scale: 1.62 }),
+        }),
+      }),
+      'http://localhost:5173',
+    )
+  })
+
+  it('applies stage boss preview zoom and pan to the connected game immediately', () => {
+    const postMessage = vi.fn()
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false, postMessage })
+
+    act(() => {
+      root.render(<GraphicsStudio />)
+    })
+
+    const gameUrl = container.querySelector('input[name="gameUrl"]')
+    act(() => {
+      gameUrl.value = 'http://localhost:5173/'
+      gameUrl.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    const connect = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent === 'Connect')
+    act(() => {
+      connect.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    const zoom = container.querySelector('input[name="stageBossPreviewZoomValue"]')
+    const panX = container.querySelector('input[name="stageBossPreviewPanXValue"]')
+    act(() => {
+      zoom.value = '132'
+      zoom.dispatchEvent(new Event('input', { bubbles: true }))
+      panX.value = '0.45'
+      panX.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    expect(loadStageBossPreview()).toMatchObject({ zoom: 132, panX: 0.45 })
+    expect(container.querySelector('[data-testid="studio-stage-boss-preview"]').dataset.zoom).toBe('132')
+    expect(postMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        type: 'escape-zombie-school.studioGameSync.v1',
+        stageBossPreview: expect.objectContaining({ zoom: 132, panX: 0.45 }),
       }),
       'http://localhost:5173',
     )

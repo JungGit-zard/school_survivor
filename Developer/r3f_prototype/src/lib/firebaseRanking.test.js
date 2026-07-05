@@ -9,9 +9,10 @@ describe('firebase ranking storage contract', () => {
     expect(source).toContain("const WINDOWS = ['daily', 'weekly']")
   })
 
-  it('keeps only the best score per uid (monotonic best-only write)', () => {
-    expect(source).toContain('const existing = await mod.get(entryRef)')
-    expect(source).toContain('if (existing.exists() && readScore(existing.val()?.score) >= nextScore) return')
+  it('accumulates each submitted score per uid with a transaction', () => {
+    expect(source).toContain('mod.runTransaction(entryRef')
+    expect(source).toContain('score: readScore(current.score) + nextScore')
+    expect(source).toContain('timeMs: readNonNegInt(current.timeMs) + nextTimeMs')
     expect(source).toContain('uid: user.uid')
     expect(source).toContain('displayName: pickDisplayName(user)')
     expect(source).not.toContain('mod.push(')

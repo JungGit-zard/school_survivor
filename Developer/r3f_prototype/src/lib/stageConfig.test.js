@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import {
   DEFAULT_STAGE_ID,
   getNextStageId,
+  getStageBossType,
   getStageConfig,
   getStageDurationSec,
   isStageUnlocked,
@@ -21,6 +22,7 @@ describe('stage configuration registry', () => {
       id: 'stage1',
       label: 'Stage 1',
       clearRecordKey: 'stage1Clears',
+      bossType: 'B01',
     })
   })
 
@@ -32,7 +34,9 @@ describe('stage configuration registry', () => {
       clearRecordKey: 'stage2Clears',
       bestRecordKey: 'stage2BestSurvivalSec',
       e04IntroSec: 72,
+      bossType: 'B02',
     })
+    expect(getStageBossType('stage2')).toBe('B02')
   })
 
   it('unlocks stage 2 after one stage 1 clear or three 180 second stage 1 runs', () => {

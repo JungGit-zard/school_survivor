@@ -120,7 +120,7 @@ function normalizeRankingEntry(entry, policy) {
   if (!entry || typeof entry !== 'object') return null
   const stageId = readStageId(entry.stageId, entry.stageLabel)
   const stage = getStageConfig(stageId)
-  const survivalSeconds = readScore(entry.survivalSeconds ?? entry.scoreSec ?? entry.bestSurvivalSeconds)
+  const survivalSeconds = readScore(entry.survivalSeconds ?? entry.scoreSec ?? entry.bestSurvivalSeconds ?? Math.floor(readScore(entry.timeMs) / 1000))
   if (survivalSeconds <= 0) return null
 
   const cleared = entry.cleared === true || survivalSeconds >= stage.durationSec

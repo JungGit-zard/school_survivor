@@ -3,29 +3,18 @@ import { fetchStageRanking, getActiveSeason } from '../lib/firebaseRanking.js'
 import { getStageConfig } from '../lib/stageConfig.js'
 import { formatRankScore, formatSurvivalTime } from '../lib/userRanking.js'
 
-const WINDOWS = [
-  { id: 'daily', label: '일일랭킹' },
-  { id: 'weekly', label: '주간랭킹' },
-]
-
 export default function StageRanking({ stageId = 'stage1', onBack }) {
   const stage = useMemo(() => getStageConfig(stageId), [stageId])
   const season = useMemo(() => getActiveSeason(), [])
-  const [activeWindow, setActiveWindow] = useState('daily')
-  const [boards, setBoards] = useState({ daily: [], weekly: [] })
+  const [rows, setRows] = useState([])
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([
-      fetchStageRanking(stageId, 'daily', { limit: 100 }).catch(() => []),
-      fetchStageRanking(stageId, 'weekly', { limit: 100 }).catch(() => []),
-    ]).then(([daily, weekly]) => {
-      if (!cancelled) setBoards({ daily, weekly })
+    fetchStageRanking(stageId, 'daily', { limit: 100 }).catch(() => []).then((daily) => {
+      if (!cancelled) setRows(daily)
     })
     return () => { cancelled = true }
   }, [stageId])
-
-  const activeRows = boards[activeWindow] ?? []
 
   return (
     <div style={styles.root}>
@@ -38,28 +27,14 @@ export default function StageRanking({ stageId = 'stage1', onBack }) {
       </header>
 
       <section style={styles.summary}>
-        <TopWinner label="일일 1위" entry={boards.daily[0]} />
-        <TopWinner label="주간 1위" entry={boards.weekly[0]} />
+        <TopWinner label="오늘 1위" entry={rows[0]} />
       </section>
 
-      <div style={styles.seasonLine}>{season.name}</div>
+      <div style={styles.seasonLine}>{season.name} · 한국시간 당일 00:00:01 - 23:59:59 실시간 반영</div>
 
-      <nav style={styles.tabs} aria-label="스테이지 랭킹 탭">
-        {WINDOWS.map((window) => (
-          <button
-            key={window.id}
-            type="button"
-            style={window.id === activeWindow ? styles.tabActive : styles.tab}
-            onClick={() => setActiveWindow(window.id)}
-          >
-            {window.label}
-          </button>
-        ))}
-      </nav>
-
-      <ol style={styles.list} aria-label={`${stage.label} ${WINDOWS.find((w) => w.id === activeWindow)?.label}`}>
-        {activeRows.length > 0 ? activeRows.map((entry, index) => (
-          <StageRankingRow key={entry.uid ?? `${activeWindow}-${index}`} entry={entry} rank={index + 1} />
+      <ol style={styles.list} aria-label={`${stage.label} 일일랭킹`}>
+        {rows.length > 0 ? rows.map((entry, index) => (
+          <StageRankingRow key={entry.uid ?? `daily-${index}`} entry={entry} rank={index + 1} />
         )) : (
           <li style={styles.empty}>기록 대기 중</li>
         )}
@@ -131,7 +106,7 @@ const styles = {
     boxShadow: '0 3px 0 #050209',
     cursor: 'pointer',
   },
-  summary: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 },
+  summary: { display: 'grid', gridTemplateColumns: '1fr', gap: 8 },
   winnerCard: {
     minWidth: 0,
     padding: '8px 9px',
@@ -153,30 +128,7 @@ const styles = {
     textOverflow: 'ellipsis',
   },
   winnerScore: { display: 'block', marginTop: 4, fontSize: 12, lineHeight: 1, fontWeight: 900 },
-  seasonLine: { color: '#c8c1d7', fontSize: 11, lineHeight: 1, fontWeight: 900 },
-  tabs: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 },
-  tab: {
-    minHeight: 42,
-    border: '2px solid #050209',
-    borderRadius: 8,
-    background: '#f6ead0',
-    color: '#050209',
-    fontSize: 14,
-    fontWeight: 1000,
-    boxShadow: '0 3px 0 #050209',
-    cursor: 'pointer',
-  },
-  tabActive: {
-    minHeight: 42,
-    border: '2px solid #050209',
-    borderRadius: 8,
-    background: '#f7d17e',
-    color: '#050209',
-    fontSize: 14,
-    fontWeight: 1000,
-    boxShadow: '0 3px 0 #050209',
-    cursor: 'pointer',
-  },
+  seasonLine: { color: '#c8c1d7', fontSize: 11, lineHeight: 1.25, fontWeight: 900 },
   list: {
     flex: 1,
     minHeight: 0,

@@ -6,8 +6,10 @@ import {
   GRAPHICS_STUDIO_CATEGORIES,
   ensureStudioResetBaseline,
   getStudioItemById,
+  loadStageBossPreview,
   loadStudioTunings,
   normalizeStudioTuning,
+  saveStageBossPreview,
   saveStudioTunings,
   serializeStudioSnapshot,
 } from '../lib/graphicsStudioConfig.js'
@@ -18,6 +20,7 @@ import {
   getDefaultStudioGameUrl,
   parseStudioGameUrl,
 } from '../lib/studioGameBridge.js'
+import StageBossPreview from './StageBossPreview.jsx'
 
 const categoryLabels = Object.fromEntries(GRAPHICS_STUDIO_CATEGORIES.map((category) => [category.id, category.label]))
 const UNDO_LIMIT = 10
@@ -143,9 +146,13 @@ export default function GraphicsStudio() {
   const [selectedSfxId, setSelectedSfxId] = useState(() => getSfxCatalog()[0]?.id ?? '')
   const [sfxTunings, setSfxTunings] = useState(() => loadSfxTunings())
   const [confirmedTunings, setConfirmedTunings] = useState(() => loadStudioTunings())
+  const [stageBossPreview, setStageBossPreview] = useState(() => loadStageBossPreview())
   const [resetBaseline] = useState(() => ensureStudioResetBaseline(loadStudioTunings()))
   const [applyStatus, setApplyStatus] = useState('')
   const selectedItem = getStudioItemById(selectedItemId)
+  const selectedStageBossType = selectedItem.previewKind === 'zombie' && selectedItem.zombieType?.startsWith('B')
+    ? selectedItem.zombieType
+    : 'B01'
   const [draftTuningById, setDraftTuningById] = useState(() => ({}))
   const [focusedParts, setFocusedParts] = useState([])
   const [undoStack, setUndoStack] = useState(() => [])
@@ -172,17 +179,18 @@ export default function GraphicsStudio() {
     [activeTuningId]: tuning,
   }
   const exportJson = useMemo(
-    () => serializeStudioSnapshot({ selectedItemId: selectedItem.id, tunings: exportTunings }),
-    [selectedItem.id, activeTuningId, tuning, confirmedTunings],
+    () => serializeStudioSnapshot({ selectedItemId: selectedItem.id, tunings: exportTunings, stageBossPreview }),
+    [selectedItem.id, activeTuningId, tuning, confirmedTunings, stageBossPreview],
   )
 
-  const sendGameSync = (tunings = loadStudioTunings(), nextSfxTunings = loadSfxTunings()) => {
+  const sendGameSync = (tunings = loadStudioTunings(), nextSfxTunings = loadSfxTunings(), nextStageBossPreview = loadStageBossPreview()) => {
     const target = gameWindowRef.current
     if (!target || target.closed) return
     target.postMessage({
       type: STUDIO_GAME_SYNC_MESSAGE,
       tunings,
       sfxTunings: nextSfxTunings,
+      stageBossPreview: nextStageBossPreview,
     }, gameOriginRef.current)
   }
 
@@ -226,6 +234,13 @@ export default function GraphicsStudio() {
         [activeTuningId]: nextTuning,
       }
     })
+  }
+
+  const updateStageBossPreview = (patch) => {
+    const next = saveStageBossPreview({ ...loadStageBossPreview(), ...patch })
+    setStageBossPreview(next)
+    sendGameSync(loadStudioTunings(), loadSfxTunings(), next)
+    setApplyStatus('Boss preview live')
   }
 
   useEffect(() => {
@@ -444,6 +459,22 @@ export default function GraphicsStudio() {
             ) : null}
           </div>
           <div style={styles.controls}>
+            <section style={styles.stageBossPreviewSection}>
+              <div style={styles.stageBossPreviewHeader}>
+                <span style={styles.stageBossPreviewTitle}>Stage Boss Preview</span>
+                <span style={styles.stageBossPreviewHint}>wheel zoom / drag pan</span>
+              </div>
+              <StageBossPreview
+                framing={stageBossPreview}
+                bossType={selectedStageBossType}
+                interactive
+                onChange={updateStageBossPreview}
+                testId="studio-stage-boss-preview"
+              />
+            </section>
+            <SliderRow label="Preview Zoom" name="stageBossPreviewZoom" min="50" max="180" step="1" value={stageBossPreview.zoom} onChange={(zoom) => updateStageBossPreview({ zoom })} />
+            <SliderRow label="Preview Pan X" name="stageBossPreviewPanX" min="-2" max="2" step="0.01" value={stageBossPreview.panX} onChange={(panX) => updateStageBossPreview({ panX })} />
+            <SliderRow label="Preview Pan Y" name="stageBossPreviewPanY" min="-2" max="2" step="0.01" value={stageBossPreview.panY} onChange={(panY) => updateStageBossPreview({ panY })} />
             <SliderRow label="Scale" name="scale" min="0.35" max="2.5" step="0.01" value={tuning.scale} onChange={(scale) => updateTuning({ scale })} />
             <SliderRow label="Width X" name="scaleX" min="0.35" max="2.5" step="0.01" value={tuning.scaleX} onChange={(scaleX) => updateTuning({ scaleX })} />
             <SliderRow label="Height Y" name="scaleY" min="0.35" max="2.5" step="0.01" value={tuning.scaleY} onChange={(scaleY) => updateTuning({ scaleY })} />
@@ -770,6 +801,27 @@ const styles = {
     padding: '0 14px 10px',
     display: 'grid',
     gap: 9,
+  },
+  stageBossPreviewSection: {
+    display: 'grid',
+    gap: 7,
+    paddingBottom: 6,
+    borderBottom: '1px solid #353833',
+  },
+  stageBossPreviewHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  stageBossPreviewTitle: {
+    color: '#f4eadb',
+    fontSize: 12,
+    fontWeight: 800,
+  },
+  stageBossPreviewHint: {
+    color: '#8ebc9d',
+    fontSize: 10,
   },
   controlRow: {
     display: 'grid',

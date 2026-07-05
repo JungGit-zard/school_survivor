@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { ENEMY_STATS } from './Enemy.jsx'
-import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS } from './ZombieMesh.jsx'
+import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B02_BOSS_VISUAL_PALETTE, B02_BOSS_VISUAL_PARTS } from './ZombieMesh.jsx'
 
 describe('Stage 1 boss visual reference', () => {
   it('defines B01 as the blocky green suit zombie boss at the current gameplay scale', () => {
@@ -61,5 +61,34 @@ describe('Stage 1 boss visual reference', () => {
     expect(source).not.toContain('position={[-0.23, 0.12, 0.16]}')
     expect(source).not.toContain('position={[0.24, 0.11, 0.12]}')
     expect(source).not.toContain('position={[0.03, 0.12, 0.18]}')
+  })
+})
+
+describe('Stage 2 boss visual reference', () => {
+  it('defines B02 as the female teacher zombie boss with a texture-only face', () => {
+    expect(ENEMY_STATS.B02).toMatchObject({
+      hp: 1150,
+      speed: 0.475,
+      scale: 2,
+      charger: true,
+    })
+
+    expect(B02_BOSS_VISUAL_PALETTE).toMatchObject({
+      skin: 0x8fb0d8,
+      suit: 0x111923,
+      skirt: 0x101821,
+      hair: 0x171615,
+    })
+    expect(B02_BOSS_VISUAL_PARTS).toContain('singleFaceTexturePlane')
+    expect(B02_BOSS_VISUAL_PARTS).not.toContain('modeledGlasses')
+  })
+
+  it('uses boss_02.webp for the face instead of modeling glasses and face parts', () => {
+    const source = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain("import boss02FaceUrl from '../assets/enemies/boss_02.webp'")
+    expect(source).toContain("studioPartId: 'b02-face-texture'")
+    expect(source).toContain('<Boss02FaceTexture hitFlash={hitFlash} />')
+    expect(source).not.toContain('B02_BOSS_FACE_LAYOUT')
   })
 })

@@ -8,37 +8,46 @@ import {
   buildLocalPlayerRankingEntry,
   mergeCloudEntries,
 } from '../lib/userRanking.js'
-import { fetchTopRanking, isFirebaseRankingConfigured } from '../lib/firebaseRanking.js'
+import { fetchGlobalRanking, isFirebaseRankingConfigured } from '../lib/firebaseRanking.js'
 import { getAdminRankingSeasonConfig } from '../lib/adminConfig.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 
+const WINDOWS = [
+  { id: 'daily', label: '일일랭킹', note: '한국시간 당일 00:00:01 - 23:59:59 실시간 합산' },
+  { id: 'weekly', label: '주간랭킹', note: '한국시간 월요일 00:00:01 - 일요일 23:59:59 누적 합산' },
+]
+
 export default function UserRanking({ onBack, entries }) {
   const user = useAuthStore((s) => s.user)
-  const [cloudEntries, setCloudEntries] = useState(null)
+  const [activeWindow, setActiveWindow] = useState('daily')
+  const [cloudBoards, setCloudBoards] = useState({ daily: null, weekly: null })
   const localRecords = useMemo(() => loadPlayerRecords(), [])
 
-  const { seasonId } = useMemo(() => getAdminRankingSeasonConfig(), [])
   const localEntry = useMemo(() => buildLocalPlayerRankingEntry(localRecords, user ?? {}), [localRecords, user])
   const totalRuns = localRecords.totalRuns ?? 0
   const bestScore = localEntry?.score ?? 0
 
   useEffect(() => {
     if (!isFirebaseRankingConfigured()) return
-    fetchTopRanking(seasonId)
-      .then(setCloudEntries)
-      .catch(() => {})
-  }, [seasonId])
+    Promise.all([
+      fetchGlobalRanking('daily', { limit: 100 }).catch(() => []),
+      fetchGlobalRanking('weekly', { limit: 100 }).catch(() => []),
+    ]).then(([daily, weekly]) => setCloudBoards({ daily, weekly }))
+  }, [])
 
   const rankingEntries = useMemo(() => {
-    if (entries) return entries
+    const providedEntries = Array.isArray(entries) ? entries : entries?.[activeWindow]
+    if (providedEntries) return providedEntries
+    const cloudEntries = cloudBoards[activeWindow]
     if (cloudEntries) {
       return mergeCloudEntries(localEntry, cloudEntries, user?.uid)
     }
     return loadLocalRankingEntries(user ?? {})
-  }, [entries, cloudEntries, localEntry, user])
+  }, [entries, activeWindow, cloudBoards, localEntry, user])
 
   const rows = useMemo(() => createRankingRows(rankingEntries), [rankingEntries])
   const season = useMemo(() => getAdminRankingSeasonConfig(), [])
+  const activeCopy = WINDOWS.find((window) => window.id === activeWindow) ?? WINDOWS[0]
   const rewardSummary = useMemo(() => (
     season.rewardTiers.map((tier) => `${tier.label} ${tier.gold}G`).join(' · ')
   ), [season.rewardTiers])
@@ -48,13 +57,28 @@ export default function UserRanking({ onBack, entries }) {
       <header style={styles.header}>
         <div>
           <div style={styles.eyebrow}>TOP 100</div>
-          <h1 style={styles.title}>유저랭킹</h1>
+          <h1 style={styles.title}>통합 랭킹</h1>
         </div>
         <div style={styles.playerStats}>
           <span style={styles.playerStatChip}>내 누적플레이 <strong>{totalRuns}</strong>판</span>
           <span style={styles.playerStatChip}>내 시즌최고점 <strong>{formatRankScore(bestScore)}</strong></span>
         </div>
       </header>
+
+      <nav style={styles.tabs} aria-label="통합 랭킹 탭">
+        {WINDOWS.map((window) => (
+          <button
+            key={window.id}
+            type="button"
+            style={window.id === activeWindow ? styles.tabActive : styles.tab}
+            onClick={() => setActiveWindow(window.id)}
+          >
+            {window.label}
+          </button>
+        ))}
+      </nav>
+
+      <p style={styles.windowNote}>{activeCopy.note}</p>
 
       <div style={styles.tableHeader} aria-hidden="true">
         <span>순위</span>
@@ -75,7 +99,7 @@ export default function UserRanking({ onBack, entries }) {
       </ol>
 
       <button type="button" style={styles.backButton} onClick={onBack}>
-        타이틀로 돌아가기
+        돌아가기
       </button>
     </div>
   )
@@ -159,6 +183,36 @@ const styles = {
     color: '#c8c1d7',
     fontSize: 11,
     lineHeight: 1,
+    fontWeight: 900,
+  },
+  tabs: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 },
+  tab: {
+    minHeight: 42,
+    border: '2px solid #050209',
+    borderRadius: 8,
+    background: '#f6ead0',
+    color: '#050209',
+    fontSize: 14,
+    fontWeight: 1000,
+    boxShadow: '0 3px 0 #050209',
+    cursor: 'pointer',
+  },
+  tabActive: {
+    minHeight: 42,
+    border: '2px solid #050209',
+    borderRadius: 8,
+    background: '#f7d17e',
+    color: '#050209',
+    fontSize: 14,
+    fontWeight: 1000,
+    boxShadow: '0 3px 0 #050209',
+    cursor: 'pointer',
+  },
+  windowNote: {
+    margin: 0,
+    color: '#c8c1d7',
+    fontSize: 11,
+    lineHeight: 1.25,
     fontWeight: 900,
   },
   seasonPanel: {

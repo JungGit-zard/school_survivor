@@ -8,6 +8,7 @@ import {
 } from '../lib/graphicsStudioConfig.js'
 
 const StudioPreviewContext = createContext(false)
+const STABLE_PART_KEY_PREFIX = 'id:'
 
 export function StudioTuningPreviewProvider({ children }) {
   return (
@@ -87,6 +88,14 @@ export function applyStudioTuning(root, tuning = DEFAULT_STUDIO_TUNING) {
 
 function findStudioPartFromRuntimeRoot(root, key) {
   if (!root || !key) return null
+  if (key.startsWith(STABLE_PART_KEY_PREFIX)) {
+    const id = key.slice(STABLE_PART_KEY_PREFIX.length)
+    let found = null
+    root.traverse((object) => {
+      if (!found && object.userData?.studioPartId === id) found = object
+    })
+    return found
+  }
   const parts = key.split('.')
 
   for (let offset = 0; offset < parts.length; offset += 1) {

@@ -71,7 +71,7 @@ function pickDisplayName(user) {
   return getSavedNickname(user) || user?.displayName || '익명'
 }
 
-// 활성 시즌의 daily+weekly 버킷 2곳에 best만 기록. E2E 우회/미설정/시즌 밖이면 skip.
+// 활성 시즌의 daily+weekly 버킷 2곳에 점수를 누적 기록. E2E 우회/미설정/시즌 밖이면 skip.
 export async function submitRun(user, { stageId, score, timeMs, cleared } = {}) {
   if (!user?.uid || !isFirebaseRankingConfigured()) return
   // E2E 우회 유저 점수는 실랭킹에 오염되지 않게 차단
@@ -81,11 +81,12 @@ export async function submitRun(user, { stageId, score, timeMs, cleared } = {}) 
   if (!season.active) return // seasonOff: 제출 skip
 
   const nextScore = readScore(score)
+  const nextTimeMs = readNonNegInt(timeMs)
   const entry = {
     uid: user.uid,
     displayName: pickDisplayName(user),
     score: nextScore,
-    timeMs: readNonNegInt(timeMs),
+    timeMs: nextTimeMs,
     cleared: cleared === true,
     updatedAt: now,
   }
@@ -95,9 +96,15 @@ export async function submitRun(user, { stageId, score, timeMs, cleared } = {}) 
   await Promise.all(WINDOWS.map(async (window) => {
     const key = periodKey(window, now)
     const entryRef = mod.ref(db, `${entriesPath(season.seasonId, safeStageId, window, key)}/${user.uid}`)
-    const existing = await mod.get(entryRef)
-    if (existing.exists() && readScore(existing.val()?.score) >= nextScore) return
-    await mod.set(entryRef, entry)
+    await mod.runTransaction(entryRef, (current) => {
+      if (!current || typeof current !== 'object') return entry
+      return {
+        ...entry,
+        score: readScore(current.score) + nextScore,
+        timeMs: readNonNegInt(current.timeMs) + nextTimeMs,
+        cleared: current.cleared === true || entry.cleared,
+      }
+    })
   }))
 }
 
@@ -126,7 +133,7 @@ export async function fetchStageRanking(stageId, window, { limit = 100 } = {}) {
 }
 
 // 글로벌: 저장 노드 없음. 활성 시즌의 모든 스테이지 entries를 같은 window+periodKey로 모아
-// uid별 best score 합산 → tie-break 정렬 → top N.
+// uid별 스테이지 누적 score 합산 → tie-break 정렬 → top N.
 // ponytail: on-read 집계, 규모 커지면 Cloud Function 집계 노드로 승격.
 export async function fetchGlobalRanking(window, { limit = 100 } = {}) {
   if (!isFirebaseRankingConfigured()) return []
@@ -157,7 +164,7 @@ export async function fetchGlobalRanking(window, { limit = 100 } = {}) {
         })
         return
       }
-      // 스테이지별 best를 합산. displayName은 최신(updatedAt 큰 쪽) 것을 채택.
+      // 스테이지별 누적 점수를 합산. displayName은 최신(updatedAt 큰 쪽) 것을 채택.
       current.score += readScore(value.score)
       current.timeMs += readNonNegInt(value.timeMs)
       current.cleared = current.cleared || value.cleared === true

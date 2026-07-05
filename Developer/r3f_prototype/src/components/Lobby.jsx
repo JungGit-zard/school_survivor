@@ -7,22 +7,30 @@
 //   onOpenRanking(stageId?) — 랭킹 상세 화면 진입(stageId 있으면 해당 스테이지 보드, 없으면 글로벌)
 // (설정/닉네임/능력치/무기 모달은 로비 내부에서 자체 처리 — App 배선 불필요)
 import { useEffect, useMemo, useState } from 'react'
-import { Canvas } from '@react-three/fiber'
-import * as THREE from 'three'
 import { STAGE_CONFIGS, getStageConfig, isStageUnlocked } from '../lib/stageConfig.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { formatSurvivalTime } from '../lib/userRanking.js'
 import { getSavedNickname } from '../lib/userNickname.js'
 import { getActiveSeason } from '../lib/firebaseRanking.js'
+import { loadStageBossPreview, STAGE_BOSS_PREVIEW_EVENT } from '../lib/graphicsStudioConfig.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 import AbilityModal from './AbilityModal.jsx'
 import WeaponModal from './WeaponModal.jsx'
 import LobbySettingsModal from './LobbySettingsModal.jsx'
+import StageBossPreview from './StageBossPreview.jsx'
 
 const STAGE_UNLOCK_HINT = {
   stage2: 'Stage 1 클리어 시 열림',
+}
+
+function randomAmbientPosition() {
+  return {
+    x: Math.round((Math.random() * 70 - 35) * 10) / 10,
+    y: Math.round((Math.random() * 70 - 35) * 10) / 10,
+    scale: Math.round((1.04 + Math.random() * 0.16) * 100) / 100,
+  }
 }
 
 function formatSeasonCountdown(season, nowMs = Date.now()) {
@@ -43,6 +51,8 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
   const [records, setRecords] = useState(loadPlayerRecords)
   const [nickname, setNickname] = useState(() => getSavedNickname(authUser))
   const [modal, setModal] = useState(null) // 'ability' | 'weapon' | 'settings' | null
+  const [stageBossPreview, setStageBossPreview] = useState(() => loadStageBossPreview())
+  const [ambientPosition, setAmbientPosition] = useState(() => ({ x: 0, y: 0, scale: 1.08 }))
 
   const stageIds = useMemo(() => Object.keys(STAGE_CONFIGS), [])
   const season = useMemo(() => getActiveSeason(), [])
@@ -50,6 +60,44 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
   useEffect(() => {
     setNickname(getSavedNickname(authUser))
   }, [authUser])
+
+  useEffect(() => {
+    const update = (event) => setStageBossPreview(event.detail ?? loadStageBossPreview())
+    window.addEventListener(STAGE_BOSS_PREVIEW_EVENT, update)
+    return () => window.removeEventListener(STAGE_BOSS_PREVIEW_EVENT, update)
+  }, [])
+
+  useEffect(() => {
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+    if (reduceMotion || document.documentElement.hasAttribute('data-reduced-effects')) return
+    setAmbientPosition(randomAmbientPosition())
+    const timer = window.setInterval(() => setAmbientPosition(randomAmbientPosition()), 2400)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  // 로비 "생기(juice)"용 CSS 키프레임 + :active/게이트 규칙 주입. 최초 1회만.
+  // 인라인 styles 객체에는 @keyframes·:active를 담을 수 없어 HUD.jsx와 동일한 idiom을 쓴다.
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.id = 'lobby-keyframes'
+    style.textContent = `
+      @keyframes lobbyCardEnter { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+      @keyframes lobbyCtaPulse {
+        0%,100%{filter:drop-shadow(0 0 2px rgba(89,199,255,0.35)) brightness(1)}
+        50%{filter:drop-shadow(0 0 14px rgba(89,199,255,0.8)) brightness(1.16)}
+      }
+      /* 눌림 마이크로 인터랙션(인라인으로 불가) */
+      .lobby-press{ transition: transform 90ms ease }
+      .lobby-press:active{ transform: scale(0.96) }
+      /* 접근성/멀미 게이트: 모션 정지 */
+      @media (prefers-reduced-motion: reduce){ .lobby-anim{ animation: none !important } }
+      :root[data-reduced-effects] .lobby-anim{ animation: none !important }
+    `
+    // StrictMode 이중 마운트 안전: 항상 교체(remove → append).
+    document.getElementById('lobby-keyframes')?.remove()
+    document.head.appendChild(style)
+    return () => { if (document.getElementById('lobby-keyframes') === style) style.remove() }
+  }, [])
 
   // 능력치/설정 모달을 닫을 때 최신 기록/코인 반영을 위해 기록을 다시 읽는다.
   const refreshRecords = () => setRecords(loadPlayerRecords())
@@ -61,6 +109,17 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
 
   return (
     <div style={styles.root}>
+      {/* 배경 앰비언트 드리프트(콘텐츠 뒤, 클릭 방해 없음) */}
+      <div
+        className="lobby-anim"
+        data-testid="lobby-ambient-drift"
+        style={{
+          ...styles.ambientDrift,
+          transform: `translate3d(${ambientPosition.x}%, ${ambientPosition.y}%, 0) scale(${ambientPosition.scale})`,
+        }}
+        aria-hidden="true"
+      />
+
       {/* 상단 sticky 상태바 */}
       <header style={styles.statusBar}>
         <div style={styles.profileRow}>
@@ -89,7 +148,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
 
       {/* 스테이지 리스트 */}
       <div style={styles.stageList} aria-label="스테이지 목록">
-        {stageIds.map((stageId) => {
+        {stageIds.map((stageId, index) => {
           const stage = getStageConfig(stageId)
           const unlocked = isStageUnlocked(stageId, records)
           const bestSurvivalSec = records[stage.bestRecordKey] ?? 0
@@ -97,11 +156,13 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
           return (
             <StageCard
               key={stageId}
+              index={index}
               stageId={stageId}
               stage={stage}
               unlocked={unlocked}
               cleared={cleared}
               bestSurvivalSec={bestSurvivalSec}
+              stageBossPreview={stageBossPreview}
               onStart={() => onStartStage?.(stageId)}
               onRanking={() => onOpenRanking?.(stageId)}
             />
@@ -110,10 +171,10 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
       </div>
 
       <nav aria-label="로비 메뉴" style={styles.bottomNav}>
-        <button type="button" style={styles.bottomNavButton} onClick={() => setModal('ability')}>능력치</button>
-        <button type="button" style={styles.bottomNavButton} onClick={() => setModal('weapon')}>무기</button>
-        <button type="button" style={styles.bottomNavButtonAccent} onClick={() => onOpenRanking?.()}>랭킹</button>
-        <button type="button" style={styles.bottomNavButtonReward} onClick={() => onOpenCoinShop?.()}>상점</button>
+        <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => setModal('ability')}>능력치</button>
+        <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => setModal('weapon')}>무기</button>
+        <button type="button" className="lobby-press" style={styles.bottomNavButtonAccent} onClick={() => onOpenRanking?.()}>랭킹</button>
+        <button type="button" className="lobby-press" style={styles.bottomNavButtonReward} onClick={() => onOpenCoinShop?.()}>상점</button>
       </nav>
 
       {modal === 'ability' && <AbilityModal onClose={closeModal} />}
@@ -125,83 +186,73 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
   )
 }
 
-function StageCard({ stageId, stage, unlocked, cleared, bestSurvivalSec, onStart, onRanking }) {
-  const stageNumber = stageId.replace('stage', '')
+function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalSec, stageBossPreview, onStart, onRanking }) {
   return (
-    <section style={{ ...styles.card, ...(unlocked ? null : styles.cardLocked) }} aria-label={`${stage.label} ${stage.title}`}>
-      <div style={styles.cardTop}>
-        <div style={styles.thumb}>
-          <span style={styles.thumbLabel}>STAGE</span>
-          <span style={styles.thumbNumber}>{stageNumber}</span>
-        </div>
-        <div style={styles.cardHead}>
-          <div style={styles.cardTitleRow}>
-            <span style={styles.cardTitle}>{stage.label} · {stage.title}</span>
-            <span style={cleared ? styles.tagCleared : styles.tagUncleared}>{cleared ? '클리어' : '미클리어'}</span>
-          </div>
-          <div style={styles.cardBest}>
-            내 최고기록: {bestSurvivalSec > 0 ? formatSurvivalTime(bestSurvivalSec) : '기록 없음'}
-          </div>
-        </div>
-      </div>
-
+    <section
+      className="lobby-anim"
+      style={{
+        ...styles.card,
+        ...(unlocked ? null : styles.cardLocked),
+        // 잠금 카드는 opacity:0.6 딤을 유지해야 하므로(fill:both가 1로 덮음) 해제 카드만 스태거.
+        ...(unlocked
+          ? {
+              animation: 'lobbyCardEnter 420ms cubic-bezier(0.22, 1, 0.36, 1) both',
+              animationDelay: `${index * 70}ms`,
+            }
+          : null),
+      }}
+      aria-label={`${stage.label} ${stage.title}`}
+    >
       {unlocked ? (
-        <>
-          <StageMonsterPreview stageId={stageId} />
-          <div style={styles.cardActions}>
-            <button type="button" style={styles.rankingButton} onClick={onRanking}>랭킹 상세히</button>
-            <button type="button" style={styles.enterButton} onClick={onStart}>입장하기</button>
+        <div style={styles.previewStack} data-testid="stage-card-preview-row">
+          <StageBossPreview framing={stageBossPreview} bossType={stage.bossType} ariaLabel={`${stageId} 보스 3D`} style={styles.cardBossPreview} />
+          {cleared ? <span style={styles.previewClearBadge}>클리어</span> : null}
+          <div style={styles.previewTextLayer} data-testid="stage-card-preview-overlay">
+            <div style={{ ...styles.cardTitleRow, ...styles.previewTitleRow }}>
+              <span style={styles.previewTitle}>
+                <span>{stage.label}</span>
+                <span>{stage.title}</span>
+              </span>
+            </div>
+            <div style={styles.previewBest}>
+              내 최고기록: {bestSurvivalSec > 0 ? formatSurvivalTime(bestSurvivalSec) : '기록 없음'}
+            </div>
           </div>
-        </>
+          <button
+            type="button"
+            className="lobby-press lobby-anim"
+            style={{ ...styles.previewEnterButton, animation: 'lobbyCtaPulse 1600ms ease-in-out infinite' }}
+            onClick={onStart}
+          >입장하기</button>
+          <button type="button" className="lobby-press" style={styles.rankingButton} onClick={onRanking}>점수 레코드</button>
+        </div>
       ) : (
+        <div style={styles.cardTop} data-testid="stage-card-preview-row">
+          <div style={{ ...styles.cardHead, ...styles.cardHeadFull }}>
+            <div style={styles.cardTitleRow}>
+              <span style={styles.cardTitle}>
+                <span>{stage.label}</span>
+                <span>{stage.title}</span>
+              </span>
+              <span style={cleared ? styles.tagCleared : styles.tagUncleared}>{cleared ? '클리어' : '미클리어'}</span>
+            </div>
+            <div style={styles.cardBest}>
+              내 최고기록: {bestSurvivalSec > 0 ? formatSurvivalTime(bestSurvivalSec) : '기록 없음'}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {unlocked ? null : (
         <div style={styles.lockHint}>🔒 {STAGE_UNLOCK_HINT[stageId] ?? '이전 스테이지를 클리어하면 열립니다'}</div>
       )}
     </section>
   )
 }
 
-function StageMonsterPreview({ stageId }) {
-  const accent = stageId === 'stage2' ? '#7b36d9' : '#3d7f33'
-  const skin = stageId === 'stage2' ? '#8f61d8' : '#84a85f'
-  return (
-    <div style={styles.monsterPreview} aria-label={`${stageId} 대표 좀비 3D`}>
-      <Canvas orthographic camera={{ position: [0, 2.1, 5], zoom: 58 }} dpr={[1, 1.5]}>
-        <ambientLight intensity={0.7} />
-        <directionalLight position={[3, 5, 4]} intensity={2.4} />
-        <group rotation={[0.15, -0.5, 0]} position={[0, -0.52, 0]}>
-          <ZombieBlock size={[0.62, 0.62, 0.48]} position={[0, 1.25, 0]} color={skin} />
-          <ZombieBlock size={[0.58, 0.62, 0.42]} position={[0, 0.58, 0]} color={accent} />
-          <ZombieBlock size={[0.2, 0.56, 0.2]} position={[-0.48, 0.5, 0.04]} color={accent} rotation={[-0.8, 0, 0.15]} />
-          <ZombieBlock size={[0.2, 0.56, 0.2]} position={[0.48, 0.5, 0.04]} color={accent} rotation={[-0.8, 0, -0.15]} />
-          <ZombieBlock size={[0.22, 0.58, 0.22]} position={[-0.18, -0.05, 0]} color={accent} />
-          <ZombieBlock size={[0.22, 0.58, 0.22]} position={[0.18, -0.05, 0]} color={accent} />
-          <ZombieBlock size={[0.1, 0.1, 0.04]} position={[-0.14, 1.28, 0.26]} color="#f2ffd3" outline={false} />
-          <ZombieBlock size={[0.1, 0.1, 0.04]} position={[0.14, 1.28, 0.26]} color="#f2ffd3" outline={false} />
-        </group>
-      </Canvas>
-    </div>
-  )
-}
-
-function ZombieBlock({ size, position, color, rotation = [0, 0, 0], outline = true }) {
-  return (
-    <group position={position} rotation={rotation}>
-      {outline && (
-        <mesh scale={[1.08, 1.08, 1.08]} renderOrder={0}>
-          <boxGeometry args={size} />
-          <meshBasicMaterial color="#050209" side={THREE.BackSide} />
-        </mesh>
-      )}
-      <mesh renderOrder={1}>
-        <boxGeometry args={size} />
-        <meshToonMaterial color={color} />
-      </mesh>
-    </group>
-  )
-}
-
 const styles = {
   root: {
+    position: 'relative',
     width: '100%',
     height: '100%',
     display: 'flex',
@@ -210,6 +261,18 @@ const styles = {
     color: uiPalette.paperLight,
     fontFamily: uiType.family,
     boxSizing: 'border-box',
+    overflow: 'hidden',
+  },
+  ambientDrift: {
+    position: 'absolute',
+    inset: '-15%',
+    zIndex: 0,
+    pointerEvents: 'none',
+    background:
+      'radial-gradient(34% 55% at 28% 7%, rgba(126,228,200,0.6) 0%, rgba(126,228,200,0) 60%),' +
+      'radial-gradient(36% 55% at 72% 95%, rgba(89,199,255,0.55) 0%, rgba(89,199,255,0) 60%)',
+    transition: 'transform 2400ms ease-in-out',
+    willChange: 'transform',
   },
   statusBar: {
     position: 'sticky',
@@ -338,6 +401,8 @@ const styles = {
     color: 'rgba(5,2,9,0.72)',
   },
   stageList: {
+    position: 'relative',
+    zIndex: 1,
     flex: 1,
     minHeight: 0,
     display: 'flex',
@@ -348,6 +413,8 @@ const styles = {
     boxSizing: 'border-box',
   },
   bottomNav: {
+    position: 'relative',
+    zIndex: 1,
     flex: '0 0 auto',
     display: 'grid',
     gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
@@ -389,8 +456,8 @@ const styles = {
     ...schoolPanel('paper'),
     display: 'flex',
     flexDirection: 'column',
-    gap: 10,
-    padding: 12,
+    gap: 6,
+    padding: 5,
     boxSizing: 'border-box',
   },
   cardLocked: {
@@ -398,42 +465,57 @@ const styles = {
   },
   cardTop: {
     display: 'flex',
-    gap: 11,
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
-  thumb: {
-    flex: '0 0 auto',
-    width: 60,
-    height: 60,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    border: uiBorders.strong,
-    borderRadius: 8,
-    background: uiPalette.chalkboard,
-    color: uiPalette.reward,
-    boxShadow: uiShadows.pressSmall,
+  previewStack: {
+    position: 'relative',
+    minWidth: 0,
   },
-  thumbLabel: {
-    fontSize: 9,
-    lineHeight: 1,
-    fontWeight: uiType.weightHeavy,
-    letterSpacing: 1,
-  },
-  thumbNumber: {
-    fontFamily: uiType.numeric,
-    fontSize: 30,
-    lineHeight: 1,
-    fontWeight: uiType.weightHeavy,
-    color: uiPalette.paperLight,
+  cardBossPreview: {
+    height: 144,
   },
   cardHead: {
-    flex: 1,
     minWidth: 0,
     display: 'flex',
     flexDirection: 'column',
     gap: 6,
+  },
+  cardHeadFull: {
+    flex: 1,
+  },
+  previewTextLayer: {
+    position: 'absolute',
+    top: 9,
+    left: 10,
+    right: 10,
+    zIndex: 2,
+    pointerEvents: 'none',
+    textAlign: 'right',
+  },
+  previewClearBadge: {
+    position: 'absolute',
+    top: 9,
+    left: 10,
+    zIndex: 3,
+    padding: '2px 8px',
+    border: uiBorders.strong,
+    borderRadius: 999,
+    background: uiPalette.infection,
+    color: uiPalette.ink,
+    fontSize: 10,
+    lineHeight: 1,
+    fontWeight: uiType.weightHeavy,
+  },
+  previewEnterButton: {
+    ...schoolButton('primary'),
+    position: 'absolute',
+    right: 10,
+    bottom: 10,
+    zIndex: 3,
+    minWidth: 132,
+    minHeight: 42,
+    fontSize: 16,
+    letterSpacing: 0.5,
   },
   cardTitleRow: {
     display: 'flex',
@@ -441,12 +523,27 @@ const styles = {
     gap: 8,
     flexWrap: 'wrap',
   },
+  previewTitleRow: {
+    justifyContent: 'flex-end',
+  },
   cardTitle: {
     minWidth: 0,
+    display: 'grid',
+    gap: 2,
     color: uiPalette.ink,
-    fontSize: 16,
+    fontSize: 18,
     lineHeight: 1.15,
     fontWeight: uiType.weightHeavy,
+  },
+  previewTitle: {
+    minWidth: 0,
+    display: 'grid',
+    gap: 2,
+    color: uiPalette.paperLight,
+    fontSize: 19,
+    lineHeight: 1.15,
+    fontWeight: uiType.weightHeavy,
+    textShadow: `0 2px 0 ${uiPalette.ink}, 2px 0 0 ${uiPalette.ink}, -2px 0 0 ${uiPalette.ink}`,
   },
   tagCleared: {
     flex: '0 0 auto',
@@ -476,31 +573,26 @@ const styles = {
     lineHeight: 1.2,
     fontWeight: 800,
   },
-  monsterPreview: {
-    width: '100%',
-    height: 104,
-    border: uiBorders.hairline,
-    borderRadius: 8,
-    background: 'linear-gradient(180deg, rgba(24,55,47,0.9), rgba(16,40,32,0.92))',
-    overflow: 'hidden',
-  },
-  cardActions: {
-    display: 'flex',
-    gap: 8,
+  previewBest: {
+    marginTop: 5,
+    color: uiPalette.paperLight,
+    fontSize: 12,
+    lineHeight: 1.2,
+    fontWeight: 900,
+    textShadow: `0 2px 0 ${uiPalette.ink}, 1px 0 0 ${uiPalette.ink}, -1px 0 0 ${uiPalette.ink}`,
   },
   rankingButton: {
     ...schoolButton('paper'),
-    flex: '0 0 auto',
-    minWidth: 108,
-    minHeight: 46,
-    fontSize: 14,
-  },
-  enterButton: {
-    ...schoolButton('primary'),
-    flex: 1,
-    minHeight: 46,
-    fontSize: 17,
-    letterSpacing: 0.5,
+    position: 'absolute',
+    top: 34,
+    left: 10,
+    zIndex: 3,
+    width: 74,
+    minWidth: 74,
+    minHeight: 30,
+    padding: '0 6px',
+    fontSize: 10,
+    lineHeight: 1.05,
   },
   lockHint: {
     padding: '9px 11px',

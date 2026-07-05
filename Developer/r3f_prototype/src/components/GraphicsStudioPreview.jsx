@@ -40,9 +40,22 @@ const PLAYER_STUDIO_ARM_ACTIONS = {
   lanternFlashlight: 'lanternFlashlight',
 }
 const PART_GROUP_OUTLINE_COLOR = 0x7cff00
+const STABLE_PART_KEY_PREFIX = 'id:'
+
+function getStableStudioPartKey(root, object) {
+  let current = object
+  while (current && current !== root) {
+    const id = current.userData?.studioPartId
+    if (id) return `${STABLE_PART_KEY_PREFIX}${id}`
+    current = current.parent
+  }
+  return null
+}
 
 export function getStudioPartKey(root, object) {
   if (!root || !object || object === root) return null
+  const stableKey = getStableStudioPartKey(root, object)
+  if (stableKey) return stableKey
 
   const path = []
   let current = object
@@ -60,6 +73,14 @@ export function getStudioPartKey(root, object) {
 
 export function findStudioPart(root, key) {
   if (!root || !key) return null
+  if (key.startsWith(STABLE_PART_KEY_PREFIX)) {
+    const id = key.slice(STABLE_PART_KEY_PREFIX.length)
+    let found = null
+    root.traverse((object) => {
+      if (!found && object.userData?.studioPartId === id) found = object
+    })
+    return found
+  }
   return key.split('.').reduce((node, index) => node?.children?.[Number(index)] ?? null, root)
 }
 

@@ -102,6 +102,32 @@ describe('StudioTunedGroup', () => {
     expect(part.rotation.z).toBeCloseTo(Math.PI / 2)
   })
 
+  it('applies confirmed stable-id part tuning to matching runtime meshes', () => {
+    const root = new THREE.Group()
+    const wrapper = new THREE.Group()
+    const faceTexture = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial())
+    faceTexture.userData.studioPartId = 'b02-face-texture'
+    wrapper.add(faceTexture)
+    root.add(wrapper)
+
+    applySavedStudioPartTunings(root, 'zombie-b02', {
+      'zombie-b02::part::id:b02-face-texture': {
+        scale: 1.2,
+        scaleX: 1.5,
+        positionX: 0.25,
+        positionY: -0.15,
+        rotationY: 30,
+      },
+    })
+
+    expect(faceTexture.scale.x).toBeCloseTo(1.8)
+    expect(faceTexture.scale.y).toBeCloseTo(1.2)
+    expect(faceTexture.position.x).toBeCloseTo(0.25)
+    expect(faceTexture.position.y).toBeCloseTo(-0.15)
+    expect(faceTexture.rotation.y).toBeCloseTo(Math.PI / 6)
+    expect(wrapper.scale.x).toBeCloseTo(1)
+  })
+
   it('applies confirmed group tuning even when studio preview added a wrapper path', () => {
     const root = new THREE.Group()
     const first = new THREE.Group()

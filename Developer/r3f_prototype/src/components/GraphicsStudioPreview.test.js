@@ -55,6 +55,8 @@ describe('GraphicsStudioPreview render contracts', () => {
 
     expect(source).toContain('export function getStudioPartKey')
     expect(source).toContain('export function findStudioPart')
+    expect(source).toContain('studioPartId')
+    expect(source).toContain("STABLE_PART_KEY_PREFIX = 'id:'")
     expect(source).toContain('onDoubleClick={handlePartDoubleClick}')
     expect(source).toContain('focusedPartTuning')
     expect(source).toContain('applyFocusedPartTuning')

@@ -15,6 +15,7 @@ export const STAGE_CONFIGS = {
     clearRecordKey: 'stage1Clears',
     bestRecordKey: 'bestSurvivalSeconds',
     bossWarningSec: 192,
+    bossType: 'B01',
     escapePortalSec: 240,
     matildaWarningSec: 410,
     matildaSec: 420,
@@ -37,6 +38,7 @@ export const STAGE_CONFIGS = {
     clearRecordKey: 'stage2Clears',
     bestRecordKey: 'stage2BestSurvivalSec',
     bossWarningSec: 192,
+    bossType: 'B02',
     e04IntroSec: 72,
     escapePortalSec: 240,
     matildaWarningSec: 410,
@@ -68,6 +70,10 @@ export function getNextStageId(stageId = DEFAULT_STAGE_ID) {
 
 export function getStageDurationSec(stageId = DEFAULT_STAGE_ID) {
   return getStageConfig(stageId).durationSec
+}
+
+export function getStageBossType(stageId = DEFAULT_STAGE_ID) {
+  return getStageConfig(stageId).bossType ?? 'B01'
 }
 
 // 맵 경계 반-크기(중심 0 기준). 바닥·벽·카메라 클램프·플레이어 바운드·스폰 클램프가 모두 참조하는 단일 진실.

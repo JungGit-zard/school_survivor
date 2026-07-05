@@ -1,6 +1,8 @@
 import { useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useLoader } from '@react-three/fiber'
+import * as THREE from 'three'
 import { inflateScale, getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat } from '../lib/toon.js'
+import boss02FaceUrl from '../assets/enemies/boss_02.webp'
 import MatildaMesh from './MatildaMesh.jsx'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
 
@@ -13,6 +15,7 @@ export const ZOMBIE_PALETTE = {
   E05: { body: 0x9a1818, skin: 0xc84030, eye: 0xff0000 },
   E06: { body: 0x520808, skin: 0x801818, eye: 0xff4400 },
   B01: { body: 0x100808, skin: 0x281010, eye: 0xff0000 },
+  B02: { body: 0x111923, skin: 0x8fb0d8, eye: 0x111111 },
 }
 
 export const B01_BOSS_VISUAL_PALETTE = {
@@ -54,6 +57,31 @@ export const B01_BOSS_FACE_LAYOUT = {
   tooth: { size: [0.055, 0.04, 0.035], position: [-0.005, -0.125, 0.295] },
   cheekShadow: { size: [0.07, 0.16, 0.035], position: [0.275, -0.02, 0.20] },
 }
+
+export const B02_BOSS_VISUAL_PALETTE = {
+  skin: 0x8fb0d8,
+  skinShadow: 0x5d789b,
+  suit: 0x111923,
+  suitShadow: 0x090d12,
+  shirt: 0xe7e3d6,
+  skirt: 0x101821,
+  shoe: 0x08090b,
+  hair: 0x171615,
+  hairShadow: 0x0b0b0b,
+}
+
+export const B02_BOSS_VISUAL_PARTS = [
+  'blockHead',
+  'singleFaceTexturePlane',
+  'blackHairAndBun',
+  'teacherSuit',
+  'whiteShirt',
+  'skirt',
+  'forwardArms',
+  'blueSkinHandsAndLegs',
+  'blackShoes',
+  'raggedTears',
+]
 
 function ZBlock({ size, position, rotation, color, emissive = 0.12, outlineScale = 1.08, flash = false }) {
   const geo    = getCachedBoxGeo(...size)
@@ -119,6 +147,76 @@ function B01BossZombieMesh({ hitFlash, reg }) {
         <ZBlock size={[0.23, 0.52, 0.28]} position={[0, -0.26, 0]} color={pal.pants} emissive={0.07} outlineScale={1.06} flash={hitFlash} />
         <ZBlock size={[0.25, 0.12, 0.35]} position={[0, -0.57, 0.05]} color={pal.shoe} emissive={0.04} outlineScale={1.03} flash={hitFlash} />
         <ZBlock size={[0.09, 0.13, 0.05]} position={[0.08, -0.35, 0.17]} rotation={[0, 0, -0.2]} color={pal.skinShadow} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
+      </group>
+    </group>
+  )
+}
+
+function Boss02FaceTexture({ hitFlash }) {
+  const texture = useLoader(THREE.TextureLoader, boss02FaceUrl)
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.minFilter = THREE.NearestFilter
+  texture.magFilter = THREE.NearestFilter
+  texture.generateMipmaps = false
+
+  return (
+    <mesh
+      name="b02FaceTexture"
+      userData={{ studioPartId: 'b02-face-texture' }}
+      position={[0, 0.00, 0.286]}
+      renderOrder={4}
+    >
+      <planeGeometry args={[0.62, 0.62]} />
+      {hitFlash
+        ? <meshBasicMaterial color="#ffffff" toneMapped={false} />
+        : <meshBasicMaterial map={texture} transparent={false} toneMapped={false} />}
+    </mesh>
+  )
+}
+
+function B02BossZombieMesh({ hitFlash, reg }) {
+  const pal = B02_BOSS_VISUAL_PALETTE
+
+  return (
+    <group>
+      <group ref={reg('head')} position={[0, 0.92, 0]}>
+        <ZBlock size={[0.64, 0.62, 0.52]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash} />
+        <Boss02FaceTexture hitFlash={hitFlash} />
+        <ZBlock size={[0.70, 0.16, 0.56]} position={[0, 0.33, -0.01]} color={pal.hair} emissive={0.035} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock size={[0.17, 0.42, 0.22]} position={[-0.41, 0.05, 0.02]} color={pal.hair} emissive={0.035} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock size={[0.17, 0.42, 0.22]} position={[0.41, 0.05, 0.02]} color={pal.hair} emissive={0.035} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock size={[0.30, 0.26, 0.24]} position={[0, 0.25, -0.38]} color={pal.hairShadow} emissive={0.03} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock size={[0.24, 0.18, 0.20]} position={[0, 0.52, -0.34]} color={pal.hair} emissive={0.03} outlineScale={1.04} flash={hitFlash} />
+      </group>
+
+      <group ref={reg('body')} position={[0, 0.28, 0]}>
+        <ZBlock size={[0.60, 0.55, 0.42]} position={[0, 0.08, 0]} color={pal.suit} emissive={0.07} outlineScale={1.08} flash={hitFlash} />
+        <ZBlock size={[0.24, 0.40, 0.05]} position={[0, 0.12, 0.235]} color={pal.shirt} emissive={0.06} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock size={[0.62, 0.42, 0.42]} position={[0, -0.40, 0]} color={pal.skirt} emissive={0.065} outlineScale={1.08} flash={hitFlash} />
+        <ZBlock size={[0.12, 0.16, 0.055]} position={[-0.20, -0.10, 0.255]} rotation={[0, 0, -0.25]} color={pal.skinShadow} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock size={[0.10, 0.13, 0.055]} position={[0.23, -0.33, 0.255]} rotation={[0, 0, 0.28]} color={pal.skinShadow} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
+      </group>
+
+      <group ref={reg('armL')} position={[-0.43, 0.55, 0]} rotation={[-1.14, 0, 0.13]}>
+        <ZBlock size={[0.23, 0.55, 0.22]} position={[0, -0.27, 0]} color={pal.suit} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock size={[0.21, 0.18, 0.20]} position={[0, -0.59, 0]} color={pal.skin} emissive={0.07} outlineScale={1.04} flash={hitFlash} />
+      </group>
+
+      <group ref={reg('armR')} position={[0.43, 0.55, 0]} rotation={[-1.14, 0, -0.13]}>
+        <ZBlock size={[0.23, 0.55, 0.22]} position={[0, -0.27, 0]} color={pal.suit} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock size={[0.21, 0.18, 0.20]} position={[0, -0.59, 0]} color={pal.skin} emissive={0.07} outlineScale={1.04} flash={hitFlash} />
+      </group>
+
+      <group ref={reg('legL')} position={[-0.16, -0.08, 0]}>
+        <ZBlock size={[0.23, 0.44, 0.27]} position={[0, -0.25, 0]} color={pal.skin} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock size={[0.27, 0.13, 0.36]} position={[0, -0.54, 0.06]} color={pal.shoe} emissive={0.035} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock size={[0.08, 0.13, 0.05]} position={[-0.08, -0.24, 0.16]} rotation={[0, 0, 0.28]} color={pal.skinShadow} emissive={0.035} outlineScale={1.0} flash={hitFlash} />
+      </group>
+
+      <group ref={reg('legR')} position={[0.16, -0.08, 0]}>
+        <ZBlock size={[0.23, 0.44, 0.27]} position={[0, -0.25, 0]} color={pal.skin} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock size={[0.27, 0.13, 0.36]} position={[0, -0.54, 0.06]} color={pal.shoe} emissive={0.035} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock size={[0.08, 0.13, 0.05]} position={[0.08, -0.32, 0.16]} rotation={[0, 0, -0.2]} color={pal.skinShadow} emissive={0.035} outlineScale={1.0} flash={hitFlash} />
       </group>
     </group>
   )
@@ -250,6 +348,14 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     return (
       <StudioTunedGroup itemId="zombie-b01">
         <B01BossZombieMesh hitFlash={hitFlash} reg={reg} />
+      </StudioTunedGroup>
+    )
+  }
+
+  if (type === 'B02') {
+    return (
+      <StudioTunedGroup itemId="zombie-b02">
+        <B02BossZombieMesh hitFlash={hitFlash} reg={reg} />
       </StudioTunedGroup>
     )
   }

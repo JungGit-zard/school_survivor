@@ -21,6 +21,8 @@ import { ENEMY_DEATH_COLLAPSE_STYLES } from './enemyDeathCollapse.js'
 export const GRAPHICS_STUDIO_STORAGE_KEY = 'escape-zombie-school.graphicsStudioTunings.v1'
 export const GRAPHICS_STUDIO_RESET_BASELINE_KEY = 'escape-zombie-school.graphicsStudioResetBaseline.2026-07-05T17'
 export const GRAPHICS_STUDIO_TUNING_EVENT = 'escape-zombie-school.graphicsStudioTunings.changed'
+export const STAGE_BOSS_PREVIEW_STORAGE_KEY = 'escape-zombie-school.stageBossPreview.v1'
+export const STAGE_BOSS_PREVIEW_EVENT = 'escape-zombie-school.stageBossPreview.changed'
 
 export const DEFAULT_STUDIO_TUNING = Object.freeze({
   scale: 1,
@@ -42,6 +44,12 @@ export const DEFAULT_STUDIO_TUNING = Object.freeze({
   rotationY: 0,
   rotationZ: 0,
   animation: 'normal',
+})
+
+export const DEFAULT_STAGE_BOSS_PREVIEW = Object.freeze({
+  zoom: 100,
+  panX: 0,
+  panY: 0,
 })
 
 export const GRAPHICS_STUDIO_CATEGORIES = Object.freeze([
@@ -85,7 +93,7 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     runtimePreviewComponent: 'PlayerVisual',
     applyTargets: ['components/PlayerMesh.jsx', 'components/Player.jsx', 'lib/characterVisualScale.js', 'lib/toon.js'],
   },
-  ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'B01'].map((type) => ({
+  ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'B01', 'B02'].map((type) => ({
     id: `zombie-${type.toLowerCase()}`,
     category: 'enemy',
     label: `Zombie ${type}`,
@@ -381,6 +389,15 @@ function normalizeHexColor(value, fallback) {
   return fallback
 }
 
+export function normalizeStageBossPreview(input = {}) {
+  const source = input && typeof input === 'object' ? input : {}
+  return {
+    zoom: Math.round(clampNumber(source.zoom, [50, 180], DEFAULT_STAGE_BOSS_PREVIEW.zoom)),
+    panX: Number(clampNumber(source.panX, [-2, 2], DEFAULT_STAGE_BOSS_PREVIEW.panX).toFixed(2)),
+    panY: Number(clampNumber(source.panY, [-2, 2], DEFAULT_STAGE_BOSS_PREVIEW.panY).toFixed(2)),
+  }
+}
+
 export function normalizeStudioTuning(input = {}) {
   const source = input && typeof input === 'object' ? input : {}
   const normalized = { ...DEFAULT_STUDIO_TUNING }
@@ -445,6 +462,29 @@ export function saveStudioTunings(tunings, storage) {
   return normalized
 }
 
+export function loadStageBossPreview(storage) {
+  const targetStorage = getStorage(storage)
+  if (!targetStorage) return DEFAULT_STAGE_BOSS_PREVIEW
+
+  try {
+    const raw = targetStorage.getItem(STAGE_BOSS_PREVIEW_STORAGE_KEY)
+    if (!raw) return DEFAULT_STAGE_BOSS_PREVIEW
+    return normalizeStageBossPreview(JSON.parse(raw))
+  } catch {
+    return DEFAULT_STAGE_BOSS_PREVIEW
+  }
+}
+
+export function saveStageBossPreview(framing, storage) {
+  const targetStorage = getStorage(storage)
+  const normalized = normalizeStageBossPreview(framing)
+  targetStorage?.setItem(STAGE_BOSS_PREVIEW_STORAGE_KEY, JSON.stringify(normalized))
+  if (!storage && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(STAGE_BOSS_PREVIEW_EVENT, { detail: normalized }))
+  }
+  return normalized
+}
+
 export function loadStudioResetBaseline(storage) {
   const targetStorage = getStorage(storage)
   if (!targetStorage) return {}
@@ -474,7 +514,7 @@ export function ensureStudioResetBaseline(tunings = loadStudioTunings(), storage
   return normalized
 }
 
-export function serializeStudioSnapshot({ selectedItemId = 'player', tunings = loadStudioTunings() } = {}) {
+export function serializeStudioSnapshot({ selectedItemId = 'player', tunings = loadStudioTunings(), stageBossPreview = loadStageBossPreview() } = {}) {
   const selectedItem = getStudioItemById(selectedItemId)
   const normalizedTunings = Object.fromEntries(
     Object.entries(tunings ?? {}).map(([itemId, tuning]) => [itemId, normalizeStudioTuning(tuning)]),
@@ -492,5 +532,6 @@ export function serializeStudioSnapshot({ selectedItemId = 'player', tunings = l
       applyTargets: selectedItem.applyTargets,
     },
     tunings: normalizedTunings,
+    stageBossPreview: normalizeStageBossPreview(stageBossPreview),
   }, null, 2)
 }
