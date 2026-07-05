@@ -3,12 +3,12 @@ import React, { act } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createRoot } from 'react-dom/client'
-import TitleScreen from './TitleScreen.jsx'
+import Lobby from './Lobby.jsx'
 import HUD from './HUD.jsx'
 import { useGameStore } from '../store/useGameStore.js'
 
 vi.mock('@react-three/fiber', () => ({
-  Canvas: ({ children }) => <div data-testid="mock-canvas">{children}</div>,
+  Canvas: () => <div data-testid="mock-canvas" />,
 }))
 
 vi.mock('./TitleScene3D.jsx', () => ({
@@ -21,12 +21,14 @@ afterEach(() => {
 })
 
 describe('coin shop entry flow', () => {
-  it('title screen exposes the coin shop entry', () => {
-    const html = renderToStaticMarkup(<TitleScreen onStart={() => {}} />)
+  it('lobby exposes stage, coin shop, and ranking entries', () => {
+    const html = renderToStaticMarkup(
+      <Lobby onStartStage={() => {}} onOpenCoinShop={() => {}} onOpenRanking={() => {}} />,
+    )
 
-    expect(html).toContain('게임 시작')
-    expect(html).toContain('코인상점')
-    expect(html).toContain('유저랭킹')
+    expect(html).toContain('입장하기')
+    expect(html).toContain('상점')
+    expect(html).toContain('랭킹')
   })
 
   it('game over result exposes the coin shop entry', () => {

@@ -345,8 +345,8 @@ describe('result action layout', () => {
   })
 })
 
-describe('pause title return', () => {
-  it('asks before returning to title and records the paused score for ranking', () => {
+describe('pause lobby return', () => {
+  it('asks before returning to lobby and records the paused score for ranking', () => {
     localStorage.removeItem(PLAYER_RECORDS_KEY)
     useGameStore.getState().resetGame('stage1')
     useGameStore.setState({
@@ -357,24 +357,24 @@ describe('pause title return', () => {
       goldSession: 3,
       runLevelUps: 1,
     })
-    const onGoToTitle = vi.fn()
+    const onGoToLobby = vi.fn()
     const container = document.createElement('div')
     const root = createRoot(container)
 
     try {
       act(() => {
-        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={onGoToTitle} />)
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} onGoToLobby={onGoToLobby} />)
       })
 
-      clickButtonByText(container, '타이틀로 돌아가기')
+      clickButtonByText(container, '로비로 돌아가기')
 
-      expect(onGoToTitle).not.toHaveBeenCalled()
-      expect(container.textContent).toContain('정말 타이틀로 돌아갈까요?')
+      expect(onGoToLobby).not.toHaveBeenCalled()
+      expect(container.textContent).toContain('정말 로비로 돌아갈까요?')
       expect(localStorage.getItem(PLAYER_RECORDS_KEY)).toBeNull()
 
       clickButtonByText(container, '돌아가기')
 
-      expect(onGoToTitle).toHaveBeenCalledTimes(1)
+      expect(onGoToLobby).toHaveBeenCalledTimes(1)
       const records = JSON.parse(localStorage.getItem(PLAYER_RECORDS_KEY))
       expect(records.bestSurvivalSeconds).toBe(42)
       expect(records.stage1Clears).toBeUndefined()

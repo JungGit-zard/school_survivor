@@ -1,7 +1,8 @@
 ﻿import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useLoader } from '@react-three/fiber'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import * as THREE from 'three'
+import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.svg'
 import { enemyBodies, playerPos } from '../lib/refs.js'
 import { getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat, inflateScale, outlineMat, toonMat } from '../lib/toon.js'
 import { useGameStore } from '../store/useGameStore.js'
@@ -37,6 +38,7 @@ function _applyRotation(groupRef, dx, dz, turnRate = 0.12) {
 export const ENEMY_SIZE_MULTIPLIER = 4 / 3
 const BASE_COL = [0.14, 0.26, 0.10]
 const PLAYER_CONTACT_HALF_EXTENT = 0.136
+const SPAWN_SMOKE_DURATION_MS = 420
 
 export function getBodyContactDistance(stats) {
   const enemyHalfExtent = Math.max(BASE_COL[0], BASE_COL[2]) * (stats.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
@@ -231,6 +233,45 @@ export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = fal
       </group>
       {showHealthBar && <MiniHealthBar current={currentHp} max={stats.hp} width={0.32 * cs} height={0.045} y={0.72 * cs} />}
     </>
+  )
+}
+
+function SpawnSmokeEffect({ position, visualScale }) {
+  const spriteRef = useRef()
+  const bornAtRef = useRef(performance.now())
+  const [done, setDone] = useState(false)
+  const texture = useLoader(THREE.TextureLoader, spawnSmokeUrl)
+  const material = useMemo(() => new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    opacity: 1,
+    depthTest: true,
+    depthWrite: false,
+  }), [texture])
+
+  useEffect(() => () => material.dispose(), [material])
+
+  useFrame(() => {
+    const sprite = spriteRef.current
+    if (!sprite) return
+    const t = Math.min(1, (performance.now() - bornAtRef.current) / SPAWN_SMOKE_DURATION_MS)
+    const ease = 1 - (1 - t) * (1 - t)
+    const size = visualScale * (1.1 + ease * 1.25)
+    sprite.scale.set(size, size, 1)
+    sprite.position.y = position[1] + visualScale * (1.0 + t * 0.32)
+    material.opacity = 1 - t
+    if (t >= 1) setDone(true)
+  })
+
+  if (done) return null
+
+  return (
+    <sprite
+      ref={spriteRef}
+      material={material}
+      position={[position[0], position[1] + visualScale, position[2]]}
+      renderOrder={6}
+    />
   )
 }
 
@@ -533,6 +574,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         <CuboidCollider args={colArgs} />
         <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} isMatilda={isMatilda} />
       </RigidBody>
+      <SpawnSmokeEffect position={spawnPos} visualScale={cs * 0.333} />
 
       {/* E04 ?ъ궗泥?*/}
       {projectiles.map((p) => (

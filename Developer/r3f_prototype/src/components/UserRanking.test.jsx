@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import UserRanking from './UserRanking.jsx'
 import { saveAdminConfig } from '../lib/adminConfig.js'
+import { STORAGE_KEY } from '../lib/playerRecords.js'
 
 describe('UserRanking', () => {
   beforeEach(() => {
@@ -43,6 +44,20 @@ describe('UserRanking', () => {
 
     expect(html).toContain('방학 생존 시즌')
     expect(html).toContain('1위 777G')
+  })
+
+  it('shows cumulative play and season best at the top of the ranking screen', () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      totalRuns: 411,
+      bestSurvivalSeconds: 796,
+    }))
+
+    const html = renderToStaticMarkup(<UserRanking onBack={() => {}} entries={[]} />)
+
+    expect(html).toContain('내 누적플레이')
+    expect(html).toContain('411')
+    expect(html).toContain('내 시즌최고점')
+    expect(html).toContain('826')
   })
 
   it('returns to the title screen from the back button', () => {

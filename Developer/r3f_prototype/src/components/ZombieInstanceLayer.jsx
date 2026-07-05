@@ -53,12 +53,19 @@ const N_PARTS = PARTS.length  // 12
 
 const MAX_ENEMIES = 110  // upper bound for InstancedMesh count
 const INFLAT = 2         // OUTLINE_THICKNESS_MULT (from toon.js)
+const ZOMBIE_SHADOW_Y = 0.018
+const ZOMBIE_SHADOW_WIDTH = 0.62
+const ZOMBIE_SHADOW_DEPTH = 0.34
+const ZOMBIE_SHADOW_OPACITY = 0.3
 
 // ── Pre-allocated scratch matrices ────────────────────────────────────────
 const _tmp  = new THREE.Matrix4()
 const _euler = new THREE.Euler('XYZ')
 const _col  = new THREE.Color()
 const _ZERO = Object.freeze(new THREE.Matrix4().makeScale(0, 0, 0))
+const _shadowPosition = new THREE.Vector3()
+const _shadowRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0))
+const _shadowScale = new THREE.Vector3()
 
 // ── Pivot group animation rotations ────────────────────────────────────────
 function setPivotEuler(dst, grp, t, type, phase) {
@@ -113,6 +120,17 @@ function buildPartMatrix(part, e, dst, outlineInflate = 1, studioTransform = nul
     _tmp.makeScale(outlineInflate, outlineInflate, outlineInflate)
     dst.multiply(_tmp)
   }
+}
+
+function buildShadowMatrix(e, dst, studioTransform = null) {
+  const studioScale = studioTransform?.scale ?? [1, 1, 1]
+  _shadowPosition.set(e.x, ZOMBIE_SHADOW_Y, e.z)
+  _shadowScale.set(
+    Math.max(0.05, e.vs * studioScale[0] * ZOMBIE_SHADOW_WIDTH),
+    Math.max(0.05, e.vs * studioScale[2] * ZOMBIE_SHADOW_DEPTH),
+    1
+  )
+  dst.compose(_shadowPosition, _shadowRotation, _shadowScale)
 }
 
 function loadZombieStudioTransforms() {
@@ -181,13 +199,30 @@ function makeIM(part, material, count) {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────
+function makeShadowIM(count) {
+  const geo = new THREE.CircleGeometry(1, 28)
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+    transparent: true,
+    opacity: ZOMBIE_SHADOW_OPACITY,
+    depthTest: true,
+    depthWrite: false,
+  })
+  const im = new THREE.InstancedMesh(geo, mat, count)
+  im.frustumCulled = false
+  im.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
+  for (let i = 0; i < count; i++) im.setMatrixAt(i, _ZERO)
+  im.instanceMatrix.needsUpdate = true
+  return im
+}
+
 export default function ZombieInstanceLayer() {
   const dstRef = useRef(new THREE.Matrix4())
   const prevSlotCountRef = useRef(0)
   const zombieTransformsRef = useRef(loadZombieStudioTransforms())
 
   // One InstancedMesh per body part (body rendering) + per part (outline)
-  const { bodyIMs, outIMs, eyeMat } = useMemo(() => {
+  const { bodyIMs, outIMs, shadowIM } = useMemo(() => {
     const normalMat = makeBodyMat(0.12)  // body / skin / foot parts
     const em        = makeBodyMat(0.9)   // eye parts (high emissive glow)
     const outMat    = makeOutlineMat()
@@ -195,7 +230,7 @@ export default function ZombieInstanceLayer() {
     const bIMs = PARTS.map(p => makeIM(p, p.col === 'eye' ? em : normalMat, MAX_ENEMIES))
     const oIMs = PARTS.map(p => makeIM(p, outMat, MAX_ENEMIES))
 
-    return { bodyIMs: bIMs, outIMs: oIMs, eyeMat: em }
+    return { bodyIMs: bIMs, outIMs: oIMs, shadowIM: makeShadowIM(MAX_ENEMIES) }
   }, [])
 
   useEffect(() => {
@@ -221,10 +256,13 @@ export default function ZombieInstanceLayer() {
 
     for (const e of reg.values()) {
       if (slot >= MAX_ENEMIES) break
+      const studioTransform = zombieTransformsRef.current[e.type]
+
+      buildShadowMatrix(e, dst, studioTransform)
+      shadowIM.setMatrixAt(slot, dst)
 
       for (let pi = 0; pi < N_PARTS; pi++) {
         const part = PARTS[pi]
-        const studioTransform = zombieTransformsRef.current[e.type]
         buildPartMatrix(part, e, dst, 1, studioTransform)
         bodyIMs[pi].setMatrixAt(slot, dst)
         _col.setHex(partColor(part, e))
@@ -241,6 +279,7 @@ export default function ZombieInstanceLayer() {
 
     // Zero-scale slots that were visible last frame but are no longer used.
     for (let s = slot; s < prevSlotCountRef.current; s++) {
+      shadowIM.setMatrixAt(s, _ZERO)
       for (let pi = 0; pi < N_PARTS; pi++) {
         bodyIMs[pi].setMatrixAt(s, _ZERO)
         outIMs[pi].setMatrixAt(s, _ZERO)
@@ -249,6 +288,7 @@ export default function ZombieInstanceLayer() {
     prevSlotCountRef.current = slot
 
     // Mark all IMs dirty
+    shadowIM.instanceMatrix.needsUpdate = true
     for (let pi = 0; pi < N_PARTS; pi++) {
       bodyIMs[pi].instanceMatrix.needsUpdate = true
       if (bodyIMs[pi].instanceColor) bodyIMs[pi].instanceColor.needsUpdate = true
@@ -258,6 +298,7 @@ export default function ZombieInstanceLayer() {
 
   return (
     <>
+      <primitive object={shadowIM} renderOrder={1} />
       {PARTS.map((p, i) => (
         <primitive key={`body-${p.key}`} object={bodyIMs[i]} renderOrder={2} />
       ))}

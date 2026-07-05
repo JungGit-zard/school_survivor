@@ -45,4 +45,17 @@ describe('Enemy charge warning cue', () => {
     expect(source).not.toContain('<Html')
     expect(source).not.toContain('GoSpeechBubble')
   })
+
+  it('shows a camera-facing image smoke puff when an enemy spawns', () => {
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    const asset = readFileSync(new URL('../assets/effects/spawn_smoke_puff.svg', import.meta.url), 'utf8')
+
+    expect(source).toContain("import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.svg'")
+    expect(source).toContain('function SpawnSmokeEffect')
+    expect(source).toContain('<sprite')
+    expect(source).toContain('<SpawnSmokeEffect position={spawnPos} visualScale={cs * 0.333} />')
+    expect(source).toContain('const SPAWN_SMOKE_DURATION_MS = 420')
+    expect(source).toContain('depthWrite: false')
+    expect(asset).toContain('<svg')
+  })
 })

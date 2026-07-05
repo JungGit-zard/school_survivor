@@ -4,9 +4,11 @@ import { Physics } from '@react-three/rapier'
 import Game from './components/Game.jsx'
 import HUD from './components/HUD.jsx'
 import TitleScreen from './components/TitleScreen.jsx'
+import Lobby from './components/Lobby.jsx'
 import VirtualJoystick from './components/VirtualJoystick.jsx'
 import CoinShop from './components/CoinShop.jsx'
 import UserRanking from './components/UserRanking.jsx'
+import StageRanking from './components/StageRanking.jsx'
 import AdminPage from './components/AdminPage.jsx'
 import GraphicsStudio from './components/GraphicsStudio.jsx'
 import { useGameStore } from './store/useGameStore.js'
@@ -42,6 +44,7 @@ export default function App() {
 
   const [screen, setScreen] = useState('title')
   const [prevScreen, setPrevScreen] = useState('title')
+  const [rankingStageId, setRankingStageId] = useState(null)
   const [mobileJoystickEnabled, setMobileJoystickEnabled] = useState(false)
   const [devCheatsVisible, setDevCheatsVisible] = useState(false)
   const phoneFrameRef = useRef(null)
@@ -90,29 +93,53 @@ export default function App() {
     setScreen('game')
   }
 
+  const openCoinShopFrom = (from) => {
+    setPrevScreen(from)
+    setScreen('coinShop')
+  }
+
+  const openRankingFrom = (from, stageId = null) => {
+    setPrevScreen(from)
+    setRankingStageId(stageId)
+    setScreen('ranking')
+  }
+
+  const returnToPreviousScreen = () => {
+    setScreen(prevScreen === 'game' || prevScreen === 'lobby' ? prevScreen : 'title')
+  }
+
   return (
     <div style={styles.viewport}>
       <SfxLayer />
       <div ref={phoneFrameRef} style={styles.phoneFrame}>
         {screen === 'title' && (
           <TitleScreen
-            onStart={startGame}
-            onOpenCoinShop={() => { setPrevScreen('title'); setScreen('coinShop') }}
-            onOpenRanking={() => setScreen('ranking')}
+            onEnterLobby={() => setScreen('lobby')}
             devCheatsVisible={devCheatsVisible}
             onRevealDevCheats={() => setDevCheatsVisible(true)}
           />
         )}
 
+        {screen === 'lobby' && (
+          <Lobby
+            onStartStage={startGame}
+            onOpenCoinShop={() => openCoinShopFrom('lobby')}
+            onOpenRanking={(stageId) => openRankingFrom('lobby', stageId)}
+            onLogoutToTitle={() => setScreen('title')}
+          />
+        )}
+
         {screen === 'coinShop' && (
           <CoinShop
-            onBack={() => setScreen(prevScreen === 'game' ? 'game' : 'title')}
-            backLabel={prevScreen === 'game' ? '결과로 돌아가기' : '타이틀로 돌아가기'}
+            onBack={returnToPreviousScreen}
+            backLabel={prevScreen === 'game' ? '결과로 돌아가기' : prevScreen === 'lobby' ? '로비로 돌아가기' : '타이틀로 돌아가기'}
           />
         )}
 
         {screen === 'ranking' && (
-          <UserRanking onBack={() => setScreen('title')} />
+          rankingStageId
+            ? <StageRanking stageId={rankingStageId} onBack={returnToPreviousScreen} />
+            : <UserRanking onBack={returnToPreviousScreen} />
         )}
 
         {screen === 'game' && (
@@ -132,9 +159,10 @@ export default function App() {
                 </Physics>
               </Canvas>
             <HUD
-              onOpenCoinShop={() => { setPrevScreen('game'); setScreen('coinShop') }}
+              onOpenCoinShop={() => openCoinShopFrom('game')}
               onGoToTitle={() => setScreen('title')}
-              onGoToRanking={() => setScreen('ranking')}
+              onGoToLobby={() => setScreen('lobby')}
+              onGoToRanking={() => openRankingFrom('game')}
               devCheatsVisible={devCheatsVisible}
             />
             {mobileJoystickEnabled && (

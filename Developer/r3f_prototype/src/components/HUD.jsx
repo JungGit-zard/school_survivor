@@ -428,7 +428,7 @@ export function UpgradeIcon({ type }) {
   )
 }
 
-export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking, devCheatsVisible = false }) {
+export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRanking, devCheatsVisible = false }) {
   const {
     player, weapons, phase, pauseSource,
     elapsed, currentStageId, bossSpawned,
@@ -575,9 +575,10 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking, devChe
     if (phase !== 'paused') setIsTitleReturnConfirmOpen(false)
   }, [phase])
 
-  const confirmTitleReturn = () => {
+  const confirmLobbyReturn = () => {
     if (!quitPausedRun()) return
-    onGoToTitle?.()
+    if (onGoToLobby) onGoToLobby()
+    else onGoToTitle?.()
   }
 
   const handleCheatAcquireWeapon = (id) => {
@@ -821,17 +822,17 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking, devChe
             style={styles.pausePanel}
             role="dialog"
             aria-modal="true"
-            aria-label={isTitleReturnConfirmOpen ? '타이틀 복귀 확인' : '일시정지'}
+            aria-label={isTitleReturnConfirmOpen ? '로비 복귀 확인' : '일시정지'}
           >
             {isTitleReturnConfirmOpen ? (
               <>
-                <h2 style={styles.modalTitle}>정말 타이틀로 돌아갈까요?</h2>
+                <h2 style={styles.modalTitle}>정말 로비로 돌아갈까요?</h2>
                 <p style={styles.pauseMessage}>현재 생존 점수는 랭킹에 기록됩니다.</p>
                 <div style={styles.modalButtons}>
                   <button style={styles.pauseCancelBtn} onClick={() => setIsTitleReturnConfirmOpen(false)}>
                     취소
                   </button>
-                  <button style={styles.pauseTitleReturnBtn} onClick={confirmTitleReturn}>
+                  <button style={styles.pauseTitleReturnBtn} onClick={confirmLobbyReturn}>
                     돌아가기
                   </button>
                 </div>
@@ -849,7 +850,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToRanking, devChe
                     {pauseSource === 'auto' ? '이어하기' : '계속하기'}
                   </button>
                   <button style={styles.titleBtn} onClick={() => setIsTitleReturnConfirmOpen(true)}>
-                    타이틀로 돌아가기
+                    로비로 돌아가기
                   </button>
                 </div>
               </>

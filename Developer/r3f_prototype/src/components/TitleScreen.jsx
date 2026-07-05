@@ -2,35 +2,29 @@ import { useEffect, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import TitleScene3D from './TitleScene3D.jsx'
 import GoogleAccountPanel from './GoogleAccountPanel.jsx'
-import { getAllWeaponIds, isStarter } from '../lib/weaponCatalog.js'
-import { setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
-import { getStageConfig } from '../lib/stageConfig.js'
 import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
+import {
+  applyReducedEffects,
+  loadTitleSettings,
+  unlockAllNonStarterWeapons,
+} from '../lib/titleSettings.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 
-const SETTINGS_STORAGE_KEY = 'school_survivor:titleSettings'
 const REVEAL_CHEATS_CODE = ['arrowup', 'arrowdown', 'arrowup', 'arrowdown', 'a', 's', 'd']
-const DEFAULT_SETTINGS = {
-  vibration: true,
-  reducedEffects: false,
-  unlockAllWeaponsCheat: false,
-}
 
-export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking, devCheatsVisible = false, onRevealDevCheats }) {
-  const [settingsOpen, setSettingsOpen] = useState(false)
+// 타이틀 화면은 "게임 시작" 하나만 남긴다(인지적 시작 행위). 로그인/닉네임 게이트를 통과하면
+// 스테이지가 아니라 로비(onEnterLobby)로 진입한다. 스테이지 선택·상점·랭킹·설정은 로비로 이관.
+// 코나미식 치트 시퀀스 + devCheatsVisible 치트 메뉴 노출 경로는 그대로 보존한다.
+export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, onRevealDevCheats }) {
   const [cheatOpen, setCheatOpen] = useState(false)
-  const [controlsOpen, setControlsOpen] = useState(false)
   const [nicknameOpen, setNicknameOpen] = useState(false)
   const [nicknameInput, setNicknameInput] = useState('')
   const [nicknameError, setNicknameError] = useState('')
-  const [nicknameFromSettings, setNicknameFromSettings] = useState(false)
-  const [pendingStageId, setPendingStageId] = useState('stage1')
-  const [settings, setSettings] = useState(loadTitleSettings)
-  const [selectedStageId, setSelectedStageId] = useState('stage1')
+  const [settings] = useState(loadTitleSettings)
   const [cheatRevealMessage, setCheatRevealMessage] = useState(false)
   const authUser = useAuthStore((s) => s.user)
   const signingIn = useAuthStore((s) => s.signingIn)
@@ -41,35 +35,25 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking, de
   const primaryButtonStyle = settings.reducedEffects ? styles.primaryButtonReduced : styles.primaryButton
   const adminOperations = getAdminOperationsConfig()
   const cheatMenuButtonVisible = devCheatsVisible && adminOperations.cheatMenuButtonVisible
-  const stage1 = getStageConfig('stage1')
-  const stage2 = getStageConfig('stage2')
+
+  // 타이틀 진입 시 저장된 연출 설정을 전역 톤에 반영(설정 편집 UI는 로비로 이관됨).
+  useEffect(() => {
+    applyReducedEffects(settings.reducedEffects)
+  }, [settings.reducedEffects])
 
   useEffect(() => {
-    saveTitleSettings(settings)
-
-    if (typeof document === 'undefined') return
-    if (settings.reducedEffects) {
-      document.documentElement.dataset.reducedEffects = 'true'
-    } else {
-      document.documentElement.removeAttribute('data-reduced-effects')
-    }
-  }, [settings])
-
-  useEffect(() => {
-    if (!settingsOpen && !cheatOpen && !nicknameOpen) return undefined
+    if (!cheatOpen && !nicknameOpen) return undefined
 
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
-        setSettingsOpen(false)
         setCheatOpen(false)
         setNicknameOpen(false)
-        setControlsOpen(false)
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [settingsOpen, cheatOpen, nicknameOpen])
+  }, [cheatOpen, nicknameOpen])
 
   useEffect(() => {
     const handleCheatKeyDown = (event) => {
@@ -96,32 +80,15 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking, de
     return () => clearTimeout(timer)
   }, [cheatRevealMessage])
 
-  const toggleSetting = (key) => {
-    setSettings((current) => {
-      const next = { ...current, [key]: !current[key] }
-
-      if (key === 'vibration' && next.vibration && typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(18)
-      }
-      if (key === 'unlockAllWeaponsCheat' && next.unlockAllWeaponsCheat) {
-        unlockAllNonStarterWeapons()
-      }
-
-      return next
-    })
-  }
-
   const handleUnlockAllWeapons = () => {
     unlockAllNonStarterWeapons()
-    setSettings((current) => (
-      current.unlockAllWeaponsCheat ? current : { ...current, unlockAllWeaponsCheat: true }
-    ))
   }
 
   const handleResetPassiveUpgrades = () => {
     resetPassiveUpgrades()
   }
 
+  // 로그인/닉네임 게이트 보존: 미로그인 → 구글 로그인 → 닉네임 없으면 닉네임 모달 → 있으면 로비 진입.
   const handleStartClick = async () => {
     let user = authUser
     if (!user?.uid) {
@@ -131,29 +98,15 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking, de
     }
 
     const savedNickname = getSavedNickname(user)
-    setPendingStageId(selectedStageId)
     setCheatOpen(false)
-    setSettingsOpen(false)
 
     if (savedNickname) {
-      // 이미 닉네임 설정됨 → 바로 시작
-      onStart(selectedStageId)
+      onEnterLobby?.()
     } else {
-      // 최초 진입 → 닉네임 입력 모달
       setNicknameInput(normalizeInitialNickname(user?.displayName))
       setNicknameError('')
-      setNicknameFromSettings(false)
       setNicknameOpen(true)
     }
-  }
-
-  const handleOpenNicknameFromSettings = () => {
-    if (!authUser?.uid) return
-    setNicknameInput(getSavedNickname(authUser) || normalizeInitialNickname(authUser?.displayName))
-    setNicknameError('')
-    setNicknameFromSettings(true)
-    setSettingsOpen(false)
-    setNicknameOpen(true)
   }
 
   const handleNicknameSubmit = (event) => {
@@ -168,16 +121,7 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking, de
     setNicknameError('')
     setNicknameOpen(false)
     requestCloudProgressSave()
-
-    if (!nicknameFromSettings) {
-      onStart(pendingStageId)
-    }
-    setNicknameFromSettings(false)
-  }
-
-  const closeSettings = () => {
-    setSettingsOpen(false)
-    setControlsOpen(false)
+    onEnterLobby?.()
   }
 
   const closeCheat = () => {
@@ -213,16 +157,6 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking, de
           치트
         </button>
       )}
-      <button
-        type="button"
-        aria-label="설정 열기"
-        aria-haspopup="dialog"
-        aria-expanded={settingsOpen}
-        style={styles.settingsButton}
-        onClick={() => setSettingsOpen(true)}
-      >
-        ⚙
-      </button>
       <div style={styles.content}>
         <div style={styles.serviceName}>Escape! zombie school</div>
         <h1 style={titleStyle}>
@@ -237,12 +171,6 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking, de
           <button type="button" style={{ ...primaryButtonStyle, ...styles.mainActionButton }} onClick={handleStartClick}>
             게임 시작
           </button>
-          <button type="button" style={{ ...styles.coinShopButton, ...styles.mainActionButton }} onClick={() => onOpenCoinShop?.()}>
-            🪙 코인상점
-          </button>
-          <button type="button" style={{ ...styles.rankingButton, ...styles.mainActionButton }} onClick={() => onOpenRanking?.()}>
-            유저랭킹
-          </button>
         </div>
       </div>
 
@@ -254,26 +182,6 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking, de
               <h2 id="title-cheat-heading" style={styles.modalTitle}>치트 메뉴</h2>
               <button type="button" aria-label="닫기" style={styles.closeButton} onClick={closeCheat}>
                 ×
-              </button>
-            </div>
-
-            <div style={styles.sectionLabel}>시작 스테이지</div>
-            <div style={styles.stageSelect} aria-label="시작 스테이지 선택">
-              <button
-                type="button"
-                style={styles.stageButton(selectedStageId === 'stage1', false)}
-                onClick={() => setSelectedStageId('stage1')}
-              >
-                <span style={styles.stageButtonLabel}>{stage1.label}</span>
-                <span style={styles.stageButtonDesc}>교실 생존</span>
-              </button>
-              <button
-                type="button"
-                style={styles.stageButton(selectedStageId === 'stage2', false)}
-                onClick={() => setSelectedStageId('stage2')}
-              >
-                <span style={styles.stageButtonLabel}>{stage2.label}</span>
-                <span style={styles.stageButtonDesc}>복도 탄환</span>
               </button>
             </div>
 
@@ -295,7 +203,7 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking, de
           <button type="button" aria-label="닉네임 입력 닫기 배경" style={styles.modalScrim} onClick={() => setNicknameOpen(false)} />
           <section role="dialog" aria-modal="true" aria-labelledby="title-nickname-heading" style={styles.nicknameModal}>
             <div style={styles.modalHeader}>
-              <h2 id="title-nickname-heading" style={styles.modalTitle}>{nicknameFromSettings ? '닉네임 변경' : '닉네임 설정'}</h2>
+              <h2 id="title-nickname-heading" style={styles.modalTitle}>닉네임 설정</h2>
               <button type="button" aria-label="닫기" style={styles.closeButton} onClick={() => setNicknameOpen(false)}>
                 ×
               </button>
@@ -324,83 +232,9 @@ export default function TitleScreen({ onStart, onOpenCoinShop, onOpenRanking, de
                 {nicknameError || 'Google 로그인 중이면 이 닉네임이 계정 진행도에 함께 저장됩니다.'}
               </p>
               <button type="submit" style={styles.nicknameSubmitButton}>
-                {nicknameFromSettings ? '저장' : '저장하고 시작'}
+                저장하고 시작
               </button>
             </form>
-          </section>
-        </div>
-      )}
-
-      {settingsOpen && (
-        <div style={styles.modalLayer}>
-          <button type="button" aria-label="설정 닫기 배경" style={styles.modalScrim} onClick={closeSettings} />
-          <section role="dialog" aria-modal="true" aria-labelledby="title-settings-heading" style={styles.settingsModal}>
-            <div style={styles.modalHeader}>
-              <h2 id="title-settings-heading" style={styles.modalTitle}>설정</h2>
-              <button type="button" aria-label="닫기" style={styles.closeButton} onClick={closeSettings}>
-                ×
-              </button>
-            </div>
-
-            <div style={styles.sectionLabel}>프로필</div>
-            <button type="button" style={styles.settingRow} onClick={handleOpenNicknameFromSettings}>
-              <span style={styles.rowText}>
-                <strong style={styles.rowTitle}>닉네임</strong>
-                <span style={styles.rowDescription}>
-                  {getSavedNickname(authUser) || '미설정'}
-                </span>
-              </span>
-              <span style={styles.arrow}>›</span>
-            </button>
-
-            <div style={styles.sectionLabel}>게임 환경</div>
-            <button
-              type="button"
-              aria-label={settings.vibration ? '진동 끄기' : '진동 켜기'}
-              style={styles.settingRow}
-              onClick={() => toggleSetting('vibration')}
-            >
-              <span style={styles.rowText}>
-                <strong style={styles.rowTitle}>진동</strong>
-                <span style={styles.rowDescription}>피격/보상 피드백을 진동으로 알림</span>
-              </span>
-              <span style={styles.toggleTrack(settings.vibration)}>
-                <span style={styles.toggleKnob(settings.vibration)} />
-              </span>
-            </button>
-
-            <button
-              type="button"
-              aria-label={settings.reducedEffects ? '연출 줄이기 끄기' : '연출 줄이기 켜기'}
-              style={styles.settingRow}
-              onClick={() => toggleSetting('reducedEffects')}
-            >
-              <span style={styles.rowText}>
-                <strong style={styles.rowTitle}>연출 줄이기</strong>
-                <span style={styles.rowDescription}>강한 그림자와 빛 번짐을 낮춤</span>
-              </span>
-              <span style={styles.toggleTrack(settings.reducedEffects)}>
-                <span style={styles.toggleKnob(settings.reducedEffects)} />
-              </span>
-            </button>
-
-            <div style={styles.sectionLabel}>도움말</div>
-            <button type="button" style={styles.settingRow} onClick={() => setControlsOpen((current) => !current)}>
-              <span style={styles.rowText}>
-                <strong style={styles.rowTitle}>조작법 보기</strong>
-                <span style={styles.rowDescription}>이동, 레벨업 카드, 일시정지 안내</span>
-              </span>
-              <span style={styles.arrow}>{controlsOpen ? '⌃' : '›'}</span>
-            </button>
-
-            {controlsOpen && (
-              <div style={styles.controlsPanel}>
-                <p style={styles.controlLine}>모바일: 화면 아래 조이스틱으로 이동합니다.</p>
-                <p style={styles.controlLine}>레벨업: 카드를 눌러 무기나 패시브를 선택합니다.</p>
-                <p style={styles.controlLine}>일시정지: 전투 화면의 일시정지 버튼을 사용합니다.</p>
-              </div>
-            )}
-
           </section>
         </div>
       )}
@@ -419,35 +253,6 @@ function normalizeRevealCheatKey(key) {
   if (typeof key !== 'string' || key.length !== 1) return null
   const lower = key.toLowerCase()
   return lower >= 'a' && lower <= 'z' ? lower : null
-}
-
-function loadTitleSettings() {
-  if (typeof localStorage === 'undefined') return DEFAULT_SETTINGS
-
-  try {
-    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY)
-    if (!raw) return DEFAULT_SETTINGS
-
-    const parsed = JSON.parse(raw)
-    return {
-      vibration: typeof parsed.vibration === 'boolean' ? parsed.vibration : DEFAULT_SETTINGS.vibration,
-      reducedEffects: typeof parsed.reducedEffects === 'boolean' ? parsed.reducedEffects : DEFAULT_SETTINGS.reducedEffects,
-      unlockAllWeaponsCheat: typeof parsed.unlockAllWeaponsCheat === 'boolean' ? parsed.unlockAllWeaponsCheat : DEFAULT_SETTINGS.unlockAllWeaponsCheat,
-    }
-  } catch {
-    return DEFAULT_SETTINGS
-  }
-}
-
-function unlockAllNonStarterWeapons() {
-  for (const id of getAllWeaponIds()) {
-    if (!isStarter(id)) setWeaponUnlocked(id)
-  }
-}
-
-function saveTitleSettings(settings) {
-  if (typeof localStorage === 'undefined') return
-  localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings))
 }
 
 const styles = {
@@ -478,28 +283,10 @@ const styles = {
     background: 'radial-gradient(120% 88% at 50% 44%, rgba(0,0,0,0) 46%, rgba(8,6,12,0.58) 100%)',
     pointerEvents: 'none',
   },
-  settingsButton: {
-    position: 'absolute',
-    top: 'max(14px, calc(env(safe-area-inset-top, 0px) + 8px))',
-    right: 'max(12px, calc(env(safe-area-inset-right, 0px) + 8px))',
-    width: 44,
-    height: 44,
-    display: 'grid',
-    placeItems: 'center',
-    border: uiBorders.strong,
-    borderRadius: 8,
-    background: uiPalette.paperLight,
-    color: uiPalette.ink,
-    fontSize: 22,
-    fontWeight: uiType.weightStrong,
-    cursor: 'pointer',
-    boxShadow: uiShadows.pressSmall,
-    zIndex: 3,
-  },
   cheatMenuButton: {
     position: 'absolute',
     top: 'max(14px, calc(env(safe-area-inset-top, 0px) + 8px))',
-    right: 'max(66px, calc(env(safe-area-inset-right, 0px) + 60px))',
+    right: 'max(12px, calc(env(safe-area-inset-right, 0px) + 8px))',
     width: 52,
     height: 44,
     display: 'grid',
@@ -633,58 +420,6 @@ const styles = {
     maxWidth: 230,
     transform: 'rotate(0.8deg)',
   },
-  stageSelectLabel: {
-    marginTop: 8,
-    marginBottom: 4,
-    color: '#c8c1d7',
-    fontSize: 10,
-    fontWeight: 900,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  stageSelect: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: 8,
-    marginBottom: 8,
-    pointerEvents: 'auto',
-  },
-  stageButton: (selected, locked) => ({
-    minHeight: 45,
-    border: uiBorders.strong,
-    borderRadius: 8,
-    background: locked ? 'rgba(92,86,104,0.78)' : selected ? uiPalette.reward : uiPalette.paper,
-    color: uiPalette.ink,
-    cursor: locked ? 'not-allowed' : 'pointer',
-    boxShadow: uiShadows.press,
-    opacity: locked ? 0.82 : 1,
-  }),
-  stageButtonLabel: {
-    display: 'block',
-    fontSize: 14,
-    lineHeight: 1.15,
-    fontWeight: 1000,
-  },
-  stageButtonDesc: {
-    display: 'block',
-    marginTop: 2,
-    fontSize: 11,
-    lineHeight: 1.15,
-    fontWeight: 800,
-  },
-  stageLockHint: {
-    margin: '0 0 8px',
-    padding: '5px 8px',
-    border: uiBorders.hairline,
-    borderRadius: 8,
-    background: 'rgba(24,55,47,0.88)',
-    color: uiPalette.paperLight,
-    fontSize: 11,
-    lineHeight: 1.3,
-    fontWeight: 800,
-    textAlign: 'center',
-    pointerEvents: 'none',
-  },
   primaryButton: {
     ...schoolButton('primary'),
     minHeight: 58,
@@ -698,33 +433,6 @@ const styles = {
     color: uiPalette.ink,
     fontSize: 20,
     boxShadow: uiShadows.press,
-  },
-  coinShopButton: {
-    ...schoolButton('reward'),
-    minHeight: 48,
-    fontSize: 16,
-    letterSpacing: 0.5,
-  },
-  rankingButton: {
-    ...schoolButton('paper'),
-    minHeight: 48,
-    fontSize: 16,
-    letterSpacing: 0,
-  },
-  cheatActions: {
-    marginTop: 8,
-    border: '1.5px solid rgba(247,209,126,0.35)',
-    borderRadius: 8,
-    padding: '6px 8px',
-    background: 'rgba(22,18,29,0.72)',
-    pointerEvents: 'auto',
-  },
-  cheatLabel: {
-    color: '#f7d17e',
-    fontSize: 10,
-    fontWeight: 900,
-    marginBottom: 5,
-    letterSpacing: 0.5,
   },
   cheatButtons: {
     display: 'grid',
@@ -760,17 +468,6 @@ const styles = {
     background: 'rgba(5,2,9,0.42)',
     backdropFilter: 'blur(2px)',
     cursor: 'pointer',
-  },
-  settingsModal: {
-    ...schoolPanel('dark'),
-    position: 'absolute',
-    top: '50%',
-    left: 'max(24px, calc(env(safe-area-inset-left, 0px) + 16px))',
-    right: 'max(24px, calc(env(safe-area-inset-right, 0px) + 16px))',
-    transform: 'translateY(-50%)',
-    maxHeight: '68%',
-    overflow: 'auto',
-    padding: 14,
   },
   cheatModal: {
     ...schoolPanel('dark'),
@@ -872,82 +569,5 @@ const styles = {
     minHeight: 46,
     fontSize: 16,
     lineHeight: 1,
-  },
-  settingRow: {
-    width: '100%',
-    minHeight: 50,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    padding: '8px 10px',
-    marginBottom: 7,
-    border: uiBorders.strong,
-    borderRadius: 8,
-    background: uiPalette.chalkboard,
-    color: uiPalette.paperLight,
-    textAlign: 'left',
-    cursor: 'pointer',
-    boxShadow: uiShadows.pressSmall,
-  },
-  rowText: {
-    minWidth: 0,
-    display: 'block',
-  },
-  rowTitle: {
-    display: 'block',
-    fontSize: 13,
-    lineHeight: 1.2,
-    fontWeight: uiType.weightStrong,
-  },
-  rowDescription: {
-    display: 'block',
-    marginTop: 3,
-    color: uiPalette.mutedChalk,
-    fontSize: 10,
-    lineHeight: 1.25,
-    fontWeight: 700,
-  },
-  toggleTrack: (enabled) => ({
-    flex: '0 0 auto',
-    width: 50,
-    height: 28,
-    padding: 3,
-    border: uiBorders.strong,
-    borderRadius: 999,
-    background: enabled ? uiPalette.cta : '#5d5668',
-    boxSizing: 'border-box',
-  }),
-  toggleKnob: (enabled) => ({
-    display: 'block',
-    width: 18,
-    height: 18,
-    border: uiBorders.strong,
-    borderRadius: '50%',
-    background: uiPalette.paperLight,
-    transform: enabled ? 'translateX(20px)' : 'translateX(0)',
-    transition: 'transform 120ms ease',
-  }),
-  arrow: {
-    flex: '0 0 auto',
-    color: uiPalette.reward,
-    fontSize: 25,
-    lineHeight: 1,
-    fontWeight: 1000,
-  },
-  controlsPanel: {
-    margin: '1px 0 3px',
-    padding: '9px 10px',
-    border: uiBorders.strong,
-    borderRadius: 8,
-    background: uiPalette.chalkboardDeep,
-    boxShadow: uiShadows.pressSmall,
-  },
-  controlLine: {
-    margin: '0 0 5px',
-    color: uiPalette.paperLight,
-    fontSize: 11,
-    lineHeight: 1.35,
-    fontWeight: 750,
   },
 }

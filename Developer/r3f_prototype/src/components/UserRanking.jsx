@@ -10,12 +10,17 @@ import {
 } from '../lib/userRanking.js'
 import { fetchTopRanking, isFirebaseRankingConfigured } from '../lib/firebaseRanking.js'
 import { getAdminRankingSeasonConfig } from '../lib/adminConfig.js'
+import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 
 export default function UserRanking({ onBack, entries }) {
   const user = useAuthStore((s) => s.user)
   const [cloudEntries, setCloudEntries] = useState(null)
+  const localRecords = useMemo(() => loadPlayerRecords(), [])
 
   const { seasonId } = useMemo(() => getAdminRankingSeasonConfig(), [])
+  const localEntry = useMemo(() => buildLocalPlayerRankingEntry(localRecords, user ?? {}), [localRecords, user])
+  const totalRuns = localRecords.totalRuns ?? 0
+  const bestScore = localEntry?.score ?? 0
 
   useEffect(() => {
     if (!isFirebaseRankingConfigured()) return
@@ -27,14 +32,12 @@ export default function UserRanking({ onBack, entries }) {
   const rankingEntries = useMemo(() => {
     if (entries) return entries
     if (cloudEntries) {
-      const localEntry = buildLocalPlayerRankingEntry(undefined, user ?? {})
       return mergeCloudEntries(localEntry, cloudEntries, user?.uid)
     }
     return loadLocalRankingEntries(user ?? {})
-  }, [entries, cloudEntries, user])
+  }, [entries, cloudEntries, localEntry, user])
 
   const rows = useMemo(() => createRankingRows(rankingEntries), [rankingEntries])
-  const bestRow = rows.find((row) => !row.empty)
   const season = useMemo(() => getAdminRankingSeasonConfig(), [])
   const rewardSummary = useMemo(() => (
     season.rewardTiers.map((tier) => `${tier.label} ${tier.gold}G`).join(' · ')
@@ -47,9 +50,9 @@ export default function UserRanking({ onBack, entries }) {
           <div style={styles.eyebrow}>TOP 100</div>
           <h1 style={styles.title}>유저랭킹</h1>
         </div>
-        <div style={styles.bestBadge}>
-          <span style={styles.bestBadgeLabel}>최고 점수</span>
-          <strong style={styles.bestBadgeScore}>{bestRow ? formatRankScore(bestRow.score) : '-'}</strong>
+        <div style={styles.playerStats}>
+          <span style={styles.playerStatChip}>내 누적플레이 <strong>{totalRuns}</strong>판</span>
+          <span style={styles.playerStatChip}>내 시즌최고점 <strong>{formatRankScore(bestScore)}</strong></span>
         </div>
       </header>
 
@@ -129,29 +132,24 @@ const styles = {
     letterSpacing: 0,
     textShadow: '0 3px 0 #050209',
   },
-  bestBadge: {
-    minWidth: 98,
+  playerStats: {
+    minWidth: 142,
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '7px 10px',
+    gap: 6,
+  },
+  playerStatChip: {
+    display: 'block',
+    padding: '6px 8px',
     border: '2px solid #050209',
     borderRadius: 8,
     background: '#f7d17e',
     color: '#050209',
-    boxShadow: '0 3px 0 #050209',
-  },
-  bestBadgeLabel: {
-    fontSize: 10,
+    boxShadow: '0 2px 0 #050209',
+    fontSize: 11,
     lineHeight: 1,
     fontWeight: 900,
-  },
-  bestBadgeScore: {
-    marginTop: 3,
-    fontSize: 18,
-    lineHeight: 1,
-    fontWeight: 1000,
+    textAlign: 'center',
   },
   tableHeader: {
     display: 'grid',

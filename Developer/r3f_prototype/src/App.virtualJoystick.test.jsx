@@ -27,7 +27,11 @@ vi.mock('./components/HUD.jsx', () => ({
 }))
 
 vi.mock('./components/TitleScreen.jsx', () => ({
-  default: ({ onStart }) => <button type="button" onClick={onStart}>start</button>,
+  default: ({ onEnterLobby }) => <button type="button" onClick={onEnterLobby}>start</button>,
+}))
+
+vi.mock('./components/Lobby.jsx', () => ({
+  default: ({ onStartStage }) => <button type="button" onClick={() => onStartStage('stage1')}>enter stage</button>,
 }))
 
 vi.mock('./components/VirtualJoystick.jsx', () => ({
@@ -52,6 +56,9 @@ function renderAppAndStart() {
 
   act(() => {
     root.render(<App />)
+  })
+  act(() => {
+    container.querySelector('button').dispatchEvent(new MouseEvent('click', { bubbles: true }))
   })
   act(() => {
     container.querySelector('button').dispatchEvent(new MouseEvent('click', { bubbles: true }))
