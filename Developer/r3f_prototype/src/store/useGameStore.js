@@ -14,6 +14,7 @@ import { evaluateUnlocks, isStarter, WEAPON_CATALOG } from '../lib/weaponCatalog
 import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { DEFAULT_STAGE_ID, getNextStageId, getStageConfig } from '../lib/stageConfig.js'
 import { getAdminBalanceConfig } from '../lib/adminConfig.js'
+import { vibrateFeedback } from '../lib/titleSettings.js'
 import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { submitRun } from '../lib/firebaseRanking.js'
 import { useAuthStore } from './useAuthStore.js'
@@ -152,10 +153,12 @@ export const useGameStore = create(
       if (hp <= 0) {
         set({ player: { ...player, hp }, phase: 'gameover', pauseSource: null })
         emitSfx({ id: 'playerDeath' })
+        vibrateFeedback([40, 60, 40])
         get()._onRunEnd('gameover')
         return
       }
       emitSfx({ id: 'playerHit' })
+      vibrateFeedback(18)
       set({ player: { ...player, hp, invulnerable: true, hitFlashToken: player.hitFlashToken + 1 } })
       // 무적 해제는 Player.jsx의 useFrame에서 처리한다. setTimeout을 쓰지 않는다.
     },

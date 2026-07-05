@@ -44,6 +44,13 @@ export function applyReducedEffects(reducedEffects) {
   }
 }
 
+// 게임 피드백 진동. 진동 설정이 켜져 있고 기기가 vibrate를 지원할 때만 울린다(데스크톱은 무시).
+export function vibrateFeedback(pattern = 18) {
+  if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return
+  if (!loadTitleSettings().vibration) return
+  navigator.vibrate(pattern)
+}
+
 export function unlockAllNonStarterWeapons() {
   for (const id of getAllWeaponIds()) {
     if (!isStarter(id)) setWeaponUnlocked(id)
