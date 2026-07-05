@@ -19,6 +19,7 @@ import sharkMissileIconUrl from '../assets/weapon_icon/14_wea_shark_missile.svg'
 import { ENEMY_DEATH_COLLAPSE_STYLES } from './enemyDeathCollapse.js'
 
 export const GRAPHICS_STUDIO_STORAGE_KEY = 'escape-zombie-school.graphicsStudioTunings.v1'
+export const GRAPHICS_STUDIO_RESET_BASELINE_KEY = 'escape-zombie-school.graphicsStudioResetBaseline.2026-07-05T17'
 export const GRAPHICS_STUDIO_TUNING_EVENT = 'escape-zombie-school.graphicsStudioTunings.changed'
 
 export const DEFAULT_STUDIO_TUNING = Object.freeze({
@@ -26,6 +27,9 @@ export const DEFAULT_STUDIO_TUNING = Object.freeze({
   scaleX: 1,
   scaleY: 1,
   scaleZ: 1,
+  positionX: 0,
+  positionY: 0,
+  positionZ: 0,
   outlineThickness: 1,
   outlineOpacity: 0.96,
   outlineColor: '#050209',
@@ -338,6 +342,9 @@ const NUMERIC_RANGES = Object.freeze({
   scaleX: [0.35, 2.5],
   scaleY: [0.35, 2.5],
   scaleZ: [0.35, 2.5],
+  positionX: [-3, 3],
+  positionY: [-3, 3],
+  positionZ: [-3, 3],
   outlineThickness: [0.4, 2.2],
   outlineOpacity: [0, 1],
   colorStrength: [0, 1],
@@ -386,6 +393,9 @@ export function normalizeStudioTuning(input = {}) {
   normalized.scaleX = Number(normalized.scaleX.toFixed(2))
   normalized.scaleY = Number(normalized.scaleY.toFixed(2))
   normalized.scaleZ = Number(normalized.scaleZ.toFixed(2))
+  normalized.positionX = Number(normalized.positionX.toFixed(2))
+  normalized.positionY = Number(normalized.positionY.toFixed(2))
+  normalized.positionZ = Number(normalized.positionZ.toFixed(2))
   normalized.outlineThickness = Number(normalized.outlineThickness.toFixed(2))
   normalized.outlineOpacity = Number(normalized.outlineOpacity.toFixed(2))
   normalized.colorStrength = Number(normalized.colorStrength.toFixed(2))
@@ -432,6 +442,35 @@ export function saveStudioTunings(tunings, storage) {
   if (!storage && typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(GRAPHICS_STUDIO_TUNING_EVENT, { detail: normalized }))
   }
+  return normalized
+}
+
+export function loadStudioResetBaseline(storage) {
+  const targetStorage = getStorage(storage)
+  if (!targetStorage) return {}
+
+  try {
+    const raw = targetStorage.getItem(GRAPHICS_STUDIO_RESET_BASELINE_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object') return {}
+    return Object.fromEntries(
+      Object.entries(parsed).map(([itemId, tuning]) => [itemId, normalizeStudioTuning(tuning)]),
+    )
+  } catch {
+    return {}
+  }
+}
+
+export function ensureStudioResetBaseline(tunings = loadStudioTunings(), storage) {
+  const targetStorage = getStorage(storage)
+  const existing = loadStudioResetBaseline(storage)
+  if (Object.keys(existing).length || !targetStorage) return existing
+
+  const normalized = Object.fromEntries(
+    Object.entries(tunings ?? {}).map(([itemId, tuning]) => [itemId, normalizeStudioTuning(tuning)]),
+  )
+  targetStorage.setItem(GRAPHICS_STUDIO_RESET_BASELINE_KEY, JSON.stringify(normalized))
   return normalized
 }
 

@@ -32,22 +32,152 @@ import { BoxCutterModel } from './Weapons/BoxCutter.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
 import { SharkMissileModel, FlameTrail } from './Weapons/SharkMissile.jsx'
 import { CrashExplosionVisual, StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
-import { StudioTuningPreviewProvider, applyStudioTuning, getStudioTransformProps } from './StudioTunedGroup.jsx'
+import { StudioTuningPreviewProvider, applySavedStudioPartTunings, applyStudioTuning, getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { getCrashPose } from '../lib/starlinkCrash.js'
 
 const PLAYER_STUDIO_ARM_ACTIONS = {
   lantern: 'lanternAim',
   lanternFlashlight: 'lanternFlashlight',
 }
+const PART_GROUP_OUTLINE_COLOR = 0x7cff00
 
-function useApplyStudioTuning(rootRef, tuning) {
+export function getStudioPartKey(root, object) {
+  if (!root || !object || object === root) return null
+
+  const path = []
+  let current = object
+  while (current && current !== root) {
+    const parent = current.parent
+    if (!parent) return null
+    const index = parent.children.indexOf(current)
+    if (index < 0) return null
+    path.unshift(index)
+    current = parent
+  }
+
+  return current === root ? path.join('.') : null
+}
+
+export function findStudioPart(root, key) {
+  if (!root || !key) return null
+  return key.split('.').reduce((node, index) => node?.children?.[Number(index)] ?? null, root)
+}
+
+function getStudioPartLabel(object) {
+  return object?.name || object?.parent?.name || object?.geometry?.type || object?.type || 'part'
+}
+
+function resetFocusedPartTransforms(root) {
+  root.traverse((object) => {
+    if (object.userData.studioPartBaseScale) {
+      object.scale.copy(object.userData.studioPartBaseScale)
+    }
+    if (object.userData.studioPartBaseRotation) {
+      object.rotation.copy(object.userData.studioPartBaseRotation)
+    }
+    if (object.userData.studioPartBasePosition) {
+      object.position.copy(object.userData.studioPartBasePosition)
+    }
+  })
+}
+
+function clearPartGroupOutlines(root) {
+  const outlines = []
+  root.traverse((object) => {
+    if (object.userData.studioPartGroupOutline) outlines.push(object)
+  })
+  outlines.forEach((outline) => outline.parent?.remove(outline))
+  root.userData.studioPartGroupOutlineKey = ''
+}
+
+function syncPartGroupOutlines(root, focusedPartKeys) {
+  const outlineKeys = focusedPartKeys.length ? focusedPartKeys : []
+  const nextKey = outlineKeys.join('|')
+  if (root.userData.studioPartGroupOutlineKey === nextKey) return
+
+  clearPartGroupOutlines(root)
+  outlineKeys.forEach((key) => {
+    const part = findStudioPart(root, key)
+    if (!part) return
+    const outline = new THREE.BoxHelper(part, PART_GROUP_OUTLINE_COLOR)
+    outline.userData.studioPartGroupOutline = true
+    outline.userData.studioPartGroupTarget = part
+    outline.material.depthTest = false
+    outline.material.transparent = true
+    outline.material.opacity = 0.9
+    outline.renderOrder = 999
+    root.add(outline)
+  })
+  root.userData.studioPartGroupOutlineKey = nextKey
+}
+
+function updatePartGroupOutlines(root) {
+  root.traverse((object) => {
+    if (object.userData.studioPartGroupOutline && typeof object.update === 'function') object.update()
+  })
+}
+
+function applyFocusedPartTuning(root, focusedPartKeys, focusedPartTuning) {
+  resetFocusedPartTransforms(root)
+  syncPartGroupOutlines(root, focusedPartKeys)
+  updatePartGroupOutlines(root)
+  if (!focusedPartKeys.length || !focusedPartTuning) return
+
+  const transform = getStudioTransformProps(focusedPartTuning)
+  focusedPartKeys.forEach((focusedPartKey) => {
+    const part = findStudioPart(root, focusedPartKey)
+    if (!part) return
+
+    if (!part.userData.studioPartBaseScale) part.userData.studioPartBaseScale = part.scale.clone()
+    if (!part.userData.studioPartBaseRotation) part.userData.studioPartBaseRotation = part.rotation.clone()
+    if (!part.userData.studioPartBasePosition) part.userData.studioPartBasePosition = part.position.clone()
+
+    part.position.copy(part.userData.studioPartBasePosition).add(new THREE.Vector3(...transform.position))
+    part.scale.copy(part.userData.studioPartBaseScale).multiply(new THREE.Vector3(...transform.scale))
+    part.rotation.set(
+      part.userData.studioPartBaseRotation.x + transform.rotation[0],
+      part.userData.studioPartBaseRotation.y + transform.rotation[1],
+      part.userData.studioPartBaseRotation.z + transform.rotation[2],
+    )
+    applyStudioTuning(part, focusedPartTuning)
+  })
+  updatePartGroupOutlines(root)
+}
+
+function useApplyStudioTuning(rootRef, itemId, tuning, focusedPartKeys, partTunings) {
   useEffect(() => {
-    if (rootRef.current) applyStudioTuning(rootRef.current, tuning)
-  }, [rootRef, tuning])
+    if (!rootRef.current) return
+    applyStudioTuning(rootRef.current, tuning)
+    applySavedStudioPartTunings(rootRef.current, itemId, partTunings)
+    syncPartGroupOutlines(rootRef.current, focusedPartKeys)
+    updatePartGroupOutlines(rootRef.current)
+  }, [rootRef, itemId, tuning, focusedPartKeys, partTunings])
 
   useFrame(() => {
-    if (rootRef.current) applyStudioTuning(rootRef.current, tuning)
+    if (!rootRef.current) return
+    applyStudioTuning(rootRef.current, tuning)
+    applySavedStudioPartTunings(rootRef.current, itemId, partTunings)
+    syncPartGroupOutlines(rootRef.current, focusedPartKeys)
+    updatePartGroupOutlines(rootRef.current)
   })
+}
+
+function StudioOrbitControls({ frame }) {
+  return (
+    <OrbitControls
+      makeDefault
+      target={frame.target}
+      enablePan
+      screenSpacePanning
+      mouseButtons={{
+        LEFT: THREE.MOUSE.ROTATE,
+        MIDDLE: THREE.MOUSE.PAN,
+        RIGHT: THREE.MOUSE.PAN,
+      }}
+      minDistance={frame.minDistance ?? 1.2}
+      maxDistance={frame.maxDistance ?? 14}
+    />
+  )
 }
 
 function ImagePlane({ src }) {
@@ -357,14 +487,25 @@ function RenderPreviewItem({ item }) {
   return null
 }
 
-function StudioScene({ selectedItem, tuning, frame }) {
+function StudioScene({ selectedItem, tuning, frame, focusedPartKeys, focusedPartTuning, partTunings, onPartFocus }) {
   const rootRef = useRef(null)
   const transform = getStudioTransformProps(tuning)
   const item = selectedItem.previewKind === 'player' || selectedItem.previewKind === 'zombie' || selectedItem.previewKind === 'matilda'
     ? { ...selectedItem, animation: tuning.animation }
     : selectedItem
 
-  useApplyStudioTuning(rootRef, tuning)
+  useApplyStudioTuning(rootRef, selectedItem.id, tuning, focusedPartKeys, partTunings)
+
+  const handlePartDoubleClick = (event) => {
+    const key = getStudioPartKey(rootRef.current, event.object)
+    if (!key) return
+    event.stopPropagation()
+    onPartFocus?.({
+      key,
+      label: getStudioPartLabel(event.object),
+      additive: Boolean(event.shiftKey || event.nativeEvent?.shiftKey),
+    })
+  }
 
   if (selectedItem.previewKind === 'titleScene') {
     return (
@@ -390,21 +531,15 @@ function StudioScene({ selectedItem, tuning, frame }) {
         shadow-camera-bottom={-40}
       />
       <directionalLight position={[10, 12, -10]} intensity={0.85} color={0xffe2b0} />
-      <group ref={rootRef} scale={transform.scale} rotation={transform.rotation}>
+      <group ref={rootRef} scale={transform.scale} position={transform.position} rotation={transform.rotation} onDoubleClick={handlePartDoubleClick}>
         <RenderPreviewItem item={item} />
       </group>
-      <OrbitControls
-        makeDefault
-        target={frame.target}
-        enablePan={false}
-        minDistance={frame.minDistance ?? 1.2}
-        maxDistance={frame.maxDistance ?? 14}
-      />
+      <StudioOrbitControls frame={frame} />
     </>
   )
 }
 
-export default function GraphicsStudioPreview({ selectedItem, tuning }) {
+export default function GraphicsStudioPreview({ selectedItem, tuning, focusedPartKeys = [], focusedPartTuning = null, partTunings = {}, onPartFocus = null }) {
   const frame = getPreviewFrame(selectedItem)
 
   return (
@@ -416,7 +551,15 @@ export default function GraphicsStudioPreview({ selectedItem, tuning }) {
     >
       <StudioTuningPreviewProvider>
         <color attach="background" args={['#171817']} />
-        <StudioScene selectedItem={selectedItem} tuning={tuning} frame={frame} />
+        <StudioScene
+          selectedItem={selectedItem}
+          tuning={tuning}
+          frame={frame}
+          focusedPartKeys={focusedPartKeys}
+          focusedPartTuning={focusedPartTuning}
+          partTunings={partTunings}
+          onPartFocus={onPartFocus}
+        />
       </StudioTuningPreviewProvider>
     </Canvas>
   )

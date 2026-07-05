@@ -2,7 +2,9 @@
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import App from './App.jsx'
+import App, { handleStudioGameSyncMessage } from './App.jsx'
+import { loadStudioTunings } from './lib/graphicsStudioConfig.js'
+import { loadSfxTunings } from './lib/sfxRegistry.js'
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }) => <canvas data-testid="mock-canvas">{children}</canvas>,
@@ -70,6 +72,23 @@ afterEach(() => {
 })
 
 describe('App virtual joystick mounting', () => {
+  it('applies studio sync messages into the current game origin storage', () => {
+    localStorage.clear()
+
+    const handled = handleStudioGameSyncMessage({
+      origin: 'http://localhost:5173',
+      data: {
+        type: 'escape-zombie-school.studioGameSync.v1',
+        tunings: { player: { scale: 1.7 } },
+        sfxTunings: { pencilFire: { volume: 0.4 } },
+      },
+    })
+
+    expect(handled).toBe(true)
+    expect(loadStudioTunings().player.scale).toBe(1.7)
+    expect(loadSfxTunings().pencilFire.volume).toBe(0.4)
+  })
+
   it('uses the full viewport width so narrow iPhone SE screens are not pillarboxed', () => {
     setInputEnvironment({
       maxTouchPoints: 5,

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const howlPlay = vi.fn(() => 7)
 const howlRate = vi.fn()
+const howlVolume = vi.fn()
 const howlConfigs = []
 
 vi.mock('howler', () => ({
@@ -11,6 +12,7 @@ vi.mock('howler', () => ({
     return {
       play: howlPlay,
       rate: howlRate,
+      volume: howlVolume,
     }
   }),
 }))
@@ -19,8 +21,16 @@ describe('playSfx', () => {
   beforeEach(() => {
     howlPlay.mockClear()
     howlRate.mockClear()
+    howlVolume.mockClear()
     howlConfigs.length = 0
     vi.resetModules()
+    let storage = {}
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn((key) => storage[key] ?? null),
+      setItem: vi.fn((key, value) => { storage[key] = String(value) }),
+      removeItem: vi.fn((key) => { delete storage[key] }),
+      clear: vi.fn(() => { storage = {} }),
+    })
   })
 
   it('plays Matilda spawn through the replaced audio asset', async () => {
@@ -62,5 +72,15 @@ describe('playSfx', () => {
     expect(howlConfigs[1].src).toEqual(['/sfx/weapons/starlinkExplosion.ogg', '/sfx/weapons/starlinkExplosion.mp3'])
     expect(statSync(new URL('../../public/sfx/weapons/starlinkFall.ogg', import.meta.url)).size).toBeGreaterThan(1000)
     expect(statSync(new URL('../../public/sfx/weapons/starlinkExplosion.ogg', import.meta.url)).size).toBeGreaterThan(1000)
+  })
+
+  it('applies saved studio volume and rate tuning immediately on playback', async () => {
+    const { playSfx, saveSfxTunings } = await import('./sfxRegistry.js')
+
+    saveSfxTunings({ pencilFire: { volume: 0.5, rate: 1.25 } })
+    playSfx('pencilFire', 0.8)
+
+    expect(howlVolume).toHaveBeenCalledWith(0.4, 7)
+    expect(howlRate).toHaveBeenCalledWith(1.25, 7)
   })
 })

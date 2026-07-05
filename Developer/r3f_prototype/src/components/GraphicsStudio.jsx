@@ -1,21 +1,47 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useRef, useState } from 'react'
 import GraphicsStudioPreview from './GraphicsStudioPreview.jsx'
 import {
   DEFAULT_STUDIO_TUNING,
   GRAPHICS_STUDIO_CATALOG,
   GRAPHICS_STUDIO_CATEGORIES,
+  ensureStudioResetBaseline,
   getStudioItemById,
   loadStudioTunings,
   normalizeStudioTuning,
   saveStudioTunings,
   serializeStudioSnapshot,
 } from '../lib/graphicsStudioConfig.js'
+import { DEFAULT_SFX_TUNING, getSfxCatalog, loadSfxTunings, normalizeSfxTuning, playSfx, saveSfxTunings } from '../lib/sfxRegistry.js'
+import {
+  STUDIO_GAME_SYNC_MESSAGE,
+  STUDIO_GAME_URL_STORAGE_KEY,
+  getDefaultStudioGameUrl,
+  parseStudioGameUrl,
+} from '../lib/studioGameBridge.js'
 
 const categoryLabels = Object.fromEntries(GRAPHICS_STUDIO_CATEGORIES.map((category) => [category.id, category.label]))
+const UNDO_LIMIT = 10
 
 function SliderRow({ label, name, min, max, step, value, onChange }) {
   const valueText = Number(value).toFixed(step < 1 ? 2 : 0)
+  const [draftValue, setDraftValue] = useState(valueText)
   const handleInput = (event) => onChange(Number(event.target.value))
+  const commitDraft = () => {
+    const next = Number(draftValue)
+    if (Number.isFinite(next)) onChange(next)
+    else setDraftValue(valueText)
+  }
+  const handleValueInput = (event) => {
+    const nextText = event.target.value
+    setDraftValue(nextText)
+    const next = Number(nextText)
+    if (Number.isFinite(next)) onChange(next)
+  }
+
+  useEffect(() => {
+    setDraftValue(valueText)
+  }, [valueText])
+
   return (
     <label style={styles.controlRow}>
       <span style={styles.controlLabel}>{label}</span>
@@ -30,7 +56,21 @@ function SliderRow({ label, name, min, max, step, value, onChange }) {
         onChange={handleInput}
         style={styles.range}
       />
-      <span style={styles.controlValue}>{valueText}</span>
+      <input
+        name={`${name}Value`}
+        type="number"
+        min={min}
+        max={max}
+        step={step}
+        value={draftValue}
+        onInput={handleValueInput}
+        onChange={handleValueInput}
+        onBlur={commitDraft}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') event.currentTarget.blur()
+        }}
+        style={styles.controlValueInput}
+      />
     </label>
   )
 }
@@ -74,66 +114,202 @@ function useCompactLayout() {
   return compact
 }
 
+function getPartTuningId(itemId, focusedParts) {
+  if (!focusedParts?.length) return itemId
+  const keys = focusedParts.map((part) => part.key).sort()
+  if (keys.length === 1) return `${itemId}::part::${keys[0]}`
+  return `${itemId}::group::${keys.join('+')}`
+}
+
+function getFocusedPartLabel(focusedParts) {
+  if (!focusedParts.length) return null
+  if (focusedParts.length === 1) return `Part Focus / ${focusedParts[0].label}`
+  return `Part Group / ${focusedParts.length} parts`
+}
+
+function isSameTuning(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b)
+}
+
 export default function GraphicsStudio() {
   const groupedCatalog = useMemo(groupCatalogByCategory, [])
+  const sfxCatalog = useMemo(getSfxCatalog, [])
   const compact = useCompactLayout()
+  const [activeSection, setActiveSection] = useState('graphics')
   const [selectedItemId, setSelectedItemId] = useState(() => {
     if (typeof window !== 'undefined' && window.location.hash) return getStudioItemById(window.location.hash.slice(1)).id
     return 'player'
   })
+  const [selectedSfxId, setSelectedSfxId] = useState(() => getSfxCatalog()[0]?.id ?? '')
+  const [sfxTunings, setSfxTunings] = useState(() => loadSfxTunings())
   const [confirmedTunings, setConfirmedTunings] = useState(() => loadStudioTunings())
+  const [resetBaseline] = useState(() => ensureStudioResetBaseline(loadStudioTunings()))
   const [applyStatus, setApplyStatus] = useState('')
   const selectedItem = getStudioItemById(selectedItemId)
   const [draftTuningById, setDraftTuningById] = useState(() => ({}))
-  const savedTuning = confirmedTunings[selectedItem.id] ?? DEFAULT_STUDIO_TUNING
-  const tuning = normalizeStudioTuning(draftTuningById[selectedItem.id] ?? savedTuning)
+  const [focusedParts, setFocusedParts] = useState([])
+  const [undoStack, setUndoStack] = useState(() => [])
+  const gameWindowRef = useRef(null)
+  const gameOriginRef = useRef('*')
+  const [gameUrl, setGameUrl] = useState(() => (
+    localStorage.getItem(STUDIO_GAME_URL_STORAGE_KEY) || getDefaultStudioGameUrl()
+  ))
+  const activeTuningId = getPartTuningId(selectedItem.id, focusedParts)
+  const itemSavedTuning = confirmedTunings[selectedItem.id] ?? DEFAULT_STUDIO_TUNING
+  const itemTuning = normalizeStudioTuning(draftTuningById[selectedItem.id] ?? itemSavedTuning)
+  const savedTuning = confirmedTunings[activeTuningId] ?? DEFAULT_STUDIO_TUNING
+  const tuning = normalizeStudioTuning(draftTuningById[activeTuningId] ?? savedTuning)
+  const selectedSfx = sfxCatalog.find((sound) => sound.id === selectedSfxId) ?? sfxCatalog[0]
+  const sfxTuning = normalizeSfxTuning(sfxTunings[selectedSfx?.id] ?? DEFAULT_SFX_TUNING)
   const exportTunings = {
     ...confirmedTunings,
-    [selectedItem.id]: tuning,
+    [activeTuningId]: tuning,
+  }
+  const livePreviewTunings = {
+    ...confirmedTunings,
+    ...draftTuningById,
+    [selectedItem.id]: itemTuning,
+    [activeTuningId]: tuning,
   }
   const exportJson = useMemo(
     () => serializeStudioSnapshot({ selectedItemId: selectedItem.id, tunings: exportTunings }),
-    [selectedItem.id, tuning, confirmedTunings],
+    [selectedItem.id, activeTuningId, tuning, confirmedTunings],
   )
+
+  const sendGameSync = (tunings = loadStudioTunings(), nextSfxTunings = loadSfxTunings()) => {
+    const target = gameWindowRef.current
+    if (!target || target.closed) return
+    target.postMessage({
+      type: STUDIO_GAME_SYNC_MESSAGE,
+      tunings,
+      sfxTunings: nextSfxTunings,
+    }, gameOriginRef.current)
+  }
+
+  const connectGameWindow = () => {
+    const url = parseStudioGameUrl(gameUrl)
+    if (!url) {
+      setApplyStatus('Invalid Game URL')
+      return
+    }
+    localStorage.setItem(STUDIO_GAME_URL_STORAGE_KEY, url.href)
+    gameOriginRef.current = url.origin
+    gameWindowRef.current = window.open(url.href, 'escape-zombie-school-game')
+    setApplyStatus(`Connected: ${url.origin}`)
+    window.setTimeout(() => sendGameSync(), 500)
+  }
+
+  const confirmGraphicsTuning = (id, nextTuning) => {
+    const next = saveStudioTunings({
+      ...loadStudioTunings(),
+      [id]: nextTuning,
+    })
+    setConfirmedTunings(next)
+    sendGameSync(next)
+    return next
+  }
 
   const updateTuning = (patch) => {
     setDraftTuningById((current) => {
-      const currentTuning = normalizeStudioTuning(current[selectedItem.id] ?? confirmedTunings[selectedItem.id] ?? DEFAULT_STUDIO_TUNING)
+      const currentTuning = normalizeStudioTuning(current[activeTuningId] ?? confirmedTunings[activeTuningId] ?? DEFAULT_STUDIO_TUNING)
       const nextTuning = normalizeStudioTuning({
         ...currentTuning,
         ...patch,
       })
-      const next = saveStudioTunings({
-        ...loadStudioTunings(),
-        [selectedItem.id]: nextTuning,
-      })
-      setConfirmedTunings(next)
-      setApplyStatus('Applied live')
+      if (!isSameTuning(currentTuning, nextTuning)) {
+        setUndoStack((stack) => [...stack, { id: activeTuningId, tuning: currentTuning }].slice(-UNDO_LIMIT))
+      }
+      confirmGraphicsTuning(activeTuningId, nextTuning)
+      setApplyStatus('Live')
       return {
         ...current,
-        [selectedItem.id]: nextTuning,
+        [activeTuningId]: nextTuning,
       }
     })
   }
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.key.toLowerCase() !== 'z') return
+      event.preventDefault()
+      setUndoStack((stack) => {
+        const entry = stack[stack.length - 1]
+        if (!entry) return stack
+        confirmGraphicsTuning(entry.id, entry.tuning)
+        setDraftTuningById((current) => ({
+          ...current,
+          [entry.id]: entry.tuning,
+        }))
+        setApplyStatus('Live')
+        return stack.slice(0, -1)
+      })
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   const applyCurrent = () => {
-    const next = saveStudioTunings({
-      ...confirmedTunings,
-      [selectedItem.id]: tuning,
-    })
+    const next = confirmGraphicsTuning(activeTuningId, tuning)
     setConfirmedTunings(next)
-    setApplyStatus('Applied')
+    setApplyStatus('Game applied')
   }
 
   const resetCurrent = () => {
+    const baselineTuning = resetBaseline[activeTuningId] ?? DEFAULT_STUDIO_TUNING
+    confirmGraphicsTuning(activeTuningId, baselineTuning)
     setDraftTuningById((current) => ({
       ...current,
-      [selectedItem.id]: DEFAULT_STUDIO_TUNING,
+      [activeTuningId]: baselineTuning,
     }))
+    setApplyStatus('Live')
   }
 
   const copyExport = async () => {
     await navigator.clipboard?.writeText(exportJson)
+  }
+
+  const updateFocusedParts = (part) => {
+    setFocusedParts((current) => {
+      const exists = current.some((item) => item.key === part.key)
+      if (part.additive && current.length > 0) {
+        const next = exists ? current : [...current, { key: part.key, label: part.label }]
+        setApplyStatus(next.length > 1 ? `Part Group: ${next.length} parts` : `Part Focus: ${part.label}`)
+        return next
+      }
+      const next = current.length > 1 && exists
+        ? [{ key: part.key, label: part.label }]
+        : [{ key: part.key, label: part.label }]
+      setApplyStatus(`Part Focus: ${part.label}`)
+      return next
+    })
+  }
+
+  const updateSfxTuning = (patch) => {
+    if (!selectedSfx) return
+    setSfxTunings((current) => {
+      const next = saveSfxTunings({
+        ...current,
+        [selectedSfx.id]: normalizeSfxTuning({
+          ...sfxTuning,
+          ...patch,
+        }),
+      })
+      sendGameSync(loadStudioTunings(), next)
+      return next
+    })
+    setApplyStatus('Audio live')
+  }
+
+  const applySfxCurrent = () => {
+    if (!selectedSfx) return
+    const next = saveSfxTunings({
+      ...loadSfxTunings(),
+      [selectedSfx.id]: sfxTuning,
+    })
+    sendGameSync(loadStudioTunings(), next)
+    setSfxTunings(next)
+    setApplyStatus('Audio applied')
   }
 
   return (
@@ -142,15 +318,47 @@ export default function GraphicsStudio() {
         <header style={styles.header}>
           <div>
             <h1 style={styles.title}>Graphics Studio</h1>
-            <p style={styles.subtitle}>{categoryLabels[selectedItem.category]} / {selectedItem.label}</p>
+            <p style={styles.subtitle}>
+              {activeSection === 'graphics'
+                ? `${categoryLabels[selectedItem.category]} / ${selectedItem.label}`
+                : `Audio / ${selectedSfx?.id ?? ''}`}
+            </p>
           </div>
+          <div style={styles.tabs}>
+            <button
+              type="button"
+              onClick={() => setActiveSection('graphics')}
+              style={{ ...styles.tabButton, ...(activeSection === 'graphics' ? styles.tabButtonActive : null) }}
+            >
+              Graphics
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSection('audio')}
+              style={{ ...styles.tabButton, ...(activeSection === 'audio' ? styles.tabButtonActive : null) }}
+            >
+              Audio
+            </button>
+          </div>
+          <label style={styles.gameBridge}>
+            <span style={styles.gameBridgeLabel}>Game URL</span>
+            <input
+              name="gameUrl"
+              type="url"
+              value={gameUrl}
+              onInput={(event) => setGameUrl(event.target.value)}
+              onChange={(event) => setGameUrl(event.target.value)}
+              style={styles.gameBridgeInput}
+            />
+            <button type="button" onClick={connectGameWindow} style={styles.gameBridgeButton}>Connect</button>
+          </label>
           <div style={styles.statusLine}>
-            <span style={styles.sourceLabel}>{selectedItem.source}</span>
+            <span style={styles.sourceLabel}>{activeSection === 'graphics' ? selectedItem.source : selectedSfx?.src}</span>
           </div>
         </header>
 
         <aside style={{ ...styles.sidebar, ...(compact ? styles.sidebarCompact : null) }}>
-          {groupedCatalog.map((category) => (
+          {activeSection === 'graphics' ? groupedCatalog.map((category) => (
             <section key={category.id} style={styles.catalogGroup}>
               <h2 style={styles.catalogTitle}>{category.label}</h2>
               <div style={styles.itemList}>
@@ -160,7 +368,10 @@ export default function GraphicsStudio() {
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => setSelectedItemId(item.id)}
+                      onClick={() => {
+                        setSelectedItemId(item.id)
+                        setFocusedParts([])
+                      }}
                       style={{
                         ...styles.itemButton,
                         ...(selected ? styles.itemButtonSelected : null),
@@ -172,20 +383,74 @@ export default function GraphicsStudio() {
                 })}
               </div>
             </section>
-          ))}
+          )) : (
+            <section style={styles.catalogGroup}>
+              <h2 style={styles.catalogTitle}>SFX</h2>
+              <div style={styles.itemList}>
+                {sfxCatalog.map((sound) => {
+                  const selected = sound.id === selectedSfx?.id
+                  return (
+                    <button
+                      key={sound.id}
+                      type="button"
+                      onClick={() => setSelectedSfxId(sound.id)}
+                      style={{
+                        ...styles.itemButton,
+                        ...(selected ? styles.itemButtonSelected : null),
+                      }}
+                    >
+                      <span>{sound.id}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+          )}
         </aside>
 
         <section style={{ ...styles.previewPanel, ...(compact ? styles.previewPanelCompact : null) }}>
-          <GraphicsStudioPreview selectedItem={selectedItem} tuning={tuning} />
+          {activeSection === 'graphics' ? (
+            <GraphicsStudioPreview
+              selectedItem={selectedItem}
+              tuning={itemTuning}
+              focusedPartKeys={focusedParts.map((part) => part.key)}
+              focusedPartTuning={focusedParts.length ? tuning : null}
+              partTunings={livePreviewTunings}
+              onPartFocus={updateFocusedParts}
+            />
+          ) : (
+            <div style={styles.audioPreview} data-testid="audio-preview">
+              <strong style={styles.audioTitle}>{selectedSfx?.id}</strong>
+              <span style={styles.audioPath}>{selectedSfx?.src}</span>
+              <button type="button" onClick={() => selectedSfx && playSfx(selectedSfx.id, 1)} style={styles.primaryButton}>
+                Play
+              </button>
+            </div>
+          )}
         </section>
 
         <aside style={{ ...styles.inspector, ...(compact ? styles.inspectorCompact : null) }}>
-          <h2 style={styles.panelTitle}>Inspector</h2>
+          {activeSection === 'graphics' ? (
+            <>
+          <div style={styles.inspectorTitleRow}>
+            <div style={styles.inspectorTitleText}>
+              <h2 style={styles.panelTitle}>Inspector</h2>
+              {focusedParts.length ? <span style={styles.partFocusLabel}>{getFocusedPartLabel(focusedParts)}</span> : null}
+            </div>
+            {focusedParts.length ? (
+              <button type="button" onClick={() => setFocusedParts([])} style={styles.exitPartButton}>
+                Exit Part
+              </button>
+            ) : null}
+          </div>
           <div style={styles.controls}>
             <SliderRow label="Scale" name="scale" min="0.35" max="2.5" step="0.01" value={tuning.scale} onChange={(scale) => updateTuning({ scale })} />
             <SliderRow label="Width X" name="scaleX" min="0.35" max="2.5" step="0.01" value={tuning.scaleX} onChange={(scaleX) => updateTuning({ scaleX })} />
             <SliderRow label="Height Y" name="scaleY" min="0.35" max="2.5" step="0.01" value={tuning.scaleY} onChange={(scaleY) => updateTuning({ scaleY })} />
             <SliderRow label="Depth Z" name="scaleZ" min="0.35" max="2.5" step="0.01" value={tuning.scaleZ} onChange={(scaleZ) => updateTuning({ scaleZ })} />
+            <SliderRow label="Position X" name="positionX" min="-3" max="3" step="0.01" value={tuning.positionX} onChange={(positionX) => updateTuning({ positionX })} />
+            <SliderRow label="Position Y" name="positionY" min="-3" max="3" step="0.01" value={tuning.positionY} onChange={(positionY) => updateTuning({ positionY })} />
+            <SliderRow label="Position Z" name="positionZ" min="-3" max="3" step="0.01" value={tuning.positionZ} onChange={(positionZ) => updateTuning({ positionZ })} />
             <SliderRow label="Outline" name="outlineThickness" min="0.4" max="2.2" step="0.01" value={tuning.outlineThickness} onChange={(outlineThickness) => updateTuning({ outlineThickness })} />
             <SliderRow label="Opacity" name="outlineOpacity" min="0" max="1" step="0.01" value={tuning.outlineOpacity} onChange={(outlineOpacity) => updateTuning({ outlineOpacity })} />
             <ColorRow label="Outline Color" name="outlineColor" value={tuning.outlineColor} onChange={(outlineColor) => updateTuning({ outlineColor })} />
@@ -220,6 +485,31 @@ export default function GraphicsStudio() {
             <button type="button" onClick={copyExport} style={styles.secondaryButton}>Copy JSON</button>
           </div>
           <div style={styles.applyStatus} aria-live="polite">{applyStatus}</div>
+            </>
+          ) : (
+            <>
+              <div style={styles.inspectorTitleRow}>
+                <div style={styles.inspectorTitleText}>
+                  <h2 style={styles.panelTitle}>Audio</h2>
+                  <span style={styles.partFocusLabel}>{selectedSfx?.category}</span>
+                </div>
+                <button type="button" onClick={() => selectedSfx && playSfx(selectedSfx.id, 1)} style={styles.exitPartButton}>
+                  Play
+                </button>
+              </div>
+              <div style={styles.controls}>
+                <SliderRow label="Volume" name="sfxVolume" min="0" max="2" step="0.01" value={sfxTuning.volume} onChange={(volume) => updateSfxTuning({ volume })} />
+                <SliderRow label="Pitch" name="sfxRate" min="0.5" max="2" step="0.01" value={sfxTuning.rate} onChange={(rate) => updateSfxTuning({ rate })} />
+              </div>
+              <div style={styles.actions}>
+                <button type="button" onClick={applySfxCurrent} style={styles.primaryButton}>Apply</button>
+                <button type="button" onClick={() => updateSfxTuning(DEFAULT_SFX_TUNING)} style={styles.secondaryButton}>Reset</button>
+                <button type="button" onClick={() => selectedSfx && playSfx(selectedSfx.id, 1)} style={styles.secondaryButton}>Play</button>
+                <button type="button" onClick={() => navigator.clipboard?.writeText(JSON.stringify(sfxTunings, null, 2))} style={styles.secondaryButton}>Copy JSON</button>
+              </div>
+              <div style={styles.applyStatus} aria-live="polite">{applyStatus}</div>
+            </>
+          )}
         </aside>
 
         <section style={{ ...styles.exportPanel, ...(compact ? styles.exportPanelCompact : null) }}>
@@ -283,6 +573,26 @@ const styles = {
     fontSize: 12,
     color: '#bfc8b8',
   },
+  tabs: {
+    display: 'flex',
+    gap: 6,
+  },
+  tabButton: {
+    minWidth: 78,
+    height: 32,
+    border: '1px solid #3f443c',
+    borderRadius: 6,
+    background: '#151614',
+    color: '#d8dccf',
+    cursor: 'pointer',
+    fontSize: 12,
+    fontWeight: 800,
+  },
+  tabButtonActive: {
+    border: '1px solid #d3a53f',
+    background: '#2a2619',
+    color: '#fff6cf',
+  },
   statusLine: {
     minWidth: 0,
     maxWidth: 520,
@@ -294,6 +604,37 @@ const styles = {
   },
   sourceLabel: {
     fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+  },
+  gameBridge: {
+    display: 'grid',
+    gridTemplateColumns: '58px minmax(120px, 220px) 72px',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 0,
+  },
+  gameBridgeLabel: {
+    color: '#bfc8b8',
+    fontSize: 11,
+  },
+  gameBridgeInput: {
+    minWidth: 0,
+    height: 28,
+    border: '1px solid #3f443c',
+    borderRadius: 6,
+    background: '#111210',
+    color: '#f2eee5',
+    padding: '0 8px',
+    fontSize: 11,
+  },
+  gameBridgeButton: {
+    height: 28,
+    border: '1px solid #d3a53f',
+    borderRadius: 6,
+    background: '#2a2619',
+    color: '#fff6cf',
+    cursor: 'pointer',
+    fontSize: 11,
+    fontWeight: 800,
   },
   sidebar: {
     gridRow: '2 / 4',
@@ -351,12 +692,34 @@ const styles = {
     borderRight: 0,
     borderBottom: '1px solid #353833',
   },
+  audioPreview: {
+    width: '100%',
+    height: '100%',
+    display: 'grid',
+    placeContent: 'center',
+    justifyItems: 'center',
+    gap: 12,
+    padding: 24,
+    boxSizing: 'border-box',
+  },
+  audioTitle: {
+    color: '#f4eadb',
+    fontSize: 24,
+  },
+  audioPath: {
+    maxWidth: '100%',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    color: '#8ebc9d',
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+    fontSize: 12,
+  },
   inspector: {
     gridColumn: 3,
     gridRow: '2 / 4',
     minHeight: 0,
     display: 'grid',
-    gridTemplateRows: '38px minmax(0, 1fr) 50px 26px',
+    gridTemplateRows: '52px minmax(0, 1fr) 50px 26px',
     background: '#1b1d1a',
   },
   inspectorCompact: {
@@ -370,6 +733,37 @@ const styles = {
     lineHeight: '18px',
     color: '#f4eadb',
     fontWeight: 800,
+  },
+  inspectorTitleRow: {
+    minWidth: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    padding: '0 14px',
+  },
+  inspectorTitleText: {
+    minWidth: 0,
+    display: 'grid',
+    gap: 2,
+  },
+  partFocusLabel: {
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    color: '#f0c765',
+    fontSize: 11,
+  },
+  exitPartButton: {
+    minWidth: 78,
+    height: 28,
+    border: '1px solid #3f443c',
+    borderRadius: 6,
+    background: '#20231f',
+    color: '#f2eee5',
+    cursor: 'pointer',
+    fontSize: 12,
   },
   controls: {
     overflow: 'auto',
@@ -394,6 +788,18 @@ const styles = {
     fontVariantNumeric: 'tabular-nums',
     textAlign: 'right',
     fontSize: 12,
+  },
+  controlValueInput: {
+    width: 44,
+    minWidth: 0,
+    border: '1px solid transparent',
+    borderRadius: 4,
+    background: 'transparent',
+    color: '#f0c765',
+    fontVariantNumeric: 'tabular-nums',
+    textAlign: 'right',
+    fontSize: 12,
+    padding: '2px 0',
   },
   range: {
     width: '100%',
@@ -435,7 +841,7 @@ const styles = {
   },
   actions: {
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr 1fr',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(68px, 1fr))',
     gap: 8,
     padding: '8px 14px',
     borderTop: '1px solid #353833',

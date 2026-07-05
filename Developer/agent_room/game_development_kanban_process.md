@@ -59,6 +59,14 @@ Use only these Hermes profile names for durable Kanban cards:
 
 Do not assign durable cards to placeholder names such as `planner`, `reviewer`, `researcher`, `game-developer`, `graphic_designer`, `balance_qa`, `qa-reviewer`, or `product-manager`. Map those concepts to the closest real profile.
 
+## Mandatory Sound_Mini Audio Gate
+
+All Escape! zombie school sound production must include `soundmini` involvement before final completion. This is mandatory even when the user asks for a small one-step sound tweak.
+
+Route these through `soundmini`: SFX, BGM loops, voice barks, pseudo-voice, 8-bit/chiptune, Atari-grade/basic machine sounds, WebAudio/ZzFX/jsfxr/sfxr, Howler `SOUND_MAP`, `Developer/r3f_prototype/src/lib/sfxRegistry.js`, `Developer/r3f_prototype/public/sfx/**`, OGG/MP3 fallback, audio mix/volume/cooldown/polyphony/performance budgets, and audio asset licensing.
+
+Implementation pairing rule: if the task changes runtime code, pair `soundmini` with the relevant implementation profile; if it changes game feel or release readiness, add `balanceqa` validation. The completion report must name the `soundmini` card/artifact/review trail used.
+
 ## Default Fan-Out / Fan-In Graph
 
 For a milestone-level request, create independent cards first, then synthesis and validation cards:

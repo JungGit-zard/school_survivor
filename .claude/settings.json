@@ -39,6 +39,33 @@
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/check-gstack.sh\""
           }
         ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-soundmini-for-audio.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-soundmini-for-audio.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-soundmini-for-audio.sh\""
+          }
+        ]
       }
     ]
   }

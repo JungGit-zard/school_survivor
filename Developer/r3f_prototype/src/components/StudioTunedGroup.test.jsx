@@ -1,20 +1,30 @@
+// @vitest-environment jsdom
+import React from 'react'
+import { act } from 'react'
+import { createRoot } from 'react-dom/client'
 import { describe, expect, it } from 'vitest'
 import * as THREE from 'three'
-import { applyStudioTuning, getStudioTransformProps } from './StudioTunedGroup.jsx'
+import { applySavedStudioPartTunings, applyStudioTuning, getStudioTransformProps } from './StudioTunedGroup.jsx'
+import StudioTunedGroup from './StudioTunedGroup.jsx'
+import { saveStudioTunings } from '../lib/graphicsStudioConfig.js'
 
 describe('StudioTunedGroup', () => {
-  it('combines global scale, per-axis scale, and default rotation angles', () => {
+  it('combines scale, position, and default rotation angles', () => {
     const transform = getStudioTransformProps({
       scale: 1.5,
       scaleX: 2,
       scaleY: 1,
       scaleZ: 0.5,
+      positionX: 0.25,
+      positionY: -0.5,
+      positionZ: 1.2,
       rotationX: 90,
       rotationY: -90,
       rotationZ: 180,
     })
 
     expect(transform.scale).toEqual([3, 1.5, 0.75])
+    expect(transform.position).toEqual([0.25, -0.5, 1.2])
     expect(transform.rotation[0]).toBeCloseTo(Math.PI / 2)
     expect(transform.rotation[1]).toBeCloseTo(-Math.PI / 2)
     expect(transform.rotation[2]).toBeCloseTo(Math.PI)
@@ -51,5 +61,63 @@ describe('StudioTunedGroup', () => {
     expect(outlineMat.color.getHexString()).toBe('00ff00')
     expect(outlineMat.opacity).toBe(0.5)
     expect(outline.scale.x).toBeCloseTo(1.12)
+  })
+
+  it('updates game groups immediately when studio tuning is saved', () => {
+    localStorage.clear()
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    act(() => {
+      root.render(<StudioTunedGroup itemId="player" materialTuning={false}><mesh /></StudioTunedGroup>)
+    })
+    expect(container.querySelector('group').getAttribute('scale')).toBe('1,1,1')
+
+    act(() => {
+      saveStudioTunings({ player: { scale: 1.5, scaleX: 2 } })
+    })
+
+    expect(container.querySelector('group').getAttribute('scale')).toBe('3,1.5,1.5')
+
+    act(() => root.unmount())
+  })
+
+  it('applies confirmed part focus tuning to game meshes', () => {
+    const root = new THREE.Group()
+    const part = new THREE.Group()
+    root.add(part)
+
+    applySavedStudioPartTunings(root, 'player', {
+      'player::part::0': {
+        scale: 1.25,
+        scaleX: 2,
+        positionY: 0.75,
+        rotationZ: 90,
+      },
+    })
+
+    expect(part.scale.x).toBeCloseTo(2.5)
+    expect(part.scale.y).toBeCloseTo(1.25)
+    expect(part.position.y).toBeCloseTo(0.75)
+    expect(part.rotation.z).toBeCloseTo(Math.PI / 2)
+  })
+
+  it('applies confirmed group tuning even when studio preview added a wrapper path', () => {
+    const root = new THREE.Group()
+    const first = new THREE.Group()
+    const second = new THREE.Group()
+    root.add(first, second)
+
+    applySavedStudioPartTunings(root, 'player', {
+      'player::group::7.0+7.1': {
+        scale: 1.4,
+        positionX: -0.5,
+      },
+    })
+
+    expect(first.scale.x).toBeCloseTo(1.4)
+    expect(second.scale.x).toBeCloseTo(1.4)
+    expect(first.position.x).toBeCloseTo(-0.5)
+    expect(second.position.x).toBeCloseTo(-0.5)
   })
 })

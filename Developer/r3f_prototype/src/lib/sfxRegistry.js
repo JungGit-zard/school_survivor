@@ -6,7 +6,7 @@ import { Howl } from 'howler'
 
 // ── 사운드 맵 ────────────────────────────────────────────────────────────────
 // 파일 위치: public/sfx/<category>/<id>.mp3
-const SOUND_MAP = {
+export const SOUND_MAP = {
   // ── 무기 발사음 (14종) ──────────────────────────────────────────────────────
   pencilFire:     '/sfx/weapons/pencilFire.ogg',
   rulerFire:      '/sfx/weapons/rulerFire.ogg',
@@ -84,6 +84,13 @@ const SOUND_MAP = {
   milestoneGold:      '/sfx/events/milestoneGold.ogg',
 }
 
+export const DEFAULT_SFX_TUNING = {
+  volume: 1,
+  rate: 1,
+}
+
+export const SFX_TUNING_STORAGE_KEY = 'escape-zombie-school.sfxTunings.v1'
+
 const _cache  = {}
 const _failed = new Set()
 
@@ -106,9 +113,53 @@ export function isSfxAllowedForAuthOverlay(id, authOverlayActive = false) {
   return AUTH_OVERLAY_ALLOWED_SFX.has(id)
 }
 
+export function getSfxCatalog() {
+  return Object.entries(SOUND_MAP).map(([id, src]) => ({
+    id,
+    src,
+    category: src.split('/')[2] ?? 'sfx',
+  }))
+}
+
+export function normalizeSfxTuning(input) {
+  const volume = Number(input?.volume ?? DEFAULT_SFX_TUNING.volume)
+  const rate = Number(input?.rate ?? DEFAULT_SFX_TUNING.rate)
+  return {
+    volume: clamp(Number.isFinite(volume) ? volume : DEFAULT_SFX_TUNING.volume, 0, 2),
+    rate: clamp(Number.isFinite(rate) ? rate : DEFAULT_SFX_TUNING.rate, 0.5, 2),
+  }
+}
+
+export function loadSfxTunings() {
+  try {
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(SFX_TUNING_STORAGE_KEY) : null
+    const parsed = raw ? JSON.parse(raw) : {}
+    return Object.fromEntries(
+      Object.keys(SOUND_MAP)
+        .filter((id) => parsed[id])
+        .map((id) => [id, normalizeSfxTuning(parsed[id])]),
+    )
+  } catch {
+    return {}
+  }
+}
+
+export function saveSfxTunings(tunings) {
+  const next = Object.fromEntries(
+    Object.keys(SOUND_MAP)
+      .filter((id) => tunings?.[id])
+      .map((id) => [id, normalizeSfxTuning(tunings[id])]),
+  )
+  if (typeof localStorage !== 'undefined') localStorage.setItem(SFX_TUNING_STORAGE_KEY, JSON.stringify(next))
+  return next
+}
+
 export function playSfx(id, volume = 1, options = {}) {
   if (!SOUND_MAP[id] || _failed.has(id)) return
   if (!isSfxAllowedForAuthOverlay(id, options.authOverlayActive)) return
+  const tuning = normalizeSfxTuning(loadSfxTunings()[id])
+  const tunedVolume = clamp(volume * tuning.volume, 0, 1)
+  const tunedRate = clamp((options.rate ?? 1) * tuning.rate, 0.5, 2)
 
   const cooldown = POLYPHONY_COOLDOWN[id] ?? 0
   if (cooldown > 0) {
@@ -122,15 +173,20 @@ export function playSfx(id, volume = 1, options = {}) {
     const mp3 = ogg.replace('.ogg', '.mp3')
     _cache[id] = new Howl({
       src: [ogg, mp3],   // OGG 우선, 미지원 브라우저는 MP3 fallback
-      volume: Math.max(0, Math.min(1, volume)),
+      volume: tunedVolume,
       onloaderror: () => { _failed.add(id); delete _cache[id] },
     })
   }
   const soundId = _cache[id].play()
-  if (options.rate) _cache[id].rate(options.rate, soundId)
+  _cache[id].volume?.(tunedVolume, soundId)
+  if (tunedRate !== 1) _cache[id].rate(tunedRate, soundId)
 }
 
 // 볼륨 조절 (뮤트/글로벌 볼륨 슬라이더 연동용)
 export function setSfxVolume(volume) {
   Object.values(_cache).forEach((h) => h.volume(volume))
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value))
 }

@@ -21,6 +21,7 @@ export function getStudioTransformProps(tuning = DEFAULT_STUDIO_TUNING) {
   const t = normalizeStudioTuning(tuning)
   return {
     scale: [t.scale * t.scaleX, t.scale * t.scaleY, t.scale * t.scaleZ],
+    position: [t.positionX, t.positionY, t.positionZ],
     rotation: [
       THREE.MathUtils.degToRad(t.rotationX),
       THREE.MathUtils.degToRad(t.rotationY),
@@ -84,18 +85,84 @@ export function applyStudioTuning(root, tuning = DEFAULT_STUDIO_TUNING) {
   })
 }
 
-function loadItemTuning(itemId) {
-  return loadStudioTunings()[itemId] ?? DEFAULT_STUDIO_TUNING
+function findStudioPartFromRuntimeRoot(root, key) {
+  if (!root || !key) return null
+  const parts = key.split('.')
+
+  for (let offset = 0; offset < parts.length; offset += 1) {
+    const found = parts
+      .slice(offset)
+      .reduce((node, index) => node?.children?.[Number(index)] ?? null, root)
+    if (found) return found
+  }
+
+  return null
+}
+
+function resetSavedStudioPartTransforms(root) {
+  root.traverse((object) => {
+    if (object.userData.studioPartBaseScale) object.scale.copy(object.userData.studioPartBaseScale)
+    if (object.userData.studioPartBaseRotation) object.rotation.copy(object.userData.studioPartBaseRotation)
+    if (object.userData.studioPartBasePosition) object.position.copy(object.userData.studioPartBasePosition)
+  })
+}
+
+function getPartKeysForSavedTuning(itemId, savedKey) {
+  const partPrefix = `${itemId}::part::`
+  const groupPrefix = `${itemId}::group::`
+  if (savedKey.startsWith(partPrefix)) return [savedKey.slice(partPrefix.length)]
+  if (savedKey.startsWith(groupPrefix)) return savedKey.slice(groupPrefix.length).split('+')
+  return []
+}
+
+export function applySavedStudioPartTunings(root, itemId, tunings = loadStudioTunings(), { materialTuning = true } = {}) {
+  if (!root || !itemId) return
+  const savedPartTunings = Object.entries(tunings ?? {})
+    .map(([savedKey, tuning]) => [getPartKeysForSavedTuning(itemId, savedKey), tuning])
+    .filter(([partKeys]) => partKeys.length)
+  if (!savedPartTunings.length || typeof root.traverse !== 'function') return
+
+  resetSavedStudioPartTransforms(root)
+
+  savedPartTunings.forEach(([partKeys, tuning]) => {
+    const transform = getStudioTransformProps(tuning)
+
+    partKeys.forEach((partKey) => {
+      const part = findStudioPartFromRuntimeRoot(root, partKey)
+      if (!part) return
+
+      if (!part.userData.studioPartBaseScale) part.userData.studioPartBaseScale = part.scale.clone()
+      if (!part.userData.studioPartBaseRotation) part.userData.studioPartBaseRotation = part.rotation.clone()
+      if (!part.userData.studioPartBasePosition) part.userData.studioPartBasePosition = part.position.clone()
+
+      part.position.copy(part.userData.studioPartBasePosition).add(new THREE.Vector3(...transform.position))
+      part.scale.copy(part.userData.studioPartBaseScale).multiply(new THREE.Vector3(...transform.scale))
+      part.rotation.set(
+        part.userData.studioPartBaseRotation.x + transform.rotation[0],
+        part.userData.studioPartBaseRotation.y + transform.rotation[1],
+        part.userData.studioPartBaseRotation.z + transform.rotation[2],
+      )
+      if (materialTuning) applyStudioTuning(part, tuning)
+    })
+  })
+}
+
+function loadStudioState(itemId) {
+  const tunings = loadStudioTunings()
+  return {
+    tuning: tunings[itemId] ?? DEFAULT_STUDIO_TUNING,
+    tunings,
+  }
 }
 
 export default function StudioTunedGroup({ itemId, children, materialTuning = true }) {
   const previewOnly = useContext(StudioPreviewContext)
   const groupRef = useRef(null)
-  const [tuning, setTuning] = useState(() => loadItemTuning(itemId))
+  const [studioState, setStudioState] = useState(() => loadStudioState(itemId))
 
   useEffect(() => {
     if (previewOnly || typeof window === 'undefined') return undefined
-    const update = () => setTuning(loadItemTuning(itemId))
+    const update = () => setStudioState(loadStudioState(itemId))
     window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
     window.addEventListener('storage', update)
     return () => {
@@ -104,12 +171,15 @@ export default function StudioTunedGroup({ itemId, children, materialTuning = tr
     }
   }, [itemId, previewOnly])
 
+  const { tuning, tunings } = studioState
   const transform = useMemo(() => getStudioTransformProps(tuning), [tuning])
 
   useEffect(() => {
-    if (!previewOnly && materialTuning && groupRef.current) applyStudioTuning(groupRef.current, tuning)
-  }, [materialTuning, previewOnly, tuning])
+    if (previewOnly || !groupRef.current) return
+    if (materialTuning) applyStudioTuning(groupRef.current, tuning)
+    applySavedStudioPartTunings(groupRef.current, itemId, tunings, { materialTuning })
+  }, [itemId, materialTuning, previewOnly, tuning, tunings])
 
   if (previewOnly) return <>{children}</>
-  return <group ref={groupRef} scale={transform.scale} rotation={transform.rotation}>{children}</group>
+  return <group ref={groupRef} scale={transform.scale} position={transform.position} rotation={transform.rotation}>{children}</group>
 }

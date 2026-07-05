@@ -111,9 +111,11 @@
 - 반드시 Kanban 카드의 담당자는 실제 spawn 가능한 프로필명(`threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`) 중 하나로 지정한다.
 - 반드시 worker 실행 전 프로필 HOME의 `~/.claude/skills/gstack/bin` 게이트가 통과하는지 확인한다.
 - 반드시 implementation wave 완료 선언 전 `todo=0`, `ready=0`, `running=0`, `blocked=0` 상태를 확인한다.
+- 반드시 탈출좀비학교의 모든 사운드 제작/수정/교체/검수 작업에는 `soundmini` / Sound_Mini / 사운드미니가 관여해야 한다. 작은 1파일 수정이라도 예외가 아니며, SFX/BGM/보이스/기계음/8-bit/chiptune/WebAudio/ZzFX/jsfxr/Howler `SOUND_MAP`/`public/sfx`/오디오 라이선스/음량·쿨다운·폴리포니 예산 변경은 `soundmini` 카드, `soundmini` 산출물, 또는 `.claude/agents/soundmini.md` 기반 검토 흔적을 남긴 뒤 진행한다.
 
 ### 절대로 하면 안 되는 사항
 
 - 절대로 `game-developer`, `balance_qa`처럼 spawn 불가능한 임시 assignee를 그대로 방치하지 않는다.
 - 절대로 `review-required`로 막힌 코드 작업을 테스트/빌드/정적 점검 없이 완료 처리하지 않는다.
 - 절대로 Kanban worker가 만든 변경을 검증 없이 릴리스 가능 또는 완료로 취급하지 않는다.
+- 절대로 `soundmini` 관여 없이 사운드 파일, 사운드 registry, 오디오 파라미터, BGM/보이스/라이선스 정책을 직접 확정하지 않는다.

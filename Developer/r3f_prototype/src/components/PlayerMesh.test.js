@@ -35,4 +35,12 @@ describe('PlayerMesh layout', () => {
     expect(PLAYER_MESH_LAYOUT.lantern.lightLength).toBeCloseTo(2.08 / 3 / 0.2664)
     expect(PLAYER_MESH_LAYOUT.lantern.lightRadius).toBeCloseTo((3.6 / 2) / 3 / 0.2664)
   })
+
+  it('keeps the floor shadow depth-tested so it cannot draw over the player body', () => {
+    const source = readFileSync(new URL('./PlayerMesh.jsx', import.meta.url), 'utf8')
+    const shadowMaterial = source.match(/const shadowMat[\s\S]*?new THREE\.MeshBasicMaterial\(\{([\s\S]*?)\}\)/)?.[1] ?? ''
+
+    expect(shadowMaterial).toContain('depthTest: true')
+    expect(shadowMaterial).toContain('depthWrite: false')
+  })
 })

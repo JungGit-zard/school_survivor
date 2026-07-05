@@ -1,7 +1,7 @@
 # IDE Agent Handoff - Subagent Auto-Call For Escape! zombie school
 
 Created: 2026-06-25
-Updated: 2026-06-27
+Updated: 2026-07-05
 Owner: Hana / Agent Room operations
 Audience: IDE-side resident agents, including Codex, Claude, Antigravity, or similar project assistants
 Project root: `D:/JungSil/2.Minigame_project/school_survivor-integration`
@@ -56,7 +56,24 @@ Use subagents even without trigger words when the request clearly spans multiple
 - backend, Firebase, privacy, account deletion, networking
 - monetization, product scope, business model
 - English store copy, localization, global readiness
+- sound/SFX/BGM/voice/chiptune/WebAudio/audio licensing work
 - long-running cleanup or multi-file refactor needing independent validation
+
+## Mandatory Sound_Mini Hook
+
+Any Escape! zombie school sound production or audio implementation task must involve `soundmini` / Sound_Mini / 사운드미니 before finalizing changes. This overrides the small direct-work exception.
+
+Trigger this hook for:
+
+- SFX, BGM loops, voice barks, pseudo-voice, chiptune, 8-bit, Atari-grade/basic machine sound, WebAudio, ZzFX, jsfxr, sfxr, Howler, `SOUND_MAP`, `sfxRegistry.js`, `public/sfx/**`, OGG/MP3 fallback, audio volume/mix/cooldown/polyphony/performance, and audio asset licensing.
+
+Required trail before completion:
+
+- create or use a `soundmini` Kanban card, or
+- call/read the Claude Code mirror `.claude/agents/soundmini.md`, or
+- cite an existing current `soundmini` artifact such as `Developer/agent_room/soundmini_sfx_parameter_sheet_2026-07-05.md` and record why it covers the change.
+
+If code implementation is also needed, pair `soundmini` with the relevant implementation profile and finish with `balanceqa` validation when the change is more than a trivial documented parameter adjustment.
 
 ## Direct Work Is Allowed For Small Tasks
 
@@ -84,6 +101,7 @@ backendmini
 englishgradmini
 madangsue
 jabdareminder
+soundmini
 ```
 
 Map placeholder concepts to real profiles:
@@ -98,6 +116,7 @@ Map placeholder concepts to real profiles:
 - English / localization -> `englishgradmini`
 - operations / smoke / ledger -> `madangsue`
 - reminders / notification hygiene -> `jabdareminder`
+- sound / SFX / BGM / voice / chiptune / WebAudio / audio licensing -> `soundmini`
 
 ## Routing Algorithm
 

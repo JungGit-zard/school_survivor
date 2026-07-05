@@ -52,7 +52,7 @@ Durable board: `escape-zombie-school`
 - 사운드/효과음/BGM/음성/보이스/8비트/저용량 오디오/WebAudio
 - 장시간 정리, 다중 파일 리팩터, 독립 검증이 필요한 작업
 
-작은 오타 수정, 한 파일 읽기, 좁은 단일 변경은 직접 처리 가능하다. 단, Terry가 명시적으로 서브에이전트 투입을 말하면 작은 작업도 라우팅한다.
+작은 오타 수정, 한 파일 읽기, 좁은 단일 변경은 직접 처리 가능하다. 단, Terry가 명시적으로 서브에이전트 투입을 말하면 작은 작업도 라우팅한다. 또한 사운드/오디오/SFX/BGM/보이스/Howler `SOUND_MAP`/`public/sfx`/WebAudio/ZzFX/jsfxr/오디오 라이선스 작업은 작은 단일 변경이어도 예외 없이 `soundmini` 관여가 필요하다.
 
 ## 3. 역할 → 실제 실행 프로필 매핑
 
@@ -67,6 +67,8 @@ Durable board: `escape-zombie-school`
 - 무료 게임 사운드/효과음/BGM/음성/8-bit/chiptune/WebAudio/저용량 오디오/라이선스 검토 → `soundmini`
 - 운영 장부/agent-room hygiene/스모크 테스트/환경 정리 → `madangsue`
 - 리마인더/예약/알림 위생 → `jabdareminder`
+
+사운드 라우팅은 강제 훅이다. `soundmini`가 관여했다는 Kanban 카드, 산출물, 또는 `.claude/agents/soundmini.md` 검토 흔적 없이 사운드 제작·수정·교체·검수를 완료 처리하지 않는다.
 
 금지: `planner`, `reviewer`, `game-developer`, `graphic_designer`, `balance_qa`, `qa-reviewer`, `product-manager` 같은 placeholder를 Kanban assignee로 그대로 쓰지 않는다.
 
@@ -123,6 +125,8 @@ Antigravity:
 사운드/오디오:
 
 - `Developer/agent_room/soundmini_free_game_audio_rnd_2026-07-04.md`
+- `Developer/agent_room/soundmini_atari_grade_machine_sfx_training_2026-07-05.md`
+- `Developer/agent_room/soundmini_sfx_parameter_sheet_2026-07-05.md`
 
 R3F/Rapier 안정성:
 
@@ -174,7 +178,7 @@ R3F/Rapier 안정성:
 
 Claude Code(이 프로젝트 루트에서 실행되는 세션)는 `.claude/agents/*.md`를 읽어
 관련 입력이 오면 해당 서브에이전트를 **자동 위임(auto-delegation)** 한다.
-개발수행 핵심 5종을 Hermes 프로필의 **미러**로 배치했다 (새 역할 창조 아님):
+개발수행 핵심 6종을 Hermes 프로필의 **미러**로 배치했다 (새 역할 창조 아님):
 
 | Claude Code 에이전트 | 미러 원본 (Hermes) | 자동발현 트리거 |
 | --- | --- | --- |
@@ -183,6 +187,7 @@ Claude Code(이 프로젝트 루트에서 실행되는 세션)는 `.claude/agent
 | `levelmini` | Level_Mini | 웨이브/스폰/난이도/무기 풀/XP 페이싱 |
 | `balanceqa` | Balance_QA_Mini | QA/검수/회귀/acceptance |
 | `backendmini` | Backend_Mini | Firebase/Auth/클라우드 저장/보안 규칙 |
+| `soundmini` | Sound_Mini | 사운드/효과음/BGM/보이스/8비트/기계음/WebAudio/오디오 라이선스 |
 
 규칙:
 

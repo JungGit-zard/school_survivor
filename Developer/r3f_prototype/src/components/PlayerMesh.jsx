@@ -145,7 +145,7 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
         color: 0x000000,
         transparent: true,
         opacity: 0.34,
-        depthTest: false,
+        depthTest: true,
         depthWrite: false,
       }),
     []

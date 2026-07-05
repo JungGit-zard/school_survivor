@@ -14,10 +14,25 @@ import SfxLayer from './components/SfxLayer.jsx'
 import { initPlaytestLogger } from './lib/playtestLogger.js'
 import { isMobileJoystickEnvironment } from './lib/mobileInput.js'
 import { initKeyboardInput } from './lib/keyboardInput.js'
+import { saveStudioTunings } from './lib/graphicsStudioConfig.js'
+import { saveSfxTunings } from './lib/sfxRegistry.js'
+import { STUDIO_GAME_SYNC_MESSAGE, isAllowedStudioGameOrigin } from './lib/studioGameBridge.js'
 
 initPlaytestLogger()
 // 이동 키 추적 — blur/숨김 시 키 상태 자동 리셋 (알트탭 keyup 유실 → 6시 자동 이동 버그 방지)
 initKeyboardInput()
+
+export function handleStudioGameSyncMessage(event) {
+  if (event?.data?.type !== STUDIO_GAME_SYNC_MESSAGE) return false
+  if (event.origin && !isAllowedStudioGameOrigin(event.origin)) return false
+  if (event.data.tunings) saveStudioTunings(event.data.tunings)
+  if (event.data.sfxTunings) saveSfxTunings(event.data.sfxTunings)
+  return true
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('message', handleStudioGameSyncMessage)
+}
 
 export default function App() {
   const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')

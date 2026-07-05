@@ -36,8 +36,46 @@ describe('GraphicsStudioPreview render contracts', () => {
 
     expect(source).toContain('getStudioTransformProps(tuning)')
     expect(source).toContain('scale={transform.scale}')
+    expect(source).toContain('position={transform.position}')
     expect(source).toContain('rotation={transform.rotation}')
     expect(source).toContain('StudioTuningPreviewProvider')
+  })
+
+  it('uses middle mouse drag for viewport panning in Graphics Studio', () => {
+    const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('enablePan')
+    expect(source).toContain('screenSpacePanning')
+    expect(source).toContain('function StudioOrbitControls')
+    expect(source).toContain('MIDDLE: THREE.MOUSE.PAN')
+  })
+
+  it('supports double-click part focusing with a separate part tuning', () => {
+    const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('export function getStudioPartKey')
+    expect(source).toContain('export function findStudioPart')
+    expect(source).toContain('onDoubleClick={handlePartDoubleClick}')
+    expect(source).toContain('focusedPartTuning')
+    expect(source).toContain('applyFocusedPartTuning')
+  })
+
+  it('supports single and grouped part focus with neon outlines', () => {
+    const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('focusedPartKeys')
+    expect(source).toContain('shiftKey')
+    expect(source).toContain('syncPartGroupOutlines')
+    expect(source).toContain('PART_GROUP_OUTLINE_COLOR')
+    expect(source).toContain('focusedPartKeys.length ? focusedPartKeys : []')
+  })
+
+  it('keeps saved part and group edits visible when focusing another part', () => {
+    const studioSource = readFileSync(new URL('./GraphicsStudio.jsx', import.meta.url), 'utf8')
+    const previewSource = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+
+    expect(studioSource).toContain('partTunings={livePreviewTunings}')
+    expect(previewSource).toContain('applySavedStudioPartTunings(rootRef.current, itemId, partTunings')
   })
 
   it('keeps catalog-only studio items wired to runtime tuning groups', () => {

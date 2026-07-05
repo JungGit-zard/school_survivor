@@ -1,18 +1,38 @@
 ﻿<!doctype html>
-<html lang="ko">
+<html lang="ko" translate="no" class="notranslate">
   <head>
     <meta charset="UTF-8" />
+    <meta name="google" content="notranslate" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260705" />
+    <link id="app-favicon" rel="icon" type="image/svg+xml" href="/favicon-game.svg?v=20260705" />
+    <script>
+      if (location.pathname.startsWith('/graphics-studio')) {
+        document.getElementById('app-favicon').href = '/favicon.svg?v=20260705'
+      }
+    </script>
     <title>Escape! zombie school</title>
     <style>
       *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
       body { background: #0a0a0f; overflow: hidden; width: 100vw; height: 100vh; height: 100dvh; }
       #root { width: 100vw; height: 100vh; height: 100dvh; }
+      .skiptranslate,
+      .goog-te-banner-frame,
+      .goog-te-balloon-frame,
+      .goog-tooltip,
+      .gtx-trans-icon,
+      #goog-gt-tt,
+      .VIpgJd-yAWNEb-L7lbkb,
+      .VIpgJd-ZVi9od-ORHb-OEVmcd {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+      body { top: 0 !important; }
     </style>
   </head>
-  <body>
-    <div id="root"></div>
+  <body translate="no" class="notranslate">
+    <div id="root" translate="no" class="notranslate"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

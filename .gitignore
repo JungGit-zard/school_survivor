@@ -7,6 +7,8 @@ dist/
 
 .claude/*
 !.claude/agents/
+!.claude/hooks/
+!.claude/hooks/*.sh
 .superpowers/
 tmp/
 .codex/config.toml
