@@ -28,7 +28,8 @@ describe('database.rules.json integrity', () => {
 
   it('locks the ranking entry to its owner and enforces a monotonic score', () => {
     const { rules } = JSON.parse(rawRules)
-    const entryWrite = rules.rankings.$seasonId.entries.$uid['.write']
+    const entries = rules.rankings.$seasonId.stage.$stageId.$window.$periodKey.entries
+    const entryWrite = entries.$uid['.write']
     expect(entryWrite).toContain('auth.uid === $uid')
     // 점수 하락(=조작된 낮은 값 덮어쓰기) 및 임의 증가 방지의 단조 증가 가드
     expect(entryWrite).toContain("newData.child('score').val() >= data.child('score').val()")
@@ -36,13 +37,21 @@ describe('database.rules.json integrity', () => {
 
   it('caps the ranking score to a sane upper bound', () => {
     const { rules } = JSON.parse(rawRules)
-    const scoreValidate = rules.rankings.$seasonId.entries.$uid.score['.validate']
+    const entries = rules.rankings.$seasonId.stage.$stageId.$window.$periodKey.entries
+    const scoreValidate = entries.$uid.score['.validate']
     expect(scoreValidate).toContain('newData.isNumber()')
     expect(scoreValidate).toContain('<= 1000000')
   })
 
   it('indexes ranking entries on score for orderByChild queries', () => {
     const { rules } = JSON.parse(rawRules)
-    expect(rules.rankings.$seasonId.entries['.indexOn']).toContain('score')
+    const entries = rules.rankings.$seasonId.stage.$stageId.$window.$periodKey.entries
+    expect(entries['.indexOn']).toContain('score')
+  })
+
+  it('exposes the leaderboard as public read at the entries node', () => {
+    const { rules } = JSON.parse(rawRules)
+    const entries = rules.rankings.$seasonId.stage.$stageId.$window.$periodKey.entries
+    expect(entries['.read']).toBe(true)
   })
 })

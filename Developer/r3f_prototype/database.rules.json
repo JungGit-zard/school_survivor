@@ -30,24 +30,28 @@
 
     "rankings": {
       "$seasonId": {
-        "entries": {
-          ".read": "auth != null",
-          ".indexOn": ["score"],
+        "stage": {
+          "$stageId": {
+            "$window": {
+              "$periodKey": {
+                "entries": {
+                  ".read": true,
+                  ".indexOn": ["score"],
 
-          "$uid": {
-            ".write": "auth != null && auth.uid === $uid && (!data.exists() || newData.child('score').val() >= data.child('score').val())",
+                  "$uid": {
+                    ".write": "auth != null && auth.uid === $uid && (!data.exists() || newData.child('score').val() >= data.child('score').val())",
 
-            "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
-            "uid": { ".validate": "newData.isString() && newData.val() === $uid" },
-            "displayName": { ".validate": "newData.isString() && newData.val().length <= 100" },
-            "nickname": { ".validate": "newData.isString() && newData.val().length <= 100" },
-            "stageId": { ".validate": "newData.isString() && newData.val().length <= 40" },
-            "stageLabel": { ".validate": "newData.isString() && newData.val().length <= 100" },
-            "survivalSeconds": { ".validate": "newData.isNumber() && newData.val() >= 0" },
-            "cleared": { ".validate": "newData.isBoolean()" },
-            "kills": { ".validate": "newData.isNumber() && newData.val() >= 0" },
-            "submittedAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
-            "$other": { ".validate": false }
+                    "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
+                    "uid": { ".validate": "newData.isString() && newData.val() === $uid" },
+                    "displayName": { ".validate": "newData.isString() && newData.val().length <= 100" },
+                    "timeMs": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000000" },
+                    "cleared": { ".validate": "newData.isBoolean()" },
+                    "updatedAt": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+                    "$other": { ".validate": false }
+                  }
+                }
+              }
+            }
           }
         }
       }

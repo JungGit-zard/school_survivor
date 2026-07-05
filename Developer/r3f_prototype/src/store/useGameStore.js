@@ -13,12 +13,11 @@ import {
 import { evaluateUnlocks, isStarter, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { DEFAULT_STAGE_ID, getNextStageId, getStageConfig } from '../lib/stageConfig.js'
-import { getAdminBalanceConfig, getAdminRankingSeasonConfig } from '../lib/adminConfig.js'
+import { getAdminBalanceConfig } from '../lib/adminConfig.js'
 import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
-import { submitRankingEntry } from '../lib/firebaseRanking.js'
+import { submitRun } from '../lib/firebaseRanking.js'
 import { useAuthStore } from './useAuthStore.js'
 import { getRankingScore, getRankingScorePolicy, STAGE_BONUS, CLEAR_BONUS } from '../lib/rankingScorePolicy.js'
-import { getSavedNickname } from '../lib/userNickname.js'
 import { logDamageTaken } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 
@@ -264,19 +263,8 @@ export const useGameStore = create(
       const user = useAuthStore.getState().user
       if (user) {
         const policy = getRankingScorePolicy()
-        const { seasonId } = getAdminRankingSeasonConfig()
-        const stageConfig = getStageConfig(s.currentStageId)
-        const entry = {
-          score: getRankingScore({ stageId: s.currentStageId, survivalSeconds: runSurvivalSeconds, cleared, bossBonus: s.bossBonus }, policy),
-          nickname: getSavedNickname(user) || user.displayName || '익명',
-          stageId: s.currentStageId,
-          stageLabel: stageConfig.label,
-          survivalSeconds: runSurvivalSeconds,
-          cleared,
-          kills: s.runKills,
-          submittedAt: new Date().toISOString(),
-        }
-        submitRankingEntry(user, entry, seasonId).catch(() => {})
+        const score = getRankingScore({ stageId: s.currentStageId, survivalSeconds: runSurvivalSeconds, cleared, bossBonus: s.bossBonus }, policy)
+        submitRun(user, { stageId: s.currentStageId, score, timeMs: s.elapsedMs, cleared }).catch(() => {})
       }
     },
 

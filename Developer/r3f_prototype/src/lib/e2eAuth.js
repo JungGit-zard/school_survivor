@@ -7,7 +7,7 @@
 // - import.meta.env.DEV 가드 — 프로덕션 빌드에서는 항상 false (데드 브랜치로 제거됨)
 // - 우회 시 setCloudProgressUser를 호출하지 않아 cloudUser가 null 유지
 //   → 진행도 클라우드 저장/로드가 기존 가드로 전부 no-op (RTDB 오염 없음)
-// - 랭킹 제출은 submitRankingEntry에서 별도 차단
+// - 랭킹 제출은 submitRun에서 별도 차단
 
 import { isValidWeaponId } from './weaponCatalog.js'
 
