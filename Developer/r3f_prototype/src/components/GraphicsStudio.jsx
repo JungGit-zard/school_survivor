@@ -4,6 +4,7 @@ import {
   DEFAULT_STUDIO_TUNING,
   GRAPHICS_STUDIO_CATALOG,
   GRAPHICS_STUDIO_CATEGORIES,
+  STAGE_BOSS_PREVIEW_PAN_Y_RANGE,
   ensureStudioResetBaseline,
   getStudioItemById,
   loadStageBossPreview,
@@ -474,7 +475,7 @@ export default function GraphicsStudio() {
             </section>
             <SliderRow label="Preview Zoom" name="stageBossPreviewZoom" min="50" max="180" step="1" value={stageBossPreview.zoom} onChange={(zoom) => updateStageBossPreview({ zoom })} />
             <SliderRow label="Preview Pan X" name="stageBossPreviewPanX" min="-2" max="2" step="0.01" value={stageBossPreview.panX} onChange={(panX) => updateStageBossPreview({ panX })} />
-            <SliderRow label="Preview Pan Y" name="stageBossPreviewPanY" min="-2" max="2" step="0.01" value={stageBossPreview.panY} onChange={(panY) => updateStageBossPreview({ panY })} />
+            <SliderRow label="Preview Pan Y" name="stageBossPreviewPanY" min={STAGE_BOSS_PREVIEW_PAN_Y_RANGE[0]} max={STAGE_BOSS_PREVIEW_PAN_Y_RANGE[1]} step="0.01" value={stageBossPreview.panY} onChange={(panY) => updateStageBossPreview({ panY })} />
             <SliderRow label="Scale" name="scale" min="0.35" max="2.5" step="0.01" value={tuning.scale} onChange={(scale) => updateTuning({ scale })} />
             <SliderRow label="Width X" name="scaleX" min="0.35" max="2.5" step="0.01" value={tuning.scaleX} onChange={(scaleX) => updateTuning({ scaleX })} />
             <SliderRow label="Height Y" name="scaleY" min="0.35" max="2.5" step="0.01" value={tuning.scaleY} onChange={(scaleY) => updateTuning({ scaleY })} />

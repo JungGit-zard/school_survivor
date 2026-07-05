@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { invalidate } from '@react-three/fiber'
 import * as THREE from 'three'
 import {
   DEFAULT_STUDIO_TUNING,
@@ -124,6 +125,18 @@ function getPartKeysForSavedTuning(itemId, savedKey) {
   return []
 }
 
+function applyTextureFitTuning(part, transform) {
+  const materials = Array.isArray(part.material) ? part.material : part.material ? [part.material] : []
+  const repeatX = 1 / Math.max(0.01, transform.scale[0])
+  const repeatY = 1 / Math.max(0.01, transform.scale[1])
+  materials.forEach((material) => {
+    if (!material.map) return
+    material.map.repeat.set(repeatX, repeatY)
+    material.map.offset.set((1 - repeatX) / 2, (1 - repeatY) / 2)
+    material.map.needsUpdate = true
+  })
+}
+
 export function applySavedStudioPartTunings(root, itemId, tunings = loadStudioTunings(), { materialTuning = true } = {}) {
   if (!root || !itemId) return
   const savedPartTunings = Object.entries(tunings ?? {})
@@ -145,7 +158,12 @@ export function applySavedStudioPartTunings(root, itemId, tunings = loadStudioTu
       if (!part.userData.studioPartBasePosition) part.userData.studioPartBasePosition = part.position.clone()
 
       part.position.copy(part.userData.studioPartBasePosition).add(new THREE.Vector3(...transform.position))
-      part.scale.copy(part.userData.studioPartBaseScale).multiply(new THREE.Vector3(...transform.scale))
+      if (part.userData.studioTextureFit) {
+        part.scale.copy(part.userData.studioPartBaseScale)
+        applyTextureFitTuning(part, transform)
+      } else {
+        part.scale.copy(part.userData.studioPartBaseScale).multiply(new THREE.Vector3(...transform.scale))
+      }
       part.rotation.set(
         part.userData.studioPartBaseRotation.x + transform.rotation[0],
         part.userData.studioPartBaseRotation.y + transform.rotation[1],
@@ -187,6 +205,7 @@ export default function StudioTunedGroup({ itemId, children, materialTuning = tr
     if (previewOnly || !groupRef.current) return
     if (materialTuning) applyStudioTuning(groupRef.current, tuning)
     applySavedStudioPartTunings(groupRef.current, itemId, tunings, { materialTuning })
+    invalidate()
   }, [itemId, materialTuning, previewOnly, tuning, tunings])
 
   if (previewOnly) return <>{children}</>

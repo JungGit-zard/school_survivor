@@ -7,5 +7,6 @@ describe('StageBossPreview', () => {
 
     expect(source).toContain('key={frame.zoom}')
     expect(source).toContain('camera={{ position: [0, 2.2, 5.5], zoom: frame.zoom }}')
+    expect(source).toContain('BASE_POS_Y + framing.panY')
   })
 })

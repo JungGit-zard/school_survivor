@@ -27,3 +27,11 @@ Date: 2026-07-06
   - Screenshot: `Quaility_Assurance/stage2_teacher_zombie_boss_graphics_studio.png`.
 - Confirm B02 face texture part edits use stable ID `id:b02-face-texture` so the same face plane is found in both Graphics Studio and runtime previews.
 - Confirm stable-ID part tuning applies to the runtime mesh position, scale, and rotation instead of being lost when wrapper groups differ.
+- `npm test -- src/components/StudioTunedGroup.test.jsx src/components/StageBossPreview.test.jsx src/components/StageBossPreview.test.js src/components/Lobby.test.jsx src/components/GraphicsStudio.test.jsx src/components/ZombieMesh.test.js`
+  - Passed: 6 files, 40 tests.
+- `npm run build`
+  - Passed after adding R3F invalidate for demand-rendered lobby boss previews.
+- Confirm B02 face texture material disables depth testing so texture scale edits stay visually stable over the head front.
+- Confirm B02 face texture scale edits keep the face plane at base size and adjust the texture repeat/offset instead.
+- Confirm B02 main boss groups expose stable part IDs so part focus does not select internal outline/body meshes.
+- Confirm Stage Boss Preview Pan Y `0.5` keeps the `B02` face visible in the preview frame.

@@ -162,14 +162,14 @@ function Boss02FaceTexture({ hitFlash }) {
   return (
     <mesh
       name="b02FaceTexture"
-      userData={{ studioPartId: 'b02-face-texture' }}
+      userData={{ studioPartId: 'b02-face-texture', studioTextureFit: true }}
       position={[0, 0.00, 0.286]}
       renderOrder={4}
     >
       <planeGeometry args={[0.62, 0.62]} />
       {hitFlash
-        ? <meshBasicMaterial color="#ffffff" toneMapped={false} />
-        : <meshBasicMaterial map={texture} transparent={false} toneMapped={false} />}
+        ? <meshBasicMaterial color="#ffffff" toneMapped={false} depthTest={false} />
+        : <meshBasicMaterial map={texture} transparent={false} toneMapped={false} depthTest={false} />}
     </mesh>
   )
 }
@@ -179,7 +179,7 @@ function B02BossZombieMesh({ hitFlash, reg }) {
 
   return (
     <group>
-      <group ref={reg('head')} position={[0, 0.92, 0]}>
+      <group name="b02Head" userData={{ studioPartId: 'b02-head' }} ref={reg('head')} position={[0, 0.92, 0]}>
         <ZBlock size={[0.64, 0.62, 0.52]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash} />
         <Boss02FaceTexture hitFlash={hitFlash} />
         <ZBlock size={[0.70, 0.16, 0.56]} position={[0, 0.33, -0.01]} color={pal.hair} emissive={0.035} outlineScale={1.04} flash={hitFlash} />
@@ -189,7 +189,7 @@ function B02BossZombieMesh({ hitFlash, reg }) {
         <ZBlock size={[0.24, 0.18, 0.20]} position={[0, 0.52, -0.34]} color={pal.hair} emissive={0.03} outlineScale={1.04} flash={hitFlash} />
       </group>
 
-      <group ref={reg('body')} position={[0, 0.28, 0]}>
+      <group name="b02Body" userData={{ studioPartId: 'b02-body' }} ref={reg('body')} position={[0, 0.28, 0]}>
         <ZBlock size={[0.60, 0.55, 0.42]} position={[0, 0.08, 0]} color={pal.suit} emissive={0.07} outlineScale={1.08} flash={hitFlash} />
         <ZBlock size={[0.24, 0.40, 0.05]} position={[0, 0.12, 0.235]} color={pal.shirt} emissive={0.06} outlineScale={1.0} flash={hitFlash} />
         <ZBlock size={[0.62, 0.42, 0.42]} position={[0, -0.40, 0]} color={pal.skirt} emissive={0.065} outlineScale={1.08} flash={hitFlash} />
@@ -197,23 +197,23 @@ function B02BossZombieMesh({ hitFlash, reg }) {
         <ZBlock size={[0.10, 0.13, 0.055]} position={[0.23, -0.33, 0.255]} rotation={[0, 0, 0.28]} color={pal.skinShadow} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
       </group>
 
-      <group ref={reg('armL')} position={[-0.43, 0.55, 0]} rotation={[-1.14, 0, 0.13]}>
+      <group name="b02ArmL" userData={{ studioPartId: 'b02-arm-l' }} ref={reg('armL')} position={[-0.43, 0.55, 0]} rotation={[-1.14, 0, 0.13]}>
         <ZBlock size={[0.23, 0.55, 0.22]} position={[0, -0.27, 0]} color={pal.suit} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
         <ZBlock size={[0.21, 0.18, 0.20]} position={[0, -0.59, 0]} color={pal.skin} emissive={0.07} outlineScale={1.04} flash={hitFlash} />
       </group>
 
-      <group ref={reg('armR')} position={[0.43, 0.55, 0]} rotation={[-1.14, 0, -0.13]}>
+      <group name="b02ArmR" userData={{ studioPartId: 'b02-arm-r' }} ref={reg('armR')} position={[0.43, 0.55, 0]} rotation={[-1.14, 0, -0.13]}>
         <ZBlock size={[0.23, 0.55, 0.22]} position={[0, -0.27, 0]} color={pal.suit} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
         <ZBlock size={[0.21, 0.18, 0.20]} position={[0, -0.59, 0]} color={pal.skin} emissive={0.07} outlineScale={1.04} flash={hitFlash} />
       </group>
 
-      <group ref={reg('legL')} position={[-0.16, -0.08, 0]}>
+      <group name="b02LegL" userData={{ studioPartId: 'b02-leg-l' }} ref={reg('legL')} position={[-0.16, -0.08, 0]}>
         <ZBlock size={[0.23, 0.44, 0.27]} position={[0, -0.25, 0]} color={pal.skin} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
         <ZBlock size={[0.27, 0.13, 0.36]} position={[0, -0.54, 0.06]} color={pal.shoe} emissive={0.035} outlineScale={1.03} flash={hitFlash} />
         <ZBlock size={[0.08, 0.13, 0.05]} position={[-0.08, -0.24, 0.16]} rotation={[0, 0, 0.28]} color={pal.skinShadow} emissive={0.035} outlineScale={1.0} flash={hitFlash} />
       </group>
 
-      <group ref={reg('legR')} position={[0.16, -0.08, 0]}>
+      <group name="b02LegR" userData={{ studioPartId: 'b02-leg-r' }} ref={reg('legR')} position={[0.16, -0.08, 0]}>
         <ZBlock size={[0.23, 0.44, 0.27]} position={[0, -0.25, 0]} color={pal.skin} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
         <ZBlock size={[0.27, 0.13, 0.36]} position={[0, -0.54, 0.06]} color={pal.shoe} emissive={0.035} outlineScale={1.03} flash={hitFlash} />
         <ZBlock size={[0.08, 0.13, 0.05]} position={[0.08, -0.32, 0.16]} rotation={[0, 0, -0.2]} color={pal.skinShadow} emissive={0.035} outlineScale={1.0} flash={hitFlash} />

@@ -51,6 +51,7 @@ export const DEFAULT_STAGE_BOSS_PREVIEW = Object.freeze({
   panX: 0,
   panY: 0,
 })
+export const STAGE_BOSS_PREVIEW_PAN_Y_RANGE = Object.freeze([-0.8, 0.5])
 
 export const GRAPHICS_STUDIO_CATEGORIES = Object.freeze([
   { id: 'actor', label: 'Actor' },
@@ -394,7 +395,7 @@ export function normalizeStageBossPreview(input = {}) {
   return {
     zoom: Math.round(clampNumber(source.zoom, [50, 180], DEFAULT_STAGE_BOSS_PREVIEW.zoom)),
     panX: Number(clampNumber(source.panX, [-2, 2], DEFAULT_STAGE_BOSS_PREVIEW.panX).toFixed(2)),
-    panY: Number(clampNumber(source.panY, [-2, 2], DEFAULT_STAGE_BOSS_PREVIEW.panY).toFixed(2)),
+    panY: Number(clampNumber(source.panY, STAGE_BOSS_PREVIEW_PAN_Y_RANGE, DEFAULT_STAGE_BOSS_PREVIEW.panY).toFixed(2)),
   }
 }
 

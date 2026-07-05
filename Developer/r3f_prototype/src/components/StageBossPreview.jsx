@@ -16,6 +16,7 @@ const previewFrameStyle = {
 
 const BASE_ROT_X = 0.08
 const BASE_ROT_Y = -0.5
+const BASE_POS_Y = -1.25
 const BURST_MS = 600
 const PARALLAX_MAX = 0.12 // rad
 
@@ -104,7 +105,7 @@ function ReactiveBoss({ framing, bossType, enabled, burstRef, parallaxRef, inval
     <group
       ref={groupRef}
       rotation={[BASE_ROT_X, BASE_ROT_Y, 0]}
-      position={[framing.panX, -1.05 + framing.panY, 0]}
+      position={[framing.panX, BASE_POS_Y + framing.panY, 0]}
     >
       <EnemyVisual type={bossType} animPhase="normal" hp={1150} showHealthBar={false} />
     </group>

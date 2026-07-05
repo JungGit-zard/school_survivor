@@ -2,6 +2,7 @@
 import React from 'react'
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import * as THREE from 'three'
 import { applySavedStudioPartTunings, applyStudioTuning, getStudioTransformProps } from './StudioTunedGroup.jsx'
@@ -82,6 +83,14 @@ describe('StudioTunedGroup', () => {
     act(() => root.unmount())
   })
 
+  it('requests a frame after studio tuning is applied for demand-rendered previews', () => {
+    const source = readFileSync('src/components/StudioTunedGroup.jsx', 'utf8')
+
+    expect(source).toContain("import { invalidate } from '@react-three/fiber'")
+    expect(source).toContain('applySavedStudioPartTunings(groupRef.current, itemId, tunings, { materialTuning })')
+    expect(source).toContain('invalidate()')
+  })
+
   it('applies confirmed part focus tuning to game meshes', () => {
     const root = new THREE.Group()
     const part = new THREE.Group()
@@ -126,6 +135,33 @@ describe('StudioTunedGroup', () => {
     expect(faceTexture.position.y).toBeCloseTo(-0.15)
     expect(faceTexture.rotation.y).toBeCloseTo(Math.PI / 6)
     expect(wrapper.scale.x).toBeCloseTo(1)
+  })
+
+  it('uses scale as texture fit for texture-backed studio parts', () => {
+    const root = new THREE.Group()
+    const texture = new THREE.Texture()
+    const faceTexture = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshBasicMaterial({ map: texture }),
+    )
+    faceTexture.userData.studioPartId = 'b02-face-texture'
+    faceTexture.userData.studioTextureFit = true
+    root.add(faceTexture)
+
+    applySavedStudioPartTunings(root, 'zombie-b02', {
+      'zombie-b02::part::id:b02-face-texture': {
+        scale: 1.8,
+        scaleX: 1,
+        scaleY: 1,
+      },
+    })
+
+    expect(faceTexture.scale.x).toBeCloseTo(1)
+    expect(faceTexture.scale.y).toBeCloseTo(1)
+    expect(texture.repeat.x).toBeCloseTo(1 / 1.8)
+    expect(texture.repeat.y).toBeCloseTo(1 / 1.8)
+    expect(texture.offset.x).toBeCloseTo((1 - 1 / 1.8) / 2)
+    expect(texture.offset.y).toBeCloseTo((1 - 1 / 1.8) / 2)
   })
 
   it('applies confirmed group tuning even when studio preview added a wrapper path', () => {

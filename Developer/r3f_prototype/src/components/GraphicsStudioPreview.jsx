@@ -43,10 +43,14 @@ const PART_GROUP_OUTLINE_COLOR = 0x7cff00
 const STABLE_PART_KEY_PREFIX = 'id:'
 
 function getStableStudioPartKey(root, object) {
+  const stablePart = getStableStudioPartObject(root, object)
+  return stablePart?.userData?.studioPartId ? `${STABLE_PART_KEY_PREFIX}${stablePart.userData.studioPartId}` : null
+}
+
+function getStableStudioPartObject(root, object) {
   let current = object
   while (current && current !== root) {
-    const id = current.userData?.studioPartId
-    if (id) return `${STABLE_PART_KEY_PREFIX}${id}`
+    if (current.userData?.studioPartId) return current
     current = current.parent
   }
   return null
@@ -520,10 +524,11 @@ function StudioScene({ selectedItem, tuning, frame, focusedPartKeys, focusedPart
   const handlePartDoubleClick = (event) => {
     const key = getStudioPartKey(rootRef.current, event.object)
     if (!key) return
+    const part = findStudioPart(rootRef.current, key)
     event.stopPropagation()
     onPartFocus?.({
       key,
-      label: getStudioPartLabel(event.object),
+      label: getStudioPartLabel(part ?? event.object),
       additive: Boolean(event.shiftKey || event.nativeEvent?.shiftKey),
     })
   }
