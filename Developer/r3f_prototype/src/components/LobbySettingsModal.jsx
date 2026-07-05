@@ -99,9 +99,6 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               </span>
               <span style={styles.arrow}>›</span>
             </button>
-            <button type="button" style={styles.logoutButton} onClick={handleLogout} disabled={!authUser?.uid}>
-              로그아웃
-            </button>
 
             <div style={styles.sectionLabel}>게임 환경</div>
             <button
@@ -149,6 +146,10 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
                 <p style={styles.controlLine}>일시정지: 전투 화면의 일시정지 버튼을 사용합니다.</p>
               </div>
             )}
+
+            <button type="button" style={styles.logoutButton} onClick={handleLogout} disabled={!authUser?.uid}>
+              로그아웃
+            </button>
           </>
         )}
       </section>
