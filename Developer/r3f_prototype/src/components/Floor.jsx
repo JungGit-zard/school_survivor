@@ -1,12 +1,15 @@
 import { RigidBody } from '@react-three/rapier'
 import ClassroomFloor from './ClassroomFloor.jsx'
 import { StageObjectColliderLayer, StageObjectLayer } from './StageObjects/index.js'
+import StudioTunedGroup from './StudioTunedGroup.jsx'
 import { getStageBounds } from '../lib/stageConfig.js'
 
 export function FloorVisual({ stageId = 'stage1' }) {
   return (
     <>
-      <ClassroomFloor stageId={stageId} />
+      <StudioTunedGroup itemId={`stage-floor-${stageId}`} materialTuning={false}>
+        <ClassroomFloor stageId={stageId} />
+      </StudioTunedGroup>
       <StageObjectLayer stageId={stageId} />
     </>
   )

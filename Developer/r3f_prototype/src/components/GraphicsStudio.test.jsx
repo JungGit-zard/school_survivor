@@ -81,6 +81,11 @@ describe('GraphicsStudio', () => {
       rotationZ.dispatchEvent(new Event('input', { bubbles: true }))
     })
 
+    expect(loadStudioTunings().player.scale).toBe(1.45)
+    expect(loadStudioTunings().player.scaleX).toBe(1.25)
+    expect(loadStudioTunings().player.rotationZ).toBe(-30)
+    expect(container.textContent).toContain('Applied live')
+
     const applyButton = Array.from(container.querySelectorAll('button'))
       .find((button) => button.textContent.includes('Apply'))
     act(() => {

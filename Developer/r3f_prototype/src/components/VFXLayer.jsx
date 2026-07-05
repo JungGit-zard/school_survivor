@@ -9,6 +9,7 @@ import { VFX_COLORS } from '../lib/vfxPalette.js'
 import { fadeAlpha } from '../lib/vfxMath.js'
 import { getChargeWarningArrowConfig } from '../lib/vfxGeometry.js'
 import { useGameStore } from '../store/useGameStore.js'
+import StudioTunedGroup from './StudioTunedGroup.jsx'
 
 // Plan §4-3 / §5 권장 동시 효과 상한.
 const MAX_ACTIVE = 80
@@ -33,7 +34,8 @@ export function HitSpark({ event, onDone }) {
   })
 
   return (
-    <group ref={ref} position={[event.x, event.y ?? 0.42, event.z]}>
+    <StudioTunedGroup itemId="vfx-hit-spark">
+      <group ref={ref} position={[event.x, event.y ?? 0.42, event.z]}>
       <mesh>
         <octahedronGeometry args={[1, 0]} />
         <meshBasicMaterial
@@ -55,7 +57,8 @@ export function HitSpark({ event, onDone }) {
           />
         </mesh>
       ))}
-    </group>
+      </group>
+    </StudioTunedGroup>
   )
 }
 
@@ -92,21 +95,23 @@ export function ChargeWarningLine({ event, onDone }) {
   const cz = event.z + Math.cos(angle) * length / 2
 
   return (
-    <mesh
-      ref={meshRef}
-      position={[cx, 0.03, cz]}
-      rotation={[-Math.PI / 2, 0, -angle]}
-    >
-      <shapeGeometry args={[arrowShape]} />
-      <meshBasicMaterial
-        ref={matRef}
-        color={color}
-        transparent
-        opacity={0.55}
-        depthWrite={false}
-        side={THREE.DoubleSide}
-      />
-    </mesh>
+    <StudioTunedGroup itemId="vfx-charge-warning">
+      <mesh
+        ref={meshRef}
+        position={[cx, 0.03, cz]}
+        rotation={[-Math.PI / 2, 0, -angle]}
+      >
+        <shapeGeometry args={[arrowShape]} />
+        <meshBasicMaterial
+          ref={matRef}
+          color={color}
+          transparent
+          opacity={0.55}
+          depthWrite={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+    </StudioTunedGroup>
   )
 }
 
@@ -130,17 +135,19 @@ export function PickupPop({ event, onDone }) {
   })
 
   return (
-    <mesh ref={ref} position={[event.x, baseY, event.z]} rotation={[-Math.PI / 2, 0, 0]}>
-      <ringGeometry args={[0.18, 0.26, 18]} />
-      <meshBasicMaterial
-        ref={matRef}
-        color={color}
-        transparent
-        opacity={0.7}
-        depthWrite={false}
-        side={THREE.DoubleSide}
-      />
-    </mesh>
+    <StudioTunedGroup itemId="vfx-pickup-pop">
+      <mesh ref={ref} position={[event.x, baseY, event.z]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.18, 0.26, 18]} />
+        <meshBasicMaterial
+          ref={matRef}
+          color={color}
+          transparent
+          opacity={0.7}
+          depthWrite={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+    </StudioTunedGroup>
   )
 }
 

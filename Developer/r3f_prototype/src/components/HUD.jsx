@@ -9,6 +9,11 @@ import { buildPlaytestSummary } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { getNextStageId, getStageConfig } from '../lib/stageConfig.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
+import {
+  DEFAULT_STUDIO_TUNING,
+  GRAPHICS_STUDIO_TUNING_EVENT,
+  loadStudioTunings,
+} from '../lib/graphicsStudioConfig.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { dispatchStarlinkCheatCrash } from './Weapons/Starlink.jsx'
 import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.png'
@@ -132,6 +137,10 @@ const WEAPON_KEY_TO_ICON = {
   studentLantern: 'lantern',
 }
 
+const WEAPON_ICON_STUDIO_ITEMS = {
+  missile: 'weapon-extra-battery',
+}
+
 function resolveAssetSrc(src, depth = 0) {
   if (!src) return null
   if (typeof src === 'string') return src
@@ -145,6 +154,52 @@ export function getWeaponUpgradeIconSrc(type) {
   const src = WEAPON_UPGRADE_ICON_SRC[type]
   if (!src) return null
   return resolveAssetSrc(src)
+}
+
+function hexToRgba(hex, opacity) {
+  const normalized = /^#[0-9a-fA-F]{6}$/.test(hex) ? hex.slice(1) : '050209'
+  const r = parseInt(normalized.slice(0, 2), 16)
+  const g = parseInt(normalized.slice(2, 4), 16)
+  const b = parseInt(normalized.slice(4, 6), 16)
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`
+}
+
+function loadDomStudioTuning(itemId) {
+  if (!itemId) return DEFAULT_STUDIO_TUNING
+  return loadStudioTunings()[itemId] ?? DEFAULT_STUDIO_TUNING
+}
+
+function useDomStudioTuning(itemId) {
+  const [tuning, setTuning] = useState(() => loadDomStudioTuning(itemId))
+
+  useEffect(() => {
+    if (!itemId || typeof window === 'undefined') return undefined
+    const update = () => setTuning(loadDomStudioTuning(itemId))
+    window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
+    window.addEventListener('storage', update)
+    return () => {
+      window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
+      window.removeEventListener('storage', update)
+    }
+  }, [itemId])
+
+  return tuning
+}
+
+function getDomStudioTuningStyle(tuning) {
+  const scaleX = Number((tuning.scale * tuning.scaleX).toFixed(2))
+  const scaleY = Number((tuning.scale * tuning.scaleY).toFixed(2))
+  const outlineSize = Math.max(0, tuning.outlineThickness - 1) * 2
+  return {
+    transform: `scale(${scaleX}, ${scaleY}) rotateX(${tuning.rotationX}deg) rotateY(${tuning.rotationY}deg) rotateZ(${tuning.rotationZ}deg)`,
+    transformOrigin: 'center',
+    filter: [
+      `drop-shadow(0 2px 2px rgba(0,0,0,0.5))`,
+      `drop-shadow(0 0 ${outlineSize}px ${hexToRgba(tuning.outlineColor, tuning.outlineOpacity)})`,
+      `saturate(${tuning.saturation})`,
+      `brightness(${tuning.brightness})`,
+    ].join(' '),
+  }
 }
 
 export function limitPencilUpgradeOptions(options, random = Math.random) {
@@ -230,6 +285,9 @@ function WeaponMiniIcon({ src }) {
 
 export function UpgradeIcon({ type }) {
   const imageSrc = getWeaponUpgradeIconSrc(type)
+  const studioItemId = WEAPON_ICON_STUDIO_ITEMS[type]
+  const studioTuning = useDomStudioTuning(studioItemId)
+  const studioStyle = studioItemId ? getDomStudioTuningStyle(studioTuning) : null
   const [imageFailed, setImageFailed] = useState(false)
 
   useEffect(() => {
@@ -244,7 +302,7 @@ export function UpgradeIcon({ type }) {
           alt=""
           aria-hidden="true"
           draggable={false}
-          style={styles.weaponIconImage}
+          style={{ ...styles.weaponIconImage, ...studioStyle }}
           onError={() => setImageFailed(true)}
         />
       )}

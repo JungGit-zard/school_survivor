@@ -82,6 +82,7 @@ export default function GraphicsStudio() {
     return 'player'
   })
   const [confirmedTunings, setConfirmedTunings] = useState(() => loadStudioTunings())
+  const [applyStatus, setApplyStatus] = useState('')
   const selectedItem = getStudioItemById(selectedItemId)
   const [draftTuningById, setDraftTuningById] = useState(() => ({}))
   const savedTuning = confirmedTunings[selectedItem.id] ?? DEFAULT_STUDIO_TUNING
@@ -97,13 +98,20 @@ export default function GraphicsStudio() {
 
   const updateTuning = (patch) => {
     setDraftTuningById((current) => {
-      const currentTuning = normalizeStudioTuning(current[selectedItem.id] ?? savedTuning)
+      const currentTuning = normalizeStudioTuning(current[selectedItem.id] ?? confirmedTunings[selectedItem.id] ?? DEFAULT_STUDIO_TUNING)
+      const nextTuning = normalizeStudioTuning({
+        ...currentTuning,
+        ...patch,
+      })
+      const next = saveStudioTunings({
+        ...loadStudioTunings(),
+        [selectedItem.id]: nextTuning,
+      })
+      setConfirmedTunings(next)
+      setApplyStatus('Applied live')
       return {
         ...current,
-        [selectedItem.id]: normalizeStudioTuning({
-          ...currentTuning,
-          ...patch,
-        }),
+        [selectedItem.id]: nextTuning,
       }
     })
   }
@@ -114,6 +122,7 @@ export default function GraphicsStudio() {
       [selectedItem.id]: tuning,
     })
     setConfirmedTunings(next)
+    setApplyStatus('Applied')
   }
 
   const resetCurrent = () => {
@@ -210,6 +219,7 @@ export default function GraphicsStudio() {
             <button type="button" onClick={resetCurrent} style={styles.secondaryButton}>Reset</button>
             <button type="button" onClick={copyExport} style={styles.secondaryButton}>Copy JSON</button>
           </div>
+          <div style={styles.applyStatus} aria-live="polite">{applyStatus}</div>
         </aside>
 
         <section style={{ ...styles.exportPanel, ...(compact ? styles.exportPanelCompact : null) }}>
@@ -346,7 +356,7 @@ const styles = {
     gridRow: '2 / 4',
     minHeight: 0,
     display: 'grid',
-    gridTemplateRows: '38px minmax(0, 1fr) 50px',
+    gridTemplateRows: '38px minmax(0, 1fr) 50px 26px',
     background: '#1b1d1a',
   },
   inspectorCompact: {
@@ -429,6 +439,12 @@ const styles = {
     gap: 8,
     padding: '8px 14px',
     borderTop: '1px solid #353833',
+  },
+  applyStatus: {
+    minHeight: 18,
+    padding: '0 14px 8px',
+    color: '#8ebc9d',
+    fontSize: 12,
   },
   primaryButton: {
     border: 0,

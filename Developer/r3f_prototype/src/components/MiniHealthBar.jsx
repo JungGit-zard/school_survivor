@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
+import StudioTunedGroup from './StudioTunedGroup.jsx'
 
 function clamp01(value) {
   return Math.max(0, Math.min(1, value))
@@ -80,23 +81,25 @@ export default function MiniHealthBar({
   })
 
   return (
-    <group ref={groupRef} position={[0, y, 0]} renderOrder={20}>
-      <mesh position={[0, 0, -0.003]} renderOrder={20}>
-        <planeGeometry args={[width + 0.008, height + 0.008]} />
-        <primitive object={borderMat} attach="material" />
-      </mesh>
-      <mesh position={[0, 0, -0.002]} renderOrder={21}>
-        <planeGeometry args={[width, height]} />
-        <primitive object={bgMat} attach="material" />
-      </mesh>
-      <mesh ref={trailRef} position={[0, 0, -0.001]} renderOrder={22}>
-        <planeGeometry args={[width, height]} />
-        <primitive object={trailMat} attach="material" />
-      </mesh>
-      <mesh ref={fillRef} position={[0, 0, 0]} renderOrder={23}>
-        <planeGeometry args={[width, height]} />
-        <primitive object={fillMat} attach="material" />
-      </mesh>
-    </group>
+    <StudioTunedGroup itemId="ui-mini-health-bar">
+      <group ref={groupRef} position={[0, y, 0]} renderOrder={20}>
+        <mesh position={[0, 0, -0.003]} renderOrder={20}>
+          <planeGeometry args={[width + 0.008, height + 0.008]} />
+          <primitive object={borderMat} attach="material" />
+        </mesh>
+        <mesh position={[0, 0, -0.002]} renderOrder={21}>
+          <planeGeometry args={[width, height]} />
+          <primitive object={bgMat} attach="material" />
+        </mesh>
+        <mesh ref={trailRef} position={[0, 0, -0.001]} renderOrder={22}>
+          <planeGeometry args={[width, height]} />
+          <primitive object={trailMat} attach="material" />
+        </mesh>
+        <mesh ref={fillRef} position={[0, 0, 0]} renderOrder={23}>
+          <planeGeometry args={[width, height]} />
+          <primitive object={fillMat} attach="material" />
+        </mesh>
+      </group>
+    </StudioTunedGroup>
   )
 }

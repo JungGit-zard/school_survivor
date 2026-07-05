@@ -17,6 +17,7 @@ import { _resetForTests as resetWeaponUnlocks, setUnlocked } from '../lib/weapon
 import { STORAGE_KEY as PLAYER_RECORDS_KEY } from '../lib/playerRecords.js'
 import { buildLocalPlayerRankingEntry } from '../lib/userRanking.js'
 import { ADMIN_CONFIG_STORAGE_KEY, saveAdminConfig } from '../lib/adminConfig.js'
+import { GRAPHICS_STUDIO_STORAGE_KEY } from '../lib/graphicsStudioConfig.js'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -24,6 +25,7 @@ afterEach(() => {
   resetWeaponUnlocks()
   localStorage.removeItem(PLAYER_RECORDS_KEY)
   localStorage.removeItem(ADMIN_CONFIG_STORAGE_KEY)
+  localStorage.removeItem(GRAPHICS_STUDIO_STORAGE_KEY)
 })
 
 describe('upgrade choice filtering', () => {
@@ -145,6 +147,36 @@ describe('weapon upgrade icon assets', () => {
 
     expect(container.querySelector('img')).toBeNull()
     expect(container.querySelector('[data-upgrade-fallback-icon="pencil"]')).not.toBeNull()
+
+    act(() => {
+      root.unmount()
+    })
+  })
+
+  it('applies Graphics Studio tuning to the image-only extra battery icon', () => {
+    localStorage.setItem(GRAPHICS_STUDIO_STORAGE_KEY, JSON.stringify({
+      'weapon-extra-battery': {
+        scale: 1.4,
+        scaleX: 1.2,
+        scaleY: 0.8,
+        rotationZ: 25,
+        brightness: 1.25,
+        saturation: 1.35,
+      },
+    }))
+
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    act(() => {
+      root.render(<UpgradeIcon type="missile" />)
+    })
+
+    const image = container.querySelector('img')
+    expect(image.style.transform).toContain('scale(1.68, 1.12)')
+    expect(image.style.transform).toContain('rotateZ(25deg)')
+    expect(image.style.filter).toContain('brightness(1.25)')
+    expect(image.style.filter).toContain('saturate(1.35)')
 
     act(() => {
       root.unmount()

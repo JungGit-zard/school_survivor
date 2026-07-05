@@ -5,7 +5,7 @@ import { inflateScale, outlineMat, toonMat } from '../lib/toon.js'
 import MatildaMesh from './MatildaMesh.jsx'
 import PlayerMesh from './PlayerMesh.jsx'
 import ZombieMesh from './ZombieMesh.jsx'
-import { getStudioTransformProps } from './StudioTunedGroup.jsx'
+import StudioTunedGroup, { getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'
 
 export const TITLE_SCENE_DIRECTION = {
@@ -224,7 +224,49 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
   const floorMat = useMemo(() => toonMat(0x4a4054, 0.05), [])
   const wallMat = useMemo(() => toonMat(0x2d2738, 0.05), [])
   const doorMat = useMemo(() => toonMat(0x805947, 0.05), [])
-  const studioTransform = getStudioTransformProps(studioTuning)
+  const studioMode = studioTuning != null
+  const studioTransform = studioMode ? getStudioTransformProps(studioTuning) : getStudioTransformProps()
+
+  const sceneRoot = (
+    <group
+      ref={studioGroupRef}
+      rotation={[studioTransform.rotation[0], -0.09 + studioTransform.rotation[1], studioTransform.rotation[2]]}
+      position={[0, -1.15, 0]}
+      scale={studioTransform.scale}
+    >
+      <mesh receiveShadow position={[0, -0.02, 0]} rotation={[-Math.PI / 2, 0, 0]} material={floorMat}>
+        <planeGeometry args={[8.6, 12]} />
+      </mesh>
+      <mesh receiveShadow position={[-3.15, 1.1, -0.4]} rotation={[0, 0.16, 0]} material={wallMat}>
+        <boxGeometry args={[0.32, 3.3, 9.2]} />
+      </mesh>
+      <mesh receiveShadow position={[3.15, 1.1, -0.4]} rotation={[0, -0.16, 0]} material={wallMat}>
+        <boxGeometry args={[0.32, 3.3, 9.2]} />
+      </mesh>
+      <mesh receiveShadow position={[0, 1.3, -4.62]} material={doorMat}>
+        <boxGeometry args={[3.4, 2.6, 0.32]} />
+      </mesh>
+
+      <ExitGlow />
+      <ToonBox position={[-1.45, 2.72, -4.25]} scale={[0.18, 0.18, 0.12]} color={0xfff3ba} emissive={0.2} />
+      <ToonBox position={[1.45, 2.72, -4.25]} scale={[0.18, 0.18, 0.12]} color={0xfff3ba} emissive={0.2} />
+      <TitleClassroomProps />
+      <SpeedStreak position={[-0.98, 0.055, 1.9]} scale={[0.11, 1.8]} delay={0.3} />
+      <SpeedStreak position={[0.02, 0.055, 1.3]} scale={[0.09, 2.25]} delay={1.0} />
+      <SpeedStreak position={[1.06, 0.055, 0.98]} scale={[0.1, 1.75]} delay={1.7} />
+      <WarningLight position={[-2.3, 0.03, -1.5]} delay={0} />
+      <WarningLight position={[2.15, 0.03, 1.3]} delay={1.4} />
+
+      <LargeZombieSilhouette />
+      <TitleZombie position={[-2.25, 0.22, -3.42]} delay={0.4} scale={0.58} type="E03" />
+      <TitleZombie position={[2.0, 0.2, -3.18]} delay={1.6} scale={0.52} type="E02" />
+      <TitleZombie position={[-1.95, 0.22, -1.55]} delay={0.2} scale={0.7} type="E01" />
+      <TitleZombie position={[1.56, 0.2, -2.08]} delay={1.0} scale={0.62} type="E02" />
+      <TitleZombie position={[-0.42, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />
+      <TitleMatildaPursuer position={[1.05, 0.36, -2.92]} delay={1.8} scale={1.44} />
+      <TitlePlayer />
+    </group>
+  )
 
   return (
     <>
@@ -236,44 +278,7 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
       <directionalLight position={[5, 4, -4]} intensity={0.7} color={0xffa34f} />
       <pointLight position={[0, 1.1, -3.7]} intensity={5.5} color={0xffdf9a} distance={11} decay={2} />
 
-      <group
-        ref={studioGroupRef}
-        rotation={[studioTransform.rotation[0], -0.09 + studioTransform.rotation[1], studioTransform.rotation[2]]}
-        position={[0, -1.15, 0]}
-        scale={studioTransform.scale}
-      >
-        <mesh receiveShadow position={[0, -0.02, 0]} rotation={[-Math.PI / 2, 0, 0]} material={floorMat}>
-          <planeGeometry args={[8.6, 12]} />
-        </mesh>
-        <mesh receiveShadow position={[-3.15, 1.1, -0.4]} rotation={[0, 0.16, 0]} material={wallMat}>
-          <boxGeometry args={[0.32, 3.3, 9.2]} />
-        </mesh>
-        <mesh receiveShadow position={[3.15, 1.1, -0.4]} rotation={[0, -0.16, 0]} material={wallMat}>
-          <boxGeometry args={[0.32, 3.3, 9.2]} />
-        </mesh>
-        <mesh receiveShadow position={[0, 1.3, -4.62]} material={doorMat}>
-          <boxGeometry args={[3.4, 2.6, 0.32]} />
-        </mesh>
-
-        <ExitGlow />
-        <ToonBox position={[-1.45, 2.72, -4.25]} scale={[0.18, 0.18, 0.12]} color={0xfff3ba} emissive={0.2} />
-        <ToonBox position={[1.45, 2.72, -4.25]} scale={[0.18, 0.18, 0.12]} color={0xfff3ba} emissive={0.2} />
-        <TitleClassroomProps />
-        <SpeedStreak position={[-0.98, 0.055, 1.9]} scale={[0.11, 1.8]} delay={0.3} />
-        <SpeedStreak position={[0.02, 0.055, 1.3]} scale={[0.09, 2.25]} delay={1.0} />
-        <SpeedStreak position={[1.06, 0.055, 0.98]} scale={[0.1, 1.75]} delay={1.7} />
-        <WarningLight position={[-2.3, 0.03, -1.5]} delay={0} />
-        <WarningLight position={[2.15, 0.03, 1.3]} delay={1.4} />
-
-        <LargeZombieSilhouette />
-        <TitleZombie position={[-2.25, 0.22, -3.42]} delay={0.4} scale={0.58} type="E03" />
-        <TitleZombie position={[2.0, 0.2, -3.18]} delay={1.6} scale={0.52} type="E02" />
-        <TitleZombie position={[-1.95, 0.22, -1.55]} delay={0.2} scale={0.7} type="E01" />
-        <TitleZombie position={[1.56, 0.2, -2.08]} delay={1.0} scale={0.62} type="E02" />
-        <TitleZombie position={[-0.42, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />
-        <TitleMatildaPursuer position={[1.05, 0.36, -2.92]} delay={1.8} scale={1.44} />
-        <TitlePlayer />
-      </group>
+      {studioMode ? sceneRoot : <StudioTunedGroup itemId="title-scene">{sceneRoot}</StudioTunedGroup>}
     </>
   )
 }

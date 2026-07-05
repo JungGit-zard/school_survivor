@@ -13,6 +13,7 @@ import {
   resolveCollapsePartOpacity,
 } from '../lib/enemyDeathCollapse.js'
 import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
+import StudioTunedGroup from './StudioTunedGroup.jsx'
 
 function resolvePartColor(part, palette) {
   if (part.color === 'foot') return 0x1a1a1a
@@ -206,6 +207,11 @@ export default function EnemyDeathCollapse({ id, type, position, visualScale, in
       : collapseStyleForIntensity(intensity, styleSeed)
   ), [intensity, styleOverride, styleSeed])
   const pieceScale = useMemo(() => collapsePieceScaleForStyle(style), [style])
+  const styleItemId = useMemo(() => {
+    const index = ENEMY_DEATH_COLLAPSE_STYLES.indexOf(style)
+    if (index < 0) return 'enemy-death-collapse'
+    return `enemy-death-${String(index + 1).padStart(2, '0')}`
+  }, [style])
 
   useEffect(() => {
     const timer = window.setTimeout(() => onDone?.(id), ENEMY_DEATH_COLLAPSE_LIFETIME_MS)
@@ -213,20 +219,24 @@ export default function EnemyDeathCollapse({ id, type, position, visualScale, in
   }, [id, onDone])
 
   return (
-    <group>
-      {ZOMBIE_COLLAPSE_PARTS.map((part, index) => (
-        <CollapsePart
-          key={`${id}-${part.key}`}
-          part={part}
-          index={index}
-          origin={position}
-          visualScale={visualScale}
-          palette={palette}
-          startedAt={startedAtRef.current}
-          style={style}
-          pieceScale={pieceScale}
-        />
-      ))}
-    </group>
+    <StudioTunedGroup itemId="enemy-death-collapse">
+      <StudioTunedGroup itemId={styleItemId}>
+        <group>
+          {ZOMBIE_COLLAPSE_PARTS.map((part, index) => (
+            <CollapsePart
+              key={`${id}-${part.key}`}
+              part={part}
+              index={index}
+              origin={position}
+              visualScale={visualScale}
+              palette={palette}
+              startedAt={startedAtRef.current}
+              style={style}
+              pieceScale={pieceScale}
+            />
+          ))}
+        </group>
+      </StudioTunedGroup>
+    </StudioTunedGroup>
   )
 }

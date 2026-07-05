@@ -32,66 +32,12 @@ import { BoxCutterModel } from './Weapons/BoxCutter.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
 import { SharkMissileModel, FlameTrail } from './Weapons/SharkMissile.jsx'
 import { CrashExplosionVisual, StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
-import { StudioTuningPreviewProvider, getStudioTransformProps } from './StudioTunedGroup.jsx'
+import { StudioTuningPreviewProvider, applyStudioTuning, getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { getCrashPose } from '../lib/starlinkCrash.js'
 
 const PLAYER_STUDIO_ARM_ACTIONS = {
   lantern: 'lanternAim',
   lanternFlashlight: 'lanternFlashlight',
-}
-
-function isOutlineMaterial(material) {
-  return material?.side === THREE.BackSide || material?.stencilFunc === THREE.NotEqualStencilFunc
-}
-
-function tuneColor(baseColor, tuning) {
-  const next = baseColor.clone()
-  const hsl = {}
-  next.getHSL(hsl)
-  next.setHSL(
-    hsl.h,
-    Math.min(1, Math.max(0, hsl.s * tuning.saturation)),
-    Math.min(1, Math.max(0, hsl.l * tuning.brightness)),
-  )
-  return next.lerp(new THREE.Color(tuning.color), tuning.colorStrength)
-}
-
-function applyStudioTuning(root, tuning) {
-  const outlineColor = new THREE.Color(tuning.outlineColor)
-  const outlineScaleFactor = 1 + (tuning.outlineThickness - 1) * 0.12
-
-  root.traverse((object) => {
-    const materials = Array.isArray(object.material)
-      ? object.material
-      : object.material
-        ? [object.material]
-        : []
-
-    const hasOutlineMaterial = materials.some(isOutlineMaterial)
-    if (hasOutlineMaterial && object.isMesh) {
-      if (!object.userData.studioBaseScale) object.userData.studioBaseScale = object.scale.clone()
-      object.scale.copy(object.userData.studioBaseScale).multiplyScalar(outlineScaleFactor)
-    }
-
-    materials.forEach((material) => {
-      const outline = isOutlineMaterial(material)
-      if (material.color) {
-        if (!material.userData.studioBaseColor) material.userData.studioBaseColor = material.color.clone()
-        material.color.copy(outline ? outlineColor : tuneColor(material.userData.studioBaseColor, tuning))
-      }
-      if (outline && typeof material.opacity === 'number') {
-        material.opacity = tuning.outlineOpacity
-        material.transparent = tuning.outlineOpacity < 1
-      }
-      if (!outline && typeof material.emissiveIntensity === 'number') {
-        material.emissiveIntensity = tuning.emissiveIntensity
-      }
-      if (!outline && material.emissive && material.color) {
-        material.emissive.copy(material.color)
-      }
-      material.needsUpdate = true
-    })
-  })
 }
 
 function useApplyStudioTuning(rootRef, tuning) {
