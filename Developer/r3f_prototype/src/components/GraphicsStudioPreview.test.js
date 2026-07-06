@@ -72,6 +72,8 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(source).toContain('syncPartGroupOutlines')
     expect(source).toContain('PART_GROUP_OUTLINE_COLOR')
     expect(source).toContain('focusedPartKeys.length ? focusedPartKeys : []')
+    expect(source).toContain('new THREE.EdgesGeometry(part.geometry)')
+    expect(source).toContain('new THREE.LineSegments')
   })
 
   it('keeps saved part and group edits visible when focusing another part', () => {

@@ -35,3 +35,18 @@ Date: 2026-07-06
 - Confirm B02 face texture scale edits keep the face plane at base size and adjust the texture repeat/offset instead.
 - Confirm B02 main boss groups expose stable part IDs so part focus does not select internal outline/body meshes.
 - Confirm Stage Boss Preview Pan Y `0.5` keeps the `B02` face visible in the preview frame.
+- Confirm B02 face texture focus uses a local mesh edge outline instead of an oversized world-axis focus box.
+- Confirm repeated saved part Apply calls do not accumulate position and push the part downward.
+- `npm test -- src/components/GraphicsStudioPreview.test.js src/components/StudioTunedGroup.test.jsx src/components/ZombieMesh.test.js src/components/GraphicsStudio.test.jsx src/components/Lobby.test.jsx src/lib/graphicsStudioConfig.test.js src/components/StageBossPreview.test.js src/components/StageBossPreview.test.jsx`
+  - Passed: 8 files, 65 tests.
+- `npm run build`
+  - Passed after the Graphics Studio focus outline fix.
+- Playwright graphics studio smoke check at `http://127.0.0.1:5173/graphics-studio#zombie-b02`
+  - Confirmed `Part Focus / b02FaceTexture` is selected and the neon outline stays on the face-sized mesh area.
+- Confirm B02 head front is square, the face texture plane uses the same square size, and previous front-overlapping hair block positions are absent.
+- `npm test -- src/components/ZombieMesh.test.js src/components/GraphicsStudioPreview.test.js src/components/StudioTunedGroup.test.jsx src/components/Lobby.test.jsx src/components/StageBossPreview.test.js src/components/StageBossPreview.test.jsx`
+  - Passed: 6 files, 39 tests.
+- `npm run build`
+  - Passed after the B02 square face cleanup.
+- Confirm B02 concept-art framing keeps the face texture cropped below the 3D black hair cap and includes front side hair blocks.
+- Confirm B02 side/back hair coverage is restored with side head and back skull hair blocks.

@@ -18,3 +18,8 @@ Date: 2026-07-06
 - Changed `B02` face texture scale edits to adjust texture fit on the fixed face plane instead of resizing the whole image plane.
 - Added stable Graphics Studio part IDs for the main `B02` boss groups so focusing selects logical parts instead of internal render meshes.
 - Lowered the Stage Boss Preview base framing and narrowed saved Pan Y so the `B02` face stays inside the preview while panning.
+- Changed Graphics Studio mesh part focusing to draw a local `EdgesGeometry` outline on the selected mesh instead of a large world-axis box, so the `B02` face texture focus stays thin and face-sized.
+- Kept focus outline helper objects out of normal studio material tuning so Apply does not recolor or resize the neon focus guide.
+- Made the `B02` head front and face texture plane share the same exact square layout, and moved hair blocks away from the front face so `boss_02.webp` owns the visible face area.
+- Reframed the `B02` face toward the concept art by cropping the face texture to the eyes/mouth area and restoring front hair blocks as 3D cap/side pieces.
+- Restored concept-style side and back hair coverage on `B02` with additional hair blocks around the side head and back of the skull.

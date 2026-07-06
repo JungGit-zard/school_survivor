@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { ENEMY_STATS } from './Enemy.jsx'
-import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B02_BOSS_VISUAL_PALETTE, B02_BOSS_VISUAL_PARTS } from './ZombieMesh.jsx'
+import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B02_BOSS_HEAD_LAYOUT, B02_BOSS_VISUAL_PALETTE, B02_BOSS_VISUAL_PARTS } from './ZombieMesh.jsx'
 
 describe('Stage 1 boss visual reference', () => {
   it('defines B01 as the blocky green suit zombie boss at the current gameplay scale', () => {
@@ -98,5 +98,26 @@ describe('Stage 2 boss visual reference', () => {
     expect(source).toContain('depthTest={false}')
     expect(source).toContain('<Boss02FaceTexture hitFlash={hitFlash} />')
     expect(source).not.toContain('B02_BOSS_FACE_LAYOUT')
+  })
+
+  it('keeps the B02 face side square and fits the texture plane to it', () => {
+    expect(B02_BOSS_HEAD_LAYOUT.headSize[0]).toBe(B02_BOSS_HEAD_LAYOUT.headSize[1])
+    expect(B02_BOSS_HEAD_LAYOUT.facePlaneSize).toEqual([
+      B02_BOSS_HEAD_LAYOUT.headSize[0],
+      B02_BOSS_HEAD_LAYOUT.headSize[1],
+    ])
+  })
+
+  it('frames the B02 face like the concept art with 3D front hair and cropped face texture', () => {
+    const source = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
+
+    expect(B02_BOSS_HEAD_LAYOUT.faceTextureRepeat[0]).toBeLessThan(1)
+    expect(B02_BOSS_HEAD_LAYOUT.faceTextureRepeat[1]).toBeLessThan(1)
+    expect(source).toContain('position={[0, 0.35, 0.08]}')
+    expect(source).toContain('position={[-0.37, 0.16, 0.16]}')
+    expect(source).toContain('position={[0.37, 0.16, 0.16]}')
+    expect(source).toContain('position={[-0.39, -0.04, -0.16]}')
+    expect(source).toContain('position={[0.39, -0.04, -0.16]}')
+    expect(source).toContain('position={[0, -0.02, -0.34]}')
   })
 })

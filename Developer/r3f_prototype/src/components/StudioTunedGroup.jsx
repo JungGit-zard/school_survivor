@@ -54,6 +54,8 @@ export function applyStudioTuning(root, tuning = DEFAULT_STUDIO_TUNING) {
   const outlineScaleFactor = 1 + (t.outlineThickness - 1) * 0.12
 
   root.traverse((object) => {
+    if (object.userData.studioPartGroupOutline) return
+
     const materials = Array.isArray(object.material)
       ? object.material
       : object.material

@@ -115,6 +115,42 @@ function clearPartGroupOutlines(root) {
   root.userData.studioPartGroupOutlineKey = ''
 }
 
+function stylePartFocusOutline(outline) {
+  const materials = Array.isArray(outline.material)
+    ? outline.material
+    : outline.material
+      ? [outline.material]
+      : []
+  materials.forEach((material) => {
+    if (material.color) material.color.setHex(PART_GROUP_OUTLINE_COLOR)
+    material.depthTest = false
+    material.transparent = true
+    material.opacity = 0.9
+    material.needsUpdate = true
+  })
+  outline.renderOrder = 999
+}
+
+function createPartFocusOutline(root, part) {
+  if (part.isMesh && part.geometry) {
+    const outline = new THREE.LineSegments(
+      new THREE.EdgesGeometry(part.geometry),
+      new THREE.LineBasicMaterial({ color: PART_GROUP_OUTLINE_COLOR }),
+    )
+    outline.userData.studioPartGroupOutline = true
+    outline.userData.studioPartGroupTarget = part
+    stylePartFocusOutline(outline)
+    part.add(outline)
+    return
+  }
+
+  const outline = new THREE.BoxHelper(part, PART_GROUP_OUTLINE_COLOR)
+  outline.userData.studioPartGroupOutline = true
+  outline.userData.studioPartGroupTarget = part
+  stylePartFocusOutline(outline)
+  root.add(outline)
+}
+
 function syncPartGroupOutlines(root, focusedPartKeys) {
   const outlineKeys = focusedPartKeys.length ? focusedPartKeys : []
   const nextKey = outlineKeys.join('|')
@@ -124,21 +160,16 @@ function syncPartGroupOutlines(root, focusedPartKeys) {
   outlineKeys.forEach((key) => {
     const part = findStudioPart(root, key)
     if (!part) return
-    const outline = new THREE.BoxHelper(part, PART_GROUP_OUTLINE_COLOR)
-    outline.userData.studioPartGroupOutline = true
-    outline.userData.studioPartGroupTarget = part
-    outline.material.depthTest = false
-    outline.material.transparent = true
-    outline.material.opacity = 0.9
-    outline.renderOrder = 999
-    root.add(outline)
+    createPartFocusOutline(root, part)
   })
   root.userData.studioPartGroupOutlineKey = nextKey
 }
 
 function updatePartGroupOutlines(root) {
   root.traverse((object) => {
-    if (object.userData.studioPartGroupOutline && typeof object.update === 'function') object.update()
+    if (!object.userData.studioPartGroupOutline) return
+    stylePartFocusOutline(object)
+    if (typeof object.update === 'function') object.update()
   })
 }
 

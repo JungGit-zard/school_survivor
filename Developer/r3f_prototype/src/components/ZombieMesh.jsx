@@ -83,6 +83,14 @@ export const B02_BOSS_VISUAL_PARTS = [
   'raggedTears',
 ]
 
+export const B02_BOSS_HEAD_LAYOUT = {
+  headSize: [0.64, 0.64, 0.52],
+  facePlaneSize: [0.64, 0.64],
+  facePlanePosition: [0, 0, 0.286],
+  faceTextureRepeat: [0.82, 0.76],
+  faceTextureOffset: [0.09, 0.05],
+}
+
 function ZBlock({ size, position, rotation, color, emissive = 0.12, outlineScale = 1.08, flash = false }) {
   const geo    = getCachedBoxGeo(...size)
   const outMat = getSharedOutlineMat()
@@ -153,20 +161,23 @@ function B01BossZombieMesh({ hitFlash, reg }) {
 }
 
 function Boss02FaceTexture({ hitFlash }) {
+  const face = B02_BOSS_HEAD_LAYOUT
   const texture = useLoader(THREE.TextureLoader, boss02FaceUrl)
   texture.colorSpace = THREE.SRGBColorSpace
   texture.minFilter = THREE.NearestFilter
   texture.magFilter = THREE.NearestFilter
+  texture.repeat.set(...face.faceTextureRepeat)
+  texture.offset.set(...face.faceTextureOffset)
   texture.generateMipmaps = false
 
   return (
     <mesh
       name="b02FaceTexture"
       userData={{ studioPartId: 'b02-face-texture', studioTextureFit: true }}
-      position={[0, 0.00, 0.286]}
+      position={face.facePlanePosition}
       renderOrder={4}
     >
-      <planeGeometry args={[0.62, 0.62]} />
+      <planeGeometry args={face.facePlaneSize} />
       {hitFlash
         ? <meshBasicMaterial color="#ffffff" toneMapped={false} depthTest={false} />
         : <meshBasicMaterial map={texture} transparent={false} toneMapped={false} depthTest={false} />}
@@ -180,11 +191,14 @@ function B02BossZombieMesh({ hitFlash, reg }) {
   return (
     <group>
       <group name="b02Head" userData={{ studioPartId: 'b02-head' }} ref={reg('head')} position={[0, 0.92, 0]}>
-        <ZBlock size={[0.64, 0.62, 0.52]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash} />
+        <ZBlock size={B02_BOSS_HEAD_LAYOUT.headSize} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash} />
         <Boss02FaceTexture hitFlash={hitFlash} />
-        <ZBlock size={[0.70, 0.16, 0.56]} position={[0, 0.33, -0.01]} color={pal.hair} emissive={0.035} outlineScale={1.04} flash={hitFlash} />
-        <ZBlock size={[0.17, 0.42, 0.22]} position={[-0.41, 0.05, 0.02]} color={pal.hair} emissive={0.035} outlineScale={1.03} flash={hitFlash} />
-        <ZBlock size={[0.17, 0.42, 0.22]} position={[0.41, 0.05, 0.02]} color={pal.hair} emissive={0.035} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock size={[0.70, 0.16, 0.42]} position={[0, 0.35, 0.08]} color={pal.hair} emissive={0.035} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock size={[0.12, 0.34, 0.18]} position={[-0.37, 0.16, 0.16]} color={pal.hair} emissive={0.035} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock size={[0.12, 0.34, 0.18]} position={[0.37, 0.16, 0.16]} color={pal.hair} emissive={0.035} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock size={[0.14, 0.50, 0.30]} position={[-0.39, -0.04, -0.16]} color={pal.hair} emissive={0.03} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock size={[0.14, 0.50, 0.30]} position={[0.39, -0.04, -0.16]} color={pal.hair} emissive={0.03} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock size={[0.58, 0.48, 0.12]} position={[0, -0.02, -0.34]} color={pal.hairShadow} emissive={0.025} outlineScale={1.03} flash={hitFlash} />
         <ZBlock size={[0.30, 0.26, 0.24]} position={[0, 0.25, -0.38]} color={pal.hairShadow} emissive={0.03} outlineScale={1.04} flash={hitFlash} />
         <ZBlock size={[0.24, 0.18, 0.20]} position={[0, 0.52, -0.34]} color={pal.hair} emissive={0.03} outlineScale={1.04} flash={hitFlash} />
       </group>

@@ -111,6 +111,26 @@ describe('StudioTunedGroup', () => {
     expect(part.rotation.z).toBeCloseTo(Math.PI / 2)
   })
 
+  it('does not accumulate saved part position when Apply runs repeatedly', () => {
+    const root = new THREE.Group()
+    const part = new THREE.Group()
+    part.userData.studioPartId = 'b02-head'
+    root.add(part)
+
+    const tunings = {
+      'zombie-b02::part::id:b02-head': {
+        scale: 1.2,
+        positionY: -0.4,
+      },
+    }
+
+    applySavedStudioPartTunings(root, 'zombie-b02', tunings)
+    applySavedStudioPartTunings(root, 'zombie-b02', tunings)
+
+    expect(part.scale.x).toBeCloseTo(1.2)
+    expect(part.position.y).toBeCloseTo(-0.4)
+  })
+
   it('applies confirmed stable-id part tuning to matching runtime meshes', () => {
     const root = new THREE.Group()
     const wrapper = new THREE.Group()
