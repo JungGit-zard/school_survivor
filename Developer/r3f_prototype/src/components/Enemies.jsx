@@ -189,11 +189,11 @@ export { WAVE_PHASES, STAGE2_WAVE_PHASES } from '../lib/waveTimelines.js'
 // 4분 타임라인. 5분 기준 sec ×0.8.
 const BURST_EVENTS = [
   { sec:   0, type: 'E01', count: 16 },  // 40초 전 단일 좀비 구간 밀도 2배
-  { sec:  24, type: 'E01', count: 12 },  // 40초 전 단일 좀비 구간 밀도 2배
-  { sec:  48, type: 'E02', count:  4 },  // 탱커 첫 등장 신호
+  { sec:  24, type: 'E01', count:  8 },  // 첫 phase target(24)을 burst만으로 초과하지 않게 완화
+  { sec:  60, type: 'E02', count:  4 },  // 탱커 첫 등장 신호 — wave 첫 E02 phase와 정렬
   { sec:  72, type: 'E03', count:  2 },  // 러너 압박 — 6→2 (E03 전 구간 ×1/3, 2026-07-04)
-  { sec:  96, type: 'E01', count:  5 },  // 엘리트 직전 잡몹 러시
-  { sec:  96, type: 'E02', count:  3 },
+  { sec: 108, type: 'E01', count:  5 },  // 90–108초 완화 구간 이후 잡몹 러시
+  { sec: 108, type: 'E02', count:  3 },
   { sec: 120, type: 'E05', count:  3 },  // 돌진 첫 등장 (E04 탄환형 폐기 — 2026-05-09)
   { sec: 144, type: 'E05', count:  3 },  // 돌진 압박 강화
   { sec: 168, type: 'E06', count:  1 },  // 거대 첫 등장
@@ -240,6 +240,19 @@ function pickTypeByWeight(weights) {
     if (r <= acc) return type
   }
   return Object.keys(weights)[0]
+}
+
+export function pickTypeByWeightExcluding(weights, excludedType) {
+  const entries = Object.entries(weights).filter(([type, weight]) => type !== excludedType && weight > 0)
+  if (entries.length === 0) return null
+  const total = entries.reduce((sum, [, weight]) => sum + weight, 0)
+  const r = Math.random() * total
+  let acc = 0
+  for (const [type, weight] of entries) {
+    acc += weight
+    if (r <= acc) return type
+  }
+  return entries[0][0]
 }
 
 let _uid   = 0
@@ -402,8 +415,12 @@ export default function Enemies() {
       let type = pickTypeByWeight(currentPhase.weights)
       if (currentStageId === 'stage2' && type === 'E04') {
         const currentE04Count = enemiesRef.current.filter((e) => e.type === 'E04').length + newBatch.filter((e) => e.type === 'E04').length
-        if (currentE04Count >= getStage2E04Cap(sec)) type = 'E03'
+        if (currentE04Count >= getStage2E04Cap(sec)) {
+          type = pickTypeByWeightExcluding(currentPhase.weights, 'E04')
+          if (!type) continue
+        }
       }
+
       const taken = newBatch.map((e) => e.pos)
       const pos  = type === 'E04' ? rangedSpawnPos(bounds, taken) : randomSpawnPos(type, bounds, taken)
       newBatch.push({ id: ++_uid, type, pos })

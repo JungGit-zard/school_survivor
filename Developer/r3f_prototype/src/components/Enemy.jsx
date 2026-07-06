@@ -178,6 +178,23 @@ function ChargeToonCue({ y }) {
 
 // ?? ???ъ궗泥?(E04 ?먭굅由??꾩슜. B01 遺梨꾧섦 ?⑦꽩? 2026-05-09 ?먭린) ??????????????
 let _projId = 0
+const _activeE04ProjectileIds = new Set()
+
+export function getActiveE04ProjectileCount() {
+  return _activeE04ProjectileIds.size
+}
+
+export function resetActiveE04ProjectileCountForTest() {
+  _activeE04ProjectileIds.clear()
+}
+
+function registerE04Projectile(id) {
+  _activeE04ProjectileIds.add(id)
+}
+
+function unregisterE04Projectile(id) {
+  _activeE04ProjectileIds.delete(id)
+}
 
 function EnemyProjectile({ id, position, velocity, damage, onExpire }) {
   const rb      = useRef()
@@ -304,11 +321,21 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
   // E04 / B01 ?ъ궗泥?
   const [projectiles, setProjectiles] = useState([])
+  const projectilesRef = useRef([])
   const lastFireRef = useRef(0)
 
   const damagePlayer = useGameStore((s) => s.damagePlayer)
   const phase        = useGameStore((s) => s.phase)
   const currentStageId = useGameStore((s) => s.currentStageId)
+
+  useEffect(() => {
+    projectilesRef.current = projectiles
+  }, [projectiles])
+
+  useEffect(() => () => {
+    if (type !== 'E04') return
+    projectilesRef.current.forEach((projectile) => unregisterE04Projectile(projectile.id))
+  }, [type])
 
   useEffect(() => {
     // Registry registration must happen regardless of rb.current — the visual
@@ -393,8 +420,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   }, [id, onDeath, spawnPos, stats.xp, type, cs, useInstanced])
 
   const expireProjectile = useCallback((pid) => {
+    if (type === 'E04') unregisterE04Projectile(pid)
     setProjectiles((prev) => prev.filter((p) => p.id !== pid))
-  }, [])
+  }, [type])
 
   useFrame((_, delta) => {
     if (!rb.current || dead.current || phase !== 'playing') return
@@ -454,20 +482,22 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       const canFire = currentStageId === 'stage2' && canE04FireProjectile({
         elapsedSec,
         ageMs: now - spawnedAtRef.current,
-        activeProjectileCount: projectiles.length,
+        activeProjectileCount: type === 'E04' ? getActiveE04ProjectileCount() : projectiles.length,
         distanceToPlayer: dist,
         lastFireElapsedMs: lastFireRef.current,
         nowMs: now,
         cooldownMs: stats.rangedCooldown,
-        bossPressure: elapsedSec >= 190 && elapsedSec < 200,
+        bossPressure: elapsedSec >= 192 && elapsedSec < 240,
       })
 
       // ?ъ궗泥?諛쒖궗
       if (canFire) {
         lastFireRef.current = now
         _fireDir.copy(_dir).normalize()
+        const projectileId = ++_projId
+        if (type === 'E04') registerE04Projectile(projectileId)
         setProjectiles((prev) => [...prev, {
-          id: ++_projId,
+          id: projectileId,
           position: [_pos.x, _pos.y, _pos.z],
           velocity: [_fireDir.x * stats.rangedSpeed, 0, _fireDir.z * stats.rangedSpeed],
           damage: stats.rangedDmg,

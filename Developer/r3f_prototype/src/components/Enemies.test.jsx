@@ -9,8 +9,9 @@ import {
   createDeathCollapseEntry,
   TEXTBOOK_DROP_RATE,
   WAVE_PHASES,
+  pickTypeByWeightExcluding,
 } from './Enemies.jsx'
-import { ENEMY_STATS } from './Enemy.jsx'
+import { ENEMY_STATS, getActiveE04ProjectileCount, resetActiveE04ProjectileCountForTest } from './Enemy.jsx'
 import { playerPos } from '../lib/refs.js'
 import { resolveRangedEnemyVelocity } from './Enemy.jsx'
 
@@ -37,7 +38,7 @@ describe('stage 1 E06 spawn pressure', () => {
     expect(ENEMY_STATS.B02.scale).toBe(2)
   })
 
-  it('keeps the late giant zombie wave at five percent pressure', () => {
+  it('keeps the late giant zombie wave at three percent pressure', () => {
     const giantPhase = WAVE_PHASES.find((phase) => phase.start === 168)
 
     expect(giantPhase.weights.E06).toBe(0.03)
@@ -76,12 +77,30 @@ describe('late zombie spawn relief', () => {
   })
 
   it('reduces burst zombie counts after 90 seconds without removing boss events', () => {
-    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 96 && event.type === 'E01').count).toBe(5)
+    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E01').count).toBe(5)
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
     expect(getBurstEventsForStage('stage2').find((event) => event.sec === 96 && event.type === 'E04').count).toBe(1)
     expect(getBurstEventsForStage('stage2').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
     expect(getBurstEventsForStage('stage2').find((event) => event.sec === 192 && event.type === 'B02').count).toBe(1)
     expect(getBurstEventsForStage('stage2').some((event) => event.sec === 192 && event.type === 'B01')).toBe(false)
+  })
+
+  it('aligns stage 1 burst pressure with tutorial and relief windows', () => {
+    const stage1Bursts = getBurstEventsForStage('stage1')
+
+    expect(stage1Bursts.filter((event) => event.sec < 40).reduce((sum, event) => sum + event.count, 0)).toBe(24)
+    expect(stage1Bursts.some((event) => event.type === 'E02' && event.sec < 60)).toBe(false)
+    expect(stage1Bursts.some((event) => event.sec >= 90 && event.sec < 108)).toBe(false)
+  })
+
+  it('replaces capped E04 picks with the same phase non-E04 weights instead of forcing E03', () => {
+    const originalRandom = Math.random
+    Math.random = () => 0.99
+    try {
+      expect(pickTypeByWeightExcluding({ E02: 0.50, E04: 0.32, E06: 0.18 }, 'E04')).toBe('E06')
+    } finally {
+      Math.random = originalRandom
+    }
   })
 })
 
@@ -202,5 +221,15 @@ describe('ranged enemy movement', () => {
     })
 
     expect(Math.hypot(velocity.x, velocity.z)).toBeGreaterThan(0)
+  })
+
+  it('uses one global E04 projectile budget and suppresses E04 fire for the full boss phase', () => {
+    resetActiveE04ProjectileCountForTest()
+    expect(getActiveE04ProjectileCount()).toBe(0)
+
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    expect(source).toContain("activeProjectileCount: type === 'E04' ? getActiveE04ProjectileCount() : projectiles.length")
+    expect(source).toContain('registerE04Projectile(projectileId)')
+    expect(source).toContain('bossPressure: elapsedSec >= 192 && elapsedSec < 240')
   })
 })
