@@ -3,7 +3,7 @@ import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App, { handleStudioGameSyncMessage } from './App.jsx'
-import { loadStageBossPreview, loadStudioTunings } from './lib/graphicsStudioConfig.js'
+import { loadStageBossPreview, loadStudioTunings, loadTextureDecals } from './lib/graphicsStudioConfig.js'
 import { loadSfxTunings } from './lib/sfxRegistry.js'
 
 vi.mock('@react-three/fiber', () => ({
@@ -89,6 +89,11 @@ describe('App virtual joystick mounting', () => {
         tunings: { player: { scale: 1.7 } },
         sfxTunings: { pencilFire: { volume: 0.4 } },
         stageBossPreview: { zoom: 133, panX: 0.35, panY: -0.25 },
+        decals: {
+          'zombie-b02': [
+            { partId: 'b02-head', faceAxis: '+z', imageDataUrl: 'data:image/png;base64,AAAA', offset: [0.1, 0], scale: [0.4, 0.4], rotation: 0 },
+          ],
+        },
       },
     })
 
@@ -96,6 +101,7 @@ describe('App virtual joystick mounting', () => {
     expect(loadStudioTunings().player.scale).toBe(1.7)
     expect(loadSfxTunings().pencilFire.volume).toBe(0.4)
     expect(loadStageBossPreview()).toEqual({ zoom: 133, panX: 0.35, panY: -0.25 })
+    expect(loadTextureDecals()['zombie-b02'][0]).toMatchObject({ partId: 'b02-head', faceAxis: '+z' })
   })
 
   it('uses the full viewport width so narrow iPhone SE screens are not pillarboxed', () => {

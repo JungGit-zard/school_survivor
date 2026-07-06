@@ -23,6 +23,19 @@ export const GRAPHICS_STUDIO_RESET_BASELINE_KEY = 'escape-zombie-school.graphics
 export const GRAPHICS_STUDIO_TUNING_EVENT = 'escape-zombie-school.graphicsStudioTunings.changed'
 export const STAGE_BOSS_PREVIEW_STORAGE_KEY = 'escape-zombie-school.stageBossPreview.v1'
 export const STAGE_BOSS_PREVIEW_EVENT = 'escape-zombie-school.stageBossPreview.changed'
+export const TEXTURE_DECALS_STORAGE_KEY = 'escape-zombie-school.textureDecals.v1'
+export const TEXTURE_DECALS_EVENT = 'escape-zombie-school.textureDecals.changed'
+
+export const TEXTURE_DECAL_FACE_AXES = Object.freeze(['+x', '-x', '+y', '-y', '+z', '-z'])
+
+export const DEFAULT_TEXTURE_DECAL = Object.freeze({
+  partId: '',
+  faceAxis: '+z',
+  imageDataUrl: '',
+  offset: Object.freeze([0, 0]),
+  scale: Object.freeze([0.4, 0.4]),
+  rotation: 0,
+})
 
 export const DEFAULT_STUDIO_TUNING = Object.freeze({
   scale: 1,
@@ -430,6 +443,67 @@ export function normalizeStudioTuning(input = {}) {
   return normalized
 }
 
+// 데칼 1레이어: 태깅된 파트(studioPartId)에 앵커. 비객체/무효 이미지 입력은 null로 걸러낸다.
+export function normalizeTextureDecal(input) {
+  if (!input || typeof input !== 'object') return null
+  if (typeof input.partId !== 'string' || !input.partId) return null
+  if (typeof input.imageDataUrl !== 'string' || !input.imageDataUrl.startsWith('data:image/')) return null
+
+  const offset = Array.isArray(input.offset) ? input.offset : []
+  const scale = Array.isArray(input.scale) ? input.scale : []
+  return {
+    partId: input.partId,
+    faceAxis: TEXTURE_DECAL_FACE_AXES.includes(input.faceAxis) ? input.faceAxis : DEFAULT_TEXTURE_DECAL.faceAxis,
+    imageDataUrl: input.imageDataUrl,
+    offset: [
+      Number(clampNumber(offset[0], [-3, 3], 0).toFixed(2)),
+      Number(clampNumber(offset[1], [-3, 3], 0).toFixed(2)),
+    ],
+    scale: [
+      Number(clampNumber(scale[0], [0.05, 4], DEFAULT_TEXTURE_DECAL.scale[0]).toFixed(2)),
+      Number(clampNumber(scale[1], [0.05, 4], DEFAULT_TEXTURE_DECAL.scale[1]).toFixed(2)),
+    ],
+    rotation: Math.round(clampNumber(input.rotation, [-180, 180], 0)),
+  }
+}
+
+// { itemId: TextureDecal[] } 맵 정규화 — 무효 레이어 제거, 빈 배열 항목 삭제
+export function normalizeTextureDecalMap(input) {
+  if (!input || typeof input !== 'object') return {}
+  return Object.fromEntries(
+    Object.entries(input)
+      .map(([itemId, layers]) => [
+        itemId,
+        (Array.isArray(layers) ? layers : []).map(normalizeTextureDecal).filter(Boolean),
+      ])
+      .filter(([, layers]) => layers.length > 0),
+  )
+}
+
+export function loadTextureDecals(storage) {
+  const targetStorage = getStorage(storage)
+  if (!targetStorage) return {}
+
+  try {
+    const raw = targetStorage.getItem(TEXTURE_DECALS_STORAGE_KEY)
+    if (!raw) return {}
+    return normalizeTextureDecalMap(JSON.parse(raw))
+  } catch {
+    return {}
+  }
+}
+
+// ponytail: base64 임베드. 커지면 에셋파일 파이프라인으로.
+export function saveTextureDecals(decals, storage) {
+  const targetStorage = getStorage(storage)
+  const normalized = normalizeTextureDecalMap(decals)
+  targetStorage?.setItem(TEXTURE_DECALS_STORAGE_KEY, JSON.stringify(normalized))
+  if (!storage && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(TEXTURE_DECALS_EVENT, { detail: normalized }))
+  }
+  return normalized
+}
+
 export function getStudioItemById(id) {
   return GRAPHICS_STUDIO_CATALOG.find((item) => item.id === id) ?? GRAPHICS_STUDIO_CATALOG[0]
 }
@@ -515,7 +589,7 @@ export function ensureStudioResetBaseline(tunings = loadStudioTunings(), storage
   return normalized
 }
 
-export function serializeStudioSnapshot({ selectedItemId = 'player', tunings = loadStudioTunings(), stageBossPreview = loadStageBossPreview() } = {}) {
+export function serializeStudioSnapshot({ selectedItemId = 'player', tunings = loadStudioTunings(), stageBossPreview = loadStageBossPreview(), decals = loadTextureDecals() } = {}) {
   const selectedItem = getStudioItemById(selectedItemId)
   const normalizedTunings = Object.fromEntries(
     Object.entries(tunings ?? {}).map(([itemId, tuning]) => [itemId, normalizeStudioTuning(tuning)]),
@@ -534,5 +608,6 @@ export function serializeStudioSnapshot({ selectedItemId = 'player', tunings = l
     },
     tunings: normalizedTunings,
     stageBossPreview: normalizeStageBossPreview(stageBossPreview),
+    decals: normalizeTextureDecalMap(decals),
   }, null, 2)
 }

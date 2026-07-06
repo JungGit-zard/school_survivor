@@ -4,15 +4,20 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import GraphicsStudio from './GraphicsStudio.jsx'
-import { loadStageBossPreview, loadStudioTunings, saveStudioTunings } from '../lib/graphicsStudioConfig.js'
+import { loadStageBossPreview, loadStudioTunings, loadTextureDecals, saveStudioTunings } from '../lib/graphicsStudioConfig.js'
 import { loadSfxTunings } from '../lib/sfxRegistry.js'
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: () => <div data-testid="stage-boss-preview-canvas" />,
 }))
 
+vi.mock('../lib/textureDecal.js', async (importOriginal) => ({
+  ...(await importOriginal()),
+  fileToDecalDataUrl: vi.fn(async () => 'data:image/png;base64,MOCK'),
+}))
+
 vi.mock('./GraphicsStudioPreview.jsx', () => ({
-  default: ({ selectedItem, tuning, focusedPartTuning, onPartFocus }) => (
+  default: ({ selectedItem, tuning, focusedPartTuning, decals, onPartFocus }) => (
     <div
       data-testid="graphics-preview"
       onDoubleClick={(event) => onPartFocus?.(event.shiftKey
@@ -20,6 +25,12 @@ vi.mock('./GraphicsStudioPreview.jsx', () => ({
         : { key: '0.1', label: 'Head', additive: false })}
     >
       {selectedItem.id}:{tuning.scale}:{tuning.scaleX}:{tuning.animation}:{focusedPartTuning?.scale ?? 'none'}
+      <button
+        type="button"
+        data-testid="focus-stable-part"
+        onClick={() => onPartFocus?.({ key: 'id:b02-head', label: 'b02Head', additive: false, faceAxis: '+z' })}
+      />
+      <span data-testid="preview-decals">{(decals ?? []).map((decal) => `${decal.partId}:${decal.faceAxis}`).join(',')}</span>
     </div>
   ),
 }))
@@ -413,6 +424,96 @@ describe('GraphicsStudio', () => {
     })
 
     expect(loadStudioTunings().player.scale).toBe(1.01)
+  })
+
+  it('uploads a decal image onto the focused part face and syncs it to the game', async () => {
+    const postMessage = vi.fn()
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false, postMessage })
+
+    act(() => {
+      root.render(<GraphicsStudio />)
+    })
+
+    act(() => {
+      Array.from(container.querySelectorAll('button'))
+        .find((button) => button.textContent.includes('Zombie B02'))
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    const gameUrl = container.querySelector('input[name="gameUrl"]')
+    act(() => {
+      gameUrl.value = 'http://localhost:5173/'
+      gameUrl.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    const connect = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent === 'Connect')
+    act(() => {
+      connect.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    // 파트 포커스 전에는 업로드 비활성
+    const upload = container.querySelector('input[name="decalImage"]')
+    expect(upload.disabled).toBe(true)
+
+    act(() => {
+      container.querySelector('[data-testid="focus-stable-part"]')
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+    expect(upload.disabled).toBe(false)
+    expect(container.textContent).toContain('b02-head / +z')
+
+    Object.defineProperty(upload, 'files', {
+      configurable: true,
+      value: [new File(['png-bytes'], 'face.png', { type: 'image/png' })],
+    })
+    await act(async () => {
+      upload.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+
+    expect(loadTextureDecals()['zombie-b02']).toHaveLength(1)
+    expect(loadTextureDecals()['zombie-b02'][0]).toMatchObject({
+      partId: 'b02-head',
+      faceAxis: '+z',
+      imageDataUrl: 'data:image/png;base64,MOCK',
+    })
+    expect(postMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        type: 'escape-zombie-school.studioGameSync.v1',
+        decals: expect.objectContaining({
+          'zombie-b02': [expect.objectContaining({ partId: 'b02-head', faceAxis: '+z' })],
+        }),
+      }),
+      'http://localhost:5173',
+    )
+    expect(container.querySelector('[data-testid="preview-decals"]').textContent).toContain('b02-head:+z')
+    expect(container.querySelector('[data-testid="studio-export"]').value).toContain('"b02-head"')
+
+    // 면 안 정렬: 오프셋 슬라이더가 데칼 레이어를 갱신한다
+    const offsetU = container.querySelector('input[name="decalOffsetU"]')
+    act(() => {
+      offsetU.value = '0.25'
+      offsetU.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    expect(loadTextureDecals()['zombie-b02'][0].offset[0]).toBe(0.25)
+
+    const rotation = container.querySelector('input[name="decalRotation"]')
+    act(() => {
+      rotation.value = '45'
+      rotation.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    expect(loadTextureDecals()['zombie-b02'][0].rotation).toBe(45)
+
+    // 삭제
+    const deleteButton = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent === 'Delete')
+    act(() => {
+      deleteButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+    expect(loadTextureDecals()['zombie-b02']).toBeUndefined()
+    expect(postMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({ decals: {} }),
+      'http://localhost:5173',
+    )
   })
 
   it('applies audio tuning to the game immediately', () => {

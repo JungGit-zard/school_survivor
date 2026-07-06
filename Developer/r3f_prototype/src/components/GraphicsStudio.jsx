@@ -2,6 +2,7 @@
 import GraphicsStudioPreview from './GraphicsStudioPreview.jsx'
 import {
   DEFAULT_STUDIO_TUNING,
+  DEFAULT_TEXTURE_DECAL,
   GRAPHICS_STUDIO_CATALOG,
   GRAPHICS_STUDIO_CATEGORIES,
   STAGE_BOSS_PREVIEW_PAN_Y_RANGE,
@@ -9,11 +10,15 @@ import {
   getStudioItemById,
   loadStageBossPreview,
   loadStudioTunings,
+  loadTextureDecals,
   normalizeStudioTuning,
+  normalizeTextureDecal,
   saveStageBossPreview,
   saveStudioTunings,
+  saveTextureDecals,
   serializeStudioSnapshot,
 } from '../lib/graphicsStudioConfig.js'
+import { fileToDecalDataUrl } from '../lib/textureDecal.js'
 import { DEFAULT_SFX_TUNING, getSfxCatalog, loadSfxTunings, normalizeSfxTuning, playSfx, saveSfxTunings } from '../lib/sfxRegistry.js'
 import {
   STUDIO_GAME_SYNC_MESSAGE,
@@ -156,6 +161,8 @@ export default function GraphicsStudio() {
     : 'B01'
   const [draftTuningById, setDraftTuningById] = useState(() => ({}))
   const [focusedParts, setFocusedParts] = useState([])
+  const [focusedFaceAxis, setFocusedFaceAxis] = useState(DEFAULT_TEXTURE_DECAL.faceAxis)
+  const [decalsByItem, setDecalsByItem] = useState(() => loadTextureDecals())
   const [undoStack, setUndoStack] = useState(() => [])
   const gameWindowRef = useRef(null)
   const gameOriginRef = useRef('*')
@@ -179,12 +186,25 @@ export default function GraphicsStudio() {
     [selectedItem.id]: itemTuning,
     [activeTuningId]: tuning,
   }
+  // 텍스처 데칼 — 안정 파트(studioPartId) + 면(faceAxis)에 앵커. 단일 파트 포커스에서만 편집.
+  const itemDecals = decalsByItem[selectedItem.id] ?? []
+  const focusedDecalPartId = focusedParts.length === 1 && focusedParts[0].key.startsWith('id:')
+    ? focusedParts[0].key.slice('id:'.length)
+    : null
+  const activeDecal = focusedDecalPartId
+    ? itemDecals.find((decal) => decal.partId === focusedDecalPartId && decal.faceAxis === focusedFaceAxis) ?? null
+    : null
   const exportJson = useMemo(
-    () => serializeStudioSnapshot({ selectedItemId: selectedItem.id, tunings: exportTunings, stageBossPreview }),
-    [selectedItem.id, activeTuningId, tuning, confirmedTunings, stageBossPreview],
+    () => serializeStudioSnapshot({ selectedItemId: selectedItem.id, tunings: exportTunings, stageBossPreview, decals: decalsByItem }),
+    [selectedItem.id, activeTuningId, tuning, confirmedTunings, stageBossPreview, decalsByItem],
   )
 
-  const sendGameSync = (tunings = loadStudioTunings(), nextSfxTunings = loadSfxTunings(), nextStageBossPreview = loadStageBossPreview()) => {
+  const sendGameSync = (
+    tunings = loadStudioTunings(),
+    nextSfxTunings = loadSfxTunings(),
+    nextStageBossPreview = loadStageBossPreview(),
+    nextDecals = loadTextureDecals(),
+  ) => {
     const target = gameWindowRef.current
     if (!target || target.closed) return
     target.postMessage({
@@ -192,6 +212,7 @@ export default function GraphicsStudio() {
       tunings,
       sfxTunings: nextSfxTunings,
       stageBossPreview: nextStageBossPreview,
+      decals: nextDecals,
     }, gameOriginRef.current)
   }
 
@@ -235,6 +256,66 @@ export default function GraphicsStudio() {
         [activeTuningId]: nextTuning,
       }
     })
+  }
+
+  const confirmTextureDecals = (nextItemDecals) => {
+    const next = saveTextureDecals({
+      ...loadTextureDecals(),
+      [selectedItem.id]: nextItemDecals,
+    })
+    setDecalsByItem(next)
+    sendGameSync(loadStudioTunings(), loadSfxTunings(), loadStageBossPreview(), next)
+    return next
+  }
+
+  const handleDecalUpload = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!focusedDecalPartId) {
+      setApplyStatus('Decal: double-click a tagged part first')
+      return
+    }
+    if (!file) return
+    const imageDataUrl = await fileToDecalDataUrl(file)
+    if (!imageDataUrl) {
+      setApplyStatus('Decal: unsupported image file')
+      return
+    }
+    const nextDecal = normalizeTextureDecal({
+      ...DEFAULT_TEXTURE_DECAL,
+      ...(activeDecal ?? {}),
+      partId: focusedDecalPartId,
+      faceAxis: focusedFaceAxis,
+      imageDataUrl,
+    })
+    if (!nextDecal) {
+      setApplyStatus('Decal: invalid image data')
+      return
+    }
+    const rest = itemDecals.filter((decal) => !(decal.partId === nextDecal.partId && decal.faceAxis === nextDecal.faceAxis))
+    confirmTextureDecals([...rest, nextDecal])
+    setApplyStatus(`Decal live: ${nextDecal.partId} ${nextDecal.faceAxis}`)
+  }
+
+  const updateActiveDecal = (patch) => {
+    if (!activeDecal) return
+    const nextDecal = normalizeTextureDecal({ ...activeDecal, ...patch })
+    if (!nextDecal) return
+    confirmTextureDecals(itemDecals.map((decal) => (
+      decal.partId === activeDecal.partId && decal.faceAxis === activeDecal.faceAxis ? nextDecal : decal
+    )))
+    setApplyStatus('Decal live')
+  }
+
+  const removeDecal = (target) => {
+    confirmTextureDecals(itemDecals.filter((decal) => !(decal.partId === target.partId && decal.faceAxis === target.faceAxis)))
+    setApplyStatus(`Decal removed: ${target.partId} ${target.faceAxis}`)
+  }
+
+  const focusDecal = (decal) => {
+    setFocusedParts([{ key: `id:${decal.partId}`, label: decal.partId }])
+    setFocusedFaceAxis(decal.faceAxis)
+    setApplyStatus(`Decal focus: ${decal.partId} ${decal.faceAxis}`)
   }
 
   const updateStageBossPreview = (patch) => {
@@ -286,6 +367,7 @@ export default function GraphicsStudio() {
   }
 
   const updateFocusedParts = (part) => {
+    if (part.faceAxis) setFocusedFaceAxis(part.faceAxis)
     setFocusedParts((current) => {
       const exists = current.some((item) => item.key === part.key)
       if (part.additive && current.length > 0) {
@@ -432,6 +514,7 @@ export default function GraphicsStudio() {
               focusedPartKeys={focusedParts.map((part) => part.key)}
               focusedPartTuning={focusedParts.length ? tuning : null}
               partTunings={livePreviewTunings}
+              decals={itemDecals}
               onPartFocus={updateFocusedParts}
             />
           ) : (
@@ -510,6 +593,42 @@ export default function GraphicsStudio() {
                 <option value="lanternFlashlight">lanternFlashlight</option>
               </select>
             </label>
+            <section style={styles.decalSection} data-testid="decal-section">
+              <div style={styles.stageBossPreviewHeader}>
+                <span style={styles.stageBossPreviewTitle}>Texture Decal</span>
+                <span style={styles.stageBossPreviewHint}>
+                  {focusedDecalPartId ? `${focusedDecalPartId} / ${focusedFaceAxis}` : 'double-click a part face'}
+                </span>
+              </div>
+              <input
+                name="decalImage"
+                data-testid="decal-upload"
+                type="file"
+                accept="image/*"
+                disabled={!focusedDecalPartId}
+                onChange={handleDecalUpload}
+                style={styles.decalFileInput}
+              />
+              {activeDecal ? (
+                <>
+                  <SliderRow label="Decal U" name="decalOffsetU" min="-3" max="3" step="0.01" value={activeDecal.offset[0]} onChange={(u) => updateActiveDecal({ offset: [u, activeDecal.offset[1]] })} />
+                  <SliderRow label="Decal V" name="decalOffsetV" min="-3" max="3" step="0.01" value={activeDecal.offset[1]} onChange={(v) => updateActiveDecal({ offset: [activeDecal.offset[0], v] })} />
+                  <SliderRow label="Decal W" name="decalScaleX" min="0.05" max="4" step="0.01" value={activeDecal.scale[0]} onChange={(sx) => updateActiveDecal({ scale: [sx, activeDecal.scale[1]] })} />
+                  <SliderRow label="Decal H" name="decalScaleY" min="0.05" max="4" step="0.01" value={activeDecal.scale[1]} onChange={(sy) => updateActiveDecal({ scale: [activeDecal.scale[0], sy] })} />
+                  <SliderRow label="Decal Rot" name="decalRotation" min="-180" max="180" step="1" value={activeDecal.rotation} onChange={(rotation) => updateActiveDecal({ rotation })} />
+                </>
+              ) : null}
+              {itemDecals.map((decal) => (
+                <div key={`${decal.partId}|${decal.faceAxis}`} style={styles.decalListRow}>
+                  <button type="button" onClick={() => focusDecal(decal)} style={styles.decalListLabel}>
+                    {decal.partId} {decal.faceAxis}
+                  </button>
+                  <button type="button" onClick={() => removeDecal(decal)} style={styles.decalDeleteButton}>
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </section>
           </div>
           <div style={styles.actions}>
             <button type="button" onClick={applyCurrent} style={styles.primaryButton}>Apply</button>
@@ -823,6 +942,48 @@ const styles = {
   stageBossPreviewHint: {
     color: '#8ebc9d',
     fontSize: 10,
+  },
+  decalSection: {
+    display: 'grid',
+    gap: 8,
+    paddingTop: 8,
+    borderTop: '1px solid #353833',
+  },
+  decalFileInput: {
+    width: '100%',
+    minWidth: 0,
+    color: '#cfd5ca',
+    fontSize: 11,
+  },
+  decalListRow: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) 58px',
+    alignItems: 'center',
+    gap: 8,
+  },
+  decalListLabel: {
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    textAlign: 'left',
+    border: '1px solid #2b2e2a',
+    borderRadius: 6,
+    background: '#1e201d',
+    color: '#f0c765',
+    padding: '4px 8px',
+    fontSize: 11,
+    cursor: 'pointer',
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+  },
+  decalDeleteButton: {
+    height: 24,
+    border: '1px solid #3f443c',
+    borderRadius: 6,
+    background: '#20231f',
+    color: '#f2eee5',
+    cursor: 'pointer',
+    fontSize: 11,
   },
   controlRow: {
     display: 'grid',

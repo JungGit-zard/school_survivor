@@ -4,9 +4,12 @@ import * as THREE from 'three'
 import {
   DEFAULT_STUDIO_TUNING,
   GRAPHICS_STUDIO_TUNING_EVENT,
+  TEXTURE_DECALS_EVENT,
   loadStudioTunings,
+  loadTextureDecals,
   normalizeStudioTuning,
 } from '../lib/graphicsStudioConfig.js'
+import { disposeTextureDecals, syncTextureDecals } from './TextureDecal.jsx'
 
 const StudioPreviewContext = createContext(false)
 const STABLE_PART_KEY_PREFIX = 'id:'
@@ -61,6 +64,7 @@ export function applyStudioTuning(root, tuning = DEFAULT_STUDIO_TUNING) {
 
   root.traverse((object) => {
     if (object.userData.studioPartGroupOutline) return
+    if (object.userData.studioTextureDecal) return
 
     const materials = Array.isArray(object.material)
       ? object.material
@@ -198,11 +202,14 @@ export function applySavedStudioPartTunings(root, itemId, tunings = loadStudioTu
   })
 }
 
+const EMPTY_DECALS = Object.freeze([])
+
 function loadStudioState(itemId) {
   const tunings = loadStudioTunings()
   return {
     tuning: tunings[itemId] ?? DEFAULT_STUDIO_TUNING,
     tunings,
+    decals: loadTextureDecals()[itemId] ?? EMPTY_DECALS,
   }
 }
 
@@ -215,22 +222,31 @@ export default function StudioTunedGroup({ itemId, children, materialTuning = tr
     if (previewOnly || typeof window === 'undefined') return undefined
     const update = () => setStudioState(loadStudioState(itemId))
     window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
+    window.addEventListener(TEXTURE_DECALS_EVENT, update)
     window.addEventListener('storage', update)
     return () => {
       window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
+      window.removeEventListener(TEXTURE_DECALS_EVENT, update)
       window.removeEventListener('storage', update)
     }
   }, [itemId, previewOnly])
 
-  const { tuning, tunings } = studioState
+  const { tuning, tunings, decals } = studioState
   const transform = useMemo(() => getStudioTransformProps(tuning), [tuning])
 
   useEffect(() => {
     if (previewOnly || !groupRef.current) return
     if (materialTuning) applyStudioTuning(groupRef.current, tuning)
     applySavedStudioPartTunings(groupRef.current, itemId, tunings, { materialTuning })
+    syncTextureDecals(groupRef.current, decals)
     invalidate()
-  }, [itemId, materialTuning, previewOnly, tuning, tunings])
+  }, [itemId, materialTuning, previewOnly, tuning, tunings, decals])
+
+  useEffect(() => {
+    if (previewOnly) return undefined
+    const group = groupRef.current
+    return () => disposeTextureDecals(group)
+  }, [previewOnly])
 
   if (previewOnly) return <>{children}</>
   return <group ref={groupRef} scale={transform.scale} position={transform.position} rotation={transform.rotation}>{children}</group>

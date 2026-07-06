@@ -16,7 +16,7 @@ import SfxLayer from './components/SfxLayer.jsx'
 import { initPlaytestLogger } from './lib/playtestLogger.js'
 import { isMobileJoystickEnvironment } from './lib/mobileInput.js'
 import { initKeyboardInput } from './lib/keyboardInput.js'
-import { saveStageBossPreview, saveStudioTunings } from './lib/graphicsStudioConfig.js'
+import { saveStageBossPreview, saveStudioTunings, saveTextureDecals } from './lib/graphicsStudioConfig.js'
 import { saveSfxTunings } from './lib/sfxRegistry.js'
 import { STUDIO_GAME_SYNC_MESSAGE, isAllowedStudioGameOrigin } from './lib/studioGameBridge.js'
 
@@ -30,6 +30,7 @@ export function handleStudioGameSyncMessage(event) {
   if (event.data.tunings) saveStudioTunings(event.data.tunings)
   if (event.data.sfxTunings) saveSfxTunings(event.data.sfxTunings)
   if (event.data.stageBossPreview) saveStageBossPreview(event.data.stageBossPreview)
+  if (event.data.decals) saveTextureDecals(event.data.decals)
   return true
 }
 

@@ -33,6 +33,8 @@ import { ChibikoModel } from './Weapons/Chibiko.jsx'
 import { SharkMissileModel, FlameTrail } from './Weapons/SharkMissile.jsx'
 import { CrashExplosionVisual, StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
 import { StudioTuningPreviewProvider, applySavedStudioPartTunings, applyStudioTuning, getStudioTransformProps } from './StudioTunedGroup.jsx'
+import { computePartLocalBox, disposeTextureDecals, syncTextureDecals } from './TextureDecal.jsx'
+import { snapLocalNormalToFaceAxis } from '../lib/textureDecal.js'
 import { getCrashPose } from '../lib/starlinkCrash.js'
 
 const PLAYER_STUDIO_ARM_ACTIONS = {
@@ -140,29 +142,6 @@ function stylePartFocusOutline(outline) {
   outline.renderOrder = 999
 }
 
-// part(group)의 자식 mesh들을 part 로컬 좌표계 기준 AABB로 합산.
-// 월드 행렬을 쓰지 않으므로 root 변환·프레임 타이밍과 무관하게 안정적이다.
-function computePartLocalBox(part) {
-  const box = new THREE.Box3()
-  const childBox = new THREE.Box3()
-  const relativeMatrix = new THREE.Matrix4()
-  part.traverse((child) => {
-    if (child === part || !child.isMesh || !child.geometry) return
-    if (child.userData.studioPartGroupOutline) return
-    if (!child.geometry.boundingBox) child.geometry.computeBoundingBox()
-    relativeMatrix.identity()
-    let node = child
-    while (node && node !== part) {
-      node.updateMatrix()
-      relativeMatrix.premultiply(node.matrix)
-      node = node.parent
-    }
-    childBox.copy(child.geometry.boundingBox).applyMatrix4(relativeMatrix)
-    box.union(childBox)
-  })
-  return box
-}
-
 function createPartFocusOutline(part) {
   if (part.isMesh && part.geometry) {
     const outline = new THREE.LineSegments(
@@ -244,14 +223,20 @@ function applyFocusedPartTuning(root, focusedPartKeys, focusedPartTuning) {
   updatePartGroupOutlines(root)
 }
 
-function useApplyStudioTuning(rootRef, itemId, tuning, focusedPartKeys, partTunings) {
+function useApplyStudioTuning(rootRef, itemId, tuning, focusedPartKeys, partTunings, decals) {
   useEffect(() => {
     if (!rootRef.current) return
     applyStudioTuning(rootRef.current, tuning)
     applySavedStudioPartTunings(rootRef.current, itemId, partTunings)
     syncPartGroupOutlines(rootRef.current, focusedPartKeys)
     updatePartGroupOutlines(rootRef.current)
-  }, [rootRef, itemId, tuning, focusedPartKeys, partTunings])
+    syncTextureDecals(rootRef.current, decals)
+  }, [rootRef, itemId, tuning, focusedPartKeys, partTunings, decals])
+
+  useEffect(() => {
+    const root = rootRef.current
+    return () => disposeTextureDecals(root)
+  }, [rootRef, itemId])
 
   useFrame(() => {
     if (!rootRef.current) return
@@ -259,6 +244,8 @@ function useApplyStudioTuning(rootRef, itemId, tuning, focusedPartKeys, partTuni
     applySavedStudioPartTunings(rootRef.current, itemId, partTunings)
     syncPartGroupOutlines(rootRef.current, focusedPartKeys)
     updatePartGroupOutlines(rootRef.current)
+    // 애니메이션/리마운트로 파트가 교체되면 데칼이 유실되므로 매 프레임 재검증(같은 입력이면 no-op)
+    syncTextureDecals(rootRef.current, decals)
   })
 }
 
@@ -587,14 +574,29 @@ function RenderPreviewItem({ item, frozen = false }) {
   return null
 }
 
-function StudioScene({ selectedItem, tuning, frame, focusedPartKeys, focusedPartTuning, partTunings, onPartFocus }) {
+// 더블클릭 면 법선 → 파트 로컬 축 스냅용 스크래치 (매 클릭 할당 방지)
+const _faceWorldNormal = new THREE.Vector3()
+const _facePartInverse = new THREE.Matrix4()
+
+// raycast 피격 면의 법선(피격 메시 로컬)을 파트 로컬 공간으로 옮겨 축으로 스냅한다.
+function getDoubleClickFaceAxis(event, part) {
+  const faceNormal = event.face?.normal
+  if (!faceNormal || !part || !event.object?.matrixWorld) return null
+  _faceWorldNormal.copy(faceNormal).transformDirection(event.object.matrixWorld)
+  part.updateWorldMatrix?.(true, false)
+  _facePartInverse.copy(part.matrixWorld).invert()
+  _faceWorldNormal.transformDirection(_facePartInverse)
+  return snapLocalNormalToFaceAxis(_faceWorldNormal)
+}
+
+function StudioScene({ selectedItem, tuning, frame, focusedPartKeys, focusedPartTuning, partTunings, decals, onPartFocus }) {
   const rootRef = useRef(null)
   const transform = getStudioTransformProps(tuning)
   const item = selectedItem.previewKind === 'player' || selectedItem.previewKind === 'zombie' || selectedItem.previewKind === 'matilda'
     ? { ...selectedItem, animation: tuning.animation }
     : selectedItem
 
-  useApplyStudioTuning(rootRef, selectedItem.id, tuning, focusedPartKeys, partTunings)
+  useApplyStudioTuning(rootRef, selectedItem.id, tuning, focusedPartKeys, partTunings, decals)
 
   const handlePartDoubleClick = (event) => {
     const key = getStudioPartKey(rootRef.current, event.object)
@@ -605,6 +607,7 @@ function StudioScene({ selectedItem, tuning, frame, focusedPartKeys, focusedPart
       key,
       label: getStudioPartLabel(part ?? event.object),
       additive: Boolean(event.shiftKey || event.nativeEvent?.shiftKey),
+      faceAxis: getDoubleClickFaceAxis(event, part ?? event.object),
     })
   }
 
@@ -641,7 +644,7 @@ function StudioScene({ selectedItem, tuning, frame, focusedPartKeys, focusedPart
   )
 }
 
-export default function GraphicsStudioPreview({ selectedItem, tuning, focusedPartKeys = [], focusedPartTuning = null, partTunings = {}, onPartFocus = null }) {
+export default function GraphicsStudioPreview({ selectedItem, tuning, focusedPartKeys = [], focusedPartTuning = null, partTunings = {}, decals = [], onPartFocus = null }) {
   const frame = getPreviewFrame(selectedItem)
 
   return (
@@ -660,6 +663,7 @@ export default function GraphicsStudioPreview({ selectedItem, tuning, focusedPar
           focusedPartKeys={focusedPartKeys}
           focusedPartTuning={focusedPartTuning}
           partTunings={partTunings}
+          decals={decals}
           onPartFocus={onPartFocus}
         />
       </StudioTuningPreviewProvider>

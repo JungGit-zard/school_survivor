@@ -81,7 +81,10 @@ describe('GraphicsStudioPreview render contracts', () => {
 
     // BoxHelper를 transform된 root에 붙이면 root 변환이 이중 적용되어 아웃라인이 어긋난다
     expect(source).not.toContain('THREE.BoxHelper')
-    expect(source).toContain('function computePartLocalBox')
+    // 파트 로컬 AABB 계산은 데칼과 공유하는 TextureDecal.jsx 정본을 사용한다
+    expect(source).toContain('computePartLocalBox')
+    const decalSource = readFileSync(new URL('./TextureDecal.jsx', import.meta.url), 'utf8')
+    expect(decalSource).toContain('export function computePartLocalBox')
 
     const createFnMatch = source.match(/function createPartFocusOutline[\s\S]*?\n\}/)
     expect(createFnMatch).not.toBeNull()
