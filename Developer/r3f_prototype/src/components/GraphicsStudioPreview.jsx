@@ -33,7 +33,7 @@ import { ChibikoModel } from './Weapons/Chibiko.jsx'
 import { SharkMissileModel, FlameTrail } from './Weapons/SharkMissile.jsx'
 import { CrashExplosionVisual, StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
 import { StudioTuningPreviewProvider, applySavedStudioPartTunings, applyStudioTuning, getStudioTransformProps } from './StudioTunedGroup.jsx'
-import { computePartLocalBox, disposeTextureDecals, syncTextureDecals } from './TextureDecal.jsx'
+import { disposeTextureDecals, syncTextureDecals } from './TextureDecal.jsx'
 import { snapLocalNormalToFaceAxis } from '../lib/textureDecal.js'
 import { getCrashPose } from '../lib/starlinkCrash.js'
 
@@ -60,6 +60,7 @@ function getStableStudioPartObject(root, object) {
 
 export function getStudioPartKey(root, object) {
   if (!root || !object || object === root) return null
+  if (object.userData?.studioNonFocusable) return null
   const stableKey = getStableStudioPartKey(root, object)
   if (stableKey) return stableKey
 
@@ -142,36 +143,30 @@ function stylePartFocusOutline(outline) {
   outline.renderOrder = 999
 }
 
-function createPartFocusOutline(part) {
-  if (part.isMesh && part.geometry) {
-    const outline = new THREE.LineSegments(
-      new THREE.EdgesGeometry(part.geometry),
-      new THREE.LineBasicMaterial({ color: PART_GROUP_OUTLINE_COLOR }),
-    )
-    outline.userData.studioPartGroupOutline = true
-    outline.userData.studioPartGroupTarget = part
-    stylePartFocusOutline(outline)
-    part.add(outline)
-    return
-  }
-
-  // group 파트: 로컬 AABB 기반 박스 아웃라인을 파트 자신의 자식으로 붙인다.
-  // (transform된 root에 붙이면 root 변환이 이중 적용되어 엉뚱한 위치에 그려짐)
-  const box = computePartLocalBox(part)
-  if (box.isEmpty()) return
-  const size = box.getSize(new THREE.Vector3())
-  const center = box.getCenter(new THREE.Vector3())
-  const boxGeometry = new THREE.BoxGeometry(size.x, size.y, size.z)
+function createMeshFocusOutline(mesh) {
   const outline = new THREE.LineSegments(
-    new THREE.EdgesGeometry(boxGeometry),
+    new THREE.EdgesGeometry(mesh.geometry),
     new THREE.LineBasicMaterial({ color: PART_GROUP_OUTLINE_COLOR }),
   )
-  boxGeometry.dispose()
-  outline.position.copy(center)
   outline.userData.studioPartGroupOutline = true
-  outline.userData.studioPartGroupTarget = part
+  outline.userData.studioPartGroupTarget = mesh
+  outline.raycast = () => {}
   stylePartFocusOutline(outline)
-  part.add(outline)
+  mesh.add(outline)
+}
+
+function collectFocusableMeshes(part) {
+  const meshes = []
+  part.traverse((object) => {
+    if (!object.isMesh || !object.geometry) return
+    if (object.userData.studioPartGroupOutline || object.userData.studioTextureDecal || object.userData.studioRenderOutline) return
+    meshes.push(object)
+  })
+  return meshes
+}
+
+function createPartFocusOutline(part) {
+  collectFocusableMeshes(part).forEach((mesh) => createMeshFocusOutline(mesh))
 }
 
 function syncPartGroupOutlines(root, focusedPartKeys) {

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { DEFAULT_STAGE_BOSS_PREVIEW, normalizeStageBossPreview } from '../lib/graphicsStudioConfig.js'
 import { EnemyVisual } from './Enemy.jsx'
@@ -37,7 +37,7 @@ function pointerFine() {
 // Canvas 자식: R3F 훅(useThree/useFrame)은 반드시 여기 안에서만 호출.
 // demand 루프 유지 — 버스트/패럴랙스가 진행 중일 때만 invalidate()로 프레임을 요청하고,
 // settle되면 아무 것도 안 해서 정적으로 되돌아간다.
-function ReactiveBoss({ framing, bossType, enabled, burstRef, parallaxRef, invalidateRef }) {
+function ReactiveBoss({ framing, bossType, enabled, frozen, burstRef, parallaxRef, invalidateRef }) {
   const groupRef = useRef(null)
   const invalidate = useThree((s) => s.invalidate)
   const lastBurstRef = useRef(0)
@@ -107,7 +107,7 @@ function ReactiveBoss({ framing, bossType, enabled, burstRef, parallaxRef, inval
       rotation={[BASE_ROT_X, BASE_ROT_Y, 0]}
       position={[framing.panX, BASE_POS_Y + framing.panY, 0]}
     >
-      <EnemyVisual type={bossType} animPhase="normal" hp={1150} showHealthBar={false} />
+      <EnemyVisual type={bossType} animPhase="normal" hp={1150} showHealthBar={false} frozen={frozen} />
     </group>
   )
 }
@@ -120,10 +120,12 @@ export default function StageBossPreview({
   testId = 'stage-boss-preview',
   ariaLabel = 'stage1 보스 3D',
   bossType = 'B01',
+  motionToken = 0,
 }) {
   const frame = normalizeStageBossPreview(framing)
   const frameRef = useRef(frame)
   const dragRef = useRef(null)
+  const [activeMotionToken, setActiveMotionToken] = useState(() => (motionToken > 0 && motionAllowed() ? motionToken : 0))
   frameRef.current = frame
 
   // 온디맨드 모션 상태(리렌더 없이 프레임 루프와 공유하는 ref).
@@ -131,8 +133,17 @@ export default function StageBossPreview({
   const parallaxRef = useRef({ x: 0, y: 0 })
   const invalidateRef = useRef(null)
 
+  useEffect(() => {
+    if (!motionToken || !motionAllowed()) return
+    setActiveMotionToken(motionToken)
+    burstRef.current += 1
+    invalidateRef.current?.()
+    const timer = window.setTimeout(() => setActiveMotionToken(0), BURST_MS)
+    return () => window.clearTimeout(timer)
+  }, [motionToken])
+
   // 탭 리액션/패럴랙스는 비인터랙티브(로비 프리뷰) 전용 + 모션 게이트 통과 시에만.
-  const motionEnabled = !interactive && motionAllowed()
+  const motionEnabled = !interactive && activeMotionToken > 0 && motionAllowed()
 
   const updateFrame = (patch) => {
     if (!interactive || !onChange) return
@@ -146,6 +157,7 @@ export default function StageBossPreview({
       data-pan-x={frame.panX}
       data-pan-y={frame.panY}
       data-boss-type={bossType}
+      data-motion-active={motionEnabled}
       aria-label={ariaLabel}
       style={{ ...previewFrameStyle, ...style }}
       onWheel={(event) => {
@@ -214,6 +226,7 @@ export default function StageBossPreview({
           framing={frame}
           bossType={bossType}
           enabled={motionEnabled}
+          frozen={!interactive && !motionEnabled}
           burstRef={burstRef}
           parallaxRef={parallaxRef}
           invalidateRef={invalidateRef}

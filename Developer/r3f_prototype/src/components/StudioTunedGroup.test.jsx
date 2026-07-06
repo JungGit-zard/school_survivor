@@ -118,14 +118,14 @@ describe('StudioTunedGroup', () => {
     root.add(part)
 
     const tunings = {
-      'zombie-b02::part::id:b02-head': {
+      'zombie-b02-teacher::part::id:b02-head': {
         scale: 1.2,
         positionY: -0.4,
       },
     }
 
-    applySavedStudioPartTunings(root, 'zombie-b02', tunings)
-    applySavedStudioPartTunings(root, 'zombie-b02', tunings)
+    applySavedStudioPartTunings(root, 'zombie-b02-teacher', tunings)
+    applySavedStudioPartTunings(root, 'zombie-b02-teacher', tunings)
 
     expect(part.scale.x).toBeCloseTo(1.2)
     expect(part.position.y).toBeCloseTo(-0.4)
@@ -134,13 +134,13 @@ describe('StudioTunedGroup', () => {
   it('applies confirmed stable-id part tuning to matching runtime meshes', () => {
     const root = new THREE.Group()
     const wrapper = new THREE.Group()
-    const faceTexture = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial())
-    faceTexture.userData.studioPartId = 'b02-face-texture'
-    wrapper.add(faceTexture)
+    const topHairPlate = new THREE.Group()
+    topHairPlate.userData.studioPartId = 'b02-hair-top-plate'
+    wrapper.add(topHairPlate)
     root.add(wrapper)
 
-    applySavedStudioPartTunings(root, 'zombie-b02', {
-      'zombie-b02::part::id:b02-face-texture': {
+    applySavedStudioPartTunings(root, 'zombie-b02-teacher', {
+      'zombie-b02-teacher::part::id:b02-hair-top-plate': {
         scale: 1.2,
         scaleX: 1.5,
         positionX: 0.25,
@@ -149,90 +149,12 @@ describe('StudioTunedGroup', () => {
       },
     })
 
-    expect(faceTexture.scale.x).toBeCloseTo(1.8)
-    expect(faceTexture.scale.y).toBeCloseTo(1.2)
-    expect(faceTexture.position.x).toBeCloseTo(0.25)
-    expect(faceTexture.position.y).toBeCloseTo(-0.15)
-    expect(faceTexture.rotation.y).toBeCloseTo(Math.PI / 6)
+    expect(topHairPlate.scale.x).toBeCloseTo(1.8)
+    expect(topHairPlate.scale.y).toBeCloseTo(1.2)
+    expect(topHairPlate.position.x).toBeCloseTo(0.25)
+    expect(topHairPlate.position.y).toBeCloseTo(-0.15)
+    expect(topHairPlate.rotation.y).toBeCloseTo(Math.PI / 6)
     expect(wrapper.scale.x).toBeCloseTo(1)
-  })
-
-  it('uses scale as texture fit for texture-backed studio parts', () => {
-    const root = new THREE.Group()
-    const texture = new THREE.Texture()
-    const faceTexture = new THREE.Mesh(
-      new THREE.PlaneGeometry(1, 1),
-      new THREE.MeshBasicMaterial({ map: texture }),
-    )
-    faceTexture.userData.studioPartId = 'b02-face-texture'
-    faceTexture.userData.studioTextureFit = true
-    root.add(faceTexture)
-
-    applySavedStudioPartTunings(root, 'zombie-b02', {
-      'zombie-b02::part::id:b02-face-texture': {
-        scale: 1.8,
-        scaleX: 1,
-        scaleY: 1,
-      },
-    })
-
-    expect(faceTexture.scale.x).toBeCloseTo(1)
-    expect(faceTexture.scale.y).toBeCloseTo(1)
-    expect(texture.repeat.x).toBeCloseTo(1 / 1.8)
-    expect(texture.repeat.y).toBeCloseTo(1 / 1.8)
-    expect(texture.offset.x).toBeCloseTo((1 - 1 / 1.8) / 2)
-    expect(texture.offset.y).toBeCloseTo((1 - 1 / 1.8) / 2)
-  })
-
-  it('composes texture fit with the texture base crop instead of overwriting it', () => {
-    const root = new THREE.Group()
-    const texture = new THREE.Texture()
-    texture.repeat.set(0.82, 0.76)
-    texture.offset.set(0.09, 0.05)
-    const faceTexture = new THREE.Mesh(
-      new THREE.PlaneGeometry(1, 1),
-      new THREE.MeshBasicMaterial({ map: texture }),
-    )
-    faceTexture.userData.studioPartId = 'b02-face-texture'
-    faceTexture.userData.studioTextureFit = true
-    root.add(faceTexture)
-
-    const tunings = {
-      'zombie-b02::part::id:b02-face-texture': { scale: 2 },
-    }
-    applySavedStudioPartTunings(root, 'zombie-b02', tunings)
-    applySavedStudioPartTunings(root, 'zombie-b02', tunings)
-
-    // base 크롭 창(0.82x0.76)의 중심을 유지한 채 창만 1/2로 줄어든다 (누적 없음)
-    expect(texture.repeat.x).toBeCloseTo(0.41)
-    expect(texture.repeat.y).toBeCloseTo(0.38)
-    expect(texture.offset.x).toBeCloseTo(0.09 + (0.82 - 0.41) / 2)
-    expect(texture.offset.y).toBeCloseTo(0.05 + (0.76 - 0.38) / 2)
-  })
-
-  it('keeps the base crop untouched when texture fit scale is 1', () => {
-    const root = new THREE.Group()
-    const texture = new THREE.Texture()
-    texture.repeat.set(0.82, 0.76)
-    texture.offset.set(0.09, 0.05)
-    const faceTexture = new THREE.Mesh(
-      new THREE.PlaneGeometry(1, 1),
-      new THREE.MeshBasicMaterial({ map: texture }),
-    )
-    faceTexture.userData.studioPartId = 'b02-face-texture'
-    faceTexture.userData.studioTextureFit = true
-    root.add(faceTexture)
-
-    // 위치만 조정한 튜닝(scale 기본 1) — 텍스처 크롭이 리셋되면 안 된다
-    applySavedStudioPartTunings(root, 'zombie-b02', {
-      'zombie-b02::part::id:b02-face-texture': { positionY: 0.1 },
-    })
-
-    expect(texture.repeat.x).toBeCloseTo(0.82)
-    expect(texture.repeat.y).toBeCloseTo(0.76)
-    expect(texture.offset.x).toBeCloseTo(0.09)
-    expect(texture.offset.y).toBeCloseTo(0.05)
-    expect(faceTexture.position.y).toBeCloseTo(0.1)
   })
 
   it('applies confirmed group tuning even when studio preview added a wrapper path', () => {

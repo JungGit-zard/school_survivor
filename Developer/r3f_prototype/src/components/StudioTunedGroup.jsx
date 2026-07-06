@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+﻿import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { invalidate } from '@react-three/fiber'
 import * as THREE from 'three'
 import {
@@ -39,9 +39,9 @@ function isOutlineMaterial(material) {
   return material?.side === THREE.BackSide || material?.stencilFunc === THREE.NotEqualStencilFunc
 }
 
-// 매 프레임(useFrame) 재적용 경로의 GC 부하를 줄이기 위한 재사용 스크래치.
-// tuneColor는 export되지 않고 유일한 호출자(applyStudioTuning)가 반환값을
-// material.color.copy(...)로 즉시 소비하므로, 반환 참조를 보관하는 경로가 없어 안전하다.
+// 留??꾨젅??useFrame) ?ъ쟻??寃쎈줈??GC 遺?섎? 以꾩씠湲??꾪븳 ?ъ궗???ㅽ겕?섏튂.
+// tuneColor??export?섏? ?딄퀬 ?좎씪???몄텧??applyStudioTuning)媛 諛섑솚媛믪쓣
+// material.color.copy(...)濡?利됱떆 ?뚮퉬?섎?濡? 諛섑솚 李몄“瑜?蹂닿??섎뒗 寃쎈줈媛 ?놁뼱 ?덉쟾?섎떎.
 const _tuneScratchColor = new THREE.Color()
 const _tuneTargetColor = new THREE.Color()
 const _tuneScratchHSL = { h: 0, s: 0, l: 0 }
@@ -137,33 +137,10 @@ function getPartKeysForSavedTuning(itemId, savedKey) {
   return []
 }
 
-// 매 프레임 파트 튜닝 재적용 시 Vector3 할당 방지용 스크래치.
-// .add()/.multiply()는 인자를 읽기만 하고 참조를 보관하지 않으며,
-// applySavedStudioPartTunings는 재귀·중첩 호출이 없는 단일 동기 경로다.
+// 留??꾨젅???뚰듃 ?쒕떇 ?ъ쟻????Vector3 ?좊떦 諛⑹????ㅽ겕?섏튂.
+// .add()/.multiply()???몄옄瑜??쎄린留??섍퀬 李몄“瑜?蹂닿??섏? ?딆쑝硫?
+// applySavedStudioPartTunings???ш?쨌以묒꺽 ?몄텧???녿뒗 ?⑥씪 ?숆린 寃쎈줈??
 const _partScratchVec = new THREE.Vector3()
-
-// scale을 UV 줌으로 변환하되, 텍스처에 원래 걸려 있던 크롭(base repeat/offset)을 보존·합성한다.
-// (예: B02 얼굴은 로드 시 repeat(0.82,0.76)/offset(0.09,0.05) 크롭 — 이를 덮어쓰면 얼굴 프레이밍이 깨짐)
-// 줌은 base 크롭 창의 중심을 유지한 채 창 크기만 1/scale 배로 줄인다.
-function applyTextureFitTuning(part, transform) {
-  const materials = Array.isArray(part.material) ? part.material : part.material ? [part.material] : []
-  materials.forEach((material) => {
-    const map = material.map
-    if (!map) return
-    if (!material.userData.studioBaseMapRepeat) material.userData.studioBaseMapRepeat = map.repeat.clone()
-    if (!material.userData.studioBaseMapOffset) material.userData.studioBaseMapOffset = map.offset.clone()
-    const baseRepeat = material.userData.studioBaseMapRepeat
-    const baseOffset = material.userData.studioBaseMapOffset
-    const repeatX = baseRepeat.x / Math.max(0.01, transform.scale[0])
-    const repeatY = baseRepeat.y / Math.max(0.01, transform.scale[1])
-    map.repeat.set(repeatX, repeatY)
-    map.offset.set(
-      baseOffset.x + (baseRepeat.x - repeatX) / 2,
-      baseOffset.y + (baseRepeat.y - repeatY) / 2,
-    )
-    map.needsUpdate = true
-  })
-}
 
 export function applySavedStudioPartTunings(root, itemId, tunings = loadStudioTunings(), { materialTuning = true } = {}) {
   if (!root || !itemId) return
@@ -186,12 +163,7 @@ export function applySavedStudioPartTunings(root, itemId, tunings = loadStudioTu
       if (!part.userData.studioPartBasePosition) part.userData.studioPartBasePosition = part.position.clone()
 
       part.position.copy(part.userData.studioPartBasePosition).add(_partScratchVec.fromArray(transform.position))
-      if (part.userData.studioTextureFit) {
-        part.scale.copy(part.userData.studioPartBaseScale)
-        applyTextureFitTuning(part, transform)
-      } else {
-        part.scale.copy(part.userData.studioPartBaseScale).multiply(_partScratchVec.fromArray(transform.scale))
-      }
+      part.scale.copy(part.userData.studioPartBaseScale).multiply(_partScratchVec.fromArray(transform.scale))
       part.rotation.set(
         part.userData.studioPartBaseRotation.x + transform.rotation[0],
         part.userData.studioPartBaseRotation.y + transform.rotation[1],

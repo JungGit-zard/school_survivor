@@ -6,7 +6,7 @@
 //   onOpenCoinShop()       — 코인상점 화면 진입
 //   onOpenRanking(stageId?) — 랭킹 상세 화면 진입(stageId 있으면 해당 스테이지 보드, 없으면 글로벌)
 // (설정/닉네임/능력치/무기 모달은 로비 내부에서 자체 처리 — App 배선 불필요)
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { STAGE_CONFIGS, getStageConfig, isStageUnlocked } from '../lib/stageConfig.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { formatSurvivalTime } from '../lib/userRanking.js'
@@ -25,12 +25,19 @@ const STAGE_UNLOCK_HINT = {
   stage2: 'Stage 1 클리어 시 열림',
 }
 
+const STAGE_ENTRY_MOTION_MS = 360
+
 function randomAmbientPosition() {
   return {
     x: Math.round((Math.random() * 70 - 35) * 10) / 10,
     y: Math.round((Math.random() * 70 - 35) * 10) / 10,
     scale: Math.round((1.04 + Math.random() * 0.16) * 100) / 100,
   }
+}
+
+function lobbyMotionAllowed() {
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true
+  return !reduced && document.documentElement?.dataset?.reducedEffects !== 'true'
 }
 
 function formatSeasonCountdown(season, nowMs = Date.now()) {
@@ -187,6 +194,25 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
 }
 
 function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalSec, stageBossPreview, onStart, onRanking }) {
+  const [entryMotionToken, setEntryMotionToken] = useState(0)
+  const startTimerRef = useRef(null)
+
+  useEffect(() => {
+    return () => {
+      if (startTimerRef.current) window.clearTimeout(startTimerRef.current)
+    }
+  }, [])
+
+  const queueStart = () => {
+    if (!lobbyMotionAllowed()) {
+      onStart?.()
+      return
+    }
+    setEntryMotionToken((token) => token + 1)
+    if (startTimerRef.current) window.clearTimeout(startTimerRef.current)
+    startTimerRef.current = window.setTimeout(() => onStart?.(), STAGE_ENTRY_MOTION_MS)
+  }
+
   return (
     <section
       className="lobby-anim"
@@ -205,7 +231,7 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
     >
       {unlocked ? (
         <div style={styles.previewStack} data-testid="stage-card-preview-row">
-          <StageBossPreview framing={stageBossPreview} bossType={stage.bossType} ariaLabel={`${stageId} 보스 3D`} style={styles.cardBossPreview} />
+          <StageBossPreview framing={stageBossPreview} bossType={stage.bossType} motionToken={entryMotionToken} ariaLabel={`${stageId} 보스 3D`} style={styles.cardBossPreview} />
           {cleared ? <span style={styles.previewClearBadge}>클리어</span> : null}
           <div style={styles.previewTextLayer} data-testid="stage-card-preview-overlay">
             <div style={{ ...styles.cardTitleRow, ...styles.previewTitleRow }}>
@@ -222,7 +248,7 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
             type="button"
             className="lobby-press lobby-anim"
             style={{ ...styles.previewEnterButton, animation: 'lobbyCtaPulse 1600ms ease-in-out infinite' }}
-            onClick={onStart}
+            onClick={queueStart}
           >입장하기</button>
           <button type="button" className="lobby-press" style={styles.rankingButton} onClick={onRanking}>점수 레코드</button>
         </div>

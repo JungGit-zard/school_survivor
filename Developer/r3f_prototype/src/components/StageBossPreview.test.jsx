@@ -5,9 +5,17 @@ import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import StageBossPreview from './StageBossPreview.jsx'
 
+const invalidate = vi.fn()
+
 // Canvas는 자식을 렌더하지 않는 빈 div로 mock → ReactiveBoss의 R3F 훅은 실행되지 않는다.
 vi.mock('@react-three/fiber', () => ({
-  Canvas: () => <div data-testid="stage-boss-preview-canvas" />,
+  Canvas: ({ children }) => <div data-testid="stage-boss-preview-canvas">{children}</div>,
+  useFrame: vi.fn(),
+  useThree: (selector) => selector({ invalidate }),
+}))
+
+vi.mock('./Enemy.jsx', () => ({
+  EnemyVisual: ({ frozen }) => <div data-testid="stage-boss-preview-enemy" data-frozen={String(frozen)} />,
 }))
 
 let container = null
@@ -41,5 +49,15 @@ describe('StageBossPreview 온디맨드 모션', () => {
         preview.dispatchEvent(new Event('pointerdown', { bubbles: true }))
       })
     }).not.toThrow()
+  })
+
+  it('keeps the lobby boss frozen until an entry motion token is requested', () => {
+    const el = render(<StageBossPreview />)
+    expect(el.querySelector('[data-testid="stage-boss-preview-enemy"]').dataset.frozen).toBe('true')
+  })
+
+  it('unfreezes the lobby boss while an entry motion token is active', () => {
+    const el = render(<StageBossPreview motionToken={1} />)
+    expect(el.querySelector('[data-testid="stage-boss-preview-enemy"]').dataset.frozen).toBe('false')
   })
 })

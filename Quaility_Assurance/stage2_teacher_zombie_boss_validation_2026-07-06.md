@@ -48,5 +48,61 @@ Date: 2026-07-06
   - Passed: 6 files, 39 tests.
 - `npm run build`
   - Passed after the B02 square face cleanup.
-- Confirm B02 concept-art framing keeps the face texture cropped below the 3D black hair cap and includes front side hair blocks.
+- Confirm B02 concept-art framing keeps the face texture uncropped on the square face plane, below the 3D black hair cap, and includes front side hair blocks.
 - Confirm B02 side/back hair coverage is restored with side head and back skull hair blocks.
+- Confirm clean Graphics Studio storage still reproduced the oversized face before the fix; removing the repeat/offset crop reduced the oversized glasses/brows/mouth.
+- `npm test -- src/components/ZombieMesh.test.js src/components/GraphicsStudioPreview.test.js src/components/TextureDecal.test.jsx src/components/StudioTunedGroup.test.jsx src/lib/textureDecal.test.js src/lib/graphicsStudioConfig.test.js`
+  - Passed: 6 files, 70 tests.
+- `npm run build`
+  - Passed after removing the B02 face texture crop.
+- Confirm the rebuilt Stage 2 boss no longer uses the previous `B02_BOSS_*`, `Boss02FaceTexture`, `B02BossZombieMesh`, or `itemId="zombie-b02"` production implementation path.
+- Confirm Graphics Studio registers `B02` as `zombie-b02-teacher` and does not register the legacy `zombie-b02` catalog item.
+- `npm test -- src/components/ZombieMesh.test.js src/lib/graphicsStudioConfig.test.js src/components/GraphicsStudio.test.jsx src/App.virtualJoystick.test.jsx src/components/StudioTunedGroup.test.jsx`
+  - Passed: 5 files, 59 tests.
+- Playwright graphics studio smoke check at `http://127.0.0.1:5173/graphics-studio`
+  - Confirmed selecting `Zombie B02` exports selected item ID `zombie-b02-teacher`.
+  - Confirmed the Graphics Studio preview canvas renders the rebuilt teacher boss.
+- Confirmed Graphics Studio part focus now draws neon outlines from each selected child mesh contour instead of a single group bounding box.
+- `npm test -- src/components/GraphicsStudioPreview.test.js src/components/GraphicsStudio.test.jsx src/components/StudioTunedGroup.test.jsx`
+  - Passed: 3 files, 40 tests.
+- `npm run build`
+  - Passed after mesh-contour focus outline update.
+- Playwright graphics studio part-focus smoke check
+  - Confirmed `Zombie B02` double-click enters Part Focus on `zombie-b02-teacher`.
+- Deleted the broken custom Stage 2 teacher boss production model path from `ZombieMesh.jsx`.
+- Confirmed `ZombieMesh.jsx` no longer contains `boss02FaceUrl`, `STAGE2_TEACHER_BOSS`, `Stage2TeacherFaceTexture`, `Stage2TeacherBossMesh`, `b02-face-texture`, `b02-head`, or a dedicated `if (type === 'B02')` branch.
+- `npm test -- src/components/ZombieMesh.test.js src/components/GraphicsStudioPreview.test.js src/components/GraphicsStudio.test.jsx src/lib/graphicsStudioConfig.test.js`
+  - Passed: 4 files, 55 tests.
+- `npm run build`
+  - Passed after deleting the broken B02 custom model.
+- Confirmed the clean `B02` teacher model uses `boss_02.webp` as a head-attached face texture and no longer exposes `b02-face-texture` as a separate controllable part.
+- Confirmed `B02` now uses the fresh Graphics Studio key `zombie-b02-teacher`.
+- Confirmed Graphics Studio part focus can select the rebuilt front hair part with a mesh-contour neon outline.
+- `npm test -- src/components/ZombieMesh.test.js src/lib/graphicsStudioConfig.test.js src/components/GraphicsStudio.test.jsx src/App.virtualJoystick.test.jsx src/components/StudioTunedGroup.test.jsx src/components/GraphicsStudioPreview.test.js`
+  - Passed: 6 files, 70 tests.
+- `npm run build`
+  - Passed after rebuilding the clean low-poly B02 teacher model.
+- Playwright graphics studio smoke check
+  - Confirmed selecting `Zombie B02` exports selected item ID `zombie-b02-teacher`.
+  - Screenshots: `Quaility_Assurance/stage2_teacher_boss_clean_model_studio.png`, `Quaility_Assurance/stage2_teacher_boss_clean_part_focus.png`.
+- Confirmed the old B02 dedicated face-transform and texture-fit code path is absent from `Developer/r3f_prototype/src`.
+- Confirmed B02 focused part outlines skip render-outline helper meshes, preventing the doubled neon-line effect.
+- Confirmed B02 front hair cap focus selects `Part Focus / b02FrontHairCap`, not the entire head group.
+- `npm test -- src/components/ZombieMesh.test.js src/components/GraphicsStudioPreview.test.js src/components/StudioTunedGroup.test.jsx src/lib/graphicsStudioConfig.test.js src/components/GraphicsStudio.test.jsx src/App.virtualJoystick.test.jsx`
+  - Passed: 6 files, 67 tests.
+- `npm run build`
+  - Passed. Existing Vite warnings remain for dynamic import chunking and large bundle size.
+- Confirmed B02 hair no longer contains the old front/side/back/bun split IDs and now exposes exactly five hair blocks: top plate, left plate, right plate, back plate, and bun block.
+- `npm test -- src/components/ZombieMesh.test.js src/components/StudioTunedGroup.test.jsx src/components/GraphicsStudioPreview.test.js`
+  - Passed: 3 files, 29 tests.
+- Playwright graphics studio part-focus smoke check at `http://127.0.0.1:5173/graphics-studio`
+  - Confirmed selecting `Zombie B02`.
+  - Confirmed double-clicking the visible front hair cap enters `Part Focus / b02FrontHairCap`.
+  - Updated screenshots: `Quaility_Assurance/stage2_teacher_boss_clean_model_studio.png`, `Quaility_Assurance/stage2_teacher_boss_clean_part_focus.png`.
+- Confirmed B02 can switch part focus after a part is already selected.
+  - Browser sequence: `Part Focus / b02FrontHairCap` -> `Part Focus / b02Body` -> `Part Focus / b02ArmR`.
+  - Screenshot: `Quaility_Assurance/stage2_teacher_boss_refocus_after_outline_fix.png`.
+- `npm test -- src/components/GraphicsStudioPreview.test.js src/components/ZombieMesh.test.js src/components/GraphicsStudio.test.jsx src/components/StudioTunedGroup.test.jsx`
+  - Passed: 4 files, 45 tests.
+- `npm run build`
+  - Passed. Existing Vite warnings remain for dynamic import chunking and large bundle size.

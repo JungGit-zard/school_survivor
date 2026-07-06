@@ -28,6 +28,14 @@ export const TEXTURE_DECALS_EVENT = 'escape-zombie-school.textureDecals.changed'
 
 export const TEXTURE_DECAL_FACE_AXES = Object.freeze(['+x', '-x', '+y', '-y', '+z', '-z'])
 
+export const STUDIO_ZOMBIE_ITEM_IDS = Object.freeze({
+  B02: 'zombie-b02-teacher',
+})
+
+export function getStudioZombieItemId(type) {
+  return STUDIO_ZOMBIE_ITEM_IDS[type] ?? `zombie-${String(type).toLowerCase()}`
+}
+
 export const DEFAULT_TEXTURE_DECAL = Object.freeze({
   partId: '',
   faceAxis: '+z',
@@ -108,7 +116,7 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     applyTargets: ['components/PlayerMesh.jsx', 'components/Player.jsx', 'lib/characterVisualScale.js', 'lib/toon.js'],
   },
   ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'B01', 'B02'].map((type) => ({
-    id: `zombie-${type.toLowerCase()}`,
+    id: getStudioZombieItemId(type),
     category: 'enemy',
     label: `Zombie ${type}`,
     source: 'components/ZombieMesh.jsx',
@@ -443,7 +451,7 @@ export function normalizeStudioTuning(input = {}) {
   return normalized
 }
 
-// 데칼 1레이어: 태깅된 파트(studioPartId)에 앵커. 비객체/무효 이미지 입력은 null로 걸러낸다.
+// ?곗뭡 1?덉씠?? ?쒓퉭???뚰듃(studioPartId)???듭빱. 鍮꾧컼泥?臾댄슚 ?대?吏 ?낅젰? null濡?嫄몃윭?몃떎.
 export function normalizeTextureDecal(input) {
   if (!input || typeof input !== 'object') return null
   if (typeof input.partId !== 'string' || !input.partId) return null
@@ -467,7 +475,7 @@ export function normalizeTextureDecal(input) {
   }
 }
 
-// { itemId: TextureDecal[] } 맵 정규화 — 무효 레이어 제거, 빈 배열 항목 삭제
+// { itemId: TextureDecal[] } 留??뺢퇋????臾댄슚 ?덉씠???쒓굅, 鍮?諛곗뿴 ??ぉ ??젣
 export function normalizeTextureDecalMap(input) {
   if (!input || typeof input !== 'object') return {}
   return Object.fromEntries(
@@ -493,7 +501,7 @@ export function loadTextureDecals(storage) {
   }
 }
 
-// ponytail: base64 임베드. 커지면 에셋파일 파이프라인으로.
+// ponytail: base64 ?꾨쿋?? 而ㅼ?硫??먯뀑?뚯씪 ?뚯씠?꾨씪?몄쑝濡?
 export function saveTextureDecals(decals, storage) {
   const targetStorage = getStorage(storage)
   const normalized = normalizeTextureDecalMap(decals)

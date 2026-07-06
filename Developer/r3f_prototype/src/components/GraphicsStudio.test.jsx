@@ -201,12 +201,12 @@ describe('GraphicsStudio', () => {
       scale.dispatchEvent(new Event('input', { bubbles: true }))
     })
 
-    expect(loadStudioTunings()['zombie-b02'].scale).toBe(1.62)
+    expect(loadStudioTunings()['zombie-b02-teacher'].scale).toBe(1.62)
     expect(postMessage).toHaveBeenLastCalledWith(
       expect.objectContaining({
         type: 'escape-zombie-school.studioGameSync.v1',
         tunings: expect.objectContaining({
-          'zombie-b02': expect.objectContaining({ scale: 1.62 }),
+          'zombie-b02-teacher': expect.objectContaining({ scale: 1.62 }),
         }),
       }),
       'http://localhost:5173',
@@ -451,7 +451,6 @@ describe('GraphicsStudio', () => {
       connect.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
 
-    // 파트 포커스 전에는 업로드 비활성
     const upload = container.querySelector('input[name="decalImage"]')
     expect(upload.disabled).toBe(true)
 
@@ -470,8 +469,8 @@ describe('GraphicsStudio', () => {
       upload.dispatchEvent(new Event('change', { bubbles: true }))
     })
 
-    expect(loadTextureDecals()['zombie-b02']).toHaveLength(1)
-    expect(loadTextureDecals()['zombie-b02'][0]).toMatchObject({
+    expect(loadTextureDecals()['zombie-b02-teacher']).toHaveLength(1)
+    expect(loadTextureDecals()['zombie-b02-teacher'][0]).toMatchObject({
       partId: 'b02-head',
       faceAxis: '+z',
       imageDataUrl: 'data:image/png;base64,MOCK',
@@ -480,7 +479,7 @@ describe('GraphicsStudio', () => {
       expect.objectContaining({
         type: 'escape-zombie-school.studioGameSync.v1',
         decals: expect.objectContaining({
-          'zombie-b02': [expect.objectContaining({ partId: 'b02-head', faceAxis: '+z' })],
+          'zombie-b02-teacher': [expect.objectContaining({ partId: 'b02-head', faceAxis: '+z' })],
         }),
       }),
       'http://localhost:5173',
@@ -488,28 +487,28 @@ describe('GraphicsStudio', () => {
     expect(container.querySelector('[data-testid="preview-decals"]').textContent).toContain('b02-head:+z')
     expect(container.querySelector('[data-testid="studio-export"]').value).toContain('"b02-head"')
 
-    // 면 안 정렬: 오프셋 슬라이더가 데칼 레이어를 갱신한다
+    // 硫????뺣젹: ?ㅽ봽???щ씪?대뜑媛 ?곗뭡 ?덉씠?대? 媛깆떊?쒕떎
     const offsetU = container.querySelector('input[name="decalOffsetU"]')
     act(() => {
       offsetU.value = '0.25'
       offsetU.dispatchEvent(new Event('input', { bubbles: true }))
     })
-    expect(loadTextureDecals()['zombie-b02'][0].offset[0]).toBe(0.25)
+    expect(loadTextureDecals()['zombie-b02-teacher'][0].offset[0]).toBe(0.25)
 
     const rotation = container.querySelector('input[name="decalRotation"]')
     act(() => {
       rotation.value = '45'
       rotation.dispatchEvent(new Event('input', { bubbles: true }))
     })
-    expect(loadTextureDecals()['zombie-b02'][0].rotation).toBe(45)
+    expect(loadTextureDecals()['zombie-b02-teacher'][0].rotation).toBe(45)
 
-    // 삭제
+    // ??젣
     const deleteButton = Array.from(container.querySelectorAll('button'))
       .find((button) => button.textContent === 'Delete')
     act(() => {
       deleteButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
-    expect(loadTextureDecals()['zombie-b02']).toBeUndefined()
+    expect(loadTextureDecals()['zombie-b02-teacher']).toBeUndefined()
     expect(postMessage).toHaveBeenLastCalledWith(
       expect.objectContaining({ decals: {} }),
       'http://localhost:5173',

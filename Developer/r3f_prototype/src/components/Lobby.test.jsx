@@ -33,12 +33,16 @@ describe('Lobby', () => {
   })
 
   it('opens stage play, ranking, and coin shop from the lobby', () => {
+    vi.useFakeTimers()
     const onStartStage = vi.fn()
     const onOpenCoinShop = vi.fn()
     const onOpenRanking = vi.fn()
     const view = renderLobby({ onStartStage, onOpenCoinShop, onOpenRanking })
 
     clickButtonByText(view.container, '입장하기')
+    act(() => {
+      vi.advanceTimersByTime(360)
+    })
     expect(onStartStage).toHaveBeenCalledWith('stage1')
 
     clickButtonByText(view.container, '점수 레코드')
@@ -47,6 +51,7 @@ describe('Lobby', () => {
     clickButtonByText(view.container, '상점')
     expect(onOpenCoinShop).toHaveBeenCalledTimes(1)
 
+    vi.useRealTimers()
     view.unmount()
   })
 
@@ -159,6 +164,50 @@ describe('Lobby', () => {
     expect(rankingButton.style.top).toBe('34px')
     expect(rankingButton.style.left).toBe('10px')
 
+    view.unmount()
+  })
+
+  it('keeps the boss preview still until enter queues the reserved motion', () => {
+    vi.useFakeTimers()
+    const onStartStage = vi.fn()
+    const view = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+    const previewRow = view.container.querySelector('[data-testid="stage-card-preview-row"]')
+    const preview = previewRow.querySelector('[data-testid="stage-boss-preview"]')
+    const enterButton = previewRow.querySelectorAll('button')[0]
+
+    expect(preview.dataset.motionActive).toBe('false')
+
+    act(() => {
+      enterButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(preview.dataset.motionActive).toBe('true')
+    expect(onStartStage).not.toHaveBeenCalled()
+
+    act(() => {
+      vi.advanceTimersByTime(360)
+    })
+
+    expect(onStartStage).toHaveBeenCalledWith('stage1')
+
+    vi.useRealTimers()
+    view.unmount()
+  })
+
+  it('starts immediately when reduced effects disables the reserved motion', () => {
+    document.documentElement.dataset.reducedEffects = 'true'
+    const onStartStage = vi.fn()
+    const view = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+    const previewRow = view.container.querySelector('[data-testid="stage-card-preview-row"]')
+    const enterButton = previewRow.querySelectorAll('button')[0]
+
+    act(() => {
+      enterButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(onStartStage).toHaveBeenCalledWith('stage1')
+
+    delete document.documentElement.dataset.reducedEffects
     view.unmount()
   })
 })

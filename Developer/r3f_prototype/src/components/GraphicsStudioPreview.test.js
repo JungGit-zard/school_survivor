@@ -57,6 +57,7 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(source).toContain('export function findStudioPart')
     expect(source).toContain('studioPartId')
     expect(source).toContain('getStableStudioPartObject')
+    expect(source).toContain('object.userData?.studioNonFocusable')
     expect(source).toContain('label: getStudioPartLabel(part ?? event.object)')
     expect(source).toContain("STABLE_PART_KEY_PREFIX = 'id:'")
     expect(source).toContain('onDoubleClick={handlePartDoubleClick}')
@@ -72,26 +73,28 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(source).toContain('syncPartGroupOutlines')
     expect(source).toContain('PART_GROUP_OUTLINE_COLOR')
     expect(source).toContain('focusedPartKeys.length ? focusedPartKeys : []')
-    expect(source).toContain('new THREE.EdgesGeometry(part.geometry)')
+    expect(source).toContain('new THREE.EdgesGeometry(mesh.geometry)')
     expect(source).toContain('new THREE.LineSegments')
   })
 
-  it('attaches group part focus outlines to the part itself instead of the transformed root', () => {
+  it('attaches group part focus outlines to each child mesh contour instead of a bounding box', () => {
     const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
 
     // BoxHelper를 transform된 root에 붙이면 root 변환이 이중 적용되어 아웃라인이 어긋난다
     expect(source).not.toContain('THREE.BoxHelper')
     // 파트 로컬 AABB 계산은 데칼과 공유하는 TextureDecal.jsx 정본을 사용한다
-    expect(source).toContain('computePartLocalBox')
-    const decalSource = readFileSync(new URL('./TextureDecal.jsx', import.meta.url), 'utf8')
-    expect(decalSource).toContain('export function computePartLocalBox')
+    expect(source).not.toContain('computePartLocalBox')
+    expect(source).not.toContain('new THREE.BoxGeometry')
+    expect(source).toContain('function collectFocusableMeshes')
+    expect(source).toContain('part.traverse((object) =>')
+    expect(source).toContain('if (!object.isMesh || !object.geometry) return')
+    expect(source).toContain('object.userData.studioRenderOutline')
+    expect(source).toContain('createMeshFocusOutline(mesh)')
+    expect(source).toContain('mesh.add(outline)')
+    expect(source).toContain('outline.raycast = () => {}')
 
-    const createFnMatch = source.match(/function createPartFocusOutline[\s\S]*?\n\}/)
-    expect(createFnMatch).not.toBeNull()
-    const createFn = createFnMatch[0]
-    expect(createFn).not.toContain('root.add(outline)')
-    expect(createFn.match(/part\.add\(outline\)/g)).toHaveLength(2)
-    expect(createFn).toContain('outline.userData.studioPartGroupOutline = true')
+    expect(source).not.toContain('root.add(outline)')
+    expect(source).toContain('outline.userData.studioPartGroupOutline = true')
   })
 
   it('freezes zombie animation while a part is focused so editing works on the rest pose', () => {
