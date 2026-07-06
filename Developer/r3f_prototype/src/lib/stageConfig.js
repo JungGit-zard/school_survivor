@@ -43,8 +43,8 @@ export const STAGE_CONFIGS = {
     escapePortalSec: 240,
     matildaWarningSec: 200,
     matildaSec: 210,
-    // 복도형: 가로 폭 절반(좁은 복도). 벽/바닥/포탈/이동경계 모두 이 값에서 파생.
-    mapHalfX: 5,
+    // 복도형: 벽/바닥/포탈/이동경계 모두 이 값에서 파생.
+    mapHalfX: 7.5,
     mapHalfZ: 48,
     survivalMilestones: [
       { atMs: 48_000, gold: 2, label: '복도 적응 보너스' },

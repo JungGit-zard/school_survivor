@@ -59,6 +59,13 @@ describe('stage configuration registry', () => {
     })
   })
 
+  it('keeps Stage 2 corridor width at 1.5x the narrow corridor layout', () => {
+    expect(getStageBounds('stage2')).toMatchObject({
+      halfX: 7.5,
+      halfZ: 48,
+    })
+  })
+
   it('applies admin balance duration and gold reward overrides', () => {
     saveAdminConfig({
       balance: {
