@@ -49,4 +49,26 @@ describe('PlayerMesh layout', () => {
     expect(source).toContain('position={PLAYER_MESH_LAYOUT.floorShadow.position}')
     expect(source).toContain('renderOrder={1}')
   })
+
+  it('lifts the mesh so feet touch the floor and the shadow sits above it', () => {
+    const RB_Y = 0.32 // Player.jsx RigidBody 높이(콜라이더 반높이)
+    const scale = 0.2664 // PLAYER_MESH_SCALE
+    const FEET_LOCAL_Y = -1.30 // 발바닥 최하단 로컬 y
+    const lift = PLAYER_MESH_LAYOUT.floorLift
+
+    const feetWorldY = RB_Y + lift + scale * FEET_LOCAL_Y
+    const shadowWorldY = RB_Y + lift + scale * PLAYER_MESH_LAYOUT.floorShadow.position[1]
+
+    expect(feetWorldY).toBeCloseTo(0, 2) // 발바닥이 바닥면 y=0에 닿음
+    expect(shadowWorldY).toBeGreaterThan(0.012) // 그림자가 복도 바닥 레이어(최상단 0.012)보다 위
+  })
+
+  it('keeps leg outlines inside the animated leg rigs', () => {
+    const source = readFileSync(new URL('./PlayerMesh.jsx', import.meta.url), 'utf8')
+    const leftLeg = source.match(/<group ref=\{reg\('legL'\)\}[\s\S]*?<\/group>\s*<\/group>/)?.[0] ?? ''
+    const rightLeg = source.match(/<group ref=\{reg\('legR'\)\}[\s\S]*?<\/group>\s*<\/group>/)?.[0] ?? ''
+
+    expect(leftLeg.match(/<OutlineBlock/g)).toHaveLength(3)
+    expect(rightLeg.match(/<OutlineBlock/g)).toHaveLength(3)
+  })
 })

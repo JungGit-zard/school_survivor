@@ -22,8 +22,12 @@ const PLAYER_LANTERN_HANDLE_SIZE = [0.24, 0.06, 0.11]
 const PLAYER_LANTERN_LIGHT_LENGTH = 2.08 / 3 / PLAYER_MESH_SCALE
 const PLAYER_LANTERN_LIGHT_RADIUS = 1.8 / 3 / PLAYER_MESH_SCALE
 const PLAYER_LANTERN_LENS_Y = -0.36
+// 발바닥(로컬 y≈-1.30 × PLAYER_MESH_SCALE)이 바닥면 y=0에 정확히 닿도록 메시 전체를 올린다.
+// = -RigidBody높이(0.32) + PLAYER_MESH_SCALE(0.2664) × 발바닥깊이(1.30)
+const PLAYER_FLOOR_LIFT = 0.0263
 
 export const PLAYER_MESH_LAYOUT = {
+  floorLift: PLAYER_FLOOR_LIFT,
   body: {
     size: PLAYER_BODY_SIZE,
     position: PLAYER_BODY_POSITION,
@@ -98,8 +102,6 @@ function PlayerOuterOutline() {
       <OutlineBlock size={PLAYER_MESH_LAYOUT.outline.headSize} position={PLAYER_MESH_LAYOUT.outline.headPosition} />
       <OutlineBlock size={[0.24, 1.05, 0.30]} position={[-0.68, 0.32, 0]} scale={1.07} />
       <OutlineBlock size={[0.24, 1.05, 0.30]} position={[0.68, 0.32, 0]} scale={1.07} />
-      <OutlineBlock size={[0.28, 1.0, 0.36]} position={[-0.24, -0.68, 0.03]} scale={1.07} />
-      <OutlineBlock size={[0.28, 1.0, 0.36]} position={[0.24, -0.68, 0.03]} scale={1.07} />
       <OutlineBlock size={[0.56, 0.78, 0.36]} position={[-0.54, 0.46, -0.22]} scale={1.07} />
     </group>
   )
@@ -237,7 +239,7 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
   return (
     <group ref={setRoot}>
       <StudioTunedGroup itemId="player">
-        <group scale={[PLAYER_MESH_SCALE, PLAYER_MESH_SCALE, PLAYER_MESH_SCALE]}>
+        <group position={[0, PLAYER_FLOOR_LIFT, 0]} scale={[PLAYER_MESH_SCALE, PLAYER_MESH_SCALE, PLAYER_MESH_SCALE]}>
           <mesh
             rotation={[-Math.PI / 2, 0, 0]}
             position={PLAYER_MESH_LAYOUT.floorShadow.position}
@@ -307,17 +309,23 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
       </group>
 
       <group ref={reg('legL')} position={[-0.22, -0.34, 0]}>
+        <OutlineBlock size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} scale={1.06} />
         <Block size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} color={0xebebf2} emissive={0.06} />
         <group position={[0, -0.76, 0.06]}>
+          <OutlineBlock size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} scale={1.04} />
           <Block size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} color={0x8090a8} emissive={0.12} />
+          <OutlineBlock size={[0.4, 0.1, 0.46]} position={[0, -0.15, 0]} scale={1.04} />
           <Block size={[0.4, 0.1, 0.46]} position={[0, -0.15, 0]} color={0x4a5566} emissive={0.08} />
         </group>
       </group>
 
       <group ref={reg('legR')} position={[0.22, -0.34, 0]}>
+        <OutlineBlock size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} scale={1.06} />
         <Block size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} color={0xebebf2} emissive={0.06} />
         <group position={[0, -0.76, 0.06]}>
+          <OutlineBlock size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} scale={1.04} />
           <Block size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} color={0x8090a8} emissive={0.12} />
+          <OutlineBlock size={[0.4, 0.1, 0.46]} position={[0, -0.15, 0]} scale={1.04} />
           <Block size={[0.4, 0.1, 0.46]} position={[0, -0.15, 0]} color={0x4a5566} emissive={0.08} />
         </group>
       </group>
