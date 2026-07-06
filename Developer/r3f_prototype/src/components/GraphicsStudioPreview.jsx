@@ -111,7 +111,16 @@ function clearPartGroupOutlines(root) {
   root.traverse((object) => {
     if (object.userData.studioPartGroupOutline) outlines.push(object)
   })
-  outlines.forEach((outline) => outline.parent?.remove(outline))
+  outlines.forEach((outline) => {
+    outline.parent?.remove(outline)
+    outline.geometry?.dispose()
+    const materials = Array.isArray(outline.material)
+      ? outline.material
+      : outline.material
+        ? [outline.material]
+        : []
+    materials.forEach((material) => material.dispose())
+  })
   root.userData.studioPartGroupOutlineKey = ''
 }
 

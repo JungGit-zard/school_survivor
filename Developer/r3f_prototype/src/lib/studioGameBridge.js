@@ -22,11 +22,15 @@ export function parseStudioGameUrl(value, baseHref = globalThis.location?.href) 
 export function isAllowedStudioGameOrigin(origin) {
   try {
     const url = new URL(origin)
-    return url.protocol === 'http:' && (
-      url.hostname === 'localhost'
-      || url.hostname === '127.0.0.1'
-      || url.hostname === '0.0.0.0'
-      || url.hostname.startsWith('192.168.')
+    if (url.protocol !== 'http:') return false
+    const host = url.hostname
+    // ponytail: startsWith('192.168.')는 '192.168.evil.com' 같은 공인 도메인도 통과시켜
+    // 화이트리스트가 우회됨 → LAN IPv4 형태로 정확히 매칭한다(octet 범위는 dev용이라 생략).
+    return (
+      host === 'localhost'
+      || host === '127.0.0.1'
+      || host === '0.0.0.0'
+      || /^192\.168\.\d{1,3}\.\d{1,3}$/.test(host)
     )
   } catch {
     return false

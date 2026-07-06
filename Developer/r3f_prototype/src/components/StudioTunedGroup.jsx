@@ -36,16 +36,22 @@ function isOutlineMaterial(material) {
   return material?.side === THREE.BackSide || material?.stencilFunc === THREE.NotEqualStencilFunc
 }
 
+// 매 프레임(useFrame) 재적용 경로의 GC 부하를 줄이기 위한 재사용 스크래치.
+// tuneColor는 export되지 않고 유일한 호출자(applyStudioTuning)가 반환값을
+// material.color.copy(...)로 즉시 소비하므로, 반환 참조를 보관하는 경로가 없어 안전하다.
+const _tuneScratchColor = new THREE.Color()
+const _tuneTargetColor = new THREE.Color()
+const _tuneScratchHSL = { h: 0, s: 0, l: 0 }
+
 function tuneColor(baseColor, tuning) {
-  const next = baseColor.clone()
-  const hsl = {}
-  next.getHSL(hsl)
+  const next = _tuneScratchColor.copy(baseColor)
+  next.getHSL(_tuneScratchHSL)
   next.setHSL(
-    hsl.h,
-    Math.min(1, Math.max(0, hsl.s * tuning.saturation)),
-    Math.min(1, Math.max(0, hsl.l * tuning.brightness)),
+    _tuneScratchHSL.h,
+    Math.min(1, Math.max(0, _tuneScratchHSL.s * tuning.saturation)),
+    Math.min(1, Math.max(0, _tuneScratchHSL.l * tuning.brightness)),
   )
-  return next.lerp(new THREE.Color(tuning.color), tuning.colorStrength)
+  return next.lerp(_tuneTargetColor.set(tuning.color), tuning.colorStrength)
 }
 
 export function applyStudioTuning(root, tuning = DEFAULT_STUDIO_TUNING) {
@@ -127,6 +133,11 @@ function getPartKeysForSavedTuning(itemId, savedKey) {
   return []
 }
 
+// 매 프레임 파트 튜닝 재적용 시 Vector3 할당 방지용 스크래치.
+// .add()/.multiply()는 인자를 읽기만 하고 참조를 보관하지 않으며,
+// applySavedStudioPartTunings는 재귀·중첩 호출이 없는 단일 동기 경로다.
+const _partScratchVec = new THREE.Vector3()
+
 function applyTextureFitTuning(part, transform) {
   const materials = Array.isArray(part.material) ? part.material : part.material ? [part.material] : []
   const repeatX = 1 / Math.max(0.01, transform.scale[0])
@@ -159,12 +170,12 @@ export function applySavedStudioPartTunings(root, itemId, tunings = loadStudioTu
       if (!part.userData.studioPartBaseRotation) part.userData.studioPartBaseRotation = part.rotation.clone()
       if (!part.userData.studioPartBasePosition) part.userData.studioPartBasePosition = part.position.clone()
 
-      part.position.copy(part.userData.studioPartBasePosition).add(new THREE.Vector3(...transform.position))
+      part.position.copy(part.userData.studioPartBasePosition).add(_partScratchVec.fromArray(transform.position))
       if (part.userData.studioTextureFit) {
         part.scale.copy(part.userData.studioPartBaseScale)
         applyTextureFitTuning(part, transform)
       } else {
-        part.scale.copy(part.userData.studioPartBaseScale).multiply(new THREE.Vector3(...transform.scale))
+        part.scale.copy(part.userData.studioPartBaseScale).multiply(_partScratchVec.fromArray(transform.scale))
       }
       part.rotation.set(
         part.userData.studioPartBaseRotation.x + transform.rotation[0],

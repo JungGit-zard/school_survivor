@@ -76,6 +76,16 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(source).toContain('new THREE.LineSegments')
   })
 
+  it('disposes outline-only geometry and materials when clearing part focus outlines', () => {
+    const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+
+    const clearFnMatch = source.match(/function clearPartGroupOutlines[\s\S]*?\n\}/)
+    expect(clearFnMatch).not.toBeNull()
+    const clearFn = clearFnMatch[0]
+    expect(clearFn).toContain('outline.geometry?.dispose()')
+    expect(clearFn).toContain('materials.forEach((material) => material.dispose())')
+  })
+
   it('keeps saved part and group edits visible when focusing another part', () => {
     const studioSource = readFileSync(new URL('./GraphicsStudio.jsx', import.meta.url), 'utf8')
     const previewSource = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
