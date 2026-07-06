@@ -140,7 +140,30 @@ function stylePartFocusOutline(outline) {
   outline.renderOrder = 999
 }
 
-function createPartFocusOutline(root, part) {
+// part(group)의 자식 mesh들을 part 로컬 좌표계 기준 AABB로 합산.
+// 월드 행렬을 쓰지 않으므로 root 변환·프레임 타이밍과 무관하게 안정적이다.
+function computePartLocalBox(part) {
+  const box = new THREE.Box3()
+  const childBox = new THREE.Box3()
+  const relativeMatrix = new THREE.Matrix4()
+  part.traverse((child) => {
+    if (child === part || !child.isMesh || !child.geometry) return
+    if (child.userData.studioPartGroupOutline) return
+    if (!child.geometry.boundingBox) child.geometry.computeBoundingBox()
+    relativeMatrix.identity()
+    let node = child
+    while (node && node !== part) {
+      node.updateMatrix()
+      relativeMatrix.premultiply(node.matrix)
+      node = node.parent
+    }
+    childBox.copy(child.geometry.boundingBox).applyMatrix4(relativeMatrix)
+    box.union(childBox)
+  })
+  return box
+}
+
+function createPartFocusOutline(part) {
   if (part.isMesh && part.geometry) {
     const outline = new THREE.LineSegments(
       new THREE.EdgesGeometry(part.geometry),
@@ -153,11 +176,23 @@ function createPartFocusOutline(root, part) {
     return
   }
 
-  const outline = new THREE.BoxHelper(part, PART_GROUP_OUTLINE_COLOR)
+  // group 파트: 로컬 AABB 기반 박스 아웃라인을 파트 자신의 자식으로 붙인다.
+  // (transform된 root에 붙이면 root 변환이 이중 적용되어 엉뚱한 위치에 그려짐)
+  const box = computePartLocalBox(part)
+  if (box.isEmpty()) return
+  const size = box.getSize(new THREE.Vector3())
+  const center = box.getCenter(new THREE.Vector3())
+  const boxGeometry = new THREE.BoxGeometry(size.x, size.y, size.z)
+  const outline = new THREE.LineSegments(
+    new THREE.EdgesGeometry(boxGeometry),
+    new THREE.LineBasicMaterial({ color: PART_GROUP_OUTLINE_COLOR }),
+  )
+  boxGeometry.dispose()
+  outline.position.copy(center)
   outline.userData.studioPartGroupOutline = true
   outline.userData.studioPartGroupTarget = part
   stylePartFocusOutline(outline)
-  root.add(outline)
+  part.add(outline)
 }
 
 function syncPartGroupOutlines(root, focusedPartKeys) {
@@ -169,7 +204,7 @@ function syncPartGroupOutlines(root, focusedPartKeys) {
   outlineKeys.forEach((key) => {
     const part = findStudioPart(root, key)
     if (!part) return
-    createPartFocusOutline(root, part)
+    createPartFocusOutline(part)
   })
   root.userData.studioPartGroupOutlineKey = nextKey
 }
@@ -427,7 +462,7 @@ function getPreviewFrame(item) {
   }
 }
 
-function RenderPreviewItem({ item }) {
+function RenderPreviewItem({ item, frozen = false }) {
   const movingRef = useRef(false)
   const playerRef = useRef(null)
   const [deathReplayKey, setDeathReplayKey] = useState(0)
@@ -449,7 +484,7 @@ function RenderPreviewItem({ item }) {
     return <PlayerVisual meshGroup={playerRef} movingRef={movingRef} hp={100} maxHp={100} previewArmAction={PLAYER_STUDIO_ARM_ACTIONS[item.animation] ?? null} />
   }
   if (item.previewKind === 'zombie') {
-    return <EnemyVisual type={item.zombieType} animPhase={item.animation ?? 'normal'} hp={ENEMY_STATS[item.zombieType]?.hp} forceMesh />
+    return <EnemyVisual type={item.zombieType} animPhase={item.animation ?? 'normal'} hp={ENEMY_STATS[item.zombieType]?.hp} forceMesh frozen={frozen} />
   }
   if (item.previewKind === 'matilda') {
     return <MatildaMesh movementPose={item.animation === 'charge'} />
@@ -597,8 +632,9 @@ function StudioScene({ selectedItem, tuning, frame, focusedPartKeys, focusedPart
         shadow-camera-bottom={-40}
       />
       <directionalLight position={[10, 12, -10]} intensity={0.85} color={0xffe2b0} />
+      {/* 파트 편집(포커스) 중에는 애니메이션을 멈춰 base 캡처·튜닝·아웃라인이 rest 포즈 기준으로 안정되게 한다 */}
       <group ref={rootRef} scale={transform.scale} position={transform.position} rotation={transform.rotation} onDoubleClick={handlePartDoubleClick}>
-        <RenderPreviewItem item={item} />
+        <RenderPreviewItem item={item} frozen={focusedPartKeys.length > 0} />
       </group>
       <StudioOrbitControls frame={frame} />
     </>

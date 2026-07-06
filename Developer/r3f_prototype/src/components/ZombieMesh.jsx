@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useFrame, useLoader } from '@react-three/fiber'
 import * as THREE from 'three'
 import { inflateScale, getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat } from '../lib/toon.js'
@@ -257,7 +257,8 @@ function ZombieOuterOutline() {
 }
 
 // animPhase: 'normal' | 'warn' | 'charge' | 'stun' | 'retreat'
-export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false }) {
+// frozen: 그래픽 스튜디오 파트 편집용 정적 포즈 — true면 애니메이션을 멈추고 rest 포즈 유지 (인게임 기본 false)
+export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false, frozen = false }) {
   const p    = useRef({})
   const pal  = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
 
@@ -267,14 +268,39 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     const pc = p
     regRef.current = (k) => {
       let cb = regRef.current._cbs[k]
-      if (!cb) { cb = (el) => { if (el) pc.current[k] = el }; regRef.current._cbs[k] = cb }
+      if (!cb) {
+        cb = (el) => {
+          if (!el) return
+          // 애니메이션이 돌기 전 JSX 선언값 = rest 포즈를 캡처 (frozen 진입 시 복원용)
+          if (!el.userData.zombieRestRotation) el.userData.zombieRestRotation = el.rotation.clone()
+          if (!el.userData.zombieRestScale) el.userData.zombieRestScale = el.scale.clone()
+          pc.current[k] = el
+        }
+        regRef.current._cbs[k] = cb
+      }
       return cb
     }
     regRef.current._cbs = {}
   }
   const reg = regRef.current
 
+  // frozen 진입 시 애니메이션 잔존 transform을 rest 포즈로 되돌리고,
+  // 애니메이션 도중 캡처됐을 수 있는 스튜디오 base(rotation/scale)를 폐기해
+  // rest 기준으로 재캡처되게 한다. position은 애니메이션 대상이 아니므로 base 유지.
+  useEffect(() => {
+    if (!frozen) return
+    Object.values(p.current).forEach((el) => {
+      if (!el) return
+      if (el.userData.zombieRestRotation) el.rotation.copy(el.userData.zombieRestRotation)
+      if (el.userData.zombieRestScale) el.scale.copy(el.userData.zombieRestScale)
+      if (el.userData.studioPartBasePosition) el.position.copy(el.userData.studioPartBasePosition)
+      delete el.userData.studioPartBaseRotation
+      delete el.userData.studioPartBaseScale
+    })
+  }, [frozen, type])
+
   useFrame((state, delta) => {
+    if (frozen) return
     const pt = p.current
     if (!pt.legL) return
     const t = state.clock.elapsedTime

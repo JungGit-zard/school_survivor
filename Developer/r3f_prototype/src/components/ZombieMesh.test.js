@@ -64,6 +64,26 @@ describe('Stage 1 boss visual reference', () => {
   })
 })
 
+describe('Studio part-edit freeze contract', () => {
+  it('skips the animation frame loop entirely while frozen', () => {
+    const source = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
+
+    expect(source).toMatch(/useFrame\(\(state, delta\) => \{\s*if \(frozen\) return/)
+  })
+
+  it('captures the JSX rest pose and restores it when freezing for studio part editing', () => {
+    const source = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
+
+    // ref 등록 시(애니메이션 시작 전) rest transform 캡처
+    expect(source).toContain('userData.zombieRestRotation = el.rotation.clone()')
+    expect(source).toContain('userData.zombieRestScale = el.scale.clone()')
+    // frozen 진입 시 rest 복원 + 애니메이션 도중 캡처된 스튜디오 base 폐기 → rest 기준 재캡처
+    expect(source).toContain('el.rotation.copy(el.userData.zombieRestRotation)')
+    expect(source).toContain('delete el.userData.studioPartBaseRotation')
+    expect(source).toContain('delete el.userData.studioPartBaseScale')
+  })
+})
+
 describe('Stage 2 boss visual reference', () => {
   it('defines B02 as the female teacher zombie boss with a texture-only face', () => {
     expect(ENEMY_STATS.B02).toMatchObject({

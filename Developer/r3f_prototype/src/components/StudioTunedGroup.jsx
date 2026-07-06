@@ -138,15 +138,26 @@ function getPartKeysForSavedTuning(itemId, savedKey) {
 // applySavedStudioPartTunings는 재귀·중첩 호출이 없는 단일 동기 경로다.
 const _partScratchVec = new THREE.Vector3()
 
+// scale을 UV 줌으로 변환하되, 텍스처에 원래 걸려 있던 크롭(base repeat/offset)을 보존·합성한다.
+// (예: B02 얼굴은 로드 시 repeat(0.82,0.76)/offset(0.09,0.05) 크롭 — 이를 덮어쓰면 얼굴 프레이밍이 깨짐)
+// 줌은 base 크롭 창의 중심을 유지한 채 창 크기만 1/scale 배로 줄인다.
 function applyTextureFitTuning(part, transform) {
   const materials = Array.isArray(part.material) ? part.material : part.material ? [part.material] : []
-  const repeatX = 1 / Math.max(0.01, transform.scale[0])
-  const repeatY = 1 / Math.max(0.01, transform.scale[1])
   materials.forEach((material) => {
-    if (!material.map) return
-    material.map.repeat.set(repeatX, repeatY)
-    material.map.offset.set((1 - repeatX) / 2, (1 - repeatY) / 2)
-    material.map.needsUpdate = true
+    const map = material.map
+    if (!map) return
+    if (!material.userData.studioBaseMapRepeat) material.userData.studioBaseMapRepeat = map.repeat.clone()
+    if (!material.userData.studioBaseMapOffset) material.userData.studioBaseMapOffset = map.offset.clone()
+    const baseRepeat = material.userData.studioBaseMapRepeat
+    const baseOffset = material.userData.studioBaseMapOffset
+    const repeatX = baseRepeat.x / Math.max(0.01, transform.scale[0])
+    const repeatY = baseRepeat.y / Math.max(0.01, transform.scale[1])
+    map.repeat.set(repeatX, repeatY)
+    map.offset.set(
+      baseOffset.x + (baseRepeat.x - repeatX) / 2,
+      baseOffset.y + (baseRepeat.y - repeatY) / 2,
+    )
+    map.needsUpdate = true
   })
 }
 

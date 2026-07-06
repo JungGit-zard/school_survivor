@@ -76,6 +76,34 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(source).toContain('new THREE.LineSegments')
   })
 
+  it('attaches group part focus outlines to the part itself instead of the transformed root', () => {
+    const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+
+    // BoxHelper를 transform된 root에 붙이면 root 변환이 이중 적용되어 아웃라인이 어긋난다
+    expect(source).not.toContain('THREE.BoxHelper')
+    expect(source).toContain('function computePartLocalBox')
+
+    const createFnMatch = source.match(/function createPartFocusOutline[\s\S]*?\n\}/)
+    expect(createFnMatch).not.toBeNull()
+    const createFn = createFnMatch[0]
+    expect(createFn).not.toContain('root.add(outline)')
+    expect(createFn.match(/part\.add\(outline\)/g)).toHaveLength(2)
+    expect(createFn).toContain('outline.userData.studioPartGroupOutline = true')
+  })
+
+  it('freezes zombie animation while a part is focused so editing works on the rest pose', () => {
+    const previewSource = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+    const enemySource = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    const zombieSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
+
+    expect(previewSource).toContain('frozen={focusedPartKeys.length > 0}')
+    expect(previewSource).toContain('forceMesh frozen={frozen}')
+    expect(enemySource).toContain('forceMesh = false, frozen = false')
+    expect(enemySource).toContain('frozen={frozen}')
+    // 인게임 기본값은 false — 게임 내 애니메이션 불변
+    expect(zombieSource).toContain('frozen = false')
+  })
+
   it('disposes outline-only geometry and materials when clearing part focus outlines', () => {
     const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
 

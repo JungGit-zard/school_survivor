@@ -184,6 +184,57 @@ describe('StudioTunedGroup', () => {
     expect(texture.offset.y).toBeCloseTo((1 - 1 / 1.8) / 2)
   })
 
+  it('composes texture fit with the texture base crop instead of overwriting it', () => {
+    const root = new THREE.Group()
+    const texture = new THREE.Texture()
+    texture.repeat.set(0.82, 0.76)
+    texture.offset.set(0.09, 0.05)
+    const faceTexture = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshBasicMaterial({ map: texture }),
+    )
+    faceTexture.userData.studioPartId = 'b02-face-texture'
+    faceTexture.userData.studioTextureFit = true
+    root.add(faceTexture)
+
+    const tunings = {
+      'zombie-b02::part::id:b02-face-texture': { scale: 2 },
+    }
+    applySavedStudioPartTunings(root, 'zombie-b02', tunings)
+    applySavedStudioPartTunings(root, 'zombie-b02', tunings)
+
+    // base 크롭 창(0.82x0.76)의 중심을 유지한 채 창만 1/2로 줄어든다 (누적 없음)
+    expect(texture.repeat.x).toBeCloseTo(0.41)
+    expect(texture.repeat.y).toBeCloseTo(0.38)
+    expect(texture.offset.x).toBeCloseTo(0.09 + (0.82 - 0.41) / 2)
+    expect(texture.offset.y).toBeCloseTo(0.05 + (0.76 - 0.38) / 2)
+  })
+
+  it('keeps the base crop untouched when texture fit scale is 1', () => {
+    const root = new THREE.Group()
+    const texture = new THREE.Texture()
+    texture.repeat.set(0.82, 0.76)
+    texture.offset.set(0.09, 0.05)
+    const faceTexture = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshBasicMaterial({ map: texture }),
+    )
+    faceTexture.userData.studioPartId = 'b02-face-texture'
+    faceTexture.userData.studioTextureFit = true
+    root.add(faceTexture)
+
+    // 위치만 조정한 튜닝(scale 기본 1) — 텍스처 크롭이 리셋되면 안 된다
+    applySavedStudioPartTunings(root, 'zombie-b02', {
+      'zombie-b02::part::id:b02-face-texture': { positionY: 0.1 },
+    })
+
+    expect(texture.repeat.x).toBeCloseTo(0.82)
+    expect(texture.repeat.y).toBeCloseTo(0.76)
+    expect(texture.offset.x).toBeCloseTo(0.09)
+    expect(texture.offset.y).toBeCloseTo(0.05)
+    expect(faceTexture.position.y).toBeCloseTo(0.1)
+  })
+
   it('applies confirmed group tuning even when studio preview added a wrapper path', () => {
     const root = new THREE.Group()
     const first = new THREE.Group()
