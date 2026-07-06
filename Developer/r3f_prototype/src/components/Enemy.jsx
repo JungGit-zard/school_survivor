@@ -487,7 +487,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         lastFireElapsedMs: lastFireRef.current,
         nowMs: now,
         cooldownMs: stats.rangedCooldown,
-        bossPressure: elapsedSec >= 192 && elapsedSec < 240,
+        bossPressure: elapsedSec >= 150 && elapsedSec < 240,
       })
 
       // ?ъ궗泥?諛쒖궗

@@ -49,9 +49,9 @@ describe('stage 2 E04 projectile rules', () => {
   })
 
   it('raises E04 cap over the stage timeline', () => {
-    expect(getStage2E04Cap(80)).toBe(2)
-    expect(getStage2E04Cap(120)).toBe(3)
-    expect(getStage2E04Cap(200)).toBe(3)
-    expect(getStage2E04Cap(220)).toBe(4)
+    expect(getStage2E04Cap(80)).toBe(1)
+    expect(getStage2E04Cap(120)).toBe(2)
+    expect(getStage2E04Cap(200)).toBe(2)
+    expect(getStage2E04Cap(220)).toBe(2)
   })
 })

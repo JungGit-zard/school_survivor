@@ -200,7 +200,7 @@ const BURST_EVENTS = [
   { sec: 184, type: 'E01', count:  5 },  // 마지막 러시 (보스 직전) — 과부하 완화
   { sec: 184, type: 'E02', count:  3 },
   { sec: 184, type: 'E05', count:  2 },
-  { sec: 192, type: 'B01', count:  1 },  // 보스 등장
+  { sec: 150, type: 'B01', count:  1 },  // 보스 등장 (2:30)
   { sec: 216, type: 'E05', count:  3 },
 ]
 
@@ -210,13 +210,10 @@ export const STAGE2_BURST_EVENTS = [
   { sec:  24, type: 'E03', count:  4 },
   { sec:  48, type: 'E02', count:  3 },
   { sec:  72, type: 'E04', count:  1 },
-  { sec:  96, type: 'E04', count:  1 },
   { sec: 120, type: 'E05', count:  2 },
-  { sec: 144, type: 'E04', count:  1 },
   { sec: 144, type: 'E05', count:  2 },
   { sec: 168, type: 'E06', count:  1 },
-  { sec: 184, type: 'E04', count:  1 },
-  { sec: 192, type: 'B02', count:  1 },
+  { sec: 150, type: 'B02', count:  1 },  // 보스 등장 (2:30)
   { sec: 216, type: 'E05', count:  3 },
   { sec: 216, type: 'E04', count:  1 },
 ]

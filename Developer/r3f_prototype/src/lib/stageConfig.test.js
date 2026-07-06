@@ -4,6 +4,7 @@ import {
   DEFAULT_STAGE_ID,
   getNextStageId,
   getStageBossType,
+  getStageBounds,
   getStageConfig,
   getStageDurationSec,
   isStageUnlocked,
@@ -49,6 +50,13 @@ describe('stage configuration registry', () => {
   it('maps portal progression from stage 1 to stage 2 only', () => {
     expect(getNextStageId('stage1')).toBe('stage2')
     expect(getNextStageId('stage2')).toBeNull()
+  })
+
+  it('keeps Stage 1 classroom vertical length at two thirds of the previous layout', () => {
+    expect(getStageBounds('stage1')).toMatchObject({
+      halfX: 10,
+      halfZ: 18,
+    })
   })
 
   it('applies admin balance duration and gold reward overrides', () => {

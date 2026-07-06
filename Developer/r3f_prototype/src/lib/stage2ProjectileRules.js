@@ -6,9 +6,8 @@ export const STAGE2_E04_MAX_PROJECTILES = 6
 export const STAGE2_E04_MIN_FIRE_DISTANCE = 3.5
 
 export function getStage2E04Cap(elapsedSec) {
-  if (elapsedSec < 96) return 2
-  if (elapsedSec < 216) return 3
-  return 4
+  if (elapsedSec < 96) return 1
+  return 2
 }
 
 export function canE04FireProjectile({

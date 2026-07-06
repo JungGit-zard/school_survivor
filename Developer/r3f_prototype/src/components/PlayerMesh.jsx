@@ -50,6 +50,11 @@ export const PLAYER_MESH_LAYOUT = {
     lightLength: PLAYER_LANTERN_LIGHT_LENGTH,
     lightRadius: PLAYER_LANTERN_LIGHT_RADIUS,
   },
+  floorShadow: {
+    position: [0, -1.22, 0.08],
+    scale: [0.92, 0.46, 1],
+    opacity: 0.46,
+  },
 }
 
 function Block({ size, position, rotation, color, emissive = 0.14 }) {
@@ -144,9 +149,12 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
       new THREE.MeshBasicMaterial({
         color: 0x000000,
         transparent: true,
-        opacity: 0.34,
+        opacity: PLAYER_MESH_LAYOUT.floorShadow.opacity,
         depthTest: true,
         depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1,
       }),
     []
   )
@@ -232,9 +240,9 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
         <group scale={[PLAYER_MESH_SCALE, PLAYER_MESH_SCALE, PLAYER_MESH_SCALE]}>
           <mesh
             rotation={[-Math.PI / 2, 0, 0]}
-            position={[0, -1.08, 0.02]}
-            scale={[1.08, 0.58, 1]}
-            renderOrder={-1}
+            position={PLAYER_MESH_LAYOUT.floorShadow.position}
+            scale={PLAYER_MESH_LAYOUT.floorShadow.scale}
+            renderOrder={1}
             material={shadowMat}
           >
             <circleGeometry args={[1, 36]} />

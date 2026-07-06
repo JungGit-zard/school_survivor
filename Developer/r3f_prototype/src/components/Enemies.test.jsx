@@ -79,10 +79,23 @@ describe('late zombie spawn relief', () => {
   it('reduces burst zombie counts after 90 seconds without removing boss events', () => {
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E01').count).toBe(5)
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
-    expect(getBurstEventsForStage('stage2').find((event) => event.sec === 96 && event.type === 'E04').count).toBe(1)
+    expect(getBurstEventsForStage('stage2').filter((event) => event.type === 'E04').map((event) => event.sec)).toEqual([72, 216])
     expect(getBurstEventsForStage('stage2').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
-    expect(getBurstEventsForStage('stage2').find((event) => event.sec === 192 && event.type === 'B02').count).toBe(1)
-    expect(getBurstEventsForStage('stage2').some((event) => event.sec === 192 && event.type === 'B01')).toBe(false)
+    expect(getBurstEventsForStage('stage2').find((event) => event.sec === 150 && event.type === 'B02').count).toBe(1)
+    expect(getBurstEventsForStage('stage2').some((event) => event.sec === 150 && event.type === 'B01')).toBe(false)
+  })
+
+  it('halves stage 2 E04 wave pressure while keeping total spawn targets stable', () => {
+    const phases = getWavePhasesForStage('stage2')
+
+    expect(phases.find((phase) => phase.start === 72).weights.E04).toBeCloseTo(0.075)
+    expect(phases.find((phase) => phase.start === 96).weights.E04).toBeCloseTo(0.15)
+    expect(phases.find((phase) => phase.start === 144).weights.E04).toBeCloseTo(0.14)
+    expect(phases.find((phase) => phase.start === 168).weights.E04).toBeCloseTo(0.16)
+    expect(phases.find((phase) => phase.start === 224).weights.E04).toBeCloseTo(0.12)
+    phases.forEach((phase) => {
+      expect(Object.values(phase.weights).reduce((sum, weight) => sum + weight, 0)).toBeCloseTo(1)
+    })
   })
 
   it('aligns stage 1 burst pressure with tutorial and relief windows', () => {
@@ -230,6 +243,6 @@ describe('ranged enemy movement', () => {
     const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
     expect(source).toContain("activeProjectileCount: type === 'E04' ? getActiveE04ProjectileCount() : projectiles.length")
     expect(source).toContain('registerE04Projectile(projectileId)')
-    expect(source).toContain('bossPressure: elapsedSec >= 192 && elapsedSec < 240')
+    expect(source).toContain('bossPressure: elapsedSec >= 150 && elapsedSec < 240')
   })
 })

@@ -7,8 +7,8 @@ describe('player movement bounds', () => {
     expect(getPlayerMovementBounds('stage1')).toMatchObject({
       minX: -8,
       maxX: 8,
-      minZ: -23,
-      maxZ: 23,
+      minZ: -14,
+      maxZ: 14,
     })
   })
 

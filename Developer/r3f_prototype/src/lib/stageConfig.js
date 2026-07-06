@@ -14,14 +14,14 @@ export const STAGE_CONFIGS = {
     durationSec: STAGE_DURATION_SEC,
     clearRecordKey: 'stage1Clears',
     bestRecordKey: 'bestSurvivalSeconds',
-    bossWarningSec: 192,
+    bossWarningSec: 150,
     bossType: 'B01',
     escapePortalSec: 240,
-    matildaWarningSec: 410,
-    matildaSec: 420,
+    matildaWarningSec: 200,
+    matildaSec: 210,
     // 맵 경계(월드 유닛, 중심 0). 교실 구도에 맞춰 세로로 긴 직사각형 — 화면 세로=Z, 가로=X.
     mapHalfX: 10,
-    mapHalfZ: 27,
+    mapHalfZ: 18,
     survivalMilestones: [
       { atMs: 48_000, gold: 1, label: '초반 생존 보너스' },
       { atMs: 144_000, gold: 3, label: '중반 돌파 보너스' },
@@ -37,14 +37,14 @@ export const STAGE_CONFIGS = {
     durationSec: STAGE_DURATION_SEC,
     clearRecordKey: 'stage2Clears',
     bestRecordKey: 'stage2BestSurvivalSec',
-    bossWarningSec: 192,
+    bossWarningSec: 150,
     bossType: 'B02',
     e04IntroSec: 72,
     escapePortalSec: 240,
-    matildaWarningSec: 410,
-    matildaSec: 420,
-    // 복도형: 현재 정사각 경계 유지 (코리도 시각 연출은 ClassroomFloor에서 별도 처리).
-    mapHalfX: 10,
+    matildaWarningSec: 200,
+    matildaSec: 210,
+    // 복도형: 가로 폭 절반(좁은 복도). 벽/바닥/포탈/이동경계 모두 이 값에서 파생.
+    mapHalfX: 5,
     mapHalfZ: 48,
     survivalMilestones: [
       { atMs: 48_000, gold: 2, label: '복도 적응 보너스' },
