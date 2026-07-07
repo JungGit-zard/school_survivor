@@ -33,7 +33,6 @@ export const STAGE2_CORRIDOR_END = {
 export const STAGE2_CORRIDOR_LANES = {
   laneCount: 3,
   laneWidth: 6,
-  centerLineColor: '#40525f',
   safeLaneColor: '#4e725f',
 }
 
@@ -84,12 +83,6 @@ export default function ClassroomFloor({ stageId = 'stage1' }) {
             <planeGeometry args={[26, FLOOR_SIZE]} />
             <meshBasicMaterial color={0x2f3942} transparent opacity={0.16} depthWrite={false} />
           </mesh>
-          {[-6, 6].map((x) => (
-            <mesh key={x} position={[x, 0.006, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={3}>
-              <planeGeometry args={[0.16, FLOOR_SIZE]} />
-              <meshBasicMaterial color={0x40525f} transparent opacity={0.45} depthWrite={false} />
-            </mesh>
-          ))}
           <mesh position={[0, 0.004, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={2}>
             <planeGeometry args={[5.2, FLOOR_SIZE]} />
             <meshBasicMaterial color={0x4e725f} transparent opacity={0.07} depthWrite={false} />

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FLOOR_TILE, STAGE_FLOOR_TILES, STAGE2_CORRIDOR_END } from './ClassroomFloor.jsx'
+import { FLOOR_TILE, STAGE_FLOOR_TILES, STAGE2_CORRIDOR_END, STAGE2_CORRIDOR_LANES } from './ClassroomFloor.jsx'
 
 describe('ClassroomFloor tiling', () => {
   it('uses the stage01 tile asset as the repeating floor pattern', () => {
@@ -30,5 +30,9 @@ describe('ClassroomFloor tiling', () => {
   it('extends well beyond the playable map (±48) so the floor never runs out under the follow camera', () => {
     // floor must cover the play area plus the camera view margin on every side
     expect(FLOOR_TILE.floorSize).toBeGreaterThanOrEqual(160)
+  })
+
+  it('does not draw blue Stage 2 lane divider lines', () => {
+    expect(STAGE2_CORRIDOR_LANES.centerLineColor).toBeUndefined()
   })
 })
