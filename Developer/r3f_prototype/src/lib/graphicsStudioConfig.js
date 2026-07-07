@@ -69,10 +69,12 @@ export const DEFAULT_STUDIO_TUNING = Object.freeze({
 
 export const DEFAULT_STAGE_BOSS_PREVIEW = Object.freeze({
   // 144px 프레임을 얼굴/상반신으로 채우는 B01 기준 기본 zoom.
-  // 144px 반높이 72px, B01 크라운(아웃라인 포함) 실투영 ≈0.417 px/zoom →
-  // 상단 여백 ~10px 목표: zoom ≈ (72-10)/0.417 ≈ 148. (B02는 크라운이 더 높아
-  // StageBossPreview의 BOSS_PREVIEW_ZOOM_FACTOR로 낮춰 같은 여백을 맞춘다.)
-  zoom: 148,
+  // 라이브 실측(스튜디오 프리뷰를 로비 조건 144px로 강제해 브라우저 캡처):
+  //   zoom 110 → B01 머리 전체가 상단 여백을 두고 프레임을 꽉 채움(권장),
+  //   zoom 148 → 크라운이 상단에서 잘림. → 110 채택.
+  // (B02는 올림머리로 크라운이 더 높아 StageBossPreview의 BOSS_PREVIEW_ZOOM_FACTOR로
+  //  낮춰 같은 여백을 맞춘다.)
+  zoom: 110,
   panX: 0,
   panY: 0,
 })
