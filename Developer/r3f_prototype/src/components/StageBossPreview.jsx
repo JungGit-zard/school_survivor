@@ -39,6 +39,17 @@ export function resolveBossPreviewBaseY(bossType) {
   return -faceLocalY * previewScale
 }
 
+// 보스별 크라운(머리 꼭대기) 높이 차이 보정.
+// B02는 올림머리(bun)+헤어플레이트라 실투영 크라운이 B01보다 ~1.5배 높다
+// (B01 crownCS≈0.417, B02 crownCS≈0.630 px/zoom). 같은 zoom이면 B02 머리가
+// 프레임 위로 잘리므로, 크라운 높이 비율로 zoom을 낮춰 두 보스가 같은 상단 여백으로 채워지게 한다.
+// factor(B02) ≈ crownCS(B01)/crownCS(B02) ≈ 0.417/0.630 ≈ 0.66.
+const BOSS_PREVIEW_ZOOM_FACTOR = Object.freeze({ B01: 1, B02: 0.66 })
+
+export function resolveBossPreviewZoom(baseZoom, bossType) {
+  return baseZoom * (BOSS_PREVIEW_ZOOM_FACTOR[bossType] ?? 1)
+}
+
 // 모션 게이트: prefers-reduced-motion 또는 data-reduced-effects면 완전 정적.
 function motionAllowed() {
   if (typeof window === 'undefined') return false
@@ -145,6 +156,8 @@ export default function StageBossPreview({
   motionToken = 0,
 }) {
   const frame = normalizeStageBossPreview(framing)
+  // 보스별 크라운 높이 보정을 적용한 실제 렌더 zoom(카메라에 반영). base zoom은 그대로 저장·튜닝.
+  const renderZoom = resolveBossPreviewZoom(frame.zoom, bossType)
   const frameRef = useRef(frame)
   const dragRef = useRef(null)
   const [activeMotionToken, setActiveMotionToken] = useState(() => (motionToken > 0 && motionAllowed() ? motionToken : 0))
@@ -241,7 +254,7 @@ export default function StageBossPreview({
           animPhase='normal'은 sin(t) idle이라 t=0 정지 포즈 = 정상 rest 포즈로 안전.
           framing 변경 시 R3F가 자동 invalidate → 스튜디오 실시간 sync 그대로 반영.
           스튜디오 인터랙티브 프리뷰(interactive)만 상시 애니메이션 유지(탭/패럴랙스는 비인터랙티브 전용). */}
-      <Canvas frameloop={interactive ? 'always' : 'demand'} key={frame.zoom} orthographic camera={{ position: [0, 2.2, 5.5], zoom: frame.zoom }} dpr={[1, 1.5]}>
+      <Canvas frameloop={interactive ? 'always' : 'demand'} key={renderZoom} orthographic camera={{ position: [0, 2.2, 5.5], zoom: renderZoom }} dpr={[1, 1.5]}>
         <ambientLight intensity={0.7} />
         <directionalLight position={[3, 5, 4]} intensity={2.6} />
         <ReactiveBoss
