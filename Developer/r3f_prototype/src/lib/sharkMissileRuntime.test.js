@@ -96,6 +96,15 @@ describe('shark missile dart flight plan (기획 정본)', () => {
     expect(isSharkHomingPhase(1.4)).toBe(true)
   })
 
+  it('비행 속도는 절반(9)이며, 귀소 커버 거리는 4.05유닛(밀집점에 못 닿을 수 있음)', () => {
+    // 사용자 요청 사양: 발사 후 비행 속도 절반(18→9), 총 비행 1.5s 유지.
+    expect(SHARK_DART.SPEED).toBe(9)
+    // 귀소 구간(잔여시간 × 속도)이 짧아 먼 밀집점엔 다 못 닿는다. 이 경우
+    // 1.5s 만료 시 그 위치(밀집지역 근방)에서 폭발 — 의도된 사양이다.
+    const homingReach = (SHARK_DART.DURATION_SEC - SHARK_DART.HOMING_START_SEC) * SHARK_DART.SPEED
+    expect(homingReach).toBeCloseTo(4.05)
+  })
+
   it('방랑 웨이포인트는 항상 화면 경계 안(여백 1유닛)에 생성된다', () => {
     const bounds = { minX: -8, maxX: 8, minZ: -12, maxZ: 12 }
     let s = 7
