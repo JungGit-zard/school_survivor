@@ -161,14 +161,20 @@ export default function VirtualJoystick({ enabled = false, phase = 'playing', pl
     <div style={{ ...styles.wrap, left: view.cx, top: view.cy }}>
       <div style={{ ...styles.outer, width: OUTER_R * 2, height: OUTER_R * 2, borderRadius: OUTER_R }}>
         <div
+          data-testid="cat-paw-joystick-thumb"
+          aria-hidden="true"
           style={{
             ...styles.knob,
             width: KNOB_R * 2,
             height: KNOB_R * 2,
-            borderRadius: KNOB_R,
             transform: `translate(calc(-50% + ${view.knobX}px), calc(-50% + ${view.knobY}px))`,
           }}
-        />
+        >
+          <span style={{ ...styles.toe, ...styles.toeLeft }} />
+          <span style={{ ...styles.toe, ...styles.toeMidLeft }} />
+          <span style={{ ...styles.toe, ...styles.toeRight }} />
+          <span style={styles.pawPad} />
+        </div>
       </div>
     </div>
   )
@@ -198,9 +204,29 @@ const styles = {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    background: 'rgba(255,210,60,0.82)',
-    border: '2px solid rgba(255,255,255,0.6)',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
     pointerEvents: 'none',
+  },
+  toe: {
+    position: 'absolute',
+    width: 12,
+    height: 14,
+    borderRadius: '50%',
+    background: '#fff8ef',
+    border: '1.5px solid rgba(70,56,52,0.55)',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.28), inset 0 -2px 0 rgba(230,214,204,0.8)',
+  },
+  toeLeft: { left: 4, top: 9, transform: 'rotate(-22deg)' },
+  toeMidLeft: { left: 14, top: 3, transform: 'rotate(-8deg)' },
+  toeRight: { right: 4, top: 9, transform: 'rotate(22deg)' },
+  pawPad: {
+    position: 'absolute',
+    left: 10,
+    top: 20,
+    width: 24,
+    height: 19,
+    borderRadius: '48% 48% 44% 44%',
+    background: '#fff8ef',
+    border: '1.5px solid rgba(70,56,52,0.55)',
+    boxShadow: '0 3px 7px rgba(0,0,0,0.32), inset 0 -3px 0 rgba(230,214,204,0.85)',
   },
 }

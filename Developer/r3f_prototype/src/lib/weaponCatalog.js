@@ -86,7 +86,7 @@ export const WEAPON_CATALOG = {
   guidedMissile: {
     id: 'guidedMissile',
     label: '보조배터리 미사일',
-    base: { damage: 16, cooldown: 4000, lastFired: 0, range: 22, radius: 1.6 },
+    base: { damage: 16, cooldown: 4000, lastFired: 0, range: 7.34, radius: 1.6 },
     // 1차안 (메타프로그레션 정본 도입 시 확정).
     unlockConditions: [{ type: 'totalRuns', value: 5 }],
     minLevelToAppear: 4,

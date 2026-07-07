@@ -109,6 +109,7 @@ describe('VirtualJoystick mobile-only behavior', () => {
     expect(view.container.innerHTML).not.toBe('')
     expect(view.container.innerHTML).toContain('left: 110px')
     expect(view.container.innerHTML).toContain('top: 160px')
+    expect(view.container.querySelector('[data-testid="cat-paw-joystick-thumb"]')).not.toBeNull()
     expect(joystickDir.active).toBe(true)
     expect(joystickDir.x).toBeGreaterThan(0)
 

@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react'
+import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
@@ -30,15 +31,18 @@ afterEach(() => {
 })
 
 describe('TitleScreen lobby entry', () => {
-  it('keeps the hero title fill explicit under WebKit text stroke', () => {
+  it('keeps the hero title larger without the thin black stroke line', () => {
     const { container, cleanup } = renderTitleScreen()
 
     const title = Array.from(container.querySelectorAll('h1'))
-      .find((node) => node.textContent.includes('zombie school'))
+      .find((node) => node.textContent.includes('좀비학교'))
     const [accent] = title.querySelectorAll('span')
 
     expect(title.style.getPropertyValue('-webkit-text-fill-color')).toBe('rgb(248, 247, 242)')
     expect(accent.style.getPropertyValue('-webkit-text-fill-color')).toBe('rgb(255, 138, 55)')
+    expect(title.style.getPropertyValue('-webkit-text-stroke')).toBe('')
+    expect(readFileSync('src/components/TitleScreen.jsx', 'utf8'))
+      .toContain("fontSize: 'clamp(46.8px, 14.04vw, 65px)'")
 
     cleanup()
   })

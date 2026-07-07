@@ -273,7 +273,7 @@ export function GuidedMissile() {
     if (activeMissilesRef.current.length >= count) return
 
     // 발사 시점의 좀비 밀도 최고 지점 탐색
-    const target = findBestSplashTarget(w.range ?? 22, w.radius ?? 1.6)
+    const target = findBestSplashTarget(w.range ?? 7.34, w.radius ?? 1.6)
     if (!target) return
     lastFireRef.current = now
     emitSfx({ id: 'missileFire' })

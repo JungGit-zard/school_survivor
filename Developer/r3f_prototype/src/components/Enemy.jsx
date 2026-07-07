@@ -12,6 +12,7 @@ import { emitVfx } from '../lib/vfxEvents.js'
 import { createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { canE04FireProjectile } from '../lib/stage2ProjectileRules.js'
+import { getStageConfig } from '../lib/stageConfig.js'
 import ZombieMesh from './ZombieMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 import EnemyProjectileVisual from './EnemyProjectileVisual.jsx'
@@ -479,6 +480,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       if (_dir.length() > 0) updateRotation(_dir.x / _dir.length(), _dir.z / _dir.length())
 
       const elapsedSec = useGameStore.getState().elapsedMs / 1000
+      const stageConfig = getStageConfig(currentStageId)
+      const bossPressureStartSec = stageConfig.bossWarningSec ?? 120
+      const bossPressureEndSec = stageConfig.escapePortalSec ?? 150
       const canFire = currentStageId === 'stage2' && canE04FireProjectile({
         elapsedSec,
         ageMs: now - spawnedAtRef.current,
@@ -487,7 +491,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         lastFireElapsedMs: lastFireRef.current,
         nowMs: now,
         cooldownMs: stats.rangedCooldown,
-        bossPressure: elapsedSec >= 150 && elapsedSec < 240,
+        bossPressure: elapsedSec >= bossPressureStartSec && elapsedSec < bossPressureEndSec,
       })
 
       // ?ъ궗泥?諛쒖궗

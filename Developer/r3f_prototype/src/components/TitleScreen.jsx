@@ -158,10 +158,10 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
         </button>
       )}
       <div style={styles.content}>
-        <div style={styles.serviceName}>Escape! zombie school</div>
+        <div style={styles.serviceName}>탈출! 좀비학교🧟‍♀️</div>
         <h1 style={titleStyle}>
-          <span style={styles.titleAccent}>Escape!</span>
-          <span>zombie school</span>
+          <span style={styles.titleAccent}>탈출!</span>
+          <span>좀비학교🧟‍♀️</span>
         </h1>
         <p style={styles.subtitle}>감염된 학교에서 4분만 버티면, 교문이 열린다</p>
       </div>
@@ -353,13 +353,12 @@ const styles = {
     gap: 8,
     flexWrap: 'wrap',
     color: uiPalette.chalk,
-    fontSize: 'clamp(36px, 10.8vw, 50px)',
+    fontSize: 'clamp(46.8px, 14.04vw, 65px)',
     lineHeight: 0.96,
     fontWeight: uiType.weightHeavy,
     letterSpacing: 0,
     WebkitTextFillColor: uiPalette.chalk,
-    WebkitTextStroke: `1.25px ${uiPalette.ink}`,
-    textShadow: `0 2px 0 ${uiPalette.ink}, 0 0 18px rgba(255,170,80,0.45), 0 0 30px rgba(65,116,90,0.42)`,
+    textShadow: '0 0 18px rgba(255,170,80,0.45), 0 0 30px rgba(65,116,90,0.42)',
   },
   titleReduced: {
     margin: 0,
@@ -369,12 +368,12 @@ const styles = {
     gap: 8,
     flexWrap: 'wrap',
     color: uiPalette.chalk,
-    fontSize: 'clamp(36px, 10.8vw, 50px)',
+    fontSize: 'clamp(46.8px, 14.04vw, 65px)',
     lineHeight: 0.96,
     fontWeight: uiType.weightHeavy,
     letterSpacing: 0,
     WebkitTextFillColor: uiPalette.chalk,
-    textShadow: `0 3px 0 ${uiPalette.ink}`,
+    textShadow: 'none',
   },
   titleAccent: {
     color: uiPalette.warning,

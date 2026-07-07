@@ -8,6 +8,8 @@ import ZombieMesh from './ZombieMesh.jsx'
 import StudioTunedGroup, { getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'
 
+const TITLE_PLAYER_TARGET = [0.48, 0.08]
+
 export const TITLE_SCENE_DIRECTION = {
   player: {
     hair: 'pink',
@@ -23,7 +25,7 @@ export const TITLE_SCENE_DIRECTION = {
     infectionStreaks: 2,
     warningLights: 2,
     zombieStudents: 5,
-    largeZombieSilhouette: 1,
+    bossZombies: 2,
     matildaPursuers: 1,
     realForegroundResources: [
       'PlayerMesh',
@@ -42,6 +44,10 @@ function TitleCameraRig() {
     camera.lookAt(0.1, 0.48, -1.35)
   })
   return null
+}
+
+function faceTitlePlayerYaw(position) {
+  return Math.atan2(TITLE_PLAYER_TARGET[0] - position[0], TITLE_PLAYER_TARGET[1] - position[2])
 }
 
 function ToonBox({ position, rotation = [0, 0, 0], scale, color, emissive = 0.08 }) {
@@ -68,13 +74,13 @@ function TitlePlayer() {
     ref.current.position.x = 0.48 + Math.sin(t * 4.2) * 0.04
     ref.current.position.y = 0.88 + Math.sin(t * 8.4) * 0.055
     ref.current.position.z = 0.08 + Math.sin(t * 3.2) * 0.045
-    ref.current.rotation.x = -0.12 + Math.sin(t * 4.4) * 0.018
-    ref.current.rotation.y = Math.PI - 0.48 + Math.sin(t * 2.2) * 0.055
+    ref.current.rotation.x = -0.08 + Math.sin(t * 4.4) * 0.018
+    ref.current.rotation.y = 0.48 + Math.sin(t * 2.2) * 0.055
     ref.current.rotation.z = 0.05 + Math.sin(t * 7.8) * 0.025
   })
 
   return (
-    <group ref={ref} position={[0.48, 0.88, 0.08]} rotation={[-0.12, Math.PI - 0.48, 0.05]} scale={2}>
+    <group ref={ref} position={[0.48, 0.88, 0.08]} rotation={[-0.08, 0.48, 0.05]} scale={2}>
       <PlayerMesh />
     </group>
   )
@@ -82,17 +88,19 @@ function TitlePlayer() {
 
 function TitleZombie({ position, delay = 0, scale = 1, type = 'E01' }) {
   const ref = useRef()
+  const yaw = faceTitlePlayerYaw(position)
   useFrame((state) => {
     if (!ref.current) return
     const t = state.clock.elapsedTime + delay
     ref.current.position.x = position[0] + Math.sin(t * 1.2) * 0.07
     ref.current.position.y = position[1] + Math.sin(t * 2.1) * 0.035
     ref.current.rotation.x = 0.14 + Math.sin(t * 1.8) * 0.04
+    ref.current.rotation.y = yaw + Math.sin(t * 1.15) * 0.025
     ref.current.rotation.z = Math.sin(t * 1.5) * 0.055
   })
 
   return (
-    <group ref={ref} position={position} rotation={[0.14, 0, 0]} scale={scale}>
+    <group ref={ref} position={position} rotation={[0.14, yaw, 0]} scale={scale}>
       <ZombieMesh type={type} animPhase="charge" />
     </group>
   )
@@ -100,32 +108,37 @@ function TitleZombie({ position, delay = 0, scale = 1, type = 'E01' }) {
 
 function TitleMatildaPursuer({ position, delay = 0, scale = 1 }) {
   const ref = useRef()
+  const yaw = faceTitlePlayerYaw(position)
   useFrame((state) => {
     if (!ref.current) return
     const t = state.clock.elapsedTime + delay
     ref.current.position.x = position[0] + Math.sin(t * 1.05) * 0.05
     ref.current.position.y = position[1] + Math.sin(t * 1.9) * 0.035
+    ref.current.rotation.y = yaw + Math.sin(t * 1.1) * 0.018
     ref.current.rotation.z = Math.sin(t * 1.35) * 0.045
   })
 
   return (
-    <group ref={ref} position={position} rotation={[0.03, -0.08, 0]} scale={scale}>
-      <MatildaMesh movementPose />
+    <group ref={ref} position={position} rotation={[0, yaw, 0]} scale={scale}>
+      <MatildaMesh />
     </group>
   )
 }
 
-function LargeZombieSilhouette() {
+function TitleBossZombie({ type = 'B01', position, scale = 1.25, delay = 0 }) {
   const ref = useRef()
+  const yaw = faceTitlePlayerYaw(position)
   useFrame((state) => {
     if (!ref.current) return
-    ref.current.position.x = Math.sin(state.clock.elapsedTime * 0.7) * 0.08
-    ref.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.9) * 0.035
+    const t = state.clock.elapsedTime + delay
+    ref.current.position.x = position[0] + Math.sin(t * 0.7) * 0.08
+    ref.current.rotation.y = yaw + Math.sin(t * 0.95) * 0.018
+    ref.current.rotation.z = Math.sin(t * 0.9) * 0.035
   })
 
   return (
-    <group ref={ref} position={[0.05, 0.18, -4.0]} scale={1.25}>
-      <ZombieMesh type="B01" animPhase="charge" />
+    <group ref={ref} position={position} rotation={[0, yaw, 0]} scale={scale}>
+      <ZombieMesh type={type} animPhase="charge" />
     </group>
   )
 }
@@ -257,12 +270,13 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
       <WarningLight position={[-2.3, 0.03, -1.5]} delay={0} />
       <WarningLight position={[2.15, 0.03, 1.3]} delay={1.4} />
 
-      <LargeZombieSilhouette />
+      <TitleBossZombie type="B02" position={[-1.35, 0.26, -3.7]} scale={0.98} delay={0.9} />
+      <TitleBossZombie type="B01" position={[0.1, 0.25, -2.15]} scale={1.02} />
       <TitleZombie position={[-2.25, 0.22, -3.42]} delay={0.4} scale={0.58} type="E03" />
       <TitleZombie position={[2.0, 0.2, -3.18]} delay={1.6} scale={0.52} type="E02" />
       <TitleZombie position={[-1.95, 0.22, -1.55]} delay={0.2} scale={0.7} type="E01" />
       <TitleZombie position={[1.56, 0.2, -2.08]} delay={1.0} scale={0.62} type="E02" />
-      <TitleZombie position={[-0.42, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />
+      <TitleZombie position={[-0.92, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />
       <TitleMatildaPursuer position={[1.05, 0.36, -2.92]} delay={1.8} scale={1.44} />
       <TitlePlayer />
     </group>

@@ -126,7 +126,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: 10,
-    padding: '18px 14px 14px',
+    padding: '18px 14px calc(14px + env(safe-area-inset-bottom, 0px))',
     boxSizing: 'border-box',
     background: 'linear-gradient(180deg, #211c2b 0%, #131018 100%)',
     color: '#f8f7f2',

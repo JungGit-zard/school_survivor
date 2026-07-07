@@ -530,7 +530,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     return Math.max(1, Math.ceil(introSec - elapsedSec))
   }, [currentStageId, elapsed, phase, stageConfig.e04IntroSec])
 
-  // 마틸다 10초 카운트다운 (6:50 ~ 7:00)
+  // 마틸다 등장 전 카운트다운
   const matildaWarning = useMemo(() => {
     if (matildaSpawned || phase !== 'playing') return null
     const elapsedSec = elapsed / 1000

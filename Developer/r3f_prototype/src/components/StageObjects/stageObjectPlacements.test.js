@@ -8,6 +8,7 @@ import {
   UNCONSCIOUS_STUDENT_PLAYER_SCALE,
   UNCONSCIOUS_STUDENT_RAW_LENGTH,
 } from '../../lib/characterVisualScale.js'
+import { getStageBounds } from '../../lib/stageConfig.js'
 
 describe('stage object placements', () => {
   it('provides supported stage object props for both playable stages', () => {
@@ -109,8 +110,10 @@ describe('stage object placements', () => {
   })
 
   it('keeps Stage 2 desks near corridor edges instead of the center lane', () => {
+    const edgeStartX = getStageBounds('stage2').halfX - 2.5
+
     expect(
-      getStageObjectPlacements('stage2').every(({ position: [x] }) => Math.abs(x) >= 9.5)
+      getStageObjectPlacements('stage2').every(({ position: [x] }) => Math.abs(x) >= edgeStartX)
     ).toBe(true)
   })
 })

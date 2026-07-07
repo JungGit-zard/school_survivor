@@ -63,6 +63,12 @@ describe('UserRanking', () => {
     expect(html).toContain('826')
   })
 
+  it('keeps the bottom back button above mobile system UI safe areas', () => {
+    const html = renderToStaticMarkup(<UserRanking onBack={() => {}} entries={[]} />)
+
+    expect(html).toContain('env(safe-area-inset-bottom, 0px)')
+  })
+
   it('returns to the title screen from the back button', () => {
     const onBack = vi.fn()
     const container = document.createElement('div')

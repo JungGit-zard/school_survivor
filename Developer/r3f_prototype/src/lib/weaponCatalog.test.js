@@ -41,7 +41,7 @@ describe('weaponCatalog', () => {
   it('복원 2종(R6) Lv.1 스탯 정확히 일치', () => {
     expect(WEAPON_CATALOG.guidedMissile.base.damage).toBe(16)
     expect(WEAPON_CATALOG.guidedMissile.base.cooldown).toBe(4000)
-    expect(WEAPON_CATALOG.guidedMissile.base.range).toBe(22)
+    expect(WEAPON_CATALOG.guidedMissile.base.range).toBe(7.34)
     expect(WEAPON_CATALOG.guidedMissile.base.radius).toBe(1.6)
     expect(WEAPON_CATALOG.starlink.base.damage).toBe(28)
     expect(WEAPON_CATALOG.starlink.base.cooldown).toBe(3800)

@@ -75,12 +75,12 @@ export default function Game() {
       const gs = useGameStore.getState()
       const { elapsedMs } = gs
       const stageConfig = getStageConfig(currentStageId)
-      // 4:00 — 자동 클리어 대신 탈출구 등장
+      // 스테이지 설정 시간에 자동 클리어 대신 탈출구 등장
       if (!gs.escapePortalActive && elapsedMs >= stageConfig.escapePortalSec * 1000) {
         activateEscapePortal()
         emitSfx({ id: 'portalAppear' })
       }
-      // 7:00 — 마틸다 스폰
+      // 스테이지 설정 시간에 마틸다 스폰
       if (!gs.matildaSpawned && elapsedMs >= stageConfig.matildaSec * 1000) {
         spawnMatilda()
       }
@@ -142,7 +142,7 @@ export default function Game() {
       <Enemies />
       <ZombieInstanceLayer />
 
-      {/* ── Escape Portal (4:00 이후 등장) ── */}
+      {/* ── Escape Portal (스테이지 설정 시간 이후 등장) ── */}
       {escapePortalActive && <EscapePortal stageId={currentStageId} />}
     </>
   )

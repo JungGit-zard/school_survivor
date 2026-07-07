@@ -81,8 +81,9 @@ describe('late zombie spawn relief', () => {
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
     expect(getBurstEventsForStage('stage2').filter((event) => event.type === 'E04').map((event) => event.sec)).toEqual([72, 216])
     expect(getBurstEventsForStage('stage2').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
-    expect(getBurstEventsForStage('stage2').find((event) => event.sec === 150 && event.type === 'B02').count).toBe(1)
-    expect(getBurstEventsForStage('stage2').some((event) => event.sec === 150 && event.type === 'B01')).toBe(false)
+    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 120 && event.type === 'B01').count).toBe(1)
+    expect(getBurstEventsForStage('stage2').find((event) => event.sec === 120 && event.type === 'B02').count).toBe(1)
+    expect(getBurstEventsForStage('stage2').some((event) => event.sec === 120 && event.type === 'B01')).toBe(false)
   })
 
   it('halves stage 2 E04 wave pressure while keeping total spawn targets stable', () => {
@@ -243,6 +244,8 @@ describe('ranged enemy movement', () => {
     const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
     expect(source).toContain("activeProjectileCount: type === 'E04' ? getActiveE04ProjectileCount() : projectiles.length")
     expect(source).toContain('registerE04Projectile(projectileId)')
-    expect(source).toContain('bossPressure: elapsedSec >= 150 && elapsedSec < 240')
+    expect(source).toContain('const bossPressureStartSec = stageConfig.bossWarningSec ?? 120')
+    expect(source).toContain('const bossPressureEndSec = stageConfig.escapePortalSec ?? 150')
+    expect(source).toContain('bossPressure: elapsedSec >= bossPressureStartSec && elapsedSec < bossPressureEndSec')
   })
 })
