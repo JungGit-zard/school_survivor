@@ -70,10 +70,10 @@ describe('stage configuration registry', () => {
     })
   })
 
-  it('keeps Stage 2 corridor width while reducing vertical length by 20 percent', () => {
+  it('keeps Stage 2 corridor width while halving the vertical length again', () => {
     expect(getStageBounds('stage2')).toMatchObject({
       halfX: 7.5,
-      halfZ: 38.4,
+      halfZ: 19.2,
     })
   })
 

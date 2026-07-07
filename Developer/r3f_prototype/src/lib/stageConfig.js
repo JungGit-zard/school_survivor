@@ -45,7 +45,7 @@ export const STAGE_CONFIGS = {
     matildaSec: 180,
     // 복도형: 벽/바닥/포탈/이동경계 모두 이 값에서 파생.
     mapHalfX: 7.5,
-    mapHalfZ: 38.4,
+    mapHalfZ: 19.2,
     survivalMilestones: [
       { atMs: 48_000, gold: 2, label: '복도 적응 보너스' },
       { atMs: 144_000, gold: 4, label: '탄환 회피 보너스' },

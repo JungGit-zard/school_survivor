@@ -3,7 +3,7 @@ export const STAGE2_CORRIDOR_WALL = {
   height: 5.5,
   scale: 2 / 5,
   repeatX: 5,
-  bottomZ: -42.95,
+  bottomZ: -21.475,
   playerVisualStopInsetZ: 1.2,
 }
 
