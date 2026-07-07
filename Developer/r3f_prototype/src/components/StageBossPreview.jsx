@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { DEFAULT_STAGE_BOSS_PREVIEW, normalizeStageBossPreview } from '../lib/graphicsStudioConfig.js'
-import { EnemyVisual } from './Enemy.jsx'
+import { EnemyVisual, ENEMY_STATS, ENEMY_SIZE_MULTIPLIER } from './Enemy.jsx'
 
 const previewFrameStyle = {
   width: '100%',
@@ -16,9 +16,28 @@ const previewFrameStyle = {
 
 const BASE_ROT_X = 0.08
 const BASE_ROT_Y = -0.5
-const BASE_POS_Y = -1.25
 const BURST_MS = 600
 const PARALLAX_MAX = 0.12 // rad
+
+// EnemyVisual 내부 그룹 스케일 계수 (Enemy.jsx의 `cs * 0.333`와 동일)
+export const ENEMY_VISUAL_SCALE = 0.333
+
+// 얼굴(머리) 중간지점의 로컬 Y = ZombieMesh reg('head') 그룹 position.y.
+// 머리 블록/얼굴 텍스처의 기하 중심이라 '얼굴 중간지점' 앵커로 사용한다. 보스 타입별로 다르다.
+export const FACE_LOCAL_Y = Object.freeze({ B01: 0.88, B02: 0.92 })
+const DEFAULT_FACE_LOCAL_Y = 0.82 // 표준 좀비(E01~E06) 머리 그룹 Y
+
+// ortho 카메라는 rotation을 주지 않아 R3F가 lookAt(0,0,0)을 적용한다(원점 응시).
+// 그래서 화면 세로 중앙에 투영되는 월드 Y ≈ 0(카메라가 바라보는 원점)이다.
+// 얼굴 월드 Y를 0에 앵커하면 캔버스 높이/기종/zoom과 무관하게 세로 중앙 정렬이 고정된다
+// (핸드폰 기종이 바뀌어도 모델이 아래로 내려가는 드리프트 방지).
+// 얼굴 월드 Y = baseY + faceLocalY * previewScale, 이를 0으로 두면 baseY = -faceLocalY * previewScale.
+export function resolveBossPreviewBaseY(bossType) {
+  const stats = ENEMY_STATS[bossType] ?? ENEMY_STATS.B01
+  const previewScale = stats.scale * ENEMY_SIZE_MULTIPLIER * ENEMY_VISUAL_SCALE
+  const faceLocalY = FACE_LOCAL_Y[bossType] ?? DEFAULT_FACE_LOCAL_Y
+  return -faceLocalY * previewScale
+}
 
 // 모션 게이트: prefers-reduced-motion 또는 data-reduced-effects면 완전 정적.
 function motionAllowed() {
@@ -101,11 +120,14 @@ function ReactiveBoss({ framing, bossType, enabled, frozen, burstRef, parallaxRe
     if (active) invalidate() // 진행 중일 때만 다음 프레임 요청 → settle되면 demand 재개
   })
 
+  // 얼굴 중앙 앵커 기준 Y. panY는 그 위에서의 미세 오프셋으로 동작한다.
+  const baseY = resolveBossPreviewBaseY(bossType)
+
   return (
     <group
       ref={groupRef}
       rotation={[BASE_ROT_X, BASE_ROT_Y, 0]}
-      position={[framing.panX, BASE_POS_Y + framing.panY, 0]}
+      position={[framing.panX, baseY + framing.panY, 0]}
     >
       <EnemyVisual type={bossType} animPhase="normal" hp={1150} showHealthBar={false} frozen={frozen} />
     </group>

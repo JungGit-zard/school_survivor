@@ -7,6 +7,8 @@ describe('StageBossPreview', () => {
 
     expect(source).toContain('key={frame.zoom}')
     expect(source).toContain('camera={{ position: [0, 2.2, 5.5], zoom: frame.zoom }}')
-    expect(source).toContain('BASE_POS_Y + framing.panY')
+    // 얼굴 중앙 앵커: 보스 타입별 base Y를 계산해 panY를 그 위 오프셋으로 더한다.
+    expect(source).toContain('resolveBossPreviewBaseY')
+    expect(source).toContain('baseY + framing.panY')
   })
 })
