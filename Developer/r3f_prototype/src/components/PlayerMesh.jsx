@@ -54,10 +54,13 @@ export const PLAYER_MESH_LAYOUT = {
     lightLength: PLAYER_LANTERN_LIGHT_LENGTH,
     lightRadius: PLAYER_LANTERN_LIGHT_RADIUS,
   },
+  // 카메라가 틸트된 3/4 뷰라 투영에서 깊이(z)가 눌린다. 지오메트리를 미리 납작하게
+  // 만들지 않고 거의 둥근 원판으로 두어 화면상 자연스러운 타원이 되게 한다.
+  // lift 적용 후 월드 y≈0.04로 바닥면(0)·복도 오버레이(≤0.012)보다 확실히 위.
   floorShadow: {
-    position: [0, -1.22, 0.08],
-    scale: [0.92, 0.46, 1],
-    opacity: 0.46,
+    position: [0, -1.15, 0.04],
+    scale: [1.02, 0.94, 1],
+    opacity: 0.52,
   },
 }
 
