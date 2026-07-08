@@ -32,6 +32,7 @@ import eraserIconSrc from '../assets/weapon_icon/12_wea_eraser.png.png'
 import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
 import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
 import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.webp'
+import laidManPortraitSrc from '../assets/character/laid_man.webp'
 
 const GAMEOVER_TRANSITION_MS = 1000
 
@@ -435,8 +436,10 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     goldSession, goldTotal, recentMilestone,
     newlyUnlockedWeaponIds, levelUpChoiceSerial,
     escapePortalActive, matildaSpawned, bossBonus,
+    studentDialogue,
     clearMilestone, applyUpgrade, cheatAcquireWeapon, resumeFromLevelup,
     resetGame, togglePause, resumeGame, quitPausedRun, spawnMatilda,
+    closeStudentDialogue,
   } = useGameStore(useShallow((s) => ({
     player:               s.player,
     weapons:              s.weapons,
@@ -453,6 +456,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     escapePortalActive:   s.escapePortalActive,
     matildaSpawned:       s.matildaSpawned,
     bossBonus:            s.bossBonus,
+    studentDialogue:      s.studentDialogue,
     clearMilestone:       s.clearMilestone,
     applyUpgrade:         s.applyUpgrade,
     cheatAcquireWeapon:   s.cheatAcquireWeapon,
@@ -462,6 +466,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     resumeGame:           s.resumeGame,
     quitPausedRun:        s.quitPausedRun,
     spawnMatilda:         s.spawnMatilda,
+    closeStudentDialogue: s.closeStudentDialogue,
   })))
 
   const mins = String(Math.floor(elapsed / 60000)).padStart(2, '0')
@@ -598,6 +603,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         0%{opacity:0;backdrop-filter:grayscale(0);-webkit-backdrop-filter:grayscale(0)}
         100%{opacity:1;backdrop-filter:grayscale(1);-webkit-backdrop-filter:grayscale(1)}
       }
+      @keyframes studentDialoguePop { 0%{transform:scale(0);opacity:0.4} 70%{transform:scale(1.04)} 100%{transform:scale(1);opacity:1} }
     `
     // StrictMode에서 cleanup이 먼저 실행돼 style이 제거될 수 있으므로
     // 항상 교체(remove → append) 방식으로 주입한다.
@@ -697,7 +703,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         <span style={styles.goldNum}>{goldSession}</span>
       </div>
 
-      {(phase === 'playing' || phase === 'paused') && (
+      {(phase === 'playing' || (phase === 'paused' && pauseSource !== 'dialogue')) && (
         <div style={styles.topLeftControls}>
           <button type="button" style={styles.pauseButton} onClick={() => { emitSfx({ id: 'buttonClick' }); togglePause() }}>
           {phase === 'paused' ? '▶' : 'Ⅱ'}
@@ -816,7 +822,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         </div>
       )}
 
-      {phase === 'paused' && (
+      {phase === 'paused' && pauseSource !== 'dialogue' && (
         <div style={styles.overlay}>
           <div
             style={styles.pausePanel}
@@ -908,6 +914,31 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
             </div>
           </div>
           {resultDevTools}
+        </div>
+      )}
+
+      {/* 쓰러진 학생 대화창 — 화면 아무 곳이나 탭하면 닫고 게임 재개 */}
+      {studentDialogue && (
+        <div
+          data-testid="student-dialogue-catcher"
+          style={styles.dialogueCatcher}
+          onPointerDown={() => { emitSfx({ id: 'buttonClick' }); closeStudentDialogue() }}
+        >
+          <div style={styles.dialogueBox} role="dialog" aria-label="지친 학생 대화">
+            <div style={styles.dialoguePortraitFrame}>
+              <img
+                src={laidManPortraitSrc}
+                alt="쓰러진 학생 초상화"
+                draggable={false}
+                style={styles.dialoguePortrait}
+              />
+            </div>
+            <div style={styles.dialogueTextCol}>
+              <div style={styles.dialogueName}>[지친학생]</div>
+              <div style={styles.dialogueLine} aria-live="polite">{studentDialogue.line}</div>
+              <div style={styles.dialogueHint}>화면을 탭하면 계속</div>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -1735,5 +1766,81 @@ const styles = {
     color: uiPalette.mutedChalk,
     fontSize: 12,
     marginTop: 2,
+  },
+  // ── 쓰러진 학생 대화창 ──
+  dialogueCatcher: {
+    position: 'absolute',
+    inset: 0,
+    display: 'flex',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    padding: '0 12px',
+    paddingBottom: 'max(env(safe-area-inset-bottom), 20px)',
+    pointerEvents: 'auto',
+    cursor: 'pointer',
+    zIndex: 30,
+  },
+  dialogueBox: {
+    ...schoolPanel('dark'),
+    width: '100%',
+    maxWidth: 460,
+    boxSizing: 'border-box',
+    padding: '12px 14px',
+    display: 'flex',
+    alignItems: 'stretch',
+    gap: 12,
+    animation: 'studentDialoguePop 150ms ease-out',
+    transformOrigin: 'center bottom',
+  },
+  dialoguePortraitFrame: {
+    flexShrink: 0,
+    width: 72,
+    height: 72,
+    borderRadius: 8,
+    border: uiBorders.strong,
+    background: 'rgba(24,55,47,0.92)',
+    boxShadow: uiShadows.pressSmall,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    alignSelf: 'center',
+  },
+  dialoguePortrait: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'contain',
+    display: 'block',
+    userSelect: 'none',
+    filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))',
+  },
+  dialogueTextCol: {
+    flex: 1,
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    gap: 5,
+  },
+  dialogueName: {
+    color: uiPalette.reward,
+    fontSize: 13,
+    fontWeight: uiType.weightHeavy,
+    textShadow: `0 2px 0 ${uiPalette.ink}`,
+  },
+  dialogueLine: {
+    color: uiPalette.paperLight,
+    fontSize: 15,
+    fontWeight: 800,
+    lineHeight: 1.4,
+    wordBreak: 'keep-all',
+    overflowWrap: 'anywhere',
+  },
+  dialogueHint: {
+    color: uiPalette.mutedChalk,
+    fontSize: 11,
+    fontWeight: 700,
+    marginTop: 2,
+    opacity: 0.85,
   },
 }

@@ -122,7 +122,8 @@ export const useGameStore = create(
     growthMultiplier: buildGrowthMultiplier(_initialLevels),
     passiveVersion: 0,
     phase:       'playing',   // 'playing' | 'paused' | 'levelup' | 'gameover' | 'cleared'
-    pauseSource: null,        // 'manual' | 'auto' | null
+    pauseSource: null,        // 'manual' | 'auto' | 'dialogue' | null
+    studentDialogue: null,    // null | { line } — 쓰러진 학생 대화창 표시 상태
     elapsedMs:   0,
     currentStageId: DEFAULT_STAGE_ID,
     bossSpawned: false,
@@ -365,6 +366,19 @@ export const useGameStore = create(
       return { phase: 'playing', pauseSource: null }
     }),
 
+    // 쓰러진 학생 대화: playing일 때만 대화용으로 일시정지(pauseSource='dialogue')한다.
+    // 일반 일시정지 메뉴와 구분하기 위해 pauseSource로 분기 — HUD가 이 값으로 오버레이를 나눈다.
+    openStudentDialogue: (line) => set((s) => {
+      if (s.phase !== 'playing') return {}
+      return { phase: 'paused', pauseSource: 'dialogue', studentDialogue: { line } }
+    }),
+
+    // 대화용 일시정지일 때만 재개한다(일반 일시정지를 이 액션으로 풀지 않도록 방어).
+    closeStudentDialogue: () => set((s) => {
+      if (s.pauseSource !== 'dialogue') return {}
+      return { phase: 'playing', pauseSource: null, studentDialogue: null }
+    }),
+
     quitPausedRun: () => {
       const s = get()
       if (s.phase !== 'paused') return false
@@ -477,6 +491,7 @@ export const useGameStore = create(
         growthMultiplier: buildGrowthMultiplier(levels),
         phase:       'playing',
         pauseSource: null,
+        studentDialogue: null,
         elapsedMs:   0,
         currentStageId: getStageConfig(stageId).id,
         bossSpawned: false,

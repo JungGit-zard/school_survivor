@@ -11,6 +11,7 @@ import Enemies from './Enemies.jsx'
 import LunchItems from './LunchItems.jsx'
 import VFXLayer from './VFXLayer.jsx'
 import EscapePortal from './EscapePortal.jsx'
+import StudentDialogueTrigger from './StudentDialogueTrigger.jsx'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon, ChibikoWeapon, SharkMissileWeapon, StudentLanternWeapon } from './Weapons/index.js'
 import ZombieInstanceLayer from './ZombieInstanceLayer.jsx'
@@ -144,6 +145,9 @@ export default function Game() {
 
       {/* ── Escape Portal (스테이지 설정 시간 이후 등장) ── */}
       {escapePortalActive && <EscapePortal stageId={currentStageId} />}
+
+      {/* ── 쓰러진 학생 근접 대화 트리거(비주얼 없음) ── */}
+      <StudentDialogueTrigger />
     </>
   )
 }
