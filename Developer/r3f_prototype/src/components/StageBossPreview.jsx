@@ -40,12 +40,12 @@ export function resolveBossPreviewBaseY(bossType) {
 }
 
 // 보스별 크라운(머리 꼭대기) 높이 차이 보정.
-// B02는 올림머리(bun)+헤어플레이트라 크라운이 B01보다 훨씬 높다(크라운 높이비 ≈ 1.5:1).
-// 같은 zoom이면 B02 머리가 프레임 위로 잘리므로, 크라운 높이 비율로 zoom을 낮춰
-// 두 보스가 비슷한 상단 여백으로 채워지게 한다.
-// factor(B02) ≈ crownHeight(B01)/crownHeight(B02) ≈ 0.66 (상대 비율이라 절대 스케일 오차에 강건).
-// 기본 zoom 110 기준 B02 렌더 zoom ≈ 110×0.66 ≈ 73 → B02 bun도 B01과 비슷한 여백.
-const BOSS_PREVIEW_ZOOM_FACTOR = Object.freeze({ B01: 1, B02: 0.66 })
+// B02는 올림머리(bun)+헤어플레이트라 크라운이 B01보다 높아, 같은 zoom이면 bun이 프레임
+// 위로 잘린다. 목표는 두 카드의 보스가 "같은 크기"로 보이는 것 → B02를 B01과 최대한
+// 같은 zoom으로 두되, bun이 잘리지 않을 만큼만 살짝 낮춘다.
+// 라이브 실측(144px 프레임): B02 렌더 zoom ≈104(=110×0.95)에서 B01(110)과 크기가
+// 사실상 같으면서 bun 상단에 여백이 남는다. (0.66은 크기가 눈에 띄게 작아 부적합.)
+const BOSS_PREVIEW_ZOOM_FACTOR = Object.freeze({ B01: 1, B02: 0.95 })
 
 export function resolveBossPreviewZoom(baseZoom, bossType) {
   return baseZoom * (BOSS_PREVIEW_ZOOM_FACTOR[bossType] ?? 1)
