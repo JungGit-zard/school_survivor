@@ -13,7 +13,8 @@ const students = [
 
 describe('findStudentInRange', () => {
   it('반경 안의 학생 id를 반환한다', () => {
-    expect(findStudentInRange(0.5, 0.5, students, new Set())).toBe('a')
+    // (0.2,0.2)→a=[0,0,0] 거리 ~0.28 < 0.5 (학생 몸 위)
+    expect(findStudentInRange(0.2, 0.2, students, new Set())).toBe('a')
   })
 
   it('반경 밖이면 null을 반환한다', () => {
@@ -26,14 +27,18 @@ describe('findStudentInRange', () => {
   })
 
   it('반경 안에 여러 명이면 배열 순서상 첫 학생을 반환한다', () => {
-    // player (0,0,1): a 거리 1, c 거리 1 — 둘 다 반경 안, 배열 앞선 a 반환
-    expect(findStudentInRange(0, 1, students, new Set())).toBe('a')
+    // 두 학생을 반경 안에 배치: player (0,0,0.2) 기준 a=0.2, d=0.1 모두 <0.5 → 앞선 a
+    const near = [
+      { id: 'a', position: [0, 0, 0] },
+      { id: 'd', position: [0, 0, 0.3] },
+    ]
+    expect(findStudentInRange(0, 0.2, near, new Set())).toBe('a')
   })
 
   it('이미 말 건 학생(talkedIds)은 건너뛴다 — 런당 1회', () => {
     const talked = new Set(['a'])
     // a는 제외되고, 반경 안에 다른 학생 없으면 null
-    expect(findStudentInRange(0.3, 0.3, students, talked)).toBeNull()
+    expect(findStudentInRange(0.2, 0.2, students, talked)).toBeNull()
   })
 
   it('반경 경계값 처리: 정확히 반경이면 포함(<=)', () => {

@@ -1,7 +1,8 @@
 import { getStageObjectPlacements } from '../components/StageObjects/stageObjectPlacements.js'
 
-// 플레이어가 이 반경(월드 유닛) 안으로 들어오면 쓰러진 학생이 말을 건다.
-export const STUDENT_DIALOGUE_RADIUS = 1.2
+// 플레이어가 쓰러진 학생 몸 위(이 반경, 월드 유닛)에 올라서면(밟으면) 말을 건다.
+// 근처를 지나가는 정도가 아니라 학생 위에 완전히 올라섰을 때만 트리거되도록 작게 잡음.
+export const STUDENT_DIALOGUE_RADIUS = 0.5
 
 // 스테이지 배치에서 쓰러진 학생만 뽑아 { id, position } 목록으로 반환.
 // (근접 판정에 필요한 최소 정보만 — variant/rotation은 무관.)
