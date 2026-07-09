@@ -76,6 +76,43 @@ describe('AdminPage', () => {
     expect(loadAdminConfig().operations.cheatMenuButtonVisible).toBe(false)
   })
 
+  it('mirrors code burst spawn events in the wave control tab, sorted by time with boss highlighted', () => {
+    act(() => {
+      root.render(<AdminPage />)
+    })
+
+    const clickButton = (label) => {
+      const button = Array.from(container.querySelectorAll('button'))
+        .find((b) => b.textContent.includes(label))
+      act(() => {
+        button.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      })
+    }
+
+    // 웨이브 컨트롤 탭 → Stage 2 로 전환
+    clickButton('스테이지별 웨이브 컨트롤')
+    clickButton('Stage 2')
+
+    // 읽기전용 미러 안내 문구
+    expect(container.textContent).toContain('버스트 스폰(일회성)')
+    expect(container.textContent).toContain('게임 코드에서 자동 반영')
+
+    const rows = Array.from(container.querySelectorAll('[data-testid="burst-row"]'))
+    expect(rows.length).toBeGreaterThan(0)
+
+    // 시각 오름차순 정렬 검증
+    const secs = rows.map((row) => Number(row.getAttribute('data-sec')))
+    const sortedSecs = [...secs].sort((a, b) => a - b)
+    expect(secs).toEqual(sortedSecs)
+
+    // stage2 보스(B02)는 sec 120(2:00)에 '보스 등장'으로 강조 표기
+    const bossRow = rows.find((row) => row.textContent.includes('보스 등장'))
+    expect(bossRow).toBeTruthy()
+    expect(bossRow.getAttribute('data-sec')).toBe('120')
+    expect(bossRow.textContent).toContain('2:00')
+    expect(bossRow.textContent).toContain('보스')
+  })
+
   it('applies saved admin balance inputs to game stage and player startup config', () => {
     act(() => {
       root.render(<AdminPage />)

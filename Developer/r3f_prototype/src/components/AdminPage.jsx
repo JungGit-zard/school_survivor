@@ -7,6 +7,7 @@ import {
   saveAdminConfig,
 } from '../lib/adminConfig.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
+import { getBurstEventsForStage } from './Enemies.jsx'
 import {
   WAVE_ZOMBIE_TYPES,
   phaseToEditorEntry,
@@ -27,6 +28,12 @@ const ZOMBIE_LABELS = {
   E05: 'E05 돌진',
   E06: 'E06 거대',
 }
+
+const BOSS_TYPES = ['B01', 'B02']
+const isBossType = (type) => BOSS_TYPES.includes(type)
+// 버스트 좀비 라벨: 일반은 ZOMBIE_LABELS 재사용, 보스(B01/B02)는 '보스'.
+const burstTypeLabel = (type) => (isBossType(type) ? '보스' : (ZOMBIE_LABELS[type] ?? type))
+const formatMinSec = (sec) => `${secToMin(sec)}:${String(secToRemainder(sec)).padStart(2, '0')}`
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState(TAB_BALANCE)
@@ -316,6 +323,45 @@ function WaveControls({ draft, ensureWaveEntries, updateWaveEntry, updateWaveCou
       <p style={styles.note}>
         좀비 합계가 0이거나 끝 시각이 시작 이하인 웨이브는 무시됩니다. 시간이 겹치면 나중 시작 웨이브가 우선합니다.
       </p>
+
+      <BurstSpawnSection stageId={stageId} />
+    </div>
+  )
+}
+
+// ── 버스트 스폰(일회성) 읽기전용 미러 ────────────────────────────────────────
+// 게임 코드 상수(BURST_EVENTS / STAGE2_BURST_EVENTS)를 getBurstEventsForStage로
+// 그대로 읽어 시각순 렌더. 복제/수기 입력 없음 — 코드가 바뀌면 여기 자동 반영.
+function BurstSpawnSection({ stageId }) {
+  const events = useMemo(
+    () => [...getBurstEventsForStage(stageId)].sort((a, b) => a.sec - b.sec),
+    [stageId],
+  )
+
+  return (
+    <div style={styles.burstSection}>
+      <h3 style={styles.burstHeading}>버스트 스폰(일회성)</h3>
+      <p style={styles.burstSubtitle}>
+        이 목록은 게임 코드에서 자동 반영됩니다(읽기전용). 지속 웨이브는 위에서 편집.
+      </p>
+      <div style={styles.burstList}>
+        {events.map((event, index) => {
+          const boss = isBossType(event.type)
+          return (
+            <div
+              key={index}
+              data-testid="burst-row"
+              data-sec={event.sec}
+              style={styles.burstRow(boss)}
+            >
+              <span style={styles.burstTime}>{formatMinSec(event.sec)}</span>
+              <span style={styles.burstType}>{burstTypeLabel(event.type)}</span>
+              <span style={styles.burstCount}>×{event.count}</span>
+              {boss && <span style={styles.burstBossBadge}>보스 등장</span>}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -687,6 +733,26 @@ const styles = {
   waveZombieCheck: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#dfe8f5', whiteSpace: 'nowrap' },
   waveZombieCount: { width: 54, padding: '4px 6px', borderRadius: 6, border: '1px solid #2c3a4f', background: '#0f141d', color: '#eef4fd' },
   waveActions: { display: 'flex', gap: 8, marginTop: 12 },
+
+  // ── 버스트 스폰(일회성) 미러 ──
+  burstSection: { marginTop: 16, paddingTop: 12, borderTop: '1px solid #344052' },
+  burstHeading: { margin: '0 0 4px', fontSize: 15, color: '#dfe8f5' },
+  burstSubtitle: { margin: '0 0 10px', color: '#9caabc', fontSize: 11, lineHeight: 1.4 },
+  burstList: { display: 'flex', flexDirection: 'column', gap: 6, maxHeight: '32vh', overflowY: 'auto', paddingRight: 4 },
+  burstRow: (boss) => ({
+    display: 'flex', alignItems: 'center', gap: 12,
+    padding: '7px 12px', borderRadius: 8,
+    border: `1px solid ${boss ? '#c74e8a' : '#2c3a4f'}`,
+    background: boss ? '#2a1622' : '#161c27',
+  }),
+  burstTime: { fontSize: 13, fontWeight: 900, color: '#7ee4c8', minWidth: 46, fontVariantNumeric: 'tabular-nums' },
+  burstType: { fontSize: 13, color: '#dfe8f5', minWidth: 72 },
+  burstCount: { fontSize: 12, color: '#ffcf70', fontWeight: 800 },
+  burstBossBadge: {
+    marginLeft: 'auto', fontSize: 11, fontWeight: 900,
+    padding: '3px 10px', borderRadius: 999,
+    background: '#8a2f5f', color: '#ffe3f0', border: '1px solid #c74e8a',
+  },
 
   page: {
     height: '100vh',
