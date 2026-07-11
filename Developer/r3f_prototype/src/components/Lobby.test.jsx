@@ -41,7 +41,7 @@ describe('Lobby', () => {
 
     clickButtonByText(view.container, '입장하기')
     act(() => {
-      vi.advanceTimersByTime(360)
+      vi.advanceTimersByTime(720)
     })
     expect(onStartStage).toHaveBeenCalledWith('stage1')
 
@@ -185,7 +185,7 @@ describe('Lobby', () => {
     expect(onStartStage).not.toHaveBeenCalled()
 
     act(() => {
-      vi.advanceTimersByTime(360)
+      vi.advanceTimersByTime(720)
     })
 
     expect(onStartStage).toHaveBeenCalledWith('stage1')

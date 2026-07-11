@@ -25,7 +25,9 @@ const STAGE_UNLOCK_HINT = {
   stage2: 'Stage 1 클리어 시 열림',
 }
 
-const STAGE_ENTRY_MOTION_MS = 360
+// 입장 lunge+포효 모션(StageBossPreview ENTRY_MOTION_MS=820ms)이 화면에 확실히 보이고
+// 대부분 settle된 뒤 게임을 시작한다. 상한(~900ms) 안에서 답답하지 않게 720ms.
+const STAGE_ENTRY_MOTION_MS = 720
 
 function randomAmbientPosition() {
   return {

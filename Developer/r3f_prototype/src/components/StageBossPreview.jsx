@@ -16,7 +16,9 @@ const previewFrameStyle = {
 
 const BASE_ROT_X = 0.08
 const BASE_ROT_Y = -0.5
-const BURST_MS = 600
+// 입장(입장하기) lunge+포효 모션 지속. Lobby의 STAGE_ENTRY_MOTION_MS(게임 시작 지연)보다
+// 길게 잡아, 게임 시작 전에 lunge 피크·포효 흔들림이 화면에 확실히 보이고 대부분 settle되게 한다.
+const ENTRY_MOTION_MS = 820
 const PARALLAX_MAX = 0.12 // rad
 
 // EnemyVisual 내부 그룹 스케일 계수 (Enemy.jsx의 `cs * 0.333`와 동일)
@@ -75,6 +77,9 @@ function ReactiveBoss({ framing, bossType, enabled, frozen, burstRef, parallaxRe
   const burstStartRef = useRef(-Infinity)
   const tiltRef = useRef({ x: 0, y: 0 })
 
+  // 얼굴 중앙 앵커 기준 Y. panY/bobY는 그 위에서의 미세 오프셋으로 동작한다.
+  const baseY = resolveBossPreviewBaseY(bossType)
+
   // 래퍼 div의 포인터 핸들러가 온디맨드 프레임을 kick할 수 있도록 invalidate 노출.
   useEffect(() => {
     invalidateRef.current = invalidate
@@ -91,6 +96,7 @@ function ReactiveBoss({ framing, bossType, enabled, frozen, burstRef, parallaxRe
       g.scale.setScalar(1)
       g.rotation.x = BASE_ROT_X
       g.rotation.y = BASE_ROT_Y
+      g.position.y = baseY + framing.panY
       return
     }
 
@@ -105,11 +111,19 @@ function ReactiveBoss({ framing, bossType, enabled, frozen, burstRef, parallaxRe
 
     let scale = 1
     let yawNudge = 0
+    let pitchNudge = 0
+    let bobY = 0
     const be = now - burstStartRef.current
-    if (be >= 0 && be < BURST_MS) {
-      const p = be / BURST_MS
-      scale = 1 + 0.14 * Math.sin(p * Math.PI) // 부드러운 단일 스케일 펀치
-      yawNudge = 0.1 * Math.sin(p * Math.PI * 2) * (1 - p) // 감쇠하는 살짝의 고개 돌림
+    if (be >= 0 && be < ENTRY_MOTION_MS) {
+      const p = be / ENTRY_MOTION_MS
+      // 카메라 쪽으로 확 들이닥치는 lunge 엔벨로프: 앞부분(≈p0.34)에서 빠르게 피크 후 되돌아옴.
+      // ortho 프리뷰는 원근 확대가 없어, 스케일 급증이 "달려듦"의 핵심 신호가 된다.
+      const lunge = Math.sin(Math.PI * Math.pow(p, 0.62))
+      scale = 1 + 0.2 * lunge // 최대 ~1.2배 — 크라운이 프레임 밖으로 밀리지 않는 상한
+      pitchNudge = 0.16 * lunge // 상체를 카메라 쪽으로 숙이는 lunge 피치(양수=머리 앞으로)
+      // 포효하듯 좌우로 흔드는 고개 — 빠른 진동을 (1-p)^2로 이중 감쇠해 끝에서 잦아든다.
+      yawNudge = 0.18 * Math.sin(p * Math.PI * 5) * (1 - p) * (1 - p)
+      bobY = 0.07 * lunge // 살짝 솟구쳤다 가라앉는 상하 반동(lunge와 동기)
       active = true
     }
     g.scale.setScalar(scale)
@@ -126,14 +140,12 @@ function ReactiveBoss({ framing, bossType, enabled, frozen, burstRef, parallaxRe
       cur.y = target.y
     }
 
-    g.rotation.x = BASE_ROT_X + cur.x
+    g.rotation.x = BASE_ROT_X + cur.x + pitchNudge
     g.rotation.y = BASE_ROT_Y + cur.y + yawNudge
+    g.position.y = baseY + framing.panY + bobY // 반동(bobY)은 얼굴 중앙 앵커 위 미세 오프셋
 
     if (active) invalidate() // 진행 중일 때만 다음 프레임 요청 → settle되면 demand 재개
   })
-
-  // 얼굴 중앙 앵커 기준 Y. panY는 그 위에서의 미세 오프셋으로 동작한다.
-  const baseY = resolveBossPreviewBaseY(bossType)
 
   return (
     <group
@@ -174,7 +186,7 @@ export default function StageBossPreview({
     setActiveMotionToken(motionToken)
     burstRef.current += 1
     invalidateRef.current?.()
-    const timer = window.setTimeout(() => setActiveMotionToken(0), BURST_MS)
+    const timer = window.setTimeout(() => setActiveMotionToken(0), ENTRY_MOTION_MS)
     return () => window.clearTimeout(timer)
   }, [motionToken])
 
