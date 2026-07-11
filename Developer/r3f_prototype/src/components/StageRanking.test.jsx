@@ -35,8 +35,8 @@ describe('StageRanking', () => {
     expect(view.container.textContent).toContain('오늘 1위')
     expect(view.container.textContent).toContain('한국시간 당일 00:00:01 - 23:59:59')
     expect(view.container.textContent).toContain('일일왕')
-    expect(fetchStageRanking).toHaveBeenCalledWith('stage1', 'daily', { limit: 100 })
-    expect(fetchStageRanking).not.toHaveBeenCalledWith('stage1', 'weekly', { limit: 100 })
+    expect(fetchStageRanking).toHaveBeenCalledWith('stage1', 'daily', { limit: 30 })
+    expect(fetchStageRanking).not.toHaveBeenCalledWith('stage1', 'weekly', { limit: 30 })
     expect(view.container.textContent).not.toContain('주간랭킹')
     expect(view.container.textContent).not.toContain('주간왕')
 

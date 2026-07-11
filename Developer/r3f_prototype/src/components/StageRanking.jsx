@@ -10,7 +10,7 @@ export default function StageRanking({ stageId = 'stage1', onBack }) {
 
   useEffect(() => {
     let cancelled = false
-    fetchStageRanking(stageId, 'daily', { limit: 100 }).catch(() => []).then((daily) => {
+    fetchStageRanking(stageId, 'daily', { limit: 30 }).catch(() => []).then((daily) => {
       if (!cancelled) setRows(daily)
     })
     return () => { cancelled = true }
