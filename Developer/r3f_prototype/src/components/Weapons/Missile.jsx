@@ -254,6 +254,7 @@ export function GuidedMissile() {
     activeMissilesRef.current = activeMissilesRef.current.filter((m) => m.id !== id)
     setMissiles([...activeMissilesRef.current])
 
+    emitSfx({ id: 'missileHit', volume: 0.70 })
     applyRadialDamage({
       x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
       knockback: 3.2, knockbackMs: 120, deathStyleOverride: 'shatter5',

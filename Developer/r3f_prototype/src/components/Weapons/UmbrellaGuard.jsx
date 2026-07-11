@@ -197,6 +197,7 @@ export function UmbrellaGuardWeapon() {
     activePulsesRef.current = activePulsesRef.current.filter((item) => item.id !== id)
     setPulses([...activePulsesRef.current])
 
+    emitSfx({ id: 'umbrellaHit', volume: 0.62 })
     applyRadialDamage({
       x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
       knockback: 3.0, knockbackMs: blast.knockbackMs ?? 220,

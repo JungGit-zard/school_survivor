@@ -269,6 +269,7 @@ export function SharkMissileWeapon() {
     setMissiles([...activeMissilesRef.current])
     reportSharkMissileDebug('explode', blast)
 
+    emitSfx({ id: 'sharkHit', volume: 0.72 })
     applyRadialDamage({
       x: blast.x,
       z: blast.z,

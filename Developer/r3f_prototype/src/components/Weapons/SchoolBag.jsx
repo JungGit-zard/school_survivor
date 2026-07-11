@@ -133,14 +133,16 @@ export function SchoolBagSwing() {
       trailRef.current.material.opacity = 0.88 * swingPower
     }
 
-    pendingHitsRef.current.forEach((hitFn, enemyId) => {
+    pendingHitsRef.current.forEach((rb, enemyId) => {
       if (hitSetRef.current.has(enemyId)) return
+      if (!rb?._enemyHit || rb._enemyDead) return
       hitSetRef.current.add(enemyId)
-      hitFn(w.damage, {
+      rb._enemyHit(w.damage, {
         source: { x: playerPos.x, z: playerPos.z },
         knockback: 3.8,
         knockbackMs: 120,
       })
+      emitSfx({ id: 'rulerHit', volume: 0.58 })
     })
     pendingHitsRef.current.clear()
   })
@@ -182,7 +184,7 @@ export function SchoolBagSwing() {
           if (!swing) return
           const rb = other.rigidBody
           if (!rb?._enemyHit || hitSetRef.current.has(rb._enemyId)) return
-          pendingHitsRef.current.set(rb._enemyId, rb._enemyHit)
+          pendingHitsRef.current.set(rb._enemyId, rb)
         }}
       >
         <CuboidCollider args={[0.32, 0.20, 0.253]} sensor />

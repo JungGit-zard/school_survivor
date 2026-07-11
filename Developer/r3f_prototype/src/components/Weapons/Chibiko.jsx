@@ -146,6 +146,15 @@ function ChibikoPencilProjectile({ id, position, yaw, damage, speed, target, onE
   const hitRef = useRef(false)
   const ageRef = useRef(0)
 
+  const hitEnemy = (enemyRb) => {
+    if (hitRef.current || !enemyRb?._enemyHit || enemyRb._enemyDead) return false
+    hitRef.current = true
+    enemyRb._enemyHit(damage)
+    emitSfx({ id: 'chibikoHit', volume: 0.42 })
+    onExpire(id)
+    return true
+  }
+
   usePlayingFrame((_, delta) => {
     if (!rb.current || hitRef.current) return
     ageRef.current += delta
@@ -164,9 +173,7 @@ function ChibikoPencilProjectile({ id, position, yaw, damage, speed, target, onE
     const dz = t.z - p.z
     const len = Math.hypot(dx, dz)
     if (len <= 0.32) {
-      hitRef.current = true
-      target.rb._enemyHit(damage)
-      onExpire(id)
+      hitEnemy(target.rb)
       return
     }
     if (len < 0.001) return
@@ -190,12 +197,7 @@ function ChibikoPencilProjectile({ id, position, yaw, damage, speed, target, onE
       ccd
       sensor
       onIntersectionEnter={({ other }) => {
-        if (hitRef.current) return
-        const enemy = other.rigidBody?._enemyHit
-        if (!enemy) return
-        hitRef.current = true
-        enemy(damage)
-        onExpire(id)
+        hitEnemy(other.rigidBody)
       }}
     >
       <CuboidCollider args={[0.06, 0.06, 0.16]} sensor />

@@ -135,7 +135,8 @@ function StrikeWrapper({ id, x, z, damage, radius, onDone }) {
     // strike가 떨어진 직후(t≈0.3-0.5 구간)에 1회 데미지 적용.
     if (!damageDealtRef.current && ageRef.current >= STRIKE_DURATION_MS * 0.3) {
       damageDealtRef.current = true
-      applyRadialDamage({ x, z, radius, damage, knockback: 1.4, knockbackMs: 80 })
+      const hitCount = applyRadialDamage({ x, z, radius, damage, knockback: 1.4, knockbackMs: 80 })
+      if (hitCount > 0) emitSfx({ id: 'starlinkHit' })
     }
 
     force((n) => n + 1)

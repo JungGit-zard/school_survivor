@@ -1,4 +1,4 @@
-import { useRef, useMemo, useState, useCallback } from 'react'
+import { useRef, useMemo, useState, useCallback, useEffect } from 'react'
 import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
@@ -208,9 +208,16 @@ export function CompassBladeWeapon() {
   const lastHitRef = useRef(new Map())
   const hitStackRef = useRef(0)
   const respawnUntilRef = useRef(0)
+  const wasActiveRef = useRef(false)
   const [explosions, setExplosions] = useState([])
   const [isRespawning, setIsRespawning] = useState(false)
   const weapons = useGameStore((s) => s.weapons)
+  const compassActive = !!weapons.compassBlade?.active
+
+  useEffect(() => {
+    if (compassActive && !wasActiveRef.current) emitSfx({ id: 'compassFire' })
+    wasActiveRef.current = compassActive
+  }, [compassActive])
 
   const removeExplosion = useCallback((id) => {
     setExplosions((prev) => prev.filter((item) => item.id !== id))
@@ -288,6 +295,7 @@ export function CompassBladeWeapon() {
       lastHitRef.current.set(enemyId, nowMs)
       const t = rb.translation()
       rb._enemyHit(w.damage)
+      emitSfx({ id: 'compassFire', volume: 0.18 })
 
       const stackResult = resolveCompassBladeHitStack({
         currentStack: hitStackRef.current,

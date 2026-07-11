@@ -233,6 +233,11 @@ export function BoxCutterWeapon() {
         knockback: w.knockback ?? 1.8,
         knockbackMs: 80,
       })
+      emitSfx({
+        id: 'boxCutterHit',
+        volume: 0.52,
+        rate: 1.00 + Math.random() * 0.10,
+      })
     })
     setStrike({ startMs: now, facing, range: w.range ?? 1.275, width: w.width ?? 0.22 })
   })

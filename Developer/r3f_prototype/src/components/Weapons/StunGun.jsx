@@ -96,7 +96,7 @@ function ChainArcVisual({ id, fromX, fromZ, toX, toZ, startMs, onDone }) {
   )
 }
 
-function StunBoltProjectile({ id, startX, startZ, targetId, damage, hitSet, chainsLeft, onHit, onExpire }) {
+function StunBoltProjectile({ id, startX, startZ, targetId, damage, hitSet, chainsLeft, chainDepth, onHit, onExpire }) {
   const groupRef = useRef()
   const posRef   = useRef({ x: startX, z: startZ })
   const doneRef  = useRef(false)
@@ -117,8 +117,15 @@ function StunBoltProjectile({ id, startX, startZ, targetId, damage, hitSet, chai
 
     if (dist < 0.4) {
       doneRef.current = true
-      if (target._enemyHit) target._enemyHit(damage, { knockback: 2.2, knockbackMs: 80 })
-      onHit(id, startX, startZ, tt.x, tt.z, targetId, hitSet, chainsLeft)
+      if (target._enemyHit) {
+        target._enemyHit(damage, { knockback: 2.2, knockbackMs: 80 })
+        emitSfx({
+          id: 'stunGunHit',
+          volume: 0.55,
+          rate: 1 + Math.min(chainDepth, 2) * 0.06,
+        })
+      }
+      onHit(id, startX, startZ, tt.x, tt.z, targetId, hitSet, chainsLeft, chainDepth)
       return
     }
 
@@ -152,7 +159,7 @@ export function StunGunWeapon() {
   const removeArc = useCallback(id =>
     setArcs(prev => prev.filter(a => a.id !== id)), [])
 
-  const onBoltHit = useCallback((id, fromX, fromZ, hitX, hitZ, hitEnemyId, hitSet, chainsLeft) => {
+  const onBoltHit = useCallback((id, fromX, fromZ, hitX, hitZ, hitEnemyId, hitSet, chainsLeft, chainDepth) => {
     setBolts(prev => prev.filter(b => b.id !== id))
     setArcs(prev => [...prev, {
       id:      ++_chainArcId,
@@ -178,6 +185,7 @@ export function StunGunWeapon() {
       targetId:   nextId,
       hitSet,
       chainsLeft: chainsLeft - 1,
+      chainDepth: chainDepth + 1,
     }])
   }, [])
 
@@ -186,9 +194,6 @@ export function StunGunWeapon() {
     const now = clock.elapsedTime * 1000   // 다른 무기들과 동일한 타임소스
     if (now - lastFireRef.current < cooldown) return
     if (bolts.length > 0) return
-    lastFireRef.current = now
-    emitSfx({ id: 'stunGunFire' })
-
     let nearestId = null, nearestDist = Infinity
     enemyBodies.forEach((rb, eid) => {
       if (rb._enemyDead) return
@@ -197,6 +202,8 @@ export function StunGunWeapon() {
       if (d < nearestDist) { nearestDist = d; nearestId = eid }
     })
     if (!nearestId) return
+    lastFireRef.current = now
+    emitSfx({ id: 'stunGunFire' })
 
     const hitSet = new Set([nearestId])
     setBolts([{
@@ -206,6 +213,7 @@ export function StunGunWeapon() {
       targetId:   nearestId,
       hitSet,
       chainsLeft: chainCount - 1,
+      chainDepth: 0,
     }])
   })
 
@@ -222,6 +230,7 @@ export function StunGunWeapon() {
           damage={damage}
           hitSet={b.hitSet}
           chainsLeft={b.chainsLeft}
+          chainDepth={b.chainDepth}
           onHit={onBoltHit}
           onExpire={removeBolt}
         />

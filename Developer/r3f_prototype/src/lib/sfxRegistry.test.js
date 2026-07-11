@@ -1,5 +1,28 @@
-import { statSync } from 'node:fs'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { existsSync, statSync } from 'node:fs'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+const AUDITED_WEAPON_COOLDOWNS = {
+  pencilHit: 35,
+  rulerHit: 55,
+  boxCutterHit: 45,
+  tumblerHit: 90,
+  flaskHit: 100,
+  flaskTick: 140,
+  bellHit: 120,
+  stunGunHit: 55,
+  onigiriHit: 65,
+  chibikoHit: 40,
+  missileHit: 140,
+  sharkHit: 180,
+  starlinkHit: 90,
+  starlinkFall: 500,
+  starlinkExplosion: 650,
+  compassFire: 110,
+  compassHit: 180,
+  umbrellaHit: 140,
+  eraserHit: 160,
+  lanternTick: 120,
+}
 
 const howlPlay = vi.fn(() => 7)
 const howlRate = vi.fn()
@@ -31,6 +54,10 @@ describe('playSfx', () => {
       removeItem: vi.fn((key) => { delete storage[key] }),
       clear: vi.fn(() => { storage = {} }),
     })
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   it('plays Matilda spawn through the replaced audio asset', async () => {
@@ -72,6 +99,53 @@ describe('playSfx', () => {
     expect(howlConfigs[1].src).toEqual(['/sfx/weapons/starlinkExplosion.ogg', '/sfx/weapons/starlinkExplosion.mp3'])
     expect(statSync(new URL('../../public/sfx/weapons/starlinkFall.ogg', import.meta.url)).size).toBeGreaterThan(1000)
     expect(statSync(new URL('../../public/sfx/weapons/starlinkExplosion.ogg', import.meta.url)).size).toBeGreaterThan(1000)
+  })
+
+  it('registers flask and lantern ticks as aliases of the short Chibiko hit asset', async () => {
+    const { SOUND_MAP } = await import('./sfxRegistry.js')
+
+    expect(SOUND_MAP.flaskTick).toBe('/sfx/weapons/chibikoHit.ogg')
+    expect(SOUND_MAP.lanternTick).toBe('/sfx/weapons/chibikoHit.ogg')
+  })
+
+  it('keeps every registered OGG and MP3 fallback path backed by a public asset', async () => {
+    const { SOUND_MAP } = await import('./sfxRegistry.js')
+
+    for (const [id, oggPath] of Object.entries(SOUND_MAP)) {
+      const mp3Path = oggPath.replace(/\.ogg$/, '.mp3')
+      const oggUrl = new URL(`../../public${oggPath}`, import.meta.url)
+      const mp3Url = new URL(`../../public${mp3Path}`, import.meta.url)
+
+      expect(existsSync(oggUrl), `${id} OGG asset: ${oggPath}`).toBe(true)
+      expect(existsSync(mp3Url), `${id} MP3 asset: ${mp3Path}`).toBe(true)
+    }
+  })
+
+  it('publishes every audited weapon cooldown as read-only data', async () => {
+    const { POLYPHONY_COOLDOWN } = await import('./sfxRegistry.js')
+
+    expect(POLYPHONY_COOLDOWN).toEqual(expect.objectContaining(AUDITED_WEAPON_COOLDOWNS))
+    expect(Object.isFrozen(POLYPHONY_COOLDOWN)).toBe(true)
+  })
+
+  it('suppresses each audited weapon sound at duration - 1 and allows it at duration', async () => {
+    const now = vi.spyOn(performance, 'now')
+    const { playSfx } = await import('./sfxRegistry.js')
+
+    for (const [id, duration] of Object.entries(AUDITED_WEAPON_COOLDOWNS)) {
+      const playsBefore = howlPlay.mock.calls.length
+      now.mockReturnValue(0)
+      playSfx(id)
+      expect(howlPlay.mock.calls.length, `${id} initial`).toBe(playsBefore + 1)
+
+      now.mockReturnValue(duration - 1)
+      playSfx(id)
+      expect(howlPlay.mock.calls.length, `${id} duration - 1`).toBe(playsBefore + 1)
+
+      now.mockReturnValue(duration)
+      playSfx(id)
+      expect(howlPlay.mock.calls.length, `${id} duration`).toBe(playsBefore + 2)
+    }
   })
 
   it('applies saved studio volume and rate tuning immediately on playback', async () => {

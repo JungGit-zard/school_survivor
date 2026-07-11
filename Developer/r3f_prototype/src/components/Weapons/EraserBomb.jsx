@@ -126,6 +126,7 @@ export function EraserBombWeapon() {
     activeErasersRef.current = activeErasersRef.current.filter((item) => item.id !== eid)
     setErasers([...activeErasersRef.current])
 
+    emitSfx({ id: 'eraserHit', volume: 0.66 })
     applyRadialDamage({
       x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
       knockback: 2.5, knockbackMs: 120, deathStyleOverride: 'shatter5',

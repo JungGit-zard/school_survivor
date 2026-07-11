@@ -7,7 +7,7 @@ import { Howl } from 'howler'
 // ── 사운드 맵 ────────────────────────────────────────────────────────────────
 // 파일 위치: public/sfx/<category>/<id>.mp3
 export const SOUND_MAP = {
-  // ── 무기 발사음 (14종) ──────────────────────────────────────────────────────
+  // ── 무기 발사음 (18 ID) ────────────────────────────────────────────────────
   pencilFire:     '/sfx/weapons/pencilFire.ogg',
   rulerFire:      '/sfx/weapons/rulerFire.ogg',
   boxCutterFire:  '/sfx/weapons/boxCutterFire.ogg',
@@ -27,7 +27,7 @@ export const SOUND_MAP = {
   sharkFire:      '/sfx/weapons/sharkFire.ogg',
   lanternFire:    '/sfx/weapons/lanternFire.ogg',
 
-  // ── 무기 타격음 (14종) ──────────────────────────────────────────────────────
+  // ── 무기 타격음 (15 hit ID + 2 tick aliases) ───────────────────────────────
   pencilHit:      '/sfx/weapons/pencilHit.ogg',
   rulerHit:       '/sfx/weapons/rulerHit.ogg',
   boxCutterHit:   '/sfx/weapons/boxCutterHit.ogg',
@@ -43,6 +43,8 @@ export const SOUND_MAP = {
   eraserHit:      '/sfx/weapons/eraserHit.ogg',
   chibikoHit:     '/sfx/weapons/chibikoHit.ogg',
   sharkHit:       '/sfx/weapons/sharkHit.ogg',
+  flaskTick:      '/sfx/weapons/chibikoHit.ogg',
+  lanternTick:    '/sfx/weapons/chibikoHit.ogg',
 
   // ── 플레이어 ─────────────────────────────────────────────────────────────────
   playerHit:      '/sfx/player/playerHit.ogg',
@@ -97,12 +99,32 @@ const _failed = new Set()
 // 동시 다발 사망 시 같은 사운드가 같은 프레임에 여러 번 울리는 걸 막는 쿨다운 맵.
 // 한 프레임(~16ms) 안에 같은 ID가 반복 emit돼도 1회만 재생.
 const _lastPlayed = {}
-const POLYPHONY_COOLDOWN = {
+export const POLYPHONY_COOLDOWN = Object.freeze({
   zombieDeath:      50,
   zombieHeavyDeath: 50,
   playerHit:        80,
   coinCollect:      40,
-}
+  pencilHit:        35,
+  rulerHit:         55,
+  boxCutterHit:     45,
+  tumblerHit:       90,
+  flaskHit:         100,
+  flaskTick:        140,
+  bellHit:          120,
+  stunGunHit:       55,
+  onigiriHit:       65,
+  chibikoHit:       40,
+  missileHit:       140,
+  sharkHit:         180,
+  starlinkHit:      90,
+  starlinkFall:     500,
+  starlinkExplosion: 650,
+  compassFire:      110,
+  compassHit:       180,
+  umbrellaHit:      140,
+  eraserHit:        160,
+  lanternTick:      120,
+})
 
 const AUTH_OVERLAY_ALLOWED_SFX = new Set([
   'buttonClick',
@@ -164,7 +186,7 @@ export function playSfx(id, volume = 1, options = {}) {
   const cooldown = POLYPHONY_COOLDOWN[id] ?? 0
   if (cooldown > 0) {
     const now = performance.now()
-    if (_lastPlayed[id] && now - _lastPlayed[id] < cooldown) return
+    if (Object.hasOwn(_lastPlayed, id) && now - _lastPlayed[id] < cooldown) return
     _lastPlayed[id] = now
   }
 

@@ -77,6 +77,11 @@ export function TumblerOrbit() {
         knockbackMs: 220,
         source: { x: playerPos.x, z: playerPos.z },
       })
+      emitSfx({
+        id: 'tumblerHit',
+        volume: 0.35 + Math.random() * 0.10,
+        rate: 0.90 + Math.random() * 0.15,
+      })
     })
   })
 

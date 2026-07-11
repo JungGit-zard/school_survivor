@@ -133,7 +133,8 @@ function ChemicalZone({ id, x, z, radius, durationMs, tickDamage, onDone }) {
     tickTimerRef.current += delta * 1000
     if (tickTimerRef.current >= ZONE_TICK_MS) {
       tickTimerRef.current -= ZONE_TICK_MS
-      applyRadialDamage({ x, z, radius, damage: tickDamage, knockback: 0, knockbackMs: 0 })
+      const hitCount = applyRadialDamage({ x, z, radius, damage: tickDamage, knockback: 0, knockbackMs: 0 })
+      if (hitCount > 0) emitSfx({ id: 'flaskTick', volume: 0.18 })
     }
 
     // 표면 일렁임 + 종료 직전 페이드아웃
@@ -209,6 +210,7 @@ export function ScienceFlaskSplash() {
     activeFlasksRef.current = activeFlasksRef.current.filter((item) => item.id !== id)
     setFlasks([...activeFlasksRef.current])
 
+    emitSfx({ id: 'flaskHit', volume: 0.65 })
     applyRadialDamage({
       x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
       knockback: 2.8, knockbackMs: 100,

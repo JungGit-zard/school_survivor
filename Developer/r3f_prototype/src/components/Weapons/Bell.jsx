@@ -203,10 +203,11 @@ export function BellShockwave() {
     emitSfx({ id: 'bellFire' })
 
     const radius = w.radius ?? 1.7
-    applyRadialDamage({
+    const hitCount = applyRadialDamage({
       x: playerPos.x, z: playerPos.z, radius, damage: w.damage,
       knockback: 4.8, knockbackMs: 180,
     })
+    if (hitCount > 0) emitSfx({ id: 'bellHit', volume: 0.45 })
 
     setPulses((prev) => [...prev, { id: ++_bellPulseId, startMs: nowMs, radius }])
   })

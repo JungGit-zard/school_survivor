@@ -155,9 +155,15 @@ function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, boun
     const dist = Math.hypot(dx, dz)
 
     if (dist < 0.30) {
+      const hitIndex = maxBounces - bouncesRef.current
       target.rb._enemyHit(damage, {
         source: { x: p.x, z: p.z },
         knockback: 3.2, knockbackMs: 90,
+      })
+      emitSfx({
+        id: 'onigiriHit',
+        volume: 0.50,
+        rate: 0.96 + Math.min(hitIndex, 2) * 0.06,
       })
       bouncesRef.current--
       p.x = t.x; p.z = t.z

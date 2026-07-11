@@ -57,6 +57,11 @@ function Projectile({ id, position, yaw, damage, speed, pierce, target, onExpire
     if (hitEnemyIds.current.has(eid)) return false
     hitEnemyIds.current.add(eid)
     enemyRb._enemyHit(damage)
+    emitSfx({
+      id: 'pencilHit',
+      volume: 0.48 + Math.random() * 0.12,
+      rate: 0.94 + Math.random() * 0.14,
+    })
     hitsLeftRef.current -= 1
     if (hitsLeftRef.current <= 0) onExpire(id)
     return true

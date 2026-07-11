@@ -168,7 +168,13 @@ export function StudentLanternWeapon() {
         dirX: playerFacing.x, dirZ: playerFacing.z,
         length, width, baseWidth, damage: w.damage ?? 0.6,
       })
-      if (hits > 0) emitSfx({ id: 'pencilHit' })
+      if (hits > 0) {
+        emitSfx({
+          id: 'lanternTick',
+          volume: 0.20 + Math.random() * 0.05,
+          rate: 0.82 + Math.random() * 0.12,
+        })
+      }
     }
   })
 
