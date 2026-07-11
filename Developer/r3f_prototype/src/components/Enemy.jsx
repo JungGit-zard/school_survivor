@@ -2,7 +2,7 @@
 import { useFrame, useLoader } from '@react-three/fiber'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import * as THREE from 'three'
-import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.svg'
+import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.png'
 import { enemyBodies, playerPos } from '../lib/refs.js'
 import { getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat, inflateScale, outlineMat, toonMat } from '../lib/toon.js'
 import { useGameStore } from '../store/useGameStore.js'
@@ -39,7 +39,32 @@ function _applyRotation(groupRef, dx, dz, turnRate = 0.12) {
 export const ENEMY_SIZE_MULTIPLIER = 4 / 3
 const BASE_COL = [0.14, 0.26, 0.10]
 const PLAYER_CONTACT_HALF_EXTENT = 0.136
-const SPAWN_SMOKE_DURATION_MS = 420
+export const SPAWN_SMOKE_DURATION_MS = 560
+export const SPAWN_SMOKE_START_SCALE = 0.62
+export const SPAWN_SMOKE_END_SCALE = 1.12
+export const ENEMY_SPAWN_REVEAL_DELAY_MS = 320
+export const ENEMY_SPAWN_SFX_COOLDOWN_MS = 110
+
+let _lastEnemySpawnSfxAt = Number.NEGATIVE_INFINITY
+
+export function resetEnemySpawnSfxGateForTest() {
+  _lastEnemySpawnSfxAt = Number.NEGATIVE_INFINITY
+}
+
+export function getEnemySpawnSfx(type, isMatilda = false) {
+  if (isMatilda) return { id: 'matildaSpawn', volume: 0.72 }
+  if (type === 'B01' || type === 'B02') return { id: 'bossSpawn', volume: 0.78 }
+  return { id: 'bossSpawn', volume: 0.28 }
+}
+
+function emitEnemySpawnSfx(type, isMatilda = false) {
+  const now = performance.now()
+  const sfx = getEnemySpawnSfx(type, isMatilda)
+  const isBossLike = isMatilda || type === 'B01' || type === 'B02'
+  if (!isBossLike && now - _lastEnemySpawnSfxAt < ENEMY_SPAWN_SFX_COOLDOWN_MS) return
+  _lastEnemySpawnSfxAt = now
+  emitSfx({ id: sfx.id, volume: sfx.volume })
+}
 
 export function getBodyContactDistance(stats) {
   const enemyHalfExtent = Math.max(BASE_COL[0], BASE_COL[2]) * (stats.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
@@ -55,7 +80,7 @@ export function getChargeHitDistance(stats, isMatilda = false) {
 // XP 媛믪? 援먭낵??30% ?쒕엻瑜좎쓣 蹂댁젙????3.3諛곕줈 梨낆젙 (Planner/B.寃뚯엫湲고쉷,諛몃윴??援ы쁽/B-1 罹먮┃???깆옣,?λ젰移??낃렇?덉씠??援ъ“ 援ы쁽/Rewards_Drops/dual_drop_system_2026-05-08.md 짠7-2).
 export const ENEMY_STATS = {
   E01: { hp: 8,    speed: 0.475, damage: 8,  scale: 1.00, xp: 6,  contactDist: 0.28 },
-  E02: { hp: 70,   speed: 0.55, damage: 14, scale: 1.40, xp: 15, contactDist: 0.36 },
+  E02: { hp: 70,   speed: 0.385, damage: 14, scale: 1.40, xp: 15, contactDist: 0.36 },
   E03: { hp: 14,   speed: 1.1,  damage: 6,  scale: 0.75, xp: 5,  contactDist: 0.22 },
   E04: { hp: 32,   speed: 0.45, damage: 8,  scale: 0.90, xp: 10, contactDist: 0.26,
          ranged: true, rangedCooldown: 2200, rangedDmg: 8, rangedSpeed: 1.9,
@@ -276,7 +301,9 @@ function SpawnSmokeEffect({ position, visualScale }) {
     if (!sprite) return
     const t = Math.min(1, (performance.now() - bornAtRef.current) / SPAWN_SMOKE_DURATION_MS)
     const ease = 1 - (1 - t) * (1 - t)
-    const size = visualScale * (1.1 + ease * 1.25)
+    const size = visualScale * (
+      SPAWN_SMOKE_START_SCALE + ease * (SPAWN_SMOKE_END_SCALE - SPAWN_SMOKE_START_SCALE)
+    )
     sprite.scale.set(size, size, 1)
     sprite.position.y = position[1] + visualScale * (1.0 + t * 0.32)
     material.opacity = 1 - t
@@ -304,6 +331,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
   const [hp, setHp]           = useState(stats.hp)
   const [hitFlash, setHitFlash] = useState(false)
+  const [spawnRevealed, setSpawnRevealed] = useState(false)
   const hitFlashRef           = useRef(false)  // ref mirror for instanced renderer
   const hpRef                 = useRef(stats.hp)
   const useInstanced = !isMatilda && INSTANCED_TYPES.has(type)
@@ -330,6 +358,17 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const currentStageId = useGameStore((s) => s.currentStageId)
 
   useEffect(() => {
+    setSpawnRevealed(false)
+    spawnedAtRef.current = performance.now()
+    emitEnemySpawnSfx(type, isMatilda)
+    const revealTimer = setTimeout(() => {
+      spawnedAtRef.current = performance.now()
+      setSpawnRevealed(true)
+    }, ENEMY_SPAWN_REVEAL_DELAY_MS)
+    return () => clearTimeout(revealTimer)
+  }, [id, type, isMatilda])
+
+  useEffect(() => {
     projectilesRef.current = projectiles
   }, [projectiles])
 
@@ -339,6 +378,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   }, [type])
 
   useEffect(() => {
+    if (!spawnRevealed) return
     // Registry registration must happen regardless of rb.current — the visual
     // layer only needs spawn pos/type, not the physics body.
     if (useInstanced) {
@@ -418,7 +458,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       enemyBodies.delete(id)
       if (useInstanced) zombieVisualRegistry.unregister(id)
     }
-  }, [id, onDeath, spawnPos, stats.xp, type, cs, useInstanced])
+  }, [id, onDeath, spawnPos, stats.xp, type, cs, useInstanced, spawnRevealed])
 
   const expireProjectile = useCallback((pid) => {
     if (type === 'E04') unregisterE04Projectile(pid)
@@ -426,7 +466,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   }, [type])
 
   useFrame((_, delta) => {
-    if (!rb.current || dead.current || phase !== 'playing') return
+    if (!spawnRevealed || !rb.current || dead.current || phase !== 'playing') return
 
     const t = rb.current.translation()
     _pos.set(t.x, t.y, t.z)
@@ -599,21 +639,23 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
   return (
     <>
-      <RigidBody
-        ref={rb}
-        type="dynamic"
-        position={spawnPos}
-        lockRotations
-        linearDamping={8}
-        colliders={false}
-      >
-        <CuboidCollider args={colArgs} />
-        <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} isMatilda={isMatilda} />
-      </RigidBody>
       <SpawnSmokeEffect position={spawnPos} visualScale={cs * 0.333} />
+      {spawnRevealed && (
+        <RigidBody
+          ref={rb}
+          type="dynamic"
+          position={spawnPos}
+          lockRotations
+          linearDamping={8}
+          colliders={false}
+        >
+          <CuboidCollider args={colArgs} />
+          <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} isMatilda={isMatilda} />
+        </RigidBody>
+      )}
 
       {/* E04 ?ъ궗泥?*/}
-      {projectiles.map((p) => (
+      {spawnRevealed && projectiles.map((p) => (
         <EnemyProjectile key={p.id} {...p} onExpire={expireProjectile} />
       ))}
     </>

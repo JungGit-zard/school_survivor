@@ -1,9 +1,12 @@
 // 어드민 '스테이지별 웨이브 컨트롤' 변환 로직 (순수 함수 — import 없음).
 //
-// 편집 모델(entry): { start, end, bossPhase, counts: { E01: n, ... } }
+// 편집 모델(entry): { start, end, counts: { E01: n, ... } }
 //   — "몇 분 몇 초에 무슨 좀비가 얼마나"라는 운영자 멘탈 모델.
-// 엔진 모델(phase): { start, end, target, weights, bossPhase }
+// 엔진 모델(phase): { start, end, target, weights }
 //   — Enemies.jsx 유지 스폰 루프가 소비하는 형태.
+//
+// 보스 구간(bossPhase)은 저장하지 않는다 — 보스 등장 시각(lib/burstEvents.js)에서
+// 파생하므로 편집/보존 대상이 아니다.
 //
 // counts → phase: target = 합계, weights = count/합계.
 // phase → counts: count = round(target × weight) (기본 타임라인을 편집 시작점으로
@@ -29,7 +32,6 @@ export function phaseToEditorEntry(phase) {
   return {
     start: toInt(phase?.start),
     end: toInt(phase?.end),
-    bossPhase: !!phase?.bossPhase,
     counts,
   }
 }
@@ -47,9 +49,7 @@ export function editorEntryToPhase(entry) {
     const c = Math.max(0, toInt(entry?.counts?.[type]))
     if (c > 0) weights[type] = c / target
   }
-  const phase = { start, end, target, weights }
-  if (entry?.bossPhase) phase.bossPhase = true
-  return phase
+  return { start, end, target, weights }
 }
 
 // 편집 리스트 정리: 숫자 강제·클램프·시작시각 순 정렬. UI 입력 직후 호출.
@@ -63,7 +63,6 @@ export function normalizeWaveEntries(list) {
     return {
       start: clamp(toInt(entry?.start), 0, WAVE_TIME_MAX_SEC),
       end: clamp(toInt(entry?.end), 0, WAVE_TIME_MAX_SEC),
-      bossPhase: !!entry?.bossPhase,
       counts,
     }
   })

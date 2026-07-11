@@ -37,10 +37,10 @@ export const STAGE_CONFIGS = {
     durationSec: STAGE_DURATION_SEC,
     clearRecordKey: 'stage2Clears',
     bestRecordKey: 'stage2BestSurvivalSec',
-    bossWarningSec: 120,
+    bossWarningSec: 180,
     bossType: 'B02',
     e04IntroSec: 72,
-    escapePortalSec: 150,
+    escapePortalSec: 240,
     matildaWarningSec: 170,
     matildaSec: 180,
     // 복도형: 벽/바닥/포탈/이동경계 모두 이 값에서 파생.

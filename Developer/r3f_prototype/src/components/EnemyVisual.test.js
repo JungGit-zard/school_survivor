@@ -1,6 +1,18 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { CHARGE_CUE_LABEL, CHARGE_CUE_LAYOUT, ENEMY_SIZE_MULTIPLIER, ENEMY_STATS, getBodyContactDistance, getChargeHitDistance } from './Enemy.jsx'
+import {
+  CHARGE_CUE_LABEL,
+  CHARGE_CUE_LAYOUT,
+  ENEMY_SIZE_MULTIPLIER,
+  ENEMY_SPAWN_REVEAL_DELAY_MS,
+  ENEMY_STATS,
+  SPAWN_SMOKE_END_SCALE,
+  SPAWN_SMOKE_START_SCALE,
+  SPAWN_SMOKE_DURATION_MS,
+  getBodyContactDistance,
+  getChargeHitDistance,
+  getEnemySpawnSfx,
+} from './Enemy.jsx'
 
 describe('Enemy charge warning cue', () => {
   it('only lets Matilda deal charge damage at the normal body contact distance', () => {
@@ -46,16 +58,28 @@ describe('Enemy charge warning cue', () => {
     expect(source).not.toContain('GoSpeechBubble')
   })
 
-  it('shows a camera-facing image smoke puff when an enemy spawns', () => {
+  it('shows a camera-facing image smoke puff before the enemy is revealed', () => {
     const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
-    const asset = readFileSync(new URL('../assets/effects/spawn_smoke_puff.svg', import.meta.url), 'utf8')
+    const asset = readFileSync(new URL('../assets/effects/spawn_smoke_puff.png', import.meta.url))
 
-    expect(source).toContain("import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.svg'")
+    expect(source).toContain("import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.png'")
     expect(source).toContain('function SpawnSmokeEffect')
     expect(source).toContain('<sprite')
     expect(source).toContain('<SpawnSmokeEffect position={spawnPos} visualScale={cs * 0.333} />')
-    expect(source).toContain('const SPAWN_SMOKE_DURATION_MS = 420')
+    expect(source).toContain('const [spawnRevealed, setSpawnRevealed] = useState(false)')
+    expect(source).toContain('{spawnRevealed && (')
+    expect(source).toContain('setTimeout(() =>')
+    expect(SPAWN_SMOKE_DURATION_MS).toBeGreaterThan(ENEMY_SPAWN_REVEAL_DELAY_MS)
+    expect(SPAWN_SMOKE_START_SCALE).toBeLessThan(SPAWN_SMOKE_END_SCALE)
+    expect(SPAWN_SMOKE_END_SCALE).toBeLessThanOrEqual(1.2)
     expect(source).toContain('depthWrite: false')
-    expect(asset).toContain('<svg')
+    expect(asset.subarray(1, 4).toString('ascii')).toBe('PNG')
+  })
+
+  it('uses existing spawn-like SFX ids for smoke poofs without adding a new sound asset', () => {
+    expect(getEnemySpawnSfx('E01')).toMatchObject({ id: 'bossSpawn' })
+    expect(getEnemySpawnSfx('B01')).toMatchObject({ id: 'bossSpawn' })
+    expect(getEnemySpawnSfx('E01').volume).toBeLessThan(getEnemySpawnSfx('B01').volume)
+    expect(getEnemySpawnSfx('E01', true)).toMatchObject({ id: 'matildaSpawn' })
   })
 })

@@ -14,23 +14,23 @@ import { WAVE_PHASES, STAGE2_WAVE_PHASES, getDefaultWavePhases } from './waveTim
 describe('waveControl 변환', () => {
   it('phase → 편집 entry: 마리 수 = round(target × weight)', () => {
     const entry = phaseToEditorEntry({ start: 60, end: 72, target: 26, weights: { E01: 0.60, E03: 0.30, E02: 0.10 } })
-    expect(entry).toMatchObject({ start: 60, end: 72, bossPhase: false })
+    expect(entry).toMatchObject({ start: 60, end: 72 })
     expect(entry.counts.E01).toBe(16) // 26×0.6=15.6→16
     expect(entry.counts.E03).toBe(8)
     expect(entry.counts.E02).toBe(3)
     expect(entry.counts.E06).toBe(0)
   })
 
-  it('편집 entry → 엔진 phase: target=합계, weights=비율, bossPhase 보존', () => {
+  it('편집 entry → 엔진 phase: target=합계, weights=비율 (bossPhase는 저장 안 함 — 파생)', () => {
     const phase = editorEntryToPhase({
-      start: 90, end: 120, bossPhase: true,
+      start: 90, end: 120,
       counts: { E01: 10, E02: 5, E03: 0, E04: 0, E05: 5, E06: 0 },
     })
     expect(phase).toEqual({
       start: 90, end: 120, target: 20,
       weights: { E01: 0.5, E02: 0.25, E05: 0.25 },
-      bossPhase: true,
     })
+    expect(phase).not.toHaveProperty('bossPhase')
   })
 
   it('합계 0 또는 끝≤시작인 entry는 null (무효 웨이브)', () => {
@@ -45,9 +45,14 @@ describe('waveControl 변환', () => {
         const back = editorEntryToPhase(phaseToEditorEntry(phase))
         expect(back.start).toBe(phase.start)
         expect(back.end).toBe(phase.end)
-        expect(!!back.bossPhase).toBe(!!phase.bossPhase)
         expect(Object.keys(back.weights).sort()).toEqual(Object.keys(phase.weights).sort())
       }
+    }
+  })
+
+  it('기본 타임라인 phase에는 bossPhase 필드가 없다 (파생으로 이전)', () => {
+    for (const phase of [...WAVE_PHASES, ...STAGE2_WAVE_PHASES]) {
+      expect(phase).not.toHaveProperty('bossPhase')
     }
   })
 

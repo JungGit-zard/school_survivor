@@ -10,7 +10,13 @@ import {
   TEXTBOOK_DROP_RATE,
   WAVE_PHASES,
   pickTypeByWeightExcluding,
+  formationSpawnPositions,
+  waveSizeForPhase,
+  getWaveSpawnSeconds,
+  WAVE_INTERVAL_SEC,
 } from './Enemies.jsx'
+import { STAGE2_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
+import { getBurstEventsForStage as burstsForStage } from '../lib/burstEvents.js'
 import { ENEMY_STATS, getActiveE04ProjectileCount, resetActiveE04ProjectileCountForTest } from './Enemy.jsx'
 import { playerPos } from '../lib/refs.js'
 import { resolveRangedEnemyVelocity } from './Enemy.jsx'
@@ -118,6 +124,36 @@ describe('late zombie spawn relief', () => {
   })
 })
 
+describe('30s discrete wave scheduler', () => {
+  it('fires a wave every 30 seconds from t=0 up to (not including) the last phase end', () => {
+    expect(WAVE_INTERVAL_SEC).toBe(30)
+    const secs = getWaveSpawnSeconds(WAVE_PHASES)
+    expect(secs).toEqual([0, 30, 60, 90, 120, 150, 180, 210])
+    // 각 발화 시각은 30초 배수이고 스테이지 종료(240) 미만이어야 한다.
+    secs.forEach((s) => expect(s % 30).toBe(0))
+    expect(Math.max(...secs)).toBeLessThan(WAVE_PHASES[WAVE_PHASES.length - 1].end)
+  })
+
+  it('spawns exactly round(target * 0.5) zombies per wave, minimum one', () => {
+    // 첫 phase target 24 → 12마리. (사용자 확정: target 절반)
+    expect(waveSizeForPhase({ target: 24 })).toBe(12)
+    expect(waveSizeForPhase({ target: 34 })).toBe(17)
+    expect(waveSizeForPhase({ target: 11 })).toBe(6)
+    expect(waveSizeForPhase({ target: 1 })).toBe(1)
+    // target 0/누락이어도 최소 1마리는 보장(빈 웨이브 방지).
+    expect(waveSizeForPhase({ target: 0 })).toBe(1)
+    expect(waveSizeForPhase(undefined)).toBe(1)
+  })
+
+  it('keeps stage 1 wave sizes in the expected 12-17 band for the dense phases', () => {
+    WAVE_PHASES.filter((p) => p.target >= 24).forEach((p) => {
+      const size = waveSizeForPhase(p)
+      expect(size).toBeGreaterThanOrEqual(12)
+      expect(size).toBeLessThanOrEqual(17)
+    })
+  })
+})
+
 describe('enemy spawn placement', () => {
   it('resamples hallway spawns instead of clamping a crowd onto one boundary line', () => {
     playerPos.x = 0
@@ -125,10 +161,10 @@ describe('enemy spawn placement', () => {
     const rolls = [0.25, 1, 0, 1]
     const random = () => rolls.shift() ?? 0
 
-    const pos = randomSpawnPos('E01', { halfX: 10, halfZ: 48 }, [], random)
+    const pos = randomSpawnPos('E01', { halfX: 6, halfZ: 48 }, [], random)
 
     expect(pos[0]).toBeCloseTo(0)
-    expect(pos[2]).toBeCloseTo(12.5)
+    expect(pos[2]).toBeCloseTo(6.5)
   })
 
   it('rejects a third spawn point that would extend a straight line', () => {
@@ -158,6 +194,57 @@ describe('enemy spawn placement', () => {
     const pos = randomSpawnPos('E01', { halfX: 10, halfZ: 48 }, taken, random)
 
     expect(pos[0]).not.toBeCloseTo(0)
+  })
+})
+
+describe('formation spawns', () => {
+  const bounds = { halfX: 7.5, halfZ: 19.2 }  // stage2 복도
+  const player = { x: 0, z: 0 }
+  const SPAWN_INSET = 1.5
+  const inBounds = (pos) =>
+    Math.abs(pos[0]) <= bounds.halfX - SPAWN_INSET + 1e-6 &&
+    Math.abs(pos[2]) <= bounds.halfZ - SPAWN_INSET + 1e-6
+
+  it('returns exactly count positions inside spawn bounds for every formation', () => {
+    for (const formation of ['swarm', 'ring', 'pincer', 'column', 'gauntlet']) {
+      const positions = formationSpawnPositions(formation, 6, bounds, player, () => 0.5)
+      expect(positions).toHaveLength(6)
+      positions.forEach((pos) => expect(inBounds(pos)).toBe(true))
+    }
+  })
+
+  it('spawns a swarm at the corridor end far from the player', () => {
+    const near = formationSpawnPositions('swarm', 4, bounds, { x: 0, z: 15 }, () => 0)
+    near.forEach((pos) => expect(pos[2]).toBeLessThan(0))  // 플레이어가 +Z 근처면 -Z 끝에서 등장
+  })
+
+  it('stacks a column into multiple Z rows so it reads as a marching block', () => {
+    const positions = formationSpawnPositions('column', 9, bounds, player, () => 0.5)
+    const distinctRows = new Set(positions.map((pos) => Math.round(pos[2] * 100) / 100))
+    expect(distinctRows.size).toBeGreaterThanOrEqual(2)  // 여러 Z-행 = 밀집 블록
+    // 블록 폭은 벽까지 꽉 채우지 않는다(swarm의 느슨한 한 줄과 구분).
+    const maxAbsX = Math.max(...positions.map((pos) => Math.abs(pos[0])))
+    expect(maxAbsX).toBeLessThan(bounds.halfX - SPAWN_INSET)
+  })
+
+  it('lines a gauntlet along both walls with a runnable gap down the middle', () => {
+    const positions = formationSpawnPositions('gauntlet', 8, bounds, player, () => 0.5)
+    const left = positions.filter((pos) => pos[0] < 0)
+    const right = positions.filter((pos) => pos[0] > 0)
+    expect(left.length).toBeGreaterThan(0)
+    expect(right.length).toBeGreaterThan(0)
+    // 두 줄 모두 벽 쪽(큰 |x|)에 붙어 가운데가 비어야 한다.
+    positions.forEach((pos) => expect(Math.abs(pos[0])).toBeGreaterThan(bounds.halfX - SPAWN_INSET - 1.5))
+  })
+
+  it('registers a telegraph for each stage 2 formation burst at a matching second', () => {
+    const formationSecs = burstsForStage('stage2')
+      .filter((evt) => evt.formation)
+      .map((evt) => evt.sec)
+      .sort((a, b) => a - b)
+    const telegraphSecs = STAGE2_SPAWN_TELEGRAPHS.map((t) => t.sec).sort((a, b) => a - b)
+    expect(telegraphSecs).toEqual(formationSecs)
+    expect(burstsForStage('stage2').some((evt) => evt.formation === 'E04')).toBe(false)
   })
 })
 

@@ -26,12 +26,12 @@ export const WAVE_PHASES = [
   { start: 144, end: 168, target: 29, weights: { E01: 0.50, E03: 0.05, E02: 0.30, E05: 0.15 } },
   // 2:48–3:12 +거대 등장 — E06 5%→3% (버스트 +1 포함 최대 4마리 동시 과부하 방지)
   { start: 168, end: 192, target: 34, weights: { E01: 0.47, E03: 0.05, E02: 0.28, E05: 0.17, E06: 0.03 } },
-  // 3:12–3:28 보스 구간 1 (잡몹+탱커)
-  { start: 192, end: 208, target: 11, weights: { E01: 0.60, E02: 0.40 }, bossPhase: true },
-  // 3:28–3:44 보스 구간 2 (탱커+돌진)
-  { start: 208, end: 224, target: 15, weights: { E02: 0.60, E05: 0.40 }, bossPhase: true },
-  // 3:44–4:00 보스 구간 3 — E05 40%→30%, E01 25%로 보스 막판 이동공간 확보
-  { start: 224, end: 240, target: 17, weights: { E01: 0.25, E02: 0.45, E05: 0.30 }, bossPhase: true },
+  // 3:12–3:28 후반 구성 1 (잡몹+탱커) — 보스 구간 여부는 등장 시각(2:00)에서 파생
+  { start: 192, end: 208, target: 11, weights: { E01: 0.60, E02: 0.40 } },
+  // 3:28–3:44 후반 구성 2 (탱커+돌진)
+  { start: 208, end: 224, target: 15, weights: { E02: 0.60, E05: 0.40 } },
+  // 3:44–4:00 후반 구성 3 — E05 40%→30%, E01 25%로 보스 막판 이동공간 확보
+  { start: 224, end: 240, target: 17, weights: { E01: 0.25, E02: 0.45, E05: 0.30 } },
 ]
 
 // 4분(240초) 타임라인. 5분 기준에서 전체 ×0.8 비례 축소.
@@ -45,11 +45,21 @@ export const STAGE2_WAVE_PHASES = [
   { start: 120, end: 144, target: 25, weights: { E01: 0.475, E03: 0.35, E05: 0.15, E04: 0.025 } },
   { start: 144, end: 168, target: 28, weights: { E03: 0.58, E04: 0.14, E05: 0.28 } },
   { start: 168, end: 192, target: 29, weights: { E02: 0.66, E04: 0.16, E06: 0.18 } },
-  { start: 192, end: 208, target: 16, weights: { E01: 0.40, E02: 0.50, E04: 0.10 }, bossPhase: true },
-  { start: 208, end: 224, target: 21, weights: { E02: 0.55, E05: 0.35, E04: 0.10 }, bossPhase: true },
-  { start: 224, end: 240, target: 25, weights: { E02: 0.20, E03: 0.40, E04: 0.12, E05: 0.28 }, bossPhase: true },
+  { start: 192, end: 208, target: 16, weights: { E01: 0.40, E02: 0.50, E04: 0.10 } },
+  { start: 208, end: 224, target: 21, weights: { E02: 0.55, E05: 0.35, E04: 0.10 } },
+  { start: 224, end: 240, target: 25, weights: { E02: 0.20, E03: 0.40, E04: 0.12, E05: 0.28 } },
 ]
 
 export function getDefaultWavePhases(stageId = 'stage1') {
   return stageId === 'stage2' ? STAGE2_WAVE_PHASES : WAVE_PHASES
 }
+
+// 형태(formation) 버스트 예고 정본 — HUD가 이걸 import해 leadSec 전에 배너를 띄운다.
+// sec는 STAGE2_BURST_EVENTS의 형태 버스트 sec와 정확히 일치해야 한다(burstEvents.js).
+// 3D 체인 없이 읽히는 lib에 두어 HUD가 안전하게 import한다. (버스트 발화 로직은 Enemies.jsx)
+export const STAGE2_SPAWN_TELEGRAPHS = [
+  { sec:  30, leadSec: 2.5, label: '떼거리가 몰려온다' },
+  { sec:  60, leadSec: 2.5, label: '포위된다' },
+  { sec: 132, leadSec: 2.5, label: '양쪽에서 조여온다' },
+  { sec: 176, leadSec: 2.5, label: '돌진 무리 돌입' },
+]

@@ -8,6 +8,7 @@ import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { buildPlaytestSummary } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { getNextStageId, getStageConfig } from '../lib/stageConfig.js'
+import { STAGE2_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import {
   DEFAULT_STUDIO_TUNING,
@@ -535,6 +536,17 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     return Math.max(1, Math.ceil(introSec - elapsedSec))
   }, [currentStageId, elapsed, phase, stageConfig.e04IntroSec])
 
+  // 스테이지2 대형(형태) 버스트 스폰 예고 배너 라벨
+  const formationWarning = useMemo(() => {
+    if (currentStageId !== 'stage2' || phase !== 'playing') return null
+    const elapsedSec = elapsed / 1000
+    const telegraphs = STAGE2_SPAWN_TELEGRAPHS ?? []
+    const hit = telegraphs.find(
+      (t) => elapsedSec >= t.sec - t.leadSec && elapsedSec < t.sec,
+    )
+    return hit ? hit.label : null
+  }, [currentStageId, elapsed, phase])
+
   // 마틸다 등장 전 카운트다운
   const matildaWarning = useMemo(() => {
     if (matildaSpawned || phase !== 'playing') return null
@@ -551,6 +563,11 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     if (matildaWarning == null) return
     emitSfx({ id: matildaWarning === 1 ? 'matildaCountdownEnd' : 'matildaWarningTick', volume: 0.7 })
   }, [matildaWarning])
+  // 대형 스폰 예고 라벨이 새로 뜰 때(null→label 또는 label 변경) 경고음 1회
+  useEffect(() => {
+    if (formationWarning == null) return
+    emitSfx({ id: 'bossWarning', volume: 0.6 })
+  }, [formationWarning])
 
   // 탈출구 등장 알림: 등장 직후 3초간 표시
   const portalFlash = useMemo(() => {
@@ -653,6 +670,11 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         <div style={styles.matildaWarning}>
           <div style={styles.matildaWarningLabel}>⚠ 사신 마틸다 출현</div>
           <div style={styles.matildaWarningCount}>{matildaWarning}</div>
+        </div>
+      )}
+      {formationWarning != null && (
+        <div style={styles.formationWarning} role="alert" aria-live="assertive">
+          <div style={styles.formationWarningLabel}>⚠ {formationWarning}</div>
         </div>
       )}
       {portalFlash && (
@@ -1067,6 +1089,28 @@ const styles = {
     fontWeight: 900,
     lineHeight: 1,
     marginTop: 4,
+  },
+  formationWarning: {
+    position: 'absolute',
+    left: '50%',
+    // 보스/마틸다/탄환 경고(top:72)와 세로로 겹치지 않게 아래에 배치
+    top: 140,
+    transform: 'translateX(-50%)',
+    maxWidth: 'min(88vw, 320px)',
+    textAlign: 'center',
+    background: 'rgba(70, 38, 8, 0.92)',
+    border: '2px solid #ffb340',
+    borderRadius: 10,
+    padding: '11px 18px',
+    boxShadow: `${uiShadows.press}, 0 0 22px rgba(255, 168, 48, 0.45)`,
+    animation: 'bossPulse 0.7s ease-in-out infinite',
+    pointerEvents: 'auto',
+  },
+  formationWarningLabel: {
+    color: '#ffe6bf',
+    fontSize: 15,
+    fontWeight: 900,
+    lineHeight: 1.25,
   },
   portalFlash: {
     position: 'absolute',

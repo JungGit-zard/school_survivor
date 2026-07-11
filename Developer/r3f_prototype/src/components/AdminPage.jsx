@@ -7,7 +7,7 @@ import {
   saveAdminConfig,
 } from '../lib/adminConfig.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
-import { getBurstEventsForStage } from './Enemies.jsx'
+import { getBurstEventsForStage, isBossPhase } from '../lib/burstEvents.js'
 import {
   WAVE_ZOMBIE_TYPES,
   phaseToEditorEntry,
@@ -156,7 +156,7 @@ export default function AdminPage() {
     const lastEnd = entries.length > 0 ? Math.max(...entries.map((e) => e.end)) : 0
     const counts = Object.fromEntries(WAVE_ZOMBIE_TYPES.map((t) => [t, 0]))
     setWaveEntries(stageId, [...entries, {
-      start: lastEnd, end: lastEnd + 20, bossPhase: false, counts: { ...counts, E01: 10 },
+      start: lastEnd, end: lastEnd + 20, counts: { ...counts, E01: 10 },
     }])
   }
 
@@ -305,6 +305,7 @@ function WaveControls({ draft, ensureWaveEntries, updateWaveEntry, updateWaveCou
             key={index}
             entry={entry}
             index={index}
+            stageId={stageId}
             onTime={(patch) => updateWaveEntry(stageId, index, patch)}
             onCount={(type, count) => updateWaveCount(stageId, index, type, count)}
             onRemove={() => removeWaveEntry(stageId, index)}
@@ -322,6 +323,7 @@ function WaveControls({ draft, ensureWaveEntries, updateWaveEntry, updateWaveCou
       </div>
       <p style={styles.note}>
         좀비 합계가 0이거나 끝 시각이 시작 이하인 웨이브는 무시됩니다. 시간이 겹치면 나중 시작 웨이브가 우선합니다.
+        '보스 구간'은 보스 등장 시각(버스트 스폰) 이후 웨이브에 자동 표시되며 편집할 수 없습니다.
       </p>
 
       <BurstSpawnSection stageId={stageId} />
@@ -384,16 +386,18 @@ function WaveTimeInput({ label, sec, onChange }) {
   )
 }
 
-function WaveRow({ entry, index, onTime, onCount, onRemove }) {
+function WaveRow({ entry, index, stageId, onTime, onCount, onRemove }) {
   const total = WAVE_ZOMBIE_TYPES.reduce((sum, t) => sum + (entry.counts[t] ?? 0), 0)
+  // 보스 구간은 편집 대상이 아니라 파생 표시 — 시작 시각이 보스 등장 이후면 자동 체크.
+  const bossPhase = isBossPhase(entry.start, stageId)
   return (
     <div style={styles.waveRow}>
       <div style={styles.waveRowHead}>
         <strong style={styles.waveRowTitle}>웨이브 {index + 1}</strong>
         <WaveTimeInput label="시작" sec={entry.start} onChange={(start) => onTime({ start })} />
         <WaveTimeInput label="끝" sec={entry.end} onChange={(end) => onTime({ end })} />
-        <label style={styles.waveBossLabel}>
-          <input type="checkbox" checked={entry.bossPhase} onChange={(e) => onTime({ bossPhase: e.target.checked })} />
+        <label style={styles.waveBossLabel} title="보스 등장 시각 이후 자동 표시(편집 불가)">
+          <input type="checkbox" checked={bossPhase} readOnly disabled />
           보스 구간
         </label>
         <span style={styles.waveTotal}>합계 {total}마리</span>

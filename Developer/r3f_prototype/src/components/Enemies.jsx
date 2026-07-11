@@ -10,6 +10,7 @@ import XpTextbook from './XpTextbook.jsx'
 import { getStage2E04Cap } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
+import { getBurstEventsForStage } from '../lib/burstEvents.js'
 import { buildWavePhasesFromEntries } from '../lib/waveControl.js'
 import { getAdminWaveControlConfig } from '../lib/adminConfig.js'
 
@@ -76,10 +77,13 @@ function pickGoldDropPos(bounds) {
 
 // 스폰 위치
 const BASE_COL_Y = 0.24
-const SPAWN_MIN_RADIUS = 8.5
-const SPAWN_MAX_RADIUS = 12.5
-const RANGED_SPAWN_MIN_RADIUS = 11.5
-const RANGED_SPAWN_MAX_RADIUS = 15.5
+// 좀비는 카메라 가시 범위(가까운쪽 +z reach ≈ 7.2가 가장 빡빡) 안에서 스폰해
+// 플레이어가 화면 안에서 '펑' 리빌 연출을 보게 한다. 근접 스폰 데미지는 기존
+// reveal delay(리지드바디 등록 지연)로 완화되므로 추가 무적 로직은 두지 않는다.
+const SPAWN_MIN_RADIUS = 4.0
+const SPAWN_MAX_RADIUS = 6.5
+const RANGED_SPAWN_MIN_RADIUS = 5.5
+const RANGED_SPAWN_MAX_RADIUS = 7.5
 const SPAWN_CANDIDATE_TRIES = 24
 const SPAWN_BATCH_MIN_GAP = 1.2
 const SPAWN_LINE_TOLERANCE = 0.45
@@ -182,41 +186,113 @@ function rangedSpawnPos(bounds, taken = [], random = Math.random) {
   return spawnPosOnValidRing('E04', bounds, RANGED_SPAWN_MIN_RADIUS, RANGED_SPAWN_MAX_RADIUS, taken, random)
 }
 
+// 형태(formation) 스폰 — 균일 압력(뱀서라이크 지루함)을 깨는 일회성 대형 배치.
+// 좁고 긴 복도(stage2) 기준. 타입은 addEnemies 시점에 정해지므로 y는 대표값(scale=1)으로 통일한다.
+//   'swarm'  : 플레이어에서 먼 Z끝에서 X 균등 일렬 → 복도를 쓸고 내려온다.
+//   'ring'   : 플레이어 중심 반지름 r 원주 균등 배치 → 포위. 좁은 복도라 반지름을 폭 안으로 줄여
+//              벽 클램프/겹침을 피한다(포위 체감 유지).
+//   'pincer' : count 절반씩 플레이어 앞뒤 두 줄, 각 줄 X 균등 → 양쪽에서 조여온다(협공 성립).
+//   'column' : 먼 Z끝에서 여러 Z-행으로 뭉친 밀집 블록(팔랑크스)이 행군해 내려온다.
+//              X는 블록 폭(±limX*0.6) 안에만 채워 swarm의 느슨한 한 줄과 뚜렷이 구분한다.
+//   'gauntlet': 양쪽 벽을 따라 Z축 두 줄(x≈±(limX-0.8)). 플레이어~먼 끝 구간에 Z 균등 →
+//              플레이어가 가운데를 달려 통과하는 건틀릿. pincer(X방향 두 줄)와 축이 반대다.
+// 최종 위치는 항상 isInsideSpawnBounds 보장(밖이면 clampToBounds). random은 결정론 테스트용 주입 가능.
+const FORMATION_Y = BASE_COL_Y * ENEMY_SIZE_MULTIPLIER
+// 좁은 복도(halfX 7.5→limX 6)에서 벽에 박히지 않는 최대치. 넓은 맵이면 이 상한이 적용된다.
+const RING_MAX_RADIUS = 5
+// pincer 두 줄을 플레이어 기준 앞뒤로 이 거리에 둔다(끝에 붙어 있으면 place가 경계로 clamp).
+const PINCER_Z_OFFSET = 10
+// column 밀집 블록: 한 Z-행에 최대 이 인원, 행 간 Z 간격(안쪽으로 계단), X는 폭의 이 비율만 사용.
+const COLUMN_ROW_WIDTH = 4
+const COLUMN_ROW_GAP = 1.2
+const COLUMN_WIDTH_RATIO = 0.6
+// gauntlet 두 줄을 벽에서 이만큼 안쪽에 둔다(벽에 완전히 붙으면 place가 경계로 clamp).
+const GAUNTLET_WALL_INSET = 0.8
+
+export function formationSpawnPositions(formation, count, bounds, player, random = Math.random) {
+  const limX = bounds.halfX - SPAWN_INSET
+  const limZ = bounds.halfZ - SPAWN_INSET
+  const positions = []
+
+  const place = (x, z) => {
+    let px = x
+    let pz = z
+    if (!isInsideSpawnBounds(px, pz, bounds)) {
+      const clamped = clampToBounds(px, pz, bounds)
+      px = clamped[0]
+      pz = clamped[1]
+    }
+    positions.push([px, FORMATION_Y, pz])
+  }
+
+  // 한 줄에서 X를 균등 분포 (count 1이면 중앙).
+  const evenX = (i, n) => (n <= 1 ? 0 : -limX + (2 * limX) * (i / (n - 1)))
+
+  if (formation === 'ring') {
+    const r = Math.min(limX, RING_MAX_RADIUS)
+    for (let i = 0; i < count; i++) {
+      const ang = (i / count) * Math.PI * 2
+      place(player.x + Math.sin(ang) * r, player.z + Math.cos(ang) * r)
+    }
+    return positions
+  }
+
+  if (formation === 'pincer') {
+    const topCount = Math.ceil(count / 2)
+    const botCount = count - topCount
+    const off = Math.min(limZ, PINCER_Z_OFFSET)  // 플레이어 기준 앞뒤. 밖이면 place가 clamp.
+    for (let i = 0; i < topCount; i++) place(evenX(i, topCount), player.z + off)
+    for (let i = 0; i < botCount; i++) place(evenX(i, botCount), player.z - off)
+    return positions
+  }
+
+  // 플레이어에서 먼 Z끝 + 안쪽 방향(swarm/column 공통).
+  const farZ = Math.abs(player.z - limZ) >= Math.abs(player.z - (-limZ)) ? limZ : -limZ
+  const inwardSign = farZ > 0 ? -1 : 1
+
+  if (formation === 'column') {
+    // count>COLUMN_ROW_WIDTH면 자동으로 2행 이상 쌓여 블록감이 난다.
+    const blockHalfX = limX * COLUMN_WIDTH_RATIO
+    for (let i = 0; i < count; i++) {
+      const row = Math.floor(i / COLUMN_ROW_WIDTH)
+      const col = i % COLUMN_ROW_WIDTH
+      // 이 행의 실제 인원(마지막 행은 적을 수 있음)으로 블록 폭 안에서 균등 분포.
+      const inRow = Math.min(COLUMN_ROW_WIDTH, count - row * COLUMN_ROW_WIDTH)
+      const bx = inRow <= 1 ? 0 : -blockHalfX + (2 * blockHalfX) * (col / (inRow - 1))
+      const jitter = (random() - 0.5) * 0.4  // 열이 자로 잰 듯 정렬되지 않게 살짝 흔든다.
+      place(bx + jitter, farZ + inwardSign * (row * COLUMN_ROW_GAP))
+    }
+    return positions
+  }
+
+  if (formation === 'gauntlet') {
+    const wallX = limX - GAUNTLET_WALL_INSET
+    const leftCount = Math.ceil(count / 2)
+    const rightCount = count - leftCount
+    // 플레이어 Z에서 먼 끝까지 한 줄 안에서 균등(플레이어가 지나갈 통로를 따라 늘어선다).
+    const zAt = (i, n) => (n <= 1 ? player.z : player.z + (farZ - player.z) * (i / (n - 1)))
+    const jitter = () => (random() - 0.5) * 0.3
+    for (let i = 0; i < leftCount; i++) place(-wallX + jitter(), zAt(i, leftCount))
+    for (let i = 0; i < rightCount; i++) place(wallX + jitter(), zAt(i, rightCount))
+    return positions
+  }
+
+  // 기본 'swarm' — 먼 Z끝에서 X 균등 일렬, 끝에서 안쪽으로 0~2 스태거(느슨).
+  for (let i = 0; i < count; i++) {
+    place(evenX(i, count), farZ + inwardSign * (random() * 2))
+  }
+  return positions
+}
+
 // 웨이브 타임라인 기본값 정본은 lib/waveTimelines.js로 이동(2026-07-04) —
 // 어드민 '스테이지별 웨이브 컨트롤'이 3D 체인 없이 읽는다. 기존 경로 호환 재수출.
-export { WAVE_PHASES, STAGE2_WAVE_PHASES } from '../lib/waveTimelines.js'
+export { WAVE_PHASES, STAGE2_WAVE_PHASES, STAGE2_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 
-// 4분 타임라인. 5분 기준 sec ×0.8.
-const BURST_EVENTS = [
-  { sec:   0, type: 'E01', count: 16 },  // 40초 전 단일 좀비 구간 밀도 2배
-  { sec:  24, type: 'E01', count:  8 },  // 첫 phase target(24)을 burst만으로 초과하지 않게 완화
-  { sec:  60, type: 'E02', count:  4 },  // 탱커 첫 등장 신호 — wave 첫 E02 phase와 정렬
-  { sec:  72, type: 'E03', count:  2 },  // 러너 압박 — 6→2 (E03 전 구간 ×1/3, 2026-07-04)
-  { sec: 108, type: 'E01', count:  5 },  // 90–108초 완화 구간 이후 잡몹 러시
-  { sec: 108, type: 'E02', count:  3 },
-  { sec: 120, type: 'E05', count:  3 },  // 돌진 첫 등장 (E04 탄환형 폐기 — 2026-05-09)
-  { sec: 144, type: 'E05', count:  3 },  // 돌진 압박 강화
-  { sec: 168, type: 'E06', count:  1 },  // 거대 첫 등장
-  { sec: 184, type: 'E01', count:  5 },  // 마지막 러시 (보스 직전) — 과부하 완화
-  { sec: 184, type: 'E02', count:  3 },
-  { sec: 184, type: 'E05', count:  2 },
-  { sec: 120, type: 'B01', count:  1 },  // 보스 등장 (2:00)
-  { sec: 216, type: 'E05', count:  3 },
-]
-
-// 4분 타임라인. 5분 기준 sec ×0.8.
-export const STAGE2_BURST_EVENTS = [
-  { sec:   0, type: 'E01', count: 10 },
-  { sec:  24, type: 'E03', count:  4 },
-  { sec:  48, type: 'E02', count:  3 },
-  { sec:  72, type: 'E04', count:  1 },
-  { sec: 120, type: 'E05', count:  2 },
-  { sec: 144, type: 'E05', count:  2 },
-  { sec: 168, type: 'E06', count:  1 },
-  { sec: 120, type: 'B02', count:  1 },  // 보스 등장 (2:00)
-  { sec: 216, type: 'E05', count:  3 },
-  { sec: 216, type: 'E04', count:  1 },
-]
+// 버스트(일회성) 스폰 정본은 lib/burstEvents.js로 이동(2026-07-10) — 순수 데이터.
+// 보스 등장 시각 = 보스 버스트(B01/B02) sec 단일 소스, 보스 구간은 여기서 파생.
+// 기존 경로 호환 재수출(getBurstEventsForStage는 위 import의 로컬 바인딩을 재수출).
+export { BURST_EVENTS, STAGE2_BURST_EVENTS } from '../lib/burstEvents.js'
+export { getBurstEventsForStage }
 
 export function getWavePhasesForStage(stageId) {
   // 어드민 '스테이지별 웨이브 컨트롤' 커스텀 타임라인이 있으면 우선 적용.
@@ -225,8 +301,22 @@ export function getWavePhasesForStage(stageId) {
   return getDefaultWavePhases(stageId)
 }
 
-export function getBurstEventsForStage(stageId) {
-  return stageId === 'stage2' ? STAGE2_BURST_EVENTS : BURST_EVENTS
+// 30초 간격 이산 웨이브 스케줄러(2026-07-11) — 좀비는 오직 이 스케줄에서만,
+// 웨이브마다 해당 시각 활성 phase의 좀비를 한 번에 스폰한다(연속 유지 스폰 폐기).
+export const WAVE_INTERVAL_SEC = 30
+const WAVE_SIZE_FACTOR = 0.5
+
+// 웨이브당 마릿수 = 활성 phase target × 0.5 (반올림, 최소 1 보장).
+export function waveSizeForPhase(phase) {
+  return Math.max(1, Math.round((phase?.target ?? 0) * WAVE_SIZE_FACTOR))
+}
+
+// 웨이브 발화 시각 = 0, 30, 60, ... 마지막 phase.end 미만까지(240초 스테이지 → 0~210, 8웨이브).
+export function getWaveSpawnSeconds(phases, interval = WAVE_INTERVAL_SEC) {
+  const lastEnd = phases?.[phases.length - 1]?.end ?? 0
+  const secs = []
+  for (let t = 0; t < lastEnd; t += interval) secs.push(t)
+  return secs
 }
 
 function pickTypeByWeight(weights) {
@@ -257,10 +347,6 @@ let _textbookId = 0
 let _coinId = 0
 let _collapseId = 0
 
-// 게임 시작 직후 플레이어가 방향을 잡을 시간 — 이 기간엔 유지 스폰을 차단.
-// 버스트 이벤트는 evt.sec 기준으로 독립 관리하므로 영향 없음.
-const SPAWN_GRACE_SEC = 5
-
 export default function Enemies() {
   const [enemies, setEnemies]       = useState([])
   const [textbooks, setTextbooks]   = useState([])
@@ -268,7 +354,7 @@ export default function Enemies() {
   const [collapses, setCollapses]   = useState([])
   const enemiesRef                = useRef([])
   const firedBurstsRef            = useRef(new Set())
-  const maintainTimerRef          = useRef(0)
+  const nextWaveIdxRef            = useRef(0)
   const goldTimerRef              = useRef(nextGoldInterval())
 
   const bossSpawned    = useGameStore((s) => s.bossSpawned)
@@ -360,69 +446,50 @@ export default function Enemies() {
       goldTimerRef.current = nextGoldInterval()
     }
 
+    // 보스(B01/B02) 등장만 버스트 스케줄에서 발화 — 나머지 버스트(형태/그룹)는 폐기(2026-07-11).
+    // 좀비 물량은 30초 웨이브 스케줄러가 전담한다.
     const burstEvents = getBurstEventsForStage(currentStageId)
-    if (firedBurstsRef.current.size < burstEvents.length) {
-      burstEvents.forEach((evt, idx) => {
-        if (firedBurstsRef.current.has(idx)) return
-        if (sec < evt.sec) return
-        firedBurstsRef.current.add(idx)
+    burstEvents.forEach((evt, idx) => {
+      if (evt.type !== 'B01' && evt.type !== 'B02') return
+      if (firedBurstsRef.current.has(idx)) return
+      if (sec < evt.sec) return
+      firedBurstsRef.current.add(idx)
+      if (bossSpawned) return
+      spawnBoss()
+      emitSfx({ id: 'bossSpawn' })
+      addEnemies([{ id: ++_uid, type: evt.type, pos: randomSpawnPos(evt.type, bounds) }])
+    })
 
-        if (evt.type === 'B01' || evt.type === 'B02') {
-          if (bossSpawned) return
-          spawnBoss()
-          emitSfx({ id: 'bossSpawn' })
-          addEnemies([{ id: ++_uid, type: evt.type, pos: randomSpawnPos(evt.type, bounds) }])
-          return
-        }
-
-        const currentE04Count = enemiesRef.current.filter((e) => e.type === 'E04').length
-        const e04Room = currentStageId === 'stage2' && evt.type === 'E04'
-          ? Math.max(0, getStage2E04Cap(sec) - currentE04Count)
-          : evt.count
-        const spawnCount = evt.type === 'E04' ? Math.min(evt.count, e04Room) : evt.count
-        const newBatch = []
-        for (let i = 0; i < spawnCount; i++) {
-          const taken = newBatch.map((e) => e.pos)
-          const pos = evt.type === 'E04' ? rangedSpawnPos(bounds, taken) : randomSpawnPos(evt.type, bounds, taken)
-          newBatch.push({ id: ++_uid, type: evt.type, pos })
-        }
-        addEnemies(newBatch)
-      })
-    }
-
-    maintainTimerRef.current -= delta * 1000
-    if (maintainTimerRef.current > 0) return
-    maintainTimerRef.current = 600
-
-    if (sec < SPAWN_GRACE_SEC) return
-
+    // 30초 간격 이산 웨이브 — 좀비는 오직 여기서만, 웨이브마다 한 번에 스폰된다.
+    // 발화 시각 t=0,30,60,... (마지막 phase.end 미만). 각 웨이브 = 활성 phase target × 0.5 마리.
+    // 축소된 스폰 링(4.0~6.5) 안 화면 내 위치에 360° 흩어져 '펑' 리빌로 등장(Enemy가 처리).
     const wavePhases = getWavePhasesForStage(currentStageId)
-    const currentPhase = wavePhases.findLast((p) => sec >= p.start) ?? wavePhases[0]
-
-    const normalCount = currentPhase.bossPhase
-      ? enemiesRef.current.filter((e) => e.type !== 'B01' && e.type !== 'B02').length
-      : enemiesRef.current.length
-
-    const shortage = currentPhase.target - normalCount
-    if (shortage <= 0) return
-
-    const toSpawn = Math.min(shortage, 4)
-    const newBatch = []
-    for (let i = 0; i < toSpawn; i++) {
-      let type = pickTypeByWeight(currentPhase.weights)
-      if (currentStageId === 'stage2' && type === 'E04') {
-        const currentE04Count = enemiesRef.current.filter((e) => e.type === 'E04').length + newBatch.filter((e) => e.type === 'E04').length
-        if (currentE04Count >= getStage2E04Cap(sec)) {
-          type = pickTypeByWeightExcluding(currentPhase.weights, 'E04')
-          if (!type) continue
+    const lastEnd = wavePhases[wavePhases.length - 1]?.end ?? 0
+    while (
+      nextWaveIdxRef.current * WAVE_INTERVAL_SEC < lastEnd &&
+      sec >= nextWaveIdxRef.current * WAVE_INTERVAL_SEC
+    ) {
+      nextWaveIdxRef.current += 1
+      const phase = wavePhases.findLast((p) => sec >= p.start) ?? wavePhases[0]
+      const waveSize = waveSizeForPhase(phase)
+      const newBatch = []
+      for (let i = 0; i < waveSize; i++) {
+        let type = pickTypeByWeight(phase.weights)
+        if (currentStageId === 'stage2' && type === 'E04') {
+          const currentE04Count =
+            enemiesRef.current.filter((e) => e.type === 'E04').length +
+            newBatch.filter((e) => e.type === 'E04').length
+          if (currentE04Count >= getStage2E04Cap(sec)) {
+            type = pickTypeByWeightExcluding(phase.weights, 'E04')
+            if (!type) continue
+          }
         }
+        const taken = newBatch.map((e) => e.pos)
+        const pos = type === 'E04' ? rangedSpawnPos(bounds, taken) : randomSpawnPos(type, bounds, taken)
+        newBatch.push({ id: ++_uid, type, pos })
       }
-
-      const taken = newBatch.map((e) => e.pos)
-      const pos  = type === 'E04' ? rangedSpawnPos(bounds, taken) : randomSpawnPos(type, bounds, taken)
-      newBatch.push({ id: ++_uid, type, pos })
+      addEnemies(newBatch)
     }
-    addEnemies(newBatch)
   })
 
   return (

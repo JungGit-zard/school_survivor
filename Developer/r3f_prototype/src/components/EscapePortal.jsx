@@ -8,6 +8,8 @@ import { getStageBounds } from '../lib/stageConfig.js'
 import { STAGE_OBJECT_PLACEMENTS } from './StageObjects/stageObjectPlacements.js'
 
 const PORTAL_RADIUS = 1.5
+// 작동(흡입) 히트박스 — 시각 링(PORTAL_RADIUS)과 분리해 중앙 좁은 원으로 제한.
+const PORTAL_TRIGGER_RADIUS = 0.6
 const MIN_DIST_FROM_PLAYER = 5
 const MIN_DIST_FROM_OBSTACLE = 2
 const SUCTION_DURATION = 1.0   // seconds
@@ -56,7 +58,7 @@ export default function EscapePortal({ stageId }) {
     const dz = playerPos.z - pos[2]
     const dist = Math.hypot(dx, dz)
 
-    if (!suckingRef.current && dist < PORTAL_RADIUS) {
+    if (!suckingRef.current && dist < PORTAL_TRIGGER_RADIUS) {
       suckingRef.current = true
       suckTimerRef.current = 0
       setSucking(true)
