@@ -301,9 +301,12 @@ export function getWavePhasesForStage(stageId) {
   return getDefaultWavePhases(stageId)
 }
 
-// 30초 간격 이산 웨이브 스케줄러(2026-07-11) — 좀비는 오직 이 스케줄에서만,
-// 웨이브마다 해당 시각 활성 phase의 좀비를 한 번에 스폰한다(연속 유지 스폰 폐기).
-export const WAVE_INTERVAL_SEC = 30
+// 랜덤 간격 이산 웨이브 스케줄러(2026-07-11) — 좀비는 오직 이 스케줄에서만,
+// 웨이브마다 해당 시각 활성 phase의 좀비를 한 번에 스폰한다(intra-wave stagger 없음).
+// 첫 웨이브는 t=0, 이후 각 웨이브는 직전 발화 + 20~40초 균등분포 랜덤 간격(평균 30초).
+export const WAVE_INTERVAL_SEC = 30        // 평균(중심) 간격 — 참고용
+export const WAVE_INTERVAL_MIN_SEC = 20
+export const WAVE_INTERVAL_MAX_SEC = 40
 const WAVE_SIZE_FACTOR = 0.5
 
 // 웨이브당 마릿수 = 활성 phase target × 0.5 (반올림, 최소 1 보장).
@@ -311,12 +314,31 @@ export function waveSizeForPhase(phase) {
   return Math.max(1, Math.round((phase?.target ?? 0) * WAVE_SIZE_FACTOR))
 }
 
-// 웨이브 발화 시각 = 0, 30, 60, ... 마지막 phase.end 미만까지(240초 스테이지 → 0~210, 8웨이브).
-export function getWaveSpawnSeconds(phases, interval = WAVE_INTERVAL_SEC) {
+// 다음 웨이브까지 간격 = 20~40초 균등분포 랜덤. random 주입으로 테스트 결정성 확보.
+export function nextWaveInterval(random = Math.random) {
+  return WAVE_INTERVAL_MIN_SEC + random() * (WAVE_INTERVAL_MAX_SEC - WAVE_INTERVAL_MIN_SEC)
+}
+
+// 웨이브 발화 시각 목록 = 0에서 시작, 각 웨이브 후 20~40초 랜덤 간격 누적, 마지막 phase.end 미만까지.
+// 프레임 스케줄러(nextWaveTimeRef)와 동일한 논리의 순수 함수 — 테스트/미리보기용.
+export function getWaveSpawnSeconds(phases, random = Math.random) {
   const lastEnd = phases?.[phases.length - 1]?.end ?? 0
   const secs = []
-  for (let t = 0; t < lastEnd; t += interval) secs.push(t)
+  let t = 0
+  while (t < lastEnd) {
+    secs.push(t)
+    t += nextWaveInterval(random)
+  }
   return secs
+}
+
+// stage2 총체력 완화(2026-07-11): stage2에서 스폰되는 모든 전투 적(잡몹 E01~E06 + 보스 B02) HP ×0.8(반올림).
+// stage1은 변화 없음. 마틸다(탈출 추격자)는 별도 동적 statOverride를 쓰므로 여기 대상 아님.
+export function stage2HpOverride(type, stageId) {
+  if (stageId !== 'stage2') return undefined
+  const base = ENEMY_STATS[type]
+  if (!base) return undefined
+  return { hp: Math.round(base.hp * 0.8) }
 }
 
 function pickTypeByWeight(weights) {
@@ -354,7 +376,7 @@ export default function Enemies() {
   const [collapses, setCollapses]   = useState([])
   const enemiesRef                = useRef([])
   const firedBurstsRef            = useRef(new Set())
-  const nextWaveIdxRef            = useRef(0)
+  const nextWaveTimeRef          = useRef(0)
   const goldTimerRef              = useRef(nextGoldInterval())
 
   const bossSpawned    = useGameStore((s) => s.bossSpawned)
@@ -457,20 +479,22 @@ export default function Enemies() {
       if (bossSpawned) return
       spawnBoss()
       emitSfx({ id: 'bossSpawn' })
-      addEnemies([{ id: ++_uid, type: evt.type, pos: randomSpawnPos(evt.type, bounds) }])
+      addEnemies([{ id: ++_uid, type: evt.type, pos: randomSpawnPos(evt.type, bounds), statOverride: stage2HpOverride(evt.type, currentStageId) }])
     })
 
-    // 30초 간격 이산 웨이브 — 좀비는 오직 여기서만, 웨이브마다 한 번에 스폰된다.
-    // 발화 시각 t=0,30,60,... (마지막 phase.end 미만). 각 웨이브 = 활성 phase target × 0.5 마리.
+    // 랜덤 간격 이산 웨이브 — 좀비는 오직 여기서만, 웨이브마다 한 번에 스폰된다.
+    // 첫 웨이브 t=0, 이후 직전 발화 + 20~40초 랜덤 간격(마지막 phase.end 미만). 각 웨이브 = 활성 phase target × 0.5 마리.
+    // 활성 phase는 발화 시각(waveTime) 기준 findLast로 결정한다.
     // 축소된 스폰 링(4.0~6.5) 안 화면 내 위치에 360° 흩어져 '펑' 리빌로 등장(Enemy가 처리).
     const wavePhases = getWavePhasesForStage(currentStageId)
     const lastEnd = wavePhases[wavePhases.length - 1]?.end ?? 0
     while (
-      nextWaveIdxRef.current * WAVE_INTERVAL_SEC < lastEnd &&
-      sec >= nextWaveIdxRef.current * WAVE_INTERVAL_SEC
+      nextWaveTimeRef.current < lastEnd &&
+      sec >= nextWaveTimeRef.current
     ) {
-      nextWaveIdxRef.current += 1
-      const phase = wavePhases.findLast((p) => sec >= p.start) ?? wavePhases[0]
+      const waveTime = nextWaveTimeRef.current
+      nextWaveTimeRef.current += nextWaveInterval()
+      const phase = wavePhases.findLast((p) => waveTime >= p.start) ?? wavePhases[0]
       const waveSize = waveSizeForPhase(phase)
       const newBatch = []
       for (let i = 0; i < waveSize; i++) {
@@ -486,7 +510,7 @@ export default function Enemies() {
         }
         const taken = newBatch.map((e) => e.pos)
         const pos = type === 'E04' ? rangedSpawnPos(bounds, taken) : randomSpawnPos(type, bounds, taken)
-        newBatch.push({ id: ++_uid, type, pos })
+        newBatch.push({ id: ++_uid, type, pos, statOverride: stage2HpOverride(type, currentStageId) })
       }
       addEnemies(newBatch)
     }

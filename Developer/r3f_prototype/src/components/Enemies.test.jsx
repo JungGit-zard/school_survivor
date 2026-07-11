@@ -13,7 +13,11 @@ import {
   formationSpawnPositions,
   waveSizeForPhase,
   getWaveSpawnSeconds,
+  nextWaveInterval,
+  stage2HpOverride,
   WAVE_INTERVAL_SEC,
+  WAVE_INTERVAL_MIN_SEC,
+  WAVE_INTERVAL_MAX_SEC,
 } from './Enemies.jsx'
 import { STAGE2_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 import { getBurstEventsForStage as burstsForStage } from '../lib/burstEvents.js'
@@ -124,14 +128,42 @@ describe('late zombie spawn relief', () => {
   })
 })
 
-describe('30s discrete wave scheduler', () => {
-  it('fires a wave every 30 seconds from t=0 up to (not including) the last phase end', () => {
+describe('random-interval discrete wave scheduler', () => {
+  it('keeps the 20-40s interval band centered on the 30s average', () => {
+    expect(WAVE_INTERVAL_MIN_SEC).toBe(20)
+    expect(WAVE_INTERVAL_MAX_SEC).toBe(40)
     expect(WAVE_INTERVAL_SEC).toBe(30)
-    const secs = getWaveSpawnSeconds(WAVE_PHASES)
-    expect(secs).toEqual([0, 30, 60, 90, 120, 150, 180, 210])
-    // 각 발화 시각은 30초 배수이고 스테이지 종료(240) 미만이어야 한다.
-    secs.forEach((s) => expect(s % 30).toBe(0))
-    expect(Math.max(...secs)).toBeLessThan(WAVE_PHASES[WAVE_PHASES.length - 1].end)
+    // 균등분포 경계: random 0 → 20초, random 1 → 40초, random 0.5 → 30초.
+    expect(nextWaveInterval(() => 0)).toBe(20)
+    expect(nextWaveInterval(() => 1)).toBe(40)
+    expect(nextWaveInterval(() => 0.5)).toBe(30)
+  })
+
+  it('fires the first wave at t=0 then accumulates random 20-40s gaps below the last phase end', () => {
+    const lastEnd = WAVE_PHASES[WAVE_PHASES.length - 1].end
+    // 결정적 random 시퀀스로 스케줄을 재현 — 첫 웨이브는 반드시 0.
+    const rolls = [0, 0.5, 1, 0.25, 0.75, 0, 1, 0.5, 0.5, 0.5, 0.5, 0.5]
+    let i = 0
+    const random = () => rolls[i++ % rolls.length]
+    const secs = getWaveSpawnSeconds(WAVE_PHASES, random)
+
+    expect(secs[0]).toBe(0)
+    expect(Math.max(...secs)).toBeLessThan(lastEnd)
+    // 인접 발화 간격은 항상 20~40초 범위 안.
+    for (let k = 1; k < secs.length; k++) {
+      const gap = secs[k] - secs[k - 1]
+      expect(gap).toBeGreaterThanOrEqual(WAVE_INTERVAL_MIN_SEC)
+      expect(gap).toBeLessThanOrEqual(WAVE_INTERVAL_MAX_SEC)
+    }
+  })
+
+  it('bounds the wave count for a 240s stage between the min and max interval extremes', () => {
+    const lastEnd = WAVE_PHASES[WAVE_PHASES.length - 1].end  // 240
+    const maxWaves = getWaveSpawnSeconds(WAVE_PHASES, () => 0).length   // 20초 간격 → 최다
+    const minWaves = getWaveSpawnSeconds(WAVE_PHASES, () => 1).length   // 40초 간격 → 최소
+    expect(minWaves).toBe(Math.ceil(lastEnd / WAVE_INTERVAL_MAX_SEC))   // 6
+    expect(maxWaves).toBe(Math.ceil(lastEnd / WAVE_INTERVAL_MIN_SEC))   // 12
+    expect(minWaves).toBeLessThan(maxWaves)
   })
 
   it('spawns exactly round(target * 0.5) zombies per wave, minimum one', () => {
@@ -151,6 +183,21 @@ describe('30s discrete wave scheduler', () => {
       expect(size).toBeGreaterThanOrEqual(12)
       expect(size).toBeLessThanOrEqual(17)
     })
+  })
+})
+
+describe('stage 2 total-HP relief (x0.8)', () => {
+  it('scales every stage 2 combat enemy HP to 0.8x (rounded), boss included', () => {
+    expect(stage2HpOverride('E02', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E02.hp * 0.8) })  // 70 -> 56
+    expect(stage2HpOverride('E01', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E01.hp * 0.8) })  // 8 -> 6
+    expect(stage2HpOverride('E06', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E06.hp * 0.8) })  // 320 -> 256
+    expect(stage2HpOverride('B02', 'stage2')).toEqual({ hp: 920 })                                   // 1150 -> 920
+  })
+
+  it('leaves stage 1 untouched and ignores unknown types', () => {
+    expect(stage2HpOverride('E02', 'stage1')).toBeUndefined()
+    expect(stage2HpOverride('B01', 'stage1')).toBeUndefined()
+    expect(stage2HpOverride('NOPE', 'stage2')).toBeUndefined()
   })
 })
 
