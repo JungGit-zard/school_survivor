@@ -29,14 +29,6 @@ const STAGE_UNLOCK_HINT = {
 // 대부분 settle된 뒤 게임을 시작한다. 상한(~900ms) 안에서 답답하지 않게 720ms.
 const STAGE_ENTRY_MOTION_MS = 720
 
-function randomAmbientPosition() {
-  return {
-    x: Math.round((Math.random() * 70 - 35) * 10) / 10,
-    y: Math.round((Math.random() * 70 - 35) * 10) / 10,
-    scale: Math.round((1.04 + Math.random() * 0.16) * 100) / 100,
-  }
-}
-
 function lobbyMotionAllowed() {
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true
   return !reduced && document.documentElement?.dataset?.reducedEffects !== 'true'
@@ -61,7 +53,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
   const [nickname, setNickname] = useState(() => getSavedNickname(authUser))
   const [modal, setModal] = useState(null) // 'ability' | 'weapon' | 'settings' | null
   const [stageBossPreview, setStageBossPreview] = useState(() => loadStageBossPreview())
-  const [ambientPosition, setAmbientPosition] = useState(() => ({ x: 0, y: 0, scale: 1.08 }))
+  const ambientRef = useRef(null)
 
   const stageIds = useMemo(() => Object.keys(STAGE_CONFIGS), [])
   const season = useMemo(() => getActiveSeason(), [])
@@ -76,12 +68,25 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
     return () => window.removeEventListener(STAGE_BOSS_PREVIEW_EVENT, update)
   }, [])
 
+  // 배경 빛덩이는 터치/포인터 지점으로 서서히 따라간다(CSS transform transition으로 이징).
+  // ref로 transform만 직접 갱신 → 리렌더 없음. transform은 GPU 컴포지터 처리라 무부하.
   useEffect(() => {
-    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
-    if (reduceMotion || document.documentElement.hasAttribute('data-reduced-effects')) return
-    setAmbientPosition(randomAmbientPosition())
-    const timer = window.setInterval(() => setAmbientPosition(randomAmbientPosition()), 2400)
-    return () => window.clearInterval(timer)
+    if (!lobbyMotionAllowed()) return
+    const follow = (event) => {
+      const el = ambientRef.current
+      if (!el) return
+      const nx = event.clientX / window.innerWidth - 0.5
+      const ny = event.clientY / window.innerHeight - 0.5
+      const x = Math.round(nx * 50 * 10) / 10 // -25..25 %
+      const y = Math.round(ny * 50 * 10) / 10
+      el.style.transform = `translate3d(${x}%, ${y}%, 0) scale(1.12)`
+    }
+    window.addEventListener('pointermove', follow, { passive: true })
+    window.addEventListener('pointerdown', follow, { passive: true })
+    return () => {
+      window.removeEventListener('pointermove', follow)
+      window.removeEventListener('pointerdown', follow)
+    }
   }, [])
 
   // 로비 "생기(juice)"용 CSS 키프레임 + :active/게이트 규칙 주입. 최초 1회만.
@@ -120,11 +125,12 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
     <div style={styles.root}>
       {/* 배경 앰비언트 드리프트(콘텐츠 뒤, 클릭 방해 없음) */}
       <div
+        ref={ambientRef}
         className="lobby-anim"
         data-testid="lobby-ambient-drift"
         style={{
           ...styles.ambientDrift,
-          transform: `translate3d(${ambientPosition.x}%, ${ambientPosition.y}%, 0) scale(${ambientPosition.scale})`,
+          transform: 'translate3d(0%, 0%, 0) scale(1.12)',
         }}
         aria-hidden="true"
       />
