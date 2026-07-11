@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState, useMemo } from 'react'
 import { useShallow } from 'zustand/react/shallow'
-import { useGameStore } from '../store/useGameStore.js'
+import { useGameStore, STAGE1_INTRO_LINES } from '../store/useGameStore.js'
 import { joystickDir } from '../lib/refs.js'
 import { UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
 import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
@@ -437,10 +437,10 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     goldSession, goldTotal, recentMilestone,
     newlyUnlockedWeaponIds, levelUpChoiceSerial,
     escapePortalActive, matildaSpawned, bossBonus,
-    studentDialogue,
+    studentDialogue, introDialogue,
     clearMilestone, applyUpgrade, cheatAcquireWeapon, resumeFromLevelup,
     resetGame, togglePause, resumeGame, quitPausedRun, spawnMatilda,
-    closeStudentDialogue,
+    closeStudentDialogue, advanceIntro,
   } = useGameStore(useShallow((s) => ({
     player:               s.player,
     weapons:              s.weapons,
@@ -458,6 +458,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     matildaSpawned:       s.matildaSpawned,
     bossBonus:            s.bossBonus,
     studentDialogue:      s.studentDialogue,
+    introDialogue:        s.introDialogue,
     clearMilestone:       s.clearMilestone,
     applyUpgrade:         s.applyUpgrade,
     cheatAcquireWeapon:   s.cheatAcquireWeapon,
@@ -468,6 +469,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     quitPausedRun:        s.quitPausedRun,
     spawnMatilda:         s.spawnMatilda,
     closeStudentDialogue: s.closeStudentDialogue,
+    advanceIntro:         s.advanceIntro,
   })))
 
   const mins = String(Math.floor(elapsed / 60000)).padStart(2, '0')
@@ -725,7 +727,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         <span style={styles.goldNum}>{goldSession}</span>
       </div>
 
-      {(phase === 'playing' || (phase === 'paused' && pauseSource !== 'dialogue')) && (
+      {(phase === 'playing' || (phase === 'paused' && pauseSource !== 'dialogue' && pauseSource !== 'intro')) && (
         <div style={styles.topLeftControls}>
           <button type="button" style={styles.pauseButton} onClick={() => { emitSfx({ id: 'buttonClick' }); togglePause() }}>
           {phase === 'paused' ? '▶' : 'Ⅱ'}
@@ -844,7 +846,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         </div>
       )}
 
-      {phase === 'paused' && pauseSource !== 'dialogue' && (
+      {phase === 'paused' && pauseSource !== 'dialogue' && pauseSource !== 'intro' && (
         <div style={styles.overlay}>
           <div
             style={styles.pausePanel}
@@ -959,6 +961,24 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
               <div style={styles.dialogueName}>[지친학생]</div>
               <div style={styles.dialogueLine} aria-live="polite">{studentDialogue.line}</div>
               <div style={styles.dialogueHint}>화면을 탭하면 계속</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 스테이지1 스토리 인트로 — 딤 처리된 화면 위 내레이션. 탭할 때마다 다음 대사, 마지막 탭에 게임 시작 */}
+      {introDialogue && (
+        <div
+          data-testid="stage-intro-catcher"
+          style={styles.introCatcher}
+          onPointerDown={() => { emitSfx({ id: 'buttonClick' }); advanceIntro() }}
+        >
+          <div style={styles.introBox} role="dialog" aria-label="스토리 인트로">
+            <div style={styles.dialogueLine} aria-live="polite">
+              {STAGE1_INTRO_LINES[introDialogue.index]}
+            </div>
+            <div style={styles.dialogueHint}>
+              {introDialogue.index < STAGE1_INTRO_LINES.length - 1 ? '화면을 탭하면 계속' : '화면을 탭하면 시작'}
             </div>
           </div>
         </div>
@@ -1886,5 +1906,31 @@ const styles = {
     fontWeight: 700,
     marginTop: 2,
     opacity: 0.85,
+  },
+  // 인트로 전용 — 전체화면 딤 백드롭 + 중앙 정렬 내레이션 박스. 게임 화면을 확실히 가린다.
+  introCatcher: {
+    position: 'absolute',
+    inset: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '0 16px',
+    background: 'rgba(6,10,14,0.82)',
+    pointerEvents: 'auto',
+    cursor: 'pointer',
+    zIndex: 40,
+  },
+  introBox: {
+    ...schoolPanel('dark'),
+    width: '100%',
+    maxWidth: 460,
+    boxSizing: 'border-box',
+    padding: '18px 20px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+    textAlign: 'center',
+    animation: 'studentDialoguePop 150ms ease-out',
+    transformOrigin: 'center',
   },
 }

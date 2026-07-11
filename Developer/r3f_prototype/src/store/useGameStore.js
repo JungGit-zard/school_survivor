@@ -111,6 +111,13 @@ function finishLevelupState(s) {
   }
 }
 
+// 스테이지1 스토리 인트로 내레이션 3줄. 화면 탭마다 다음 줄, 마지막 탭에 플레이 시작.
+export const STAGE1_INTRO_LINES = [
+  '공부가 하기싫은 학생들의 마음은 그들을 좀비로 만들었다…',
+  '일하기 싫은 교사들도 마찬가지로 좀비화 하였다.',
+  '난 여기서 빠져나가야겠어, 여긴… 좀비학교다!',
+]
+
 const _initialLevels = getAllLevels()
 applyMagnetPassive(_initialLevels)
 syncStoredWeaponUnlocksFromRecords()
@@ -124,6 +131,7 @@ export const useGameStore = create(
     phase:       'playing',   // 'playing' | 'paused' | 'levelup' | 'gameover' | 'cleared'
     pauseSource: null,        // 'manual' | 'auto' | 'dialogue' | null
     studentDialogue: null,    // null | { line } — 쓰러진 학생 대화창 표시 상태
+    introDialogue: null,      // null | { index } — 스테이지1 스토리 인트로 대화창 상태
     elapsedMs:   0,
     currentStageId: DEFAULT_STAGE_ID,
     bossSpawned: false,
@@ -379,6 +387,20 @@ export const useGameStore = create(
       return { phase: 'playing', pauseSource: null, studentDialogue: null }
     }),
 
+    // 스테이지1 스토리 인트로 시작: 게임을 멈추고(pauseSource='intro') 첫 대사를 띄운다.
+    // pauseSource는 'dialogue'와 구분해 'intro'로 두어 HUD가 일반 일시정지 UI를 숨긴다.
+    startStage1Intro: () => set({ phase: 'paused', pauseSource: 'intro', introDialogue: { index: 0 } }),
+
+    // 인트로 탭 진행: 다음 대사로. 마지막 대사에서 탭하면 대화창을 닫고 플레이를 시작한다.
+    advanceIntro: () => set((s) => {
+      if (!s.introDialogue) return {}
+      const next = s.introDialogue.index + 1
+      if (next >= STAGE1_INTRO_LINES.length) {
+        return { phase: 'playing', pauseSource: null, introDialogue: null }
+      }
+      return { introDialogue: { index: next } }
+    }),
+
     quitPausedRun: () => {
       const s = get()
       if (s.phase !== 'paused') return false
@@ -492,6 +514,7 @@ export const useGameStore = create(
         phase:       'playing',
         pauseSource: null,
         studentDialogue: null,
+        introDialogue: null,
         elapsedMs:   0,
         currentStageId: getStageConfig(stageId).id,
         bossSpawned: false,

@@ -92,6 +92,8 @@ export default function App() {
 
   const startGame = (stageId) => {
     resetGame(stageId)
+    // 스테이지1 진입 시에만 스토리 인트로 대화창을 띄운다(게임 멈춤 상태). 다른 스테이지는 인트로 없음.
+    if (stageId === 'stage1') useGameStore.getState().startStage1Intro()
     setScreen('game')
   }
 
