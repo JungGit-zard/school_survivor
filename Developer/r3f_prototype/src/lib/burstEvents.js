@@ -50,6 +50,11 @@ export function getBurstEventsForStage(stageId) {
   return stageId === 'stage2' ? STAGE2_BURST_EVENTS : BURST_EVENTS
 }
 
+// 일반 좀비 물량은 랜덤 간격 웨이브가 전담한다. 현재 런타임 버스트는 보스 등장만 사용한다.
+export function getRuntimeBurstEventsForStage(stageId) {
+  return getBurstEventsForStage(stageId).filter((event) => BOSS_BURST_TYPES.includes(event.type))
+}
+
 // 보스(B01/B02) 등장 시각 — 없으면 Infinity. 보스 구간 파생의 단일 소스.
 export function getBossSpawnSec(stageId) {
   const bossSecs = getBurstEventsForStage(stageId)

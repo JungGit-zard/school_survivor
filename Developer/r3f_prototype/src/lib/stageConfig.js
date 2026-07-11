@@ -37,7 +37,7 @@ export const STAGE_CONFIGS = {
     durationSec: STAGE_DURATION_SEC,
     clearRecordKey: 'stage2Clears',
     bestRecordKey: 'stage2BestSurvivalSec',
-    bossWarningSec: 180,
+    bossWarningSec: 120,
     bossType: 'B02',
     e04IntroSec: 72,
     escapePortalSec: 240,

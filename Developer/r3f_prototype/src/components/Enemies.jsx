@@ -10,7 +10,7 @@ import XpTextbook from './XpTextbook.jsx'
 import { getStage2E04Cap } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
-import { getBurstEventsForStage } from '../lib/burstEvents.js'
+import { getBurstEventsForStage, getRuntimeBurstEventsForStage } from '../lib/burstEvents.js'
 import { buildWavePhasesFromEntries } from '../lib/waveControl.js'
 import { getAdminWaveControlConfig } from '../lib/adminConfig.js'
 
@@ -411,7 +411,6 @@ export default function Enemies() {
     }
     // 플레이어 근처 랜덤 스폰
     const spawnPos = randomSpawnPos('B01', bounds)
-    emitSfx({ id: 'matildaSpawn' })
     addEnemies([{ id: ++_uid, type: 'B01', pos: spawnPos, statOverride: matildaStats, isMatilda: true }])
   }, [matildaSpawned, currentStageId, addEnemies])
 
@@ -469,16 +468,14 @@ export default function Enemies() {
     }
 
     // 보스(B01/B02) 등장만 버스트 스케줄에서 발화 — 나머지 버스트(형태/그룹)는 폐기(2026-07-11).
-    // 좀비 물량은 30초 웨이브 스케줄러가 전담한다.
-    const burstEvents = getBurstEventsForStage(currentStageId)
+    // 좀비 물량은 20~40초 랜덤 간격 웨이브 스케줄러가 전담한다.
+    const burstEvents = getRuntimeBurstEventsForStage(currentStageId)
     burstEvents.forEach((evt, idx) => {
-      if (evt.type !== 'B01' && evt.type !== 'B02') return
       if (firedBurstsRef.current.has(idx)) return
       if (sec < evt.sec) return
       firedBurstsRef.current.add(idx)
       if (bossSpawned) return
       spawnBoss()
-      emitSfx({ id: 'bossSpawn' })
       addEnemies([{ id: ++_uid, type: evt.type, pos: randomSpawnPos(evt.type, bounds), statOverride: stage2HpOverride(evt.type, currentStageId) }])
     })
 

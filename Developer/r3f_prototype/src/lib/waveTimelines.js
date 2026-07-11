@@ -54,12 +54,6 @@ export function getDefaultWavePhases(stageId = 'stage1') {
   return stageId === 'stage2' ? STAGE2_WAVE_PHASES : WAVE_PHASES
 }
 
-// 형태(formation) 버스트 예고 정본 — HUD가 이걸 import해 leadSec 전에 배너를 띄운다.
-// sec는 STAGE2_BURST_EVENTS의 형태 버스트 sec와 정확히 일치해야 한다(burstEvents.js).
-// 3D 체인 없이 읽히는 lib에 두어 HUD가 안전하게 import한다. (버스트 발화 로직은 Enemies.jsx)
-export const STAGE2_SPAWN_TELEGRAPHS = [
-  { sec:  30, leadSec: 2.5, label: '떼거리가 몰려온다' },
-  { sec:  60, leadSec: 2.5, label: '포위된다' },
-  { sec: 132, leadSec: 2.5, label: '양쪽에서 조여온다' },
-  { sec: 176, leadSec: 2.5, label: '돌진 무리 돌입' },
-]
+// 형태 버스트는 2026-07-11 웨이브 개편에서 런타임 발화를 중단했다.
+// HUD가 실제로 발생하지 않는 공격을 예고하지 않도록 빈 목록을 유지한다.
+export const STAGE2_SPAWN_TELEGRAPHS = []

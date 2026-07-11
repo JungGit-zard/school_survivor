@@ -7,7 +7,7 @@ import {
   saveAdminConfig,
 } from '../lib/adminConfig.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
-import { getBurstEventsForStage, isBossPhase } from '../lib/burstEvents.js'
+import { getRuntimeBurstEventsForStage, isBossPhase } from '../lib/burstEvents.js'
 import {
   WAVE_ZOMBIE_TYPES,
   phaseToEditorEntry,
@@ -336,7 +336,7 @@ function WaveControls({ draft, ensureWaveEntries, updateWaveEntry, updateWaveCou
 // 그대로 읽어 시각순 렌더. 복제/수기 입력 없음 — 코드가 바뀌면 여기 자동 반영.
 function BurstSpawnSection({ stageId }) {
   const events = useMemo(
-    () => [...getBurstEventsForStage(stageId)].sort((a, b) => a.sec - b.sec),
+    () => [...getRuntimeBurstEventsForStage(stageId)].sort((a, b) => a.sec - b.sec),
     [stageId],
   )
 

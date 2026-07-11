@@ -45,6 +45,10 @@ export const SPAWN_SMOKE_END_SCALE = 1.12
 export const ENEMY_SPAWN_REVEAL_DELAY_MS = 320
 export const ENEMY_SPAWN_SFX_COOLDOWN_MS = 110
 
+export function advanceEnemySpawnTimer(elapsedMs, deltaSec, phase) {
+  return phase === 'playing' ? elapsedMs + deltaSec * 1000 : elapsedMs
+}
+
 let _lastEnemySpawnSfxAt = Number.NEGATIVE_INFINITY
 
 export function resetEnemySpawnSfxGateForTest() {
@@ -283,8 +287,9 @@ export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = fal
 
 function SpawnSmokeEffect({ position, visualScale }) {
   const spriteRef = useRef()
-  const bornAtRef = useRef(performance.now())
+  const elapsedMsRef = useRef(0)
   const [done, setDone] = useState(false)
+  const phase = useGameStore((s) => s.phase)
   const texture = useLoader(THREE.TextureLoader, spawnSmokeUrl)
   const material = useMemo(() => new THREE.SpriteMaterial({
     map: texture,
@@ -296,10 +301,11 @@ function SpawnSmokeEffect({ position, visualScale }) {
 
   useEffect(() => () => material.dispose(), [material])
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     const sprite = spriteRef.current
     if (!sprite) return
-    const t = Math.min(1, (performance.now() - bornAtRef.current) / SPAWN_SMOKE_DURATION_MS)
+    elapsedMsRef.current = advanceEnemySpawnTimer(elapsedMsRef.current, delta, phase)
+    const t = Math.min(1, elapsedMsRef.current / SPAWN_SMOKE_DURATION_MS)
     const ease = 1 - (1 - t) * (1 - t)
     const size = visualScale * (
       SPAWN_SMOKE_START_SCALE + ease * (SPAWN_SMOKE_END_SCALE - SPAWN_SMOKE_START_SCALE)
@@ -341,6 +347,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const knockbackSpeedRef     = useRef(3.8)
   const lastContactDmgRef     = useRef(0)
   const spawnedAtRef          = useRef(performance.now())
+  const spawnRevealElapsedRef = useRef(0)
 
   // E05 / B01 ?뚯쭊 ?곹깭 癒몄떊
   const [animPhase, setAnimPhase] = useState('normal') // normal|warn|charge|stun|retreat
@@ -359,13 +366,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
   useEffect(() => {
     setSpawnRevealed(false)
+    spawnRevealElapsedRef.current = 0
     spawnedAtRef.current = performance.now()
     emitEnemySpawnSfx(type, isMatilda)
-    const revealTimer = setTimeout(() => {
-      spawnedAtRef.current = performance.now()
-      setSpawnRevealed(true)
-    }, ENEMY_SPAWN_REVEAL_DELAY_MS)
-    return () => clearTimeout(revealTimer)
   }, [id, type, isMatilda])
 
   useEffect(() => {
@@ -466,7 +469,15 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   }, [type])
 
   useFrame((_, delta) => {
-    if (!spawnRevealed || !rb.current || dead.current || phase !== 'playing') return
+    if (!spawnRevealed) {
+      spawnRevealElapsedRef.current = advanceEnemySpawnTimer(spawnRevealElapsedRef.current, delta, phase)
+      if (spawnRevealElapsedRef.current >= ENEMY_SPAWN_REVEAL_DELAY_MS) {
+        spawnedAtRef.current = performance.now()
+        setSpawnRevealed(true)
+      }
+      return
+    }
+    if (!rb.current || dead.current || phase !== 'playing') return
 
     const t = rb.current.translation()
     _pos.set(t.x, t.y, t.z)

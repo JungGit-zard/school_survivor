@@ -98,7 +98,7 @@ describe('AdminPage', () => {
     expect(container.textContent).toContain('게임 코드에서 자동 반영')
 
     const rows = Array.from(container.querySelectorAll('[data-testid="burst-row"]'))
-    expect(rows.length).toBeGreaterThan(0)
+    expect(rows).toHaveLength(1)
 
     // 시각 오름차순 정렬 검증
     const secs = rows.map((row) => Number(row.getAttribute('data-sec')))

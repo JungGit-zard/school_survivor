@@ -3,6 +3,7 @@ import {
   BURST_EVENTS,
   STAGE2_BURST_EVENTS,
   getBurstEventsForStage,
+  getRuntimeBurstEventsForStage,
   getBossSpawnSec,
   isBossPhase,
 } from './burstEvents.js'
@@ -18,6 +19,15 @@ describe('burstEvents 보스 등장 시각 파생', () => {
     // stage1 B01, stage2 B02 모두 2:00(120s)에 정의됨
     expect(getBossSpawnSec('stage1')).toBe(120)
     expect(getBossSpawnSec('stage2')).toBe(120)
+  })
+
+  it('런타임 버스트는 웨이브와 중복되지 않는 보스 등장만 반환한다', () => {
+    expect(getRuntimeBurstEventsForStage('stage1')).toEqual([
+      { sec: 120, type: 'B01', count: 1 },
+    ])
+    expect(getRuntimeBurstEventsForStage('stage2')).toEqual([
+      { sec: 120, type: 'B02', count: 1 },
+    ])
   })
 
   it('보스 버스트가 없는 스테이지는 Infinity (보스 구간 없음)', () => {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { FLOOR_TILE, STAGE_FLOOR_TILES, STAGE2_CORRIDOR_END, STAGE2_CORRIDOR_LANES } from './ClassroomFloor.jsx'
+import { getStageBounds } from '../lib/stageConfig.js'
 
 describe('ClassroomFloor tiling', () => {
   it('uses the stage01 tile asset as the repeating floor pattern', () => {
@@ -18,7 +19,7 @@ describe('ClassroomFloor tiling', () => {
     expect(STAGE2_CORRIDOR_END.repeatX).toBe(5)
     expect(STAGE2_CORRIDOR_END.positionZ + STAGE2_CORRIDOR_END.displayHeight / 2)
       .toBeCloseTo(STAGE2_CORRIDOR_END.bottomZ)
-    expect(STAGE2_CORRIDOR_END.positionZ).toBeLessThan(-40)
+    expect(STAGE2_CORRIDOR_END.bottomZ).toBeLessThan(-getStageBounds('stage2').halfZ)
   })
 
   it('keeps a consistent plank size regardless of floor size (tile world size ~4-10)', () => {

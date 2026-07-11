@@ -284,14 +284,9 @@ describe('formation spawns', () => {
     positions.forEach((pos) => expect(Math.abs(pos[0])).toBeGreaterThan(bounds.halfX - SPAWN_INSET - 1.5))
   })
 
-  it('registers a telegraph for each stage 2 formation burst at a matching second', () => {
-    const formationSecs = burstsForStage('stage2')
-      .filter((evt) => evt.formation)
-      .map((evt) => evt.sec)
-      .sort((a, b) => a - b)
-    const telegraphSecs = STAGE2_SPAWN_TELEGRAPHS.map((t) => t.sec).sort((a, b) => a - b)
-    expect(telegraphSecs).toEqual(formationSecs)
-    expect(burstsForStage('stage2').some((evt) => evt.formation === 'E04')).toBe(false)
+  it('does not telegraph retired formation bursts', () => {
+    expect(STAGE2_SPAWN_TELEGRAPHS).toEqual([])
+    expect(burstsForStage('stage2').some((evt) => evt.formation)).toBe(true)
   })
 })
 
@@ -347,12 +342,14 @@ describe('enemy death visuals', () => {
   })
 })
 
-describe('Matilda spawn audio', () => {
-  it('triggers Matilda spawn without pitch-shifting the old audio file', () => {
-    const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+describe('enemy spawn audio ownership', () => {
+  it('lets Enemy own Matilda and boss spawn sounds so each spawn plays once', () => {
+    const enemiesSource = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    const enemySource = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
 
-    expect(source).toContain("emitSfx({ id: 'matildaSpawn' })")
-    expect(source).not.toContain("id: 'matildaSpawn', rate")
+    expect(enemiesSource).not.toContain("emitSfx({ id: 'matildaSpawn' })")
+    expect(enemiesSource).not.toContain("emitSfx({ id: 'bossSpawn' })")
+    expect(enemySource).toContain('emitEnemySpawnSfx(type, isMatilda)')
   })
 })
 

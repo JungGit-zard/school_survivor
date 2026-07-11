@@ -40,15 +40,19 @@ describe('stage configuration registry', () => {
     expect(getStageBossType('stage2')).toBe('B02')
   })
 
-  it('uses the current boss, escape portal, and Matilda timing for every stage', () => {
-    for (const stageId of ['stage1', 'stage2']) {
-      expect(getStageConfig(stageId)).toMatchObject({
-        bossWarningSec: 120,
-        escapePortalSec: 150,
-        matildaWarningSec: 170,
-        matildaSec: 180,
-      })
-    }
+  it('uses the current boss, escape portal, and Matilda timing for each stage', () => {
+    expect(getStageConfig('stage1')).toMatchObject({
+      bossWarningSec: 120,
+      escapePortalSec: 150,
+      matildaWarningSec: 170,
+      matildaSec: 180,
+    })
+    expect(getStageConfig('stage2')).toMatchObject({
+      bossWarningSec: 120,
+      escapePortalSec: 240,
+      matildaWarningSec: 170,
+      matildaSec: 180,
+    })
   })
 
   it('unlocks stage 2 after one stage 1 clear or three 180 second stage 1 runs', () => {

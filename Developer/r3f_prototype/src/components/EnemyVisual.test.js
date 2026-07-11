@@ -9,6 +9,7 @@ import {
   SPAWN_SMOKE_END_SCALE,
   SPAWN_SMOKE_START_SCALE,
   SPAWN_SMOKE_DURATION_MS,
+  advanceEnemySpawnTimer,
   getBodyContactDistance,
   getChargeHitDistance,
   getEnemySpawnSfx,
@@ -68,12 +69,22 @@ describe('Enemy charge warning cue', () => {
     expect(source).toContain('<SpawnSmokeEffect position={spawnPos} visualScale={cs * 0.333} />')
     expect(source).toContain('const [spawnRevealed, setSpawnRevealed] = useState(false)')
     expect(source).toContain('{spawnRevealed && (')
-    expect(source).toContain('setTimeout(() =>')
+    expect(source).not.toContain('setTimeout(() =>')
     expect(SPAWN_SMOKE_DURATION_MS).toBeGreaterThan(ENEMY_SPAWN_REVEAL_DELAY_MS)
     expect(SPAWN_SMOKE_START_SCALE).toBeLessThan(SPAWN_SMOKE_END_SCALE)
     expect(SPAWN_SMOKE_END_SCALE).toBeLessThanOrEqual(1.2)
     expect(source).toContain('depthWrite: false')
     expect(asset.subarray(1, 4).toString('ascii')).toBe('PNG')
+  })
+
+  it('pauses both smoke and reveal timing while gameplay is paused', () => {
+    const afterPlaying = advanceEnemySpawnTimer(0, 0.16, 'playing')
+    const afterPause = advanceEnemySpawnTimer(afterPlaying, 1, 'paused')
+    const afterResume = advanceEnemySpawnTimer(afterPause, 0.16, 'playing')
+
+    expect(afterPlaying).toBe(160)
+    expect(afterPause).toBe(160)
+    expect(afterResume).toBe(ENEMY_SPAWN_REVEAL_DELAY_MS)
   })
 
   it('uses existing spawn-like SFX ids for smoke poofs without adding a new sound asset', () => {
