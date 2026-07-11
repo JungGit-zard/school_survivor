@@ -4,9 +4,9 @@
 import { enemyBodies, playerPos } from './refs.js'
 
 // 최단 거리 적을 찾는다. maxRange 이내가 아니면 null.
-export function findClosestEnemy(maxRange) {
-  let closest = null
-  let closestDistSq = maxRange * maxRange
+export function findClosestEnemies(maxRange, count = 1) {
+  const candidates = []
+  const maxRangeSq = maxRange * maxRange
   enemyBodies.forEach((rb, enemyId) => {
     if (!rb?._enemyHit || rb._enemyDead) {
       enemyBodies.delete(enemyId)
@@ -16,11 +16,17 @@ export function findClosestEnemy(maxRange) {
     const dx = t.x - playerPos.x
     const dz = t.z - playerPos.z
     const distSq = dx * dx + dz * dz
-    if (distSq >= closestDistSq) return
-    closest = { rb, enemyId }
-    closestDistSq = distSq
+    if (distSq > maxRangeSq) return
+    candidates.push({ rb, enemyId, distSq })
   })
-  return closest
+  return candidates
+    .sort((a, b) => a.distSq - b.distSq)
+    .slice(0, Math.max(0, count))
+    .map(({ rb, enemyId }) => ({ rb, enemyId }))
+}
+
+export function findClosestEnemy(maxRange) {
+  return findClosestEnemies(maxRange, 1)[0] ?? null
 }
 
 // 폭발/장판 공통: (x,z) 중심 radius 안의 살아있는 적에게 1회씩 데미지+넉백을 입힌다.

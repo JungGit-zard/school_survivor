@@ -6,7 +6,7 @@ import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
-import { findClosestEnemy } from '../../lib/weaponTargeting.js'
+import { findClosestEnemies } from '../../lib/weaponTargeting.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _projId = 0
@@ -144,35 +144,34 @@ export function PencilThrow() {
     if (now - lastFireRef.current < w.cooldown) return
     if (activeProjectilesRef.current.length > 0) return
 
-    const target = findClosestEnemy(w.range ?? 22)
-    if (!target) return
+    const count = w.projectileCount ?? 1
+    const targets = findClosestEnemies(w.range ?? 22, count)
+    if (targets.length === 0) return
     lastFireRef.current = now
     emitSfx({ id: 'pencilFire' })
-
-    const targetPos = target.rb.translation()
-    const facingAngle = Math.atan2(targetPos.x - playerPos.x, targetPos.z - playerPos.z)
-    const count = w.projectileCount ?? 1
-    const spreadMap = { 1: [0], 2: [-0.18, 0.18], 3: [-0.22, 0, 0.22], 4: [-0.3, -0.1, 0.1, 0.3] }
-    const spreads = spreadMap[count] ?? spreadMap[1]
 
     setProjectiles((prev) => {
       if (prev.length > 0) {
         activeProjectilesRef.current = prev
         return prev
       }
-      const next = spreads.map((spread) => ({
-        id: ++_projId,
-        position: [
-          playerPos.x + Math.sin(facingAngle + spread) * 0.35,
-          playerPos.y + 0.22,
-          playerPos.z + Math.cos(facingAngle + spread) * 0.35,
-        ],
-        yaw: facingAngle + spread,
-        damage: w.damage,
-        speed: w.speed,
-        pierce: w.pierce ?? 1,
-        target,
-      }))
+      const next = targets.map((target) => {
+        const targetPos = target.rb.translation()
+        const facingAngle = Math.atan2(targetPos.x - playerPos.x, targetPos.z - playerPos.z)
+        return {
+          id: ++_projId,
+          position: [
+            playerPos.x + Math.sin(facingAngle) * 0.35,
+            playerPos.y + 0.22,
+            playerPos.z + Math.cos(facingAngle) * 0.35,
+          ],
+          yaw: facingAngle,
+          damage: w.damage,
+          speed: w.speed,
+          pierce: w.pierce ?? 1,
+          target,
+        }
+      })
       activeProjectilesRef.current = next
       return next
     })

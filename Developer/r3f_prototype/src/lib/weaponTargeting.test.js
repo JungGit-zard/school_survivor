@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { enemyBodies, playerPos } from './refs.js'
-import { applyRadialDamage, findClosestEnemy, isInForwardBox, applyForwardBoxDamage, isInForwardCone, applyForwardConeDamage } from './weaponTargeting.js'
+import { applyRadialDamage, findClosestEnemies, findClosestEnemy, isInForwardBox, applyForwardBoxDamage, isInForwardCone, applyForwardConeDamage } from './weaponTargeting.js'
 
 function fakeEnemy(x, z, { dead = false } = {}) {
   return {
@@ -134,6 +134,19 @@ describe('findClosestEnemy', () => {
   it('returns null when no enemy is within range', () => {
     enemyBodies.set('far', fakeEnemy(10, 0))
     expect(findClosestEnemy(5)).toBeNull()
+  })
+
+  it('returns distinct nearest enemies for multi-projectile weapons', () => {
+    enemyBodies.set('third', fakeEnemy(3, 0))
+    enemyBodies.set('first', fakeEnemy(1, 0))
+    enemyBodies.set('second', fakeEnemy(2, 0))
+    enemyBodies.set('outside', fakeEnemy(8, 0))
+
+    expect(findClosestEnemies(5, 3).map((target) => target.enemyId)).toEqual([
+      'first',
+      'second',
+      'third',
+    ])
   })
 })
 
