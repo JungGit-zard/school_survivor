@@ -276,6 +276,11 @@ const sounds = {
     synth({ wave:'sawtooth', freq:80, dur:0.5, vol:0.6, attack:0.06, decay:0.15, sustain:0.5, release:0.25,
       noiseAmt:0.4, vibRate:3, vibDepth:6 }),
   ),
+  'enemies/zombieSpawn': () => mix(
+    synth({ wave:'noise', freq:1, dur:0.32, vol:0.72, attack:0.001, decay:0.07, sustain:0.08, release:0.22 }),
+    synth({ wave:'sine', freq:150, freqEnd:58, dur:0.30, vol:0.52, attack:0.001, decay:0.06, sustain:0.08, release:0.22 }),
+    synth({ wave:'triangle', freq:480, freqEnd:190, dur:0.18, vol:0.24, attack:0.001, decay:0.05, sustain:0.04, release:0.12 }),
+  ),
   'enemies/zombieRunnerScreech': () => synth({
     wave:'sawtooth', freq:400, freqEnd:600, dur:0.3, vol:0.55,
     attack:0.01, decay:0.08, sustain:0.4, release:0.15, noiseAmt:0.2, vibRate:10, vibDepth:20,

@@ -71,6 +71,16 @@ describe('playSfx', () => {
     expect(howlRate).not.toHaveBeenCalled()
   })
 
+  it('registers the dedicated zombie spawn poof sound', async () => {
+    const { playSfx } = await import('./sfxRegistry.js')
+
+    playSfx('zombieSpawn')
+
+    expect(howlConfigs[0].src).toEqual(['/sfx/enemies/zombieSpawn.ogg', '/sfx/enemies/zombieSpawn.mp3'])
+    expect(statSync(new URL('../../public/sfx/enemies/zombieSpawn.ogg', import.meta.url)).size).toBeGreaterThan(1000)
+    expect(howlPlay).toHaveBeenCalledOnce()
+  })
+
   it('registers dedicated Matilda dash and ho-ho laugh sounds', async () => {
     const { playSfx } = await import('./sfxRegistry.js')
 

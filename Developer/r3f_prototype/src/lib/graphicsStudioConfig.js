@@ -307,6 +307,16 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     applyTargets: ['components/VFXLayer.jsx', 'lib/vfxPalette.js', 'lib/enemyHitVfx.js'],
   },
   {
+    id: 'vfx-zombie-spawn-puff',
+    category: 'vfx',
+    label: 'Zombie Spawn Puff',
+    source: 'components/Enemy.jsx',
+    previewKind: 'vfx',
+    runtimePreviewComponent: 'SpawnSmokeEffect',
+    vfxType: 'spawnSmoke',
+    applyTargets: ['components/Enemy.jsx', 'assets/effects/spawn_smoke_puff.png'],
+  },
+  {
     id: 'vfx-charge-warning',
     category: 'vfx',
     label: 'Charge Warning',

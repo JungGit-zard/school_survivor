@@ -3,7 +3,7 @@ import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import { Html, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import { PlayerVisual } from './Player.jsx'
-import { ENEMY_STATS, EnemyVisual } from './Enemy.jsx'
+import { ENEMY_STATS, EnemyVisual, SpawnSmokeEffect } from './Enemy.jsx'
 import { FloorVisual } from './Floor.jsx'
 import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'
 import GoldCoin from './GoldCoin.jsx'
@@ -287,6 +287,7 @@ function StudioVfxPreview({ type }) {
 
   const onDone = () => {}
 
+  if (type === 'spawnSmoke') return <SpawnSmokeEffect position={[0, 0, 0]} visualScale={0.65} frozen />
   if (type === 'chargeWarning') return <ChargeWarningLine event={event} onDone={onDone} />
   if (type === 'pickupPop') return <PickupPop event={event} onDone={onDone} />
   return <HitSpark event={event} onDone={onDone} />

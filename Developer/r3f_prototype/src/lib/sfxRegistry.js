@@ -53,6 +53,7 @@ export const SOUND_MAP = {
 
   // ── 적 등장/공격 그로울 ───────────────────────────────────────────────────────
   zombieGroan:        '/sfx/enemies/zombieGroan.ogg',
+  zombieSpawn:        '/sfx/enemies/zombieSpawn.ogg',
   zombieTankGroan:    '/sfx/enemies/zombieTankGroan.ogg',
   zombieRunnerScreech:'/sfx/enemies/zombieRunnerScreech.ogg',
   zombieRangedShoot:  '/sfx/enemies/zombieRangedShoot.ogg',
@@ -105,6 +106,7 @@ export const POLYPHONY_COOLDOWN = Object.freeze({
   zombieDeath:      50,
   zombieHeavyDeath: 50,
   playerHit:        80,
+  zombieSpawn:      110,
   matildaDash:      400,
   matildaLaugh:     700,
   coinCollect:      40,

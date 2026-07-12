@@ -1,5 +1,6 @@
 ﻿import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { useFrame, useLoader } from '@react-three/fiber'
+import { Billboard } from '@react-three/drei'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import * as THREE from 'three'
 import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.png'
@@ -67,7 +68,7 @@ export function resetEnemySpawnSfxGateForTest() {
 export function getEnemySpawnSfx(type, isMatilda = false) {
   if (isMatilda) return { id: 'matildaSpawn', volume: 0.72 }
   if (type === 'B01' || type === 'B02' || type === 'B03') return { id: 'bossSpawn', volume: 0.78 }
-  return { id: 'bossSpawn', volume: 0.28 }
+  return { id: 'zombieSpawn', volume: 0.42 }
 }
 
 function emitEnemySpawnSfx(type, isMatilda = false) {
@@ -296,46 +297,55 @@ export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = fal
   )
 }
 
-function SpawnSmokeEffect({ position, visualScale }) {
-  const spriteRef = useRef()
+export function SpawnSmokeEffect({ position, visualScale, frozen = false }) {
+  const billboardRef = useRef()
+  const materialRef = useRef()
   const elapsedMsRef = useRef(0)
   const [done, setDone] = useState(false)
   const phase = useGameStore((s) => s.phase)
   const texture = useLoader(THREE.TextureLoader, spawnSmokeUrl)
-  const material = useMemo(() => new THREE.SpriteMaterial({
-    map: texture,
-    transparent: true,
-    opacity: 1,
-    depthTest: true,
-    depthWrite: false,
-  }), [texture])
-
-  useEffect(() => () => material.dispose(), [material])
+  texture.colorSpace = THREE.SRGBColorSpace
 
   useFrame((_, delta) => {
-    const sprite = spriteRef.current
-    if (!sprite) return
-    elapsedMsRef.current = advanceEnemySpawnTimer(elapsedMsRef.current, delta, phase)
+    const billboard = billboardRef.current
+    const material = materialRef.current
+    if (!billboard || !material) return
+    if (!frozen) elapsedMsRef.current = advanceEnemySpawnTimer(elapsedMsRef.current, delta, phase)
     const t = Math.min(1, elapsedMsRef.current / SPAWN_SMOKE_DURATION_MS)
     const ease = 1 - (1 - t) * (1 - t)
     const size = visualScale * (
       SPAWN_SMOKE_START_SCALE + ease * (SPAWN_SMOKE_END_SCALE - SPAWN_SMOKE_START_SCALE)
     )
-    sprite.scale.set(size, size, 1)
-    sprite.position.y = position[1] + visualScale * (1.0 + t * 0.32)
+    billboard.scale.set(size, size, 1)
+    billboard.position.y = position[1] + visualScale * (1.0 + t * 0.32)
     material.opacity = 1 - t
     if (t >= 1) setDone(true)
   })
 
   if (done) return null
 
+  const startSize = visualScale * SPAWN_SMOKE_START_SCALE
   return (
-    <sprite
-      ref={spriteRef}
-      material={material}
+    <Billboard
+      ref={billboardRef}
+      follow
       position={[position[0], position[1] + visualScale, position[2]]}
-      renderOrder={6}
-    />
+      scale={[startSize, startSize, 1]}
+    >
+      <mesh renderOrder={100}>
+        <planeGeometry args={[1, 1]} />
+        <meshBasicMaterial
+          ref={materialRef}
+          map={texture}
+          transparent
+          opacity={1}
+          alphaTest={0.01}
+          depthTest={false}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </mesh>
+    </Billboard>
   )
 }
 

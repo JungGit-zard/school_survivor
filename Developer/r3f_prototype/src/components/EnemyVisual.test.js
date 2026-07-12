@@ -77,13 +77,14 @@ describe('Enemy charge warning cue', () => {
     expect(source).not.toContain('GoSpeechBubble')
   })
 
-  it('shows a camera-facing image smoke puff before the enemy is revealed', () => {
+  it('shows the supplied smoke asset as an unobstructed camera-facing billboard before reveal', () => {
     const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
     const asset = readFileSync(new URL('../assets/effects/spawn_smoke_puff.png', import.meta.url))
 
     expect(source).toContain("import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.png'")
     expect(source).toContain('function SpawnSmokeEffect')
-    expect(source).toContain('<sprite')
+    expect(source).toContain('<Billboard')
+    expect(source).toContain('<planeGeometry args={[1, 1]} />')
     expect(source).toContain('<SpawnSmokeEffect position={spawnPos} visualScale={cs * 0.333} />')
     expect(source).toContain('const [spawnRevealed, setSpawnRevealed] = useState(false)')
     expect(source).toContain('{spawnRevealed && (')
@@ -91,7 +92,8 @@ describe('Enemy charge warning cue', () => {
     expect(SPAWN_SMOKE_DURATION_MS).toBeGreaterThan(ENEMY_SPAWN_REVEAL_DELAY_MS)
     expect(SPAWN_SMOKE_START_SCALE).toBeLessThan(SPAWN_SMOKE_END_SCALE)
     expect(SPAWN_SMOKE_END_SCALE).toBeLessThanOrEqual(1.2)
-    expect(source).toContain('depthWrite: false')
+    expect(source).toContain('depthTest={false}')
+    expect(source).toContain('depthWrite={false}')
     expect(asset.subarray(1, 4).toString('ascii')).toBe('PNG')
   })
 
@@ -105,8 +107,8 @@ describe('Enemy charge warning cue', () => {
     expect(afterResume).toBe(ENEMY_SPAWN_REVEAL_DELAY_MS)
   })
 
-  it('uses existing spawn-like SFX ids for smoke poofs without adding a new sound asset', () => {
-    expect(getEnemySpawnSfx('E01')).toMatchObject({ id: 'bossSpawn' })
+  it('uses a dedicated poof sound for regular zombie spawns', () => {
+    expect(getEnemySpawnSfx('E01')).toMatchObject({ id: 'zombieSpawn' })
     expect(getEnemySpawnSfx('B01')).toMatchObject({ id: 'bossSpawn' })
     expect(getEnemySpawnSfx('E01').volume).toBeLessThan(getEnemySpawnSfx('B01').volume)
     expect(getEnemySpawnSfx('E01', true)).toMatchObject({ id: 'matildaSpawn' })

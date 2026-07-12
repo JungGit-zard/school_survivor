@@ -16,6 +16,14 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(source).toContain("movementPose={item.animation === 'charge'}")
   })
 
+  it('previews the runtime zombie spawn billboard in the VFX studio', () => {
+    const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('SpawnSmokeEffect')
+    expect(source).toContain("type === 'spawnSmoke'")
+    expect(source).toContain('frozen')
+  })
+
   it('can preview separated Starlink crash phases and fixed zombie death styles', () => {
     const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
 
