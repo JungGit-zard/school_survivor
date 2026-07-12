@@ -18,6 +18,7 @@ import {
   getChargeHitDistance,
   getEnemySpawnSfx,
   hasMatildaReachedStageEdge,
+  isMatildaChargingOutward,
   resolveSightBlockedEnemyVelocity,
 } from './Enemy.jsx'
 
@@ -44,6 +45,14 @@ describe('Enemy charge warning cue', () => {
     expect(source).toContain("chargeState.current = 'matildaLaugh'")
     expect(source).toContain("emitSfx({ id: 'matildaLaugh'")
     expect(source).toContain("emitSfx({ id: 'matildaDash'")
+  })
+
+  it('lets Matilda leave an edge toward the player before checking for the next charge endpoint', () => {
+    const bounds = { halfX: 10, halfZ: 14.4 }
+    const rightEdge = { x: bounds.halfX - MATILDA_EDGE_INSET, z: 0 }
+
+    expect(isMatildaChargingOutward(rightEdge, { x: -1, z: 0 }, bounds)).toBe(false)
+    expect(isMatildaChargingOutward(rightEdge, { x: 1, z: 0 }, bounds)).toBe(true)
   })
 
   it('only lets Matilda deal charge damage at the normal body contact distance', () => {

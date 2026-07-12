@@ -82,6 +82,13 @@ export function hasMatildaReachedStageEdge(position, bounds, inset = MATILDA_EDG
     || Math.abs(position.z) >= bounds.halfZ - inset
 }
 
+export function isMatildaChargingOutward(position, direction, bounds, inset = MATILDA_EDGE_INSET) {
+  return (position.x >= bounds.halfX - inset && direction.x > 0)
+    || (position.x <= -bounds.halfX + inset && direction.x < 0)
+    || (position.z >= bounds.halfZ - inset && direction.z > 0)
+    || (position.z <= -bounds.halfZ + inset && direction.z < 0)
+}
+
 export function advanceEnemySpawnTimer(elapsedMs, deltaSec, phase) {
   return phase === 'playing' ? elapsedMs + deltaSec * 1000 : elapsedMs
 }
@@ -692,7 +699,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
             damagePlayer(stats.damage)
           }
 
-          if (hasMatildaReachedStageEdge(t, getStageBounds(currentStageId))) {
+          if (isMatildaChargingOutward(t, cd, getStageBounds(currentStageId))) {
             chargeState.current = 'matildaLaugh'
             matildaLaughRemainingRef.current = MATILDA_LAUGH_DURATION_MS
             setAnimPhase('stun')
