@@ -68,7 +68,7 @@ describe('playSfx', () => {
     expect(howlConfigs[0].src).toEqual(['/sfx/enemies/matildaSpawn.ogg', '/sfx/enemies/matildaSpawn.mp3'])
     expect(statSync(new URL('../../public/sfx/enemies/matildaSpawn.ogg', import.meta.url)).size).toBeGreaterThan(1000)
     expect(howlPlay).toHaveBeenCalledOnce()
-    expect(howlRate).not.toHaveBeenCalled()
+    expect(howlRate).toHaveBeenCalledWith(1, 7)
   })
 
   it('registers the dedicated zombie spawn poof sound', async () => {
@@ -178,5 +178,16 @@ describe('playSfx', () => {
 
     expect(howlVolume).toHaveBeenCalledWith(0.4, 7)
     expect(howlRate).toHaveBeenCalledWith(1.25, 7)
+  })
+
+  it('restores a cached sound to the latest saved default pitch', async () => {
+    const { playSfx, saveSfxTunings } = await import('./sfxRegistry.js')
+
+    saveSfxTunings({ pencilFire: { volume: 1, rate: 1.35 } })
+    playSfx('pencilFire')
+    saveSfxTunings({ pencilFire: { volume: 1, rate: 1 } })
+    playSfx('pencilFire')
+
+    expect(howlRate).toHaveBeenLastCalledWith(1, 7)
   })
 })

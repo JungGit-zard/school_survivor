@@ -207,7 +207,9 @@ export function playSfx(id, volume = 1, options = {}) {
   }
   const soundId = _cache[id].play()
   _cache[id].volume?.(tunedVolume, soundId)
-  if (tunedRate !== 1) _cache[id].rate(tunedRate, soundId)
+  // Howler retains a cached instance's prior playback rate. Apply the saved
+  // value even when it is 1 so an admin reset takes effect on the next play.
+  _cache[id].rate?.(tunedRate, soundId)
 }
 
 // 볼륨 조절 (뮤트/글로벌 볼륨 슬라이더 연동용)
