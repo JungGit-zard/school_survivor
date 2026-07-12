@@ -13,7 +13,7 @@ describe('UserRanking', () => {
     localStorage.clear()
   })
 
-  it('renders ranking rows from 1st through 100th place', () => {
+  it('renders ranking rows from 1st through 30th place', () => {
     const html = renderToStaticMarkup(
       <UserRanking
         onBack={() => {}}
@@ -26,7 +26,9 @@ describe('UserRanking', () => {
     expect(html).toContain('주간랭킹')
     expect(html).toContain('한국시간 당일 00:00:01 - 23:59:59')
     expect(html).toContain('1위')
-    expect(html).toContain('100위')
+    expect(html).toContain('30위')
+    expect(html).not.toContain('31위')
+    expect(html.match(/<li/g)).toHaveLength(30)
     expect(html).toContain('지안')
     expect(html).toContain('330점')
     expect(html).toContain('4:00')

@@ -10,7 +10,7 @@ import {
 import { saveNicknameForUser } from './userNickname.js'
 
 describe('user ranking helpers', () => {
-  it('sorts entries by survival score and fills ranks through 100', () => {
+  it('sorts entries by survival score and fills ranks through 30', () => {
     const rows = createRankingRows([
       { displayName: '민수', survivalSeconds: 220, stageId: 'stage1', cleared: false },
       { displayName: '지안', survivalSeconds: 180, stageId: 'stage2', cleared: false },
@@ -21,10 +21,10 @@ describe('user ranking helpers', () => {
     expect(rows[0]).toMatchObject({ rank: 1, displayName: '하린', score: 270, stageId: 'stage1', empty: false })
     expect(rows[1]).toMatchObject({ rank: 2, displayName: '지안', score: 240, stageId: 'stage2', empty: false })
     expect(rows[2]).toMatchObject({ rank: 3, displayName: '민수', score: 220, stageId: 'stage1', empty: false })
-    expect(rows[99]).toMatchObject({ rank: 100, displayName: '', score: 0, survivalSeconds: 0, empty: true })
+    expect(rows[29]).toMatchObject({ rank: 30, displayName: '', score: 0, survivalSeconds: 0, empty: true })
   })
 
-  it('caps ranking rows at the top 100 entries', () => {
+  it('caps ranking rows at the top 30 entries', () => {
     const rows = createRankingRows(
       Array.from({ length: 125 }, (_, index) => ({
         displayName: `User ${index + 1}`,
@@ -35,7 +35,7 @@ describe('user ranking helpers', () => {
 
     expect(rows).toHaveLength(RANKING_LIMIT)
     expect(rows[0].score).toBe(125)
-    expect(rows[99].score).toBe(26)
+    expect(rows[29].score).toBe(96)
   })
 
   it('builds the local player entry from the best stage record', () => {

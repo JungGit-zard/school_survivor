@@ -3,7 +3,7 @@ import { getStageConfig } from './stageConfig.js'
 import { compareRankingEntries, getRankingScore, getRankingScorePolicy, SCORE_TYPE } from './rankingScorePolicy.js'
 import { getSavedNickname } from './userNickname.js'
 
-export const RANKING_LIMIT = 100
+export const RANKING_LIMIT = 30
 
 const DEFAULT_PLAYER_NAME = '내 기록'
 

@@ -7,6 +7,7 @@ import {
   loadLocalRankingEntries,
   buildLocalPlayerRankingEntry,
   mergeCloudEntries,
+  RANKING_LIMIT,
 } from '../lib/userRanking.js'
 import { fetchGlobalRanking, isFirebaseRankingConfigured } from '../lib/firebaseRanking.js'
 import { getAdminRankingSeasonConfig } from '../lib/adminConfig.js'
@@ -30,8 +31,8 @@ export default function UserRanking({ onBack, entries }) {
   useEffect(() => {
     if (!isFirebaseRankingConfigured()) return
     Promise.all([
-      fetchGlobalRanking('daily', { limit: 100 }).catch(() => []),
-      fetchGlobalRanking('weekly', { limit: 100 }).catch(() => []),
+      fetchGlobalRanking('daily', { limit: RANKING_LIMIT }).catch(() => []),
+      fetchGlobalRanking('weekly', { limit: RANKING_LIMIT }).catch(() => []),
     ]).then(([daily, weekly]) => setCloudBoards({ daily, weekly }))
   }, [])
 
@@ -56,7 +57,7 @@ export default function UserRanking({ onBack, entries }) {
     <div style={styles.root}>
       <header style={styles.header}>
         <div>
-          <div style={styles.eyebrow}>TOP 100</div>
+          <div style={styles.eyebrow}>TOP {RANKING_LIMIT}</div>
           <h1 style={styles.title}>통합 랭킹</h1>
         </div>
         <div style={styles.playerStats}>
@@ -92,7 +93,7 @@ export default function UserRanking({ onBack, entries }) {
         <span style={styles.seasonReward}>{rewardSummary}</span>
       </section>
 
-      <ol style={styles.list} aria-label="유저랭킹 1위부터 100위까지">
+      <ol style={styles.list} aria-label={`유저랭킹 1위부터 ${RANKING_LIMIT}위까지`}>
         {rows.map((row) => (
           <RankingRow key={row.rank} row={row} />
         ))}
