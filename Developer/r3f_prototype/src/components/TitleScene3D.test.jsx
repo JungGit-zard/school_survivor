@@ -21,7 +21,7 @@ describe('TitleScene3D direction', () => {
       infectionStreaks: 2,
       warningLights: 2,
       zombieStudents: 5,
-      bossZombies: 2,
+      bossZombies: 3,
       matildaPursuers: 1,
       realForegroundResources: [
         'PlayerMesh',
@@ -51,7 +51,8 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain("import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'")
     expect(source).toContain('<ZombieMesh type={type} animPhase="charge" />')
     expect(source).toContain('<TitleBossZombie type="B02" position={[-1.35, 0.26, -3.7]} scale={0.98} delay={0.9} />')
-    expect(source).toContain('<TitleBossZombie type="B01" position={[0.1, 0.25, -2.15]} scale={1.02} />')
+    expect(source).toContain('<TitleBossZombie type="B03" position={[0.02, 0.28, -4.04]} scale={1.12} delay={1.35} />')
+    expect(source).toContain('<TitleBossZombie type="B01" position={[0.1, 0.25, -1.62]} scale={1.02} />')
     expect(source).toContain('<TitleZombie position={[-0.92, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />')
     expect(source).toContain('<ClassroomDesk')
     expect(source).toContain('<ClassroomChair')
@@ -75,7 +76,7 @@ describe('TitleScene3D direction', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
     expect(source).toContain('ref.current.rotation.y = 0.48 + Math.sin(t * 2.2) * 0.055')
-    expect(source).toContain('rotation={[-0.08, 0.48, 0.05]} scale={2}')
+    expect(source).toContain('position={[0.48, 0.88, 0.38]} rotation={[-0.08, 0.48, 0.05]} scale={2}')
   })
 
   it('turns all title zombies toward the player', () => {

@@ -25,7 +25,7 @@ export const TITLE_SCENE_DIRECTION = {
     infectionStreaks: 2,
     warningLights: 2,
     zombieStudents: 5,
-    bossZombies: 2,
+    bossZombies: 3,
     matildaPursuers: 1,
     realForegroundResources: [
       'PlayerMesh',
@@ -73,14 +73,14 @@ function TitlePlayer() {
     const t = state.clock.elapsedTime
     ref.current.position.x = 0.48 + Math.sin(t * 4.2) * 0.04
     ref.current.position.y = 0.88 + Math.sin(t * 8.4) * 0.055
-    ref.current.position.z = 0.08 + Math.sin(t * 3.2) * 0.045
+    ref.current.position.z = 0.38 + Math.sin(t * 3.2) * 0.045
     ref.current.rotation.x = -0.08 + Math.sin(t * 4.4) * 0.018
     ref.current.rotation.y = 0.48 + Math.sin(t * 2.2) * 0.055
     ref.current.rotation.z = 0.05 + Math.sin(t * 7.8) * 0.025
   })
 
   return (
-    <group ref={ref} position={[0.48, 0.88, 0.08]} rotation={[-0.08, 0.48, 0.05]} scale={2}>
+    <group ref={ref} position={[0.48, 0.88, 0.38]} rotation={[-0.08, 0.48, 0.05]} scale={2}>
       <PlayerMesh />
     </group>
   )
@@ -271,7 +271,8 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
       <WarningLight position={[2.15, 0.03, 1.3]} delay={1.4} />
 
       <TitleBossZombie type="B02" position={[-1.35, 0.26, -3.7]} scale={0.98} delay={0.9} />
-      <TitleBossZombie type="B01" position={[0.1, 0.25, -2.15]} scale={1.02} />
+      <TitleBossZombie type="B03" position={[0.02, 0.28, -4.04]} scale={1.12} delay={1.35} />
+      <TitleBossZombie type="B01" position={[0.1, 0.25, -1.62]} scale={1.02} />
       <TitleZombie position={[-2.25, 0.22, -3.42]} delay={0.4} scale={0.58} type="E03" />
       <TitleZombie position={[2.0, 0.2, -3.18]} delay={1.6} scale={0.52} type="E02" />
       <TitleZombie position={[-1.95, 0.22, -1.55]} delay={0.2} scale={0.7} type="E01" />
