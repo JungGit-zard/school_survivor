@@ -144,6 +144,13 @@ describe('stage object placements', () => {
     expect(positions.some((x) => Math.abs(x) < halfX * 0.5)).toBe(true)
   })
 
+  it('moves every Stage 2 prop into the interior blocker field', () => {
+    const positions = getStageObjectPlacements('stage2').map(({ position: [x, , z] }) => [x, z])
+
+    expect(positions.every(([x, z]) => Math.abs(x) <= 4.8 && Math.abs(z) <= 14.5)).toBe(true)
+    expect(positions.some(([x, z]) => Math.max(Math.abs(x), Math.abs(z)) < 4.5)).toBe(true)
+  })
+
   it('distributes props across each stage without occupying its central spawn lane', () => {
     for (const stageId of ['stage2']) {
       const placements = getStageObjectPlacements(stageId)
@@ -152,10 +159,7 @@ describe('stage object placements', () => {
 
       expect(new Set(positions.map(([x, z]) => `${x}:${z}`)).size).toBe(placements.length)
       expect(positions.every(([x, z]) => Math.abs(x) <= halfX - 0.6 && Math.abs(z) <= halfZ - 0.6)).toBe(true)
-      expect(Math.min(...positions.map(([x]) => x))).toBeLessThan(-halfX * 0.65)
-      expect(Math.max(...positions.map(([x]) => x))).toBeGreaterThan(halfX * 0.65)
-      expect(Math.min(...positions.map(([, z]) => z))).toBeLessThan(-halfZ * 0.65)
-      expect(Math.max(...positions.map(([, z]) => z))).toBeGreaterThan(halfZ * 0.65)
+      expect(positions.every(([x, z]) => Math.abs(x) <= 4.8 && Math.abs(z) <= 14.5)).toBe(true)
 
       if (stageId === 'stage1') {
         expect(positions.every(([x, z]) => Math.abs(x) >= 6 || Math.abs(z) >= 12)).toBe(true)

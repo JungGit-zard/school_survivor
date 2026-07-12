@@ -4,7 +4,13 @@ import { CLASSROOM_DESK_VARIANTS } from './ClassroomDesk.jsx'
 import { getStageObjectPlacements } from './stageObjectPlacements.js'
 import { STAGE_PROP_PLACEMENTS_EVENT } from '../../lib/stagePropPlacements.js'
 
-export const BLOCKING_STAGE_OBJECT_TYPES = new Set(['classroomChair', 'classroomDesk'])
+export const BLOCKING_STAGE_OBJECT_TYPES = new Set([
+  'classroomChair',
+  'classroomDesk',
+  'corridorLockerBank',
+  'corridorJanitorCart',
+  'corridorLostFoundBoard',
+])
 
 const DESK_COLLIDER_PARTS = [
   { key: 'desk-footprint', position: [0, 0.42, 0], size: [1.76, 0.84, 1.04] },
@@ -13,6 +19,18 @@ const DESK_COLLIDER_PARTS = [
 const CHAIR_COLLIDER_PARTS = [
   { key: 'chair-seat-footprint', position: [0, 0.38, 0], size: [1.02, 0.76, 0.9] },
   { key: 'chair-back-footprint', position: [0, 0.44, -0.36], size: [1.02, 0.88, 0.16] },
+]
+
+const CORRIDOR_LOCKER_COLLIDER_PARTS = [
+  { key: 'locker-footprint', position: [0, 0.78, 0], size: [1.34, 1.56, 0.54] },
+]
+
+const CORRIDOR_CART_COLLIDER_PARTS = [
+  { key: 'cart-footprint', position: [0, 0.42, 0], size: [1.1, 0.84, 0.58] },
+]
+
+const CORRIDOR_LOST_FOUND_COLLIDER_PARTS = [
+  { key: 'lost-found-footprint', position: [0, 0.78, 0], size: [1.34, 1.56, 0.18] },
 ]
 
 const COLLIDER_DEFS = {
@@ -24,6 +42,9 @@ const COLLIDER_DEFS = {
     variants: CLASSROOM_DESK_VARIANTS,
     parts: DESK_COLLIDER_PARTS,
   },
+  corridorLockerBank: { parts: CORRIDOR_LOCKER_COLLIDER_PARTS },
+  corridorJanitorCart: { parts: CORRIDOR_CART_COLLIDER_PARTS },
+  corridorLostFoundBoard: { parts: CORRIDOR_LOST_FOUND_COLLIDER_PARTS },
 }
 
 const MIN_BLOCKING_HALF_HEIGHT = 0.44
@@ -117,7 +138,7 @@ export function getStageObjectColliderParts(placement = {}) {
   if (!def) return []
 
   const variantName = placement.props?.variant ?? 'upright'
-  const variant = def.variants[variantName] ?? def.variants.upright
+  const variant = def.variants?.[variantName] ?? def.variants?.upright ?? {}
   const placementScale = normalizeScale(placement.scale)
 
   return def.parts.map(({ key, position, rotation = [0, 0, 0], size }) => {
