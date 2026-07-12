@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getFirebaseConfig, isFirebaseAuthConfigured, shouldUseNativeGoogleSignIn, toAuthUser } from './firebaseAuth.js'
+import { getFirebaseConfig, getLocalFirebaseAuthRedirect, isFirebaseAuthConfigured, shouldUseNativeGoogleSignIn, toAuthUser } from './firebaseAuth.js'
 
 const COMPLETE_ENV = {
   VITE_FIREBASE_API_KEY: 'api-key',
@@ -61,5 +61,13 @@ describe('firebase auth configuration', () => {
       location: { protocol: 'https:' },
       navigator: { userAgent: 'Mozilla/5.0 (Linux; Android 15; Mobile)' },
     })).toBe(false)
+  })
+
+  it('redirects loopback dev URLs to the Firebase-authorized localhost origin', () => {
+    expect(getLocalFirebaseAuthRedirect({ href: 'http://127.0.0.1:5175/graphics-studio?tab=audio#pencil' }, true))
+      .toBe('http://localhost:5175/graphics-studio?tab=audio#pencil')
+    expect(getLocalFirebaseAuthRedirect({ href: 'http://0.0.0.0:5175/' }, true)).toBe('http://localhost:5175/')
+    expect(getLocalFirebaseAuthRedirect({ href: 'http://localhost:5175/' }, true)).toBeNull()
+    expect(getLocalFirebaseAuthRedirect({ href: 'http://127.0.0.1:5175/' }, false)).toBeNull()
   })
 })

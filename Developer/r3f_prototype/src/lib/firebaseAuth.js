@@ -53,6 +53,14 @@ export function shouldUseNativeGoogleSignIn(globalScope = getDefaultGlobalScope(
   return isNative || platform === 'android' || platform === 'ios' || globalScope?.location?.protocol === 'capacitor:'
 }
 
+export function getLocalFirebaseAuthRedirect(location = getDefaultGlobalScope()?.location, isDevelopment = import.meta.env?.DEV === true) {
+  if (!isDevelopment || !location?.href) return null
+  const url = new URL(location.href)
+  if (!['127.0.0.1', '0.0.0.0'].includes(url.hostname)) return null
+  url.hostname = 'localhost'
+  return url.href
+}
+
 export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScope = getDefaultGlobalScope()) {
   if (!isFirebaseAuthConfigured(env)) {
     return {
