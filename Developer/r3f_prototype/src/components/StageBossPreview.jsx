@@ -174,6 +174,7 @@ export default function StageBossPreview({
   const frameRef = useRef(frame)
   const dragRef = useRef(null)
   const [activeMotionToken, setActiveMotionToken] = useState(() => (motionToken > 0 && motionAllowed() ? motionToken : 0))
+  const [touchMotionToken, setTouchMotionToken] = useState(0)
   frameRef.current = frame
 
   // 온디맨드 모션 상태(리렌더 없이 프레임 루프와 공유하는 ref).
@@ -190,8 +191,16 @@ export default function StageBossPreview({
     return () => window.clearTimeout(timer)
   }, [motionToken])
 
+  useEffect(() => {
+    if (!touchMotionToken || !motionAllowed()) return
+    burstRef.current += 1
+    invalidateRef.current?.()
+    const timer = window.setTimeout(() => setTouchMotionToken(0), ENTRY_MOTION_MS)
+    return () => window.clearTimeout(timer)
+  }, [touchMotionToken])
+
   // 탭 리액션/패럴랙스는 비인터랙티브(로비 프리뷰) 전용 + 모션 게이트 통과 시에만.
-  const motionEnabled = !interactive && activeMotionToken > 0 && motionAllowed()
+  const motionEnabled = !interactive && (activeMotionToken > 0 || touchMotionToken > 0) && motionAllowed()
 
   const updateFrame = (patch) => {
     if (!interactive || !onChange) return
@@ -226,7 +235,7 @@ export default function StageBossPreview({
         }
         // 비인터랙티브 탭 리액션(interactive 가드와 독립). 게이트 통과 시에만 버스트.
         if (!motionAllowed()) return
-        burstRef.current += 1
+        setTouchMotionToken((token) => token + 1)
         invalidateRef.current?.() // demand 프레임 kick → useFrame이 버스트를 이어감
       }}
       onPointerMove={(event) => {

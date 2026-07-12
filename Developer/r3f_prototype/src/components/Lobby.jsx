@@ -28,10 +28,20 @@ const STAGE_UNLOCK_HINT = {
 // 입장 lunge+포효 모션(StageBossPreview ENTRY_MOTION_MS=820ms)이 화면에 확실히 보이고
 // 대부분 settle된 뒤 게임을 시작한다. 상한(~900ms) 안에서 답답하지 않게 720ms.
 const STAGE_ENTRY_MOTION_MS = 720
+const AMBIENT_DRIFT_INTERVAL_MS = 2400
+const TOUCH_FEEDBACK_MS = 320
 
 function lobbyMotionAllowed() {
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true
   return !reduced && document.documentElement?.dataset?.reducedEffects !== 'true'
+}
+
+function nextAmbientPosition(random = Math.random) {
+  return {
+    x: Math.round((random() * 70 - 35) * 10) / 10,
+    y: Math.round((random() * 70 - 35) * 10) / 10,
+    scale: 1.08,
+  }
 }
 
 function formatSeasonCountdown(season, nowMs = Date.now()) {
@@ -53,7 +63,12 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
   const [nickname, setNickname] = useState(() => getSavedNickname(authUser))
   const [modal, setModal] = useState(null) // 'ability' | 'weapon' | 'settings' | null
   const [stageBossPreview, setStageBossPreview] = useState(() => loadStageBossPreview())
-  const ambientRef = useRef(null)
+  const [ambientPosition, setAmbientPosition] = useState(() => ({ x: 0, y: 0, scale: 1.08 }))
+  const touchAmbientRef = useRef(null)
+  const touchPulseRef = useRef(null)
+  const touchAmbientTimerRef = useRef(null)
+  const feedbackTimerRef = useRef(null)
+  const feedbackButtonRef = useRef(null)
 
   const stageIds = useMemo(() => Object.keys(STAGE_CONFIGS), [])
   const season = useMemo(() => getActiveSeason(), [])
@@ -72,22 +87,47 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
   // ref로 transform만 직접 갱신 → 리렌더 없음. transform은 GPU 컴포지터 처리라 무부하.
   useEffect(() => {
     if (!lobbyMotionAllowed()) return
-    const follow = (event) => {
-      const el = ambientRef.current
-      if (!el) return
-      const nx = event.clientX / window.innerWidth - 0.5
-      const ny = event.clientY / window.innerHeight - 0.5
-      const x = Math.round(nx * 50 * 10) / 10 // -25..25 %
-      const y = Math.round(ny * 50 * 10) / 10
-      el.style.transform = `translate3d(${x}%, ${y}%, 0) scale(1.12)`
-    }
-    window.addEventListener('pointermove', follow, { passive: true })
-    window.addEventListener('pointerdown', follow, { passive: true })
-    return () => {
-      window.removeEventListener('pointermove', follow)
-      window.removeEventListener('pointerdown', follow)
-    }
+    const timer = window.setInterval(() => setAmbientPosition(nextAmbientPosition()), AMBIENT_DRIFT_INTERVAL_MS)
+    return () => window.clearInterval(timer)
   }, [])
+
+  useEffect(() => () => {
+    window.clearTimeout(touchAmbientTimerRef.current)
+    window.clearTimeout(feedbackTimerRef.current)
+  }, [])
+
+  const handleLobbyPointerDown = (event) => {
+    if (!lobbyMotionAllowed()) return
+    const x = event.clientX / window.innerWidth - 0.5
+    const y = event.clientY / window.innerHeight - 0.5
+    const touchAmbient = touchAmbientRef.current
+    if (touchAmbient) {
+      touchAmbient.style.opacity = '1'
+      touchAmbient.style.transform = `translate3d(${Math.round(x * 45 * 10) / 10}%, ${Math.round(y * 45 * 10) / 10}%, 0) scale(1.1)`
+      window.clearTimeout(touchAmbientTimerRef.current)
+      touchAmbientTimerRef.current = window.setTimeout(() => {
+        touchAmbient.style.opacity = '0'
+      }, 620)
+    }
+    const pulse = touchPulseRef.current
+    if (pulse) {
+      pulse.style.left = `${Math.max(0, Math.min(100, (event.clientX / window.innerWidth) * 100))}%`
+      pulse.style.top = `${Math.max(0, Math.min(100, (event.clientY / window.innerHeight) * 100))}%`
+      pulse.classList.remove('lobby-touch-pulse-active')
+      void pulse.offsetWidth
+      pulse.classList.add('lobby-touch-pulse-active')
+    }
+    const button = event.target.closest?.('button')
+    if (!button) return
+    feedbackButtonRef.current?.classList.remove('lobby-touch-feedback')
+    window.clearTimeout(feedbackTimerRef.current)
+    feedbackButtonRef.current = button
+    button.classList.add('lobby-touch-feedback')
+    feedbackTimerRef.current = window.setTimeout(() => {
+      button.classList.remove('lobby-touch-feedback')
+      if (feedbackButtonRef.current === button) feedbackButtonRef.current = null
+    }, TOUCH_FEEDBACK_MS)
+  }
 
   // 로비 "생기(juice)"용 CSS 키프레임 + :active/게이트 규칙 주입. 최초 1회만.
   // 인라인 styles 객체에는 @keyframes·:active를 담을 수 없어 HUD.jsx와 동일한 idiom을 쓴다.
@@ -100,9 +140,15 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
         0%,100%{filter:drop-shadow(0 0 2px rgba(89,199,255,0.35)) brightness(1)}
         50%{filter:drop-shadow(0 0 14px rgba(89,199,255,0.8)) brightness(1.16)}
       }
+      @keyframes lobbyTouchPulse {
+        from{opacity:0.8;transform:translate(-50%,-50%) scale(0.25)}
+        to{opacity:0;transform:translate(-50%,-50%) scale(1)}
+      }
       /* 눌림 마이크로 인터랙션(인라인으로 불가) */
-      .lobby-press{ transition: transform 90ms ease }
+      .lobby-press{ transition: transform 90ms ease, filter 180ms ease, box-shadow 180ms ease }
       .lobby-press:active{ transform: scale(0.96) }
+      .lobby-press.lobby-touch-feedback{ filter:brightness(1.18);box-shadow:0 0 16px rgba(126,228,200,0.78) }
+      .lobby-touch-pulse-active{ animation:lobbyTouchPulse 520ms ease-out both }
       /* 접근성/멀미 게이트: 모션 정지 */
       @media (prefers-reduced-motion: reduce){ .lobby-anim{ animation: none !important } }
       :root[data-reduced-effects] .lobby-anim{ animation: none !important }
@@ -122,18 +168,19 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
   }
 
   return (
-    <div style={styles.root}>
+    <div style={styles.root} onPointerDown={handleLobbyPointerDown}>
       {/* 배경 앰비언트 드리프트(콘텐츠 뒤, 클릭 방해 없음) */}
       <div
-        ref={ambientRef}
         className="lobby-anim"
         data-testid="lobby-ambient-drift"
         style={{
           ...styles.ambientDrift,
-          transform: 'translate3d(0%, 0%, 0) scale(1.12)',
+          transform: `translate3d(${ambientPosition.x}%, ${ambientPosition.y}%, 0) scale(${ambientPosition.scale})`,
         }}
         aria-hidden="true"
       />
+      <div ref={touchAmbientRef} data-testid="lobby-touch-ambient" style={styles.touchAmbient} aria-hidden="true" />
+      <div ref={touchPulseRef} data-testid="lobby-touch-pulse" style={styles.touchPulse} aria-hidden="true" />
 
       {/* 상단 sticky 상태바 */}
       <header style={styles.statusBar}>
@@ -306,8 +353,32 @@ const styles = {
     background:
       'radial-gradient(34% 55% at 28% 7%, rgba(126,228,200,0.6) 0%, rgba(126,228,200,0) 60%),' +
       'radial-gradient(36% 55% at 72% 95%, rgba(89,199,255,0.55) 0%, rgba(89,199,255,0) 60%)',
-    transition: 'transform 2400ms ease-in-out',
+    transition: `transform ${AMBIENT_DRIFT_INTERVAL_MS}ms ease-in-out`,
     willChange: 'transform',
+  },
+  touchAmbient: {
+    position: 'absolute',
+    inset: '-15%',
+    zIndex: 0,
+    pointerEvents: 'none',
+    opacity: 0,
+    background: 'radial-gradient(30% 44% at 50% 50%, rgba(236,255,191,0.32) 0%, rgba(126,228,200,0) 70%)',
+    transform: 'translate3d(0%, 0%, 0) scale(1.1)',
+    transition: 'opacity 620ms ease-out, transform 900ms ease-out',
+    willChange: 'opacity, transform',
+  },
+  touchPulse: {
+    position: 'absolute',
+    zIndex: 4,
+    width: 180,
+    height: 180,
+    left: '50%',
+    top: '50%',
+    border: '2px solid rgba(236,255,191,0.72)',
+    borderRadius: '50%',
+    boxShadow: '0 0 24px rgba(126,228,200,0.55)',
+    opacity: 0,
+    pointerEvents: 'none',
   },
   statusBar: {
     position: 'sticky',

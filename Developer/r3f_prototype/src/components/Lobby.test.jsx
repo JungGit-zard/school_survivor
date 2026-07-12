@@ -135,6 +135,40 @@ describe('Lobby', () => {
     view.unmount()
   })
 
+  it('keeps the base lobby light moving and gives a touched button a short afterglow', () => {
+    vi.useFakeTimers()
+    const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+    const ambient = view.container.querySelector('[data-testid="lobby-ambient-drift"]')
+    const shopButton = view.container.querySelector('nav button:last-child')
+
+    expect(ambient.style.transform).toContain('translate3d(0%, 0%, 0)')
+
+    act(() => {
+      vi.advanceTimersByTime(2400)
+    })
+    expect(ambient.style.transform).not.toContain('translate3d(0%, 0%, 0)')
+
+    act(() => {
+      shopButton.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    })
+    expect(shopButton.classList.contains('lobby-touch-feedback')).toBe(true)
+    expect(view.container.querySelector('[data-testid="lobby-touch-pulse"]')?.classList.contains('lobby-touch-pulse-active')).toBe(true)
+    expect(view.container.querySelector('[data-testid="lobby-touch-ambient"]')?.style.opacity).toBe('1')
+
+    act(() => {
+      vi.advanceTimersByTime(320)
+    })
+    expect(shopButton.classList.contains('lobby-touch-feedback')).toBe(false)
+
+    act(() => {
+      vi.advanceTimersByTime(300)
+    })
+    expect(view.container.querySelector('[data-testid="lobby-touch-ambient"]')?.style.opacity).toBe('0')
+
+    vi.useRealTimers()
+    view.unmount()
+  })
+
   it('overlays the stage text on top of a taller boss preview area', () => {
     const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
     const previewRow = view.container.querySelector('[data-testid="stage-card-preview-row"]')

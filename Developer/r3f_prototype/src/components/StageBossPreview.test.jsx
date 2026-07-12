@@ -95,6 +95,25 @@ describe('StageBossPreview 온디맨드 모션', () => {
     const el = render(<StageBossPreview motionToken={1} />)
     expect(el.querySelector('[data-testid="stage-boss-preview-enemy"]').dataset.frozen).toBe('false')
   })
+
+  it('plays the same short reaction when the lobby boss preview is touched', () => {
+    vi.useFakeTimers()
+    const el = render(<StageBossPreview />)
+    const preview = el.querySelector('[data-testid="stage-boss-preview"]')
+
+    act(() => {
+      preview.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    })
+
+    expect(preview.dataset.motionActive).toBe('true')
+    expect(el.querySelector('[data-testid="stage-boss-preview-enemy"]').dataset.frozen).toBe('false')
+
+    act(() => {
+      vi.advanceTimersByTime(820)
+    })
+    expect(preview.dataset.motionActive).toBe('false')
+    vi.useRealTimers()
+  })
 })
 
 describe('StageBossPreview 얼굴 세로 중앙 앵커', () => {
