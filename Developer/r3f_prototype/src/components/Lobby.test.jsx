@@ -84,14 +84,20 @@ describe('Lobby', () => {
     view.unmount()
   })
 
-  it('uses the stage 2 teacher zombie boss in the unlocked stage 2 preview', () => {
-    localStorage.setItem(PLAYER_RECORDS_KEY, JSON.stringify({ stage1Clears: 1, bestSurvivalSeconds: 240 }))
+  it('uses each stage card boss preview, including the PE teacher for Stage 3', () => {
+    localStorage.setItem(PLAYER_RECORDS_KEY, JSON.stringify({
+      stage1Clears: 1,
+      stage2Clears: 1,
+      bestSurvivalSeconds: 240,
+      stage2BestSurvivalSec: 240,
+    }))
 
     const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
     const previews = Array.from(view.container.querySelectorAll('[data-testid="stage-boss-preview"]'))
 
     expect(previews[0].dataset.bossType).toBe('B01')
     expect(previews[1].dataset.bossType).toBe('B02')
+    expect(previews[2].dataset.bossType).toBe('B03')
 
     view.unmount()
   })

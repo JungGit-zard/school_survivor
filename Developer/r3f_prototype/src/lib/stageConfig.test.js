@@ -74,6 +74,7 @@ describe('stage configuration registry', () => {
       bossWarningSec: 129,
       matildaWarningSec: 210,
       matildaSec: 220,
+      lobbyBossType: 'B03',
     })
     // 개방형 아레나 근사 정사각 경계(threemini가 이 값으로 체육관 맵 구성).
     expect(getStageBounds('stage3')).toMatchObject({ halfX: 18, halfZ: 18 })

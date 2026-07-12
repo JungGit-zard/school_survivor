@@ -64,6 +64,9 @@ export const STAGE_CONFIGS = {
     // 더블 보스 B02(135)/B01(147). 경고는 B02 등장 6초 전. bossType은 대표값(실제 2기는 burstEvents 소스).
     bossWarningSec: 129,
     bossType: 'B01',
+    // The battle keeps its B02/B01 double-boss timeline; the lobby card
+    // spotlights the distinct muscular PE teacher boss for Stage 3.
+    lobbyBossType: 'B03',
     // 원거리 조기 등장(HUD 튜토 힌트용, 스2는 72). 실제 발사 게이트는 Enemy.jsx 소관.
     e04IntroSec: 34,
     escapePortalSec: 240,

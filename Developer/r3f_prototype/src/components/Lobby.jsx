@@ -204,6 +204,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
 function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalSec, stageBossPreview, onStart, onRanking }) {
   const [entryMotionToken, setEntryMotionToken] = useState(0)
   const startTimerRef = useRef(null)
+  const lobbyBossType = stage.lobbyBossType ?? stage.bossType
 
   useEffect(() => {
     return () => {
@@ -239,7 +240,7 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
     >
       {unlocked ? (
         <div style={styles.previewStack} data-testid="stage-card-preview-row">
-          <StageBossPreview framing={stageBossPreview} bossType={stage.bossType} motionToken={entryMotionToken} ariaLabel={`${stageId} 보스 3D`} style={styles.cardBossPreview} />
+          <StageBossPreview framing={stageBossPreview} bossType={lobbyBossType} motionToken={entryMotionToken} ariaLabel={`${stageId} 보스 3D`} style={styles.cardBossPreview} />
           {cleared ? <span style={styles.previewClearBadge}>클리어</span> : null}
           <div style={styles.previewTextLayer} data-testid="stage-card-preview-overlay">
             <div style={{ ...styles.cardTitleRow, ...styles.previewTitleRow }}>
