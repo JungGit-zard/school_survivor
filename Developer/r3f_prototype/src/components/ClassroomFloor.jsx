@@ -5,6 +5,7 @@ import stage2TileUrl from '../assets/background_floor/tile_stage02_corridor.png'
 import stage2EndWallUrl from '../assets/background_floor/stage02_corridor_end_wall.png'
 import { getStage2CorridorWallDisplay } from '../lib/stage2CorridorWall.js'
 import { getStageBounds } from '../lib/stageConfig.js'
+import Stage2CorridorDecor from './Stage2CorridorDecor.jsx'
 
 const FLOOR_SIZE = 200
 const STAGE1_TILE_WORLD_SIZE = 6.9
@@ -179,6 +180,8 @@ export default function ClassroomFloor({ stageId = 'stage1' }) {
           })}
         </group>
       )}
+
+      {stageId === 'stage2' && <Stage2CorridorDecor />}
 
       {stageId === 'stage3' && <Stage3Arena stageId={stageId} />}
     </group>
