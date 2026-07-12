@@ -102,4 +102,15 @@ describe('stage object asset catalog', () => {
     expect(CorridorLostFoundBoard).toBeTypeOf('function')
     expect(readFileSync(new URL('../../assets/concept/stage2_corridor_props_concept.png', import.meta.url)).subarray(1, 4).toString('ascii')).toBe('PNG')
   })
+
+  it('keeps Stage 2 corridor props to Roblox-style block primitives and six-sided cylinders', () => {
+    const source = readFileSync(new URL('./CorridorProps.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('<boxGeometry')
+    expect(source).toContain('<cylinderGeometry')
+    expect(source).not.toContain('dodecahedronGeometry')
+    expect(source).not.toContain('material={outline}')
+    expect(source).not.toContain(', 8]')
+    expect(source).not.toContain(', 10]')
+  })
 })
