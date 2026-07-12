@@ -55,5 +55,23 @@ export function computeTextbookLanding(pos, stageId = 'stage1', random = Math.ra
   const fx = clamp(pos[0], minX, maxX)
   const fz = clamp(pos[2], minZ, maxZ)
   if (!isBlocked(fx, fz, blockers)) return { x: fx, z: fz }
-  return fallback ?? { x: fx, z: fz }
+  // 최후: 막힌 지점을 덮고 있는 블로커 바깥으로 밀어낸다(수집 가능 보장).
+  // 밀어낸 지점이 이웃 블로커에 겹칠 수 있어 소수 회 반복.
+  const p = fallback ?? { x: fx, z: fz }
+  for (let pass = 0; pass < 3; pass++) {
+    let moved = false
+    for (const b of blockers) {
+      const dx = p.x - b.x
+      const dz = p.z - b.z
+      const dSq = dx * dx + dz * dz
+      if (dSq >= b.rSq) continue
+      const d = Math.sqrt(dSq) || 1e-6
+      const r = Math.sqrt(b.rSq) + 0.15
+      p.x = clamp(b.x + (dx / d) * r, minX, maxX)
+      p.z = clamp(b.z + (dz / d) * r, minZ, maxZ)
+      moved = true
+    }
+    if (!moved) break
+  }
+  return p
 }
