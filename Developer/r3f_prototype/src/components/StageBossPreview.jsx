@@ -186,7 +186,9 @@ export default function StageBossPreview({
   const renderZoom = resolveBossPreviewZoom(frame.zoom, bossType)
   const frameRef = useRef(frame)
   const dragRef = useRef(null)
-  const [activeMotionToken, setActiveMotionToken] = useState(() => (motionToken > 0 && motionAllowed() ? motionToken : 0))
+  // 입장 쇼타임(motionToken)은 유저가 직접 누른 행동의 1초 피드백이라 모션 게이트를 우회한다.
+  // (OS 동작줄이기/연출줄이기 상태에서도 카드 클릭 연출은 항상 재생 — 앰비언트·탭 반응만 게이트.)
+  const [activeMotionToken, setActiveMotionToken] = useState(() => (motionToken > 0 ? motionToken : 0))
   const [touchMotionToken, setTouchMotionToken] = useState(0)
   frameRef.current = frame
 
@@ -196,7 +198,7 @@ export default function StageBossPreview({
   const invalidateRef = useRef(null)
 
   useEffect(() => {
-    if (!motionToken || !motionAllowed()) return
+    if (!motionToken) return
     setActiveMotionToken(motionToken)
     burstRef.current += 1
     invalidateRef.current?.()
@@ -212,8 +214,8 @@ export default function StageBossPreview({
     return () => window.clearTimeout(timer)
   }, [touchMotionToken])
 
-  // 탭 리액션/패럴랙스는 비인터랙티브(로비 프리뷰) 전용 + 모션 게이트 통과 시에만.
-  const motionEnabled = !interactive && (activeMotionToken > 0 || touchMotionToken > 0) && motionAllowed()
+  // 쇼타임(activeMotionToken)은 게이트 무시, 탭 리액션(touchMotionToken)만 게이트 적용.
+  const motionEnabled = !interactive && (activeMotionToken > 0 || (touchMotionToken > 0 && motionAllowed()))
 
   const updateFrame = (patch) => {
     if (!interactive || !onChange) return

@@ -274,7 +274,8 @@ describe('Lobby', () => {
     view.unmount()
   })
 
-  it('keeps the one-second entry pacing when reduced effects disables the showtime animation', () => {
+  it('plays the showtime animation even under reduced effects (user-initiated feedback) with one-second pacing', () => {
+    // 입장 쇼타임은 유저가 직접 누른 행동의 1초 피드백 — 모션 게이트(연출줄이기)를 우회한다.
     document.documentElement.dataset.reducedEffects = 'true'
     vi.useFakeTimers()
     const onStartStage = vi.fn()
@@ -288,12 +289,11 @@ describe('Lobby', () => {
     })
 
     expect(onStartStage).not.toHaveBeenCalled()
-    expect(preview.dataset.motionActive).toBe('false')
+    expect(preview.dataset.motionActive).toBe('true')
     act(() => {
       vi.advanceTimersByTime(1_000)
     })
     expect(onStartStage).toHaveBeenCalledWith('stage1')
-    expect(preview.dataset.motionActive).toBe('false')
 
     delete document.documentElement.dataset.reducedEffects
     vi.useRealTimers()
