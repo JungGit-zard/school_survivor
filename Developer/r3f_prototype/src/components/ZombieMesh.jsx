@@ -102,13 +102,22 @@ export const B03_PE_TEACHER_FACE_LAYOUT = {
   tooth: { size: [0.07, 0.04, 0.035], position: [-0.05, -0.14, 0.28] },
 }
 
-// 사용자 제공 얼굴 텍스처를 머리 앞면에 입히는 데칼(플레인) 레이아웃.
+// B03 얼굴 데칼 — 노출 얼굴면 cover-fit.
 // 텍스처 자체에 빨간 줄무늬 머리띠·목의 빨간 끈+호루라기가 그려져 있으므로,
 // 3D로 모델링됐던 이목구비/머리띠/호루라기 파츠는 제거하고 이 한 장으로 대체한다.
-// head 박스 size [0.56,0.48,0.44] → 앞면 z=0.22, 플레인은 0.025 앞으로 띄운다.
+// 노출 얼굴면 실측: 헤드 박스 [0.56,0.48,0.44] 앞면(z=0.22) 전체가 노출된다(0.56×0.48,
+// center y=0). 상단 헤어 블록(y 0.215~0.345, front z=0.215)은 앞면보다 뒤라 가리지 않는다.
+// UV 윈도(cover-fit): 앞면 종횡비 7:6(0.56/0.48)에 맞춰 정사각 텍스처(1254px)의 상단
+// 14.3%를 크롭(repeat.y=0.857) — 헤드밴드 위 빈 피부 여백(상단 8%)과 헤드밴드 상단
+// 흰 줄 일부만 잘리고, 하단 호루라기(이미지 맨 아래까지 그려짐)는 온전히 보존된다.
+// 이전 플레인 [0.58,0.58]은 앞면 높이(0.48)보다 커서 하단이 몸통 위로 삐져나와
+// 스티커처럼 보였다 → 노출 앞면과 정확히 일치시킨다.
+// z는 헤드 앞면(0.22)에서 +0.01만 띄워(0.23) 패럴랙스를 최소화.
 export const B03_PE_TEACHER_FACE = {
-  size: [0.58, 0.58],
-  position: [0, -0.02, 0.245],
+  size: [0.56, 0.48],
+  position: [0, 0, 0.23],
+  repeat: [1, 0.857],
+  offset: [0, 0],
 }
 
 export const B02_TEACHER_BOSS_PALETTE = {
@@ -137,11 +146,22 @@ export const B02_TEACHER_BOSS_PARTS = [
   'blackShoes',
 ]
 
+// B02 얼굴 데칼 — 노출 얼굴면 cover-fit.
+// 노출 얼굴면 실측: 헤드 박스 [0.62,0.62,0.50] 앞면(z=0.25) 전체가 노출된다(0.62×0.62,
+// center y=0). 톱 헤어 플레이트(y 0.31~0.43)는 앞면 위에 얹히고, 사이드 플레이트(front
+// z=0.23)는 앞면보다 뒤라 앞면을 가리지 않는다.
+// UV 윈도(cover-fit): 텍스처 상단 20%는 전폭 갈색 머리 밴드(실측: 중앙 헤어라인
+// y=87/512=17% +3% 마진)라 3D 톱 플레이트와 이중 헤어라인을 만들어 잘라내고, 정사각
+// 종횡비 유지를 위해 좌우 10%씩 크롭(안경 렌즈 프레임 x 48~455px 실측 — 손실 3px 이하,
+// 안경 다리 밴드는 플레인 가장자리에서 3D 사이드 헤어로 이어짐).
+// → repeat [0.8,0.8], offset [0.1,0] (v 0~0.8 = 하단 80%). 스트레치 없음.
+// 얼굴 핵심부(눈썹 y160~입 y447, 중심 y304)가 윈도 중심(y307)과 일치 → 중앙 배치.
+// z는 헤드 앞면(0.25)에서 +0.01만 띄워(0.26) 데칼이 떠 보이는 패럴랙스를 최소화.
 export const B02_TEACHER_BOSS_FACE = {
   size: [0.62, 0.62],
-  position: [0, 0, 0.276],
-  repeat: [1, 1],
-  offset: [0, 0],
+  position: [0, 0, 0.26],
+  repeat: [0.8, 0.8],
+  offset: [0.1, 0],
 }
 
 function ZBlock({ name, studioPartId, size, position, rotation, color, emissive = 0.12, outlineScale = 1.08, flash = false }) {
@@ -217,6 +237,8 @@ function B03PeTeacherFaceTexture() {
   const texture = useLoader(THREE.TextureLoader, boss03FaceUrl)
   texture.colorSpace = THREE.SRGBColorSpace
   texture.anisotropy = 4
+  texture.repeat.set(...B03_PE_TEACHER_FACE.repeat)
+  texture.offset.set(...B03_PE_TEACHER_FACE.offset)
 
   return (
     <mesh name="b03PeTeacherFaceTexture" position={B03_PE_TEACHER_FACE.position} renderOrder={4} userData={{ studioNonFocusable: true }}>

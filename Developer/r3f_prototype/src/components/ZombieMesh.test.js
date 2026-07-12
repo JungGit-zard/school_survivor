@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { ENEMY_STATS } from './Enemy.jsx'
-import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B02_TEACHER_BOSS_FACE, B02_TEACHER_BOSS_PALETTE, B02_TEACHER_BOSS_PARTS, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS } from './ZombieMesh.jsx'
+import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B02_TEACHER_BOSS_FACE, B02_TEACHER_BOSS_PALETTE, B02_TEACHER_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS } from './ZombieMesh.jsx'
 
 const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
 
@@ -96,6 +96,13 @@ describe('B03 muscular PE teacher boss', () => {
     expect(source).not.toContain('name="b01WhistleCord')
     expect(source).not.toContain('name="b01Nose"')
     expect(source).not.toContain('name="b01EyeL"')
+
+    // 노출 얼굴면(헤드 박스 앞면 0.56×0.48, center y=0) cover-fit:
+    // 종횡비 7:6 맞춤 상단 14.3% 크롭(헤드밴드 위 여백), z는 앞면 0.22 + 0.01
+    expect(B03_PE_TEACHER_FACE.size).toEqual([0.56, 0.48])
+    expect(B03_PE_TEACHER_FACE.position).toEqual([0, 0, 0.23])
+    expect(B03_PE_TEACHER_FACE.repeat).toEqual([1, 0.857])
+    expect(B03_PE_TEACHER_FACE.offset).toEqual([0, 0])
   })
 
   it('uses Matilda idle by default but enables her movement pose in the enemy runtime path', () => {
@@ -184,8 +191,12 @@ describe('Stage 2 boss visual reference', () => {
     expect(source).not.toContain("studioPartId: 'b02-front-hair'")
     expect(source).not.toContain("studioPartId: 'b02-bun'")
     expect(source).not.toContain('itemId="zombie-b02"')
+    // 노출 얼굴면(헤드 박스 앞면 0.62×0.62 전체, center y=0) cover-fit:
+    // 상단 20% 머리 밴드 + 좌우 10%씩 UV 크롭(정사각 유지, 무스트레치),
+    // z는 앞면 0.25 + 0.01로 패럴랙스 최소화
     expect(B02_TEACHER_BOSS_FACE.size).toEqual([0.62, 0.62])
-    expect(B02_TEACHER_BOSS_FACE.repeat).toEqual([1, 1])
-    expect(B02_TEACHER_BOSS_FACE.offset).toEqual([0, 0])
+    expect(B02_TEACHER_BOSS_FACE.repeat).toEqual([0.8, 0.8])
+    expect(B02_TEACHER_BOSS_FACE.offset).toEqual([0.1, 0])
+    expect(B02_TEACHER_BOSS_FACE.position).toEqual([0, 0, 0.26])
   })
 })
