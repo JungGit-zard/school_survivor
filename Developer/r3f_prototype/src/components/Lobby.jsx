@@ -13,6 +13,7 @@ import { formatSurvivalTime } from '../lib/userRanking.js'
 import { getSavedNickname } from '../lib/userNickname.js'
 import { getActiveSeason } from '../lib/firebaseRanking.js'
 import { loadStageBossPreview, STAGE_BOSS_PREVIEW_EVENT } from '../lib/graphicsStudioConfig.js'
+import { playSfx } from '../lib/sfxRegistry.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
@@ -25,11 +26,16 @@ const STAGE_UNLOCK_HINT = {
   stage2: 'Stage 1 클리어 시 열림',
 }
 
-// 입장 lunge+포효 모션(StageBossPreview ENTRY_MOTION_MS=820ms)이 화면에 확실히 보이고
-// 대부분 settle된 뒤 게임을 시작한다. 상한(~900ms) 안에서 답답하지 않게 720ms.
-const STAGE_ENTRY_MOTION_MS = 720
+// 카드 클릭 뒤 약 1초 동안 보스별 쇼타임을 보여준 뒤 해당 스테이지를 시작한다.
+const STAGE_SHOWTIME_MS = 1000
 const AMBIENT_DRIFT_INTERVAL_MS = 2400
 const TOUCH_FEEDBACK_MS = 320
+
+export const BOSS_SHOWTIME = Object.freeze({
+  B01: { label: '돌진!', sounds: [{ id: 'bossRoar', volume: 0.9, rate: 0.9 }, { id: 'bossSpawn', volume: 0.62, delay: 170 }] },
+  B02: { label: '선생님 스윙!', sounds: [{ id: 'zombieTankGroan', volume: 0.78, rate: 1.12 }, { id: 'zombieRangedShoot', volume: 0.52, delay: 210, rate: 0.9 }] },
+  B03: { label: '근육 포즈!', sounds: [{ id: 'zombieChargeRoar', volume: 0.82, rate: 0.82 }, { id: 'zombieGiantThud', volume: 0.72, delay: 240, rate: 1.05 }] },
+})
 
 function lobbyMotionAllowed() {
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true
@@ -63,6 +69,8 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
   const [nickname, setNickname] = useState(() => getSavedNickname(authUser))
   const [modal, setModal] = useState(null) // 'ability' | 'weapon' | 'settings' | null
   const [stageBossPreview, setStageBossPreview] = useState(() => loadStageBossPreview())
+  const [showtimeStageId, setShowtimeStageId] = useState(null)
+  const showtimeStageRef = useRef(null)
   const [ambientPosition, setAmbientPosition] = useState(() => ({ x: 0, y: 0, scale: 1.08 }))
   const touchAmbientRef = useRef(null)
   const touchPulseRef = useRef(null)
@@ -167,6 +175,19 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
     refreshRecords()
   }
 
+  const beginStageShowtime = (stageId) => {
+    if (showtimeStageRef.current) return false
+    showtimeStageRef.current = stageId
+    setShowtimeStageId(stageId)
+    return true
+  }
+
+  const finishStageShowtime = (stageId) => {
+    if (showtimeStageRef.current !== stageId) return
+    showtimeStageRef.current = null
+    setShowtimeStageId(null)
+  }
+
   return (
     <div style={styles.root} onPointerDown={handleLobbyPointerDown}>
       {/* 배경 앰비언트 드리프트(콘텐츠 뒤, 클릭 방해 없음) */}
@@ -193,7 +214,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
             <span style={styles.coinDot} />
             <strong style={styles.coinValue}>{goldTotal}</strong>
           </div>
-          <button type="button" aria-label="설정 열기" style={styles.gearButton} onClick={() => setModal('settings')}>
+          <button type="button" aria-label="설정 열기" style={styles.gearButton} onClick={() => !showtimeStageId && setModal('settings')}>
             ⚙
           </button>
         </div>
@@ -225,6 +246,9 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
               cleared={cleared}
               bestSurvivalSec={bestSurvivalSec}
               stageBossPreview={stageBossPreview}
+              showtimeStageId={showtimeStageId}
+              onBeginShowtime={beginStageShowtime}
+              onFinishShowtime={finishStageShowtime}
               onStart={() => onStartStage?.(stageId)}
               onRanking={() => onOpenRanking?.(stageId)}
             />
@@ -233,10 +257,10 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
       </div>
 
       <nav aria-label="로비 메뉴" style={styles.bottomNav}>
-        <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => setModal('ability')}>능력치</button>
-        <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => setModal('weapon')}>무기</button>
-        <button type="button" className="lobby-press" style={styles.bottomNavButtonAccent} onClick={() => onOpenRanking?.()}>랭킹</button>
-        <button type="button" className="lobby-press" style={styles.bottomNavButtonReward} onClick={() => onOpenCoinShop?.()}>상점</button>
+        <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => !showtimeStageId && setModal('ability')}>능력치</button>
+        <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => !showtimeStageId && setModal('weapon')}>무기</button>
+        <button type="button" className="lobby-press" style={styles.bottomNavButtonAccent} onClick={() => !showtimeStageId && onOpenRanking?.()}>랭킹</button>
+        <button type="button" className="lobby-press" style={styles.bottomNavButtonReward} onClick={() => !showtimeStageId && onOpenCoinShop?.()}>상점</button>
       </nav>
 
       {modal === 'ability' && <AbilityModal onClose={closeModal} />}
@@ -248,31 +272,42 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
   )
 }
 
-function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalSec, stageBossPreview, onStart, onRanking }) {
-  const [entryMotionToken, setEntryMotionToken] = useState(0)
-  const [cardMotionToken, setCardMotionToken] = useState(0)
+function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalSec, stageBossPreview, showtimeStageId, onBeginShowtime, onFinishShowtime, onStart, onRanking }) {
+  const [showtimeToken, setShowtimeToken] = useState(0)
+  const [showtimeActive, setShowtimeActive] = useState(false)
   const startTimerRef = useRef(null)
+  const soundTimerRefs = useRef([])
+  const showtimePendingRef = useRef(false)
   const lobbyBossType = stage.lobbyBossType ?? stage.bossType
 
   useEffect(() => {
     return () => {
       if (startTimerRef.current) window.clearTimeout(startTimerRef.current)
+      soundTimerRefs.current.forEach((timer) => window.clearTimeout(timer))
     }
   }, [])
 
   const queueStart = () => {
-    if (!lobbyMotionAllowed()) {
-      onStart?.()
-      return
-    }
-    setEntryMotionToken((token) => token + 1)
+    if (!unlocked || showtimePendingRef.current || !onBeginShowtime?.(stageId)) return
+    showtimePendingRef.current = true
+    setShowtimeActive(true)
+    setShowtimeToken((token) => token + 1)
+    const cues = BOSS_SHOWTIME[lobbyBossType]?.sounds ?? BOSS_SHOWTIME.B01.sounds
+    cues.forEach(({ id, volume, delay = 0, rate = 1 }) => {
+      if (delay) soundTimerRefs.current.push(window.setTimeout(() => playSfx(id, volume, { rate }), delay))
+      else playSfx(id, volume, { rate })
+    })
     if (startTimerRef.current) window.clearTimeout(startTimerRef.current)
-    startTimerRef.current = window.setTimeout(() => onStart?.(), STAGE_ENTRY_MOTION_MS)
+    startTimerRef.current = window.setTimeout(() => {
+      setShowtimeActive(false)
+      onFinishShowtime?.(stageId)
+      onStart?.()
+    }, STAGE_SHOWTIME_MS)
   }
 
-  const reactToCardTouch = (event) => {
-    if (!unlocked || !lobbyMotionAllowed() || event.target.closest?.('button')) return
-    setCardMotionToken((token) => token + 1)
+  const handleCardClick = (event) => {
+    if (event.target.closest?.('button')) return
+    queueStart()
   }
 
   return (
@@ -290,11 +325,12 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
           : null),
       }}
       aria-label={`${stage.label} ${stage.title}`}
-      onPointerDown={reactToCardTouch}
+      onClick={handleCardClick}
     >
       {unlocked ? (
         <div style={styles.previewStack} data-testid="stage-card-preview-row">
-          <StageBossPreview framing={stageBossPreview} bossType={lobbyBossType} motionToken={entryMotionToken + cardMotionToken} ariaLabel={`${stageId} 보스 3D`} style={styles.cardBossPreview} />
+          <StageBossPreview framing={stageBossPreview} bossType={lobbyBossType} motionToken={showtimeToken} reactOnTap={false} ariaLabel={`${stageId} 보스 3D`} style={styles.cardBossPreview} />
+          {showtimeActive ? <span data-testid="stage-card-showtime" style={styles.showtimeLabel}>{BOSS_SHOWTIME[lobbyBossType]?.label ?? BOSS_SHOWTIME.B01.label}</span> : null}
           {cleared ? <span style={styles.previewClearBadge}>클리어</span> : null}
           <div style={styles.previewTextLayer} data-testid="stage-card-preview-overlay">
             <div style={{ ...styles.cardTitleRow, ...styles.previewTitleRow }}>
@@ -311,9 +347,15 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
             type="button"
             className="lobby-press lobby-anim"
             style={{ ...styles.previewEnterButton, animation: 'lobbyCtaPulse 1600ms ease-in-out infinite' }}
-            onClick={queueStart}
+            onClick={(event) => {
+              event.stopPropagation()
+              queueStart()
+            }}
           >입장하기</button>
-          <button type="button" className="lobby-press" style={styles.rankingButton} onClick={onRanking}>점수 레코드</button>
+          <button type="button" className="lobby-press" style={styles.rankingButton} onClick={(event) => {
+            event.stopPropagation()
+            if (!showtimeStageId) onRanking()
+          }}>점수 레코드</button>
         </div>
       ) : (
         <div style={styles.cardTop} data-testid="stage-card-preview-row">
@@ -618,6 +660,21 @@ const styles = {
     fontSize: 10,
     lineHeight: 1,
     fontWeight: uiType.weightHeavy,
+  },
+  showtimeLabel: {
+    position: 'absolute',
+    right: 10,
+    bottom: 58,
+    zIndex: 4,
+    padding: '4px 8px',
+    border: uiBorders.strong,
+    borderRadius: 999,
+    background: uiPalette.infection,
+    color: uiPalette.paperLight,
+    fontSize: 12,
+    lineHeight: 1,
+    fontWeight: uiType.weightHeavy,
+    textShadow: `0 2px 0 ${uiPalette.ink}`,
   },
   previewEnterButton: {
     ...schoolButton('primary'),

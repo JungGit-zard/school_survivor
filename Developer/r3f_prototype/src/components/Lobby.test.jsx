@@ -3,14 +3,19 @@ import React from 'react'
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import Lobby from './Lobby.jsx'
+import Lobby, { BOSS_SHOWTIME } from './Lobby.jsx'
 import { saveStageBossPreview } from '../lib/graphicsStudioConfig.js'
+import { playSfx } from '../lib/sfxRegistry.js'
 import { STORAGE_KEY as PLAYER_RECORDS_KEY } from '../lib/playerRecords.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: () => <div data-testid="stage-monster-canvas" />,
+}))
+
+vi.mock('../lib/sfxRegistry.js', () => ({
+  playSfx: vi.fn(),
 }))
 
 vi.mock('../lib/firebaseRanking.js', async () => {
@@ -24,6 +29,7 @@ vi.mock('../lib/firebaseRanking.js', async () => {
 describe('Lobby', () => {
   beforeEach(() => {
     localStorage.clear()
+    vi.clearAllMocks()
     useAuthStore.setState({
       status: 'signedIn',
       user: { uid: 'lobby-user', displayName: 'Lobby Tester', email: 'lobby@example.com' },
@@ -41,7 +47,7 @@ describe('Lobby', () => {
 
     clickButtonByText(view.container, '입장하기')
     act(() => {
-      vi.advanceTimersByTime(720)
+      vi.advanceTimersByTime(1_000)
     })
     expect(onStartStage).toHaveBeenCalledWith('stage1')
 
@@ -100,6 +106,12 @@ describe('Lobby', () => {
     expect(previews[2].dataset.bossType).toBe('B03')
 
     view.unmount()
+  })
+
+  it('assigns each lobby boss a distinct showtime sound cue', () => {
+    expect(BOSS_SHOWTIME.B01.sounds[0].id).toBe('bossRoar')
+    expect(BOSS_SHOWTIME.B02.sounds[0].id).toBe('zombieTankGroan')
+    expect(BOSS_SHOWTIME.B03.sounds[0].id).toBe('zombieChargeRoar')
   })
 
   it('uses the stage title as the card hero without the old square stage badge', () => {
@@ -207,34 +219,7 @@ describe('Lobby', () => {
     view.unmount()
   })
 
-  it('keeps the boss preview still until enter queues the reserved motion', () => {
-    vi.useFakeTimers()
-    const onStartStage = vi.fn()
-    const view = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
-    const previewRow = view.container.querySelector('[data-testid="stage-card-preview-row"]')
-    const preview = previewRow.querySelector('[data-testid="stage-boss-preview"]')
-    const enterButton = previewRow.querySelectorAll('button')[0]
-
-    expect(preview.dataset.motionActive).toBe('false')
-
-    act(() => {
-      enterButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-
-    expect(preview.dataset.motionActive).toBe('true')
-    expect(onStartStage).not.toHaveBeenCalled()
-
-    act(() => {
-      vi.advanceTimersByTime(720)
-    })
-
-    expect(onStartStage).toHaveBeenCalledWith('stage1')
-
-    vi.useRealTimers()
-    view.unmount()
-  })
-
-  it('plays the boss reaction for a stage-card touch without entering the stage', () => {
+  it('plays each card boss showtime before entering the selected stage', () => {
     vi.useFakeTimers()
     const onStartStage = vi.fn()
     const view = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
@@ -242,37 +227,76 @@ describe('Lobby', () => {
     const preview = previewRow.querySelector('[data-testid="stage-boss-preview"]')
     const overlay = previewRow.querySelector('[data-testid="stage-card-preview-overlay"]')
 
+    expect(preview.dataset.motionActive).toBe('false')
+
     act(() => {
-      overlay.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+      overlay.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
 
     expect(preview.dataset.motionActive).toBe('true')
     expect(onStartStage).not.toHaveBeenCalled()
+    expect(playSfx).toHaveBeenCalledWith('bossRoar', 0.9, { rate: 0.9 })
+    expect(view.container.querySelector('[data-testid="stage-card-showtime"]')).toBeTruthy()
 
     act(() => {
-      vi.advanceTimersByTime(1_020)
+      vi.advanceTimersByTime(999)
     })
-    expect(preview.dataset.motionActive).toBe('false')
     expect(onStartStage).not.toHaveBeenCalled()
+
+    act(() => {
+      vi.advanceTimersByTime(1)
+    })
+
+    expect(onStartStage).toHaveBeenCalledWith('stage1')
 
     vi.useRealTimers()
     view.unmount()
   })
 
-  it('starts immediately when reduced effects disables the reserved motion', () => {
+  it('accepts only the first stage-card showtime until that entry resolves', () => {
+    vi.useFakeTimers()
+    localStorage.setItem(PLAYER_RECORDS_KEY, JSON.stringify({ stage1Clears: 1 }))
+    const onStartStage = vi.fn()
+    const view = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+    const overlays = view.container.querySelectorAll('[data-testid="stage-card-preview-overlay"]')
+
+    act(() => {
+      overlays[0].dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      overlays[1].dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      vi.advanceTimersByTime(1_000)
+    })
+
+    expect(onStartStage).toHaveBeenCalledTimes(1)
+    expect(onStartStage).toHaveBeenCalledWith('stage1')
+    expect(playSfx).not.toHaveBeenCalledWith('zombieTankGroan', expect.anything(), expect.anything())
+
+    vi.useRealTimers()
+    view.unmount()
+  })
+
+  it('keeps the one-second entry pacing when reduced effects disables the showtime animation', () => {
     document.documentElement.dataset.reducedEffects = 'true'
+    vi.useFakeTimers()
     const onStartStage = vi.fn()
     const view = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
     const previewRow = view.container.querySelector('[data-testid="stage-card-preview-row"]')
     const enterButton = previewRow.querySelectorAll('button')[0]
+    const preview = previewRow.querySelector('[data-testid="stage-boss-preview"]')
 
     act(() => {
       enterButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
 
+    expect(onStartStage).not.toHaveBeenCalled()
+    expect(preview.dataset.motionActive).toBe('false')
+    act(() => {
+      vi.advanceTimersByTime(1_000)
+    })
     expect(onStartStage).toHaveBeenCalledWith('stage1')
+    expect(preview.dataset.motionActive).toBe('false')
 
     delete document.documentElement.dataset.reducedEffects
+    vi.useRealTimers()
     view.unmount()
   })
 })

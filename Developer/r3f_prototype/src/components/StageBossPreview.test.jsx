@@ -109,7 +109,7 @@ describe('StageBossPreview 온디맨드 모션', () => {
     expect(el.querySelector('[data-testid="stage-boss-preview-enemy"]').dataset.frozen).toBe('false')
 
     act(() => {
-      vi.advanceTimersByTime(820)
+      vi.advanceTimersByTime(1_000)
     })
     expect(preview.dataset.motionActive).toBe('false')
     vi.useRealTimers()

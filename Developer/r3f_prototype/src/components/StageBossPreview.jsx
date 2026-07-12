@@ -16,9 +16,8 @@ const previewFrameStyle = {
 
 const BASE_ROT_X = 0.08
 const BASE_ROT_Y = -0.5
-// 입장(입장하기) lunge+포효 모션 지속. Lobby의 STAGE_ENTRY_MOTION_MS(게임 시작 지연)보다
-// 길게 잡아, 게임 시작 전에 lunge 피크·포효 흔들림이 화면에 확실히 보이고 대부분 settle되게 한다.
-const ENTRY_MOTION_MS = 820
+// 카드 쇼타임의 보스 포즈 지속 시간. 로비의 진입 지연과 동일하게 유지한다.
+const SHOWTIME_MOTION_MS = 1000
 const PARALLAX_MAX = 0.12 // rad
 
 // EnemyVisual 내부 그룹 스케일 계수 (Enemy.jsx의 `cs * 0.333`와 동일)
@@ -114,8 +113,8 @@ function ReactiveBoss({ framing, bossType, enabled, frozen, burstRef, parallaxRe
     let pitchNudge = 0
     let bobY = 0
     const be = now - burstStartRef.current
-    if (be >= 0 && be < ENTRY_MOTION_MS) {
-      const p = be / ENTRY_MOTION_MS
+    if (be >= 0 && be < SHOWTIME_MOTION_MS) {
+      const p = be / SHOWTIME_MOTION_MS
       // 카메라 쪽으로 확 들이닥치는 lunge 엔벨로프: 앞부분(≈p0.34)에서 빠르게 피크 후 되돌아옴.
       // ortho 프리뷰는 원근 확대가 없어, 스케일 급증이 "달려듦"의 핵심 신호가 된다.
       const lunge = Math.sin(Math.PI * Math.pow(p, 0.62))
@@ -124,6 +123,19 @@ function ReactiveBoss({ framing, bossType, enabled, frozen, burstRef, parallaxRe
       // 포효하듯 좌우로 흔드는 고개 — 빠른 진동을 (1-p)^2로 이중 감쇠해 끝에서 잦아든다.
       yawNudge = 0.18 * Math.sin(p * Math.PI * 5) * (1 - p) * (1 - p)
       bobY = 0.07 * lunge // 살짝 솟구쳤다 가라앉는 상하 반동(lunge와 동기)
+      if (bossType === 'B02') {
+        const sway = Math.sin(p * Math.PI * 4)
+        scale = 1 + 0.08 * Math.sin(Math.PI * p)
+        yawNudge = 0.28 * sway
+        pitchNudge = 0.05 * Math.cos(p * Math.PI * 4)
+        bobY = 0.05 * Math.abs(sway)
+      } else if (bossType === 'B03') {
+        const flex = Math.sin(p * Math.PI * 3)
+        scale = 1 + 0.14 * Math.sin(Math.PI * p) + 0.05 * Math.max(0, flex)
+        yawNudge = 0.12 * Math.sin(p * Math.PI * 2)
+        pitchNudge = 0.1 * Math.max(0, flex)
+        bobY = 0.09 * Math.abs(flex)
+      }
       active = true
     }
     g.scale.setScalar(scale)
@@ -167,6 +179,7 @@ export default function StageBossPreview({
   ariaLabel = 'stage1 보스 3D',
   bossType = 'B01',
   motionToken = 0,
+  reactOnTap = true,
 }) {
   const frame = normalizeStageBossPreview(framing)
   // 보스별 크라운 높이 보정을 적용한 실제 렌더 zoom(카메라에 반영). base zoom은 그대로 저장·튜닝.
@@ -187,7 +200,7 @@ export default function StageBossPreview({
     setActiveMotionToken(motionToken)
     burstRef.current += 1
     invalidateRef.current?.()
-    const timer = window.setTimeout(() => setActiveMotionToken(0), ENTRY_MOTION_MS)
+    const timer = window.setTimeout(() => setActiveMotionToken(0), SHOWTIME_MOTION_MS)
     return () => window.clearTimeout(timer)
   }, [motionToken])
 
@@ -195,7 +208,7 @@ export default function StageBossPreview({
     if (!touchMotionToken || !motionAllowed()) return
     burstRef.current += 1
     invalidateRef.current?.()
-    const timer = window.setTimeout(() => setTouchMotionToken(0), ENTRY_MOTION_MS)
+    const timer = window.setTimeout(() => setTouchMotionToken(0), SHOWTIME_MOTION_MS)
     return () => window.clearTimeout(timer)
   }, [touchMotionToken])
 
@@ -234,7 +247,7 @@ export default function StageBossPreview({
           return
         }
         // 비인터랙티브 탭 리액션(interactive 가드와 독립). 게이트 통과 시에만 버스트.
-        if (!motionAllowed()) return
+        if (!reactOnTap || !motionAllowed()) return
         setTouchMotionToken((token) => token + 1)
         invalidateRef.current?.() // demand 프레임 kick → useFrame이 버스트를 이어감
       }}
