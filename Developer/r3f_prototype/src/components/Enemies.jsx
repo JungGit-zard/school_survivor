@@ -343,13 +343,18 @@ export function getWaveSpawnSeconds(phases, random = Math.random, stageId = 'sta
   return secs
 }
 
-// stage2 총체력 완화(2026-07-11): stage2에서 스폰되는 모든 전투 적(잡몹 E01~E06 + 보스 B02) HP ×0.8(반올림).
-// stage1은 변화 없음. 마틸다(탈출 추격자)는 별도 동적 statOverride를 쓰므로 여기 대상 아님.
-export function stage2HpOverride(type, stageId) {
-  if (stageId !== 'stage2') return undefined
+// 스테이지 상승 HP 곡선 정본(2026-07-12): stage1 기준으로 스테이지가 오를 때마다 총체력 +20%.
+// stage1 ×1.0(오버라이드 없음) / stage2 ×1.2 / stage3 ×1.44. 잡몹 E01~E06 + 보스 전부 적용.
+// 마틸다(탈출 추격자)는 별도 동적 statOverride를 쓰므로 여기 대상 아님.
+// (기존 stage2 ×0.8 완화는 하강 버그로 판정되어 폐기 — 사용자 지시.)
+const STAGE_HP_MULTIPLIER = { stage2: 1.2, stage3: 1.44 }
+
+export function stageHpOverride(type, stageId) {
+  const mult = STAGE_HP_MULTIPLIER[stageId]
+  if (!mult) return undefined
   const base = ENEMY_STATS[type]
   if (!base) return undefined
-  return { hp: Math.round(base.hp * 0.8) }
+  return { hp: Math.round(base.hp * mult) }
 }
 
 function pickTypeByWeight(weights) {
@@ -491,7 +496,7 @@ export default function Enemies() {
       // (bossSpawned 가드 제거: 두 번째 보스가 막히지 않도록. 1회성은 firedBurstsRef가 보장.)
       if (evt.type === 'B01' || evt.type === 'B02' || evt.type === 'B03') {
         spawnBoss()
-        addEnemies([{ id: ++_uid, type: evt.type, pos: randomSpawnPos(evt.type, bounds), statOverride: stage2HpOverride(evt.type, currentStageId) }])
+        addEnemies([{ id: ++_uid, type: evt.type, pos: randomSpawnPos(evt.type, bounds), statOverride: stageHpOverride(evt.type, currentStageId) }])
         return
       }
 
@@ -507,7 +512,7 @@ export default function Enemies() {
         const pos = positions
           ? positions[i]
           : (evt.type === 'E04' ? rangedSpawnPos(bounds, taken) : randomSpawnPos(evt.type, bounds, taken))
-        batch.push({ id: ++_uid, type: evt.type, pos, statOverride: stage2HpOverride(evt.type, currentStageId) })
+        batch.push({ id: ++_uid, type: evt.type, pos, statOverride: stageHpOverride(evt.type, currentStageId) })
       }
       addEnemies(batch)
     })
@@ -540,7 +545,7 @@ export default function Enemies() {
         }
         const taken = newBatch.map((e) => e.pos)
         const pos = type === 'E04' ? rangedSpawnPos(bounds, taken) : randomSpawnPos(type, bounds, taken)
-        newBatch.push({ id: ++_uid, type, pos, statOverride: stage2HpOverride(type, currentStageId) })
+        newBatch.push({ id: ++_uid, type, pos, statOverride: stageHpOverride(type, currentStageId) })
       }
       addEnemies(newBatch)
     }

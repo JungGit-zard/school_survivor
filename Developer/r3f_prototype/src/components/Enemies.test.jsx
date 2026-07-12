@@ -16,7 +16,7 @@ import {
   getWaveSpawnSeconds,
   nextWaveInterval,
   nextWaveTimeForStage,
-  stage2HpOverride,
+  stageHpOverride,
   WAVE_INTERVAL_SEC,
   WAVE_INTERVAL_MIN_SEC,
   WAVE_INTERVAL_MAX_SEC,
@@ -198,26 +198,25 @@ describe('random-interval discrete wave scheduler', () => {
   })
 })
 
-describe('stage 2 total-HP relief (x0.8)', () => {
-  it('scales every stage 2 combat enemy HP to 0.8x (rounded), boss included', () => {
-    expect(stage2HpOverride('E02', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E02.hp * 0.8) })  // 70 -> 56
-    expect(stage2HpOverride('E01', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E01.hp * 0.8) })  // 8 -> 6
-    expect(stage2HpOverride('E06', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E06.hp * 0.8) })  // 320 -> 256
-    expect(stage2HpOverride('B02', 'stage2')).toEqual({ hp: 920 })                                   // 1150 -> 920
+describe('ascending stage HP curve (+20% per stage from stage1)', () => {
+  it('scales every stage 2 combat enemy HP to 1.2x (rounded), boss included', () => {
+    expect(stageHpOverride('E02', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E02.hp * 1.2) })  // 70 -> 84
+    expect(stageHpOverride('E01', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E01.hp * 1.2) })  // 8 -> 10
+    expect(stageHpOverride('E06', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E06.hp * 1.2) })  // 320 -> 384
+    expect(stageHpOverride('B02', 'stage2')).toEqual({ hp: 1380 })                                  // 1150 -> 1380
   })
 
-  it('leaves stage 1 untouched and ignores unknown types', () => {
-    expect(stage2HpOverride('E02', 'stage1')).toBeUndefined()
-    expect(stage2HpOverride('B01', 'stage1')).toBeUndefined()
-    expect(stage2HpOverride('NOPE', 'stage2')).toBeUndefined()
+  it('scales every stage 3 combat enemy HP to 1.44x (rounded), double boss included', () => {
+    expect(stageHpOverride('E02', 'stage3')).toEqual({ hp: Math.round(ENEMY_STATS.E02.hp * 1.44) }) // 70 -> 101
+    expect(stageHpOverride('E06', 'stage3')).toEqual({ hp: Math.round(ENEMY_STATS.E06.hp * 1.44) }) // 320 -> 461
+    expect(stageHpOverride('B01', 'stage3')).toEqual({ hp: 1656 })                                  // 1150 -> 1656
+    expect(stageHpOverride('B02', 'stage3')).toEqual({ hp: 1656 })
   })
 
-  it('leaves stage 3 at full HP (x1.0 — no relief override)', () => {
-    // D4: stage3는 HP 완화 미적용(×1.0). override가 없어야 실효 +25%(스2 ×0.8 대비)가 성립.
-    expect(stage2HpOverride('E02', 'stage3')).toBeUndefined()
-    expect(stage2HpOverride('E06', 'stage3')).toBeUndefined()
-    expect(stage2HpOverride('B01', 'stage3')).toBeUndefined()
-    expect(stage2HpOverride('B02', 'stage3')).toBeUndefined()
+  it('leaves stage 1 at base HP and ignores unknown types', () => {
+    expect(stageHpOverride('E02', 'stage1')).toBeUndefined()
+    expect(stageHpOverride('B01', 'stage1')).toBeUndefined()
+    expect(stageHpOverride('NOPE', 'stage2')).toBeUndefined()
   })
 })
 
