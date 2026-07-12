@@ -250,6 +250,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
 
 function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalSec, stageBossPreview, onStart, onRanking }) {
   const [entryMotionToken, setEntryMotionToken] = useState(0)
+  const [cardMotionToken, setCardMotionToken] = useState(0)
   const startTimerRef = useRef(null)
   const lobbyBossType = stage.lobbyBossType ?? stage.bossType
 
@@ -269,6 +270,11 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
     startTimerRef.current = window.setTimeout(() => onStart?.(), STAGE_ENTRY_MOTION_MS)
   }
 
+  const reactToCardTouch = (event) => {
+    if (!unlocked || !lobbyMotionAllowed() || event.target.closest?.('button')) return
+    setCardMotionToken((token) => token + 1)
+  }
+
   return (
     <section
       className="lobby-anim"
@@ -284,10 +290,11 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
           : null),
       }}
       aria-label={`${stage.label} ${stage.title}`}
+      onPointerDown={reactToCardTouch}
     >
       {unlocked ? (
         <div style={styles.previewStack} data-testid="stage-card-preview-row">
-          <StageBossPreview framing={stageBossPreview} bossType={lobbyBossType} motionToken={entryMotionToken} ariaLabel={`${stageId} 보스 3D`} style={styles.cardBossPreview} />
+          <StageBossPreview framing={stageBossPreview} bossType={lobbyBossType} motionToken={entryMotionToken + cardMotionToken} ariaLabel={`${stageId} 보스 3D`} style={styles.cardBossPreview} />
           {cleared ? <span style={styles.previewClearBadge}>클리어</span> : null}
           <div style={styles.previewTextLayer} data-testid="stage-card-preview-overlay">
             <div style={{ ...styles.cardTitleRow, ...styles.previewTitleRow }}>

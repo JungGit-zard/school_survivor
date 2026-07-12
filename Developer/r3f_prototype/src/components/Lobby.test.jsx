@@ -234,6 +234,31 @@ describe('Lobby', () => {
     view.unmount()
   })
 
+  it('plays the boss reaction for a stage-card touch without entering the stage', () => {
+    vi.useFakeTimers()
+    const onStartStage = vi.fn()
+    const view = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+    const previewRow = view.container.querySelector('[data-testid="stage-card-preview-row"]')
+    const preview = previewRow.querySelector('[data-testid="stage-boss-preview"]')
+    const overlay = previewRow.querySelector('[data-testid="stage-card-preview-overlay"]')
+
+    act(() => {
+      overlay.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    })
+
+    expect(preview.dataset.motionActive).toBe('true')
+    expect(onStartStage).not.toHaveBeenCalled()
+
+    act(() => {
+      vi.advanceTimersByTime(1_020)
+    })
+    expect(preview.dataset.motionActive).toBe('false')
+    expect(onStartStage).not.toHaveBeenCalled()
+
+    vi.useRealTimers()
+    view.unmount()
+  })
+
   it('starts immediately when reduced effects disables the reserved motion', () => {
     document.documentElement.dataset.reducedEffects = 'true'
     const onStartStage = vi.fn()
