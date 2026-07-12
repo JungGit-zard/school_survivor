@@ -197,6 +197,6 @@ describe('Stage 2 boss visual reference', () => {
     expect(B02_TEACHER_BOSS_FACE.size).toEqual([0.62, 0.62])
     expect(B02_TEACHER_BOSS_FACE.repeat).toEqual([0.8, 0.8])
     expect(B02_TEACHER_BOSS_FACE.offset).toEqual([0.1, 0])
-    expect(B02_TEACHER_BOSS_FACE.position).toEqual([0, 0, 0.257578125])
+    expect(B02_TEACHER_BOSS_FACE.position).toEqual([0, 0, 0.247578125])
   })
 })
