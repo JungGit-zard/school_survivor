@@ -11,6 +11,7 @@ import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _bellPulseId = 0
+export const BELL_KNOCKBACK = 4.8 * 1.5
 
 export function BellModel() {
   const bellMat = useMemo(() => toonMat(0xffd040, 0.2), [])
@@ -205,7 +206,7 @@ export function BellShockwave() {
     const radius = w.radius ?? 1.7
     const hitCount = applyRadialDamage({
       x: playerPos.x, z: playerPos.z, radius, damage: w.damage,
-      knockback: 4.8, knockbackMs: 180,
+      knockback: BELL_KNOCKBACK, knockbackMs: 180,
     })
     if (hitCount > 0) emitSfx({ id: 'bellHit', volume: 0.45 })
 

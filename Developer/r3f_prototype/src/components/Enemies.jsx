@@ -315,20 +315,30 @@ export function waveSizeForPhase(phase) {
   return Math.max(1, Math.round((phase?.target ?? 0) * WAVE_SIZE_FACTOR))
 }
 
+export function waveSizeForStageAtTime(phase, stageId, waveTime) {
+  const size = waveSizeForPhase(phase)
+  return stageId === 'stage2' && (waveTime === 0 || waveTime === 30) ? size * 3 : size
+}
+
 // 다음 웨이브까지 간격 = 20~40초 균등분포 랜덤. random 주입으로 테스트 결정성 확보.
 export function nextWaveInterval(random = Math.random) {
   return WAVE_INTERVAL_MIN_SEC + random() * (WAVE_INTERVAL_MAX_SEC - WAVE_INTERVAL_MIN_SEC)
 }
 
+export function nextWaveTimeForStage(waveTime, stageId, random = Math.random) {
+  if (stageId === 'stage2' && waveTime === 0) return 30
+  return waveTime + nextWaveInterval(random)
+}
+
 // 웨이브 발화 시각 목록 = 0에서 시작, 각 웨이브 후 20~40초 랜덤 간격 누적, 마지막 phase.end 미만까지.
 // 프레임 스케줄러(nextWaveTimeRef)와 동일한 논리의 순수 함수 — 테스트/미리보기용.
-export function getWaveSpawnSeconds(phases, random = Math.random) {
+export function getWaveSpawnSeconds(phases, random = Math.random, stageId = 'stage1') {
   const lastEnd = phases?.[phases.length - 1]?.end ?? 0
   const secs = []
   let t = 0
   while (t < lastEnd) {
     secs.push(t)
-    t += nextWaveInterval(random)
+    t = nextWaveTimeForStage(t, stageId, random)
   }
   return secs
 }
@@ -513,9 +523,9 @@ export default function Enemies() {
       sec >= nextWaveTimeRef.current
     ) {
       const waveTime = nextWaveTimeRef.current
-      nextWaveTimeRef.current += nextWaveInterval()
+      nextWaveTimeRef.current = nextWaveTimeForStage(waveTime, currentStageId)
       const phase = wavePhases.findLast((p) => waveTime >= p.start) ?? wavePhases[0]
-      const waveSize = waveSizeForPhase(phase)
+      const waveSize = waveSizeForStageAtTime(phase, currentStageId, waveTime)
       const newBatch = []
       for (let i = 0; i < waveSize; i++) {
         let type = pickTypeByWeight(phase.weights)

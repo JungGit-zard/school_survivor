@@ -1,4 +1,5 @@
 import { UNCONSCIOUS_STUDENT_PLAYER_SCALE } from '../../lib/characterVisualScale.js'
+import { getStageBounds } from '../../lib/stageConfig.js'
 
 // Rule: every stage1 object must satisfy Math.abs(x) >= 6 OR Math.abs(z) >= 12
 // (keeps the central spawn/play zone clear).
@@ -581,6 +582,83 @@ function withMixedUnconsciousStudentFacing(item) {
   }
 }
 
+function enlargeScale(scale = 1) {
+  return Array.isArray(scale)
+    ? scale.map((value) => value * 1.1)
+    : scale * 1.1
+}
+
+function seededUnit(key) {
+  let hash = 2166136261
+  for (let index = 0; index < key.length; index += 1) {
+    hash ^= key.charCodeAt(index)
+    hash = Math.imul(hash, 16777619)
+  }
+  return (hash >>> 0) / 4294967296
+}
+
+function getDistributedPosition(stageId, key) {
+  const { halfX, halfZ } = getStageBounds(stageId)
+  const xUnit = seededUnit(`${key}:x`)
+  const zUnit = seededUnit(`${key}:z`)
+  const side = Math.floor(seededUnit(`${key}:side`) * 4)
+
+  if (stageId === 'stage2') {
+    const x = (side % 2 === 0 ? -1 : 1) * ((halfX - 2.4) + xUnit * 1.25)
+    const z = -halfZ + 0.8 + zUnit * (halfZ * 2 - 1.6)
+    return [x, 0, z]
+  }
+
+  if (side < 2) {
+    const x = (side === 0 ? -1 : 1) * (6.1 + xUnit * (halfX - 6.8))
+    const z = -halfZ + 0.8 + zUnit * (halfZ * 2 - 1.6)
+    return [x, 0, z]
+  }
+
+  const x = -halfX + 0.8 + xUnit * (halfX * 2 - 1.6)
+  const z = (side === 2 ? -1 : 1) * (12 + zUnit * (halfZ - 12.6))
+  return [x, 0, z]
+}
+
+function getPhysicalBlockerPosition(stageId, index, count) {
+  if (stageId === 'stage2') {
+    const column = index % 2
+    const row = Math.floor(index / 2)
+    return [column === 0 ? -6.9 : 6.9, 0, -12 + row * 8]
+  }
+
+  if (index < 24) {
+    const sideIndex = Math.floor(index / 12)
+    const sideOffset = index % 12
+    const lane = Math.floor(sideOffset / 6)
+    const row = sideOffset % 6
+    return [(sideIndex === 0 ? -1 : 1) * 9.4, 0, -10 + row * 4 + lane * 2]
+  }
+
+  const endOffset = index - 24
+  const endIndex = Math.floor(endOffset / 3)
+  return [-3 + (endOffset % 3) * 3, 0, endIndex === 0 ? -13.8 : 13.8]
+}
+
 export function getStageObjectPlacements(stageId = 'stage1') {
-  return (STAGE_OBJECT_PLACEMENTS[stageId] ?? []).map(withMixedUnconsciousStudentFacing)
+  const authored = STAGE_OBJECT_PLACEMENTS[stageId] ?? []
+  const blockingItems = authored.filter(({ type }) => type === 'classroomDesk' || type === 'classroomChair')
+  const blockingIndexById = new Map(blockingItems.map(({ id }, index) => [id, index]))
+
+  return authored.flatMap((item) => (
+    Array.from({ length: 5 }, (_, copyIndex) => {
+      const id = `${item.id}-copy-${copyIndex + 1}`
+      const blockingIndex = blockingIndexById.get(item.id)
+      const isPhysicalBlocker = copyIndex === 0 && blockingIndex !== undefined
+      return withMixedUnconsciousStudentFacing({
+        ...item,
+        id,
+        blocking: isPhysicalBlocker,
+        position: isPhysicalBlocker
+          ? getPhysicalBlockerPosition(stageId, blockingIndex, blockingItems.length)
+          : getDistributedPosition(stageId, id),
+        scale: enlargeScale(item.scale),
+      })
+    })
+  ))
 }

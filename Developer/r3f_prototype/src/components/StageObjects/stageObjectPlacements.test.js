@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { CLASSROOM_CHAIR_VARIANTS } from './ClassroomChair.jsx'
 import { CLASSROOM_DESK_VARIANTS } from './ClassroomDesk.jsx'
 import { UNCONSCIOUS_STUDENT_VARIANTS } from './UnconsciousStudent.jsx'
-import { getStageObjectPlacements } from './stageObjectPlacements.js'
+import { getStageObjectPlacements, STAGE_OBJECT_PLACEMENTS } from './stageObjectPlacements.js'
 import {
   PLAYER_MESH_WORLD_HEIGHT,
   UNCONSCIOUS_STUDENT_PLAYER_SCALE,
@@ -77,33 +77,41 @@ describe('stage object placements', () => {
     expect([...studentVariants].every((variant) => UNCONSCIOUS_STUDENT_VARIANTS[variant])).toBe(true)
   })
 
-  it('increases Stage 1 unconscious student placement density fivefold', () => {
-    const stage1Students = getStageObjectPlacements('stage1')
-      .filter(({ type }) => type === 'unconsciousStudent')
+  it('places five deterministic instances of every prepared stage prop', () => {
+    for (const stageId of ['stage1', 'stage2']) {
+      const first = getStageObjectPlacements(stageId)
+      const second = getStageObjectPlacements(stageId)
 
-    expect(stage1Students).toHaveLength(30)
+      expect(first).toHaveLength(STAGE_OBJECT_PLACEMENTS[stageId].length * 5)
+      expect(second).toEqual(first)
+      expect(new Set(first.map(({ id }) => id)).size).toBe(first.length)
+    }
   })
 
-  it('keeps classroom desks and chairs compact after the prop scale reduction', () => {
-    const deskAndChairScales = ['stage1', 'stage2'].flatMap((stageId) => (
-      getStageObjectPlacements(stageId)
-        .filter(({ type }) => ['classroomChair', 'classroomDesk'].includes(type))
-        .map(({ scale = 1 }) => scale)
-    ))
+  it('renders every prepared prop at 110 percent of its authored scale', () => {
+    for (const stageId of ['stage1', 'stage2']) {
+      const placements = getStageObjectPlacements(stageId)
 
-    expect(Math.max(...deskAndChairScales)).toBeLessThanOrEqual(0.832)
-    expect(Math.min(...deskAndChairScales)).toBeGreaterThanOrEqual(0.672)
+      placements.forEach(({ scale }, index) => {
+        const authoredScale = STAGE_OBJECT_PLACEMENTS[stageId][Math.floor(index / 5)].scale ?? 1
+        const expected = Array.isArray(authoredScale)
+          ? authoredScale.map((value) => value * 1.1)
+          : authoredScale * 1.1
+
+        expect(scale).toEqual(expected)
+      })
+    }
   })
 
-  it('keeps unconscious students at a 1:1 visual scale with the player character', () => {
+  it('applies the same ten-percent size increase to unconscious students', () => {
     const stage1StudentScales = getStageObjectPlacements('stage1')
       .filter(({ type }) => type === 'unconsciousStudent')
       .map(({ scale = 1 }) => scale)
 
-    expect(stage1StudentScales.every((scale) => scale === UNCONSCIOUS_STUDENT_PLAYER_SCALE)).toBe(true)
+    expect(stage1StudentScales.every((scale) => scale === UNCONSCIOUS_STUDENT_PLAYER_SCALE * 1.1)).toBe(true)
 
     for (const scale of stage1StudentScales) {
-      expect(scale * UNCONSCIOUS_STUDENT_RAW_LENGTH).toBeCloseTo(PLAYER_MESH_WORLD_HEIGHT, 3)
+      expect(scale * UNCONSCIOUS_STUDENT_RAW_LENGTH).toBeCloseTo(PLAYER_MESH_WORLD_HEIGHT * 1.1, 3)
     }
   })
 
@@ -122,6 +130,27 @@ describe('stage object placements', () => {
     expect(
       getStageObjectPlacements('stage2').every(({ position: [x] }) => Math.abs(x) >= edgeStartX)
     ).toBe(true)
+  })
+
+  it('distributes props across each stage without occupying its central spawn lane', () => {
+    for (const stageId of ['stage1', 'stage2']) {
+      const placements = getStageObjectPlacements(stageId)
+      const { halfX, halfZ } = getStageBounds(stageId)
+      const positions = placements.map(({ position: [x, , z] }) => [x, z])
+
+      expect(new Set(positions.map(([x, z]) => `${x}:${z}`)).size).toBe(placements.length)
+      expect(positions.every(([x, z]) => Math.abs(x) <= halfX - 0.6 && Math.abs(z) <= halfZ - 0.6)).toBe(true)
+      expect(Math.min(...positions.map(([x]) => x))).toBeLessThan(-halfX * 0.65)
+      expect(Math.max(...positions.map(([x]) => x))).toBeGreaterThan(halfX * 0.65)
+      expect(Math.min(...positions.map(([, z]) => z))).toBeLessThan(-halfZ * 0.65)
+      expect(Math.max(...positions.map(([, z]) => z))).toBeGreaterThan(halfZ * 0.65)
+
+      if (stageId === 'stage1') {
+        expect(positions.every(([x, z]) => Math.abs(x) >= 6 || Math.abs(z) >= 12)).toBe(true)
+      } else {
+        expect(positions.every(([x]) => Math.abs(x) >= halfX - 2.5)).toBe(true)
+      }
+    }
   })
 
   it('breaks up the Stage 2 corridor with lockers, a cleaning cart, and a lost-and-found board', () => {

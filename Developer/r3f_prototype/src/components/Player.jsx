@@ -11,6 +11,15 @@ import MiniHealthBar from './MiniHealthBar.jsx'
 const _v = { x: 0, y: 0, z: 0 }
 const INV_DURATION = 520
 const TURN_SPEED = 14
+const PLAYER_HIT_KNOCKBACK_SPEED = 4
+const PLAYER_HIT_KNOCKBACK_MS = 160
+
+export function resolvePlayerHitKnockback(facing, speed = PLAYER_HIT_KNOCKBACK_SPEED) {
+  const len = Math.hypot(facing?.x ?? 0, facing?.z ?? 0)
+  const nx = len > 0 ? facing.x / len : 0
+  const nz = len > 0 ? facing.z / len : 1
+  return { x: nx === 0 ? 0 : -nx * speed, y: 0, z: -nz * speed }
+}
 
 function shortestAngleDiff(target, current) {
   let diff = target - current
@@ -35,11 +44,13 @@ export default function Player() {
   const invTimer  = useRef(0)
   const lastVisibleHitFlashToken = useRef(0)
   const hitFlashVisibleFrames = useRef(0)
+  const knockbackRemainingMs = useRef(0)
   const speed           = useGameStore((s) => s.player.speed)
   const phase           = useGameStore((s) => s.phase)
   const hp              = useGameStore((s) => s.player.hp)
   const maxHp           = useGameStore((s) => s.player.maxHp)
   const hitFlashToken   = useGameStore((s) => s.player.hitFlashToken)
+  const lastKnockbackHitToken = useRef(hitFlashToken)
   const endInvulnerable = useGameStore((s) => s.endInvulnerable)
   const damagePlayer    = useGameStore((s) => s.damagePlayer)
 
@@ -52,9 +63,21 @@ export default function Player() {
     if (!rb.current) return
     if (phase !== 'playing') { rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true); return }
 
-    const { up, down, left, right } = moveKeys
+    if (hitFlashToken !== lastKnockbackHitToken.current) {
+      lastKnockbackHitToken.current = hitFlashToken
+      knockbackRemainingMs.current = PLAYER_HIT_KNOCKBACK_MS
+    }
 
-    if (joystickDir.active) {
+    const { up, down, left, right } = moveKeys
+    const beingKnockedBack = knockbackRemainingMs.current > 0
+
+    if (beingKnockedBack) {
+      const knockback = resolvePlayerHitKnockback(playerFacing)
+      _v.x = knockback.x
+      _v.z = knockback.z
+      movingRef.current = false
+      knockbackRemainingMs.current = Math.max(0, knockbackRemainingMs.current - delta * 1000)
+    } else if (joystickDir.active) {
       _v.x = joystickDir.x
       _v.z = joystickDir.z
     } else {
@@ -63,8 +86,8 @@ export default function Player() {
     }
 
     const len = Math.hypot(_v.x, _v.z)
-    movingRef.current = len > 0
-    if (len > 0) {
+    if (!beingKnockedBack) movingRef.current = len > 0
+    if (len > 0 && !beingKnockedBack) {
       const nx = _v.x / len
       const nz = _v.z / len
       const targetY = Math.atan2(nx, nz)

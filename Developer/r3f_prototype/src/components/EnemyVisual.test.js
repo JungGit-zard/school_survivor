@@ -16,9 +16,19 @@ import {
   getChargeHitDistance,
   getEnemySpawnSfx,
   hasMatildaReachedStageEdge,
+  resolveSightBlockedEnemyVelocity,
 } from './Enemy.jsx'
 
 describe('Enemy charge warning cue', () => {
+  it('wanders deterministically without approaching while sight is blocked, then releases control when clear', () => {
+    const blocked = resolveSightBlockedEnemyVelocity({ blocked: true, enemyId: 17, dirX: 3, dirZ: 4, speed: 2 })
+
+    expect(resolveSightBlockedEnemyVelocity({ blocked: true, enemyId: 17, dirX: 3, dirZ: 4, speed: 2 })).toEqual(blocked)
+    expect(blocked.x * 3 + blocked.z * 4).toBeCloseTo(0, 8)
+    expect(Math.hypot(blocked.x, blocked.z)).toBeCloseTo(1.1, 8)
+    expect(resolveSightBlockedEnemyVelocity({ blocked: false, enemyId: 17, dirX: 3, dirZ: 4, speed: 2 })).toBeNull()
+  })
+
   it('restarts Matilda charge only after she reaches a stage edge and finishes laughing', () => {
     const bounds = { halfX: 10, halfZ: 14.4 }
 

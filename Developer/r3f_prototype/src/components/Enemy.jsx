@@ -14,6 +14,7 @@ import { createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemy
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { canE04FireProjectile } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
+import { getStageObjectSightObstacles, isStageObjectSightBlocked } from './StageObjects/stageObjectColliders.js'
 import ZombieMesh from './ZombieMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 import EnemyProjectileVisual from './EnemyProjectileVisual.jsx'
@@ -57,6 +58,28 @@ export function hasMatildaReachedStageEdge(position, bounds, inset = MATILDA_EDG
 
 export function advanceEnemySpawnTimer(elapsedMs, deltaSec, phase) {
   return phase === 'playing' ? elapsedMs + deltaSec * 1000 : elapsedMs
+}
+
+function stableEnemyHash(enemyId) {
+  let hash = 0
+  for (const char of String(enemyId)) hash = ((hash * 31) + char.charCodeAt(0)) | 0
+  return hash >>> 0
+}
+
+function stableEnemySide(enemyId) {
+  return (stableEnemyHash(enemyId) & 1) === 0 ? 1 : -1
+}
+
+export function resolveSightBlockedEnemyVelocity({ blocked, enemyId, dirX, dirZ, speed }) {
+  if (!blocked) return null
+  const length = Math.hypot(dirX, dirZ)
+  if (length <= 1e-8) return { x: 0, z: 0 }
+  const side = stableEnemySide(enemyId)
+  const wanderSpeed = speed * 0.55
+  return {
+    x: (-dirZ / length) * side * wanderSpeed,
+    z: (dirX / length) * side * wanderSpeed,
+  }
 }
 
 let _lastEnemySpawnSfxAt = Number.NEGATIVE_INFINITY
@@ -385,6 +408,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const damagePlayer = useGameStore((s) => s.damagePlayer)
   const phase        = useGameStore((s) => s.phase)
   const currentStageId = useGameStore((s) => s.currentStageId)
+  const sightObstacles = useMemo(() => getStageObjectSightObstacles(currentStageId), [currentStageId])
+  const sightBlockedRef = useRef(false)
+  const nextSightCheckRef = useRef(0)
 
   useEffect(() => {
     setSpawnRevealed(false)
@@ -392,6 +418,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     spawnedAtRef.current = performance.now()
     chargeState.current = isMatilda ? 'matildaAim' : 'chase'
     matildaLaughRemainingRef.current = 0
+    sightBlockedRef.current = false
+    nextSightCheckRef.current = useGameStore.getState().elapsedMs + (stableEnemyHash(id) % 90)
     setAnimPhase(isMatilda ? 'stun' : 'normal')
     emitEnemySpawnSfx(type, isMatilda)
   }, [id, type, isMatilda])
@@ -530,6 +558,27 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       _vel.y = 0
       _vel.z = knockbackDir.current.z * knockbackSpeedRef.current
       rb.current.setLinvel(_vel, true)
+      return
+    }
+
+    const elapsedMs = useGameStore.getState().elapsedMs
+    if (!isMatilda && elapsedMs >= nextSightCheckRef.current) {
+      sightBlockedRef.current = isStageObjectSightBlocked(t, playerPos, sightObstacles)
+      nextSightCheckRef.current = elapsedMs + 90 + (stableEnemyHash(id) % 31)
+    }
+    const sightBlockedVelocity = resolveSightBlockedEnemyVelocity({
+      blocked: sightBlockedRef.current,
+      enemyId: id,
+      dirX: _dir.x,
+      dirZ: _dir.z,
+      speed: stats.speed,
+    })
+    if (sightBlockedVelocity) {
+      _vel.x = sightBlockedVelocity.x
+      _vel.y = 0
+      _vel.z = sightBlockedVelocity.z
+      rb.current.setLinvel(_vel, true)
+      _applyRotation(groupRef, _vel.x, _vel.z)
       return
     }
 

@@ -12,8 +12,10 @@ import {
   pickTypeByWeightExcluding,
   formationSpawnPositions,
   waveSizeForPhase,
+  waveSizeForStageAtTime,
   getWaveSpawnSeconds,
   nextWaveInterval,
+  nextWaveTimeForStage,
   stage2HpOverride,
   WAVE_INTERVAL_SEC,
   WAVE_INTERVAL_MIN_SEC,
@@ -175,6 +177,16 @@ describe('random-interval discrete wave scheduler', () => {
     // target 0/누락이어도 최소 1마리는 보장(빈 웨이브 방지).
     expect(waveSizeForPhase({ target: 0 })).toBe(1)
     expect(waveSizeForPhase(undefined)).toBe(1)
+  })
+
+  it('schedules stage 2 opening waves at 0s and 30s, then triples only those two spawns', () => {
+    const opening = { target: 18 }
+    const thirtySecond = { target: 22 }
+
+    expect(nextWaveTimeForStage(0, 'stage2', () => 0)).toBe(30)
+    expect(waveSizeForStageAtTime(opening, 'stage2', 0)).toBe(27)
+    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 30)).toBe(33)
+    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 20)).toBe(11)
   })
 
   it('keeps stage 1 wave sizes in the expected 12-17 band for the dense phases', () => {
