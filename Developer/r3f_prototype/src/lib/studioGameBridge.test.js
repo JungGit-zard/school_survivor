@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { isAllowedStudioGameOrigin } from './studioGameBridge.js'
+import { getDefaultStudioGameUrl, isAllowedStudioGameOrigin, parseStudioGameUrl } from './studioGameBridge.js'
 
 describe('isAllowedStudioGameOrigin', () => {
+  it('uses localhost as the one local game target even when Studio runs on a loopback alias', () => {
+    expect(getDefaultStudioGameUrl({ href: 'http://127.0.0.1:5175/graphics-studio#player' })).toBe('http://localhost:5175/')
+    expect(parseStudioGameUrl('http://0.0.0.0:5175/graphics-studio')?.href).toBe('http://localhost:5175/graphics-studio')
+  })
+
   it('allows local dev origins over http', () => {
     expect(isAllowedStudioGameOrigin('http://localhost:5173')).toBe(true)
     expect(isAllowedStudioGameOrigin('http://127.0.0.1:5173')).toBe(true)

@@ -64,10 +64,11 @@ describe('firebase auth configuration', () => {
   })
 
   it('redirects loopback dev URLs to the Firebase-authorized localhost origin', () => {
-    expect(getLocalFirebaseAuthRedirect({ href: 'http://127.0.0.1:5175/graphics-studio?tab=audio#pencil' }, true))
-      .toBe('http://localhost:5175/graphics-studio?tab=audio#pencil')
+    expect(getLocalFirebaseAuthRedirect({ href: 'http://127.0.0.1:5175/?tab=audio#pencil' }, true))
+      .toBe('http://localhost:5175/?tab=audio#pencil')
     expect(getLocalFirebaseAuthRedirect({ href: 'http://0.0.0.0:5175/' }, true)).toBe('http://localhost:5175/')
     expect(getLocalFirebaseAuthRedirect({ href: 'http://localhost:5175/' }, true)).toBeNull()
     expect(getLocalFirebaseAuthRedirect({ href: 'http://127.0.0.1:5175/' }, false)).toBeNull()
+    expect(getLocalFirebaseAuthRedirect({ href: 'http://127.0.0.1:5175/graphics-studio' }, true)).toBeNull()
   })
 })

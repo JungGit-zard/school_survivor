@@ -56,6 +56,7 @@ export function shouldUseNativeGoogleSignIn(globalScope = getDefaultGlobalScope(
 export function getLocalFirebaseAuthRedirect(location = getDefaultGlobalScope()?.location, isDevelopment = import.meta.env?.DEV === true) {
   if (!isDevelopment || !location?.href) return null
   const url = new URL(location.href)
+  if (url.pathname.startsWith('/graphics-studio')) return null
   if (!['127.0.0.1', '0.0.0.0'].includes(url.hostname)) return null
   url.hostname = 'localhost'
   return url.href

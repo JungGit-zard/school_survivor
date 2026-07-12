@@ -7,16 +7,23 @@ export function getDefaultStudioGameUrl(location = globalThis.location) {
   url.pathname = '/'
   url.search = ''
   url.hash = ''
-  return url.href
+  return getCanonicalLocalGameUrl(url).href
 }
 
 export function parseStudioGameUrl(value, baseHref = globalThis.location?.href) {
   try {
     const url = new URL(value, baseHref)
-    return /^https?:$/.test(url.protocol) ? url : null
+    return /^https?:$/.test(url.protocol) ? getCanonicalLocalGameUrl(url) : null
   } catch {
     return null
   }
+}
+
+function getCanonicalLocalGameUrl(url) {
+  if (url.protocol === 'http:' && ['127.0.0.1', '0.0.0.0'].includes(url.hostname)) {
+    url.hostname = 'localhost'
+  }
+  return url
 }
 
 export function isAllowedStudioGameOrigin(origin) {
