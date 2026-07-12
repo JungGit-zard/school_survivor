@@ -57,14 +57,14 @@ export function resetEnemySpawnSfxGateForTest() {
 
 export function getEnemySpawnSfx(type, isMatilda = false) {
   if (isMatilda) return { id: 'matildaSpawn', volume: 0.72 }
-  if (type === 'B01' || type === 'B02') return { id: 'bossSpawn', volume: 0.78 }
+  if (type === 'B01' || type === 'B02' || type === 'B03') return { id: 'bossSpawn', volume: 0.78 }
   return { id: 'bossSpawn', volume: 0.28 }
 }
 
 function emitEnemySpawnSfx(type, isMatilda = false) {
   const now = performance.now()
   const sfx = getEnemySpawnSfx(type, isMatilda)
-  const isBossLike = isMatilda || type === 'B01' || type === 'B02'
+  const isBossLike = isMatilda || type === 'B01' || type === 'B02' || type === 'B03'
   if (!isBossLike && now - _lastEnemySpawnSfxAt < ENEMY_SPAWN_SFX_COOLDOWN_MS) return
   _lastEnemySpawnSfxAt = now
   emitSfx({ id: sfx.id, volume: sfx.volume })
@@ -99,6 +99,8 @@ export const ENEMY_STATS = {
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
   B02: { hp: 1150, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
+  B03: { hp: 1150, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
+         charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
 }
 
 // 肄쒕씪?대뜑 湲곕낯 諛섑겕湲?(scale=1 湲곗?)
@@ -114,7 +116,7 @@ export function resolveRangedEnemyVelocity({ dirX, dirZ, dist, minDist, preferDi
 
 function deathSfxId(type, isMatilda) {
   if (isMatilda) return 'matildaDeath'
-  if (type === 'B01' || type === 'B02') return 'bossDeath'
+  if (type === 'B01' || type === 'B02' || type === 'B03') return 'bossDeath'
   if (type === 'E06' || type === 'E02') return 'zombieHeavyDeath'
   return 'zombieDeath'
 }
@@ -432,7 +434,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         store.recordKill()
         emitSfx({ id: deathSfxId(type, isMatilda) })
         // 留덊떥?ㅻ뒗 B01 鍮꾩＜?쇱쓣 ?곗?留??대━??泥섎━?섏? ?딅뒗??
-        if ((type === 'B01' || type === 'B02') && !isMatilda) {
+        if ((type === 'B01' || type === 'B02' || type === 'B03') && !isMatilda) {
           store.recordBossKill()
           store.clearStageWithBossBonus()
         }

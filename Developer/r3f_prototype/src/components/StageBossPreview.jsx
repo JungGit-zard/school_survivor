@@ -26,7 +26,7 @@ export const ENEMY_VISUAL_SCALE = 0.333
 
 // 얼굴(머리) 중간지점의 로컬 Y = ZombieMesh reg('head') 그룹 position.y.
 // 머리 블록/얼굴 텍스처의 기하 중심이라 '얼굴 중간지점' 앵커로 사용한다. 보스 타입별로 다르다.
-export const FACE_LOCAL_Y = Object.freeze({ B01: 0.88, B02: 0.92 })
+export const FACE_LOCAL_Y = Object.freeze({ B01: 0.88, B02: 0.92, B03: 0.88 })
 const DEFAULT_FACE_LOCAL_Y = 0.82 // 표준 좀비(E01~E06) 머리 그룹 Y
 
 // ortho 카메라는 rotation을 주지 않아 R3F가 lookAt(0,0,0)을 적용한다(원점 응시).
@@ -47,7 +47,7 @@ export function resolveBossPreviewBaseY(bossType) {
 // 같은 zoom으로 두되, bun이 잘리지 않을 만큼만 살짝 낮춘다.
 // 라이브 실측(144px 프레임): B02 렌더 zoom ≈104(=110×0.95)에서 B01(110)과 크기가
 // 사실상 같으면서 bun 상단에 여백이 남는다. (0.66은 크기가 눈에 띄게 작아 부적합.)
-const BOSS_PREVIEW_ZOOM_FACTOR = Object.freeze({ B01: 1, B02: 0.95 })
+const BOSS_PREVIEW_ZOOM_FACTOR = Object.freeze({ B01: 1, B02: 0.95, B03: 1 })
 
 export function resolveBossPreviewZoom(baseZoom, bossType) {
   return baseZoom * (BOSS_PREVIEW_ZOOM_FACTOR[bossType] ?? 1)

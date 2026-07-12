@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { ENEMY_STATS } from './Enemy.jsx'
-import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B02_TEACHER_BOSS_FACE, B02_TEACHER_BOSS_PALETTE, B02_TEACHER_BOSS_PARTS } from './ZombieMesh.jsx'
+import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B02_TEACHER_BOSS_FACE, B02_TEACHER_BOSS_PALETTE, B02_TEACHER_BOSS_PARTS, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS } from './ZombieMesh.jsx'
 
 const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
 
 describe('Stage 1 boss visual reference', () => {
-  it('defines B01 as a muscular PE teacher zombie boss at the current gameplay scale', () => {
+  it('restores B01 as the blocky green suit zombie boss at the current gameplay scale', () => {
     expect(ENEMY_STATS.B01).toMatchObject({
       hp: 1150,
       speed: 0.475,
@@ -15,6 +15,52 @@ describe('Stage 1 boss visual reference', () => {
     })
 
     expect(B01_BOSS_VISUAL_PALETTE).toMatchObject({
+      skin: 0x9fb87a,
+      jacket: 0x1d2732,
+      tie: 0x9f2222,
+      pants: 0x5a351d,
+      hair: 0x2f281f,
+    })
+    expect(B01_BOSS_VISUAL_PARTS).toEqual([
+      'blockHead',
+      'raggedHair',
+      'simplifiedFace',
+      'suitJacket',
+      'whiteShirt',
+      'redTie',
+      'brownPants',
+      'blackShoes',
+      'forwardArms',
+      'raggedTears',
+    ])
+  })
+
+  it('keeps the restored B01 face simple and readable', () => {
+    expect(B01_BOSS_FACE_LAYOUT).toEqual({
+      leftEye: { size: [0.12, 0.09, 0.035], position: [-0.14, 0.05, 0.265], color: 'dark' },
+      rightEye: { size: [0.14, 0.105, 0.035], position: [0.14, 0.05, 0.265], color: 'light' },
+      rightPupil: { size: [0.045, 0.045, 0.02], position: [0.14, 0.045, 0.292] },
+      leftBrow: { size: [0.18, 0.055, 0.035], position: [-0.14, 0.14, 0.292], rotation: [0, 0, -0.14] },
+      rightBrow: { size: [0.2, 0.055, 0.035], position: [0.14, 0.15, 0.292], rotation: [0, 0, 0.12] },
+      mouth: { size: [0.18, 0.105, 0.04], position: [0.01, -0.16, 0.27] },
+      tooth: { size: [0.055, 0.04, 0.035], position: [-0.005, -0.125, 0.295] },
+      cheekShadow: { size: [0.07, 0.16, 0.035], position: [0.275, -0.02, 0.20] },
+    })
+
+    expect(B01_BOSS_FACE_LAYOUT.leftBrow.position[1]).toBeGreaterThan(B01_BOSS_FACE_LAYOUT.leftEye.position[1])
+    expect(B01_BOSS_FACE_LAYOUT.rightBrow.position[1]).toBeGreaterThan(B01_BOSS_FACE_LAYOUT.rightEye.position[1])
+  })
+
+  it('keeps the original B01 model separate from the PE teacher model', () => {
+    expect(zombieMeshSource).toContain('<B01BossZombieMesh hitFlash={hitFlash} reg={reg} />')
+    expect(zombieMeshSource).toContain('<B03PhysicalEducationBossMesh hitFlash={hitFlash} reg={reg} />')
+  })
+})
+
+describe('B03 muscular PE teacher boss', () => {
+  it('registers independent boss stats and the sportswear palette', () => {
+    expect(ENEMY_STATS.B03).toMatchObject({ hp: 1150, scale: 2, charger: true })
+    expect(B03_PE_TEACHER_PALETTE).toMatchObject({
       skin: 0x91ad68,
       jersey: 0x18324a,
       jerseyStripe: 0xf1eee2,
@@ -22,52 +68,20 @@ describe('Stage 1 boss visual reference', () => {
       whistle: 0xf5c542,
       wristband: 0xd94a3d,
     })
-    expect(B01_BOSS_VISUAL_PARTS).toEqual([
-      'squareHead',
-      'sportHair',
-      'angryFace',
-      'wideShoulders',
-      'sleevelessJersey',
-      'chestMuscles',
-      'oversizedBiceps',
-      'wristbands',
-      'whistle',
-      'gymShorts',
-      'socksAndSneakers',
-    ])
+    expect(B03_PE_TEACHER_PARTS).toContain('oversizedBiceps')
+    expect(B03_PE_TEACHER_FACE_LAYOUT.leftEye.position[0]).toBeLessThan(0)
   })
 
-  it('keeps the B01 angry face simple and readable', () => {
-    expect(B01_BOSS_FACE_LAYOUT).toEqual({
-      leftEye: { size: [0.12, 0.08, 0.045], position: [-0.14, 0.04, 0.245] },
-      rightEye: { size: [0.12, 0.08, 0.045], position: [0.14, 0.04, 0.245] },
-      leftBrow: { size: [0.20, 0.055, 0.04], position: [-0.14, 0.14, 0.265], rotation: [0, 0, -0.24] },
-      rightBrow: { size: [0.20, 0.055, 0.04], position: [0.14, 0.14, 0.265], rotation: [0, 0, 0.24] },
-      nose: { size: [0.10, 0.13, 0.06], position: [0, -0.04, 0.265] },
-      mouth: { size: [0.26, 0.10, 0.045], position: [0, -0.17, 0.25] },
-      tooth: { size: [0.07, 0.04, 0.035], position: [-0.05, -0.14, 0.28] },
-    })
-
-    expect(B01_BOSS_FACE_LAYOUT.leftBrow.position[1]).toBeGreaterThan(B01_BOSS_FACE_LAYOUT.leftEye.position[1])
-    expect(B01_BOSS_FACE_LAYOUT.rightBrow.position[1]).toBeGreaterThan(B01_BOSS_FACE_LAYOUT.rightEye.position[1])
-  })
-
-  it('builds the PE teacher silhouette from controllable muscle and sportswear parts', () => {
+  it('builds the PE teacher silhouette from controllable B03 parts', () => {
     const source = zombieMeshSource
 
-    expect(source).toContain('studioPartId="b01-shoulders"')
-    expect(source).toContain('studioPartId="b01-chest-l"')
-    expect(source).toContain('studioPartId="b01-chest-r"')
-    expect(source).toContain('studioPartId="b01-bicep-l"')
-    expect(source).toContain('studioPartId="b01-bicep-r"')
-    expect(source).toContain('studioPartId="b01-whistle"')
-    expect(source).toContain('studioPartId="b01-shorts"')
-    expect(source).toContain('studioPartId="b01-wristband-l"')
-    expect(source).toContain('studioPartId="b01-wristband-r"')
-    expect(source).toContain('studioPartId="b01-leg-l"')
-    expect(source).toContain('studioPartId="b01-leg-r"')
-    expect(source).toContain('studioPartId="b01-shoe-l"')
-    expect(source).toContain('studioPartId="b01-shoe-r"')
+    expect(source).toContain('studioPartId="b03-shoulders"')
+    expect(source).toContain('studioPartId="b03-chest-l"')
+    expect(source).toContain('studioPartId="b03-chest-r"')
+    expect(source).toContain('studioPartId="b03-bicep-l"')
+    expect(source).toContain('studioPartId="b03-bicep-r"')
+    expect(source).toContain('studioPartId="b03-whistle"')
+    expect(source).toContain('studioPartId="b03-shorts"')
   })
 
   it('uses Matilda idle by default but enables her movement pose in the enemy runtime path', () => {

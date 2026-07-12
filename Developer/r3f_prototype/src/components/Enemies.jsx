@@ -25,6 +25,7 @@ const ELITE_BONUS = {
   E06: { textbook: 1, gold: 1 },
   B01: { textbook: 3, textbookXp: 40, gold: 5 },
   B02: { textbook: 3, textbookXp: 40, gold: 5 },
+  B03: { textbook: 3, textbookXp: 40, gold: 5 },
 }
 
 export function getEliteBonusTextbookXp(type, fallbackXp) {
@@ -478,7 +479,7 @@ export default function Enemies() {
 
       // 보스 버스트(B01/B02) — 각 이벤트가 1회씩 스폰. 더블 보스는 두 이벤트가 스태거로 각각 발화한다.
       // (bossSpawned 가드 제거: 두 번째 보스가 막히지 않도록. 1회성은 firedBurstsRef가 보장.)
-      if (evt.type === 'B01' || evt.type === 'B02') {
+      if (evt.type === 'B01' || evt.type === 'B02' || evt.type === 'B03') {
         spawnBoss()
         addEnemies([{ id: ++_uid, type: evt.type, pos: randomSpawnPos(evt.type, bounds), statOverride: stage2HpOverride(evt.type, currentStageId) }])
         return

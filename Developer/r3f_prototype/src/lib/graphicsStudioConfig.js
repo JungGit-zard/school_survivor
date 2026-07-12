@@ -30,6 +30,7 @@ export const TEXTURE_DECAL_FACE_AXES = Object.freeze(['+x', '-x', '+y', '-y', '+
 
 export const STUDIO_ZOMBIE_ITEM_IDS = Object.freeze({
   B02: 'zombie-b02-teacher',
+  B03: 'zombie-b03-pe-teacher',
 })
 
 export function getStudioZombieItemId(type) {
@@ -121,10 +122,10 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     runtimePreviewComponent: 'PlayerVisual',
     applyTargets: ['components/PlayerMesh.jsx', 'components/Player.jsx', 'lib/characterVisualScale.js', 'lib/toon.js'],
   },
-  ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'B01', 'B02'].map((type) => ({
+  ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'B01', 'B02', 'B03'].map((type) => ({
     id: getStudioZombieItemId(type),
     category: 'enemy',
-    label: `Zombie ${type}`,
+    label: type === 'B03' ? 'Boss B03 · 몸짱 체육교사' : `Zombie ${type}`,
     source: 'components/ZombieMesh.jsx',
     previewKind: 'zombie',
     runtimePreviewSource: 'components/Enemy.jsx',

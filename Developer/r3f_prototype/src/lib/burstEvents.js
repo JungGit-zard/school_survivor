@@ -5,7 +5,7 @@
 // '보스 구간(bossPhase)'은 이 등장 시각에서 파생한다 — 어디에도 하드코딩하지 않는다.
 
 // 보스 버스트 타입. 등장 시각 파생의 기준.
-const BOSS_BURST_TYPES = ['B01', 'B02']
+const BOSS_BURST_TYPES = ['B01', 'B02', 'B03']
 
 // 4분 타임라인. 5분 기준 sec ×0.8.
 export const BURST_EVENTS = [

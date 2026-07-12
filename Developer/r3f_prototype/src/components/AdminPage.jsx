@@ -29,7 +29,7 @@ const ZOMBIE_LABELS = {
   E06: 'E06 거대',
 }
 
-const BOSS_TYPES = ['B01', 'B02']
+const BOSS_TYPES = ['B01', 'B02', 'B03']
 const isBossType = (type) => BOSS_TYPES.includes(type)
 // 버스트 좀비 라벨: 일반은 ZOMBIE_LABELS 재사용, 보스(B01/B02)는 '보스'.
 const burstTypeLabel = (type) => (isBossType(type) ? '보스' : (ZOMBIE_LABELS[type] ?? type))

@@ -49,7 +49,7 @@ vi.mock('@react-three/fiber', () => ({
 
 vi.mock('./Enemy.jsx', () => ({
   EnemyVisual: ({ frozen }) => <div data-testid="stage-boss-preview-enemy" data-frozen={String(frozen)} />,
-  ENEMY_STATS: { B01: { scale: 2 }, B02: { scale: 2 } },
+  ENEMY_STATS: { B01: { scale: 2 }, B02: { scale: 2 }, B03: { scale: 2 } },
   ENEMY_SIZE_MULTIPLIER: 4 / 3,
 }))
 
@@ -125,7 +125,7 @@ describe('StageBossPreview 얼굴 세로 중앙 앵커', () => {
       { width: 400, height: 260 },
       { width: 120, height: 640 },
     ]
-    for (const bossType of ['B01', 'B02']) {
+    for (const bossType of ['B01', 'B02', 'B03']) {
       for (const size of sizes) {
         expect(Math.abs(faceNdcY({ bossType, ...size }))).toBeLessThan(0.005)
       }
