@@ -10,6 +10,11 @@ describe('studentDialogueLines', () => {
     }
   })
 
+  it('대사 풀은 50줄 이상이고 전 줄이 서로 다르다', () => {
+    expect(STUDENT_DIALOGUE_LINES.length).toBeGreaterThanOrEqual(50)
+    expect(new Set(STUDENT_DIALOGUE_LINES).size).toBe(STUDENT_DIALOGUE_LINES.length)
+  })
+
   it('seed된 random으로 결정적으로 선택한다', () => {
     expect(pickStudentLine(() => 0)).toBe(STUDENT_DIALOGUE_LINES[0])
     expect(pickStudentLine(() => 0.999999)).toBe(STUDENT_DIALOGUE_LINES[STUDENT_DIALOGUE_LINES.length - 1])
