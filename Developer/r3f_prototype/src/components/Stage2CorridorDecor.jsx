@@ -8,13 +8,13 @@ import { toonMat } from '../lib/toon.js'
 //
 // 기획 정본: Graphic_designer/stage2_corridor_theme_makeover_plan_2026-07-12.md
 // 컨셉: "비상등이 붉게 도는 저녁, 대피가 끊긴 학교 복도 — 반쯤 열린 교실 문,
-//        나뒹구는 신발·시험지, 힘겹게 깜빡이는 형광등."
+//        나뒹구는 신발·시험지."
 //
 // 성능 원칙(r3f_rapier_vampire_survivor_stability_rules):
 //  - 콜라이더 없음(non-blocking 장식). 물리 벽은 기존 맵 경계(x=±7.5)가 수행.
 //  - castShadow/receiveShadow=false (그림자 예산 절약, RULE-2.5).
 //  - useFrame 안에서 setState/new 금지 — material.emissiveIntensity uniform만 변형
-//    (RULE-0.1, RULE-0.2). 형광등 깜빡임·비상등 호흡은 실제 광원 없이 자체발광 토글.
+//    (RULE-0.1, RULE-0.2). 비상등 호흡은 실제 광원 없이 자체발광 토글.
 //  - 바닥 데칼은 타입별 InstancedMesh 3개로 묶어 드로우콜 축소(RULE-2.1 정신).
 //
 // 배치 규칙(기획 §5 stage2 정본):
@@ -35,18 +35,6 @@ export const CORRIDOR_DOORS = [
   { side: 'left', z: 5, open: 0.42, barricade: false },
   { side: 'right', z: 12, open: 0.6, barricade: false },
 ]
-
-// 천장 형광등 바 — x=0 중앙선 위 등간격 6개(z 스텝 6), y=3.45(>=3.0 → R4 예외).
-// flicker=true 인 소수만 깜빡이고 나머진 상시 점등(과한 깜빡임 금지, 기획 §4).
-export const CORRIDOR_CEILING_LIGHTS = [
-  { z: -16, flicker: false },
-  { z: -10, flicker: true },
-  { z: -4, flicker: false },
-  { z: 2, flicker: false },
-  { z: 8, flicker: true },
-  { z: 14, flicker: false },
-]
-const CEILING_LIGHT_Y = 3.45
 
 // EXIT 비상 유도등 — 복도 양 끝 + 중간 1개, 벽 상단 y=2.6, |x|=7.1(>=6.0). 초록 발광.
 export const CORRIDOR_EXIT_SIGNS = [
@@ -196,11 +184,6 @@ export default function Stage2CorridorDecor() {
   const debrisShoeMat = useMemo(() => toonMat(0x35454a, 0.02), [])
 
   // ── 애니메이션 머티리얼(개별 인스턴스, useFrame에서 emissiveIntensity 변형) ──
-  // 형광등: 등마다 독립 깜빡임을 위해 개별 material. 위상 다르게 부여.
-  const lightMats = useMemo(
-    () => CORRIDOR_CEILING_LIGHTS.map(() => toonMat(0xdfe6ea, 0.9)),
-    [],
-  )
   const glowMats = useMemo(
     () => CORRIDOR_EMERGENCY_GLOWS.map(() => toonMat(0xe0432b, 0.3)),
     [],
@@ -216,21 +199,9 @@ export default function Stage2CorridorDecor() {
     [debris],
   )
 
-  // 단일 useFrame: 형광등 깜빡임 + 비상등 호흡. setState/new 없음(RULE-0.1/0.2).
+  // 단일 useFrame: 비상등 호흡. setState/new 없음(RULE-0.1/0.2).
   useFrame((state) => {
     const t = state.clock.elapsedTime
-    for (let i = 0; i < lightMats.length; i += 1) {
-      const cfg = CORRIDOR_CEILING_LIGHTS[i]
-      const m = lightMats[i]
-      if (!cfg.flicker) {
-        m.emissiveIntensity = 0.9
-        continue
-      }
-      // 두 사인 합 임계로 불규칙한 순간 dip 생성(등마다 위상 offset). 대부분 0.95, 가끔 0.12.
-      const phase = i * 2.7
-      const v = Math.sin(t * 13.0 + phase) + Math.sin(t * 7.3 + phase * 1.7)
-      m.emissiveIntensity = v > 1.45 ? 0.12 : 0.95
-    }
     for (let i = 0; i < glowMats.length; i += 1) {
       const phase = CORRIDOR_EMERGENCY_GLOWS[i].phase
       // 완만 호흡 0.14~0.44.
@@ -243,16 +214,6 @@ export default function Stage2CorridorDecor() {
       {/* 교실 문 4개(하나는 책상 바리케이드) */}
       {CORRIDOR_DOORS.map((d) => (
         <ClassroomDoor key={`${d.side}-${d.z}`} {...d} mats={doorMats} />
-      ))}
-
-      {/* 천장 형광등 바 + 깜빡임 */}
-      {CORRIDOR_CEILING_LIGHTS.map((light, i) => (
-        <PropBox
-          key={light.z}
-          position={[0, CEILING_LIGHT_Y, light.z]}
-          size={[1.5, 0.09, 0.42]}
-          material={lightMats[i]}
-        />
       ))}
 
       {/* EXIT 비상 유도등 */}

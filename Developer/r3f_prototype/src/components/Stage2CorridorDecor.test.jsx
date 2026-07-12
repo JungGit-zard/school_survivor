@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
   CORRIDOR_DOORS,
-  CORRIDOR_CEILING_LIGHTS,
   CORRIDOR_EXIT_SIGNS,
   CORRIDOR_EMERGENCY_GLOWS,
   buildCorridorDebris,
@@ -46,24 +45,6 @@ describe('Stage2CorridorDecor 배치 규칙(기획 §5)', () => {
         for (const z of busyZ) {
           expect(Math.abs(door.z - z)).toBeGreaterThan(1.0)
         }
-      }
-    })
-  })
-
-  describe('천장 형광등 — R4 예외(y>=3.0), 과한 깜빡임 금지', () => {
-    it('6개 배치', () => {
-      expect(CORRIDOR_CEILING_LIGHTS).toHaveLength(6)
-    })
-
-    it('깜빡이는 등은 2개뿐(나머지 상시 점등)', () => {
-      const flickering = CORRIDOR_CEILING_LIGHTS.filter((l) => l.flicker)
-      expect(flickering).toHaveLength(2)
-      expect(flickering.length).toBeLessThan(CORRIDOR_CEILING_LIGHTS.length / 2)
-    })
-
-    it('등이 맵 장축 범위 안(|z|<halfZ)에 분포', () => {
-      for (const light of CORRIDOR_CEILING_LIGHTS) {
-        expect(Math.abs(light.z)).toBeLessThan(halfZ)
       }
     })
   })
