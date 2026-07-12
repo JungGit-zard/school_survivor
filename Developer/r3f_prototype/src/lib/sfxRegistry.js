@@ -60,6 +60,8 @@ export const SOUND_MAP = {
   zombieGiantThud:    '/sfx/enemies/zombieGiantThud.ogg',
   bossRoar:           '/sfx/enemies/bossRoar.ogg',
   matildaSpawn:       '/sfx/enemies/matildaSpawn.ogg',
+  matildaDash:        '/sfx/enemies/matildaDash.ogg',
+  matildaLaugh:       '/sfx/enemies/matildaLaugh.ogg',
 
   // ── 적 사망음 ────────────────────────────────────────────────────────────────
   zombieDeath:        '/sfx/enemies/zombieDeath.ogg',
@@ -103,6 +105,8 @@ export const POLYPHONY_COOLDOWN = Object.freeze({
   zombieDeath:      50,
   zombieHeavyDeath: 50,
   playerHit:        80,
+  matildaDash:      400,
+  matildaLaugh:     700,
   coinCollect:      40,
   pencilHit:        35,
   rulerHit:         55,

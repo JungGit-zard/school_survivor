@@ -11,7 +11,7 @@ export const MATILDA_WORLD_HEIGHT = PLAYER_MESH_RAW_HEIGHT * MATILDA_VISUAL_SCAL
 
 export const MATILDA_IDLE_ANIMATION = {
   floatBaseY: 0.18,
-  floatBobY: 0.045,
+  floatBobY: 0.1,
   floatSpeed: 1.7,
   swayZ: 0.025,
 }

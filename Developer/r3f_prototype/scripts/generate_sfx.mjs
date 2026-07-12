@@ -343,6 +343,28 @@ const sounds = {
     synth({ wave:'sine', freq:400, freqEnd:1200, dur:0.6, vol:0.35, attack:0.001, decay:0.15, sustain:0.1, release:0.4 }),
     synth({ wave:'noise', freq:1, dur:0.4, vol:0.3, attack:0.001, decay:0.12, sustain:0.05, release:0.25 }),
   ),
+  'enemies/matildaDash': () => mix(
+    synth({ wave:'noise', freq:1, dur:0.48, vol:0.7, attack:0.005, decay:0.10, sustain:0.18, release:0.28 }),
+    synth({ wave:'sine', freq:780, freqEnd:170, dur:0.42, vol:0.34, attack:0.005, decay:0.08, sustain:0.12, release:0.25 }),
+    synth({ wave:'triangle', freq:260, freqEnd:90, dur:0.34, vol:0.28, attack:0.005, decay:0.08, sustain:0.08, release:0.20 }),
+  ),
+  // Two short, breathy "ho-ho" syllables for the upright pause between charges.
+  'enemies/matildaLaugh': () => (() => {
+    const syllables = [540, 610].map((freq, index) => {
+      const voice = mix(
+        synth({ wave:'sawtooth', freq, freqEnd:freq*0.82, dur:0.34, vol:0.5, attack:0.018, decay:0.08,
+          sustain:0.28, release:0.18, vibRate:6, vibDepth:12, noiseAmt:0.12,
+          overtones:[{ratio:2,amp:0.38},{ratio:3,amp:0.16}] }),
+        synth({ wave:'sine', freq:freq*2, freqEnd:freq*1.64, dur:0.30, vol:0.22, attack:0.015,
+          decay:0.07, sustain:0.2, release:0.16 }),
+      )
+      const offset = Math.floor(index * 0.36 * SR)
+      const padded = new Float32Array(voice.length + offset)
+      padded.set(voice, offset)
+      return padded
+    })
+    return mix(...syllables)
+  })(),
 
   // ── UI ────────────────────────────────────────────────────────────────────────
   'ui/buttonClick': () => synth({

@@ -98,7 +98,7 @@ describe('MatildaMesh model contract', () => {
   it('keeps Matilda idle as a small ground-hover bob, not a chase lean', () => {
     expect(MATILDA_DEFAULT_MOVEMENT_POSE).toBe(false)
     expect(MATILDA_IDLE_ANIMATION.floatBaseY).toBeGreaterThan(0)
-    expect(MATILDA_IDLE_ANIMATION.floatBobY).toBeGreaterThan(0)
+    expect(MATILDA_IDLE_ANIMATION.floatBobY).toBeGreaterThanOrEqual(0.1)
     expect(MATILDA_IDLE_ANIMATION.swayZ).toBeGreaterThan(0)
     expect(MATILDA_IDLE_POSE.upperLeanX).toBe(0)
     expect(MATILDA_IDLE_POSE.headLeanX).toBe(0)

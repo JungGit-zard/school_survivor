@@ -12,7 +12,7 @@ import { emitVfx } from '../lib/vfxEvents.js'
 import { createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { canE04FireProjectile } from '../lib/stage2ProjectileRules.js'
-import { getStageConfig } from '../lib/stageConfig.js'
+import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import ZombieMesh from './ZombieMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 import EnemyProjectileVisual from './EnemyProjectileVisual.jsx'
@@ -44,6 +44,15 @@ export const SPAWN_SMOKE_START_SCALE = 0.62
 export const SPAWN_SMOKE_END_SCALE = 1.12
 export const ENEMY_SPAWN_REVEAL_DELAY_MS = 320
 export const ENEMY_SPAWN_SFX_COOLDOWN_MS = 110
+// Wall half-thickness (0.5) + Matilda's widest collider half-extent (0.56),
+// with a small physics tolerance so a wall collision cannot stall the loop.
+export const MATILDA_EDGE_INSET = 1.2
+export const MATILDA_LAUGH_DURATION_MS = 900
+
+export function hasMatildaReachedStageEdge(position, bounds, inset = MATILDA_EDGE_INSET) {
+  return Math.abs(position.x) >= bounds.halfX - inset
+    || Math.abs(position.z) >= bounds.halfZ - inset
+}
 
 export function advanceEnemySpawnTimer(elapsedMs, deltaSec, phase) {
   return phase === 'playing' ? elapsedMs + deltaSec * 1000 : elapsedMs
@@ -353,8 +362,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
   // E05 / B01 ?뚯쭊 ?곹깭 癒몄떊
   const [animPhase, setAnimPhase] = useState('normal') // normal|warn|charge|stun|retreat
-  const chargeState  = useRef('chase')   // chase|warn|charge|stun
+  const chargeState  = useRef(isMatilda ? 'matildaAim' : 'chase')
   const stateTimer   = useRef(0)
+  const matildaLaughRemainingRef = useRef(0)
   const chargeDir    = useRef(new THREE.Vector3())
 
   // E04 / B01 ?ъ궗泥?
@@ -370,6 +380,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     setSpawnRevealed(false)
     spawnRevealElapsedRef.current = 0
     spawnedAtRef.current = performance.now()
+    chargeState.current = isMatilda ? 'matildaAim' : 'chase'
+    matildaLaughRemainingRef.current = 0
+    setAnimPhase(isMatilda ? 'stun' : 'normal')
     emitEnemySpawnSfx(type, isMatilda)
   }, [id, type, isMatilda])
 
@@ -568,6 +581,51 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       const now = performance.now()
 
       _vel.y = 0
+      if (isMatilda) {
+        if (chargeState.current === 'matildaAim') {
+          if (dist > 0.0001) {
+            chargeDir.current.copy(_dir).normalize()
+          } else {
+            chargeDir.current.set(-t.x, 0, -t.z).normalize()
+          }
+          chargeState.current = 'charge'
+          setAnimPhase('charge')
+          updateRotation(chargeDir.current.x, chargeDir.current.z, 1)
+          emitSfx({ id: 'matildaDash', volume: 0.76 })
+        } else if (chargeState.current === 'charge') {
+          const cd = chargeDir.current
+          _vel.x = cd.x * stats.chargeSpeed
+          _vel.z = cd.z * stats.chargeSpeed
+          rb.current.setLinvel(_vel, true)
+          updateRotation(cd.x, cd.z, 1)
+
+          if (dist < getChargeHitDistance(stats, true) && now - lastContactDmgRef.current >= 500) {
+            lastContactDmgRef.current = now
+            damagePlayer(stats.damage)
+          }
+
+          if (hasMatildaReachedStageEdge(t, getStageBounds(currentStageId))) {
+            chargeState.current = 'matildaLaugh'
+            matildaLaughRemainingRef.current = MATILDA_LAUGH_DURATION_MS
+            setAnimPhase('stun')
+            _vel.x = 0
+            _vel.z = 0
+            rb.current.setLinvel(_vel, true)
+            emitSfx({ id: 'matildaLaugh', volume: 0.82 })
+          }
+        } else if (chargeState.current === 'matildaLaugh') {
+          _vel.x = 0
+          _vel.z = 0
+          rb.current.setLinvel(_vel, true)
+          if (dist > 0.0001) updateRotation(_dir.x / dist, _dir.z / dist, 0.22)
+          matildaLaughRemainingRef.current -= delta * 1000
+          if (matildaLaughRemainingRef.current <= 0) {
+            chargeState.current = 'matildaAim'
+          }
+        }
+        return
+      }
+
       if (chargeState.current === 'chase') {
         // ?쇰컲 異붽꺽
         _dir.normalize()

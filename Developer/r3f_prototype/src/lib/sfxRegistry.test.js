@@ -71,6 +71,18 @@ describe('playSfx', () => {
     expect(howlRate).not.toHaveBeenCalled()
   })
 
+  it('registers dedicated Matilda dash and ho-ho laugh sounds', async () => {
+    const { playSfx } = await import('./sfxRegistry.js')
+
+    playSfx('matildaDash')
+    playSfx('matildaLaugh')
+
+    expect(howlConfigs[0].src).toEqual(['/sfx/enemies/matildaDash.ogg', '/sfx/enemies/matildaDash.mp3'])
+    expect(howlConfigs[1].src).toEqual(['/sfx/enemies/matildaLaugh.ogg', '/sfx/enemies/matildaLaugh.mp3'])
+    expect(statSync(new URL('../../public/sfx/enemies/matildaDash.ogg', import.meta.url)).size).toBeGreaterThan(1000)
+    expect(statSync(new URL('../../public/sfx/enemies/matildaLaugh.ogg', import.meta.url)).size).toBeGreaterThan(1000)
+  })
+
   it('mutes gameplay SFX while an auth overlay is active', async () => {
     const { playSfx } = await import('./sfxRegistry.js')
 

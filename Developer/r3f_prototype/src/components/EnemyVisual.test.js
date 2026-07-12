@@ -6,6 +6,8 @@ import {
   ENEMY_SIZE_MULTIPLIER,
   ENEMY_SPAWN_REVEAL_DELAY_MS,
   ENEMY_STATS,
+  MATILDA_EDGE_INSET,
+  MATILDA_LAUGH_DURATION_MS,
   SPAWN_SMOKE_END_SCALE,
   SPAWN_SMOKE_START_SCALE,
   SPAWN_SMOKE_DURATION_MS,
@@ -13,9 +15,25 @@ import {
   getBodyContactDistance,
   getChargeHitDistance,
   getEnemySpawnSfx,
+  hasMatildaReachedStageEdge,
 } from './Enemy.jsx'
 
 describe('Enemy charge warning cue', () => {
+  it('restarts Matilda charge only after she reaches a stage edge and finishes laughing', () => {
+    const bounds = { halfX: 10, halfZ: 14.4 }
+
+    expect(hasMatildaReachedStageEdge({ x: 0, z: 0 }, bounds)).toBe(false)
+    expect(hasMatildaReachedStageEdge({ x: bounds.halfX - MATILDA_EDGE_INSET, z: 0 }, bounds)).toBe(true)
+    expect(hasMatildaReachedStageEdge({ x: 0, z: -bounds.halfZ + MATILDA_EDGE_INSET }, bounds)).toBe(true)
+    expect(MATILDA_EDGE_INSET).toBeGreaterThanOrEqual(1.1)
+    expect(MATILDA_LAUGH_DURATION_MS).toBeGreaterThanOrEqual(700)
+
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    expect(source).toContain("chargeState.current = 'matildaLaugh'")
+    expect(source).toContain("emitSfx({ id: 'matildaLaugh'")
+    expect(source).toContain("emitSfx({ id: 'matildaDash'")
+  })
+
   it('only lets Matilda deal charge damage at the normal body contact distance', () => {
     const stats = { contactDist: 0.36, scale: 3 }
 
