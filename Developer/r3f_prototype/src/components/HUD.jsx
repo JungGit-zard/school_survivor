@@ -966,6 +966,13 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
             <div style={styles.dialogueTextCol}>
               <div style={styles.dialogueName}>[지친학생]</div>
               <div style={styles.dialogueLine} aria-live="polite">{studentDialogue.line}</div>
+              {studentDialogue.reward && (
+                <div style={styles.dialogueReward}>
+                  {studentDialogue.reward.type === 'gold'
+                    ? `조사 보상: 골드 ${studentDialogue.reward.amount}`
+                    : '조사 보상: 업그레이드 선택 기회'}
+                </div>
+              )}
               <div style={styles.dialogueHint}>화면을 탭하면 계속</div>
             </div>
           </div>
@@ -1905,6 +1912,11 @@ const styles = {
     lineHeight: 1.4,
     wordBreak: 'keep-all',
     overflowWrap: 'anywhere',
+  },
+  dialogueReward: {
+    color: uiPalette.reward,
+    fontSize: 12,
+    fontWeight: uiType.weightHeavy,
   },
   dialogueHint: {
     color: uiPalette.mutedChalk,

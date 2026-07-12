@@ -523,25 +523,35 @@ export const STAGE_OBJECT_PLACEMENTS = {
       scale: 0.768,
     },
     {
-      id: 'stage2-desk-right-mid',
-      type: 'classroomDesk',
-      position: [5.15, 0, -4],
-      rotation: [0, -Math.PI / 2, 0],
-      scale: 0.752,
-    },
-    {
-      id: 'stage2-desk-left-low',
-      type: 'classroomDesk',
-      position: [-5.05, 0, 5],
-      rotation: [0, Math.PI / 2 - 0.08, 0],
-      scale: 0.784,
-    },
-    {
       id: 'stage2-desk-right-bottom',
       type: 'classroomDesk',
       position: [5.1, 0, 12],
       rotation: [0, -Math.PI / 2 + 0.06, 0],
       scale: 0.8,
+    },
+    {
+      id: 'stage2-student-east-north',
+      type: 'unconsciousStudent',
+      position: [3.2, 0, -9.8],
+      rotation: [0, 0.4, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'faceUp' },
+    },
+    {
+      id: 'stage2-student-west-mid',
+      type: 'unconsciousStudent',
+      position: [-3.4, 0, 0.8],
+      rotation: [0, -0.85, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'sideLeft' },
+    },
+    {
+      id: 'stage2-student-south',
+      type: 'unconsciousStudent',
+      position: [0.8, 0, 10.6],
+      rotation: [0, 1.2, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'sideRight' },
     },
   ],
 }
@@ -603,6 +613,18 @@ function seededUnit(key) {
   return (hash >>> 0) / 4294967296
 }
 
+const STAGE2_SCATTERED_PROP_COUNTS = {
+  corridorLockerBank: 3,
+  corridorJanitorCart: 2,
+  corridorLostFoundBoard: 3,
+}
+
+function getInstanceCount(stageId, item) {
+  if (stageId !== 'stage2') return 5
+  if (item.type === 'classroomDesk' || item.type === 'unconsciousStudent') return 1
+  return STAGE2_SCATTERED_PROP_COUNTS[item.type] ?? 5
+}
+
 function getDistributedPosition(stageId, key, stage2Index = 0) {
   const { halfX, halfZ } = getStageBounds(stageId)
   const xUnit = seededUnit(`${key}:x`)
@@ -631,6 +653,16 @@ function getDistributedPosition(stageId, key, stage2Index = 0) {
   return [x, 0, z]
 }
 
+function getStage2Rotation(item, id) {
+  if (item.type === 'corridorLockerBank') {
+    // Locker doors are on local +Z; the gameplay camera sits on +Z as well.
+    // Keep their fronts visible, with only a deliberate slight natural tilt.
+    return [0, (seededUnit(`${id}:rotation`) - 0.5) * 0.32, 0]
+  }
+
+  return [0, (item.rotation?.[1] ?? 0) + (seededUnit(`${id}:rotation`) - 0.5) * 0.8, 0]
+}
+
 // 기본(오버라이드 미적용) 배치 파이프라인. 그래픽 스튜디오 에디터가 pristine 시드로 쓴다.
 export function computeDefaultStageObjectPlacements(stageId = 'stage1') {
   const authored = STAGE_OBJECT_PLACEMENTS[stageId] ?? []
@@ -638,7 +670,7 @@ export function computeDefaultStageObjectPlacements(stageId = 'stage1') {
   // 복제(×5)/해시 분산/×1.1 확대 파이프라인은 stage1에 적용하지 않는다.
   if (stageId === 'stage1') return authored.map(withMixedUnconsciousStudentFacing)
   return authored.flatMap((item, itemIndex) => (
-    Array.from({ length: 5 }, (_, copyIndex) => {
+    Array.from({ length: getInstanceCount(stageId, item) }, (_, copyIndex) => {
       const id = `${item.id}-copy-${copyIndex + 1}`
       const isPhysicalBlocker = item.type !== 'unconsciousStudent'
       const scatterIndex = itemIndex * 5 + copyIndex
@@ -648,7 +680,7 @@ export function computeDefaultStageObjectPlacements(stageId = 'stage1') {
         blocking: isPhysicalBlocker,
         position: getDistributedPosition(stageId, id, scatterIndex),
         rotation: stageId === 'stage2'
-          ? [0, (item.rotation?.[1] ?? 0) + (seededUnit(`${id}:rotation`) - 0.5) * 0.8, 0]
+          ? getStage2Rotation(item, id)
           : item.rotation,
         scale: enlargeScale(item.scale),
       })

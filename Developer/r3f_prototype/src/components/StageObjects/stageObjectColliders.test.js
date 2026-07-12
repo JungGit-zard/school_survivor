@@ -85,11 +85,14 @@ describe('stage object blocking colliders', () => {
     const corridorTypes = new Set(['corridorLockerBank', 'corridorJanitorCart', 'corridorLostFoundBoard'])
     const corridorProps = stage2Props.filter(({ type }) => corridorTypes.has(type))
     const physicalCorridorProps = stage2Props.filter(({ type, blocking }) => corridorTypes.has(type) && blocking !== false)
+    const physicalStage2Props = stage2Props.filter(({ type, blocking }) => (
+      BLOCKING_STAGE_OBJECT_TYPES.has(type) && blocking !== false
+    ))
 
     expect(corridorProps.length).toBeGreaterThan(0)
     expect(physicalCorridorProps).toHaveLength(corridorProps.length)
     expect(physicalCorridorProps.every((placement) => getStageObjectColliderParts(placement).length > 0)).toBe(true)
-    expect(getStageObjectColliders('stage2')).toHaveLength(stage2Props.length)
+    expect(getStageObjectColliders('stage2')).toHaveLength(physicalStage2Props.length)
     const expectedSightParts = stage2Props
       .filter(({ type }) => BLOCKING_STAGE_OBJECT_TYPES.has(type))
       .reduce((total, placement) => total + getStageObjectColliderParts(placement).length, 0)

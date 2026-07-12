@@ -3,10 +3,8 @@
 // 패턴은 graphicsStudioConfig.js(localStorage + CustomEvent dispatch)를 그대로 미러한다.
 import { useEffect, useState } from 'react'
 
-// v2 intentionally invalidates the old Stage 2 editor snapshot. That snapshot
-// placed corridor props in a continuous edge row, so it must not override the
-// new scattered, collision-aware authored layout after an update.
-export const STAGE_PROP_PLACEMENTS_STORAGE_KEY = 'escape-zombie-school.stagePropPlacements.v2'
+// v4 invalidates the prior dense Stage 2 snapshot after reducing corridor clutter.
+export const STAGE_PROP_PLACEMENTS_STORAGE_KEY = 'escape-zombie-school.stagePropPlacements.v4'
 export const STAGE_PROP_PLACEMENTS_EVENT = 'escape-zombie-school.stagePropPlacements.changed'
 
 // 편집 가능한 스테이지 목록.

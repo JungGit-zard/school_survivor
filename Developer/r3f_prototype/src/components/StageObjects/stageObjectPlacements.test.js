@@ -90,20 +90,40 @@ describe('stage object placements', () => {
     })
   })
 
-  it('places five deterministic instances of every prepared stage2 prop', () => {
+  it('keeps exactly two desks and three fallen students while halving scattered corridor props', () => {
     const first = getStageObjectPlacements('stage2')
     const second = getStageObjectPlacements('stage2')
+    const deskCount = STAGE_OBJECT_PLACEMENTS.stage2.filter(({ type }) => type === 'classroomDesk').length
+    const studentCount = STAGE_OBJECT_PLACEMENTS.stage2.filter(({ type }) => type === 'unconsciousStudent').length
+    const corridorProps = first.filter(({ type }) => type.startsWith('corridor'))
 
-    expect(first).toHaveLength(STAGE_OBJECT_PLACEMENTS.stage2.length * 5)
+    expect(deskCount).toBe(2)
+    expect(studentCount).toBe(3)
+    expect(first).toHaveLength(13)
+    expect(first.filter(({ type }) => type === 'classroomDesk')).toHaveLength(2)
+    expect(first.filter(({ type }) => type === 'unconsciousStudent')).toHaveLength(3)
+    expect(corridorProps.filter(({ type }) => type === 'corridorLockerBank')).toHaveLength(3)
+    expect(corridorProps.filter(({ type }) => type === 'corridorJanitorCart')).toHaveLength(2)
+    expect(corridorProps.filter(({ type }) => type === 'corridorLostFoundBoard')).toHaveLength(3)
     expect(second).toEqual(first)
     expect(new Set(first.map(({ id }) => id)).size).toBe(first.length)
+  })
+
+  it('keeps Stage 2 locker doors facing the camera with only a slight tilt', () => {
+    const lockerRotations = getStageObjectPlacements('stage2')
+      .filter(({ type }) => type === 'corridorLockerBank')
+      .map(({ rotation }) => rotation[1])
+
+    expect(lockerRotations.length).toBeGreaterThan(0)
+    expect(lockerRotations.every((rotation) => Math.abs(rotation) <= 0.16)).toBe(true)
   })
 
   it('renders every prepared stage2 prop at 110 percent of its authored scale', () => {
     const placements = getStageObjectPlacements('stage2')
 
-    placements.forEach(({ scale }, index) => {
-      const authoredScale = STAGE_OBJECT_PLACEMENTS.stage2[Math.floor(index / 5)].scale ?? 1
+    placements.forEach(({ id, scale }) => {
+      const authored = STAGE_OBJECT_PLACEMENTS.stage2.find((item) => id.startsWith(`${item.id}-copy-`))
+      const authoredScale = authored.scale ?? 1
       const expected = Array.isArray(authoredScale)
         ? authoredScale.map((value) => value * 1.1)
         : authoredScale * 1.1

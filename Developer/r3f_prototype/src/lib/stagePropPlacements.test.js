@@ -101,12 +101,12 @@ describe('normalizeStagePropList / normalizeStagePropPlacements', () => {
 })
 
 describe('load / save round-trip + event dispatch', () => {
-  it('ignores the legacy v1 corridor snapshot so the scattered Stage 2 layout takes over', () => {
-    window.localStorage.setItem('escape-zombie-school.stagePropPlacements.v1', JSON.stringify({
+  it('ignores the legacy dense corridor snapshot so the two-desk Stage 2 layout takes over', () => {
+    window.localStorage.setItem('escape-zombie-school.stagePropPlacements.v3', JSON.stringify({
       stage2: [{ id: 'legacy-row-desk', type: 'classroomDesk', position: [-6, 0, 0] }],
     }))
 
-    expect(STAGE_PROP_PLACEMENTS_STORAGE_KEY).toContain('.v2')
+    expect(STAGE_PROP_PLACEMENTS_STORAGE_KEY).toContain('.v4')
     expect(loadStagePropPlacements().stage2).toBeNull()
   })
 

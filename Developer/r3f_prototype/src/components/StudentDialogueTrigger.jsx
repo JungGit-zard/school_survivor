@@ -4,6 +4,7 @@ import { usePlayingFrame } from '../lib/usePlayingFrame.js'
 import { playerPos } from '../lib/refs.js'
 import { getUnconsciousStudents, findStudentInRange } from '../lib/studentProximity.js'
 import { pickStudentLine } from '../lib/studentDialogueLines.js'
+import { rollStudentSearchReward } from '../lib/studentSearchRewards.js'
 
 // 쓰러진 학생 근접 감지기(비주얼 없음). playing일 때만 매 프레임 playerPos와
 // 현재 스테이지 학생들의 거리를 재고, 반경 안에 들어오면 대화창을 연다.
@@ -27,7 +28,7 @@ export default function StudentDialogueTrigger() {
     const id = findStudentInRange(playerPos.x, playerPos.z, students, talkedRef.current)
     if (!id) return
     talkedRef.current.add(id)
-    openStudentDialogue(pickStudentLine())
+    openStudentDialogue(pickStudentLine(), rollStudentSearchReward())
   })
 
   return null
