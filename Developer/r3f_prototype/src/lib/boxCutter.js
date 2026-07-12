@@ -1,3 +1,5 @@
+import { isPlayerWeaponSightBlocked } from './weaponTargeting.js'
+
 export function normalizePlanarFacing(facing = { x: 0, z: 1 }) {
   const x = Number(facing.x) || 0
   const z = Number(facing.z) || 0
@@ -29,6 +31,7 @@ export function pickBoxCutterTargets({
   facing,
   range = 1.275,
   width = 0.22,
+  sightBlocker = isPlayerWeaponSightBlocked,
 }) {
   const targets = []
   if (!enemies?.forEach) return targets
@@ -37,6 +40,7 @@ export function pickBoxCutterTargets({
     if (!rb?._enemyHit || rb._enemyDead || !rb.translation) return
     const t = rb.translation()
     if (!isPointInBoxCutterStrike({ origin, facing, point: t, range, width })) return
+    if (sightBlocker(t)) return
     targets.push({ enemyId, rb, x: t.x, z: t.z })
   })
 

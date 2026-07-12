@@ -15,6 +15,7 @@ import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { canE04FireProjectile } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { getStageObjectSightObstacles, isStageObjectSightBlocked } from './StageObjects/stageObjectColliders.js'
+import { isPlayerWeaponSightBlocked } from '../lib/weaponTargeting.js'
 import ZombieMesh from './ZombieMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 import EnemyProjectileVisual from './EnemyProjectileVisual.jsx'
@@ -472,6 +473,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     rb.current._enemyHit = (dmg, impact = {}) => {
       if (dead.current) return
       const hitPos = rb.current.translation()
+      if (isPlayerWeaponSightBlocked(hitPos, useGameStore.getState().currentStageId)) return
       emitVfx(createEnemyHitSparkEvent({
         x: hitPos.x,
         y: Math.max(0.34, 0.42 * cs),

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { enemyBodies, playerPos } from './refs.js'
-import { applyRadialDamage, findClosestEnemies, findClosestEnemy, isInForwardBox, applyForwardBoxDamage, isInForwardCone, applyForwardConeDamage } from './weaponTargeting.js'
+import { applyRadialDamage, findClosestEnemies, findClosestEnemy, isPlayerWeaponSightBlocked, isInForwardBox, applyForwardBoxDamage, isInForwardCone, applyForwardConeDamage } from './weaponTargeting.js'
 
 function fakeEnemy(x, z, { dead = false } = {}) {
   return {
@@ -13,6 +13,15 @@ function fakeEnemy(x, z, { dead = false } = {}) {
 afterEach(() => {
   enemyBodies.clear()
   playerPos.set(0, 0, 0)
+})
+
+describe('player weapon prop raycast', () => {
+  it('blocks a target when a stage prop collider intersects the player-to-target ray', () => {
+    const deskCollider = { x: 0, z: 1, halfX: 0.5, halfZ: 0.35, rotationY: 0 }
+
+    expect(isPlayerWeaponSightBlocked({ x: 0, z: 2 }, 'stage2', [deskCollider])).toBe(true)
+    expect(isPlayerWeaponSightBlocked({ x: 2.5, z: 2 }, 'stage2', [deskCollider])).toBe(false)
+  })
 })
 
 describe('isInForwardCone / applyForwardConeDamage (student lantern)', () => {
@@ -43,6 +52,20 @@ describe('isInForwardCone / applyForwardConeDamage (student lantern)', () => {
     expect(center._enemyHit).toHaveBeenCalledWith(9, expect.objectContaining({ knockback: 0 }))
     expect(farSide._enemyHit).toHaveBeenCalledWith(9, expect.objectContaining({ knockback: 0 }))
     expect(nearSide._enemyHit).not.toHaveBeenCalled()
+  })
+
+  it('does not damage a cone target hidden by a prop sight blocker', () => {
+    const blocked = fakeEnemy(0, 3.8)
+    enemyBodies.set('blocked', blocked)
+
+    const hits = applyForwardConeDamage({
+      originX: 0, originZ: 0, dirX: 0, dirZ: 1,
+      length: 5.2, width: 3.6, baseWidth: 0.35, damage: 9,
+      sightBlocker: () => true,
+    })
+
+    expect(hits).toBe(0)
+    expect(blocked._enemyHit).not.toHaveBeenCalled()
   })
 })
 
@@ -101,6 +124,14 @@ describe('applyRadialDamage', () => {
     expect(outside._enemyHit).not.toHaveBeenCalled()
   })
 
+  it('does not apply splash damage through a prop sight blocker', () => {
+    const blocked = fakeEnemy(0.5, 0)
+    enemyBodies.set('blocked', blocked)
+
+    expect(applyRadialDamage({ x: 0, z: 0, radius: 1, damage: 5, knockback: 0, knockbackMs: 0, sightBlocker: () => true })).toBe(0)
+    expect(blocked._enemyHit).not.toHaveBeenCalled()
+  })
+
   it('skips entries missing _enemyHit and returns 0 when nothing is hit', () => {
     enemyBodies.set('broken', { _enemyDead: false, translation: () => ({ x: 0, z: 0 }) })
     const count = applyRadialDamage({ x: 0, z: 0, radius: 2, damage: 5, knockback: 1, knockbackMs: 50 })
@@ -148,6 +179,13 @@ describe('findClosestEnemy', () => {
       'third',
     ])
   })
+
+  it('skips blocked enemies so projectiles select the next visible target', () => {
+    enemyBodies.set('blocked', fakeEnemy(1, 0))
+    enemyBodies.set('visible', fakeEnemy(2, 0))
+
+    expect(findClosestEnemy(5, { sightBlocker: ({ x }) => x === 1 })?.enemyId).toBe('visible')
+  })
 })
 
 describe('isInForwardBox / applyForwardBoxDamage (학생용 랜턴)', () => {
@@ -186,5 +224,19 @@ describe('isInForwardBox / applyForwardBoxDamage (학생용 랜턴)', () => {
     expect(inFront._enemyHit).toHaveBeenCalledWith(9, expect.objectContaining({ knockback: 0 }))
     expect(behind._enemyHit).not.toHaveBeenCalled()
     expect(side._enemyHit).not.toHaveBeenCalled()
+  })
+
+  it('does not damage a forward-box target hidden by a prop sight blocker', () => {
+    const blocked = fakeEnemy(0, 1.2)
+    enemyBodies.set('blocked', blocked)
+
+    const hits = applyForwardBoxDamage({
+      originX: 0, originZ: 0, dirX: 0, dirZ: 1,
+      length: 1.9, width: 1.9, damage: 9,
+      sightBlocker: () => true,
+    })
+
+    expect(hits).toBe(0)
+    expect(blocked._enemyHit).not.toHaveBeenCalled()
   })
 })

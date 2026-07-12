@@ -2,9 +2,24 @@
 // enemyBodies (전역 Map) + playerPos (전역 Vector3) 기반.
 
 import { enemyBodies, playerPos } from './refs.js'
+import { useGameStore } from '../store/useGameStore.js'
+import { getStageObjectSightObstacles, isStageObjectSightBlocked } from '../components/StageObjects/stageObjectColliders.js'
+
+export function isPlayerWeaponSightBlocked(
+  target,
+  stageId = useGameStore.getState().currentStageId,
+  obstacles = getStageObjectSightObstacles(stageId),
+) {
+  if (!target || !Number.isFinite(target.x) || !Number.isFinite(target.z)) return true
+  return isStageObjectSightBlocked(playerPos, target, obstacles)
+}
+
+function isSightBlocked(target, sightBlocker) {
+  return typeof sightBlocker === 'function' ? sightBlocker(target) : isPlayerWeaponSightBlocked(target)
+}
 
 // 최단 거리 적을 찾는다. maxRange 이내가 아니면 null.
-export function findClosestEnemies(maxRange, count = 1) {
+export function findClosestEnemies(maxRange, count = 1, { sightBlocker } = {}) {
   const candidates = []
   const maxRangeSq = maxRange * maxRange
   enemyBodies.forEach((rb, enemyId) => {
@@ -17,6 +32,7 @@ export function findClosestEnemies(maxRange, count = 1) {
     const dz = t.z - playerPos.z
     const distSq = dx * dx + dz * dz
     if (distSq > maxRangeSq) return
+    if (isSightBlocked(t, sightBlocker)) return
     candidates.push({ rb, enemyId, distSq })
   })
   return candidates
@@ -25,15 +41,15 @@ export function findClosestEnemies(maxRange, count = 1) {
     .map(({ rb, enemyId }) => ({ rb, enemyId }))
 }
 
-export function findClosestEnemy(maxRange) {
-  return findClosestEnemies(maxRange, 1)[0] ?? null
+export function findClosestEnemy(maxRange, options) {
+  return findClosestEnemies(maxRange, 1, options)[0] ?? null
 }
 
 // 폭발/장판 공통: (x,z) 중심 radius 안의 살아있는 적에게 1회씩 데미지+넉백을 입힌다.
 // 중복 타격은 Set으로 막는다. 7종 AOE 무기(Flask/EraserBomb/Missile/CompassBlade/
 // UmbrellaGuard/Bell/Starlink)가 쓰던 동일 루프를 단일 정본으로 통합한 것.
 // 반환: 실제 피격당한 적 수.
-export function applyRadialDamage({ x, z, radius, damage, knockback, knockbackMs, deathStyleOverride }) {
+export function applyRadialDamage({ x, z, radius, damage, knockback, knockbackMs, deathStyleOverride, sightBlocker }) {
   if (!Number.isFinite(x) || !Number.isFinite(z) || !Number.isFinite(radius) || radius <= 0 || !Number.isFinite(damage)) return 0
 
   const radiusSq = radius * radius
@@ -44,6 +60,7 @@ export function applyRadialDamage({ x, z, radius, damage, knockback, knockbackMs
     const dx = t.x - x
     const dz = t.z - z
     if (dx * dx + dz * dz > radiusSq) return
+    if (isSightBlocked(t, sightBlocker)) return
     hit.add(enemyId)
     const impact = { source: { x, z }, knockback, knockbackMs }
     if (deathStyleOverride) impact.deathStyleOverride = deathStyleOverride
@@ -65,7 +82,7 @@ export function isInForwardBox({ originX, originZ, dirX, dirZ }, { x, z }, { len
 
 // 전방 박스 안 살아있는 적 전원에게 1회씩 데미지 (넉백 없음 — 지속 빔용).
 // 반환: 실제 피격당한 적 수.
-export function applyForwardBoxDamage({ originX, originZ, dirX, dirZ, length, width, damage }) {
+export function applyForwardBoxDamage({ originX, originZ, dirX, dirZ, length, width, damage, sightBlocker }) {
   if (!Number.isFinite(damage) || !Number.isFinite(length) || length <= 0) return 0
   let hits = 0
   enemyBodies.forEach((rb, enemyId) => {
@@ -75,6 +92,7 @@ export function applyForwardBoxDamage({ originX, originZ, dirX, dirZ, length, wi
     }
     const t = rb.translation()
     if (!isInForwardBox({ originX, originZ, dirX, dirZ }, { x: t.x, z: t.z }, { length, width })) return
+    if (isSightBlocked(t, sightBlocker)) return
     hits += 1
     rb._enemyHit(damage, { source: { x: originX, z: originZ }, knockback: 0, knockbackMs: 0 })
   })
@@ -95,7 +113,7 @@ export function isInForwardCone({ originX, originZ, dirX, dirZ }, { x, z }, { le
   return lat <= halfWidth
 }
 
-export function applyForwardConeDamage({ originX, originZ, dirX, dirZ, length, width, baseWidth, damage }) {
+export function applyForwardConeDamage({ originX, originZ, dirX, dirZ, length, width, baseWidth, damage, sightBlocker }) {
   if (!Number.isFinite(damage) || !Number.isFinite(length) || length <= 0) return 0
   let hits = 0
   enemyBodies.forEach((rb, enemyId) => {
@@ -105,6 +123,7 @@ export function applyForwardConeDamage({ originX, originZ, dirX, dirZ, length, w
     }
     const t = rb.translation()
     if (!isInForwardCone({ originX, originZ, dirX, dirZ }, { x: t.x, z: t.z }, { length, width, baseWidth })) return
+    if (isSightBlocked(t, sightBlocker)) return
     hits += 1
     rb._enemyHit(damage, { source: { x: originX, z: originZ }, knockback: 0, knockbackMs: 0 })
   })
@@ -112,7 +131,7 @@ export function applyForwardConeDamage({ originX, originZ, dirX, dirZ, length, w
 }
 
 // 스플래시 무기용: maxRange 안에서 radius 클러스터 점수가 가장 높은 적을 고른다.
-export function findBestSplashTarget(maxRange, radius) {
+export function findBestSplashTarget(maxRange, radius, { sightBlocker } = {}) {
   let best = null
   const candidates = []
   const maxRangeSq = maxRange * maxRange
@@ -127,6 +146,7 @@ export function findBestSplashTarget(maxRange, radius) {
     const dz = t.z - playerPos.z
     const distSq = dx * dx + dz * dz
     if (distSq > maxRangeSq) return
+    if (isSightBlocked(t, sightBlocker)) return
     candidates.push({ rb, enemyId, x: t.x, z: t.z })
   })
 

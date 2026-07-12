@@ -66,4 +66,21 @@ describe('box cutter strike targeting', () => {
 
     expect(targets.map((target) => target.enemyId)).toEqual(['front'])
   })
+
+  it('does not select a target hidden behind a prop', () => {
+    const enemies = new Map([
+      ['front', { _enemyHit: () => {}, _enemyDead: false, translation: () => ({ x: 0.04, z: 0.62 }) }],
+    ])
+
+    const targets = pickBoxCutterTargets({
+      enemies,
+      origin,
+      facing,
+      range: 0.85,
+      width: 0.22,
+      sightBlocker: () => true,
+    })
+
+    expect(targets).toEqual([])
+  })
 })
