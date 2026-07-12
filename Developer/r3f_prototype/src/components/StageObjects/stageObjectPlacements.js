@@ -642,6 +642,9 @@ function getPhysicalBlockerPosition(stageId, index, count) {
 
 export function getStageObjectPlacements(stageId = 'stage1') {
   const authored = STAGE_OBJECT_PLACEMENTS[stageId] ?? []
+  // stage1은 수제 배치 정본을 그대로 사용(2026-07-12 사용자 지시로 복원).
+  // 복제(×5)/해시 분산/×1.1 확대 파이프라인은 stage1에 적용하지 않는다.
+  if (stageId === 'stage1') return authored.map(withMixedUnconsciousStudentFacing)
   const blockingItems = authored.filter(({ type }) => type === 'classroomDesk' || type === 'classroomChair')
   const blockingIndexById = new Map(blockingItems.map(({ id }, index) => [id, index]))
 

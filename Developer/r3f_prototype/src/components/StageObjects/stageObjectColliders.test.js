@@ -34,7 +34,8 @@ describe('stage object blocking colliders', () => {
     const visualDeskAndChairs = getStageObjectPlacements('stage1')
       .filter(({ type }) => BLOCKING_STAGE_OBJECT_TYPES.has(type))
 
-    expect(obstacles.length).toBeGreaterThan(colliders.reduce((total, collider) => total + collider.parts.length, 0))
+    // stage1 수제 배치 복원(2026-07-12) 후엔 시각 사본이 없어 obstacles == collider parts.
+    expect(obstacles.length).toBeGreaterThanOrEqual(colliders.reduce((total, collider) => total + collider.parts.length, 0))
     expect(obstacles).toHaveLength(visualDeskAndChairs.reduce(
       (total, placement) => total + getStageObjectColliderParts(placement).length,
       0,

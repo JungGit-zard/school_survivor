@@ -77,41 +77,50 @@ describe('stage object placements', () => {
     expect([...studentVariants].every((variant) => UNCONSCIOUS_STUDENT_VARIANTS[variant])).toBe(true)
   })
 
-  it('places five deterministic instances of every prepared stage prop', () => {
-    for (const stageId of ['stage1', 'stage2']) {
-      const first = getStageObjectPlacements(stageId)
-      const second = getStageObjectPlacements(stageId)
+  // stage1은 수제 배치 정본 그대로(2026-07-12 복원) — 복제/분산/확대 파이프라인은 stage2 전용.
+  it('returns stage1 authored placements as-is (no copies, no rescale, no redistribution)', () => {
+    const placements = getStageObjectPlacements('stage1')
 
-      expect(first).toHaveLength(STAGE_OBJECT_PLACEMENTS[stageId].length * 5)
-      expect(second).toEqual(first)
-      expect(new Set(first.map(({ id }) => id)).size).toBe(first.length)
-    }
+    expect(placements).toHaveLength(STAGE_OBJECT_PLACEMENTS.stage1.length)
+    placements.forEach((item, index) => {
+      const authored = STAGE_OBJECT_PLACEMENTS.stage1[index]
+      expect(item.id).toBe(authored.id)
+      expect(item.position).toEqual(authored.position)
+      expect(item.scale).toEqual(authored.scale)
+    })
   })
 
-  it('renders every prepared prop at 110 percent of its authored scale', () => {
-    for (const stageId of ['stage1', 'stage2']) {
-      const placements = getStageObjectPlacements(stageId)
+  it('places five deterministic instances of every prepared stage2 prop', () => {
+    const first = getStageObjectPlacements('stage2')
+    const second = getStageObjectPlacements('stage2')
 
-      placements.forEach(({ scale }, index) => {
-        const authoredScale = STAGE_OBJECT_PLACEMENTS[stageId][Math.floor(index / 5)].scale ?? 1
-        const expected = Array.isArray(authoredScale)
-          ? authoredScale.map((value) => value * 1.1)
-          : authoredScale * 1.1
-
-        expect(scale).toEqual(expected)
-      })
-    }
+    expect(first).toHaveLength(STAGE_OBJECT_PLACEMENTS.stage2.length * 5)
+    expect(second).toEqual(first)
+    expect(new Set(first.map(({ id }) => id)).size).toBe(first.length)
   })
 
-  it('applies the same ten-percent size increase to unconscious students', () => {
+  it('renders every prepared stage2 prop at 110 percent of its authored scale', () => {
+    const placements = getStageObjectPlacements('stage2')
+
+    placements.forEach(({ scale }, index) => {
+      const authoredScale = STAGE_OBJECT_PLACEMENTS.stage2[Math.floor(index / 5)].scale ?? 1
+      const expected = Array.isArray(authoredScale)
+        ? authoredScale.map((value) => value * 1.1)
+        : authoredScale * 1.1
+
+      expect(scale).toEqual(expected)
+    })
+  })
+
+  it('keeps stage1 unconscious students at the authored player-matched scale', () => {
     const stage1StudentScales = getStageObjectPlacements('stage1')
       .filter(({ type }) => type === 'unconsciousStudent')
       .map(({ scale = 1 }) => scale)
 
-    expect(stage1StudentScales.every((scale) => scale === UNCONSCIOUS_STUDENT_PLAYER_SCALE * 1.1)).toBe(true)
+    expect(stage1StudentScales.every((scale) => scale === UNCONSCIOUS_STUDENT_PLAYER_SCALE)).toBe(true)
 
     for (const scale of stage1StudentScales) {
-      expect(scale * UNCONSCIOUS_STUDENT_RAW_LENGTH).toBeCloseTo(PLAYER_MESH_WORLD_HEIGHT * 1.1, 3)
+      expect(scale * UNCONSCIOUS_STUDENT_RAW_LENGTH).toBeCloseTo(PLAYER_MESH_WORLD_HEIGHT, 3)
     }
   })
 
@@ -133,7 +142,7 @@ describe('stage object placements', () => {
   })
 
   it('distributes props across each stage without occupying its central spawn lane', () => {
-    for (const stageId of ['stage1', 'stage2']) {
+    for (const stageId of ['stage2']) {
       const placements = getStageObjectPlacements(stageId)
       const { halfX, halfZ } = getStageBounds(stageId)
       const positions = placements.map(({ position: [x, , z] }) => [x, z])
