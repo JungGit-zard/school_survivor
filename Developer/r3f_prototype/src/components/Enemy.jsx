@@ -20,6 +20,18 @@ import MiniHealthBar from './MiniHealthBar.jsx'
 import EnemyProjectileVisual from './EnemyProjectileVisual.jsx'
 import { zombieVisualRegistry } from '../lib/zombieVisualRegistry.js'
 
+// "효과 없이는 스폰 없음" — 첫 스폰에서 텍스처 로딩 지연으로 연기가 스킵되지 않도록
+// 모듈 로드 시점에 스폰 연기 텍스처를 미리 로드해 캐시에 올려둔다.
+// 비브라우저(테스트) 환경에서는 로더가 실패할 수 있어 방어적으로 감싼다.
+// 프리로드가 실패하더라도 스폰 리빌 딜레이는 그대로 유지되므로 연기 없는 스폰은 발생하지 않는다.
+if (typeof document !== 'undefined' && import.meta.env?.MODE !== 'test') {
+  try {
+    useLoader.preload(THREE.TextureLoader, spawnSmokeUrl)
+  } catch {
+    /* ignore preload failure */
+  }
+}
+
 const _dir = new THREE.Vector3()
 const _pos = new THREE.Vector3()
 const _chargeTarget = new THREE.Vector3()
@@ -41,10 +53,23 @@ function _applyRotation(groupRef, dx, dz, turnRate = 0.12) {
 export const ENEMY_SIZE_MULTIPLIER = 4 / 3
 const BASE_COL = [0.14, 0.26, 0.10]
 const PLAYER_CONTACT_HALF_EXTENT = 0.136
-export const SPAWN_SMOKE_DURATION_MS = 560
-export const SPAWN_SMOKE_START_SCALE = 0.62
-export const SPAWN_SMOKE_END_SCALE = 1.12
-export const ENEMY_SPAWN_REVEAL_DELAY_MS = 320
+// 최우선 연출 스펙(정본): 좀비 스폰 요청 시 "펑 연기가 먼저" 300ms 동안 완벽하게
+// 보인 뒤 좀비가 등장한다. 연기는 앞 300ms 불투명(opacity 1.0) 유지 후 페이드아웃.
+export const ENEMY_SPAWN_REVEAL_DELAY_MS = 300
+export const SPAWN_SMOKE_DURATION_MS = 800
+// 앞 구간 불투명 유지 시간 = 리빌 딜레이. 이 시점까지 연기가 100% 보인 뒤 좀비가 뜬다.
+export const SPAWN_SMOKE_OPAQUE_MS = ENEMY_SPAWN_REVEAL_DELAY_MS
+// 줌아웃 45° 카메라에서 좀비보다 큼직하게 — 기존(0.62→1.12) 대비 2배 이상 확대.
+export const SPAWN_SMOKE_START_SCALE = 1.7
+export const SPAWN_SMOKE_END_SCALE = 3.1
+
+// 경과 시간(ms) → 연기 불투명도. 앞 SPAWN_SMOKE_OPAQUE_MS 동안 1.0 유지 후 선형 페이드아웃.
+export function getSpawnSmokeOpacity(elapsedMs) {
+  if (elapsedMs <= SPAWN_SMOKE_OPAQUE_MS) return 1
+  const fadeSpan = SPAWN_SMOKE_DURATION_MS - SPAWN_SMOKE_OPAQUE_MS
+  if (fadeSpan <= 0) return 0
+  return Math.max(0, 1 - (elapsedMs - SPAWN_SMOKE_OPAQUE_MS) / fadeSpan)
+}
 export const ENEMY_SPAWN_SFX_COOLDOWN_MS = 110
 // Wall half-thickness (0.5) + Matilda's widest collider half-extent (0.56),
 // with a small physics tolerance so a wall collision cannot stall the loop.
@@ -334,14 +359,16 @@ export function SpawnSmokeEffect({ position, visualScale, frozen = false }) {
     const material = materialRef.current
     if (!billboard || !material) return
     if (!frozen) elapsedMsRef.current = advanceEnemySpawnTimer(elapsedMsRef.current, delta, phase)
-    const t = Math.min(1, elapsedMsRef.current / SPAWN_SMOKE_DURATION_MS)
+    const elapsed = elapsedMsRef.current
+    const t = Math.min(1, elapsed / SPAWN_SMOKE_DURATION_MS)
     const ease = 1 - (1 - t) * (1 - t)
     const size = visualScale * (
       SPAWN_SMOKE_START_SCALE + ease * (SPAWN_SMOKE_END_SCALE - SPAWN_SMOKE_START_SCALE)
     )
     billboard.scale.set(size, size, 1)
     billboard.position.y = position[1] + visualScale * (1.0 + t * 0.32)
-    material.opacity = 1 - t
+    // 앞 300ms(리빌 딜레이) 동안 opacity 1.0 유지 후 페이드아웃
+    material.opacity = getSpawnSmokeOpacity(elapsed)
     if (t >= 1) setDone(true)
   })
 

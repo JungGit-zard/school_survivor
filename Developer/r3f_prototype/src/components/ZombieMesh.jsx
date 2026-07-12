@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { inflateScale, getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat } from '../lib/toon.js'
 import { getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
 import boss02FaceUrl from '../assets/enemies/boss_02.webp'
+import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.png'
 import MatildaMesh from './MatildaMesh.jsx'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
 
@@ -99,6 +100,15 @@ export const B03_PE_TEACHER_FACE_LAYOUT = {
   nose: { size: [0.10, 0.13, 0.06], position: [0, -0.04, 0.265] },
   mouth: { size: [0.26, 0.10, 0.045], position: [0, -0.17, 0.25] },
   tooth: { size: [0.07, 0.04, 0.035], position: [-0.05, -0.14, 0.28] },
+}
+
+// 사용자 제공 얼굴 텍스처를 머리 앞면에 입히는 데칼(플레인) 레이아웃.
+// 텍스처 자체에 빨간 줄무늬 머리띠·목의 빨간 끈+호루라기가 그려져 있으므로,
+// 3D로 모델링됐던 이목구비/머리띠/호루라기 파츠는 제거하고 이 한 장으로 대체한다.
+// head 박스 size [0.56,0.48,0.44] → 앞면 z=0.22, 플레인은 0.025 앞으로 띄운다.
+export const B03_PE_TEACHER_FACE = {
+  size: [0.58, 0.58],
+  position: [0, -0.02, 0.245],
 }
 
 export const B02_TEACHER_BOSS_PALETTE = {
@@ -203,22 +213,29 @@ function B01BossZombieMesh({ hitFlash, reg }) {
   )
 }
 
+function B03PeTeacherFaceTexture() {
+  const texture = useLoader(THREE.TextureLoader, boss03FaceUrl)
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.anisotropy = 4
+
+  return (
+    <mesh name="b03PeTeacherFaceTexture" position={B03_PE_TEACHER_FACE.position} renderOrder={4} userData={{ studioNonFocusable: true }}>
+      <planeGeometry args={B03_PE_TEACHER_FACE.size} />
+      <meshBasicMaterial map={texture} transparent toneMapped={false} depthTest={false} depthWrite={false} />
+    </mesh>
+  )
+}
+
 function B03PhysicalEducationBossMesh({ hitFlash, reg }) {
   const pal = B03_PE_TEACHER_PALETTE
-  const face = B03_PE_TEACHER_FACE_LAYOUT
 
   return (
     <group>
       <group name="b01PeTeacherHeadRig" ref={reg('head')} position={[0, 0.88, 0]}>
         <ZBlock name="b01Head" studioPartId="b03-head" size={[0.56, 0.48, 0.44]} position={[0, 0, 0]} color={pal.skin} emissive={0.07} outlineScale={1.08} flash={hitFlash} />
         <ZBlock name="b01SportHair" studioPartId="b03-hair" size={[0.58, 0.13, 0.45]} position={[0, 0.28, -0.01]} color={pal.hair} emissive={0.03} outlineScale={1.04} flash={hitFlash} />
-        <ZBlock name="b01EyeL" size={face.leftEye.size} position={face.leftEye.position} color={pal.eye} emissive={0.7} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock name="b01EyeR" size={face.rightEye.size} position={face.rightEye.position} color={pal.eye} emissive={0.7} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock name="b01BrowL" size={face.leftBrow.size} position={face.leftBrow.position} rotation={face.leftBrow.rotation} color={pal.hair} emissive={0.03} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock name="b01BrowR" size={face.rightBrow.size} position={face.rightBrow.position} rotation={face.rightBrow.rotation} color={pal.hair} emissive={0.03} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock name="b01Nose" size={face.nose.size} position={face.nose.position} color={pal.skinShadow} emissive={0.035} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock size={face.mouth.size} position={face.mouth.position} color={pal.mouth} emissive={0.08} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock size={face.tooth.size} position={face.tooth.position} color={pal.teeth} emissive={0.05} outlineScale={1.0} flash={hitFlash} />
+        {/* 눈·눈썹·코·입·이빨 등 모델링 이목구비 대신 사용자 제공 얼굴 텍스처 데칼 사용 */}
+        <B03PeTeacherFaceTexture />
       </group>
 
       <group name="b01PeTeacherBodyRig" ref={reg('body')} position={[0, 0.28, 0]}>
@@ -228,9 +245,7 @@ function B03PhysicalEducationBossMesh({ hitFlash, reg }) {
         <ZBlock name="b01ChestR" studioPartId="b03-chest-r" size={[0.30, 0.22, 0.09]} position={[0.18, 0.15, 0.27]} color={pal.jerseyShadow} emissive={0.04} outlineScale={1.02} flash={hitFlash} />
         <ZBlock name="b01JerseyVLeft" size={[0.07, 0.46, 0.05]} position={[-0.13, 0.02, 0.275]} rotation={[0, 0, 0.36]} color={pal.jerseyStripe} emissive={0.06} outlineScale={1.0} flash={hitFlash} />
         <ZBlock name="b01JerseyVRight" size={[0.07, 0.46, 0.05]} position={[0.13, 0.02, 0.275]} rotation={[0, 0, -0.36]} color={pal.jerseyStripe} emissive={0.06} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock name="b01WhistleCordL" size={[0.03, 0.28, 0.035]} position={[-0.06, 0.05, 0.32]} rotation={[0, 0, 0.28]} color={pal.sole} emissive={0.02} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock name="b01WhistleCordR" size={[0.03, 0.28, 0.035]} position={[0.06, 0.05, 0.32]} rotation={[0, 0, -0.28]} color={pal.sole} emissive={0.02} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock name="b01Whistle" studioPartId="b03-whistle" size={[0.14, 0.10, 0.075]} position={[0, -0.08, 0.35]} color={pal.whistle} emissive={0.20} outlineScale={1.03} flash={hitFlash} />
+        {/* 목의 빨간 끈+호루라기는 얼굴 텍스처에 포함되어 중복되므로 3D 호루라기 파츠 제거 */}
       </group>
 
       <ZBlock name="b01Shorts" studioPartId="b03-shorts" size={[0.68, 0.28, 0.44]} position={[0, -0.17, 0]} color={pal.shorts} emissive={0.05} outlineScale={1.07} flash={hitFlash} />

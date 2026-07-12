@@ -80,8 +80,22 @@ describe('B03 muscular PE teacher boss', () => {
     expect(source).toContain('studioPartId="b03-chest-r"')
     expect(source).toContain('studioPartId="b03-bicep-l"')
     expect(source).toContain('studioPartId="b03-bicep-r"')
-    expect(source).toContain('studioPartId="b03-whistle"')
     expect(source).toContain('studioPartId="b03-shorts"')
+  })
+
+  it('replaces the modeled PE-teacher face/whistle with the supplied face texture decal', () => {
+    const source = zombieMeshSource
+
+    // 사용자 제공 얼굴 텍스처(머리띠·호루라기 포함)를 머리 앞면 데칼로 사용
+    expect(source).toContain("import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.png'")
+    expect(source).toContain('function B03PeTeacherFaceTexture')
+    expect(source).toContain('<B03PeTeacherFaceTexture />')
+    expect(source).toContain('THREE.SRGBColorSpace')
+    // 텍스처에 그려진 이목구비/호루라기와 중복되던 3D 파츠는 제거됨
+    expect(source).not.toContain('studioPartId="b03-whistle"')
+    expect(source).not.toContain('name="b01WhistleCord')
+    expect(source).not.toContain('name="b01Nose"')
+    expect(source).not.toContain('name="b01EyeL"')
   })
 
   it('uses Matilda idle by default but enables her movement pose in the enemy runtime path', () => {

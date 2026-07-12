@@ -11,6 +11,8 @@ import {
   SPAWN_SMOKE_END_SCALE,
   SPAWN_SMOKE_START_SCALE,
   SPAWN_SMOKE_DURATION_MS,
+  SPAWN_SMOKE_OPAQUE_MS,
+  getSpawnSmokeOpacity,
   advanceEnemySpawnTimer,
   getBodyContactDistance,
   getChargeHitDistance,
@@ -101,10 +103,36 @@ describe('Enemy charge warning cue', () => {
     expect(source).not.toContain('setTimeout(() =>')
     expect(SPAWN_SMOKE_DURATION_MS).toBeGreaterThan(ENEMY_SPAWN_REVEAL_DELAY_MS)
     expect(SPAWN_SMOKE_START_SCALE).toBeLessThan(SPAWN_SMOKE_END_SCALE)
-    expect(SPAWN_SMOKE_END_SCALE).toBeLessThanOrEqual(1.2)
+    // 정본 스펙: 줌아웃 카메라에서 좀비보다 큼직하게 — 기존(끝 1.12) 대비 2배 이상 확대
+    expect(SPAWN_SMOKE_START_SCALE).toBeGreaterThanOrEqual(1.2)
+    expect(SPAWN_SMOKE_END_SCALE).toBeGreaterThanOrEqual(2.4)
     expect(source).toContain('depthTest={false}')
     expect(source).toContain('depthWrite={false}')
     expect(asset.subarray(1, 4).toString('ascii')).toBe('PNG')
+  })
+
+  it('shows the puff first, holds it fully opaque for the 300ms reveal window, then fades', () => {
+    // (2) 연기가 300ms 동안 완벽하게 보인 뒤 좀비 등장
+    expect(ENEMY_SPAWN_REVEAL_DELAY_MS).toBe(300)
+    expect(SPAWN_SMOKE_OPAQUE_MS).toBe(ENEMY_SPAWN_REVEAL_DELAY_MS)
+
+    // 앞 300ms 동안 opacity 1.0 유지
+    expect(getSpawnSmokeOpacity(0)).toBe(1)
+    expect(getSpawnSmokeOpacity(150)).toBe(1)
+    expect(getSpawnSmokeOpacity(SPAWN_SMOKE_OPAQUE_MS)).toBe(1)
+
+    // 리빌 이후부터 페이드아웃 시작, 끝에서 완전 투명
+    expect(getSpawnSmokeOpacity(SPAWN_SMOKE_OPAQUE_MS + 1)).toBeLessThan(1)
+    expect(getSpawnSmokeOpacity(SPAWN_SMOKE_DURATION_MS)).toBe(0)
+    const mid = (SPAWN_SMOKE_OPAQUE_MS + SPAWN_SMOKE_DURATION_MS) / 2
+    expect(getSpawnSmokeOpacity(mid)).toBeCloseTo(0.5, 5)
+
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    // (1) 연기 먼저 — RigidBody(좀비)는 spawnRevealed 이후에만 렌더
+    expect(source.indexOf('<SpawnSmokeEffect')).toBeLessThan(source.indexOf('{spawnRevealed && ('))
+    // (3) 효과 없이는 스폰 없음 — 모듈 로드 시 텍스처 프리로드
+    expect(source).toContain('useLoader.preload(THREE.TextureLoader, spawnSmokeUrl)')
+    expect(source).toContain('material.opacity = getSpawnSmokeOpacity(elapsed)')
   })
 
   it('pauses both smoke and reveal timing while gameplay is paused', () => {
@@ -114,7 +142,7 @@ describe('Enemy charge warning cue', () => {
 
     expect(afterPlaying).toBe(160)
     expect(afterPause).toBe(160)
-    expect(afterResume).toBe(ENEMY_SPAWN_REVEAL_DELAY_MS)
+    expect(afterResume).toBe(320)
   })
 
   it('uses a dedicated poof sound for regular zombie spawns', () => {
