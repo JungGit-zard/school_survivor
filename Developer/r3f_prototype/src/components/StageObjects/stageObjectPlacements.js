@@ -604,8 +604,9 @@ function getDistributedPosition(stageId, key) {
   const side = Math.floor(seededUnit(`${key}:side`) * 4)
 
   if (stageId === 'stage2') {
-    const x = (side % 2 === 0 ? -1 : 1) * ((halfX - 2.4) + xUnit * 1.25)
-    const z = -halfZ + 0.8 + zUnit * (halfZ * 2 - 1.6)
+    // 사용자 지시(2026-07-12): 테두리 배치 절대 금지 — 스테이지 전역에 시드 랜덤 균등 산포.
+    const x = -halfX + 1.2 + xUnit * (halfX * 2 - 2.4)
+    const z = -halfZ + 1.2 + zUnit * (halfZ * 2 - 2.4)
     return [x, 0, z]
   }
 
@@ -622,9 +623,11 @@ function getDistributedPosition(stageId, key) {
 
 function getPhysicalBlockerPosition(stageId, index, count) {
   if (stageId === 'stage2') {
-    const column = index % 2
-    const row = Math.floor(index / 2)
-    return [column === 0 ? -6.9 : 6.9, 0, -12 + row * 8]
+    // 사용자 지시(2026-07-12): 테두리 금지 — 블로커(책상류)도 전역 시드 랜덤 균등 산포.
+    const { halfX, halfZ } = getStageBounds(stageId)
+    const x = -halfX + 1.6 + seededUnit(`s2-blocker-${index}:x`) * (halfX * 2 - 3.2)
+    const z = -halfZ + 1.6 + seededUnit(`s2-blocker-${index}:z`) * (halfZ * 2 - 3.2)
+    return [x, 0, z]
   }
 
   if (index < 24) {

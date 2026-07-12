@@ -133,12 +133,15 @@ describe('stage object placements', () => {
     expect(readableProps.length).toBeGreaterThanOrEqual(8)
   })
 
-  it('keeps Stage 2 desks near corridor edges instead of the center lane', () => {
-    const edgeStartX = getStageBounds('stage2').halfX - 2.5
+  it('scatters Stage 2 props across the whole stage, never pinned to the edges', () => {
+    // 사용자 지시(2026-07-12): 테두리 배치 절대 금지 — 전역 시드 랜덤 균등 산포.
+    const { halfX } = getStageBounds('stage2')
+    const positions = getStageObjectPlacements('stage2').map(({ position: [x] }) => x)
 
-    expect(
-      getStageObjectPlacements('stage2').every(({ position: [x] }) => Math.abs(x) >= edgeStartX)
-    ).toBe(true)
+    // 모든 프랍이 벽에서 최소 1.2 안쪽(테두리 아님).
+    expect(positions.every((x) => Math.abs(x) <= halfX - 1.2)).toBe(true)
+    // 중앙 레인에도 실제로 뿌려진다(가장자리 전용이 아님).
+    expect(positions.some((x) => Math.abs(x) < halfX * 0.5)).toBe(true)
   })
 
   it('distributes props across each stage without occupying its central spawn lane', () => {
@@ -157,7 +160,8 @@ describe('stage object placements', () => {
       if (stageId === 'stage1') {
         expect(positions.every(([x, z]) => Math.abs(x) >= 6 || Math.abs(z) >= 12)).toBe(true)
       } else {
-        expect(positions.every(([x]) => Math.abs(x) >= halfX - 2.5)).toBe(true)
+        // stage2: 테두리 금지(벽에서 1.2 이상 안쪽) — 전역 산포는 위 span 검증이 보장.
+        expect(positions.every(([x]) => Math.abs(x) <= halfX - 1.2)).toBe(true)
       }
     }
   })
