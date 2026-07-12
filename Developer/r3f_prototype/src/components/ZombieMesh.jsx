@@ -159,7 +159,8 @@ export const B02_TEACHER_BOSS_PARTS = [
 // z는 헤드 앞면(0.25)에서 +0.01만 띄워(0.26) 데칼이 떠 보이는 패럴랙스를 최소화.
 export const B02_TEACHER_BOSS_FACE = {
   size: [0.62, 0.62],
-  position: [0, 0, 0.26],
+  // 512px face source on a 0.62-unit plane: move two source pixels toward the head block.
+  position: [0, 0, 0.257578125],
   repeat: [0.8, 0.8],
   offset: [0.1, 0],
 }
