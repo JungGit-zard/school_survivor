@@ -513,7 +513,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage2-lost-found-board-left-south',
       type: 'corridorLostFoundBoard',
       position: [-6.92, 0, 13.4],
-      rotation: [0, Math.PI / 2, 0],
+      rotation: [0, Math.PI / 4, 0],
     },
     {
       id: 'stage2-desk-left-top',
@@ -658,6 +658,12 @@ function getStage2Rotation(item, id) {
     // Locker doors are on local +Z; the gameplay camera sits on +Z as well.
     // Keep their fronts visible, with only a deliberate slight natural tilt.
     return [0, (seededUnit(`${id}:rotation`) - 0.5) * 0.32, 0]
+  }
+
+  if (item.type === 'corridorLostFoundBoard') {
+    // 게시판의 안내면은 local +Z다. 카메라(+Z)를 향해 45°로 기울여
+    // 옆면이 아니라 게시물과 코르크 전면을 읽을 수 있게 한다.
+    return [0, Math.PI / 4 + (seededUnit(`${id}:rotation`) - 0.5) * 0.24, 0]
   }
 
   return [0, (item.rotation?.[1] ?? 0) + (seededUnit(`${id}:rotation`) - 0.5) * 0.8, 0]

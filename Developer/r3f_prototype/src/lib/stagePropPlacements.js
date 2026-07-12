@@ -3,8 +3,9 @@
 // 패턴은 graphicsStudioConfig.js(localStorage + CustomEvent dispatch)를 그대로 미러한다.
 import { useEffect, useState } from 'react'
 
-// v4 invalidates the prior dense Stage 2 snapshot after reducing corridor clutter.
-export const STAGE_PROP_PLACEMENTS_STORAGE_KEY = 'escape-zombie-school.stagePropPlacements.v4'
+// v5 preserves user placement edits while migrating side-on Stage 2 boards to their visible 45° angle.
+export const STAGE_PROP_PLACEMENTS_STORAGE_KEY = 'escape-zombie-school.stagePropPlacements.v5'
+const LEGACY_STAGE_PROP_PLACEMENTS_STORAGE_KEY = 'escape-zombie-school.stagePropPlacements.v4'
 export const STAGE_PROP_PLACEMENTS_EVENT = 'escape-zombie-school.stagePropPlacements.changed'
 
 // 편집 가능한 스테이지 목록.
@@ -115,10 +116,31 @@ function readConfig(storage) {
   if (!target) return emptyConfig()
   try {
     const raw = target.getItem(STAGE_PROP_PLACEMENTS_STORAGE_KEY)
-    if (!raw) return emptyConfig()
-    return normalizeStagePropPlacements(JSON.parse(raw))
+    if (raw) return normalizeStagePropPlacements(JSON.parse(raw))
+
+    const legacyRaw = target.getItem(LEGACY_STAGE_PROP_PLACEMENTS_STORAGE_KEY)
+    if (!legacyRaw) return emptyConfig()
+    const migrated = migrateLegacyBoardAngles(normalizeStagePropPlacements(JSON.parse(legacyRaw)))
+    target.setItem(STAGE_PROP_PLACEMENTS_STORAGE_KEY, JSON.stringify(migrated))
+    return migrated
   } catch {
     return emptyConfig()
+  }
+}
+
+function migrateLegacyBoardAngles(config) {
+  const stage2 = config.stage2
+  if (!Array.isArray(stage2)) return config
+
+  return {
+    ...config,
+    stage2: stage2.map((placement) => {
+      const yaw = placement.rotation?.[1] ?? 0
+      const wasSideOn = placement.type === 'corridorLostFoundBoard' && Math.abs(yaw - Math.PI / 2) <= 0.5
+      return wasSideOn
+        ? { ...placement, rotation: [0, Number((yaw - Math.PI / 4).toFixed(4)), 0] }
+        : placement
+    }),
   }
 }
 

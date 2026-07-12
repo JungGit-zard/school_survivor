@@ -118,6 +118,15 @@ describe('stage object placements', () => {
     expect(lockerRotations.every((rotation) => Math.abs(rotation) <= 0.16)).toBe(true)
   })
 
+  it('turns Stage 2 lost-and-found boards 45 degrees toward the gameplay camera', () => {
+    const boardRotations = getStageObjectPlacements('stage2')
+      .filter(({ type }) => type === 'corridorLostFoundBoard')
+      .map(({ rotation }) => rotation[1])
+
+    expect(boardRotations).toHaveLength(3)
+    expect(boardRotations.every((rotation) => Math.abs(rotation - Math.PI / 4) <= 0.14)).toBe(true)
+  })
+
   it('renders every prepared stage2 prop at 110 percent of its authored scale', () => {
     const placements = getStageObjectPlacements('stage2')
 

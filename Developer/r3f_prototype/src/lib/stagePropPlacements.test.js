@@ -106,8 +106,18 @@ describe('load / save round-trip + event dispatch', () => {
       stage2: [{ id: 'legacy-row-desk', type: 'classroomDesk', position: [-6, 0, 0] }],
     }))
 
-    expect(STAGE_PROP_PLACEMENTS_STORAGE_KEY).toContain('.v4')
+    expect(STAGE_PROP_PLACEMENTS_STORAGE_KEY).toContain('.v5')
     expect(loadStagePropPlacements().stage2).toBeNull()
+  })
+
+  it('migrates legacy Stage 2 board overrides from their side-on angle to 45 degrees', () => {
+    window.localStorage.setItem('escape-zombie-school.stagePropPlacements.v4', JSON.stringify({
+      stage2: [{ id: 'legacy-board', type: 'corridorLostFoundBoard', position: [0, 0, 0], rotation: [0, Math.PI / 2 + 0.08, 0] }],
+    }))
+
+    const loaded = loadStagePropPlacements()
+    expect(loaded.stage2[0].rotation[1]).toBeCloseTo(Math.PI / 4 + 0.08, 3)
+    expect(window.localStorage.getItem(STAGE_PROP_PLACEMENTS_STORAGE_KEY)).not.toBeNull()
   })
 
   it('persists to storage and reloads equivalently', () => {
