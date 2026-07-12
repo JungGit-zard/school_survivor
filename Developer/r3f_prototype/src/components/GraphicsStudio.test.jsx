@@ -6,6 +6,7 @@ import { act } from 'react-dom/test-utils'
 import GraphicsStudio from './GraphicsStudio.jsx'
 import { loadStageBossPreview, loadStudioTunings, loadTextureDecals, saveStudioTunings } from '../lib/graphicsStudioConfig.js'
 import { loadSfxTunings } from '../lib/sfxRegistry.js'
+import { loadStagePropPlacements, resetStagePropPlacementsCache } from '../lib/stagePropPlacements.js'
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: () => <div data-testid="stage-boss-preview-canvas" />,
@@ -51,6 +52,31 @@ describe('GraphicsStudio', () => {
     act(() => root.unmount())
     container.remove()
     window.location.hash = ''
+    resetStagePropPlacementsCache()
+  })
+
+  it('opens the Map Props tab, adds a prop, and Apply persists a stage override', () => {
+    resetStagePropPlacementsCache()
+    act(() => {
+      root.render(<GraphicsStudio />)
+    })
+
+    const propsTab = Array.from(container.querySelectorAll('button')).find((button) => button.textContent === 'Props')
+    expect(propsTab).toBeTruthy()
+    act(() => propsTab.dispatchEvent(new MouseEvent('click', { bubbles: true })))
+
+    expect(container.querySelector('[data-testid="stage-prop-editor"]')).toBeTruthy()
+    const paletteDesk = container.querySelector('[data-testid="prop-palette-classroomDesk"]')
+    expect(paletteDesk).toBeTruthy()
+
+    act(() => paletteDesk.dispatchEvent(new MouseEvent('click', { bubbles: true })))
+
+    const applyButton = container.querySelector('[data-testid="prop-apply"]')
+    act(() => applyButton.dispatchEvent(new MouseEvent('click', { bubbles: true })))
+
+    const saved = loadStagePropPlacements()
+    expect(Array.isArray(saved.stage1)).toBe(true)
+    expect(saved.stage1.some((item) => item.type === 'classroomDesk')).toBe(true)
   })
 
   it('renders the catalog, preview, sliders, and export panel', () => {

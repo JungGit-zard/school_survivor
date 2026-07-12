@@ -19,6 +19,8 @@ import {
   serializeStudioSnapshot,
 } from '../lib/graphicsStudioConfig.js'
 import { fileToDecalDataUrl } from '../lib/textureDecal.js'
+import { loadStagePropPlacements, saveStagePropPlacements } from '../lib/stagePropPlacements.js'
+import StagePropPlacementEditor from './StagePropPlacementEditor.jsx'
 import { DEFAULT_SFX_TUNING, getSfxCatalog, loadSfxTunings, normalizeSfxTuning, playSfx, saveSfxTunings } from '../lib/sfxRegistry.js'
 import {
   STUDIO_GAME_SYNC_MESSAGE,
@@ -204,6 +206,7 @@ export default function GraphicsStudio() {
     nextSfxTunings = loadSfxTunings(),
     nextStageBossPreview = loadStageBossPreview(),
     nextDecals = loadTextureDecals(),
+    nextPropPlacements = loadStagePropPlacements(),
   ) => {
     const target = gameWindowRef.current
     if (!target || target.closed) return
@@ -213,7 +216,16 @@ export default function GraphicsStudio() {
       sfxTunings: nextSfxTunings,
       stageBossPreview: nextStageBossPreview,
       decals: nextDecals,
+      propPlacements: nextPropPlacements,
     }, gameOriginRef.current)
+  }
+
+  // 맵 프랍 배치 Apply/Reset: 로컬 저장(스튜디오 창) + 연결된 게임 창으로 전송.
+  const applyPropPlacements = (config) => {
+    const saved = saveStagePropPlacements(config)
+    sendGameSync(loadStudioTunings(), loadSfxTunings(), loadStageBossPreview(), loadTextureDecals(), saved)
+    setApplyStatus('Props applied')
+    return saved
   }
 
   const connectGameWindow = () => {
@@ -419,7 +431,9 @@ export default function GraphicsStudio() {
             <p style={styles.subtitle}>
               {activeSection === 'graphics'
                 ? `${categoryLabels[selectedItem.category]} / ${selectedItem.label}`
-                : `Audio / ${selectedSfx?.id ?? ''}`}
+                : activeSection === 'audio'
+                  ? `Audio / ${selectedSfx?.id ?? ''}`
+                  : 'Map Props / 스테이지 프랍 배치'}
             </p>
           </div>
           <div style={styles.tabs}>
@@ -436,6 +450,13 @@ export default function GraphicsStudio() {
               style={{ ...styles.tabButton, ...(activeSection === 'audio' ? styles.tabButtonActive : null) }}
             >
               Audio
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSection('props')}
+              style={{ ...styles.tabButton, ...(activeSection === 'props' ? styles.tabButtonActive : null) }}
+            >
+              Props
             </button>
           </div>
           <label style={styles.gameBridge}>
@@ -455,6 +476,12 @@ export default function GraphicsStudio() {
           </div>
         </header>
 
+        {activeSection === 'props' ? (
+          <section style={styles.propEditorPanel}>
+            <StagePropPlacementEditor onApply={applyPropPlacements} />
+          </section>
+        ) : (
+        <>
         <aside style={{ ...styles.sidebar, ...(compact ? styles.sidebarCompact : null) }}>
           {activeSection === 'graphics' ? groupedCatalog.map((category) => (
             <section key={category.id} style={styles.catalogGroup}>
@@ -670,6 +697,8 @@ export default function GraphicsStudio() {
           </div>
           <textarea data-testid="studio-export" readOnly value={exportJson} style={styles.exportText} />
         </section>
+        </>
+        )}
       </section>
     </main>
   )
@@ -711,6 +740,15 @@ const styles = {
     padding: '0 18px',
     borderBottom: '1px solid #353833',
     background: '#20231f',
+  },
+  propEditorPanel: {
+    gridColumn: '1 / -1',
+    gridRow: '2 / -1',
+    minWidth: 0,
+    minHeight: 0,
+    background: '#171817',
+    display: 'flex',
+    overflow: 'hidden',
   },
   title: {
     margin: 0,

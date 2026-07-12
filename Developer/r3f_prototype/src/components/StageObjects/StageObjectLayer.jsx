@@ -1,8 +1,10 @@
+import { useMemo } from 'react'
 import ClassroomDesk from './ClassroomDesk.jsx'
 import ClassroomChair from './ClassroomChair.jsx'
 import UnconsciousStudent from './UnconsciousStudent.jsx'
 import { CorridorJanitorCart, CorridorLockerBank, CorridorLostFoundBoard } from './CorridorProps.jsx'
 import { getStageObjectPlacements } from './stageObjectPlacements.js'
+import { useStagePropPlacementsVersion } from '../../lib/stagePropPlacements.js'
 
 const STAGE_OBJECT_COMPONENTS = {
   classroomChair: ClassroomChair,
@@ -14,7 +16,9 @@ const STAGE_OBJECT_COMPONENTS = {
 }
 
 export default function StageObjectLayer({ stageId = 'stage1' }) {
-  const placements = getStageObjectPlacements(stageId)
+  // 스튜디오 Apply 시 오버라이드가 바뀌면 version이 증가해 재계산·리렌더된다.
+  const version = useStagePropPlacementsVersion()
+  const placements = useMemo(() => getStageObjectPlacements(stageId), [stageId, version])
 
   return (
     <group name={`stage-object-layer-${stageId}`}>

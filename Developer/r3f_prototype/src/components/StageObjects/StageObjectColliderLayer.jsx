@@ -1,8 +1,11 @@
+import { useMemo } from 'react'
 import { CuboidCollider, RigidBody } from '@react-three/rapier'
 import { getStageObjectColliders } from './stageObjectColliders.js'
+import { useStagePropPlacementsVersion } from '../../lib/stagePropPlacements.js'
 
 export default function StageObjectColliderLayer({ stageId = 'stage1' }) {
-  const colliders = getStageObjectColliders(stageId)
+  const version = useStagePropPlacementsVersion()
+  const colliders = useMemo(() => getStageObjectColliders(stageId), [stageId, version])
 
   return (
     <group name={`stage-object-collider-layer-${stageId}`}>

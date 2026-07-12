@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { CLASSROOM_CHAIR_VARIANTS } from './ClassroomChair.jsx'
 import { CLASSROOM_DESK_VARIANTS } from './ClassroomDesk.jsx'
 import { getStageObjectPlacements } from './stageObjectPlacements.js'
+import { STAGE_PROP_PLACEMENTS_EVENT } from '../../lib/stagePropPlacements.js'
 
 export const BLOCKING_STAGE_OBJECT_TYPES = new Set(['classroomChair', 'classroomDesk'])
 
@@ -147,6 +148,11 @@ export function getStageObjectColliders(stageId = 'stage1') {
 }
 
 const sightObstacleCache = new Map()
+
+// 스튜디오 프랍 배치 오버라이드가 바뀌면 시야 장애물 캐시를 무효화한다.
+if (typeof window !== 'undefined') {
+  window.addEventListener(STAGE_PROP_PLACEMENTS_EVENT, () => sightObstacleCache.clear())
+}
 
 export function getStageObjectSightObstacles(stageId = 'stage1') {
   const cached = sightObstacleCache.get(stageId)

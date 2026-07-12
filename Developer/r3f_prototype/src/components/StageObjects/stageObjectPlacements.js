@@ -1,5 +1,6 @@
 import { UNCONSCIOUS_STUDENT_PLAYER_SCALE } from '../../lib/characterVisualScale.js'
 import { getStageBounds } from '../../lib/stageConfig.js'
+import { getStagePropOverride } from '../../lib/stagePropPlacements.js'
 
 // Rule: every stage1 object must satisfy Math.abs(x) >= 6 OR Math.abs(z) >= 12
 // (keeps the central spawn/play zone clear).
@@ -605,8 +606,8 @@ function getDistributedPosition(stageId, key) {
 
   if (stageId === 'stage2') {
     // 사용자 지시(2026-07-12): 테두리 배치 절대 금지 — 스테이지 전역에 시드 랜덤 균등 산포.
-    const x = -halfX + 1.2 + xUnit * (halfX * 2 - 2.4)
-    const z = -halfZ + 1.2 + zUnit * (halfZ * 2 - 2.4)
+    const x = -4.8 + xUnit * 9.6
+    const z = -14.5 + zUnit * 29
     return [x, 0, z]
   }
 
@@ -624,10 +625,7 @@ function getDistributedPosition(stageId, key) {
 function getPhysicalBlockerPosition(stageId, index, count) {
   if (stageId === 'stage2') {
     // 사용자 지시(2026-07-12): 테두리 금지 — 블로커(책상류)도 전역 시드 랜덤 균등 산포.
-    const { halfX, halfZ } = getStageBounds(stageId)
-    const x = -halfX + 1.6 + seededUnit(`s2-blocker-${index}:x`) * (halfX * 2 - 3.2)
-    const z = -halfZ + 1.6 + seededUnit(`s2-blocker-${index}:z`) * (halfZ * 2 - 3.2)
-    return [x, 0, z]
+    return getDistributedPosition(stageId, `s2-blocker-${index}`)
   }
 
   if (index < 24) {
@@ -643,12 +641,13 @@ function getPhysicalBlockerPosition(stageId, index, count) {
   return [-3 + (endOffset % 3) * 3, 0, endIndex === 0 ? -13.8 : 13.8]
 }
 
-export function getStageObjectPlacements(stageId = 'stage1') {
+// 기본(오버라이드 미적용) 배치 파이프라인. 그래픽 스튜디오 에디터가 pristine 시드로 쓴다.
+export function computeDefaultStageObjectPlacements(stageId = 'stage1') {
   const authored = STAGE_OBJECT_PLACEMENTS[stageId] ?? []
   // stage1은 수제 배치 정본을 그대로 사용(2026-07-12 사용자 지시로 복원).
   // 복제(×5)/해시 분산/×1.1 확대 파이프라인은 stage1에 적용하지 않는다.
   if (stageId === 'stage1') return authored.map(withMixedUnconsciousStudentFacing)
-  const blockingItems = authored.filter(({ type }) => type === 'classroomDesk' || type === 'classroomChair')
+  const blockingItems = authored.filter(({ type }) => type !== 'unconsciousStudent')
   const blockingIndexById = new Map(blockingItems.map(({ id }, index) => [id, index]))
 
   return authored.flatMap((item) => (
@@ -667,4 +666,13 @@ export function getStageObjectPlacements(stageId = 'stage1') {
       })
     })
   ))
+}
+
+// 게임 런타임이 소비하는 배치. 사용자 오버라이드가 있으면 그것을 정본으로,
+// 없으면 기본 파이프라인(computeDefaultStageObjectPlacements)을 반환한다.
+// 오버라이드 항목에도 학생 방향 다양화(withMixedUnconsciousStudentFacing)는 유지한다.
+export function getStageObjectPlacements(stageId = 'stage1') {
+  const override = getStagePropOverride(stageId)
+  if (override) return override.map(withMixedUnconsciousStudentFacing)
+  return computeDefaultStageObjectPlacements(stageId)
 }

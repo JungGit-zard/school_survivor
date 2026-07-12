@@ -3,6 +3,7 @@
 // 배경: 착지점이 장애물을 무시하면 자석 Lv0(반경 0)에서는 영구 수집 불가.
 import { getPlayerMovementBounds } from './playerMovementBounds.js'
 import { getStageObjectColliders } from '../components/StageObjects/stageObjectColliders.js'
+import { STAGE_PROP_PLACEMENTS_EVENT } from './stagePropPlacements.js'
 
 const TOSS_MIN = 0.7
 const TOSS_MAX = 1.6
@@ -14,6 +15,11 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
 
 // 스테이지별 차단 오브젝트를 원(circle)으로 근사해 캐시
 const _blockerCache = new Map() // stageId → [{x, z, rSq}]
+
+// 스튜디오 프랍 배치 오버라이드가 바뀌면 착지 블로커 캐시를 무효화한다.
+if (typeof window !== 'undefined') {
+  window.addEventListener(STAGE_PROP_PLACEMENTS_EVENT, () => _blockerCache.clear())
+}
 
 export function getLandingBlockers(stageId = 'stage1') {
   let blockers = _blockerCache.get(stageId)
