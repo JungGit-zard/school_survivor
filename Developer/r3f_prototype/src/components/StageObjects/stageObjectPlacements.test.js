@@ -12,7 +12,14 @@ import { getStageBounds } from '../../lib/stageConfig.js'
 
 describe('stage object placements', () => {
   it('provides supported stage object props for both playable stages', () => {
-    const supportedTypes = new Set(['classroomChair', 'classroomDesk', 'unconsciousStudent'])
+    const supportedTypes = new Set([
+      'classroomChair',
+      'classroomDesk',
+      'unconsciousStudent',
+      'corridorLockerBank',
+      'corridorJanitorCart',
+      'corridorLostFoundBoard',
+    ])
 
     expect(getStageObjectPlacements('stage1').length).toBeGreaterThan(0)
     expect(getStageObjectPlacements('stage2').length).toBeGreaterThan(0)
@@ -115,5 +122,13 @@ describe('stage object placements', () => {
     expect(
       getStageObjectPlacements('stage2').every(({ position: [x] }) => Math.abs(x) >= edgeStartX)
     ).toBe(true)
+  })
+
+  it('breaks up the Stage 2 corridor with lockers, a cleaning cart, and a lost-and-found board', () => {
+    const stage2Types = new Set(getStageObjectPlacements('stage2').map(({ type }) => type))
+
+    expect(stage2Types).toContain('corridorLockerBank')
+    expect(stage2Types).toContain('corridorJanitorCart')
+    expect(stage2Types).toContain('corridorLostFoundBoard')
   })
 })

@@ -1,12 +1,16 @@
 import ClassroomDesk from './ClassroomDesk.jsx'
 import ClassroomChair from './ClassroomChair.jsx'
 import UnconsciousStudent from './UnconsciousStudent.jsx'
+import { CorridorJanitorCart, CorridorLockerBank, CorridorLostFoundBoard } from './CorridorProps.jsx'
 import { getStageObjectPlacements } from './stageObjectPlacements.js'
 
 const STAGE_OBJECT_COMPONENTS = {
   classroomChair: ClassroomChair,
   classroomDesk: ClassroomDesk,
   unconsciousStudent: UnconsciousStudent,
+  corridorLockerBank: CorridorLockerBank,
+  corridorJanitorCart: CorridorJanitorCart,
+  corridorLostFoundBoard: CorridorLostFoundBoard,
 }
 
 export default function StageObjectLayer({ stageId = 'stage1' }) {

@@ -16,6 +16,14 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(source).toContain("movementPose={item.animation === 'charge'}")
   })
 
+  it('renders the three Stage 2 corridor prop models from their shared runtime component', () => {
+    const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('CorridorLockerBank')
+    expect(source).toContain('CorridorJanitorCart')
+    expect(source).toContain('CorridorLostFoundBoard')
+  })
+
   it('previews the runtime zombie spawn billboard in the VFX studio', () => {
     const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
 

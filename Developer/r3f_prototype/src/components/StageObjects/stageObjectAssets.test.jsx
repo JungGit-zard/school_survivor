@@ -4,6 +4,9 @@ import {
   CLASSROOM_CHAIR_VARIANTS,
   CLASSROOM_DESK_VARIANTS,
   ClassroomChair,
+  CorridorJanitorCart,
+  CorridorLockerBank,
+  CorridorLostFoundBoard,
   UNCONSCIOUS_STUDENT_VARIANTS,
   UnconsciousStudent,
 } from './index.js'
@@ -91,5 +94,12 @@ describe('stage object asset catalog', () => {
     ])
     expect(UNCONSCIOUS_STUDENT_VARIANTS.faceUp.modelRotation[0]).toBeCloseTo(Math.PI / 2)
     expect(UNCONSCIOUS_STUDENT_VARIANTS.faceUpFlipped.modelRotation[0]).toBeCloseTo(-Math.PI / 2)
+  })
+
+  it('exports the three Stage 2 corridor prop models and the matching concept sheet', () => {
+    expect(CorridorLockerBank).toBeTypeOf('function')
+    expect(CorridorJanitorCart).toBeTypeOf('function')
+    expect(CorridorLostFoundBoard).toBeTypeOf('function')
+    expect(readFileSync(new URL('../../assets/concept/stage2_corridor_props_concept.png', import.meta.url)).subarray(1, 4).toString('ascii')).toBe('PNG')
   })
 })

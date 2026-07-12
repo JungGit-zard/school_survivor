@@ -495,6 +495,25 @@ export const STAGE_OBJECT_PLACEMENTS = {
   ],
   stage2: [
     {
+      id: 'stage2-locker-bank-left-north',
+      type: 'corridorLockerBank',
+      position: [-6.25, 0, -14.2],
+      rotation: [0, Math.PI / 2, 0],
+    },
+    {
+      id: 'stage2-janitor-cart-right-mid',
+      type: 'corridorJanitorCart',
+      position: [6.25, 0, 2.8],
+      rotation: [0, -Math.PI / 2, 0],
+      scale: 0.82,
+    },
+    {
+      id: 'stage2-lost-found-board-left-south',
+      type: 'corridorLostFoundBoard',
+      position: [-6.92, 0, 13.4],
+      rotation: [0, Math.PI / 2, 0],
+    },
+    {
       id: 'stage2-desk-left-top',
       type: 'classroomDesk',
       position: [-5.2, 0, -11],

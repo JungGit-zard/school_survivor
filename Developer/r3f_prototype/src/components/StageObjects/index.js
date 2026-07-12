@@ -3,5 +3,6 @@ export { default as ClassroomChair, CLASSROOM_CHAIR_VARIANTS } from './Classroom
 export { default as StageObjectColliderLayer } from './StageObjectColliderLayer.jsx'
 export { default as StageObjectLayer } from './StageObjectLayer.jsx'
 export { default as UnconsciousStudent, UNCONSCIOUS_STUDENT_VARIANTS } from './UnconsciousStudent.jsx'
+export { CorridorJanitorCart, CorridorLockerBank, CorridorLostFoundBoard } from './CorridorProps.jsx'
 export * from './stageObjectColliders.js'
 export * from './stageObjectPlacements.js'

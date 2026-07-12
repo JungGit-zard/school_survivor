@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { PlayerVisual } from './Player.jsx'
 import { ENEMY_STATS, EnemyVisual, SpawnSmokeEffect } from './Enemy.jsx'
 import { FloorVisual } from './Floor.jsx'
-import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'
+import { ClassroomChair, ClassroomDesk, CorridorJanitorCart, CorridorLockerBank, CorridorLostFoundBoard, UnconsciousStudent } from './StageObjects/index.js'
 import GoldCoin from './GoldCoin.jsx'
 import XpTextbook from './XpTextbook.jsx'
 import XpOrb from './XpOrb.jsx'
@@ -481,6 +481,9 @@ function RenderPreviewItem({ item, frozen = false }) {
   if (item.previewKind === 'stageObject' && item.objectType === 'student') {
     return <UnconsciousStudent variant={item.variant} />
   }
+  if (item.previewKind === 'stageObject' && item.objectType === 'corridorLockers') return <CorridorLockerBank />
+  if (item.previewKind === 'stageObject' && item.objectType === 'janitorCart') return <CorridorJanitorCart />
+  if (item.previewKind === 'stageObject' && item.objectType === 'lostFoundBoard') return <CorridorLostFoundBoard />
   if (item.previewKind === 'pickup') {
     return <PickupPreview type={item.pickupType} />
   }
