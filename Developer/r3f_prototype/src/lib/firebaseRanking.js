@@ -1,8 +1,6 @@
 import { getFirebaseConfig } from './firebaseAuth.js'
 import { isE2EAuthBypass } from './e2eAuth.js'
 import { getAdminRankingSeasonConfig } from './adminConfig.js'
-import { getSavedNickname } from './userNickname.js'
-import { STAGE_CONFIGS } from './stageConfig.js'
 import {
   kstDailyKey,
   kstWeeklyKey,
@@ -14,7 +12,9 @@ import {
 const DATABASE_URL_KEY = 'VITE_FIREBASE_DATABASE_URL'
 const DEFAULT_SEASON_ID = 'season-001'
 const DEFAULT_SEASON_NAME = '상시 시즌'
-const WINDOWS = ['daily', 'weekly']
+const DAY_MS = 24 * 60 * 60 * 1000
+const RANKING_REGION = 'asia-northeast3'
+const RANKING_ROOT = 'rankingService/v1/public'
 
 function getEnv() { return import.meta.env ?? {} }
 function readEnv(key) {
@@ -63,16 +63,16 @@ function normalizeWindow(window) {
   return window === 'weekly' ? 'weekly' : 'daily'
 }
 
-function entriesPath(seasonId, stageId, window, key) {
-  return `rankings/${seasonId}/stage/${stageId}/${window}/${key}/entries`
+function entriesPath(seasonId, stageId, key) {
+  return `${RANKING_ROOT}/${seasonId}/stage/${stageId}/daily/${key}/entries`
 }
 
-function pickDisplayName(user) {
-  return getSavedNickname(user) || user?.displayName || '익명'
+function globalEntriesPath(seasonId, window, key) {
+  return `${RANKING_ROOT}/${seasonId}/global/${window}/${key}/entries`
 }
 
 // 활성 시즌의 daily+weekly 버킷 2곳에 점수를 누적 기록. E2E 우회/미설정/시즌 밖이면 skip.
-export async function submitRun(user, { stageId, score, timeMs, cleared } = {}) {
+export async function submitRun(user, { stageId, score, timeMs, cleared, runId = createRunId() } = {}) {
   if (!user?.uid || !isFirebaseRankingConfigured()) return
   // E2E 우회 유저 점수는 실랭킹에 오염되지 않게 차단
   if (isE2EAuthBypass()) return
@@ -80,61 +80,51 @@ export async function submitRun(user, { stageId, score, timeMs, cleared } = {}) 
   const season = getActiveSeason(now)
   if (!season.active) return // seasonOff: 제출 skip
 
-  const nextScore = readScore(score)
-  const nextTimeMs = readNonNegInt(timeMs)
-  const entry = {
-    uid: user.uid,
-    displayName: pickDisplayName(user),
-    score: nextScore,
-    timeMs: nextTimeMs,
+  const [{ initializeApp, getApp, getApps }, functionsModule] = await Promise.all([
+    import('firebase/app'),
+    import('firebase/functions'),
+  ])
+  const app = getApps().length > 0 ? getApp() : initializeApp(getFirebaseConfig(getEnv()))
+  const submit = functionsModule.httpsCallable(
+    functionsModule.getFunctions(app, RANKING_REGION),
+    'submitRankingRun',
+  )
+  await submit({
+    runId: readRunId(runId),
+    stageId: readStageId(stageId),
+    score: readScore(score),
+    timeMs: readNonNegInt(timeMs),
     cleared: cleared === true,
-    updatedAt: now,
-  }
-  const safeStageId = readStageId(stageId)
-  const { db, mod } = await getClient()
-
-  await Promise.all(WINDOWS.map(async (window) => {
-    const key = periodKey(window, now)
-    const entryRef = mod.ref(db, `${entriesPath(season.seasonId, safeStageId, window, key)}/${user.uid}`)
-    await mod.runTransaction(entryRef, (current) => {
-      if (!current || typeof current !== 'object') return entry
-      return {
-        ...entry,
-        score: readScore(current.score) + nextScore,
-        timeMs: readNonNegInt(current.timeMs) + nextTimeMs,
-        cleared: current.cleared === true || entry.cleared,
-      }
-    })
-  }))
+  })
 }
 
 // 활성 시즌 현재 period의 스테이지별 top N (score 내림차순 + tie-break).
-export async function fetchStageRanking(stageId, window, { limit = 100 } = {}) {
+export async function fetchStageRanking(stageId, _window, { limit = 100 } = {}) {
   if (!isFirebaseRankingConfigured()) return []
   const now = Date.now()
   const season = getActiveSeason(now)
   if (!season.active) return []
-  const win = normalizeWindow(window)
+  const win = 'daily'
   const key = periodKey(win, now)
   const { db, mod } = await getClient()
   const q = mod.query(
-    mod.ref(db, entriesPath(season.seasonId, readStageId(stageId), win, key)),
+    mod.ref(db, entriesPath(season.seasonId, readStageId(stageId), key)),
     mod.orderByChild('score'),
     mod.limitToLast(limit),
   )
-  const snap = await mod.get(q)
-  if (!snap.exists()) return []
-  const entries = []
-  snap.forEach((child) => {
-    const value = child.val() ?? {}
-    entries.push({ ...value, uid: value.uid ?? child.key })
-  })
-  return entries.sort(compareRankingWindowEntries).slice(0, limit)
+  return readRankingEntries(await mod.get(q), limit)
 }
 
-// 글로벌: 저장 노드 없음. 활성 시즌의 모든 스테이지 entries를 같은 window+periodKey로 모아
-// uid별 스테이지 누적 score 합산 → tie-break 정렬 → top N.
-// ponytail: on-read 집계, 규모 커지면 Cloud Function 집계 노드로 승격.
+export function subscribeStageRanking(stageId, _window, onEntries, { limit = 100 } = {}) {
+  return subscribeRankingWindow(
+    'daily',
+    (seasonId, _win, key) => entriesPath(seasonId, readStageId(stageId), key),
+    onEntries,
+    limit,
+  )
+}
+
+// 글로벌: 실행 시 함께 누적된 전용 통합 엔트리를 읽는다.
 export async function fetchGlobalRanking(window, { limit = 100 } = {}) {
   if (!isFirebaseRankingConfigured()) return []
   const now = Date.now()
@@ -144,37 +134,21 @@ export async function fetchGlobalRanking(window, { limit = 100 } = {}) {
   const key = periodKey(win, now)
   const { db, mod } = await getClient()
 
-  const byUid = new Map()
-  await Promise.all(Object.keys(STAGE_CONFIGS).map(async (stageId) => {
-    const snap = await mod.get(mod.ref(db, entriesPath(season.seasonId, stageId, win, key)))
-    if (!snap.exists()) return
-    snap.forEach((child) => {
-      const value = child.val() ?? {}
-      const uid = value.uid ?? child.key
-      const updatedAt = readNonNegInt(value.updatedAt)
-      const current = byUid.get(uid)
-      if (!current) {
-        byUid.set(uid, {
-          uid,
-          displayName: typeof value.displayName === 'string' ? value.displayName : '익명',
-          score: readScore(value.score),
-          timeMs: readNonNegInt(value.timeMs),
-          cleared: value.cleared === true,
-          updatedAt,
-        })
-        return
-      }
-      // 스테이지별 누적 점수를 합산. displayName은 최신(updatedAt 큰 쪽) 것을 채택.
-      current.score += readScore(value.score)
-      current.timeMs += readNonNegInt(value.timeMs)
-      current.cleared = current.cleared || value.cleared === true
-      if (updatedAt > current.updatedAt) {
-        current.updatedAt = updatedAt
-        if (typeof value.displayName === 'string') current.displayName = value.displayName
-      }
-    })
-  }))
-  return [...byUid.values()].sort(compareRankingWindowEntries).slice(0, limit)
+  const q = mod.query(
+    mod.ref(db, globalEntriesPath(season.seasonId, win, key)),
+    mod.orderByChild('score'),
+    mod.limitToLast(limit),
+  )
+  return readRankingEntries(await mod.get(q), limit)
+}
+
+export function subscribeGlobalRanking(window, onEntries, { limit = 100 } = {}) {
+  return subscribeRankingWindow(
+    window,
+    (seasonId, win, key) => globalEntriesPath(seasonId, win, key),
+    onEntries,
+    limit,
+  )
 }
 
 // 레거시 호환 shim — UserRanking.jsx(Phase 2에서 새 fetch API로 교체 예정)가 아직 소비한다.
@@ -196,8 +170,81 @@ function readStageId(stageId) {
   return id || 'stage1'
 }
 
+function subscribeRankingWindow(window, pathForWindow, onEntries, limit) {
+  if (typeof onEntries !== 'function') return () => {}
+  if (!isFirebaseRankingConfigured()) {
+    onEntries([])
+    return () => {}
+  }
+
+  let closed = false
+  let unsubscribe = () => {}
+  let boundaryTimer = null
+  const subscribe = async () => {
+    unsubscribe()
+    const now = Date.now()
+    const season = getActiveSeason(now)
+    if (!season.active) {
+      onEntries([])
+      return
+    }
+
+    try {
+      const { db, mod } = await getClient()
+      if (closed) return
+      const win = normalizeWindow(window)
+      const key = periodKey(win, now)
+      const q = mod.query(
+        mod.ref(db, pathForWindow(season.seasonId, win, key)),
+        mod.orderByChild('score'),
+        mod.limitToLast(limit),
+      )
+      unsubscribe = mod.onValue(
+        q,
+        (snap) => onEntries(readRankingEntries(snap, limit)),
+        () => onEntries([]),
+      )
+      boundaryTimer = globalThis.setTimeout(subscribe, msUntilNextWindow(win, now))
+    } catch {
+      onEntries([])
+    }
+  }
+
+  void subscribe()
+  return () => {
+    closed = true
+    unsubscribe()
+    if (boundaryTimer != null) globalThis.clearTimeout(boundaryTimer)
+  }
+}
+
+function readRankingEntries(snap, limit) {
+  if (!snap?.exists?.()) return []
+  const entries = []
+  snap.forEach((child) => {
+    const value = child.val() ?? {}
+    entries.push({ ...value, uid: value.uid ?? child.key })
+  })
+  return entries.sort(compareRankingWindowEntries).slice(0, limit)
+}
+
+function msUntilNextWindow(window, now) {
+  const start = kstDateStartMs(window === 'weekly' ? kstWeeklyKey(now) : kstDailyKey(now))
+  const duration = window === 'weekly' ? DAY_MS * 7 : DAY_MS
+  return Math.max(1, start + duration - now + 50)
+}
+
 function readSeasonId(value) {
   return typeof value === 'string' ? value.trim() : ''
+}
+
+function readRunId(value) {
+  return typeof value === 'string' && /^[A-Za-z0-9_-]{12,80}$/.test(value) ? value : createRunId()
+}
+
+function createRunId() {
+  if (typeof crypto?.randomUUID === 'function') return crypto.randomUUID().replaceAll('-', '')
+  return `${Date.now()}${Math.random().toString(36).slice(2, 14)}`
 }
 
 function readScore(value) {

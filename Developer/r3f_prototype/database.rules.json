@@ -2,52 +2,58 @@
   "rules": {
     ".read": false,
     ".write": false,
-
     "users": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.uid === $uid",
-
         "schemaVersion": { ".validate": "newData.isNumber()" },
         "updatedAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
-
         "profile": {
           "uid": { ".validate": "newData.isString() && newData.val() === $uid" },
           "displayName": { ".validate": "newData.isString() && newData.val().length <= 100" },
           "nickname": { ".validate": "newData.isString() && newData.val().length <= 100" },
           "$other": { ".validate": false }
         },
-
         "progress": {
           "goldTotal": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000000" },
           "records": { ".validate": "newData.hasChildren() || newData.val() == null" },
           "weaponUnlocks": { ".validate": "newData.hasChildren() || newData.val() == null" },
           "passiveUpgrades": { ".validate": "newData.hasChildren() || newData.val() == null" },
-          "titleSettings": { ".validate": "newData.hasChildren() || newData.val() == null" }
-        }
+          "titleSettings": { ".validate": "newData.hasChildren() || newData.val() == null" },
+          "$other": { ".validate": false }
+        },
+        "activity": {
+          "lastStartedAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
+          "lastStageId": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100" },
+          "$other": { ".validate": false }
+        },
+        "$other": { ".validate": false }
       }
     },
-
-    "rankings": {
-      "$seasonId": {
-        "stage": {
-          "$stageId": {
-            "$window": {
-              "$periodKey": {
-                "entries": {
-                  ".read": true,
-                  ".indexOn": ["score"],
-
-                  "$uid": {
-                    ".write": "auth != null && auth.uid === $uid && (!data.exists() || newData.child('score').val() >= data.child('score').val())",
-
-                    "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000" },
-                    "uid": { ".validate": "newData.isString() && newData.val() === $uid" },
-                    "displayName": { ".validate": "newData.isString() && newData.val().length <= 100" },
-                    "timeMs": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000000" },
-                    "cleared": { ".validate": "newData.isBoolean()" },
-                    "updatedAt": { ".validate": "newData.isNumber() && newData.val() >= 0" },
-                    "$other": { ".validate": false }
+    "rankingService": {
+      "v1": {
+        "public": {
+          "$seasonId": {
+            "global": {
+              "$window": {
+                "$periodKey": {
+                  "entries": {
+                    ".read": "$window === 'daily' || $window === 'weekly'",
+                    ".write": false,
+                    ".indexOn": ["score"]
+                  }
+                }
+              }
+            },
+            "stage": {
+              "$stageId": {
+                "daily": {
+                  "$periodKey": {
+                    "entries": {
+                      ".read": "$stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3'",
+                      ".write": false,
+                      ".indexOn": ["score"]
+                    }
                   }
                 }
               }

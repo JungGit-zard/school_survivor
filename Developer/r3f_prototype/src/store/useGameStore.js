@@ -15,7 +15,7 @@ import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponU
 import { DEFAULT_STAGE_ID, getNextStageId, getStageConfig } from '../lib/stageConfig.js'
 import { getAdminBalanceConfig } from '../lib/adminConfig.js'
 import { vibrateFeedback } from '../lib/titleSettings.js'
-import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
+import { recordPlayActivity, requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { submitRun } from '../lib/firebaseRanking.js'
 import { useAuthStore } from './useAuthStore.js'
 import { getRankingScore, getRankingScorePolicy, STAGE_BONUS, CLEAR_BONUS } from '../lib/rankingScorePolicy.js'
@@ -516,6 +516,7 @@ export const useGameStore = create(
     resetGame: (stageId = DEFAULT_STAGE_ID) => {
       resetRuntimeRefs()
       const levels = getAllLevels()
+      const nextStageId = getStageConfig(stageId).id
       applyMagnetPassive(levels)
       syncStoredWeaponUnlocksFromRecords()
       set((s) => ({
@@ -527,7 +528,7 @@ export const useGameStore = create(
         studentDialogue: null,
         introDialogue: null,
         elapsedMs:   0,
-        currentStageId: getStageConfig(stageId).id,
+        currentStageId: nextStageId,
         bossSpawned: false,
         bossAliveCount: 0,
         escapePortalActive: false,
@@ -543,6 +544,8 @@ export const useGameStore = create(
         pendingLevelUps: 0,
         levelUpChoiceSerial: s.levelUpChoiceSerial + 1,
       }))
+      recordPlayActivity(nextStageId)
+      requestCloudProgressSave()
     },
   }))
 )

@@ -2,56 +2,42 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-// RTDB 보안 규칙(database.rules.json)의 핵심 방어가 삭제/완화되지 않았는지 지키는 self-check.
-// 에뮬레이터 없이 규칙 파일을 raw text/JSON으로 읽어 구조를 검증한다.
 const RULES_PATH = fileURLToPath(new URL('../../database.rules.json', import.meta.url))
-const rawRules = readFileSync(RULES_PATH, 'utf-8')
+const FIREBASE_RC_PATH = fileURLToPath(new URL('../../.firebaserc', import.meta.url))
+const rules = JSON.parse(readFileSync(RULES_PATH, 'utf-8')).rules
 
-describe('database.rules.json integrity', () => {
-  it('is valid JSON with a rules root', () => {
-    const parsed = JSON.parse(rawRules)
-    expect(parsed).toHaveProperty('rules')
-  })
-
-  it('denies read/write globally by default', () => {
-    const { rules } = JSON.parse(rawRules)
+describe('Realtime Database rules', () => {
+  it('denies access by default and keeps user progress private to its owner', () => {
     expect(rules['.read']).toBe(false)
     expect(rules['.write']).toBe(false)
+    expect(rules.users.$uid['.read']).toContain('auth.uid === $uid')
+    expect(rules.users.$uid['.write']).toContain('auth.uid === $uid')
   })
 
-  it('restricts user writes to the owning uid', () => {
-    const { rules } = JSON.parse(rawRules)
-    const userRule = rules.users.$uid
-    expect(userRule['.write']).toContain('auth.uid === $uid')
-    expect(userRule['.read']).toContain('auth.uid === $uid')
+  it('validates activity and rejects unknown account-bound progress fields', () => {
+    const user = rules.users.$uid
+    expect(user.activity.lastStartedAt['.validate']).toContain('newData.isString()')
+    expect(user.activity.lastStageId['.validate']).toContain('newData.isString()')
+    expect(user.progress.$other['.validate']).toBe(false)
+    expect(user.$other['.validate']).toBe(false)
   })
 
-  it('locks the ranking entry to its owner and enforces a monotonic score', () => {
-    const { rules } = JSON.parse(rawRules)
-    const entries = rules.rankings.$seasonId.stage.$stageId.$window.$periodKey.entries
-    const entryWrite = entries.$uid['.write']
-    expect(entryWrite).toContain('auth.uid === $uid')
-    // 점수 하락(=조작된 낮은 값 덮어쓰기) 및 임의 증가 방지의 단조 증가 가드
-    expect(entryWrite).toContain("newData.child('score').val() >= data.child('score').val()")
-  })
-
-  it('caps the ranking score to a sane upper bound', () => {
-    const { rules } = JSON.parse(rawRules)
-    const entries = rules.rankings.$seasonId.stage.$stageId.$window.$periodKey.entries
-    const scoreValidate = entries.$uid.score['.validate']
-    expect(scoreValidate).toContain('newData.isNumber()')
-    expect(scoreValidate).toContain('<= 1000000')
-  })
-
-  it('indexes ranking entries on score for orderByChild queries', () => {
-    const { rules } = JSON.parse(rawRules)
-    const entries = rules.rankings.$seasonId.stage.$stageId.$window.$periodKey.entries
+  it('makes only server-projected global daily/weekly rows publicly readable', () => {
+    const entries = rules.rankingService.v1.public.$seasonId.global.$window.$periodKey.entries
+    expect(entries['.read']).toContain("$window === 'daily' || $window === 'weekly'")
+    expect(entries['.write']).toBe(false)
     expect(entries['.indexOn']).toContain('score')
   })
 
-  it('exposes the leaderboard as public read at the entries node', () => {
-    const { rules } = JSON.parse(rawRules)
-    const entries = rules.rankings.$seasonId.stage.$stageId.$window.$periodKey.entries
-    expect(entries['.read']).toBe(true)
+  it('makes only server-projected daily stage rows publicly readable', () => {
+    const entries = rules.rankingService.v1.public.$seasonId.stage.$stageId.daily.$periodKey.entries
+    expect(entries['.read']).toContain("$stageId === 'stage1'")
+    expect(entries['.write']).toBe(false)
+    expect(entries['.indexOn']).toContain('score')
+  })
+
+  it('pins Firebase deployments to the production project', () => {
+    const config = JSON.parse(readFileSync(FIREBASE_RC_PATH, 'utf-8'))
+    expect(config.projects.default).toBe('escape-zombie-school')
   })
 })

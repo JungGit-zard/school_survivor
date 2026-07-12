@@ -7,6 +7,8 @@ import { getSavedNickname, saveNicknameForUser } from './userNickname.js'
 const DATABASE_URL_KEY = 'VITE_FIREBASE_DATABASE_URL'
 const GOLD_STORAGE_KEY = 'school_survivor:goldTotal'
 const TITLE_SETTINGS_STORAGE_KEY = 'school_survivor:titleSettings'
+const PLAY_ACTIVITY_STORAGE_KEY = 'school_survivor:lastPlayActivity'
+const PROGRESS_OWNER_STORAGE_KEY = 'school_survivor:progressOwnerUid'
 const SCHEMA_VERSION = 1
 
 let cloudUser = null
@@ -33,9 +35,11 @@ export function buildCloudUserProfile(user = cloudUser) {
 }
 
 export function buildCloudProgressSnapshot(now = Date.now()) {
+  const activity = readPlayActivity()
   return {
     schemaVersion: SCHEMA_VERSION,
     updatedAt: new Date(now).toISOString(),
+    ...(activity ? { activity } : {}),
     progress: {
       goldTotal: readGoldTotal(),
       records: loadPlayerRecords(),
@@ -50,6 +54,19 @@ export function setCloudProgressUser(user) {
   cloudUser = user ?? null
 }
 
+export function recordPlayActivity(stageId, now = Date.now()) {
+  if (typeof localStorage === 'undefined' || typeof stageId !== 'string' || stageId.trim().length === 0) return false
+  const startedAt = new Date(now)
+  if (Number.isNaN(startedAt.getTime())) return false
+  const activity = normalizePlayActivity({
+    lastStageId: stageId.trim(),
+    lastStartedAt: startedAt.toISOString(),
+  })
+  if (!activity) return false
+  localStorage.setItem(PLAY_ACTIVITY_STORAGE_KEY, JSON.stringify(activity))
+  return true
+}
+
 export async function saveLocalProgressToCloud(user = cloudUser) {
   const path = getUserProgressPath(user)
   if (!path || !isFirebaseProgressConfigured()) return false
@@ -59,6 +76,7 @@ export async function saveLocalProgressToCloud(user = cloudUser) {
     profile: buildCloudUserProfile(user),
     ...buildCloudProgressSnapshot(),
   })
+  markLocalProgressOwner(user)
   return true
 }
 
@@ -74,10 +92,10 @@ export async function loadCloudProgressFromCloud(user = cloudUser) {
 
 export function applyCloudProgressSnapshot(snapshot, user = cloudUser) {
   if (typeof localStorage === 'undefined') return false
+  clearAccountBoundProgressForDifferentUser(user)
   const progress = snapshot?.progress
 
   if (!progress || typeof progress !== 'object') {
-    clearLocalProgress()
     return false
   }
 
@@ -86,7 +104,11 @@ export function applyCloudProgressSnapshot(snapshot, user = cloudUser) {
   writeJsonObject(UNLOCKS_STORAGE_KEY, progress.weaponUnlocks)
   writeJsonObject(PASSIVE_STORAGE_KEY, progress.passiveUpgrades)
   writeJsonObject(TITLE_SETTINGS_STORAGE_KEY, progress.titleSettings)
+  const activity = normalizePlayActivity(snapshot.activity)
+  if (activity) localStorage.setItem(PLAY_ACTIVITY_STORAGE_KEY, JSON.stringify(activity))
+  else localStorage.removeItem(PLAY_ACTIVITY_STORAGE_KEY)
   if (snapshot.profile?.nickname) saveNicknameForUser(user, snapshot.profile.nickname)
+  markLocalProgressOwner(user)
   return true
 }
 
@@ -155,11 +177,43 @@ function writeJsonObject(key, value) {
   localStorage.setItem(key, JSON.stringify(value))
 }
 
-function clearLocalProgress() {
-  localStorage.setItem(GOLD_STORAGE_KEY, '0')
-  localStorage.removeItem(RECORDS_STORAGE_KEY)
-  localStorage.removeItem(UNLOCKS_STORAGE_KEY)
-  localStorage.removeItem(PASSIVE_STORAGE_KEY)
+function clearAccountBoundProgressForDifferentUser(user) {
+  if (typeof localStorage === 'undefined') return
+  const userId = readUserId(user)
+  const ownerId = localStorage.getItem(PROGRESS_OWNER_STORAGE_KEY)
+  if (!userId || !ownerId || ownerId === userId) return
+
+  for (const key of [
+    GOLD_STORAGE_KEY,
+    RECORDS_STORAGE_KEY,
+    UNLOCKS_STORAGE_KEY,
+    PASSIVE_STORAGE_KEY,
+    TITLE_SETTINGS_STORAGE_KEY,
+    PLAY_ACTIVITY_STORAGE_KEY,
+    PROGRESS_OWNER_STORAGE_KEY,
+  ]) {
+    localStorage.removeItem(key)
+  }
+}
+
+function markLocalProgressOwner(user) {
+  if (typeof localStorage === 'undefined') return
+  const userId = readUserId(user)
+  if (userId) localStorage.setItem(PROGRESS_OWNER_STORAGE_KEY, userId)
+}
+
+function readPlayActivity() {
+  return normalizePlayActivity(readJsonObject(PLAY_ACTIVITY_STORAGE_KEY))
+}
+
+function normalizePlayActivity(activity) {
+  if (!activity || typeof activity !== 'object') return null
+  if (typeof activity.lastStageId !== 'string' || activity.lastStageId.trim().length === 0) return null
+  if (typeof activity.lastStartedAt !== 'string' || Number.isNaN(Date.parse(activity.lastStartedAt))) return null
+  return {
+    lastStageId: activity.lastStageId.trim(),
+    lastStartedAt: activity.lastStartedAt,
+  }
 }
 
 function readNonNegativeInt(value) {
@@ -174,6 +228,10 @@ function readEnv(env, key) {
 
 function readString(value) {
   return typeof value === 'string' ? value : ''
+}
+
+function readUserId(user) {
+  return typeof user?.uid === 'string' ? user.uid.trim() : ''
 }
 
 function getDefaultEnv() {

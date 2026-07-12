@@ -7,10 +7,21 @@ import { act } from 'react-dom/test-utils'
 import UserRanking from './UserRanking.jsx'
 import { saveAdminConfig } from '../lib/adminConfig.js'
 import { STORAGE_KEY } from '../lib/playerRecords.js'
+import { useAuthStore } from '../store/useAuthStore.js'
+import { isFirebaseRankingConfigured, subscribeGlobalRanking } from '../lib/firebaseRanking.js'
+
+vi.mock('../lib/firebaseRanking.js', () => ({
+  isFirebaseRankingConfigured: vi.fn(() => false),
+  subscribeGlobalRanking: vi.fn(() => vi.fn()),
+}))
 
 describe('UserRanking', () => {
   beforeEach(() => {
     localStorage.clear()
+    useAuthStore.setState({ user: null })
+    isFirebaseRankingConfigured.mockReturnValue(false)
+    subscribeGlobalRanking.mockReset()
+    subscribeGlobalRanking.mockReturnValue(vi.fn())
   })
 
   it('renders ranking rows from 1st through 30th place', () => {
@@ -124,6 +135,42 @@ describe('UserRanking', () => {
     act(() => {
       root.unmount()
     })
+    container.remove()
+  })
+
+  it('uses an arrived cloud board as the period ranking instead of adding a local lifetime record', () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ bestSurvivalSeconds: 999 }))
+    useAuthStore.setState({ user: { uid: 'local-user', displayName: 'Local lifetime' } })
+    isFirebaseRankingConfigured.mockReturnValue(true)
+    const unsubscribers = { daily: vi.fn(), weekly: vi.fn() }
+    subscribeGlobalRanking.mockImplementation((window, onRows) => {
+      onRows([{
+        uid: `cloud-${window}`,
+        displayName: `Cloud ${window}`,
+        score: 100,
+        timeMs: 120000,
+        cleared: false,
+      }])
+      return unsubscribers[window]
+    })
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+
+    act(() => {
+      root.render(<UserRanking onBack={() => {}} />)
+    })
+
+    expect(container.textContent).toContain('Cloud daily')
+    expect(container.textContent).not.toContain('Local lifetime')
+    expect(subscribeGlobalRanking).toHaveBeenCalledWith('daily', expect.any(Function), { limit: 30 })
+    expect(subscribeGlobalRanking).toHaveBeenCalledWith('weekly', expect.any(Function), { limit: 30 })
+
+    act(() => {
+      root.unmount()
+    })
+    expect(unsubscribers.daily).toHaveBeenCalledTimes(1)
+    expect(unsubscribers.weekly).toHaveBeenCalledTimes(1)
     container.remove()
   })
 })

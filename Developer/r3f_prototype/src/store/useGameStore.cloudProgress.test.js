@@ -2,11 +2,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('../lib/firebaseProgress.js', () => ({
+  recordPlayActivity: vi.fn(),
   requestCloudProgressSave: vi.fn(),
 }))
 
 const { useGameStore } = await import('./useGameStore.js')
-const { requestCloudProgressSave } = await import('../lib/firebaseProgress.js')
+const { recordPlayActivity, requestCloudProgressSave } = await import('../lib/firebaseProgress.js')
 
 describe('useGameStore cloud progress integration', () => {
   beforeEach(() => {
@@ -63,6 +64,13 @@ describe('useGameStore cloud progress integration', () => {
     useGameStore.setState({ elapsedMs: 10_000, runKills: 4, goldSession: 2 })
     useGameStore.getState()._onRunEnd('gameover')
 
+    expect(requestCloudProgressSave).toHaveBeenCalled()
+  })
+
+  it('records and saves a minimal activity record when a stage starts', () => {
+    useGameStore.getState().resetGame('stage2')
+
+    expect(recordPlayActivity).toHaveBeenCalledWith('stage2')
     expect(requestCloudProgressSave).toHaveBeenCalled()
   })
 })

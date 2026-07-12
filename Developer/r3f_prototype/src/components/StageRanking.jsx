@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { fetchStageRanking, getActiveSeason } from '../lib/firebaseRanking.js'
+import { getActiveSeason, subscribeStageRanking } from '../lib/firebaseRanking.js'
 import { getStageConfig } from '../lib/stageConfig.js'
 import { formatRankScore, formatSurvivalTime } from '../lib/userRanking.js'
 
@@ -9,11 +9,7 @@ export default function StageRanking({ stageId = 'stage1', onBack }) {
   const [rows, setRows] = useState([])
 
   useEffect(() => {
-    let cancelled = false
-    fetchStageRanking(stageId, 'daily', { limit: 30 }).catch(() => []).then((daily) => {
-      if (!cancelled) setRows(daily)
-    })
-    return () => { cancelled = true }
+    return subscribeStageRanking(stageId, 'daily', setRows, { limit: 30 })
   }, [stageId])
 
   return (

@@ -6,6 +6,7 @@ import {
   buildCloudUserProfile,
   getUserProgressPath,
   isFirebaseProgressConfigured,
+  recordPlayActivity,
 } from './firebaseProgress.js'
 import { STORAGE_KEY as RECORDS_KEY } from './playerRecords.js'
 import { STORAGE_KEY as PASSIVES_KEY } from './passiveUpgrades.js'
@@ -75,6 +76,51 @@ describe('firebase progress cloud sync helpers', () => {
         passiveUpgrades: expect.objectContaining({
           maxHp: 2,
         }),
+      },
+    })
+  })
+
+  it('keeps device progress when the signed-in user has no cloud snapshot yet', () => {
+    localStorage.setItem('school_survivor:goldTotal', '42')
+    localStorage.setItem(RECORDS_KEY, JSON.stringify({ totalRuns: 3 }))
+    localStorage.setItem(UNLOCKS_KEY, JSON.stringify({ guidedMissile: 1 }))
+    localStorage.setItem(PASSIVES_KEY, JSON.stringify({ magnet: 2 }))
+
+    expect(applyCloudProgressSnapshot(null, { uid: 'new-user' })).toBe(false)
+
+    expect(localStorage.getItem('school_survivor:goldTotal')).toBe('42')
+    expect(JSON.parse(localStorage.getItem(RECORDS_KEY))).toEqual({ totalRuns: 3 })
+    expect(JSON.parse(localStorage.getItem(UNLOCKS_KEY))).toEqual({ guidedMissile: 1 })
+    expect(JSON.parse(localStorage.getItem(PASSIVES_KEY))).toEqual({ magnet: 2 })
+  })
+
+  it('does not migrate account A local progress into a new account B', () => {
+    localStorage.setItem('school_survivor:progressOwnerUid', 'account-a')
+    localStorage.setItem('school_survivor:goldTotal', '42')
+    localStorage.setItem(RECORDS_KEY, JSON.stringify({ totalRuns: 3 }))
+    localStorage.setItem(UNLOCKS_KEY, JSON.stringify({ guidedMissile: 1 }))
+    localStorage.setItem(PASSIVES_KEY, JSON.stringify({ magnet: 2 }))
+    localStorage.setItem('school_survivor:titleSettings', JSON.stringify({ activeTitle: 'account-a-title' }))
+    recordPlayActivity('stage2', Date.UTC(2026, 6, 12, 3, 4, 5))
+
+    expect(applyCloudProgressSnapshot(null, { uid: 'account-b' })).toBe(false)
+
+    expect(localStorage.getItem('school_survivor:goldTotal')).toBeNull()
+    expect(localStorage.getItem(RECORDS_KEY)).toBeNull()
+    expect(localStorage.getItem(UNLOCKS_KEY)).toBeNull()
+    expect(localStorage.getItem(PASSIVES_KEY)).toBeNull()
+    expect(localStorage.getItem('school_survivor:titleSettings')).toBeNull()
+    expect(localStorage.getItem('school_survivor:lastPlayActivity')).toBeNull()
+    expect(localStorage.getItem('school_survivor:progressOwnerUid')).toBeNull()
+  })
+
+  it('includes the latest started-stage activity in the cloud payload', () => {
+    recordPlayActivity('stage2', Date.UTC(2026, 6, 12, 3, 4, 5))
+
+    expect(buildCloudProgressSnapshot()).toMatchObject({
+      activity: {
+        lastStageId: 'stage2',
+        lastStartedAt: '2026-07-12T03:04:05.000Z',
       },
     })
   })

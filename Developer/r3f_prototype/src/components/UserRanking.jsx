@@ -6,10 +6,9 @@ import {
   formatSurvivalTime,
   loadLocalRankingEntries,
   buildLocalPlayerRankingEntry,
-  mergeCloudEntries,
   RANKING_LIMIT,
 } from '../lib/userRanking.js'
-import { fetchGlobalRanking, isFirebaseRankingConfigured } from '../lib/firebaseRanking.js'
+import { isFirebaseRankingConfigured, subscribeGlobalRanking } from '../lib/firebaseRanking.js'
 import { getAdminRankingSeasonConfig } from '../lib/adminConfig.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 
@@ -30,21 +29,24 @@ export default function UserRanking({ onBack, entries }) {
 
   useEffect(() => {
     if (!isFirebaseRankingConfigured()) return
-    Promise.all([
-      fetchGlobalRanking('daily', { limit: RANKING_LIMIT }).catch(() => []),
-      fetchGlobalRanking('weekly', { limit: RANKING_LIMIT }).catch(() => []),
-    ]).then(([daily, weekly]) => setCloudBoards({ daily, weekly }))
+    const subscribe = (window) => subscribeGlobalRanking(window, (rows) => {
+      setCloudBoards((boards) => ({ ...boards, [window]: rows }))
+    }, { limit: RANKING_LIMIT })
+    const unsubscribeDaily = subscribe('daily')
+    const unsubscribeWeekly = subscribe('weekly')
+    return () => {
+      unsubscribeDaily()
+      unsubscribeWeekly()
+    }
   }, [])
 
   const rankingEntries = useMemo(() => {
     const providedEntries = Array.isArray(entries) ? entries : entries?.[activeWindow]
     if (providedEntries) return providedEntries
     const cloudEntries = cloudBoards[activeWindow]
-    if (cloudEntries) {
-      return mergeCloudEntries(localEntry, cloudEntries, user?.uid)
-    }
+    if (cloudEntries !== null) return cloudEntries
     return loadLocalRankingEntries(user ?? {})
-  }, [entries, activeWindow, cloudBoards, localEntry, user])
+  }, [entries, activeWindow, cloudBoards, user])
 
   const rows = useMemo(() => createRankingRows(rankingEntries), [rankingEntries])
   const season = useMemo(() => getAdminRankingSeasonConfig(), [])
