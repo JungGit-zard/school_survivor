@@ -8,7 +8,7 @@ import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { buildPlaytestSummary } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { getNextStageId, getStageConfig } from '../lib/stageConfig.js'
-import { STAGE2_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
+import { STAGE2_SPAWN_TELEGRAPHS, STAGE3_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import {
   DEFAULT_STUDIO_TUNING,
@@ -538,11 +538,17 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     return Math.max(1, Math.ceil(introSec - elapsedSec))
   }, [currentStageId, elapsed, phase, stageConfig.e04IntroSec])
 
-  // 스테이지2 대형(형태) 버스트 스폰 예고 배너 라벨
+  // 대형(형태) 버스트 스폰 예고 배너 라벨. stage2는 현재 빈 정본([]),
+  // stage3는 개방 아레나 포위 편대(STAGE3_SPAWN_TELEGRAPHS)를 예고한다.
   const formationWarning = useMemo(() => {
-    if (currentStageId !== 'stage2' || phase !== 'playing') return null
+    if (phase !== 'playing') return null
+    const telegraphs = currentStageId === 'stage3'
+      ? (STAGE3_SPAWN_TELEGRAPHS ?? [])
+      : currentStageId === 'stage2'
+        ? (STAGE2_SPAWN_TELEGRAPHS ?? [])
+        : []
+    if (telegraphs.length === 0) return null
     const elapsedSec = elapsed / 1000
-    const telegraphs = STAGE2_SPAWN_TELEGRAPHS ?? []
     const hit = telegraphs.find(
       (t) => elapsedSec >= t.sec - t.leadSec && elapsedSec < t.sec,
     )
