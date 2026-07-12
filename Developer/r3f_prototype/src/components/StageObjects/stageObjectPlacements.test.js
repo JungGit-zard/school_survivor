@@ -151,6 +151,21 @@ describe('stage object placements', () => {
     expect(positions.some(([x, z]) => Math.max(Math.abs(x), Math.abs(z)) < 4.5)).toBe(true)
   })
 
+  it('keeps scattered Stage 2 props separated enough for solid desk collisions', () => {
+    const positions = getStageObjectPlacements('stage2').map(({ position }) => position)
+    let nearestDistance = Infinity
+
+    for (let first = 0; first < positions.length; first += 1) {
+      for (let second = first + 1; second < positions.length; second += 1) {
+        const dx = positions[first][0] - positions[second][0]
+        const dz = positions[first][2] - positions[second][2]
+        nearestDistance = Math.min(nearestDistance, Math.hypot(dx, dz))
+      }
+    }
+
+    expect(nearestDistance).toBeGreaterThanOrEqual(2)
+  })
+
   it('distributes props across each stage without occupying its central spawn lane', () => {
     for (const stageId of ['stage2']) {
       const placements = getStageObjectPlacements(stageId)

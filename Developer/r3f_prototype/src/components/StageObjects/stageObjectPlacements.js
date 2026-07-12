@@ -595,10 +595,15 @@ function seededUnit(key) {
     hash ^= key.charCodeAt(index)
     hash = Math.imul(hash, 16777619)
   }
+  hash ^= hash >>> 16
+  hash = Math.imul(hash, 0x85ebca6b)
+  hash ^= hash >>> 13
+  hash = Math.imul(hash, 0xc2b2ae35)
+  hash ^= hash >>> 16
   return (hash >>> 0) / 4294967296
 }
 
-function getDistributedPosition(stageId, key) {
+function getDistributedPosition(stageId, key, stage2Index = 0) {
   const { halfX, halfZ } = getStageBounds(stageId)
   const xUnit = seededUnit(`${key}:x`)
   const zUnit = seededUnit(`${key}:z`)
@@ -606,8 +611,12 @@ function getDistributedPosition(stageId, key) {
 
   if (stageId === 'stage2') {
     // 사용자 지시(2026-07-12): 테두리 배치 절대 금지 — 스테이지 전역에 시드 랜덤 균등 산포.
-    const x = -4.8 + xUnit * 9.6
-    const z = -14.5 + zUnit * 29
+    const columns = 4
+    const cell = (stage2Index * 13 + 5) % 36
+    const column = cell % columns
+    const row = Math.floor(cell / columns)
+    const x = -3.6 + column * 2.4 + (xUnit - 0.5) * 0.62
+    const z = -12.4 + row * 3.1 + (zUnit - 0.5) * 1.1
     return [x, 0, z]
   }
 
@@ -622,46 +631,25 @@ function getDistributedPosition(stageId, key) {
   return [x, 0, z]
 }
 
-function getPhysicalBlockerPosition(stageId, index, count) {
-  if (stageId === 'stage2') {
-    // 사용자 지시(2026-07-12): 테두리 금지 — 블로커(책상류)도 전역 시드 랜덤 균등 산포.
-    return getDistributedPosition(stageId, `s2-blocker-${index}`)
-  }
-
-  if (index < 24) {
-    const sideIndex = Math.floor(index / 12)
-    const sideOffset = index % 12
-    const lane = Math.floor(sideOffset / 6)
-    const row = sideOffset % 6
-    return [(sideIndex === 0 ? -1 : 1) * 9.4, 0, -10 + row * 4 + lane * 2]
-  }
-
-  const endOffset = index - 24
-  const endIndex = Math.floor(endOffset / 3)
-  return [-3 + (endOffset % 3) * 3, 0, endIndex === 0 ? -13.8 : 13.8]
-}
-
 // 기본(오버라이드 미적용) 배치 파이프라인. 그래픽 스튜디오 에디터가 pristine 시드로 쓴다.
 export function computeDefaultStageObjectPlacements(stageId = 'stage1') {
   const authored = STAGE_OBJECT_PLACEMENTS[stageId] ?? []
   // stage1은 수제 배치 정본을 그대로 사용(2026-07-12 사용자 지시로 복원).
   // 복제(×5)/해시 분산/×1.1 확대 파이프라인은 stage1에 적용하지 않는다.
   if (stageId === 'stage1') return authored.map(withMixedUnconsciousStudentFacing)
-  const blockingItems = authored.filter(({ type }) => type !== 'unconsciousStudent')
-  const blockingIndexById = new Map(blockingItems.map(({ id }, index) => [id, index]))
-
-  return authored.flatMap((item) => (
+  return authored.flatMap((item, itemIndex) => (
     Array.from({ length: 5 }, (_, copyIndex) => {
       const id = `${item.id}-copy-${copyIndex + 1}`
-      const blockingIndex = blockingIndexById.get(item.id)
-      const isPhysicalBlocker = copyIndex === 0 && blockingIndex !== undefined
+      const isPhysicalBlocker = item.type !== 'unconsciousStudent'
+      const scatterIndex = itemIndex * 5 + copyIndex
       return withMixedUnconsciousStudentFacing({
         ...item,
         id,
         blocking: isPhysicalBlocker,
-        position: isPhysicalBlocker
-          ? getPhysicalBlockerPosition(stageId, blockingIndex, blockingItems.length)
-          : getDistributedPosition(stageId, id),
+        position: getDistributedPosition(stageId, id, scatterIndex),
+        rotation: stageId === 'stage2'
+          ? [0, (item.rotation?.[1] ?? 0) + (seededUnit(`${id}:rotation`) - 0.5) * 0.8, 0]
+          : item.rotation,
         scale: enlargeScale(item.scale),
       })
     })

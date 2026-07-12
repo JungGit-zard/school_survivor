@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import {
+  STAGE_PROP_PLACEMENTS_STORAGE_KEY,
   STAGE_PROP_PLACEMENTS_EVENT,
   STAGE_PROP_STAGE_IDS,
   normalizePropPlacement,
@@ -100,6 +101,15 @@ describe('normalizeStagePropList / normalizeStagePropPlacements', () => {
 })
 
 describe('load / save round-trip + event dispatch', () => {
+  it('ignores the legacy v1 corridor snapshot so the scattered Stage 2 layout takes over', () => {
+    window.localStorage.setItem('escape-zombie-school.stagePropPlacements.v1', JSON.stringify({
+      stage2: [{ id: 'legacy-row-desk', type: 'classroomDesk', position: [-6, 0, 0] }],
+    }))
+
+    expect(STAGE_PROP_PLACEMENTS_STORAGE_KEY).toContain('.v2')
+    expect(loadStagePropPlacements().stage2).toBeNull()
+  })
+
   it('persists to storage and reloads equivalently', () => {
     const storage = createStorage()
     const saved = saveStagePropPlacements({

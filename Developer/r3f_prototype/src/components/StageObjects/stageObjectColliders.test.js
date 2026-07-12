@@ -49,7 +49,7 @@ describe('stage object blocking colliders', () => {
     })
   })
 
-  it('keeps one physical blocker per prepared desk and chair while visual copies remain decorative', () => {
+  it('keeps gameplay props physically solid', () => {
     const blockingPlacements = ['stage1', 'stage2'].flatMap((stageId) => (
       getStageObjectPlacements(stageId).filter(({ type, blocking }) => (
         BLOCKING_STAGE_OBJECT_TYPES.has(type) && blocking !== false
@@ -80,15 +80,16 @@ describe('stage object blocking colliders', () => {
     expect(getStageObjectColliderParts(studentPlacement)).toEqual([])
   })
 
-  it('uses every Stage 2 corridor prop as a raycast and movement obstacle', () => {
+  it('uses every Stage 2 desk and corridor prop as a raycast and movement obstacle', () => {
     const stage2Props = getStageObjectPlacements('stage2')
     const corridorTypes = new Set(['corridorLockerBank', 'corridorJanitorCart', 'corridorLostFoundBoard'])
     const corridorProps = stage2Props.filter(({ type }) => corridorTypes.has(type))
     const physicalCorridorProps = stage2Props.filter(({ type, blocking }) => corridorTypes.has(type) && blocking !== false)
 
     expect(corridorProps.length).toBeGreaterThan(0)
-    expect(physicalCorridorProps).toHaveLength(3)
+    expect(physicalCorridorProps).toHaveLength(corridorProps.length)
     expect(physicalCorridorProps.every((placement) => getStageObjectColliderParts(placement).length > 0)).toBe(true)
+    expect(getStageObjectColliders('stage2')).toHaveLength(stage2Props.length)
     const expectedSightParts = stage2Props
       .filter(({ type }) => BLOCKING_STAGE_OBJECT_TYPES.has(type))
       .reduce((total, placement) => total + getStageObjectColliderParts(placement).length, 0)
