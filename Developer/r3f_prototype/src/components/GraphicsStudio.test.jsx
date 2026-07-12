@@ -43,6 +43,7 @@ describe('GraphicsStudio', () => {
   beforeEach(() => {
     localStorage.clear()
     window.location.hash = ''
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false, postMessage: vi.fn() })
     container = document.createElement('div')
     document.body.appendChild(container)
     root = createRoot(container)
@@ -53,6 +54,7 @@ describe('GraphicsStudio', () => {
     container.remove()
     window.location.hash = ''
     resetStagePropPlacementsCache()
+    vi.restoreAllMocks()
   })
 
   it('opens the Map Props tab, adds a prop, and Apply persists a stage override', () => {
@@ -191,6 +193,47 @@ describe('GraphicsStudio', () => {
       }),
       'http://localhost:5173',
     )
+  })
+
+  it('opens the game and synchronizes the full saved studio state when Apply is pressed', () => {
+    const postMessage = vi.fn()
+    window.open.mockReturnValue({ closed: false, postMessage })
+
+    act(() => {
+      root.render(<GraphicsStudio />)
+    })
+
+    const gameUrl = container.querySelector('input[name="gameUrl"]')
+    act(() => {
+      gameUrl.value = 'http://localhost:5173/'
+      gameUrl.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    const scale = container.querySelector('input[name="scale"]')
+    act(() => {
+      scale.value = '1.48'
+      scale.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    act(() => {
+      Array.from(container.querySelectorAll('button'))
+        .find((button) => button.textContent === 'Apply')
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(window.open).toHaveBeenCalledWith('http://localhost:5173/', 'escape-zombie-school-game')
+    expect(postMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        type: 'escape-zombie-school.studioGameSync.v1',
+        tunings: expect.objectContaining({
+          player: expect.objectContaining({ scale: 1.48 }),
+        }),
+        sfxTunings: expect.any(Object),
+        stageBossPreview: expect.any(Object),
+        decals: expect.any(Object),
+        propPlacements: expect.any(Object),
+      }),
+      'http://localhost:5173',
+    )
+    expect(container.textContent).toContain('Game applied')
   })
 
   it('uses Zombie B02 for the stage boss preview and game sync when B02 is selected', () => {

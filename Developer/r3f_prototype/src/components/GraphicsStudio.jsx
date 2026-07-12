@@ -201,16 +201,34 @@ export default function GraphicsStudio() {
     [selectedItem.id, activeTuningId, tuning, confirmedTunings, stageBossPreview, decalsByItem],
   )
 
-  const sendGameSync = (
+  const sendGameSync = ({
     tunings = loadStudioTunings(),
     nextSfxTunings = loadSfxTunings(),
     nextStageBossPreview = loadStageBossPreview(),
     nextDecals = loadTextureDecals(),
     nextPropPlacements = loadStagePropPlacements(),
-  ) => {
-    const target = gameWindowRef.current
-    if (!target || target.closed) return
-    target.postMessage({
+    openGame = false,
+    retryAfterLoad = false,
+  } = {}) => {
+    const url = openGame ? parseStudioGameUrl(gameUrl) : null
+    if (openGame && !url) {
+      setApplyStatus('Invalid Game URL')
+      return false
+    }
+
+    let target = gameWindowRef.current
+    if (openGame && (!target || target.closed || gameOriginRef.current !== url.origin)) {
+      localStorage.setItem(STUDIO_GAME_URL_STORAGE_KEY, url.href)
+      gameOriginRef.current = url.origin
+      target = window.open(url.href, 'escape-zombie-school-game')
+      gameWindowRef.current = target
+    }
+    if (!target || target.closed) {
+      if (openGame) setApplyStatus('Unable to open game window')
+      return false
+    }
+
+    const postSync = () => target.postMessage({
       type: STUDIO_GAME_SYNC_MESSAGE,
       tunings,
       sfxTunings: nextSfxTunings,
@@ -218,27 +236,32 @@ export default function GraphicsStudio() {
       decals: nextDecals,
       propPlacements: nextPropPlacements,
     }, gameOriginRef.current)
+
+    postSync()
+    if (retryAfterLoad) {
+      ;[250, 800].forEach((delay) => {
+        window.setTimeout(() => {
+          if (gameWindowRef.current === target && !target.closed) postSync()
+        }, delay)
+      })
+    }
+    return true
   }
 
   // 맵 프랍 배치 Apply/Reset: 로컬 저장(스튜디오 창) + 연결된 게임 창으로 전송.
   const applyPropPlacements = (config) => {
     const saved = saveStagePropPlacements(config)
-    sendGameSync(loadStudioTunings(), loadSfxTunings(), loadStageBossPreview(), loadTextureDecals(), saved)
-    setApplyStatus('Props applied')
+    if (sendGameSync({ nextPropPlacements: saved, openGame: true, retryAfterLoad: true })) {
+      setApplyStatus('Props applied')
+    }
     return saved
   }
 
   const connectGameWindow = () => {
     const url = parseStudioGameUrl(gameUrl)
-    if (!url) {
-      setApplyStatus('Invalid Game URL')
-      return
+    if (sendGameSync({ openGame: true, retryAfterLoad: true })) {
+      setApplyStatus(`Connected: ${url.origin}`)
     }
-    localStorage.setItem(STUDIO_GAME_URL_STORAGE_KEY, url.href)
-    gameOriginRef.current = url.origin
-    gameWindowRef.current = window.open(url.href, 'escape-zombie-school-game')
-    setApplyStatus(`Connected: ${url.origin}`)
-    window.setTimeout(() => sendGameSync(), 500)
   }
 
   const confirmGraphicsTuning = (id, nextTuning) => {
@@ -247,7 +270,7 @@ export default function GraphicsStudio() {
       [id]: nextTuning,
     })
     setConfirmedTunings(next)
-    sendGameSync(next)
+    sendGameSync({ tunings: next })
     return next
   }
 
@@ -276,7 +299,7 @@ export default function GraphicsStudio() {
       [selectedItem.id]: nextItemDecals,
     })
     setDecalsByItem(next)
-    sendGameSync(loadStudioTunings(), loadSfxTunings(), loadStageBossPreview(), next)
+    sendGameSync({ nextDecals: next })
     return next
   }
 
@@ -333,7 +356,7 @@ export default function GraphicsStudio() {
   const updateStageBossPreview = (patch) => {
     const next = saveStageBossPreview({ ...loadStageBossPreview(), ...patch })
     setStageBossPreview(next)
-    sendGameSync(loadStudioTunings(), loadSfxTunings(), next)
+    sendGameSync({ nextStageBossPreview: next })
     setApplyStatus('Boss preview live')
   }
 
@@ -361,7 +384,9 @@ export default function GraphicsStudio() {
   const applyCurrent = () => {
     const next = confirmGraphicsTuning(activeTuningId, tuning)
     setConfirmedTunings(next)
-    setApplyStatus('Game applied')
+    if (sendGameSync({ openGame: true, retryAfterLoad: true })) {
+      setApplyStatus('Game applied')
+    }
   }
 
   const resetCurrent = () => {
@@ -405,7 +430,7 @@ export default function GraphicsStudio() {
           ...patch,
         }),
       })
-      sendGameSync(loadStudioTunings(), next)
+      sendGameSync({ nextSfxTunings: next })
       return next
     })
     setApplyStatus('Audio live')
@@ -417,9 +442,9 @@ export default function GraphicsStudio() {
       ...loadSfxTunings(),
       [selectedSfx.id]: sfxTuning,
     })
-    sendGameSync(loadStudioTunings(), next)
+    const applied = sendGameSync({ nextSfxTunings: next, openGame: true, retryAfterLoad: true })
     setSfxTunings(next)
-    setApplyStatus('Audio applied')
+    if (applied) setApplyStatus('Audio applied')
   }
 
   return (
