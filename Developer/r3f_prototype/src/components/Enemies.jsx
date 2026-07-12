@@ -7,7 +7,7 @@ import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
 import GoldCoin from './GoldCoin.jsx'
 import XpTextbook from './XpTextbook.jsx'
-import { getStage2E04Cap } from '../lib/stage2ProjectileRules.js'
+import { getE04Cap } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
 import { getBurstEventsForStage, getRuntimeBurstEventsForStage } from '../lib/burstEvents.js'
@@ -379,7 +379,6 @@ export default function Enemies() {
   const nextWaveTimeRef          = useRef(0)
   const goldTimerRef              = useRef(nextGoldInterval())
 
-  const bossSpawned    = useGameStore((s) => s.bossSpawned)
   const spawnBoss      = useGameStore((s) => s.spawnBoss)
   const matildaSpawned = useGameStore((s) => s.matildaSpawned)
   const currentStageId = useGameStore((s) => s.currentStageId)
@@ -467,16 +466,39 @@ export default function Enemies() {
       goldTimerRef.current = nextGoldInterval()
     }
 
-    // 보스(B01/B02) 등장만 버스트 스케줄에서 발화 — 나머지 버스트(형태/그룹)는 폐기(2026-07-11).
-    // 좀비 물량은 20~40초 랜덤 간격 웨이브 스케줄러가 전담한다.
+    // 버스트 스케줄 발화.
+    // - stage1/stage2: 보스 등장만(getRuntimeBurstEventsForStage가 보스만 반환) — 거동 불변.
+    // - stage3: 더블 보스(스태거) + 형태(formation) 포위 + 조기 등장 그룹을 모두 발화한다.
+    // 좀비 물량 본류는 20~40초 랜덤 간격 웨이브 스케줄러가 전담한다.
     const burstEvents = getRuntimeBurstEventsForStage(currentStageId)
     burstEvents.forEach((evt, idx) => {
       if (firedBurstsRef.current.has(idx)) return
       if (sec < evt.sec) return
       firedBurstsRef.current.add(idx)
-      if (bossSpawned) return
-      spawnBoss()
-      addEnemies([{ id: ++_uid, type: evt.type, pos: randomSpawnPos(evt.type, bounds), statOverride: stage2HpOverride(evt.type, currentStageId) }])
+
+      // 보스 버스트(B01/B02) — 각 이벤트가 1회씩 스폰. 더블 보스는 두 이벤트가 스태거로 각각 발화한다.
+      // (bossSpawned 가드 제거: 두 번째 보스가 막히지 않도록. 1회성은 firedBurstsRef가 보장.)
+      if (evt.type === 'B01' || evt.type === 'B02') {
+        spawnBoss()
+        addEnemies([{ id: ++_uid, type: evt.type, pos: randomSpawnPos(evt.type, bounds), statOverride: stage2HpOverride(evt.type, currentStageId) }])
+        return
+      }
+
+      // 비-보스 버스트(형태/그룹) — stage3에서만 런타임에 포함된다.
+      // formation이면 대형 배치, 아니면 스폰 링에 count만큼(E04는 원거리 링).
+      const count = evt.count ?? 1
+      const positions = evt.formation
+        ? formationSpawnPositions(evt.formation, count, bounds, { x: playerPos.x, z: playerPos.z })
+        : null
+      const batch = []
+      for (let i = 0; i < count; i++) {
+        const taken = batch.map((e) => e.pos)
+        const pos = positions
+          ? positions[i]
+          : (evt.type === 'E04' ? rangedSpawnPos(bounds, taken) : randomSpawnPos(evt.type, bounds, taken))
+        batch.push({ id: ++_uid, type: evt.type, pos, statOverride: stage2HpOverride(evt.type, currentStageId) })
+      }
+      addEnemies(batch)
     })
 
     // 랜덤 간격 이산 웨이브 — 좀비는 오직 여기서만, 웨이브마다 한 번에 스폰된다.
@@ -496,11 +518,11 @@ export default function Enemies() {
       const newBatch = []
       for (let i = 0; i < waveSize; i++) {
         let type = pickTypeByWeight(phase.weights)
-        if (currentStageId === 'stage2' && type === 'E04') {
+        if ((currentStageId === 'stage2' || currentStageId === 'stage3') && type === 'E04') {
           const currentE04Count =
             enemiesRef.current.filter((e) => e.type === 'E04').length +
             newBatch.filter((e) => e.type === 'E04').length
-          if (currentE04Count >= getStage2E04Cap(sec)) {
+          if (currentE04Count >= getE04Cap(sec, currentStageId)) {
             type = pickTypeByWeightExcluding(phase.weights, 'E04')
             if (!type) continue
           }

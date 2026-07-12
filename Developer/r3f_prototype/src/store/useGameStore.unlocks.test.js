@@ -98,7 +98,8 @@ describe('useGameStore run-end unlock evaluator', () => {
   })
 
   it('portal clear on final stage stays on the cleared result', () => {
-    useGameStore.getState().resetGame('stage2')
+    // stage3가 최종 스테이지(getNextStageId('stage3') === null) — 포탈 클리어 시 다음으로 넘어가지 않는다.
+    useGameStore.getState().resetGame('stage3')
     useGameStore.setState({ elapsedMs: 240_000 })
     const beforeKey = useGameStore.getState().gameKey
 
@@ -106,13 +107,13 @@ describe('useGameStore run-end unlock evaluator', () => {
 
     const s = useGameStore.getState()
     expect(s).toMatchObject({
-      currentStageId: 'stage2',
+      currentStageId: 'stage3',
       phase: 'cleared',
       elapsedMs: 240_000,
     })
     expect(s.gameKey).toBe(beforeKey)
     const records = JSON.parse(localStorage.getItem(RECORDS_KEY))
-    expect(records.stage2Clears).toBe(1)
+    expect(records.stage3Clears).toBe(1)
   })
 
   it('Stage 1 run at or after 180 seconds counts toward Stage 2 unlock progress', () => {
@@ -234,5 +235,54 @@ describe('useGameStore run-end unlock evaluator', () => {
     useGameStore.getState().clearStage()
     expect(useGameStore.getState().phase).toBe('cleared')
     expect(useGameStore.getState().newlyUnlockedWeaponIds).toContain('compassBlade')
+  })
+})
+
+describe('더블 보스 클리어 게이팅 (stage3)', () => {
+  beforeEach(() => {
+    _resetRecords()
+    _resetUnlocks()
+    localStorage.removeItem('school_survivor:goldTotal')
+    useGameStore.getState().resetGame('stage3')
+    useGameStore.setState({ elapsedMs: 150_000 })
+  })
+
+  it('spawnBoss 2회 → bossAliveCount 2, 첫 보스 처치는 클리어하지 않고 카운트만 감소', () => {
+    useGameStore.getState().spawnBoss()
+    useGameStore.getState().spawnBoss()
+    expect(useGameStore.getState().bossAliveCount).toBe(2)
+    expect(useGameStore.getState().bossSpawned).toBe(true)
+
+    // 첫 보스 처치 — 아직 한 기 생존 → 클리어 미루고 카운트만 감소.
+    useGameStore.getState().clearStageWithBossBonus()
+    expect(useGameStore.getState().phase).toBe('playing')
+    expect(useGameStore.getState().bossAliveCount).toBe(1)
+    expect(useGameStore.getState().bossBonus).toBe(0)
+
+    // 마지막 보스 처치 — 이제 클리어 + 보너스.
+    useGameStore.getState().clearStageWithBossBonus()
+    expect(useGameStore.getState().phase).toBe('cleared')
+    expect(useGameStore.getState().bossAliveCount).toBe(0)
+    expect(useGameStore.getState().bossBonus).toBeGreaterThan(0)
+  })
+
+  it('단일 보스(stage1/2)는 spawnBoss 1회 → 즉시 클리어(기존 거동 불변)', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({ elapsedMs: 130_000 })
+    useGameStore.getState().spawnBoss()
+    expect(useGameStore.getState().bossAliveCount).toBe(1)
+
+    useGameStore.getState().clearStageWithBossBonus()
+    expect(useGameStore.getState().phase).toBe('cleared')
+    expect(useGameStore.getState().bossBonus).toBeGreaterThan(0)
+  })
+
+  it('resetGame은 bossAliveCount를 0으로 되돌린다', () => {
+    useGameStore.getState().spawnBoss()
+    useGameStore.getState().spawnBoss()
+    expect(useGameStore.getState().bossAliveCount).toBe(2)
+    useGameStore.getState().resetGame('stage3')
+    expect(useGameStore.getState().bossAliveCount).toBe(0)
+    expect(useGameStore.getState().bossSpawned).toBe(false)
   })
 })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canE04FireProjectile, getStage2E04Cap } from './stage2ProjectileRules.js'
+import { canE04FireProjectile, getStage2E04Cap, getE04Cap } from './stage2ProjectileRules.js'
 
 describe('stage 2 E04 projectile rules', () => {
   it('blocks E04 before the 72 second introduction window', () => {
@@ -53,5 +53,17 @@ describe('stage 2 E04 projectile rules', () => {
     expect(getStage2E04Cap(120)).toBe(2)
     expect(getStage2E04Cap(200)).toBe(2)
     expect(getStage2E04Cap(220)).toBe(2)
+  })
+
+  it('getE04Cap: stage2는 기존 상한을 위임(불변), stage3는 조기·다구간용으로 상향', () => {
+    // stage2 위임 — getStage2E04Cap와 동일.
+    expect(getE04Cap(80, 'stage2')).toBe(1)
+    expect(getE04Cap(120, 'stage2')).toBe(2)
+    expect(getE04Cap(80)).toBe(1)  // 기본 stageId=stage2
+    // stage3 — 132s 전 2기, 이후 3기.
+    expect(getE04Cap(50, 'stage3')).toBe(2)
+    expect(getE04Cap(131, 'stage3')).toBe(2)
+    expect(getE04Cap(132, 'stage3')).toBe(3)
+    expect(getE04Cap(220, 'stage3')).toBe(3)
   })
 })

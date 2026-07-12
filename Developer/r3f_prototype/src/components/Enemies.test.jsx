@@ -199,6 +199,33 @@ describe('stage 2 total-HP relief (x0.8)', () => {
     expect(stage2HpOverride('B01', 'stage1')).toBeUndefined()
     expect(stage2HpOverride('NOPE', 'stage2')).toBeUndefined()
   })
+
+  it('leaves stage 3 at full HP (x1.0 — no relief override)', () => {
+    // D4: stage3는 HP 완화 미적용(×1.0). override가 없어야 실효 +25%(스2 ×0.8 대비)가 성립.
+    expect(stage2HpOverride('E02', 'stage3')).toBeUndefined()
+    expect(stage2HpOverride('E06', 'stage3')).toBeUndefined()
+    expect(stage2HpOverride('B01', 'stage3')).toBeUndefined()
+    expect(stage2HpOverride('B02', 'stage3')).toBeUndefined()
+  })
+})
+
+describe('stage 3 total-war wiring', () => {
+  it('runs the stage3 total-war timeline with early-introduced E04/E05/E06', () => {
+    const phases = getWavePhasesForStage('stage3')
+    expect(phases).toHaveLength(12)
+    expect(phases.find((p) => p.weights.E04).start).toBe(34)
+    expect(phases.find((p) => p.weights.E05).start).toBe(52)
+    expect(phases.find((p) => p.weights.E06).start).toBe(108)
+  })
+
+  it('revives formation bursts at runtime for stage3 (unlike stage1/stage2 boss-only)', () => {
+    const runtime = getBurstEventsForStage('stage3')
+    // 형태 버스트가 데이터에 존재하고 런타임 목록에도 남는다(스폰 엔진이 formation 분기 처리).
+    expect(runtime.some((e) => e.formation)).toBe(true)
+    // 더블 보스가 스태거로 두 개(B02 135 / B01 147).
+    const bosses = runtime.filter((e) => e.type === 'B01' || e.type === 'B02')
+    expect(bosses.map((e) => e.sec).sort((a, b) => a - b)).toEqual([135, 147])
+  })
 })
 
 describe('enemy spawn placement', () => {

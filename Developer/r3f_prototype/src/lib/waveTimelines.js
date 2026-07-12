@@ -50,10 +50,56 @@ export const STAGE2_WAVE_PHASES = [
   { start: 224, end: 240, target: 25, weights: { E02: 0.20, E03: 0.40, E04: 0.12, E05: 0.28 } },
 ]
 
+// 4분(240초) 타임라인 — 스테이지3 "총력전/혼돈".
+// 상승 레버: (a) HP 완화 없음(×1.0, 스2 ×0.8 대비 실효 +25%),
+//            (b) E04/E05/E06 조기 도입 + 후반 3축 겹침,
+//            (c) 더블 보스 B01+B02(burstEvents에서 파생, B02~135/B01~147 스태거).
+// weights 합 = 1.00. 상승은 마릿수가 아니라 질적 요소(HP·조기도입·동시성·더블보스)에서 온다.
+// 설계 정본: Developer/agent_room/levelmini_stage3_wave_balance_design_2026-07-11.md §2.
+export const STAGE3_WAVE_PHASES = [
+  // 0:00–0:16 도입 — 온보딩 16s 압축(스1 40s·스2 24s). 첫 웨이브부터 러너 섞기.
+  { start:   0, end:  16, target: 20, weights: { E01: 0.85, E03: 0.15 } },
+  // 0:16–0:34 러너 강화 + 탱커 조기 등장
+  { start:  16, end:  34, target: 24, weights: { E01: 0.62, E03: 0.22, E02: 0.16 } },
+  // 0:34–0:52 원거리 E04 조기 도입(스2는 72s)
+  { start:  34, end:  52, target: 26, weights: { E01: 0.50, E03: 0.22, E02: 0.18, E04: 0.10 } },
+  // 0:52–1:12 차저 E05 조기 도입(스2는 120s) — 4종 동시
+  { start:  52, end:  72, target: 28, weights: { E01: 0.42, E03: 0.18, E02: 0.18, E05: 0.14, E04: 0.08 } },
+  // 1:12–1:32 3축 첫 맛보기(근접+원거리+차저) — E06만 아직
+  { start:  72, end:  92, target: 30, weights: { E01: 0.34, E03: 0.16, E02: 0.20, E05: 0.18, E04: 0.12 } },
+  // 1:32–1:48 탱커 호흡(거대 등장 직전 이완) — 탱커벽으로 리듬 전환
+  { start:  92, end: 108, target: 20, weights: { E01: 0.30, E02: 0.45, E05: 0.20, E04: 0.05 } },
+  // 1:48–2:12 거대 E06 조기 도입(스2는 168s) — 시그니처 3축 겹침 시작
+  { start: 108, end: 132, target: 30, weights: { E01: 0.26, E03: 0.10, E02: 0.22, E05: 0.22, E06: 0.12, E04: 0.08 } },
+  // 2:12–2:30 보스 직전 피크 — 최대 복합 위협(거대+차저+원거리+탱커)
+  { start: 132, end: 150, target: 32, weights: { E01: 0.20, E03: 0.10, E02: 0.20, E05: 0.25, E06: 0.15, E04: 0.10 } },
+  // ── 더블 보스 B02~135/B01~147(burstEvents) 등장 후 보스 구간(isBossPhase는 min=135에서 파생) ──
+  // 2:30–2:52 보스 구간 1 — 잡몹 target 급감(보스 집중), 원거리 견제 유지
+  { start: 150, end: 172, target: 16, weights: { E01: 0.34, E02: 0.28, E05: 0.20, E04: 0.18 } },
+  // 2:52–3:16 보스 구간 2 — 탱커/차저 재구성, 거대 소량 재투입(미조우 바닥)
+  { start: 172, end: 196, target: 20, weights: { E01: 0.30, E02: 0.34, E05: 0.24, E06: 0.06, E04: 0.06 } },
+  // 3:16–3:38 마틸다 예고/등장 구간 — 원거리 제거(가독성), 킷 연료 위주
+  { start: 196, end: 218, target: 18, weights: { E01: 0.40, E02: 0.32, E05: 0.28 } },
+  // 3:38–4:00 탈출 스프린트 — 혼돈 마무리, E01 다수로 포탈까지 밀고 나갈 여지
+  { start: 218, end: 240, target: 22, weights: { E01: 0.44, E02: 0.28, E05: 0.20, E04: 0.08 } },
+]
+
 export function getDefaultWavePhases(stageId = 'stage1') {
-  return stageId === 'stage2' ? STAGE2_WAVE_PHASES : WAVE_PHASES
+  if (stageId === 'stage2') return STAGE2_WAVE_PHASES
+  if (stageId === 'stage3') return STAGE3_WAVE_PHASES
+  return WAVE_PHASES
 }
 
-// 형태 버스트는 2026-07-11 웨이브 개편에서 런타임 발화를 중단했다.
+// 형태 버스트는 2026-07-11 웨이브 개편에서 stage2 런타임 발화를 중단했다.
 // HUD가 실제로 발생하지 않는 공격을 예고하지 않도록 빈 목록을 유지한다.
 export const STAGE2_SPAWN_TELEGRAPHS = []
+
+// 스테이지3 형태 버스트 예고 배너 정본. stage2와 달리 stage3는 형태 버스트가 런타임에
+// 실제로 발화하므로(getRuntimeBurstEventsForStage에서 되살림) 이 예고는 허위 배너가 아니다.
+// sec/label은 STAGE3_BURST_EVENTS의 formation 항목과 정렬. HUD stage3 배선은 uimini 후속.
+export const STAGE3_SPAWN_TELEGRAPHS = [
+  { sec:  44, leadSec: 2.5, label: '사방에서 포위된다' },      // ring
+  { sec:  92, leadSec: 2.5, label: '양쪽에서 조여온다' },      // pincer
+  { sec: 120, leadSec: 2.5, label: '돌진 무리 돌입' },         // swarm
+  { sec: 176, leadSec: 2.5, label: '거대 무리가 길을 막는다' }, // gauntlet
+]

@@ -135,6 +135,9 @@ export const useGameStore = create(
     elapsedMs:   0,
     currentStageId: DEFAULT_STAGE_ID,
     bossSpawned: false,
+    // 현재 생존 중인 보스 수. 더블 보스(stage3) 클리어 게이팅에 쓴다 — 마지막 보스 처치 시에만 클리어.
+    // 단일 보스(stage1/2)는 spawnBoss 1회 → 1, 처치 시 0 → 즉시 클리어(기존 거동 불변).
+    bossAliveCount: 0,
     escapePortalActive: false,
     matildaSpawned: false,
     bossBonus: 0,
@@ -460,16 +463,24 @@ export const useGameStore = create(
       return true
     },
 
-    // 보스
-    spawnBoss: () => set({ bossSpawned: true }),
+    // 보스 — 스폰마다 생존 보스 수 +1(더블 보스는 두 번 호출). bossSpawned는 최초 등장 표식(HUD 경고 해제 등).
+    spawnBoss: () => set((s) => ({ bossSpawned: true, bossAliveCount: s.bossAliveCount + 1 })),
 
     activateEscapePortal: () => set({ escapePortalActive: true }),
     spawnMatilda: () => set({ matildaSpawned: true }),
 
-    // B01 격퇴 시 호출 — 그 시점 총점의 20%를 bossBonus로 저장 후 클리어
+    // 보스 격퇴 시 호출(Enemy.jsx). 그 시점 총점의 20%를 bossBonus로 저장 후 클리어.
+    // 더블 보스(stage3): 아직 살아있는 보스가 남으면 클리어를 미루고 카운트만 감소 —
+    // 마지막 보스를 처치해 bossAliveCount가 0이 될 때만 실제 클리어/보너스를 진행한다.
     clearStageWithBossBonus: () => {
       const s = get()
       if (s.phase !== 'playing') return
+      const remaining = Math.max(0, s.bossAliveCount - 1)
+      if (remaining > 0) {
+        set({ bossAliveCount: remaining })
+        return
+      }
+      set({ bossAliveCount: 0 })
       const policy = getRankingScorePolicy()
       const survivalSec = Math.floor(s.elapsedMs / 1000)
       const stageBonus = policy.stageBonus?.[s.currentStageId] ?? STAGE_BONUS[s.currentStageId] ?? 0
@@ -518,6 +529,7 @@ export const useGameStore = create(
         elapsedMs:   0,
         currentStageId: getStageConfig(stageId).id,
         bossSpawned: false,
+        bossAliveCount: 0,
         escapePortalActive: false,
         matildaSpawned: false,
         bossBonus: 0,

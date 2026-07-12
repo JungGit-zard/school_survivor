@@ -46,13 +46,43 @@ export const STAGE2_BURST_EVENTS = [
   { sec: 176, type: 'E05', count:  4, formation: 'swarm' },   // 돌진 무리 (168–192 위상)
 ]
 
+// 4분 타임라인 — 스테이지3 "총력전/혼돈".
+// 더블 보스 B02(135)/B01(147) 스태거 = balanceqa 권고(동시 협공 돌진 완화 + 처치창 확대).
+// getBossSpawnSec=min=135에서 보스 구간이 파생된다.
+// stage1/stage2와 달리 stage3는 형태/그룹 버스트가 런타임에 실제 발화한다(아래 getRuntimeBurstEventsForStage).
+// 설계 정본: Developer/agent_room/levelmini_stage3_wave_balance_design_2026-07-11.md §4-1.
+export const STAGE3_BURST_EVENTS = [
+  { sec:   0, type: 'E01', count: 12 },                         // 온보딩 초기 밀도
+  { sec:  16, type: 'E03', count:  4 },                         // 러너 조기 압박
+  { sec:  34, type: 'E04', count:  1 },                         // 원거리 조기 등장 신호
+  { sec:  52, type: 'E05', count:  2 },                         // 차저 조기 등장 신호
+  { sec: 108, type: 'E06', count:  1 },                         // 거대 조기 등장 보장
+  { sec: 132, type: 'E06', count:  1 },                         // 피크 거대 1기 추가(미조우 방어)
+  // ── 더블 보스 스태거: B02 먼저(135), B01 나중(147) → warn/charge 위상차로 동시 협공 돌진 완화 ──
+  { sec: 135, type: 'B02', count:  1 },
+  { sec: 147, type: 'B01', count:  1 },
+  { sec: 196, type: 'E05', count:  3 },                         // 마틸다 직전 차저 러시
+  // ── 형태(formation) 버스트 — 개방 아레나 포위/협공. 예고 정본 STAGE3_SPAWN_TELEGRAPHS ──
+  { sec:  44, type: 'E03', count:  6, formation: 'ring' },      // 첫 완전 포위
+  { sec:  92, type: 'E02', count:  6, formation: 'pincer' },    // 탱커 호흡 구간 협공
+  { sec: 120, type: 'E05', count:  4, formation: 'swarm' },     // 거대 구간 차저 무리
+  { sec: 176, type: 'E06', count:  2, formation: 'gauntlet' },  // 보스 구간 거대 건틀릿
+]
+
 export function getBurstEventsForStage(stageId) {
-  return stageId === 'stage2' ? STAGE2_BURST_EVENTS : BURST_EVENTS
+  if (stageId === 'stage2') return STAGE2_BURST_EVENTS
+  if (stageId === 'stage3') return STAGE3_BURST_EVENTS
+  return BURST_EVENTS
 }
 
-// 일반 좀비 물량은 랜덤 간격 웨이브가 전담한다. 현재 런타임 버스트는 보스 등장만 사용한다.
+// 런타임 버스트 발화 대상.
+// - stage1/stage2: 물량은 랜덤 간격 웨이브가 전담하므로 보스 등장만 버스트로 발화한다(거동 불변).
+// - stage3: 형태/그룹 버스트를 되살려 "개방 아레나 포위(ring/gauntlet)" + 조기 등장 보장 +
+//   더블 보스 스태거를 모두 발화한다(스폰 엔진이 formation/보스/그룹을 분기 처리).
 export function getRuntimeBurstEventsForStage(stageId) {
-  return getBurstEventsForStage(stageId).filter((event) => BOSS_BURST_TYPES.includes(event.type))
+  const events = getBurstEventsForStage(stageId)
+  if (stageId === 'stage3') return events
+  return events.filter((event) => BOSS_BURST_TYPES.includes(event.type))
 }
 
 // 보스(B01/B02) 등장 시각 — 없으면 Infinity. 보스 구간 파생의 단일 소스.

@@ -534,7 +534,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       const stageConfig = getStageConfig(currentStageId)
       const bossPressureStartSec = stageConfig.bossWarningSec ?? 120
       const bossPressureEndSec = stageConfig.escapePortalSec ?? 150
-      const canFire = currentStageId === 'stage2' && canE04FireProjectile({
+      const canFire = (currentStageId === 'stage2' || currentStageId === 'stage3') && canE04FireProjectile({
         elapsedSec,
         ageMs: now - spawnedAtRef.current,
         activeProjectileCount: type === 'E04' ? getActiveE04ProjectileCount() : projectiles.length,

@@ -62,9 +62,35 @@ describe('stage configuration registry', () => {
     expect(isStageUnlocked('stage2', { stage1Survival180Runs: 2 })).toBe(false)
   })
 
-  it('maps portal progression from stage 1 to stage 2 only', () => {
+  it('defines stage 3 as a 240 second gymnasium total-war stage with double boss', () => {
+    expect(getStageDurationSec('stage3')).toBe(240)
+    expect(getStageConfig('stage3')).toMatchObject({
+      id: 'stage3',
+      label: 'Stage 3',
+      clearRecordKey: 'stage3Clears',
+      bestRecordKey: 'stage3BestSurvivalSec',
+      e04IntroSec: 34,
+      escapePortalSec: 240,
+      bossWarningSec: 129,
+      matildaWarningSec: 210,
+      matildaSec: 220,
+    })
+    // 개방형 아레나 근사 정사각 경계(threemini가 이 값으로 체육관 맵 구성).
+    expect(getStageBounds('stage3')).toMatchObject({ halfX: 18, halfZ: 18 })
+    // 대표 bossType(실제 2기는 burstEvents 소스).
+    expect(getStageBossType('stage3')).toBe('B01')
+  })
+
+  it('unlocks stage 3 after one stage 2 clear', () => {
+    expect(isStageUnlocked('stage3', {})).toBe(false)
+    expect(isStageUnlocked('stage3', { stage2Clears: 1 })).toBe(true)
+    expect(isStageUnlocked('stage3', { stage1Clears: 5 })).toBe(false)
+  })
+
+  it('maps portal progression stage 1 -> stage 2 -> stage 3, then ends', () => {
     expect(getNextStageId('stage1')).toBe('stage2')
-    expect(getNextStageId('stage2')).toBeNull()
+    expect(getNextStageId('stage2')).toBe('stage3')
+    expect(getNextStageId('stage3')).toBeNull()
   })
 
   it('keeps Stage 1 classroom vertical length at the 20 percent reduced layout', () => {

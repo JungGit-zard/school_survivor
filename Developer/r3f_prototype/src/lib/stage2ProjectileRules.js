@@ -10,6 +10,16 @@ export function getStage2E04Cap(elapsedSec) {
   return 2
 }
 
+// stage-aware 동시 E04 상한. stage2는 기존 거동 불변(getStage2E04Cap 위임).
+// stage3는 E04를 조기·다구간 고비중으로 배치하므로(웨이브 34s부터) 상한을 살짝 높이되
+// 원거리 과밀을 막는다: 132s 전 2기, 이후 3기.
+export function getE04Cap(elapsedSec, stageId = 'stage2') {
+  if (stageId === 'stage3') {
+    return elapsedSec < 132 ? 2 : 3
+  }
+  return getStage2E04Cap(elapsedSec)
+}
+
 export function canE04FireProjectile({
   elapsedSec,
   ageMs,

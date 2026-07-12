@@ -4,7 +4,7 @@
 
 export const STORAGE_KEY = 'school_survivor:playerRecords'
 
-// 누적 기록 13키 (스테이지별 기록 포함). weapon_expansion_unlock_plan_2026-05-10.md §3-2.
+// 누적 기록 15키 (스테이지별 기록 포함). weapon_expansion_unlock_plan_2026-05-10.md §3-2.
 export const RECORD_KEYS = [
   'totalRuns',
   'totalKills',
@@ -15,6 +15,8 @@ export const RECORD_KEYS = [
   'stage1Survival180Runs',
   'stage2Clears',
   'stage2BestSurvivalSec',
+  'stage3Clears',
+  'stage3BestSurvivalSec',
   'bossKills',
   'totalLevelUps',
   'totalPickups',
