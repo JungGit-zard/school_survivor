@@ -1219,14 +1219,16 @@ const styles = {
   hpNum:   { color: uiPalette.paperLight, fontSize: 12, fontWeight: 800, width: 60, textAlign: 'right', textShadow: `0 1px 2px ${uiPalette.ink}` },
   xpRow: {
     position: 'absolute', top: 0, left: 0,
-    width: '100%', height: 5,
-    background: 'rgba(0,0,0,0.35)',
+    width: '100%', height: 9,
+    background: 'rgba(10,8,14,0.78)',
+    boxShadow: 'inset 0 -1px 0 rgba(255,255,255,0.18)',
     pointerEvents: 'none',
     zIndex: 5,
   },
   xpFill: {
     height: '100%',
-    background: '#60d060',
+    background: 'linear-gradient(180deg, #8af07e 0%, #4cc44c 100%)',
+    boxShadow: '0 0 6px rgba(96,224,96,0.8)',
     transition: 'width 0.15s',
   },
   barBg: {
