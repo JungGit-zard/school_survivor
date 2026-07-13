@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { TITLE_SCENE_DIRECTION } from './TitleScene3D.jsx'
+import * as THREE from 'three'
+import { TITLE_SCENE_DIRECTION, applyClubLightFrame } from './TitleScene3D.jsx'
 
 describe('TitleScene3D direction', () => {
   it('uses the referenced pink-haired school survivor look', () => {
@@ -23,6 +24,12 @@ describe('TitleScene3D direction', () => {
       zombieStudents: 5,
       bossZombies: 2,
       matildaPursuers: 1,
+      clubLights: {
+        beams: 2,
+        palette: ['cyan', 'magenta'],
+        animated: true,
+        dynamicLights: 1,
+      },
       realForegroundResources: [
         'PlayerMesh',
         'ZombieMesh',
@@ -32,6 +39,42 @@ describe('TitleScene3D direction', () => {
         'UnconsciousStudent',
       ],
     })
+  })
+
+  it('adds lightweight animated club beams behind the title without shadow lights', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('function ClubLightRig({ reducedEffects })')
+    expect(source).toContain('function ClubLightBeam')
+    expect(source).toContain('THREE.AdditiveBlending')
+    expect(source).toContain('<ClubLightRig reducedEffects={reducedEffects} />')
+    expect(source).toContain('const CLUB_LIGHT_BEAMS = [')
+    expect(source).toContain('<pointLight ref={washRef}')
+    expect(source).toContain('if (reducedEffects)')
+    expect(source).not.toMatch(/<pointLight ref=\{washRef\}[^>]*castShadow/)
+  })
+
+  it('freezes the club lights in reduced-effects mode and resumes animation', () => {
+    const beamStates = Array.from({ length: 2 }, () => ({
+      node: { rotation: { z: 99 } },
+      beamMat: { opacity: 99 },
+      coreMat: { opacity: 99 },
+    }))
+    const wash = { color: new THREE.Color(), intensity: 99 }
+
+    applyClubLightFrame(beamStates, wash, 3, true)
+
+    expect(beamStates.map(({ node }) => node.rotation.z)).toEqual([0.13, -0.13])
+    expect(beamStates.map(({ beamMat }) => beamMat.opacity)).toEqual([0.065, 0.065])
+    expect(beamStates.map(({ coreMat }) => coreMat.opacity)).toEqual([0.08, 0.08])
+    expect(wash.intensity).toBe(0.45)
+
+    applyClubLightFrame(beamStates, wash, 3, false)
+
+    expect(beamStates[0].node.rotation.z).not.toBe(0.13)
+    expect(beamStates[0].beamMat.opacity).not.toBe(0.065)
+    expect(beamStates[0].coreMat.opacity).not.toBe(0.08)
+    expect(wash.intensity).not.toBe(0.45)
   })
 
   it('uses the real Matilda model upright and facing the player in the pursuing enemy group', () => {

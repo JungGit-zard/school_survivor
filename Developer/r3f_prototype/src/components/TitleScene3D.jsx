@@ -1,7 +1,7 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { inflateScale, outlineMat, toonMat } from '../lib/toon.js'
+import { getCachedBoxGeo, getCachedToonMat, inflateScale, outlineMat, toonMat } from '../lib/toon.js'
 import MatildaMesh from './MatildaMesh.jsx'
 import PlayerMesh from './PlayerMesh.jsx'
 import ZombieMesh from './ZombieMesh.jsx'
@@ -9,6 +9,13 @@ import StudioTunedGroup, { getStudioTransformProps } from './StudioTunedGroup.js
 import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'
 
 const TITLE_PLAYER_TARGET = [0.48, 0.08]
+const CLUB_LIGHT_BEAMS = [
+  { color: 0x59c7ff, position: [-2.35, 5.7, -5.15], angle: 0.13, phase: 0 },
+  { color: 0xd64fa8, position: [2.4, 5.8, -5.2], angle: -0.13, phase: Math.PI },
+]
+const CLUB_WASH_CYAN = new THREE.Color(0x59c7ff)
+const CLUB_WASH_MAGENTA = new THREE.Color(0xa278ad)
+const CLUB_LIGHT_HOUSING_GEO = getCachedBoxGeo(0.42, 0.28, 0.34)
 
 export const TITLE_SCENE_DIRECTION = {
   player: {
@@ -27,6 +34,12 @@ export const TITLE_SCENE_DIRECTION = {
     zombieStudents: 5,
     bossZombies: 2,
     matildaPursuers: 1,
+    clubLights: {
+      beams: 2,
+      palette: ['cyan', 'magenta'],
+      animated: true,
+      dynamicLights: 1,
+    },
     realForegroundResources: [
       'PlayerMesh',
       'ZombieMesh',
@@ -210,6 +223,122 @@ function WarningLight({ position, delay }) {
   )
 }
 
+function ClubLightBeam({ config, register }) {
+  const housingMat = useMemo(() => getCachedToonMat(0x17131e, 0.06), [])
+  const beamMat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: config.color,
+    transparent: true,
+    opacity: 0.11,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
+    toneMapped: false,
+    forceSinglePass: true,
+  }), [config.color])
+  const coreMat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: config.color,
+    transparent: true,
+    opacity: 0.16,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
+    toneMapped: false,
+    forceSinglePass: true,
+  }), [config.color])
+  const lensMat = useMemo(() => new THREE.MeshBasicMaterial({
+    color: config.color,
+    transparent: true,
+    opacity: 0.88,
+    blending: THREE.AdditiveBlending,
+    toneMapped: false,
+  }), [config.color])
+
+  useEffect(() => () => {
+    beamMat.dispose()
+    coreMat.dispose()
+    lensMat.dispose()
+  }, [beamMat, coreMat, lensMat])
+
+  return (
+    <group
+      ref={(node) => register(node ? { node, beamMat, coreMat } : null)}
+      position={config.position}
+      rotation={[0, 0, config.angle]}
+    >
+      <mesh position={[0, -2.3, 0]} material={beamMat} renderOrder={-1}>
+        <coneGeometry args={[1.18, 4.6, 10, 1, true]} />
+      </mesh>
+      <mesh position={[0, -2.15, 0.015]} material={coreMat}>
+        <coneGeometry args={[0.46, 4.3, 8, 1, true]} />
+      </mesh>
+      <mesh position={[0, 0.05, 0.04]} geometry={CLUB_LIGHT_HOUSING_GEO} material={housingMat} />
+      <mesh position={[0, -0.12, 0.19]} rotation={[Math.PI / 2, 0, 0]} material={lensMat}>
+        <circleGeometry args={[0.13, 12]} />
+      </mesh>
+    </group>
+  )
+}
+
+export function applyClubLightFrame(beamStates, wash, elapsedTime, reducedEffects) {
+  CLUB_LIGHT_BEAMS.forEach((config, index) => {
+    const beamState = beamStates[index]
+    if (!beamState) return
+
+    if (reducedEffects) {
+      beamState.node.rotation.z = config.angle
+      beamState.beamMat.opacity = 0.065
+      beamState.coreMat.opacity = 0.08
+      return
+    }
+
+    beamState.node.rotation.z = config.angle + Math.sin(elapsedTime * 1.05 + config.phase) * 0.08
+    beamState.beamMat.opacity = 0.1 + Math.sin(elapsedTime * 1.3 + config.phase) * 0.025
+    beamState.coreMat.opacity = 0.145 + Math.sin(elapsedTime * 1.15 + config.phase) * 0.035
+  })
+
+  if (!wash) return
+  if (reducedEffects) {
+    wash.color.lerpColors(CLUB_WASH_CYAN, CLUB_WASH_MAGENTA, 0.5)
+    wash.intensity = 0.45
+    return
+  }
+
+  const mix = (Math.sin(elapsedTime * 0.72) + 1) * 0.5
+  wash.color.lerpColors(CLUB_WASH_CYAN, CLUB_WASH_MAGENTA, mix)
+  wash.intensity = 0.7 + Math.sin(elapsedTime * 1.15) * 0.16
+}
+
+function ClubLightRig({ reducedEffects }) {
+  const beamStates = useRef([])
+  const washRef = useRef()
+  const reducedAppliedRef = useRef(false)
+
+  useFrame((state) => {
+    if (reducedEffects) {
+      if (reducedAppliedRef.current) return
+      applyClubLightFrame(beamStates.current, washRef.current, state.clock.elapsedTime, true)
+      reducedAppliedRef.current = true
+      return
+    }
+
+    reducedAppliedRef.current = false
+    applyClubLightFrame(beamStates.current, washRef.current, state.clock.elapsedTime, false)
+  })
+
+  return (
+    <>
+      {CLUB_LIGHT_BEAMS.map((config, index) => (
+        <ClubLightBeam
+          key={config.color}
+          config={config}
+          register={(beamState) => { beamStates.current[index] = beamState }}
+        />
+      ))}
+      <pointLight ref={washRef} position={[0, 3.8, -3.8]} intensity={0.7} distance={7} decay={2} />
+    </>
+  )
+}
+
 function ExitGlow() {
   const ref = useRef()
   const poolRef = useRef()
@@ -233,7 +362,7 @@ function ExitGlow() {
   )
 }
 
-export default function TitleScene3D({ studioGroupRef = null, studioTuning = null }) {
+export default function TitleScene3D({ studioGroupRef = null, studioTuning = null, reducedEffects = false }) {
   const floorMat = useMemo(() => toonMat(0x4a4054, 0.05), [])
   const wallMat = useMemo(() => toonMat(0x2d2738, 0.05), [])
   const doorMat = useMemo(() => toonMat(0x805947, 0.05), [])
@@ -260,6 +389,7 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
         <boxGeometry args={[3.4, 2.6, 0.32]} />
       </mesh>
 
+      <ClubLightRig reducedEffects={reducedEffects} />
       <ExitGlow />
       <ToonBox position={[-1.45, 2.72, -4.25]} scale={[0.18, 0.18, 0.12]} color={0xfff3ba} emissive={0.2} />
       <ToonBox position={[1.45, 2.72, -4.25]} scale={[0.18, 0.18, 0.12]} color={0xfff3ba} emissive={0.2} />
