@@ -18,6 +18,16 @@ describe('useGameStore player hit feedback', () => {
     expect(state.player.hitFlashToken).toBe(before + 1)
   })
 
+  it('triangle ruler damage removes 30% of remaining HP even during invulnerability', () => {
+    useGameStore.getState().damagePlayer(10)
+    const hpBeforeRuler = useGameStore.getState().player.hp
+    expect(useGameStore.getState().player.invulnerable).toBe(true)
+
+    useGameStore.getState().damagePlayerWithTriangleRuler()
+
+    expect(useGameStore.getState().player.hp).toBeCloseTo(hpBeforeRuler * 0.7)
+  })
+
   describe('vibration on hit', () => {
     let vibrate
     const setVibration = (on) =>

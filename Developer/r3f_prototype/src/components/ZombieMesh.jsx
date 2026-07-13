@@ -6,6 +6,7 @@ import { getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
 import boss02FaceUrl from '../assets/enemies/boss_02.webp'
 import MatildaMesh from './MatildaMesh.jsx'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
+import { TRIANGLE_RULER_SWING_MS, TRIANGLE_RULER_SWING_RADIANS } from '../lib/bossTriangleRuler.js'
 
 // 타입별 색상 팔레트
 export const ZOMBIE_PALETTE = {
@@ -34,6 +35,8 @@ export const B01_BOSS_VISUAL_PALETTE = {
   pupil: 0x141414,
   mouth: 0x3a1210,
   teeth: 0xefe8c9,
+  ruler: 0xf4c542,
+  rulerHighlight: 0xfff1a8,
 }
 
 export const B01_BOSS_VISUAL_PARTS = [
@@ -47,7 +50,16 @@ export const B01_BOSS_VISUAL_PARTS = [
   'blackShoes',
   'forwardArms',
   'raggedTears',
+  'triangleRuler',
 ]
+
+export const B01_TRIANGLE_RULER_LAYOUT = {
+  pivot: [0, 0.44, 0.04],
+  offsetX: 0.78,
+  upright: { size: [0.14, 1.62, 0.12], position: [0, 0, 0] },
+  base: { size: [1.58, 0.14, 0.12], position: [0.72, -0.74, 0] },
+  diagonal: { size: [0.14, 2.12, 0.12], position: [0.72, 0, 0], rotation: [0, 0, -0.75] },
+}
 
 export const B01_BOSS_FACE_LAYOUT = {
   leftEye: { size: [0.12, 0.09, 0.035], position: [-0.14, 0.05, 0.265], color: 'dark' },
@@ -147,7 +159,23 @@ function ZBlock({ name, studioPartId, size, position, rotation, color, emissive 
   )
 }
 
-function B01BossZombieMesh({ hitFlash, reg }) {
+function B01TriangleRuler({ hitFlash, reg, visible }) {
+  const pal = B01_BOSS_VISUAL_PALETTE
+  const layout = B01_TRIANGLE_RULER_LAYOUT
+
+  return (
+    <group ref={reg('ruler')} visible={visible} position={layout.pivot}>
+      <group name="b01TriangleRuler" position={[layout.offsetX, 0, 0]}>
+        <ZBlock studioPartId="b01-triangle-ruler-upright" {...layout.upright} color={pal.ruler} emissive={0.24} outlineScale={1.08} flash={hitFlash} />
+        <ZBlock studioPartId="b01-triangle-ruler-base" {...layout.base} color={pal.ruler} emissive={0.24} outlineScale={1.08} flash={hitFlash} />
+        <ZBlock studioPartId="b01-triangle-ruler-diagonal" {...layout.diagonal} color={pal.ruler} emissive={0.24} outlineScale={1.08} flash={hitFlash} />
+        <ZBlock size={[0.18, 0.18, 0.13]} position={[0, -0.72, 0]} color={pal.rulerHighlight} emissive={0.30} outlineScale={1.05} flash={hitFlash} />
+      </group>
+    </group>
+  )
+}
+
+function B01BossZombieMesh({ hitFlash, reg, animPhase }) {
   const pal = B01_BOSS_VISUAL_PALETTE
   const face = B01_BOSS_FACE_LAYOUT
 
@@ -199,6 +227,11 @@ function B01BossZombieMesh({ hitFlash, reg }) {
         <ZBlock size={[0.25, 0.12, 0.35]} position={[0, -0.57, 0.05]} color={pal.shoe} emissive={0.04} outlineScale={1.03} flash={hitFlash} />
         <ZBlock size={[0.09, 0.13, 0.05]} position={[0.08, -0.35, 0.17]} rotation={[0, 0, -0.2]} color={pal.skinShadow} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
       </group>
+      <B01TriangleRuler
+        hitFlash={hitFlash}
+        reg={reg}
+        visible={animPhase === 'rulerWindup' || animPhase === 'rulerSwing'}
+      />
     </group>
   )
 }
@@ -356,6 +389,7 @@ function ZombieOuterOutline() {
 export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false, frozen = false }) {
   const p    = useRef({})
   const pal  = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
+  const rulerSwingProgressRef = useRef(0)
 
   // 안정적인 ref 콜백 — 매 렌더마다 새 함수 생성 방지
   const regRef = useRef(null)
@@ -394,11 +428,39 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     })
   }, [frozen, type])
 
+  useEffect(() => {
+    if (animPhase === 'rulerSwing') rulerSwingProgressRef.current = 0
+  }, [animPhase])
+
   useFrame((state, delta) => {
     if (frozen) return
     const pt = p.current
     if (!pt.legL) return
     const t = state.clock.elapsedTime
+
+    if (animPhase === 'rulerWindup' || animPhase === 'rulerSwing') {
+      if (pt.body) {
+        pt.body.scale.setScalar(1)
+        pt.body.rotation.x += (-0.12 - pt.body.rotation.x) * Math.min(1, delta * 12)
+      }
+      pt.legL.rotation.x *= 0.75
+      pt.legR.rotation.x *= 0.75
+      pt.armL.rotation.x += (-0.82 - pt.armL.rotation.x) * Math.min(1, delta * 12)
+      pt.armR.rotation.x += (-0.55 - pt.armR.rotation.x) * Math.min(1, delta * 12)
+      pt.armR.rotation.z += (-0.95 - pt.armR.rotation.z) * Math.min(1, delta * 14)
+      if (pt.ruler) {
+        if (animPhase === 'rulerWindup') {
+          pt.ruler.rotation.y += (-1.15 - pt.ruler.rotation.y) * Math.min(1, delta * 16)
+          pt.ruler.rotation.z += (-0.18 - pt.ruler.rotation.z) * Math.min(1, delta * 12)
+        } else {
+          rulerSwingProgressRef.current = Math.min(1, rulerSwingProgressRef.current + delta * 1000 / TRIANGLE_RULER_SWING_MS)
+          const eased = 1 - Math.pow(1 - rulerSwingProgressRef.current, 3)
+          pt.ruler.rotation.y = -1.15 + eased * TRIANGLE_RULER_SWING_RADIANS
+          pt.ruler.rotation.z = -0.18 + Math.sin(eased * Math.PI) * 0.28
+        }
+      }
+      return
+    }
 
     // retreat: 역방향 뒷걸음 + 팔 크게 벌림 + 몸·머리 반응
     if (animPhase === 'retreat') {
@@ -482,7 +544,7 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
   if (type === 'B01') {
     return (
       <StudioTunedGroup itemId="zombie-b01">
-        <B01BossZombieMesh hitFlash={hitFlash} reg={reg} />
+        <B01BossZombieMesh hitFlash={hitFlash} reg={reg} animPhase={animPhase} />
       </StudioTunedGroup>
     )
   }

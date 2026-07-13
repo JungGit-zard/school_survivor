@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { ENEMY_STATS } from './Enemy.jsx'
-import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B02_TEACHER_BOSS_FACE, B02_TEACHER_BOSS_PALETTE, B02_TEACHER_BOSS_PARTS, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS } from './ZombieMesh.jsx'
+import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_TRIANGLE_RULER_LAYOUT, B02_TEACHER_BOSS_FACE, B02_TEACHER_BOSS_PALETTE, B02_TEACHER_BOSS_PARTS, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS } from './ZombieMesh.jsx'
 
 const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
 
@@ -32,7 +32,16 @@ describe('Stage 1 boss visual reference', () => {
       'blackShoes',
       'forwardArms',
       'raggedTears',
+      'triangleRuler',
     ])
+  })
+
+  it('builds a readable outlined triangle ruler for the post-charge swing', () => {
+    expect(B01_BOSS_VISUAL_PALETTE).toMatchObject({ ruler: 0xf4c542 })
+    expect(B01_TRIANGLE_RULER_LAYOUT.diagonal.size[1]).toBeGreaterThan(2)
+    expect(zombieMeshSource).toContain('name="b01TriangleRuler"')
+    expect(zombieMeshSource).toContain("animPhase === 'rulerWindup' || animPhase === 'rulerSwing'")
+    expect(zombieMeshSource).toContain('studioPartId="b01-triangle-ruler-diagonal"')
   })
 
   it('keeps the restored B01 face simple and readable', () => {
@@ -52,7 +61,7 @@ describe('Stage 1 boss visual reference', () => {
   })
 
   it('keeps the original B01 model separate from the PE teacher model', () => {
-    expect(zombieMeshSource).toContain('<B01BossZombieMesh hitFlash={hitFlash} reg={reg} />')
+    expect(zombieMeshSource).toContain('<B01BossZombieMesh hitFlash={hitFlash} reg={reg} animPhase={animPhase} />')
     expect(zombieMeshSource).toContain('<B03PhysicalEducationBossMesh hitFlash={hitFlash} reg={reg} />')
   })
 })

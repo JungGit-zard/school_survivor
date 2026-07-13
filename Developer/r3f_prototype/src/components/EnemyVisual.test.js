@@ -79,6 +79,16 @@ describe('Enemy charge warning cue', () => {
     expect(CHARGE_CUE_LAYOUT.parts.bang.size[1]).toBeGreaterThan(0.2)
   })
 
+  it('chains the Stage 1 B01 charge into one triangle-ruler swing with physical knockback', () => {
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain("chargeState.current = 'rulerWindup'")
+    expect(source).toContain("chargeState.current = 'rulerSwing'")
+    expect(source).toContain('damagePlayerWithTriangleRuler()')
+    expect(source).toContain('body.applyImpulse(getTriangleRulerKnockbackImpulse(t, target), true)')
+    expect(source).toContain('rulerPushedEnemyIdsRef.current.has(enemyId)')
+  })
+
   it('does not reintroduce the previous Html sprite cue', () => {
     const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
 

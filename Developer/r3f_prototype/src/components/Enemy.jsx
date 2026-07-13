@@ -19,6 +19,13 @@ import ZombieMesh from './ZombieMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 import EnemyProjectileVisual from './EnemyProjectileVisual.jsx'
 import { zombieVisualRegistry } from '../lib/zombieVisualRegistry.js'
+import {
+  TRIANGLE_RULER_SWING_MS,
+  TRIANGLE_RULER_WINDUP_MS,
+  canUseTriangleRulerUltimate,
+  getTriangleRulerKnockbackImpulse,
+  isInTriangleRulerRange,
+} from '../lib/bossTriangleRuler.js'
 
 const _dir = new THREE.Vector3()
 const _pos = new THREE.Vector3()
@@ -399,6 +406,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const stateTimer   = useRef(0)
   const matildaLaughRemainingRef = useRef(0)
   const chargeDir    = useRef(new THREE.Vector3())
+  const rulerHitPlayerRef = useRef(false)
+  const rulerPushedEnemyIdsRef = useRef(new Set())
 
   // E04 / B01 ?ъ궗泥?
   const [projectiles, setProjectiles] = useState([])
@@ -406,6 +415,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const lastFireRef = useRef(0)
 
   const damagePlayer = useGameStore((s) => s.damagePlayer)
+  const damagePlayerWithTriangleRuler = useGameStore((s) => s.damagePlayerWithTriangleRuler)
   const phase        = useGameStore((s) => s.phase)
   const currentStageId = useGameStore((s) => s.currentStageId)
   const sightObstacles = useMemo(() => getStageObjectSightObstacles(currentStageId), [currentStageId])
@@ -573,7 +583,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       dirZ: _dir.z,
       speed: stats.speed,
     })
-    if (sightBlockedVelocity) {
+    if (sightBlockedVelocity && (!stats.charger || chargeState.current === 'chase')) {
       _vel.x = sightBlockedVelocity.x
       _vel.y = 0
       _vel.z = sightBlockedVelocity.z
@@ -638,6 +648,23 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     // ?? E05 / B01 ?뚯쭊 ?곹깭 癒몄떊 ???????????????????????????????????????????
     if (stats.charger) {
       const now = performance.now()
+      const hasTriangleRulerUltimate = canUseTriangleRulerUltimate(type, currentStageId)
+
+      const finishCharge = () => {
+        stateTimer.current = now
+        _vel.x = 0
+        _vel.z = 0
+        rb.current.setLinvel(_vel, true)
+        if (hasTriangleRulerUltimate) {
+          chargeState.current = 'rulerWindup'
+          rulerHitPlayerRef.current = false
+          rulerPushedEnemyIdsRef.current.clear()
+          setAnimPhase('rulerWindup')
+          return
+        }
+        chargeState.current = 'stun'
+        setAnimPhase('stun')
+      }
 
       _vel.y = 0
       if (isMatilda) {
@@ -720,17 +747,41 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
         if (dist < getChargeHitDistance(stats, isMatilda)) {
           damagePlayer(stats.damage)
-          chargeState.current = 'stun'
-          stateTimer.current = now
-          setAnimPhase('stun')
-          _vel.x = 0; _vel.z = 0
-          rb.current.setLinvel(_vel, true)
+          finishCharge()
         } else if (now - stateTimer.current > (stats.chargeDuration ?? 1200)) {
+          finishCharge()
+        }
+
+      } else if (chargeState.current === 'rulerWindup') {
+        _vel.x = 0; _vel.z = 0
+        rb.current.setLinvel(_vel, true)
+        if (now - stateTimer.current >= TRIANGLE_RULER_WINDUP_MS) {
+          chargeState.current = 'rulerSwing'
+          stateTimer.current = now
+          setAnimPhase('rulerSwing')
+        }
+
+      } else if (chargeState.current === 'rulerSwing') {
+        _vel.x = 0; _vel.z = 0
+        rb.current.setLinvel(_vel, true)
+
+        if (!rulerHitPlayerRef.current && isInTriangleRulerRange(t, playerPos)) {
+          rulerHitPlayerRef.current = true
+          damagePlayerWithTriangleRuler()
+        }
+
+        for (const [enemyId, body] of enemyBodies) {
+          if (enemyId === id || body?._enemyDead || rulerPushedEnemyIdsRef.current.has(enemyId)) continue
+          const target = body.translation()
+          if (!isInTriangleRulerRange(t, target)) continue
+          rulerPushedEnemyIdsRef.current.add(enemyId)
+          body.applyImpulse(getTriangleRulerKnockbackImpulse(t, target), true)
+        }
+
+        if (now - stateTimer.current >= TRIANGLE_RULER_SWING_MS) {
           chargeState.current = 'stun'
           stateTimer.current = now
           setAnimPhase('stun')
-          _vel.x = 0; _vel.z = 0
-          rb.current.setLinvel(_vel, true)
         }
 
       } else if (chargeState.current === 'stun') {

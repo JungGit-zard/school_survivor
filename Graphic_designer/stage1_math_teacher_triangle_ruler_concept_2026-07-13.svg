@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+  <rect width="960" height="540" fill="#17202a"/>
+  <text x="48" y="58" fill="#f4f1dc" font-family="sans-serif" font-size="26" font-weight="700">B01 수학 선생 — 삼각자 필살기 2D 콘셉트</text>
+  <g transform="translate(160 118)">
+    <path d="M40 310 L280 38 L520 310 Z" fill="#f4c542" stroke="#17120d" stroke-width="28" stroke-linejoin="round"/>
+    <path d="M150 260 L282 112 L410 260 Z" fill="#17202a" stroke="#17120d" stroke-width="15" stroke-linejoin="round"/>
+    <circle cx="82" cy="288" r="18" fill="#fff1a8" stroke="#17120d" stroke-width="9"/>
+  </g>
+  <g transform="translate(710 170)">
+    <path d="M0 170 A145 145 0 0 1 130 0" fill="none" stroke="#ff6b4a" stroke-width="20" stroke-linecap="round"/>
+    <path d="M118 -2 L152 4 L130 34 Z" fill="#ff6b4a"/>
+    <text x="-42" y="220" fill="#f4f1dc" font-family="sans-serif" font-size="22">오른쪽 뒤 준비</text>
+    <text x="-42" y="252" fill="#f4c542" font-family="sans-serif" font-size="22">→ 넓은 좌측 스윙</text>
+  </g>
+</svg>

@@ -21,6 +21,7 @@ import { useAuthStore } from './useAuthStore.js'
 import { getRankingScore, getRankingScorePolicy, STAGE_BONUS, CLEAR_BONUS } from '../lib/rankingScorePolicy.js'
 import { logDamageTaken } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
+import { getTriangleRulerDamage } from '../lib/bossTriangleRuler.js'
 
 const BASE_PLAYER = {
   hp: 100, maxHp: 100,
@@ -173,6 +174,17 @@ export const useGameStore = create(
       vibrateFeedback(18)
       set({ player: { ...player, hp, invulnerable: true, hitFlashToken: player.hitFlashToken + 1 } })
       // 무적 해제는 Player.jsx의 useFrame에서 처리한다. setTimeout을 쓰지 않는다.
+    },
+
+    damagePlayerWithTriangleRuler: () => {
+      const { player, phase } = get()
+      if (phase !== 'playing' || player.hp <= 0) return
+      const amount = getTriangleRulerDamage(player.hp)
+      const hp = player.hp - amount
+      logDamageTaken(amount, hp)
+      emitSfx({ id: 'playerHit' })
+      vibrateFeedback(18)
+      set({ player: { ...player, hp, invulnerable: true, hitFlashToken: player.hitFlashToken + 1 } })
     },
 
     endInvulnerable: () => set((s) => ({ player: { ...s.player, invulnerable: false } })),
