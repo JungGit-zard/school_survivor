@@ -16,12 +16,16 @@ import {
   getWaveSpawnSeconds,
   nextWaveInterval,
   nextWaveTimeForStage,
+  midWaveTimeForStage,
+  midWaveSize,
+  getMidpointSpawnSeconds,
+  bossEscortSize,
   stageHpOverride,
   WAVE_INTERVAL_SEC,
   WAVE_INTERVAL_MIN_SEC,
   WAVE_INTERVAL_MAX_SEC,
 } from './Enemies.jsx'
-import { STAGE2_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
+import { STAGE2_SPAWN_TELEGRAPHS, STAGE2_WAVE_PHASES, STAGE3_WAVE_PHASES } from '../lib/waveTimelines.js'
 import { getBurstEventsForStage as burstsForStage } from '../lib/burstEvents.js'
 import { ENEMY_STATS, getActiveE04ProjectileCount, resetActiveE04ProjectileCountForTest } from './Enemy.jsx'
 import { playerPos } from '../lib/refs.js'
@@ -195,6 +199,73 @@ describe('random-interval discrete wave scheduler', () => {
       expect(size).toBeGreaterThanOrEqual(12)
       expect(size).toBeLessThanOrEqual(17)
     })
+  })
+})
+
+describe('stage 1 midpoint reinforcement spawns', () => {
+  it('schedules a reinforcement at the exact midpoint between two stage1 waves only', () => {
+    expect(midWaveTimeForStage(0, 30, 'stage1')).toBe(15)
+    expect(midWaveTimeForStage(30, 60, 'stage1')).toBe(45)
+    // 스2/스3는 중간 보강 없음 → Infinity(스케줄러가 발화하지 않는 센티넬).
+    expect(midWaveTimeForStage(0, 30, 'stage2')).toBe(Infinity)
+    expect(midWaveTimeForStage(0, 30, 'stage3')).toBe(Infinity)
+  })
+
+  it('sizes the reinforcement at half the main wave, minimum one', () => {
+    // 본 웨이브 크기(target×0.5)의 다시 절반. target 24 → wave 12 → mid 6.
+    expect(midWaveSize({ target: 24 })).toBe(6)
+    expect(midWaveSize({ target: 34 })).toBe(9)   // wave 17 → 9
+    expect(midWaveSize({ target: 15 })).toBe(4)   // wave 8 → 4
+    expect(midWaveSize({ target: 11 })).toBe(3)   // wave 6 → 3
+    // 빈 보강 방지: 아주 작은/누락 phase도 최소 1.
+    expect(midWaveSize({ target: 1 })).toBe(1)
+    expect(midWaveSize({ target: 0 })).toBe(1)
+    expect(midWaveSize(undefined)).toBe(1)
+  })
+
+  it('derives stage1 midpoints strictly interleaved with the wave schedule', () => {
+    // random 0.5 → 항상 30초 간격. 웨이브 0,30,…,210 → 보강은 정확히 그 사이 15,45,…,225.
+    expect(getMidpointSpawnSeconds(WAVE_PHASES, 'stage1', () => 0.5))
+      .toEqual([15, 45, 75, 105, 135, 165, 195, 225])
+
+    // 임의(변동) 간격에서도 각 보강 시점은 인접 웨이브 사이에 정확히 놓인다.
+    const rolls = [0, 0.5, 1, 0.25, 0.75, 0.4, 0.9, 0.1]
+    let i = 0
+    const random = () => rolls[i++ % rolls.length]
+    const waves = getWaveSpawnSeconds(WAVE_PHASES, random)
+    i = 0
+    const mids = getMidpointSpawnSeconds(WAVE_PHASES, 'stage1', random)
+    mids.forEach((mid, k) => {
+      expect(mid).toBeGreaterThan(waves[k])
+      expect(mid).toBeLessThan(waves[k + 1])
+    })
+  })
+
+  it('produces no midpoint reinforcements for stage2 or stage3', () => {
+    expect(getMidpointSpawnSeconds(STAGE2_WAVE_PHASES, 'stage2', () => 0.5)).toEqual([])
+    expect(getMidpointSpawnSeconds(STAGE3_WAVE_PHASES, 'stage3', () => 0.5)).toEqual([])
+  })
+})
+
+describe('boss entrance escort wave', () => {
+  it('spawns one full stage1 wave alongside the B01 boss at 120s', () => {
+    // 120s 활성 phase(start 120, target 24) → 한 웨이브 분량 12마리.
+    expect(bossEscortSize('stage1', WAVE_PHASES, 120)).toBe(12)
+  })
+
+  it('adds no escort on stage2/stage3 bosses (their boss phases are separately tuned)', () => {
+    expect(bossEscortSize('stage2', STAGE2_WAVE_PHASES, 120)).toBe(0)
+    expect(bossEscortSize('stage3', STAGE3_WAVE_PHASES, 135)).toBe(0)
+    expect(bossEscortSize('stage3', STAGE3_WAVE_PHASES, 147)).toBe(0)
+  })
+
+  it('wires the boss escort and midpoint reinforcement into the spawn frame loop', () => {
+    const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    // 보스 브랜치가 호위 물량을 buildWaveBatch로 함께 스폰한다.
+    expect(source).toContain('bossEscortSize(currentStageId, wavePhases, evt.sec)')
+    // 웨이브 예약 시 중간 보강 시각을 함께 예약하고, 도달 시 발화한다.
+    expect(source).toContain('nextMidTimeRef.current = midWaveTimeForStage(waveTime, nextTime, currentStageId)')
+    expect(source).toContain('midWaveSize(phase)')
   })
 })
 

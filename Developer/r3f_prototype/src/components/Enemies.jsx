@@ -343,6 +343,48 @@ export function getWaveSpawnSeconds(phases, random = Math.random, stageId = 'sta
   return secs
 }
 
+// ── 스테이지1 보강 스폰(2026-07-13) ───────────────────────────────────────
+// 스1은 20~40초 랜덤 웨이브 사이가 비어 초반 밀도가 헐겁다. 웨이브 사이 '정중앙'에
+// 본 웨이브의 절반 크기 보조 물량을 1회 더 흘려 빈 구간을 채운다. 첫 보강은 t=0
+// 웨이브와 두 번째 웨이브 사이(≈10~20초)라 "스테이지1의 처음" 구간도 함께 덮는다.
+// 스2/스3는 타임라인·보스가 개별 튜닝돼 있어 대상에서 제외한다(순수 함수가 게이트).
+const MID_WAVE_SIZE_FACTOR = 0.5  // 본 웨이브 대비 보조 물량 비율
+
+// 중간 보강 스폰 시각 = 이번 웨이브와 다음 웨이브의 정중앙. stage1만 유효(그 외 Infinity=없음).
+export function midWaveTimeForStage(waveTime, nextTime, stageId) {
+  if (stageId !== 'stage1') return Infinity
+  return (waveTime + nextTime) / 2
+}
+
+// 보강 물량 = 본 웨이브 크기 × 0.5 (반올림, 최소 1).
+export function midWaveSize(phase) {
+  return Math.max(1, Math.round(waveSizeForPhase(phase) * MID_WAVE_SIZE_FACTOR))
+}
+
+// 중간 보강 스폰 시각 목록 — 웨이브 스케줄과 동일 random으로 파생하는 순수 함수(테스트/미리보기용).
+// stage1이 아니면 빈 목록(보강 스폰 없음).
+export function getMidpointSpawnSeconds(phases, stageId = 'stage1', random = Math.random) {
+  if (stageId !== 'stage1') return []
+  const lastEnd = phases?.[phases.length - 1]?.end ?? 0
+  const secs = []
+  let t = 0
+  while (t < lastEnd) {
+    const next = nextWaveTimeForStage(t, stageId, random)
+    const mid = midWaveTimeForStage(t, next, stageId)
+    if (mid < lastEnd) secs.push(mid)
+    t = next
+  }
+  return secs
+}
+
+// 보스 등장과 동시에 함께 스폰할 호위 웨이브 크기. stage1만 한 웨이브 분량, 그 외 0(제외).
+// 스2/스3 보스 구간은 target을 별도로 낮춰 튜닝했으므로 호위를 얹지 않는다.
+export function bossEscortSize(stageId, wavePhases, bossSec) {
+  if (stageId !== 'stage1') return 0
+  const phase = wavePhases.findLast((p) => bossSec >= p.start) ?? wavePhases[0]
+  return waveSizeForStageAtTime(phase, stageId, bossSec)
+}
+
 // 스테이지 상승 HP 곡선 정본(2026-07-12): stage1 기준으로 스테이지가 오를 때마다 총체력 +20%.
 // stage1 ×1.0(오버라이드 없음) / stage2 ×1.2 / stage3 ×1.44. 잡몹 E01~E06 + 보스 전부 적용.
 // 마틸다(탈출 추격자)는 별도 동적 statOverride를 쓰므로 여기 대상 아님.
@@ -393,6 +435,7 @@ export default function Enemies() {
   const enemiesRef                = useRef([])
   const firedBurstsRef            = useRef(new Set())
   const nextWaveTimeRef          = useRef(0)
+  const nextMidTimeRef           = useRef(Infinity)  // stage1 중간 보강 스폰 예약 시각(웨이브가 예약)
   const goldTimerRef              = useRef(nextGoldInterval())
 
   const spawnBoss      = useGameStore((s) => s.spawnBoss)
@@ -403,6 +446,28 @@ export default function Enemies() {
     enemiesRef.current.push(...newList)
     setEnemies([...enemiesRef.current])
   }, [])
+
+  // 한 phase의 weights로 size만큼 좀비 배치를 생성(E04 상한/스폰 위치 규칙 공유).
+  // 웨이브·중간 보강·보스 호위가 모두 이 배치 빌더를 재사용한다(중복 로직 제거).
+  const buildWaveBatch = useCallback((phase, size, sec, bounds) => {
+    const batch = []
+    for (let i = 0; i < size; i++) {
+      let type = pickTypeByWeight(phase.weights)
+      if ((currentStageId === 'stage2' || currentStageId === 'stage3') && type === 'E04') {
+        const currentE04Count =
+          enemiesRef.current.filter((e) => e.type === 'E04').length +
+          batch.filter((e) => e.type === 'E04').length
+        if (currentE04Count >= getE04Cap(sec, currentStageId)) {
+          type = pickTypeByWeightExcluding(phase.weights, 'E04')
+          if (!type) continue
+        }
+      }
+      const taken = batch.map((e) => e.pos)
+      const pos = type === 'E04' ? rangedSpawnPos(bounds, taken) : randomSpawnPos(type, bounds, taken)
+      batch.push({ id: ++_uid, type, pos, statOverride: stageHpOverride(type, currentStageId) })
+    }
+    return batch
+  }, [currentStageId])
 
   // 마틸다 스폰 — matildaSpawned가 true로 바뀌는 순간 1회만 실행
   useEffect(() => {
@@ -475,6 +540,8 @@ export default function Enemies() {
   usePlayingFrame((_, delta) => {
     const sec = useGameStore.getState().elapsedMs / 1000
     const bounds = getStageBounds(currentStageId)
+    const wavePhases = getWavePhasesForStage(currentStageId)
+    const lastEnd = wavePhases[wavePhases.length - 1]?.end ?? 0
 
     goldTimerRef.current -= delta * 1000
     if (goldTimerRef.current <= 0) {
@@ -496,7 +563,14 @@ export default function Enemies() {
       // (bossSpawned 가드 제거: 두 번째 보스가 막히지 않도록. 1회성은 firedBurstsRef가 보장.)
       if (evt.type === 'B01' || evt.type === 'B02' || evt.type === 'B03') {
         spawnBoss()
-        addEnemies([{ id: ++_uid, type: evt.type, pos: randomSpawnPos(evt.type, bounds), statOverride: stageHpOverride(evt.type, currentStageId) }])
+        const bossBatch = [{ id: ++_uid, type: evt.type, pos: randomSpawnPos(evt.type, bounds), statOverride: stageHpOverride(evt.type, currentStageId) }]
+        // 보스 등장과 동시에 한 웨이브 분량의 좀비를 함께 스폰(stage1 한정 — bossEscortSize가 스2/스3는 0 반환).
+        const escortSize = bossEscortSize(currentStageId, wavePhases, evt.sec)
+        if (escortSize > 0) {
+          const bossPhase = wavePhases.findLast((p) => evt.sec >= p.start) ?? wavePhases[0]
+          bossBatch.push(...buildWaveBatch(bossPhase, escortSize, sec, bounds))
+        }
+        addEnemies(bossBatch)
         return
       }
 
@@ -521,33 +595,27 @@ export default function Enemies() {
     // 첫 웨이브 t=0, 이후 직전 발화 + 20~40초 랜덤 간격(마지막 phase.end 미만). 각 웨이브 = 활성 phase target × 0.5 마리.
     // 활성 phase는 발화 시각(waveTime) 기준 findLast로 결정한다.
     // 축소된 스폰 링(4.0~6.5) 안 화면 내 위치에 360° 흩어져 '펑' 리빌로 등장(Enemy가 처리).
-    const wavePhases = getWavePhasesForStage(currentStageId)
-    const lastEnd = wavePhases[wavePhases.length - 1]?.end ?? 0
     while (
       nextWaveTimeRef.current < lastEnd &&
       sec >= nextWaveTimeRef.current
     ) {
       const waveTime = nextWaveTimeRef.current
-      nextWaveTimeRef.current = nextWaveTimeForStage(waveTime, currentStageId)
+      const nextTime = nextWaveTimeForStage(waveTime, currentStageId)
+      nextWaveTimeRef.current = nextTime
+      // stage1: 이번 웨이브와 다음 웨이브 정중앙에 보강 스폰을 예약한다(그 외 stageId는 Infinity=미예약).
+      nextMidTimeRef.current = midWaveTimeForStage(waveTime, nextTime, currentStageId)
       const phase = wavePhases.findLast((p) => waveTime >= p.start) ?? wavePhases[0]
       const waveSize = waveSizeForStageAtTime(phase, currentStageId, waveTime)
-      const newBatch = []
-      for (let i = 0; i < waveSize; i++) {
-        let type = pickTypeByWeight(phase.weights)
-        if ((currentStageId === 'stage2' || currentStageId === 'stage3') && type === 'E04') {
-          const currentE04Count =
-            enemiesRef.current.filter((e) => e.type === 'E04').length +
-            newBatch.filter((e) => e.type === 'E04').length
-          if (currentE04Count >= getE04Cap(sec, currentStageId)) {
-            type = pickTypeByWeightExcluding(phase.weights, 'E04')
-            if (!type) continue
-          }
-        }
-        const taken = newBatch.map((e) => e.pos)
-        const pos = type === 'E04' ? rangedSpawnPos(bounds, taken) : randomSpawnPos(type, bounds, taken)
-        newBatch.push({ id: ++_uid, type, pos, statOverride: stageHpOverride(type, currentStageId) })
-      }
-      addEnemies(newBatch)
+      addEnemies(buildWaveBatch(phase, waveSize, sec, bounds))
+    }
+
+    // stage1 중간 보강 스폰 — 예약된 정중앙 시점 도달 시 본 웨이브 절반 크기로 1회 흘린다.
+    // (midWaveTimeForStage가 stage1만 유한값을 예약하므로 다른 스테이지에선 Infinity라 발화하지 않는다.)
+    if (nextMidTimeRef.current < lastEnd && sec >= nextMidTimeRef.current) {
+      const midTime = nextMidTimeRef.current
+      nextMidTimeRef.current = Infinity  // 1회 발화 후 소진; 다음 웨이브가 다시 예약한다.
+      const phase = wavePhases.findLast((p) => midTime >= p.start) ?? wavePhases[0]
+      addEnemies(buildWaveBatch(phase, midWaveSize(phase), sec, bounds))
     }
   })
 
