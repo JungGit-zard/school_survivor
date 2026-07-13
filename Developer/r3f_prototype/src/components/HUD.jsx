@@ -691,11 +691,10 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
           탈출구가 나타났다!
         </div>
       )}
-      {/* Top bar */}
+      {/* Top bar — 스테이지 번호 + 시간만 한 줄 */}
       <div style={styles.topBar}>
-        <div style={styles.stageChip}>{stageConfig.label}</div>
-        <div style={styles.timer}>{mins}:{secs}</div>
-        <div style={styles.level}>Lv.{player.level}</div>
+        <span style={styles.stageChip}>{stageConfig.label}</span>
+        <span style={styles.timer}>{mins}:{secs}</span>
       </div>
 
       {/* HP bar */}
@@ -1009,14 +1008,8 @@ const styles = {
     fontFamily: uiType.family, userSelect: 'none',
   },
   topBar: {
-    position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%) rotate(-0.4deg)',
-    display: 'flex', gap: 12, alignItems: 'center',
-    minHeight: 40,
-    padding: '5px 12px',
-    border: uiBorders.strong,
-    borderRadius: 8,
-    background: 'rgba(24,55,47,0.88)',
-    boxShadow: uiShadows.pressSmall,
+    position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)',
+    display: 'flex', gap: 10, alignItems: 'center',
     pointerEvents: 'auto',
   },
   milestoneToast: {
@@ -1167,47 +1160,39 @@ const styles = {
   },
   stageChip: {
     color: uiPalette.reward,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: uiType.weightHeavy,
-    textShadow: `0 2px 0 ${uiPalette.ink}`,
+    lineHeight: 1,
+    whiteSpace: 'nowrap',
+    textShadow: '0 1px 3px rgba(0,0,0,0.85)',
   },
   timer: {
     color: uiPalette.paperLight,
     fontFamily: uiType.numeric,
-    fontSize: 27,
+    fontSize: 22,
     fontWeight: uiType.weightHeavy,
     lineHeight: 1,
-    textShadow: `0 2px 0 ${uiPalette.ink}`,
-  },
-  level: {
-    padding: '3px 7px',
-    border: uiBorders.strong,
-    borderRadius: 999,
-    background: uiPalette.reward,
-    color: uiPalette.ink,
-    fontSize: 17,
-    fontWeight: uiType.weightHeavy,
-    lineHeight: 1,
-    boxShadow: uiShadows.pressSmall,
+    whiteSpace: 'nowrap',
+    textShadow: '0 1px 3px rgba(0,0,0,0.85)',
   },
   goldChip: {
     position: 'absolute',
-    top: 16, right: 16,
-    display: 'flex', alignItems: 'center', gap: 6,
-    background: uiPalette.reward,
-    border: uiBorders.strong,
-    borderRadius: 14,
-    padding: '4px 10px',
-    boxShadow: uiShadows.pressSmall,
+    top: 14, right: 14,
+    display: 'flex', alignItems: 'center', gap: 5,
     pointerEvents: 'auto',
   },
   goldDot: {
-    width: 14, height: 14, borderRadius: '50%',
+    width: 13, height: 13, borderRadius: '50%',
     background: 'radial-gradient(circle at 35% 35%, #fff5b0 0%, #ffd23c 55%, #aa7000 100%)',
-    border: `1.5px solid ${uiPalette.ink}`,
+    border: '1px solid rgba(5,2,9,0.6)',
     flexShrink: 0,
   },
-  goldNum: { color: uiPalette.ink, fontSize: 16, fontWeight: uiType.weightHeavy, textShadow: 'none' },
+  goldNum: {
+    color: uiPalette.reward,
+    fontSize: 15,
+    fontWeight: uiType.weightHeavy,
+    textShadow: '0 1px 3px rgba(0,0,0,0.85)',
+  },
   hpRow: {
     position: 'absolute', bottom: 30, left: '50%', transform: 'translateX(-50%)',
     display: 'flex', alignItems: 'center', gap: 8,
