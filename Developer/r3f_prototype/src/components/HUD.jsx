@@ -629,6 +629,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         100%{opacity:1;backdrop-filter:grayscale(1);-webkit-backdrop-filter:grayscale(1)}
       }
       @keyframes studentDialoguePop { 0%{transform:scale(0);opacity:0.4} 70%{transform:scale(1.04)} 100%{transform:scale(1);opacity:1} }
+      @keyframes levelupCardPop { 0%{opacity:0;transform:translateY(14px) scale(0.92)} 100%{opacity:1;transform:translateY(0) scale(1)} }
     `
     // StrictMode에서 cleanup이 먼저 실행돼 style이 제거될 수 있으므로
     // 항상 교체(remove → append) 방식으로 주입한다.
@@ -711,11 +712,9 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         <span style={styles.hpNum}>{player.hp}/{player.maxHp}</span>
       </div>
 
-      {/* XP bar */}
+      {/* XP bar — 화면 최상단 전체 폭 얇은 스트립 */}
       <div style={styles.xpRow}>
-        <div style={styles.barBg}>
-          <div style={{ ...styles.barFill, width: `${(player.xp / player.xpToNext) * 100}%`, background: '#60d060' }} />
-        </div>
+        <div style={{ ...styles.xpFill, width: `${(player.xp / player.xpToNext) * 100}%` }} />
       </div>
 
       {/* Active weapon icons — HP바 위 가로 나열 */}
@@ -785,11 +784,15 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
           <div data-testid="levelup-upgrade-panel" style={styles.levelupPanel}>
             <h2 style={styles.levelupTitle}>레벨 업! Lv.{player.level}</h2>
             <div data-testid="levelup-upgrade-choices" style={styles.levelupChoices}>
-              {choices.map((c) => (
+              {choices.map((c, i) => (
                 <button
-                  key={c.key}
+                  key={`${levelUpChoiceSerial}-${c.key}`}
                   data-testid="levelup-upgrade-choice"
-                  style={styles.levelupChoiceBtn}
+                  style={{
+                    ...styles.levelupChoiceBtn,
+                    animation: 'levelupCardPop 0.15s ease-out both',
+                    animationDelay: `${i * 90}ms`,
+                  }}
                   onClick={() => applyUpgrade(c.key)}
                 >
                   <UpgradeIcon type={c.icon} />
@@ -1206,23 +1209,25 @@ const styles = {
   },
   goldNum: { color: uiPalette.ink, fontSize: 16, fontWeight: uiType.weightHeavy, textShadow: 'none' },
   hpRow: {
-    position: 'absolute', bottom: 52, left: '50%', transform: 'translateX(-50%)',
+    position: 'absolute', bottom: 30, left: '50%', transform: 'translateX(-50%)',
     display: 'flex', alignItems: 'center', gap: 8,
     width: 'calc(100% - 48px)', maxWidth: 320,
-    padding: '6px 9px',
-    border: uiBorders.strong,
-    borderRadius: 8,
-    background: 'rgba(246,234,208,0.86)',
-    boxShadow: uiShadows.pressSmall,
     boxSizing: 'border-box',
     pointerEvents: 'auto',
   },
-  hpLabel: { color: uiPalette.ink, fontSize: 13, fontWeight: uiType.weightHeavy, width: 22 },
-  hpNum:   { color: uiPalette.ink, fontSize: 12, fontWeight: 800, width: 60, textAlign: 'right' },
+  hpLabel: { color: uiPalette.paperLight, fontSize: 13, fontWeight: uiType.weightHeavy, width: 22, textShadow: `0 1px 2px ${uiPalette.ink}` },
+  hpNum:   { color: uiPalette.paperLight, fontSize: 12, fontWeight: 800, width: 60, textAlign: 'right', textShadow: `0 1px 2px ${uiPalette.ink}` },
   xpRow: {
-    position: 'absolute', bottom: 34, left: '50%', transform: 'translateX(-50%)',
-    width: 'calc(100% - 48px)', maxWidth: 320,
-    pointerEvents: 'auto',
+    position: 'absolute', top: 0, left: 0,
+    width: '100%', height: 5,
+    background: 'rgba(0,0,0,0.35)',
+    pointerEvents: 'none',
+    zIndex: 5,
+  },
+  xpFill: {
+    height: '100%',
+    background: '#60d060',
+    transition: 'width 0.15s',
   },
   barBg: {
     flex: 1,
@@ -1235,7 +1240,7 @@ const styles = {
   },
   barFill: { height: '100%', borderRadius: 5, transition: 'width 0.15s' },
   weaponIconBar: {
-    position: 'absolute', bottom: 86, left: '50%', transform: 'translateX(-50%)',
+    position: 'absolute', bottom: 64, left: '50%', transform: 'translateX(-50%)',
     display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center',
     pointerEvents: 'auto',
   },
@@ -1314,8 +1319,8 @@ const styles = {
   levelupOverlay: {
     position: 'absolute',
     left: '50%',
-    bottom: 18,
-    transform: 'translateX(-50%)',
+    top: '50%',
+    transform: 'translate(-50%, -50%)',
     width: 'min(760px, calc(100% - 24px))',
     display: 'flex',
     justifyContent: 'center',
