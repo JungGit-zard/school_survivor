@@ -193,12 +193,22 @@ export default function ClassroomFloor({ stageId = 'stage1' }) {
 function Stage3Arena({ stageId = 'stage3' }) {
   const { halfX, halfZ } = getStageBounds(stageId)
   const A = STAGE3_ARENA
+  // 코트 라인/페인트는 반드시 "바닥에 그려진" 것으로 보여야 한다(정본: 사용자 지시 2026-07-13).
+  // 이전 transparent+depthWrite:false+renderOrder 조합은 투명 패스에서 캐릭터 위에 덮여
+  // 라인이 허리높이에 떠 보였다. 불투명+깊이기록으로 캐릭터가 라인을 정상 가리게 하고,
+  // polygonOffset으로 바닥면과의 z-파이팅만 방지한다.
   const lineMat = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: A.courtLineColor, transparent: true, opacity: 0.9, depthWrite: false }),
+    () => new THREE.MeshBasicMaterial({
+      color: A.courtLineColor,
+      polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+    }),
     [],
   )
   const paintMat = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: A.keyPaintColor, transparent: true, opacity: 0.22, depthWrite: false }),
+    () => new THREE.MeshBasicMaterial({
+      color: A.keyPaintColor, transparent: true, opacity: 0.22,
+      polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1,
+    }),
     [],
   )
   const wallMat = useMemo(() => new THREE.MeshLambertMaterial({ color: A.wallColor }), [])
