@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="720" viewBox="0 0 1080 720">
+  <rect width="1080" height="720" fill="#17131f"/>
+  <text x="54" y="62" fill="#fff7e8" font-family="sans-serif" font-size="30" font-weight="700">타이틀 3D 그래픽 집결 — 2D 타이밍 시안</text>
+  <g font-family="sans-serif" text-anchor="middle">
+    <g transform="translate(40 105)">
+      <rect width="300" height="520" rx="24" fill="#211a2b" stroke="#ff8a3d" stroke-width="5"/>
+      <text x="150" y="48" fill="#ffb06c" font-size="24" font-weight="700">2.95초</text>
+      <text x="150" y="120" fill="#ff7f38" font-size="50" font-weight="900">탈출!</text>
+      <text x="150" y="176" fill="#fff" font-size="45" font-weight="900">좀비학교 🧟‍♀️</text>
+      <rect x="24" y="216" width="252" height="260" rx="14" fill="#0f0c15" stroke="#555066" stroke-dasharray="10 8"/>
+      <path d="M150 495v-76" stroke="#59c7ff" stroke-width="8" marker-end="url(#arrow)"/>
+      <text x="150" y="505" fill="#a8a2b8" font-size="18">3D 장면은 화면 아래 100vh 밖</text>
+    </g>
+    <g transform="translate(390 105)">
+      <rect width="300" height="520" rx="24" fill="#211a2b" stroke="#59c7ff" stroke-width="5"/>
+      <text x="150" y="48" fill="#8ddcff" font-size="24" font-weight="700">3.45초</text>
+      <text x="150" y="120" fill="#ff7f38" font-size="50" font-weight="900">탈출!</text>
+      <text x="150" y="176" fill="#fff" font-size="45" font-weight="900">좀비학교 🧟‍♀️</text>
+      <g transform="translate(28 255)" opacity=".75">
+        <rect width="244" height="220" rx="18" fill="#51435c"/>
+        <circle cx="122" cy="76" r="45" fill="#6d8d62"/>
+        <rect x="91" y="118" width="62" height="78" rx="12" fill="#ee4f4f"/>
+        <circle cx="55" cy="142" r="24" fill="#6b3fad"/>
+        <circle cx="200" cy="142" r="24" fill="#ba3f78"/>
+      </g>
+      <path d="M150 500v-80" stroke="#59c7ff" stroke-width="8" marker-end="url(#arrow)"/>
+      <text x="150" y="505" fill="#a8a2b8" font-size="18">장면 전체가 아래에서 집결</text>
+    </g>
+    <g transform="translate(740 105)">
+      <rect width="300" height="520" rx="24" fill="#211a2b" stroke="#d64fa8" stroke-width="5"/>
+      <text x="150" y="48" fill="#f294ca" font-size="24" font-weight="700">3.85초</text>
+      <text x="150" y="120" fill="#ff7f38" font-size="50" font-weight="900">탈출!</text>
+      <text x="150" y="176" fill="#fff" font-size="45" font-weight="900">좀비학교 🧟‍♀️</text>
+      <g transform="translate(28 210)">
+        <rect width="244" height="265" rx="18" fill="#51435c"/>
+        <path d="M15 0l50 210" stroke="#59c7ff" stroke-width="24" opacity=".45"/>
+        <path d="M230 0l-50 210" stroke="#d64fa8" stroke-width="24" opacity=".45"/>
+        <circle cx="122" cy="90" r="45" fill="#6d8d62"/>
+        <rect x="91" y="132" width="62" height="90" rx="12" fill="#ee4f4f"/>
+        <circle cx="48" cy="154" r="24" fill="#6b3fad"/>
+        <circle cx="203" cy="154" r="24" fill="#ba3f78"/>
+      </g>
+      <text x="150" y="505" fill="#a8a2b8" font-size="18">기존 3D 구도에 정확히 정착</text>
+    </g>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+      <path d="M0 0l10 5-10 5z" fill="#59c7ff"/>
+    </marker>
+  </defs>
+</svg>

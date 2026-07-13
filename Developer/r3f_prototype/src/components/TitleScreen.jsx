@@ -42,20 +42,21 @@ const TITLE_INTRO_CSS = `
     90% { opacity: 1; transform: translate3d(0, 3px, 0) rotate(0deg) scale(0.92); }
     100% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
   }
+  @keyframes titleSceneGather {
+    0% { opacity: 0; transform: translate3d(0, 105vh, 0); }
+    72% { opacity: 1; transform: translate3d(0, -2vh, 0); }
+    100% { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
   .title-intro-letter { animation: titleLetterSlam 520ms cubic-bezier(.16,.84,.28,1.08) backwards; }
   .title-intro-zombie { animation: titleZombieScurry 900ms ease-out backwards; }
-  @media (prefers-reduced-motion: reduce) {
-    .title-intro-letter, .title-intro-zombie { animation: none !important; opacity: 1 !important; transform: none !important; }
-  }
-  :root[data-reduced-effects] .title-intro-letter,
-  :root[data-reduced-effects] .title-intro-zombie { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .title-intro-scene { animation: titleSceneGather 850ms cubic-bezier(.16,.84,.28,1.04) backwards; }
 `
 
-function TitleLetter({ config, motionEnabled }) {
+function TitleLetter({ config }) {
   return (
     <span
       aria-hidden="true"
-      className={motionEnabled ? 'title-intro-letter' : undefined}
+      className="title-intro-letter"
       data-title-char={config.char}
       style={{
         ...styles.titleLetter,
@@ -85,14 +86,13 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle)
   const resetPassiveUpgrades = useGameStore((s) => s.resetPassiveUpgrades)
   const cheatBufferRef = useRef([])
-  const titleStyle = settings.reducedEffects ? styles.titleReduced : styles.title
-  const primaryButtonStyle = settings.reducedEffects ? styles.primaryButtonReduced : styles.primaryButton
   const adminOperations = getAdminOperationsConfig()
   const cheatMenuButtonVisible = devCheatsVisible && adminOperations.cheatMenuButtonVisible
 
-  // 타이틀 진입 시 저장된 연출 설정을 전역 톤에 반영(설정 편집 UI는 로비로 이관됨).
+  // 타이틀 연출은 항상 재생하고, 화면을 벗어날 때 저장된 전역 설정을 복원한다.
   useEffect(() => {
-    applyReducedEffects(settings.reducedEffects)
+    applyReducedEffects(false)
+    return () => applyReducedEffects(settings.reducedEffects)
   }, [settings.reducedEffects])
 
   // 타이틀 BGM: 마운트 시 루프 재생, 언마운트(게임 시작/로비 이동) 시 정지·정리.
@@ -271,12 +271,13 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
     <div style={styles.root}>
       <style data-title-intro-css>{TITLE_INTRO_CSS}</style>
       <Canvas
+        className="title-intro-scene"
         camera={{ fov: 34, position: [0, 6.8, 11.8], near: 0.1, far: 100 }}
         gl={{ stencil: true, antialias: true }}
         shadows
-        style={styles.canvas}
+        style={{ ...styles.canvas, animationDelay: '3000ms' }}
       >
-        <TitleScene3D reducedEffects={settings.reducedEffects} />
+        <TitleScene3D reducedEffects={false} />
       </Canvas>
 
       <div style={styles.tint} />
@@ -299,19 +300,19 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
       )}
       <div style={styles.content}>
         <div aria-hidden="true" data-title-service-name style={styles.serviceName}>탈출! 좀비학교</div>
-        <h1 aria-label="탈출! 좀비학교" style={titleStyle}>
+        <h1 aria-label="탈출! 좀비학교" style={styles.title}>
           <span style={{ ...styles.titleAccent, ...styles.titleWord }}>
             {TITLE_ACCENT_LETTERS.map((config) => (
-              <TitleLetter key={config.char} config={config} motionEnabled={!settings.reducedEffects} />
+              <TitleLetter key={config.char} config={config} />
             ))}
           </span>
           <span style={styles.titleWord}>
             {TITLE_SCHOOL_LETTERS.map((config) => (
-              <TitleLetter key={config.char} config={config} motionEnabled={!settings.reducedEffects} />
+              <TitleLetter key={config.char} config={config} />
             ))}
             <span
               aria-hidden="true"
-              className={settings.reducedEffects ? undefined : 'title-intro-zombie'}
+              className="title-intro-zombie"
               data-title-emoji
               style={{ ...styles.titleEmoji, animationDelay: '2050ms' }}
             >
@@ -324,7 +325,7 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
 
       <div style={styles.actions}>
         <div style={styles.mainActionStack}>
-          <button type="button" style={{ ...primaryButtonStyle, ...styles.mainActionButton }} onClick={handleStartClick}>
+          <button type="button" style={{ ...styles.primaryButton, ...styles.mainActionButton }} onClick={handleStartClick}>
             게임 시작
           </button>
         </div>
@@ -516,21 +517,6 @@ const styles = {
     WebkitTextFillColor: uiPalette.chalk,
     textShadow: '0 0 18px rgba(255,170,80,0.45), 0 0 30px rgba(65,116,90,0.42)',
   },
-  titleReduced: {
-    margin: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 0,
-    color: uiPalette.chalk,
-    fontSize: 'clamp(46.8px, 14.04vw, 65px)',
-    lineHeight: 0.96,
-    fontWeight: uiType.weightHeavy,
-    letterSpacing: 0,
-    WebkitTextFillColor: uiPalette.chalk,
-    textShadow: 'none',
-  },
   titleAccent: {
     color: uiPalette.warning,
     WebkitTextFillColor: uiPalette.warning,
@@ -599,14 +585,6 @@ const styles = {
     minHeight: 58,
     fontSize: 21,
     letterSpacing: 1,
-  },
-  primaryButtonReduced: {
-    ...schoolButton('primary'),
-    minHeight: 58,
-    background: uiPalette.cta,
-    color: uiPalette.ink,
-    fontSize: 20,
-    boxShadow: uiShadows.press,
   },
   cheatButtons: {
     display: 'grid',

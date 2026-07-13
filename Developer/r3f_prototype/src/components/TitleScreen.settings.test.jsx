@@ -15,7 +15,9 @@ import { useAuthStore, _resetAuthStoreForTests } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 
 vi.mock('@react-three/fiber', () => ({
-  Canvas: ({ children }) => <div data-testid="mock-canvas">{children}</div>,
+  Canvas: ({ children, className, style }) => (
+    <div data-testid="mock-canvas" className={className} style={style}>{children}</div>
+  ),
 }))
 
 vi.mock('./TitleScene3D.jsx', () => ({
@@ -42,15 +44,17 @@ afterEach(() => {
   resetWeaponUnlocks()
   _resetAuthStoreForTests()
   useGameStore.getState().resetPassiveUpgrades()
+  delete document.documentElement.dataset.reducedEffects
   vi.unstubAllGlobals()
 })
 
 describe('TitleScreen lobby entry', () => {
-  it('slams the title letters in the requested order and sends the zombie last', () => {
+  it('slams the title letters, sends the zombie, then gathers the 3D scene', () => {
     const { container, cleanup } = renderTitleScreen()
     const title = container.querySelector('h1[aria-label="탈출! 좀비학교"]')
     const letters = Array.from(title.querySelectorAll('[data-title-char]'))
     const emoji = title.querySelector('[data-title-emoji]')
+    const scene = container.querySelector('[data-testid="mock-canvas"]')
 
     expect(letters.map((node) => node.textContent).join('')).toBe('탈출!좀비학교')
     expect(letters
@@ -71,6 +75,10 @@ describe('TitleScreen lobby entry', () => {
     expect(parseFloat(emoji.style.animationDelay)).toBeGreaterThan(
       Math.max(...letters.map((node) => parseFloat(node.style.animationDelay))) + 520,
     )
+    expect(scene.classList.contains('title-intro-scene')).toBe(true)
+    expect(parseFloat(scene.style.animationDelay)).toBeGreaterThanOrEqual(
+      parseFloat(emoji.style.animationDelay) + 900,
+    )
     expect(container.querySelector('[data-title-service-name]').getAttribute('aria-hidden')).toBe('true')
 
     const motionCss = container.querySelector('style[data-title-intro-css]').textContent
@@ -78,23 +86,30 @@ describe('TitleScreen lobby entry', () => {
     expect(motionCss).toContain('scale(1.16)')
     expect(motionCss).toContain('scale(0.92)')
     expect(motionCss).toContain('@keyframes titleZombieScurry')
-    expect(motionCss).toContain('@media (prefers-reduced-motion: reduce)')
-    expect(motionCss).toContain('.title-intro-letter, .title-intro-zombie { animation: none !important; opacity: 1 !important; transform: none !important; }')
+    expect(motionCss).toContain('@keyframes titleSceneGather')
+    expect(motionCss).toContain('0% { opacity: 0; transform: translate3d(0, 105vh, 0); }')
+    expect(motionCss).toContain('.title-intro-scene')
+    expect(motionCss).not.toContain('@media (prefers-reduced-motion: reduce)')
+    expect(motionCss).not.toContain(':root[data-reduced-effects]')
 
     cleanup()
   })
 
-  it('passes the saved reduced-effects setting to the title scene', () => {
+  it('keeps title effects enabled and restores the saved reduced-effects setting on exit', () => {
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ reducedEffects: true }))
     const { container, cleanup } = renderTitleScreen()
 
-    expect(container.querySelector('[data-testid="mock-title-scene"]')?.dataset.reducedEffects).toBe('true')
-    expect(container.querySelectorAll('.title-intro-letter')).toHaveLength(0)
-    expect(container.querySelector('.title-intro-zombie')).toBeNull()
+    expect(container.querySelector('[data-testid="mock-title-scene"]')?.dataset.reducedEffects).toBe('false')
+    expect(container.querySelectorAll('.title-intro-letter')).toHaveLength(7)
+    expect(container.querySelector('.title-intro-zombie')).not.toBeNull()
     expect(container.querySelectorAll('[data-title-char]')).toHaveLength(7)
     expect(container.querySelector('[data-title-emoji]')).not.toBeNull()
+    expect(document.documentElement.dataset.reducedEffects).toBeUndefined()
+    expect(container.querySelector('h1').style.textShadow).not.toBe('none')
+    expect(Array.from(container.querySelectorAll('button')).find((button) => button.textContent === '게임 시작')?.style.fontSize).toBe('21px')
 
     cleanup()
+    expect(document.documentElement.dataset.reducedEffects).toBe('true')
   })
 
   it('keeps the hero title larger without the thin black stroke line', () => {
