@@ -43,7 +43,11 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
   }, [settings.reducedEffects])
 
   // 타이틀 BGM: 마운트 시 루프 재생, 언마운트(게임 시작/로비 이동) 시 정지·정리.
-  // autoplay 정책상 사용자 인터랙션 전 play()가 거부될 수 있어, 첫 pointerdown/keydown에서 1회 재시도한다.
+  // 새로고침 시 자동재생을 브라우저 정책 한도 내 최대로 시도한다:
+  //  1) 마운트 즉시 play() + 실패 시 300ms/1500ms 지연 재시도(Chrome MEI가 높을 때 첫 시도 레이스 커버)
+  //  2) 그래도 거부되면 첫 pointerdown/touchstart/keydown 제스처에서 재시도(모바일 사파리 포함)
+  //  3) 탭이 visible로 복귀할 때도 재시도
+  // 성공하면 리스너·타이머를 모두 정리하고, 언마운트 시에도 누수 없이 정리한다. 에러는 조용히 무시.
   useEffect(() => {
     let audio
     try {
@@ -54,35 +58,64 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
     audio.loop = true
     audio.volume = 0.5
 
+    let disposed = false
+    let playing = false
     let retryBound = false
+    const timers = []
+
+    const clearTimers = () => {
+      while (timers.length) clearTimeout(timers.pop())
+    }
     const unbindRetry = () => {
       if (!retryBound) return
       retryBound = false
       window.removeEventListener('pointerdown', tryPlay)
+      window.removeEventListener('touchstart', tryPlay)
       window.removeEventListener('keydown', tryPlay)
+      document.removeEventListener('visibilitychange', handleVisibility)
     }
     const bindRetry = () => {
-      if (retryBound) return
+      if (disposed || playing || retryBound) return
       retryBound = true
       window.addEventListener('pointerdown', tryPlay)
+      window.addEventListener('touchstart', tryPlay)
       window.addEventListener('keydown', tryPlay)
+      document.addEventListener('visibilitychange', handleVisibility)
+    }
+    const handleSuccess = () => {
+      if (disposed) return
+      playing = true
+      clearTimers()
+      unbindRetry()
+    }
+    function handleVisibility() {
+      if (document.visibilityState === 'visible') tryPlay()
     }
     function tryPlay() {
+      if (disposed || playing) return
       let result
       try {
         result = audio.play()
       } catch {
+        bindRetry()
         return
       }
       if (result && typeof result.then === 'function') {
-        result.then(unbindRetry).catch(bindRetry)
+        result.then(handleSuccess).catch(bindRetry)
       } else {
-        unbindRetry()
+        handleSuccess()
       }
     }
+
     tryPlay()
+    // 첫 시도가 autoplay 판정 레이스로 실패한 경우를 커버하는 지연 재시도.
+    for (const delay of [300, 1500]) {
+      timers.push(setTimeout(tryPlay, delay))
+    }
 
     return () => {
+      disposed = true
+      clearTimers()
       unbindRetry()
       try {
         audio.pause()
