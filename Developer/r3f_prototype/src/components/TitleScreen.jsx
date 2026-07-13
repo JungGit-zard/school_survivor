@@ -13,6 +13,7 @@ import {
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
+import titleBgmUrl from '../assets/audio/title_bgm.m4a'
 
 const REVEAL_CHEATS_CODE = ['arrowup', 'arrowdown', 'arrowup', 'arrowdown', 'a', 's', 'd']
 
@@ -40,6 +41,57 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
   useEffect(() => {
     applyReducedEffects(settings.reducedEffects)
   }, [settings.reducedEffects])
+
+  // 타이틀 BGM: 마운트 시 루프 재생, 언마운트(게임 시작/로비 이동) 시 정지·정리.
+  // autoplay 정책상 사용자 인터랙션 전 play()가 거부될 수 있어, 첫 pointerdown/keydown에서 1회 재시도한다.
+  useEffect(() => {
+    let audio
+    try {
+      audio = new Audio(titleBgmUrl)
+    } catch {
+      return undefined
+    }
+    audio.loop = true
+    audio.volume = 0.5
+
+    let retryBound = false
+    const unbindRetry = () => {
+      if (!retryBound) return
+      retryBound = false
+      window.removeEventListener('pointerdown', tryPlay)
+      window.removeEventListener('keydown', tryPlay)
+    }
+    const bindRetry = () => {
+      if (retryBound) return
+      retryBound = true
+      window.addEventListener('pointerdown', tryPlay)
+      window.addEventListener('keydown', tryPlay)
+    }
+    function tryPlay() {
+      let result
+      try {
+        result = audio.play()
+      } catch {
+        return
+      }
+      if (result && typeof result.then === 'function') {
+        result.then(unbindRetry).catch(bindRetry)
+      } else {
+        unbindRetry()
+      }
+    }
+    tryPlay()
+
+    return () => {
+      unbindRetry()
+      try {
+        audio.pause()
+        audio.src = ''
+      } catch {
+        // 정리 실패는 무시
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (!cheatOpen && !nicknameOpen) return undefined
