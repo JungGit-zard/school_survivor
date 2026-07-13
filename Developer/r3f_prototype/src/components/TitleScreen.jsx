@@ -57,6 +57,7 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
     }
     audio.loop = true
     audio.volume = 0.5
+    if (typeof window !== 'undefined') window.__titleBgm = audio
 
     let disposed = false
     let playing = false
