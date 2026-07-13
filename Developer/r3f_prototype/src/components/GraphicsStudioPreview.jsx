@@ -12,6 +12,7 @@ import XpOrb from './XpOrb.jsx'
 import { LunchModel } from './LunchItems.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 import MatildaMesh from './MatildaMesh.jsx'
+import { DancingDoge } from './DogeMesh.jsx'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
 import { ENEMY_DEATH_COLLAPSE_STYLES } from '../lib/enemyDeathCollapse.js'
 import EnemyProjectileVisual from './EnemyProjectileVisual.jsx'
@@ -397,6 +398,14 @@ function getPreviewFrame(item) {
       maxDistance: 9,
     }
   }
+  if (item.previewKind === 'doge') {
+    return {
+      camera: { position: [1.4, 1.3, 2.3], fov: 34, near: 0.01, far: 30 },
+      target: [0, 0.6, 0],
+      minDistance: 0.5,
+      maxDistance: 8,
+    }
+  }
   if (item.previewKind === 'starlinkSatellite') {
     return {
       camera: { position: [1.9, 1.5, 2.4], fov: 34, near: 0.01, far: 30 },
@@ -471,6 +480,10 @@ function RenderPreviewItem({ item, frozen = false }) {
   }
   if (item.previewKind === 'matilda') {
     return <MatildaMesh movementPose={item.animation === 'charge'} />
+  }
+  if (item.previewKind === 'doge') {
+    // 파트 편집 중에는 정지 포즈로 고정해 base 캡처가 rest 포즈 기준으로 안정되게 한다
+    return <DancingDoge dance="twist" paused={frozen} />
   }
   if (item.previewKind === 'stageObject' && item.objectType === 'desk') {
     return <ClassroomDesk variant={item.variant} />

@@ -134,6 +134,14 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     applyTargets: ['components/ZombieMesh.jsx', 'components/Enemy.jsx', 'lib/toon.js'],
   })),
   {
+    id: 'actor-doge',
+    category: 'actor',
+    label: 'Doge',
+    source: 'components/DogeMesh.jsx',
+    previewKind: 'doge',
+    applyTargets: ['components/DogeMesh.jsx', 'lib/toon.js'],
+  },
+  {
     id: 'enemy-matilda',
     category: 'enemy',
     label: 'Matilda',
