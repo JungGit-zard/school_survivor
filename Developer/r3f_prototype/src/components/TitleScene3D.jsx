@@ -34,6 +34,7 @@ export const TITLE_SCENE_DIRECTION = {
     zombieStudents: 5,
     bossZombies: 3,
     matildaPursuers: 1,
+    dancingDoges: 2,
     clubLights: {
       beams: 2,
       palette: ['cyan', 'magenta'],
@@ -179,6 +180,161 @@ function TitleClassroomProps() {
       </group>
       <group position={[-2.35, 0.02, -1.22]} rotation={[0, 0.58, 0]} scale={0.34}>
         <UnconsciousStudent variant="sideLeft" />
+      </group>
+    </group>
+  )
+}
+
+// ── 코믹 댄싱 도지 (시바견 밈) ────────────────────────────────────────────
+// 박스 조합 복셀 카툰 스타일. 양발로 서서 춤추는 개그 배경 요소 2마리.
+const DOGE_COAT = 0xe2a659   // 시바 오렌지-탄 코트
+const DOGE_CREAM = 0xf6e7c8  // 주둥이·배·볼·발 크림
+const DOGE_DARK = 0x241811   // 눈·코
+
+function DogeBody() {
+  return (
+    <group>
+      {/* 다리 (고정, 양발 서기) */}
+      <ToonBox position={[-0.16, 0.17, 0.01]} scale={[0.15, 0.34, 0.18]} color={DOGE_COAT} />
+      <ToonBox position={[0.16, 0.17, 0.01]} scale={[0.15, 0.34, 0.18]} color={DOGE_COAT} />
+      <ToonBox position={[-0.16, 0.045, 0.07]} scale={[0.2, 0.09, 0.3]} color={DOGE_CREAM} />
+      <ToonBox position={[0.16, 0.045, 0.07]} scale={[0.2, 0.09, 0.3]} color={DOGE_CREAM} />
+
+      {/* 몸통 */}
+      <ToonBox position={[0, 0.62, 0]} scale={[0.5, 0.56, 0.36]} color={DOGE_COAT} />
+      {/* 배·가슴 크림 */}
+      <ToonBox position={[0, 0.58, 0.185]} scale={[0.3, 0.44, 0.06]} color={DOGE_CREAM} />
+    </group>
+  )
+}
+
+function DogeHead() {
+  return (
+    <group>
+      {/* 머리 */}
+      <ToonBox position={[0, 0.2, 0]} scale={[0.5, 0.42, 0.44]} color={DOGE_COAT} />
+      {/* 볼 (통통 크림) */}
+      <ToonBox position={[-0.24, 0.08, 0.12]} scale={[0.14, 0.16, 0.22]} color={DOGE_CREAM} />
+      <ToonBox position={[0.24, 0.08, 0.12]} scale={[0.14, 0.16, 0.22]} color={DOGE_CREAM} />
+      {/* 주둥이 */}
+      <ToonBox position={[0, 0.11, 0.25]} scale={[0.3, 0.22, 0.24]} color={DOGE_CREAM} />
+      {/* 코 */}
+      <ToonBox position={[0, 0.15, 0.4]} scale={[0.12, 0.1, 0.08]} color={DOGE_DARK} emissive={0.02} />
+      {/* 눈 */}
+      <ToonBox position={[-0.13, 0.27, 0.22]} scale={[0.08, 0.11, 0.06]} color={DOGE_DARK} emissive={0.02} />
+      <ToonBox position={[0.13, 0.27, 0.22]} scale={[0.08, 0.11, 0.06]} color={DOGE_DARK} emissive={0.02} />
+      {/* 쫑긋 귀 (바깥 탄 + 안쪽 크림) */}
+      <ToonBox position={[-0.19, 0.46, -0.02]} rotation={[0, 0, 0.32]} scale={[0.14, 0.26, 0.1]} color={DOGE_COAT} />
+      <ToonBox position={[0.19, 0.46, -0.02]} rotation={[0, 0, -0.32]} scale={[0.14, 0.26, 0.1]} color={DOGE_COAT} />
+      <ToonBox position={[-0.19, 0.46, 0.03]} rotation={[0, 0, 0.32]} scale={[0.07, 0.15, 0.06]} color={DOGE_CREAM} />
+      <ToonBox position={[0.19, 0.46, 0.03]} rotation={[0, 0, -0.32]} scale={[0.07, 0.15, 0.06]} color={DOGE_CREAM} />
+    </group>
+  )
+}
+
+function DogeArm() {
+  // 어깨 피벗 기준으로 아래로 뻗은 팔 + 크림 발
+  return (
+    <group>
+      <ToonBox position={[0, -0.17, 0]} scale={[0.13, 0.34, 0.16]} color={DOGE_COAT} />
+      <ToonBox position={[0, -0.35, 0.02]} scale={[0.15, 0.12, 0.18]} color={DOGE_CREAM} />
+    </group>
+  )
+}
+
+function DogeTail() {
+  // 말린 꼬리 — 뒤에서 위로 올라가 안쪽으로 말림
+  return (
+    <group>
+      <ToonBox position={[0, 0.1, 0]} rotation={[0.5, 0, 0]} scale={[0.13, 0.26, 0.13]} color={DOGE_COAT} />
+      <ToonBox position={[0, 0.28, 0.06]} rotation={[1.4, 0, 0]} scale={[0.12, 0.22, 0.12]} color={DOGE_COAT} />
+      <ToonBox position={[0, 0.34, 0.22]} rotation={[2.2, 0, 0]} scale={[0.11, 0.16, 0.11]} color={DOGE_CREAM} />
+    </group>
+  )
+}
+
+function TitleDoge({ position, dance = 'twist', delay = 0, scale = 1, yaw = 0, reducedEffects = false }) {
+  const rootRef = useRef()
+  const hipRef = useRef()
+  const headRef = useRef()
+  const lArmRef = useRef()
+  const rArmRef = useRef()
+  const tailRef = useRef()
+  const baseY = position[1]
+
+  useFrame((state) => {
+    const hip = hipRef.current
+    const head = headRef.current
+    const lArm = lArmRef.current
+    const rArm = rArmRef.current
+    const tail = tailRef.current
+    const root = rootRef.current
+    if (!hip || !head || !lArm || !rArm || !tail || !root) return
+
+    if (reducedEffects) {
+      root.position.y = baseY
+      root.rotation.y = yaw
+      hip.rotation.set(0, 0, 0)
+      head.rotation.set(0, 0, 0)
+      lArm.rotation.set(0, 0, 0.28)
+      rArm.rotation.set(0, 0, -0.28)
+      tail.rotation.set(0, 0, 0)
+      return
+    }
+
+    const t = state.clock.elapsedTime + delay
+
+    if (dance === 'disco') {
+      // 위아래 바운스 + 팔 번갈아 하늘 찌르기 (디스코)
+      const s = Math.sin(t * 3.6)
+      root.position.y = baseY + Math.abs(s) * 0.13
+      root.rotation.y = yaw + Math.sin(t * 1.8) * 0.22
+      hip.rotation.z = Math.sin(t * 3.6) * 0.05
+      hip.rotation.y = 0
+      head.rotation.x = s * 0.1
+      head.rotation.z = Math.sin(t * 1.8) * 0.16
+      head.rotation.y = 0
+      rArm.rotation.z = -1.25 + s * 1.05
+      rArm.rotation.x = 0
+      lArm.rotation.z = 1.25 - s * 1.05
+      lArm.rotation.x = 0
+      tail.rotation.z = Math.sin(t * 7.2) * 0.32
+      tail.rotation.x = 0
+    } else {
+      // 좌우 트위스트 + 엉덩이 씰룩 + 팔 엇갈려 흔들기
+      const s = Math.sin(t * 3.2)
+      root.position.y = baseY + Math.abs(Math.sin(t * 3.2)) * 0.05
+      root.rotation.y = yaw
+      hip.rotation.y = s * 0.5
+      hip.rotation.z = Math.sin(t * 6.4) * 0.09
+      head.rotation.y = -s * 0.22
+      head.rotation.z = Math.sin(t * 3.2 + 0.6) * 0.13
+      head.rotation.x = 0
+      lArm.rotation.z = 0.32
+      lArm.rotation.x = s * 0.95
+      rArm.rotation.z = -0.32
+      rArm.rotation.x = -s * 0.95
+      tail.rotation.z = Math.sin(t * 6.4) * 0.42
+      tail.rotation.x = 0
+    }
+  })
+
+  return (
+    <group ref={rootRef} position={position} rotation={[0, yaw, 0]} scale={scale}>
+      <DogeBody />
+      <group ref={hipRef} position={[0, 0.33, 0]}>
+        <group ref={headRef} position={[0, 0.62, 0]}>
+          <DogeHead />
+        </group>
+        <group ref={lArmRef} position={[-0.32, 0.5, 0.02]} rotation={[0, 0, 0.32]}>
+          <DogeArm />
+        </group>
+        <group ref={rArmRef} position={[0.32, 0.5, 0.02]} rotation={[0, 0, -0.32]}>
+          <DogeArm />
+        </group>
+        <group ref={tailRef} position={[0, 0.32, -0.2]}>
+          <DogeTail />
+        </group>
       </group>
     </group>
   )
@@ -409,6 +565,8 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
       <TitleZombie position={[1.56, 0.2, -2.08]} delay={1.0} scale={0.62} type="E02" />
       <TitleZombie position={[-0.92, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />
       <TitleMatildaPursuer position={[1.05, 0.36, -2.92]} delay={1.8} scale={1.44} />
+      <TitleDoge position={[-2.0, 0.0, 1.55]} dance="twist" delay={0} scale={0.92} yaw={0.42} reducedEffects={reducedEffects} />
+      <TitleDoge position={[2.05, 0.0, 1.5]} dance="disco" delay={1.15} scale={0.92} yaw={-0.5} reducedEffects={reducedEffects} />
       <TitlePlayer />
     </group>
   )
