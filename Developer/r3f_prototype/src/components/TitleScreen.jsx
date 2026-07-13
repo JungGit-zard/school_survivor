@@ -16,6 +16,59 @@ import { useGameStore } from '../store/useGameStore.js'
 import titleBgmUrl from '../assets/audio/title_bgm.m4a'
 
 const REVEAL_CHEATS_CODE = ['arrowup', 'arrowdown', 'arrowup', 'arrowdown', 'a', 's', 'd']
+const TITLE_ACCENT_LETTERS = [
+  { char: '탈', order: 0, x: '-110vw', y: '-5vh', rotation: '-18deg' },
+  { char: '출', order: 1, x: '8vw', y: '-55vh', rotation: '14deg' },
+  { char: '!', order: 6, x: '15vw', y: '-65vh', rotation: '24deg' },
+]
+const TITLE_SCHOOL_LETTERS = [
+  { char: '좀', order: 2, x: '110vw', y: '-8vh', rotation: '16deg' },
+  { char: '비', order: 3, x: '-6vw', y: '75vh', rotation: '-12deg' },
+  { char: '학', order: 4, x: '-100vw', y: '-35vh', rotation: '-16deg' },
+  { char: '교', order: 5, x: '100vw', y: '-28vh', rotation: '18deg' },
+]
+const TITLE_INTRO_CSS = `
+  @keyframes titleLetterSlam {
+    0% { opacity: 0; transform: translate3d(var(--title-enter-x), var(--title-enter-y), 0) rotate(var(--title-enter-rotation)) scale(0.72); }
+    58% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg) scale(1.16); }
+    74% { opacity: 1; transform: translate3d(0, 5px, 0) rotate(0deg) scale(0.92); }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  }
+  @keyframes titleZombieScurry {
+    0% { opacity: 0; transform: translate3d(105vw, 8px, 0) rotate(8deg) scale(0.82); }
+    25% { opacity: 1; transform: translate3d(70vw, -8px, 0) rotate(-6deg) scale(0.88); }
+    50% { opacity: 1; transform: translate3d(38vw, 0, 0) rotate(5deg) scale(0.92); }
+    75% { opacity: 1; transform: translate3d(10vw, -6px, 0) rotate(-3deg) scale(0.97); }
+    90% { opacity: 1; transform: translate3d(0, 3px, 0) rotate(0deg) scale(0.92); }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  }
+  .title-intro-letter { animation: titleLetterSlam 520ms cubic-bezier(.16,.84,.28,1.08) backwards; }
+  .title-intro-zombie { animation: titleZombieScurry 900ms ease-out backwards; }
+  @media (prefers-reduced-motion: reduce) {
+    .title-intro-letter, .title-intro-zombie { animation: none !important; opacity: 1 !important; transform: none !important; }
+  }
+  :root[data-reduced-effects] .title-intro-letter,
+  :root[data-reduced-effects] .title-intro-zombie { animation: none !important; opacity: 1 !important; transform: none !important; }
+`
+
+function TitleLetter({ config, motionEnabled }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={motionEnabled ? 'title-intro-letter' : undefined}
+      data-title-char={config.char}
+      style={{
+        ...styles.titleLetter,
+        '--title-enter-x': config.x,
+        '--title-enter-y': config.y,
+        '--title-enter-rotation': config.rotation,
+        animationDelay: `${120 + config.order * 230}ms`,
+      }}
+    >
+      {config.char}
+    </span>
+  )
+}
 
 // 타이틀 화면은 "게임 시작" 하나만 남긴다(인지적 시작 행위). 로그인/닉네임 게이트를 통과하면
 // 스테이지가 아니라 로비(onEnterLobby)로 진입한다. 스테이지 선택·상점·랭킹·설정은 로비로 이관.
@@ -216,13 +269,14 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
 
   return (
     <div style={styles.root}>
+      <style data-title-intro-css>{TITLE_INTRO_CSS}</style>
       <Canvas
         camera={{ fov: 34, position: [0, 6.8, 11.8], near: 0.1, far: 100 }}
         gl={{ stencil: true, antialias: true }}
         shadows
         style={styles.canvas}
       >
-        <TitleScene3D />
+        <TitleScene3D reducedEffects={settings.reducedEffects} />
       </Canvas>
 
       <div style={styles.tint} />
@@ -244,10 +298,26 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
         </button>
       )}
       <div style={styles.content}>
-        <div style={styles.serviceName}>탈출! 좀비학교🧟‍♀️</div>
-        <h1 style={titleStyle}>
-          <span style={styles.titleAccent}>탈출!</span>
-          <span>좀비학교🧟‍♀️</span>
+        <div aria-hidden="true" data-title-service-name style={styles.serviceName}>탈출! 좀비학교</div>
+        <h1 aria-label="탈출! 좀비학교" style={titleStyle}>
+          <span style={{ ...styles.titleAccent, ...styles.titleWord }}>
+            {TITLE_ACCENT_LETTERS.map((config) => (
+              <TitleLetter key={config.char} config={config} motionEnabled={!settings.reducedEffects} />
+            ))}
+          </span>
+          <span style={styles.titleWord}>
+            {TITLE_SCHOOL_LETTERS.map((config) => (
+              <TitleLetter key={config.char} config={config} motionEnabled={!settings.reducedEffects} />
+            ))}
+            <span
+              aria-hidden="true"
+              className={settings.reducedEffects ? undefined : 'title-intro-zombie'}
+              data-title-emoji
+              style={{ ...styles.titleEmoji, animationDelay: '2050ms' }}
+            >
+              🧟‍♀️
+            </span>
+          </span>
         </h1>
         <p style={styles.subtitle}>감염된 학교에서 4분만 버티면, 교문이 열린다</p>
       </div>
@@ -434,10 +504,10 @@ const styles = {
   title: {
     margin: 0,
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    flexWrap: 'wrap',
+    gap: 0,
     color: uiPalette.chalk,
     fontSize: 'clamp(46.8px, 14.04vw, 65px)',
     lineHeight: 0.96,
@@ -449,10 +519,10 @@ const styles = {
   titleReduced: {
     margin: 0,
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    flexWrap: 'wrap',
+    gap: 0,
     color: uiPalette.chalk,
     fontSize: 'clamp(46.8px, 14.04vw, 65px)',
     lineHeight: 0.96,
@@ -464,6 +534,25 @@ const styles = {
   titleAccent: {
     color: uiPalette.warning,
     WebkitTextFillColor: uiPalette.warning,
+  },
+  titleWord: {
+    display: 'inline-flex',
+    alignItems: 'baseline',
+    justifyContent: 'center',
+    whiteSpace: 'nowrap',
+  },
+  titleLetter: {
+    display: 'inline-block',
+    transformOrigin: '50% 88%',
+  },
+  titleEmoji: {
+    display: 'inline-block',
+    alignSelf: 'center',
+    marginLeft: 4,
+    fontSize: '0.6em',
+    lineHeight: 1,
+    WebkitTextFillColor: 'initial',
+    transformOrigin: '50% 90%',
   },
   subtitle: {
     color: uiPalette.chalk,

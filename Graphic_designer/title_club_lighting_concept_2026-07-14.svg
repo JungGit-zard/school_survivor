@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#100b19"/>
+      <stop offset="0.58" stop-color="#241b30"/>
+      <stop offset="1" stop-color="#17121f"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#55f6ff" stop-opacity="0.76"/>
+      <stop offset="1" stop-color="#55f6ff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="pink" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#ff4fd8" stop-opacity="0.76"/>
+      <stop offset="1" stop-color="#ff4fd8" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="8"/></filter>
+  </defs>
+  <rect width="390" height="844" fill="url(#bg)"/>
+  <g filter="url(#glow)" opacity="0.46">
+    <circle cx="48" cy="78" r="28" fill="#55f6ff"/>
+    <circle cx="342" cy="90" r="28" fill="#ff4fd8"/>
+  </g>
+  <path d="M48 76 L160 390 L-30 330 Z" fill="url(#cyan)"/>
+  <path d="M342 88 L220 390 L430 324 Z" fill="url(#pink)"/>
+  <g fill="#15101d" stroke="#f6ead0" stroke-width="2">
+    <rect x="30" y="116" width="330" height="152" rx="16" fill-opacity="0.72" stroke-dasharray="8 8"/>
+  </g>
+  <text x="195" y="150" text-anchor="middle" fill="#ff8a37" font-family="sans-serif" font-size="34" font-weight="900">탈출!</text>
+  <text x="195" y="204" text-anchor="middle" fill="#f8f7f2" font-family="sans-serif" font-size="42" font-weight="900">좀비학교</text>
+  <text x="195" y="246" text-anchor="middle" fill="#f6ead0" font-family="sans-serif" font-size="12">TITLE SAFE ZONE — 빔 채도 45% 이하</text>
+  <ellipse cx="195" cy="430" rx="150" ry="56" fill="#8c5fd3" opacity="0.14"/>
+  <text x="195" y="514" text-anchor="middle" fill="#f6ead0" font-family="sans-serif" font-size="16" font-weight="700">캐릭터 군집은 기존 명도 유지</text>
+  <g font-family="sans-serif" font-size="13" fill="#f6ead0">
+    <rect x="36" y="575" width="318" height="92" rx="12" fill="#090611" fill-opacity="0.76" stroke="#554263"/>
+    <text x="54" y="606">• Cyan / Magenta 대각선 무빙 빔 2개</text>
+    <text x="54" y="632">• 실제 동적 광원은 최대 1개, 그림자 없음</text>
+    <text x="54" y="658">• 상단 집중, 제목 중앙은 어두운 대비 유지</text>
+  </g>
+</svg>

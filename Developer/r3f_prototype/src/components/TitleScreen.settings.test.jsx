@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react'
 import { readFileSync } from 'node:fs'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import TitleScreen from './TitleScreen.jsx'
@@ -10,6 +10,7 @@ import { STORAGE_KEY as WEAPON_UNLOCKS_KEY, _resetForTests as resetWeaponUnlocks
 import { STORAGE_KEY as PASSIVE_STORAGE_KEY, purchase as purchasePassiveStorage } from '../lib/passiveUpgrades.js'
 import { STORAGE_KEY as NICKNAME_STORAGE_KEY } from '../lib/userNickname.js'
 import { ADMIN_CONFIG_STORAGE_KEY, saveAdminConfig } from '../lib/adminConfig.js'
+import { SETTINGS_STORAGE_KEY } from '../lib/titleSettings.js'
 import { useAuthStore, _resetAuthStoreForTests } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 
@@ -18,19 +19,84 @@ vi.mock('@react-three/fiber', () => ({
 }))
 
 vi.mock('./TitleScene3D.jsx', () => ({
-  default: () => <div data-testid="mock-title-scene" />,
+  default: ({ reducedEffects }) => (
+    <div data-testid="mock-title-scene" data-reduced-effects={String(reducedEffects)} />
+  ),
 }))
+
+beforeEach(() => {
+  vi.stubGlobal('Audio', vi.fn(function AudioMock() {
+    return {
+      play: vi.fn(() => Promise.resolve()),
+      pause: vi.fn(),
+      src: '',
+    }
+  }))
+})
 
 afterEach(() => {
   localStorage.removeItem(PASSIVE_STORAGE_KEY)
   localStorage.removeItem(NICKNAME_STORAGE_KEY)
   localStorage.removeItem(ADMIN_CONFIG_STORAGE_KEY)
+  localStorage.removeItem(SETTINGS_STORAGE_KEY)
   resetWeaponUnlocks()
   _resetAuthStoreForTests()
   useGameStore.getState().resetPassiveUpgrades()
+  vi.unstubAllGlobals()
 })
 
 describe('TitleScreen lobby entry', () => {
+  it('slams the title letters in the requested order and sends the zombie last', () => {
+    const { container, cleanup } = renderTitleScreen()
+    const title = container.querySelector('h1[aria-label="탈출! 좀비학교"]')
+    const letters = Array.from(title.querySelectorAll('[data-title-char]'))
+    const emoji = title.querySelector('[data-title-emoji]')
+
+    expect(letters.map((node) => node.textContent).join('')).toBe('탈출!좀비학교')
+    expect(letters
+      .toSorted((left, right) => parseFloat(left.style.animationDelay) - parseFloat(right.style.animationDelay))
+      .map((node) => node.textContent)
+      .join('')).toBe('탈출좀비학교!')
+    expect(letters.every((node) => node.classList.contains('title-intro-letter'))).toBe(true)
+    expect(letters.every((node) => node.getAttribute('aria-hidden') === 'true')).toBe(true)
+    expect(letters.every((node) => {
+      const x = node.style.getPropertyValue('--title-enter-x')
+      const y = node.style.getPropertyValue('--title-enter-y')
+      return (x.endsWith('vw') && Math.abs(parseFloat(x)) >= 50)
+        || (y.endsWith('vh') && Math.abs(parseFloat(y)) >= 50)
+    })).toBe(true)
+    expect(emoji.textContent).toBe('🧟‍♀️')
+    expect(emoji.classList.contains('title-intro-zombie')).toBe(true)
+    expect(emoji.getAttribute('aria-hidden')).toBe('true')
+    expect(parseFloat(emoji.style.animationDelay)).toBeGreaterThan(
+      Math.max(...letters.map((node) => parseFloat(node.style.animationDelay))) + 520,
+    )
+    expect(container.querySelector('[data-title-service-name]').getAttribute('aria-hidden')).toBe('true')
+
+    const motionCss = container.querySelector('style[data-title-intro-css]').textContent
+    expect(motionCss).toContain('@keyframes titleLetterSlam')
+    expect(motionCss).toContain('scale(1.16)')
+    expect(motionCss).toContain('scale(0.92)')
+    expect(motionCss).toContain('@keyframes titleZombieScurry')
+    expect(motionCss).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(motionCss).toContain('.title-intro-letter, .title-intro-zombie { animation: none !important; opacity: 1 !important; transform: none !important; }')
+
+    cleanup()
+  })
+
+  it('passes the saved reduced-effects setting to the title scene', () => {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ reducedEffects: true }))
+    const { container, cleanup } = renderTitleScreen()
+
+    expect(container.querySelector('[data-testid="mock-title-scene"]')?.dataset.reducedEffects).toBe('true')
+    expect(container.querySelectorAll('.title-intro-letter')).toHaveLength(0)
+    expect(container.querySelector('.title-intro-zombie')).toBeNull()
+    expect(container.querySelectorAll('[data-title-char]')).toHaveLength(7)
+    expect(container.querySelector('[data-title-emoji]')).not.toBeNull()
+
+    cleanup()
+  })
+
   it('keeps the hero title larger without the thin black stroke line', () => {
     const { container, cleanup } = renderTitleScreen()
 
