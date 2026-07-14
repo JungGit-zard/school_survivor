@@ -134,3 +134,9 @@
 ## Legacy Archive
 
 `Session_Logs/` 디렉토리에 2026-05-16 이전의 분리된 요약 파일들이 보존되어 있다. 이는 과거 규정에 따른 산출물이며, 새 규정 이후로는 신규 쓰기를 하지 않는다. 과거 컨텍스트 회수가 필요할 때만 읽기 전용으로 참조한다.
+
+---
+
+## Session 6 · Entry 2 · 2026-07-15 0338 KST
+
+- Latest durable handoff pointer: `SESSION_MEMORY.md`의 같은 Session/Entry. Source-Controlled Player Seed, corrected AAB `versionCode 18` / `versionName 1.0.9`, 검증 증거, Firebase Visual Canonical State 경계를 기록했다. 상세 내용은 단일 로그 파일인 `SESSION_MEMORY.md`에만 둔다.
