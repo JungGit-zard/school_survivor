@@ -61,7 +61,7 @@ function getStableStudioPartObject(root, object) {
 
 export function getStudioPartKey(root, object) {
   if (!root || !object || object === root) return null
-  if (object.userData?.studioNonFocusable) return null
+  if (object.userData?.studioNonFocusable || object.userData?.studioRenderOutline || object.userData?.studioPartGroupOutline) return null
   const stableKey = getStableStudioPartKey(root, object)
   if (stableKey) return stableKey
 

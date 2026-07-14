@@ -18,68 +18,112 @@ import StudioTunedGroup from '../StudioTunedGroup.jsx'
 let _compassExplosionId = 0
 const PARKED_BLADE_POSITION = Object.freeze({ x: 9999, y: -9999, z: 9999 })
 
-function CompassLeg({ side = 1, main = false }) {
-  const armMat = useMemo(() => toonMat(0x1f3d63, 0.08), [])
-  const steelMat = useMemo(() => toonMat(main ? 0xd8e6ef : 0xaebcca, 0.06), [main])
-  const goldMat = useMemo(() => toonMat(0xe99039, 0.14), [])
-  const outMat = useMemo(() => outlineMat(0.96), [])
+const DUCK_POTTY_BODY = 0xf3ead9
+const DUCK_POTTY_SHADOW = 0xd8ceb9
+const DUCK_POTTY_ORANGE = 0xef8a2e
+const DUCK_POTTY_DARK = 0x1f2328
+const DUCK_POTTY_SEAT = 0xc9c0ad
+const DUCK_POTTY_GLOW = 0xffb24a
 
-  const angle = side * (main ? 0.34 : -0.34)
-  const x = side * 0.18
-  const tipZ = main ? 0.54 : 0.48
-  const tipLength = main ? 0.38 : 0.26
+function DuckPottyPart({
+  material,
+  outlineMaterial,
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  scale = [1, 1, 1],
+  geometry = 'box',
+  args = [1, 1, 1],
+  outlineScale = [1.08, 1.08, 1.08],
+}) {
+  const outlineArgs = Array.isArray(outlineScale)
+    ? outlineScale
+    : [outlineScale, outlineScale, outlineScale]
+
+  const shape = (shapeArgs = args) => {
+    if (geometry === 'sphere') return <sphereGeometry args={shapeArgs} />
+    if (geometry === 'cylinder') return <cylinderGeometry args={shapeArgs} />
+    if (geometry === 'torus') return <torusGeometry args={shapeArgs} />
+    if (geometry === 'cone') return <coneGeometry args={shapeArgs} />
+    return <boxGeometry args={shapeArgs} />
+  }
 
   return (
-    <group position={[x, 0, 0.08]} rotation={[0, angle, 0]}>
-      <mesh material={outMat} scale={inflateScale([1.22, 1.18, 1.08])}>
-        <boxGeometry args={[0.10, 0.08, 0.82]} />
+    <group position={position} rotation={rotation} scale={scale}>
+      <mesh material={outlineMaterial} scale={inflateScale(outlineArgs)} userData={{ studioRenderOutline: true }}>
+        {shape()}
       </mesh>
-      <mesh material={armMat}>
-        <boxGeometry args={[0.10, 0.08, 0.82]} />
-      </mesh>
-
-      <mesh material={outMat} position={[0, 0, tipZ]} rotation={[Math.PI / 2, 0, 0]} scale={inflateScale([1.16, 1.16, 1.10])}>
-        <coneGeometry args={[main ? 0.09 : 0.065, tipLength, 8]} />
-      </mesh>
-      <mesh material={steelMat} position={[0, 0, tipZ]} rotation={[Math.PI / 2, 0, 0]}>
-        <coneGeometry args={[main ? 0.09 : 0.065, tipLength, 8]} />
-      </mesh>
-
-      <mesh material={goldMat} position={[0, 0.055, -0.10]}>
-        <sphereGeometry args={[0.035, 8, 8]} />
-      </mesh>
-      <mesh material={goldMat} position={[0, 0.055, 0.18]}>
-        <sphereGeometry args={[0.03, 8, 8]} />
+      <mesh material={material}>
+        {shape()}
       </mesh>
     </group>
   )
 }
 
+function DuckPottyHandle({ side = 1, bodyMat, outMat }) {
+  return (
+    <group position={[side * 0.35, 0.52, -0.19]} rotation={[0, side * 0.08, 0]}>
+      {/* 튼튼한 옆 손잡이: 오리 머리 양쪽에 세로 루프처럼 붙어야 레퍼런스가 읽힌다. */}
+      <DuckPottyPart material={bodyMat} outlineMaterial={outMat} position={[side * 0.08, 0, 0]} scale={[0.18, 0.28, 0.12]} geometry="torus" args={[0.28, 0.065, 8, 20]} />
+      <DuckPottyPart material={bodyMat} outlineMaterial={outMat} position={[side * 0.005, 0, 0]} scale={[0.06, 0.30, 0.10]} />
+    </group>
+  )
+}
+
+function DuckFoot({ side = 1, orangeMat, outMat, rear = false }) {
+  return (
+    <group position={[side * (rear ? 0.34 : 0.23), -0.25, rear ? -0.37 : 0.33]} rotation={[0, side * (rear ? -0.18 : 0.18), 0]}>
+      <DuckPottyPart material={orangeMat} outlineMaterial={outMat} scale={[0.28, 0.13, 0.22]} geometry="sphere" args={[0.5, 10, 6]} />
+      <DuckPottyPart material={orangeMat} outlineMaterial={outMat} position={[0, 0.015, rear ? -0.07 : 0.07]} scale={[0.20, 0.07, 0.06]} />
+    </group>
+  )
+}
+
 export function CompassBladeModel() {
-  const hingeMat = useMemo(() => toonMat(0x123052, 0.08), [])
-  const redMat = useMemo(() => toonMat(0xe8323d, 0.18), [])
-  const trailMat = useMemo(() => toonMat(0xe99039, 0.28), [])
+  const bodyMat = useMemo(() => toonMat(DUCK_POTTY_BODY, 0.08), [])
+  const shadowMat = useMemo(() => toonMat(DUCK_POTTY_SHADOW, 0.05), [])
+  const orangeMat = useMemo(() => toonMat(DUCK_POTTY_ORANGE, 0.18), [])
+  const darkMat = useMemo(() => toonMat(DUCK_POTTY_DARK, 0.02), [])
+  const seatMat = useMemo(() => toonMat(DUCK_POTTY_SEAT, 0.04), [])
+  const glowMat = useMemo(() => toonMat(DUCK_POTTY_GLOW, 0.32), [])
   const outMat = useMemo(() => outlineMat(0.96), [])
 
   return (
     <StudioTunedGroup itemId="weapon-compass">
-      <group scale={[0.373, 0.373, 0.373]} rotation={[0.12, 0, 0]}>
-      <mesh material={trailMat} position={[0, -0.035, 0.02]} rotation={[Math.PI / 2, 0, -0.72]}>
-        <torusGeometry args={[0.58, 0.026, 8, 40, 1.9]} />
-      </mesh>
+      {/* 나침반 칼날의 궤도/충돌 로직은 유지하고, 시각 모델만 오리좌변기 장난감으로 교체한다. */}
+      <group scale={[0.48, 0.48, 0.48]} rotation={[0.16, 0, 0]}>
+        <mesh material={glowMat} position={[0, -0.31, 0]} rotation={[Math.PI / 2, 0, -0.72]}>
+          <torusGeometry args={[0.72, 0.026, 8, 44, 2.05]} />
+        </mesh>
 
-      <CompassLeg side={-1} main />
-      <CompassLeg side={1} />
+        {/* 안정적인 좌변기 베이스와 포티 시트 구멍. */}
+        <DuckPottyPart material={bodyMat} outlineMaterial={outMat} position={[0, -0.06, -0.02]} scale={[0.78, 0.34, 1.02]} geometry="sphere" args={[0.5, 12, 8]} />
+        <DuckPottyPart material={bodyMat} outlineMaterial={outMat} position={[0, 0.06, -0.08]} scale={[0.68, 0.22, 0.78]} />
+        <DuckPottyPart material={seatMat} outlineMaterial={outMat} position={[0, 0.24, -0.12]} rotation={[Math.PI / 2, 0, 0]} scale={[0.76, 0.58, 0.12]} geometry="torus" args={[0.34, 0.095, 10, 28]} outlineScale={[1.05, 1.05, 1.05]} />
+        <DuckPottyPart material={shadowMat} outlineMaterial={outMat} position={[0, 0.20, -0.12]} rotation={[Math.PI / 2, 0, 0]} scale={[0.44, 0.34, 0.05]} geometry="cylinder" args={[0.38, 0.38, 0.04, 22]} outlineScale={[1.02, 1.02, 1.02]} />
 
-      <mesh material={outMat} position={[0, 0.03, -0.31]} scale={inflateScale([1.12, 1.12, 1.12])}>
-        <cylinderGeometry args={[0.18, 0.18, 0.08, 16]} />
-      </mesh>
-      <mesh material={hingeMat} position={[0, 0.03, -0.31]}>
-        <cylinderGeometry args={[0.18, 0.18, 0.08, 16]} />
-      </mesh>
-      <mesh material={redMat} position={[0, 0.085, -0.31]}>
-        <cylinderGeometry args={[0.105, 0.105, 0.045, 16]} />
-      </mesh>
+        {/* 오리 목/머리: 앞쪽에서 길게 솟아올라 무기 회전 중에도 실루엣이 보인다. */}
+        <DuckPottyPart material={bodyMat} outlineMaterial={outMat} position={[0, 0.42, 0.30]} scale={[0.34, 0.70, 0.32]} geometry="sphere" args={[0.5, 12, 8]} />
+        <DuckPottyPart material={bodyMat} outlineMaterial={outMat} position={[0, 0.86, 0.35]} scale={[0.48, 0.40, 0.42]} geometry="sphere" args={[0.5, 12, 8]} />
+        <DuckPottyPart material={bodyMat} outlineMaterial={outMat} position={[0, 1.02, 0.30]} scale={[0.26, 0.18, 0.20]} geometry="sphere" args={[0.5, 10, 6]} outlineScale={[1.05, 1.05, 1.05]} />
+
+        <DuckPottyHandle side={-1} bodyMat={bodyMat} outMat={outMat} />
+        <DuckPottyHandle side={1} bodyMat={bodyMat} outMat={outMat} />
+
+        {/* 주황색 부리와 발: 레퍼런스의 가장 강한 식별 색. */}
+        <DuckPottyPart material={orangeMat} outlineMaterial={outMat} position={[0, 0.82, 0.68]} rotation={[Math.PI / 2, 0, 0]} scale={[1.25, 0.42, 0.34]} geometry="cone" args={[0.18, 0.34, 8]} />
+        <DuckPottyPart material={orangeMat} outlineMaterial={outMat} position={[0, 0.70, 0.66]} rotation={[-Math.PI / 2, 0, 0]} scale={[1.0, 0.28, 0.18]} geometry="cone" args={[0.15, 0.24, 8]} />
+        <DuckFoot side={-1} orangeMat={orangeMat} outMat={outMat} />
+        <DuckFoot side={1} orangeMat={orangeMat} outMat={outMat} />
+        <DuckFoot side={-1} orangeMat={orangeMat} outMat={outMat} rear />
+        <DuckFoot side={1} orangeMat={orangeMat} outMat={outMat} rear />
+
+        {/* 눈, 눈썹, 옆 날개/손잡이 패널. */}
+        <DuckPottyPart material={darkMat} outlineMaterial={outMat} position={[-0.13, 0.92, 0.57]} scale={[0.055, 0.09, 0.035]} geometry="sphere" args={[0.5, 8, 8]} outlineScale={[1.03, 1.03, 1.03]} />
+        <DuckPottyPart material={darkMat} outlineMaterial={outMat} position={[0.13, 0.92, 0.57]} scale={[0.055, 0.09, 0.035]} geometry="sphere" args={[0.5, 8, 8]} outlineScale={[1.03, 1.03, 1.03]} />
+        <DuckPottyPart material={darkMat} outlineMaterial={outMat} position={[-0.14, 1.05, 0.54]} rotation={[0, 0, -0.34]} scale={[0.11, 0.02, 0.02]} />
+        <DuckPottyPart material={darkMat} outlineMaterial={outMat} position={[0.14, 1.05, 0.54]} rotation={[0, 0, 0.34]} scale={[0.11, 0.02, 0.02]} />
+        <DuckPottyPart material={shadowMat} outlineMaterial={outMat} position={[-0.38, 0.05, -0.02]} rotation={[0, 0.05, 0.08]} scale={[0.09, 0.28, 0.32]} geometry="sphere" args={[0.5, 8, 6]} />
+        <DuckPottyPart material={shadowMat} outlineMaterial={outMat} position={[0.38, 0.05, -0.02]} rotation={[0, -0.05, -0.08]} scale={[0.09, 0.28, 0.32]} geometry="sphere" args={[0.5, 8, 6]} />
       </group>
     </StudioTunedGroup>
   )

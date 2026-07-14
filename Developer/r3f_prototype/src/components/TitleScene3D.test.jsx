@@ -1,7 +1,16 @@
 import { readFileSync } from 'node:fs'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import * as THREE from 'three'
-import { TITLE_SCENE_DIRECTION, applyClubLightFrame } from './TitleScene3D.jsx'
+import { GRAPHICS_STUDIO_STORAGE_KEY } from '../lib/graphicsStudioConfig.js'
+import {
+  TITLE_BOARD_BACK_LIMIT_Z,
+  TITLE_SCENE_DIRECTION,
+  applyClubLightFrame,
+  applyTitleCharacterOutline,
+  clampTitleBackgroundZ,
+  disposeTitleCharacterOutlines,
+  isTitleOutlineStorageEvent,
+} from './TitleScene3D.jsx'
 
 describe('TitleScene3D direction', () => {
   it('uses the referenced pink-haired school survivor look', () => {
@@ -122,6 +131,58 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain('position={[0.48, 0.88, 0.38]} rotation={[-0.08, 0.48, 0.05]} scale={2}')
   })
 
+  it('places the real duck potty and Chibiko models beside the title player', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain("import { CompassBladeModel } from './Weapons/CompassBlade.jsx'")
+    expect(source).toContain("import { ChibikoModel } from './Weapons/Chibiko.jsx'")
+    expect(source).toContain('<CompassBladeModel />')
+    expect(source).toContain('<ChibikoModel attackPhaseRef={chibikoAttackPhaseRef} />')
+    expect(source).toContain('<TitleCompanions />')
+  })
+
+  it('places the crashed Starlink and Zomlonbisk in the lit far background', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain("import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'")
+    expect(source).toContain('function TitleFarBackgroundStory({ reducedEffects })')
+    expect(source).toContain('position={[-2.35, 1.12, clampTitleBackgroundZ(-7.0)]} rotation={[0.08, -0.42, -1.2]} scale={1.24}')
+    expect(source).toContain('<StarlinkSatelliteModel studioItemId="title-crashed-starlink" />')
+    expect(source).toContain('position={[1.86, 0.68, clampTitleBackgroundZ(-8.0)]} rotation={[0, -0.28, 0]} scale={1.16}')
+    expect(source).toContain('<ZomlonbiskModel running={false} />')
+    expect(source).toContain('<TitleFarBackgroundStory reducedEffects={reducedEffects} />')
+  })
+
+  it('dances the far Zomlonbisk and shifts only the left DancingDoge right', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('const zomlonbiskRef = useRef()')
+    expect(source).toContain('const s = Math.sin(t * 3.2)')
+    expect(source).toContain('zomlonbiskRef.current.position.y = 0.68 + Math.abs(s) * 0.05')
+    expect(source).toContain('zomlonbiskRef.current.rotation.y = -0.28 + s * 0.5')
+    expect(source).toContain('zomlonbiskRef.current.rotation.z = Math.sin(t * 6.4) * 0.09')
+    expect(source).toContain('zomlonbiskRef.current.position.y = 0.68')
+    expect(source).toContain('zomlonbiskRef.current.rotation.y = -0.28')
+    expect(source).toContain('zomlonbiskRef.current.rotation.z = 0')
+    expect(source).toContain('<ZomlonbiskModel running={false} />')
+    expect(source).toContain('<DancingDoge position={[-1.27, 0.0, 1.55]} dance="twist"')
+    expect(source).toContain('<DancingDoge position={[2.05, 0.0, 1.5]} dance="disco"')
+  })
+
+  it('keeps far-background story models behind the title board', () => {
+    expect(TITLE_BOARD_BACK_LIMIT_Z).toBe(-4.62)
+    expect(clampTitleBackgroundZ(-4.2)).toBe(-4.62)
+    expect(clampTitleBackgroundZ(-7)).toBe(-7)
+  })
+
+  it('shrinks the title board surface and glow overlay to 50 percent', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('<boxGeometry args={[1.7, 1.3, 0.32]} />')
+    expect(source).toContain('<boxGeometry args={[1.475, 1.15, 0.08]} />')
+    expect(source).toContain('<circleGeometry args={[2.6, 36]} />')
+  })
+
   it('turns all title zombies toward the player', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
@@ -129,5 +190,149 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain('function faceTitlePlayerYaw(position)')
     expect(source).toContain('ref.current.rotation.y = yaw + Math.sin(t * 1.15) * 0.025')
     expect(source).toContain('ref.current.rotation.y = yaw + Math.sin(t * 0.95) * 0.018')
+  })
+
+  it('gives character fills and outlines stencil ref 2 without changing background ref 1', () => {
+    const scene = new THREE.Group()
+    const characterRoot = new THREE.Group()
+    const backgroundMaterial = new THREE.MeshBasicMaterial({ color: 0x224466 })
+    backgroundMaterial.stencilWrite = true
+    backgroundMaterial.stencilRef = 1
+    backgroundMaterial.stencilFunc = THREE.AlwaysStencilFunc
+    const background = new THREE.Mesh(new THREE.BoxGeometry(), backgroundMaterial)
+    const outlineMaterial = new THREE.MeshBasicMaterial({
+      color: 0x050209,
+      opacity: 0.6,
+      side: THREE.BackSide,
+      transparent: true,
+    })
+    outlineMaterial.stencilWrite = true
+    outlineMaterial.stencilRef = 1
+    outlineMaterial.stencilFunc = THREE.NotEqualStencilFunc
+    const fillMaterial = new THREE.MeshBasicMaterial({
+      color: 0xff55aa,
+      opacity: 0.72,
+      transparent: true,
+    })
+    fillMaterial.stencilWrite = true
+    fillMaterial.stencilRef = 1
+    fillMaterial.stencilFunc = THREE.AlwaysStencilFunc
+    const outline = new THREE.Mesh(new THREE.BoxGeometry(), outlineMaterial)
+    const fill = new THREE.Mesh(new THREE.BoxGeometry(), fillMaterial)
+    outline.scale.set(1.04, 1.08, 0.96)
+    fill.scale.set(0.9, 1.1, 1.2)
+    scene.add(background, characterRoot)
+    characterRoot.add(outline, fill)
+
+    const outlineBaseScale = outline.scale.clone()
+    const fillBaseScale = fill.scale.clone()
+    applyTitleCharacterOutline(characterRoot)
+
+    expect(background.material).toBe(backgroundMaterial)
+    expect(background.material.stencilRef).toBe(1)
+    expect(fill.material).not.toBe(fillMaterial)
+    expect(fill.material.stencilRef).toBe(2)
+    expect(fill.material.color.getHex()).toBe(fillMaterial.color.getHex())
+    expect(fill.material.opacity).toBe(fillMaterial.opacity)
+    expect(fill.material.transparent).toBe(fillMaterial.transparent)
+    expect(outline.material).not.toBe(outlineMaterial)
+    expect(outline.material.stencilRef).toBe(2)
+    expect(outline.material.color.getHex()).toBe(0x000000)
+    expect(outline.material.opacity).toBe(1)
+    expect(outline.material.transparent).toBe(false)
+    expect(outline.scale.x).toBeCloseTo(outlineBaseScale.x * 1.12)
+    expect(outline.scale.y).toBeCloseTo(outlineBaseScale.y * 1.12)
+    expect(outline.scale.z).toBeCloseTo(outlineBaseScale.z * 1.12)
+    expect(fill.scale.equals(fillBaseScale)).toBe(true)
+
+    const appliedScale = outline.scale.clone()
+    const appliedFill = fill.material
+    applyTitleCharacterOutline(characterRoot)
+    expect(outline.scale.equals(appliedScale)).toBe(true)
+    expect(fill.material).toBe(appliedFill)
+  })
+
+  it('disposes only owned outline clones and can apply again from the base scale', () => {
+    const root = new THREE.Group()
+    const sourceMaterial = new THREE.MeshBasicMaterial({ side: THREE.BackSide })
+    sourceMaterial.stencilFunc = THREE.NotEqualStencilFunc
+    const outline = new THREE.Mesh(new THREE.BoxGeometry(), sourceMaterial)
+    const fillSource = new THREE.MeshBasicMaterial({ color: 0x336699 })
+    fillSource.stencilWrite = true
+    fillSource.stencilRef = 1
+    fillSource.stencilFunc = THREE.AlwaysStencilFunc
+    const fill = new THREE.Mesh(new THREE.BoxGeometry(), fillSource)
+    const fillTwin = new THREE.Mesh(new THREE.BoxGeometry(), fillSource)
+    outline.scale.set(1.1, 0.9, 1.05)
+    root.add(outline, fill, fillTwin)
+    const baseScale = outline.scale.clone()
+    const sourceDispose = vi.spyOn(sourceMaterial, 'dispose')
+    const fillSourceDispose = vi.spyOn(fillSource, 'dispose')
+
+    applyTitleCharacterOutline(root)
+    const fillClone = fill.material
+    expect(fillTwin.material).toBe(fillClone)
+    const fillCloneDispose = vi.spyOn(fillClone, 'dispose')
+    const firstClone = outline.material
+    const firstCloneDispose = vi.spyOn(firstClone, 'dispose')
+    const replacementSource = sourceMaterial.clone()
+    const replacementDispose = vi.spyOn(replacementSource, 'dispose')
+    outline.material = replacementSource
+    applyTitleCharacterOutline(root)
+
+    expect(firstCloneDispose).not.toHaveBeenCalled()
+    const secondClone = outline.material
+    const secondCloneDispose = vi.spyOn(secondClone, 'dispose')
+    disposeTitleCharacterOutlines(root)
+
+    expect(firstCloneDispose).toHaveBeenCalledOnce()
+    expect(secondCloneDispose).toHaveBeenCalledOnce()
+    expect(fillCloneDispose).toHaveBeenCalledOnce()
+    expect(sourceDispose).not.toHaveBeenCalled()
+    expect(fillSourceDispose).not.toHaveBeenCalled()
+    expect(replacementDispose).not.toHaveBeenCalled()
+    expect(outline.material).toBe(replacementSource)
+    expect(fill.material).toBe(fillSource)
+    expect(fillTwin.material).toBe(fillSource)
+    expect(outline.scale.equals(baseScale)).toBe(true)
+    expect(outline.userData.titleCharacterOutline).toBeUndefined()
+
+    applyTitleCharacterOutline(root)
+    expect(outline.material).not.toBe(replacementSource)
+    expect(fill.material).not.toBe(fillSource)
+    expect(fillTwin.material).toBe(fill.material)
+    expect(fill.material.stencilRef).toBe(2)
+    expect(outline.scale.x).toBeCloseTo(baseScale.x * 1.12)
+  })
+
+  it('reapplies outlines only for graphics-studio storage changes or storage clear', () => {
+    expect(isTitleOutlineStorageEvent({ key: GRAPHICS_STUDIO_STORAGE_KEY })).toBe(true)
+    expect(isTitleOutlineStorageEvent({ key: null })).toBe(true)
+    expect(isTitleOutlineStorageEvent({ key: 'unrelated.storage.key' })).toBe(false)
+
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('GRAPHICS_STUDIO_STORAGE_KEY, GRAPHICS_STUDIO_TUNING_EVENT')
+    expect(source).toContain('if (isTitleOutlineStorageEvent(event)) markDirty()')
+    expect(source).toContain('disposeTitleCharacterOutlines(group)')
+  })
+
+  it('wraps every title character while leaving scene props outside', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+    const wrapperStart = source.indexOf('<TitleCharacterOutlineGroup>')
+    const wrapperEnd = source.indexOf('</TitleCharacterOutlineGroup>', wrapperStart)
+    const characterSource = source.slice(wrapperStart, wrapperEnd)
+
+    expect(wrapperStart).toBeGreaterThan(-1)
+    expect(wrapperEnd).toBeGreaterThan(wrapperStart)
+    expect(characterSource).toContain('<TitleFarBackgroundStory reducedEffects={reducedEffects} />')
+    expect(characterSource.match(/<TitleBossZombie/g)).toHaveLength(3)
+    expect(characterSource.match(/<TitleZombie/g)).toHaveLength(5)
+    expect(characterSource).toContain('<TitleMatildaPursuer')
+    expect(characterSource.match(/<DancingDoge/g)).toHaveLength(2)
+    expect(characterSource).toContain('<TitleCompanions />')
+    expect(characterSource).toContain('<TitlePlayer />')
+    expect(characterSource).not.toContain('<TitleClassroomProps />')
+    expect(characterSource).not.toContain('<SpeedStreak')
+    expect(characterSource).not.toContain('<WarningLight')
   })
 })

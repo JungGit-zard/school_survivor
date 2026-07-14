@@ -23,7 +23,7 @@ function Part({ size, position, rotation = [0, 0, 0], material, outlineMaterial,
   return (
     <group position={position} rotation={rotation}>
       {outlineMaterial && (
-        <mesh renderOrder={0} geometry={geometry} material={outlineMaterial} scale={[s, s, s]} />
+        <mesh renderOrder={0} geometry={geometry} material={outlineMaterial} scale={[s, s, s]} userData={{ studioRenderOutline: true }} />
       )}
       <mesh renderOrder={2} geometry={geometry} material={material} />
     </group>
@@ -87,20 +87,20 @@ export function ChibikoModel({ attackPhaseRef }) {
       <Part size={[0.48, 0.48, 0.38]} position={[0, 0.34, 0]} material={dressMat} outlineMaterial={outline} />
       <Part size={[0.62, 0.34, 0.42]} position={[0, 0.02, 0]} material={dressMat} outlineMaterial={outline} />
       <Part size={[0.08, 0.22, 0.08]} position={[0, 0.56, 0.24]} rotation={[0, 0, 0.18]} material={ribbonMat} outlineMaterial={outline} outlineScale={1.03} />
-      <Part size={[0.18, 0.12, 0.08]} position={[-0.09, 0.62, 0.25]} rotation={[0, 0, -0.45]} material={ribbonMat} />
-      <Part size={[0.18, 0.12, 0.08]} position={[0.09, 0.62, 0.25]} rotation={[0, 0, 0.45]} material={ribbonMat} />
+      <Part size={[0.18, 0.12, 0.08]} position={[-0.09, 0.62, 0.25]} rotation={[0, 0, -0.45]} material={ribbonMat} outlineMaterial={outline} outlineScale={1.03} />
+      <Part size={[0.18, 0.12, 0.08]} position={[0.09, 0.62, 0.25]} rotation={[0, 0, 0.45]} material={ribbonMat} outlineMaterial={outline} outlineScale={1.03} />
 
       <group ref={reg('armL')} position={[-0.38, 0.38, 0]}>
         <Part size={[0.16, 0.48, 0.18]} position={[0, -0.2, 0]} rotation={[0, 0, 0.12]} material={dressMat} outlineMaterial={outline} outlineScale={1.04} />
-        <Part size={[0.15, 0.14, 0.14]} position={[0.02, -0.5, 0]} material={skinMat} />
+        <Part size={[0.15, 0.14, 0.14]} position={[0.02, -0.5, 0]} material={skinMat} outlineMaterial={outline} outlineScale={1.04} />
       </group>
       <group ref={reg('armR')} position={[0.38, 0.38, 0]}>
         <Part size={[0.16, 0.48, 0.18]} position={[0, -0.2, 0]} rotation={[0, 0, -0.12]} material={dressMat} outlineMaterial={outline} outlineScale={1.04} />
-        <Part size={[0.15, 0.14, 0.14]} position={[-0.02, -0.5, 0]} material={skinMat} />
+        <Part size={[0.15, 0.14, 0.14]} position={[-0.02, -0.5, 0]} material={skinMat} outlineMaterial={outline} outlineScale={1.04} />
       </group>
 
-      <Part size={[0.14, 0.28, 0.16]} position={[-0.16, -0.3, 0]} material={skinMat} />
-      <Part size={[0.14, 0.28, 0.16]} position={[0.16, -0.3, 0]} material={skinMat} />
+      <Part size={[0.14, 0.28, 0.16]} position={[-0.16, -0.3, 0]} material={skinMat} outlineMaterial={outline} outlineScale={1.04} />
+      <Part size={[0.14, 0.28, 0.16]} position={[0.16, -0.3, 0]} material={skinMat} outlineMaterial={outline} outlineScale={1.04} />
       <Part size={[0.24, 0.12, 0.24]} position={[-0.16, -0.5, 0.04]} material={shoeMat} outlineMaterial={outline} outlineScale={1.04} />
       <Part size={[0.24, 0.12, 0.24]} position={[0.16, -0.5, 0.04]} material={shoeMat} outlineMaterial={outline} outlineScale={1.04} />
       </group>

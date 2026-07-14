@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
+import { GRAPHICS_STUDIO_STORAGE_KEY, GRAPHICS_STUDIO_TUNING_EVENT } from '../lib/graphicsStudioConfig.js'
 import { getCachedBoxGeo, getCachedToonMat, inflateScale, outlineMat, toonMat } from '../lib/toon.js'
 import { DancingDoge } from './DogeMesh.jsx'
 import MatildaMesh from './MatildaMesh.jsx'
@@ -8,8 +9,135 @@ import PlayerMesh from './PlayerMesh.jsx'
 import ZombieMesh from './ZombieMesh.jsx'
 import StudioTunedGroup, { getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'
+import { CompassBladeModel } from './Weapons/CompassBlade.jsx'
+import { ChibikoModel } from './Weapons/Chibiko.jsx'
+import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
 
 const TITLE_PLAYER_TARGET = [0.48, 0.08]
+export const TITLE_BOARD_BACK_LIMIT_Z = -4.62
+const TITLE_CHARACTER_STENCIL_REF = 2
+const TITLE_OUTLINE_SCALE_BOOST = 1.12
+const TITLE_MATERIAL_CACHE_KEY = 'titleCharacterMaterials'
+const TITLE_OUTLINE_STATE_KEY = 'titleCharacterOutline'
+
+export function clampTitleBackgroundZ(z) {
+  return Math.min(z, TITLE_BOARD_BACK_LIMIT_Z)
+}
+
+export function isTitleOutlineStorageEvent(event) {
+  return event?.key === GRAPHICS_STUDIO_STORAGE_KEY || event?.key === null
+}
+
+export function disposeTitleCharacterOutlines(root) {
+  if (!root?.traverse) return
+
+  root.traverse((node) => {
+    const state = node?.userData?.[TITLE_OUTLINE_STATE_KEY]
+    if (!state) return
+
+    if (node.material === state.titleMaterial) node.material = state.sourceMaterial
+    if (state.kind === 'outline') node.scale.copy(state.baseScale)
+    delete node.userData[TITLE_OUTLINE_STATE_KEY]
+  })
+
+  const materialCache = root.userData?.[TITLE_MATERIAL_CACHE_KEY]
+  materialCache?.forEach((material) => material.dispose())
+  materialCache?.clear()
+  delete root.userData[TITLE_MATERIAL_CACHE_KEY]
+}
+
+function getTitleCharacterMaterialKind(material) {
+  if (!material || Array.isArray(material)) return null
+  if (material.side === THREE.BackSide && material.stencilFunc === THREE.NotEqualStencilFunc) return 'outline'
+  if (material.stencilWrite && material.stencilFunc === THREE.AlwaysStencilFunc) return 'fill'
+  return null
+}
+
+export function applyTitleCharacterOutline(root) {
+  if (!root?.traverse) return
+  const materialCache = root.userData[TITLE_MATERIAL_CACHE_KEY] ?? new Map()
+  root.userData[TITLE_MATERIAL_CACHE_KEY] = materialCache
+
+  root.traverse((node) => {
+    if (!node?.isMesh) return
+
+    let material = node.material
+    let state = node.userData[TITLE_OUTLINE_STATE_KEY]
+    if (state && material !== state.titleMaterial) {
+      if (state.kind === 'outline' && state.appliedScale && node.scale.equals(state.appliedScale)) {
+        node.scale.copy(state.baseScale)
+      }
+      delete node.userData[TITLE_OUTLINE_STATE_KEY]
+      state = null
+    }
+
+    const kind = state?.kind ?? getTitleCharacterMaterialKind(material)
+    if (!kind) return
+
+    if (!state) {
+      let titleMaterial = materialCache.get(material)
+      if (!titleMaterial) {
+        titleMaterial = material.clone()
+        materialCache.set(material, titleMaterial)
+      }
+      state = {
+        kind,
+        baseScale: node.scale.clone(),
+        appliedScale: null,
+        sourceMaterial: material,
+        titleMaterial,
+      }
+      node.userData[TITLE_OUTLINE_STATE_KEY] = state
+      node.material = state.titleMaterial
+      material = state.titleMaterial
+    }
+
+    material.stencilRef = TITLE_CHARACTER_STENCIL_REF
+    if (kind === 'outline') {
+      if (state.appliedScale && !node.scale.equals(state.appliedScale)) {
+        state.baseScale.copy(node.scale)
+      }
+      material.color?.set(0x000000)
+      material.opacity = 1
+      material.transparent = false
+      node.scale.copy(state.baseScale).multiplyScalar(TITLE_OUTLINE_SCALE_BOOST)
+      state.appliedScale ??= new THREE.Vector3()
+      state.appliedScale.copy(node.scale)
+    }
+    material.needsUpdate = true
+  })
+}
+
+function TitleCharacterOutlineGroup({ children }) {
+  const ref = useRef()
+  const dirtyRef = useRef(true)
+
+  useEffect(() => {
+    const group = ref.current
+    const markDirty = () => {
+      dirtyRef.current = true
+    }
+    const handleStorage = (event) => {
+      if (isTitleOutlineStorageEvent(event)) markDirty()
+    }
+    window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, markDirty)
+    window.addEventListener('storage', handleStorage)
+    return () => {
+      window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT, markDirty)
+      window.removeEventListener('storage', handleStorage)
+      disposeTitleCharacterOutlines(group)
+    }
+  }, [])
+
+  useFrame(() => {
+    if (!dirtyRef.current || !ref.current) return
+    applyTitleCharacterOutline(ref.current)
+    dirtyRef.current = false
+  })
+
+  return <group ref={ref}>{children}</group>
+}
+
 const CLUB_LIGHT_BEAMS = [
   { color: 0x59c7ff, position: [-2.35, 5.7, -5.15], angle: 0.13, phase: 0 },
   { color: 0xd64fa8, position: [2.4, 5.8, -5.2], angle: -0.13, phase: Math.PI },
@@ -98,6 +226,52 @@ function TitlePlayer() {
     <group ref={ref} position={[0.48, 0.88, 0.38]} rotation={[-0.08, 0.48, 0.05]} scale={2}>
       <PlayerMesh />
     </group>
+  )
+}
+
+function TitleCompanions() {
+  const chibikoAttackPhaseRef = useRef(0)
+
+  return (
+    <>
+      <group position={[-0.62, 0.2, 0.82]} rotation={[0, 0.28, -0.03]} scale={1.05}>
+        <CompassBladeModel />
+      </group>
+      <group position={[1.36, 0.27, 0.76]} rotation={[0, -0.38, 0.02]} scale={0.42}>
+        <ChibikoModel attackPhaseRef={chibikoAttackPhaseRef} />
+      </group>
+    </>
+  )
+}
+
+function TitleFarBackgroundStory({ reducedEffects }) {
+  const zomlonbiskRef = useRef()
+
+  useFrame(({ clock }) => {
+    if (!zomlonbiskRef.current) return
+    if (reducedEffects) {
+      zomlonbiskRef.current.position.y = 0.68
+      zomlonbiskRef.current.rotation.y = -0.28
+      zomlonbiskRef.current.rotation.z = 0
+      return
+    }
+
+    const t = clock.elapsedTime
+    const s = Math.sin(t * 3.2)
+    zomlonbiskRef.current.position.y = 0.68 + Math.abs(s) * 0.05
+    zomlonbiskRef.current.rotation.y = -0.28 + s * 0.5
+    zomlonbiskRef.current.rotation.z = Math.sin(t * 6.4) * 0.09
+  })
+
+  return (
+    <>
+      <group position={[-2.35, 1.12, clampTitleBackgroundZ(-7.0)]} rotation={[0.08, -0.42, -1.2]} scale={1.24}>
+        <StarlinkSatelliteModel studioItemId="title-crashed-starlink" />
+      </group>
+      <group ref={zomlonbiskRef} position={[1.86, 0.68, clampTitleBackgroundZ(-8.0)]} rotation={[0, -0.28, 0]} scale={1.16}>
+        <ZomlonbiskModel running={false} />
+      </group>
+    </>
   )
 }
 
@@ -355,7 +529,7 @@ function ExitGlow() {
   return (
     <group>
       <mesh ref={ref} position={[0, 1.35, -4.35]} material={mat}>
-        <boxGeometry args={[2.95, 2.3, 0.08]} />
+        <boxGeometry args={[1.475, 1.15, 0.08]} />
       </mesh>
       <mesh ref={poolRef} position={[0, 0.015, -3.4]} rotation={[-Math.PI / 2, 0, 0]} material={poolMat} renderOrder={1}>
         <circleGeometry args={[2.6, 36]} />
@@ -388,7 +562,7 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
         <boxGeometry args={[0.32, 3.3, 9.2]} />
       </mesh>
       <mesh receiveShadow position={[0, 1.3, -4.62]} material={doorMat}>
-        <boxGeometry args={[3.4, 2.6, 0.32]} />
+        <boxGeometry args={[1.7, 1.3, 0.32]} />
       </mesh>
 
       <ClubLightRig reducedEffects={reducedEffects} />
@@ -402,18 +576,22 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
       <WarningLight position={[-2.3, 0.03, -1.5]} delay={0} />
       <WarningLight position={[2.15, 0.03, 1.3]} delay={1.4} />
 
-      <TitleBossZombie type="B02" position={[-1.35, 0.26, -3.7]} scale={0.98} delay={0.9} />
-      <TitleBossZombie type="B03" position={[0.02, 0.28, -4.04]} scale={1.12} delay={1.35} />
-      <TitleBossZombie type="B01" position={[0.1, 0.25, -1.62]} scale={1.02} />
-      <TitleZombie position={[-2.25, 0.22, -3.42]} delay={0.4} scale={0.58} type="E03" />
-      <TitleZombie position={[2.0, 0.2, -3.18]} delay={1.6} scale={0.52} type="E02" />
-      <TitleZombie position={[-1.95, 0.22, -1.55]} delay={0.2} scale={0.7} type="E01" />
-      <TitleZombie position={[1.56, 0.2, -2.08]} delay={1.0} scale={0.62} type="E02" />
-      <TitleZombie position={[-0.92, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />
-      <TitleMatildaPursuer position={[1.05, 0.36, -2.92]} delay={1.8} scale={1.44} />
-      <DancingDoge position={[-2.0, 0.0, 1.55]} dance="twist" delay={0} scale={0.92} yaw={0.42} paused={reducedEffects} />
-      <DancingDoge position={[2.05, 0.0, 1.5]} dance="disco" delay={1.15} scale={0.92} yaw={-0.5} paused={reducedEffects} />
-      <TitlePlayer />
+      <TitleCharacterOutlineGroup>
+        <TitleFarBackgroundStory reducedEffects={reducedEffects} />
+        <TitleBossZombie type="B02" position={[-1.35, 0.26, -3.7]} scale={0.98} delay={0.9} />
+        <TitleBossZombie type="B03" position={[0.02, 0.28, -4.04]} scale={1.12} delay={1.35} />
+        <TitleBossZombie type="B01" position={[0.1, 0.25, -1.62]} scale={1.02} />
+        <TitleZombie position={[-2.25, 0.22, -3.42]} delay={0.4} scale={0.58} type="E03" />
+        <TitleZombie position={[2.0, 0.2, -3.18]} delay={1.6} scale={0.52} type="E02" />
+        <TitleZombie position={[-1.95, 0.22, -1.55]} delay={0.2} scale={0.7} type="E01" />
+        <TitleZombie position={[1.56, 0.2, -2.08]} delay={1.0} scale={0.62} type="E02" />
+        <TitleZombie position={[-0.92, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />
+        <TitleMatildaPursuer position={[1.05, 0.36, -2.92]} delay={1.8} scale={1.44} />
+        <DancingDoge position={[-1.27, 0.0, 1.55]} dance="twist" delay={0} scale={0.92} yaw={0.42} paused={reducedEffects} />
+        <DancingDoge position={[2.05, 0.0, 1.5]} dance="disco" delay={1.15} scale={0.92} yaw={-0.5} paused={reducedEffects} />
+        <TitleCompanions />
+        <TitlePlayer />
+      </TitleCharacterOutlineGroup>
     </group>
   )
 

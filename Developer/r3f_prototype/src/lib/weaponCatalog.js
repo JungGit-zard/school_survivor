@@ -126,7 +126,7 @@ export const WEAPON_CATALOG = {
   // 정본 스탯: weapon_expansion_unlock_plan_2026-05-10.md §5-1~5-3
   compassBlade: {
     id: 'compassBlade',
-    label: '나침반 칼날',
+    label: '오리요강',
     base: { damage: 7, radius: 1.15, hitsPerSecond: 2.5, count: 1, orbitSpeed: 3.4 },
     // 실력 OR 누적.
     unlockConditions: [

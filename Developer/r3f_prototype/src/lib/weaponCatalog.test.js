@@ -50,6 +50,7 @@ describe('weaponCatalog', () => {
   })
 
   it('신규 3종(R7) Lv.1 스탯 정확히 일치', () => {
+    expect(WEAPON_CATALOG.compassBlade.label).toBe('오리요강')
     expect(WEAPON_CATALOG.compassBlade.base.damage).toBe(7)
     expect(WEAPON_CATALOG.compassBlade.base.radius).toBe(1.15)
     expect(WEAPON_CATALOG.compassBlade.base.hitsPerSecond).toBe(2.5)

@@ -33,6 +33,9 @@ describe('upgrade choice filtering', () => {
     expect(getUpgradeChoiceLabel({ key: 'acquireBag' })).toContain('획득')
     expect(getUpgradeChoiceLabel({ key: 'acquireChibiko' })).toBe('치비코 획득')
     expect(getUpgradeChoiceLabel({ key: 'acquireSharkMissile' })).toBe('상어미사일 획득')
+    expect(getUpgradeChoiceLabel({ key: 'acquireCompassBlade' })).toBe('오리요강 획득')
+    expect(getUpgradeChoiceLabel({ key: 'compassBladeCount', label: '오리요강 개수 +1' })).toBe('오리요강 개수 +1')
+    expect(getUpgradeChoiceDesc({ key: 'compassBladeDamage', desc: '회전 오리요강 피해 증가' })).toBe('회전 오리요강 피해 증가')
     expect(getUpgradeChoiceDesc({ key: 'acquireBell', desc: '벨 스킬 해금' })).toBe('벨 스킬 획득')
   })
 

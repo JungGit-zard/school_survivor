@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   COMPASS_BLADE_EXPLOSION_DAMAGE,
@@ -81,5 +82,20 @@ describe('CompassBladeWeapon orbit pose', () => {
     expect(shouldRenderCompassBladeHitBodies({ active: true, isRespawning: true })).toBe(true)
     expect(shouldRenderCompassBladeHitBodies({ active: true, isRespawning: false })).toBe(true)
     expect(shouldRenderCompassBladeHitBodies({ active: false, isRespawning: true })).toBe(false)
+  })
+
+  it('renders the visual model as the duck potty reference instead of the old compass blade', () => {
+    const source = readFileSync(new URL('./CompassBlade.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('DUCK_POTTY_BODY')
+    expect(source).toContain('DUCK_POTTY_ORANGE')
+    expect(source).toContain('오리좌변기 장난감')
+    expect(source).toContain('튼튼한 옆 손잡이')
+    expect(source).toContain('포티 시트 구멍')
+    expect(source).toContain('주황색 부리와 발')
+    expect(source).toContain('DuckPottyHandle')
+    expect(source).toContain('DuckFoot')
+    expect(source).toContain('<mesh material={outlineMaterial} scale={inflateScale(outlineArgs)} userData={{ studioRenderOutline: true }}>')
+    expect(source).not.toContain('function CompassLeg')
   })
 })

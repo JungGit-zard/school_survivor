@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
+import * as THREE from 'three'
+import { getStudioPartKey } from './GraphicsStudioPreview.jsx'
 
 describe('GraphicsStudioPreview render contracts', () => {
   it('renders standard zombie catalog items with a direct mesh preview', () => {
@@ -79,6 +81,20 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(source).toContain('onDoubleClick={handlePartDoubleClick}')
     expect(source).toContain('focusedPartTuning')
     expect(source).toContain('applyFocusedPartTuning')
+  })
+
+  it('does not focus runtime or studio-generated outline objects', () => {
+    const root = new THREE.Group()
+    const regular = new THREE.Mesh()
+    const renderOutline = new THREE.Mesh()
+    const partGroupOutline = new THREE.LineSegments()
+    renderOutline.userData.studioRenderOutline = true
+    partGroupOutline.userData.studioPartGroupOutline = true
+    root.add(regular, renderOutline, partGroupOutline)
+
+    expect(getStudioPartKey(root, regular)).toBe('0')
+    expect(getStudioPartKey(root, renderOutline)).toBeNull()
+    expect(getStudioPartKey(root, partGroupOutline)).toBeNull()
   })
 
   it('supports single and grouped part focus with neon outlines', () => {
