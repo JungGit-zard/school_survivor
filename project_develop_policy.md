@@ -60,6 +60,30 @@
 
 - 절대로 플레이 가능한 동작보다 장식적인 구조를 우선하지 않는다.
 
+## Graphics Studio 정본 및 릴리스 패리티 정책
+
+### 반드시 지켜야 할 사항
+
+- 반드시 사용자가 Graphics Studio에서 확정한 Apply 값은 루트, 파트, 그룹 키와 값을 그대로 보존하고, 검증된 마이그레이션 없이 기본값이나 과거 값으로 덮어쓰지 않는다.
+- 반드시 현재의 Source-Controlled Player Seed와 미래의 Firebase Visual Canonical State를 서로 다른 개념으로 기록한다. Source-Controlled Player Seed는 복구된 Apply 스냅샷을 코드와 함께 배포하는 로컬 초기화·마이그레이션 자료일 뿐 원격 정본이 아니다.
+- 반드시 Source-Controlled Player Seed의 `sourceRevision`은 로컬 마이그레이션 순번으로만 취급한다. Git SHA, Firebase revision, 관리자 승인 번호 또는 배포 번호로 해석하지 않는다.
+- 반드시 Firebase 정본 구현 전에는 승인된 Apply 스냅샷을 검증 가능한 소스 또는 버전 관리 산출물로 승격하고, 브라우저에만 존재하는 상태로 릴리스하지 않는다. 이 임시 경계가 원격 저장, 서버 ACK, 관리자 승인, 기기 간 동기화, 서버 감사 로그 또는 서버 롤백을 보장한다고 기록하지 않는다.
+- 반드시 Studio, 타이틀, 실제 게임의 시각 결과가 승인된 동일 상태와 일치하는지 화면별로 검증하고, 어느 한 화면이라도 매핑되지 않거나 다르게 보이면 릴리스를 중단한다.
+- 반드시 AAB 릴리스 전에 전체 테스트, 프로덕션 빌드, 데스크톱·모바일 실제 화면 검증, 깨끗한 Capacitor 동기화, `versionCode` 증가, 로컬·원격 Git SHA 일치, AAB 해시·크기·서명 검증을 모두 기록한다.
+- 반드시 AAB에 Git SHA가 내장되지 않은 경우 소스 SHA와 AAB의 관계를 바이너리 증명이 아니라 빌드 기록에 의한 절차적 provenance로 명시한다.
+- 반드시 Firebase Visual Canonical State를 도입할 때는 최소한 payload, schema version, 서버 발급 revision, content hash, 작성자, 관리자 승인자, 작성·승인·적용 시각, 이전 revision 또는 rollback target, 상태를 저장한다.
+- 반드시 Firebase Visual Canonical State의 쓰기·승인·롤백 권한은 서버가 검증한 관리자 권한으로 제한하고, 일반 사용자 로그인만으로 승인된 정본을 변경하지 못하게 한다.
+- 반드시 Firebase Visual Canonical State 소비자는 승인 상태, schema version, revision, content hash를 검증하고 Studio·타이틀·게임이 같은 승인 revision을 ACK한 경우에만 적용한다. 누락, 미승인, 해시 불일치, 미지원 schema, 권한 오류에서는 로컬 기본값으로 조용히 대체하지 말고 fail-closed 처리한다.
+
+### 절대로 하면 안 되는 사항
+
+- 절대로 사용자가 확정한 Studio 값을 화면 캡처, 브라우저 방문 기록, 추측한 신체 부위 이름, 오래된 소스 기본값으로 재구성하지 않는다.
+- 절대로 Studio의 브라우저 `localStorage`나 창 간 메시지를 Firebase에 영구 저장된 정본이라고 기록하지 않는다.
+- 절대로 Source-Controlled Player Seed 또는 `sourceRevision`을 Firebase Visual Canonical State, 원격 승인, 기기 간 동기화, 서버 감사 또는 서버 롤백의 증거로 제시하지 않는다.
+- 절대로 검증되지 않은 로컬 fallback이 승인된 Visual Canonical State를 덮어쓰게 만들지 않는다.
+- 절대로 Vite/dev-server 브라우저 화면이나 AAB 내부 코드 포함 증거만으로 실제 AAB 시각 패리티를 통과했다고 기록하지 않는다. Android 에뮬레이터 또는 실기기 WebView에서 해당 AAB를 실행한 증거가 있어야 한다.
+- 절대로 푸시되지 않았거나 원격 SHA와 다른 소스에서 프로덕션 AAB를 산출하지 않는다.
+
 ## Graphic Designer 부서 정책
 
 ### 반드시 지켜야 할 사항

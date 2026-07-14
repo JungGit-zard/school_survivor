@@ -109,4 +109,8 @@ git push                          # → origin/main으로 자동 push
 
 ## Documented Solutions
 
-`CEO/docs/solutions/` — 과거 문제 해결 기록(버그·베스트프랙티스·아키텍처/디자인 패턴·컨벤션)을 카테고리별로 YAML 프론트매터(`module`, `tags`, `problem_type`)와 함께 정리. 문서화된 영역에서 구현·디버깅 시 참고.
+`docs/solutions/` — 과거 문제 해결 기록(버그·베스트프랙티스·아키텍처/디자인 패턴·컨벤션)을 카테고리별로 YAML 프론트매터(`module`, `tags`, `problem_type`)와 함께 정리. 문서화된 영역에서 구현·디버깅 시 참고.
+
+`CONCEPTS.md` — 프로젝트 고유 용어와 정본·릴리스 게이트의 합의된 의미를 정리한 공용 어휘집.
+
+Graphics Studio Apply 값 유실, 옛 타이틀 모델, 타이틀 외곽선 누락, AAB 시각 패리티 문제는 `docs/solutions/integration-issues/graphics-studio-title-state-release-regression.md`를 먼저 확인한다.
