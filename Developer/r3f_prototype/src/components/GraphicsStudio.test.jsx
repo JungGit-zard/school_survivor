@@ -381,7 +381,7 @@ describe('GraphicsStudio', () => {
     })
 
     expect(loadStudioTunings()['player::part::0.1'].positionX).toBe(0.75)
-    expect(loadStudioTunings().player).toBeUndefined()
+    expect(loadStudioTunings().player.outlineThickness).toBe(1.4)
 
     const applyButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent === 'Apply')
     act(() => {

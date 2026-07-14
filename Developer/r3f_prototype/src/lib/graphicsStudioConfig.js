@@ -17,8 +17,13 @@ import boxCutterIconUrl from '../assets/weapon_icon/13_wea_boxcutter.svg'
 import chibikoIconUrl from '../assets/weapon_icon/14_wea_chibiko.svg'
 import sharkMissileIconUrl from '../assets/weapon_icon/14_wea_shark_missile.svg'
 import { ENEMY_DEATH_COLLAPSE_STYLES } from './enemyDeathCollapse.js'
+import {
+  STUDIO_PLAYER_SOURCE_METADATA,
+  STUDIO_PLAYER_SOURCE_TUNINGS,
+} from './graphicsStudioPlayerSource.js'
 
 export const GRAPHICS_STUDIO_STORAGE_KEY = 'escape-zombie-school.graphicsStudioTunings.v1'
+export const GRAPHICS_STUDIO_PLAYER_SOURCE_REVISION_KEY = 'escape-zombie-school.graphicsStudioPlayerSourceRevision.v1'
 export const GRAPHICS_STUDIO_RESET_BASELINE_KEY = 'escape-zombie-school.graphicsStudioResetBaseline.2026-07-05T17'
 export const GRAPHICS_STUDIO_TUNING_EVENT = 'escape-zombie-school.graphicsStudioTunings.changed'
 export const STAGE_BOSS_PREVIEW_STORAGE_KEY = 'escape-zombie-school.stageBossPreview.v1'
@@ -568,28 +573,106 @@ export function getStudioItemById(id) {
   return GRAPHICS_STUDIO_CATALOG.find((item) => item.id === id) ?? GRAPHICS_STUDIO_CATALOG[0]
 }
 
+function normalizeStudioTuningMap(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return {}
+  return Object.fromEntries(
+    Object.entries(input).map(([itemId, tuning]) => [itemId, normalizeStudioTuning(tuning)]),
+  )
+}
+
+function mergeStudioTuningPatches(tunings, patches) {
+  const merged = { ...tunings }
+  if (!patches || typeof patches !== 'object' || Array.isArray(patches)) {
+    return normalizeStudioTuningMap(merged)
+  }
+  Object.entries(patches).forEach(([itemId, patch]) => {
+    const current = merged[itemId]
+    merged[itemId] = {
+      ...(current && typeof current === 'object' && !Array.isArray(current) ? current : {}),
+      ...(patch && typeof patch === 'object' && !Array.isArray(patch) ? patch : {}),
+    }
+  })
+  return normalizeStudioTuningMap(merged)
+}
+
+function normalizeSourceRevision(revision) {
+  const parsed = Number(revision)
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : 0
+}
+
+export function shouldPromoteStudioPlayerSource(
+  storedRevision,
+  sourceRevision = STUDIO_PLAYER_SOURCE_METADATA.sourceRevision,
+) {
+  return normalizeSourceRevision(storedRevision) < sourceRevision
+}
+
+function promoteStudioPlayerSource(tunings) {
+  const retainedTunings = Object.fromEntries(
+    Object.entries(tunings).filter(([itemId]) => itemId !== 'player' && !itemId.startsWith('player::')),
+  )
+  return normalizeStudioTuningMap({ ...retainedTunings, ...STUDIO_PLAYER_SOURCE_TUNINGS })
+}
+
+function fillStudioPlayerSourceDefaults(tunings) {
+  const completed = { ...tunings }
+  Object.entries(STUDIO_PLAYER_SOURCE_TUNINGS).forEach(([itemId, sourceTuning]) => {
+    const current = tunings[itemId]
+    completed[itemId] = {
+      ...sourceTuning,
+      ...(current && typeof current === 'object' && !Array.isArray(current) ? current : {}),
+    }
+  })
+  return normalizeStudioTuningMap(completed)
+}
+
 export function loadStudioTunings(storage) {
   const targetStorage = getStorage(storage)
   if (!targetStorage) return {}
 
+  let parsed = {}
+  let hasValidPayload = false
   try {
     const raw = targetStorage.getItem(GRAPHICS_STUDIO_STORAGE_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    if (!parsed || typeof parsed !== 'object') return {}
-    return Object.fromEntries(
-      Object.entries(parsed).map(([itemId, tuning]) => [itemId, normalizeStudioTuning(tuning)]),
-    )
+    if (raw) {
+      const candidate = JSON.parse(raw)
+      if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) {
+        parsed = candidate
+        hasValidPayload = true
+      }
+    }
   } catch {
-    return {}
+    // Invalid snapshots are recovered below unless they belong to a newer source revision.
   }
+
+  const normalized = normalizeStudioTuningMap(parsed)
+  const storedRevision = normalizeSourceRevision(
+    targetStorage.getItem(GRAPHICS_STUDIO_PLAYER_SOURCE_REVISION_KEY),
+  )
+  const sourceRevision = STUDIO_PLAYER_SOURCE_METADATA.sourceRevision
+
+  if (storedRevision > sourceRevision) {
+    return normalized
+  }
+
+  if (hasValidPayload && storedRevision === sourceRevision) {
+    const completed = fillStudioPlayerSourceDefaults(parsed)
+    if (JSON.stringify(completed) !== JSON.stringify(normalized)) {
+      targetStorage.setItem(GRAPHICS_STUDIO_STORAGE_KEY, JSON.stringify(completed))
+    }
+    return completed
+  }
+
+  const promoted = promoteStudioPlayerSource(normalized)
+  targetStorage.setItem(GRAPHICS_STUDIO_STORAGE_KEY, JSON.stringify(promoted))
+  targetStorage.setItem(GRAPHICS_STUDIO_PLAYER_SOURCE_REVISION_KEY, String(sourceRevision))
+  return promoted
 }
 
 export function saveStudioTunings(tunings, storage) {
   const targetStorage = getStorage(storage)
-  const normalized = Object.fromEntries(
-    Object.entries(tunings ?? {}).map(([itemId, tuning]) => [itemId, normalizeStudioTuning(tuning)]),
-  )
+  const existing = targetStorage ? loadStudioTunings(targetStorage) : {}
+  const normalized = mergeStudioTuningPatches(existing, tunings)
   targetStorage?.setItem(GRAPHICS_STUDIO_STORAGE_KEY, JSON.stringify(normalized))
   if (!storage && typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(GRAPHICS_STUDIO_TUNING_EVENT, { detail: normalized }))
