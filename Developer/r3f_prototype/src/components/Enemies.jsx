@@ -12,6 +12,7 @@ import TreasureChest from './TreasureChest.jsx'
 import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { getE04Cap } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds } from '../lib/stageConfig.js'
+import { dogeEscapeDirection } from '../lib/dogeEscape.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
 import { getBurstEventsForStage, getRuntimeBurstEventsForStage } from '../lib/burstEvents.js'
 import { buildWavePhasesFromEntries } from '../lib/waveControl.js'
@@ -425,6 +426,9 @@ export function dogeHpForStage(stageId) {
   return Math.round(DOGE_BASE_HP * (STAGE_HP_MULTIPLIER[stageId] ?? 1))
 }
 
+// 도지 도주(황금고블린) 파라미터/순수 로직은 lib/dogeEscape.js 참조 —
+// DancingDogeEvent(프레임 이동)와 공유하므로 순환 의존을 피해 lib로 분리했다.
+
 // 60초 도달 시 1회만 스폰. alreadySpawned 가드로 중복 스폰을 막는다(모든 스테이지 공통).
 export function shouldSpawnDoge(sec, alreadySpawned) {
   return !alreadySpawned && sec >= DOGE_SPAWN_SEC
@@ -552,14 +556,22 @@ export default function Enemies() {
 
   // ── 춤추는 도지 이벤트 ─────────────────────────────────────────────────────
   const spawnDoge = useCallback(() => {
-    const hp = dogeHpForStage(useGameStore.getState().currentStageId)
-    setDoges((prev) => [...prev, { id: ++_uid, pos: [...DOGE_SPAWN_POS], scale: DOGE_SCALE, hp }])
+    const stageId = useGameStore.getState().currentStageId
+    const hp = dogeHpForStage(stageId)
+    const bounds = getStageBounds(stageId)
+    const dir = dogeEscapeDirection(DOGE_SPAWN_POS, bounds)
+    setDoges((prev) => [...prev, { id: ++_uid, pos: [...DOGE_SPAWN_POS], scale: DOGE_SCALE, hp, dir, bounds }])
   }, [])
 
   // 도지 처치 → 그 자리에 보물상자 드랍.
   const onDogeDeath = useCallback((dogeId, pos) => {
     setDoges((prev) => prev.filter((d) => d.id !== dogeId))
     setChests((prev) => [...prev, { id: ++_chestId, pos }])
+  }, [])
+
+  // 도지 도주 성공(경계 이탈) → 보상 없이 제거.
+  const onDogeEscape = useCallback((dogeId) => {
+    setDoges((prev) => prev.filter((d) => d.id !== dogeId))
   }, [])
 
   // 상자 오픈(드랍+1.5초) → 상자 제거 + 주변에 코인 잭팟 산포.
@@ -706,7 +718,8 @@ export default function Enemies() {
         <EnemyDeathCollapse key={c.id} {...c} onDone={onCollapseDone} />
       ))}
       {doges.map((d) => (
-        <DancingDogeEvent key={d.id} id={d.id} position={d.pos} scale={d.scale} hp={d.hp} onDeath={onDogeDeath} />
+        <DancingDogeEvent key={d.id} id={d.id} position={d.pos} scale={d.scale} hp={d.hp}
+          escapeDir={d.dir} bounds={d.bounds} onDeath={onDogeDeath} onEscape={onDogeEscape} />
       ))}
       {chests.map((c) => (
         <TreasureChest key={c.id} id={c.id} position={c.pos} onOpen={onChestOpen} />

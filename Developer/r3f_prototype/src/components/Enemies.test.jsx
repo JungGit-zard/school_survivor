@@ -396,6 +396,10 @@ describe('dancing doge event monster', () => {
     // 도지/상자 개체를 렌더한다.
     expect(source).toContain('<DancingDogeEvent')
     expect(source).toContain('<TreasureChest')
+    // 황금고블린 도주 배선: 스폰 시 도주 방향/경계 전달, 경계 이탈 시 보상 없이 제거.
+    expect(source).toContain('dogeEscapeDirection(DOGE_SPAWN_POS, bounds)')
+    expect(source).toContain('escapeDir={d.dir} bounds={d.bounds}')
+    expect(source).toContain('onEscape={onDogeEscape}')
   })
 })
 
