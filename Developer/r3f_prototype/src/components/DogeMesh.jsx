@@ -9,10 +9,19 @@ const DOGE_COAT = 0xe2a659   // 시바 오렌지-탄 코트
 const DOGE_CREAM = 0xf6e7c8  // 주둥이·배·볼·발 크림
 const DOGE_DARK = 0x241811   // 눈·코
 
+// 인버티드 헐 외곽선 굵기 계수. inflateScale은 1 근처의 "인플레이션 계수"를 받도록 설계됐다
+// (예: inflateScale(1.06)=1.12 → 12% 부풀림). 여기 박스들의 scale은 치수값(0.15~0.56 등)이라
+// inflateScale에 직접 넣으면 음수/0 스케일이 되어 BackSide가 뒤집힌 검은 박스(블롭)로 렌더된다.
+// 따라서 치수 scale에는 계수를 그대로 곱해 소폭만 부풀린다.
+const DOGE_OUTLINE_INFLATE = inflateScale(1.06)
+
 function DogeToonBox({ position, rotation = [0, 0, 0], scale, color, emissive = 0.08 }) {
   const mat = useMemo(() => toonMat(color, emissive), [color, emissive])
   const outline = useMemo(() => outlineMat(0.95), [])
-  const outlineScale = useMemo(() => inflateScale(scale), [scale])
+  const outlineScale = useMemo(
+    () => (Array.isArray(scale) ? scale.map((s) => s * DOGE_OUTLINE_INFLATE) : scale * DOGE_OUTLINE_INFLATE),
+    [scale],
+  )
   return (
     <group position={position} rotation={rotation}>
       <mesh castShadow receiveShadow scale={scale} material={mat}>

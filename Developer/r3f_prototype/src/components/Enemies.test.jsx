@@ -24,7 +24,17 @@ import {
   WAVE_INTERVAL_SEC,
   WAVE_INTERVAL_MIN_SEC,
   WAVE_INTERVAL_MAX_SEC,
+  DOGE_SPAWN_SEC,
+  DOGE_SPAWN_POS,
+  DOGE_SCALE,
+  DOGE_BASE_HP,
+  DOGE_COIN_COUNT,
+  dogeHpForStage,
+  shouldSpawnDoge,
+  dogeTreasureCoinPositions,
 } from './Enemies.jsx'
+import { CHEST_OPEN_DELAY_MS } from './TreasureChest.jsx'
+import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { STAGE2_SPAWN_TELEGRAPHS, STAGE2_WAVE_PHASES, STAGE3_WAVE_PHASES } from '../lib/waveTimelines.js'
 import { getBurstEventsForStage as burstsForStage } from '../lib/burstEvents.js'
 import { ENEMY_STATS, getActiveE04ProjectileCount, resetActiveE04ProjectileCountForTest } from './Enemy.jsx'
@@ -307,6 +317,85 @@ describe('stage 3 total-war wiring', () => {
     // 더블 보스가 스태거로 두 개(B02 135 / B01 147).
     const bosses = runtime.filter((e) => e.type === 'B01' || e.type === 'B02')
     expect(bosses.map((e) => e.sec).sort((a, b) => a - b)).toEqual([135, 147])
+  })
+})
+
+describe('dancing doge event monster', () => {
+  it('spawns once at the 60s mark for every stage', () => {
+    expect(DOGE_SPAWN_SEC).toBe(60)
+    // 60초 이전엔 스폰하지 않는다.
+    expect(shouldSpawnDoge(59.9, false)).toBe(false)
+    // 60초 도달 시 스폰(스테이지 무관 — 순수 시간 게이트).
+    expect(shouldSpawnDoge(60, false)).toBe(true)
+    expect(shouldSpawnDoge(75, false)).toBe(true)
+    // 이미 스폰됐으면 재스폰하지 않는다(1회성).
+    expect(shouldSpawnDoge(120, true)).toBe(false)
+  })
+
+  it('spawns at the stage center (0,0)', () => {
+    expect(DOGE_SPAWN_POS[0]).toBe(0)
+    expect(DOGE_SPAWN_POS[2]).toBe(0)
+  })
+
+  it('sizes the doge to twice the player world height', () => {
+    // DOGE_SCALE × doge raw height(1.5) = 주인공 월드 키의 2배.
+    expect(DOGE_SCALE * 1.5).toBeCloseTo(2 * PLAYER_MESH_WORLD_HEIGHT, 2)
+  })
+
+  it('follows the ascending stage HP curve (base 200; x1.0 / x1.2 / x1.44)', () => {
+    expect(DOGE_BASE_HP).toBe(200)
+    expect(dogeHpForStage('stage1')).toBe(200)
+    expect(dogeHpForStage('stage2')).toBe(Math.round(200 * 1.2))   // 240
+    expect(dogeHpForStage('stage3')).toBe(Math.round(200 * 1.44))  // 288
+    // 도지 HP는 60초 시점 이벤트 보너스몹 답게 거대좀비 E06(320)보다 낮다.
+    expect(DOGE_BASE_HP).toBeLessThan(ENEMY_STATS.E06.hp)
+  })
+
+  it('scatters a jackpot of gold coins around the opened chest, more than a boss drop', () => {
+    // 잭팟 규모: 보스 골드 드랍(5)보다 확실히 많다.
+    expect(DOGE_COIN_COUNT).toBe(12)
+    expect(DOGE_COIN_COUNT).toBeGreaterThan(5)
+
+    const center = [5, 0, -3]
+    const positions = dogeTreasureCoinPositions(center, DOGE_COIN_COUNT, () => 0.5)
+    expect(positions).toHaveLength(DOGE_COIN_COUNT)
+    // 모든 코인은 상자 중심 주변 좁은 반경(<=1.5) 안에 흩어진다.
+    positions.forEach(([x, , z]) => {
+      const r = Math.hypot(x - center[0], z - center[2])
+      expect(r).toBeGreaterThan(0)
+      expect(r).toBeLessThanOrEqual(1.5)
+    })
+    // 좌표가 서로 달라야 GoldCoin이 좌표 시드로 사방으로 튄다(뭉침 방지).
+    const distinct = new Set(positions.map(([x, , z]) => `${x.toFixed(3)},${z.toFixed(3)}`))
+    expect(distinct.size).toBe(DOGE_COIN_COUNT)
+  })
+
+  it('opens the dropped chest 1.5 seconds after it lands', () => {
+    expect(CHEST_OPEN_DELAY_MS).toBe(1500)
+  })
+
+  it('models the dropped chest after the brown wood and gray metal reference', () => {
+    const source = readFileSync(new URL('./TreasureChest.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('const CHEST_METAL = 0x7f8790')
+    expect(source).toContain('const CHEST_METAL_DARK = 0x555c64')
+    expect(source).toContain('const CHEST_WOOD_LIGHT = 0xa6733b')
+    expect(source).toContain('3단 박스로 둥근 아치형 보물상자 실루엣')
+    expect(source).toContain('잠금판 + 열쇠구멍')
+    expect(source).toContain('리벳')
+    expect(source).not.toContain('CHEST_GOLD')
+  })
+
+  it('wires the doge event, chest drop, and coin jackpot into the spawn frame loop', () => {
+    const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    // 60초 스폰 게이트가 프레임 루프에 배선돼 있다.
+    expect(source).toContain('shouldSpawnDoge(sec, dogeSpawnedRef.current)')
+    expect(source).toContain('spawnDoge()')
+    // 처치 → 상자, 상자 오픈 → 코인 산포 체인.
+    expect(source).toContain('setChests((prev) => [...prev, { id: ++_chestId, pos }])')
+    expect(source).toContain('for (const coinPos of dogeTreasureCoinPositions(pos)) dropGoldCoin(coinPos)')
+    // 도지/상자 개체를 렌더한다.
+    expect(source).toContain('<DancingDogeEvent')
+    expect(source).toContain('<TreasureChest')
   })
 })
 

@@ -7,6 +7,9 @@ import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
 import GoldCoin from './GoldCoin.jsx'
 import XpTextbook from './XpTextbook.jsx'
+import DancingDogeEvent from './DancingDogeEvent.jsx'
+import TreasureChest from './TreasureChest.jsx'
+import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { getE04Cap } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
@@ -399,6 +402,47 @@ export function stageHpOverride(type, stageId) {
   return { hp: Math.round(base.hp * mult) }
 }
 
+// ── 이벤트 몬스터 "춤추는 도지" (2026-07-14) ─────────────────────────────────
+// 모든 스테이지(1·2·3)의 60초 시점에 스테이지 중앙(0,0)에서 주인공 2배 크기로 1회 등장한다.
+// 무해(정지·비추격) 개체로 플레이어 무기로만 처치 — 처치 시 보물상자를 드랍하고, 상자는
+// 1.5초 뒤 "퍽" 열리며 주변에 평소보다 많은 황금코인을 산포한다(연출 배선은 DancingDogeEvent/
+// TreasureChest, 코인 산포는 아래 dogeTreasureCoinPositions).
+export const DOGE_SPAWN_SEC = 60
+export const DOGE_SPAWN_POS = [0, 0, 0]   // 스테이지 가운데
+// DancingDoge rest-pose raw height(발바닥→귀끝) ≈ 1.5 units(scale 1, DogeMesh 지오메트리 기준).
+// 주인공 월드 키의 2배가 되도록 스케일을 이 raw 높이로부터 역산한다(2배 스펙을 구조적으로 보장).
+const DOGE_RAW_HEIGHT = 1.5
+export const DOGE_SCALE = Number(((2 * PLAYER_MESH_WORLD_HEIGHT) / DOGE_RAW_HEIGHT).toFixed(3))
+// 이벤트 보너스 몬스터 HP — 60초 시점 DPS로 "몇 초 안에" 잡히는 수준(E06 320보다 낮게 200 기준).
+// 스테이지 상승 곡선(+20%/스테이지)을 잡몹·보스와 동일 철학으로 적용(1.0 / 1.2 / 1.44).
+export const DOGE_BASE_HP = 200
+// 보물상자 코인 잭팟: 일반 처치(코인 1)·보스(코인 5)보다 확실히 많은 12개를 원형 산포한다.
+export const DOGE_COIN_COUNT = 12
+const DOGE_COIN_RING_MIN = 0.3
+const DOGE_COIN_RING_MAX = 1.4
+
+export function dogeHpForStage(stageId) {
+  return Math.round(DOGE_BASE_HP * (STAGE_HP_MULTIPLIER[stageId] ?? 1))
+}
+
+// 60초 도달 시 1회만 스폰. alreadySpawned 가드로 중복 스폰을 막는다(모든 스테이지 공통).
+export function shouldSpawnDoge(sec, alreadySpawned) {
+  return !alreadySpawned && sec >= DOGE_SPAWN_SEC
+}
+
+// 상자 오픈 시 중심 주변 링에 코인 count개 산포할 위치. 각기 다른 좌표라야 GoldCoin이
+// 좌표 시드로 서로 다른 방향으로 튀어 뭉치지 않는다(뿌리는 연출 성립).
+export function dogeTreasureCoinPositions(center, count = DOGE_COIN_COUNT, random = Math.random) {
+  const [cx, , cz] = center
+  const positions = []
+  for (let i = 0; i < count; i++) {
+    const ang = (i / count) * Math.PI * 2 + random() * 0.6
+    const r = DOGE_COIN_RING_MIN + random() * (DOGE_COIN_RING_MAX - DOGE_COIN_RING_MIN)
+    positions.push([cx + Math.sin(ang) * r, 0.13, cz + Math.cos(ang) * r])
+  }
+  return positions
+}
+
 function pickTypeByWeight(weights) {
   const r = Math.random()
   let acc = 0
@@ -426,17 +470,21 @@ let _uid   = 0
 let _textbookId = 0
 let _coinId = 0
 let _collapseId = 0
+let _chestId = 0
 
 export default function Enemies() {
   const [enemies, setEnemies]       = useState([])
   const [textbooks, setTextbooks]   = useState([])
   const [goldCoins, setGoldCoins]   = useState([])
   const [collapses, setCollapses]   = useState([])
+  const [doges, setDoges]           = useState([])
+  const [chests, setChests]         = useState([])
   const enemiesRef                = useRef([])
   const firedBurstsRef            = useRef(new Set())
   const nextWaveTimeRef          = useRef(0)
   const nextMidTimeRef           = useRef(Infinity)  // stage1 중간 보강 스폰 예약 시각(웨이브가 예약)
   const goldTimerRef              = useRef(nextGoldInterval())
+  const dogeSpawnedRef           = useRef(false)     // 60초 도지 이벤트 1회 스폰 가드
 
   const spawnBoss      = useGameStore((s) => s.spawnBoss)
   const matildaSpawned = useGameStore((s) => s.matildaSpawned)
@@ -502,6 +550,24 @@ export default function Enemies() {
     setGoldCoins((prev) => [...prev, { id: ++_coinId, pos, value }])
   }, [])
 
+  // ── 춤추는 도지 이벤트 ─────────────────────────────────────────────────────
+  const spawnDoge = useCallback(() => {
+    const hp = dogeHpForStage(useGameStore.getState().currentStageId)
+    setDoges((prev) => [...prev, { id: ++_uid, pos: [...DOGE_SPAWN_POS], scale: DOGE_SCALE, hp }])
+  }, [])
+
+  // 도지 처치 → 그 자리에 보물상자 드랍.
+  const onDogeDeath = useCallback((dogeId, pos) => {
+    setDoges((prev) => prev.filter((d) => d.id !== dogeId))
+    setChests((prev) => [...prev, { id: ++_chestId, pos }])
+  }, [])
+
+  // 상자 오픈(드랍+1.5초) → 상자 제거 + 주변에 코인 잭팟 산포.
+  const onChestOpen = useCallback((chestId, pos) => {
+    setChests((prev) => prev.filter((c) => c.id !== chestId))
+    for (const coinPos of dogeTreasureCoinPositions(pos)) dropGoldCoin(coinPos)
+  }, [dropGoldCoin])
+
   const onDeath = useCallback((id, dropData) => {
     enemiesRef.current = enemiesRef.current.filter((e) => e.id !== id)
     setEnemies([...enemiesRef.current])
@@ -547,6 +613,12 @@ export default function Enemies() {
     if (goldTimerRef.current <= 0) {
       dropGoldCoin(pickGoldDropPos(bounds))
       goldTimerRef.current = nextGoldInterval()
+    }
+
+    // 춤추는 도지 이벤트 — 모든 스테이지 60초 시점에 중앙에서 1회 스폰(스폰 펑 연출 경유).
+    if (shouldSpawnDoge(sec, dogeSpawnedRef.current)) {
+      dogeSpawnedRef.current = true
+      spawnDoge()
     }
 
     // 버스트 스케줄 발화.
@@ -632,6 +704,12 @@ export default function Enemies() {
       ))}
       {collapses.map((c) => (
         <EnemyDeathCollapse key={c.id} {...c} onDone={onCollapseDone} />
+      ))}
+      {doges.map((d) => (
+        <DancingDogeEvent key={d.id} id={d.id} position={d.pos} scale={d.scale} hp={d.hp} onDeath={onDogeDeath} />
+      ))}
+      {chests.map((c) => (
+        <TreasureChest key={c.id} id={c.id} position={c.pos} onOpen={onChestOpen} />
       ))}
     </>
   )
