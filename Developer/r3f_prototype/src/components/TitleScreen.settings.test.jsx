@@ -69,7 +69,7 @@ describe('TitleScreen lobby entry', () => {
       return (x.endsWith('vw') && Math.abs(parseFloat(x)) >= 50)
         || (y.endsWith('vh') && Math.abs(parseFloat(y)) >= 50)
     })).toBe(true)
-    expect(emoji.textContent).toBe('🧟‍♀️')
+    expect(emoji.textContent).toBe('🧟‍♀️🏫❤️')
     expect(emoji.classList.contains('title-intro-zombie')).toBe(true)
     expect(emoji.getAttribute('aria-hidden')).toBe('true')
     expect(parseFloat(emoji.style.animationDelay)).toBeGreaterThan(
