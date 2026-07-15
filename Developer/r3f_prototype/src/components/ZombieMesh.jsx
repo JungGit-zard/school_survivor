@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { inflateScale, getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat } from '../lib/toon.js'
 import { getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
 import boss02FaceUrl from '../assets/enemies/boss_02.webp'
-import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.png'
+import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.webp'
 import MatildaMesh from './MatildaMesh.jsx'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
 

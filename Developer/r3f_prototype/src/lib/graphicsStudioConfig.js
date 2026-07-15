@@ -1,18 +1,18 @@
-import stage1FloorUrl from '../assets/background_floor/tile_stage01.png.png'
-import stage2FloorUrl from '../assets/background_floor/tile_stage02_corridor.png'
-import stage2EndWallUrl from '../assets/background_floor/stage02_corridor_end_wall.png'
-import pencilIconUrl from '../assets/weapon_icon/01_wea_pencil.png.png'
-import rulerIconUrl from '../assets/weapon_icon/02_wea_30ruller.png.png'
-import tumblerIconUrl from '../assets/weapon_icon/03_wea_tumbler.png.png'
-import scienceIconUrl from '../assets/weapon_icon/04_wea_science.png.png'
-import bellIconUrl from '../assets/weapon_icon/05_wea_bell.png.png'
-import stunGunIconUrl from '../assets/weapon_icon/06_wea_stungun.png.png'
-import onigiriIconUrl from '../assets/weapon_icon/07_wea_onigiri.png.png'
-import batteryIconUrl from '../assets/weapon_icon/08_wea_extrabattery.png.png'
-import starlinkIconUrl from '../assets/weapon_icon/09_wea_starlink.png.png'
-import compassIconUrl from '../assets/weapon_icon/10_wea_compass.png.png'
-import umbrellaIconUrl from '../assets/weapon_icon/11_wea_umb.png.png'
-import eraserIconUrl from '../assets/weapon_icon/12_wea_eraser.png.png'
+import stage1FloorUrl from '../assets/background_floor/tile_stage01.webp'
+import stage2FloorUrl from '../assets/background_floor/tile_stage02_corridor.webp'
+import stage2EndWallUrl from '../assets/background_floor/stage02_corridor_end_wall.webp'
+import pencilIconUrl from '../assets/weapon_icon/01_wea_pencil.png.webp'
+import rulerIconUrl from '../assets/weapon_icon/02_wea_30ruller.png.webp'
+import tumblerIconUrl from '../assets/weapon_icon/03_wea_tumbler.png.webp'
+import scienceIconUrl from '../assets/weapon_icon/04_wea_science.png.webp'
+import bellIconUrl from '../assets/weapon_icon/05_wea_bell.png.webp'
+import stunGunIconUrl from '../assets/weapon_icon/06_wea_stungun.png.webp'
+import onigiriIconUrl from '../assets/weapon_icon/07_wea_onigiri.png.webp'
+import batteryIconUrl from '../assets/weapon_icon/08_wea_extrabattery.png.webp'
+import starlinkIconUrl from '../assets/weapon_icon/09_wea_starlink.png.webp'
+import compassIconUrl from '../assets/weapon_icon/10_wea_compass.png.webp'
+import umbrellaIconUrl from '../assets/weapon_icon/11_wea_umb.png.webp'
+import eraserIconUrl from '../assets/weapon_icon/12_wea_eraser.png.webp'
 import boxCutterIconUrl from '../assets/weapon_icon/13_wea_boxcutter.svg'
 import chibikoIconUrl from '../assets/weapon_icon/14_wea_chibiko.svg'
 import sharkMissileIconUrl from '../assets/weapon_icon/14_wea_shark_missile.svg'
@@ -239,7 +239,7 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     runtimePreviewComponent: 'FloorVisual',
     stageId: 'stage1',
     assetUrl: stage1FloorUrl,
-    applyTargets: ['components/Floor.jsx', 'components/ClassroomFloor.jsx', 'assets/background_floor/tile_stage01.png.png'],
+    applyTargets: ['components/Floor.jsx', 'components/ClassroomFloor.jsx', 'assets/background_floor/tile_stage01.webp'],
   },
   {
     id: 'stage-floor-stage2',
@@ -255,8 +255,8 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
       'components/Floor.jsx',
       'components/ClassroomFloor.jsx',
       'lib/stage2CorridorWall.js',
-      'assets/background_floor/tile_stage02_corridor.png',
-      'assets/background_floor/stage02_corridor_end_wall.png',
+      'assets/background_floor/tile_stage02_corridor.webp',
+      'assets/background_floor/stage02_corridor_end_wall.webp',
     ],
   },
   {

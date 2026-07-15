@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { useFrame, useLoader } from '@react-three/fiber'
 import * as THREE from 'three'
-import matildaFaceTextureUrl from '../assets/character/matilda_face_texture.png'
+import matildaFaceTextureUrl from '../assets/character/matilda_face_texture.webp'
 import { PLAYER_MESH_RAW_HEIGHT, PLAYER_MESH_SCALE, PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { inflateScale, outlineMat, toonMat } from '../lib/toon.js'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
@@ -86,7 +86,7 @@ export const MATILDA_REFERENCE_FEATURES = {
   heartRibbon: true,
 }
 
-export const MATILDA_DEFAULT_FACE_TEXTURE_SOURCE = 'assets/character/matilda_face_texture.png'
+export const MATILDA_DEFAULT_FACE_TEXTURE_SOURCE = 'assets/character/matilda_face_texture.webp'
 
 export const MATILDA_PALETTE = {
   hair: 0xb43752,

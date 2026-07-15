@@ -4,11 +4,11 @@ import { useGameStore } from '../store/useGameStore.js'
 import { PASSIVE_CATALOG, getMvpPassiveIds, getPriceFor, formatEffectLabel } from '../lib/passiveCatalog.js'
 import { getLevel } from '../lib/passiveUpgrades.js'
 import { schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
-import iconMagnet from '../assets/passive_icon/passive_magnet.png'
-import iconMoveSpeed from '../assets/passive_icon/passive_moveSpeed.png'
-import iconMight from '../assets/passive_icon/passive_might.png'
-import iconMaxHp from '../assets/passive_icon/passive_maxHp.png'
-import iconGrowth from '../assets/passive_icon/passive_growth.png'
+import iconMagnet from '../assets/passive_icon/passive_magnet.webp'
+import iconMoveSpeed from '../assets/passive_icon/passive_moveSpeed.webp'
+import iconMight from '../assets/passive_icon/passive_might.webp'
+import iconMaxHp from '../assets/passive_icon/passive_maxHp.webp'
+import iconGrowth from '../assets/passive_icon/passive_growth.webp'
 
 const PASSIVE_ICON_SRCS = {
   magnet: iconMagnet,

@@ -65,7 +65,7 @@ describe('MatildaMesh model contract', () => {
   })
 
   it('uses the supplied face texture as the default head-front texture', () => {
-    expect(MATILDA_DEFAULT_FACE_TEXTURE_SOURCE).toBe('assets/character/matilda_face_texture.png')
+    expect(MATILDA_DEFAULT_FACE_TEXTURE_SOURCE).toBe('assets/character/matilda_face_texture.webp')
   })
 
   it('uses the approved succubus palette anchors', () => {

@@ -87,7 +87,7 @@ describe('B03 muscular PE teacher boss', () => {
     const source = zombieMeshSource
 
     // 사용자 제공 얼굴 텍스처(머리띠·호루라기 포함)를 머리 앞면 데칼로 사용
-    expect(source).toContain("import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.png'")
+    expect(source).toContain("import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.webp'")
     expect(source).toContain('function B03PeTeacherFaceTexture')
     expect(source).toContain('<B03PeTeacherFaceTexture />')
     expect(source).toContain('THREE.SRGBColorSpace')

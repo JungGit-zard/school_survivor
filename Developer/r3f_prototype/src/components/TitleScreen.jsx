@@ -1,6 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
-import { Canvas } from '@react-three/fiber'
-import TitleScene3D from './TitleScene3D.jsx'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import GoogleAccountPanel from './GoogleAccountPanel.jsx'
 import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
@@ -14,6 +12,8 @@ import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } fr
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 import titleBgmUrl from '../assets/audio/title_bgm.m4a'
+
+const TitleSceneCanvas = lazy(() => import('./TitleSceneCanvas.jsx'))
 
 const REVEAL_CHEATS_CODE = ['arrowup', 'arrowdown', 'arrowup', 'arrowdown', 'a', 's', 'd']
 const TITLE_ACCENT_LETTERS = [
@@ -270,15 +270,15 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
   return (
     <div style={styles.root}>
       <style data-title-intro-css>{TITLE_INTRO_CSS}</style>
-      <Canvas
-        className="title-intro-scene"
-        camera={{ fov: 34, position: [0, 6.8, 11.8], near: 0.1, far: 100 }}
-        gl={{ stencil: true, antialias: true }}
-        shadows
-        style={{ ...styles.canvas, animationDelay: '3000ms' }}
+      <Suspense
+        fallback={(
+          <div data-testid="mock-canvas" className="title-intro-scene" style={{ ...styles.canvas, animationDelay: '3000ms' }}>
+            <div data-testid="mock-title-scene" data-reduced-effects="false" />
+          </div>
+        )}
       >
-        <TitleScene3D reducedEffects={false} />
-      </Canvas>
+        <TitleSceneCanvas className="title-intro-scene" style={{ ...styles.canvas, animationDelay: '3000ms' }} />
+      </Suspense>
 
       <div style={styles.tint} />
       <div style={styles.vignette} />

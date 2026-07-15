@@ -1,16 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { Physics } from '@react-three/rapier'
-import Game from './components/Game.jsx'
-import HUD from './components/HUD.jsx'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import TitleScreen from './components/TitleScreen.jsx'
 import Lobby from './components/Lobby.jsx'
 import VirtualJoystick from './components/VirtualJoystick.jsx'
-import CoinShop from './components/CoinShop.jsx'
-import UserRanking from './components/UserRanking.jsx'
-import StageRanking from './components/StageRanking.jsx'
-import AdminPage from './components/AdminPage.jsx'
-import GraphicsStudio from './components/GraphicsStudio.jsx'
 import { useGameStore } from './store/useGameStore.js'
 import SfxLayer from './components/SfxLayer.jsx'
 import { initPlaytestLogger } from './lib/playtestLogger.js'
@@ -20,6 +11,14 @@ import { saveStageBossPreview, saveStudioTunings, saveTextureDecals } from './li
 import { saveStagePropPlacements } from './lib/stagePropPlacements.js'
 import { saveSfxTunings } from './lib/sfxRegistry.js'
 import { STUDIO_GAME_SYNC_MESSAGE, isAllowedStudioGameOrigin } from './lib/studioGameBridge.js'
+
+const AdminPage = lazy(() => import('./components/AdminPage.jsx'))
+const GraphicsStudio = lazy(() => import('./components/GraphicsStudio.jsx'))
+const CoinShop = lazy(() => import('./components/CoinShop.jsx'))
+const UserRanking = lazy(() => import('./components/UserRanking.jsx'))
+const StageRanking = lazy(() => import('./components/StageRanking.jsx'))
+const GameCanvas = lazy(() => import('./components/GameCanvas.jsx'))
+const HUD = lazy(() => import('./components/HUD.jsx'))
 
 initPlaytestLogger()
 // 이동 키 추적 — blur/숨김 시 키 상태 자동 리셋 (알트탭 keyup 유실 → 6시 자동 이동 버그 방지)
@@ -42,9 +41,21 @@ if (typeof window !== 'undefined') {
 
 export default function App() {
   const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
-  if (isAdminRoute) return <AdminPage />
+  if (isAdminRoute) {
+    return (
+      <Suspense fallback={<div style={styles.routeLoading}>관리 도구 불러오는 중…</div>}>
+        <AdminPage />
+      </Suspense>
+    )
+  }
   const isGraphicsStudioRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/graphics-studio')
-  if (isGraphicsStudioRoute) return <GraphicsStudio />
+  if (isGraphicsStudioRoute) {
+    return (
+      <Suspense fallback={<div style={styles.routeLoading}>그래픽 스튜디오 불러오는 중…</div>}>
+        <GraphicsStudio />
+      </Suspense>
+    )
+  }
 
   const [screen, setScreen] = useState('title')
   const [prevScreen, setPrevScreen] = useState('title')
@@ -136,41 +147,34 @@ export default function App() {
         )}
 
         {screen === 'coinShop' && (
-          <CoinShop
-            onBack={returnToPreviousScreen}
-            backLabel={prevScreen === 'game' ? '결과로 돌아가기' : prevScreen === 'lobby' ? '로비로 돌아가기' : '타이틀로 돌아가기'}
-          />
+          <Suspense fallback={<ScreenLoading label="상점 불러오는 중…" />}>
+            <CoinShop
+              onBack={returnToPreviousScreen}
+              backLabel={prevScreen === 'game' ? '결과로 돌아가기' : prevScreen === 'lobby' ? '로비로 돌아가기' : '타이틀로 돌아가기'}
+            />
+          </Suspense>
         )}
 
         {screen === 'ranking' && (
-          rankingStageId
-            ? <StageRanking stageId={rankingStageId} onBack={returnToPreviousScreen} />
-            : <UserRanking onBack={returnToPreviousScreen} />
+          <Suspense fallback={<ScreenLoading label="랭킹 불러오는 중…" />}>
+            {rankingStageId
+              ? <StageRanking stageId={rankingStageId} onBack={returnToPreviousScreen} />
+              : <UserRanking onBack={returnToPreviousScreen} />}
+          </Suspense>
         )}
 
         {screen === 'game' && (
           <>
-            <Canvas
-                // 살짝 원근(perspective) — 좁은 화각(fov)으로 직교에 가깝되,
-                // 상단(먼 쪽)으로 갈수록 아주 미세하게 멀어지는 3D 깊이감을 준다.
-                // 화각이 좁을수록 원근감이 약해지고(직교에 가까움), 넓을수록 강해진다.
-                camera={{ fov: 30, position: [0, 17, 17], near: 0.1, far: 500 }}
-                dpr={[1, 1.5]}
-                shadows
-                gl={{ stencil: true }}
-                style={{ width: '100%', height: '100%', background: '#c8c4bc', display: 'block' }}
-              >
-                <Physics key={gameKey} gravity={[0, 0, 0]} timeStep="vary" paused={phase !== 'playing'}>
-                  <Game />
-                </Physics>
-              </Canvas>
-            <HUD
-              onOpenCoinShop={() => openCoinShopFrom('game')}
-              onGoToTitle={() => setScreen('title')}
-              onGoToLobby={() => setScreen('lobby')}
-              onGoToRanking={() => openRankingFrom('game')}
-              devCheatsVisible={devCheatsVisible}
-            />
+            <Suspense fallback={<ScreenLoading label="게임 불러오는 중…" />}>
+              <GameCanvas gameKey={gameKey} phase={phase} />
+              <HUD
+                onOpenCoinShop={() => openCoinShopFrom('game')}
+                onGoToTitle={() => setScreen('title')}
+                onGoToLobby={() => setScreen('lobby')}
+                onGoToRanking={() => openRankingFrom('game')}
+                devCheatsVisible={devCheatsVisible}
+              />
+            </Suspense>
             {mobileJoystickEnabled && (
               <VirtualJoystick enabled phase={phase} playAreaRef={phoneFrameRef} />
             )}
@@ -181,6 +185,10 @@ export default function App() {
   )
 }
 
+function ScreenLoading({ label }) {
+  return <div style={styles.screenLoading}>{label}</div>
+}
+
 const styles = {
   viewport: {
     width: '100vw',
@@ -189,6 +197,26 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  routeLoading: {
+    minHeight: '100vh',
+    display: 'grid',
+    placeItems: 'center',
+    background: '#111827',
+    color: '#f8fafc',
+    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif',
+    fontWeight: 800,
+  },
+  screenLoading: {
+    position: 'absolute',
+    inset: 0,
+    display: 'grid',
+    placeItems: 'center',
+    background: '#16121d',
+    color: '#f8fafc',
+    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif',
+    fontWeight: 800,
+    zIndex: 20,
   },
   phoneFrame: {
     position: 'relative',
