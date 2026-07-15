@@ -382,6 +382,7 @@ describe('dancing doge event monster', () => {
     expect(source).toContain('3단 박스로 둥근 아치형 보물상자 실루엣')
     expect(source).toContain('잠금판 + 열쇠구멍')
     expect(source).toContain('리벳')
+    expect(source).toContain("emitSfx({ id: 'chestOpen'")
     expect(source).not.toContain('CHEST_GOLD')
   })
 
@@ -391,6 +392,7 @@ describe('dancing doge event monster', () => {
     expect(source).toContain('shouldSpawnDoge(sec, dogeSpawnedRef.current)')
     expect(source).toContain('spawnDoge()')
     // 처치 → 상자, 상자 오픈 → 코인 산포 체인.
+    expect(source).toContain("emitSfx({ id: 'chestDrop'")
     expect(source).toContain('setChests((prev) => [...prev, { id: ++_chestId, pos }])')
     expect(source).toContain('for (const coinPos of dogeTreasureCoinPositions(pos)) dropGoldCoin(coinPos)')
     // 도지/상자 개체를 렌더한다.

@@ -92,6 +92,7 @@ export default function DancingDogeEvent({
       enemyBodies.delete(id)
       if (rb.current) rb.current._enemyHit = null
       escapePosRef.current = [p[0], p[1], p[2]]
+      emitSfx({ id: 'dogeEscape', volume: 0.72, rate: 0.95 + Math.random() * 0.1 })
       setEscaping(true)
     }
   })
@@ -145,8 +146,8 @@ export default function DancingDogeEvent({
         body._enemyDead = true
         body._enemyHit = null
         enemyBodies.delete(id)
-        // 임시 사망음(묵직한 좀비 사망) — soundmini가 도지 전용 사망 SFX로 교체 예정.
-        emitSfx({ id: 'zombieHeavyDeath' })
+        // 도지 전용 사망음: 장난감 팝 + 강아지풍 상승 피치.
+        emitSfx({ id: 'dogeDeath', volume: 0.78, rate: 0.96 + Math.random() * 0.08 })
         const p = body.translation()
         deathPosRef.current = [p.x, p.y, p.z]
         // 사망 "팝" 버스트 — 바닥에 금빛 링 + 도지 둘레로 스파크 산개(기존 전역 VFX 재사용).

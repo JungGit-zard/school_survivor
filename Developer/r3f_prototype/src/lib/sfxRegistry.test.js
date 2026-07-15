@@ -123,11 +123,34 @@ describe('playSfx', () => {
     expect(statSync(new URL('../../public/sfx/weapons/starlinkExplosion.ogg', import.meta.url)).size).toBeGreaterThan(1000)
   })
 
-  it('registers flask and lantern ticks as aliases of the short Chibiko hit asset', async () => {
+  it('registers flask and lantern ticks as dedicated non-reused hit assets', async () => {
     const { SOUND_MAP } = await import('./sfxRegistry.js')
 
-    expect(SOUND_MAP.flaskTick).toBe('/sfx/weapons/chibikoHit.ogg')
-    expect(SOUND_MAP.lanternTick).toBe('/sfx/weapons/chibikoHit.ogg')
+    expect(SOUND_MAP.flaskTick).toBe('/sfx/weapons/flaskTick.ogg')
+    expect(SOUND_MAP.lanternTick).toBe('/sfx/weapons/lanternTick.ogg')
+    expect(SOUND_MAP.flaskTick).not.toBe(SOUND_MAP.chibikoHit)
+    expect(SOUND_MAP.lanternTick).not.toBe(SOUND_MAP.chibikoHit)
+  })
+
+  it('registers newly audited gameplay feedback cues', async () => {
+    const { SOUND_MAP, POLYPHONY_COOLDOWN } = await import('./sfxRegistry.js')
+
+    expect(SOUND_MAP).toMatchObject({
+      dogeDeath: '/sfx/enemies/dogeDeath.ogg',
+      dogeEscape: '/sfx/enemies/dogeEscape.ogg',
+      chestDrop: '/sfx/events/chestDrop.ogg',
+      chestOpen: '/sfx/events/chestOpen.ogg',
+      textbookLand: '/sfx/events/textbookLand.ogg',
+      textbookCollect: '/sfx/ui/textbookCollect.ogg',
+    })
+    expect(POLYPHONY_COOLDOWN).toEqual(expect.objectContaining({
+      dogeDeath: 180,
+      dogeEscape: 240,
+      chestDrop: 160,
+      chestOpen: 320,
+      textbookLand: 120,
+      textbookCollect: 55,
+    }))
   })
 
   it('keeps every registered OGG and MP3 fallback path backed by a public asset', async () => {

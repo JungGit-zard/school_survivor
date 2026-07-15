@@ -43,8 +43,8 @@ export const SOUND_MAP = {
   eraserHit:      '/sfx/weapons/eraserHit.ogg',
   chibikoHit:     '/sfx/weapons/chibikoHit.ogg',
   sharkHit:       '/sfx/weapons/sharkHit.ogg',
-  flaskTick:      '/sfx/weapons/chibikoHit.ogg',
-  lanternTick:    '/sfx/weapons/chibikoHit.ogg',
+  flaskTick:      '/sfx/weapons/flaskTick.ogg',
+  lanternTick:    '/sfx/weapons/lanternTick.ogg',
 
   // ── 플레이어 ─────────────────────────────────────────────────────────────────
   playerHit:      '/sfx/player/playerHit.ogg',
@@ -69,10 +69,13 @@ export const SOUND_MAP = {
   zombieHeavyDeath:   '/sfx/enemies/zombieHeavyDeath.ogg',
   bossDeath:          '/sfx/enemies/bossDeath.ogg',
   matildaDeath:       '/sfx/enemies/matildaDeath.ogg',
+  dogeDeath:          '/sfx/enemies/dogeDeath.ogg',
+  dogeEscape:         '/sfx/enemies/dogeEscape.ogg',
 
   // ── UI ───────────────────────────────────────────────────────────────────────
   buttonClick:    '/sfx/ui/buttonClick.ogg',
   coinCollect:    '/sfx/ui/coinCollect.ogg',
+  textbookCollect:'/sfx/ui/textbookCollect.ogg',
   levelUp:        '/sfx/ui/levelUp.ogg',
   stageClear:     '/sfx/ui/stageClear.ogg',
   gameOver:       '/sfx/ui/gameOver.ogg',
@@ -87,6 +90,9 @@ export const SOUND_MAP = {
   escapePortalClear:  '/sfx/events/escapePortalClear.ogg',
   bossClearJingle:    '/sfx/events/bossClearJingle.ogg',
   milestoneGold:      '/sfx/events/milestoneGold.ogg',
+  chestDrop:          '/sfx/events/chestDrop.ogg',
+  chestOpen:          '/sfx/events/chestOpen.ogg',
+  textbookLand:       '/sfx/events/textbookLand.ogg',
 }
 
 export const DEFAULT_SFX_TUNING = {
@@ -105,11 +111,17 @@ const _lastPlayed = {}
 export const POLYPHONY_COOLDOWN = Object.freeze({
   zombieDeath:      50,
   zombieHeavyDeath: 50,
+  dogeDeath:        180,
+  dogeEscape:       240,
   playerHit:        80,
   zombieSpawn:      110,
   matildaDash:      400,
   matildaLaugh:     700,
   coinCollect:      40,
+  textbookCollect:  55,
+  textbookLand:     120,
+  chestDrop:        160,
+  chestOpen:        320,
   pencilHit:        35,
   rulerHit:         55,
   boxCutterHit:     45,

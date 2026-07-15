@@ -137,8 +137,8 @@ export default function TreasureChest({ id, position, scale = 1, onOpen }) {
       if (elapsedRef.current >= CHEST_OPEN_DELAY_MS) {
         openedRef.current = true
         setBurst(true)
-        // "퍽" 오픈음(임시: 골드 마일스톤 징글) — soundmini가 전용 오픈 SFX로 교체 예정.
-        emitSfx({ id: 'milestoneGold', volume: 0.7 })
+        // 전용 상자 오픈음: 잠금쇠 딸깍 + 금빛 버스트.
+        emitSfx({ id: 'chestOpen', volume: 0.78, rate: 0.96 + Math.random() * 0.08 })
         // 금빛 파열 — 바닥 링 팝 + 상자 둘레 스파크(전역 VFX 재사용, VFXLayer가 정리).
         emitVfx({ type: 'pickupPop', x: position[0], z: position[2], y: 0.16 * s, color: CHEST_FLASH, life: 480 })
         for (let i = 0; i < 5; i++) {

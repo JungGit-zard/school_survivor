@@ -5,6 +5,7 @@ import { toonMat, outlineMat, inflateScale } from '../lib/toon.js'
 import { stepMagnetPull } from '../lib/pickup.js'
 import { computeTextbookLanding } from '../lib/textbookLanding.js'
 import { logPickup } from '../lib/playtestLogger.js'
+import { emitSfx } from '../lib/sfxEvents.js'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
 
 const FLOOR_Y = 0.13
@@ -63,6 +64,7 @@ export default function XpTextbook({ id, pos, value, onCollect }) {
         pRef.current.z = land.z
         // 착지 시 평평하게 눕힘 (이후 둥둥 플로트가 y축 회전만 사용)
         groupRef.current.rotation.set(0, 0, 0)
+        emitSfx({ id: 'textbookLand', volume: 0.45, rate: 0.94 + Math.random() * 0.12 })
       }
       return
     }
@@ -71,6 +73,7 @@ export default function XpTextbook({ id, pos, value, onCollect }) {
     const result = stepMagnetPull(pRef, delta)
     if (result === 'collected') {
       collected.current = true
+      emitSfx({ id: 'textbookCollect', volume: 0.64, rate: 0.98 + Math.random() * 0.08 })
       gainXp(value)
       logPickup('xp', value)
       onCollect(id)

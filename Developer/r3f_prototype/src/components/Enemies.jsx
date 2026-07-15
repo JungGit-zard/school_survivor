@@ -566,6 +566,7 @@ export default function Enemies() {
   // 도지 처치 → 그 자리에 보물상자 드랍.
   const onDogeDeath = useCallback((dogeId, pos) => {
     setDoges((prev) => prev.filter((d) => d.id !== dogeId))
+    emitSfx({ id: 'chestDrop', volume: 0.66, rate: 0.94 + Math.random() * 0.1 })
     setChests((prev) => [...prev, { id: ++_chestId, pos }])
   }, [])
 
