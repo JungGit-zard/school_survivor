@@ -24,6 +24,7 @@ import {
   WAVE_INTERVAL_SEC,
   WAVE_INTERVAL_MIN_SEC,
   WAVE_INTERVAL_MAX_SEC,
+  STAGE1_SPAWN_MULTIPLIER,
   DOGE_SPAWN_SEC,
   DOGE_SPAWN_POS,
   DOGE_SCALE,
@@ -203,11 +204,21 @@ describe('random-interval discrete wave scheduler', () => {
     expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 20)).toBe(11)
   })
 
-  it('keeps stage 1 wave sizes in the expected 12-17 band for the dense phases', () => {
-    WAVE_PHASES.filter((p) => p.target >= 24).forEach((p) => {
-      const size = waveSizeForPhase(p)
-      expect(size).toBeGreaterThanOrEqual(12)
-      expect(size).toBeLessThanOrEqual(17)
+  it('applies the 1.3x spawn multiplier to every stage 1 wave timing only', () => {
+    expect(STAGE1_SPAWN_MULTIPLIER).toBe(1.3)
+    WAVE_PHASES.forEach((phase) => {
+      const baseSize = waveSizeForPhase(phase)
+      expect(waveSizeForStageAtTime(phase, 'stage1', phase.start))
+        .toBe(Math.round(baseSize * STAGE1_SPAWN_MULTIPLIER))
+      expect(waveSizeForStageAtTime(phase, 'stage3', phase.start)).toBe(baseSize)
+    })
+  })
+
+  it('raises dense stage 1 runtime wave sizes from the old 12-17 band to 16-22', () => {
+    WAVE_PHASES.filter((p) => p.target >= 24).forEach((phase) => {
+      const size = waveSizeForStageAtTime(phase, 'stage1', phase.start)
+      expect(size).toBeGreaterThanOrEqual(16)
+      expect(size).toBeLessThanOrEqual(22)
     })
   })
 })
@@ -222,11 +233,11 @@ describe('stage 1 midpoint reinforcement spawns', () => {
   })
 
   it('sizes the reinforcement at half the main wave, minimum one', () => {
-    // 본 웨이브 크기(target×0.5)의 다시 절반. target 24 → wave 12 → mid 6.
-    expect(midWaveSize({ target: 24 })).toBe(6)
-    expect(midWaveSize({ target: 34 })).toBe(9)   // wave 17 → 9
-    expect(midWaveSize({ target: 15 })).toBe(4)   // wave 8 → 4
-    expect(midWaveSize({ target: 11 })).toBe(3)   // wave 6 → 3
+    // 기존 보강값(본 웨이브의 절반)에 Stage 1 ×1.3을 적용한다.
+    expect(midWaveSize({ target: 24 })).toBe(8)   // 기존 6 → 8
+    expect(midWaveSize({ target: 34 })).toBe(12)  // 기존 9 → 12
+    expect(midWaveSize({ target: 15 })).toBe(5)   // 기존 4 → 5
+    expect(midWaveSize({ target: 11 })).toBe(4)   // 기존 3 → 4
     // 빈 보강 방지: 아주 작은/누락 phase도 최소 1.
     expect(midWaveSize({ target: 1 })).toBe(1)
     expect(midWaveSize({ target: 0 })).toBe(1)
@@ -259,8 +270,8 @@ describe('stage 1 midpoint reinforcement spawns', () => {
 
 describe('boss entrance escort wave', () => {
   it('spawns one full stage1 wave alongside the B01 boss at 120s', () => {
-    // 120s 활성 phase(start 120, target 24) → 한 웨이브 분량 12마리.
-    expect(bossEscortSize('stage1', WAVE_PHASES, 120)).toBe(12)
+    // 120s 활성 phase(start 120, target 24) → 기존 12마리 ×1.3 = 16마리.
+    expect(bossEscortSize('stage1', WAVE_PHASES, 120)).toBe(16)
   })
 
   it('adds no escort on stage2/stage3 bosses (their boss phases are separately tuned)', () => {

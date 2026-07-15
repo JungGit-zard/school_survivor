@@ -19,12 +19,24 @@ describe('stage object placements', () => {
       'corridorLockerBank',
       'corridorJanitorCart',
       'corridorLostFoundBoard',
+      'basketballHoop',
+      'basketballBallCart',
+      'basketballCluster',
+      'gymBench',
+      'gymTrainingCones',
+      'gymMats',
+      'gymScoreboard',
+      'gymBanner',
+      'gymExitDoor',
+      'gymEquipmentSpill',
     ])
 
     expect(getStageObjectPlacements('stage1').length).toBeGreaterThan(0)
     expect(getStageObjectPlacements('stage2').length).toBeGreaterThan(0)
+    expect(getStageObjectPlacements('stage3').length).toBeGreaterThan(0)
     expect(getStageObjectPlacements('stage1').every((item) => supportedTypes.has(item.type))).toBe(true)
     expect(getStageObjectPlacements('stage2').every((item) => supportedTypes.has(item.type))).toBe(true)
+    expect(getStageObjectPlacements('stage3').every((item) => supportedTypes.has(item.type))).toBe(true)
   })
 
   it('keeps Stage 1 desks away from the central spawn/play zone', () => {
@@ -220,5 +232,33 @@ describe('stage object placements', () => {
     expect(stage2Types).toContain('corridorLockerBank')
     expect(stage2Types).toContain('corridorJanitorCart')
     expect(stage2Types).toContain('corridorLostFoundBoard')
+  })
+
+  it('authors Stage 3 as a curated basketball gym prop set without scatter-copy suffixes', () => {
+    const placements = getStageObjectPlacements('stage3')
+    const stage3Types = new Set(placements.map(({ type }) => type))
+
+    expect(placements).toHaveLength(STAGE_OBJECT_PLACEMENTS.stage3.length)
+    expect(placements.every(({ id }) => !id.includes('-copy-'))).toBe(true)
+    expect(stage3Types).toEqual(new Set([
+      'basketballHoop',
+      'basketballBallCart',
+      'basketballCluster',
+      'gymBench',
+      'gymTrainingCones',
+      'gymMats',
+      'gymScoreboard',
+      'gymBanner',
+      'gymExitDoor',
+      'gymEquipmentSpill',
+    ]))
+  })
+
+  it('keeps Stage 3 authored props inside the gym bounds while preserving the center combat lane', () => {
+    const { halfX, halfZ } = getStageBounds('stage3')
+    const placements = getStageObjectPlacements('stage3')
+
+    expect(placements.every(({ position: [x, , z] }) => Math.abs(x) <= halfX - 0.8 && Math.abs(z) <= halfZ - 0.8)).toBe(true)
+    expect(placements.every(({ position: [x, , z] }) => Math.abs(x) >= 6.5 || Math.abs(z) >= 6.0)).toBe(true)
   })
 })

@@ -554,6 +554,99 @@ export const STAGE_OBJECT_PLACEMENTS = {
       props: { variant: 'sideRight' },
     },
   ],
+  stage3: [
+    {
+      id: 'stage3-hoop-north-normal',
+      type: 'basketballHoop',
+      position: [0, 0, -16.4],
+      rotation: [0, 0, 0],
+      scale: 1.18,
+    },
+    {
+      id: 'stage3-hoop-south-damaged',
+      type: 'basketballHoop',
+      position: [0, 0, 16.4],
+      rotation: [0, Math.PI, 0],
+      scale: 1.18,
+      props: { damaged: true },
+    },
+    {
+      id: 'stage3-ball-cart-nw',
+      type: 'basketballBallCart',
+      position: [-13.6, 0, -12.6],
+      rotation: [0, 0.48, 0],
+      scale: 1.05,
+    },
+    {
+      id: 'stage3-balls-ne-scattered',
+      type: 'basketballCluster',
+      position: [12.4, 0, -12.4],
+      rotation: [0, -0.28, 0],
+      scale: 1.15,
+      props: { count: 6 },
+      blocking: false,
+    },
+    {
+      id: 'stage3-bench-west-long',
+      type: 'gymBench',
+      position: [-15.2, 0, -2.8],
+      rotation: [0, Math.PI / 2, 0],
+      scale: 1.08,
+    },
+    {
+      id: 'stage3-bench-east-knocked',
+      type: 'gymBench',
+      position: [14.5, 0, 3.2],
+      rotation: [0, -Math.PI / 2 + 0.18, 0],
+      scale: 1.02,
+      props: { knockedOver: true },
+    },
+    {
+      id: 'stage3-cones-mid-left-zigzag',
+      type: 'gymTrainingCones',
+      position: [-7.6, 0, 6.2],
+      rotation: [0, -0.58, 0],
+      scale: 1.1,
+      blocking: false,
+    },
+    {
+      id: 'stage3-mats-east-stack',
+      type: 'gymMats',
+      position: [13.8, 0, -4.8],
+      rotation: [0, -0.38, 0],
+      scale: 1.12,
+    },
+    {
+      id: 'stage3-scoreboard-north-wall',
+      type: 'gymScoreboard',
+      position: [-8.8, 0, -17.0],
+      rotation: [0, 0.08, 0],
+      scale: 1.0,
+    },
+    {
+      id: 'stage3-banner-south-wall',
+      type: 'gymBanner',
+      position: [7.8, 0, 17.0],
+      rotation: [0, Math.PI + 0.08, 0],
+      scale: 1.05,
+      blocking: false,
+    },
+    {
+      id: 'stage3-exit-door-east-wall',
+      type: 'gymExitDoor',
+      position: [17.0, 0, -9.2],
+      rotation: [0, -Math.PI / 2, 0],
+      scale: 1.0,
+    },
+    {
+      id: 'stage3-equipment-spill-sw',
+      type: 'gymEquipmentSpill',
+      position: [-12.8, 0, 11.4],
+      rotation: [0, 0.34, 0],
+      scale: 1.08,
+      blocking: false,
+    },
+  ],
 }
 
 const FLIPPED_UNCONSCIOUS_STUDENT_VARIANTS = {
@@ -672,9 +765,8 @@ function getStage2Rotation(item, id) {
 // 기본(오버라이드 미적용) 배치 파이프라인. 그래픽 스튜디오 에디터가 pristine 시드로 쓴다.
 export function computeDefaultStageObjectPlacements(stageId = 'stage1') {
   const authored = STAGE_OBJECT_PLACEMENTS[stageId] ?? []
-  // stage1은 수제 배치 정본을 그대로 사용(2026-07-12 사용자 지시로 복원).
-  // 복제(×5)/해시 분산/×1.1 확대 파이프라인은 stage1에 적용하지 않는다.
-  if (stageId === 'stage1') return authored.map(withMixedUnconsciousStudentFacing)
+  // stage1/stage3 are curated authored layouts. Stage2 alone uses copy/scatter to fill the corridor.
+  if (stageId === 'stage1' || stageId === 'stage3') return authored.map(withMixedUnconsciousStudentFacing)
   return authored.flatMap((item, itemIndex) => (
     Array.from({ length: getInstanceCount(stageId, item) }, (_, copyIndex) => {
       const id = `${item.id}-copy-${copyIndex + 1}`

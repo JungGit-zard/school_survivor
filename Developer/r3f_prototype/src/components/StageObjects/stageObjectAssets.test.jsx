@@ -7,6 +7,16 @@ import {
   CorridorJanitorCart,
   CorridorLockerBank,
   CorridorLostFoundBoard,
+  BallCart,
+  BasketballCluster,
+  BasketballHoop,
+  GymBanner,
+  GymBench,
+  GymEquipmentSpill,
+  GymExitDoor,
+  GymMats,
+  GymScoreboard,
+  TrainingCones,
   UNCONSCIOUS_STUDENT_VARIANTS,
   UnconsciousStudent,
 } from './index.js'
@@ -112,5 +122,36 @@ describe('stage object asset catalog', () => {
     expect(source).not.toContain('material={outline}')
     expect(source).not.toContain(', 8]')
     expect(source).not.toContain(', 10]')
+  })
+
+  it('exports Stage 3 voxel gym prop models and the matching concept sheet', () => {
+    const gymProps = [
+      BasketballHoop,
+      BallCart,
+      BasketballCluster,
+      GymBench,
+      TrainingCones,
+      GymMats,
+      GymScoreboard,
+      GymBanner,
+      GymExitDoor,
+      GymEquipmentSpill,
+    ]
+
+    for (const Component of gymProps) {
+      expect(Component).toBeTypeOf('function')
+    }
+
+    expect(readFileSync(new URL('../../assets/concept/stage3_basketball_court_voxel_lowpoly_props.png', import.meta.url)).subarray(1, 4).toString('ascii')).toBe('PNG')
+  })
+
+  it('keeps Stage 3 gym props mostly voxel/block modeled with explicitly low-poly balls', () => {
+    const source = readFileSync(new URL('./GymProps.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('<boxGeometry')
+    expect(source).toContain('<cylinderGeometry')
+    expect(source).toContain('<icosahedronGeometry')
+    expect(source).not.toContain('sphereGeometry')
+    expect(source).not.toContain('torusGeometry')
   })
 })

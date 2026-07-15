@@ -10,6 +10,12 @@ export const BLOCKING_STAGE_OBJECT_TYPES = new Set([
   'corridorLockerBank',
   'corridorJanitorCart',
   'corridorLostFoundBoard',
+  'basketballHoop',
+  'basketballBallCart',
+  'gymBench',
+  'gymMats',
+  'gymScoreboard',
+  'gymExitDoor',
 ])
 
 const DESK_COLLIDER_PARTS = [
@@ -33,6 +39,31 @@ const CORRIDOR_LOST_FOUND_COLLIDER_PARTS = [
   { key: 'lost-found-footprint', position: [0, 0.78, 0], size: [1.34, 1.56, 0.18] },
 ]
 
+const BASKETBALL_HOOP_COLLIDER_PARTS = [
+  { key: 'hoop-base-footprint', position: [0, 0.38, 0], size: [1.72, 0.76, 1.02] },
+  { key: 'hoop-post-footprint', position: [0, 1.1, 0.14], size: [0.92, 2.2, 0.32] },
+]
+
+const BASKETBALL_CART_COLLIDER_PARTS = [
+  { key: 'ball-cart-footprint', position: [0, 0.58, 0], size: [1.55, 1.16, 0.95] },
+]
+
+const GYM_BENCH_COLLIDER_PARTS = [
+  { key: 'gym-bench-footprint', position: [0, 0.38, 0], size: [2.35, 0.76, 0.52] },
+]
+
+const GYM_MATS_COLLIDER_PARTS = [
+  { key: 'gym-mats-footprint', position: [0, 0.34, 0], size: [1.65, 0.68, 1.05] },
+]
+
+const GYM_SCOREBOARD_COLLIDER_PARTS = [
+  { key: 'gym-scoreboard-footprint', position: [0, 1.0, 0], size: [2.72, 2.0, 0.24] },
+]
+
+const GYM_EXIT_DOOR_COLLIDER_PARTS = [
+  { key: 'gym-exit-door-footprint', position: [0, 1.0, 0], size: [1.62, 2.0, 0.28] },
+]
+
 const COLLIDER_DEFS = {
   classroomChair: {
     variants: CLASSROOM_CHAIR_VARIANTS,
@@ -45,6 +76,12 @@ const COLLIDER_DEFS = {
   corridorLockerBank: { parts: CORRIDOR_LOCKER_COLLIDER_PARTS },
   corridorJanitorCart: { parts: CORRIDOR_CART_COLLIDER_PARTS },
   corridorLostFoundBoard: { parts: CORRIDOR_LOST_FOUND_COLLIDER_PARTS },
+  basketballHoop: { parts: BASKETBALL_HOOP_COLLIDER_PARTS },
+  basketballBallCart: { parts: BASKETBALL_CART_COLLIDER_PARTS },
+  gymBench: { parts: GYM_BENCH_COLLIDER_PARTS },
+  gymMats: { parts: GYM_MATS_COLLIDER_PARTS },
+  gymScoreboard: { parts: GYM_SCOREBOARD_COLLIDER_PARTS },
+  gymExitDoor: { parts: GYM_EXIT_DOOR_COLLIDER_PARTS },
 }
 
 const MIN_BLOCKING_HALF_HEIGHT = 0.44

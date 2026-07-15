@@ -50,7 +50,7 @@ describe('stage object blocking colliders', () => {
   })
 
   it('keeps gameplay props physically solid', () => {
-    const blockingPlacements = ['stage1', 'stage2'].flatMap((stageId) => (
+    const blockingPlacements = ['stage1', 'stage2', 'stage3'].flatMap((stageId) => (
       getStageObjectPlacements(stageId).filter(({ type, blocking }) => (
         BLOCKING_STAGE_OBJECT_TYPES.has(type) && blocking !== false
       ))
@@ -97,6 +97,24 @@ describe('stage object blocking colliders', () => {
       .filter(({ type }) => BLOCKING_STAGE_OBJECT_TYPES.has(type))
       .reduce((total, placement) => total + getStageObjectColliderParts(placement).length, 0)
     expect(getStageObjectSightObstacles('stage2')).toHaveLength(expectedSightParts)
+  })
+
+  it('uses solid colliders for Stage 3 gym blockers while leaving tiny scatter props non-blocking', () => {
+    const stage3Props = getStageObjectPlacements('stage3')
+    const physicalStage3Props = stage3Props.filter(({ type, blocking }) => (
+      BLOCKING_STAGE_OBJECT_TYPES.has(type) && blocking !== false
+    ))
+    const decorativeStage3Props = stage3Props.filter(({ blocking }) => blocking === false)
+
+    expect(physicalStage3Props.length).toBeGreaterThan(0)
+    expect(decorativeStage3Props.map(({ type }) => type)).toEqual(expect.arrayContaining([
+      'basketballCluster',
+      'gymTrainingCones',
+      'gymBanner',
+      'gymEquipmentSpill',
+    ]))
+    expect(getStageObjectColliders('stage3')).toHaveLength(physicalStage3Props.length)
+    expect(physicalStage3Props.every((placement) => getStageObjectColliderParts(placement).length > 0)).toBe(true)
   })
 
   it('mounts the stage object collider layer beside the visual prop layer', () => {
