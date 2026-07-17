@@ -36,7 +36,8 @@ export function getStudioTransformProps(tuning = DEFAULT_STUDIO_TUNING) {
 }
 
 function isOutlineMaterial(material) {
-  return material?.side === THREE.BackSide || material?.stencilFunc === THREE.NotEqualStencilFunc
+  return material?.side === THREE.BackSide
+    && material?.stencilFunc === THREE.NotEqualStencilFunc
 }
 
 function disposeOwnedStudioMaterial(material, owner) {
@@ -223,10 +224,34 @@ function findStudioPartFromRuntimeRoot(root, key) {
 
 function resetSavedStudioPartTransforms(root) {
   root.traverse((object) => {
+    if (!object.userData.studioPartTransformApplied) return
     if (object.userData.studioPartBaseScale) object.scale.copy(object.userData.studioPartBaseScale)
     if (object.userData.studioPartBaseRotation) object.rotation.copy(object.userData.studioPartBaseRotation)
     if (object.userData.studioPartBasePosition) object.position.copy(object.userData.studioPartBasePosition)
+    object.userData.studioPartPositionOffset?.set(0, 0, 0)
+    object.userData.studioPartRotationOffset?.set(0, 0, 0)
+    object.userData.studioPartScaleMultiplier?.set(1, 1, 1)
+    object.userData.studioPartTransformApplied = false
   })
+}
+
+export function captureStudioPartBaseTransform(object) {
+  if (!object) return
+  if (!object.userData.studioPartBaseScale) object.userData.studioPartBaseScale = object.scale.clone()
+  if (!object.userData.studioPartBaseRotation) object.userData.studioPartBaseRotation = object.rotation.clone()
+  if (!object.userData.studioPartBasePosition) object.userData.studioPartBasePosition = object.position.clone()
+}
+
+export function composeStudioPartPosition(object, axis, fallbackBase, animationOffset = 0) {
+  const base = object?.userData?.studioPartBasePosition?.[axis] ?? fallbackBase
+  const studioOffset = object?.userData?.studioPartPositionOffset?.[axis] ?? 0
+  return base + studioOffset + animationOffset
+}
+
+export function composeStudioPartRotation(object, axis, fallbackBase, animationOffset = 0) {
+  const base = object?.userData?.studioPartBaseRotation?.[axis] ?? fallbackBase
+  const studioOffset = object?.userData?.studioPartRotationOffset?.[axis] ?? 0
+  return base + studioOffset + animationOffset
 }
 
 function getSavedPartTuning(itemId, savedKey, tuning) {
@@ -288,9 +313,7 @@ export function applySavedStudioPartTunings(root, itemId, tunings = loadStudioTu
       const part = findStudioPartFromRuntimeRoot(root, partKey)
       if (!part) return
 
-      if (!part.userData.studioPartBaseScale) part.userData.studioPartBaseScale = part.scale.clone()
-      if (!part.userData.studioPartBaseRotation) part.userData.studioPartBaseRotation = part.rotation.clone()
-      if (!part.userData.studioPartBasePosition) part.userData.studioPartBasePosition = part.position.clone()
+      captureStudioPartBaseTransform(part)
 
       _partCombinedPosition.set(0, 0, 0)
       _partCombinedScale.set(1, 1, 1)
@@ -310,6 +333,13 @@ export function applySavedStudioPartTunings(root, itemId, tunings = loadStudioTu
         rotationZ += transform.rotation[2]
       })
 
+      if (!part.userData.studioPartPositionOffset) part.userData.studioPartPositionOffset = new THREE.Vector3()
+      if (!part.userData.studioPartRotationOffset) part.userData.studioPartRotationOffset = new THREE.Vector3()
+      if (!part.userData.studioPartScaleMultiplier) part.userData.studioPartScaleMultiplier = new THREE.Vector3(1, 1, 1)
+      part.userData.studioPartPositionOffset.copy(_partCombinedPosition)
+      part.userData.studioPartRotationOffset.set(rotationX, rotationY, rotationZ)
+      part.userData.studioPartScaleMultiplier.copy(_partCombinedScale)
+      part.userData.studioPartTransformApplied = true
       part.position.copy(part.userData.studioPartBasePosition).add(_partCombinedPosition)
       part.scale.copy(part.userData.studioPartBaseScale).multiply(_partCombinedScale)
       part.rotation.set(

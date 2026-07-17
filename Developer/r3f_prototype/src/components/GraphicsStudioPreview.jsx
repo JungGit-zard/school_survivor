@@ -309,7 +309,7 @@ function StudioVfxPreview({ type }) {
 
   const onDone = () => {}
 
-  if (type === 'spawnSmoke') return <SpawnSmokeEffect position={[0, 0, 0]} visualScale={0.65} frozen />
+  if (type === 'spawnSmoke') return <SpawnSmokeEffect position={[0, 0, 0]} visualScale={0.65} />
   if (type === 'chargeWarning') return <ChargeWarningLine event={event} onDone={onDone} />
   if (type === 'pickupPop') return <PickupPop event={event} onDone={onDone} />
   return <HitSpark event={event} onDone={onDone} />
@@ -364,11 +364,28 @@ function WeaponModelPreview({ type }) {
   return null
 }
 
-function getPreviewFrame(item) {
+export function getPreviewFrame(item) {
   if (item.previewKind === 'titleScene') {
     return {
       camera: { position: [0, 6.8, 11.8], fov: 34, near: 0.1, far: 100 },
       target: [0, 1.6, 0],
+    }
+  }
+  if (item.previewKind === 'player') {
+    return {
+      // 게임과 같은 정면축(x=0), 30° 화각, 45° 내려보기. 거리만 편집용으로 축소한다.
+      camera: { position: [0, 2.2, 2.2], fov: 30, near: 0.01, far: 30 },
+      target: [0, 0, 0],
+      minDistance: 0.8,
+      maxDistance: 12,
+    }
+  }
+  if (item.previewKind === 'zombie' && item.zombieType === 'B04') {
+    return {
+      camera: { position: [6, 4.8, 8.4], fov: 38, near: 0.1, far: 100 },
+      target: [0, 0.45, 0],
+      minDistance: 2,
+      maxDistance: 22,
     }
   }
   if (item.previewKind === 'floor') {
@@ -475,7 +492,7 @@ function getPreviewFrame(item) {
   }
 }
 
-function RenderPreviewItem({ item, frozen = false }) {
+function RenderPreviewItem({ item }) {
   const movingRef = useRef(false)
   const playerRef = useRef(null)
   const [deathReplayKey, setDeathReplayKey] = useState(0)
@@ -497,14 +514,14 @@ function RenderPreviewItem({ item, frozen = false }) {
     return <PlayerVisual meshGroup={playerRef} movingRef={movingRef} hp={100} maxHp={100} previewArmAction={PLAYER_STUDIO_ARM_ACTIONS[item.animation] ?? null} />
   }
   if (item.previewKind === 'zombie') {
-    return <EnemyVisual type={item.zombieType} animPhase={item.animation ?? 'normal'} hp={ENEMY_STATS[item.zombieType]?.hp} forceMesh frozen={frozen} />
+    return <EnemyVisual type={item.zombieType} animPhase={item.animation ?? 'normal'} hp={ENEMY_STATS[item.zombieType]?.hp} forceMesh />
   }
   if (item.previewKind === 'matilda') {
     return <MatildaMesh movementPose={item.animation === 'charge'} />
   }
   if (item.previewKind === 'doge') {
     // 파트 편집 중에는 정지 포즈로 고정해 base 캡처가 rest 포즈 기준으로 안정되게 한다
-    return <DancingDoge dance="twist" paused={frozen} />
+    return <DancingDoge dance="twist" />
   }
   if (item.previewKind === 'stageObject' && item.objectType === 'desk') {
     return <ClassroomDesk variant={item.variant} />
@@ -680,7 +697,7 @@ function StudioScene({ selectedItem, tuning, frame, focusedPartKeys, partTunings
       <directionalLight position={[10, 12, -10]} intensity={0.85} color={0xffe2b0} />
       {/* 파트 편집(포커스) 중에는 애니메이션을 멈춰 base 캡처·튜닝·아웃라인이 rest 포즈 기준으로 안정되게 한다 */}
       <group ref={rootRef} scale={transform.scale} position={transform.position} rotation={transform.rotation} onDoubleClick={handlePartDoubleClick}>
-        <RenderPreviewItem item={item} frozen={focusedPartKeys.length > 0} />
+        <RenderPreviewItem item={item} />
       </group>
       <StudioOrbitControls frame={frame} />
     </>

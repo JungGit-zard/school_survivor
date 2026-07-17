@@ -40,7 +40,8 @@ function isObsoleteStage2BossItemId(id) {
 
 export function getStudioZombieItemId(type) {
   if (type === 'B02') return 'stage2-boss-v2'
-  return type === 'B03' ? 'zombie-b03-pe-teacher' : `zombie-${String(type).toLowerCase()}`
+  if (type === 'B03') return 'zombie-b03-pe-teacher'
+  return type === 'B04' ? 'zombie-b04-chef' : `zombie-${String(type).toLowerCase()}`
 }
 
 export const DEFAULT_TEXTURE_DECAL = Object.freeze({
@@ -128,10 +129,10 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     runtimePreviewComponent: 'PlayerVisual',
     applyTargets: ['components/PlayerMesh.jsx', 'components/Player.jsx', 'lib/characterVisualScale.js', 'lib/toon.js'],
   },
-  ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'B01', 'B02', 'B03'].map((type) => ({
+  ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'B01', 'B02', 'B03', 'B04'].map((type) => ({
     id: getStudioZombieItemId(type),
     category: 'enemy',
-    label: type === 'B02' ? 'Stage 2 Boss' : type === 'B03' ? 'Boss B03 · 몸짱 체육교사' : `Zombie ${type}`,
+    label: type === 'B02' ? 'Stage 2 Boss' : type === 'B03' ? 'Boss B03 · 몸짱 체육교사' : type === 'B04' ? 'Boss B04 · 주방장 좀비' : `Zombie ${type}`,
     source: 'components/ZombieMesh.jsx',
     previewKind: 'zombie',
     runtimePreviewSource: 'components/Enemy.jsx',
@@ -749,31 +750,40 @@ function promoteStudioPlayerSource(tunings) {
   return normalizeStudioTuningMap({ ...retainedTunings, ...STUDIO_PLAYER_SOURCE_TUNINGS })
 }
 
-function fillStudioPlayerSourceDefaults(tunings) {
-  const completed = { ...tunings }
-  Object.entries(STUDIO_PLAYER_SOURCE_TUNINGS).forEach(([itemId, sourceTuning]) => {
-    const current = tunings[itemId]
-    completed[itemId] = {
-      ...sourceTuning,
-      ...(current && typeof current === 'object' && !Array.isArray(current) ? current : {}),
-    }
-  })
-  return normalizeStudioTuningMap(completed)
-}
-
 function planStudioPlayerSource(tunings, parsed, hasValidPayload, storedRevision) {
   const sourceRevision = STUDIO_PLAYER_SOURCE_METADATA.sourceRevision
   if (storedRevision > sourceRevision) {
     return { tunings, writePayload: false, revision: null }
   }
-  if (hasValidPayload && storedRevision === sourceRevision) {
-    const completed = fillStudioPlayerSourceDefaults(parsed)
+
+  // Studio Apply 결과가 모든 런타임 모델의 유일한 기준이다.
+  // 유효한 payload는 source revision이 오래됐더라도 절대 seed로 덮어쓰지 않는다.
+  if (hasValidPayload) {
+    const forcedCollar = parsed['player::part::0.0.3.0']
+    const shouldUndoForcedCollar = storedRevision === 4
+      && forcedCollar
+      && Number(forcedCollar.positionY) === -0.28
+
+    if (!shouldUndoForcedCollar) {
+      return { tunings, writePayload: false, revision: null }
+    }
+
+    // revision 4에서 런타임이 임의로 내렸던 칼라 값만 Studio 확정값으로 1회 복원한다.
+    const restored = normalizeStudioTuningMap({
+      ...parsed,
+      'player::part::0.0.3.0': {
+        ...forcedCollar,
+        positionY: STUDIO_PLAYER_SOURCE_TUNINGS['player::part::0.0.3.0'].positionY,
+      },
+    })
     return {
-      tunings: completed,
-      writePayload: JSON.stringify(completed) !== JSON.stringify(parsed),
-      revision: null,
+      tunings: restored,
+      writePayload: true,
+      revision: sourceRevision,
     }
   }
+
+  // 저장값이 아예 없거나 깨진 최초 실행에서만 복구 seed를 사용한다.
   return {
     tunings: promoteStudioPlayerSource(tunings),
     writePayload: true,

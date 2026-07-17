@@ -71,4 +71,43 @@ describe('PlayerMesh layout', () => {
     expect(leftLeg.match(/<OutlineBlock/g)).toHaveLength(3)
     expect(rightLeg.match(/<OutlineBlock/g)).toHaveLength(3)
   })
+
+  it('composes Studio part offsets into every animated player transform channel', () => {
+    const source = readFileSync(new URL('./PlayerMesh.jsx', import.meta.url), 'utf8')
+
+    const positionParts = [
+      'head',
+      'hairTop',
+      'hairFr',
+      'hairSL',
+      'hairSR',
+      'hairTail',
+      'hairClip',
+      'eyeL',
+      'eyeR',
+    ]
+    const rotationChannels = {
+      legL: ['x'],
+      legR: ['x'],
+      slvL: ['x', 'y', 'z'],
+      slvR: ['x', 'y', 'z'],
+      bag: ['x', 'z'],
+    }
+
+    positionParts.forEach((part) => {
+      expect(source).toMatch(new RegExp(
+        `composeStudioPartPosition\\(\\s*parts\\.${part},\\s*'y'`,
+      ))
+    })
+    Object.entries(rotationChannels).forEach(([part, axes]) => {
+      axes.forEach((axis) => {
+        expect(source).toMatch(new RegExp(
+          `composeStudioPartRotation\\(\\s*parts\\.${part},\\s*'${axis}'`,
+        ))
+      })
+    })
+    expect(source).toContain('captureStudioPartBaseTransform(el)')
+    expect(source).not.toContain('parts.head.position.y = baseY + bob')
+    expect(source).not.toContain('parts.legL.rotation.x = sw')
+  })
 })

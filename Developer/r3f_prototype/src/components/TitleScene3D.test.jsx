@@ -11,6 +11,10 @@ import {
   disposeTitleCharacterOutlines,
   isTitleOutlineStorageEvent,
 } from './TitleScene3D.jsx'
+import {
+  applySavedStudioPartTunings,
+  applyStudioTuning,
+} from './StudioTunedGroup.jsx'
 
 describe('TitleScene3D direction', () => {
   it('uses the referenced pink-haired school survivor look', () => {
@@ -338,6 +342,60 @@ describe('TitleScene3D direction', () => {
     expect(fillTwin.material).toBe(fill.material)
     expect(fill.material.stencilRef).toBe(2)
     expect(outline.scale.x).toBeCloseTo(baseScale.x * 1.12)
+  })
+
+  it('keeps player part transforms and non-outline fills after the title Apply pass', () => {
+    const titleRoot = new THREE.Group()
+    const playerRoot = new THREE.Group()
+    const tunedPart = new THREE.Group()
+    const fillMaterial = new THREE.MeshToonMaterial({ color: 0xff4f86 })
+    fillMaterial.stencilWrite = true
+    fillMaterial.stencilFunc = THREE.AlwaysStencilFunc
+    const outlineMaterial = new THREE.MeshBasicMaterial({
+      color: 0x050209,
+      side: THREE.BackSide,
+    })
+    outlineMaterial.stencilWrite = true
+    outlineMaterial.stencilFunc = THREE.NotEqualStencilFunc
+    const regularBackSideFillMaterial = new THREE.MeshBasicMaterial({
+      color: 0x35c9f2,
+      side: THREE.BackSide,
+    })
+    const fill = new THREE.Mesh(new THREE.BoxGeometry(), fillMaterial)
+    const outline = new THREE.Mesh(new THREE.BoxGeometry(), outlineMaterial)
+    const regularBackSideFill = new THREE.Mesh(
+      new THREE.ConeGeometry(0.3, 1, 4),
+      regularBackSideFillMaterial,
+    )
+    titleRoot.add(playerRoot)
+    playerRoot.add(tunedPart, regularBackSideFill)
+    tunedPart.add(outline, fill)
+
+    applyTitleCharacterOutline(titleRoot)
+    applyStudioTuning(playerRoot, {
+      outlineColor: '#000000',
+      outlineOpacity: 1,
+      outlineThickness: 1.4,
+    })
+    applySavedStudioPartTunings(playerRoot, 'player', {
+      'player::part::0': {
+        positionX: 0.37,
+        positionY: -0.22,
+        positionZ: 0.41,
+        rotationX: -112,
+        rotationY: -125,
+        rotationZ: 3,
+      },
+    })
+    applyTitleCharacterOutline(titleRoot)
+
+    expect(tunedPart.position.toArray()).toEqual([0.37, -0.22, 0.41])
+    expect(tunedPart.rotation.x).toBeCloseTo(THREE.MathUtils.degToRad(-112))
+    expect(tunedPart.rotation.y).toBeCloseTo(THREE.MathUtils.degToRad(-125))
+    expect(tunedPart.rotation.z).toBeCloseTo(THREE.MathUtils.degToRad(3))
+    expect(fill.material.color.getHex()).toBe(0xff4f86)
+    expect(regularBackSideFill.material.color.getHex()).toBe(0x35c9f2)
+    expect(outline.material.color.getHex()).toBe(0x000000)
   })
 
   it('reapplies outlines only for graphics-studio storage changes or storage clear', () => {

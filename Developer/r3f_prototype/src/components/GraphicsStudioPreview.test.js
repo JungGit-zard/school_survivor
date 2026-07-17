@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import * as THREE from 'three'
-import { getStudioPartKey } from './GraphicsStudioPreview.jsx'
+import { getPreviewFrame, getStudioPartKey } from './GraphicsStudioPreview.jsx'
 
 describe('GraphicsStudioPreview render contracts', () => {
   it('renders standard zombie catalog items with a direct mesh preview', () => {
@@ -31,7 +31,8 @@ describe('GraphicsStudioPreview render contracts', () => {
 
     expect(source).toContain('SpawnSmokeEffect')
     expect(source).toContain("type === 'spawnSmoke'")
-    expect(source).toContain('frozen')
+    expect(source).not.toContain('frozen={focusedPartKeys.length > 0}')
+    expect(source).not.toContain('frozen />')
   })
 
   it('can preview separated Starlink crash phases and fixed zombie death styles', () => {
@@ -57,6 +58,30 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(source).toContain('position={transform.position}')
     expect(source).toContain('rotation={transform.rotation}')
     expect(source).toContain('StudioTuningPreviewProvider')
+  })
+
+  it('frames the player from the same forward axis and 45-degree pitch as gameplay', () => {
+    const frame = getPreviewFrame({ previewKind: 'player' })
+    const [x, y, z] = frame.camera.position
+
+    expect(frame.camera.fov).toBe(30)
+    expect(x).toBe(0)
+    expect(y).toBe(z)
+    expect(frame.target).toEqual([0, 0, 0])
+    expect(Math.atan2(y, z)).toBeCloseTo(Math.PI / 4)
+    expect(frame.minDistance).toBeLessThan(Math.hypot(x, y, z))
+    expect(frame.maxDistance).toBeGreaterThan(Math.hypot(x, y, z))
+  })
+
+  it('fits the complete B04 chef silhouette without changing the standard zombie frame', () => {
+    const chefFrame = getPreviewFrame({ previewKind: 'zombie', zombieType: 'B04' })
+    const standardFrame = getPreviewFrame({ previewKind: 'zombie', zombieType: 'E01' })
+
+    expect(chefFrame.camera.position).toEqual([6, 4.8, 8.4])
+    expect(chefFrame.target).toEqual([0, 0.45, 0])
+    expect(chefFrame.maxDistance).toBe(22)
+    expect(standardFrame.camera.position).toEqual([4, 3.2, 5.6])
+    expect(standardFrame.target).toEqual([0, 0.8, 0])
   })
 
   it('uses middle mouse drag for viewport panning in Graphics Studio', () => {
@@ -132,17 +157,17 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(source).toContain('outline.userData.studioPartGroupOutline = true')
   })
 
-  it('freezes zombie animation while a part is focused so editing works on the rest pose', () => {
+  it('does not forward the old frozen/rest workaround through the preview tree', () => {
     const previewSource = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
     const enemySource = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
     const zombieSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
 
-    expect(previewSource).toContain('frozen={focusedPartKeys.length > 0}')
-    expect(previewSource).toContain('forceMesh frozen={frozen}')
-    expect(enemySource).toContain('forceMesh = false, frozen = false')
-    expect(enemySource).toContain('frozen={frozen}')
+    expect(previewSource).not.toContain('frozen={focusedPartKeys.length > 0}')
+    expect(previewSource).not.toContain('forceMesh frozen={frozen}')
+    expect(enemySource).not.toContain('forceMesh = false, frozen = false')
+    expect(enemySource).not.toContain('frozen={frozen}')
     // ?멸쾶??湲곕낯媛믪? false ??寃뚯엫 ???좊땲硫붿씠??遺덈?
-    expect(zombieSource).toContain('frozen = false')
+    expect(zombieSource).not.toContain('frozen = false')
   })
 
   it('disposes outline-only geometry and materials when clearing part focus outlines', () => {
