@@ -13,7 +13,14 @@ import {
   ENEMY_SPAWN_REVEAL_DELAY_MS,
   advanceEnemySpawnTimer,
 } from './Enemy.jsx'
-import { DOGE_DANCE_HOLD_MS, DOGE_ESCAPE_SPEED, dogeHasEscaped } from '../lib/dogeEscape.js'
+import {
+  DOGE_DANCE_HOLD_MS,
+  DOGE_ESCAPE_SPEED,
+  dogeHasEscaped,
+  dogeKnockbackVelocity,
+  DOGE_KNOCKBACK_MS,
+  DOGE_KNOCKBACK_COOLDOWN_MS,
+} from '../lib/dogeEscape.js'
 
 // ── 이벤트 몬스터 "춤추는 도지" (2026-07-14) ─────────────────────────────────
 // 뱀서 "황금고블린" 역할. 스테이지 중앙에 주인공 2배 크기로 1회 등장, 잠깐 제자리 춤을
@@ -58,6 +65,7 @@ export default function DancingDogeEvent({
   const waddleTRef = useRef(0)
   const [escaping, setEscaping] = useState(false) // 도주 성공 펑 연출 재생 중
   const escapeElapsedRef = useRef(0)
+  const lastKnockbackAtRef = useRef(-Infinity) // 넉백 쿨다운(연속 접촉 스팸 방지)
   const escapePosRef = useRef([...position])
   const phase = useGameStore((s) => s.phase)
 
@@ -177,12 +185,29 @@ export default function DancingDogeEvent({
       {revealed && !dying && !escaping && (
         // kinematicPosition — 도주 이동을 setNextKinematicTranslation으로 구동한다
         // (물리 시뮬 불필요, 렌더/콜라이더/enemyBodies 좌표가 함께 따라간다).
-        <RigidBody ref={rb} type="kinematicPosition" position={position} colliders={false}>
+        <RigidBody
+          ref={rb}
+          type="kinematicPosition"
+          position={position}
+          colliders={false}
+          onIntersectionEnter={({ other }) => {
+            // 플레이어 몸통 충돌 — 피해 없이 도지 중심→플레이어 방향으로 확 밀쳐낸다.
+            // 플레이어만 밀도록 _applyKnockback 훅 유무로 판별(무기/좀비 오감지 금지).
+            const apply = other.rigidBody?._applyKnockback
+            if (!apply || dead.current) return
+            const now = performance.now()
+            if (now - lastKnockbackAtRef.current < DOGE_KNOCKBACK_COOLDOWN_MS) return
+            lastKnockbackAtRef.current = now
+            const pt = other.rigidBody.translation()
+            const kb = dogeKnockbackVelocity(posRef.current, [pt.x, pt.y, pt.z])
+            apply(kb.x, kb.z, DOGE_KNOCKBACK_MS)
+          }}
+        >
           {/* 센서 콜라이더 — 무기 판정은 enemyBodies 좌표 기반이라 몸을 막지 않아도 된다
-              (플레이어가 중앙 개체에 끼는 사고 방지). */}
+              (플레이어가 중앙 개체에 끼는 사고 방지). 넉백은 위 onIntersectionEnter가 담당. */}
           <CuboidCollider args={[0.32 * scale, 0.75 * scale, 0.32 * scale]} position={[0, 0.75 * scale, 0]} sensor />
           <group ref={waddleRef}>
-            <DancingDoge position={[0, 0, 0]} dance="disco" scale={scale} paused={phase !== 'playing'} />
+            <DancingDoge position={[0, 0, 0]} dance="twist" scale={scale} paused={phase !== 'playing'} />
           </group>
           <MiniHealthBar current={hpState} max={hp} width={0.5 * scale} height={0.06 * scale} y={1.75 * scale} />
         </RigidBody>
@@ -195,7 +220,7 @@ export default function DancingDogeEvent({
         // 사망 팝 — 물리 바디 없이 도지 포즈를 그대로 두고 그룹 스케일만 팝→소멸시킨다.
         // 위치는 사망 순간의 좌표(deathPosRef) — 도주 중 처치돼도 그 자리에서 터진다.
         <group ref={deathGroupRef} position={deathPosRef.current} scale={scale}>
-          <DancingDoge position={[0, 0, 0]} dance="disco" scale={1} paused />
+          <DancingDoge position={[0, 0, 0]} dance="twist" scale={1} paused />
         </group>
       )}
     </>

@@ -45,6 +45,7 @@ export default function Player() {
   const lastVisibleHitFlashToken = useRef(0)
   const hitFlashVisibleFrames = useRef(0)
   const knockbackRemainingMs = useRef(0)
+  const knockbackVel = useRef(null) // 외부 주입 넉백 속도({x,z}); null이면 facing 기준 피격 넉백
   const speed           = useGameStore((s) => s.player.speed)
   const phase           = useGameStore((s) => s.phase)
   const hp              = useGameStore((s) => s.player.hp)
@@ -56,7 +57,13 @@ export default function Player() {
 
   // 적 투사체가 플레이어를 감지할 수 있도록 RigidBody ref에 핸들러 등록
   useEffect(() => {
-    if (rb.current) rb.current._playerHit = (dmg) => damagePlayer(dmg)
+    if (!rb.current) return
+    rb.current._playerHit = (dmg) => damagePlayer(dmg)
+    // 피해 없는 외부 넉백 주입(도지 몸통 등) — 방향 벡터를 그대로 밀림 속도로 쓴다.
+    rb.current._applyKnockback = (vx, vz, ms = PLAYER_HIT_KNOCKBACK_MS) => {
+      knockbackVel.current = { x: vx, z: vz }
+      knockbackRemainingMs.current = ms
+    }
   })
 
   useFrame((_, delta) => {
@@ -66,13 +73,14 @@ export default function Player() {
     if (hitFlashToken !== lastKnockbackHitToken.current) {
       lastKnockbackHitToken.current = hitFlashToken
       knockbackRemainingMs.current = PLAYER_HIT_KNOCKBACK_MS
+      knockbackVel.current = null // 피격 넉백은 항상 facing 기준
     }
 
     const { up, down, left, right } = moveKeys
     const beingKnockedBack = knockbackRemainingMs.current > 0
 
     if (beingKnockedBack) {
-      const knockback = resolvePlayerHitKnockback(playerFacing)
+      const knockback = knockbackVel.current ?? resolvePlayerHitKnockback(playerFacing)
       _v.x = knockback.x
       _v.z = knockback.z
       movingRef.current = false

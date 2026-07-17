@@ -5,6 +5,8 @@ import {
   DOGE_ESCAPE_MARGIN,
   dogeEscapeDirection,
   dogeHasEscaped,
+  dogeKnockbackVelocity,
+  DOGE_KNOCKBACK_SPEED,
 } from './dogeEscape.js'
 import { getStageBounds } from './stageConfig.js'
 
@@ -58,5 +60,38 @@ describe('doge escape (황금고블린 도주 로직)', () => {
     // (halfX + margin) / speed = (10 + 0.6) / 0.4 = 26.5s
     expect(escapedAt).toBeGreaterThan(26)
     expect(escapedAt).toBeLessThan(27)
+  })
+})
+
+describe('doge knockback (몸통 충돌 — 피해 없이 밀쳐냄)', () => {
+  it('pushes the player away along the doge→player direction, at knockback speed', () => {
+    // 도지 원점, 플레이어 +x 3.0 → +x 방향으로 정확히 밀려난다.
+    const kb = dogeKnockbackVelocity([0, 0, 0], [3, 0.32, 0])
+    expect(kb.x).toBeCloseTo(DOGE_KNOCKBACK_SPEED, 5)
+    expect(kb.z).toBeCloseTo(0, 5)
+  })
+
+  it('normalizes diagonal contact to full knockback speed', () => {
+    const kb = dogeKnockbackVelocity([2, 0, 2], [4, 0, 4]) // +x,+z 대각
+    expect(Math.hypot(kb.x, kb.z)).toBeCloseTo(DOGE_KNOCKBACK_SPEED, 5)
+    expect(kb.x).toBeCloseTo(kb.z, 5)
+    expect(kb.x).toBeGreaterThan(0)
+    expect(kb.z).toBeGreaterThan(0)
+  })
+
+  it('always points from doge toward player (opposite side flips sign)', () => {
+    const kb = dogeKnockbackVelocity([0, 0, 0], [-5, 0, 0])
+    expect(kb.x).toBeCloseTo(-DOGE_KNOCKBACK_SPEED, 5)
+  })
+
+  it('falls back to a stable direction when the two points overlap', () => {
+    const kb = dogeKnockbackVelocity([1, 0, 1], [1, 0, 1])
+    expect(Math.hypot(kb.x, kb.z)).toBeCloseTo(DOGE_KNOCKBACK_SPEED, 5)
+    expect(Number.isNaN(kb.x)).toBe(false)
+    expect(Number.isNaN(kb.z)).toBe(false)
+  })
+
+  it('is a stronger shove than the standard hit knockback (4)', () => {
+    expect(DOGE_KNOCKBACK_SPEED).toBeGreaterThan(4)
   })
 })

@@ -27,3 +27,22 @@ export function dogeEscapeDirection(pos, bounds, random = Math.random) {
 export function dogeHasEscaped(pos, bounds, margin = DOGE_ESCAPE_MARGIN) {
   return Math.abs(pos[0]) >= bounds.halfX + margin || Math.abs(pos[2]) >= bounds.halfZ + margin
 }
+
+// ── 도지 몸통 넉백(피해 없음) ─────────────────────────────────────────────────
+// 도지는 추격/공격이 없지만, 플레이어가 몸통에 부딪히면 피해 없이 "확" 밀쳐낸다(코믹).
+// 밀리는 방향은 항상 도지 중심 → 플레이어 방향의 수평 단위벡터. 플레이어는 velocity를 매
+// 프레임 덮어쓰므로 임펄스가 아니라 Player의 넉백 오버라이드(입력 무시 구간)로 밀어낸다.
+// 강도는 확실히 밀치되 맵 밖으로 날아가지 않게 — 위치는 playerMovementBounds가 클램프한다.
+export const DOGE_KNOCKBACK_SPEED = 7 // units/sec — 피격 넉백(4)보다 확실히 강한 "밀쳐짐"
+export const DOGE_KNOCKBACK_MS = 240  // 밀림 지속(이 구간 동안 플레이어 입력 무시)
+export const DOGE_KNOCKBACK_COOLDOWN_MS = 300 // 연속 접촉 스팸 방지
+
+// 도지 중심(dogePos)에서 플레이어(playerPos)로 향하는 수평 넉백 속도 벡터.
+// pos는 [x, y, z] 형식. 두 점이 겹쳐 방향이 0이면 임의 방향(+x)으로 밀어낸다.
+export function dogeKnockbackVelocity(dogePos, playerPos, speed = DOGE_KNOCKBACK_SPEED) {
+  const dx = playerPos[0] - dogePos[0]
+  const dz = playerPos[2] - dogePos[2]
+  const len = Math.hypot(dx, dz)
+  if (len < 1e-4) return { x: speed, z: 0 }
+  return { x: (dx / len) * speed, z: (dz / len) * speed }
+}
