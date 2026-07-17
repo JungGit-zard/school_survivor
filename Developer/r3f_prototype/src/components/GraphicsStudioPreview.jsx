@@ -632,7 +632,7 @@ function getDoubleClickFaceAxis(event, part) {
   return snapLocalNormalToFaceAxis(_faceWorldNormal)
 }
 
-function StudioScene({ selectedItem, tuning, frame, focusedPartKeys, focusedPartTuning, partTunings, decals, onPartFocus }) {
+function StudioScene({ selectedItem, tuning, frame, focusedPartKeys, partTunings, decals, onPartFocus }) {
   const rootRef = useRef(null)
   const transform = getStudioTransformProps(tuning)
   const item = selectedItem.previewKind === 'player' || selectedItem.previewKind === 'zombie' || selectedItem.previewKind === 'matilda'
@@ -687,7 +687,7 @@ function StudioScene({ selectedItem, tuning, frame, focusedPartKeys, focusedPart
   )
 }
 
-export default function GraphicsStudioPreview({ selectedItem, tuning, focusedPartKeys = [], focusedPartTuning = null, partTunings = {}, decals = [], onPartFocus = null }) {
+export default function GraphicsStudioPreview({ selectedItem, tuning, focusedPartKeys = [], partTunings = {}, decals = [], onPartFocus = null }) {
   const frame = getPreviewFrame(selectedItem)
 
   return (
@@ -704,7 +704,6 @@ export default function GraphicsStudioPreview({ selectedItem, tuning, focusedPar
           tuning={tuning}
           frame={frame}
           focusedPartKeys={focusedPartKeys}
-          focusedPartTuning={focusedPartTuning}
           partTunings={partTunings}
           decals={decals}
           onPartFocus={onPartFocus}

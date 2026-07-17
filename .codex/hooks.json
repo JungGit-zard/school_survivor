@@ -17,11 +17,20 @@
     ],
     "PreToolUse": [
       {
+        "matcher": "Bash|PowerShell|shell_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-stage2-boss-v2-gate.sh'"
+          }
+        ]
+      },
+      {
         "matcher": "Write",
         "hooks": [
           {
             "type": "command",
-            "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-b02-scale-solution-check.sh'"
+            "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-stage2-boss-v2-gate.sh'"
           }
         ]
       },
@@ -30,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-b02-scale-solution-check.sh'"
+            "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-stage2-boss-v2-gate.sh'"
           }
         ]
       },
@@ -39,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-b02-scale-solution-check.sh'"
+            "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-stage2-boss-v2-gate.sh'"
           }
         ]
       },

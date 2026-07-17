@@ -3,7 +3,7 @@ import { useFrame, useLoader } from '@react-three/fiber'
 import * as THREE from 'three'
 import { inflateScale, getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat } from '../lib/toon.js'
 import { getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
-import boss02FaceUrl from '../assets/enemies/boss_02.webp'
+import boss02FaceUrl from '../assets/faces/b02_stage2_boss_face.webp'
 import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.webp'
 import MatildaMesh from './MatildaMesh.jsx'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
@@ -224,49 +224,38 @@ function RunZombieMesh({ role = 'crew', hitFlash, reg }) {
   )
 }
 
-export const B02_TEACHER_BOSS_PALETTE = {
-  skin: 0x8fb0d8,
-  skinShadow: 0x5d789b,
-  suit: 0x111923,
-  suitShadow: 0x090d12,
-  shirt: 0xe7e3d6,
-  skirt: 0x101821,
-  shoe: 0x08090b,
-  hair: 0x2e251e,
-  hairShadow: 0x1f1713,
+export const B02_STAGE2_BOSS_PALETTE = {
+  skin: 0x75b6e9,
+  skinShadow: 0x4f8fc7,
+  blazer: 0x8f2f3b,
+  blazerShadow: 0x5f1f27,
+  shirt: 0xf2ead8,
+  tie: 0x353538,
+  lanyard: 0x3b3b3f,
+  badge: 0xe0d7bd,
+  skirt: 0x1c1b1d,
+  shoe: 0x17100d,
+  hair: 0x3b241a,
+  hairShadow: 0x24150f,
+  tear: 0x66bcea,
 }
 
-export const B02_TEACHER_BOSS_PARTS = [
-  'headWithFaceTexture',
-  'topHairPlate',
-  'leftHairPlate',
-  'rightHairPlate',
-  'backHairPlate',
-  'bunBlock',
-  'teacherSuit',
-  'skirt',
-  'forwardArms',
-  'blueSkinHandsAndLegs',
+export const B02_STAGE2_BOSS_PARTS = [
+  'blockHeadWithTextureFace',
+  'brownBobAndBunHair',
+  'redTornBlazer',
+  'whiteShirtTieLanyard',
+  'darkSkirt',
+  'blueSkinHandsLegs',
   'blackShoes',
+  'slightB02Walk',
 ]
 
-// B02 얼굴 데칼 — 노출 얼굴면 cover-fit.
-// 노출 얼굴면 실측: 헤드 박스 [0.62,0.62,0.50] 앞면(z=0.25) 전체가 노출된다(0.62×0.62,
-// center y=0). 톱 헤어 플레이트(y 0.31~0.43)는 앞면 위에 얹히고, 사이드 플레이트(front
-// z=0.23)는 앞면보다 뒤라 앞면을 가리지 않는다.
-// UV 윈도(cover-fit): 텍스처 상단 20%는 전폭 갈색 머리 밴드(실측: 중앙 헤어라인
-// y=87/512=17% +3% 마진)라 3D 톱 플레이트와 이중 헤어라인을 만들어 잘라내고, 정사각
-// 종횡비 유지를 위해 좌우 10%씩 크롭(안경 렌즈 프레임 x 48~455px 실측 — 손실 3px 이하,
-// 안경 다리 밴드는 플레인 가장자리에서 3D 사이드 헤어로 이어짐).
-// → repeat [0.8,0.8], offset [0.1,0] (v 0~0.8 = 하단 80%). 스트레치 없음.
-// 얼굴 핵심부(눈썹 y160~입 y447, 중심 y304)가 윈도 중심(y307)과 일치 → 중앙 배치.
-// z는 헤드 앞면(0.25)에서 +0.01만 띄워(0.26) 데칼이 떠 보이는 패럴랙스를 최소화.
-export const B02_TEACHER_BOSS_FACE = {
-  size: [0.62, 0.62],
-  // 512px face source on a 0.62-unit plane: inset two source pixels behind the head front (z=0.25).
-  position: [0, 0, 0.247578125],
-  repeat: [0.8, 0.8],
-  offset: [0.1, 0],
+export const B02_STAGE2_BOSS_FACE = {
+  size: [0.58, 0.50],
+  position: [0, 0, 0.251],
+  repeat: [1, 1],
+  offset: [0, 0],
 }
 
 function ZBlock({ name, studioPartId, size, position, rotation, color, emissive = 0.12, outlineScale = 1.08, flash = false, children = null }) {
@@ -390,122 +379,125 @@ function B03PhysicalEducationBossMesh({ hitFlash, reg }) {
   return (
     <group>
       <group name="b01PeTeacherHeadRig" ref={reg('head')} position={[0, 0.88, 0]}>
-        <ZBlock name="b01Head" studioPartId="b03-head" size={[0.56, 0.48, 0.44]} position={[0, 0, 0]} color={pal.skin} emissive={0.07} outlineScale={1.08} flash={hitFlash} />
-        <ZBlock name="b01SportHair" studioPartId="b03-hair" size={[0.58, 0.13, 0.45]} position={[0, 0.28, -0.01]} color={pal.hair} emissive={0.03} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock name="b01Head" size={[0.56, 0.48, 0.44]} position={[0, 0, 0]} color={pal.skin} emissive={0.07} outlineScale={1.08} flash={hitFlash} />
+        <ZBlock name="b01SportHair" size={[0.58, 0.13, 0.45]} position={[0, 0.28, -0.01]} color={pal.hair} emissive={0.03} outlineScale={1.04} flash={hitFlash} />
         {/* 눈·눈썹·코·입·이빨 등 모델링 이목구비 대신 사용자 제공 얼굴 텍스처 데칼 사용 */}
         <B03PeTeacherFaceTexture />
       </group>
 
       <group name="b01PeTeacherBodyRig" ref={reg('body')} position={[0, 0.28, 0]}>
-        <ZBlock name="b01Shoulders" studioPartId="b03-shoulders" size={[0.96, 0.26, 0.46]} position={[0, 0.27, 0]} color={pal.jerseyShadow} emissive={0.05} outlineScale={1.08} flash={hitFlash} />
-        <ZBlock name="b01Body" studioPartId="b03-body" size={[0.76, 0.64, 0.46]} position={[0, 0, 0]} color={pal.jersey} emissive={0.06} outlineScale={1.08} flash={hitFlash} />
-        <ZBlock name="b01ChestL" studioPartId="b03-chest-l" size={[0.30, 0.22, 0.09]} position={[-0.18, 0.15, 0.27]} color={pal.jerseyShadow} emissive={0.04} outlineScale={1.02} flash={hitFlash} />
-        <ZBlock name="b01ChestR" studioPartId="b03-chest-r" size={[0.30, 0.22, 0.09]} position={[0.18, 0.15, 0.27]} color={pal.jerseyShadow} emissive={0.04} outlineScale={1.02} flash={hitFlash} />
+        <ZBlock name="b01Shoulders" size={[0.96, 0.26, 0.46]} position={[0, 0.27, 0]} color={pal.jerseyShadow} emissive={0.05} outlineScale={1.08} flash={hitFlash} />
+        <ZBlock name="b01Body" size={[0.76, 0.64, 0.46]} position={[0, 0, 0]} color={pal.jersey} emissive={0.06} outlineScale={1.08} flash={hitFlash} />
+        <ZBlock name="b01ChestL" size={[0.30, 0.22, 0.09]} position={[-0.18, 0.15, 0.27]} color={pal.jerseyShadow} emissive={0.04} outlineScale={1.02} flash={hitFlash} />
+        <ZBlock name="b01ChestR" size={[0.30, 0.22, 0.09]} position={[0.18, 0.15, 0.27]} color={pal.jerseyShadow} emissive={0.04} outlineScale={1.02} flash={hitFlash} />
         <ZBlock name="b01JerseyVLeft" size={[0.07, 0.46, 0.05]} position={[-0.13, 0.02, 0.275]} rotation={[0, 0, 0.36]} color={pal.jerseyStripe} emissive={0.06} outlineScale={1.0} flash={hitFlash} />
         <ZBlock name="b01JerseyVRight" size={[0.07, 0.46, 0.05]} position={[0.13, 0.02, 0.275]} rotation={[0, 0, -0.36]} color={pal.jerseyStripe} emissive={0.06} outlineScale={1.0} flash={hitFlash} />
         {/* 목의 빨간 끈+호루라기는 얼굴 텍스처에 포함되어 중복되므로 3D 호루라기 파츠 제거 */}
       </group>
 
-      <ZBlock name="b01Shorts" studioPartId="b03-shorts" size={[0.68, 0.28, 0.44]} position={[0, -0.17, 0]} color={pal.shorts} emissive={0.05} outlineScale={1.07} flash={hitFlash} />
+      <ZBlock name="b01Shorts" size={[0.68, 0.28, 0.44]} position={[0, -0.17, 0]} color={pal.shorts} emissive={0.05} outlineScale={1.07} flash={hitFlash} />
 
       <group name="b01PeTeacherArmLRig" ref={reg('armL')} position={[-0.55, 0.57, 0]} rotation={[-1.14, 0, 0.15]}>
-        <ZBlock name="b01BicepL" studioPartId="b03-bicep-l" size={[0.34, 0.38, 0.34]} position={[0, -0.19, 0]} color={pal.skin} emissive={0.07} outlineScale={1.07} flash={hitFlash} />
-        <ZBlock name="b01ForearmL" studioPartId="b03-arm-l" size={[0.25, 0.32, 0.25]} position={[0, -0.43, 0.01]} color={pal.skinShadow} emissive={0.05} outlineScale={1.05} flash={hitFlash} />
-        <ZBlock name="b01WristbandL" studioPartId="b03-wristband-l" size={[0.28, 0.10, 0.28]} position={[0, -0.58, 0.02]} color={pal.wristband} emissive={0.08} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock name="b01BicepL" size={[0.34, 0.38, 0.34]} position={[0, -0.19, 0]} color={pal.skin} emissive={0.07} outlineScale={1.07} flash={hitFlash} />
+        <ZBlock name="b01ForearmL" size={[0.25, 0.32, 0.25]} position={[0, -0.43, 0.01]} color={pal.skinShadow} emissive={0.05} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock name="b01WristbandL" size={[0.28, 0.10, 0.28]} position={[0, -0.58, 0.02]} color={pal.wristband} emissive={0.08} outlineScale={1.03} flash={hitFlash} />
         <ZBlock name="b01FistL" size={[0.28, 0.24, 0.28]} position={[0, -0.72, 0.04]} color={pal.skin} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
       </group>
 
       <group name="b01PeTeacherArmRRig" ref={reg('armR')} position={[0.55, 0.57, 0]} rotation={[-1.14, 0, -0.15]}>
-        <ZBlock name="b01BicepR" studioPartId="b03-bicep-r" size={[0.34, 0.38, 0.34]} position={[0, -0.19, 0]} color={pal.skin} emissive={0.07} outlineScale={1.07} flash={hitFlash} />
-        <ZBlock name="b01ForearmR" studioPartId="b03-arm-r" size={[0.25, 0.32, 0.25]} position={[0, -0.43, 0.01]} color={pal.skinShadow} emissive={0.05} outlineScale={1.05} flash={hitFlash} />
-        <ZBlock name="b01WristbandR" studioPartId="b03-wristband-r" size={[0.28, 0.10, 0.28]} position={[0, -0.58, 0.02]} color={pal.wristband} emissive={0.08} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock name="b01BicepR" size={[0.34, 0.38, 0.34]} position={[0, -0.19, 0]} color={pal.skin} emissive={0.07} outlineScale={1.07} flash={hitFlash} />
+        <ZBlock name="b01ForearmR" size={[0.25, 0.32, 0.25]} position={[0, -0.43, 0.01]} color={pal.skinShadow} emissive={0.05} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock name="b01WristbandR" size={[0.28, 0.10, 0.28]} position={[0, -0.58, 0.02]} color={pal.wristband} emissive={0.08} outlineScale={1.03} flash={hitFlash} />
         <ZBlock name="b01FistR" size={[0.28, 0.24, 0.28]} position={[0, -0.72, 0.04]} color={pal.skin} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
       </group>
 
       <group name="b01PeTeacherLegLRig" ref={reg('legL')} position={[-0.19, 0.00, 0]}>
-        <ZBlock studioPartId="b03-leg-l" size={[0.29, 0.34, 0.32]} position={[0, -0.12, 0]} color={pal.skin} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock size={[0.29, 0.34, 0.32]} position={[0, -0.12, 0]} color={pal.skin} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
         <ZBlock size={[0.25, 0.22, 0.28]} position={[0, -0.36, 0]} color={pal.skinShadow} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
-        <ZBlock studioPartId="b03-sock-l" size={[0.27, 0.10, 0.29]} position={[0, -0.51, 0]} color={pal.jerseyStripe} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
-        <ZBlock studioPartId="b03-shoe-l" size={[0.33, 0.12, 0.43]} position={[0, -0.61, 0.07]} color={pal.shoe} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock size={[0.27, 0.10, 0.29]} position={[0, -0.51, 0]} color={pal.jerseyStripe} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock size={[0.33, 0.12, 0.43]} position={[0, -0.61, 0.07]} color={pal.shoe} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
         <ZBlock size={[0.35, 0.05, 0.45]} position={[0, -0.69, 0.07]} color={pal.sole} emissive={0.02} outlineScale={1.02} flash={hitFlash} />
       </group>
 
       <group name="b01PeTeacherLegRRig" ref={reg('legR')} position={[0.19, 0.00, 0]}>
-        <ZBlock studioPartId="b03-leg-r" size={[0.29, 0.34, 0.32]} position={[0, -0.12, 0]} color={pal.skin} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock size={[0.29, 0.34, 0.32]} position={[0, -0.12, 0]} color={pal.skin} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
         <ZBlock size={[0.25, 0.22, 0.28]} position={[0, -0.36, 0]} color={pal.skinShadow} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
-        <ZBlock studioPartId="b03-sock-r" size={[0.27, 0.10, 0.29]} position={[0, -0.51, 0]} color={pal.jerseyStripe} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
-        <ZBlock studioPartId="b03-shoe-r" size={[0.33, 0.12, 0.43]} position={[0, -0.61, 0.07]} color={pal.shoe} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock size={[0.27, 0.10, 0.29]} position={[0, -0.51, 0]} color={pal.jerseyStripe} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock size={[0.33, 0.12, 0.43]} position={[0, -0.61, 0.07]} color={pal.shoe} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
         <ZBlock size={[0.35, 0.05, 0.45]} position={[0, -0.69, 0.07]} color={pal.sole} emissive={0.02} outlineScale={1.02} flash={hitFlash} />
       </group>
     </group>
   )
 }
 
-function B02TeacherFaceTexture() {
+function B02Stage2BossFaceTexture() {
   const texture = useLoader(THREE.TextureLoader, boss02FaceUrl)
   texture.colorSpace = THREE.SRGBColorSpace
-  texture.minFilter = THREE.NearestFilter
-  texture.magFilter = THREE.NearestFilter
-  texture.repeat.set(...B02_TEACHER_BOSS_FACE.repeat)
-  texture.offset.set(...B02_TEACHER_BOSS_FACE.offset)
-  texture.generateMipmaps = false
+  texture.anisotropy = 4
+  texture.repeat.set(...B02_STAGE2_BOSS_FACE.repeat)
+  texture.offset.set(...B02_STAGE2_BOSS_FACE.offset)
 
   return (
-    <mesh
-      name="b02TeacherFaceTexture"
-      position={B02_TEACHER_BOSS_FACE.position}
-      renderOrder={4}
-      userData={{ studioNonFocusable: true, studioNonTunable: true }}
-      raycast={disableRaycast}
-    >
-      <planeGeometry args={B02_TEACHER_BOSS_FACE.size} />
-      <meshBasicMaterial map={texture} toneMapped={false} depthTest={false} depthWrite={false} />
+    <mesh name="b02Stage2BossFaceTexture" position={B02_STAGE2_BOSS_FACE.position} renderOrder={4} userData={{ studioNonFocusable: true }}>
+      <planeGeometry args={B02_STAGE2_BOSS_FACE.size} />
+      <meshBasicMaterial map={texture} transparent toneMapped={false} depthTest={false} depthWrite={false} />
     </mesh>
   )
 }
 
-function B02TeacherBossMesh({ hitFlash, reg }) {
-  const pal = B02_TEACHER_BOSS_PALETTE
+function B02Stage2BossMesh({ hitFlash, reg }) {
+  const pal = B02_STAGE2_BOSS_PALETTE
 
   return (
     <group>
-      <group name="b02TeacherHeadRig" ref={reg('head')} position={[0, 0.92, 0]}>
-        <ZBlock name="b02Head" studioPartId="b02-head" size={[0.62, 0.62, 0.50]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash}>
-          <B02TeacherFaceTexture />
-        </ZBlock>
-        <ZBlock name="b02HairTopPlate" studioPartId="b02-hair-top-plate" size={[0.70, 0.12, 0.56]} position={[0, 0.37, -0.02]} color={pal.hair} emissive={0.035} outlineScale={1.04} flash={hitFlash} />
-        <ZBlock name="b02HairLeftPlate" studioPartId="b02-hair-left-plate" size={[0.12, 0.52, 0.50]} position={[-0.37, 0.02, -0.02]} color={pal.hair} emissive={0.03} outlineScale={1.03} flash={hitFlash} />
-        <ZBlock name="b02HairRightPlate" studioPartId="b02-hair-right-plate" size={[0.12, 0.52, 0.50]} position={[0.37, 0.02, -0.02]} color={pal.hair} emissive={0.03} outlineScale={1.03} flash={hitFlash} />
-        <ZBlock name="b02HairBackPlate" studioPartId="b02-hair-back-plate" size={[0.66, 0.56, 0.12]} position={[0, 0.02, -0.31]} color={pal.hairShadow} emissive={0.025} outlineScale={1.03} flash={hitFlash} />
-        <ZBlock name="b02BunBlock" studioPartId="b02-bun-block" size={[0.32, 0.26, 0.24]} position={[0, 0.40, -0.43]} color={pal.hairShadow} emissive={0.03} outlineScale={1.04} flash={hitFlash} />
+      <group name="b02HeadRig" ref={reg('head')} position={[0, 0.88, 0]}>
+        <ZBlock name="b02Head" size={[0.58, 0.50, 0.48]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash} />
+        <ZBlock name="b02FrontHair" size={[0.62, 0.18, 0.50]} position={[-0.03, 0.26, -0.01]} rotation={[0.02, 0, -0.04]} color={pal.hair} emissive={0.035} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock name="b02LeftSideHair" size={[0.12, 0.46, 0.18]} position={[-0.34, 0.02, -0.03]} color={pal.hairShadow} emissive={0.025} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock name="b02RightSideHair" size={[0.12, 0.46, 0.18]} position={[0.34, 0.02, -0.03]} color={pal.hairShadow} emissive={0.025} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock name="b02BackHair" size={[0.58, 0.44, 0.18]} position={[0.02, 0.06, -0.30]} color={pal.hair} emissive={0.03} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock name="b02HairBun" size={[0.24, 0.22, 0.22]} position={[0.24, 0.33, -0.24]} rotation={[0.05, 0, 0.08]} color={pal.hair} emissive={0.03} outlineScale={1.05} flash={hitFlash} />
+        <B02Stage2BossFaceTexture />
       </group>
 
-      <group name="b02TeacherBodyRig" ref={reg('body')} position={[0, 0.28, 0]}>
-        <ZBlock name="b02Body" studioPartId="b02-body" size={[0.60, 0.56, 0.42]} position={[0, 0.07, 0]} color={pal.suit} emissive={0.07} outlineScale={1.08} flash={hitFlash} />
-        <ZBlock name="b02Shirt" studioPartId="b02-shirt" size={[0.24, 0.38, 0.05]} position={[0, 0.13, 0.235]} color={pal.shirt} emissive={0.06} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock name="b02Skirt" studioPartId="b02-skirt" size={[0.62, 0.42, 0.42]} position={[0, -0.39, 0]} color={pal.skirt} emissive={0.065} outlineScale={1.08} flash={hitFlash} />
-        <ZBlock name="b02SuitTearL" studioPartId="b02-suit-tear-l" size={[0.10, 0.14, 0.055]} position={[-0.20, -0.10, 0.255]} rotation={[0, 0, -0.25]} color={pal.skinShadow} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock name="b02SuitTearR" studioPartId="b02-suit-tear-r" size={[0.10, 0.13, 0.055]} position={[0.23, -0.32, 0.255]} rotation={[0, 0, 0.28]} color={pal.skinShadow} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
+      <group name="b02BodyRig" ref={reg('body')} position={[0, 0.28, 0]}>
+        <ZBlock name="b02Blazer" size={[0.66, 0.62, 0.44]} position={[0, 0.01, 0]} color={pal.blazer} emissive={0.07} outlineScale={1.09} flash={hitFlash} />
+        <ZBlock name="b02LeftBlazerPanel" size={[0.22, 0.58, 0.055]} position={[-0.19, -0.01, 0.25]} rotation={[0, 0, -0.06]} color={pal.blazerShadow} emissive={0.045} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="b02RightBlazerPanel" size={[0.22, 0.58, 0.055]} position={[0.19, -0.01, 0.25]} rotation={[0, 0, 0.06]} color={pal.blazerShadow} emissive={0.045} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="b02WhiteShirt" size={[0.26, 0.54, 0.065]} position={[0, 0.02, 0.285]} color={pal.shirt} emissive={0.065} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="b02Tie" size={[0.08, 0.39, 0.072]} position={[0.01, -0.05, 0.325]} rotation={[0, 0, -0.05]} color={pal.tie} emissive={0.055} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="b02TieKnot" size={[0.14, 0.11, 0.075]} position={[0, 0.23, 0.33]} rotation={[0, 0, 0.78]} color={pal.tie} emissive={0.055} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="b02LanyardL" size={[0.045, 0.34, 0.074]} position={[-0.08, 0.06, 0.335]} rotation={[0, 0, -0.23]} color={pal.lanyard} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="b02LanyardR" size={[0.045, 0.34, 0.074]} position={[0.08, 0.06, 0.335]} rotation={[0, 0, 0.23]} color={pal.lanyard} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="b02Badge" size={[0.11, 0.13, 0.078]} position={[0, -0.13, 0.345]} color={pal.badge} emissive={0.045} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="b02BlazerTearL" size={[0.08, 0.14, 0.08]} position={[-0.31, -0.08, 0.22]} rotation={[0, 0, 0.2]} color={pal.tear} emissive={0.05} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="b02BlazerTearR" size={[0.07, 0.13, 0.08]} position={[0.31, 0.12, 0.22]} rotation={[0, 0, -0.24]} color={pal.tear} emissive={0.05} outlineScale={1.0} flash={hitFlash} />
       </group>
 
-      <group name="b02TeacherArmLRig" ref={reg('armL')} position={[-0.43, 0.55, 0]} rotation={[-1.14, 0, 0.13]}>
-        <ZBlock name="b02ArmL" studioPartId="b02-arm-l" size={[0.23, 0.55, 0.22]} position={[0, -0.27, 0]} color={pal.suit} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
-        <ZBlock name="b02HandL" studioPartId="b02-hand-l" size={[0.21, 0.18, 0.20]} position={[0, -0.59, 0]} color={pal.skin} emissive={0.07} outlineScale={1.04} flash={hitFlash} />
+      <ZBlock name="b02Skirt" size={[0.62, 0.28, 0.42]} position={[0, -0.17, 0]} color={pal.skirt} emissive={0.045} outlineScale={1.07} flash={hitFlash} />
+
+      <group name="b02ArmLRig" ref={reg('armL')} position={[-0.43, 0.55, 0]} rotation={[-1.08, 0, 0.12]}>
+        <ZBlock name="b02SleeveL" size={[0.23, 0.50, 0.22]} position={[0, -0.25, 0]} color={pal.blazer} emissive={0.065} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock name="b02HandL" size={[0.21, 0.17, 0.20]} position={[0, -0.55, 0]} color={pal.skin} emissive={0.07} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock name="b02SleeveTearL" size={[0.08, 0.13, 0.06]} position={[0.08, -0.31, 0.13]} rotation={[0, 0, -0.2]} color={pal.tear} emissive={0.05} outlineScale={1.0} flash={hitFlash} />
       </group>
 
-      <group name="b02TeacherArmRRig" ref={reg('armR')} position={[0.43, 0.55, 0]} rotation={[-1.14, 0, -0.13]}>
-        <ZBlock name="b02ArmR" studioPartId="b02-arm-r" size={[0.23, 0.55, 0.22]} position={[0, -0.27, 0]} color={pal.suit} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
-        <ZBlock name="b02HandR" studioPartId="b02-hand-r" size={[0.21, 0.18, 0.20]} position={[0, -0.59, 0]} color={pal.skin} emissive={0.07} outlineScale={1.04} flash={hitFlash} />
+      <group name="b02ArmRRig" ref={reg('armR')} position={[0.43, 0.55, 0]} rotation={[-1.08, 0, -0.12]}>
+        <ZBlock name="b02SleeveR" size={[0.23, 0.50, 0.22]} position={[0, -0.25, 0]} color={pal.blazer} emissive={0.065} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock name="b02HandR" size={[0.21, 0.17, 0.20]} position={[0, -0.55, 0]} color={pal.skin} emissive={0.07} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock name="b02SleeveTearR" size={[0.08, 0.13, 0.06]} position={[-0.08, -0.31, 0.13]} rotation={[0, 0, 0.2]} color={pal.tear} emissive={0.05} outlineScale={1.0} flash={hitFlash} />
       </group>
 
-      <group name="b02TeacherLegLRig" ref={reg('legL')} position={[-0.16, -0.08, 0]}>
-        <ZBlock name="b02LegL" studioPartId="b02-leg-l" size={[0.23, 0.44, 0.27]} position={[0, -0.25, 0]} color={pal.skin} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
-        <ZBlock name="b02ShoeL" studioPartId="b02-shoe-l" size={[0.27, 0.13, 0.36]} position={[0, -0.54, 0.06]} color={pal.shoe} emissive={0.035} outlineScale={1.03} flash={hitFlash} />
+      <group name="b02LegLRig" ref={reg('legL')} position={[-0.16, 0.00, 0]}>
+        <ZBlock name="b02LegL" size={[0.23, 0.44, 0.25]} position={[0, -0.24, 0]} color={pal.skin} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock name="b02LegShadowL" size={[0.09, 0.12, 0.052]} position={[-0.07, -0.20, 0.15]} rotation={[0, 0, 0.25]} color={pal.skinShadow} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="b02ShoeL" size={[0.27, 0.12, 0.37]} position={[0, -0.52, 0.06]} color={pal.shoe} emissive={0.035} outlineScale={1.03} flash={hitFlash} />
       </group>
 
-      <group name="b02TeacherLegRRig" ref={reg('legR')} position={[0.16, -0.08, 0]}>
-        <ZBlock name="b02LegR" studioPartId="b02-leg-r" size={[0.23, 0.44, 0.27]} position={[0, -0.25, 0]} color={pal.skin} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
-        <ZBlock name="b02ShoeR" studioPartId="b02-shoe-r" size={[0.27, 0.13, 0.36]} position={[0, -0.54, 0.06]} color={pal.shoe} emissive={0.035} outlineScale={1.03} flash={hitFlash} />
+      <group name="b02LegRRig" ref={reg('legR')} position={[0.16, 0.00, 0]}>
+        <ZBlock name="b02LegR" size={[0.23, 0.44, 0.25]} position={[0, -0.24, 0]} color={pal.skin} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock name="b02LegShadowR" size={[0.09, 0.12, 0.052]} position={[0.07, -0.20, 0.15]} rotation={[0, 0, -0.25]} color={pal.skinShadow} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="b02ShoeR" size={[0.27, 0.12, 0.37]} position={[0, -0.52, 0.06]} color={pal.shoe} emissive={0.035} outlineScale={1.03} flash={hitFlash} />
       </group>
     </group>
   )
@@ -686,19 +678,20 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     }
 
     // 걷기 사이클 (타입별 속도 차이)
-    const freq = type === 'E02' ? 9.0 : type === 'E03' ? 5.0 : 7.0
-    const amp  = animPhase === 'charge' ? 0.55 : 0.38
+    const freq = type === 'B02' ? 6.2 : type === 'E02' ? 9.0 : type === 'E03' ? 5.0 : 7.0
+    const amp  = type === 'B02' ? (animPhase === 'charge' ? 0.46 : 0.30) : (animPhase === 'charge' ? 0.55 : 0.38)
     const sw   = Math.sin(t * freq) * amp
     pt.legL.rotation.x =  sw
     pt.legR.rotation.x = -sw
 
     // 좀비 팔: 항상 앞으로 뻗은 상태에서 소폭 흔들림
-    const armBase = -1.15
-    pt.armL.rotation.x = armBase + Math.sin(t * 2.8) * 0.06
-    pt.armR.rotation.x = armBase + Math.sin(t * 2.8 + Math.PI) * 0.06
+    const armBase = type === 'B02' ? -1.05 : -1.15
+    const armAmp = type === 'B02' ? 0.045 : 0.06
+    pt.armL.rotation.x = armBase + Math.sin(t * 2.8) * armAmp
+    pt.armR.rotation.x = armBase + Math.sin(t * 2.8 + Math.PI) * armAmp
 
     // 머리 흔들림
-    if (pt.head) pt.head.rotation.z = Math.sin(t * 1.6) * 0.07
+    if (pt.head) pt.head.rotation.z = Math.sin(t * 1.6) * (type === 'B02' ? 0.045 : 0.07)
   })
 
   if (isMatilda) {
@@ -731,8 +724,8 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
 
   if (type === 'B02') {
     return (
-      <StudioTunedGroup itemId={getStudioZombieItemId('B02')}>
-        <B02TeacherBossMesh hitFlash={hitFlash} reg={reg} />
+      <StudioTunedGroup itemId={getStudioZombieItemId(type)}>
+        <B02Stage2BossMesh hitFlash={hitFlash} reg={reg} />
       </StudioTunedGroup>
     )
   }

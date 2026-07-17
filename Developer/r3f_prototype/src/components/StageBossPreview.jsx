@@ -25,14 +25,8 @@ export const ENEMY_VISUAL_SCALE = 0.333
 
 // 얼굴(머리) 중간지점의 로컬 Y = ZombieMesh reg('head') 그룹 position.y.
 // 머리 블록/얼굴 텍스처의 기하 중심이라 '얼굴 중간지점' 앵커로 사용한다. 보스 타입별로 다르다.
-export const FACE_LOCAL_Y = Object.freeze({ B01: 0.88, B02: 0.92, B03: 0.88 })
+export const FACE_LOCAL_Y = Object.freeze({ B01: 0.88, B02: 0.88, B03: 0.88 })
 const DEFAULT_FACE_LOCAL_Y = 0.82 // 표준 좀비(E01~E06) 머리 그룹 Y
-const BOSS_PREVIEW_MODEL_SCALE_FACTOR = Object.freeze({ B01: 1, B02: 0.82, B03: 1 })
-
-export function resolveBossPreviewModelScale(bossType) {
-  return BOSS_PREVIEW_MODEL_SCALE_FACTOR[bossType] ?? 1
-}
-
 // ortho 카메라는 rotation을 주지 않아 R3F가 lookAt(0,0,0)을 적용한다(원점 응시).
 // 그래서 화면 세로 중앙에 투영되는 월드 Y ≈ 0(카메라가 바라보는 원점)이다.
 // 얼굴 월드 Y를 0에 앵커하면 캔버스 높이/기종/zoom과 무관하게 세로 중앙 정렬이 고정된다
@@ -40,15 +34,13 @@ export function resolveBossPreviewModelScale(bossType) {
 // 얼굴 월드 Y = baseY + faceLocalY * previewScale, 이를 0으로 두면 baseY = -faceLocalY * previewScale.
 export function resolveBossPreviewBaseY(bossType) {
   const stats = ENEMY_STATS[bossType] ?? ENEMY_STATS.B01
-  const previewScale = stats.scale * ENEMY_SIZE_MULTIPLIER * ENEMY_VISUAL_SCALE * resolveBossPreviewModelScale(bossType)
+  const previewScale = stats.scale * ENEMY_SIZE_MULTIPLIER * ENEMY_VISUAL_SCALE
   const faceLocalY = FACE_LOCAL_Y[bossType] ?? DEFAULT_FACE_LOCAL_Y
   return -faceLocalY * previewScale
 }
 
-// 보스별 카드 프리뷰 크기 보정.
-// B02는 로비 카드에서 과대 표시된 이력이 있어 graphicsStudioB02Source r3 루트 복구와 별도로
-// 카드용 모델 스케일을 낮춘다. zoom은 크라운 상단 여백만 살짝 보정한다.
-const BOSS_PREVIEW_ZOOM_FACTOR = Object.freeze({ B01: 1, B02: 0.95, B03: 1 })
+// 보스별 카드 프리뷰 zoom. 신규 B02는 별도 보정 없이 공통 배율을 사용한다.
+const BOSS_PREVIEW_ZOOM_FACTOR = Object.freeze({ B01: 1, B03: 1 })
 
 export function resolveBossPreviewZoom(baseZoom, bossType) {
   return baseZoom * (BOSS_PREVIEW_ZOOM_FACTOR[bossType] ?? 1)
@@ -80,7 +72,6 @@ function ReactiveBoss({ framing, bossType, enabled, frozen, burstRef, parallaxRe
 
   // 얼굴 중앙 앵커 기준 Y. panY/bobY는 그 위에서의 미세 오프셋으로 동작한다.
   const baseY = resolveBossPreviewBaseY(bossType)
-  const modelScale = resolveBossPreviewModelScale(bossType)
 
   // 래퍼 div의 포인터 핸들러가 온디맨드 프레임을 kick할 수 있도록 invalidate 노출.
   useEffect(() => {
@@ -168,9 +159,7 @@ function ReactiveBoss({ framing, bossType, enabled, frozen, burstRef, parallaxRe
       rotation={[BASE_ROT_X, BASE_ROT_Y, 0]}
       position={[framing.panX, baseY + framing.panY, 0]}
     >
-      <group scale={modelScale}>
-        <EnemyVisual type={bossType} animPhase="normal" hp={1150} showHealthBar={false} frozen={frozen} />
-      </group>
+      <EnemyVisual type={bossType} animPhase="normal" hp={1150} showHealthBar={false} frozen={frozen} />
     </group>
   )
 }
@@ -234,7 +223,6 @@ export default function StageBossPreview({
       data-pan-x={frame.panX}
       data-pan-y={frame.panY}
       data-boss-type={bossType}
-      data-model-scale={resolveBossPreviewModelScale(bossType)}
       data-motion-active={motionEnabled}
       aria-label={ariaLabel}
       style={{ ...previewFrameStyle, ...style }}

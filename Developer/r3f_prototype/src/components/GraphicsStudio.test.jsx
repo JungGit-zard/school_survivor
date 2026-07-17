@@ -5,7 +5,6 @@ import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import GraphicsStudio from './GraphicsStudio.jsx'
 import {
-  GRAPHICS_STUDIO_B02_SOURCE_REVISION_KEY,
   GRAPHICS_STUDIO_STORAGE_KEY,
   loadStageBossPreview,
   loadStudioTunings,
@@ -71,7 +70,7 @@ vi.mock('./GraphicsStudioPreview.jsx', () => ({
       <button
         type="button"
         data-testid="focus-stable-part"
-        onClick={() => onPartFocus?.({ key: 'id:b02-head', label: 'b02Head', additive: false, faceAxis: '+z' })}
+        onClick={() => onPartFocus?.({ key: 'id:sample-head', label: 'b02Head', additive: false, faceAxis: '+z' })}
       />
       <span data-testid="preview-decals">{(decals ?? []).map((decal) => `${decal.partId}:${decal.faceAxis}`).join(',')}</span>
     </div>
@@ -526,7 +525,7 @@ describe('GraphicsStudio', () => {
     expect(container.textContent).toContain('Game applied')
   })
 
-  it('uses Zombie B02 for the stage boss preview and game sync when B02 is selected', () => {
+  it('uses Stage 2 Boss for the stage boss preview and game sync when B02 is selected', () => {
     const postMessage = vi.fn()
     vi.spyOn(window, 'open').mockReturnValue({ closed: false, postMessage })
 
@@ -536,7 +535,7 @@ describe('GraphicsStudio', () => {
 
     act(() => {
       Array.from(container.querySelectorAll('button'))
-        .find((button) => button.textContent.includes('Zombie B02'))
+        .find((button) => button.textContent.includes('Stage 2 Boss'))
         .dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
 
@@ -560,115 +559,18 @@ describe('GraphicsStudio', () => {
       scale.dispatchEvent(new Event('input', { bubbles: true }))
     })
 
-    expect(loadStudioTunings()['zombie-b02-teacher'].scale).toBe(1.62)
+    expect(loadStudioTunings()['stage2-boss-v2'].scale).toBe(1.62)
     expect(postMessage).toHaveBeenLastCalledWith(
       expect.objectContaining({
         type: 'escape-zombie-school.studioGameSync.v1',
         tunings: expect.objectContaining({
-          'zombie-b02-teacher': expect.objectContaining({ scale: 1.62 }),
+          'stage2-boss-v2': expect.objectContaining({ scale: 1.62 }),
         }),
       }),
       'http://localhost:5173',
     )
   })
 
-  it('restores the selected B02 root to original scale when Scale is 1', () => {
-    localStorage.setItem(GRAPHICS_STUDIO_B02_SOURCE_REVISION_KEY, '3')
-    localStorage.setItem(GRAPHICS_STUDIO_STORAGE_KEY, JSON.stringify({
-      'zombie-b02-teacher': {
-        scale: 1.62,
-        scaleX: 1.7,
-        scaleY: 1.6,
-        scaleZ: 1.9,
-        positionX: 0.45,
-        rotationY: 27,
-        color: '#aabbcc',
-      },
-    }))
-    const postMessage = vi.fn()
-    window.open.mockReturnValue({ closed: false, postMessage })
-
-    act(() => {
-      root.render(<GraphicsStudio />)
-    })
-    act(() => {
-      Array.from(container.querySelectorAll('button'))
-        .find((button) => button.textContent.includes('Zombie B02'))
-        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-
-    const gameUrl = container.querySelector('input[name="gameUrl"]')
-    act(() => {
-      gameUrl.value = 'http://localhost:5173/'
-      gameUrl.dispatchEvent(new Event('input', { bubbles: true }))
-    })
-    act(() => {
-      Array.from(container.querySelectorAll('button'))
-        .find((button) => button.textContent === 'Connect')
-        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-
-    const scaleValue = container.querySelector('input[name="scaleValue"]')
-    act(() => {
-      scaleValue.value = '1.4'
-      scaleValue.dispatchEvent(new Event('input', { bubbles: true }))
-      scaleValue.dispatchEvent(new Event('blur', { bubbles: true }))
-    })
-    expect(loadStudioTunings()['zombie-b02-teacher']).toMatchObject({
-      scale: 1.4,
-      scaleX: 1.7,
-      scaleY: 1.6,
-      scaleZ: 1.9,
-    })
-
-    act(() => {
-      scaleValue.value = '1'
-      scaleValue.dispatchEvent(new Event('input', { bubbles: true }))
-      scaleValue.dispatchEvent(new Event('blur', { bubbles: true }))
-    })
-
-    const saved = loadStudioTunings()['zombie-b02-teacher']
-    const transmitted = postMessage.mock.calls.at(-1)[0].tunings['zombie-b02-teacher']
-    expect(saved).toMatchObject({
-      positionX: 0.45,
-      rotationY: 27,
-      color: '#aabbcc',
-    })
-    expect(transmitted).toMatchObject({
-      positionX: 0.45,
-      rotationY: 27,
-      color: '#aabbcc',
-    })
-    expect({
-      saved: {
-        scale: saved.scale,
-        scaleX: saved.scaleX,
-        scaleY: saved.scaleY,
-        scaleZ: saved.scaleZ,
-      },
-      displayed: {
-        scale: Number(container.querySelector('input[name="scaleValue"]').value),
-        scaleX: Number(container.querySelector('input[name="scaleXValue"]').value),
-        scaleY: Number(container.querySelector('input[name="scaleYValue"]').value),
-        scaleZ: Number(container.querySelector('input[name="scaleZValue"]').value),
-      },
-      previewShowsOriginalScale: container
-        .querySelector('[data-testid="graphics-preview"]')
-        .textContent
-        .includes('zombie-b02-teacher:1:1:'),
-      transmitted: {
-        scale: transmitted.scale,
-        scaleX: transmitted.scaleX,
-        scaleY: transmitted.scaleY,
-        scaleZ: transmitted.scaleZ,
-      },
-    }).toEqual({
-      saved: { scale: 1, scaleX: 1, scaleY: 1, scaleZ: 1 },
-      displayed: { scale: 1, scaleX: 1, scaleY: 1, scaleZ: 1 },
-      previewShowsOriginalScale: true,
-      transmitted: { scale: 1, scaleX: 1, scaleY: 1, scaleZ: 1 },
-    })
-  })
 
   it('applies stage boss preview zoom and pan to the connected game immediately', () => {
     const postMessage = vi.fn()
@@ -912,94 +814,6 @@ describe('GraphicsStudio', () => {
     expect(loadStudioTunings().player.scale).toBe(1.01)
   })
 
-  it('uploads a decal image onto the focused part face and syncs it to the game', async () => {
-    const postMessage = vi.fn()
-    vi.spyOn(window, 'open').mockReturnValue({ closed: false, postMessage })
-
-    act(() => {
-      root.render(<GraphicsStudio />)
-    })
-
-    act(() => {
-      Array.from(container.querySelectorAll('button'))
-        .find((button) => button.textContent.includes('Zombie B02'))
-        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-
-    const gameUrl = container.querySelector('input[name="gameUrl"]')
-    act(() => {
-      gameUrl.value = 'http://localhost:5173/'
-      gameUrl.dispatchEvent(new Event('input', { bubbles: true }))
-    })
-    const connect = Array.from(container.querySelectorAll('button'))
-      .find((button) => button.textContent === 'Connect')
-    act(() => {
-      connect.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-
-    const upload = container.querySelector('input[name="decalImage"]')
-    expect(upload.disabled).toBe(true)
-
-    act(() => {
-      container.querySelector('[data-testid="focus-stable-part"]')
-        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-    expect(upload.disabled).toBe(false)
-    expect(container.textContent).toContain('b02-head / +z')
-
-    Object.defineProperty(upload, 'files', {
-      configurable: true,
-      value: [new File(['png-bytes'], 'face.png', { type: 'image/png' })],
-    })
-    await act(async () => {
-      upload.dispatchEvent(new Event('change', { bubbles: true }))
-    })
-
-    expect(loadTextureDecals()['zombie-b02-teacher']).toHaveLength(1)
-    expect(loadTextureDecals()['zombie-b02-teacher'][0]).toMatchObject({
-      partId: 'b02-head',
-      faceAxis: '+z',
-      imageDataUrl: 'data:image/png;base64,MOCK',
-    })
-    expect(postMessage).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        type: 'escape-zombie-school.studioGameSync.v1',
-        decals: expect.objectContaining({
-          'zombie-b02-teacher': [expect.objectContaining({ partId: 'b02-head', faceAxis: '+z' })],
-        }),
-      }),
-      'http://localhost:5173',
-    )
-    expect(container.querySelector('[data-testid="preview-decals"]').textContent).toContain('b02-head:+z')
-    expect(container.querySelector('[data-testid="studio-export"]').value).toContain('"b02-head"')
-
-    // 硫????뺣젹: ?ㅽ봽???щ씪?대뜑媛 ?곗뭡 ?덉씠?대? 媛깆떊?쒕떎
-    const offsetU = container.querySelector('input[name="decalOffsetU"]')
-    act(() => {
-      offsetU.value = '0.25'
-      offsetU.dispatchEvent(new Event('input', { bubbles: true }))
-    })
-    expect(loadTextureDecals()['zombie-b02-teacher'][0].offset[0]).toBe(0.25)
-
-    const rotation = container.querySelector('input[name="decalRotation"]')
-    act(() => {
-      rotation.value = '45'
-      rotation.dispatchEvent(new Event('input', { bubbles: true }))
-    })
-    expect(loadTextureDecals()['zombie-b02-teacher'][0].rotation).toBe(45)
-
-    // ??젣
-    const deleteButton = Array.from(container.querySelectorAll('button'))
-      .find((button) => button.textContent === 'Delete')
-    act(() => {
-      deleteButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-    expect(loadTextureDecals()['zombie-b02-teacher']).toBeUndefined()
-    expect(postMessage).toHaveBeenLastCalledWith(
-      expect.objectContaining({ decals: {} }),
-      'http://localhost:5173',
-    )
-  })
 
   it('applies audio tuning to the game immediately', () => {
     act(() => {

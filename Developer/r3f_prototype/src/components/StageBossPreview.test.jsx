@@ -6,7 +6,6 @@ import { act } from 'react-dom/test-utils'
 import * as THREE from 'three'
 import StageBossPreview, {
   resolveBossPreviewBaseY,
-  resolveBossPreviewModelScale,
   resolveBossPreviewZoom,
   FACE_LOCAL_Y,
   ENEMY_VISUAL_SCALE,
@@ -17,20 +16,20 @@ const invalidate = vi.fn()
 
 const SIZE_MULT = 4 / 3 // ENEMY_SIZE_MULTIPLIER (mock)
 const BOSS_SCALE = 2 // B01/B02 ENEMY_STATS.scale (mock)
-// 라이브 실측(스튜디오 프리뷰를 144px로 강제해 브라우저 캡처) 기준 기본 zoom.
+// ?쇱씠釉??ㅼ륫(?ㅽ뒠?붿삤 ?꾨━酉곕? 144px濡?媛뺤젣??釉뚮씪?곗? 罹≪쿂) 湲곗? 湲곕낯 zoom.
 const DEFAULT_BASE_ZOOM = 110 // = graphicsStudioConfig.DEFAULT_STAGE_BOSS_PREVIEW.zoom
 
-function previewScale(bossType = 'B01') {
-  return BOSS_SCALE * SIZE_MULT * ENEMY_VISUAL_SCALE * resolveBossPreviewModelScale(bossType)
+function previewScale() {
+  return BOSS_SCALE * SIZE_MULT * ENEMY_VISUAL_SCALE
 }
 
-// 프리뷰 그룹 안 얼굴(머리 그룹 원점)의 월드 Y.
+// ?꾨━酉?洹몃９ ???쇨뎬(癒몃━ 洹몃９ ?먯젏)???붾뱶 Y.
 function faceWorldY(bossType, panY = 0) {
-  return resolveBossPreviewBaseY(bossType) + panY + FACE_LOCAL_Y[bossType] * previewScale(bossType)
+  return resolveBossPreviewBaseY(bossType) + panY + FACE_LOCAL_Y[bossType] * previewScale()
 }
 
-// 실제 프리뷰와 동일한 ortho 카메라(lookAt origin)로 얼굴을 투영한 화면 세로 좌표(NDC.y).
-// R3F 8.x 기본 카메라는 rotation 미지정 시 lookAt(0,0,0)을 적용하므로 동일 조건.
+// ?ㅼ젣 ?꾨━酉곗? ?숈씪??ortho 移대찓??lookAt origin)濡??쇨뎬???ъ쁺???붾㈃ ?몃줈 醫뚰몴(NDC.y).
+// R3F 8.x 湲곕낯 移대찓?쇰뒗 rotation 誘몄?????lookAt(0,0,0)???곸슜?섎?濡??숈씪 議곌굔.
 function faceNdcY({ bossType, panY = 0, zoom = 100, width = 220, height = 144 }) {
   const cam = new THREE.OrthographicCamera(-width / 2, width / 2, height / 2, -height / 2, 0.1, 1000)
   cam.position.set(0, 2.2, 5.5)
@@ -41,7 +40,7 @@ function faceNdcY({ bossType, panY = 0, zoom = 100, width = 220, height = 144 })
   return new THREE.Vector3(0, faceWorldY(bossType, panY), 0).project(cam).y
 }
 
-// Canvas는 자식을 렌더하지 않는 빈 div로 mock → ReactiveBoss의 R3F 훅은 실행되지 않는다.
+// Canvas???먯떇???뚮뜑?섏? ?딅뒗 鍮?div濡?mock ??ReactiveBoss??R3F ?낆? ?ㅽ뻾?섏? ?딅뒗??
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }) => <div data-testid="stage-boss-preview-canvas">{children}</div>,
   useFrame: vi.fn(),
@@ -73,8 +72,8 @@ function render(ui) {
   return container
 }
 
-describe('StageBossPreview 온디맨드 모션', () => {
-  it('비인터랙티브 프리뷰의 pointerdown은 throw하지 않고 framing 속성을 반영한다', () => {
+describe('StageBossPreview ?⑤뵒留⑤뱶 紐⑥뀡', () => {
+  it('鍮꾩씤?곕옓?곕툕 ?꾨━酉곗쓽 pointerdown? throw?섏? ?딄퀬 framing ?띿꽦??諛섏쁺?쒕떎', () => {
     const el = render(<StageBossPreview framing={{ zoom: 60, panX: 0.2, panY: -0.1 }} />)
     const preview = el.querySelector('[data-testid="stage-boss-preview"]')
     expect(preview).toBeTruthy()
@@ -117,27 +116,27 @@ describe('StageBossPreview 온디맨드 모션', () => {
   })
 })
 
-describe('StageBossPreview 얼굴 세로 중앙 앵커', () => {
-  it('보스 타입별 머리 오프셋을 반영해 base Y를 역산한다', () => {
+describe('StageBossPreview ?쇨뎬 ?몃줈 以묒븰 ?듭빱', () => {
+  it('蹂댁뒪 ??낅퀎 癒몃━ ?ㅽ봽?뗭쓣 諛섏쁺??base Y瑜???궛?쒕떎', () => {
     // baseY = -faceLocalY * previewScale
-    expect(resolveBossPreviewBaseY('B01')).toBeCloseTo(-(FACE_LOCAL_Y.B01 * previewScale('B01')), 6)
-    expect(resolveBossPreviewBaseY('B02')).toBeCloseTo(-(FACE_LOCAL_Y.B02 * previewScale('B02')), 6)
-    // B02는 카드 전용 모델 스케일을 낮추므로 얼굴 앵커도 그 축소값을 반영한다.
-    expect(resolveBossPreviewBaseY('B02')).toBeGreaterThan(resolveBossPreviewBaseY('B01'))
+    expect(resolveBossPreviewBaseY('B01')).toBeCloseTo(-(FACE_LOCAL_Y.B01 * previewScale()), 6)
+    expect(resolveBossPreviewBaseY('B02')).toBeCloseTo(-(FACE_LOCAL_Y.B02 * previewScale()), 6)
+    // B02??移대뱶 ?꾩슜 紐⑤뜽 ?ㅼ??쇱쓣 ??텛誘濡??쇨뎬 ?듭빱??洹?異뺤냼媛믪쓣 諛섏쁺?쒕떎.
+    expect(resolveBossPreviewBaseY('B02')).toBe(resolveBossPreviewBaseY('B01'))
   })
 
-  it('panY=0이면 얼굴 월드 Y가 응시점(0)에 정확히 앵커된다', () => {
+  it('panY=0?대㈃ ?쇨뎬 ?붾뱶 Y媛 ?묒떆??0)???뺥솗???듭빱?쒕떎', () => {
     expect(faceWorldY('B01', 0)).toBeCloseTo(0, 6)
     expect(faceWorldY('B02', 0)).toBeCloseTo(0, 6)
   })
 
-  it('panY=0이면 얼굴이 화면 세로 중앙(NDC.y≈0)에 온다', () => {
+  it('panY=0?대㈃ ?쇨뎬???붾㈃ ?몃줈 以묒븰(NDC.y??)???⑤떎', () => {
     expect(Math.abs(faceNdcY({ bossType: 'B01' }))).toBeLessThan(0.005)
     expect(Math.abs(faceNdcY({ bossType: 'B02' }))).toBeLessThan(0.005)
   })
 
-  it('기종/뷰포트(캔버스 높이·너비)가 달라도 세로 중앙 정렬이 유지된다', () => {
-    // 다양한 폰 뷰포트 프레임 크기 — ortho + lookAt이므로 중앙은 캔버스 크기와 무관해야 한다.
+  it('湲곗쥌/酉고룷??罹붾쾭???믪씠쨌?덈퉬)媛 ?щ씪???몃줈 以묒븰 ?뺣젹???좎??쒕떎', () => {
+    // ?ㅼ뼇????酉고룷???꾨젅???ш린 ??ortho + lookAt?대?濡?以묒븰? 罹붾쾭???ш린? 臾닿??댁빞 ?쒕떎.
     const sizes = [
       { width: 160, height: 104 },
       { width: 220, height: 144 },
@@ -152,51 +151,36 @@ describe('StageBossPreview 얼굴 세로 중앙 앵커', () => {
     }
   })
 
-  it('zoom이 달라도 세로 중앙 정렬이 유지된다', () => {
+  it('zoom???щ씪???몃줈 以묒븰 ?뺣젹???좎??쒕떎', () => {
     for (const zoom of [50, 100, 140, 180]) {
       expect(Math.abs(faceNdcY({ bossType: 'B01', zoom }))).toBeLessThan(0.005)
       expect(Math.abs(faceNdcY({ bossType: 'B02', zoom }))).toBeLessThan(0.005)
     }
   })
 
-  it('panY는 중앙 위에서의 미세 오프셋으로 동작한다', () => {
-    // baseY가 얼굴을 0에 앵커하므로 얼굴 월드 Y는 곧 panY와 같다.
+  it('panY??以묒븰 ?꾩뿉?쒖쓽 誘몄꽭 ?ㅽ봽?뗭쑝濡??숈옉?쒕떎', () => {
+    // baseY媛 ?쇨뎬??0???듭빱?섎?濡??쇨뎬 ?붾뱶 Y??怨?panY? 媛숇떎.
     expect(faceWorldY('B01', 0.2)).toBeCloseTo(0.2, 6)
     expect(faceWorldY('B01', -0.3)).toBeCloseTo(-0.3, 6)
-    // 양수 panY는 화면에서 위로(NDC.y 증가), 음수는 아래로 이동시킨다.
+    // ?묒닔 panY???붾㈃?먯꽌 ?꾨줈(NDC.y 利앷?), ?뚯닔???꾨옒濡??대룞?쒗궓??
     expect(faceNdcY({ bossType: 'B01', panY: 0.2 })).toBeGreaterThan(0.01)
     expect(faceNdcY({ bossType: 'B01', panY: -0.2 })).toBeLessThan(-0.01)
   })
 })
 
-describe('StageBossPreview 프레임 채움(기본 zoom)', () => {
-  // 크라운 상단 여백은 라이브 브라우저(스튜디오 프리뷰를 로비 조건 144px로 강제)로 확인:
-  // 기본 zoom 110에서 B01 머리 전체가 상단 여백을 두고 프레임을 꽉 채우며 잘리지 않음(148은 잘림).
-  // 순수 기하로는 R3F 실제 렌더의 크라운 픽셀을 신뢰성 있게 재현하기 어려워
-  // 거짓 통과를 유발하던 절대-여백 어서션은 제거하고, 검증 가능한 값만 남긴다.
-  it('기본 zoom은 라이브 실측값 110이다', () => {
+describe('StageBossPreview ?꾨젅??梨꾩?(湲곕낯 zoom)', () => {
+  // ?щ씪???곷떒 ?щ갚? ?쇱씠釉?釉뚮씪?곗?(?ㅽ뒠?붿삤 ?꾨━酉곕? 濡쒕퉬 議곌굔 144px濡?媛뺤젣)濡??뺤씤:
+  // 湲곕낯 zoom 110?먯꽌 B01 癒몃━ ?꾩껜媛 ?곷떒 ?щ갚???먭퀬 ?꾨젅?꾩쓣 苑?梨꾩슦硫??섎━吏 ?딆쓬(148? ?섎┝).
+  // ?쒖닔 湲고븯濡쒕뒗 R3F ?ㅼ젣 ?뚮뜑???щ씪???쎌????좊ː???덇쾶 ?ы쁽?섍린 ?대젮??
+  // 嫄곗쭞 ?듦낵瑜??좊컻?섎뜕 ?덈?-?щ갚 ?댁꽌?섏? ?쒓굅?섍퀬, 寃利?媛?ν븳 媛믩쭔 ?④릿??
+  it('湲곕낯 zoom? ?쇱씠釉??ㅼ륫媛?110?대떎', () => {
     expect(DEFAULT_STAGE_BOSS_PREVIEW.zoom).toBe(110)
     expect(DEFAULT_BASE_ZOOM).toBe(DEFAULT_STAGE_BOSS_PREVIEW.zoom)
   })
 
-  it('B02는 루트 스케일 복구 뒤 크라운 여백만 살짝 낮춘 렌더 zoom을 쓴다', () => {
-    expect(resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, 'B02'))
-      .toBeCloseTo(DEFAULT_BASE_ZOOM * 0.95, 6)
-    expect(resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, 'B02'))
-      .toBeLessThan(resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, 'B01'))
-  })
 
-  it('B02는 로비 카드에서 전용 모델 스케일 0.82로 축소된다', () => {
-    expect(resolveBossPreviewModelScale('B01')).toBe(1)
-    expect(resolveBossPreviewModelScale('B02')).toBe(0.82)
-    expect(resolveBossPreviewModelScale('B03')).toBe(1)
 
-    const el = render(<StageBossPreview bossType="B02" />)
-    const preview = el.querySelector('[data-testid="stage-boss-preview"]')
-    expect(preview.dataset.modelScale).toBe('0.82')
-  })
-
-  it('기본 zoom(렌더 zoom)에서도 얼굴은 세로 중앙(NDC.y≈0)을 유지한다', () => {
+  it('湲곕낯 zoom(?뚮뜑 zoom)?먯꽌???쇨뎬? ?몃줈 以묒븰(NDC.y??)???좎??쒕떎', () => {
     expect(Math.abs(faceNdcY({ bossType: 'B01', zoom: resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, 'B01') }))).toBeLessThan(0.005)
     expect(Math.abs(faceNdcY({ bossType: 'B02', zoom: resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, 'B02') }))).toBeLessThan(0.005)
   })

@@ -32,7 +32,6 @@
 | 클럽 조명 하우징/렌즈 | 하우징 박스와 렌즈 원 존재 | 하우징/렌즈 제거 | “클릭된 두 사각형”과 별개이므로 임의 제거 금지 |
 | 좌우 어두운 벽 | `wallMat` 벽 2개 존재 | 벽 2개 제거 | 임의 제거 금지 |
 | 원거리 배경 스토리 | `TitleFarBackgroundStory`, `StarlinkSatelliteModel`, `ZomlonbiskModel` 존재 | 전체 제거 | 임의 제거 금지 |
-| B02 타이틀 보스 | `position={[-1.35, 0.26, -3.7]} scale={0.98}` | `position={[-1.35, 0.18, -3.7]} scale={0.62}` | 사각형 제거와 무관. 별도 승인 없이 변경 금지 |
 | CDP/레이캐스트 검사기 | 없음 | `inspectTitleSceneObject`, `screenElementInspector.js`, `index.html` 로드 추가 | 진단 도구로는 유용하지만 제품 UI 변경과 분리 검토 필요 |
 | 테스트 기대값 | 원거리 배경/벽/조명 존재를 기대 | 제거 상태를 기대하도록 테스트 변경 | 테스트가 붕괴 상태를 정답으로 고정하지 않도록 주의 |
 
@@ -85,7 +84,6 @@ title: { display: 'none', ... }
 - 캐릭터/몬스터:
   - `TitlePlayer`, `TitleCompanions`, `TitleMatildaPursuer`, `TitleBossZombie` 3개, `TitleZombie` 5개, `DancingDoge` 2개 구성을 유지한다.
   - 캐릭터 외곽선 보정(`TitleCharacterOutlineGroup`, stencil ref 2)은 유지한다.
-  - B02 크기/위치 변경은 Graphics Studio B02 정책과 별도 검토 없이는 진행하지 않는다.
 - 교실 소품:
   - `ClassroomDesk`, `ClassroomChair`, `UnconsciousStudent`는 실제 리소스 기반 전경 분위기 요소이므로 사각형 제거와 함께 삭제하지 않는다.
 - 빛/효과:
@@ -135,11 +133,7 @@ title: { display: 'none', ... }
    - 예: `wallMat` 벽, `CLUB_LIGHT_HOUSING_GEO`, lens mesh 제거.
    - 영향: 사용자가 요청하지 않은 시각 구성 축소.
 
-3. 보스 B02 크기/위치를 사각형 제거에 섞어 변경하는 위험
-   - 예: `scale={0.98}` → `scale={0.62}` 같은 변경.
-   - 영향: Graphics Studio B02 크기 정책과 타이틀/로비 패리티 위험.
-
-4. 테스트가 잘못된 새 상태를 정답으로 고정하는 위험
+3. 테스트가 잘못된 새 상태를 정답으로 고정하는 위험
    - 예: “원거리 배경 모델이 없어야 한다”를 사각형 제거 테스트로 둠.
    - 영향: 복구해야 할 붕괴 상태가 CI에서 통과 상태가 됨.
 
@@ -174,7 +168,7 @@ title: { display: 'none', ... }
 
 - `TitleFarBackgroundStory`, `StarlinkSatelliteModel`, `ZomlonbiskModel` 삭제.
 - 좌우 벽, 문, 출구 글로우, 바닥 글로우, speed streak, warning light 삭제.
-- B02/B01/B03, 일반 좀비, Matilda, Doge, Player, Chibiko, CompassBlade 배치 변경.
+- 보스, 일반 좀비, Matilda, Doge, Player, Chibiko, CompassBlade 배치 변경.
 - `TitleScreen.jsx`의 제목/부제/시작 버튼 표시 상태 변경.
 - Google 로그인/닉네임 게이트 흐름 변경.
 - 모바일 safe-area 값 또는 버튼 터치 크기 축소.

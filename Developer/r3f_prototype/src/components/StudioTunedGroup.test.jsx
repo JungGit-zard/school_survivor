@@ -116,18 +116,18 @@ describe('StudioTunedGroup', () => {
   it('does not accumulate saved part position when Apply runs repeatedly', () => {
     const root = new THREE.Group()
     const part = new THREE.Group()
-    part.userData.studioPartId = 'b02-head'
+    part.userData.studioPartId = 'sample-head'
     root.add(part)
 
     const tunings = {
-      'zombie-b02-teacher::part::id:b02-head': {
+      'zombie-e01::part::id:sample-head': {
         scale: 1.2,
         positionY: -0.4,
       },
     }
 
-    applySavedStudioPartTunings(root, 'zombie-b02-teacher', tunings)
-    applySavedStudioPartTunings(root, 'zombie-b02-teacher', tunings)
+    applySavedStudioPartTunings(root, 'zombie-e01', tunings)
+    applySavedStudioPartTunings(root, 'zombie-e01', tunings)
 
     expect(part.scale.x).toBeCloseTo(1.2)
     expect(part.position.y).toBeCloseTo(-0.4)
@@ -137,12 +137,12 @@ describe('StudioTunedGroup', () => {
     const root = new THREE.Group()
     const wrapper = new THREE.Group()
     const topHairPlate = new THREE.Group()
-    topHairPlate.userData.studioPartId = 'b02-hair-top-plate'
+    topHairPlate.userData.studioPartId = 'sample-hair'
     wrapper.add(topHairPlate)
     root.add(wrapper)
 
-    applySavedStudioPartTunings(root, 'zombie-b02-teacher', {
-      'zombie-b02-teacher::part::id:b02-hair-top-plate': {
+    applySavedStudioPartTunings(root, 'zombie-e01', {
+      'zombie-e01::part::id:sample-hair': {
         scale: 1.2,
         scaleX: 1.5,
         positionX: 0.25,
@@ -182,8 +182,8 @@ describe('StudioTunedGroup', () => {
     const root = new THREE.Group()
     const body = new THREE.Group()
     const arm = new THREE.Group()
-    body.userData.studioPartId = 'b02-body'
-    arm.userData.studioPartId = 'b02-arm-l'
+    body.userData.studioPartId = 'sample-body'
+    arm.userData.studioPartId = 'sample-arm-l'
     const sharedSuit = new THREE.MeshToonMaterial({ color: 0x111923 })
     const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), sharedSuit)
     const armMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), sharedSuit)
@@ -191,8 +191,8 @@ describe('StudioTunedGroup', () => {
     arm.add(armMesh)
     root.add(body, arm)
 
-    applySavedStudioPartTunings(root, 'zombie-b02-teacher', {
-      'zombie-b02-teacher::part::id:b02-body': { color: '#ff0000', colorStrength: 1 },
+    applySavedStudioPartTunings(root, 'zombie-e01', {
+      'zombie-e01::part::id:sample-body': { color: '#ff0000', colorStrength: 1 },
     })
 
     expect(bodyMesh.material.color.getHexString()).toBe('ff0000')
@@ -205,8 +205,8 @@ describe('StudioTunedGroup', () => {
     const root = new THREE.Group()
     const left = new THREE.Group()
     const right = new THREE.Group()
-    left.userData.studioPartId = 'b02-arm-l'
-    right.userData.studioPartId = 'b02-arm-r'
+    left.userData.studioPartId = 'sample-arm-l'
+    right.userData.studioPartId = 'sample-arm-r'
     const sharedSuit = new THREE.MeshToonMaterial({ color: 0x111923 })
     const leftMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), sharedSuit)
     const rightMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), sharedSuit)
@@ -214,9 +214,9 @@ describe('StudioTunedGroup', () => {
     right.add(rightMesh)
     root.add(left, right)
 
-    applySavedStudioPartTunings(root, 'zombie-b02-teacher', {
-      'zombie-b02-teacher::part::id:b02-arm-l': { color: '#ff0000', colorStrength: 1 },
-      'zombie-b02-teacher::part::id:b02-arm-r': { color: '#0000ff', colorStrength: 1 },
+    applySavedStudioPartTunings(root, 'zombie-e01', {
+      'zombie-e01::part::id:sample-arm-l': { color: '#ff0000', colorStrength: 1 },
+      'zombie-e01::part::id:sample-arm-r': { color: '#0000ff', colorStrength: 1 },
     })
 
     expect(leftMesh.material.color.getHexString()).toBe('ff0000')
@@ -227,7 +227,7 @@ describe('StudioTunedGroup', () => {
     const root = new THREE.Group()
     const body = new THREE.Group()
     const skirt = new THREE.Group()
-    body.userData.studioPartId = 'b02-body'
+    body.userData.studioPartId = 'sample-body'
     skirt.userData.studioPartId = 'b02-skirt'
     const sharedOutline = new THREE.MeshBasicMaterial({
       color: 0x050209,
@@ -241,8 +241,8 @@ describe('StudioTunedGroup', () => {
     skirt.add(skirtOutline)
     root.add(body, skirt)
 
-    applySavedStudioPartTunings(root, 'zombie-b02-teacher', {
-      'zombie-b02-teacher::part::id:b02-body': {
+    applySavedStudioPartTunings(root, 'zombie-e01', {
+      'zombie-e01::part::id:sample-body': {
         outlineColor: '#00ff00',
         outlineOpacity: 0.4,
       },
@@ -259,8 +259,8 @@ describe('StudioTunedGroup', () => {
       const root = new THREE.Group()
       const head = new THREE.Group()
       const body = new THREE.Group()
-      head.userData.studioPartId = 'b02-head'
-      body.userData.studioPartId = 'b02-body'
+      head.userData.studioPartId = 'sample-head'
+      body.userData.studioPartId = 'sample-body'
       head.add(new THREE.Mesh(
         new THREE.BoxGeometry(1, 1, 1),
         new THREE.MeshToonMaterial({ color: 0x111923 }),
@@ -269,18 +269,18 @@ describe('StudioTunedGroup', () => {
       return { root, head }
     }
     const individual = [
-      'zombie-b02-teacher::part::id:b02-head',
+      'zombie-e01::part::id:sample-head',
       { positionX: 0.25, rotationY: 10, scale: 2, color: '#ff0000', colorStrength: 1 },
     ]
     const group = [
-      'zombie-b02-teacher::group::id:b02-head+id:b02-body',
+      'zombie-e01::group::id:sample-head+id:sample-body',
       { positionX: 0.75, rotationY: 30, scale: 1.5, color: '#0000ff', colorStrength: 1 },
     ]
     const first = makeRoot()
     const second = makeRoot()
 
-    applySavedStudioPartTunings(first.root, 'zombie-b02-teacher', Object.fromEntries([individual, group]))
-    applySavedStudioPartTunings(second.root, 'zombie-b02-teacher', Object.fromEntries([group, individual]))
+    applySavedStudioPartTunings(first.root, 'zombie-e01', Object.fromEntries([individual, group]))
+    applySavedStudioPartTunings(second.root, 'zombie-e01', Object.fromEntries([group, individual]))
 
     for (const { head } of [first, second]) {
       expect(head.position.x).toBeCloseTo(1)
@@ -294,26 +294,26 @@ describe('StudioTunedGroup', () => {
     const root = new THREE.Group()
     const head = new THREE.Group()
     const body = new THREE.Group()
-    head.userData.studioPartId = 'b02-head'
-    body.userData.studioPartId = 'b02-body'
+    head.userData.studioPartId = 'sample-head'
+    body.userData.studioPartId = 'sample-body'
     const sharedSuit = new THREE.MeshToonMaterial({ color: 0x111923 })
     head.add(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), sharedSuit))
     body.add(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), sharedSuit))
     root.add(head, body)
 
-    applySavedStudioPartTunings(root, 'zombie-b02-teacher', {
-      'zombie-b02-teacher::group::id:b02-head+id:b02-body': {
+    applySavedStudioPartTunings(root, 'zombie-e01', {
+      'zombie-e01::group::id:sample-head+id:sample-body': {
         color: '#0000ff',
         colorStrength: 1,
       },
     })
-    applySavedStudioPartTunings(root, 'zombie-b02-teacher', {
-      'zombie-b02-teacher::part::id:b02-head': {
+    applySavedStudioPartTunings(root, 'zombie-e01', {
+      'zombie-e01::part::id:sample-head': {
         positionX: 0.25,
         color: '#ff0000',
         colorStrength: 1,
       },
-      'zombie-b02-teacher::group::id:b02-head+id:b02-body': {},
+      'zombie-e01::group::id:sample-head+id:sample-body': {},
     })
 
     expect(head.position.x).toBeCloseTo(0.25)
@@ -474,8 +474,8 @@ describe('StudioTunedGroup', () => {
     const root = new THREE.Group()
     const head = new THREE.Group()
     const arm = new THREE.Group()
-    head.userData.studioPartId = 'b02-head'
-    arm.userData.studioPartId = 'b02-arm-l'
+    head.userData.studioPartId = 'sample-head'
+    arm.userData.studioPartId = 'sample-arm-l'
     const shared = new THREE.MeshToonMaterial({
       color: 0x111923,
       emissive: 0x000000,
@@ -487,11 +487,11 @@ describe('StudioTunedGroup', () => {
     arm.add(armMesh)
     root.add(head, arm)
 
-    applySavedStudioPartTunings(root, 'zombie-b02-teacher', {
-      'zombie-b02-teacher::part::id:b02-head': { color: '#ff0000', colorStrength: 1 },
+    applySavedStudioPartTunings(root, 'zombie-e01', {
+      'zombie-e01::part::id:sample-head': { color: '#ff0000', colorStrength: 1 },
     })
-    applySavedStudioPartTunings(root, 'zombie-b02-teacher', {
-      'zombie-b02-teacher::part::id:b02-head': {},
+    applySavedStudioPartTunings(root, 'zombie-e01', {
+      'zombie-e01::part::id:sample-head': {},
     })
 
     expect(headMesh.material).not.toBe(shared)
@@ -505,12 +505,12 @@ describe('StudioTunedGroup', () => {
     const root = new THREE.Group()
     const head = new THREE.Group()
     const body = new THREE.Group()
-    head.userData.studioPartId = 'b02-head'
-    body.userData.studioPartId = 'b02-body'
+    head.userData.studioPartId = 'sample-head'
+    body.userData.studioPartId = 'sample-body'
     root.add(head, body)
 
-    applySavedStudioPartTunings(root, 'zombie-b02-teacher', {
-      'zombie-b02-teacher::group::id:b02-head+id:b02-head+id:b02-body': {
+    applySavedStudioPartTunings(root, 'zombie-e01', {
+      'zombie-e01::group::id:sample-head+id:sample-head+id:sample-body': {
         positionX: 0.5,
         rotationY: 15,
         scale: 2,

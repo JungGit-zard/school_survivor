@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { ENEMY_STATS } from './Enemy.jsx'
-import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_TEACHER_BOSS_FACE, B02_TEACHER_BOSS_PALETTE, B02_TEACHER_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS, RUN_ZOMBIE_VISUAL, ZOMBIE_PALETTE } from './ZombieMesh.jsx'
+import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_STAGE2_BOSS_FACE, B02_STAGE2_BOSS_PALETTE, B02_STAGE2_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS, RUN_ZOMBIE_VISUAL, ZOMBIE_PALETTE } from './ZombieMesh.jsx'
+import { GRAPHICS_STUDIO_CATALOG, getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
 
 const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
+const graphicsStudioConfigSource = readFileSync(new URL('../lib/graphicsStudioConfig.js', import.meta.url), 'utf8')
+const legacyB02ItemId = ['zombie', 'b02', 'teacher'].join('-')
 
 describe('Stage 1 boss visual reference', () => {
   it('restores B01 as the blocky green suit zombie boss at the current gameplay scale', () => {
@@ -84,33 +87,31 @@ describe('B03 muscular PE teacher boss', () => {
     expect(B03_PE_TEACHER_FACE_LAYOUT.leftEye.position[0]).toBeLessThan(0)
   })
 
-  it('builds the PE teacher silhouette from controllable B03 parts', () => {
-    const source = zombieMeshSource
+  it('uses only the shared numeric scene-tree path for B03 parts', () => {
+    const b03Source = zombieMeshSource.match(
+      /function B03PhysicalEducationBossMesh[\s\S]*?function B02Stage2BossFaceTexture/,
+    )?.[0]
 
-    expect(source).toContain('studioPartId="b03-shoulders"')
-    expect(source).toContain('studioPartId="b03-chest-l"')
-    expect(source).toContain('studioPartId="b03-chest-r"')
-    expect(source).toContain('studioPartId="b03-bicep-l"')
-    expect(source).toContain('studioPartId="b03-bicep-r"')
-    expect(source).toContain('studioPartId="b03-shorts"')
+    expect(b03Source).toBeDefined()
+    expect(b03Source).not.toContain('studioPartId=')
+    expect(b03Source.match(/<ZBlock/g)).toHaveLength(27)
   })
 
   it('replaces the modeled PE-teacher face/whistle with the supplied face texture decal', () => {
     const source = zombieMeshSource
 
-    // 사용자 제공 얼굴 텍스처(머리띠·호루라기 포함)를 머리 앞면 데칼로 사용
+    // ?ъ슜???쒓났 ?쇨뎬 ?띿뒪泥?癒몃━?졖룻샇猷⑤씪湲??ы븿)瑜?癒몃━ ?욌㈃ ?곗뭡濡??ъ슜
     expect(source).toContain("import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.webp'")
     expect(source).toContain('function B03PeTeacherFaceTexture')
     expect(source).toContain('<B03PeTeacherFaceTexture />')
     expect(source).toContain('THREE.SRGBColorSpace')
-    // 텍스처에 그려진 이목구비/호루라기와 중복되던 3D 파츠는 제거됨
-    expect(source).not.toContain('studioPartId="b03-whistle"')
+    // ?띿뒪泥섏뿉 洹몃젮吏??대ぉ援щ퉬/?몃（?쇨린? 以묐났?섎뜕 3D ?뚯툩???쒓굅??
     expect(source).not.toContain('name="b01WhistleCord')
     expect(source).not.toContain('name="b01Nose"')
     expect(source).not.toContain('name="b01EyeL"')
 
-    // 노출 얼굴면(헤드 박스 앞면 0.56×0.48, center y=0) cover-fit:
-    // 종횡비 7:6 맞춤 상단 14.3% 크롭(헤드밴드 위 여백), z는 앞면 0.22 + 0.01
+    // ?몄텧 ?쇨뎬硫??ㅻ뱶 諛뺤뒪 ?욌㈃ 0.56횞0.48, center y=0) cover-fit:
+    // 醫낇슒鍮?7:6 留욎땄 ?곷떒 14.3% ?щ∼(?ㅻ뱶諛대뱶 ???щ갚), z???욌㈃ 0.22 + 0.01
     expect(B03_PE_TEACHER_FACE.size).toEqual([0.56, 0.48])
     expect(B03_PE_TEACHER_FACE.position).toEqual([0, 0, 0.23])
     expect(B03_PE_TEACHER_FACE.repeat).toEqual([1, 0.857])
@@ -166,10 +167,10 @@ describe('Studio part-edit freeze contract', () => {
   it('captures the JSX rest pose and restores it when freezing for studio part editing', () => {
     const source = zombieMeshSource
 
-    // ref 등록 시 애니메이션 시작 전 rest transform 캡처
+    // ref ?깅줉 ???좊땲硫붿씠???쒖옉 ??rest transform 罹≪쿂
     expect(source).toContain('userData.zombieRestRotation = el.rotation.clone()')
     expect(source).toContain('userData.zombieRestScale = el.scale.clone()')
-    // frozen 진입 시 rest 복원 + 애니메이션 도중 캡처된 스튜디오 base 폐기 → rest 기준 재캡처
+    // frozen 吏꾩엯 ??rest 蹂듭썝 + ?좊땲硫붿씠???꾩쨷 罹≪쿂???ㅽ뒠?붿삤 base ?먭린 ??rest 湲곗? ?ъ벙泥?
     expect(source).toContain('el.rotation.copy(el.userData.zombieRestRotation)')
     expect(source).toContain('delete el.userData.studioPartBaseRotation')
     expect(source).toContain('delete el.userData.studioPartBaseScale')
@@ -177,6 +178,11 @@ describe('Studio part-edit freeze contract', () => {
 })
 
 describe('Stage 2 boss visual reference', () => {
+  it('registers B02 through the dedicated Graphics Studio v2 namespace', () => {
+    expect(getStudioZombieItemId('B02')).toBe('stage2-boss-v2')
+    expect(GRAPHICS_STUDIO_CATALOG.some((entry) => entry.id === 'stage2-boss-v2')).toBe(true)
+  })
+
   it('defines B02 as a clean low-poly female teacher zombie boss', () => {
     expect(ENEMY_STATS.B02).toMatchObject({
       hp: 1150,
@@ -185,68 +191,53 @@ describe('Stage 2 boss visual reference', () => {
       charger: true,
     })
 
-    expect(B02_TEACHER_BOSS_PALETTE).toMatchObject({
-      skin: 0x8fb0d8,
-      suit: 0x111923,
-      hair: 0x2e251e,
-      skirt: 0x101821,
+    expect(B02_STAGE2_BOSS_PALETTE).toMatchObject({
+      skin: 0x75b6e9,
+      blazer: 0x8f2f3b,
+      shirt: 0xf2ead8,
+      skirt: 0x1c1b1d,
+      hair: 0x3b241a,
+      shoe: 0x17100d,
     })
-    expect(B02_TEACHER_BOSS_PARTS).toEqual(expect.arrayContaining([
-      'headWithFaceTexture',
-      'topHairPlate',
-      'leftHairPlate',
-      'rightHairPlate',
-      'backHairPlate',
-      'bunBlock',
-      'teacherSuit',
-      'skirt',
-      'forwardArms',
-    ]))
+    expect(B02_STAGE2_BOSS_PARTS).toEqual([
+      'blockHeadWithTextureFace',
+      'brownBobAndBunHair',
+      'redTornBlazer',
+      'whiteShirtTieLanyard',
+      'darkSkirt',
+      'blueSkinHandsLegs',
+      'blackShoes',
+      'slightB02Walk',
+    ])
   })
 
   it('uses a head-attached face texture and separate controllable hair parts', () => {
     const source = zombieMeshSource
 
-    expect(source).toContain("import boss02FaceUrl from '../assets/enemies/boss_02.webp'")
-    expect(source).toContain('<B02TeacherFaceTexture />')
-    expect(source).toContain('<B02TeacherBossMesh hitFlash={hitFlash} reg={reg} />')
-    expect(source).toContain("itemId={getStudioZombieItemId('B02')}")
+    expect(source).toContain("import boss02FaceUrl from '../assets/faces/b02_stage2_boss_face.webp'")
+    expect(source).toContain('<B02Stage2BossFaceTexture />')
+    expect(source).toContain('<B02Stage2BossMesh hitFlash={hitFlash} reg={reg} />')
+    expect(source).toContain('itemId={getStudioZombieItemId(type)}')
     expect(source).toContain('studioRenderOutline')
-    expect(source).toContain('studioPartId="b02-head"')
-    const hairPartIds = Array.from(source.matchAll(/studioPartId="(b02-(?:hair|bun)[^"]*)"/g)).map((match) => match[1])
-    expect(hairPartIds).toEqual([
-      'b02-hair-top-plate',
-      'b02-hair-left-plate',
-      'b02-hair-right-plate',
-      'b02-hair-back-plate',
-      'b02-bun-block',
-    ])
-    expect(source).toContain('studioPartId="b02-body"')
-    expect(source).toContain('studioPartId="b02-arm-l"')
-    expect(source).toContain('studioPartId="b02-arm-r"')
-    expect(source).not.toContain("studioPartId: 'b02-front-hair'")
-    expect(source).not.toContain("studioPartId: 'b02-bun'")
-    expect(source).not.toContain('itemId="zombie-b02"')
-    // 노출 얼굴면(헤드 박스 앞면 0.62×0.62 전체, center y=0) cover-fit:
-    // 상단 20% 머리 밴드 + 좌우 10%씩 UV 크롭(정사각 유지, 무스트레치),
-    // z는 앞면 0.25 + 0.01로 패럴랙스 최소화
-    expect(B02_TEACHER_BOSS_FACE.size).toEqual([0.62, 0.62])
-    expect(B02_TEACHER_BOSS_FACE.repeat).toEqual([0.8, 0.8])
-    expect(B02_TEACHER_BOSS_FACE.offset).toEqual([0.1, 0])
-    expect(B02_TEACHER_BOSS_FACE.position).toEqual([0, 0, 0.247578125])
+    expect(source).not.toContain(legacyB02ItemId)
+    // ?몄텧 ?쇨뎬硫??ㅻ뱶 諛뺤뒪 ?욌㈃ 0.62횞0.62 ?꾩껜, center y=0) cover-fit:
+    // ?곷떒 20% 癒몃━ 諛대뱶 + 醫뚯슦 10%??UV ?щ∼(?뺤궗媛??좎?, 臾댁뒪?몃젅移?,
+    // z???욌㈃ 0.25 + 0.01濡??⑤윺?숈뒪 理쒖냼??
+    expect(B02_STAGE2_BOSS_FACE.size).toEqual([0.58, 0.50])
+    expect(B02_STAGE2_BOSS_FACE.repeat).toEqual([1, 1])
+    expect(B02_STAGE2_BOSS_FACE.offset).toEqual([0, 0])
+    expect(B02_STAGE2_BOSS_FACE.position).toEqual([0, 0, 0.251])
   })
 
-  it('keeps the B02 face texture inside the editable head part', () => {
-    const zBlockSource = zombieMeshSource.match(
-      /function ZBlock[\s\S]*?\n}\n\nfunction B01BossZombieMesh/,
+  it('keeps the supplied B02 face texture out of the numeric-path focus list', () => {
+    const faceSource = zombieMeshSource.match(
+      /function B02Stage2BossFaceTexture[\s\S]*?function B02Stage2BossMesh/,
     )
 
-    expect(zBlockSource).not.toBeNull()
-    expect(zBlockSource[0]).toContain('{children}')
-    expect(zombieMeshSource).toMatch(
-      /<ZBlock[^>]*studioPartId="b02-head"[^>]*>\s*<B02TeacherFaceTexture\s*\/>\s*<\/ZBlock>/,
-    )
-    expect(zombieMeshSource).toContain('studioNonFocusable: true, studioNonTunable: true')
+    expect(faceSource).not.toBeNull()
+    expect(faceSource[0]).toContain('studioNonFocusable: true')
+    expect(faceSource[0]).toContain('transparent')
+    expect(graphicsStudioConfigSource).not.toContain(legacyB02ItemId)
   })
 
   it('disables raycasting on render-only ZBlock outlines', () => {

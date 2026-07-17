@@ -55,7 +55,7 @@
 - `CONCEPTS.md` — shared project vocabulary for canonical visual state, release gates, and other project-specific terms.
 - For Google login failures in Android AAB / Play internal testing, check `docs/solutions/integration-issues/capacitor-android-firebase-google-login-aab.md` first.
 - For Graphics Studio Apply-state loss, old title models, missing title outlines, or AAB visual parity, check `docs/solutions/integration-issues/graphics-studio-title-state-release-regression.md` before changing defaults or packaging a release.
-- For Stage 2 boss/B02 size drift, oversized title/lobby boss visuals, `zombie-b02-teacher` root scale, `StageBossPreview`, `TitleBossZombie`, `ZombieMesh`, `StudioTunedGroup`, `graphicsStudioB02Source`, or related Graphics Studio B02 scale/default changes, check `docs/solutions/integration-issues/graphics-studio-b02-root-scale-regression.md` first.
+- For any Stage 2 boss/B02 model, part, scale, placement, Studio-state, or persistence change, check `docs/solutions/integration-issues/stage2-boss-v2-no-legacy-gate.md` first. Stop immediately if the task would recover, reference, or transform an obsolete implementation.
 - For UI work, consider layout, readability, keyboard/mouse interaction, and mobile or desktop fit.
 - For gameplay work, consider player controls, feedback, state changes, difficulty, and failure cases.
 - For R3F/Rapier vampire-survivor-like stability work, performance regression, monster disappearance, or physics anomalies, treat `Developer/agent_room/r3f_rapier_vampire_survivor_stability_rules.md` as the mandatory Agent-Ready checklist and run its §6 diagnostic protocol before proposing fixes.

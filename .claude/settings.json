@@ -56,11 +56,20 @@
         ]
       },
       {
+        "matcher": "Bash|PowerShell|shell_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-stage2-boss-v2-gate.sh\""
+          }
+        ]
+      },
+      {
         "matcher": "Write",
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-b02-scale-solution-check.sh\""
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-stage2-boss-v2-gate.sh\""
           },
           {
             "type": "command",
@@ -73,7 +82,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-b02-scale-solution-check.sh\""
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-stage2-boss-v2-gate.sh\""
           },
           {
             "type": "command",
@@ -86,7 +95,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-b02-scale-solution-check.sh\""
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-stage2-boss-v2-gate.sh\""
           },
           {
             "type": "command",

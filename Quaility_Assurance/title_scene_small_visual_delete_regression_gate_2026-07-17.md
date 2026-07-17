@@ -28,14 +28,13 @@
 - `Developer/화면의_검정색_사각_두개를_지우기_위해서_1시간_이상을_까쳐먹은_개_좆같은_일_2026-07-17.md`
   - 사용자가 요청한 것은 타이틀 화면의 검은 사각형 조명 장식 두 개 삭제였으나, 진행 중 타이틀 화면의 여러 요소가 함께 변경되어 붕괴 피해가 발생했다.
   - 실제 원인은 `TitleScene3D.jsx`의 `ToonBox` 배치 두 줄과 사용되지 않는 전용 컴포넌트였다.
-  - `dd471b4`는 단순 두 오브젝트 삭제 커밋이 아니라 원거리 배경 모델, 벽, 클럽 조명 하우징/렌즈, B02 크기, 검사 도구까지 함께 포함했다.
+  - `dd471b4`는 단순 두 오브젝트 삭제 커밋이 아니라 원거리 배경 모델, 벽, 클럽 조명 하우징/렌즈, 검사 도구까지 함께 포함했다.
 - `docs/solutions/integration-issues/graphics-studio-title-state-release-regression.md`
   - Studio/타이틀/실제 게임 시각 상태는 독립 검증해야 한다.
   - Vite/dev-server 화면만으로 AAB/WebView 시각 패리티를 통과했다고 기록하면 안 된다.
 - 기존 QA 기록 일부
   - `Quaility_Assurance/title_scene_gather_validation_2026-07-14.md`: 390x844 타이틀 최종 구도, 글자/좀비/3D 집결 레이어, 버튼 노출, 캔버스 폭 기록이 존재한다.
   - `Quaility_Assurance/title_character_outline_audit_chibiko_validation_2026-07-15.md`: 타이틀 캐릭터 외곽선, 390x844 실화면 검증 기록이 존재한다.
-  - `Quaility_Assurance/title_stage2_boss_scale_reduction_validation_2026-07-17.md`: B02 타이틀 배치 변경은 자동 검증 제한과 수동 검증 필요 상태로 기록되어 있다.
 
 ### 이번 QA 중 실제 실행한 확인 명령
 
@@ -79,7 +78,7 @@ Developer/r3f_prototype/src/debug/screenElementInspector.js        237 insertion
    - 4개 파일, 349 삽입, 109 삭제는 “두 오브젝트 삭제” 범위를 벗어난다.
    - 특히 237줄 신규 검사 도구는 삭제 작업의 결과물로 묶으면 안 된다.
 3. 시각 구성 파괴 가능성
-   - `TitleFarBackgroundStory`, `StarlinkSatelliteModel`, `ZomlonbiskModel`, 좌우 벽, 클럽 조명 하우징/렌즈, B02 scale/position이 같은 흐름에서 변경됐다.
+   - `TitleFarBackgroundStory`, `StarlinkSatelliteModel`, `ZomlonbiskModel`, 좌우 벽, 클럽 조명 하우징/렌즈가 같은 흐름에서 변경됐다.
    - 이 요소들은 사용자가 지정한 두 검은 사각형과 동일 대상이라고 입증되지 않았다.
 4. 테스트의 오염 위험
    - 테스트가 “기존 요소 보존”보다 “삭제된 광범위 요소가 돌아오지 않음”을 확인하는 방향으로 바뀌면, 잘못 삭제한 상태를 회귀 기준으로 고정할 수 있다.
@@ -236,8 +235,6 @@ FAIL 기준:
 - Studio/시각 정본 경계
   - `StudioTunedGroup itemId="title-scene"`
   - Graphics Studio player/source seed 관련 파일은 변경하지 않음
-- Stage 2/B02 관련
-  - 사용자가 명시하지 않으면 B02 scale/position/source seed 변경 금지
 
 ### 소스 보존 체크 명령
 
@@ -282,7 +279,7 @@ PASS 기준:
 FAIL 기준:
 
 - 특정 보존 요소가 사라지거나 수량이 바뀐다.
-- B02 scale, Title board, `TitleFarBackgroundStory`, side wall 등 요청 범위 밖 요소가 함께 바뀐다. 단, 사용자가 별도 지시한 변경은 별도 카드/별도 QA 게이트로 분리한다.
+- Title board, `TitleFarBackgroundStory`, side wall 등 요청 범위 밖 요소가 함께 바뀐다. 단, 사용자가 별도 지시한 변경은 별도 카드/별도 QA 게이트로 분리한다.
 
 ## 7. Test Gate: 자동 테스트와 빌드
 
@@ -401,7 +398,7 @@ FAIL 기준:
 ### 금지되는 테스트
 
 - “사용자가 요청하지 않은 주변 요소도 없어야 한다”를 새 정답으로 만드는 테스트.
-- `Starlink`, `Zomlonbisk`, side wall, B02 scale 등 별도 검토가 필요한 요소를 한 삭제 테스트에 묶어 제거 상태를 고정하는 테스트.
+- `Starlink`, `Zomlonbisk`, side wall 등 별도 검토가 필요한 요소를 한 삭제 테스트에 묶어 제거 상태를 고정하는 테스트.
 - 화면 붕괴 후 상태를 기준 스크린샷으로 덮어쓰는 테스트.
 
 ### 권장 테스트 구조

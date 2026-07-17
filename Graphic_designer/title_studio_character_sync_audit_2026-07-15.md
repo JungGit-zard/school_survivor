@@ -112,7 +112,6 @@ This table covers every character or character-like visual instantiated by `Titl
 | Title visual | Title placement evidence | Runtime component path | Studio id used at runtime | Studio catalog evidence | Sync status | Notes |
 |---|---:|---|---|---|---|---|
 | Player | `TitleScene3D.jsx:473`; wrapper at `93-110` | `TitlePlayer` -> `PlayerMesh` | `player` | `PlayerMesh.jsx:242-245` | Synced for model tuning; title-specific presentation differs | Direct `<PlayerMesh />`, not `PlayerVisual`; title wrapper has hard-coded `scale={2}`, position/rotation, bobbing. |
-| Boss Zombie B02 teacher | `TitleScene3D.jsx:461` | `TitleBossZombie` -> `ZombieMesh type="B02"` | `zombie-b02-teacher` | `graphicsStudioConfig.js:31-38`; `ZombieMesh.jsx:536-540` | Synced | `getStudioZombieItemId('B02')` maps B02 to the separate rebuilt teacher id. |
 | Boss Zombie B03 PE teacher | `TitleScene3D.jsx:462` | `TitleBossZombie` -> `ZombieMesh type="B03"` | `zombie-b03-pe-teacher` | `graphicsStudioConfig.js:31-38`; `ZombieMesh.jsx:528-532` | Synced | Separate B03 studio id is used. |
 | Boss Zombie B01 | `TitleScene3D.jsx:463` | `TitleBossZombie` -> `ZombieMesh type="B01"` | `zombie-b01` | `ZombieMesh.jsx:520-524` | Synced | Uses explicit B01 id. |
 | Zombie E03 left/back | `TitleScene3D.jsx:464` | `TitleZombie` -> `ZombieMesh type="E03"` | `zombie-e03` | `graphicsStudioConfig.js:36-38`; `ZombieMesh.jsx:544-545` | Synced | Generic zombies use `getStudioZombieItemId(type)`. |
@@ -135,7 +134,6 @@ Existing regression coverage has pieces of the contract, but not the full title-
 Observed existing coverage:
 
 - `Developer/r3f_prototype/src/lib/graphicsStudioConfig.test.js:67-75` verifies `actor-doge` is registered in the catalog.
-- `graphicsStudioConfig.test.js:88-106` verifies B02/B03 special studio ids.
 - `graphicsStudioConfig.test.js:125-160` begins a runtime-parity preview test family for shared sources/components.
 - `Developer/r3f_prototype/src/components/TitleScene3D.test.jsx:152-166` checks some title placement strings, including Zomlonbisk and Doge positions.
 
@@ -161,7 +159,6 @@ Recommended minimal contract before future title/Studio character changes:
 4. The `title-scene` catalog item should be documented/tested as a root scene composition tuner, not a fully nested saved-character-tuning preview, unless implementation is changed to layer nested saved tunings into that preview.
 5. Add a static regression test that scans/declares the title character sync matrix:
    - Player -> `player`
-   - B02 -> `zombie-b02-teacher`
    - B03 -> `zombie-b03-pe-teacher`
    - B01 -> `zombie-b01`
    - E01/E02/E03 -> `zombie-e01/e02/e03`

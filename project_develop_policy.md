@@ -65,7 +65,7 @@
 ### 반드시 지켜야 할 사항
 
 - 반드시 사용자가 Graphics Studio에서 확정한 Apply 값은 루트, 파트, 그룹 키와 값을 그대로 보존하고, 검증된 마이그레이션 없이 기본값이나 과거 값으로 덮어쓰지 않는다.
-- 반드시 Stage 2 보스/B02 크기 드리프트, 타이틀/로비 보스 과대 표시, `zombie-b02-teacher` 루트 스케일, `StageBossPreview`, `TitleBossZombie`, `ZombieMesh`, `StudioTunedGroup`, `graphicsStudioB02Source` 또는 관련 Graphics Studio B02 스케일/기본값을 변경하기 전에는 `docs/solutions/integration-issues/graphics-studio-b02-root-scale-regression.md`를 먼저 확인한다.
+- 반드시 Stage 2 보스/B02의 모델, 파트, 크기, 화면 배치, Studio 상태 또는 저장 경로를 변경하기 전에는 `docs/solutions/integration-issues/stage2-boss-v2-no-legacy-gate.md`를 먼저 확인한다. 과거 구현의 복구·참조·변환이 발견되면 즉시 작업을 중단한다.
 - 반드시 현재의 Source-Controlled Player Seed와 미래의 Firebase Visual Canonical State를 서로 다른 개념으로 기록한다. Source-Controlled Player Seed는 복구된 Apply 스냅샷을 코드와 함께 배포하는 로컬 초기화·마이그레이션 자료일 뿐 원격 정본이 아니다.
 - 반드시 Source-Controlled Player Seed의 `sourceRevision`은 로컬 마이그레이션 순번으로만 취급한다. Git SHA, Firebase revision, 관리자 승인 번호 또는 배포 번호로 해석하지 않는다.
 - 반드시 Firebase 정본 구현 전에는 승인된 Apply 스냅샷을 검증 가능한 소스 또는 버전 관리 산출물로 승격하고, 브라우저에만 존재하는 상태로 릴리스하지 않는다. 이 임시 경계가 원격 저장, 서버 ACK, 관리자 승인, 기기 간 동기화, 서버 감사 로그 또는 서버 롤백을 보장한다고 기록하지 않는다.

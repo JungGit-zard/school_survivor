@@ -5,10 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/assert-no-legacy-b02.mjs",
     "build": "vite build",
+    "postbuild": "node scripts/assert-no-legacy-b02.mjs --artifacts=dist",
+    "audit:b02-artifacts": "node scripts/assert-no-legacy-b02.mjs --artifacts=all",
     "preview": "vite preview",
     "browser:guard": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/guard-game-browser-limit.ps1",
     "browser:reserve": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/guard-game-browser-limit.ps1 -Mode reserve",
+    "pretest": "node scripts/assert-no-legacy-b02.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

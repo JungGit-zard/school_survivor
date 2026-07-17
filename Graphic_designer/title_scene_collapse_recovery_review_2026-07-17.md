@@ -50,7 +50,6 @@ git rev-parse dd471b4^ dd471b4
 - 원거리 배경 스토리 모델(`StarlinkSatelliteModel`, `ZomlonbiskModel`, `TitleFarBackgroundStory`) 삭제.
 - 클럽 조명 빔의 하우징/렌즈 메쉬 삭제.
 - 좌우 어두운 사이드 월 메쉬 삭제.
-- B02 타이틀 보스의 위치와 스케일 변경.
 - 위 삭제/축소를 고정하는 테스트 기대값 변경.
 
 ## Keep / Delete / Restore 목록
@@ -71,13 +70,12 @@ git rev-parse dd471b4^ dd471b4
 |---|---|---|
 | 원거리 배경 스토리 모델 import 복구 | 부모 `TitleScene3D.jsx:14`의 `StarlinkSatelliteModel, ZomlonbiskModel` import가 자식에서 삭제됨. diff `/tmp/dd471b4_TitleScene3D.diff:20` 삭제. | 두 `ToonBox` 배치 삭제와 무관한 배경 구성 삭제. |
 | `TitleFarBackgroundStory` 함수 복구 | 부모 `TitleScene3D.jsx:247-276` 전체 함수가 자식에서 삭제됨. diff `/tmp/dd471b4_TitleScene3D.diff:260-289` 삭제. | 배경 스토리/원거리 모델 제거는 검은 사각형 두 `ToonBox`와 별개. |
-| `<TitleFarBackgroundStory reducedEffects={reducedEffects} />` 호출 복구 | 부모 `TitleScene3D.jsx:580`, 자식에서는 `TitleCharacterOutlineGroup` 첫 항목이 B02로 바뀜(`TitleScene3D.jsx:542-543`). diff `/tmp/dd471b4_TitleScene3D.diff:627-630`. | 원거리 배경 복구에 필요. |
+| `<TitleFarBackgroundStory reducedEffects={reducedEffects} />` 호출 복구 | 부모 `TitleScene3D.jsx:580`, 자식에서는 호출이 삭제됨. diff `/tmp/dd471b4_TitleScene3D.diff:627-630`. | 원거리 배경 복구에 필요. |
 | 클럽 조명 하우징 지오메트리 복구 | 부모 `TitleScene3D.jsx:147`의 `CLUB_LIGHT_HOUSING_GEO = getCachedBoxGeo(...)` 삭제. diff `/tmp/dd471b4_TitleScene3D.diff:153-160`. | 두 `ToonBox` 배치가 아닌 클럽 조명 fixture 삭제. |
 | 클럽 조명 `housingMat`, `lensMat`, dispose 복구 | 부모 `TitleScene3D.jsx:402-436`, 자식 `TitleScene3D.jsx:375-378`은 `lensMat.dispose()` 제거. diff `/tmp/dd471b4_TitleScene3D.diff:415-450`. | 빔 fixture/렌즈는 장면 구성 요소이며 `ToonBox` 두 배치 삭제와 무관. |
 | 클럽 조명 하우징/렌즈 mesh 복구 | 부모 `TitleScene3D.jsx:450-453` 삭제. 자식 `TitleScene3D.jsx:386-392`는 cone 두 개만 남음. diff `/tmp/dd471b4_TitleScene3D.diff:464-468`. | 조명 장치 붕괴 복구. |
 | 좌우 사이드 월 복구 | 부모 `TitleScene3D.jsx:543`, `558-562`; 자식 `TitleScene3D.jsx:513-530`에는 `wallMat`와 두 mesh 없음. diff `/tmp/dd471b4_TitleScene3D.diff:588-611`. | 두 `ToonBox`와 별개인 타이틀 배경 구조 삭제. |
-| B02 위치/스케일 복구 | 부모 `TitleScene3D.jsx:581`은 `position={[-1.35, 0.26, -3.7]} scale={0.98}`. 자식 `TitleScene3D.jsx:543`은 `position={[-1.35, 0.18, -3.7]} scale={0.62}`. diff `/tmp/dd471b4_TitleScene3D.diff:627-631`. | 검은 사각형 삭제와 무관한 보스 크기/위치 변경. B02 크기 정책상 별도 검토 없이 바꾸면 안 됨. |
-| 테스트 기대값 복구 | 자식 테스트가 far background 삭제(`TitleScene3D.test.jsx:162-185`), side-wall 삭제(`223-230`), club housing 삭제(`238-246`), B02 축소(`122-124`)를 정상으로 고정. | 복구 패치와 일치하도록 테스트를 부모 기대값 또는 중립적 기대값으로 되돌려야 함. |
+| 테스트 기대값 복구 | 자식 테스트가 far background 삭제(`TitleScene3D.test.jsx:162-185`), side-wall 삭제(`223-230`), club housing 삭제(`238-246`)를 정상으로 고정. | 복구 패치와 일치하도록 테스트를 부모 기대값 또는 중립적 기대값으로 되돌려야 함. |
 
 ### Delete 또는 별도 정리 후보
 
@@ -194,9 +192,7 @@ diff --git a/Developer/r3f_prototype/src/components/TitleScene3D.jsx b/Developer
        <WarningLight position={[2.15, 0.03, 1.3]} delay={1.4} />
  
        <TitleCharacterOutlineGroup>
--        <TitleBossZombie type="B02" position={[-1.35, 0.18, -3.7]} scale={0.62} delay={0.9} />
 +        <TitleFarBackgroundStory reducedEffects={reducedEffects} />
-+        <TitleBossZombie type="B02" position={[-1.35, 0.26, -3.7]} scale={0.98} delay={0.9} />
          <TitleBossZombie type="B03" position={[0.02, 0.28, -4.04]} scale={1.12} delay={1.35} />
 ```
 
@@ -204,9 +200,8 @@ diff --git a/Developer/r3f_prototype/src/components/TitleScene3D.jsx b/Developer
 
 `TitleScene3D.test.jsx`는 위 복구와 충돌하는 다음 기대값을 되돌려야 한다.
 
-1. B02 기대값: 자식 `scale={0.62}`를 부모 `scale={0.98}`로 복구.
-2. far-background 테스트: 삭제 기대가 아니라 `StarlinkSatelliteModel`, `ZomlonbiskModel`, `TitleFarBackgroundStory` 존재 기대로 복구.
-3. DancingDoge 테스트: `ZomlonbiskModel` 부재 기대를 부모의 Zomlonbisk 애니메이션 기대로 복구.
+1. far-background 테스트: 삭제 기대가 아니라 `StarlinkSatelliteModel`, `ZomlonbiskModel`, `TitleFarBackgroundStory` 존재 기대로 복구.
+2. DancingDoge 테스트: `ZomlonbiskModel` 부재 기대를 부모의 Zomlonbisk 애니메이션 기대로 복구.
 4. side-wall 삭제 테스트는 제거하거나, 두 wall mesh 존재 기대로 반전.
 5. club-light housing 삭제 테스트는 제거하거나, `CLUB_LIGHT_HOUSING_GEO`, `housingMat`, `lensMat`, `circleGeometry args={[0.13, 12]}` 존재 기대로 반전.
 6. `ToonBox` 부재 테스트는 유지.
@@ -217,7 +212,6 @@ diff --git a/Developer/r3f_prototype/src/components/TitleScene3D.jsx b/Developer
 - `ToonBox` 두 배치와 전용 컴포넌트는 되살리지 않는다. 즉, 검은 사각형 두 개의 직접 원인은 복구하지 않는다.
 - CDP 검사기 관련 `index.html`, `src/debug/screenElementInspector.js`, `inspectTitleSceneObject`, `onPointerDown`은 이 카드의 허용 범위로 분리해 건드리지 않는다.
 - 삭제/축소된 기존 타이틀 장면 구성 요소만 부모 커밋 값 그대로 되돌린다.
-- B02 크기/위치는 별도 B02 스케일 정책 문서가 필요한 영역이므로 `dd471b4`에서 임의로 바뀐 값을 부모 값으로 되돌리는 것이 가장 안전하다.
 
 ## 검증 권장 순서
 
@@ -233,4 +227,4 @@ npm run build
 
 ## 최종 판정
 
-`dd471b4`는 검은 사각형 두 개 삭제와 CDP 검사기 추가 외에 타이틀 장면의 배경 모델, 벽, 조명 fixture, B02 크기까지 함께 변경했다. 타이틀 붕괴 최소 복구안은 `ToonBox` 삭제와 검사기만 남기고, 나머지 시각 구성 변경을 부모 커밋 값으로 되돌리는 것이다.
+`dd471b4`는 검은 사각형 두 개 삭제와 CDP 검사기 추가 외에 타이틀 장면의 배경 모델, 벽, 조명 fixture까지 함께 변경했다. 타이틀 붕괴 최소 복구안은 `ToonBox` 삭제와 검사기만 남기고, 나머지 시각 구성 변경을 부모 커밋 값으로 되돌리는 것이다.

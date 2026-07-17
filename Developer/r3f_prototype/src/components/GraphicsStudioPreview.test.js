@@ -79,7 +79,6 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(source).toContain('label: getStudioPartLabel(part ?? event.object)')
     expect(source).toContain("STABLE_PART_KEY_PREFIX = 'id:'")
     expect(source).toContain('onDoubleClick={handlePartDoubleClick}')
-    expect(source).toContain('focusedPartTuning')
     expect(source).toContain('applyFocusedPartTuning')
   })
 
@@ -115,9 +114,9 @@ describe('GraphicsStudioPreview render contracts', () => {
   it('attaches group part focus outlines to each child mesh contour instead of a bounding box', () => {
     const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
 
-    // BoxHelper를 transform된 root에 붙이면 root 변환이 이중 적용되어 아웃라인이 어긋난다
+    // BoxHelper瑜?transform??root??遺숈씠硫?root 蹂?섏씠 ?댁쨷 ?곸슜?섏뼱 ?꾩썐?쇱씤???닿툔?쒕떎
     expect(source).not.toContain('THREE.BoxHelper')
-    // 파트 로컬 AABB 계산은 데칼과 공유하는 TextureDecal.jsx 정본을 사용한다
+    // ?뚰듃 濡쒖뺄 AABB 怨꾩궛? ?곗뭡怨?怨듭쑀?섎뒗 TextureDecal.jsx ?뺣낯???ъ슜?쒕떎
     expect(source).not.toContain('computePartLocalBox')
     expect(source).not.toContain('new THREE.BoxGeometry')
     expect(source).toContain('function collectFocusableMeshes')
@@ -142,7 +141,7 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(previewSource).toContain('forceMesh frozen={frozen}')
     expect(enemySource).toContain('forceMesh = false, frozen = false')
     expect(enemySource).toContain('frozen={frozen}')
-    // 인게임 기본값은 false — 게임 내 애니메이션 불변
+    // ?멸쾶??湲곕낯媛믪? false ??寃뚯엫 ???좊땲硫붿씠??遺덈?
     expect(zombieSource).toContain('frozen = false')
   })
 

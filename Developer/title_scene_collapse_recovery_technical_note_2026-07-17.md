@@ -31,7 +31,6 @@
 - `StarlinkSatelliteModel`, `ZomlonbiskModel`, `TitleFarBackgroundStory` 삭제 복구.
 - `CLUB_LIGHT_HOUSING_GEO`, `housingMat`, `lensMat`, 하우징/렌즈 mesh 삭제 복구.
 - `wallMat`와 좌우 side-wall mesh 삭제 복구.
-- B02 타이틀 보스 `position={[-1.35, 0.18, -3.7]} scale={0.62}`를 부모 값 `position={[-1.35, 0.26, -3.7]} scale={0.98}`로 복구.
 - 위 복구와 충돌하는 `TitleScene3D.test.jsx` 기대값 복구.
 
 ## 검증

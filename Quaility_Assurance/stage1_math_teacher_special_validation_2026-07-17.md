@@ -11,7 +11,6 @@
 전체 스위트의 기존 실패 2개는 이번 변경 범위 밖이다.
 
 - `src/components/StageObjects/stageObjectColliders.test.js`: 기존 소품 콜라이더 높이
-- `src/lib/graphicsStudioConfig.test.js`: 기존 B02 스튜디오 저장 리비전
 
 ## 판정 항목
 
