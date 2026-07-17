@@ -32,21 +32,12 @@ export function UmbrellaModel({ openProgress, spin = 0 }) {
     toonMat(UMBRELLA_COLORS.mintCream, 0.10),
     toonMat(UMBRELLA_COLORS.vanillaWhite, 0.12),
   ], [])
-  const rimMats = useMemo(() => [
-    toonMat(UMBRELLA_COLORS.vanillaWhite, 0.14),
-    toonMat(UMBRELLA_COLORS.lime, 0.16),
-    toonMat(UMBRELLA_COLORS.vanillaWhite, 0.14),
-    toonMat(UMBRELLA_COLORS.lime, 0.16),
-  ], [])
-  const ribMat = useMemo(() => toonMat(UMBRELLA_COLORS.mintCream, 0.04), [])
   const shaftMat = useMemo(() => toonMat(0xc8d0d0, 0.08), [])
   const gripMat = useMemo(() => toonMat(UMBRELLA_COLORS.cottonCandyPink, 0.20), [])
   const outMat = useMemo(() => outlineMat(0.94), [])
 
   const open = 0.18 + openProgress * 0.82
   const canopyScale = [1.08 * open, 0.34 + openProgress * 0.06, 1.08 * open]
-  const ribLength = 1.52 * open
-  const ribAngles = Array.from({ length: 8 }, (_, i) => (i * Math.PI) / 4)
   const panelArc = (Math.PI * 2) / panelMats.length
 
   return (
@@ -61,38 +52,17 @@ export function UmbrellaModel({ openProgress, spin = 0 }) {
         </mesh>
       ))}
 
-      {ribAngles.map((angle) => (
-        <mesh key={angle} material={ribMat} position={[0, 0.16, 0]} rotation={[Math.PI / 2, 0, angle]}>
-          <cylinderGeometry args={[0.012, 0.012, ribLength, 6]} />
-        </mesh>
-      ))}
-
-      {rimMats.map((mat, index) => {
-        const angle = (index * Math.PI) / 2 + Math.PI / 4
-        return (
-          <mesh
-            key={index}
-            material={mat}
-            position={[Math.sin(angle) * 0.52 * open, 0.17, Math.cos(angle) * 0.52 * open]}
-            rotation={[0, angle, 0]}
-            scale={[0.32 * open, 0.055, 0.1]}
-          >
-            <boxGeometry args={[1, 1, 1]} />
-          </mesh>
-        )
-      })}
-
-      <mesh material={outMat} position={[0, -0.24, 0]} rotation={[0.48, 0, 0]} scale={inflateScale([1.18, 1.05, 1.18])}>
+      <mesh material={outMat} position={[0, -0.24, 0]} scale={inflateScale([1.18, 1.05, 1.18])}>
         <cylinderGeometry args={[0.035, 0.035, 0.86, 8]} />
       </mesh>
-      <mesh material={shaftMat} position={[0, -0.24, 0]} rotation={[0.48, 0, 0]}>
+      <mesh material={shaftMat} position={[0, -0.24, 0]}>
         <cylinderGeometry args={[0.035, 0.035, 0.86, 8]} />
       </mesh>
 
-      <mesh material={outMat} position={[0, -0.72, 0.22]} rotation={[Math.PI / 2, 0, 0]} scale={inflateScale([1.1, 1.1, 1.1])}>
+      <mesh material={outMat} position={[0.12, -0.67, 0]} rotation={[0, 0, Math.PI]} scale={inflateScale([1.1, 1.1, 1.1])}>
         <torusGeometry args={[0.12, 0.028, 8, 16, Math.PI * 1.25]} />
       </mesh>
-      <mesh material={gripMat} position={[0, -0.72, 0.22]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh material={gripMat} position={[0.12, -0.67, 0]} rotation={[0, 0, Math.PI]}>
         <torusGeometry args={[0.12, 0.028, 8, 16, Math.PI * 1.25]} />
       </mesh>
       </group>
