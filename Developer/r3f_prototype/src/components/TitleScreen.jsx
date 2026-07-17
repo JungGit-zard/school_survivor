@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import GoogleAccountPanel from './GoogleAccountPanel.jsx'
 import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
@@ -96,13 +96,14 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
     return () => applyReducedEffects(settings.reducedEffects)
   }, [settings.reducedEffects])
 
-  // 타이틀 BGM: 마운트 시 루프 재생, 언마운트(게임 시작/로비 이동) 시 정지·정리.
+  // 타이틀 BGM: 타이틀 DOM 커밋 직후(첫 페인트 전) 루프 재생을 시도하고,
+  // 언마운트(게임 시작/로비 이동) 시 정지·정리한다.
   // 새로고침 시 자동재생을 브라우저 정책 한도 내 최대로 시도한다:
-  //  1) 마운트 즉시 play() + 실패 시 300ms/1500ms 지연 재시도(Chrome MEI가 높을 때 첫 시도 레이스 커버)
+  //  1) useLayoutEffect에서 즉시 play() + 실패 시 300ms/1500ms 지연 재시도(Chrome MEI가 높을 때 첫 시도 레이스 커버)
   //  2) 그래도 거부되면 첫 pointerdown/touchstart/keydown 제스처에서 재시도(모바일 사파리 포함)
   //  3) 탭이 visible로 복귀할 때도 재시도
   // 성공하면 리스너·타이머를 모두 정리하고, 언마운트 시에도 누수 없이 정리한다. 에러는 조용히 무시.
-  useEffect(() => {
+  useLayoutEffect(() => {
     let audio
     try {
       audio = new Audio(titleBgmUrl)
@@ -110,7 +111,13 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
       return undefined
     }
     audio.loop = true
+    audio.preload = 'auto'
     audio.volume = 0.5
+    try {
+      audio.load?.()
+    } catch {
+      // load() 실패는 이후 play() 재시도 경로에 맡긴다.
+    }
     if (typeof window !== 'undefined') window.__titleBgm = audio
 
     let disposed = false

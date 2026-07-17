@@ -11,6 +11,7 @@ import StudioTunedGroup, { getStudioTransformProps } from './StudioTunedGroup.js
 import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'
 import { CompassBladeModel } from './Weapons/CompassBlade.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
+import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
 
 const TITLE_PLAYER_TARGET = [0.48, 0.08]
 export const TITLE_BOARD_BACK_LIMIT_Z = -4.62
@@ -216,11 +217,42 @@ function TitleCompanions() {
 
   return (
     <>
-      <group position={[-0.62, 0.2, 0.82]} rotation={[0, 0.28, -0.03]} scale={1.05}>
+      <group position={[-0.22, 0.2, 0.82]} rotation={[0, 0.28, -0.03]} scale={1.05}>
         <CompassBladeModel />
       </group>
       <group position={[1.36, 0.27, 0.76]} rotation={[0, -0.38, 0.02]} scale={0.42}>
         <ChibikoModel attackPhaseRef={chibikoAttackPhaseRef} />
+      </group>
+    </>
+  )
+}
+
+function TitleFarBackgroundStory({ reducedEffects }) {
+  const zomlonbiskRef = useRef()
+
+  useFrame(({ clock }) => {
+    if (!zomlonbiskRef.current) return
+    if (reducedEffects) {
+      zomlonbiskRef.current.position.y = 0.68
+      zomlonbiskRef.current.rotation.y = -0.28
+      zomlonbiskRef.current.rotation.z = 0
+      return
+    }
+
+    const t = clock.elapsedTime
+    const s = Math.sin(t * 3.2)
+    zomlonbiskRef.current.position.y = 0.68 + Math.abs(s) * 0.05
+    zomlonbiskRef.current.rotation.y = -0.28 + s * 0.5
+    zomlonbiskRef.current.rotation.z = Math.sin(t * 6.4) * 0.09
+  })
+
+  return (
+    <>
+      <group position={[-2.35, 1.12, clampTitleBackgroundZ(-7.0)]} rotation={[0.08, -0.42, -1.2]} scale={1.24}>
+        <StarlinkSatelliteModel studioItemId="title-crashed-starlink" />
+      </group>
+      <group ref={zomlonbiskRef} position={[1.86, 0.68, clampTitleBackgroundZ(-8.0)]} rotation={[0, -0.28, 0]} scale={1.16}>
+        <ZomlonbiskModel running={false} />
       </group>
     </>
   )
@@ -540,17 +572,18 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
       <WarningLight position={[2.15, 0.03, 1.3]} delay={1.4} />
 
       <TitleCharacterOutlineGroup>
-        <TitleBossZombie type="B02" position={[-1.35, 0.18, -3.7]} scale={0.62} delay={0.9} />
-        <TitleBossZombie type="B03" position={[0.02, 0.28, -4.04]} scale={1.12} delay={1.35} />
+        <TitleFarBackgroundStory reducedEffects={reducedEffects} />
+        <TitleBossZombie type="B02" position={[-1.99, 0.18, -3.7]} scale={0.93} delay={0.9} />
+        <TitleBossZombie type="B03" position={[0.02, 0.28, -4.04]} scale={1.344} delay={1.35} />
         <TitleBossZombie type="B01" position={[0.1, 0.25, -1.62]} scale={1.02} />
         <TitleZombie position={[-2.25, 0.22, -3.42]} delay={0.4} scale={0.58} type="E03" />
         <TitleZombie position={[2.0, 0.2, -3.18]} delay={1.6} scale={0.52} type="E02" />
         <TitleZombie position={[-1.95, 0.22, -1.55]} delay={0.2} scale={0.7} type="E01" />
         <TitleZombie position={[1.56, 0.2, -2.08]} delay={1.0} scale={0.62} type="E02" />
         <TitleZombie position={[-0.92, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />
-        <TitleMatildaPursuer position={[1.05, 0.36, -2.92]} delay={1.8} scale={1.44} />
+        <TitleMatildaPursuer position={[1.45, 0.36, -2.92]} delay={1.8} scale={1.44} />
         <DancingDoge position={[-1.27, 0.0, 1.55]} dance="twist" delay={0} scale={0.92} yaw={0.42} paused={reducedEffects} />
-        <DancingDoge position={[2.05, 0.0, 1.5]} dance="disco" delay={1.15} scale={0.92} yaw={-0.5} paused={reducedEffects} />
+        <DancingDoge position={[1.97, 0.0, 1.5]} dance="disco" delay={1.15} scale={0.92} yaw={-0.5} paused={reducedEffects} />
         <TitleCompanions />
         <TitlePlayer />
       </TitleCharacterOutlineGroup>

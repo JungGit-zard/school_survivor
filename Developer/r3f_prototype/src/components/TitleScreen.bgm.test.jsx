@@ -25,6 +25,7 @@ describe('TitleScreen BGM', () => {
       loop: false,
       volume: 1,
       src: 'title-bgm',
+      load: vi.fn(),
       play: vi.fn(() => Promise.resolve()),
       pause: vi.fn(),
     }
@@ -49,7 +50,9 @@ describe('TitleScreen BGM', () => {
 
     expect(Audio).toHaveBeenCalledTimes(1)
     expect(audio.loop).toBe(true)
+    expect(audio.preload).toBe('auto')
     expect(audio.volume).toBe(0.5)
+    expect(audio.load).toHaveBeenCalledOnce()
     expect(audio.play).toHaveBeenCalledOnce()
     expect(window.__titleBgm).toBe(audio)
 

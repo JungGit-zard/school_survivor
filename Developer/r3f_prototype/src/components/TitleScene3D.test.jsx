@@ -109,8 +109,8 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain("import ZombieMesh from './ZombieMesh.jsx'")
     expect(source).toContain("import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'")
     expect(source).toContain('<ZombieMesh type={type} animPhase="charge" />')
-    expect(source).toContain('<TitleBossZombie type="B02" position={[-1.35, 0.18, -3.7]} scale={0.62} delay={0.9} />')
-    expect(source).toContain('<TitleBossZombie type="B03" position={[0.02, 0.28, -4.04]} scale={1.12} delay={1.35} />')
+    expect(source).toContain('<TitleBossZombie type="B02" position={[-1.99, 0.18, -3.7]} scale={0.93} delay={0.9} />')
+    expect(source).toContain('<TitleBossZombie type="B03" position={[0.02, 0.28, -4.04]} scale={1.344} delay={1.35} />')
     expect(source).toContain('<TitleBossZombie type="B01" position={[0.1, 0.25, -1.62]} scale={1.02} />')
     expect(source).toContain('<TitleZombie position={[-0.92, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />')
     expect(source).toContain('<ClassroomDesk')
@@ -128,7 +128,7 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain('rotation={[0, -0.36, 0.04]} scale={1.02}')
     expect(source).toContain('rotation={[0, 0.9, 0]} scale={0.84}')
     expect(source).toContain('rotation={[0, -0.78, 0]} scale={0.84}')
-    expect(source).toContain('<TitleMatildaPursuer position={[1.05, 0.36, -2.92]} delay={1.8} scale={1.44} />')
+    expect(source).toContain('<TitleMatildaPursuer position={[1.45, 0.36, -2.92]} delay={1.8} scale={1.44} />')
   })
 
   it('turns the title player face toward the user', () => {
@@ -143,34 +143,29 @@ describe('TitleScene3D direction', () => {
 
     expect(source).toContain("import { CompassBladeModel } from './Weapons/CompassBlade.jsx'")
     expect(source).toContain("import { ChibikoModel } from './Weapons/Chibiko.jsx'")
+    expect(source).toContain('position={[-0.22, 0.2, 0.82]}')
     expect(source).toContain('<CompassBladeModel />')
     expect(source).toContain('<ChibikoModel attackPhaseRef={chibikoAttackPhaseRef} />')
     expect(source).toContain('<TitleCompanions />')
   })
 
-  it('removes the far-background black-square models', () => {
+  it('restores the far-background models below the blue and purple lights', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
-    const removedImport = `import { ${['Star', 'link', 'Satellite', 'Model'].join('')}, ${['Zom', 'lonbisk', 'Model'].join('')} } from './Weapons/${['Star', 'link', 'Satellite'].join('')}.jsx'`
-    const removedStory = ['Title', 'Far', 'Background', 'Story'].join('')
-    const removedCrashId = ['title', 'crashed', 'starlink'].join('-')
-    const removedSatelliteModel = ['Star', 'link', 'Satellite', 'Model'].join('')
-    const removedBlackModel = ['Zom', 'lonbisk', 'Model'].join('')
 
-    expect(source).not.toContain(removedImport)
-    expect(source).not.toContain(`function ${removedStory}`)
-    expect(source).not.toContain(removedCrashId)
-    expect(source).not.toContain(removedSatelliteModel)
-    expect(source).not.toContain(removedBlackModel)
-    expect(source).not.toContain(`<${removedStory}`)
+    expect(source).toContain("import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'")
+    expect(source).toContain('function TitleFarBackgroundStory({ reducedEffects })')
+    expect(source).toContain('<StarlinkSatelliteModel studioItemId="title-crashed-starlink" />')
+    expect(source).toContain('<ZomlonbiskModel running={false} />')
+    expect(source).toContain('<TitleFarBackgroundStory reducedEffects={reducedEffects} />')
   })
 
-  it('keeps the DancingDoges without bringing back the removed black-square model', () => {
+  it('restores the far Zomlonbisk animation and keeps both DancingDoges', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
-    expect(source).not.toContain(['zom', 'lonbisk', 'Ref'].join(''))
-    expect(source).not.toContain(`<${['Zom', 'lonbisk', 'Model'].join('')} running={false} />`)
+    expect(source).toContain('const zomlonbiskRef = useRef()')
+    expect(source).toContain('zomlonbiskRef.current.position.y = 0.68 + Math.abs(s) * 0.05')
     expect(source).toContain('<DancingDoge position={[-1.27, 0.0, 1.55]} dance="twist"')
-    expect(source).toContain('<DancingDoge position={[2.05, 0.0, 1.5]} dance="disco"')
+    expect(source).toContain('<DancingDoge position={[1.97, 0.0, 1.5]} dance="disco"')
   })
 
   it('keeps far-background story models behind the title board', () => {
@@ -364,7 +359,7 @@ describe('TitleScene3D direction', () => {
 
     expect(wrapperStart).toBeGreaterThan(-1)
     expect(wrapperEnd).toBeGreaterThan(wrapperStart)
-    expect(characterSource).not.toContain(`<${['Title', 'Far', 'Background', 'Story'].join('')}`)
+    expect(characterSource).toContain('<TitleFarBackgroundStory reducedEffects={reducedEffects} />')
     expect(characterSource.match(/<TitleBossZombie/g)).toHaveLength(3)
     expect(characterSource.match(/<TitleZombie/g)).toHaveLength(5)
     expect(characterSource).toContain('<TitleMatildaPursuer')
