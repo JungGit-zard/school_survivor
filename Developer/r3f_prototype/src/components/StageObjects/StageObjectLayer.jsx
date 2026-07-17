@@ -37,6 +37,10 @@ const STAGE_OBJECT_COMPONENTS = {
   gymEquipmentSpill: GymEquipmentSpill,
 }
 
+// 배치 파이프라인이 렌더 가능한 전체 타입 목록(단일 정본).
+// stagePropPlacements.js의 STAGE_PROP_TYPES가 이 집합을 전부 포함해야 한다(동기화 테스트가 단언).
+export const STAGE_OBJECT_TYPES = Object.freeze(Object.keys(STAGE_OBJECT_COMPONENTS))
+
 export default function StageObjectLayer({ stageId = 'stage1' }) {
   // 스튜디오 Apply 시 오버라이드가 바뀌면 version이 증가해 재계산·리렌더된다.
   const version = useStagePropPlacementsVersion()

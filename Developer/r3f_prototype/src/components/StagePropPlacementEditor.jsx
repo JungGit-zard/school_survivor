@@ -7,6 +7,7 @@ import {
 import {
   STAGE_PROP_PALETTE,
   getPaletteEntry,
+  getPaletteDefaultProps,
   getStagePropEditorBounds,
   getEditorViewport,
   screenToWorld,
@@ -15,13 +16,24 @@ import {
 import { computeDefaultStageObjectPlacements } from './StageObjects/stageObjectPlacements.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 
-const TYPE_COLORS = {
+export const TYPE_COLORS = {
   classroomDesk: '#c79a52',
   classroomChair: '#8f6cc0',
   unconsciousStudent: '#5fb0d8',
   corridorLockerBank: '#6fb98a',
   corridorJanitorCart: '#c76f6f',
   corridorLostFoundBoard: '#b8a24a',
+  // 체육관(stage3) 프랍 10종 — 서로 구분되는 색상
+  basketballHoop: '#e0512b',
+  basketballBallCart: '#7d6f5a',
+  basketballCluster: '#f0932b',
+  gymBench: '#b5651d',
+  gymTrainingCones: '#e8c221',
+  gymMats: '#3b8dd6',
+  gymScoreboard: '#2ec7a5',
+  gymBanner: '#d64f8f',
+  gymExitDoor: '#2f9e57',
+  gymEquipmentSpill: '#b56ad0',
 }
 
 let _newIdCounter = 0
@@ -40,7 +52,10 @@ function seedList(stageId, override) {
     position: [item.position[0], 0, item.position[2]],
     rotation: [0, Array.isArray(item.rotation) ? item.rotation[1] : (item.rotation ?? 0), 0],
     scale: Array.isArray(item.scale) ? item.scale[0] : (item.scale ?? 1),
-    ...(item.props?.variant ? { props: { variant: item.props.variant } } : {}),
+    // 전체 props(variant/damaged/knockedOver/count)와 blocking(관통 가능 여부)을 보존해
+    // 에디터 경유 시 상태가 소실되지 않게 한다. 화이트리스트 필터링은 저장 시 normalize가 최종 담당.
+    ...(typeof item.blocking === 'boolean' ? { blocking: item.blocking } : {}),
+    ...(item.props ? { props: { ...item.props } } : {}),
   }))
 }
 
@@ -93,13 +108,14 @@ export default function StagePropPlacementEditor({ onApply }) {
       if (world) {
         if (drag.kind === 'new') {
           const entry = getPaletteEntry(drag.type)
+          const defaultProps = getPaletteDefaultProps(entry)
           const placement = normalizePropPlacement({
             id: makeUserId(drag.type),
             type: drag.type,
             position: [world.x, 0, world.z],
             rotation: [0, 0, 0],
             scale: entry?.defaultScale ?? 1,
-            ...(entry?.defaultVariant ? { props: { variant: entry.defaultVariant } } : {}),
+            ...(defaultProps ? { props: defaultProps } : {}),
           })
           if (placement) {
             setStageList([...(lists[stageId] ?? []), placement])
@@ -125,13 +141,14 @@ export default function StagePropPlacementEditor({ onApply }) {
   // 팔레트: 클릭 = 맵 중앙에 즉시 추가(선택), pointerDown = 드래그 배치 시작.
   const addAtCenter = (type) => {
     const entry = getPaletteEntry(type)
+    const defaultProps = getPaletteDefaultProps(entry)
     const placement = normalizePropPlacement({
       id: makeUserId(type),
       type,
       position: [0, 0, 0],
       rotation: [0, 0, 0],
       scale: entry?.defaultScale ?? 1,
-      ...(entry?.defaultVariant ? { props: { variant: entry.defaultVariant } } : {}),
+      ...(defaultProps ? { props: defaultProps } : {}),
     })
     if (!placement) return
     setStageList([...(lists[stageId] ?? []), placement])

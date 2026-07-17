@@ -12,6 +12,7 @@ export const STAGE_PROP_PLACEMENTS_EVENT = 'escape-zombie-school.stagePropPlacem
 export const STAGE_PROP_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3'])
 
 // StageObjectLayer의 STAGE_OBJECT_COMPONENTS 매핑과 반드시 동기 유지.
+// (stagePropPlacements.test.js의 동기화 단언 테스트가 드리프트를 자동 감지한다.)
 export const STAGE_PROP_TYPES = Object.freeze([
   'classroomDesk',
   'classroomChair',
@@ -19,6 +20,17 @@ export const STAGE_PROP_TYPES = Object.freeze([
   'corridorLockerBank',
   'corridorJanitorCart',
   'corridorLostFoundBoard',
+  // 체육관(stage3) 프랍 10종
+  'basketballHoop',
+  'basketballBallCart',
+  'basketballCluster',
+  'gymBench',
+  'gymTrainingCones',
+  'gymMats',
+  'gymScoreboard',
+  'gymBanner',
+  'gymExitDoor',
+  'gymEquipmentSpill',
 ])
 
 const STAGE_PROP_TYPE_SET = new Set(STAGE_PROP_TYPES)
@@ -56,11 +68,23 @@ function normalizeRotationY(rotation) {
   return Number.isFinite(number) ? Number(number.toFixed(4)) : 0
 }
 
+const MAX_PROP_COUNT = 12
+
+// 프랍 props 화이트리스트 정규화.
+// - variant: 비어있지 않은 문자열(교실/복도 프랍)
+// - damaged / knockedOver: boolean(체육관 프랍 상태 플래그)
+// - count: 유한수 → 정수 1~12 클램프(농구공 클러스터 개수)
+// 알 수 없는 키는 계속 버린다. 보존할 키가 하나도 없으면 undefined.
 function normalizeProps(props) {
   if (!props || typeof props !== 'object') return undefined
-  const variant = props.variant
-  if (typeof variant !== 'string' || !variant) return undefined
-  return { variant }
+  const result = {}
+  if (typeof props.variant === 'string' && props.variant) result.variant = props.variant
+  if (typeof props.damaged === 'boolean') result.damaged = props.damaged
+  if (typeof props.knockedOver === 'boolean') result.knockedOver = props.knockedOver
+  if (Number.isFinite(props.count)) {
+    result.count = Math.min(MAX_PROP_COUNT, Math.max(1, Math.round(Number(props.count))))
+  }
+  return Object.keys(result).length > 0 ? result : undefined
 }
 
 // 단일 프랍 항목 정규화. 불량(타입 미상/좌표 NaN)이면 null.
@@ -84,6 +108,8 @@ export function normalizePropPlacement(input) {
     rotation: [0, normalizeRotationY(input.rotation), 0],
     scale: clampScale(input.scale, 1),
   }
+  // blocking:false = 관통 가능 프랍(콘/배너/공 무리 등). boolean일 때만 보존 — 생략 시 기본(충돌체) 유지.
+  if (typeof input.blocking === 'boolean') normalized.blocking = input.blocking
   const props = normalizeProps(input.props)
   if (props) normalized.props = props
   return normalized

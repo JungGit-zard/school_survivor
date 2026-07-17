@@ -2,22 +2,45 @@ import { describe, expect, it } from 'vitest'
 import {
   STAGE_PROP_PALETTE,
   getPaletteEntry,
+  getPaletteDefaultProps,
   getStagePropEditorBounds,
   getEditorViewport,
   worldToScreen,
   screenToWorld,
 } from './stagePropEditorGeometry.js'
 import { getStageBounds } from './stageConfig.js'
+import { STAGE_PROP_TYPES } from './stagePropPlacements.js'
 
 describe('palette', () => {
-  it('covers all six placeable prop types with default scale', () => {
-    expect(STAGE_PROP_PALETTE).toHaveLength(6)
+  it('exposes a valid entry (scale + glyph) for every placeable prop type', () => {
     for (const entry of STAGE_PROP_PALETTE) {
       expect(typeof entry.type).toBe('string')
       expect(entry.defaultScale).toBeGreaterThan(0)
+      expect(typeof entry.glyph).toBe('string')
+      expect(entry.glyph.length).toBeGreaterThan(0)
     }
     expect(getPaletteEntry('classroomDesk')).not.toBeNull()
     expect(getPaletteEntry('nope')).toBeNull()
+  })
+
+  it('covers every STAGE_PROP_TYPES entry (no placeable type missing from the palette)', () => {
+    const paletteTypes = new Set(STAGE_PROP_PALETTE.map((entry) => entry.type))
+    for (const type of STAGE_PROP_TYPES) {
+      expect(paletteTypes.has(type)).toBe(true)
+    }
+    // 팔레트에 정본 타입 목록 밖의 유령 항목이 없어야 한다.
+    const typeSet = new Set(STAGE_PROP_TYPES)
+    for (const entry of STAGE_PROP_PALETTE) {
+      expect(typeSet.has(entry.type)).toBe(true)
+    }
+  })
+
+  it('seeds default props from defaultProps or defaultVariant', () => {
+    expect(getPaletteDefaultProps(getPaletteEntry('classroomDesk'))).toEqual({ variant: 'upright' })
+    expect(getPaletteDefaultProps(getPaletteEntry('basketballCluster'))).toEqual({ count: 5 })
+    expect(getPaletteDefaultProps(getPaletteEntry('corridorLockerBank'))).toBeNull()
+    expect(getPaletteDefaultProps(getPaletteEntry('gymBench'))).toBeNull()
+    expect(getPaletteDefaultProps(null)).toBeNull()
   })
 })
 

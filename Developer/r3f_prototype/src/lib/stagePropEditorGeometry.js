@@ -11,7 +11,27 @@ export const STAGE_PROP_PALETTE = Object.freeze([
   { type: 'corridorLockerBank', label: '사물함', defaultScale: 1, defaultVariant: null, glyph: '▤' },
   { type: 'corridorJanitorCart', label: '청소카트', defaultScale: 0.82, defaultVariant: null, glyph: '▥' },
   { type: 'corridorLostFoundBoard', label: '분실물판', defaultScale: 1, defaultVariant: null, glyph: '▦' },
+  // 체육관(stage3) 프랍 10종
+  { type: 'basketballHoop', label: '농구골대', defaultScale: 1.18, glyph: '🥅' },
+  { type: 'basketballBallCart', label: '공카트', defaultScale: 1.05, glyph: '🛒' },
+  { type: 'basketballCluster', label: '농구공', defaultScale: 1.15, glyph: '🏀', defaultProps: { count: 5 } },
+  { type: 'gymBench', label: '체육벤치', defaultScale: 1.08, glyph: '🛋' },
+  { type: 'gymTrainingCones', label: '콘', defaultScale: 1.1, glyph: '🔺' },
+  { type: 'gymMats', label: '매트', defaultScale: 1.12, glyph: '▧' },
+  { type: 'gymScoreboard', label: '전광판', defaultScale: 1, glyph: '🔢' },
+  { type: 'gymBanner', label: '배너', defaultScale: 1.05, glyph: '🎌' },
+  { type: 'gymExitDoor', label: '비상구', defaultScale: 1, glyph: '🚪' },
+  { type: 'gymEquipmentSpill', label: '장비흩어짐', defaultScale: 1.08, glyph: '🧺' },
 ])
+
+// 팔레트 항목에서 신규 배치 시 시드할 기본 props(있으면 객체, 없으면 null).
+// defaultProps(체육관 프랍) 우선, 없으면 defaultVariant(교실/복도 프랍)로 fallback.
+export function getPaletteDefaultProps(entry) {
+  if (!entry) return null
+  if (entry.defaultProps) return { ...entry.defaultProps }
+  if (entry.defaultVariant) return { variant: entry.defaultVariant }
+  return null
+}
 
 const PALETTE_BY_TYPE = new Map(STAGE_PROP_PALETTE.map((entry) => [entry.type, entry]))
 

@@ -5,7 +5,24 @@ import * as THREE from 'three'
 import { PlayerVisual } from './Player.jsx'
 import { ENEMY_STATS, EnemyVisual, SpawnSmokeEffect } from './Enemy.jsx'
 import { FloorVisual } from './Floor.jsx'
-import { ClassroomChair, ClassroomDesk, CorridorJanitorCart, CorridorLockerBank, CorridorLostFoundBoard, UnconsciousStudent } from './StageObjects/index.js'
+import {
+  BallCart,
+  BasketballCluster,
+  BasketballHoop,
+  ClassroomChair,
+  ClassroomDesk,
+  CorridorJanitorCart,
+  CorridorLockerBank,
+  CorridorLostFoundBoard,
+  GymBanner,
+  GymBench,
+  GymEquipmentSpill,
+  GymExitDoor,
+  GymMats,
+  GymScoreboard,
+  TrainingCones,
+  UnconsciousStudent,
+} from './StageObjects/index.js'
 import GoldCoin from './GoldCoin.jsx'
 import XpTextbook from './XpTextbook.jsx'
 import XpOrb from './XpOrb.jsx'
@@ -497,6 +514,16 @@ function RenderPreviewItem({ item, frozen = false }) {
   if (item.previewKind === 'stageObject' && item.objectType === 'corridorLockers') return <CorridorLockerBank />
   if (item.previewKind === 'stageObject' && item.objectType === 'janitorCart') return <CorridorJanitorCart />
   if (item.previewKind === 'stageObject' && item.objectType === 'lostFoundBoard') return <CorridorLostFoundBoard />
+  if (item.previewKind === 'stageObject' && item.objectType === 'basketballHoop') return <BasketballHoop />
+  if (item.previewKind === 'stageObject' && item.objectType === 'basketballBallCart') return <BallCart />
+  if (item.previewKind === 'stageObject' && item.objectType === 'basketballCluster') return <BasketballCluster />
+  if (item.previewKind === 'stageObject' && item.objectType === 'gymBench') return <GymBench />
+  if (item.previewKind === 'stageObject' && item.objectType === 'gymTrainingCones') return <TrainingCones />
+  if (item.previewKind === 'stageObject' && item.objectType === 'gymMats') return <GymMats />
+  if (item.previewKind === 'stageObject' && item.objectType === 'gymScoreboard') return <GymScoreboard />
+  if (item.previewKind === 'stageObject' && item.objectType === 'gymBanner') return <GymBanner />
+  if (item.previewKind === 'stageObject' && item.objectType === 'gymExitDoor') return <GymExitDoor />
+  if (item.previewKind === 'stageObject' && item.objectType === 'gymEquipmentSpill') return <GymEquipmentSpill />
   if (item.previewKind === 'pickup') {
     return <PickupPreview type={item.pickupType} />
   }
