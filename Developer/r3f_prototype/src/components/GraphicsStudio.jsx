@@ -694,6 +694,7 @@ export default function GraphicsStudio() {
               <div style={styles.itemList}>
                 {category.items.map((item) => {
                   const selected = item.id === selectedItem.id
+                  const isBoss = Boolean(item.zombieType?.startsWith('B'))
                   return (
                     <button
                       key={item.id}
@@ -704,10 +705,12 @@ export default function GraphicsStudio() {
                       }}
                       style={{
                         ...styles.itemButton,
+                        ...(isBoss ? styles.itemButtonBoss : null),
                         ...(selected ? styles.itemButtonSelected : null),
                       }}
                     >
-                      <span>{item.label}</span>
+                      <span style={isBoss ? styles.itemButtonLabelBoss : undefined}>{item.label}</span>
+                      {isBoss ? <span style={styles.bossBadge}>BOSS</span> : null}
                     </button>
                   )
                 })}
@@ -1078,6 +1081,33 @@ const styles = {
     textAlign: 'left',
     fontSize: 12,
     cursor: 'pointer',
+  },
+  itemButtonBoss: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 6,
+    paddingLeft: 11,
+    background: '#241a1a',
+    boxShadow: 'inset 3px 0 0 #d64545',
+  },
+  itemButtonLabelBoss: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    minWidth: 0,
+  },
+  bossBadge: {
+    flexShrink: 0,
+    fontSize: 9,
+    fontWeight: 700,
+    lineHeight: '14px',
+    letterSpacing: 0.5,
+    padding: '1px 6px',
+    borderRadius: 999,
+    background: '#c0392b',
+    color: '#ffffff',
+    textTransform: 'uppercase',
   },
   itemButtonSelected: {
     border: '1px solid #d3a53f',
