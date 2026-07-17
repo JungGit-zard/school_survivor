@@ -21,6 +21,13 @@ import ZombieMesh from './ZombieMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 import EnemyProjectileVisual from './EnemyProjectileVisual.jsx'
 import { zombieVisualRegistry } from '../lib/zombieVisualRegistry.js'
+import {
+  MATH_TEACHER_SWING_RADIUS,
+  MATH_TEACHER_SWING_RECOVERY_MS,
+  MATH_TEACHER_SWING_WINDUP_MS,
+  applyMathTeacherSwing,
+  getMathTeacherPlayerDamage,
+} from '../lib/mathTeacherSpecial.js'
 
 // "효과 없이는 스폰 없음" — 첫 스폰에서 텍스처 로딩 지연으로 연기가 스킵되지 않도록
 // 모듈 로드 시점에 스폰 연기 텍스처를 미리 로드해 캐시에 올려둔다.
@@ -163,7 +170,7 @@ export const ENEMY_STATS = {
   // contactDist 0.36: regular charge keeps the 1.5x grace distance; Matilda charge uses exact body contact only.
   // ?댁쟾 0.80? ?묒큺 諛섍꼍??~1.6?대씪 蹂몄껜 ?명삎蹂대떎 ?⑥뵮 而ㅼ꽌 "???우븘???쇨꺽"?섎뒗 臾몄젣媛 ?덉뿀??
   B01: { hp: 1150, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
-         charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
+         charger: true, mathTeacherSpecial: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
   B02: { hp: 1150, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
   B03: { hp: 1150, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
@@ -430,7 +437,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const spawnRevealElapsedRef = useRef(0)
 
   // E05 / B01 ?뚯쭊 ?곹깭 癒몄떊
-  const [animPhase, setAnimPhase] = useState('normal') // normal|warn|charge|stun|retreat
+  const [animPhase, setAnimPhase] = useState('normal') // normal|warn|charge|special|stun|retreat
   const chargeState  = useRef(isMatilda ? 'matildaAim' : 'chase')
   const stateTimer   = useRef(0)
   const matildaLaughRemainingRef = useRef(0)
@@ -481,7 +488,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     rb.current._enemyHit = (dmg, impact = {}) => {
       if (dead.current) return
       const hitPos = rb.current.translation()
-      if (isPlayerWeaponSightBlocked(hitPos, useGameStore.getState().currentStageId)) return
+      if (!impact.ignoreSightBlock && isPlayerWeaponSightBlocked(hitPos, useGameStore.getState().currentStageId)) return
       emitVfx(createEnemyHitSparkEvent({
         x: hitPos.x,
         y: Math.max(0.34, 0.42 * cs),
@@ -763,19 +770,45 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         rb.current.setLinvel(_vel, true)
         updateRotation(cd.x, cd.z, 1)
 
-        if (dist < getChargeHitDistance(stats, isMatilda)) {
-          damagePlayer(stats.damage)
+        const hitPlayer = dist < getChargeHitDistance(stats, isMatilda)
+        const chargeExpired = now - stateTimer.current > (stats.chargeDuration ?? 1200)
+        if (hitPlayer || chargeExpired) {
+          if (hitPlayer) damagePlayer(stats.damage)
+          chargeState.current = stats.mathTeacherSpecial ? 'mathSwingWindup' : 'stun'
+          stateTimer.current = now
+          setAnimPhase(stats.mathTeacherSpecial ? 'special' : 'stun')
+          _vel.x = 0; _vel.z = 0
+          rb.current.setLinvel(_vel, true)
+        }
+
+      } else if (chargeState.current === 'mathSwingWindup') {
+        _vel.x = 0; _vel.z = 0
+        rb.current.setLinvel(_vel, true)
+        if (dist > 0.0001) updateRotation(_dir.x / dist, _dir.z / dist, 0.30)
+        if (now - stateTimer.current >= MATH_TEACHER_SWING_WINDUP_MS) {
+          applyMathTeacherSwing({
+            bodies: enemyBodies,
+            bossId: id,
+            origin: { x: t.x, z: t.z },
+          })
+          if (dist <= MATH_TEACHER_SWING_RADIUS) {
+            const store = useGameStore.getState()
+            store.damagePlayer(
+              getMathTeacherPlayerDamage(store.player.hp),
+              { ignoreInvulnerability: true },
+            )
+          }
+          chargeState.current = 'mathSwingRecover'
+          stateTimer.current = now
+        }
+
+      } else if (chargeState.current === 'mathSwingRecover') {
+        _vel.x = 0; _vel.z = 0
+        rb.current.setLinvel(_vel, true)
+        if (now - stateTimer.current >= MATH_TEACHER_SWING_RECOVERY_MS) {
           chargeState.current = 'stun'
           stateTimer.current = now
           setAnimPhase('stun')
-          _vel.x = 0; _vel.z = 0
-          rb.current.setLinvel(_vel, true)
-        } else if (now - stateTimer.current > (stats.chargeDuration ?? 1200)) {
-          chargeState.current = 'stun'
-          stateTimer.current = now
-          setAnimPhase('stun')
-          _vel.x = 0; _vel.z = 0
-          rb.current.setLinvel(_vel, true)
         }
 
       } else if (chargeState.current === 'stun') {

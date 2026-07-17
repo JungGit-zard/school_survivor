@@ -63,6 +63,16 @@ export const B01_BOSS_FACE_LAYOUT = {
   cheekShadow: { size: [0.07, 0.16, 0.035], position: [0.275, -0.02, 0.20] },
 }
 
+export const B01_MATH_SET_SQUARE_LAYOUT = {
+  bodyColor: 0xf6c844,
+  markColor: 0xff743d,
+  bars: [
+    { size: [0.96, 0.10, 0.10], position: [0, -0.40, 0], rotation: [0, 0, 0] },
+    { size: [0.10, 0.95, 0.10], position: [-0.45, 0.025, 0], rotation: [0, 0, 0] },
+    { size: [0.10, 1.24, 0.10], position: [0, 0.025, 0], rotation: [0, 0, 0.814] },
+  ],
+}
+
 export const B03_PE_TEACHER_PALETTE = {
   skin: 0x91ad68,
   skinShadow: 0x60784b,
@@ -181,6 +191,33 @@ function ZBlock({ name, studioPartId, size, position, rotation, color, emissive 
   )
 }
 
+function B01MathSetSquare({ hitFlash }) {
+  const layout = B01_MATH_SET_SQUARE_LAYOUT
+
+  return (
+    <group name="b01MathSetSquare">
+      {layout.bars.map((bar, index) => (
+        <ZBlock
+          key={index}
+          {...bar}
+          color={layout.bodyColor}
+          emissive={0.18}
+          outlineScale={1.06}
+          flash={hitFlash}
+        />
+      ))}
+      <ZBlock
+        size={[0.32, 0.055, 0.115]}
+        position={[-0.18, -0.39, 0.01]}
+        color={layout.markColor}
+        emissive={0.24}
+        outlineScale={1.02}
+        flash={hitFlash}
+      />
+    </group>
+  )
+}
+
 function B01BossZombieMesh({ hitFlash, reg }) {
   const pal = B01_BOSS_VISUAL_PALETTE
   const face = B01_BOSS_FACE_LAYOUT
@@ -220,6 +257,9 @@ function B01BossZombieMesh({ hitFlash, reg }) {
         <ZBlock size={[0.23, 0.54, 0.22]} position={[0, -0.27, 0]} color={pal.jacket} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
         <ZBlock size={[0.21, 0.18, 0.20]} position={[0, -0.58, 0]} color={pal.skin} emissive={0.07} outlineScale={1.04} flash={hitFlash} />
         <ZBlock size={[0.11, 0.12, 0.05]} position={[-0.05, -0.35, 0.12]} color={pal.skinShadow} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
+        <group ref={reg('mathSetSquare')} visible={false} position={[0, -0.82, 0.08]} rotation={[1.45, 0, 0]} scale={[0.78, 0.78, 0.78]}>
+          <B01MathSetSquare hitFlash={hitFlash} />
+        </group>
       </group>
 
       <group ref={reg('legL')} position={[-0.16, 0.00, 0]}>
@@ -404,6 +444,7 @@ function ZombieOuterOutline() {
 export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false, frozen = false }) {
   const p    = useRef({})
   const pal  = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
+  const specialAgeRef = useRef(0)
 
   // 안정적인 ref 콜백 — 매 렌더마다 새 함수 생성 방지
   const regRef = useRef(null)
@@ -447,6 +488,27 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     const pt = p.current
     if (!pt.legL) return
     const t = state.clock.elapsedTime
+    const specialActive = type === 'B01' && animPhase === 'special'
+    specialAgeRef.current = specialActive ? specialAgeRef.current + delta : 0
+    if (pt.mathSetSquare) pt.mathSetSquare.visible = specialActive
+
+    if (specialActive) {
+      const progress = Math.min(1, specialAgeRef.current / 0.75)
+      if (pt.body) {
+        pt.body.scale.setScalar(1)
+        pt.body.rotation.x += (0.10 - pt.body.rotation.x) * Math.min(1, delta * 14)
+        pt.body.rotation.z = Math.sin(progress * Math.PI) * -0.16
+      }
+      if (pt.head) pt.head.rotation.z = Math.sin(progress * Math.PI) * 0.12
+      pt.armR.rotation.x = -0.82
+      pt.armR.rotation.y = -0.22
+      pt.armR.rotation.z = -1.20 + progress * 2.80
+      pt.armL.rotation.x = -0.92
+      pt.armL.rotation.z = 0.38
+      pt.legL.rotation.x *= 0.82
+      pt.legR.rotation.x *= 0.82
+      return
+    }
 
     // retreat: 역방향 뒷걸음 + 팔 크게 벌림 + 몸·머리 반응
     if (animPhase === 'retreat') {
@@ -497,6 +559,8 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
       pt.body.rotation.z += (0 - pt.body.rotation.z) * Math.min(1, delta * 8)
     }
     if (pt.head) pt.head.rotation.x += (0 - pt.head.rotation.x) * Math.min(1, delta * 8)
+    pt.armL.rotation.y += (0 - pt.armL.rotation.y) * Math.min(1, delta * 6)
+    pt.armR.rotation.y += (0 - pt.armR.rotation.y) * Math.min(1, delta * 6)
     pt.armL.rotation.z += (0 - pt.armL.rotation.z) * Math.min(1, delta * 6)
     pt.armR.rotation.z += (0 - pt.armR.rotation.z) * Math.min(1, delta * 6)
 

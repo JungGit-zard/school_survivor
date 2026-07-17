@@ -18,6 +18,17 @@ describe('useGameStore player hit feedback', () => {
     expect(state.player.hitFlashToken).toBe(before + 1)
   })
 
+  it('allows an explicit guaranteed hit to bypass the normal invulnerability window', () => {
+    useGameStore.setState((state) => ({
+      phase: 'playing',
+      player: { ...state.player, hp: 40, invulnerable: true },
+    }))
+
+    useGameStore.getState().damagePlayer(12, { ignoreInvulnerability: true })
+
+    expect(useGameStore.getState().player.hp).toBe(28)
+  })
+
   describe('vibration on hit', () => {
     let vibrate
     const setVibration = (on) =>

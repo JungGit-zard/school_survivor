@@ -157,10 +157,10 @@ export const useGameStore = create(
     tickTime: (deltaMs) => set((s) => ({ elapsedMs: s.elapsedMs + deltaMs })),
 
     // 플레이어 피해
-    damagePlayer: (amount) => {
+    damagePlayer: (amount, { ignoreInvulnerability = false } = {}) => {
       const { player, phase } = get()
       if (phase !== 'playing') return
-      if (player.invulnerable) return
+      if (player.invulnerable && !ignoreInvulnerability) return
       const hp = Math.max(0, player.hp - amount)
       logDamageTaken(amount, hp)
       // 플레이어 머리 위에 빨간 데미지 숫자(실제 피해 적용 시에만 — 무적 리턴은 위에서 이미 처리됨).

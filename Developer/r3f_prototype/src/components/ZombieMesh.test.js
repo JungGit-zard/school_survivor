@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { ENEMY_STATS } from './Enemy.jsx'
-import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B02_TEACHER_BOSS_FACE, B02_TEACHER_BOSS_PALETTE, B02_TEACHER_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS } from './ZombieMesh.jsx'
+import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_TEACHER_BOSS_FACE, B02_TEACHER_BOSS_PALETTE, B02_TEACHER_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS } from './ZombieMesh.jsx'
 
 const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
 
@@ -54,6 +54,18 @@ describe('Stage 1 boss visual reference', () => {
   it('keeps the original B01 model separate from the PE teacher model', () => {
     expect(zombieMeshSource).toContain('<B01BossZombieMesh hitFlash={hitFlash} reg={reg} />')
     expect(zombieMeshSource).toContain('<B03PhysicalEducationBossMesh hitFlash={hitFlash} reg={reg} />')
+  })
+
+  it('equips B01 with a toon set square that appears only during the special swing', () => {
+    expect(B01_MATH_SET_SQUARE_LAYOUT).toMatchObject({
+      bodyColor: 0xf6c844,
+      markColor: 0xff743d,
+    })
+    expect(B01_MATH_SET_SQUARE_LAYOUT.bars).toHaveLength(3)
+    expect(zombieMeshSource).toContain("ref={reg('mathSetSquare')}")
+    expect(zombieMeshSource).toContain("const specialActive = type === 'B01' && animPhase === 'special'")
+    expect(zombieMeshSource).toContain('pt.mathSetSquare.visible = specialActive')
+    expect(zombieMeshSource).toContain('<B01MathSetSquare hitFlash={hitFlash} />')
   })
 })
 
