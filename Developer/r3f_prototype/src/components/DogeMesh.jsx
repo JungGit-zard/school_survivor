@@ -106,10 +106,10 @@ export function DogeMesh({ hipRef = null, headRef = null, lArmRef = null, rArmRe
         <group ref={headRef} position={[0, 0.62, 0]}>
           <DogeHead />
         </group>
-        <group ref={lArmRef} position={[-0.32, 0.5, 0.02]} rotation={[0, 0, 0.32]}>
+        <group ref={lArmRef} position={[-0.32, 0.5, 0.02]} rotation={[0, 0, -0.32]}>
           <DogeArm />
         </group>
-        <group ref={rArmRef} position={[0.32, 0.5, 0.02]} rotation={[0, 0, -0.32]}>
+        <group ref={rArmRef} position={[0.32, 0.5, 0.02]} rotation={[0, 0, 0.32]}>
           <DogeArm />
         </group>
         <group ref={tailRef} position={[0, 0.32, -0.2]}>
@@ -146,8 +146,8 @@ export function DancingDoge({ position = [0, 0, 0], dance = 'twist', delay = 0, 
       root.rotation.y = yaw
       hip.rotation.set(0, 0, 0)
       head.rotation.set(0, 0, 0)
-      lArm.rotation.set(0, 0, 0.28)
-      rArm.rotation.set(0, 0, -0.28)
+      lArm.rotation.set(0, 0, -0.28)
+      rArm.rotation.set(0, 0, 0.28)
       tail.rotation.set(0, 0, 0)
       return
     }
@@ -155,20 +155,22 @@ export function DancingDoge({ position = [0, 0, 0], dance = 'twist', delay = 0, 
     const t = state.clock.elapsedTime + delay
 
     if (dance === 'disco') {
-      // 위아래 바운스 + 팔 번갈아 하늘 찌르기 (디스코)
-      const s = Math.sin(t * 3.6)
-      root.position.y = baseY + Math.abs(s) * 0.13
-      root.rotation.y = yaw + Math.sin(t * 1.8) * 0.22
-      hip.rotation.z = Math.sin(t * 3.6) * 0.05
-      hip.rotation.y = 0
-      head.rotation.x = s * 0.1
-      head.rotation.z = Math.sin(t * 1.8) * 0.16
+      // 큰 바운스 + 엉덩이 좌우 그루브 + 양팔 번갈아 바깥으로 하늘 찌르기 (액티브 디스코)
+      const tempo = 4.0
+      const s = Math.sin(t * tempo)
+      root.position.y = baseY + Math.abs(s) * 0.2
+      root.rotation.y = yaw + Math.sin(t * 2.0) * 0.28
+      hip.rotation.y = Math.sin(t * tempo) * 0.22 // 좌우 그루브
+      hip.rotation.z = Math.cos(t * tempo) * 0.08
+      head.rotation.x = s * 0.16 // 까딱임 강화
+      head.rotation.z = Math.sin(t * 2.0) * 0.2
       head.rotation.y = 0
-      rArm.rotation.z = -1.25 + s * 1.05
-      rArm.rotation.x = 0
-      lArm.rotation.z = 1.25 - s * 1.05
-      lArm.rotation.x = 0
-      tail.rotation.z = Math.sin(t * 7.2) * 0.32
+      // 오른팔은 +z(오른쪽 바깥), 왼팔은 -z(왼쪽 바깥)로만 움직여 몸통에 파고들지 않는다.
+      rArm.rotation.z = 1.25 - s * 1.05 // 0.2~2.3 (팔 끝 +x 바깥)
+      rArm.rotation.x = -Math.max(0, -s) * 0.3 // 찌를 때 전방 스러스트
+      lArm.rotation.z = -1.25 - s * 1.05 // -2.3~-0.2 (팔 끝 -x 바깥, 반대 위상)
+      lArm.rotation.x = -Math.max(0, s) * 0.3
+      tail.rotation.z = Math.sin(t * 8.0) * 0.36
       tail.rotation.x = 0
     } else {
       // 좌우 트위스트 + 엉덩이 씰룩 + 팔 엇갈려 흔들기
@@ -180,9 +182,9 @@ export function DancingDoge({ position = [0, 0, 0], dance = 'twist', delay = 0, 
       head.rotation.y = -s * 0.22
       head.rotation.z = Math.sin(t * 3.2 + 0.6) * 0.13
       head.rotation.x = 0
-      lArm.rotation.z = 0.32
+      lArm.rotation.z = -0.32
       lArm.rotation.x = s * 0.95
-      rArm.rotation.z = -0.32
+      rArm.rotation.z = 0.32
       rArm.rotation.x = -s * 0.95
       tail.rotation.z = Math.sin(t * 6.4) * 0.42
       tail.rotation.x = 0
