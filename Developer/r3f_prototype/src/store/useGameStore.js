@@ -1,7 +1,7 @@
 ﻿import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { UPGRADE_EFFECTS, applyUpgradeToWeapon } from '../lib/upgrades.js'
-import { resetRuntimeRefs } from '../lib/refs.js'
+import { resetRuntimeRefs, playerPos } from '../lib/refs.js'
 import { getAllLevels, purchase as purchasePassiveStorage, resetAllLevels as resetPassiveStorage } from '../lib/passiveUpgrades.js'
 import { setMagnetMultiplier } from '../lib/pickup.js'
 import {
@@ -21,6 +21,7 @@ import { useAuthStore } from './useAuthStore.js'
 import { getRankingScore, getRankingScorePolicy, STAGE_BONUS, CLEAR_BONUS } from '../lib/rankingScorePolicy.js'
 import { logDamageTaken } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
+import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
 
 const BASE_PLAYER = {
   hp: 100, maxHp: 100,
@@ -162,6 +163,14 @@ export const useGameStore = create(
       if (player.invulnerable) return
       const hp = Math.max(0, player.hp - amount)
       logDamageTaken(amount, hp)
+      // 플레이어 머리 위에 빨간 데미지 숫자(실제 피해 적용 시에만 — 무적 리턴은 위에서 이미 처리됨).
+      emitDamageNumber({
+        x: playerPos.x,
+        y: 1.4,
+        z: playerPos.z,
+        amount,
+        colorHex: DAMAGE_NUMBER_COLORS.player,
+      })
       if (hp <= 0) {
         set({ player: { ...player, hp }, phase: 'gameover', pauseSource: null })
         emitSfx({ id: 'playerDeath' })

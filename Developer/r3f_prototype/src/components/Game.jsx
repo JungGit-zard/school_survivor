@@ -10,6 +10,7 @@ import Floor from './Floor.jsx'
 import Enemies from './Enemies.jsx'
 import LunchItems from './LunchItems.jsx'
 import VFXLayer from './VFXLayer.jsx'
+import DamageNumbersLayer from './DamageNumbersLayer.jsx'
 import EscapePortal from './EscapePortal.jsx'
 import StudentDialogueTrigger from './StudentDialogueTrigger.jsx'
 import { emitSfx } from '../lib/sfxEvents.js'
@@ -138,6 +139,9 @@ export default function Game() {
 
       {/* ── Shared VFX Layer (적 위에 그릴 효과는 이쪽으로) ── */}
       <VFXLayer />
+
+      {/* ── 데미지 숫자 플로팅 (풀링, 항상 최상단) ── */}
+      <DamageNumbersLayer />
 
       {/* ── Enemies (AI + physics) + instanced visual layer ── */}
       <Enemies />
