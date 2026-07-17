@@ -38,6 +38,7 @@ describe('TitleScene3D direction', () => {
         palette: ['cyan', 'magenta'],
         animated: true,
         dynamicLights: 1,
+        fixtures: 0,
       },
       realForegroundResources: [
         'PlayerMesh',
@@ -50,20 +51,26 @@ describe('TitleScene3D direction', () => {
     })
   })
 
-  it('adds lightweight animated club beams behind the title without shadow lights', () => {
+  it('keeps the blue and purple light beams while removing fixtures and lens squares', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
     expect(source).toContain('function ClubLightRig({ reducedEffects })')
     expect(source).toContain('function ClubLightBeam')
-    expect(source).toContain('THREE.AdditiveBlending')
+    expect(source).toContain('export function applyClubLightFrame')
     expect(source).toContain('<ClubLightRig reducedEffects={reducedEffects} />')
     expect(source).toContain('const CLUB_LIGHT_BEAMS = [')
+    expect(source).toContain('0x59c7ff')
+    expect(source).toContain('0xd64fa8')
     expect(source).toContain('<pointLight ref={washRef}')
-    expect(source).toContain('if (reducedEffects)')
-    expect(source).not.toMatch(/<pointLight ref=\{washRef\}[^>]*castShadow/)
+    expect(source).toContain('<coneGeometry args={[1.18, 4.6, 10, 1, true]} />')
+    expect(source).toContain('<coneGeometry args={[0.46, 4.3, 8, 1, true]} />')
+    expect(source).not.toContain('<circleGeometry args={[0.13, 12]} />')
+    expect(source).not.toContain('CLUB_LIGHT_HOUSING_GEO')
+    expect(source).not.toContain('housingMat')
+    expect(source).not.toContain('getCachedToonMat(0x17131e, 0.06)')
   })
 
-  it('freezes the club lights in reduced-effects mode and resumes animation', () => {
+  it('freezes the restored light beams in reduced-effects mode and resumes animation', () => {
     const beamStates = Array.from({ length: 2 }, () => ({
       node: { rotation: { z: 99 } },
       beamMat: { opacity: 99 },
@@ -102,7 +109,7 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain("import ZombieMesh from './ZombieMesh.jsx'")
     expect(source).toContain("import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'")
     expect(source).toContain('<ZombieMesh type={type} animPhase="charge" />')
-    expect(source).toContain('<TitleBossZombie type="B02" position={[-1.35, 0.26, -3.7]} scale={0.98} delay={0.9} />')
+    expect(source).toContain('<TitleBossZombie type="B02" position={[-1.35, 0.18, -3.7]} scale={0.62} delay={0.9} />')
     expect(source).toContain('<TitleBossZombie type="B03" position={[0.02, 0.28, -4.04]} scale={1.12} delay={1.35} />')
     expect(source).toContain('<TitleBossZombie type="B01" position={[0.1, 0.25, -1.62]} scale={1.02} />')
     expect(source).toContain('<TitleZombie position={[-0.92, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />')
@@ -141,30 +148,27 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain('<TitleCompanions />')
   })
 
-  it('places the crashed Starlink and Zomlonbisk in the lit far background', () => {
+  it('removes the far-background black-square models', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+    const removedImport = `import { ${['Star', 'link', 'Satellite', 'Model'].join('')}, ${['Zom', 'lonbisk', 'Model'].join('')} } from './Weapons/${['Star', 'link', 'Satellite'].join('')}.jsx'`
+    const removedStory = ['Title', 'Far', 'Background', 'Story'].join('')
+    const removedCrashId = ['title', 'crashed', 'starlink'].join('-')
+    const removedSatelliteModel = ['Star', 'link', 'Satellite', 'Model'].join('')
+    const removedBlackModel = ['Zom', 'lonbisk', 'Model'].join('')
 
-    expect(source).toContain("import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'")
-    expect(source).toContain('function TitleFarBackgroundStory({ reducedEffects })')
-    expect(source).toContain('position={[-2.35, 1.12, clampTitleBackgroundZ(-7.0)]} rotation={[0.08, -0.42, -1.2]} scale={1.24}')
-    expect(source).toContain('<StarlinkSatelliteModel studioItemId="title-crashed-starlink" />')
-    expect(source).toContain('position={[1.86, 0.68, clampTitleBackgroundZ(-8.0)]} rotation={[0, -0.28, 0]} scale={1.16}')
-    expect(source).toContain('<ZomlonbiskModel running={false} />')
-    expect(source).toContain('<TitleFarBackgroundStory reducedEffects={reducedEffects} />')
+    expect(source).not.toContain(removedImport)
+    expect(source).not.toContain(`function ${removedStory}`)
+    expect(source).not.toContain(removedCrashId)
+    expect(source).not.toContain(removedSatelliteModel)
+    expect(source).not.toContain(removedBlackModel)
+    expect(source).not.toContain(`<${removedStory}`)
   })
 
-  it('dances the far Zomlonbisk and shifts only the left DancingDoge right', () => {
+  it('keeps the DancingDoges without bringing back the removed black-square model', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
-    expect(source).toContain('const zomlonbiskRef = useRef()')
-    expect(source).toContain('const s = Math.sin(t * 3.2)')
-    expect(source).toContain('zomlonbiskRef.current.position.y = 0.68 + Math.abs(s) * 0.05')
-    expect(source).toContain('zomlonbiskRef.current.rotation.y = -0.28 + s * 0.5')
-    expect(source).toContain('zomlonbiskRef.current.rotation.z = Math.sin(t * 6.4) * 0.09')
-    expect(source).toContain('zomlonbiskRef.current.position.y = 0.68')
-    expect(source).toContain('zomlonbiskRef.current.rotation.y = -0.28')
-    expect(source).toContain('zomlonbiskRef.current.rotation.z = 0')
-    expect(source).toContain('<ZomlonbiskModel running={false} />')
+    expect(source).not.toContain(['zom', 'lonbisk', 'Ref'].join(''))
+    expect(source).not.toContain(`<${['Zom', 'lonbisk', 'Model'].join('')} running={false} />`)
     expect(source).toContain('<DancingDoge position={[-1.27, 0.0, 1.55]} dance="twist"')
     expect(source).toContain('<DancingDoge position={[2.05, 0.0, 1.5]} dance="disco"')
   })
@@ -175,12 +179,48 @@ describe('TitleScene3D direction', () => {
     expect(clampTitleBackgroundZ(-7)).toBe(-7)
   })
 
-  it('shrinks the title board surface and glow overlay to 50 percent', () => {
+  it('keeps the title board surface and glow overlay at the restored size', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
+    expect(source).toContain('const doorMat = useMemo(() => toonMat(0x805947, 0.05), [])')
+    expect(source).toContain('position={[0, 1.3, -4.62]} material={doorMat}')
     expect(source).toContain('<boxGeometry args={[1.7, 1.3, 0.32]} />')
     expect(source).toContain('<boxGeometry args={[1.475, 1.15, 0.08]} />')
     expect(source).toContain('<circleGeometry args={[2.6, 36]} />')
+  })
+
+  it('removes the two dark side-wall rectangles behind the title text', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+
+    expect(source).not.toContain('const wallMat = useMemo(() => toonMat(0x2d2738, 0.05), [])')
+    expect(source).not.toContain('position={[-3.15, 1.1, -0.4]} rotation={[0, 0.16, 0]} material={wallMat}')
+    expect(source).not.toContain('position={[3.15, 1.1, -0.4]} rotation={[0, -0.16, 0]} material={wallMat}')
+    expect(source).not.toContain('<boxGeometry args={[0.32, 3.3, 9.2]} />')
+  })
+
+  it('removes both clicked exit-light boxes and their unused component', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+
+    expect(source).not.toContain('ToonBox')
+  })
+
+  it('keeps the removed club-light housing boxes from returning', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('function ClubLightBeam')
+    expect(source).not.toContain('CLUB_LIGHT_HOUSING_GEO')
+    expect(source).not.toContain('housingMat')
+    expect(source).not.toContain('getCachedToonMat(0x17131e, 0.06)')
+    expect(source).not.toContain('geometry={CLUB_LIGHT_HOUSING_GEO} material={housingMat}')
+  })
+
+  it('reports the clicked Three.js mesh to the CDP inspector', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('export function inspectTitleSceneObject(event)')
+    expect(source).toContain('window.__zombieSchoolScreenInspector')
+    expect(source).toContain('inspector.inspectThree({')
+    expect(source).toContain('onPointerDown={inspectTitleSceneObject}')
   })
 
   it('turns all title zombies toward the player', () => {
@@ -324,7 +364,7 @@ describe('TitleScene3D direction', () => {
 
     expect(wrapperStart).toBeGreaterThan(-1)
     expect(wrapperEnd).toBeGreaterThan(wrapperStart)
-    expect(characterSource).toContain('<TitleFarBackgroundStory reducedEffects={reducedEffects} />')
+    expect(characterSource).not.toContain(`<${['Title', 'Far', 'Background', 'Story'].join('')}`)
     expect(characterSource.match(/<TitleBossZombie/g)).toHaveLength(3)
     expect(characterSource.match(/<TitleZombie/g)).toHaveLength(5)
     expect(characterSource).toContain('<TitleMatildaPursuer')

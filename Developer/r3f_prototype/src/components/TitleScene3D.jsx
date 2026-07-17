@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { GRAPHICS_STUDIO_STORAGE_KEY, GRAPHICS_STUDIO_TUNING_EVENT } from '../lib/graphicsStudioConfig.js'
-import { getCachedBoxGeo, getCachedToonMat, inflateScale, outlineMat, toonMat } from '../lib/toon.js'
+import { toonMat } from '../lib/toon.js'
 import { DancingDoge } from './DogeMesh.jsx'
 import MatildaMesh from './MatildaMesh.jsx'
 import PlayerMesh from './PlayerMesh.jsx'
@@ -11,7 +11,6 @@ import StudioTunedGroup, { getStudioTransformProps } from './StudioTunedGroup.js
 import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'
 import { CompassBladeModel } from './Weapons/CompassBlade.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
-import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
 
 const TITLE_PLAYER_TARGET = [0.48, 0.08]
 export const TITLE_BOARD_BACK_LIMIT_Z = -4.62
@@ -19,6 +18,12 @@ const TITLE_CHARACTER_STENCIL_REF = 2
 const TITLE_OUTLINE_SCALE_BOOST = 1.12
 const TITLE_MATERIAL_CACHE_KEY = 'titleCharacterMaterials'
 const TITLE_OUTLINE_STATE_KEY = 'titleCharacterOutline'
+const CLUB_LIGHT_BEAMS = [
+  { color: 0x59c7ff, position: [-2.35, 5.7, -5.15], angle: 0.13, phase: 0 },
+  { color: 0xd64fa8, position: [2.4, 5.8, -5.2], angle: -0.13, phase: Math.PI },
+]
+const CLUB_WASH_CYAN = new THREE.Color(0x59c7ff)
+const CLUB_WASH_MAGENTA = new THREE.Color(0xa278ad)
 
 export function clampTitleBackgroundZ(z) {
   return Math.min(z, TITLE_BOARD_BACK_LIMIT_Z)
@@ -138,14 +143,6 @@ function TitleCharacterOutlineGroup({ children }) {
   return <group ref={ref}>{children}</group>
 }
 
-const CLUB_LIGHT_BEAMS = [
-  { color: 0x59c7ff, position: [-2.35, 5.7, -5.15], angle: 0.13, phase: 0 },
-  { color: 0xd64fa8, position: [2.4, 5.8, -5.2], angle: -0.13, phase: Math.PI },
-]
-const CLUB_WASH_CYAN = new THREE.Color(0x59c7ff)
-const CLUB_WASH_MAGENTA = new THREE.Color(0xa278ad)
-const CLUB_LIGHT_HOUSING_GEO = getCachedBoxGeo(0.42, 0.28, 0.34)
-
 export const TITLE_SCENE_DIRECTION = {
   player: {
     hair: 'pink',
@@ -169,6 +166,7 @@ export const TITLE_SCENE_DIRECTION = {
       palette: ['cyan', 'magenta'],
       animated: true,
       dynamicLights: 1,
+      fixtures: 0,
     },
     realForegroundResources: [
       'PlayerMesh',
@@ -191,22 +189,6 @@ function TitleCameraRig() {
 
 function faceTitlePlayerYaw(position) {
   return Math.atan2(TITLE_PLAYER_TARGET[0] - position[0], TITLE_PLAYER_TARGET[1] - position[2])
-}
-
-function ToonBox({ position, rotation = [0, 0, 0], scale, color, emissive = 0.08 }) {
-  const mat = useMemo(() => toonMat(color, emissive), [color, emissive])
-  const outline = useMemo(() => outlineMat(0.95), [])
-  const outlineScale = useMemo(() => inflateScale(scale), [scale])
-  return (
-    <group position={position} rotation={rotation}>
-      <mesh castShadow receiveShadow scale={scale} material={mat}>
-        <boxGeometry args={[1, 1, 1]} />
-      </mesh>
-      <mesh scale={outlineScale} material={outline}>
-        <boxGeometry args={[1, 1, 1]} />
-      </mesh>
-    </group>
-  )
 }
 
 function TitlePlayer() {
@@ -239,37 +221,6 @@ function TitleCompanions() {
       </group>
       <group position={[1.36, 0.27, 0.76]} rotation={[0, -0.38, 0.02]} scale={0.42}>
         <ChibikoModel attackPhaseRef={chibikoAttackPhaseRef} />
-      </group>
-    </>
-  )
-}
-
-function TitleFarBackgroundStory({ reducedEffects }) {
-  const zomlonbiskRef = useRef()
-
-  useFrame(({ clock }) => {
-    if (!zomlonbiskRef.current) return
-    if (reducedEffects) {
-      zomlonbiskRef.current.position.y = 0.68
-      zomlonbiskRef.current.rotation.y = -0.28
-      zomlonbiskRef.current.rotation.z = 0
-      return
-    }
-
-    const t = clock.elapsedTime
-    const s = Math.sin(t * 3.2)
-    zomlonbiskRef.current.position.y = 0.68 + Math.abs(s) * 0.05
-    zomlonbiskRef.current.rotation.y = -0.28 + s * 0.5
-    zomlonbiskRef.current.rotation.z = Math.sin(t * 6.4) * 0.09
-  })
-
-  return (
-    <>
-      <group position={[-2.35, 1.12, clampTitleBackgroundZ(-7.0)]} rotation={[0.08, -0.42, -1.2]} scale={1.24}>
-        <StarlinkSatelliteModel studioItemId="title-crashed-starlink" />
-      </group>
-      <group ref={zomlonbiskRef} position={[1.86, 0.68, clampTitleBackgroundZ(-8.0)]} rotation={[0, -0.28, 0]} scale={1.16}>
-        <ZomlonbiskModel running={false} />
       </group>
     </>
   )
@@ -400,7 +351,6 @@ function WarningLight({ position, delay }) {
 }
 
 function ClubLightBeam({ config, register }) {
-  const housingMat = useMemo(() => getCachedToonMat(0x17131e, 0.06), [])
   const beamMat = useMemo(() => new THREE.MeshBasicMaterial({
     color: config.color,
     transparent: true,
@@ -421,19 +371,11 @@ function ClubLightBeam({ config, register }) {
     toneMapped: false,
     forceSinglePass: true,
   }), [config.color])
-  const lensMat = useMemo(() => new THREE.MeshBasicMaterial({
-    color: config.color,
-    transparent: true,
-    opacity: 0.88,
-    blending: THREE.AdditiveBlending,
-    toneMapped: false,
-  }), [config.color])
 
   useEffect(() => () => {
     beamMat.dispose()
     coreMat.dispose()
-    lensMat.dispose()
-  }, [beamMat, coreMat, lensMat])
+  }, [beamMat, coreMat])
 
   return (
     <group
@@ -446,10 +388,6 @@ function ClubLightBeam({ config, register }) {
       </mesh>
       <mesh position={[0, -2.15, 0.015]} material={coreMat}>
         <coneGeometry args={[0.46, 4.3, 8, 1, true]} />
-      </mesh>
-      <mesh position={[0, 0.05, 0.04]} geometry={CLUB_LIGHT_HOUSING_GEO} material={housingMat} />
-      <mesh position={[0, -0.12, 0.19]} rotation={[Math.PI / 2, 0, 0]} material={lensMat}>
-        <circleGeometry args={[0.13, 12]} />
       </mesh>
     </group>
   )
@@ -538,9 +476,41 @@ function ExitGlow() {
   )
 }
 
+export function inspectTitleSceneObject(event) {
+  const inspector = typeof window !== 'undefined'
+    ? window.__zombieSchoolScreenInspector
+    : null
+  if (!inspector?.inspectThree) return
+
+  event.stopPropagation()
+  const object = event.object
+  const material = Array.isArray(object.material) ? object.material[0] : object.material
+  const hierarchy = []
+  let current = object
+  while (current) {
+    hierarchy.push(current.name || current.userData?.studioItemId || current.type)
+    current = current.parent
+  }
+
+  inspector.inspectThree({
+    name: object.name || object.userData?.studioItemId || '',
+    objectType: object.type,
+    geometryType: object.geometry?.type || '',
+    materialType: material?.type || '',
+    color: material?.color ? `#${material.color.getHexString()}` : '',
+    uuid: object.uuid,
+    point: {
+      x: event.point.x.toFixed(3),
+      y: event.point.y.toFixed(3),
+      z: event.point.z.toFixed(3),
+    },
+    distance: event.distance.toFixed(3),
+    hierarchy,
+  })
+}
+
 export default function TitleScene3D({ studioGroupRef = null, studioTuning = null, reducedEffects = false }) {
   const floorMat = useMemo(() => toonMat(0x4a4054, 0.05), [])
-  const wallMat = useMemo(() => toonMat(0x2d2738, 0.05), [])
   const doorMat = useMemo(() => toonMat(0x805947, 0.05), [])
   const studioMode = studioTuning != null
   const studioTransform = studioMode ? getStudioTransformProps(studioTuning) : getStudioTransformProps()
@@ -548,6 +518,7 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
   const sceneRoot = (
     <group
       ref={studioGroupRef}
+      onPointerDown={inspectTitleSceneObject}
       rotation={[studioTransform.rotation[0], -0.09 + studioTransform.rotation[1], studioTransform.rotation[2]]}
       position={[0, -1.15, 0]}
       scale={studioTransform.scale}
@@ -555,20 +526,12 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
       <mesh receiveShadow position={[0, -0.02, 0]} rotation={[-Math.PI / 2, 0, 0]} material={floorMat}>
         <planeGeometry args={[8.6, 12]} />
       </mesh>
-      <mesh receiveShadow position={[-3.15, 1.1, -0.4]} rotation={[0, 0.16, 0]} material={wallMat}>
-        <boxGeometry args={[0.32, 3.3, 9.2]} />
-      </mesh>
-      <mesh receiveShadow position={[3.15, 1.1, -0.4]} rotation={[0, -0.16, 0]} material={wallMat}>
-        <boxGeometry args={[0.32, 3.3, 9.2]} />
-      </mesh>
       <mesh receiveShadow position={[0, 1.3, -4.62]} material={doorMat}>
         <boxGeometry args={[1.7, 1.3, 0.32]} />
       </mesh>
 
       <ClubLightRig reducedEffects={reducedEffects} />
       <ExitGlow />
-      <ToonBox position={[-1.45, 2.72, -4.25]} scale={[0.18, 0.18, 0.12]} color={0xfff3ba} emissive={0.2} />
-      <ToonBox position={[1.45, 2.72, -4.25]} scale={[0.18, 0.18, 0.12]} color={0xfff3ba} emissive={0.2} />
       <TitleClassroomProps />
       <SpeedStreak position={[-0.98, 0.055, 1.9]} scale={[0.11, 1.8]} delay={0.3} />
       <SpeedStreak position={[0.02, 0.055, 1.3]} scale={[0.09, 2.25]} delay={1.0} />
@@ -577,8 +540,7 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
       <WarningLight position={[2.15, 0.03, 1.3]} delay={1.4} />
 
       <TitleCharacterOutlineGroup>
-        <TitleFarBackgroundStory reducedEffects={reducedEffects} />
-        <TitleBossZombie type="B02" position={[-1.35, 0.26, -3.7]} scale={0.98} delay={0.9} />
+        <TitleBossZombie type="B02" position={[-1.35, 0.18, -3.7]} scale={0.62} delay={0.9} />
         <TitleBossZombie type="B03" position={[0.02, 0.28, -4.04]} scale={1.12} delay={1.35} />
         <TitleBossZombie type="B01" position={[0.1, 0.25, -1.62]} scale={1.02} />
         <TitleZombie position={[-2.25, 0.22, -3.42]} delay={0.4} scale={0.58} type="E03" />
