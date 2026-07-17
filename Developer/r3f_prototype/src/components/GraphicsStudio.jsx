@@ -42,6 +42,53 @@ import {
 const categoryLabels = Object.fromEntries(GRAPHICS_STUDIO_CATEGORIES.map((category) => [category.id, category.label]))
 const UNDO_LIMIT = 10
 
+// 슬라이더 트랙/썸을 2배 체감 크기로 키우는 CSS. 인라인 스타일로는 ::-webkit-slider-thumb를
+// 제어할 수 없어 클래스 기반 규칙을 한 번만 주입한다. 포인트 컬러(#e35d3d)는 유지.
+export const STUDIO_SLIDER_CSS = `
+.studio-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 32px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.studio-range::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #3a3d37;
+}
+.studio-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  margin-top: -10px;
+  border-radius: 50%;
+  background: #e35d3d;
+  border: 2px solid #1a1c18;
+}
+.studio-range::-moz-range-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #3a3d37;
+}
+.studio-range::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e35d3d;
+  border: 2px solid #1a1c18;
+}
+.studio-range:focus {
+  outline: none;
+}
+.studio-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(227, 93, 61, 0.4);
+}
+`
+
 function SliderRow({ label, name, min, max, step, value, onChange }) {
   const valueText = Number(value).toFixed(step < 1 ? 2 : 0)
   const [draftValue, setDraftValue] = useState(valueText)
@@ -74,6 +121,7 @@ function SliderRow({ label, name, min, max, step, value, onChange }) {
         value={value}
         onInput={handleInput}
         onChange={handleInput}
+        className="studio-range"
         style={styles.range}
       />
       <input
@@ -623,6 +671,7 @@ export default function GraphicsStudio() {
 
   return (
     <main style={styles.page}>
+      <style>{STUDIO_SLIDER_CSS}</style>
       <section style={{ ...styles.shell, ...(compact ? styles.shellCompact : null) }} aria-label="Graphics Studio">
         <header style={styles.header}>
           <div>
@@ -1270,10 +1319,10 @@ const styles = {
   },
   controlRow: {
     display: 'grid',
-    gridTemplateColumns: '92px minmax(0, 1fr) 44px',
+    gridTemplateColumns: '92px minmax(0, 1fr) 88px',
     alignItems: 'center',
-    gap: 9,
-    minHeight: 28,
+    gap: 14,
+    minHeight: 56,
     fontSize: 12,
   },
   controlLabel: {
@@ -1287,16 +1336,16 @@ const styles = {
     fontSize: 12,
   },
   controlValueInput: {
-    width: 44,
+    width: 88,
     minWidth: 0,
-    border: '1px solid transparent',
-    borderRadius: 4,
-    background: 'transparent',
+    border: '1px solid #353833',
+    borderRadius: 6,
+    background: '#111210',
     color: '#f0c765',
     fontVariantNumeric: 'tabular-nums',
     textAlign: 'right',
-    fontSize: 12,
-    padding: '2px 0',
+    fontSize: 20,
+    padding: '8px 8px',
   },
   range: {
     width: '100%',

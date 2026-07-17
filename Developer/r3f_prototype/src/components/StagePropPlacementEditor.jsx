@@ -217,6 +217,7 @@ export default function StagePropPlacementEditor({ onApply }) {
 
   return (
     <div style={styles.root} data-testid="stage-prop-editor">
+      {/* .studio-range CSS는 이 에디터를 감싸는 GraphicsStudio가 주입한다 */}
       <div style={styles.toolbar}>
         <label style={styles.stageSelectLabel}>
           <span>스테이지</span>
@@ -273,6 +274,7 @@ export default function StagePropPlacementEditor({ onApply }) {
                   step="0.01"
                   value={selected.scale}
                   onChange={(event) => scaleSelected(Number(event.target.value))}
+                  className="studio-range"
                   style={styles.range}
                 />
               </label>
@@ -374,7 +376,7 @@ const styles = {
   inspectorMeta: { fontSize: 11, color: '#9aa' },
   rotateRow: { display: 'flex', gap: 6 },
   miniButton: { flex: 1, background: '#2a2d2a', color: '#eee', border: '1px solid #4a4d4a', borderRadius: 4, padding: '4px 0', cursor: 'pointer', fontSize: 11 },
-  scaleRow: { display: 'flex', flexDirection: 'column', gap: 2, fontSize: 11 },
+  scaleRow: { display: 'flex', flexDirection: 'column', gap: 6, fontSize: 15 },
   range: { width: '100%' },
   deleteButton: { background: '#7a2f2f', color: '#fff', border: 'none', borderRadius: 4, padding: '5px 0', cursor: 'pointer', fontSize: 12 },
   mapWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 },
