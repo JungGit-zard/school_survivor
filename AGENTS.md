@@ -31,6 +31,14 @@
 - After meaningful changes, check `git status` and summarize what changed.
 - When possible, verify work with a syntax check, build, test, or direct file inspection.
 
+## 모델 역할 분담: Advisor / Worker
+
+- 이 역할 분담은 매 세션 시작(`startup`, `resume`, `compact`)부터 무조건 적용한다.
+- Sol(메인 세션)은 Advisor다. 요구사항 분석, 작업 분해, 설계 결정, Worker 작업 브리프 작성, diff 직접 확인, 테스트 직접 실행, 최종 커밋 승인과 사용자 보고를 담당한다.
+- Terra는 Worker다. 코드 작성과 수정, 테스트 작성 등 구현 작업 전부를 담당한다. Agent 도구로 위임할 때는 `model=terra`를 지정하고, 서로 독립적인 작업은 병렬로 위임한다.
+- Advisor가 작성하는 브리프에는 이미 파악한 컨텍스트, 파일 경로, 프로젝트 컨벤션, 알려진 함정, 완료 기준과 통과해야 할 테스트를 포함한다.
+- Advisor는 Worker의 완료 보고만 믿지 않고 diff와 테스트를 직접 검증한다. 검증 실패는 수정 브리프로 Worker에게 재위임하며, 한두 줄의 사소한 마무리처럼 위임 오버헤드가 더 큰 경우에만 직접 수정할 수 있다.
+
 ## Game Development Rules
 
 - Prioritize playable behavior over decorative structure.
@@ -47,6 +55,7 @@
 - `CONCEPTS.md` — shared project vocabulary for canonical visual state, release gates, and other project-specific terms.
 - For Google login failures in Android AAB / Play internal testing, check `docs/solutions/integration-issues/capacitor-android-firebase-google-login-aab.md` first.
 - For Graphics Studio Apply-state loss, old title models, missing title outlines, or AAB visual parity, check `docs/solutions/integration-issues/graphics-studio-title-state-release-regression.md` before changing defaults or packaging a release.
+- For Stage 2 boss/B02 size drift, oversized title/lobby boss visuals, `zombie-b02-teacher` root scale, `StageBossPreview`, `TitleBossZombie`, `ZombieMesh`, `StudioTunedGroup`, `graphicsStudioB02Source`, or related Graphics Studio B02 scale/default changes, check `docs/solutions/integration-issues/graphics-studio-b02-root-scale-regression.md` first.
 - For UI work, consider layout, readability, keyboard/mouse interaction, and mobile or desktop fit.
 - For gameplay work, consider player controls, feedback, state changes, difficulty, and failure cases.
 - For R3F/Rapier vampire-survivor-like stability work, performance regression, monster disappearance, or physics anomalies, treat `Developer/agent_room/r3f_rapier_vampire_survivor_stability_rules.md` as the mandatory Agent-Ready checklist and run its §6 diagnostic protocol before proposing fixes.
@@ -57,6 +66,7 @@
 - For Escape! zombie school milestone work, use `Developer/agent_room/game_development_kanban_process.md` and the `escape-zombie-school` Kanban board as the default durable development process.
 - `Developer/agent_room/subagent_system_wiring_2026-07-03.md` is the project-local canonical wiring document that connects this repository, the global Hermes sub-agent room, and the runnable Kanban profiles.
 - IDE-side resident agents must read `Developer/agent_room/ide_agent_subagent_autocall_handoff.md` when deciding whether Terry's IDE command should auto-call the registered Hermes/Kanban subagents.
+- IDE-side resident agents must also read `Developer/agent_room/escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md`; it is the latest handoff for deciding whether any Escape! zombie school request should auto-involve all relevant registered subagents instead of being handled by one agent alone.
 - Antigravity IDE resident agents must also read `Developer/agent_room/antigravity_ide_subagent_handoff.md`; it contains the Antigravity-specific trigger rules, real spawnable profile names, Kanban CLI examples, smoke-test evidence, and the pasteable persistent-instruction block.
 - When the user asks to use two or more agents for discussion, review, planning, implementation, comparison, or game development execution, run an Agent Room/Kanban routing check before selecting agents.
 - The durable Agent Room/Kanban routing check is defined in `Developer/agent_room/`. Local Codex agent config files may exist in some checkouts, but Hermes/Kanban profiles are the canonical spawnable route for this project.

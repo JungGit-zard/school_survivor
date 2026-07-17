@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "browser:guard": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/guard-game-browser-limit.ps1",
+    "browser:reserve": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/guard-game-browser-limit.ps1 -Mode reserve",
     "test": "vitest run",
     "test:watch": "vitest"
   },

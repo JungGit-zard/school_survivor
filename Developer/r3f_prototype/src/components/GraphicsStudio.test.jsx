@@ -4,9 +4,51 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import GraphicsStudio from './GraphicsStudio.jsx'
-import { loadStageBossPreview, loadStudioTunings, loadTextureDecals, saveStudioTunings } from '../lib/graphicsStudioConfig.js'
-import { loadSfxTunings } from '../lib/sfxRegistry.js'
-import { loadStagePropPlacements, resetStagePropPlacementsCache } from '../lib/stagePropPlacements.js'
+import {
+  GRAPHICS_STUDIO_B02_SOURCE_REVISION_KEY,
+  GRAPHICS_STUDIO_STORAGE_KEY,
+  loadStageBossPreview,
+  loadStudioTunings,
+  loadTextureDecals,
+  saveStageBossPreview,
+  saveStudioTunings,
+  saveTextureDecals,
+} from '../lib/graphicsStudioConfig.js'
+import { loadSfxTunings, saveSfxTunings } from '../lib/sfxRegistry.js'
+import { loadStagePropPlacements, resetStagePropPlacementsCache, saveStagePropPlacements } from '../lib/stagePropPlacements.js'
+
+const cloudMocks = vi.hoisted(() => ({
+  hydrate: vi.fn(),
+  requestSave: vi.fn(),
+  flush: vi.fn(),
+  markChange: vi.fn(),
+  setUser: vi.fn(),
+}))
+const authMocks = vi.hoisted(() => ({
+  state: {
+    status: 'unconfigured',
+    user: null,
+  },
+  initialize: vi.fn(),
+  signIn: vi.fn(),
+}))
+
+vi.mock('../store/useAuthStore.js', () => ({
+  useAuthStore: (selector) => selector({
+    ...authMocks.state,
+    initializeAuth: authMocks.initialize,
+    signInWithGoogle: authMocks.signIn,
+  }),
+}))
+
+vi.mock('../lib/firebaseStudio.js', async (importOriginal) => ({
+  ...(await importOriginal()),
+  hydrateFirebaseStudio: cloudMocks.hydrate,
+  requestFirebaseStudioSave: cloudMocks.requestSave,
+  flushFirebaseStudioSave: cloudMocks.flush,
+  markFirebaseStudioLocalChange: cloudMocks.markChange,
+  setFirebaseStudioUser: cloudMocks.setUser,
+}))
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: () => <div data-testid="stage-boss-preview-canvas" />,
@@ -43,6 +85,15 @@ describe('GraphicsStudio', () => {
   beforeEach(() => {
     localStorage.clear()
     window.location.hash = ''
+    authMocks.state.status = 'unconfigured'
+    authMocks.state.user = null
+    authMocks.initialize.mockReset().mockResolvedValue(undefined)
+    authMocks.signIn.mockReset().mockResolvedValue(null)
+    cloudMocks.hydrate.mockReset().mockResolvedValue({ status: 'unconfigured' })
+    cloudMocks.requestSave.mockReset()
+    cloudMocks.flush.mockReset().mockResolvedValue({ status: 'no-pending' })
+    cloudMocks.markChange.mockReset()
+    cloudMocks.setUser.mockReset()
     vi.spyOn(window, 'open').mockReturnValue({ closed: false, postMessage: vi.fn() })
     container = document.createElement('div')
     document.body.appendChild(container)
@@ -195,6 +246,245 @@ describe('GraphicsStudio', () => {
     )
   })
 
+  it('hydrates a signed-in user and refreshes preview plus prop editor from cloud', async () => {
+    authMocks.state.status = 'signedIn'
+    authMocks.state.user = { uid: 'cloud-user' }
+    cloudMocks.hydrate.mockImplementation(async () => {
+      saveStudioTunings({ player: { scale: 1.81 } })
+      saveSfxTunings({ pencilFire: { volume: 0.33 } })
+      saveStageBossPreview({ zoom: 146, panX: 0.2, panY: -0.1 })
+      saveTextureDecals({})
+      saveStagePropPlacements({
+        stage1: [{
+          id: 'cloud-desk',
+          type: 'classroomDesk',
+          position: [2, 0, 3],
+          rotation: [0, 0, 0],
+          scale: 1,
+        }],
+      })
+      return { status: 'remote-applied', revision: 4 }
+    })
+
+    await act(async () => {
+      root.render(<GraphicsStudio />)
+    })
+
+    expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1.81')
+    expect(authMocks.initialize).toHaveBeenCalledTimes(1)
+    expect(cloudMocks.hydrate).toHaveBeenCalledTimes(1)
+    expect(container.querySelector('[data-testid="studio-firebase-status"]').dataset.status).toBe('synced')
+    act(() => {
+      Array.from(container.querySelectorAll('button'))
+        .find((button) => button.textContent === 'Props')
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+    expect(container.querySelector('[data-testid="prop-marker-cloud-desk"]')).toBeTruthy()
+  })
+
+  it('opens the game synchronously, then signs in and posts the hydrated remote state', async () => {
+    authMocks.state.status = 'signedOut'
+    let resolveSignIn
+    authMocks.signIn.mockImplementation(() => new Promise((resolve) => {
+      resolveSignIn = resolve
+    }))
+    cloudMocks.hydrate.mockImplementation(async () => {
+      saveStudioTunings({ player: { scale: 1.92 } })
+      return { status: 'remote-applied', revision: 8 }
+    })
+    const postMessage = vi.fn()
+    window.open.mockReturnValue({ closed: false, postMessage })
+
+    act(() => {
+      root.render(<GraphicsStudio />)
+    })
+    const connect = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent === 'Connect')
+    act(() => {
+      connect.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(window.open).toHaveBeenCalledTimes(1)
+    expect(postMessage).not.toHaveBeenCalled()
+
+    await act(async () => {
+      resolveSignIn({ uid: 'connected-user' })
+    })
+
+    expect(cloudMocks.flush).toHaveBeenCalledWith(expect.objectContaining({ user: { uid: 'connected-user' } }))
+    expect(postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tunings: expect.objectContaining({
+          player: expect.objectContaining({ scale: 1.92 }),
+        }),
+        sfxTunings: expect.any(Object),
+        stageBossPreview: expect.any(Object),
+        decals: expect.any(Object),
+        propPlacements: expect.any(Object),
+      }),
+      expect.any(String),
+    )
+  })
+
+  it('keeps local authored state and exposes an offline fallback when cloud hydrate fails', async () => {
+    saveStudioTunings({ player: { scale: 1.44 } })
+    authMocks.state.status = 'signedIn'
+    authMocks.state.user = { uid: 'offline-user' }
+    cloudMocks.hydrate.mockResolvedValue({ status: 'read-failed', error: new Error('offline') })
+
+    await act(async () => {
+      root.render(<GraphicsStudio />)
+    })
+
+    expect(loadStudioTunings().player.scale).toBe(1.44)
+    expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1.44')
+    expect(container.querySelector('[data-testid="studio-firebase-status"]').dataset.status).toBe('offline-error')
+
+    const scale = container.querySelector('input[name="scale"]')
+    act(() => {
+      scale.value = '1.66'
+      scale.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    expect(loadStudioTunings().player.scale).toBe(1.66)
+    expect(cloudMocks.requestSave).toHaveBeenCalledWith(expect.objectContaining({
+      user: { uid: 'offline-user' },
+      onResult: expect.any(Function),
+    }))
+    expect(cloudMocks.requestSave.mock.lastCall[0]).not.toHaveProperty('datasets')
+    expect(container.querySelector('[data-testid="studio-firebase-status"]').dataset.status).toBe('saving')
+  })
+
+  it('shows a future-version workspace and never queues edits into it', async () => {
+    authMocks.state.status = 'signedIn'
+    authMocks.state.user = { uid: 'future-user' }
+    cloudMocks.hydrate.mockResolvedValue({ status: 'future-version', schemaVersion: 2 })
+
+    await act(async () => {
+      root.render(<GraphicsStudio />)
+    })
+    expect(container.querySelector('[data-testid="studio-firebase-status"]').dataset.status).toBe('future-version')
+
+    const scale = container.querySelector('input[name="scale"]')
+    act(() => {
+      scale.value = '1.71'
+      scale.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    expect(cloudMocks.markChange).toHaveBeenCalledWith({ uid: 'future-user' })
+    expect(cloudMocks.requestSave).not.toHaveBeenCalled()
+  })
+
+  it('waits for the same-user automatic hydrate before Connect reloads remote', async () => {
+    authMocks.state.status = 'signedIn'
+    authMocks.state.user = { uid: 'cloud-user' }
+    let resolveAutoHydrate
+    cloudMocks.hydrate
+      .mockImplementationOnce(() => new Promise((resolve) => {
+        resolveAutoHydrate = resolve
+      }))
+      .mockResolvedValueOnce({ status: 'local-seeded', revision: 2 })
+    const postMessage = vi.fn()
+    window.open.mockReturnValue({ closed: false, postMessage })
+
+    act(() => {
+      root.render(<GraphicsStudio />)
+    })
+    const connect = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent === 'Connect')
+    act(() => connect.dispatchEvent(new MouseEvent('click', { bubbles: true })))
+
+    expect(cloudMocks.hydrate).toHaveBeenCalledTimes(1)
+    expect(postMessage).not.toHaveBeenCalled()
+
+    await act(async () => {
+      resolveAutoHydrate({ status: 'local-seeded', revision: 1 })
+    })
+
+    expect(cloudMocks.hydrate).toHaveBeenCalledTimes(2)
+    expect(postMessage).toHaveBeenCalled()
+  })
+
+  it('queues the full local snapshot after a signed-in hydrated edit', async () => {
+    authMocks.state.status = 'signedIn'
+    authMocks.state.user = { uid: 'cloud-user' }
+    let resolveHydrate
+    cloudMocks.hydrate.mockImplementation(() => new Promise((resolve) => {
+      resolveHydrate = resolve
+    }))
+
+    act(() => {
+      root.render(<GraphicsStudio />)
+    })
+    const scale = container.querySelector('input[name="scale"]')
+    act(() => {
+      scale.value = '1.31'
+      scale.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    expect(cloudMocks.markChange).toHaveBeenCalledWith({ uid: 'cloud-user' })
+    expect(cloudMocks.requestSave).not.toHaveBeenCalled()
+
+    await act(async () => {
+      resolveHydrate({ status: 'local-changed' })
+    })
+    expect(cloudMocks.requestSave).toHaveBeenCalledTimes(1)
+    act(() => {
+      scale.value = '1.53'
+      scale.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    expect(cloudMocks.requestSave).toHaveBeenLastCalledWith(expect.objectContaining({
+      user: { uid: 'cloud-user' },
+      onResult: expect.any(Function),
+    }))
+    expect(cloudMocks.requestSave.mock.lastCall[0]).not.toHaveProperty('datasets')
+    expect(container.querySelector('[data-testid="studio-firebase-status"]').dataset.status).toBe('saving')
+
+    const queuedSave = cloudMocks.requestSave.mock.lastCall[0]
+    act(() => queuedSave.onResult({ status: 'write-failed', error: new Error('offline') }))
+    expect(loadStudioTunings().player.scale).toBe(1.53)
+    expect(container.querySelector('[data-testid="studio-firebase-status"]').dataset.status).toBe('offline-error')
+  })
+
+  it('flushes a pending cloud save without clearing retry state on unmount', async () => {
+    authMocks.state.status = 'signedIn'
+    authMocks.state.user = { uid: 'cloud-user' }
+    cloudMocks.hydrate.mockResolvedValue({ status: 'local-seeded', revision: 1 })
+
+    await act(async () => {
+      root.render(<GraphicsStudio />)
+    })
+    const scale = container.querySelector('input[name="scale"]')
+    act(() => {
+      scale.value = '1.61'
+      scale.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    expect(cloudMocks.requestSave).toHaveBeenCalled()
+
+    cloudMocks.flush.mockResolvedValue({ status: 'write-failed', error: new Error('offline') })
+    await act(async () => {
+      root.unmount()
+    })
+    expect(cloudMocks.flush).toHaveBeenCalledTimes(1)
+    expect(cloudMocks.setUser).not.toHaveBeenCalledWith(null)
+
+    root = createRoot(container)
+  })
+
+  it('reports a blocked popup for Apply paths that need to open the game', () => {
+    window.open.mockReturnValue(null)
+    act(() => {
+      root.render(<GraphicsStudio />)
+    })
+
+    const applyButton = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent === 'Apply')
+    act(() => {
+      applyButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(container.textContent).toContain('Unable to open game window')
+  })
+
   it('opens the game and synchronizes the full saved studio state when Apply is pressed', () => {
     const postMessage = vi.fn()
     window.open.mockReturnValue({ closed: false, postMessage })
@@ -280,6 +570,104 @@ describe('GraphicsStudio', () => {
       }),
       'http://localhost:5173',
     )
+  })
+
+  it('restores the selected B02 root to original scale when Scale is 1', () => {
+    localStorage.setItem(GRAPHICS_STUDIO_B02_SOURCE_REVISION_KEY, '3')
+    localStorage.setItem(GRAPHICS_STUDIO_STORAGE_KEY, JSON.stringify({
+      'zombie-b02-teacher': {
+        scale: 1.62,
+        scaleX: 1.7,
+        scaleY: 1.6,
+        scaleZ: 1.9,
+        positionX: 0.45,
+        rotationY: 27,
+        color: '#aabbcc',
+      },
+    }))
+    const postMessage = vi.fn()
+    window.open.mockReturnValue({ closed: false, postMessage })
+
+    act(() => {
+      root.render(<GraphicsStudio />)
+    })
+    act(() => {
+      Array.from(container.querySelectorAll('button'))
+        .find((button) => button.textContent.includes('Zombie B02'))
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    const gameUrl = container.querySelector('input[name="gameUrl"]')
+    act(() => {
+      gameUrl.value = 'http://localhost:5173/'
+      gameUrl.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    act(() => {
+      Array.from(container.querySelectorAll('button'))
+        .find((button) => button.textContent === 'Connect')
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    const scaleValue = container.querySelector('input[name="scaleValue"]')
+    act(() => {
+      scaleValue.value = '1.4'
+      scaleValue.dispatchEvent(new Event('input', { bubbles: true }))
+      scaleValue.dispatchEvent(new Event('blur', { bubbles: true }))
+    })
+    expect(loadStudioTunings()['zombie-b02-teacher']).toMatchObject({
+      scale: 1.4,
+      scaleX: 1.7,
+      scaleY: 1.6,
+      scaleZ: 1.9,
+    })
+
+    act(() => {
+      scaleValue.value = '1'
+      scaleValue.dispatchEvent(new Event('input', { bubbles: true }))
+      scaleValue.dispatchEvent(new Event('blur', { bubbles: true }))
+    })
+
+    const saved = loadStudioTunings()['zombie-b02-teacher']
+    const transmitted = postMessage.mock.calls.at(-1)[0].tunings['zombie-b02-teacher']
+    expect(saved).toMatchObject({
+      positionX: 0.45,
+      rotationY: 27,
+      color: '#aabbcc',
+    })
+    expect(transmitted).toMatchObject({
+      positionX: 0.45,
+      rotationY: 27,
+      color: '#aabbcc',
+    })
+    expect({
+      saved: {
+        scale: saved.scale,
+        scaleX: saved.scaleX,
+        scaleY: saved.scaleY,
+        scaleZ: saved.scaleZ,
+      },
+      displayed: {
+        scale: Number(container.querySelector('input[name="scaleValue"]').value),
+        scaleX: Number(container.querySelector('input[name="scaleXValue"]').value),
+        scaleY: Number(container.querySelector('input[name="scaleYValue"]').value),
+        scaleZ: Number(container.querySelector('input[name="scaleZValue"]').value),
+      },
+      previewShowsOriginalScale: container
+        .querySelector('[data-testid="graphics-preview"]')
+        .textContent
+        .includes('zombie-b02-teacher:1:1:'),
+      transmitted: {
+        scale: transmitted.scale,
+        scaleX: transmitted.scaleX,
+        scaleY: transmitted.scaleY,
+        scaleZ: transmitted.scaleZ,
+      },
+    }).toEqual({
+      saved: { scale: 1, scaleX: 1, scaleY: 1, scaleZ: 1 },
+      displayed: { scale: 1, scaleX: 1, scaleY: 1, scaleZ: 1 },
+      previewShowsOriginalScale: true,
+      transmitted: { scale: 1, scaleX: 1, scaleY: 1, scaleZ: 1 },
+    })
   })
 
   it('applies stage boss preview zoom and pan to the connected game immediately', () => {

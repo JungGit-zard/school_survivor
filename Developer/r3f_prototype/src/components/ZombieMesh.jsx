@@ -21,6 +21,8 @@ export const ZOMBIE_PALETTE = {
   B01: { body: 0x100808, skin: 0x281010, eye: 0xff0000 },
   B02: { body: 0x111923, skin: 0x8fb0d8, eye: 0x111111 },
   B03: { body: 0x18324a, skin: 0x91ad68, eye: 0xff493d },
+  RZL: { body: 0x5a2484, skin: 0x8fa85e, eye: 0x101010 },
+  RZC: { body: 0x1671a6, skin: 0x8fa85e, eye: 0x101010 },
 }
 
 export const B01_BOSS_VISUAL_PALETTE = {
@@ -130,6 +132,96 @@ export const B03_PE_TEACHER_FACE = {
   position: [0, 0, 0.23],
   repeat: [1, 0.857],
   offset: [0, 0],
+}
+
+export const RUN_ZOMBIE_VISUAL = {
+  leader: {
+    headband: 0x7d3fc6,
+    headbandStripe: 0xffffff,
+    jersey: 0x5a2484,
+    shorts: 0x22152f,
+    shoe: 0x6e35b8,
+    bib: '001',
+    medal: 0xf0b62d,
+  },
+  crew: {
+    headband: 0x1880bd,
+    headbandStripe: 0xffffff,
+    jersey: 0xf0eee4,
+    shorts: 0x1974aa,
+    shoe: 0x1771a6,
+    bib: '013',
+  },
+  parts: ['headband', 'bib', 'medal', 'wristbands', 'chunkyRunningShoes', 'runningPose'],
+}
+
+function BibDigits({ text, y = 0.03 }) {
+  const digitColor = 0x151515
+  return (
+    <group name={`runZombieBib${text}`} position={[0, y, 0.292]}>
+      <ZBlock size={[0.22, 0.18, 0.035]} position={[0, 0, 0]} color={0xf7f3df} emissive={0.05} outlineScale={1.0} />
+      {String(text).split('').map((_, i) => (
+        <ZBlock key={i} size={[0.025, 0.095, 0.02]} position={[-0.055 + i * 0.055, 0, 0.024]} color={digitColor} emissive={0.02} outlineScale={1.0} />
+      ))}
+    </group>
+  )
+}
+
+function RunZombieMesh({ role = 'crew', hitFlash, reg }) {
+  const isLeader = role === 'leader'
+  const cfg = isLeader ? RUN_ZOMBIE_VISUAL.leader : RUN_ZOMBIE_VISUAL.crew
+  const pal = ZOMBIE_PALETTE[isLeader ? 'RZL' : 'RZC']
+  const shirt = cfg.jersey
+  const trim = cfg.headband
+
+  return (
+    <group name={isLeader ? 'runZombieLeader' : 'runZombieCrew'}>
+      <group ref={reg('head')} position={[0, 0.84, 0]}>
+        <ZBlock size={[0.52, 0.48, 0.46]} position={[0, 0, 0]} color={pal.skin} emissive={0.07} outlineScale={1.08} flash={hitFlash} />
+        <ZBlock size={[0.54, 0.10, 0.48]} position={[0, 0.11, 0.01]} color={cfg.headband} emissive={0.10} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock size={[0.54, 0.035, 0.49]} position={[0, 0.14, 0.015]} color={cfg.headbandStripe} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock size={[0.11, 0.10, 0.05]} position={[-0.12, 0.015, 0.25]} color={pal.eye} emissive={0.05} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock size={[0.11, 0.10, 0.05]} position={[0.12, 0.015, 0.25]} color={pal.eye} emissive={0.05} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock size={[0.20, 0.10, 0.05]} position={[0, -0.15, 0.25]} color={0x3a1210} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock size={[0.055, 0.045, 0.035]} position={[-0.04, -0.12, 0.282]} color={0xefe8c9} emissive={0.05} outlineScale={1.0} flash={hitFlash} />
+      </group>
+
+      <group ref={reg('body')} position={[0, 0.29, 0]}>
+        <ZBlock size={[0.58, 0.56, 0.40]} position={[0, 0, 0]} color={shirt} emissive={0.10} outlineScale={1.08} flash={hitFlash} />
+        <ZBlock size={[0.62, 0.055, 0.42]} position={[0, 0.19, 0]} color={cfg.headbandStripe} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
+        <BibDigits text={cfg.bib} />
+        {isLeader && (
+          <>
+            <ZBlock size={[0.045, 0.24, 0.045]} position={[-0.07, 0.16, 0.29]} rotation={[0, 0, -0.35]} color={cfg.medal} emissive={0.16} outlineScale={1.0} flash={hitFlash} />
+            <ZBlock size={[0.045, 0.24, 0.045]} position={[0.07, 0.16, 0.29]} rotation={[0, 0, 0.35]} color={cfg.medal} emissive={0.16} outlineScale={1.0} flash={hitFlash} />
+            <ZBlock size={[0.13, 0.13, 0.045]} position={[0, -0.02, 0.315]} color={cfg.medal} emissive={0.20} outlineScale={1.02} flash={hitFlash} />
+          </>
+        )}
+      </group>
+
+      <group ref={reg('armL')} position={[-0.40, 0.54, 0]} rotation={[-0.88, 0, -0.28]}>
+        <ZBlock size={[0.20, 0.47, 0.20]} position={[0, -0.24, 0]} color={shirt} emissive={0.08} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock size={[0.21, 0.08, 0.21]} position={[0, -0.45, 0]} color={trim} emissive={0.10} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock size={[0.18, 0.16, 0.18]} position={[0, -0.57, 0]} color={pal.skin} emissive={0.07} outlineScale={1.03} flash={hitFlash} />
+      </group>
+      <group ref={reg('armR')} position={[0.40, 0.54, 0]} rotation={[-1.45, 0, 0.28]}>
+        <ZBlock size={[0.20, 0.47, 0.20]} position={[0, -0.24, 0]} color={shirt} emissive={0.08} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock size={[0.21, 0.08, 0.21]} position={[0, -0.45, 0]} color={trim} emissive={0.10} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock size={[0.18, 0.16, 0.18]} position={[0, -0.57, 0]} color={pal.skin} emissive={0.07} outlineScale={1.03} flash={hitFlash} />
+      </group>
+
+      <group ref={reg('legL')} position={[-0.16, 0.00, 0]} rotation={[0.36, 0, 0]}>
+        <ZBlock size={[0.22, 0.46, 0.25]} position={[0, -0.23, 0]} color={cfg.shorts} emissive={0.08} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock size={[0.28, 0.13, 0.38]} position={[0, -0.53, 0.08]} color={cfg.shoe} emissive={0.07} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock size={[0.30, 0.045, 0.40]} position={[0, -0.61, 0.08]} color={0xf5f1e8} emissive={0.03} outlineScale={1.0} flash={hitFlash} />
+      </group>
+      <group ref={reg('legR')} position={[0.16, 0.00, 0]} rotation={[-0.44, 0, 0]}>
+        <ZBlock size={[0.22, 0.46, 0.25]} position={[0, -0.23, 0]} color={cfg.shorts} emissive={0.08} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock size={[0.28, 0.13, 0.38]} position={[0, -0.53, 0.08]} color={cfg.shoe} emissive={0.07} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock size={[0.30, 0.045, 0.40]} position={[0, -0.61, 0.08]} color={0xf5f1e8} emissive={0.03} outlineScale={1.0} flash={hitFlash} />
+      </group>
+    </group>
+  )
 }
 
 export const B02_TEACHER_BOSS_PALETTE = {
@@ -571,6 +663,28 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
       return
     }
 
+    // 런좀비 크루: 일반 좀비 보행이 아니라 전력질주 실루엣.
+    // 팔은 앞뒤로 크게 펌핑, 몸은 진행 방향으로 숙이고, 다리는 빠른 보폭으로 교차한다.
+    if (type === 'RZL' || type === 'RZC') {
+      const stride = Math.sin(t * 13.5)
+      const pump = Math.sin(t * 13.5 + Math.PI)
+      if (pt.body) {
+        pt.body.rotation.x += (0.36 - pt.body.rotation.x) * Math.min(1, delta * 14)
+        pt.body.rotation.z = Math.sin(t * 7.2) * 0.055
+      }
+      if (pt.head) {
+        pt.head.rotation.x += (-0.08 - pt.head.rotation.x) * Math.min(1, delta * 12)
+        pt.head.rotation.z = Math.sin(t * 8.5) * 0.11
+      }
+      pt.legL.rotation.x = stride * 0.82
+      pt.legR.rotation.x = -stride * 0.82
+      pt.armL.rotation.x = -1.05 + pump * 0.50
+      pt.armR.rotation.x = -1.05 - pump * 0.50
+      pt.armL.rotation.z = -0.22 + Math.sin(t * 6.5) * 0.08
+      pt.armR.rotation.z = 0.22 - Math.sin(t * 6.5) * 0.08
+      return
+    }
+
     // 걷기 사이클 (타입별 속도 차이)
     const freq = type === 'E02' ? 9.0 : type === 'E03' ? 5.0 : 7.0
     const amp  = animPhase === 'charge' ? 0.55 : 0.38
@@ -595,6 +709,14 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     return (
       <StudioTunedGroup itemId="zombie-b01">
         <B01BossZombieMesh hitFlash={hitFlash} reg={reg} />
+      </StudioTunedGroup>
+    )
+  }
+
+  if (type === 'RZL' || type === 'RZC') {
+    return (
+      <StudioTunedGroup itemId={getStudioZombieItemId(type)}>
+        <RunZombieMesh role={type === 'RZL' ? 'leader' : 'crew'} hitFlash={hitFlash} reg={reg} />
       </StudioTunedGroup>
     )
   }

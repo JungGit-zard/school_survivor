@@ -27,6 +27,11 @@ export const ENEMY_VISUAL_SCALE = 0.333
 // 머리 블록/얼굴 텍스처의 기하 중심이라 '얼굴 중간지점' 앵커로 사용한다. 보스 타입별로 다르다.
 export const FACE_LOCAL_Y = Object.freeze({ B01: 0.88, B02: 0.92, B03: 0.88 })
 const DEFAULT_FACE_LOCAL_Y = 0.82 // 표준 좀비(E01~E06) 머리 그룹 Y
+const BOSS_PREVIEW_MODEL_SCALE_FACTOR = Object.freeze({ B01: 1, B02: 0.82, B03: 1 })
+
+export function resolveBossPreviewModelScale(bossType) {
+  return BOSS_PREVIEW_MODEL_SCALE_FACTOR[bossType] ?? 1
+}
 
 // ortho 카메라는 rotation을 주지 않아 R3F가 lookAt(0,0,0)을 적용한다(원점 응시).
 // 그래서 화면 세로 중앙에 투영되는 월드 Y ≈ 0(카메라가 바라보는 원점)이다.
@@ -35,17 +40,14 @@ const DEFAULT_FACE_LOCAL_Y = 0.82 // 표준 좀비(E01~E06) 머리 그룹 Y
 // 얼굴 월드 Y = baseY + faceLocalY * previewScale, 이를 0으로 두면 baseY = -faceLocalY * previewScale.
 export function resolveBossPreviewBaseY(bossType) {
   const stats = ENEMY_STATS[bossType] ?? ENEMY_STATS.B01
-  const previewScale = stats.scale * ENEMY_SIZE_MULTIPLIER * ENEMY_VISUAL_SCALE
+  const previewScale = stats.scale * ENEMY_SIZE_MULTIPLIER * ENEMY_VISUAL_SCALE * resolveBossPreviewModelScale(bossType)
   const faceLocalY = FACE_LOCAL_Y[bossType] ?? DEFAULT_FACE_LOCAL_Y
   return -faceLocalY * previewScale
 }
 
-// 보스별 크라운(머리 꼭대기) 높이 차이 보정.
-// B02는 올림머리(bun)+헤어플레이트라 크라운이 B01보다 높아, 같은 zoom이면 bun이 프레임
-// 위로 잘린다. 목표는 두 카드의 보스가 "같은 크기"로 보이는 것 → B02를 B01과 최대한
-// 같은 zoom으로 두되, bun이 잘리지 않을 만큼만 살짝 낮춘다.
-// 라이브 실측(144px 프레임): B02 렌더 zoom ≈104(=110×0.95)에서 B01(110)과 크기가
-// 사실상 같으면서 bun 상단에 여백이 남는다. (0.66은 크기가 눈에 띄게 작아 부적합.)
+// 보스별 카드 프리뷰 크기 보정.
+// B02는 로비 카드에서 과대 표시된 이력이 있어 graphicsStudioB02Source r3 루트 복구와 별도로
+// 카드용 모델 스케일을 낮춘다. zoom은 크라운 상단 여백만 살짝 보정한다.
 const BOSS_PREVIEW_ZOOM_FACTOR = Object.freeze({ B01: 1, B02: 0.95, B03: 1 })
 
 export function resolveBossPreviewZoom(baseZoom, bossType) {
@@ -78,6 +80,7 @@ function ReactiveBoss({ framing, bossType, enabled, frozen, burstRef, parallaxRe
 
   // 얼굴 중앙 앵커 기준 Y. panY/bobY는 그 위에서의 미세 오프셋으로 동작한다.
   const baseY = resolveBossPreviewBaseY(bossType)
+  const modelScale = resolveBossPreviewModelScale(bossType)
 
   // 래퍼 div의 포인터 핸들러가 온디맨드 프레임을 kick할 수 있도록 invalidate 노출.
   useEffect(() => {
@@ -165,7 +168,9 @@ function ReactiveBoss({ framing, bossType, enabled, frozen, burstRef, parallaxRe
       rotation={[BASE_ROT_X, BASE_ROT_Y, 0]}
       position={[framing.panX, baseY + framing.panY, 0]}
     >
-      <EnemyVisual type={bossType} animPhase="normal" hp={1150} showHealthBar={false} frozen={frozen} />
+      <group scale={modelScale}>
+        <EnemyVisual type={bossType} animPhase="normal" hp={1150} showHealthBar={false} frozen={frozen} />
+      </group>
     </group>
   )
 }
@@ -229,6 +234,7 @@ export default function StageBossPreview({
       data-pan-x={frame.panX}
       data-pan-y={frame.panY}
       data-boss-type={bossType}
+      data-model-scale={resolveBossPreviewModelScale(bossType)}
       data-motion-active={motionEnabled}
       aria-label={ariaLabel}
       style={{ ...previewFrameStyle, ...style }}

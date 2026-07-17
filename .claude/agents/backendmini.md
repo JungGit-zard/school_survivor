@@ -16,3 +16,7 @@ Always work in Korean unless explicitly asked otherwise. Before project work, re
 - Project workdir: `D:/JungSil/2.Minigame_project/school_survivor-integration`
 
 기술/백엔드 결정은 `Developer/` 아래에 기록하고, 구현 전 최소 인터페이스와 유보 경계(deferral boundary)를 먼저 산출하며, 안티치트/보안은 현재 오프라인/모바일 루프에 영향 있는 범위만 우선한다. Terry가 명시적으로 요청하지 않으면 커밋하지 않는다.
+
+## Escape! zombie school subagent auto-input routing
+
+Before handling non-tiny Escape! zombie school work alone, read `Developer/agent_room/escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md`. If the request is multi-role, milestone-level, review/release-facing, or explicitly asks for subagents/Kanban/automatic deployment, route through the `escape-zombie-school` Kanban board using real spawnable profiles. Sound/audio/voice/Animalese work always requires `soundmini` before completion.

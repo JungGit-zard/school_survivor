@@ -7,6 +7,7 @@ import {
   ENEMY_SPAWN_REVEAL_DELAY_MS,
   ENEMY_STATS,
   MATILDA_EDGE_INSET,
+  MATILDA_CHARGE_STALL_REVERSE_MS,
   MATILDA_LAUGH_DURATION_MS,
   SPAWN_SMOKE_END_SCALE,
   SPAWN_SMOKE_START_SCALE,
@@ -18,8 +19,10 @@ import {
   getChargeHitDistance,
   getEnemySpawnSfx,
   hasMatildaReachedStageEdge,
+  isMatildaChargeBlockedFrame,
   isMatildaChargingOutward,
   resolveSightBlockedEnemyVelocity,
+  shouldReverseMatildaChargeOnObstacle,
 } from './Enemy.jsx'
 
 describe('Enemy charge warning cue', () => {
@@ -32,7 +35,7 @@ describe('Enemy charge warning cue', () => {
     expect(resolveSightBlockedEnemyVelocity({ blocked: false, enemyId: 17, dirX: 3, dirZ: 4, speed: 2 })).toBeNull()
   })
 
-  it('restarts Matilda charge only after she reaches a stage edge and finishes laughing', () => {
+  it('starts and restarts Matilda charges through a visible laugh pause', () => {
     const bounds = { halfX: 10, halfZ: 14.4 }
 
     expect(hasMatildaReachedStageEdge({ x: 0, z: 0 }, bounds)).toBe(false)
@@ -42,9 +45,39 @@ describe('Enemy charge warning cue', () => {
     expect(MATILDA_LAUGH_DURATION_MS).toBeGreaterThanOrEqual(700)
 
     const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    expect(source).toContain("chargeState.current = isMatilda ? 'matildaLaugh' : 'chase'")
+    expect(source).toContain('matildaLaughCuePendingRef.current = isMatilda')
     expect(source).toContain("chargeState.current = 'matildaLaugh'")
     expect(source).toContain("emitSfx({ id: 'matildaLaugh'")
     expect(source).toContain("emitSfx({ id: 'matildaDash'")
+  })
+
+  it('reverses Matilda immediately when a charge is blocked by a prop instead of waiting at the obstacle', () => {
+    const hitDistance = 0.5
+
+    expect(isMatildaChargeBlockedFrame({
+      movedAlong: 0.01,
+      expectedMove: 0.1,
+      distanceToPlayer: 3,
+      hitDistance,
+    })).toBe(true)
+    expect(isMatildaChargeBlockedFrame({
+      movedAlong: 0.01,
+      expectedMove: 0.1,
+      distanceToPlayer: 0.52,
+      hitDistance,
+    })).toBe(false)
+    expect(shouldReverseMatildaChargeOnObstacle({
+      movedAlong: 0.01,
+      expectedMove: 0.1,
+      distanceToPlayer: 3,
+      hitDistance,
+      stalledMs: MATILDA_CHARGE_STALL_REVERSE_MS,
+    })).toBe(true)
+
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('cd.multiplyScalar(-1)')
+    expect(source).toContain('matildaChargeStallMsRef.current = blockedFrame')
   })
 
   it('lets Matilda leave an edge toward the player before checking for the next charge endpoint', () => {

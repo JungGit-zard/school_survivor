@@ -12,6 +12,11 @@ let totalKills = 0
 let totalDamageTaken = 0
 let totalPickups = 0
 const seenWeapons = new Set()
+const runtimeLogEnabled = import.meta.env.DEV
+  && import.meta.env.VITE_PLAYTEST_LOGGING === '1'
+const clientSessionId = globalThis.crypto?.randomUUID?.()
+  ?? `session-${Date.now()}`
+const CONSOLE_LEVELS = ['debug', 'info', 'log', 'warn', 'error']
 
 function reset() {
   events.length = 0
@@ -21,7 +26,9 @@ function reset() {
   totalDamageTaken = 0
   totalPickups = 0
   seenWeapons.clear()
-  events.push({ t: 0, type: 'start' })
+  const startEvent = { t: 0, type: 'start' }
+  events.push(startEvent)
+  emitRuntimeLog('playtest', startEvent)
   // 시작 시점에 이미 active인 무기(연필)는 기본 해금이므로 기록만 남긴다.
   const w = useGameStore.getState().weapons
   for (const [k, wpn] of Object.entries(w)) {
@@ -31,11 +38,13 @@ function reset() {
 
 function record(type, payload = {}) {
   if (startMs === null) reset()
-  events.push({
+  const event = {
     t: +((performance.now() - startMs) / 1000).toFixed(2),
     type,
     ...payload,
-  })
+  }
+  events.push(event)
+  emitRuntimeLog('playtest', event)
 }
 
 let initialized = false
@@ -44,6 +53,7 @@ export function initPlaytestLogger() {
   if (initialized) return
   initialized = true
   reset()
+  initRuntimeLogCapture()
 
   // 레벨 상승
   useGameStore.subscribe(
@@ -86,6 +96,94 @@ export function initPlaytestLogger() {
   )
 }
 
+function initRuntimeLogCapture() {
+  if (!runtimeLogEnabled || typeof window === 'undefined') return
+
+  for (const level of CONSOLE_LEVELS) {
+    const original = console[level].bind(console)
+    console[level] = (...args) => {
+      original(...args)
+      emitRuntimeLog('console', {
+        level,
+        args: args.map(serializeLogValue),
+      })
+    }
+  }
+
+  window.addEventListener('error', (event) => {
+    emitRuntimeLog('runtime-error', {
+      message: event.message,
+      source: event.filename,
+      line: event.lineno,
+      column: event.colno,
+      stack: event.error?.stack,
+    })
+  })
+
+  window.addEventListener('unhandledrejection', (event) => {
+    emitRuntimeLog('unhandled-rejection', {
+      reason: serializeLogValue(event.reason),
+    })
+  })
+
+  window.setInterval(() => {
+    const state = useGameStore.getState()
+    emitRuntimeLog('state', {
+      phase: state.phase,
+      stageId: state.currentStageId,
+      elapsedMs: state.elapsedMs,
+      player: {
+        hp: state.player.hp,
+        maxHp: state.player.maxHp,
+        level: state.player.level,
+        xp: state.player.xp,
+      },
+      bossSpawned: state.bossSpawned,
+      runKills: state.runKills,
+      goldSession: state.goldSession,
+    })
+  }, 2000)
+
+  window.addEventListener('beforeunload', () => {
+    emitRuntimeLog('session-end', buildPlaytestSummary(), true)
+  })
+  emitRuntimeLog('session-start', {
+    href: window.location.href,
+    userAgent: navigator.userAgent,
+  })
+}
+
+function emitRuntimeLog(category, payload, useBeacon = false) {
+  if (!runtimeLogEnabled || typeof window === 'undefined') return
+
+  const body = JSON.stringify({
+    clientSessionId,
+    clientTime: new Date().toISOString(),
+    category,
+    payload,
+  })
+  if (useBeacon && navigator.sendBeacon) {
+    navigator.sendBeacon('/__playtest-log', body)
+    return
+  }
+  void fetch('/__playtest-log', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body,
+    keepalive: true,
+  }).catch(() => {})
+}
+
+function serializeLogValue(value) {
+  if (value instanceof Error) return value.stack || value.message
+  if (typeof value === 'string') return value
+  try {
+    return JSON.stringify(value)
+  } catch {
+    return String(value)
+  }
+}
+
 // 외부 호출 — 게임 코드에서 킬/피격/픽업 시 호출한다.
 export function logKill(enemyType) {
   totalKills += 1
@@ -100,6 +198,10 @@ export function logDamageTaken(amount, hp) {
 export function logPickup(pickupType, value) {
   totalPickups += 1
   record('pickup', { pickupType, value, totalPickups })
+}
+
+export function logPlaytestEvent(type, payload) {
+  record(type, payload)
 }
 
 function formatMs(ms) {

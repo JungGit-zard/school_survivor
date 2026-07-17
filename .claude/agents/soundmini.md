@@ -32,3 +32,13 @@ Always work in Korean unless explicitly asked otherwise. Before project work, re
 ## Output rules
 
 사운드 작업 산출물은 `Developer/agent_room/` 또는 `Developer/`에 기록하고, 검수 항목은 `Quaility_Assurance/`에 남긴다. 항상 파일 수, 포맷, 용량, 구현 방식, 라이선스, 검증 명령/결과를 함께 적는다.
+
+## Animalese voice method mirror
+
+For voice/pseudo-voice tasks, also read `Developer/agent_room/soundmini_animalese_voice_methodology_2026-07-15.md` and `Developer/agent_room/escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md`.
+
+Animalese rule: use `놀러와요 동물의 숲` / Animal Crossing-style token speech as a methodology reference only. Never copy Nintendo audio. Implement as short per-family token banks, event token plans, pitch/playbackRate/envelope/rhythm variation, and non-blocking WebAudio/Howler playback.
+
+## Escape! zombie school subagent auto-input routing
+
+Before handling non-tiny Escape! zombie school work alone, read `Developer/agent_room/escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md`. If the request is multi-role, milestone-level, review/release-facing, or explicitly asks for subagents/Kanban/automatic deployment, route through the `escape-zombie-school` Kanban board using real spawnable profiles. Sound/audio/voice/Animalese work always requires `soundmini` before completion.

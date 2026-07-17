@@ -815,10 +815,23 @@ function planStudioB02Source(tunings, parsed, storedRevision) {
     next[STUDIO_B02_ITEM_ID] = STUDIO_B02_SOURCE_TUNINGS[STUDIO_B02_ITEM_ID]
     changed = true
   } else {
-    const completedRoot = normalizeStudioTuning({
+    let completedRoot = normalizeStudioTuning({
       ...STUDIO_B02_SOURCE_TUNINGS[STUDIO_B02_ITEM_ID],
       ...next[STUDIO_B02_ITEM_ID],
     })
+    if (storedRevision < sourceRevision) {
+      // 2026-07-17 복구: B02가 타이틀/로비/런타임에서 두 배 가까이 커진 원인은
+      // Graphics Studio 실험값으로 남은 루트 스케일이 ZombieMesh 경로에 그대로
+      // 적용됐기 때문이다. 색/위치 같은 비율 외 튜닝은 보존하되, Stage 1 보스급
+      // 크기로 되돌리기 위해 루트 크기 축만 정본 기본값으로 복구한다.
+      completedRoot = {
+        ...completedRoot,
+        scale: DEFAULT_STUDIO_TUNING.scale,
+        scaleX: DEFAULT_STUDIO_TUNING.scaleX,
+        scaleY: DEFAULT_STUDIO_TUNING.scaleY,
+        scaleZ: DEFAULT_STUDIO_TUNING.scaleZ,
+      }
+    }
     const rawRoot = parsed?.[STUDIO_B02_ITEM_ID]
     if (!rawRoot || JSON.stringify(completedRoot) !== JSON.stringify(rawRoot)) changed = true
     next[STUDIO_B02_ITEM_ID] = completedRoot

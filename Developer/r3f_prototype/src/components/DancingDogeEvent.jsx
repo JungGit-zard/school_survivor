@@ -185,27 +185,10 @@ export default function DancingDogeEvent({
       {revealed && !dying && !escaping && (
         // kinematicPosition — 도주 이동을 setNextKinematicTranslation으로 구동한다
         // (물리 시뮬 불필요, 렌더/콜라이더/enemyBodies 좌표가 함께 따라간다).
-        <RigidBody
-          ref={rb}
-          type="kinematicPosition"
-          position={position}
-          colliders={false}
-          onIntersectionEnter={({ other }) => {
-            // 플레이어 몸통 충돌 — 피해 없이 도지 중심→플레이어 방향으로 확 밀쳐낸다.
-            // 플레이어만 밀도록 _applyKnockback 훅 유무로 판별(무기/좀비 오감지 금지).
-            const apply = other.rigidBody?._applyKnockback
-            if (!apply || dead.current) return
-            const now = performance.now()
-            if (now - lastKnockbackAtRef.current < DOGE_KNOCKBACK_COOLDOWN_MS) return
-            lastKnockbackAtRef.current = now
-            const pt = other.rigidBody.translation()
-            const kb = dogeKnockbackVelocity(posRef.current, [pt.x, pt.y, pt.z])
-            apply(kb.x, kb.z, DOGE_KNOCKBACK_MS)
-          }}
-        >
-          {/* 센서 콜라이더 — 무기 판정은 enemyBodies 좌표 기반이라 몸을 막지 않아도 된다
-              (플레이어가 중앙 개체에 끼는 사고 방지). 넉백은 위 onIntersectionEnter가 담당. */}
-          <CuboidCollider args={[0.32 * scale, 0.75 * scale, 0.32 * scale]} position={[0, 0.75 * scale, 0]} sensor />
+        <RigidBody ref={rb} type="kinematicPosition" position={position} colliders={false} lockRotations friction={1}>
+          {/* 실제 충돌 콜라이더 — 보너스 도지도 플레이어/적과 물리적으로 겹치지 않는다.
+              무기 피격은 기존 enemyBodies 계약을 유지한다. */}
+          <CuboidCollider args={[0.32 * scale, 0.75 * scale, 0.32 * scale]} position={[0, 0.75 * scale, 0]} />
           <group ref={waddleRef}>
             <DancingDoge position={[0, 0, 0]} dance="twist" scale={scale} paused={phase !== 'playing'} />
           </group>

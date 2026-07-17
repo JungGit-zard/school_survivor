@@ -12,10 +12,14 @@ export const BLOCKING_STAGE_OBJECT_TYPES = new Set([
   'corridorLostFoundBoard',
   'basketballHoop',
   'basketballBallCart',
+  'basketballCluster',
   'gymBench',
+  'gymTrainingCones',
   'gymMats',
   'gymScoreboard',
+  'gymBanner',
   'gymExitDoor',
+  'gymEquipmentSpill',
 ])
 
 const DESK_COLLIDER_PARTS = [
@@ -40,28 +44,66 @@ const CORRIDOR_LOST_FOUND_COLLIDER_PARTS = [
 ]
 
 const BASKETBALL_HOOP_COLLIDER_PARTS = [
-  { key: 'hoop-base-footprint', position: [0, 0.38, 0], size: [1.72, 0.76, 1.02] },
-  { key: 'hoop-post-footprint', position: [0, 1.1, 0.14], size: [0.92, 2.2, 0.32] },
+  { key: 'hoop-wood-base', position: [0, 0.06, 0], size: [1.72, 0.12, 1.02] },
+  { key: 'hoop-blue-base', position: [0, 0.38, 0], size: [0.72, 0.62, 0.52] },
+  { key: 'hoop-post', position: [0, 1.26, -0.18], size: [0.20, 1.28, 0.20] },
+  { key: 'hoop-support-arm', position: [0, 1.86, 0.04], size: [0.92, 0.16, 0.18] },
+  { key: 'hoop-backboard', position: [0, 2.32, 0.4], size: [1.72, 1.08, 0.12] },
+  { key: 'hoop-rim', position: [0, 1.94, 0.98], size: [0.9, 0.18, 0.56] },
 ]
 
 const BASKETBALL_CART_COLLIDER_PARTS = [
-  { key: 'ball-cart-footprint', position: [0, 0.58, 0], size: [1.55, 1.16, 0.95] },
+  { key: 'ball-cart-frame', position: [0, 0.58, 0], size: [1.55, 1.04, 0.95] },
+  { key: 'ball-cart-basket', position: [0, 0.82, 0], size: [1.28, 0.58, 0.74] },
+  { key: 'ball-cart-wheel-left', position: [-0.58, 0.12, 0.34], size: [0.24, 0.24, 0.18] },
+  { key: 'ball-cart-wheel-right', position: [0.58, 0.12, -0.34], size: [0.24, 0.24, 0.18] },
+]
+
+const BASKETBALL_CLUSTER_COLLIDER_PARTS = [
+  { key: 'basketball-0', position: [-0.62, 0.19, -0.22], size: [0.36, 0.36, 0.36] },
+  { key: 'basketball-1', position: [-0.18, 0.19, 0.24], size: [0.36, 0.36, 0.36] },
+  { key: 'basketball-2', position: [0.26, 0.19, -0.18], size: [0.36, 0.36, 0.36] },
+  { key: 'basketball-3', position: [0.68, 0.19, 0.18], size: [0.36, 0.36, 0.36] },
+  { key: 'basketball-4', position: [0.05, 0.19, 0.66], size: [0.36, 0.36, 0.36] },
+  { key: 'basketball-5', position: [-0.74, 0.19, 0.52], size: [0.36, 0.36, 0.36] },
 ]
 
 const GYM_BENCH_COLLIDER_PARTS = [
-  { key: 'gym-bench-footprint', position: [0, 0.38, 0], size: [2.35, 0.76, 0.52] },
+  { key: 'gym-bench-seat', position: [0, 0.58, 0], size: [2.35, 0.18, 0.42] },
+  { key: 'gym-bench-left-leg', position: [-0.82, 0.28, 0], size: [0.18, 0.56, 0.52] },
+  { key: 'gym-bench-right-leg', position: [0.82, 0.28, 0], size: [0.18, 0.56, 0.52] },
+]
+
+const GYM_TRAINING_CONES_COLLIDER_PARTS = [
+  { key: 'gym-cone-0', position: [-0.78, 0.18, -0.44], size: [0.34, 0.36, 0.34] },
+  { key: 'gym-cone-1', position: [-0.34, 0.18, 0.16], size: [0.34, 0.36, 0.34] },
+  { key: 'gym-cone-2', position: [0.12, 0.18, -0.28], size: [0.34, 0.36, 0.34] },
+  { key: 'gym-cone-3', position: [0.56, 0.18, 0.32], size: [0.34, 0.36, 0.34] },
 ]
 
 const GYM_MATS_COLLIDER_PARTS = [
-  { key: 'gym-mats-footprint', position: [0, 0.34, 0], size: [1.65, 0.68, 1.05] },
+  { key: 'gym-mats-stack', position: [0, 0.4, 0], size: [1.65, 0.68, 1.05] },
 ]
 
 const GYM_SCOREBOARD_COLLIDER_PARTS = [
-  { key: 'gym-scoreboard-footprint', position: [0, 1.0, 0], size: [2.72, 2.0, 0.24] },
+  { key: 'gym-scoreboard-panel', position: [0, 1.15, 0.08], size: [2.72, 1.34, 0.2] },
+]
+
+const GYM_BANNER_COLLIDER_PARTS = [
+  { key: 'gym-banner-cloth', position: [0, 1.12, 0], size: [2.45, 0.64, 0.12] },
+  { key: 'gym-banner-rope', position: [0, 1.52, 0], size: [2.64, 0.12, 0.12] },
 ]
 
 const GYM_EXIT_DOOR_COLLIDER_PARTS = [
-  { key: 'gym-exit-door-footprint', position: [0, 1.0, 0], size: [1.62, 2.0, 0.28] },
+  { key: 'gym-exit-door-panel', position: [0, 1.0, 0], size: [1.42, 2.0, 0.22] },
+  { key: 'gym-exit-door-sign', position: [0, 2.25, 0.06], size: [1.62, 0.36, 0.16] },
+]
+
+const GYM_EQUIPMENT_SPILL_COLLIDER_PARTS = [
+  { key: 'gym-equipment-cooler', position: [-0.58, 0.26, 0], rotation: [0, 0, Math.PI / 2], size: [0.62, 0.74, 0.52] },
+  { key: 'gym-equipment-water', position: [-0.02, 0.04, 0.32], size: [0.82, 0.08, 0.46] },
+  { key: 'gym-equipment-box', position: [0.84, 0.24, -0.1], size: [0.64, 0.42, 0.52] },
+  { key: 'gym-equipment-whistle', position: [-1.28, 0.08, -0.38], rotation: [0, 0.25, 0], size: [0.32, 0.12, 0.18] },
 ]
 
 const COLLIDER_DEFS = {
@@ -78,10 +120,14 @@ const COLLIDER_DEFS = {
   corridorLostFoundBoard: { parts: CORRIDOR_LOST_FOUND_COLLIDER_PARTS },
   basketballHoop: { parts: BASKETBALL_HOOP_COLLIDER_PARTS },
   basketballBallCart: { parts: BASKETBALL_CART_COLLIDER_PARTS },
+  basketballCluster: { parts: BASKETBALL_CLUSTER_COLLIDER_PARTS },
   gymBench: { parts: GYM_BENCH_COLLIDER_PARTS },
+  gymTrainingCones: { parts: GYM_TRAINING_CONES_COLLIDER_PARTS },
   gymMats: { parts: GYM_MATS_COLLIDER_PARTS },
   gymScoreboard: { parts: GYM_SCOREBOARD_COLLIDER_PARTS },
+  gymBanner: { parts: GYM_BANNER_COLLIDER_PARTS },
   gymExitDoor: { parts: GYM_EXIT_DOOR_COLLIDER_PARTS },
+  gymEquipmentSpill: { parts: GYM_EQUIPMENT_SPILL_COLLIDER_PARTS },
 }
 
 const MIN_BLOCKING_HALF_HEIGHT = 0.44
@@ -196,7 +242,7 @@ export function getStageObjectColliderParts(placement = {}) {
 
 export function getStageObjectColliders(stageId = 'stage1') {
   return getStageObjectPlacements(stageId)
-    .filter(({ type, blocking }) => BLOCKING_STAGE_OBJECT_TYPES.has(type) && blocking !== false)
+    .filter(({ type, blocking }) => BLOCKING_STAGE_OBJECT_TYPES.has(type) && (stageId === 'stage3' || blocking !== false))
     .map((placement) => ({
       id: `${placement.id}-collider`,
       position: placement.position,

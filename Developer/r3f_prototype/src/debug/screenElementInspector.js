@@ -17,10 +17,18 @@ function installScreenElementInspector() {
         <strong>CDP Screen Inspector</strong>
         <small>클릭 또는 드래그한 영역의 요소 정보</small>
       </div>
-      <button type="button">Clear</button>
+      <div class="cdp-inspector-actions">
+        <button class="cdp-inspector-clear" type="button">Clear</button>
+        <button class="cdp-inspector-collapse" type="button">접기</button>
+      </div>
     </header>
     <pre>왼쪽 화면을 클릭하거나 드래그하세요.</pre>
   `
+
+  const reopen = document.createElement('button')
+  reopen.id = 'screen-element-inspector-reopen'
+  reopen.type = 'button'
+  reopen.textContent = 'Inspector 열기'
 
   const selection = document.createElement('div')
   selection.id = 'screen-element-inspector-selection'
@@ -74,6 +82,10 @@ function installScreenElementInspector() {
       font-weight: 900;
       cursor: pointer;
     }
+    #screen-element-inspector-panel .cdp-inspector-actions {
+      display: flex;
+      gap: 6px;
+    }
     #screen-element-inspector-panel pre {
       box-sizing: border-box;
       height: calc(100vh - 72px);
@@ -94,11 +106,34 @@ function installScreenElementInspector() {
       background: rgba(103, 212, 255, 0.16);
       border: 2px solid #67d4ff;
     }
+    #screen-element-inspector-reopen {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 2147483647;
+      display: none;
+      padding: 7px 10px;
+      color: #f6fbff;
+      background: #182231;
+      border: 2px solid #67d4ff;
+      border-radius: 8px;
+      font: 900 12px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      cursor: pointer;
+    }
+    body.cdp-inspector-collapsed {
+      padding-right: 0 !important;
+    }
+    body.cdp-inspector-collapsed #screen-element-inspector-panel {
+      display: none;
+    }
+    body.cdp-inspector-collapsed #screen-element-inspector-reopen {
+      display: block;
+    }
   `
 
   document.body.classList.add('cdp-inspector-active')
   document.head.appendChild(style)
-  document.body.append(panel, selection)
+  document.body.append(panel, selection, reopen)
 
   const output = panel.querySelector('pre')
   const state = { dragging: false, startX: 0, startY: 0, lastThreeAt: 0 }
@@ -123,8 +158,16 @@ function installScreenElementInspector() {
 
   window.__zombieSchoolScreenInspector = { inspectPoint, inspectArea, inspectThree }
 
-  panel.querySelector('button').addEventListener('click', () => {
+  panel.querySelector('.cdp-inspector-clear').addEventListener('click', () => {
     output.textContent = '왼쪽 화면을 클릭하거나 드래그하세요.'
+  })
+  panel.querySelector('.cdp-inspector-collapse').addEventListener('click', () => {
+    document.body.classList.add('cdp-inspector-collapsed')
+    window.dispatchEvent(new Event('resize'))
+  })
+  reopen.addEventListener('click', () => {
+    document.body.classList.remove('cdp-inspector-collapsed')
+    window.dispatchEvent(new Event('resize'))
   })
 
   window.addEventListener('pointerdown', event => {

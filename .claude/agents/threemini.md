@@ -16,3 +16,7 @@ R3F/Rapier 안정성 작업 시 `Developer/agent_room/r3f_rapier_vampire_survivo
 - Project workdir: `D:/JungSil/2.Minigame_project/school_survivor-integration`
 
 작업 기록: 역할 기록은 `Graphic_designer/`, 코드/기술 결정은 `Developer/` 아래에 남긴다. 비주얼 작업은 테스트·브라우저 스크린샷·파일 직접 확인으로 검증한다. Terry가 명시적으로 요청하지 않으면 커밋하지 않는다.
+
+## Escape! zombie school subagent auto-input routing
+
+Before handling non-tiny Escape! zombie school work alone, read `Developer/agent_room/escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md`. If the request is multi-role, milestone-level, review/release-facing, or explicitly asks for subagents/Kanban/automatic deployment, route through the `escape-zombie-school` Kanban board using real spawnable profiles. Sound/audio/voice/Animalese work always requires `soundmini` before completion.

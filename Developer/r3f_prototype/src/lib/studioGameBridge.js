@@ -13,7 +13,10 @@ export function getDefaultStudioGameUrl(location = globalThis.location) {
 export function parseStudioGameUrl(value, baseHref = globalThis.location?.href) {
   try {
     const url = new URL(value, baseHref)
-    return /^https?:$/.test(url.protocol) ? getCanonicalLocalGameUrl(url) : null
+    if (!/^https?:$/.test(url.protocol)) return null
+    const canonicalUrl = getCanonicalLocalGameUrl(url)
+    const currentOrigin = baseHref ? new URL(baseHref).origin : globalThis.location?.origin
+    return isAllowedStudioGameOrigin(canonicalUrl.origin, currentOrigin) ? canonicalUrl : null
   } catch {
     return null
   }
@@ -26,20 +29,30 @@ function getCanonicalLocalGameUrl(url) {
   return url
 }
 
-export function isAllowedStudioGameOrigin(origin) {
+export function isAllowedStudioGameOrigin(origin, currentOrigin = globalThis.location?.origin) {
   try {
     const url = new URL(origin)
+    const current = currentOrigin ? new URL(currentOrigin) : null
+    if (!/^https?:$/.test(url.protocol)) return false
+    if (current && url.origin === current.origin) return true
+
+    // Cross-origin posting is a local-development convenience only. A deployed
+    // HTTPS Studio must never send workspace data to localhost or the LAN.
     if (url.protocol !== 'http:') return false
-    const host = url.hostname
-    // ponytail: startsWith('192.168.')는 '192.168.evil.com' 같은 공인 도메인도 통과시켜
-    // 화이트리스트가 우회됨 → LAN IPv4 형태로 정확히 매칭한다(octet 범위는 dev용이라 생략).
-    return (
-      host === 'localhost'
-      || host === '127.0.0.1'
-      || host === '0.0.0.0'
-      || /^192\.168\.\d{1,3}\.\d{1,3}$/.test(host)
-    )
+    if (!current) return isLocalDevHost(url.hostname)
+    if (current.protocol !== 'http:') return false
+    if (!isLocalDevHost(current.hostname)) return false
+    return isLocalDevHost(url.hostname)
   } catch {
     return false
   }
+}
+
+function isLocalDevHost(host) {
+  return (
+    host === 'localhost'
+    || host === '127.0.0.1'
+    || host === '0.0.0.0'
+    || /^192\.168\.\d{1,3}\.\d{1,3}$/.test(host)
+  )
 }

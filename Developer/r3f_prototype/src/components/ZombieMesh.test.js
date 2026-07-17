@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { ENEMY_STATS } from './Enemy.jsx'
-import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_TEACHER_BOSS_FACE, B02_TEACHER_BOSS_PALETTE, B02_TEACHER_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS } from './ZombieMesh.jsx'
+import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_TEACHER_BOSS_FACE, B02_TEACHER_BOSS_PALETTE, B02_TEACHER_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS, RUN_ZOMBIE_VISUAL, ZOMBIE_PALETTE } from './ZombieMesh.jsx'
 
 const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
 
@@ -129,6 +129,30 @@ describe('B03 muscular PE teacher boss', () => {
     expect(source).not.toContain('position={[-0.23, 0.12, 0.16]}')
     expect(source).not.toContain('position={[0.24, 0.11, 0.12]}')
     expect(source).not.toContain('position={[0.03, 0.12, 0.18]}')
+  })
+})
+
+describe('Stage 3 run zombie crew visual reference', () => {
+  it('registers leader and crew enemy stats separately from normal runners', () => {
+    expect(ENEMY_STATS.RZL).toMatchObject({ hp: 90, speed: 2.45, scale: 1.08, runCrew: true })
+    expect(ENEMY_STATS.RZC).toMatchObject({ hp: 28, speed: 2.18, scale: 0.78, runCrew: true })
+    expect(ENEMY_STATS.RZL.speed).toBeGreaterThan(ENEMY_STATS.E03.speed)
+    expect(ENEMY_STATS.RZC.speed).toBeGreaterThan(ENEMY_STATS.E03.speed)
+  })
+
+  it('defines voxel low-poly sportswear for the leader and the twelve followers', () => {
+    expect(ZOMBIE_PALETTE.RZL).toMatchObject({ body: 0x5a2484, skin: 0x8fa85e })
+    expect(ZOMBIE_PALETTE.RZC).toMatchObject({ body: 0x1671a6, skin: 0x8fa85e })
+    expect(RUN_ZOMBIE_VISUAL.leader).toMatchObject({ bib: '001', medal: 0xf0b62d })
+    expect(RUN_ZOMBIE_VISUAL.crew).toMatchObject({ bib: '013', jersey: 0xf0eee4 })
+    expect(RUN_ZOMBIE_VISUAL.parts).toEqual(expect.arrayContaining(['headband', 'bib', 'medal', 'wristbands', 'chunkyRunningShoes', 'runningPose']))
+  })
+
+  it('renders run zombie leader and crew through the dedicated RunZombieMesh branch', () => {
+    expect(zombieMeshSource).toContain('function RunZombieMesh')
+    expect(zombieMeshSource).toContain("type === 'RZL' || type === 'RZC'")
+    expect(zombieMeshSource).toContain("role={type === 'RZL' ? 'leader' : 'crew'}")
+    expect(zombieMeshSource).toContain('<BibDigits text={cfg.bib} />')
   })
 })
 

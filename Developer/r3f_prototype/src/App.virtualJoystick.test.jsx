@@ -3,8 +3,9 @@ import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App, { handleStudioGameSyncMessage } from './App.jsx'
-import { loadStageBossPreview, loadStudioTunings, loadTextureDecals } from './lib/graphicsStudioConfig.js'
+import { loadStageBossPreview, loadStudioTunings, loadTextureDecals, saveStudioTunings } from './lib/graphicsStudioConfig.js'
 import { loadSfxTunings } from './lib/sfxRegistry.js'
+import { loadStagePropPlacements, resetStagePropPlacementsCache, saveStagePropPlacements } from './lib/stagePropPlacements.js'
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }) => <canvas data-testid="mock-canvas">{children}</canvas>,
@@ -81,6 +82,11 @@ afterEach(() => {
 describe('App virtual joystick mounting', () => {
   it('applies studio sync messages into the current game origin storage', () => {
     localStorage.clear()
+    resetStagePropPlacementsCache()
+    saveStudioTunings({ stale: { scale: 1.3 } })
+    saveStagePropPlacements({
+      stage1: [{ id: 'stale-desk', type: 'classroomDesk', position: [0, 0, 0], rotation: [0, 0, 0], scale: 1 }],
+    })
 
     const handled = handleStudioGameSyncMessage({
       origin: 'http://localhost:5173',
@@ -94,14 +100,76 @@ describe('App virtual joystick mounting', () => {
             { partId: 'b02-head', faceAxis: '+z', imageDataUrl: 'data:image/png;base64,AAAA', offset: [0.1, 0], scale: [0.4, 0.4], rotation: 0 },
           ],
         },
+        propPlacements: {
+          stage1: null,
+          stage2: [{
+            id: 'cloud-board',
+            type: 'corridorLostFoundBoard',
+            position: [2, 0, -4],
+            rotation: [0, 0.5, 0],
+            scale: 1,
+          }],
+          stage3: null,
+        },
       },
     })
 
     expect(handled).toBe(true)
     expect(loadStudioTunings().player.scale).toBe(1.7)
+    expect(loadStudioTunings()).not.toHaveProperty('stale')
     expect(loadSfxTunings().pencilFire.volume).toBe(0.4)
     expect(loadStageBossPreview()).toEqual({ zoom: 133, panX: 0.35, panY: -0.25 })
     expect(loadTextureDecals()['zombie-b02-teacher'][0]).toMatchObject({ partId: 'b02-head', faceAxis: '+z' })
+    expect(loadStagePropPlacements().stage1).toBeNull()
+    expect(loadStagePropPlacements().stage2[0].id).toBe('cloud-board')
+  })
+
+  it('rejects malformed Studio datasets without wiping current local state', () => {
+    localStorage.clear()
+    resetStagePropPlacementsCache()
+    saveStudioTunings({ player: { scale: 1.63 } })
+    saveStagePropPlacements({
+      stage1: [{ id: 'safe-desk', type: 'classroomDesk', position: [0, 0, 0], rotation: [0, 0, 0], scale: 1 }],
+    })
+    const beforeTunings = JSON.stringify(loadStudioTunings())
+    const beforeProps = JSON.stringify(loadStagePropPlacements())
+
+    expect(handleStudioGameSyncMessage({
+      origin: 'http://localhost:5173',
+      data: {
+        type: 'escape-zombie-school.studioGameSync.v1',
+        tunings: 7,
+        sfxTunings: {},
+        stageBossPreview: {},
+        decals: {},
+        propPlacements: {},
+      },
+    })).toBe(false)
+
+    expect(JSON.stringify(loadStudioTunings())).toBe(beforeTunings)
+    expect(JSON.stringify(loadStagePropPlacements())).toBe(beforeProps)
+  })
+
+  it('rejects Studio messages that do not come from the exact opener window', () => {
+    const previousOpener = window.opener
+    const opener = {}
+    Object.defineProperty(window, 'opener', { configurable: true, value: opener })
+    try {
+      expect(handleStudioGameSyncMessage({
+        origin: 'http://localhost:5173',
+        source: {},
+        data: {
+          type: 'escape-zombie-school.studioGameSync.v1',
+          tunings: {},
+          sfxTunings: {},
+          stageBossPreview: {},
+          decals: {},
+          propPlacements: {},
+        },
+      })).toBe(false)
+    } finally {
+      Object.defineProperty(window, 'opener', { configurable: true, value: previousOpener })
+    }
   })
 
   it('uses the full viewport width so narrow iPhone SE screens are not pillarboxed', () => {

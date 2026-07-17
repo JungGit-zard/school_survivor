@@ -30,6 +30,32 @@
         "$other": { ".validate": false }
       }
     },
+    "studioWorkspaces": {
+      "v1": {
+        "users": {
+          "$uid": {
+            "current": {
+              ".read": "auth != null && auth.uid === $uid",
+              ".write": "auth != null && auth.uid === $uid",
+              ".validate": "newData.hasChildren(['schemaVersion', 'revision', 'updatedAt'])",
+              "schemaVersion": { ".validate": "newData.isNumber() && newData.val() === 1" },
+              "revision": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0" },
+              "updatedAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
+              "datasets": {
+                "tunings": { ".validate": "newData.hasChildren() || newData.val() == null" },
+                "sfxTunings": { ".validate": "newData.hasChildren() || newData.val() == null" },
+                "stageBossPreview": { ".validate": "newData.hasChildren() || newData.val() == null" },
+                "decals": { ".validate": "newData.hasChildren() || newData.val() == null" },
+                "propPlacements": { ".validate": "newData.hasChildren() || newData.val() == null" },
+                "$other": { ".validate": false }
+              },
+              "$other": { ".validate": false }
+            },
+            "$other": { ".validate": false }
+          }
+        }
+      }
+    },
     "rankingService": {
       "v1": {
         "public": {

@@ -17,4 +17,12 @@ describe('additional gameplay SFX coverage', () => {
     expect(source).toContain("emitSfx({ id: 'dogeDeath'")
     expect(source).not.toContain("emitSfx({ id: 'zombieHeavyDeath' })")
   })
+
+  it('keeps bonus Doge physically solid instead of using a sensor-only body', () => {
+    const source = readFileSync(new URL('./DancingDogeEvent.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('보너스 도지도 플레이어/적과 물리적으로 겹치지 않는다')
+    expect(source).toContain('<CuboidCollider args={[0.32 * scale, 0.75 * scale, 0.32 * scale]} position={[0, 0.75 * scale, 0]} />')
+    expect(source).not.toContain('position={[0, 0.75 * scale, 0]} sensor')
+  })
 })

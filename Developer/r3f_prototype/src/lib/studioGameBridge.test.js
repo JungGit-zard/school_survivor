@@ -20,9 +20,38 @@ describe('isAllowedStudioGameOrigin', () => {
     expect(isAllowedStudioGameOrigin('http://192.1680.0.1')).toBe(false)
   })
 
-  it('rejects https and non-lan hosts', () => {
-    expect(isAllowedStudioGameOrigin('https://localhost:5173')).toBe(false)
+  it('allows same-origin production https and rejects external https or non-lan hosts', () => {
+    expect(isAllowedStudioGameOrigin(
+      'https://game.example.com',
+      'https://game.example.com',
+    )).toBe(true)
+    expect(isAllowedStudioGameOrigin(
+      'https://evil.example.com',
+      'https://game.example.com',
+    )).toBe(false)
+    expect(isAllowedStudioGameOrigin('https://localhost:5173', 'https://game.example.com')).toBe(false)
+    expect(isAllowedStudioGameOrigin('http://game.example.com', 'http://game.example.com')).toBe(true)
+    expect(isAllowedStudioGameOrigin('http://localhost:5173', 'https://game.example.com')).toBe(false)
     expect(isAllowedStudioGameOrigin('http://example.com')).toBe(false)
     expect(isAllowedStudioGameOrigin('not-a-url')).toBe(false)
+  })
+
+  it('only parses safe Studio game targets before private data is posted', () => {
+    expect(parseStudioGameUrl(
+      'https://game.example.com/',
+      'https://game.example.com/graphics-studio',
+    )?.href).toBe('https://game.example.com/')
+    expect(parseStudioGameUrl(
+      'https://evil.example.com/',
+      'https://game.example.com/graphics-studio',
+    )).toBeNull()
+    expect(parseStudioGameUrl(
+      'http://example.com/',
+      'https://game.example.com/graphics-studio',
+    )).toBeNull()
+    expect(parseStudioGameUrl(
+      'http://localhost:5173/',
+      'http://localhost:4173/graphics-studio',
+    )?.href).toBe('http://localhost:5173/')
   })
 })

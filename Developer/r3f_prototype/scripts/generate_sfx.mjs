@@ -353,17 +353,19 @@ const sounds = {
     synth({ wave:'sine', freq:780, freqEnd:170, dur:0.42, vol:0.34, attack:0.005, decay:0.08, sustain:0.12, release:0.25 }),
     synth({ wave:'triangle', freq:260, freqEnd:90, dur:0.34, vol:0.28, attack:0.005, decay:0.08, sustain:0.08, release:0.20 }),
   ),
-  // Two short, breathy "ho-ho" syllables for the upright pause between charges.
+  // Sound_Mini Animalese method: three short "o-ho-ho" machine-voice tokens.
+  // This follows the project rule of using tiny synthesized syllable tokens,
+  // not a copied game sample or real-person voice imitation.
   'enemies/matildaLaugh': () => (() => {
-    const syllables = [540, 610].map((freq, index) => {
+    const syllables = [620, 540, 660].map((freq, index) => {
       const voice = mix(
-        synth({ wave:'sawtooth', freq, freqEnd:freq*0.82, dur:0.34, vol:0.5, attack:0.018, decay:0.08,
-          sustain:0.28, release:0.18, vibRate:6, vibDepth:12, noiseAmt:0.12,
-          overtones:[{ratio:2,amp:0.38},{ratio:3,amp:0.16}] }),
-        synth({ wave:'sine', freq:freq*2, freqEnd:freq*1.64, dur:0.30, vol:0.22, attack:0.015,
-          decay:0.07, sustain:0.2, release:0.16 }),
+        synth({ wave:'sawtooth', freq, freqEnd:freq*0.9, dur:0.22, vol:0.46, attack:0.006, decay:0.04,
+          sustain:0.25, release:0.08, vibRate:7, vibDepth:14, noiseAmt:0.08,
+          overtones:[{ratio:2,amp:0.32},{ratio:3,amp:0.12}] }),
+        synth({ wave:'triangle', freq:freq*1.5, freqEnd:freq*1.25, dur:0.18, vol:0.2, attack:0.004,
+          decay:0.04, sustain:0.18, release:0.07 }),
       )
-      const offset = Math.floor(index * 0.36 * SR)
+      const offset = Math.floor(index * 0.16 * SR)
       const padded = new Float32Array(voice.length + offset)
       padded.set(voice, offset)
       return padded

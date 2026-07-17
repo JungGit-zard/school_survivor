@@ -195,3 +195,13 @@ Claude Code(이 프로젝트 루트에서 실행되는 세션)는 `.claude/agent
 - Kanban 자동 투입(Hermes spawn)과 별개 레이어다 — Claude Code 세션 내부 위임용.
 - `bizmini`/`launchmini`/`englishgradmini`/`madangsue`/`jabdareminder`는 개발수행
   범위 밖이라 미러하지 않았다. 필요 시 같은 패턴으로 추가한다.
+
+## 11. 2026-07-17 자동투입 보강
+
+최신 자동투입 핸드오프는 `Developer/agent_room/escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md`이다.
+
+- Escape! zombie school 요청은 먼저 직접 처리 가능한 작은 1단계 작업인지 분류한다.
+- 작은 1단계 작업이 아니거나, 역할이 둘 이상이거나, 명시적으로 서브에이전트/자동투입/Kanban/검수/릴리즈/마일스톤을 말하면 `escape-zombie-school` 보드로 라우팅한다.
+- 실제 assignee는 `threemini`, `uimini`, `levelmini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`만 사용한다.
+- 사운드/효과음/BGM/음성/Animalese/WebAudio/Howler/SOUND_MAP/public/sfx/오디오 라이선스는 작은 작업이어도 `soundmini`가 반드시 관여한다.
+- 다른 에이전트에게 전달할 때는 위 핸드오프 파일을 먼저 읽게 한다.

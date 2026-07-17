@@ -185,3 +185,7 @@ As of 2026-06-27:
 - Verified worker/run: `madangsue`, run `#36`
 
 This file is the canonical project-local process for durable Hermes/Kanban subagent work.
+
+## 2026-07-17 Auto-input reinforcement
+
+Also read `Developer/agent_room/escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md` before deciding whether an Escape! zombie school request can be handled by one agent. All non-tiny or multi-role ESZS work should auto-involve the relevant registered profiles through board `escape-zombie-school`. Sound/audio/voice/Animalese work remains a hard `soundmini` gate even for tiny edits.

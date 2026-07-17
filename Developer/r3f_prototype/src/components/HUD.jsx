@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useMemo } from 'react'
+﻿import { useEffect, useState, useMemo, useRef } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useGameStore, STAGE1_INTRO_LINES } from '../store/useGameStore.js'
 import { joystickDir } from '../lib/refs.js'
@@ -34,8 +34,13 @@ import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
 import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
 import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.webp'
 import laidManPortraitSrc from '../assets/character/laid_man.webp'
+import matildaConversationPortraitSrc from '../assets/character/matilda_conversation.png'
 
 const GAMEOVER_TRANSITION_MS = 1000
+const MATILDA_COUNTDOWN_SECONDS = 5
+const MATILDA_DIALOGUE_MS = 4500
+const MATILDA_DIALOGUE_NAME = '마틸다'
+const MATILDA_DIALOGUE_LINE = '오호호호! 떡하나주면 안잡아먹지!'
 
 const damageLabel = (name, weaponKey, upgradeKey) => (w) =>
   `${name} +${UPGRADE_EFFECTS[upgradeKey].dmg} (Lv${(w[weaponKey].level ?? 1) + 1})`
@@ -493,6 +498,8 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
   const [gameoverModalReady, setGameoverModalReady] = useState(false)
   const [isTitleReturnConfirmOpen, setIsTitleReturnConfirmOpen] = useState(false)
   const [weaponCheatOpen, setWeaponCheatOpen] = useState(false)
+  const [matildaDialogueVisible, setMatildaDialogueVisible] = useState(false)
+  const previousMatildaSpawnedRef = useRef(matildaSpawned)
   const weaponCheatItems = useMemo(
     () => Object.entries(WEAPON_CATALOG).map(([id, entry]) => ({ id, label: entry.label, icon: WEAPON_KEY_TO_ICON[id] })),
     [],
@@ -559,11 +566,11 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
   const matildaWarning = useMemo(() => {
     if (matildaSpawned || phase !== 'playing') return null
     const elapsedSec = elapsed / 1000
-    const warnSec = stageConfig.matildaWarningSec ?? 410
     const spawnSec = stageConfig.matildaSec ?? 420
+    const warnSec = Math.max(0, spawnSec - MATILDA_COUNTDOWN_SECONDS)
     if (elapsedSec < warnSec || elapsedSec >= spawnSec) return null
     return Math.max(1, Math.ceil(spawnSec - elapsedSec))
-  }, [matildaSpawned, elapsed, phase, stageConfig.matildaWarningSec, stageConfig.matildaSec])
+  }, [matildaSpawned, elapsed, phase, stageConfig.matildaSec])
 
   // 보스/마틸다 경고 카운트가 바뀔 때마다 틱 사운드 1회
   useEffect(() => { if (bossWarning != null) emitSfx({ id: 'bossWarning', volume: 0.5 }) }, [bossWarning])
@@ -605,6 +612,21 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     if (phase !== 'paused') setIsTitleReturnConfirmOpen(false)
   }, [phase])
 
+  useEffect(() => {
+    if (!matildaSpawned) {
+      previousMatildaSpawnedRef.current = false
+      setMatildaDialogueVisible(false)
+      return undefined
+    }
+
+    if (previousMatildaSpawnedRef.current) return undefined
+
+    previousMatildaSpawnedRef.current = true
+    setMatildaDialogueVisible(true)
+    const timer = setTimeout(() => setMatildaDialogueVisible(false), MATILDA_DIALOGUE_MS)
+    return () => clearTimeout(timer)
+  }, [matildaSpawned])
+
   const confirmLobbyReturn = () => {
     if (!quitPausedRun()) return
     if (onGoToLobby) onGoToLobby()
@@ -629,6 +651,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         100%{opacity:1;backdrop-filter:grayscale(1);-webkit-backdrop-filter:grayscale(1)}
       }
       @keyframes studentDialoguePop { 0%{transform:scale(0);opacity:0.4} 70%{transform:scale(1.04)} 100%{transform:scale(1);opacity:1} }
+      @keyframes matildaDialoguePop { 0%{transform:translateX(-50%) scale(0.92);opacity:0.4} 70%{transform:translateX(-50%) scale(1.03)} 100%{transform:translateX(-50%) scale(1);opacity:1} }
       @keyframes levelupCardPop { 0%{opacity:0;transform:translateY(14px) scale(0.92)} 100%{opacity:1;transform:translateY(0) scale(1)} }
     `
     // StrictMode에서 cleanup이 먼저 실행돼 style이 제거될 수 있으므로
@@ -676,9 +699,31 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         </div>
       )}
       {matildaWarning != null && (
-        <div style={styles.matildaWarning}>
+        <div data-testid="matilda-warning" style={styles.matildaWarning}>
           <div style={styles.matildaWarningLabel}>⚠ 사신 마틸다 출현</div>
-          <div style={styles.matildaWarningCount}>{matildaWarning}</div>
+          <div data-testid="matilda-warning-count" style={styles.matildaWarningCount}>{matildaWarning}</div>
+        </div>
+      )}
+      {matildaDialogueVisible && (
+        <div
+          data-testid="matilda-dialogue"
+          style={styles.matildaDialogueBox}
+          role="dialog"
+          aria-label="마틸다 등장 대사"
+          aria-live="assertive"
+        >
+          <div style={styles.matildaDialoguePortraitFrame}>
+            <img
+              src={matildaConversationPortraitSrc}
+              alt="마틸다 프로필"
+              draggable={false}
+              style={styles.matildaDialoguePortrait}
+            />
+          </div>
+          <div style={styles.matildaDialogueTextCol}>
+            <div style={styles.matildaDialogueName}>{MATILDA_DIALOGUE_NAME}</div>
+            <div style={styles.matildaDialogueLine}>{MATILDA_DIALOGUE_LINE}</div>
+          </div>
         </div>
       )}
       {formationWarning != null && (
@@ -1118,6 +1163,75 @@ const styles = {
     fontWeight: 900,
     lineHeight: 1,
     marginTop: 4,
+  },
+  matildaDialogueBox: {
+    position: 'absolute',
+    left: '50%',
+    bottom: 'max(env(safe-area-inset-bottom), 18px)',
+    transform: 'translateX(-50%)',
+    zIndex: 35,
+    width: 'min(660px, calc(100vw - 24px))',
+    minHeight: 112,
+    boxSizing: 'border-box',
+    display: 'grid',
+    gridTemplateColumns: '96px 1fr',
+    alignItems: 'center',
+    gap: 14,
+    padding: '12px 16px',
+    border: '3px solid #211404',
+    borderRadius: 14,
+    background: 'linear-gradient(180deg, rgba(255, 247, 220, 0.98), rgba(236, 215, 165, 0.98))',
+    color: '#211404',
+    boxShadow: '0 7px 0 #050209, 0 16px 24px rgba(0,0,0,0.42)',
+    animation: 'matildaDialoguePop 150ms ease-out',
+    transformOrigin: 'center bottom',
+    pointerEvents: 'none',
+  },
+  matildaDialoguePortraitFrame: {
+    width: 88,
+    height: 88,
+    borderRadius: 10,
+    border: '3px solid #211404',
+    background: 'linear-gradient(180deg, #352044, #15101f)',
+    boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.16), 0 4px 0 rgba(0,0,0,0.45)',
+    overflow: 'hidden',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  matildaDialoguePortrait: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    display: 'block',
+    userSelect: 'none',
+  },
+  matildaDialogueTextCol: {
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+  },
+  matildaDialogueName: {
+    width: 'fit-content',
+    padding: '3px 12px',
+    borderRadius: 999,
+    border: '2px solid #211404',
+    background: '#6b2a82',
+    color: '#fff0ff',
+    fontSize: 14,
+    fontWeight: 900,
+    letterSpacing: 0.5,
+    boxShadow: '0 3px 0 rgba(0,0,0,0.35)',
+  },
+  matildaDialogueLine: {
+    color: '#211404',
+    fontSize: 'clamp(16px, 3.7vw, 22px)',
+    fontWeight: 900,
+    lineHeight: 1.32,
+    wordBreak: 'keep-all',
+    overflowWrap: 'anywhere',
+    textShadow: '0 1px 0 rgba(255,255,255,0.75)',
   },
   formationWarning: {
     position: 'absolute',

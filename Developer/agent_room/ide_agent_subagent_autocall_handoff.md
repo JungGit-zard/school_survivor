@@ -177,3 +177,9 @@ Final state:
 ```
 
 Never claim success without real outputs and fresh verification evidence.
+
+## 2026-07-17 Subagent Auto-Input Update
+
+Latest handoff: `Developer/agent_room/escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md`.
+
+IDE-side resident agents must read it before deciding to work alone on Escape! zombie school. Use direct work only for tiny one-step tasks. For non-tiny, multi-role, milestone, review, release, UI/graphics/gameplay/backend/localization/product/sound work, route through `escape-zombie-school` and auto-involve the relevant real profiles. Sound/audio/voice/Animalese always requires `soundmini` before completion.

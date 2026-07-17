@@ -7,7 +7,7 @@ import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.png'
 import { enemyBodies, playerPos } from '../lib/refs.js'
 import { getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat, inflateScale, outlineMat, toonMat } from '../lib/toon.js'
 import { useGameStore } from '../store/useGameStore.js'
-import { logKill } from '../lib/playtestLogger.js'
+import { logKill, logPlaytestEvent } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { emitVfx } from '../lib/vfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
@@ -84,6 +84,8 @@ export const ENEMY_SPAWN_SFX_COOLDOWN_MS = 110
 // with a small physics tolerance so a wall collision cannot stall the loop.
 export const MATILDA_EDGE_INSET = 1.2
 export const MATILDA_LAUGH_DURATION_MS = 900
+export const MATILDA_CHARGE_STALL_REVERSE_MS = 70
+export const MATILDA_CHARGE_STALL_MOVE_RATIO = 0.18
 
 export function hasMatildaReachedStageEdge(position, bounds, inset = MATILDA_EDGE_INSET) {
   return Math.abs(position.x) >= bounds.halfX - inset
@@ -95,6 +97,29 @@ export function isMatildaChargingOutward(position, direction, bounds, inset = MA
     || (position.x <= -bounds.halfX + inset && direction.x < 0)
     || (position.z >= bounds.halfZ - inset && direction.z > 0)
     || (position.z <= -bounds.halfZ + inset && direction.z < 0)
+}
+
+export function isMatildaChargeBlockedFrame({
+  movedAlong,
+  expectedMove,
+  distanceToPlayer,
+  hitDistance,
+  moveRatio = MATILDA_CHARGE_STALL_MOVE_RATIO,
+}) {
+  if (expectedMove <= 0.0001) return false
+  if (distanceToPlayer <= hitDistance + 0.08) return false
+  return movedAlong < expectedMove * moveRatio
+}
+
+export function shouldReverseMatildaChargeOnObstacle({
+  movedAlong,
+  expectedMove,
+  distanceToPlayer,
+  hitDistance,
+  stalledMs,
+}) {
+  return isMatildaChargeBlockedFrame({ movedAlong, expectedMove, distanceToPlayer, hitDistance })
+    && stalledMs >= MATILDA_CHARGE_STALL_REVERSE_MS
 }
 
 export function advanceEnemySpawnTimer(elapsedMs, deltaSec, phase) {
@@ -166,6 +191,9 @@ export const ENEMY_STATS = {
   E05: { hp: 70,   speed: 0.5,  damage: 16, scale: 1.15, xp: 15, contactDist: 0.32,
          charger: true, chargeSpeed: 1.7, warnDist: 4.5, warnDuration: 700, stunDuration: 1000, chargeDuration: 1200 },
   E06: { hp: 320,  speed: 0.6,  damage: 20, scale: 1.60, xp: 56, contactDist: 0.42 },
+  // Stage 3 Run Zombie crew: screen-crossing melee swarm, not a boss.
+  RZL: { hp: 90,   speed: 2.45, damage: 14, scale: 1.08, xp: 12, contactDist: 0.28, runCrew: true },
+  RZC: { hp: 28,   speed: 2.18, damage: 7,  scale: 0.78, xp: 5,  contactDist: 0.22, runCrew: true },
   // B01 1?ㅽ뀒?댁?: 遺梨꾧섦 ?ъ궗泥??⑦꽩 ?쒓굅. 異붽꺽/?뚯쭊留??ъ슜 (Bang_Rules 2026-05-09 遺濡?.
   // contactDist 0.36: regular charge keeps the 1.5x grace distance; Matilda charge uses exact body contact only.
   // ?댁쟾 0.80? ?묒큺 諛섍꼍??~1.6?대씪 蹂몄껜 ?명삎蹂대떎 ?⑥뵮 而ㅼ꽌 "???우븘???쇨꺽"?섎뒗 臾몄젣媛 ?덉뿀??
@@ -415,7 +443,7 @@ export function SpawnSmokeEffect({ position, visualScale, frozen = false }) {
   )
 }
 
-export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverride, isMatilda = false }) {
+export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverride, isMatilda = false, runCrewDir = null }) {
   const rb       = useRef()
   const groupRef = useRef()
   const stats    = { ...(ENEMY_STATS[type] ?? ENEMY_STATS.E01), ...statOverride }
@@ -441,6 +469,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const chargeState  = useRef(isMatilda ? 'matildaAim' : 'chase')
   const stateTimer   = useRef(0)
   const matildaLaughRemainingRef = useRef(0)
+  const matildaLaughCuePendingRef = useRef(false)
+  const matildaChargeStallMsRef = useRef(0)
+  const matildaPreviousChargePosRef = useRef({ x: spawnPos[0], z: spawnPos[2] })
   const chargeDir    = useRef(new THREE.Vector3())
 
   // E04 / B01 ?ъ궗泥?
@@ -459,8 +490,12 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     setSpawnRevealed(false)
     spawnRevealElapsedRef.current = 0
     spawnedAtRef.current = performance.now()
-    chargeState.current = isMatilda ? 'matildaAim' : 'chase'
-    matildaLaughRemainingRef.current = 0
+    chargeState.current = isMatilda ? 'matildaLaugh' : 'chase'
+    matildaLaughRemainingRef.current = isMatilda ? MATILDA_LAUGH_DURATION_MS : 0
+    matildaLaughCuePendingRef.current = isMatilda
+    matildaChargeStallMsRef.current = 0
+    matildaPreviousChargePosRef.current.x = spawnPos[0]
+    matildaPreviousChargePosRef.current.z = spawnPos[2]
     sightBlockedRef.current = false
     nextSightCheckRef.current = useGameStore.getState().elapsedMs + (stableEnemyHash(id) % 90)
     setAnimPhase(isMatilda ? 'stun' : 'normal')
@@ -605,6 +640,35 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
     const now = performance.now()
 
+    if (stats.runCrew) {
+      const dirX = runCrewDir?.x ?? 0.72
+      const dirZ = runCrewDir?.z ?? 0.72
+      const len = Math.hypot(dirX, dirZ) || 1
+      const nx = dirX / len
+      const nz = dirZ / len
+      _vel.x = nx * stats.speed
+      _vel.y = 0
+      _vel.z = nz * stats.speed
+      rb.current.setLinvel(_vel, true)
+      _applyRotation(groupRef, nx, nz, 0.9)
+
+      if (dist < stats.contactDist * ENEMY_SIZE_MULTIPLIER && now - lastContactDmgRef.current >= 500) {
+        lastContactDmgRef.current = now
+        damagePlayer(stats.damage)
+      }
+
+      const bounds = getStageBounds(currentStageId)
+      const outPad = 6.0
+      if (Math.abs(t.x) > bounds.halfX + outPad || Math.abs(t.z) > bounds.halfZ + outPad) {
+        dead.current = true
+        rb.current._enemyDead = true
+        rb.current._enemyHit = null
+        enemyBodies.delete(id)
+        onDeath?.(id, null)
+      }
+      return
+    }
+
     if (now < knockbackUntilRef.current) {
       _vel.x = knockbackDir.current.x * knockbackSpeedRef.current
       _vel.y = 0
@@ -699,12 +763,41 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           } else {
             chargeDir.current.set(-t.x, 0, -t.z).normalize()
           }
+          matildaPreviousChargePosRef.current.x = t.x
+          matildaPreviousChargePosRef.current.z = t.z
+          matildaChargeStallMsRef.current = 0
           chargeState.current = 'charge'
           setAnimPhase('charge')
           updateRotation(chargeDir.current.x, chargeDir.current.z, 1)
           emitSfx({ id: 'matildaDash', volume: 0.76 })
         } else if (chargeState.current === 'charge') {
           const cd = chargeDir.current
+          const previous = matildaPreviousChargePosRef.current
+          const movedAlong = (t.x - previous.x) * cd.x + (t.z - previous.z) * cd.z
+          const expectedMove = stats.chargeSpeed * delta
+          const hitDistance = getChargeHitDistance(stats, true)
+          const blockedFrame = isMatildaChargeBlockedFrame({
+            movedAlong,
+            expectedMove,
+            distanceToPlayer: dist,
+            hitDistance,
+          })
+          matildaChargeStallMsRef.current = blockedFrame
+            ? matildaChargeStallMsRef.current + delta * 1000
+            : 0
+          if (shouldReverseMatildaChargeOnObstacle({
+            movedAlong,
+            expectedMove,
+            distanceToPlayer: dist,
+            hitDistance,
+            stalledMs: matildaChargeStallMsRef.current,
+          })) {
+            cd.multiplyScalar(-1)
+            matildaChargeStallMsRef.current = 0
+            emitSfx({ id: 'matildaDash', volume: 0.52, rate: 0.88 })
+          }
+          previous.x = t.x
+          previous.z = t.z
           _vel.x = cd.x * stats.chargeSpeed
           _vel.z = cd.z * stats.chargeSpeed
           rb.current.setLinvel(_vel, true)
@@ -718,6 +811,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           if (isMatildaChargingOutward(t, cd, getStageBounds(currentStageId))) {
             chargeState.current = 'matildaLaugh'
             matildaLaughRemainingRef.current = MATILDA_LAUGH_DURATION_MS
+            matildaChargeStallMsRef.current = 0
             setAnimPhase('stun')
             _vel.x = 0
             _vel.z = 0
@@ -729,6 +823,10 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           _vel.z = 0
           rb.current.setLinvel(_vel, true)
           if (dist > 0.0001) updateRotation(_dir.x / dist, _dir.z / dist, 0.22)
+          if (matildaLaughCuePendingRef.current) {
+            matildaLaughCuePendingRef.current = false
+            emitSfx({ id: 'matildaLaugh', volume: 0.82 })
+          }
           matildaLaughRemainingRef.current -= delta * 1000
           if (matildaLaughRemainingRef.current <= 0) {
             chargeState.current = 'matildaAim'
@@ -777,6 +875,12 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           chargeState.current = stats.mathTeacherSpecial ? 'mathSwingWindup' : 'stun'
           stateTimer.current = now
           setAnimPhase(stats.mathTeacherSpecial ? 'special' : 'stun')
+          if (stats.mathTeacherSpecial) {
+            logPlaytestEvent('b01-math-special-start', {
+              bossId: id,
+              trigger: hitPlayer ? 'charge-hit' : 'charge-timeout',
+            })
+          }
           _vel.x = 0; _vel.z = 0
           rb.current.setLinvel(_vel, true)
         }
@@ -786,18 +890,24 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         rb.current.setLinvel(_vel, true)
         if (dist > 0.0001) updateRotation(_dir.x / dist, _dir.z / dist, 0.30)
         if (now - stateTimer.current >= MATH_TEACHER_SWING_WINDUP_MS) {
-          applyMathTeacherSwing({
+          const pushedZombies = applyMathTeacherSwing({
             bodies: enemyBodies,
             bossId: id,
             origin: { x: t.x, z: t.z },
           })
+          let playerDamage = 0
           if (dist <= MATH_TEACHER_SWING_RADIUS) {
             const store = useGameStore.getState()
-            store.damagePlayer(
-              getMathTeacherPlayerDamage(store.player.hp),
-              { ignoreInvulnerability: true },
-            )
+            playerDamage = getMathTeacherPlayerDamage(store.player.hp)
+            store.damagePlayer(playerDamage, { ignoreInvulnerability: true })
           }
+          logPlaytestEvent('b01-math-special-impact', {
+            bossId: id,
+            pushedZombies,
+            playerHit: playerDamage > 0,
+            playerDamage,
+            playerHpAfter: useGameStore.getState().player.hp,
+          })
           chargeState.current = 'mathSwingRecover'
           stateTimer.current = now
         }
@@ -809,6 +919,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           chargeState.current = 'stun'
           stateTimer.current = now
           setAnimPhase('stun')
+          logPlaytestEvent('b01-math-special-end', { bossId: id })
         }
 
       } else if (chargeState.current === 'stun') {

@@ -65,6 +65,7 @@
 ### 반드시 지켜야 할 사항
 
 - 반드시 사용자가 Graphics Studio에서 확정한 Apply 값은 루트, 파트, 그룹 키와 값을 그대로 보존하고, 검증된 마이그레이션 없이 기본값이나 과거 값으로 덮어쓰지 않는다.
+- 반드시 Stage 2 보스/B02 크기 드리프트, 타이틀/로비 보스 과대 표시, `zombie-b02-teacher` 루트 스케일, `StageBossPreview`, `TitleBossZombie`, `ZombieMesh`, `StudioTunedGroup`, `graphicsStudioB02Source` 또는 관련 Graphics Studio B02 스케일/기본값을 변경하기 전에는 `docs/solutions/integration-issues/graphics-studio-b02-root-scale-regression.md`를 먼저 확인한다.
 - 반드시 현재의 Source-Controlled Player Seed와 미래의 Firebase Visual Canonical State를 서로 다른 개념으로 기록한다. Source-Controlled Player Seed는 복구된 Apply 스냅샷을 코드와 함께 배포하는 로컬 초기화·마이그레이션 자료일 뿐 원격 정본이 아니다.
 - 반드시 Source-Controlled Player Seed의 `sourceRevision`은 로컬 마이그레이션 순번으로만 취급한다. Git SHA, Firebase revision, 관리자 승인 번호 또는 배포 번호로 해석하지 않는다.
 - 반드시 Firebase 정본 구현 전에는 승인된 Apply 스냅샷을 검증 가능한 소스 또는 버전 관리 산출물로 승격하고, 브라우저에만 존재하는 상태로 릴리스하지 않는다. 이 임시 경계가 원격 저장, 서버 ACK, 관리자 승인, 기기 간 동기화, 서버 감사 로그 또는 서버 롤백을 보장한다고 기록하지 않는다.
@@ -83,6 +84,37 @@
 - 절대로 검증되지 않은 로컬 fallback이 승인된 Visual Canonical State를 덮어쓰게 만들지 않는다.
 - 절대로 Vite/dev-server 브라우저 화면이나 AAB 내부 코드 포함 증거만으로 실제 AAB 시각 패리티를 통과했다고 기록하지 않는다. Android 에뮬레이터 또는 실기기 WebView에서 해당 AAB를 실행한 증거가 있어야 한다.
 - 절대로 푸시되지 않았거나 원격 SHA와 다른 소스에서 프로덕션 AAB를 산출하지 않는다.
+
+## 타이틀 사각 조명 영구 폐기 정책
+
+### 반드시 지켜야 할 사항
+
+- 반드시 2026-07-17 타이틀 화면에서 삭제된 좌우 사각 조명은 영구 폐기된 레거시 요소로 취급한다.
+- 반드시 해당 조명의 복구 요청을 받으면 기존 원천 코드는 완전히 삭제되어 그대로 복구할 수 없으며, 다시 필요하면 사용자의 새 사양을 받아 처음부터 새로 제작해야 한다고 안내한다.
+- 반드시 새 조명을 제작하게 되더라도 기존 좌우 대칭 사각 박스, 과거 위치값, 과거 외곽선 메시를 재사용하지 않고 별도의 신규 기획·그래픽 검토·구현·QA 절차를 거친다.
+- 반드시 `TitleScene3D` 회귀 테스트에서 폐기된 `ToonBox` 타이틀 조명 컴포넌트가 다시 등장하지 않는지 검사한다.
+
+### 절대로 하면 안 되는 사항
+
+- 절대로 Git 이력, 이전 커밋, 문서의 코드 예시, 빌드 산출물 또는 다른 작업 트리에서 폐기된 타이틀 사각 조명 코드를 복사하거나 복원하지 않는다.
+- 절대로 `TitleScene3D`에 폐기된 좌우 사각 조명 배치나 이를 위한 전용 `ToonBox` 컴포넌트를 다시 추가하지 않는다.
+- 절대로 파랑·보라 조명 아래의 장면 요소 복구와 폐기된 사각 조명 박스 복구를 같은 작업으로 취급하지 않는다.
+
+## Stage 2 보스 전면 재구현 실행 정책
+
+### 반드시 지켜야 할 사항
+
+- 반드시 사용자가 `스테이지2 다시 다 만들어`, `스테이지2 보스 다시 만들어`, `B02 처음부터 다시 만들어`, `B02 재구현 시작` 또는 같은 의미의 명확한 지시를 하면 `Planner/stage2_boss_complete_rebuild_plan_2026-07-17.md`를 읽고 Phase 0부터 즉시 실행한다.
+- 반드시 위 실행 지시가 들어오면 착수 여부를 다시 질문하지 않고, 현재 혼합 작업 트리와 분리된 깨끗한 B02 전용 작업공간을 확보하는 일부터 시작한다.
+- 반드시 구형 B02 구현을 보정하거나 복구하지 않고, 계획서에 정의된 삭제 게이트를 통과한 뒤 새 `stage2-boss-v2` Module로 전면 교체한다.
+- 반드시 로컬에서 확인 가능한 사항은 질문 없이 조사·확정하고 안전하게 진행 가능한 Phase를 계속 수행한다.
+- 반드시 새 2D 콘셉트 선택처럼 결과를 바꾸는 사용자 결정이나 Firebase 원격 데이터의 실제 영구 삭제처럼 별도 확인이 필요한 외부 변경에서만 필요한 선택을 요청한다.
+
+### 절대로 하면 안 되는 사항
+
+- 절대로 실행 트리거를 받은 뒤 다시 계획만 작성하거나 착수 여부를 묻지 않는다.
+- 절대로 과거 B02 코드, legacy tuning, preview scale 보정 또는 source revision 복구 코드를 새 구현의 기반으로 재사용하지 않는다.
+- 절대로 현재의 혼합 변경 작업 트리에서 기존 사용자 변경을 훼손하며 B02 삭제를 시작하지 않는다.
 
 ## Graphic Designer 부서 정책
 
@@ -136,6 +168,7 @@
 - 반드시 worker 실행 전 프로필 HOME의 `~/.claude/skills/gstack/bin` 게이트가 통과하는지 확인한다.
 - 반드시 implementation wave 완료 선언 전 `todo=0`, `ready=0`, `running=0`, `blocked=0` 상태를 확인한다.
 - 반드시 탈출좀비학교의 모든 사운드 제작/수정/교체/검수 작업에는 `soundmini` / Sound_Mini / 사운드미니가 관여해야 한다. 작은 1파일 수정이라도 예외가 아니며, SFX/BGM/보이스/기계음/8-bit/chiptune/WebAudio/ZzFX/jsfxr/Howler `SOUND_MAP`/`public/sfx`/오디오 라이선스/음량·쿨다운·폴리포니 예산 변경은 `soundmini` 카드, `soundmini` 산출물, 또는 `.claude/agents/soundmini.md` 기반 검토 흔적을 남긴 뒤 진행한다.
+- 반드시 탈출좀비학교 관련 작업은 먼저 단일 에이전트 직접처리인지, 아니면 등록된 서브에이전트 자동투입 대상인지 분류한다. 작은 1단계 작업을 제외하고, 여러 역할·마일스톤·검수·릴리즈·그래픽·UI·기획·개발·백엔드·현지화·BM·사운드 중 하나라도 걸리면 `Developer/agent_room/escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md`와 `escape-zombie-school` Kanban 보드 기준으로 관련 프로필을 자동 투입한다.
 
 ### 절대로 하면 안 되는 사항
 
@@ -143,3 +176,9 @@
 - 절대로 `review-required`로 막힌 코드 작업을 테스트/빌드/정적 점검 없이 완료 처리하지 않는다.
 - 절대로 Kanban worker가 만든 변경을 검증 없이 릴리스 가능 또는 완료로 취급하지 않는다.
 - 절대로 `soundmini` 관여 없이 사운드 파일, 사운드 registry, 오디오 파라미터, BGM/보이스/라이선스 정책을 직접 확정하지 않는다.
+# 게임 브라우저 동시 실행 상한
+
+- Escape! zombie school의 수동 Chrome, CDP Chrome, Playwright/브라우저 테스트 루트 인스턴스는 모두 합쳐 최대 3개까지만 허용한다.
+- Chrome이 창 하나를 위해 자동 생성하는 renderer/GPU/utility 하위 프로세스는 개수에 포함하지 않는다.
+- 새 게임 브라우저나 브라우저 테스트를 실행하기 직전에 `Developer/r3f_prototype`에서 `npm run browser:reserve`를 실행해야 한다.
+- 가드가 실패하면 기존 인스턴스를 종료하기 전까지 새 브라우저나 브라우저 테스트를 실행하지 않는다.

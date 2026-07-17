@@ -6,6 +6,7 @@
 
 // 보스 버스트 타입. 등장 시각 파생의 기준.
 const BOSS_BURST_TYPES = ['B01', 'B02', 'B03']
+export const RUN_ZOMBIE_CREW_FORMATION = 'runZombieCrew'
 
 // 4분 타임라인. 5분 기준 sec ×0.8.
 export const BURST_EVENTS = [
@@ -56,6 +57,7 @@ export const STAGE3_BURST_EVENTS = [
   { sec:  16, type: 'E03', count:  4 },                         // 러너 조기 압박
   { sec:  34, type: 'E04', count:  1 },                         // 원거리 조기 등장 신호
   { sec:  52, type: 'E05', count:  2 },                         // 차저 조기 등장 신호
+  { sec:  72, type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루: 리더 1 + 러닝크루 12, 대각선 화면 횡단
   { sec: 108, type: 'E06', count:  1 },                         // 거대 조기 등장 보장
   { sec: 132, type: 'E06', count:  1 },                         // 피크 거대 1기 추가(미조우 방어)
   // ── 더블 보스 스태거: B02 먼저(135), B01 나중(147) → warn/charge 위상차로 동시 협공 돌진 완화 ──

@@ -11,6 +11,9 @@ import {
   WAVE_PHASES,
   pickTypeByWeightExcluding,
   formationSpawnPositions,
+  createRunZombieCrewEntries,
+  RUN_ZOMBIE_CREW_SIZE,
+  RUN_ZOMBIE_CREW_DIR,
   waveSizeForPhase,
   waveSizeForStageAtTime,
   getWaveSpawnSeconds,
@@ -502,6 +505,28 @@ describe('formation spawns', () => {
   it('does not telegraph retired formation bursts', () => {
     expect(STAGE2_SPAWN_TELEGRAPHS).toEqual([])
     expect(burstsForStage('stage2').some((evt) => evt.formation)).toBe(true)
+  })
+
+  it('creates a stage3 run zombie crew with one leader and twelve followers behind the diagonal path', () => {
+    const stage3Arena = { halfX: 18, halfZ: 18 }
+    const entries = createRunZombieCrewEntries(stage3Arena, () => 0.5)
+
+    expect(entries).toHaveLength(RUN_ZOMBIE_CREW_SIZE)
+    expect(entries[0]).toMatchObject({ type: 'RZL', runCrewRole: 'leader', runCrewDir: RUN_ZOMBIE_CREW_DIR })
+    expect(entries.slice(1).every((entry) => entry.type === 'RZC' && entry.runCrewRole === 'crew')).toBe(true)
+    expect(entries.slice(1).every((entry) => entry.pos[0] <= entries[0].pos[0] && entry.pos[2] <= entries[0].pos[2])).toBe(true)
+  })
+
+  it('keeps the run zombie crew as a diagonal screen-crossing swarm, not a ring/pincer clone', () => {
+    const entries = createRunZombieCrewEntries({ halfX: 18, halfZ: 18 }, () => 0.5)
+    const leader = entries[0]
+    const last = entries[entries.length - 1]
+
+    expect(RUN_ZOMBIE_CREW_DIR).toEqual({ x: 1, z: 1 })
+    expect(leader.pos[0]).toBeLessThan(-15)
+    expect(leader.pos[2]).toBeLessThan(-15)
+    expect(last.pos[0]).toBeLessThan(leader.pos[0])
+    expect(last.pos[2]).toBeLessThan(leader.pos[2])
   })
 })
 

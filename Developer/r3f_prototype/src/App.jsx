@@ -7,9 +7,7 @@ import SfxLayer from './components/SfxLayer.jsx'
 import { initPlaytestLogger } from './lib/playtestLogger.js'
 import { isMobileJoystickEnvironment } from './lib/mobileInput.js'
 import { initKeyboardInput } from './lib/keyboardInput.js'
-import { saveStageBossPreview, saveStudioTunings, saveTextureDecals } from './lib/graphicsStudioConfig.js'
-import { saveStagePropPlacements } from './lib/stagePropPlacements.js'
-import { saveSfxTunings } from './lib/sfxRegistry.js'
+import { applyLocalStudioDatasets } from './lib/firebaseStudio.js'
 import { STUDIO_GAME_SYNC_MESSAGE, isAllowedStudioGameOrigin } from './lib/studioGameBridge.js'
 
 const AdminPage = lazy(() => import('./components/AdminPage.jsx'))
@@ -26,13 +24,15 @@ initKeyboardInput()
 
 export function handleStudioGameSyncMessage(event) {
   if (event?.data?.type !== STUDIO_GAME_SYNC_MESSAGE) return false
-  if (event.origin && !isAllowedStudioGameOrigin(event.origin)) return false
-  if (event.data.tunings) saveStudioTunings(event.data.tunings)
-  if (event.data.sfxTunings) saveSfxTunings(event.data.sfxTunings)
-  if (event.data.stageBossPreview) saveStageBossPreview(event.data.stageBossPreview)
-  if (event.data.decals) saveTextureDecals(event.data.decals)
-  if (event.data.propPlacements) saveStagePropPlacements(event.data.propPlacements)
-  return true
+  if (!event.origin || !isAllowedStudioGameOrigin(event.origin)) return false
+  if (typeof window !== 'undefined' && window.opener && event.source !== window.opener) return false
+  return applyLocalStudioDatasets({
+    tunings: event.data.tunings ?? {},
+    sfxTunings: event.data.sfxTunings ?? {},
+    stageBossPreview: event.data.stageBossPreview ?? {},
+    decals: event.data.decals ?? {},
+    propPlacements: event.data.propPlacements ?? {},
+  })
 }
 
 if (typeof window !== 'undefined') {

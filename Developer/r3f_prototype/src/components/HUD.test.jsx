@@ -18,6 +18,7 @@ import { STORAGE_KEY as PLAYER_RECORDS_KEY } from '../lib/playerRecords.js'
 import { buildLocalPlayerRankingEntry } from '../lib/userRanking.js'
 import { ADMIN_CONFIG_STORAGE_KEY, saveAdminConfig } from '../lib/adminConfig.js'
 import { GRAPHICS_STUDIO_STORAGE_KEY } from '../lib/graphicsStudioConfig.js'
+import { getStageConfig } from '../lib/stageConfig.js'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -310,6 +311,90 @@ describe('development weapon cheat panel', () => {
         active: true,
         level: 1,
       })
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
+})
+
+describe('matilda entrance presentation', () => {
+  it('starts the Stage 3 Matilda countdown at five seconds before spawn', () => {
+    useGameStore.getState().resetGame('stage3')
+    const spawnMs = getStageConfig('stage3').matildaSec * 1000
+    useGameStore.setState({
+      phase: 'playing',
+      elapsedMs: spawnMs - 6000,
+      matildaSpawned: false,
+    })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      expect(container.querySelector('[data-testid="matilda-warning"]')).toBeNull()
+
+      act(() => {
+        useGameStore.setState({ elapsedMs: spawnMs - 5000 })
+      })
+
+      expect(container.querySelector('[data-testid="matilda-warning-count"]').textContent).toBe('5')
+
+      act(() => {
+        useGameStore.setState({ elapsedMs: spawnMs - 1000 })
+      })
+
+      expect(container.querySelector('[data-testid="matilda-warning-count"]').textContent).toBe('1')
+
+      act(() => {
+        useGameStore.setState({ elapsedMs: spawnMs })
+      })
+
+      expect(container.querySelector('[data-testid="matilda-warning"]')).toBeNull()
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
+
+  it('shows Matilda profile and RPG dialogue when she spawns', () => {
+    vi.useFakeTimers()
+    useGameStore.getState().resetGame('stage3')
+    useGameStore.setState({
+      phase: 'playing',
+      elapsedMs: getStageConfig('stage3').matildaSec * 1000,
+      matildaSpawned: false,
+    })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      expect(container.querySelector('[data-testid="matilda-dialogue"]')).toBeNull()
+
+      act(() => {
+        useGameStore.setState({ matildaSpawned: true })
+      })
+
+      const dialogue = container.querySelector('[data-testid="matilda-dialogue"]')
+      expect(dialogue).not.toBeNull()
+      expect(dialogue.textContent).toContain('마틸다')
+      expect(dialogue.textContent).toContain('오호호호! 떡하나주면 안잡아먹지!')
+      expect(dialogue.querySelector('img')?.getAttribute('alt')).toBe('마틸다 프로필')
+
+      act(() => {
+        vi.advanceTimersByTime(4500)
+      })
+
+      expect(container.querySelector('[data-testid="matilda-dialogue"]')).toBeNull()
     } finally {
       act(() => {
         root.unmount()

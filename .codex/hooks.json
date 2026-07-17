@@ -1,6 +1,48 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File 'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-today-resume-summary.ps1'"
+          },
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File 'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\hooks\\require-advisor-worker-mode.ps1'"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-b02-scale-solution-check.sh'"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-b02-scale-solution-check.sh'"
+          }
+        ]
+      },
+      {
+        "matcher": "MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-b02-scale-solution-check.sh'"
+          }
+        ]
+      },
       {
         "matcher": "Skill",
         "hooks": [

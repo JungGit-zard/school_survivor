@@ -14,7 +14,7 @@ import { getE04Cap } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 import { dogeEscapeDirection } from '../lib/dogeEscape.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
-import { getBurstEventsForStage, getRuntimeBurstEventsForStage } from '../lib/burstEvents.js'
+import { RUN_ZOMBIE_CREW_FORMATION, getBurstEventsForStage, getRuntimeBurstEventsForStage } from '../lib/burstEvents.js'
 import { buildWavePhasesFromEntries } from '../lib/waveControl.js'
 import { getAdminWaveControlConfig } from '../lib/adminConfig.js'
 
@@ -214,6 +214,9 @@ const COLUMN_WIDTH_RATIO = 0.6
 // gauntlet 두 줄을 벽에서 이만큼 안쪽에 둔다(벽에 완전히 붙으면 place가 경계로 clamp).
 const GAUNTLET_WALL_INSET = 0.8
 
+export const RUN_ZOMBIE_CREW_SIZE = 13
+export const RUN_ZOMBIE_CREW_DIR = Object.freeze({ x: 1, z: 1 })
+
 export function formationSpawnPositions(formation, count, bounds, player, random = Math.random) {
   const limX = bounds.halfX - SPAWN_INSET
   const limZ = bounds.halfZ - SPAWN_INSET
@@ -287,6 +290,34 @@ export function formationSpawnPositions(formation, count, bounds, player, random
     place(evenX(i, count), farZ + inwardSign * (random() * 2))
   }
   return positions
+}
+
+export function createRunZombieCrewEntries(bounds, random = Math.random) {
+  const limX = bounds.halfX - SPAWN_INSET
+  const limZ = bounds.halfZ - SPAWN_INSET
+  const dirLen = Math.hypot(RUN_ZOMBIE_CREW_DIR.x, RUN_ZOMBIE_CREW_DIR.z) || 1
+  const nx = RUN_ZOMBIE_CREW_DIR.x / dirLen
+  const nz = RUN_ZOMBIE_CREW_DIR.z / dirLen
+  const px = -nz
+  const pz = nx
+  const startX = -limX - 1.8
+  const startZ = -limZ - 1.8
+
+  return Array.from({ length: RUN_ZOMBIE_CREW_SIZE }, (_, i) => {
+    const isLeader = i === 0
+    const row = Math.floor(Math.max(0, i - 1) / 4)
+    const col = Math.max(0, i - 1) % 4
+    const sideOffset = isLeader ? 0 : (col - 1.5) * 0.72 + (random() - 0.5) * 0.16
+    const trail = isLeader ? 0 : 1.15 + row * 1.05 + (col % 2) * 0.38
+    const x = startX - nx * trail + px * sideOffset
+    const z = startZ - nz * trail + pz * sideOffset
+    return {
+      type: isLeader ? 'RZL' : 'RZC',
+      pos: [x, FORMATION_Y, z],
+      runCrewDir: RUN_ZOMBIE_CREW_DIR,
+      runCrewRole: isLeader ? 'leader' : 'crew',
+    }
+  })
 }
 
 // 웨이브 타임라인 기본값 정본은 lib/waveTimelines.js로 이동(2026-07-04) —
@@ -664,6 +695,15 @@ export default function Enemies() {
 
       // 비-보스 버스트(형태/그룹) — stage3에서만 런타임에 포함된다.
       // formation이면 대형 배치, 아니면 스폰 링에 count만큼(E04는 원거리 링).
+      if (evt.formation === RUN_ZOMBIE_CREW_FORMATION) {
+        addEnemies(createRunZombieCrewEntries(bounds).map((entry) => ({
+          id: ++_uid,
+          ...entry,
+          statOverride: stageHpOverride(entry.type, currentStageId),
+        })))
+        return
+      }
+
       const count = evt.count ?? 1
       const positions = evt.formation
         ? formationSpawnPositions(evt.formation, count, bounds, { x: playerPos.x, z: playerPos.z })
@@ -711,7 +751,7 @@ export default function Enemies() {
   return (
     <>
       {enemies.map((e) => (
-        <Enemy key={e.id} id={e.id} type={e.type} spawnPos={e.pos} onDeath={onDeath} statOverride={e.statOverride} isMatilda={e.isMatilda} />
+        <Enemy key={e.id} id={e.id} type={e.type} spawnPos={e.pos} onDeath={onDeath} statOverride={e.statOverride} isMatilda={e.isMatilda} runCrewDir={e.runCrewDir} />
       ))}
       {textbooks.map((d) => (
         <XpTextbook key={d.id} id={d.id} pos={d.pos} value={d.value} onCollect={onTextbookCollect} />

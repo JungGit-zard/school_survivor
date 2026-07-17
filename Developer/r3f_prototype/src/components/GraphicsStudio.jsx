@@ -19,7 +19,7 @@ import {
   serializeStudioSnapshot,
 } from '../lib/graphicsStudioConfig.js'
 import { fileToDecalDataUrl } from '../lib/textureDecal.js'
-import { loadStagePropPlacements, saveStagePropPlacements } from '../lib/stagePropPlacements.js'
+import { saveStagePropPlacements } from '../lib/stagePropPlacements.js'
 import StagePropPlacementEditor from './StagePropPlacementEditor.jsx'
 import { DEFAULT_SFX_TUNING, getSfxCatalog, loadSfxTunings, normalizeSfxTuning, playSfx, saveSfxTunings } from '../lib/sfxRegistry.js'
 import {
@@ -29,6 +29,15 @@ import {
   parseStudioGameUrl,
 } from '../lib/studioGameBridge.js'
 import StageBossPreview from './StageBossPreview.jsx'
+import { useAuthStore } from '../store/useAuthStore.js'
+import {
+  flushFirebaseStudioSave,
+  hydrateFirebaseStudio,
+  loadLocalStudioDatasets,
+  markFirebaseStudioLocalChange,
+  requestFirebaseStudioSave,
+  setFirebaseStudioUser,
+} from '../lib/firebaseStudio.js'
 
 const categoryLabels = Object.fromEntries(GRAPHICS_STUDIO_CATEGORIES.map((category) => [category.id, category.label]))
 const UNDO_LIMIT = 10
@@ -157,6 +166,12 @@ export default function GraphicsStudio() {
   const [stageBossPreview, setStageBossPreview] = useState(() => loadStageBossPreview())
   const [resetBaseline] = useState(() => ensureStudioResetBaseline(loadStudioTunings()))
   const [applyStatus, setApplyStatus] = useState('')
+  const [firebaseStatus, setFirebaseStatus] = useState('local')
+  const [propEditorVersion, setPropEditorVersion] = useState(0)
+  const authStatus = useAuthStore((state) => state.status)
+  const authUser = useAuthStore((state) => state.user)
+  const initializeAuth = useAuthStore((state) => state.initializeAuth)
+  const signInWithGoogle = useAuthStore((state) => state.signInWithGoogle)
   const selectedItem = getStudioItemById(selectedItemId)
   const selectedStageBossType = selectedItem.previewKind === 'zombie' && selectedItem.zombieType?.startsWith('B')
     ? selectedItem.zombieType
@@ -168,6 +183,12 @@ export default function GraphicsStudio() {
   const [undoStack, setUndoStack] = useState(() => [])
   const gameWindowRef = useRef(null)
   const gameOriginRef = useRef('*')
+  const hydratedUidRef = useRef(null)
+  const hydratingUidRef = useRef(null)
+  const hydratePromiseRef = useRef(null)
+  const writeEligibleUidRef = useRef(null)
+  const mountedRef = useRef(true)
+  const connectInFlightRef = useRef(false)
   const [gameUrl, setGameUrl] = useState(() => (
     localStorage.getItem(STUDIO_GAME_URL_STORAGE_KEY) || getDefaultStudioGameUrl()
   ))
@@ -201,40 +222,146 @@ export default function GraphicsStudio() {
     [selectedItem.id, activeTuningId, tuning, confirmedTunings, stageBossPreview, decalsByItem],
   )
 
-  const sendGameSync = ({
-    tunings = loadStudioTunings(),
-    nextSfxTunings = loadSfxTunings(),
-    nextStageBossPreview = loadStageBossPreview(),
-    nextDecals = loadTextureDecals(),
-    nextPropPlacements = loadStagePropPlacements(),
-    openGame = false,
-    retryAfterLoad = false,
-  } = {}) => {
-    const url = openGame ? parseStudioGameUrl(gameUrl) : null
-    if (openGame && !url) {
-      setApplyStatus('Invalid Game URL')
-      return false
-    }
+  const refreshStudioState = () => {
+    const datasets = loadLocalStudioDatasets()
+    setConfirmedTunings(datasets.tunings)
+    setSfxTunings(datasets.sfxTunings)
+    setStageBossPreview(datasets.stageBossPreview)
+    setDecalsByItem(datasets.decals)
+    setDraftTuningById({})
+    setFocusedParts([])
+    setUndoStack([])
+    setPropEditorVersion((version) => version + 1)
+  }
 
+  const applyFirebaseResult = (result, uid) => {
+    if (result?.status === 'remote-applied' || result?.status === 'local-seeded') {
+      hydratedUidRef.current = uid
+      writeEligibleUidRef.current = uid
+      if (result.status === 'remote-applied') refreshStudioState()
+      if (mountedRef.current) setFirebaseStatus('synced')
+      return true
+    }
+    if (result?.status === 'local-changed') {
+      hydratedUidRef.current = uid
+      writeEligibleUidRef.current = uid
+      queueEligibleFirebaseSave({ uid }, { mark: false })
+      return true
+    }
+    if (['read-failed', 'client-unavailable', 'write-failed', 'write-aborted'].includes(result?.status)) {
+      writeEligibleUidRef.current = uid
+    } else if (writeEligibleUidRef.current === uid) {
+      writeEligibleUidRef.current = null
+    }
+    if (mountedRef.current) {
+      if (result?.status === 'future-version') setFirebaseStatus('future-version')
+      else if (result?.status === 'account-conflict') setFirebaseStatus('account-conflict')
+      else if (result?.status === 'stale-user') setFirebaseStatus('local')
+      else if (result?.status === 'unconfigured' || result?.status === 'unauthenticated') setFirebaseStatus('local')
+      else setFirebaseStatus('offline-error')
+    }
+    return false
+  }
+
+  const queueEligibleFirebaseSave = (user, { mark = true } = {}) => {
+    const uid = user?.uid
+    if (!uid) return
+    if (mark) markFirebaseStudioLocalChange(user)
+    if (writeEligibleUidRef.current !== uid) return
+    requestFirebaseStudioSave({
+      user,
+      onResult: (result) => {
+        if (!mountedRef.current) return
+        if (result?.status === 'saved') setFirebaseStatus('saved')
+        else if (result?.status === 'future-version') setFirebaseStatus('future-version')
+        else setFirebaseStatus('offline-error')
+      },
+    })
+    setFirebaseStatus('saving')
+  }
+
+  const queueFirebaseSave = () => {
+    queueEligibleFirebaseSave(authUser)
+  }
+
+  useEffect(() => {
+    void initializeAuth()
+  }, [initializeAuth])
+
+  useEffect(() => {
+    setFirebaseStudioUser(authUser)
+    const uid = authUser?.uid
+    if (!uid) {
+      hydratedUidRef.current = null
+      hydratingUidRef.current = null
+      hydratePromiseRef.current = null
+      writeEligibleUidRef.current = null
+      setFirebaseStatus(authStatus === 'checking' ? 'checking' : 'local')
+      return undefined
+    }
+    if (hydratedUidRef.current === uid || hydratingUidRef.current === uid) return undefined
+
+    let cancelled = false
+    hydratingUidRef.current = uid
+    setFirebaseStatus('checking')
+    const promise = hydrateFirebaseStudio({ user: authUser })
+    hydratePromiseRef.current = { uid, promise }
+    void promise.then((result) => {
+      if (cancelled) return
+      hydratingUidRef.current = null
+      applyFirebaseResult(result, uid)
+    }).catch(() => {
+      if (cancelled) return
+      hydratingUidRef.current = null
+      writeEligibleUidRef.current = uid
+      setFirebaseStatus('offline-error')
+    }).finally(() => {
+      if (hydratePromiseRef.current?.promise === promise) hydratePromiseRef.current = null
+    })
+    return () => {
+      cancelled = true
+      if (hydratingUidRef.current === uid) hydratingUidRef.current = null
+    }
+  }, [authStatus, authUser?.uid])
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      void flushFirebaseStudioSave()
+    }
+  }, [])
+
+  const openOrReuseGameWindow = (url) => {
     let target = gameWindowRef.current
-    if (openGame && (!target || target.closed || gameOriginRef.current !== url.origin)) {
+    if (!target || target.closed || gameOriginRef.current !== url.origin) {
       localStorage.setItem(STUDIO_GAME_URL_STORAGE_KEY, url.href)
-      gameOriginRef.current = url.origin
       target = window.open(url.href, 'escape-zombie-school-game')
       gameWindowRef.current = target
+    }
+    gameOriginRef.current = url.origin
+    return target && !target.closed ? target : null
+  }
+
+  const sendGameSync = ({ openGame = false, retryAfterLoad = false } = {}) => {
+    let target = gameWindowRef.current
+    if (openGame) {
+      const url = parseStudioGameUrl(gameUrl)
+      if (!url) {
+        setApplyStatus('Invalid Game URL')
+        return false
+      }
+      target = openOrReuseGameWindow(url)
     }
     if (!target || target.closed) {
       if (openGame) setApplyStatus('Unable to open game window')
       return false
     }
 
+    const datasets = loadLocalStudioDatasets()
     const postSync = () => target.postMessage({
       type: STUDIO_GAME_SYNC_MESSAGE,
-      tunings,
-      sfxTunings: nextSfxTunings,
-      stageBossPreview: nextStageBossPreview,
-      decals: nextDecals,
-      propPlacements: nextPropPlacements,
+      ...datasets,
     }, gameOriginRef.current)
 
     postSync()
@@ -251,17 +378,59 @@ export default function GraphicsStudio() {
   // 맵 프랍 배치 Apply/Reset: 로컬 저장(스튜디오 창) + 연결된 게임 창으로 전송.
   const applyPropPlacements = (config) => {
     const saved = saveStagePropPlacements(config)
-    if (sendGameSync({ nextPropPlacements: saved, openGame: true, retryAfterLoad: true })) {
+    queueFirebaseSave()
+    if (sendGameSync({ openGame: true, retryAfterLoad: true })) {
       setApplyStatus('Props applied')
     }
     return saved
   }
 
   const connectGameWindow = () => {
+    if (connectInFlightRef.current) return
     const url = parseStudioGameUrl(gameUrl)
-    if (sendGameSync({ openGame: true, retryAfterLoad: true })) {
-      setApplyStatus(`Connected: ${url.origin}`)
+    if (!url) {
+      setApplyStatus('Invalid Game URL')
+      return
     }
+    const target = openOrReuseGameWindow(url)
+    if (!target) {
+      setApplyStatus('Unable to open game window')
+      return
+    }
+
+    connectInFlightRef.current = true
+    setFirebaseStatus(authStatus === 'unconfigured' ? 'local' : 'checking')
+    void (async () => {
+      let user = authUser
+      let cloudReady = false
+      try {
+        if (!user && authStatus !== 'unconfigured') user = await signInWithGoogle()
+        if (user?.uid) {
+          setFirebaseStudioUser(user)
+          const activeHydrate = hydratePromiseRef.current
+          if (activeHydrate?.uid === user.uid) await activeHydrate.promise
+          const flushResult = await flushFirebaseStudioSave({ user })
+          if (flushResult.status === 'saved' || flushResult.status === 'no-pending') {
+            const result = await hydrateFirebaseStudio({ user })
+            cloudReady = applyFirebaseResult(result, user.uid)
+          } else {
+            applyFirebaseResult(flushResult, user.uid)
+          }
+        }
+      } catch {
+        if (mountedRef.current) setFirebaseStatus('offline-error')
+      }
+
+      if (mountedRef.current) {
+        sendGameSync({ retryAfterLoad: true })
+        if (!user?.uid && authStatus !== 'unconfigured') setFirebaseStatus('offline-error')
+        setApplyStatus(cloudReady
+          ? `Connected: ${url.origin}`
+          : `Connected locally: ${url.origin}`)
+      }
+    })().finally(() => {
+      connectInFlightRef.current = false
+    })
   }
 
   const confirmGraphicsTuning = (id, nextTuning) => {
@@ -270,7 +439,8 @@ export default function GraphicsStudio() {
       [id]: nextTuning,
     })
     setConfirmedTunings(next)
-    sendGameSync({ tunings: next })
+    queueFirebaseSave()
+    sendGameSync()
     return next
   }
 
@@ -299,7 +469,8 @@ export default function GraphicsStudio() {
       [selectedItem.id]: nextItemDecals,
     })
     setDecalsByItem(next)
-    sendGameSync({ nextDecals: next })
+    queueFirebaseSave()
+    sendGameSync()
     return next
   }
 
@@ -356,7 +527,8 @@ export default function GraphicsStudio() {
   const updateStageBossPreview = (patch) => {
     const next = saveStageBossPreview({ ...loadStageBossPreview(), ...patch })
     setStageBossPreview(next)
-    sendGameSync({ nextStageBossPreview: next })
+    queueFirebaseSave()
+    sendGameSync()
     setApplyStatus('Boss preview live')
   }
 
@@ -430,7 +602,8 @@ export default function GraphicsStudio() {
           ...patch,
         }),
       })
-      sendGameSync({ nextSfxTunings: next })
+      queueFirebaseSave()
+      sendGameSync()
       return next
     })
     setApplyStatus('Audio live')
@@ -442,7 +615,8 @@ export default function GraphicsStudio() {
       ...loadSfxTunings(),
       [selectedSfx.id]: sfxTuning,
     })
-    const applied = sendGameSync({ nextSfxTunings: next, openGame: true, retryAfterLoad: true })
+    queueFirebaseSave()
+    const applied = sendGameSync({ openGame: true, retryAfterLoad: true })
     setSfxTunings(next)
     if (applied) setApplyStatus('Audio applied')
   }
@@ -498,12 +672,18 @@ export default function GraphicsStudio() {
           </label>
           <div style={styles.statusLine}>
             <span style={styles.sourceLabel}>{activeSection === 'graphics' ? selectedItem.source : selectedSfx?.src}</span>
+            <span data-testid="studio-firebase-status" data-status={firebaseStatus} aria-live="polite" style={styles.sourceLabel}>
+              Firebase: {firebaseStatus}
+            </span>
           </div>
         </header>
 
         {activeSection === 'props' ? (
-          <section style={styles.propEditorPanel}>
-            <StagePropPlacementEditor onApply={applyPropPlacements} />
+          <section
+            style={styles.propEditorPanel}
+            data-testid="studio-prop-editor-shell"
+          >
+            <StagePropPlacementEditor key={propEditorVersion} onApply={applyPropPlacements} />
           </section>
         ) : (
         <>
@@ -611,7 +791,17 @@ export default function GraphicsStudio() {
             <SliderRow label="Preview Zoom" name="stageBossPreviewZoom" min="50" max="180" step="1" value={stageBossPreview.zoom} onChange={(zoom) => updateStageBossPreview({ zoom })} />
             <SliderRow label="Preview Pan X" name="stageBossPreviewPanX" min="-2" max="2" step="0.01" value={stageBossPreview.panX} onChange={(panX) => updateStageBossPreview({ panX })} />
             <SliderRow label="Preview Pan Y" name="stageBossPreviewPanY" min={STAGE_BOSS_PREVIEW_PAN_Y_RANGE[0]} max={STAGE_BOSS_PREVIEW_PAN_Y_RANGE[1]} step="0.01" value={stageBossPreview.panY} onChange={(panY) => updateStageBossPreview({ panY })} />
-            <SliderRow label="Scale" name="scale" min="0.35" max="2.5" step="0.01" value={tuning.scale} onChange={(scale) => updateTuning({ scale })} />
+            <SliderRow
+              label="Scale"
+              name="scale"
+              min="0.35"
+              max="2.5"
+              step="0.01"
+              value={tuning.scale}
+              onChange={(scale) => updateTuning(scale === 1
+                ? { scale, scaleX: 1, scaleY: 1, scaleZ: 1 }
+                : { scale })}
+            />
             <SliderRow label="Width X" name="scaleX" min="0.35" max="2.5" step="0.01" value={tuning.scaleX} onChange={(scaleX) => updateTuning({ scaleX })} />
             <SliderRow label="Height Y" name="scaleY" min="0.35" max="2.5" step="0.01" value={tuning.scaleY} onChange={(scaleY) => updateTuning({ scaleY })} />
             <SliderRow label="Depth Z" name="scaleZ" min="0.35" max="2.5" step="0.01" value={tuning.scaleZ} onChange={(scaleZ) => updateTuning({ scaleZ })} />

@@ -6,6 +6,7 @@ import { act } from 'react-dom/test-utils'
 import * as THREE from 'three'
 import StageBossPreview, {
   resolveBossPreviewBaseY,
+  resolveBossPreviewModelScale,
   resolveBossPreviewZoom,
   FACE_LOCAL_Y,
   ENEMY_VISUAL_SCALE,
@@ -19,13 +20,13 @@ const BOSS_SCALE = 2 // B01/B02 ENEMY_STATS.scale (mock)
 // 라이브 실측(스튜디오 프리뷰를 144px로 강제해 브라우저 캡처) 기준 기본 zoom.
 const DEFAULT_BASE_ZOOM = 110 // = graphicsStudioConfig.DEFAULT_STAGE_BOSS_PREVIEW.zoom
 
-function previewScale() {
-  return BOSS_SCALE * SIZE_MULT * ENEMY_VISUAL_SCALE
+function previewScale(bossType = 'B01') {
+  return BOSS_SCALE * SIZE_MULT * ENEMY_VISUAL_SCALE * resolveBossPreviewModelScale(bossType)
 }
 
 // 프리뷰 그룹 안 얼굴(머리 그룹 원점)의 월드 Y.
 function faceWorldY(bossType, panY = 0) {
-  return resolveBossPreviewBaseY(bossType) + panY + FACE_LOCAL_Y[bossType] * previewScale()
+  return resolveBossPreviewBaseY(bossType) + panY + FACE_LOCAL_Y[bossType] * previewScale(bossType)
 }
 
 // 실제 프리뷰와 동일한 ortho 카메라(lookAt origin)로 얼굴을 투영한 화면 세로 좌표(NDC.y).
@@ -119,10 +120,10 @@ describe('StageBossPreview 온디맨드 모션', () => {
 describe('StageBossPreview 얼굴 세로 중앙 앵커', () => {
   it('보스 타입별 머리 오프셋을 반영해 base Y를 역산한다', () => {
     // baseY = -faceLocalY * previewScale
-    expect(resolveBossPreviewBaseY('B01')).toBeCloseTo(-(FACE_LOCAL_Y.B01 * previewScale()), 6)
-    expect(resolveBossPreviewBaseY('B02')).toBeCloseTo(-(FACE_LOCAL_Y.B02 * previewScale()), 6)
-    // 머리 오프셋이 큰 B02가 더 아래(더 음수)로 앵커되어야 얼굴이 같은 높이로 온다.
-    expect(resolveBossPreviewBaseY('B02')).toBeLessThan(resolveBossPreviewBaseY('B01'))
+    expect(resolveBossPreviewBaseY('B01')).toBeCloseTo(-(FACE_LOCAL_Y.B01 * previewScale('B01')), 6)
+    expect(resolveBossPreviewBaseY('B02')).toBeCloseTo(-(FACE_LOCAL_Y.B02 * previewScale('B02')), 6)
+    // B02는 카드 전용 모델 스케일을 낮추므로 얼굴 앵커도 그 축소값을 반영한다.
+    expect(resolveBossPreviewBaseY('B02')).toBeGreaterThan(resolveBossPreviewBaseY('B01'))
   })
 
   it('panY=0이면 얼굴 월드 Y가 응시점(0)에 정확히 앵커된다', () => {
@@ -178,9 +179,21 @@ describe('StageBossPreview 프레임 채움(기본 zoom)', () => {
     expect(DEFAULT_BASE_ZOOM).toBe(DEFAULT_STAGE_BOSS_PREVIEW.zoom)
   })
 
-  it('B02(올림머리)는 크라운이 더 높아 B01보다 낮은 렌더 zoom을 쓴다(잘림 방지)', () => {
+  it('B02는 루트 스케일 복구 뒤 크라운 여백만 살짝 낮춘 렌더 zoom을 쓴다', () => {
+    expect(resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, 'B02'))
+      .toBeCloseTo(DEFAULT_BASE_ZOOM * 0.95, 6)
     expect(resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, 'B02'))
       .toBeLessThan(resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, 'B01'))
+  })
+
+  it('B02는 로비 카드에서 전용 모델 스케일 0.82로 축소된다', () => {
+    expect(resolveBossPreviewModelScale('B01')).toBe(1)
+    expect(resolveBossPreviewModelScale('B02')).toBe(0.82)
+    expect(resolveBossPreviewModelScale('B03')).toBe(1)
+
+    const el = render(<StageBossPreview bossType="B02" />)
+    const preview = el.querySelector('[data-testid="stage-boss-preview"]')
+    expect(preview.dataset.modelScale).toBe('0.82')
   })
 
   it('기본 zoom(렌더 zoom)에서도 얼굴은 세로 중앙(NDC.y≈0)을 유지한다', () => {

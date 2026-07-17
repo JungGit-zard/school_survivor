@@ -3,6 +3,7 @@ import {
   BURST_EVENTS,
   STAGE2_BURST_EVENTS,
   STAGE3_BURST_EVENTS,
+  RUN_ZOMBIE_CREW_FORMATION,
   getBurstEventsForStage,
   getRuntimeBurstEventsForStage,
   getBossSpawnSec,
@@ -78,8 +79,17 @@ describe('stage3 더블 보스 + 형태 버스트 런타임 복원', () => {
     expect(getRuntimeBurstEventsForStage('stage2')).toEqual([{ sec: 120, type: 'B02', count: 1 }])
   })
 
-  it('형태 버스트 5종 중 stage3는 ring/pincer/swarm/gauntlet를 사용한다', () => {
+  it('stage3는 런좀비 크루 대각선 횡단 버스트를 포함한다', () => {
+    expect(STAGE3_BURST_EVENTS).toContainEqual({
+      sec: 72,
+      type: 'RZL',
+      count: 13,
+      formation: RUN_ZOMBIE_CREW_FORMATION,
+    })
+  })
+
+  it('형태 버스트 중 stage3는 ring/pincer/swarm/gauntlet + runZombieCrew를 사용한다', () => {
     const formations = STAGE3_BURST_EVENTS.filter((e) => e.formation).map((e) => e.formation)
-    expect(new Set(formations)).toEqual(new Set(['ring', 'pincer', 'swarm', 'gauntlet']))
+    expect(new Set(formations)).toEqual(new Set(['ring', 'pincer', 'swarm', 'gauntlet', RUN_ZOMBIE_CREW_FORMATION]))
   })
 })

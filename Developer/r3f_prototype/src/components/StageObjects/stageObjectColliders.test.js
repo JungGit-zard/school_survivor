@@ -99,22 +99,30 @@ describe('stage object blocking colliders', () => {
     expect(getStageObjectSightObstacles('stage2')).toHaveLength(expectedSightParts)
   })
 
-  it('uses solid colliders for Stage 3 gym blockers while leaving tiny scatter props non-blocking', () => {
+  it('uses solid close-fit colliders for every Stage 3 gym prop', () => {
     const stage3Props = getStageObjectPlacements('stage3')
-    const physicalStage3Props = stage3Props.filter(({ type, blocking }) => (
-      BLOCKING_STAGE_OBJECT_TYPES.has(type) && blocking !== false
-    ))
-    const decorativeStage3Props = stage3Props.filter(({ blocking }) => blocking === false)
-
-    expect(physicalStage3Props.length).toBeGreaterThan(0)
-    expect(decorativeStage3Props.map(({ type }) => type)).toEqual(expect.arrayContaining([
+    const gymTypes = new Set([
+      'basketballHoop',
+      'basketballBallCart',
       'basketballCluster',
+      'gymBench',
       'gymTrainingCones',
+      'gymMats',
+      'gymScoreboard',
       'gymBanner',
+      'gymExitDoor',
       'gymEquipmentSpill',
-    ]))
-    expect(getStageObjectColliders('stage3')).toHaveLength(physicalStage3Props.length)
-    expect(physicalStage3Props.every((placement) => getStageObjectColliderParts(placement).length > 0)).toBe(true)
+    ])
+    const gymProps = stage3Props.filter(({ type }) => gymTypes.has(type))
+
+    expect(gymProps).toHaveLength(stage3Props.length)
+    expect(gymProps.every(({ type }) => BLOCKING_STAGE_OBJECT_TYPES.has(type))).toBe(true)
+    expect(getStageObjectColliders('stage3')).toHaveLength(gymProps.length)
+    expect(gymProps.every((placement) => getStageObjectColliderParts(placement).length > 0)).toBe(true)
+    expect(getStageObjectColliderParts(gymProps.find(({ type }) => type === 'basketballHoop')).length).toBeGreaterThanOrEqual(6)
+    expect(getStageObjectColliderParts(gymProps.find(({ type }) => type === 'basketballCluster')).length).toBe(6)
+    expect(getStageObjectColliderParts(gymProps.find(({ type }) => type === 'gymTrainingCones')).length).toBe(4)
+    expect(getStageObjectColliderParts(gymProps.find(({ type }) => type === 'gymEquipmentSpill')).length).toBeGreaterThanOrEqual(4)
   })
 
   it('mounts the stage object collider layer beside the visual prop layer', () => {

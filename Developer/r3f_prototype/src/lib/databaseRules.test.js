@@ -22,6 +22,21 @@ describe('Realtime Database rules', () => {
     expect(user.$other['.validate']).toBe(false)
   })
 
+  it('isolates Studio data to its owner and pins its versioned envelope', () => {
+    const studioUser = rules.studioWorkspaces.v1.users.$uid
+    const studio = studioUser.current
+    expect(studio['.read']).toContain('auth.uid === $uid')
+    expect(studio['.write']).toContain('auth.uid === $uid')
+    expect(studio.schemaVersion['.validate']).toContain('newData.val() === 1')
+    expect(studio.revision['.validate']).toContain('newData.val() >= 0')
+    expect(studio.revision['.validate']).toContain('newData.val() % 1 === 0')
+    expect(studio.updatedAt['.validate']).toContain('newData.isString()')
+    expect(studio['.validate']).not.toContain("'datasets'")
+    expect(studio.datasets.$other['.validate']).toBe(false)
+    expect(studio.$other['.validate']).toBe(false)
+    expect(studioUser.$other['.validate']).toBe(false)
+  })
+
   it('makes only server-projected global daily/weekly rows publicly readable', () => {
     const entries = rules.rankingService.v1.public.$seasonId.global.$window.$periodKey.entries
     expect(entries['.read']).toContain("$window === 'daily' || $window === 'weekly'")

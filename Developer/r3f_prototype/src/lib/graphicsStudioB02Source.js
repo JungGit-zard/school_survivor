@@ -62,7 +62,9 @@ export const STUDIO_B02_SOURCE_TUNINGS = Object.freeze(b02SourceTunings)
 export const STUDIO_B02_SOURCE_METADATA = Object.freeze({
   schema: 'graphics-studio-b02-tunings',
   schemaVersion: 1,
-  sourceRevision: 1,
+  // r3: force a second recovery pass for browsers that already recorded r2
+  // while still retaining oversized B02 root scale values.
+  sourceRevision: 3,
   itemId: STUDIO_B02_ITEM_ID,
   entryCount: 1,
   snapshotSha256: '97d4820ece444aad424f9701359f1909259b4a7111c77af34ffa1c22e3d3c737',

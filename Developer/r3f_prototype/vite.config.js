@@ -1,8 +1,51 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { appendFile, mkdir } from 'node:fs/promises'
+import path from 'node:path'
+
+function runtimePlaytestLogPlugin() {
+  const logPath = path.resolve(
+    process.env.PLAYTEST_LOG_PATH || 'playtest-logs/current-session.ndjson',
+  )
+
+  return {
+    name: 'runtime-playtest-log',
+    configureServer(server) {
+      server.config.logger.info(`[playtest-log] ${logPath}`)
+      server.middlewares.use('/__playtest-log', (request, response, next) => {
+        if (request.method !== 'POST') {
+          next()
+          return
+        }
+
+        let body = ''
+        request.setEncoding('utf8')
+        request.on('data', (chunk) => {
+          body += chunk
+          if (body.length > 1_000_000) request.destroy()
+        })
+        request.on('end', async () => {
+          try {
+            const payload = JSON.parse(body)
+            await mkdir(path.dirname(logPath), { recursive: true })
+            await appendFile(logPath, `${JSON.stringify({
+              ...payload,
+              serverReceivedAt: new Date().toISOString(),
+            })}\n`, 'utf8')
+            response.statusCode = 204
+            response.end()
+          } catch {
+            response.statusCode = 400
+            response.end()
+          }
+        })
+      })
+    },
+  }
+}
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), runtimePlaytestLogPlugin()],
   server: {
     host: true,
     port: 5173,
