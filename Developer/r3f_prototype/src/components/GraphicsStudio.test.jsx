@@ -710,6 +710,35 @@ describe('GraphicsStudio', () => {
     )
   })
 
+  it('clamps out-of-range typed values on blur and restores exactly when the original value is retyped', () => {
+    act(() => {
+      root.render(<GraphicsStudio />)
+    })
+
+    const zoom = container.querySelector('input[name="stageBossPreviewZoomValue"]')
+    act(() => {
+      zoom.focus()
+      zoom.value = '0'
+      zoom.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    act(() => {
+      zoom.blur()
+    })
+    expect(loadStageBossPreview().zoom).toBe(50)
+    expect(zoom.value).toBe('50')
+
+    act(() => {
+      zoom.focus()
+      zoom.value = '110'
+      zoom.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    act(() => {
+      zoom.blur()
+    })
+    expect(loadStageBossPreview().zoom).toBe(110)
+    expect(zoom.value).toBe('110')
+  })
+
   it('applies typed numeric values to the game immediately', () => {
     act(() => {
       root.render(<GraphicsStudio />)

@@ -91,23 +91,33 @@ export const STUDIO_SLIDER_CSS = `
 
 function SliderRow({ label, name, min, max, step, value, onChange }) {
   const valueText = Number(value).toFixed(step < 1 ? 2 : 0)
+  const minNum = Number(min)
+  const maxNum = Number(max)
   const [draftValue, setDraftValue] = useState(valueText)
+  const [focused, setFocused] = useState(false)
   const handleInput = (event) => onChange(Number(event.target.value))
   const commitDraft = () => {
     const next = Number(draftValue)
-    if (Number.isFinite(next)) onChange(next)
-    else setDraftValue(valueText)
+    if (Number.isFinite(next)) {
+      const clamped = Math.min(maxNum, Math.max(minNum, next))
+      onChange(clamped)
+      setDraftValue(Number(clamped).toFixed(step < 1 ? 2 : 0))
+    } else {
+      setDraftValue(valueText)
+    }
   }
   const handleValueInput = (event) => {
     const nextText = event.target.value
     setDraftValue(nextText)
     const next = Number(nextText)
-    if (Number.isFinite(next)) onChange(next)
+    // 타이핑 중에는 범위 안일 때만 라이브 반영한다. 범위 밖(예: "110"을 향한 "1")은
+    // 클램프가 draft를 덮어써 타이핑과 싸우지 않도록 blur/Enter까지 커밋을 미룬다.
+    if (Number.isFinite(next) && next >= minNum && next <= maxNum) onChange(next)
   }
 
   useEffect(() => {
-    setDraftValue(valueText)
-  }, [valueText])
+    if (!focused) setDraftValue(valueText)
+  }, [valueText, focused])
 
   return (
     <label style={styles.controlRow}>
@@ -131,9 +141,13 @@ function SliderRow({ label, name, min, max, step, value, onChange }) {
         max={max}
         step={step}
         value={draftValue}
+        onFocus={() => setFocused(true)}
         onInput={handleValueInput}
         onChange={handleValueInput}
-        onBlur={commitDraft}
+        onBlur={() => {
+          setFocused(false)
+          commitDraft()
+        }}
         onKeyDown={(event) => {
           if (event.key === 'Enter') event.currentTarget.blur()
         }}
