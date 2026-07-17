@@ -76,35 +76,39 @@ Using gstack skills: After install, skills like /qa, /ship, /review, /investigat
 and /browse are available. Use /browse for all web browsing.
 Use ~/.claude/skills/gstack/... for gstack file paths (the global path).
 
-## Git Workflow — Direct Trunk (2026-06-14)
+## Git Workflow — 에이전트별 워크트리 + 단일 트렁크 (2026-07-16 개편)
 
-모든 AI 에이전트는 **`main` 브랜치에 직접 누적 커밋**한다. 단기 task 브랜치를 만들지 않는다.
+**에이전트마다 전용 워크트리에서 작업하고, 커밋은 전부 같은 원격 트렁크 브랜치에 쌓는다.** 단기 task 브랜치를 만들지 않는다. 현재 트렁크: `feature/stage2-corridor-floor-graphics`.
 
-### 워크트리 구조
+### 워크트리 배정 (정본)
 
-| 디렉터리 | 로컬 브랜치 | push 대상 |
-|---|---|---|
-| `school_survivor-integration/` | `main` | `origin/main` (통합·검증) |
-| `school_survivor-claude/` | `claude-dev` | `origin/main` (자동 설정됨) |
-| `school_survivor/` (codex) | `codex-dev` | `origin/main` (자동 설정됨) |
+| 디렉터리 | 담당 | 로컬 브랜치 | push 대상 |
+|---|---|---|---|
+| `zombie_claude/` | **Claude 전용** | `claude-dev` | `origin/feature/stage2-corridor-floor-graphics` (upstream 설정됨) |
+| `school_survivor-integration/` | **codex 전용** | `feature/stage2-corridor-floor-graphics` | `origin/feature/stage2-corridor-floor-graphics` |
 
-### Claude 워크플로우
+서로의 워크트리 파일은 절대 수정하지 않는다. 같은 트렁크를 공유하므로 커밋 히스토리는 하나다.
+
+### Claude 워크플로우 (zombie_claude/에서)
 
 ```bash
-# 작업 전 최신 main 동기화
-git fetch origin && git reset --hard origin/main
+cd d:/JungSil/2.Minigame_project/zombie_claude
 
-# 작업 후 커밋 → origin/main으로 직접 push
+# 작업 전 최신 트렁크 동기화
+git fetch origin && git reset --hard origin/feature/stage2-corridor-floor-graphics
+
+# 작업 후 커밋 → 트렁크로 push (upstream 설정돼 있어 push만 하면 됨)
 git add <files>
 git commit -m "feat/fix/chore: ..."
-git push                          # → origin/main으로 자동 push
+git push
 ```
 
 ### 규칙
 
 - `claude/<task>` 단기 브랜치 **절대 만들지 않는다**.
-- 커밋 전 반드시 `git fetch && git reset --hard origin/main`으로 최신화.
-- 충돌 시 `git pull --rebase origin main` 후 재push.
+- 작업 시작 전 반드시 `git fetch && git reset --hard origin/<트렁크>`로 최신화 — 전용 워크트리라 pathspec 없는 일반 커밋 가능.
+- 충돌 시 `git pull --rebase` 후 재push.
+- 트렁크 브랜치가 바뀌면(예: main 복귀) 이 표와 branch.claude-dev.merge 설정을 함께 갱신한다.
 - 서브에이전트는 `project_subagents/`에서 먼저 찾는다. 새로 만들지 않는다.
 
 ## Documented Solutions
