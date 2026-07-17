@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { useGameStore } from '../store/useGameStore.js'
 import PassiveUpgradeList from './PassiveUpgradeList.jsx'
+import WeaponPermanentUpgradeList from './WeaponPermanentUpgradeList.jsx'
 import { schoolButton, schoolPanel, uiPalette, uiType, warningSticker } from '../lib/uiStyle.js'
 
 export default function CoinShop({ onBack, backLabel = '결과로 돌아가기' }) {
   const goldTotal = useGameStore((s) => s.goldTotal)
+  const [activeTab, setActiveTab] = useState('passive')
 
   return (
     <div style={styles.root}>
@@ -18,7 +21,26 @@ export default function CoinShop({ onBack, backLabel = '결과로 돌아가기' 
         </div>
       </div>
 
-      <PassiveUpgradeList style={styles.list} />
+      <div style={styles.tabs} aria-label="코인상점 탭">
+        <button
+          type="button"
+          style={activeTab === 'passive' ? styles.tabActive : styles.tabButton}
+          onClick={() => setActiveTab('passive')}
+        >
+          주인공 강화
+        </button>
+        <button
+          type="button"
+          style={activeTab === 'weapon' ? styles.tabActive : styles.tabButton}
+          onClick={() => setActiveTab('weapon')}
+        >
+          무기 강화
+        </button>
+      </div>
+
+      {activeTab === 'passive'
+        ? <PassiveUpgradeList style={styles.list} />
+        : <WeaponPermanentUpgradeList style={styles.list} />}
 
       <button type="button" style={styles.backButton} onClick={onBack}>
         {backLabel}
@@ -98,6 +120,26 @@ const styles = {
   },
   list: {
     width: 'min(100%, 430px)',
+  },
+  tabs: {
+    width: 'min(100%, 430px)',
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 8,
+  },
+  tabButton: {
+    ...schoolButton('paper'),
+    minHeight: 38,
+    padding: '7px 8px',
+    fontSize: 14,
+    lineHeight: 1,
+  },
+  tabActive: {
+    ...schoolButton('cta'),
+    minHeight: 38,
+    padding: '7px 8px',
+    fontSize: 14,
+    lineHeight: 1,
   },
   backButton: {
     ...schoolButton('paper'),

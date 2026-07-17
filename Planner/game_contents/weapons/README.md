@@ -21,6 +21,7 @@
 - `weapon_list.md`: 현재 구현 무기 목록 정본 후보
 - `weapon_docs_runtime_match_audit_2026-06-03.md`: 현재 구현과 주요 무기 기획 문서 4개의 정합성 검수
 - `weapon_upgrade_flow_and_unlock_plan_2026-05-14.md`: 5분 플레이 흐름과 해금 설계 참고 문서
+- `weapon_permanent_upgrade_coin_shop_plan_2026-07-18.md`: 코인상점 신규 `무기 강화` 탭과 16종 무기 기본능력 영구 업그레이드 기획 정본
 - `weapon_expansion_unlock_plan_2026-05-10.md`: 무기 확장 로드맵과 미래 후보 참고 문서
 - `stage1_weapon_roster_card_pool_drift_resolution_2026-06-24.md`: 스테이지1 로스터·카드풀 드리프트 해소
 - `Weapons_modify.md`: 과거 수정 논의 기록. 인코딩 손상이 있어 현재 사양 근거로는 쓰지 않는다.

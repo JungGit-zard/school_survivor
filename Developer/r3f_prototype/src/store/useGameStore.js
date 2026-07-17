@@ -3,6 +3,10 @@ import { subscribeWithSelector } from 'zustand/middleware'
 import { UPGRADE_EFFECTS, applyUpgradeToWeapon } from '../lib/upgrades.js'
 import { resetRuntimeRefs, playerPos } from '../lib/refs.js'
 import { getAllLevels, purchase as purchasePassiveStorage, resetAllLevels as resetPassiveStorage } from '../lib/passiveUpgrades.js'
+import {
+  applyWeaponPermanentUpgradesToBaseWeapon,
+  purchaseWeaponPermanentUpgrade as purchaseWeaponPermanentUpgradeStorage,
+} from '../lib/weaponPermanentUpgrades.js'
 import { setMagnetMultiplier } from '../lib/pickup.js'
 import {
   incrementRecord as incrementPlayerRecord,
@@ -51,9 +55,10 @@ function buildInitialWeapons(levels) {
   const mightMult = 1 + 0.04 * (levels.might ?? 0)
   const out = {}
   for (const [key, entry] of Object.entries(WEAPON_CATALOG)) {
-    const baseDamage = entry.base?.damage ?? 0
+    const permanentBase = applyWeaponPermanentUpgradesToBaseWeapon(key, entry.base)
+    const baseDamage = permanentBase?.damage ?? 0
     out[key] = {
-      ...entry.base,
+      ...permanentBase,
       label: entry.label,
       level: entry.startsActive ? 1 : 0,
       active: !!entry.startsActive,
@@ -318,6 +323,22 @@ export const useGameStore = create(
       if (!result.ok) return result
       saveGoldTotal(result.nextGold)
       set((s) => ({ goldTotal: result.nextGold, passiveVersion: s.passiveVersion + 1 }))
+      requestCloudProgressSave()
+      return result
+    },
+
+    purchaseWeaponPermanentUpgrade: (id) => {
+      const { goldTotal } = get()
+      const result = purchaseWeaponPermanentUpgradeStorage(id, goldTotal)
+      if (!result.ok) return result
+      saveGoldTotal(result.nextGold)
+      const levels = getAllLevels()
+      set((s) => ({
+        goldTotal: result.nextGold,
+        weapons: buildInitialWeapons(levels),
+        passiveVersion: s.passiveVersion + 1,
+        levelUpChoiceSerial: s.levelUpChoiceSerial + 1,
+      }))
       requestCloudProgressSave()
       return result
     },
