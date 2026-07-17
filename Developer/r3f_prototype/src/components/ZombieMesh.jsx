@@ -8,6 +8,8 @@ import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.webp'
 import MatildaMesh from './MatildaMesh.jsx'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
 
+const disableRaycast = () => null
+
 // 타입별 색상 팔레트
 export const ZOMBIE_PALETTE = {
   E01: { body: 0x4a7a2c, skin: 0x8ab060, eye: 0xff2020 },
@@ -165,15 +167,16 @@ export const B02_TEACHER_BOSS_FACE = {
   offset: [0.1, 0],
 }
 
-function ZBlock({ name, studioPartId, size, position, rotation, color, emissive = 0.12, outlineScale = 1.08, flash = false }) {
+function ZBlock({ name, studioPartId, size, position, rotation, color, emissive = 0.12, outlineScale = 1.08, flash = false, children = null }) {
   const geo    = getCachedBoxGeo(...size)
   const outMat = getSharedOutlineMat()
   const mat    = flash ? getFlashMat() : getCachedToonMat(color, emissive)
   const os     = inflateScale(outlineScale)
   return (
     <group name={studioPartId ?? name} userData={studioPartId ? { studioPartId } : undefined} position={position} rotation={rotation}>
-      <mesh renderOrder={1} geometry={geo} material={outMat} scale={[os, os, os]} userData={{ studioRenderOutline: true }} />
+      <mesh renderOrder={1} geometry={geo} material={outMat} scale={[os, os, os]} userData={{ studioRenderOutline: true }} raycast={disableRaycast} />
       <mesh renderOrder={2} geometry={geo} material={mat} />
+      {children}
     </group>
   )
 }
@@ -316,7 +319,13 @@ function B02TeacherFaceTexture() {
   texture.generateMipmaps = false
 
   return (
-    <mesh name="b02TeacherFaceTexture" position={B02_TEACHER_BOSS_FACE.position} renderOrder={4} userData={{ studioNonFocusable: true }}>
+    <mesh
+      name="b02TeacherFaceTexture"
+      position={B02_TEACHER_BOSS_FACE.position}
+      renderOrder={4}
+      userData={{ studioNonFocusable: true, studioNonTunable: true }}
+      raycast={disableRaycast}
+    >
       <planeGeometry args={B02_TEACHER_BOSS_FACE.size} />
       <meshBasicMaterial map={texture} toneMapped={false} depthTest={false} depthWrite={false} />
     </mesh>
@@ -329,8 +338,9 @@ function B02TeacherBossMesh({ hitFlash, reg }) {
   return (
     <group>
       <group name="b02TeacherHeadRig" ref={reg('head')} position={[0, 0.92, 0]}>
-        <ZBlock name="b02Head" studioPartId="b02-head" size={[0.62, 0.62, 0.50]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash} />
-        <B02TeacherFaceTexture />
+        <ZBlock name="b02Head" studioPartId="b02-head" size={[0.62, 0.62, 0.50]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash}>
+          <B02TeacherFaceTexture />
+        </ZBlock>
         <ZBlock name="b02HairTopPlate" studioPartId="b02-hair-top-plate" size={[0.70, 0.12, 0.56]} position={[0, 0.37, -0.02]} color={pal.hair} emissive={0.035} outlineScale={1.04} flash={hitFlash} />
         <ZBlock name="b02HairLeftPlate" studioPartId="b02-hair-left-plate" size={[0.12, 0.52, 0.50]} position={[-0.37, 0.02, -0.02]} color={pal.hair} emissive={0.03} outlineScale={1.03} flash={hitFlash} />
         <ZBlock name="b02HairRightPlate" studioPartId="b02-hair-right-plate" size={[0.12, 0.52, 0.50]} position={[0.37, 0.02, -0.02]} color={pal.hair} emissive={0.03} outlineScale={1.03} flash={hitFlash} />

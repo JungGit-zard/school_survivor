@@ -21,9 +21,16 @@ import {
   STUDIO_PLAYER_SOURCE_METADATA,
   STUDIO_PLAYER_SOURCE_TUNINGS,
 } from './graphicsStudioPlayerSource.js'
+import {
+  STUDIO_B02_ITEM_ID,
+  STUDIO_B02_SAFE_LEGACY_PART_IDS,
+  STUDIO_B02_SOURCE_METADATA,
+  STUDIO_B02_SOURCE_TUNINGS,
+} from './graphicsStudioB02Source.js'
 
 export const GRAPHICS_STUDIO_STORAGE_KEY = 'escape-zombie-school.graphicsStudioTunings.v1'
 export const GRAPHICS_STUDIO_PLAYER_SOURCE_REVISION_KEY = 'escape-zombie-school.graphicsStudioPlayerSourceRevision.v1'
+export const GRAPHICS_STUDIO_B02_SOURCE_REVISION_KEY = 'escape-zombie-school.graphicsStudioB02SourceRevision.v1'
 export const GRAPHICS_STUDIO_RESET_BASELINE_KEY = 'escape-zombie-school.graphicsStudioResetBaseline.2026-07-05T17'
 export const GRAPHICS_STUDIO_TUNING_EVENT = 'escape-zombie-school.graphicsStudioTunings.changed'
 export const STAGE_BOSS_PREVIEW_STORAGE_KEY = 'escape-zombie-school.stageBossPreview.v1'
@@ -34,7 +41,7 @@ export const TEXTURE_DECALS_EVENT = 'escape-zombie-school.textureDecals.changed'
 export const TEXTURE_DECAL_FACE_AXES = Object.freeze(['+x', '-x', '+y', '-y', '+z', '-z'])
 
 export const STUDIO_ZOMBIE_ITEM_IDS = Object.freeze({
-  B02: 'zombie-b02-teacher',
+  B02: STUDIO_B02_ITEM_ID,
   B03: 'zombie-b03-pe-teacher',
 })
 
@@ -691,6 +698,19 @@ function normalizeSourceRevision(revision) {
   return Number.isInteger(parsed) && parsed >= 0 ? parsed : 0
 }
 
+function preserveFutureSourceTunings(tunings, parsed, futureSourceItemIds) {
+  if (!futureSourceItemIds.length) return tunings
+  const preserved = { ...tunings }
+  Object.entries(parsed).forEach(([itemId, tuning]) => {
+    if (futureSourceItemIds.some((sourceItemId) => (
+      itemId === sourceItemId || itemId.startsWith(`${sourceItemId}::`)
+    ))) {
+      preserved[itemId] = tuning
+    }
+  })
+  return preserved
+}
+
 export function shouldPromoteStudioPlayerSource(
   storedRevision,
   sourceRevision = STUDIO_PLAYER_SOURCE_METADATA.sourceRevision,
@@ -717,6 +737,100 @@ function fillStudioPlayerSourceDefaults(tunings) {
   return normalizeStudioTuningMap(completed)
 }
 
+function planStudioPlayerSource(tunings, parsed, hasValidPayload, storedRevision) {
+  const sourceRevision = STUDIO_PLAYER_SOURCE_METADATA.sourceRevision
+  if (storedRevision > sourceRevision) {
+    return { tunings, writePayload: false, revision: null }
+  }
+  if (hasValidPayload && storedRevision === sourceRevision) {
+    const completed = fillStudioPlayerSourceDefaults(parsed)
+    return {
+      tunings: completed,
+      writePayload: JSON.stringify(completed) !== JSON.stringify(parsed),
+      revision: null,
+    }
+  }
+  return {
+    tunings: promoteStudioPlayerSource(tunings),
+    writePayload: true,
+    revision: sourceRevision,
+  }
+}
+
+const STUDIO_B02_LEGACY_ITEM_IDS = Object.freeze(['zombie-b02-rebuilt', 'zombie-b02'])
+const STUDIO_B02_SAFE_LEGACY_PART_ID_SET = new Set(STUDIO_B02_SAFE_LEGACY_PART_IDS)
+
+function getSafeB02TeacherKey(aliasItemId, aliasKey) {
+  const partPrefix = `${aliasItemId}::part::id:`
+  if (aliasKey.startsWith(partPrefix)) {
+    const partId = aliasKey.slice(partPrefix.length)
+    return STUDIO_B02_SAFE_LEGACY_PART_ID_SET.has(partId)
+      ? `${STUDIO_B02_ITEM_ID}::part::id:${partId}`
+      : null
+  }
+
+  const groupPrefix = `${aliasItemId}::group::`
+  if (!aliasKey.startsWith(groupPrefix)) return null
+  const partKeys = aliasKey.slice(groupPrefix.length).split('+')
+  const partIds = partKeys.map((partKey) => (
+    partKey.startsWith('id:') ? partKey.slice('id:'.length) : null
+  ))
+  if (partIds.some((partId) => !partId || !STUDIO_B02_SAFE_LEGACY_PART_ID_SET.has(partId))) {
+    return null
+  }
+  const canonicalPartKeys = Array.from(new Set(partIds))
+    .sort()
+    .map((partId) => `id:${partId}`)
+  return `${STUDIO_B02_ITEM_ID}::group::${canonicalPartKeys.join('+')}`
+}
+
+function planStudioB02Source(tunings, parsed, storedRevision) {
+  const sourceRevision = STUDIO_B02_SOURCE_METADATA.sourceRevision
+  if (storedRevision > sourceRevision) {
+    return { tunings, writePayload: false, revision: null }
+  }
+
+  const next = { ...tunings }
+  let changed = false
+  if (storedRevision < sourceRevision) {
+    if (!Object.hasOwn(next, STUDIO_B02_ITEM_ID)) {
+      const aliasRoot = STUDIO_B02_LEGACY_ITEM_IDS.find((itemId) => Object.hasOwn(next, itemId))
+      next[STUDIO_B02_ITEM_ID] = aliasRoot
+        ? next[aliasRoot]
+        : STUDIO_B02_SOURCE_TUNINGS[STUDIO_B02_ITEM_ID]
+    }
+
+    STUDIO_B02_LEGACY_ITEM_IDS.forEach((aliasItemId) => {
+      Object.keys(next)
+        .filter((key) => key.startsWith(`${aliasItemId}::`))
+        .forEach((aliasKey) => {
+          const teacherKey = getSafeB02TeacherKey(aliasItemId, aliasKey)
+          if (!teacherKey || Object.hasOwn(next, teacherKey)) return
+          next[teacherKey] = next[aliasKey]
+        })
+    })
+  }
+
+  if (!Object.hasOwn(next, STUDIO_B02_ITEM_ID)) {
+    next[STUDIO_B02_ITEM_ID] = STUDIO_B02_SOURCE_TUNINGS[STUDIO_B02_ITEM_ID]
+    changed = true
+  } else {
+    const completedRoot = normalizeStudioTuning({
+      ...STUDIO_B02_SOURCE_TUNINGS[STUDIO_B02_ITEM_ID],
+      ...next[STUDIO_B02_ITEM_ID],
+    })
+    const rawRoot = parsed?.[STUDIO_B02_ITEM_ID]
+    if (!rawRoot || JSON.stringify(completedRoot) !== JSON.stringify(rawRoot)) changed = true
+    next[STUDIO_B02_ITEM_ID] = completedRoot
+  }
+
+  return {
+    tunings: normalizeStudioTuningMap(next),
+    writePayload: changed || storedRevision < sourceRevision,
+    revision: storedRevision < sourceRevision ? sourceRevision : null,
+  }
+}
+
 export function loadStudioTunings(storage) {
   const targetStorage = getStorage(storage)
   if (!targetStorage) return {}
@@ -737,27 +851,38 @@ export function loadStudioTunings(storage) {
   }
 
   const normalized = normalizeStudioTuningMap(parsed)
-  const storedRevision = normalizeSourceRevision(
+  const storedPlayerRevision = normalizeSourceRevision(
     targetStorage.getItem(GRAPHICS_STUDIO_PLAYER_SOURCE_REVISION_KEY),
   )
-  const sourceRevision = STUDIO_PLAYER_SOURCE_METADATA.sourceRevision
+  const storedB02Revision = normalizeSourceRevision(
+    targetStorage.getItem(GRAPHICS_STUDIO_B02_SOURCE_REVISION_KEY),
+  )
+  const playerPlan = planStudioPlayerSource(
+    normalized,
+    parsed,
+    hasValidPayload,
+    storedPlayerRevision,
+  )
+  const b02Plan = planStudioB02Source(playerPlan.tunings, parsed, storedB02Revision)
+  const finalTunings = preserveFutureSourceTunings(
+    b02Plan.tunings,
+    parsed,
+    [
+      storedPlayerRevision > STUDIO_PLAYER_SOURCE_METADATA.sourceRevision ? 'player' : null,
+      storedB02Revision > STUDIO_B02_SOURCE_METADATA.sourceRevision ? STUDIO_B02_ITEM_ID : null,
+    ].filter(Boolean),
+  )
 
-  if (storedRevision > sourceRevision) {
-    return normalized
+  if (playerPlan.writePayload || b02Plan.writePayload) {
+    targetStorage.setItem(GRAPHICS_STUDIO_STORAGE_KEY, JSON.stringify(finalTunings))
   }
-
-  if (hasValidPayload && storedRevision === sourceRevision) {
-    const completed = fillStudioPlayerSourceDefaults(parsed)
-    if (JSON.stringify(completed) !== JSON.stringify(normalized)) {
-      targetStorage.setItem(GRAPHICS_STUDIO_STORAGE_KEY, JSON.stringify(completed))
-    }
-    return completed
+  if (playerPlan.revision !== null) {
+    targetStorage.setItem(GRAPHICS_STUDIO_PLAYER_SOURCE_REVISION_KEY, String(playerPlan.revision))
   }
-
-  const promoted = promoteStudioPlayerSource(normalized)
-  targetStorage.setItem(GRAPHICS_STUDIO_STORAGE_KEY, JSON.stringify(promoted))
-  targetStorage.setItem(GRAPHICS_STUDIO_PLAYER_SOURCE_REVISION_KEY, String(sourceRevision))
-  return promoted
+  if (b02Plan.revision !== null) {
+    targetStorage.setItem(GRAPHICS_STUDIO_B02_SOURCE_REVISION_KEY, String(b02Plan.revision))
+  }
+  return finalTunings
 }
 
 export function saveStudioTunings(tunings, storage) {

@@ -199,4 +199,23 @@ describe('Stage 2 boss visual reference', () => {
     expect(B02_TEACHER_BOSS_FACE.offset).toEqual([0.1, 0])
     expect(B02_TEACHER_BOSS_FACE.position).toEqual([0, 0, 0.247578125])
   })
+
+  it('keeps the B02 face texture inside the editable head part', () => {
+    const zBlockSource = zombieMeshSource.match(
+      /function ZBlock[\s\S]*?\n}\n\nfunction B01BossZombieMesh/,
+    )
+
+    expect(zBlockSource).not.toBeNull()
+    expect(zBlockSource[0]).toContain('{children}')
+    expect(zombieMeshSource).toMatch(
+      /<ZBlock[^>]*studioPartId="b02-head"[^>]*>\s*<B02TeacherFaceTexture\s*\/>\s*<\/ZBlock>/,
+    )
+    expect(zombieMeshSource).toContain('studioNonFocusable: true, studioNonTunable: true')
+  })
+
+  it('disables raycasting on render-only ZBlock outlines', () => {
+    expect(zombieMeshSource).toMatch(
+      /<mesh(?=[^>]*renderOrder=\{1\})(?=[^>]*studioRenderOutline: true)(?=[^>]*raycast=\{disableRaycast\})[^>]*\/>/,
+    )
+  })
 })

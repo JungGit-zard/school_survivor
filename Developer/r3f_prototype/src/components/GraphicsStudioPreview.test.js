@@ -88,13 +88,16 @@ describe('GraphicsStudioPreview render contracts', () => {
     const regular = new THREE.Mesh()
     const renderOutline = new THREE.Mesh()
     const partGroupOutline = new THREE.LineSegments()
+    const nonFocusable = new THREE.Mesh()
     renderOutline.userData.studioRenderOutline = true
     partGroupOutline.userData.studioPartGroupOutline = true
-    root.add(regular, renderOutline, partGroupOutline)
+    nonFocusable.userData.studioNonFocusable = true
+    root.add(regular, renderOutline, partGroupOutline, nonFocusable)
 
     expect(getStudioPartKey(root, regular)).toBe('0')
     expect(getStudioPartKey(root, renderOutline)).toBeNull()
     expect(getStudioPartKey(root, partGroupOutline)).toBeNull()
+    expect(getStudioPartKey(root, nonFocusable)).toBeNull()
   })
 
   it('supports single and grouped part focus with neon outlines', () => {
@@ -121,6 +124,7 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(source).toContain('part.traverse((object) =>')
     expect(source).toContain('if (!object.isMesh || !object.geometry) return')
     expect(source).toContain('object.userData.studioRenderOutline')
+    expect(source).toContain('object.userData.studioNonFocusable || object.userData.studioNonTunable')
     expect(source).toContain('createMeshFocusOutline(mesh)')
     expect(source).toContain('mesh.add(outline)')
     expect(source).toContain('outline.raycast = () => {}')

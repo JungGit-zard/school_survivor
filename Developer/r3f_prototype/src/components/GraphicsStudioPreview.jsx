@@ -50,7 +50,7 @@ import { BoxCutterModel } from './Weapons/BoxCutter.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
 import { SharkMissileModel, FlameTrail } from './Weapons/SharkMissile.jsx'
 import { CrashExplosionVisual, StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
-import { StudioTuningPreviewProvider, applySavedStudioPartTunings, applyStudioTuning, getStudioTransformProps } from './StudioTunedGroup.jsx'
+import { StudioTuningPreviewProvider, applySavedStudioPartTunings, applyStudioTuning, disposeStudioOwnedMaterials, getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { disposeTextureDecals, syncTextureDecals } from './TextureDecal.jsx'
 import { snapLocalNormalToFaceAxis } from '../lib/textureDecal.js'
 import { getCrashPose } from '../lib/starlinkCrash.js'
@@ -178,6 +178,7 @@ function collectFocusableMeshes(part) {
   part.traverse((object) => {
     if (!object.isMesh || !object.geometry) return
     if (object.userData.studioPartGroupOutline || object.userData.studioTextureDecal || object.userData.studioRenderOutline) return
+    if (object.userData.studioNonFocusable || object.userData.studioNonTunable) return
     meshes.push(object)
   })
   return meshes
@@ -248,7 +249,10 @@ function useApplyStudioTuning(rootRef, itemId, tuning, focusedPartKeys, partTuni
 
   useEffect(() => {
     const root = rootRef.current
-    return () => disposeTextureDecals(root)
+    return () => {
+      disposeTextureDecals(root)
+      disposeStudioOwnedMaterials(root)
+    }
   }, [rootRef, itemId])
 
   useFrame(() => {
