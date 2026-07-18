@@ -323,23 +323,23 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
       </group>
 
       <group ref={reg('legL')} position={[-0.22, -0.34, 0]}>
-        <OutlineBlock size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} scale={1.06} />
+        <OutlineBlock size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} scale={1.16} />
         <Block size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} color={0xebebf2} emissive={0.06} />
         <group position={[0, -0.76, 0.06]}>
-          <OutlineBlock size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} scale={1.04} />
+          <OutlineBlock size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} scale={1.14} />
           <Block size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} color={0x8090a8} emissive={0.12} />
-          <OutlineBlock size={[0.4, 0.1, 0.46]} position={[0, -0.15, 0]} scale={1.04} />
+          <OutlineBlock size={[0.4, 0.1, 0.46]} position={[0, -0.15, 0]} scale={1.14} />
           <Block size={[0.4, 0.1, 0.46]} position={[0, -0.15, 0]} color={0x4a5566} emissive={0.08} />
         </group>
       </group>
 
       <group ref={reg('legR')} position={[0.22, -0.34, 0]}>
-        <OutlineBlock size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} scale={1.06} />
+        <OutlineBlock size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} scale={1.16} />
         <Block size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} color={0xebebf2} emissive={0.06} />
         <group position={[0, -0.76, 0.06]}>
-          <OutlineBlock size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} scale={1.04} />
+          <OutlineBlock size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} scale={1.14} />
           <Block size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} color={0x8090a8} emissive={0.12} />
-          <OutlineBlock size={[0.4, 0.1, 0.46]} position={[0, -0.15, 0]} scale={1.04} />
+          <OutlineBlock size={[0.4, 0.1, 0.46]} position={[0, -0.15, 0]} scale={1.14} />
           <Block size={[0.4, 0.1, 0.46]} position={[0, -0.15, 0]} color={0x4a5566} emissive={0.08} />
         </group>
       </group>
