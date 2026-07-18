@@ -15,7 +15,7 @@ const PLAYER_BODY_SIZE = [0.75, 0.72, 0.5]
 const PLAYER_BODY_POSITION = [0, 0.46, 0]
 const PLAYER_HEAD_SIZE = [0.72, 0.66, 0.56]
 const PLAYER_HEAD_BASE_Y = 1.12
-const PLAYER_IDLE_BREATHE_Y = 0.018
+const PLAYER_IDLE_BREATHE_Y = 0.028
 const PLAYER_WALK_BOB_Y = 0.022
 const PLAYER_MAX_HEAD_BOB_Y = Math.max(PLAYER_IDLE_BREATHE_Y, PLAYER_WALK_BOB_Y)
 const PLAYER_HEAD_OUTLINE_OFFSET_Y = 0.19
@@ -211,10 +211,12 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
     if (parts.lantern) parts.lantern.visible = armAction?.type === 'lanternAim' || armAction?.type === 'lanternFlashlight'
     parts.slvL.rotation.x = composeStudioPartRotation(parts.slvL, 'x', 0, armPose.slvL.x)
     parts.slvL.rotation.y = composeStudioPartRotation(parts.slvL, 'y', 0, armPose.slvL.y)
-    parts.slvL.rotation.z = composeStudioPartRotation(parts.slvL, 'z', 0, armPose.slvL.z)
+    // 아이들 호흡: 어깨(소매)가 들숨에 살짝 벌어졌다 돌아온다. 기존 피벗·계층 그대로, 회전만.
+    const breatheArm = Math.sin(t * 1.8) * 0.03 * (1 - b)
+    parts.slvL.rotation.z = composeStudioPartRotation(parts.slvL, 'z', 0, armPose.slvL.z + breatheArm)
     parts.slvR.rotation.x = composeStudioPartRotation(parts.slvR, 'x', 0, armPose.slvR.x)
     parts.slvR.rotation.y = composeStudioPartRotation(parts.slvR, 'y', 0, armPose.slvR.y)
-    parts.slvR.rotation.z = composeStudioPartRotation(parts.slvR, 'z', 0, armPose.slvR.z)
+    parts.slvR.rotation.z = composeStudioPartRotation(parts.slvR, 'z', 0, armPose.slvR.z - breatheArm)
     if (bagSwingState.active) {
       const swingT = bagSwingState.progress
       const swingPower = Math.sin(swingT * Math.PI)
