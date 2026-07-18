@@ -15,6 +15,7 @@ import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _eraserId = 0
 const FLIGHT_DURATION = 2.0  // 1.2→2.0: 사거리 2배에 맞춰 비행 시간 연장
+const ERASER_APEX_T = 2 / 3  // 상승:하강 시간 2:1 = 상승 속도가 하강 속도의 절반
 export const ERASER_MODEL_VISUAL_SCALE = scaleEffectVisual(1.2)
 
 export function getEraserExplosionVisualScale(radius, progress) {
@@ -69,8 +70,12 @@ function EraserProjectile({ id, start, target, damage, radius, onExplode }) {
 
     const x = THREE.MathUtils.lerp(start[0], target.x, t)
     const z = THREE.MathUtils.lerp(start[2], target.z, t)
-    // 수직 솟구침: 시작 높이→지면 선형 + 높은 포물선 (7유닛 정점)
-    const y = THREE.MathUtils.lerp(start[1], 0, t) + Math.sin(t * Math.PI) * 7.0
+    // 수직 솟구침: 시작 높이→지면 선형 + 높은 포물선 (7유닛 정점).
+    // 상승 속도 = 하강 속도의 절반 (기획 정본): 정점을 t=2/3에 둬 상승 2/3·하강 1/3로 시간 배분.
+    const arcPhase = t < ERASER_APEX_T
+      ? (t / ERASER_APEX_T) * 0.5
+      : 0.5 + ((t - ERASER_APEX_T) / (1 - ERASER_APEX_T)) * 0.5
+    const y = THREE.MathUtils.lerp(start[1], 0, t) + Math.sin(arcPhase * Math.PI) * 7.0
     groupRef.current.position.set(x, y, z)
     groupRef.current.rotation.x += delta * 3.2
     groupRef.current.rotation.z -= delta * 4.0
