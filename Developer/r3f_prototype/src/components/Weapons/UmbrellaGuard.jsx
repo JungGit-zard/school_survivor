@@ -171,6 +171,7 @@ export function UmbrellaGuardWeapon() {
     applyRadialDamage({
       x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
       knockback: 3.0, knockbackMs: blast.knockbackMs ?? 220,
+      canCrit: false, damageType: 'explosive', attackTags: ['radial', 'explosive', 'guard'],
     })
 
     setExplosions((prev) => [...prev, { id, x: blast.x, z: blast.z, radius: blast.radius }])

@@ -49,7 +49,19 @@ export function findClosestEnemy(maxRange, options) {
 // 중복 타격은 Set으로 막는다. 7종 AOE 무기(Flask/EraserBomb/Missile/CompassBlade/
 // UmbrellaGuard/Bell/Starlink)가 쓰던 동일 루프를 단일 정본으로 통합한 것.
 // 반환: 실제 피격당한 적 수.
-export function applyRadialDamage({ x, z, radius, damage, knockback, knockbackMs, deathStyleOverride, sightBlocker }) {
+export function applyRadialDamage({
+  x,
+  z,
+  radius,
+  damage,
+  knockback,
+  knockbackMs,
+  deathStyleOverride,
+  sightBlocker,
+  canCrit,
+  damageType,
+  attackTags,
+}) {
   if (!Number.isFinite(x) || !Number.isFinite(z) || !Number.isFinite(radius) || radius <= 0 || !Number.isFinite(damage)) return 0
 
   const radiusSq = radius * radius
@@ -64,6 +76,9 @@ export function applyRadialDamage({ x, z, radius, damage, knockback, knockbackMs
     hit.add(enemyId)
     const impact = { source: { x, z }, knockback, knockbackMs }
     if (deathStyleOverride) impact.deathStyleOverride = deathStyleOverride
+    if (canCrit !== undefined) impact.canCrit = canCrit
+    if (damageType !== undefined) impact.damageType = damageType
+    if (attackTags !== undefined) impact.attackTags = attackTags
     rb._enemyHit(damage, impact)
   })
   return hit.size

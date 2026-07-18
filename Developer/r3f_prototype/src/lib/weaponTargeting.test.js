@@ -112,6 +112,32 @@ describe('applyRadialDamage', () => {
     })
   })
 
+  it('forwards critical-hit eligibility metadata to radial damage targets', () => {
+    const enemy = fakeEnemy(0.5, 0)
+    enemyBodies.set('enemy', enemy)
+
+    applyRadialDamage({
+      x: 0,
+      z: 0,
+      radius: 1,
+      damage: 12,
+      knockback: 1,
+      knockbackMs: 40,
+      canCrit: false,
+      damageType: 'explosive',
+      attackTags: ['radial', 'explosive'],
+    })
+
+    expect(enemy._enemyHit).toHaveBeenCalledWith(12, {
+      source: { x: 0, z: 0 },
+      knockback: 1,
+      knockbackMs: 40,
+      canCrit: false,
+      damageType: 'explosive',
+      attackTags: ['radial', 'explosive'],
+    })
+  })
+
   it('treats radius as a hard boundary (just-inside hits, just-outside misses)', () => {
     const inside = fakeEnemy(0.99, 0)
     const outside = fakeEnemy(1.01, 0)

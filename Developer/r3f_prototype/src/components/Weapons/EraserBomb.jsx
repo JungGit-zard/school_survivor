@@ -130,6 +130,7 @@ export function EraserBombWeapon() {
     applyRadialDamage({
       x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
       knockback: 2.5, knockbackMs: 120, deathStyleOverride: 'shatter5',
+      canCrit: false, damageType: 'explosive', attackTags: ['radial', 'explosive'],
     })
 
     setExplosions((prev) => [...prev, { id: eid, x: blast.x, z: blast.z, radius: blast.radius }])

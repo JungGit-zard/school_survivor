@@ -9,6 +9,7 @@ const listeners = new Set()
 export const DAMAGE_NUMBER_COLORS = {
   enemy: '#fff4c2',
   player: '#ff5347',
+  critical: '#ffb000',
 }
 
 // 수명/상승/페이드 파라미터. "아주 작게 · 짧게 떴다 사라짐".

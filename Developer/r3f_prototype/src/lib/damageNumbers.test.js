@@ -12,6 +12,13 @@ import {
   DAMAGE_NUMBER_FADE_START,
 } from './damageNumbers.js'
 
+describe('DAMAGE_NUMBER_COLORS', () => {
+  it('defines a distinct critical-hit color for enemy damage feedback', () => {
+    expect(DAMAGE_NUMBER_COLORS.critical).toBe('#ffb000')
+    expect(DAMAGE_NUMBER_COLORS.critical).not.toBe(DAMAGE_NUMBER_COLORS.enemy)
+  })
+})
+
 describe('formatDamageAmount', () => {
   it('양수는 반올림한 정수 문자열', () => {
     expect(formatDamageAmount(3)).toBe('3')

@@ -259,6 +259,7 @@ export function GuidedMissile() {
     applyRadialDamage({
       x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
       knockback: 3.2, knockbackMs: 120, deathStyleOverride: 'shatter5',
+      canCrit: false, damageType: 'explosive', attackTags: ['radial', 'explosive', 'missile'],
     })
 
     setExplosions((prev) => [...prev, { id, x: blast.x, z: blast.z, radius: blast.radius }])

@@ -214,6 +214,7 @@ export function ScienceFlaskSplash() {
     applyRadialDamage({
       x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
       knockback: 2.8, knockbackMs: 100,
+      canCrit: false, damageType: 'explosive', attackTags: ['radial', 'explosive', 'chemical'],
     })
 
     setExplosions((prev) => [...prev, { id, x: blast.x, z: blast.z, radius: blast.radius }])

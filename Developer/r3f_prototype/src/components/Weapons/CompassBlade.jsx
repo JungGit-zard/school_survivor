@@ -272,6 +272,7 @@ export function CompassBladeWeapon() {
     applyRadialDamage({
       x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
       knockback: 3.2, knockbackMs: 130,
+      canCrit: false, damageType: 'explosive', attackTags: ['radial', 'explosive', 'burst'],
     })
 
     setExplosions((prev) => [...prev, {

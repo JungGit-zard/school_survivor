@@ -11,6 +11,7 @@ import { logKill, logPlaytestEvent } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { emitVfx } from '../lib/vfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
+import { resolveCriticalHit } from '../lib/criticalHits.js'
 import { createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { canE04FireProjectile } from '../lib/stage2ProjectileRules.js'
@@ -530,13 +531,23 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         y: Math.max(0.34, 0.42 * cs),
         z: hitPos.z,
       }))
+      const criticalHit = resolveCriticalHit({
+        baseDamage: dmg,
+        canCrit: impact.canCrit,
+        damageType: impact.damageType,
+        attackTags: impact.attackTags,
+        critChance: impact.critChance,
+        critMultiplier: impact.critMultiplier,
+      })
+      const finalDamage = criticalHit.damage
       // 모든 무기가 이 지점(_enemyHit)을 공통으로 지난다 → 여기서 데미지 숫자 1회 emit하면 무기별 누락이 없다.
       emitDamageNumber({
         x: hitPos.x,
         y: Math.max(0.8, 0.95 * cs),
         z: hitPos.z,
-        amount: dmg,
-        colorHex: DAMAGE_NUMBER_COLORS.enemy,
+        amount: finalDamage,
+        colorHex: criticalHit.isCritical ? DAMAGE_NUMBER_COLORS.critical : DAMAGE_NUMBER_COLORS.enemy,
+        isCritical: criticalHit.isCritical,
       })
       setHitFlash(true)
       hitFlashRef.current = true
@@ -559,7 +570,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           z: knockbackDir.current.z * knockback.speed,
         }, true)
       }
-      hpRef.current -= dmg
+      hpRef.current -= finalDamage
       setHp(hpRef.current)
       if (hpRef.current <= 0) {
         dead.current = true
@@ -581,7 +592,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         const t = rb.current?.translation()
         // 留됲? ?꾨젰?쇰줈 諛뺤궡 媛뺣룄(??以?媛? 寃곗젙. impact.knockback? 臾닿린 ?먯쿇 ?됰갚(?놁쑝硫?0).
         const intensity = resolveCollapseIntensity({
-          killingDamage: dmg,
+          killingDamage: finalDamage,
           maxHp: stats.hp,
           knockback: impact.knockback ?? 0,
         })

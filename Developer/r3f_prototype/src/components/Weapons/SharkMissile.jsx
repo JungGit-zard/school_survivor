@@ -278,6 +278,9 @@ export function SharkMissileWeapon() {
       knockback: 3.6,
       knockbackMs: 150,
       deathStyleOverride: 'shatter5',
+      canCrit: false,
+      damageType: 'explosive',
+      attackTags: ['radial', 'explosive', 'missile'],
     })
 
     setExplosions((prev) => [...prev, { id, x: blast.x, z: blast.z, radius: blast.radius }])
