@@ -498,10 +498,6 @@ function B04ChefBossMesh({ hitFlash, reg }) {
 
       <group name="chefHeadRig" ref={reg('head')} position={[0, 0.93, 0]}>
         <ZBlock name="chefHead" size={[0.66, 0.48, 0.52]} position={[0, 0, 0]} color={pal.skin} emissive={0.07} outlineScale={1.08} flash={hitFlash} />
-        <mesh name="chefFaceCleanPlate" position={[0, 0.01, 0.62]} renderOrder={20} userData={{ studioNonFocusable: true }}>
-          <planeGeometry args={[0.58, 0.44]} />
-          <meshBasicMaterial color={pal.skin} toneMapped={false} depthTest={false} depthWrite={false} />
-        </mesh>
         <ZBlock name="chefEarL" size={[0.13, 0.22, 0.16]} position={[-0.39, -0.01, 0]} color={pal.skinShadow} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
         <ZBlock name="chefEarR" size={[0.13, 0.22, 0.16]} position={[0.39, -0.01, 0]} color={pal.skinShadow} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
       </group>
