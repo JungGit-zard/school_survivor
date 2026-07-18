@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import {
   STORAGE_KEY,
   MAX_WEAPON_PERMANENT_LEVEL,
+  applyWeaponPermanentUpgradesToBaseWeapon,
   getAllWeaponPermanentUpgradeLevels,
   getWeaponPermanentUpgradeLevel,
   getWeaponPermanentUpgradePrice,
@@ -10,6 +11,7 @@ import {
   purchaseWeaponPermanentUpgrade,
   resetWeaponPermanentUpgradeLevels,
 } from './weaponPermanentUpgrades.js'
+import { WEAPON_CATALOG } from './weaponCatalog.js'
 import { setUnlocked, _resetForTests as resetWeaponUnlocks } from './weaponUnlocks.js'
 
 describe('weaponPermanentUpgrades storage layer', () => {
@@ -74,5 +76,22 @@ describe('weaponPermanentUpgrades storage layer', () => {
     expect(plan.maxLevel).toBe(10)
     expect(plan.levels[5].summary).toContain('투사체 속도')
     expect(plan.levels[10].summary).toContain('투사체 수')
+  })
+
+  it('applies permanent cooldown, range, and duration bonuses to base weapon stats', () => {
+    let gold = 999_999
+    for (let level = 1; level <= 4; level += 1) {
+      gold = purchaseWeaponPermanentUpgrade('boxCutter', gold).nextGold
+      gold = purchaseWeaponPermanentUpgrade('schoolBag', gold).nextGold
+      gold = purchaseWeaponPermanentUpgrade('scienceFlask', gold).nextGold
+    }
+
+    const cutter = applyWeaponPermanentUpgradesToBaseWeapon('boxCutter', WEAPON_CATALOG.boxCutter.base)
+    const ruler = applyWeaponPermanentUpgradesToBaseWeapon('schoolBag', WEAPON_CATALOG.schoolBag.base)
+    const flask = applyWeaponPermanentUpgradesToBaseWeapon('scienceFlask', WEAPON_CATALOG.scienceFlask.base)
+
+    expect(cutter.cooldown).toBeCloseTo(624, 1)
+    expect(ruler.range).toBeCloseTo(0.684, 3)
+    expect(flask.zoneDurationMs).toBe(5600)
   })
 })

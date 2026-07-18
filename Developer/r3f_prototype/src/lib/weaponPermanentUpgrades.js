@@ -120,27 +120,84 @@ function readPercent(summary) {
   return match ? Number(match[1]) / 100 : 0
 }
 
-function getDamageMultiplier(id, level) {
+function getBestPercentForSummary(id, level, predicate) {
   const plan = getWeaponPermanentUpgradePlan(id)
-  if (!plan || level <= 0) return 1
+  if (!plan || level <= 0) return 0
   let percent = 0
   for (let i = 1; i <= Math.min(level, MAX_WEAPON_PERMANENT_LEVEL); i += 1) {
     const summary = plan.levels[i]?.summary ?? ''
-    if (
-      summary.includes('공격력')
-      || summary.includes('피해')
-      || summary.includes('접촉 피해')
-      || summary.includes('폭발 피해')
-      || summary.includes('타격 피해')
-      || summary.includes('칼날 피해')
-      || summary.includes('동료 피해')
-      || summary.includes('지속 피해')
-      || summary.includes('틱 피해')
-    ) {
-      percent = Math.max(percent, readPercent(summary))
-    }
+    if (predicate(summary)) percent = Math.max(percent, Math.abs(readPercent(summary)))
   }
+  return percent
+}
+
+function getDamageMultiplier(id, level) {
+  const percent = getBestPercentForSummary(id, level, (summary) => (
+    summary.includes('공격력')
+    || summary.includes('피해')
+    || summary.includes('접촉 피해')
+    || summary.includes('폭발 피해')
+    || summary.includes('타격 피해')
+    || summary.includes('칼날 피해')
+    || summary.includes('동료 피해')
+    || summary.includes('지속 피해')
+    || summary.includes('틱 피해')
+  ))
   return 1 + percent
+}
+
+function scaleNumber(value, multiplier, decimals = 2) {
+  if (typeof value !== 'number') return value
+  const factor = 10 ** decimals
+  return Math.round(value * multiplier * factor) / factor
+}
+
+function scaleExistingProps(out, props, multiplier, decimals = 2) {
+  for (const prop of props) {
+    if (typeof out[prop] === 'number') out[prop] = scaleNumber(out[prop], multiplier, decimals)
+  }
+}
+
+function applySafeNumericPermanentEffects(id, level, out) {
+  const cooldownPercent = getBestPercentForSummary(id, level, (summary) => (
+    summary.includes('쿨타임') || summary.includes('공격 주기') || summary.includes('귀소 전환 시간')
+  ))
+  if (cooldownPercent > 0) {
+    scaleExistingProps(out, ['cooldown', 'retargetIntervalMs'], 1 - cooldownPercent, 0)
+  }
+
+  const rangePercent = getBestPercentForSummary(id, level, (summary) => (
+    summary.includes('공격 범위')
+    || summary.includes('폭발 범위')
+    || summary.includes('웅덩이 범위')
+    || summary.includes('파동 크기')
+    || summary.includes('파동 도달거리')
+    || summary.includes('타격 반경')
+    || summary.includes('스택 폭발 범위')
+    || summary.includes('펄스 범위')
+    || summary.includes('빛 콘 각도')
+    || summary.includes('빛 콘 길이')
+  ))
+  if (rangePercent > 0) {
+    scaleExistingProps(out, ['range', 'radius', 'zoneRadius', 'strikeRadius', 'lightLength', 'lightWidth'], 1 + rangePercent, 3)
+  }
+
+  const durationPercent = getBestPercentForSummary(id, level, (summary) => (
+    summary.includes('지속시간') || summary.includes('유지시간')
+  ))
+  if (durationPercent > 0) {
+    scaleExistingProps(out, ['durationMs', 'zoneDurationMs', 'swingMs', 'spinDurationMs'], 1 + durationPercent, 0)
+  }
+
+  const speedPercent = getBestPercentForSummary(id, level, (summary) => (
+    summary.includes('투사체 속도') || summary.includes('회전 속도') || summary.includes('귀소 속도')
+  ))
+  if (speedPercent > 0) {
+    scaleExistingProps(out, ['speed', 'orbitSpeed'], 1 + speedPercent, 2)
+  }
+
+  const knockbackPercent = getBestPercentForSummary(id, level, (summary) => summary.includes('넉백'))
+  if (knockbackPercent > 0) scaleExistingProps(out, ['knockbackMs'], 1 + knockbackPercent, 0)
 }
 
 export function applyWeaponPermanentUpgradesToBaseWeapon(id, weapon) {
@@ -150,6 +207,7 @@ export function applyWeaponPermanentUpgradesToBaseWeapon(id, weapon) {
   const out = { ...weapon, permanentUpgradeLevel: level }
   const damageMultiplier = getDamageMultiplier(id, level)
   if (typeof out.damage === 'number') out.damage = Math.round(out.damage * damageMultiplier * 10) / 10
+  applySafeNumericPermanentEffects(id, level, out)
 
   if (id === 'pencilThrow' && level >= 10) out.projectileCount = (out.projectileCount ?? 1) + 1
   if (id === 'tumbler' && level >= 10) out.count = (out.count ?? 1) + 1

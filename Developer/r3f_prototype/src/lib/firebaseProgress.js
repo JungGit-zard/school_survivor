@@ -2,6 +2,7 @@ import { getFirebaseConfig, isFirebaseAuthConfigured } from './firebaseAuth.js'
 import { load as loadPlayerRecords, STORAGE_KEY as RECORDS_STORAGE_KEY } from './playerRecords.js'
 import { getAllLevels, STORAGE_KEY as PASSIVE_STORAGE_KEY } from './passiveUpgrades.js'
 import { getAllUnlocked, STORAGE_KEY as UNLOCKS_STORAGE_KEY } from './weaponUnlocks.js'
+import { getAllWeaponPermanentUpgradeLevels, STORAGE_KEY as WEAPON_PERMANENT_STORAGE_KEY } from './weaponPermanentUpgrades.js'
 import { getSavedNickname, saveNicknameForUser } from './userNickname.js'
 
 const DATABASE_URL_KEY = 'VITE_FIREBASE_DATABASE_URL'
@@ -44,6 +45,7 @@ export function buildCloudProgressSnapshot(now = Date.now()) {
       goldTotal: readGoldTotal(),
       records: loadPlayerRecords(),
       weaponUnlocks: buildWeaponUnlockSnapshot(),
+      weaponPermanentUpgrades: getAllWeaponPermanentUpgradeLevels(),
       passiveUpgrades: getAllLevels(),
       titleSettings: readJsonObject(TITLE_SETTINGS_STORAGE_KEY),
     },
@@ -102,6 +104,7 @@ export function applyCloudProgressSnapshot(snapshot, user = cloudUser) {
   localStorage.setItem(GOLD_STORAGE_KEY, String(readNonNegativeInt(progress.goldTotal)))
   writeJsonObject(RECORDS_STORAGE_KEY, progress.records)
   writeJsonObject(UNLOCKS_STORAGE_KEY, progress.weaponUnlocks)
+  writeJsonObject(WEAPON_PERMANENT_STORAGE_KEY, progress.weaponPermanentUpgrades)
   writeJsonObject(PASSIVE_STORAGE_KEY, progress.passiveUpgrades)
   writeJsonObject(TITLE_SETTINGS_STORAGE_KEY, progress.titleSettings)
   const activity = normalizePlayActivity(snapshot.activity)
@@ -187,6 +190,7 @@ function clearAccountBoundProgressForDifferentUser(user) {
     GOLD_STORAGE_KEY,
     RECORDS_STORAGE_KEY,
     UNLOCKS_STORAGE_KEY,
+    WEAPON_PERMANENT_STORAGE_KEY,
     PASSIVE_STORAGE_KEY,
     TITLE_SETTINGS_STORAGE_KEY,
     PLAY_ACTIVITY_STORAGE_KEY,

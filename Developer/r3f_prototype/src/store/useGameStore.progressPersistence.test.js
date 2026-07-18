@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest'
-import { buildCloudProgressSnapshot, buildCloudUserProfile, getUserProgressPath } from '../lib/firebaseProgress.js'
+import { applyCloudProgressSnapshot, buildCloudProgressSnapshot, buildCloudUserProfile, getUserProgressPath } from '../lib/firebaseProgress.js'
 import { RECORD_KEYS } from '../lib/playerRecords.js'
 import { saveNicknameForUser } from '../lib/userNickname.js'
 import { useGameStore } from './useGameStore.js'
+import { purchaseWeaponPermanentUpgrade, STORAGE_KEY as WEAPON_PERMANENT_STORAGE_KEY } from '../lib/weaponPermanentUpgrades.js'
 
 const GOLD_KEY = 'school_survivor:goldTotal'
 
@@ -58,6 +59,19 @@ describe('Google user progress persistence snapshot', () => {
     expect(localStorage.getItem(GOLD_KEY)).toBe('4')
     expect(snapshot.progress.goldTotal).toBe(4)
     expect(snapshot.progress.records.totalGold).toBe(0)
+  })
+
+  it('snapshots and restores weapon permanent upgrade levels', () => {
+    purchaseWeaponPermanentUpgrade('pencilThrow', 300)
+
+    const snapshot = buildCloudProgressSnapshot()
+    expect(snapshot.progress.weaponPermanentUpgrades).toMatchObject({ pencilThrow: 1 })
+
+    localStorage.removeItem(WEAPON_PERMANENT_STORAGE_KEY)
+    expect(localStorage.getItem(WEAPON_PERMANENT_STORAGE_KEY)).toBeNull()
+
+    expect(applyCloudProgressSnapshot(snapshot, { uid: 'tester' })).toBe(true)
+    expect(JSON.parse(localStorage.getItem(WEAPON_PERMANENT_STORAGE_KEY))).toMatchObject({ pencilThrow: 1 })
   })
 
   it('writes earned run gold and run records into the cloud snapshot at run end', () => {
