@@ -8,7 +8,7 @@
 
 ## 게임 화면과 Studio 비교 시점
 
-- 실제 R3F 트리에서 저장된 23개 항목을 적용한 뒤 Studio와 런타임의 파츠·base·최종 변형을 대조했고 불일치는 0개였다.
+- 실제 R3F 트리에서 Firebase로 hydrate된 현재 항목을 적용한 뒤 Studio와 런타임의 파츠·base·최종 변형을 대조한다.
 - Player Studio 카메라는 게임과 같은 정면축, 30도 화각, 45도 내려보기로 맞췄다. 편집 가시성을 위해 거리만 축소했다.
 
 ## Apply 직후 검정 실루엣 회귀 수정
@@ -17,15 +17,8 @@
 - 수정: 실제 외곽선 조건인 `BackSide`이면서 `NotEqualStencilFunc`인 재질만 외곽선으로 판별한다.
 - 보존: 플레이어 23개 저장 키, 숫자 파츠 경로, 모델 트리와 저장된 변형 값은 변경하지 않았다.
 
-## 오른팔 정상 자세 복구
+## 폐기된 로컬 복구 방식
 
-- 오른팔 소매·손 직접 파츠 2개와 해당 팔을 포함한 그룹 2개의 위치·회전·크기를 중립값으로 복구했다.
-- 전체 플레이어 키 23개와 숫자 경로는 유지한 채 Source-Controlled Player Seed revision 3으로 승격했다.
-- 중간 revision 2가 먼저 소비된 브라우저도 revision 3에서 실제 중립 팔 payload로 다시 승격된다.
-
-## Studio Apply 저장값 최우선 원칙
-
-- 타이틀 파츠를 별도로 이동시키던 revision 4 변경은 폐기했고, 칼라 `positionY`는 Studio 확정값 `-0.15`로 복원했다.
-- 유효한 Studio payload가 있으면 로컬 seed revision과 관계없이 절대 덮어쓰거나 누락 키를 합성하지 않는다.
-- 복구 seed는 저장값이 없거나 JSON이 깨진 최초 복구 상황에서만 사용한다.
-- 이 규칙은 플레이어뿐 아니라 같은 tuning map을 사용하는 모든 모델의 타이틀·게임 소비 경로에 공통 적용된다.
+- 과거 23개 로컬 시드, `sourceRevision`, 브라우저 승격 및 누락 키 합성 방식은 전부 치명적인 버그로 폐기한다.
+- Studio, 타이틀, 게임은 Firebase로 hydrate된 현재 payload만 사용한다.
+- Firebase 값이 없거나 손상됐으면 로컬 값으로 복구하지 않고 fail-closed 처리한다.

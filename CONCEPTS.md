@@ -10,23 +10,17 @@ The exact reviewed set of root, part, and group visual tuning values accepted fo
 
 An Apply action is not by itself proof of remote durability; durability requires a versioned canonical store and an auditable publication result.
 
-### Source-Controlled Player Seed
+### Forbidden Local Studio Seed
 
-An Applied Studio Snapshot for the player that is stored with application source so a fresh or older local Studio store can be initialized or migrated deterministically.
+Any source-controlled snapshot, `sourceRevision`, browser `localStorage` payload, bundled default, temporary JSON, or other local fallback used to initialize, recover, repair, migrate, or replace Graphics Studio input values.
 
-It is a release input and local recovery boundary, not a remote approval record; it does not provide server acknowledgement, administrator approval, cross-device synchronization, audit history, or server rollback.
-
-### Source Revision
-
-The monotonic migration level of a Source-Controlled Player Seed used to decide whether local player tuning data requires promotion or repair.
-
-It is distinct from a Git commit identifier, a Firebase revision, and a release version.
+This entire methodology is a fatal bug. It must never be used as a release input, recovery boundary, migration source, or substitute for Firebase.
 
 ### Visual Canonical State
 
-The future server-held, administrator-approved visual snapshot whose revision and integrity are verified by Studio, title, and gameplay consumers before use.
+The Firebase-held visual snapshot whose revision and integrity are verified by Studio, title, and gameplay consumers before use.
 
-Until that remote boundary exists, a Source-Controlled Player Seed plus release evidence can establish reproducibility for a build but does not constitute a Visual Canonical State.
+If Firebase cannot provide a valid current snapshot, consumers fail closed. They never reconstruct or replace it from local data.
 
 ### Release Parity Gate
 
@@ -36,6 +30,6 @@ Browser rendering and AAB-internal code inclusion do not by themselves prove And
 
 ## Relationships
 
-- A Source-Controlled Player Seed contains one Applied Studio Snapshot and advances through Source Revisions.
-- A Visual Canonical State contains an approved Applied Studio Snapshot but is not created merely by committing a Source-Controlled Player Seed.
+- A Forbidden Local Studio Seed must never contain or replace the active Applied Studio Snapshot.
+- A Visual Canonical State contains the Firebase-held Applied Studio Snapshot and cannot be created from local data.
 - A Release Parity Gate remains incomplete for Android visual parity until emulator or physical-device WebView execution evidence exists, even when browser rendering and packaged-code inclusion have passed.

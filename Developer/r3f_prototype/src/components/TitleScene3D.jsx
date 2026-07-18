@@ -14,6 +14,11 @@ import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatel
 import { PlayerVisual } from './Player.jsx'
 
 const TITLE_CHASE_TARGET = [0.48, 0.08]
+export const TITLE_PLAYER_RUN_BASE_POSITION = [0.48, 0.88, 0.38]
+export const TITLE_PLAYER_RUN_BASE_ROTATION = [-0.08, 0.48, 0.05]
+export const TITLE_PLAYER_RUN_BOUNCE_Y = 0.13
+export const TITLE_PLAYER_RUN_SWAY_X = 0.035
+export const TITLE_PLAYER_RUN_SPEED = 8.4
 export const TITLE_BOARD_BACK_LIMIT_Z = -4.62
 export const TITLE_ZOMBIE_GROUND_LIFT_Y = 0.16
 const TITLE_CHARACTER_STENCIL_REF = 2
@@ -188,12 +193,37 @@ function faceTitleTargetYaw(position) {
   return Math.atan2(TITLE_CHASE_TARGET[0] - position[0], TITLE_CHASE_TARGET[1] - position[2])
 }
 
-function TitlePlayer() {
+export function applyTitlePlayerRunFrame(node, elapsedTime, reducedEffects = false) {
+  if (!node) return
+  if (reducedEffects) {
+    node.position.set(...TITLE_PLAYER_RUN_BASE_POSITION)
+    node.rotation.set(...TITLE_PLAYER_RUN_BASE_ROTATION)
+    return
+  }
+
+  const stride = elapsedTime * TITLE_PLAYER_RUN_SPEED
+  const hop = Math.abs(Math.sin(stride))
+  const lean = Math.sin(stride)
+  node.position.x = TITLE_PLAYER_RUN_BASE_POSITION[0] + Math.sin(stride * 0.55) * TITLE_PLAYER_RUN_SWAY_X
+  node.position.y = TITLE_PLAYER_RUN_BASE_POSITION[1] + hop * TITLE_PLAYER_RUN_BOUNCE_Y
+  node.position.z = TITLE_PLAYER_RUN_BASE_POSITION[2] + Math.cos(stride * 0.55) * 0.025
+  node.rotation.x = TITLE_PLAYER_RUN_BASE_ROTATION[0] - hop * 0.035
+  node.rotation.y = TITLE_PLAYER_RUN_BASE_ROTATION[1] + lean * 0.035
+  node.rotation.z = TITLE_PLAYER_RUN_BASE_ROTATION[2] + lean * 0.07
+}
+
+function TitlePlayer({ reducedEffects }) {
+  const runnerRef = useRef(null)
   const meshGroup = useRef(null)
-  const movingRef = useRef(false)
+  const movingRef = useRef(!reducedEffects)
+
+  useFrame((state) => {
+    movingRef.current = !reducedEffects
+    applyTitlePlayerRunFrame(runnerRef.current, state.clock.elapsedTime, reducedEffects)
+  })
 
   return (
-    <group position={[0.48, 0.88, 0.38]} rotation={[-0.08, 0.48, 0.05]} scale={2}>
+    <group ref={runnerRef} position={TITLE_PLAYER_RUN_BASE_POSITION} rotation={TITLE_PLAYER_RUN_BASE_ROTATION} scale={2}>
       <PlayerVisual
         meshGroup={meshGroup}
         movingRef={movingRef}
@@ -598,7 +628,7 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
       {studioMode ? sceneRoot : <StudioTunedGroup itemId="title-scene">{sceneRoot}</StudioTunedGroup>}
       {!studioMode && (
         <group rotation={[0, -0.09, 0]} position={[0, -1.15, 0]}>
-          <TitlePlayer />
+          <TitlePlayer reducedEffects={reducedEffects} />
         </group>
       )}
     </>

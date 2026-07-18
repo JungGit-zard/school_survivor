@@ -139,4 +139,4 @@
 
 ## Session 6 · Entry 2 · 2026-07-15 0338 KST
 
-- Latest durable handoff pointer: `SESSION_MEMORY.md`의 같은 Session/Entry. Source-Controlled Player Seed, corrected AAB `versionCode 18` / `versionName 1.0.9`, 검증 증거, Firebase Visual Canonical State 경계를 기록했다. 상세 내용은 단일 로그 파일인 `SESSION_MEMORY.md`에만 둔다.
+- Latest durable handoff pointer: `SESSION_MEMORY.md`의 같은 Session/Entry. 당시 Source-Controlled Player Seed를 사용한 기록은 현재 전면 폐기된 치명적 버그의 역사적 증거로만 취급한다. 현재 Graphics Studio 정본은 Firebase-only이며 로컬 시드·복구·마이그레이션·fallback은 금지한다.

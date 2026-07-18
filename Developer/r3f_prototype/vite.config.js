@@ -3,6 +3,38 @@ import react from '@vitejs/plugin-react'
 import { appendFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 
+const FORBIDDEN_PROJECT_HOSTS = new Set(['127.0.0.1', '172.22.41.219'])
+
+function getRequestHostname(request) {
+  try {
+    return new URL(`http://${request.headers.host || ''}`).hostname
+  } catch {
+    return ''
+  }
+}
+
+function rejectForbiddenProjectHost(request, response, next) {
+  if (!FORBIDDEN_PROJECT_HOSTS.has(getRequestHostname(request))) {
+    next()
+    return
+  }
+  response.statusCode = 403
+  response.setHeader('Content-Type', 'text/plain; charset=utf-8')
+  response.end('Forbidden project host. Use http://localhost:5173/ only.')
+}
+
+function forbiddenProjectHostPlugin() {
+  return {
+    name: 'forbidden-project-host',
+    configureServer(server) {
+      server.middlewares.use(rejectForbiddenProjectHost)
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(rejectForbiddenProjectHost)
+    },
+  }
+}
+
 function runtimePlaytestLogPlugin() {
   const logPath = path.resolve(
     process.env.PLAYTEST_LOG_PATH || 'playtest-logs/current-session.ndjson',
@@ -45,7 +77,7 @@ function runtimePlaytestLogPlugin() {
 }
 
 export default defineConfig({
-  plugins: [react(), runtimePlaytestLogPlugin()],
+  plugins: [forbiddenProjectHostPlugin(), react(), runtimePlaytestLogPlugin()],
   server: {
     host: true,
     port: 5173,

@@ -4,9 +4,15 @@ import * as THREE from 'three'
 import { GRAPHICS_STUDIO_STORAGE_KEY } from '../lib/graphicsStudioConfig.js'
 import {
   TITLE_BOARD_BACK_LIMIT_Z,
+  TITLE_PLAYER_RUN_BASE_POSITION,
+  TITLE_PLAYER_RUN_BASE_ROTATION,
+  TITLE_PLAYER_RUN_BOUNCE_Y,
+  TITLE_PLAYER_RUN_SPEED,
+  TITLE_PLAYER_RUN_SWAY_X,
   TITLE_SCENE_DIRECTION,
   TITLE_ZOMBIE_GROUND_LIFT_Y,
   applyClubLightFrame,
+  applyTitlePlayerRunFrame,
   applyTitleCharacterOutline,
   clampTitleBackgroundZ,
   disposeTitleCharacterOutlines,
@@ -220,19 +226,41 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain('ref.current.rotation.y = yaw + Math.sin(t * 0.95) * 0.018')
   })
 
-  it('renders the Firebase-tuned Studio player without title-only mesh or outline mutation', () => {
+  it('animates the existing Firebase-tuned Studio title player instead of adding a duplicate mesh', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
     const outlineStart = source.indexOf('<TitleCharacterOutlineGroup>')
     const outlineEnd = source.indexOf('</TitleCharacterOutlineGroup>', outlineStart)
-    const titlePlayerIndex = source.indexOf('<TitlePlayer />')
+    const titlePlayerIndex = source.indexOf('<TitlePlayer reducedEffects={reducedEffects} />')
 
     expect(source).toContain("import { PlayerVisual } from './Player.jsx'")
-    expect(source).toContain('function TitlePlayer()')
-    expect(source).toContain('position={[0.48, 0.88, 0.38]} rotation={[-0.08, 0.48, 0.05]} scale={2}')
+    expect(source).not.toContain("import PlayerMesh from './PlayerMesh.jsx'")
+    expect(source).toContain('function TitlePlayer({ reducedEffects })')
+    expect(source).toContain('useFrame((state) => {')
+    expect(source).toContain('applyTitlePlayerRunFrame(runnerRef.current, state.clock.elapsedTime, reducedEffects)')
     expect(source).toContain('<PlayerVisual')
     expect(source).toContain('showHealthBar={false}')
+    expect(source).toContain('movingRef.current = !reducedEffects')
+    expect(source).not.toContain('function TitlePlayerRunner')
     expect(source).not.toContain('graphicsStudioPlayerSource')
     expect(titlePlayerIndex).toBeGreaterThan(outlineEnd)
+  })
+
+  it('applies a fleeing up-down hop frame to the existing title player and freezes it in reduced-effects mode', () => {
+    const node = new THREE.Group()
+    applyTitlePlayerRunFrame(node, Math.PI / (2 * TITLE_PLAYER_RUN_SPEED), false)
+
+    expect(TITLE_PLAYER_RUN_BASE_POSITION).toEqual([0.48, 0.88, 0.38])
+    expect(TITLE_PLAYER_RUN_BASE_ROTATION).toEqual([-0.08, 0.48, 0.05])
+    expect(node.position.y).toBeCloseTo(TITLE_PLAYER_RUN_BASE_POSITION[1] + TITLE_PLAYER_RUN_BOUNCE_Y)
+    expect(node.position.x).not.toBe(TITLE_PLAYER_RUN_BASE_POSITION[0])
+    expect(node.rotation.z).not.toBe(TITLE_PLAYER_RUN_BASE_ROTATION[2])
+
+    applyTitlePlayerRunFrame(node, 99, true)
+
+    expect(node.position.toArray()).toEqual(TITLE_PLAYER_RUN_BASE_POSITION)
+    expect(node.rotation.x).toBeCloseTo(TITLE_PLAYER_RUN_BASE_ROTATION[0])
+    expect(node.rotation.y).toBeCloseTo(TITLE_PLAYER_RUN_BASE_ROTATION[1])
+    expect(node.rotation.z).toBeCloseTo(TITLE_PLAYER_RUN_BASE_ROTATION[2])
   })
 
   it('gives character fills and outlines stencil ref 2 without changing background ref 1', () => {
