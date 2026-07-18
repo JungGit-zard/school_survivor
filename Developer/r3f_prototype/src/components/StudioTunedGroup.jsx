@@ -22,6 +22,14 @@ export function StudioTuningPreviewProvider({ children }) {
   )
 }
 
+export function StudioTuningRuntimeProvider({ children }) {
+  return (
+    <StudioPreviewContext.Provider value={false}>
+      {children}
+    </StudioPreviewContext.Provider>
+  )
+}
+
 export function getStudioTransformProps(tuning = DEFAULT_STUDIO_TUNING) {
   const t = normalizeStudioTuning(tuning)
   return {

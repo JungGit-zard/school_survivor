@@ -6,7 +6,7 @@ import { toonMat } from '../lib/toon.js'
 import { DancingDoge } from './DogeMesh.jsx'
 import MatildaMesh from './MatildaMesh.jsx'
 import ZombieMesh from './ZombieMesh.jsx'
-import StudioTunedGroup, { getStudioTransformProps } from './StudioTunedGroup.jsx'
+import StudioTunedGroup, { getStudioTransformProps, StudioTuningRuntimeProvider } from './StudioTunedGroup.jsx'
 import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'
 import { CompassBladeModel } from './Weapons/CompassBlade.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
@@ -626,11 +626,11 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
       <pointLight position={[0, 1.1, -3.7]} intensity={5.5} color={0xffdf9a} distance={11} decay={2} />
 
       {studioMode ? sceneRoot : <StudioTunedGroup itemId="title-scene">{sceneRoot}</StudioTunedGroup>}
-      {!studioMode && (
-        <group rotation={[0, -0.09, 0]} position={[0, -1.15, 0]}>
+      <group rotation={[0, -0.09, 0]} position={[0, -1.15, 0]}>
+        <StudioTuningRuntimeProvider>
           <TitlePlayer reducedEffects={reducedEffects} />
-        </group>
-      )}
+        </StudioTuningRuntimeProvider>
+      </group>
     </>
   )
 }

@@ -233,6 +233,7 @@ describe('TitleScene3D direction', () => {
     const titlePlayerIndex = source.indexOf('<TitlePlayer reducedEffects={reducedEffects} />')
 
     expect(source).toContain("import { PlayerVisual } from './Player.jsx'")
+    expect(source).toContain('StudioTuningRuntimeProvider')
     expect(source).not.toContain("import PlayerMesh from './PlayerMesh.jsx'")
     expect(source).toContain('function TitlePlayer({ reducedEffects })')
     expect(source).toContain('useFrame((state) => {')
@@ -242,6 +243,7 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain('movingRef.current = !reducedEffects')
     expect(source).not.toContain('function TitlePlayerRunner')
     expect(source).not.toContain('graphicsStudioPlayerSource')
+    expect(source).not.toContain('{!studioMode && (')
     expect(titlePlayerIndex).toBeGreaterThan(outlineEnd)
   })
 
