@@ -11,10 +11,10 @@ import StudioTunedGroup, {
   composeStudioPartRotation,
 } from './StudioTunedGroup.jsx'
 
-const PLAYER_BODY_SIZE = [0.75, 0.72, 0.5]
-const PLAYER_BODY_POSITION = [0, 0.46, 0]
-const PLAYER_HEAD_SIZE = [0.72, 0.66, 0.56]
-const PLAYER_HEAD_BASE_Y = 1.12
+const PLAYER_BODY_SIZE = [0.68, 0.7, 0.46]
+const PLAYER_BODY_POSITION = [0, 0.44, 0]
+const PLAYER_HEAD_SIZE = [0.8, 0.68, 0.58]
+const PLAYER_HEAD_BASE_Y = 1.1
 const PLAYER_IDLE_BREATHE_Y = 0.028
 const PLAYER_WALK_BOB_Y = 0.022
 const PLAYER_MAX_HEAD_BOB_Y = Math.max(PLAYER_IDLE_BREATHE_Y, PLAYER_WALK_BOB_Y)
@@ -46,7 +46,7 @@ export const PLAYER_MESH_LAYOUT = {
     maxHeadBobY: PLAYER_MAX_HEAD_BOB_Y,
   },
   outline: {
-    headSize: [1.04, 0.98, 0.82],
+    headSize: [1.08, 1.04, 0.86],
     headOffsetY: PLAYER_HEAD_OUTLINE_OFFSET_Y,
     headPosition: [0, PLAYER_HEAD_BASE_Y + PLAYER_HEAD_OUTLINE_OFFSET_Y, 0.04],
   },
@@ -105,7 +105,7 @@ function PlayerLanternLight() {
 function PlayerOuterOutline() {
   return (
     <group>
-      <OutlineBlock size={[1.04, 0.94, 0.62]} position={[0, 0.35, 0]} />
+      <OutlineBlock size={[0.98, 0.9, 0.58]} position={[0, 0.33, 0]} />
       <OutlineBlock size={PLAYER_MESH_LAYOUT.outline.headSize} position={PLAYER_MESH_LAYOUT.outline.headPosition} />
       <OutlineBlock size={[0.24, 1.05, 0.30]} position={[-0.68, 0.32, 0]} scale={1.07} />
       <OutlineBlock size={[0.24, 1.05, 0.30]} position={[0.68, 0.32, 0]} scale={1.07} />
@@ -272,44 +272,44 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
       <Block size={[0.38, 0.18, 0.12]} position={[0, 0.82, 0.32]} color={0xf4f4f4} emissive={0.08} />
       <Block size={[0.8, 0.13, 0.5]} position={[0, 0.1, 0]} color={0xffd100} emissive={0.26} />
 
-      <Block size={[0.94, 0.36, 0.56]} position={[0, -0.16, 0]} color={0x4a90d9} emissive={0.18} />
+      <Block size={[0.94, 0.36, 0.56]} position={[0, -0.16, 0]} color={0x2d8cff} emissive={0.2} />
 
       <group ref={reg('head')} position={[0, PLAYER_MESH_LAYOUT.head.baseY, 0]}>
         <Block size={PLAYER_MESH_LAYOUT.head.size} position={[0, 0, 0]} color={0xffc39b} emissive={0.1} />
       </group>
 
       <group ref={reg('hairTop')} position={[0, PLAYER_MESH_LAYOUT.head.baseY + 0.48, 0]}>
-        <Block size={[0.94, 0.34, 0.8]} position={[0, 0, 0]} color={0xff7096} emissive={0.18} />
+        <Block size={[0.98, 0.34, 0.82]} position={[0, 0, 0]} color={0xff8fb0} emissive={0.18} />
       </group>
       <group ref={reg('hairFr')} position={[0, PLAYER_MESH_LAYOUT.head.baseY + 0.22, 0.32]}>
-        <Block size={[0.8, 0.26, 0.2]} position={[0, 0, 0]} color={0xff7096} emissive={0.18} />
+        <Block size={[0.84, 0.28, 0.22]} position={[0, 0, 0]} color={0xff8fb0} emissive={0.18} />
       </group>
       <group ref={reg('hairSL')} position={[-0.46, PLAYER_MESH_LAYOUT.head.baseY + 0.05, 0]}>
-        <Block size={[0.22, 0.58, 0.48]} position={[0, 0, 0]} color={0xff7096} emissive={0.18} />
+        <Block size={[0.22, 0.6, 0.5]} position={[0, 0, 0]} color={0xd94070} emissive={0.14} />
       </group>
       <group ref={reg('hairSR')} position={[0.46, PLAYER_MESH_LAYOUT.head.baseY + 0.08, 0]}>
-        <Block size={[0.22, 0.46, 0.44]} position={[0, 0, 0]} color={0xff7096} emissive={0.18} />
+        <Block size={[0.22, 0.5, 0.46]} position={[0, 0, 0]} color={0xd94070} emissive={0.14} />
       </group>
       <group ref={reg('hairTail')} position={[-0.5, PLAYER_MESH_LAYOUT.head.baseY - 0.38, -0.06]}>
-        <Block size={[0.2, 0.5, 0.18]} position={[0, 0, 0]} color={0xd94070} emissive={0.12} />
+        <Block size={[0.22, 0.52, 0.2]} position={[0, 0, 0]} color={0xd94070} emissive={0.14} />
       </group>
       <group ref={reg('hairClip')} position={[0.34, PLAYER_MESH_LAYOUT.head.baseY + 0.6, 0.28]}>
         <Block size={[0.25, 0.16, 0.2]} position={[0, 0, 0]} color={0xf4f4f4} emissive={0.08} />
       </group>
 
       <group ref={reg('eyeL')} position={[-0.18, PLAYER_MESH_LAYOUT.head.baseY - 0.08, 0.28]}>
-        <Block size={[0.13, 0.14, 0.08]} position={[0, 0, 0]} color={0xd94070} emissive={0.1} />
+        <Block size={[0.12, 0.13, 0.08]} position={[0, 0, 0]} color={0xcf2f77} emissive={0.12} />
       </group>
       <group ref={reg('eyeR')} position={[0.18, PLAYER_MESH_LAYOUT.head.baseY - 0.08, 0.28]}>
-        <Block size={[0.13, 0.14, 0.08]} position={[0, 0, 0]} color={0xd94070} emissive={0.1} />
+        <Block size={[0.12, 0.13, 0.08]} position={[0, 0, 0]} color={0xcf2f77} emissive={0.12} />
       </group>
 
       <group ref={reg('bag')} position={[-0.52, 0.46, -0.22]}>
-        <Block size={[0.5, 0.7, 0.32]} position={[0, 0, 0]} color={0x38c8f0} emissive={0.2} />
+        <Block size={[0.48, 0.68, 0.3]} position={[0, 0, 0]} color={0x38c8f0} emissive={0.2} />
         <Block size={[0.32, 0.22, 0.1]} position={[0, 0.24, 0.22]} color={0x1668a0} emissive={0.12} />
       </group>
-      <Block size={[0.1, 0.6, 0.1]} position={[-0.22, 0.46, 0.3]} color={0x1668a0} emissive={0.12} />
-      <Block size={[0.1, 0.6, 0.1]} position={[0.22, 0.46, 0.3]} color={0x1668a0} emissive={0.12} />
+      <Block size={[0.1, 0.62, 0.1]} position={[-0.22, 0.46, 0.3]} color={0x005cff} emissive={0.18} />
+      <Block size={[0.1, 0.62, 0.1]} position={[0.22, 0.46, 0.3]} color={0x005cff} emissive={0.18} />
 
       <group ref={reg('slvL')} position={[-0.6, 0.72, 0]}>
         <Block size={[0.36, 0.66, 0.36]} position={[0, -0.33, 0]} color={0xd42020} emissive={0.2} />

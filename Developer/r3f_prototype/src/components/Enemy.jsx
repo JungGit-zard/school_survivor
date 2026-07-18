@@ -373,7 +373,7 @@ function EnemyProjectile({ id, position, velocity, damage, onExpire }) {
 // E01-E06 standard zombies render via ZombieInstanceLayer (instanced). B01 + Matilda use React mesh.
 const INSTANCED_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06'])
 
-export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false }) {
+export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false }) {
   const stats = ENEMY_STATS[type] ?? ENEMY_STATS.E01
   const cs = stats.scale * ENEMY_SIZE_MULTIPLIER
   const useInstanced = !forceMesh && !isMatilda && INSTANCED_TYPES.has(type)
@@ -383,8 +383,8 @@ export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = fal
     <>
       <group ref={groupRef} scale={[cs * 0.333, cs * 0.333, cs * 0.333]}>
         {/* E01-E06: rendered imperatively by ZombieInstanceLayer ??no mesh here */}
-        {!useInstanced && <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} isMatilda={isMatilda} />}
-        {stats.charger && animPhase === 'warn' && <ChargeToonCue y={CHARGE_CUE_LAYOUT.y} />}
+        {!useInstanced && <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} isMatilda={isMatilda} staticPose={staticPose} />}
+        {!staticPose && stats.charger && animPhase === 'warn' && <ChargeToonCue y={CHARGE_CUE_LAYOUT.y} />}
       </group>
       {showHealthBar && <MiniHealthBar current={currentHp} max={stats.hp} width={0.32 * cs} height={0.045} y={0.72 * cs} />}
     </>

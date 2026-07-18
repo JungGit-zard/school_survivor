@@ -7,6 +7,41 @@ import {
 import { getAllWeaponIds } from '../lib/weaponCatalog.js'
 import { isUnlocked } from '../lib/weaponUnlocks.js'
 import { schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
+import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.webp'
+import rulerIconSrc from '../assets/weapon_icon/02_wea_30ruller.png.webp'
+import boxCutterIconSrc from '../assets/weapon_icon/13_wea_boxcutter.svg'
+import tumblerIconSrc from '../assets/weapon_icon/03_wea_tumbler.png.webp'
+import flaskIconSrc from '../assets/weapon_icon/04_wea_science.png.webp'
+import bellIconSrc from '../assets/weapon_icon/05_wea_bell.png.webp'
+import stunIconSrc from '../assets/weapon_icon/06_wea_stungun.png.webp'
+import onigiriIconSrc from '../assets/weapon_icon/07_wea_onigiri.png.webp'
+import missileIconSrc from '../assets/weapon_icon/08_wea_extrabattery.png.webp'
+import starlinkIconSrc from '../assets/weapon_icon/09_wea_starlink.png.webp'
+import compassBladeIconSrc from '../assets/weapon_icon/10_wea_compass.png.webp'
+import umbrellaIconSrc from '../assets/weapon_icon/11_wea_umb.png.webp'
+import eraserIconSrc from '../assets/weapon_icon/12_wea_eraser.png.webp'
+import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
+import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
+import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.webp'
+
+const WEAPON_PERMANENT_ICON_SRC = {
+  pencilThrow: pencilIconSrc,
+  schoolBag: rulerIconSrc,
+  boxCutter: boxCutterIconSrc,
+  tumbler: tumblerIconSrc,
+  scienceFlask: flaskIconSrc,
+  bell: bellIconSrc,
+  stunGun: stunIconSrc,
+  onigiri: onigiriIconSrc,
+  guidedMissile: missileIconSrc,
+  starlink: starlinkIconSrc,
+  compassBlade: compassBladeIconSrc,
+  umbrellaGuard: umbrellaIconSrc,
+  eraserBomb: eraserIconSrc,
+  chibiko: chibikoIconSrc,
+  sharkMissile: sharkMissileIconSrc,
+  studentLantern: lanternIconSrc,
+}
 
 export default function WeaponPermanentUpgradeList({ style }) {
   const goldTotal = useGameStore((s) => s.goldTotal)
@@ -53,6 +88,7 @@ export default function WeaponPermanentUpgradeList({ style }) {
 function WeaponPermanentCard({ plan, unlocked, currentLevel, isMax, price, canAfford, onBuy }) {
   const next = plan.levels[Math.min(currentLevel + 1, plan.maxLevel)]
   const current = currentLevel > 0 ? plan.levels[currentLevel] : null
+  const iconSrc = WEAPON_PERMANENT_ICON_SRC[plan.id]
   let buttonLabel = '강화'
   let disabled = false
   let buttonStyle = styles.buyButton
@@ -72,7 +108,20 @@ function WeaponPermanentCard({ plan, unlocked, currentLevel, isMax, price, canAf
 
   return (
     <div style={{ ...styles.card, ...(unlocked ? styles.cardReady : styles.cardLocked), ...(isMax ? styles.cardMax : null) }}>
-      <div style={styles.weaponIcon}>{unlocked ? '⚔️' : '🔒'}</div>
+      <div style={styles.weaponIcon}>
+        {iconSrc ? (
+          <img
+            src={iconSrc}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            style={{ ...styles.weaponIconImage, ...(!unlocked ? styles.weaponIconImageLocked : null) }}
+          />
+        ) : (
+          <span style={styles.weaponIconFallback}>⚔️</span>
+        )}
+        {!unlocked ? <span style={styles.lockBadge} aria-hidden="true">🔒</span> : null}
+      </div>
       <div style={styles.cardMain}>
         <div style={styles.metaRow}>
           <span style={styles.weaponName}>{plan.label}</span>
@@ -119,10 +168,10 @@ const styles = {
   },
   card: {
     display: 'grid',
-    gridTemplateColumns: '42px minmax(0, 1fr) 88px',
+    gridTemplateColumns: '56px minmax(0, 1fr) 88px',
     alignItems: 'center',
     gap: 8,
-    minHeight: 88,
+    minHeight: 94,
     padding: '8px 9px',
     border: uiBorders.strong,
     borderRadius: 8,
@@ -134,13 +183,46 @@ const styles = {
   cardLocked: { background: '#d8d2c4', opacity: 0.86 },
   cardMax: { background: '#dff4e7' },
   weaponIcon: {
-    width: 38,
-    height: 38,
+    width: 52,
+    height: 52,
+    position: 'relative',
     display: 'grid',
     placeItems: 'center',
     border: uiBorders.strong,
     borderRadius: 999,
-    background: uiPalette.cta,
+    background: 'radial-gradient(circle at 35% 28%, #bff2ff 0%, #6fd8ff 58%, #2da4dc 100%)',
+    boxShadow: uiShadows.pressSmall,
+    overflow: 'visible',
+  },
+  weaponIconImage: {
+    width: 44,
+    height: 44,
+    objectFit: 'contain',
+    imageRendering: 'auto',
+    filter: 'drop-shadow(0 2px 0 rgba(5,2,9,0.36))',
+    pointerEvents: 'none',
+  },
+  weaponIconImageLocked: {
+    opacity: 0.48,
+    filter: 'grayscale(0.85) drop-shadow(0 2px 0 rgba(5,2,9,0.26))',
+  },
+  weaponIconFallback: {
+    fontSize: 26,
+    lineHeight: 1,
+  },
+  lockBadge: {
+    position: 'absolute',
+    right: -5,
+    bottom: -5,
+    width: 22,
+    height: 22,
+    display: 'grid',
+    placeItems: 'center',
+    border: uiBorders.hairline,
+    borderRadius: 999,
+    background: uiPalette.paperLight,
+    fontSize: 12,
+    lineHeight: 1,
     boxShadow: uiShadows.pressSmall,
   },
   cardMain: {

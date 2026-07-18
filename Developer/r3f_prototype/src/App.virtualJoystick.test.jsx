@@ -1,11 +1,43 @@
 // @vitest-environment jsdom
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App, { handleStudioGameSyncMessage } from './App.jsx'
 import { loadStageBossPreview, loadStudioTunings, loadTextureDecals, saveStudioTunings } from './lib/graphicsStudioConfig.js'
 import { loadSfxTunings } from './lib/sfxRegistry.js'
 import { loadStagePropPlacements, resetStagePropPlacementsCache, saveStagePropPlacements } from './lib/stagePropPlacements.js'
+import { commitFirebaseStudioRuntime } from './lib/studioRuntimeState.js'
+import {
+  _resetFirebaseProgressForTests,
+  _seedHydratedFirebaseProgressForTests,
+} from './lib/firebaseProgress.js'
+
+const firebaseStudioMocks = vi.hoisted(() => ({
+  hydrate: vi.fn(),
+  setUser: vi.fn(),
+}))
+
+vi.mock('./store/useAuthStore.js', () => {
+  const state = {
+    status: 'signedIn',
+    user: { uid: 'test-user' },
+    error: null,
+    signingIn: false,
+    progressStatus: 'ready',
+    progressError: null,
+    initializeAuth: vi.fn(),
+    signInWithGoogle: vi.fn(),
+  }
+  const useAuthStore = (selector) => selector(state)
+  useAuthStore.getState = () => state
+  return { useAuthStore }
+})
+
+vi.mock('./lib/firebaseStudio.js', async (importOriginal) => ({
+  ...(await importOriginal()),
+  hydrateFirebaseStudio: firebaseStudioMocks.hydrate,
+  setFirebaseStudioUser: firebaseStudioMocks.setUser,
+}))
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }) => <canvas data-testid="mock-canvas">{children}</canvas>,
@@ -50,13 +82,18 @@ function setInputEnvironment({ maxTouchPoints, userAgent, platform = '', coarse 
   }))
 }
 
-function renderAppAndStart() {
+async function renderAppAndStart() {
+  await import('./components/ReadyGameApp.jsx')
   const container = document.createElement('div')
   document.body.appendChild(container)
   const root = createRoot(container)
 
-  act(() => {
+  await act(async () => {
     root.render(<App />)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+  })
+  await vi.waitFor(() => {
+    expect(container.querySelector('button')).not.toBe(null)
   })
   act(() => {
     container.querySelector('button').dispatchEvent(new MouseEvent('click', { bubbles: true }))
@@ -80,7 +117,21 @@ afterEach(() => {
 })
 
 describe('App virtual joystick mounting', () => {
-  it('applies studio sync messages into the current game origin storage', () => {
+  beforeEach(() => {
+    _resetFirebaseProgressForTests()
+    _seedHydratedFirebaseProgressForTests({ uid: 'test-user' })
+    commitFirebaseStudioRuntime({
+      tunings: {},
+      sfxTunings: {},
+      stageBossPreview: {},
+      decals: {},
+      propPlacements: {},
+    }, { revision: 1 })
+    firebaseStudioMocks.hydrate.mockReset().mockResolvedValue({ status: 'remote-applied', revision: 2 })
+    firebaseStudioMocks.setUser.mockReset()
+  })
+
+  it('refetches Firebase on an allowed Studio sync message and ignores injected payloads', async () => {
     localStorage.clear()
     resetStagePropPlacementsCache()
     saveStudioTunings({ stale: { scale: 1.3 } })
@@ -88,7 +139,7 @@ describe('App virtual joystick mounting', () => {
       stage1: [{ id: 'stale-desk', type: 'classroomDesk', position: [0, 0, 0], rotation: [0, 0, 0], scale: 1 }],
     })
 
-    const handled = handleStudioGameSyncMessage({
+    const handled = await handleStudioGameSyncMessage({
       origin: 'http://localhost:5173',
       data: {
         type: 'escape-zombie-school.studioGameSync.v1',
@@ -115,16 +166,15 @@ describe('App virtual joystick mounting', () => {
     })
 
     expect(handled).toBe(true)
-    expect(loadStudioTunings().player.scale).toBe(1.7)
-    expect(loadStudioTunings()).not.toHaveProperty('stale')
-    expect(loadSfxTunings().pencilFire.volume).toBe(0.4)
-    expect(loadStageBossPreview()).toEqual({ zoom: 133, panX: 0.35, panY: -0.25 })
-    expect(loadTextureDecals()['zombie-e01'][0]).toMatchObject({ partId: 'sample-head', faceAxis: '+z' })
-    expect(loadStagePropPlacements().stage1).toBeNull()
-    expect(loadStagePropPlacements().stage2[0].id).toBe('cloud-board')
+    expect(firebaseStudioMocks.hydrate).toHaveBeenCalledOnce()
+    expect(loadStudioTunings().stale.scale).toBe(1.3)
+    expect(loadSfxTunings()).toEqual({})
+    expect(loadStageBossPreview().zoom).not.toBe(133)
+    expect(loadTextureDecals()).toEqual({})
+    expect(loadStagePropPlacements().stage1[0].id).toBe('stale-desk')
   })
 
-  it('rejects malformed Studio datasets without wiping current local state', () => {
+  it('does not consume malformed or arbitrary datasets from a Studio message', async () => {
     localStorage.clear()
     resetStagePropPlacementsCache()
     saveStudioTunings({ player: { scale: 1.63 } })
@@ -134,7 +184,7 @@ describe('App virtual joystick mounting', () => {
     const beforeTunings = JSON.stringify(loadStudioTunings())
     const beforeProps = JSON.stringify(loadStagePropPlacements())
 
-    expect(handleStudioGameSyncMessage({
+    expect(await handleStudioGameSyncMessage({
       origin: 'http://localhost:5173',
       data: {
         type: 'escape-zombie-school.studioGameSync.v1',
@@ -144,18 +194,18 @@ describe('App virtual joystick mounting', () => {
         decals: {},
         propPlacements: {},
       },
-    })).toBe(false)
+    })).toBe(true)
 
     expect(JSON.stringify(loadStudioTunings())).toBe(beforeTunings)
     expect(JSON.stringify(loadStagePropPlacements())).toBe(beforeProps)
   })
 
-  it('rejects Studio messages that do not come from the exact opener window', () => {
+  it('rejects Studio messages that do not come from the exact opener window', async () => {
     const previousOpener = window.opener
     const opener = {}
     Object.defineProperty(window, 'opener', { configurable: true, value: opener })
     try {
-      expect(handleStudioGameSyncMessage({
+      expect(await handleStudioGameSyncMessage({
         origin: 'http://localhost:5173',
         source: {},
         data: {
@@ -172,14 +222,14 @@ describe('App virtual joystick mounting', () => {
     }
   })
 
-  it('uses the full viewport width so narrow iPhone SE screens are not pillarboxed', () => {
+  it('uses the full viewport width so narrow iPhone SE screens are not pillarboxed', async () => {
     setInputEnvironment({
       maxTouchPoints: 5,
       userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile/15E148',
       coarse: true,
     })
 
-    const view = renderAppAndStart()
+    const view = await renderAppAndStart()
     const viewport = view.container.firstElementChild
     const phoneFrame = viewport.firstElementChild
 
@@ -189,27 +239,27 @@ describe('App virtual joystick mounting', () => {
     view.unmount()
   })
 
-  it('does not mount the virtual joystick on desktop web environments', () => {
+  it('does not mount the virtual joystick on desktop web environments', async () => {
     setInputEnvironment({
       maxTouchPoints: 0,
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
       coarse: false,
     })
 
-    const view = renderAppAndStart()
+    const view = await renderAppAndStart()
 
     expect(view.container.querySelector('[data-testid="virtual-joystick-mounted"]')).toBe(null)
     view.unmount()
   })
 
-  it('mounts the virtual joystick on mobile touch environments during the game screen', () => {
+  it('mounts the virtual joystick on mobile touch environments during the game screen', async () => {
     setInputEnvironment({
       maxTouchPoints: 5,
       userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile/15E148',
       coarse: true,
     })
 
-    const view = renderAppAndStart()
+    const view = await renderAppAndStart()
 
     expect(view.container.querySelector('[data-testid="virtual-joystick-mounted"]')).not.toBe(null)
     view.unmount()

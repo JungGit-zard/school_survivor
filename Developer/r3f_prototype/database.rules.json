@@ -6,20 +6,38 @@
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.uid === $uid",
-        "schemaVersion": { ".validate": "newData.isNumber()" },
+        ".validate": "newData.hasChildren(['schemaVersion', 'updatedAt', 'profile', 'progress'])",
+        "schemaVersion": { ".validate": "newData.isNumber() && newData.val() === 1" },
         "updatedAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
         "profile": {
+          ".validate": "newData.hasChildren(['uid', 'displayName', 'nickname'])",
           "uid": { ".validate": "newData.isString() && newData.val() === $uid" },
           "displayName": { ".validate": "newData.isString() && newData.val().length <= 100" },
-          "nickname": { ".validate": "newData.isString() && newData.val().length <= 100" },
+          "nickname": { ".validate": "newData.isString() && newData.val().length <= 12" },
           "$other": { ".validate": false }
         },
         "progress": {
+          ".validate": "newData.hasChildren(['goldTotal', 'records', 'weaponUnlocks', 'weaponPermanentUpgrades', 'passiveUpgrades', 'titleSettings'])",
           "goldTotal": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000000" },
-          "records": { ".validate": "newData.hasChildren() || newData.val() == null" },
-          "weaponUnlocks": { ".validate": "newData.hasChildren() || newData.val() == null" },
-          "passiveUpgrades": { ".validate": "newData.hasChildren() || newData.val() == null" },
-          "titleSettings": { ".validate": "newData.hasChildren() || newData.val() == null" },
+          "records": {
+            "$recordKey": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000000" }
+          },
+          "weaponUnlocks": {
+            "$weaponId": { ".validate": "newData.val() === 1" }
+          },
+          "weaponPermanentUpgrades": {
+            "$weaponId": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10 && newData.val() % 1 === 0" }
+          },
+          "passiveUpgrades": {
+            "$passiveId": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100 && newData.val() % 1 === 0" }
+          },
+          "titleSettings": {
+            ".validate": "newData.hasChildren(['vibration', 'reducedEffects', 'unlockAllWeaponsCheat'])",
+            "vibration": { ".validate": "newData.isBoolean()" },
+            "reducedEffects": { ".validate": "newData.isBoolean()" },
+            "unlockAllWeaponsCheat": { ".validate": "newData.isBoolean()" },
+            "$other": { ".validate": false }
+          },
           "$other": { ".validate": false }
         },
         "activity": {
@@ -42,11 +60,11 @@
               "revision": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0" },
               "updatedAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
               "datasets": {
-                "tunings": { ".validate": "newData.hasChildren() || newData.val() == null" },
-                "sfxTunings": { ".validate": "newData.hasChildren() || newData.val() == null" },
-                "stageBossPreview": { ".validate": "newData.hasChildren() || newData.val() == null" },
-                "decals": { ".validate": "newData.hasChildren() || newData.val() == null" },
-                "propPlacements": { ".validate": "newData.hasChildren() || newData.val() == null" },
+                "tunings": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
+                "sfxTunings": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
+                "stageBossPreview": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
+                "decals": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
+                "propPlacements": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
                 "$other": { ".validate": false }
               },
               "$other": { ".validate": false }

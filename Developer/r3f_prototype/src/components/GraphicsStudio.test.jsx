@@ -15,6 +15,7 @@ import {
 } from '../lib/graphicsStudioConfig.js'
 import { loadSfxTunings, saveSfxTunings } from '../lib/sfxRegistry.js'
 import { loadStagePropPlacements, resetStagePropPlacementsCache, saveStagePropPlacements } from '../lib/stagePropPlacements.js'
+import { commitFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
 
 const cloudMocks = vi.hoisted(() => ({
   hydrate: vi.fn(),
@@ -83,6 +84,13 @@ describe('GraphicsStudio', () => {
 
   beforeEach(() => {
     localStorage.clear()
+    commitFirebaseStudioRuntime({
+      tunings: {},
+      sfxTunings: {},
+      stageBossPreview: {},
+      decals: {},
+      propPlacements: {},
+    }, { revision: 1 })
     window.location.hash = ''
     authMocks.state.status = 'unconfigured'
     authMocks.state.user = null
@@ -90,7 +98,12 @@ describe('GraphicsStudio', () => {
     authMocks.signIn.mockReset().mockResolvedValue(null)
     cloudMocks.hydrate.mockReset().mockResolvedValue({ status: 'unconfigured' })
     cloudMocks.requestSave.mockReset()
-    cloudMocks.flush.mockReset().mockResolvedValue({ status: 'no-pending' })
+    cloudMocks.flush.mockReset().mockReturnValue({
+      then(resolve) {
+        resolve({ status: 'no-pending' })
+        return Promise.resolve({ status: 'no-pending' })
+      },
+    })
     cloudMocks.markChange.mockReset()
     cloudMocks.setUser.mockReset()
     vi.spyOn(window, 'open').mockReturnValue({ closed: false, postMessage: vi.fn() })
@@ -143,6 +156,11 @@ describe('GraphicsStudio', () => {
     expect(container.textContent).toContain('Weapon Model')
     expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player')
     expect(container.querySelector('[data-testid="studio-stage-boss-preview"]')).toBeTruthy()
+    const stageBossLayoutSection = container.querySelector('[data-testid="stage-boss-card-layout-section"]')
+    expect(stageBossLayoutSection?.textContent).toContain('Stage Boss Card Layout')
+    expect(stageBossLayoutSection?.querySelector('input[name="stageBossPreviewZoom"]')).toBeTruthy()
+    expect(stageBossLayoutSection?.querySelector('input[name="stageBossPreviewPanX"]')).toBeTruthy()
+    expect(stageBossLayoutSection?.querySelector('input[name="stageBossPreviewPanY"]')).toBeTruthy()
     expect(container.querySelector('input[name="scale"]')).toBeTruthy()
     expect(container.querySelector('input[name="stageBossPreviewZoom"]')).toBeTruthy()
     expect(container.querySelector('input[name="scaleX"]')).toBeTruthy()
@@ -207,7 +225,7 @@ describe('GraphicsStudio', () => {
     expect(container.querySelector('[data-testid="studio-export"]').value).toContain('"scaleX": 1.25')
   })
 
-  it('connects to a typed game URL and mirrors live tuning changes into that game window', () => {
+  it('connects to a typed game URL and asks that game window to refetch Firebase', async () => {
     const postMessage = vi.fn()
     vi.spyOn(window, 'open').mockReturnValue({ closed: false, postMessage })
 
@@ -232,15 +250,13 @@ describe('GraphicsStudio', () => {
       scale.value = '1.55'
       scale.dispatchEvent(new Event('input', { bubbles: true }))
     })
+    await act(async () => {
+      await Promise.resolve()
+    })
 
     expect(window.open).toHaveBeenCalledWith('http://localhost:5173/', 'escape-zombie-school-game')
     expect(postMessage).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        type: 'escape-zombie-school.studioGameSync.v1',
-        tunings: expect.objectContaining({
-          player: expect.objectContaining({ scale: 1.55 }),
-        }),
-      }),
+      { type: 'escape-zombie-school.studioGameSync.v1' },
       'http://localhost:5173',
     )
   })
@@ -312,15 +328,7 @@ describe('GraphicsStudio', () => {
 
     expect(cloudMocks.flush).toHaveBeenCalledWith(expect.objectContaining({ user: { uid: 'connected-user' } }))
     expect(postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        tunings: expect.objectContaining({
-          player: expect.objectContaining({ scale: 1.92 }),
-        }),
-        sfxTunings: expect.any(Object),
-        stageBossPreview: expect.any(Object),
-        decals: expect.any(Object),
-        propPlacements: expect.any(Object),
-      }),
+      { type: 'escape-zombie-school.studioGameSync.v1' },
       expect.any(String),
     )
   })
@@ -381,7 +389,7 @@ describe('GraphicsStudio', () => {
       .mockImplementationOnce(() => new Promise((resolve) => {
         resolveAutoHydrate = resolve
       }))
-      .mockResolvedValueOnce({ status: 'local-seeded', revision: 2 })
+      .mockResolvedValueOnce({ status: 'remote-applied', revision: 2 })
     const postMessage = vi.fn()
     window.open.mockReturnValue({ closed: false, postMessage })
 
@@ -396,7 +404,7 @@ describe('GraphicsStudio', () => {
     expect(postMessage).not.toHaveBeenCalled()
 
     await act(async () => {
-      resolveAutoHydrate({ status: 'local-seeded', revision: 1 })
+      resolveAutoHydrate({ status: 'remote-applied', revision: 1 })
     })
 
     expect(cloudMocks.hydrate).toHaveBeenCalledTimes(2)
@@ -447,7 +455,7 @@ describe('GraphicsStudio', () => {
   it('flushes a pending cloud save without clearing retry state on unmount', async () => {
     authMocks.state.status = 'signedIn'
     authMocks.state.user = { uid: 'cloud-user' }
-    cloudMocks.hydrate.mockResolvedValue({ status: 'local-seeded', revision: 1 })
+    cloudMocks.hydrate.mockResolvedValue({ status: 'remote-applied', revision: 1 })
 
     await act(async () => {
       root.render(<GraphicsStudio />)
@@ -484,7 +492,7 @@ describe('GraphicsStudio', () => {
     expect(container.textContent).toContain('Unable to open game window')
   })
 
-  it('opens the game and synchronizes the full saved studio state when Apply is pressed', () => {
+  it('opens the game and requests a Firebase refresh when Apply is pressed', async () => {
     const postMessage = vi.fn()
     window.open.mockReturnValue({ closed: false, postMessage })
 
@@ -507,19 +515,13 @@ describe('GraphicsStudio', () => {
         .find((button) => button.textContent === 'Apply')
         .dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
+    await act(async () => {
+      await Promise.resolve()
+    })
 
     expect(window.open).toHaveBeenCalledWith('http://localhost:5173/', 'escape-zombie-school-game')
     expect(postMessage).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        type: 'escape-zombie-school.studioGameSync.v1',
-        tunings: expect.objectContaining({
-          player: expect.objectContaining({ scale: 1.48 }),
-        }),
-        sfxTunings: expect.any(Object),
-        stageBossPreview: expect.any(Object),
-        decals: expect.any(Object),
-        propPlacements: expect.any(Object),
-      }),
+      { type: 'escape-zombie-school.studioGameSync.v1' },
       'http://localhost:5173',
     )
     expect(container.textContent).toContain('Game applied')
@@ -561,14 +563,45 @@ describe('GraphicsStudio', () => {
 
     expect(loadStudioTunings()['stage2-boss-v2'].scale).toBe(1.62)
     expect(postMessage).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        type: 'escape-zombie-school.studioGameSync.v1',
-        tunings: expect.objectContaining({
-          'stage2-boss-v2': expect.objectContaining({ scale: 1.62 }),
-        }),
-      }),
+      { type: 'escape-zombie-school.studioGameSync.v1' },
       'http://localhost:5173',
     )
+  })
+
+  it('uses the same Stage Boss Card Layout controls when B04 is selected', () => {
+    act(() => {
+      root.render(<GraphicsStudio />)
+    })
+
+    act(() => {
+      Array.from(container.querySelectorAll('button'))
+        .find((button) => button.textContent.includes('Boss B04'))
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    const section = container.querySelector('[data-testid="stage-boss-card-layout-section"]')
+    const preview = section.querySelector('[data-testid="studio-stage-boss-preview"]')
+    expect(preview.dataset.bossType).toBe('B04')
+    expect(section.querySelector('input[name="stageBossPreviewZoom"]')).toBeTruthy()
+    expect(section.querySelector('input[name="stageBossPreviewPanX"]')).toBeTruthy()
+    expect(section.querySelector('input[name="stageBossPreviewPanY"]')).toBeTruthy()
+
+    const zoom = section.querySelector('input[name="stageBossPreviewZoomValue"]')
+    const panX = section.querySelector('input[name="stageBossPreviewPanXValue"]')
+    const panY = section.querySelector('input[name="stageBossPreviewPanYValue"]')
+    act(() => {
+      zoom.value = '132'
+      zoom.dispatchEvent(new Event('input', { bubbles: true }))
+      panX.value = '0.45'
+      panX.dispatchEvent(new Event('input', { bubbles: true }))
+      panY.value = '-0.2'
+      panY.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    expect(loadStageBossPreview()).toMatchObject({ zoom: 132, panX: 0.45, panY: -0.2 })
+    expect(preview.dataset.zoom).toBe('132')
+    expect(preview.dataset.panX).toBe('0.45')
+    expect(preview.dataset.panY).toBe('-0.2')
   })
 
 
@@ -604,10 +637,7 @@ describe('GraphicsStudio', () => {
     expect(loadStageBossPreview()).toMatchObject({ zoom: 132, panX: 0.45 })
     expect(container.querySelector('[data-testid="studio-stage-boss-preview"]').dataset.zoom).toBe('132')
     expect(postMessage).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        type: 'escape-zombie-school.studioGameSync.v1',
-        stageBossPreview: expect.objectContaining({ zoom: 132, panX: 0.45 }),
-      }),
+      { type: 'escape-zombie-school.studioGameSync.v1' },
       'http://localhost:5173',
     )
   })
@@ -700,7 +730,7 @@ describe('GraphicsStudio', () => {
     })
 
     expect(loadStudioTunings()['player::part::0.1'].positionX).toBe(0.75)
-    expect(loadStudioTunings().player.outlineThickness).toBe(1.4)
+    expect(loadStudioTunings()).not.toHaveProperty('player')
 
     const applyButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent === 'Apply')
     act(() => {

@@ -73,15 +73,13 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(frame.maxDistance).toBeGreaterThan(Math.hypot(x, y, z))
   })
 
-  it('fits the complete B04 chef silhouette without changing the standard zombie frame', () => {
+  it('uses the standard zombie camera layout for B04', () => {
     const chefFrame = getPreviewFrame({ previewKind: 'zombie', zombieType: 'B04' })
     const standardFrame = getPreviewFrame({ previewKind: 'zombie', zombieType: 'E01' })
 
-    expect(chefFrame.camera.position).toEqual([6, 4.8, 8.4])
-    expect(chefFrame.target).toEqual([0, 0.45, 0])
-    expect(chefFrame.maxDistance).toBe(22)
-    expect(standardFrame.camera.position).toEqual([4, 3.2, 5.6])
-    expect(standardFrame.target).toEqual([0, 0.8, 0])
+    expect(chefFrame).toEqual(standardFrame)
+    expect(chefFrame.camera.position).toEqual([4, 3.2, 5.6])
+    expect(chefFrame.target).toEqual([0, 0.8, 0])
   })
 
   it('uses middle mouse drag for viewport panning in Graphics Studio', () => {

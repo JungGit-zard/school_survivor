@@ -19,7 +19,7 @@ import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponU
 import { DEFAULT_STAGE_ID, getNextStageId, getStageConfig } from '../lib/stageConfig.js'
 import { getAdminBalanceConfig } from '../lib/adminConfig.js'
 import { vibrateFeedback } from '../lib/titleSettings.js'
-import { recordPlayActivity, requestCloudProgressSave } from '../lib/firebaseProgress.js'
+import { recordPlayActivity, requestCloudProgressSave, readFirebasePlayerProgress, updateFirebasePlayerProgress } from '../lib/firebaseProgress.js'
 import { submitRun } from '../lib/firebaseRanking.js'
 import { useAuthStore } from './useAuthStore.js'
 import { getRankingScore, getRankingScorePolicy, STAGE_BONUS, CLEAR_BONUS } from '../lib/rankingScorePolicy.js'
@@ -51,11 +51,11 @@ function buildInitialPlayer(levels) {
 // WEAPON_CATALOG가 무기 base 스탯의 단일 진실이다. starter 무기는 startsActive:true로 시작,
 // 나머지는 unlock 카드가 fire될 때 비로소 weapons[key].active = true로 활성화.
 // might passive multiplier는 모든 무기에 동일 적용.
-function buildInitialWeapons(levels) {
+function buildInitialWeapons(levels, { applyPermanent = true } = {}) {
   const mightMult = 1 + 0.04 * (levels.might ?? 0)
   const out = {}
   for (const [key, entry] of Object.entries(WEAPON_CATALOG)) {
-    const permanentBase = applyWeaponPermanentUpgradesToBaseWeapon(key, entry.base)
+    const permanentBase = applyPermanent ? applyWeaponPermanentUpgradesToBaseWeapon(key, entry.base) : entry.base
     const baseDamage = permanentBase?.damage ?? 0
     out[key] = {
       ...permanentBase,
@@ -87,15 +87,14 @@ export const SURVIVAL_MILESTONES = [
 ]
 
 function loadGoldTotal() {
-  if (typeof localStorage === 'undefined') return 0
-  const raw = localStorage.getItem(GOLD_STORAGE_KEY)
-  const n = Number(raw)
-  return Number.isFinite(n) && n >= 0 ? n : 0
+  return readFirebasePlayerProgress().goldTotal ?? 0
 }
 
 function saveGoldTotal(value) {
-  if (typeof localStorage === 'undefined') return
-  localStorage.setItem(GOLD_STORAGE_KEY, String(value))
+  updateFirebasePlayerProgress((progress) => {
+    progress.goldTotal = Math.max(0, Math.floor(Number(value) || 0))
+    return progress
+  })
 }
 
 function syncStoredWeaponUnlocksFromRecords() {
@@ -124,15 +123,14 @@ export const STAGE1_INTRO_LINES = [
   '난 여기서 빠져나가야겠어, 여긴… 좀비학교다!',
 ]
 
-const _initialLevels = getAllLevels()
-applyMagnetPassive(_initialLevels)
-syncStoredWeaponUnlocksFromRecords()
+const EMPTY_PASSIVE_LEVELS = Object.freeze({})
+applyMagnetPassive(EMPTY_PASSIVE_LEVELS)
 
 export const useGameStore = create(
   subscribeWithSelector((set, get) => ({
-    player:      buildInitialPlayer(_initialLevels),
-    weapons:     buildInitialWeapons(_initialLevels),
-    growthMultiplier: buildGrowthMultiplier(_initialLevels),
+    player:      buildInitialPlayer(EMPTY_PASSIVE_LEVELS),
+    weapons:     buildInitialWeapons(EMPTY_PASSIVE_LEVELS, { applyPermanent: false }),
+    growthMultiplier: buildGrowthMultiplier(EMPTY_PASSIVE_LEVELS),
     passiveVersion: 0,
     phase:       'playing',   // 'playing' | 'paused' | 'levelup' | 'gameover' | 'cleared'
     pauseSource: null,        // 'manual' | 'auto' | 'dialogue' | null
@@ -149,7 +147,7 @@ export const useGameStore = create(
     bossBonus: 0,
     gameKey:     0,
     goldSession: 0,
-    goldTotal:   loadGoldTotal(),
+    goldTotal:   0,
     runKills:    0,
     runLevelUps: 0,
     newlyUnlockedWeaponIds: [],

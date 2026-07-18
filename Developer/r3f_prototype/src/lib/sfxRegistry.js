@@ -3,6 +3,10 @@
 // 에셋 준비 전에도 코드는 정상 동작한다.
 
 import { Howl } from 'howler'
+import {
+  getFirebaseStudioRuntimeDataset,
+  setFirebaseStudioRuntimeDataset,
+} from './studioRuntimeState.js'
 
 // ── 사운드 맵 ────────────────────────────────────────────────────────────────
 // 파일 위치: public/sfx/<category>/<id>.mp3
@@ -171,17 +175,12 @@ export function normalizeSfxTuning(input) {
 }
 
 export function loadSfxTunings() {
-  try {
-    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(SFX_TUNING_STORAGE_KEY) : null
-    const parsed = raw ? JSON.parse(raw) : {}
-    return Object.fromEntries(
-      Object.keys(SOUND_MAP)
-        .filter((id) => parsed[id])
-        .map((id) => [id, normalizeSfxTuning(parsed[id])]),
-    )
-  } catch {
-    return {}
-  }
+  const stored = getFirebaseStudioRuntimeDataset('sfxTunings')
+  return Object.fromEntries(
+    Object.keys(SOUND_MAP)
+      .filter((id) => stored[id])
+      .map((id) => [id, normalizeSfxTuning(stored[id])]),
+  )
 }
 
 export function saveSfxTunings(tunings) {
@@ -190,8 +189,7 @@ export function saveSfxTunings(tunings) {
       .filter((id) => tunings?.[id])
       .map((id) => [id, normalizeSfxTuning(tunings[id])]),
   )
-  if (typeof localStorage !== 'undefined') localStorage.setItem(SFX_TUNING_STORAGE_KEY, JSON.stringify(next))
-  return next
+  return setFirebaseStudioRuntimeDataset('sfxTunings', next)
 }
 
 export function playSfx(id, volume = 1, options = {}) {

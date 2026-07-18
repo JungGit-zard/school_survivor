@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { useGameStore, STAGE1_INTRO_LINES } from './useGameStore.js'
 
 describe('스테이지1 스토리 인트로 상태 (useGameStore)', () => {
   beforeEach(() => {
+    _seedHydratedFirebaseProgressForTests()
     useGameStore.getState().resetGame()
   })
 

@@ -1,7 +1,27 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+let mockProgress = createMockProgress()
+
+function createMockProgress() {
+  return {
+    goldTotal: 0,
+    records: {},
+    weaponUnlocks: {},
+    weaponPermanentUpgrades: {},
+    passiveUpgrades: {},
+    titleSettings: { vibration: true, reducedEffects: false, unlockAllWeaponsCheat: false },
+  }
+}
+
 vi.mock('../lib/firebaseProgress.js', () => ({
+  readFirebasePlayerProgress: vi.fn(() => mockProgress),
+  updateFirebasePlayerProgress: vi.fn((mutator) => {
+    const next = structuredClone(mockProgress)
+    const result = mutator(next)
+    mockProgress = result && typeof result === 'object' ? result : next
+    return mockProgress
+  }),
   recordPlayActivity: vi.fn(),
   requestCloudProgressSave: vi.fn(),
 }))
@@ -13,6 +33,7 @@ describe('useGameStore cloud progress integration', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorage.clear()
+    mockProgress = createMockProgress()
     useGameStore.setState({
       elapsedMs: 0,
       goldSession: 0,
@@ -60,7 +81,7 @@ describe('useGameStore cloud progress integration', () => {
     expect(requestCloudProgressSave).toHaveBeenCalled()
   })
 
-  it('requests a cloud save after a run result is written to local records', () => {
+  it('requests a cloud save after a run result is written to Firebase runtime records', () => {
     useGameStore.setState({ elapsedMs: 10_000, runKills: 4, goldSession: 2 })
     useGameStore.getState()._onRunEnd('gameover')
 

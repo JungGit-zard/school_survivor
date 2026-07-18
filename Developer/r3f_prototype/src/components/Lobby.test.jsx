@@ -10,6 +10,8 @@ import { STORAGE_KEY as PLAYER_RECORDS_KEY } from '../lib/playerRecords.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 
+const stageBossPreviewRenderState = vi.hoisted(() => ({ count: 0 }))
+
 vi.mock('@react-three/fiber', () => ({
   Canvas: () => <div data-testid="stage-monster-canvas" />,
 }))
@@ -17,6 +19,46 @@ vi.mock('@react-three/fiber', () => ({
 vi.mock('../lib/sfxRegistry.js', () => ({
   playSfx: vi.fn(),
 }))
+
+vi.mock('./StageLock.jsx', () => ({
+  StageLockPreview: ({ style = null, testId = 'stage-lock-preview', ariaLabel = '잠긴 스테이지 3D 자물쇠' }) => (
+    <div data-testid={testId} aria-label={ariaLabel} style={style ?? undefined} />
+  ),
+}))
+
+vi.mock('./StageBossPreview.jsx', async () => {
+  const ReactActual = await vi.importActual('react')
+  const { default: React, useEffect, useState } = ReactActual
+  return {
+    default: function MockStageBossPreview({
+      framing = {},
+      bossType = 'B01',
+      motionToken = 0,
+      style = null,
+      testId = 'stage-boss-preview',
+      ariaLabel = 'stage1 보스 3D',
+    }) {
+      stageBossPreviewRenderState.count += 1
+      const [motionActive, setMotionActive] = useState(() => motionToken > 0)
+      useEffect(() => {
+        if (!motionToken) return undefined
+        setMotionActive(true)
+        const timer = window.setTimeout(() => setMotionActive(false), 1000)
+        return () => window.clearTimeout(timer)
+      }, [motionToken])
+      return React.createElement('div', {
+        'data-testid': testId,
+        'data-zoom': framing.zoom,
+        'data-pan-x': framing.panX,
+        'data-pan-y': framing.panY,
+        'data-boss-type': bossType,
+        'data-motion-active': String(motionActive),
+        'aria-label': ariaLabel,
+        style: style ?? undefined,
+      })
+    },
+  }
+})
 
 vi.mock('../lib/firebaseRanking.js', async () => {
   const actual = await vi.importActual('../lib/firebaseRanking.js')
@@ -36,6 +78,7 @@ describe('Lobby', () => {
       initialized: true,
     })
     useGameStore.setState({ goldTotal: 12 })
+    stageBossPreviewRenderState.count = 0
   })
 
   it('opens stage play, ranking, and coin shop from the lobby', () => {
@@ -61,12 +104,13 @@ describe('Lobby', () => {
     view.unmount()
   })
 
-  it('renders the four-button mobile bottom navigator', () => {
+  it('renders the three-button mobile bottom navigator without the duplicate ability entry', () => {
     const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
     const nav = view.container.querySelector('[aria-label="로비 메뉴"]')
     const labels = Array.from(nav.querySelectorAll('button')).map((button) => button.textContent)
 
-    expect(labels).toEqual(['능력치', '무기', '랭킹', '상점'])
+    expect(labels).toEqual(['무기', '랭킹', '상점'])
+    expect(labels).not.toContain('능력치')
 
     view.unmount()
   })
@@ -94,6 +138,7 @@ describe('Lobby', () => {
     localStorage.setItem(PLAYER_RECORDS_KEY, JSON.stringify({
       stage1Clears: 1,
       stage2Clears: 1,
+      stage3Clears: 1,
       bestSurvivalSeconds: 240,
       stage2BestSurvivalSec: 240,
     }))
@@ -104,7 +149,156 @@ describe('Lobby', () => {
     expect(previews[0].dataset.bossType).toBe('B01')
     expect(previews[1].dataset.bossType).toBe('B02')
     expect(previews[2].dataset.bossType).toBe('B03')
+    expect(previews[3].dataset.bossType).toBe('B04')
 
+    view.unmount()
+  })
+
+  it('keeps Stage 4 locked behind Stage 3 with the exact safe hint before the clear', () => {
+    localStorage.setItem(PLAYER_RECORDS_KEY, JSON.stringify({
+      stage1Clears: 1,
+      stage2Clears: 1,
+      bestSurvivalSeconds: 240,
+      stage2BestSurvivalSec: 240,
+    }))
+
+    const onStartStage = vi.fn()
+    const onOpenRanking = vi.fn()
+    const view = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking })
+    const stage4Card = findStageCard(view.container, 'Stage 4 급식실 대탈출')
+    const lockPreview = stage4Card.querySelector('[data-testid="stage-lock-preview"]')
+    const disabledEntry = findButtonByText(stage4Card, 'Stage 3 클리어 시 열림')
+    const rankingButton = findButtonByText(stage4Card, '점수 레코드')
+
+    expect(lockPreview).toBeTruthy()
+    expect(lockPreview.getAttribute('aria-label')).toBe('stage4 잠김 3D 자물쇠')
+    expect(stage4Card.querySelector('[data-testid="stage-boss-preview"]')).toBeFalsy()
+    expect(stage4Card.textContent).not.toContain('🔒 Stage 3 클리어 시 열림')
+    expect(disabledEntry.disabled).toBe(true)
+    expect(disabledEntry.style.position).toBe('absolute')
+    expect(disabledEntry.style.right).toBe('10px')
+    expect(disabledEntry.style.bottom).toBe('10px')
+    expect(disabledEntry.style.minWidth).toBe('132px')
+    expect(disabledEntry.style.minHeight).toBe('42px')
+    expect(disabledEntry.style.fontSize).toBe('11px')
+    expect(rankingButton.disabled).toBe(true)
+    expect(rankingButton.style.position).toBe('absolute')
+    expect(rankingButton.style.top).toBe('34px')
+    expect(rankingButton.style.left).toBe('10px')
+    expect(rankingButton.style.width).toBe('74px')
+    expect(stage4Card.children).toHaveLength(1)
+
+    act(() => {
+      stage4Card.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      lockPreview.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }))
+      disabledEntry.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      rankingButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(onStartStage).not.toHaveBeenCalled()
+    expect(onOpenRanking).not.toHaveBeenCalled()
+    expect(playSfx).not.toHaveBeenCalled()
+    expect(stage4Card.querySelector('[data-testid="stage-card-showtime"]')).toBeFalsy()
+
+    view.unmount()
+  })
+
+  it('renders locked Stage 2 and Stage 3 with the same preview/button structure and inert padlock preview', () => {
+    const onStartStage = vi.fn()
+    const onOpenRanking = vi.fn()
+    const view = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking })
+    const stage2Card = findStageCard(view.container, 'Stage 2 복도 투사체 시험')
+    const stage3Card = findStageCard(view.container, 'Stage 3 체육관 총력전')
+
+    for (const [card, stageId, hint] of [
+      [stage2Card, 'stage2', 'Stage 1 클리어 시 열림'],
+      [stage3Card, 'stage3', '이전 스테이지를 클리어하면 열립니다'],
+    ]) {
+      const previewRow = card.querySelector('[data-testid="stage-card-preview-row"]')
+      const lockPreview = card.querySelector('[data-testid="stage-lock-preview"]')
+      const disabledEntry = findButtonByText(card, hint)
+      const rankingButton = findButtonByText(card, '점수 레코드')
+
+      expect(previewRow).toBeTruthy()
+      expect(lockPreview).toBeTruthy()
+      expect(lockPreview.getAttribute('aria-label')).toBe(`${stageId} 잠김 3D 자물쇠`)
+      expect(card.querySelector('[data-testid="stage-boss-preview"]')).toBeFalsy()
+      expect(card.textContent).not.toContain(`🔒 ${hint}`)
+      expect(previewRow.contains(disabledEntry)).toBe(true)
+      expect(previewRow.contains(rankingButton)).toBe(true)
+      expect(disabledEntry.disabled).toBe(true)
+      expect(rankingButton.disabled).toBe(true)
+      expect(disabledEntry.style.position).toBe('absolute')
+      expect(rankingButton.style.position).toBe('absolute')
+      expect(card.children).toHaveLength(1)
+
+      act(() => {
+        card.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+        lockPreview.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }))
+        disabledEntry.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+        rankingButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      })
+    }
+
+    expect(onStartStage).not.toHaveBeenCalled()
+    expect(onOpenRanking).not.toHaveBeenCalled()
+    expect(playSfx).not.toHaveBeenCalled()
+
+    view.unmount()
+  })
+
+  it('reveals Stage 4 B04 preview after Stage 3 clear but keeps entry, ranking, and showtime disabled', () => {
+    vi.useFakeTimers()
+    localStorage.setItem(PLAYER_RECORDS_KEY, JSON.stringify({
+      stage1Clears: 1,
+      stage2Clears: 1,
+      stage3Clears: 1,
+      bestSurvivalSeconds: 240,
+      stage2BestSurvivalSec: 240,
+      stage3BestSurvivalSec: 240,
+    }))
+    const onStartStage = vi.fn()
+    const onOpenRanking = vi.fn()
+    const view = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking })
+    const stage4Card = findStageCard(view.container, 'Stage 4 급식실 대탈출')
+    const preview = stage4Card.querySelector('[data-testid="stage-boss-preview"]')
+
+    const readyButton = findButtonByText(stage4Card, '준비 중')
+    const rankingButton = findButtonByText(stage4Card, '점수 레코드')
+
+    expect(stage4Card.textContent).not.toContain('주방장 좀비가 지키는 급식실에서 240초 동안 버티기')
+    expect(preview.dataset.bossType).toBe('B04')
+    expect(preview.dataset.motionActive).toBe('false')
+    expect(readyButton.disabled).toBe(true)
+    expect(rankingButton.disabled).toBe(true)
+    expect(readyButton.className).toBe('')
+    expect(rankingButton.className).toBe('')
+    expect(readyButton.parentElement).toBe(stage4Card.querySelector('[data-testid="stage-card-preview-row"]'))
+    expect(rankingButton.parentElement).toBe(stage4Card.querySelector('[data-testid="stage-card-preview-row"]'))
+    expect(readyButton.style.position).toBe('absolute')
+    expect(readyButton.style.right).toBe('10px')
+    expect(readyButton.style.bottom).toBe('10px')
+    expect(readyButton.style.minWidth).toBe('132px')
+    expect(readyButton.style.minHeight).toBe('42px')
+    expect(rankingButton.style.position).toBe('absolute')
+    expect(rankingButton.style.top).toBe('34px')
+    expect(rankingButton.style.left).toBe('10px')
+    expect(rankingButton.style.width).toBe('74px')
+    expect(rankingButton.style.minHeight).toBe('30px')
+
+    act(() => {
+      stage4Card.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      readyButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      rankingButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      vi.advanceTimersByTime(1_000)
+    })
+
+    expect(onStartStage).not.toHaveBeenCalled()
+    expect(onOpenRanking).not.toHaveBeenCalled()
+    expect(playSfx).not.toHaveBeenCalled()
+    expect(stage4Card.querySelector('[data-testid="stage-card-showtime"]')).toBeFalsy()
+
+    vi.useRealTimers()
     view.unmount()
   })
 
@@ -176,6 +370,25 @@ describe('Lobby', () => {
       vi.advanceTimersByTime(300)
     })
     expect(view.container.querySelector('[data-testid="lobby-touch-ambient"]')?.style.opacity).toBe('0')
+
+    vi.useRealTimers()
+    view.unmount()
+  })
+
+  it('updates ambient drift on its interval without rerendering stage boss previews', () => {
+    vi.useFakeTimers()
+    const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+    const initialRenderCount = stageBossPreviewRenderState.count
+    const ambient = view.container.querySelector('[data-testid="lobby-ambient-drift"]')
+
+    expect(ambient.style.transform).toContain('translate3d(0%, 0%, 0)')
+
+    act(() => {
+      vi.advanceTimersByTime(2400)
+    })
+
+    expect(ambient.style.transform).not.toContain('translate3d(0%, 0%, 0)')
+    expect(stageBossPreviewRenderState.count).toBe(initialRenderCount)
 
     vi.useRealTimers()
     view.unmount()
@@ -331,4 +544,10 @@ function findButtonByText(container, text) {
   const button = Array.from(container.querySelectorAll('button'))
     .find((candidate) => candidate.textContent.includes(text))
   return button
+}
+
+function findStageCard(container, ariaLabel) {
+  const card = container.querySelector(`[aria-label="${ariaLabel}"]`)
+  if (!card) throw new Error(`Missing stage card: ${ariaLabel}`)
+  return card
 }

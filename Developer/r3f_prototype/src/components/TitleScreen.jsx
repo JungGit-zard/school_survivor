@@ -76,7 +76,13 @@ function TitleLetter({ config }) {
 // 타이틀 화면은 "게임 시작" 하나만 남긴다(인지적 시작 행위). 로그인/닉네임 게이트를 통과하면
 // 스테이지가 아니라 로비(onEnterLobby)로 진입한다. 스테이지 선택·상점·랭킹·설정은 로비로 이관.
 // 코나미식 치트 시퀀스 + devCheatsVisible 치트 메뉴 노출 경로는 그대로 보존한다.
-export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, onRevealDevCheats }) {
+export default function TitleScreen({
+  onEnterLobby,
+  devCheatsVisible = false,
+  onRevealDevCheats,
+  studioVisualsReady = true,
+  ensureStudioCloudReady,
+}) {
   const [cheatOpen, setCheatOpen] = useState(false)
   const [nicknameOpen, setNicknameOpen] = useState(false)
   const [nicknameInput, setNicknameInput] = useState('')
@@ -244,6 +250,7 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
       user = await signInWithGoogle()
       if (!user?.uid) return
     }
+    if (ensureStudioCloudReady && !await ensureStudioCloudReady(user)) return
 
     const savedNickname = getSavedNickname(user)
     setCheatOpen(false)
@@ -286,7 +293,9 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
           </div>
         )}
       >
-        <TitleSceneCanvas className="title-intro-scene" style={{ ...styles.canvas, animationDelay: '3000ms' }} />
+        {studioVisualsReady ? (
+          <TitleSceneCanvas className="title-intro-scene" style={{ ...styles.canvas, animationDelay: '3000ms' }} />
+        ) : null}
       </Suspense>
 
       <div style={styles.tint} />

@@ -18,18 +18,19 @@ import chibikoIconUrl from '../assets/weapon_icon/14_wea_chibiko.svg'
 import sharkMissileIconUrl from '../assets/weapon_icon/14_wea_shark_missile.svg'
 import { ENEMY_DEATH_COLLAPSE_STYLES } from './enemyDeathCollapse.js'
 import {
-  STUDIO_PLAYER_SOURCE_METADATA,
-  STUDIO_PLAYER_SOURCE_TUNINGS,
-} from './graphicsStudioPlayerSource.js'
+  getFirebaseStudioRuntimeDataset,
+  getFirebaseStudioRuntimeGeneration,
+  setFirebaseStudioRuntimeDataset,
+} from './studioRuntimeState.js'
 
 export const GRAPHICS_STUDIO_STORAGE_KEY = 'escape-zombie-school.graphicsStudioTunings.v1'
-export const GRAPHICS_STUDIO_PLAYER_SOURCE_REVISION_KEY = 'escape-zombie-school.graphicsStudioPlayerSourceRevision.v1'
 export const GRAPHICS_STUDIO_RESET_BASELINE_KEY = 'escape-zombie-school.graphicsStudioResetBaseline.2026-07-05T17'
 export const GRAPHICS_STUDIO_TUNING_EVENT = 'escape-zombie-school.graphicsStudioTunings.changed'
 export const STAGE_BOSS_PREVIEW_STORAGE_KEY = 'escape-zombie-school.stageBossPreview.v1'
 export const STAGE_BOSS_PREVIEW_EVENT = 'escape-zombie-school.stageBossPreview.changed'
 export const TEXTURE_DECALS_STORAGE_KEY = 'escape-zombie-school.textureDecals.v1'
 export const TEXTURE_DECALS_EVENT = 'escape-zombie-school.textureDecals.changed'
+export const STAGE_LOCK_STUDIO_ITEM_ID = 'stage-lock'
 
 export const TEXTURE_DECAL_FACE_AXES = Object.freeze(['+x', '-x', '+y', '-y', '+z', '-z'])
 
@@ -508,6 +509,15 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     applyTargets: ['components/TitleScene3D.jsx', 'components/TitleScreen.jsx', 'lib/toon.js'],
   },
   {
+    id: STAGE_LOCK_STUDIO_ITEM_ID,
+    category: 'ui',
+    label: 'Stage Lock',
+    source: 'components/StageLock.jsx',
+    previewKind: 'stageLock',
+    runtimePreviewComponent: 'StageLockModel',
+    applyTargets: ['components/StageLock.jsx', 'components/GraphicsStudioPreview.jsx', 'lib/toon.js'],
+  },
+  {
     id: 'ui-mini-health-bar',
     category: 'ui',
     label: 'Mini Health Bar',
@@ -537,12 +547,6 @@ const NUMERIC_RANGES = Object.freeze({
 })
 
 const VALID_ANIMATIONS = new Set(['normal', 'warn', 'charge', 'stun', 'lantern', 'lanternFlashlight'])
-
-function getStorage(storage) {
-  if (storage) return storage
-  if (typeof window !== 'undefined' && window.localStorage) return window.localStorage
-  return null
-}
 
 function clampNumber(value, [min, max], fallback) {
   const number = Number(value)
@@ -642,37 +646,16 @@ export function normalizeTextureDecalMap(input) {
 }
 
 export function loadTextureDecals(storage) {
-  const targetStorage = getStorage(storage)
-  if (!targetStorage) return {}
-
-  try {
-    const raw = targetStorage.getItem(TEXTURE_DECALS_STORAGE_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
-    let removedObsoleteStage2BossState = false
-    const cleanInput = Object.fromEntries(Object.entries(parsed).filter(([itemId]) => {
-      const obsolete = isObsoleteStage2BossItemId(itemId)
-      if (obsolete) removedObsoleteStage2BossState = true
-      return !obsolete
-    }))
-    const normalized = normalizeTextureDecalMap(cleanInput)
-    if (removedObsoleteStage2BossState) {
-      targetStorage.setItem(TEXTURE_DECALS_STORAGE_KEY, JSON.stringify(normalized))
-    }
-    return normalized
-  } catch (error) {
-    if (error?.name === 'LegacyStage2BossStudioError') throw error
-    return {}
-  }
+  if (storage) throw new TypeError('Graphics Studio storage adapters are forbidden. Firebase runtime only.')
+  return normalizeTextureDecalMap(getFirebaseStudioRuntimeDataset('decals'))
 }
 
 // ponytail: base64 ?꾨쿋?? 而ㅼ?硫??먯뀑?뚯씪 ?뚯씠?꾨씪?몄쑝濡?
 export function saveTextureDecals(decals, storage) {
-  const targetStorage = getStorage(storage)
+  if (storage) throw new TypeError('Graphics Studio storage adapters are forbidden. Firebase runtime only.')
   const normalized = normalizeTextureDecalMap(decals)
-  targetStorage?.setItem(TEXTURE_DECALS_STORAGE_KEY, JSON.stringify(normalized))
-  if (!storage && typeof window !== 'undefined') {
+  setFirebaseStudioRuntimeDataset('decals', normalized)
+  if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(TEXTURE_DECALS_EVENT, { detail: normalized }))
   }
   return normalized
@@ -693,7 +676,7 @@ export function assertSupportedStudioItemId(id) {
   return id
 }
 
-function normalizeStudioTuningMap(input) {
+export function normalizeStudioTuningMap(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return {}
   return Object.fromEntries(
     Object.entries(input).map(([itemId, tuning]) => {
@@ -718,190 +701,56 @@ function mergeStudioTuningPatches(tunings, patches) {
   return normalizeStudioTuningMap(merged)
 }
 
-function normalizeSourceRevision(revision) {
-  const parsed = Number(revision)
-  return Number.isInteger(parsed) && parsed >= 0 ? parsed : 0
-}
-
-function preserveFutureSourceTunings(tunings, parsed, futureSourceItemIds) {
-  if (!futureSourceItemIds.length) return tunings
-  const preserved = { ...tunings }
-  Object.entries(parsed).forEach(([itemId, tuning]) => {
-    if (futureSourceItemIds.some((sourceItemId) => (
-      itemId === sourceItemId || itemId.startsWith(`${sourceItemId}::`)
-    ))) {
-      preserved[itemId] = tuning
-    }
-  })
-  return preserved
-}
-
-export function shouldPromoteStudioPlayerSource(
-  storedRevision,
-  sourceRevision = STUDIO_PLAYER_SOURCE_METADATA.sourceRevision,
-) {
-  return normalizeSourceRevision(storedRevision) < sourceRevision
-}
-
-function promoteStudioPlayerSource(tunings) {
-  const retainedTunings = Object.fromEntries(
-    Object.entries(tunings).filter(([itemId]) => itemId !== 'player' && !itemId.startsWith('player::')),
-  )
-  return normalizeStudioTuningMap({ ...retainedTunings, ...STUDIO_PLAYER_SOURCE_TUNINGS })
-}
-
-function planStudioPlayerSource(tunings, parsed, hasValidPayload, storedRevision) {
-  const sourceRevision = STUDIO_PLAYER_SOURCE_METADATA.sourceRevision
-  if (storedRevision > sourceRevision) {
-    return { tunings, writePayload: false, revision: null }
-  }
-
-  // Studio Apply 결과가 모든 런타임 모델의 유일한 기준이다.
-  // 유효한 payload는 source revision이 오래됐더라도 절대 seed로 덮어쓰지 않는다.
-  if (hasValidPayload) {
-    const forcedCollar = parsed['player::part::0.0.3.0']
-    const shouldUndoForcedCollar = storedRevision === 4
-      && forcedCollar
-      && Number(forcedCollar.positionY) === -0.28
-
-    if (!shouldUndoForcedCollar) {
-      return { tunings, writePayload: false, revision: null }
-    }
-
-    // revision 4에서 런타임이 임의로 내렸던 칼라 값만 Studio 확정값으로 1회 복원한다.
-    const restored = normalizeStudioTuningMap({
-      ...parsed,
-      'player::part::0.0.3.0': {
-        ...forcedCollar,
-        positionY: STUDIO_PLAYER_SOURCE_TUNINGS['player::part::0.0.3.0'].positionY,
-      },
-    })
-    return {
-      tunings: restored,
-      writePayload: true,
-      revision: sourceRevision,
-    }
-  }
-
-  // 저장값이 아예 없거나 깨진 최초 실행에서만 복구 seed를 사용한다.
-  return {
-    tunings: promoteStudioPlayerSource(tunings),
-    writePayload: true,
-    revision: sourceRevision,
-  }
-}
-
 export function loadStudioTunings(storage) {
-  const targetStorage = getStorage(storage)
-  if (!targetStorage) return {}
-
-  let parsed = {}
-  let hasValidPayload = false
-  let removedLegacyStage2BossState = false
-  try {
-    const raw = targetStorage.getItem(GRAPHICS_STUDIO_STORAGE_KEY)
-    if (raw) {
-      const candidate = JSON.parse(raw)
-      if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) {
-        parsed = Object.fromEntries(Object.entries(candidate).filter(([itemId]) => {
-          const obsolete = isObsoleteStage2BossItemId(itemId)
-          if (obsolete) removedLegacyStage2BossState = true
-          return !obsolete
-        }))
-        hasValidPayload = true
-      }
-    }
-  } catch {
-    // Invalid snapshots are recovered below unless they belong to a newer source revision.
-  }
-
-  const normalized = normalizeStudioTuningMap(parsed)
-  const storedPlayerRevision = normalizeSourceRevision(
-    targetStorage.getItem(GRAPHICS_STUDIO_PLAYER_SOURCE_REVISION_KEY),
-  )
-  const playerPlan = planStudioPlayerSource(
-    normalized,
-    parsed,
-    hasValidPayload,
-    storedPlayerRevision,
-  )
-  const finalTunings = preserveFutureSourceTunings(
-    playerPlan.tunings,
-    parsed,
-    [
-      storedPlayerRevision > STUDIO_PLAYER_SOURCE_METADATA.sourceRevision ? 'player' : null,
-    ].filter(Boolean),
-  )
-
-  if (playerPlan.writePayload || removedLegacyStage2BossState) {
-    targetStorage.setItem(GRAPHICS_STUDIO_STORAGE_KEY, JSON.stringify(finalTunings))
-  }
-  if (playerPlan.revision !== null) {
-    targetStorage.setItem(GRAPHICS_STUDIO_PLAYER_SOURCE_REVISION_KEY, String(playerPlan.revision))
-  }
-  return finalTunings
+  if (storage) throw new TypeError('Graphics Studio storage adapters are forbidden. Firebase runtime only.')
+  return normalizeStudioTuningMap(getFirebaseStudioRuntimeDataset('tunings'))
 }
 
 export function saveStudioTunings(tunings, storage) {
-  const targetStorage = getStorage(storage)
-  const existing = targetStorage ? loadStudioTunings(targetStorage) : {}
+  if (storage) throw new TypeError('Graphics Studio storage adapters are forbidden. Firebase runtime only.')
+  const existing = loadStudioTunings()
   const normalized = mergeStudioTuningPatches(existing, tunings)
-  targetStorage?.setItem(GRAPHICS_STUDIO_STORAGE_KEY, JSON.stringify(normalized))
-  if (!storage && typeof window !== 'undefined') {
+  setFirebaseStudioRuntimeDataset('tunings', normalized)
+  if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(GRAPHICS_STUDIO_TUNING_EVENT, { detail: normalized }))
   }
   return normalized
 }
 
 export function loadStageBossPreview(storage) {
-  const targetStorage = getStorage(storage)
-  if (!targetStorage) return DEFAULT_STAGE_BOSS_PREVIEW
-
-  try {
-    const raw = targetStorage.getItem(STAGE_BOSS_PREVIEW_STORAGE_KEY)
-    if (!raw) return DEFAULT_STAGE_BOSS_PREVIEW
-    return normalizeStageBossPreview(JSON.parse(raw))
-  } catch {
-    return DEFAULT_STAGE_BOSS_PREVIEW
-  }
+  if (storage) throw new TypeError('Graphics Studio storage adapters are forbidden. Firebase runtime only.')
+  return normalizeStageBossPreview(getFirebaseStudioRuntimeDataset('stageBossPreview'))
 }
 
 export function saveStageBossPreview(framing, storage) {
-  const targetStorage = getStorage(storage)
+  if (storage) throw new TypeError('Graphics Studio storage adapters are forbidden. Firebase runtime only.')
   const normalized = normalizeStageBossPreview(framing)
-  targetStorage?.setItem(STAGE_BOSS_PREVIEW_STORAGE_KEY, JSON.stringify(normalized))
-  if (!storage && typeof window !== 'undefined') {
+  setFirebaseStudioRuntimeDataset('stageBossPreview', normalized)
+  if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(STAGE_BOSS_PREVIEW_EVENT, { detail: normalized }))
   }
   return normalized
 }
 
-export function loadStudioResetBaseline(storage) {
-  const targetStorage = getStorage(storage)
-  if (!targetStorage) return {}
+let studioResetBaseline = null
+let studioResetBaselineGeneration = -1
 
-  try {
-    const raw = targetStorage.getItem(GRAPHICS_STUDIO_RESET_BASELINE_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    if (!parsed || typeof parsed !== 'object') return {}
-    return Object.fromEntries(
-      Object.entries(parsed).map(([itemId, tuning]) => [itemId, normalizeStudioTuning(tuning)]),
-    )
-  } catch {
-    return {}
-  }
+export function loadStudioResetBaseline(storage) {
+  if (storage) throw new TypeError('Graphics Studio storage adapters are forbidden. Firebase runtime only.')
+  if (studioResetBaselineGeneration !== getFirebaseStudioRuntimeGeneration()) return {}
+  return studioResetBaseline ?? {}
 }
 
 export function ensureStudioResetBaseline(tunings = loadStudioTunings(), storage) {
-  const targetStorage = getStorage(storage)
-  const existing = loadStudioResetBaseline(storage)
-  if (Object.keys(existing).length || !targetStorage) return existing
+  if (storage) throw new TypeError('Graphics Studio storage adapters are forbidden. Firebase runtime only.')
+  const existing = loadStudioResetBaseline()
+  if (Object.keys(existing).length) return existing
 
   const normalized = Object.fromEntries(
     Object.entries(tunings ?? {}).map(([itemId, tuning]) => [itemId, normalizeStudioTuning(tuning)]),
   )
-  targetStorage.setItem(GRAPHICS_STUDIO_RESET_BASELINE_KEY, JSON.stringify(normalized))
+  studioResetBaseline = normalized
+  studioResetBaselineGeneration = getFirebaseStudioRuntimeGeneration()
   return normalized
 }
 

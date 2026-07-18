@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   DEFAULT_STAGE_ID,
+  STAGE_CONFIGS,
   getNextStageId,
   getStageBossType,
   getStageBounds,
@@ -86,6 +87,28 @@ describe('stage configuration registry', () => {
     expect(isStageUnlocked('stage3', {})).toBe(false)
     expect(isStageUnlocked('stage3', { stage2Clears: 1 })).toBe(true)
     expect(isStageUnlocked('stage3', { stage1Clears: 5 })).toBe(false)
+  })
+
+  it('adds Stage 4 as a non-playable B04 cafeteria lobby card after the existing stages', () => {
+    expect(Object.keys(STAGE_CONFIGS)).toEqual(['stage1', 'stage2', 'stage3', 'stage4'])
+    expect(getStageDurationSec('stage4')).toBe(240)
+    expect(getStageConfig('stage4')).toMatchObject({
+      id: 'stage4',
+      label: 'Stage 4',
+      title: '급식실 대탈출',
+      description: '주방장 좀비가 지키는 급식실에서 240초 동안 버티기',
+      clearRecordKey: 'stage4Clears',
+      bestRecordKey: 'stage4BestSurvivalSec',
+      bossType: 'B04',
+      playable: false,
+    })
+    expect(getStageBossType('stage4')).toBe('B04')
+  })
+
+  it('unlocks the non-playable Stage 4 preview only after one Stage 3 clear', () => {
+    expect(isStageUnlocked('stage4', {})).toBe(false)
+    expect(isStageUnlocked('stage4', { stage2Clears: 5 })).toBe(false)
+    expect(isStageUnlocked('stage4', { stage3Clears: 1 })).toBe(true)
   })
 
   it('maps portal progression stage 1 -> stage 2 -> stage 3, then ends', () => {

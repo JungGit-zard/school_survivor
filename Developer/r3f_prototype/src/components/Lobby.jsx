@@ -1,11 +1,11 @@
 // 로비(허브). 타이틀 "게임 시작" 게이트 통과 후 진입한다.
-// 상단 sticky 상태바 + 스테이지 리스트 스크롤. 스테이지 선택·상점·랭킹·능력치·무기·설정 진입점.
+// 상단 sticky 상태바 + 스테이지 리스트 스크롤. 스테이지 선택·상점·랭킹·무기·설정 진입점.
 //
 // App.jsx가 주입할 prop 계약:
 //   onStartStage(stageId)  — 스테이지 카드 "입장하기" → 게임 시작(App.startGame)
 //   onOpenCoinShop()       — 코인상점 화면 진입
 //   onOpenRanking(stageId?) — 랭킹 상세 화면 진입(stageId 있으면 해당 스테이지 보드, 없으면 글로벌)
-// (설정/닉네임/능력치/무기 모달은 로비 내부에서 자체 처리 — App 배선 불필요)
+// (설정/닉네임/무기 모달은 로비 내부에서 자체 처리 — App 배선 불필요)
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { STAGE_CONFIGS, getStageConfig, isStageUnlocked } from '../lib/stageConfig.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
@@ -17,13 +17,14 @@ import { playSfx } from '../lib/sfxRegistry.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
-import AbilityModal from './AbilityModal.jsx'
 import WeaponModal from './WeaponModal.jsx'
 import LobbySettingsModal from './LobbySettingsModal.jsx'
 import StageBossPreview from './StageBossPreview.jsx'
+import { StageLockPreview } from './StageLock.jsx'
 
 const STAGE_UNLOCK_HINT = {
   stage2: 'Stage 1 클리어 시 열림',
+  stage4: 'Stage 3 클리어 시 열림',
 }
 
 // 카드 클릭 뒤 약 1초 동안 보스별 쇼타임을 보여준 뒤 해당 스테이지를 시작한다.
@@ -67,11 +68,11 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
   const goldTotal = useGameStore((s) => s.goldTotal)
   const [records, setRecords] = useState(loadPlayerRecords)
   const [nickname, setNickname] = useState(() => getSavedNickname(authUser))
-  const [modal, setModal] = useState(null) // 'ability' | 'weapon' | 'settings' | null
+  const [modal, setModal] = useState(null) // 'weapon' | 'settings' | null
   const [stageBossPreview, setStageBossPreview] = useState(() => loadStageBossPreview())
   const [showtimeStageId, setShowtimeStageId] = useState(null)
   const showtimeStageRef = useRef(null)
-  const [ambientPosition, setAmbientPosition] = useState(() => ({ x: 0, y: 0, scale: 1.08 }))
+  const ambientDriftRef = useRef(null)
   const touchAmbientRef = useRef(null)
   const touchPulseRef = useRef(null)
   const touchAmbientTimerRef = useRef(null)
@@ -95,7 +96,12 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
   // ref로 transform만 직접 갱신 → 리렌더 없음. transform은 GPU 컴포지터 처리라 무부하.
   useEffect(() => {
     if (!lobbyMotionAllowed()) return
-    const timer = window.setInterval(() => setAmbientPosition(nextAmbientPosition()), AMBIENT_DRIFT_INTERVAL_MS)
+    const timer = window.setInterval(() => {
+      const ambient = ambientDriftRef.current
+      if (!ambient) return
+      const next = nextAmbientPosition()
+      ambient.style.transform = `translate3d(${next.x}%, ${next.y}%, 0) scale(${next.scale})`
+    }, AMBIENT_DRIFT_INTERVAL_MS)
     return () => window.clearInterval(timer)
   }, [])
 
@@ -167,7 +173,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
     return () => { if (document.getElementById('lobby-keyframes') === style) style.remove() }
   }, [])
 
-  // 능력치/설정 모달을 닫을 때 최신 기록/코인 반영을 위해 기록을 다시 읽는다.
+  // 설정/무기 모달을 닫을 때 최신 기록/코인 반영을 위해 기록을 다시 읽는다.
   const refreshRecords = () => setRecords(loadPlayerRecords())
 
   const closeModal = () => {
@@ -192,12 +198,10 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
     <div style={styles.root} onPointerDown={handleLobbyPointerDown}>
       {/* 배경 앰비언트 드리프트(콘텐츠 뒤, 클릭 방해 없음) */}
       <div
+        ref={ambientDriftRef}
         className="lobby-anim"
         data-testid="lobby-ambient-drift"
-        style={{
-          ...styles.ambientDrift,
-          transform: `translate3d(${ambientPosition.x}%, ${ambientPosition.y}%, 0) scale(${ambientPosition.scale})`,
-        }}
+        style={styles.ambientDrift}
         aria-hidden="true"
       />
       <div ref={touchAmbientRef} data-testid="lobby-touch-ambient" style={styles.touchAmbient} aria-hidden="true" />
@@ -257,13 +261,11 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
       </div>
 
       <nav aria-label="로비 메뉴" style={styles.bottomNav}>
-        <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => !showtimeStageId && setModal('ability')}>능력치</button>
         <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => !showtimeStageId && setModal('weapon')}>무기</button>
         <button type="button" className="lobby-press" style={styles.bottomNavButtonAccent} onClick={() => !showtimeStageId && onOpenRanking?.()}>랭킹</button>
         <button type="button" className="lobby-press" style={styles.bottomNavButtonReward} onClick={() => !showtimeStageId && onOpenCoinShop?.()}>상점</button>
       </nav>
 
-      {modal === 'ability' && <AbilityModal onClose={closeModal} />}
       {modal === 'weapon' && <WeaponModal onClose={closeModal} />}
       {modal === 'settings' && (
         <LobbySettingsModal onClose={closeModal} onNicknameChange={setNickname} onLogoutToTitle={onLogoutToTitle} />
@@ -279,6 +281,8 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
   const soundTimerRefs = useRef([])
   const showtimePendingRef = useRef(false)
   const lobbyBossType = stage.lobbyBossType ?? stage.bossType
+  const playable = stage.playable !== false
+  const canStart = unlocked && playable
 
   useEffect(() => {
     return () => {
@@ -288,7 +292,7 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
   }, [])
 
   const queueStart = () => {
-    if (!unlocked || showtimePendingRef.current || !onBeginShowtime?.(stageId)) return
+    if (!canStart || showtimePendingRef.current || !onBeginShowtime?.(stageId)) return
     showtimePendingRef.current = true
     setShowtimeActive(true)
     setShowtimeToken((token) => token + 1)
@@ -343,39 +347,70 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
               내 최고기록: {bestSurvivalSec > 0 ? formatSurvivalTime(bestSurvivalSec) : '기록 없음'}
             </div>
           </div>
-          <button
-            type="button"
-            className="lobby-press lobby-anim"
-            style={{ ...styles.previewEnterButton, animation: 'lobbyCtaPulse 1600ms ease-in-out infinite' }}
-            onClick={(event) => {
-              event.stopPropagation()
-              queueStart()
-            }}
-          >입장하기</button>
-          <button type="button" className="lobby-press" style={styles.rankingButton} onClick={(event) => {
-            event.stopPropagation()
-            if (!showtimeStageId) onRanking()
-          }}>점수 레코드</button>
+          {playable ? (
+            <>
+              <button
+                type="button"
+                className="lobby-press lobby-anim"
+                style={{ ...styles.previewEnterButton, animation: 'lobbyCtaPulse 1600ms ease-in-out infinite' }}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  queueStart()
+                }}
+              >입장하기</button>
+              <button type="button" className="lobby-press" style={styles.rankingButton} onClick={(event) => {
+                event.stopPropagation()
+                if (!showtimeStageId) onRanking()
+              }}>점수 레코드</button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                style={{ ...styles.previewEnterButton, ...styles.previewDisabledButton }}
+                disabled
+                onClick={(event) => event.stopPropagation()}
+              >준비 중</button>
+              <button
+                type="button"
+                style={{ ...styles.rankingButton, ...styles.previewDisabledButton }}
+                disabled
+                onClick={(event) => event.stopPropagation()}
+              >점수 레코드</button>
+            </>
+          )}
         </div>
       ) : (
-        <div style={styles.cardTop} data-testid="stage-card-preview-row">
-          <div style={{ ...styles.cardHead, ...styles.cardHeadFull }}>
-            <div style={styles.cardTitleRow}>
-              <span style={styles.cardTitle}>
+        <div style={styles.previewStack} data-testid="stage-card-preview-row">
+          <StageLockPreview
+            ariaLabel={`${stageId} 잠김 3D 자물쇠`}
+            style={styles.cardBossPreview}
+          />
+          {cleared ? <span style={styles.previewClearBadge}>클리어</span> : null}
+          <div style={styles.previewTextLayer} data-testid="stage-card-preview-overlay">
+            <div style={{ ...styles.cardTitleRow, ...styles.previewTitleRow }}>
+              <span style={styles.previewTitle}>
                 <span>{stage.label}</span>
                 <span>{stage.title}</span>
               </span>
-              <span style={cleared ? styles.tagCleared : styles.tagUncleared}>{cleared ? '클리어' : '미클리어'}</span>
             </div>
-            <div style={styles.cardBest}>
+            <div style={styles.previewBest}>
               내 최고기록: {bestSurvivalSec > 0 ? formatSurvivalTime(bestSurvivalSec) : '기록 없음'}
             </div>
           </div>
+          <button
+            type="button"
+            style={{ ...styles.previewEnterButton, ...styles.previewDisabledButton, ...styles.lockedHintEntryButton }}
+            disabled
+            onClick={(event) => event.stopPropagation()}
+          >{STAGE_UNLOCK_HINT[stageId] ?? '이전 스테이지를 클리어하면 열립니다'}</button>
+          <button
+            type="button"
+            style={{ ...styles.rankingButton, ...styles.previewDisabledButton }}
+            disabled
+            onClick={(event) => event.stopPropagation()}
+          >점수 레코드</button>
         </div>
-      )}
-
-      {unlocked ? null : (
-        <div style={styles.lockHint}>🔒 {STAGE_UNLOCK_HINT[stageId] ?? '이전 스테이지를 클리어하면 열립니다'}</div>
       )}
     </section>
   )
@@ -403,6 +438,7 @@ const styles = {
       'radial-gradient(34% 55% at 28% 7%, rgba(126,228,200,0.6) 0%, rgba(126,228,200,0) 60%),' +
       'radial-gradient(36% 55% at 72% 95%, rgba(89,199,255,0.55) 0%, rgba(89,199,255,0) 60%)',
     transition: `transform ${AMBIENT_DRIFT_INTERVAL_MS}ms ease-in-out`,
+    transform: 'translate3d(0%, 0%, 0) scale(1.08)',
     willChange: 'transform',
   },
   touchAmbient: {
@@ -763,6 +799,21 @@ const styles = {
     padding: '0 6px',
     fontSize: 10,
     lineHeight: 1.05,
+  },
+  previewDisabledButton: {
+    background: '#9aa0a6',
+    color: '#31363f',
+    cursor: 'not-allowed',
+    animation: 'none',
+    opacity: 0.92,
+    filter: 'none',
+  },
+  lockedHintEntryButton: {
+    padding: '0 8px',
+    fontSize: 11,
+    lineHeight: 1.12,
+    letterSpacing: 0,
+    whiteSpace: 'normal',
   },
   lockHint: {
     padding: '9px 11px',

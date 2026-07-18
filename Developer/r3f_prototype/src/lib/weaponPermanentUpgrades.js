@@ -1,5 +1,6 @@
 import { WEAPON_CATALOG, getAllWeaponIds, isValidWeaponId } from './weaponCatalog.js'
 import { isUnlocked } from './weaponUnlocks.js'
+import { _seedHydratedFirebaseProgressForTests, readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
 
 export const STORAGE_KEY = 'school_survivor:weaponPermanentUpgrades'
 export const MAX_WEAPON_PERMANENT_LEVEL = 10
@@ -56,26 +57,14 @@ export const WEAPON_PERMANENT_UPGRADE_PLANS = {
 }
 
 function readRaw() {
-  if (typeof localStorage === 'undefined') return {}
-  const raw = localStorage.getItem(STORAGE_KEY)
-  if (!raw) return {}
-  try {
-    const parsed = JSON.parse(raw)
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
-    const out = {}
-    for (const [id, level] of Object.entries(parsed)) {
-      const n = Number(level)
-      if (Number.isFinite(n) && n >= 0) out[id] = Math.min(MAX_WEAPON_PERMANENT_LEVEL, Math.floor(n))
-    }
-    return out
-  } catch {
-    return {}
-  }
+  return readFirebasePlayerProgress().weaponPermanentUpgrades ?? {}
 }
 
 function writeRaw(value) {
-  if (typeof localStorage === 'undefined') return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(value))
+  updateFirebasePlayerProgress((progress) => {
+    progress.weaponPermanentUpgrades = { ...value }
+    return progress
+  })
 }
 
 export function getAllWeaponPermanentUpgradeLevels() {
@@ -120,8 +109,7 @@ export function purchaseWeaponPermanentUpgrade(id, currentGold) {
 }
 
 export function resetWeaponPermanentUpgradeLevels() {
-  if (typeof localStorage === 'undefined') return
-  localStorage.removeItem(STORAGE_KEY)
+  writeRaw({})
 }
 
 function readPercent(summary) {
@@ -257,5 +245,6 @@ export function applyWeaponPermanentUpgradesToBaseWeapon(id, weapon) {
 }
 
 export function _resetForTests() {
+  _seedHydratedFirebaseProgressForTests()
   resetWeaponPermanentUpgradeLevels()
 }

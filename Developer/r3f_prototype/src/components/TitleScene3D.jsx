@@ -5,7 +5,6 @@ import { GRAPHICS_STUDIO_STORAGE_KEY, GRAPHICS_STUDIO_TUNING_EVENT } from '../li
 import { toonMat } from '../lib/toon.js'
 import { DancingDoge } from './DogeMesh.jsx'
 import MatildaMesh from './MatildaMesh.jsx'
-import PlayerMesh from './PlayerMesh.jsx'
 import ZombieMesh from './ZombieMesh.jsx'
 import StudioTunedGroup, { getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'
@@ -13,8 +12,9 @@ import { CompassBladeModel } from './Weapons/CompassBlade.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
 import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
 
-const TITLE_PLAYER_TARGET = [0.48, 0.08]
+const TITLE_CHASE_TARGET = [0.48, 0.08]
 export const TITLE_BOARD_BACK_LIMIT_Z = -4.62
+export const TITLE_ZOMBIE_GROUND_LIFT_Y = 0.16
 const TITLE_CHARACTER_STENCIL_REF = 2
 const TITLE_OUTLINE_SCALE_BOOST = 1.02
 const TITLE_MATERIAL_CACHE_KEY = 'titleCharacterMaterials'
@@ -50,6 +50,10 @@ export function disposeTitleCharacterOutlines(root) {
   materialCache?.forEach((material) => material.dispose())
   materialCache?.clear()
   delete root.userData[TITLE_MATERIAL_CACHE_KEY]
+}
+
+export function prepareTitleCharactersForStudioUpdate(root) {
+  disposeTitleCharacterOutlines(root)
 }
 
 function getTitleCharacterMaterialKind(material) {
@@ -121,6 +125,7 @@ function TitleCharacterOutlineGroup({ children }) {
   useEffect(() => {
     const group = ref.current
     const markDirty = () => {
+      prepareTitleCharactersForStudioUpdate(group)
       dirtyRef.current = true
     }
     const handleStorage = (event) => {
@@ -145,15 +150,6 @@ function TitleCharacterOutlineGroup({ children }) {
 }
 
 export const TITLE_SCENE_DIRECTION = {
-  player: {
-    hair: 'pink',
-    jacket: 'red',
-    shirt: 'white',
-    ribbon: 'red',
-    skirt: 'blue-check',
-    backpack: 'blue',
-    pose: 'running-to-exit',
-  },
   scene: {
     exitGlow: true,
     infectionStreaks: 2,
@@ -170,7 +166,6 @@ export const TITLE_SCENE_DIRECTION = {
       fixtures: 0,
     },
     realForegroundResources: [
-      'PlayerMesh',
       'ZombieMesh',
       'MatildaMesh',
       'ClassroomDesk',
@@ -188,28 +183,8 @@ function TitleCameraRig() {
   return null
 }
 
-function faceTitlePlayerYaw(position) {
-  return Math.atan2(TITLE_PLAYER_TARGET[0] - position[0], TITLE_PLAYER_TARGET[1] - position[2])
-}
-
-function TitlePlayer() {
-  const ref = useRef()
-  useFrame((state) => {
-    if (!ref.current) return
-    const t = state.clock.elapsedTime
-    ref.current.position.x = 0.48 + Math.sin(t * 4.2) * 0.04
-    ref.current.position.y = 0.88 + Math.sin(t * 8.4) * 0.055
-    ref.current.position.z = 0.38 + Math.sin(t * 3.2) * 0.045
-    ref.current.rotation.x = -0.08 + Math.sin(t * 4.4) * 0.018
-    ref.current.rotation.y = 0.48 + Math.sin(t * 2.2) * 0.055
-    ref.current.rotation.z = 0.05 + Math.sin(t * 7.8) * 0.025
-  })
-
-  return (
-    <group ref={ref} position={[0.48, 0.88, 0.38]} rotation={[-0.08, 0.48, 0.05]} scale={2}>
-      <PlayerMesh />
-    </group>
-  )
+function faceTitleTargetYaw(position) {
+  return Math.atan2(TITLE_CHASE_TARGET[0] - position[0], TITLE_CHASE_TARGET[1] - position[2])
 }
 
 function TitleCompanions() {
@@ -260,19 +235,20 @@ function TitleFarBackgroundStory({ reducedEffects }) {
 
 function TitleZombie({ position, delay = 0, scale = 1, type = 'E01' }) {
   const ref = useRef()
-  const yaw = faceTitlePlayerYaw(position)
+  const yaw = faceTitleTargetYaw(position)
+  const liftedPosition = [position[0], position[1] + TITLE_ZOMBIE_GROUND_LIFT_Y, position[2]]
   useFrame((state) => {
     if (!ref.current) return
     const t = state.clock.elapsedTime + delay
     ref.current.position.x = position[0] + Math.sin(t * 1.2) * 0.07
-    ref.current.position.y = position[1] + Math.sin(t * 2.1) * 0.035
+    ref.current.position.y = liftedPosition[1] + Math.sin(t * 2.1) * 0.035
     ref.current.rotation.x = 0.14 + Math.sin(t * 1.8) * 0.04
     ref.current.rotation.y = yaw + Math.sin(t * 1.15) * 0.025
     ref.current.rotation.z = Math.sin(t * 1.5) * 0.055
   })
 
   return (
-    <group ref={ref} position={position} rotation={[0.14, yaw, 0]} scale={scale}>
+    <group ref={ref} position={liftedPosition} rotation={[0.14, yaw, 0]} scale={scale}>
       <ZombieMesh type={type} animPhase="charge" />
     </group>
   )
@@ -280,18 +256,19 @@ function TitleZombie({ position, delay = 0, scale = 1, type = 'E01' }) {
 
 function TitleMatildaPursuer({ position, delay = 0, scale = 1 }) {
   const ref = useRef()
-  const yaw = faceTitlePlayerYaw(position)
+  const yaw = faceTitleTargetYaw(position)
+  const liftedPosition = [position[0], position[1] + TITLE_ZOMBIE_GROUND_LIFT_Y, position[2]]
   useFrame((state) => {
     if (!ref.current) return
     const t = state.clock.elapsedTime + delay
     ref.current.position.x = position[0] + Math.sin(t * 1.05) * 0.05
-    ref.current.position.y = position[1] + Math.sin(t * 1.9) * 0.035
+    ref.current.position.y = liftedPosition[1] + Math.sin(t * 1.9) * 0.035
     ref.current.rotation.y = yaw + Math.sin(t * 1.1) * 0.018
     ref.current.rotation.z = Math.sin(t * 1.35) * 0.045
   })
 
   return (
-    <group ref={ref} position={position} rotation={[0, yaw, 0]} scale={scale}>
+    <group ref={ref} position={liftedPosition} rotation={[0, yaw, 0]} scale={scale}>
       <MatildaMesh />
     </group>
   )
@@ -299,7 +276,8 @@ function TitleMatildaPursuer({ position, delay = 0, scale = 1 }) {
 
 function TitleBossZombie({ type = 'B01', position, scale = 1.25, delay = 0 }) {
   const ref = useRef()
-  const yaw = faceTitlePlayerYaw(position)
+  const yaw = faceTitleTargetYaw(position)
+  const liftedPosition = [position[0], position[1] + TITLE_ZOMBIE_GROUND_LIFT_Y, position[2]]
   useFrame((state) => {
     if (!ref.current) return
     const t = state.clock.elapsedTime + delay
@@ -309,7 +287,7 @@ function TitleBossZombie({ type = 'B01', position, scale = 1.25, delay = 0 }) {
   })
 
   return (
-    <group ref={ref} position={position} rotation={[0, yaw, 0]} scale={scale}>
+    <group ref={ref} position={liftedPosition} rotation={[0, yaw, 0]} scale={scale}>
       <ZombieMesh type={type} animPhase="charge" />
     </group>
   )
@@ -574,7 +552,7 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
       <TitleCharacterOutlineGroup>
         <TitleFarBackgroundStory reducedEffects={reducedEffects} />
         <TitleBossZombie type="B02" position={[-1.99, 0.18, -3.7]} scale={0.93} delay={0.9} />
-        <TitleBossZombie type="B03" position={[0.02, 0.28, -4.04]} scale={1.344} delay={1.35} />
+        <TitleBossZombie type="B03" position={[0.02, 0.4, -4.04]} scale={1.344} delay={1.35} />
         <TitleBossZombie type="B01" position={[-0.86, 0.34, -1.12]} scale={1.02} />
         <TitleZombie position={[-3.3, 0.22, -3.42]} delay={0.4} scale={0.58} type="E03" />
         <TitleZombie position={[2.0, 0.2, -3.18]} delay={1.6} scale={0.52} type="E02" />
@@ -585,7 +563,6 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
         <DancingDoge position={[-1.27, 0.0, 1.55]} dance="twist" delay={0} scale={0.92} yaw={0.42} paused={reducedEffects} />
         <DancingDoge position={[1.97, 0.0, 1.5]} dance="disco" delay={1.15} scale={0.92} yaw={-0.5} paused={reducedEffects} />
         <TitleCompanions />
-        <TitlePlayer />
       </TitleCharacterOutlineGroup>
     </group>
   )

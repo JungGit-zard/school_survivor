@@ -13,10 +13,10 @@ import {
 } from './weaponPermanentUpgrades.js'
 import { WEAPON_CATALOG } from './weaponCatalog.js'
 import { setUnlocked, _resetForTests as resetWeaponUnlocks } from './weaponUnlocks.js'
+import { getFirebaseProgressRuntimeSnapshot, updateFirebasePlayerProgress } from './firebaseProgress.js'
 
 describe('weaponPermanentUpgrades storage layer', () => {
   beforeEach(() => {
-    localStorage.clear()
     resetWeaponUnlocks()
     resetWeaponPermanentUpgradeLevels()
   })
@@ -34,7 +34,7 @@ describe('weaponPermanentUpgrades storage layer', () => {
 
     expect(result).toMatchObject({ ok: true, nextLevel: 1, price: 300, nextGold: 0 })
     expect(getWeaponPermanentUpgradeLevel('pencilThrow')).toBe(1)
-    expect(JSON.parse(localStorage.getItem(STORAGE_KEY))).toMatchObject({ pencilThrow: 1 })
+    expect(getFirebaseProgressRuntimeSnapshot().progress.weaponPermanentUpgrades).toMatchObject({ pencilThrow: 1 })
   })
 
   it('미해금 비스타터 무기는 구매할 수 없다', () => {
@@ -133,10 +133,13 @@ describe('weaponPermanentUpgrades storage layer', () => {
 
   it('applies permanent critical chance bonuses to critical-capable weapon stats', () => {
     const setLevel = (id, level) => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        ...JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}'),
-        [id]: level,
-      }))
+      updateFirebasePlayerProgress((progress) => {
+        progress.weaponPermanentUpgrades = {
+          ...(progress.weaponPermanentUpgrades ?? {}),
+          [id]: level,
+        }
+        return progress
+      })
     }
 
     setLevel('pencilThrow', 9)
@@ -152,10 +155,13 @@ describe('weaponPermanentUpgrades storage layer', () => {
 
   it('applies every deterministic Lv.5 and Lv.10 numeric perk to runtime weapon fields', () => {
     const setLevel = (id, level) => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        ...JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}'),
-        [id]: level,
-      }))
+      updateFirebasePlayerProgress((progress) => {
+        progress.weaponPermanentUpgrades = {
+          ...(progress.weaponPermanentUpgrades ?? {}),
+          [id]: level,
+        }
+        return progress
+      })
     }
     const upgraded = (id, level = 10) => {
       setLevel(id, level)

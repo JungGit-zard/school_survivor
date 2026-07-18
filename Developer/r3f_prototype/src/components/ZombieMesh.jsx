@@ -359,7 +359,7 @@ function B01BossZombieMesh({ hitFlash, reg }) {
     <group>
       <group ref={reg('head')} position={[0, 0.88, 0]}>
         <ZBlock size={[0.58, 0.50, 0.48]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash} />
-        <ZBlock size={[0.60, 0.18, 0.46]} position={[-0.02, 0.25, -0.02]} rotation={[0.06, 0, -0.08]} color={pal.hair} emissive={0.04} outlineScale={1.06} flash={hitFlash} />
+        <ZBlock size={[0.60, 0.18, 0.56]} position={[-0.02, 0.25, -0.02]} rotation={[0.06, 0, -0.08]} color={pal.hair} emissive={0.04} outlineScale={1.06} flash={hitFlash} />
         {/* 눈·눈썹·입·치아·볼 그림자 등 모델링 이목구비 대신 사용자 제공 수학선생 얼굴 텍스처 데칼 사용 */}
         <B01MathTeacherFaceTexture />
       </group>
@@ -596,7 +596,7 @@ function B02Stage2BossMesh({ hitFlash, reg }) {
     <group>
       <group name="b02HeadRig" ref={reg('head')} position={[0, 0.88, 0]}>
         <ZBlock name="b02Head" size={[0.58, 0.50, 0.48]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash} />
-        <ZBlock name="b02FrontHair" size={[0.62, 0.18, 0.50]} position={[-0.03, 0.26, -0.01]} rotation={[0.02, 0, -0.04]} color={pal.hair} emissive={0.035} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock name="b02FrontHair" size={[0.62, 0.18, 0.60]} position={[-0.03, 0.26, -0.01]} rotation={[0.02, 0, -0.04]} color={pal.hair} emissive={0.035} outlineScale={1.05} flash={hitFlash} />
         <ZBlock name="b02LeftSideHair" size={[0.12, 0.46, 0.18]} position={[-0.34, 0.02, -0.03]} color={pal.hairShadow} emissive={0.025} outlineScale={1.04} flash={hitFlash} />
         <ZBlock name="b02RightSideHair" size={[0.12, 0.46, 0.18]} position={[0.34, 0.02, -0.03]} color={pal.hairShadow} emissive={0.025} outlineScale={1.04} flash={hitFlash} />
         <ZBlock name="b02BackHair" size={[0.58, 0.44, 0.18]} position={[0.02, 0.06, -0.30]} color={pal.hair} emissive={0.03} outlineScale={1.05} flash={hitFlash} />
@@ -668,8 +668,8 @@ function ZombieOuterOutline() {
 }
 
 // animPhase: 'normal' | 'warn' | 'charge' | 'stun' | 'retreat'
-// frozen: 그래픽 스튜디오 파트 편집용 정적 포즈 — true면 애니메이션을 멈추고 rest 포즈 유지 (인게임 기본 false)
-export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false }) {
+// staticPose: 로비 보스 카드처럼 상호작용 없는 프리뷰에서 내부 파트 애니메이션 계산을 완전히 건너뛰는 정적 포즈 게이트.
+export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false, staticPose = false }) {
   const p    = useRef({})
   const pal  = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
   const specialAgeRef = useRef(0)
@@ -683,7 +683,7 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
       if (!cb) {
         cb = (el) => {
           if (!el) return
-          // 애니메이션이 돌기 전 JSX 선언값 = rest 포즈를 캡처 (frozen 진입 시 복원용)
+          // 애니메이션이 돌기 전 JSX 선언값 = staticPose에서 유지할 rest 포즈다.
           pc.current[k] = el
         }
         regRef.current._cbs[k] = cb
@@ -694,16 +694,16 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
   }
   const reg = regRef.current
 
-  // frozen 진입 시 애니메이션 잔존 transform을 rest 포즈로 되돌리고,
-  // 애니메이션 도중 캡처됐을 수 있는 스튜디오 base(rotation/scale)를 폐기해
-  // rest 기준으로 재캡처되게 한다. position은 애니메이션 대상이 아니므로 base 유지.
+  // staticPose에서는 내부 파트 애니메이션 계산을 시작하지 않아 선언된 rest 포즈를 유지한다.
+  // 로비 쇼타임은 바깥 래퍼만 움직이고, ZombieMesh 내부 보행/고개 흔들림은 정지한다.
   useFrame((state, delta) => {
+    if (staticPose) return
     const pt = p.current
     if (!pt.legL) return
-    const t = state.clock.elapsedTime
     const specialActive = type === 'B01' && animPhase === 'special'
-    specialAgeRef.current = specialActive ? specialAgeRef.current + delta : 0
     if (pt.mathSetSquare) pt.mathSetSquare.visible = specialActive
+    const t = state.clock.elapsedTime
+    specialAgeRef.current = specialActive ? specialAgeRef.current + delta : 0
 
     if (specialActive) {
       const progress = Math.min(1, specialAgeRef.current / 0.75)

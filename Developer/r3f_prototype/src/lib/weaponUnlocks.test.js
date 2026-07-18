@@ -7,6 +7,7 @@ import {
   getAllUnlocked,
   _resetForTests,
 } from './weaponUnlocks.js'
+import { getFirebaseProgressRuntimeSnapshot, updateFirebasePlayerProgress } from './firebaseProgress.js'
 
 describe('weaponUnlocks storage', () => {
   beforeEach(() => {
@@ -54,20 +55,26 @@ describe('weaponUnlocks storage', () => {
     expect(all.size).toBe(2)
   })
 
-  it('미지정 키는 디스크에 보존하되 getAllUnlocked에는 노출 안 함', () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ compassBlade: 1, futureWeapon: 1 }))
+  it('미지정 키는 Firebase runtime에 보존하되 getAllUnlocked에는 노출 안 함', () => {
+    updateFirebasePlayerProgress((progress) => {
+      progress.weaponUnlocks = { compassBlade: 1, futureWeapon: 1 }
+      return progress
+    })
     const all = getAllUnlocked()
     expect(all.has('compassBlade')).toBe(true)
     expect(all.has('futureWeapon')).toBe(false)
 
     setUnlocked('umbrellaGuard')
-    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY))
+    const raw = getFirebaseProgressRuntimeSnapshot().progress.weaponUnlocks
     expect(raw.futureWeapon).toBe(1)
     expect(raw.umbrellaGuard).toBe(1)
   })
 
-  it('잘못된 JSON 시 모두 unlocked-false (예외 안 던짐)', () => {
-    localStorage.setItem(STORAGE_KEY, 'not-json')
+  it('잘못된 Firebase weaponUnlocks 값이면 모두 unlocked-false (예외 안 던짐)', () => {
+    updateFirebasePlayerProgress((progress) => {
+      progress.weaponUnlocks = 'not-json'
+      return progress
+    })
     expect(() => isUnlocked('compassBlade')).not.toThrow()
     expect(isUnlocked('compassBlade')).toBe(false)
   })

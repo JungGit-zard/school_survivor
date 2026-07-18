@@ -1,6 +1,7 @@
+import { getFirebaseProgressRuntimeSnapshot, updateFirebasePlayerProfile } from './firebaseProgress.js'
+
 export const STORAGE_KEY = 'school_survivor:userNicknames'
 
-const LOCAL_OWNER_KEY = 'local'
 const MIN_NICKNAME_LENGTH = 2
 const MAX_NICKNAME_LENGTH = 12
 
@@ -24,46 +25,19 @@ export function validateNickname(value) {
 
 export function getNicknameOwnerKey(user) {
   const uid = typeof user?.uid === 'string' ? user.uid.trim() : ''
-  return uid || LOCAL_OWNER_KEY
+  return uid || 'firebase-runtime'
 }
 
-export function getSavedNickname(user) {
-  const nicknames = readNicknameMap()
-  const nickname = nicknames[getNicknameOwnerKey(user)]
-  return typeof nickname === 'string' ? nickname : ''
+export function getSavedNickname() {
+  return getFirebaseProgressRuntimeSnapshot().profile?.nickname ?? ''
 }
 
-export function saveNicknameForUser(user, value) {
+export function saveNicknameForUser(_user, value) {
   const result = validateNickname(value)
   if (!result.ok) return result
-
-  const nicknames = readNicknameMap()
-  nicknames[getNicknameOwnerKey(user)] = result.nickname
-  writeNicknameMap(nicknames)
+  updateFirebasePlayerProfile((profile) => {
+    profile.nickname = result.nickname
+    return profile
+  })
   return result
-}
-
-function readNicknameMap() {
-  if (typeof localStorage === 'undefined') return {}
-
-  try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
-
-    const out = {}
-    for (const [key, value] of Object.entries(parsed)) {
-      if (typeof key !== 'string' || typeof value !== 'string') continue
-      const ownerKey = key.trim()
-      const nickname = normalizeNickname(value)
-      if (ownerKey && nickname) out[ownerKey] = nickname
-    }
-    return out
-  } catch {
-    return {}
-  }
-}
-
-function writeNicknameMap(nicknames) {
-  if (typeof localStorage === 'undefined') return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(nicknames))
 }

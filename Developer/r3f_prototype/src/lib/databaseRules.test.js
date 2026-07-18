@@ -31,6 +31,8 @@ describe('Realtime Database rules', () => {
     expect(studio.revision['.validate']).toContain('newData.val() >= 0')
     expect(studio.revision['.validate']).toContain('newData.val() % 1 === 0')
     expect(studio.updatedAt['.validate']).toContain('newData.isString()')
+    expect(studio.datasets.tunings['.validate']).toContain('newData.isString()')
+    expect(studio.datasets.tunings['.validate']).toContain('length <= 1000000')
     expect(studio['.validate']).not.toContain("'datasets'")
     expect(studio.datasets.$other['.validate']).toBe(false)
     expect(studio.$other['.validate']).toBe(false)

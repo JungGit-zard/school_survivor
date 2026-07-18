@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { createRoot } from 'react-dom/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import CoinShop from './CoinShop.jsx'
+import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { resetAllLevels } from '../lib/passiveUpgrades.js'
 import { resetWeaponPermanentUpgradeLevels } from '../lib/weaponPermanentUpgrades.js'
 import { _resetForTests as resetWeaponUnlocks, setUnlocked } from '../lib/weaponUnlocks.js'
@@ -13,6 +14,7 @@ import { useGameStore } from '../store/useGameStore.js'
 describe('CoinShop', () => {
   beforeEach(() => {
     localStorage.clear()
+    _seedHydratedFirebaseProgressForTests()
     resetAllLevels()
     resetWeaponUnlocks()
     resetWeaponPermanentUpgradeLevels()
@@ -89,6 +91,7 @@ describe('CoinShop', () => {
     expect(container.textContent).toContain('보조배터리 미사일')
     expect(container.textContent).toContain('상어미사일')
     expect(container.textContent).toContain('무기 해금 후 강화 가능')
+    expect(Array.from(container.querySelectorAll('img')).some((img) => /wea_|weapon_icon|\.svg/.test(img.getAttribute('src') ?? ''))).toBe(true)
 
     act(() => {
       Array.from(container.querySelectorAll('button'))

@@ -1,5 +1,4 @@
 export const STUDIO_GAME_SYNC_MESSAGE = 'escape-zombie-school.studioGameSync.v1'
-export const STUDIO_GAME_URL_STORAGE_KEY = 'escape-zombie-school.studioGameUrl.v1'
 
 export function getDefaultStudioGameUrl(location = globalThis.location) {
   if (!location?.href) return ''

@@ -10,6 +10,7 @@ import {
   snapshot,
   _resetForTests,
 } from './playerRecords.js'
+import { getFirebaseProgressRuntimeSnapshot, updateFirebasePlayerProgress } from './firebaseProgress.js'
 
 describe('playerRecords storage layer', () => {
   beforeEach(() => {
@@ -73,19 +74,25 @@ describe('playerRecords storage layer', () => {
     expect(s.totalSurvivalSeconds).toBe(150)
   })
 
-  it('미지정 키를 disk에 보존하되 load/getRecord에는 노출하지 않는다', () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ totalKills: 3, futureKey: 7 }))
+  it('미지정 키를 Firebase runtime schema에서 정규화해 load/getRecord에는 노출하지 않는다', () => {
+    updateFirebasePlayerProgress((progress) => {
+      progress.records = { totalKills: 3, futureKey: 7 }
+      return progress
+    })
     expect(getRecord('futureKey')).toBe(0)
     expect(load().futureKey).toBeUndefined()
 
     incrementRecord('totalKills', 1)
-    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY))
-    expect(raw.futureKey).toBe(7)
+    const raw = getFirebaseProgressRuntimeSnapshot().progress.records
+    expect(raw.futureKey).toBeUndefined()
     expect(raw.totalKills).toBe(4)
   })
 
-  it('잘못된 JSON은 모두 0으로 처리하고 예외를 던지지 않는다', () => {
-    localStorage.setItem(STORAGE_KEY, 'not-json')
+  it('잘못된 Firebase records 값은 모두 0으로 처리하고 예외를 던지지 않는다', () => {
+    updateFirebasePlayerProgress((progress) => {
+      progress.records = 'not-json'
+      return progress
+    })
     expect(() => load()).not.toThrow()
     expect(load().totalKills).toBe(0)
   })

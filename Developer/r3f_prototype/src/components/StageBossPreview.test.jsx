@@ -48,7 +48,7 @@ vi.mock('@react-three/fiber', () => ({
 }))
 
 vi.mock('./Enemy.jsx', () => ({
-  EnemyVisual: () => <div data-testid="stage-boss-preview-enemy" />,
+  EnemyVisual: ({ staticPose }) => <div data-testid="stage-boss-preview-enemy" data-static-pose={String(staticPose)} />,
   ENEMY_STATS: { B01: { scale: 2 }, B02: { scale: 2 }, B03: { scale: 2 } },
   ENEMY_SIZE_MULTIPLIER: 4 / 3,
 }))
@@ -96,6 +96,21 @@ describe('StageBossPreview ?⑤뵒留⑤뱶 紐⑥뀡', () => {
     expect(el.querySelector('[data-testid="stage-boss-preview"]').dataset.motionActive).toBe('true')
   })
 
+  it('forwards staticPose to the nested boss mesh while the lobby preview motion is inactive', () => {
+    const el = render(<StageBossPreview />)
+    expect(el.querySelector('[data-testid="stage-boss-preview-enemy"]').dataset.staticPose).toBe('true')
+  })
+
+  it('keeps the nested boss mesh static during the short entry motion', () => {
+    const el = render(<StageBossPreview motionToken={1} />)
+    expect(el.querySelector('[data-testid="stage-boss-preview-enemy"]').dataset.staticPose).toBe('true')
+  })
+
+  it('keeps the interactive Graphics Studio preview animation enabled', () => {
+    const el = render(<StageBossPreview interactive />)
+    expect(el.querySelector('[data-testid="stage-boss-preview-enemy"]').dataset.staticPose).toBe('false')
+  })
+
   it('plays the same short reaction when the lobby boss preview is touched', () => {
     vi.useFakeTimers()
     const el = render(<StageBossPreview />)
@@ -122,9 +137,10 @@ describe('StageBossPreview B04 chef framing', () => {
     expect(Math.abs(faceNdcY({ bossType: 'B04' }))).toBeLessThan(0.005)
   })
 
-  it('uses a chef-only zoom reduction while preserving other boss zoom', () => {
-    expect(resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, 'B04')).toBeCloseTo(46.2, 6)
-    expect(resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, 'B01')).toBe(DEFAULT_BASE_ZOOM)
+  it('uses the same zoom meaning for B04 and the other stage bosses', () => {
+    for (const bossType of ['B01', 'B02', 'B03', 'B04']) {
+      expect(resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, bossType)).toBe(DEFAULT_BASE_ZOOM)
+    }
   })
 })
 

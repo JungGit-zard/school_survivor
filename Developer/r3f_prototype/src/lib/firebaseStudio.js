@@ -1,35 +1,27 @@
 import { getFirebaseConfig } from './firebaseAuth.js'
 import { isFirebaseProgressConfigured } from './firebaseProgress.js'
 import {
-  GRAPHICS_STUDIO_STORAGE_KEY,
   GRAPHICS_STUDIO_TUNING_EVENT,
   STAGE_BOSS_PREVIEW_EVENT,
-  STAGE_BOSS_PREVIEW_STORAGE_KEY,
   TEXTURE_DECALS_EVENT,
-  TEXTURE_DECALS_STORAGE_KEY,
   loadStageBossPreview,
   loadStudioTunings,
   loadTextureDecals,
-  saveStageBossPreview,
-  saveStudioTunings,
-  saveTextureDecals,
 } from './graphicsStudioConfig.js'
 import {
-  SFX_TUNING_STORAGE_KEY,
   loadSfxTunings,
-  saveSfxTunings,
 } from './sfxRegistry.js'
 import {
-  STAGE_PROP_PLACEMENTS_STORAGE_KEY,
   STAGE_PROP_PLACEMENTS_EVENT,
   loadStagePropPlacements,
-  resetStagePropPlacementsCache,
-  saveStagePropPlacements,
 } from './stagePropPlacements.js'
+import {
+  blockFirebaseStudioRuntime,
+  commitFirebaseStudioRuntime,
+  isFirebaseStudioRuntimeReady,
+} from './studioRuntimeState.js'
 
 export const FIREBASE_STUDIO_SCHEMA_VERSION = 1
-export const FIREBASE_STUDIO_OWNER_UID_STORAGE_KEY = 'escape-zombie-school.firebaseStudioOwnerUid.v1'
-export const FIREBASE_STUDIO_DIRTY_UID_STORAGE_KEY = 'escape-zombie-school.firebaseStudioDirtyUid.v1'
 export const FIREBASE_STUDIO_DATASET_KEYS = Object.freeze([
   'tunings',
   'sfxTunings',
@@ -50,13 +42,15 @@ let pendingSaveOptions = null
 let saveTimer = null
 let flushWorkerPromise = null
 let flushWorkerActive = false
+let studioOwnerUid = ''
+let studioDirtyUid = ''
 
 export function getUserStudioPath(user = studioUser) {
   const uid = typeof user?.uid === 'string' ? user.uid.trim() : ''
   return uid ? `studioWorkspaces/v1/users/${uid}/current` : ''
 }
 
-export function loadLocalStudioDatasets() {
+export function loadStudioRuntimeDatasets() {
   return {
     tunings: loadStudioTunings(),
     sfxTunings: loadSfxTunings(),
@@ -68,10 +62,9 @@ export function loadLocalStudioDatasets() {
 
 export function markFirebaseStudioLocalChange(user = studioUser) {
   const uid = readUid(user)
-  const storage = getLocalStorage()
-  if (!uid || !storage) return false
-  storage.setItem(FIREBASE_STUDIO_OWNER_UID_STORAGE_KEY, uid)
-  storage.setItem(FIREBASE_STUDIO_DIRTY_UID_STORAGE_KEY, uid)
+  if (!uid || !isFirebaseStudioRuntimeReady()) return false
+  studioOwnerUid = uid
+  studioDirtyUid = uid
   localMutationGeneration += 1
   return true
 }
@@ -114,54 +107,59 @@ export function normalizeFirebaseStudioSnapshot(snapshot) {
   }
 }
 
+export function encodeFirebaseStudioSnapshotForStorage(snapshot) {
+  if (!isObject(snapshot) || !isObject(snapshot.datasets)) return snapshot
+  return {
+    ...snapshot,
+    datasets: Object.fromEntries(FIREBASE_STUDIO_DATASET_KEYS.map((key) => [
+      key,
+      JSON.stringify(snapshot.datasets[key] ?? {}),
+    ])),
+  }
+}
+
+export function decodeFirebaseStudioSnapshotFromStorage(snapshot) {
+  if (!isObject(snapshot) || !isObject(snapshot.datasets)) return snapshot
+  const datasets = {}
+  for (const key of FIREBASE_STUDIO_DATASET_KEYS) {
+    const value = snapshot.datasets[key]
+    if (value === undefined) continue
+    if (typeof value !== 'string') {
+      datasets[key] = value
+      continue
+    }
+    try {
+      datasets[key] = JSON.parse(value)
+    } catch {
+      return {
+        ...snapshot,
+        datasets: {
+          ...snapshot.datasets,
+          [key]: null,
+        },
+      }
+    }
+  }
+  return {
+    ...snapshot,
+    datasets,
+  }
+}
+
 export function applyFirebaseStudioSnapshot(snapshot) {
   const normalized = normalizeFirebaseStudioSnapshot(snapshot)
   if (!normalized) return false
-  return applyLocalStudioDatasets(normalized.datasets)
+  return applyFirebaseStudioDatasets(normalized.datasets, { revision: normalized.revision })
 }
 
-export function applyLocalStudioDatasets(datasets) {
+export function applyFirebaseStudioDatasets(datasets, { revision = null } = {}) {
   if (!isObject(datasets) || FIREBASE_STUDIO_DATASET_KEYS.some((key) => (
     datasets[key] !== undefined && !isObject(datasets[key])
   ))) return false
 
-  const storage = typeof localStorage !== 'undefined' ? localStorage : null
-  const keys = [
-    GRAPHICS_STUDIO_STORAGE_KEY,
-    SFX_TUNING_STORAGE_KEY,
-    STAGE_BOSS_PREVIEW_STORAGE_KEY,
-    TEXTURE_DECALS_STORAGE_KEY,
-    STAGE_PROP_PLACEMENTS_STORAGE_KEY,
-  ]
-  const previous = storage
-    ? Object.fromEntries(keys.map((key) => [key, storage.getItem(key)]))
-    : null
-
-  try {
-    // saveStudioTunings patches normal edits. Clear only its authored payload so
-    // cloud/game hydration remains a replacement and deleted local keys stay deleted.
-    storage?.removeItem(GRAPHICS_STUDIO_STORAGE_KEY)
-    saveStudioTunings(datasets.tunings ?? {})
-    saveSfxTunings(datasets.sfxTunings ?? {})
-    saveStageBossPreview(datasets.stageBossPreview ?? {})
-    saveTextureDecals(datasets.decals ?? {})
-    saveStagePropPlacements(datasets.propPlacements ?? {})
-    return true
-  } catch {
-    if (storage && previous) {
-      for (const key of keys) {
-        try {
-          if (previous[key] === null) storage.removeItem(key)
-          else storage.setItem(key, previous[key])
-        } catch {
-          // Best effort: the original write error remains the authoritative failure.
-        }
-      }
-    }
-    resetStagePropPlacementsCache()
-    emitRestoredStudioDatasets()
-    return false
-  }
+  commitFirebaseStudioRuntime(pickStudioDatasets(datasets), { revision })
+  emitStudioRuntimeDatasets()
+  return true
 }
 
 export async function hydrateFirebaseStudio({
@@ -176,13 +174,11 @@ export async function hydrateFirebaseStudio({
   const activeUidAtStart = readUid(studioUser)
   const userGenerationAtStart = studioUserGeneration
   const mutationGenerationAtStart = localMutationGeneration
-  const storage = getLocalStorage()
-  const ownerUid = storage?.getItem(FIREBASE_STUDIO_OWNER_UID_STORAGE_KEY) ?? ''
-  const dirtyUid = storage?.getItem(FIREBASE_STUDIO_DIRTY_UID_STORAGE_KEY) ?? ''
+  const ownerUid = studioOwnerUid
+  const dirtyUid = studioDirtyUid
   if (ownerUid && ownerUid !== uid && dirtyUid && dirtyUid !== uid) {
     return { status: 'account-conflict', ownerUid }
   }
-  const switchedFromCleanOwner = !!ownerUid && ownerUid !== uid
 
   const resolved = await resolveStudioClient(client, env)
   if (resolved.status) return resolved
@@ -191,7 +187,7 @@ export async function hydrateFirebaseStudio({
     const saved = await saveFirebaseStudio({
       user,
       client: resolved.client,
-      datasets: loadLocalStudioDatasets(),
+      datasets: loadStudioRuntimeDatasets(),
       now,
     })
     if (saved.status !== 'saved') return saved
@@ -212,18 +208,7 @@ export async function hydrateFirebaseStudio({
   }
 
   if (remote === null || remote === undefined) {
-    const datasets = switchedFromCleanOwner ? emptyStudioDatasets() : loadLocalStudioDatasets()
-    const result = await saveFirebaseStudio({
-      user,
-      client: resolved.client,
-      datasets,
-      now,
-    })
-    if (result.status !== 'saved') return result
-    if (switchedFromCleanOwner && !applyLocalStudioDatasets(datasets)) {
-      return { status: 'apply-failed' }
-    }
-    return { status: 'local-seeded', revision: result.revision }
+    return { status: 'missing-remote' }
   }
 
   if (isFutureSchema(remote)) {
@@ -241,13 +226,14 @@ export async function saveFirebaseStudio({
   user = studioUser,
   client,
   env = getDefaultEnv(),
-  datasets = loadLocalStudioDatasets(),
+  datasets,
   now = Date.now(),
 } = {}) {
   const path = getUserStudioPath(user)
   if (!path) return { status: 'unauthenticated' }
   const uid = readUid(user)
   const mutationGenerationAtStart = localMutationGeneration
+  const resolvedDatasets = datasets ?? loadStudioRuntimeDatasets()
 
   const resolved = await resolveStudioClient(client, env)
   if (resolved.status) return resolved
@@ -266,7 +252,7 @@ export async function saveFirebaseStudio({
       nextRevision = revision
       return {
         ...(isObject(current) ? current : {}),
-        ...buildFirebaseStudioSnapshot(datasets, { revision, now }),
+        ...buildFirebaseStudioSnapshot(resolvedDatasets, { revision, now }),
       }
     })
 
@@ -289,6 +275,9 @@ export function setFirebaseStudioUser(user) {
     if (saveTimer !== null) clearTimeout(saveTimer)
     saveTimer = null
     pendingSaveOptions = null
+    blockFirebaseStudioRuntime()
+    studioOwnerUid = ''
+    studioDirtyUid = ''
   }
   studioUser = user ?? null
 }
@@ -379,12 +368,19 @@ async function createFirebaseStudioClient(env) {
   return {
     load: async (path) => {
       const snapshot = await databaseModule.get(databaseModule.ref(database, path))
-      return snapshot.exists() ? snapshot.val() : null
+      return snapshot.exists()
+        ? decodeFirebaseStudioSnapshotFromStorage(snapshot.val())
+        : null
     },
     transaction: async (path, update) => {
       const result = await databaseModule.runTransaction(
         databaseModule.ref(database, path),
-        update,
+        (storedValue) => {
+          const nextValue = update(decodeFirebaseStudioSnapshotFromStorage(storedValue))
+          return nextValue === undefined
+            ? undefined
+            : encodeFirebaseStudioSnapshotForStorage(nextValue)
+        },
       )
       return {
         committed: result.committed,
@@ -401,18 +397,13 @@ function pickStudioDatasets(datasets) {
   ]))
 }
 
-function emptyStudioDatasets() {
-  return Object.fromEntries(FIREBASE_STUDIO_DATASET_KEYS.map((key) => [key, {}]))
-}
-
 function claimLocalWorkspace(uid, savedMutationGeneration) {
-  const storage = getLocalStorage()
-  if (!uid || !storage) return
-  storage.setItem(FIREBASE_STUDIO_OWNER_UID_STORAGE_KEY, uid)
+  if (!uid) return
+  studioOwnerUid = uid
   const canClearDirty = savedMutationGeneration === undefined
     || savedMutationGeneration === localMutationGeneration
-  if (canClearDirty && storage.getItem(FIREBASE_STUDIO_DIRTY_UID_STORAGE_KEY) === uid) {
-    storage.removeItem(FIREBASE_STUDIO_DIRTY_UID_STORAGE_KEY)
+  if (canClearDirty && studioDirtyUid === uid) {
+    studioDirtyUid = ''
   }
 }
 
@@ -421,9 +412,9 @@ function isHydrateUserCurrent(uid, activeUidAtStart, generationAtStart) {
   return readUid(studioUser) === uid && studioUserGeneration === generationAtStart
 }
 
-function emitRestoredStudioDatasets() {
+function emitStudioRuntimeDatasets() {
   if (typeof window === 'undefined' || typeof CustomEvent === 'undefined') return
-  const restored = loadLocalStudioDatasets()
+  const restored = loadStudioRuntimeDatasets()
   const events = [
     [GRAPHICS_STUDIO_TUNING_EVENT, restored.tunings],
     ['escape-zombie-school.sfxTunings.changed', restored.sfxTunings],
@@ -438,28 +429,6 @@ function emitRestoredStudioDatasets() {
       // Rollback notification is best effort.
     }
   }
-}
-
-const STUDIO_STORAGE_SYNC_KEYS = new Set([
-  GRAPHICS_STUDIO_STORAGE_KEY,
-  SFX_TUNING_STORAGE_KEY,
-  STAGE_BOSS_PREVIEW_STORAGE_KEY,
-  TEXTURE_DECALS_STORAGE_KEY,
-  STAGE_PROP_PLACEMENTS_STORAGE_KEY,
-])
-
-export function subscribeStudioStorageSync() {
-  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') {
-    return () => {}
-  }
-  const handler = (event) => {
-    // event.key === null: storage.clear(). Otherwise only react to our datasets.
-    if (event.key !== null && !STUDIO_STORAGE_SYNC_KEYS.has(event.key)) return
-    resetStagePropPlacementsCache()
-    emitRestoredStudioDatasets()
-  }
-  window.addEventListener('storage', handler)
-  return () => window.removeEventListener('storage', handler)
 }
 
 function isFutureSchema(value) {
@@ -491,10 +460,6 @@ function readEnv(env, key) {
 
 function readUid(user) {
   return typeof user?.uid === 'string' ? user.uid.trim() : ''
-}
-
-function getLocalStorage() {
-  return typeof localStorage !== 'undefined' ? localStorage : null
 }
 
 function getDefaultEnv() {

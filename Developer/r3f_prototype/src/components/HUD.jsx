@@ -7,6 +7,7 @@ import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { buildPlaytestSummary } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
+import { playDialogueVoice, stopDialogueVoice } from '../lib/dialogueVoice.js'
 import { getNextStageId, getStageConfig } from '../lib/stageConfig.js'
 import { STAGE2_SPAWN_TELEGRAPHS, STAGE3_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
@@ -638,6 +639,22 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     const timer = setTimeout(() => setMatildaDialogueVisible(false), MATILDA_DIALOGUE_MS)
     return () => clearTimeout(timer)
   }, [matildaSpawned])
+
+  useEffect(() => {
+    if (!introDialogue) {
+      stopDialogueVoice()
+      return undefined
+    }
+    const line = STAGE1_INTRO_LINES[introDialogue.index] ?? ''
+    playDialogueVoice(line, 'protagonistIntro', { volume: 1 })
+    return () => stopDialogueVoice()
+  }, [introDialogue])
+
+  useEffect(() => {
+    if (!matildaDialogueVisible) return undefined
+    const stop = playDialogueVoice(MATILDA_DIALOGUE_LINE, 'matilda', { delayMs: 180, volume: 0.92 })
+    return () => stop()
+  }, [matildaDialogueVisible])
 
   const confirmLobbyReturn = () => {
     if (!quitPausedRun()) return

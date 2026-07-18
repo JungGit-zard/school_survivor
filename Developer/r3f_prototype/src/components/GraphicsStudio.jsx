@@ -24,7 +24,6 @@ import StagePropPlacementEditor from './StagePropPlacementEditor.jsx'
 import { DEFAULT_SFX_TUNING, getSfxCatalog, loadSfxTunings, normalizeSfxTuning, playSfx, saveSfxTunings } from '../lib/sfxRegistry.js'
 import {
   STUDIO_GAME_SYNC_MESSAGE,
-  STUDIO_GAME_URL_STORAGE_KEY,
   getDefaultStudioGameUrl,
   parseStudioGameUrl,
 } from '../lib/studioGameBridge.js'
@@ -33,7 +32,7 @@ import { useAuthStore } from '../store/useAuthStore.js'
 import {
   flushFirebaseStudioSave,
   hydrateFirebaseStudio,
-  loadLocalStudioDatasets,
+  loadStudioRuntimeDatasets,
   markFirebaseStudioLocalChange,
   requestFirebaseStudioSave,
   setFirebaseStudioUser,
@@ -237,7 +236,7 @@ export default function GraphicsStudio() {
   const [previewBg, setPreviewBg] = useState(PREVIEW_BG_SWATCHES[0].value)
   const [resetBaseline] = useState(() => ensureStudioResetBaseline(loadStudioTunings()))
   const [applyStatus, setApplyStatus] = useState('')
-  const [firebaseStatus, setFirebaseStatus] = useState('local')
+  const [firebaseStatus, setFirebaseStatus] = useState('synced')
   const [propEditorVersion, setPropEditorVersion] = useState(0)
   const authStatus = useAuthStore((state) => state.status)
   const authUser = useAuthStore((state) => state.user)
@@ -260,9 +259,7 @@ export default function GraphicsStudio() {
   const writeEligibleUidRef = useRef(null)
   const mountedRef = useRef(true)
   const connectInFlightRef = useRef(false)
-  const [gameUrl, setGameUrl] = useState(() => (
-    localStorage.getItem(STUDIO_GAME_URL_STORAGE_KEY) || getDefaultStudioGameUrl()
-  ))
+  const [gameUrl, setGameUrl] = useState(() => getDefaultStudioGameUrl())
   const activeTuningId = getPartTuningId(selectedItem.id, focusedParts)
   const itemSavedTuning = confirmedTunings[selectedItem.id] ?? DEFAULT_STUDIO_TUNING
   const itemTuning = normalizeStudioTuning(draftTuningById[selectedItem.id] ?? itemSavedTuning)
@@ -294,7 +291,7 @@ export default function GraphicsStudio() {
   )
 
   const refreshStudioState = () => {
-    const datasets = loadLocalStudioDatasets()
+    const datasets = loadStudioRuntimeDatasets()
     setConfirmedTunings(datasets.tunings)
     setSfxTunings(datasets.sfxTunings)
     setStageBossPreview(datasets.stageBossPreview)
@@ -306,10 +303,10 @@ export default function GraphicsStudio() {
   }
 
   const applyFirebaseResult = (result, uid) => {
-    if (result?.status === 'remote-applied' || result?.status === 'local-seeded') {
+    if (result?.status === 'remote-applied') {
       hydratedUidRef.current = uid
       writeEligibleUidRef.current = uid
-      if (result.status === 'remote-applied') refreshStudioState()
+      refreshStudioState()
       if (mountedRef.current) setFirebaseStatus('synced')
       return true
     }
@@ -327,8 +324,8 @@ export default function GraphicsStudio() {
     if (mountedRef.current) {
       if (result?.status === 'future-version') setFirebaseStatus('future-version')
       else if (result?.status === 'account-conflict') setFirebaseStatus('account-conflict')
-      else if (result?.status === 'stale-user') setFirebaseStatus('local')
-      else if (result?.status === 'unconfigured' || result?.status === 'unauthenticated') setFirebaseStatus('local')
+      else if (result?.status === 'stale-user') setFirebaseStatus('offline-error')
+      else if (result?.status === 'unconfigured' || result?.status === 'unauthenticated' || result?.status === 'missing-remote') setFirebaseStatus('offline-error')
       else setFirebaseStatus('offline-error')
     }
     return false
@@ -367,7 +364,7 @@ export default function GraphicsStudio() {
       hydratingUidRef.current = null
       hydratePromiseRef.current = null
       writeEligibleUidRef.current = null
-      setFirebaseStatus(authStatus === 'checking' ? 'checking' : 'local')
+      setFirebaseStatus(authStatus === 'checking' ? 'checking' : 'offline-error')
       return undefined
     }
     if (hydratedUidRef.current === uid || hydratingUidRef.current === uid) return undefined
@@ -406,7 +403,6 @@ export default function GraphicsStudio() {
   const openOrReuseGameWindow = (url) => {
     let target = gameWindowRef.current
     if (!target || target.closed || gameOriginRef.current !== url.origin) {
-      localStorage.setItem(STUDIO_GAME_URL_STORAGE_KEY, url.href)
       target = window.open(url.href, 'escape-zombie-school-game')
       gameWindowRef.current = target
     }
@@ -429,20 +425,21 @@ export default function GraphicsStudio() {
       return false
     }
 
-    const datasets = loadLocalStudioDatasets()
-    const postSync = () => target.postMessage({
-      type: STUDIO_GAME_SYNC_MESSAGE,
-      ...datasets,
-    }, gameOriginRef.current)
-
-    postSync()
-    if (retryAfterLoad) {
-      ;[250, 800].forEach((delay) => {
-        window.setTimeout(() => {
-          if (gameWindowRef.current === target && !target.closed) postSync()
-        }, delay)
-      })
-    }
+    const postSync = () => target.postMessage({ type: STUDIO_GAME_SYNC_MESSAGE }, gameOriginRef.current)
+    void flushFirebaseStudioSave({ user: authUser }).then((result) => {
+      if (!['saved', 'no-pending'].includes(result?.status)) {
+        if (mountedRef.current) setFirebaseStatus('offline-error')
+        return
+      }
+      postSync()
+      if (retryAfterLoad) {
+        ;[250, 800].forEach((delay) => {
+          window.setTimeout(() => {
+            if (gameWindowRef.current === target && !target.closed) postSync()
+          }, delay)
+        })
+      }
+    })
     return true
   }
 
@@ -470,7 +467,7 @@ export default function GraphicsStudio() {
     }
 
     connectInFlightRef.current = true
-    setFirebaseStatus(authStatus === 'unconfigured' ? 'local' : 'checking')
+    setFirebaseStatus('checking')
     void (async () => {
       let user = authUser
       let cloudReady = false
@@ -497,7 +494,7 @@ export default function GraphicsStudio() {
         if (!user?.uid && authStatus !== 'unconfigured') setFirebaseStatus('offline-error')
         setApplyStatus(cloudReady
           ? `Connected: ${url.origin}`
-          : `Connected locally: ${url.origin}`)
+          : `Firebase connection failed: ${url.origin}`)
       }
     })().finally(() => {
       connectInFlightRef.current = false

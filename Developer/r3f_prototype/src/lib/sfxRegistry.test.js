@@ -28,6 +28,7 @@ const howlPlay = vi.fn(() => 7)
 const howlRate = vi.fn()
 const howlVolume = vi.fn()
 const howlConfigs = []
+let studioSfxTunings = {}
 
 vi.mock('howler', () => ({
   Howl: vi.fn(function HowlMock(config) {
@@ -40,20 +41,22 @@ vi.mock('howler', () => ({
   }),
 }))
 
+vi.mock('./studioRuntimeState.js', () => ({
+  getFirebaseStudioRuntimeDataset: (key) => key === 'sfxTunings' ? studioSfxTunings : {},
+  setFirebaseStudioRuntimeDataset: (key, value) => {
+    if (key === 'sfxTunings') studioSfxTunings = value
+    return value
+  },
+}))
+
 describe('playSfx', () => {
   beforeEach(() => {
     howlPlay.mockClear()
     howlRate.mockClear()
     howlVolume.mockClear()
     howlConfigs.length = 0
+    studioSfxTunings = {}
     vi.resetModules()
-    let storage = {}
-    vi.stubGlobal('localStorage', {
-      getItem: vi.fn((key) => storage[key] ?? null),
-      setItem: vi.fn((key, value) => { storage[key] = String(value) }),
-      removeItem: vi.fn((key) => { delete storage[key] }),
-      clear: vi.fn(() => { storage = {} }),
-    })
   })
 
   afterEach(() => {

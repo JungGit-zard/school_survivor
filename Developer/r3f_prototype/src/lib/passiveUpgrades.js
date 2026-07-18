@@ -1,30 +1,21 @@
-// localStorage 영구 패시브 저장 계층.
-// 미지정/2차 패시브 키는 디스크에 보존하지만 getLevel/getAllLevels에는 카탈로그 키만 노출한다.
+// Firebase runtime memory passive upgrade layer.
+// Durable player persistence is users/{uid} in Firebase only.
 import { PASSIVE_CATALOG, getPriceFor, isValidPassiveId } from './passiveCatalog.js'
+import { _seedHydratedFirebaseProgressForTests, readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
 
 export const STORAGE_KEY = 'school_survivor:passiveUpgrades'
 
 function readRaw() {
-  if (typeof localStorage === 'undefined') return {}
-  const raw = localStorage.getItem(STORAGE_KEY)
-  if (!raw) return {}
-  try {
-    const parsed = JSON.parse(raw)
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
-    const out = {}
-    for (const [k, v] of Object.entries(parsed)) {
-      const n = Number(v)
-      if (Number.isFinite(n) && n >= 0) out[k] = Math.floor(n)
-    }
-    return out
-  } catch {
-    return {}
-  }
+  return readFirebasePlayerProgress().passiveUpgrades ?? {}
 }
 
-function writeRaw(obj) {
-  if (typeof localStorage === 'undefined') return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(obj))
+function updateRaw(mutator) {
+  updateFirebasePlayerProgress((progress) => {
+    const raw = { ...(progress.passiveUpgrades ?? {}) }
+    mutator(raw)
+    progress.passiveUpgrades = raw
+    return progress
+  })
 }
 
 // 카탈로그 키만 노출. 디스에이블 키도 0으로 포함하므로 UI 리스트에는 쓰지 말 것 (passiveCatalog의 getMvpPassiveIds 사용).
@@ -44,9 +35,9 @@ export function getLevel(id) {
 
 // 다른 클라이언트 빌드가 저장한 미지정 키는 보존한다.
 function persist(id, nextLevel) {
-  const raw = readRaw()
-  raw[id] = nextLevel
-  writeRaw(raw)
+  updateRaw((raw) => {
+    raw[id] = nextLevel
+  })
 }
 
 // BASE_PRICES.length >= max(maxLevel) 인바리언트가 깨지지 않는 한 getPriceFor는 null을 반환하지 않으므로 noPrice 가드는 두지 않는다.
@@ -64,11 +55,14 @@ export function purchase(id, currentGold) {
 }
 
 export function resetAllLevels() {
-  if (typeof localStorage === 'undefined') return
-  localStorage.removeItem(STORAGE_KEY)
+  updateFirebasePlayerProgress((progress) => {
+    progress.passiveUpgrades = {}
+    return progress
+  })
 }
 
 // 테스트용. 운영 코드에서는 호출하지 않는다.
 export function _resetForTests() {
+  _seedHydratedFirebaseProgressForTests()
   resetAllLevels()
 }

@@ -1,57 +1,102 @@
-import { Suspense, lazy, useEffect, useRef, useState } from 'react'
-import TitleScreen from './components/TitleScreen.jsx'
-import Lobby from './components/Lobby.jsx'
-import VirtualJoystick from './components/VirtualJoystick.jsx'
-import { useGameStore } from './store/useGameStore.js'
-import SfxLayer from './components/SfxLayer.jsx'
-import { initPlaytestLogger } from './lib/playtestLogger.js'
-import { isMobileJoystickEnvironment } from './lib/mobileInput.js'
-import { initKeyboardInput } from './lib/keyboardInput.js'
-import { applyLocalStudioDatasets, subscribeStudioStorageSync } from './lib/firebaseStudio.js'
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
+import GoogleAccountPanel from './components/GoogleAccountPanel.jsx'
+import { hydrateFirebaseStudio, setFirebaseStudioUser } from './lib/firebaseStudio.js'
+import { installPlayerStorageFatalGuard, isFirebaseProgressHydrated } from './lib/firebaseProgress.js'
 import { STUDIO_GAME_SYNC_MESSAGE, isAllowedStudioGameOrigin } from './lib/studioGameBridge.js'
+import { useAuthStore } from './store/useAuthStore.js'
+import { isFirebaseStudioRuntimeReady } from './lib/studioRuntimeState.js'
 
 const AdminPage = lazy(() => import('./components/AdminPage.jsx'))
 const GraphicsStudio = lazy(() => import('./components/GraphicsStudio.jsx'))
-const CoinShop = lazy(() => import('./components/CoinShop.jsx'))
-const UserRanking = lazy(() => import('./components/UserRanking.jsx'))
-const StageRanking = lazy(() => import('./components/StageRanking.jsx'))
-const GameCanvas = lazy(() => import('./components/GameCanvas.jsx'))
-const HUD = lazy(() => import('./components/HUD.jsx'))
+const ReadyGameApp = lazy(() => import('./components/ReadyGameApp.jsx'))
 
-initPlaytestLogger()
-// 이동 키 추적 — blur/숨김 시 키 상태 자동 리셋 (알트탭 keyup 유실 → 6시 자동 이동 버그 방지)
-initKeyboardInput()
+installPlayerStorageFatalGuard()
 
-export function handleStudioGameSyncMessage(event) {
+export async function handleStudioGameSyncMessage(event) {
   if (event?.data?.type !== STUDIO_GAME_SYNC_MESSAGE) return false
   if (!event.origin || !isAllowedStudioGameOrigin(event.origin)) return false
   if (typeof window !== 'undefined' && window.opener && event.source !== window.opener) return false
-  return applyLocalStudioDatasets({
-    tunings: event.data.tunings ?? {},
-    sfxTunings: event.data.sfxTunings ?? {},
-    stageBossPreview: event.data.stageBossPreview ?? {},
-    decals: event.data.decals ?? {},
-    propPlacements: event.data.propPlacements ?? {},
-  })
+  const user = useAuthStore.getState().user
+  setFirebaseStudioUser(user)
+  const result = await hydrateFirebaseStudio({ user })
+  return result?.status === 'remote-applied'
 }
 
 if (typeof window !== 'undefined') {
-  window.addEventListener('message', handleStudioGameSyncMessage)
-  // 같은 origin의 다른 탭(직접 연 실게임 탭 포함)에서 스튜디오가 localStorage를
-  // 갱신하면 storage 이벤트로 데이터셋을 다시 읽어 라이브 반영한다.
-  subscribeStudioStorageSync()
+  window.addEventListener('message', (event) => {
+    void handleStudioGameSyncMessage(event)
+  })
 }
 
 export default function App() {
-  const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
-  if (isAdminRoute) {
+  const authStatus = useAuthStore((state) => state.status)
+  const authUser = useAuthStore((state) => state.user)
+  const initializeAuth = useAuthStore((state) => state.initializeAuth)
+  const progressStatus = useAuthStore((state) => state.progressStatus)
+  const progressError = useAuthStore((state) => state.progressError)
+  const [studioCloudStatus, setStudioCloudStatus] = useState(
+    () => isFirebaseStudioRuntimeReady() ? 'remote-applied' : 'idle',
+  )
+  const hydratedUidRef = useRef('')
+  const hydrationRef = useRef(null)
+
+  useEffect(() => {
+    void initializeAuth()
+  }, [initializeAuth])
+
+  const ensureStudioCloudReady = useCallback(async (user = authUser) => {
+    const uid = typeof user?.uid === 'string' ? user.uid.trim() : ''
+    if (!uid) {
+      setFirebaseStudioUser(null)
+      hydratedUidRef.current = ''
+      hydrationRef.current = null
+      setStudioCloudStatus('unauthenticated')
+      return false
+    }
+    if (hydratedUidRef.current === uid && isFirebaseStudioRuntimeReady()) return true
+    if (hydrationRef.current?.uid === uid) return hydrationRef.current.promise
+
+    setFirebaseStudioUser(user)
+    setStudioCloudStatus('loading')
+    const promise = hydrateFirebaseStudio({ user })
+      .then((result) => {
+        const ready = result?.status === 'remote-applied'
+        hydratedUidRef.current = ready ? uid : ''
+        setStudioCloudStatus(result?.status ?? 'read-failed')
+        return ready
+      })
+      .catch(() => {
+        hydratedUidRef.current = ''
+        setStudioCloudStatus('read-failed')
+        return false
+      })
+      .finally(() => {
+        if (hydrationRef.current?.promise === promise) hydrationRef.current = null
+      })
+    hydrationRef.current = { uid, promise }
+    return promise
+  }, [authUser])
+
+  useEffect(() => {
+    if (authStatus === 'signedIn' && authUser?.uid) {
+      void ensureStudioCloudReady(authUser)
+      return
+    }
+    if (['signedOut', 'unconfigured', 'error'].includes(authStatus)) {
+      void ensureStudioCloudReady(null)
+    }
+  }, [authStatus, authUser, ensureStudioCloudReady])
+
+  const studioReady = studioCloudStatus === 'remote-applied'
+    && isFirebaseStudioRuntimeReady()
+  const isGraphicsStudioRoute = typeof window !== 'undefined'
+    && window.location.pathname.startsWith('/graphics-studio')
+  if (isGraphicsStudioRoute && !studioReady) {
     return (
-      <Suspense fallback={<div style={styles.routeLoading}>관리 도구 불러오는 중…</div>}>
-        <AdminPage />
-      </Suspense>
+      <AppBootstrap message={getStudioBootstrapMessage(authStatus, studioCloudStatus)} />
     )
   }
-  const isGraphicsStudioRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/graphics-studio')
+
   if (isGraphicsStudioRoute) {
     return (
       <Suspense fallback={<div style={styles.routeLoading}>그래픽 스튜디오 불러오는 중…</div>}>
@@ -60,139 +105,127 @@ export default function App() {
     )
   }
 
-  const [screen, setScreen] = useState('title')
-  const [prevScreen, setPrevScreen] = useState('title')
-  const [rankingStageId, setRankingStageId] = useState(null)
-  const [mobileJoystickEnabled, setMobileJoystickEnabled] = useState(false)
-  const [devCheatsVisible, setDevCheatsVisible] = useState(false)
-  const phoneFrameRef = useRef(null)
-  const gameKey = useGameStore((s) => s.gameKey)
-  const phase = useGameStore((s) => s.phase)
-  const resetGame = useGameStore((s) => s.resetGame)
-
-  useEffect(() => {
-    function updateMobileInputMode() {
-      setMobileJoystickEnabled(isMobileJoystickEnvironment())
-    }
-
-    updateMobileInputMode()
-    const media = window.matchMedia?.('(pointer: coarse)')
-    media?.addEventListener?.('change', updateMobileInputMode)
-    window.addEventListener('resize', updateMobileInputMode)
-    return () => {
-      media?.removeEventListener?.('change', updateMobileInputMode)
-      window.removeEventListener('resize', updateMobileInputMode)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (screen !== 'game') return
-
-    const pauseIfPlaying = () => {
-      const { phase, pauseGame } = useGameStore.getState()
-      if (phase === 'playing') pauseGame('auto')
-    }
-    const handleVisibility = () => {
-      if (document.hidden || document.visibilityState === 'hidden') pauseIfPlaying()
-    }
-
-    document.addEventListener('visibilitychange', handleVisibility)
-    window.addEventListener('pagehide', pauseIfPlaying)
-    window.addEventListener('blur', pauseIfPlaying)
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibility)
-      window.removeEventListener('pagehide', pauseIfPlaying)
-      window.removeEventListener('blur', pauseIfPlaying)
-    }
-  }, [screen])
-
-  const startGame = (stageId) => {
-    resetGame(stageId)
-    // 스테이지1 진입 시에만 스토리 인트로 대화창을 띄운다(게임 멈춤 상태). 다른 스테이지는 인트로 없음.
-    if (stageId === 'stage1') useGameStore.getState().startStage1Intro()
-    setScreen('game')
+  const playerProgressReady = isFirebaseProgressHydrated(authUser)
+  if (authStatus === 'signedIn' && progressStatus === 'error' && !playerProgressReady) {
+    return <FirebaseProgressFailureDialog error={progressError} />
+  }
+  if (!playerProgressReady) {
+    return (
+      <AppBootstrap
+        message={getPlayerProgressBootstrapMessage(authStatus, progressStatus, progressError)}
+      />
+    )
   }
 
-  const openCoinShopFrom = (from) => {
-    setPrevScreen(from)
-    setScreen('coinShop')
-  }
-
-  const openRankingFrom = (from, stageId = null) => {
-    setPrevScreen(from)
-    setRankingStageId(stageId)
-    setScreen('ranking')
-  }
-
-  const returnToPreviousScreen = () => {
-    setScreen(prevScreen === 'game' || prevScreen === 'lobby' ? prevScreen : 'title')
+  const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
+  if (isAdminRoute) {
+    return (
+      <Suspense fallback={<div style={styles.routeLoading}>관리 도구 불러오는 중…</div>}>
+        <AdminPage />
+      </Suspense>
+    )
   }
 
   return (
-    <div style={styles.viewport}>
-      <SfxLayer />
-      <div ref={phoneFrameRef} style={styles.phoneFrame}>
-        {screen === 'title' && (
-          <TitleScreen
-            onEnterLobby={() => setScreen('lobby')}
-            devCheatsVisible={devCheatsVisible}
-            onRevealDevCheats={() => setDevCheatsVisible(true)}
-          />
-        )}
-
-        {screen === 'lobby' && (
-          <Lobby
-            onStartStage={startGame}
-            onOpenCoinShop={() => openCoinShopFrom('lobby')}
-            onOpenRanking={(stageId) => openRankingFrom('lobby', stageId)}
-            onLogoutToTitle={() => setScreen('title')}
-          />
-        )}
-
-        {screen === 'coinShop' && (
-          <Suspense fallback={<ScreenLoading label="상점 불러오는 중…" />}>
-            <CoinShop
-              onBack={returnToPreviousScreen}
-              backLabel={prevScreen === 'game' ? '결과로 돌아가기' : prevScreen === 'lobby' ? '로비로 돌아가기' : '타이틀로 돌아가기'}
-            />
-          </Suspense>
-        )}
-
-        {screen === 'ranking' && (
-          <Suspense fallback={<ScreenLoading label="랭킹 불러오는 중…" />}>
-            {rankingStageId
-              ? <StageRanking stageId={rankingStageId} onBack={returnToPreviousScreen} />
-              : <UserRanking onBack={returnToPreviousScreen} />}
-          </Suspense>
-        )}
-
-        {screen === 'game' && (
-          <>
-            <Suspense fallback={<ScreenLoading label="게임 불러오는 중…" />}>
-              <GameCanvas gameKey={gameKey} phase={phase} />
-              <HUD
-                onOpenCoinShop={() => openCoinShopFrom('game')}
-                onGoToTitle={() => setScreen('title')}
-                onGoToLobby={() => setScreen('lobby')}
-                onGoToRanking={() => openRankingFrom('game')}
-                devCheatsVisible={devCheatsVisible}
-              />
-            </Suspense>
-            {mobileJoystickEnabled && (
-              <VirtualJoystick enabled phase={phase} playAreaRef={phoneFrameRef} />
-            )}
-          </>
-        )}
-      </div>
-    </div>
+    <Suspense fallback={<div style={styles.routeLoading}>게임 데이터를 준비하는 중…</div>}>
+      <ReadyGameApp
+        authUser={authUser}
+        studioReady={studioReady}
+        ensureStudioCloudReady={ensureStudioCloudReady}
+      />
+    </Suspense>
   )
 }
 
-function ScreenLoading({ label }) {
-  return <div style={styles.screenLoading}>{label}</div>
+function getStudioBootstrapMessage(authStatus, studioCloudStatus) {
+  if (authStatus === 'checking') return 'Google 로그인 상태를 확인하는 중입니다.'
+  if (authStatus !== 'signedIn') return 'Google 로그인 후 Firebase Studio 데이터를 불러옵니다.'
+  if (studioCloudStatus === 'loading') return 'Firebase Studio 데이터를 불러오는 중입니다.'
+  return 'Firebase Studio 데이터를 불러오지 못했습니다. 로그인 상태와 연결을 확인해 주세요.'
+}
+
+function getPlayerProgressBootstrapMessage(authStatus, progressStatus, progressError) {
+  if (authStatus === 'checking') return 'Google 로그인 상태를 확인하는 중입니다.'
+  if (authStatus !== 'signedIn') return 'Google 로그인 후 Firebase 계정 데이터를 불러옵니다.'
+  if (progressStatus === 'loading') return 'Firebase 계정 데이터를 불러오는 중입니다.'
+  if (progressStatus === 'error') return `Firebase 계정 데이터를 불러오지 못했습니다: ${progressError ?? '원격 저장소를 확인해 주세요.'}`
+  return 'Firebase 계정 데이터 준비가 끝나야 로비와 게임에 들어갈 수 있습니다.'
+}
+
+function AppBootstrap({ message }) {
+  return (
+    <main style={styles.studioBootstrap}>
+      <GoogleAccountPanel />
+      <p style={styles.studioBootstrapMessage}>{message}</p>
+    </main>
+  )
+}
+
+function FirebaseProgressFailureDialog({ error }) {
+  return (
+    <main style={styles.studioBootstrap}>
+      <section
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="firebase-progress-failure-title"
+        aria-describedby="firebase-progress-failure-description"
+        style={styles.fatalDialog}
+      >
+        <h1 id="firebase-progress-failure-title" style={styles.fatalTitle}>
+          Firebase 계정 데이터 연결 오류
+        </h1>
+        <p id="firebase-progress-failure-description" style={styles.fatalMessage}>
+          원격 계정 데이터를 불러오지 못해 실행을 중단했습니다.
+          로컬 데이터로 대체하지 않습니다.
+        </p>
+        <p style={styles.fatalDetail}>{error ?? 'Firebase 원격 저장소를 확인해 주세요.'}</p>
+        <GoogleAccountPanel />
+      </section>
+    </main>
+  )
 }
 
 const styles = {
+  studioBootstrap: {
+    width: '100vw',
+    minHeight: '100vh',
+    display: 'grid',
+    placeContent: 'center',
+    gap: 16,
+    padding: 24,
+    color: '#f7f3e8',
+    background: '#180101',
+    textAlign: 'center',
+  },
+  studioBootstrapMessage: {
+    margin: 0,
+    fontWeight: 800,
+  },
+  fatalDialog: {
+    width: 'min(560px, calc(100vw - 32px))',
+    display: 'grid',
+    gap: 14,
+    padding: 24,
+    border: '4px solid #ff355d',
+    borderRadius: 20,
+    background: '#250108',
+    textAlign: 'left',
+  },
+  fatalTitle: {
+    margin: 0,
+    color: '#ff5a77',
+    fontSize: 'clamp(24px, 5vw, 34px)',
+  },
+  fatalMessage: {
+    margin: 0,
+    fontWeight: 900,
+    lineHeight: 1.5,
+  },
+  fatalDetail: {
+    margin: 0,
+    color: '#ffd5dc',
+    overflowWrap: 'anywhere',
+  },
   viewport: {
     width: '100vw',
     height: '100vh',
@@ -209,23 +242,5 @@ const styles = {
     color: '#f8fafc',
     fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif',
     fontWeight: 800,
-  },
-  screenLoading: {
-    position: 'absolute',
-    inset: 0,
-    display: 'grid',
-    placeItems: 'center',
-    background: '#16121d',
-    color: '#f8fafc',
-    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif',
-    fontWeight: 800,
-    zIndex: 20,
-  },
-  phoneFrame: {
-    position: 'relative',
-    width: '100vw',
-    height: '100vh',
-    overflow: 'hidden',
-    background: '#16121d',
   },
 }

@@ -5,31 +5,28 @@ import { GRAPHICS_STUDIO_STORAGE_KEY } from '../lib/graphicsStudioConfig.js'
 import {
   TITLE_BOARD_BACK_LIMIT_Z,
   TITLE_SCENE_DIRECTION,
+  TITLE_ZOMBIE_GROUND_LIFT_Y,
   applyClubLightFrame,
   applyTitleCharacterOutline,
   clampTitleBackgroundZ,
   disposeTitleCharacterOutlines,
   isTitleOutlineStorageEvent,
+  prepareTitleCharactersForStudioUpdate,
 } from './TitleScene3D.jsx'
-import {
-  applySavedStudioPartTunings,
-  applyStudioTuning,
-} from './StudioTunedGroup.jsx'
+import { applyStudioTuning } from './StudioTunedGroup.jsx'
 
 describe('TitleScene3D direction', () => {
-  it('uses the referenced pink-haired school survivor look', () => {
-    expect(TITLE_SCENE_DIRECTION.player).toMatchObject({
-      hair: 'pink',
-      jacket: 'red',
-      shirt: 'white',
-      ribbon: 'red',
-      skirt: 'blue-check',
-      backpack: 'blue',
-      pose: 'running-to-exit',
-    })
+  it('lifts every title zombie family above the floor without changing model internals', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+
+    expect(TITLE_ZOMBIE_GROUND_LIFT_Y).toBe(0.16)
+    expect(source.match(/const liftedPosition = \[position\[0\], position\[1\] \+ TITLE_ZOMBIE_GROUND_LIFT_Y, position\[2\]\]/g)).toHaveLength(3)
+    expect(source).toContain('ref.current.position.y = liftedPosition[1] + Math.sin(t * 2.1) * 0.035')
+    expect(source).toContain('ref.current.position.y = liftedPosition[1] + Math.sin(t * 1.9) * 0.035')
+    expect(source.match(/position=\{liftedPosition\}/g)).toHaveLength(3)
   })
 
-  it('keeps the title scene focused on exit, student survivor, and zombie pursuit', () => {
+  it('keeps the title scene focused on exit and zombie pursuit', () => {
     expect(TITLE_SCENE_DIRECTION.scene).toMatchObject({
       exitGlow: true,
       infectionStreaks: 2,
@@ -45,7 +42,6 @@ describe('TitleScene3D direction', () => {
         fixtures: 0,
       },
       realForegroundResources: [
-        'PlayerMesh',
         'ZombieMesh',
         'MatildaMesh',
         'ClassroomDesk',
@@ -97,11 +93,11 @@ describe('TitleScene3D direction', () => {
     expect(wash.intensity).not.toBe(0.45)
   })
 
-  it('uses the real Matilda model upright and facing the player in the pursuing enemy group', () => {
+  it('uses the real Matilda model upright and facing the chase target', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
     expect(source).toContain("import MatildaMesh from './MatildaMesh.jsx'")
-    expect(source).toContain('const yaw = faceTitlePlayerYaw(position)')
+    expect(source).toContain('const yaw = faceTitleTargetYaw(position)')
     expect(source).toContain('ref.current.rotation.y = yaw + Math.sin(t * 1.1) * 0.018')
     expect(source).toContain('rotation={[0, yaw, 0]} scale={scale}')
     expect(source).toContain('<MatildaMesh />')
@@ -114,7 +110,7 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain("import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'")
     expect(source).toContain('<ZombieMesh type={type} animPhase="charge" />')
     expect(source).toContain('<TitleBossZombie type="B02" position={[-1.99, 0.18, -3.7]} scale={0.93} delay={0.9} />')
-    expect(source).toContain('<TitleBossZombie type="B03" position={[0.02, 0.28, -4.04]} scale={1.344} delay={1.35} />')
+    expect(source).toContain('<TitleBossZombie type="B03" position={[0.02, 0.4, -4.04]} scale={1.344} delay={1.35} />')
     expect(source).toContain('<TitleBossZombie type="B01" position={[-0.86, 0.34, -1.12]} scale={1.02} />')
     expect(source).toContain('<TitleZombie position={[-0.92, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />')
     expect(source).toContain('<ClassroomDesk')
@@ -135,14 +131,7 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain('<TitleMatildaPursuer position={[1.45, 0.36, -2.92]} delay={1.8} scale={1.44} />')
   })
 
-  it('turns the title player face toward the user', () => {
-    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
-
-    expect(source).toContain('ref.current.rotation.y = 0.48 + Math.sin(t * 2.2) * 0.055')
-    expect(source).toContain('position={[0.48, 0.88, 0.38]} rotation={[-0.08, 0.48, 0.05]} scale={2}')
-  })
-
-  it('places the real duck potty and Chibiko models beside the title player', () => {
+  it('places the real duck potty and Chibiko models in the title foreground', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
     expect(source).toContain("import { CompassBladeModel } from './Weapons/CompassBlade.jsx'")
@@ -222,11 +211,11 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain('onPointerDown={inspectTitleSceneObject}')
   })
 
-  it('turns all title zombies toward the player', () => {
+  it('turns all title zombies toward the chase target', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
-    expect(source).toContain('const TITLE_PLAYER_TARGET = [0.48, 0.08]')
-    expect(source).toContain('function faceTitlePlayerYaw(position)')
+    expect(source).toContain('const TITLE_CHASE_TARGET = [0.48, 0.08]')
+    expect(source).toContain('function faceTitleTargetYaw(position)')
     expect(source).toContain('ref.current.rotation.y = yaw + Math.sin(t * 1.15) * 0.025')
     expect(source).toContain('ref.current.rotation.y = yaw + Math.sin(t * 0.95) * 0.018')
   })
@@ -344,58 +333,48 @@ describe('TitleScene3D direction', () => {
     expect(outline.scale.x).toBeCloseTo(baseScale.x * 1.02)
   })
 
-  it('keeps player part transforms and non-outline fills after the title Apply pass', () => {
-    const titleRoot = new THREE.Group()
-    const playerRoot = new THREE.Group()
-    const tunedPart = new THREE.Group()
-    const fillMaterial = new THREE.MeshToonMaterial({ color: 0xff4f86 })
-    fillMaterial.stencilWrite = true
-    fillMaterial.stencilFunc = THREE.AlwaysStencilFunc
-    const outlineMaterial = new THREE.MeshBasicMaterial({
-      color: 0x050209,
-      side: THREE.BackSide,
-    })
-    outlineMaterial.stencilWrite = true
-    outlineMaterial.stencilFunc = THREE.NotEqualStencilFunc
-    const regularBackSideFillMaterial = new THREE.MeshBasicMaterial({
-      color: 0x35c9f2,
-      side: THREE.BackSide,
-    })
-    const fill = new THREE.Mesh(new THREE.BoxGeometry(), fillMaterial)
-    const outline = new THREE.Mesh(new THREE.BoxGeometry(), outlineMaterial)
-    const regularBackSideFill = new THREE.Mesh(
-      new THREE.ConeGeometry(0.3, 1, 4),
-      regularBackSideFillMaterial,
-    )
-    titleRoot.add(playerRoot)
-    playerRoot.add(tunedPart, regularBackSideFill)
-    tunedPart.add(outline, fill)
+  it('restores live Studio materials before repeated reset and hydrate passes', () => {
+    const root = new THREE.Group()
+    const fillSource = new THREE.MeshToonMaterial({ color: 0xff4f86 })
+    fillSource.stencilWrite = true
+    fillSource.stencilFunc = THREE.AlwaysStencilFunc
+    const fill = new THREE.Mesh(new THREE.BoxGeometry(), fillSource)
+    root.add(fill)
 
-    applyTitleCharacterOutline(titleRoot)
-    applyStudioTuning(playerRoot, {
-      outlineColor: '#000000',
-      outlineOpacity: 1,
-      outlineThickness: 1.4,
+    applyStudioTuning(root, {
+      color: '#35c9f2',
+      colorStrength: 1,
     })
-    applySavedStudioPartTunings(playerRoot, 'player', {
-      'player::part::0': {
-        positionX: 0.37,
-        positionY: -0.22,
-        positionZ: 0.41,
-        rotationX: -112,
-        rotationY: -125,
-        rotationZ: 3,
-      },
-    })
-    applyTitleCharacterOutline(titleRoot)
+    const studioOwnedSource = fill.material
+    const studioOwnedDispose = vi.spyOn(studioOwnedSource, 'dispose')
 
-    expect(tunedPart.position.toArray()).toEqual([0.37, -0.22, 0.41])
-    expect(tunedPart.rotation.x).toBeCloseTo(THREE.MathUtils.degToRad(-112))
-    expect(tunedPart.rotation.y).toBeCloseTo(THREE.MathUtils.degToRad(-125))
-    expect(tunedPart.rotation.z).toBeCloseTo(THREE.MathUtils.degToRad(3))
-    expect(fill.material.color.getHex()).toBe(0xff4f86)
-    expect(regularBackSideFill.material.color.getHex()).toBe(0x35c9f2)
-    expect(outline.material.color.getHex()).toBe(0x000000)
+    applyTitleCharacterOutline(root)
+    expect(fill.material).not.toBe(studioOwnedSource)
+
+    for (let pass = 0; pass < 3; pass += 1) {
+      prepareTitleCharactersForStudioUpdate(root)
+      expect(fill.material).toBe(studioOwnedSource)
+      expect(studioOwnedDispose).not.toHaveBeenCalled()
+
+      applyStudioTuning(root)
+      applyTitleCharacterOutline(root)
+
+      expect(fill.material.color.getHex()).toBe(0xff4f86)
+      expect(fill.material.stencilRef).toBe(2)
+      expect(studioOwnedDispose).not.toHaveBeenCalled()
+    }
+
+    prepareTitleCharactersForStudioUpdate(root)
+    const hydratedSource = new THREE.MeshToonMaterial({ color: 0x6bcf63 })
+    hydratedSource.stencilWrite = true
+    hydratedSource.stencilFunc = THREE.AlwaysStencilFunc
+    fill.material = hydratedSource
+    applyTitleCharacterOutline(root)
+    expect(fill.material.color.getHex()).toBe(0x6bcf63)
+
+    prepareTitleCharactersForStudioUpdate(root)
+    expect(fill.material).toBe(hydratedSource)
+    expect(fill.material.color.getHex()).toBe(0x6bcf63)
   })
 
   it('reapplies outlines only for graphics-studio storage changes or storage clear', () => {
@@ -405,11 +384,12 @@ describe('TitleScene3D direction', () => {
 
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
     expect(source).toContain('GRAPHICS_STUDIO_STORAGE_KEY, GRAPHICS_STUDIO_TUNING_EVENT')
+    expect(source).toContain('prepareTitleCharactersForStudioUpdate(group)')
     expect(source).toContain('if (isTitleOutlineStorageEvent(event)) markDirty()')
     expect(source).toContain('disposeTitleCharacterOutlines(group)')
   })
 
-  it('wraps every title character while leaving scene props outside', () => {
+  it('keeps scene props outside the title character outline pass', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
     const wrapperStart = source.indexOf('<TitleCharacterOutlineGroup>')
     const wrapperEnd = source.indexOf('</TitleCharacterOutlineGroup>', wrapperStart)
@@ -423,7 +403,6 @@ describe('TitleScene3D direction', () => {
     expect(characterSource).toContain('<TitleMatildaPursuer')
     expect(characterSource.match(/<DancingDoge/g)).toHaveLength(2)
     expect(characterSource).toContain('<TitleCompanions />')
-    expect(characterSource).toContain('<TitlePlayer />')
     expect(characterSource).not.toContain('<TitleClassroomProps />')
     expect(characterSource).not.toContain('<SpeedStreak')
     expect(characterSource).not.toContain('<WarningLight')

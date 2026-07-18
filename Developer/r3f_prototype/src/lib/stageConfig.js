@@ -83,6 +83,18 @@ export const STAGE_CONFIGS = {
       { atMs: 240_000, gold: 14, label: '총력전 탈출 보너스' },
     ],
   },
+  stage4: {
+    id: 'stage4',
+    label: 'Stage 4',
+    title: '급식실 대탈출',
+    description: '주방장 좀비가 지키는 급식실에서 240초 동안 버티기',
+    durationSec: STAGE_DURATION_SEC,
+    clearRecordKey: 'stage4Clears',
+    bestRecordKey: 'stage4BestSurvivalSec',
+    bossType: 'B04',
+    playable: false,
+    survivalMilestones: [],
+  },
 }
 
 const NEXT_STAGE_BY_STAGE = {
@@ -126,6 +138,9 @@ export function isStageUnlocked(stageId, records = {}) {
   }
   if (stageId === 'stage3') {
     return (records.stage2Clears ?? 0) >= 1
+  }
+  if (stageId === 'stage4') {
+    return (records.stage3Clears ?? 0) >= 1
   }
   return false
 }

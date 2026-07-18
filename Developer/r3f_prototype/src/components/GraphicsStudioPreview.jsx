@@ -29,6 +29,7 @@ import XpOrb from './XpOrb.jsx'
 import { LunchModel } from './LunchItems.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 import MatildaMesh from './MatildaMesh.jsx'
+import { StageLockModel } from './StageLock.jsx'
 import { DancingDoge } from './DogeMesh.jsx'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
 import { ENEMY_DEATH_COLLAPSE_STYLES } from '../lib/enemyDeathCollapse.js'
@@ -380,12 +381,12 @@ export function getPreviewFrame(item) {
       maxDistance: 12,
     }
   }
-  if (item.previewKind === 'zombie' && item.zombieType === 'B04') {
+  if (item.previewKind === 'stageLock') {
     return {
-      camera: { position: [6, 4.8, 8.4], fov: 38, near: 0.1, far: 100 },
-      target: [0, 0.45, 0],
-      minDistance: 2,
-      maxDistance: 22,
+      camera: { position: [1.8, 1.55, 2.8], fov: 34, near: 0.01, far: 30 },
+      target: [0, 0.4, 0],
+      minDistance: 0.35,
+      maxDistance: 8,
     }
   }
   if (item.previewKind === 'floor') {
@@ -531,6 +532,9 @@ function RenderPreviewItem({ item }) {
   }
   if (item.previewKind === 'stageObject' && item.objectType === 'student') {
     return <UnconsciousStudent variant={item.variant} />
+  }
+  if (item.previewKind === 'stageLock') {
+    return <StageLockModel />
   }
   if (item.previewKind === 'stageObject' && item.objectType === 'corridorLockers') return <CorridorLockerBank />
   if (item.previewKind === 'stageObject' && item.objectType === 'janitorCart') return <CorridorJanitorCart />
@@ -695,7 +699,6 @@ function StudioScene({ selectedItem, tuning, frame, focusedPartKeys, partTunings
         shadow-camera-bottom={-40}
       />
       <directionalLight position={[10, 12, -10]} intensity={0.85} color={0xffe2b0} />
-      {/* 파트 편집(포커스) 중에는 애니메이션을 멈춰 base 캡처·튜닝·아웃라인이 rest 포즈 기준으로 안정되게 한다 */}
       <group ref={rootRef} scale={transform.scale} position={transform.position} rotation={transform.rotation} onDoubleClick={handlePartDoubleClick}>
         <RenderPreviewItem item={item} />
       </group>
@@ -704,7 +707,7 @@ function StudioScene({ selectedItem, tuning, frame, focusedPartKeys, partTunings
   )
 }
 
-export default function GraphicsStudioPreview({ selectedItem, tuning, focusedPartKeys = [], partTunings = {}, decals = [], onPartFocus = null }) {
+export default function GraphicsStudioPreview({ selectedItem, tuning, focusedPartKeys = [], partTunings = {}, decals = [], onPartFocus = null, backgroundColor = '#171817' }) {
   const frame = getPreviewFrame(selectedItem)
 
   return (
@@ -712,10 +715,10 @@ export default function GraphicsStudioPreview({ selectedItem, tuning, focusedPar
       camera={frame.camera}
       gl={{ stencil: true, antialias: true }}
       shadows
-      style={{ width: '100%', height: '100%', background: '#171817' }}
+      style={{ width: '100%', height: '100%', background: backgroundColor }}
     >
       <StudioTuningPreviewProvider>
-        <color attach="background" args={['#171817']} />
+        <color attach="background" args={[backgroundColor]} />
         <StudioScene
           selectedItem={selectedItem}
           tuning={tuning}

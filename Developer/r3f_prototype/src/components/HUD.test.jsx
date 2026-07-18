@@ -1,7 +1,7 @@
 ﻿// @vitest-environment jsdom
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import HUD, {
   UpgradeIcon,
   getNextUnlockPreview,
@@ -14,19 +14,48 @@ import HUD, {
 import { WEAPON_CATALOG, isStarter } from '../lib/weaponCatalog.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { _resetForTests as resetWeaponUnlocks, setUnlocked } from '../lib/weaponUnlocks.js'
-import { STORAGE_KEY as PLAYER_RECORDS_KEY } from '../lib/playerRecords.js'
+import { STORAGE_KEY as PLAYER_RECORDS_KEY, load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { buildLocalPlayerRankingEntry } from '../lib/userRanking.js'
 import { ADMIN_CONFIG_STORAGE_KEY, saveAdminConfig } from '../lib/adminConfig.js'
-import { GRAPHICS_STUDIO_STORAGE_KEY } from '../lib/graphicsStudioConfig.js'
+import { GRAPHICS_STUDIO_STORAGE_KEY, saveStudioTunings } from '../lib/graphicsStudioConfig.js'
 import { getStageConfig } from '../lib/stageConfig.js'
+import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
+import { hydrateFirebaseStudio, setFirebaseStudioUser } from '../lib/firebaseStudio.js'
+import { blockFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
+
+const TEST_STUDIO_USER = { uid: 'hud-test-user' }
+const EMPTY_STUDIO_SNAPSHOT = {
+  schemaVersion: 1,
+  revision: 1,
+  updatedAt: '2026-07-18T00:00:00.000Z',
+  datasets: {
+    tunings: {},
+    sfxTunings: {},
+    stageBossPreview: {},
+    decals: {},
+    propPlacements: { stage1: null, stage2: [], stage3: null },
+  },
+}
+
+beforeEach(async () => {
+  _seedHydratedFirebaseProgressForTests()
+  setFirebaseStudioUser(TEST_STUDIO_USER)
+  await hydrateFirebaseStudio({
+    user: TEST_STUDIO_USER,
+    client: { load: vi.fn().mockResolvedValue(EMPTY_STUDIO_SNAPSHOT) },
+  })
+})
 
 afterEach(() => {
   vi.useRealTimers()
+  _seedHydratedFirebaseProgressForTests()
   useGameStore.getState().resetGame()
   resetWeaponUnlocks()
   localStorage.removeItem(PLAYER_RECORDS_KEY)
   localStorage.removeItem(ADMIN_CONFIG_STORAGE_KEY)
   localStorage.removeItem(GRAPHICS_STUDIO_STORAGE_KEY)
+  setFirebaseStudioUser(null)
+  blockFirebaseStudioRuntime()
 })
 
 describe('upgrade choice filtering', () => {
@@ -159,7 +188,7 @@ describe('weapon upgrade icon assets', () => {
   })
 
   it('applies Graphics Studio tuning to the image-only extra battery icon', () => {
-    localStorage.setItem(GRAPHICS_STUDIO_STORAGE_KEY, JSON.stringify({
+    saveStudioTunings({
       'weapon-extra-battery': {
         scale: 1.4,
         scaleX: 1.2,
@@ -168,7 +197,7 @@ describe('weapon upgrade icon assets', () => {
         brightness: 1.25,
         saturation: 1.35,
       },
-    }))
+    })
 
     const container = document.createElement('div')
     const root = createRoot(container)
@@ -464,9 +493,9 @@ describe('pause lobby return', () => {
       clickButtonByText(container, '돌아가기')
 
       expect(onGoToLobby).toHaveBeenCalledTimes(1)
-      const records = JSON.parse(localStorage.getItem(PLAYER_RECORDS_KEY))
+      const records = loadPlayerRecords()
       expect(records.bestSurvivalSeconds).toBe(42)
-      expect(records.stage1Clears).toBeUndefined()
+      expect(records.stage1Clears).toBe(0)
 
       const localEntry = buildLocalPlayerRankingEntry(records, { displayName: 'Tester' })
       expect(localEntry).toMatchObject({

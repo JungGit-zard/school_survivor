@@ -72,6 +72,43 @@ describe('PlayerMesh layout', () => {
     expect(rightLeg.match(/<OutlineBlock/g)).toHaveLength(3)
   })
 
+  it('encodes the pink block survivor reference palette and compact proportions', () => {
+    const source = readFileSync(new URL('./PlayerMesh.jsx', import.meta.url), 'utf8')
+
+    expect(PLAYER_MESH_LAYOUT.body.size).toEqual([0.68, 0.7, 0.46])
+    expect(PLAYER_MESH_LAYOUT.head.size).toEqual([0.8, 0.68, 0.58])
+    expect(PLAYER_MESH_LAYOUT.outline.headSize).toEqual([1.08, 1.04, 0.86])
+    expect(source).toContain('color={0xff8fb0} emissive={0.18}')
+    expect(source).toContain('color={0xd94070} emissive={0.14}')
+    expect(source).toContain('color={0xcf2f77} emissive={0.12}')
+    expect(source).toContain('color={0x005cff} emissive={0.18}')
+    expect(source).toContain('color={0x2d8cff} emissive={0.2}')
+    expect(source).toContain('color={0xffd100} emissive={0.26}')
+  })
+
+  it('preserves the source-controlled player Studio part key registration order', () => {
+    const source = readFileSync(new URL('./PlayerMesh.jsx', import.meta.url), 'utf8')
+    const registeredParts = Array.from(source.matchAll(/reg\('([^']+)'\)/g), (match) => match[1])
+
+    expect(registeredParts).toEqual([
+      'head',
+      'hairTop',
+      'hairFr',
+      'hairSL',
+      'hairSR',
+      'hairTail',
+      'hairClip',
+      'eyeL',
+      'eyeR',
+      'bag',
+      'slvL',
+      'slvR',
+      'lantern',
+      'legL',
+      'legR',
+    ])
+  })
+
   it('composes Studio part offsets into every animated player transform channel', () => {
     const source = readFileSync(new URL('./PlayerMesh.jsx', import.meta.url), 'utf8')
 

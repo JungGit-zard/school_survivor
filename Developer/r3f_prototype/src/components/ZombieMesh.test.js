@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { ENEMY_STATS } from './Enemy.jsx'
 import { B01_BOSS_FACE, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_STAGE2_BOSS_FACE, B02_STAGE2_BOSS_PALETTE, B02_STAGE2_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS, B04_CHEF_FACE, B04_CHEF_PALETTE, B04_CHEF_PARTS, RUN_ZOMBIE_VISUAL, ZOMBIE_PALETTE } from './ZombieMesh.jsx'
@@ -6,6 +7,7 @@ import { GRAPHICS_STUDIO_CATALOG, getStudioZombieItemId } from '../lib/graphicsS
 
 const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
 const graphicsStudioConfigSource = readFileSync(new URL('../lib/graphicsStudioConfig.js', import.meta.url), 'utf8')
+const b04ChefFaceTexture = readFileSync(new URL('../assets/faces/b04_chef_boss_face.webp', import.meta.url))
 const legacyB02ItemId = ['zombie', 'b02', 'teacher'].join('-')
 
 describe('Stage 1 boss visual reference', () => {
@@ -141,6 +143,12 @@ describe('B03 muscular PE teacher boss', () => {
 })
 
 describe('Stage 4 chef zombie boss', () => {
+  it('uses the approved B04-only face texture converted from texture_boss04', () => {
+    expect(createHash('sha256').update(b04ChefFaceTexture).digest('hex')).toBe(
+      '1bb8899b0b132bf787491aef924914d148d3071c0448633e395bea10cc8117c9',
+    )
+  })
+
   it('defines the chef palette and stable ordered part groups', () => {
     expect(B04_CHEF_PALETTE).toMatchObject({
       skin: 0x7fa65a,
@@ -208,9 +216,6 @@ describe('Stage 4 chef zombie boss', () => {
     expect(zombieMeshSource).toContain('texture.colorSpace = THREE.SRGBColorSpace')
     expect(zombieMeshSource).toContain('name="chefFaceTexture"')
     expect(chefSource).toBeDefined()
-    expect(chefSource).not.toContain('name="chefFaceCleanPlate"')
-    expect(chefSource).not.toContain('renderOrder={20}')
-    expect(chefSource).not.toContain('depthTest={false}')
     expect(chefSource).not.toContain('studioPartId')
   })
 
@@ -238,6 +243,9 @@ describe('Stage 4 chef zombie boss', () => {
       'chefShoeL',
       'chefShoeR',
     ]))
+    expect(chefSource).not.toContain('name="chefFaceCleanPlate"')
+    expect(chefSource).not.toContain('renderOrder={20}')
+    expect(chefSource).not.toContain('depthTest={false}')
     expect(chefSource).not.toContain('studioPartId')
   })
 })
@@ -271,15 +279,22 @@ describe('Studio part-edit workaround cleanup', () => {
     const source = zombieMeshSource
 
     expect(source).not.toMatch(/if \(frozen\) return/)
+    expect(source).not.toContain('frozen =')
+    expect(source).toContain('staticPose = false')
+    const frameStart = source.indexOf('useFrame((state, delta) => {')
+    const staticGate = source.indexOf('if (staticPose) return', frameStart)
+    const partLookup = source.indexOf('const pt = p.current', frameStart)
+    expect(staticGate).toBeGreaterThan(frameStart)
+    expect(staticGate).toBeLessThan(partLookup)
   })
 
-  it('captures the JSX rest pose and restores it when freezing for studio part editing', () => {
+  it('keeps staticPose as an early animation gate without the old rest-capture workaround', () => {
     const source = zombieMeshSource
 
     // ref ?깅줉 ???좊땲硫붿씠???쒖옉 ??rest transform 罹≪쿂
     expect(source).not.toContain('zombieRestRotation')
     expect(source).not.toContain('zombieRestScale')
-    // frozen 吏꾩엯 ??rest 蹂듭썝 + ?좊땲硫붿씠???꾩쨷 罹≪쿂???ㅽ뒠?붿삤 base ?먭린 ??rest 湲곗? ?ъ벙泥?
+    // staticPose is an early animation gate, not the removed base-transform recapture workaround.
     expect(source).not.toContain('el.rotation.copy(el.userData.zombieRestRotation)')
     expect(source).not.toContain('delete el.userData.studioPartBaseRotation')
     expect(source).not.toContain('delete el.userData.studioPartBaseScale')

@@ -39,11 +39,9 @@ export function resolveBossPreviewBaseY(bossType) {
   return -faceLocalY * previewScale
 }
 
-// 보스별 카드 프리뷰 zoom. 신규 B02는 별도 보정 없이 공통 배율을 사용한다.
-const BOSS_PREVIEW_ZOOM_FACTOR = Object.freeze({ B01: 1, B03: 1, B04: 0.42 })
-
-export function resolveBossPreviewZoom(baseZoom, bossType) {
-  return baseZoom * (BOSS_PREVIEW_ZOOM_FACTOR[bossType] ?? 1)
+// 모든 스테이지 보스 카드에서 같은 Zoom 값은 같은 카메라 배율을 뜻한다.
+export function resolveBossPreviewZoom(baseZoom) {
+  return baseZoom
 }
 
 // 모션 게이트: prefers-reduced-motion 또는 data-reduced-effects면 완전 정적.
@@ -63,7 +61,7 @@ function pointerFine() {
 // Canvas 자식: R3F 훅(useThree/useFrame)은 반드시 여기 안에서만 호출.
 // demand 루프 유지 — 버스트/패럴랙스가 진행 중일 때만 invalidate()로 프레임을 요청하고,
 // settle되면 아무 것도 안 해서 정적으로 되돌아간다.
-function ReactiveBoss({ framing, bossType, enabled, burstRef, parallaxRef, invalidateRef }) {
+function ReactiveBoss({ framing, bossType, enabled, staticPose, burstRef, parallaxRef, invalidateRef }) {
   const groupRef = useRef(null)
   const invalidate = useThree((s) => s.invalidate)
   const lastBurstRef = useRef(0)
@@ -159,7 +157,7 @@ function ReactiveBoss({ framing, bossType, enabled, burstRef, parallaxRef, inval
       rotation={[BASE_ROT_X, BASE_ROT_Y, 0]}
       position={[framing.panX, baseY + framing.panY, 0]}
     >
-      <EnemyVisual type={bossType} animPhase="normal" hp={1150} showHealthBar={false} />
+      <EnemyVisual type={bossType} animPhase="normal" hp={1150} showHealthBar={false} staticPose={staticPose} />
     </group>
   )
 }
@@ -176,8 +174,8 @@ export default function StageBossPreview({
   reactOnTap = true,
 }) {
   const frame = normalizeStageBossPreview(framing)
-  // 보스별 크라운 높이 보정을 적용한 실제 렌더 zoom(카메라에 반영). base zoom은 그대로 저장·튜닝.
-  const renderZoom = resolveBossPreviewZoom(frame.zoom, bossType)
+  // 카드에 표시되는 zoom 값을 모든 보스의 실제 카메라 zoom에 그대로 반영한다.
+  const renderZoom = resolveBossPreviewZoom(frame.zoom)
   const frameRef = useRef(frame)
   const dragRef = useRef(null)
   // 입장 쇼타임(motionToken)은 유저가 직접 누른 행동의 1초 피드백이라 모션 게이트를 우회한다.
@@ -210,6 +208,7 @@ export default function StageBossPreview({
 
   // 쇼타임(activeMotionToken)은 게이트 무시, 탭 리액션(touchMotionToken)만 게이트 적용.
   const motionEnabled = !interactive && (activeMotionToken > 0 || (touchMotionToken > 0 && motionAllowed()))
+  const staticPose = !interactive
 
   const updateFrame = (patch) => {
     if (!interactive || !onChange) return
@@ -292,6 +291,7 @@ export default function StageBossPreview({
           framing={frame}
           bossType={bossType}
           enabled={motionEnabled}
+          staticPose={staticPose}
           burstRef={burstRef}
           parallaxRef={parallaxRef}
           invalidateRef={invalidateRef}

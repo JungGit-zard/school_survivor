@@ -1,11 +1,12 @@
-// 스테이지 프랍 배치 사용자 오버라이드 스토어.
-// 그래픽 스튜디오 '맵 프랍 배치' 탭에서 저장한 배치를 게임 런타임에 즉시 반영한다.
-// 패턴은 graphicsStudioConfig.js(localStorage + CustomEvent dispatch)를 그대로 미러한다.
+// Firebase에서 hydrate된 스테이지 프랍 배치를 런타임 메모리에서 편집·반영한다.
 import { useEffect, useState } from 'react'
+import {
+  getFirebaseStudioRuntimeDataset,
+  setFirebaseStudioRuntimeDataset,
+} from './studioRuntimeState.js'
 
 // v5 preserves user placement edits while migrating side-on Stage 2 boards to their visible 45° angle.
 export const STAGE_PROP_PLACEMENTS_STORAGE_KEY = 'escape-zombie-school.stagePropPlacements.v5'
-const LEGACY_STAGE_PROP_PLACEMENTS_STORAGE_KEY = 'escape-zombie-school.stagePropPlacements.v4'
 export const STAGE_PROP_PLACEMENTS_EVENT = 'escape-zombie-school.stagePropPlacements.changed'
 
 // 편집 가능한 스테이지 목록.
@@ -42,12 +43,6 @@ const MIN_SCALE = 0.1
 const MAX_SCALE = 4
 
 let _idCounter = 0
-
-function getStorage(storage) {
-  if (storage) return storage
-  if (typeof window !== 'undefined' && window.localStorage) return window.localStorage
-  return null
-}
 
 function clampCoord(value) {
   const number = Number(value)
@@ -130,51 +125,9 @@ export function normalizeStagePropPlacements(input) {
   return result
 }
 
-function emptyConfig() {
-  return normalizeStagePropPlacements({})
-}
-
-// 실 storage 사용 시 모듈 캐시(오버라이드는 자주 안 바뀌므로 localStorage 매회 파싱 방지).
-let _cache = null
-
-function readConfig(storage) {
-  const target = getStorage(storage)
-  if (!target) return emptyConfig()
-  try {
-    const raw = target.getItem(STAGE_PROP_PLACEMENTS_STORAGE_KEY)
-    if (raw) return normalizeStagePropPlacements(JSON.parse(raw))
-
-    const legacyRaw = target.getItem(LEGACY_STAGE_PROP_PLACEMENTS_STORAGE_KEY)
-    if (!legacyRaw) return emptyConfig()
-    const migrated = migrateLegacyBoardAngles(normalizeStagePropPlacements(JSON.parse(legacyRaw)))
-    target.setItem(STAGE_PROP_PLACEMENTS_STORAGE_KEY, JSON.stringify(migrated))
-    return migrated
-  } catch {
-    return emptyConfig()
-  }
-}
-
-function migrateLegacyBoardAngles(config) {
-  const stage2 = config.stage2
-  if (!Array.isArray(stage2)) return config
-
-  return {
-    ...config,
-    stage2: stage2.map((placement) => {
-      const yaw = placement.rotation?.[1] ?? 0
-      const wasSideOn = placement.type === 'corridorLostFoundBoard' && Math.abs(yaw - Math.PI / 2) <= 0.5
-      return wasSideOn
-        ? { ...placement, rotation: [0, Number((yaw - Math.PI / 4).toFixed(4)), 0] }
-        : placement
-    }),
-  }
-}
-
 export function loadStagePropPlacements(storage) {
-  if (storage) return readConfig(storage)
-  if (_cache) return _cache
-  _cache = readConfig()
-  return _cache
+  if (storage) throw new TypeError('Graphics Studio storage adapters are forbidden. Firebase runtime only.')
+  return normalizeStagePropPlacements(getFirebaseStudioRuntimeDataset('propPlacements'))
 }
 
 // 특정 스테이지 오버라이드 배열 또는 null(기본 배치 사용).
@@ -184,21 +137,18 @@ export function getStagePropOverride(stageId, storage) {
 }
 
 export function saveStagePropPlacements(config, storage) {
+  if (storage) throw new TypeError('Graphics Studio storage adapters are forbidden. Firebase runtime only.')
   const normalized = normalizeStagePropPlacements(config)
-  const target = getStorage(storage)
-  target?.setItem(STAGE_PROP_PLACEMENTS_STORAGE_KEY, JSON.stringify(normalized))
-  if (!storage) {
-    _cache = normalized
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent(STAGE_PROP_PLACEMENTS_EVENT, { detail: normalized }))
-    }
+  setFirebaseStudioRuntimeDataset('propPlacements', normalized)
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(STAGE_PROP_PLACEMENTS_EVENT, { detail: normalized }))
   }
   return normalized
 }
 
 // 테스트/특수 상황용: 모듈 캐시 초기화.
 export function resetStagePropPlacementsCache() {
-  _cache = null
+  // Firebase runtime state is the only cache and is replaced atomically by hydrate.
 }
 
 // 오버라이드 변경 구독. 반환값은 unsubscribe.

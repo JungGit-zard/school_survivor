@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { createFirebaseAuthClient, isFirebaseAuthConfigured } from '../lib/firebaseAuth.js'
-import { loadCloudProgressFromCloud, saveLocalProgressToCloud, setCloudProgressUser } from '../lib/firebaseProgress.js'
+import { hydrateCloudProgress, isFirebaseProgressHydrated, setCloudProgressUser } from '../lib/firebaseProgress.js'
 import { isE2EAuthBypass, getE2EUser } from '../lib/e2eAuth.js'
 
 let authClientPromise = null
@@ -12,6 +12,8 @@ export const useAuthStore = create((set, get) => ({
   error: null,
   signingIn: false,
   initialized: false,
+  progressStatus: 'idle',
+  progressError: null,
 
   initializeAuth: async () => {
     if (get().initialized) return
@@ -105,6 +107,8 @@ export function _resetAuthStoreForTests() {
     error: null,
     signingIn: false,
     initialized: false,
+    progressStatus: 'idle',
+    progressError: null,
   })
 }
 
@@ -115,14 +119,23 @@ function getAuthClient() {
 
 function syncCloudProgressUser(user) {
   setCloudProgressUser(user)
-  if (!user) return
+  if (!user) {
+    useAuthStore.setState({ progressStatus: 'idle', progressError: null })
+    return
+  }
+  if (isFirebaseProgressHydrated(user)) {
+    useAuthStore.setState({ progressStatus: 'ready', progressError: null })
+    return
+  }
+  useAuthStore.setState({ progressStatus: 'loading', progressError: null })
   void (async () => {
-    await loadCloudProgressFromCloud(user)
-    await saveLocalProgressToCloud(user)
+    await hydrateCloudProgress(user)
     await refreshGameStoreFromStorage().catch(() => {})
+    useAuthStore.setState({ progressStatus: 'ready', progressError: null })
   })().catch((error) => {
+    useAuthStore.setState({ progressStatus: 'error', progressError: getErrorMessage(error) })
     if (typeof console !== 'undefined') {
-      console.warn('Firebase progress sync failed.', error)
+      console.warn('Firebase progress hydrate failed.', error)
     }
   })
 }

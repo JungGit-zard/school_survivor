@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest'
 import { STORAGE_KEY, getLevel, getAllLevels, purchase, resetAllLevels, _resetForTests } from './passiveUpgrades.js'
+import { getFirebaseProgressRuntimeSnapshot, updateFirebasePlayerProgress } from './firebaseProgress.js'
 
 describe('passiveUpgrades storage layer', () => {
   beforeEach(() => {
@@ -32,7 +33,7 @@ describe('passiveUpgrades storage layer', () => {
 
     resetAllLevels()
 
-    expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
+    expect(getFirebaseProgressRuntimeSnapshot().progress.passiveUpgrades).toEqual({})
     expect(getLevel('magnet')).toBe(0)
     expect(getLevel('might')).toBe(0)
   })
@@ -62,19 +63,25 @@ describe('passiveUpgrades storage layer', () => {
     expect(purchase('bogus', 9999)).toMatchObject({ ok: false, reason: 'unknownId' })
   })
 
-  it('미지정 키는 보존하되 getLevel/getAllLevels에는 노출하지 않는다', () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ magnet: 1, futureKey: 5 }))
+  it('미지정 키는 Firebase runtime에 보존하되 getLevel/getAllLevels에는 노출하지 않는다', () => {
+    updateFirebasePlayerProgress((progress) => {
+      progress.passiveUpgrades = { magnet: 1, futureKey: 5 }
+      return progress
+    })
     expect(getLevel('futureKey')).toBe(0)
     expect(getAllLevels().futureKey).toBeUndefined()
 
     purchase('magnet', 9999)
-    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY))
+    const raw = getFirebaseProgressRuntimeSnapshot().progress.passiveUpgrades
     expect(raw.futureKey).toBe(5)
     expect(raw.magnet).toBe(2)
   })
 
-  it('잘못된 JSON은 모두 0으로 처리하고 예외를 던지지 않는다', () => {
-    localStorage.setItem(STORAGE_KEY, 'not-json')
+  it('잘못된 Firebase passive 값은 모두 0으로 처리하고 예외를 던지지 않는다', () => {
+    updateFirebasePlayerProgress((progress) => {
+      progress.passiveUpgrades = 'not-json'
+      return progress
+    })
     expect(() => getAllLevels()).not.toThrow()
     expect(getAllLevels().magnet).toBe(0)
   })
