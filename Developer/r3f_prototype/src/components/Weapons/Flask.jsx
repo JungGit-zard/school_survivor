@@ -70,7 +70,7 @@ export function FlaskModel() {
   )
 }
 
-function FlaskProjectile({ id, start, target, radius, damage, zoneRadius, zoneDurationMs, zoneTickDamage, onExplode }) {
+function FlaskProjectile({ id, start, target, radius, damage, zoneRadius, zoneDurationMs, zoneTickDamage, critChance, critMultiplier, onExplode }) {
   const groupRef = useRef(null)
   const ageRef = useRef(0)
   const explodedRef = useRef(false)
@@ -93,7 +93,7 @@ function FlaskProjectile({ id, start, target, radius, damage, zoneRadius, zoneDu
 
     if (t >= 1) {
       explodedRef.current = true
-      onExplode(id, { x: target.x, z: target.z, radius, damage, zoneRadius, zoneDurationMs, zoneTickDamage })
+      onExplode(id, { x: target.x, z: target.z, radius, damage, zoneRadius, zoneDurationMs, zoneTickDamage, critChance, critMultiplier })
       return
     }
   })
@@ -111,7 +111,7 @@ function FlaskProjectile({ id, start, target, radius, damage, zoneRadius, zoneDu
 const ZONE_TICK_MS = 1000
 const ZONE_FADE_SEC = 0.7   // 종료 직전 페이드아웃 구간
 
-function ChemicalZone({ id, x, z, radius, durationMs, tickDamage, onDone }) {
+function ChemicalZone({ id, x, z, radius, durationMs, tickDamage, critChance, critMultiplier, onDone }) {
   const ageRef = useRef(0)
   const tickTimerRef = useRef(0)
   const doneRef = useRef(false)
@@ -133,7 +133,7 @@ function ChemicalZone({ id, x, z, radius, durationMs, tickDamage, onDone }) {
     tickTimerRef.current += delta * 1000
     if (tickTimerRef.current >= ZONE_TICK_MS) {
       tickTimerRef.current -= ZONE_TICK_MS
-      const hitCount = applyRadialDamage({ x, z, radius, damage: tickDamage, knockback: 0, knockbackMs: 0 })
+      const hitCount = applyRadialDamage({ x, z, radius, damage: tickDamage, knockback: 0, knockbackMs: 0, critChance, critMultiplier })
       if (hitCount > 0) emitSfx({ id: 'flaskTick', volume: 0.18 })
     }
 
@@ -222,6 +222,7 @@ export function ScienceFlaskSplash() {
     setZones((prev) => [...prev, {
       id, x: blast.x, z: blast.z,
       radius: blast.zoneRadius, durationMs: blast.zoneDurationMs, tickDamage: blast.zoneTickDamage,
+      critChance: blast.critChance, critMultiplier: blast.critMultiplier,
     }])
   }, [])
 
@@ -248,6 +249,8 @@ export function ScienceFlaskSplash() {
       zoneRadius: w.zoneRadius ?? 1.4,
       zoneDurationMs: w.zoneDurationMs ?? 5000,
       zoneTickDamage: w.zoneTickDamage ?? 6,
+      critChance: w.critChance,
+      critMultiplier: w.critMultiplier,
     }
     activeFlasksRef.current = [next]
     setFlasks([next])

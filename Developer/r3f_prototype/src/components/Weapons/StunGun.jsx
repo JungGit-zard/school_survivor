@@ -96,7 +96,7 @@ function ChainArcVisual({ id, fromX, fromZ, toX, toZ, startMs, onDone }) {
   )
 }
 
-function StunBoltProjectile({ id, startX, startZ, targetId, damage, hitSet, chainsLeft, chainDepth, onHit, onExpire }) {
+function StunBoltProjectile({ id, startX, startZ, targetId, damage, critChance, critMultiplier, hitSet, chainsLeft, chainDepth, onHit, onExpire }) {
   const groupRef = useRef()
   const posRef   = useRef({ x: startX, z: startZ })
   const doneRef  = useRef(false)
@@ -118,7 +118,7 @@ function StunBoltProjectile({ id, startX, startZ, targetId, damage, hitSet, chai
     if (dist < 0.4) {
       doneRef.current = true
       if (target._enemyHit) {
-        target._enemyHit(damage, { knockback: 2.2, knockbackMs: 80 })
+        target._enemyHit(damage, { knockback: 2.2, knockbackMs: 80, critChance, critMultiplier })
         emitSfx({
           id: 'stunGunHit',
           volume: 0.55,
@@ -146,6 +146,8 @@ export function StunGunWeapon() {
   const active     = useGameStore(s => s.weapons.stunGun.active)
   const cooldown   = useGameStore(s => s.weapons.stunGun.cooldown)
   const damage     = useGameStore(s => s.weapons.stunGun.damage)
+  const critChance = useGameStore(s => s.weapons.stunGun.critChance)
+  const critMultiplier = useGameStore(s => s.weapons.stunGun.critMultiplier)
   const chainCount = useGameStore(s => s.weapons.stunGun.chainCount)
   const phase      = useGameStore(s => s.phase)
 
@@ -228,6 +230,8 @@ export function StunGunWeapon() {
           startZ={b.startZ}
           targetId={b.targetId}
           damage={damage}
+          critChance={critChance}
+          critMultiplier={critMultiplier}
           hitSet={b.hitSet}
           chainsLeft={b.chainsLeft}
           chainDepth={b.chainDepth}

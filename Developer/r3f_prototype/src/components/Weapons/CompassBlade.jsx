@@ -339,7 +339,7 @@ export function CompassBladeWeapon() {
       if (nowMs - lastHit < interval) return
       lastHitRef.current.set(enemyId, nowMs)
       const t = rb.translation()
-      rb._enemyHit(w.damage)
+      rb._enemyHit(w.damage, { critChance: w.critChance, critMultiplier: w.critMultiplier })
       emitSfx({ id: 'compassFire', volume: 0.18 })
 
       const stackResult = resolveCompassBladeHitStack({

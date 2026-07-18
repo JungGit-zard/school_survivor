@@ -61,6 +61,8 @@ export function applyRadialDamage({
   canCrit,
   damageType,
   attackTags,
+  critChance,
+  critMultiplier,
 }) {
   if (!Number.isFinite(x) || !Number.isFinite(z) || !Number.isFinite(radius) || radius <= 0 || !Number.isFinite(damage)) return 0
 
@@ -79,6 +81,8 @@ export function applyRadialDamage({
     if (canCrit !== undefined) impact.canCrit = canCrit
     if (damageType !== undefined) impact.damageType = damageType
     if (attackTags !== undefined) impact.attackTags = attackTags
+    if (critChance !== undefined) impact.critChance = critChance
+    if (critMultiplier !== undefined) impact.critMultiplier = critMultiplier
     rb._enemyHit(damage, impact)
   })
   return hit.size
@@ -128,7 +132,19 @@ export function isInForwardCone({ originX, originZ, dirX, dirZ }, { x, z }, { le
   return lat <= halfWidth
 }
 
-export function applyForwardConeDamage({ originX, originZ, dirX, dirZ, length, width, baseWidth, damage, sightBlocker }) {
+export function applyForwardConeDamage({
+  originX,
+  originZ,
+  dirX,
+  dirZ,
+  length,
+  width,
+  baseWidth,
+  damage,
+  sightBlocker,
+  critChance,
+  critMultiplier,
+}) {
   if (!Number.isFinite(damage) || !Number.isFinite(length) || length <= 0) return 0
   let hits = 0
   enemyBodies.forEach((rb, enemyId) => {
@@ -140,7 +156,10 @@ export function applyForwardConeDamage({ originX, originZ, dirX, dirZ, length, w
     if (!isInForwardCone({ originX, originZ, dirX, dirZ }, { x: t.x, z: t.z }, { length, width, baseWidth })) return
     if (isSightBlocked(t, sightBlocker)) return
     hits += 1
-    rb._enemyHit(damage, { source: { x: originX, z: originZ }, knockback: 0, knockbackMs: 0 })
+    const impact = { source: { x: originX, z: originZ }, knockback: 0, knockbackMs: 0 }
+    if (critChance !== undefined) impact.critChance = critChance
+    if (critMultiplier !== undefined) impact.critMultiplier = critMultiplier
+    rb._enemyHit(damage, impact)
   })
   return hits
 }

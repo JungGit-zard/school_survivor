@@ -207,6 +207,7 @@ export function BellShockwave() {
     const hitCount = applyRadialDamage({
       x: playerPos.x, z: playerPos.z, radius, damage: w.damage,
       knockback: BELL_KNOCKBACK, knockbackMs: 180,
+      critChance: w.critChance, critMultiplier: w.critMultiplier,
     })
     if (hitCount > 0) emitSfx({ id: 'bellHit', volume: 0.45 })
 

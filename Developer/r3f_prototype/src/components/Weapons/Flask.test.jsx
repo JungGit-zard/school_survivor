@@ -6,7 +6,7 @@ describe('ScienceFlaskSplash zone payload', () => {
     const source = readFileSync(new URL('./Flask.jsx', import.meta.url), 'utf8')
 
     expect(source).toContain('zoneRadius, zoneDurationMs, zoneTickDamage')
-    expect(source).toContain('zoneRadius, zoneDurationMs, zoneTickDamage })')
+    expect(source).toContain('zoneRadius, zoneDurationMs, zoneTickDamage, critChance, critMultiplier })')
   })
 
   it('keeps the chemical puddle just above the floor and below character outlines', () => {

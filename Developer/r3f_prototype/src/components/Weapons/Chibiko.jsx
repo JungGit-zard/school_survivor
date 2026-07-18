@@ -140,7 +140,7 @@ export function ChibikoPencilModel() {
   )
 }
 
-function ChibikoPencilProjectile({ id, position, yaw, damage, speed, target, onExpire }) {
+function ChibikoPencilProjectile({ id, position, yaw, damage, speed, target, critChance, critMultiplier, onExpire }) {
   const rb = useRef()
   const visualRef = useRef()
   const hitRef = useRef(false)
@@ -149,7 +149,7 @@ function ChibikoPencilProjectile({ id, position, yaw, damage, speed, target, onE
   const hitEnemy = (enemyRb) => {
     if (hitRef.current || !enemyRb?._enemyHit || enemyRb._enemyDead) return false
     hitRef.current = true
-    enemyRb._enemyHit(damage)
+    enemyRb._enemyHit(damage, { critChance, critMultiplier })
     emitSfx({ id: 'chibikoHit', volume: 0.42 })
     onExpire(id)
     return true
@@ -289,6 +289,8 @@ export function ChibikoWeapon() {
         damage: attack.damage,
         speed: attack.speed,
         target,
+        critChance: w.critChance,
+        critMultiplier: w.critMultiplier,
       }
     })
 

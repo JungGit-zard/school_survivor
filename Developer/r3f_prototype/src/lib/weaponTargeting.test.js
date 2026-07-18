@@ -126,6 +126,8 @@ describe('applyRadialDamage', () => {
       canCrit: false,
       damageType: 'explosive',
       attackTags: ['radial', 'explosive'],
+      critChance: 0.23,
+      critMultiplier: 1.8,
     })
 
     expect(enemy._enemyHit).toHaveBeenCalledWith(12, {
@@ -135,6 +137,8 @@ describe('applyRadialDamage', () => {
       canCrit: false,
       damageType: 'explosive',
       attackTags: ['radial', 'explosive'],
+      critChance: 0.23,
+      critMultiplier: 1.8,
     })
   })
 

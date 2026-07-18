@@ -141,6 +141,8 @@ export function SchoolBagSwing() {
         source: { x: playerPos.x, z: playerPos.z },
         knockback: 3.8,
         knockbackMs: 120,
+        critChance: w.critChance,
+        critMultiplier: w.critMultiplier,
       })
       emitSfx({ id: 'rulerHit', volume: 0.58 })
     })

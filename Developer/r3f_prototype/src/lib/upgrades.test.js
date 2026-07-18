@@ -45,6 +45,12 @@ describe('applyUpgradeToWeapon', () => {
     expect(out.pierce).toBe(1)
   })
 
+  it('critChance stat effect: 크리티컬 확률을 올리고 무기 레벨도 증가', () => {
+    const out = applyUpgradeToWeapon(wpn({ active: true, level: 1, critChance: 0.08 }), UPGRADE_EFFECTS.pencilCrit)
+    expect(out.critChance).toBe(0.1)
+    expect(out.level).toBe(2)
+  })
+
   it('bonus 필드: 주 효과와 함께 부가 스탯도 증가 (플라스크 존 지속 +1s/레벨)', () => {
     const flask = wpn({ active: true, level: 1, damage: 7.5, zoneDurationMs: 5000, radius: 1.6 })
 
@@ -185,6 +191,36 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
       step: 0.2,
       cap: 2.6,
     })
+  })
+
+  it('크리티컬 적용 무기에는 런 중 치명타 확률 강화 카드를 제공하고 폭발 무기는 제외한다', () => {
+    const critCardIds = [
+      'pencilCrit',
+      'bagCrit',
+      'boxCutterCrit',
+      'tumblerCrit',
+      'flaskCrit',
+      'bellCrit',
+      'stunCrit',
+      'onigiiriCrit',
+      'starlinkCrit',
+      'compassBladeCrit',
+      'lanternCrit',
+      'chibikoCrit',
+    ]
+
+    for (const id of critCardIds) {
+      expect(UPGRADE_EFFECTS[id], `${id} missing`).toMatchObject({
+        kind: 'stat',
+        stat: 'critChance',
+        step: 0.02,
+      })
+    }
+
+    expect(UPGRADE_EFFECTS.missileCrit).toBeUndefined()
+    expect(UPGRADE_EFFECTS.sharkMissileCrit).toBeUndefined()
+    expect(UPGRADE_EFFECTS.umbrellaCrit).toBeUndefined()
+    expect(UPGRADE_EFFECTS.eraserCrit).toBeUndefined()
   })
 
   it('오니기리 공격력 레벨업 증가량은 기존 5의 1.3배다', () => {

@@ -45,6 +45,7 @@ describe('upgrade choice filtering', () => {
       { key: 'pencilDamage' },
       { key: 'pencilCount' },
       { key: 'pencilPierce' },
+      { key: 'pencilCrit' },
       { key: 'acquireBag' },
       { key: 'maxHealth' },
     ]

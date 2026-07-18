@@ -232,6 +232,8 @@ export function BoxCutterWeapon() {
         source: { x: playerPos.x, z: playerPos.z },
         knockback: w.knockback ?? 1.8,
         knockbackMs: 80,
+        critChance: w.critChance,
+        critMultiplier: w.critMultiplier,
       })
       emitSfx({
         id: 'boxCutterHit',

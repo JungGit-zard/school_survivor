@@ -96,10 +96,58 @@ describe('weaponPermanentUpgrades storage layer', () => {
   })
 
   it('keeps split Lv.6-Lv.9 plan summaries aligned with the canonical design', () => {
-    expect(getWeaponPermanentUpgradePlan('stunGun').levels[9].summary).toBe('쿨타임 -8%')
-    expect(getWeaponPermanentUpgradePlan('onigiri').levels[9].summary).toBe('피해 +16%')
+    expect(getWeaponPermanentUpgradePlan('stunGun').levels[9].summary).toBe('치명타 확률 +8%')
+    expect(getWeaponPermanentUpgradePlan('onigiri').levels[9].summary).toBe('치명타 확률 +8%')
+    expect(getWeaponPermanentUpgradePlan('scienceFlask').levels[9].summary).toBe('치명타 확률 +8%')
     expect(getWeaponPermanentUpgradePlan('sharkMissile').levels[9].summary).toBe('폭발 피해 +16%')
-    expect(getWeaponPermanentUpgradePlan('studentLantern').levels[9].summary).toBe('지속 피해 +16%')
+    expect(getWeaponPermanentUpgradePlan('studentLantern').levels[9].summary).toBe('치명타 확률 +8%')
+  })
+
+  it('assigns base critical chance only to non-explosive critical-capable weapon damage profiles', () => {
+    expect(WEAPON_CATALOG.pencilThrow.base.critChance).toBe(0.08)
+    expect(WEAPON_CATALOG.schoolBag.base.critChance).toBe(0.07)
+    expect(WEAPON_CATALOG.boxCutter.base.critChance).toBe(0.1)
+    expect(WEAPON_CATALOG.tumbler.base.critChance).toBe(0.04)
+    expect(WEAPON_CATALOG.scienceFlask.base.critChance).toBe(0.03)
+    expect(WEAPON_CATALOG.bell.base.critChance).toBe(0.05)
+    expect(WEAPON_CATALOG.stunGun.base.critChance).toBe(0.06)
+    expect(WEAPON_CATALOG.onigiri.base.critChance).toBe(0.08)
+    expect(WEAPON_CATALOG.chibiko.base.critChance).toBe(0.05)
+    expect(WEAPON_CATALOG.starlink.base.critChance).toBe(0.07)
+    expect(WEAPON_CATALOG.compassBlade.base.critChance).toBe(0.05)
+    expect(WEAPON_CATALOG.studentLantern.base.critChance).toBe(0.03)
+
+    expect(WEAPON_CATALOG.guidedMissile.base.critChance).toBeUndefined()
+    expect(WEAPON_CATALOG.sharkMissile.base.critChance).toBeUndefined()
+    expect(WEAPON_CATALOG.umbrellaGuard.base.critChance).toBeUndefined()
+    expect(WEAPON_CATALOG.eraserBomb.base.critChance).toBeUndefined()
+  })
+
+  it('places critical chance upgrades in weapon permanent upgrade plans for crit-capable weapons', () => {
+    expect(getWeaponPermanentUpgradePlan('pencilThrow').levels[6].summary).toBe('치명타 확률 +2%')
+    expect(getWeaponPermanentUpgradePlan('boxCutter').levels[9].summary).toBe('치명타 확률 +8%')
+    expect(getWeaponPermanentUpgradePlan('studentLantern').levels[9].summary).toBe('치명타 확률 +8%')
+    expect(getWeaponPermanentUpgradePlan('guidedMissile').levels[9].summary).toBe('폭발 피해 +16%')
+    expect(getWeaponPermanentUpgradePlan('eraserBomb').levels[9].summary).toBe('폭발 범위 +16%')
+  })
+
+  it('applies permanent critical chance bonuses to critical-capable weapon stats', () => {
+    const setLevel = (id, level) => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        ...JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}'),
+        [id]: level,
+      }))
+    }
+
+    setLevel('pencilThrow', 9)
+    setLevel('boxCutter', 9)
+    setLevel('studentLantern', 9)
+    setLevel('guidedMissile', 9)
+
+    expect(applyWeaponPermanentUpgradesToBaseWeapon('pencilThrow', WEAPON_CATALOG.pencilThrow.base).critChance).toBe(0.16)
+    expect(applyWeaponPermanentUpgradesToBaseWeapon('boxCutter', WEAPON_CATALOG.boxCutter.base).critChance).toBe(0.18)
+    expect(applyWeaponPermanentUpgradesToBaseWeapon('studentLantern', WEAPON_CATALOG.studentLantern.base).critChance).toBe(0.11)
+    expect(applyWeaponPermanentUpgradesToBaseWeapon('guidedMissile', WEAPON_CATALOG.guidedMissile.base).critChance).toBeUndefined()
   })
 
   it('applies every deterministic Lv.5 and Lv.10 numeric perk to runtime weapon fields', () => {
@@ -114,19 +162,19 @@ describe('weaponPermanentUpgrades storage layer', () => {
       return applyWeaponPermanentUpgradesToBaseWeapon(id, WEAPON_CATALOG[id].base)
     }
 
-    expect(upgraded('schoolBag')).toMatchObject({ damage: 13, range: 0.734, swingMs: 286 })
-    expect(upgraded('tumbler')).toMatchObject({ damage: 7, orbitSpeed: 3.08, count: 2 })
-    expect(upgraded('scienceFlask')).toMatchObject({ zoneRadius: 1.54, zoneDurationMs: 6100, zoneTickDamage: 6.96 })
-    expect(upgraded('bell')).toMatchObject({ damage: 11.6, radius: 2.04 })
-    expect(upgraded('stunGun')).toMatchObject({ damage: 19.4, cooldown: 2760, chainCount: 3, permanentStunChance: 0.08 })
-    expect(upgraded('onigiri')).toMatchObject({ damage: 24.4, bounces: 4 })
-    expect(upgraded('chibiko')).toMatchObject({ damage: 5.5, cooldown: 1012, projectileCount: 2 })
+    expect(upgraded('schoolBag')).toMatchObject({ damage: 13, range: 0.684, swingMs: 286, critChance: 0.15 })
+    expect(upgraded('tumbler')).toMatchObject({ damage: 6.5, orbitSpeed: 3.08, count: 2, critChance: 0.12 })
+    expect(upgraded('scienceFlask')).toMatchObject({ damage: 7.5, zoneRadius: 1.54, zoneDurationMs: 6100, zoneTickDamage: 6, critChance: 0.11 })
+    expect(upgraded('bell')).toMatchObject({ damage: 10.8, radius: 2.04, critChance: 0.13 })
+    expect(upgraded('stunGun')).toMatchObject({ damage: 19.4, cooldown: 3000, chainCount: 3, permanentStunChance: 0.08, critChance: 0.14 })
+    expect(upgraded('onigiri')).toMatchObject({ damage: 21, bounces: 4, critChance: 0.16 })
+    expect(upgraded('chibiko')).toMatchObject({ damage: 5.5, cooldown: 1056, projectileCount: 2, critChance: 0.13 })
     expect(upgraded('guidedMissile')).toMatchObject({ damage: 18.6, radius: 1.76, homingStrength: 1.1 })
-    expect(upgraded('sharkMissile')).toMatchObject({ damage: 24.1, speed: 9.18, retargetIntervalMs: 300, permanentHomingStartMultiplier: 0.9, radius: 2.016 })
-    expect(upgraded('starlink')).toMatchObject({ damage: 32.5, strikeRadius: 1.32, permanentBonusStrikeChance: 0.1 })
-    expect(upgraded('compassBlade')).toMatchObject({ damage: 8.1, orbitSpeed: 3.74, permanentExplosionRadiusMultiplier: 1.1 })
+    expect(upgraded('sharkMissile')).toMatchObject({ damage: 24.1, speed: 9.18, retargetIntervalMs: 270, permanentHomingStartMultiplier: 0.9, radius: 2.016 })
+    expect(upgraded('starlink')).toMatchObject({ damage: 30.2, strikeRadius: 1.32, permanentBonusStrikeChance: 0.1, critChance: 0.15 })
+    expect(upgraded('compassBlade')).toMatchObject({ damage: 7.6, orbitSpeed: 3.74, permanentExplosionRadiusMultiplier: 1.1, critChance: 0.13 })
     expect(upgraded('umbrellaGuard')).toMatchObject({ cooldown: 3240, radius: 1.375, knockbackMs: 273 })
     expect(upgraded('eraserBomb')).toMatchObject({ damage: 28.6, radius: 1.566, permanentSlowDust: true })
-    expect(upgraded('studentLantern')).toMatchObject({ damage: 0.7, lightLength: 2.246, lightWidth: 3.888, permanentSlowChance: 0.1 })
+    expect(upgraded('studentLantern')).toMatchObject({ damage: 0.6, lightLength: 2.246, lightWidth: 3.888, permanentSlowChance: 0.1, critChance: 0.11 })
   })
 })

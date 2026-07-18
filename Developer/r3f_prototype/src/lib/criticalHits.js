@@ -1,4 +1,4 @@
-export const DEFAULT_CRIT_CHANCE = 0.05
+export const DEFAULT_CRIT_CHANCE = 0
 export const DEFAULT_CRIT_MULTIPLIER = 1.5
 
 const NON_CRIT_DAMAGE_TYPES = new Set(['explosive'])

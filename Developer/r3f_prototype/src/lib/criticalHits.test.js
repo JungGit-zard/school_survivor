@@ -30,10 +30,10 @@ describe('resolveCriticalHit', () => {
     })
   })
 
-  it('uses casual survivor defaults when no crit stats are provided', () => {
-    expect(resolveCriticalHit({ baseDamage: 10, rng: () => 0.04 })).toEqual({
-      damage: 15,
-      isCritical: true,
+  it('does not crit when no weapon-specific crit chance is provided', () => {
+    expect(resolveCriticalHit({ baseDamage: 10, rng: () => 0 })).toEqual({
+      damage: 10,
+      isCritical: false,
     })
   })
 

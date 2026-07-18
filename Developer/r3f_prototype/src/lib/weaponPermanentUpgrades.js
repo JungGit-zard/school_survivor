@@ -9,6 +9,7 @@ export const WEAPON_PERMANENT_UPGRADE_PRICES = [300, 500, 800, 1200, 1800, 2600,
 const DAMAGE_LEVELS = ['+2%', '+4%', '+6%', '+8%', '+10%', '+12%', '+14%', '+16%']
 const COOLDOWN_LEVELS = ['-1%', '-2%', '-3%', '-4%', '-5%', '-6%', '-7%', '-8%']
 const RANGE_LEVELS = ['+2%', '+4%', '+6%', '+8%', '+10%', '+12%', '+14%', '+16%']
+const CRIT_CHANCE_LEVELS = ['+2%', '+4%', '+6%', '+8%']
 
 function makePlan(
   id,
@@ -36,22 +37,22 @@ function makePlan(
 }
 
 export const WEAPON_PERMANENT_UPGRADE_PLANS = {
-  pencilThrow: makePlan('pencilThrow', '공격력', '투사체 속도 +10%', '기본 투사체 수 +1'),
-  schoolBag: makePlan('schoolBag', '공격 범위', '공격력 +8%', '휘두르기 판정 유지시간 +10%', RANGE_LEVELS),
-  boxCutter: makePlan('boxCutter', '쿨타임', '공격력 +8%', '일정 확률로 추가 절단 1회', COOLDOWN_LEVELS),
-  tumbler: makePlan('tumbler', '접촉 피해', '회전 속도 +10%', '기본 궤도체 수 +1'),
-  scienceFlask: makePlan('scienceFlask', '화학 웅덩이 지속시간', '웅덩이 범위 +10%', '웅덩이 지속시간 추가 +10%', ['+3%', '+6%', '+9%', '+12%'], '틱 피해', ['+4%', '+8%', '+12%', '+16%']),
-  bell: makePlan('bell', '피해', '파동 크기 +10%', '파동 도달거리 +10%'),
-  stunGun: makePlan('stunGun', '피해', '체인 수 +1', '짧은 경직 확률 +8%', DAMAGE_LEVELS, '쿨타임', ['-2%', '-4%', '-6%', '-8%']),
-  onigiri: makePlan('onigiri', '투사체 속도', '바운스 횟수 +1', '바운스 횟수 추가 +1', ['+3%', '+6%', '+9%', '+12%'], '피해', ['+4%', '+8%', '+12%', '+16%']),
-  chibiko: makePlan('chibiko', '동료 공격 주기', '동료 피해 +10%', '치비코 투척체 +1', COOLDOWN_LEVELS),
+  pencilThrow: makePlan('pencilThrow', '공격력', '투사체 속도 +10%', '기본 투사체 수 +1', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
+  schoolBag: makePlan('schoolBag', '공격 범위', '공격력 +8%', '휘두르기 판정 유지시간 +10%', RANGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
+  boxCutter: makePlan('boxCutter', '쿨타임', '공격력 +8%', '일정 확률로 추가 절단 1회', COOLDOWN_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
+  tumbler: makePlan('tumbler', '접촉 피해', '회전 속도 +10%', '기본 궤도체 수 +1', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
+  scienceFlask: makePlan('scienceFlask', '화학 웅덩이 지속시간', '웅덩이 범위 +10%', '웅덩이 지속시간 추가 +10%', ['+3%', '+6%', '+9%', '+12%'], '치명타 확률', CRIT_CHANCE_LEVELS),
+  bell: makePlan('bell', '피해', '파동 크기 +10%', '파동 도달거리 +10%', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
+  stunGun: makePlan('stunGun', '피해', '체인 수 +1', '짧은 경직 확률 +8%', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
+  onigiri: makePlan('onigiri', '투사체 속도', '바운스 횟수 +1', '바운스 횟수 추가 +1', ['+3%', '+6%', '+9%', '+12%'], '치명타 확률', CRIT_CHANCE_LEVELS),
+  chibiko: makePlan('chibiko', '동료 공격 주기', '동료 피해 +10%', '치비코 투척체 +1', COOLDOWN_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
   guidedMissile: makePlan('guidedMissile', '폭발 피해', '유도 회전력 +10%', '폭발 범위 +10%'),
   sharkMissile: makePlan('sharkMissile', '귀소 속도', '귀소 전환 시간 -10%', '폭발 범위 +12%', RANGE_LEVELS, '폭발 피해', ['+4%', '+8%', '+12%', '+16%']),
-  starlink: makePlan('starlink', '타격 피해', '타격 반경 +10%', '추가 소형 낙하 타격 확률 +10%'),
-  compassBlade: makePlan('compassBlade', '칼날 피해', '회전 속도 +10%', '스택 폭발 범위 +10%'),
+  starlink: makePlan('starlink', '타격 피해', '타격 반경 +10%', '추가 소형 낙하 타격 확률 +10%', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
+  compassBlade: makePlan('compassBlade', '칼날 피해', '회전 속도 +10%', '스택 폭발 범위 +10%', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
   umbrellaGuard: makePlan('umbrellaGuard', '넉백', '펄스 범위 +10%', '펄스 쿨타임 -10%', ['+3%', '+6%', '+9%', '+12%', '+15%', '+18%', '+21%', '+24%']),
   eraserBomb: makePlan('eraserBomb', '폭발 범위', '폭발 피해 +10%', '폭발 후 짧은 둔화 장판 생성', RANGE_LEVELS),
-  studentLantern: makePlan('studentLantern', '빛 콘 길이', '빛 콘 각도 +8%', '빛에 맞은 적 둔화 확률 +10%', ['+2%', '+4%', '+6%', '+8%'], '지속 피해', ['+4%', '+8%', '+12%', '+16%']),
+  studentLantern: makePlan('studentLantern', '빛 콘 길이', '빛 콘 각도 +8%', '빛에 맞은 적 둔화 확률 +10%', ['+2%', '+4%', '+6%', '+8%'], '치명타 확률', CRIT_CHANCE_LEVELS),
 }
 
 function readRaw() {
@@ -149,7 +150,7 @@ function getDamageMultiplier(id, level) {
     || summary.includes('칼날 피해')
     || summary.includes('동료 피해')
     || summary.includes('지속 피해')
-  ))
+  ) && !summary.includes('틱 피해'))
   return 1 + percent
 }
 
@@ -167,7 +168,7 @@ function scaleExistingProps(out, props, multiplier, decimals = 2) {
 
 function applySafeNumericPermanentEffects(id, level, out) {
   const cooldownPercent = getBestPercentForSummary(id, level, (summary) => (
-    summary.includes('쿨타임') || summary.includes('공격 주기')
+    summary.includes('쿨타임') || summary.includes('공격 주기') || summary.includes('전환 시간')
   ))
   if (cooldownPercent > 0) {
     scaleExistingProps(out, ['cooldown', 'retargetIntervalMs'], 1 - cooldownPercent, 0)
@@ -214,6 +215,12 @@ export function applyWeaponPermanentUpgradesToBaseWeapon(id, weapon) {
   const out = { ...weapon, permanentUpgradeLevel: level }
   const damageMultiplier = getDamageMultiplier(id, level)
   if (typeof out.damage === 'number') out.damage = Math.round(out.damage * damageMultiplier * 10) / 10
+
+  const critChanceBonus = getBestPercentForSummary(id, level, (summary) => summary.includes('치명타 확률'))
+  if (critChanceBonus > 0 && typeof weapon.critChance === 'number') {
+    out.critChance = Math.round(Math.min(1, weapon.critChance + critChanceBonus) * 1000) / 1000
+  }
+
   applySafeNumericPermanentEffects(id, level, out)
 
   if (id === 'pencilThrow' && level >= 10) out.projectileCount = (out.projectileCount ?? 1) + 1

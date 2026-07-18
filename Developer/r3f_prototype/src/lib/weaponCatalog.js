@@ -12,7 +12,7 @@ export const WEAPON_CATALOG = {
     id: 'pencilThrow',
     label: '연필',
     // damage 5→6: E01(HP 8) 2발 킬 유지하되 여유 확보. pierce 0→1: 1열 관통으로 초반 군집 대응.
-    base: { damage: 6, cooldown: 1100, lastFired: 0, projectileCount: 1, pierce: 1, speed: 12, range: 22 },
+    base: { damage: 6, cooldown: 1100, lastFired: 0, projectileCount: 1, pierce: 1, speed: 12, range: 22, critChance: 0.08 },
     unlockConditions: STARTER,
     minLevelToAppear: 1,
     startsActive: true,
@@ -20,7 +20,7 @@ export const WEAPON_CATALOG = {
   schoolBag: {
     id: 'schoolBag',
     label: '30cm 자',
-    base: { damage: 12, cooldown: 1300, range: 0.633, triggerRange: 1.0, swingMs: 260 },
+    base: { damage: 12, cooldown: 1300, range: 0.633, triggerRange: 1.0, swingMs: 260, critChance: 0.07 },
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },
@@ -29,7 +29,7 @@ export const WEAPON_CATALOG = {
     label: '커터칼',
     // 공격력 24 = '30cm 자'(12)의 2배. 사거리 1.4 = 초기값(0.7)의 2배로 확장.
     // 쿨다운 650 = '30cm 자'(1300)의 절반 (기획 정본 2026-07-04).
-    base: { damage: 24, cooldown: 650, range: 1.4, width: 0.18, knockback: 1.8 },
+    base: { damage: 24, cooldown: 650, range: 1.4, width: 0.18, knockback: 1.8, critChance: 0.1 },
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },
@@ -37,7 +37,7 @@ export const WEAPON_CATALOG = {
     id: 'tumbler',
     label: '텀블러',
     // 기본 위력 1.5배(4→6). 레벨업 가중치(tumblerDamage +2/레벨)는 가산식이라 이 6 위에 더해진다(6→8→10…).
-    base: { damage: 6, radius: 1.0, hitsPerSecond: 2.5, orbitSpeed: 2.8, count: 1 },
+    base: { damage: 6, radius: 1.0, hitsPerSecond: 2.5, orbitSpeed: 2.8, count: 1, critChance: 0.04 },
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },
@@ -49,35 +49,35 @@ export const WEAPON_CATALOG = {
     // zoneRadius 1.4 = E01(녹색좀비) 9마리 3×3 밀집 대형(간격 ~0.8, 한 변 ~2.8) 커버.
     // zoneDurationMs: 1레벨 5초, 레벨업마다 +1초 (upgrades.js flask 효과의 bonus).
     // zoneTickDamage: 연필 레벨1 데미지 — 카탈로그 선언 직후 pencilThrow.base.damage 주입.
-    base: { damage: 7.5, cooldown: 8400, radius: 1.6, range: 2, zoneRadius: 1.4, zoneDurationMs: 5000 },
+    base: { damage: 7.5, cooldown: 8400, radius: 1.6, range: 2, zoneRadius: 1.4, zoneDurationMs: 5000, critChance: 0.03 },
     unlockConditions: STARTER,
     minLevelToAppear: 4,
   },
   bell: {
     id: 'bell',
     label: '벨',
-    base: { damage: 10, cooldown: 4500, lastFired: 0, directions: 8, speed: 10, radius: 1.7 },
+    base: { damage: 10, cooldown: 4500, lastFired: 0, directions: 8, speed: 10, radius: 1.7, critChance: 0.05 },
     unlockConditions: STARTER,
     minLevelToAppear: 4,
   },
   stunGun: {
     id: 'stunGun',
     label: '전기',
-    base: { damage: 18, cooldown: 3000, lastFired: 0, chainCount: 2 },
+    base: { damage: 18, cooldown: 3000, lastFired: 0, chainCount: 2, critChance: 0.06 },
     unlockConditions: STARTER,
     minLevelToAppear: 6,
   },
   onigiri: {
     id: 'onigiri',
     label: '오니기리',
-    base: { damage: 21, cooldown: 5000, bounces: 2, bounceRange: 4.5, range: 18 },
+    base: { damage: 21, cooldown: 5000, bounces: 2, bounceRange: 4.5, range: 18, critChance: 0.08 },
     unlockConditions: STARTER,
     minLevelToAppear: 8,
   },
   chibiko: {
     id: 'chibiko',
     label: '치비코',
-    base: { damage: 5, cooldown: 1100, lastFired: 0, range: 22, speed: 12, followDistance: 0.72, sideOffset: -0.28 },
+    base: { damage: 5, cooldown: 1100, lastFired: 0, range: 22, speed: 12, followDistance: 0.72, sideOffset: -0.28, critChance: 0.05 },
     unlockConditions: STARTER,
     minLevelToAppear: 8,
   },
@@ -113,7 +113,7 @@ export const WEAPON_CATALOG = {
   starlink: {
     id: 'starlink',
     label: '고장난 스타링크',
-    base: { damage: 28, cooldown: 3800, lastFired: 0, strikeCenter: 5, strikeRadius: 1.2, strikeCount: 1 },
+    base: { damage: 28, cooldown: 3800, lastFired: 0, strikeCenter: 5, strikeRadius: 1.2, strikeCount: 1, critChance: 0.07 },
     // 1차안.
     unlockConditions: [
       { type: 'totalRuns', value: 10 },
@@ -127,7 +127,7 @@ export const WEAPON_CATALOG = {
   compassBlade: {
     id: 'compassBlade',
     label: '오리요강',
-    base: { damage: 7, radius: 1.15, hitsPerSecond: 2.5, count: 1, orbitSpeed: 3.4 },
+    base: { damage: 7, radius: 1.15, hitsPerSecond: 2.5, count: 1, orbitSpeed: 3.4, critChance: 0.05 },
     // 실력 OR 누적.
     unlockConditions: [
       { type: 'runKills', value: 80 },
@@ -171,7 +171,7 @@ export const WEAPON_CATALOG = {
     // - 빛 범위 1.9×1.9 = E01(녹색좀비) 2마리 깊이 × 2마리 폭 (간격 ~0.8 밀집 기준).
     // - damage: 연필 레벨1의 1.5배 — 카탈로그 선언 직후 주입.
     // - cooldown 8000은 점등 시작 기준: Lv1 3초 점등/5초 소등 → Lv5 7초 점등/1초 소등.
-    base: { damage: 0.6, cooldown: 8000, lastFired: 0, durationMs: 3000, hitIntervalMs: 300, lightLength: 2.08, lightWidth: 3.6, lightBaseWidth: 0.35 },
+    base: { damage: 0.6, cooldown: 8000, lastFired: 0, durationMs: 3000, hitIntervalMs: 300, lightLength: 2.08, lightWidth: 3.6, lightBaseWidth: 0.35, critChance: 0.03 },
     unlockConditions: [
       { type: 'stage1Clears', value: 1 },
       { type: 'totalRuns', value: 5 },

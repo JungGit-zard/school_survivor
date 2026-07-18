@@ -76,6 +76,8 @@ export function TumblerOrbit() {
         knockback: 3.0,
         knockbackMs: 220,
         source: { x: playerPos.x, z: playerPos.z },
+        critChance: w.critChance,
+        critMultiplier: w.critMultiplier,
       })
       emitSfx({
         id: 'tumblerHit',

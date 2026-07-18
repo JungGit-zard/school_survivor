@@ -43,7 +43,7 @@ export function PencilModel() {
   )
 }
 
-function Projectile({ id, position, yaw, damage, speed, pierce, target, onExpire }) {
+function Projectile({ id, position, yaw, damage, speed, pierce, target, critChance, critMultiplier, onExpire }) {
   const rb = useRef()
   const visualRef = useRef()
   const hitsLeftRef = useRef(pierce ?? 1)    // pierce=N: N명까지 관통
@@ -56,7 +56,7 @@ function Projectile({ id, position, yaw, damage, speed, pierce, target, onExpire
     const eid = enemyRb._enemyId
     if (hitEnemyIds.current.has(eid)) return false
     hitEnemyIds.current.add(eid)
-    enemyRb._enemyHit(damage)
+    enemyRb._enemyHit(damage, { critChance, critMultiplier })
     emitSfx({
       id: 'pencilHit',
       volume: 0.48 + Math.random() * 0.12,
@@ -170,6 +170,8 @@ export function PencilThrow() {
           speed: w.speed,
           pierce: w.pierce ?? 1,
           target,
+          critChance: w.critChance,
+          critMultiplier: w.critMultiplier,
         }
       })
       activeProjectilesRef.current = next

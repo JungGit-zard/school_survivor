@@ -27,7 +27,7 @@ describe('area weapon sound lifecycle', () => {
     const compass = source('CompassBlade')
 
     expect(compass).toMatch(/useEffect\(\(\) => \{[\s\S]*?!wasActiveRef\.current[\s\S]*?emitSfx\(\{ id: 'compassFire' \}\)/)
-    expect(compass).toMatch(/rb\._enemyHit\(w\.damage\)\s*emitSfx\(\{ id: 'compassFire', volume: 0\.18 \}\)/)
+    expect(compass).toMatch(/rb\._enemyHit\(w\.damage, \{ critChance: w\.critChance, critMultiplier: w\.critMultiplier \}\)\s*emitSfx\(\{ id: 'compassFire', volume: 0\.18 \}\)/)
     expect(compass).toContain("emitSfx({ id: 'compassHit' })")
   })
 })

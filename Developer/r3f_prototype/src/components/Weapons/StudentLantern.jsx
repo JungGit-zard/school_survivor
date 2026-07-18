@@ -167,6 +167,8 @@ export function StudentLanternWeapon() {
         originX: playerPos.x, originZ: playerPos.z,
         dirX: playerFacing.x, dirZ: playerFacing.z,
         length, width, baseWidth, damage: w.damage ?? 0.6,
+        critChance: w.critChance,
+        critMultiplier: w.critMultiplier,
       })
       if (hits > 0) {
         emitSfx({

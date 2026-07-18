@@ -118,7 +118,7 @@ function OnigiriBurst({ id, x, z, startMs, onDone }) {
   )
 }
 
-function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, bounceRange, onDone, onBurst }) {
+function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, bounceRange, critChance, critMultiplier, onDone, onBurst }) {
   const groupRef   = useRef()
   const posRef     = useRef({ x: start[0], y: start[1] + 0.25, z: start[2] })
   const targetRef  = useRef(initialTarget)
@@ -159,6 +159,8 @@ function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, boun
       target.rb._enemyHit(damage, {
         source: { x: p.x, z: p.z },
         knockback: 3.2, knockbackMs: 90,
+        critChance,
+        critMultiplier,
       })
       emitSfx({
         id: 'onigiriHit',
@@ -242,6 +244,8 @@ export function OnigiiriWeapon() {
       maxBounces:    w.bounces ?? 2,
       damage:        w.damage,
       bounceRange:   w.bounceRange ?? 4.5,
+      critChance:    w.critChance,
+      critMultiplier: w.critMultiplier,
     }
     projRef.current = [p]
     setProjectiles([p])

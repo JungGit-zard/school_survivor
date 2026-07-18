@@ -120,7 +120,7 @@ export function StrikeVisual({ x, z, age }) {
   )
 }
 
-function StrikeWrapper({ id, x, z, damage, radius, onDone }) {
+function StrikeWrapper({ id, x, z, damage, radius, critChance, critMultiplier, onDone }) {
   const ageRef = useRef(0)
   const damageDealtRef = useRef(false)
   const [, force] = useState(0)
@@ -135,7 +135,7 @@ function StrikeWrapper({ id, x, z, damage, radius, onDone }) {
     // strike가 떨어진 직후(t≈0.3-0.5 구간)에 1회 데미지 적용.
     if (!damageDealtRef.current && ageRef.current >= STRIKE_DURATION_MS * 0.3) {
       damageDealtRef.current = true
-      const hitCount = applyRadialDamage({ x, z, radius, damage, knockback: 1.4, knockbackMs: 80 })
+      const hitCount = applyRadialDamage({ x, z, radius, damage, knockback: 1.4, knockbackMs: 80, critChance, critMultiplier })
       if (hitCount > 0) emitSfx({ id: 'starlinkHit' })
     }
 
@@ -190,6 +190,8 @@ export function StarlinkWeapon() {
       z: t.z,
       damage: w.damage,
       radius: w.strikeRadius ?? 1.2,
+      critChance: w.critChance,
+      critMultiplier: w.critMultiplier,
     }))
     activeStrikesRef.current = [...activeStrikesRef.current, ...nextStrikes]
     setStrikes([...activeStrikesRef.current])
