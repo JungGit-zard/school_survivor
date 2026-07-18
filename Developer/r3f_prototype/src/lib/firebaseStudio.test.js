@@ -15,6 +15,7 @@ import {
   requestFirebaseStudioSave,
   saveFirebaseStudio,
   setFirebaseStudioUser,
+  subscribeStudioStorageSync,
 } from './firebaseStudio.js'
 import {
   GRAPHICS_STUDIO_STORAGE_KEY,
@@ -617,5 +618,66 @@ describe('Firebase Graphics Studio persistence', () => {
     seedLocal()
     expect(applyFirebaseStudioSnapshot(remoteSnapshot())).toBe(true)
     expect(loadStudioTunings().player.scale).toBe(1.82)
+  })
+})
+
+describe('subscribeStudioStorageSync', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    resetStagePropPlacementsCache()
+    setFirebaseStudioUser(null)
+  })
+
+  it('re-emits dataset events when another tab writes a studio key', () => {
+    seedLocal()
+    const tuningEvents = []
+    const listener = (event) => tuningEvents.push(event.detail)
+    window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, listener)
+    const unsubscribe = subscribeStudioStorageSync()
+    try {
+      window.dispatchEvent(new StorageEvent('storage', { key: GRAPHICS_STUDIO_STORAGE_KEY }))
+    } finally {
+      unsubscribe()
+      window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT, listener)
+    }
+
+    expect(tuningEvents).toHaveLength(1)
+    expect(tuningEvents[0].player.scale).toBe(1.37)
+  })
+
+  it('re-emits on a full storage clear (key === null) but ignores unrelated keys', () => {
+    seedLocal()
+    const tuningEvents = []
+    const listener = (event) => tuningEvents.push(event.detail)
+    window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, listener)
+    const unsubscribe = subscribeStudioStorageSync()
+    try {
+      window.dispatchEvent(new StorageEvent('storage', { key: 'some-unrelated-key' }))
+      expect(tuningEvents).toHaveLength(0)
+
+      window.dispatchEvent(new StorageEvent('storage', { key: null }))
+      expect(tuningEvents).toHaveLength(1)
+    } finally {
+      unsubscribe()
+      window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT, listener)
+    }
+
+    expect(tuningEvents).toHaveLength(1)
+  })
+
+  it('stops re-emitting after the returned cleanup runs', () => {
+    seedLocal()
+    const tuningEvents = []
+    const listener = (event) => tuningEvents.push(event.detail)
+    window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, listener)
+    const unsubscribe = subscribeStudioStorageSync()
+    unsubscribe()
+    try {
+      window.dispatchEvent(new StorageEvent('storage', { key: GRAPHICS_STUDIO_STORAGE_KEY }))
+    } finally {
+      window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT, listener)
+    }
+
+    expect(tuningEvents).toHaveLength(0)
   })
 })

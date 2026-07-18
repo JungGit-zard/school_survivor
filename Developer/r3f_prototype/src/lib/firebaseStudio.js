@@ -440,6 +440,28 @@ function emitRestoredStudioDatasets() {
   }
 }
 
+const STUDIO_STORAGE_SYNC_KEYS = new Set([
+  GRAPHICS_STUDIO_STORAGE_KEY,
+  SFX_TUNING_STORAGE_KEY,
+  STAGE_BOSS_PREVIEW_STORAGE_KEY,
+  TEXTURE_DECALS_STORAGE_KEY,
+  STAGE_PROP_PLACEMENTS_STORAGE_KEY,
+])
+
+export function subscribeStudioStorageSync() {
+  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') {
+    return () => {}
+  }
+  const handler = (event) => {
+    // event.key === null: storage.clear(). Otherwise only react to our datasets.
+    if (event.key !== null && !STUDIO_STORAGE_SYNC_KEYS.has(event.key)) return
+    resetStagePropPlacementsCache()
+    emitRestoredStudioDatasets()
+  }
+  window.addEventListener('storage', handler)
+  return () => window.removeEventListener('storage', handler)
+}
+
 function isFutureSchema(value) {
   return Number.isInteger(value?.schemaVersion)
     && value.schemaVersion > FIREBASE_STUDIO_SCHEMA_VERSION

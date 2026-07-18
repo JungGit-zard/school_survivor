@@ -7,7 +7,7 @@ import SfxLayer from './components/SfxLayer.jsx'
 import { initPlaytestLogger } from './lib/playtestLogger.js'
 import { isMobileJoystickEnvironment } from './lib/mobileInput.js'
 import { initKeyboardInput } from './lib/keyboardInput.js'
-import { applyLocalStudioDatasets } from './lib/firebaseStudio.js'
+import { applyLocalStudioDatasets, subscribeStudioStorageSync } from './lib/firebaseStudio.js'
 import { STUDIO_GAME_SYNC_MESSAGE, isAllowedStudioGameOrigin } from './lib/studioGameBridge.js'
 
 const AdminPage = lazy(() => import('./components/AdminPage.jsx'))
@@ -37,6 +37,9 @@ export function handleStudioGameSyncMessage(event) {
 
 if (typeof window !== 'undefined') {
   window.addEventListener('message', handleStudioGameSyncMessage)
+  // 같은 origin의 다른 탭(직접 연 실게임 탭 포함)에서 스튜디오가 localStorage를
+  // 갱신하면 storage 이벤트로 데이터셋을 다시 읽어 라이브 반영한다.
+  subscribeStudioStorageSync()
 }
 
 export default function App() {
