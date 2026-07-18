@@ -500,13 +500,6 @@ function B04ChefBossMesh({ hitFlash, reg }) {
         <ZBlock name="chefHead" size={[0.66, 0.48, 0.52]} position={[0, 0, 0]} color={pal.skin} emissive={0.07} outlineScale={1.08} flash={hitFlash} />
         <ZBlock name="chefEarL" size={[0.13, 0.22, 0.16]} position={[-0.39, -0.01, 0]} color={pal.skinShadow} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
         <ZBlock name="chefEarR" size={[0.13, 0.22, 0.16]} position={[0.39, -0.01, 0]} color={pal.skinShadow} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
-        <ZBlock name="chefEyeL" size={[0.13, 0.11, 0.055]} position={[-0.15, 0.06, 0.285]} color={pal.eye} emissive={0.02} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock name="chefEyeR" size={[0.13, 0.11, 0.055]} position={[0.15, 0.06, 0.285]} color={pal.eye} emissive={0.02} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock name="chefNose" size={[0.13, 0.16, 0.14]} position={[0, -0.035, 0.32]} color={pal.skinShadow} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
-        <ZBlock name="chefMouth" size={[0.32, 0.18, 0.075]} position={[0, -0.17, 0.30]} color={pal.mouth} emissive={0.04} outlineScale={1.01} flash={hitFlash} />
-        <ZBlock name="chefUpperTeeth" size={[0.24, 0.055, 0.045]} position={[0, -0.115, 0.345]} color={pal.teeth} emissive={0.05} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock name="chefLowerTeeth" size={[0.20, 0.05, 0.045]} position={[0, -0.225, 0.345]} color={pal.teeth} emissive={0.05} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock name="chefTongue" size={[0.15, 0.06, 0.045]} position={[0.04, -0.18, 0.352]} color={pal.tongue} emissive={0.08} outlineScale={1.0} flash={hitFlash} />
       </group>
 
       <group name="chefBodyRig" ref={reg('body')} position={[0, 0.37, 0]}>

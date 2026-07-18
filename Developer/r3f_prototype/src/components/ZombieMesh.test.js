@@ -174,8 +174,14 @@ describe('Stage 4 chef zombie boss', () => {
     expect(chefSource.match(/pal\.chefWhite/g)?.length).toBeGreaterThanOrEqual(10)
     expect(chefSource.match(/pal\.button/g)).toHaveLength(4)
     expect(chefSource.match(/pal\.neckerchief/g)).toHaveLength(4)
-    expect(chefSource.match(/pal\.teeth/g)).toHaveLength(2)
     expect(chefSource.match(/ref=\{reg\('(head|armL|armR|legL|legR)'\)\}/g)).toHaveLength(5)
+    expect(chefSource).not.toContain('name="chefEyeL"')
+    expect(chefSource).not.toContain('name="chefEyeR"')
+    expect(chefSource).not.toContain('name="chefNose"')
+    expect(chefSource).not.toContain('name="chefMouth"')
+    expect(chefSource).not.toContain('name="chefUpperTeeth"')
+    expect(chefSource).not.toContain('name="chefLowerTeeth"')
+    expect(chefSource).not.toContain('name="chefTongue"')
   })
 
   it('uses the B04 Studio wrapper and numeric scene-tree paths only', () => {
@@ -198,7 +204,7 @@ describe('Stage 4 chef zombie boss', () => {
     const blockNames = blockTags.map((tag) => tag.match(/name="([^"]+)"/)?.[1])
     const groupNames = [...(chefSource?.matchAll(/<group name="([^"]+)"/g) ?? [])].map((match) => match[1])
 
-    expect(blockTags).toHaveLength(51)
+    expect(blockTags).toHaveLength(44)
     expect(blockNames.every(Boolean)).toBe(true)
     expect(new Set(blockNames).size).toBe(blockNames.length)
     expect(groupNames).toHaveLength(11)
@@ -208,7 +214,6 @@ describe('Stage 4 chef zombie boss', () => {
       'chefHatBand',
       'chefHatLobeCenter',
       'chefHead',
-      'chefEyeL',
       'chefButtonUpperL',
       'chefFistL',
       'chefApronPanel',
