@@ -3,6 +3,7 @@ import { useFrame, useLoader } from '@react-three/fiber'
 import * as THREE from 'three'
 import { inflateScale, getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat } from '../lib/toon.js'
 import { getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
+import boss01FaceUrl from '../assets/faces/b01_math_teacher_face.webp'
 import boss02FaceUrl from '../assets/faces/b02_stage2_boss_face.webp'
 import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.webp'
 import MatildaMesh from './MatildaMesh.jsx'
@@ -44,7 +45,7 @@ export const B01_BOSS_VISUAL_PALETTE = {
 export const B01_BOSS_VISUAL_PARTS = [
   'blockHead',
   'raggedHair',
-  'simplifiedFace',
+  'faceTexture',
   'suitJacket',
   'whiteShirt',
   'redTie',
@@ -54,15 +55,11 @@ export const B01_BOSS_VISUAL_PARTS = [
   'raggedTears',
 ]
 
-export const B01_BOSS_FACE_LAYOUT = {
-  leftEye: { size: [0.12, 0.09, 0.035], position: [-0.14, 0.05, 0.265], color: 'dark' },
-  rightEye: { size: [0.14, 0.105, 0.035], position: [0.14, 0.05, 0.265], color: 'light' },
-  rightPupil: { size: [0.045, 0.045, 0.02], position: [0.14, 0.045, 0.292] },
-  leftBrow: { size: [0.18, 0.055, 0.035], position: [-0.14, 0.14, 0.292], rotation: [0, 0, -0.14] },
-  rightBrow: { size: [0.2, 0.055, 0.035], position: [0.14, 0.15, 0.292], rotation: [0, 0, 0.12] },
-  mouth: { size: [0.18, 0.105, 0.04], position: [0.01, -0.16, 0.27] },
-  tooth: { size: [0.055, 0.04, 0.035], position: [-0.005, -0.125, 0.295] },
-  cheekShadow: { size: [0.07, 0.16, 0.035], position: [0.275, -0.02, 0.20] },
+export const B01_BOSS_FACE = {
+  size: [0.58, 0.50],
+  position: [0, 0, 0.251],
+  repeat: [1, 1],
+  offset: [0, 0],
 }
 
 export const B01_MATH_SET_SQUARE_LAYOUT = {
@@ -331,23 +328,31 @@ function B01MathSetSquare({ hitFlash }) {
   )
 }
 
+function B01MathTeacherFaceTexture() {
+  const texture = useLoader(THREE.TextureLoader, boss01FaceUrl)
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.anisotropy = 4
+  texture.repeat.set(...B01_BOSS_FACE.repeat)
+  texture.offset.set(...B01_BOSS_FACE.offset)
+
+  return (
+    <mesh name="b01MathTeacherFaceTexture" position={B01_BOSS_FACE.position} renderOrder={4} userData={{ studioNonFocusable: true }}>
+      <planeGeometry args={B01_BOSS_FACE.size} />
+      <meshBasicMaterial map={texture} transparent toneMapped={false} depthTest={false} depthWrite={false} />
+    </mesh>
+  )
+}
+
 function B01BossZombieMesh({ hitFlash, reg }) {
   const pal = B01_BOSS_VISUAL_PALETTE
-  const face = B01_BOSS_FACE_LAYOUT
 
   return (
     <group>
       <group ref={reg('head')} position={[0, 0.88, 0]}>
         <ZBlock size={[0.58, 0.50, 0.48]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash} />
         <ZBlock size={[0.60, 0.18, 0.46]} position={[-0.02, 0.25, -0.02]} rotation={[0.06, 0, -0.08]} color={pal.hair} emissive={0.04} outlineScale={1.06} flash={hitFlash} />
-        <ZBlock size={face.leftBrow.size} position={face.leftBrow.position} rotation={face.leftBrow.rotation} color={pal.hair} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock size={face.rightBrow.size} position={face.rightBrow.position} rotation={face.rightBrow.rotation} color={pal.hair} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock size={face.leftEye.size} position={face.leftEye.position} color={pal.pupil} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock size={face.rightEye.size} position={face.rightEye.position} color={pal.eye} emissive={0.18} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock size={face.rightPupil.size} position={face.rightPupil.position} color={pal.pupil} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock size={face.mouth.size} position={face.mouth.position} color={pal.mouth} emissive={0.08} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock size={face.tooth.size} position={face.tooth.position} color={pal.teeth} emissive={0.05} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock size={face.cheekShadow.size} position={face.cheekShadow.position} color={pal.skinShadow} emissive={0.035} outlineScale={1.0} flash={hitFlash} />
+        {/* 눈·눈썹·입·치아·볼 그림자 등 모델링 이목구비 대신 사용자 제공 수학선생 얼굴 텍스처 데칼 사용 */}
+        <B01MathTeacherFaceTexture />
       </group>
 
       <group ref={reg('body')} position={[0, 0.26, 0]}>

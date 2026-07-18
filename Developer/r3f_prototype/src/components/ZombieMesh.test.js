@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { ENEMY_STATS } from './Enemy.jsx'
-import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_STAGE2_BOSS_FACE, B02_STAGE2_BOSS_PALETTE, B02_STAGE2_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS, B04_CHEF_PALETTE, B04_CHEF_PARTS, RUN_ZOMBIE_VISUAL, ZOMBIE_PALETTE } from './ZombieMesh.jsx'
+import { B01_BOSS_FACE, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_STAGE2_BOSS_FACE, B02_STAGE2_BOSS_PALETTE, B02_STAGE2_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS, B04_CHEF_PALETTE, B04_CHEF_PARTS, RUN_ZOMBIE_VISUAL, ZOMBIE_PALETTE } from './ZombieMesh.jsx'
 import { GRAPHICS_STUDIO_CATALOG, getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
 
 const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
@@ -27,7 +27,7 @@ describe('Stage 1 boss visual reference', () => {
     expect(B01_BOSS_VISUAL_PARTS).toEqual([
       'blockHead',
       'raggedHair',
-      'simplifiedFace',
+      'faceTexture',
       'suitJacket',
       'whiteShirt',
       'redTie',
@@ -38,20 +38,27 @@ describe('Stage 1 boss visual reference', () => {
     ])
   })
 
-  it('keeps the restored B01 face simple and readable', () => {
-    expect(B01_BOSS_FACE_LAYOUT).toEqual({
-      leftEye: { size: [0.12, 0.09, 0.035], position: [-0.14, 0.05, 0.265], color: 'dark' },
-      rightEye: { size: [0.14, 0.105, 0.035], position: [0.14, 0.05, 0.265], color: 'light' },
-      rightPupil: { size: [0.045, 0.045, 0.02], position: [0.14, 0.045, 0.292] },
-      leftBrow: { size: [0.18, 0.055, 0.035], position: [-0.14, 0.14, 0.292], rotation: [0, 0, -0.14] },
-      rightBrow: { size: [0.2, 0.055, 0.035], position: [0.14, 0.15, 0.292], rotation: [0, 0, 0.12] },
-      mouth: { size: [0.18, 0.105, 0.04], position: [0.01, -0.16, 0.27] },
-      tooth: { size: [0.055, 0.04, 0.035], position: [-0.005, -0.125, 0.295] },
-      cheekShadow: { size: [0.07, 0.16, 0.035], position: [0.275, -0.02, 0.20] },
+  it('replaces the modeled B01 math-teacher face parts with the supplied face texture decal', () => {
+    expect(B01_BOSS_FACE).toEqual({
+      size: [0.58, 0.50],
+      position: [0, 0, 0.251],
+      repeat: [1, 1],
+      offset: [0, 0],
     })
 
-    expect(B01_BOSS_FACE_LAYOUT.leftBrow.position[1]).toBeGreaterThan(B01_BOSS_FACE_LAYOUT.leftEye.position[1])
-    expect(B01_BOSS_FACE_LAYOUT.rightBrow.position[1]).toBeGreaterThan(B01_BOSS_FACE_LAYOUT.rightEye.position[1])
+    expect(zombieMeshSource).toContain("import boss01FaceUrl from '../assets/faces/b01_math_teacher_face.webp'")
+    expect(zombieMeshSource).toContain('function B01MathTeacherFaceTexture')
+    expect(zombieMeshSource).toContain('<B01MathTeacherFaceTexture />')
+    expect(zombieMeshSource).toContain('THREE.SRGBColorSpace')
+    expect(zombieMeshSource).not.toContain('B01_BOSS_FACE_LAYOUT')
+    expect(zombieMeshSource).not.toContain('face.leftBrow')
+    expect(zombieMeshSource).not.toContain('face.rightBrow')
+    expect(zombieMeshSource).not.toContain('face.leftEye')
+    expect(zombieMeshSource).not.toContain('face.rightEye')
+    expect(zombieMeshSource).not.toContain('face.rightPupil')
+    expect(zombieMeshSource).not.toContain('face.mouth')
+    expect(zombieMeshSource).not.toContain('face.tooth')
+    expect(zombieMeshSource).not.toContain('face.cheekShadow')
   })
 
   it('keeps the original B01 model separate from the PE teacher model', () => {
