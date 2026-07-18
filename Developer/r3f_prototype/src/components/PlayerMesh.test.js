@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { PLAYER_MESH_LAYOUT } from './PlayerMesh.jsx'
+import { PLAYER_MESH_LAYOUT, getPlayerBreathScaleY } from './PlayerMesh.jsx'
 
 describe('PlayerMesh layout', () => {
   it('keeps the player head connected to the torso during idle and walk bobbing', () => {
@@ -109,5 +109,35 @@ describe('PlayerMesh layout', () => {
     expect(source).toContain('captureStudioPartBaseTransform(el)')
     expect(source).not.toContain('parts.head.position.y = baseY + bob')
     expect(source).not.toContain('parts.legL.rotation.x = sw')
+  })
+})
+
+describe('player breathing idle', () => {
+  it('breathes with a subtle bounded amplitude and returns to rest each cycle', () => {
+    const samples = []
+    for (let i = 0; i <= 40; i++) samples.push(getPlayerBreathScaleY(i * 0.13, 1, false))
+    const max = Math.max(...samples)
+    const min = Math.min(...samples)
+    expect(max).toBeGreaterThan(1.0)
+    expect(max).toBeLessThanOrEqual(1.04)
+    expect(min).toBeGreaterThanOrEqual(0.96)
+    expect(min).toBeLessThan(1.0)
+    expect(getPlayerBreathScaleY(0, 1, false)).toBeCloseTo(1, 5)
+  })
+
+  it('scales amplitude down with idle weight so walking suppresses breathing', () => {
+    const tPeak = 2.6 / 4
+    const full = getPlayerBreathScaleY(tPeak, 1, false) - 1
+    const half = getPlayerBreathScaleY(tPeak, 0.5, false) - 1
+    const walking = getPlayerBreathScaleY(tPeak, 0, false) - 1
+    expect(full).toBeGreaterThan(0)
+    expect(half).toBeCloseTo(full * 0.5, 6)
+    expect(walking).toBeCloseTo(0, 6)
+  })
+
+  it('freezes at rest pose in frozen studio mode', () => {
+    for (let i = 0; i < 10; i++) {
+      expect(getPlayerBreathScaleY(i * 0.37, 1, true)).toBe(1)
+    }
   })
 })

@@ -68,6 +68,15 @@ export const PLAYER_MESH_LAYOUT = {
   },
 }
 
+// 호흡 아이들: 가슴 그룹 scaleY를 은은한 사인파로 미세 팽창. 걷는 동안 자동 감쇠, frozen(스튜디오 정적 편집) 시 정지.
+const PLAYER_BREATH_PERIOD_S = 2.6
+const PLAYER_BREATH_SCALE_AMP = 0.025
+export function getPlayerBreathScaleY(t, idleWeight = 1, frozen = false) {
+  if (frozen) return 1
+  const w = Math.max(0, Math.min(1, idleWeight))
+  return 1 + Math.sin((t / PLAYER_BREATH_PERIOD_S) * Math.PI * 2) * PLAYER_BREATH_SCALE_AMP * w
+}
+
 function Block({ size, position, rotation, color, emissive = 0.14 }) {
   const mat = useMemo(() => toonMat(color, emissive), [color, emissive])
   const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
@@ -105,7 +114,6 @@ function PlayerLanternLight() {
 function PlayerOuterOutline() {
   return (
     <group>
-      <OutlineBlock size={[1.04, 0.94, 0.62]} position={[0, 0.35, 0]} />
       <OutlineBlock size={PLAYER_MESH_LAYOUT.outline.headSize} position={PLAYER_MESH_LAYOUT.outline.headPosition} />
       <OutlineBlock size={[0.24, 1.05, 0.30]} position={[-0.68, 0.32, 0]} scale={1.07} />
       <OutlineBlock size={[0.24, 1.05, 0.30]} position={[0.68, 0.32, 0]} scale={1.07} />
@@ -146,8 +154,9 @@ function setPlayerBodyFlash(root, flashMat, active) {
   })
 }
 
-export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null }) {
+export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null, frozen = false }) {
   const rootRef = useRef()
+  const chestRef = useRef()
   const p = useRef({})
   const blend = useRef(0)
   const lastHitFlashToken = useRef(hitFlashToken)
@@ -248,6 +257,7 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
       parts.eyeL.position.y = composeStudioPartPosition(parts.eyeL, 'y', baseY - 0.08, bob)
       parts.eyeR.position.y = composeStudioPartPosition(parts.eyeR, 'y', baseY - 0.08, bob)
     }
+    if (chestRef.current) chestRef.current.scale.y = getPlayerBreathScaleY(t, 1 - b, frozen)
   })
 
   return (
@@ -266,9 +276,12 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
 
       <PlayerOuterOutline />
 
-      <Block size={PLAYER_MESH_LAYOUT.body.size} position={PLAYER_MESH_LAYOUT.body.position} color={0xd42020} emissive={0.2} />
-      <Block size={[0.38, 0.18, 0.12]} position={[0, 0.82, 0.32]} color={0xf4f4f4} emissive={0.08} />
-      <Block size={[0.8, 0.13, 0.5]} position={[0, 0.1, 0]} color={0xffd100} emissive={0.26} />
+      <group ref={chestRef}>
+        <OutlineBlock size={[1.04, 0.94, 0.62]} position={[0, 0.35, 0]} />
+        <Block size={PLAYER_MESH_LAYOUT.body.size} position={PLAYER_MESH_LAYOUT.body.position} color={0xd42020} emissive={0.2} />
+        <Block size={[0.38, 0.18, 0.12]} position={[0, 0.82, 0.32]} color={0xf4f4f4} emissive={0.08} />
+        <Block size={[0.8, 0.13, 0.5]} position={[0, 0.1, 0]} color={0xffd100} emissive={0.26} />
+      </group>
 
       <Block size={[0.94, 0.36, 0.56]} position={[0, -0.16, 0]} color={0x4a90d9} emissive={0.18} />
 
