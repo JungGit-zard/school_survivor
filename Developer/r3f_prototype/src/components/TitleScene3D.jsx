@@ -16,7 +16,7 @@ import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatel
 const TITLE_PLAYER_TARGET = [0.48, 0.08]
 export const TITLE_BOARD_BACK_LIMIT_Z = -4.62
 const TITLE_CHARACTER_STENCIL_REF = 2
-const TITLE_OUTLINE_SCALE_BOOST = 1.12
+const TITLE_OUTLINE_SCALE_BOOST = 1.02
 const TITLE_MATERIAL_CACHE_KEY = 'titleCharacterMaterials'
 const TITLE_OUTLINE_STATE_KEY = 'titleCharacterOutline'
 const CLUB_LIGHT_BEAMS = [

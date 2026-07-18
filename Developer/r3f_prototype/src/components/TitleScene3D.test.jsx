@@ -279,9 +279,9 @@ describe('TitleScene3D direction', () => {
     expect(outline.material.color.getHex()).toBe(0x000000)
     expect(outline.material.opacity).toBe(1)
     expect(outline.material.transparent).toBe(false)
-    expect(outline.scale.x).toBeCloseTo(outlineBaseScale.x * 1.12)
-    expect(outline.scale.y).toBeCloseTo(outlineBaseScale.y * 1.12)
-    expect(outline.scale.z).toBeCloseTo(outlineBaseScale.z * 1.12)
+    expect(outline.scale.x).toBeCloseTo(outlineBaseScale.x * 1.02)
+    expect(outline.scale.y).toBeCloseTo(outlineBaseScale.y * 1.02)
+    expect(outline.scale.z).toBeCloseTo(outlineBaseScale.z * 1.02)
     expect(fill.scale.equals(fillBaseScale)).toBe(true)
 
     const appliedScale = outline.scale.clone()
@@ -341,7 +341,7 @@ describe('TitleScene3D direction', () => {
     expect(fill.material).not.toBe(fillSource)
     expect(fillTwin.material).toBe(fill.material)
     expect(fill.material.stencilRef).toBe(2)
-    expect(outline.scale.x).toBeCloseTo(baseScale.x * 1.12)
+    expect(outline.scale.x).toBeCloseTo(baseScale.x * 1.02)
   })
 
   it('keeps player part transforms and non-outline fills after the title Apply pass', () => {
