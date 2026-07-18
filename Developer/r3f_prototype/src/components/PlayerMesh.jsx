@@ -26,6 +26,7 @@ const PLAYER_LANTERN_HANDLE_SIZE = [0.24, 0.06, 0.11]
 const PLAYER_LANTERN_LIGHT_LENGTH = 2.08 / 3 / PLAYER_MESH_SCALE
 const PLAYER_LANTERN_LIGHT_RADIUS = 1.8 / 3 / PLAYER_MESH_SCALE
 const PLAYER_LANTERN_LENS_Y = -0.36
+export const PLAYER_STENCIL_REF = 3
 // 발바닥(로컬 y≈-1.30 × PLAYER_MESH_SCALE)이 바닥면 y=0에 정확히 닿도록 메시 전체를 올린다.
 // = -RigidBody높이(0.32) + PLAYER_MESH_SCALE(0.2664) × 발바닥깊이(1.30)
 const PLAYER_FLOOR_LIFT = 0.0263
@@ -68,8 +69,16 @@ export const PLAYER_MESH_LAYOUT = {
   },
 }
 
+function usePlayerStencilMaterial(createMaterial, dependencies) {
+  return useMemo(() => {
+    const material = createMaterial()
+    material.stencilRef = PLAYER_STENCIL_REF
+    return material
+  }, dependencies)
+}
+
 function Block({ size, position, rotation, color, emissive = 0.14 }) {
-  const mat = useMemo(() => toonMat(color, emissive), [color, emissive])
+  const mat = usePlayerStencilMaterial(() => toonMat(color, emissive), [color, emissive])
   const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
 
   return (
@@ -80,7 +89,7 @@ function Block({ size, position, rotation, color, emissive = 0.14 }) {
 }
 
 function OutlineBlock({ size, position, rotation, scale = 1.08 }) {
-  const mat = useMemo(() => outlineMat(0.98), [])
+  const mat = usePlayerStencilMaterial(() => outlineMat(0.98), [])
   const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
   const s = inflateScale(scale)
   return <mesh renderOrder={0} geometry={geo} material={mat} position={position} rotation={rotation} scale={[s, s, s]} />
@@ -152,7 +161,7 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
   const blend = useRef(0)
   const lastHitFlashToken = useRef(hitFlashToken)
   const hitFlashFrames = useRef(0)
-  const hitFlashMat = useMemo(() => toonMat(0xffffff, 1.0), [])
+  const hitFlashMat = usePlayerStencilMaterial(() => toonMat(0xffffff, 1.0), [])
   const shadowMat = useMemo(
     () =>
       new THREE.MeshBasicMaterial({

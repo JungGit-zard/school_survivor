@@ -55,6 +55,18 @@ export function getFirebaseStudioRuntimeGeneration() {
   return runtimeState.generation
 }
 
+export function acknowledgeFirebaseStudioRuntimeRevision(revision) {
+  assertFirebaseStudioRuntimeReady('revision acknowledgement')
+  if (!Number.isInteger(revision) || revision < 0) {
+    throw new TypeError('Firebase Graphics Studio revision must be a non-negative integer.')
+  }
+  runtimeState = {
+    ...runtimeState,
+    revision,
+  }
+  return runtimeState
+}
+
 export function getFirebaseStudioRuntimeDataset(key) {
   assertFirebaseStudioRuntimeReady('read')
   return runtimeState.datasets[key] ?? {}

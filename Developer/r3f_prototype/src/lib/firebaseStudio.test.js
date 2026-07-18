@@ -23,6 +23,7 @@ import { loadSfxTunings } from './sfxRegistry.js'
 import { loadStagePropPlacements } from './stagePropPlacements.js'
 import {
   blockFirebaseStudioRuntime,
+  getFirebaseStudioRuntimeState,
   isFirebaseStudioRuntimeReady,
 } from './studioRuntimeState.js'
 
@@ -129,6 +130,41 @@ describe('Firebase-only Graphics Studio persistence', () => {
     const saved = update(remoteSnapshot())
     expect(saved.datasets.tunings.player.scale).toBe(1.4)
     expect(saved.revision).toBe(8)
+    expect(getFirebaseStudioRuntimeState().revision).toBe(8)
+  })
+
+  it('does not acknowledge a saved revision over a newer unsaved Studio mutation', async () => {
+    let releaseTransaction
+    let notifyTransactionStarted
+    const transactionStarted = new Promise((resolve) => {
+      notifyTransactionStarted = resolve
+    })
+    const transactionGate = new Promise((resolve) => {
+      releaseTransaction = resolve
+    })
+    setFirebaseStudioUser(USER)
+    const client = {
+      load: vi.fn().mockResolvedValue(remoteSnapshot()),
+      transaction: vi.fn(async (_path, update) => {
+        update(remoteSnapshot())
+        notifyTransactionStarted()
+        await transactionGate
+        return { committed: true }
+      }),
+    }
+    await hydrateFirebaseStudio({ user: USER, client })
+
+    saveStudioTunings({ player: { scale: 1.4 } })
+    markFirebaseStudioLocalChange(USER)
+    const savePromise = saveFirebaseStudio({ user: USER, client })
+    await transactionStarted
+    saveStudioTunings({ player: { scale: 1.5 } })
+    markFirebaseStudioLocalChange(USER)
+    releaseTransaction()
+
+    await expect(savePromise).resolves.toEqual({ status: 'saved', revision: 8 })
+    expect(getFirebaseStudioRuntimeState().revision).toBe(7)
+    expect(loadStudioTunings().player.scale).toBe(1.5)
   })
 
   it('builds and validates the exact five-dataset Firebase envelope', () => {

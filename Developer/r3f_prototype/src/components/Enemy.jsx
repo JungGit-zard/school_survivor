@@ -14,8 +14,9 @@ import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
 import { resolveCriticalHit } from '../lib/criticalHits.js'
 import { createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
-import { canE04FireProjectile } from '../lib/stage2ProjectileRules.js'
+import { canE04FireProjectile, getE04IntroSec } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
+import { isBossType } from '../lib/burstEvents.js'
 import { getStageObjectSightObstacles, isStageObjectSightBlocked } from './StageObjects/stageObjectColliders.js'
 import { isPlayerWeaponSightBlocked } from '../lib/weaponTargeting.js'
 import ZombieMesh from './ZombieMesh.jsx'
@@ -157,14 +158,14 @@ export function resetEnemySpawnSfxGateForTest() {
 
 export function getEnemySpawnSfx(type, isMatilda = false) {
   if (isMatilda) return { id: 'matildaSpawn', volume: 0.72 }
-  if (type === 'B01' || type === 'B02' || type === 'B03') return { id: 'bossSpawn', volume: 0.78 }
+  if (isBossType(type)) return { id: 'bossSpawn', volume: 0.78 }
   return { id: 'zombieSpawn', volume: 0.42 }
 }
 
 function emitEnemySpawnSfx(type, isMatilda = false) {
   const now = performance.now()
   const sfx = getEnemySpawnSfx(type, isMatilda)
-  const isBossLike = isMatilda || type === 'B01' || type === 'B02' || type === 'B03'
+  const isBossLike = isMatilda || isBossType(type)
   if (!isBossLike && now - _lastEnemySpawnSfxAt < ENEMY_SPAWN_SFX_COOLDOWN_MS) return
   _lastEnemySpawnSfxAt = now
   emitSfx({ id: sfx.id, volume: sfx.volume })
@@ -220,7 +221,7 @@ export function resolveRangedEnemyVelocity({ dirX, dirZ, dist, minDist, preferDi
 
 function deathSfxId(type, isMatilda) {
   if (isMatilda) return 'matildaDeath'
-  if (type === 'B01' || type === 'B02' || type === 'B03') return 'bossDeath'
+  if (isBossType(type)) return 'bossDeath'
   if (type === 'E06' || type === 'E02') return 'zombieHeavyDeath'
   return 'zombieDeath'
 }
@@ -584,7 +585,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         store.recordKill()
         emitSfx({ id: deathSfxId(type, isMatilda) })
         // 留덊떥?ㅻ뒗 B01 鍮꾩＜?쇱쓣 ?곗?留??대━??泥섎━?섏? ?딅뒗??
-        if ((type === 'B01' || type === 'B02' || type === 'B03') && !isMatilda) {
+        if (isBossType(type) && !isMatilda) {
           store.recordBossKill()
           store.clearStageWithBossBonus()
         }
@@ -736,7 +737,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       const stageConfig = getStageConfig(currentStageId)
       const bossPressureStartSec = stageConfig.bossWarningSec ?? 120
       const bossPressureEndSec = stageConfig.escapePortalSec ?? 150
-      const canFire = (currentStageId === 'stage2' || currentStageId === 'stage3') && canE04FireProjectile({
+      // stage4는 원거리 "안전지대 소멸"이 시그니처라 보스 구간에도 E04 발사를 유지한다(bossPressure 미적용).
+      // 스2/스3의 보스 구간 발사 차단은 그대로.
+      const canFire = (currentStageId === 'stage2' || currentStageId === 'stage3' || currentStageId === 'stage4') && canE04FireProjectile({
         elapsedSec,
         ageMs: now - spawnedAtRef.current,
         activeProjectileCount: type === 'E04' ? getActiveE04ProjectileCount() : projectiles.length,
@@ -744,7 +747,10 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         lastFireElapsedMs: lastFireRef.current,
         nowMs: now,
         cooldownMs: stats.rangedCooldown,
-        bossPressure: elapsedSec >= bossPressureStartSec && elapsedSec < bossPressureEndSec,
+        introSec: getE04IntroSec(currentStageId),
+        bossPressure: currentStageId === 'stage4'
+          ? false
+          : (elapsedSec >= bossPressureStartSec && elapsedSec < bossPressureEndSec),
       })
 
       // ?ъ궗泥?諛쒖궗

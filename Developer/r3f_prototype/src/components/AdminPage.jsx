@@ -7,7 +7,7 @@ import {
   saveAdminConfig,
 } from '../lib/adminConfig.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
-import { getRuntimeBurstEventsForStage, isBossPhase } from '../lib/burstEvents.js'
+import { getRuntimeBurstEventsForStage, isBossPhase, isBossType } from '../lib/burstEvents.js'
 import {
   WAVE_ZOMBIE_TYPES,
   phaseToEditorEntry,
@@ -29,9 +29,8 @@ const ZOMBIE_LABELS = {
   E06: 'E06 거대',
 }
 
-const BOSS_TYPES = ['B01', 'B02', 'B03']
-const isBossType = (type) => BOSS_TYPES.includes(type)
-// 버스트 좀비 라벨: 일반은 ZOMBIE_LABELS 재사용, 보스(B01/B02)는 '보스'.
+// 보스 판별은 burstEvents.isBossType 정본 사용(B01~B04 단일 소스).
+// 버스트 좀비 라벨: 일반은 ZOMBIE_LABELS 재사용, 보스는 '보스'.
 const burstTypeLabel = (type) => (isBossType(type) ? '보스' : (ZOMBIE_LABELS[type] ?? type))
 const formatMinSec = (sec) => `${secToMin(sec)}:${String(secToRemainder(sec)).padStart(2, '0')}`
 

@@ -3,7 +3,10 @@ import {
   BURST_EVENTS,
   STAGE2_BURST_EVENTS,
   STAGE3_BURST_EVENTS,
+  STAGE4_BURST_EVENTS,
   RUN_ZOMBIE_CREW_FORMATION,
+  BOSS_BURST_TYPES,
+  isBossType,
   getBurstEventsForStage,
   getRuntimeBurstEventsForStage,
   getBossSpawnSec,
@@ -94,5 +97,60 @@ describe('stage3 더블 보스 + 형태 버스트 런타임 복원', () => {
     // 112s는 차저 포위(ring), 176s는 거대 앞뒤 벽(pincer)으로 교체됨.
     expect(STAGE3_BURST_EVENTS.find((e) => e.sec === 112)?.formation).toBe('ring')
     expect(STAGE3_BURST_EVENTS.find((e) => e.sec === 176)?.formation).toBe('pincer')
+  })
+})
+
+describe('보스 타입 단일 소스(isBossType) + B04 배선', () => {
+  it('BOSS_BURST_TYPES는 B01~B04를 포함하고 isBossType이 판별한다', () => {
+    expect(BOSS_BURST_TYPES).toEqual(['B01', 'B02', 'B03', 'B04'])
+    expect(isBossType('B04')).toBe(true)
+    expect(isBossType('B01')).toBe(true)
+    expect(isBossType('E04')).toBe(false)
+    expect(isBossType('RZL')).toBe(false)
+  })
+})
+
+describe('stage4 급식실 대탈출 버스트', () => {
+  it('getBurstEventsForStage: stage4는 STAGE4 목록', () => {
+    expect(getBurstEventsForStage('stage4')).toBe(STAGE4_BURST_EVENTS)
+  })
+
+  it('보스 B04@140 count 1 — 보스 등장 시각은 140', () => {
+    const bosses = STAGE4_BURST_EVENTS.filter((e) => isBossType(e.type))
+    expect(bosses).toEqual([{ sec: 140, type: 'B04', count: 1 }])
+    expect(getBossSpawnSec('stage4')).toBe(140)
+  })
+
+  it('isBossPhase(stage4): 140 이후 시작 phase만 보스 구간(경계 포함)', () => {
+    expect(isBossPhase(140, 'stage4')).toBe(true)
+    expect(isBossPhase(139, 'stage4')).toBe(false)
+    expect(isBossPhase(178, 'stage4')).toBe(true)
+  })
+
+  it('조기 등장 보장 버스트: E04@18·E05@30·E06@74', () => {
+    const at = (sec, type) => STAGE4_BURST_EVENTS.some((e) => e.sec === sec && e.type === type && !e.formation)
+    expect(at(18, 'E04')).toBe(true)
+    expect(at(30, 'E05')).toBe(true)
+    expect(at(74, 'E06')).toBe(true)
+  })
+
+  it('런타임 버스트: stage4는 stage3처럼 형태 포함 전 버스트를 발화한다', () => {
+    const runtime = getRuntimeBurstEventsForStage('stage4')
+    expect(runtime).toBe(STAGE4_BURST_EVENTS)
+    expect(runtime.some((e) => e.formation)).toBe(true)
+    expect(runtime.filter((e) => e.type === 'B04')).toHaveLength(1)
+    // 회귀 방지: stage1/stage2는 여전히 보스만 런타임 발화.
+    expect(getRuntimeBurstEventsForStage('stage1')).toEqual([{ sec: 120, type: 'B01', count: 1 }])
+    expect(getRuntimeBurstEventsForStage('stage2')).toEqual([{ sec: 120, type: 'B02', count: 1 }])
+  })
+
+  it('형태 버스트는 개방 맵 안티카이팅(ring/pincer)만 — swarm/gauntlet/RZL 미채용', () => {
+    const formations = STAGE4_BURST_EVENTS.filter((e) => e.formation).map((e) => e.formation)
+    expect(new Set(formations)).toEqual(new Set(['ring', 'pincer']))
+    expect(formations).not.toContain('swarm')
+    expect(formations).not.toContain('gauntlet')
+    expect(formations).not.toContain(RUN_ZOMBIE_CREW_FORMATION)
+    expect(formations.length).toBeGreaterThanOrEqual(3)
+    expect(formations.length).toBeLessThanOrEqual(4)
   })
 })

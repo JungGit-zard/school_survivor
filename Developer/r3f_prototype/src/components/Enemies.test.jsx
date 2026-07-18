@@ -627,6 +627,10 @@ describe('ranged enemy movement', () => {
     expect(source).toContain('registerE04Projectile(projectileId)')
     expect(source).toContain('const bossPressureStartSec = stageConfig.bossWarningSec ?? 120')
     expect(source).toContain('const bossPressureEndSec = stageConfig.escapePortalSec ?? 150')
-    expect(source).toContain('bossPressure: elapsedSec >= bossPressureStartSec && elapsedSec < bossPressureEndSec')
+    // 스2/스3는 보스 구간(bossWarning~escapePortal) E04 발사 억제를 유지한다.
+    expect(source).toContain('(elapsedSec >= bossPressureStartSec && elapsedSec < bossPressureEndSec)')
+    // 스4는 원거리 "안전지대 소멸" 시그니처라 보스 구간에도 발사(bossPressure 미적용).
+    expect(source).toContain("currentStageId === 'stage4'")
+    expect(source).toContain('introSec: getE04IntroSec(currentStageId)')
   })
 })

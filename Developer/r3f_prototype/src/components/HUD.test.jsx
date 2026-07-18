@@ -19,6 +19,7 @@ import { buildLocalPlayerRankingEntry } from '../lib/userRanking.js'
 import { ADMIN_CONFIG_STORAGE_KEY, saveAdminConfig } from '../lib/adminConfig.js'
 import { saveStudioTunings } from '../lib/graphicsStudioConfig.js'
 import { getStageConfig } from '../lib/stageConfig.js'
+import { STAGE4_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { hydrateFirebaseStudio, setFirebaseStudioUser } from '../lib/firebaseStudio.js'
 import { blockFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
@@ -599,6 +600,80 @@ describe('stage clear presentation', () => {
       act(() => {
         root.unmount()
       })
+    }
+  })
+})
+
+describe('stage4 HUD telegraphs', () => {
+  function renderPlayingStage(stageId, elapsedMs, extra = {}) {
+    useGameStore.getState().resetGame(stageId)
+    useGameStore.setState({
+      phase: 'playing',
+      elapsedMs,
+      bossSpawned: false,
+      matildaSpawned: false,
+      ...extra,
+    })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    act(() => {
+      root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+    })
+    return { container, root }
+  }
+
+  it('shows the E04 projectile intro warning at stage4 e04IntroSec', () => {
+    const introSec = getStageConfig('stage4').e04IntroSec
+    expect(introSec).toBe(18)
+    const { container, root } = renderPlayingStage('stage4', (introSec - 1) * 1000)
+    try {
+      expect(container.textContent).toContain('복도 탄환 주의')
+      // 게이트(18s) 도달 이후에는 사라진다.
+      act(() => {
+        useGameStore.setState({ elapsedMs: introSec * 1000 })
+      })
+      expect(container.textContent).not.toContain('복도 탄환 주의')
+    } finally {
+      act(() => { root.unmount() })
+    }
+  })
+
+  it('does NOT show the E04 intro warning on stage3 (hint-only e04IntroSec, avoids false banner)', () => {
+    const introSec = getStageConfig('stage3').e04IntroSec
+    const { container, root } = renderPlayingStage('stage3', (introSec - 1) * 1000)
+    try {
+      expect(container.textContent).not.toContain('복도 탄환 주의')
+    } finally {
+      act(() => { root.unmount() })
+    }
+  })
+
+  it('shows each stage4 formation telegraph label within its lead window', () => {
+    for (const telegraph of STAGE4_SPAWN_TELEGRAPHS) {
+      const elapsedMs = (telegraph.sec - 1) * 1000 // sec-1 은 [sec-leadSec, sec) 구간 내
+      const { container, root } = renderPlayingStage('stage4', elapsedMs)
+      try {
+        expect(container.textContent).toContain(telegraph.label)
+      } finally {
+        act(() => { root.unmount() })
+      }
+    }
+    expect(STAGE4_SPAWN_TELEGRAPHS.length).toBe(4)
+  })
+
+  it('shows the stage4 boss warning starting 3s before bossWarningSec (134s)', () => {
+    const warningSec = getStageConfig('stage4').bossWarningSec
+    expect(warningSec).toBe(134)
+    const { container, root } = renderPlayingStage('stage4', (warningSec - 2) * 1000)
+    try {
+      expect(container.textContent).toContain('보스 출현')
+      // 스폰 시각 도달 후엔 경고를 감춘다.
+      act(() => {
+        useGameStore.setState({ elapsedMs: warningSec * 1000 })
+      })
+      expect(container.textContent).not.toContain('보스 출현')
+    } finally {
+      act(() => { root.unmount() })
     }
   })
 })

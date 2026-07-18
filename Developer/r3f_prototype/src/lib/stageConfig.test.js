@@ -111,10 +111,32 @@ describe('stage configuration registry', () => {
     expect(isStageUnlocked('stage4', { stage3Clears: 1 })).toBe(true)
   })
 
-  it('maps portal progression stage 1 -> stage 2 -> stage 3, then ends', () => {
+  it('maps portal progression stage 1 -> stage 2 -> stage 3, and gates non-playable stage 4', () => {
     expect(getNextStageId('stage1')).toBe('stage2')
     expect(getNextStageId('stage2')).toBe('stage3')
+    // stage4가 playable:false인 동안은 클리어→다음 경로도 막는다.
+    // balanceqa 게이트 통과로 playable 해제 시 이 기대값을 'stage4'로 갱신할 것.
     expect(getNextStageId('stage3')).toBeNull()
+    expect(getNextStageId('stage4')).toBeNull()
+  })
+
+  it('wires Stage 4 cafeteria timing, bounds, and cafeteria-themed milestones (still non-playable)', () => {
+    expect(getStageConfig('stage4')).toMatchObject({
+      bossType: 'B04',
+      bossWarningSec: 134,
+      e04IntroSec: 18,
+      escapePortalSec: 240,
+      matildaWarningSec: 205,
+      matildaSec: 215,
+      playable: false,
+    })
+    // 급식실 맵 경계 12×16(스3 18×18보다 좁음 — 밀도 억제 근거).
+    expect(getStageBounds('stage4')).toMatchObject({ halfX: 12, halfZ: 16 })
+    // 마일스톤 골드 4/6/9/18, atMs 48k/144k/192k/240k, 급식실 테마 라벨.
+    const milestones = getStageConfig('stage4').survivalMilestones
+    expect(milestones.map((m) => m.gold)).toEqual([4, 6, 9, 18])
+    expect(milestones.map((m) => m.atMs)).toEqual([48_000, 144_000, 192_000, 240_000])
+    expect(milestones.every((m) => typeof m.label === 'string' && m.label.length > 0)).toBe(true)
   })
 
   it('keeps Stage 1 classroom vertical length at the 20 percent reduced layout', () => {

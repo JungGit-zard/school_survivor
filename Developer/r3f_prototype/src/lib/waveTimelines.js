@@ -87,9 +87,48 @@ export const STAGE3_WAVE_PHASES = [
   { start: 218, end: 240, target: 22, weights: { E01: 0.46, E02: 0.28, E05: 0.18, E04: 0.08 } },
 ]
 
+// 4분(240초) 타임라인 — 스테이지4 "급식실 대탈출".
+// 시그니처 = 원거리 E04 "안전지대 소멸": 조기 도입(~18s) 후 전 구간 상시 고비중(보스 구간에도 유지).
+// 상승은 마릿수가 아니라 (a) 원거리 지속 압박, (b) 단일 보스 B04(경고 134/등장 140) 스포트라이트에서 온다.
+// 급식실 맵 12×16은 스3(18×18)의 59% 면적 — 실효 밀도가 높아 피크 target을 스3(30) 미만(≤28)으로 억제한다.
+//   (참고 밀도: 스1 34/576·스2 30/576·스3 30/1296 → 스4 28/768 = 스3보다 높고 스1/2보단 낮음. 의도된 중간값.)
+// 타입 지속(persistence) 원칙 계승(스3): 한 번 등장한 타입은 이후 유지, 조기 도입 사슬 E04@18·E05@30·E06@74.
+// 조기 등장 자체는 STAGE4_BURST_EVENTS(E04@18·E05@30·E06@74)가 보장하고, 웨이브 weights는 지속 압박을 담당한다.
+// weights 합 = 1.00. 보스@140 이후 잡몹 target 급감(16~20, 보스 집중), 215~240 탈출 스프린트는 E01 다수.
+export const STAGE4_WAVE_PHASES = [
+  // 0:00–0:12 온보딩 압축(12s) — 러너로 이동 압박 즉시 부여
+  { start:   0, end:  12, target: 18, weights: { E01: 0.80, E03: 0.20 } },
+  // 0:12–0:30 원거리 E04 + 탱커 E02 합류 — "안전지대 소멸" 시작(원거리 축 또렷하게 0.14)
+  { start:  12, end:  30, target: 22, weights: { E01: 0.52, E03: 0.18, E02: 0.16, E04: 0.14 } },
+  // 0:30–0:52 차저 E05 조기 도입 — 4종 동시, 원거리 지속
+  { start:  30, end:  52, target: 24, weights: { E01: 0.40, E03: 0.16, E02: 0.16, E05: 0.14, E04: 0.14 } },
+  // 0:52–1:14 5종 빌드업 — 원거리 고비중 유지
+  { start:  52, end:  74, target: 26, weights: { E01: 0.38, E03: 0.14, E02: 0.18, E05: 0.16, E04: 0.14 } },
+  // 1:14–1:36 거대 E06 조기 도입 — 시그니처 복합 시작
+  { start:  74, end:  96, target: 26, weights: { E01: 0.30, E03: 0.10, E02: 0.20, E05: 0.16, E06: 0.10, E04: 0.14 } },
+  // 1:36–1:52 원거리 스파이크 — 러너 후퇴, E04 비중↑(피크 예열)
+  { start:  96, end: 112, target: 27, weights: { E01: 0.26, E02: 0.22, E05: 0.20, E06: 0.12, E04: 0.20 } },
+  // 1:52–2:08 피크 시작 — 최대 복합(6종). target 28 억제(작은 맵 밀도 상한)
+  { start: 112, end: 128, target: 28, weights: { E01: 0.22, E03: 0.08, E02: 0.22, E05: 0.22, E06: 0.12, E04: 0.14 } },
+  // 2:08–2:20 보스 직전 피크 정점(경고 134) — 차저 비중↑
+  { start: 128, end: 140, target: 28, weights: { E01: 0.20, E03: 0.08, E02: 0.22, E05: 0.24, E06: 0.12, E04: 0.14 } },
+  // ── 주방장 보스 B04@140(burstEvents). isBossPhase는 140에서 파생 ──
+  // 2:20–2:40 보스 구간 1 — 잡몹 target 급감(보스 집중). 원거리 E04만 고비중 유지 = 시그니처(보스 구간 안전지대 없음)
+  { start: 140, end: 160, target: 16, weights: { E01: 0.34, E02: 0.26, E05: 0.18, E04: 0.22 } },
+  // 2:40–3:02 보스 구간 2 — 거대 재투입(pincer E06@178 미조우 방어)
+  { start: 160, end: 182, target: 18, weights: { E01: 0.30, E02: 0.30, E05: 0.20, E06: 0.06, E04: 0.14 } },
+  // 3:02–3:20 보스 구간 3 — 원거리 지속
+  { start: 182, end: 200, target: 20, weights: { E01: 0.36, E02: 0.30, E05: 0.20, E04: 0.14 } },
+  // 3:20–3:35 마틸다 접근(경고 205) — 원거리 감량(가독성)
+  { start: 200, end: 215, target: 18, weights: { E01: 0.46, E02: 0.30, E05: 0.16, E04: 0.08 } },
+  // 3:35–4:00 탈출 스프린트 — E01 다수로 포탈까지, 원거리 경량
+  { start: 215, end: 240, target: 22, weights: { E01: 0.56, E02: 0.24, E05: 0.14, E04: 0.06 } },
+]
+
 export function getDefaultWavePhases(stageId = 'stage1') {
   if (stageId === 'stage2') return STAGE2_WAVE_PHASES
   if (stageId === 'stage3') return STAGE3_WAVE_PHASES
+  if (stageId === 'stage4') return STAGE4_WAVE_PHASES
   return WAVE_PHASES
 }
 
@@ -105,4 +144,13 @@ export const STAGE3_SPAWN_TELEGRAPHS = [
   { sec:  92, leadSec: 2.5, label: '양쪽에서 조여온다' },      // pincer
   { sec: 112, leadSec: 2.5, label: '돌진 무리가 에워싼다' },   // ring (RZL@120 직전 예열)
   { sec: 176, leadSec: 2.5, label: '거대들이 앞뒤를 막는다' }, // pincer (개편: gauntlet→pincer 개방 맵 대응)
+]
+
+// 스테이지4 형태 버스트 예고 배너 정본. stage3처럼 형태 버스트가 런타임에 실제 발화하므로 허위 배너가 아니다.
+// sec/label은 STAGE4_BURST_EVENTS의 formation 항목과 1:1 정렬. 급식실 테마 라벨. HUD 배선은 WP3(uimini).
+export const STAGE4_SPAWN_TELEGRAPHS = [
+  { sec:  40, leadSec: 2.5, label: '배식 줄이 사방을 에워싼다' },   // ring E03
+  { sec:  96, leadSec: 2.5, label: '양쪽 배식구에서 조여온다' },   // pincer E02
+  { sec: 120, leadSec: 2.5, label: '돌진 무리가 식탁을 넘는다' },   // ring E05 (피크 정점)
+  { sec: 178, leadSec: 2.5, label: '거대들이 배식대를 막는다' },   // pincer E06 (보스 구간)
 ]

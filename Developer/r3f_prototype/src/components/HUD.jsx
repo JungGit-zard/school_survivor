@@ -9,7 +9,7 @@ import { buildPlaytestSummary } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { playDialogueVoice, stopDialogueVoice } from '../lib/dialogueVoice.js'
 import { getNextStageId, getStageConfig } from '../lib/stageConfig.js'
-import { STAGE2_SPAWN_TELEGRAPHS, STAGE3_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
+import { STAGE2_SPAWN_TELEGRAPHS, STAGE3_SPAWN_TELEGRAPHS, STAGE4_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import {
   DEFAULT_STUDIO_TUNING,
@@ -548,8 +548,10 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     return Math.max(1, Math.ceil(warningSec - elapsedSec))
   }, [bossSpawned, elapsed, phase, stageConfig.bossWarningSec])
 
+  // stage2/stage4는 e04IntroSec가 E04 실발사 게이트와 일치하므로 허위 경고가 아니다.
+  // stage3은 e04IntroSec(34)이 HUD 힌트용이라 실발사(72)와 어긋나 여기서 제외한다.
   const e04IntroWarning = useMemo(() => {
-    if (currentStageId !== 'stage2' || phase !== 'playing') return null
+    if ((currentStageId !== 'stage2' && currentStageId !== 'stage4') || phase !== 'playing') return null
     const introSec = stageConfig.e04IntroSec ?? 90
     const elapsedSec = elapsed / 1000
     if (elapsedSec < introSec - 3 || elapsedSec >= introSec) return null
@@ -557,14 +559,17 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
   }, [currentStageId, elapsed, phase, stageConfig.e04IntroSec])
 
   // 대형(형태) 버스트 스폰 예고 배너 라벨. stage2는 현재 빈 정본([]),
-  // stage3는 개방 아레나 포위 편대(STAGE3_SPAWN_TELEGRAPHS)를 예고한다.
+  // stage3는 개방 아레나 포위 편대(STAGE3_SPAWN_TELEGRAPHS),
+  // stage4는 급식실 편대(STAGE4_SPAWN_TELEGRAPHS)를 예고한다.
   const formationWarning = useMemo(() => {
     if (phase !== 'playing') return null
-    const telegraphs = currentStageId === 'stage3'
-      ? (STAGE3_SPAWN_TELEGRAPHS ?? [])
-      : currentStageId === 'stage2'
-        ? (STAGE2_SPAWN_TELEGRAPHS ?? [])
-        : []
+    const telegraphs = currentStageId === 'stage4'
+      ? (STAGE4_SPAWN_TELEGRAPHS ?? [])
+      : currentStageId === 'stage3'
+        ? (STAGE3_SPAWN_TELEGRAPHS ?? [])
+        : currentStageId === 'stage2'
+          ? (STAGE2_SPAWN_TELEGRAPHS ?? [])
+          : []
     if (telegraphs.length === 0) return null
     const elapsedSec = elapsed / 1000
     const hit = telegraphs.find(

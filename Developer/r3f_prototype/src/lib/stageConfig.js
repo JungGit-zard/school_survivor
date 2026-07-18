@@ -92,14 +92,31 @@ export const STAGE_CONFIGS = {
     clearRecordKey: 'stage4Clears',
     bestRecordKey: 'stage4BestSurvivalSec',
     bossType: 'B04',
+    // 단일 보스 B04(주방장). 경고는 등장 6초 전.
+    bossWarningSec: 134,
+    // 원거리 E04 조기 도입/발사 게이트(스4 시그니처 "안전지대 소멸"). 실제 발사 게이트도 이 값(Enemy.jsx).
+    e04IntroSec: 18,
+    escapePortalSec: 240,
+    matildaWarningSec: 205,
+    matildaSec: 215,
+    // 급식실 맵 경계(월드 유닛, 중심 0). 프롭은 시각 전용(충돌 없음).
+    mapHalfX: 12,
+    mapHalfZ: 16,
+    // 최종 balanceqa 게이트 후 해제 예정.
     playable: false,
-    survivalMilestones: [],
+    survivalMilestones: [
+      { atMs: 48_000, gold: 4, label: '배식 개시 보너스' },
+      { atMs: 144_000, gold: 6, label: '급식실 돌파 보너스' },
+      { atMs: 192_000, gold: 9, label: '주방장 조우 보너스' },
+      { atMs: 240_000, gold: 18, label: '급식실 탈출 보너스' },
+    ],
   },
 }
 
 const NEXT_STAGE_BY_STAGE = {
   stage1: 'stage2',
   stage2: 'stage3',
+  stage3: 'stage4',
 }
 
 export function getStageConfig(stageId = DEFAULT_STAGE_ID) {
@@ -108,7 +125,10 @@ export function getStageConfig(stageId = DEFAULT_STAGE_ID) {
 }
 
 export function getNextStageId(stageId = DEFAULT_STAGE_ID) {
-  return NEXT_STAGE_BY_STAGE[stageId] ?? null
+  const next = NEXT_STAGE_BY_STAGE[stageId] ?? null
+  // 비플레이어블 스테이지로는 클리어→다음 경로도 진입 금지(로비 카드 게이트와 동일 규칙).
+  if (next && STAGE_CONFIGS[next]?.playable === false) return null
+  return next
 }
 
 export function getStageDurationSec(stageId = DEFAULT_STAGE_ID) {

@@ -15,7 +15,6 @@ import {
   applyTitleCharacterOutline,
   clampTitleBackgroundZ,
   disposeTitleCharacterOutlines,
-  isTitleOutlineStorageEvent,
   prepareTitleCharactersForStudioUpdate,
 } from './TitleScene3D.jsx'
 import { applyStudioTuning } from './StudioTunedGroup.jsx'

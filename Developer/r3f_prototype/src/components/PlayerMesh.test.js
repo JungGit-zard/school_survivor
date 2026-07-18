@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { PLAYER_MESH_LAYOUT } from './PlayerMesh.jsx'
+import { PLAYER_MESH_LAYOUT, PLAYER_STENCIL_REF } from './PlayerMesh.jsx'
 
 describe('PlayerMesh layout', () => {
   it('keeps the player head connected to the torso during idle and walk bobbing', () => {
@@ -11,13 +11,21 @@ describe('PlayerMesh layout', () => {
     expect(headLowestPointAtPeakBob).toBeLessThanOrEqual(bodyTop)
   })
 
-  it('derives animation and outline offsets from the shared head layout', () => {
+  it('derives animation limits and keeps the authored head outline envelope', () => {
     expect(PLAYER_MESH_LAYOUT.motion.maxHeadBobY).toBe(
       Math.max(PLAYER_MESH_LAYOUT.motion.idleBreatheY, PLAYER_MESH_LAYOUT.motion.walkBobY)
     )
-    expect(PLAYER_MESH_LAYOUT.outline.headPosition[1]).toBeCloseTo(
-      PLAYER_MESH_LAYOUT.head.baseY + PLAYER_MESH_LAYOUT.outline.headOffsetY
-    )
+    expect(PLAYER_MESH_LAYOUT.outline.headSize).toEqual([1.08, 1.04, 0.86])
+    expect(PLAYER_MESH_LAYOUT.outline.headPosition).toEqual([0, 1.29, 0.04])
+  })
+
+  it('uses one player-owned stencil layer in Studio, game, and title renders', () => {
+    const source = readFileSync(new URL('./PlayerMesh.jsx', import.meta.url), 'utf8')
+
+    expect(PLAYER_STENCIL_REF).toBe(3)
+    expect(source).toContain('material.stencilRef = PLAYER_STENCIL_REF')
+    expect(source).toContain('usePlayerStencilMaterial(() => toonMat')
+    expect(source).toContain('usePlayerStencilMaterial(() => outlineMat')
   })
 
   it('places the lantern prop at the right hand tip', () => {

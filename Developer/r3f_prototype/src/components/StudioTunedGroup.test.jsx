@@ -3,7 +3,7 @@ import React from 'react'
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { readFileSync } from 'node:fs'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as THREE from 'three'
 import {
   applySavedStudioPartTunings,
@@ -16,8 +16,20 @@ import {
 } from './StudioTunedGroup.jsx'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
 import { saveStudioTunings } from '../lib/graphicsStudioConfig.js'
+import { applyFirebaseStudioSnapshot } from '../lib/firebaseStudio.js'
+import { commitFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
 
 describe('StudioTunedGroup', () => {
+  beforeEach(() => {
+    commitFirebaseStudioRuntime({
+      tunings: {},
+      sfxTunings: {},
+      stageBossPreview: {},
+      decals: {},
+      propPlacements: {},
+    }, { revision: 1 })
+  })
+
   it('combines scale, position, and default rotation angles', () => {
     const transform = getStudioTransformProps({
       scale: 1.5,
@@ -115,6 +127,43 @@ describe('StudioTunedGroup', () => {
 
     expect(container.querySelector('group').getAttribute('scale')).toBe('3,1.5,1.5')
 
+    act(() => root.unmount())
+  })
+
+  it('updates game and title consumers together from the same Firebase revision', () => {
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    act(() => {
+      root.render(
+        <>
+          <div data-consumer="game">
+            <StudioTunedGroup itemId="player" materialTuning={false}><mesh /></StudioTunedGroup>
+          </div>
+          <div data-consumer="title">
+            <StudioTunedGroup itemId="player" materialTuning={false}><mesh /></StudioTunedGroup>
+          </div>
+        </>,
+      )
+    })
+
+    act(() => {
+      applyFirebaseStudioSnapshot({
+        schemaVersion: 1,
+        revision: 2,
+        updatedAt: '2026-07-19T00:00:00.000Z',
+        datasets: {
+          tunings: { player: { scale: 1.37 } },
+          sfxTunings: {},
+          stageBossPreview: {},
+          decals: {},
+          propPlacements: {},
+        },
+      })
+    })
+
+    expect(container.querySelector('[data-consumer="game"] group').getAttribute('scale')).toBe('1.37,1.37,1.37')
+    expect(container.querySelector('[data-consumer="title"] group').getAttribute('scale')).toBe('1.37,1.37,1.37')
     act(() => root.unmount())
   })
 

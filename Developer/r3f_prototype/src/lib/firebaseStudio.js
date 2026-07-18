@@ -16,6 +16,7 @@ import {
   loadStagePropPlacements,
 } from './stagePropPlacements.js'
 import {
+  acknowledgeFirebaseStudioRuntimeRevision,
   blockFirebaseStudioRuntime,
   commitFirebaseStudioRuntime,
   isFirebaseStudioRuntimeReady,
@@ -260,6 +261,9 @@ export async function saveFirebaseStudio({
       return { status: 'future-version', schemaVersion: futureSchemaVersion }
     }
     if (result?.committed === false) return { status: 'write-aborted' }
+    if (localMutationGeneration === mutationGenerationAtStart) {
+      acknowledgeFirebaseStudioRuntimeRevision(nextRevision)
+    }
     claimLocalWorkspace(uid, mutationGenerationAtStart)
     return { status: 'saved', revision: nextRevision }
   } catch (error) {
