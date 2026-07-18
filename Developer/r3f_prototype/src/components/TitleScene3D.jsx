@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { GRAPHICS_STUDIO_STORAGE_KEY, GRAPHICS_STUDIO_TUNING_EVENT } from '../lib/graphicsStudioConfig.js'
+import { GRAPHICS_STUDIO_TUNING_EVENT } from '../lib/graphicsStudioConfig.js'
 import { toonMat } from '../lib/toon.js'
 import { DancingDoge } from './DogeMesh.jsx'
 import MatildaMesh from './MatildaMesh.jsx'
@@ -34,10 +34,6 @@ const CLUB_WASH_MAGENTA = new THREE.Color(0xa278ad)
 
 export function clampTitleBackgroundZ(z) {
   return Math.min(z, TITLE_BOARD_BACK_LIMIT_Z)
-}
-
-export function isTitleOutlineStorageEvent(event) {
-  return event?.key === GRAPHICS_STUDIO_STORAGE_KEY || event?.key === null
 }
 
 export function disposeTitleCharacterOutlines(root) {
@@ -134,14 +130,9 @@ function TitleCharacterOutlineGroup({ children }) {
       prepareTitleCharactersForStudioUpdate(group)
       dirtyRef.current = true
     }
-    const handleStorage = (event) => {
-      if (isTitleOutlineStorageEvent(event)) markDirty()
-    }
     window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, markDirty)
-    window.addEventListener('storage', handleStorage)
     return () => {
       window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT, markDirty)
-      window.removeEventListener('storage', handleStorage)
       disposeTitleCharacterOutlines(group)
     }
   }, [])

@@ -23,12 +23,8 @@ import {
   setFirebaseStudioRuntimeDataset,
 } from './studioRuntimeState.js'
 
-export const GRAPHICS_STUDIO_STORAGE_KEY = 'escape-zombie-school.graphicsStudioTunings.v1'
-export const GRAPHICS_STUDIO_RESET_BASELINE_KEY = 'escape-zombie-school.graphicsStudioResetBaseline.2026-07-05T17'
 export const GRAPHICS_STUDIO_TUNING_EVENT = 'escape-zombie-school.graphicsStudioTunings.changed'
-export const STAGE_BOSS_PREVIEW_STORAGE_KEY = 'escape-zombie-school.stageBossPreview.v1'
 export const STAGE_BOSS_PREVIEW_EVENT = 'escape-zombie-school.stageBossPreview.changed'
-export const TEXTURE_DECALS_STORAGE_KEY = 'escape-zombie-school.textureDecals.v1'
 export const TEXTURE_DECALS_EVENT = 'escape-zombie-school.textureDecals.changed'
 export const STAGE_LOCK_STUDIO_ITEM_ID = 'stage-lock'
 

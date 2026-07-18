@@ -196,10 +196,8 @@ function useDomStudioTuning(itemId) {
     if (!itemId || typeof window === 'undefined') return undefined
     const update = () => setTuning(loadDomStudioTuning(itemId))
     window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
-    window.addEventListener('storage', update)
     return () => {
       window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
-      window.removeEventListener('storage', update)
     }
   }, [itemId])
 

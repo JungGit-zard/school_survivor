@@ -17,7 +17,7 @@ import { _resetForTests as resetWeaponUnlocks, setUnlocked } from '../lib/weapon
 import { STORAGE_KEY as PLAYER_RECORDS_KEY, load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { buildLocalPlayerRankingEntry } from '../lib/userRanking.js'
 import { ADMIN_CONFIG_STORAGE_KEY, saveAdminConfig } from '../lib/adminConfig.js'
-import { GRAPHICS_STUDIO_STORAGE_KEY, saveStudioTunings } from '../lib/graphicsStudioConfig.js'
+import { saveStudioTunings } from '../lib/graphicsStudioConfig.js'
 import { getStageConfig } from '../lib/stageConfig.js'
 import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { hydrateFirebaseStudio, setFirebaseStudioUser } from '../lib/firebaseStudio.js'
@@ -53,7 +53,6 @@ afterEach(() => {
   resetWeaponUnlocks()
   localStorage.removeItem(PLAYER_RECORDS_KEY)
   localStorage.removeItem(ADMIN_CONFIG_STORAGE_KEY)
-  localStorage.removeItem(GRAPHICS_STUDIO_STORAGE_KEY)
   setFirebaseStudioUser(null)
   blockFirebaseStudioRuntime()
 })

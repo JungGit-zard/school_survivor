@@ -5,7 +5,6 @@ import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import GraphicsStudio from './GraphicsStudio.jsx'
 import {
-  GRAPHICS_STUDIO_STORAGE_KEY,
   loadStageBossPreview,
   loadStudioTunings,
   loadTextureDecals,

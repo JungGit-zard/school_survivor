@@ -1,7 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 import * as THREE from 'three'
-import { GRAPHICS_STUDIO_STORAGE_KEY } from '../lib/graphicsStudioConfig.js'
 import {
   TITLE_BOARD_BACK_LIMIT_Z,
   TITLE_PLAYER_RUN_BASE_POSITION,
@@ -422,15 +421,11 @@ describe('TitleScene3D direction', () => {
     expect(fill.material.color.getHex()).toBe(0x6bcf63)
   })
 
-  it('reapplies outlines only for graphics-studio storage changes or storage clear', () => {
-    expect(isTitleOutlineStorageEvent({ key: GRAPHICS_STUDIO_STORAGE_KEY })).toBe(true)
-    expect(isTitleOutlineStorageEvent({ key: null })).toBe(true)
-    expect(isTitleOutlineStorageEvent({ key: 'unrelated.storage.key' })).toBe(false)
-
+  it('reapplies outlines only for Firebase runtime tuning changes', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
-    expect(source).toContain('GRAPHICS_STUDIO_STORAGE_KEY, GRAPHICS_STUDIO_TUNING_EVENT')
+    expect(source).toContain('GRAPHICS_STUDIO_TUNING_EVENT')
     expect(source).toContain('prepareTitleCharactersForStudioUpdate(group)')
-    expect(source).toContain('if (isTitleOutlineStorageEvent(event)) markDirty()')
+    expect(source).not.toContain("addEventListener('storage'")
     expect(source).toContain('disposeTitleCharacterOutlines(group)')
   })
 

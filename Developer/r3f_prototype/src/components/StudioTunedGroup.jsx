@@ -382,11 +382,9 @@ export default function StudioTunedGroup({ itemId, children, materialTuning = tr
     const update = () => setStudioState(loadStudioState(itemId))
     window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
     window.addEventListener(TEXTURE_DECALS_EVENT, update)
-    window.addEventListener('storage', update)
     return () => {
       window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
       window.removeEventListener(TEXTURE_DECALS_EVENT, update)
-      window.removeEventListener('storage', update)
     }
   }, [itemId, previewOnly])
 

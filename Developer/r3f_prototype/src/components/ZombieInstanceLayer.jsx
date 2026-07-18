@@ -238,10 +238,8 @@ export default function ZombieInstanceLayer() {
       zombieTransformsRef.current = loadZombieStudioTransforms()
     }
     window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
-    window.addEventListener('storage', update)
     return () => {
       window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
-      window.removeEventListener('storage', update)
     }
   }, [])
 
