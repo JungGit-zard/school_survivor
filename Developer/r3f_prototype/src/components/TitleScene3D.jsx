@@ -11,6 +11,7 @@ import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObject
 import { CompassBladeModel } from './Weapons/CompassBlade.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
 import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
+import { PlayerVisual } from './Player.jsx'
 
 const TITLE_CHASE_TARGET = [0.48, 0.08]
 export const TITLE_BOARD_BACK_LIMIT_Z = -4.62
@@ -185,6 +186,23 @@ function TitleCameraRig() {
 
 function faceTitleTargetYaw(position) {
   return Math.atan2(TITLE_CHASE_TARGET[0] - position[0], TITLE_CHASE_TARGET[1] - position[2])
+}
+
+function TitlePlayer() {
+  const meshGroup = useRef(null)
+  const movingRef = useRef(false)
+
+  return (
+    <group position={[0.48, 0.88, 0.38]} rotation={[-0.08, 0.48, 0.05]} scale={2}>
+      <PlayerVisual
+        meshGroup={meshGroup}
+        movingRef={movingRef}
+        hp={100}
+        maxHp={100}
+        showHealthBar={false}
+      />
+    </group>
+  )
 }
 
 function TitleCompanions() {
@@ -578,6 +596,11 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
       <pointLight position={[0, 1.1, -3.7]} intensity={5.5} color={0xffdf9a} distance={11} decay={2} />
 
       {studioMode ? sceneRoot : <StudioTunedGroup itemId="title-scene">{sceneRoot}</StudioTunedGroup>}
+      {!studioMode && (
+        <group rotation={[0, -0.09, 0]} position={[0, -1.15, 0]}>
+          <TitlePlayer />
+        </group>
+      )}
     </>
   )
 }

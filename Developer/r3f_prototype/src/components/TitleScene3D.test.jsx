@@ -220,6 +220,21 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain('ref.current.rotation.y = yaw + Math.sin(t * 0.95) * 0.018')
   })
 
+  it('renders the Firebase-tuned Studio player without title-only mesh or outline mutation', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+    const outlineStart = source.indexOf('<TitleCharacterOutlineGroup>')
+    const outlineEnd = source.indexOf('</TitleCharacterOutlineGroup>', outlineStart)
+    const titlePlayerIndex = source.indexOf('<TitlePlayer />')
+
+    expect(source).toContain("import { PlayerVisual } from './Player.jsx'")
+    expect(source).toContain('function TitlePlayer()')
+    expect(source).toContain('position={[0.48, 0.88, 0.38]} rotation={[-0.08, 0.48, 0.05]} scale={2}')
+    expect(source).toContain('<PlayerVisual')
+    expect(source).toContain('showHealthBar={false}')
+    expect(source).not.toContain('graphicsStudioPlayerSource')
+    expect(titlePlayerIndex).toBeGreaterThan(outlineEnd)
+  })
+
   it('gives character fills and outlines stencil ref 2 without changing background ref 1', () => {
     const scene = new THREE.Group()
     const characterRoot = new THREE.Group()
