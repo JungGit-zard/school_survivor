@@ -4,17 +4,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "prebuild": "node scripts/assert-no-legacy-b02.mjs",
-    "build": "vite build",
+    "branch:check": "python scripts/single_branch_guard.py check",
+    "branch:run": "python scripts/single_branch_guard.py run --",
+    "dev": "python scripts/single_branch_guard.py run -- npm.cmd exec -- vite",
+    "prebuild": "npm run branch:check && node scripts/assert-no-legacy-b02.mjs",
+    "build": "python scripts/single_branch_guard.py run -- npm.cmd exec -- vite build",
     "postbuild": "node scripts/assert-no-legacy-b02.mjs --artifacts=dist",
     "audit:b02-artifacts": "node scripts/assert-no-legacy-b02.mjs --artifacts=all",
-    "preview": "vite preview",
+    "preview": "python scripts/single_branch_guard.py run -- npm.cmd exec -- vite preview",
     "browser:guard": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/guard-game-browser-limit.ps1",
-    "browser:reserve": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/guard-game-browser-limit.ps1 -Mode reserve",
-    "pretest": "node scripts/assert-no-legacy-b02.mjs",
+    "browser:reserve": "npm run branch:check && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/guard-game-browser-limit.ps1 -Mode reserve",
+    "pretest": "npm run branch:check && node scripts/assert-no-legacy-b02.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "python scripts/single_branch_guard.py run -- npm.cmd exec -- vitest"
   },
   "dependencies": {
     "@capacitor-firebase/authentication": "^8.3.0",

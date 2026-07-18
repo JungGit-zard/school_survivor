@@ -10,9 +10,15 @@ $visibleBrowserIds = @(
         ForEach-Object { $_.Id }
 )
 $cdpBrowserIds = @(
-    Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue |
-        Where-Object { $_.LocalPort -ge 9222 -and $_.LocalPort -le 9999 } |
-        ForEach-Object { $_.OwningProcess }
+    netstat -ano -p tcp 2>$null |
+        ForEach-Object {
+            if ($_ -match '^\s*TCP\s+\S+:(?<LocalPort>\d+)\s+\S+\s+LISTENING\s+(?<Pid>\d+)\s*$') {
+                $localPort = [int]$Matches.LocalPort
+                if ($localPort -ge 9222 -and $localPort -le 9999) {
+                    [int]$Matches.Pid
+                }
+            }
+        }
 )
 $headlessTestIds = @(
     Get-Process chrome-headless-shell -ErrorAction SilentlyContinue |

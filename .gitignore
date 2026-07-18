@@ -12,6 +12,7 @@ dist/
 .superpowers/
 tmp/
 .codex/config.toml
+**/__pycache__/
 
 .compound-engineering/*.local.yaml
 .gstack/
