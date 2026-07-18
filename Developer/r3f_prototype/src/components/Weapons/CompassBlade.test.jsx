@@ -72,6 +72,15 @@ describe('CompassBladeWeapon orbit pose', () => {
     expect(COMPASS_BLADE_EXPLOSION_DAMAGE).toBe(30)
   })
 
+  it('applies the permanent Lv.10 explosion-radius multiplier to the stack blast', () => {
+    const result = resolveCompassBladeHitStack({
+      currentStack: COMPASS_BLADE_STACKS_TO_EXPLODE - 1,
+      explosionRadiusMultiplier: 1.1,
+    })
+
+    expect(result.explosionRadius).toBeCloseTo(COMPASS_BLADE_ONE_TILE_RADIUS * 1.1)
+  })
+
   it('sets a five-second respawn window after an explosion', () => {
     expect(COMPASS_BLADE_RESPAWN_MS).toBe(5000)
     expect(getCompassBladeRespawnUntilMs({ exploded: true, nowMs: 1200 })).toBe(6200)

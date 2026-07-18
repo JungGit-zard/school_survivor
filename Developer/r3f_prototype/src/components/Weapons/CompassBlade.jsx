@@ -344,6 +344,7 @@ export function CompassBladeWeapon() {
       const stackResult = resolveCompassBladeHitStack({
         currentStack: hitStackRef.current,
         hitDamage: w.damage,
+        explosionRadiusMultiplier: w.permanentExplosionRadiusMultiplier ?? 1,
       })
       hitStackRef.current = stackResult.stack
 

@@ -36,6 +36,10 @@ describe('chibiko companion helpers', () => {
     expect(target.z).toBeCloseTo(0)
   })
 
+  it('passes the permanent projectile-count perk into Chibiko attack config', () => {
+    expect(createChibikoAttackConfig({ projectileCount: 2 }).projectileCount).toBe(2)
+  })
+
   it('uses the level 1 pencil throw as Chibiko attack config', () => {
     const attack = createChibikoAttackConfig({
       damage: 7,

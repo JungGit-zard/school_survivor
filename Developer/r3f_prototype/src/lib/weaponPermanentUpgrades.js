@@ -10,7 +10,15 @@ const DAMAGE_LEVELS = ['+2%', '+4%', '+6%', '+8%', '+10%', '+12%', '+14%', '+16%
 const COOLDOWN_LEVELS = ['-1%', '-2%', '-3%', '-4%', '-5%', '-6%', '-7%', '-8%']
 const RANGE_LEVELS = ['+2%', '+4%', '+6%', '+8%', '+10%', '+12%', '+14%', '+16%']
 
-function makePlan(id, primaryLabel, level5, level10, primaryValues = DAMAGE_LEVELS) {
+function makePlan(
+  id,
+  primaryLabel,
+  level5,
+  level10,
+  primaryValues = DAMAGE_LEVELS,
+  latePrimaryLabel = primaryLabel,
+  latePrimaryValues = primaryValues.slice(4),
+) {
   const label = WEAPON_CATALOG[id]?.label ?? id
   const levels = {
     1: { summary: `${primaryLabel} ${primaryValues[0]}` },
@@ -18,10 +26,10 @@ function makePlan(id, primaryLabel, level5, level10, primaryValues = DAMAGE_LEVE
     3: { summary: `${primaryLabel} ${primaryValues[2]}` },
     4: { summary: `${primaryLabel} ${primaryValues[3]}` },
     5: { summary: level5 },
-    6: { summary: `${primaryLabel} ${primaryValues[4]}` },
-    7: { summary: `${primaryLabel} ${primaryValues[5]}` },
-    8: { summary: `${primaryLabel} ${primaryValues[6]}` },
-    9: { summary: `${primaryLabel} ${primaryValues[7]}` },
+    6: { summary: `${latePrimaryLabel} ${latePrimaryValues[0]}` },
+    7: { summary: `${latePrimaryLabel} ${latePrimaryValues[1]}` },
+    8: { summary: `${latePrimaryLabel} ${latePrimaryValues[2]}` },
+    9: { summary: `${latePrimaryLabel} ${latePrimaryValues[3]}` },
     10: { summary: level10 },
   }
   return { id, label, maxLevel: MAX_WEAPON_PERMANENT_LEVEL, levels }
@@ -32,18 +40,18 @@ export const WEAPON_PERMANENT_UPGRADE_PLANS = {
   schoolBag: makePlan('schoolBag', '공격 범위', '공격력 +8%', '휘두르기 판정 유지시간 +10%', RANGE_LEVELS),
   boxCutter: makePlan('boxCutter', '쿨타임', '공격력 +8%', '일정 확률로 추가 절단 1회', COOLDOWN_LEVELS),
   tumbler: makePlan('tumbler', '접촉 피해', '회전 속도 +10%', '기본 궤도체 수 +1'),
-  scienceFlask: makePlan('scienceFlask', '화학 웅덩이 지속시간', '웅덩이 범위 +10%', '웅덩이 지속시간 추가 +10%', ['+3%', '+6%', '+9%', '+12%', '+4%', '+8%', '+12%', '+16%']),
+  scienceFlask: makePlan('scienceFlask', '화학 웅덩이 지속시간', '웅덩이 범위 +10%', '웅덩이 지속시간 추가 +10%', ['+3%', '+6%', '+9%', '+12%'], '틱 피해', ['+4%', '+8%', '+12%', '+16%']),
   bell: makePlan('bell', '피해', '파동 크기 +10%', '파동 도달거리 +10%'),
-  stunGun: makePlan('stunGun', '피해', '체인 수 +1', '짧은 경직 확률 +8%'),
-  onigiri: makePlan('onigiri', '투사체 속도', '바운스 횟수 +1', '바운스 횟수 추가 +1', ['+3%', '+6%', '+9%', '+12%', '+4%', '+8%', '+12%', '+16%']),
+  stunGun: makePlan('stunGun', '피해', '체인 수 +1', '짧은 경직 확률 +8%', DAMAGE_LEVELS, '쿨타임', ['-2%', '-4%', '-6%', '-8%']),
+  onigiri: makePlan('onigiri', '투사체 속도', '바운스 횟수 +1', '바운스 횟수 추가 +1', ['+3%', '+6%', '+9%', '+12%'], '피해', ['+4%', '+8%', '+12%', '+16%']),
   chibiko: makePlan('chibiko', '동료 공격 주기', '동료 피해 +10%', '치비코 투척체 +1', COOLDOWN_LEVELS),
   guidedMissile: makePlan('guidedMissile', '폭발 피해', '유도 회전력 +10%', '폭발 범위 +10%'),
-  sharkMissile: makePlan('sharkMissile', '귀소 속도', '귀소 전환 시간 -10%', '폭발 범위 +12%', RANGE_LEVELS),
+  sharkMissile: makePlan('sharkMissile', '귀소 속도', '귀소 전환 시간 -10%', '폭발 범위 +12%', RANGE_LEVELS, '폭발 피해', ['+4%', '+8%', '+12%', '+16%']),
   starlink: makePlan('starlink', '타격 피해', '타격 반경 +10%', '추가 소형 낙하 타격 확률 +10%'),
   compassBlade: makePlan('compassBlade', '칼날 피해', '회전 속도 +10%', '스택 폭발 범위 +10%'),
   umbrellaGuard: makePlan('umbrellaGuard', '넉백', '펄스 범위 +10%', '펄스 쿨타임 -10%', ['+3%', '+6%', '+9%', '+12%', '+15%', '+18%', '+21%', '+24%']),
   eraserBomb: makePlan('eraserBomb', '폭발 범위', '폭발 피해 +10%', '폭발 후 짧은 둔화 장판 생성', RANGE_LEVELS),
-  studentLantern: makePlan('studentLantern', '빛 콘 길이', '빛 콘 각도 +8%', '빛에 맞은 적 둔화 확률 +10%', RANGE_LEVELS),
+  studentLantern: makePlan('studentLantern', '빛 콘 길이', '빛 콘 각도 +8%', '빛에 맞은 적 둔화 확률 +10%', ['+2%', '+4%', '+6%', '+8%'], '지속 피해', ['+4%', '+8%', '+12%', '+16%']),
 }
 
 function readRaw() {
@@ -141,7 +149,6 @@ function getDamageMultiplier(id, level) {
     || summary.includes('칼날 피해')
     || summary.includes('동료 피해')
     || summary.includes('지속 피해')
-    || summary.includes('틱 피해')
   ))
   return 1 + percent
 }
@@ -160,7 +167,7 @@ function scaleExistingProps(out, props, multiplier, decimals = 2) {
 
 function applySafeNumericPermanentEffects(id, level, out) {
   const cooldownPercent = getBestPercentForSummary(id, level, (summary) => (
-    summary.includes('쿨타임') || summary.includes('공격 주기') || summary.includes('귀소 전환 시간')
+    summary.includes('쿨타임') || summary.includes('공격 주기')
   ))
   if (cooldownPercent > 0) {
     scaleExistingProps(out, ['cooldown', 'retargetIntervalMs'], 1 - cooldownPercent, 0)
@@ -212,11 +219,32 @@ export function applyWeaponPermanentUpgradesToBaseWeapon(id, weapon) {
   if (id === 'pencilThrow' && level >= 10) out.projectileCount = (out.projectileCount ?? 1) + 1
   if (id === 'tumbler' && level >= 10) out.count = (out.count ?? 1) + 1
   if (id === 'stunGun' && level >= 5) out.chainCount = (out.chainCount ?? 0) + 1
+  if (id === 'stunGun' && level >= 10) out.permanentStunChance = 0.08
   if (id === 'onigiri' && level >= 5) out.bounces = (out.bounces ?? 0) + 1
   if (id === 'onigiri' && level >= 10) out.bounces = (out.bounces ?? 0) + 1
-  if (id === 'guidedMissile' && level >= 10 && typeof out.radius === 'number') out.radius = Math.round(out.radius * 1.1 * 100) / 100
+  if (id === 'chibiko' && level >= 10) out.projectileCount = (out.projectileCount ?? 1) + 1
+  if (id === 'guidedMissile' && level >= 5) out.homingStrength = 1.1
+  if (id === 'sharkMissile' && level >= 5) out.permanentHomingStartMultiplier = 0.9
+  if (id === 'starlink' && level >= 10) out.permanentBonusStrikeChance = 0.1
+  if (id === 'compassBlade' && level >= 10) out.permanentExplosionRadiusMultiplier = 1.1
   if (id === 'eraserBomb' && level >= 10) out.permanentSlowDust = true
   if (id === 'studentLantern' && level >= 10) out.permanentSlowChance = 0.1
+
+  // These milestone perks stack additively with an earlier bonus that targets
+  // the same runtime field. Recalculate from the unmodified base so rounding
+  // or multiplicative stacking cannot inflate the intended design value.
+  if (id === 'scienceFlask') {
+    const tickDamagePercent = getBestPercentForSummary(id, level, (summary) => summary.includes('틱 피해'))
+    if (tickDamagePercent > 0 && typeof weapon.zoneTickDamage === 'number') {
+      out.zoneTickDamage = scaleNumber(weapon.zoneTickDamage, 1 + tickDamagePercent, 2)
+    }
+    if (level >= 10 && typeof weapon.zoneDurationMs === 'number') {
+      out.zoneDurationMs = scaleNumber(weapon.zoneDurationMs, 1.22, 0)
+    }
+  }
+  if (id === 'bell' && level >= 10 && typeof weapon.radius === 'number') {
+    out.radius = scaleNumber(weapon.radius, 1.2, 3)
+  }
 
   return out
 }

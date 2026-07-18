@@ -7,6 +7,7 @@ import { startPlayerArmAction } from '../../lib/playerArmAction.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat } from '../../lib/toon.js'
 import { findBestSplashTarget, applyRadialDamage } from '../../lib/weaponTargeting.js'
+import { getGuidedMissileControlTime } from '../../lib/guidedMissileRuntime.js'
 
 // guidedMissile / 보조배터리 미사일 — legacy 2단계(충전 → 비행) 연출 부활본.
 // 던지면 0.95s 동안 흔들리며 추진력 축적, 그 뒤 가속 비행해 target 좌표에 폭발.
@@ -37,7 +38,6 @@ export function MissileBody() {
   )
 }
 
-const MISSILE_CONTROL_TIME = 0.95
 
 function easeOutCubic(t) {
   return 1 - Math.pow(1 - t, 3)
@@ -54,7 +54,8 @@ function lerpAngle(a, b, t) {
   return a + diff * t
 }
 
-function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
+function MissileProjectile({ id, start, target, damage, radius, homingStrength = 1, onExplode }) {
+  const controlTime = getGuidedMissileControlTime(homingStrength)
   const groupRef    = useRef()
   const flameRef    = useRef()
   const smokeRef    = useRef()
@@ -97,8 +98,8 @@ function MissileProjectile({ id, start, target, damage, radius, onExplode }) {
     const dz = target.z - p.z
 
     // ── 충전 단계: 던져진 뒤 흔들리며 추진력 축적 ────────────────────────
-    if (ageRef.current < MISSILE_CONTROL_TIME) {
-      const chargeT = ageRef.current / MISSILE_CONTROL_TIME
+    if (ageRef.current < controlTime) {
+      const chargeT = ageRef.current / controlTime
       const settleT = smoothStep(chargeT)
 
       // 스폰 팝인: 처음 0.12초 동안 0→1 스케일
@@ -296,6 +297,7 @@ export function GuidedMissile() {
         target: { x: target.x, z: target.z },
         damage: w.damage,
         radius: w.radius ?? 1.6,
+        homingStrength: w.homingStrength ?? 1,
       }
     })
     activeMissilesRef.current = [...activeMissilesRef.current, ...newBatch]

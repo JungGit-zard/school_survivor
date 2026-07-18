@@ -35,9 +35,10 @@ export function getCompassBladeOrbitPose({
   }
 }
 
-export function resolveCompassBladeHitStack({ currentStack = 0 }) {
+export function resolveCompassBladeHitStack({ currentStack = 0, explosionRadiusMultiplier = 1 }) {
   const nextStack = currentStack + 1
-  const explosionRadius = COMPASS_BLADE_ONE_TILE_RADIUS
+  const safeMultiplier = Number.isFinite(explosionRadiusMultiplier) ? Math.max(0, explosionRadiusMultiplier) : 1
+  const explosionRadius = COMPASS_BLADE_ONE_TILE_RADIUS * safeMultiplier
 
   if (nextStack < COMPASS_BLADE_STACKS_TO_EXPLODE) {
     return {

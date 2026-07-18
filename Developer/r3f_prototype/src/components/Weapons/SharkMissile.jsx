@@ -131,7 +131,7 @@ export function FlameTrail({ flameRef }) {
 // 이전 방식(밀집점만 220ms 재조준)은 표적이 고정점이라 도착 후 제자리 궤도
 // 선회(≈3바퀴)로 보이는 문제가 있었다.
 
-function SharkMissileProjectile({ id, start, initialTarget, damage, radius, range, onExplode }) {
+function SharkMissileProjectile({ id, start, initialTarget, damage, radius, range, speed = SHARK_DART.SPEED, homingStartMultiplier = 1, onExplode }) {
   const groupRef = useRef(null)
   const ageRef = useRef(0)
   const targetRef = useRef(initialTarget)
@@ -150,7 +150,7 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
     ageRef.current += delta
     const nowMs = ageRef.current * 1000
     const p = posRef.current
-    const homing = isSharkHomingPhase(ageRef.current)
+    const homing = isSharkHomingPhase(ageRef.current, homingStartMultiplier)
 
     const explode = () => {
       explodedRef.current = true
@@ -190,8 +190,8 @@ function SharkMissileProjectile({ id, start, initialTarget, damage, radius, rang
 
     const prevX = p.x
     const prevZ = p.z
-    p.x += Math.sin(yawRef.current) * SHARK_DART.SPEED * delta
-    p.z += Math.cos(yawRef.current) * SHARK_DART.SPEED * delta
+    p.x += Math.sin(yawRef.current) * speed * delta
+    p.z += Math.cos(yawRef.current) * speed * delta
     // 화면 밖 이탈 방지 — 클램프 후 yaw도 보정해 벽면 허깅 방지
     const sc = clampToScreen(p.x, p.z)
     if (sc.x !== p.x || sc.z !== p.z) {

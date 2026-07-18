@@ -94,4 +94,39 @@ describe('weaponPermanentUpgrades storage layer', () => {
     expect(ruler.range).toBeCloseTo(0.684, 3)
     expect(flask.zoneDurationMs).toBe(5600)
   })
+
+  it('keeps split Lv.6-Lv.9 plan summaries aligned with the canonical design', () => {
+    expect(getWeaponPermanentUpgradePlan('stunGun').levels[9].summary).toBe('쿨타임 -8%')
+    expect(getWeaponPermanentUpgradePlan('onigiri').levels[9].summary).toBe('피해 +16%')
+    expect(getWeaponPermanentUpgradePlan('sharkMissile').levels[9].summary).toBe('폭발 피해 +16%')
+    expect(getWeaponPermanentUpgradePlan('studentLantern').levels[9].summary).toBe('지속 피해 +16%')
+  })
+
+  it('applies every deterministic Lv.5 and Lv.10 numeric perk to runtime weapon fields', () => {
+    const setLevel = (id, level) => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        ...JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}'),
+        [id]: level,
+      }))
+    }
+    const upgraded = (id, level = 10) => {
+      setLevel(id, level)
+      return applyWeaponPermanentUpgradesToBaseWeapon(id, WEAPON_CATALOG[id].base)
+    }
+
+    expect(upgraded('schoolBag')).toMatchObject({ damage: 13, range: 0.734, swingMs: 286 })
+    expect(upgraded('tumbler')).toMatchObject({ damage: 7, orbitSpeed: 3.08, count: 2 })
+    expect(upgraded('scienceFlask')).toMatchObject({ zoneRadius: 1.54, zoneDurationMs: 6100, zoneTickDamage: 6.96 })
+    expect(upgraded('bell')).toMatchObject({ damage: 11.6, radius: 2.04 })
+    expect(upgraded('stunGun')).toMatchObject({ damage: 19.4, cooldown: 2760, chainCount: 3, permanentStunChance: 0.08 })
+    expect(upgraded('onigiri')).toMatchObject({ damage: 24.4, bounces: 4 })
+    expect(upgraded('chibiko')).toMatchObject({ damage: 5.5, cooldown: 1012, projectileCount: 2 })
+    expect(upgraded('guidedMissile')).toMatchObject({ damage: 18.6, radius: 1.76, homingStrength: 1.1 })
+    expect(upgraded('sharkMissile')).toMatchObject({ damage: 24.1, speed: 9.18, retargetIntervalMs: 300, permanentHomingStartMultiplier: 0.9, radius: 2.016 })
+    expect(upgraded('starlink')).toMatchObject({ damage: 32.5, strikeRadius: 1.32, permanentBonusStrikeChance: 0.1 })
+    expect(upgraded('compassBlade')).toMatchObject({ damage: 8.1, orbitSpeed: 3.74, permanentExplosionRadiusMultiplier: 1.1 })
+    expect(upgraded('umbrellaGuard')).toMatchObject({ cooldown: 3240, radius: 1.375, knockbackMs: 273 })
+    expect(upgraded('eraserBomb')).toMatchObject({ damage: 28.6, radius: 1.566, permanentSlowDust: true })
+    expect(upgraded('studentLantern')).toMatchObject({ damage: 0.7, lightLength: 2.246, lightWidth: 3.888, permanentSlowChance: 0.1 })
+  })
 })

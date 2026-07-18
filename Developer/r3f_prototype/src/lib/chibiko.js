@@ -5,6 +5,7 @@ export const CHIBIKO_LEVEL1_PENCIL = {
   speed: 12,
   followDistance: 0.72,
   sideOffset: -0.28,
+  projectileCount: 1,
 }
 
 export const CHIBIKO_TRAIL_MAX_POINTS = 160
@@ -126,5 +127,6 @@ export function createChibikoAttackConfig(weapon = {}) {
     cooldown: weapon.cooldown ?? CHIBIKO_LEVEL1_PENCIL.cooldown,
     range: weapon.range ?? CHIBIKO_LEVEL1_PENCIL.range,
     speed: weapon.speed ?? CHIBIKO_LEVEL1_PENCIL.speed,
+    projectileCount: weapon.projectileCount ?? CHIBIKO_LEVEL1_PENCIL.projectileCount,
   }
 }

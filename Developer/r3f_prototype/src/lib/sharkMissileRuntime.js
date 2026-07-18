@@ -18,8 +18,11 @@ export const SHARK_DART = {
   TURN_RATE_HOMING: 22,
 }
 
-export function isSharkHomingPhase(ageSec) {
-  return ageSec >= SHARK_DART.HOMING_START_SEC
+export function isSharkHomingPhase(ageSec, homingStartMultiplier = 1) {
+  const safeMultiplier = Number.isFinite(homingStartMultiplier) && homingStartMultiplier > 0
+    ? homingStartMultiplier
+    : 1
+  return ageSec >= SHARK_DART.HOMING_START_SEC * safeMultiplier
 }
 
 // 화면 경계 안 랜덤 방랑 지점 (여백 1유닛)
@@ -66,5 +69,6 @@ export function createSharkMissileLaunch({ id, playerPosition, target, weapon })
     range,
     speed: weapon.speed ?? 8.5,
     retargetIntervalMs: weapon.retargetIntervalMs ?? 300,
+    homingStartMultiplier: weapon.permanentHomingStartMultiplier ?? 1,
   }
 }

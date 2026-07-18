@@ -73,6 +73,7 @@ describe('shark missile runtime firing rules', () => {
       range: 28,
       speed: 8.5,
       retargetIntervalMs: 300,
+      homingStartMultiplier: 1,
     })
   })
 
@@ -94,6 +95,12 @@ describe('shark missile dart flight plan (기획 정본)', () => {
     expect(isSharkHomingPhase(1.0)).toBe(false)
     expect(isSharkHomingPhase(SHARK_DART.HOMING_START_SEC)).toBe(true)
     expect(isSharkHomingPhase(1.4)).toBe(true)
+  })
+
+  it('starts homing 10% sooner when the permanent perk is active', () => {
+    const perkStart = SHARK_DART.HOMING_START_SEC * 0.9
+    expect(isSharkHomingPhase(perkStart - 0.001, 0.9)).toBe(false)
+    expect(isSharkHomingPhase(perkStart, 0.9)).toBe(true)
   })
 
   it('비행 속도는 절반(9)이며, 귀소 커버 거리는 4.05유닛(밀집점에 못 닿을 수 있음)', () => {

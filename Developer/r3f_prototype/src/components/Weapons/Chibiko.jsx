@@ -275,21 +275,25 @@ export function ChibikoWeapon() {
     lastFireRef.current = now
     emitSfx({ id: 'chibikoFire' })
 
-    const projectile = {
-      id: ++_chibikoPencilId,
-      position: [
-        posRef.current.x + Math.sin(yaw) * 0.22,
-        0.46,
-        posRef.current.z + Math.cos(yaw) * 0.22,
-      ],
-      yaw,
-      damage: attack.damage,
-      speed: attack.speed,
-      target,
-    }
+    const projectileCount = Math.max(1, Math.min(2, Math.floor(attack.projectileCount ?? 1)))
+    const nextProjectiles = Array.from({ length: projectileCount }, (_, index) => {
+      const side = projectileCount === 1 ? 0 : (index === 0 ? -1 : 1)
+      return {
+        id: ++_chibikoPencilId,
+        position: [
+          posRef.current.x + Math.sin(yaw) * 0.22 + Math.cos(yaw) * side * 0.11,
+          0.46,
+          posRef.current.z + Math.cos(yaw) * 0.22 - Math.sin(yaw) * side * 0.11,
+        ],
+        yaw,
+        damage: attack.damage,
+        speed: attack.speed,
+        target,
+      }
+    })
 
-    activeProjectilesRef.current = [projectile]
-    setProjectiles([projectile])
+    activeProjectilesRef.current = nextProjectiles
+    setProjectiles(nextProjectiles)
   })
 
   if (!weapons.chibiko?.active) return null
