@@ -42,6 +42,13 @@ import {
 const categoryLabels = Object.fromEntries(GRAPHICS_STUDIO_CATEGORIES.map((category) => [category.id, category.label]))
 const UNDO_LIMIT = 10
 
+// 프리뷰 배경 스와치(스튜디오 로컬 전용). 첫 항목이 기본값(기존 어두운색).
+const PREVIEW_BG_SWATCHES = [
+  { id: 'dark', label: '어두움', value: '#171817' },
+  { id: 'white', label: '흰색', value: '#ffffff' },
+  { id: 'gray', label: '회색', value: '#8a8f94' },
+]
+
 // 슬라이더 트랙/썸을 2배 체감 크기로 키우는 CSS. 인라인 스타일로는 ::-webkit-slider-thumb를
 // 제어할 수 없어 클래스 기반 규칙을 한 번만 주입한다. 포인트 컬러(#e35d3d)는 유지.
 export const STUDIO_SLIDER_CSS = `
@@ -226,6 +233,8 @@ export default function GraphicsStudio() {
   const [sfxTunings, setSfxTunings] = useState(() => loadSfxTunings())
   const [confirmedTunings, setConfirmedTunings] = useState(() => loadStudioTunings())
   const [stageBossPreview, setStageBossPreview] = useState(() => loadStageBossPreview())
+  // 프리뷰 배경색은 스튜디오 로컬 상태(게임 런타임/저장 데이터셋 미반영)
+  const [previewBg, setPreviewBg] = useState(PREVIEW_BG_SWATCHES[0].value)
   const [resetBaseline] = useState(() => ensureStudioResetBaseline(loadStudioTunings()))
   const [applyStatus, setApplyStatus] = useState('')
   const [firebaseStatus, setFirebaseStatus] = useState('local')
@@ -806,15 +815,36 @@ export default function GraphicsStudio() {
 
         <section style={{ ...styles.previewPanel, ...(compact ? styles.previewPanelCompact : null) }}>
           {activeSection === 'graphics' ? (
-            <GraphicsStudioPreview
-              selectedItem={selectedItem}
-              tuning={itemTuning}
-              focusedPartKeys={focusedParts.map((part) => part.key)}
-              focusedPartTuning={focusedParts.length ? tuning : null}
-              partTunings={livePreviewTunings}
-              decals={itemDecals}
-              onPartFocus={updateFocusedParts}
-            />
+            <>
+              <GraphicsStudioPreview
+                selectedItem={selectedItem}
+                tuning={itemTuning}
+                focusedPartKeys={focusedParts.map((part) => part.key)}
+                focusedPartTuning={focusedParts.length ? tuning : null}
+                partTunings={livePreviewTunings}
+                decals={itemDecals}
+                onPartFocus={updateFocusedParts}
+                backgroundColor={previewBg}
+              />
+              <div style={styles.previewBgSwatches} data-testid="preview-bg-swatches">
+                <span style={styles.previewBgLabel}>배경</span>
+                {PREVIEW_BG_SWATCHES.map((swatch) => (
+                  <button
+                    key={swatch.id}
+                    type="button"
+                    data-testid={`preview-bg-${swatch.id}`}
+                    aria-pressed={previewBg === swatch.value}
+                    title={swatch.label}
+                    onClick={() => setPreviewBg(swatch.value)}
+                    style={{
+                      ...styles.previewBgSwatch,
+                      background: swatch.value,
+                      ...(previewBg === swatch.value ? styles.previewBgSwatchActive : null),
+                    }}
+                  />
+                ))}
+              </div>
+            </>
           ) : (
             <div style={styles.audioPreview} data-testid="audio-preview">
               <strong style={styles.audioTitle}>{selectedSfx?.id}</strong>
@@ -841,6 +871,28 @@ export default function GraphicsStudio() {
             ) : null}
           </div>
           <div style={styles.controls}>
+            <section
+              style={styles.stageBossPreviewSection}
+              data-testid="stage-boss-card-layout-section"
+              aria-labelledby="stage-boss-card-layout-title"
+            >
+              <div style={styles.stageBossPreviewHeader}>
+                <span id="stage-boss-card-layout-title" style={styles.stageBossPreviewTitle}>Stage Boss Card Layout</span>
+                <span style={styles.stageBossPreviewHint}>wheel zoom / drag pan</span>
+              </div>
+              <StageBossPreview
+                framing={stageBossPreview}
+                bossType={selectedStageBossType}
+                interactive
+                onChange={updateStageBossPreview}
+                testId="studio-stage-boss-preview"
+              />
+              <div style={styles.stageBossPreviewControls}>
+                <SliderRow label="Preview Zoom" name="stageBossPreviewZoom" min="50" max="180" step="1" value={stageBossPreview.zoom} onChange={(zoom) => updateStageBossPreview({ zoom })} />
+                <SliderRow label="Preview Pan X" name="stageBossPreviewPanX" min="-2" max="2" step="0.01" value={stageBossPreview.panX} onChange={(panX) => updateStageBossPreview({ panX })} />
+                <SliderRow label="Preview Pan Y" name="stageBossPreviewPanY" min={STAGE_BOSS_PREVIEW_PAN_Y_RANGE[0]} max={STAGE_BOSS_PREVIEW_PAN_Y_RANGE[1]} step="0.01" value={stageBossPreview.panY} onChange={(panY) => updateStageBossPreview({ panY })} />
+              </div>
+            </section>
             <section style={styles.transformGroup} data-testid="transform-group-scale">
               <span style={styles.transformGroupTitle}>스케일</span>
               <SliderRow
@@ -869,28 +921,6 @@ export default function GraphicsStudio() {
               <SliderRow label="Rotate X" name="rotationX" min="-180" max="180" step="1" value={tuning.rotationX} onChange={(rotationX) => updateTuning({ rotationX })} />
               <SliderRow label="Rotate Y" name="rotationY" min="-180" max="180" step="1" value={tuning.rotationY} onChange={(rotationY) => updateTuning({ rotationY })} />
               <SliderRow label="Rotate Z" name="rotationZ" min="-180" max="180" step="1" value={tuning.rotationZ} onChange={(rotationZ) => updateTuning({ rotationZ })} />
-            </section>
-            <section
-              style={styles.stageBossPreviewSection}
-              data-testid="stage-boss-card-layout-section"
-              aria-labelledby="stage-boss-card-layout-title"
-            >
-              <div style={styles.stageBossPreviewHeader}>
-                <span id="stage-boss-card-layout-title" style={styles.stageBossPreviewTitle}>Stage Boss Card Layout</span>
-                <span style={styles.stageBossPreviewHint}>wheel zoom / drag pan</span>
-              </div>
-              <StageBossPreview
-                framing={stageBossPreview}
-                bossType={selectedStageBossType}
-                interactive
-                onChange={updateStageBossPreview}
-                testId="studio-stage-boss-preview"
-              />
-              <div style={styles.stageBossPreviewControls}>
-                <SliderRow label="Preview Zoom" name="stageBossPreviewZoom" min="50" max="180" step="1" value={stageBossPreview.zoom} onChange={(zoom) => updateStageBossPreview({ zoom })} />
-                <SliderRow label="Preview Pan X" name="stageBossPreviewPanX" min="-2" max="2" step="0.01" value={stageBossPreview.panX} onChange={(panX) => updateStageBossPreview({ panX })} />
-                <SliderRow label="Preview Pan Y" name="stageBossPreviewPanY" min={STAGE_BOSS_PREVIEW_PAN_Y_RANGE[0]} max={STAGE_BOSS_PREVIEW_PAN_Y_RANGE[1]} step="0.01" value={stageBossPreview.panY} onChange={(panY) => updateStageBossPreview({ panY })} />
-              </div>
             </section>
             <SliderRow label="Outline" name="outlineThickness" min="0.4" max="2.2" step="0.01" value={tuning.outlineThickness} onChange={(outlineThickness) => updateTuning({ outlineThickness })} />
             <SliderRow label="Opacity" name="outlineOpacity" min="0" max="1" step="0.01" value={tuning.outlineOpacity} onChange={(outlineOpacity) => updateTuning({ outlineOpacity })} />
@@ -1193,10 +1223,42 @@ const styles = {
     color: '#fff6cf',
   },
   previewPanel: {
+    position: 'relative',
     minWidth: 0,
     minHeight: 0,
     borderRight: '1px solid #353833',
     background: '#171817',
+  },
+  previewBgSwatches: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '5px 8px',
+    borderRadius: 8,
+    background: 'rgba(18, 18, 16, 0.62)',
+    zIndex: 3,
+  },
+  previewBgLabel: {
+    color: '#cfd8d2',
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: '0.03em',
+    marginRight: 2,
+  },
+  previewBgSwatch: {
+    width: 20,
+    height: 20,
+    padding: 0,
+    borderRadius: '50%',
+    border: '2px solid rgba(255, 255, 255, 0.35)',
+    cursor: 'pointer',
+  },
+  previewBgSwatchActive: {
+    border: '2px solid #e35d3d',
+    boxShadow: '0 0 0 2px rgba(227, 93, 61, 0.35)',
   },
   previewPanelCompact: {
     gridColumn: 1,
