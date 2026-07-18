@@ -575,8 +575,8 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
         <TitleFarBackgroundStory reducedEffects={reducedEffects} />
         <TitleBossZombie type="B02" position={[-1.99, 0.18, -3.7]} scale={0.93} delay={0.9} />
         <TitleBossZombie type="B03" position={[0.02, 0.28, -4.04]} scale={1.344} delay={1.35} />
-        <TitleBossZombie type="B01" position={[0.1, 0.25, -1.62]} scale={1.02} />
-        <TitleZombie position={[-2.25, 0.22, -3.42]} delay={0.4} scale={0.58} type="E03" />
+        <TitleBossZombie type="B01" position={[-0.86, 0.34, -1.12]} scale={1.02} />
+        <TitleZombie position={[-3.3, 0.22, -3.42]} delay={0.4} scale={0.58} type="E03" />
         <TitleZombie position={[2.0, 0.2, -3.18]} delay={1.6} scale={0.52} type="E02" />
         <TitleZombie position={[-1.95, 0.22, -1.55]} delay={0.2} scale={0.7} type="E01" />
         <TitleZombie position={[1.56, 0.2, -2.08]} delay={1.0} scale={0.62} type="E02" />

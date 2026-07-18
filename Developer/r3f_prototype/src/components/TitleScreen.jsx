@@ -27,7 +27,8 @@ const TITLE_SCHOOL_LETTERS = [
   { char: '학', order: 4, x: '-100vw', y: '-35vh', rotation: '-16deg' },
   { char: '교', order: 5, x: '100vw', y: '-28vh', rotation: '18deg' },
 ]
-const TITLE_EMOJI_CLUSTER = '🧟‍♀️🏫❤️'
+const TITLE_EMOJI_CLUSTER = '🧟‍♀️❤️'
+const TITLE_SCHOOL_EMOJI = '🏫'
 const TITLE_INTRO_CSS = `
   @keyframes titleLetterSlam {
     0% { opacity: 0; transform: translate3d(var(--title-enter-x), var(--title-enter-y), 0) rotate(var(--title-enter-rotation)) scale(0.72); }
@@ -313,6 +314,14 @@ export default function TitleScreen({ onEnterLobby, devCheatsVisible = false, on
             {TITLE_ACCENT_LETTERS.map((config) => (
               <TitleLetter key={config.char} config={config} />
             ))}
+            <span
+              aria-hidden="true"
+              className="title-intro-zombie"
+              data-title-emoji
+              style={{ ...styles.titleEmoji, animationDelay: '2050ms' }}
+            >
+              {TITLE_SCHOOL_EMOJI}
+            </span>
           </span>
           <span style={styles.titleWord}>
             {TITLE_SCHOOL_LETTERS.map((config) => (

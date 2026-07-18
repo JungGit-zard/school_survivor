@@ -115,7 +115,7 @@ describe('TitleScene3D direction', () => {
     expect(source).toContain('<ZombieMesh type={type} animPhase="charge" />')
     expect(source).toContain('<TitleBossZombie type="B02" position={[-1.99, 0.18, -3.7]} scale={0.93} delay={0.9} />')
     expect(source).toContain('<TitleBossZombie type="B03" position={[0.02, 0.28, -4.04]} scale={1.344} delay={1.35} />')
-    expect(source).toContain('<TitleBossZombie type="B01" position={[0.1, 0.25, -1.62]} scale={1.02} />')
+    expect(source).toContain('<TitleBossZombie type="B01" position={[-0.86, 0.34, -1.12]} scale={1.02} />')
     expect(source).toContain('<TitleZombie position={[-0.92, 0.18, -2.72]} delay={2.1} scale={0.52} type="E03" />')
     expect(source).toContain('<ClassroomDesk')
     expect(source).toContain('<ClassroomChair')
