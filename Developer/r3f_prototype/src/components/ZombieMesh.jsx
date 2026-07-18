@@ -6,6 +6,7 @@ import { getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
 import boss01FaceUrl from '../assets/faces/b01_math_teacher_face.webp'
 import boss02FaceUrl from '../assets/faces/b02_stage2_boss_face.webp'
 import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.webp'
+import boss04FaceUrl from '../assets/faces/b04_chef_boss_face.webp'
 import MatildaMesh from './MatildaMesh.jsx'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
 
@@ -125,6 +126,7 @@ export const B04_CHEF_PALETTE = {
 export const B04_CHEF_PARTS = [
   'hat',
   'head',
+  'faceTexture',
   'body',
   'neckerchief',
   'armL',
@@ -134,6 +136,13 @@ export const B04_CHEF_PARTS = [
   'legL',
   'legR',
 ]
+
+export const B04_CHEF_FACE = {
+  size: [0.66, 0.48],
+  position: [0, 0, 0.271],
+  repeat: [1, 1],
+  offset: [0, 0],
+}
 
 export const B03_PE_TEACHER_FACE_LAYOUT = {
   leftEye: { size: [0.12, 0.08, 0.045], position: [-0.14, 0.04, 0.245] },
@@ -482,6 +491,21 @@ function B02Stage2BossFaceTexture() {
   )
 }
 
+function B04ChefBossFaceTexture() {
+  const texture = useLoader(THREE.TextureLoader, boss04FaceUrl)
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.anisotropy = 4
+  texture.repeat.set(...B04_CHEF_FACE.repeat)
+  texture.offset.set(...B04_CHEF_FACE.offset)
+
+  return (
+    <mesh name="chefFaceTexture" position={B04_CHEF_FACE.position} renderOrder={4} userData={{ studioNonFocusable: true }}>
+      <planeGeometry args={B04_CHEF_FACE.size} />
+      <meshBasicMaterial map={texture} transparent toneMapped={false} depthTest={false} depthWrite={false} />
+    </mesh>
+  )
+}
+
 function B04ChefBossMesh({ hitFlash, reg }) {
   const pal = B04_CHEF_PALETTE
 
@@ -498,6 +522,7 @@ function B04ChefBossMesh({ hitFlash, reg }) {
 
       <group name="chefHeadRig" ref={reg('head')} position={[0, 0.93, 0]}>
         <ZBlock name="chefHead" size={[0.66, 0.48, 0.52]} position={[0, 0, 0]} color={pal.skin} emissive={0.07} outlineScale={1.08} flash={hitFlash} />
+        <B04ChefBossFaceTexture />
         <ZBlock name="chefEarL" size={[0.13, 0.22, 0.16]} position={[-0.39, -0.01, 0]} color={pal.skinShadow} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
         <ZBlock name="chefEarR" size={[0.13, 0.22, 0.16]} position={[0.39, -0.01, 0]} color={pal.skinShadow} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
       </group>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { ENEMY_STATS } from './Enemy.jsx'
-import { B01_BOSS_FACE, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_STAGE2_BOSS_FACE, B02_STAGE2_BOSS_PALETTE, B02_STAGE2_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS, B04_CHEF_PALETTE, B04_CHEF_PARTS, RUN_ZOMBIE_VISUAL, ZOMBIE_PALETTE } from './ZombieMesh.jsx'
+import { B01_BOSS_FACE, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_STAGE2_BOSS_FACE, B02_STAGE2_BOSS_PALETTE, B02_STAGE2_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS, B04_CHEF_FACE, B04_CHEF_PALETTE, B04_CHEF_PARTS, RUN_ZOMBIE_VISUAL, ZOMBIE_PALETTE } from './ZombieMesh.jsx'
 import { GRAPHICS_STUDIO_CATALOG, getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
 
 const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
@@ -154,6 +154,7 @@ describe('Stage 4 chef zombie boss', () => {
     expect(B04_CHEF_PARTS).toEqual([
       'hat',
       'head',
+      'faceTexture',
       'body',
       'neckerchief',
       'armL',
@@ -163,6 +164,12 @@ describe('Stage 4 chef zombie boss', () => {
       'legL',
       'legR',
     ])
+    expect(B04_CHEF_FACE).toEqual({
+      size: [0.66, 0.48],
+      position: [0, 0, 0.271],
+      repeat: [1, 1],
+      offset: [0, 0],
+    })
   })
 
   it('builds the chef as a dedicated model with the characteristic silhouette', () => {
@@ -178,6 +185,7 @@ describe('Stage 4 chef zombie boss', () => {
     expect(chefSource).not.toContain('name="chefEyeL"')
     expect(chefSource).not.toContain('name="chefEyeR"')
     expect(chefSource).not.toContain('name="chefFaceCleanPlate"')
+    expect(chefSource).toContain('<B04ChefBossFaceTexture />')
     expect(chefSource).toContain('name="chefEarL"')
     expect(chefSource).toContain('name="chefEarR"')
     expect(chefSource).not.toContain('name="chefNose"')
@@ -195,6 +203,10 @@ describe('Stage 4 chef zombie boss', () => {
     expect(zombieMeshSource).toContain("if (type === 'B04')")
     expect(zombieMeshSource).toContain("itemId={getStudioZombieItemId('B04')}")
     expect(zombieMeshSource).toContain('<B04ChefBossMesh hitFlash={hitFlash} reg={reg} />')
+    expect(zombieMeshSource).toContain("import boss04FaceUrl from '../assets/faces/b04_chef_boss_face.webp'")
+    expect(zombieMeshSource).toContain('function B04ChefBossFaceTexture()')
+    expect(zombieMeshSource).toContain('texture.colorSpace = THREE.SRGBColorSpace')
+    expect(zombieMeshSource).toContain('name="chefFaceTexture"')
     expect(chefSource).toBeDefined()
     expect(chefSource).not.toContain('name="chefFaceCleanPlate"')
     expect(chefSource).not.toContain('renderOrder={20}')
