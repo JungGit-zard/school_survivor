@@ -25,7 +25,7 @@ export const ENEMY_VISUAL_SCALE = 0.333
 
 // 얼굴(머리) 중간지점의 로컬 Y = ZombieMesh reg('head') 그룹 position.y.
 // 머리 블록/얼굴 텍스처의 기하 중심이라 '얼굴 중간지점' 앵커로 사용한다. 보스 타입별로 다르다.
-export const FACE_LOCAL_Y = Object.freeze({ B01: 0.88, B02: 0.88, B03: 0.88 })
+export const FACE_LOCAL_Y = Object.freeze({ B01: 0.88, B02: 0.88, B03: 0.88, B04: 0.93 })
 const DEFAULT_FACE_LOCAL_Y = 0.82 // 표준 좀비(E01~E06) 머리 그룹 Y
 // ortho 카메라는 rotation을 주지 않아 R3F가 lookAt(0,0,0)을 적용한다(원점 응시).
 // 그래서 화면 세로 중앙에 투영되는 월드 Y ≈ 0(카메라가 바라보는 원점)이다.
@@ -40,7 +40,7 @@ export function resolveBossPreviewBaseY(bossType) {
 }
 
 // 보스별 카드 프리뷰 zoom. 신규 B02는 별도 보정 없이 공통 배율을 사용한다.
-const BOSS_PREVIEW_ZOOM_FACTOR = Object.freeze({ B01: 1, B03: 1 })
+const BOSS_PREVIEW_ZOOM_FACTOR = Object.freeze({ B01: 1, B03: 1, B04: 0.42 })
 
 export function resolveBossPreviewZoom(baseZoom, bossType) {
   return baseZoom * (BOSS_PREVIEW_ZOOM_FACTOR[bossType] ?? 1)
@@ -63,7 +63,7 @@ function pointerFine() {
 // Canvas 자식: R3F 훅(useThree/useFrame)은 반드시 여기 안에서만 호출.
 // demand 루프 유지 — 버스트/패럴랙스가 진행 중일 때만 invalidate()로 프레임을 요청하고,
 // settle되면 아무 것도 안 해서 정적으로 되돌아간다.
-function ReactiveBoss({ framing, bossType, enabled, frozen, burstRef, parallaxRef, invalidateRef }) {
+function ReactiveBoss({ framing, bossType, enabled, burstRef, parallaxRef, invalidateRef }) {
   const groupRef = useRef(null)
   const invalidate = useThree((s) => s.invalidate)
   const lastBurstRef = useRef(0)
@@ -159,7 +159,7 @@ function ReactiveBoss({ framing, bossType, enabled, frozen, burstRef, parallaxRe
       rotation={[BASE_ROT_X, BASE_ROT_Y, 0]}
       position={[framing.panX, baseY + framing.panY, 0]}
     >
-      <EnemyVisual type={bossType} animPhase="normal" hp={1150} showHealthBar={false} frozen={frozen} />
+      <EnemyVisual type={bossType} animPhase="normal" hp={1150} showHealthBar={false} />
     </group>
   )
 }
@@ -292,7 +292,6 @@ export default function StageBossPreview({
           framing={frame}
           bossType={bossType}
           enabled={motionEnabled}
-          frozen={!interactive && !motionEnabled}
           burstRef={burstRef}
           parallaxRef={parallaxRef}
           invalidateRef={invalidateRef}

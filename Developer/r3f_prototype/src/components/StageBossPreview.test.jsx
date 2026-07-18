@@ -48,7 +48,7 @@ vi.mock('@react-three/fiber', () => ({
 }))
 
 vi.mock('./Enemy.jsx', () => ({
-  EnemyVisual: ({ frozen }) => <div data-testid="stage-boss-preview-enemy" data-frozen={String(frozen)} />,
+  EnemyVisual: () => <div data-testid="stage-boss-preview-enemy" />,
   ENEMY_STATS: { B01: { scale: 2 }, B02: { scale: 2 }, B03: { scale: 2 } },
   ENEMY_SIZE_MULTIPLIER: 4 / 3,
 }))
@@ -86,14 +86,14 @@ describe('StageBossPreview ?⑤뵒留⑤뱶 紐⑥뀡', () => {
     }).not.toThrow()
   })
 
-  it('keeps the lobby boss frozen until an entry motion token is requested', () => {
+  it('keeps the lobby boss preview motion inactive until an entry motion token is requested', () => {
     const el = render(<StageBossPreview />)
-    expect(el.querySelector('[data-testid="stage-boss-preview-enemy"]').dataset.frozen).toBe('true')
+    expect(el.querySelector('[data-testid="stage-boss-preview"]').dataset.motionActive).toBe('false')
   })
 
-  it('unfreezes the lobby boss while an entry motion token is active', () => {
+  it('activates the lobby boss preview motion while an entry motion token is active', () => {
     const el = render(<StageBossPreview motionToken={1} />)
-    expect(el.querySelector('[data-testid="stage-boss-preview-enemy"]').dataset.frozen).toBe('false')
+    expect(el.querySelector('[data-testid="stage-boss-preview"]').dataset.motionActive).toBe('true')
   })
 
   it('plays the same short reaction when the lobby boss preview is touched', () => {
@@ -106,13 +106,25 @@ describe('StageBossPreview ?⑤뵒留⑤뱶 紐⑥뀡', () => {
     })
 
     expect(preview.dataset.motionActive).toBe('true')
-    expect(el.querySelector('[data-testid="stage-boss-preview-enemy"]').dataset.frozen).toBe('false')
+    expect(el.querySelector('[data-testid="stage-boss-preview"]').dataset.motionActive).toBe('true')
 
     act(() => {
       vi.advanceTimersByTime(1_000)
     })
     expect(preview.dataset.motionActive).toBe('false')
     vi.useRealTimers()
+  })
+})
+
+describe('StageBossPreview B04 chef framing', () => {
+  it('centers the chef face using its dedicated local height', () => {
+    expect(faceWorldY('B04', 0)).toBeCloseTo(0, 6)
+    expect(Math.abs(faceNdcY({ bossType: 'B04' }))).toBeLessThan(0.005)
+  })
+
+  it('uses a chef-only zoom reduction while preserving other boss zoom', () => {
+    expect(resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, 'B04')).toBeCloseTo(46.2, 6)
+    expect(resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, 'B01')).toBe(DEFAULT_BASE_ZOOM)
   })
 })
 

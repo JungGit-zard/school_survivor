@@ -203,6 +203,7 @@ export const ENEMY_STATS = {
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
   B03: { hp: 1150, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
+  B04: { hp: 1150, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36 },
 }
 
 // 肄쒕씪?대뜑 湲곕낯 諛섑겕湲?(scale=1 湲곗?)
@@ -371,7 +372,7 @@ function EnemyProjectile({ id, position, velocity, damage, onExpire }) {
 // E01-E06 standard zombies render via ZombieInstanceLayer (instanced). B01 + Matilda use React mesh.
 const INSTANCED_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06'])
 
-export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, frozen = false }) {
+export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false }) {
   const stats = ENEMY_STATS[type] ?? ENEMY_STATS.E01
   const cs = stats.scale * ENEMY_SIZE_MULTIPLIER
   const useInstanced = !forceMesh && !isMatilda && INSTANCED_TYPES.has(type)
@@ -381,7 +382,7 @@ export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = fal
     <>
       <group ref={groupRef} scale={[cs * 0.333, cs * 0.333, cs * 0.333]}>
         {/* E01-E06: rendered imperatively by ZombieInstanceLayer ??no mesh here */}
-        {!useInstanced && <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} isMatilda={isMatilda} frozen={frozen} />}
+        {!useInstanced && <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} isMatilda={isMatilda} />}
         {stats.charger && animPhase === 'warn' && <ChargeToonCue y={CHARGE_CUE_LAYOUT.y} />}
       </group>
       {showHealthBar && <MiniHealthBar current={currentHp} max={stats.hp} width={0.32 * cs} height={0.045} y={0.72 * cs} />}

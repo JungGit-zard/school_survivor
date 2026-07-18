@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { ENEMY_STATS } from './Enemy.jsx'
-import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_STAGE2_BOSS_FACE, B02_STAGE2_BOSS_PALETTE, B02_STAGE2_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS, RUN_ZOMBIE_VISUAL, ZOMBIE_PALETTE } from './ZombieMesh.jsx'
+import { B01_BOSS_FACE_LAYOUT, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_STAGE2_BOSS_FACE, B02_STAGE2_BOSS_PALETTE, B02_STAGE2_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS, B04_CHEF_PALETTE, B04_CHEF_PARTS, RUN_ZOMBIE_VISUAL, ZOMBIE_PALETTE } from './ZombieMesh.jsx'
 import { GRAPHICS_STUDIO_CATALOG, getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
 
 const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
@@ -133,6 +133,85 @@ describe('B03 muscular PE teacher boss', () => {
   })
 })
 
+describe('Stage 4 chef zombie boss', () => {
+  it('defines the chef palette and stable ordered part groups', () => {
+    expect(B04_CHEF_PALETTE).toMatchObject({
+      skin: 0x7fa65a,
+      chefWhite: 0xf2efe2,
+      eye: 0x101010,
+      neckerchief: 0xb92828,
+      checkerLight: 0x898b8d,
+      checkerDark: 0x4d5054,
+      shoe: 0x151515,
+    })
+    expect(B04_CHEF_PARTS).toEqual([
+      'hat',
+      'head',
+      'body',
+      'neckerchief',
+      'armL',
+      'armR',
+      'apron',
+      'hips',
+      'legL',
+      'legR',
+    ])
+  })
+
+  it('builds the chef as a dedicated model with the characteristic silhouette', () => {
+    const chefSource = zombieMeshSource.match(
+      /function B04ChefBossMesh[\s\S]*?function B02Stage2BossMesh/,
+    )?.[0]
+
+    expect(chefSource).toBeDefined()
+    expect(chefSource.match(/pal\.chefWhite/g)?.length).toBeGreaterThanOrEqual(10)
+    expect(chefSource.match(/pal\.button/g)).toHaveLength(4)
+    expect(chefSource.match(/pal\.neckerchief/g)).toHaveLength(4)
+    expect(chefSource.match(/pal\.teeth/g)).toHaveLength(2)
+    expect(chefSource.match(/ref=\{reg\('(head|armL|armR|legL|legR)'\)\}/g)).toHaveLength(5)
+  })
+
+  it('uses the B04 Studio wrapper and numeric scene-tree paths only', () => {
+    const chefSource = zombieMeshSource.match(
+      /function B04ChefBossMesh[\s\S]*?function B02Stage2BossMesh/,
+    )?.[0]
+
+    expect(zombieMeshSource).toContain("if (type === 'B04')")
+    expect(zombieMeshSource).toContain("itemId={getStudioZombieItemId('B04')}")
+    expect(zombieMeshSource).toContain('<B04ChefBossMesh hitFlash={hitFlash} reg={reg} />')
+    expect(chefSource).toBeDefined()
+    expect(chefSource).not.toContain('studioPartId')
+  })
+
+  it('gives every chef group and block a distinct Studio label without changing numeric paths', () => {
+    const chefSource = zombieMeshSource.match(
+      /function B04ChefBossMesh[\s\S]*?function B02Stage2BossMesh/,
+    )?.[0]
+    const blockTags = chefSource?.match(/<ZBlock\b[^>]*\/>/g) ?? []
+    const blockNames = blockTags.map((tag) => tag.match(/name="([^"]+)"/)?.[1])
+    const groupNames = [...(chefSource?.matchAll(/<group name="([^"]+)"/g) ?? [])].map((match) => match[1])
+
+    expect(blockTags).toHaveLength(51)
+    expect(blockNames.every(Boolean)).toBe(true)
+    expect(new Set(blockNames).size).toBe(blockNames.length)
+    expect(groupNames).toHaveLength(11)
+    expect(groupNames.every(Boolean)).toBe(true)
+    expect(new Set(groupNames).size).toBe(groupNames.length)
+    expect(blockNames).toEqual(expect.arrayContaining([
+      'chefHatBand',
+      'chefHatLobeCenter',
+      'chefHead',
+      'chefEyeL',
+      'chefButtonUpperL',
+      'chefFistL',
+      'chefApronPanel',
+      'chefShoeL',
+      'chefShoeR',
+    ]))
+    expect(chefSource).not.toContain('studioPartId')
+  })
+})
+
 describe('Stage 3 run zombie crew visual reference', () => {
   it('registers leader and crew enemy stats separately from normal runners', () => {
     expect(ENEMY_STATS.RZL).toMatchObject({ hp: 90, speed: 2.45, scale: 1.08, runCrew: true })
@@ -157,23 +236,23 @@ describe('Stage 3 run zombie crew visual reference', () => {
   })
 })
 
-describe('Studio part-edit freeze contract', () => {
-  it('skips the animation frame loop entirely while frozen', () => {
+describe('Studio part-edit workaround cleanup', () => {
+  it('does not keep the removed frozen/rest capture path in ZombieMesh', () => {
     const source = zombieMeshSource
 
-    expect(source).toMatch(/useFrame\(\(state, delta\) => \{\s*if \(frozen\) return/)
+    expect(source).not.toMatch(/if \(frozen\) return/)
   })
 
   it('captures the JSX rest pose and restores it when freezing for studio part editing', () => {
     const source = zombieMeshSource
 
     // ref ?깅줉 ???좊땲硫붿씠???쒖옉 ??rest transform 罹≪쿂
-    expect(source).toContain('userData.zombieRestRotation = el.rotation.clone()')
-    expect(source).toContain('userData.zombieRestScale = el.scale.clone()')
+    expect(source).not.toContain('zombieRestRotation')
+    expect(source).not.toContain('zombieRestScale')
     // frozen 吏꾩엯 ??rest 蹂듭썝 + ?좊땲硫붿씠???꾩쨷 罹≪쿂???ㅽ뒠?붿삤 base ?먭린 ??rest 湲곗? ?ъ벙泥?
-    expect(source).toContain('el.rotation.copy(el.userData.zombieRestRotation)')
-    expect(source).toContain('delete el.userData.studioPartBaseRotation')
-    expect(source).toContain('delete el.userData.studioPartBaseScale')
+    expect(source).not.toContain('el.rotation.copy(el.userData.zombieRestRotation)')
+    expect(source).not.toContain('delete el.userData.studioPartBaseRotation')
+    expect(source).not.toContain('delete el.userData.studioPartBaseScale')
   })
 })
 

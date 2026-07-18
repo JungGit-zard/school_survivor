@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { useFrame, useLoader } from '@react-three/fiber'
 import * as THREE from 'three'
 import { inflateScale, getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat } from '../lib/toon.js'
@@ -104,6 +104,38 @@ export const B03_PE_TEACHER_PARTS = [
   'whistle',
   'gymShorts',
   'socksAndSneakers',
+]
+
+export const B04_CHEF_PALETTE = {
+  skin: 0x7fa65a,
+  skinShadow: 0x58783e,
+  chefWhite: 0xf2efe2,
+  chefShadow: 0xc9c7bd,
+  eye: 0x101010,
+  mouth: 0x35100f,
+  teeth: 0xf4e8c8,
+  tongue: 0xb93e45,
+  neckerchief: 0xb92828,
+  button: 0x171717,
+  stain: 0x668446,
+  belt: 0x36322f,
+  checkerLight: 0x898b8d,
+  checkerDark: 0x4d5054,
+  shoe: 0x151515,
+  sole: 0x080808,
+}
+
+export const B04_CHEF_PARTS = [
+  'hat',
+  'head',
+  'body',
+  'neckerchief',
+  'armL',
+  'armR',
+  'apron',
+  'hips',
+  'legL',
+  'legR',
 ]
 
 export const B03_PE_TEACHER_FACE_LAYOUT = {
@@ -445,6 +477,95 @@ function B02Stage2BossFaceTexture() {
   )
 }
 
+function B04ChefBossMesh({ hitFlash, reg }) {
+  const pal = B04_CHEF_PALETTE
+
+  return (
+    <group name="chefRoot">
+      <group name="chefHat" position={[0, 1.36, 0]}>
+        <ZBlock name="chefHatBand" size={[0.76, 0.16, 0.54]} position={[0, -0.13, 0]} color={pal.chefWhite} emissive={0.08} outlineScale={1.06} flash={hitFlash} />
+        <ZBlock name="chefHatLobeFarL" size={[0.24, 0.30, 0.42]} position={[-0.27, 0.06, 0]} rotation={[0, 0, -0.16]} color={pal.chefWhite} emissive={0.08} outlineScale={1.06} flash={hitFlash} />
+        <ZBlock name="chefHatLobeMidL" size={[0.25, 0.36, 0.44]} position={[-0.14, 0.10, 0]} rotation={[0, 0, -0.07]} color={pal.chefWhite} emissive={0.08} outlineScale={1.06} flash={hitFlash} />
+        <ZBlock name="chefHatLobeCenter" size={[0.27, 0.42, 0.46]} position={[0, 0.13, 0]} color={pal.chefWhite} emissive={0.08} outlineScale={1.06} flash={hitFlash} />
+        <ZBlock name="chefHatLobeMidR" size={[0.25, 0.36, 0.44]} position={[0.14, 0.10, 0]} rotation={[0, 0, 0.07]} color={pal.chefWhite} emissive={0.08} outlineScale={1.06} flash={hitFlash} />
+        <ZBlock name="chefHatLobeFarR" size={[0.24, 0.30, 0.42]} position={[0.27, 0.06, 0]} rotation={[0, 0, 0.16]} color={pal.chefWhite} emissive={0.08} outlineScale={1.06} flash={hitFlash} />
+      </group>
+
+      <group name="chefHeadRig" ref={reg('head')} position={[0, 0.93, 0]}>
+        <ZBlock name="chefHead" size={[0.66, 0.48, 0.52]} position={[0, 0, 0]} color={pal.skin} emissive={0.07} outlineScale={1.08} flash={hitFlash} />
+        <ZBlock name="chefEarL" size={[0.13, 0.22, 0.16]} position={[-0.39, -0.01, 0]} color={pal.skinShadow} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock name="chefEarR" size={[0.13, 0.22, 0.16]} position={[0.39, -0.01, 0]} color={pal.skinShadow} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock name="chefEyeL" size={[0.13, 0.11, 0.055]} position={[-0.15, 0.06, 0.285]} color={pal.eye} emissive={0.02} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="chefEyeR" size={[0.13, 0.11, 0.055]} position={[0.15, 0.06, 0.285]} color={pal.eye} emissive={0.02} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="chefNose" size={[0.13, 0.16, 0.14]} position={[0, -0.035, 0.32]} color={pal.skinShadow} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock name="chefMouth" size={[0.32, 0.18, 0.075]} position={[0, -0.17, 0.30]} color={pal.mouth} emissive={0.04} outlineScale={1.01} flash={hitFlash} />
+        <ZBlock name="chefUpperTeeth" size={[0.24, 0.055, 0.045]} position={[0, -0.115, 0.345]} color={pal.teeth} emissive={0.05} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="chefLowerTeeth" size={[0.20, 0.05, 0.045]} position={[0, -0.225, 0.345]} color={pal.teeth} emissive={0.05} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="chefTongue" size={[0.15, 0.06, 0.045]} position={[0.04, -0.18, 0.352]} color={pal.tongue} emissive={0.08} outlineScale={1.0} flash={hitFlash} />
+      </group>
+
+      <group name="chefBodyRig" ref={reg('body')} position={[0, 0.37, 0]}>
+        <ZBlock name="chefJacket" size={[0.78, 0.60, 0.50]} position={[0, 0, 0]} color={pal.chefWhite} emissive={0.07} outlineScale={1.09} flash={hitFlash} />
+        <ZBlock name="chefJacketPanelL" size={[0.31, 0.52, 0.055]} position={[-0.18, -0.01, 0.28]} color={pal.chefShadow} emissive={0.05} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="chefJacketPanelR" size={[0.31, 0.52, 0.055]} position={[0.18, -0.01, 0.28]} color={pal.chefWhite} emissive={0.07} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="chefButtonUpperL" size={[0.065, 0.065, 0.06]} position={[-0.12, 0.12, 0.325]} color={pal.button} emissive={0.02} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="chefButtonUpperR" size={[0.065, 0.065, 0.06]} position={[0.12, 0.12, 0.325]} color={pal.button} emissive={0.02} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="chefButtonLowerL" size={[0.065, 0.065, 0.06]} position={[-0.12, -0.09, 0.325]} color={pal.button} emissive={0.02} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="chefButtonLowerR" size={[0.065, 0.065, 0.06]} position={[0.12, -0.09, 0.325]} color={pal.button} emissive={0.02} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="chefStainL" size={[0.15, 0.11, 0.045]} position={[-0.27, -0.17, 0.325]} rotation={[0, 0, -0.18]} color={pal.stain} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="chefStainR" size={[0.12, 0.16, 0.045]} position={[0.28, 0.07, 0.325]} rotation={[0, 0, 0.23]} color={pal.stain} emissive={0.04} outlineScale={1.0} flash={hitFlash} />
+      </group>
+
+      <group name="chefNeckerchief" position={[0, 0.68, 0.30]}>
+        <ZBlock name="chefNeckBand" size={[0.38, 0.09, 0.08]} position={[0, 0, 0]} color={pal.neckerchief} emissive={0.10} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock name="chefNeckerchiefKnot" size={[0.15, 0.14, 0.09]} position={[0, -0.07, 0.04]} rotation={[0, 0, 0.78]} color={pal.neckerchief} emissive={0.10} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock name="chefNeckerchiefTailL" size={[0.11, 0.28, 0.07]} position={[-0.08, -0.22, 0.02]} rotation={[0, 0, 0.18]} color={pal.neckerchief} emissive={0.10} outlineScale={1.02} flash={hitFlash} />
+        <ZBlock name="chefNeckerchiefTailR" size={[0.11, 0.28, 0.07]} position={[0.08, -0.22, 0.02]} rotation={[0, 0, -0.18]} color={pal.neckerchief} emissive={0.10} outlineScale={1.02} flash={hitFlash} />
+      </group>
+
+      <group name="chefArmL" ref={reg('armL')} position={[-0.53, 0.61, 0]} rotation={[-0.96, 0, 0.15]}>
+        <ZBlock name="chefSleeveL" size={[0.26, 0.48, 0.26]} position={[0, -0.24, 0]} color={pal.chefWhite} emissive={0.07} outlineScale={1.06} flash={hitFlash} />
+        <ZBlock name="chefWristL" size={[0.20, 0.12, 0.20]} position={[0, -0.50, 0]} color={pal.skinShadow} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock name="chefFistL" size={[0.28, 0.23, 0.28]} position={[0, -0.66, 0]} color={pal.skin} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
+      </group>
+
+      <group name="chefArmR" ref={reg('armR')} position={[0.53, 0.61, 0]} rotation={[-0.96, 0, -0.15]}>
+        <ZBlock name="chefSleeveR" size={[0.26, 0.48, 0.26]} position={[0, -0.24, 0]} color={pal.chefWhite} emissive={0.07} outlineScale={1.06} flash={hitFlash} />
+        <ZBlock name="chefWristR" size={[0.20, 0.12, 0.20]} position={[0, -0.50, 0]} color={pal.skinShadow} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock name="chefFistR" size={[0.28, 0.23, 0.28]} position={[0, -0.66, 0]} color={pal.skin} emissive={0.07} outlineScale={1.05} flash={hitFlash} />
+      </group>
+
+      <group name="chefApron" position={[0, 0.16, 0]}>
+        <ZBlock name="chefApronBelt" size={[0.82, 0.11, 0.52]} position={[0, 0.16, 0]} color={pal.belt} emissive={0.03} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock name="chefApronPanel" size={[0.58, 0.42, 0.065]} position={[0, -0.07, 0.31]} color={pal.chefWhite} emissive={0.07} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock name="chefApronSideTieL" size={[0.14, 0.26, 0.08]} position={[-0.43, 0.02, 0.03]} rotation={[0, 0, -0.12]} color={pal.chefWhite} emissive={0.07} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock name="chefApronSideTieR" size={[0.14, 0.26, 0.08]} position={[0.43, 0.02, 0.03]} rotation={[0, 0, 0.12]} color={pal.chefWhite} emissive={0.07} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock name="chefApronBackKnot" size={[0.28, 0.20, 0.14]} position={[0, 0.11, -0.34]} rotation={[0, 0, 0.78]} color={pal.chefWhite} emissive={0.07} outlineScale={1.04} flash={hitFlash} />
+      </group>
+
+      <group name="chefHips" position={[0, -0.08, 0]}>
+        <ZBlock name="chefCheckerHips" size={[0.66, 0.28, 0.46]} position={[0, 0, 0]} color={pal.checkerDark} emissive={0.04} outlineScale={1.07} flash={hitFlash} />
+        <ZBlock name="chefHipsPatchL" size={[0.23, 0.13, 0.055]} position={[-0.17, 0.05, 0.26]} color={pal.checkerLight} emissive={0.05} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="chefHipsPatchR" size={[0.23, 0.13, 0.055]} position={[0.17, -0.05, 0.26]} color={pal.checkerDark} emissive={0.03} outlineScale={1.0} flash={hitFlash} />
+      </group>
+
+      <group name="chefLegL" ref={reg('legL')} position={[-0.19, -0.22, 0]}>
+        <ZBlock name="chefPantsL" size={[0.29, 0.42, 0.31]} position={[0, -0.21, 0]} color={pal.checkerDark} emissive={0.04} outlineScale={1.06} flash={hitFlash} />
+        <ZBlock name="chefLegPatchL" size={[0.14, 0.16, 0.055]} position={[-0.06, -0.18, 0.18]} color={pal.checkerLight} emissive={0.05} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="chefShoeL" size={[0.35, 0.15, 0.50]} position={[0, -0.50, 0.09]} color={pal.shoe} emissive={0.03} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock name="chefSoleL" size={[0.37, 0.055, 0.52]} position={[0, -0.59, 0.09]} color={pal.sole} emissive={0.01} outlineScale={1.02} flash={hitFlash} />
+      </group>
+
+      <group name="chefLegR" ref={reg('legR')} position={[0.19, -0.22, 0]}>
+        <ZBlock name="chefPantsR" size={[0.29, 0.42, 0.31]} position={[0, -0.21, 0]} color={pal.checkerLight} emissive={0.05} outlineScale={1.06} flash={hitFlash} />
+        <ZBlock name="chefLegPatchR" size={[0.14, 0.16, 0.055]} position={[0.06, -0.18, 0.18]} color={pal.checkerDark} emissive={0.03} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="chefShoeR" size={[0.35, 0.15, 0.50]} position={[0, -0.50, 0.09]} color={pal.shoe} emissive={0.03} outlineScale={1.04} flash={hitFlash} />
+        <ZBlock name="chefSoleR" size={[0.37, 0.055, 0.52]} position={[0, -0.59, 0.09]} color={pal.sole} emissive={0.01} outlineScale={1.02} flash={hitFlash} />
+      </group>
+    </group>
+  )
+}
+
 function B02Stage2BossMesh({ hitFlash, reg }) {
   const pal = B02_STAGE2_BOSS_PALETTE
 
@@ -525,7 +646,7 @@ function ZombieOuterOutline() {
 
 // animPhase: 'normal' | 'warn' | 'charge' | 'stun' | 'retreat'
 // frozen: 그래픽 스튜디오 파트 편집용 정적 포즈 — true면 애니메이션을 멈추고 rest 포즈 유지 (인게임 기본 false)
-export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false, frozen = false }) {
+export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false }) {
   const p    = useRef({})
   const pal  = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
   const specialAgeRef = useRef(0)
@@ -540,8 +661,6 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
         cb = (el) => {
           if (!el) return
           // 애니메이션이 돌기 전 JSX 선언값 = rest 포즈를 캡처 (frozen 진입 시 복원용)
-          if (!el.userData.zombieRestRotation) el.userData.zombieRestRotation = el.rotation.clone()
-          if (!el.userData.zombieRestScale) el.userData.zombieRestScale = el.scale.clone()
           pc.current[k] = el
         }
         regRef.current._cbs[k] = cb
@@ -555,20 +674,7 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
   // frozen 진입 시 애니메이션 잔존 transform을 rest 포즈로 되돌리고,
   // 애니메이션 도중 캡처됐을 수 있는 스튜디오 base(rotation/scale)를 폐기해
   // rest 기준으로 재캡처되게 한다. position은 애니메이션 대상이 아니므로 base 유지.
-  useEffect(() => {
-    if (!frozen) return
-    Object.values(p.current).forEach((el) => {
-      if (!el) return
-      if (el.userData.zombieRestRotation) el.rotation.copy(el.userData.zombieRestRotation)
-      if (el.userData.zombieRestScale) el.scale.copy(el.userData.zombieRestScale)
-      if (el.userData.studioPartBasePosition) el.position.copy(el.userData.studioPartBasePosition)
-      delete el.userData.studioPartBaseRotation
-      delete el.userData.studioPartBaseScale
-    })
-  }, [frozen, type])
-
   useFrame((state, delta) => {
-    if (frozen) return
     const pt = p.current
     if (!pt.legL) return
     const t = state.clock.elapsedTime
@@ -718,6 +824,14 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     return (
       <StudioTunedGroup itemId={getStudioZombieItemId('B03')}>
         <B03PhysicalEducationBossMesh hitFlash={hitFlash} reg={reg} />
+      </StudioTunedGroup>
+    )
+  }
+
+  if (type === 'B04') {
+    return (
+      <StudioTunedGroup itemId={getStudioZombieItemId('B04')}>
+        <B04ChefBossMesh hitFlash={hitFlash} reg={reg} />
       </StudioTunedGroup>
     )
   }
