@@ -78,6 +78,7 @@
 
 ### 절대로 하면 안 되는 사항
 
+- 절대로 숫자 자식 경로 대신 `id:b02-face-texture`로 런타임 대상을 탐색하지 않는다. 이 연결과 이를 복구·호환·변환하는 모든 경로는 구형 B02 전용 치명적 버그로 분류하고 즉시 삭제한다.
 - 절대로 사용자가 확정한 Studio 값을 화면 캡처, 브라우저 방문 기록, 추측한 신체 부위 이름, 오래된 소스 기본값으로 재구성하지 않는다.
 - 절대로 Studio의 브라우저 `localStorage`나 창 간 메시지를 Firebase에 영구 저장된 정본이라고 기록하지 않는다.
 - 절대로 Source-Controlled Player Seed 또는 `sourceRevision`을 Firebase Visual Canonical State, 원격 승인, 기기 간 동기화, 서버 감사 또는 서버 롤백의 증거로 제시하지 않는다.
