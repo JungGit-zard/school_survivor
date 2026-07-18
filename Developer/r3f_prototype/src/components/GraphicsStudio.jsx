@@ -841,9 +841,42 @@ export default function GraphicsStudio() {
             ) : null}
           </div>
           <div style={styles.controls}>
-            <section style={styles.stageBossPreviewSection}>
+            <section style={styles.transformGroup} data-testid="transform-group-scale">
+              <span style={styles.transformGroupTitle}>스케일</span>
+              <SliderRow
+                label="Scale"
+                name="scale"
+                min="0.35"
+                max="2.5"
+                step="0.01"
+                value={tuning.scale}
+                onChange={(scale) => updateTuning(scale === 1
+                  ? { scale, scaleX: 1, scaleY: 1, scaleZ: 1 }
+                  : { scale })}
+              />
+              <SliderRow label="Width X" name="scaleX" min="0.35" max="2.5" step="0.01" value={tuning.scaleX} onChange={(scaleX) => updateTuning({ scaleX })} />
+              <SliderRow label="Height Y" name="scaleY" min="0.35" max="2.5" step="0.01" value={tuning.scaleY} onChange={(scaleY) => updateTuning({ scaleY })} />
+              <SliderRow label="Depth Z" name="scaleZ" min="0.35" max="2.5" step="0.01" value={tuning.scaleZ} onChange={(scaleZ) => updateTuning({ scaleZ })} />
+            </section>
+            <section style={styles.transformGroup} data-testid="transform-group-position">
+              <span style={styles.transformGroupTitle}>포지션</span>
+              <SliderRow label="Position X" name="positionX" min="-3" max="3" step="0.01" value={tuning.positionX} onChange={(positionX) => updateTuning({ positionX })} />
+              <SliderRow label="Position Y" name="positionY" min="-3" max="3" step="0.01" value={tuning.positionY} onChange={(positionY) => updateTuning({ positionY })} />
+              <SliderRow label="Position Z" name="positionZ" min="-3" max="3" step="0.01" value={tuning.positionZ} onChange={(positionZ) => updateTuning({ positionZ })} />
+            </section>
+            <section style={styles.transformGroup} data-testid="transform-group-rotation">
+              <span style={styles.transformGroupTitle}>로테이션</span>
+              <SliderRow label="Rotate X" name="rotationX" min="-180" max="180" step="1" value={tuning.rotationX} onChange={(rotationX) => updateTuning({ rotationX })} />
+              <SliderRow label="Rotate Y" name="rotationY" min="-180" max="180" step="1" value={tuning.rotationY} onChange={(rotationY) => updateTuning({ rotationY })} />
+              <SliderRow label="Rotate Z" name="rotationZ" min="-180" max="180" step="1" value={tuning.rotationZ} onChange={(rotationZ) => updateTuning({ rotationZ })} />
+            </section>
+            <section
+              style={styles.stageBossPreviewSection}
+              data-testid="stage-boss-card-layout-section"
+              aria-labelledby="stage-boss-card-layout-title"
+            >
               <div style={styles.stageBossPreviewHeader}>
-                <span style={styles.stageBossPreviewTitle}>Stage Boss Preview</span>
+                <span id="stage-boss-card-layout-title" style={styles.stageBossPreviewTitle}>Stage Boss Card Layout</span>
                 <span style={styles.stageBossPreviewHint}>wheel zoom / drag pan</span>
               </div>
               <StageBossPreview
@@ -853,27 +886,12 @@ export default function GraphicsStudio() {
                 onChange={updateStageBossPreview}
                 testId="studio-stage-boss-preview"
               />
+              <div style={styles.stageBossPreviewControls}>
+                <SliderRow label="Preview Zoom" name="stageBossPreviewZoom" min="50" max="180" step="1" value={stageBossPreview.zoom} onChange={(zoom) => updateStageBossPreview({ zoom })} />
+                <SliderRow label="Preview Pan X" name="stageBossPreviewPanX" min="-2" max="2" step="0.01" value={stageBossPreview.panX} onChange={(panX) => updateStageBossPreview({ panX })} />
+                <SliderRow label="Preview Pan Y" name="stageBossPreviewPanY" min={STAGE_BOSS_PREVIEW_PAN_Y_RANGE[0]} max={STAGE_BOSS_PREVIEW_PAN_Y_RANGE[1]} step="0.01" value={stageBossPreview.panY} onChange={(panY) => updateStageBossPreview({ panY })} />
+              </div>
             </section>
-            <SliderRow label="Preview Zoom" name="stageBossPreviewZoom" min="50" max="180" step="1" value={stageBossPreview.zoom} onChange={(zoom) => updateStageBossPreview({ zoom })} />
-            <SliderRow label="Preview Pan X" name="stageBossPreviewPanX" min="-2" max="2" step="0.01" value={stageBossPreview.panX} onChange={(panX) => updateStageBossPreview({ panX })} />
-            <SliderRow label="Preview Pan Y" name="stageBossPreviewPanY" min={STAGE_BOSS_PREVIEW_PAN_Y_RANGE[0]} max={STAGE_BOSS_PREVIEW_PAN_Y_RANGE[1]} step="0.01" value={stageBossPreview.panY} onChange={(panY) => updateStageBossPreview({ panY })} />
-            <SliderRow
-              label="Scale"
-              name="scale"
-              min="0.35"
-              max="2.5"
-              step="0.01"
-              value={tuning.scale}
-              onChange={(scale) => updateTuning(scale === 1
-                ? { scale, scaleX: 1, scaleY: 1, scaleZ: 1 }
-                : { scale })}
-            />
-            <SliderRow label="Width X" name="scaleX" min="0.35" max="2.5" step="0.01" value={tuning.scaleX} onChange={(scaleX) => updateTuning({ scaleX })} />
-            <SliderRow label="Height Y" name="scaleY" min="0.35" max="2.5" step="0.01" value={tuning.scaleY} onChange={(scaleY) => updateTuning({ scaleY })} />
-            <SliderRow label="Depth Z" name="scaleZ" min="0.35" max="2.5" step="0.01" value={tuning.scaleZ} onChange={(scaleZ) => updateTuning({ scaleZ })} />
-            <SliderRow label="Position X" name="positionX" min="-3" max="3" step="0.01" value={tuning.positionX} onChange={(positionX) => updateTuning({ positionX })} />
-            <SliderRow label="Position Y" name="positionY" min="-3" max="3" step="0.01" value={tuning.positionY} onChange={(positionY) => updateTuning({ positionY })} />
-            <SliderRow label="Position Z" name="positionZ" min="-3" max="3" step="0.01" value={tuning.positionZ} onChange={(positionZ) => updateTuning({ positionZ })} />
             <SliderRow label="Outline" name="outlineThickness" min="0.4" max="2.2" step="0.01" value={tuning.outlineThickness} onChange={(outlineThickness) => updateTuning({ outlineThickness })} />
             <SliderRow label="Opacity" name="outlineOpacity" min="0" max="1" step="0.01" value={tuning.outlineOpacity} onChange={(outlineOpacity) => updateTuning({ outlineOpacity })} />
             <ColorRow label="Outline Color" name="outlineColor" value={tuning.outlineColor} onChange={(outlineColor) => updateTuning({ outlineColor })} />
@@ -882,9 +900,6 @@ export default function GraphicsStudio() {
             <SliderRow label="Saturation" name="saturation" min="0.1" max="1.8" step="0.01" value={tuning.saturation} onChange={(saturation) => updateTuning({ saturation })} />
             <SliderRow label="Brightness" name="brightness" min="0.35" max="1.8" step="0.01" value={tuning.brightness} onChange={(brightness) => updateTuning({ brightness })} />
             <SliderRow label="Emissive" name="emissiveIntensity" min="0" max="1.2" step="0.01" value={tuning.emissiveIntensity} onChange={(emissiveIntensity) => updateTuning({ emissiveIntensity })} />
-            <SliderRow label="Rotate X" name="rotationX" min="-180" max="180" step="1" value={tuning.rotationX} onChange={(rotationX) => updateTuning({ rotationX })} />
-            <SliderRow label="Rotate Y" name="rotationY" min="-180" max="180" step="1" value={tuning.rotationY} onChange={(rotationY) => updateTuning({ rotationY })} />
-            <SliderRow label="Rotate Z" name="rotationZ" min="-180" max="180" step="1" value={tuning.rotationZ} onChange={(rotationZ) => updateTuning({ rotationZ })} />
             <label style={styles.selectRow}>
               <span style={styles.controlLabel}>Motion</span>
               <select
@@ -1270,9 +1285,13 @@ const styles = {
   },
   stageBossPreviewSection: {
     display: 'grid',
-    gap: 7,
-    paddingBottom: 6,
-    borderBottom: '1px solid #353833',
+    gap: 10,
+    padding: 10,
+    border: '1px solid #55705d',
+    borderTop: '3px solid #7fb58d',
+    borderRadius: 8,
+    background: '#181f1b',
+    boxShadow: '0 0 0 1px rgba(127, 181, 141, 0.08), 0 8px 18px rgba(0, 0, 0, 0.18)',
   },
   stageBossPreviewHeader: {
     display: 'flex',
@@ -1281,13 +1300,35 @@ const styles = {
     gap: 8,
   },
   stageBossPreviewTitle: {
-    color: '#f4eadb',
+    color: '#bfe6c8',
     fontSize: 12,
     fontWeight: 800,
+    letterSpacing: '0.02em',
   },
   stageBossPreviewHint: {
     color: '#8ebc9d',
     fontSize: 10,
+  },
+  stageBossPreviewControls: {
+    display: 'grid',
+    gap: 9,
+    paddingTop: 2,
+  },
+  transformGroup: {
+    display: 'grid',
+    gap: 9,
+    padding: 10,
+    border: '1px solid #55705d',
+    borderTop: '3px solid #7fb58d',
+    borderRadius: 8,
+    background: '#181f1b',
+    boxShadow: '0 0 0 1px rgba(127, 181, 141, 0.08), 0 8px 18px rgba(0, 0, 0, 0.18)',
+  },
+  transformGroupTitle: {
+    color: '#bfe6c8',
+    fontSize: 12,
+    fontWeight: 800,
+    letterSpacing: '0.02em',
   },
   decalSection: {
     display: 'grid',
