@@ -354,7 +354,11 @@ export function waveSizeForPhase(phase) {
 export function waveSizeForStageAtTime(phase, stageId, waveTime) {
   const size = waveSizeForPhase(phase)
   if (stageId === 'stage1') return Math.max(1, Math.round(size * STAGE1_SPAWN_MULTIPLIER))
-  return stageId === 'stage2' && (waveTime === 0 || waveTime === 30) ? size * 3 : size
+  if (stageId === 'stage2') return (waveTime === 0 || waveTime === 30) ? size * 3 : size
+  // stage3: 오프닝(t=0)만 프론트로드 ×2로 초반 밀도 확립(발견 C). 이후 웨이브는 배율 없음
+  // — ×1.44 HP가 이미 동시개체를 끌어올려(발견 D) 지속 배율은 스택 과부하 위험이라 두지 않는다.
+  if (stageId === 'stage3') return waveTime === 0 ? size * 2 : size
+  return size
 }
 
 // 다음 웨이브까지 간격 = 20~40초 균등분포 랜덤. random 주입으로 테스트 결정성 확보.

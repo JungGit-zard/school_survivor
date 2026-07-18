@@ -64,11 +64,13 @@ export const STAGE3_BURST_EVENTS = [
   { sec: 135, type: 'B02', count:  1 },
   { sec: 147, type: 'B01', count:  1 },
   { sec: 196, type: 'E05', count:  3 },                         // 마틸다 직전 차저 러시
-  // ── 형태(formation) 버스트 — 개방 아레나 포위/협공. 예고 정본 STAGE3_SPAWN_TELEGRAPHS ──
+  // ── 형태(formation) 버스트 — 개방 아레나에선 플레이어 상대 포위(ring/pincer)만 사용해 카이팅을 끊는다.
+  // swarm(한 방향 스윕)·gauntlet(양벽)은 넓은 사공간서 자명하게 카이팅되므로 스3 스케줄서 배제(구현체는 스2가 계속 사용).
+  // 예고 정본 STAGE3_SPAWN_TELEGRAPHS. 재설계: Planner/stage3_zombie_wave_redesign_2026-07-18.md §3.
   { sec:  44, type: 'E03', count:  6, formation: 'ring' },      // 첫 완전 포위
-  { sec:  92, type: 'E02', count:  6, formation: 'pincer' },    // 탱커 호흡 구간 협공
-  { sec: 120, type: 'E05', count:  4, formation: 'swarm' },     // 거대 구간 차저 무리
-  { sec: 176, type: 'E06', count:  2, formation: 'gauntlet' },  // 보스 구간 거대 건틀릿
+  { sec:  92, type: 'E02', count:  6, formation: 'pincer' },    // 탱커 호흡 구간 앞뒤 협공
+  { sec: 120, type: 'E05', count:  4, formation: 'ring' },      // 3축 창 차저 포위(개편: swarm→ring, 도주 차단)
+  { sec: 176, type: 'E06', count:  2, formation: 'pincer' },    // 보스 구간 거대 앞뒤 벽(개편: gauntlet→pincer)
 ]
 
 export function getBurstEventsForStage(stageId) {

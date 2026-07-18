@@ -88,8 +88,14 @@ describe('stage3 더블 보스 + 형태 버스트 런타임 복원', () => {
     })
   })
 
-  it('형태 버스트 중 stage3는 ring/pincer/swarm/gauntlet + runZombieCrew를 사용한다', () => {
+  it('형태 버스트 중 stage3는 플레이어 상대 포위(ring/pincer) + runZombieCrew만 쓴다 (개방 맵 안티카이팅)', () => {
+    // 재설계(2026-07-18): swarm(한 방향)·gauntlet(양벽)은 개방 아레나서 카이팅되므로 배제.
     const formations = STAGE3_BURST_EVENTS.filter((e) => e.formation).map((e) => e.formation)
-    expect(new Set(formations)).toEqual(new Set(['ring', 'pincer', 'swarm', 'gauntlet', RUN_ZOMBIE_CREW_FORMATION]))
+    expect(new Set(formations)).toEqual(new Set(['ring', 'pincer', RUN_ZOMBIE_CREW_FORMATION]))
+    expect(formations).not.toContain('swarm')
+    expect(formations).not.toContain('gauntlet')
+    // 120s는 차저 포위(ring), 176s는 거대 앞뒤 벽(pincer)으로 교체됨.
+    expect(STAGE3_BURST_EVENTS.find((e) => e.sec === 120)?.formation).toBe('ring')
+    expect(STAGE3_BURST_EVENTS.find((e) => e.sec === 176)?.formation).toBe('pincer')
   })
 })

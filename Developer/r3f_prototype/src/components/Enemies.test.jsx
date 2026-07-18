@@ -213,8 +213,18 @@ describe('random-interval discrete wave scheduler', () => {
       const baseSize = waveSizeForPhase(phase)
       expect(waveSizeForStageAtTime(phase, 'stage1', phase.start))
         .toBe(Math.round(baseSize * STAGE1_SPAWN_MULTIPLIER))
-      expect(waveSizeForStageAtTime(phase, 'stage3', phase.start)).toBe(baseSize)
+      // stage3는 t=0 오프닝만 ×2 프론트로드, 그 외 웨이브는 배율 없음(발견 C 오프닝 밀도 확립).
+      const expected = phase.start === 0 ? baseSize * 2 : baseSize
+      expect(waveSizeForStageAtTime(phase, 'stage3', phase.start)).toBe(expected)
     })
+  })
+
+  it('front-loads only the stage3 opening wave (t=0 x2), later waves unmultiplied', () => {
+    const opening = { target: 20 }   // waveSize 10 → 20
+    const later = { target: 30 }     // waveSize 15 (배율 없음)
+    expect(waveSizeForStageAtTime(opening, 'stage3', 0)).toBe(20)
+    expect(waveSizeForStageAtTime(opening, 'stage3', 34)).toBe(10)
+    expect(waveSizeForStageAtTime(later, 'stage3', 108)).toBe(15)
   })
 
   it('raises dense stage 1 runtime wave sizes from the old 12-17 band to 16-22', () => {
