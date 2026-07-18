@@ -79,13 +79,10 @@ describe('stage3 더블 보스 + 형태 버스트 런타임 복원', () => {
     expect(getRuntimeBurstEventsForStage('stage2')).toEqual([{ sec: 120, type: 'B02', count: 1 }])
   })
 
-  it('stage3는 런좀비 크루 대각선 횡단 버스트를 포함한다', () => {
-    expect(STAGE3_BURST_EVENTS).toContainEqual({
-      sec: 72,
-      type: 'RZL',
-      count: 13,
-      formation: RUN_ZOMBIE_CREW_FORMATION,
-    })
+  it('stage3는 런좀비 크루 대각선 횡단 버스트를 네 번 포함한다', () => {
+    const crews = STAGE3_BURST_EVENTS.filter((e) => e.formation === RUN_ZOMBIE_CREW_FORMATION)
+    expect(crews.map((e) => e.sec)).toEqual([35, 80, 120, 150])
+    expect(crews.every((event) => event.type === 'RZL' && event.count === 13)).toBe(true)
   })
 
   it('형태 버스트 중 stage3는 플레이어 상대 포위(ring/pincer) + runZombieCrew만 쓴다 (개방 맵 안티카이팅)', () => {
@@ -94,8 +91,8 @@ describe('stage3 더블 보스 + 형태 버스트 런타임 복원', () => {
     expect(new Set(formations)).toEqual(new Set(['ring', 'pincer', RUN_ZOMBIE_CREW_FORMATION]))
     expect(formations).not.toContain('swarm')
     expect(formations).not.toContain('gauntlet')
-    // 120s는 차저 포위(ring), 176s는 거대 앞뒤 벽(pincer)으로 교체됨.
-    expect(STAGE3_BURST_EVENTS.find((e) => e.sec === 120)?.formation).toBe('ring')
+    // 112s는 차저 포위(ring), 176s는 거대 앞뒤 벽(pincer)으로 교체됨.
+    expect(STAGE3_BURST_EVENTS.find((e) => e.sec === 112)?.formation).toBe('ring')
     expect(STAGE3_BURST_EVENTS.find((e) => e.sec === 176)?.formation).toBe('pincer')
   })
 })

@@ -57,7 +57,10 @@ export const STAGE3_BURST_EVENTS = [
   { sec:  16, type: 'E03', count:  4 },                         // 러너 조기 압박
   { sec:  34, type: 'E04', count:  1 },                         // 원거리 조기 등장 신호
   { sec:  52, type: 'E05', count:  2 },                         // 차저 조기 등장 신호
-  { sec:  72, type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루: 리더 1 + 러닝크루 12, 대각선 화면 횡단
+  { sec:  35, type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 1차: 리더 1 + 러닝크루 12, 대각선 화면 횡단
+  { sec:  80, type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 2차: 이완 창 내부 대각선 압박
+  { sec: 120, type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 3차: 2분 압박 체크포인트
+  { sec: 150, type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 4차: 보스 직후 재압박
   { sec: 108, type: 'E06', count:  1 },                         // 거대 조기 등장 보장
   { sec: 132, type: 'E06', count:  1 },                         // 피크 거대 1기 추가(미조우 방어)
   // ── 더블 보스 스태거: B02 먼저(135), B01 나중(147) → warn/charge 위상차로 동시 협공 돌진 완화 ──
@@ -69,7 +72,7 @@ export const STAGE3_BURST_EVENTS = [
   // 예고 정본 STAGE3_SPAWN_TELEGRAPHS. 재설계: Planner/stage3_zombie_wave_redesign_2026-07-18.md §3.
   { sec:  44, type: 'E03', count:  6, formation: 'ring' },      // 첫 완전 포위
   { sec:  92, type: 'E02', count:  6, formation: 'pincer' },    // 탱커 호흡 구간 앞뒤 협공
-  { sec: 120, type: 'E05', count:  4, formation: 'ring' },      // 3축 창 차저 포위(개편: swarm→ring, 도주 차단)
+  { sec: 112, type: 'E05', count:  4, formation: 'ring' },      // 3축 창 차저 포위(112s 예열 후 RZL@120이 주역)
   { sec: 176, type: 'E06', count:  2, formation: 'pincer' },    // 보스 구간 거대 앞뒤 벽(개편: gauntlet→pincer)
 ]
 

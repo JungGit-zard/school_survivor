@@ -7,6 +7,7 @@ import {
   applyReducedEffects,
   loadTitleSettings,
   unlockAllNonStarterWeapons,
+  unlockAllStagesForDevCheat,
 } from '../lib/titleSettings.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { useAuthStore } from '../store/useAuthStore.js'
@@ -80,6 +81,7 @@ export default function TitleScreen({
   onEnterLobby,
   devCheatsVisible = false,
   onRevealDevCheats,
+  onUnlockAllStages,
   studioVisualsReady = true,
   ensureStudioCloudReady,
 }) {
@@ -238,6 +240,12 @@ export default function TitleScreen({
     unlockAllNonStarterWeapons()
   }
 
+  const handleUnlockAllStages = () => {
+    unlockAllStagesForDevCheat()
+    onUnlockAllStages?.()
+    requestCloudProgressSave()
+  }
+
   const handleResetPassiveUpgrades = () => {
     resetPassiveUpgrades()
   }
@@ -372,6 +380,9 @@ export default function TitleScreen({
             <div style={styles.cheatButtons}>
               <button type="button" style={styles.cheatButton} onClick={handleUnlockAllWeapons}>
                 모든 무기 해금
+              </button>
+              <button type="button" style={styles.cheatButton} onClick={handleUnlockAllStages}>
+                모든 스테이지 해금
               </button>
               <button type="button" style={styles.resetButton} onClick={handleResetPassiveUpgrades}>
                 코인 레벨업 초기화

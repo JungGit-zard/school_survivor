@@ -60,8 +60,8 @@ describe('stage3 총력전 타임라인', () => {
     expect(firstOf('E06')).toBe(108)
   })
 
-  it('RZL 이완 창(72–92): 앰비언트 target↓·차저(E05) 제거로 RZL 대각 스파이크를 부각한다', () => {
-    // 재설계(2026-07-18): RZL@72 불가침 이벤트가 그 순간의 주역으로 읽히게 웨이브가 비켜간다.
+  it('RZL 2차 이완 창(72–92): 앰비언트 target↓·차저(E05) 제거로 80초 런좀비크루 대각 스파이크를 부각한다', () => {
+    // 재설계(2026-07-18): RZL@80 이벤트가 그 순간의 주역으로 읽히게 웨이브가 비켜간다.
     const rzlPhase = STAGE3_WAVE_PHASES.find((p) => p.start === 72)
     const prevPhase = STAGE3_WAVE_PHASES.find((p) => p.end === 72)
     expect(rzlPhase.weights.E05).toBeUndefined()   // 차저 제거

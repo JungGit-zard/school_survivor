@@ -8,6 +8,7 @@ import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { initPlaytestLogger } from '../lib/playtestLogger.js'
 import { isMobileJoystickEnvironment } from '../lib/mobileInput.js'
 import { initKeyboardInput } from '../lib/keyboardInput.js'
+import { loadTitleSettings } from '../lib/titleSettings.js'
 
 const CoinShop = lazy(() => import('./CoinShop.jsx'))
 const UserRanking = lazy(() => import('./UserRanking.jsx'))
@@ -34,6 +35,7 @@ export default function ReadyGameApp({
   const [rankingStageId, setRankingStageId] = useState(null)
   const [mobileJoystickEnabled, setMobileJoystickEnabled] = useState(false)
   const [devCheatsVisible, setDevCheatsVisible] = useState(false)
+  const [devAllStagesUnlocked, setDevAllStagesUnlocked] = useState(() => loadTitleSettings().unlockAllStagesCheat)
   const phoneFrameRef = useRef(null)
   const gameKey = useGameStore((s) => s.gameKey)
   const phase = useGameStore((s) => s.phase)
@@ -110,6 +112,7 @@ export default function ReadyGameApp({
             onEnterLobby={() => setScreen('lobby')}
             devCheatsVisible={devCheatsVisible}
             onRevealDevCheats={() => setDevCheatsVisible(true)}
+            onUnlockAllStages={() => setDevAllStagesUnlocked(true)}
             studioVisualsReady={studioReady}
             ensureStudioCloudReady={ensureStudioCloudReady}
           />
@@ -121,6 +124,7 @@ export default function ReadyGameApp({
             onOpenCoinShop={() => openCoinShopFrom('lobby')}
             onOpenRanking={(stageId) => openRankingFrom('lobby', stageId)}
             onLogoutToTitle={() => setScreen('title')}
+            devAllStagesUnlocked={devAllStagesUnlocked}
           />
         )}
 

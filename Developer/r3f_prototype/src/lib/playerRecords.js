@@ -16,6 +16,8 @@ export const RECORD_KEYS = [
   'stage2BestSurvivalSec',
   'stage3Clears',
   'stage3BestSurvivalSec',
+  'stage4Clears',
+  'stage4BestSurvivalSec',
   'bossKills',
   'totalLevelUps',
   'totalPickups',

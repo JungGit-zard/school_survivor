@@ -6,11 +6,13 @@ import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import TitleScreen from './TitleScreen.jsx'
 import { WEAPON_CATALOG, isStarter } from '../lib/weaponCatalog.js'
-import { STORAGE_KEY as WEAPON_UNLOCKS_KEY, _resetForTests as resetWeaponUnlocks } from '../lib/weaponUnlocks.js'
+import { STORAGE_KEY as WEAPON_UNLOCKS_KEY, getAllUnlocked, _resetForTests as resetWeaponUnlocks } from '../lib/weaponUnlocks.js'
 import { STORAGE_KEY as PASSIVE_STORAGE_KEY, purchase as purchasePassiveStorage } from '../lib/passiveUpgrades.js'
-import { STORAGE_KEY as NICKNAME_STORAGE_KEY } from '../lib/userNickname.js'
+import { STORAGE_KEY as NICKNAME_STORAGE_KEY, getSavedNickname, saveNicknameForUser } from '../lib/userNickname.js'
 import { ADMIN_CONFIG_STORAGE_KEY, saveAdminConfig } from '../lib/adminConfig.js'
-import { SETTINGS_STORAGE_KEY } from '../lib/titleSettings.js'
+import { SETTINGS_STORAGE_KEY, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
+import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
+import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { useAuthStore, _resetAuthStoreForTests } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 
@@ -27,6 +29,7 @@ vi.mock('./TitleScene3D.jsx', () => ({
 }))
 
 beforeEach(() => {
+  _seedHydratedFirebaseProgressForTests()
   vi.stubGlobal('Audio', vi.fn(function AudioMock() {
     return {
       play: vi.fn(() => Promise.resolve()),
@@ -96,7 +99,7 @@ describe('TitleScreen lobby entry', () => {
   })
 
   it('keeps title effects enabled and restores the saved reduced-effects setting on exit', () => {
-    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ reducedEffects: true }))
+    saveTitleSettings({ reducedEffects: true })
     const { container, cleanup } = renderTitleScreen()
 
     expect(container.querySelector('[data-testid="mock-title-scene"]')?.dataset.reducedEffects).toBe('false')
@@ -146,9 +149,7 @@ describe('TitleScreen lobby entry', () => {
     clickButtonByText(container, '저장하고 시작')
 
     expect(onEnterLobby).toHaveBeenCalledTimes(1)
-    expect(JSON.parse(localStorage.getItem(NICKNAME_STORAGE_KEY))).toEqual({
-      'uid-1': '교실 생존자',
-    })
+    expect(getSavedNickname({ uid: 'uid-1' })).toBe('교실 생존자')
 
     cleanup()
   })
@@ -159,7 +160,7 @@ describe('TitleScreen lobby entry', () => {
       user: { uid: 'uid-2', displayName: 'Returner', email: 'r@example.com', photoURL: '' },
       initialized: true,
     })
-    localStorage.setItem(NICKNAME_STORAGE_KEY, JSON.stringify({ 'uid-2': '복도반장' }))
+    saveNicknameForUser({ uid: 'uid-2' }, '복도반장')
 
     const onEnterLobby = vi.fn()
     const { container, cleanup } = renderTitleScreen(onEnterLobby)
@@ -186,6 +187,7 @@ describe('TitleScreen lobby entry', () => {
 
     await act(async () => {
       clickButtonByTextRaw(container, '게임 시작')
+      await Promise.resolve()
     })
 
     expect(signInWithGoogle).toHaveBeenCalledTimes(1)
@@ -215,12 +217,29 @@ describe('TitleScreen lobby entry', () => {
     openCheatMenu(container)
     clickButtonByText(container, '모든 무기 해금')
 
-    const unlocks = JSON.parse(localStorage.getItem(WEAPON_UNLOCKS_KEY))
+    const unlocks = getAllUnlocked()
     const nonStarterIds = Object.keys(WEAPON_CATALOG).filter((id) => !isStarter(id))
 
     for (const id of nonStarterIds) {
-      expect(unlocks[id], id).toBe(1)
+      expect(unlocks.has(id), id).toBe(true)
     }
+
+    cleanup()
+  })
+
+  it('unlocks every stage from the cheat modal and persists the Stage 4 entry override', () => {
+    const onUnlockAllStages = vi.fn()
+    const { container, cleanup } = renderTitleScreen(() => {}, true, onUnlockAllStages)
+
+    openCheatMenu(container)
+    clickButtonByText(container, '모든 스테이지 해금')
+
+    const records = loadPlayerRecords()
+    expect(records.stage1Clears).toBeGreaterThanOrEqual(1)
+    expect(records.stage2Clears).toBeGreaterThanOrEqual(1)
+    expect(records.stage3Clears).toBeGreaterThanOrEqual(1)
+    expect(loadTitleSettings().unlockAllStagesCheat).toBe(true)
+    expect(onUnlockAllStages).toHaveBeenCalledTimes(1)
 
     cleanup()
   })
@@ -252,7 +271,7 @@ describe('TitleScreen lobby entry', () => {
   })
 })
 
-function renderTitleScreen(onEnterLobby = () => {}, initialDevCheatsVisible = true) {
+function renderTitleScreen(onEnterLobby = () => {}, initialDevCheatsVisible = true, onUnlockAllStages = () => {}) {
   const container = document.createElement('div')
   document.body.appendChild(container)
   const root = createRoot(container)
@@ -264,6 +283,7 @@ function renderTitleScreen(onEnterLobby = () => {}, initialDevCheatsVisible = tr
         onEnterLobby={onEnterLobby}
         devCheatsVisible={devCheatsVisible}
         onRevealDevCheats={() => setDevCheatsVisible(true)}
+        onUnlockAllStages={onUnlockAllStages}
       />
     )
   }

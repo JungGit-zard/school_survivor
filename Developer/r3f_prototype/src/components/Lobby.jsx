@@ -63,7 +63,7 @@ function formatSeasonCountdown(season, nowMs = Date.now()) {
   return `종료까지 ${hours}시간 ${minutes}분`
 }
 
-export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onLogoutToTitle }) {
+export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onLogoutToTitle, devAllStagesUnlocked = false }) {
   const authUser = useAuthStore((s) => s.user)
   const goldTotal = useGameStore((s) => s.goldTotal)
   const [records, setRecords] = useState(loadPlayerRecords)
@@ -237,7 +237,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
       <div style={styles.stageList} aria-label="스테이지 목록">
         {stageIds.map((stageId, index) => {
           const stage = getStageConfig(stageId)
-          const unlocked = isStageUnlocked(stageId, records)
+          const unlocked = devAllStagesUnlocked || isStageUnlocked(stageId, records)
           const bestSurvivalSec = records[stage.bestRecordKey] ?? 0
           const cleared = (records[stage.clearRecordKey] ?? 0) > 0
           return (
@@ -251,6 +251,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
               bestSurvivalSec={bestSurvivalSec}
               stageBossPreview={stageBossPreview}
               showtimeStageId={showtimeStageId}
+              devAllStagesUnlocked={devAllStagesUnlocked}
               onBeginShowtime={beginStageShowtime}
               onFinishShowtime={finishStageShowtime}
               onStart={() => onStartStage?.(stageId)}
@@ -274,14 +275,14 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
   )
 }
 
-function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalSec, stageBossPreview, showtimeStageId, onBeginShowtime, onFinishShowtime, onStart, onRanking }) {
+function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalSec, stageBossPreview, showtimeStageId, devAllStagesUnlocked = false, onBeginShowtime, onFinishShowtime, onStart, onRanking }) {
   const [showtimeToken, setShowtimeToken] = useState(0)
   const [showtimeActive, setShowtimeActive] = useState(false)
   const startTimerRef = useRef(null)
   const soundTimerRefs = useRef([])
   const showtimePendingRef = useRef(false)
   const lobbyBossType = stage.lobbyBossType ?? stage.bossType
-  const playable = stage.playable !== false
+  const playable = stage.playable !== false || devAllStagesUnlocked
   const canStart = unlocked && playable
 
   useEffect(() => {

@@ -6,7 +6,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Lobby, { BOSS_SHOWTIME } from './Lobby.jsx'
 import { saveStageBossPreview } from '../lib/graphicsStudioConfig.js'
 import { playSfx } from '../lib/sfxRegistry.js'
-import { STORAGE_KEY as PLAYER_RECORDS_KEY } from '../lib/playerRecords.js'
+import { _seedHydratedFirebaseProgressForTests, updateFirebasePlayerProgress } from '../lib/firebaseProgress.js'
+import { commitFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 
@@ -70,6 +71,14 @@ vi.mock('../lib/firebaseRanking.js', async () => {
 
 describe('Lobby', () => {
   beforeEach(() => {
+    _seedHydratedFirebaseProgressForTests({ uid: 'lobby-user', displayName: 'Lobby Tester' })
+    commitFirebaseStudioRuntime({
+      tunings: {},
+      sfxTunings: {},
+      stageBossPreview: {},
+      decals: {},
+      propPlacements: {},
+    })
     localStorage.clear()
     vi.clearAllMocks()
     useAuthStore.setState({
@@ -135,13 +144,13 @@ describe('Lobby', () => {
   })
 
   it('uses each stage card boss preview, including the PE teacher for Stage 3', () => {
-    localStorage.setItem(PLAYER_RECORDS_KEY, JSON.stringify({
+    seedPlayerRecords({
       stage1Clears: 1,
       stage2Clears: 1,
       stage3Clears: 1,
       bestSurvivalSeconds: 240,
       stage2BestSurvivalSec: 240,
-    }))
+    })
 
     const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
     const previews = Array.from(view.container.querySelectorAll('[data-testid="stage-boss-preview"]'))
@@ -155,12 +164,12 @@ describe('Lobby', () => {
   })
 
   it('keeps Stage 4 locked behind Stage 3 with the exact safe hint before the clear', () => {
-    localStorage.setItem(PLAYER_RECORDS_KEY, JSON.stringify({
+    seedPlayerRecords({
       stage1Clears: 1,
       stage2Clears: 1,
       bestSurvivalSeconds: 240,
       stage2BestSurvivalSec: 240,
-    }))
+    })
 
     const onStartStage = vi.fn()
     const onOpenRanking = vi.fn()
@@ -249,14 +258,14 @@ describe('Lobby', () => {
 
   it('reveals Stage 4 B04 preview after Stage 3 clear but keeps entry, ranking, and showtime disabled', () => {
     vi.useFakeTimers()
-    localStorage.setItem(PLAYER_RECORDS_KEY, JSON.stringify({
+    seedPlayerRecords({
       stage1Clears: 1,
       stage2Clears: 1,
       stage3Clears: 1,
       bestSurvivalSeconds: 240,
       stage2BestSurvivalSec: 240,
       stage3BestSurvivalSec: 240,
-    }))
+    })
     const onStartStage = vi.fn()
     const onOpenRanking = vi.fn()
     const view = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking })
@@ -297,6 +306,35 @@ describe('Lobby', () => {
     expect(onOpenRanking).not.toHaveBeenCalled()
     expect(playSfx).not.toHaveBeenCalled()
     expect(stage4Card.querySelector('[data-testid="stage-card-showtime"]')).toBeFalsy()
+
+    vi.useRealTimers()
+    view.unmount()
+  })
+
+  it('lets the dev all-stage cheat enter Stage 4 even while production config marks it not playable', () => {
+    vi.useFakeTimers()
+    const onStartStage = vi.fn()
+    const view = renderLobby({
+      onStartStage,
+      onOpenCoinShop: () => {},
+      onOpenRanking: () => {},
+      devAllStagesUnlocked: true,
+    })
+    const stage4Card = findStageCard(view.container, 'Stage 4 급식실 대탈출')
+    const enterButton = findButtonByText(stage4Card, '입장하기')
+    const rankingButton = findButtonByText(stage4Card, '점수 레코드')
+
+    expect(stage4Card.querySelector('[data-testid="stage-boss-preview"]')?.dataset.bossType).toBe('B04')
+    expect(enterButton.disabled).toBe(false)
+    expect(rankingButton.disabled).toBe(false)
+    expect(stage4Card.textContent).not.toContain('준비 중')
+
+    act(() => {
+      enterButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      vi.advanceTimersByTime(1_000)
+    })
+
+    expect(onStartStage).toHaveBeenCalledWith('stage4')
 
     vi.useRealTimers()
     view.unmount()
@@ -414,7 +452,7 @@ describe('Lobby', () => {
   })
 
   it('places the clear badge at the top-left of the preview after clearing a stage', () => {
-    localStorage.setItem(PLAYER_RECORDS_KEY, JSON.stringify({ stage1Clears: 1, bestSurvivalSeconds: 240 }))
+    seedPlayerRecords({ stage1Clears: 1, bestSurvivalSeconds: 240 })
 
     const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
     const previewRow = view.container.querySelector('[data-testid="stage-card-preview-row"]')
@@ -468,7 +506,7 @@ describe('Lobby', () => {
 
   it('accepts only the first stage-card showtime until that entry resolves', () => {
     vi.useFakeTimers()
-    localStorage.setItem(PLAYER_RECORDS_KEY, JSON.stringify({ stage1Clears: 1 }))
+    seedPlayerRecords({ stage1Clears: 1 })
     const onStartStage = vi.fn()
     const view = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
     const overlays = view.container.querySelectorAll('[data-testid="stage-card-preview-overlay"]')
@@ -550,4 +588,14 @@ function findStageCard(container, ariaLabel) {
   const card = container.querySelector(`[aria-label="${ariaLabel}"]`)
   if (!card) throw new Error(`Missing stage card: ${ariaLabel}`)
   return card
+}
+
+function seedPlayerRecords(records) {
+  updateFirebasePlayerProgress((progress) => {
+    progress.records = {
+      ...(progress.records ?? {}),
+      ...records,
+    }
+    return progress
+  })
 }

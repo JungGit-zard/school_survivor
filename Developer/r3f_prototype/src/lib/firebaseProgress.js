@@ -29,6 +29,8 @@ const RECORD_KEYS = [
   'stage2BestSurvivalSec',
   'stage3Clears',
   'stage3BestSurvivalSec',
+  'stage4Clears',
+  'stage4BestSurvivalSec',
   'bossKills',
   'totalLevelUps',
   'totalPickups',
@@ -39,6 +41,7 @@ const DEFAULT_TITLE_SETTINGS = Object.freeze({
   vibration: true,
   reducedEffects: false,
   unlockAllWeaponsCheat: false,
+  unlockAllStagesCheat: false,
 })
 
 let cloudUser = null
@@ -377,6 +380,9 @@ function normalizeTitleSettings(value) {
     unlockAllWeaponsCheat: typeof value.unlockAllWeaponsCheat === 'boolean'
       ? value.unlockAllWeaponsCheat
       : DEFAULT_TITLE_SETTINGS.unlockAllWeaponsCheat,
+    unlockAllStagesCheat: typeof value.unlockAllStagesCheat === 'boolean'
+      ? value.unlockAllStagesCheat
+      : DEFAULT_TITLE_SETTINGS.unlockAllStagesCheat,
   }
 }
 

@@ -57,7 +57,7 @@ export const STAGE2_WAVE_PHASES = [
 // weights 합 = 1.00. 상승은 마릿수가 아니라 질적 요소(HP·조기도입·동시성·더블보스)에서 온다.
 // 설계 정본: Developer/agent_room/levelmini_stage3_wave_balance_design_2026-07-11.md §2.
 // 재설계(2026-07-18): 발견 C(밀도 절반) 대응 = 오프닝 프론트로드(t=0 ×2, Enemies.jsx) +
-// 카이팅 차단 형태(ring/pincer) + ×1.44 실효 HP 전제 곡선. RZL@72 이완 창으로 대각 스파이크 부각.
+// 카이팅 차단 형태(ring/pincer) + ×1.44 실효 HP 전제 곡선. RZL@35/80/120/150 반복 스파이크로 대각 압박 리듬 강화.
 // 조기 도입 사슬(E04@34·E05@52·E06@108) 유지. 설계 정본: Planner/stage3_zombie_wave_redesign_2026-07-18.md.
 export const STAGE3_WAVE_PHASES = [
   // 0:00–0:16 도입 — 온보딩 16s 압축. t=0 프론트로드 ×2로 오프닝 밀도 확립. 러너 비중↑ 이동 압박 즉시.
@@ -68,7 +68,7 @@ export const STAGE3_WAVE_PHASES = [
   { start:  34, end:  52, target: 26, weights: { E01: 0.48, E03: 0.20, E02: 0.18, E04: 0.14 } },
   // 0:52–1:12 차저 E05 조기 도입(스2는 120s) — 4종 동시, RZL 직전 빌드업
   { start:  52, end:  72, target: 28, weights: { E01: 0.40, E03: 0.16, E02: 0.18, E05: 0.16, E04: 0.10 } },
-  // 1:12–1:32 RZL 이완 창 — target↓·차저 제거로 앰비언트 이완 → RZL×13 대각 횡단이 주역(웨이브가 비켜간다)
+  // 1:12–1:32 RZL 2차 이완 창 — target↓·차저 제거로 앰비언트 이완 → RZL×13@80 대각 횡단이 주역(웨이브가 비켜간다)
   { start:  72, end:  92, target: 24, weights: { E01: 0.44, E03: 0.20, E02: 0.20, E04: 0.16 } },
   // 1:32–1:48 탱커 호흡 — pincer E02×6@92 앞뒤 협공. 거대 직전 리듬 전환
   { start:  92, end: 108, target: 26, weights: { E01: 0.30, E02: 0.42, E05: 0.18, E04: 0.10 } },
@@ -103,6 +103,6 @@ export const STAGE2_SPAWN_TELEGRAPHS = []
 export const STAGE3_SPAWN_TELEGRAPHS = [
   { sec:  44, leadSec: 2.5, label: '사방에서 포위된다' },      // ring
   { sec:  92, leadSec: 2.5, label: '양쪽에서 조여온다' },      // pincer
-  { sec: 120, leadSec: 2.5, label: '돌진 무리가 에워싼다' },   // ring (개편: swarm→ring 안티카이팅)
+  { sec: 112, leadSec: 2.5, label: '돌진 무리가 에워싼다' },   // ring (RZL@120 직전 예열)
   { sec: 176, leadSec: 2.5, label: '거대들이 앞뒤를 막는다' }, // pincer (개편: gauntlet→pincer 개방 맵 대응)
 ]
