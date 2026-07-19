@@ -17,9 +17,7 @@ import {
   DOGE_DANCE_HOLD_MS,
   DOGE_ESCAPE_SPEED,
   dogeHasEscaped,
-  dogeKnockbackVelocity,
-  DOGE_KNOCKBACK_MS,
-  DOGE_KNOCKBACK_COOLDOWN_MS,
+  resolveDogeContactKnockback,
 } from '../lib/dogeEscape.js'
 
 // ── 이벤트 몬스터 "춤추는 도지" (2026-07-14) ─────────────────────────────────
@@ -189,6 +187,31 @@ export default function DancingDogeEvent({
           {/* 실제 충돌 콜라이더 — 보너스 도지도 플레이어/적과 물리적으로 겹치지 않는다.
               무기 피격은 기존 enemyBodies 계약을 유지한다. */}
           <CuboidCollider args={[0.32 * scale, 0.75 * scale, 0.32 * scale]} position={[0, 0.75 * scale, 0]} />
+          {/* 몸통보다 아주 조금 큰 센서. 물리 충돌은 위 몸통 콜라이더가 계속 담당하고,
+              이 센서는 플레이어에게만 피해 없는 코믹 넉백을 전달한다. */}
+          <CuboidCollider
+            args={[0.36 * scale, 0.78 * scale, 0.36 * scale]}
+            position={[0, 0.75 * scale, 0]}
+            sensor
+            onIntersectionEnter={({ other }) => {
+              const playerBody = other.rigidBody
+              const dogePos = rb.current?.translation()
+              const knockback = resolveDogeContactKnockback({
+                phase,
+                revealed,
+                alive: !dead.current && !dying,
+                finished,
+                escaping,
+                lastKnockbackAt: lastKnockbackAtRef.current,
+                now: Date.now(),
+                dogePos: dogePos ? [dogePos.x, dogePos.y, dogePos.z] : null,
+                playerBody,
+              })
+              if (!knockback) return
+              playerBody._applyKnockback(knockback.vx, knockback.vz, knockback.durationMs)
+              lastKnockbackAtRef.current = knockback.appliedAt
+            }}
+          />
           <group ref={waddleRef}>
             <DancingDoge position={[0, 0, 0]} dance="twist" scale={scale} paused={phase !== 'playing'} />
           </group>

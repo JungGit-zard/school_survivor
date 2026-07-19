@@ -46,3 +46,32 @@ export function dogeKnockbackVelocity(dogePos, playerPos, speed = DOGE_KNOCKBACK
   if (len < 1e-4) return { x: speed, z: 0 }
   return { x: (dx / len) * speed, z: (dz / len) * speed }
 }
+
+// 도지 sensor 접촉이 실제 넉백 명령으로 이어질 수 있는지 판정한다.
+// 이 함수는 상태를 바꾸거나 피해를 주지 않는다. 호출자는 반환된 명령만 Player body에 전달한다.
+export function resolveDogeContactKnockback({
+  phase,
+  revealed,
+  alive,
+  finished,
+  escaping,
+  lastKnockbackAt,
+  now,
+  dogePos,
+  playerBody,
+}) {
+  if (phase !== 'playing' || !revealed || !alive || finished || escaping) return null
+  if (typeof playerBody?._applyKnockback !== 'function') return null
+  if (now - lastKnockbackAt < DOGE_KNOCKBACK_COOLDOWN_MS) return null
+
+  const playerPos = playerBody.translation?.()
+  if (!dogePos || !playerPos) return null
+
+  const velocity = dogeKnockbackVelocity(dogePos, [playerPos.x, playerPos.y, playerPos.z])
+  return {
+    vx: velocity.x,
+    vz: velocity.z,
+    durationMs: DOGE_KNOCKBACK_MS,
+    appliedAt: now,
+  }
+}

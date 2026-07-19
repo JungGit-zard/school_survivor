@@ -6,7 +6,10 @@ import {
   dogeEscapeDirection,
   dogeHasEscaped,
   dogeKnockbackVelocity,
+  resolveDogeContactKnockback,
   DOGE_KNOCKBACK_SPEED,
+  DOGE_KNOCKBACK_MS,
+  DOGE_KNOCKBACK_COOLDOWN_MS,
 } from './dogeEscape.js'
 import { getStageBounds } from './stageConfig.js'
 
@@ -93,5 +96,51 @@ describe('doge knockback (몸통 충돌 — 피해 없이 밀쳐냄)', () => {
 
   it('is a stronger shove than the standard hit knockback (4)', () => {
     expect(DOGE_KNOCKBACK_SPEED).toBeGreaterThan(4)
+  })
+
+  it('returns a player-only knockback command with direction and exact duration', () => {
+    const playerBody = {
+      _applyKnockback: () => {},
+      translation: () => ({ x: 3, y: 0.32, z: 0 }),
+    }
+    const command = resolveDogeContactKnockback({
+      phase: 'playing', revealed: true, alive: true, finished: false, escaping: false,
+      lastKnockbackAt: -Infinity, now: 1000, dogePos: [0, 0, 0], playerBody,
+    })
+
+    expect(command).toEqual({
+      vx: DOGE_KNOCKBACK_SPEED,
+      vz: 0,
+      durationMs: DOGE_KNOCKBACK_MS,
+      appliedAt: 1000,
+    })
+  })
+
+  it('ignores non-player bodies and does not expose a damage command', () => {
+    const command = resolveDogeContactKnockback({
+      phase: 'playing', revealed: true, alive: true, finished: false, escaping: false,
+      lastKnockbackAt: -Infinity, now: 1000, dogePos: [0, 0, 0],
+      playerBody: { translation: () => ({ x: 1, y: 0, z: 0 }) },
+    })
+
+    expect(command).toBeNull()
+  })
+
+  it('blocks repeated contact during cooldown and every inactive doge state', () => {
+    const playerBody = {
+      _applyKnockback: () => {},
+      translation: () => ({ x: 1, y: 0, z: 0 }),
+    }
+    const base = {
+      phase: 'playing', revealed: true, alive: true, finished: false, escaping: false,
+      lastKnockbackAt: 1000, now: 1000 + DOGE_KNOCKBACK_COOLDOWN_MS - 1,
+      dogePos: [0, 0, 0], playerBody,
+    }
+    expect(resolveDogeContactKnockback(base)).toBeNull()
+    expect(resolveDogeContactKnockback({ ...base, lastKnockbackAt: -Infinity, phase: 'paused' })).toBeNull()
+    expect(resolveDogeContactKnockback({ ...base, lastKnockbackAt: -Infinity, revealed: false })).toBeNull()
+    expect(resolveDogeContactKnockback({ ...base, lastKnockbackAt: -Infinity, alive: false })).toBeNull()
+    expect(resolveDogeContactKnockback({ ...base, lastKnockbackAt: -Infinity, finished: true })).toBeNull()
+    expect(resolveDogeContactKnockback({ ...base, lastKnockbackAt: -Infinity, escaping: true })).toBeNull()
   })
 })
