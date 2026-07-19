@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { getFirebaseConfig, getLocalFirebaseAuthRedirect, isFirebaseAuthConfigured, shouldUseNativeGoogleSignIn, toAuthUser } from './firebaseAuth.js'
+import {
+  getFirebaseConfig,
+  getLocalFirebaseAuthRedirect,
+  isFirebaseAuthConfigured,
+  setFirebaseAuthMemoryPersistence,
+  shouldUseNativeGoogleSignIn,
+  toAuthUser,
+} from './firebaseAuth.js'
 
 const COMPLETE_ENV = {
   VITE_FIREBASE_API_KEY: 'api-key',
@@ -70,5 +77,23 @@ describe('firebase auth configuration', () => {
     expect(getLocalFirebaseAuthRedirect({ href: 'http://localhost:5175/' }, true)).toBeNull()
     expect(getLocalFirebaseAuthRedirect({ href: 'http://127.0.0.1:5175/' }, false)).toBeNull()
     expect(getLocalFirebaseAuthRedirect({ href: 'http://127.0.0.1:5175/graphics-studio' }, true)).toBeNull()
+  })
+
+  it('keeps the Firebase login session in memory instead of browser storage', async () => {
+    const auth = { name: 'test-auth' }
+    const memoryPersistence = { type: 'NONE' }
+    const calls = []
+
+    await setFirebaseAuthMemoryPersistence({
+      inMemoryPersistence: memoryPersistence,
+      setPersistence: async (...args) => calls.push(args),
+    }, auth)
+
+    expect(calls).toEqual([[auth, memoryPersistence]])
+  })
+
+  it('fails closed when memory-only Firebase Auth persistence is unavailable', async () => {
+    await expect(setFirebaseAuthMemoryPersistence({}, {}))
+      .rejects.toThrow('Firebase Auth memory-only persistence is unavailable.')
   })
 })

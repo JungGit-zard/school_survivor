@@ -84,6 +84,7 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
   const app = getApps().length > 0 ? getApp() : initializeApp(getFirebaseConfig(env))
   await maybeInitAppCheck(app, env)
   const auth = authModule.getAuth(app)
+  await setFirebaseAuthMemoryPersistence(authModule, auth)
   const provider = new authModule.GoogleAuthProvider()
   provider.setCustomParameters({ prompt: 'select_account' })
   const useNativeGoogle = shouldUseNativeGoogleSignIn(globalScope)
@@ -108,6 +109,13 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
       }
     },
   }
+}
+
+export async function setFirebaseAuthMemoryPersistence(authModule, auth) {
+  if (typeof authModule?.setPersistence !== 'function' || !authModule?.inMemoryPersistence) {
+    throw new Error('Firebase Auth memory-only persistence is unavailable.')
+  }
+  await authModule.setPersistence(auth, authModule.inMemoryPersistence)
 }
 
 // App Check(reCAPTCHA v3)은 site key가 있을 때만 1회 초기화한다.
