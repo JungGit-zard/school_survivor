@@ -6,7 +6,11 @@ import { toonMat } from '../lib/toon.js'
 import { DancingDoge } from './DogeMesh.jsx'
 import MatildaMesh from './MatildaMesh.jsx'
 import ZombieMesh from './ZombieMesh.jsx'
-import StudioTunedGroup, { getStudioTransformProps, StudioTuningRuntimeProvider } from './StudioTunedGroup.jsx'
+import {
+  getStudioTransformProps,
+  StudioTuningPreviewProvider,
+  StudioTuningRuntimeProvider,
+} from './StudioTunedGroup.jsx'
 import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'
 import { CompassBladeModel } from './Weapons/CompassBlade.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
@@ -558,11 +562,17 @@ export function inspectTitleSceneObject(event) {
   })
 }
 
-export default function TitleScene3D({ studioGroupRef = null, studioTuning = null, reducedEffects = false }) {
+export default function TitleScene3D({
+  studioGroupRef = null,
+  studioTuning = null,
+  reducedEffects = false,
+  studioVisualsReady = false,
+}) {
   const floorMat = useMemo(() => toonMat(0x4a4054, 0.05), [])
   const doorMat = useMemo(() => toonMat(0x805947, 0.05), [])
   const studioMode = studioTuning != null
   const studioTransform = studioMode ? getStudioTransformProps(studioTuning) : getStudioTransformProps()
+  const playerVisualReady = studioVisualsReady
 
   const sceneRoot = (
     <group
@@ -616,11 +626,19 @@ export default function TitleScene3D({ studioGroupRef = null, studioTuning = nul
       <directionalLight position={[5, 4, -4]} intensity={0.7} color={0xffa34f} />
       <pointLight position={[0, 1.1, -3.7]} intensity={5.5} color={0xffdf9a} distance={11} decay={2} />
 
-      {studioMode ? sceneRoot : <StudioTunedGroup itemId="title-scene">{sceneRoot}</StudioTunedGroup>}
+      <StudioTuningPreviewProvider>
+        {sceneRoot}
+      </StudioTuningPreviewProvider>
       <group rotation={[0, -0.09, 0]} position={[0, -1.15, 0]}>
-        <StudioTuningRuntimeProvider>
-          <TitlePlayer reducedEffects={reducedEffects} />
-        </StudioTuningRuntimeProvider>
+        {playerVisualReady ? (
+          <StudioTuningRuntimeProvider>
+            <TitlePlayer reducedEffects={reducedEffects} />
+          </StudioTuningRuntimeProvider>
+        ) : (
+          <StudioTuningPreviewProvider>
+            <TitlePlayer reducedEffects={reducedEffects} />
+          </StudioTuningPreviewProvider>
+        )}
       </group>
     </>
   )

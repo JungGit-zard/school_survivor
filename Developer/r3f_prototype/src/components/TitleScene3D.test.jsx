@@ -232,6 +232,7 @@ describe('TitleScene3D direction', () => {
 
     expect(source).toContain("import { PlayerVisual } from './Player.jsx'")
     expect(source).toContain('StudioTuningRuntimeProvider')
+    expect(source).toContain('StudioTuningPreviewProvider')
     expect(source).not.toContain("import PlayerMesh from './PlayerMesh.jsx'")
     expect(source).toContain('function TitlePlayer({ reducedEffects })')
     expect(source).toContain('useFrame((state) => {')
@@ -242,7 +243,25 @@ describe('TitleScene3D direction', () => {
     expect(source).not.toContain('function TitlePlayerRunner')
     expect(source).not.toContain('graphicsStudioPlayerSource')
     expect(source).not.toContain('{!studioMode && (')
+    expect(source).toContain('const playerVisualReady = studioVisualsReady')
+    expect(source).not.toContain('hasFirebaseTitlePlayerTuning')
     expect(titlePlayerIndex).toBeGreaterThan(outlineEnd)
+  })
+
+  it('renders the title player before login with default tuning and swaps to the Firebase-tuned runtime once ready', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('const playerVisualReady = studioVisualsReady')
+    expect(source).not.toContain('hasFirebaseTitlePlayerTuning')
+    expect(source).toContain('studioVisualsReady = false')
+
+    const gateIdx = source.indexOf('{playerVisualReady ?')
+    expect(gateIdx).toBeGreaterThan(-1)
+    const playerBlock = source.slice(gateIdx, source.indexOf('</group>', gateIdx))
+    expect(playerBlock).toContain('StudioTuningRuntimeProvider')
+    expect(playerBlock).toContain('StudioTuningPreviewProvider')
+    expect(playerBlock).toContain(') : (')
+    expect(source.match(/<TitlePlayer reducedEffects=\{reducedEffects\} \/>/g)).toHaveLength(2)
   })
 
   it('applies a fleeing up-down hop frame to the existing title player and freezes it in reduced-effects mode', () => {
