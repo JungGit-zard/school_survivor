@@ -43,6 +43,7 @@ export const SOUND_MAP = {
   missileHit:     '/sfx/weapons/missileHit.ogg',
   starlinkHit:    '/sfx/weapons/starlinkHit.ogg',
   compassHit:     '/sfx/weapons/compassHit.ogg',
+  compassQuack:   '/sfx/weapons/compassQuack.ogg',
   umbrellaHit:    '/sfx/weapons/umbrellaHit.ogg',
   eraserHit:      '/sfx/weapons/eraserHit.ogg',
   chibikoHit:     '/sfx/weapons/chibikoHit.ogg',
@@ -97,6 +98,7 @@ export const SOUND_MAP = {
   chestDrop:          '/sfx/events/chestDrop.ogg',
   chestOpen:          '/sfx/events/chestOpen.ogg',
   textbookLand:       '/sfx/events/textbookLand.ogg',
+  rzlWhistle:         '/sfx/events/rzlWhistle.ogg',
 }
 
 export const DEFAULT_SFX_TUNING = {
@@ -143,9 +145,11 @@ export const POLYPHONY_COOLDOWN = Object.freeze({
   starlinkExplosion: 650,
   compassFire:      110,
   compassHit:       180,
+  compassQuack:     180,
   umbrellaHit:      140,
   eraserHit:        160,
   lanternTick:      120,
+  rzlWhistle:       600,
 })
 
 const AUTH_OVERLAY_ALLOWED_SFX = new Set([

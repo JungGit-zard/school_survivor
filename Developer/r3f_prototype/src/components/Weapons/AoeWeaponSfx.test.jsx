@@ -23,11 +23,11 @@ describe('area weapon sound lifecycle', () => {
     expect(source('Starlink')).toMatch(/const hitCount = applyRadialDamage\([\s\S]*?if \(hitCount > 0\) emitSfx\(\{ id: 'starlinkHit' \}\)/)
   })
 
-  it('plays compass activation once per active transition and a quiet tick per contact hit', () => {
+  it('plays compass activation/explosion sounds unchanged and a duck quack per contact hit', () => {
     const compass = source('CompassBlade')
 
     expect(compass).toMatch(/useEffect\(\(\) => \{[\s\S]*?!wasActiveRef\.current[\s\S]*?emitSfx\(\{ id: 'compassFire' \}\)/)
-    expect(compass).toMatch(/rb\._enemyHit\(w\.damage, \{ critChance: w\.critChance, critMultiplier: w\.critMultiplier \}\)\s*emitSfx\(\{ id: 'compassFire', volume: 0\.18 \}\)/)
+    expect(compass).toMatch(/rb\._enemyHit\(w\.damage, \{ critChance: w\.critChance, critMultiplier: w\.critMultiplier \}\)\s*emitSfx\(\{ id: 'compassQuack', volume: 0\.5 \}\)/)
     expect(compass).toContain("emitSfx({ id: 'compassHit' })")
   })
 })

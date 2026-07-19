@@ -19,6 +19,7 @@ const AUDITED_WEAPON_COOLDOWNS = {
   starlinkExplosion: 650,
   compassFire: 110,
   compassHit: 180,
+  compassQuack: 180,
   umbrellaHit: 140,
   eraserHit: 160,
   lanternTick: 120,
@@ -81,6 +82,16 @@ describe('playSfx', () => {
 
     expect(howlConfigs[0].src).toEqual(['/sfx/enemies/zombieSpawn.ogg', '/sfx/enemies/zombieSpawn.mp3'])
     expect(statSync(new URL('../../public/sfx/enemies/zombieSpawn.ogg', import.meta.url)).size).toBeGreaterThan(1000)
+    expect(howlPlay).toHaveBeenCalledOnce()
+  })
+
+  it('registers the compass duck quack hit sound', async () => {
+    const { playSfx } = await import('./sfxRegistry.js')
+
+    playSfx('compassQuack')
+
+    expect(howlConfigs[0].src).toEqual(['/sfx/weapons/compassQuack.ogg', '/sfx/weapons/compassQuack.mp3'])
+    expect(statSync(new URL('../../public/sfx/weapons/compassQuack.ogg', import.meta.url)).size).toBeGreaterThan(1000)
     expect(howlPlay).toHaveBeenCalledOnce()
   })
 
@@ -154,6 +165,12 @@ describe('playSfx', () => {
       textbookLand: 120,
       textbookCollect: 55,
     }))
+  })
+
+  it('registers the RZL run-crew coach whistle cue', async () => {
+    const { SOUND_MAP, POLYPHONY_COOLDOWN } = await import('./sfxRegistry.js')
+    expect(SOUND_MAP.rzlWhistle).toBe('/sfx/events/rzlWhistle.ogg')
+    expect(POLYPHONY_COOLDOWN).toEqual(expect.objectContaining({ rzlWhistle: 600 }))
   })
 
   it('keeps every registered OGG and MP3 fallback path backed by a public asset', async () => {

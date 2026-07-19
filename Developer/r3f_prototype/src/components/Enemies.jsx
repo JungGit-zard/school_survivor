@@ -701,6 +701,7 @@ export default function Enemies() {
       // 비-보스 버스트(형태/그룹) — stage3에서만 런타임에 포함된다.
       // formation이면 대형 배치, 아니면 스폰 링에 count만큼(E04는 원거리 링).
       if (evt.formation === RUN_ZOMBIE_CREW_FORMATION) {
+        emitSfx({ id: 'rzlWhistle', volume: 0.5 })
         addEnemies(createRunZombieCrewEntries(bounds).map((entry) => ({
           id: ++_uid,
           ...entry,

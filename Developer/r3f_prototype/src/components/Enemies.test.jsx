@@ -565,6 +565,11 @@ describe('formation spawns', () => {
     expect(last.pos[0]).toBeLessThan(leader.pos[0])
     expect(last.pos[2]).toBeLessThan(leader.pos[2])
   })
+
+  it('blows the coach whistle once per run-zombie crew burst (crew-level, not per entity)', () => {
+    const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    expect(source).toMatch(/RUN_ZOMBIE_CREW_FORMATION\)\s*\{\s*emitSfx\(\{ id: 'rzlWhistle', volume: 0\.5 \}\)/)
+  })
 })
 
 describe('XP textbook drops', () => {

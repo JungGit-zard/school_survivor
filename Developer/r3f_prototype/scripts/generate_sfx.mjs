@@ -235,6 +235,19 @@ const sounds = {
     synth({ wave:'sawtooth', freq:250, freqEnd:60, dur:0.45, vol:0.5, attack:0.001, decay:0.12, sustain:0.15, release:0.25 }),
     synth({ wave:'sine', freq:800, freqEnd:100, dur:0.3, vol:0.3, attack:0.001, decay:0.08, sustain:0.05, release:0.2 }),
   ),
+  // ── 오리요강 타격 '꽥' (compassBlade orbit hit) ──
+  'weapons/compassQuack': () => mix(
+    synth({
+      wave:'sawtooth', freq:920, freqEnd:300, dur:0.16, vol:0.6,
+      attack:0.004, decay:0.05, sustain:0.4, release:0.06,
+      vibRate:22, vibDepth:32, noiseAmt:0.06,
+      overtones:[{ratio:2,amp:0.5},{ratio:3,amp:0.28},{ratio:4,amp:0.12}],
+    }),
+    synth({
+      wave:'triangle', freq:1350, freqEnd:560, dur:0.09, vol:0.22,
+      attack:0.002, decay:0.03, sustain:0.15, release:0.05,
+    }),
+  ),
   'weapons/umbrellaHit': () => synth({
     wave:'noise', freq:1, dur:0.2, vol:0.55,
     attack:0.001, decay:0.07, sustain:0.05, release:0.1,
@@ -481,6 +494,31 @@ const sounds = {
     synth({ wave:'sine', freq:880, dur:0.2, vol:0.45, attack:0.001, decay:0.05, sustain:0.2, release:0.1 }),
     synth({ wave:'triangle', freq:1100, dur:0.15, vol:0.3, attack:0.001, decay:0.04, sustain:0.1, release:0.08 }),
   ),
+  // 코치 호루라기 — 리드미컬 3연(삑·삑·삐이익 상승). RZL 런좀비 크루 출발 신호.
+  // 페어 트릴 = 높은 vibRate/vibDepth, 삐침 = 근접 2음 맥놀이, 숨결 = 소량 noise.
+  'events/rzlWhistle': () => (() => {
+    const blast = (dur, fStart, fEnd, vol) => mix(
+      synth({ wave:'sine', freq:fStart, freqEnd:fEnd, dur, vol,
+        attack:0.006, decay:0.03, sustain:0.9, release:0.05,
+        vibRate:24, vibDepth:150, noiseAmt:0.05, overtones:[{ratio:1.5,amp:0.16}] }),
+      synth({ wave:'sine', freq:fStart+140, freqEnd:fEnd+140, dur, vol:vol*0.5,
+        attack:0.006, decay:0.03, sustain:0.85, release:0.05, vibRate:24, vibDepth:150 }),
+      synth({ wave:'triangle', freq:fStart*2, dur:dur*0.7, vol:vol*0.1,
+        attack:0.004, decay:0.03, sustain:0.4, release:0.05 }),
+    )
+    const parts = [
+      { s: blast(0.13, 2850, 2850, 0.8), at: 0.00 },
+      { s: blast(0.13, 2850, 2850, 0.8), at: 0.22 },
+      { s: blast(0.46, 2820, 3120, 0.9), at: 0.44 },
+    ]
+    const layers = parts.map(({ s, at }) => {
+      const offset = Math.floor(at * SR)
+      const padded = new Float32Array(s.length + offset)
+      padded.set(s, offset)
+      return padded
+    })
+    return mix(...layers)
+  })(),
 }
 
 // ── 생성 실행 ─────────────────────────────────────────────────────────────────

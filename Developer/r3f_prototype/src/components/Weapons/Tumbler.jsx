@@ -11,6 +11,8 @@ export function TumblerModel() {
   const bodyMat = useMemo(() => toonMat(0xff7a3d, 0.16), [])
   const capMat = useMemo(() => toonMat(0xf4f4f4, 0.08), [])
   const outMat = useMemo(() => outlineMat(0.92), [])
+  const handleMat = useMemo(() => toonMat(0xe85d2a, 0.16), [])
+  const strawMat = useMemo(() => toonMat(0x3dc2c8, 0.12), [])
 
   return (
     <StudioTunedGroup itemId="weapon-tumbler">
@@ -23,6 +25,20 @@ export function TumblerModel() {
       </mesh>
       <mesh material={capMat} position={[0, 0.34, 0]}>
         <cylinderGeometry args={[0.16, 0.16, 0.10, 10]} />
+      </mesh>
+      {/* 손잡이 (C자 루프) — 바디 +X 측, 개구부가 바디를 향함 */}
+      <mesh material={outMat} position={[0.29, 0, 0]} rotation={[0, 0, -Math.PI * 0.7]} scale={inflateScale([1.13, 1.13, 1.13])}>
+        <torusGeometry args={[0.20, 0.035, 8, 24, Math.PI * 1.4]} />
+      </mesh>
+      <mesh material={handleMat} position={[0.29, 0, 0]} rotation={[0, 0, -Math.PI * 0.7]}>
+        <torusGeometry args={[0.20, 0.035, 8, 24, Math.PI * 1.4]} />
+      </mesh>
+      {/* 빨대 — 뚜껑 위로 비스듬히, 손잡이 반대(-X)로 기울임 */}
+      <mesh material={outMat} position={[-0.05, 0.56, 0]} rotation={[0, 0, Math.PI * 0.12]} scale={inflateScale([1.16, 1.16, 1.16])}>
+        <cylinderGeometry args={[0.028, 0.028, 0.42, 8]} />
+      </mesh>
+      <mesh material={strawMat} position={[-0.05, 0.56, 0]} rotation={[0, 0, Math.PI * 0.12]}>
+        <cylinderGeometry args={[0.028, 0.028, 0.42, 8]} />
       </mesh>
       </group>
     </StudioTunedGroup>
