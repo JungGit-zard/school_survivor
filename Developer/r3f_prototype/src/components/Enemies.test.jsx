@@ -39,7 +39,7 @@ import {
 } from './Enemies.jsx'
 import { CHEST_OPEN_DELAY_MS } from './TreasureChest.jsx'
 import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
-import { STAGE2_SPAWN_TELEGRAPHS, STAGE2_WAVE_PHASES, STAGE3_WAVE_PHASES } from '../lib/waveTimelines.js'
+import { STAGE2_SPAWN_TELEGRAPHS, STAGE2_WAVE_PHASES, STAGE3_WAVE_PHASES, STAGE4_WAVE_PHASES } from '../lib/waveTimelines.js'
 import { getBurstEventsForStage as burstsForStage } from '../lib/burstEvents.js'
 import { ENEMY_STATS, getActiveE04ProjectileCount, resetActiveE04ProjectileCountForTest } from './Enemy.jsx'
 import { playerPos } from '../lib/refs.js'
@@ -366,13 +366,40 @@ describe('dancing doge event monster', () => {
     expect(DOGE_SCALE * 1.5).toBeCloseTo(2 * PLAYER_MESH_WORLD_HEIGHT, 2)
   })
 
-  it('follows the ascending stage HP curve (base 200; x1.0 / x1.2 / x1.44)', () => {
+  it('follows the ascending stage HP curve (base 200; x1.0 / x1.2 / x1.44 / stage4 total-HP compensator)', () => {
     expect(DOGE_BASE_HP).toBe(200)
     expect(dogeHpForStage('stage1')).toBe(200)
     expect(dogeHpForStage('stage2')).toBe(Math.round(200 * 1.2))   // 240
     expect(dogeHpForStage('stage3')).toBe(Math.round(200 * 1.44))  // 288
-    // 도지 HP는 60초 시점 이벤트 보너스몹 답게 거대좀비 E06(320)보다 낮다.
+    expect(dogeHpForStage('stage4')).toBe(Math.round(200 * 2.116)) // 급식실 총체력 +20% 보정
+    // 도지 HP는 60초 시점 이벤트 보너스몹 답게 기본값은 거대좀비 E06(320)보다 낮다.
     expect(DOGE_BASE_HP).toBeLessThan(ENEMY_STATS.E06.hp)
+  })
+
+  it('keeps stage4 planned total HP about 20 percent above stage3 while using a kitchen-specific shape', () => {
+    const plannedHp = (stageId, phases) => {
+      const waveHp = phases.reduce((sum, phase) => {
+        const weighted = Object.entries(phase.weights).reduce((phaseSum, [type, weight]) => {
+          const hp = stageHpOverride(type, stageId)?.hp ?? ENEMY_STATS[type].hp
+          return phaseSum + hp * weight
+        }, 0)
+        return sum + weighted * phase.target
+      }, 0)
+      const burstHp = getBurstEventsForStage(stageId).reduce((sum, event) => {
+        const hp = stageHpOverride(event.type, stageId)?.hp ?? ENEMY_STATS[event.type].hp
+        return sum + hp * event.count
+      }, 0)
+      return waveHp + burstHp
+    }
+
+    const stage3Total = plannedHp('stage3', STAGE3_WAVE_PHASES)
+    const stage4Total = plannedHp('stage4', STAGE4_WAVE_PHASES)
+
+    expect(stage4Total / stage3Total).toBeGreaterThan(1.19)
+    expect(stage4Total / stage3Total).toBeLessThan(1.21)
+    expect(STAGE4_WAVE_PHASES.some((phase) => (phase.weights.E04 ?? 0) >= 0.2)).toBe(true)
+    expect(STAGE4_WAVE_PHASES.some((phase) => phase.target < 20)).toBe(true)
+    expect(getBurstEventsForStage('stage4').some((event) => event.type === 'B04')).toBe(true)
   })
 
   it('scatters a jackpot of gold coins around the opened chest, more than a boss drop', () => {

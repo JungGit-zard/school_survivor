@@ -428,10 +428,11 @@ export function bossEscortSize(stageId, wavePhases, bossSec) {
 }
 
 // 스테이지 상승 HP 곡선 정본(2026-07-12): stage1 기준으로 스테이지가 오를 때마다 총체력 +20%.
-// stage1 ×1.0(오버라이드 없음) / stage2 ×1.2 / stage3 ×1.44. 잡몹 E01~E06 + 보스 전부 적용.
-// 마틸다(탈출 추격자)는 별도 동적 statOverride를 쓰므로 여기 대상 아님.
+// stage1 ×1.0(오버라이드 없음) / stage2 ×1.2 / stage3 ×1.44.
+// stage4는 좁은 급식실 맵이라 wave target을 낮춘 대신, 계획 총체력이 stage3의 약 120%가 되도록 보정한다.
+// 잡몹 E01~E06 + 보스 전부 적용. 마틸다(탈출 추격자)는 별도 동적 statOverride를 쓰므로 여기 대상 아님.
 // (기존 stage2 ×0.8 완화는 하강 버그로 판정되어 폐기 — 사용자 지시.)
-const STAGE_HP_MULTIPLIER = { stage2: 1.2, stage3: 1.44 }
+const STAGE_HP_MULTIPLIER = { stage2: 1.2, stage3: 1.44, stage4: 2.116 }
 
 export function stageHpOverride(type, stageId) {
   const mult = STAGE_HP_MULTIPLIER[stageId]
