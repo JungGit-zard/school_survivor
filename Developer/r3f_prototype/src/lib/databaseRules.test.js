@@ -22,6 +22,13 @@ describe('Realtime Database rules', () => {
     expect(user.$other['.validate']).toBe(false)
   })
 
+  it('accepts every Firebase title setting emitted by the player progress snapshot', () => {
+    const settings = rules.users.$uid.progress.titleSettings
+    expect(settings['.validate']).toContain("'unlockAllStagesCheat'")
+    expect(settings.unlockAllStagesCheat['.validate']).toContain('newData.isBoolean()')
+    expect(settings.$other['.validate']).toBe(false)
+  })
+
   it('isolates Studio data to its owner and pins its versioned envelope', () => {
     const studioUser = rules.studioWorkspaces.v1.users.$uid
     const studio = studioUser.current

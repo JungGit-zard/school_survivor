@@ -1,6 +1,10 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import GoogleAccountPanel from './components/GoogleAccountPanel.jsx'
-import { hydrateFirebaseStudio, setFirebaseStudioUser } from './lib/firebaseStudio.js'
+import {
+  hydrateFirebaseStudio,
+  setFirebaseStudioUser,
+  subscribeFirebaseStudio,
+} from './lib/firebaseStudio.js'
 import { installPlayerStorageFatalGuard, isFirebaseProgressHydrated } from './lib/firebaseProgress.js'
 import { STUDIO_GAME_SYNC_MESSAGE, isAllowedStudioGameOrigin } from './lib/studioGameBridge.js'
 import { useAuthStore } from './store/useAuthStore.js'
@@ -86,6 +90,48 @@ export default function App() {
       void ensureStudioCloudReady(null)
     }
   }, [authStatus, authUser, ensureStudioCloudReady])
+
+  useEffect(() => {
+    if (
+      authStatus !== 'signedIn'
+      || !authUser?.uid
+      || studioCloudStatus !== 'remote-applied'
+      || !isFirebaseStudioRuntimeReady()
+    ) return undefined
+
+    let cancelled = false
+    let unsubscribe = null
+    void subscribeFirebaseStudio({
+      user: authUser,
+      onResult: (result) => {
+        if (cancelled) return
+        if (['remote-applied', 'current-revision', 'deferred-local-dirty'].includes(result?.status)) {
+          setStudioCloudStatus('remote-applied')
+          return
+        }
+        if (result?.status !== 'stale-user') {
+          setStudioCloudStatus(result?.status ?? 'subscription-error')
+        }
+      },
+    }).then((result) => {
+      if (cancelled) {
+        result?.unsubscribe?.()
+        return
+      }
+      if (result?.status === 'subscribed') {
+        unsubscribe = result.unsubscribe
+      } else {
+        setStudioCloudStatus(result?.status ?? 'subscription-error')
+      }
+    }).catch(() => {
+      if (!cancelled) setStudioCloudStatus('subscription-error')
+    })
+
+    return () => {
+      cancelled = true
+      unsubscribe?.()
+    }
+  }, [authStatus, authUser?.uid, studioCloudStatus])
 
   const studioReady = studioCloudStatus === 'remote-applied'
     && isFirebaseStudioRuntimeReady()

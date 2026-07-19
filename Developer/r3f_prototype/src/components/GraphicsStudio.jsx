@@ -11,17 +11,16 @@ import {
   loadStageBossPreview,
   loadStudioTunings,
   loadTextureDecals,
+  normalizeStageBossPreview,
   normalizeStudioTuning,
   normalizeTextureDecal,
-  saveStageBossPreview,
-  saveStudioTunings,
-  saveTextureDecals,
+  normalizeTextureDecalMap,
   serializeStudioSnapshot,
 } from '../lib/graphicsStudioConfig.js'
 import { fileToDecalDataUrl } from '../lib/textureDecal.js'
-import { saveStagePropPlacements } from '../lib/stagePropPlacements.js'
+import { normalizeStagePropPlacements } from '../lib/stagePropPlacements.js'
 import StagePropPlacementEditor from './StagePropPlacementEditor.jsx'
-import { DEFAULT_SFX_TUNING, getSfxCatalog, loadSfxTunings, normalizeSfxTuning, playSfx, saveSfxTunings } from '../lib/sfxRegistry.js'
+import { DEFAULT_SFX_TUNING, getSfxCatalog, loadSfxTunings, normalizeSfxTuning, playSfx } from '../lib/sfxRegistry.js'
 import {
   STUDIO_GAME_SYNC_MESSAGE,
   getDefaultStudioGameUrl,
@@ -30,11 +29,13 @@ import {
 import StageBossPreview from './StageBossPreview.jsx'
 import { useAuthStore } from '../store/useAuthStore.js'
 import {
+  FIREBASE_STUDIO_REVISION_EVENT,
+  applyFirebaseStudioDatasets,
   flushFirebaseStudioSave,
   hydrateFirebaseStudio,
   loadStudioRuntimeDatasets,
   markFirebaseStudioLocalChange,
-  requestFirebaseStudioSave,
+  saveFirebaseStudio,
   setFirebaseStudioUser,
 } from '../lib/firebaseStudio.js'
 
@@ -259,6 +260,7 @@ export default function GraphicsStudio() {
   const writeEligibleUidRef = useRef(null)
   const mountedRef = useRef(true)
   const connectInFlightRef = useRef(false)
+  const applyInFlightRef = useRef(false)
   const [gameUrl, setGameUrl] = useState(() => getDefaultStudioGameUrl())
   const activeTuningId = getPartTuningId(selectedItem.id, focusedParts)
   const itemSavedTuning = confirmedTunings[selectedItem.id] ?? DEFAULT_STUDIO_TUNING
@@ -311,14 +313,11 @@ export default function GraphicsStudio() {
       return true
     }
     if (result?.status === 'local-changed') {
-      hydratedUidRef.current = uid
-      writeEligibleUidRef.current = uid
-      queueEligibleFirebaseSave({ uid }, { mark: false })
-      return true
+      writeEligibleUidRef.current = null
+      if (mountedRef.current) setFirebaseStatus('offline-error')
+      return false
     }
-    if (['read-failed', 'client-unavailable', 'write-failed', 'write-aborted'].includes(result?.status)) {
-      writeEligibleUidRef.current = uid
-    } else if (writeEligibleUidRef.current === uid) {
+    if (writeEligibleUidRef.current === uid) {
       writeEligibleUidRef.current = null
     }
     if (mountedRef.current) {
@@ -331,25 +330,46 @@ export default function GraphicsStudio() {
     return false
   }
 
-  const queueEligibleFirebaseSave = (user, { mark = true } = {}) => {
-    const uid = user?.uid
-    if (!uid) return
-    if (mark) markFirebaseStudioLocalChange(user)
-    if (writeEligibleUidRef.current !== uid) return
-    requestFirebaseStudioSave({
-      user,
-      onResult: (result) => {
-        if (!mountedRef.current) return
-        if (result?.status === 'saved') setFirebaseStatus('saved')
-        else if (result?.status === 'future-version') setFirebaseStatus('future-version')
-        else setFirebaseStatus('offline-error')
-      },
-    })
-    setFirebaseStatus('saving')
+  const showFirebaseSaveBlocked = (result) => {
+    const status = result?.status ?? 'unavailable'
+    setFirebaseStatus(status === 'future-version' ? 'future-version' : 'offline-error')
+    setApplyStatus(`Firebase save blocked: ${status}`)
+    window.alert?.(`Firebase 저장 불가 (${status}). Apply 값은 저장되거나 게임·타이틀에 적용되지 않았습니다.`)
   }
 
-  const queueFirebaseSave = () => {
-    queueEligibleFirebaseSave(authUser)
+  const persistDatasetsOnApply = async (datasets) => {
+    const user = authUser
+    const uid = user?.uid
+    if (!uid || writeEligibleUidRef.current !== uid) {
+      const result = { status: uid ? 'hydrate-required' : 'unauthenticated' }
+      showFirebaseSaveBlocked(result)
+      return result
+    }
+    if (applyInFlightRef.current) return { status: 'apply-in-flight' }
+
+    applyInFlightRef.current = true
+    setFirebaseStatus('saving')
+    markFirebaseStudioLocalChange(user)
+    try {
+      const result = await saveFirebaseStudio({ user, datasets })
+      if (result?.status !== 'saved') {
+        showFirebaseSaveBlocked(result)
+        return result
+      }
+      if (!applyFirebaseStudioDatasets(datasets, { revision: result.revision })) {
+        const failed = { status: 'apply-failed' }
+        showFirebaseSaveBlocked(failed)
+        return failed
+      }
+      setFirebaseStatus('saved')
+      return result
+    } catch (error) {
+      const result = { status: 'write-failed', error }
+      showFirebaseSaveBlocked(result)
+      return result
+    } finally {
+      applyInFlightRef.current = false
+    }
   }
 
   useEffect(() => {
@@ -400,6 +420,15 @@ export default function GraphicsStudio() {
     }
   }, [])
 
+  useEffect(() => {
+    const refreshRemoteRevision = () => {
+      refreshStudioState()
+      setFirebaseStatus('synced')
+    }
+    window.addEventListener(FIREBASE_STUDIO_REVISION_EVENT, refreshRemoteRevision)
+    return () => window.removeEventListener(FIREBASE_STUDIO_REVISION_EVENT, refreshRemoteRevision)
+  }, [])
+
   const openOrReuseGameWindow = (url) => {
     let target = gameWindowRef.current
     if (!target || target.closed || gameOriginRef.current !== url.origin) {
@@ -443,11 +472,14 @@ export default function GraphicsStudio() {
     return true
   }
 
-  // 맵 프랍 배치 Apply/Reset: 로컬 저장(스튜디오 창) + 연결된 게임 창으로 전송.
-  const applyPropPlacements = (config) => {
-    const saved = saveStagePropPlacements(config)
-    queueFirebaseSave()
-    if (sendGameSync({ openGame: true, retryAfterLoad: true })) {
+  const applyPropPlacements = async (config) => {
+    const datasets = loadStudioRuntimeDatasets()
+    const saved = normalizeStagePropPlacements(config)
+    const result = await persistDatasetsOnApply({
+      ...datasets,
+      propPlacements: saved,
+    })
+    if (result.status === 'saved' && sendGameSync({ openGame: true, retryAfterLoad: true })) {
       setApplyStatus('Props applied')
     }
     return saved
@@ -501,17 +533,6 @@ export default function GraphicsStudio() {
     })
   }
 
-  const confirmGraphicsTuning = (id, nextTuning) => {
-    const next = saveStudioTunings({
-      ...loadStudioTunings(),
-      [id]: nextTuning,
-    })
-    setConfirmedTunings(next)
-    queueFirebaseSave()
-    sendGameSync()
-    return next
-  }
-
   const updateTuning = (patch) => {
     setDraftTuningById((current) => {
       const currentTuning = normalizeStudioTuning(current[activeTuningId] ?? confirmedTunings[activeTuningId] ?? DEFAULT_STUDIO_TUNING)
@@ -522,8 +543,7 @@ export default function GraphicsStudio() {
       if (!isSameTuning(currentTuning, nextTuning)) {
         setUndoStack((stack) => [...stack, { id: activeTuningId, tuning: currentTuning }].slice(-UNDO_LIMIT))
       }
-      confirmGraphicsTuning(activeTuningId, nextTuning)
-      setApplyStatus('Live')
+      setApplyStatus('Draft — Apply to save Firebase')
       return {
         ...current,
         [activeTuningId]: nextTuning,
@@ -532,13 +552,12 @@ export default function GraphicsStudio() {
   }
 
   const confirmTextureDecals = (nextItemDecals) => {
-    const next = saveTextureDecals({
-      ...loadTextureDecals(),
+    const next = normalizeTextureDecalMap({
+      ...decalsByItem,
       [selectedItem.id]: nextItemDecals,
     })
     setDecalsByItem(next)
-    queueFirebaseSave()
-    sendGameSync()
+    setApplyStatus('Decal draft — Apply to save Firebase')
     return next
   }
 
@@ -568,7 +587,7 @@ export default function GraphicsStudio() {
     }
     const rest = itemDecals.filter((decal) => !(decal.partId === nextDecal.partId && decal.faceAxis === nextDecal.faceAxis))
     confirmTextureDecals([...rest, nextDecal])
-    setApplyStatus(`Decal live: ${nextDecal.partId} ${nextDecal.faceAxis}`)
+    setApplyStatus(`Decal draft: ${nextDecal.partId} ${nextDecal.faceAxis}`)
   }
 
   const updateActiveDecal = (patch) => {
@@ -578,12 +597,12 @@ export default function GraphicsStudio() {
     confirmTextureDecals(itemDecals.map((decal) => (
       decal.partId === activeDecal.partId && decal.faceAxis === activeDecal.faceAxis ? nextDecal : decal
     )))
-    setApplyStatus('Decal live')
+    setApplyStatus('Decal draft — Apply to save Firebase')
   }
 
   const removeDecal = (target) => {
     confirmTextureDecals(itemDecals.filter((decal) => !(decal.partId === target.partId && decal.faceAxis === target.faceAxis)))
-    setApplyStatus(`Decal removed: ${target.partId} ${target.faceAxis}`)
+    setApplyStatus(`Decal removal draft: ${target.partId} ${target.faceAxis}`)
   }
 
   const focusDecal = (decal) => {
@@ -593,11 +612,8 @@ export default function GraphicsStudio() {
   }
 
   const updateStageBossPreview = (patch) => {
-    const next = saveStageBossPreview({ ...loadStageBossPreview(), ...patch })
-    setStageBossPreview(next)
-    queueFirebaseSave()
-    sendGameSync()
-    setApplyStatus('Boss preview live')
+    setStageBossPreview((current) => normalizeStageBossPreview({ ...current, ...patch }))
+    setApplyStatus('Boss preview draft — Apply to save Firebase')
   }
 
   useEffect(() => {
@@ -607,12 +623,11 @@ export default function GraphicsStudio() {
       setUndoStack((stack) => {
         const entry = stack[stack.length - 1]
         if (!entry) return stack
-        confirmGraphicsTuning(entry.id, entry.tuning)
         setDraftTuningById((current) => ({
           ...current,
           [entry.id]: entry.tuning,
         }))
-        setApplyStatus('Live')
+        setApplyStatus('Draft — Apply to save Firebase')
         return stack.slice(0, -1)
       })
     }
@@ -621,22 +636,34 @@ export default function GraphicsStudio() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  const applyCurrent = () => {
-    const next = confirmGraphicsTuning(activeTuningId, tuning)
-    setConfirmedTunings(next)
-    if (sendGameSync({ openGame: true, retryAfterLoad: true })) {
+  const applyCurrent = async () => {
+    const datasets = loadStudioRuntimeDatasets()
+    const nextTunings = {
+      ...datasets.tunings,
+      [activeTuningId]: normalizeStudioTuning(tuning),
+    }
+    const nextDecals = normalizeTextureDecalMap({
+      ...datasets.decals,
+      [selectedItem.id]: itemDecals,
+    })
+    const result = await persistDatasetsOnApply({
+      ...datasets,
+      tunings: nextTunings,
+      stageBossPreview: normalizeStageBossPreview(stageBossPreview),
+      decals: nextDecals,
+    })
+    if (result.status === 'saved' && sendGameSync({ openGame: true, retryAfterLoad: true })) {
       setApplyStatus('Game applied')
     }
   }
 
   const resetCurrent = () => {
     const baselineTuning = resetBaseline[activeTuningId] ?? DEFAULT_STUDIO_TUNING
-    confirmGraphicsTuning(activeTuningId, baselineTuning)
     setDraftTuningById((current) => ({
       ...current,
       [activeTuningId]: baselineTuning,
     }))
-    setApplyStatus('Live')
+    setApplyStatus('Reset draft — Apply to save Firebase')
   }
 
   const copyExport = async () => {
@@ -663,30 +690,32 @@ export default function GraphicsStudio() {
   const updateSfxTuning = (patch) => {
     if (!selectedSfx) return
     setSfxTunings((current) => {
-      const next = saveSfxTunings({
+      const next = {
         ...current,
         [selectedSfx.id]: normalizeSfxTuning({
           ...sfxTuning,
           ...patch,
         }),
-      })
-      queueFirebaseSave()
-      sendGameSync()
+      }
       return next
     })
-    setApplyStatus('Audio live')
+    setApplyStatus('Audio draft — Apply to save Firebase')
   }
 
-  const applySfxCurrent = () => {
+  const applySfxCurrent = async () => {
     if (!selectedSfx) return
-    const next = saveSfxTunings({
-      ...loadSfxTunings(),
+    const datasets = loadStudioRuntimeDatasets()
+    const next = {
+      ...datasets.sfxTunings,
       [selectedSfx.id]: sfxTuning,
+    }
+    const result = await persistDatasetsOnApply({
+      ...datasets,
+      sfxTunings: next,
     })
-    queueFirebaseSave()
-    const applied = sendGameSync({ openGame: true, retryAfterLoad: true })
-    setSfxTunings(next)
-    if (applied) setApplyStatus('Audio applied')
+    if (result.status === 'saved' && sendGameSync({ openGame: true, retryAfterLoad: true })) {
+      setApplyStatus('Audio applied')
+    }
   }
 
   return (

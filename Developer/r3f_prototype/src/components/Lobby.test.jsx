@@ -256,7 +256,7 @@ describe('Lobby', () => {
     view.unmount()
   })
 
-  it('reveals Stage 4 B04 preview after Stage 3 clear but keeps entry, ranking, and showtime disabled', () => {
+  it('reveals Stage 4 B04 preview and enables entry + ranking after Stage 3 clear', () => {
     vi.useFakeTimers()
     seedPlayerRecords({
       stage1Clears: 1,
@@ -272,46 +272,31 @@ describe('Lobby', () => {
     const stage4Card = findStageCard(view.container, 'Stage 4 급식실 대탈출')
     const preview = stage4Card.querySelector('[data-testid="stage-boss-preview"]')
 
-    const readyButton = findButtonByText(stage4Card, '준비 중')
+    const enterButton = findButtonByText(stage4Card, '입장하기')
     const rankingButton = findButtonByText(stage4Card, '점수 레코드')
 
-    expect(stage4Card.textContent).not.toContain('주방장 좀비가 지키는 급식실에서 240초 동안 버티기')
+    // balanceqa 게이트 통과 후: 스3 클리어로 해금 + 프로덕션에서 플레이어블 → 입장/랭킹 활성, '준비 중' 없음.
     expect(preview.dataset.bossType).toBe('B04')
-    expect(preview.dataset.motionActive).toBe('false')
-    expect(readyButton.disabled).toBe(true)
-    expect(rankingButton.disabled).toBe(true)
-    expect(readyButton.className).toBe('')
-    expect(rankingButton.className).toBe('')
-    expect(readyButton.parentElement).toBe(stage4Card.querySelector('[data-testid="stage-card-preview-row"]'))
-    expect(rankingButton.parentElement).toBe(stage4Card.querySelector('[data-testid="stage-card-preview-row"]'))
-    expect(readyButton.style.position).toBe('absolute')
-    expect(readyButton.style.right).toBe('10px')
-    expect(readyButton.style.bottom).toBe('10px')
-    expect(readyButton.style.minWidth).toBe('132px')
-    expect(readyButton.style.minHeight).toBe('42px')
-    expect(rankingButton.style.position).toBe('absolute')
-    expect(rankingButton.style.top).toBe('34px')
-    expect(rankingButton.style.left).toBe('10px')
-    expect(rankingButton.style.width).toBe('74px')
-    expect(rankingButton.style.minHeight).toBe('30px')
+    expect(stage4Card.textContent).not.toContain('준비 중')
+    expect(enterButton.disabled).toBe(false)
+    expect(rankingButton.disabled).toBe(false)
 
     act(() => {
-      stage4Card.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      readyButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
       rankingButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+    expect(onOpenRanking).toHaveBeenCalledWith('stage4')
+
+    act(() => {
+      enterButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
       vi.advanceTimersByTime(1_000)
     })
-
-    expect(onStartStage).not.toHaveBeenCalled()
-    expect(onOpenRanking).not.toHaveBeenCalled()
-    expect(playSfx).not.toHaveBeenCalled()
-    expect(stage4Card.querySelector('[data-testid="stage-card-showtime"]')).toBeFalsy()
+    expect(onStartStage).toHaveBeenCalledWith('stage4')
 
     vi.useRealTimers()
     view.unmount()
   })
 
-  it('lets the dev all-stage cheat enter Stage 4 even while production config marks it not playable', () => {
+  it('lets the dev all-stage cheat enter Stage 4 even without a Stage 3 clear', () => {
     vi.useFakeTimers()
     const onStartStage = vi.fn()
     const view = renderLobby({

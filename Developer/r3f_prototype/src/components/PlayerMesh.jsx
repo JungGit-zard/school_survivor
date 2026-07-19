@@ -18,7 +18,6 @@ const PLAYER_HEAD_BASE_Y = 1.1
 const PLAYER_IDLE_BREATHE_Y = 0.028
 const PLAYER_WALK_BOB_Y = 0.022
 const PLAYER_MAX_HEAD_BOB_Y = Math.max(PLAYER_IDLE_BREATHE_Y, PLAYER_WALK_BOB_Y)
-const PLAYER_HEAD_OUTLINE_OFFSET_Y = 0.19
 const PLAYER_LANTERN_POSITION = [0, -0.76, 0.2]
 const PLAYER_LANTERN_BODY_SIZE = [0.34, 0.2, 0.24]
 const PLAYER_LANTERN_HEAD_SIZE = [0.18, 0.24, 0.28]
@@ -45,11 +44,6 @@ export const PLAYER_MESH_LAYOUT = {
     idleBreatheY: PLAYER_IDLE_BREATHE_Y,
     walkBobY: PLAYER_WALK_BOB_Y,
     maxHeadBobY: PLAYER_MAX_HEAD_BOB_Y,
-  },
-  outline: {
-    headSize: [1.08, 1.04, 0.86],
-    headOffsetY: PLAYER_HEAD_OUTLINE_OFFSET_Y,
-    headPosition: [0, PLAYER_HEAD_BASE_Y + PLAYER_HEAD_OUTLINE_OFFSET_Y, 0.04],
   },
   lantern: {
     position: PLAYER_LANTERN_POSITION,
@@ -115,7 +109,7 @@ function PlayerOuterOutline() {
   return (
     <group>
       <OutlineBlock size={[0.98, 0.9, 0.58]} position={[0, 0.33, 0]} />
-      <OutlineBlock size={PLAYER_MESH_LAYOUT.outline.headSize} position={PLAYER_MESH_LAYOUT.outline.headPosition} />
+      <OutlineBlock size={PLAYER_MESH_LAYOUT.head.size} position={[0, PLAYER_MESH_LAYOUT.head.baseY + 0.06, 0]} scale={1.3} />
       <OutlineBlock size={[0.24, 1.05, 0.30]} position={[-0.68, 0.32, 0]} scale={1.07} />
       <OutlineBlock size={[0.24, 1.05, 0.30]} position={[0.68, 0.32, 0]} scale={1.07} />
       <OutlineBlock size={[0.56, 0.78, 0.36]} position={[-0.54, 0.46, -0.22]} scale={1.07} />

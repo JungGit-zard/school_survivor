@@ -11,12 +11,10 @@ describe('PlayerMesh layout', () => {
     expect(headLowestPointAtPeakBob).toBeLessThanOrEqual(bodyTop)
   })
 
-  it('derives animation limits and keeps the authored head outline envelope', () => {
+  it('derives animation limits from the shared head layout', () => {
     expect(PLAYER_MESH_LAYOUT.motion.maxHeadBobY).toBe(
       Math.max(PLAYER_MESH_LAYOUT.motion.idleBreatheY, PLAYER_MESH_LAYOUT.motion.walkBobY)
     )
-    expect(PLAYER_MESH_LAYOUT.outline.headSize).toEqual([1.08, 1.04, 0.86])
-    expect(PLAYER_MESH_LAYOUT.outline.headPosition).toEqual([0, 1.29, 0.04])
   })
 
   it('uses one player-owned stencil layer in Studio, game, and title renders', () => {
@@ -85,7 +83,6 @@ describe('PlayerMesh layout', () => {
 
     expect(PLAYER_MESH_LAYOUT.body.size).toEqual([0.68, 0.7, 0.46])
     expect(PLAYER_MESH_LAYOUT.head.size).toEqual([0.8, 0.68, 0.58])
-    expect(PLAYER_MESH_LAYOUT.outline.headSize).toEqual([1.08, 1.04, 0.86])
     expect(source).toContain('color={0xff8fb0} emissive={0.18}')
     expect(source).toContain('color={0xd94070} emissive={0.14}')
     expect(source).toContain('color={0xcf2f77} emissive={0.12}')

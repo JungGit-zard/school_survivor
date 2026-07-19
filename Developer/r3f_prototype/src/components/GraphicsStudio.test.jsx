@@ -19,6 +19,7 @@ import { commitFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
 const cloudMocks = vi.hoisted(() => ({
   hydrate: vi.fn(),
   requestSave: vi.fn(),
+  save: vi.fn(),
   flush: vi.fn(),
   markChange: vi.fn(),
   setUser: vi.fn(),
@@ -44,6 +45,7 @@ vi.mock('../lib/firebaseStudio.js', async (importOriginal) => ({
   ...(await importOriginal()),
   hydrateFirebaseStudio: cloudMocks.hydrate,
   requestFirebaseStudioSave: cloudMocks.requestSave,
+  saveFirebaseStudio: cloudMocks.save,
   flushFirebaseStudioSave: cloudMocks.flush,
   markFirebaseStudioLocalChange: cloudMocks.markChange,
   setFirebaseStudioUser: cloudMocks.setUser,
@@ -81,6 +83,26 @@ describe('GraphicsStudio', () => {
   let container
   let root
 
+  const renderSignedInStudio = async (user = { uid: 'cloud-user' }) => {
+    authMocks.state.status = 'signedIn'
+    authMocks.state.user = user
+    cloudMocks.hydrate.mockResolvedValue({ status: 'remote-applied', revision: 1 })
+    await act(async () => {
+      root.render(<GraphicsStudio />)
+      await Promise.resolve()
+    })
+  }
+
+  const clickButton = async (label) => {
+    const button = Array.from(container.querySelectorAll('button'))
+      .find((candidate) => candidate.textContent === label)
+    await act(async () => {
+      button.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await Promise.resolve()
+    })
+    return button
+  }
+
   beforeEach(() => {
     localStorage.clear()
     commitFirebaseStudioRuntime({
@@ -97,6 +119,7 @@ describe('GraphicsStudio', () => {
     authMocks.signIn.mockReset().mockResolvedValue(null)
     cloudMocks.hydrate.mockReset().mockResolvedValue({ status: 'unconfigured' })
     cloudMocks.requestSave.mockReset()
+    cloudMocks.save.mockReset().mockResolvedValue({ status: 'saved', revision: 2 })
     cloudMocks.flush.mockReset().mockReturnValue({
       then(resolve) {
         resolve({ status: 'no-pending' })
@@ -105,6 +128,7 @@ describe('GraphicsStudio', () => {
     })
     cloudMocks.markChange.mockReset()
     cloudMocks.setUser.mockReset()
+    window.alert = vi.fn()
     vi.spyOn(window, 'open').mockReturnValue({ closed: false, postMessage: vi.fn() })
     container = document.createElement('div')
     document.body.appendChild(container)
@@ -119,11 +143,9 @@ describe('GraphicsStudio', () => {
     vi.restoreAllMocks()
   })
 
-  it('opens the Map Props tab, adds a prop, and Apply persists a stage override', () => {
+  it('opens the Map Props tab, adds a prop, and Apply persists a stage override', async () => {
     resetStagePropPlacementsCache()
-    act(() => {
-      root.render(<GraphicsStudio />)
-    })
+    await renderSignedInStudio()
 
     const propsTab = Array.from(container.querySelectorAll('button')).find((button) => button.textContent === 'Props')
     expect(propsTab).toBeTruthy()
@@ -136,17 +158,18 @@ describe('GraphicsStudio', () => {
     act(() => paletteDesk.dispatchEvent(new MouseEvent('click', { bubbles: true })))
 
     const applyButton = container.querySelector('[data-testid="prop-apply"]')
-    act(() => applyButton.dispatchEvent(new MouseEvent('click', { bubbles: true })))
+    await act(async () => {
+      applyButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await Promise.resolve()
+    })
 
     const saved = loadStagePropPlacements()
     expect(Array.isArray(saved.stage1)).toBe(true)
     expect(saved.stage1.some((item) => item.type === 'classroomDesk')).toBe(true)
   })
 
-  it('renders the catalog, preview, sliders, and export panel', () => {
-    act(() => {
-      root.render(<GraphicsStudio />)
-    })
+  it('renders the catalog, preview, sliders, and export panel', async () => {
+    await renderSignedInStudio()
 
     expect(container.textContent).toContain('Graphics Studio')
     expect(container.textContent).toContain('Player')
@@ -176,21 +199,17 @@ describe('GraphicsStudio', () => {
     expect(container.querySelector('[data-testid="studio-export"]').value).toContain('"graphics-studio"')
   })
 
-  it('opens directly to Matilda from the studio hash', () => {
+  it('opens directly to Matilda from the studio hash', async () => {
     window.location.hash = '#enemy-matilda'
 
-    act(() => {
-      root.render(<GraphicsStudio />)
-    })
+    await renderSignedInStudio()
 
     expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('enemy-matilda')
     expect(container.textContent).toContain('Enemy / Matilda')
   })
 
-  it('applies transform slider changes to the game immediately', () => {
-    act(() => {
-      root.render(<GraphicsStudio />)
-    })
+  it('keeps transform changes as Studio drafts and writes them to Firebase only on Apply', async () => {
+    await renderSignedInStudio()
 
     const scale = container.querySelector('input[name="scale"]')
     const scaleX = container.querySelector('input[name="scaleX"]')
@@ -204,16 +223,16 @@ describe('GraphicsStudio', () => {
       rotationZ.dispatchEvent(new Event('input', { bubbles: true }))
     })
 
-    expect(loadStudioTunings().player.scale).toBe(1.45)
-    expect(loadStudioTunings().player.scaleX).toBe(1.25)
-    expect(loadStudioTunings().player.rotationZ).toBe(-30)
+    expect(loadStudioTunings()).not.toHaveProperty('player')
+    expect(cloudMocks.save).not.toHaveBeenCalled()
     expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1.45:1.25')
-    expect(container.textContent).toContain('Live')
+    expect(container.textContent).toContain('Draft')
 
     const applyButton = Array.from(container.querySelectorAll('button'))
       .find((button) => button.textContent.includes('Apply'))
-    act(() => {
+    await act(async () => {
       applyButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await Promise.resolve()
     })
 
     expect(loadStudioTunings().player.scale).toBe(1.45)
@@ -222,6 +241,14 @@ describe('GraphicsStudio', () => {
     expect(container.textContent).toContain('Game applied')
     expect(container.querySelector('[data-testid="studio-export"]').value).toContain('"scale": 1.45')
     expect(container.querySelector('[data-testid="studio-export"]').value).toContain('"scaleX": 1.25')
+    expect(cloudMocks.save).toHaveBeenCalledWith(expect.objectContaining({
+      user: { uid: 'cloud-user' },
+      datasets: expect.objectContaining({
+        tunings: expect.objectContaining({
+          player: expect.objectContaining({ scale: 1.45, scaleX: 1.25, rotationZ: -30 }),
+        }),
+      }),
+    }))
   })
 
   it('connects to a typed game URL and asks that game window to refetch Firebase', async () => {
@@ -332,7 +359,7 @@ describe('GraphicsStudio', () => {
     )
   })
 
-  it('keeps local authored state and exposes an offline fallback when cloud hydrate fails', async () => {
+  it('keeps Firebase runtime unchanged and blocks Apply when cloud hydrate fails', async () => {
     saveStudioTunings({ player: { scale: 1.44 } })
     authMocks.state.status = 'signedIn'
     authMocks.state.user = { uid: 'offline-user' }
@@ -351,16 +378,33 @@ describe('GraphicsStudio', () => {
       scale.value = '1.66'
       scale.dispatchEvent(new Event('input', { bubbles: true }))
     })
-    expect(loadStudioTunings().player.scale).toBe(1.66)
-    expect(cloudMocks.requestSave).toHaveBeenCalledWith(expect.objectContaining({
-      user: { uid: 'offline-user' },
-      onResult: expect.any(Function),
-    }))
-    expect(cloudMocks.requestSave.mock.lastCall[0]).not.toHaveProperty('datasets')
-    expect(container.querySelector('[data-testid="studio-firebase-status"]').dataset.status).toBe('saving')
+    expect(loadStudioTunings().player.scale).toBe(1.44)
+    expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1.66')
+    await clickButton('Apply')
+    expect(cloudMocks.save).not.toHaveBeenCalled()
+    expect(window.alert).toHaveBeenCalledWith(expect.stringContaining('Firebase 저장 불가'))
+    expect(container.querySelector('[data-testid="studio-firebase-status"]').dataset.status).toBe('offline-error')
   })
 
-  it('shows a future-version workspace and never queues edits into it', async () => {
+  it('keeps Firebase runtime unchanged when the Apply write fails', async () => {
+    await renderSignedInStudio()
+    cloudMocks.save.mockResolvedValueOnce({ status: 'write-failed', error: new Error('denied') })
+
+    const scale = container.querySelector('input[name="scale"]')
+    act(() => {
+      scale.value = '1.73'
+      scale.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    await clickButton('Apply')
+
+    expect(cloudMocks.save).toHaveBeenCalledTimes(1)
+    expect(loadStudioTunings()).not.toHaveProperty('player')
+    expect(window.alert).toHaveBeenCalledWith(expect.stringContaining('Firebase 저장 불가'))
+    expect(container.querySelector('[data-testid="studio-firebase-status"]').dataset.status).toBe('offline-error')
+  })
+
+  it('shows a future-version workspace and never writes edits into it', async () => {
     authMocks.state.status = 'signedIn'
     authMocks.state.user = { uid: 'future-user' }
     cloudMocks.hydrate.mockResolvedValue({ status: 'future-version', schemaVersion: 2 })
@@ -376,8 +420,11 @@ describe('GraphicsStudio', () => {
       scale.dispatchEvent(new Event('input', { bubbles: true }))
     })
 
-    expect(cloudMocks.markChange).toHaveBeenCalledWith({ uid: 'future-user' })
+    expect(cloudMocks.markChange).not.toHaveBeenCalled()
     expect(cloudMocks.requestSave).not.toHaveBeenCalled()
+    await clickButton('Apply')
+    expect(cloudMocks.save).not.toHaveBeenCalled()
+    expect(window.alert).toHaveBeenCalledWith(expect.stringContaining('Firebase 저장 불가'))
   })
 
   it('waits for the same-user automatic hydrate before Connect reloads remote', async () => {
@@ -410,7 +457,7 @@ describe('GraphicsStudio', () => {
     expect(postMessage).toHaveBeenCalled()
   })
 
-  it('queues the full local snapshot after a signed-in hydrated edit', async () => {
+  it('does not save a draft and writes the full Firebase snapshot only when Apply is pressed', async () => {
     authMocks.state.status = 'signedIn'
     authMocks.state.user = { uid: 'cloud-user' }
     let resolveHydrate
@@ -426,32 +473,27 @@ describe('GraphicsStudio', () => {
       scale.value = '1.31'
       scale.dispatchEvent(new Event('input', { bubbles: true }))
     })
-    expect(cloudMocks.markChange).toHaveBeenCalledWith({ uid: 'cloud-user' })
+    expect(cloudMocks.markChange).not.toHaveBeenCalled()
     expect(cloudMocks.requestSave).not.toHaveBeenCalled()
 
     await act(async () => {
-      resolveHydrate({ status: 'local-changed' })
+      resolveHydrate({ status: 'remote-applied', revision: 1 })
     })
-    expect(cloudMocks.requestSave).toHaveBeenCalledTimes(1)
     act(() => {
       scale.value = '1.53'
       scale.dispatchEvent(new Event('input', { bubbles: true }))
     })
 
-    expect(cloudMocks.requestSave).toHaveBeenLastCalledWith(expect.objectContaining({
-      user: { uid: 'cloud-user' },
-      onResult: expect.any(Function),
-    }))
-    expect(cloudMocks.requestSave.mock.lastCall[0]).not.toHaveProperty('datasets')
-    expect(container.querySelector('[data-testid="studio-firebase-status"]').dataset.status).toBe('saving')
-
-    const queuedSave = cloudMocks.requestSave.mock.lastCall[0]
-    act(() => queuedSave.onResult({ status: 'write-failed', error: new Error('offline') }))
+    expect(loadStudioTunings()).not.toHaveProperty('player')
+    expect(cloudMocks.save).not.toHaveBeenCalled()
+    await clickButton('Apply')
+    expect(cloudMocks.save).toHaveBeenCalledTimes(1)
+    expect(cloudMocks.save.mock.calls[0][0].datasets.tunings.player.scale).toBe(1.53)
     expect(loadStudioTunings().player.scale).toBe(1.53)
-    expect(container.querySelector('[data-testid="studio-firebase-status"]').dataset.status).toBe('offline-error')
+    expect(container.querySelector('[data-testid="studio-firebase-status"]').dataset.status).toBe('saved')
   })
 
-  it('flushes a pending cloud save without clearing retry state on unmount', async () => {
+  it('does not write an unapplied draft while unmounting', async () => {
     authMocks.state.status = 'signedIn'
     authMocks.state.user = { uid: 'cloud-user' }
     cloudMocks.hydrate.mockResolvedValue({ status: 'remote-applied', revision: 1 })
@@ -464,28 +506,28 @@ describe('GraphicsStudio', () => {
       scale.value = '1.61'
       scale.dispatchEvent(new Event('input', { bubbles: true }))
     })
-    expect(cloudMocks.requestSave).toHaveBeenCalled()
+    expect(cloudMocks.requestSave).not.toHaveBeenCalled()
+    expect(cloudMocks.save).not.toHaveBeenCalled()
 
-    cloudMocks.flush.mockResolvedValue({ status: 'write-failed', error: new Error('offline') })
     await act(async () => {
       root.unmount()
     })
     expect(cloudMocks.flush).toHaveBeenCalledTimes(1)
+    expect(cloudMocks.save).not.toHaveBeenCalled()
     expect(cloudMocks.setUser).not.toHaveBeenCalledWith(null)
 
     root = createRoot(container)
   })
 
-  it('reports a blocked popup for Apply paths that need to open the game', () => {
+  it('reports a blocked popup for Apply paths that need to open the game', async () => {
     window.open.mockReturnValue(null)
-    act(() => {
-      root.render(<GraphicsStudio />)
-    })
+    await renderSignedInStudio()
 
     const applyButton = Array.from(container.querySelectorAll('button'))
       .find((button) => button.textContent === 'Apply')
-    act(() => {
+    await act(async () => {
       applyButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await Promise.resolve()
     })
 
     expect(container.textContent).toContain('Unable to open game window')
@@ -495,9 +537,7 @@ describe('GraphicsStudio', () => {
     const postMessage = vi.fn()
     window.open.mockReturnValue({ closed: false, postMessage })
 
-    act(() => {
-      root.render(<GraphicsStudio />)
-    })
+    await renderSignedInStudio()
 
     const gameUrl = container.querySelector('input[name="gameUrl"]')
     act(() => {
@@ -526,13 +566,11 @@ describe('GraphicsStudio', () => {
     expect(container.textContent).toContain('Game applied')
   })
 
-  it('uses Stage 2 Boss for the stage boss preview and game sync when B02 is selected', () => {
+  it('uses Stage 2 Boss for the stage boss preview and saves it on Apply', async () => {
     const postMessage = vi.fn()
     vi.spyOn(window, 'open').mockReturnValue({ closed: false, postMessage })
 
-    act(() => {
-      root.render(<GraphicsStudio />)
-    })
+    await renderSignedInStudio()
 
     act(() => {
       Array.from(container.querySelectorAll('button'))
@@ -548,18 +586,14 @@ describe('GraphicsStudio', () => {
       gameUrl.dispatchEvent(new Event('input', { bubbles: true }))
     })
 
-    const connect = Array.from(container.querySelectorAll('button'))
-      .find((button) => button.textContent === 'Connect')
-    act(() => {
-      connect.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-
     const scale = container.querySelector('input[name="scale"]')
     act(() => {
       scale.value = '1.62'
       scale.dispatchEvent(new Event('input', { bubbles: true }))
     })
 
+    expect(loadStudioTunings()).not.toHaveProperty('stage2-boss-v2')
+    await clickButton('Apply')
     expect(loadStudioTunings()['stage2-boss-v2'].scale).toBe(1.62)
     expect(postMessage).toHaveBeenLastCalledWith(
       { type: 'escape-zombie-school.studioGameSync.v1' },
@@ -567,10 +601,8 @@ describe('GraphicsStudio', () => {
     )
   })
 
-  it('uses the same Stage Boss Card Layout controls when B04 is selected', () => {
-    act(() => {
-      root.render(<GraphicsStudio />)
-    })
+  it('uses the same Stage Boss Card Layout controls when B04 is selected', async () => {
+    await renderSignedInStudio()
 
     act(() => {
       Array.from(container.querySelectorAll('button'))
@@ -597,31 +629,25 @@ describe('GraphicsStudio', () => {
       panY.dispatchEvent(new Event('input', { bubbles: true }))
     })
 
-    expect(loadStageBossPreview()).toMatchObject({ zoom: 132, panX: 0.45, panY: -0.2 })
+    expect(loadStageBossPreview()).toMatchObject({ zoom: 110, panX: 0, panY: 0 })
     expect(preview.dataset.zoom).toBe('132')
     expect(preview.dataset.panX).toBe('0.45')
     expect(preview.dataset.panY).toBe('-0.2')
+    await clickButton('Apply')
+    expect(loadStageBossPreview()).toMatchObject({ zoom: 132, panX: 0.45, panY: -0.2 })
   })
 
 
-  it('applies stage boss preview zoom and pan to the connected game immediately', () => {
+  it('applies stage boss preview zoom and pan to Firebase and the connected game on Apply', async () => {
     const postMessage = vi.fn()
     vi.spyOn(window, 'open').mockReturnValue({ closed: false, postMessage })
 
-    act(() => {
-      root.render(<GraphicsStudio />)
-    })
+    await renderSignedInStudio()
 
     const gameUrl = container.querySelector('input[name="gameUrl"]')
     act(() => {
       gameUrl.value = 'http://localhost:5173/'
       gameUrl.dispatchEvent(new Event('input', { bubbles: true }))
-    })
-
-    const connect = Array.from(container.querySelectorAll('button'))
-      .find((button) => button.textContent === 'Connect')
-    act(() => {
-      connect.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
 
     const zoom = container.querySelector('input[name="stageBossPreviewZoomValue"]')
@@ -633,8 +659,10 @@ describe('GraphicsStudio', () => {
       panX.dispatchEvent(new Event('input', { bubbles: true }))
     })
 
-    expect(loadStageBossPreview()).toMatchObject({ zoom: 132, panX: 0.45 })
+    expect(loadStageBossPreview()).toMatchObject({ zoom: 110, panX: 0 })
     expect(container.querySelector('[data-testid="studio-stage-boss-preview"]').dataset.zoom).toBe('132')
+    await clickButton('Apply')
+    expect(loadStageBossPreview()).toMatchObject({ zoom: 132, panX: 0.45 })
     expect(postMessage).toHaveBeenLastCalledWith(
       { type: 'escape-zombie-school.studioGameSync.v1' },
       'http://localhost:5173',
@@ -655,7 +683,7 @@ describe('GraphicsStudio', () => {
     act(() => {
       zoom.blur()
     })
-    expect(loadStageBossPreview().zoom).toBe(50)
+    expect(loadStageBossPreview().zoom).toBe(110)
     expect(zoom.value).toBe('50')
 
     act(() => {
@@ -670,7 +698,7 @@ describe('GraphicsStudio', () => {
     expect(zoom.value).toBe('110')
   })
 
-  it('applies typed numeric values to the game immediately', () => {
+  it('previews typed numeric values without changing Firebase runtime before Apply', () => {
     act(() => {
       root.render(<GraphicsStudio />)
     })
@@ -683,7 +711,7 @@ describe('GraphicsStudio', () => {
       scaleValue.dispatchEvent(new Event('blur', { bubbles: true }))
     })
 
-    expect(loadStudioTunings().player.scale).toBe(1.35)
+    expect(loadStudioTunings()).not.toHaveProperty('player')
     expect(scale.value).toBe('1.35')
     expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1.35')
   })
@@ -700,7 +728,7 @@ describe('GraphicsStudio', () => {
       scale.value = '1.8'
       scale.dispatchEvent(new Event('input', { bubbles: true }))
     })
-    expect(loadStudioTunings().player.scale).toBe(1.8)
+    expect(loadStudioTunings().player.scale).toBe(1.4)
 
     const resetButton = Array.from(container.querySelectorAll('button'))
       .find((button) => button.textContent.includes('Reset'))
@@ -712,10 +740,8 @@ describe('GraphicsStudio', () => {
     expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1.4')
   })
 
-  it('applies typed part position values into separate part tuning', () => {
-    act(() => {
-      root.render(<GraphicsStudio />)
-    })
+  it('applies typed part position values into separate part tuning', async () => {
+    await renderSignedInStudio()
 
     const preview = container.querySelector('[data-testid="graphics-preview"]')
     act(() => {
@@ -728,13 +754,10 @@ describe('GraphicsStudio', () => {
       positionX.dispatchEvent(new Event('input', { bubbles: true }))
     })
 
-    expect(loadStudioTunings()['player::part::0.1'].positionX).toBe(0.75)
+    expect(loadStudioTunings()).not.toHaveProperty('player::part::0.1')
     expect(loadStudioTunings()).not.toHaveProperty('player')
 
-    const applyButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent === 'Apply')
-    act(() => {
-      applyButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
+    await clickButton('Apply')
 
     expect(loadStudioTunings()['player::part::0.1'].positionX).toBe(0.75)
   })
@@ -755,7 +778,7 @@ describe('GraphicsStudio', () => {
     expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1:1:lanternFlashlight')
   })
 
-  it('focuses a double-clicked model part and stores its tuning separately', () => {
+  it('focuses a double-clicked model part and keeps its tuning as a separate draft', () => {
     act(() => {
       root.render(<GraphicsStudio />)
     })
@@ -774,14 +797,12 @@ describe('GraphicsStudio', () => {
       scale.dispatchEvent(new Event('input', { bubbles: true }))
     })
 
-    expect(loadStudioTunings()['player::part::0.1'].scale).toBe(1.32)
+    expect(loadStudioTunings()).not.toHaveProperty('player::part::0.1')
     expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1:1:normal:1.32')
   })
 
-  it('groups focused parts with shift double-click and transforms them together', () => {
-    act(() => {
-      root.render(<GraphicsStudio />)
-    })
+  it('groups focused parts with shift double-click and saves them together on Apply', async () => {
+    await renderSignedInStudio()
 
     const preview = container.querySelector('[data-testid="graphics-preview"]')
     act(() => {
@@ -797,12 +818,9 @@ describe('GraphicsStudio', () => {
       scale.dispatchEvent(new Event('input', { bubbles: true }))
     })
 
-    expect(loadStudioTunings()['player::group::0.1+0.2'].scale).toBe(1.24)
+    expect(loadStudioTunings()).not.toHaveProperty('player::group::0.1+0.2')
 
-    const applyButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent === 'Apply')
-    act(() => {
-      applyButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
+    await clickButton('Apply')
 
     expect(loadStudioTunings()['player::group::0.1+0.2'].scale).toBe(1.24)
 
@@ -834,17 +852,17 @@ describe('GraphicsStudio', () => {
     })
 
     expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1.01')
-    expect(loadStudioTunings().player.scale).toBe(1.01)
+    expect(loadStudioTunings()).not.toHaveProperty('player')
 
     act(() => {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }))
     })
 
-    expect(loadStudioTunings().player.scale).toBe(1.01)
+    expect(loadStudioTunings()).not.toHaveProperty('player')
   })
 
 
-  it('applies audio tuning to the game immediately', () => {
+  it('keeps audio tuning as a draft before Apply', () => {
     act(() => {
       root.render(<GraphicsStudio />)
     })
@@ -863,14 +881,12 @@ describe('GraphicsStudio', () => {
       volumeValue.dispatchEvent(new Event('input', { bubbles: true }))
     })
 
-    expect(loadSfxTunings().pencilFire.volume).toBe(0.42)
+    expect(loadSfxTunings()).not.toHaveProperty('pencilFire')
     expect(container.querySelector('input[name="sfxVolume"]').value).toBe('0.42')
   })
 
-  it('has an audio Apply button that confirms the current SFX tuning for game playback', () => {
-    act(() => {
-      root.render(<GraphicsStudio />)
-    })
+  it('has an audio Apply button that confirms the current SFX tuning in Firebase', async () => {
+    await renderSignedInStudio()
 
     const audioTab = Array.from(container.querySelectorAll('button')).find((button) => button.textContent === 'Audio')
     act(() => {
@@ -882,12 +898,9 @@ describe('GraphicsStudio', () => {
       pitchValue.value = '1.37'
       pitchValue.dispatchEvent(new Event('input', { bubbles: true }))
     })
-    expect(loadSfxTunings().pencilFire.rate).toBe(1.37)
+    expect(loadSfxTunings()).not.toHaveProperty('pencilFire')
 
-    const applyButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent === 'Apply')
-    act(() => {
-      applyButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
+    await clickButton('Apply')
 
     expect(loadSfxTunings().pencilFire.rate).toBe(1.37)
     expect(container.textContent).toContain('Audio applied')

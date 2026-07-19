@@ -19,10 +19,12 @@ import {
   acknowledgeFirebaseStudioRuntimeRevision,
   blockFirebaseStudioRuntime,
   commitFirebaseStudioRuntime,
+  getFirebaseStudioRuntimeState,
   isFirebaseStudioRuntimeReady,
 } from './studioRuntimeState.js'
 
 export const FIREBASE_STUDIO_SCHEMA_VERSION = 1
+export const FIREBASE_STUDIO_REVISION_EVENT = 'escape-zombie-school.firebaseStudioRevision.changed'
 export const FIREBASE_STUDIO_DATASET_KEYS = Object.freeze([
   'tunings',
   'sfxTunings',
@@ -45,6 +47,7 @@ let flushWorkerPromise = null
 let flushWorkerActive = false
 let studioOwnerUid = ''
 let studioDirtyUid = ''
+const deferredRemoteSnapshots = new Map()
 
 export function getUserStudioPath(user = studioUser) {
   const uid = typeof user?.uid === 'string' ? user.uid.trim() : ''
@@ -223,6 +226,81 @@ export async function hydrateFirebaseStudio({
   return { status: 'remote-applied', revision: normalized.revision }
 }
 
+export async function subscribeFirebaseStudio({
+  user = studioUser,
+  client,
+  env = getDefaultEnv(),
+  onResult = () => {},
+} = {}) {
+  const path = getUserStudioPath(user)
+  if (!path) return { status: 'unauthenticated', unsubscribe: () => {} }
+  const uid = readUid(user)
+  const resolved = await resolveStudioClient(client, env)
+  if (resolved.status) return { ...resolved, unsubscribe: () => {} }
+  if (typeof resolved.client.subscribe !== 'function') {
+    return { status: 'subscription-unavailable', unsubscribe: () => {} }
+  }
+
+  let active = true
+  const unsubscribe = resolved.client.subscribe(
+    path,
+    (remote) => {
+      if (!active) return
+      const result = applySubscribedFirebaseStudioSnapshot(remote, { uid })
+      onResult(result)
+    },
+    (error) => {
+      if (!active) return
+      blockFirebaseStudioRuntime()
+      onResult({ status: 'subscription-error', error })
+    },
+  )
+
+  return {
+    status: 'subscribed',
+    unsubscribe: () => {
+      active = false
+      unsubscribe?.()
+    },
+  }
+}
+
+export function applySubscribedFirebaseStudioSnapshot(remote, { uid = readUid(studioUser) } = {}) {
+  if (!uid || readUid(studioUser) !== uid) return { status: 'stale-user' }
+  if (remote === null || remote === undefined) {
+    blockFirebaseStudioRuntime()
+    return { status: 'missing-remote' }
+  }
+  if (isFutureSchema(remote)) {
+    blockFirebaseStudioRuntime()
+    return { status: 'future-version', schemaVersion: remote.schemaVersion }
+  }
+
+  const normalized = normalizeFirebaseStudioSnapshot(remote)
+  if (!normalized) {
+    blockFirebaseStudioRuntime()
+    return { status: 'invalid-remote' }
+  }
+
+  const currentRevision = getFirebaseStudioRuntimeState().revision
+  if (Number.isInteger(currentRevision) && normalized.revision <= currentRevision) {
+    return { status: 'current-revision', revision: currentRevision }
+  }
+  if (studioDirtyUid === uid) {
+    const deferred = deferredRemoteSnapshots.get(uid)
+    if (!deferred || normalized.revision > deferred.revision) {
+      deferredRemoteSnapshots.set(uid, normalized)
+    }
+    return { status: 'deferred-local-dirty', revision: normalized.revision }
+  }
+  if (!applyFirebaseStudioSnapshot(normalized)) {
+    blockFirebaseStudioRuntime()
+    return { status: 'apply-failed' }
+  }
+  claimLocalWorkspace(uid)
+  return { status: 'remote-applied', revision: normalized.revision }
+}
+
 export async function saveFirebaseStudio({
   user = studioUser,
   client,
@@ -265,6 +343,7 @@ export async function saveFirebaseStudio({
       acknowledgeFirebaseStudioRuntimeRevision(nextRevision)
     }
     claimLocalWorkspace(uid, mutationGenerationAtStart)
+    applyDeferredFirebaseStudioSnapshot(uid)
     return { status: 'saved', revision: nextRevision }
   } catch (error) {
     return { status: 'write-failed', error }
@@ -282,6 +361,7 @@ export function setFirebaseStudioUser(user) {
     blockFirebaseStudioRuntime()
     studioOwnerUid = ''
     studioDirtyUid = ''
+    deferredRemoteSnapshots.clear()
   }
   studioUser = user ?? null
 }
@@ -390,6 +470,15 @@ async function createFirebaseStudioClient(env) {
         committed: result.committed,
       }
     },
+    subscribe: (path, onValue, onError) => databaseModule.onValue(
+      databaseModule.ref(database, path),
+      (snapshot) => {
+        onValue(snapshot.exists()
+          ? decodeFirebaseStudioSnapshotFromStorage(snapshot.val())
+          : null)
+      },
+      onError,
+    ),
   }
 }
 
@@ -411,6 +500,16 @@ function claimLocalWorkspace(uid, savedMutationGeneration) {
   }
 }
 
+function applyDeferredFirebaseStudioSnapshot(uid) {
+  if (!uid || studioDirtyUid === uid) return false
+  const deferred = deferredRemoteSnapshots.get(uid)
+  if (!deferred) return false
+  deferredRemoteSnapshots.delete(uid)
+  const currentRevision = getFirebaseStudioRuntimeState().revision
+  if (Number.isInteger(currentRevision) && deferred.revision <= currentRevision) return false
+  return applyFirebaseStudioSnapshot(deferred)
+}
+
 function isHydrateUserCurrent(uid, activeUidAtStart, generationAtStart) {
   if (!activeUidAtStart) return true
   return readUid(studioUser) === uid && studioUserGeneration === generationAtStart
@@ -425,6 +524,7 @@ function emitStudioRuntimeDatasets() {
     [STAGE_BOSS_PREVIEW_EVENT, restored.stageBossPreview],
     [TEXTURE_DECALS_EVENT, restored.decals],
     [STAGE_PROP_PLACEMENTS_EVENT, restored.propPlacements],
+    [FIREBASE_STUDIO_REVISION_EVENT, getFirebaseStudioRuntimeState().revision],
   ]
   for (const [type, detail] of events) {
     try {

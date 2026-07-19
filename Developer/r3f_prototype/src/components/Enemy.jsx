@@ -15,6 +15,14 @@ import { resolveCriticalHit } from '../lib/criticalHits.js'
 import { createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { canE04FireProjectile, getE04IntroSec } from '../lib/stage2ProjectileRules.js'
+import {
+  CHEF_PHASE1,
+  CHEF_TELEGRAPH,
+  CHEF_PHASE2,
+  CHEF_ENRAGE_HP_RATIO,
+  advanceChefBossPhase,
+  resolveChefBossActiveStats,
+} from '../lib/chefBossPhase.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { isBossType } from '../lib/burstEvents.js'
 import { getStageObjectSightObstacles, isStageObjectSightBlocked } from './StageObjects/stageObjectColliders.js'
@@ -205,7 +213,14 @@ export const ENEMY_STATS = {
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
   B03: { hp: 1150, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
-  B04: { hp: 1150, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36 },
+  // B04 주방장: 단일 2페이즈 보스. Phase1(HP100~50%)=원거리 포격, Phase2(HP<=50%)=격노 돌진.
+  // hp 1500: 더블보스 합(B02+B03=2300)의 절반보다 두툼하게. 페이즈 전환/텔레그래프는 lib/chefBossPhase.js.
+  // chefPhase1: E04(cooldown2200/dmg8/speed1.9)보다 느리고 굵은 포격. 맵 halfX 12라 preferDist 5.0.
+  // chefPhase2: B02/B03과 동일 차저 계열. mathTeacherSpecial 없음(→ 돌진 후 stun).
+  B04: { hp: 1500, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
+         chefBoss: true,
+         chefPhase1: { ranged: true, rangedCooldown: 2600, rangedDmg: 14, rangedSpeed: 1.6, preferDist: 5.0, minDist: 3.0 },
+         chefPhase2: { charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 } },
 }
 
 // 肄쒕씪?대뜑 湲곕낯 諛섑겕湲?(scale=1 湲곗?)
@@ -477,6 +492,10 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const matildaPreviousChargePosRef = useRef({ x: spawnPos[0], z: spawnPos[2] })
   const chargeDir    = useRef(new THREE.Vector3())
 
+  // B04 주방장 2페이즈 상태
+  const chefPhaseRef = useRef(CHEF_PHASE1)
+  const chefTelegraphStartRef = useRef(0)
+
   // E04 / B01 ?ъ궗泥?
   const [projectiles, setProjectiles] = useState([])
   const projectilesRef = useRef([])
@@ -499,6 +518,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     matildaChargeStallMsRef.current = 0
     matildaPreviousChargePosRef.current.x = spawnPos[0]
     matildaPreviousChargePosRef.current.z = spawnPos[2]
+    chefPhaseRef.current = CHEF_PHASE1
+    chefTelegraphStartRef.current = 0
     sightBlockedRef.current = false
     nextSightCheckRef.current = useGameStore.getState().elapsedMs + (stableEnemyHash(id) % 90)
     setAnimPhase(isMatilda ? 'stun' : 'normal')
@@ -713,9 +734,45 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
     const updateRotation = (dx, dz, tr) => _applyRotation(groupRef, dx, dz, tr)
 
+    // B04 주방장 2페이즈: HP>50% 포격(phase1) → 텔레그래프 → HP<=50% 격노 돌진(phase2).
+    // 페이즈 판정은 순수 모듈(lib/chefBossPhase.js). active = 페이즈별 실효 스탯.
+    // 다른 적은 chefBoss가 아니라 active === stats (동일 참조) → 기존 거동 완전 불변.
+    let active = stats
+    if (stats.chefBoss) {
+      const hpRatio = hpRef.current / stats.hp
+      const prevState = chefPhaseRef.current
+      const nextState = advanceChefBossPhase(prevState, {
+        hpRatio,
+        telegraphElapsedMs: now - chefTelegraphStartRef.current,
+      })
+      if (prevState !== CHEF_TELEGRAPH && nextState === CHEF_TELEGRAPH) {
+        // 격노 전환 진입: 텔레그래프 타이머 시작 + 차저 상태 초기화 + 붉은 격노 신호 점등
+        chefTelegraphStartRef.current = now
+        chargeState.current = 'chase'
+        setAnimPhase('warn')
+        if (!hitFlashRef.current) { setHitFlash(true); hitFlashRef.current = true }
+      }
+      if (prevState === CHEF_TELEGRAPH && nextState === CHEF_PHASE2) {
+        // 텔레그래프 종료 → 돌진 개시: 격노 신호 소등 + 차저 포즈 초기화
+        if (hitFlashRef.current) { setHitFlash(false); hitFlashRef.current = false }
+        chargeState.current = 'chase'
+        setAnimPhase('normal')
+      }
+      chefPhaseRef.current = nextState
+      active = resolveChefBossActiveStats(stats, nextState)
+      if (nextState === CHEF_TELEGRAPH) {
+        // 텔레그래프 동안: 이동 정지 + 플레이어 응시 + 붉은 tint 유지(발사·돌진 없음)
+        _vel.x = 0; _vel.y = 0; _vel.z = 0
+        rb.current.setLinvel(_vel, true)
+        if (dist > 0.0001) updateRotation(_dir.x / dist, _dir.z / dist, 0.25)
+        if (!hitFlashRef.current) { setHitFlash(true); hitFlashRef.current = true }
+        return
+      }
+    }
+
 
     // ?? E04: ?먭굅由?媛먯뿼泥??????????????????????????????????????????????????
-    if (stats.ranged) {
+    if (active.ranged) {
       const now = performance.now()
       // ?먰븯??嫄곕━ ?좎?: ?덈Т 媛源뚯슦硫??꾪눜, ?덈Т 硫硫??꾩쭊
       _vel.y = 0
@@ -723,9 +780,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         dirX: _dir.x,
         dirZ: _dir.z,
         dist,
-        minDist: stats.minDist,
-        preferDist: stats.preferDist,
-        speed: stats.speed,
+        minDist: active.minDist,
+        preferDist: active.preferDist,
+        speed: active.speed,
         strafeSign: Number(id) % 2 === 0 ? 1 : -1,
       })
       _vel.x = rangedVelocity.x
@@ -746,7 +803,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         distanceToPlayer: dist,
         lastFireElapsedMs: lastFireRef.current,
         nowMs: now,
-        cooldownMs: stats.rangedCooldown,
+        cooldownMs: active.rangedCooldown,
         introSec: getE04IntroSec(currentStageId),
         bossPressure: currentStageId === 'stage4'
           ? false
@@ -762,15 +819,15 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         setProjectiles((prev) => [...prev, {
           id: projectileId,
           position: [_pos.x, _pos.y, _pos.z],
-          velocity: [_fireDir.x * stats.rangedSpeed, 0, _fireDir.z * stats.rangedSpeed],
-          damage: stats.rangedDmg,
+          velocity: [_fireDir.x * active.rangedSpeed, 0, _fireDir.z * active.rangedSpeed],
+          damage: active.rangedDmg,
         }])
       }
       return
     }
 
     // ?? E05 / B01 ?뚯쭊 ?곹깭 癒몄떊 ???????????????????????????????????????????
-    if (stats.charger) {
+    if (active.charger) {
       const now = performance.now()
 
       _vel.y = 0
@@ -860,7 +917,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         rb.current.setLinvel(_vel, true)
         updateRotation(_dir.x, _dir.z)
 
-        if (dist < stats.warnDist) {
+        if (dist < active.warnDist) {
           chargeState.current = 'warn'
           stateTimer.current = now
           chargeDir.current.copy(_dir)
@@ -872,7 +929,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
       } else if (chargeState.current === 'warn') {
         updateRotation(chargeDir.current.x, chargeDir.current.z, 0.45)
-        if (now - stateTimer.current >= stats.warnDuration) {
+        if (now - stateTimer.current >= active.warnDuration) {
           chargeState.current = 'charge'
           stateTimer.current = now
           setAnimPhase('charge')
@@ -882,12 +939,12 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
       } else if (chargeState.current === 'charge') {
         const cd = chargeDir.current
-        _vel.x = cd.x * stats.chargeSpeed; _vel.z = cd.z * stats.chargeSpeed
+        _vel.x = cd.x * active.chargeSpeed; _vel.z = cd.z * active.chargeSpeed
         rb.current.setLinvel(_vel, true)
         updateRotation(cd.x, cd.z, 1)
 
         const hitPlayer = dist < getChargeHitDistance(stats, isMatilda)
-        const chargeExpired = now - stateTimer.current > (stats.chargeDuration ?? 1200)
+        const chargeExpired = now - stateTimer.current > (active.chargeDuration ?? 1200)
         if (hitPlayer || chargeExpired) {
           if (hitPlayer) damagePlayer(stats.damage)
           chargeState.current = stats.mathTeacherSpecial ? 'mathSwingWindup' : 'stun'
@@ -944,7 +1001,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         _vel.x = 0; _vel.z = 0
         rb.current.setLinvel(_vel, true)
         if (dist > 0.0001) updateRotation(_dir.x / dist, _dir.z / dist, 0.22)
-        if (now - stateTimer.current >= stats.stunDuration) {
+        if (now - stateTimer.current >= active.stunDuration) {
           chargeState.current = 'chase'
           setAnimPhase('normal')
         }

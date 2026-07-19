@@ -89,7 +89,7 @@ describe('stage configuration registry', () => {
     expect(isStageUnlocked('stage3', { stage1Clears: 5 })).toBe(false)
   })
 
-  it('adds Stage 4 as a non-playable B04 cafeteria lobby card after the existing stages', () => {
+  it('adds Stage 4 as a playable B04 cafeteria stage after the existing stages', () => {
     expect(Object.keys(STAGE_CONFIGS)).toEqual(['stage1', 'stage2', 'stage3', 'stage4'])
     expect(getStageDurationSec('stage4')).toBe(240)
     expect(getStageConfig('stage4')).toMatchObject({
@@ -100,27 +100,28 @@ describe('stage configuration registry', () => {
       clearRecordKey: 'stage4Clears',
       bestRecordKey: 'stage4BestSurvivalSec',
       bossType: 'B04',
-      playable: false,
     })
+    // balanceqa 게이트 통과로 playable 해제됨(게이트 필드 제거 = 기본 플레이어블).
+    expect(getStageConfig('stage4').playable).toBeUndefined()
     expect(getStageBossType('stage4')).toBe('B04')
   })
 
-  it('unlocks the non-playable Stage 4 preview only after one Stage 3 clear', () => {
+  it('unlocks Stage 4 only after one Stage 3 clear', () => {
     expect(isStageUnlocked('stage4', {})).toBe(false)
     expect(isStageUnlocked('stage4', { stage2Clears: 5 })).toBe(false)
     expect(isStageUnlocked('stage4', { stage3Clears: 1 })).toBe(true)
   })
 
-  it('maps portal progression stage 1 -> stage 2 -> stage 3, and gates non-playable stage 4', () => {
+  it('maps portal progression stage 1 -> stage 2 -> stage 3 -> stage 4, then ends', () => {
     expect(getNextStageId('stage1')).toBe('stage2')
     expect(getNextStageId('stage2')).toBe('stage3')
-    // stage4가 playable:false인 동안은 클리어→다음 경로도 막는다.
-    // balanceqa 게이트 통과로 playable 해제 시 이 기대값을 'stage4'로 갱신할 것.
-    expect(getNextStageId('stage3')).toBeNull()
+    // stage4가 playable로 해제되어 stage3 클리어→stage4 경로가 열렸다.
+    expect(getNextStageId('stage3')).toBe('stage4')
+    // stage4는 마지막 스테이지 — 다음 없음.
     expect(getNextStageId('stage4')).toBeNull()
   })
 
-  it('wires Stage 4 cafeteria timing, bounds, and cafeteria-themed milestones (still non-playable)', () => {
+  it('wires Stage 4 cafeteria timing, bounds, and cafeteria-themed milestones', () => {
     expect(getStageConfig('stage4')).toMatchObject({
       bossType: 'B04',
       bossWarningSec: 134,
@@ -128,7 +129,6 @@ describe('stage configuration registry', () => {
       escapePortalSec: 240,
       matildaWarningSec: 205,
       matildaSec: 215,
-      playable: false,
     })
     // 급식실 맵 경계 12×16(스3 18×18보다 좁음 — 밀도 억제 근거).
     expect(getStageBounds('stage4')).toMatchObject({ halfX: 12, halfZ: 16 })

@@ -102,8 +102,6 @@ export const STAGE_CONFIGS = {
     // 급식실 맵 경계(월드 유닛, 중심 0). 프롭은 시각 전용(충돌 없음).
     mapHalfX: 12,
     mapHalfZ: 16,
-    // 최종 balanceqa 게이트 후 해제 예정.
-    playable: false,
     survivalMilestones: [
       { atMs: 48_000, gold: 4, label: '배식 개시 보너스' },
       { atMs: 144_000, gold: 6, label: '급식실 돌파 보너스' },

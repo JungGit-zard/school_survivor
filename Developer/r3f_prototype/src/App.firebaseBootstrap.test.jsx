@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
   progressHydrated: false,
   readyGameModuleLoaded: vi.fn(),
   studioHydrate: vi.fn(),
+  studioSubscribe: vi.fn(),
 }))
 
 vi.mock('./store/useAuthStore.js', () => {
@@ -32,6 +33,7 @@ vi.mock('./lib/firebaseProgress.js', () => ({
 vi.mock('./lib/firebaseStudio.js', () => ({
   hydrateFirebaseStudio: mocks.studioHydrate,
   setFirebaseStudioUser: vi.fn(),
+  subscribeFirebaseStudio: mocks.studioSubscribe,
 }))
 
 vi.mock('./lib/studioRuntimeState.js', () => ({
@@ -77,6 +79,10 @@ describe('App Firebase bootstrap boundary', () => {
     mocks.progressHydrated = false
     mocks.readyGameModuleLoaded.mockClear()
     mocks.studioHydrate.mockReset().mockResolvedValue({ status: 'remote-applied', revision: 1 })
+    mocks.studioSubscribe.mockReset().mockResolvedValue({
+      status: 'subscribed',
+      unsubscribe: vi.fn(),
+    })
     window.history.replaceState({}, '', '/')
   })
 

@@ -15,6 +15,7 @@ import {
 const firebaseStudioMocks = vi.hoisted(() => ({
   hydrate: vi.fn(),
   setUser: vi.fn(),
+  subscribe: vi.fn(),
 }))
 
 vi.mock('./store/useAuthStore.js', () => {
@@ -37,6 +38,7 @@ vi.mock('./lib/firebaseStudio.js', async (importOriginal) => ({
   ...(await importOriginal()),
   hydrateFirebaseStudio: firebaseStudioMocks.hydrate,
   setFirebaseStudioUser: firebaseStudioMocks.setUser,
+  subscribeFirebaseStudio: firebaseStudioMocks.subscribe,
 }))
 
 vi.mock('@react-three/fiber', () => ({
@@ -129,6 +131,10 @@ describe('App virtual joystick mounting', () => {
     }, { revision: 1 })
     firebaseStudioMocks.hydrate.mockReset().mockResolvedValue({ status: 'remote-applied', revision: 2 })
     firebaseStudioMocks.setUser.mockReset()
+    firebaseStudioMocks.subscribe.mockReset().mockResolvedValue({
+      status: 'subscribed',
+      unsubscribe: vi.fn(),
+    })
   })
 
   it('refetches Firebase on an allowed Studio sync message and ignores injected payloads', async () => {

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  applySubscribedFirebaseStudioSnapshot,
   applyFirebaseStudioSnapshot,
   buildFirebaseStudioSnapshot,
   decodeFirebaseStudioSnapshotFromStorage,
@@ -12,8 +13,11 @@ import {
   normalizeFirebaseStudioSnapshot,
   saveFirebaseStudio,
   setFirebaseStudioUser,
+  subscribeFirebaseStudio,
 } from './firebaseStudio.js'
 import {
+  DEFAULT_STUDIO_TUNING,
+  GRAPHICS_STUDIO_CATALOG,
   loadStageBossPreview,
   loadStudioTunings,
   loadTextureDecals,
@@ -75,6 +79,64 @@ describe('Firebase-only Graphics Studio persistence', () => {
     expect(loadStageBossPreview()).toEqual({ zoom: 145, panX: -0.3, panY: 0.1 })
     expect(loadTextureDecals()).toEqual({})
     expect(loadStagePropPlacements()).toEqual({ stage1: null, stage2: [], stage3: null })
+  })
+
+  it('subscribes every runtime to newer Firebase revisions and applies them immediately', async () => {
+    let pushRemote
+    const unsubscribe = vi.fn()
+    const client = {
+      load: vi.fn().mockResolvedValue(remoteSnapshot()),
+      subscribe: vi.fn((_path, onValue) => {
+        pushRemote = onValue
+        return unsubscribe
+      }),
+    }
+    setFirebaseStudioUser(USER)
+    await hydrateFirebaseStudio({ user: USER, client })
+    const onResult = vi.fn()
+
+    const subscription = await subscribeFirebaseStudio({ user: USER, client, onResult })
+    expect(subscription.status).toBe('subscribed')
+    expect(client.subscribe).toHaveBeenCalledWith(
+      'studioWorkspaces/v1/users/studio-user/current',
+      expect.any(Function),
+      expect.any(Function),
+    )
+
+    pushRemote(remoteSnapshot({
+      revision: 8,
+      datasets: {
+        ...remoteSnapshot().datasets,
+        tunings: { player: { scale: 1.61 } },
+      },
+    }))
+
+    expect(onResult).toHaveBeenLastCalledWith({ status: 'remote-applied', revision: 8 })
+    expect(getFirebaseStudioRuntimeState().revision).toBe(8)
+    expect(loadStudioTunings().player.scale).toBe(1.61)
+
+    subscription.unsubscribe()
+    expect(unsubscribe).toHaveBeenCalledOnce()
+  })
+
+  it('ignores stale subscription revisions and fails closed on malformed remote data', async () => {
+    setFirebaseStudioUser(USER)
+    await hydrateFirebaseStudio({
+      user: USER,
+      client: { load: vi.fn().mockResolvedValue(remoteSnapshot()) },
+    })
+
+    expect(applySubscribedFirebaseStudioSnapshot(
+      remoteSnapshot({ revision: 6 }),
+      { uid: USER.uid },
+    )).toEqual({ status: 'current-revision', revision: 7 })
+    expect(getFirebaseStudioRuntimeState().revision).toBe(7)
+
+    expect(applySubscribedFirebaseStudioSnapshot(
+      { schemaVersion: 1, revision: 8 },
+      { uid: USER.uid },
+    )).toEqual({ status: 'invalid-remote' })
+    expect(isFirebaseStudioRuntimeReady()).toBe(false)
   })
 
   it('rejects a missing Firebase snapshot without creating or applying local data', async () => {
@@ -203,5 +265,39 @@ describe('Firebase-only Graphics Studio persistence', () => {
     expect(typeof encoded.datasets.tunings).toBe('string')
     expect(JSON.parse(encoded.datasets.tunings)).toEqual(snapshot.datasets.tunings)
     expect(decodeFirebaseStudioSnapshotFromStorage(encoded)).toEqual(snapshot)
+  })
+
+  it('round-trips the latest tuning for every registered Graphics Studio catalog item through Firebase', async () => {
+    const tunings = Object.fromEntries(GRAPHICS_STUDIO_CATALOG.map((item, index) => [
+      item.id,
+      {
+        ...DEFAULT_STUDIO_TUNING,
+        scale: Number((1 + (index % 10) / 100).toFixed(2)),
+        positionX: Number(((index % 7) / 10).toFixed(2)),
+        rotationY: index % 180,
+      },
+    ]))
+    const snapshot = buildFirebaseStudioSnapshot({
+      ...remoteSnapshot().datasets,
+      tunings,
+    }, {
+      revision: 19,
+      now: Date.UTC(2026, 6, 19, 4, 5, 6),
+    })
+    const stored = encodeFirebaseStudioSnapshotForStorage(snapshot)
+
+    setFirebaseStudioUser(USER)
+    await expect(hydrateFirebaseStudio({
+      user: USER,
+      client: {
+        load: vi.fn().mockResolvedValue(decodeFirebaseStudioSnapshotFromStorage(stored)),
+      },
+    })).resolves.toEqual({ status: 'remote-applied', revision: 19 })
+
+    const restored = loadStudioTunings()
+    expect(Object.keys(restored).sort()).toEqual(GRAPHICS_STUDIO_CATALOG.map((item) => item.id).sort())
+    GRAPHICS_STUDIO_CATALOG.forEach((item) => {
+      expect(restored[item.id]).toEqual(tunings[item.id])
+    })
   })
 })
