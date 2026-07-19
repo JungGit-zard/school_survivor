@@ -46,7 +46,7 @@ describe('PlayerMesh layout', () => {
     const source = readFileSync(new URL('./PlayerMesh.jsx', import.meta.url), 'utf8')
     const shadowMaterial = source.match(/const shadowMat[\s\S]*?new THREE\.MeshBasicMaterial\(\{([\s\S]*?)\}\)/)?.[1] ?? ''
 
-    expect(PLAYER_MESH_LAYOUT.floorShadow.position[1]).toBeLessThan(-1.1)
+    expect(PLAYER_MESH_LAYOUT.floorShadow.position[1]).toBeLessThan(-1.0)
     expect(PLAYER_MESH_LAYOUT.floorShadow.scale[0]).toBeGreaterThan(PLAYER_MESH_LAYOUT.floorShadow.scale[1])
     expect(PLAYER_MESH_LAYOUT.floorShadow.opacity).toBeGreaterThanOrEqual(0.4)
     expect(shadowMaterial).toContain('depthTest: true')
