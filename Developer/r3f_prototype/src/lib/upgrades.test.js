@@ -1,5 +1,6 @@
 ﻿import { describe, it, expect } from 'vitest'
 import { applyUpgradeToWeapon, isUpgradeAvailable, UPGRADE_EFFECTS } from './upgrades.js'
+import { WEAPON_CATALOG } from './weaponCatalog.js'
 
 // 가상 무기 상태 빌더. weapons 객체의 한 항목 형태와 동일.
 const wpn = (overrides = {}) => ({ active: false, level: 0, damage: 5, ...overrides })
@@ -45,9 +46,10 @@ describe('applyUpgradeToWeapon', () => {
     expect(out.pierce).toBe(1)
   })
 
-  it('critChance stat effect: 크리티컬 확률을 올리고 무기 레벨도 증가', () => {
-    const out = applyUpgradeToWeapon(wpn({ active: true, level: 1, critChance: 0.08 }), UPGRADE_EFFECTS.pencilCrit)
+  it('crit effect: 치명타 확률과 배율을 함께 올리고 무기 레벨도 증가', () => {
+    const out = applyUpgradeToWeapon(wpn({ active: true, level: 1, critChance: 0.08, critMultiplier: 1.5 }), UPGRADE_EFFECTS.pencilCrit)
     expect(out.critChance).toBe(0.1)
+    expect(out.critMultiplier).toBeCloseTo(2.25)
     expect(out.level).toBe(2)
   })
 
@@ -163,12 +165,23 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
     }
   })
 
-  it('stat 항목은 stat / step / cap 모두 보유', () => {
+  it('stat 항목은 stat / step / cap 모두 보유 (crit 항목은 별도 검증)', () => {
     for (const [id, eff] of Object.entries(UPGRADE_EFFECTS)) {
       if (eff.kind === 'stat') {
         expect(eff.stat, `${id} missing stat`).toBeDefined()
         expect(eff.step, `${id} missing step`).toBeDefined()
         expect(eff.cap, `${id} missing cap`).toBeDefined()
+      }
+    }
+  })
+
+  it('crit 항목은 chanceStep / chanceCap / multStep / multCap 모두 보유', () => {
+    for (const [id, eff] of Object.entries(UPGRADE_EFFECTS)) {
+      if (eff.kind === 'crit') {
+        expect(eff.chanceStep, `${id} missing chanceStep`).toBeDefined()
+        expect(eff.chanceCap, `${id} missing chanceCap`).toBeDefined()
+        expect(eff.multStep, `${id} missing multStep`).toBeDefined()
+        expect(eff.multCap, `${id} missing multCap`).toBeDefined()
       }
     }
   })
@@ -211,9 +224,10 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
 
     for (const id of critCardIds) {
       expect(UPGRADE_EFFECTS[id], `${id} missing`).toMatchObject({
-        kind: 'stat',
-        stat: 'critChance',
-        step: 0.02,
+        kind: 'crit',
+        chanceStep: 0.02,
+        multStep: 0.75,
+        multCap: 4.5,
       })
     }
 
@@ -230,4 +244,53 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
       dmg: 6.5,
     })
   })
+})
+
+describe('GAP-1: 크리 카드 배율 성장 축 통합', () => {
+  const CRIT_CARDS = [
+    { key: 'pencilCrit', weapon: 'pencilThrow' },
+    { key: 'bagCrit', weapon: 'schoolBag' },
+    { key: 'boxCutterCrit', weapon: 'boxCutter' },
+    { key: 'tumblerCrit', weapon: 'tumbler' },
+    { key: 'flaskCrit', weapon: 'scienceFlask' },
+    { key: 'bellCrit', weapon: 'bell' },
+    { key: 'stunCrit', weapon: 'stunGun' },
+    { key: 'onigiiriCrit', weapon: 'onigiri' },
+    { key: 'starlinkCrit', weapon: 'starlink' },
+    { key: 'compassBladeCrit', weapon: 'compassBlade' },
+    { key: 'lanternCrit', weapon: 'studentLantern' },
+    { key: 'chibikoCrit', weapon: 'chibiko' },
+  ]
+
+  for (const { key, weapon } of CRIT_CARDS) {
+    it(`${weapon}: 영구 max 모사(critChance +0.08) + 런 크리 4픽 → chanceCap·multCap(4.5) 도달, 5픽째 불가`, () => {
+      const effect = UPGRADE_EFFECTS[key]
+      const base = WEAPON_CATALOG[weapon].base
+
+      // 영구 강화 max 모사: weaponPermanentUpgrades 미경유, critChance +0.08만 pre-bake로 흉내낸다.
+      let w = wpn({ active: true, level: 1, critChance: base.critChance + 0.08, critMultiplier: base.critMultiplier })
+
+      for (let i = 0; i < 4; i++) {
+        expect(isUpgradeAvailable(effect, 10, { [weapon]: w }), `${weapon} pick ${i + 1} should be available`).toBe(true)
+        w = applyUpgradeToWeapon(w, effect)
+      }
+
+      expect(w.critChance).toBeCloseTo(effect.chanceCap, 5)
+      expect(w.critMultiplier).toBeCloseTo(4.5, 5)
+      expect(isUpgradeAvailable(effect, 10, { [weapon]: w })).toBe(false)
+    })
+
+    it(`${weapon}: 영구 강화 없이 런 크리 4픽만 → critChance=base+0.08, critMultiplier=4.5`, () => {
+      const effect = UPGRADE_EFFECTS[key]
+      const base = WEAPON_CATALOG[weapon].base
+      let w = wpn({ active: true, level: 1, critChance: base.critChance, critMultiplier: base.critMultiplier })
+
+      for (let i = 0; i < 4; i++) {
+        w = applyUpgradeToWeapon(w, effect)
+      }
+
+      expect(w.critChance).toBeCloseTo(base.critChance + 0.08, 5)
+      expect(w.critMultiplier).toBeCloseTo(4.5, 5)
+    })
+  }
 })

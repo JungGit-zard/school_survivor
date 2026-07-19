@@ -1,5 +1,6 @@
 export const DEFAULT_CRIT_CHANCE = 0
 export const DEFAULT_CRIT_MULTIPLIER = 1.5
+export const MAX_CRIT_MULTIPLIER = 5
 
 const NON_CRIT_DAMAGE_TYPES = new Set(['explosive'])
 
@@ -17,7 +18,7 @@ function sanitizeChance(value) {
 function sanitizeMultiplier(value) {
   const multiplier = Number(value)
   if (!Number.isFinite(multiplier) || multiplier < 1) return DEFAULT_CRIT_MULTIPLIER
-  return multiplier
+  return Math.min(MAX_CRIT_MULTIPLIER, multiplier)
 }
 
 export function canDamageCrit({ canCrit = true, damageType, attackTags } = {}) {
