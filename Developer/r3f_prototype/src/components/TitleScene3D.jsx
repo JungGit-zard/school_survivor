@@ -629,17 +629,15 @@ export default function TitleScene3D({
       <StudioTuningPreviewProvider>
         {sceneRoot}
       </StudioTuningPreviewProvider>
-      <group rotation={[0, -0.09, 0]} position={[0, -1.15, 0]}>
-        {playerVisualReady ? (
+      {/* 치명적 오류 방지: 스튜디오 세팅값(Firebase 튜닝)이 적용된 상태에서만 렌더한다.
+          튜닝 미적용(preview 패스스루/기본 포즈)으로는 절대 그리지 않는다 — 없으면 숨김(fail-closed). */}
+      {playerVisualReady ? (
+        <group rotation={[0, -0.09, 0]} position={[0, -1.15, 0]}>
           <StudioTuningRuntimeProvider>
             <TitlePlayer reducedEffects={reducedEffects} />
           </StudioTuningRuntimeProvider>
-        ) : (
-          <StudioTuningPreviewProvider>
-            <TitlePlayer reducedEffects={reducedEffects} />
-          </StudioTuningPreviewProvider>
-        )}
-      </group>
+        </group>
+      ) : null}
     </>
   )
 }
