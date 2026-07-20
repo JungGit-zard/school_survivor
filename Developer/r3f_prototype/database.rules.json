@@ -4,8 +4,8 @@
     ".write": false,
     "users": {
       "$uid": {
-        ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && auth.uid === $uid",
+        ".read": "auth != null && (auth.uid === $uid || (auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com'))",
+        ".write": "auth != null && (auth.uid === $uid || (auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com'))",
         ".validate": "newData.hasChildren(['schemaVersion', 'updatedAt', 'profile', 'progress'])",
         "schemaVersion": { ".validate": "newData.isNumber() && newData.val() === 1" },
         "updatedAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
@@ -54,8 +54,8 @@
         "users": {
           "$uid": {
             "current": {
-              ".read": "auth != null && auth.uid === $uid",
-              ".write": "auth != null && auth.uid === $uid",
+              ".read": "auth != null && (auth.uid === $uid || (auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com'))",
+              ".write": "auth != null && (auth.uid === $uid || (auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com'))",
               ".validate": "newData.hasChildren(['schemaVersion', 'revision', 'updatedAt'])",
               "schemaVersion": { ".validate": "newData.isNumber() && newData.val() === 1" },
               "revision": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0" },
@@ -68,6 +68,25 @@
                 "propPlacements": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
                 "$other": { ".validate": false }
               },
+              "$other": { ".validate": false }
+            },
+            "$other": { ".validate": false }
+          }
+        },
+        "canonicalTitlePlayer": {
+          "current": {
+            ".read": true,
+            ".write": "auth != null && auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com'",
+            ".validate": "newData.hasChildren(['schemaVersion', 'revision', 'updatedAt'])",
+            "schemaVersion": { ".validate": "newData.isNumber() && newData.val() === 1" },
+            "revision": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0" },
+            "updatedAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
+            "datasets": {
+              "tunings": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
+              "sfxTunings": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
+              "stageBossPreview": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
+              "decals": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
+              "propPlacements": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
               "$other": { ".validate": false }
             },
             "$other": { ".validate": false }

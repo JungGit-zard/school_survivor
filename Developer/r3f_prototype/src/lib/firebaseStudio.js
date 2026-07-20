@@ -1,5 +1,6 @@
 import { getFirebaseConfig } from './firebaseAuth.js'
 import { isFirebaseProgressConfigured } from './firebaseProgress.js'
+import { isProjectMaster } from './projectAdmin.js'
 import {
   GRAPHICS_STUDIO_TUNING_EVENT,
   STAGE_BOSS_PREVIEW_EVENT,
@@ -223,6 +224,72 @@ export async function hydrateFirebaseStudio({
 
   if (!applyFirebaseStudioSnapshot(normalized)) return { status: 'apply-failed' }
   claimLocalWorkspace(uid)
+  return { status: 'remote-applied', revision: normalized.revision }
+}
+
+// ── 완전한 예외(사용자 확정 2026-07-19): 주인공 캐릭터 튜닝만 공개 정본 노드로 분리 ──
+// 로그인 전(uid 없음)에도 절대 대전제(세팅값 미적용 오브젝트 렌더 금지)를 지키며 타이틀 주인공을
+// 튜닝 적용 상태로 보이기 위한 유일 경로. Firebase-only 유지(로컬 시드/localStorage 아님) —
+// "현재 사용자 스냅샷만 소비" 규칙에 대한 의도적 예외. 읽기 공개 / 쓰기 마스터 전용
+// (database.rules.json studioWorkspaces/v1/canonicalTitlePlayer).
+export const CANONICAL_TITLE_PLAYER_PATH = 'studioWorkspaces/v1/canonicalTitlePlayer/current'
+
+function pickPlayerTunings(tunings) {
+  const source = isObject(tunings) ? tunings : {}
+  const out = {}
+  for (const key of Object.keys(source)) {
+    if (key === 'player' || key.startsWith('player::')) out[key] = source[key]
+  }
+  return out
+}
+
+// 마스터의 현재 주인공 튜닝을 공개 정본 노드에 게시(마스터 전용). tunings는 player 키만 담는다.
+export async function publishCanonicalTitlePlayer({
+  user = studioUser,
+  client,
+  env = getDefaultEnv(),
+  now = Date.now(),
+} = {}) {
+  if (!isProjectMaster(user)) return { status: 'forbidden' }
+  const playerTunings = pickPlayerTunings(loadStudioTunings())
+  const resolved = await resolveStudioClient(client, env)
+  if (resolved.status) return resolved
+  let nextRevision = null
+  try {
+    const result = await resolved.client.transaction(CANONICAL_TITLE_PLAYER_PATH, (current) => {
+      if (isFutureSchema(current)) return undefined
+      const revision = current?.schemaVersion === FIREBASE_STUDIO_SCHEMA_VERSION
+        ? normalizeRevision(current.revision) + 1
+        : 1
+      nextRevision = revision
+      return buildFirebaseStudioSnapshot({ tunings: playerTunings }, { revision, now })
+    })
+    if (result?.committed === false) return { status: 'write-aborted' }
+    return { status: 'published', revision: nextRevision }
+  } catch (error) {
+    return { status: 'write-failed', error }
+  }
+}
+
+// 공개 정본 노드에서 주인공 튜닝을 읽어 런타임에 적용(로그인 전 전용 — 인증 불필요).
+// 로그인 사용자 세션에서는 호출하지 않는다(본인 전체 스냅샷을 덮어쓰지 않기 위함).
+export async function hydrateCanonicalTitlePlayer({
+  client,
+  env = getDefaultEnv(),
+} = {}) {
+  const resolved = await resolveStudioClient(client, env)
+  if (resolved.status) return resolved
+  let remote
+  try {
+    remote = await resolved.client.load(CANONICAL_TITLE_PLAYER_PATH)
+  } catch (error) {
+    return { status: 'read-failed', error }
+  }
+  if (remote === null || remote === undefined) return { status: 'missing-remote' }
+  if (isFutureSchema(remote)) return { status: 'future-version', schemaVersion: remote.schemaVersion }
+  const normalized = normalizeFirebaseStudioSnapshot(remote)
+  if (!normalized) return { status: 'invalid-remote' }
+  if (!applyFirebaseStudioSnapshot(normalized)) return { status: 'apply-failed' }
   return { status: 'remote-applied', revision: normalized.revision }
 }
 

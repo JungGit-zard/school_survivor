@@ -1,18 +1,21 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import GoogleAccountPanel from './components/GoogleAccountPanel.jsx'
+import ReadyGameApp from './components/ReadyGameApp.jsx'
 import {
   hydrateFirebaseStudio,
+  hydrateCanonicalTitlePlayer,
+  publishCanonicalTitlePlayer,
   setFirebaseStudioUser,
   subscribeFirebaseStudio,
 } from './lib/firebaseStudio.js'
-import { installPlayerStorageFatalGuard, isFirebaseProgressHydrated } from './lib/firebaseProgress.js'
+import { installPlayerStorageFatalGuard } from './lib/firebaseProgress.js'
 import { STUDIO_GAME_SYNC_MESSAGE, isAllowedStudioGameOrigin } from './lib/studioGameBridge.js'
 import { useAuthStore } from './store/useAuthStore.js'
 import { isFirebaseStudioRuntimeReady } from './lib/studioRuntimeState.js'
+import { isProjectMaster } from './lib/projectAdmin.js'
 
 const AdminPage = lazy(() => import('./components/AdminPage.jsx'))
 const GraphicsStudio = lazy(() => import('./components/GraphicsStudio.jsx'))
-const ReadyGameApp = lazy(() => import('./components/ReadyGameApp.jsx'))
 
 installPlayerStorageFatalGuard()
 
@@ -36,8 +39,6 @@ export default function App() {
   const authStatus = useAuthStore((state) => state.status)
   const authUser = useAuthStore((state) => state.user)
   const initializeAuth = useAuthStore((state) => state.initializeAuth)
-  const progressStatus = useAuthStore((state) => state.progressStatus)
-  const progressError = useAuthStore((state) => state.progressError)
   const [studioCloudStatus, setStudioCloudStatus] = useState(
     () => isFirebaseStudioRuntimeReady() ? 'remote-applied' : 'idle',
   )
@@ -81,15 +82,43 @@ export default function App() {
     return promise
   }, [authUser])
 
+  // 로그인 전(uid 없음): 공개 정본 노드(canonicalTitlePlayer)에서 주인공 튜닝을 하이드레이트한다.
+  // 성공 시 studioVisualsReady가 true가 되어 절대 대전제를 지키며 로그인 전에도 튜닝된 주인공이 보인다.
+  // 실패(미배포/미게시)면 remote 아님 → 주인공은 fail-closed로 숨김(맨 포즈 렌더 금지).
+  const hydratePreLoginCanonicalPlayer = useCallback(async () => {
+    setFirebaseStudioUser(null)
+    hydratedUidRef.current = ''
+    hydrationRef.current = null
+    const result = await hydrateCanonicalTitlePlayer({}).catch(() => ({ status: 'read-failed' }))
+    setStudioCloudStatus(result?.status === 'remote-applied'
+      ? 'remote-applied'
+      : (result?.status ?? 'unauthenticated'))
+    return result?.status === 'remote-applied'
+  }, [])
+
   useEffect(() => {
     if (authStatus === 'signedIn' && authUser?.uid) {
       void ensureStudioCloudReady(authUser)
       return
     }
     if (['signedOut', 'unconfigured', 'error'].includes(authStatus)) {
-      void ensureStudioCloudReady(null)
+      void hydratePreLoginCanonicalPlayer()
     }
-  }, [authStatus, authUser, ensureStudioCloudReady])
+  }, [authStatus, authUser, ensureStudioCloudReady, hydratePreLoginCanonicalPlayer])
+
+  // 마스터 세션에서 스튜디오가 준비되면, 현재 주인공 튜닝을 공개 정본 노드에 게시(best-effort).
+  // 이렇게 해서 canonicalTitlePlayer가 항상 마스터의 최신 주인공 세팅으로 유지된다.
+  useEffect(() => {
+    if (
+      authStatus === 'signedIn'
+      && authUser?.uid
+      && isProjectMaster(authUser)
+      && studioCloudStatus === 'remote-applied'
+      && isFirebaseStudioRuntimeReady()
+    ) {
+      void publishCanonicalTitlePlayer({ user: authUser }).catch(() => {})
+    }
+  }, [authStatus, authUser, studioCloudStatus])
 
   useEffect(() => {
     if (
@@ -151,20 +180,23 @@ export default function App() {
     )
   }
 
-  const playerProgressReady = isFirebaseProgressHydrated(authUser)
-  if (authStatus === 'signedIn' && progressStatus === 'error' && !playerProgressReady) {
-    return <FirebaseProgressFailureDialog error={progressError} />
-  }
-  if (!playerProgressReady) {
-    return (
-      <AppBootstrap
-        message={getPlayerProgressBootstrapMessage(authStatus, progressStatus, progressError)}
-      />
-    )
-  }
-
   const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
   if (isAdminRoute) {
+    if (authStatus === 'checking') {
+      return <AppBootstrap message="Google 로그인 상태를 확인하는 중입니다." />
+    }
+    if (authStatus === 'error' || authStatus === 'unconfigured') {
+      return <AdminAccessDenied reason={authStatus === 'error'
+        ? 'Google 로그인 상태를 확인하지 못했습니다. 다시 로그인해 주세요.'
+        : 'Firebase Google 로그인 설정이 필요합니다.'}
+      />
+    }
+    if (authStatus !== 'signedIn' || !authUser?.uid) {
+      return <AppBootstrap message="관리 도구는 기존 Google 로그인으로만 접근할 수 있습니다." />
+    }
+    if (!isProjectMaster(authUser)) {
+      return <AdminAccessDenied reason="이 Google 계정에는 최고관리자 권한이 없습니다." />
+    }
     return (
       <Suspense fallback={<div style={styles.routeLoading}>관리 도구 불러오는 중…</div>}>
         <AdminPage />
@@ -172,14 +204,16 @@ export default function App() {
     )
   }
 
+  // 일반 게임 주소의 진입 규칙:
+  // 주소 접속 → ReadyGameApp 즉시 생성 → 초기 title 화면 → TitleSceneCanvas.
+  // Google 로그인 상태와 Firebase 데이터 준비 상태는 이 렌더 경로를 절대 차단하지 않는다.
+  // 인증은 타이틀의 "게임 시작" 버튼을 누른 뒤 로비로 진입할 때만 요구한다.
   return (
-    <Suspense fallback={<div style={styles.routeLoading}>게임 데이터를 준비하는 중…</div>}>
-      <ReadyGameApp
-        authUser={authUser}
-        studioReady={studioReady}
-        ensureStudioCloudReady={ensureStudioCloudReady}
-      />
-    </Suspense>
+    <ReadyGameApp
+      authUser={authUser}
+      studioVisualsReady={studioReady}
+      ensureStudioCloudReady={ensureStudioCloudReady}
+    />
   )
 }
 
@@ -188,14 +222,6 @@ function getStudioBootstrapMessage(authStatus, studioCloudStatus) {
   if (authStatus !== 'signedIn') return 'Google 로그인 후 Firebase Studio 데이터를 불러옵니다.'
   if (studioCloudStatus === 'loading') return 'Firebase Studio 데이터를 불러오는 중입니다.'
   return 'Firebase Studio 데이터를 불러오지 못했습니다. 로그인 상태와 연결을 확인해 주세요.'
-}
-
-function getPlayerProgressBootstrapMessage(authStatus, progressStatus, progressError) {
-  if (authStatus === 'checking') return 'Google 로그인 상태를 확인하는 중입니다.'
-  if (authStatus !== 'signedIn') return 'Google 로그인 후 Firebase 계정 데이터를 불러옵니다.'
-  if (progressStatus === 'loading') return 'Firebase 계정 데이터를 불러오는 중입니다.'
-  if (progressStatus === 'error') return `Firebase 계정 데이터를 불러오지 못했습니다: ${progressError ?? '원격 저장소를 확인해 주세요.'}`
-  return 'Firebase 계정 데이터 준비가 끝나야 로비와 게임에 들어갈 수 있습니다.'
 }
 
 function AppBootstrap({ message }) {
@@ -207,24 +233,12 @@ function AppBootstrap({ message }) {
   )
 }
 
-function FirebaseProgressFailureDialog({ error }) {
+function AdminAccessDenied({ reason }) {
   return (
     <main style={styles.studioBootstrap}>
-      <section
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="firebase-progress-failure-title"
-        aria-describedby="firebase-progress-failure-description"
-        style={styles.fatalDialog}
-      >
-        <h1 id="firebase-progress-failure-title" style={styles.fatalTitle}>
-          Firebase 계정 데이터 연결 오류
-        </h1>
-        <p id="firebase-progress-failure-description" style={styles.fatalMessage}>
-          원격 계정 데이터를 불러오지 못해 실행을 중단했습니다.
-          로컬 데이터로 대체하지 않습니다.
-        </p>
-        <p style={styles.fatalDetail}>{error ?? 'Firebase 원격 저장소를 확인해 주세요.'}</p>
+      <section role="alertdialog" aria-modal="true" style={styles.fatalDialog}>
+        <h1 style={styles.fatalTitle}>관리 도구 접근 거부</h1>
+        <p style={styles.fatalMessage}>{reason}</p>
         <GoogleAccountPanel />
       </section>
     </main>

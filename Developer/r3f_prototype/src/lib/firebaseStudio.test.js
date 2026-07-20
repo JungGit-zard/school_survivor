@@ -7,10 +7,12 @@ import {
   decodeFirebaseStudioSnapshotFromStorage,
   encodeFirebaseStudioSnapshotForStorage,
   getUserStudioPath,
+  hydrateCanonicalTitlePlayer,
   hydrateFirebaseStudio,
   loadStudioRuntimeDatasets,
   markFirebaseStudioLocalChange,
   normalizeFirebaseStudioSnapshot,
+  publishCanonicalTitlePlayer,
   saveFirebaseStudio,
   setFirebaseStudioUser,
   subscribeFirebaseStudio,
@@ -299,5 +301,98 @@ describe('Firebase-only Graphics Studio persistence', () => {
     GRAPHICS_STUDIO_CATALOG.forEach((item) => {
       expect(restored[item.id]).toEqual(tunings[item.id])
     })
+  })
+})
+
+describe('Canonical title player public node (완전한 예외: 주인공 튜닝만 공개)', () => {
+  const MASTER = {
+    uid: 'master-uid',
+    email: 'zard5388@gmail.com',
+    emailVerified: true,
+    providerData: [{ providerId: 'google.com' }],
+  }
+  const NON_MASTER = {
+    uid: 'other-uid',
+    email: 'someone@example.com',
+    emailVerified: true,
+    providerData: [{ providerId: 'google.com' }],
+  }
+
+  beforeEach(() => {
+    setFirebaseStudioUser(null)
+    blockFirebaseStudioRuntime()
+  })
+
+  it('publishes only player-scoped tunings to the canonical node, master only', async () => {
+    // 마스터 스튜디오를 하이드레이트해 런타임에 player + 비-player 튜닝을 채운다.
+    setFirebaseStudioUser(MASTER)
+    const hydrateClient = {
+      load: vi.fn().mockResolvedValue(remoteSnapshot({
+        revision: 3,
+        datasets: {
+          ...remoteSnapshot().datasets,
+          tunings: {
+            player: { scale: 1.9 },
+            'player::part::head': { offsetY: 0.2 },
+            b01: { scale: 2.0 },
+          },
+        },
+      })),
+    }
+    await hydrateFirebaseStudio({ user: MASTER, client: hydrateClient })
+
+    const publishClient = {
+      transaction: vi.fn(async (_path, update) => ({ committed: true, value: update(null) })),
+    }
+    await expect(publishCanonicalTitlePlayer({
+      user: MASTER,
+      client: publishClient,
+      now: Date.UTC(2026, 6, 19, 0, 0, 0),
+    })).resolves.toEqual({ status: 'published', revision: 1 })
+
+    expect(publishClient.transaction).toHaveBeenCalledWith(
+      'studioWorkspaces/v1/canonicalTitlePlayer/current',
+      expect.any(Function),
+    )
+    const [, update] = publishClient.transaction.mock.calls[0]
+    const written = update(null)
+    // player 키만 담긴다(비-player b01 제외).
+    expect(Object.keys(written.datasets.tunings).sort()).toEqual(['player', 'player::part::head'])
+    expect(written.datasets.tunings.player.scale).toBe(1.9)
+  })
+
+  it('refuses to publish for a non-master user', async () => {
+    const publishClient = { transaction: vi.fn() }
+    await expect(publishCanonicalTitlePlayer({ user: NON_MASTER, client: publishClient }))
+      .resolves.toEqual({ status: 'forbidden' })
+    expect(publishClient.transaction).not.toHaveBeenCalled()
+  })
+
+  it('hydrates the runtime from the canonical node without any authenticated user (pre-login)', async () => {
+    const canonicalSnapshot = remoteSnapshot({
+      revision: 5,
+      datasets: {
+        tunings: { player: { scale: 1.7 } },
+        sfxTunings: {},
+        stageBossPreview: {},
+        decals: {},
+        propPlacements: {},
+      },
+    })
+    const client = { load: vi.fn().mockResolvedValue(canonicalSnapshot) }
+
+    await expect(hydrateCanonicalTitlePlayer({ client })).resolves.toEqual({
+      status: 'remote-applied',
+      revision: 5,
+    })
+    expect(client.load).toHaveBeenCalledWith('studioWorkspaces/v1/canonicalTitlePlayer/current')
+    expect(isFirebaseStudioRuntimeReady()).toBe(true)
+    expect(loadStudioTunings().player.scale).toBe(1.7)
+  })
+
+  it('reports missing-remote (fail-closed) when the canonical node is empty', async () => {
+    const client = { load: vi.fn().mockResolvedValue(null) }
+    await expect(hydrateCanonicalTitlePlayer({ client })).resolves.toEqual({ status: 'missing-remote' })
+    expect(isFirebaseStudioRuntimeReady()).toBe(false)
   })
 })

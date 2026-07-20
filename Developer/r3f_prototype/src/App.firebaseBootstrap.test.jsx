@@ -17,6 +17,8 @@ const mocks = vi.hoisted(() => ({
   readyGameModuleLoaded: vi.fn(),
   studioHydrate: vi.fn(),
   studioSubscribe: vi.fn(),
+  canonicalHydrate: vi.fn(() => Promise.resolve({ status: 'missing-remote' })),
+  canonicalPublish: vi.fn(() => Promise.resolve({ status: 'forbidden' })),
 }))
 
 vi.mock('./store/useAuthStore.js', () => {
@@ -32,6 +34,8 @@ vi.mock('./lib/firebaseProgress.js', () => ({
 
 vi.mock('./lib/firebaseStudio.js', () => ({
   hydrateFirebaseStudio: mocks.studioHydrate,
+  hydrateCanonicalTitlePlayer: mocks.canonicalHydrate,
+  publishCanonicalTitlePlayer: mocks.canonicalPublish,
   setFirebaseStudioUser: vi.fn(),
   subscribeFirebaseStudio: mocks.studioSubscribe,
 }))
@@ -50,6 +54,10 @@ vi.mock('./components/ReadyGameApp.jsx', () => {
     default: () => <main data-testid="ready-game-app">게임 준비 완료</main>,
   }
 })
+
+vi.mock('./components/AdminPage.jsx', () => ({
+  default: () => <main data-testid="admin-page">최고관리자 도구</main>,
+}))
 
 const { default: App } = await import('./App.jsx')
 
@@ -90,47 +98,49 @@ describe('App Firebase bootstrap boundary', () => {
     document.body.innerHTML = ''
   })
 
-  it('renders the existing Google login UI without loading game state while signed out', async () => {
+  it('renders the original title runtime while signed out instead of forcing a second login bootstrap', async () => {
     const view = await renderApp()
 
-    expect(view.container.textContent).toContain('Google 로그인')
-    expect(view.container.textContent).toContain('Firebase 계정 데이터를 불러옵니다')
-    expect(view.container.firstElementChild).not.toBe(null)
-    expect(mocks.readyGameModuleLoaded).not.toHaveBeenCalled()
+    expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
     view.unmount()
   })
 
-  it('renders an explicit loading surface instead of an empty root before remote hydrate', async () => {
+  it('keeps the title runtime mounted while signed-in Firebase progress is loading', async () => {
     mocks.authState.status = 'signedIn'
     mocks.authState.user = { uid: 'firebase-user' }
     mocks.authState.progressStatus = 'loading'
 
     const view = await renderApp()
 
-    expect(view.container.textContent).toContain('Firebase 계정 데이터를 불러오는 중')
-    expect(view.container.firstElementChild).not.toBe(null)
-    expect(mocks.readyGameModuleLoaded).not.toHaveBeenCalled()
+    expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
     view.unmount()
   })
 
-  it('fails closed with an alertdialog when the remote progress read fails', async () => {
+  it('keeps the title runtime mounted when the signed-in Firebase progress read fails', async () => {
     mocks.authState.status = 'signedIn'
     mocks.authState.user = { uid: 'firebase-user' }
     mocks.authState.progressStatus = 'error'
     mocks.authState.progressError = 'permission denied'
 
     const view = await renderApp()
-    const dialog = view.container.querySelector('[role="alertdialog"]')
 
-    expect(dialog).not.toBe(null)
-    expect(dialog.textContent).toContain('Firebase 계정 데이터 연결 오류')
-    expect(dialog.textContent).toContain('로컬 데이터로 대체하지 않습니다')
-    expect(dialog.textContent).toContain('permission denied')
-    expect(mocks.readyGameModuleLoaded).not.toHaveBeenCalled()
+    expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
     view.unmount()
   })
 
-  it('loads the game runtime only after the signed-in Firebase snapshot is hydrated', async () => {
+  it.each(['checking', 'error', 'unconfigured'])(
+    'mounts the title runtime even when auth status is %s',
+    async (status) => {
+      mocks.authState.status = status
+
+      const view = await renderApp()
+
+      expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
+      view.unmount()
+    },
+  )
+
+  it('keeps the title runtime mounted after the signed-in Firebase snapshot is hydrated', async () => {
     mocks.authState.status = 'signedIn'
     mocks.authState.user = { uid: 'firebase-user' }
     mocks.authState.progressStatus = 'ready'
@@ -139,7 +149,47 @@ describe('App Firebase bootstrap boundary', () => {
     const view = await renderApp()
 
     expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
-    expect(mocks.readyGameModuleLoaded).toHaveBeenCalledOnce()
+    view.unmount()
+  })
+
+  it('uses the same Google login panel for a signed-out admin route without requiring player progress', async () => {
+    window.history.replaceState({}, '', '/admin')
+    const view = await renderApp()
+
+    expect(view.container.textContent).toContain('Google 로그인')
+    expect(view.container.textContent).toContain('관리 도구는 기존 Google 로그인으로만 접근할 수 있습니다')
+    expect(mocks.readyGameModuleLoaded).not.toHaveBeenCalled()
+    view.unmount()
+  })
+
+  it('explicitly denies a signed-in non-master on the admin route', async () => {
+    window.history.replaceState({}, '', '/admin')
+    mocks.authState.status = 'signedIn'
+    mocks.authState.user = {
+      uid: 'ordinary-user',
+      email: 'ordinary@example.com',
+      emailVerified: true,
+      providerIds: ['google.com'],
+    }
+    const view = await renderApp()
+
+    expect(view.container.querySelector('[role="alertdialog"]')?.textContent).toContain('최고관리자 권한이 없습니다')
+    view.unmount()
+  })
+
+  it('renders admin for the verified exact Google master without waiting for player progress', async () => {
+    window.history.replaceState({}, '', '/admin')
+    mocks.authState.status = 'signedIn'
+    mocks.authState.user = {
+      uid: 'master-user',
+      email: 'zard5388@gmail.com',
+      emailVerified: true,
+      providerIds: ['google.com'],
+    }
+    mocks.authState.progressStatus = 'loading'
+    const view = await renderApp()
+
+    await vi.waitFor(() => expect(view.container.querySelector('[data-testid="admin-page"]')).not.toBe(null))
     view.unmount()
   })
 })
