@@ -63,7 +63,7 @@ describe('stage configuration registry', () => {
     expect(isStageUnlocked('stage2', { stage1Survival180Runs: 2 })).toBe(false)
   })
 
-  it('defines stage 3 as a 240 second gymnasium total-war stage with double boss', () => {
+  it('defines stage 3 as a 240 second gymnasium stage with the PE teacher (B03) boss', () => {
     expect(getStageDurationSec('stage3')).toBe(240)
     expect(getStageConfig('stage3')).toMatchObject({
       id: 'stage3',
@@ -75,12 +75,14 @@ describe('stage configuration registry', () => {
       bossWarningSec: 129,
       matildaWarningSec: 210,
       matildaSec: 220,
-      lobbyBossType: 'B03',
+      bossType: 'B03',
     })
+    // 로비 카드와 실제 전투가 일치하므로 lobbyBossType 분리는 제거됨.
+    expect(getStageConfig('stage3').lobbyBossType).toBeUndefined()
     // 개방형 아레나 근사 정사각 경계(threemini가 이 값으로 체육관 맵 구성).
     expect(getStageBounds('stage3')).toMatchObject({ halfX: 18, halfZ: 18 })
-    // 대표 bossType(실제 2기는 burstEvents 소스).
-    expect(getStageBossType('stage3')).toBe('B01')
+    // 체육교사 B03 단일 보스.
+    expect(getStageBossType('stage3')).toBe('B03')
   })
 
   it('unlocks stage 3 after one stage 2 clear', () => {

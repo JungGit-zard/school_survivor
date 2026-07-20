@@ -311,11 +311,10 @@ describe('ascending stage HP curve (+20% per stage from stage1)', () => {
     expect(stageHpOverride('B02', 'stage2')).toEqual({ hp: 1380 })                                  // 1150 -> 1380
   })
 
-  it('scales every stage 3 combat enemy HP to 1.44x (rounded), double boss included', () => {
+  it('scales every stage 3 combat enemy HP to 1.44x (rounded), PE teacher boss included', () => {
     expect(stageHpOverride('E02', 'stage3')).toEqual({ hp: Math.round(ENEMY_STATS.E02.hp * 1.44) }) // 70 -> 101
     expect(stageHpOverride('E06', 'stage3')).toEqual({ hp: Math.round(ENEMY_STATS.E06.hp * 1.44) }) // 320 -> 461
-    expect(stageHpOverride('B01', 'stage3')).toEqual({ hp: 1656 })                                  // 1150 -> 1656
-    expect(stageHpOverride('B02', 'stage3')).toEqual({ hp: 1656 })
+    expect(stageHpOverride('B03', 'stage3')).toEqual({ hp: 1656 })                                  // 1150 -> 1656
   })
 
   it('leaves stage 1 at base HP and ignores unknown types', () => {
@@ -338,9 +337,9 @@ describe('stage 3 total-war wiring', () => {
     const runtime = getBurstEventsForStage('stage3')
     // 형태 버스트가 데이터에 존재하고 런타임 목록에도 남는다(스폰 엔진이 formation 분기 처리).
     expect(runtime.some((e) => e.formation)).toBe(true)
-    // 더블 보스가 스태거로 두 개(B02 135 / B01 147).
-    const bosses = runtime.filter((e) => e.type === 'B01' || e.type === 'B02')
-    expect(bosses.map((e) => e.sec).sort((a, b) => a - b)).toEqual([135, 147])
+    // 체육교사 B03 단일 보스(135). 스1/스2 보스는 등장하지 않는다.
+    const bosses = runtime.filter((e) => e.type === 'B01' || e.type === 'B02' || e.type === 'B03')
+    expect(bosses).toEqual([{ sec: 135, type: 'B03', count: 1 }])
   })
 })
 
@@ -376,7 +375,7 @@ describe('dancing doge event monster', () => {
     expect(DOGE_BASE_HP).toBeLessThan(ENEMY_STATS.E06.hp)
   })
 
-  it('keeps stage4 planned total HP about 20 percent above stage3 while using a kitchen-specific shape', () => {
+  it('keeps stage4 planned total HP a controlled step above stage3 (single PE-teacher boss) while using a kitchen-specific shape', () => {
     const plannedHp = (stageId, phases) => {
       const waveHp = phases.reduce((sum, phase) => {
         const weighted = Object.entries(phase.weights).reduce((phaseSum, [type, weight]) => {
@@ -395,8 +394,10 @@ describe('dancing doge event monster', () => {
     const stage3Total = plannedHp('stage3', STAGE3_WAVE_PHASES)
     const stage4Total = plannedHp('stage4', STAGE4_WAVE_PHASES)
 
+    // 스3가 체육교사 B03 단일 보스로 바뀌며(더블 보스 폐기) 스3 총체력이 낮아져
+    // 스4/스3 비율이 ~1.20에서 ~1.26으로 상승. stage4는 여전히 스3 위 단계임을 보장한다.
     expect(stage4Total / stage3Total).toBeGreaterThan(1.19)
-    expect(stage4Total / stage3Total).toBeLessThan(1.21)
+    expect(stage4Total / stage3Total).toBeLessThan(1.30)
     expect(STAGE4_WAVE_PHASES.some((phase) => (phase.weights.E04 ?? 0) >= 0.2)).toBe(true)
     expect(STAGE4_WAVE_PHASES.some((phase) => phase.target < 20)).toBe(true)
     expect(getBurstEventsForStage('stage4').some((event) => event.type === 'B04')).toBe(true)

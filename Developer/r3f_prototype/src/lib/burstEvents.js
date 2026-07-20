@@ -50,8 +50,9 @@ export const STAGE2_BURST_EVENTS = [
 ]
 
 // 4분 타임라인 — 스테이지3 "총력전/혼돈".
-// 더블 보스 B02(135)/B01(147) 스태거 = balanceqa 권고(동시 협공 돌진 완화 + 처치창 확대).
-// getBossSpawnSec=min=135에서 보스 구간이 파생된다.
+// 보스 = 체육교사 B03 단일(135). 로비 카드 광고(체육교사)와 실제 전투를 일치시킨다.
+// (이전 더블 보스 B02/B01은 로비의 체육교사 광고와 불일치라 폐기 — 2026-07-21 사용자 지시.)
+// getBossSpawnSec=135에서 보스 구간이 파생된다.
 // stage1/stage2와 달리 stage3는 형태/그룹 버스트가 런타임에 실제 발화한다(아래 getRuntimeBurstEventsForStage).
 // 설계 정본: Developer/agent_room/levelmini_stage3_wave_balance_design_2026-07-11.md §4-1.
 export const STAGE3_BURST_EVENTS = [
@@ -65,9 +66,8 @@ export const STAGE3_BURST_EVENTS = [
   { sec: 150, type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 4차: 보스 직후 재압박
   { sec: 108, type: 'E06', count:  1 },                         // 거대 조기 등장 보장
   { sec: 132, type: 'E06', count:  1 },                         // 피크 거대 1기 추가(미조우 방어)
-  // ── 더블 보스 스태거: B02 먼저(135), B01 나중(147) → warn/charge 위상차로 동시 협공 돌진 완화 ──
-  { sec: 135, type: 'B02', count:  1 },
-  { sec: 147, type: 'B01', count:  1 },
+  // ── 보스: 체육교사 B03 단일 등장(135). 로비 카드(체육교사)와 실제 전투 일치. ──
+  { sec: 135, type: 'B03', count:  1 },
   { sec: 196, type: 'E05', count:  3 },                         // 마틸다 직전 차저 러시
   // ── 형태(formation) 버스트 — 개방 아레나에선 플레이어 상대 포위(ring/pincer)만 사용해 카이팅을 끊는다.
   // swarm(한 방향 스윕)·gauntlet(양벽)은 넓은 사공간서 자명하게 카이팅되므로 스3 스케줄서 배제(구현체는 스2가 계속 사용).
@@ -109,7 +109,7 @@ export function getBurstEventsForStage(stageId) {
 // 런타임 버스트 발화 대상.
 // - stage1/stage2: 물량은 랜덤 간격 웨이브가 전담하므로 보스 등장만 버스트로 발화한다(거동 불변).
 // - stage3: 형태/그룹 버스트를 되살려 "개방 아레나 포위(ring/gauntlet)" + 조기 등장 보장 +
-//   더블 보스 스태거를 모두 발화한다(스폰 엔진이 formation/보스/그룹을 분기 처리).
+//   체육교사 B03 단일 보스를 모두 발화한다(스폰 엔진이 formation/보스/그룹을 분기 처리).
 export function getRuntimeBurstEventsForStage(stageId) {
   const events = getBurstEventsForStage(stageId)
   if (stageId === 'stage3' || stageId === 'stage4') return events

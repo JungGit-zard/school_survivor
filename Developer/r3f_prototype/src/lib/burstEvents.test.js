@@ -51,16 +51,15 @@ describe('burstEvents 보스 등장 시각 파생', () => {
   })
 })
 
-describe('stage3 더블 보스 + 형태 버스트 런타임 복원', () => {
+describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복원', () => {
   it('getBurstEventsForStage: stage3는 STAGE3 목록', () => {
     expect(getBurstEventsForStage('stage3')).toBe(STAGE3_BURST_EVENTS)
   })
 
-  it('더블 보스 B02(135)/B01(147) 스태거 — 보스 등장 시각은 min=135', () => {
-    const bosses = STAGE3_BURST_EVENTS.filter((e) => e.type === 'B01' || e.type === 'B02')
+  it('체육교사 B03 단일 보스(135) — 스1/스2 보스는 스3 전투에 등장하지 않는다', () => {
+    const bosses = STAGE3_BURST_EVENTS.filter((e) => e.type === 'B01' || e.type === 'B02' || e.type === 'B03')
     expect(bosses).toEqual([
-      { sec: 135, type: 'B02', count: 1 },
-      { sec: 147, type: 'B01', count: 1 },
+      { sec: 135, type: 'B03', count: 1 },
     ])
     expect(getBossSpawnSec('stage3')).toBe(135)
   })
@@ -76,7 +75,8 @@ describe('stage3 더블 보스 + 형태 버스트 런타임 복원', () => {
     // stage3 런타임은 전체 목록(형태 포함)을 반환한다.
     expect(runtime).toBe(STAGE3_BURST_EVENTS)
     expect(runtime.some((e) => e.formation)).toBe(true)
-    expect(runtime.filter((e) => e.type === 'B01' || e.type === 'B02')).toHaveLength(2)
+    expect(runtime.filter((e) => e.type === 'B03')).toHaveLength(1)
+    expect(runtime.filter((e) => e.type === 'B01' || e.type === 'B02')).toHaveLength(0)
     // 회귀 방지: stage1/stage2는 여전히 보스만 런타임 발화한다.
     expect(getRuntimeBurstEventsForStage('stage1')).toEqual([{ sec: 120, type: 'B01', count: 1 }])
     expect(getRuntimeBurstEventsForStage('stage2')).toEqual([{ sec: 120, type: 'B02', count: 1 }])
