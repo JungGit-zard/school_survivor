@@ -166,9 +166,9 @@ export default function App() {
     && isFirebaseStudioRuntimeReady()
   const isGraphicsStudioRoute = typeof window !== 'undefined'
     && window.location.pathname.startsWith('/graphics-studio')
-  // 스튜디오 편집 라우트는 반드시 로그인을 요구한다(저장이 계정 노드에 쓰이므로).
-  // studioReady는 로그인 전 canonicalTitlePlayer 하이드레이트로도 true가 될 수 있으나,
-  // 그 상태로 편집기를 열면 Apply가 unauthenticated로 실패하므로 signedIn을 함께 요구한다.
+  // 스튜디오 입구 로그인: /graphics-studio는 로그인해야 진입한다(로그인 지점 2곳 중 하나).
+  // canonicalTitlePlayer 하이드레이트로 studioReady가 로그인 전에도 true가 될 수 있으므로,
+  // 로그인 없이 편집기가 열려 Apply가 unauthenticated로 실패하지 않도록 signedIn을 함께 요구한다.
   if (isGraphicsStudioRoute && (authStatus !== 'signedIn' || !studioReady)) {
     return (
       <AppBootstrap message={getStudioBootstrapMessage(authStatus, studioCloudStatus)} />

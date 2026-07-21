@@ -323,12 +323,10 @@ describe('GraphicsStudio', () => {
     expect(container.querySelector('[data-testid="prop-marker-cloud-desk"]')).toBeTruthy()
   })
 
-  it('opens the game synchronously, then signs in and posts the hydrated remote state', async () => {
-    authMocks.state.status = 'signedOut'
-    let resolveSignIn
-    authMocks.signIn.mockImplementation(() => new Promise((resolve) => {
-      resolveSignIn = resolve
-    }))
+  it('opens the game and posts the hydrated remote state for a signed-in admin without a Connect-time login', async () => {
+    // 로그인은 스튜디오 입구(App 라우트 게이트)에서만 — 진입 시점에 이미 signedIn.
+    authMocks.state.status = 'signedIn'
+    authMocks.state.user = { uid: 'connected-user' }
     cloudMocks.hydrate.mockImplementation(async () => {
       saveStudioTunings({ player: { scale: 1.92 } })
       return { status: 'remote-applied', revision: 8 }
@@ -336,22 +334,19 @@ describe('GraphicsStudio', () => {
     const postMessage = vi.fn()
     window.open.mockReturnValue({ closed: false, postMessage })
 
-    act(() => {
+    await act(async () => {
       root.render(<GraphicsStudio />)
     })
     const connect = Array.from(container.querySelectorAll('button'))
       .find((button) => button.textContent === 'Connect')
-    act(() => {
+    await act(async () => {
       connect.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await Promise.resolve()
     })
 
     expect(window.open).toHaveBeenCalledTimes(1)
-    expect(postMessage).not.toHaveBeenCalled()
-
-    await act(async () => {
-      resolveSignIn({ uid: 'connected-user' })
-    })
-
+    // Connect는 2차 로그인을 하지 않는다(입구에서 이미 로그인함).
+    expect(authMocks.signIn).not.toHaveBeenCalled()
     expect(cloudMocks.flush).toHaveBeenCalledWith(expect.objectContaining({ user: { uid: 'connected-user' } }))
     expect(postMessage).toHaveBeenCalledWith(
       { type: 'escape-zombie-school.studioGameSync.v1' },

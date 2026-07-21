@@ -242,7 +242,6 @@ export default function GraphicsStudio() {
   const authStatus = useAuthStore((state) => state.status)
   const authUser = useAuthStore((state) => state.user)
   const initializeAuth = useAuthStore((state) => state.initializeAuth)
-  const signInWithGoogle = useAuthStore((state) => state.signInWithGoogle)
   const selectedItem = getStudioItemById(selectedItemId)
   const selectedStageBossType = selectedItem.previewKind === 'zombie' && selectedItem.zombieType?.startsWith('B')
     ? selectedItem.zombieType
@@ -501,10 +500,11 @@ export default function GraphicsStudio() {
     connectInFlightRef.current = true
     setFirebaseStatus('checking')
     void (async () => {
-      let user = authUser
+      // 로그인은 스튜디오 입구(App 라우트 게이트)에서만 한다 — 여기서 2차 로그인하지 않는다.
+      // 진입 시점에 이미 로그인돼 authUser가 있다. 없으면 아래 offline-error로 처리.
+      const user = authUser
       let cloudReady = false
       try {
-        if (!user && authStatus !== 'unconfigured') user = await signInWithGoogle()
         if (user?.uid) {
           setFirebaseStudioUser(user)
           const activeHydrate = hydratePromiseRef.current
