@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   studioSubscribe: vi.fn(),
   canonicalHydrate: vi.fn(() => Promise.resolve({ status: 'missing-remote' })),
   canonicalPublish: vi.fn(() => Promise.resolve({ status: 'forbidden' })),
+  studioRuntimeReady: false,
 }))
 
 vi.mock('./store/useAuthStore.js', () => {
@@ -41,7 +42,11 @@ vi.mock('./lib/firebaseStudio.js', () => ({
 }))
 
 vi.mock('./lib/studioRuntimeState.js', () => ({
-  isFirebaseStudioRuntimeReady: vi.fn(() => false),
+  isFirebaseStudioRuntimeReady: vi.fn(() => mocks.studioRuntimeReady),
+}))
+
+vi.mock('./components/GraphicsStudio.jsx', () => ({
+  default: () => <main data-testid="graphics-studio">그래픽 스튜디오</main>,
 }))
 
 vi.mock('./components/GoogleAccountPanel.jsx', () => ({
@@ -91,6 +96,9 @@ describe('App Firebase bootstrap boundary', () => {
       status: 'subscribed',
       unsubscribe: vi.fn(),
     })
+    mocks.canonicalHydrate.mockReset().mockResolvedValue({ status: 'missing-remote' })
+    mocks.canonicalPublish.mockReset().mockResolvedValue({ status: 'forbidden' })
+    mocks.studioRuntimeReady = false
     window.history.replaceState({}, '', '/')
   })
 
@@ -190,6 +198,23 @@ describe('App Firebase bootstrap boundary', () => {
     const view = await renderApp()
 
     await vi.waitFor(() => expect(view.container.querySelector('[data-testid="admin-page"]')).not.toBe(null))
+    view.unmount()
+  })
+
+  it('keeps the graphics studio route behind Google login even when canonical tuning makes studioReady true (no unauthenticated Apply)', async () => {
+    window.history.replaceState({}, '', '/graphics-studio')
+    mocks.authState.status = 'signedOut'
+    mocks.authState.user = null
+    // 로그인 전 canonicalTitlePlayer 하이드레이트가 성공해 런타임이 ready가 된 상태를 모사.
+    mocks.canonicalHydrate.mockResolvedValue({ status: 'remote-applied', revision: 1 })
+    mocks.studioRuntimeReady = true
+
+    const view = await renderApp()
+    await act(async () => { await Promise.resolve(); await Promise.resolve() })
+
+    // 편집기(GraphicsStudio) 대신 Google 로그인 부트스트랩이 떠야 한다 — 미로그인 Apply 실패 방지.
+    expect(view.container.querySelector('[data-testid="graphics-studio"]')).toBe(null)
+    expect(view.container.textContent).toContain('Google 로그인')
     view.unmount()
   })
 })
