@@ -356,7 +356,7 @@ export function waveSizeForStageAtTime(phase, stageId, waveTime) {
   if (stageId === 'stage1') return Math.max(1, Math.round(size * STAGE1_SPAWN_MULTIPLIER))
   if (stageId === 'stage2') return (waveTime === 0 || waveTime === 30) ? size * 3 : size
   // stage3: 오프닝(t=0)만 프론트로드 ×2로 초반 밀도 확립(발견 C). 이후 웨이브는 배율 없음
-  // — ×1.44 HP가 이미 동시개체를 끌어올려(발견 D) 지속 배율은 스택 과부하 위험이라 두지 않는다.
+  // — 스테이지 HP 배율(stage3 ×1.21)이 이미 동시개체를 끌어올려(발견 D) 지속 배율은 스택 과부하 위험이라 두지 않는다.
   if (stageId === 'stage3') return waveTime === 0 ? size * 2 : size
   return size
 }
@@ -427,12 +427,11 @@ export function bossEscortSize(stageId, wavePhases, bossSec) {
   return waveSizeForStageAtTime(phase, stageId, bossSec)
 }
 
-// 스테이지 상승 HP 곡선 정본(2026-07-12): stage1 기준으로 스테이지가 오를 때마다 총체력 +20%.
-// stage1 ×1.0(오버라이드 없음) / stage2 ×1.2 / stage3 ×1.44.
-// stage4는 좁은 급식실 맵이라 wave target을 낮춘 대신, 계획 총체력이 stage3의 약 120%가 되도록 보정한다.
+// 스테이지 상승 HP 곡선 정본(2026-07-22 개정): 스테이지가 오를 때마다 개별 HP를 이전×1.10(+10%).
+// stage1 ×1.0(오버라이드 없음) / stage2 ×1.10 / stage3 ×1.21 / stage4 ×1.331.
+// (이전 +20% 곡선 1.2/1.44 및 stage4 총체력 보정 2.116은 사용자 지시로 +10% 균일 곡선으로 재설계.)
 // 잡몹 E01~E06 + 보스 전부 적용. 마틸다(탈출 추격자)는 별도 동적 statOverride를 쓰므로 여기 대상 아님.
-// (기존 stage2 ×0.8 완화는 하강 버그로 판정되어 폐기 — 사용자 지시.)
-const STAGE_HP_MULTIPLIER = { stage2: 1.2, stage3: 1.44, stage4: 2.116 }
+const STAGE_HP_MULTIPLIER = { stage2: 1.10, stage3: 1.21, stage4: 1.331 }
 
 export function stageHpOverride(type, stageId) {
   const mult = STAGE_HP_MULTIPLIER[stageId]
@@ -454,7 +453,7 @@ export const DOGE_SPAWN_POS = [0, 0, 0]   // 스테이지 가운데
 const DOGE_RAW_HEIGHT = 1.5
 export const DOGE_SCALE = Number(((2 * PLAYER_MESH_WORLD_HEIGHT) / DOGE_RAW_HEIGHT).toFixed(3))
 // 이벤트 보너스 몬스터 HP — 60초 시점 DPS로 "몇 초 안에" 잡히는 수준(E06 320보다 낮게 200 기준).
-// 스테이지 상승 곡선(+20%/스테이지)을 잡몹·보스와 동일 철학으로 적용(1.0 / 1.2 / 1.44).
+// 스테이지 상승 곡선(+10%/스테이지)을 잡몹·보스와 동일 철학으로 적용(1.0 / 1.10 / 1.21 / 1.331).
 export const DOGE_BASE_HP = 200
 // 보물상자 코인 잭팟: 일반 처치(코인 1)·보스(코인 5)보다 확실히 많은 12개를 원형 산포한다.
 export const DOGE_COIN_COUNT = 12

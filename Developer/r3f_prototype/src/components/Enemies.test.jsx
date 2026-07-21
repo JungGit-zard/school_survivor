@@ -303,18 +303,18 @@ describe('boss entrance escort wave', () => {
   })
 })
 
-describe('ascending stage HP curve (+20% per stage from stage1)', () => {
-  it('scales every stage 2 combat enemy HP to 1.2x (rounded), boss included', () => {
-    expect(stageHpOverride('E02', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E02.hp * 1.2) })  // 70 -> 84
-    expect(stageHpOverride('E01', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E01.hp * 1.2) })  // 8 -> 10
-    expect(stageHpOverride('E06', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E06.hp * 1.2) })  // 320 -> 384
-    expect(stageHpOverride('B02', 'stage2')).toEqual({ hp: 1380 })                                  // 1150 -> 1380
+describe('ascending stage HP curve (+10% per stage from stage1)', () => {
+  it('scales every stage 2 combat enemy HP to 1.10x (+10% per stage), boss included', () => {
+    expect(stageHpOverride('E02', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E02.hp * 1.10) })  // 70 -> 77
+    expect(stageHpOverride('E01', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E01.hp * 1.10) })  // 8 -> 9
+    expect(stageHpOverride('E06', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E06.hp * 1.10) })  // 320 -> 352
+    expect(stageHpOverride('B02', 'stage2')).toEqual({ hp: 1265 })                                   // 1150 -> 1265
   })
 
-  it('scales every stage 3 combat enemy HP to 1.44x (rounded), PE teacher boss included', () => {
-    expect(stageHpOverride('E02', 'stage3')).toEqual({ hp: Math.round(ENEMY_STATS.E02.hp * 1.44) }) // 70 -> 101
-    expect(stageHpOverride('E06', 'stage3')).toEqual({ hp: Math.round(ENEMY_STATS.E06.hp * 1.44) }) // 320 -> 461
-    expect(stageHpOverride('B03', 'stage3')).toEqual({ hp: 1656 })                                  // 1150 -> 1656
+  it('scales every stage 3 combat enemy HP to 1.21x (+10% per stage), PE teacher boss included', () => {
+    expect(stageHpOverride('E02', 'stage3')).toEqual({ hp: Math.round(ENEMY_STATS.E02.hp * 1.21) }) // 70 -> 85
+    expect(stageHpOverride('E06', 'stage3')).toEqual({ hp: Math.round(ENEMY_STATS.E06.hp * 1.21) }) // 320 -> 387
+    expect(stageHpOverride('B03', 'stage3')).toEqual({ hp: 1392 })                                  // 1150 -> 1392
   })
 
   it('leaves stage 1 at base HP and ignores unknown types', () => {
@@ -365,39 +365,28 @@ describe('dancing doge event monster', () => {
     expect(DOGE_SCALE * 1.5).toBeCloseTo(2 * PLAYER_MESH_WORLD_HEIGHT, 2)
   })
 
-  it('follows the ascending stage HP curve (base 200; x1.0 / x1.2 / x1.44 / stage4 total-HP compensator)', () => {
+  it('follows the ascending +10% per-stage HP curve (base 200; x1.0 / x1.10 / x1.21 / x1.331)', () => {
     expect(DOGE_BASE_HP).toBe(200)
     expect(dogeHpForStage('stage1')).toBe(200)
-    expect(dogeHpForStage('stage2')).toBe(Math.round(200 * 1.2))   // 240
-    expect(dogeHpForStage('stage3')).toBe(Math.round(200 * 1.44))  // 288
-    expect(dogeHpForStage('stage4')).toBe(Math.round(200 * 2.116)) // 급식실 총체력 +20% 보정
+    expect(dogeHpForStage('stage2')).toBe(Math.round(200 * 1.10))   // 220
+    expect(dogeHpForStage('stage3')).toBe(Math.round(200 * 1.21))   // 242
+    expect(dogeHpForStage('stage4')).toBe(Math.round(200 * 1.331))  // 266
     // 도지 HP는 60초 시점 이벤트 보너스몹 답게 기본값은 거대좀비 E06(320)보다 낮다.
     expect(DOGE_BASE_HP).toBeLessThan(ENEMY_STATS.E06.hp)
   })
 
-  it('keeps stage4 planned total HP a controlled step above stage3 (single PE-teacher boss) while using a kitchen-specific shape', () => {
-    const plannedHp = (stageId, phases) => {
-      const waveHp = phases.reduce((sum, phase) => {
-        const weighted = Object.entries(phase.weights).reduce((phaseSum, [type, weight]) => {
-          const hp = stageHpOverride(type, stageId)?.hp ?? ENEMY_STATS[type].hp
-          return phaseSum + hp * weight
-        }, 0)
-        return sum + weighted * phase.target
-      }, 0)
-      const burstHp = getBurstEventsForStage(stageId).reduce((sum, event) => {
-        const hp = stageHpOverride(event.type, stageId)?.hp ?? ENEMY_STATS[event.type].hp
-        return sum + hp * event.count
-      }, 0)
-      return waveHp + burstHp
-    }
-
-    const stage3Total = plannedHp('stage3', STAGE3_WAVE_PHASES)
-    const stage4Total = plannedHp('stage4', STAGE4_WAVE_PHASES)
-
-    // 스3가 체육교사 B03 단일 보스로 바뀌며(더블 보스 폐기) 스3 총체력이 낮아져
-    // 스4/스3 비율이 ~1.20에서 ~1.26으로 상승. stage4는 여전히 스3 위 단계임을 보장한다.
-    expect(stage4Total / stage3Total).toBeGreaterThan(1.19)
-    expect(stage4Total / stage3Total).toBeLessThan(1.30)
+  it('applies a +10% per-stage enemy HP multiplier (1.0/1.10/1.21/1.331) and keeps stage4 kitchen-specific wave shape', () => {
+    // 개별 HP 배율이 스테이지마다 직전 ×1.10. (보스 B01 base 1150로 반올림 오차 최소화해 검증)
+    const base = ENEMY_STATS.B01.hp
+    const ratio = (s) => (stageHpOverride('B01', s)?.hp ?? base) / base
+    expect(ratio('stage1')).toBeCloseTo(1.0, 2)
+    expect(ratio('stage2')).toBeCloseTo(1.10, 2)
+    expect(ratio('stage3')).toBeCloseTo(1.21, 2)
+    expect(ratio('stage4')).toBeCloseTo(1.331, 2)
+    expect(ratio('stage2') / ratio('stage1')).toBeCloseTo(1.10, 2)
+    expect(ratio('stage3') / ratio('stage2')).toBeCloseTo(1.10, 2)
+    expect(ratio('stage4') / ratio('stage3')).toBeCloseTo(1.10, 2)
+    // stage4 급식실 특유 형태 유지(조기·고비중 E04, 좁은 맵 저target, B04 단일 보스).
     expect(STAGE4_WAVE_PHASES.some((phase) => (phase.weights.E04 ?? 0) >= 0.2)).toBe(true)
     expect(STAGE4_WAVE_PHASES.some((phase) => phase.target < 20)).toBe(true)
     expect(getBurstEventsForStage('stage4').some((event) => event.type === 'B04')).toBe(true)
