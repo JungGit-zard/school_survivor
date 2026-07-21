@@ -133,7 +133,7 @@ describe('stage configuration registry', () => {
       matildaSec: 215,
     })
     // 급식실 맵 경계 12×16(스3 18×18보다 좁음 — 밀도 억제 근거).
-    expect(getStageBounds('stage4')).toMatchObject({ halfX: 12, halfZ: 16 })
+    expect(getStageBounds('stage4')).toMatchObject({ halfX: 14.4, halfZ: 16 })
     // 마일스톤 골드 4/6/9/18, atMs 48k/144k/192k/240k, 급식실 테마 라벨.
     const milestones = getStageConfig('stage4').survivalMilestones
     expect(milestones.map((m) => m.gold)).toEqual([4, 6, 9, 18])

@@ -91,14 +91,26 @@ export default function Game() {
     // smooth camera follow + 경계 클램프.
     // 플레이어를 따라가되, 카메라 시야가 맵(±48)을 넘으면 focus를 맵 안으로 고정한다.
     // → 가장자리에서 스크롤이 멈추고 캐릭터는 화면 끝(벽)까지만, 빈/잘린 바닥이 안 보인다.
-    const reach = groundReach(camera)
+    const base = groundReach(camera)
     const { halfX, halfZ } = getStageBounds(currentStageId)
-    const fx = clampFocus(playerPos.x, reach.reachSide, reach.reachSide, halfX)
-    const fz = clampFocus(playerPos.z, reach.reachUp, reach.reachDown, halfZ)
-    screenBounds.minX = fx - reach.reachSide
-    screenBounds.maxX = fx + reach.reachSide
-    screenBounds.minZ = fz - reach.reachUp
-    screenBounds.maxZ = fz + reach.reachDown
+    // 가로 시야가 맵보다 넓으면(좌우 빈 바닥이 보이고 캐릭터가 화면 가로 끝에 못 닿는 상태 —
+    // 예: iPhone SE 등 넓은 비율) 맵 폭에 맞춰 카메라를 zoom-in 한다. → 좌우 벽이 화면 가로 끝에
+    // 오고 캐릭터가 화면 가로 끝까지 이동 가능. 맵이 시야보다 넓으면 zoom=1(기존 거동 불변).
+    // 세로로 긴 스테이지는 이때 세로로 스크롤된다(vfov도 같은 비율로 줄어 세로 빈 바닥은 안 생김).
+    const fitZoom = base.reachSide > halfX ? base.reachSide / halfX : 1
+    if (Math.abs((camera.zoom ?? 1) - fitZoom) > 1e-3) {
+      camera.zoom = fitZoom
+      camera.updateProjectionMatrix()
+    }
+    const reachSide = base.reachSide / fitZoom
+    const reachUp = base.reachUp / fitZoom
+    const reachDown = base.reachDown / fitZoom
+    const fx = clampFocus(playerPos.x, reachSide, reachSide, halfX)
+    const fz = clampFocus(playerPos.z, reachUp, reachDown, halfZ)
+    screenBounds.minX = fx - reachSide
+    screenBounds.maxX = fx + reachSide
+    screenBounds.minZ = fz - reachUp
+    screenBounds.maxZ = fz + reachDown
     _camTarget.set(fx, CAM_HEIGHT, fz + CAM_BACK)
     camera.position.lerp(_camTarget, 0.08)
     camera.lookAt(fx, 0, fz)

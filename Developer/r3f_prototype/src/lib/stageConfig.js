@@ -98,7 +98,8 @@ export const STAGE_CONFIGS = {
     matildaWarningSec: 205,
     matildaSec: 215,
     // 급식실 맵 경계(월드 유닛, 중심 0). 프롭은 시각 전용(충돌 없음).
-    mapHalfX: 12,
+    // 가로(X)를 이전 12에서 약 +20%(→14.4)로 확장(2026-07-22 사용자 지시).
+    mapHalfX: 14.4,
     mapHalfZ: 16,
     survivalMilestones: [
       { atMs: 48_000, gold: 4, label: '배식 개시 보너스' },
