@@ -70,8 +70,9 @@ export const STAGE_CONFIGS = {
     // 마틸다를 220s로 늦춰 보스(135)와의 겹침 창을 축소(balanceqa 권고).
     matildaWarningSec: 210,
     matildaSec: 220,
-    // D1: 개방형 아레나(근사 정사각). threemini가 이 값으로 체육관 맵을 만든다.
-    mapHalfX: 18,
+    // 체육관 아레나. 가로폭(X)을 1/3로 축소(18→6) — 세로로 긴 좁은 통로형(2026-07-22 사용자 지시).
+    // 세로(Z)는 유지. 포메이션 반경은 Enemies.jsx에서 limX로 클램프되므로 안전.
+    mapHalfX: 6,
     mapHalfZ: 18,
     survivalMilestones: [
       { atMs: 48_000, gold: 3, label: '아레나 적응 보너스' },

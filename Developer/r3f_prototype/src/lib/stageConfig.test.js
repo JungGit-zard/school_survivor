@@ -79,8 +79,8 @@ describe('stage configuration registry', () => {
     })
     // 로비 카드와 실제 전투가 일치하므로 lobbyBossType 분리는 제거됨.
     expect(getStageConfig('stage3').lobbyBossType).toBeUndefined()
-    // 개방형 아레나 근사 정사각 경계(threemini가 이 값으로 체육관 맵 구성).
-    expect(getStageBounds('stage3')).toMatchObject({ halfX: 18, halfZ: 18 })
+    // 가로폭(X) 1/3 축소로 세로로 긴 통로형 경계(halfX 18→6, halfZ 유지).
+    expect(getStageBounds('stage3')).toMatchObject({ halfX: 6, halfZ: 18 })
     // 체육교사 B03 단일 보스.
     expect(getStageBossType('stage3')).toBe('B03')
   })
