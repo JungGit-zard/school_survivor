@@ -1,10 +1,11 @@
 ﻿import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
-import { UPGRADE_EFFECTS, applyUpgradeToWeapon } from '../lib/upgrades.js'
+import { UPGRADE_EFFECTS, applyChibikoAllWeaponBoost, applyUpgradeWithChibikoBoost } from '../lib/upgrades.js'
 import { resetRuntimeRefs, playerPos } from '../lib/refs.js'
 import { getAllLevels, purchase as purchasePassiveStorage, resetAllLevels as resetPassiveStorage } from '../lib/passiveUpgrades.js'
 import {
   applyWeaponPermanentUpgradesToBaseWeapon,
+  getChibikoAllWeaponBoost,
   purchaseWeaponPermanentUpgrade as purchaseWeaponPermanentUpgradeStorage,
 } from '../lib/weaponPermanentUpgrades.js'
 import { setMagnetMultiplier } from '../lib/pickup.js'
@@ -496,10 +497,32 @@ export const useGameStore = create(
 
       const { weapons } = get()
       const wpn = weapons[effect.weapon]
-      set((s) => ({
-        weapons: { ...s.weapons, [effect.weapon]: applyUpgradeToWeapon(wpn, effect) },
-        ...finishLevelupState(s),
-      }))
+      set((s) => {
+        const chibikoWasActive = s.weapons.chibiko?.active === true
+        const acquiringChibiko = effect.kind === 'acquire' && effect.weapon === 'chibiko'
+        const boost = getChibikoAllWeaponBoost(s.weapons.chibiko?.permanentUpgradeLevel)
+        const upgraded = applyUpgradeWithChibikoBoost(wpn, effect, boost)
+
+        if (acquiringChibiko) {
+          return {
+            weapons: Object.fromEntries(Object.entries({ ...s.weapons, chibiko: upgraded }).map(([id, weapon]) => [
+              id,
+              id === 'chibiko' || !weapon.active ? weapon : applyChibikoAllWeaponBoost(weapon, boost),
+            ])),
+            ...finishLevelupState(s),
+          }
+        }
+
+        return {
+          weapons: {
+            ...s.weapons,
+            [effect.weapon]: chibikoWasActive && effect.kind === 'acquire'
+              ? applyChibikoAllWeaponBoost(upgraded, boost)
+              : upgraded,
+          },
+          ...finishLevelupState(s),
+        }
+      })
     },
 
     cheatAcquireWeapon: (id) => {
@@ -507,10 +530,22 @@ export const useGameStore = create(
       set((s) => {
         const wpn = s.weapons[id]
         if (!wpn) return {}
+        const acquired = { ...wpn, active: true, level: Math.max(1, wpn.level ?? 0) }
+        const acquiringChibiko = id === 'chibiko' && !s.weapons.chibiko?.active
+        const chibikoActive = s.weapons.chibiko?.active || acquiringChibiko
+        const boost = getChibikoAllWeaponBoost(s.weapons.chibiko?.permanentUpgradeLevel)
+        if (acquiringChibiko) {
+          return {
+            weapons: Object.fromEntries(Object.entries({ ...s.weapons, [id]: acquired }).map(([weaponId, weapon]) => [
+              weaponId,
+              weaponId === 'chibiko' || !weapon.active ? weapon : applyChibikoAllWeaponBoost(weapon, boost),
+            ])),
+          }
+        }
         return {
           weapons: {
             ...s.weapons,
-            [id]: { ...wpn, active: true, level: Math.max(1, wpn.level ?? 0) },
+            [id]: chibikoActive && id !== 'chibiko' ? applyChibikoAllWeaponBoost(acquired, boost) : acquired,
           },
         }
       })

@@ -98,7 +98,7 @@ const UPGRADES = [
   { key: 'acquireLantern', icon: 'lantern', label: '학생용 랜턴 해금', desc: '전방을 빛으로 비춰 빛 안의 적을 연타' },
   { key: 'lanternDuration', icon: 'lantern', label: '랜턴 지속 +1초', desc: '점등 시간과 타격 횟수 증가' },
   { key: 'lanternCrit', icon: 'lantern', label: '랜턴 치명타 강화', desc: '치명타 확률 +2%, 치명타 피해 배율 +0.75배 (최대 4.5배)' },
-  { key: 'acquireChibiko', icon: 'chibiko', label: '치비코 해금', desc: '뒤따라다니며 레벨1 연필을 던짐' },
+  { key: 'acquireChibiko', icon: 'chibiko', label: '치비코 해금', desc: '레벨1 연필 투척 · 보유 무기 능력 10% 강화' },
   { key: 'chibikoCrit', icon: 'chibiko', label: '치비코 치명타 강화', desc: '치명타 확률 +2%, 치명타 피해 배율 +0.75배 (최대 4.5배)' },
   { key: 'acquireSharkMissile', icon: 'sharkMissile', label: '상어미사일 해금', desc: '가장 빽빽한 좀비 무리로 호밍 폭발' },
   { key: 'sharkMissileDamage', icon: 'sharkMissile', labelFn: damageLabel('상어미사일 피해', 'sharkMissile', 'sharkMissileDamage'), desc: '폭발 피해 증가' },

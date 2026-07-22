@@ -8,6 +8,7 @@ import {
   getWeaponPermanentUpgradeLevel,
   getWeaponPermanentUpgradePrice,
   getWeaponPermanentUpgradePlan,
+  getChibikoAllWeaponBoost,
   purchaseWeaponPermanentUpgrade,
   resetWeaponPermanentUpgradeLevels,
 } from './weaponPermanentUpgrades.js'
@@ -76,6 +77,18 @@ describe('weaponPermanentUpgrades storage layer', () => {
     expect(plan.maxLevel).toBe(10)
     expect(plan.levels[5].summary).toContain('투사체 속도')
     expect(plan.levels[10].summary).toContain('투사체 수')
+  })
+
+  it('치비코 영구강화는 모든 무기 보너스를 최대 13%까지 확장한다', () => {
+    const plan = getWeaponPermanentUpgradePlan('chibiko')
+
+    expect(plan.levels[2].summary).toBe('모든 무기 능력 보너스 11%')
+    expect(plan.levels[6].summary).toBe('모든 무기 능력 보너스 12%')
+    expect(plan.levels[9].summary).toBe('모든 무기 능력 보너스 13%')
+    expect(getChibikoAllWeaponBoost(0)).toBe(0.1)
+    expect(getChibikoAllWeaponBoost(2)).toBe(0.11)
+    expect(getChibikoAllWeaponBoost(6)).toBe(0.12)
+    expect(getChibikoAllWeaponBoost(9)).toBe(0.13)
   })
 
   it('applies permanent cooldown, range, and duration bonuses to base weapon stats', () => {
@@ -174,7 +187,7 @@ describe('weaponPermanentUpgrades storage layer', () => {
     expect(upgraded('bell')).toMatchObject({ damage: 10.8, radius: 2.04, critChance: 0.13 })
     expect(upgraded('stunGun')).toMatchObject({ damage: 19.4, cooldown: 3000, chainCount: 3, permanentStunChance: 0.08, critChance: 0.14 })
     expect(upgraded('onigiri')).toMatchObject({ damage: 21, bounces: 4, critChance: 0.16 })
-    expect(upgraded('chibiko')).toMatchObject({ damage: 2.8, cooldown: 1056, projectileCount: 2, critChance: 0.13 })
+    expect(upgraded('chibiko')).toMatchObject({ damage: 2.8, cooldown: 1012, projectileCount: 2, critChance: 0.09 })
     expect(upgraded('guidedMissile')).toMatchObject({ damage: 18.6, radius: 1.76, homingStrength: 1.1 })
     expect(upgraded('sharkMissile')).toMatchObject({ damage: 24.1, speed: 9.18, retargetIntervalMs: 270, permanentHomingStartMultiplier: 0.9, radius: 2.016 })
     expect(upgraded('starlink')).toMatchObject({ damage: 30.2, strikeRadius: 1.32, permanentBonusStrikeChance: 0.1, critChance: 0.15 })

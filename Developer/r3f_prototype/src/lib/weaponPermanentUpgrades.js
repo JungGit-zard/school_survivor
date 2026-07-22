@@ -46,7 +46,23 @@ export const WEAPON_PERMANENT_UPGRADE_PLANS = {
   bell: makePlan('bell', '피해', '파동 크기 +10%', '파동 도달거리 +10%', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
   stunGun: makePlan('stunGun', '피해', '체인 수 +1', '짧은 경직 확률 +8%', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
   onigiri: makePlan('onigiri', '투사체 속도', '바운스 횟수 +1', '바운스 횟수 추가 +1', ['+3%', '+6%', '+9%', '+12%'], '치명타 확률', CRIT_CHANCE_LEVELS),
-  chibiko: makePlan('chibiko', '동료 공격 주기', '동료 피해 +10%', '치비코 투척체 +1', COOLDOWN_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
+  chibiko: {
+    id: 'chibiko',
+    label: WEAPON_CATALOG.chibiko.label,
+    maxLevel: MAX_WEAPON_PERMANENT_LEVEL,
+    levels: {
+      1: { summary: '동료 공격 주기 -2%' },
+      2: { summary: '모든 무기 능력 보너스 11%' },
+      3: { summary: '동료 피해 +4%' },
+      4: { summary: '치명타 확률 +2%' },
+      5: { summary: '동료 피해 +10%' },
+      6: { summary: '모든 무기 능력 보너스 12%' },
+      7: { summary: '치명타 확률 +4%' },
+      8: { summary: '동료 공격 주기 -8%' },
+      9: { summary: '모든 무기 능력 보너스 13%' },
+      10: { summary: '치비코 투척체 +1' },
+    },
+  },
   guidedMissile: makePlan('guidedMissile', '폭발 피해', '유도 회전력 +10%', '폭발 범위 +10%'),
   sharkMissile: makePlan('sharkMissile', '귀소 속도', '귀소 전환 시간 -10%', '폭발 범위 +12%', RANGE_LEVELS, '폭발 피해', ['+4%', '+8%', '+12%', '+16%']),
   starlink: makePlan('starlink', '타격 피해', '타격 반경 +10%', '추가 소형 낙하 타격 확률 +10%', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
@@ -88,6 +104,13 @@ export function getWeaponPermanentUpgradePrice(nextLevel) {
 
 export function getWeaponPermanentUpgradePlan(id) {
   return WEAPON_PERMANENT_UPGRADE_PLANS[id] ?? null
+}
+
+export function getChibikoAllWeaponBoost(level = getWeaponPermanentUpgradeLevel('chibiko')) {
+  if (level >= 9) return 0.13
+  if (level >= 6) return 0.12
+  if (level >= 2) return 0.11
+  return 0.1
 }
 
 function persist(id, nextLevel) {

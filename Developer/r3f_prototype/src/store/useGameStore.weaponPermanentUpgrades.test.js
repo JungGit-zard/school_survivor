@@ -56,4 +56,28 @@ describe('useGameStore weapon permanent upgrades', () => {
 
     expect(result).toMatchObject({ ok: true, nextLevel: 1, price: 300, nextGold: 0 })
   })
+
+  it('치비코 획득 시 현재 무기와 이후 획득 무기에 전체 능력 보너스를 적용한다', () => {
+    useGameStore.getState().applyUpgrade('acquireChibiko')
+
+    expect(useGameStore.getState().weapons.pencilThrow).toMatchObject({
+      damage: 3.3,
+      cooldown: 495,
+      chibikoBoostPercent: 0.1,
+    })
+
+    useGameStore.getState().applyUpgrade('acquireBag')
+    expect(useGameStore.getState().weapons.schoolBag).toMatchObject({
+      active: true,
+      damage: 13.2,
+      chibikoBoostPercent: 0.1,
+    })
+  })
+
+  it('치비코가 있는 동안 무기 레벨업 증가분에도 10% 보너스를 유지한다', () => {
+    useGameStore.getState().applyUpgrade('acquireChibiko')
+    useGameStore.getState().applyUpgrade('pencilDamage')
+
+    expect(useGameStore.getState().weapons.pencilThrow.damage).toBe(4.95)
+  })
 })

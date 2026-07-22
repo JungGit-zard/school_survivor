@@ -1,11 +1,25 @@
 ﻿import { describe, it, expect } from 'vitest'
-import { applyUpgradeToWeapon, isUpgradeAvailable, UPGRADE_EFFECTS } from './upgrades.js'
+import { applyChibikoAllWeaponBoost, applyUpgradeToWeapon, applyUpgradeWithChibikoBoost, isUpgradeAvailable, UPGRADE_EFFECTS } from './upgrades.js'
 import { WEAPON_CATALOG } from './weaponCatalog.js'
 
 // 가상 무기 상태 빌더. weapons 객체의 한 항목 형태와 동일.
 const wpn = (overrides = {}) => ({ active: false, level: 0, damage: 5, ...overrides })
 
 describe('applyUpgradeToWeapon', () => {
+  it('치비코는 연속형 무기 능력을 10% 강화하고 쿨타임은 10% 줄인다', () => {
+    const out = applyChibikoAllWeaponBoost({ damage: 10, range: 2, cooldown: 1000, projectileCount: 1 })
+
+    expect(out).toMatchObject({ damage: 11, range: 2.2, cooldown: 900, projectileCount: 1 })
+  })
+
+  it('치비코 강화 상태에서 레벨업한 증가분에도 같은 보너스를 유지한다', () => {
+    const boosted = applyChibikoAllWeaponBoost({ active: true, level: 1, damage: 10 })
+    const out = applyUpgradeWithChibikoBoost(boosted, { kind: 'damage', dmg: 5 }, 0.1)
+
+    expect(out.damage).toBe(16.5)
+    expect(out.chibikoBoostPercent).toBe(0.1)
+  })
+
   it('연필 피해 강화는 절반 수치인 +1.5만 적용한다', () => {
     const out = applyUpgradeToWeapon(
       wpn({ active: true, level: 1, damage: WEAPON_CATALOG.pencilThrow.base.damage }),

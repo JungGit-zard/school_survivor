@@ -8,6 +8,60 @@ import { DEFAULT_CRIT_MULTIPLIER } from './criticalHits.js'
 const CRIT_MULT_STEP = 0.75
 const CRIT_MULT_CAP = 4.5
 
+export const CHIBIKO_BASE_ALL_WEAPON_BOOST = 0.1
+
+const CHIBIKO_INCREASE_STATS = [
+  'damage', 'range', 'radius', 'width', 'speed', 'orbitSpeed', 'zoneRadius',
+  'strikeRadius', 'lightLength', 'lightWidth', 'durationMs', 'zoneDurationMs',
+  'swingMs', 'spinDurationMs', 'knockback', 'knockbackMs', 'critChance',
+  'critMultiplier',
+]
+const CHIBIKO_REDUCE_STATS = ['cooldown', 'retargetIntervalMs']
+
+function scaleChibikoStat(value, multiplier, decimals = 3) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return value
+  const factor = 10 ** decimals
+  return Math.round(value * multiplier * factor) / factor
+}
+
+// 치비코의 응원 효과. 횟수·관통·체인처럼 정수 단위인 능력은 소수화하지 않고,
+// 연속형 전투 능력만 강화한다. 마커로 같은 무기에 중복 적용되는 것도 막는다.
+export function applyChibikoAllWeaponBoost(weapon, boost = CHIBIKO_BASE_ALL_WEAPON_BOOST) {
+  if (!weapon || typeof weapon !== 'object' || weapon.chibikoBoostApplied) return weapon
+  const safeBoost = Math.max(0, Number.isFinite(boost) ? boost : CHIBIKO_BASE_ALL_WEAPON_BOOST)
+  const out = { ...weapon, chibikoBoostApplied: true, chibikoBoostPercent: safeBoost }
+  for (const stat of CHIBIKO_INCREASE_STATS) {
+    if (typeof out[stat] === 'number') out[stat] = scaleChibikoStat(out[stat], 1 + safeBoost)
+  }
+  for (const stat of CHIBIKO_REDUCE_STATS) {
+    if (typeof out[stat] === 'number') out[stat] = scaleChibikoStat(out[stat], 1 - safeBoost, 0)
+  }
+  return out
+}
+
+export function removeChibikoAllWeaponBoost(weapon) {
+  if (!weapon?.chibikoBoostApplied) return weapon
+  const boost = weapon.chibikoBoostPercent ?? CHIBIKO_BASE_ALL_WEAPON_BOOST
+  const out = { ...weapon }
+  delete out.chibikoBoostApplied
+  delete out.chibikoBoostPercent
+  for (const stat of CHIBIKO_INCREASE_STATS) {
+    if (typeof out[stat] === 'number') out[stat] = scaleChibikoStat(out[stat], 1 / (1 + boost))
+  }
+  for (const stat of CHIBIKO_REDUCE_STATS) {
+    if (typeof out[stat] === 'number') out[stat] = scaleChibikoStat(out[stat], 1 / (1 - boost), 0)
+  }
+  return out
+}
+
+export function applyUpgradeWithChibikoBoost(weapon, effect, boost) {
+  if (!weapon?.chibikoBoostApplied) return applyUpgradeToWeapon(weapon, effect)
+  return applyChibikoAllWeaponBoost(
+    applyUpgradeToWeapon(removeChibikoAllWeaponBoost(weapon), effect),
+    boost ?? weapon.chibikoBoostPercent,
+  )
+}
+
 export const UPGRADE_EFFECTS = {
   pencilDamage:   { weapon: 'pencilThrow',   kind: 'damage', dmg: 1.5 },
   pencilCount:    { weapon: 'pencilThrow',   kind: 'stat',   stat: 'projectileCount', step: 1,    cap: 4 },
