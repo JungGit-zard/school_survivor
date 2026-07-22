@@ -32,9 +32,9 @@ export function dogeHasEscaped(pos, bounds, margin = DOGE_ESCAPE_MARGIN) {
 // 도지는 추격/공격이 없지만, 플레이어가 몸통에 부딪히면 피해 없이 "확" 밀쳐낸다(코믹).
 // 밀리는 방향은 항상 도지 중심 → 플레이어 방향의 수평 단위벡터. 플레이어는 velocity를 매
 // 프레임 덮어쓰므로 임펄스가 아니라 Player의 넉백 오버라이드(입력 무시 구간)로 밀어낸다.
-// 강도는 확실히 밀치되 맵 밖으로 날아가지 않게 — 위치는 playerMovementBounds가 클램프한다.
-export const DOGE_KNOCKBACK_SPEED = 7 // units/sec — 피격 넉백(4)보다 확실히 강한 "밀쳐짐"
-export const DOGE_KNOCKBACK_MS = 240  // 밀림 지속(이 구간 동안 플레이어 입력 무시)
+// 일반 좀비 피격과 같은 세기·시간으로만 밀친다. 위치는 playerMovementBounds가 클램프한다.
+export const DOGE_KNOCKBACK_SPEED = 4 // units/s
+export const DOGE_KNOCKBACK_MS = 160 // ms
 export const DOGE_KNOCKBACK_COOLDOWN_MS = 300 // 연속 접촉 스팸 방지
 
 // 도지 중심(dogePos)에서 플레이어(playerPos)로 향하는 수평 넉백 속도 벡터.

@@ -94,8 +94,9 @@ describe('doge knockback (몸통 충돌 — 피해 없이 밀쳐냄)', () => {
     expect(Number.isNaN(kb.z)).toBe(false)
   })
 
-  it('is a stronger shove than the standard hit knockback (4)', () => {
-    expect(DOGE_KNOCKBACK_SPEED).toBeGreaterThan(4)
+  it('matches the standard zombie-hit knockback exactly', () => {
+    expect(DOGE_KNOCKBACK_SPEED).toBe(4)
+    expect(DOGE_KNOCKBACK_MS).toBe(160)
   })
 
   it('returns a player-only knockback command with direction and exact duration', () => {

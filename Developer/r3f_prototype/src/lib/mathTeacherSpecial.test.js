@@ -9,6 +9,10 @@ import {
 } from './mathTeacherSpecial.js'
 
 describe('stage 1 math teacher special', () => {
+  it('limits the set-square impact to the visual reach plus a minimal contact tolerance', () => {
+    expect(MATH_TEACHER_SWING_RADIUS).toBe(1.05)
+  })
+
   it('deals exactly 30 percent of the player current HP', () => {
     expect(MATH_TEACHER_PLAYER_DAMAGE_RATIO).toBe(0.3)
     expect(getMathTeacherPlayerDamage(100)).toBe(30)
@@ -23,7 +27,7 @@ describe('stage 1 math teacher special', () => {
     const bossHit = vi.fn()
     const bodies = new Map([
       ['boss', fakeBody(0, 0, bossHit)],
-      ['near', fakeBody(1.2, 0.4, nearHit)],
+      ['near', fakeBody(0.9, 0.4, nearHit)],
       ['outside', fakeBody(MATH_TEACHER_SWING_RADIUS + 0.1, 0, outsideHit)],
       ['dead', fakeBody(0.5, 0, deadHit, true)],
     ])

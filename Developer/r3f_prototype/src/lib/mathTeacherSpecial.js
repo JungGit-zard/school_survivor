@@ -1,5 +1,7 @@
 export const MATH_TEACHER_PLAYER_DAMAGE_RATIO = 0.3
-export const MATH_TEACHER_SWING_RADIUS = 2.4
+// B01 렌더 배율에서 삼각자 최외곽은 중심 약 0.9 units까지다.
+// 플레이어 충돌 반경(0.192u)을 감안한 1.05u만 허용해, 그래픽에 거의 닿아야 판정한다.
+export const MATH_TEACHER_SWING_RADIUS = 1.05
 export const MATH_TEACHER_SWING_WINDUP_MS = 320
 export const MATH_TEACHER_SWING_RECOVERY_MS = 430
 export const MATH_TEACHER_SWING_KNOCKBACK_SPEED = 4.8
