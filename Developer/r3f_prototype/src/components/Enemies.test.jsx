@@ -15,7 +15,11 @@ import {
   RUN_ZOMBIE_CREW_SIZE,
   RUN_ZOMBIE_CREW_DIR,
   waveSizeForPhase,
+  rawWaveSizeForStage,
   waveSizeForStageAtTime,
+  stageExpectedBaseJarmobHp,
+  STAGE_JARMOB_HP_MULTIPLIER,
+  STAGE_DENSITY_MULTIPLIER,
   getWaveSpawnSeconds,
   nextWaveInterval,
   nextWaveTimeForStage,
@@ -200,38 +204,52 @@ describe('random-interval discrete wave scheduler', () => {
   it('schedules stage 2 opening waves at 0s and 30s, then triples only those two spawns', () => {
     const opening = { target: 18 }
     const thirtySecond = { target: 22 }
+    // 실제 크기 = 구조적 크기(raw) × stage2 밀도배율. raw는 오프닝/30초만 ×3 프론트로드.
+    const dens = (raw) => Math.max(1, Math.round(raw * STAGE_DENSITY_MULTIPLIER.stage2))
 
     expect(nextWaveTimeForStage(0, 'stage2', () => 0)).toBe(30)
-    expect(waveSizeForStageAtTime(opening, 'stage2', 0)).toBe(27)
-    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 30)).toBe(33)
-    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 20)).toBe(11)
+    // raw: 9×3=27, 11×3=33, 11(비프론트로드) — 밀도배율(√c≈1.11)로 스케일된다.
+    expect(rawWaveSizeForStage(opening, 'stage2', 0)).toBe(27)
+    expect(rawWaveSizeForStage(thirtySecond, 'stage2', 30)).toBe(33)
+    expect(rawWaveSizeForStage(thirtySecond, 'stage2', 20)).toBe(11)
+    expect(waveSizeForStageAtTime(opening, 'stage2', 0)).toBe(dens(27))
+    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 30)).toBe(dens(33))
+    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 20)).toBe(dens(11))
   })
 
-  it('applies the 1.3x spawn multiplier to every stage 1 wave timing only', () => {
-    expect(STAGE1_SPAWN_MULTIPLIER).toBe(1.3)
+  it('applies the 1.15x spawn multiplier to every stage 1 wave timing only', () => {
+    expect(STAGE1_SPAWN_MULTIPLIER).toBe(1.15)
     WAVE_PHASES.forEach((phase) => {
       const baseSize = waveSizeForPhase(phase)
+      // stage1은 밀도배율 없음(앵커) → raw = round(base×1.15) 그대로.
       expect(waveSizeForStageAtTime(phase, 'stage1', phase.start))
         .toBe(Math.round(baseSize * STAGE1_SPAWN_MULTIPLIER))
-      // stage3는 t=0 오프닝만 ×2 프론트로드, 그 외 웨이브는 배율 없음(발견 C 오프닝 밀도 확립).
-      const expected = phase.start === 0 ? baseSize * 2 : baseSize
-      expect(waveSizeForStageAtTime(phase, 'stage3', phase.start)).toBe(expected)
+      // stage3: raw는 t=0 오프닝만 ×2 프론트로드, 그 외 배율 없음. 실제 크기는 raw × stage3 밀도배율(√c).
+      const raw = phase.start === 0 ? baseSize * 2 : baseSize
+      expect(waveSizeForStageAtTime(phase, 'stage3', phase.start))
+        .toBe(Math.max(1, Math.round(raw * STAGE_DENSITY_MULTIPLIER.stage3)))
     })
   })
 
-  it('front-loads only the stage3 opening wave (t=0 x2), later waves unmultiplied', () => {
-    const opening = { target: 20 }   // waveSize 10 → 20
-    const later = { target: 30 }     // waveSize 15 (배율 없음)
-    expect(waveSizeForStageAtTime(opening, 'stage3', 0)).toBe(20)
-    expect(waveSizeForStageAtTime(opening, 'stage3', 34)).toBe(10)
-    expect(waveSizeForStageAtTime(later, 'stage3', 108)).toBe(15)
+  it('front-loads only the stage3 opening wave (t=0 x2) before applying the density multiplier', () => {
+    const opening = { target: 20 }   // waveSize 10
+    const later = { target: 30 }     // waveSize 15
+    const dens = (raw) => Math.max(1, Math.round(raw * STAGE_DENSITY_MULTIPLIER.stage3))
+    // raw: 오프닝 20, 이후 10; later 15(배율 없음). 밀도배율은 √c≈1.23.
+    expect(rawWaveSizeForStage(opening, 'stage3', 0)).toBe(20)
+    expect(rawWaveSizeForStage(opening, 'stage3', 34)).toBe(10)
+    expect(rawWaveSizeForStage(later, 'stage3', 108)).toBe(15)
+    expect(waveSizeForStageAtTime(opening, 'stage3', 0)).toBe(dens(20))
+    expect(waveSizeForStageAtTime(opening, 'stage3', 34)).toBe(dens(10))
+    expect(waveSizeForStageAtTime(later, 'stage3', 108)).toBe(dens(15))
   })
 
-  it('raises dense stage 1 runtime wave sizes from the old 12-17 band to 16-22', () => {
+  it('keeps dense stage 1 runtime wave sizes in the reduced 1.15x band (14-20)', () => {
     WAVE_PHASES.filter((p) => p.target >= 24).forEach((phase) => {
       const size = waveSizeForStageAtTime(phase, 'stage1', phase.start)
-      expect(size).toBeGreaterThanOrEqual(16)
-      expect(size).toBeLessThanOrEqual(22)
+      expect(size).toBe(Math.round(waveSizeForPhase(phase) * STAGE1_SPAWN_MULTIPLIER))
+      expect(size).toBeGreaterThanOrEqual(14)
+      expect(size).toBeLessThanOrEqual(20)
     })
   })
 })
@@ -246,11 +264,11 @@ describe('stage 1 midpoint reinforcement spawns', () => {
   })
 
   it('sizes the reinforcement at half the main wave, minimum one', () => {
-    // 기존 보강값(본 웨이브의 절반)에 Stage 1 ×1.3을 적용한다.
-    expect(midWaveSize({ target: 24 })).toBe(8)   // 기존 6 → 8
-    expect(midWaveSize({ target: 34 })).toBe(12)  // 기존 9 → 12
-    expect(midWaveSize({ target: 15 })).toBe(5)   // 기존 4 → 5
-    expect(midWaveSize({ target: 11 })).toBe(4)   // 기존 3 → 4
+    // 기존 보강값(본 웨이브의 절반)에 Stage 1 ×1.15(하향)를 적용한다.
+    expect(midWaveSize({ target: 24 })).toBe(7)   // base 6 × 1.15
+    expect(midWaveSize({ target: 34 })).toBe(10)  // base 9 × 1.15
+    expect(midWaveSize({ target: 15 })).toBe(5)   // base 4 × 1.15
+    expect(midWaveSize({ target: 11 })).toBe(3)   // base 3 × 1.15
     // 빈 보강 방지: 아주 작은/누락 phase도 최소 1.
     expect(midWaveSize({ target: 1 })).toBe(1)
     expect(midWaveSize({ target: 0 })).toBe(1)
@@ -283,8 +301,8 @@ describe('stage 1 midpoint reinforcement spawns', () => {
 
 describe('boss entrance escort wave', () => {
   it('spawns one full stage1 wave alongside the B01 boss at 120s', () => {
-    // 120s 활성 phase(start 120, target 24) → 기존 12마리 ×1.3 = 16마리.
-    expect(bossEscortSize('stage1', WAVE_PHASES, 120)).toBe(16)
+    // 120s 활성 phase(start 120, target 24) → 12마리 ×1.15(하향) = 14마리.
+    expect(bossEscortSize('stage1', WAVE_PHASES, 120)).toBe(14)
   })
 
   it('adds no escort on stage2/stage3 bosses (their boss phases are separately tuned)', () => {
@@ -304,16 +322,20 @@ describe('boss entrance escort wave', () => {
 })
 
 describe('ascending stage HP curve (+10% per stage from stage1)', () => {
-  it('scales every stage 2 combat enemy HP to 1.10x (+10% per stage), boss included', () => {
-    expect(stageHpOverride('E02', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E02.hp * 1.10) })  // 70 -> 77
-    expect(stageHpOverride('E01', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E01.hp * 1.10) })  // 8 -> 9
-    expect(stageHpOverride('E06', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E06.hp * 1.10) })  // 320 -> 352
+  it('scales stage 2 jarmob HP by the blended sqrt(c) multiplier, boss by the +10% curve', () => {
+    // 잡몹 E01~E06: √c 총HP-균등 배율(STAGE_JARMOB_HP_MULTIPLIER.stage2 ≈ 1.11).
+    expect(stageHpOverride('E02', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E02.hp * STAGE_JARMOB_HP_MULTIPLIER.stage2) })
+    expect(stageHpOverride('E01', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E01.hp * STAGE_JARMOB_HP_MULTIPLIER.stage2) })
+    expect(stageHpOverride('E06', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E06.hp * STAGE_JARMOB_HP_MULTIPLIER.stage2) })
+    // 보스 B02는 기존 개별 +10% 곡선 유지(변경 없음).
     expect(stageHpOverride('B02', 'stage2')).toEqual({ hp: 1265 })                                   // 1150 -> 1265
   })
 
-  it('scales every stage 3 combat enemy HP to 1.21x (+10% per stage), PE teacher boss included', () => {
-    expect(stageHpOverride('E02', 'stage3')).toEqual({ hp: Math.round(ENEMY_STATS.E02.hp * 1.21) }) // 70 -> 85
-    expect(stageHpOverride('E06', 'stage3')).toEqual({ hp: Math.round(ENEMY_STATS.E06.hp * 1.21) }) // 320 -> 387
+  it('scales stage 3 jarmob HP by the blended sqrt(c) multiplier, PE teacher boss by the +10% curve', () => {
+    // 잡몹 E01~E06: √c 배율(STAGE_JARMOB_HP_MULTIPLIER.stage3 ≈ 1.23).
+    expect(stageHpOverride('E02', 'stage3')).toEqual({ hp: Math.round(ENEMY_STATS.E02.hp * STAGE_JARMOB_HP_MULTIPLIER.stage3) })
+    expect(stageHpOverride('E06', 'stage3')).toEqual({ hp: Math.round(ENEMY_STATS.E06.hp * STAGE_JARMOB_HP_MULTIPLIER.stage3) })
+    // 보스 B03는 기존 개별 +10% 곡선 유지(변경 없음).
     expect(stageHpOverride('B03', 'stage3')).toEqual({ hp: 1392 })                                  // 1150 -> 1392
   })
 
@@ -321,6 +343,41 @@ describe('ascending stage HP curve (+10% per stage from stage1)', () => {
     expect(stageHpOverride('E02', 'stage1')).toBeUndefined()
     expect(stageHpOverride('B01', 'stage1')).toBeUndefined()
     expect(stageHpOverride('NOPE', 'stage2')).toBeUndefined()
+  })
+})
+
+describe('jarmob expected total HP rises exactly +10% per stage', () => {
+  const STAGES = ['stage1', 'stage2', 'stage3', 'stage4']
+  // 배율 적용 후 잡몹 기대 총 HP(연속 모델) = base × HP배율 × 밀도배율. stage1은 배율 1.
+  const totalFor = (stageId) => {
+    const base = stageExpectedBaseJarmobHp(stageId)
+    const hpMult = STAGE_JARMOB_HP_MULTIPLIER[stageId] ?? 1
+    const densMult = STAGE_DENSITY_MULTIPLIER[stageId] ?? 1
+    return base * hpMult * densMult
+  }
+
+  it('anchors stage1 base expected jarmob HP in the ~4500-4650 range', () => {
+    const anchor = stageExpectedBaseJarmobHp('stage1')
+    expect(anchor).toBeGreaterThanOrEqual(4500)
+    expect(anchor).toBeLessThanOrEqual(4650)
+  })
+
+  it('holds each stage-to-stage jarmob total-HP ratio at 1.10 (+-1%)', () => {
+    for (let i = 1; i < STAGES.length; i++) {
+      const ratio = totalFor(STAGES[i]) / totalFor(STAGES[i - 1])
+      expect(ratio).toBeGreaterThanOrEqual(1.089)  // 1.10 - 1%
+      expect(ratio).toBeLessThanOrEqual(1.111)     // 1.10 + 1%
+    }
+  })
+
+  it('uses equal sqrt(c) multipliers for HP and density (blend splits the burden in half)', () => {
+    for (const stageId of ['stage2', 'stage3', 'stage4']) {
+      expect(STAGE_JARMOB_HP_MULTIPLIER[stageId]).toBe(STAGE_DENSITY_MULTIPLIER[stageId])
+      expect(STAGE_JARMOB_HP_MULTIPLIER[stageId]).toBeGreaterThan(1)
+    }
+    // stage1은 앵커라 배율이 없다(undefined).
+    expect(STAGE_JARMOB_HP_MULTIPLIER.stage1).toBeUndefined()
+    expect(STAGE_DENSITY_MULTIPLIER.stage1).toBeUndefined()
   })
 })
 

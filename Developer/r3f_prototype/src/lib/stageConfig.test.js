@@ -79,8 +79,8 @@ describe('stage configuration registry', () => {
     })
     // 로비 카드와 실제 전투가 일치하므로 lobbyBossType 분리는 제거됨.
     expect(getStageConfig('stage3').lobbyBossType).toBeUndefined()
-    // 가로폭(X) 1/3 축소로 세로로 긴 통로형 경계(halfX 18→6, halfZ 유지).
-    expect(getStageBounds('stage3')).toMatchObject({ halfX: 6, halfZ: 18 })
+    // 맵 경계를 stage2와 동일하게 맞춤(2026-07-23): halfX 6→7.5, halfZ 18→19.2 (R1 밀도 완화).
+    expect(getStageBounds('stage3')).toMatchObject({ halfX: 7.5, halfZ: 19.2 })
     // 체육교사 B03 단일 보스.
     expect(getStageBossType('stage3')).toBe('B03')
   })
