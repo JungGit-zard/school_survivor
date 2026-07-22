@@ -6,7 +6,7 @@ import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import UserRanking from './UserRanking.jsx'
 import { saveAdminConfig } from '../lib/adminConfig.js'
-import { STORAGE_KEY } from '../lib/playerRecords.js'
+import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { isFirebaseRankingConfigured, subscribeGlobalRanking } from '../lib/firebaseRanking.js'
 
@@ -18,6 +18,7 @@ vi.mock('../lib/firebaseRanking.js', () => ({
 describe('UserRanking', () => {
   beforeEach(() => {
     localStorage.clear()
+    _seedHydratedFirebaseProgressForTests()
     useAuthStore.setState({ user: null })
     isFirebaseRankingConfigured.mockReturnValue(false)
     subscribeGlobalRanking.mockReset()
@@ -63,10 +64,16 @@ describe('UserRanking', () => {
   })
 
   it('shows cumulative play and season best at the top of the ranking screen', () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      totalRuns: 411,
-      bestSurvivalSeconds: 796,
-    }))
+    _seedHydratedFirebaseProgressForTests({ uid: 'ranking-user' }, {
+      schemaVersion: 1,
+      profile: { uid: 'ranking-user', displayName: '', nickname: '' },
+      progress: {
+        records: {
+          totalRuns: 411,
+          bestSurvivalSeconds: 796,
+        },
+      },
+    })
 
     const html = renderToStaticMarkup(<UserRanking onBack={() => {}} entries={[]} />)
 
@@ -139,7 +146,11 @@ describe('UserRanking', () => {
   })
 
   it('uses an arrived cloud board as the period ranking instead of adding a local lifetime record', () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ bestSurvivalSeconds: 999 }))
+    _seedHydratedFirebaseProgressForTests({ uid: 'local-user' }, {
+      schemaVersion: 1,
+      profile: { uid: 'local-user', displayName: 'Local lifetime', nickname: '' },
+      progress: { records: { bestSurvivalSeconds: 999 } },
+    })
     useAuthStore.setState({ user: { uid: 'local-user', displayName: 'Local lifetime' } })
     isFirebaseRankingConfigured.mockReturnValue(true)
     const unsubscribers = { daily: vi.fn(), weekly: vi.fn() }

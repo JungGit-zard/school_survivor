@@ -4,11 +4,13 @@ import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import LobbySettingsModal from './LobbySettingsModal.jsx'
+import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 
 describe('LobbySettingsModal', () => {
   beforeEach(() => {
     localStorage.clear()
+    _seedHydratedFirebaseProgressForTests()
   })
 
   it('signs out of Google and forces the title screen from settings', async () => {

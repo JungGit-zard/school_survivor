@@ -3,11 +3,10 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { useGameStore } from './useGameStore.js'
 import { _resetForTests as resetWeaponUnlocks, setUnlocked } from '../lib/weaponUnlocks.js'
 import { resetWeaponPermanentUpgradeLevels } from '../lib/weaponPermanentUpgrades.js'
-
-const GOLD_KEY = 'school_survivor:goldTotal'
+import { _seedHydratedFirebaseProgressForTests, getFirebaseProgressRuntimeSnapshot } from '../lib/firebaseProgress.js'
 
 function resetStore() {
-  localStorage.clear()
+  _seedHydratedFirebaseProgressForTests()
   resetWeaponUnlocks()
   resetWeaponPermanentUpgradeLevels()
   useGameStore.setState({ goldTotal: 0, passiveVersion: 0 })
@@ -22,14 +21,13 @@ describe('useGameStore weapon permanent upgrades', () => {
 
   it('purchaseWeaponPermanentUpgrade spends gold, bumps version, and persists the level', () => {
     useGameStore.setState({ goldTotal: 300 })
-    localStorage.setItem(GOLD_KEY, '300')
 
     const result = useGameStore.getState().purchaseWeaponPermanentUpgrade('pencilThrow')
 
     expect(result).toMatchObject({ ok: true, nextLevel: 1, price: 300, nextGold: 0 })
     expect(useGameStore.getState().goldTotal).toBe(0)
     expect(useGameStore.getState().passiveVersion).toBe(1)
-    expect(localStorage.getItem(GOLD_KEY)).toBe('0')
+    expect(getFirebaseProgressRuntimeSnapshot().progress.goldTotal).toBe(0)
   })
 
   it('blocks locked non-starter weapon permanent upgrade purchases', () => {
@@ -47,7 +45,7 @@ describe('useGameStore weapon permanent upgrades', () => {
     useGameStore.getState().purchaseWeaponPermanentUpgrade('pencilThrow')
     useGameStore.getState().resetGame('stage1')
 
-    expect(useGameStore.getState().weapons.pencilThrow.damage).toBeCloseTo(6.2, 1)
+    expect(useGameStore.getState().weapons.pencilThrow.damage).toBeCloseTo(3.1, 1)
   })
 
   it('allows unlocked non-starter weapon permanent upgrades through the store action', () => {

@@ -44,4 +44,23 @@ describe('GoogleAccountPanelView', () => {
     expect(html).toContain('kim@example.com')
     expect(html).toContain('로그아웃')
   })
+
+  it('shows the master badge only for the verified exact Google master', () => {
+    const html = renderToStaticMarkup(
+      <GoogleAccountPanelView
+        status="signedIn"
+        signingIn={false}
+        user={{
+          displayName: 'Master',
+          email: 'zard5388@gmail.com',
+          emailVerified: true,
+          providerIds: ['google.com'],
+        }}
+        onSignIn={() => {}}
+        onSignOut={() => {}}
+      />,
+    )
+
+    expect(html).toContain('최고관리자')
+  })
 })

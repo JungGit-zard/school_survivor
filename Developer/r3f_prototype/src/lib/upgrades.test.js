@@ -6,6 +6,14 @@ import { WEAPON_CATALOG } from './weaponCatalog.js'
 const wpn = (overrides = {}) => ({ active: false, level: 0, damage: 5, ...overrides })
 
 describe('applyUpgradeToWeapon', () => {
+  it('연필 피해 강화는 절반 수치인 +1.5만 적용한다', () => {
+    const out = applyUpgradeToWeapon(
+      wpn({ active: true, level: 1, damage: WEAPON_CATALOG.pencilThrow.base.damage }),
+      UPGRADE_EFFECTS.pencilDamage,
+    )
+    expect(out.damage).toBe(4.5)
+  })
+
   it('unlock effect: active=true, level=1로 초기화', () => {
     const out = applyUpgradeToWeapon(wpn(), { kind: 'acquire' })
     expect(out.active).toBe(true)

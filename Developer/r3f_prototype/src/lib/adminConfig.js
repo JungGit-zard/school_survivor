@@ -1,6 +1,5 @@
 import { normalizeWaveEntries } from './waveControl.js'
 
-export const ADMIN_CONFIG_STORAGE_KEY = 'school_survivor:adminConfig'
 export const ADMIN_CONFIG_SCHEMA_VERSION = 1
 
 export const DEFAULT_ADMIN_CONFIG = Object.freeze({
@@ -50,30 +49,25 @@ export const DEFAULT_ADMIN_CONFIG = Object.freeze({
 })
 
 const ALLOWED_SEASON_STATUSES = new Set(['draft', 'live', 'closed'])
+// 운영 콘솔 설정은 런타임 메모리에만 둔다. Firebase 원격 정본 연결이 준비되기 전에도
+// 브라우저 저장소로 대체하지 않는다.
+let runtimeConfig = normalizeAdminConfig()
 
-export function loadAdminConfig(storage = getBrowserStorage()) {
-  const raw = storage?.getItem?.(ADMIN_CONFIG_STORAGE_KEY)
-  if (!raw) return normalizeAdminConfig()
-
-  try {
-    return normalizeAdminConfig(JSON.parse(raw))
-  } catch {
-    return normalizeAdminConfig()
-  }
+export function loadAdminConfig() {
+  return normalizeAdminConfig(runtimeConfig)
 }
 
-export function saveAdminConfig(config, storage = getBrowserStorage()) {
-  const normalized = {
+export function saveAdminConfig(config) {
+  runtimeConfig = {
     ...normalizeAdminConfig(config),
     updatedAt: new Date().toISOString(),
   }
-  storage?.setItem?.(ADMIN_CONFIG_STORAGE_KEY, JSON.stringify(normalized))
-  return normalized
+  return loadAdminConfig()
 }
 
-export function resetAdminConfig(storage = getBrowserStorage()) {
-  storage?.removeItem?.(ADMIN_CONFIG_STORAGE_KEY)
-  return normalizeAdminConfig()
+export function resetAdminConfig() {
+  runtimeConfig = normalizeAdminConfig()
+  return loadAdminConfig()
 }
 
 export function getAdminBalanceConfig() {
@@ -163,10 +157,6 @@ function normalizeRewardTiers(rewardTiers) {
       badge: readLimitedString(tier.badge, 32) || def.badge,
     }
   })
-}
-
-function getBrowserStorage() {
-  return typeof localStorage === 'undefined' ? null : localStorage
 }
 
 function isObject(value) {

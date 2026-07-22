@@ -1,6 +1,7 @@
-import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import GoogleAccountPanel from './GoogleAccountPanel.jsx'
-import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
+import TitleSceneCanvas from './TitleSceneCanvas.jsx'
+import { isFirebaseProgressHydrated, requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import {
@@ -13,8 +14,6 @@ import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } fr
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 import titleBgmUrl from '../assets/audio/title_bgm.m4a'
-
-const TitleSceneCanvas = lazy(() => import('./TitleSceneCanvas.jsx'))
 
 const REVEAL_CHEATS_CODE = ['arrowup', 'arrowdown', 'arrowup', 'arrowdown', 'a', 's', 'd']
 const TITLE_ACCENT_LETTERS = [
@@ -82,16 +81,23 @@ export default function TitleScreen({
   devCheatsVisible = false,
   onRevealDevCheats,
   onUnlockAllStages,
-  studioVisualsReady = true,
+  studioVisualsReady = false,
   ensureStudioCloudReady,
 }) {
   const [cheatOpen, setCheatOpen] = useState(false)
   const [nicknameOpen, setNicknameOpen] = useState(false)
   const [nicknameInput, setNicknameInput] = useState('')
   const [nicknameError, setNicknameError] = useState('')
-  const [settings] = useState(loadTitleSettings)
-  const [cheatRevealMessage, setCheatRevealMessage] = useState(false)
   const authUser = useAuthStore((s) => s.user)
+  const [settings] = useState(() => (
+    isFirebaseProgressHydrated(authUser) ? loadTitleSettings() : {
+      vibration: true,
+      reducedEffects: false,
+      unlockAllWeaponsCheat: false,
+      unlockAllStagesCheat: false,
+    }
+  ))
+  const [cheatRevealMessage, setCheatRevealMessage] = useState(false)
   const signingIn = useAuthStore((s) => s.signingIn)
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle)
   const resetPassiveUpgrades = useGameStore((s) => s.resetPassiveUpgrades)
@@ -250,7 +256,7 @@ export default function TitleScreen({
     resetPassiveUpgrades()
   }
 
-  // 로그인/닉네임 게이트 보존: 미로그인 → 구글 로그인 → 닉네임 없으면 닉네임 모달 → 있으면 로비 진입.
+  // 로그인/닉네임 게이트: 미로그인 → Google 로그인 → 닉네임 없으면 닉네임 모달 → 있으면 로비 진입.
   const handleStartClick = async () => {
     let user = authUser
     if (!user?.uid) {
@@ -294,17 +300,11 @@ export default function TitleScreen({
   return (
     <div style={styles.root}>
       <style data-title-intro-css>{TITLE_INTRO_CSS}</style>
-      <Suspense
-        fallback={(
-          <div data-testid="mock-canvas" className="title-intro-scene" style={{ ...styles.canvas, animationDelay: '3000ms' }}>
-            <div data-testid="mock-title-scene" data-reduced-effects="false" />
-          </div>
-        )}
-      >
-        {studioVisualsReady ? (
-          <TitleSceneCanvas className="title-intro-scene" style={{ ...styles.canvas, animationDelay: '3000ms' }} />
-        ) : null}
-      </Suspense>
+      <TitleSceneCanvas
+        className="title-intro-scene"
+        style={{ ...styles.canvas, animationDelay: '3000ms' }}
+        studioVisualsReady={studioVisualsReady}
+      />
 
       <div style={styles.tint} />
       <div style={styles.vignette} />

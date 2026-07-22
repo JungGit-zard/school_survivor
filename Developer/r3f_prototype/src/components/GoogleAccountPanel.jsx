@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useAuthStore } from '../store/useAuthStore.js'
+import { isProjectMaster } from '../lib/projectAdmin.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 
 export default function GoogleAccountPanel() {
@@ -45,6 +46,7 @@ export function GoogleAccountPanelView({ status, user, error, signingIn, onSignI
           <span style={styles.detail}>
             {signedIn ? (user.email || '계정 연결됨') : getPanelDetail(status, error)}
           </span>
+          {signedIn && isProjectMaster(user) && <span style={styles.masterBadge}>최고관리자</span>}
         </span>
       </div>
       {signedIn ? (
@@ -147,6 +149,17 @@ const styles = {
     fontWeight: 800,
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
+  },
+  masterBadge: {
+    display: 'inline-block',
+    marginTop: 3,
+    padding: '1px 4px',
+    borderRadius: 4,
+    background: '#5e2ca5',
+    color: '#fff9d9',
+    fontSize: 9,
+    fontWeight: uiType.weightHeavy,
+    lineHeight: 1.2,
   },
   primaryButton: {
     ...schoolButton('primary'),

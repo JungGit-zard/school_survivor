@@ -4,7 +4,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import AdminPage from './AdminPage.jsx'
-import { loadAdminConfig } from '../lib/adminConfig.js'
+import { loadAdminConfig, resetAdminConfig } from '../lib/adminConfig.js'
+import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { getStageConfig } from '../lib/stageConfig.js'
 import { useGameStore } from '../store/useGameStore.js'
 
@@ -13,7 +14,9 @@ describe('AdminPage', () => {
   let root
 
   beforeEach(() => {
-    localStorage.clear()
+    _resetFirebaseProgressForTests()
+    _seedHydratedFirebaseProgressForTests()
+    resetAdminConfig()
     container = document.createElement('div')
     document.body.appendChild(container)
     root = createRoot(container)

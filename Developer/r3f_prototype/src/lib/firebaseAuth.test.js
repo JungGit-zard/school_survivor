@@ -46,12 +46,35 @@ describe('firebase auth configuration', () => {
       displayName: 'Tester',
       email: 'tester@example.com',
       photoURL: 'https://example.com/me.png',
+      emailVerified: true,
+      providerData: [{ providerId: 'google.com' }],
     })).toEqual({
       uid: 'uid-1',
       displayName: 'Tester',
       email: 'tester@example.com',
       photoURL: 'https://example.com/me.png',
+      emailVerified: true,
+      providerIds: ['google.com'],
+      isProjectMaster: false,
     })
+  })
+
+  it('derives project master state from Firebase verification and Google provider data only', () => {
+    expect(toAuthUser({
+      uid: 'master',
+      displayName: 'Master',
+      email: 'zard5388@gmail.com',
+      photoURL: '',
+      emailVerified: true,
+      providerData: [{ providerId: 'google.com' }],
+    }).isProjectMaster).toBe(true)
+
+    expect(toAuthUser({
+      uid: 'unverified-master',
+      email: 'zard5388@gmail.com',
+      emailVerified: false,
+      providerData: [{ providerId: 'google.com' }],
+    }).isProjectMaster).toBe(false)
   })
 
   it('uses native Google sign-in inside Capacitor shells only', () => {

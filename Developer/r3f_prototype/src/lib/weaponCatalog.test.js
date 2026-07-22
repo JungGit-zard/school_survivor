@@ -18,7 +18,7 @@ describe('weaponCatalog', () => {
   })
 
   it('Starter base 스탯이 BASE_WEAPONS 정본 값과 일치한다', () => {
-    expect(WEAPON_CATALOG.pencilThrow.base.damage).toBe(6) // 5→6 (초반 생존 개선)
+    expect(WEAPON_CATALOG.pencilThrow.base.damage).toBe(3) // 6→3 (연필 직접 피해 절반)
     expect(WEAPON_CATALOG.pencilThrow.base.cooldown).toBe(550) // 발사속도 2배 (1100→550)
     expect(WEAPON_CATALOG.schoolBag.base.damage).toBe(12)
     expect(WEAPON_CATALOG.boxCutter.base.damage).toBe(24) // '30cm 자'(12)의 2배
@@ -33,7 +33,7 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.onigiri.base.damage).toBe(21)
     expect(WEAPON_CATALOG.onigiri.base.cooldown).toBe(5000)
     expect(WEAPON_CATALOG.onigiri.base.bounces).toBe(2)
-    expect(WEAPON_CATALOG.chibiko.base.damage).toBe(5)
+    expect(WEAPON_CATALOG.chibiko.base.damage).toBe(2.5)
     expect(WEAPON_CATALOG.chibiko.base.cooldown).toBe(1100)
     expect(WEAPON_CATALOG.chibiko.base.followDistance).toBe(0.72)
   })

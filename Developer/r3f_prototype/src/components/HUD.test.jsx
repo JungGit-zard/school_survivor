@@ -16,7 +16,7 @@ import { useGameStore } from '../store/useGameStore.js'
 import { _resetForTests as resetWeaponUnlocks, setUnlocked } from '../lib/weaponUnlocks.js'
 import { STORAGE_KEY as PLAYER_RECORDS_KEY, load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { buildLocalPlayerRankingEntry } from '../lib/userRanking.js'
-import { ADMIN_CONFIG_STORAGE_KEY, saveAdminConfig } from '../lib/adminConfig.js'
+import { resetAdminConfig, saveAdminConfig } from '../lib/adminConfig.js'
 import { saveStudioTunings } from '../lib/graphicsStudioConfig.js'
 import { getStageConfig } from '../lib/stageConfig.js'
 import { STAGE4_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
@@ -53,7 +53,7 @@ afterEach(() => {
   useGameStore.getState().resetGame()
   resetWeaponUnlocks()
   localStorage.removeItem(PLAYER_RECORDS_KEY)
-  localStorage.removeItem(ADMIN_CONFIG_STORAGE_KEY)
+  resetAdminConfig()
   setFirebaseStudioUser(null)
   blockFirebaseStudioRuntime()
 })

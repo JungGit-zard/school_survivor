@@ -9,7 +9,7 @@ const CRIT_MULT_STEP = 0.75
 const CRIT_MULT_CAP = 4.5
 
 export const UPGRADE_EFFECTS = {
-  pencilDamage:   { weapon: 'pencilThrow',   kind: 'damage', dmg: 3 },
+  pencilDamage:   { weapon: 'pencilThrow',   kind: 'damage', dmg: 1.5 },
   pencilCount:    { weapon: 'pencilThrow',   kind: 'stat',   stat: 'projectileCount', step: 1,    cap: 4 },
   pencilPierce:   { weapon: 'pencilThrow',   kind: 'stat',   stat: 'pierce',          step: 1,    cap: 3 },
   pencilCrit:     { weapon: 'pencilThrow',   kind: 'crit',   chanceStep: 0.02, chanceCap: 0.24, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },

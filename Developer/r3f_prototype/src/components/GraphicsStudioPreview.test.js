@@ -205,6 +205,7 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(sourceByFile['./VFXLayer.jsx']).toContain('vfx-pickup-pop')
     expect(sourceByFile['./EnemyDeathCollapse.jsx']).toContain('enemy-death-collapse')
     expect(sourceByFile['./EnemyDeathCollapse.jsx']).toContain("enemy-death-${String(index + 1).padStart(2, '0')}")
-    expect(sourceByFile['./TitleScene3D.jsx']).toContain('title-scene')
+    expect(sourceByFile['./TitleScene3D.jsx']).toContain('StudioTuningRuntimeProvider')
+    expect(sourceByFile['./TitleScene3D.jsx']).toContain('playerVisualReady ?')
   })
 })

@@ -1,11 +1,14 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest'
-import { saveAdminConfig } from '../lib/adminConfig.js'
+import { resetAdminConfig, saveAdminConfig } from '../lib/adminConfig.js'
+import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { useGameStore } from './useGameStore.js'
 
 describe('useGameStore admin balance integration', () => {
   beforeEach(() => {
-    localStorage.clear()
+    _resetFirebaseProgressForTests()
+    _seedHydratedFirebaseProgressForTests()
+    resetAdminConfig()
     useGameStore.getState().resetGame()
   })
 

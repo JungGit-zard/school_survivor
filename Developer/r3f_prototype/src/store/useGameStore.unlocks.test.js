@@ -1,15 +1,15 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore } from './useGameStore.js'
-import { STORAGE_KEY as RECORDS_KEY, _resetForTests as _resetRecords } from '../lib/playerRecords.js'
-import { STORAGE_KEY as UNLOCKS_KEY, _resetForTests as _resetUnlocks } from '../lib/weaponUnlocks.js'
+import { load as loadPlayerRecords, _resetForTests as _resetRecords } from '../lib/playerRecords.js'
+import { getAllUnlocked, _resetForTests as _resetUnlocks } from '../lib/weaponUnlocks.js'
+import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 
 describe('useGameStore run-end unlock evaluator', () => {
   beforeEach(() => {
+    _seedHydratedFirebaseProgressForTests()
     _resetRecords()
     _resetUnlocks()
-    localStorage.removeItem('school_survivor:goldTotal')
-    localStorage.removeItem('school_survivor:passiveUpgrades')
     useGameStore.getState().resetGame()
     useGameStore.setState({
       runKills: 0,
@@ -25,9 +25,8 @@ describe('useGameStore run-end unlock evaluator', () => {
     useGameStore.getState()._onRunEnd('gameover')
     const s = useGameStore.getState()
     expect(s.newlyUnlockedWeaponIds).toContain('compassBlade')
-    // disk에도 반영
-    const unlocks = JSON.parse(localStorage.getItem(UNLOCKS_KEY))
-    expect(unlocks.compassBlade).toBe(1)
+    // Firebase hydrate 정본에도 반영
+    expect(getAllUnlocked()).toContain('compassBlade')
   })
 
   it('starter 무기는 newlyUnlockedWeaponIds에 절대 들어가지 않는다', () => {
@@ -57,7 +56,7 @@ describe('useGameStore run-end unlock evaluator', () => {
   it('4분 클리어 → stage1Clears 누적 +1', () => {
     useGameStore.setState({ elapsedMs: 240_000 })
     useGameStore.getState()._onRunEnd('cleared')
-    const records = JSON.parse(localStorage.getItem(RECORDS_KEY))
+    const records = loadPlayerRecords()
     expect(records.stage1Clears).toBe(1)
   })
 
@@ -67,7 +66,7 @@ describe('useGameStore run-end unlock evaluator', () => {
 
     useGameStore.getState()._onRunEnd('cleared')
 
-    const records = JSON.parse(localStorage.getItem(RECORDS_KEY))
+    const records = loadPlayerRecords()
     expect(records.stage2Clears).toBe(1)
     expect(records.stage2BestSurvivalSec).toBe(240)
     expect(records.stage1Clears).toBeUndefined()
@@ -90,7 +89,7 @@ describe('useGameStore run-end unlock evaluator', () => {
       goldSession: 0,
     })
     expect(s.gameKey).toBe(beforeKey + 1)
-    const records = JSON.parse(localStorage.getItem(RECORDS_KEY))
+    const records = loadPlayerRecords()
     expect(records.stage1Clears).toBe(1)
     expect(records.bestSurvivalSeconds).toBe(240)
     expect(records.totalKills).toBe(80)
@@ -112,7 +111,7 @@ describe('useGameStore run-end unlock evaluator', () => {
       elapsedMs: 240_000,
     })
     expect(s.gameKey).toBe(beforeKey)
-    const records = JSON.parse(localStorage.getItem(RECORDS_KEY))
+    const records = loadPlayerRecords()
     expect(records.stage4Clears).toBe(1)
   })
 
@@ -122,14 +121,14 @@ describe('useGameStore run-end unlock evaluator', () => {
 
     useGameStore.getState()._onRunEnd('gameover')
 
-    const records = JSON.parse(localStorage.getItem(RECORDS_KEY))
+    const records = loadPlayerRecords()
     expect(records.stage1Survival180Runs).toBe(1)
   })
 
   it('gameover phase는 stage1Clears 누적 안 함', () => {
     useGameStore.setState({ elapsedMs: 200_000 })
     useGameStore.getState()._onRunEnd('gameover')
-    const records = JSON.parse(localStorage.getItem(RECORDS_KEY))
+    const records = loadPlayerRecords()
     expect(records.stage1Clears).toBeUndefined()
   })
 
@@ -138,7 +137,7 @@ describe('useGameStore run-end unlock evaluator', () => {
     // 평가 후 snapshot에서 totalKills=80 누적
     useGameStore.setState({ runKills: 80, goldSession: 30, runLevelUps: 5, elapsedMs: 240_000 })
     useGameStore.getState()._onRunEnd('gameover')
-    const records = JSON.parse(localStorage.getItem(RECORDS_KEY))
+    const records = loadPlayerRecords()
     expect(records.totalKills).toBe(80)
     expect(records.totalGold).toBe(30)
     expect(records.totalLevelUps).toBe(5)
@@ -186,11 +185,12 @@ describe('useGameStore run-end unlock evaluator', () => {
   // cumulative-only 분기를 가진 starlink가 임계 직전 pre-seed 상태에서 본 런만으로
   // 임계를 넘기는 시나리오. snapshot이 평가보다 먼저 일어나면 starlink가 잘못 unlock된다.
   it('평가→snapshot 순서 회귀: pre-seed totalKills:4920 + runKills:80 → starlink는 unlock 안 됨', () => {
-    // totalKills 4920 pre-seed
-    localStorage.setItem(
-      'school_survivor:playerRecords',
-      JSON.stringify({ totalKills: 4920 })
-    )
+    // Firebase hydrate 스냅샷에 totalKills 4920 pre-seed
+    _seedHydratedFirebaseProgressForTests({ uid: 'unlock-order-user' }, {
+      schemaVersion: 1,
+      profile: { uid: 'unlock-order-user', displayName: '', nickname: '' },
+      progress: { records: { totalKills: 4920 } },
+    })
     useGameStore.setState({ runKills: 80 })
     useGameStore.getState()._onRunEnd('gameover')
 
@@ -201,7 +201,7 @@ describe('useGameStore run-end unlock evaluator', () => {
     expect(ids).toContain('compassBlade')
 
     // 그리고 snapshot은 평가 후 실행되어 totalKills를 5000으로 올렸어야 한다.
-    const records = JSON.parse(localStorage.getItem('school_survivor:playerRecords'))
+    const records = loadPlayerRecords()
     expect(records.totalKills).toBe(5000)
   })
 
@@ -214,7 +214,7 @@ describe('useGameStore run-end unlock evaluator', () => {
 
   it('recordBossKill은 cumulative bossKills를 즉시 누적', () => {
     useGameStore.getState().recordBossKill()
-    const records = JSON.parse(localStorage.getItem(RECORDS_KEY))
+    const records = loadPlayerRecords()
     expect(records.bossKills).toBe(1)
   })
 
@@ -240,9 +240,9 @@ describe('useGameStore run-end unlock evaluator', () => {
 
 describe('더블 보스 클리어 게이팅 (stage3)', () => {
   beforeEach(() => {
+    _seedHydratedFirebaseProgressForTests()
     _resetRecords()
     _resetUnlocks()
-    localStorage.removeItem('school_survivor:goldTotal')
     useGameStore.getState().resetGame('stage3')
     useGameStore.setState({ elapsedMs: 150_000 })
   })

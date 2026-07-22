@@ -5,6 +5,7 @@ import { isE2EAuthBypass, getE2EUser } from '../lib/e2eAuth.js'
 
 let authClientPromise = null
 let unsubscribeAuth = null
+let googleSignInInFlight = null
 
 export const useAuthStore = create((set, get) => ({
   status: isFirebaseAuthConfigured() ? 'checking' : 'unconfigured',
@@ -62,7 +63,11 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  signInWithGoogle: async () => {
+  signInWithGoogle: () => {
+    // 타이틀 시작·계정 패널 등 여러 진입점에서 같은 순간 요청해도 OAuth 팝업은 하나만 연다.
+    // 진행도 로딩이나 세션 상태를 재해석하지 않는, 로그인 요청 자체의 단일화 가드다.
+    if (googleSignInInFlight) return googleSignInInFlight
+
     if (isE2EAuthBypass()) {
       const user = getE2EUser()
       applyCloudProgressSnapshot({
@@ -71,28 +76,33 @@ export const useAuthStore = create((set, get) => ({
         progress: {},
       }, user)
       set({ status: 'signedIn', user, signingIn: false, error: null, progressStatus: 'ready', progressError: null })
-      return user
+      return Promise.resolve(user)
     }
     if (!isFirebaseAuthConfigured()) {
       set({ status: 'unconfigured', user: null, error: null, signingIn: false })
-      return null
+      return Promise.resolve(null)
     }
 
     set({ signingIn: true, error: null })
-    try {
-      const client = await getAuthClient()
-      const user = await client.signInWithGoogle()
-      syncCloudProgressUser(user)
-      set({ status: 'signedIn', user, signingIn: false, error: null })
-      return user
-    } catch (error) {
-      set({
-        status: 'error',
-        error: getErrorMessage(error),
-        signingIn: false,
-      })
-      return null
-    }
+    googleSignInInFlight = (async () => {
+      try {
+        const client = await getAuthClient()
+        const user = await client.signInWithGoogle()
+        syncCloudProgressUser(user)
+        set({ status: 'signedIn', user, signingIn: false, error: null })
+        return user
+      } catch (error) {
+        set({
+          status: 'error',
+          error: getErrorMessage(error),
+          signingIn: false,
+        })
+        return null
+      } finally {
+        googleSignInInFlight = null
+      }
+    })()
+    return googleSignInInFlight
   },
 
   signOutOfGoogle: async () => {
@@ -112,6 +122,7 @@ export function _resetAuthStoreForTests() {
   unsubscribeAuth?.()
   unsubscribeAuth = null
   authClientPromise = null
+  googleSignInInFlight = null
   useAuthStore.setState({
     status: isFirebaseAuthConfigured() ? 'checking' : 'unconfigured',
     user: null,

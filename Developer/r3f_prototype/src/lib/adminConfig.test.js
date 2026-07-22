@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
-  ADMIN_CONFIG_STORAGE_KEY,
   DEFAULT_ADMIN_CONFIG,
   loadAdminConfig,
   normalizeAdminConfig,
@@ -11,7 +10,7 @@ import {
 
 describe('admin operations config', () => {
   beforeEach(() => {
-    localStorage.clear()
+    resetAdminConfig()
   })
 
   it('loads the default operations config when nothing is saved', () => {
@@ -55,7 +54,7 @@ describe('admin operations config', () => {
     expect(config.rankingSeason.rewardTiers[0].rankTo).toBe(1)
   })
 
-  it('saves, loads, and resets admin config through localStorage', () => {
+  it('keeps saved admin config in runtime memory without browser durable storage', () => {
     saveAdminConfig({
       balance: {
         stageDurationSec: { stage1: 180 },
@@ -69,13 +68,11 @@ describe('admin operations config', () => {
       },
     })
 
-    expect(JSON.parse(localStorage.getItem(ADMIN_CONFIG_STORAGE_KEY)).balance.stageDurationSec.stage1).toBe(180)
     expect(loadAdminConfig().balance.player.maxHpBonus).toBe(20)
     expect(loadAdminConfig().operations.cheatMenuButtonVisible).toBe(false)
     expect(loadAdminConfig().rankingSeason.seasonName).toBe('방학 생존 시즌')
 
     resetAdminConfig()
-    expect(localStorage.getItem(ADMIN_CONFIG_STORAGE_KEY)).toBeNull()
     expect(loadAdminConfig().balance.stageDurationSec.stage1).toBe(240)
   })
 })

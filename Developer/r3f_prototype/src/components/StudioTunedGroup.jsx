@@ -372,13 +372,18 @@ function loadStudioState(itemId) {
   }
 }
 
-export default function StudioTunedGroup({ itemId, children, materialTuning = true }) {
+export default function StudioTunedGroup(props) {
   const previewOnly = useContext(StudioPreviewContext)
+  if (previewOnly) return <>{props.children}</>
+  return <StudioTunedRuntimeGroup {...props} />
+}
+
+function StudioTunedRuntimeGroup({ itemId, children, materialTuning = true }) {
   const groupRef = useRef(null)
   const [studioState, setStudioState] = useState(() => loadStudioState(itemId))
 
   useEffect(() => {
-    if (previewOnly || typeof window === 'undefined') return undefined
+    if (typeof window === 'undefined') return undefined
     const update = () => setStudioState(loadStudioState(itemId))
     window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
     window.addEventListener(TEXTURE_DECALS_EVENT, update)
@@ -386,28 +391,26 @@ export default function StudioTunedGroup({ itemId, children, materialTuning = tr
       window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
       window.removeEventListener(TEXTURE_DECALS_EVENT, update)
     }
-  }, [itemId, previewOnly])
+  }, [itemId])
 
   const { tuning, tunings, decals } = studioState
   const transform = useMemo(() => getStudioTransformProps(tuning), [tuning])
 
   useEffect(() => {
-    if (previewOnly || !groupRef.current) return
+    if (!groupRef.current) return
     if (materialTuning) applyStudioTuning(groupRef.current, tuning)
     applySavedStudioPartTunings(groupRef.current, itemId, tunings, { materialTuning })
     syncTextureDecals(groupRef.current, decals)
     invalidate()
-  }, [itemId, materialTuning, previewOnly, tuning, tunings, decals])
+  }, [itemId, materialTuning, tuning, tunings, decals])
 
   useEffect(() => {
-    if (previewOnly) return undefined
     const group = groupRef.current
     return () => {
       disposeTextureDecals(group)
       disposeStudioOwnedMaterials(group)
     }
-  }, [previewOnly])
+  }, [])
 
-  if (previewOnly) return <>{children}</>
   return <group ref={groupRef} scale={transform.scale} position={transform.position} rotation={transform.rotation}>{children}</group>
 }

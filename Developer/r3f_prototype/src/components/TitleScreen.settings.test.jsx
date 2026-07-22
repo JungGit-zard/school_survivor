@@ -9,7 +9,7 @@ import { WEAPON_CATALOG, isStarter } from '../lib/weaponCatalog.js'
 import { STORAGE_KEY as WEAPON_UNLOCKS_KEY, getAllUnlocked, _resetForTests as resetWeaponUnlocks } from '../lib/weaponUnlocks.js'
 import { STORAGE_KEY as PASSIVE_STORAGE_KEY, purchase as purchasePassiveStorage } from '../lib/passiveUpgrades.js'
 import { STORAGE_KEY as NICKNAME_STORAGE_KEY, getSavedNickname, saveNicknameForUser } from '../lib/userNickname.js'
-import { ADMIN_CONFIG_STORAGE_KEY, saveAdminConfig } from '../lib/adminConfig.js'
+import { resetAdminConfig, saveAdminConfig } from '../lib/adminConfig.js'
 import { SETTINGS_STORAGE_KEY, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
 import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
@@ -42,7 +42,7 @@ beforeEach(() => {
 afterEach(() => {
   localStorage.removeItem(PASSIVE_STORAGE_KEY)
   localStorage.removeItem(NICKNAME_STORAGE_KEY)
-  localStorage.removeItem(ADMIN_CONFIG_STORAGE_KEY)
+  resetAdminConfig()
   localStorage.removeItem(SETTINGS_STORAGE_KEY)
   resetWeaponUnlocks()
   _resetAuthStoreForTests()
@@ -99,6 +99,9 @@ describe('TitleScreen lobby entry', () => {
   })
 
   it('keeps title effects enabled and restores the saved reduced-effects setting on exit', () => {
+    const user = { uid: 'title-settings-user', displayName: 'Settings Tester' }
+    _seedHydratedFirebaseProgressForTests(user)
+    useAuthStore.setState({ status: 'signedIn', user, initialized: true })
     saveTitleSettings({ reducedEffects: true })
     const { container, cleanup } = renderTitleScreen()
 

@@ -27,7 +27,7 @@ function initializeRuntimeUtilities() {
 
 export default function ReadyGameApp({
   authUser,
-  studioReady,
+  studioVisualsReady,
   ensureStudioCloudReady,
 }) {
   const [screen, setScreen] = useState('title')
@@ -35,7 +35,9 @@ export default function ReadyGameApp({
   const [rankingStageId, setRankingStageId] = useState(null)
   const [mobileJoystickEnabled, setMobileJoystickEnabled] = useState(false)
   const [devCheatsVisible, setDevCheatsVisible] = useState(false)
-  const [devAllStagesUnlocked, setDevAllStagesUnlocked] = useState(() => loadTitleSettings().unlockAllStagesCheat)
+  const [devAllStagesUnlocked, setDevAllStagesUnlocked] = useState(() => (
+    isFirebaseProgressHydrated(authUser) ? loadTitleSettings().unlockAllStagesCheat : false
+  ))
   const phoneFrameRef = useRef(null)
   const gameKey = useGameStore((s) => s.gameKey)
   const phase = useGameStore((s) => s.phase)
@@ -113,7 +115,7 @@ export default function ReadyGameApp({
             devCheatsVisible={devCheatsVisible}
             onRevealDevCheats={() => setDevCheatsVisible(true)}
             onUnlockAllStages={() => setDevAllStagesUnlocked(true)}
-            studioVisualsReady={studioReady}
+            studioVisualsReady={studioVisualsReady}
             ensureStudioCloudReady={ensureStudioCloudReady}
           />
         )}

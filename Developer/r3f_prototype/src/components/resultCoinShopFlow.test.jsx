@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 import React, { act } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createRoot } from 'react-dom/client'
 import Lobby from './Lobby.jsx'
 import HUD from './HUD.jsx'
 import { useGameStore } from '../store/useGameStore.js'
+import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: () => <div data-testid="mock-canvas" />,
@@ -14,6 +15,10 @@ vi.mock('@react-three/fiber', () => ({
 vi.mock('./TitleScene3D.jsx', () => ({
   default: () => <div data-testid="mock-title-scene" />,
 }))
+
+beforeEach(() => {
+  _seedHydratedFirebaseProgressForTests()
+})
 
 afterEach(() => {
   vi.useRealTimers()

@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core'
+import { getAuthProviderIds, isProjectMaster } from './projectAdmin.js'
 
 const REQUIRED_ENV_KEYS = [
   'VITE_FIREBASE_API_KEY',
@@ -36,12 +37,15 @@ export function getFirebaseConfig(env = getDefaultEnv()) {
 
 export function toAuthUser(user) {
   if (!user) return null
-  return {
+  const authUser = {
     uid: user.uid,
     displayName: user.displayName ?? '',
     email: user.email ?? '',
     photoURL: user.photoURL ?? '',
+    emailVerified: user.emailVerified === true,
+    providerIds: getAuthProviderIds(user),
   }
+  return { ...authUser, isProjectMaster: isProjectMaster(authUser) }
 }
 
 export function shouldUseNativeGoogleSignIn(globalScope = getDefaultGlobalScope(), capacitorBridge = Capacitor) {
