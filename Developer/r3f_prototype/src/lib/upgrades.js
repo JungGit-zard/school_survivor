@@ -63,7 +63,7 @@ export function applyUpgradeWithChibikoBoost(weapon, effect, boost) {
 }
 
 export const UPGRADE_EFFECTS = {
-  pencilDamage:   { weapon: 'pencilThrow',   kind: 'damage', dmg: 1.5 },
+  pencilDamage:   { weapon: 'pencilThrow',   kind: 'damage', dmg: 0.75 },
   pencilCount:    { weapon: 'pencilThrow',   kind: 'stat',   stat: 'projectileCount', step: 1,    cap: 4 },
   pencilPierce:   { weapon: 'pencilThrow',   kind: 'stat',   stat: 'pierce',          step: 1,    cap: 3 },
   pencilCrit:     { weapon: 'pencilThrow',   kind: 'crit',   chanceStep: 0.02, chanceCap: 0.24, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },

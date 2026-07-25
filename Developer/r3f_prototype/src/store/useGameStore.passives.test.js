@@ -32,12 +32,12 @@ describe('useGameStore 패시브 런 시작 적용', () => {
     expect(player.baseSpeed).toBeCloseTo(3.27, 5)
   })
 
-  it('might Lv.2 저장 시 pencilThrow 데미지가 3*1.08=3.24로 적용된다', () => {
+  it('might Lv.2 저장 시 pencilThrow 데미지가 1.5*1.08=1.62로 적용된다', () => {
     setSavedPassives({ might: 2 })
     useGameStore.getState().resetGame()
     const { weapons } = useGameStore.getState()
-    // Math.round(3 * 1.08 * 10) / 10 = Math.round(32.4) / 10 = 3.2
-    expect(weapons.pencilThrow.damage).toBe(3.2)
+    // Math.round(1.5 * 1.08 * 10) / 10 = Math.round(16.2) / 10 = 1.6
+    expect(weapons.pencilThrow.damage).toBe(1.6)
   })
 
   it('growth Lv.3 저장 시 gainXp가 1.15배로 적용된다', () => {
@@ -56,7 +56,7 @@ describe('useGameStore 패시브 런 시작 적용', () => {
     const { player, weapons, growthMultiplier } = useGameStore.getState()
     expect(player.maxHp).toBe(100)
     expect(player.speed).toBe(3)
-    expect(weapons.pencilThrow.damage).toBe(3)
+    expect(weapons.pencilThrow.damage).toBe(1.5)
     expect(growthMultiplier).toBe(1)
   })
 })

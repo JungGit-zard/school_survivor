@@ -205,3 +205,8 @@ Claude Code(이 프로젝트 루트에서 실행되는 세션)는 `.claude/agent
 - 실제 assignee는 `threemini`, `uimini`, `levelmini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`만 사용한다.
 - 사운드/효과음/BGM/음성/Animalese/WebAudio/Howler/SOUND_MAP/public/sfx/오디오 라이선스는 작은 작업이어도 `soundmini`가 반드시 관여한다.
 - 다른 에이전트에게 전달할 때는 위 핸드오프 파일을 먼저 읽게 한다.
+
+## 2026-07-25 mandatory project-wide routing overlay
+
+For Escape! zombie school, `Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md` is the current mandatory overlay. It requires a routing check for every non-empty project request and adds real profile `corpopsmini` for separately managed corporate operations/tax/VAT/settlement/accountant-handoff work.
+

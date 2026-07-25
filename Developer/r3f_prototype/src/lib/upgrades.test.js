@@ -20,12 +20,12 @@ describe('applyUpgradeToWeapon', () => {
     expect(out.chibikoBoostPercent).toBe(0.1)
   })
 
-  it('연필 피해 강화는 절반 수치인 +1.5만 적용한다', () => {
+  it('연필 피해 강화는 재조정된 절반 수치인 +0.75만 적용한다', () => {
     const out = applyUpgradeToWeapon(
       wpn({ active: true, level: 1, damage: WEAPON_CATALOG.pencilThrow.base.damage }),
       UPGRADE_EFFECTS.pencilDamage,
     )
-    expect(out.damage).toBe(4.5)
+    expect(out.damage).toBe(2.25)
   })
 
   it('unlock effect: active=true, level=1로 초기화', () => {

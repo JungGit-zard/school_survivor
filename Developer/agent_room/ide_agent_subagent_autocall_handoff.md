@@ -10,9 +10,7 @@ Primary process doc: `Developer/agent_room/game_development_kanban_process.md`
 
 ## Purpose
 
-Terry's project commands are not always meant to be handled by one IDE agent alone. When a request is multi-role, milestone-level, review-heavy, release-facing, or explicitly asks for subagents/mini agents/Kanban/automatic deployment, route it through the registered Hermes/Kanban subagent team.
-
-Tiny one-step edits can be handled directly, but the IDE agent must still preserve user changes, follow project policy, and verify when possible.
+Terry's project commands must not be handled by one IDE agent alone without a routing check. Every non-empty Escape! zombie school request must run the registered Hermes/Kanban subagent routing check before final completion; relevant specialist domains must leave an accepted involvement trail.
 
 ## Source Order
 
@@ -57,6 +55,7 @@ Use subagents even without trigger words when the request clearly spans multiple
 - monetization, product scope, business model
 - English store copy, localization, global readiness
 - sound/SFX/BGM/voice/chiptune/WebAudio/audio licensing work
+- corporate operations, tax/VAT, Google Play/ONE Store/Toss settlement exports, revenue evidence, or accountant handoff
 - long-running cleanup or multi-file refactor needing independent validation
 
 ## Mandatory Sound_Mini Hook
@@ -75,11 +74,11 @@ Required trail before completion:
 
 If code implementation is also needed, pair `soundmini` with the relevant implementation profile and finish with `balanceqa` validation when the change is more than a trivial documented parameter adjustment.
 
-## Direct Work Is Allowed For Small Tasks
+## Direct Work Is Allowed Only After Routing Check
 
-Do not create Kanban cards for tiny one-step work unless Terry explicitly asks.
+Do not create Kanban cards for tiny one-step work unless Terry explicitly asks or a specialist domain is touched. However, the IDE agent must still run/acknowledge the mandatory routing check before final completion.
 
-Examples:
+Examples that may remain direct after the routing check if no specialist domain is touched:
 
 - Fix one typo in one known file.
 - Read or summarize one known file.
@@ -102,6 +101,7 @@ englishgradmini
 madangsue
 jabdareminder
 soundmini
+corpopsmini
 ```
 
 Map placeholder concepts to real profiles:
@@ -117,11 +117,12 @@ Map placeholder concepts to real profiles:
 - operations / smoke / ledger -> `madangsue`
 - reminders / notification hygiene -> `jabdareminder`
 - sound / SFX / BGM / voice / chiptune / WebAudio / audio licensing -> `soundmini`
+- corporate operations / tax / VAT / settlement exports / accountant handoff -> `corpopsmini`
 
 ## Routing Algorithm
 
 1. Classify the request.
-2. If it is direct small work, handle it directly.
+2. If it is direct small work, first acknowledge the mandatory routing check; only proceed directly when no specialist domain requires involvement.
 3. If it matches explicit or implicit triggers, route to Kanban.
 4. Run startup checks:
 
@@ -182,4 +183,9 @@ Never claim success without real outputs and fresh verification evidence.
 
 Latest handoff: `Developer/agent_room/escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md`.
 
-IDE-side resident agents must read it before deciding to work alone on Escape! zombie school. Use direct work only for tiny one-step tasks. For non-tiny, multi-role, milestone, review, release, UI/graphics/gameplay/backend/localization/product/sound work, route through `escape-zombie-school` and auto-involve the relevant real profiles. Sound/audio/voice/Animalese always requires `soundmini` before completion.
+IDE-side resident agents must read it before deciding how to route Escape! zombie school work. The 2026-07-25 mandatory wiring supersedes the old tiny-direct exception: every non-empty request must run the routing check, and relevant UI/graphics/gameplay/backend/localization/product/sound/corporate-tax work must involve the matching real profiles. Sound/audio/voice/Animalese always requires `soundmini`; corporate/tax/VAT/settlement/accountant-handoff work always requires `corpopsmini`.
+
+## 2026-07-25 mandatory routing hook
+
+IDE-side agents must treat `Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md` as the current mandatory routing rule. Claude Code also has a PreToolUse edit hook at `.claude/hooks/require-subagent-routing-for-project.sh` that surfaces this gate for `Write`, `Edit`, and `MultiEdit`.
+

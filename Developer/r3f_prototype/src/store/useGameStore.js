@@ -135,7 +135,7 @@ export const useGameStore = create(
     passiveVersion: 0,
     phase:       'playing',   // 'playing' | 'paused' | 'levelup' | 'gameover' | 'cleared'
     pauseSource: null,        // 'manual' | 'auto' | 'dialogue' | null
-    studentDialogue: null,    // null | { line, reward? } — 쓰러진 학생 조사 결과
+    studentDialogue: null,    // null | { line, reward?, subjectType, subjectName } — 조사 결과
     introDialogue: null,      // null | { index } — 스테이지1 스토리 인트로 대화창 상태
     elapsedMs:   0,
     currentStageId: DEFAULT_STAGE_ID,
@@ -408,9 +408,18 @@ export const useGameStore = create(
 
     // 쓰러진 학생 대화: playing일 때만 대화용으로 일시정지(pauseSource='dialogue')한다.
     // 일반 일시정지 메뉴와 구분하기 위해 pauseSource로 분기 — HUD가 이 값으로 오버레이를 나눈다.
-    openStudentDialogue: (line, reward = null) => set((s) => {
+    openStudentDialogue: (line, reward = null, subject = {}) => set((s) => {
       if (s.phase !== 'playing') return {}
-      return { phase: 'paused', pauseSource: 'dialogue', studentDialogue: { line, reward } }
+      return {
+        phase: 'paused',
+        pauseSource: 'dialogue',
+        studentDialogue: {
+          line,
+          reward,
+          subjectType: subject.subjectType ?? 'student',
+          subjectName: subject.subjectName ?? '지친학생',
+        },
+      }
     }),
 
     // 대화용 일시정지일 때만 재개한다. 조사 보상은 이 시점에 한 번만 지급한다.

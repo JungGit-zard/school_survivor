@@ -189,3 +189,8 @@ This file is the canonical project-local process for durable Hermes/Kanban subag
 ## 2026-07-17 Auto-input reinforcement
 
 Also read `Developer/agent_room/escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md` before deciding whether an Escape! zombie school request can be handled by one agent. All non-tiny or multi-role ESZS work should auto-involve the relevant registered profiles through board `escape-zombie-school`. Sound/audio/voice/Animalese work remains a hard `soundmini` gate even for tiny edits.
+
+## 2026-07-25 mandatory subagent routing overlay
+
+Before creating, dispatching, or completing Escape! zombie school Kanban work, apply `Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md`. Use only real assignees and include `corpopsmini` for corporate operations/tax/VAT/settlement/accountant-handoff work.
+

@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
   STUDENT_DIALOGUE_RADIUS,
+  OBJECT_INVESTIGATION_RADIUS,
   getUnconsciousStudents,
+  getInvestigationTargets,
+  findInvestigationTargetInRange,
   findStudentInRange,
 } from './studentProximity.js'
 
@@ -46,6 +49,29 @@ describe('findStudentInRange', () => {
     expect(findStudentInRange(0, 0, one, new Set())).toBe('x')
     const justOut = [{ id: 'y', position: [STUDENT_DIALOGUE_RADIUS + 0.001, 0, 0] }]
     expect(findStudentInRange(0, 0, justOut, new Set())).toBeNull()
+  })
+})
+
+describe('스테이지 2 공용 조사 대상', () => {
+  it('학생과 사물함·불레틴보드를 조사 대상으로 포함한다', () => {
+    const targets = getInvestigationTargets('stage2')
+    expect(targets.some(({ subjectType }) => subjectType === 'student')).toBe(true)
+    expect(targets.some(({ subjectType }) => subjectType === 'locker')).toBe(true)
+    expect(targets.some(({ subjectType }) => subjectType === 'bulletinBoard')).toBe(true)
+  })
+
+  it('다른 스테이지에서는 사물함·불레틴보드를 추가하지 않는다', () => {
+    expect(getInvestigationTargets('stage1').every(({ subjectType }) => subjectType === 'student')).toBe(true)
+  })
+
+  it('물체는 충돌체 바깥에서 조사 가능하고 이미 조사한 대상은 제외한다', () => {
+    const target = {
+      id: 'locker',
+      position: [0, 0, 0],
+      radius: OBJECT_INVESTIGATION_RADIUS,
+    }
+    expect(findInvestigationTargetInRange(1.6, 0, [target], new Set())).toBe(target)
+    expect(findInvestigationTargetInRange(1.6, 0, [target], new Set(['locker']))).toBeNull()
   })
 })
 

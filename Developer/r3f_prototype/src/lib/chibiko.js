@@ -1,5 +1,5 @@
 export const CHIBIKO_LEVEL1_PENCIL = {
-  damage: 2.5,
+  damage: 1.25,
   cooldown: 1100,
   range: 22,
   speed: 12,

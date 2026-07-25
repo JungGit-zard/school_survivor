@@ -1033,17 +1033,19 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
           style={styles.dialogueCatcher}
           onPointerDown={() => { emitSfx({ id: 'buttonClick' }); closeStudentDialogue() }}
         >
-          <div style={styles.dialogueBox} role="dialog" aria-label="지친 학생 대화">
-            <div style={styles.dialoguePortraitFrame}>
-              <img
-                src={laidManPortraitSrc}
-                alt="쓰러진 학생 초상화"
-                draggable={false}
-                style={styles.dialoguePortrait}
-              />
-            </div>
+          <div style={styles.dialogueBox} role="dialog" aria-label={`${studentDialogue.subjectName ?? '조사 대상'} 조사`}>
+            {(studentDialogue.subjectType ?? 'student') === 'student' && (
+              <div style={styles.dialoguePortraitFrame}>
+                <img
+                  src={laidManPortraitSrc}
+                  alt="쓰러진 학생 초상화"
+                  draggable={false}
+                  style={styles.dialoguePortrait}
+                />
+              </div>
+            )}
             <div style={styles.dialogueTextCol}>
-              <div style={styles.dialogueName}>[지친학생]</div>
+              <div style={styles.dialogueName}>[{studentDialogue.subjectName ?? '지친학생'}]</div>
               <div style={styles.dialogueLine} aria-live="polite">{studentDialogue.line}</div>
               {studentDialogue.reward && (
                 <div style={styles.dialogueReward}>

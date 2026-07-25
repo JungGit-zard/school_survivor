@@ -108,8 +108,8 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 - The durable Agent Room/Kanban routing check is defined in `Developer/agent_room/`. Local Codex agent config files may exist in some checkouts, but Hermes/Kanban profiles are the canonical spawnable route for this project.
 - Subagents do not replace methodology. If Superpowers, Compound Engineering, g-stack, Kanban, or `project_develop_policy.md` applies to the request, the selected agents must work inside that methodology instead of bypassing it.
 - If a new case-specific agent or temporary agent team is created, record its persona, role, main viewpoint, authority, methodology gates, and output folder in `Developer/agent_room/` using a `.toh` record.
-- Do not assign durable Kanban cards to non-spawnable placeholder assignees. Use the registered Hermes profiles: `threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`.
-- Codex subagents are not silently spawned for tiny one-step edits. For multi-role game development waves, Kanban dispatch is allowed because the user has requested this process for the project.
+- Do not assign durable Kanban cards to non-spawnable placeholder assignees. Use the registered Hermes profiles: `threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`, `corpopsmini`.
+- Codex subagents are not silently bypassed: every non-empty Escape! zombie school request must run the mandatory routing check before completion. Tiny one-step edits may be executed directly only after the routing check is acknowledged and no specialist domain requires involvement.
 - Sound/audio work is a hard exception to the tiny-edit shortcut: any Escape! zombie school SFX, BGM, voice, chiptune, WebAudio/ZzFX/jsfxr, Howler `SOUND_MAP`, `public/sfx`, audio parameter, cooldown/polyphony, or audio licensing change must involve `soundmini` / Sound_Mini before the change is finalized. Leave a `soundmini` Kanban card, `soundmini` artifact, or Claude `.claude/agents/soundmini.md` review trail.
 - When the task includes UI, HUD, menus, responsive layout, touch targets, interaction states, readability, or accessibility, route that UI portion to `uimini`; when it includes graphics, visual QA, game art direction, asset implementation, Phaser/Three.js visual integration, or image/asset pipeline work, route that graphics portion to `threemini` or a local `graphic_designer` agent if one is available.
 - Graphic working output and role records belong in `Graphic_designer/`, regardless of whether the work is routed to Hermes `threemini` or a local IDE/Codex graphics agent.
@@ -143,3 +143,13 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
   - `Fix enemy collision`
   - `Update main content plan`
 - Never use destructive Git commands such as `git reset --hard` or forced checkout unless the user clearly requests them.
+
+## Mandatory Subagent Routing for Escape! zombie school
+
+- Every non-empty Escape! zombie school request must run the routing check in `Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md` before final completion.
+- There is no silent direct-work bypass: even tiny edits must at least classify specialist relevance before completion.
+- Use only real Hermes/Kanban profiles: `threemini`, `uimini`, `levelmini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`, `corpopsmini`.
+- Sound/audio/voice work always requires `soundmini` involvement.
+- Corporate operations, tax/VAT, settlement exports, revenue evidence, or accountant-handoff work always requires separately managed `corpopsmini` involvement.
+- Accepted evidence: Kanban card, `Developer/agent_room/` artifact, or `.claude/agents/<profile>.md` review trail.
+

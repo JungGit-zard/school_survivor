@@ -45,7 +45,7 @@ describe('useGameStore weapon permanent upgrades', () => {
     useGameStore.getState().purchaseWeaponPermanentUpgrade('pencilThrow')
     useGameStore.getState().resetGame('stage1')
 
-    expect(useGameStore.getState().weapons.pencilThrow.damage).toBeCloseTo(3.1, 1)
+    expect(useGameStore.getState().weapons.pencilThrow.damage).toBeCloseTo(1.6, 1)
   })
 
   it('allows unlocked non-starter weapon permanent upgrades through the store action', () => {
@@ -61,7 +61,7 @@ describe('useGameStore weapon permanent upgrades', () => {
     useGameStore.getState().applyUpgrade('acquireChibiko')
 
     expect(useGameStore.getState().weapons.pencilThrow).toMatchObject({
-      damage: 3.3,
+      damage: 1.65,
       cooldown: 495,
       chibikoBoostPercent: 0.1,
     })
@@ -78,6 +78,6 @@ describe('useGameStore weapon permanent upgrades', () => {
     useGameStore.getState().applyUpgrade('acquireChibiko')
     useGameStore.getState().applyUpgrade('pencilDamage')
 
-    expect(useGameStore.getState().weapons.pencilThrow.damage).toBe(4.95)
+    expect(useGameStore.getState().weapons.pencilThrow.damage).toBe(2.475)
   })
 })

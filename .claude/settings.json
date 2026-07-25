@@ -69,6 +69,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-subagent-routing-for-project.sh\""
+          },
+          {
+            "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-stage2-boss-v2-gate.sh\""
           },
           {
@@ -86,6 +90,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-subagent-routing-for-project.sh\""
+          },
+          {
+            "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-stage2-boss-v2-gate.sh\""
           },
           {
@@ -101,6 +109,10 @@
       {
         "matcher": "MultiEdit",
         "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-subagent-routing-for-project.sh\""
+          },
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-stage2-boss-v2-gate.sh\""

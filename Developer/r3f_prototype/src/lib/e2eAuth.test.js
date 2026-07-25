@@ -79,7 +79,7 @@ describe('applyE2EOverridesToStore', () => {
     const store = makeStore({
       weapons: {
         starlink: { active: false, level: 0, cooldown: 3800, damage: 28 },
-        pencilThrow: { active: true, level: 1, cooldown: 1100, damage: 3 },
+        pencilThrow: { active: true, level: 1, cooldown: 1100, damage: 1.5 },
       },
       player: { hp: 100, maxHp: 100, speed: 5 },
     })

@@ -198,11 +198,11 @@
 - 반드시 여러 역할이 필요한 게임 개발, 마일스톤, 릴리스 준비, QA 게이트, 그래픽/개발/기획 통합 작업은 `escape-zombie-school` Kanban 보드와 등록된 Hermes 프로필을 통해 분해·배정·검증한다.
 - 반드시 Kanban 서브에이전트 투입 절차는 `Developer/agent_room/game_development_kanban_process.md`를 따른다.
 - 반드시 프로젝트 내부 서브에이전트 연결 정본은 `Developer/agent_room/subagent_system_wiring_2026-07-03.md`로 확인한다.
-- 반드시 Kanban 카드의 담당자는 실제 spawn 가능한 프로필명(`threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`) 중 하나로 지정한다.
+- 반드시 Kanban 카드의 담당자는 실제 spawn 가능한 프로필명(`threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`, `corpopsmini`) 중 하나로 지정한다.
 - 반드시 worker 실행 전 프로필 HOME의 `~/.claude/skills/gstack/bin` 게이트가 통과하는지 확인한다.
 - 반드시 implementation wave 완료 선언 전 `todo=0`, `ready=0`, `running=0`, `blocked=0` 상태를 확인한다.
 - 반드시 탈출좀비학교의 모든 사운드 제작/수정/교체/검수 작업에는 `soundmini` / Sound_Mini / 사운드미니가 관여해야 한다. 작은 1파일 수정이라도 예외가 아니며, SFX/BGM/보이스/기계음/8-bit/chiptune/WebAudio/ZzFX/jsfxr/Howler `SOUND_MAP`/`public/sfx`/오디오 라이선스/음량·쿨다운·폴리포니 예산 변경은 `soundmini` 카드, `soundmini` 산출물, 또는 `.claude/agents/soundmini.md` 기반 검토 흔적을 남긴 뒤 진행한다.
-- 반드시 탈출좀비학교 관련 작업은 먼저 단일 에이전트 직접처리인지, 아니면 등록된 서브에이전트 자동투입 대상인지 분류한다. 작은 1단계 작업을 제외하고, 여러 역할·마일스톤·검수·릴리즈·그래픽·UI·기획·개발·백엔드·현지화·BM·사운드 중 하나라도 걸리면 `Developer/agent_room/escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md`와 `escape-zombie-school` Kanban 보드 기준으로 관련 프로필을 자동 투입한다.
+- 반드시 탈출좀비학교 관련 모든 비어 있지 않은 작업은 `Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md` 기준으로 서브에이전트 라우팅 체크를 거친다. 작은 1단계 작업도 침묵 bypass하지 않으며, 관련 전문 영역이 감지되면 `escape-zombie-school` Kanban 보드 또는 프로젝트 산출물/Claude mirror review trail 기준으로 해당 실제 프로필을 자동 투입한다.
 
 ### 절대로 하면 안 되는 사항
 
@@ -216,3 +216,18 @@
 - Chrome이 창 하나를 위해 자동 생성하는 renderer/GPU/utility 하위 프로세스는 개수에 포함하지 않는다.
 - 새 게임 브라우저나 브라우저 테스트를 실행하기 직전에 `Developer/r3f_prototype`에서 `npm run browser:reserve`를 실행해야 한다.
 - 가드가 실패하면 기존 인스턴스를 종료하기 전까지 새 브라우저나 브라우저 테스트를 실행하지 않는다.
+
+## 서브에이전트 무조건 배선 정책
+
+### 반드시 지켜야 할 사항
+
+- 반드시 Escape! zombie school의 모든 비어 있지 않은 작업 요청은 완료 전 `Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md`의 서브에이전트 라우팅 체크를 거친다.
+- 반드시 관련 전문 영역이 감지되면 실제 Hermes/Kanban 프로필 `threemini`, `uimini`, `levelmini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`, `corpopsmini` 중 해당 프로필을 호출하거나, Kanban 카드/프로젝트 산출물/Claude mirror review trail 중 하나로 관여 흔적을 남긴다.
+- 반드시 사운드·음성·BGM·SFX·WebAudio·Howler·SOUND_MAP·public/sfx 관련 작업은 `soundmini`를 포함한다.
+- 반드시 법인 운영·세무·VAT·정산자료·Google Play/ONE Store/Toss 매출자료·회계사 전달자료 관련 작업은 별도 관리 대상 `corpopsmini`를 포함한다.
+
+### 절대로 하면 안 되는 사항
+
+- 절대로 Escape! zombie school 작업을 서브에이전트 라우팅 체크 없이 혼자 완료했다고 보고하지 않는다.
+- 절대로 placeholder assignee를 Kanban에 배정하지 않는다. 실제 프로필명만 사용한다.
+

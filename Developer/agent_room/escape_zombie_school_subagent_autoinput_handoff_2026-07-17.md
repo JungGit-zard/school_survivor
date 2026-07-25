@@ -28,7 +28,7 @@ If files conflict, follow `project_develop_policy.md` first and report the confl
 
 For any Escape! zombie school request, classify the work before acting:
 
-- If it is a tiny one-step edit or one-file read-only answer, direct work is allowed.
+- No silent direct-work bypass remains. A tiny one-step edit may be executed by the current agent only after the routing check is acknowledged, but relevant specialist domains must still involve the matching profile before final completion.
 - If it mentions subagents/Kanban/automatic deployment/QA/review/milestone/release, use Kanban.
 - If it spans more than one role, use Kanban.
 - If it touches sound/audio/voice, `soundmini` is mandatory even for tiny edits.
@@ -50,6 +50,7 @@ englishgradmini
 madangsue
 jabdareminder
 soundmini
+corpopsmini
 ```
 
 Do not use placeholders such as `planner`, `reviewer`, `researcher`, `game-developer`, `graphic_designer`, `balance_qa`, `qa-reviewer`, or `product-manager` as assignees. Map them to the real profiles above.
@@ -67,6 +68,7 @@ Do not use placeholders such as `planner`, `reviewer`, `researcher`, `game-devel
 - Operations / agent-room hygiene / smoke cards / ledgers -> `madangsue`.
 - Reminder/schedule/notification hygiene -> `jabdareminder`.
 - Sound / SFX / BGM / voice / pseudo-voice / Animalese / 8-bit / chiptune / WebAudio / Howler / ZzFX / jsfxr / `SOUND_MAP` / `public/sfx/**` / audio licensing -> `soundmini`.
+- Corporate operations / VAT / tax 자료 / Google Play, ONE Store, Toss settlement exports / accountant handoff / sales evidence organization -> `corpopsmini`.
 
 ## Sound_Mini hard gate
 
@@ -103,7 +105,8 @@ T6 release/store -> launchmini, if relevant
 T7 product/BM -> bizmini, if relevant
 T8 English/localization -> englishgradmini, if relevant
 T9 operations/smoke/ledger -> madangsue or jabdareminder, if relevant
-T10 synthesis/final QA -> balanceqa, parents=[relevant cards]
+T10 corporate/tax/revenue/accountant handoff -> corpopsmini, if relevant
+T11 synthesis/final QA -> balanceqa, parents=[relevant cards]
 ```
 
 Only use parent links when the child truly needs the parent's output.
@@ -178,3 +181,10 @@ Final state: todo=<n>, ready=<n>, running=<n>, blocked=<n>, done=<n>
 ## Pasteable instruction for future agents
 
 When working in Escape! zombie school, first classify whether the request should use the durable Hermes/Kanban subagent team. Use direct work only for tiny one-step tasks. For multi-role, milestone, review, release, or explicit subagent/Kanban requests, create cards on board `escape-zombie-school` using only real profiles: `threemini`, `uimini`, `levelmini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`. Sound/audio/voice/Animalese work always requires `soundmini` before completion. Preserve uncommitted changes and verify with real outputs before reporting success.
+
+## 2026-07-25 mandatory wiring upgrade
+
+This older auto-input handoff is superseded for routing strictness by `Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md`.
+
+The old tiny direct path is no longer silent. Every non-empty Escape! zombie school request must run the routing check before final completion. Relevant specialists must leave a Kanban card, project artifact, or Claude mirror review trail. Add `corpopsmini` for corporate operations/tax/VAT/settlement/accountant-handoff work; keep it separately managed from game-development agents.
+

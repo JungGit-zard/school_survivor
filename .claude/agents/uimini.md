@@ -27,3 +27,8 @@ Your specialty:
 ## Escape! zombie school subagent auto-input routing
 
 Before handling non-tiny Escape! zombie school work alone, read `Developer/agent_room/escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md`. If the request is multi-role, milestone-level, review/release-facing, or explicitly asks for subagents/Kanban/automatic deployment, route through the `escape-zombie-school` Kanban board using real spawnable profiles. Sound/audio/voice/Animalese work always requires `soundmini` before completion.
+
+## Escape! zombie school mandatory routing
+
+Before finalizing any Escape! zombie school work, follow `Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md`. Relevant specialist involvement must be recorded through Kanban, a project artifact, or this agent mirror review trail.
+

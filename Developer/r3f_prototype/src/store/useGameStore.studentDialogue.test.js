@@ -11,7 +11,12 @@ describe('쓰러진 학생 대화 상태 (useGameStore)', () => {
     const s = useGameStore.getState()
     expect(s.phase).toBe('paused')
     expect(s.pauseSource).toBe('dialogue')
-    expect(s.studentDialogue).toEqual({ line: '테스트 대사', reward: null })
+    expect(s.studentDialogue).toEqual({
+      line: '테스트 대사',
+      reward: null,
+      subjectType: 'student',
+      subjectName: '지친학생',
+    })
   })
 
   it('closeStudentDialogue는 대화 일시정지를 풀고 재개한다', () => {
@@ -71,5 +76,18 @@ describe('쓰러진 학생 대화 상태 (useGameStore)', () => {
     expect(s.phase).toBe('levelup')
     expect(s.pauseSource).toBeNull()
     expect(s.pendingLevelUps).toBe(before + 1)
+  })
+
+  it('사물함·불레틴보드 조사 주체 정보를 대화 상태에 보존한다', () => {
+    useGameStore.getState().openStudentDialogue(
+      '안을 조사했다.',
+      null,
+      { subjectType: 'locker', subjectName: '사물함' },
+    )
+
+    expect(useGameStore.getState().studentDialogue).toMatchObject({
+      subjectType: 'locker',
+      subjectName: '사물함',
+    })
   })
 })
