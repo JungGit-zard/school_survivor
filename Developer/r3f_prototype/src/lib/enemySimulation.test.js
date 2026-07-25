@@ -11,12 +11,16 @@ import {
   ENEMY_EVENT_RANGED_FIRE,
   ENEMY_PHASE_ACTIVE,
   ENEMY_PHASE_REVEAL,
+  ENEMY_STUCK_DETOUR_MS,
+  ENEMY_STUCK_RECOVERY_MS,
   ENEMY_STATE_CHARGE,
   ENEMY_STATE_CHASE,
   ENEMY_STATE_STUN,
   ENEMY_STATE_WARN,
   EnemyEventQueue,
+  collidesEnemyObstacle,
   createEnemySimulationRuntime,
+  enemyCollisionRadius,
   resetDefaultEnemySimulationRuntime,
   resolveRangedEnemyVelocityRaw,
   stepEnemySimulation,
@@ -83,6 +87,21 @@ describe('enemySimulation 순수 일반 적 런타임', () => {
     runtime.step(pool, context({ onContact: () => { contacts += 1 } }))
     expect(pool.phase[handle.index]).toBe(ENEMY_PHASE_ACTIVE)
     expect(contacts).toBe(1)
+  })
+
+  it('reveal 중에도 legacy/direct invalid spawn을 첫 step에 boundary-aware MTV로 탈출시킨다', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const obstacles = [
+      { x: 1.22, z: 0, halfX: 0.42, halfZ: 1.7 },
+      { x: 0.18, z: 0, halfX: 0.42, halfZ: 0.42 },
+    ]
+    const handle = spawn(pool, 'E01', 1.2, 0, { spawnTimer: 0 })
+    runtime.step(pool, context({ halfX: 2, halfZ: 2, obstacles, obstacleCount: obstacles.length }))
+    expect(pool.phase[handle.index]).toBe(ENEMY_PHASE_REVEAL)
+    expect(pool.velX[handle.index]).toBe(0)
+    expect(pool.velZ[handle.index]).toBe(0)
+    expect(collidesEnemyObstacle(pool.posX[handle.index], pool.posZ[handle.index], enemyCollisionRadius(1), obstacles, obstacles.length)).toBe(false)
   })
 
   it('contact damage는 500ms cadence이며 scalar callback과 event를 남긴다', () => {
@@ -175,6 +194,127 @@ describe('enemySimulation 순수 일반 적 런타임', () => {
     expect(pool.posX[handle.index]).toBeLessThanOrEqual(-0.4)
     expect(pool.posZ[handle.index]).toBeGreaterThan(-1)
     expect(Math.abs(pool.posX[handle.index])).toBeLessThanOrEqual(2)
+  })
+
+  it('타입 반경으로 스폰 직후 obstacle 내부를 한 bounded step 안에 MTV 탈출시킨다', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const obstacle = [{ x: 0, z: 0, halfX: 0.5, halfZ: 0.5 }]
+    const handle = spawn(pool, 'E06', 0, 0, { spawnTimer: 300 })
+    runtime.step(pool, context({ playerX: 4, playerZ: 0, halfX: 4, halfZ: 4, obstacles: obstacle, obstacleCount: 1 }))
+    expect(enemyCollisionRadius(6)).toBeCloseTo(0.28 * 1.6 * (4 / 3), 6)
+    expect(collidesEnemyObstacle(pool.posX[handle.index], pool.posZ[handle.index], enemyCollisionRadius(6), obstacle, 1)).toBe(false)
+    expect(pool.validateInvariants({ halfX: 4, halfZ: 4 })).toBe(true)
+  })
+
+  it('모서리 full-block에서도 tangent slide로 다시 움직이고 0.5초 stuck 뒤 결정론적 우회를 쓴다', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const obstacles = [{ x: 0, z: 0, halfX: 0.75, halfZ: 0.75 }]
+    const handle = spawn(pool, 'E01', -1.2, -1.2, { spawnTimer: 300 })
+    for (let frame = 0; frame < 90; frame += 1) runtime.step(pool, context({ playerX: 3, playerZ: 3, halfX: 4, halfZ: 4, obstacles, obstacleCount: 1 }))
+    expect(collidesEnemyObstacle(pool.posX[handle.index], pool.posZ[handle.index], enemyCollisionRadius(1), obstacles, 1)).toBe(false)
+    expect(Math.hypot(pool.posX[handle.index] + 1.2, pool.posZ[handle.index] + 1.2)).toBeGreaterThan(0.08)
+    expect(pool.stuckMs[handle.index]).toBeLessThan(500)
+  })
+
+  it('축·양접선이 모두 막힌 enclosure는 1.2초 stuck 뒤 원점 밖 전역 안전 위치로 회복한다', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    // E01 확장 반경(약 0.373) 사이에 원점만 남긴 아주 작은 cavity.
+    // 1/30 이동(약 0.0158)은 X/Z 축과 양접선 어느 쪽도 통과하지 못한다.
+    const obstacles = [
+      { x: -0.39, z: 0, halfX: 0.01, halfZ: 1 }, { x: 0.39, z: 0, halfX: 0.01, halfZ: 1 },
+      { x: 0, z: -0.39, halfX: 1, halfZ: 0.01 }, { x: 0, z: 0.39, halfX: 1, halfZ: 0.01 },
+    ]
+    const handle = spawn(pool, 'E01', 0, 0, { spawnTimer: 300 })
+    expect(collidesEnemyObstacle(0, 0, enemyCollisionRadius(1), obstacles, obstacles.length)).toBe(false)
+    let maxObservedStuck = 0
+    let sawDetour = false
+    let sawGlobalJump = false
+    let previousX = 0
+    let previousZ = 0
+    for (let frame = 0; frame < 80; frame += 1) {
+      runtime.step(pool, context({ delta: 1 / 30, playerX: 10, playerZ: 10, halfX: 12, halfZ: 12, obstacles, obstacleCount: obstacles.length }))
+      maxObservedStuck = Math.max(maxObservedStuck, pool.stuckMs[handle.index])
+      sawDetour ||= pool.detourMs[handle.index] > 0
+      const jumpX = pool.posX[handle.index] - previousX
+      const jumpZ = pool.posZ[handle.index] - previousZ
+      if (jumpX * jumpX + jumpZ * jumpZ > 4.5 * 4.5) sawGlobalJump = true
+      previousX = pool.posX[handle.index]
+      previousZ = pool.posZ[handle.index]
+    }
+    expect(maxObservedStuck).toBeGreaterThanOrEqual(ENEMY_STUCK_RECOVERY_MS - (1000 / 30) - 1)
+    expect(sawDetour).toBe(true)
+    expect(sawGlobalJump).toBe(true)
+    expect(Math.hypot(pool.posX[handle.index], pool.posZ[handle.index])).toBeGreaterThan(4.5)
+    expect(collidesEnemyObstacle(pool.posX[handle.index], pool.posZ[handle.index], enemyCollisionRadius(1), obstacles, obstacles.length)).toBe(false)
+    expect(pool.stuckMs[handle.index]).toBeLessThan(ENEMY_STUCK_DETOUR_MS)
+  })
+
+  it('13 RZ crew는 obstacle을 우회한 뒤 +6 경계에서 전부 despawn한다', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const obstacles = [{ x: 0, z: 0, halfX: 1.1, halfZ: 1.1 }]
+    for (let index = 0; index < 13; index += 1) {
+      spawn(pool, index === 0 ? 'RZL' : 'RZC', -3.2 - index * 0.12, -3.2 - index * 0.12, { spawnTimer: 300, runDirX: 1, runDirZ: 1 })
+    }
+    for (let frame = 0; frame < 600; frame += 1) runtime.step(pool, context({ playerX: 0, playerZ: 0, halfX: 3, halfZ: 3, obstacles, obstacleCount: 1 }))
+    expect(pool.activeCount).toBe(0)
+    expect(pool.validateInvariants()).toBe(true)
+  })
+
+  it('RZ는 obstacle detour 뒤 원래 normalized runDir로 복귀한다', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const handle = spawn(pool, 'RZL', -3, -3, { spawnTimer: 300, runDirX: 1, runDirZ: 1 })
+    const obstacles = [{ x: 0, z: 0, halfX: 1.1, halfZ: 1.1 }]
+    for (let frame = 0; frame < 210; frame += 1) runtime.step(pool, context({ halfX: 8, halfZ: 8, obstacles, obstacleCount: 1 }))
+    expect(pool.get(handle)).not.toBeNull()
+    expect(pool.velX[handle.index]).toBeGreaterThan(0)
+    expect(pool.velZ[handle.index]).toBeGreaterThan(0)
+    expect(collidesEnemyObstacle(pool.posX[handle.index], pool.posZ[handle.index], enemyCollisionRadius(7), obstacles, 1)).toBe(false)
+  })
+
+  it('200 mixed + props 10,800 frame soak은 obstacle overlap/NaN/drop 없이 typed-array 정체성을 유지한다', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const obstacles = [
+      { x: -5, z: -5, halfX: 0.9, halfZ: 2.6 }, { x: 5, z: -5, halfX: 0.9, halfZ: 2.6 },
+      { x: -5, z: 5, halfX: 0.9, halfZ: 2.6 }, { x: 5, z: 5, halfX: 0.9, halfZ: 2.6 },
+    ]
+    let normalCount = 0
+    for (let index = 0; index < MAX_ENEMIES; index += 1) {
+      const type = index % 13 === 0 ? 'RZL' : (index % 13 === 1 ? 'RZC' : (index % 5 === 0 ? 'E05' : 'E01'))
+      if (type !== 'RZL' && type !== 'RZC') normalCount += 1
+      const x = -14 + (index % 20) * 1.45
+      const z = -14 + Math.floor(index / 20) * 2.8
+      spawn(pool, type, x, z, { spawnTimer: 300, runDirX: 1, runDirZ: 1 })
+    }
+    const identities = [pool.stuckMs, pool.detourMs, pool.lastSafeX, runtime.grid.head, runtime.events.type]
+    const event = {}
+    for (let frame = 0; frame < 10_800; frame += 1) {
+      runtime.step(pool, context({ playerX: 0, playerZ: 0, halfX: 18, halfZ: 18, obstacles, obstacleCount: obstacles.length }))
+      while (runtime.events.drainInto(event)) {}
+      if ((frame & 255) === 0) {
+        for (let index = 0; index <= pool.highestActive; index += 1) {
+          if (!pool.active[index]) continue
+          expect(collidesEnemyObstacle(pool.posX[index], pool.posZ[index], enemyCollisionRadius(pool.type[index]), obstacles, obstacles.length)).toBe(false)
+        }
+        expect(pool.validateInvariants({ halfX: 18, halfZ: 18, padding: 6 })).toBe(true)
+      }
+    }
+    expect(pool.stuckMs).toBe(identities[0])
+    expect(pool.detourMs).toBe(identities[1])
+    expect(pool.lastSafeX).toBe(identities[2])
+    expect(runtime.grid.head).toBe(identities[3])
+    expect(runtime.events.type).toBe(identities[4])
+    expect(runtime.events.dropped).toBe(0)
+    let activeNormals = 0
+    for (let index = 0; index <= pool.highestActive; index += 1) {
+      if (pool.active[index] && pool.type[index] !== 7 && pool.type[index] !== 8) activeNormals += 1
+    }
+    expect(activeNormals).toBe(normalCount)
   })
 
   it('E01/E02/E06 collider 반경은 render visualScale과 무관하게 타입 정본으로 bounds·장애물을 막는다', () => {

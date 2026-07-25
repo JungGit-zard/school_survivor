@@ -18,7 +18,7 @@ import { RUN_ZOMBIE_CREW_FORMATION, getBurstEventsForStage, getRuntimeBurstEvent
 import { buildWavePhasesFromEntries } from '../lib/waveControl.js'
 import { getAdminWaveControlConfig } from '../lib/adminConfig.js'
 import { enemyTypeToCode, enemyTypeFromCode, createEnemyEntityPool, MAX_ENEMIES } from '../lib/enemyEntityPool.js'
-import { ENEMY_EVENT_CONTACT, ENEMY_EVENT_RANGED_FIRE, ENEMY_EVENT_DEATH, ENEMY_EVENT_DESPAWN, ENEMY_EVENT_ERROR, createEnemySimulationRuntime } from '../lib/enemySimulation.js'
+import { ENEMY_EVENT_CONTACT, ENEMY_EVENT_RANGED_FIRE, ENEMY_EVENT_DEATH, ENEMY_EVENT_DESPAWN, ENEMY_EVENT_ERROR, collidesEnemyObstacle, createEnemySimulationRuntime } from '../lib/enemySimulation.js'
 import { createEnemyProjectilePool, MAX_ENEMY_PROJECTILES } from '../lib/enemyProjectilePool.js'
 import { emitVfx } from '../lib/vfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
@@ -133,6 +133,14 @@ function isInsideSpawnBounds(x, z, bounds) {
   return x >= -limX && x <= limX && z >= -limZ && z <= limZ
 }
 
+export function enemySpawnRadius(type, scaleOverride) {
+  return 0.28 * (Number.isFinite(scaleOverride) ? scaleOverride : (ENEMY_STATS[type]?.scale ?? 1)) * ENEMY_SIZE_MULTIPLIER
+}
+
+export function spawnOverlapsObstacle(x, z, type, obstacles = [], scaleOverride) {
+  return collidesEnemyObstacle(x, z, enemySpawnRadius(type, scaleOverride), obstacles, obstacles.length)
+}
+
 function hasSpawnGap(pos, taken) {
   const minGapSq = SPAWN_BATCH_MIN_GAP * SPAWN_BATCH_MIN_GAP
   return taken.every((other) => {
@@ -140,6 +148,12 @@ function hasSpawnGap(pos, taken) {
     const dz = pos[2] - other[2]
     return dx * dx + dz * dz >= minGapSq
   }) && !formsSpawnLine(pos, taken)
+}
+
+function isValidSpawnPosition(pos, type, bounds, taken, obstacles, scaleOverride) {
+  return Boolean(pos) && isInsideSpawnBounds(pos[0], pos[2], bounds)
+    && !spawnOverlapsObstacle(pos[0], pos[2], type, obstacles, scaleOverride)
+    && hasSpawnGap(pos, taken)
 }
 
 function formsSpawnLine(pos, taken) {
@@ -158,15 +172,44 @@ function formsSpawnLine(pos, taken) {
   return false
 }
 
-function breakSpawnLineFallback(pos, bounds, taken) {
-  if (hasSpawnGap(pos, taken)) return pos
-  for (const [dx, dz] of SPAWN_FALLBACK_OFFSETS) {
-    const candidate = [pos[0] + dx, pos[1], pos[2] + dz]
-    if (isInsideSpawnBounds(candidate[0], candidate[2], bounds) && hasSpawnGap(candidate, taken)) {
-      return candidate
+function findNearestFreeSpawnPosition(pos, type, bounds, taken, obstacles, scaleOverride) {
+  if (isValidSpawnPosition(pos, type, bounds, taken, obstacles, scaleOverride)) return pos
+  for (let ring = 1; ring <= 4; ring += 1) {
+    for (const [dx, dz] of SPAWN_FALLBACK_OFFSETS) {
+      const candidate = [pos[0] + dx * ring, pos[1], pos[2] + dz * ring]
+      if (isValidSpawnPosition(candidate, type, bounds, taken, obstacles, scaleOverride)) return candidate
     }
   }
-  return pos
+  return null
+}
+
+function isFreeFormationCandidate(pos, type, bounds, obstacles, taken) {
+  if (!isInsideSpawnBounds(pos[0], pos[2], bounds) || spawnOverlapsObstacle(pos[0], pos[2], type, obstacles)) return false
+  for (let index = 0; index < taken.length; index += 1) {
+    const dx = pos[0] - taken[index][0]
+    const dz = pos[2] - taken[index][2]
+    if (dx * dx + dz * dz < 0.01) return false
+  }
+  return true
+}
+
+function findNearestFreeFormationPosition(pos, type, bounds, obstacles, taken) {
+  if (isFreeFormationCandidate(pos, type, bounds, obstacles, taken)) return pos
+  for (let ring = 1; ring <= 4; ring += 1) {
+    for (const [dx, dz] of SPAWN_FALLBACK_OFFSETS) {
+      const candidate = [pos[0] + dx * ring, pos[1], pos[2] + dz * ring]
+      if (isFreeFormationCandidate(candidate, type, bounds, obstacles, taken)) return candidate
+    }
+  }
+  const limX = bounds.halfX - SPAWN_INSET
+  const limZ = bounds.halfZ - SPAWN_INSET
+  for (let row = 0; row < 33; row += 1) {
+    for (let column = 0; column < 33; column += 1) {
+      const candidate = [-limX + limX * 2 * (column / 32), pos[1], -limZ + limZ * 2 * (row / 32)]
+      if (isFreeFormationCandidate(candidate, type, bounds, obstacles, taken)) return candidate
+    }
+  }
+  return null
 }
 
 function randomPointOnSpawnRing(minRadius, maxRadius, random = Math.random) {
@@ -178,30 +221,30 @@ function randomPointOnSpawnRing(minRadius, maxRadius, random = Math.random) {
   }
 }
 
-function spawnPosOnValidRing(type, bounds, minRadius, maxRadius, taken = [], random = Math.random) {
+function spawnPosOnValidRing(type, bounds, minRadius, maxRadius, taken = [], random = Math.random, obstacles = [], scaleOverride) {
   const stats = ENEMY_STATS[type]
-  const y     = BASE_COL_Y * (stats?.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
+  const y     = BASE_COL_Y * (Number.isFinite(scaleOverride) ? scaleOverride : (stats?.scale ?? 1)) * ENEMY_SIZE_MULTIPLIER
   let fallback = null
   for (let i = 0; i < SPAWN_CANDIDATE_TRIES; i++) {
     const offset = randomPointOnSpawnRing(minRadius, maxRadius, random)
     const pos = [playerPos.x + offset.x, y, playerPos.z + offset.z]
     if (!isInsideSpawnBounds(pos[0], pos[2], bounds)) continue
     fallback ??= pos
-    if (hasSpawnGap(pos, taken)) return pos
+    if (isValidSpawnPosition(pos, type, bounds, taken, obstacles, scaleOverride)) return pos
   }
-  if (fallback) return breakSpawnLineFallback(fallback, bounds, taken)
+  if (fallback) return findNearestFreeSpawnPosition(fallback, type, bounds, taken, obstacles, scaleOverride)
   const offset = randomPointOnSpawnRing(minRadius, maxRadius, random)
   const [x, z] = clampToBounds(playerPos.x + offset.x, playerPos.z + offset.z, bounds)
-  return breakSpawnLineFallback([x, y, z], bounds, taken)
+  return findNearestFreeSpawnPosition([x, y, z], type, bounds, taken, obstacles, scaleOverride)
 }
 
-export function randomSpawnPos(type, bounds, taken = [], random = Math.random) {
-  return spawnPosOnValidRing(type, bounds, SPAWN_MIN_RADIUS, SPAWN_MAX_RADIUS, taken, random)
+export function randomSpawnPos(type, bounds, taken = [], random = Math.random, obstacles = [], scaleOverride) {
+  return spawnPosOnValidRing(type, bounds, SPAWN_MIN_RADIUS, SPAWN_MAX_RADIUS, taken, random, obstacles, scaleOverride)
 }
 
 // E04는 화면 가장자리 원거리 위치에서 등장한다. 1스테이지에서는 현재 사용하지 않는다.
-function rangedSpawnPos(bounds, taken = [], random = Math.random) {
-  return spawnPosOnValidRing('E04', bounds, RANGED_SPAWN_MIN_RADIUS, RANGED_SPAWN_MAX_RADIUS, taken, random)
+function rangedSpawnPos(bounds, taken = [], random = Math.random, obstacles = []) {
+  return spawnPosOnValidRing('E04', bounds, RANGED_SPAWN_MIN_RADIUS, RANGED_SPAWN_MAX_RADIUS, taken, random, obstacles)
 }
 
 // 형태(formation) 스폰 — 균일 압력(뱀서라이크 지루함)을 깨는 일회성 대형 배치.
@@ -230,7 +273,7 @@ const GAUNTLET_WALL_INSET = 0.8
 export const RUN_ZOMBIE_CREW_SIZE = 13
 export const RUN_ZOMBIE_CREW_DIR = Object.freeze({ x: 1, z: 1 })
 
-export function formationSpawnPositions(formation, count, bounds, player, random = Math.random) {
+export function formationSpawnPositions(formation, count, bounds, player, random = Math.random, obstacles = [], type = 'E01') {
   const limX = bounds.halfX - SPAWN_INSET
   const limZ = bounds.halfZ - SPAWN_INSET
   const positions = []
@@ -243,7 +286,8 @@ export function formationSpawnPositions(formation, count, bounds, player, random
       px = clamped[0]
       pz = clamped[1]
     }
-    positions.push([px, FORMATION_Y, pz])
+    const safe = findNearestFreeFormationPosition([px, FORMATION_Y, pz], type, bounds, obstacles, positions)
+    if (safe) positions.push(safe)
   }
 
   // 한 줄에서 X를 균등 분포 (count 1이면 중앙).
@@ -305,7 +349,7 @@ export function formationSpawnPositions(formation, count, bounds, player, random
   return positions
 }
 
-export function createRunZombieCrewEntries(bounds, random = Math.random) {
+export function createRunZombieCrewEntries(bounds, random = Math.random, obstacles = []) {
   const limX = bounds.halfX - SPAWN_INSET
   const limZ = bounds.halfZ - SPAWN_INSET
   const dirLen = Math.hypot(RUN_ZOMBIE_CREW_DIR.x, RUN_ZOMBIE_CREW_DIR.z) || 1
@@ -316,7 +360,8 @@ export function createRunZombieCrewEntries(bounds, random = Math.random) {
   const startX = -limX - 1.8
   const startZ = -limZ - 1.8
 
-  return Array.from({ length: RUN_ZOMBIE_CREW_SIZE }, (_, i) => {
+  const entries = []
+  for (let i = 0; i < RUN_ZOMBIE_CREW_SIZE; i += 1) {
     const isLeader = i === 0
     const row = Math.floor(Math.max(0, i - 1) / 4)
     const col = Math.max(0, i - 1) % 4
@@ -324,13 +369,42 @@ export function createRunZombieCrewEntries(bounds, random = Math.random) {
     const trail = isLeader ? 0 : 1.15 + row * 1.05 + (col % 2) * 0.38
     const x = startX - nx * trail + px * sideOffset
     const z = startZ - nz * trail + pz * sideOffset
-    return {
-      type: isLeader ? 'RZL' : 'RZC',
-      pos: [x, FORMATION_Y, z],
+    const type = isLeader ? 'RZL' : 'RZC'
+    const radius = enemySpawnRadius(type)
+    let safe = null
+    for (let ring = 0; ring <= 4 && !safe; ring += 1) {
+      const candidates = ring === 0 ? 1 : 8
+      for (let candidate = 0; candidate < candidates; candidate += 1) {
+        const angle = ring === 0 ? 0 : candidate * Math.PI * 0.25
+        const candidateX = x + Math.cos(angle) * ring * (radius * 2 + 0.18)
+        const candidateZ = z + Math.sin(angle) * ring * (radius * 2 + 0.18)
+        if (candidateX < -bounds.halfX - 6 || candidateX > bounds.halfX + 6 || candidateZ < -bounds.halfZ - 6 || candidateZ > bounds.halfZ + 6) continue
+        if (!spawnOverlapsObstacle(candidateX, candidateZ, type, obstacles)) safe = [candidateX, FORMATION_Y, candidateZ]
+      }
+    }
+    for (let row = 0; row < 33 && !safe; row += 1) {
+      for (let column = 0; column < 33 && !safe; column += 1) {
+        const candidateX = -bounds.halfX - 6 + (bounds.halfX * 2 + 12) * (column / 32)
+        const candidateZ = -bounds.halfZ - 6 + (bounds.halfZ * 2 + 12) * (row / 32)
+        if (spawnOverlapsObstacle(candidateX, candidateZ, type, obstacles)) continue
+        let duplicate = false
+        for (let entryIndex = 0; entryIndex < entries.length; entryIndex += 1) {
+          const dx = candidateX - entries[entryIndex].pos[0]
+          const dz = candidateZ - entries[entryIndex].pos[2]
+          if (dx * dx + dz * dz < 0.01) { duplicate = true; break }
+        }
+        if (!duplicate) safe = [candidateX, FORMATION_Y, candidateZ]
+      }
+    }
+    if (!safe) continue
+    entries.push({
+      type,
+      pos: safe,
       runCrewDir: RUN_ZOMBIE_CREW_DIR,
       runCrewRole: isLeader ? 'leader' : 'crew',
-    }
-  })
+    })
+  }
+  return entries
 }
 
 // 웨이브 타임라인 기본값 정본은 lib/waveTimelines.js로 이동(2026-07-04) —
@@ -859,7 +933,7 @@ export default function Enemies() {
 
   // 한 phase의 weights로 size만큼 좀비 배치를 생성(E04 상한/스폰 위치 규칙 공유).
   // 웨이브·중간 보강·보스 호위가 모두 이 배치 빌더를 재사용한다(중복 로직 제거).
-  const buildWaveBatch = useCallback((phase, size, sec, bounds) => {
+  const buildWaveBatch = useCallback((phase, size, sec, bounds, obstacles = []) => {
     const batch = []
     for (let i = 0; i < size; i++) {
       let type = pickTypeByWeight(phase.weights)
@@ -874,7 +948,8 @@ export default function Enemies() {
         }
       }
       const taken = batch.map((e) => e.pos)
-      const pos = type === 'E04' ? rangedSpawnPos(bounds, taken) : randomSpawnPos(type, bounds, taken)
+      const pos = type === 'E04' ? rangedSpawnPos(bounds, taken, Math.random, obstacles) : randomSpawnPos(type, bounds, taken, Math.random, obstacles)
+      if (!pos) continue
       batch.push({ id: ++_uid, type, pos, statOverride: stageHpOverride(type, currentStageId) })
     }
     return batch
@@ -883,7 +958,8 @@ export default function Enemies() {
   // 마틸다 스폰 — matildaSpawned가 true로 바뀌는 순간 1회만 실행
   useEffect(() => {
     if (!matildaSpawned) return
-    const bounds = getStageBounds(currentStageId)
+    const runtime = stageRuntimeCacheRef.current
+    const bounds = runtime?.bounds ?? getStageBounds(currentStageId)
     const player = useGameStore.getState().player
     // 플레이어 능력치 기준 동적 스탯: 이동속도 ×1.4, 나머지 ×3
     const matildaStats = {
@@ -901,8 +977,8 @@ export default function Enemies() {
       xp: 0,
     }
     // 플레이어 근처 랜덤 스폰
-    const spawnPos = randomSpawnPos('B01', bounds)
-    addEnemies([{ id: ++_uid, type: 'B01', pos: spawnPos, statOverride: matildaStats, isMatilda: true }])
+    const spawnPos = randomSpawnPos('B01', bounds, [], Math.random, runtime?.obstacles ?? [], matildaStats.scale)
+    if (spawnPos) addEnemies([{ id: ++_uid, type: 'B01', pos: spawnPos, statOverride: matildaStats, isMatilda: true }])
   }, [matildaSpawned, currentStageId, addEnemies])
 
   const dropTextbook = useCallback((pos, value) => {
@@ -936,32 +1012,35 @@ export default function Enemies() {
       const size = kind === SCHEDULE_WAVE
         ? waveSizeForStageAtTime(phase, cache.id, b)
         : midWaveSize(phase)
-      addEnemies(buildWaveBatch(phase, size, b, cache.bounds))
+      addEnemies(buildWaveBatch(phase, size, b, cache.bounds, cache.obstacles))
     } else if (kind === SCHEDULE_BURST) {
       const evt = cache.burstEvents[Math.trunc(a)]
       if (!evt) return
       if (isBossType(evt.type)) {
         spawnBoss()
-        const bossBatch = [{ id: ++_uid, type: evt.type, pos: randomSpawnPos(evt.type, cache.bounds), statOverride: stageHpOverride(evt.type, cache.id) }]
+        const bossBatch = []
+        const bossPos = randomSpawnPos(evt.type, cache.bounds, [], Math.random, cache.obstacles)
+        if (bossPos) bossBatch.push({ id: ++_uid, type: evt.type, pos: bossPos, statOverride: stageHpOverride(evt.type, cache.id) })
         const escortSize = bossEscortSize(cache.id, cache.wavePhases, evt.sec)
         if (escortSize > 0) {
           const bossPhase = cache.wavePhases.findLast((phase) => evt.sec >= phase.start) ?? cache.wavePhases[0]
-          bossBatch.push(...buildWaveBatch(bossPhase, escortSize, b, cache.bounds))
+          bossBatch.push(...buildWaveBatch(bossPhase, escortSize, b, cache.bounds, cache.obstacles))
         }
         addEnemies(bossBatch)
         return
       }
       if (evt.formation === RUN_ZOMBIE_CREW_FORMATION) {
         emitSfx({ id: 'rzlWhistle', volume: 0.5 })
-        addEnemies(createRunZombieCrewEntries(cache.bounds).map((entry) => ({ id: ++_uid, ...entry, statOverride: stageHpOverride(entry.type, cache.id) })))
+        addEnemies(createRunZombieCrewEntries(cache.bounds, Math.random, cache.obstacles).map((entry) => ({ id: ++_uid, ...entry, statOverride: stageHpOverride(entry.type, cache.id) })))
         return
       }
       const count = evt.count ?? 1
-      const positions = evt.formation ? formationSpawnPositions(evt.formation, count, cache.bounds, { x: playerPos.x, z: playerPos.z }) : null
+      const positions = evt.formation ? formationSpawnPositions(evt.formation, count, cache.bounds, { x: playerPos.x, z: playerPos.z }, Math.random, cache.obstacles, evt.type) : null
       const batch = []
       for (let spawnIndex = 0; spawnIndex < count; spawnIndex += 1) {
         const taken = batch.map((enemy) => enemy.pos)
-        const pos = positions ? positions[spawnIndex] : (evt.type === 'E04' ? rangedSpawnPos(cache.bounds, taken) : randomSpawnPos(evt.type, cache.bounds, taken))
+        const pos = positions ? positions[spawnIndex] : (evt.type === 'E04' ? rangedSpawnPos(cache.bounds, taken, Math.random, cache.obstacles) : randomSpawnPos(evt.type, cache.bounds, taken, Math.random, cache.obstacles))
+        if (!pos) continue
         batch.push({ id: ++_uid, type: evt.type, pos, statOverride: stageHpOverride(evt.type, cache.id) })
       }
       addEnemies(batch)

@@ -38,6 +38,11 @@ export const ENEMY_EVENT_ERROR = 5
 export const ENEMY_GRID_CELL_SIZE = 2
 export const ENEMY_GRID_MAX_AXIS = 64
 export const ENEMY_EVENT_CAPACITY = 512
+export const ENEMY_OBSTACLE_EPSILON = 0.002
+export const ENEMY_OBSTACLE_RESOLVE_STEPS = 4
+export const ENEMY_STUCK_DETOUR_MS = 500
+export const ENEMY_STUCK_RECOVERY_MS = 1200
+export const ENEMY_STUCK_MOVE_EPSILON_SQ = 1e-6
 
 // JSX ENEMY_STATS와 수치를 맞춘 순수 런타임 lookup. 다음 통합 단계에서 Enemy.jsx가 이 정본을 import한다.
 export const ENEMY_RUNTIME_HP = new Float32Array([0, 8, 70, 14, 32, 70, 320, 90, 28])
@@ -64,7 +69,8 @@ function hasFiniteSlot(pool, index) {
     && isStorableFloat(pool.knockbackY[index]) && isStorableFloat(pool.knockbackZ[index]) && isStorableFloat(pool.knockbackTimer[index])
     && isStorableFloat(pool.hitFlashTimer[index]) && isStorableFloat(pool.runDirX[index]) && isStorableFloat(pool.runDirZ[index])
     && isStorableFloat(pool.lastContactX[index]) && isStorableFloat(pool.lastContactY[index]) && isStorableFloat(pool.lastContactZ[index])
-    && isStorableFloat(pool.lastContactTime[index])
+    && isStorableFloat(pool.lastContactTime[index]) && isStorableFloat(pool.stuckMs[index])
+    && isStorableFloat(pool.detourMs[index]) && isStorableFloat(pool.lastSafeX[index]) && isStorableFloat(pool.lastSafeZ[index])
 }
 
 function isRunCrew(type) {
@@ -239,7 +245,11 @@ function isE04FireAllowed(context, ageMs, cooldownMs, distance, projectileCount)
     && cooldownMs <= 0
 }
 
-function collidesObstacle(x, z, radius, obstacles, obstacleCount) {
+export function enemyCollisionRadius(type) {
+  return ENEMY_RUNTIME_SCALE[type] ? 0.28 * ENEMY_RUNTIME_SCALE[type] * ENEMY_SIZE_MULTIPLIER : 0
+}
+
+export function collidesEnemyObstacle(x, z, radius, obstacles, obstacleCount) {
   for (let obstacleIndex = 0; obstacleIndex < obstacleCount; obstacleIndex += 1) {
     const obstacle = obstacles[obstacleIndex]
     if (!obstacle || !isFiniteNumber(obstacle.x) || !isFiniteNumber(obstacle.z)
@@ -250,11 +260,156 @@ function collidesObstacle(x, z, radius, obstacles, obstacleCount) {
   return false
 }
 
+function clampEnemyPosition(x, z, radius, halfX, halfZ, allowOuterBounds, out) {
+  if (allowOuterBounds) {
+    // RZ는 화면 밖 +6에서 despawn해야 하므로 이동을 경계에 붙여 되돌리지 않는다.
+    out.x = x
+    out.z = z
+    return
+  }
+  out.x = clamp(x, -halfX + radius, halfX - radius)
+  out.z = clamp(z, -halfZ + radius, halfZ - radius)
+}
+
+// expanded AABB의 안쪽 점을 최소 침투 축으로 밀어 낸다. obstacle 목록은 스폰과
+// 같은 stage cache를 공유하므로 렌더/시뮬레이션 경계가 달라지지 않는다.
+export function resolveEnemyObstaclePenetrationInto(out, x, z, radius, obstacles, obstacleCount, halfX, halfZ, allowOuterBounds = false) {
+  let resolvedX = x
+  let resolvedZ = z
+  for (let step = 0; step < ENEMY_OBSTACLE_RESOLVE_STEPS; step += 1) {
+    let changed = false
+    let foundExit = false
+    let bestX = resolvedX
+    let bestZ = resolvedZ
+    let bestDistanceSq = Infinity
+    for (let obstacleIndex = 0; obstacleIndex < obstacleCount; obstacleIndex += 1) {
+      const obstacle = obstacles[obstacleIndex]
+      if (!obstacle || !isFiniteNumber(obstacle.x) || !isFiniteNumber(obstacle.z)
+        || !isFiniteNumber(obstacle.halfX) || !isFiniteNumber(obstacle.halfZ)) continue
+      const minX = obstacle.x - obstacle.halfX - radius
+      const maxX = obstacle.x + obstacle.halfX + radius
+      const minZ = obstacle.z - obstacle.halfZ - radius
+      const maxZ = obstacle.z + obstacle.halfZ + radius
+      if (resolvedX < minX || resolvedX > maxX || resolvedZ < minZ || resolvedZ > maxZ) continue
+      // 경계에 obstacle이 붙어도 clamp-back이 같은 overlap을 만들지 않게 네 exit를
+      // bounds 적용 후 다시 전체 obstacle에 검증한다. tie 순서도 고정이다.
+      for (let exit = 0; exit < 4; exit += 1) {
+        let candidateX = resolvedX
+        let candidateZ = resolvedZ
+        if (exit === 0) candidateX = minX - ENEMY_OBSTACLE_EPSILON
+        else if (exit === 1) candidateX = maxX + ENEMY_OBSTACLE_EPSILON
+        else if (exit === 2) candidateZ = minZ - ENEMY_OBSTACLE_EPSILON
+        else candidateZ = maxZ + ENEMY_OBSTACLE_EPSILON
+        clampEnemyPosition(candidateX, candidateZ, radius, halfX, halfZ, allowOuterBounds, out)
+        if (collidesEnemyObstacle(out.x, out.z, radius, obstacles, obstacleCount)) continue
+        const dx = out.x - resolvedX
+        const dz = out.z - resolvedZ
+        const distanceSq = dx * dx + dz * dz
+        if (!foundExit || distanceSq < bestDistanceSq) {
+          foundExit = true
+          bestDistanceSq = distanceSq
+          bestX = out.x
+          bestZ = out.z
+        }
+      }
+    }
+    if (foundExit) {
+      resolvedX = bestX
+      resolvedZ = bestZ
+      changed = true
+    }
+    if (!changed) break
+  }
+  out.x = resolvedX
+  out.z = resolvedZ
+  return !collidesEnemyObstacle(resolvedX, resolvedZ, radius, obstacles, obstacleCount)
+}
+
+// 고정 수 후보만 검사하는 결정론적 회복. 프레임 경로에서 배열/객체를 만들지 않는다.
+export function findNearestFreeEnemyPositionInto(out, x, z, radius, obstacles, obstacleCount, halfX, halfZ, allowOuterBounds = false, minDisplacement = 0, startGlobal = false) {
+  const minDisplacementSq = minDisplacement * minDisplacement
+  if (!startGlobal) {
+    for (let ring = 0; ring < 5; ring += 1) {
+      const distance = ring * (radius * 2 + 0.18)
+      const candidates = ring === 0 ? 1 : 8
+      for (let candidate = 0; candidate < candidates; candidate += 1) {
+        const angle = ring === 0 ? 0 : candidate * Math.PI * 0.25
+        clampEnemyPosition(x + Math.cos(angle) * distance, z + Math.sin(angle) * distance, radius, halfX, halfZ, allowOuterBounds, out)
+        const dx = out.x - x
+        const dz = out.z - z
+        if (dx * dx + dz * dz < minDisplacementSq) continue
+        if (!collidesEnemyObstacle(out.x, out.z, radius, obstacles, obstacleCount)) return true
+      }
+    }
+  }
+  // 작은 prop 묶음과 경계 접촉에서 local ring이 전부 막혀도, arena 전역의 고정
+  // 33x33 표본으로 실제 빈 곳을 찾는다. 이 경로는 오류 회복 때만 실행된다.
+  const minX = allowOuterBounds ? -halfX - 6 : -halfX + radius
+  const maxX = allowOuterBounds ? halfX + 6 : halfX - radius
+  const minZ = allowOuterBounds ? -halfZ - 6 : -halfZ + radius
+  const maxZ = allowOuterBounds ? halfZ + 6 : halfZ - radius
+  for (let row = 0; row < 33; row += 1) {
+    const candidateZ = minZ + (maxZ - minZ) * (row / 32)
+    for (let column = 0; column < 33; column += 1) {
+      const candidateX = minX + (maxX - minX) * (column / 32)
+      clampEnemyPosition(candidateX, candidateZ, radius, halfX, halfZ, allowOuterBounds, out)
+      const dx = out.x - x
+      const dz = out.z - z
+      if (dx * dx + dz * dz < minDisplacementSq) continue
+      if (!collidesEnemyObstacle(out.x, out.z, radius, obstacles, obstacleCount)) return true
+    }
+  }
+  return false
+}
+
+export function moveEnemyWithObstacleSlideInto(out, x, z, velocityX, velocityZ, delta, radius, obstacles, obstacleCount, halfX, halfZ, allowOuterBounds = false, tangentSign = 1) {
+  const fullX = x + velocityX * delta
+  const fullZ = z + velocityZ * delta
+  clampEnemyPosition(fullX, fullZ, radius, halfX, halfZ, allowOuterBounds, out)
+  if (!collidesEnemyObstacle(out.x, out.z, radius, obstacles, obstacleCount)) {
+    out.blocked = 0
+    return true
+  }
+  const candidateX = out.x
+  const candidateZ = out.z
+  clampEnemyPosition(candidateX, z, radius, halfX, halfZ, allowOuterBounds, out)
+  if (!collidesEnemyObstacle(out.x, out.z, radius, obstacles, obstacleCount)) {
+    out.blocked = 1
+    return true
+  }
+  clampEnemyPosition(x, candidateZ, radius, halfX, halfZ, allowOuterBounds, out)
+  if (!collidesEnemyObstacle(out.x, out.z, radius, obstacles, obstacleCount)) {
+    out.blocked = 1
+    return true
+  }
+  const speed = Math.hypot(velocityX, velocityZ)
+  if (speed > 1e-8) {
+    const sign = tangentSign >= 0 ? 1 : -1
+    const tangentX = -velocityZ / speed * speed * delta * sign
+    const tangentZ = velocityX / speed * speed * delta * sign
+    clampEnemyPosition(x + tangentX, z + tangentZ, radius, halfX, halfZ, allowOuterBounds, out)
+    if (!collidesEnemyObstacle(out.x, out.z, radius, obstacles, obstacleCount)) {
+      out.blocked = 1
+      return true
+    }
+    clampEnemyPosition(x - tangentX, z - tangentZ, radius, halfX, halfZ, allowOuterBounds, out)
+    if (!collidesEnemyObstacle(out.x, out.z, radius, obstacles, obstacleCount)) {
+      out.blocked = 1
+      return true
+    }
+  }
+  out.x = x
+  out.z = z
+  out.blocked = 1
+  return false
+}
+
 export class EnemySimulationRuntime {
   constructor() {
     this.grid = new EnemySpatialGrid()
     this.events = new EnemyEventQueue()
     this._velocityScratch = { x: 0, z: 0 }
+    this._positionScratch = { x: 0, z: 0, blocked: 0 }
   }
 
   _emit(type, pool, index, x, y, z, value, callback) {
@@ -320,6 +475,34 @@ export class EnemySimulationRuntime {
       pool.hitCooldown[index] = Math.max(0, pool.hitCooldown[index] - deltaMs)
       pool.attackCooldown[index] = Math.max(0, pool.attackCooldown[index] - deltaMs)
       if (pool.stateTimer[index] > 0) pool.stateTimer[index] = Math.max(0, pool.stateTimer[index] - deltaMs)
+
+      // reveal은 공격/이동만 막는다. legacy/direct invalid spawn도 첫 step부터 obstacle
+      // 밖에 있어야 하므로 위치 정리는 phase 판정보다 앞에서 수행한다.
+      const radius = enemyCollisionRadius(type)
+      const allowOuterBounds = isRunCrew(type)
+      let placementSafe = true
+      if (obstacleCount > 0 && obstacles) {
+        placementSafe = resolveEnemyObstaclePenetrationInto(this._positionScratch, pool.posX[index], pool.posZ[index], radius,
+          obstacles, obstacleCount, halfX, halfZ, allowOuterBounds)
+        if (!placementSafe) {
+          placementSafe = findNearestFreeEnemyPositionInto(this._positionScratch, pool.posX[index], pool.posZ[index], radius,
+            obstacles, obstacleCount, halfX, halfZ, allowOuterBounds)
+        }
+        if (!placementSafe) {
+          placementSafe = findNearestFreeEnemyPositionInto(this._positionScratch, pool.lastSafeX[index], pool.lastSafeZ[index], radius,
+            obstacles, obstacleCount, halfX, halfZ, allowOuterBounds)
+        }
+      } else {
+        clampEnemyPosition(pool.posX[index], pool.posZ[index], radius, halfX, halfZ, allowOuterBounds, this._positionScratch)
+      }
+      if (!placementSafe) {
+        this._despawn(pool, index, ENEMY_EVENT_ERROR, 0, null)
+        continue
+      }
+      pool.posX[index] = this._positionScratch.x
+      pool.posZ[index] = this._positionScratch.z
+      pool.lastSafeX[index] = pool.posX[index]
+      pool.lastSafeZ[index] = pool.posZ[index]
 
       if (pool.spawnTimer[index] < ENEMY_SPAWN_REVEAL_MS) {
         pool.phase[index] = ENEMY_PHASE_REVEAL
@@ -411,6 +594,17 @@ export class EnemySimulationRuntime {
         moving = true
       }
 
+      if (pool.detourMs[index] > 0 && moving && (velocityX !== 0 || velocityZ !== 0)) {
+        pool.detourMs[index] = Math.max(0, pool.detourMs[index] - deltaMs)
+        const length = Math.hypot(velocityX, velocityZ) || 1
+        const sign = pool.detourSign[index] || (((index + generation) & 1) === 0 ? 1 : -1)
+        const speed = ENEMY_RUNTIME_SPEED[type]
+        const originalX = velocityX
+        const originalZ = velocityZ
+        velocityX = -originalZ / length * speed * sign
+        velocityZ = originalX / length * speed * sign
+      }
+
       // 인접 3x3 셀에서 최대 24명만 조사해 밀집 상태도 O(N²)로 악화되지 않게 한다.
       if (!this.grid.overflow[index]) {
         let neighbors = 0
@@ -447,17 +641,43 @@ export class EnemySimulationRuntime {
       if (moving && (velocityX !== 0 || velocityZ !== 0)) pool.yaw[index] = Math.atan2(velocityX, velocityZ)
       pool.velX[index] = velocityX
       pool.velZ[index] = velocityZ
-      let nextX = posX + velocityX * delta
-      let nextZ = posZ + velocityZ * delta
-      // visualScale은 렌더 전용이다. 충돌 반경은 기존 BASE_COL XZ=0.28과 타입 scale 정본을 쓴다.
-      const radius = 0.28 * ENEMY_RUNTIME_SCALE[type] * ENEMY_SIZE_MULTIPLIER
-      if (!isRunCrew(type)) {
-        nextX = clamp(nextX, -halfX + radius, halfX - radius)
-        nextZ = clamp(nextZ, -halfZ + radius, halfZ - radius)
-      }
+      let nextX = posX
+      let nextZ = posZ
       if (obstacleCount > 0 && obstacles) {
-        if (collidesObstacle(nextX, posZ, radius, obstacles, obstacleCount)) nextX = posX
-        if (collidesObstacle(nextX, nextZ, radius, obstacles, obstacleCount)) nextZ = posZ
+        const tangentSign = pool.detourSign[index] || (((index + generation) & 1) === 0 ? 1 : -1)
+        moveEnemyWithObstacleSlideInto(this._positionScratch, posX, posZ, velocityX, velocityZ, delta, radius,
+          obstacles, obstacleCount, halfX, halfZ, allowOuterBounds, tangentSign)
+        nextX = this._positionScratch.x
+        nextZ = this._positionScratch.z
+      } else {
+        clampEnemyPosition(posX + velocityX * delta, posZ + velocityZ * delta, radius, halfX, halfZ, allowOuterBounds, this._positionScratch)
+        nextX = this._positionScratch.x
+        nextZ = this._positionScratch.z
+      }
+      const movedX = nextX - posX
+      const movedZ = nextZ - posZ
+      const overlapAfterMove = obstacleCount > 0 && obstacles
+        && collidesEnemyObstacle(nextX, nextZ, radius, obstacles, obstacleCount)
+      if (moving && (velocityX !== 0 || velocityZ !== 0) && (movedX * movedX + movedZ * movedZ < ENEMY_STUCK_MOVE_EPSILON_SQ || overlapAfterMove)) {
+        pool.stuckMs[index] += deltaMs
+        if (pool.stuckMs[index] >= ENEMY_STUCK_DETOUR_MS) {
+          pool.detourSign[index] = ((index + generation) & 1) === 0 ? 1 : -1
+          pool.detourMs[index] = 420
+        }
+        if (pool.stuckMs[index] >= ENEMY_STUCK_RECOVERY_MS
+          && findNearestFreeEnemyPositionInto(this._positionScratch, posX, posZ, radius,
+            obstacles, obstacleCount, halfX, halfZ, allowOuterBounds, radius * 2 + 0.18, true)) {
+          nextX = this._positionScratch.x
+          nextZ = this._positionScratch.z
+          pool.stuckMs[index] = 0
+          pool.detourMs[index] = 0
+        }
+      } else if (!overlapAfterMove) {
+        pool.stuckMs[index] = 0
+        pool.detourMs[index] = 0
+        pool.detourSign[index] = 0
+        pool.lastSafeX[index] = nextX
+        pool.lastSafeZ[index] = nextZ
       }
       pool.posX[index] = nextX
       pool.posZ[index] = nextZ

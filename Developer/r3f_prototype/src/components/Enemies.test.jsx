@@ -5,6 +5,8 @@ import {
   getWavePhasesForStage,
   getBurstEventsForStage,
   randomSpawnPos,
+  enemySpawnRadius,
+  spawnOverlapsObstacle,
   shouldDropTextbook,
   createDeathCollapseEntry,
   TEXTBOOK_DROP_RATE,
@@ -545,6 +547,21 @@ describe('enemy spawn placement', () => {
 
     expect(pos[0]).not.toBeCloseTo(0)
   })
+
+  it('type별 반경으로 obstacle 스폰을 거절하고 안전 후보가 없으면 null을 반환한다', () => {
+    playerPos.x = 0
+    playerPos.z = 0
+    const obstacle = [{ x: 0, z: 6.5, halfX: 0.1, halfZ: 0.1 }]
+    const pos = randomSpawnPos('E06', { halfX: 10, halfZ: 48 }, [], () => 0.25, obstacle)
+    expect(enemySpawnRadius('E06')).toBeCloseTo(0.28 * 1.6 * (4 / 3), 6)
+    expect(enemySpawnRadius('B01', 3)).toBeCloseTo(0.28 * 3 * (4 / 3), 6)
+    const matilda = randomSpawnPos('B01', { halfX: 10, halfZ: 48 }, [], () => 0.25, [], 3)
+    expect(matilda[1]).toBeCloseTo(0.24 * 3 * (4 / 3), 6)
+    expect(pos).not.toBeNull()
+    expect(spawnOverlapsObstacle(pos[0], pos[2], 'E06', obstacle)).toBe(false)
+    const blocked = [{ x: 0, z: 0, halfX: 100, halfZ: 100 }]
+    expect(randomSpawnPos('E01', { halfX: 10, halfZ: 48 }, [], () => 0, blocked)).toBeNull()
+  })
 })
 
 describe('formation spawns', () => {
@@ -694,6 +711,16 @@ describe('pooled standard enemy runtime wiring', () => {
     expect(result.projectiles).toBeLessThanOrEqual(32)
     expect(result.enemyBodies).toBeLessThanOrEqual(3)
     expect(result.dynamicSpecial).toBeLessThanOrEqual(3)
+  })
+
+  it('formation과 13 RZ crew는 동일 obstacle AABB와 겹치지 않는 후보만 만든다', () => {
+    const obstacles = [{ x: 0, z: 0, halfX: 1.2, halfZ: 1.2 }]
+    const positions = formationSpawnPositions('ring', 8, { halfX: 12, halfZ: 12 }, { x: 0, z: 0 }, () => 0.5, obstacles, 'E02')
+    expect(positions).toHaveLength(8)
+    positions.forEach((pos) => expect(spawnOverlapsObstacle(pos[0], pos[2], 'E02', obstacles)).toBe(false))
+    const crew = createRunZombieCrewEntries({ halfX: 18, halfZ: 18 }, () => 0.5, [{ x: -17.3, z: -17.3, halfX: 1.2, halfZ: 1.2 }])
+    expect(crew).toHaveLength(RUN_ZOMBIE_CREW_SIZE)
+    crew.forEach((entry) => expect(spawnOverlapsObstacle(entry.pos[0], entry.pos[2], entry.type, [{ x: -17.3, z: -17.3, halfX: 1.2, halfZ: 1.2 }])).toBe(false))
   })
 
   it('renders only bounded special enemies through Enemy and keeps standard spawn work out of the frame callback', () => {

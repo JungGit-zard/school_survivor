@@ -89,6 +89,13 @@ export class EnemyEntityPool {
     this.lastContactY = new Float32Array(MAX_ENEMIES)
     this.lastContactZ = new Float32Array(MAX_ENEMIES)
     this.lastContactTime = new Float32Array(MAX_ENEMIES)
+    // 장애물에 갇힌 슬롯도 generation과 함께 초기화되는 고정 상태만 쓴다.
+    // 프레임 경로에서 객체/배열을 만들지 않기 위한 회복·우회 상태다.
+    this.stuckMs = new Float32Array(MAX_ENEMIES)
+    this.detourMs = new Float32Array(MAX_ENEMIES)
+    this.detourSign = new Int8Array(MAX_ENEMIES)
+    this.lastSafeX = new Float32Array(MAX_ENEMIES)
+    this.lastSafeZ = new Float32Array(MAX_ENEMIES)
 
     this._freeNext = new Int16Array(MAX_ENEMIES)
     this._retired = new Uint8Array(MAX_ENEMIES)
@@ -251,6 +258,11 @@ export class EnemyEntityPool {
     this.lastContactY[index] = lastContactY
     this.lastContactZ[index] = lastContactZ
     this.lastContactTime[index] = lastContactTime
+    this.stuckMs[index] = 0
+    this.detourMs[index] = 0
+    this.detourSign[index] = 0
+    this.lastSafeX[index] = x
+    this.lastSafeZ[index] = z
     this._activeCount += 1
     this._liveProxyCount += 1
     if (index > this._highestActive) this._highestActive = index
@@ -376,6 +388,11 @@ export class EnemyEntityPool {
     this.lastContactY[index] = 0
     this.lastContactZ[index] = 0
     this.lastContactTime[index] = 0
+    this.stuckMs[index] = 0
+    this.detourMs[index] = 0
+    this.detourSign[index] = 0
+    this.lastSafeX[index] = 0
+    this.lastSafeZ[index] = 0
   }
 
   _findHighestActive() {
@@ -471,7 +488,9 @@ export class EnemyEntityPool {
           || !isFiniteValue(this.hp[index]) || !isFiniteValue(this.maxHp[index])
           || !isFiniteValue(this.yaw[index]) || !isFiniteValue(this.visualScale[index])
           || !isFiniteValue(this.runDirX[index]) || !isFiniteValue(this.runDirZ[index])
-          || !isFiniteValue(this.hitFlashTimer[index])) return false
+          || !isFiniteValue(this.hitFlashTimer[index]) || !isFiniteValue(this.stuckMs[index])
+          || !isFiniteValue(this.detourMs[index]) || !isFiniteValue(this.lastSafeX[index]) || !isFiniteValue(this.lastSafeZ[index])
+          || this.stuckMs[index] < 0 || this.detourMs[index] < 0 || this.detourSign[index] < -1 || this.detourSign[index] > 1) return false
         if (this.hp[index] < 0 || this.maxHp[index] <= 0 || this.hp[index] > this.maxHp[index] || this.visualScale[index] < 0) return false
         if (this.posX[index] < minX || this.posX[index] > maxX || this.posZ[index] < minZ || this.posZ[index] > maxZ) return false
       }
