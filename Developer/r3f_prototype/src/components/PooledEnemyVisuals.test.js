@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import * as THREE from 'three'
 import { getStudioTransformProps } from './StudioTunedGroup.jsx'
-import { CHARGE_CUE_CAPACITY, applyCachedPartTransform, copyRootTransform, e01PartSlotsForNumericPath, fillChargeCueSlots, fillEnemyHealthBarLayout, getPooledEnemyVisibility, getSpawnSmokeOpacity, hasUnsupportedStudioPartTuning, selectChargeCueSlots, setSlotOpacity, updateHealthVisualState } from './PooledEnemyVisuals.js'
+import { CHARGE_CUE_CAPACITY, ENEMY_VISUAL_WORLD_SCALE, applyCachedPartTransform, copyRootTransform, e01PartSlotsForNumericPath, fillChargeCueSlots, fillEnemyHealthBarLayout, getPooledChargeCueY, getPooledEnemyVisibility, getSpawnSmokeOpacity, hasUnsupportedStudioPartTuning, selectChargeCueSlots, setSlotOpacity, updateHealthVisualState } from './PooledEnemyVisuals.js'
 
 describe('pooled enemy visual pure contracts', () => {
   it('holds smoke before and through reveal, then hides it at its final lifetime', () => {
@@ -51,6 +51,15 @@ describe('pooled enemy visual pure contracts', () => {
     expect(layout[0]).toBeCloseTo(0.32 * (4 / 3))
     expect(layout[1]).toBeCloseTo(0.045)
     expect(layout[2]).toBeCloseTo(0.72 * (4 / 3))
+  })
+
+  it('keeps the pooled E05 GO cue tail above its head at the largest pulse', () => {
+    const e05VisualScale = 1.15 * (4 / 3)
+    const cueRootY = getPooledChargeCueY(0, e05VisualScale)
+    const headTopY = (0.82 + 0.48 / 2) * e05VisualScale * ENEMY_VISUAL_WORLD_SCALE
+    const tailBottomY = cueRootY + (-0.18 - 0.12 / 2) * 1.08
+
+    expect(tailBottomY - headTopY).toBeGreaterThan(0.08)
   })
 
   it('does not silently accept numeric-path Studio part tunings', () => {

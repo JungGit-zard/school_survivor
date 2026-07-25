@@ -23,13 +23,19 @@ import { createEnemyProjectilePool, MAX_ENEMY_PROJECTILES } from '../lib/enemyPr
 import { emitVfx } from '../lib/vfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
 import { resolveCriticalHitInto } from '../lib/criticalHits.js'
+import { emitCriticalScreenShake } from '../lib/criticalScreenShake.js'
 import { createEnemyHitSparkEvent, COMMON_ENEMY_HIT_KNOCKBACK } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { isPlayerWeaponSightBlocked } from '../lib/weaponTargeting.js'
 import { logKill } from '../lib/playtestLogger.js'
-import PooledEnemyProjectileLayer from './PooledEnemyProjectileLayer.jsx'
 import { getStageObjectSightObstacles, isStageObjectSightBlocked } from './StageObjects/stageObjectColliders.js'
 import { createEnemyHitEventQueue } from '../lib/enemyHitEventQueue.js'
+import {
+  createPooledEnemySpawnDrainQueue,
+  drainPooledEnemySpawnQueue,
+  enqueuePooledEnemySpawn,
+  resetPooledEnemySpawnDrainQueue,
+} from '../lib/pooledEnemySpawnDrain.js'
 
 // 황금 코인 시계 드랍: 4분에 약 10개 → 20–28s 무작위 간격 (5분 기준 ×0.8)
 const GOLD_INTERVAL_MIN_MS = 20_000
@@ -425,7 +431,7 @@ export function getWavePhasesForStage(stageId) {
 }
 
 // 랜덤 간격 이산 웨이브 스케줄러(2026-07-11) — 좀비는 오직 이 스케줄에서만,
-// 웨이브마다 해당 시각 활성 phase의 좀비를 한 번에 스폰한다(intra-wave stagger 없음).
+// 발화 시 웨이브 구성을 확정한 뒤 일반 풀 적은 RAF당 3마리씩 drain한다.
 // 첫 웨이브는 t=0, 이후 각 웨이브는 직전 발화 + 20~40초 균등분포 랜덤 간격(평균 30초).
 export const WAVE_INTERVAL_SEC = 30        // 평균(중심) 간격 — 참고용
 export const WAVE_INTERVAL_MIN_SEC = 20
@@ -740,7 +746,7 @@ export default function Enemies() {
   const [doges, setDoges]           = useState([])
   const [chests, setChests]         = useState([])
   const enemiesRef                = useRef([])
-  const runtimeQueueRef           = useRef({ specialRemovals: [], textbooks: [], gold: [], collapses: [], doges: [], chests: [], flushScheduled: false, raf: 0, scheduleKind: new Uint8Array(64), scheduleA: new Float32Array(64), scheduleB: new Float32Array(64), scheduleRead: 0, scheduleWrite: 0, scheduleCount: 0, processScheduled: null, deathType: new Uint8Array(MAX_RUNTIME_QUEUE), deathX: new Float32Array(MAX_RUNTIME_QUEUE), deathY: new Float32Array(MAX_RUNTIME_QUEUE), deathZ: new Float32Array(MAX_RUNTIME_QUEUE), deathXp: new Float32Array(MAX_RUNTIME_QUEUE), deathScale: new Float32Array(MAX_RUNTIME_QUEUE), deathDamage: new Float32Array(MAX_RUNTIME_QUEUE), deathMaxHp: new Float32Array(MAX_RUNTIME_QUEUE), deathKnockback: new Float32Array(MAX_RUNTIME_QUEUE), deathStyle: new Uint8Array(MAX_RUNTIME_QUEUE), deathRead: 0, deathWrite: 0, deathCount: 0, hitQueue: createEnemyHitEventQueue(), hitScratch: {} })
+  const runtimeQueueRef           = useRef({ specialRemovals: [], textbooks: [], gold: [], collapses: [], doges: [], chests: [], flushScheduled: false, raf: 0, scheduleKind: new Uint8Array(64), scheduleA: new Float32Array(64), scheduleB: new Float32Array(64), scheduleRead: 0, scheduleWrite: 0, scheduleCount: 0, processScheduled: null, spawnDrain: createPooledEnemySpawnDrainQueue(), drainPooled: null, deathType: new Uint8Array(MAX_RUNTIME_QUEUE), deathX: new Float32Array(MAX_RUNTIME_QUEUE), deathY: new Float32Array(MAX_RUNTIME_QUEUE), deathZ: new Float32Array(MAX_RUNTIME_QUEUE), deathXp: new Float32Array(MAX_RUNTIME_QUEUE), deathScale: new Float32Array(MAX_RUNTIME_QUEUE), deathDamage: new Float32Array(MAX_RUNTIME_QUEUE), deathMaxHp: new Float32Array(MAX_RUNTIME_QUEUE), deathKnockback: new Float32Array(MAX_RUNTIME_QUEUE), deathStyle: new Uint8Array(MAX_RUNTIME_QUEUE), deathRead: 0, deathWrite: 0, deathCount: 0, hitQueue: createEnemyHitEventQueue(), hitScratch: {} })
   const runtimeEventScratchRef    = useRef({})
   const runtimeContextRef         = useRef({ delta: 0, playerX: 0, playerZ: 0, halfX: 1, halfZ: 1, elapsedSec: 0, activeProjectileCount: 0, stageId: 'stage1', e04IntroSec: 72, bossPressure: false, obstacles: null, obstacleCount: 0, sightBlocked: enemySightBlocked })
   const stageRuntimeCacheRef      = useRef(null)
@@ -750,19 +756,31 @@ export default function Enemies() {
   const nextMidTimeRef           = useRef(Infinity)  // stage1 중간 보강 스폰 예약 시각(웨이브가 예약)
   const goldTimerRef              = useRef(nextGoldInterval())
   const dogeSpawnedRef           = useRef(false)     // 60초 도지 이벤트 1회 스폰 가드
+  const stageSpawnTokenRef       = useRef(0)
 
   const spawnBoss      = useGameStore((s) => s.spawnBoss)
   const matildaSpawned = useGameStore((s) => s.matildaSpawned)
   const currentStageId = useGameStore((s) => s.currentStageId)
+  const gameKey = useGameStore((s) => s.gameKey)
+  const gamePhase = useGameStore((s) => s.phase)
   projectileHitRef.current = (_index, _generation, damage) => {
     useGameStore.getState().damagePlayer(damage)
   }
 
   // 스테이지 정적 데이터는 stage 전환시에만 해석한다. 프레임 경로는 이 캐시만 읽는다.
   useEffect(() => {
+    const queue = runtimeQueueRef.current
+    stageSpawnTokenRef.current = (stageSpawnTokenRef.current + 1) >>> 0 || 1
+    resetPooledEnemySpawnDrainQueue(queue.spawnDrain)
+    // resetGame이 같은 stageId로 다시 시작되는 경우에도 이전 RAF 요청을 폐기한다.
+    queue.scheduleRead = 0
+    queue.scheduleWrite = 0
+    queue.scheduleCount = 0
     const bounds = getStageBounds(currentStageId)
     stageRuntimeCacheRef.current = {
       id: currentStageId,
+      gameKey,
+      spawnToken: stageSpawnTokenRef.current,
       bounds,
       wavePhases: getWavePhasesForStage(currentStageId),
       burstEvents: getRuntimeBurstEventsForStage(currentStageId),
@@ -771,7 +789,7 @@ export default function Enemies() {
       lastEnd: getWavePhasesForStage(currentStageId).at(-1)?.end ?? 0,
     }
     firedBurstsRef.current.fill(0)
-  }, [currentStageId])
+  }, [currentStageId, gameKey])
 
   // 프레임 루프는 typed-array와 이 bounded queue만 바꾼다. React state는 다음 RAF에서 한 번만 flush한다.
   const scheduleRuntimeFlush = useCallback(() => {
@@ -780,6 +798,9 @@ export default function Enemies() {
     queue.flushScheduled = true
     queue.raf = requestAnimationFrame(() => {
       queue.flushScheduled = false
+      // pause/gameover/clear에서는 예약된 웨이브 및 pending drain을 소비하지 않는다.
+      // 재개 시 아래 phase effect가 남은 큐를 다시 예약한다.
+      if (useGameStore.getState().phase !== 'playing') return
       while (queue.scheduleCount > 0) {
         const slot = queue.scheduleRead
         const kind = queue.scheduleKind[slot]
@@ -789,6 +810,8 @@ export default function Enemies() {
         queue.scheduleCount -= 1
         queue.processScheduled?.(kind, a, b)
       }
+      // 일반 풀 적만 1 RAF당 최대 3마리로 분산한다. 보스 React special은 즉시 경로를 유지한다.
+      queue.drainPooled?.()
       while (queue.hitQueue.drainInto(queue.hitScratch)) {
         const hit = queue.hitScratch
         emitVfx(createEnemyHitSparkEvent({ x: hit.x, y: Math.max(0.34, hit.y), z: hit.z }))
@@ -825,8 +848,15 @@ export default function Enemies() {
       }
       if (queue.doges.length) setDoges((prev) => [...prev, ...queue.doges.splice(0, queue.doges.length)])
       if (queue.chests.length) setChests((prev) => [...prev, ...queue.chests.splice(0, queue.chests.length)])
+      if (queue.scheduleCount > 0 || queue.spawnDrain.count > 0) scheduleRuntimeFlush()
     })
   }, [])
+
+  // 정지 중의 RAF는 스폰을 소비하지 않는다. 재개 프레임부터 남은 항목을 다시 3마리씩 처리한다.
+  useEffect(() => {
+    const queue = runtimeQueueRef.current
+    if (gamePhase === 'playing' && (queue.scheduleCount > 0 || queue.spawnDrain.count > 0)) scheduleRuntimeFlush()
+  }, [gamePhase, scheduleRuntimeFlush])
 
   const enqueueScheduled = useCallback((kind, a = 0, b = 0) => {
     const queue = runtimeQueueRef.current
@@ -873,13 +903,21 @@ export default function Enemies() {
     const type = enemyTypeFromCode(enemyPool.type[index])
     const stats = ENEMY_STATS[type] ?? ENEMY_STATS.E01
     const critical = resolveCriticalHitInto(pooledCriticalScratchRef.current, damage, safeImpact.canCrit, safeImpact.damageType, safeImpact.attackTags, safeImpact.critChance, safeImpact.critMultiplier)
+    const maxHp = enemyPool.maxHp[index]
+    const killed = enemyPool.hp[index] <= critical.damage
+    if (critical.isCritical) {
+      emitCriticalScreenShake(
+        x - playerPos.x,
+        z - playerPos.z,
+        (killed && isBossType(type)) || (Number.isFinite(maxHp) && maxHp > 0 && critical.damage >= maxHp * 0.25),
+      )
+    }
     enqueuePooledHit(x, 0.95 * enemyPool.visualScale[index], z, critical.damage, critical.isCritical)
     if (safeImpact.sfxId) emitSfx({ id: safeImpact.sfxId, volume: 0.6 })
     const knockbackSpeed = Number.isFinite(safeImpact.knockback) ? safeImpact.knockback : COMMON_ENEMY_HIT_KNOCKBACK.speed
     const knockbackMs = Number.isFinite(safeImpact.knockbackMs) ? safeImpact.knockbackMs : COMMON_ENEMY_HIT_KNOCKBACK.durationMs
     const sx = safeImpact.source?.x ?? playerPos.x; const sz = safeImpact.source?.z ?? playerPos.z
     const dx = x - sx; const dz = z - sz; const length = Math.hypot(dx, dz) || 1
-    const killed = enemyPool.hp[index] <= critical.damage
     if (killed) {
       useGameStore.getState().recordKill(); logKill(type); emitSfx({ id: type === 'E06' || type === 'E02' ? 'zombieHeavyDeath' : 'zombieDeath' })
       enqueuePooledDeath(enemyPool.type[index], x, y, z, stats.xp, enemyPool.visualScale[index] * 0.333, critical.damage, enemyPool.maxHp[index], safeImpact.knockback ?? 0, safeImpact.deathStyleOverride)
@@ -896,6 +934,10 @@ export default function Enemies() {
   useEffect(() => () => {
     const queue = runtimeQueueRef.current
     if (queue.raf) cancelAnimationFrame(queue.raf)
+    resetPooledEnemySpawnDrainQueue(queue.spawnDrain)
+    queue.scheduleRead = 0
+    queue.scheduleWrite = 0
+    queue.scheduleCount = 0
   }, [])
 
   const enqueueTextbook = useCallback((pos, value) => {
@@ -908,28 +950,45 @@ export default function Enemies() {
     scheduleRuntimeFlush()
   }, [scheduleRuntimeFlush])
 
-  const addEnemies = useCallback((newList) => {
+  const spawnPooledEnemy = useCallback((entry) => {
+    const stats = { ...(ENEMY_STATS[entry.type] ?? ENEMY_STATS.E01), ...(entry.statOverride ?? {}) }
+    const pos = entry.pos ?? [0, 0, 0]
+    return enemyPool.spawnInto(enemyHandleScratch, {
+      type: entry.type,
+      x: pos[0], y: pos[1], z: pos[2], hp: stats.hp, maxHp: stats.hp,
+      visualScale: stats.scale * ENEMY_SIZE_MULTIPLIER, runDirX: entry.runCrewDir?.x ?? 1, runDirZ: entry.runCrewDir?.z ?? 0,
+    })
+  }, [])
+
+  // stage/runtime token이 현재 store와 다르면 drain하지 않는다. stage effect가 큐를 비우기 전의
+  // 한 RAF 사이에도 이전 스테이지 적이 새 run에 섞이지 않게 하는 2중 보호다.
+  runtimeQueueRef.current.drainPooled = () => {
+    const cache = stageRuntimeCacheRef.current
+    const state = useGameStore.getState()
+    if (!cache || cache.id !== state.currentStageId || cache.gameKey !== state.gameKey) return { consumed: 0, spawned: 0, remaining: runtimeQueueRef.current.spawnDrain.count }
+    return drainPooledEnemySpawnQueue(runtimeQueueRef.current.spawnDrain, cache.spawnToken, spawnPooledEnemy)
+  }
+
+  const addEnemies = useCallback((newList, deferPooled = false, stageToken = stageSpawnTokenRef.current) => {
+    let specialAdded = false
     for (let entryIndex = 0; entryIndex < newList.length; entryIndex += 1) {
       const entry = newList[entryIndex]
       if (!isPooledEnemyType(entry.type)) {
         // pooled numeric generation-id와 legacy special body key가 충돌하지 않도록 namespace를 분리한다.
         if (enemiesRef.current.length < MAX_SPECIAL_ENEMIES) {
           enemiesRef.current.push({ ...entry, id: `special-${entry.id}` })
+          specialAdded = true
         }
         continue
       }
-      const stats = { ...(ENEMY_STATS[entry.type] ?? ENEMY_STATS.E01), ...(entry.statOverride ?? {}) }
-      const pos = entry.pos ?? [0, 0, 0]
-      if (!enemyPool.spawnInto(enemyHandleScratch, {
-        type: entry.type,
-        x: pos[0], y: pos[1], z: pos[2], hp: stats.hp, maxHp: stats.hp,
-        visualScale: stats.scale * ENEMY_SIZE_MULTIPLIER, runDirX: entry.runCrewDir?.x ?? 1, runDirZ: entry.runCrewDir?.z ?? 0,
-      })) continue
-      const index = enemyHandleScratch.index
-      const generation = enemyHandleScratch.generation
+      if (deferPooled) {
+        enqueuePooledEnemySpawn(runtimeQueueRef.current.spawnDrain, entry, stageToken)
+        continue
+      }
+      spawnPooledEnemy(entry)
     }
-    if (enemiesRef.current.length) setSpecialEnemies([...enemiesRef.current])
-  }, [enqueuePooledDeath])
+    if (specialAdded) setSpecialEnemies([...enemiesRef.current])
+  }, [spawnPooledEnemy])
 
   // 한 phase의 weights로 size만큼 좀비 배치를 생성(E04 상한/스폰 위치 규칙 공유).
   // 웨이브·중간 보강·보스 호위가 모두 이 배치 빌더를 재사용한다(중복 로직 제거).
@@ -1002,7 +1061,8 @@ export default function Enemies() {
   // scheduler는 RAF에서만 객체/배치를 만든다. usePlayingFrame은 scalar 요청만 기록한다.
   runtimeQueueRef.current.processScheduled = (kind, a, b) => {
     const cache = stageRuntimeCacheRef.current
-    if (!cache || cache.id !== useGameStore.getState().currentStageId) return
+    const store = useGameStore.getState()
+    if (!cache || cache.id !== store.currentStageId || cache.gameKey !== store.gameKey) return
     if (kind === SCHEDULE_GOLD) {
       dropGoldCoin(pickGoldDropPos(cache.bounds))
     } else if (kind === SCHEDULE_DOGE) {
@@ -1012,7 +1072,7 @@ export default function Enemies() {
       const size = kind === SCHEDULE_WAVE
         ? waveSizeForStageAtTime(phase, cache.id, b)
         : midWaveSize(phase)
-      addEnemies(buildWaveBatch(phase, size, b, cache.bounds, cache.obstacles))
+      addEnemies(buildWaveBatch(phase, size, b, cache.bounds, cache.obstacles), true, cache.spawnToken)
     } else if (kind === SCHEDULE_BURST) {
       const evt = cache.burstEvents[Math.trunc(a)]
       if (!evt) return
@@ -1026,12 +1086,12 @@ export default function Enemies() {
           const bossPhase = cache.wavePhases.findLast((phase) => evt.sec >= phase.start) ?? cache.wavePhases[0]
           bossBatch.push(...buildWaveBatch(bossPhase, escortSize, b, cache.bounds, cache.obstacles))
         }
-        addEnemies(bossBatch)
+        addEnemies(bossBatch, true, cache.spawnToken)
         return
       }
       if (evt.formation === RUN_ZOMBIE_CREW_FORMATION) {
         emitSfx({ id: 'rzlWhistle', volume: 0.5 })
-        addEnemies(createRunZombieCrewEntries(cache.bounds, Math.random, cache.obstacles).map((entry) => ({ id: ++_uid, ...entry, statOverride: stageHpOverride(entry.type, cache.id) })))
+        addEnemies(createRunZombieCrewEntries(cache.bounds, Math.random, cache.obstacles).map((entry) => ({ id: ++_uid, ...entry, statOverride: stageHpOverride(entry.type, cache.id) })), true, cache.spawnToken)
         return
       }
       const count = evt.count ?? 1
@@ -1043,7 +1103,7 @@ export default function Enemies() {
         if (!pos) continue
         batch.push({ id: ++_uid, type: evt.type, pos, statOverride: stageHpOverride(evt.type, cache.id) })
       }
-      addEnemies(batch)
+      addEnemies(batch, true, cache.spawnToken)
     }
   }
 
@@ -1163,7 +1223,7 @@ export default function Enemies() {
       enqueueScheduled(SCHEDULE_BURST, burstIndex, sec)
     }
 
-    // 랜덤 간격 이산 웨이브 — 좀비는 오직 여기서만, 웨이브마다 한 번에 스폰된다.
+    // 랜덤 간격 이산 웨이브 — 발화 시각·구성은 여기서 확정하고 실제 일반 적 생성은 RAF당 3마리로 분산한다.
     // 첫 웨이브 t=0, 이후 직전 발화 + 20~40초 랜덤 간격(마지막 phase.end 미만).
     // Stage 1 실제 마릿수 = 활성 phase target × 0.5의 반올림값에 ×1.3 적용 후 다시 반올림.
     // 활성 phase는 발화 시각(waveTime) 기준 findLast로 결정한다.
@@ -1196,7 +1256,6 @@ export default function Enemies() {
       {specialEnemies.map((e) => (
         <Enemy key={e.id} id={e.id} type={e.type} spawnPos={e.pos} onDeath={onDeath} statOverride={e.statOverride} isMatilda={e.isMatilda} runCrewDir={e.runCrewDir} />
       ))}
-      <PooledEnemyProjectileLayer />
       {textbooks.map((d) => (
         <XpTextbook key={d.id} id={d.id} pos={d.pos} value={d.value} onCollect={onTextbookCollect} />
       ))}

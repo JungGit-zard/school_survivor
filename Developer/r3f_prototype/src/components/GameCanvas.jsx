@@ -1,6 +1,10 @@
 import { Canvas } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
 import Game from './Game.jsx'
+import DamageNumbersLayer from './DamageNumbersLayer.jsx'
+import ZombieInstanceLayer from './ZombieInstanceLayer.jsx'
+import PooledEnemyProjectileLayer from './PooledEnemyProjectileLayer.jsx'
+import StageEntryRuntimeDiagnostics from './StageEntryRuntimeDiagnostics.jsx'
 
 export default function GameCanvas({ gameKey, phase }) {
   return (
@@ -17,6 +21,14 @@ export default function GameCanvas({ gameKey, phase }) {
       <Physics key={gameKey} gravity={[0, 0, 0]} timeStep="vary" paused={phase !== 'playing'}>
         <Game />
       </Physics>
+      {/* These visual pools have no Rapier hooks.  Keeping them outside the keyed
+          Physics subtree preserves GPU buffers across run resets; resetKey clears
+          all prior-run matrices/events in place.  They mount after game logic so
+          their frame update keeps the original simulation-then-visual order. */}
+      <DamageNumbersLayer resetKey={gameKey} />
+      <ZombieInstanceLayer resetKey={gameKey} />
+      <PooledEnemyProjectileLayer resetKey={gameKey} />
+      <StageEntryRuntimeDiagnostics gameKey={gameKey} />
     </Canvas>
   )
 }

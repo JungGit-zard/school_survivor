@@ -4,7 +4,7 @@
 // 근거: drei/troika Text는 개당 SDF 지오메트리 생성 + 워커 비동기 비용이 있어 초당 수십 히트에서 GC/워커 스래싱.
 //       동시 표시 ≤POOL_SIZE, 숫자마다 독립 opacity/색/문자열이 필요해 InstancedMesh보다 슬롯 풀이 단순·충분.
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import {
@@ -16,7 +16,6 @@ import {
   damageNumbersEnabled,
   DAMAGE_NUMBER_LIFE_MS,
 } from '../lib/damageNumbers.js'
-import { useGameStore } from '../store/useGameStore.js'
 
 // 동시 표시 상한(과제 요구: 24~32). 초과 시 pickDamageNumberSlot이 가장 오래된 것을 재활용.
 const POOL_SIZE = 28
@@ -42,9 +41,8 @@ function drawDamageText(ctx, text, colorHex) {
   ctx.fillText(text, CANVAS_W / 2, CANVAS_H / 2 + 1)
 }
 
-export default function DamageNumbersLayer() {
+export default function DamageNumbersLayer({ resetKey }) {
   const groupRef = useRef()
-  const gameKey = useGameStore((s) => s.gameKey)
 
   // 풀을 1회 생성. 캔버스/텍스처/머티리얼/메시 모두 고정, emit 시 재활용만 한다.
   const pool = useMemo(() => {
@@ -85,14 +83,15 @@ export default function DamageNumbersLayer() {
     }
   }, [pool])
 
-  // 게임 재시작 시 잔여 숫자 클리어.
-  useEffect(() => {
+  // 게임 재시작 시 잔여 숫자 클리어. layout effect라 이전 run의 숫자가
+  // 다음 paint에 잠깐 남지 않는다.
+  useLayoutEffect(() => {
     pool.slots.forEach((s) => {
       s.active = false
       s.mesh.visible = false
       s.material.opacity = 0
     })
-  }, [gameKey, pool])
+  }, [resetKey, pool])
 
   useEffect(() => {
     return subscribeDamageNumber((event) => {

@@ -4,7 +4,10 @@ import { getStagePropOverride } from '../../lib/stagePropPlacements.js'
 
 // Rule: every stage1 object must satisfy Math.abs(x) >= 6 OR Math.abs(z) >= 12
 // (keeps the central spawn/play zone clear).
-// mapHalfX=7, so |x| 6-6.9 is valid near-wall placement for the center Z band.
+// mapHalfX=10, so |x| 6-6.9 is valid near-wall placement for the center Z band.
+// Rule: stage4(급식실/주방, mapHalfX=14.4 / mapHalfZ=16) 프랍은 시각 전용(충돌 없음)이라
+// 중앙 전투 공간(|x| <= 6 && |z| <= 8)을 반드시 비우고 |x| <= 13.8, |z| <= 15.5 안에서
+// 벽면 밀착 배치한다. 벽 기준 rotation Y — 북 0 / 남 Math.PI / 서 +Math.PI/2 / 동 -Math.PI/2.
 
 export const STAGE_OBJECT_PLACEMENTS = {
   stage1: [
@@ -170,105 +173,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       props: { variant: 'faceUp' },
     },
 
-    // ── 추가 오브젝트 (3배 밀도 달성: 책상 18, 의자 12, 학생 30) ──────────────
-    // 북쪽 구역 (Z: -46 ~ -20)
-    {
-      id: 'stage1-desk-north-03',
-      type: 'classroomDesk',
-      position: [-4.8, 0, -44],
-      rotation: [0, 0.28, 0],
-      scale: 0.78,
-      props: { variant: 'upright' },
-    },
-    {
-      id: 'stage1-chair-north-03',
-      type: 'classroomChair',
-      position: [-3.6, 0, -42],
-      rotation: [0, -1.15, 0],
-      scale: 0.71,
-      props: { variant: 'tilted' },
-    },
-    {
-      id: 'stage1-student-north-01',
-      type: 'unconsciousStudent',
-      position: [-5.6, 0, -46],
-      rotation: [0, 0.75, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideLeft' },
-    },
-    {
-      id: 'stage1-student-north-02',
-      type: 'unconsciousStudent',
-      position: [2.9, 0, -44],
-      rotation: [0, 1.82, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'faceUp' },
-    },
-    {
-      id: 'stage1-desk-north-04',
-      type: 'classroomDesk',
-      position: [4.2, 0, -38],
-      rotation: [0, -0.45, 0],
-      scale: 0.82,
-      props: { variant: 'abandoned' },
-    },
-    {
-      id: 'stage1-chair-north-04',
-      type: 'classroomChair',
-      position: [3.1, 0, -36],
-      rotation: [0, 2.34, 0],
-      scale: 0.68,
-      props: { variant: 'overturned' },
-    },
-    {
-      id: 'stage1-student-north-03',
-      type: 'unconsciousStudent',
-      position: [5.6, 0, -40],
-      rotation: [0, -2.62, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideRight' },
-    },
-    {
-      id: 'stage1-student-north-04',
-      type: 'unconsciousStudent',
-      position: [1.4, 0, -38],
-      rotation: [0, 0.94, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'faceUp' },
-    },
-    {
-      id: 'stage1-desk-north-05',
-      type: 'classroomDesk',
-      position: [-5.2, 0, -30],
-      rotation: [0, 1.72, 0],
-      scale: 0.75,
-      props: { variant: 'tilted' },
-    },
-    {
-      id: 'stage1-student-north-05',
-      type: 'unconsciousStudent',
-      position: [-3.2, 0, -32],
-      rotation: [0, 2.04, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideRight' },
-    },
-    {
-      id: 'stage1-desk-north-06',
-      type: 'classroomDesk',
-      position: [3.8, 0, -24],
-      rotation: [0, -2.18, 0],
-      scale: 0.80,
-      props: { variant: 'overturned' },
-    },
     // 중간 구역 — |z|<12 오브젝트는 반드시 |x|>=6 (벽면 배치)
-    {
-      id: 'stage1-desk-mid-01',
-      type: 'classroomDesk',
-      position: [-4.6, 0, -18],
-      rotation: [0, 0.62, 0],
-      scale: 0.77,
-      props: { variant: 'upright' },
-    },
     {
       id: 'stage1-chair-mid-01',
       type: 'classroomChair',
@@ -276,14 +181,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, -1.88, 0],
       scale: 0.70,
       props: { variant: 'overturned' },
-    },
-    {
-      id: 'stage1-student-mid-01',
-      type: 'unconsciousStudent',
-      position: [4.2, 0, -20],
-      rotation: [0, 1.48, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideRight' },
     },
     {
       id: 'stage1-student-mid-02',
@@ -364,135 +261,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, -1.62, 0],
       scale: 0.76,
       props: { variant: 'overturned' },
-    },
-    // 남쪽 구역 (Z: +20 ~ +50)
-    {
-      id: 'stage1-desk-south-01',
-      type: 'classroomDesk',
-      position: [-5.1, 0, 22],
-      rotation: [0, 1.14, 0],
-      scale: 0.74,
-      props: { variant: 'upright' },
-    },
-    {
-      id: 'stage1-chair-south-01',
-      type: 'classroomChair',
-      position: [-4.2, 0, 24],
-      rotation: [0, -2.62, 0],
-      scale: 0.71,
-      props: { variant: 'overturned' },
-    },
-    {
-      id: 'stage1-student-south-03',
-      type: 'unconsciousStudent',
-      position: [3.9, 0, 22],
-      rotation: [0, 0.36, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideLeft' },
-    },
-    {
-      id: 'stage1-student-south-04',
-      type: 'unconsciousStudent',
-      position: [-2.8, 0, 26],
-      rotation: [0, -1.52, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'faceUp' },
-    },
-    {
-      id: 'stage1-desk-south-02',
-      type: 'classroomDesk',
-      position: [4.6, 0, 32],
-      rotation: [0, -0.68, 0],
-      scale: 0.81,
-      props: { variant: 'abandoned' },
-    },
-    {
-      id: 'stage1-chair-south-02',
-      type: 'classroomChair',
-      position: [5.6, 0, 30],
-      rotation: [0, 1.42, 0],
-      scale: 0.676,
-      props: { variant: 'tilted' },
-    },
-    {
-      id: 'stage1-student-south-05',
-      type: 'unconsciousStudent',
-      position: [-5.6, 0, 30],
-      rotation: [0, 2.78, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideRight' },
-    },
-    {
-      id: 'stage1-student-south-06',
-      type: 'unconsciousStudent',
-      position: [2.2, 0, 34],
-      rotation: [0, -0.24, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'faceUp' },
-    },
-    {
-      id: 'stage1-desk-south-03',
-      type: 'classroomDesk',
-      position: [-4.9, 0, 40],
-      rotation: [0, 2.32, 0],
-      scale: 0.77,
-      props: { variant: 'tilted' },
-    },
-    {
-      id: 'stage1-chair-south-03',
-      type: 'classroomChair',
-      position: [-3.6, 0, 38],
-      rotation: [0, -1.74, 0],
-      scale: 0.68,
-      props: { variant: 'abandoned' },
-    },
-    {
-      id: 'stage1-student-south-07',
-      type: 'unconsciousStudent',
-      position: [5.2, 0, 40],
-      rotation: [0, 1.56, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideLeft' },
-    },
-    {
-      id: 'stage1-student-south-08',
-      type: 'unconsciousStudent',
-      position: [-1.8, 0, 42],
-      rotation: [0, -2.44, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'faceUp' },
-    },
-    {
-      id: 'stage1-student-south-09',
-      type: 'unconsciousStudent',
-      position: [3.4, 0, 38],
-      rotation: [0, 0.84, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideRight' },
-    },
-    {
-      id: 'stage1-desk-south-04',
-      type: 'classroomDesk',
-      position: [4.4, 0, 46],
-      rotation: [0, 0.52, 0],
-      scale: 0.79,
-      props: { variant: 'overturned' },
-    },
-    {
-      id: 'stage1-chair-south-04',
-      type: 'classroomChair',
-      position: [3.2, 0, 48],
-      rotation: [0, -0.86, 0],
-      scale: 0.73,
-      props: { variant: 'tilted' },
-    },
-    {
-      id: 'stage1-student-south-10',
-      type: 'unconsciousStudent',
-      position: [-5.4, 0, 46],
-      rotation: [0, -1.38, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'faceUp' },
     },
   ],
   stage2: [
@@ -647,12 +415,334 @@ export const STAGE_OBJECT_PLACEMENTS = {
       blocking: false,
     },
   ],
+  // stage4: 급식실/주방(mapHalfX 14.4 · mapHalfZ 16). 원화 st4_concept.png 매핑.
+  // 프랍은 전부 시각 전용(blocking: false) — 충돌체가 없으므로 중앙 전투 공간은 완전히 비운다.
+  stage4: [
+    // ── 북벽: 쿡라인 + 후드(최대 랜드마크), 북서 냉장고 열, 북동 싱크대 ──
+    {
+      id: 'stage4-cookline-north-center',
+      type: 'kitchenCookLine',
+      position: [-0.6, 0, -14.6],
+      rotation: [0, 0, 0],
+      scale: 1.16,
+      blocking: false,
+    },
+    {
+      id: 'stage4-refrigerator-north-west-closed',
+      type: 'kitchenRefrigerator',
+      position: [-12.6, 0, -14.4],
+      rotation: [0, 0.12, 0],
+      scale: 1.08,
+      props: { open: false },
+      blocking: false,
+    },
+    {
+      id: 'stage4-refrigerator-north-west-open',
+      type: 'kitchenRefrigerator',
+      position: [-9.6, 0, -14.6],
+      rotation: [0, -0.18, 0],
+      scale: 1.05,
+      props: { open: true },
+      blocking: false,
+    },
+    {
+      id: 'stage4-crates-north-west-corner',
+      type: 'kitchenCrateStack',
+      position: [-13.2, 0, -11.6],
+      rotation: [0, 0.36, 0],
+      scale: 1.02,
+      props: { count: 3 },
+      blocking: false,
+    },
+    {
+      id: 'stage4-clutter-north-cookline-spill',
+      type: 'kitchenClutter',
+      position: [3.6, 0, -14.2],
+      rotation: [0, -0.24, 0],
+      scale: 1.0,
+      props: { variant: 'pots' },
+      blocking: false,
+    },
+    {
+      id: 'stage4-sink-north-east',
+      type: 'kitchenSinkCounter',
+      position: [7.4, 0, -14.5],
+      rotation: [0, 0.08, 0],
+      scale: 1.12,
+      blocking: false,
+    },
+    {
+      id: 'stage4-crates-north-east-corner',
+      type: 'kitchenCrateStack',
+      position: [10.8, 0, -12.6],
+      rotation: [0, -0.42, 0],
+      scale: 0.96,
+      props: { count: 2 },
+      blocking: false,
+    },
+    {
+      id: 'stage4-trayrack-north-east-inner',
+      type: 'kitchenTrayRack',
+      position: [9.2, 0, -9.4],
+      rotation: [0, -0.62, 0],
+      scale: 1.06,
+      blocking: false,
+    },
+    // ── 동벽: 배식 랙 · 선반 · 사이드 카운터 · 쓰레기통 라인 ──
+    {
+      id: 'stage4-shelfcart-east-north',
+      type: 'kitchenShelfCart',
+      position: [12.6, 0, -10.4],
+      rotation: [0, -Math.PI / 2 + 0.16, 0],
+      scale: 1.04,
+      blocking: false,
+    },
+    {
+      id: 'stage4-shelfcart-east-upper',
+      type: 'kitchenShelfCart',
+      position: [12.9, 0, -7.2],
+      rotation: [0, -Math.PI / 2 - 0.12, 0],
+      scale: 1.0,
+      blocking: false,
+    },
+    {
+      id: 'stage4-preptable-east-side-counter',
+      type: 'kitchenPrepTable',
+      position: [12.5, 0, -4.0],
+      rotation: [0, -Math.PI / 2 + 0.1, 0],
+      scale: 1.06,
+      props: { variant: 'side' },
+      blocking: false,
+    },
+    {
+      id: 'stage4-trash-east-wheelie',
+      type: 'kitchenTrashBins',
+      position: [13.3, 0, -0.8],
+      rotation: [0, -Math.PI / 2 - 0.22, 0],
+      scale: 1.02,
+      props: { variant: 'wheelie' },
+      blocking: false,
+    },
+    {
+      id: 'stage4-trayrack-east-mid',
+      type: 'kitchenTrayRack',
+      position: [12.7, 0, 2.6],
+      rotation: [0, -Math.PI / 2 + 0.24, 0],
+      scale: 1.08,
+      blocking: false,
+    },
+    {
+      id: 'stage4-crates-east-mid',
+      type: 'kitchenCrateStack',
+      position: [13.2, 0, 5.8],
+      rotation: [0, -0.28, 0],
+      scale: 1.05,
+      props: { count: 4 },
+      blocking: false,
+    },
+    {
+      id: 'stage4-clutter-east-trays',
+      type: 'kitchenClutter',
+      position: [12.2, 0, 8.8],
+      rotation: [0, -0.52, 0],
+      scale: 0.98,
+      props: { variant: 'trays' },
+      blocking: false,
+    },
+    {
+      id: 'stage4-preptable-east-south-counter',
+      type: 'kitchenPrepTable',
+      position: [12.8, 0, 11.6],
+      rotation: [0, -Math.PI / 2 - 0.14, 0],
+      scale: 1.04,
+      props: { variant: 'side' },
+      blocking: false,
+    },
+    // ── 서벽: 선반 카트 · 냄비 더미 · 쓰레기통 · 서측 싱크대 ──
+    {
+      id: 'stage4-shelfcart-west-north',
+      type: 'kitchenShelfCart',
+      position: [-12.7, 0, -8.8],
+      rotation: [0, Math.PI / 2 - 0.18, 0],
+      scale: 1.06,
+      blocking: false,
+    },
+    {
+      id: 'stage4-clutter-west-pots',
+      type: 'kitchenClutter',
+      position: [-13.2, 0, -5.6],
+      rotation: [0, 0.44, 0],
+      scale: 1.0,
+      props: { variant: 'pots' },
+      blocking: false,
+    },
+    {
+      id: 'stage4-trash-west-wheelie',
+      type: 'kitchenTrashBins',
+      position: [-13.4, 0, -3.2],
+      rotation: [0, Math.PI / 2 + 0.2, 0],
+      scale: 1.0,
+      props: { variant: 'wheelie' },
+      blocking: false,
+    },
+    {
+      id: 'stage4-sink-west-mid',
+      type: 'kitchenSinkCounter',
+      position: [-13.4, 0, 1.0],
+      rotation: [0, Math.PI / 2 + 0.06, 0],
+      scale: 1.1,
+      blocking: false,
+    },
+    {
+      id: 'stage4-trash-west-round',
+      type: 'kitchenTrashBins',
+      position: [-13.0, 0, 4.8],
+      rotation: [0, 0.32, 0],
+      scale: 0.96,
+      props: { variant: 'round' },
+      blocking: false,
+    },
+    {
+      id: 'stage4-clutter-west-bags',
+      type: 'kitchenClutter',
+      position: [-12.4, 0, 7.4],
+      rotation: [0, 0.66, 0],
+      scale: 1.02,
+      props: { variant: 'bags' },
+      blocking: false,
+    },
+    {
+      id: 'stage4-shelfcart-west-south',
+      type: 'kitchenShelfCart',
+      position: [-12.9, 0, 10.6],
+      rotation: [0, Math.PI / 2 + 0.22, 0],
+      scale: 1.02,
+      blocking: false,
+    },
+    {
+      id: 'stage4-crates-south-west-corner',
+      type: 'kitchenCrateStack',
+      position: [-13.2, 0, 13.2],
+      rotation: [0, 0.5, 0],
+      scale: 1.0,
+      props: { count: 3 },
+      blocking: false,
+    },
+    // ── 남벽: 배식 카운터 라인 + 적재 상자 + 잔반 정리 구역 ──
+    {
+      id: 'stage4-preptable-south-serving-left',
+      type: 'kitchenPrepTable',
+      position: [-3.4, 0, 15.0],
+      rotation: [0, Math.PI + 0.08, 0],
+      scale: 1.1,
+      props: { variant: 'side' },
+      blocking: false,
+    },
+    {
+      id: 'stage4-preptable-south-serving-right',
+      type: 'kitchenPrepTable',
+      position: [1.8, 0, 15.1],
+      rotation: [0, Math.PI - 0.1, 0],
+      scale: 1.1,
+      props: { variant: 'side' },
+      blocking: false,
+    },
+    {
+      id: 'stage4-crates-south-west-stack',
+      type: 'kitchenCrateStack',
+      position: [-10.8, 0, 14.6],
+      rotation: [0, Math.PI - 0.34, 0],
+      scale: 1.04,
+      props: { count: 3 },
+      blocking: false,
+    },
+    {
+      id: 'stage4-crates-south-center-stack',
+      type: 'kitchenCrateStack',
+      position: [-7.2, 0, 15.1],
+      rotation: [0, Math.PI + 0.26, 0],
+      scale: 0.98,
+      props: { count: 2 },
+      blocking: false,
+    },
+    {
+      id: 'stage4-clutter-south-trays',
+      type: 'kitchenClutter',
+      position: [5.8, 0, 14.9],
+      rotation: [0, Math.PI - 0.42, 0],
+      scale: 1.0,
+      props: { variant: 'trays' },
+      blocking: false,
+    },
+    {
+      id: 'stage4-trash-south-round',
+      type: 'kitchenTrashBins',
+      position: [8.6, 0, 14.6],
+      rotation: [0, Math.PI + 0.18, 0],
+      scale: 0.98,
+      props: { variant: 'round' },
+      blocking: false,
+    },
+    {
+      id: 'stage4-trayrack-south-east',
+      type: 'kitchenTrayRack',
+      position: [11.6, 0, 14.4],
+      rotation: [0, Math.PI - 0.12, 0],
+      scale: 1.05,
+      blocking: false,
+    },
+    // ── 중앙 조리대 4기: 원화는 정중앙이지만 충돌 없음 → 클리핑 회피용으로 양옆으로 이동 ──
+    {
+      id: 'stage4-preptable-inner-west-cutting',
+      type: 'kitchenPrepTable',
+      position: [-8.4, 0, -5.2],
+      rotation: [0, Math.PI / 2 + 0.06, 0],
+      scale: 1.12,
+      props: { variant: 'cutting' },
+      blocking: false,
+    },
+    {
+      id: 'stage4-preptable-inner-west-pans',
+      type: 'kitchenPrepTable',
+      position: [-8.8, 0, 0.8],
+      rotation: [0, Math.PI / 2 - 0.08, 0],
+      scale: 1.12,
+      props: { variant: 'pans' },
+      blocking: false,
+    },
+    {
+      id: 'stage4-preptable-inner-east-bare',
+      type: 'kitchenPrepTable',
+      position: [8.6, 0, 0.4],
+      rotation: [0, -Math.PI / 2 + 0.1, 0],
+      scale: 1.12,
+      props: { variant: 'bare' },
+      blocking: false,
+    },
+    {
+      id: 'stage4-preptable-inner-west-south-bare',
+      type: 'kitchenPrepTable',
+      position: [-8.4, 0, 6.4],
+      rotation: [0, Math.PI / 2 + 0.14, 0],
+      scale: 1.08,
+      props: { variant: 'bare' },
+      blocking: false,
+    },
+  ],
 }
 
 const FLIPPED_UNCONSCIOUS_STUDENT_VARIANTS = {
   faceUp: 'faceUpFlipped',
   sideLeft: 'sideLeftFlipped',
   sideRight: 'sideRightFlipped',
+}
+
+export const STAGE1_VISIBLE_PROP_PADDING = 3
+
+export function isStage1VisiblePropPlacement({ position: [x, , z] }) {
+  const { halfX, halfZ } = getStageBounds('stage1')
+  return Math.abs(x) <= halfX + STAGE1_VISIBLE_PROP_PADDING
+    && Math.abs(z) <= halfZ + STAGE1_VISIBLE_PROP_PADDING
 }
 
 function shouldFlipUnconsciousStudent(id) {
@@ -765,8 +855,10 @@ function getStage2Rotation(item, id) {
 // 기본(오버라이드 미적용) 배치 파이프라인. 그래픽 스튜디오 에디터가 pristine 시드로 쓴다.
 export function computeDefaultStageObjectPlacements(stageId = 'stage1') {
   const authored = STAGE_OBJECT_PLACEMENTS[stageId] ?? []
-  // stage1/stage3 are curated authored layouts. Stage2 alone uses copy/scatter to fill the corridor.
-  if (stageId === 'stage1' || stageId === 'stage3') return authored.map(withMixedUnconsciousStudentFacing)
+  // stage1/stage3/stage4 are curated authored layouts. Stage2 alone uses copy/scatter to fill the corridor.
+  if (stageId === 'stage1' || stageId === 'stage3' || stageId === 'stage4') {
+    return authored.map(withMixedUnconsciousStudentFacing)
+  }
   return authored.flatMap((item, itemIndex) => (
     Array.from({ length: getInstanceCount(stageId, item) }, (_, copyIndex) => {
       const id = `${item.id}-copy-${copyIndex + 1}`
@@ -791,6 +883,9 @@ export function computeDefaultStageObjectPlacements(stageId = 'stage1') {
 // 오버라이드 항목에도 학생 방향 다양화(withMixedUnconsciousStudentFacing)는 유지한다.
 export function getStageObjectPlacements(stageId = 'stage1') {
   const override = getStagePropOverride(stageId)
-  if (override) return override.map(withMixedUnconsciousStudentFacing)
-  return computeDefaultStageObjectPlacements(stageId)
+  const placements = override ?? computeDefaultStageObjectPlacements(stageId)
+  const visiblePlacements = stageId === 'stage1'
+    ? placements.filter(isStage1VisiblePropPlacement)
+    : placements
+  return visiblePlacements.map(withMixedUnconsciousStudentFacing)
 }

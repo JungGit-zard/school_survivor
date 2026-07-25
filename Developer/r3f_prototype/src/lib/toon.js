@@ -102,6 +102,17 @@ export function getCachedToonMat(color, emissive = 0.08) {
   return m
 }
 
+// outlineMat도 프랍마다 새로 만들면 Stage 1 진입 시 같은 GPU 프로그램/재질이 대량으로
+// 생성된다. 색상과 투명도 조합별로만 한 번 만들고, Studio 조정이 필요할 때에는
+// StudioTunedGroup이 이 원본을 개별 mesh 소유 clone으로 분리한다.
+const _outlineMatCache = new Map()
+export function getCachedOutlineMat(opacity = 0.96, color = 0x050209) {
+  const key = `${opacity},${color}`
+  let m = _outlineMatCache.get(key)
+  if (!m) { m = outlineMat(opacity, color); _outlineMatCache.set(key, m) }
+  return m
+}
+
 // outlineMat(0.96): 모든 캐릭터 아웃라인이 동일 → 싱글턴
 let _sharedOutlineMat = null
 export function getSharedOutlineMat() {
@@ -121,6 +132,8 @@ if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     _toonMatCache.forEach((m) => m.dispose())
     _toonMatCache.clear()
+    _outlineMatCache.forEach((m) => m.dispose())
+    _outlineMatCache.clear()
     _sharedOutlineMat?.dispose(); _sharedOutlineMat = null
     _flashMat?.dispose(); _flashMat = null
     _geoCache.forEach((g) => g.dispose())

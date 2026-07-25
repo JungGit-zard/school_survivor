@@ -6,6 +6,10 @@ export const CHARGE_CUE_CAPACITY = 16
 export const ENEMY_HEALTH_BAR_WIDTH = 0.32
 export const ENEMY_HEALTH_BAR_HEIGHT = 0.045
 export const ENEMY_HEALTH_BAR_Y = 0.72
+export const ENEMY_VISUAL_WORLD_SCALE = 0.333
+// Match Enemy.jsx's ChargeToonCue anchor so the pooled E05 warning stays above
+// the scaled zombie head instead of using its old, lower .9 offset.
+export const CHARGE_CUE_LOCAL_Y = 1.75
 
 // Preserve EnemyVisual/MiniHealthBar's world-space contract while letting the
 // fixed instance renderer reuse caller-owned typed scratch in its frame loop.
@@ -15,6 +19,11 @@ export function fillEnemyHealthBarLayout(out, visualScale) {
   out[1] = ENEMY_HEALTH_BAR_HEIGHT
   out[2] = ENEMY_HEALTH_BAR_Y * cs
   return out
+}
+
+export function getPooledChargeCueY(baseY, visualScale) {
+  const cs = Number.isFinite(visualScale) && visualScale > 0 ? visualScale : 1
+  return baseY + CHARGE_CUE_LOCAL_Y * cs * ENEMY_VISUAL_WORLD_SCALE
 }
 
 export function clamp01(value) {

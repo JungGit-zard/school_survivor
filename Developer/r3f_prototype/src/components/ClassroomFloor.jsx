@@ -1,8 +1,10 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
+import { useLoader } from '@react-three/fiber'
 import * as THREE from 'three'
 import stage1TileUrl from '../assets/background_floor/tile_stage01.webp'
 import stage2TileUrl from '../assets/background_floor/tile_stage02_corridor.webp'
 import stage2EndWallUrl from '../assets/background_floor/stage02_corridor_end_wall.webp'
+import stage4TileUrl from '../assets/background_floor/tile_stage04_cafeteria.webp'
 import { getStage2CorridorWallDisplay } from '../lib/stage2CorridorWall.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 import Stage2CorridorDecor from './Stage2CorridorDecor.jsx'
@@ -11,11 +13,18 @@ const FLOOR_SIZE = 200
 const STAGE1_TILE_WORLD_SIZE = 6.9
 const STAGE2_TILE_WORLD_SIZE = 30
 const STAGE2_TILE_DENSITY_MULTIPLIER = 10
+const STAGE1_BOUNDS = getStageBounds('stage1')
+export const STAGE1_FLOOR_WIDTH = STAGE1_BOUNDS.halfX * 2
+export const STAGE1_FLOOR_DEPTH = STAGE1_BOUNDS.halfZ * 2
 
 export const FLOOR_TILE = {
   src: stage1TileUrl,
-  repeat: Math.round(FLOOR_SIZE / STAGE1_TILE_WORLD_SIZE),
-  floorSize: FLOOR_SIZE,
+  // Stage 1 is the actual 5 × 7.2 block (20 × 28.8 unit) classroom.  Keep
+  // the existing ~6.9-unit tile density independently on each rectangle axis.
+  repeatX: STAGE1_FLOOR_WIDTH / STAGE1_TILE_WORLD_SIZE,
+  repeatZ: STAGE1_FLOOR_DEPTH / STAGE1_TILE_WORLD_SIZE,
+  floorWidth: STAGE1_FLOOR_WIDTH,
+  floorDepth: STAGE1_FLOOR_DEPTH,
 }
 
 export const STAGE_FLOOR_TILES = {
@@ -23,6 +32,12 @@ export const STAGE_FLOOR_TILES = {
   stage2: {
     src: stage2TileUrl,
     repeat: Math.round(FLOOR_SIZE / STAGE2_TILE_WORLD_SIZE) * STAGE2_TILE_DENSITY_MULTIPLIER,
+    floorSize: FLOOR_SIZE,
+  },
+  stage4: {
+    src: stage4TileUrl,
+    // 식당 타일은 Stage 1처럼 작은 반복 타일이므로 같은 월드 밀도를 유지한다.
+    repeat: Math.round(FLOOR_SIZE / STAGE1_TILE_WORLD_SIZE),
     floorSize: FLOOR_SIZE,
   },
 }
@@ -106,21 +121,84 @@ function buildStage3WoodTexture() {
 }
 
 function buildRepeatingTexture(tile) {
-  if (typeof document === 'undefined') return null
-  const tex = new THREE.TextureLoader().load(tile.src)
+  const tex = tile
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping
-  tex.repeat.set(tile.repeat, tile.repeat)
+  tex.repeat.set(tile.userData.floorRepeatX, tile.userData.floorRepeatZ)
   tex.anisotropy = 8
   tex.colorSpace = THREE.SRGBColorSpace
   return tex
 }
 
 function buildEndWallTexture(config) {
-  if (typeof document === 'undefined') return null
-  const tex = new THREE.TextureLoader().load(config.src)
+  const tex = config
   tex.anisotropy = 8
   tex.colorSpace = THREE.SRGBColorSpace
   return tex
+}
+
+function TexturedFloor({ floorTile }) {
+  const texture = useLoader(THREE.TextureLoader, floorTile.src)
+  // The R3F loader cache owns the image/texture.  Repeating parameters are
+  // stage-specific and are set once when the stage floor mounts.
+  texture.userData.floorRepeatX = floorTile.repeatX ?? floorTile.repeat
+  texture.userData.floorRepeatZ = floorTile.repeatZ ?? floorTile.repeat
+  const floorTex = useMemo(() => buildRepeatingTexture(texture), [texture])
+  const floorMat = useMemo(() => new THREE.MeshLambertMaterial({ map: floorTex }), [floorTex])
+  useEffect(() => () => floorMat.dispose(), [floorMat])
+
+  return (
+    <FloorPlane
+      material={floorMat}
+      width={floorTile.floorWidth ?? floorTile.floorSize}
+      depth={floorTile.floorDepth ?? floorTile.floorSize}
+    />
+  )
+}
+
+function Stage2EndWall() {
+  const texture = useLoader(THREE.TextureLoader, STAGE2_CORRIDOR_END.src)
+  const endWallTex = useMemo(() => buildEndWallTexture(texture), [texture])
+  const endWallMat = useMemo(
+    () => new THREE.MeshBasicMaterial({ map: endWallTex, side: THREE.DoubleSide, transparent: true, depthWrite: false }),
+    [endWallTex],
+  )
+  useEffect(() => () => endWallMat.dispose(), [endWallMat])
+
+  return (
+    <group position={[0, 0.012, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
+        <planeGeometry args={[26, FLOOR_SIZE]} />
+        <meshBasicMaterial color={0x2f3942} transparent opacity={0.16} depthWrite={false} />
+      </mesh>
+      <mesh position={[0, 0.004, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={2}>
+        <planeGeometry args={[5.2, FLOOR_SIZE]} />
+        <meshBasicMaterial color={0x4e725f} transparent opacity={0.07} depthWrite={false} />
+      </mesh>
+      {Array.from({ length: STAGE2_CORRIDOR_END.repeatX }, (_, i) => {
+        const centerOffset = i - (STAGE2_CORRIDOR_END.repeatX - 1) / 2
+        return (
+          <mesh
+            key={i}
+            position={[centerOffset * STAGE2_CORRIDOR_END.displayWidth, 0.018, STAGE2_CORRIDOR_END.positionZ]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            renderOrder={3}
+            material={endWallMat}
+          >
+            <planeGeometry args={[STAGE2_CORRIDOR_END.displayWidth, STAGE2_CORRIDOR_END.displayHeight]} />
+          </mesh>
+        )
+      })}
+    </group>
+  )
+}
+
+function FloorPlane({ material, width = FLOOR_SIZE, depth = FLOOR_SIZE }) {
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow renderOrder={0}>
+      <planeGeometry args={[width, depth]} />
+      <primitive object={material} />
+    </mesh>
+  )
 }
 
 export default function ClassroomFloor({ stageId = 'stage1' }) {
@@ -128,57 +206,26 @@ export default function ClassroomFloor({ stageId = 'stage1' }) {
   // 실제 의존이 stageId에 걸리게 된다. floorTile을 dep으로 쓰면 항상 같은
   // 참조라 memo가 재실행되지 않아 stageId 전환 시 텍스처가 갱신되지 않는다.
   const floorTile = STAGE_FLOOR_TILES[stageId] ?? STAGE_FLOOR_TILES.stage1
-  // stage3는 전용 타일 에셋이 없으므로 절차적 나무마루 텍스처를 생성한다.
-  const floorTex = useMemo(
-    () => (stageId === 'stage3' ? buildStage3WoodTexture() : buildRepeatingTexture(floorTile)),
-    [stageId],
+  const stage3Texture = useMemo(() => (stageId === 'stage3' ? buildStage3WoodTexture() : null), [stageId])
+  const stage3Material = useMemo(
+    () => (stage3Texture ? new THREE.MeshLambertMaterial({ map: stage3Texture }) : null),
+    [stage3Texture],
   )
-  const endWallTex = useMemo(() => buildEndWallTexture(STAGE2_CORRIDOR_END), [])
-  const floorMat = useMemo(
-    () => new THREE.MeshLambertMaterial({ map: floorTex }),
-    [floorTex],
-  )
-  const endWallMat = useMemo(
-    () => new THREE.MeshBasicMaterial({ map: endWallTex, side: THREE.DoubleSide, transparent: true, depthWrite: false }),
-    [endWallTex],
-  )
+  useEffect(() => () => {
+    // Stage 3 owns this procedural CanvasTexture.  Do not dispose R3F loader
+    // cache textures used by stages 1/2 or the Stage 2 end-wall.
+    stage3Material?.dispose()
+    stage3Texture?.dispose()
+  }, [stage3Material, stage3Texture])
 
   return (
     <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow renderOrder={0}>
-        <planeGeometry args={[FLOOR_SIZE, FLOOR_SIZE]} />
-        <primitive object={floorMat} />
-      </mesh>
+      {stageId === 'stage3'
+        ? <FloorPlane material={stage3Material} />
+        : <TexturedFloor floorTile={floorTile} />}
 
       {stageId === 'stage2' && (
-        <group position={[0, 0.012, 0]}>
-          <mesh rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
-            <planeGeometry args={[26, FLOOR_SIZE]} />
-            <meshBasicMaterial color={0x2f3942} transparent opacity={0.16} depthWrite={false} />
-          </mesh>
-          <mesh position={[0, 0.004, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={2}>
-            <planeGeometry args={[5.2, FLOOR_SIZE]} />
-            <meshBasicMaterial color={0x4e725f} transparent opacity={0.07} depthWrite={false} />
-          </mesh>
-          {Array.from({ length: STAGE2_CORRIDOR_END.repeatX }, (_, i) => {
-            const centerOffset = i - (STAGE2_CORRIDOR_END.repeatX - 1) / 2
-            return (
-              <mesh
-                key={i}
-                position={[
-                  centerOffset * STAGE2_CORRIDOR_END.displayWidth,
-                  0.018,
-                  STAGE2_CORRIDOR_END.positionZ,
-                ]}
-                rotation={[-Math.PI / 2, 0, 0]}
-                renderOrder={3}
-                material={endWallMat}
-              >
-                <planeGeometry args={[STAGE2_CORRIDOR_END.displayWidth, STAGE2_CORRIDOR_END.displayHeight]} />
-              </mesh>
-            )
-          })}
-        </group>
+        <Stage2EndWall />
       )}
 
       {stageId === 'stage2' && <Stage2CorridorDecor />}

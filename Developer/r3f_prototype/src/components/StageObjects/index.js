@@ -16,5 +16,19 @@ export {
   GymScoreboard,
   TrainingCones,
 } from './GymProps.jsx'
+export {
+  KITCHEN_CLUTTER_VARIANTS,
+  KITCHEN_PREP_TABLE_VARIANTS,
+  KITCHEN_TRASH_BIN_VARIANTS,
+  KitchenClutter,
+  KitchenCookLine,
+  KitchenCrateStack,
+  KitchenPrepTable,
+  KitchenRefrigerator,
+  KitchenShelfCart,
+  KitchenSinkCounter,
+  KitchenTrashBins,
+  KitchenTrayRack,
+} from './KitchenProps.jsx'
 export * from './stageObjectColliders.js'
 export * from './stageObjectPlacements.js'

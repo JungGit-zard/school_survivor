@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { FLOOR_TILE, STAGE_FLOOR_TILES, STAGE2_CORRIDOR_END, STAGE2_CORRIDOR_LANES } from './ClassroomFloor.jsx'
+import { readFileSync } from 'node:fs'
+import {
+  FLOOR_TILE,
+  STAGE1_FLOOR_DEPTH,
+  STAGE1_FLOOR_WIDTH,
+  STAGE_FLOOR_TILES,
+  STAGE2_CORRIDOR_END,
+  STAGE2_CORRIDOR_LANES,
+} from './ClassroomFloor.jsx'
 import { getStageBounds } from '../lib/stageConfig.js'
 
 describe('ClassroomFloor tiling', () => {
@@ -22,18 +30,37 @@ describe('ClassroomFloor tiling', () => {
     expect(STAGE2_CORRIDOR_END.bottomZ).toBeLessThan(-getStageBounds('stage2').halfZ)
   })
 
-  it('keeps a consistent plank size regardless of floor size (tile world size ~4-10)', () => {
-    const tileWorldSize = FLOOR_TILE.floorSize / FLOOR_TILE.repeat
-    expect(tileWorldSize).toBeGreaterThan(4)
-    expect(tileWorldSize).toBeLessThan(10)
+  it('maps Stage 4 to its dedicated cafeteria tile instead of the Stage 1 fallback', () => {
+    expect(STAGE_FLOOR_TILES.stage4.src).toMatch(/tile_stage04_cafeteria/)
+    expect(STAGE_FLOOR_TILES.stage4.repeat).toBe(29)
   })
 
-  it('extends well beyond the playable map (±48) so the floor never runs out under the follow camera', () => {
-    // floor must cover the play area plus the camera view margin on every side
-    expect(FLOOR_TILE.floorSize).toBeGreaterThanOrEqual(160)
+  it('limits Stage 1 visual floor to its exact combat bounds with the existing tile density', () => {
+    const { halfX, halfZ } = getStageBounds('stage1')
+
+    expect(STAGE1_FLOOR_WIDTH).toBe(halfX * 2)
+    expect(STAGE1_FLOOR_DEPTH).toBe(halfZ * 2)
+    expect(FLOOR_TILE.floorWidth).toBe(20)
+    expect(FLOOR_TILE.floorDepth).toBe(28.8)
+    expect(FLOOR_TILE.floorWidth).not.toBe(200)
+    expect(FLOOR_TILE.floorDepth).not.toBe(200)
+    expect(FLOOR_TILE.floorWidth / FLOOR_TILE.repeatX).toBeCloseTo(6.9)
+    expect(FLOOR_TILE.floorDepth / FLOOR_TILE.repeatZ).toBeCloseTo(6.9)
+  })
+
+  it('keeps the existing 200 by 200 floor contract for other textured stages', () => {
+    expect(STAGE_FLOOR_TILES.stage2.floorSize).toBe(200)
+    expect(STAGE_FLOOR_TILES.stage4.floorSize).toBe(200)
   })
 
   it('does not draw blue Stage 2 lane divider lines', () => {
     expect(STAGE2_CORRIDOR_LANES.centerLineColor).toBeUndefined()
+  })
+
+  it('uses the shared R3F loader cache and never constructs a TextureLoader per floor mount', () => {
+    const source = readFileSync(new URL('./ClassroomFloor.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('useLoader(THREE.TextureLoader, floorTile.src)')
+    expect(source).toContain('useLoader(THREE.TextureLoader, STAGE2_CORRIDOR_END.src)')
+    expect(source).not.toContain('new THREE.TextureLoader()')
   })
 })

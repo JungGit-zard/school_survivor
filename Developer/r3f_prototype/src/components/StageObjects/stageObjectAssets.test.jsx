@@ -17,10 +17,32 @@ import {
   GymMats,
   GymScoreboard,
   TrainingCones,
+  KITCHEN_CLUTTER_VARIANTS,
+  KITCHEN_PREP_TABLE_VARIANTS,
+  KITCHEN_TRASH_BIN_VARIANTS,
+  KitchenClutter,
+  KitchenCookLine,
+  KitchenCrateStack,
+  KitchenPrepTable,
+  KitchenRefrigerator,
+  KitchenShelfCart,
+  KitchenSinkCounter,
+  KitchenTrashBins,
+  KitchenTrayRack,
   UNCONSCIOUS_STUDENT_VARIANTS,
   UnconsciousStudent,
 } from './index.js'
-import { getPropOutlineScale, STAGE_PROP_MESH_RENDERING } from './propRendering.js'
+import { BLOCKING_STAGE_OBJECT_TYPES } from './stageObjectColliders.js'
+import { STAGE_OBJECT_TYPES } from './StageObjectLayer.jsx'
+import { STAGE_PROP_TYPES } from '../../lib/stagePropPlacements.js'
+import { getCachedBoxGeo, getCachedOutlineMat } from '../../lib/toon.js'
+import {
+  getPropOutlineScale,
+  getStagePropOutlineMaterial,
+  STAGE_PROP_MESH_RENDERING,
+  STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING,
+  STAGE_PROP_UNIT_BOX_GEOMETRY,
+} from './propRendering.js'
 
 const STAGE_OBJECT_COMPONENT_FILES = [
   'ClassroomChair.jsx',
@@ -66,12 +88,49 @@ describe('stage object asset catalog', () => {
     })
   })
 
+  it('shares the unit box geometry and keeps it alive across individual prop unmounts', () => {
+    expect(STAGE_PROP_UNIT_BOX_GEOMETRY).toBe(getCachedBoxGeo(1, 1, 1))
+    expect(getStagePropOutlineMaterial(0.9, 0x24170f)).toBe(
+      getStagePropOutlineMaterial(0.9, 0x24170f),
+    )
+    expect(getStagePropOutlineMaterial(0.9, 0x24170f)).toBe(
+      getCachedOutlineMat(0.9, 0x24170f),
+    )
+    expect(STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING).toMatchObject({
+      castShadow: false,
+      receiveShadow: false,
+      dispose: null,
+    })
+  })
+
   it('does not reintroduce direct shadow props in classroom prop components', () => {
     for (const file of STAGE_OBJECT_COMPONENT_FILES) {
       const source = readFileSync(new URL(`./${file}`, import.meta.url), 'utf8')
 
       expect(source).not.toContain('castShadow')
       expect(source).not.toContain('receiveShadow')
+    }
+  })
+
+  it('uses shared geometry and cached materials without changing the StudioTunedGroup roots', () => {
+    const studioItemIds = {
+      'ClassroomChair.jsx': 'stage-object-chair',
+      'ClassroomDesk.jsx': 'stage-object-desk',
+      'UnconsciousStudent.jsx': 'stage-object-unconscious-student',
+    }
+
+    for (const file of STAGE_OBJECT_COMPONENT_FILES) {
+      const source = readFileSync(new URL(`./${file}`, import.meta.url), 'utf8')
+
+      expect(source).not.toContain('<boxGeometry')
+      expect(source).not.toContain('useMemo')
+      expect(source).not.toContain('toonMat(')
+      expect(source).not.toContain('outlineMat(')
+      expect(source).toContain('geometry={STAGE_PROP_UNIT_BOX_GEOMETRY}')
+      expect(source).toContain('getStagePropToonMaterial(')
+      expect(source).toContain('getStagePropOutlineMaterial(')
+      expect(source).toContain('STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING')
+      expect(source).toContain(`<StudioTunedGroup itemId="${studioItemIds[file]}">`)
     }
   })
 
@@ -153,5 +212,70 @@ describe('stage object asset catalog', () => {
     expect(source).toContain('<icosahedronGeometry')
     expect(source).not.toContain('sphereGeometry')
     expect(source).not.toContain('torusGeometry')
+  })
+
+  it('exports the nine Stage 4 kitchen prop models', () => {
+    const kitchenProps = [
+      KitchenPrepTable,
+      KitchenCookLine,
+      KitchenSinkCounter,
+      KitchenRefrigerator,
+      KitchenTrayRack,
+      KitchenShelfCart,
+      KitchenTrashBins,
+      KitchenCrateStack,
+      KitchenClutter,
+    ]
+
+    for (const Component of kitchenProps) {
+      expect(Component).toBeTypeOf('function')
+    }
+  })
+
+  it('declares the Stage 4 kitchen prop variant key sets', () => {
+    expect([...KITCHEN_PREP_TABLE_VARIANTS].sort()).toEqual(['bare', 'cutting', 'pans', 'side'])
+    expect([...KITCHEN_TRASH_BIN_VARIANTS].sort()).toEqual(['round', 'wheelie'])
+    expect([...KITCHEN_CLUTTER_VARIANTS].sort()).toEqual(['bags', 'pots', 'trays'])
+  })
+
+  it('registers every Stage 4 kitchen prop in the placeable type catalog', () => {
+    const kitchenTypes = [
+      'kitchenPrepTable',
+      'kitchenCookLine',
+      'kitchenSinkCounter',
+      'kitchenRefrigerator',
+      'kitchenTrayRack',
+      'kitchenShelfCart',
+      'kitchenTrashBins',
+      'kitchenCrateStack',
+      'kitchenClutter',
+    ]
+
+    for (const type of kitchenTypes) {
+      expect(STAGE_OBJECT_TYPES).toContain(type)
+      expect(STAGE_PROP_TYPES).toContain(type)
+    }
+  })
+
+  it('keeps Stage 4 kitchen props to low-poly block, six-sided cylinder and faceted blob primitives', () => {
+    const source = readFileSync(new URL('./KitchenProps.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('<boxGeometry')
+    expect(source).toContain('<cylinderGeometry')
+    expect(source).toContain('<icosahedronGeometry')
+    expect(source).not.toContain('sphereGeometry')
+    expect(source).not.toContain('torusGeometry')
+    expect(source).not.toContain('castShadow')
+    expect(source).not.toContain('receiveShadow')
+    expect(source).not.toContain('material={outline}')
+  })
+
+  it('keeps Stage 4 kitchen props visual-only (no collider or sight-blocking registration)', () => {
+    const kitchenTypes = STAGE_OBJECT_TYPES.filter((type) => type.startsWith('kitchen'))
+
+    expect(kitchenTypes).toHaveLength(9)
+    for (const type of kitchenTypes) {
+      expect(BLOCKING_STAGE_OBJECT_TYPES.has(type)).toBe(false)
+    }
   })
 })

@@ -22,6 +22,16 @@ export const STAGE_PROP_PALETTE = Object.freeze([
   { type: 'gymBanner', label: '배너', defaultScale: 1.05, glyph: '🎌' },
   { type: 'gymExitDoor', label: '비상구', defaultScale: 1, glyph: '🚪' },
   { type: 'gymEquipmentSpill', label: '장비흩어짐', defaultScale: 1.08, glyph: '🧺' },
+  // 급식실(stage4) 프랍 9종
+  { type: 'kitchenPrepTable', label: '조리대', defaultScale: 1, defaultVariant: 'bare', glyph: '🍳' },
+  { type: 'kitchenCookLine', label: '쿡라인', defaultScale: 1, glyph: '🔥' },
+  { type: 'kitchenSinkCounter', label: '싱크대', defaultScale: 1, glyph: '🚰' },
+  { type: 'kitchenRefrigerator', label: '냉장고', defaultScale: 1, glyph: '🧊', defaultProps: { open: false } },
+  { type: 'kitchenTrayRack', label: '배식랙', defaultScale: 1.05, glyph: '🍱' },
+  { type: 'kitchenShelfCart', label: '선반카트', defaultScale: 1.05, glyph: '🛒' },
+  { type: 'kitchenTrashBins', label: '쓰레기통', defaultScale: 1.05, defaultVariant: 'wheelie', glyph: '🗑' },
+  { type: 'kitchenCrateStack', label: '상자더미', defaultScale: 1.05, glyph: '📦', defaultProps: { count: 3 } },
+  { type: 'kitchenClutter', label: '주방잡동사니', defaultScale: 1.1, defaultVariant: 'pots', glyph: '🥘' },
 ])
 
 // 팔레트 항목에서 신규 배치 시 시드할 기본 props(있으면 객체, 없으면 null).

@@ -21,6 +21,8 @@ import WeaponModal from './WeaponModal.jsx'
 import LobbySettingsModal from './LobbySettingsModal.jsx'
 import StageBossPreview from './StageBossPreview.jsx'
 import { StageLockPreview } from './StageLock.jsx'
+import { preloadGameCanvasChunk } from './gameCanvasLoader.js'
+import { preloadStageEntryAssets } from '../lib/stageEntryPreload.js'
 
 const STAGE_UNLOCK_HINT = {
   stage2: 'Stage 1 클리어 시 열림',
@@ -108,6 +110,18 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
   useEffect(() => () => {
     window.clearTimeout(touchAmbientTimerRef.current)
     window.clearTimeout(feedbackTimerRef.current)
+  }, [])
+
+  // The title/lobby keeps no WebGL context alive.  Only warm the JS chunk while
+  // idle; GPU upload/compile remains in the actual gameplay Canvas.
+  useEffect(() => {
+    const warm = () => { preloadGameCanvasChunk().catch(() => {}) }
+    const idleId = window.requestIdleCallback?.(warm, { timeout: 900 })
+    const timeoutId = idleId == null ? window.setTimeout(warm, 80) : 0
+    return () => {
+      if (idleId != null) window.cancelIdleCallback?.(idleId)
+      if (timeoutId) window.clearTimeout(timeoutId)
+    }
   }, [])
 
   const handleLobbyPointerDown = (event) => {
@@ -294,6 +308,8 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
 
   const queueStart = () => {
     if (!canStart || showtimePendingRef.current || !onBeginShowtime?.(stageId)) return
+    preloadGameCanvasChunk().catch(() => {})
+    preloadStageEntryAssets(stageId)
     showtimePendingRef.current = true
     setShowtimeActive(true)
     setShowtimeToken((token) => token + 1)
@@ -331,6 +347,8 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
       }}
       aria-label={`${stage.label} ${stage.title}`}
       onClick={handleCardClick}
+      onPointerEnter={() => preloadStageEntryAssets(stageId)}
+      onFocus={() => preloadStageEntryAssets(stageId)}
     >
       {unlocked ? (
         <div style={styles.previewStack} data-testid="stage-card-preview-row">

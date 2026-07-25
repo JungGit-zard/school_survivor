@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, expect, it, beforeEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
   computeDefaultStageObjectPlacements,
   getStageObjectPlacements,
@@ -8,10 +8,22 @@ import {
   saveStagePropPlacements,
   resetStagePropPlacementsCache,
 } from '../../lib/stagePropPlacements.js'
+import { commitFirebaseStudioRuntime } from '../../lib/studioRuntimeState.js'
+
+const FIREBASE_RUNTIME_BASELINE = Object.freeze({ propPlacements: Object.freeze({}) })
+const FIREBASE_RUNTIME_BASELINE_REVISION = 0
+
+function restoreFirebaseRuntimeBaseline() {
+  resetStagePropPlacementsCache()
+  commitFirebaseStudioRuntime(FIREBASE_RUNTIME_BASELINE, { revision: FIREBASE_RUNTIME_BASELINE_REVISION })
+}
 
 beforeEach(() => {
-  resetStagePropPlacementsCache()
-  window.localStorage.clear()
+  restoreFirebaseRuntimeBaseline()
+})
+
+afterEach(() => {
+  restoreFirebaseRuntimeBaseline()
 })
 
 describe('getStageObjectPlacements override priority', () => {
@@ -32,6 +44,32 @@ describe('getStageObjectPlacements override priority', () => {
     expect(live).toHaveLength(1)
     expect(live[0].id).toBe('user-desk')
     expect(live[0].position).toEqual([1, 0, 2])
+  })
+
+  it('filters only out-of-envelope Stage 1 Firebase runtime overrides', () => {
+    saveStagePropPlacements({
+      stage1: [
+        { id: 'inside-desk', type: 'classroomDesk', position: [12.9, 0, 17.4], rotation: [0, 0.3, 0], scale: 0.9 },
+        { id: 'boundary-desk', type: 'classroomDesk', position: [13, 0, 17.4], rotation: [0, 0.1, 0], scale: 1 },
+        { id: 'outside-desk', type: 'classroomDesk', position: [13.1, 0, 0], rotation: [0, 0.2, 0], scale: 1 },
+        { id: 'outside-z-desk', type: 'classroomDesk', position: [0, 0, 17.5], rotation: [0, -0.2, 0], scale: 1 },
+      ],
+    })
+
+    const live = getStageObjectPlacements('stage1')
+    expect(live).toHaveLength(2)
+    expect(live[0]).toMatchObject({
+      id: 'inside-desk',
+      position: [12.9, 0, 17.4],
+      rotation: [0, 0.3, 0],
+      scale: 0.9,
+    })
+    expect(live[1]).toMatchObject({
+      id: 'boundary-desk',
+      position: [13, 0, 17.4],
+    })
+    expect(live.map(({ id }) => id)).not.toContain('outside-desk')
+    expect(live.map(({ id }) => id)).not.toContain('outside-z-desk')
   })
 
   it('still applies mixed unconscious-student facing to override items', () => {

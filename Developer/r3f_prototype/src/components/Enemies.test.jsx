@@ -739,6 +739,16 @@ describe('pooled standard enemy runtime wiring', () => {
     expect(frameSource).not.toContain('dropGoldCoin(')
   })
 
+  it('queues regular wave entries and drains at most three per RAF with stage-reset protection', () => {
+    const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('createPooledEnemySpawnDrainQueue()')
+    expect(source).toContain('drainPooledEnemySpawnQueue(runtimeQueueRef.current.spawnDrain, cache.spawnToken, spawnPooledEnemy)')
+    expect(source).toContain('resetPooledEnemySpawnDrainQueue(queue.spawnDrain)')
+    expect(source).toContain("cache.gameKey !== store.gameKey")
+    expect(source).toContain("useGameStore.getState().phase !== 'playing'")
+    expect(source).toContain('addEnemies(buildWaveBatch(phase, size, b, cache.bounds, cache.obstacles), true, cache.spawnToken)')
+  })
+
   it('keeps the special Enemy frame state setters deferred and uses the fixed projectile pool', () => {
     const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
     const enemyStart = source.indexOf('export default function Enemy(')

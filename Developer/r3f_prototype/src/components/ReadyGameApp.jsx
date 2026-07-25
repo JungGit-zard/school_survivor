@@ -9,11 +9,12 @@ import { initPlaytestLogger } from '../lib/playtestLogger.js'
 import { isMobileJoystickEnvironment } from '../lib/mobileInput.js'
 import { initKeyboardInput } from '../lib/keyboardInput.js'
 import { loadTitleSettings } from '../lib/titleSettings.js'
+import { loadGameCanvas } from './gameCanvasLoader.js'
 
 const CoinShop = lazy(() => import('./CoinShop.jsx'))
 const UserRanking = lazy(() => import('./UserRanking.jsx'))
 const StageRanking = lazy(() => import('./StageRanking.jsx'))
-const GameCanvas = lazy(() => import('./GameCanvas.jsx'))
+const GameCanvas = lazy(loadGameCanvas)
 const HUD = lazy(() => import('./HUD.jsx'))
 
 let runtimeUtilitiesInitialized = false

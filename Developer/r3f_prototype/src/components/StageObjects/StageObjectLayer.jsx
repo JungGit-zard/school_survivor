@@ -15,6 +15,17 @@ import {
   GymScoreboard,
   TrainingCones,
 } from './GymProps.jsx'
+import {
+  KitchenClutter,
+  KitchenCookLine,
+  KitchenCrateStack,
+  KitchenPrepTable,
+  KitchenRefrigerator,
+  KitchenShelfCart,
+  KitchenSinkCounter,
+  KitchenTrashBins,
+  KitchenTrayRack,
+} from './KitchenProps.jsx'
 import { getStageObjectPlacements } from './stageObjectPlacements.js'
 import { useStagePropPlacementsVersion } from '../../lib/stagePropPlacements.js'
 
@@ -35,6 +46,15 @@ const STAGE_OBJECT_COMPONENTS = {
   gymBanner: GymBanner,
   gymExitDoor: GymExitDoor,
   gymEquipmentSpill: GymEquipmentSpill,
+  kitchenPrepTable: KitchenPrepTable,
+  kitchenCookLine: KitchenCookLine,
+  kitchenSinkCounter: KitchenSinkCounter,
+  kitchenRefrigerator: KitchenRefrigerator,
+  kitchenTrayRack: KitchenTrayRack,
+  kitchenShelfCart: KitchenShelfCart,
+  kitchenTrashBins: KitchenTrashBins,
+  kitchenCrateStack: KitchenCrateStack,
+  kitchenClutter: KitchenClutter,
 }
 
 // 배치 파이프라인이 렌더 가능한 전체 타입 목록(단일 정본).

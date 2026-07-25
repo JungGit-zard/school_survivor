@@ -1,7 +1,7 @@
 // Fixed-pool renderer for E01-E06 and the running-zombie squad.  It deliberately
 // consumes the simulation's typed-array slot as the GPU instance slot: no React
 // entity mount, Map insertion order, or local Studio fallback is involved.
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.png'
@@ -11,7 +11,7 @@ import { GRAPHICS_STUDIO_TUNING_EVENT, getStudioZombieItemId, loadStudioTunings 
 import { getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { getToonGradient } from '../lib/toon.js'
 import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
-import { POOLED_ENEMY_CAPACITY, SPAWN_REVEAL_MS, SPAWN_SMOKE_MS, applyCachedPartTransform, e01PartSlotsForNumericPath, fillChargeCueSlots, fillEnemyHealthBarLayout, getSpawnSmokeOpacity, setSlotOpacity, updateHealthVisualState } from './PooledEnemyVisuals.js'
+import { POOLED_ENEMY_CAPACITY, SPAWN_REVEAL_MS, SPAWN_SMOKE_MS, applyCachedPartTransform, e01PartSlotsForNumericPath, fillChargeCueSlots, fillEnemyHealthBarLayout, getPooledChargeCueY, getSpawnSmokeOpacity, setSlotOpacity, updateHealthVisualState } from './PooledEnemyVisuals.js'
 
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0)
 const m = new THREE.Matrix4(); const a = new THREE.Matrix4(); const e = new THREE.Euler('XYZ')
@@ -76,7 +76,7 @@ function cueIM(def, material) { const x = new THREE.InstancedMesh(new THREE.BoxG
 function mark(meshes) { for (let i=0;i<meshes.length;i++) { const x=meshes[i]; x.instanceMatrix.needsUpdate = true; if (x.instanceColor) x.instanceColor.needsUpdate = true; if (x.userData.instanceAlpha) x.userData.instanceAlpha.needsUpdate=true } }
 function markOne(x) { x.instanceMatrix.needsUpdate=true; if(x.instanceColor)x.instanceColor.needsUpdate=true; if(x.userData.instanceAlpha)x.userData.instanceAlpha.needsUpdate=true }
 
-export default function ZombieInstanceLayer() {
+export default function ZombieInstanceLayer({ resetKey }) {
   const { camera } = useThree(); const smokeTexture = useLoader(THREE.TextureLoader, spawnSmokeUrl)
   const studio = useRef({ revision: null, rootMatrices: [], rootScaleX: new Float32Array(9), rootScaleZ: new Float32Array(9), supported: new Uint8Array(9), partTransforms: new Float32Array(9 * PART_COUNT * PART_STRIDE) }); const cueOverflowRef = useRef(0); const cueIndicesRef = useRef(new Int16Array(16))
   const health = useRef({ generation:new Uint16Array(200), lastRatio:new Float32Array(200), trailRatio:new Float32Array(200), flash:new Float32Array(200), ratio:new Float32Array(200), visibleTrailRatio:new Float32Array(200) })
@@ -97,6 +97,34 @@ export default function ZombieInstanceLayer() {
     for (let i=0;i<all.cue.length;i++) dispose(all.cue[i])
     dispose(all.shadow); dispose(all.smoke)
   }, [all])
+  useLayoutEffect(() => {
+    // A keyed Physics reset must never show old instance matrices for even one
+    // frame.  The meshes themselves stay allocated and are repopulated by the
+    // next pool frame, so no GPU buffer is recreated.
+    for (let i = 0; i < all.body.length; i += 1) for (let slot = 0; slot < POOLED_ENEMY_CAPACITY; slot += 1) all.body[i].setMatrixAt(slot, ZERO)
+    for (let i = 0; i < all.out.length; i += 1) for (let slot = 0; slot < POOLED_ENEMY_CAPACITY; slot += 1) all.out[i].setMatrixAt(slot, ZERO)
+    for (let i = 0; i < all.bars.length; i += 1) for (let slot = 0; slot < POOLED_ENEMY_CAPACITY; slot += 1) all.bars[i].setMatrixAt(slot, ZERO)
+    for (let i = 0; i < all.cue.length; i += 1) for (let slot = 0; slot < 16; slot += 1) all.cue[i].setMatrixAt(slot, ZERO)
+    for (let slot = 0; slot < POOLED_ENEMY_CAPACITY; slot += 1) { all.shadow.setMatrixAt(slot, ZERO); all.smoke.setMatrixAt(slot, ZERO) }
+    // Matrix zeroing alone hides the old run, but stale alpha/health trail
+    // state can bleed into a recycled slot before its next full visual update.
+    health.current.generation.fill(0)
+    health.current.lastRatio.fill(0)
+    health.current.trailRatio.fill(0)
+    health.current.flash.fill(0)
+    health.current.ratio.fill(0)
+    health.current.visibleTrailRatio.fill(0)
+    // The normal bars and blob shadow have no per-frame alpha write.  Restore
+    // their steady-state defaults here; only the delayed trail and smoke start
+    // transparent until their frame-path explicitly activates them.
+    all.bars[0].userData.instanceAlpha.fill(1)
+    all.bars[1].userData.instanceAlpha.fill(1)
+    all.bars[2].userData.instanceAlpha.fill(0)
+    all.bars[3].userData.instanceAlpha.fill(1)
+    all.shadow.userData.instanceAlpha.fill(1)
+    all.smoke.userData.instanceAlpha.fill(0)
+    mark(all.body); mark(all.out); mark(all.bars); mark(all.cue); markOne(all.shadow); markOne(all.smoke)
+  }, [all, resetKey])
   useEffect(() => { const refresh=()=>{ const state=getFirebaseStudioRuntimeState(); if (!state?.datasets || !Number.isInteger(state.revision)) return; const tunings=loadStudioTunings(); const rootMatrices=[]; const rootScaleX=new Float32Array(9);const rootScaleZ=new Float32Array(9); const supported=new Uint8Array(9); const partTransforms=new Float32Array(9 * PART_COUNT * PART_STRIDE); for(let t=1;t<=8;t++){const id=TYPE_ITEM_IDS[t];const transform=getStudioTransformProps(tunings[id]);const root=new THREE.Matrix4();p.set(transform.position[0],transform.position[1],transform.position[2]);e.set(transform.rotation[0],transform.rotation[1],transform.rotation[2]);q.setFromEuler(e);s.set(transform.scale[0],transform.scale[1],transform.scale[2]);root.compose(p,q,s);rootMatrices[t]=root;rootScaleX[t]=transform.scale[0];rootScaleZ[t]=transform.scale[2];supported[t]=1;const base=t*PART_COUNT*PART_STRIDE;for(let part=0;part<PART_COUNT;part+=1){partTransforms[base+part*PART_STRIDE+6]=1;partTransforms[base+part*PART_STRIDE+7]=1;partTransforms[base+part*PART_STRIDE+8]=1}}
     const keys=Object.keys(tunings).sort(); for(let keyIndex=0;keyIndex<keys.length;keyIndex+=1){const savedKey=keys[keyIndex];const marker='zombie-e01::';if(!savedKey.startsWith(marker))continue;const kind=savedKey.startsWith('zombie-e01::group::')?'group::':'part::';const suffix=savedKey.slice(('zombie-e01::'+kind).length);const selected=suffix.split('+');const transform=getStudioTransformProps(tunings[savedKey]);for(let selectedIndex=0;selectedIndex<selected.length;selectedIndex+=1){const count=e01PartSlotsForNumericPath(selected[selectedIndex],partSlotScratch);applyCachedPartTransform(partTransforms,1*PART_COUNT*PART_STRIDE,partSlotScratch,count,transform)}} studio.current={revision:state.revision,rootMatrices,rootScaleX,rootScaleZ,supported,partTransforms} }; refresh(); window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT,refresh); return()=>window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT,refresh) },[])
   useFrame((_,delta) => {
@@ -117,7 +145,7 @@ export default function ZombieInstanceLayer() {
       const enemyIndex=cueIndices[ci]
       if (enemyIndex < 0) { for(let meshIndex=0;meshIndex<all.cue.length;meshIndex++)all.cue[meshIndex].setMatrixAt(ci,ZERO); continue }
       const pulse=1+Math.sin(pool.spawnTimer[enemyIndex]*.012)*.08
-      p.set(pool.posX[enemyIndex],pool.posY[enemyIndex]+.9*(pool.visualScale[enemyIndex]||1)*.333,pool.posZ[enemyIndex]); q.copy(camera.quaternion); s.set(pulse,pulse,pulse);m.compose(p,q,s)
+      p.set(pool.posX[enemyIndex],getPooledChargeCueY(pool.posY[enemyIndex], pool.visualScale[enemyIndex]),pool.posZ[enemyIndex]); q.copy(camera.quaternion); s.set(pulse,pulse,pulse);m.compose(p,q,s)
        for(let part=0;part<CUE.length;part++){a.copy(m);translate.makeTranslation(CUE[part][1][0],CUE[part][1][1],CUE[part][1][2]);a.multiply(translate);all.cue[part].setMatrixAt(ci,a);color.setHex(CUE[part][2]);all.cue[part].setColorAt(ci,color)}
     }
     mark(all.body); mark(all.out); markOne(all.shadow); mark(all.bars); markOne(all.smoke); mark(all.cue)

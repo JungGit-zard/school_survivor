@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useGameStore } from '../store/useGameStore.js'
@@ -10,14 +10,17 @@ import Floor from './Floor.jsx'
 import Enemies from './Enemies.jsx'
 import LunchItems from './LunchItems.jsx'
 import VFXLayer from './VFXLayer.jsx'
-import DamageNumbersLayer from './DamageNumbersLayer.jsx'
 import EscapePortal from './EscapePortal.jsx'
 import StudentDialogueTrigger from './StudentDialogueTrigger.jsx'
 import { emitSfx } from '../lib/sfxEvents.js'
+import { createCriticalScreenShakeFrame, sampleCriticalScreenShake } from '../lib/criticalScreenShake.js'
 import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon, ChibikoWeapon, SharkMissileWeapon, StudentLanternWeapon } from './Weapons/index.js'
-import ZombieInstanceLayer from './ZombieInstanceLayer.jsx'
 
 const _camTarget = new THREE.Vector3()
+const _cameraRight = new THREE.Vector3()
+const _cameraUp = new THREE.Vector3()
+const _cameraShakeOffset = new THREE.Vector3()
+const _criticalScreenShakeFrame = createCriticalScreenShakeFrame()
 
 // 카메라 경계 클램프 설정.
 // 카메라가 focus 기준 (0, +17, +17) 오프셋 → 45° 내려다봄.
@@ -50,6 +53,8 @@ function clampFocus(value, reachNeg, reachPos, half) {
 
 export default function Game() {
   const { camera } = useThree()
+  const previousCameraShakeOffsetRef = useRef(null)
+  if (previousCameraShakeOffsetRef.current === null) previousCameraShakeOffsetRef.current = new THREE.Vector3()
   const tickTime   = useGameStore((s) => s.tickTime)
   const phase      = useGameStore((s) => s.phase)
   const currentStageId = useGameStore((s) => s.currentStageId)
@@ -69,6 +74,12 @@ export default function Game() {
   }, [gameKey])
 
   useFrame((_, delta) => {
+    // The previous transient offset must not participate in follow lerp. Remove
+    // it before computing the next base pose, then store only this frame's offset.
+    const previousCameraShakeOffset = previousCameraShakeOffsetRef.current
+    camera.position.sub(previousCameraShakeOffset)
+    previousCameraShakeOffset.set(0, 0, 0)
+
     const dt = Math.min(delta, 0.1)
     if (phase === 'playing') {
       tickTime(dt * 1000)
@@ -114,6 +125,22 @@ export default function Game() {
     _camTarget.set(fx, CAM_HEIGHT, fz + CAM_BACK)
     camera.position.lerp(_camTarget, 0.08)
     camera.lookAt(fx, 0, fz)
+
+    // Keep the normal follow/lookAt pose as the source of truth, then add one
+    // transient screen-local offset. The next frame recomputes the base pose, so
+    // shake can never drift into the camera's persistent follow position.
+    const shake = sampleCriticalScreenShake(_criticalScreenShakeFrame)
+    if (shake.active && (shake.horizontal !== 0 || shake.vertical !== 0)) {
+      _cameraRight.set(1, 0, 0).applyQuaternion(camera.quaternion)
+      _cameraUp.set(0, 1, 0).applyQuaternion(camera.quaternion)
+      const impactRight = shake.impactX * _cameraRight.x + shake.impactZ * _cameraRight.z
+      const impactUp = shake.impactX * _cameraUp.x + shake.impactZ * _cameraUp.z
+      const screenWidth = reachSide * 2
+      _cameraShakeOffset.copy(_cameraRight).multiplyScalar(shake.horizontal * screenWidth * impactRight)
+      _cameraShakeOffset.addScaledVector(_cameraUp, shake.vertical * screenWidth * impactUp)
+      camera.position.add(_cameraShakeOffset)
+      previousCameraShakeOffset.copy(_cameraShakeOffset)
+    }
   })
 
   return (
@@ -152,12 +179,9 @@ export default function Game() {
       {/* ── Shared VFX Layer (적 위에 그릴 효과는 이쪽으로) ── */}
       <VFXLayer />
 
-      {/* ── 데미지 숫자 플로팅 (풀링, 항상 최상단) ── */}
-      <DamageNumbersLayer />
-
-      {/* ── Enemies (AI + physics) + instanced visual layer ── */}
+      {/* ── Enemies (AI + physics). Persistent GPU visual pools live beside
+          Physics in GameCanvas and are reset in-place by gameKey. ── */}
       <Enemies />
-      <ZombieInstanceLayer />
 
       {/* ── Escape Portal (스테이지 설정 시간 이후 등장) ── */}
       {escapePortalActive && <EscapePortal stageId={currentStageId} />}

@@ -1,6 +1,10 @@
-import { useMemo } from 'react'
-import { outlineMat, toonMat } from '../../lib/toon.js'
-import { getPropOutlineScale, STAGE_PROP_MESH_RENDERING } from './propRendering.js'
+import {
+  getPropOutlineScale,
+  getStagePropOutlineMaterial,
+  getStagePropToonMaterial,
+  STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING,
+  STAGE_PROP_UNIT_BOX_GEOMETRY,
+} from './propRendering.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 export const CLASSROOM_CHAIR_VARIANTS = {
@@ -29,28 +33,24 @@ function ChairBox({
   material,
   outline,
 }) {
-  const outlineScale = useMemo(() => getPropOutlineScale(scale), [scale])
+  const outlineScale = getPropOutlineScale(scale)
 
   return (
     <group position={position} rotation={rotation}>
-      <mesh {...STAGE_PROP_MESH_RENDERING} scale={scale} material={material}>
-        <boxGeometry args={[1, 1, 1]} />
-      </mesh>
-      <mesh scale={outlineScale} material={outline}>
-        <boxGeometry args={[1, 1, 1]} />
-      </mesh>
+      <mesh {...STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING} scale={scale} material={material} geometry={STAGE_PROP_UNIT_BOX_GEOMETRY} />
+      <mesh {...STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING} scale={outlineScale} material={outline} geometry={STAGE_PROP_UNIT_BOX_GEOMETRY} />
     </group>
   )
 }
 
 export default function ClassroomChair({ variant = 'upright', ...props }) {
   const variantConfig = CLASSROOM_CHAIR_VARIANTS[variant] ?? CLASSROOM_CHAIR_VARIANTS.upright
-  const woodMat = useMemo(() => toonMat(0xd9b27a, 0.08), [])
-  const woodHighlightMat = useMemo(() => toonMat(0xe6c697, 0.12), [])
-  const frameMat = useMemo(() => toonMat(0xb0b0b0, 0.03), [])
-  const boltMat = useMemo(() => toonMat(0x7a7a7a, 0.02), [])
-  const capMat = useMemo(() => toonMat(0x333333, 0), [])
-  const outline = useMemo(() => outlineMat(0.9, 0x24170f), [])
+  const woodMat = getStagePropToonMaterial(0xd9b27a, 0.08)
+  const woodHighlightMat = getStagePropToonMaterial(0xe6c697, 0.12)
+  const frameMat = getStagePropToonMaterial(0xb0b0b0, 0.03)
+  const boltMat = getStagePropToonMaterial(0x7a7a7a, 0.02)
+  const capMat = getStagePropToonMaterial(0x333333, 0)
+  const outline = getStagePropOutlineMaterial(0.9, 0x24170f)
 
   return (
     <group {...props}>

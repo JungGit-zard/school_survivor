@@ -1,6 +1,10 @@
-import { useMemo } from 'react'
-import { outlineMat, toonMat } from '../../lib/toon.js'
-import { getPropOutlineScale, STAGE_PROP_MESH_RENDERING } from './propRendering.js'
+import {
+  getPropOutlineScale,
+  getStagePropOutlineMaterial,
+  getStagePropToonMaterial,
+  STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING,
+  STAGE_PROP_UNIT_BOX_GEOMETRY,
+} from './propRendering.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 export const UNCONSCIOUS_STUDENT_VARIANTS = {
@@ -43,16 +47,12 @@ function StudentBox({
   material,
   outline,
 }) {
-  const outlineScale = useMemo(() => getPropOutlineScale(scale), [scale])
+  const outlineScale = getPropOutlineScale(scale)
 
   return (
     <group position={position} rotation={rotation}>
-      <mesh {...STAGE_PROP_MESH_RENDERING} scale={scale} material={material}>
-        <boxGeometry args={[1, 1, 1]} />
-      </mesh>
-      <mesh scale={outlineScale} material={outline}>
-        <boxGeometry args={[1, 1, 1]} />
-      </mesh>
+      <mesh {...STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING} scale={scale} material={material} geometry={STAGE_PROP_UNIT_BOX_GEOMETRY} />
+      <mesh {...STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING} scale={outlineScale} material={outline} geometry={STAGE_PROP_UNIT_BOX_GEOMETRY} />
     </group>
   )
 }
@@ -65,14 +65,14 @@ export default function UnconsciousStudent({ variant = 'faceUp', ...props }) {
   const variantConfig = UNCONSCIOUS_STUDENT_VARIANTS[variant] ?? UNCONSCIOUS_STUDENT_VARIANTS.faceUp
   // 색·발광은 어두운 마루 바닥 대비 가독성 기준으로 책정 — 45° 탑다운에서 누운 자세는
   // 화면 점유가 작아, 어두운 남색/회색이면 잔해처럼 보인다 (2026-06-13 인게임 검증).
-  const skinMat = useMemo(() => toonMat(0xf2cba3, 0.12), [])
-  const hairMat = useMemo(() => toonMat(0x55402c, 0.06), [])
-  const uniformMat = useMemo(() => toonMat(0x3f5fa8, 0.12), [])
-  const pantsMat = useMemo(() => toonMat(0x9aa1ad, 0.06), [])
-  const shoeMat = useMemo(() => toonMat(0x2a2a30, 0.02), [])
-  const tieMat = useMemo(() => toonMat(0xc23535, 0.08), [])
-  const badgeMat = useMemo(() => toonMat(0xf2c14e, 0.12), [])
-  const outline = useMemo(() => outlineMat(0.96, 0x130d0d), [])
+  const skinMat = getStagePropToonMaterial(0xf2cba3, 0.12)
+  const hairMat = getStagePropToonMaterial(0x55402c, 0.06)
+  const uniformMat = getStagePropToonMaterial(0x3f5fa8, 0.12)
+  const pantsMat = getStagePropToonMaterial(0x9aa1ad, 0.06)
+  const shoeMat = getStagePropToonMaterial(0x2a2a30, 0.02)
+  const tieMat = getStagePropToonMaterial(0xc23535, 0.08)
+  const badgeMat = getStagePropToonMaterial(0xf2c14e, 0.12)
+  const outline = getStagePropOutlineMaterial(0.96, 0x130d0d)
 
   return (
     <group {...props}>

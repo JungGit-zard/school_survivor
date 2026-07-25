@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { CLASSROOM_CHAIR_VARIANTS } from './ClassroomChair.jsx'
 import { CLASSROOM_DESK_VARIANTS } from './ClassroomDesk.jsx'
 import { UNCONSCIOUS_STUDENT_VARIANTS } from './UnconsciousStudent.jsx'
-import { getStageObjectPlacements, STAGE_OBJECT_PLACEMENTS } from './stageObjectPlacements.js'
+import {
+  computeDefaultStageObjectPlacements,
+  getStageObjectPlacements,
+  isStage1VisiblePropPlacement,
+  STAGE_OBJECT_PLACEMENTS,
+  STAGE1_VISIBLE_PROP_PADDING,
+} from './stageObjectPlacements.js'
+import { STAGE_PROP_TYPES } from '../../lib/stagePropPlacements.js'
 import {
   PLAYER_MESH_WORLD_HEIGHT,
   UNCONSCIOUS_STUDENT_PLAYER_SCALE,
@@ -90,10 +97,20 @@ describe('stage object placements', () => {
   })
 
   // stage1은 수제 배치 정본 그대로(2026-07-12 복원) — 복제/분산/확대 파이프라인은 stage2 전용.
-  it('returns stage1 authored placements as-is (no copies, no rescale, no redistribution)', () => {
+  it('keeps exactly the 31 authored Stage 1 props that can enter the visible envelope', () => {
     const placements = getStageObjectPlacements('stage1')
+    const { halfX, halfZ } = getStageBounds('stage1')
 
-    expect(placements).toHaveLength(STAGE_OBJECT_PLACEMENTS.stage1.length)
+    expect(STAGE_OBJECT_PLACEMENTS.stage1).toHaveLength(31)
+    expect(placements).toHaveLength(31)
+    expect(60 - STAGE_OBJECT_PLACEMENTS.stage1.length).toBe(29)
+    expect(STAGE_OBJECT_PLACEMENTS.stage1.every(isStage1VisiblePropPlacement)).toBe(true)
+    expect(placements.every(isStage1VisiblePropPlacement)).toBe(true)
+    expect(halfX + STAGE1_VISIBLE_PROP_PADDING).toBe(13)
+    expect(halfZ + STAGE1_VISIBLE_PROP_PADDING).toBe(17.4)
+    expect(placements.filter(({ type }) => type === 'classroomDesk')).toHaveLength(9)
+    expect(placements.filter(({ type }) => type === 'classroomChair')).toHaveLength(6)
+    expect(placements.filter(({ type }) => type === 'unconsciousStudent')).toHaveLength(16)
     placements.forEach((item, index) => {
       const authored = STAGE_OBJECT_PLACEMENTS.stage1[index]
       expect(item.id).toBe(authored.id)
@@ -284,5 +301,76 @@ describe('stage object placements', () => {
     expect(byId.get('stage3-scoreboard-north-wall').rotation).toEqual([0, 0.08, 0])
     expect(byId.get('stage3-banner-south-wall').rotation).toEqual([0, Math.PI + 0.08, 0])
     expect(byId.get('stage3-exit-door-east-wall').rotation).toEqual([0, -Math.PI / 2, 0])
+  })
+})
+
+// stage4(급식실/주방)는 원화 st4_concept.png 기반 수제 배치 정본이다.
+// 프랍은 시각 전용(충돌 없음)이라 중앙 전투 공간을 비우고 벽면에 밀착시킨다.
+describe('stage 4 cafeteria kitchen placements', () => {
+  const STAGE4_KITCHEN_TYPES = [
+    'kitchenPrepTable',
+    'kitchenCookLine',
+    'kitchenSinkCounter',
+    'kitchenRefrigerator',
+    'kitchenTrayRack',
+    'kitchenShelfCart',
+    'kitchenTrashBins',
+    'kitchenCrateStack',
+    'kitchenClutter',
+  ]
+  const MAX_ABS_X = 13.8
+  const MAX_ABS_Z = 15.5
+  const CENTER_CLEAR_HALF_X = 6
+  const CENTER_CLEAR_HALF_Z = 8
+
+  it('returns stage4 authored placements as-is (never the stage2 copy/scatter pipeline)', () => {
+    const authored = STAGE_OBJECT_PLACEMENTS.stage4
+    const placements = computeDefaultStageObjectPlacements('stage4')
+
+    expect(authored.length).toBeGreaterThanOrEqual(28)
+    expect(authored.length).toBeLessThanOrEqual(36)
+    expect(placements).toHaveLength(authored.length)
+    expect(placements.every(({ id }) => !id.includes('-copy-'))).toBe(true)
+    placements.forEach((item, index) => {
+      expect(item.id).toBe(authored[index].id)
+      expect(item.position).toEqual(authored[index].position)
+      expect(item.scale).toEqual(authored[index].scale)
+    })
+  })
+
+  it('keeps every stage4 prop inside the kitchen bounds', () => {
+    const positions = computeDefaultStageObjectPlacements('stage4').map(({ position: [x, , z] }) => [x, z])
+
+    expect(positions.length).toBeGreaterThan(0)
+    expect(positions.every(([x, z]) => Math.abs(x) <= MAX_ABS_X && Math.abs(z) <= MAX_ABS_Z)).toBe(true)
+  })
+
+  it('leaves the stage4 center combat space completely empty', () => {
+    const intruders = computeDefaultStageObjectPlacements('stage4').filter(
+      ({ position: [x, , z] }) => Math.abs(x) <= CENTER_CLEAR_HALF_X && Math.abs(z) <= CENTER_CLEAR_HALF_Z
+    )
+
+    expect(intruders.map(({ id }) => id)).toEqual([])
+  })
+
+  it('gives every stage4 prop a unique id', () => {
+    const ids = computeDefaultStageObjectPlacements('stage4').map(({ id }) => id)
+
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('uses only the agreed stage4 kitchen prop type contract, covering all nine types', () => {
+    const usedTypes = new Set(computeDefaultStageObjectPlacements('stage4').map(({ type }) => type))
+
+    expect([...usedTypes].every((type) => STAGE4_KITCHEN_TYPES.includes(type))).toBe(true)
+    expect(usedTypes).toEqual(new Set(STAGE4_KITCHEN_TYPES))
+  })
+
+  it('registers the stage4 kitchen types in STAGE_PROP_TYPES all-or-nothing (no partial editor support)', () => {
+    // 프랍 모델/타입 등록은 병렬 작업이라 아직 0종일 수 있다.
+    // 다만 한 종이라도 등록되면 9종 전체가 등록돼야 그래픽 스튜디오 오버라이드가 일부만 살아남는 사고를 막는다.
+    const registered = STAGE4_KITCHEN_TYPES.filter((type) => STAGE_PROP_TYPES.includes(type))
+
+    expect([0, STAGE4_KITCHEN_TYPES.length]).toContain(registered.length)
   })
 })
