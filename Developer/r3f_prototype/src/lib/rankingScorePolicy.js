@@ -2,8 +2,9 @@ import { getAdminRankingSeasonConfig } from './adminConfig.js'
 
 export const SCORE_TYPE = 'survival_v1'
 export const CLEAR_BONUS = 30
-// 스테이지 보너스는 난이도 단조증가에 맞춰 선형 +60. 서버 재검증 상수(functions/src/ranking.js
-// SERVER_STAGE_BONUS)와 값이 일치해야 한다 — 변경 시 두 곳을 함께 갱신한다.
+// 스테이지 보너스는 난이도 단조증가에 맞춰 선형 +60. 이 값은 안티치트 점수 상한의 단일 출처다 —
+// database.rules.json의 랭킹 entries `.validate` 상한 삼항(stage1:0/stage2:60/stage3:120/stage4:180,
+// clear 30, boss 20%)과 반드시 일치. 변경 시 두 곳(+미배포 functions/src/ranking.js)을 함께 갱신한다.
 export const STAGE_BONUS = {
   stage1: 0,
   stage2: 60,

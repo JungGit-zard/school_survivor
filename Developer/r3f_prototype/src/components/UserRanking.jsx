@@ -13,8 +13,8 @@ import { getAdminRankingSeasonConfig } from '../lib/adminConfig.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 
 const WINDOWS = [
-  { id: 'daily', label: '일일랭킹', note: '한국시간 당일 00:00:01 - 23:59:59 실시간 합산' },
-  { id: 'weekly', label: '주간랭킹', note: '한국시간 월요일 00:00:01 - 일요일 23:59:59 누적 합산' },
+  { id: 'daily', label: '일일랭킹', note: '한국시간 당일 00:00:01 - 23:59:59 실시간 최고점' },
+  { id: 'weekly', label: '주간랭킹', note: '한국시간 월요일 00:00:01 - 일요일 23:59:59 최고점' },
 ]
 
 export default function UserRanking({ onBack, entries }) {

@@ -92,6 +92,9 @@ export async function submitRun(user, { stageId, score, timeMs, cleared } = {}) 
   const season = getActiveSeason(now)
   if (!season.active) return // seasonOff: 제출 skip
 
+  // 엔트리 키 = auth.uid (해시키 아님). 규칙이 "$uid === auth.uid"로 본인 쓰기만 강제하려면
+  // 키가 opaque uid여야 검증 가능하기 때문. Firebase uid는 이메일이 아닌 불투명 식별자라
+  // 공개 리더보드 읽기에 노출돼도 게임 랭킹 수준에서 수용 가능(개인정보 아님).
   const uid = user.uid
   const sid = readStageId(stageId)
   const entry = {
@@ -114,18 +117,21 @@ export async function submitRun(user, { stageId, score, timeMs, cleared } = {}) 
     globalEntriesPath(season.seasonId, 'weekly', weeklyKey),
   ]
 
-  // 최고점만 유지: 규칙이 best-only를 강제하지만, 낮은 점수의 불필요한 쓰기/거부를 줄이려
-  // 대표 버킷(stage daily)의 기존 엔트리 점수를 먼저 읽어 더 높을 때만 쓴다. 4버킷 점수는 동일.
-  try {
-    const snap = await mod.get(mod.ref(db, `${paths[0]}/${uid}`))
-    if (snap?.exists?.() && readNonNegInt(snap.child('score').val()) >= entry.score) return
-  } catch {
-    // 읽기 실패 시 그냥 쓰기 시도 — 규칙이 최종 방어선.
-  }
-
-  const updates = {}
-  for (const path of paths) updates[`${path}/${uid}`] = entry
-  await mod.update(mod.ref(db), updates)
+  // 각 버킷을 독립적으로 기록한다. 멀티패스 atomic update는 쓰면 안 된다 —
+  // 최고점(best-only) 규칙은 버킷마다 독립이라(daily/weekly는 리셋 주기가 다름),
+  // 이번 점수가 주간 최고보다 낮아도 새 일일 버킷에는 최고일 수 있다. atomic이면
+  // 주간 경로의 best-only 거부가 전체 쓰기를 롤백해 일일 기록까지 유실된다.
+  // 버킷별로 기존 최고점을 읽어 더 높을 때만 쓰고, 규칙이 best-only의 최종 방어선이다.
+  await Promise.all(paths.map(async (path) => {
+    const entryRef = mod.ref(db, `${path}/${uid}`)
+    try {
+      const snap = await mod.get(entryRef)
+      if (snap?.exists?.() && readNonNegInt(snap.child('score').val()) >= entry.score) return
+      await mod.set(entryRef, entry)
+    } catch {
+      // 읽기/쓰기 실패(권한·best-only 거부 등)는 해당 버킷만 skip — 다른 버킷에 영향 없음.
+    }
+  }))
 }
 
 // 랭킹 표시명: 저장된 닉네임 우선, 없으면 구글 표시명, 그래도 없으면 익명. 상한 40자(규칙과 일치).
@@ -161,7 +167,7 @@ export function subscribeStageRanking(stageId, window, onEntries, { limit = 100 
   )
 }
 
-// 글로벌: 실행 시 함께 누적된 전용 통합 엔트리를 읽는다.
+// 글로벌: 제출 시 함께 기록된 유저별 최고점(max) 통합 엔트리를 읽는다.
 export async function fetchGlobalRanking(window, { limit = 100 } = {}) {
   if (!isFirebaseRankingConfigured()) return []
   const now = Date.now()

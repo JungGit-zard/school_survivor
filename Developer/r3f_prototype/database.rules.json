@@ -103,8 +103,19 @@
                 "$periodKey": {
                   "entries": {
                     ".read": "$window === 'daily' || $window === 'weekly'",
-                    ".write": false,
-                    ".indexOn": ["score"]
+                    ".indexOn": ["score"],
+                    "$uid": {
+                      ".write": "auth != null && $uid === auth.uid && ($window === 'daily' || $window === 'weekly') && (!data.exists() || newData.child('score').val() >= data.child('score').val())",
+                      ".validate": "newData.hasChildren(['uid', 'displayName', 'score', 'timeMs', 'cleared', 'stageId', 'submittedAt']) && newData.child('timeMs').val() <= 3600000 && newData.child('score').val() >= (newData.child('timeMs').val() / 1000) - 1 && newData.child('score').val() <= (newData.child('timeMs').val() / 1000 + (newData.child('stageId').val() === 'stage1' ? 0 : newData.child('stageId').val() === 'stage2' ? 60 : newData.child('stageId').val() === 'stage3' ? 120 : 180) + (newData.child('cleared').val() === true ? 30 : 0)) * (newData.child('cleared').val() === true ? 1.2 : 1)",
+                      "uid": { ".validate": "newData.isString() && newData.val() === $uid" },
+                      "displayName": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
+                      "score": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+                      "timeMs": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+                      "cleared": { ".validate": "newData.isBoolean()" },
+                      "stageId": { ".validate": "newData.isString() && (newData.val() === 'stage1' || newData.val() === 'stage2' || newData.val() === 'stage3' || newData.val() === 'stage4')" },
+                      "submittedAt": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+                      "$other": { ".validate": false }
+                    }
                   }
                 }
               }
@@ -115,8 +126,19 @@
                   "$periodKey": {
                     "entries": {
                       ".read": "($window === 'daily' || $window === 'weekly') && ($stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3' || $stageId === 'stage4')",
-                      ".write": false,
-                      ".indexOn": ["score"]
+                      ".indexOn": ["score"],
+                      "$uid": {
+                        ".write": "auth != null && $uid === auth.uid && ($window === 'daily' || $window === 'weekly') && ($stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3' || $stageId === 'stage4') && newData.child('stageId').val() === $stageId && (!data.exists() || newData.child('score').val() >= data.child('score').val())",
+                        ".validate": "newData.hasChildren(['uid', 'displayName', 'score', 'timeMs', 'cleared', 'stageId', 'submittedAt']) && newData.child('timeMs').val() <= 3600000 && newData.child('score').val() >= (newData.child('timeMs').val() / 1000) - 1 && newData.child('score').val() <= (newData.child('timeMs').val() / 1000 + (newData.child('stageId').val() === 'stage1' ? 0 : newData.child('stageId').val() === 'stage2' ? 60 : newData.child('stageId').val() === 'stage3' ? 120 : 180) + (newData.child('cleared').val() === true ? 30 : 0)) * (newData.child('cleared').val() === true ? 1.2 : 1)",
+                        "uid": { ".validate": "newData.isString() && newData.val() === $uid" },
+                        "displayName": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
+                        "score": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+                        "timeMs": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+                        "cleared": { ".validate": "newData.isBoolean()" },
+                        "stageId": { ".validate": "newData.isString() && (newData.val() === 'stage1' || newData.val() === 'stage2' || newData.val() === 'stage3' || newData.val() === 'stage4')" },
+                        "submittedAt": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+                        "$other": { ".validate": false }
+                      }
                     }
                   }
                 }
