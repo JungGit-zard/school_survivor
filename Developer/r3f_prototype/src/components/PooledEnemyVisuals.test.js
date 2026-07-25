@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import * as THREE from 'three'
 import { getStudioTransformProps } from './StudioTunedGroup.jsx'
-import { CHARGE_CUE_CAPACITY, applyCachedPartTransform, copyRootTransform, e01PartSlotsForNumericPath, fillChargeCueSlots, getPooledEnemyVisibility, getSpawnSmokeOpacity, hasUnsupportedStudioPartTuning, selectChargeCueSlots, setSlotOpacity, updateHealthVisualState } from './PooledEnemyVisuals.js'
+import { CHARGE_CUE_CAPACITY, applyCachedPartTransform, copyRootTransform, e01PartSlotsForNumericPath, fillChargeCueSlots, fillEnemyHealthBarLayout, getPooledEnemyVisibility, getSpawnSmokeOpacity, hasUnsupportedStudioPartTuning, selectChargeCueSlots, setSlotOpacity, updateHealthVisualState } from './PooledEnemyVisuals.js'
 
 describe('pooled enemy visual pure contracts', () => {
   it('holds smoke before and through reveal, then hides it at its final lifetime', () => {
@@ -44,6 +44,13 @@ describe('pooled enemy visual pure contracts', () => {
     expect(state.visibleTrailRatio[199]).toBeGreaterThan(0.2)
     updateHealthVisualState(state, 199, 2, 1, 0.016)
     expect(state.ratio[199]).toBe(1); expect(state.visibleTrailRatio[199]).toBe(1); expect(state.flash[199]).toBe(0)
+  })
+
+  it('keeps E01 health bars at the MiniHealthBar world-space width, height, and y contract', () => {
+    const layout = fillEnemyHealthBarLayout(new Float32Array(3), 4 / 3)
+    expect(layout[0]).toBeCloseTo(0.32 * (4 / 3))
+    expect(layout[1]).toBeCloseTo(0.045)
+    expect(layout[2]).toBeCloseTo(0.72 * (4 / 3))
   })
 
   it('does not silently accept numeric-path Studio part tunings', () => {

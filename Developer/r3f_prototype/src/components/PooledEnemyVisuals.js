@@ -3,6 +3,19 @@ export const POOLED_ENEMY_CAPACITY = 200
 export const SPAWN_REVEAL_MS = 300
 export const SPAWN_SMOKE_MS = 850
 export const CHARGE_CUE_CAPACITY = 16
+export const ENEMY_HEALTH_BAR_WIDTH = 0.32
+export const ENEMY_HEALTH_BAR_HEIGHT = 0.045
+export const ENEMY_HEALTH_BAR_Y = 0.72
+
+// Preserve EnemyVisual/MiniHealthBar's world-space contract while letting the
+// fixed instance renderer reuse caller-owned typed scratch in its frame loop.
+export function fillEnemyHealthBarLayout(out, visualScale) {
+  const cs = Number.isFinite(visualScale) && visualScale > 0 ? visualScale : 1
+  out[0] = ENEMY_HEALTH_BAR_WIDTH * cs
+  out[1] = ENEMY_HEALTH_BAR_HEIGHT
+  out[2] = ENEMY_HEALTH_BAR_Y * cs
+  return out
+}
 
 export function clamp01(value) {
   return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0))
