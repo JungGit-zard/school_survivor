@@ -270,12 +270,30 @@ describe('stage object asset catalog', () => {
     expect(source).not.toContain('material={outline}')
   })
 
-  it('keeps Stage 4 kitchen props visual-only (no collider or sight-blocking registration)', () => {
+  // 2026-07-25 사용자 결정: 중앙 조리대를 원화 위치로 되돌리고 콜라이더를 붙인다.
+  // 대형 가구 8종은 solid, 바닥 잡동사니(kitchenClutter)만 통과 가능하다.
+  it('registers the eight solid Stage 4 kitchen furniture types as blockers', () => {
+    const solidKitchenTypes = [
+      'kitchenPrepTable',
+      'kitchenCookLine',
+      'kitchenSinkCounter',
+      'kitchenRefrigerator',
+      'kitchenTrayRack',
+      'kitchenShelfCart',
+      'kitchenTrashBins',
+      'kitchenCrateStack',
+    ]
     const kitchenTypes = STAGE_OBJECT_TYPES.filter((type) => type.startsWith('kitchen'))
 
     expect(kitchenTypes).toHaveLength(9)
-    for (const type of kitchenTypes) {
-      expect(BLOCKING_STAGE_OBJECT_TYPES.has(type)).toBe(false)
+    for (const type of solidKitchenTypes) {
+      expect(BLOCKING_STAGE_OBJECT_TYPES.has(type), type).toBe(true)
     }
+  })
+
+  it('keeps kitchenClutter out of the blocking type set so it never cuts E04 ranged sight lines', () => {
+    // getStageObjectSightObstacles()는 blocking 플래그를 무시하고 타입 멤버십만 본다.
+    // 바닥에 깔린 냄비·봉지가 여기 들어가면 스4 시그니처(18초 원거리 조기 발사)가 망가진다.
+    expect(BLOCKING_STAGE_OBJECT_TYPES.has('kitchenClutter')).toBe(false)
   })
 })

@@ -20,6 +20,17 @@ export const BLOCKING_STAGE_OBJECT_TYPES = new Set([
   'gymBanner',
   'gymExitDoor',
   'gymEquipmentSpill',
+  // stage4 급식실 대형 가구 8종. kitchenClutter(바닥 잡동사니)는 의도적으로 제외한다 —
+  // getStageObjectSightObstacles()가 blocking 플래그를 무시하고 이 집합만 보기 때문에,
+  // 여기 넣으면 바닥 냄비·봉지가 E04 원거리 투사체의 시야를 끊는다(스4 시그니처 훼손).
+  'kitchenPrepTable',
+  'kitchenCookLine',
+  'kitchenSinkCounter',
+  'kitchenRefrigerator',
+  'kitchenTrayRack',
+  'kitchenShelfCart',
+  'kitchenTrashBins',
+  'kitchenCrateStack',
 ])
 
 const DESK_COLLIDER_PARTS = [
@@ -112,6 +123,55 @@ const GYM_EQUIPMENT_SPILL_COLLIDER_PARTS = [
   { key: 'gym-equipment-whistle', position: [-1.28, 0.08, -0.38], rotation: [0, 0.25, 0], size: [0.32, 0.12, 0.18] },
 ]
 
+// ── stage4 급식실 콜라이더 ──────────────────────────────────────────────────
+// 치수는 KitchenProps.jsx 실측(THREE.Box3.setFromObject) 기준에서 각 축을 소폭
+// 안쪽으로 깎은 값이다(시각 모델보다 콜라이더가 튀어나오지 않게).
+// COLLIDER_DEFS는 타입당 parts 배열 하나뿐이라 변형별 사이즈를 지원하지 않는다.
+// 변형 차이가 있는 타입은 아래 주석에 어느 변형을 기준으로 삼았는지 남긴다.
+
+// 기준: bare/pans/cutting(2.24 x 1.09, 상판 0.90).
+// side 변형(1.74 x 0.95)은 좌우로 약 0.21씩 넓게 잡히지만, 벽면 배식 카운터 전용이라
+// 중앙 조리대의 커버리지 부족보다 이쪽 과잉이 안전하다.
+const KITCHEN_PREP_TABLE_COLLIDER_PARTS = [
+  { key: 'kitchen-prep-table-footprint', position: [0, 0.47, 0], size: [2.16, 0.94, 1.02] },
+]
+
+// 실측 전체 높이 2.23은 후드까지 포함한 값이다. 후드는 머리 위를 지나므로
+// 콜라이더는 하부 캐비닛(상판 0.94)만 잡는다.
+const KITCHEN_COOK_LINE_COLLIDER_PARTS = [
+  { key: 'kitchen-cook-line-base', position: [0, 0.46, 0], size: [2.66, 0.92, 1.12] },
+]
+
+// 실측 1.43은 수전 끝까지다. 몸통(상판 0.88)만 막는다.
+const KITCHEN_SINK_COUNTER_COLLIDER_PARTS = [
+  { key: 'kitchen-sink-counter-footprint', position: [0, 0.44, 0], size: [2.26, 0.88, 0.94] },
+]
+
+// 기준: closed(1.26 x 1.97 x 0.97). open 변형의 문 스윙(1.42 x 1.44)은 콜라이더에서 제외 —
+// 열린 문에 플레이어가 걸리는 편이 문을 통과하는 것보다 나쁘다.
+const KITCHEN_REFRIGERATOR_COLLIDER_PARTS = [
+  { key: 'kitchen-refrigerator-body', position: [0, 0.96, 0], size: [1.20, 1.92, 0.92] },
+]
+
+const KITCHEN_TRAY_RACK_COLLIDER_PARTS = [
+  { key: 'kitchen-tray-rack-frame', position: [0, 0.84, 0], size: [0.72, 1.68, 0.78] },
+]
+
+const KITCHEN_SHELF_CART_COLLIDER_PARTS = [
+  { key: 'kitchen-shelf-cart-frame', position: [0, 0.60, 0], size: [1.04, 1.20, 0.52] },
+]
+
+// 기준: wheelie(0.70 x 1.06 x 0.71). round(0.68 x 0.87 x 0.66)는 미세하게 넓게 잡힌다.
+const KITCHEN_TRASH_BINS_COLLIDER_PARTS = [
+  { key: 'kitchen-trash-bin-body', position: [0, 0.51, 0], size: [0.68, 1.02, 0.68] },
+]
+
+// 기준: count=3(0.75 x 1.02 x 0.63). count 1~6은 높이만 단당 0.34씩 달라지고
+// 풋프린트는 동일하므로 count=3 높이로 고정한다.
+const KITCHEN_CRATE_STACK_COLLIDER_PARTS = [
+  { key: 'kitchen-crate-stack-footprint', position: [0, 0.49, 0], size: [0.72, 0.98, 0.60] },
+]
+
 const COLLIDER_DEFS = {
   classroomChair: {
     variants: CLASSROOM_CHAIR_VARIANTS,
@@ -134,6 +194,14 @@ const COLLIDER_DEFS = {
   gymBanner: { parts: GYM_BANNER_COLLIDER_PARTS },
   gymExitDoor: { parts: GYM_EXIT_DOOR_COLLIDER_PARTS },
   gymEquipmentSpill: { parts: GYM_EQUIPMENT_SPILL_COLLIDER_PARTS },
+  kitchenPrepTable: { parts: KITCHEN_PREP_TABLE_COLLIDER_PARTS },
+  kitchenCookLine: { parts: KITCHEN_COOK_LINE_COLLIDER_PARTS },
+  kitchenSinkCounter: { parts: KITCHEN_SINK_COUNTER_COLLIDER_PARTS },
+  kitchenRefrigerator: { parts: KITCHEN_REFRIGERATOR_COLLIDER_PARTS },
+  kitchenTrayRack: { parts: KITCHEN_TRAY_RACK_COLLIDER_PARTS },
+  kitchenShelfCart: { parts: KITCHEN_SHELF_CART_COLLIDER_PARTS },
+  kitchenTrashBins: { parts: KITCHEN_TRASH_BINS_COLLIDER_PARTS },
+  kitchenCrateStack: { parts: KITCHEN_CRATE_STACK_COLLIDER_PARTS },
 }
 
 const MIN_BLOCKING_HALF_HEIGHT = 0.44

@@ -5,9 +5,12 @@ import { getStagePropOverride } from '../../lib/stagePropPlacements.js'
 // Rule: every stage1 object must satisfy Math.abs(x) >= 6 OR Math.abs(z) >= 12
 // (keeps the central spawn/play zone clear).
 // mapHalfX=10, so |x| 6-6.9 is valid near-wall placement for the center Z band.
-// Rule: stage4(급식실/주방, mapHalfX=14.4 / mapHalfZ=16) 프랍은 시각 전용(충돌 없음)이라
-// 중앙 전투 공간(|x| <= 6 && |z| <= 8)을 반드시 비우고 |x| <= 13.8, |z| <= 15.5 안에서
-// 벽면 밀착 배치한다. 벽 기준 rotation Y — 북 0 / 남 Math.PI / 서 +Math.PI/2 / 동 -Math.PI/2.
+// Rule: stage4(급식실/주방, mapHalfX=14.4 / mapHalfZ=16)는 모든 프랍이 |x| <= 13.8,
+// |z| <= 15.5 안에 있어야 한다. 벽면 프랍의 rotation Y 기준 — 북 0 / 남 Math.PI /
+// 서 +Math.PI/2 / 동 -Math.PI/2.
+// 중앙에는 원화(st4_concept.png)의 조리대 열 4기만 들어간다(2026-07-25 사용자 결정).
+// 대형 가구 8종은 콜라이더가 붙으므로 관통이 없고, 나머지 타입은 중앙 진입 금지.
+// kitchenClutter만 콜라이더 없이 통과 가능(BLOCKING_STAGE_OBJECT_TYPES에서 타입 제외).
 
 export const STAGE_OBJECT_PLACEMENTS = {
   stage1: [
@@ -425,7 +428,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       position: [-0.6, 0, -14.6],
       rotation: [0, 0, 0],
       scale: 1.16,
-      blocking: false,
     },
     {
       id: 'stage4-refrigerator-north-west-closed',
@@ -434,7 +436,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, 0.12, 0],
       scale: 1.08,
       props: { open: false },
-      blocking: false,
     },
     {
       id: 'stage4-refrigerator-north-west-open',
@@ -443,7 +444,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, -0.18, 0],
       scale: 1.05,
       props: { open: true },
-      blocking: false,
     },
     {
       id: 'stage4-crates-north-west-corner',
@@ -452,7 +452,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, 0.36, 0],
       scale: 1.02,
       props: { count: 3 },
-      blocking: false,
     },
     {
       id: 'stage4-clutter-north-cookline-spill',
@@ -469,7 +468,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       position: [7.4, 0, -14.5],
       rotation: [0, 0.08, 0],
       scale: 1.12,
-      blocking: false,
     },
     {
       id: 'stage4-crates-north-east-corner',
@@ -478,7 +476,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, -0.42, 0],
       scale: 0.96,
       props: { count: 2 },
-      blocking: false,
     },
     {
       id: 'stage4-trayrack-north-east-inner',
@@ -486,7 +483,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       position: [9.2, 0, -9.4],
       rotation: [0, -0.62, 0],
       scale: 1.06,
-      blocking: false,
     },
     // ── 동벽: 배식 랙 · 선반 · 사이드 카운터 · 쓰레기통 라인 ──
     {
@@ -495,7 +491,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       position: [12.6, 0, -10.4],
       rotation: [0, -Math.PI / 2 + 0.16, 0],
       scale: 1.04,
-      blocking: false,
     },
     {
       id: 'stage4-shelfcart-east-upper',
@@ -503,7 +498,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       position: [12.9, 0, -7.2],
       rotation: [0, -Math.PI / 2 - 0.12, 0],
       scale: 1.0,
-      blocking: false,
     },
     {
       id: 'stage4-preptable-east-side-counter',
@@ -512,7 +506,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, -Math.PI / 2 + 0.1, 0],
       scale: 1.06,
       props: { variant: 'side' },
-      blocking: false,
     },
     {
       id: 'stage4-trash-east-wheelie',
@@ -521,7 +514,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, -Math.PI / 2 - 0.22, 0],
       scale: 1.02,
       props: { variant: 'wheelie' },
-      blocking: false,
     },
     {
       id: 'stage4-trayrack-east-mid',
@@ -529,7 +521,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       position: [12.7, 0, 2.6],
       rotation: [0, -Math.PI / 2 + 0.24, 0],
       scale: 1.08,
-      blocking: false,
     },
     {
       id: 'stage4-crates-east-mid',
@@ -538,7 +529,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, -0.28, 0],
       scale: 1.05,
       props: { count: 4 },
-      blocking: false,
     },
     {
       id: 'stage4-clutter-east-trays',
@@ -556,7 +546,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, -Math.PI / 2 - 0.14, 0],
       scale: 1.04,
       props: { variant: 'side' },
-      blocking: false,
     },
     // ── 서벽: 선반 카트 · 냄비 더미 · 쓰레기통 · 서측 싱크대 ──
     {
@@ -565,7 +554,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       position: [-12.7, 0, -8.8],
       rotation: [0, Math.PI / 2 - 0.18, 0],
       scale: 1.06,
-      blocking: false,
     },
     {
       id: 'stage4-clutter-west-pots',
@@ -583,7 +571,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, Math.PI / 2 + 0.2, 0],
       scale: 1.0,
       props: { variant: 'wheelie' },
-      blocking: false,
     },
     {
       id: 'stage4-sink-west-mid',
@@ -591,7 +578,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       position: [-13.4, 0, 1.0],
       rotation: [0, Math.PI / 2 + 0.06, 0],
       scale: 1.1,
-      blocking: false,
     },
     {
       id: 'stage4-trash-west-round',
@@ -600,7 +586,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, 0.32, 0],
       scale: 0.96,
       props: { variant: 'round' },
-      blocking: false,
     },
     {
       id: 'stage4-clutter-west-bags',
@@ -617,7 +602,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       position: [-12.9, 0, 10.6],
       rotation: [0, Math.PI / 2 + 0.22, 0],
       scale: 1.02,
-      blocking: false,
     },
     {
       id: 'stage4-crates-south-west-corner',
@@ -626,7 +610,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, 0.5, 0],
       scale: 1.0,
       props: { count: 3 },
-      blocking: false,
     },
     // ── 남벽: 배식 카운터 라인 + 적재 상자 + 잔반 정리 구역 ──
     {
@@ -636,7 +619,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, Math.PI + 0.08, 0],
       scale: 1.1,
       props: { variant: 'side' },
-      blocking: false,
     },
     {
       id: 'stage4-preptable-south-serving-right',
@@ -645,7 +627,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, Math.PI - 0.1, 0],
       scale: 1.1,
       props: { variant: 'side' },
-      blocking: false,
     },
     {
       id: 'stage4-crates-south-west-stack',
@@ -654,7 +635,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, Math.PI - 0.34, 0],
       scale: 1.04,
       props: { count: 3 },
-      blocking: false,
     },
     {
       id: 'stage4-crates-south-center-stack',
@@ -663,7 +643,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, Math.PI + 0.26, 0],
       scale: 0.98,
       props: { count: 2 },
-      blocking: false,
     },
     {
       id: 'stage4-clutter-south-trays',
@@ -681,7 +660,6 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, Math.PI + 0.18, 0],
       scale: 0.98,
       props: { variant: 'round' },
-      blocking: false,
     },
     {
       id: 'stage4-trayrack-south-east',
@@ -689,44 +667,42 @@ export const STAGE_OBJECT_PLACEMENTS = {
       position: [11.6, 0, 14.4],
       rotation: [0, Math.PI - 0.12, 0],
       scale: 1.05,
-      blocking: false,
     },
-    // ── 중앙 조리대 4기: 원화는 정중앙이지만 충돌 없음 → 클리핑 회피용으로 양옆으로 이동 ──
+    // ── 중앙 조리대 4기(원화 정본 위치) ──
+    // st4_concept.png의 중앙 세로 조리대 열: 상단 1기 · 중단 좌우 2기 · 하단 1기.
+    // 콜라이더가 붙는 solid 가구라 관통 클리핑이 없고, 중앙 전투 공간의 엄폐/동선 분할을 만든다.
+    // 플레이어 시작점(0,0)에서 최근접 5.5 유닛 이상 — 시작 즉시 끼는 일이 없다.
     {
-      id: 'stage4-preptable-inner-west-cutting',
+      id: 'stage4-preptable-center-north',
       type: 'kitchenPrepTable',
-      position: [-8.4, 0, -5.2],
-      rotation: [0, Math.PI / 2 + 0.06, 0],
+      position: [-0.3, 0, -5.5],
+      rotation: [0, 0, 0],
       scale: 1.12,
       props: { variant: 'cutting' },
-      blocking: false,
     },
     {
-      id: 'stage4-preptable-inner-west-pans',
+      id: 'stage4-preptable-center-mid-west',
       type: 'kitchenPrepTable',
-      position: [-8.8, 0, 0.8],
-      rotation: [0, Math.PI / 2 - 0.08, 0],
+      position: [-5.9, 0, 1.1],
+      rotation: [0, Math.PI / 2, 0],
       scale: 1.12,
       props: { variant: 'pans' },
-      blocking: false,
     },
     {
-      id: 'stage4-preptable-inner-east-bare',
+      id: 'stage4-preptable-center-mid-east',
       type: 'kitchenPrepTable',
-      position: [8.6, 0, 0.4],
-      rotation: [0, -Math.PI / 2 + 0.1, 0],
+      position: [5.6, 0, 0.7],
+      rotation: [0, Math.PI / 2, 0],
       scale: 1.12,
       props: { variant: 'bare' },
-      blocking: false,
     },
     {
-      id: 'stage4-preptable-inner-west-south-bare',
+      id: 'stage4-preptable-center-south',
       type: 'kitchenPrepTable',
-      position: [-8.4, 0, 6.4],
-      rotation: [0, Math.PI / 2 + 0.14, 0],
-      scale: 1.08,
-      props: { variant: 'bare' },
-      blocking: false,
+      position: [0.0, 0, 7.4],
+      rotation: [0, 0, 0],
+      scale: 1.12,
+      props: { variant: 'pans' },
     },
   ],
 }

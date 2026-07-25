@@ -305,7 +305,8 @@ describe('stage object placements', () => {
 })
 
 // stage4(급식실/주방)는 원화 st4_concept.png 기반 수제 배치 정본이다.
-// 프랍은 시각 전용(충돌 없음)이라 중앙 전투 공간을 비우고 벽면에 밀착시킨다.
+// 대형 가구는 콜라이더가 붙는 solid 장애물이라 중앙에는 원화의 조리대 4기만 두고,
+// 나머지 프랍은 벽면에 밀착시킨다.
 describe('stage 4 cafeteria kitchen placements', () => {
   const STAGE4_KITCHEN_TYPES = [
     'kitchenPrepTable',
@@ -345,12 +346,41 @@ describe('stage 4 cafeteria kitchen placements', () => {
     expect(positions.every(([x, z]) => Math.abs(x) <= MAX_ABS_X && Math.abs(z) <= MAX_ABS_Z)).toBe(true)
   })
 
-  it('leaves the stage4 center combat space completely empty', () => {
-    const intruders = computeDefaultStageObjectPlacements('stage4').filter(
+  // 2026-07-25 사용자 결정: 원화(st4_concept.png)의 중앙 조리대 열을 되돌리고 콜라이더를 붙인다.
+  // 중앙에 들어갈 수 있는 것은 조리대 4기뿐이고, 나머지 타입은 여전히 중앙 진입 금지다.
+  it('puts exactly the four concept prep tables in the stage4 center and nothing else', () => {
+    const center = computeDefaultStageObjectPlacements('stage4').filter(
       ({ position: [x, , z] }) => Math.abs(x) <= CENTER_CLEAR_HALF_X && Math.abs(z) <= CENTER_CLEAR_HALF_Z
     )
 
-    expect(intruders.map(({ id }) => id)).toEqual([])
+    expect(center).toHaveLength(4)
+    expect(center.every(({ type }) => type === 'kitchenPrepTable')).toBe(true)
+    expect(center.map(({ id }) => id)).toEqual([
+      'stage4-preptable-center-north',
+      'stage4-preptable-center-mid-west',
+      'stage4-preptable-center-mid-east',
+      'stage4-preptable-center-south',
+    ])
+  })
+
+  it('keeps the stage4 center prep tables clear of the player start point', () => {
+    // 플레이어는 (0, 0)에서 시작한다. 콜라이더가 붙은 뒤로는 시작 즉시 끼면 게임이 멈춘다.
+    const centerTables = computeDefaultStageObjectPlacements('stage4').filter(
+      ({ id }) => id.startsWith('stage4-preptable-center-')
+    )
+
+    expect(centerTables).toHaveLength(4)
+    expect(centerTables.every(({ position: [x, , z] }) => Math.hypot(x, z) >= 5)).toBe(true)
+  })
+
+  it('marks every solid stage4 furniture placement as blocking and leaves only floor clutter passable', () => {
+    const placements = computeDefaultStageObjectPlacements('stage4')
+    const clutter = placements.filter(({ type }) => type === 'kitchenClutter')
+    const furniture = placements.filter(({ type }) => type !== 'kitchenClutter')
+
+    expect(clutter.length).toBeGreaterThan(0)
+    expect(furniture.every(({ blocking }) => blocking !== false)).toBe(true)
+    expect(clutter.every(({ blocking }) => blocking === false)).toBe(true)
   })
 
   it('gives every stage4 prop a unique id', () => {

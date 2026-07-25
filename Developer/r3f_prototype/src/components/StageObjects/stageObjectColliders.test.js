@@ -205,6 +205,94 @@ describe('stage object blocking colliders', () => {
     }
   })
 
+  // stage4 급식실: 대형 가구 8종만 solid, 바닥 잡동사니(kitchenClutter)는 콜라이더/시야 모두 제외.
+  it('gives every solid Stage 4 kitchen furniture placement a collider and skips floor clutter', () => {
+    const stage4Props = getStageObjectPlacements('stage4')
+    const solidTypes = new Set([
+      'kitchenPrepTable',
+      'kitchenCookLine',
+      'kitchenSinkCounter',
+      'kitchenRefrigerator',
+      'kitchenTrayRack',
+      'kitchenShelfCart',
+      'kitchenTrashBins',
+      'kitchenCrateStack',
+    ])
+    const solidProps = stage4Props.filter(({ type }) => solidTypes.has(type))
+    const clutterProps = stage4Props.filter(({ type }) => type === 'kitchenClutter')
+    const colliders = getStageObjectColliders('stage4')
+    const sightObstacles = getStageObjectSightObstacles('stage4')
+    const expectedSightParts = solidProps.reduce(
+      (total, placement) => total + getStageObjectColliderParts(placement).length,
+      0,
+    )
+
+    expect(solidProps.length + clutterProps.length).toBe(stage4Props.length)
+    expect(new Set(solidProps.map(({ type }) => type))).toEqual(solidTypes)
+    expect(clutterProps.length).toBeGreaterThan(0)
+    expect(colliders).toHaveLength(solidProps.length)
+    expect(solidProps.every((placement) => getStageObjectColliderParts(placement).length > 0)).toBe(true)
+    expect(clutterProps.every((placement) => getStageObjectColliderParts(placement).length === 0)).toBe(true)
+    expect(colliders.every(({ id }) => !id.includes('clutter'))).toBe(true)
+    expect(sightObstacles).toHaveLength(expectedSightParts)
+    expect(sightObstacles.every(({ halfX, halfZ }) => halfX > 0 && halfZ > 0)).toBe(true)
+
+    // 바닥 잡동사니는 E04 원거리 투사체 시야도 끊으면 안 된다.
+    const clutterIsSightBlocking = clutterProps.some(({ type }) => BLOCKING_STAGE_OBJECT_TYPES.has(type))
+    expect(clutterIsSightBlocking).toBe(false)
+  })
+
+  it('sizes Stage 4 kitchen colliders from the measured KitchenProps model bounds', () => {
+    // KitchenProps.jsx THREE.Box3.setFromObject 실측값에서 소폭 안쪽으로 깎은 치수(scale 1 기준).
+    // 값이 바뀌면 시각 모델과 물리 장애물이 어긋난다.
+    const expectedSizes = {
+      kitchenPrepTable: [2.16, 0.94, 1.02],
+      kitchenCookLine: [2.66, 0.92, 1.12],
+      kitchenSinkCounter: [2.26, 0.88, 0.94],
+      kitchenRefrigerator: [1.20, 1.92, 0.92],
+      kitchenTrayRack: [0.72, 1.68, 0.78],
+      kitchenShelfCart: [1.04, 1.20, 0.52],
+      kitchenTrashBins: [0.68, 1.02, 0.68],
+      kitchenCrateStack: [0.72, 0.98, 0.60],
+    }
+
+    for (const [type, size] of Object.entries(expectedSizes)) {
+      const parts = getStageObjectColliderParts({ type, scale: 1 })
+
+      expect(parts, type).toHaveLength(1)
+      expect(parts[0].args, type).toEqual(size.map((value, index) => (
+        index === 1 ? Math.max(0.44, value / 2) : value / 2
+      )))
+      // 전 항목 바닥에서 시작(minY = 0) — 바닥 관통도, 공중에 뜬 콜라이더도 없다.
+      expect(parts[0].position[1] - parts[0].args[1], type).toBeCloseTo(0, 2)
+    }
+
+    // 쿡라인 후드(실측 전체 높이 2.23)는 머리 위라 콜라이더에서 제외한다.
+    expect(getStageObjectColliderParts({ type: 'kitchenCookLine', scale: 1 })[0].args[1]).toBeLessThan(1.0)
+  })
+
+  it('keeps Stage 4 kitchen colliders inside the cafeteria walls without overlapping each other', () => {
+    const { halfX, halfZ } = getStageBounds('stage4')
+    const rootAabbs = getStageObjectColliders('stage4').map((collider) => ({
+      id: collider.id,
+      ...getWorldAabb(collider),
+    }))
+
+    expect(rootAabbs.length).toBeGreaterThan(0)
+    rootAabbs.forEach(({ id, minX, maxX, minZ, maxZ }) => {
+      expect(minX, id).toBeGreaterThanOrEqual(-halfX)
+      expect(maxX, id).toBeLessThanOrEqual(halfX)
+      expect(minZ, id).toBeGreaterThanOrEqual(-halfZ)
+      expect(maxZ, id).toBeLessThanOrEqual(halfZ)
+    })
+
+    for (let first = 0; first < rootAabbs.length; first += 1) {
+      for (let second = first + 1; second < rootAabbs.length; second += 1) {
+        expect(aabbsOverlap(rootAabbs[first], rootAabbs[second]), `${rootAabbs[first].id} / ${rootAabbs[second].id}`).toBe(false)
+      }
+    }
+  })
+
   it('mounts the stage object collider layer beside the visual prop layer', () => {
     const source = readFileSync(new URL('../Floor.jsx', import.meta.url), 'utf8')
 
