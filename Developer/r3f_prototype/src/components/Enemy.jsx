@@ -683,7 +683,12 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     }
 
     const elapsedMs = useGameStore.getState().elapsedMs
-    if (!isMatilda && elapsedMs >= nextSightCheckRef.current) {
+    // 시야 차단 배회는 이 early return보다 뒤에 있는 chefBoss 페이즈 로직과
+    // 원거리 발사를 통째로 건너뛴다. B04를 여기 태우면 플레이어가 stage4 중앙
+    // 조리대 뒤에 서는 순간 보스가 사격·돌진·페이즈 전환을 전부 멈추고, 플레이어
+    // 무기도 같은 장애물에 막혀(weaponTargeting.js) 상호 무피해 교착이 된다.
+    // 승리 조건이 240초 생존이라 그 교착은 곧 플레이어 승 — 마틸다와 같은 이유로 면제한다.
+    if (!isMatilda && !stats.chefBoss && elapsedMs >= nextSightCheckRef.current) {
       sightBlockedRef.current = isStageObjectSightBlocked(t, playerPos, sightObstacles)
       nextSightCheckRef.current = elapsedMs + 90 + (stableEnemyHash(id) % 31)
     }
