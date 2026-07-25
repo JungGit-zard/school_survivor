@@ -182,7 +182,7 @@ describe('ranking entry write rules (evaluated against the real rule strings)', 
   })
 
   it('caps timeMs so an inflated survival time cannot raise the score ceiling', () => {
-    // timeMs 상한(3,600,000ms)이 없으면 timeMs를 부풀려 score 상한을 무한정 끌어올릴 수 있다.
+    // timeMs 상한(300,000ms = 실런 최대 240s + 여유)이 없으면 timeMs를 부풀려 score 상한을 무한정 끌어올릴 수 있다.
     const inflated = { ...honestEntry({ stageId: 'stage1', cleared: false }), timeMs: 100000000, score: 90000 }
     expect(fullyAccepts(stageRule, { ...base, $stageId: 'stage1', entry: inflated })).toBe(false)
   })

@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 
 export const ALLOWED_STAGE_IDS = new Set(['stage1', 'stage2', 'stage3', 'stage4'])
 export const MAX_RUN_SCORE = 100_000
-export const MAX_RUN_TIME_MS = 3_600_000
+export const MAX_RUN_TIME_MS = 300_000
 export const KST_OFFSET_MS = 9 * 60 * 60 * 1000
 
 // 서버측 점수 재검증(안티치트) 상수. 단일 출처는 클라이언트 src/lib/rankingScorePolicy.js —
