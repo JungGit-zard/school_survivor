@@ -17,7 +17,7 @@
           "$other": { ".validate": false }
         },
         "progress": {
-          ".validate": "newData.hasChildren(['goldTotal', 'records', 'weaponUnlocks', 'weaponPermanentUpgrades', 'passiveUpgrades', 'titleSettings'])",
+          ".validate": "newData.hasChildren(['goldTotal', 'records', 'titleSettings'])",
           "goldTotal": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000000" },
           "records": {
             "$recordKey": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000000" }
@@ -111,10 +111,10 @@
             },
             "stage": {
               "$stageId": {
-                "daily": {
+                "$window": {
                   "$periodKey": {
                     "entries": {
-                      ".read": "$stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3'",
+                      ".read": "($window === 'daily' || $window === 'weekly') && ($stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3' || $stageId === 'stage4')",
                       ".write": false,
                       ".indexOn": ["score"]
                     }

@@ -29,6 +29,17 @@ describe('Realtime Database rules', () => {
     expect(settings.$other['.validate']).toBe(false)
   })
 
+  it('allows RTDB to omit empty optional upgrade maps during first-account creation', () => {
+    const progressValidation = rules.users.$uid.progress['.validate']
+
+    expect(progressValidation).toContain("'goldTotal'")
+    expect(progressValidation).toContain("'records'")
+    expect(progressValidation).toContain("'titleSettings'")
+    expect(progressValidation).not.toContain("'weaponUnlocks'")
+    expect(progressValidation).not.toContain("'weaponPermanentUpgrades'")
+    expect(progressValidation).not.toContain("'passiveUpgrades'")
+  })
+
   it('isolates Studio data to its owner and pins its versioned envelope', () => {
     const studioUser = rules.studioWorkspaces.v1.users.$uid
     const studio = studioUser.current
@@ -53,9 +64,11 @@ describe('Realtime Database rules', () => {
     expect(entries['.indexOn']).toContain('score')
   })
 
-  it('makes only server-projected daily stage rows publicly readable', () => {
-    const entries = rules.rankingService.v1.public.$seasonId.stage.$stageId.daily.$periodKey.entries
+  it('makes only server-projected daily/weekly stage rows publicly readable through stage4', () => {
+    const entries = rules.rankingService.v1.public.$seasonId.stage.$stageId.$window.$periodKey.entries
+    expect(entries['.read']).toContain("$window === 'daily' || $window === 'weekly'")
     expect(entries['.read']).toContain("$stageId === 'stage1'")
+    expect(entries['.read']).toContain("$stageId === 'stage4'")
     expect(entries['.write']).toBe(false)
     expect(entries['.indexOn']).toContain('score')
   })

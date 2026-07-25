@@ -1,12 +1,27 @@
 import { createHash } from 'node:crypto'
 
-export const ALLOWED_STAGE_IDS = new Set(['stage1', 'stage2', 'stage3'])
+export const ALLOWED_STAGE_IDS = new Set(['stage1', 'stage2', 'stage3', 'stage4'])
 export const MAX_RUN_SCORE = 100_000
 export const MAX_RUN_TIME_MS = 3_600_000
 export const KST_OFFSET_MS = 9 * 60 * 60 * 1000
 
+// 서버측 점수 재검증(안티치트) 상수. 단일 출처는 클라이언트 src/lib/rankingScorePolicy.js —
+// 값 변경 시 두 곳을 반드시 동기화한다(스테이지 보너스 선형 +60, clear 30, 보스 보너스 = 기본점의 20%).
+export const SERVER_STAGE_BONUS = { stage1: 0, stage2: 60, stage3: 120, stage4: 180 }
+export const SERVER_CLEAR_BONUS = 30
+export const BOSS_BONUS_RATE = 0.2
+
 const DAY_MS = 24 * 60 * 60 * 1000
 const RUN_ID_PATTERN = /^[A-Za-z0-9_-]{12,80}$/
+
+// 주어진 런의 정직한 최대 점수. getRankingScore(클라)와 clearStageWithBossBonus의
+// 합산식과 동일: survival + stageBonus + (clear ? clearBonus : 0) + (clear ? floor(base*0.2) : 0).
+// 정직한 런의 점수는 항상 정확히 이 상한과 같고, 하한은 보너스 없는 survival이다.
+export function maxLegitScore(stageId, timeMs, cleared) {
+  const survivalSec = Math.floor(readNonNegInt(timeMs) / 1000)
+  const base = survivalSec + (SERVER_STAGE_BONUS[stageId] ?? 0) + (cleared ? SERVER_CLEAR_BONUS : 0)
+  return base + (cleared ? Math.floor(base * BOSS_BONUS_RATE) : 0)
+}
 
 export function normalizeRun(value) {
   const runId = typeof value?.runId === 'string' ? value.runId.trim() : ''
@@ -20,7 +35,19 @@ export function normalizeRun(value) {
   if (!Number.isSafeInteger(timeMs) || timeMs < 0 || timeMs > MAX_RUN_TIME_MS) throw new Error('timeMs is out of range')
   if (value?.cleared !== undefined && typeof value.cleared !== 'boolean') throw new Error('cleared must be boolean')
 
-  return { runId, stageId, score, timeMs, cleared: value?.cleared === true }
+  const cleared = value?.cleared === true
+  // 상한/하한 정합 검증(M5): 클라가 변조한 score 주입을 서버에서 차단.
+  const survivalSec = Math.floor(timeMs / 1000)
+  if (score < survivalSec || score > maxLegitScore(stageId, timeMs, cleared)) {
+    throw new Error('score fails server revalidation')
+  }
+
+  return { runId, stageId, score, timeMs, cleared }
+}
+
+function readNonNegInt(value) {
+  const n = Number(value)
+  return Number.isSafeInteger(n) && n > 0 ? n : 0
 }
 
 export function getKstRankingKeys(nowMs) {
@@ -75,6 +102,7 @@ export function applyRunSubmission(current, { uid, displayName, run, seasonId, n
   incrementEntry(season, ['global', 'daily', keys.daily, 'entries', publicId], displayName, run, nowMs)
   incrementEntry(season, ['global', 'weekly', keys.weekly, 'entries', publicId], displayName, run, nowMs)
   incrementEntry(season, ['stage', run.stageId, 'daily', keys.daily, 'entries', publicId], displayName, run, nowMs)
+  incrementEntry(season, ['stage', run.stageId, 'weekly', keys.weekly, 'entries', publicId], displayName, run, nowMs)
 
   return { state, duplicate: false, keys }
 }

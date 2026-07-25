@@ -138,6 +138,9 @@ export const useGameStore = create(
     studentDialogue: null,    // null | { line, reward?, subjectType, subjectName } — 조사 결과
     introDialogue: null,      // null | { index } — 스테이지1 스토리 인트로 대화창 상태
     elapsedMs:   0,
+    // 런 시작 시각(ms). 런당 결정적 runId의 안정 토큰 — 종료 이벤트가 2회 발화해도
+    // 같은 runId를 만들어 서버 dedup으로 이중가산을 막는다(M6).
+    runStartedAt: Date.now(),
     currentStageId: DEFAULT_STAGE_ID,
     bossSpawned: false,
     // 현재 생존 중인 보스 수. 더블 보스(stage3) 클리어 게이팅에 쓴다 — 마지막 보스 처치 시에만 클리어.
@@ -292,7 +295,10 @@ export const useGameStore = create(
       if (user) {
         const policy = getRankingScorePolicy()
         const score = getRankingScore({ stageId: s.currentStageId, survivalSeconds: runSurvivalSeconds, cleared, bossBonus: s.bossBonus }, policy)
-        submitRun(user, { stageId: s.currentStageId, score, timeMs: s.elapsedMs, cleared }).catch(() => {})
+        // 런당 결정적 runId(M6): 같은 런의 종료가 2회 발화해도 동일 id → 서버 dedup으로 이중가산 방지.
+        // uid/stageId는 영숫자, runStartedAt은 숫자라 정규식 ^[A-Za-z0-9_-]{12,80}$를 통과한다.
+        const runId = `${user.uid}_${s.currentStageId}_${s.runStartedAt ?? 0}`.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 80)
+        submitRun(user, { stageId: s.currentStageId, score, timeMs: s.elapsedMs, cleared, runId }).catch(() => {})
       }
     },
 
@@ -626,6 +632,7 @@ export const useGameStore = create(
         studentDialogue: null,
         introDialogue: null,
         elapsedMs:   0,
+        runStartedAt: Date.now(),
         currentStageId: nextStageId,
         bossSpawned: false,
         bossAliveCount: 0,

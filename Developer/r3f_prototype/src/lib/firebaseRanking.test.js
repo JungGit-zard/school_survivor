@@ -11,10 +11,11 @@ describe('firebase ranking client contract', () => {
     expect(source).not.toContain('mod.runTransaction(')
   })
 
-  it('reads public global daily/weekly and stage-daily projections', () => {
+  it('reads public global and stage projections across daily/weekly windows', () => {
     expect(source).toContain("const RANKING_ROOT = 'rankingService/v1/public'")
     expect(source).toContain('/global/${window}/${key}/entries')
-    expect(source).toContain('/stage/${stageId}/daily/${key}/entries')
+    // stage board path is window-generalized (daily + weekly) — no longer hardcoded to daily.
+    expect(source).toContain('/stage/${stageId}/${normalizeWindow(window)}/${key}/entries')
   })
 
   it('subscribes to ranking updates and rebinds at KST period boundaries', () => {

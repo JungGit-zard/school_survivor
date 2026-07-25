@@ -56,6 +56,18 @@ export function buildLocalPlayerRankingEntry(records = loadPlayerRecords(), prof
       survivalSeconds: records.stage2BestSurvivalSec,
       clearCount: records.stage2Clears,
     }),
+    buildLocalStageEntry({
+      displayName,
+      stageId: 'stage3',
+      survivalSeconds: records.stage3BestSurvivalSec,
+      clearCount: records.stage3Clears,
+    }),
+    buildLocalStageEntry({
+      displayName,
+      stageId: 'stage4',
+      survivalSeconds: records.stage4BestSurvivalSec,
+      clearCount: records.stage4Clears,
+    }),
   ].filter(Boolean)
 
   if (candidates.length === 0) return null
@@ -146,6 +158,8 @@ function normalizeRankingEntry(entry, policy) {
 }
 
 function readStageId(stageId, stageLabel) {
+  if (stageId === 'stage4' || stageLabel === 'Stage 4') return 'stage4'
+  if (stageId === 'stage3' || stageLabel === 'Stage 3') return 'stage3'
   if (stageId === 'stage2' || stageLabel === 'Stage 2') return 'stage2'
   return 'stage1'
 }

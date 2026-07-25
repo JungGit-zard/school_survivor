@@ -63,8 +63,8 @@ function normalizeWindow(window) {
   return window === 'weekly' ? 'weekly' : 'daily'
 }
 
-function entriesPath(seasonId, stageId, key) {
-  return `${RANKING_ROOT}/${seasonId}/stage/${stageId}/daily/${key}/entries`
+function entriesPath(seasonId, stageId, window, key) {
+  return `${RANKING_ROOT}/${seasonId}/stage/${stageId}/${normalizeWindow(window)}/${key}/entries`
 }
 
 function globalEntriesPath(seasonId, window, key) {
@@ -98,27 +98,27 @@ export async function submitRun(user, { stageId, score, timeMs, cleared, runId =
   })
 }
 
-// 활성 시즌 현재 period의 스테이지별 top N (score 내림차순 + tie-break).
-export async function fetchStageRanking(stageId, _window, { limit = 100 } = {}) {
+// 활성 시즌 현재 period의 스테이지별 top N (score 내림차순 + tie-break). window=daily|weekly.
+export async function fetchStageRanking(stageId, window, { limit = 100 } = {}) {
   if (!isFirebaseRankingConfigured()) return []
   const now = Date.now()
   const season = getActiveSeason(now)
   if (!season.active) return []
-  const win = 'daily'
+  const win = normalizeWindow(window)
   const key = periodKey(win, now)
   const { db, mod } = await getClient()
   const q = mod.query(
-    mod.ref(db, entriesPath(season.seasonId, readStageId(stageId), key)),
+    mod.ref(db, entriesPath(season.seasonId, readStageId(stageId), win, key)),
     mod.orderByChild('score'),
     mod.limitToLast(limit),
   )
   return readRankingEntries(await mod.get(q), limit)
 }
 
-export function subscribeStageRanking(stageId, _window, onEntries, { limit = 100 } = {}) {
+export function subscribeStageRanking(stageId, window, onEntries, { limit = 100 } = {}) {
   return subscribeRankingWindow(
-    'daily',
-    (seasonId, _win, key) => entriesPath(seasonId, readStageId(stageId), key),
+    window,
+    (seasonId, win, key) => entriesPath(seasonId, readStageId(stageId), win, key),
     onEntries,
     limit,
   )

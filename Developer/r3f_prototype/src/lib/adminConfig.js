@@ -34,9 +34,12 @@ export const DEFAULT_ADMIN_CONFIG = Object.freeze({
     startsAt: '',
     endsAt: '',
     scorePolicy: {
+      // rankingScorePolicy.js STAGE_BONUS와 동일(선형 +60). admin이 4스테이지 보너스를 보존/설정하게.
       stageBonus: {
         stage1: 0,
         stage2: 60,
+        stage3: 120,
+        stage4: 180,
       },
       clearBonus: 30,
     },
@@ -129,6 +132,8 @@ export function normalizeAdminConfig(input = {}) {
         stageBonus: {
           stage1: clampInt(stageBonus.stage1, DEFAULT_ADMIN_CONFIG.rankingSeason.scorePolicy.stageBonus.stage1, 0, 200),
           stage2: clampInt(stageBonus.stage2, DEFAULT_ADMIN_CONFIG.rankingSeason.scorePolicy.stageBonus.stage2, 0, 200),
+          stage3: clampInt(stageBonus.stage3, DEFAULT_ADMIN_CONFIG.rankingSeason.scorePolicy.stageBonus.stage3, 0, 200),
+          stage4: clampInt(stageBonus.stage4, DEFAULT_ADMIN_CONFIG.rankingSeason.scorePolicy.stageBonus.stage4, 0, 200),
         },
         clearBonus: clampInt(scorePolicy.clearBonus, DEFAULT_ADMIN_CONFIG.rankingSeason.scorePolicy.clearBonus, 0, 200),
       },

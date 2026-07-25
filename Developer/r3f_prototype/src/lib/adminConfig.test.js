@@ -20,6 +20,8 @@ describe('admin operations config', () => {
     expect(config.balance.player.speedMultiplier).toBe(1)
     expect(config.operations.cheatMenuButtonVisible).toBe(true)
     expect(config.rankingSeason.scorePolicy.stageBonus.stage2).toBe(60)
+    expect(config.rankingSeason.scorePolicy.stageBonus.stage3).toBe(120)
+    expect(config.rankingSeason.scorePolicy.stageBonus.stage4).toBe(180)
     expect(config.rankingSeason.rewardTiers).toHaveLength(3)
   })
 
@@ -50,6 +52,9 @@ describe('admin operations config', () => {
     expect(config.rankingSeason.seasonId).toBe(DEFAULT_ADMIN_CONFIG.rankingSeason.seasonId)
     expect(config.rankingSeason.status).toBe('draft')
     expect(config.rankingSeason.scorePolicy.stageBonus.stage2).toBe(0)
+    // stage3/stage4 bonuses fall back to defaults when omitted (admin must not silently zero them).
+    expect(config.rankingSeason.scorePolicy.stageBonus.stage3).toBe(120)
+    expect(config.rankingSeason.scorePolicy.stageBonus.stage4).toBe(180)
     expect(config.rankingSeason.scorePolicy.clearBonus).toBe(200)
     expect(config.rankingSeason.rewardTiers[0].rankTo).toBe(1)
   })

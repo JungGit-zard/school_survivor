@@ -54,6 +54,41 @@ describe('user ranking helpers', () => {
     })
   })
 
+  it('builds the local player entry from a stage4 best record (M4)', () => {
+    const entry = buildLocalPlayerRankingEntry({
+      bestSurvivalSeconds: 180,
+      stage2BestSurvivalSec: 220,
+      stage3BestSurvivalSec: 150,
+      stage4BestSurvivalSec: 200,
+    }, { displayName: 'Player Four' })
+
+    // stage4: 200 + 180 = 380 beats stage2 (220 + 60 = 280) and stage3 (150 + 120 = 270).
+    expect(entry).toMatchObject({
+      displayName: 'Player Four',
+      score: 380,
+      survivalSeconds: 200,
+      stageLabel: 'Stage 4',
+      stageId: 'stage4',
+      local: true,
+    })
+  })
+
+  it('builds the local player entry from a stage3 best record (M4)', () => {
+    const entry = buildLocalPlayerRankingEntry({
+      stage3BestSurvivalSec: 240,
+      stage3Clears: 1,
+    }, { displayName: 'Player Three' })
+
+    // stage3 clear 240: 240 + 120 + 30 = 390.
+    expect(entry).toMatchObject({
+      score: 390,
+      stageId: 'stage3',
+      stageLabel: 'Stage 3',
+      cleared: true,
+      local: true,
+    })
+  })
+
   it('prefers the saved Google-matched nickname for the local player ranking entry', () => {
     saveNicknameForUser({ uid: 'uid-1' }, '랭킹 생존자')
 
