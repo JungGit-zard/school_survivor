@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   STUDENT_DIALOGUE_RADIUS,
-  OBJECT_INVESTIGATION_RADIUS,
+  OBJECT_CONTACT_MARGIN,
   getUnconsciousStudents,
   getInvestigationTargets,
   findInvestigationTargetInRange,
@@ -64,14 +64,22 @@ describe('스테이지 2 공용 조사 대상', () => {
     expect(getInvestigationTargets('stage1').every(({ subjectType }) => subjectType === 'student')).toBe(true)
   })
 
-  it('물체는 충돌체 바깥에서 조사 가능하고 이미 조사한 대상은 제외한다', () => {
-    const target = {
-      id: 'locker',
-      position: [0, 0, 0],
-      radius: OBJECT_INVESTIGATION_RADIUS,
-    }
-    expect(findInvestigationTargetInRange(1.6, 0, [target], new Set())).toBe(target)
-    expect(findInvestigationTargetInRange(1.6, 0, [target], new Set(['locker']))).toBeNull()
+  it('물체는 콜라이더 표면에 닿아야(접촉 margin 이내) 조사되고, 멀리서는 발동하지 않는다', () => {
+    // 사물함 footprint half (0.67, 0.27). 표면까지 거리 ≤ OBJECT_CONTACT_MARGIN(0.25)에서만 발동.
+    const target = { id: 'locker', position: [0, 0, 0], subjectType: 'locker', halfX: 0.67, halfZ: 0.27 }
+    // 표면(x=0.67) 밖 0.93만큼 떨어짐 → 닿지 않음 → 발동 안 함 (이전 원형 1.65에선 잘못 발동하던 지점)
+    expect(findInvestigationTargetInRange(1.6, 0, [target], new Set())).toBeNull()
+    // 표면에서 0.18(< margin) → 접촉 판정 → 발동
+    expect(findInvestigationTargetInRange(0.67 + OBJECT_CONTACT_MARGIN - 0.07, 0, [target], new Set())).toBe(target)
+    // 이미 조사한 대상은 제외
+    expect(findInvestigationTargetInRange(0.85, 0, [target], new Set(['locker']))).toBeNull()
+  })
+
+  it('stage2 물체 대상은 회전을 반영한 AABB half(halfX/halfZ)를 갖는다', () => {
+    const locker = getInvestigationTargets('stage2').find(({ subjectType }) => subjectType === 'locker')
+    expect(locker.halfX).toBeGreaterThan(0)
+    expect(locker.halfZ).toBeGreaterThan(0)
+    expect(locker.radius).toBeUndefined() // 더 이상 원형 반경 아님
   })
 })
 
