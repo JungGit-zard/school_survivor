@@ -1,5 +1,8 @@
 import * as THREE from 'three'
 import { createPlayerArmActionState, clearPlayerArmAction } from './playerArmAction.js'
+import { createEnemyEntityPool } from './enemyEntityPool.js'
+import { createEnemySimulationRuntime } from './enemySimulation.js'
+import { createEnemyProjectilePool } from './enemyProjectilePool.js'
 
 // 컴포넌트 간 플레이어 위치 공유 (re-render 없이)
 export const playerPos = new THREE.Vector3()
@@ -20,6 +23,12 @@ export const bagSwingState = {
 export const playerArmActionState = createPlayerArmActionState()
 
 export const enemyBodies = new Map()
+// 일반 적은 React/Rapier body 대신 이 단일 런타임 정본을 사용한다.
+export const enemyPool = createEnemyEntityPool()
+export const enemySimulationRuntime = createEnemySimulationRuntime()
+export const enemyProjectilePool = createEnemyProjectilePool()
+export const enemySightBlocked = new Uint8Array(200)
+export const enemyHandleScratch = { index: -1, generation: 0 }
 
 export const joystickDir = { x: 0, z: 0, active: false }
 
@@ -32,6 +41,10 @@ export function resetRuntimeRefs() {
   bagSwingState.cooldown = 1000
   clearPlayerArmAction(playerArmActionState)
   enemyBodies.clear()
+  enemyPool.reset()
+  enemySimulationRuntime.reset()
+  enemyProjectilePool.reset()
+  enemySightBlocked.fill(0)
   joystickDir.x = 0
   joystickDir.z = 0
   joystickDir.active = false

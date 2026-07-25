@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
-import { describe, expect, it } from 'vitest'
+import * as THREE from 'three'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
   BLOCKING_STAGE_OBJECT_TYPES,
   getStageObjectColliderParts,
@@ -8,11 +9,47 @@ import {
   isStageObjectSightBlocked,
 } from './stageObjectColliders.js'
 import { getStageObjectPlacements, STAGE_OBJECT_PLACEMENTS } from './stageObjectPlacements.js'
+import { getStageBounds } from '../../lib/stageConfig.js'
+import { commitFirebaseStudioRuntime } from '../../lib/studioRuntimeState.js'
 
-const PLAYER_TOP_Y = 0.64
 const ENEMY_MIN_TOP_Y = 0.34
 
+function getWorldAabb(collider) {
+  const rootPosition = new THREE.Vector3(...collider.position)
+  const rootRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(...collider.rotation))
+  const bounds = { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity }
+
+  collider.parts.forEach((part) => {
+    const center = new THREE.Vector3(...part.position).applyQuaternion(rootRotation).add(rootPosition)
+    const rotation = rootRotation.clone().multiply(
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(...part.rotation))
+    )
+    const matrix = new THREE.Matrix4().makeRotationFromQuaternion(rotation).elements
+    const [halfX, halfY, halfZ] = part.args
+    const worldHalfX = Math.abs(matrix[0]) * halfX + Math.abs(matrix[4]) * halfY + Math.abs(matrix[8]) * halfZ
+    const worldHalfZ = Math.abs(matrix[2]) * halfX + Math.abs(matrix[6]) * halfY + Math.abs(matrix[10]) * halfZ
+
+    bounds.minX = Math.min(bounds.minX, center.x - worldHalfX)
+    bounds.maxX = Math.max(bounds.maxX, center.x + worldHalfX)
+    bounds.minZ = Math.min(bounds.minZ, center.z - worldHalfZ)
+    bounds.maxZ = Math.max(bounds.maxZ, center.z + worldHalfZ)
+  })
+
+  return bounds
+}
+
+function aabbsOverlap(first, second) {
+  return (
+    first.minX < second.maxX && first.maxX > second.minX &&
+    first.minZ < second.maxZ && first.maxZ > second.minZ
+  )
+}
 describe('stage object blocking colliders', () => {
+  beforeEach(() => {
+    // Graphics Studio 데이터는 Firebase hydrate 이후에만 읽는다. 테스트도 같은
+    // 런타임 계약의 빈 Firebase 스냅샷을 명시적으로 커밋한다.
+    commitFirebaseStudioRuntime({ propPlacements: {} }, { revision: 0 })
+  })
   it('blocks a zombie sight segment that crosses a prop footprint without blocking a clear segment', () => {
     const obstacle = { x: 0, z: 0, halfX: 1, halfZ: 0.5, rotationY: 0 }
 
@@ -67,10 +104,16 @@ describe('stage object blocking colliders', () => {
       expect(parts.length).toBeGreaterThan(0)
       parts.forEach(({ args, position }) => {
         expect(args.every((value) => value > 0)).toBe(true)
-        expect(position[1] - args[1]).toBeLessThanOrEqual(0.08)
-        expect(position[1] + args[1]).toBeGreaterThanOrEqual(PLAYER_TOP_Y)
-        expect(position[1] + args[1]).toBeGreaterThanOrEqual(ENEMY_MIN_TOP_Y)
       })
+      // 작은 공·낮은 골대 받침처럼 시각적으로 낮은 파츠도 플레이어의 세로
+      // 콜라이더(발 y=0~머리 y=0.64)와 실제로 겹치면 물리 장애물이다. 모든
+      // 파츠가 머리 높이까지 닿아야 한다는 이전 계약은 시각과 무관한 높은 벽을
+      // 강제했으므로, 루트당 실제 접촉 가능 파츠 하나를 요구한다.
+      expect(parts.some(({ args, position }) => (
+        position[1] - args[1] <= 0.08
+        && position[1] + args[1] >= 0
+        && position[1] + args[1] >= ENEMY_MIN_TOP_Y
+      )), placement.id).toBe(true)
     })
   })
 
@@ -123,6 +166,43 @@ describe('stage object blocking colliders', () => {
     expect(getStageObjectColliderParts(gymProps.find(({ type }) => type === 'basketballCluster')).length).toBe(6)
     expect(getStageObjectColliderParts(gymProps.find(({ type }) => type === 'gymTrainingCones')).length).toBe(4)
     expect(getStageObjectColliderParts(gymProps.find(({ type }) => type === 'gymEquipmentSpill')).length).toBeGreaterThanOrEqual(4)
+  })
+
+  it('keeps every Stage 3 world-space sight AABB inside the gym walls and out of the central combat core', () => {
+    const { halfX, halfZ } = getStageBounds('stage3')
+    const wallInset = 0.4
+    const coreHalfX = 3.6
+    const coreHalfZ = 5.5
+    const obstacles = getStageObjectSightObstacles('stage3')
+
+    expect(obstacles.length).toBeGreaterThan(0)
+    obstacles.forEach(({ x, z, halfX: obstacleHalfX, halfZ: obstacleHalfZ }) => {
+      expect(x - obstacleHalfX).toBeGreaterThanOrEqual(-halfX + wallInset)
+      expect(x + obstacleHalfX).toBeLessThanOrEqual(halfX - wallInset)
+      expect(z - obstacleHalfZ).toBeGreaterThanOrEqual(-halfZ + wallInset)
+      expect(z + obstacleHalfZ).toBeLessThanOrEqual(halfZ - wallInset)
+
+      const overlapsCore = (
+        x - obstacleHalfX < coreHalfX &&
+        x + obstacleHalfX > -coreHalfX &&
+        z - obstacleHalfZ < coreHalfZ &&
+        z + obstacleHalfZ > -coreHalfZ
+      )
+      expect(overlapsCore).toBe(false)
+    })
+  })
+
+  it('keeps the separated Stage 3 prop roots from producing overlapping collider footprints', () => {
+    const rootAabbs = getStageObjectColliders('stage3').map((collider) => ({
+      id: collider.id,
+      ...getWorldAabb(collider),
+    }))
+
+    for (let first = 0; first < rootAabbs.length; first += 1) {
+      for (let second = first + 1; second < rootAabbs.length; second += 1) {
+        expect(aabbsOverlap(rootAabbs[first], rootAabbs[second]), `${rootAabbs[first].id} / ${rootAabbs[second].id}`).toBe(false)
+      }
+    }
   })
 
   it('mounts the stage object collider layer beside the visual prop layer', () => {

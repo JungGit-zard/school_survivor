@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { resolveCriticalHit, canDamageCrit } from './criticalHits.js'
+import { resolveCriticalHit, resolveCriticalHitInto, canDamageCrit } from './criticalHits.js'
 
 describe('resolveCriticalHit', () => {
+  it('reuses caller-owned out object on the hot path', () => {
+    const out = { damage: -1, isCritical: true }
+    expect(resolveCriticalHitInto(out, 10, true, undefined, undefined, 1, 2, () => 0)).toBe(out)
+    expect(out).toEqual({ damage: 20, isCritical: true })
+    expect(resolveCriticalHitInto(out, 10, false, undefined, undefined, 1, 2, () => 0)).toBe(out)
+    expect(out).toEqual({ damage: 10, isCritical: false })
+  })
   it('keeps the original damage when critical hits are disabled for the attack', () => {
     expect(resolveCriticalHit({ baseDamage: 20, canCrit: false, critChance: 1, critMultiplier: 3, rng: () => 0 })).toEqual({
       damage: 20,

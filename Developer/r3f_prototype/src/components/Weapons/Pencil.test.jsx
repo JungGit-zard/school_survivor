@@ -10,8 +10,15 @@ describe('PencilModel', () => {
   it('assigns upgraded projectiles to distinct nearby enemies', () => {
     const source = readFileSync(new URL('./Pencil.jsx', import.meta.url), 'utf8')
 
-    expect(source).toContain('findClosestEnemies(w.range ?? 22, count)')
-    expect(source).toContain('targets.map((target) =>')
-    expect(source).not.toContain('const target = findClosestEnemy')
+    expect(source).toContain('scanClosestEnemiesInto(targetScratch, w.range ?? 22, count)')
+    expect(source).toContain('targetIndex')
+    expect(source).not.toContain('enemyBodies.forEach')
+  })
+
+  it('uses a pure swept capsule instead of Rapier intersections', () => {
+    const source = readFileSync(new URL('./Pencil.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('scanSweptCapsuleEnemiesInto')
+    expect(source).not.toContain('other.rigidBody')
+    expect(source).not.toContain('@react-three/rapier')
   })
 })

@@ -4,7 +4,7 @@ import { Billboard } from '@react-three/drei'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import * as THREE from 'three'
 import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.png'
-import { enemyBodies, playerPos } from '../lib/refs.js'
+import { enemyBodies, playerPos, enemyProjectilePool, enemyHandleScratch } from '../lib/refs.js'
 import { getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat, inflateScale, outlineMat, toonMat } from '../lib/toon.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { logKill, logPlaytestEvent } from '../lib/playtestLogger.js'
@@ -29,8 +29,6 @@ import { getStageObjectSightObstacles, isStageObjectSightBlocked } from './Stage
 import { isPlayerWeaponSightBlocked } from '../lib/weaponTargeting.js'
 import ZombieMesh from './ZombieMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
-import EnemyProjectileVisual from './EnemyProjectileVisual.jsx'
-import { zombieVisualRegistry } from '../lib/zombieVisualRegistry.js'
 import {
   MATH_TEACHER_SWING_RADIUS,
   MATH_TEACHER_SWING_RECOVERY_MS,
@@ -57,6 +55,11 @@ const _chargeTarget = new THREE.Vector3()
 const _fireDir = new THREE.Vector3()
 // setLinvel???꾨떖?섎뒗 ?ъ궗??媛앹껜 ??留??꾨젅???몃씪??媛앹껜 ?앹꽦 諛⑹?
 const _vel = { x: 0, y: 0, z: 0 }
+const _sightBlockedVelocity = { x: 0, z: 0 }
+const MATILDA_DASH_SFX = Object.freeze({ id: 'matildaDash', volume: 0.76 })
+const MATILDA_DASH_REVERSE_SFX = Object.freeze({ id: 'matildaDash', volume: 0.52, rate: 0.88 })
+const MATILDA_LAUGH_SFX = Object.freeze({ id: 'matildaLaugh', volume: 0.82 })
+const IGNORE_INVULNERABILITY = Object.freeze({ ignoreInvulnerability: true })
 
 // 諛⑺뼢 ?뚯쟾 ?ы띁 ??useFrame ???⑥닔 ?ъ깮??諛⑹?瑜??꾪빐 紐⑤뱢 ?덈꺼
 function _applyRotation(groupRef, dx, dz, turnRate = 0.12) {
@@ -116,6 +119,10 @@ export function isMatildaChargeBlockedFrame({
   hitDistance,
   moveRatio = MATILDA_CHARGE_STALL_MOVE_RATIO,
 }) {
+  return isMatildaChargeBlockedValues(movedAlong, expectedMove, distanceToPlayer, hitDistance, moveRatio)
+}
+
+export function isMatildaChargeBlockedValues(movedAlong, expectedMove, distanceToPlayer, hitDistance, moveRatio = MATILDA_CHARGE_STALL_MOVE_RATIO) {
   if (expectedMove <= 0.0001) return false
   if (distanceToPlayer <= hitDistance + 0.08) return false
   return movedAlong < expectedMove * moveRatio
@@ -128,7 +135,11 @@ export function shouldReverseMatildaChargeOnObstacle({
   hitDistance,
   stalledMs,
 }) {
-  return isMatildaChargeBlockedFrame({ movedAlong, expectedMove, distanceToPlayer, hitDistance })
+  return shouldReverseMatildaChargeOnObstacleValues(movedAlong, expectedMove, distanceToPlayer, hitDistance, stalledMs)
+}
+
+export function shouldReverseMatildaChargeOnObstacleValues(movedAlong, expectedMove, distanceToPlayer, hitDistance, stalledMs) {
+  return isMatildaChargeBlockedValues(movedAlong, expectedMove, distanceToPlayer, hitDistance)
     && stalledMs >= MATILDA_CHARGE_STALL_REVERSE_MS
 }
 
@@ -148,14 +159,20 @@ function stableEnemySide(enemyId) {
 
 export function resolveSightBlockedEnemyVelocity({ blocked, enemyId, dirX, dirZ, speed }) {
   if (!blocked) return null
+  const out = { x: 0, z: 0 }
+  writeSightBlockedEnemyVelocity(out, blocked, enemyId, dirX, dirZ, speed)
+  return out
+}
+
+// 보스 프레임 경로는 caller-owned out만 갱신해 방향 객체를 만들지 않는다.
+export function writeSightBlockedEnemyVelocity(out, blocked, enemyId, dirX, dirZ, speed) {
+  if (!blocked || !out) return false
   const length = Math.hypot(dirX, dirZ)
-  if (length <= 1e-8) return { x: 0, z: 0 }
-  const side = stableEnemySide(enemyId)
-  const wanderSpeed = speed * 0.55
-  return {
-    x: (-dirZ / length) * side * wanderSpeed,
-    z: (dirX / length) * side * wanderSpeed,
-  }
+  if (length <= 1e-8) { out.x = 0; out.z = 0; return true }
+  const wanderSpeed = speed * 0.55 * stableEnemySide(enemyId)
+  out.x = (-dirZ / length) * wanderSpeed
+  out.z = (dirX / length) * wanderSpeed
+  return true
 }
 
 let _lastEnemySpawnSfxAt = Number.NEGATIVE_INFINITY
@@ -329,59 +346,27 @@ function ChargeToonCue({ y }) {
 }
 
 // ?? ???ъ궗泥?(E04 ?먭굅由??꾩슜. B01 遺梨꾧섦 ?⑦꽩? 2026-05-09 ?먭린) ??????????????
-let _projId = 0
-const _activeE04ProjectileIds = new Set()
-
 export function getActiveE04ProjectileCount() {
-  return _activeE04ProjectileIds.size
+  return enemyProjectilePool.activeCount
+}
+
+// special boss frame path uses this out-param form so it does not allocate a velocity object.
+function writeRangedEnemyVelocity(out, dirX, dirZ, dist, minDist, preferDist, speed, strafeSign = 1) {
+  const len = Math.hypot(dirX, dirZ) || 1
+  const nx = dirX / len
+  const nz = dirZ / len
+  if (dist < minDist) { out.x = -nx * speed; out.z = -nz * speed }
+  else if (dist > preferDist) { out.x = nx * speed; out.z = nz * speed }
+  else {
+    const side = strafeSign >= 0 ? 1 : -1
+    out.x = -nz * speed * 0.75 * side
+    out.z = nx * speed * 0.75 * side
+  }
+  return out
 }
 
 export function resetActiveE04ProjectileCountForTest() {
-  _activeE04ProjectileIds.clear()
-}
-
-function registerE04Projectile(id) {
-  _activeE04ProjectileIds.add(id)
-}
-
-function unregisterE04Projectile(id) {
-  _activeE04ProjectileIds.delete(id)
-}
-
-function EnemyProjectile({ id, position, velocity, damage, onExpire }) {
-  const rb      = useRef()
-  const ageRef  = useRef(0)
-  const hitRef  = useRef(false)
-
-  useFrame((_, delta) => {
-    if (!rb.current) return
-    ageRef.current += delta
-    if (ageRef.current > 3.2) onExpire(id)
-  })
-
-  return (
-    <RigidBody
-      ref={rb}
-      type="dynamic"
-      position={position}
-      linearVelocity={velocity}
-      lockRotations
-      colliders={false}
-      gravityScale={0}
-      sensor
-      onIntersectionEnter={({ other }) => {
-        if (hitRef.current) return
-        if (other.rigidBody?._playerHit) {
-          hitRef.current = true
-          other.rigidBody._playerHit(damage)
-          onExpire(id)
-        }
-      }}
-    >
-      <CuboidCollider args={[0.09, 0.09, 0.09]} sensor />
-      <EnemyProjectileVisual />
-    </RigidBody>
-  )
+  enemyProjectilePool.reset()
 }
 
 // ?? HP 諛?????????????????????????????????????????????????????????????????????
@@ -412,6 +397,7 @@ export function SpawnSmokeEffect({ position, visualScale, frozen = false }) {
   const materialRef = useRef()
   const elapsedMsRef = useRef(0)
   const [done, setDone] = useState(false)
+  const doneRef = useRef(false)
   const phase = useGameStore((s) => s.phase)
   const texture = useLoader(THREE.TextureLoader, spawnSmokeUrl)
   texture.colorSpace = THREE.SRGBColorSpace
@@ -431,7 +417,10 @@ export function SpawnSmokeEffect({ position, visualScale, frozen = false }) {
     billboard.position.y = position[1] + visualScale * (1.0 + t * 0.32)
     // 앞 300ms(리빌 딜레이) 동안 opacity 1.0 유지 후 페이드아웃
     material.opacity = getSpawnSmokeOpacity(elapsed)
-    if (t >= 1) setDone(true)
+    if (t >= 1 && !doneRef.current) {
+      doneRef.current = true
+      requestAnimationFrame(() => setDone(true))
+    }
   })
 
   if (done) return null
@@ -464,16 +453,37 @@ export function SpawnSmokeEffect({ position, visualScale, frozen = false }) {
 export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverride, isMatilda = false, runCrewDir = null }) {
   const rb       = useRef()
   const groupRef = useRef()
-  const stats    = { ...(ENEMY_STATS[type] ?? ENEMY_STATS.E01), ...statOverride }
+  const stats    = useMemo(() => ({ ...(ENEMY_STATS[type] ?? ENEMY_STATS.E01), ...statOverride }), [type, statOverride])
+  // B04의 spread 병합은 렌더/입력 변경 때만 수행한다. 프레임에서는 state에 맞는 안정 참조만 고른다.
+  const chefActiveStats = useMemo(() => ({
+    phase1: resolveChefBossActiveStats(stats, CHEF_PHASE1),
+    phase2: resolveChefBossActiveStats(stats, CHEF_PHASE2),
+  }), [stats])
   const cs       = stats.scale * ENEMY_SIZE_MULTIPLIER
   const colArgs  = [BASE_COL[0] * cs, BASE_COL[1] * cs, BASE_COL[2] * cs]
 
   const [hp, setHp]           = useState(stats.hp)
   const [hitFlash, setHitFlash] = useState(false)
   const [spawnRevealed, setSpawnRevealed] = useState(false)
+  const [animPhase, setAnimPhase] = useState('normal') // normal|warn|charge|special|stun|retreat
+  const visualFlushRef       = useRef({ scheduled: false, hp: stats.hp, hitFlash: false, spawnRevealed: false, animPhase: 'normal' })
+  const spawnRevealedRef     = useRef(false)
+  const queueVisualState = useCallback((key, value) => {
+    const pending = visualFlushRef.current
+    pending[key] = value
+    if (key === 'spawnRevealed') spawnRevealedRef.current = value
+    if (pending.scheduled) return
+    pending.scheduled = true
+    requestAnimationFrame(() => {
+      pending.scheduled = false
+      setHp(pending.hp)
+      setHitFlash(pending.hitFlash)
+      setSpawnRevealed(pending.spawnRevealed)
+      setAnimPhase(pending.animPhase)
+    })
+  }, [])
   const hitFlashRef           = useRef(false)  // ref mirror for instanced renderer
   const hpRef                 = useRef(stats.hp)
-  const useInstanced = !isMatilda && INSTANCED_TYPES.has(type)
   const dead                  = useRef(false)
   const knockbackUntilRef     = useRef(0)
   const knockbackDir          = useRef(new THREE.Vector3())
@@ -483,7 +493,6 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const spawnRevealElapsedRef = useRef(0)
 
   // E05 / B01 ?뚯쭊 ?곹깭 癒몄떊
-  const [animPhase, setAnimPhase] = useState('normal') // normal|warn|charge|special|stun|retreat
   const chargeState  = useRef(isMatilda ? 'matildaAim' : 'chase')
   const stateTimer   = useRef(0)
   const matildaLaughRemainingRef = useRef(0)
@@ -496,20 +505,35 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const chefPhaseRef = useRef(CHEF_PHASE1)
   const chefTelegraphStartRef = useRef(0)
 
-  // E04 / B01 ?ъ궗泥?
-  const [projectiles, setProjectiles] = useState([])
-  const projectilesRef = useRef([])
+  // E04/B04 projectile state is the shared fixed projectile pool; no React array is mounted.
   const lastFireRef = useRef(0)
+  // 보스 프레임의 헬퍼 입력·로그 payload는 모두 재사용한다.
+  const chefPhaseArgsRef = useRef({ hpRatio: 1, telegraphElapsedMs: 0 })
+  const e04FireArgsRef = useRef({ elapsedSec: 0, ageMs: 0, activeProjectileCount: 0, distanceToPlayer: 0, lastFireElapsedMs: 0, nowMs: 0, cooldownMs: 2200, introSec: 72, bossPressure: false })
+  const mathSwingArgsRef = useRef({ bodies: enemyBodies, bossId: '', origin: { x: 0, z: 0 } })
+  const mathStartLogRef = useRef({ bossId: '', trigger: '' })
+  const mathImpactLogRef = useRef({ bossId: '', pushedZombies: 0, playerHit: false, playerDamage: 0, playerHpAfter: 0 })
+  const mathEndLogRef = useRef({ bossId: '' })
 
   const damagePlayer = useGameStore((s) => s.damagePlayer)
   const phase        = useGameStore((s) => s.phase)
   const currentStageId = useGameStore((s) => s.currentStageId)
   const sightObstacles = useMemo(() => getStageObjectSightObstacles(currentStageId), [currentStageId])
+  const stageCombatConfig = useMemo(() => {
+    const config = getStageConfig(currentStageId)
+    return {
+      bossPressureStartSec: config.bossWarningSec ?? 120,
+      bossPressureEndSec: config.escapePortalSec ?? 150,
+      e04IntroSec: getE04IntroSec(currentStageId),
+      bounds: getStageBounds(currentStageId),
+    }
+  }, [currentStageId])
   const sightBlockedRef = useRef(false)
   const nextSightCheckRef = useRef(0)
 
   useEffect(() => {
-    setSpawnRevealed(false)
+    spawnRevealedRef.current = false
+    queueVisualState('spawnRevealed', false)
     spawnRevealElapsedRef.current = 0
     spawnedAtRef.current = performance.now()
     chargeState.current = isMatilda ? 'matildaLaugh' : 'chase'
@@ -522,26 +546,12 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     chefTelegraphStartRef.current = 0
     sightBlockedRef.current = false
     nextSightCheckRef.current = useGameStore.getState().elapsedMs + (stableEnemyHash(id) % 90)
-    setAnimPhase(isMatilda ? 'stun' : 'normal')
+    queueVisualState('animPhase', isMatilda ? 'stun' : 'normal')
     emitEnemySpawnSfx(type, isMatilda)
   }, [id, type, isMatilda])
 
   useEffect(() => {
-    projectilesRef.current = projectiles
-  }, [projectiles])
-
-  useEffect(() => () => {
-    if (type !== 'E04') return
-    projectilesRef.current.forEach((projectile) => unregisterE04Projectile(projectile.id))
-  }, [type])
-
-  useEffect(() => {
     if (!spawnRevealed) return
-    // Registry registration must happen regardless of rb.current — the visual
-    // layer only needs spawn pos/type, not the physics body.
-    if (useInstanced) {
-      zombieVisualRegistry.register(id, { x: spawnPos[0], y: spawnPos[1], z: spawnPos[2], yaw: 0, type, phase: 'chase', wt: 0, vs: cs * 0.333, hitFlash: false })
-    }
     if (!rb.current) return
     enemyBodies.set(id, rb.current)
     rb.current._enemyHit = (dmg, impact = {}) => {
@@ -571,9 +581,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         colorHex: criticalHit.isCritical ? DAMAGE_NUMBER_COLORS.critical : DAMAGE_NUMBER_COLORS.enemy,
         isCritical: criticalHit.isCritical,
       })
-      setHitFlash(true)
+      queueVisualState('hitFlash', true)
       hitFlashRef.current = true
-      requestAnimationFrame(() => { setHitFlash(false); hitFlashRef.current = false })
+      requestAnimationFrame(() => { queueVisualState('hitFlash', false); hitFlashRef.current = false })
       if (impact?.sfxId) emitSfx({ id: impact.sfxId, volume: 0.6 })
       const knockback = resolveEnemyHitKnockback(impact)
       if (knockback.speed > 0) {
@@ -593,14 +603,13 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         }, true)
       }
       hpRef.current -= finalDamage
-      setHp(hpRef.current)
+      queueVisualState('hp', hpRef.current)
       if (hpRef.current <= 0) {
         dead.current = true
         rb.current._enemyDead = true
         rb.current._enemyHit = null
         enemyBodies.delete(id)
         // 죽는 즉시 제거 — useEffect cleanup은 React 커밋 후라서 늦음
-        if (useInstanced) zombieVisualRegistry.unregister(id)
         // 蹂???泥섏튂 移댁슫??+ 蹂댁뒪 泥섏튂 利됱떆 ?꾩쟻
         const store = useGameStore.getState()
         store.recordKill()
@@ -633,21 +642,15 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     rb.current._enemyType = type
     return () => {
       enemyBodies.delete(id)
-      if (useInstanced) zombieVisualRegistry.unregister(id)
     }
-  }, [id, onDeath, spawnPos, stats.xp, type, cs, useInstanced, spawnRevealed])
-
-  const expireProjectile = useCallback((pid) => {
-    if (type === 'E04') unregisterE04Projectile(pid)
-    setProjectiles((prev) => prev.filter((p) => p.id !== pid))
-  }, [type])
+  }, [id, onDeath, spawnPos, stats.xp, type, cs, spawnRevealed])
 
   useFrame((_, delta) => {
-    if (!spawnRevealed) {
+    if (!spawnRevealedRef.current) {
       spawnRevealElapsedRef.current = advanceEnemySpawnTimer(spawnRevealElapsedRef.current, delta, phase)
       if (spawnRevealElapsedRef.current >= ENEMY_SPAWN_REVEAL_DELAY_MS) {
         spawnedAtRef.current = performance.now()
-        setSpawnRevealed(true)
+        queueVisualState('spawnRevealed', true)
       }
       return
     }
@@ -660,48 +663,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     const dist = _dir.length()
 
     // Update visual registry immediately — before any early return (knockback/ranged/charger)
-    if (useInstanced) {
-      zombieVisualRegistry.update(id, {
-        x: t.x, y: t.y, z: t.z,
-        yaw: groupRef.current?.rotation.y ?? 0,
-        type,
-        phase: chargeState.current,
-        wt: performance.now() * 0.001,
-        vs: cs * 0.333,
-        hitFlash: hitFlashRef.current,
-      })
-    }
-
     const now = performance.now()
-
-    if (stats.runCrew) {
-      const dirX = runCrewDir?.x ?? 0.72
-      const dirZ = runCrewDir?.z ?? 0.72
-      const len = Math.hypot(dirX, dirZ) || 1
-      const nx = dirX / len
-      const nz = dirZ / len
-      _vel.x = nx * stats.speed
-      _vel.y = 0
-      _vel.z = nz * stats.speed
-      rb.current.setLinvel(_vel, true)
-      _applyRotation(groupRef, nx, nz, 0.9)
-
-      if (dist < stats.contactDist * ENEMY_SIZE_MULTIPLIER && now - lastContactDmgRef.current >= 500) {
-        lastContactDmgRef.current = now
-        damagePlayer(stats.damage)
-      }
-
-      const bounds = getStageBounds(currentStageId)
-      const outPad = 6.0
-      if (Math.abs(t.x) > bounds.halfX + outPad || Math.abs(t.z) > bounds.halfZ + outPad) {
-        dead.current = true
-        rb.current._enemyDead = true
-        rb.current._enemyHit = null
-        enemyBodies.delete(id)
-        onDeath?.(id, null)
-      }
-      return
-    }
 
     if (now < knockbackUntilRef.current) {
       _vel.x = knockbackDir.current.x * knockbackSpeedRef.current
@@ -716,23 +678,14 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       sightBlockedRef.current = isStageObjectSightBlocked(t, playerPos, sightObstacles)
       nextSightCheckRef.current = elapsedMs + 90 + (stableEnemyHash(id) % 31)
     }
-    const sightBlockedVelocity = resolveSightBlockedEnemyVelocity({
-      blocked: sightBlockedRef.current,
-      enemyId: id,
-      dirX: _dir.x,
-      dirZ: _dir.z,
-      speed: stats.speed,
-    })
-    if (sightBlockedVelocity) {
-      _vel.x = sightBlockedVelocity.x
+    if (writeSightBlockedEnemyVelocity(_sightBlockedVelocity, sightBlockedRef.current, id, _dir.x, _dir.z, stats.speed)) {
+      _vel.x = _sightBlockedVelocity.x
       _vel.y = 0
-      _vel.z = sightBlockedVelocity.z
+      _vel.z = _sightBlockedVelocity.z
       rb.current.setLinvel(_vel, true)
       _applyRotation(groupRef, _vel.x, _vel.z)
       return
     }
-
-    const updateRotation = (dx, dz, tr) => _applyRotation(groupRef, dx, dz, tr)
 
     // B04 주방장 2페이즈: HP>50% 포격(phase1) → 텔레그래프 → HP<=50% 격노 돌진(phase2).
     // 페이즈 판정은 순수 모듈(lib/chefBossPhase.js). active = 페이즈별 실효 스탯.
@@ -741,31 +694,31 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     if (stats.chefBoss) {
       const hpRatio = hpRef.current / stats.hp
       const prevState = chefPhaseRef.current
-      const nextState = advanceChefBossPhase(prevState, {
-        hpRatio,
-        telegraphElapsedMs: now - chefTelegraphStartRef.current,
-      })
+      const chefArgs = chefPhaseArgsRef.current
+      chefArgs.hpRatio = hpRatio
+      chefArgs.telegraphElapsedMs = now - chefTelegraphStartRef.current
+      const nextState = advanceChefBossPhase(prevState, chefArgs)
       if (prevState !== CHEF_TELEGRAPH && nextState === CHEF_TELEGRAPH) {
         // 격노 전환 진입: 텔레그래프 타이머 시작 + 차저 상태 초기화 + 붉은 격노 신호 점등
         chefTelegraphStartRef.current = now
         chargeState.current = 'chase'
-        setAnimPhase('warn')
-        if (!hitFlashRef.current) { setHitFlash(true); hitFlashRef.current = true }
+        queueVisualState('animPhase', 'warn')
+        if (!hitFlashRef.current) { queueVisualState('hitFlash', true); hitFlashRef.current = true }
       }
       if (prevState === CHEF_TELEGRAPH && nextState === CHEF_PHASE2) {
         // 텔레그래프 종료 → 돌진 개시: 격노 신호 소등 + 차저 포즈 초기화
-        if (hitFlashRef.current) { setHitFlash(false); hitFlashRef.current = false }
+        if (hitFlashRef.current) { queueVisualState('hitFlash', false); hitFlashRef.current = false }
         chargeState.current = 'chase'
-        setAnimPhase('normal')
+        queueVisualState('animPhase', 'normal')
       }
       chefPhaseRef.current = nextState
-      active = resolveChefBossActiveStats(stats, nextState)
+      active = nextState === CHEF_PHASE2 ? chefActiveStats.phase2 : chefActiveStats.phase1
       if (nextState === CHEF_TELEGRAPH) {
         // 텔레그래프 동안: 이동 정지 + 플레이어 응시 + 붉은 tint 유지(발사·돌진 없음)
         _vel.x = 0; _vel.y = 0; _vel.z = 0
         rb.current.setLinvel(_vel, true)
-        if (dist > 0.0001) updateRotation(_dir.x / dist, _dir.z / dist, 0.25)
-        if (!hitFlashRef.current) { setHitFlash(true); hitFlashRef.current = true }
+        if (dist > 0.0001) _applyRotation(groupRef, _dir.x / dist, _dir.z / dist, 0.25)
+        if (!hitFlashRef.current) { queueVisualState('hitFlash', true); hitFlashRef.current = true }
         return
       }
     }
@@ -776,52 +729,32 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       const now = performance.now()
       // ?먰븯??嫄곕━ ?좎?: ?덈Т 媛源뚯슦硫??꾪눜, ?덈Т 硫硫??꾩쭊
       _vel.y = 0
-      const rangedVelocity = resolveRangedEnemyVelocity({
-        dirX: _dir.x,
-        dirZ: _dir.z,
-        dist,
-        minDist: active.minDist,
-        preferDist: active.preferDist,
-        speed: active.speed,
-        strafeSign: Number(id) % 2 === 0 ? 1 : -1,
-      })
-      _vel.x = rangedVelocity.x
-      _vel.z = rangedVelocity.z
+      writeRangedEnemyVelocity(_vel, _dir.x, _dir.z, dist, active.minDist, active.preferDist, active.speed, Number(id) % 2 === 0 ? 1 : -1)
       rb.current.setLinvel(_vel, true)
-      if (_dir.length() > 0) updateRotation(_dir.x / _dir.length(), _dir.z / _dir.length())
+      if (_dir.length() > 0) _applyRotation(groupRef, _dir.x / _dir.length(), _dir.z / _dir.length())
 
       const elapsedSec = useGameStore.getState().elapsedMs / 1000
-      const stageConfig = getStageConfig(currentStageId)
-      const bossPressureStartSec = stageConfig.bossWarningSec ?? 120
-      const bossPressureEndSec = stageConfig.escapePortalSec ?? 150
       // stage4는 원거리 "안전지대 소멸"이 시그니처라 보스 구간에도 E04 발사를 유지한다(bossPressure 미적용).
       // 스2/스3의 보스 구간 발사 차단은 그대로.
-      const canFire = (currentStageId === 'stage2' || currentStageId === 'stage3' || currentStageId === 'stage4') && canE04FireProjectile({
-        elapsedSec,
-        ageMs: now - spawnedAtRef.current,
-        activeProjectileCount: type === 'E04' ? getActiveE04ProjectileCount() : projectiles.length,
-        distanceToPlayer: dist,
-        lastFireElapsedMs: lastFireRef.current,
-        nowMs: now,
-        cooldownMs: active.rangedCooldown,
-        introSec: getE04IntroSec(currentStageId),
-        bossPressure: currentStageId === 'stage4'
-          ? false
-          : (elapsedSec >= bossPressureStartSec && elapsedSec < bossPressureEndSec),
-      })
+      const fireArgs = e04FireArgsRef.current
+      fireArgs.elapsedSec = elapsedSec
+      fireArgs.ageMs = now - spawnedAtRef.current
+      fireArgs.activeProjectileCount = enemyProjectilePool.activeCount
+      fireArgs.distanceToPlayer = dist
+      fireArgs.lastFireElapsedMs = lastFireRef.current
+      fireArgs.nowMs = now
+      fireArgs.cooldownMs = active.rangedCooldown
+      fireArgs.introSec = stageCombatConfig.e04IntroSec
+      fireArgs.bossPressure = currentStageId === 'stage4' ? false : (elapsedSec >= stageCombatConfig.bossPressureStartSec && elapsedSec < stageCombatConfig.bossPressureEndSec)
+      const canFire = (currentStageId === 'stage2' || currentStageId === 'stage3' || currentStageId === 'stage4') && canE04FireProjectile(fireArgs)
 
       // ?ъ궗泥?諛쒖궗
       if (canFire) {
         lastFireRef.current = now
         _fireDir.copy(_dir).normalize()
-        const projectileId = ++_projId
-        if (type === 'E04') registerE04Projectile(projectileId)
-        setProjectiles((prev) => [...prev, {
-          id: projectileId,
-          position: [_pos.x, _pos.y, _pos.z],
-          velocity: [_fireDir.x * active.rangedSpeed, 0, _fireDir.z * active.rangedSpeed],
-          damage: active.rangedDmg,
-        }])
+        // B04도 E04와 같은 fixed pool을 사용한다. 속도만 실효 스탯으로 전달한다.
+        enemyProjectilePool.spawnInto(enemyHandleScratch, _pos.x, _pos.y, _pos.z,
+          _fireDir.x, _fireDir.z, active.rangedDmg, active.rangedSpeed)
       }
       return
     }
@@ -842,65 +775,54 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           matildaPreviousChargePosRef.current.z = t.z
           matildaChargeStallMsRef.current = 0
           chargeState.current = 'charge'
-          setAnimPhase('charge')
-          updateRotation(chargeDir.current.x, chargeDir.current.z, 1)
-          emitSfx({ id: 'matildaDash', volume: 0.76 })
+          queueVisualState('animPhase', 'charge')
+          _applyRotation(groupRef, chargeDir.current.x, chargeDir.current.z, 1)
+          emitSfx(MATILDA_DASH_SFX)
         } else if (chargeState.current === 'charge') {
           const cd = chargeDir.current
           const previous = matildaPreviousChargePosRef.current
           const movedAlong = (t.x - previous.x) * cd.x + (t.z - previous.z) * cd.z
           const expectedMove = stats.chargeSpeed * delta
           const hitDistance = getChargeHitDistance(stats, true)
-          const blockedFrame = isMatildaChargeBlockedFrame({
-            movedAlong,
-            expectedMove,
-            distanceToPlayer: dist,
-            hitDistance,
-          })
+          const blockedFrame = isMatildaChargeBlockedValues(movedAlong, expectedMove, dist, hitDistance)
           matildaChargeStallMsRef.current = blockedFrame
             ? matildaChargeStallMsRef.current + delta * 1000
             : 0
-          if (shouldReverseMatildaChargeOnObstacle({
-            movedAlong,
-            expectedMove,
-            distanceToPlayer: dist,
-            hitDistance,
-            stalledMs: matildaChargeStallMsRef.current,
-          })) {
+          if (shouldReverseMatildaChargeOnObstacleValues(movedAlong, expectedMove, dist, hitDistance, matildaChargeStallMsRef.current)) {
             cd.multiplyScalar(-1)
             matildaChargeStallMsRef.current = 0
-            emitSfx({ id: 'matildaDash', volume: 0.52, rate: 0.88 })
+            emitSfx(MATILDA_DASH_REVERSE_SFX)
           }
           previous.x = t.x
           previous.z = t.z
           _vel.x = cd.x * stats.chargeSpeed
           _vel.z = cd.z * stats.chargeSpeed
           rb.current.setLinvel(_vel, true)
-          updateRotation(cd.x, cd.z, 1)
+          _applyRotation(groupRef, cd.x, cd.z, 1)
 
           if (dist < getChargeHitDistance(stats, true) && now - lastContactDmgRef.current >= 500) {
             lastContactDmgRef.current = now
             damagePlayer(stats.damage)
           }
 
-          if (isMatildaChargingOutward(t, cd, getStageBounds(currentStageId))) {
+          if (isMatildaChargingOutward(t, cd, stageCombatConfig.bounds)) {
             chargeState.current = 'matildaLaugh'
             matildaLaughRemainingRef.current = MATILDA_LAUGH_DURATION_MS
             matildaChargeStallMsRef.current = 0
-            setAnimPhase('stun')
+            queueVisualState('animPhase', 'stun')
             _vel.x = 0
             _vel.z = 0
             rb.current.setLinvel(_vel, true)
-            emitSfx({ id: 'matildaLaugh', volume: 0.82 })
+            emitSfx(MATILDA_LAUGH_SFX)
           }
         } else if (chargeState.current === 'matildaLaugh') {
           _vel.x = 0
           _vel.z = 0
           rb.current.setLinvel(_vel, true)
-          if (dist > 0.0001) updateRotation(_dir.x / dist, _dir.z / dist, 0.22)
+          if (dist > 0.0001) _applyRotation(groupRef, _dir.x / dist, _dir.z / dist, 0.22)
           if (matildaLaughCuePendingRef.current) {
             matildaLaughCuePendingRef.current = false
-            emitSfx({ id: 'matildaLaugh', volume: 0.82 })
+            emitSfx(MATILDA_LAUGH_SFX)
           }
           matildaLaughRemainingRef.current -= delta * 1000
           if (matildaLaughRemainingRef.current <= 0) {
@@ -915,33 +837,33 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         _dir.normalize()
         _vel.x = _dir.x * stats.speed; _vel.z = _dir.z * stats.speed
         rb.current.setLinvel(_vel, true)
-        updateRotation(_dir.x, _dir.z)
+        _applyRotation(groupRef, _dir.x, _dir.z)
 
         if (dist < active.warnDist) {
           chargeState.current = 'warn'
           stateTimer.current = now
           chargeDir.current.copy(_dir)
-          updateRotation(chargeDir.current.x, chargeDir.current.z, 0.75)
-          setAnimPhase('warn')
+          _applyRotation(groupRef, chargeDir.current.x, chargeDir.current.z, 0.75)
+          queueVisualState('animPhase', 'warn')
           _vel.x = 0; _vel.z = 0
           rb.current.setLinvel(_vel, true)
         }
 
       } else if (chargeState.current === 'warn') {
-        updateRotation(chargeDir.current.x, chargeDir.current.z, 0.45)
+        _applyRotation(groupRef, chargeDir.current.x, chargeDir.current.z, 0.45)
         if (now - stateTimer.current >= active.warnDuration) {
           chargeState.current = 'charge'
           stateTimer.current = now
-          setAnimPhase('charge')
+          queueVisualState('animPhase', 'charge')
           chargeDir.current.normalize()
-          updateRotation(chargeDir.current.x, chargeDir.current.z, 1)
+          _applyRotation(groupRef, chargeDir.current.x, chargeDir.current.z, 1)
         }
 
       } else if (chargeState.current === 'charge') {
         const cd = chargeDir.current
         _vel.x = cd.x * active.chargeSpeed; _vel.z = cd.z * active.chargeSpeed
         rb.current.setLinvel(_vel, true)
-        updateRotation(cd.x, cd.z, 1)
+        _applyRotation(groupRef, cd.x, cd.z, 1)
 
         const hitPlayer = dist < getChargeHitDistance(stats, isMatilda)
         const chargeExpired = now - stateTimer.current > (active.chargeDuration ?? 1200)
@@ -949,12 +871,12 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           if (hitPlayer) damagePlayer(stats.damage)
           chargeState.current = stats.mathTeacherSpecial ? 'mathSwingWindup' : 'stun'
           stateTimer.current = now
-          setAnimPhase(stats.mathTeacherSpecial ? 'special' : 'stun')
+          queueVisualState('animPhase', stats.mathTeacherSpecial ? 'special' : 'stun')
           if (stats.mathTeacherSpecial) {
-            logPlaytestEvent('b01-math-special-start', {
-              bossId: id,
-              trigger: hitPlayer ? 'charge-hit' : 'charge-timeout',
-            })
+            const log = mathStartLogRef.current
+            log.bossId = id
+            log.trigger = hitPlayer ? 'charge-hit' : 'charge-timeout'
+            logPlaytestEvent('b01-math-special-start', log)
           }
           _vel.x = 0; _vel.z = 0
           rb.current.setLinvel(_vel, true)
@@ -963,26 +885,26 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       } else if (chargeState.current === 'mathSwingWindup') {
         _vel.x = 0; _vel.z = 0
         rb.current.setLinvel(_vel, true)
-        if (dist > 0.0001) updateRotation(_dir.x / dist, _dir.z / dist, 0.30)
+        if (dist > 0.0001) _applyRotation(groupRef, _dir.x / dist, _dir.z / dist, 0.30)
         if (now - stateTimer.current >= MATH_TEACHER_SWING_WINDUP_MS) {
-          const pushedZombies = applyMathTeacherSwing({
-            bodies: enemyBodies,
-            bossId: id,
-            origin: { x: t.x, z: t.z },
-          })
+          const swingArgs = mathSwingArgsRef.current
+          swingArgs.bossId = id
+          swingArgs.origin.x = t.x
+          swingArgs.origin.z = t.z
+          const pushedZombies = applyMathTeacherSwing(swingArgs)
           let playerDamage = 0
           if (dist <= MATH_TEACHER_SWING_RADIUS) {
             const store = useGameStore.getState()
             playerDamage = getMathTeacherPlayerDamage(store.player.hp)
-            store.damagePlayer(playerDamage, { ignoreInvulnerability: true })
+            store.damagePlayer(playerDamage, IGNORE_INVULNERABILITY)
           }
-          logPlaytestEvent('b01-math-special-impact', {
-            bossId: id,
-            pushedZombies,
-            playerHit: playerDamage > 0,
-            playerDamage,
-            playerHpAfter: useGameStore.getState().player.hp,
-          })
+          const log = mathImpactLogRef.current
+          log.bossId = id
+          log.pushedZombies = pushedZombies
+          log.playerHit = playerDamage > 0
+          log.playerDamage = playerDamage
+          log.playerHpAfter = useGameStore.getState().player.hp
+          logPlaytestEvent('b01-math-special-impact', log)
           chargeState.current = 'mathSwingRecover'
           stateTimer.current = now
         }
@@ -993,17 +915,19 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         if (now - stateTimer.current >= MATH_TEACHER_SWING_RECOVERY_MS) {
           chargeState.current = 'stun'
           stateTimer.current = now
-          setAnimPhase('stun')
-          logPlaytestEvent('b01-math-special-end', { bossId: id })
+          queueVisualState('animPhase', 'stun')
+          const log = mathEndLogRef.current
+          log.bossId = id
+          logPlaytestEvent('b01-math-special-end', log)
         }
 
       } else if (chargeState.current === 'stun') {
         _vel.x = 0; _vel.z = 0
         rb.current.setLinvel(_vel, true)
-        if (dist > 0.0001) updateRotation(_dir.x / dist, _dir.z / dist, 0.22)
+        if (dist > 0.0001) _applyRotation(groupRef, _dir.x / dist, _dir.z / dist, 0.22)
         if (now - stateTimer.current >= active.stunDuration) {
           chargeState.current = 'chase'
-          setAnimPhase('normal')
+          queueVisualState('animPhase', 'normal')
         }
       }
       return
@@ -1023,7 +947,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       _dir.normalize()
       _vel.x = _dir.x * stats.speed; _vel.z = _dir.z * stats.speed
       rb.current.setLinvel(_vel, true)
-      updateRotation(_dir.x, _dir.z)
+      _applyRotation(groupRef, _dir.x, _dir.z)
     }
 
 
@@ -1048,10 +972,6 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         </RigidBody>
       )}
 
-      {/* E04 ?ъ궗泥?*/}
-      {spawnRevealed && projectiles.map((p) => (
-        <EnemyProjectile key={p.id} {...p} onExpire={expireProjectile} />
-      ))}
     </>
   )
 }

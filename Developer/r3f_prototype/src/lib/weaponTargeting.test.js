@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { enemyBodies, playerPos } from './refs.js'
-import { applyRadialDamage, findClosestEnemies, findClosestEnemy, isPlayerWeaponSightBlocked, isInForwardBox, applyForwardBoxDamage, isInForwardCone, applyForwardConeDamage } from './weaponTargeting.js'
+import { enemyBodies, enemyPool, playerPos } from './refs.js'
+import { applyRadialDamage, createWeaponTargetScratch, findBestSplashTarget, findClosestEnemies, findClosestEnemy, isPlayerWeaponSightBlocked, isInForwardBox, applyForwardBoxDamage, isInForwardCone, applyForwardConeDamage, resolveWeaponTarget, scanClosestEnemiesInto, scanSweptCapsuleEnemiesInto } from './weaponTargeting.js'
 
 function fakeEnemy(x, z, { dead = false } = {}) {
   return {
@@ -12,7 +12,57 @@ function fakeEnemy(x, z, { dead = false } = {}) {
 
 afterEach(() => {
   enemyBodies.clear()
+  enemyPool.reset()
   playerPos.set(0, 0, 0)
+})
+
+function spawnPooledEnemy(x, z, hit = vi.fn()) {
+  const handle = enemyPool.spawn({ type: 'E01', x, y: 0, z, hp: 10, maxHp: 10 })
+  enemyPool.setHitHandler(handle, hit)
+  return { handle, hit }
+}
+
+describe('EntityPool weapon scan contract', () => {
+  it('reads standard enemies from typed arrays once even when an old map entry duplicates its proxy', () => {
+    const pooled = spawnPooledEnemy(1, 0)
+    enemyBodies.set('obsolete-duplicate', enemyPool.get(pooled.handle))
+    const scratch = createWeaponTargetScratch(2)
+
+    expect(scanClosestEnemiesInto(scratch, 5, 2)).toBe(1)
+    expect(scratch.indices[0]).toBe(pooled.handle.index)
+    expect(scratch.generations[0]).toBe(pooled.handle.generation)
+  })
+
+  it('keeps a pooled target stale-safe after its slot is reused', () => {
+    const first = spawnPooledEnemy(1, 0)
+    const scratch = createWeaponTargetScratch(1)
+    scanClosestEnemiesInto(scratch, 5, 1)
+    const index = scratch.indices[0]
+    const generation = scratch.generations[0]
+    enemyPool.despawn(first.handle)
+    const replacement = spawnPooledEnemy(1, 0)
+
+    expect(replacement.handle.index).toBe(index)
+    expect(resolveWeaponTarget(index, generation, null)).toBeNull()
+  })
+
+  it('orders swept pooled hits by segment distance for pencil pierce', () => {
+    const far = spawnPooledEnemy(0, 3)
+    const near = spawnPooledEnemy(0, 1)
+    const scratch = createWeaponTargetScratch(4)
+
+    expect(scanSweptCapsuleEnemiesInto(scratch, 0, 0, 0, 4, 0.34, 4)).toBe(2)
+    expect(scratch.indices[0]).toBe(near.handle.index)
+    expect(scratch.indices[1]).toBe(far.handle.index)
+  })
+
+  it('selects the dense pooled cluster for splash targeting', () => {
+    spawnPooledEnemy(2, 0)
+    const dense = spawnPooledEnemy(4, 0)
+    spawnPooledEnemy(4.2, 0)
+
+    expect(findBestSplashTarget(8, 0.5)?.enemyId).toBe(enemyPool.get(dense.handle)._enemyId)
+  })
 })
 
 describe('player weapon prop raycast', () => {
@@ -54,6 +104,15 @@ describe('isInForwardCone / applyForwardConeDamage (student lantern)', () => {
     expect(nearSide._enemyHit).not.toHaveBeenCalled()
   })
 
+  it('damages a pooled standard enemy through the same cone path', () => {
+    const pooled = spawnPooledEnemy(0, 3)
+    expect(applyForwardConeDamage({
+      originX: 0, originZ: 0, dirX: 0, dirZ: 1,
+      length: 5.2, width: 3.6, baseWidth: 0.35, damage: 9,
+    })).toBe(1)
+    expect(pooled.hit).toHaveBeenCalledTimes(1)
+  })
+
   it('does not damage a cone target hidden by a prop sight blocker', () => {
     const blocked = fakeEnemy(0, 3.8)
     enemyBodies.set('blocked', blocked)
@@ -70,6 +129,12 @@ describe('isInForwardCone / applyForwardConeDamage (student lantern)', () => {
 })
 
 describe('applyRadialDamage', () => {
+  it('hits a pooled standard enemy with its captured generation', () => {
+    const pooled = spawnPooledEnemy(0.5, 0)
+
+    expect(applyRadialDamage({ x: 0, z: 0, radius: 1, damage: 7, knockback: 2, knockbackMs: 80 })).toBe(1)
+    expect(pooled.hit).toHaveBeenCalledTimes(1)
+  })
   it('hits only living enemies within radius, once each, with the given impact', () => {
     const inA = fakeEnemy(0.5, 0)
     const inB = fakeEnemy(-0.3, 0.3)
@@ -210,6 +275,19 @@ describe('findClosestEnemy', () => {
     ])
   })
 
+  it('preserves a pooled target generation for later stale-safe weapon hits', () => {
+    const pooled = {
+      index: 2,
+      generation: 11,
+      _enemyDead: false,
+      _enemyHit: vi.fn(),
+      translation: () => ({ x: 1, y: 0, z: 0 }),
+    }
+    enemyBodies.set('pooled-2', pooled)
+
+    expect(findClosestEnemy(5)).toMatchObject({ enemyId: 'pooled-2', generation: 11 })
+  })
+
   it('skips blocked enemies so projectiles select the next visible target', () => {
     enemyBodies.set('blocked', fakeEnemy(1, 0))
     enemyBodies.set('visible', fakeEnemy(2, 0))
@@ -254,6 +332,15 @@ describe('isInForwardBox / applyForwardBoxDamage (학생용 랜턴)', () => {
     expect(inFront._enemyHit).toHaveBeenCalledWith(9, expect.objectContaining({ knockback: 0 }))
     expect(behind._enemyHit).not.toHaveBeenCalled()
     expect(side._enemyHit).not.toHaveBeenCalled()
+  })
+
+  it('damages a pooled standard enemy through the same forward-box path', () => {
+    const pooled = spawnPooledEnemy(0.2, 1.2)
+    expect(applyForwardBoxDamage({
+      originX: 0, originZ: 0, dirX: 0, dirZ: 1,
+      length: 1.9, width: 1.9, damage: 9,
+    })).toBe(1)
+    expect(pooled.hit).toHaveBeenCalledTimes(1)
   })
 
   it('does not damage a forward-box target hidden by a prop sight blocker', () => {

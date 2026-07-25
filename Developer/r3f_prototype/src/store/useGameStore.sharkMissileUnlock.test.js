@@ -3,19 +3,20 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore } from './useGameStore.js'
 import { UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
 import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
-import { STORAGE_KEY as RECORDS_KEY, _resetForTests as _resetRecords } from '../lib/playerRecords.js'
+import { _resetForTests as _resetRecords } from '../lib/playerRecords.js'
 import {
-  STORAGE_KEY as UNLOCKS_KEY,
   _resetForTests as _resetUnlocks,
+  getAllUnlocked,
   setUnlocked,
 } from '../lib/weaponUnlocks.js'
+import { _seedHydratedFirebaseProgressForTests, _setFirebaseProgressClientForTests } from '../lib/firebaseProgress.js'
 
 describe('sharkMissile unlock and card access', () => {
   beforeEach(() => {
+    _setFirebaseProgressClientForTests({ save: async () => {}, loadOrCreate: async () => null })
+    _seedHydratedFirebaseProgressForTests()
     _resetRecords()
     _resetUnlocks()
-    localStorage.removeItem('school_survivor:goldTotal')
-    localStorage.removeItem('school_survivor:passiveUpgrades')
     useGameStore.getState().resetGame()
     useGameStore.setState({
       runKills: 0,
@@ -31,18 +32,20 @@ describe('sharkMissile unlock and card access', () => {
     useGameStore.getState().clearStage()
 
     expect(useGameStore.getState().newlyUnlockedWeaponIds).toContain('sharkMissile')
-    const unlocks = JSON.parse(localStorage.getItem(UNLOCKS_KEY))
-    expect(unlocks.sharkMissile).toBe(1)
+    expect(getAllUnlocked()).toContain('sharkMissile')
   })
 
   it('unlocks after the 8th completed run as a fallback path', () => {
-    localStorage.setItem(RECORDS_KEY, JSON.stringify({ totalRuns: 7 }))
+    _seedHydratedFirebaseProgressForTests({ uid: 'shark-run-user' }, {
+      schemaVersion: 1,
+      profile: { uid: 'shark-run-user', displayName: '', nickname: '' },
+      progress: { records: { totalRuns: 7 } },
+    })
 
     useGameStore.getState()._onRunEnd('gameover')
 
     expect(useGameStore.getState().newlyUnlockedWeaponIds).toContain('sharkMissile')
-    const unlocks = JSON.parse(localStorage.getItem(UNLOCKS_KEY))
-    expect(unlocks.sharkMissile).toBe(1)
+    expect(getAllUnlocked()).toContain('sharkMissile')
   })
 
   it('can enter the level-up card pool from level 8 after account unlock', () => {

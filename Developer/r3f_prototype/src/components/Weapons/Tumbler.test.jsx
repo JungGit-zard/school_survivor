@@ -40,4 +40,12 @@ describe('TumblerModel visual spec', () => {
     expect(source).toContain('scale={inflateScale([1.13, 1.13, 1.13])}')
     expect(source).toContain('scale={inflateScale([1.16, 1.16, 1.16])}')
   })
+
+  it('uses squared orbit distance instead of Rapier intersections', () => {
+    expect(source).toContain('scanOrbitEnemiesInto')
+    expect(source).not.toContain('enemyBodies.forEach')
+    expect(source).toContain('applyEnemyHit')
+    expect(source).not.toContain('other.rigidBody')
+    expect(source).not.toContain('@react-three/rapier')
+  })
 })

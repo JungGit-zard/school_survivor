@@ -22,6 +22,10 @@ function sanitizeMultiplier(value) {
 }
 
 export function canDamageCrit({ canCrit = true, damageType, attackTags } = {}) {
+  return canDamageCritRaw(canCrit, damageType, attackTags)
+}
+
+export function canDamageCritRaw(canCrit = true, damageType, attackTags) {
   if (canCrit === false) return false
   if (NON_CRIT_DAMAGE_TYPES.has(damageType)) return false
   if (Array.isArray(attackTags) && attackTags.includes('explosive')) return false
@@ -37,18 +41,27 @@ export function resolveCriticalHit({
   critMultiplier = DEFAULT_CRIT_MULTIPLIER,
   rng = Math.random,
 } = {}) {
+  const out = { damage: 0, isCritical: false }
+  return resolveCriticalHitInto(out, baseDamage, canCrit, damageType, attackTags, critChance, critMultiplier, rng)
+}
+
+// Hot path API: caller-owned `out`를 갱신해 결과 객체를 만들지 않는다.
+export function resolveCriticalHitInto(out, baseDamage, canCrit = true, damageType, attackTags,
+  critChance = DEFAULT_CRIT_CHANCE, critMultiplier = DEFAULT_CRIT_MULTIPLIER, rng = Math.random) {
+  if (!out || typeof out !== 'object') return null
   const damage = sanitizeDamage(baseDamage)
-  if (damage <= 0) return { damage: 0, isCritical: false }
-  if (!canDamageCrit({ canCrit, damageType, attackTags })) return { damage, isCritical: false }
+  out.damage = 0
+  out.isCritical = false
+  if (damage <= 0) return out
+  if (!canDamageCritRaw(canCrit, damageType, attackTags)) { out.damage = damage; return out }
 
   const chance = sanitizeChance(critChance)
-  if (chance <= 0) return { damage, isCritical: false }
+  if (chance <= 0) { out.damage = damage; return out }
 
   const roll = typeof rng === 'function' ? Number(rng()) : 1
-  if (!Number.isFinite(roll) || roll < 0 || roll >= chance) return { damage, isCritical: false }
+  if (!Number.isFinite(roll) || roll < 0 || roll >= chance) { out.damage = damage; return out }
 
-  return {
-    damage: damage * sanitizeMultiplier(critMultiplier),
-    isCritical: true,
-  }
+  out.damage = damage * sanitizeMultiplier(critMultiplier)
+  out.isCritical = true
+  return out
 }

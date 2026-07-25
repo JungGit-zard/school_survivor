@@ -1,6 +1,7 @@
 import { getFirebaseConfig } from './firebaseAuth.js'
 import { isE2EAuthBypass } from './e2eAuth.js'
 import { getAdminRankingSeasonConfig } from './adminConfig.js'
+import { getSavedNickname } from './userNickname.js'
 import {
   kstDailyKey,
   kstWeeklyKey,
@@ -13,8 +14,8 @@ const DATABASE_URL_KEY = 'VITE_FIREBASE_DATABASE_URL'
 const DEFAULT_SEASON_ID = 'season-001'
 const DEFAULT_SEASON_NAME = '상시 시즌'
 const DAY_MS = 24 * 60 * 60 * 1000
-const RANKING_REGION = 'asia-northeast3'
 const RANKING_ROOT = 'rankingService/v1/public'
+const MAX_DISPLAY_NAME = 40
 
 function getEnv() { return import.meta.env ?? {} }
 function readEnv(key) {
@@ -28,9 +29,17 @@ export function isFirebaseRankingConfigured() {
 
 // ponytail: singleton promise — same pattern as firebaseProgress.js
 let _clientPromise = null
+let _testClient = null
 async function getClient() {
+  if (_testClient) return _testClient
   if (!_clientPromise) _clientPromise = createClient()
   return _clientPromise
+}
+
+// 테스트 전용 주입 seam — { db, mod }를 밀어넣어 실제 firebase/database 없이 submit/fetch 검증.
+export function _setFirebaseRankingClientForTests(client) {
+  _testClient = client
+  _clientPromise = null
 }
 
 async function createClient() {
@@ -71,8 +80,11 @@ function globalEntriesPath(seasonId, window, key) {
   return `${RANKING_ROOT}/${seasonId}/global/${window}/${key}/entries`
 }
 
-// 활성 시즌의 daily+weekly 버킷 2곳에 점수를 누적 기록. E2E 우회/미설정/시즌 밖이면 skip.
-export async function submitRun(user, { stageId, score, timeMs, cleared, runId = createRunId() } = {}) {
+// Spark 무료 플랜: Cloud Function 없이 클라가 RTDB에 직접 자기 엔트리를 쓴다.
+// 신뢰 경계는 database.rules.json(본인 uid만·점수 상한·최고점만)이 전담한다.
+// 활성 시즌의 stage(daily+weekly) + global(daily+weekly) = 4버킷에 auth.uid를 키로 멀티패스 기록.
+// E2E 우회/미설정/시즌 밖이면 skip. 최고점(max) 모델 — 기존보다 낮은 점수는 규칙이 거른다.
+export async function submitRun(user, { stageId, score, timeMs, cleared } = {}) {
   if (!user?.uid || !isFirebaseRankingConfigured()) return
   // E2E 우회 유저 점수는 실랭킹에 오염되지 않게 차단
   if (isE2EAuthBypass()) return
@@ -80,22 +92,47 @@ export async function submitRun(user, { stageId, score, timeMs, cleared, runId =
   const season = getActiveSeason(now)
   if (!season.active) return // seasonOff: 제출 skip
 
-  const [{ initializeApp, getApp, getApps }, functionsModule] = await Promise.all([
-    import('firebase/app'),
-    import('firebase/functions'),
-  ])
-  const app = getApps().length > 0 ? getApp() : initializeApp(getFirebaseConfig(getEnv()))
-  const submit = functionsModule.httpsCallable(
-    functionsModule.getFunctions(app, RANKING_REGION),
-    'submitRankingRun',
-  )
-  await submit({
-    runId: readRunId(runId),
-    stageId: readStageId(stageId),
+  const uid = user.uid
+  const sid = readStageId(stageId)
+  const entry = {
+    uid,
+    displayName: readDisplayName(user),
     score: readScore(score),
     timeMs: readNonNegInt(timeMs),
     cleared: cleared === true,
-  })
+    stageId: sid,
+    submittedAt: now,
+  }
+
+  const { db, mod } = await getClient()
+  const dailyKey = kstDailyKey(now)
+  const weeklyKey = kstWeeklyKey(now)
+  const paths = [
+    entriesPath(season.seasonId, sid, 'daily', dailyKey),
+    entriesPath(season.seasonId, sid, 'weekly', weeklyKey),
+    globalEntriesPath(season.seasonId, 'daily', dailyKey),
+    globalEntriesPath(season.seasonId, 'weekly', weeklyKey),
+  ]
+
+  // 최고점만 유지: 규칙이 best-only를 강제하지만, 낮은 점수의 불필요한 쓰기/거부를 줄이려
+  // 대표 버킷(stage daily)의 기존 엔트리 점수를 먼저 읽어 더 높을 때만 쓴다. 4버킷 점수는 동일.
+  try {
+    const snap = await mod.get(mod.ref(db, `${paths[0]}/${uid}`))
+    if (snap?.exists?.() && readNonNegInt(snap.child('score').val()) >= entry.score) return
+  } catch {
+    // 읽기 실패 시 그냥 쓰기 시도 — 규칙이 최종 방어선.
+  }
+
+  const updates = {}
+  for (const path of paths) updates[`${path}/${uid}`] = entry
+  await mod.update(mod.ref(db), updates)
+}
+
+// 랭킹 표시명: 저장된 닉네임 우선, 없으면 구글 표시명, 그래도 없으면 익명. 상한 40자(규칙과 일치).
+function readDisplayName(user) {
+  const nickname = typeof getSavedNickname() === 'string' ? getSavedNickname().trim() : ''
+  const googleName = typeof user?.displayName === 'string' ? user.displayName.trim() : ''
+  return (nickname || googleName || '익명 생존자').slice(0, MAX_DISPLAY_NAME)
 }
 
 // 활성 시즌 현재 period의 스테이지별 top N (score 내림차순 + tie-break). window=daily|weekly.
@@ -236,15 +273,6 @@ function msUntilNextWindow(window, now) {
 
 function readSeasonId(value) {
   return typeof value === 'string' ? value.trim() : ''
-}
-
-function readRunId(value) {
-  return typeof value === 'string' && /^[A-Za-z0-9_-]{12,80}$/.test(value) ? value : createRunId()
-}
-
-function createRunId() {
-  if (typeof crypto?.randomUUID === 'function') return crypto.randomUUID().replaceAll('-', '')
-  return `${Date.now()}${Math.random().toString(36).slice(2, 14)}`
 }
 
 function readScore(value) {

@@ -3,10 +3,11 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore } from './useGameStore.js'
 import { load as loadPlayerRecords, _resetForTests as _resetRecords } from '../lib/playerRecords.js'
 import { getAllUnlocked, _resetForTests as _resetUnlocks } from '../lib/weaponUnlocks.js'
-import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
+import { _seedHydratedFirebaseProgressForTests, _setFirebaseProgressClientForTests } from '../lib/firebaseProgress.js'
 
 describe('useGameStore run-end unlock evaluator', () => {
   beforeEach(() => {
+    _setFirebaseProgressClientForTests({ save: async () => {}, loadOrCreate: async () => null })
     _seedHydratedFirebaseProgressForTests()
     _resetRecords()
     _resetUnlocks()
@@ -69,7 +70,7 @@ describe('useGameStore run-end unlock evaluator', () => {
     const records = loadPlayerRecords()
     expect(records.stage2Clears).toBe(1)
     expect(records.stage2BestSurvivalSec).toBe(240)
-    expect(records.stage1Clears).toBeUndefined()
+    expect(records.stage1Clears).toBe(0)
   })
 
   it('portal clear records Stage 1 then starts Stage 2 automatically', () => {
@@ -129,7 +130,7 @@ describe('useGameStore run-end unlock evaluator', () => {
     useGameStore.setState({ elapsedMs: 200_000 })
     useGameStore.getState()._onRunEnd('gameover')
     const records = loadPlayerRecords()
-    expect(records.stage1Clears).toBeUndefined()
+    expect(records.stage1Clears).toBe(0)
   })
 
   it('snapshot은 평가 후에 적용된다 (더블카운트 방지)', () => {

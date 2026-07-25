@@ -1,12 +1,13 @@
-import { useRef, useState, useCallback, useMemo } from 'react'
+import { useRef, useMemo } from 'react'
 import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
-import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
-import { findClosestEnemies } from '../../lib/weaponTargeting.js'
+import { createWeaponTargetScratch, resolveWeaponTarget, scanClosestEnemiesInto, scanSweptCapsuleEnemiesInto } from '../../lib/weaponTargeting.js'
+import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
+import { useDeferredProjectileState } from '../../lib/useDeferredProjectileState.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _projId = 0
@@ -43,20 +44,36 @@ export function PencilModel() {
   )
 }
 
-function Projectile({ id, position, yaw, damage, speed, pierce, target, critChance, critMultiplier, onExpire }) {
-  const rb = useRef()
+function Projectile({ id, position, yaw, damage, speed, pierce, targetIndex, targetGeneration, targetSpecial, critChance, critMultiplier, onExpire }) {
   const visualRef = useRef()
   const hitsLeftRef = useRef(pierce ?? 1)    // pierce=N: N명까지 관통
-  const hitEnemyIds = useRef(new Set())      // 중복 타격 방지
-  const targetRef = useRef(target)           // 첫 타겟 참조 (homing용)
+  const hitIndicesRef = useRef(new Int16Array(16))
+  const hitGenerationsRef = useRef(new Uint16Array(16))
+  const hitSpecialRef = useRef(new Array(16))
+  const hitCountRef = useRef(0)
+  const targetRef = useRef({ index: targetIndex, generation: targetGeneration, special: targetSpecial })
+  const sweepScratchRef = useRef(createWeaponTargetScratch())
+  const impactRef = useRef({ critChance, critMultiplier })
   const ageRef = useRef(0)
+  const positionRef = useRef({ x: position[0], y: position[1], z: position[2] })
+  const velocityRef = useRef({ x: Math.sin(yaw) * speed, z: Math.cos(yaw) * speed })
 
-  const tryHit = (enemyRb) => {
-    if (!enemyRb?._enemyHit || enemyRb._enemyDead) return false
-    const eid = enemyRb._enemyId
-    if (hitEnemyIds.current.has(eid)) return false
-    hitEnemyIds.current.add(eid)
-    enemyRb._enemyHit(damage, { critChance, critMultiplier })
+  const tryHit = (rb, generation, index, special) => {
+    if (!isEnemyHitLive(rb, generation)) return false
+    for (let hitIndex = 0; hitIndex < hitCountRef.current; hitIndex += 1) {
+      if (special ? hitSpecialRef.current[hitIndex] === special : (hitIndicesRef.current[hitIndex] === index && hitGenerationsRef.current[hitIndex] === generation)) return false
+    }
+    const impact = impactRef.current
+    impact.critChance = critChance
+    impact.critMultiplier = critMultiplier
+    if (!applyEnemyHit(rb, generation, damage, impact)) return false
+    const slot = hitCountRef.current
+    if (slot < hitIndicesRef.current.length) {
+      hitIndicesRef.current[slot] = index
+      hitGenerationsRef.current[slot] = generation ?? 0
+      hitSpecialRef.current[slot] = special
+      hitCountRef.current += 1
+    }
     emitSfx({
       id: 'pencilHit',
       volume: 0.48 + Math.random() * 0.12,
@@ -68,73 +85,59 @@ function Projectile({ id, position, yaw, damage, speed, pierce, target, critChan
   }
 
   usePlayingFrame((_, delta) => {
-    if (!rb.current || hitsLeftRef.current <= 0) return
+    if (hitsLeftRef.current <= 0) return
     ageRef.current += delta
     if (ageRef.current > 3.5) { onExpire(id); return }
 
     // 타겟이 살아있는 동안 호밍
     const tgt = targetRef.current
-    if (!tgt?.rb?._enemyHit || tgt.rb._enemyDead) {
-      // 첫 타겟 사망 → 이후 직선 비행으로 전환
-      targetRef.current = null
-      return
+    const targetRb = resolveWeaponTarget(tgt.index, tgt.generation, tgt.special)
+    const p = positionRef.current
+    if (targetRb && isEnemyHitLive(targetRb, tgt.generation)) {
+      const t = targetRb.translation()
+      const dx = t.x - p.x
+      const dz = t.z - p.z
+      const len = Math.hypot(dx, dz)
+      if (len >= 0.001) {
+        velocityRef.current.x = (dx / len) * speed
+        velocityRef.current.z = (dz / len) * speed
+      }
+    } else {
+      // 타겟이 despawn/reuse되어도 마지막 속도로 직선 비행한다.
     }
-
-    const p = rb.current.translation()
-    const t = tgt.rb.translation()
-    const dx = t.x - p.x
-    const dz = t.z - p.z
-    const len = Math.hypot(dx, dz)
-    if (len < 0.001) return
-    if (len <= 0.34) {
-      tryHit(tgt.rb)
-      targetRef.current = null   // 타겟 명중 후 직선 비행
-      return
+    const vx = velocityRef.current.x
+    const vz = velocityRef.current.z
+    const nextX = p.x + vx * delta
+    const nextZ = p.z + vz * delta
+    const sweepScratch = sweepScratchRef.current
+    const sweepCount = scanSweptCapsuleEnemiesInto(sweepScratch, p.x, p.z, nextX, nextZ, 0.34, hitsLeftRef.current)
+    p.x = nextX
+    p.z = nextZ
+    if (visualRef.current) {
+      visualRef.current.position.set(p.x, p.y, p.z)
+      visualRef.current.rotation.y = Math.atan2(vx, vz)
     }
-    const vx = (dx / len) * speed
-    const vz = (dz / len) * speed
-    rb.current.setLinvel({ x: vx, y: 0, z: vz }, true)
-    if (visualRef.current) visualRef.current.rotation.y = Math.atan2(vx, vz)
+    for (let hitIndex = 0; hitIndex < sweepCount && hitsLeftRef.current > 0; hitIndex += 1) {
+      const special = sweepScratch.special[hitIndex]
+      const index = sweepScratch.indices[hitIndex]
+      const generation = special ? (sweepScratch.generations[hitIndex] || null) : sweepScratch.generations[hitIndex]
+      const rb = special ?? resolveWeaponTarget(index, generation, null)
+      tryHit(rb, generation, index, special)
+    }
   })
 
   return (
-    <RigidBody
-      ref={rb}
-      type="dynamic"
-      position={position}
-      rotation={[0, 0, 0]}
-      linearVelocity={[Math.sin(yaw) * speed, 0, Math.cos(yaw) * speed]}
-      lockRotations
-      colliders={false}
-      gravityScale={0}
-      ccd
-      sensor
-      onIntersectionEnter={({ other }) => {
-        if (hitsLeftRef.current <= 0) return
-        tryHit(other.rigidBody)
-      }}
-    >
-      <CuboidCollider args={[0.06, 0.06, 0.16]} sensor />
-      <group ref={visualRef} rotation={[0, yaw, 0]}>
-        <PencilModel />
-      </group>
-    </RigidBody>
+    <group ref={visualRef} position={position} rotation={[0, yaw, 0]}>
+      <PencilModel />
+    </group>
   )
 }
 
 export function PencilThrow() {
-  const [projectiles, setProjectiles] = useState([])
-  const activeProjectilesRef = useRef([])
+  const [projectiles, activeProjectilesRef, requestProjectiles, expire] = useDeferredProjectileState()
   const lastFireRef = useRef(0)
+  const targetScratchRef = useRef(createWeaponTargetScratch(8))
   const weapons = useGameStore((s) => s.weapons)
-
-  const expire = useCallback((id) => {
-    setProjectiles((p) => {
-      const next = p.filter((x) => x.id !== id)
-      activeProjectilesRef.current = next
-      return next
-    })
-  }, [])
 
   usePlayingFrame(({ clock }) => {
     const w = weapons.pencilThrow
@@ -145,20 +148,22 @@ export function PencilThrow() {
     if (activeProjectilesRef.current.length > 0) return
 
     const count = w.projectileCount ?? 1
-    const targets = findClosestEnemies(w.range ?? 22, count)
-    if (targets.length === 0) return
+    const targetScratch = targetScratchRef.current
+    const targetCount = scanClosestEnemiesInto(targetScratch, w.range ?? 22, count)
+    if (targetCount === 0) return
     lastFireRef.current = now
     emitSfx({ id: 'pencilFire' })
 
-    setProjectiles((prev) => {
-      if (prev.length > 0) {
-        activeProjectilesRef.current = prev
-        return prev
-      }
-      const next = targets.map((target) => {
-        const targetPos = target.rb.translation()
+    const next = new Array(targetCount)
+    for (let targetIndex = 0; targetIndex < targetCount; targetIndex += 1) {
+        const special = targetScratch.special[targetIndex]
+        const poolIndex = targetScratch.indices[targetIndex]
+        const generation = targetScratch.generations[targetIndex]
+        const targetRb = special ?? resolveWeaponTarget(poolIndex, generation, null)
+        if (!targetRb) continue
+        const targetPos = targetRb.translation()
         const facingAngle = Math.atan2(targetPos.x - playerPos.x, targetPos.z - playerPos.z)
-        return {
+        next[targetIndex] = {
           id: ++_projId,
           position: [
             playerPos.x + Math.sin(facingAngle) * 0.35,
@@ -169,14 +174,14 @@ export function PencilThrow() {
           damage: w.damage,
           speed: w.speed,
           pierce: w.pierce ?? 1,
-          target,
+          targetIndex: poolIndex,
+          targetGeneration: special ? (generation || null) : generation,
+          targetSpecial: special,
           critChance: w.critChance,
           critMultiplier: w.critMultiplier,
         }
-      })
-      activeProjectilesRef.current = next
-      return next
-    })
+    }
+    requestProjectiles(next)
   })
 
   return (

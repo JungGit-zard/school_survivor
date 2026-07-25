@@ -20,4 +20,11 @@ describe('ChibikoModel outline coverage', () => {
     expect(modelSource).toContain('position={[-0.16, -0.3, 0]} material={skinMat} outlineMaterial={outline} outlineScale={1.04}')
     expect(modelSource).toContain('position={[0.16, -0.3, 0]} material={skinMat} outlineMaterial={outline} outlineScale={1.04}')
   })
+
+  it('uses a pure swept capsule for the helper pencil', () => {
+    const source = readFileSync(new URL('./Chibiko.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('scanSweptCapsuleEnemiesInto')
+    expect(source).not.toContain('other.rigidBody')
+    expect(source).not.toContain('@react-three/rapier')
+  })
 })

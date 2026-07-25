@@ -15,10 +15,13 @@ describe('B01 math teacher special runtime wiring', () => {
   })
 
   it('connects the impact frame to nearby-zombie push and guaranteed remaining-HP damage', () => {
-    expect(enemySource).toContain('applyMathTeacherSwing({')
-    expect(enemySource).toContain('bodies: enemyBodies')
+    // B01은 special body만 Map에 남기는 현재 구조에서도, 재사용 인자 객체로
+    // 특수 적 밀치기 함수를 호출한다. 일반 적 풀을 다시 Map/Rapier로 되돌리지 않는다.
+    expect(enemySource).toContain("const mathSwingArgsRef = useRef({ bodies: enemyBodies, bossId: '', origin: { x: 0, z: 0 } })")
+    expect(enemySource).toContain('const swingArgs = mathSwingArgsRef.current')
+    expect(enemySource).toContain('applyMathTeacherSwing(swingArgs)')
     expect(enemySource).toContain('getMathTeacherPlayerDamage(store.player.hp)')
-    expect(enemySource).toContain('{ ignoreInvulnerability: true }')
+    expect(enemySource).toContain('store.damagePlayer(playerDamage, IGNORE_INVULNERABILITY)')
     expect(enemySource).toContain('!impact.ignoreSightBlock && isPlayerWeaponSightBlocked')
     expect(enemySource).toContain("logPlaytestEvent('b01-math-special-start'")
     expect(enemySource).toContain("logPlaytestEvent('b01-math-special-impact'")

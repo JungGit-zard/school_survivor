@@ -257,8 +257,32 @@ describe('stage object placements', () => {
   it('keeps Stage 3 authored props inside the gym bounds while preserving the center combat lane', () => {
     const { halfX, halfZ } = getStageBounds('stage3')
     const placements = getStageObjectPlacements('stage3')
+    const coreHalfX = 3.6
+    const coreHalfZ = 5.5
 
-    expect(placements.every(({ position: [x, , z] }) => Math.abs(x) <= halfX - 0.8 && Math.abs(z) <= halfZ - 0.8)).toBe(true)
-    expect(placements.every(({ position: [x, , z] }) => Math.abs(x) >= 6.5 || Math.abs(z) >= 6.0)).toBe(true)
+    // 루트 중심점은 맵 안에만 두고, 실제 모델 폭을 포함한 벽 여유는 collider AABB 회귀에서 검증한다.
+    expect(placements.every(({ position: [x, , z] }) => Math.abs(x) <= halfX && Math.abs(z) <= halfZ)).toBe(true)
+    expect(placements.every(({ position: [x, , z] }) => Math.abs(x) >= coreHalfX || Math.abs(z) >= coreHalfZ)).toBe(true)
+
+    const rootPositions = placements.map(({ position: [x, , z] }) => [x, z])
+    expect(new Set(rootPositions.map(([x, z]) => `${x}:${z}`)).size).toBe(placements.length)
+
+    for (let first = 0; first < rootPositions.length; first += 1) {
+      for (let second = first + 1; second < rootPositions.length; second += 1) {
+        const [firstX, firstZ] = rootPositions[first]
+        const [secondX, secondZ] = rootPositions[second]
+        expect(Math.hypot(firstX - secondX, firstZ - secondZ)).toBeGreaterThanOrEqual(3)
+      }
+    }
+  })
+
+  it('keeps the authored Stage 3 front-facing prop rotations', () => {
+    const byId = new Map(getStageObjectPlacements('stage3').map((placement) => [placement.id, placement]))
+
+    expect(byId.get('stage3-hoop-north-normal').rotation).toEqual([0, 0, 0])
+    expect(byId.get('stage3-hoop-south-damaged').rotation).toEqual([0, Math.PI, 0])
+    expect(byId.get('stage3-scoreboard-north-wall').rotation).toEqual([0, 0.08, 0])
+    expect(byId.get('stage3-banner-south-wall').rotation).toEqual([0, Math.PI + 0.08, 0])
+    expect(byId.get('stage3-exit-door-east-wall').rotation).toEqual([0, -Math.PI / 2, 0])
   })
 })

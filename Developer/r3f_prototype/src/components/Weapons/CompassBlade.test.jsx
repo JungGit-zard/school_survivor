@@ -87,10 +87,20 @@ describe('CompassBladeWeapon orbit pose', () => {
     expect(getCompassBladeRespawnUntilMs({ exploded: false, nowMs: 1200 })).toBe(0)
   })
 
-  it('keeps Rapier hit bodies mounted during the respawn window', () => {
+  it('keeps the pure orbit loop eligible during the respawn window', () => {
     expect(shouldRenderCompassBladeHitBodies({ active: true, isRespawning: true })).toBe(true)
     expect(shouldRenderCompassBladeHitBodies({ active: true, isRespawning: false })).toBe(true)
     expect(shouldRenderCompassBladeHitBodies({ active: false, isRespawning: true })).toBe(false)
+  })
+
+  it('uses squared orbit distance rather than Rapier intersections for hits', () => {
+    const source = readFileSync(new URL('./CompassBlade.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('scanOrbitEnemiesInto')
+    expect(source).not.toContain('enemyBodies.forEach')
+    expect(source).toContain('applyEnemyHit')
+    expect(source).not.toContain('other.rigidBody')
+    expect(source).not.toContain('@react-three/rapier')
   })
 
   it('renders the visual model as the duck potty reference instead of the old compass blade', () => {

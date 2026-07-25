@@ -48,8 +48,11 @@ describe('Enemy charge warning cue', () => {
     expect(source).toContain("chargeState.current = isMatilda ? 'matildaLaugh' : 'chase'")
     expect(source).toContain('matildaLaughCuePendingRef.current = isMatilda')
     expect(source).toContain("chargeState.current = 'matildaLaugh'")
-    expect(source).toContain("emitSfx({ id: 'matildaLaugh'")
-    expect(source).toContain("emitSfx({ id: 'matildaDash'")
+    // 보스 프레임은 매 프레임 객체를 만들지 않기 위해 고정 SFX 객체를 재사용한다.
+    expect(source).toContain("const MATILDA_LAUGH_SFX = Object.freeze({ id: 'matildaLaugh'")
+    expect(source).toContain("const MATILDA_DASH_SFX = Object.freeze({ id: 'matildaDash'")
+    expect(source).toContain('emitSfx(MATILDA_LAUGH_SFX)')
+    expect(source).toContain('emitSfx(MATILDA_DASH_SFX)')
   })
 
   it('reverses Matilda immediately when a charge is blocked by a prop instead of waiting at the obstacle', () => {

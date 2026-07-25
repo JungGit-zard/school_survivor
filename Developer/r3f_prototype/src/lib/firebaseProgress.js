@@ -110,12 +110,15 @@ export async function hydrateCloudProgress(user = cloudUser) {
 
   try {
     const client = await getProgressClient()
-    const snapshot = await client.load(path)
+    const snapshot = await client.loadOrCreate(path, createInitialRemotePayload(user))
     if (!snapshot) {
       runtime = createEmptyRuntime(readUserId(user))
       throw new FirebaseProgressError(`Remote Firebase user snapshot is missing at ${path}.`, 'missing-remote')
     }
-    applyCloudProgressSnapshot(snapshot, user)
+    if (!applyCloudProgressSnapshot(snapshot, user)) {
+      runtime = createEmptyRuntime(readUserId(user))
+      throw new FirebaseProgressError(`Remote Firebase user snapshot is invalid at ${path}.`, 'invalid-remote')
+    }
     return true
   } catch (error) {
     if (!(error instanceof FirebaseProgressError)) {
@@ -244,6 +247,10 @@ export function _setFirebaseProgressClientForTests(client) {
   progressClientPromise = null
 }
 
+export function _selectInitialProgressValueForTransaction(currentValue, initialValue) {
+  return currentValue === null ? initialValue : undefined
+}
+
 export function _resetFirebaseProgressForTests() {
   cloudUser = null
   progressClientPromise = null
@@ -278,10 +285,28 @@ async function createFirebaseProgressClient(env = getDefaultEnv()) {
 
   return {
     save: (path, value) => databaseModule.update(databaseModule.ref(database, path), value),
-    load: async (path) => {
-      const snap = await databaseModule.get(databaseModule.ref(database, path))
-      return snap.exists() ? snap.val() : null
+    loadOrCreate: async (path, initialValue) => {
+      const result = await databaseModule.runTransaction(
+        databaseModule.ref(database, path),
+        (currentValue) => _selectInitialProgressValueForTransaction(currentValue, initialValue),
+        { applyLocally: false },
+      )
+      return result.snapshot.exists() ? result.snapshot.val() : null
     },
+  }
+}
+
+function createInitialRemotePayload(user, now = Date.now()) {
+  const uid = readUserId(user)
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    updatedAt: new Date(now).toISOString(),
+    profile: {
+      uid,
+      displayName: readString(user?.displayName).slice(0, 100),
+      nickname: '',
+    },
+    progress: createEmptyProgress(),
   }
 }
 

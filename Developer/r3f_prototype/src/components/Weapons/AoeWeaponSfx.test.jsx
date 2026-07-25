@@ -27,7 +27,13 @@ describe('area weapon sound lifecycle', () => {
     const compass = source('CompassBlade')
 
     expect(compass).toMatch(/useEffect\(\(\) => \{[\s\S]*?!wasActiveRef\.current[\s\S]*?emitSfx\(\{ id: 'compassFire' \}\)/)
-    expect(compass).toMatch(/rb\._enemyHit\(w\.damage, \{ critChance: w\.critChance, critMultiplier: w\.critMultiplier \}\)\s*emitSfx\(\{ id: 'compassQuack', volume: 0\.5 \}\)/)
+    // 일반 적은 SoA 풀 프록시이므로 직접 `_enemyHit` 두 인자 호출을 금지한다.
+    // generation을 함께 검증하는 공통 충돌 경로가 성공한 뒤에만 접촉 SFX가 나야 한다.
+    expect(compass).toContain("import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'")
+    const hitGate = compass.indexOf('if (!applyEnemyHit(rb, generation, w.damage, impact)) continue')
+    const quack = compass.indexOf("emitSfx({ id: 'compassQuack', volume: 0.5 })")
+    expect(hitGate).toBeGreaterThan(-1)
+    expect(quack).toBeGreaterThan(hitGate)
     expect(compass).toContain("emitSfx({ id: 'compassHit' })")
   })
 })

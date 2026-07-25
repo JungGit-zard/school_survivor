@@ -1,11 +1,12 @@
-import { useRef, useState, useMemo } from 'react'
+import { useRef, useMemo } from 'react'
 import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
-import { RigidBody, CuboidCollider, BallCollider } from '@react-three/rapier'
 import { bagSwingState, playerFacing, playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
+import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
+import { createWeaponTargetScratch, resolveWeaponTarget, scanOrientedBoxEnemiesInto, scanRadiusEnemiesInto } from '../../lib/weaponTargeting.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 export function ThirtyCmRulerModel() {
@@ -39,50 +40,40 @@ export function ThirtyCmRulerModel() {
 
 export function SchoolBagSwing() {
   const weapons = useGameStore((s) => s.weapons)
-  const [swing, setSwing] = useState(null)
+  const swingRef = useRef({ active: false, startMs: 0, facing: 0 })
   const lastSwingRef = useRef(0)
-  const rbRef = useRef(null)
-  const proximityRbRef = useRef(null)
   const visualRef = useRef(null)
   const bagArcRef = useRef(null)
   const trailRef = useRef(null)
-  const closeEnemiesRef = useRef(new Map())
-  const pendingHitsRef = useRef(new Map())
-  const hitSetRef = useRef(new Set())
+  const hitTargetsRef = useRef({ generations: new Uint16Array(200), special: new Array(3) })
+  const nearbyScratchRef = useRef(createWeaponTargetScratch(1))
+  const swingScratchRef = useRef(createWeaponTargetScratch())
+  const impactRef = useRef({ source: { x: 0, z: 0 }, knockback: 3.8, knockbackMs: 120, critChance: 0, critMultiplier: 1 })
 
   usePlayingFrame(({ clock }) => {
     const w = weapons.schoolBag
     if (!w?.active) return
-    proximityRbRef.current?.setTranslation({ x: playerPos.x, y: playerPos.y + 0.16, z: playerPos.z }, true)
-
     const now = clock.elapsedTime * 1000
     const triggerRange = w.triggerRange ?? 0.387
-    let hasVeryCloseEnemy = false
-    closeEnemiesRef.current.forEach(({ rb }, enemyId) => {
-      if (!rb?._enemyHit || rb._enemyDead) {
-        closeEnemiesRef.current.delete(enemyId)
-        return
-      }
-      const t = rb.translation()
-      const dx = t.x - playerPos.x
-      const dz = t.z - playerPos.z
-      if (Math.hypot(dx, dz) <= triggerRange) hasVeryCloseEnemy = true
-    })
+    const hasVeryCloseEnemy = scanRadiusEnemiesInto(nearbyScratchRef.current, playerPos.x, playerPos.z, triggerRange, 1) > 0
 
-    if (!swing && hasVeryCloseEnemy && now - lastSwingRef.current >= w.cooldown) {
+    const swing = swingRef.current
+    if (!swing.active && hasVeryCloseEnemy && now - lastSwingRef.current >= w.cooldown) {
       lastSwingRef.current = now
       bagSwingState.lastFired = now
       emitSfx({ id: 'rulerFire' })
       bagSwingState.cooldown  = w.cooldown
-      hitSetRef.current = new Set()
-      pendingHitsRef.current = new Map()
+      hitTargetsRef.current.generations.fill(0)
+      hitTargetsRef.current.special.fill(undefined)
       bagSwingState.active = true
       bagSwingState.progress = 0
-      setSwing({ startMs: now, facing: Math.atan2(playerFacing.x, playerFacing.z) })
+      swing.active = true
+      swing.startMs = now
+      swing.facing = Math.atan2(playerFacing.x, playerFacing.z)
       return
     }
 
-    if (!swing) {
+    if (!swing.active) {
       bagSwingState.active = false
       bagSwingState.progress = 0
       return
@@ -91,11 +82,9 @@ export function SchoolBagSwing() {
     const elapsed = now - swing.startMs
     const duration = w.swingMs ?? 420
     if (elapsed >= duration) {
-      rbRef.current?.setTranslation({ x: 9999, y: -9999, z: 9999 }, true)
-      pendingHitsRef.current = new Map()
       bagSwingState.active = false
       bagSwingState.progress = 0
-      setSwing(null)
+      swing.active = false
       return
     }
 
@@ -109,9 +98,6 @@ export function SchoolBagSwing() {
     const reach = w.range ?? 0.633
     const x = playerPos.x + Math.sin(angle) * reach
     const z = playerPos.z + Math.cos(angle) * reach
-    const y = playerPos.y + 0.16
-
-    rbRef.current?.setTranslation({ x, y, z }, true)
     if (visualRef.current) {
       visualRef.current.position.set(playerPos.x, playerPos.y, playerPos.z)
       visualRef.current.rotation.set(0, swing.facing, 0)
@@ -133,71 +119,50 @@ export function SchoolBagSwing() {
       trailRef.current.material.opacity = 0.88 * swingPower
     }
 
-    pendingHitsRef.current.forEach((rb, enemyId) => {
-      if (hitSetRef.current.has(enemyId)) return
-      if (!rb?._enemyHit || rb._enemyDead) return
-      hitSetRef.current.add(enemyId)
-      rb._enemyHit(w.damage, {
-        source: { x: playerPos.x, z: playerPos.z },
-        knockback: 3.8,
-        knockbackMs: 120,
-        critChance: w.critChance,
-        critMultiplier: w.critMultiplier,
-      })
+    const scratch = swingScratchRef.current
+    const targetCount = scanOrientedBoxEnemiesInto(scratch, x, z, angle, 0.32, 0.253)
+    for (let targetIndex = 0; targetIndex < targetCount; targetIndex += 1) {
+      const special = scratch.special[targetIndex]
+      const index = scratch.indices[targetIndex]
+      const generation = special ? (scratch.generations[targetIndex] || null) : scratch.generations[targetIndex]
+      const rb = special ?? resolveWeaponTarget(index, generation, null)
+      if (!isEnemyHitLive(rb, generation)) continue
+      let alreadyHit = false
+      if (special) {
+        for (let slot = 0; slot < 3; slot += 1) {
+          if (hitTargetsRef.current.special[slot] === special) { alreadyHit = true; break }
+        }
+      } else alreadyHit = hitTargetsRef.current.generations[index] === generation
+      if (alreadyHit) continue
+      const impact = impactRef.current
+      impact.source.x = playerPos.x; impact.source.z = playerPos.z
+      impact.critChance = w.critChance; impact.critMultiplier = w.critMultiplier
+      if (!applyEnemyHit(rb, generation, w.damage, impact)) continue
+      if (special) {
+        for (let slot = 0; slot < 3; slot += 1) {
+          if (hitTargetsRef.current.special[slot] === undefined) {
+            hitTargetsRef.current.special[slot] = special
+            break
+          }
+        }
+      } else hitTargetsRef.current.generations[index] = generation
       emitSfx({ id: 'rulerHit', volume: 0.58 })
-    })
-    pendingHitsRef.current.clear()
+    }
   })
 
   if (!weapons.schoolBag.active) return null
 
   return (
     <>
-      <RigidBody
-        ref={proximityRbRef}
-        type="kinematicPosition"
-        position={[playerPos.x, playerPos.y + 0.16, playerPos.z]}
-        colliders={false}
-        sensor
-        onIntersectionEnter={({ other }) => {
-          const rb = other.rigidBody
-          if (rb?._enemyHit) closeEnemiesRef.current.set(rb._enemyId, { rb })
-        }}
-        onIntersectionExit={({ other }) => {
-          const rb = other.rigidBody
-          if (rb?._enemyId !== undefined) closeEnemiesRef.current.delete(rb._enemyId)
-        }}
-      >
-        <BallCollider args={[weapons.schoolBag.triggerRange ?? 0.387]} sensor />
-      </RigidBody>
-      {swing && (
-        <mesh ref={trailRef} rotation={[-Math.PI / 2, 0, 0]} position={[playerPos.x, 0.055, playerPos.z]} renderOrder={3}>
+      <mesh ref={trailRef} rotation={[-Math.PI / 2, 0, 0]} position={[playerPos.x, 0.055, playerPos.z]} renderOrder={3}>
           <ringGeometry args={[0.28, (weapons.schoolBag.range ?? 0.633) + 0.28, 72, 1, -1.18, 2.36]} />
           <meshBasicMaterial color={0x7ee7ff} transparent opacity={0} side={THREE.DoubleSide} depthWrite={false} />
-        </mesh>
-      )}
-      <RigidBody
-        ref={rbRef}
-        type="kinematicPosition"
-        position={[9999, -9999, 9999]}
-        colliders={false}
-        sensor
-        onIntersectionEnter={({ other }) => {
-          if (!swing) return
-          const rb = other.rigidBody
-          if (!rb?._enemyHit || hitSetRef.current.has(rb._enemyId)) return
-          pendingHitsRef.current.set(rb._enemyId, rb)
-        }}
-      >
-        <CuboidCollider args={[0.32, 0.20, 0.253]} sensor />
-      </RigidBody>
-      {swing && (
-        <group ref={visualRef} position={[playerPos.x, playerPos.y, playerPos.z]}>
+      </mesh>
+      <group ref={visualRef} position={[playerPos.x, playerPos.y, playerPos.z]}>
           <group ref={bagArcRef} position={[0, 0.16, weapons.schoolBag.range ?? 0.633]}>
             <ThirtyCmRulerModel />
           </group>
-        </group>
-      )}
+      </group>
     </>
   )
 }

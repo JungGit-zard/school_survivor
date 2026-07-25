@@ -1,10 +1,13 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useGameStore } from './useGameStore.js'
-import { SETTINGS_STORAGE_KEY } from '../lib/titleSettings.js'
+import { saveTitleSettings } from '../lib/titleSettings.js'
+import { _seedHydratedFirebaseProgressForTests, _setFirebaseProgressClientForTests } from '../lib/firebaseProgress.js'
 
 describe('useGameStore player hit feedback', () => {
   beforeEach(() => {
+    _setFirebaseProgressClientForTests({ save: async () => {}, loadOrCreate: async () => null })
+    _seedHydratedFirebaseProgressForTests()
     useGameStore.getState().resetGame()
   })
 
@@ -31,8 +34,7 @@ describe('useGameStore player hit feedback', () => {
 
   describe('vibration on hit', () => {
     let vibrate
-    const setVibration = (on) =>
-      globalThis.localStorage?.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ vibration: on }))
+    const setVibration = (on) => saveTitleSettings({ vibration: on })
 
     beforeEach(() => {
       vibrate = vi.fn()
@@ -40,7 +42,6 @@ describe('useGameStore player hit feedback', () => {
     })
     afterEach(() => {
       vi.unstubAllGlobals()
-      globalThis.localStorage?.removeItem(SETTINGS_STORAGE_KEY)
     })
 
     it('vibrates when the player is hit and the setting is on', () => {

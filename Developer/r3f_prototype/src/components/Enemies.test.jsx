@@ -40,6 +40,7 @@ import {
   dogeHpForStage,
   shouldSpawnDoge,
   dogeTreasureCoinPositions,
+  runPooledEnemyRuntimeSoak,
 } from './Enemies.jsx'
 import { CHEST_OPEN_DELAY_MS } from './TreasureChest.jsx'
 import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
@@ -314,7 +315,7 @@ describe('boss entrance escort wave', () => {
   it('wires the boss escort and midpoint reinforcement into the spawn frame loop', () => {
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
     // 보스 브랜치가 호위 물량을 buildWaveBatch로 함께 스폰한다.
-    expect(source).toContain('bossEscortSize(currentStageId, wavePhases, evt.sec)')
+    expect(source).toContain('bossEscortSize(cache.id, cache.wavePhases, evt.sec)')
     // 웨이브 예약 시 중간 보강 시각을 함께 예약하고, 도달 시 발화한다.
     expect(source).toContain('nextMidTimeRef.current = midWaveTimeForStage(waveTime, nextTime, currentStageId)')
     expect(source).toContain('midWaveSize(phase)')
@@ -682,6 +683,57 @@ describe('enemy spawn audio ownership', () => {
   })
 })
 
+describe('pooled standard enemy runtime wiring', () => {
+  it('runs a 3-minute churn harness with zero event drops and bounded proxy/projectile/special counts', () => {
+    const result = runPooledEnemyRuntimeSoak()
+    expect(result.ok).toBe(true)
+    expect(result.eventDropped).toBe(0)
+    expect(result.hitDropped).toBe(0)
+    expect(result.active).toBeLessThanOrEqual(200)
+    expect(result.liveProxy).toBe(result.active)
+    expect(result.projectiles).toBeLessThanOrEqual(32)
+    expect(result.enemyBodies).toBeLessThanOrEqual(3)
+    expect(result.dynamicSpecial).toBeLessThanOrEqual(3)
+  })
+
+  it('renders only bounded special enemies through Enemy and keeps standard spawn work out of the frame callback', () => {
+    const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    const frameStart = source.indexOf('usePlayingFrame((_, delta) =>')
+    const frameEnd = source.indexOf('\n  return (', frameStart)
+    const frameSource = source.slice(frameStart, frameEnd)
+    expect(source).toContain('specialEnemies.map')
+    expect(source).not.toContain('{enemies.map')
+    expect(source).toContain('MAX_SPECIAL_ENEMIES = 3')
+    expect(source).toContain('scheduleKind: new Uint8Array(64)')
+    expect(source).toContain('deathType: new Uint8Array(MAX_RUNTIME_QUEUE)')
+    expect(frameSource).not.toContain('buildWaveBatch(')
+    expect(frameSource).not.toContain('addEnemies(')
+    expect(frameSource).not.toContain('spawnDoge(')
+    expect(frameSource).not.toContain('dropGoldCoin(')
+  })
+
+  it('keeps the special Enemy frame state setters deferred and uses the fixed projectile pool', () => {
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    const enemyStart = source.indexOf('export default function Enemy(')
+    const frameStart = source.indexOf('useFrame((_, delta) =>', enemyStart)
+    const frameEnd = source.indexOf('\n  if (dead.current) return null', frameStart)
+    const frameSource = source.slice(frameStart, frameEnd)
+    expect(frameSource).not.toContain('setHp(')
+    expect(frameSource).not.toContain('setHitFlash(')
+    expect(frameSource).not.toContain('setSpawnRevealed(')
+    expect(frameSource).not.toContain('setAnimPhase(')
+    expect(frameSource).not.toContain('setProjectiles(')
+    expect(frameSource).toContain("queueVisualState('spawnRevealed', true)")
+    expect(frameSource).toContain('enemyProjectilePool.spawnInto(enemyHandleScratch')
+    expect(frameSource).not.toContain('resolveChefBossActiveStats(')
+    expect(frameSource).not.toContain('getStageBounds(currentStageId)')
+    expect(frameSource).toContain('chefActiveStats.phase2')
+    expect(frameSource).toContain('stageCombatConfig.bounds')
+    expect(source).not.toContain('function EnemyProjectile(')
+    expect(source).not.toContain('_activeE04ProjectileIds')
+  })
+})
+
 describe('ranged enemy movement', () => {
   it('keeps E04 moving sideways at preferred range instead of standing still', () => {
     const velocity = resolveRangedEnemyVelocity({
@@ -702,14 +754,14 @@ describe('ranged enemy movement', () => {
     expect(getActiveE04ProjectileCount()).toBe(0)
 
     const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
-    expect(source).toContain("activeProjectileCount: type === 'E04' ? getActiveE04ProjectileCount() : projectiles.length")
-    expect(source).toContain('registerE04Projectile(projectileId)')
-    expect(source).toContain('const bossPressureStartSec = stageConfig.bossWarningSec ?? 120')
-    expect(source).toContain('const bossPressureEndSec = stageConfig.escapePortalSec ?? 150')
+    expect(source).toContain('fireArgs.activeProjectileCount = enemyProjectilePool.activeCount')
+    expect(source).toContain('enemyProjectilePool.spawnInto(enemyHandleScratch')
+    expect(source).toContain('stageCombatConfig.bossPressureStartSec')
+    expect(source).toContain('stageCombatConfig.bossPressureEndSec')
     // 스2/스3는 보스 구간(bossWarning~escapePortal) E04 발사 억제를 유지한다.
-    expect(source).toContain('(elapsedSec >= bossPressureStartSec && elapsedSec < bossPressureEndSec)')
+    expect(source).toContain('elapsedSec >= stageCombatConfig.bossPressureStartSec && elapsedSec < stageCombatConfig.bossPressureEndSec')
     // 스4는 원거리 "안전지대 소멸" 시그니처라 보스 구간에도 발사(bossPressure 미적용).
     expect(source).toContain("currentStageId === 'stage4'")
-    expect(source).toContain('introSec: getE04IntroSec(currentStageId)')
+    expect(source).toContain('fireArgs.introSec = stageCombatConfig.e04IntroSec')
   })
 })

@@ -2,7 +2,7 @@
 import { useGameStore } from '../store/useGameStore.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { usePlayingFrame } from '../lib/usePlayingFrame.js'
-import { playerPos, enemyBodies } from '../lib/refs.js'
+import { playerPos, enemyBodies, enemyPool, enemySimulationRuntime, enemyProjectilePool, enemySightBlocked, enemyHandleScratch } from '../lib/refs.js'
 import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
 import GoldCoin from './GoldCoin.jsx'
@@ -10,13 +10,26 @@ import XpTextbook from './XpTextbook.jsx'
 import DancingDogeEvent from './DancingDogeEvent.jsx'
 import TreasureChest from './TreasureChest.jsx'
 import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
-import { getE04Cap } from '../lib/stage2ProjectileRules.js'
-import { getStageBounds } from '../lib/stageConfig.js'
+import { getE04Cap, getE04IntroSec } from '../lib/stage2ProjectileRules.js'
+import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { dogeEscapeDirection } from '../lib/dogeEscape.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
 import { RUN_ZOMBIE_CREW_FORMATION, getBurstEventsForStage, getRuntimeBurstEventsForStage, isBossType } from '../lib/burstEvents.js'
 import { buildWavePhasesFromEntries } from '../lib/waveControl.js'
 import { getAdminWaveControlConfig } from '../lib/adminConfig.js'
+import { enemyTypeToCode, enemyTypeFromCode, createEnemyEntityPool, MAX_ENEMIES } from '../lib/enemyEntityPool.js'
+import { ENEMY_EVENT_CONTACT, ENEMY_EVENT_RANGED_FIRE, ENEMY_EVENT_DEATH, ENEMY_EVENT_DESPAWN, ENEMY_EVENT_ERROR, createEnemySimulationRuntime } from '../lib/enemySimulation.js'
+import { createEnemyProjectilePool, MAX_ENEMY_PROJECTILES } from '../lib/enemyProjectilePool.js'
+import { emitVfx } from '../lib/vfxEvents.js'
+import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
+import { resolveCriticalHitInto } from '../lib/criticalHits.js'
+import { createEnemyHitSparkEvent, COMMON_ENEMY_HIT_KNOCKBACK } from '../lib/enemyHitVfx.js'
+import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
+import { isPlayerWeaponSightBlocked } from '../lib/weaponTargeting.js'
+import { logKill } from '../lib/playtestLogger.js'
+import PooledEnemyProjectileLayer from './PooledEnemyProjectileLayer.jsx'
+import { getStageObjectSightObstacles, isStageObjectSightBlocked } from './StageObjects/stageObjectColliders.js'
+import { createEnemyHitEventQueue } from '../lib/enemyHitEventQueue.js'
 
 // 황금 코인 시계 드랍: 4분에 약 10개 → 20–28s 무작위 간격 (5분 기준 ×0.8)
 const GOLD_INTERVAL_MIN_MS = 20_000
@@ -574,15 +587,91 @@ let _coinId = 0
 let _collapseId = 0
 let _chestId = 0
 
+const STANDARD_POOL_TYPE_MAX = 8
+const MAX_SPECIAL_ENEMIES = 3
+const MAX_RUNTIME_QUEUE = 256
+const EMPTY_IMPACT = Object.freeze({})
+const SCHEDULE_GOLD = 1
+const SCHEDULE_DOGE = 2
+const SCHEDULE_WAVE = 3
+const SCHEDULE_MID_WAVE = 4
+const SCHEDULE_BURST = 5
+
+function isPooledEnemyType(type) {
+  const code = enemyTypeToCode(type)
+  return code >= 1 && code <= STANDARD_POOL_TYPE_MAX
+}
+
+function countPooledType(type) {
+  const code = enemyTypeToCode(type)
+  let count = 0
+  for (let index = 0; index <= enemyPool.highestActive; index += 1) {
+    if (enemyPool.active[index] && enemyPool.type[index] === code) count += 1
+  }
+  return count
+}
+
+function pushBounded(queue, value, cap = MAX_RUNTIME_QUEUE) {
+  if (queue.length < cap) queue.push(value)
+}
+
+function phaseIndexAtTime(phases, time) {
+  let selected = 0
+  for (let index = 0; index < phases.length; index += 1) {
+    if (time < phases[index].start) break
+    selected = index
+  }
+  return selected
+}
+
+// 브라우저 없이도 풀 churn의 상한·이벤트 drop·투사체 상한을 검증하는 QA harness다.
+export function runPooledEnemyRuntimeSoak(frames = 10_800) {
+  const pool = createEnemyEntityPool()
+  const runtime = createEnemySimulationRuntime()
+  const projectiles = createEnemyProjectilePool()
+  const hitQueue = createEnemyHitEventQueue()
+  const handle = { index: -1, generation: 0 }
+  const event = {}
+  const hit = {}
+  let spawnFailures = 0
+  for (let frame = 0; frame < frames; frame += 1) {
+    if (frame % 3 === 0) {
+      if (!pool.spawnInto(handle, { type: frame % 24 === 0 ? 'E04' : 'E01', x: -8 + (frame % 16), y: 0, z: 8, hp: 8, maxHp: 8, visualScale: ENEMY_SIZE_MULTIPLIER, spawnTimer: 300 })) spawnFailures += 1
+    }
+    runtime.step(pool, { delta: 1 / 60, playerX: 0, playerZ: 0, halfX: 12, halfZ: 12, elapsedSec: 100, activeProjectileCount: projectiles.activeCount, stageId: 'stage2', e04IntroSec: 72, bossPressure: false })
+    while (runtime.events.drainInto(event)) {
+      if (event.type === ENEMY_EVENT_RANGED_FIRE) projectiles.spawnInto(handle, event.x, event.y, event.z, event.value, event.aux)
+    }
+    // 실제 런타임과 동일한 bounded hit queue 경로를 반복한다. 화면 효과는 여기서 소비만 한다.
+    if (frame % 2 === 0) hitQueue.push(pool.posX[Math.max(0, pool.nextActiveIndex())] || 0, 0.95, 0, 8, false)
+    while (hitQueue.drainInto(hit)) {}
+    projectiles.step(1 / 60, -100, -100)
+    let index = pool.nextActiveIndex()
+    if (index >= 0 && frame % 2 === 0 && pool.getHandleInto(handle, index)) pool.despawn(handle)
+    if (!pool.validateInvariants({ halfX: 12, halfZ: 12 })) return { ok: false, spawnFailures, active: pool.activeCount, liveProxy: pool.liveProxyCount, projectiles: projectiles.activeCount, eventDropped: runtime.events.dropped, hitDropped: hitQueue.dropped, enemyBodies: 0, dynamicSpecial: 0 }
+  }
+  return {
+    ok: pool.activeCount <= MAX_ENEMIES && pool.liveProxyCount === pool.activeCount && projectiles.activeCount <= MAX_ENEMY_PROJECTILES && runtime.events.dropped === 0 && hitQueue.dropped === 0,
+    spawnFailures, active: pool.activeCount, liveProxy: pool.liveProxyCount, projectiles: projectiles.activeCount,
+    eventDropped: runtime.events.dropped, hitDropped: hitQueue.dropped, enemyBodies: 0, dynamicSpecial: 0,
+  }
+}
+
 export default function Enemies() {
-  const [enemies, setEnemies]       = useState([])
+  // React/Rapier 는 보스와 마틸다(최대 3체)만 사용한다. E01~E06/RZ는 아래 pool 정본이다.
+  const [specialEnemies, setSpecialEnemies] = useState([])
   const [textbooks, setTextbooks]   = useState([])
   const [goldCoins, setGoldCoins]   = useState([])
   const [collapses, setCollapses]   = useState([])
   const [doges, setDoges]           = useState([])
   const [chests, setChests]         = useState([])
   const enemiesRef                = useRef([])
-  const firedBurstsRef            = useRef(new Set())
+  const runtimeQueueRef           = useRef({ specialRemovals: [], textbooks: [], gold: [], collapses: [], doges: [], chests: [], flushScheduled: false, raf: 0, scheduleKind: new Uint8Array(64), scheduleA: new Float32Array(64), scheduleB: new Float32Array(64), scheduleRead: 0, scheduleWrite: 0, scheduleCount: 0, processScheduled: null, deathType: new Uint8Array(MAX_RUNTIME_QUEUE), deathX: new Float32Array(MAX_RUNTIME_QUEUE), deathY: new Float32Array(MAX_RUNTIME_QUEUE), deathZ: new Float32Array(MAX_RUNTIME_QUEUE), deathXp: new Float32Array(MAX_RUNTIME_QUEUE), deathScale: new Float32Array(MAX_RUNTIME_QUEUE), deathDamage: new Float32Array(MAX_RUNTIME_QUEUE), deathMaxHp: new Float32Array(MAX_RUNTIME_QUEUE), deathKnockback: new Float32Array(MAX_RUNTIME_QUEUE), deathStyle: new Uint8Array(MAX_RUNTIME_QUEUE), deathRead: 0, deathWrite: 0, deathCount: 0, hitQueue: createEnemyHitEventQueue(), hitScratch: {} })
+  const runtimeEventScratchRef    = useRef({})
+  const runtimeContextRef         = useRef({ delta: 0, playerX: 0, playerZ: 0, halfX: 1, halfZ: 1, elapsedSec: 0, activeProjectileCount: 0, stageId: 'stage1', e04IntroSec: 72, bossPressure: false, obstacles: null, obstacleCount: 0, sightBlocked: enemySightBlocked })
+  const stageRuntimeCacheRef      = useRef(null)
+  const projectileHitRef          = useRef(null)
+  const firedBurstsRef            = useRef(new Uint8Array(64))
   const nextWaveTimeRef          = useRef(0)
   const nextMidTimeRef           = useRef(Infinity)  // stage1 중간 보강 스폰 예약 시각(웨이브가 예약)
   const goldTimerRef              = useRef(nextGoldInterval())
@@ -591,11 +680,182 @@ export default function Enemies() {
   const spawnBoss      = useGameStore((s) => s.spawnBoss)
   const matildaSpawned = useGameStore((s) => s.matildaSpawned)
   const currentStageId = useGameStore((s) => s.currentStageId)
+  projectileHitRef.current = (_index, _generation, damage) => {
+    useGameStore.getState().damagePlayer(damage)
+  }
+
+  // 스테이지 정적 데이터는 stage 전환시에만 해석한다. 프레임 경로는 이 캐시만 읽는다.
+  useEffect(() => {
+    const bounds = getStageBounds(currentStageId)
+    stageRuntimeCacheRef.current = {
+      id: currentStageId,
+      bounds,
+      wavePhases: getWavePhasesForStage(currentStageId),
+      burstEvents: getRuntimeBurstEventsForStage(currentStageId),
+      obstacles: getStageObjectSightObstacles(currentStageId),
+      stageConfig: getStageConfig(currentStageId),
+      lastEnd: getWavePhasesForStage(currentStageId).at(-1)?.end ?? 0,
+    }
+    firedBurstsRef.current.fill(0)
+  }, [currentStageId])
+
+  // 프레임 루프는 typed-array와 이 bounded queue만 바꾼다. React state는 다음 RAF에서 한 번만 flush한다.
+  const scheduleRuntimeFlush = useCallback(() => {
+    const queue = runtimeQueueRef.current
+    if (queue.flushScheduled) return
+    queue.flushScheduled = true
+    queue.raf = requestAnimationFrame(() => {
+      queue.flushScheduled = false
+      while (queue.scheduleCount > 0) {
+        const slot = queue.scheduleRead
+        const kind = queue.scheduleKind[slot]
+        const a = queue.scheduleA[slot]
+        const b = queue.scheduleB[slot]
+        queue.scheduleRead = (slot + 1) % queue.scheduleKind.length
+        queue.scheduleCount -= 1
+        queue.processScheduled?.(kind, a, b)
+      }
+      while (queue.hitQueue.drainInto(queue.hitScratch)) {
+        const hit = queue.hitScratch
+        emitVfx(createEnemyHitSparkEvent({ x: hit.x, y: Math.max(0.34, hit.y), z: hit.z }))
+        emitDamageNumber({ x: hit.x, y: Math.max(0.8, hit.y), z: hit.z, amount: hit.amount, colorHex: hit.critical ? DAMAGE_NUMBER_COLORS.critical : DAMAGE_NUMBER_COLORS.enemy, isCritical: hit.critical })
+      }
+      while (queue.deathCount > 0) {
+        const slot = queue.deathRead
+        const type = ['','E01','E02','E03','E04','E05','E06','RZL','RZC'][queue.deathType[slot]]
+        const pos = [queue.deathX[slot], queue.deathY[slot], queue.deathZ[slot]]
+        const dropData = {
+          pos, xp: queue.deathXp[slot], type, visualScale: queue.deathScale[slot],
+          intensity: resolveCollapseIntensity({ killingDamage: queue.deathDamage[slot], maxHp: queue.deathMaxHp[slot], knockback: queue.deathKnockback[slot] }),
+          styleOverride: queue.deathStyle[slot] === 1 ? 'shatter5' : undefined,
+        }
+        pushBounded(queue.collapses, createDeathCollapseEntry(++_collapseId, dropData), 12)
+        const bonus = ELITE_BONUS[type]
+        if (bonus) {
+          const textbookXp = getEliteBonusTextbookXp(type, dropData.xp)
+          for (let rewardIndex = 0; rewardIndex < bonus.textbook; rewardIndex += 1) pushBounded(queue.textbooks, { id: ++_textbookId, pos, value: textbookXp })
+          for (let rewardIndex = 0; rewardIndex < bonus.gold; rewardIndex += 1) pushBounded(queue.gold, { id: ++_coinId, pos, value: 1 })
+        } else if (shouldDropTextbook(dropData)) pushBounded(queue.textbooks, { id: ++_textbookId, pos, value: dropData.xp })
+        queue.deathRead = (slot + 1) % MAX_RUNTIME_QUEUE
+        queue.deathCount -= 1
+      }
+      if (queue.specialRemovals.length) {
+        const removed = new Set(queue.specialRemovals.splice(0, queue.specialRemovals.length))
+        enemiesRef.current = enemiesRef.current.filter((enemy) => !removed.has(enemy.id))
+        setSpecialEnemies([...enemiesRef.current])
+      }
+      if (queue.textbooks.length) setTextbooks((prev) => [...prev, ...queue.textbooks.splice(0, queue.textbooks.length)])
+      if (queue.gold.length) setGoldCoins((prev) => [...prev, ...queue.gold.splice(0, queue.gold.length)])
+      if (queue.collapses.length) {
+        setCollapses((prev) => [...prev, ...queue.collapses.splice(0, queue.collapses.length)].slice(-12))
+      }
+      if (queue.doges.length) setDoges((prev) => [...prev, ...queue.doges.splice(0, queue.doges.length)])
+      if (queue.chests.length) setChests((prev) => [...prev, ...queue.chests.splice(0, queue.chests.length)])
+    })
+  }, [])
+
+  const enqueueScheduled = useCallback((kind, a = 0, b = 0) => {
+    const queue = runtimeQueueRef.current
+    if (queue.scheduleCount >= queue.scheduleKind.length) return false
+    const slot = queue.scheduleWrite
+    queue.scheduleKind[slot] = kind
+    queue.scheduleA[slot] = a
+    queue.scheduleB[slot] = b
+    queue.scheduleWrite = (slot + 1) % queue.scheduleKind.length
+    queue.scheduleCount += 1
+    scheduleRuntimeFlush()
+    return true
+  }, [scheduleRuntimeFlush])
+
+  const enqueuePooledDeath = useCallback((typeCode, x, y, z, xp, scale, damage, maxHp, knockback, styleOverride) => {
+    const queue = runtimeQueueRef.current
+    if (queue.deathCount >= MAX_RUNTIME_QUEUE) return false
+    const slot = queue.deathWrite
+    queue.deathType[slot] = typeCode
+    queue.deathX[slot] = x; queue.deathY[slot] = y; queue.deathZ[slot] = z
+    queue.deathXp[slot] = xp; queue.deathScale[slot] = scale
+    queue.deathDamage[slot] = damage; queue.deathMaxHp[slot] = maxHp; queue.deathKnockback[slot] = knockback
+    queue.deathStyle[slot] = styleOverride === 'shatter5' ? 1 : 0
+    queue.deathWrite = (slot + 1) % MAX_RUNTIME_QUEUE
+    queue.deathCount += 1
+    scheduleRuntimeFlush()
+    return true
+  }, [scheduleRuntimeFlush])
+
+  const enqueuePooledHit = useCallback((x, y, z, amount, critical) => {
+    const queue = runtimeQueueRef.current
+    if (!queue.hitQueue.push(x, y, z, amount, critical)) return false
+    scheduleRuntimeFlush()
+    return true
+  }, [scheduleRuntimeFlush])
+
+  const pooledHitBridgeRef = useRef(null)
+  const pooledCriticalScratchRef = useRef({ damage: 0, isCritical: false })
+  pooledHitBridgeRef.current = (index, generation, damage, impact) => {
+    if (!enemyPool.isIndexGenerationAlive(index, generation)) return
+    const safeImpact = impact || EMPTY_IMPACT
+    const x = enemyPool.posX[index]; const y = enemyPool.posY[index]; const z = enemyPool.posZ[index]
+    if (!safeImpact.ignoreSightBlock && isPlayerWeaponSightBlocked(enemyPool.proxies[index].translation(), useGameStore.getState().currentStageId)) return
+    const type = enemyTypeFromCode(enemyPool.type[index])
+    const stats = ENEMY_STATS[type] ?? ENEMY_STATS.E01
+    const critical = resolveCriticalHitInto(pooledCriticalScratchRef.current, damage, safeImpact.canCrit, safeImpact.damageType, safeImpact.attackTags, safeImpact.critChance, safeImpact.critMultiplier)
+    enqueuePooledHit(x, 0.95 * enemyPool.visualScale[index], z, critical.damage, critical.isCritical)
+    if (safeImpact.sfxId) emitSfx({ id: safeImpact.sfxId, volume: 0.6 })
+    const knockbackSpeed = Number.isFinite(safeImpact.knockback) ? safeImpact.knockback : COMMON_ENEMY_HIT_KNOCKBACK.speed
+    const knockbackMs = Number.isFinite(safeImpact.knockbackMs) ? safeImpact.knockbackMs : COMMON_ENEMY_HIT_KNOCKBACK.durationMs
+    const sx = safeImpact.source?.x ?? playerPos.x; const sz = safeImpact.source?.z ?? playerPos.z
+    const dx = x - sx; const dz = z - sz; const length = Math.hypot(dx, dz) || 1
+    const killed = enemyPool.hp[index] <= critical.damage
+    if (killed) {
+      useGameStore.getState().recordKill(); logKill(type); emitSfx({ id: type === 'E06' || type === 'E02' ? 'zombieHeavyDeath' : 'zombieDeath' })
+      enqueuePooledDeath(enemyPool.type[index], x, y, z, stats.xp, enemyPool.visualScale[index] * 0.333, critical.damage, enemyPool.maxHp[index], safeImpact.knockback ?? 0, safeImpact.deathStyleOverride)
+    }
+    enemySimulationRuntime.applyHitIndex(enemyPool, index, generation, critical.damage, dx / length * knockbackSpeed, dz / length * knockbackSpeed, knockbackMs)
+  }
+
+  useEffect(() => {
+    const dispatch = (index, generation, damage, impact) => pooledHitBridgeRef.current?.(index, generation, damage, impact)
+    enemyPool.setGlobalHitDispatcher(dispatch)
+    return () => enemyPool.setGlobalHitDispatcher(null)
+  }, [])
+
+  useEffect(() => () => {
+    const queue = runtimeQueueRef.current
+    if (queue.raf) cancelAnimationFrame(queue.raf)
+  }, [])
+
+  const enqueueTextbook = useCallback((pos, value) => {
+    pushBounded(runtimeQueueRef.current.textbooks, { id: ++_textbookId, pos, value })
+    scheduleRuntimeFlush()
+  }, [scheduleRuntimeFlush])
+
+  const enqueueGoldCoin = useCallback((pos, value = 1) => {
+    pushBounded(runtimeQueueRef.current.gold, { id: ++_coinId, pos, value })
+    scheduleRuntimeFlush()
+  }, [scheduleRuntimeFlush])
 
   const addEnemies = useCallback((newList) => {
-    enemiesRef.current.push(...newList)
-    setEnemies([...enemiesRef.current])
-  }, [])
+    for (let entryIndex = 0; entryIndex < newList.length; entryIndex += 1) {
+      const entry = newList[entryIndex]
+      if (!isPooledEnemyType(entry.type)) {
+        // pooled numeric generation-id와 legacy special body key가 충돌하지 않도록 namespace를 분리한다.
+        if (enemiesRef.current.length < MAX_SPECIAL_ENEMIES) {
+          enemiesRef.current.push({ ...entry, id: `special-${entry.id}` })
+        }
+        continue
+      }
+      const stats = { ...(ENEMY_STATS[entry.type] ?? ENEMY_STATS.E01), ...(entry.statOverride ?? {}) }
+      const pos = entry.pos ?? [0, 0, 0]
+      if (!enemyPool.spawnInto(enemyHandleScratch, {
+        type: entry.type,
+        x: pos[0], y: pos[1], z: pos[2], hp: stats.hp, maxHp: stats.hp,
+        visualScale: stats.scale * ENEMY_SIZE_MULTIPLIER, runDirX: entry.runCrewDir?.x ?? 1, runDirZ: entry.runCrewDir?.z ?? 0,
+      })) continue
+      const index = enemyHandleScratch.index
+      const generation = enemyHandleScratch.generation
+    }
+    if (enemiesRef.current.length) setSpecialEnemies([...enemiesRef.current])
+  }, [enqueuePooledDeath])
 
   // 한 phase의 weights로 size만큼 좀비 배치를 생성(E04 상한/스폰 위치 규칙 공유).
   // 웨이브·중간 보강·보스 호위가 모두 이 배치 빌더를 재사용한다(중복 로직 제거).
@@ -605,6 +865,7 @@ export default function Enemies() {
       let type = pickTypeByWeight(phase.weights)
       if ((currentStageId === 'stage2' || currentStageId === 'stage3' || currentStageId === 'stage4') && type === 'E04') {
         const currentE04Count =
+          countPooledType('E04') +
           enemiesRef.current.filter((e) => e.type === 'E04').length +
           batch.filter((e) => e.type === 'E04').length
         if (currentE04Count >= getE04Cap(sec, currentStageId)) {
@@ -645,12 +906,12 @@ export default function Enemies() {
   }, [matildaSpawned, currentStageId, addEnemies])
 
   const dropTextbook = useCallback((pos, value) => {
-    setTextbooks((prev) => [...prev, { id: ++_textbookId, pos, value }])
-  }, [])
+    enqueueTextbook(pos, value)
+  }, [enqueueTextbook])
 
   const dropGoldCoin = useCallback((pos, value = 1) => {
-    setGoldCoins((prev) => [...prev, { id: ++_coinId, pos, value }])
-  }, [])
+    enqueueGoldCoin(pos, value)
+  }, [enqueueGoldCoin])
 
   // ── 춤추는 도지 이벤트 ─────────────────────────────────────────────────────
   const spawnDoge = useCallback(() => {
@@ -658,8 +919,54 @@ export default function Enemies() {
     const hp = dogeHpForStage(stageId)
     const bounds = getStageBounds(stageId)
     const dir = dogeEscapeDirection(DOGE_SPAWN_POS, bounds)
-    setDoges((prev) => [...prev, { id: ++_uid, pos: [...DOGE_SPAWN_POS], scale: DOGE_SCALE, hp, dir, bounds }])
-  }, [])
+    pushBounded(runtimeQueueRef.current.doges, { id: ++_uid, pos: [...DOGE_SPAWN_POS], scale: DOGE_SCALE, hp, dir, bounds })
+    scheduleRuntimeFlush()
+  }, [scheduleRuntimeFlush])
+
+  // scheduler는 RAF에서만 객체/배치를 만든다. usePlayingFrame은 scalar 요청만 기록한다.
+  runtimeQueueRef.current.processScheduled = (kind, a, b) => {
+    const cache = stageRuntimeCacheRef.current
+    if (!cache || cache.id !== useGameStore.getState().currentStageId) return
+    if (kind === SCHEDULE_GOLD) {
+      dropGoldCoin(pickGoldDropPos(cache.bounds))
+    } else if (kind === SCHEDULE_DOGE) {
+      spawnDoge()
+    } else if (kind === SCHEDULE_WAVE || kind === SCHEDULE_MID_WAVE) {
+      const phase = cache.wavePhases[Math.trunc(a)] ?? cache.wavePhases[0]
+      const size = kind === SCHEDULE_WAVE
+        ? waveSizeForStageAtTime(phase, cache.id, b)
+        : midWaveSize(phase)
+      addEnemies(buildWaveBatch(phase, size, b, cache.bounds))
+    } else if (kind === SCHEDULE_BURST) {
+      const evt = cache.burstEvents[Math.trunc(a)]
+      if (!evt) return
+      if (isBossType(evt.type)) {
+        spawnBoss()
+        const bossBatch = [{ id: ++_uid, type: evt.type, pos: randomSpawnPos(evt.type, cache.bounds), statOverride: stageHpOverride(evt.type, cache.id) }]
+        const escortSize = bossEscortSize(cache.id, cache.wavePhases, evt.sec)
+        if (escortSize > 0) {
+          const bossPhase = cache.wavePhases.findLast((phase) => evt.sec >= phase.start) ?? cache.wavePhases[0]
+          bossBatch.push(...buildWaveBatch(bossPhase, escortSize, b, cache.bounds))
+        }
+        addEnemies(bossBatch)
+        return
+      }
+      if (evt.formation === RUN_ZOMBIE_CREW_FORMATION) {
+        emitSfx({ id: 'rzlWhistle', volume: 0.5 })
+        addEnemies(createRunZombieCrewEntries(cache.bounds).map((entry) => ({ id: ++_uid, ...entry, statOverride: stageHpOverride(entry.type, cache.id) })))
+        return
+      }
+      const count = evt.count ?? 1
+      const positions = evt.formation ? formationSpawnPositions(evt.formation, count, cache.bounds, { x: playerPos.x, z: playerPos.z }) : null
+      const batch = []
+      for (let spawnIndex = 0; spawnIndex < count; spawnIndex += 1) {
+        const taken = batch.map((enemy) => enemy.pos)
+        const pos = positions ? positions[spawnIndex] : (evt.type === 'E04' ? rangedSpawnPos(cache.bounds, taken) : randomSpawnPos(evt.type, cache.bounds, taken))
+        batch.push({ id: ++_uid, type: evt.type, pos, statOverride: stageHpOverride(evt.type, cache.id) })
+      }
+      addEnemies(batch)
+    }
+  }
 
   // 도지 처치 → 그 자리에 보물상자 드랍.
   const onDogeDeath = useCallback((dogeId, pos) => {
@@ -680,14 +987,10 @@ export default function Enemies() {
   }, [dropGoldCoin])
 
   const onDeath = useCallback((id, dropData) => {
-    enemiesRef.current = enemiesRef.current.filter((e) => e.id !== id)
-    setEnemies([...enemiesRef.current])
+    pushBounded(runtimeQueueRef.current.specialRemovals, id)
     if (!dropData?.pos) return
 
-    setCollapses((prev) => {
-      const next = [...prev, createDeathCollapseEntry(++_collapseId, dropData)]
-      return next.length > 12 ? next.slice(next.length - 12) : next
-    })
+    pushBounded(runtimeQueueRef.current.collapses, createDeathCollapseEntry(++_collapseId, dropData), 12)
 
     const bonus = ELITE_BONUS[dropData.type]
     if (bonus) {
@@ -700,7 +1003,8 @@ export default function Enemies() {
     if (shouldDropTextbook(dropData)) {
       dropTextbook(dropData.pos, dropData.xp)
     }
-  }, [dropTextbook, dropGoldCoin])
+    scheduleRuntimeFlush()
+  }, [dropTextbook, dropGoldCoin, scheduleRuntimeFlush])
 
   const onCollapseDone   = useCallback((id) => {
     setCollapses((prev) => prev.filter((c) => c.id !== id))
@@ -716,73 +1020,69 @@ export default function Enemies() {
 
   usePlayingFrame((_, delta) => {
     const sec = useGameStore.getState().elapsedMs / 1000
-    const bounds = getStageBounds(currentStageId)
-    const wavePhases = getWavePhasesForStage(currentStageId)
-    const lastEnd = wavePhases[wavePhases.length - 1]?.end ?? 0
+    const stageRuntime = stageRuntimeCacheRef.current
+    if (!stageRuntime || stageRuntime.id !== currentStageId) return
+    const bounds = stageRuntime.bounds
+    const wavePhases = stageRuntime.wavePhases
+    const lastEnd = stageRuntime.lastEnd
+
+    // 표준 적은 React/Rapier가 아닌 하나의 풀 step만 수행한다. 시야/장애물 배열은 stage 캐시를 그대로 쓴다.
+    const obstacles = stageRuntime.obstacles
+    for (let index = 0; index <= enemyPool.highestActive; index += 1) {
+      if (!enemyPool.active[index]) continue
+      const proxy = enemyPool.proxies[index]
+      enemySightBlocked[index] = isStageObjectSightBlocked(proxy.translation(), playerPos, obstacles) ? 1 : 0
+    }
+    const stageConfig = stageRuntime.stageConfig
+    const context = runtimeContextRef.current
+    context.delta = delta
+    context.playerX = playerPos.x
+    context.playerZ = playerPos.z
+    context.halfX = bounds.halfX
+    context.halfZ = bounds.halfZ
+    context.elapsedSec = sec
+    context.activeProjectileCount = enemyProjectilePool.activeCount
+    context.stageId = currentStageId
+    context.e04IntroSec = getE04IntroSec(currentStageId)
+    context.bossPressure = currentStageId !== 'stage4' && sec >= (stageConfig.bossWarningSec ?? 120) && sec < (stageConfig.escapePortalSec ?? 150)
+    context.obstacles = obstacles
+    context.obstacleCount = obstacles.length
+    enemySimulationRuntime.step(enemyPool, context)
+    const runtimeEvent = runtimeEventScratchRef.current
+    while (enemySimulationRuntime.events.drainInto(runtimeEvent)) {
+      if (runtimeEvent.type === ENEMY_EVENT_CONTACT) {
+        useGameStore.getState().damagePlayer(runtimeEvent.value)
+      } else if (runtimeEvent.type === ENEMY_EVENT_RANGED_FIRE) {
+        enemyProjectilePool.spawnInto(enemyHandleScratch, runtimeEvent.x, runtimeEvent.y, runtimeEvent.z, runtimeEvent.value, runtimeEvent.aux)
+      } else if (runtimeEvent.type === ENEMY_EVENT_DEATH || runtimeEvent.type === ENEMY_EVENT_DESPAWN || runtimeEvent.type === ENEMY_EVENT_ERROR) {
+        // death 보상은 generation-보호 hit handler에서 despawn 전에 확정한다. 탈주/오류는 보상 없음.
+      }
+    }
+    enemyProjectilePool.step(delta, playerPos.x, playerPos.z, projectileHitRef.current)
 
     goldTimerRef.current -= delta * 1000
     if (goldTimerRef.current <= 0) {
-      dropGoldCoin(pickGoldDropPos(bounds))
+      enqueueScheduled(SCHEDULE_GOLD)
       goldTimerRef.current = nextGoldInterval()
     }
 
     // 춤추는 도지 이벤트 — 모든 스테이지 60초 시점에 중앙에서 1회 스폰(스폰 펑 연출 경유).
     if (shouldSpawnDoge(sec, dogeSpawnedRef.current)) {
       dogeSpawnedRef.current = true
-      spawnDoge()
+      enqueueScheduled(SCHEDULE_DOGE)
     }
 
     // 버스트 스케줄 발화.
     // - stage1/stage2: 보스 등장만(getRuntimeBurstEventsForStage가 보스만 반환) — 거동 불변.
     // - stage3: 더블 보스(스태거) + 형태(formation) 포위 + 조기 등장 그룹을 모두 발화한다.
     // 좀비 물량 본류는 20~40초 랜덤 간격 웨이브 스케줄러가 전담한다.
-    const burstEvents = getRuntimeBurstEventsForStage(currentStageId)
-    burstEvents.forEach((evt, idx) => {
-      if (firedBurstsRef.current.has(idx)) return
-      if (sec < evt.sec) return
-      firedBurstsRef.current.add(idx)
-
-      // 보스 버스트(B01/B02) — 각 이벤트가 1회씩 스폰. 더블 보스는 두 이벤트가 스태거로 각각 발화한다.
-      // (bossSpawned 가드 제거: 두 번째 보스가 막히지 않도록. 1회성은 firedBurstsRef가 보장.)
-      if (isBossType(evt.type)) {
-        spawnBoss()
-        const bossBatch = [{ id: ++_uid, type: evt.type, pos: randomSpawnPos(evt.type, bounds), statOverride: stageHpOverride(evt.type, currentStageId) }]
-        // 보스 등장과 동시에 한 웨이브 분량의 좀비를 함께 스폰(stage1 한정 — bossEscortSize가 스2/스3는 0 반환).
-        const escortSize = bossEscortSize(currentStageId, wavePhases, evt.sec)
-        if (escortSize > 0) {
-          const bossPhase = wavePhases.findLast((p) => evt.sec >= p.start) ?? wavePhases[0]
-          bossBatch.push(...buildWaveBatch(bossPhase, escortSize, sec, bounds))
-        }
-        addEnemies(bossBatch)
-        return
-      }
-
-      // 비-보스 버스트(형태/그룹) — stage3에서만 런타임에 포함된다.
-      // formation이면 대형 배치, 아니면 스폰 링에 count만큼(E04는 원거리 링).
-      if (evt.formation === RUN_ZOMBIE_CREW_FORMATION) {
-        emitSfx({ id: 'rzlWhistle', volume: 0.5 })
-        addEnemies(createRunZombieCrewEntries(bounds).map((entry) => ({
-          id: ++_uid,
-          ...entry,
-          statOverride: stageHpOverride(entry.type, currentStageId),
-        })))
-        return
-      }
-
-      const count = evt.count ?? 1
-      const positions = evt.formation
-        ? formationSpawnPositions(evt.formation, count, bounds, { x: playerPos.x, z: playerPos.z })
-        : null
-      const batch = []
-      for (let i = 0; i < count; i++) {
-        const taken = batch.map((e) => e.pos)
-        const pos = positions
-          ? positions[i]
-          : (evt.type === 'E04' ? rangedSpawnPos(bounds, taken) : randomSpawnPos(evt.type, bounds, taken))
-        batch.push({ id: ++_uid, type: evt.type, pos, statOverride: stageHpOverride(evt.type, currentStageId) })
-      }
-      addEnemies(batch)
-    })
+    const burstEvents = stageRuntime.burstEvents
+    for (let burstIndex = 0; burstIndex < burstEvents.length; burstIndex += 1) {
+      const evt = burstEvents[burstIndex]
+      if (firedBurstsRef.current[burstIndex] || sec < evt.sec) continue
+      firedBurstsRef.current[burstIndex] = 1
+      enqueueScheduled(SCHEDULE_BURST, burstIndex, sec)
+    }
 
     // 랜덤 간격 이산 웨이브 — 좀비는 오직 여기서만, 웨이브마다 한 번에 스폰된다.
     // 첫 웨이브 t=0, 이후 직전 발화 + 20~40초 랜덤 간격(마지막 phase.end 미만).
@@ -798,9 +1098,8 @@ export default function Enemies() {
       nextWaveTimeRef.current = nextTime
       // stage1: 이번 웨이브와 다음 웨이브 정중앙에 보강 스폰을 예약한다(그 외 stageId는 Infinity=미예약).
       nextMidTimeRef.current = midWaveTimeForStage(waveTime, nextTime, currentStageId)
-      const phase = wavePhases.findLast((p) => waveTime >= p.start) ?? wavePhases[0]
-      const waveSize = waveSizeForStageAtTime(phase, currentStageId, waveTime)
-      addEnemies(buildWaveBatch(phase, waveSize, sec, bounds))
+      const phaseIndex = phaseIndexAtTime(wavePhases, waveTime)
+      enqueueScheduled(SCHEDULE_WAVE, phaseIndex, waveTime)
     }
 
     // stage1 중간 보강 스폰 — 예약된 정중앙 시점 도달 시 본 웨이브 절반 크기로 1회 흘린다.
@@ -808,16 +1107,17 @@ export default function Enemies() {
     if (nextMidTimeRef.current < lastEnd && sec >= nextMidTimeRef.current) {
       const midTime = nextMidTimeRef.current
       nextMidTimeRef.current = Infinity  // 1회 발화 후 소진; 다음 웨이브가 다시 예약한다.
-      const phase = wavePhases.findLast((p) => midTime >= p.start) ?? wavePhases[0]
-      addEnemies(buildWaveBatch(phase, midWaveSize(phase), sec, bounds))
+      const phaseIndex = phaseIndexAtTime(wavePhases, midTime)
+      enqueueScheduled(SCHEDULE_MID_WAVE, phaseIndex, midTime)
     }
   })
 
   return (
     <>
-      {enemies.map((e) => (
+      {specialEnemies.map((e) => (
         <Enemy key={e.id} id={e.id} type={e.type} spawnPos={e.pos} onDeath={onDeath} statOverride={e.statOverride} isMatilda={e.isMatilda} runCrewDir={e.runCrewDir} />
       ))}
+      <PooledEnemyProjectileLayer />
       {textbooks.map((d) => (
         <XpTextbook key={d.id} id={d.id} pos={d.pos} value={d.value} onCollect={onTextbookCollect} />
       ))}

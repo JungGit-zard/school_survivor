@@ -1,10 +1,11 @@
 import { useRef, useMemo, useEffect } from 'react'
-import { RigidBody, BallCollider } from '@react-three/rapier'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
+import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
+import { createWeaponTargetScratch, resolveWeaponTarget, scanOrbitEnemiesInto } from '../../lib/weaponTargeting.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 export function TumblerModel() {
@@ -46,11 +47,12 @@ export function TumblerModel() {
 }
 
 export function TumblerOrbit() {
-  const rbRefs = useRef([])
   const visualRefs = useRef([])
-  const enemiesRef = useRef(new Map())
-  const overlapCountRef = useRef(new Map())
-  const lastHitRef = useRef(new Map())
+  const lastHitRef = useRef({ times: new Float64Array(200), generations: new Uint16Array(200), special: new Array(3), specialTimes: new Float64Array(3) })
+  const targetScratchRef = useRef(createWeaponTargetScratch())
+  const impactRef = useRef({ knockback: 3, knockbackMs: 220, source: { x: 0, z: 0 }, critChance: 0, critMultiplier: 1 })
+  const orbitXRef = useRef(new Float32Array(3))
+  const orbitZRef = useRef(new Float32Array(3))
   const weapons = useGameStore((s) => s.weapons)
 
   usePlayingFrame(({ clock }) => {
@@ -66,7 +68,8 @@ export function TumblerOrbit() {
       const angle = nowSec * w.orbitSpeed + (Math.PI * 2 * i) / count
       const x = playerPos.x + Math.sin(angle) * radius
       const z = playerPos.z + Math.cos(angle) * radius
-      rbRefs.current[i]?.setTranslation({ x, y, z }, true)
+      orbitXRef.current[i] = x
+      orbitZRef.current[i] = z
       if (visualRefs.current[i]) {
         visualRefs.current[i].position.set(x, y, z)
         visualRefs.current[i].rotation.set(0.2, angle, nowSec * 8 + i * 0.8)
@@ -75,32 +78,49 @@ export function TumblerOrbit() {
 
     const nowMs = nowSec * 1000
     const interval = 1000 / w.hitsPerSecond
-    enemiesRef.current.forEach((rb, enemyId) => {
-      // 죽었거나 사라진 적은 추적 맵에서 정리 (onIntersectionExit가 항상 보장되지 않음).
-      if (!rb?._enemyHit || rb._enemyDead) {
-        enemiesRef.current.delete(enemyId)
-        overlapCountRef.current.delete(enemyId)
-        lastHitRef.current.delete(enemyId)
-        return
+    const hitRadius = w.hitRadius ?? 0.46
+    const scratch = targetScratchRef.current
+    const targetCount = scanOrbitEnemiesInto(scratch, orbitXRef.current, orbitZRef.current, count, hitRadius)
+    for (let targetIndex = 0; targetIndex < targetCount; targetIndex += 1) {
+      const special = scratch.special[targetIndex]
+      const index = scratch.indices[targetIndex]
+      const generation = special ? (scratch.generations[targetIndex] || null) : scratch.generations[targetIndex]
+      const rb = special ?? resolveWeaponTarget(index, generation, null)
+      if (!isEnemyHitLive(rb, generation)) continue
+      let lastHit = 0
+      let specialSlot = -1
+      if (special) {
+        for (let slot = 0; slot < 3; slot += 1) {
+          if (lastHitRef.current.special[slot] === special || lastHitRef.current.special[slot] === undefined) {
+            if (lastHitRef.current.special[slot] === undefined) lastHitRef.current.special[slot] = special
+            specialSlot = slot
+            lastHit = lastHitRef.current.specialTimes[slot]
+            break
+          }
+        }
+      } else {
+        if (lastHitRef.current.generations[index] !== generation) {
+          lastHitRef.current.generations[index] = generation
+          lastHitRef.current.times[index] = 0
+        }
+        lastHit = lastHitRef.current.times[index]
       }
-      const lastHit = lastHitRef.current.get(enemyId) ?? 0
-      if (nowMs - lastHit < interval) return
-      lastHitRef.current.set(enemyId, nowMs)
+      if (nowMs - lastHit < interval) continue
+      const impact = impactRef.current
+      impact.source.x = playerPos.x; impact.source.z = playerPos.z
+      impact.critChance = w.critChance; impact.critMultiplier = w.critMultiplier
+      if (!applyEnemyHit(rb, generation, w.damage, impact)) continue
+      if (special) {
+        if (specialSlot >= 0) lastHitRef.current.specialTimes[specialSlot] = nowMs
+      } else lastHitRef.current.times[index] = nowMs
       // 플레이어를 source로 줘서 오로지 바깥쪽(반경 방향)으로만 밀려나게 하고,
       // 우산 폭발과 동일한 세기(knockback 3.0, knockbackMs 220)로 뒤로 밀어낸다.
-      rb._enemyHit(w.damage, {
-        knockback: 3.0,
-        knockbackMs: 220,
-        source: { x: playerPos.x, z: playerPos.z },
-        critChance: w.critChance,
-        critMultiplier: w.critMultiplier,
-      })
       emitSfx({
         id: 'tumblerHit',
         volume: 0.35 + Math.random() * 0.10,
         rate: 0.90 + Math.random() * 0.15,
       })
-    })
+    }
   })
 
   // ponytail: 텀블러는 항상 활성, fire 이벤트 없으므로 활성화 시점에 1회 emit
@@ -111,37 +131,6 @@ export function TumblerOrbit() {
 
   return (
     <>
-      {Array.from({ length: tumblerCount }, (_, idx) => (
-        <RigidBody
-          key={`tumbler-hit-${idx}`}
-          ref={(node) => { rbRefs.current[idx] = node }}
-          type="kinematicPosition"
-          position={[playerPos.x + weapons.tumbler.radius, playerPos.y + 0.16, playerPos.z]}
-          colliders={false}
-          sensor
-          onIntersectionEnter={({ other }) => {
-            const rb = other.rigidBody
-            if (!rb?._enemyHit) return
-            const nextCount = (overlapCountRef.current.get(rb._enemyId) ?? 0) + 1
-            overlapCountRef.current.set(rb._enemyId, nextCount)
-            enemiesRef.current.set(rb._enemyId, rb)
-          }}
-          onIntersectionExit={({ other }) => {
-            const rb = other.rigidBody
-            if (rb?._enemyId === undefined) return
-            const nextCount = (overlapCountRef.current.get(rb._enemyId) ?? 1) - 1
-            if (nextCount > 0) {
-              overlapCountRef.current.set(rb._enemyId, nextCount)
-              return
-            }
-            overlapCountRef.current.delete(rb._enemyId)
-            enemiesRef.current.delete(rb._enemyId)
-            lastHitRef.current.delete(rb._enemyId)
-          }}
-        >
-          <BallCollider args={[0.18]} sensor />
-        </RigidBody>
-      ))}
       {Array.from({ length: tumblerCount }, (_, idx) => (
         <group key={`tumbler-visual-${idx}`} ref={(node) => { visualRefs.current[idx] = node }}>
           <TumblerModel />

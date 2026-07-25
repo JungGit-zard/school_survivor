@@ -1,22 +1,21 @@
-import { useRef, useMemo, useState, useCallback, useEffect } from 'react'
+import { useRef, useMemo, useCallback, useEffect } from 'react'
 import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
-import { RigidBody, BallCollider } from '@react-three/rapier'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import {
   getCompassBladeOrbitPose,
   getCompassBladeRespawnUntilMs,
   resolveCompassBladeHitStack,
-  shouldRenderCompassBladeHitBodies,
 } from '../../lib/compassBlade.js'
-import { applyRadialDamage } from '../../lib/weaponTargeting.js'
+import { applyRadialDamage, createWeaponTargetScratch, resolveWeaponTarget, scanOrbitEnemiesInto } from '../../lib/weaponTargeting.js'
+import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
+import { useDeferredProjectileState } from '../../lib/useDeferredProjectileState.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _compassExplosionId = 0
-const PARKED_BLADE_POSITION = Object.freeze({ x: 9999, y: -9999, z: 9999 })
 
 const DUCK_POTTY_BODY = 0xf3ead9
 const DUCK_POTTY_SHADOW = 0xd8ceb9
@@ -245,16 +244,17 @@ function CompassBladeExplosion({ id, x, z, radius, onDone }) {
 }
 
 export function CompassBladeWeapon() {
-  const rbRefs = useRef([])
   const visualRefs = useRef([])
-  const enemiesRef = useRef(new Map())
-  const overlapCountRef = useRef(new Map())
-  const lastHitRef = useRef(new Map())
+  const lastHitRef = useRef({ times: new Float64Array(200), generations: new Uint16Array(200), special: new Array(3), specialTimes: new Float64Array(3) })
+  const targetScratchRef = useRef(createWeaponTargetScratch())
+  const impactRef = useRef({ critChance: 0, critMultiplier: 1 })
+  const orbitXRef = useRef(new Float32Array(3))
+  const orbitZRef = useRef(new Float32Array(3))
   const hitStackRef = useRef(0)
   const respawnUntilRef = useRef(0)
   const wasActiveRef = useRef(false)
-  const [explosions, setExplosions] = useState([])
-  const [isRespawning, setIsRespawning] = useState(false)
+  const [explosions, explosionsRef, requestExplosions, removeExplosion] = useDeferredProjectileState()
+  const isRespawningRef = useRef(false)
   const weapons = useGameStore((s) => s.weapons)
   const compassActive = !!weapons.compassBlade?.active
 
@@ -262,10 +262,6 @@ export function CompassBladeWeapon() {
     if (compassActive && !wasActiveRef.current) emitSfx({ id: 'compassFire' })
     wasActiveRef.current = compassActive
   }, [compassActive])
-
-  const removeExplosion = useCallback((id) => {
-    setExplosions((prev) => prev.filter((item) => item.id !== id))
-  }, [])
 
   const explode = useCallback((blast) => {
     emitSfx({ id: 'compassHit' })
@@ -275,13 +271,13 @@ export function CompassBladeWeapon() {
       canCrit: false, damageType: 'explosive', attackTags: ['radial', 'explosive', 'burst'],
     })
 
-    setExplosions((prev) => [...prev, {
+    requestExplosions([...explosionsRef.current, {
       id: ++_compassExplosionId,
       x: blast.x,
       z: blast.z,
       radius: blast.radius,
     }])
-  }, [])
+  }, [explosionsRef, requestExplosions])
 
   usePlayingFrame(({ clock }) => {
     const w = weapons.compassBlade
@@ -295,18 +291,18 @@ export function CompassBladeWeapon() {
 
     if (respawnUntilRef.current > nowMs) {
       for (let i = 0; i < count; i += 1) {
-        rbRefs.current[i]?.setTranslation(PARKED_BLADE_POSITION, true)
         if (visualRefs.current[i]) visualRefs.current[i].visible = false
       }
       return
     }
 
-    if (isRespawning) {
+    if (isRespawningRef.current) {
       respawnUntilRef.current = 0
-      setIsRespawning(false)
-      enemiesRef.current.clear()
-      overlapCountRef.current.clear()
-      lastHitRef.current.clear()
+      isRespawningRef.current = false
+      lastHitRef.current.times.fill(0)
+      lastHitRef.current.generations.fill(0)
+      lastHitRef.current.special.fill(undefined)
+      lastHitRef.current.specialTimes.fill(0)
     }
 
     for (let i = 0; i < count; i += 1) {
@@ -319,7 +315,8 @@ export function CompassBladeWeapon() {
         player: playerPos,
       })
 
-      rbRefs.current[i]?.setTranslation(pose.position, true)
+      orbitXRef.current[i] = pose.position.x
+      orbitZRef.current[i] = pose.position.z
       if (visualRefs.current[i]) {
         visualRefs.current[i].visible = true
         visualRefs.current[i].position.set(pose.position.x, pose.position.y, pose.position.z)
@@ -328,18 +325,42 @@ export function CompassBladeWeapon() {
     }
 
     const interval = 1000 / (w.hitsPerSecond ?? 2.5)
-    enemiesRef.current.forEach((rb, enemyId) => {
-      if (!rb?._enemyHit || rb._enemyDead) {
-        enemiesRef.current.delete(enemyId)
-        overlapCountRef.current.delete(enemyId)
-        lastHitRef.current.delete(enemyId)
-        return
-      }
-      const lastHit = lastHitRef.current.get(enemyId) ?? 0
-      if (nowMs - lastHit < interval) return
-      lastHitRef.current.set(enemyId, nowMs)
+    const hitRadius = w.hitRadius ?? 0.46
+    let exploded = false
+    const scratch = targetScratchRef.current
+    const targetCount = scanOrbitEnemiesInto(scratch, orbitXRef.current, orbitZRef.current, count, hitRadius)
+    for (let targetIndex = 0; targetIndex < targetCount && !exploded; targetIndex += 1) {
+      const special = scratch.special[targetIndex]
+      const index = scratch.indices[targetIndex]
+      const generation = special ? (scratch.generations[targetIndex] || null) : scratch.generations[targetIndex]
+      const rb = special ?? resolveWeaponTarget(index, generation, null)
+      if (!isEnemyHitLive(rb, generation)) continue
       const t = rb.translation()
-      rb._enemyHit(w.damage, { critChance: w.critChance, critMultiplier: w.critMultiplier })
+      let lastHit = 0
+      let specialSlot = -1
+      if (special) {
+        for (let slot = 0; slot < 3; slot += 1) {
+          if (lastHitRef.current.special[slot] === special || lastHitRef.current.special[slot] === undefined) {
+            if (lastHitRef.current.special[slot] === undefined) lastHitRef.current.special[slot] = special
+            specialSlot = slot
+            lastHit = lastHitRef.current.specialTimes[slot]
+            break
+          }
+        }
+      } else {
+        if (lastHitRef.current.generations[index] !== generation) {
+          lastHitRef.current.generations[index] = generation
+          lastHitRef.current.times[index] = 0
+        }
+        lastHit = lastHitRef.current.times[index]
+      }
+      if (nowMs - lastHit < interval) continue
+      const impact = impactRef.current
+      impact.critChance = w.critChance; impact.critMultiplier = w.critMultiplier
+      if (!applyEnemyHit(rb, generation, w.damage, impact)) continue
+      if (special) {
+        if (specialSlot >= 0) lastHitRef.current.specialTimes[specialSlot] = nowMs
+      } else lastHitRef.current.times[index] = nowMs
       emitSfx({ id: 'compassQuack', volume: 0.5 })
 
       const stackResult = resolveCompassBladeHitStack({
@@ -360,12 +381,14 @@ export function CompassBladeWeapon() {
           exploded: true,
           nowMs,
         })
-        setIsRespawning(true)
-        enemiesRef.current.clear()
-        overlapCountRef.current.clear()
-        lastHitRef.current.clear()
+        exploded = true
+        isRespawningRef.current = true
+        lastHitRef.current.times.fill(0)
+        lastHitRef.current.generations.fill(0)
+        lastHitRef.current.special.fill(undefined)
+        lastHitRef.current.specialTimes.fill(0)
       }
-    })
+    }
   })
 
   if (!weapons.compassBlade?.active) return null
@@ -373,61 +396,8 @@ export function CompassBladeWeapon() {
   const bladeCount = Math.max(1, Math.min(3, weapons.compassBlade.count ?? 1))
   const radius = weapons.compassBlade.radius ?? 1.15
   const orbitSpeed = weapons.compassBlade.orbitSpeed ?? 3.4
-  const renderHitBodies = shouldRenderCompassBladeHitBodies({
-    active: weapons.compassBlade?.active,
-    isRespawning,
-  })
-
   return (
     <>
-      {renderHitBodies && Array.from({ length: bladeCount }, (_, idx) => {
-        const pose = getCompassBladeOrbitPose({
-          elapsedSec: 0,
-          index: idx,
-          count: bladeCount,
-          radius,
-          orbitSpeed,
-          player: playerPos,
-        })
-
-        return (
-          <RigidBody
-            key={`compassBlade-hit-${idx}`}
-            ref={(node) => { rbRefs.current[idx] = node ?? null }}
-            type="kinematicPosition"
-            position={isRespawning
-              ? [PARKED_BLADE_POSITION.x, PARKED_BLADE_POSITION.y, PARKED_BLADE_POSITION.z]
-              : [pose.position.x, pose.position.y, pose.position.z]}
-            colliders={false}
-            sensor
-          >
-            <BallCollider
-              args={[0.18]}
-              sensor
-              onIntersectionEnter={({ other }) => {
-                const rb = other.rigidBody
-                if (rb?._enemyId == null || !rb?._enemyHit) return
-                const nextCount = (overlapCountRef.current.get(rb._enemyId) ?? 0) + 1
-                overlapCountRef.current.set(rb._enemyId, nextCount)
-                enemiesRef.current.set(rb._enemyId, rb)
-              }}
-              onIntersectionExit={({ other }) => {
-                const rb = other.rigidBody
-                if (rb?._enemyId == null) return
-                const nextCount = (overlapCountRef.current.get(rb._enemyId) ?? 1) - 1
-                if (nextCount > 0) {
-                  overlapCountRef.current.set(rb._enemyId, nextCount)
-                  return
-                }
-                overlapCountRef.current.delete(rb._enemyId)
-                enemiesRef.current.delete(rb._enemyId)
-                lastHitRef.current.delete(rb._enemyId)
-              }}
-            />
-          </RigidBody>
-        )
-      })}
-
       {Array.from({ length: bladeCount }, (_, idx) => {
         const pose = getCompassBladeOrbitPose({
           elapsedSec: 0,
@@ -444,7 +414,7 @@ export function CompassBladeWeapon() {
             ref={(node) => { visualRefs.current[idx] = node ?? null }}
             position={[pose.position.x, pose.position.y, pose.position.z]}
             rotation={[pose.rotation.x, pose.rotation.y, pose.rotation.z]}
-            visible={!isRespawning}
+            visible
           >
             <CompassBladeModel />
           </group>

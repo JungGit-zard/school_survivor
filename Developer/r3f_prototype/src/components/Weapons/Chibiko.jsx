@@ -1,7 +1,6 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef } from 'react'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
-import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { useGameStore } from '../../store/useGameStore.js'
 import { playerPos } from '../../lib/refs.js'
 import {
@@ -11,7 +10,9 @@ import {
   recordChibikoTrailPoint,
 } from '../../lib/chibiko.js'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
-import { findClosestEnemy } from '../../lib/weaponTargeting.js'
+import { createWeaponTargetScratch, resolveWeaponTarget, scanClosestEnemiesInto, scanSweptCapsuleEnemiesInto } from '../../lib/weaponTargeting.js'
+import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
+import { useDeferredProjectileState } from '../../lib/useDeferredProjectileState.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
@@ -140,72 +141,68 @@ export function ChibikoPencilModel() {
   )
 }
 
-function ChibikoPencilProjectile({ id, position, yaw, damage, speed, target, critChance, critMultiplier, onExpire }) {
-  const rb = useRef()
+function ChibikoPencilProjectile({ id, position, yaw, damage, speed, targetIndex, targetGeneration, targetSpecial, critChance, critMultiplier, onExpire }) {
   const visualRef = useRef()
   const hitRef = useRef(false)
+  const targetRef = useRef({ index: targetIndex, generation: targetGeneration, special: targetSpecial })
+  const sweepScratchRef = useRef(createWeaponTargetScratch(1))
+  const impactRef = useRef({ critChance, critMultiplier })
   const ageRef = useRef(0)
+  const positionRef = useRef({ x: position[0], y: position[1], z: position[2] })
 
-  const hitEnemy = (enemyRb) => {
-    if (hitRef.current || !enemyRb?._enemyHit || enemyRb._enemyDead) return false
+  const hitEnemy = (rb, generation) => {
+    if (hitRef.current || !isEnemyHitLive(rb, generation)) return false
+    const impact = impactRef.current
+    impact.critChance = critChance
+    impact.critMultiplier = critMultiplier
+    if (!applyEnemyHit(rb, generation, damage, impact)) return false
     hitRef.current = true
-    enemyRb._enemyHit(damage, { critChance, critMultiplier })
     emitSfx({ id: 'chibikoHit', volume: 0.42 })
     onExpire(id)
     return true
   }
 
   usePlayingFrame((_, delta) => {
-    if (!rb.current || hitRef.current) return
+    if (hitRef.current) return
     ageRef.current += delta
     if (ageRef.current > 3.2) {
       onExpire(id)
       return
     }
-    if (!target?.rb?._enemyHit || target.rb._enemyDead) {
+    const target = targetRef.current
+    const targetRb = resolveWeaponTarget(target.index, target.generation, target.special)
+    if (!targetRb || !isEnemyHitLive(targetRb, target.generation)) {
       onExpire(id)
       return
     }
 
-    const p = rb.current.translation()
-    const t = target.rb.translation()
+    const p = positionRef.current
+    const t = targetRb.translation()
     const dx = t.x - p.x
     const dz = t.z - p.z
     const len = Math.hypot(dx, dz)
-    if (len <= 0.32) {
-      hitEnemy(target.rb)
-      return
-    }
     if (len < 0.001) return
 
     const vx = (dx / len) * speed
     const vz = (dz / len) * speed
-    rb.current.setLinvel({ x: vx, y: 0, z: vz }, true)
-    if (visualRef.current) visualRef.current.rotation.y = Math.atan2(vx, vz)
+    const nextX = p.x + vx * delta
+    const nextZ = p.z + vz * delta
+    const sweepScratch = sweepScratchRef.current
+    const hitCount = scanSweptCapsuleEnemiesInto(sweepScratch, p.x, p.z, nextX, nextZ, 0.32, 1)
+    p.x = nextX
+    p.z = nextZ
+    if (visualRef.current) {
+      visualRef.current.position.set(p.x, p.y, p.z)
+      visualRef.current.rotation.y = Math.atan2(vx, vz)
+    }
+    if (hitCount > 0) {
+      const special = sweepScratch.special[0]
+      const generation = special ? (sweepScratch.generations[0] || null) : sweepScratch.generations[0]
+      hitEnemy(special ?? resolveWeaponTarget(sweepScratch.indices[0], generation, null), generation)
+    }
   })
 
-  return (
-    <RigidBody
-      ref={rb}
-      type="dynamic"
-      position={position}
-      rotation={[0, 0, 0]}
-      linearVelocity={[Math.sin(yaw) * speed, 0, Math.cos(yaw) * speed]}
-      lockRotations
-      colliders={false}
-      gravityScale={0}
-      ccd
-      sensor
-      onIntersectionEnter={({ other }) => {
-        hitEnemy(other.rigidBody)
-      }}
-    >
-      <CuboidCollider args={[0.06, 0.06, 0.16]} sensor />
-      <group ref={visualRef} rotation={[0, yaw, 0]}>
-        <ChibikoPencilModel />
-      </group>
-    </RigidBody>
-  )
+  return <group ref={visualRef} position={position} rotation={[0, yaw, 0]}><ChibikoPencilModel /></group>
 }
 
 export function ChibikoWeapon() {
@@ -217,17 +214,9 @@ export function ChibikoWeapon() {
   const attackPhaseRef = useRef(0)
   const targetYawRef = useRef(0)
   const lastFireRef = useRef(0)
-  const [projectiles, setProjectiles] = useState([])
-  const activeProjectilesRef = useRef([])
+  const targetScratchRef = useRef(createWeaponTargetScratch(1))
+  const [projectiles, activeProjectilesRef, requestProjectiles, expire] = useDeferredProjectileState()
   const weapons = useGameStore((s) => s.weapons)
-
-  const expire = useCallback((id) => {
-    setProjectiles((prev) => {
-      const next = prev.filter((p) => p.id !== id)
-      activeProjectilesRef.current = next
-      return next
-    })
-  }, [])
 
   usePlayingFrame(({ clock }, delta) => {
     const w = weapons.chibiko
@@ -266,9 +255,14 @@ export function ChibikoWeapon() {
     if (now - lastFireRef.current < attack.cooldown) return
     if (activeProjectilesRef.current.length > 0) return
 
-    const target = findClosestEnemy(attack.range)
-    if (!target) return
-    const targetPos = target.rb.translation()
+    const targetScratch = targetScratchRef.current
+    if (scanClosestEnemiesInto(targetScratch, attack.range, 1) === 0) return
+    const special = targetScratch.special[0]
+    const targetIndex = targetScratch.indices[0]
+    const targetGeneration = targetScratch.generations[0]
+    const targetRb = special ?? resolveWeaponTarget(targetIndex, targetGeneration, null)
+    if (!targetRb) return
+    const targetPos = targetRb.translation()
     const yaw = Math.atan2(targetPos.x - posRef.current.x, targetPos.z - posRef.current.z)
     targetYawRef.current = yaw
     attackPhaseRef.current = 0.34
@@ -288,14 +282,15 @@ export function ChibikoWeapon() {
         yaw,
         damage: attack.damage,
         speed: attack.speed,
-        target,
+        targetIndex,
+        targetGeneration: special ? (targetGeneration || null) : targetGeneration,
+        targetSpecial: special,
         critChance: w.critChance,
         critMultiplier: w.critMultiplier,
       }
     })
 
-    activeProjectilesRef.current = nextProjectiles
-    setProjectiles(nextProjectiles)
+    requestProjectiles(nextProjectiles)
   })
 
   if (!weapons.chibiko?.active) return null

@@ -86,10 +86,16 @@ const GYM_MATS_COLLIDER_PARTS = [
 ]
 
 const GYM_SCOREBOARD_COLLIDER_PARTS = [
+  // The visible panel is wall-mounted, but the gameplay blocker needs a low
+  // mounting footprint so the player collider cannot pass through its base.
+  { key: 'gym-scoreboard-mount', position: [0, 0.32, 0.08], size: [2.72, 0.64, 0.2] },
   { key: 'gym-scoreboard-panel', position: [0, 1.15, 0.08], size: [2.72, 1.34, 0.2] },
 ]
 
 const GYM_BANNER_COLLIDER_PARTS = [
+  // A low wall-mount footprint keeps the suspended banner a genuine gameplay
+  // obstacle without changing its visual placement.
+  { key: 'gym-banner-mount', position: [0, 0.32, 0], size: [2.45, 0.64, 0.12] },
   { key: 'gym-banner-cloth', position: [0, 1.12, 0], size: [2.45, 0.64, 0.12] },
   { key: 'gym-banner-rope', position: [0, 1.52, 0], size: [2.64, 0.12, 0.12] },
 ]
