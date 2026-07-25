@@ -13,6 +13,10 @@ const FLOOR_SIZE = 200
 const STAGE1_TILE_WORLD_SIZE = 6.9
 const STAGE2_TILE_WORLD_SIZE = 30
 const STAGE2_TILE_DENSITY_MULTIPLIER = 10
+// 급식실 타일 이미지는 체커 8칸이 한 장이다. 원화(st4_concept.png) 기준 한 칸이
+// 약 2.06 유닛이라 한 장 = 16.5 유닛. stage1 값(6.9)을 쓰면 한 칸 0.86 유닛이 되어
+// 주방 바닥이 아니라 욕실 모자이크로 읽힌다.
+const STAGE4_TILE_WORLD_SIZE = 16.5
 const STAGE1_BOUNDS = getStageBounds('stage1')
 export const STAGE1_FLOOR_WIDTH = STAGE1_BOUNDS.halfX * 2
 export const STAGE1_FLOOR_DEPTH = STAGE1_BOUNDS.halfZ * 2
@@ -36,8 +40,7 @@ export const STAGE_FLOOR_TILES = {
   },
   stage4: {
     src: stage4TileUrl,
-    // 식당 타일은 Stage 1처럼 작은 반복 타일이므로 같은 월드 밀도를 유지한다.
-    repeat: Math.round(FLOOR_SIZE / STAGE1_TILE_WORLD_SIZE),
+    repeat: Math.round(FLOOR_SIZE / STAGE4_TILE_WORLD_SIZE),
     floorSize: FLOOR_SIZE,
   },
 }

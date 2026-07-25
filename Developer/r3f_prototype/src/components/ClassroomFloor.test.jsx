@@ -32,7 +32,9 @@ describe('ClassroomFloor tiling', () => {
 
   it('maps Stage 4 to its dedicated cafeteria tile instead of the Stage 1 fallback', () => {
     expect(STAGE_FLOOR_TILES.stage4.src).toMatch(/tile_stage04_cafeteria/)
-    expect(STAGE_FLOOR_TILES.stage4.repeat).toBe(29)
+    // 체커 8칸/장 × 2.06 유닛 = 한 장 16.5 유닛 (원화 st4_concept.png 기준).
+    // stage1 값(6.9 → repeat 29)을 쓰면 타일이 잘아 욕실 모자이크로 읽힌다.
+    expect(STAGE_FLOOR_TILES.stage4.repeat).toBe(12)
   })
 
   it('limits Stage 1 visual floor to its exact combat bounds with the existing tile density', () => {
