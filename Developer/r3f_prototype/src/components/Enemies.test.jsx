@@ -716,6 +716,22 @@ describe('enemy spawn audio ownership', () => {
 })
 
 describe('pooled standard enemy runtime wiring', () => {
+  it('routes a pooled hit spark to the body while keeping its damage number above the head', () => {
+    const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    const hitHandlerStart = source.indexOf('pooledHitBridgeRef.current =')
+    const hitHandlerEnd = source.indexOf('\n\n  useEffect(() => {', hitHandlerStart)
+    const hitHandler = source.slice(hitHandlerStart, hitHandlerEnd)
+    const flushStart = source.indexOf('while (queue.hitQueue.drainInto(queue.hitScratch))')
+    const flushEnd = source.indexOf('\n      while (queue.deathCount > 0)', flushStart)
+    const hitFlush = source.slice(flushStart, flushEnd)
+
+    // 풀 적도 특수 Enemy와 같은 높이 계약을 지킨다: spark=몸통(0.42), 숫자=머리 위(0.95).
+    expect(hitHandler).toMatch(/enqueuePooledHit\(\s*x,\s*0\.42\s*\*\s*enemyPool\.visualScale\[index\],\s*0\.95\s*\*\s*enemyPool\.visualScale\[index\]/)
+    // flush 단계에서는 두 높이 채널을 각각 소비해야 하며, 예전 단일 hit.y 재사용은 금지한다.
+    expect(hitFlush).toMatch(/createEnemyHitSparkEvent\(\{\s*x:\s*hit\.x,\s*y:\s*Math\.max\(0\.34,\s*hit\.(?:sparkY|bodyY)\),\s*z:\s*hit\.z\s*\}\)/)
+    expect(hitFlush).toMatch(/emitDamageNumber\(\{\s*x:\s*hit\.x,\s*y:\s*Math\.max\(0\.8,\s*hit\.(?:damageNumberY|numberY)\)/)
+  })
+
   it('stagger-checks obstacle sight by LOD while refreshing a new pool generation immediately', () => {
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
     const frameStart = source.indexOf('usePlayingFrame((_, delta) =>')

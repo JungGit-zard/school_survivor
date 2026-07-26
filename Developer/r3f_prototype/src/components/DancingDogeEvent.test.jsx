@@ -38,4 +38,14 @@ describe('DancingDogeEvent 소스 계약', () => {
     expect(source).toContain('alive: !dead.current && !dying')
     expect(source).toContain('playerBody._applyKnockback(knockback.vx, knockback.vz, knockback.durationMs)')
   })
+
+  it('briefly squashes only the in-game Doge visual on each weapon hit, then restores scale', () => {
+    expect(source).toContain('const DOGE_HIT_SQUASH_MS = 120')
+    expect(source).toContain('const hitVisualRef = useRef()')
+    expect(source).toContain('const hitSquashElapsedRef = useRef(DOGE_HIT_SQUASH_MS)')
+    expect(source).toContain('hitSquashElapsedRef.current = 0')
+    expect(source).toContain('hitVisualRef.current')
+    expect(source).toContain('g.scale.set(1, 1, 1)')
+    expect(source).toContain('<group ref={hitVisualRef}>')
+  })
 })

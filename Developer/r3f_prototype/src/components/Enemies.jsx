@@ -725,7 +725,7 @@ export function runPooledEnemyRuntimeSoak(frames = 10_800) {
       if (event.type === ENEMY_EVENT_RANGED_FIRE) projectiles.spawnInto(handle, event.x, event.y, event.z, event.value, event.aux)
     }
     // 실제 런타임과 동일한 bounded hit queue 경로를 반복한다. 화면 효과는 여기서 소비만 한다.
-    if (frame % 2 === 0) hitQueue.push(pool.posX[Math.max(0, pool.nextActiveIndex())] || 0, 0.95, 0, 8, false)
+    if (frame % 2 === 0) hitQueue.push(pool.posX[Math.max(0, pool.nextActiveIndex())] || 0, 0.42, 0.95, 0, 8, false)
     while (hitQueue.drainInto(hit)) {}
     projectiles.step(1 / 60, -100, -100)
     let index = pool.nextActiveIndex()
@@ -823,8 +823,8 @@ export default function Enemies() {
       queue.drainPooled?.()
       while (queue.hitQueue.drainInto(queue.hitScratch)) {
         const hit = queue.hitScratch
-        emitVfx(createEnemyHitSparkEvent({ x: hit.x, y: Math.max(0.34, hit.y), z: hit.z }))
-        emitDamageNumber({ x: hit.x, y: Math.max(0.8, hit.y), z: hit.z, amount: hit.amount, colorHex: hit.critical ? DAMAGE_NUMBER_COLORS.critical : DAMAGE_NUMBER_COLORS.enemy, isCritical: hit.critical })
+        emitVfx(createEnemyHitSparkEvent({ x: hit.x, y: Math.max(0.34, hit.sparkY), z: hit.z }))
+        emitDamageNumber({ x: hit.x, y: Math.max(0.8, hit.numberY), z: hit.z, amount: hit.amount, colorHex: hit.critical ? DAMAGE_NUMBER_COLORS.critical : DAMAGE_NUMBER_COLORS.enemy, isCritical: hit.critical })
       }
       while (queue.deathCount > 0) {
         const slot = queue.deathRead
@@ -895,9 +895,9 @@ export default function Enemies() {
     return true
   }, [scheduleRuntimeFlush])
 
-  const enqueuePooledHit = useCallback((x, y, z, amount, critical) => {
+  const enqueuePooledHit = useCallback((x, sparkY, numberY, z, amount, critical) => {
     const queue = runtimeQueueRef.current
-    if (!queue.hitQueue.push(x, y, z, amount, critical)) return false
+    if (!queue.hitQueue.push(x, sparkY, numberY, z, amount, critical)) return false
     scheduleRuntimeFlush()
     return true
   }, [scheduleRuntimeFlush])
@@ -921,7 +921,7 @@ export default function Enemies() {
         (killed && isBossType(type)) || (Number.isFinite(maxHp) && maxHp > 0 && critical.damage >= maxHp * 0.25),
       )
     }
-    enqueuePooledHit(x, 0.95 * enemyPool.visualScale[index], z, critical.damage, critical.isCritical)
+    enqueuePooledHit(x, 0.42 * enemyPool.visualScale[index], 0.95 * enemyPool.visualScale[index], z, critical.damage, critical.isCritical)
     if (safeImpact.sfxId) emitSfx({ id: safeImpact.sfxId, volume: 0.6 })
     const knockbackSpeed = Number.isFinite(safeImpact.knockback) ? safeImpact.knockback : COMMON_ENEMY_HIT_KNOCKBACK.speed
     const knockbackMs = Number.isFinite(safeImpact.knockbackMs) ? safeImpact.knockbackMs : COMMON_ENEMY_HIT_KNOCKBACK.durationMs

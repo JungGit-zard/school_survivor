@@ -565,6 +565,7 @@ export class EnemySimulationRuntime {
       let velocityX = 0
       let velocityZ = 0
       let moving = false
+      let preserveFacing = false
 
       if (isRunCrew(type)) {
         velocityX = pool.runDirX[index] * ENEMY_RUNTIME_SPEED[type]
@@ -575,6 +576,7 @@ export class EnemySimulationRuntime {
         velocityX = pool.knockbackX[index]
         velocityZ = pool.knockbackZ[index]
         moving = true
+        preserveFacing = true
       } else if (type === 4) {
         resolveRangedEnemyVelocityRaw(this._velocityScratch, dirX, dirZ, distance, (index & 1) === 0 ? 1 : -1)
         velocityX = this._velocityScratch.x
@@ -630,14 +632,14 @@ export class EnemySimulationRuntime {
         }
       }
 
-      if (sightBlocked && sightBlocked[index] && !isRunCrew(type) && pool.knockbackTimer[index] <= 0) {
+      if (sightBlocked && sightBlocked[index] && !isRunCrew(type) && !preserveFacing) {
         const side = ((index + generation) & 1) === 0 ? 1 : -1
         velocityX = -nz * side * ENEMY_RUNTIME_SPEED[type] * 0.55
         velocityZ = nx * side * ENEMY_RUNTIME_SPEED[type] * 0.55
         moving = true
       }
 
-      if (pool.detourMs[index] > 0 && moving && (velocityX !== 0 || velocityZ !== 0)) {
+      if (!preserveFacing && pool.detourMs[index] > 0 && moving && (velocityX !== 0 || velocityZ !== 0)) {
         pool.detourMs[index] = Math.max(0, pool.detourMs[index] - deltaMs)
         const length = Math.hypot(velocityX, velocityZ) || 1
         const sign = pool.detourSign[index] || (((index + generation) & 1) === 0 ? 1 : -1)
@@ -681,7 +683,7 @@ export class EnemySimulationRuntime {
         }
       }
 
-      if (moving && (velocityX !== 0 || velocityZ !== 0)) pool.yaw[index] = Math.atan2(velocityX, velocityZ)
+      if (!preserveFacing && moving && (velocityX !== 0 || velocityZ !== 0)) pool.yaw[index] = Math.atan2(velocityX, velocityZ)
       pool.velX[index] = velocityX
       pool.velZ[index] = velocityZ
       let nextX = posX

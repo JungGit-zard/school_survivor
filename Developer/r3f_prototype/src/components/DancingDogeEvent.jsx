@@ -39,6 +39,8 @@ const DEATH_POP_MS = 300
 // 도주 성공(경계 이탈) 시 펑 연기 소멸 연출 길이 — SpawnSmokeEffect 전체 수명과 동일하게
 // 두어 연기가 끝까지 재생된 뒤 onEscape로 제거를 위임한다.
 const ESCAPE_POOF_MS = 850
+// 무기 피격은 짧게 납작해졌다 복원한다. 물리/체력바 바깥의 전용 시각 그룹만 바꾼다.
+const DOGE_HIT_SQUASH_MS = 120
 
 export default function DancingDogeEvent({
   id, position, scale = 1, hp = 200,
@@ -56,6 +58,8 @@ export default function DancingDogeEvent({
   const deathPosRef = useRef([0, 0, 0])
   const deathElapsedRef = useRef(0)
   const deathGroupRef = useRef()
+  const hitVisualRef = useRef()
+  const hitSquashElapsedRef = useRef(DOGE_HIT_SQUASH_MS)
   // 도주 이동 상태 — posRef가 현재 월드 좌표의 단일 정본(콜라이더/연기/조준이 모두 따라감).
   const posRef = useRef([...position])
   const holdElapsedRef = useRef(0)
@@ -133,6 +137,27 @@ export default function DancingDogeEvent({
     }
   })
 
+  // 피격 즉시 타이머를 다시 시작해 연타에도 마지막 타격부터 120ms 동안 읽히게 한다.
+  // 이 그룹은 모델만 감싸므로 콜라이더·체력바·월드 좌표에는 영향을 주지 않는다.
+  useFrame((_, delta) => {
+    const g = hitVisualRef.current
+    if (!g) return
+    if (dying || escaping || finished) {
+      g.scale.set(1, 1, 1)
+      return
+    }
+    if (phase !== 'playing') return
+
+    const elapsed = hitSquashElapsedRef.current
+    if (elapsed >= DOGE_HIT_SQUASH_MS) {
+      g.scale.set(1, 1, 1)
+      return
+    }
+    const amount = 1 - elapsed / DOGE_HIT_SQUASH_MS
+    g.scale.set(1 + amount * 0.12, 1 - amount * 0.22, 1 + amount * 0.12)
+    hitSquashElapsedRef.current = Math.min(DOGE_HIT_SQUASH_MS, elapsed + delta * 1000)
+  })
+
   // enemyBodies 등록 + 피격/사망 처리 — 리빌 이후 물리 바디가 생겼을 때만.
   useEffect(() => {
     if (!revealed || !rb.current) return
@@ -144,6 +169,7 @@ export default function DancingDogeEvent({
       if (dead.current) return
       const t = body.translation()
       emitVfx(createEnemyHitSparkEvent({ x: t.x, y: Math.max(0.34, 0.6 * scale), z: t.z }))
+      hitSquashElapsedRef.current = 0
       if (impact?.sfxId) emitSfx({ id: impact.sfxId, volume: 0.6 })
       hpRef.current -= dmg
       setHpState(hpRef.current)
@@ -213,7 +239,9 @@ export default function DancingDogeEvent({
             }}
           />
           <group ref={waddleRef}>
-            <DancingDoge position={[0, 0, 0]} dance="twist" scale={scale} paused={phase !== 'playing'} />
+            <group ref={hitVisualRef}>
+              <DancingDoge position={[0, 0, 0]} dance="twist" scale={scale} paused={phase !== 'playing'} />
+            </group>
           </group>
           <MiniHealthBar current={hpState} max={hp} width={0.5 * scale} height={0.06 * scale} y={1.75 * scale} />
         </RigidBody>

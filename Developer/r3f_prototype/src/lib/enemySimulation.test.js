@@ -65,6 +65,54 @@ function context(overrides = {}) {
   return { delta: 1 / 60, playerX: 0, playerZ: 0, halfX: 12, halfZ: 12, elapsedSec: 100, ...overrides }
 }
 
+describe('EnemySimulation knockback facing', () => {
+  it('preserves pre-hit facing and knockback movement through the final sight-blocked frame, then resumes chase facing', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const target = spawn(pool, 'E01', 5, 0, { spawnTimer: 300 })
+    const sightBlocked = new Uint8Array(MAX_ENEMIES)
+
+    runtime.step(pool, context())
+    const preHitYaw = pool.yaw[target.index]
+    const preHitX = pool.posX[target.index]
+    expect(runtime.applyHit(pool, target, 1, 3.5, 0, 1)).toBe(true)
+    sightBlocked[target.index] = 1
+
+    runtime.step(pool, context({ sightBlocked }))
+
+    expect(pool.hitFlashTimer[target.index]).toBeGreaterThan(0)
+    expect(pool.knockbackTimer[target.index]).toBe(0)
+    expect(pool.velX[target.index]).toBeCloseTo(3.5, 6)
+    expect(pool.posX[target.index]).toBeGreaterThan(preHitX)
+    expect(pool.yaw[target.index]).toBeCloseTo(preHitYaw, 6)
+
+    runtime.step(pool, context({ playerX: pool.posX[target.index], playerZ: 10 }))
+    expect(pool.velZ[target.index]).toBeGreaterThan(0)
+    expect(pool.yaw[target.index]).toBeCloseTo(Math.atan2(pool.velX[target.index], pool.velZ[target.index]), 6)
+    expect(pool.yaw[target.index]).not.toBeCloseTo(preHitYaw, 6)
+  })
+
+  it('preserves facing and knockback movement while a detour is pending', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const target = spawn(pool, 'E01', 5, 0, { spawnTimer: 300 })
+
+    runtime.step(pool, context())
+    const preHitYaw = pool.yaw[target.index]
+    const preHitX = pool.posX[target.index]
+    pool.detourMs[target.index] = 420
+    pool.detourSign[target.index] = 1
+    expect(runtime.applyHit(pool, target, 1, 3.5, 0, 100)).toBe(true)
+
+    runtime.step(pool, context())
+
+    expect(pool.velX[target.index]).toBeCloseTo(3.5, 6)
+    expect(pool.velZ[target.index]).toBeCloseTo(0, 6)
+    expect(pool.posX[target.index]).toBeGreaterThan(preHitX)
+    expect(pool.yaw[target.index]).toBeCloseTo(preHitYaw, 6)
+  })
+})
+
 describe('enemySimulation 순수 일반 적 런타임', () => {
   it('3분 soak에서도 200 슬롯/프록시/typed-array 불변식을 유지한다', () => {
     const pool = createEnemyEntityPool()
