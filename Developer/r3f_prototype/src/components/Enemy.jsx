@@ -25,6 +25,7 @@ import {
   resolveChefBossActiveStats,
 } from '../lib/chefBossPhase.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
+import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { isBossType } from '../lib/burstEvents.js'
 import { getStageObjectSightObstacles, isStageObjectSightBlocked } from './StageObjects/stageObjectColliders.js'
 import { isPlayerWeaponSightBlocked } from '../lib/weaponTargeting.js'
@@ -375,9 +376,13 @@ export function resetActiveE04ProjectileCountForTest() {
 // E01-E06 standard zombies render via ZombieInstanceLayer (instanced). B01 + Matilda use React mesh.
 const INSTANCED_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06'])
 
-export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false }) {
+export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false, scale }) {
   const stats = ENEMY_STATS[type] ?? ENEMY_STATS.E01
-  const cs = stats.scale * ENEMY_SIZE_MULTIPLIER
+  // scale prop lets a caller (Enemy) pass the merged statOverride scale (e.g. Matilda's 3.0)
+  // so the rendered body matches the physics collider exactly. Falls back to the base
+  // ENEMY_STATS scale when omitted -- every other caller (GraphicsStudio preview, StageBossPreview)
+  // is unaffected.
+  const cs = (scale ?? stats.scale) * ENEMY_SIZE_MULTIPLIER
   const useInstanced = !forceMesh && !isMatilda && INSTANCED_TYPES.has(type)
   const currentHp = hp ?? stats.hp
 
@@ -546,7 +551,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     chefPhaseRef.current = CHEF_PHASE1
     chefTelegraphStartRef.current = 0
     sightBlockedRef.current = false
-    nextSightCheckRef.current = useGameStore.getState().elapsedMs + (stableEnemyHash(id) % 90)
+    nextSightCheckRef.current = getRuntimeElapsedMs(useGameStore.getState().elapsedMs) + (stableEnemyHash(id) % 90)
     queueVisualState('animPhase', isMatilda ? 'stun' : 'normal')
     emitEnemySpawnSfx(type, isMatilda)
   }, [id, type, isMatilda])
@@ -682,7 +687,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       return
     }
 
-    const elapsedMs = useGameStore.getState().elapsedMs
+    const elapsedMs = getRuntimeElapsedMs(useGameStore.getState().elapsedMs)
     // 시야 차단 배회는 이 early return보다 뒤에 있는 chefBoss 페이즈 로직과
     // 원거리 발사를 통째로 건너뛴다. B04를 여기 태우면 플레이어가 stage4 중앙
     // 조리대 뒤에 서는 순간 보스가 사격·돌진·페이즈 전환을 전부 멈추고, 플레이어
@@ -747,7 +752,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       rb.current.setLinvel(_vel, true)
       if (_dir.length() > 0) _applyRotation(groupRef, _dir.x / _dir.length(), _dir.z / _dir.length())
 
-      const elapsedSec = useGameStore.getState().elapsedMs / 1000
+      const elapsedSec = getRuntimeElapsedMs(useGameStore.getState().elapsedMs) / 1000
       // stage4는 원거리 "안전지대 소멸"이 시그니처라 보스 구간에도 E04 발사를 유지한다(bossPressure 미적용).
       // 스2/스3의 보스 구간 발사 차단은 그대로.
       const fireArgs = e04FireArgsRef.current
@@ -982,7 +987,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           colliders={false}
         >
           <CuboidCollider args={colArgs} />
-          <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} isMatilda={isMatilda} />
+          <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} isMatilda={isMatilda} scale={stats.scale} />
         </RigidBody>
       )}
 

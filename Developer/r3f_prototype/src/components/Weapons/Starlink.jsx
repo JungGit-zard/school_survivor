@@ -2,7 +2,7 @@ import { useRef, useState, useCallback, useMemo, useEffect } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
-import { enemyBodies, playerPos, screenBounds } from '../../lib/refs.js'
+import { enemyBodies, enemyPool, playerPos, screenBounds } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
@@ -30,16 +30,34 @@ export function getScreenCenterCrashLandingPoint() {
   }
 }
 
-function pickStrikeTargets(strikeCenter, strikeCount) {
+function isPoolProxy(rb) {
+  return Number.isInteger(rb?.index) && rb.index >= 0 && rb.index < enemyPool.proxies.length
+    && enemyPool.proxies[rb.index] === rb
+}
+
+// 낙뢰 지점 후보를 고른다. 실제 데미지는 applyRadialDamage(x,z 반경 재스캔)로 별도 적용되므로
+// 여기서는 위치(x,z)만 있으면 충분하다 — pool+Map을 함께 훑되 rb 참조는 반환하지 않는다.
+export function pickStrikeTargets(strikeCenter, strikeCount) {
   // 플레이어 주변 strikeCenter 안 적들을 모은 뒤 무작위로 strikeCount개 선택.
   const candidates = []
+  const strikeCenterSq = strikeCenter * strikeCenter
+  for (let index = 0; index <= enemyPool.highestActive; index += 1) {
+    if (!enemyPool.active[index]) continue
+    const x = enemyPool.posX[index]
+    const z = enemyPool.posZ[index]
+    const dx = x - playerPos.x
+    const dz = z - playerPos.z
+    if (dx * dx + dz * dz > strikeCenterSq) continue
+    candidates.push({ x, z })
+  }
   enemyBodies.forEach((rb) => {
+    if (isPoolProxy(rb)) return // 풀 프록시가 Map에 중복 등록되어도 위 루프에서 이미 처리했다.
     if (!rb?._enemyHit || rb._enemyDead) return
     const t = rb.translation()
     const dx = t.x - playerPos.x
     const dz = t.z - playerPos.z
-    if (dx * dx + dz * dz > strikeCenter * strikeCenter) return
-    candidates.push({ x: t.x, z: t.z, rb })
+    if (dx * dx + dz * dz > strikeCenterSq) return
+    candidates.push({ x: t.x, z: t.z })
   })
   if (candidates.length === 0) return []
 

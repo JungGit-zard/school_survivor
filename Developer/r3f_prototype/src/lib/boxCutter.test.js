@@ -1,5 +1,17 @@
-import { describe, expect, it } from 'vitest'
-import { isPointInBoxCutterStrike, pickBoxCutterTargets } from './boxCutter.js'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { isPointInBoxCutterStrike, pickBoxCutterTargets, ENEMY_HIT_PAD } from './boxCutter.js'
+import { enemyBodies, enemyPool } from './refs.js'
+
+afterEach(() => {
+  enemyBodies.clear()
+  enemyPool.reset()
+})
+
+function spawnPooledEnemy(x, z, hit = vi.fn()) {
+  const handle = enemyPool.spawn({ type: 'E01', x, y: 0, z, hp: 10, maxHp: 10 })
+  enemyPool.setHitHandler(handle, hit)
+  return { handle, hit }
+}
 
 describe('box cutter strike targeting', () => {
   const origin = { x: 0, z: 0 }
@@ -82,5 +94,37 @@ describe('box cutter strike targeting', () => {
     })
 
     expect(targets).toEqual([])
+  })
+
+  it('hits a pooled standard enemy directly in front of the player', () => {
+    const pooled = spawnPooledEnemy(0.04, 0.62)
+
+    const targets = pickBoxCutterTargets({ origin, facing, range: 0.85, width: 0.22 })
+
+    expect(targets).toHaveLength(1)
+    expect(targets[0].rb).toBe(enemyPool.get(pooled.handle))
+    expect(targets[0].generation).toBe(pooled.handle.generation)
+  })
+
+  it('accepts a pooled enemy whose center is outside the raw lane but within ENEMY_HIT_PAD (radius padding)', () => {
+    // width 0.18 → 반폭 0.09. 좀비 중심을 0.09~(0.09+PAD) 사이에 두면, 패딩 없이는 탈락하지만
+    // pickBoxCutterTargets는 ENEMY_HIT_PAD(E01 콜라이더 반폭)만큼 옆으로 넓혀 판정해야 한다.
+    const lateral = 0.09 + ENEMY_HIT_PAD / 2
+    const pooled = spawnPooledEnemy(lateral, 0.62)
+
+    expect(isPointInBoxCutterStrike({ origin, facing, point: { x: lateral, z: 0.62 }, range: 1.4, width: 0.18 })).toBe(false)
+
+    const targets = pickBoxCutterTargets({ origin, facing, range: 1.4, width: 0.18 })
+
+    expect(targets.map((t) => t.rb)).toContain(enemyPool.get(pooled.handle))
+  })
+
+  it('does not double-count a pooled proxy that is also duplicated in the Map', () => {
+    const pooled = spawnPooledEnemy(0.04, 0.62)
+    enemyBodies.set('dup', enemyPool.get(pooled.handle))
+
+    const targets = pickBoxCutterTargets({ origin, facing, range: 0.85, width: 0.22 })
+
+    expect(targets).toHaveLength(1)
   })
 })

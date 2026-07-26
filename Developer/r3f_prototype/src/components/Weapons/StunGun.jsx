@@ -2,10 +2,13 @@ import { useRef, useState, useCallback, useMemo } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
-import { enemyBodies, playerPos } from '../../lib/refs.js'
+import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
 import { toonMat } from '../../lib/toon.js'
+import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
+import { findClosestEnemy } from '../../lib/weaponTargeting.js'
+import { STUN_GUN_TARGET_RANGE, pickStunGunChainTarget } from '../../lib/stunGun.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _stunBoltId  = 0
@@ -96,7 +99,7 @@ function ChainArcVisual({ id, fromX, fromZ, toX, toZ, startMs, onDone }) {
   )
 }
 
-function StunBoltProjectile({ id, startX, startZ, targetId, damage, critChance, critMultiplier, hitSet, chainsLeft, chainDepth, onHit, onExpire }) {
+function StunBoltProjectile({ id, startX, startZ, targetRb, targetGeneration, damage, critChance, critMultiplier, hitSet, chainsLeft, chainDepth, onHit, onExpire }) {
   const groupRef = useRef()
   const posRef   = useRef({ x: startX, z: startZ })
   const doneRef  = useRef(false)
@@ -107,25 +110,24 @@ function StunBoltProjectile({ id, startX, startZ, targetId, damage, critChance, 
     ageRef.current += delta
     if (ageRef.current > 2.5) { doneRef.current = true; onExpire(id); return }
 
-    const target = enemyBodies.get(targetId)
-    if (!target || target._enemyDead) { doneRef.current = true; onExpire(id); return }
+    if (!isEnemyHitLive(targetRb, targetGeneration)) { doneRef.current = true; onExpire(id); return }
 
-    const tt   = target.translation()
+    const tt   = targetRb.translation()
     const dx   = tt.x - posRef.current.x
     const dz   = tt.z - posRef.current.z
     const dist = Math.hypot(dx, dz) || 0.001
 
     if (dist < 0.4) {
       doneRef.current = true
-      if (target._enemyHit) {
-        target._enemyHit(damage, { knockback: 2.2, knockbackMs: 80, critChance, critMultiplier })
+      const hit = applyEnemyHit(targetRb, targetGeneration, damage, { knockback: 2.2, knockbackMs: 80, critChance, critMultiplier })
+      if (hit) {
         emitSfx({
           id: 'stunGunHit',
           volume: 0.55,
           rate: 1 + Math.min(chainDepth, 2) * 0.06,
         })
       }
-      onHit(id, startX, startZ, tt.x, tt.z, targetId, hitSet, chainsLeft, chainDepth)
+      onHit(id, startX, startZ, tt.x, tt.z, targetRb, hitSet, chainsLeft, chainDepth)
       return
     }
 
@@ -161,7 +163,7 @@ export function StunGunWeapon() {
   const removeArc = useCallback(id =>
     setArcs(prev => prev.filter(a => a.id !== id)), [])
 
-  const onBoltHit = useCallback((id, fromX, fromZ, hitX, hitZ, hitEnemyId, hitSet, chainsLeft, chainDepth) => {
+  const onBoltHit = useCallback((id, fromX, fromZ, hitX, hitZ, hitRb, hitSet, chainsLeft, chainDepth) => {
     setBolts(prev => prev.filter(b => b.id !== id))
     setArcs(prev => [...prev, {
       id:      ++_chainArcId,
@@ -171,20 +173,15 @@ export function StunGunWeapon() {
       startMs: performance.now(),
     }])
     if (chainsLeft <= 0) return
-    let nextId = null, nextDist = Infinity
-    enemyBodies.forEach((rb, eid) => {
-      if (hitSet.has(eid) || rb._enemyDead) return
-      const t = rb.translation()
-      const d = Math.hypot(t.x - hitX, t.z - hitZ)
-      if (d < CHAIN_RANGE && d < nextDist) { nextDist = d; nextId = eid }
-    })
-    if (!nextId) return
-    hitSet.add(nextId)
+    const next = pickStunGunChainTarget(hitX, hitZ, hitSet, CHAIN_RANGE)
+    if (!next) return
+    hitSet.add(next.rb)
     setBolts(prev => [...prev, {
-      id:         ++_stunBoltId,
-      startX:     hitX,
-      startZ:     hitZ,
-      targetId:   nextId,
+      id:              ++_stunBoltId,
+      startX:          hitX,
+      startZ:          hitZ,
+      targetRb:        next.rb,
+      targetGeneration: next.generation,
       hitSet,
       chainsLeft: chainsLeft - 1,
       chainDepth: chainDepth + 1,
@@ -196,23 +193,18 @@ export function StunGunWeapon() {
     const now = clock.elapsedTime * 1000   // 다른 무기들과 동일한 타임소스
     if (now - lastFireRef.current < cooldown) return
     if (bolts.length > 0) return
-    let nearestId = null, nearestDist = Infinity
-    enemyBodies.forEach((rb, eid) => {
-      if (rb._enemyDead) return
-      const t = rb.translation()
-      const d = Math.hypot(t.x - playerPos.x, t.z - playerPos.z)
-      if (d < nearestDist) { nearestDist = d; nearestId = eid }
-    })
-    if (!nearestId) return
+    const nearest = findClosestEnemy(STUN_GUN_TARGET_RANGE)
+    if (!nearest) return
     lastFireRef.current = now
     emitSfx({ id: 'stunGunFire' })
 
-    const hitSet = new Set([nearestId])
+    const hitSet = new Set([nearest.rb])
     setBolts([{
-      id:         ++_stunBoltId,
-      startX:     playerPos.x,
-      startZ:     playerPos.z,
-      targetId:   nearestId,
+      id:              ++_stunBoltId,
+      startX:          playerPos.x,
+      startZ:          playerPos.z,
+      targetRb:        nearest.rb,
+      targetGeneration: nearest.generation,
       hitSet,
       chainsLeft: chainCount - 1,
       chainDepth: 0,
@@ -228,7 +220,8 @@ export function StunGunWeapon() {
           id={b.id}
           startX={b.startX}
           startZ={b.startZ}
-          targetId={b.targetId}
+          targetRb={b.targetRb}
+          targetGeneration={b.targetGeneration}
           damage={damage}
           critChance={critChance}
           critMultiplier={critMultiplier}

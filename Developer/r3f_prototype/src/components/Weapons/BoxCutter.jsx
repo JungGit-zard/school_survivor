@@ -2,8 +2,9 @@ import { useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
-import { enemyBodies, playerArmActionState, playerFacing, playerPos } from '../../lib/refs.js'
+import { playerArmActionState, playerFacing, playerPos } from '../../lib/refs.js'
 import { pickBoxCutterTargets, normalizePlanarFacing } from '../../lib/boxCutter.js'
+import { applyEnemyHit } from '../../lib/weaponCollision.js'
 import { startPlayerArmAction, computeBoxCutterActionPhases, BOX_CUTTER_ACTION_MS } from '../../lib/playerArmAction.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
@@ -216,7 +217,6 @@ export function BoxCutterWeapon() {
 
     const facing = normalizePlanarFacing(playerFacing)
     const targets = pickBoxCutterTargets({
-      enemies: enemyBodies,
       origin: playerPos,
       facing,
       range: w.range ?? 1.275,
@@ -227,14 +227,15 @@ export function BoxCutterWeapon() {
     lastFireRef.current = now
     emitSfx({ id: 'boxCutterFire' })
     startPlayerArmAction(playerArmActionState, 'boxCutter', now, duration)
-    targets.forEach(({ rb }) => {
-      rb._enemyHit(w.damage, {
+    targets.forEach(({ rb, generation }) => {
+      const hit = applyEnemyHit(rb, generation, w.damage, {
         source: { x: playerPos.x, z: playerPos.z },
         knockback: w.knockback ?? 1.8,
         knockbackMs: 80,
         critChance: w.critChance,
         critMultiplier: w.critMultiplier,
       })
+      if (!hit) return
       emitSfx({
         id: 'boxCutterHit',
         volume: 0.52,

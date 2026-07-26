@@ -204,6 +204,18 @@ describe('random-interval discrete wave scheduler', () => {
     expect(waveSizeForPhase(undefined)).toBe(1)
   })
 
+  // 2026-07-26 사용자 요청: 1스테이지 1웨이브 수량 70%로 조정(target 24→17).
+  // 파생 체인: waveSizeForPhase round(17×0.5)=9 → rawWaveSizeForStage stage1 round(9×1.15)=10.
+  // stage1은 밀도배율 앵커(×1)라 waveSizeForStageAtTime도 그대로 10. 기존 14의 ~71%.
+  it('locks stage1 wave 1 (t=0 phase) runtime size at 10 (~71% of the previous 14)', () => {
+    const wave1Phase = WAVE_PHASES[0]
+    expect(wave1Phase.start).toBe(0)
+    expect(wave1Phase.target).toBe(17)
+    expect(waveSizeForStageAtTime(wave1Phase, 'stage1', 0)).toBe(10)
+    // 중간 보강 스폰도 함께 하향: base round(9×0.5)=5 → round(5×1.15)=6 (기존 7에서 하향).
+    expect(midWaveSize(wave1Phase)).toBe(6)
+  })
+
   it('schedules stage 2 opening waves at 0s and 30s, then triples only those two spawns', () => {
     const opening = { target: 18 }
     const thirtySecond = { target: 22 }
@@ -359,9 +371,12 @@ describe('jarmob expected total HP rises exactly +10% per stage', () => {
     return base * hpMult * densMult
   }
 
-  it('anchors stage1 base expected jarmob HP in the ~4500-4650 range', () => {
+  // 2026-07-26: 1웨이브 target 24→17(사용자 요청 70% 조정)로 앵커가 소폭 하락(4565.86→4493.86, -1.6%).
+  // stage2~4 HP/밀도 배율도 √c 파생이라 함께 ~0.79% 하락하지만(예: stage2 1.1133→1.1045),
+  // 실효 영향은 무시 가능한 수준 — 이 테스트의 하한만 새 값에 맞춰 낮춘다.
+  it('anchors stage1 base expected jarmob HP in the ~4450-4650 range', () => {
     const anchor = stageExpectedBaseJarmobHp('stage1')
-    expect(anchor).toBeGreaterThanOrEqual(4500)
+    expect(anchor).toBeGreaterThanOrEqual(4450)
     expect(anchor).toBeLessThanOrEqual(4650)
   })
 

@@ -1,10 +1,11 @@
 import { useRef, useState, useCallback, useMemo } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
-import { enemyBodies, playerPos } from '../../lib/refs.js'
+import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { findClosestEnemy } from '../../lib/weaponTargeting.js'
+import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
 import { createOnigiriBurstGrains, pickNextOnigiriTarget } from '../../lib/onigiri.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
@@ -134,9 +135,8 @@ function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, boun
     spinRef.current += delta * 15
 
     const target = targetRef.current
-    if (!target?.rb || target.rb._enemyDead || !target.rb._enemyHit) {
+    if (!isEnemyHitLive(target.rb, target.generation)) {
       const next = pickNextOnigiriTarget({
-        enemyBodies,
         from: posRef.current,
         hitSet: hitSetRef.current,
       })
@@ -156,22 +156,23 @@ function OnigiiriProjectile({ id, start, initialTarget, maxBounces, damage, boun
 
     if (dist < 0.30) {
       const hitIndex = maxBounces - bouncesRef.current
-      target.rb._enemyHit(damage, {
+      const hit = applyEnemyHit(target.rb, target.generation, damage, {
         source: { x: p.x, z: p.z },
         knockback: 3.2, knockbackMs: 90,
         critChance,
         critMultiplier,
       })
-      emitSfx({
-        id: 'onigiriHit',
-        volume: 0.50,
-        rate: 0.96 + Math.min(hitIndex, 2) * 0.06,
-      })
+      if (hit) {
+        emitSfx({
+          id: 'onigiriHit',
+          volume: 0.50,
+          rate: 0.96 + Math.min(hitIndex, 2) * 0.06,
+        })
+      }
       bouncesRef.current--
       p.x = t.x; p.z = t.z
 
       const next = pickNextOnigiriTarget({
-        enemyBodies,
         from: { x: t.x, z: t.z },
         hitSet: hitSetRef.current,
         range: bounceRange,

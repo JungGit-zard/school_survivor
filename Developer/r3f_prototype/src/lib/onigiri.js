@@ -1,8 +1,33 @@
-export function pickNextOnigiriTarget({ enemyBodies, from, hitSet = new Set(), range = Number.POSITIVE_INFINITY }) {
+import { enemyBodies as globalEnemyBodies, enemyPool } from './refs.js'
+import { captureEnemyGeneration } from './weaponCollision.js'
+
+function isPoolProxy(rb) {
+  return Number.isInteger(rb?.index) && rb.index >= 0 && rb.index < enemyPool.proxies.length
+    && enemyPool.proxies[rb.index] === rb
+}
+
+// 일반 적은 EntityPool이 정본이다. enemyBodies(Map)는 최대 3개의 보스/특수 적 호환용이며
+// 기본값은 전역 enemyBodies이지만, 테스트에서는 고정 픽스처 Map을 넘겨 순수하게 검증한다.
+export function pickNextOnigiriTarget({ enemyBodies = globalEnemyBodies, from, hitSet = new Set(), range = Number.POSITIVE_INFINITY }) {
   let next = null
   let minDSq = range * range
 
+  for (let index = 0; index <= enemyPool.highestActive; index += 1) {
+    if (!enemyPool.active[index]) continue
+    const rb = enemyPool.proxies[index]
+    const enemyId = rb._enemyId
+    if (hitSet.has(enemyId)) continue
+    const dx = enemyPool.posX[index] - from.x
+    const dz = enemyPool.posZ[index] - from.z
+    const dSq = dx * dx + dz * dz
+    if (dSq < minDSq) {
+      minDSq = dSq
+      next = { rb, enemyId, generation: enemyPool.generation[index] }
+    }
+  }
+
   enemyBodies.forEach((rb, enemyId) => {
+    if (isPoolProxy(rb)) return // 풀 프록시가 Map에 중복 등록되어도 위 루프에서 이미 처리했다.
     if (hitSet.has(enemyId) || !rb?._enemyHit || rb._enemyDead) return
     const et = rb.translation()
     const dx = et.x - from.x
@@ -10,7 +35,7 @@ export function pickNextOnigiriTarget({ enemyBodies, from, hitSet = new Set(), r
     const dSq = dx * dx + dz * dz
     if (dSq < minDSq) {
       minDSq = dSq
-      next = { rb, enemyId }
+      next = { rb, enemyId, generation: captureEnemyGeneration(rb) }
     }
   })
 
