@@ -293,6 +293,77 @@ describe('stage object blocking colliders', () => {
     }
   })
 
+  // ── stage4 벽면 비대칭 포켓 회귀(balanceqa R4, 2026-07-26) ───────────────────
+  // 플레이어 전폭(0.272, Player.jsx:162)보다 넓고 최소 좀비 E01 직경(0.747,
+  // enemySimulation.js:10,51 — B04 반경도 0.747)보다 좁은 틈은 플레이어만 숨을 수 있는
+  // 비대칭 포켓이 된다. 근접 좀비는 진입 못 하고 플레이어 무기는 프랍에 시야가 막혀
+  // 반격도 안 되는 무적 지대라 어느 쪽이든 금지다.
+  // 허용은 둘 중 하나뿐 — 밀폐(플레이어도 못 들어감) 또는 개방(B04까지 들어옴).
+  const PLAYER_PASSABLE_WIDTH = 0.272
+  const SMALLEST_ZOMBIE_DIAMETER = 0.747
+  const OPEN_GAP_MIN = SMALLEST_ZOMBIE_DIAMETER + 0.1 // 0.847 → 0.85로 올려 잡는다
+  const SEALED_GAP_MAX = PLAYER_PASSABLE_WIDTH
+
+  function isAsymmetricPocket(gap) {
+    return gap >= SEALED_GAP_MAX && gap < OPEN_GAP_MIN
+  }
+
+  // 좌표를 하드코딩하지 않는다. stage4 solid 프랍이 늘거나 움직이면 자동으로 걸린다.
+  it('leaves no player-only pocket between Stage 4 props and the cafeteria walls', () => {
+    const { halfX, halfZ } = getStageBounds('stage4')
+    const violations = []
+
+    getStageObjectColliders('stage4').forEach((collider) => {
+      const { minX, maxX, minZ, maxZ } = getWorldAabb(collider)
+      const gaps = {
+        '-X': minX - -halfX,
+        '+X': halfX - maxX,
+        '-Z': minZ - -halfZ,
+        '+Z': halfZ - maxZ,
+      }
+
+      Object.entries(gaps).forEach(([direction, gap]) => {
+        if (isAsymmetricPocket(gap)) {
+          violations.push(`${collider.id} ${direction} gap=${gap.toFixed(3)}`)
+        }
+      })
+    })
+
+    expect(violations.join('\n')).toBe('')
+  })
+
+  it('leaves no player-only pocket between neighbouring Stage 4 props', () => {
+    const boxes = getStageObjectColliders('stage4').map((collider) => ({
+      id: collider.id,
+      ...getWorldAabb(collider),
+    }))
+    const violations = []
+
+    for (let first = 0; first < boxes.length; first += 1) {
+      for (let second = first + 1; second < boxes.length; second += 1) {
+        const a = boxes[first]
+        const b = boxes[second]
+        const gapX = Math.max(a.minX - b.maxX, b.minX - a.maxX)
+        const gapZ = Math.max(a.minZ - b.maxZ, b.minZ - a.maxZ)
+
+        // 두 축 모두 겹치면 프랍끼리 관통이다(별도 non-overlap 테스트가 잡는다).
+        if (gapX < 0 && gapZ < 0) continue
+
+        // 분리축의 틈이 실제 통로 폭이다. 다른 축이 전혀 겹치지 않으면 대각선으로
+        // 비켜 갈 수 있으므로 통로로 치지 않는다.
+        const separatingGap = gapX > gapZ ? gapX : gapZ
+        const overlapsOtherAxis = gapX > gapZ ? gapZ < 0 : gapX < 0
+        if (!overlapsOtherAxis) continue
+
+        if (isAsymmetricPocket(separatingGap)) {
+          violations.push(`${a.id} | ${b.id} gap=${separatingGap.toFixed(3)}`)
+        }
+      }
+    }
+
+    expect(violations.join('\n')).toBe('')
+  })
+
   it('mounts the stage object collider layer beside the visual prop layer', () => {
     const source = readFileSync(new URL('../Floor.jsx', import.meta.url), 'utf8')
 

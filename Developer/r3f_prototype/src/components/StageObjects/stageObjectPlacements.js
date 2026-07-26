@@ -425,14 +425,16 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-cookline-north-center',
       type: 'kitchenCookLine',
-      position: [-0.6, 0, -14.6],
+      // 벽 밀착(밀폐): 벽 틈 0.750 → 0.200. 플레이어 전폭 0.272보다 좁아 뒤로 못 돈다.
+      position: [-0.6, 0, -15.15],
       rotation: [0, 0, 0],
       scale: 1.16,
     },
     {
       id: 'stage4-refrigerator-north-west-closed',
       type: 'kitchenRefrigerator',
-      position: [-12.6, 0, -14.4],
+      // 벽 밀착(밀폐): 옆 냉장고와 전면을 맞춘다. 벽 틈 1.030 → 0.229.
+      position: [-12.6, 0, -15.2],
       rotation: [0, 0.12, 0],
       scale: 1.08,
       props: { open: false },
@@ -440,7 +442,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-refrigerator-north-west-open',
       type: 'kitchenRefrigerator',
-      position: [-9.6, 0, -14.6],
+      // 벽 밀착(밀폐): 벽 틈 0.812 → 0.212.
+      position: [-9.6, 0, -15.2],
       rotation: [0, -0.18, 0],
       scale: 1.05,
       props: { open: true },
@@ -448,7 +451,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-crates-north-west-corner',
       type: 'kitchenCrateStack',
-      position: [-13.2, 0, -11.6],
+      // 안쪽으로 당김(개방): 벽 틈 0.749 → 0.899. B04 직경 0.747도 통과한다.
+      position: [-13.05, 0, -11.6],
       rotation: [0, 0.36, 0],
       scale: 1.02,
       props: { count: 3 },
@@ -510,7 +514,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-trash-east-wheelie',
       type: 'kitchenTrashBins',
-      position: [13.3, 0, -0.8],
+      // 안쪽으로 당김(개방): 벽 틈 0.686 → 0.886.
+      position: [13.1, 0, -0.8],
       rotation: [0, -Math.PI / 2 - 0.22, 0],
       scale: 1.02,
       props: { variant: 'wheelie' },
@@ -525,7 +530,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-crates-east-mid',
       type: 'kitchenCrateStack',
-      position: [13.2, 0, 5.8],
+      // 안쪽으로 당김(개방): 벽 틈 0.750 → 0.900.
+      position: [13.05, 0, 5.8],
       rotation: [0, -0.28, 0],
       scale: 1.05,
       props: { count: 4 },
@@ -567,7 +573,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-trash-west-wheelie',
       type: 'kitchenTrashBins',
-      position: [-13.4, 0, -3.2],
+      // 안쪽으로 당김(개방): 벽 틈 0.599 → 0.899.
+      position: [-13.1, 0, -3.2],
       rotation: [0, Math.PI / 2 + 0.2, 0],
       scale: 1.0,
       props: { variant: 'wheelie' },
@@ -575,7 +582,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-sink-west-mid',
       type: 'kitchenSinkCounter',
-      position: [-13.4, 0, 1.0],
+      // 벽 밀착(밀폐): 벽 틈 0.409 → 0.159. 싱크대는 벽에 붙는 게 원화에도 맞다.
+      position: [-13.65, 0, 1.0],
       rotation: [0, Math.PI / 2 + 0.06, 0],
       scale: 1.1,
     },
@@ -606,7 +614,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-crates-south-west-corner',
       type: 'kitchenCrateStack',
-      position: [-13.2, 0, 13.2],
+      // 안쪽으로 당김(개방): 서벽 틈 0.740 → 0.890.
+      position: [-13.05, 0, 13.2],
       rotation: [0, 0.5, 0],
       scale: 1.0,
       props: { count: 3 },
@@ -615,7 +624,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-preptable-south-serving-left',
       type: 'kitchenPrepTable',
-      position: [-3.4, 0, 15.0],
+      // 벽 밀착(밀폐): 벽 틈 0.346 → 0.196. 오른쪽 배식대(0.223)와 전면을 맞춘다.
+      position: [-3.4, 0, 15.15],
       rotation: [0, Math.PI + 0.08, 0],
       scale: 1.1,
       props: { variant: 'side' },
@@ -639,7 +649,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-crates-south-center-stack',
       type: 'kitchenCrateStack',
-      position: [-7.2, 0, 15.1],
+      // 안쪽으로 당김(개방): 벽 틈 0.525 → 0.905.
+      position: [-7.2, 0, 14.72],
       rotation: [0, Math.PI + 0.26, 0],
       scale: 0.98,
       props: { count: 2 },
