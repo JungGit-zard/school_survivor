@@ -32,8 +32,12 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.boxCutter.base.damage).toBe(24) // '30cm 자'(12)의 2배
     expect(WEAPON_CATALOG.boxCutter.base.range).toBe(1.4) // 사거리 2배 확장 (0.7 → 1.4)
     expect(WEAPON_CATALOG.boxCutter.base.width).toBe(0.18)
-    // 기획 정본(2026-07-04): 커터칼 쿨다운 = '30cm 자'의 절반
-    expect(WEAPON_CATALOG.boxCutter.base.cooldown).toBe(WEAPON_CATALOG.schoolBag.base.cooldown / 2)
+    expect(WEAPON_CATALOG.boxCutter.base.knockback).toBe(1.8)
+    expect(WEAPON_CATALOG.boxCutter.base.critChance).toBe(0.1)
+    expect(WEAPON_CATALOG.boxCutter.base.critMultiplier).toBe(1.5)
+    // 업그레이드 없는 기본 쿨다운: 기존 650ms의 정확히 5배
+    expect(WEAPON_CATALOG.boxCutter.base.cooldown).toBe(3250)
+    expect(WEAPON_CATALOG.boxCutter.base.cooldown).toBe(650 * 5)
     expect(WEAPON_CATALOG.tumbler.base.hitsPerSecond).toBe(2.5)
     expect(WEAPON_CATALOG.scienceFlask.base.damage).toBe(7.5) // 리워크: 착탄 데미지 절반, 웅덩이 존 추가
     expect(WEAPON_CATALOG.bell.base.directions).toBe(8)

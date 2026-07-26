@@ -17,15 +17,15 @@
 
 ## 2. schoolBag 30cm 자
 
-- 개별 문서 없음 (스탯은 weaponCatalog.js, 커터칼 쿨다운의 기준값)
+- 개별 문서 없음 (스탯은 weaponCatalog.js)
 
 ## 3. boxCutter 커터칼
 
-- 기획: `P/boxcutter/boxcutter_base_stat_1_5x_2026-05-26.md`
+- 기획: `P/boxcutter/boxcutter_base_stat_1_5x_2026-05-26.md`, `P/boxcutter/boxcutter_base_cooldown_5x_2026-07-26.md`
 - 구현: `D구/게임기획밸런스구현코드연결/boxcutter_base_stat_1_5x_implementation_2026-05-26.md`, `D구/그래픽구현코드연결/boxcutter_stab_slash_effect_implementation_2026-05-27.md`, `boxcutter_trail_and_umbrella_scale_tuning_2026-05-26.md`, `boxcutter_triangle_trail_removed_2026-05-27.md`
 - 그래픽: `G/boxcutter_all_angle_stab_slash_effect_proposal_2026-05-27.md`, `G/boxcutter_stab_slash_effect_implementation_2026-05-27.md`, `G/boxcutter_trail_and_umbrella_scale_visual_2026-05-26.md`, `G/boxcutter_triangle_trail_removed_2026-05-27.md`
-- QA: `Q/boxcutter_base_stat_1_5x_validation_2026-05-26.md`, `Q/boxcutter_stab_slash_effect_validation_2026-05-27.md`, `Q/boxcutter_trail_and_umbrella_scale_validation_2026-05-26.md`, `Q/boxcutter_triangle_trail_removed_validation_2026-05-27.md`
-- 최근 변경(코드): 쿨다운 = 30cm자의 절반 (2026-07-04, weaponCatalog.js 주석)
+- QA: `Q/boxcutter_base_stat_1_5x_validation_2026-05-26.md`, `Q/boxcutter_stab_slash_effect_validation_2026-05-27.md`, `Q/boxcutter_trail_and_umbrella_scale_validation_2026-05-26.md`, `Q/boxcutter_triangle_trail_removed_validation_2026-05-27.md`, `Q/boxcutter_base_cooldown_5x_validation_2026-07-26.md`
+- 최근 변경(코드): 업그레이드 없는 기본 쿨다운 3250ms(3.25초) = 기존 650ms의 5배 (2026-07-26, weaponCatalog.js 주석)
 
 ## 4. tumbler 텀블러
 
