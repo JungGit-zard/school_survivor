@@ -13,6 +13,19 @@ import StudioTunedGroup from '../StudioTunedGroup.jsx'
 let _projId = 0
 export const PENCIL_MODEL_SCALE = 0.29 * 1.5
 
+// 최초 homing target을 맞힌 뒤에만 해제한다. pooled target은 index+generation,
+// special target은 객체 identity가 같아야 하므로 관통 중 다른 적 명중은 조향을 바꾸지 않는다.
+export function releasePencilHomingTargetAfterHit(target, index, generation, special) {
+  const matched = special
+    ? target.special === special
+    : target.special == null && target.index === index && target.generation === generation
+  if (!matched) return false
+  target.index = -1
+  target.generation = null
+  target.special = null
+  return true
+}
+
 export function PencilModel() {
   const pencilOutlineMat = useMemo(() => outlineMat(0.98), [])
   const woodMat = useMemo(() => toonMat(0xd89646, 0.04), [])
@@ -67,6 +80,7 @@ function Projectile({ id, position, yaw, damage, speed, pierce, targetIndex, tar
     impact.critChance = critChance
     impact.critMultiplier = critMultiplier
     if (!applyEnemyHit(rb, generation, damage, impact)) return false
+    releasePencilHomingTargetAfterHit(targetRef.current, index, generation, special)
     const slot = hitCountRef.current
     if (slot < hitIndicesRef.current.length) {
       hitIndicesRef.current[slot] = index
@@ -91,7 +105,10 @@ function Projectile({ id, position, yaw, damage, speed, pierce, targetIndex, tar
 
     // 타겟이 살아있는 동안 호밍
     const tgt = targetRef.current
-    const targetRb = resolveWeaponTarget(tgt.index, tgt.generation, tgt.special)
+    let targetRb = null
+    if (tgt.index >= 0 || tgt.special) {
+      targetRb = resolveWeaponTarget(tgt.index, tgt.generation, tgt.special)
+    }
     const p = positionRef.current
     if (targetRb && isEnemyHitLive(targetRb, tgt.generation)) {
       const t = targetRb.translation()
@@ -110,7 +127,8 @@ function Projectile({ id, position, yaw, damage, speed, pierce, targetIndex, tar
     const nextX = p.x + vx * delta
     const nextZ = p.z + vz * delta
     const sweepScratch = sweepScratchRef.current
-    const sweepCount = scanSweptCapsuleEnemiesInto(sweepScratch, p.x, p.z, nextX, nextZ, 0.34, hitsLeftRef.current)
+    const sweepCandidateLimit = Math.min(sweepScratch.indices.length, hitsLeftRef.current + hitCountRef.current)
+    const sweepCount = scanSweptCapsuleEnemiesInto(sweepScratch, p.x, p.z, nextX, nextZ, 0.34, sweepCandidateLimit)
     p.x = nextX
     p.z = nextZ
     if (visualRef.current) {

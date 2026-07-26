@@ -22,3 +22,60 @@ describe('PencilModel', () => {
     expect(source).not.toContain('@react-three/rapier')
   })
 })
+
+describe('Pencil pierce homing release', () => {
+  it('clears only the matching first target after a successful pierce hit so the pencil continues on its current velocity', async () => {
+    const { releasePencilHomingTargetAfterHit } = await import('./Pencil.jsx')
+    expect(releasePencilHomingTargetAfterHit).toBeTypeOf('function')
+
+    const pooledTarget = { index: 4, generation: 12, special: null }
+    expect(releasePencilHomingTargetAfterHit(pooledTarget, 8, 12, null)).toBe(false)
+    expect(pooledTarget).toEqual({ index: 4, generation: 12, special: null })
+    expect(releasePencilHomingTargetAfterHit(pooledTarget, 4, 13, null)).toBe(false)
+    expect(pooledTarget).toEqual({ index: 4, generation: 12, special: null })
+
+    expect(releasePencilHomingTargetAfterHit(pooledTarget, 4, 12, null)).toBe(true)
+    expect(pooledTarget).toEqual({ index: -1, generation: null, special: null })
+
+    const firstSpecial = { id: 'first-special' }
+    const otherSpecial = { id: 'other-special' }
+    const specialTarget = { index: -1, generation: null, special: firstSpecial }
+    expect(releasePencilHomingTargetAfterHit(specialTarget, -1, null, otherSpecial)).toBe(false)
+    expect(specialTarget.special).toBe(firstSpecial)
+    expect(releasePencilHomingTargetAfterHit(specialTarget, -1, null, firstSpecial)).toBe(true)
+    expect(specialTarget).toEqual({ index: -1, generation: null, special: null })
+  })
+
+  it('releases homing immediately after applyEnemyHit succeeds and never resolves a cleared target for steering', () => {
+    const source = readFileSync(new URL('./Pencil.jsx', import.meta.url), 'utf8')
+    const tryHitStart = source.indexOf('const tryHit =')
+    const frameStart = source.indexOf('usePlayingFrame', tryHitStart)
+    const tryHitSource = source.slice(tryHitStart, frameStart)
+    const steeringStart = source.indexOf('const tgt = targetRef.current')
+    const steeringEnd = source.indexOf('const p = positionRef.current', steeringStart)
+    const steeringSource = source.slice(steeringStart, steeringEnd)
+
+    expect(source).toContain('export function releasePencilHomingTargetAfterHit(target, index, generation, special)')
+    expect(tryHitSource).toContain('if (!applyEnemyHit(rb, generation, damage, impact)) return false')
+    expect(tryHitSource).toContain('releasePencilHomingTargetAfterHit(targetRef.current, index, generation, special)')
+    expect(tryHitSource.indexOf('applyEnemyHit')).toBeLessThan(tryHitSource.indexOf('releasePencilHomingTargetAfterHit'))
+    expect(steeringSource).toContain('if (tgt.index >= 0 || tgt.special)')
+    expect(steeringSource).toContain('resolveWeaponTarget(tgt.index, tgt.generation, tgt.special)')
+  })
+})
+
+describe('Pencil pierce sweep candidate capacity', () => {
+  it('scans remaining pierce plus prior hits so a duplicate first hit cannot hide the next enemy without sorting the whole scratch', () => {
+    const source = readFileSync(new URL('./Pencil.jsx', import.meta.url), 'utf8')
+    const scanStart = source.indexOf('scanSweptCapsuleEnemiesInto(')
+    const scanEnd = source.indexOf('\n', scanStart)
+    const scanCall = source.slice(scanStart, scanEnd)
+
+    // With pierce=2, a repeated A can be the first swept candidate. The scan must
+    // still include B, while tryHit alone decides that A consumes no remaining hit.
+    // The candidate budget stays small: prior hits + the remaining valid hits.
+    expect(source).toContain('const sweepCandidateLimit = Math.min(sweepScratch.indices.length, hitsLeftRef.current + hitCountRef.current)')
+    expect(scanCall).toContain('sweepCandidateLimit')
+    expect(scanCall).not.toContain('hitsLeftRef.current')
+  })
+})
