@@ -139,4 +139,27 @@ describe('Pencil pierce fire regression', () => {
     expect(targetHit).toHaveBeenCalledTimes(2)
     expect(container.querySelectorAll('[data-testid="pencil-projectile-model"]')).toHaveLength(2)
   })
+
+  it('removes an in-flight pencil when the real level-up phase pauses projectile frames', async () => {
+    const target = enemyPool.spawn({ type: 'E01', x: 0, y: 0, z: 1, hp: 100, maxHp: 100 })
+    enemyPool.setHitHandler(target, vi.fn())
+
+    await act(async () => {
+      frameCallbacks.at(-1)({ clock: { elapsedTime: 1 } }, 1 / 60)
+    })
+    await flushNextAnimationFrame()
+    expect(container.querySelectorAll('[data-testid="pencil-projectile-model"]')).toHaveLength(1)
+
+    // gainXp is the production transition that changes phase to levelup and
+    // stops usePlayingFrame callbacks. The visible projectile must not remain
+    // frozen while the choice overlay is open.
+    await act(async () => {
+      useGameStore.getState().gainXp(useGameStore.getState().player.xpToNext)
+    })
+    expect(animationFrames).toHaveLength(1)
+    await flushNextAnimationFrame()
+
+    expect(useGameStore.getState().phase).toBe('levelup')
+    expect(container.querySelectorAll('[data-testid="pencil-projectile-model"]')).toHaveLength(0)
+  })
 })

@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
@@ -157,6 +157,14 @@ export function PencilThrow() {
   const lastFireRef = useRef(0)
   const targetScratchRef = useRef(createWeaponTargetScratch(8))
   const weapons = useGameStore((s) => s.weapons)
+  const phase = useGameStore((s) => s.phase)
+
+  // Projectile frames are intentionally paused outside gameplay, so their
+  // ordinary hit/lifetime expiry cannot run there. Clear the visible list at
+  // the phase boundary instead of leaving pencils frozen under an overlay.
+  useEffect(() => {
+    if (phase !== 'playing') requestProjectiles([])
+  }, [phase, requestProjectiles])
 
   usePlayingFrame(({ clock }) => {
     const w = weapons.pencilThrow

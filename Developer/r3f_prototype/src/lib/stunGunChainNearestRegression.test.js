@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 // This regression only exercises chain-radius ordering.  Sight obstacles and
@@ -10,6 +11,7 @@ vi.mock('../components/StageObjects/stageObjectColliders.js', () => ({
 import { enemyPool, enemySimulationRuntime, playerPos, resetRuntimeRefs } from './refs.js'
 import { pickStunGunChainTarget } from './stunGun.js'
 import { findClosestEnemy } from './weaponTargeting.js'
+import { getStunBoltVisualPose } from '../components/Weapons/StunGun.jsx'
 
 const CHAIN_RANGE = 4.5
 
@@ -27,6 +29,30 @@ function coordinates(rb) {
 function distance(fromX, fromZ, rb) {
   const point = rb.translation()
   return Number(Math.hypot(point.x - fromX, point.z - fromZ).toFixed(3))
+}
+
+function extractProjectileFrameBody(source) {
+  const projectileStart = source.indexOf('function StunBoltProjectile')
+  const callbackStart = source.indexOf('usePlayingFrame((_, delta) => {', projectileStart)
+  expect(callbackStart).toBeGreaterThanOrEqual(0)
+
+  const bodyStart = callbackStart + 'usePlayingFrame((_, delta) => {'.length
+  let depth = 1
+  for (let index = bodyStart; index < source.length; index += 1) {
+    if (source[index] === '{') depth += 1
+    if (source[index] === '}') depth -= 1
+    if (depth === 0) return source.slice(bodyStart, index)
+  }
+  throw new Error('StunBoltProjectile frame callback closing brace was not found')
+}
+
+function compileProductionProjectileFrame(source, dependencies) {
+  const speed = Number(source.match(/const BOLT_SPEED\s*=\s*(\d+(?:\.\d+)?)/)?.[1])
+  expect(speed).toBeGreaterThan(0)
+  const body = extractProjectileFrameBody(source)
+  const names = [...Object.keys(dependencies), 'BOLT_SPEED', 'getStunBoltVisualPose']
+  const values = [...Object.values(dependencies), speed, getStunBoltVisualPose]
+  return new Function(...names, `return (delta) => {${body}}`)(...values)
 }
 
 afterEach(() => {
@@ -105,5 +131,81 @@ describe('StunGun chain nearest-target regression', () => {
       impactFarPlayerDistance: 1.1,
       gridCurrent: false,
     })
+  })
+
+  it('keeps the second and third chain on the impact-nearest live generation, not a farther enemy after a pooled slot is reused', () => {
+    playerPos.set(0, 0, 0)
+    const first = spawnEnemy(1, 0)
+    const second = spawnEnemy(2, 0)
+    spawnEnemy(2, 1.5)
+    const playerNearButImpactFar = spawnEnemy(-0.5, 0)
+    const recycledNear = spawnEnemy(4, 0)
+    const recycledRb = enemyPool.get(recycledNear)
+    const retiredGeneration = recycledRb.generation
+
+    expect(enemyPool.despawn(recycledNear)).toBe(true)
+    const recycledCurrent = enemyPool.spawn({ type: 'E01', x: 2.25, y: 0, z: 1 })
+    const recycledCurrentRb = enemyPool.get(recycledCurrent)
+    enemyPool.setHitHandler(recycledCurrent, vi.fn())
+    expect(recycledCurrentRb).toBe(recycledRb)
+    expect(recycledCurrentRb.generation).not.toBe(retiredGeneration)
+
+    const firstRb = enemyPool.get(first)
+    const secondRb = enemyPool.get(second)
+    const hitSet = new Map([[firstRb, firstRb.generation], [recycledRb, retiredGeneration]])
+
+    const secondTarget = pickStunGunChainTarget(1, 0, hitSet, CHAIN_RANGE)
+    expect(secondTarget).toMatchObject({ rb: secondRb, generation: secondRb.generation })
+    hitSet.set(secondTarget.rb, secondTarget.generation)
+
+    const thirdTarget = pickStunGunChainTarget(2, 0, hitSet, CHAIN_RANGE)
+    expect(thirdTarget).toMatchObject({ rb: recycledCurrentRb, generation: recycledCurrentRb.generation })
+    expect(thirdTarget.rb).not.toBe(enemyPool.get(playerNearButImpactFar))
+
+    // The production bolt receives this exact live pair for both its moving
+    // graphic and applyEnemyHit call; a recycled old generation must not make
+    // it skip to a farther target.
+    expect(thirdTarget).toEqual({ rb: recycledCurrentRb, generation: recycledCurrentRb.generation })
+
+    const source = readFileSync(new URL('../components/Weapons/StunGun.jsx', import.meta.url), 'utf8')
+    const targetPositions = []
+    const applyHit = vi.fn(() => true)
+    const onHit = vi.fn()
+    const runProductionFrame = compileProductionProjectileFrame(source, {
+      doneRef: { current: false },
+      groupRef: {
+        current: {
+          position: { set: (x, _y, z) => targetPositions.push({ x, z }) },
+          rotation: { set: vi.fn() },
+        },
+      },
+      posRef: { current: { x: 2, z: 0 } },
+      ageRef: { current: 0 },
+      targetRb: thirdTarget.rb,
+      targetGeneration: thirdTarget.generation,
+      id: 7,
+      onExpire: vi.fn(),
+      isEnemyHitLive: (rb, generation) => rb === thirdTarget.rb && generation === thirdTarget.generation,
+      applyEnemyHit: applyHit,
+      damage: 18,
+      critChance: 0.06,
+      critMultiplier: 1.5,
+      emitSfx: vi.fn(),
+      chainDepth: 2,
+      onHit,
+      sourceEndpoint: { rb: secondRb, generation: secondRb.generation },
+      hitSet,
+      chainsLeft: 0,
+    })
+
+    runProductionFrame(0.1)
+    runProductionFrame(0.1)
+    runProductionFrame(0.1)
+
+    expect(targetPositions[0]).toMatchObject({ x: expect.any(Number), z: expect.any(Number) })
+    expect(targetPositions[0].x).toBeGreaterThan(2)
+    expect(targetPositions[0].z).toBeGreaterThan(0)
+    expect(applyHit.mock.calls[0].slice(0, 2)).toEqual([thirdTarget.rb, thirdTarget.generation])
+    expect(onHit.mock.calls[0].slice(3, 5)).toEqual([thirdTarget.rb, thirdTarget.generation])
   })
 })

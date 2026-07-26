@@ -8,7 +8,7 @@ import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
 import { toonMat } from '../../lib/toon.js'
 import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
 import { findClosestEnemy } from '../../lib/weaponTargeting.js'
-import { STUN_GUN_TARGET_RANGE, pickStunGunChainTarget } from '../../lib/stunGun.js'
+import { STUN_GUN_TARGET_RANGE, createStunGunHitSet, markStunGunHit, pickStunGunChainTarget } from '../../lib/stunGun.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _stunBoltId  = 0
@@ -223,7 +223,7 @@ export function StunGunWeapon() {
     if (chainsLeft <= 0) return
     const next = pickStunGunChainTarget(hitX, hitZ, hitSet, CHAIN_RANGE)
     if (!next) return
-    hitSet.add(next.rb)
+    markStunGunHit(hitSet, next.rb, next.generation)
     setBolts(prev => [...prev, {
       id:              ++_stunBoltId,
       startX:          hitX,
@@ -247,7 +247,7 @@ export function StunGunWeapon() {
     lastFireRef.current = now
     emitSfx({ id: 'stunGunFire' })
 
-    const hitSet = new Set([nearest.rb])
+    const hitSet = createStunGunHitSet(nearest.rb, nearest.generation)
     setBolts([{
       id:              ++_stunBoltId,
       startX:          playerPos.x,

@@ -12277,3 +12277,65 @@ cmd.exe /c "git -C D:\\JungSil\\2.Minigame_project\\school_survivor-integration 
 - 다음 세션: CLAUDE.md Git Workflow(새 정본) 숙지 후 zombie_claude에서 작업 시작.
 
 ---
+
+## Session 7 · Entry 0 (Bootstrap) · 2026-07-26 2246 KST
+
+### Git 상태
+
+- 브랜치: `zombie_only`, HEAD `a9c4bd6 Optimize survivor runtime and fix weapon regressions`, upstream `origin/zombie_only`.
+- 이번 요청 관련 코드·테스트·역할 기록은 미커밋 상태다.
+- 기존 스테이지 4 이미지 삭제/추가와 영구 업그레이드 기획·QA 문서는 사용자 또는 다른 작업의 변경으로 판단하여 건드리지 않았다.
+
+### 이번 작업 / 대화
+
+- 스테이지 1 B01 수학 교사 삼각자 공격 판정 반경을 기존 `1.05`에서 정확히 1.5배인 `1.575 world units`로 확대했다.
+- 전기충격기 2·3차 연쇄가 직전 피격점에서 가장 가까운 살아있는 미타격 좀비를 고르도록, 풀링 객체와 generation을 함께 기록하게 수정했다. 그래픽 추적·피해·다음 연쇄가 동일한 대상 쌍을 사용한다.
+- 레벨업 등 `playing` 이외 상태에서 프레임이 멈춰 연필이 화면에 남던 문제를, 상태 전환 시 기존 deferred projectile 제거 경로로 정리하도록 수정했다.
+- levelmini·threemini·balanceqa 역할 기록을 남겼고 Terra Worker 구현 후 Sol Advisor가 diff와 테스트를 직접 검증했다.
+
+### 생성 / 수정 파일
+
+- 수정: `Developer/r3f_prototype/src/lib/mathTeacherSpecial.js`, `mathTeacherSpecial.test.js`.
+- 수정: `Developer/r3f_prototype/src/lib/stunGun.js`, `components/Weapons/StunGun.jsx`, `lib/stunGunChainNearestRegression.test.js`.
+- 수정: `Developer/r3f_prototype/src/components/Weapons/Pencil.jsx`, `PencilPierceFireRegression.test.jsx`.
+- 수정: `Planner/stage1_math_teacher_special_plan_2026-07-17.md`.
+- 생성: B01·전기충격기·연필 관련 `Planner/`, `Developer/`, `Graphic_designer/`, `Quaility_Assurance/`, `Developer/agent_room/` 구현·시각 계약·검증·라우팅 기록.
+
+### 명령 로그
+
+```text
+Get-Content -LiteralPath 'SESSION_CONTINUITY.md'; git status --short --branch; git diff -- <관련 파일>
+git diff -- <StunGun 관련 파일>; rg -n <대상 추적 패턴> <관련 파일>
+Get-Content -LiteralPath <Pencil/StunGun 관련 파일>
+npx vitest run src/lib/mathTeacherSpecial.test.js src/components/EnemyMathTeacherSpecial.test.js src/lib/stunGunChainNearestRegression.test.js src/lib/stunGun.test.js src/components/Weapons/StunGun.test.jsx src/components/Weapons/StunGunNearestTargetRegression.test.jsx src/components/Weapons/PencilPierceFireRegression.test.jsx src/components/Weapons/Pencil.test.jsx src/lib/pencilRangeBoundary.test.js src/lib/weaponCollision.test.js src/lib/weaponTargeting.test.js
+npm run build
+git diff --check
+rg -n "console\\.(log|debug)|debugger" <관련 구현 파일>
+git diff --stat
+git status --short --branch
+Get-Content -LiteralPath <관련 역할 기록>
+rg -n <최종 구현 위치 패턴> <관련 파일>
+Get-Content -LiteralPath 'SESSION_MEMORY.md' -Tail 120
+Get-Date -Format 'yyyy-MM-dd HHmm KST'
+Get-Content -LiteralPath 'SESSION_MEMORY.md' -Encoding utf8 -Tail 35
+```
+
+### 검증 결과
+
+- Sol 통합 집중 테스트: 11파일, 68테스트 통과.
+- 독립 Terra 통합 QA: P0/P1/P2 없음, 8파일 30테스트 통과.
+- Vite production build, branch guard, Legacy B02 source/artifact gate 통과.
+- `git diff --check` 통과. 기존 `vendor-three` 청크 크기 경고만 남았다.
+- Firebase·Graphics Studio·localStorage 변경 없음.
+
+### 확정된 룰 / 정책 변경
+
+- 새 프로젝트 정책 변경 없음.
+- 전기충격기 2·3차의 정본 규칙은 “직전 타격점 기준 가장 가까운 살아있는 미타격 generation”이다.
+
+### 미해결 이슈 + 다음 단계
+
+- 이번 변경은 아직 커밋·푸시하지 않았다. 사용자가 요청할 때 관련 파일만 선별해 커밋한다.
+- 스테이지 4 에셋과 영구 업그레이드 문서는 이번 범위 밖이므로 계속 보존한다.
+
+---

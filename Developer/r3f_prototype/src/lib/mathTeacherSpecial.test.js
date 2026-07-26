@@ -4,13 +4,15 @@ import {
   MATH_TEACHER_SWING_KNOCKBACK_MS,
   MATH_TEACHER_SWING_KNOCKBACK_SPEED,
   MATH_TEACHER_SWING_RADIUS,
+  MATH_TEACHER_SWING_RECOVERY_MS,
+  MATH_TEACHER_SWING_WINDUP_MS,
   applyMathTeacherSwing,
   getMathTeacherPlayerDamage,
 } from './mathTeacherSpecial.js'
 
 describe('stage 1 math teacher special', () => {
-  it('limits the set-square impact to the visual reach plus a minimal contact tolerance', () => {
-    expect(MATH_TEACHER_SWING_RADIUS).toBe(1.05)
+  it('extends the set-square impact exactly 1.5 times to 1.575 world units', () => {
+    expect(MATH_TEACHER_SWING_RADIUS).toBe(1.575)
   })
 
   it('deals exactly 30 percent of the player current HP', () => {
@@ -20,6 +22,11 @@ describe('stage 1 math teacher special', () => {
     expect(getMathTeacherPlayerDamage(0)).toBe(0)
   })
 
+  it('keeps the existing windup and recovery timings unchanged', () => {
+    expect(MATH_TEACHER_SWING_WINDUP_MS).toBe(320)
+    expect(MATH_TEACHER_SWING_RECOVERY_MS).toBe(430)
+  })
+
   it('physically pushes living nearby zombies away from the boss once', () => {
     const nearHit = vi.fn()
     const outsideHit = vi.fn()
@@ -27,8 +34,8 @@ describe('stage 1 math teacher special', () => {
     const bossHit = vi.fn()
     const bodies = new Map([
       ['boss', fakeBody(0, 0, bossHit)],
-      ['near', fakeBody(0.9, 0.4, nearHit)],
-      ['outside', fakeBody(MATH_TEACHER_SWING_RADIUS + 0.1, 0, outsideHit)],
+      ['near', fakeBody(1.575, 0, nearHit)],
+      ['outside', fakeBody(1.5751, 0, outsideHit)],
       ['dead', fakeBody(0.5, 0, deadHit, true)],
     ])
 
