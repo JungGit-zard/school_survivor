@@ -17,8 +17,11 @@ import {
   advanceEnemySpawnTimer,
   getBodyContactDistance,
   getChargeHitDistance,
+  getEnemyColliderHalfExtents,
   getEnemySpawnSfx,
+  getMatildaBodyHalfExtents,
   hasMatildaReachedStageEdge,
+  isMatildaBodyContact,
   isMatildaChargeBlockedFrame,
   isMatildaChargingOutward,
   resolveSightBlockedEnemyVelocity,
@@ -253,6 +256,98 @@ describe("Matilda's rendered body matches her physics collider (no untouchable-l
     // A 3.0 override would make both contact and visible half-extent 1.5x too large.
     const buggyHalfExtent = Math.max(0.14, 0.10) * 3.0 * ENEMY_SIZE_MULTIPLIER
     expect(buggyHalfExtent).not.toBeCloseTo(enemyHalfExtent, 3)
+  })
+})
+
+describe('Matilda dies only on real body-box contact, not the old widest-axis scalar radius', () => {
+  const matildaStats = { ...ENEMY_STATS.B01, scale: ENEMY_STATS.B01.scale }
+  const { halfX, halfZ } = getMatildaBodyHalfExtents(matildaStats)
+
+  it('derives the box half-extents from the exact same source as the physics CuboidCollider (colArgs)', () => {
+    const colliderHalfExtents = getEnemyColliderHalfExtents(matildaStats)
+
+    expect(halfX).toBeCloseTo(colliderHalfExtents[0], 10)
+    expect(halfZ).toBeCloseTo(colliderHalfExtents[2], 10)
+    // Sanity: x (wide) and z (thin) are genuinely different -- the bug only exists
+    // because Matilda's body is a rectangle, not a circle.
+    expect(halfX).toBeGreaterThan(halfZ)
+  })
+
+  it('does NOT kill on front/back (z-axis) approach at the old scalar-radius distance -- the regression guard', () => {
+    // Old scalar bug used Math.max(halfX, halfZ) + player half-extent = 0.5093...
+    // for every direction. True z-depth contact is only halfZ + 0.136 = 0.4027...
+    // 0.45 sits strictly between those two numbers: before the fix this killed the
+    // player; after the fix it must not.
+    expect(halfZ + 0.136).toBeCloseTo(0.4027, 3)
+    expect(Math.max(halfX, halfZ) + 0.136).toBeCloseTo(0.5093, 3)
+
+    const contact = isMatildaBodyContact({
+      enemyX: 0, enemyZ: 0.45, yaw: 0, playerX: 0, playerZ: 0, halfX, halfZ,
+    })
+    expect(contact).toBe(false)
+  })
+
+  it('kills on z-axis (front/back) contact once truly within the depth half-extent', () => {
+    const contact = isMatildaBodyContact({
+      enemyX: 0, enemyZ: 0.40, yaw: 0, playerX: 0, playerZ: 0, halfX, halfZ,
+    })
+    expect(contact).toBe(true)
+  })
+
+  it('keeps x-axis (side) contact behavior unchanged at the original 0.5093 distance', () => {
+    expect(isMatildaBodyContact({
+      enemyX: 0.50, enemyZ: 0, yaw: 0, playerX: 0, playerZ: 0, halfX, halfZ,
+    })).toBe(true)
+    expect(isMatildaBodyContact({
+      enemyX: 0.52, enemyZ: 0, yaw: 0, playerX: 0, playerZ: 0, halfX, halfZ,
+    })).toBe(false)
+  })
+
+  it("rotates the contact box with Matilda's facing yaw (groupRef.rotation.y), so a world-axis check alone cannot fit her charge orientation", () => {
+    // At yaw=0, a 0.45 offset along world x is Matilda's local width axis -> contact.
+    expect(isMatildaBodyContact({
+      enemyX: 0, enemyZ: 0, yaw: 0, playerX: 0.45, playerZ: 0, halfX, halfZ,
+    })).toBe(true)
+
+    // Rotate Matilda 90 degrees: world +x now maps onto her local depth (z) axis,
+    // where 0.45 exceeds halfZ + 0.136 (0.4027...) -> no longer a contact.
+    expect(isMatildaBodyContact({
+      enemyX: 0, enemyZ: 0, yaw: Math.PI / 2, playerX: 0.45, playerZ: 0, halfX, halfZ,
+    })).toBe(false)
+  })
+
+  it('does not kill on a diagonal approach that clears the depth axis, even while still inside the width axis', () => {
+    // Diagonal point: within halfX + player extent (0.5093) on x, but past
+    // halfZ + player extent (0.4027) on z -- the player has not actually
+    // touched the rectangular body, only entered its naive bounding circle.
+    expect(isMatildaBodyContact({
+      enemyX: 0, enemyZ: 0, yaw: 0, playerX: 0.42, playerZ: 0.42, halfX, halfZ,
+    })).toBe(false)
+
+    // A diagonal point that lands inside both axes is a genuine corner-region
+    // touch and must still register as contact.
+    expect(isMatildaBodyContact({
+      enemyX: 0, enemyZ: 0, yaw: 0, playerX: 0.35, playerZ: 0.30, halfX, halfZ,
+    })).toBe(true)
+  })
+
+  it('leaves the general charger (E05/B01 non-Matilda) contact-distance grace unchanged', () => {
+    expect(getChargeHitDistance(ENEMY_STATS.E05, false)).toBeCloseTo(
+      ENEMY_STATS.E05.contactDist * ENEMY_SIZE_MULTIPLIER * 1.5,
+      10,
+    )
+    expect(getChargeHitDistance(ENEMY_STATS.B01, false)).toBeCloseTo(
+      ENEMY_STATS.B01.contactDist * ENEMY_SIZE_MULTIPLIER * 1.5,
+      10,
+    )
+
+    // The Enemy.jsx source still routes the general-charger contact check through
+    // the unchanged scalar helper, and the obstacle-stall detector still uses the
+    // conservative scalar getBodyContactDistance (not the new box check).
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('hitPlayer = dist < getChargeHitDistance(stats, false)')
+    expect(source).toContain('const hitDistance = getChargeHitDistance(stats, true)')
+    expect(source).toContain('isMatildaChargeBlockedValues(movedAlong, expectedMove, dist, hitDistance)')
   })
 })
 })

@@ -1,4 +1,4 @@
-﻿import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { useFrame, useLoader } from '@react-three/fiber'
 import { Billboard } from '@react-three/drei'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
@@ -95,8 +95,10 @@ export function getSpawnSmokeOpacity(elapsedMs) {
   return Math.max(0, 1 - (elapsedMs - SPAWN_SMOKE_OPAQUE_MS) / fadeSpan)
 }
 export const ENEMY_SPAWN_SFX_COOLDOWN_MS = 110
-// Wall half-thickness (0.5) + Matilda's widest collider half-extent (0.56),
-// with a small physics tolerance so a wall collision cannot stall the loop.
+// Wall half-thickness (0.5) + Matilda's widest collider half-extent (0.3733,
+// i.e. BASE_COL[0] * B01 scale(2.00) * ENEMY_SIZE_MULTIPLIER -- recomputed after
+// B01's scale was rolled back from 3.0 to 2.00), with a generous physics
+// tolerance left in place so a wall collision cannot stall the loop.
 export const MATILDA_EDGE_INSET = 1.2
 export const MATILDA_LAUGH_DURATION_MS = 900
 export const MATILDA_CHARGE_STALL_REVERSE_MS = 70
@@ -198,8 +200,21 @@ function emitEnemySpawnSfx(type, isMatilda = false) {
   emitSfx({ id: sfx.id, volume: sfx.volume })
 }
 
+// 콜라이더(colArgs)와 접촉 판정이 항상 같은 스케일에서 파생되도록 하는 단일 출처.
+// stats.scale이 없을 때만 1로 폴백 — 기존 getBodyContactDistance 동작과 동일.
+export function getEnemyColliderScale(stats) {
+  return (stats.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
+}
+
+// CuboidCollider(colArgs)와 정확히 같은 값을 반환한다 — Enemy 컴포넌트의 colArgs도
+// 이 함수로 계산해 두 값이 절대 어긋나지 않게 한다.
+export function getEnemyColliderHalfExtents(stats) {
+  const cs = getEnemyColliderScale(stats)
+  return [BASE_COL[0] * cs, BASE_COL[1] * cs, BASE_COL[2] * cs]
+}
+
 export function getBodyContactDistance(stats) {
-  const enemyHalfExtent = Math.max(BASE_COL[0], BASE_COL[2]) * (stats.scale ?? 1) * ENEMY_SIZE_MULTIPLIER
+  const enemyHalfExtent = Math.max(BASE_COL[0], BASE_COL[2]) * getEnemyColliderScale(stats)
   return enemyHalfExtent + PLAYER_CONTACT_HALF_EXTENT
 }
 
@@ -207,6 +222,29 @@ export function getChargeHitDistance(stats, isMatilda = false) {
   return isMatilda
     ? getBodyContactDistance(stats)
     : stats.contactDist * ENEMY_SIZE_MULTIPLIER * 1.5
+}
+
+// 마틸다 몸은 좌우로 넓고 앞뒤로 얇은 직사각형이라, getBodyContactDistance의 스칼라
+// 반경(가장 넓은 축 기준)으로 판정하면 정면·배면 접근에서 실제보다 일찍 죽는다.
+// 이 함수는 콜라이더와 같은 출처(getEnemyColliderScale)에서 x/z 반extent를 가져온다.
+export function getMatildaBodyHalfExtents(stats) {
+  const [halfX, , halfZ] = getEnemyColliderHalfExtents(stats)
+  return { halfX, halfZ }
+}
+
+// 회전 인식 박스 접촉 판정. 마틸다는 돌진 방향으로 회전하므로(groupRef.rotation.y)
+// 월드축 기준 스칼라 거리로는 몸통 모양을 맞출 수 없다 — 플레이어 위치를 마틸다의
+// 로컬 프레임으로 역회전시켜 축별 반extent와 비교한다.
+export function isMatildaBodyContact({ enemyX, enemyZ, yaw = 0, playerX, playerZ, halfX, halfZ }) {
+  const wx = playerX - enemyX
+  const wz = playerZ - enemyZ
+  const cosY = Math.cos(yaw)
+  const sinY = Math.sin(yaw)
+  // _applyRotation의 world = R(yaw) * local 관계의 역변환.
+  const localX = wx * cosY - wz * sinY
+  const localZ = wx * sinY + wz * cosY
+  return Math.abs(localX) <= halfX + PLAYER_CONTACT_HALF_EXTENT
+    && Math.abs(localZ) <= halfZ + PLAYER_CONTACT_HALF_EXTENT
 }
 
 // XP 媛믪? 援먭낵??30% ?쒕엻瑜좎쓣 蹂댁젙????3.3諛곕줈 梨낆젙 (Planner/B.寃뚯엫湲고쉷,諛몃윴??援ы쁽/B-1 罹먮┃???깆옣,?λ젰移??낃렇?덉씠??援ъ“ 援ы쁽/Rewards_Drops/dual_drop_system_2026-05-08.md 짠7-2).
@@ -465,8 +503,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     phase1: resolveChefBossActiveStats(stats, CHEF_PHASE1),
     phase2: resolveChefBossActiveStats(stats, CHEF_PHASE2),
   }), [stats])
-  const cs       = stats.scale * ENEMY_SIZE_MULTIPLIER
-  const colArgs  = [BASE_COL[0] * cs, BASE_COL[1] * cs, BASE_COL[2] * cs]
+  const cs       = getEnemyColliderScale(stats)
+  const colArgs  = getEnemyColliderHalfExtents(stats)
+  const matildaHalfExtents = useMemo(() => getMatildaBodyHalfExtents(stats), [stats])
 
   const [hp, setHp]           = useState(stats.hp)
   const [hitFlash, setHitFlash] = useState(false)
@@ -497,6 +536,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const lastContactDmgRef     = useRef(0)
   const spawnedAtRef          = useRef(performance.now())
   const spawnRevealElapsedRef = useRef(0)
+  // 프레임마다 재사용하는 스크래치 객체 — 마틸다 박스 접촉 판정 입력용(RULE-0.2: 매 프레임 객체 생성 금지)
+  const matildaContactArgsRef = useRef({ enemyX: 0, enemyZ: 0, yaw: 0, playerX: 0, playerZ: 0, halfX: 0, halfZ: 0 })
 
   // E05 / B01 ?뚯쭊 ?곹깭 癒몄떊
   const chargeState  = useRef(isMatilda ? 'matildaAim' : 'chase')
@@ -819,7 +860,15 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           rb.current.setLinvel(_vel, true)
           _applyRotation(groupRef, cd.x, cd.z, 1)
 
-          if (dist < getChargeHitDistance(stats, true) && now - lastContactDmgRef.current >= 500) {
+          const contactArgs = matildaContactArgsRef.current
+          contactArgs.enemyX = t.x
+          contactArgs.enemyZ = t.z
+          contactArgs.yaw = groupRef.current ? groupRef.current.rotation.y : 0
+          contactArgs.playerX = playerPos.x
+          contactArgs.playerZ = playerPos.z
+          contactArgs.halfX = matildaHalfExtents.halfX
+          contactArgs.halfZ = matildaHalfExtents.halfZ
+          if (isMatildaBodyContact(contactArgs) && now - lastContactDmgRef.current >= 500) {
             lastContactDmgRef.current = now
             damagePlayer(stats.damage)
           }
@@ -884,7 +933,22 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         rb.current.setLinvel(_vel, true)
         _applyRotation(groupRef, cd.x, cd.z, 1)
 
-        const hitPlayer = dist < getChargeHitDistance(stats, isMatilda)
+        // isMatilda는 이 지점에 도달할 때 항상 false다(위 isMatilda 분기가 851행에서 return하므로) —
+        // 그래도 브리프대로 안전하게 분기해 마틸다 경로가 재구성되어도 박스 판정을 쓰게 한다.
+        let hitPlayer
+        if (isMatilda) {
+          const contactArgs = matildaContactArgsRef.current
+          contactArgs.enemyX = t.x
+          contactArgs.enemyZ = t.z
+          contactArgs.yaw = groupRef.current ? groupRef.current.rotation.y : 0
+          contactArgs.playerX = playerPos.x
+          contactArgs.playerZ = playerPos.z
+          contactArgs.halfX = matildaHalfExtents.halfX
+          contactArgs.halfZ = matildaHalfExtents.halfZ
+          hitPlayer = isMatildaBodyContact(contactArgs)
+        } else {
+          hitPlayer = dist < getChargeHitDistance(stats, false)
+        }
         const chargeExpired = now - stateTimer.current > (active.chargeDuration ?? 1200)
         if (hitPlayer || chargeExpired) {
           if (hitPlayer) damagePlayer(stats.damage)
