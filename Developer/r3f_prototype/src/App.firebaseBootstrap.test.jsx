@@ -160,6 +160,21 @@ describe('App Firebase bootstrap boundary', () => {
     view.unmount()
   })
 
+  it('hydrates only the public canonical Studio revision for the DEV E2E user', async () => {
+    window.history.replaceState({}, '', '/?e2e=1')
+    mocks.authState.status = 'signedIn'
+    mocks.authState.user = { uid: 'e2e-local-test' }
+    mocks.canonicalHydrate.mockResolvedValue({ status: 'remote-applied', revision: 7 })
+
+    const view = await renderApp()
+
+    await vi.waitFor(() => expect(mocks.canonicalHydrate).toHaveBeenCalledTimes(1))
+    expect(mocks.studioHydrate).not.toHaveBeenCalled()
+    expect(mocks.studioSubscribe).not.toHaveBeenCalled()
+    expect(mocks.canonicalPublish).not.toHaveBeenCalled()
+    view.unmount()
+  })
+
   it('uses the same Google login panel for a signed-out admin route without requiring player progress', async () => {
     window.history.replaceState({}, '', '/admin')
     const view = await renderApp()
@@ -215,6 +230,22 @@ describe('App Firebase bootstrap boundary', () => {
     // 편집기(GraphicsStudio) 대신 Google 로그인 부트스트랩이 떠야 한다 — 미로그인 Apply 실패 방지.
     expect(view.container.querySelector('[data-testid="graphics-studio"]')).toBe(null)
     expect(view.container.textContent).toContain('Google 로그인')
+    view.unmount()
+  })
+
+  it('blocks the E2E user from the graphics studio without any Firebase Studio read, subscribe, or publish', async () => {
+    window.history.replaceState({}, '', '/graphics-studio?e2e=1')
+    mocks.authState.status = 'signedIn'
+    mocks.authState.user = { uid: 'e2e-local-test' }
+
+    const view = await renderApp()
+    await act(async () => { await Promise.resolve(); await Promise.resolve() })
+
+    expect(view.container.querySelector('[data-testid="graphics-studio"]')).toBe(null)
+    expect(mocks.studioHydrate).not.toHaveBeenCalled()
+    expect(mocks.canonicalHydrate).not.toHaveBeenCalled()
+    expect(mocks.studioSubscribe).not.toHaveBeenCalled()
+    expect(mocks.canonicalPublish).not.toHaveBeenCalled()
     view.unmount()
   })
 })

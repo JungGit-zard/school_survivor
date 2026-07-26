@@ -198,23 +198,24 @@ describe('Enemy charge warning cue', () => {
   })
 
 describe("Matilda's rendered body matches her physics collider (no untouchable-lunge bug)", () => {
-  it('derives EnemyVisual scale from an optional scale prop, not just ENEMY_STATS[type]', () => {
-    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+  it('uses B01 base scale for Matilda at runtime while forwarding that same scale to the collider and visual', () => {
+    const enemySource = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    const enemiesSource = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
 
-    // EnemyVisual must accept a scale override so a caller can pass the merged
-    // statOverride scale (Matilda's statOverride.scale = 3.0), instead of only
-    // ever reading the base ENEMY_STATS[type].scale (B01 base = 2.00).
-    expect(source).toContain(
+    // EnemyVisual keeps the optional prop so any caller's merged stat override
+    // reaches both the visual and collider path. Matilda deliberately supplies
+    // B01's base 2.00 scale to restore her intended visible size.
+    expect(enemySource).toContain(
       "export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false, scale }) {",
     )
-    expect(source).toContain('const cs = (scale ?? stats.scale) * ENEMY_SIZE_MULTIPLIER')
+    expect(enemySource).toContain('const cs = (scale ?? stats.scale) * ENEMY_SIZE_MULTIPLIER')
 
-    // The Enemy component must forward its merged stats.scale (statOverride included)
-    // into EnemyVisual so the visual group scale and the CuboidCollider colArgs are
-    // derived from the exact same `cs`.
-    expect(source).toContain(
+    // Enemy forwards the merged scale to EnemyVisual, keeping the visual group
+    // and CuboidCollider derived from the exact same `cs`.
+    expect(enemySource).toContain(
       '<EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} isMatilda={isMatilda} scale={stats.scale} />',
     )
+    expect(enemiesSource).toMatch(/const matildaStats = \{[\s\S]*?scale:\s+ENEMY_STATS\.B01\.scale,/)
   })
 
   it('produces the same cs for Matilda whether derived by the collider path or the EnemyVisual scale-prop path', () => {
@@ -222,16 +223,16 @@ describe("Matilda's rendered body matches her physics collider (no untouchable-l
     // against EnemyVisual's `const cs = (scale ?? stats.scale) * ENEMY_SIZE_MULTIPLIER`
     // when Enemy forwards `scale={stats.scale}`. Both must be the same number so the
     // visible body never falls short of (or exceeds) the hit-box.
-    const mergedStats = { ...ENEMY_STATS.B01, scale: 3.0 } // Matilda statOverride
+    const mergedStats = { ...ENEMY_STATS.B01, scale: ENEMY_STATS.B01.scale } // Matilda runtime statOverride
     const colliderCs = mergedStats.scale * ENEMY_SIZE_MULTIPLIER
     const visualCs = (mergedStats.scale ?? ENEMY_STATS.B01.scale) * ENEMY_SIZE_MULTIPLIER
 
     expect(visualCs).toBe(colliderCs)
-    expect(colliderCs).toBeCloseTo(4.0, 8)
+    expect(colliderCs).toBeCloseTo(8 / 3, 8)
 
-    // Regression guard: without the fix, EnemyVisual ignored statOverride and used the
-    // B01 base scale (2.00) instead of Matilda's 3.0, undershooting cs by 1/3.
-    const buggyVisualCs = ENEMY_STATS.B01.scale * ENEMY_SIZE_MULTIPLIER
+    // Regression guard: the bug passed a 3.0 override to both paths, enlarging
+    // the body and collider together by 1.5x instead of restoring B01 size.
+    const buggyVisualCs = 3.0 * ENEMY_SIZE_MULTIPLIER
     expect(buggyVisualCs).not.toBe(colliderCs)
   })
 
@@ -240,19 +241,17 @@ describe("Matilda's rendered body matches her physics collider (no untouchable-l
     // stats.scale (see Enemy.jsx). With EnemyVisual's cs fix, that half-extent now
     // equals the rendered body's half-extent, so "body contact" really means the
     // player's collider touches Matilda's visible body -- no more invisible gap.
-    const matildaStats = { ...ENEMY_STATS.B01, scale: 3.0 }
+    const matildaStats = { ...ENEMY_STATS.B01, scale: ENEMY_STATS.B01.scale }
 
-    expect(getBodyContactDistance(matildaStats)).toBeCloseTo(0.696, 8)
+    expect(getBodyContactDistance(matildaStats)).toBeCloseTo(0.5093333333333333, 8)
 
-    // Sanity: 0.696 = enemyHalfExtent(0.56) + PLAYER_CONTACT_HALF_EXTENT(0.136)
-    const enemyHalfExtent = 0.56
+    // Sanity: 0.5093… = B01 enemyHalfExtent(0.3733…) + player half-extent(0.136).
+    const enemyHalfExtent = Math.max(0.14, 0.10) * ENEMY_STATS.B01.scale * ENEMY_SIZE_MULTIPLIER
     const playerContactHalfExtent = 0.136
     expect(getBodyContactDistance(matildaStats)).toBeCloseTo(enemyHalfExtent + playerContactHalfExtent, 8)
 
-    // Regression guard: the pre-fix visible body used the B01 base scale (2.00),
-    // which would only produce a 0.4267 half-extent -- far short of the 0.56 the
-    // collider (and getBodyContactDistance) already assumed.
-    const buggyHalfExtent = Math.max(0.14, 0.10) * ENEMY_STATS.B01.scale * ENEMY_SIZE_MULTIPLIER
+    // A 3.0 override would make both contact and visible half-extent 1.5x too large.
+    const buggyHalfExtent = Math.max(0.14, 0.10) * 3.0 * ENEMY_SIZE_MULTIPLIER
     expect(buggyHalfExtent).not.toBeCloseTo(enemyHalfExtent, 3)
   })
 })

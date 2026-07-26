@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const authUser = Object.freeze({
@@ -27,6 +28,7 @@ vi.mock('../lib/firebaseProgress.js', () => ({
   setCloudProgressUser: vi.fn(),
   hydrateCloudProgress: vi.fn(async () => true),
   isFirebaseProgressHydrated: vi.fn(() => false),
+  applyCloudProgressSnapshot: vi.fn(),
 }))
 
 vi.mock('./useGameStore.js', () => ({
@@ -34,10 +36,11 @@ vi.mock('./useGameStore.js', () => ({
 }))
 
 const { useAuthStore, _resetAuthStoreForTests } = await import('./useAuthStore.js')
-const { setCloudProgressUser, hydrateCloudProgress } = await import('../lib/firebaseProgress.js')
+const { setCloudProgressUser, hydrateCloudProgress, applyCloudProgressSnapshot } = await import('../lib/firebaseProgress.js')
 
 describe('useAuthStore cloud progress integration', () => {
   beforeEach(() => {
+    window.history.replaceState({}, '', '/')
     vi.clearAllMocks()
     authClient.signInWithGoogle.mockResolvedValue(authUser)
     authChange = null
@@ -74,5 +77,18 @@ describe('useAuthStore cloud progress integration', () => {
     resolveSignIn(authUser)
     await expect(first).resolves.toEqual(authUser)
     await expect(second).resolves.toEqual(authUser)
+  })
+
+  it.each(['initializeAuth', 'signInWithGoogle'])('%s keeps E2E progress in memory without a cloud user', async (action) => {
+    window.history.replaceState({}, '', '/?e2e=1')
+
+    await useAuthStore.getState()[action]()
+
+    expect(applyCloudProgressSnapshot).toHaveBeenCalledWith(
+      expect.objectContaining({ profile: expect.objectContaining({ uid: 'e2e-local-test', nickname: 'E2E 생존자' }) }),
+      expect.objectContaining({ uid: 'e2e-local-test' }),
+      { keepCloudUserNull: true },
+    )
+    expect(setCloudProgressUser).not.toHaveBeenCalled()
   })
 })

@@ -211,6 +211,22 @@ describe('firebase-only player progress runtime', () => {
     expect(getFirebaseProgressRuntimeSnapshot().progress.goldTotal).toBe(0)
   })
 
+  it('keeps the E2E memory runtime hydrated without registering a Firebase write user', async () => {
+    const e2eUser = { uid: 'e2e-local-test', displayName: 'E2E테스트' }
+    const save = vi.fn(async () => {})
+    _setFirebaseProgressClientForTests({ save, loadOrCreate: vi.fn() })
+
+    expect(applyCloudProgressSnapshot({
+      ...remoteSnapshot(),
+      profile: { uid: e2eUser.uid, displayName: e2eUser.displayName, nickname: 'E2E 생존자' },
+    }, e2eUser, { keepCloudUserNull: true })).toBe(true)
+
+    expect(isFirebaseProgressHydrated(e2eUser)).toBe(true)
+    expect(getUserProgressPath()).toBe('')
+    await expect(requestCloudProgressSave()).resolves.toBe(false)
+    expect(save).not.toHaveBeenCalled()
+  })
+
   it('covers every player account data key in the cloud snapshot without localStorage reads', () => {
     applyCloudProgressSnapshot(remoteSnapshot({ progress: { goldTotal: 500 } }), USER)
     setUnlocked('sharkMissile')

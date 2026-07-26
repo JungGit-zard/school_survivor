@@ -136,12 +136,14 @@ export async function saveLocalProgressToCloud(user = cloudUser) {
   return requestCloudProgressSave(user)
 }
 
-export function applyCloudProgressSnapshot(snapshot, user = cloudUser) {
+// E2E의 메모리 전용 진행도를 hydrated 상태로 만들되, 가짜 uid를 Firebase 쓰기 대상으로
+// 등록하지 않는다. 기본값은 일반 Firebase 로그인 경로의 기존 동작을 그대로 보존한다.
+export function applyCloudProgressSnapshot(snapshot, user = cloudUser, { keepCloudUserNull = false } = {}) {
   const uid = readUserId(user)
   if (!uid) return false
   const normalized = normalizeRemoteSnapshot(snapshot, uid, user)
   if (!normalized) return false
-  cloudUser = user ?? cloudUser
+  cloudUser = keepCloudUserNull ? null : (user ?? cloudUser)
   runtime = {
     uid,
     hydrated: true,

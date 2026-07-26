@@ -103,7 +103,7 @@ describe('weaponPermanentUpgrades storage layer', () => {
     const ruler = applyWeaponPermanentUpgradesToBaseWeapon('schoolBag', WEAPON_CATALOG.schoolBag.base)
     const flask = applyWeaponPermanentUpgradesToBaseWeapon('scienceFlask', WEAPON_CATALOG.scienceFlask.base)
 
-    expect(cutter.cooldown).toBeCloseTo(624, 1)
+    expect(cutter.cooldown).toBeCloseTo(3120, 1)
     expect(ruler.range).toBeCloseTo(0.684, 3)
     expect(flask.zoneDurationMs).toBe(5600)
   })

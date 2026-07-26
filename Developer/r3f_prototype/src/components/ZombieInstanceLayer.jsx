@@ -5,13 +5,13 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.png'
-import { enemyPool } from '../lib/refs.js'
+import { enemyPool, playerPos, screenBounds } from '../lib/refs.js'
 import { getFirebaseStudioRuntimeState } from '../lib/studioRuntimeState.js'
 import { GRAPHICS_STUDIO_TUNING_EVENT, getStudioZombieItemId, loadStudioTunings } from '../lib/graphicsStudioConfig.js'
 import { getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { getToonGradient } from '../lib/toon.js'
 import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
-import { POOLED_ENEMY_CAPACITY, SPAWN_REVEAL_MS, SPAWN_SMOKE_MS, applyCachedPartTransform, e01PartSlotsForNumericPath, fillChargeCueSlots, fillEnemyHealthBarLayout, getPooledChargeCueY, getSpawnSmokeOpacity, setSlotOpacity, updateHealthVisualState } from './PooledEnemyVisuals.js'
+import { ENEMY_RENDER_FAR, POOLED_ENEMY_CAPACITY, SPAWN_REVEAL_MS, SPAWN_SMOKE_MS, applyCachedPartTransform, e01PartSlotsForNumericPath, fillEnemyHealthBarLayout, fillVisibleChargeCueSlots, getPooledChargeCueY, getPooledEnemyAnimationTime, getPooledEnemyRenderTier, getSpawnSmokeOpacity, setSlotOpacity, shouldRenderPooledEnemyPart, updateHealthVisualState } from './PooledEnemyVisuals.js'
 
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0)
 const m = new THREE.Matrix4(); const a = new THREE.Matrix4(); const e = new THREE.Euler('XYZ')
@@ -69,16 +69,18 @@ function setPartRotation(dst, key, time, type, state) {
 }
 function makeMat(eye = false) { const x = new THREE.MeshToonMaterial({ color: 0xffffff, gradientMap: getToonGradient(), emissive: 0, emissiveIntensity: eye ? .9 : .12 }); x.stencilWrite = true; x.stencilRef = OUTLINE; x.stencilFunc = THREE.AlwaysStencilFunc; x.stencilZPass = THREE.ReplaceStencilOp; return x }
 function makeOutline() { const x = new THREE.MeshBasicMaterial({ color: 0x050209, side: THREE.BackSide, transparent: true, opacity: .96, depthWrite: false }); x.stencilWrite = true; x.stencilRef = OUTLINE; x.stencilFunc = THREE.NotEqualStencilFunc; return x }
-function im(part, material) { const x = new THREE.InstancedMesh(new THREE.BoxGeometry(...part[2]), material, POOLED_ENEMY_CAPACITY); x.frustumCulled = false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for (let i=0;i<POOLED_ENEMY_CAPACITY;i++) x.setMatrixAt(i,ZERO); return x }
+function im(part, material) { const x = new THREE.InstancedMesh(new THREE.BoxGeometry(...part[2]), material, POOLED_ENEMY_CAPACITY); x.frustumCulled = false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for (let i=0;i<POOLED_ENEMY_CAPACITY;i++) x.setMatrixAt(i,ZERO); x.count=0; return x }
 export function installInstanceAlpha(geometry, material, count) { const alpha = new THREE.InstancedBufferAttribute(new Float32Array(count).fill(1), 1); geometry.setAttribute('instanceAlpha', alpha); material.onBeforeCompile = (shader) => { shader.vertexShader = `attribute float instanceAlpha; varying float pooledInstanceAlpha;\n${shader.vertexShader}`.replace('#include <begin_vertex>', '#include <begin_vertex>\npooledInstanceAlpha = instanceAlpha;'); shader.fragmentShader = `varying float pooledInstanceAlpha;\n${shader.fragmentShader}`.replace('#include <output_fragment>', '#include <output_fragment>\ngl_FragColor.a *= pooledInstanceAlpha;') }; material.customProgramCacheKey = () => 'pooled-instance-alpha-v1'; return alpha }
-function plane(material) { const geometry=new THREE.PlaneGeometry(1,1); const x = new THREE.InstancedMesh(geometry,material,POOLED_ENEMY_CAPACITY); x.frustumCulled=false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); x.userData.instanceAlpha=installInstanceAlpha(geometry,material,POOLED_ENEMY_CAPACITY); for(let i=0;i<POOLED_ENEMY_CAPACITY;i++) x.setMatrixAt(i,ZERO); return x }
-function cueIM(def, material) { const x = new THREE.InstancedMesh(new THREE.BoxGeometry(...def[0]), material, 16); x.frustumCulled=false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for(let i=0;i<16;i++)x.setMatrixAt(i,ZERO); return x }
+function plane(material) { const geometry=new THREE.PlaneGeometry(1,1); const x = new THREE.InstancedMesh(geometry,material,POOLED_ENEMY_CAPACITY); x.frustumCulled=false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); x.userData.instanceAlpha=installInstanceAlpha(geometry,material,POOLED_ENEMY_CAPACITY); for(let i=0;i<POOLED_ENEMY_CAPACITY;i++) x.setMatrixAt(i,ZERO); x.count=0; return x }
+function cueIM(def, material) { const x = new THREE.InstancedMesh(new THREE.BoxGeometry(...def[0]), material, 16); x.frustumCulled=false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for(let i=0;i<16;i++)x.setMatrixAt(i,ZERO); x.count=0; return x }
 function mark(meshes) { for (let i=0;i<meshes.length;i++) { const x=meshes[i]; x.instanceMatrix.needsUpdate = true; if (x.instanceColor) x.instanceColor.needsUpdate = true; if (x.userData.instanceAlpha) x.userData.instanceAlpha.needsUpdate=true } }
 function markOne(x) { x.instanceMatrix.needsUpdate=true; if(x.instanceColor)x.instanceColor.needsUpdate=true; if(x.userData.instanceAlpha)x.userData.instanceAlpha.needsUpdate=true }
 
 export default function ZombieInstanceLayer({ resetKey }) {
   const { camera } = useThree(); const smokeTexture = useLoader(THREE.TextureLoader, spawnSmokeUrl)
   const studio = useRef({ revision: null, rootMatrices: [], rootScaleX: new Float32Array(9), rootScaleZ: new Float32Array(9), supported: new Uint8Array(9), partTransforms: new Float32Array(9 * PART_COUNT * PART_STRIDE) }); const cueOverflowRef = useRef(0); const cueIndicesRef = useRef(new Int16Array(16))
+  const renderTiers = useRef(new Uint8Array(POOLED_ENEMY_CAPACITY))
+  const partCounts = useRef(new Int16Array(PART_COUNT))
   const health = useRef({ generation:new Uint16Array(200), lastRatio:new Float32Array(200), trailRatio:new Float32Array(200), flash:new Float32Array(200), ratio:new Float32Array(200), visibleTrailRatio:new Float32Array(200) })
   const healthBarLayout = useRef(new Float32Array(3))
   const all = useMemo(() => {
@@ -117,38 +119,44 @@ export default function ZombieInstanceLayer({ resetKey }) {
     // The normal bars and blob shadow have no per-frame alpha write.  Restore
     // their steady-state defaults here; only the delayed trail and smoke start
     // transparent until their frame-path explicitly activates them.
-    all.bars[0].userData.instanceAlpha.fill(1)
-    all.bars[1].userData.instanceAlpha.fill(1)
-    all.bars[2].userData.instanceAlpha.fill(0)
-    all.bars[3].userData.instanceAlpha.fill(1)
-    all.shadow.userData.instanceAlpha.fill(1)
-    all.smoke.userData.instanceAlpha.fill(0)
+    all.bars[0].userData.instanceAlpha.array.fill(1)
+    all.bars[1].userData.instanceAlpha.array.fill(1)
+    all.bars[2].userData.instanceAlpha.array.fill(0)
+    all.bars[3].userData.instanceAlpha.array.fill(1)
+    all.shadow.userData.instanceAlpha.array.fill(1)
+    all.smoke.userData.instanceAlpha.array.fill(0)
+    renderTiers.current.fill(0)
+    partCounts.current.fill(0)
+    for (let i = 0; i < all.body.length; i += 1) all.body[i].count = 0
+    for (let i = 0; i < all.out.length; i += 1) all.out[i].count = 0
+    for (let i = 0; i < all.bars.length; i += 1) all.bars[i].count = 0
+    for (let i = 0; i < all.cue.length; i += 1) all.cue[i].count = 0
+    all.shadow.count = 0
+    all.smoke.count = 0
     mark(all.body); mark(all.out); mark(all.bars); mark(all.cue); markOne(all.shadow); markOne(all.smoke)
   }, [all, resetKey])
   useEffect(() => { const refresh=()=>{ const state=getFirebaseStudioRuntimeState(); if (!state?.datasets || !Number.isInteger(state.revision)) return; const tunings=loadStudioTunings(); const rootMatrices=[]; const rootScaleX=new Float32Array(9);const rootScaleZ=new Float32Array(9); const supported=new Uint8Array(9); const partTransforms=new Float32Array(9 * PART_COUNT * PART_STRIDE); for(let t=1;t<=8;t++){const id=TYPE_ITEM_IDS[t];const transform=getStudioTransformProps(tunings[id]);const root=new THREE.Matrix4();p.set(transform.position[0],transform.position[1],transform.position[2]);e.set(transform.rotation[0],transform.rotation[1],transform.rotation[2]);q.setFromEuler(e);s.set(transform.scale[0],transform.scale[1],transform.scale[2]);root.compose(p,q,s);rootMatrices[t]=root;rootScaleX[t]=transform.scale[0];rootScaleZ[t]=transform.scale[2];supported[t]=1;const base=t*PART_COUNT*PART_STRIDE;for(let part=0;part<PART_COUNT;part+=1){partTransforms[base+part*PART_STRIDE+6]=1;partTransforms[base+part*PART_STRIDE+7]=1;partTransforms[base+part*PART_STRIDE+8]=1}}
     const keys=Object.keys(tunings).sort(); for(let keyIndex=0;keyIndex<keys.length;keyIndex+=1){const savedKey=keys[keyIndex];const marker='zombie-e01::';if(!savedKey.startsWith(marker))continue;const kind=savedKey.startsWith('zombie-e01::group::')?'group::':'part::';const suffix=savedKey.slice(('zombie-e01::'+kind).length);const selected=suffix.split('+');const transform=getStudioTransformProps(tunings[savedKey]);for(let selectedIndex=0;selectedIndex<selected.length;selectedIndex+=1){const count=e01PartSlotsForNumericPath(selected[selectedIndex],partSlotScratch);applyCachedPartTransform(partTransforms,1*PART_COUNT*PART_STRIDE,partSlotScratch,count,transform)}} studio.current={revision:state.revision,rootMatrices,rootScaleX,rootScaleZ,supported,partTransforms} }; refresh(); window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT,refresh); return()=>window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT,refresh) },[])
   useFrame((_,delta) => {
-    const pool=enemyPool; if (!pool) return; const max=Math.min(199,Number.isInteger(pool.highestActive)?pool.highestActive:199)
-    for(let i=0;i<200;i++) { const active=i<=max&&pool.active[i]===1; const timer=active?pool.spawnTimer[i]:-1; const bodyVisible=active&&timer>=SPAWN_REVEAL_MS; const smokeVisible=active&&timer>=0&&timer<SPAWN_SMOKE_MS; const type=pool.type[i]; const rootMatrix=studio.current.rootMatrices[type] || IDENTITY;
-      if (!bodyVisible || type<1 || type>8) { for(let meshIndex=0;meshIndex<all.body.length;meshIndex++)all.body[meshIndex].setMatrixAt(i,ZERO);for(let meshIndex=0;meshIndex<all.out.length;meshIndex++)all.out[meshIndex].setMatrixAt(i,ZERO);all.shadow.setMatrixAt(i,ZERO);for(let meshIndex=0;meshIndex<all.bars.length;meshIndex++)all.bars[meshIndex].setMatrixAt(i,ZERO) }
-      else { const scale=(pool.visualScale[i]||1)*.333; const state=phase(pool,i); const time=timer*.001; const pal=TYPE_PALETTES[type]; const parts=(type===7||type===8)?RUN:STANDARD; const offset=(type===7||type===8)?STANDARD.length:0;
-         p.set(pool.posX[i],pool.posY[i],pool.posZ[i]); e.set(0,pool.yaw[i],0);q.setFromEuler(e);s.set(scale,scale,scale);m.compose(p,q,s);m.multiply(rootMatrix)
-         p.set(pool.posX[i],.018,pool.posZ[i]);s.set(Math.max(.05,scale*(studio.current.rootScaleX[type]||1)*.62),Math.max(.05,scale*(studio.current.rootScaleZ[type]||1)*.34),1);q.setFromEuler(shadowRotation);a.compose(p,q,s);all.shadow.setMatrixAt(i,a)
-         for(let j=0;j<ALL_PARTS.length;j++){all.body[j].setMatrixAt(i,ZERO);all.out[j].setMatrixAt(i,ZERO)}
-         for(let j=0;j<parts.length;j++){const part=parts[j];const slot=offset+j;if(part[6]==='leader'&&type!==7)continue;const partBase=type*PART_COUNT*PART_STRIDE+slot*PART_STRIDE; a.copy(m);translate.makeTranslation(part[3][0]+studio.current.partTransforms[partBase],part[3][1]+studio.current.partTransforms[partBase+1],part[3][2]+studio.current.partTransforms[partBase+2]);a.multiply(translate);setPartRotation(e,part[0],time,type,state);e.x+=studio.current.partTransforms[partBase+3];e.y+=studio.current.partTransforms[partBase+4];e.z+=studio.current.partTransforms[partBase+5];rotate.makeRotationFromEuler(e);a.multiply(rotate);inflate.makeScale(studio.current.partTransforms[partBase+6],studio.current.partTransforms[partBase+7],studio.current.partTransforms[partBase+8]);a.multiply(inflate);translate.makeTranslation(part[4][0],part[4][1],part[4][2]);a.multiply(translate);all.body[slot].setMatrixAt(i,a);const role=part[1];const run=type===7;const hex=pool.hitFlashTimer[i]>0?0xffffff:role==='skin'?pal.skin:role==='eye'?pal.eye:role==='foot'?0x1a1a1a:role==='trim'?(run?0x7d3fc6:0x1880bd):role==='stripe'?0xffffff:role==='jersey'?(run?0x5a2484:0xf0eee4):role==='shorts'?(run?0x22152f:0x1974aa):role==='shoe'?(run?0x6e35b8:0x1771a6):role==='sole'?0xf5f1e8:role==='bib'?0xf7f3df:role==='digit'||role==='mouth'?0x151515:role==='medal'?0xf0b62d:pal.body;color.setHex(hex);all.body[slot].setColorAt(i,color);const outlineScale=1+(part[5]-1)*2;inflate.makeScale(outlineScale,outlineScale,outlineScale);a.multiply(inflate);all.out[slot].setMatrixAt(i,a)}
-         const ratio=(pool.maxHp[i]>0?pool.hp[i]/pool.maxHp[i]:1);updateHealthVisualState(health.current,i,pool.generation[i],ratio,delta);const visibleTrailRatio=health.current.visibleTrailRatio[i];const currentRatio=health.current.ratio[i];const flash=health.current.flash[i];const layout=fillEnemyHealthBarLayout(healthBarLayout.current,pool.visualScale[i]);const w=layout[0];const h=layout[1];p.set(pool.posX[i],pool.posY[i]+layout[2],pool.posZ[i]);q.copy(camera.quaternion);s.set(w+.008,h+.008,1);a.compose(p,q,s);all.bars[0].setMatrixAt(i,a);s.set(w,h,1);a.compose(p,q,s);all.bars[1].setMatrixAt(i,a);s.set(w*visibleTrailRatio,h,1);p.x=pool.posX[i]-w*(1-visibleTrailRatio)/2;a.compose(p,q,s);all.bars[2].setMatrixAt(i,a);s.set(w*currentRatio,h,1);p.x=pool.posX[i]-w*(1-currentRatio)/2;a.compose(p,q,s);all.bars[3].setMatrixAt(i,a);setSlotOpacity(all.bars[2].userData.instanceAlpha,i,visibleTrailRatio-currentRatio>.006?.18+flash*.82:0)
+    const pool=enemyPool; if (!pool) return; const max=Math.min(199,Number.isInteger(pool.highestActive)?pool.highestActive:199); const tiers=renderTiers.current;const counts=partCounts.current;counts.fill(0)
+    let bodyCount=0; let healthCount=0; let smokeCount=0
+    for(let i=0;i<200;i++) {
+      const active=i<=max&&pool.active[i]===1; if(!active){tiers[i]=0;continue}
+      const timer=pool.spawnTimer[i]; const type=pool.type[i]; const tier=getPooledEnemyRenderTier(screenBounds,pool.posX[i],pool.posZ[i],playerPos.x,playerPos.z,tiers[i]); tiers[i]=tier
+      if(!tier)continue
+      const bodyVisible=timer>=SPAWN_REVEAL_MS&&type>=1&&type<=8; const smokeVisible=timer>=0&&timer<SPAWN_SMOKE_MS
+      if(bodyVisible){const renderSlot=bodyCount++;const rootMatrix=studio.current.rootMatrices[type]||IDENTITY;const scale=(pool.visualScale[i]||1)*.333;const state=phase(pool,i);const time=getPooledEnemyAnimationTime(timer,tier);const pal=TYPE_PALETTES[type];const parts=(type===7||type===8)?RUN:STANDARD;const offset=(type===7||type===8)?STANDARD.length:0
+        p.set(pool.posX[i],pool.posY[i],pool.posZ[i]);e.set(0,pool.yaw[i],0);q.setFromEuler(e);s.set(scale,scale,scale);m.compose(p,q,s);m.multiply(rootMatrix)
+        p.set(pool.posX[i],.018,pool.posZ[i]);s.set(Math.max(.05,scale*(studio.current.rootScaleX[type]||1)*.62),Math.max(.05,scale*(studio.current.rootScaleZ[type]||1)*.34),1);q.setFromEuler(shadowRotation);a.compose(p,q,s);all.shadow.setMatrixAt(renderSlot,a)
+        for(let j=0;j<parts.length;j++){const part=parts[j];const slot=offset+j;if(!shouldRenderPooledEnemyPart(type,slot,tier)||(part[6]==='leader'&&type!==7))continue;const partRenderSlot=counts[slot]++;const partBase=type*PART_COUNT*PART_STRIDE+slot*PART_STRIDE;a.copy(m);translate.makeTranslation(part[3][0]+studio.current.partTransforms[partBase],part[3][1]+studio.current.partTransforms[partBase+1],part[3][2]+studio.current.partTransforms[partBase+2]);a.multiply(translate);setPartRotation(e,part[0],time,type,state);e.x+=studio.current.partTransforms[partBase+3];e.y+=studio.current.partTransforms[partBase+4];e.z+=studio.current.partTransforms[partBase+5];rotate.makeRotationFromEuler(e);a.multiply(rotate);inflate.makeScale(studio.current.partTransforms[partBase+6],studio.current.partTransforms[partBase+7],studio.current.partTransforms[partBase+8]);a.multiply(inflate);translate.makeTranslation(part[4][0],part[4][1],part[4][2]);a.multiply(translate);all.body[slot].setMatrixAt(partRenderSlot,a);const role=part[1];const run=type===7;const hex=pool.hitFlashTimer[i]>0?0xffffff:role==='skin'?pal.skin:role==='eye'?pal.eye:role==='foot'?0x1a1a1a:role==='trim'?(run?0x7d3fc6:0x1880bd):role==='stripe'?0xffffff:role==='jersey'?(run?0x5a2484:0xf0eee4):role==='shorts'?(run?0x22152f:0x1974aa):role==='shoe'?(run?0x6e35b8:0x1771a6):role==='sole'?0xf5f1e8:role==='bib'?0xf7f3df:role==='digit'||role==='mouth'?0x151515:role==='medal'?0xf0b62d:pal.body;color.setHex(hex);all.body[slot].setColorAt(partRenderSlot,color);const outlineScale=1+(part[5]-1)*2;inflate.makeScale(outlineScale,outlineScale,outlineScale);a.multiply(inflate);all.out[slot].setMatrixAt(partRenderSlot,a)}
+        if(tier!==ENEMY_RENDER_FAR){const healthSlot=healthCount++;const ratio=(pool.maxHp[i]>0?pool.hp[i]/pool.maxHp[i]:1);updateHealthVisualState(health.current,i,pool.generation[i],ratio,delta);const visibleTrailRatio=health.current.visibleTrailRatio[i];const currentRatio=health.current.ratio[i];const flash=health.current.flash[i];const layout=fillEnemyHealthBarLayout(healthBarLayout.current,pool.visualScale[i]);const w=layout[0];const h=layout[1];p.set(pool.posX[i],pool.posY[i]+layout[2],pool.posZ[i]);q.copy(camera.quaternion);s.set(w+.008,h+.008,1);a.compose(p,q,s);all.bars[0].setMatrixAt(healthSlot,a);s.set(w,h,1);a.compose(p,q,s);all.bars[1].setMatrixAt(healthSlot,a);s.set(w*visibleTrailRatio,h,1);p.x=pool.posX[i]-w*(1-visibleTrailRatio)/2;a.compose(p,q,s);all.bars[2].setMatrixAt(healthSlot,a);s.set(w*currentRatio,h,1);p.x=pool.posX[i]-w*(1-currentRatio)/2;a.compose(p,q,s);all.bars[3].setMatrixAt(healthSlot,a);setSlotOpacity(all.bars[2].userData.instanceAlpha,healthSlot,visibleTrailRatio-currentRatio>.006?.18+flash*.82:0)}
       }
-       if(smokeVisible){const t=timer/SPAWN_SMOKE_MS;const size=(pool.visualScale[i]||1)*.333*(1.7+(1-(1-t)*(1-t))*(3.1-1.7));p.set(pool.posX[i],pool.posY[i]+(pool.visualScale[i]||1)*.333*(1+t*.32),pool.posZ[i]);q.copy(camera.quaternion);s.set(size,size,1);a.compose(p,q,s);all.smoke.setMatrixAt(i,a);setSlotOpacity(all.smoke.userData.instanceAlpha,i,getSpawnSmokeOpacity(timer))}else { all.smoke.setMatrixAt(i,ZERO);setSlotOpacity(all.smoke.userData.instanceAlpha,i,0) }
+      if(smokeVisible){const smokeSlot=smokeCount++;const t=timer/SPAWN_SMOKE_MS;const size=(pool.visualScale[i]||1)*.333*(1.7+(1-(1-t)*(1-t))*(3.1-1.7));p.set(pool.posX[i],pool.posY[i]+(pool.visualScale[i]||1)*.333*(1+t*.32),pool.posZ[i]);q.copy(camera.quaternion);s.set(size,size,1);a.compose(p,q,s);all.smoke.setMatrixAt(smokeSlot,a);setSlotOpacity(all.smoke.userData.instanceAlpha,smokeSlot,getSpawnSmokeOpacity(timer))}
     }
-    const cueIndices=cueIndicesRef.current; cueOverflowRef.current=fillChargeCueSlots(pool,cueIndices)
-    for(let ci=0;ci<16;ci++) {
-      const enemyIndex=cueIndices[ci]
-      if (enemyIndex < 0) { for(let meshIndex=0;meshIndex<all.cue.length;meshIndex++)all.cue[meshIndex].setMatrixAt(ci,ZERO); continue }
-      const pulse=1+Math.sin(pool.spawnTimer[enemyIndex]*.012)*.08
-      p.set(pool.posX[enemyIndex],getPooledChargeCueY(pool.posY[enemyIndex], pool.visualScale[enemyIndex]),pool.posZ[enemyIndex]); q.copy(camera.quaternion); s.set(pulse,pulse,pulse);m.compose(p,q,s)
-       for(let part=0;part<CUE.length;part++){a.copy(m);translate.makeTranslation(CUE[part][1][0],CUE[part][1][1],CUE[part][1][2]);a.multiply(translate);all.cue[part].setMatrixAt(ci,a);color.setHex(CUE[part][2]);all.cue[part].setColorAt(ci,color)}
-    }
-    mark(all.body); mark(all.out); markOne(all.shadow); mark(all.bars); markOne(all.smoke); mark(all.cue)
+    const cueIndices=cueIndicesRef.current;cueOverflowRef.current=fillVisibleChargeCueSlots(pool,tiers,cueIndices);let cueCount=0
+    for(let ci=0;ci<16;ci++){const enemyIndex=cueIndices[ci];if(enemyIndex<0)continue;const cueSlot=cueCount++;const pulse=1+Math.sin(pool.spawnTimer[enemyIndex]*.012)*.08;p.set(pool.posX[enemyIndex],getPooledChargeCueY(pool.posY[enemyIndex],pool.visualScale[enemyIndex]),pool.posZ[enemyIndex]);q.copy(camera.quaternion);s.set(pulse,pulse,pulse);m.compose(p,q,s);for(let part=0;part<CUE.length;part++){a.copy(m);translate.makeTranslation(CUE[part][1][0],CUE[part][1][1],CUE[part][1][2]);a.multiply(translate);all.cue[part].setMatrixAt(cueSlot,a);color.setHex(CUE[part][2]);all.cue[part].setColorAt(cueSlot,color)}}
+    for(let i=0;i<all.body.length;i++){all.body[i].count=counts[i];all.out[i].count=counts[i]}for(let i=0;i<all.bars.length;i++)all.bars[i].count=healthCount;for(let i=0;i<all.cue.length;i++)all.cue[i].count=cueCount;all.shadow.count=bodyCount;all.smoke.count=smokeCount
+    mark(all.body);mark(all.out);markOne(all.shadow);mark(all.bars);markOne(all.smoke);mark(all.cue)
   })
   return <>{<primitive object={all.shadow} renderOrder={1}/>} {[...STANDARD,...RUN].map((x,i)=><primitive key={`b${i}`} object={all.body[i]} renderOrder={2}/>)} {[...STANDARD,...RUN].map((x,i)=><primitive key={`o${i}`} object={all.out[i]} renderOrder={1}/>)} {all.bars.map((x,i)=><primitive key={`h${i}`} object={x} renderOrder={20+i}/>)} {all.cue.map((x,i)=><primitive key={`cue${i}`} object={x} renderOrder={30}/>)} <primitive object={all.smoke} renderOrder={100}/></>
 }

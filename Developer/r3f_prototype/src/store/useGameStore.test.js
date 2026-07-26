@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore } from './useGameStore.js'
 import { playerPos, playerFacing, bagSwingState, enemyBodies, joystickDir } from '../lib/refs.js'
+import { advanceRuntimeTime, getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 
 describe('useGameStore XP and reset behavior', () => {
   beforeEach(() => {
@@ -48,6 +49,7 @@ describe('useGameStore XP and reset behavior', () => {
     expect(bagSwingState.lastFired).toBe(-Infinity)
     expect(enemyBodies.size).toBe(0)
     expect(joystickDir).toEqual({ x: 0, z: 0, active: false })
+    expect(getRuntimeElapsedMs()).toBe(0)
   })
 
   it('생존 마일스톤은 한 번만 골드를 지급한다', () => {
@@ -71,5 +73,38 @@ describe('useGameStore XP and reset behavior', () => {
 
     expect(useGameStore.getState().phase).toBe('playing')
     expect(useGameStore.getState().pauseSource).toBeNull()
+  })
+})
+
+describe('runtime elapsed time publication', () => {
+  beforeEach(() => {
+    useGameStore.getState().resetGame()
+  })
+
+  it('publishes runtime time for the HUD at most once per 100ms', () => {
+    advanceRuntimeTime(99)
+    expect(useGameStore.getState().publishRuntimeElapsedMs()).toBe(false)
+    expect(useGameStore.getState().elapsedMs).toBe(0)
+
+    advanceRuntimeTime(1)
+    expect(useGameStore.getState().publishRuntimeElapsedMs()).toBe(true)
+    expect(useGameStore.getState().elapsedMs).toBe(100)
+    expect(useGameStore.getState().publishRuntimeElapsedMs()).toBe(false)
+  })
+
+  it('keeps legacy tickTime callers synchronized with runtime time', () => {
+    useGameStore.getState().tickTime(60_000)
+
+    expect(useGameStore.getState().elapsedMs).toBe(60_000)
+    expect(getRuntimeElapsedMs()).toBe(60_000)
+  })
+
+  it('uses exact runtime time for boss-clear scoring when the HUD snapshot lags', () => {
+    useGameStore.setState({ elapsedMs: 59_999, bossAliveCount: 1, phase: 'playing' })
+    advanceRuntimeTime(60_050)
+    useGameStore.getState().clearStageWithBossBonus()
+
+    // 59.999s snapshot would produce 17, while the exact 60.050s runtime is 18.
+    expect(useGameStore.getState().bossBonus).toBe(18)
   })
 })

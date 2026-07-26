@@ -24,9 +24,9 @@ export const useAuthStore = create((set, get) => ({
       const user = getE2EUser()
       applyCloudProgressSnapshot({
         schemaVersion: 1,
-        profile: { uid: user.uid, displayName: user.displayName, nickname: '' },
+        profile: { uid: user.uid, displayName: user.displayName, nickname: 'E2E 생존자' },
         progress: {},
-      }, user)
+      }, user, { keepCloudUserNull: true })
       set({ status: 'signedIn', user, initialized: true, error: null, signingIn: false, progressStatus: 'ready', progressError: null })
       return
     }
@@ -72,9 +72,9 @@ export const useAuthStore = create((set, get) => ({
       const user = getE2EUser()
       applyCloudProgressSnapshot({
         schemaVersion: 1,
-        profile: { uid: user.uid, displayName: user.displayName, nickname: '' },
+        profile: { uid: user.uid, displayName: user.displayName, nickname: 'E2E 생존자' },
         progress: {},
-      }, user)
+      }, user, { keepCloudUserNull: true })
       set({ status: 'signedIn', user, signingIn: false, error: null, progressStatus: 'ready', progressError: null })
       return Promise.resolve(user)
     }

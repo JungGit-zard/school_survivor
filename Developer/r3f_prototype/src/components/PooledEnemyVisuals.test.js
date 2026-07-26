@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import * as THREE from 'three'
 import { getStudioTransformProps } from './StudioTunedGroup.jsx'
-import { CHARGE_CUE_CAPACITY, ENEMY_VISUAL_WORLD_SCALE, applyCachedPartTransform, copyRootTransform, e01PartSlotsForNumericPath, fillChargeCueSlots, fillEnemyHealthBarLayout, getPooledChargeCueY, getPooledEnemyVisibility, getSpawnSmokeOpacity, hasUnsupportedStudioPartTuning, selectChargeCueSlots, setSlotOpacity, updateHealthVisualState } from './PooledEnemyVisuals.js'
+import { CHARGE_CUE_CAPACITY, ENEMY_RENDER_CULLED, ENEMY_RENDER_FAR, ENEMY_RENDER_MID, ENEMY_RENDER_NEAR, ENEMY_VISUAL_WORLD_SCALE, applyCachedPartTransform, copyRootTransform, e01PartSlotsForNumericPath, fillChargeCueSlots, fillEnemyHealthBarLayout, fillVisibleChargeCueSlots, getPooledEnemyAnimationTime, getPooledChargeCueY, getPooledEnemyRenderTier, getPooledEnemyVisibility, getSpawnSmokeOpacity, hasUnsupportedStudioPartTuning, selectChargeCueSlots, setSlotOpacity, shouldRefreshEnemySight, shouldRenderPooledEnemyPart, updateHealthVisualState } from './PooledEnemyVisuals.js'
 
 describe('pooled enemy visual pure contracts', () => {
   it('holds smoke before and through reveal, then hides it at its final lifetime', () => {
@@ -18,6 +18,17 @@ describe('pooled enemy visual pure contracts', () => {
     const out = new Int16Array(CHARGE_CUE_CAPACITY)
     expect(fillChargeCueSlots(pool, out)).toBe(200 - CHARGE_CUE_CAPACITY)
     expect(out[0]).toBe(0); expect(out.at(-1)).toBe(CHARGE_CUE_CAPACITY - 1)
+  })
+
+  it('selects visible warning cues after offscreen low-index warnings instead of filtering them too late', () => {
+    const pool = { highestActive: 31, active: new Uint8Array(200), type: new Uint8Array(200), state: new Uint8Array(200), spawnTimer: new Float32Array(200) }
+    const tiers = new Uint8Array(200)
+    for (let index = 0; index < 32; index += 1) { pool.active[index] = 1; pool.type[index] = 5; pool.state[index] = 2; pool.spawnTimer[index] = 300 }
+    for (let index = 16; index < 32; index += 1) tiers[index] = ENEMY_RENDER_FAR
+    const out = new Int16Array(CHARGE_CUE_CAPACITY)
+    expect(fillVisibleChargeCueSlots(pool, tiers, out)).toBe(0)
+    expect(out[0]).toBe(16)
+    expect(out.at(-1)).toBe(31)
   })
 
   it('keeps alpha values independent for two instanced slots', () => {
@@ -79,6 +90,47 @@ describe('pooled enemy visual pure contracts', () => {
   it('keeps fixed slot 199 zeroable on inactive reuse', () => {
     expect(getPooledEnemyVisibility(1, 300).body).toBe(true)
     expect(getPooledEnemyVisibility(0, 300).body).toBe(false)
+  })
+
+  it('uses a conservative screen margin and distance tiers without native InstancedMesh culling', () => {
+    const bounds = { minX: -12, maxX: 12, minZ: -12, maxZ: 12 }
+    expect(getPooledEnemyRenderTier(bounds, 0, 0, 0, 0)).toBe(ENEMY_RENDER_NEAR)
+    expect(getPooledEnemyRenderTier(bounds, 7, 0, 0, 0)).toBe(ENEMY_RENDER_MID)
+    expect(getPooledEnemyRenderTier(bounds, 11.5, 0, 0, 0)).toBe(ENEMY_RENDER_FAR)
+    expect(getPooledEnemyRenderTier(bounds, 14, 0, 0, 0)).toBe(ENEMY_RENDER_CULLED)
+    expect(getPooledEnemyRenderTier(bounds, 13.5, 0, 0, 0, ENEMY_RENDER_FAR)).toBe(ENEMY_RENDER_FAR)
+  })
+
+  it('keeps a toon-plus-outline core at far LOD while reducing micro parts and animation cadence', () => {
+    let near = 0; let far = 0
+    for (let index = 0; index < 12; index += 1) {
+      if (shouldRenderPooledEnemyPart(1, index, ENEMY_RENDER_NEAR)) near += 1
+      if (shouldRenderPooledEnemyPart(1, index, ENEMY_RENDER_FAR)) far += 1
+    }
+    expect(far).toBeGreaterThan(0)
+    expect(far).toBeLessThan(near)
+    expect(shouldRenderPooledEnemyPart(1, 0, ENEMY_RENDER_FAR)).toBe(true)
+    expect(shouldRenderPooledEnemyPart(1, 3, ENEMY_RENDER_FAR)).toBe(true)
+    expect(getPooledEnemyAnimationTime(149, ENEMY_RENDER_MID)).toBeCloseTo(.1)
+    expect(getPooledEnemyAnimationTime(199, ENEMY_RENDER_FAR)).toBeCloseTo(.1)
+    expect(getPooledEnemyAnimationTime(199, ENEMY_RENDER_NEAR)).toBeCloseTo(.199)
+    for (const core of [12, 18, 22, 24, 26, 27, 29, 30]) expect(shouldRenderPooledEnemyPart(7, core, ENEMY_RENDER_FAR)).toBe(true)
+    let runNear = 0; let runFar = 0
+    for (let index = 12; index <= 32; index += 1) {
+      if (shouldRenderPooledEnemyPart(7, index, ENEMY_RENDER_NEAR)) runNear += 1
+      if (shouldRenderPooledEnemyPart(7, index, ENEMY_RENDER_FAR)) runFar += 1
+    }
+    expect(runFar).toBeGreaterThan(0)
+    expect(runFar).toBeLessThan(runNear)
+  })
+
+  it('staggers sight checks and immediately refreshes a reused generation', () => {
+    let checks = 0
+    for (let frame = 0; frame < 12; frame += 1) for (let slot = 0; slot < 200; slot += 1) if (shouldRefreshEnemySight(ENEMY_RENDER_CULLED, slot, frame, 1, 1)) checks += 1
+    expect(checks).toBe(200)
+    expect(shouldRefreshEnemySight(ENEMY_RENDER_FAR, 199, 0, 1, 2)).toBe(true)
+    expect(shouldRefreshEnemySight(ENEMY_RENDER_NEAR, 0, 0, 1, 1)).toBe(true)
+    expect(shouldRefreshEnemySight(ENEMY_RENDER_NEAR, 0, 1, 1, 1)).toBe(false)
   })
 
   it('maps E01 numeric head/eye/arm/leg paths and composes group then part offsets', () => {

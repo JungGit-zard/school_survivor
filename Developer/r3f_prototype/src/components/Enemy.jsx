@@ -378,7 +378,7 @@ const INSTANCED_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06'])
 
 export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false, scale }) {
   const stats = ENEMY_STATS[type] ?? ENEMY_STATS.E01
-  // scale prop lets a caller (Enemy) pass the merged statOverride scale (e.g. Matilda's 3.0)
+  // scale prop lets a caller (Enemy) pass the merged statOverride scale (Matilda keeps B01's base scale)
   // so the rendered body matches the physics collider exactly. Falls back to the base
   // ENEMY_STATS scale when omitted -- every other caller (GraphicsStudio preview, StageBossPreview)
   // is unaffected.

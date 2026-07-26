@@ -22,6 +22,32 @@ const spawnData = (index = 0, type = 'E01') => ({
 })
 
 describe('EnemyEntityPool', () => {
+  it('increments spatial revision for spatial changes and enters a permanent safe fallback when exhausted', () => {
+    const pool = createEnemyEntityPool()
+    expect(pool.spatialRevision).toBe(0)
+    const handle = pool.spawn(spawnData())
+    expect(pool.spatialRevision).toBe(1)
+    expect(pool.setPosition(handle, 0, 1, 0)).toBe(true)
+    expect(pool.spatialRevision).toBe(1)
+    expect(pool.setPosition(handle, 2, 1, 0)).toBe(true)
+    expect(pool.spatialRevision).toBe(2)
+    expect(pool.setPosition(handle, 1.1, 1, 0)).toBe(true)
+    expect(pool.spatialRevision).toBe(3)
+    expect(pool.setPosition(handle, 1.1, 1, 0)).toBe(true)
+    expect(pool.spatialRevision).toBe(3)
+    expect(pool.integrate(handle, 1)).toBe(true)
+    expect(pool.spatialRevision).toBe(4)
+    expect(pool.despawn(handle)).toBe(true)
+    expect(pool.spatialRevision).toBe(5)
+    pool.reset()
+    expect(pool.spatialRevision).toBe(6)
+    pool.spatialRevision = Number.MAX_SAFE_INTEGER
+    pool.markSpatialChanged()
+    expect(pool.spatialRevision).toBe(-1)
+    pool.markSpatialChanged()
+    expect(pool.spatialRevision).toBe(-1)
+  })
+
   it('E01-E06, RZL/RZC 및 B01-B04 타입을 고정 코드로 변환한다', () => {
     expect(Object.keys(ENEMY_TYPE_CODES)).toEqual(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04'])
     expect(enemyTypeToCode('B04')).toBe(12)

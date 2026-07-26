@@ -2,7 +2,7 @@
 import { useGameStore } from '../store/useGameStore.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { usePlayingFrame } from '../lib/usePlayingFrame.js'
-import { playerPos, enemyBodies, enemyPool, enemySimulationRuntime, enemyProjectilePool, enemySightBlocked, enemyHandleScratch } from '../lib/refs.js'
+import { playerPos, screenBounds, enemyBodies, enemyPool, enemySimulationRuntime, enemyProjectilePool, enemySightBlocked, enemyHandleScratch } from '../lib/refs.js'
 import Enemy, { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
 import GoldCoin from './GoldCoin.jsx'
@@ -30,6 +30,8 @@ import { isPlayerWeaponSightBlocked } from '../lib/weaponTargeting.js'
 import { logKill } from '../lib/playtestLogger.js'
 import { getStageObjectSightObstacles, isStageObjectSightBlocked } from './StageObjects/stageObjectColliders.js'
 import { createEnemyHitEventQueue } from '../lib/enemyHitEventQueue.js'
+import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
+import { getPooledEnemyRenderTier, shouldRefreshEnemySight } from './PooledEnemyVisuals.js'
 import {
   createPooledEnemySpawnDrainQueue,
   drainPooledEnemySpawnQueue,
@@ -757,6 +759,9 @@ export default function Enemies() {
   const goldTimerRef              = useRef(nextGoldInterval())
   const dogeSpawnedRef           = useRef(false)     // 60초 도지 이벤트 1회 스폰 가드
   const stageSpawnTokenRef       = useRef(0)
+  const sightGenerationRef       = useRef(new Uint16Array(MAX_ENEMIES))
+  const sightTierRef             = useRef(new Uint8Array(MAX_ENEMIES))
+  const sightFrameRef            = useRef(0)
 
   const spawnBoss      = useGameStore((s) => s.spawnBoss)
   const matildaSpawned = useGameStore((s) => s.matildaSpawned)
@@ -789,6 +794,10 @@ export default function Enemies() {
       lastEnd: getWavePhasesForStage(currentStageId).at(-1)?.end ?? 0,
     }
     firedBurstsRef.current.fill(0)
+    sightGenerationRef.current.fill(0)
+    sightTierRef.current.fill(0)
+    enemySightBlocked.fill(0)
+    sightFrameRef.current = 0
   }, [currentStageId, gameKey])
 
   // 프레임 루프는 typed-array와 이 bounded queue만 바꾼다. React state는 다음 RAF에서 한 번만 flush한다.
@@ -1020,12 +1029,12 @@ export default function Enemies() {
     const runtime = stageRuntimeCacheRef.current
     const bounds = runtime?.bounds ?? getStageBounds(currentStageId)
     const player = useGameStore.getState().player
-    // 플레이어 능력치 기준 동적 스탯: 이동속도 ×1.4, 나머지 ×3
+    // 플레이어 능력치 기준 동적 스탯: HP/공격력 ×3, 이동속도 ×1.4, 몸 크기는 B01 기본값
     const matildaStats = {
       hp:          player.maxHp * 3,
       speed:       player.speed * 1.4,
       damage:      player.maxHp * 3,   // 3배 공격력 = 플레이어 최대 체력 3배로 즉사 수준
-      scale:       3.0,
+      scale:       ENEMY_STATS.B01.scale,
       contactDist: 0.36,
       charger:     true,
       chargeSpeed: player.speed * 2.8,
@@ -1158,7 +1167,7 @@ export default function Enemies() {
   }, [])
 
   usePlayingFrame((_, delta) => {
-    const sec = useGameStore.getState().elapsedMs / 1000
+    const sec = getRuntimeElapsedMs(useGameStore.getState().elapsedMs) / 1000
     const stageRuntime = stageRuntimeCacheRef.current
     if (!stageRuntime || stageRuntime.id !== currentStageId) return
     const bounds = stageRuntime.bounds
@@ -1167,10 +1176,18 @@ export default function Enemies() {
 
     // 표준 적은 React/Rapier가 아닌 하나의 풀 step만 수행한다. 시야/장애물 배열은 stage 캐시를 그대로 쓴다.
     const obstacles = stageRuntime.obstacles
+    const sightGeneration = sightGenerationRef.current
+    const sightTiers = sightTierRef.current
+    const sightFrame = sightFrameRef.current = (sightFrameRef.current + 1) % 12
     for (let index = 0; index <= enemyPool.highestActive; index += 1) {
-      if (!enemyPool.active[index]) continue
+      if (!enemyPool.active[index]) { sightGeneration[index] = 0; sightTiers[index] = 0; enemySightBlocked[index] = 0; continue }
+      const tier = getPooledEnemyRenderTier(screenBounds, enemyPool.posX[index], enemyPool.posZ[index], playerPos.x, playerPos.z, sightTiers[index])
+      sightTiers[index] = tier
+      const generation = enemyPool.generation[index]
+      if (!shouldRefreshEnemySight(tier, index, sightFrame, sightGeneration[index], generation)) continue
       const proxy = enemyPool.proxies[index]
       enemySightBlocked[index] = isStageObjectSightBlocked(proxy.translation(), playerPos, obstacles) ? 1 : 0
+      sightGeneration[index] = generation
     }
     const stageConfig = stageRuntime.stageConfig
     const context = runtimeContextRef.current

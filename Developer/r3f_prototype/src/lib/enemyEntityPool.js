@@ -106,6 +106,7 @@ export class EnemyEntityPool {
     this._activeCount = 0
     this._highestActive = -1
     this._liveProxyCount = 0
+    this.spatialRevision = 0
     this.proxies = new Array(MAX_ENEMIES)
     this._translations = new Array(MAX_ENEMIES)
 
@@ -126,6 +127,14 @@ export class EnemyEntityPool {
 
   get liveProxyCount() {
     return this._liveProxyCount
+  }
+
+  markSpatialChanged() {
+    if (!Number.isSafeInteger(this.spatialRevision) || this.spatialRevision < 0 || this.spatialRevision === Number.MAX_SAFE_INTEGER) {
+      this.spatialRevision = -1
+      return
+    }
+    this.spatialRevision += 1
   }
 
   _createStableProxy(index) {
@@ -268,6 +277,7 @@ export class EnemyEntityPool {
     if (index > this._highestActive) this._highestActive = index
     out.index = index
     out.generation = this.generation[index]
+    this.markSpatialChanged()
     return true
   }
 
@@ -356,6 +366,7 @@ export class EnemyEntityPool {
       this._freeHead = index
     }
     if (index === this._highestActive) this._findHighestActive()
+    this.markSpatialChanged()
     return true
   }
 
@@ -404,9 +415,11 @@ export class EnemyEntityPool {
   setPosition(handle, x, y, z) {
     if (!this.isHandleAlive(handle) || !isStorableFloat(x) || !isStorableFloat(y) || !isStorableFloat(z)) return false
     const index = handle.index
+    const spatialChanged = this.posX[index] !== Math.fround(x) || this.posZ[index] !== Math.fround(z)
     this.posX[index] = x
     this.posY[index] = y
     this.posZ[index] = z
+    if (spatialChanged) this.markSpatialChanged()
     return true
   }
 
@@ -423,8 +436,10 @@ export class EnemyEntityPool {
     const nextX = Math.fround(this.posX[index] + this.velX[index] * deltaSeconds)
     const nextZ = Math.fround(this.posZ[index] + this.velZ[index] * deltaSeconds)
     if (!isFiniteValue(nextX) || !isFiniteValue(nextZ)) return false
+    const spatialChanged = this.posX[index] !== nextX || this.posZ[index] !== nextZ
     this.posX[index] = nextX
     this.posZ[index] = nextZ
+    if (spatialChanged) this.markSpatialChanged()
     return true
   }
 
@@ -528,6 +543,7 @@ export class EnemyEntityPool {
         this._freeHead = index
       }
     }
+    this.markSpatialChanged()
   }
 }
 

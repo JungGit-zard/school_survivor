@@ -14,6 +14,7 @@ import EscapePortal from './EscapePortal.jsx'
 import StudentDialogueTrigger from './StudentDialogueTrigger.jsx'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { createCriticalScreenShakeFrame, sampleCriticalScreenShake } from '../lib/criticalScreenShake.js'
+import { PUBLISH_INTERVAL_MS, advanceRuntimeTime } from '../lib/gameRuntimeTime.js'
 import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon, ChibikoWeapon, SharkMissileWeapon, StudentLanternWeapon } from './Weapons/index.js'
 
 const _camTarget = new THREE.Vector3()
@@ -55,7 +56,6 @@ export default function Game() {
   const { camera } = useThree()
   const previousCameraShakeOffsetRef = useRef(null)
   if (previousCameraShakeOffsetRef.current === null) previousCameraShakeOffsetRef.current = new THREE.Vector3()
-  const tickTime   = useGameStore((s) => s.tickTime)
   const phase      = useGameStore((s) => s.phase)
   const currentStageId = useGameStore((s) => s.currentStageId)
   const escapePortalActive = useGameStore((s) => s.escapePortalActive)
@@ -63,6 +63,7 @@ export default function Game() {
   const spawnMatilda = useGameStore((s) => s.spawnMatilda)
   const matildaSpawned = useGameStore((s) => s.matildaSpawned)
   const checkSurvivalMilestone = useGameStore((s) => s.checkSurvivalMilestone)
+  const publishRuntimeElapsedMs = useGameStore((s) => s.publishRuntimeElapsedMs)
   const gameKey = useGameStore((s) => s.gameKey)
 
   // DEV E2E 전용: resetGame이 상태를 초기화한 뒤(매 런 시작 = gameKey 증가) URL 쿼리로
@@ -73,6 +74,12 @@ export default function Game() {
     }
   }, [gameKey])
 
+  useEffect(() => {
+    if (phase !== 'playing') return undefined
+    const intervalId = window.setInterval(publishRuntimeElapsedMs, PUBLISH_INTERVAL_MS)
+    return () => window.clearInterval(intervalId)
+  }, [gameKey, phase, publishRuntimeElapsedMs])
+
   useFrame((_, delta) => {
     // The previous transient offset must not participate in follow lerp. Remove
     // it before computing the next base pose, then store only this frame's offset.
@@ -81,12 +88,11 @@ export default function Game() {
     previousCameraShakeOffset.set(0, 0, 0)
 
     const dt = Math.min(delta, 0.1)
-    if (phase === 'playing') {
-      tickTime(dt * 1000)
-      checkSurvivalMilestone()
+    if (useGameStore.getState().phase === 'playing') {
+      const elapsedMs = advanceRuntimeTime(dt * 1000)
+      checkSurvivalMilestone(elapsedMs)
       // getState()로 최신 값 읽기 — React 클로저 stale 방지
       const gs = useGameStore.getState()
-      const { elapsedMs } = gs
       const stageConfig = getStageConfig(currentStageId)
       // 스테이지 설정 시간에 자동 클리어 대신 탈출구 등장
       if (!gs.escapePortalActive && elapsedMs >= stageConfig.escapePortalSec * 1000) {

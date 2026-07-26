@@ -13,6 +13,7 @@ import { STUDIO_GAME_SYNC_MESSAGE, isAllowedStudioGameOrigin } from './lib/studi
 import { useAuthStore } from './store/useAuthStore.js'
 import { isFirebaseStudioRuntimeReady } from './lib/studioRuntimeState.js'
 import { isProjectMaster } from './lib/projectAdmin.js'
+import { isE2EAuthBypass } from './lib/e2eAuth.js'
 
 const AdminPage = lazy(() => import('./components/AdminPage.jsx'))
 const GraphicsStudio = lazy(() => import('./components/GraphicsStudio.jsx'))
@@ -50,6 +51,23 @@ export default function App() {
   }, [initializeAuth])
 
   const ensureStudioCloudReady = useCallback(async (user = authUser) => {
+    // DEV E2E는 가짜 사용자 workspace를 절대 읽거나 쓰지 않는다. 공개 정본만 읽어
+    // 유효한 원격 revision을 적용해야 로비와 게임의 Studio 의존 모델이 fail-closed 상태에
+    // 빠지지 않는다. 일반 로그인/Graphics Studio의 사용자별 hydrate 경로는 아래 그대로 둔다.
+    if (isE2EAuthBypass()) {
+      setFirebaseStudioUser(null)
+      hydratedUidRef.current = ''
+      hydrationRef.current = null
+      if (typeof window !== 'undefined' && window.location.pathname.startsWith('/graphics-studio')) {
+        setStudioCloudStatus('unauthenticated')
+        return false
+      }
+      setStudioCloudStatus('loading')
+      const result = await hydrateCanonicalTitlePlayer({}).catch(() => ({ status: 'read-failed' }))
+      const ready = result?.status === 'remote-applied'
+      setStudioCloudStatus(result?.status ?? 'read-failed')
+      return ready
+    }
     const uid = typeof user?.uid === 'string' ? user.uid.trim() : ''
     if (!uid) {
       setFirebaseStudioUser(null)
@@ -109,6 +127,7 @@ export default function App() {
   // 마스터 세션에서 스튜디오가 준비되면, 현재 주인공 튜닝을 공개 정본 노드에 게시(best-effort).
   // 이렇게 해서 canonicalTitlePlayer가 항상 마스터의 최신 주인공 세팅으로 유지된다.
   useEffect(() => {
+    if (isE2EAuthBypass()) return undefined
     if (
       authStatus === 'signedIn'
       && authUser?.uid
@@ -121,6 +140,7 @@ export default function App() {
   }, [authStatus, authUser, studioCloudStatus])
 
   useEffect(() => {
+    if (isE2EAuthBypass()) return undefined
     if (
       authStatus !== 'signedIn'
       || !authUser?.uid

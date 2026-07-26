@@ -176,6 +176,40 @@ describe('TitleScreen lobby entry', () => {
     cleanup()
   })
 
+  it.each([
+    ['returns false', vi.fn(async () => false)],
+    ['rejects', vi.fn(async () => { throw new Error('Studio hydrate failed') })],
+  ])('keeps the lobby closed and offers retry when Studio hydration %s', async (_scenario, ensureStudioCloudReady) => {
+    const user = { uid: 'uid-studio-best-effort', displayName: 'Returner', email: 'r@example.com', photoURL: '' }
+    useAuthStore.setState({ status: 'signedIn', user, initialized: true })
+    saveNicknameForUser(user, '복도반장')
+
+    const onEnterLobby = vi.fn()
+    const unhandledRejection = vi.fn()
+    window.addEventListener('unhandledrejection', unhandledRejection)
+    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {}, ensureStudioCloudReady)
+
+    await act(async () => {
+      clickButtonByTextRaw(container, '게임 시작')
+      await Promise.resolve()
+    })
+
+    expect(ensureStudioCloudReady).toHaveBeenCalledWith(user)
+    expect(onEnterLobby).not.toHaveBeenCalled()
+    expect(unhandledRejection).not.toHaveBeenCalled()
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain('그래픽 데이터를')
+
+    ensureStudioCloudReady.mockResolvedValueOnce(true)
+    clickButtonByText(container, '다시 시도')
+    await act(async () => { await Promise.resolve() })
+    expect(ensureStudioCloudReady).toHaveBeenCalledTimes(2)
+    expect(onEnterLobby).toHaveBeenCalledTimes(1)
+    expect(container.querySelector('[role="alert"]')).toBeNull()
+
+    window.removeEventListener('unhandledrejection', unhandledRejection)
+    cleanup()
+  })
+
   it('starts Google login from the start button when Google is signed out', async () => {
     const googleUser = { uid: 'uid-login', displayName: 'Login Tester', email: 'login@example.com', photoURL: '' }
     const signInWithGoogle = vi.fn(async () => googleUser)
@@ -274,7 +308,12 @@ describe('TitleScreen lobby entry', () => {
   })
 })
 
-function renderTitleScreen(onEnterLobby = () => {}, initialDevCheatsVisible = true, onUnlockAllStages = () => {}) {
+function renderTitleScreen(
+  onEnterLobby = () => {},
+  initialDevCheatsVisible = true,
+  onUnlockAllStages = () => {},
+  ensureStudioCloudReady,
+) {
   const container = document.createElement('div')
   document.body.appendChild(container)
   const root = createRoot(container)
@@ -287,6 +326,7 @@ function renderTitleScreen(onEnterLobby = () => {}, initialDevCheatsVisible = tr
         devCheatsVisible={devCheatsVisible}
         onRevealDevCheats={() => setDevCheatsVisible(true)}
         onUnlockAllStages={onUnlockAllStages}
+        ensureStudioCloudReady={ensureStudioCloudReady}
       />
     )
   }

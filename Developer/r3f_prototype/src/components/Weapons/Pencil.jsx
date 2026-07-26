@@ -164,7 +164,6 @@ export function PencilThrow() {
 
     const now = clock.elapsedTime * 1000
     if (now - lastFireRef.current < w.cooldown) return
-    if (activeProjectilesRef.current.length > 0) return
 
     const count = w.projectileCount ?? 1
     const targetScratch = targetScratchRef.current
@@ -173,32 +172,47 @@ export function PencilThrow() {
     lastFireRef.current = now
     emitSfx({ id: 'pencilFire' })
 
-    const next = new Array(targetCount)
+    const activeProjectiles = activeProjectilesRef.current
+    let validTargetCount = 0
     for (let targetIndex = 0; targetIndex < targetCount; targetIndex += 1) {
-        const special = targetScratch.special[targetIndex]
-        const poolIndex = targetScratch.indices[targetIndex]
-        const generation = targetScratch.generations[targetIndex]
-        const targetRb = special ?? resolveWeaponTarget(poolIndex, generation, null)
-        if (!targetRb) continue
-        const targetPos = targetRb.translation()
-        const facingAngle = Math.atan2(targetPos.x - playerPos.x, targetPos.z - playerPos.z)
-        next[targetIndex] = {
-          id: ++_projId,
-          position: [
-            playerPos.x + Math.sin(facingAngle) * 0.35,
-            playerPos.y + 0.22,
-            playerPos.z + Math.cos(facingAngle) * 0.35,
-          ],
-          yaw: facingAngle,
-          damage: w.damage,
-          speed: w.speed,
-          pierce: w.pierce ?? 1,
-          targetIndex: poolIndex,
-          targetGeneration: special ? (generation || null) : generation,
-          targetSpecial: special,
-          critChance: w.critChance,
-          critMultiplier: w.critMultiplier,
-        }
+      const special = targetScratch.special[targetIndex]
+      const poolIndex = targetScratch.indices[targetIndex]
+      const generation = targetScratch.generations[targetIndex]
+      if (special ?? resolveWeaponTarget(poolIndex, generation, null)) validTargetCount += 1
+    }
+    if (validTargetCount === 0) return
+
+    const next = new Array(activeProjectiles.length + validTargetCount)
+    for (let activeIndex = 0; activeIndex < activeProjectiles.length; activeIndex += 1) {
+      next[activeIndex] = activeProjectiles[activeIndex]
+    }
+    let nextIndex = activeProjectiles.length
+    for (let targetIndex = 0; targetIndex < targetCount; targetIndex += 1) {
+      const special = targetScratch.special[targetIndex]
+      const poolIndex = targetScratch.indices[targetIndex]
+      const generation = targetScratch.generations[targetIndex]
+      const targetRb = special ?? resolveWeaponTarget(poolIndex, generation, null)
+      if (!targetRb) continue
+      const targetPos = targetRb.translation()
+      const facingAngle = Math.atan2(targetPos.x - playerPos.x, targetPos.z - playerPos.z)
+      next[nextIndex] = {
+        id: ++_projId,
+        position: [
+          playerPos.x + Math.sin(facingAngle) * 0.35,
+          playerPos.y + 0.22,
+          playerPos.z + Math.cos(facingAngle) * 0.35,
+        ],
+        yaw: facingAngle,
+        damage: w.damage,
+        speed: w.speed,
+        pierce: w.pierce ?? 1,
+        targetIndex: poolIndex,
+        targetGeneration: special ? (generation || null) : generation,
+        targetSpecial: special,
+        critChance: w.critChance,
+        critMultiplier: w.critMultiplier,
+      }
+      nextIndex += 1
     }
     requestProjectiles(next)
   })

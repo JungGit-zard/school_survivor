@@ -88,6 +88,7 @@ export default function TitleScreen({
   const [nicknameOpen, setNicknameOpen] = useState(false)
   const [nicknameInput, setNicknameInput] = useState('')
   const [nicknameError, setNicknameError] = useState('')
+  const [studioError, setStudioError] = useState('')
   const authUser = useAuthStore((s) => s.user)
   const [settings] = useState(() => (
     isFirebaseProgressHydrated(authUser) ? loadTitleSettings() : {
@@ -264,7 +265,16 @@ export default function TitleScreen({
       user = await signInWithGoogle()
       if (!user?.uid) return
     }
-    if (ensureStudioCloudReady && !await ensureStudioCloudReady(user)) return
+    setStudioError('')
+    try {
+      if (ensureStudioCloudReady && !await ensureStudioCloudReady(user)) {
+        setStudioError('그래픽 데이터를 불러오지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.')
+        return
+      }
+    } catch {
+      setStudioError('그래픽 데이터를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.')
+      return
+    }
 
     const savedNickname = getSavedNickname(user)
     setCheatOpen(false)
@@ -362,6 +372,12 @@ export default function TitleScreen({
           <button type="button" style={{ ...styles.primaryButton, ...styles.mainActionButton }} onClick={handleStartClick}>
             게임 시작
           </button>
+          {studioError && (
+            <div role="alert" style={styles.studioError}>
+              <span>{studioError}</span>
+              <button type="button" style={styles.studioRetryButton} onClick={handleStartClick}>다시 시도</button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -616,6 +632,15 @@ const styles = {
     minWidth: 180,
     maxWidth: 230,
     transform: 'rotate(0.8deg)',
+  },
+  studioError: {
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+    maxWidth: 360, padding: '9px 12px', borderRadius: 10,
+    background: 'rgba(65, 21, 37, 0.92)', border: '1px solid #ffb0ba',
+    color: '#fff1f3', fontSize: 12, fontWeight: 800, lineHeight: 1.35, textAlign: 'center',
+  },
+  studioRetryButton: {
+    ...schoolButton('paper'), flexShrink: 0, minHeight: 32, padding: '4px 9px', fontSize: 12,
   },
   primaryButton: {
     ...schoolButton('primary'),

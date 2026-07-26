@@ -716,6 +716,18 @@ describe('enemy spawn audio ownership', () => {
 })
 
 describe('pooled standard enemy runtime wiring', () => {
+  it('stagger-checks obstacle sight by LOD while refreshing a new pool generation immediately', () => {
+    const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    const frameStart = source.indexOf('usePlayingFrame((_, delta) =>')
+    const frameEnd = source.indexOf('\n  return (', frameStart)
+    const frame = source.slice(frameStart, frameEnd)
+    expect(source).toContain('const sightGenerationRef       = useRef(new Uint16Array(MAX_ENEMIES))')
+    expect(frame).toContain('shouldRefreshEnemySight(tier, index, sightFrame, sightGeneration[index], generation)')
+    expect(frame).toContain('sightGeneration[index] = generation')
+    expect(frame).toContain('enemySightBlocked[index] = 0')
+    expect(frame).toContain('getPooledEnemyRenderTier(screenBounds')
+  })
+
   it('runs a 3-minute churn harness with zero event drops and bounded proxy/projectile/special counts', () => {
     const result = runPooledEnemyRuntimeSoak()
     expect(result.ok).toBe(true)

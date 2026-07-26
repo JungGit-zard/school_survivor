@@ -27,6 +27,13 @@ import { getRankingScore, getRankingScorePolicy, STAGE_BONUS, CLEAR_BONUS } from
 import { logDamageTaken } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
+import {
+  advanceRuntimeTime,
+  getRuntimeElapsedMs,
+  isRuntimeTimePublishDue,
+  markRuntimeTimePublished,
+  setRuntimeElapsedMs,
+} from '../lib/gameRuntimeTime.js'
 
 const BASE_PLAYER = {
   hp: 100, maxHp: 100,
@@ -160,8 +167,25 @@ export const useGameStore = create(
     pendingLevelUps: 0,
     levelUpChoiceSerial: 0,
 
-    // 타이머
-    tickTime: (deltaMs) => set((s) => ({ elapsedMs: s.elapsedMs + deltaMs })),
+    // Public/test compatibility only. Game's frame loop advances the mutable runtime
+    // clock directly and the UI snapshot is published at 10Hz from Game's effect.
+    tickTime: (deltaMs) => {
+      const currentElapsedMs = getRuntimeElapsedMs(get().elapsedMs)
+      setRuntimeElapsedMs(currentElapsedMs)
+      const elapsedMs = advanceRuntimeTime(deltaMs)
+      markRuntimeTimePublished(elapsedMs)
+      set({ elapsedMs })
+    },
+
+    // This is intentionally called from Game's useEffect interval, never useFrame.
+    publishRuntimeElapsedMs: () => {
+      const storeElapsedMs = get().elapsedMs
+      if (!isRuntimeTimePublishDue(storeElapsedMs)) return false
+      const elapsedMs = getRuntimeElapsedMs(storeElapsedMs)
+      markRuntimeTimePublished(elapsedMs)
+      set({ elapsedMs })
+      return true
+    },
 
     // 플레이어 피해
     damagePlayer: (amount, { ignoreInvulnerability = false } = {}) => {
@@ -235,7 +259,8 @@ export const useGameStore = create(
     // 순서가 정확성을 결정: 평가는 snapshot 전, 합본에 본 런 카운터 포함, snapshot은 평가 후.
     _onRunEnd: (phaseName) => {
       const s = get()
-      const runSurvivalSeconds = Math.floor(s.elapsedMs / 1000)
+      const elapsedMs = getRuntimeElapsedMs(s.elapsedMs)
+      const runSurvivalSeconds = Math.floor(elapsedMs / 1000)
       const stage = getStageConfig(s.currentStageId)
 
       // 1. 합본 (snapshot 전). bossKills는 mid-run에 이미 cumulative에 들어 있음.
@@ -298,7 +323,7 @@ export const useGameStore = create(
         // 런당 결정적 runId(M6): 같은 런의 종료가 2회 발화해도 동일 id → 서버 dedup으로 이중가산 방지.
         // uid/stageId는 영숫자, runStartedAt은 숫자라 정규식 ^[A-Za-z0-9_-]{12,80}$를 통과한다.
         const runId = `${user.uid}_${s.currentStageId}_${s.runStartedAt ?? 0}`.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 80)
-        submitRun(user, { stageId: s.currentStageId, score, timeMs: s.elapsedMs, cleared, runId }).catch(() => {})
+        submitRun(user, { stageId: s.currentStageId, score, timeMs: elapsedMs, cleared, runId }).catch(() => {})
       }
     },
 
@@ -375,11 +400,14 @@ export const useGameStore = create(
       }))
     },
 
-    checkSurvivalMilestone: () => {
+    checkSurvivalMilestone: (elapsedOverrideMs) => {
       const s = get()
+      const elapsedMs = Number.isFinite(elapsedOverrideMs)
+        ? elapsedOverrideMs
+        : getRuntimeElapsedMs(s.elapsedMs)
       const milestones = getStageConfig(s.currentStageId).survivalMilestones ?? SURVIVAL_MILESTONES
       const earned = milestones.filter(
-        (milestone) => s.elapsedMs >= milestone.atMs && !s.survivalMilestonesHit.includes(milestone.atMs),
+        (milestone) => elapsedMs >= milestone.atMs && !s.survivalMilestonesHit.includes(milestone.atMs),
       )
       if (earned.length === 0) return
       emitSfx({ id: 'milestoneGold' })
@@ -586,7 +614,7 @@ export const useGameStore = create(
       }
       set({ bossAliveCount: 0 })
       const policy = getRankingScorePolicy()
-      const survivalSec = Math.floor(s.elapsedMs / 1000)
+      const survivalSec = Math.floor(getRuntimeElapsedMs(s.elapsedMs) / 1000)
       const stageBonus = policy.stageBonus?.[s.currentStageId] ?? STAGE_BONUS[s.currentStageId] ?? 0
       const clearBonus = policy.clearBonus ?? CLEAR_BONUS
       const baseScore = survivalSec + stageBonus + clearBonus

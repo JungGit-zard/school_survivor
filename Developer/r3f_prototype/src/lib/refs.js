@@ -3,6 +3,7 @@ import { createPlayerArmActionState, clearPlayerArmAction } from './playerArmAct
 import { createEnemyEntityPool } from './enemyEntityPool.js'
 import { createEnemySimulationRuntime } from './enemySimulation.js'
 import { createEnemyProjectilePool } from './enemyProjectilePool.js'
+import { resetRuntimeTime } from './gameRuntimeTime.js'
 
 // 컴포넌트 간 플레이어 위치 공유 (re-render 없이)
 export const playerPos = new THREE.Vector3()
@@ -33,6 +34,7 @@ export const enemyHandleScratch = { index: -1, generation: 0 }
 export const joystickDir = { x: 0, z: 0, active: false }
 
 export function resetRuntimeRefs() {
+  resetRuntimeTime()
   playerPos.set(0, 0, 0)
   playerFacing.set(0, 0, 1)
   bagSwingState.active = false

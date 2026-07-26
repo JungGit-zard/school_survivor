@@ -9,6 +9,16 @@ import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
 import { createWeaponTargetScratch, resolveWeaponTarget, scanOrientedBoxEnemiesInto, scanRadiusEnemiesInto } from '../../lib/weaponTargeting.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
+// idle/완료 시 마지막 swing transform이 남지 않도록 mounted visual만 숨긴다.
+// 호출자가 보유한 Three 객체만 갱신하므로 프레임별 할당이 없다.
+export function hideSchoolBagSwingVisuals(visual, trail) {
+  if (visual) visual.visible = false
+  if (trail) {
+    trail.visible = false
+    trail.material.opacity = 0
+  }
+}
+
 export function ThirtyCmRulerModel() {
   const rulerMat = useMemo(() => toonMat(0xf6dd59, 0.18), [])
   const edgeMat = useMemo(() => toonMat(0xfff2a3, 0.12), [])
@@ -76,6 +86,7 @@ export function SchoolBagSwing() {
     if (!swing.active) {
       bagSwingState.active = false
       bagSwingState.progress = 0
+      hideSchoolBagSwingVisuals(visualRef.current, trailRef.current)
       return
     }
 
@@ -85,6 +96,7 @@ export function SchoolBagSwing() {
       bagSwingState.active = false
       bagSwingState.progress = 0
       swing.active = false
+      hideSchoolBagSwingVisuals(visualRef.current, trailRef.current)
       return
     }
 
@@ -99,6 +111,7 @@ export function SchoolBagSwing() {
     const x = playerPos.x + Math.sin(angle) * reach
     const z = playerPos.z + Math.cos(angle) * reach
     if (visualRef.current) {
+      visualRef.current.visible = true
       visualRef.current.position.set(playerPos.x, playerPos.y, playerPos.z)
       visualRef.current.rotation.set(0, swing.facing, 0)
     }
@@ -113,6 +126,7 @@ export function SchoolBagSwing() {
       )
     }
     if (trailRef.current) {
+      trailRef.current.visible = true
       trailRef.current.position.set(playerPos.x, 0.055, playerPos.z)
       trailRef.current.rotation.set(-Math.PI / 2, 0, swing.facing - Math.PI / 2)
       trailRef.current.scale.setScalar(0.52 + ease * 0.32)
@@ -154,11 +168,11 @@ export function SchoolBagSwing() {
 
   return (
     <>
-      <mesh ref={trailRef} rotation={[-Math.PI / 2, 0, 0]} position={[playerPos.x, 0.055, playerPos.z]} renderOrder={3}>
+      <mesh ref={trailRef} visible={false} rotation={[-Math.PI / 2, 0, 0]} position={[playerPos.x, 0.055, playerPos.z]} renderOrder={3}>
           <ringGeometry args={[0.28, (weapons.schoolBag.range ?? 0.633) + 0.28, 72, 1, -1.18, 2.36]} />
           <meshBasicMaterial color={0x7ee7ff} transparent opacity={0} side={THREE.DoubleSide} depthWrite={false} />
       </mesh>
-      <group ref={visualRef} position={[playerPos.x, playerPos.y, playerPos.z]}>
+      <group ref={visualRef} visible={false} position={[playerPos.x, playerPos.y, playerPos.z]}>
           <group ref={bagArcRef} position={[0, 0.16, weapons.schoolBag.range ?? 0.633]}>
             <ThirtyCmRulerModel />
           </group>

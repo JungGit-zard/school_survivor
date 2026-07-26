@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { enemyBodies, enemyPool, playerPos } from './refs.js'
-import { applyRadialDamage, createWeaponTargetScratch, findBestSplashTarget, findClosestEnemies, findClosestEnemy, isPlayerWeaponSightBlocked, isInForwardBox, applyForwardBoxDamage, isInForwardCone, applyForwardConeDamage, resolveWeaponTarget, scanClosestEnemiesInto, scanSweptCapsuleEnemiesInto } from './weaponTargeting.js'
+import { enemyBodies, enemyPool, enemySimulationRuntime, playerPos } from './refs.js'
+import { applyRadialDamage, createWeaponTargetScratch, findBestSplashTarget, findClosestEnemies, findClosestEnemy, isPlayerWeaponSightBlocked, isInForwardBox, applyForwardBoxDamage, isInForwardCone, applyForwardConeDamage, resolveWeaponTarget, scanClosestEnemiesInto, scanRadiusEnemiesInto, scanSweptCapsuleEnemiesInto } from './weaponTargeting.js'
 
 function fakeEnemy(x, z, { dead = false } = {}) {
   return {
@@ -13,6 +13,7 @@ function fakeEnemy(x, z, { dead = false } = {}) {
 afterEach(() => {
   enemyBodies.clear()
   enemyPool.reset()
+  enemySimulationRuntime.reset()
   playerPos.set(0, 0, 0)
 })
 
@@ -62,6 +63,76 @@ describe('EntityPool weapon scan contract', () => {
     spawnPooledEnemy(4.2, 0)
 
     expect(findBestSplashTarget(8, 0.5)?.enemyId).toBe(enemyPool.get(dense.handle)._enemyId)
+  })
+
+  it('falls back before grid initialization and keeps overflow, special, sight, and generation semantics after rebuild', () => {
+    const near = spawnPooledEnemy(1, 0)
+    const overflow = spawnPooledEnemy(7, 0)
+    const special = fakeEnemy(1.5, 0)
+    enemyBodies.set('special', special)
+    const scratch = createWeaponTargetScratch(4)
+
+    expect(scanClosestEnemiesInto(scratch, 3, 4)).toBe(2)
+    enemySimulationRuntime.grid.rebuild(enemyPool, 2, 2)
+    expect(scanClosestEnemiesInto(scratch, 10, 4, (target) => target.x === 1.5)).toBe(2)
+    expect(scratch.indices[0]).toBe(near.handle.index)
+    expect(scratch.indices[1]).toBe(overflow.handle.index)
+    expect(scanClosestEnemiesInto(scratch, 10, 4)).toBe(3)
+    expect(scratch.special[1]).toBe(special)
+    expect(scanRadiusEnemiesInto(scratch, 7, 0, 0.1, 4)).toBe(1)
+    expect(scratch.indices[0]).toBe(overflow.handle.index)
+    enemyPool.despawn(near.handle)
+    expect(resolveWeaponTarget(near.handle.index, near.handle.generation, null)).toBeNull()
+  })
+
+  it('keeps splash score ties ordered by distance then original pool slot order', () => {
+    const first = spawnPooledEnemy(1, 0)
+    spawnPooledEnemy(1.2, 0)
+    spawnPooledEnemy(-1, 0)
+    spawnPooledEnemy(-1.2, 0)
+    enemySimulationRuntime.grid.rebuild(enemyPool, 8, 8)
+
+    expect(findBestSplashTarget(8, 0.5)?.enemyId).toBe(enemyPool.get(first.handle)._enemyId)
+  })
+
+  it('does not perform ordered candidate insertion for 200 reverse-distance grid splash candidates', () => {
+    for (let index = 0; index < 200; index += 1) {
+      spawnPooledEnemy(27 - (index % 20) * 3, 12 - Math.floor(index / 20) * 3)
+    }
+    enemySimulationRuntime.grid.rebuild(enemyPool, 40, 40)
+
+    expect(findBestSplashTarget(100, 0.4)).not.toBeNull()
+    expect(enemySimulationRuntime.grid.targetOrderingComparisonCount).toBe(0)
+    expect(enemySimulationRuntime.grid.targetComparisonCount).toBeLessThan(1000)
+  })
+
+  it('orders 200 wide-radius grid targets without quadratic insertion work', () => {
+    for (let index = 0; index < 200; index += 1) {
+      spawnPooledEnemy(27 - (index % 20) * 3, 12 - Math.floor(index / 20) * 3)
+    }
+    enemySimulationRuntime.grid.rebuild(enemyPool, 40, 40)
+    const scratch = createWeaponTargetScratch(203)
+
+    expect(scanRadiusEnemiesInto(scratch, 0, 0, 100)).toBe(200)
+    for (let index = 1; index < scratch.count; index += 1) {
+      expect(scratch.distances[index]).toBeGreaterThanOrEqual(scratch.distances[index - 1])
+      if (scratch.distances[index] === scratch.distances[index - 1]) {
+        expect(scratch.indices[index]).toBeGreaterThan(scratch.indices[index - 1])
+      }
+    }
+    expect(enemySimulationRuntime.grid.targetOrderingComparisonCount).toBeLessThan(4000)
+  })
+
+  it('keeps pooled targets before special Map targets at an equal radius distance', () => {
+    const pooled = spawnPooledEnemy(1, 0)
+    const special = fakeEnemy(-1, 0)
+    enemyBodies.set('special', special)
+    enemySimulationRuntime.grid.rebuild(enemyPool, 4, 4)
+    const scratch = createWeaponTargetScratch(4)
+
+    expect(scanRadiusEnemiesInto(scratch, 0, 0, 2)).toBe(2)
+    expect(scratch.indices[0]).toBe(pooled.handle.index)
+    expect(scratch.special[1]).toBe(special)
   })
 })
 

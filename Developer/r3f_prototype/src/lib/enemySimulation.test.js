@@ -30,6 +30,37 @@ function spawn(pool, type, x = 0, z = 0, overrides = {}) {
   return pool.spawn({ type, x, y: 0, z, hp: 100, maxHp: 100, visualScale: 1, ...overrides })
 }
 
+describe('EnemySimulation spatial revision', () => {
+  it('never treats an exhausted spatial revision as current, including after rebuild', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    spawn(pool, 'E01', 5, 0, { spawnTimer: 300 })
+    pool.spatialRevision = 0
+    runtime.grid.rebuild(pool, 18, 18)
+    expect(runtime.grid.isCurrentFor(pool)).toBe(true)
+
+    pool.spatialRevision = Number.MAX_SAFE_INTEGER
+    pool.markSpatialChanged()
+    expect(pool.spatialRevision).toBe(-1)
+    expect(runtime.grid.isCurrentFor(pool)).toBe(false)
+    runtime.grid.rebuild(pool, 18, 18)
+    expect(runtime.grid.isCurrentFor(pool)).toBe(false)
+    pool.markSpatialChanged()
+    expect(pool.spatialRevision).toBe(-1)
+  })
+
+  it('captures one post-movement spatial revision in the final grid rebuild', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    spawn(pool, 'E01', 5, 0, { spawnTimer: 300 })
+    const beforeStepRevision = pool.spatialRevision
+
+    expect(runtime.step(pool, context())).toBe(true)
+    expect(pool.spatialRevision).toBe(beforeStepRevision + 1)
+    expect(runtime.grid.isCurrentFor(pool)).toBe(true)
+  })
+})
+
 function context(overrides = {}) {
   return { delta: 1 / 60, playerX: 0, playerZ: 0, halfX: 12, halfZ: 12, elapsedSec: 100, ...overrides }
 }

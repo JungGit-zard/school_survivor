@@ -93,8 +93,10 @@ function clamp(value, min, max) {
 export class EnemySpatialGrid {
   constructor(cellSize = ENEMY_GRID_CELL_SIZE) {
     this.cellSize = cellSize
+    this.axisSize = ENEMY_GRID_MAX_AXIS
     this.head = new Int16Array(ENEMY_GRID_MAX_AXIS * ENEMY_GRID_MAX_AXIS)
     this.next = new Int16Array(MAX_ENEMIES)
+    this.overflowNext = new Int16Array(MAX_ENEMIES)
     this.cellX = new Int16Array(MAX_ENEMIES)
     this.cellZ = new Int16Array(MAX_ENEMIES)
     this.overflow = new Uint8Array(MAX_ENEMIES)
@@ -102,18 +104,32 @@ export class EnemySpatialGrid {
     this.cellsZ = 0
     this.halfX = 0
     this.halfZ = 0
+    this.overflowHead = -1
+    this.activeCount = 0
+    this.highestActive = -1
+    this.poolSpatialRevision = 0
     this.comparisonCount = 0
+    this.targetComparisonCount = 0
+    this.targetOrderingComparisonCount = 0
     this.head.fill(-1)
     this.next.fill(-1)
+    this.overflowNext.fill(-1)
   }
 
   rebuild(pool, halfX, halfZ) {
     this.head.fill(-1)
     this.next.fill(-1)
+    this.overflowNext.fill(-1)
     this.overflow.fill(0)
     this.comparisonCount = 0
+    this.targetComparisonCount = 0
+    this.targetOrderingComparisonCount = 0
     this.halfX = halfX
     this.halfZ = halfZ
+    this.overflowHead = -1
+    this.activeCount = pool.activeCount
+    this.highestActive = pool.highestActive
+    this.poolSpatialRevision = pool.spatialRevision
     this.cellsX = Math.min(ENEMY_GRID_MAX_AXIS, Math.max(1, Math.ceil((halfX * 2) / this.cellSize)))
     this.cellsZ = Math.min(ENEMY_GRID_MAX_AXIS, Math.max(1, Math.ceil((halfZ * 2) / this.cellSize)))
     for (let index = 0; index <= pool.highestActive; index += 1) {
@@ -122,6 +138,8 @@ export class EnemySpatialGrid {
       const z = Math.floor((pool.posZ[index] + halfZ) / this.cellSize)
       if (x < 0 || z < 0 || x >= this.cellsX || z >= this.cellsZ) {
         this.overflow[index] = 1
+        this.overflowNext[index] = this.overflowHead
+        this.overflowHead = index
         continue
       }
       this.cellX[index] = x
@@ -132,9 +150,26 @@ export class EnemySpatialGrid {
     }
   }
 
+  isCurrentFor(pool) {
+    return this.cellsX > 0 && this.cellsZ > 0
+      && this.activeCount === pool.activeCount && this.highestActive === pool.highestActive
+      && Number.isSafeInteger(pool.spatialRevision) && pool.spatialRevision >= 0
+      && this.poolSpatialRevision === pool.spatialRevision
+  }
+
+  getCellRangeInto(out, minX, minZ, maxX, maxZ) {
+    if (!out || this.cellsX <= 0 || this.cellsZ <= 0) return false
+    out.minX = Math.max(0, Math.floor((minX + this.halfX) / this.cellSize))
+    out.minZ = Math.max(0, Math.floor((minZ + this.halfZ) / this.cellSize))
+    out.maxX = Math.min(this.cellsX - 1, Math.floor((maxX + this.halfX) / this.cellSize))
+    out.maxZ = Math.min(this.cellsZ - 1, Math.floor((maxZ + this.halfZ) / this.cellSize))
+    return out.minX <= out.maxX && out.minZ <= out.maxZ
+  }
+
   reset() {
     this.head.fill(-1)
     this.next.fill(-1)
+    this.overflowNext.fill(-1)
     this.cellX.fill(0)
     this.cellZ.fill(0)
     this.overflow.fill(0)
@@ -142,7 +177,13 @@ export class EnemySpatialGrid {
     this.cellsZ = 0
     this.halfX = 0
     this.halfZ = 0
+    this.overflowHead = -1
+    this.activeCount = 0
+    this.highestActive = -1
+    this.poolSpatialRevision = 0
     this.comparisonCount = 0
+    this.targetComparisonCount = 0
+    this.targetOrderingComparisonCount = 0
   }
 }
 
@@ -459,6 +500,7 @@ export class EnemySimulationRuntime {
     const obstacleCount = obstacles && Number.isInteger(context.obstacleCount) ? Math.max(0, context.obstacleCount) : 0
     const sightBlocked = context.sightBlocked
     let stepProjectileCount = initialProjectileCount
+    let spatialChanged = false
     this.grid.rebuild(pool, halfX + 6, halfZ + 6)
 
     for (let index = 0; index <= pool.highestActive; index += 1) {
@@ -499,6 +541,7 @@ export class EnemySimulationRuntime {
         this._despawn(pool, index, ENEMY_EVENT_ERROR, 0, null)
         continue
       }
+      if (pool.posX[index] !== this._positionScratch.x || pool.posZ[index] !== this._positionScratch.z) spatialChanged = true
       pool.posX[index] = this._positionScratch.x
       pool.posZ[index] = this._positionScratch.z
       pool.lastSafeX[index] = pool.posX[index]
@@ -679,6 +722,7 @@ export class EnemySimulationRuntime {
         pool.lastSafeX[index] = nextX
         pool.lastSafeZ[index] = nextZ
       }
+      if (pool.posX[index] !== nextX || pool.posZ[index] !== nextZ) spatialChanged = true
       pool.posX[index] = nextX
       pool.posZ[index] = nextZ
 
@@ -693,6 +737,10 @@ export class EnemySimulationRuntime {
         this._emit(ENEMY_EVENT_CONTACT, pool, index, playerX, 0, playerZ, ENEMY_RUNTIME_DAMAGE[type], context.onContact)
       }
     }
+    if (spatialChanged) pool.markSpatialChanged()
+    const comparisonCount = this.grid.comparisonCount
+    this.grid.rebuild(pool, halfX + 6, halfZ + 6)
+    this.grid.comparisonCount = comparisonCount
     return true
   }
 

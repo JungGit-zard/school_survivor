@@ -10,6 +10,54 @@ export const ENEMY_VISUAL_WORLD_SCALE = 0.333
 // Match Enemy.jsx's ChargeToonCue anchor so the pooled E05 warning stays above
 // the scaled zombie head instead of using its old, lower .9 offset.
 export const CHARGE_CUE_LOCAL_Y = 1.75
+export const ENEMY_RENDER_CULLED = 0
+export const ENEMY_RENDER_FAR = 1
+export const ENEMY_RENDER_MID = 2
+export const ENEMY_RENDER_NEAR = 3
+
+// `screenBounds` is deliberately a conservative gameplay-camera rectangle,
+// rather than Three's per-InstancedMesh frustum.  The latter only knows the
+// stale whole-pool bounding sphere and can hide every moving zombie at once.
+const RENDER_ENTER_MARGIN = 1.15
+const RENDER_KEEP_MARGIN = 1.8
+const RENDER_NEAR_DISTANCE_SQ = 6 * 6
+const RENDER_MID_DISTANCE_SQ = 11 * 11
+
+export function getPooledEnemyRenderTier(bounds, x, z, playerX, playerZ, previousTier = ENEMY_RENDER_CULLED) {
+  const margin = previousTier === ENEMY_RENDER_CULLED ? RENDER_ENTER_MARGIN : RENDER_KEEP_MARGIN
+  if (!bounds || x < bounds.minX - margin || x > bounds.maxX + margin || z < bounds.minZ - margin || z > bounds.maxZ + margin) return ENEMY_RENDER_CULLED
+  const dx = x - playerX; const dz = z - playerZ; const distanceSq = dx * dx + dz * dz
+  if (distanceSq <= RENDER_NEAR_DISTANCE_SQ) return ENEMY_RENDER_NEAR
+  if (distanceSq <= RENDER_MID_DISTANCE_SQ) return ENEMY_RENDER_MID
+  return ENEMY_RENDER_FAR
+}
+
+// Position is still written every frame.  Only the sinusoid phase is
+// quantized away from the player, preserving readable motion without 200
+// independent high-frequency animation calculations.
+export function getPooledEnemyAnimationTime(timerMs, tier) {
+  if (tier === ENEMY_RENDER_MID) return Math.floor(timerMs / 50) * .05
+  if (tier === ENEMY_RENDER_FAR) return Math.floor(timerMs / 100) * .1
+  return timerMs * .001
+}
+
+export function shouldRenderPooledEnemyPart(type, partIndex, tier) {
+  if (tier >= ENEMY_RENDER_NEAR) return true
+  // Every visible tier keeps a 3D head/body/limbs silhouette and its matching
+  // outline.  Far tiers omit only small readable-detail boxes.
+  if (type === 7 || type === 8) {
+    if (tier === ENEMY_RENDER_MID) return partIndex !== 14 && partIndex !== 17 && partIndex !== 19 && partIndex !== 20 && partIndex !== 21 && partIndex !== 23 && partIndex !== 25 && partIndex !== 28 && partIndex !== 31 && partIndex !== 32
+    return partIndex === 12 || partIndex === 18 || partIndex === 22 || partIndex === 24 || partIndex === 26 || partIndex === 27 || partIndex === 28 || partIndex === 29 || partIndex === 30 || partIndex === 31
+  }
+  if (tier === ENEMY_RENDER_MID) return partIndex !== 1 && partIndex !== 2 && partIndex !== 5 && partIndex !== 7 && partIndex !== 9 && partIndex !== 11
+  return partIndex === 0 || partIndex === 3 || partIndex === 4 || partIndex === 6 || partIndex === 8 || partIndex === 10
+}
+
+export function shouldRefreshEnemySight(tier, slot, frame, seenGeneration, generation) {
+  if (seenGeneration !== generation) return true
+  const cadence = tier === ENEMY_RENDER_NEAR ? 2 : tier === ENEMY_RENDER_MID ? 4 : tier === ENEMY_RENDER_FAR ? 8 : 12
+  return (frame + slot) % cadence === 0
+}
 
 // Preserve EnemyVisual/MiniHealthBar's world-space contract while letting the
 // fixed instance renderer reuse caller-owned typed scratch in its frame loop.
@@ -72,9 +120,26 @@ export function fillChargeCueSlots(pool, out, capacity = CHARGE_CUE_CAPACITY) {
   return overflow
 }
 
+// Renderer variant: apply the screen visibility filter while selecting the
+// bounded cue pool.  Filtering after the first sixteen lowest indices would
+// otherwise hide every on-screen warning when those earlier zombies are off
+// camera.
+export function fillVisibleChargeCueSlots(pool, tiers, out, capacity = CHARGE_CUE_CAPACITY) {
+  let used = 0; let overflow = 0
+  const highest = Math.min(POOLED_ENEMY_CAPACITY - 1, Number.isInteger(pool?.highestActive) ? pool.highestActive : POOLED_ENEMY_CAPACITY - 1)
+  for (let index = 0; index <= highest; index += 1) {
+    if (tiers[index] === ENEMY_RENDER_CULLED || pool.active[index] !== 1 || pool.type[index] !== 5 || pool.state[index] !== 2 || pool.spawnTimer[index] < SPAWN_REVEAL_MS) continue
+    if (used < capacity) out[used++] = index
+    else overflow += 1
+  }
+  while (used < capacity) out[used++] = -1
+  return overflow
+}
+
 export function setSlotOpacity(alpha, index, value) {
-  alpha[index] = clamp01(value)
-  return alpha[index]
+  const target = alpha?.array ?? alpha
+  target[index] = clamp01(value)
+  return target[index]
 }
 
 export function updateHealthVisualState(state, index, generation, ratio, delta) {
