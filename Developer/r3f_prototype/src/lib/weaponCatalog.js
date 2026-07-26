@@ -4,6 +4,8 @@
 // 컴포넌트·카드 효과 wiring까지 완료된 상태다.
 
 // Sentinel for weapons that are always unlocked.
+import { PENCIL_FIRE_RANGE_WORLD_UNITS } from './gameplayUnits.js'
+
 export const STARTER = 'starter'
 
 export const WEAPON_CATALOG = {
@@ -13,7 +15,7 @@ export const WEAPON_CATALOG = {
     label: '연필',
     // damage 3→1.5: 연필 직접 피해를 다시 절반으로 조정. pierce 0→1: 1열 관통으로 초반 군집 대응.
     // cooldown 1100→550: 발사속도 2배 전체 적용 (2026-07-22). base가 유일 출처라 전 스테이지·전 레벨 반영.
-    base: { damage: 1.5, cooldown: 550, lastFired: 0, projectileCount: 1, pierce: 1, speed: 12, range: 22, critChance: 0.08, critMultiplier: 1.5 },
+    base: { damage: 1.5, cooldown: 550, lastFired: 0, projectileCount: 1, pierce: 1, speed: 12, range: PENCIL_FIRE_RANGE_WORLD_UNITS, critChance: 0.08, critMultiplier: 1.5 },
     unlockConditions: STARTER,
     minLevelToAppear: 1,
     startsActive: true,

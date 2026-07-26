@@ -2,6 +2,20 @@
 
 Shared domain vocabulary for this project — entities, named processes, and status concepts with project-specific meaning. Seeded with core domain vocabulary, then accretes as ce-compound and ce-compound-refresh process learnings; direct edits are fine. Glossary only, not a spec or catch-all.
 
+## Gameplay spatial units
+
+### Zombie Meter (zm)
+
+A fixed gameplay distance unit equal to 0.75 world units, derived by rounding the 2026-07-26 E01 ground collider footprint (about 0.7467); it does not track later model or Studio scale changes.
+
+### Pencil Firing Circle
+
+The inclusive player-center-to-enemy-center targeting circle for Pencil Throw: diameter 6zm, radius 3zm, or 2.25 world units at base range.
+
+### Base Range and Range Buff
+
+Base Range is the catalog's canonical starting radius; a Range Buff is an explicit runtime override or modifier that takes precedence over that base value without redefining the Zombie Meter.
+
 ## Graphics Studio visual state
 
 ### Applied Studio Snapshot
@@ -33,3 +47,4 @@ Browser rendering and AAB-internal code inclusion do not by themselves prove And
 - A Forbidden Local Studio Seed must never contain or replace the active Applied Studio Snapshot.
 - A Visual Canonical State contains the Firebase-held Applied Studio Snapshot and cannot be created from local data.
 - A Release Parity Gate remains incomplete for Android visual parity until emulator or physical-device WebView execution evidence exists, even when browser rendering and packaged-code inclusion have passed.
+- A Pencil Firing Circle uses the fixed Zombie Meter, while a Range Buff may enlarge its runtime radius without changing the unit definition.

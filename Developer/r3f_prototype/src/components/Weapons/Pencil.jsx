@@ -8,6 +8,7 @@ import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { createWeaponTargetScratch, resolveWeaponTarget, scanClosestEnemiesInto, scanSweptCapsuleEnemiesInto } from '../../lib/weaponTargeting.js'
 import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
 import { useDeferredProjectileState } from '../../lib/useDeferredProjectileState.js'
+import { PENCIL_FIRE_RANGE_WORLD_UNITS } from '../../lib/gameplayUnits.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 let _projId = 0
@@ -167,7 +168,7 @@ export function PencilThrow() {
 
     const count = w.projectileCount ?? 1
     const targetScratch = targetScratchRef.current
-    const targetCount = scanClosestEnemiesInto(targetScratch, w.range ?? 22, count)
+    const targetCount = scanClosestEnemiesInto(targetScratch, w.range ?? PENCIL_FIRE_RANGE_WORLD_UNITS, count)
     if (targetCount === 0) return
     lastFireRef.current = now
     emitSfx({ id: 'pencilFire' })

@@ -10,9 +10,25 @@ describe('PencilModel', () => {
   it('assigns upgraded projectiles to distinct nearby enemies', () => {
     const source = readFileSync(new URL('./Pencil.jsx', import.meta.url), 'utf8')
 
-    expect(source).toContain('scanClosestEnemiesInto(targetScratch, w.range ?? 22, count)')
+    expect(source).toContain("import { PENCIL_FIRE_RANGE_WORLD_UNITS } from '../../lib/gameplayUnits.js'")
+    expect(source).toContain('scanClosestEnemiesInto(targetScratch, w.range ?? PENCIL_FIRE_RANGE_WORLD_UNITS, count)')
+    expect(source).not.toContain('w.range ?? 22')
+    expect(source).not.toContain('PENCIL_ZM_WORLD_UNITS')
     expect(source).toContain('targetIndex')
     expect(source).not.toContain('enemyBodies.forEach')
+  })
+
+  it('does not fire when the inclusive 3zm scan returns no target outside the 2.25-unit radius', () => {
+    const source = readFileSync(new URL('./Pencil.jsx', import.meta.url), 'utf8')
+    const scanIndex = source.indexOf('scanClosestEnemiesInto(targetScratch, w.range ?? PENCIL_FIRE_RANGE_WORLD_UNITS, count)')
+    const noTargetIndex = source.indexOf('if (targetCount === 0) return', scanIndex)
+    const fireIndex = source.indexOf("emitSfx({ id: 'pencilFire' })", scanIndex)
+
+    // scanner itself keeps its existing distance <= range boundary behavior;
+    // Pencil only fires after that canonical-radius scan produced a target.
+    expect(scanIndex).toBeGreaterThanOrEqual(0)
+    expect(noTargetIndex).toBeGreaterThan(scanIndex)
+    expect(fireIndex).toBeGreaterThan(noTargetIndex)
   })
 
   it('uses a pure swept capsule instead of Rapier intersections', () => {

@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, it, expect } from 'vitest'
 import {
   WEAPON_CATALOG,
@@ -18,8 +19,15 @@ describe('weaponCatalog', () => {
   })
 
   it('Starter base 스탯이 BASE_WEAPONS 정본 값과 일치한다', () => {
+    const source = readFileSync(new URL('./weaponCatalog.js', import.meta.url), 'utf8')
+
     expect(WEAPON_CATALOG.pencilThrow.base.damage).toBe(1.5) // 3→1.5 (연필 직접 피해 재차 절반)
     expect(WEAPON_CATALOG.pencilThrow.base.cooldown).toBe(550) // 발사속도 2배 (1100→550)
+    // E01 collider 지름 약 0.747을 1zm=0.75 world units로 고정한다.
+    // 연필 발사 원 지름 6zm → 반지름 3zm = 2.25 world units.
+    expect(WEAPON_CATALOG.pencilThrow.base.range).toBe(2.25)
+    expect(source).toContain("import { PENCIL_FIRE_RANGE_WORLD_UNITS } from './gameplayUnits.js'")
+    expect(source).toContain('range: PENCIL_FIRE_RANGE_WORLD_UNITS')
     expect(WEAPON_CATALOG.schoolBag.base.damage).toBe(12)
     expect(WEAPON_CATALOG.boxCutter.base.damage).toBe(24) // '30cm 자'(12)의 2배
     expect(WEAPON_CATALOG.boxCutter.base.range).toBe(1.4) // 사거리 2배 확장 (0.7 → 1.4)
