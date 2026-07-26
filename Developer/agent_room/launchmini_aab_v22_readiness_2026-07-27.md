@@ -1,10 +1,10 @@
 # Launch_Mini AAB v22 readiness review — 2026-07-27
 
-Project: Escape! zombie school  
-Role: launchmini  
-Kanban task: `t_9d793986`  
-Workdir: `D:/JungSil/2.Minigame_project/school_survivor-integration`  
-Scope: prerequisites and safe sequence for a new signed Android AAB after the existing 2026-07-23 `versionCode 21` artifact.  
+Project: Escape! zombie school
+Role: launchmini
+Kanban task: `t_9d793986`
+Workdir: `D:/JungSil/2.Minigame_project/school_survivor-integration`
+Scope: prerequisites and safe sequence for a new signed Android AAB after the existing 2026-07-23 `versionCode 21` artifact.
 Explicit limits: no Play Console upload, no production/global rollout, no secrets exposed, no commit/push.
 
 ## Executive decision
