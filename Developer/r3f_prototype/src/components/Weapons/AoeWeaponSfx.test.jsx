@@ -14,9 +14,12 @@ describe('area weapon sound lifecycle', () => {
     ['Missile', 'missileHit', '0.70'],
     ['SharkMissile', 'sharkHit', '0.72'],
     ['UmbrellaGuard', 'umbrellaHit', '0.62'],
-    ['EraserBomb', 'eraserHit', '0.66'],
   ])('plays one mechanical impact sound when %s enters its explosion callback', (weapon, soundId, volume) => {
     expect(source(weapon)).toMatch(new RegExp(`const (?:onExplode|explode) = useCallback[\\s\\S]*?emitSfx\\(\\{ id: '${soundId}', volume: ${volume} \\}\\)[\\s\\S]*?applyRadialDamage`))
+  })
+
+  it('plays eraserHit before invoking the shared eraser bomb impact helper', () => {
+    expect(source('EraserBomb')).toMatch(/const explode = useCallback[\s\S]*?emitSfx\(\{ id: 'eraserHit', volume: 0\.66 \}\)[\s\S]*?applyEraserBombImpact/)
   })
 
   it('plays starlink hit once only when a strike damages at least one enemy', () => {

@@ -200,6 +200,23 @@ describe('isInForwardCone / applyForwardConeDamage (student lantern)', () => {
 })
 
 describe('applyRadialDamage', () => {
+  it('forwards ignoreSightBlock only for the current call and clears it for the next normal radial hit', () => {
+    const enemy = fakeEnemy(0.5, 0)
+    enemyBodies.set('enemy', enemy)
+
+    expect(applyRadialDamage({
+      x: 0, z: 0, radius: 1, damage: 7, knockback: 0, knockbackMs: 0,
+      sightBlocker: () => false, ignoreSightBlock: true,
+    })).toBe(1)
+    expect(enemy._enemyHit.mock.calls[0][1]).toMatchObject({ ignoreSightBlock: true })
+
+    expect(applyRadialDamage({
+      x: 0, z: 0, radius: 1, damage: 7, knockback: 0, knockbackMs: 0,
+      sightBlocker: () => false,
+    })).toBe(1)
+    expect(enemy._enemyHit.mock.calls[1][1]).toMatchObject({ ignoreSightBlock: false })
+  })
+
   it('hits a pooled standard enemy with its captured generation', () => {
     const pooled = spawnPooledEnemy(0.5, 0)
 
@@ -220,7 +237,7 @@ describe('applyRadialDamage', () => {
 
     expect(count).toBe(2)
     expect(inA._enemyHit).toHaveBeenCalledTimes(1)
-    expect(inA._enemyHit).toHaveBeenCalledWith(7, { source: { x: 0, z: 0 }, knockback: 2, knockbackMs: 80 })
+    expect(inA._enemyHit).toHaveBeenCalledWith(7, expect.objectContaining({ source: { x: 0, z: 0 }, knockback: 2, knockbackMs: 80, ignoreSightBlock: false }))
     expect(inB._enemyHit).toHaveBeenCalledTimes(1)
     expect(out._enemyHit).not.toHaveBeenCalled()
     expect(dead._enemyHit).not.toHaveBeenCalled()
@@ -240,12 +257,13 @@ describe('applyRadialDamage', () => {
       deathStyleOverride: 'shatter5',
     })
 
-    expect(enemy._enemyHit).toHaveBeenCalledWith(99, {
+    expect(enemy._enemyHit).toHaveBeenCalledWith(99, expect.objectContaining({
       source: { x: 0, z: 0 },
       knockback: 3,
       knockbackMs: 120,
       deathStyleOverride: 'shatter5',
-    })
+      ignoreSightBlock: false,
+    }))
   })
 
   it('forwards critical-hit eligibility metadata to radial damage targets', () => {
@@ -266,7 +284,7 @@ describe('applyRadialDamage', () => {
       critMultiplier: 1.8,
     })
 
-    expect(enemy._enemyHit).toHaveBeenCalledWith(12, {
+    expect(enemy._enemyHit).toHaveBeenCalledWith(12, expect.objectContaining({
       source: { x: 0, z: 0 },
       knockback: 1,
       knockbackMs: 40,
@@ -275,7 +293,8 @@ describe('applyRadialDamage', () => {
       attackTags: ['radial', 'explosive'],
       critChance: 0.23,
       critMultiplier: 1.8,
-    })
+      ignoreSightBlock: false,
+    }))
   })
 
   it('treats radius as a hard boundary (just-inside hits, just-outside misses)', () => {

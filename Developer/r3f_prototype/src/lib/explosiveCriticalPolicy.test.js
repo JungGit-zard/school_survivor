@@ -3,9 +3,14 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 const weaponsDir = path.resolve(__dirname, '../components/Weapons')
+const libDir = path.resolve(__dirname)
 
 function source(fileName) {
   return fs.readFileSync(path.join(weaponsDir, fileName), 'utf8')
+}
+
+function libSource(fileName) {
+  return fs.readFileSync(path.join(libDir, fileName), 'utf8')
 }
 
 function applyRadialDamageCalls(text) {
@@ -35,7 +40,6 @@ function applyRadialDamageCalls(text) {
 describe('explosive weapon critical-hit policy', () => {
   it.each([
     'Flask.jsx',
-    'EraserBomb.jsx',
     'Missile.jsx',
     'SharkMissile.jsx',
     'CompassBlade.jsx',
@@ -43,5 +47,12 @@ describe('explosive weapon critical-hit policy', () => {
   ])('%s marks an explosive radial damage call as non-critical explosive damage', (fileName) => {
     const calls = applyRadialDamageCalls(source(fileName))
     expect(calls).toContainEqual(expect.stringMatching(/canCrit:\s*false[\s\S]*damageType:\s*'explosive'|damageType:\s*'explosive'[\s\S]*canCrit:\s*false/))
+  })
+
+  it('EraserBomb uses the shared explosive impact helper, whose radial call is non-critical explosive damage', () => {
+    expect(source('EraserBomb.jsx')).toContain('applyEraserBombImpact')
+    const helper = libSource('eraserBombImpact.js')
+    expect(helper).toContain('applyDamage = applyRadialDamage')
+    expect(helper).toMatch(/canCrit:\s*false[\s\S]*damageType:\s*'explosive'|damageType:\s*'explosive'[\s\S]*canCrit:\s*false/)
   })
 })

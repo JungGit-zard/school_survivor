@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
-import { screenBounds } from '../../lib/refs.js'
+import { enemyBodies, screenBounds } from '../../lib/refs.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import { inflateScale, getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat } from '../../lib/toon.js'
 import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
@@ -11,6 +11,8 @@ import {
   ZOMLON_SPAWN_DELAY_MS,
   getCrashPose,
   getCrashPhase,
+  consumeCrashImpactEnd,
+  refreshCrashLandingEnd,
   pickEscapeDirection,
   getZomlonPosition,
   isEscapeDone,
@@ -311,14 +313,16 @@ export function CrashExplosionVisual({ x, z, t }) {
 }
 
 // ── 추락 시퀀스: 낙하 → 폭발 → 좀론비스크 도주 → 언마운트 ────────────────────
-// 게임 영향 없음: 데미지·콜라이더 없음. usePlayingFrame으로 일시정지 시 정지.
-export function StarlinkCrashSequence({ x, z, onDone }) {
+// 첫 착지 프레임에서만 onImpact를 호출하고, usePlayingFrame으로 일시정지 시 정지한다.
+export function StarlinkCrashSequence({ x, z, bossId, onImpact, onDone }) {
   const ageRef = useRef(0)
   const escapeDirRef = useRef(null)
   const fallSfxRef = useRef(false)
+  const impactRef = useRef(false)
   const doneRef = useRef(false)
   const [, force] = useState(0)
-  const end = useMemo(() => ({ x, z }), [x, z])
+  const endRef = useRef(null)
+  if (!endRef.current) endRef.current = { x, z }
 
   usePlayingFrame((_, delta) => {
     if (doneRef.current) return
@@ -327,11 +331,17 @@ export function StarlinkCrashSequence({ x, z, onDone }) {
       fallSfxRef.current = true
       emitSfx({ id: 'starlinkFall' })
     }
+    if (!impactRef.current) refreshCrashLandingEnd(endRef.current, bossId, enemyBodies)
     const { phase } = getCrashPhase(ageRef.current)
+    const impactEnd = consumeCrashImpactEnd(impactRef.current, phase, endRef.current)
+    if (impactEnd) {
+      impactRef.current = true
+      onImpact?.(impactEnd)
+    }
 
     if (phase === 'landed' && !escapeDirRef.current) {
       // 착지 순간: 도주 방향 확정 + 충돌음 (기존 등록 사운드 재사용)
-      escapeDirRef.current = pickEscapeDirection(x, z, screenBounds)
+      escapeDirRef.current = pickEscapeDirection(endRef.current.x, endRef.current.z, screenBounds)
       emitSfx({ id: 'starlinkExplosion' })
     }
 
@@ -351,6 +361,7 @@ export function StarlinkCrashSequence({ x, z, onDone }) {
 
   const age = ageRef.current
   const { phase, t } = getCrashPhase(age)
+  const end = endRef.current
 
   // 1) 낙하 중인 위성
   if (phase === 'falling') {
@@ -376,7 +387,7 @@ export function StarlinkCrashSequence({ x, z, onDone }) {
 
   return (
     <group>
-      {t < 1 && <CrashExplosionVisual x={x} z={z} t={t} />}
+      {t < 1 && <CrashExplosionVisual x={end.x} z={end.z} t={t} />}
       {zomPos && (
         <group
           position={[zomPos.x, 0.55 * ZOMLON_ESCAPE_SCALE, zomPos.z]}

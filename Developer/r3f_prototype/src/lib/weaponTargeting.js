@@ -497,6 +497,7 @@ export function applyRadialDamage({
   knockbackMs,
   deathStyleOverride,
   sightBlocker,
+  ignoreSightBlock,
   canCrit,
   damageType,
   attackTags,
@@ -520,6 +521,7 @@ export function applyRadialDamage({
     impact.knockback = knockback
     impact.knockbackMs = knockbackMs
     impact.deathStyleOverride = deathStyleOverride
+    impact.ignoreSightBlock = ignoreSightBlock === true
     impact.canCrit = canCrit
     impact.damageType = damageType
     impact.attackTags = attackTags

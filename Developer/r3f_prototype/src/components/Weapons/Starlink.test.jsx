@@ -3,7 +3,13 @@ import { statSync } from 'node:fs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { enemyBodies, enemyPool, playerPos } from '../../lib/refs.js'
 import { applyRadialDamage } from '../../lib/weaponTargeting.js'
-import { pickStrikeTargets } from './Starlink.jsx'
+import {
+  applyStarlinkCrashImpact,
+  createStarlinkCrash,
+  enqueueStarlinkCrashImpact,
+  flushStarlinkCrashImpactQueue,
+  pickStrikeTargets,
+} from './Starlink.jsx'
 
 afterEach(() => {
   enemyBodies.clear()
@@ -43,14 +49,99 @@ describe('StarlinkWeapon pool targeting', () => {
 })
 
 describe('StarlinkWeapon dev crash cheat', () => {
+  it('uses the same boss-priority landing builder without snapshotting eraser bomb stats into the crash', () => {
+    const random = () => { throw new Error('a visible boss must prevent random landing') }
+    const crash = createStarlinkCrash({
+      playerPosition: { x: 0, z: 0 },
+      bodies: new Map([[
+        'boss', {
+          _enemyType: 'B01',
+          _enemyDead: false,
+          _enemyHit: () => true,
+          translation: () => ({ x: 3, z: -2 }),
+        },
+      ]]),
+      bounds: { minX: -5, maxX: 5, minZ: -5, maxZ: 5 },
+      random,
+    })
+
+    expect(crash).toEqual({ x: 3, z: -2, bossId: 'boss' })
+  })
+
+  it('applies current eraser stats through the eraser impact contract while bypassing only crash sight blocking', () => {
+    const applyImpact = vi.fn(() => 1)
+    const crash = { x: 3, z: -2 }
+
+    expect(applyStarlinkCrashImpact(crash, { damage: 31, radius: 1.7 }, applyImpact)).toBe(1)
+    expect(applyImpact).toHaveBeenCalledWith(expect.objectContaining({
+      x: 3,
+      z: -2,
+      damage: 31,
+      radius: 1.7,
+      sightBlocker: expect.any(Function),
+    }))
+    expect(applyImpact.mock.calls[0][0].sightBlocker()).toBe(false)
+  })
+
+  it('uses the latest tracked boss center at impact instead of the initial crash center', () => {
+    const applyImpact = vi.fn(() => 1)
+    const crash = { x: 3, z: -2 }
+    const latestEnd = { x: 7, z: 4 }
+
+    applyStarlinkCrashImpact(crash, { damage: 31, radius: 1.7 }, applyImpact, latestEnd)
+
+    expect(applyImpact).toHaveBeenCalledWith(expect.objectContaining({ x: 7, z: 4, damage: 31, radius: 1.7 }))
+  })
+
+  it('uses the eraser bomb damage and radius available at impact, not values from crash creation', () => {
+    const applyImpact = vi.fn(() => 1)
+    const crash = { x: 3, z: -2, bossId: 'boss' }
+
+    applyStarlinkCrashImpact(crash, { damage: 44, radius: 2.1 }, applyImpact)
+
+    expect(applyImpact).toHaveBeenCalledWith(expect.objectContaining({ damage: 44, radius: 2.1, ignoreSightBlock: true }))
+  })
+
+  it('queues a copied landing center instead of applying damage from the landing callback', () => {
+    const queue = []
+    const crash = { x: 3, z: -2, bossId: 'boss' }
+    const landingCenter = { x: 7, z: 4 }
+
+    expect(enqueueStarlinkCrashImpact(queue, crash, landingCenter)).toBe(true)
+    landingCenter.x = 99
+    landingCenter.z = 88
+
+    expect(queue).toEqual([{ crash, impactCenter: { x: 7, z: 4 } }])
+  })
+
+  it('flushes every queued crash once, empties the queue, and reads the latest eraser stats at the physics step', () => {
+    const queue = []
+    const crashA = { x: 1, z: 2 }
+    const crashB = { x: 3, z: 4 }
+    enqueueStarlinkCrashImpact(queue, crashA, { x: 10, z: 20 })
+    enqueueStarlinkCrashImpact(queue, crashB, { x: 30, z: 40 })
+    const applyImpact = vi.fn()
+    const latestEraserBomb = { damage: 44, radius: 2.1 }
+
+    flushStarlinkCrashImpactQueue(queue, latestEraserBomb, applyImpact)
+
+    expect(applyImpact).toHaveBeenCalledTimes(2)
+    expect(applyImpact).toHaveBeenNthCalledWith(1, crashA, latestEraserBomb, undefined, { x: 10, z: 20 })
+    expect(applyImpact).toHaveBeenNthCalledWith(2, crashB, latestEraserBomb, undefined, { x: 30, z: 40 })
+    expect(queue).toEqual([])
+  })
+
   it('listens for the HUD cheat event and spawns a crash even when the weapon is inactive', () => {
     const source = readFileSync(new URL('./Starlink.jsx', import.meta.url), 'utf8')
 
     expect(source).toContain('STARLINK_CHEAT_CRASH_EVENT')
     expect(source).toContain('window.addEventListener(STARLINK_CHEAT_CRASH_EVENT, triggerCrash)')
-    expect(source).toContain('getScreenCenterCrashLandingPoint')
-    expect(source).toContain('screenBounds')
-    expect(source).toContain('setCrashes((cs) => [...cs, { id: ++_crashId, x: land.x, z: land.z }])')
+    expect(source).toContain('createStarlinkCrash')
+    expect(source).toContain('appendCrash')
+    expect(source).toContain('bossId={c.bossId}')
+    expect(source).toContain('useBeforePhysicsStep')
+    expect(source).toContain('pendingCrashImpactsRef')
+    expect(source).toContain('onImpact={(impactCenter) => queueCrashImpact(c, impactCenter)}')
     expect(source).toContain('!weapons.starlink?.active && strikes.length === 0 && crashes.length === 0')
   })
 

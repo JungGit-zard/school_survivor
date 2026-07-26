@@ -5,7 +5,8 @@ import * as THREE from 'three'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
-import { findBestSplashTarget, applyRadialDamage } from '../../lib/weaponTargeting.js'
+import { findBestSplashTarget } from '../../lib/weaponTargeting.js'
+import { applyEraserBombImpact } from '../../lib/eraserBombImpact.js'
 import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
@@ -132,11 +133,7 @@ export function EraserBombWeapon() {
     setErasers([...activeErasersRef.current])
 
     emitSfx({ id: 'eraserHit', volume: 0.66 })
-    applyRadialDamage({
-      x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
-      knockback: 2.5, knockbackMs: 120, deathStyleOverride: 'shatter5',
-      canCrit: false, damageType: 'explosive', attackTags: ['radial', 'explosive'],
-    })
+    applyEraserBombImpact({ x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage })
 
     setExplosions((prev) => [...prev, { id: eid, x: blast.x, z: blast.z, radius: blast.radius }])
   }, [])

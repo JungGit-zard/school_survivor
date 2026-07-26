@@ -1,12 +1,14 @@
 import { useRef, useState, useCallback, useMemo, useEffect } from 'react'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
+import { useBeforePhysicsStep } from '@react-three/rapier'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import * as THREE from 'three'
 import { enemyBodies, enemyPool, playerPos, screenBounds } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { applyRadialDamage } from '../../lib/weaponTargeting.js'
+import { applyEraserBombImpact } from '../../lib/eraserBombImpact.js'
 import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
-import { advanceCrashCounter } from '../../lib/starlinkCrash.js'
+import { advanceCrashCounter, selectCrashLandingPoint } from '../../lib/starlinkCrash.js'
 import { StarlinkCrashSequence } from './StarlinkSatellite.jsx'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
@@ -18,16 +20,55 @@ let _strikeId = 0
 let _crashId = 0
 const STRIKE_DURATION_MS = 480
 export const STARLINK_CHEAT_CRASH_EVENT = 'escape-zombie-school:starlink-cheat-crash'
+export const STARLINK_CRASH_NO_SIGHT_BLOCK = () => false
 
 export function dispatchStarlinkCheatCrash() {
   window.dispatchEvent(new CustomEvent(STARLINK_CHEAT_CRASH_EVENT))
 }
 
-export function getScreenCenterCrashLandingPoint() {
+export function createStarlinkCrash({ playerPosition, bodies, bounds, random }) {
+  const landing = selectCrashLandingPoint({
+    playerPos: playerPosition,
+    enemyBodies: bodies,
+    screenBounds: bounds,
+    random,
+  })
   return {
-    x: (screenBounds.minX + screenBounds.maxX) / 2,
-    z: (screenBounds.minZ + screenBounds.maxZ) / 2,
+    x: landing.x,
+    z: landing.z,
+    bossId: landing.bossId,
   }
+}
+
+export function applyStarlinkCrashImpact(crash, eraserBomb, applyImpact = applyEraserBombImpact, impactCenter = crash) {
+  return applyImpact({
+    x: impactCenter.x,
+    z: impactCenter.z,
+    damage: eraserBomb?.damage,
+    radius: eraserBomb?.radius,
+    sightBlocker: STARLINK_CRASH_NO_SIGHT_BLOCK,
+    ignoreSightBlock: true,
+  })
+}
+
+export function enqueueStarlinkCrashImpact(queue, crash, impactCenter) {
+  if (!Number.isFinite(impactCenter?.x) || !Number.isFinite(impactCenter?.z)) return false
+
+  queue.push({
+    crash,
+    // The landing callback receives a mutable tracked boss end. Preserve its
+    // coordinates now so a later physics step cannot damage a different spot.
+    impactCenter: { x: impactCenter.x, z: impactCenter.z },
+  })
+  return true
+}
+
+export function flushStarlinkCrashImpactQueue(queue, eraserBomb, applyImpact = applyStarlinkCrashImpact) {
+  for (let index = 0; index < queue.length; index += 1) {
+    const { crash, impactCenter } = queue[index]
+    applyImpact(crash, eraserBomb, undefined, impactCenter)
+  }
+  queue.length = 0
 }
 
 function isPoolProxy(rb) {
@@ -167,11 +208,16 @@ export function StarlinkWeapon() {
   const [strikes, setStrikes] = useState([])
   const activeStrikesRef = useRef([])
   const lastFireRef = useRef(0)
-  // 추락 연출: 30회 발사마다 위성이 추락한다 (순수 연출 — 발사는 계속된다)
+  // 추락: 15회 발사마다 위성이 지우개 폭탄 위력으로 착지한다.
   const fireCountRef = useRef(0)
   const [crashes, setCrashes] = useState([])
   const phase = useGameStore((s) => s.phase)
   const weapons = useGameStore((s) => s.weapons)
+  const phaseRef = useRef(phase)
+  const eraserBombRef = useRef(weapons.eraserBomb)
+  const pendingCrashImpactsRef = useRef([])
+  phaseRef.current = phase
+  eraserBombRef.current = weapons.eraserBomb
 
   const removeStrike = useCallback((sid) => {
     activeStrikesRef.current = activeStrikesRef.current.filter((s) => s.id !== sid)
@@ -182,14 +228,42 @@ export function StarlinkWeapon() {
     setCrashes((cs) => cs.filter((c) => c.id !== cid))
   }, [])
 
-  useEffect(() => {
-    const triggerCrash = () => {
-      const land = getScreenCenterCrashLandingPoint()
-      setCrashes((cs) => [...cs, { id: ++_crashId, x: land.x, z: land.z }])
+  const appendCrash = useCallback(() => {
+    const crash = createStarlinkCrash({
+      playerPosition: playerPos,
+      bodies: enemyBodies,
+      bounds: screenBounds,
+    })
+    setCrashes((cs) => [...cs, { id: ++_crashId, ...crash }])
+  }, [])
+
+  const queueCrashImpact = useCallback((crash, impactCenter) => {
+    enqueueStarlinkCrashImpact(pendingCrashImpactsRef.current, crash, impactCenter)
+  }, [])
+
+  useBeforePhysicsStep(() => {
+    const queue = pendingCrashImpactsRef.current
+    if (queue.length === 0) return
+
+    // Do not allow a callback queued at the phase boundary to deal damage
+    // after the game has stopped. Dropping it also prevents stale replay hits.
+    if (phaseRef.current !== 'playing') {
+      queue.length = 0
+      return
     }
+
+    flushStarlinkCrashImpactQueue(queue, eraserBombRef.current)
+  })
+
+  useEffect(() => {
+    if (phase !== 'playing') pendingCrashImpactsRef.current.length = 0
+  }, [phase])
+
+  useEffect(() => {
+    const triggerCrash = () => appendCrash()
     window.addEventListener(STARLINK_CHEAT_CRASH_EVENT, triggerCrash)
     return () => window.removeEventListener(STARLINK_CHEAT_CRASH_EVENT, triggerCrash)
-  }, [])
+  }, [appendCrash])
 
   usePlayingFrame(({ clock }) => {
     const w = weapons.starlink
@@ -214,13 +288,11 @@ export function StarlinkWeapon() {
     activeStrikesRef.current = [...activeStrikesRef.current, ...nextStrikes]
     setStrikes([...activeStrikesRef.current])
 
-    // 30회 발사 카운트 — trigger 시 위성 추락 연출 시작, 카운터 리셋(새 위성 도착).
-    // 공격 로직·스탯에는 어떤 영향도 없다.
+    // 15회 발사 카운트 — trigger 시 위성 추락을 시작하고 카운터를 리셋한다.
     const adv = advanceCrashCounter(fireCountRef.current)
     fireCountRef.current = adv.count
     if (adv.trigger) {
-      const land = getScreenCenterCrashLandingPoint()
-      setCrashes((cs) => [...cs, { id: ++_crashId, x: land.x, z: land.z }])
+      appendCrash()
     }
   })
 
@@ -232,7 +304,7 @@ export function StarlinkWeapon() {
         <StrikeWrapper key={s.id} {...s} onDone={removeStrike} />
       ))}
       {crashes.map((c) => (
-        <StarlinkCrashSequence key={c.id} x={c.x} z={c.z} onDone={() => removeCrash(c.id)} />
+        <StarlinkCrashSequence key={c.id} x={c.x} z={c.z} bossId={c.bossId} onImpact={(impactCenter) => queueCrashImpact(c, impactCenter)} onDone={() => removeCrash(c.id)} />
       ))}
     </>
   )
