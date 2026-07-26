@@ -1,687 +1,714 @@
-import { useMemo } from 'react'
-import { toonMat } from '../../lib/toon.js'
-import { STAGE_PROP_MESH_RENDERING } from './propRendering.js'
+// stage4 급식실(주방) 프랍 9종.
+// 원화: Graphic_designer/graphic_asset/background_floor/4stage/stage4_prop.png
+// ("ZOMBIE SCHOOL KITCHEN - ROBLOX STYLE ASSET SHEET")
+//
+// 2026-07-26 사용자 지시: 이전 모델링 폐기 후 원화 기준 전면 재작성.
+// 좌표는 이전 파일을 전혀 참고하지 않고, stageObjectColliders.js의 콜라이더 봉투
+// (주 몸통 x·z 외곽 치수)와 원화 FRONT/SIDE 비례만으로 새로 도출했다.
+//
+// 스테인리스 표현은 톤을 4단계로 분리한다 — top(거의 흰색) / panel(밝은 회색) /
+// frame(중간 회색) / dark(짙은 차콜, 발/그릴/음영). 단일 회색만 쓰면 툰 셰이딩에서
+// 상판·측면·다리 경계가 뭉개져 형태가 안 읽힌다.
+//
+// 아웃라인은 프랍당 2~5개로 제한한다 — stage4에는 이 프랍들이 30개 이상 배치되므로
+// 노브·자석·병뚜껑까지 전부 외곽선을 두면 드로우콜이 과도해진다. 실루엣을 만드는
+// 주 몸통 박스(상판·바디·후드 등)에만 적용한다.
+import {
+  getPropOutlineScale,
+  getStagePropOutlineMaterial,
+  getStagePropToonMaterial,
+  STAGE_PROP_MESH_RENDERING,
+  STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING,
+  STAGE_PROP_UNIT_BOX_GEOMETRY,
+} from './propRendering.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
-
-// Stage 4(급식실/주방) 저폴리 툰 프랍.
-// 원화: Graphic_designer/graphic_asset/background_floor/4stage/st4_prop.png
-// 스타일 정본은 GymProps.jsx — 박스/6각 실린더 프리미티브 + toonMat, 별도 아웃라인 메쉬 없음.
-// 스테인리스는 단색으로 뭉개면 툰 렌더에서 형태가 사라지므로
-// 밝은 상판(top) / 중간 패널(panel) / 어두운 프레임(frame) / 깊은 음영(dark) 4톤으로 분리한다.
-
-function PropBox({ position = [0, 0, 0], rotation = [0, 0, 0], size = [1, 1, 1], material }) {
-  return (
-    <group position={position} rotation={rotation}>
-      <mesh {...STAGE_PROP_MESH_RENDERING} material={material} scale={size}>
-        <boxGeometry args={[1, 1, 1]} />
-      </mesh>
-    </group>
-  )
-}
-
-function PropCylinder({ position = [0, 0, 0], rotation = [0, 0, 0], args, material }) {
-  return (
-    <group position={position} rotation={rotation}>
-      <mesh {...STAGE_PROP_MESH_RENDERING} material={material}>
-        <cylinderGeometry args={args} />
-      </mesh>
-    </group>
-  )
-}
-
-// 쓰레기 봉투처럼 각진 덩어리. 저폴리 유지를 위해 detail 0 정20면체를 눌러 쓴다.
-function PropBlob({ position = [0, 0, 0], rotation = [0, 0, 0], radius = 0.24, scale = [1, 1, 1], material }) {
-  return (
-    <group position={position} rotation={rotation}>
-      <mesh {...STAGE_PROP_MESH_RENDERING} material={material} scale={scale}>
-        <icosahedronGeometry args={[radius, 0]} />
-      </mesh>
-    </group>
-  )
-}
-
-// GN 팬(급식 트레이). 얕은 스테인리스 통 + 선택적 음식 레이어.
-// 테두리는 통짜 슬래브가 아니라 네 변 바로 만든다 — 슬래브로 덮으면 음식이 가려져 흰 판으로만 읽힌다.
-function GnPan({ position = [0, 0, 0], rotation = [0, 0, 0], width = 0.5, depth = 0.34, steel, rim, food = null }) {
-  const halfX = width / 2
-  const halfZ = depth / 2
-
-  return (
-    <group position={position} rotation={rotation}>
-      <PropBox position={[0, 0.04, 0]} size={[width, 0.08, depth]} material={steel} />
-      {food && <PropBox position={[0, 0.095, 0]} size={[width - 0.07, 0.05, depth - 0.07]} material={food} />}
-      {[-1, 1].map((side) => (
-        <PropBox key={`x${side}`} position={[side * (halfX + 0.012), 0.085, 0]} size={[0.05, 0.06, depth + 0.05]} material={rim} />
-      ))}
-      {[-1, 1].map((side) => (
-        <PropBox key={`z${side}`} position={[0, 0.085, side * (halfZ + 0.012)]} size={[width + 0.05, 0.06, 0.05]} material={rim} />
-      ))}
-    </group>
-  )
-}
-
-// 냄비/양동이. 6각 실린더 몸통 + 테두리 링, 선택적 손잡이.
-function Pot({ position = [0, 0, 0], radius = 0.17, height = 0.26, body, rim, handle = 'none' }) {
-  return (
-    <group position={position}>
-      <PropCylinder position={[0, height / 2, 0]} args={[radius, radius * 0.9, height, 6]} material={body} />
-      <PropCylinder position={[0, height + 0.015, 0]} args={[radius + 0.02, radius + 0.02, 0.035, 6]} material={rim} />
-      {handle === 'long' && (
-        <PropBox position={[radius + 0.19, height * 0.78, 0]} size={[0.38, 0.045, 0.05]} material={rim} />
-      )}
-      {handle === 'ears' && [-1, 1].map((side) => (
-        <PropBox key={side} position={[side * (radius + 0.06), height * 0.82, 0]} size={[0.11, 0.04, 0.14]} material={rim} />
-      ))}
-    </group>
-  )
-}
-
-function Caster({ position = [0, 0, 0], material }) {
-  return <PropCylinder position={position} rotation={[Math.PI / 2, 0, 0]} args={[0.065, 0.065, 0.05, 6]} material={material} />
-}
 
 export const KITCHEN_PREP_TABLE_VARIANTS = Object.freeze(['bare', 'pans', 'cutting', 'side'])
 export const KITCHEN_TRASH_BIN_VARIANTS = Object.freeze(['wheelie', 'round'])
 export const KITCHEN_CLUTTER_VARIANTS = Object.freeze(['pots', 'bags', 'trays'])
 
-function pickVariant(list, value, fallback) {
-  return list.includes(value) ? value : fallback
+function pickVariant(variant, validVariants, fallback) {
+  return validVariants.includes(variant) ? variant : fallback
 }
 
-export function KitchenPrepTable({ variant = 'bare', ...props }) {
-  const top = useMemo(() => toonMat(0xc2cad1, 0.06), [])
-  const panel = useMemo(() => toonMat(0x99a3ab, 0.04), [])
-  const frame = useMemo(() => toonMat(0x5e676e, 0.03), [])
-  const dark = useMemo(() => toonMat(0x2f363b, 0.02), [])
-  const slime = useMemo(() => toonMat(0x6f8442, 0.05), [])
-  const rust = useMemo(() => toonMat(0x8a5533, 0.04), [])
-  const wood = useMemo(() => toonMat(0xb98a52, 0.04), [])
-  const crate = useMemo(() => toonMat(0x4f7a45, 0.05), [])
-  const stew = useMemo(() => toonMat(0xc98a3a, 0.08), [])
-
-  const mode = pickVariant(KITCHEN_PREP_TABLE_VARIANTS, variant, 'bare')
-
-  if (mode === 'side') {
-    return (
-      <group {...props} name="kitchen-prep-table">
-        <StudioTunedGroup itemId="stage-object-kitchen-prep-table">
-          <PropBox position={[0, 0.9, 0]} size={[1.7, 0.1, 0.9]} material={top} />
-          <PropBox position={[0, 0.82, 0]} size={[1.74, 0.06, 0.94]} material={panel} />
-          <PropBox position={[-0.28, 0.48, 0]} size={[1.06, 0.7, 0.82]} material={panel} />
-          {[-0.56, -0.16].map((x) => (
-            <group key={x}>
-              <PropBox position={[x, 0.5, 0.43]} size={[0.36, 0.6, 0.04]} material={top} />
-              <PropBox position={[x + 0.15, 0.5, 0.46]} size={[0.035, 0.3, 0.035]} material={dark} />
-            </group>
-          ))}
-          <PropBox position={[0.52, 0.48, -0.38]} size={[0.62, 0.7, 0.06]} material={frame} />
-          {[0.22, 0.82].map((x) => (
-            <PropBox key={x} position={[x, 0.48, 0]} size={[0.04, 0.7, 0.82]} material={panel} />
-          ))}
-          {[0.3, 0.6].map((y) => (
-            <PropBox key={y} position={[0.52, y, 0]} size={[0.58, 0.04, 0.8]} material={frame} />
-          ))}
-          <GnPan position={[0.5, 0.62, 0.14]} width={0.4} depth={0.28} steel={panel} rim={top} food={stew} />
-          <GnPan position={[0.5, 0.32, -0.12]} width={0.4} depth={0.28} steel={panel} rim={top} />
-          <PropBox position={[0.42, 1.13, 0]} size={[0.62, 0.36, 0.46]} material={panel} />
-          <PropBox position={[0.42, 1.11, 0.24]} size={[0.46, 0.22, 0.03]} material={dark} />
-          <PropBox position={[0.42, 1.31, 0.2]} size={[0.5, 0.05, 0.06]} material={frame} />
-          <PropCylinder position={[0.7, 1.11, 0.25]} rotation={[Math.PI / 2, 0, 0]} args={[0.04, 0.04, 0.05, 6]} material={dark} />
-          <PropBox position={[-0.44, 0.965, -0.02]} rotation={[0, 0.06, 0]} size={[0.66, 0.045, 0.46]} material={wood} />
-          <PropBox position={[-0.44, 0.99, -0.02]} rotation={[0, 0.06, 0]} size={[0.3, 0.012, 0.2]} material={rust} />
-          <PropCylinder position={[-0.02, 1.05, 0.16]} args={[0.055, 0.06, 0.22, 6]} material={crate} />
-          {[-0.78, 0.78].flatMap((x) => [-0.36, 0.36].map((z) => (
-            <PropBox key={`${x}:${z}`} position={[x, 0.07, z]} size={[0.1, 0.14, 0.1]} material={frame} />
-          )))}
-          <PropBox position={[0.16, 0.955, -0.24]} size={[0.34, 0.012, 0.24]} material={slime} />
-          <PropBox position={[-0.66, 0.955, 0.26]} size={[0.2, 0.012, 0.16]} material={rust} />
-        </StudioTunedGroup>
-      </group>
-    )
+// 4톤 스테인리스 팔레트. 컴포넌트 호출마다 getStagePropToonMaterial(캐시됨)을 다시
+// 불러오는 함수 형태로 둬서, 모듈 최상단 상수로 한 번만 만들지 않는다 — HMR 때
+// toon.js의 캐시가 비워져도(재조립) 다음 렌더에서 항상 최신 캐시를 다시 받아온다.
+function stainlessPalette() {
+  return {
+    top: getStagePropToonMaterial(0xf2f5f7, 0.05),
+    panel: getStagePropToonMaterial(0xd7dde1, 0.04),
+    frame: getStagePropToonMaterial(0xa9afb3, 0.04),
+    dark: getStagePropToonMaterial(0x34383b, 0.02),
   }
+}
+
+function stageOutline() {
+  return getStagePropOutlineMaterial(0.96, 0x050209)
+}
+
+// 공유 유닛 박스(STAGE_PROP_UNIT_BOX_GEOMETRY)를 scale로 늘려 쓰는 기본 박스 헬퍼.
+// outline을 넘기면 getPropOutlineScale로 부풀린 두 번째 메쉬를 함께 그린다.
+function PropBox({ position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 1, 1], material, outline: outlineMaterial }) {
+  return (
+    <group position={position} rotation={rotation}>
+      <mesh
+        {...STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING}
+        geometry={STAGE_PROP_UNIT_BOX_GEOMETRY}
+        material={material}
+        scale={scale}
+      />
+      {outlineMaterial && (
+        <mesh
+          {...STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING}
+          geometry={STAGE_PROP_UNIT_BOX_GEOMETRY}
+          material={outlineMaterial}
+          scale={getPropOutlineScale(scale)}
+        />
+      )}
+    </group>
+  )
+}
+
+// 육각형 단면(radialSegments=6) 실린더 헬퍼 — 양동이·수전·캐스터·병 몸체에 공용.
+function PropCylinder({ position = [0, 0, 0], rotation = [0, 0, 0], args, material }) {
+  return (
+    <mesh {...STAGE_PROP_MESH_RENDERING} position={position} rotation={rotation} material={material}>
+      <cylinderGeometry args={args} />
+    </mesh>
+  )
+}
+
+// 외곽선이 필요한 육각 실린더(원형 쓰레기통 본체 전용) — PropCylinder에 outline을 더한 변형.
+function OutlinedCylinder({ position = [0, 0, 0], rotation = [0, 0, 0], args, material, outline: outlineMaterial }) {
+  const s = getPropOutlineScale(1)
+  return (
+    <group position={position} rotation={rotation}>
+      <mesh {...STAGE_PROP_MESH_RENDERING} material={material}>
+        <cylinderGeometry args={args} />
+      </mesh>
+      {outlineMaterial && (
+        <mesh {...STAGE_PROP_MESH_RENDERING} material={outlineMaterial} scale={[s, s, s]}>
+          <cylinderGeometry args={args} />
+        </mesh>
+      )}
+    </group>
+  )
+}
+
+// detail-0 정20면체(저분할) 헬퍼 — 냄비·볼·봉지 같은 각진 블롭 형태에 공용.
+function PropBlob({ position = [0, 0, 0], radius = 0.16, squashY = 1, material }) {
+  return (
+    <mesh {...STAGE_PROP_MESH_RENDERING} position={position} material={material} scale={[radius, radius * squashY, radius]}>
+      <icosahedronGeometry args={[1, 0]} />
+    </mesh>
+  )
+}
+
+// 캐스터(바퀴) — 트레이랙/선반카트/휠리형 쓰레기통에서 재사용.
+function Caster({ position = [0, 0, 0], material }) {
+  return <PropCylinder position={position} rotation={[Math.PI / 2, 0, 0]} args={[0.055, 0.055, 0.045, 6]} material={material} />
+}
+
+// 유리병/양동이 몸체 — 프렙테이블 언더셸프·선반카트·바닥 클러터에서 재사용.
+function Vessel({ position = [0, 0, 0], args = [0.14, 0.11, 0.22, 6], material, capMaterial }) {
+  return (
+    <group position={position}>
+      <PropCylinder args={args} material={material} />
+      {capMaterial && (
+        <PropCylinder position={[0, args[2] * 0.5 + 0.014, 0]} args={[args[0] * 0.92, args[0] * 0.92, 0.028, 6]} material={capMaterial} />
+      )}
+    </group>
+  )
+}
+
+// GN팬(식판) — 조리대 상판/트레이랙 슬라이드/바닥 클러터 전역에서 반복되는 형태.
+function GnPan({ position = [0, 0, 0], rotation = [0, 0, 0], size = [0.5, 0.06, 0.32], trayMaterial, fillMaterial, chunkMaterial }) {
+  const [w, h, d] = size
+  return (
+    <group position={position} rotation={rotation}>
+      <PropBox scale={[w, h, d]} material={trayMaterial} />
+      {fillMaterial && (
+        <PropBox position={[0, h * 0.4, 0]} scale={[w * 0.86, h * 0.5, d * 0.8]} material={fillMaterial} />
+      )}
+      {chunkMaterial && (
+        <>
+          <PropBlob position={[-w * 0.18, h * 0.68, d * 0.12]} radius={h * 0.9} material={chunkMaterial} />
+          <PropBlob position={[w * 0.16, h * 0.68, -d * 0.14]} radius={h * 0.8} material={chunkMaterial} />
+        </>
+      )}
+    </group>
+  )
+}
+
+// 자석/메모/버튼 같은 단발성 표면 디테일 전용 박스 — 유일하게 리터럴 boxGeometry를
+// 직접 쓴다(공유 유닛박스를 쓸 만큼 반복되지 않는 1~3회성 소품이라 굳이 캐시를 태우지 않음).
+function MagnetTag({ position = [0, 0, 0], rotation = [0, 0, 0], scale = [0.05, 0.05, 0.01], material }) {
+  return (
+    <mesh {...STAGE_PROP_MESH_RENDERING} position={position} rotation={rotation} scale={scale} material={material}>
+      <boxGeometry args={[1, 1, 1]} />
+    </mesh>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// KitchenPrepTable — 원화 "PREP TABLES" 행 + "SIDE COUNTER/EQUIPMENT" 행.
+// 콜라이더: position [0,0.47,0] size 2.16 x 0.94 x 1.02. 상판(2.16x1.02)이 가장
+// 넓은 부재라 이 슬랩의 x/z가 곧 콜라이더 외곽과 정확히 일치한다. 4변형 모두 같은
+// 뼈대(상판+다리+발+하부 그릴)를 공유하고, 상판 위/하부 내용물만 바뀐다.
+// ─────────────────────────────────────────────────────────────────────────
+export function KitchenPrepTable({ variant = 'bare', ...props }) {
+  const v = pickVariant(variant, KITCHEN_PREP_TABLE_VARIANTS, 'bare')
+  const stainless = stainlessPalette()
+  const outlineMat = stageOutline()
+  const lime = getStagePropToonMaterial(0x8fd13f, 0.1)
+  const orange = getStagePropToonMaterial(0xe8862c, 0.1)
+  const yellow = getStagePropToonMaterial(0xe0b93a, 0.1)
+  const blue = getStagePropToonMaterial(0x3f7fc1, 0.1)
+  const wood = getStagePropToonMaterial(0xc9a06a, 0.06)
+  const blade = getStagePropToonMaterial(0xcfd4d6, 0.04)
+  const handle = getStagePropToonMaterial(0x232527, 0.0)
+  const darkWindow = getStagePropToonMaterial(0x23262a, 0.02)
+  const red = getStagePropToonMaterial(0xc0392b, 0.12)
+  const white = getStagePropToonMaterial(0xf4f1e8, 0.06)
+  const green = getStagePropToonMaterial(0x4f9d4a, 0.1)
+
+  const legPositions = [
+    [-0.98, 0.47, -0.41],
+    [0.98, 0.47, -0.41],
+    [-0.98, 0.47, 0.41],
+    [0.98, 0.47, 0.41],
+  ]
+  const shelfTopY = 0.425
 
   return (
     <group {...props} name="kitchen-prep-table">
       <StudioTunedGroup itemId="stage-object-kitchen-prep-table">
-        <PropBox position={[0, 0.9, 0]} size={[2.2, 0.1, 1.05]} material={top} />
-        <PropBox position={[0, 0.82, 0]} size={[2.24, 0.06, 1.09]} material={panel} />
-        <PropBox position={[0.02, 0.955, 0]} size={[0.03, 0.014, 1.02]} material={frame} />
-        <PropBox position={[0, 0.26, 0]} size={[2.06, 0.06, 0.9]} material={panel} />
-        {[-1.0, 1.0].flatMap((x) => [-0.44, 0.44].map((z) => (
-          <group key={`${x}:${z}`}>
-            <PropBox position={[x, 0.44, z]} size={[0.09, 0.82, 0.09]} material={frame} />
-            <PropBox position={[x, 0.025, z]} size={[0.14, 0.05, 0.14]} material={dark} />
+        {/* 상판: 콜라이더 외곽(2.16x1.02)과 정확히 일치하는 가장 넓은 부재. 2분할 이음선. */}
+        <PropBox position={[0, 0.90, 0]} scale={[2.16, 0.08, 1.02]} material={stainless.top} outline={outlineMat} />
+        <PropBox position={[-0.36, 0.945, 0]} scale={[0.02, 0.01, 1.0]} material={stainless.dark} />
+        <PropBox position={[0.36, 0.945, 0]} scale={[0.02, 0.01, 1.0]} material={stainless.dark} />
+
+        {legPositions.map((pos, i) => (
+          <group key={i}>
+            <PropBox position={pos} scale={[0.08, 0.86, 0.08]} material={stainless.frame} />
+            <PropBox position={[pos[0], 0.025, pos[2]]} scale={[0.11, 0.05, 0.11]} material={stainless.dark} />
           </group>
-        )))}
-        <Pot position={[-0.72, 0.29, 0.04]} radius={0.17} height={0.26} body={frame} rim={panel} handle="ears" />
-        <Pot position={[-0.32, 0.29, -0.06]} radius={0.14} height={0.2} body={dark} rim={panel} />
-        {mode === 'pans' && (
+        ))}
+
+        {v !== 'side' && (
+          <PropBox position={[0, 0.40, 0]} scale={[1.9, 0.05, 0.86]} material={stainless.panel} outline={outlineMat} />
+        )}
+
+        {v !== 'side' && (
           <>
-            <GnPan position={[-0.42, 0.9, 0.06]} width={0.54} depth={0.36} steel={dark} rim={top} food={stew} />
-            <GnPan position={[0.52, 0.9, -0.12]} rotation={[0, 0.08, 0]} width={0.48} depth={0.34} steel={dark} rim={top} food={slime} />
+            {/* 하부 통풍 그릴(정면) */}
+            <PropBox position={[0, 0.12, 0.49]} scale={[0.9, 0.16, 0.02]} material={stainless.dark} />
+            <PropBox position={[0, 0.145, 0.495]} scale={[0.82, 0.01, 0.01]} material={stainless.frame} />
+            <PropBox position={[0, 0.095, 0.495]} scale={[0.82, 0.01, 0.01]} material={stainless.frame} />
           </>
         )}
-        {mode === 'cutting' && (
+
+        {v === 'bare' && (
           <>
-            <PropBox position={[0.2, 0.975, 0.02]} rotation={[0, 0.1, 0]} size={[0.88, 0.05, 0.58]} material={wood} />
-            <PropBox position={[0.2, 1.002, 0.02]} rotation={[0, 0.1, 0]} size={[0.36, 0.012, 0.26]} material={rust} />
-            <PropBox position={[0.46, 1.02, -0.16]} rotation={[0, -0.5, 0]} size={[0.34, 0.02, 0.07]} material={top} />
-            <PropBox position={[0.66, 1.02, -0.24]} rotation={[0, -0.5, 0]} size={[0.13, 0.03, 0.05]} material={dark} />
-            <PropBox position={[0.56, 0.44, 0.0]} rotation={[0, 0.12, 0]} size={[0.62, 0.32, 0.44]} material={wood} />
-            {[-0.1, 0.1].map((y) => (
-              <PropBox key={y} position={[0.56, 0.44 + y, 0.23]} rotation={[0, 0.12, 0]} size={[0.6, 0.06, 0.02]} material={crate} />
-            ))}
+            <Vessel position={[-0.55, shelfTopY + 0.10, 0]} args={[0.13, 0.10, 0.20, 6]} material={yellow} />
+            <Vessel position={[-0.15, shelfTopY + 0.10, 0]} args={[0.13, 0.10, 0.20, 6]} material={blue} />
+            <group position={[0.55, shelfTopY + 0.11, 0]}>
+              <PropBox scale={[0.34, 0.22, 0.30]} material={lime} />
+              <PropBox position={[0, 0.02, 0.151]} scale={[0.30, 0.16, 0.01]} material={stainless.dark} />
+            </group>
           </>
         )}
-        {mode === 'bare' && <Pot position={[0.62, 0.29, 0.08]} radius={0.16} height={0.22} body={frame} rim={panel} />}
-        <PropBox position={[-0.5, 0.955, -0.26]} size={[0.42, 0.014, 0.3]} material={slime} />
-        <PropBox position={[0.86, 0.955, 0.3]} size={[0.26, 0.014, 0.2]} material={rust} />
-        <PropBox position={[1.0, 0.6, 0.44]} size={[0.1, 0.22, 0.1]} material={rust} />
+
+        {v === 'pans' && (
+          <>
+            <GnPan position={[-0.5, 0.975, 0]} size={[0.62, 0.07, 0.34]} trayMaterial={stainless.panel} fillMaterial={red} chunkMaterial={green} />
+            <GnPan position={[0.3, 0.975, 0]} size={[0.62, 0.07, 0.34]} trayMaterial={stainless.panel} fillMaterial={orange} chunkMaterial={yellow} />
+            <group position={[-0.55, shelfTopY + 0.11, 0]}>
+              <PropBox scale={[0.34, 0.22, 0.30]} material={lime} />
+              <PropBox position={[0, 0.02, 0.151]} scale={[0.30, 0.16, 0.01]} material={stainless.dark} />
+            </group>
+            <PropBox position={[0.1, shelfTopY + 0.11, 0]} scale={[0.36, 0.22, 0.30]} material={orange} />
+          </>
+        )}
+
+        {v === 'cutting' && (
+          <>
+            <group position={[0, 0.96, 0.12]}>
+              <PropBox scale={[0.48, 0.04, 0.32]} material={wood} />
+              <group position={[0.30, 0.025, 0]} rotation={[0, 0, 0.06]}>
+                <PropBox scale={[0.30, 0.012, 0.05]} material={blade} />
+                <PropBox position={[0.19, -0.005, 0]} scale={[0.12, 0.03, 0.055]} material={handle} />
+              </group>
+            </group>
+            <PropBox position={[-0.5, shelfTopY + 0.11, 0]} scale={[0.34, 0.22, 0.30]} material={lime} />
+            <PropBox position={[0.55, shelfTopY + 0.11, 0]} scale={[0.34, 0.22, 0.30]} material={orange} />
+          </>
+        )}
+
+        {v === 'side' && (
+          <>
+            {/* 여닫이 캐비닛 도어 2짝(오픈 셀프 대체) */}
+            <PropBox position={[-0.47, 0.40, 0.435]} scale={[0.9, 0.78, 0.05]} material={stainless.panel} outline={outlineMat} />
+            <PropBox position={[0.47, 0.40, 0.435]} scale={[0.9, 0.78, 0.05]} material={stainless.panel} />
+            <PropBox position={[-0.10, 0.40, 0.465]} scale={[0.04, 0.22, 0.04]} material={stainless.dark} />
+            <PropBox position={[0.10, 0.40, 0.465]} scale={[0.04, 0.22, 0.04]} material={stainless.dark} />
+
+            {/* 전자레인지 */}
+            <group position={[-0.55, 1.09, 0]}>
+              <PropBox scale={[0.52, 0.30, 0.38]} material={stainless.panel} />
+              <PropBox position={[-0.08, 0, 0.191]} scale={[0.30, 0.20, 0.01]} material={darkWindow} />
+              {[-0.09, 0, 0.09].map((oy, i) => (
+                <MagnetTag key={i} position={[0.20, oy, 0.191]} scale={[0.05, 0.04, 0.01]} material={stainless.dark} />
+              ))}
+            </group>
+
+            <PropBox position={[0.05, 0.96, 0.1]} scale={[0.36, 0.03, 0.24]} material={wood} />
+            <Vessel position={[0.45, 1.02, -0.1]} args={[0.045, 0.045, 0.16, 6]} material={orange} capMaterial={stainless.dark} />
+            <PropBlob position={[0.85, 1.017, 0.28]} radius={0.11} squashY={0.7} material={white} />
+            <PropBlob position={[0.85, 1.148, 0.28]} radius={0.09} squashY={0.6} material={red} />
+          </>
+        )}
       </StudioTunedGroup>
     </group>
   )
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// KitchenCookLine — 원화 "COOK LINE / STOVE & OVEN BLOCK" 행. 원화의 주역이라
+// 후드(캐노피+덕트)가 콜라이더 높이(0.92) 위로 크게 솟는다(허용된 예외). 오븐도어
+// 3짝 + 빨간 노브 줄 + 6구 버너 그레이트 + 화구 위 냄비 하나.
+// 콜라이더: position [0,0.46,0] size 2.66 x 0.92 x 1.12.
+// ─────────────────────────────────────────────────────────────────────────
 export function KitchenCookLine({ ...props }) {
-  const top = useMemo(() => toonMat(0xc2cad1, 0.06), [])
-  const panel = useMemo(() => toonMat(0x99a3ab, 0.04), [])
-  const frame = useMemo(() => toonMat(0x5e676e, 0.03), [])
-  const dark = useMemo(() => toonMat(0x282e33, 0.02), [])
-  const grate = useMemo(() => toonMat(0x1b1f22, 0), [])
-  const knob = useMemo(() => toonMat(0xb0443a, 0.1), [])
-  const slime = useMemo(() => toonMat(0x6f8442, 0.05), [])
-  const rust = useMemo(() => toonMat(0x8a5533, 0.04), [])
+  const stainless = stainlessPalette()
+  const outlineMat = stageOutline()
+  const red = getStagePropToonMaterial(0xc0392b, 0.14)
+  const darkWindow = getStagePropToonMaterial(0x23262a, 0.02)
+  const green = getStagePropToonMaterial(0x4f9d4a, 0.1)
 
-  const burnerX = [-1.05, -0.7, -0.35]
-  const burnerZ = [-0.2, 0.2]
+  const doorXs = [-0.85, 0, 0.85]
+  const knobXs = [-1.0, -0.7, -0.15, 0.15, 0.7, 1.0]
 
   return (
     <group {...props} name="kitchen-cook-line">
       <StudioTunedGroup itemId="stage-object-kitchen-cook-line">
-        <PropBox position={[0, 0.5, 0]} size={[2.55, 0.72, 0.95]} material={panel} />
-        <PropBox position={[0, 0.9, 0]} size={[2.6, 0.08, 0.98]} material={top} />
-        {[-1.16, 1.16].flatMap((x) => [-0.38, 0.38].map((z) => (
-          <PropBox key={`${x}:${z}`} position={[x, 0.07, z]} size={[0.11, 0.14, 0.11]} material={frame} />
-        )))}
-        {burnerX.flatMap((x) => burnerZ.map((z) => (
-          <group key={`${x}:${z}`} position={[x, 0.94, z]}>
-            <PropCylinder position={[0, 0.02, 0]} args={[0.09, 0.11, 0.05, 6]} material={dark} />
-            <PropBox position={[0, 0.05, 0]} size={[0.32, 0.035, 0.32]} material={grate} />
-            <PropBox position={[0, 0.07, 0]} size={[0.3, 0.03, 0.05]} material={grate} />
-            <PropBox position={[0, 0.07, 0]} size={[0.05, 0.03, 0.3]} material={grate} />
+        {/* 하부 오븐 캐비닛(0~0.82) + 상부 카운터 캡(0.82~0.92) — 둘 다 콜라이더 x/z와 일치. */}
+        <PropBox position={[0, 0.41, 0]} scale={[2.66, 0.82, 1.12]} material={stainless.panel} outline={outlineMat} />
+        <PropBox position={[0, 0.87, 0]} scale={[2.66, 0.10, 1.12]} material={stainless.top} outline={outlineMat} />
+
+        {/* 6구 버너 그레이트 */}
+        <PropBox position={[0, 0.935, 0]} scale={[2.3, 0.03, 0.85]} material={stainless.dark} />
+        {[-0.24, 0, 0.24].map((oz) => (
+          <PropBox key={oz} position={[0, 0.94, oz]} scale={[2.2, 0.008, 0.02]} material={stainless.frame} />
+        ))}
+
+        {/* 오븐 도어 3짝(창+손잡이) */}
+        {doorXs.map((x) => (
+          <group key={x} position={[x, 0.32, 0.53]}>
+            <PropBox scale={[0.75, 0.55, 0.03]} material={stainless.panel} />
+            <PropBox position={[0, 0.02, 0.001]} scale={[0.42, 0.28, 0.01]} material={darkWindow} />
+            <PropBox position={[0, -0.22, 0.01]} scale={[0.28, 0.03, 0.03]} material={stainless.dark} />
           </group>
-        )))}
-        <PropBox position={[0.3, 0.955, 0]} size={[0.6, 0.04, 0.82]} material={frame} />
-        <PropBox position={[0.98, 0.955, 0]} size={[0.62, 0.04, 0.82]} material={dark} />
-        <PropBox position={[-0.72, 0.42, 0.49]} size={[0.72, 0.44, 0.05]} material={frame} />
-        <PropBox position={[-0.72, 0.42, 0.53]} size={[0.5, 0.24, 0.02]} material={dark} />
-        <PropBox position={[-0.72, 0.62, 0.53]} size={[0.62, 0.05, 0.05]} material={top} />
-        <PropBox position={[0.3, 0.42, 0.49]} size={[0.78, 0.44, 0.05]} material={frame} />
-        <PropBox position={[0.3, 0.62, 0.53]} size={[0.66, 0.05, 0.05]} material={top} />
-        <PropBox position={[1.0, 0.42, 0.49]} size={[0.58, 0.44, 0.05]} material={frame} />
-        <PropBox position={[1.0, 0.62, 0.53]} size={[0.46, 0.05, 0.05]} material={top} />
-        {[-1.14, -0.86, -0.58, -0.3, -0.02].map((x) => (
-          <PropCylinder key={x} position={[x, 0.79, 0.5]} rotation={[Math.PI / 2, 0, 0]} args={[0.045, 0.045, 0.06, 6]} material={knob} />
         ))}
-        <PropBox position={[0, 1.24, -0.44]} size={[2.6, 0.62, 0.1]} material={panel} />
-        <PropBox position={[0, 1.56, -0.28]} size={[2.46, 0.06, 0.28]} material={frame} />
-        {[-0.9, 0.9].map((x) => (
-          <PropBox key={x} position={[x, 1.42, -0.3]} size={[0.06, 0.34, 0.06]} material={frame} />
+
+        {/* 컨트롤 패널 + 빨간 노브 줄 */}
+        <PropBox position={[0, 0.70, 0.53]} scale={[2.3, 0.14, 0.02]} material={stainless.dark} />
+        {knobXs.map((x) => (
+          <PropCylinder key={x} position={[x, 0.70, 0.54]} rotation={[Math.PI / 2, 0, 0]} args={[0.032, 0.032, 0.014, 6]} material={red} />
         ))}
-        <PropBox position={[0, 1.86, -0.55]} size={[2.75, 0.72, 0.08]} material={panel} />
-        {/* 후드는 뒤로 물려 둔다 — 상판을 다 덮으면 탑다운 카메라에서 화구가 안 보인다. */}
-        <PropBox position={[0, 2.05, -0.14]} size={[2.75, 0.3, 0.98]} material={top} />
-        <PropBox position={[0, 1.88, 0.38]} rotation={[0.55, 0, 0]} size={[2.75, 0.3, 0.08]} material={panel} />
-        {[-0.82, 0, 0.82].map((x) => (
-          <PropBox key={x} position={[x, 1.92, 0.16]} rotation={[0.34, 0, 0]} size={[0.76, 0.22, 0.04]} material={frame} />
-        ))}
-        <PropBox position={[-0.98, 2.06, -0.2]} size={[0.34, 0.34, 0.3]} material={frame} />
-        <PropBox position={[0.62, 2.06, -0.18]} size={[0.22, 0.2, 0.24]} material={frame} />
-        <Pot position={[-0.7, 1.0, 0]} radius={0.21} height={0.3} body={frame} rim={top} handle="ears" />
-        <PropCylinder position={[-0.7, 1.32, 0]} args={[0.2, 0.2, 0.04, 6]} material={top} />
-        <PropBox position={[0.62, 0.98, 0.16]} size={[0.34, 0.014, 0.24]} material={slime} />
-        <PropBox position={[-1.18, 1.3, -0.4]} size={[0.28, 0.34, 0.014]} material={slime} />
-        <PropBox position={[0.9, 1.16, -0.4]} size={[0.2, 0.22, 0.014]} material={rust} />
+
+        {/* 후드: 덕트 라이저 + 캐노피 + 정면 벤트 그릴(SIDE 뷰의 L자 프로파일). 전부 x/z 봉투 안. */}
+        <PropBox position={[0, 1.345, -0.15]} scale={[0.5, 0.85, 0.42]} material={stainless.panel} />
+        <PropBox position={[0, 1.92, -0.08]} scale={[2.5, 0.30, 0.85]} material={stainless.top} outline={outlineMat} />
+        <PropBox position={[0, 1.80, 0.34]} scale={[2.2, 0.14, 0.05]} material={stainless.dark} />
+        <PropBox position={[0, 1.845, 0.35]} scale={[2.1, 0.012, 0.01]} material={stainless.frame} />
+        <PropBox position={[0, 1.755, 0.35]} scale={[2.1, 0.012, 0.01]} material={stainless.frame} />
+
+        {/* 화구 위 냄비 */}
+        <group position={[0.2, 1.03, -0.05]}>
+          <PropCylinder args={[0.22, 0.20, 0.20, 6]} material={green} />
+          <PropCylinder position={[0, 0.11, 0]} args={[0.18, 0.18, 0.02, 6]} material={green} />
+          <PropBox position={[-0.24, 0.02, 0]} scale={[0.10, 0.03, 0.03]} material={stainless.dark} />
+          <PropBox position={[0.24, 0.02, 0]} scale={[0.10, 0.03, 0.03]} material={stainless.dark} />
+        </group>
       </StudioTunedGroup>
     </group>
   )
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// KitchenSinkCounter — 원화 "SINK COUNTER" 행. 2조 싱크볼(색 차이로 recessed
+// 표현) + 높은 구스넥 수전 + 백스플래시 + 언더셸프 소품. 콜라이더보다 얇은
+// 뼈대(다리+셸프)는 프렙테이블과 동일 패턴을 공유한다.
+// 콜라이더: position [0,0.44,0] size 2.26 x 0.88 x 0.94.
+// ─────────────────────────────────────────────────────────────────────────
 export function KitchenSinkCounter({ ...props }) {
-  const top = useMemo(() => toonMat(0xc2cad1, 0.06), [])
-  const panel = useMemo(() => toonMat(0x99a3ab, 0.04), [])
-  const frame = useMemo(() => toonMat(0x5e676e, 0.03), [])
-  const dark = useMemo(() => toonMat(0x2b3237, 0.02), [])
-  const slime = useMemo(() => toonMat(0x6f8442, 0.05), [])
-  const rust = useMemo(() => toonMat(0x8a5533, 0.04), [])
-  const cardboard = useMemo(() => toonMat(0xbf9d6d, 0.04), [])
-  const bottle = useMemo(() => toonMat(0x4b7a3f, 0.06), [])
+  const stainless = stainlessPalette()
+  const outlineMat = stageOutline()
+  const orange = getStagePropToonMaterial(0xe8862c, 0.1)
+  const green = getStagePropToonMaterial(0x8fd13f, 0.1)
+  const wood = getStagePropToonMaterial(0xc9a06a, 0.06)
+
+  const legPositions = [
+    [-1.03, 0.36, -0.37],
+    [1.03, 0.36, -0.37],
+    [-1.03, 0.36, 0.37],
+    [1.03, 0.36, 0.37],
+  ]
 
   return (
     <group {...props} name="kitchen-sink-counter">
       <StudioTunedGroup itemId="stage-object-kitchen-sink-counter">
-        <PropBox position={[0, 0.88, 0]} size={[2.3, 0.1, 0.95]} material={top} />
-        <PropBox position={[0, 0.8, 0]} size={[2.34, 0.06, 0.99]} material={panel} />
-        <PropBox position={[0, 1.1, -0.44]} size={[2.3, 0.36, 0.08]} material={panel} />
-        <PropBox position={[0, 1.28, -0.44]} size={[2.34, 0.05, 0.14]} material={top} />
-        {[-0.62, 0.02].map((x) => (
-          <group key={x}>
-            <PropBox position={[x, 0.925, 0.02]} size={[0.56, 0.03, 0.62]} material={dark} />
-            <PropBox position={[x, 0.72, 0.02]} size={[0.5, 0.28, 0.56]} material={frame} />
+        {/* 상판: 콜라이더 외곽(2.26x0.94)과 일치하는 최대 부재 */}
+        <PropBox position={[0, 0.84, 0]} scale={[2.26, 0.08, 0.94]} material={stainless.top} outline={outlineMat} />
+
+        {/* 2조 싱크볼(림+어두운 내부면으로 recessed 표현) */}
+        {[-0.5, 0.5].map((x) => (
+          <group key={x} position={[x, 0.845, 0]}>
+            <PropBox scale={[0.62, 0.02, 0.62]} material={stainless.top} />
+            <PropBox position={[0, -0.015, 0]} scale={[0.52, 0.05, 0.52]} material={stainless.dark} />
           </group>
         ))}
-        {[-0.24, 0.72, 0.98].map((x) => (
-          <PropBox key={x} position={[x, 0.945, 0.02]} size={[0.03, 0.02, 0.6]} material={frame} />
-        ))}
-        <PropBox position={[0.86, 0.95, 0.05]} size={[0.5, 0.03, 0.56]} material={panel} />
-        <PropCylinder position={[-0.3, 0.9, -0.3]} args={[0.07, 0.08, 0.06, 6]} material={frame} />
-        <PropCylinder position={[-0.3, 1.16, -0.3]} args={[0.035, 0.035, 0.48, 6]} material={frame} />
-        <PropCylinder position={[-0.3, 1.39, -0.16]} rotation={[Math.PI / 2, 0, 0]} args={[0.035, 0.035, 0.3, 6]} material={frame} />
-        <PropCylinder position={[-0.3, 1.31, -0.02]} args={[0.03, 0.03, 0.16, 6]} material={frame} />
-        {[-0.46, -0.14].map((x) => (
-          <PropBox key={x} position={[x, 0.98, -0.3]} rotation={[0, 0, 0.3]} size={[0.16, 0.035, 0.035]} material={top} />
-        ))}
-        <PropCylinder position={[-1.0, 1.0, -0.34]} args={[0.05, 0.055, 0.24, 6]} material={bottle} />
-        <PropCylinder position={[-1.0, 1.15, -0.34]} args={[0.025, 0.025, 0.07, 6]} material={dark} />
-        <PropCylinder position={[-0.86, 0.99, -0.36]} args={[0.045, 0.05, 0.2, 6]} material={rust} />
-        <PropBox position={[0.92, 1.0, -0.3]} size={[0.24, 0.14, 0.18]} material={top} />
-        {[-1.05, 1.05].flatMap((x) => [-0.4, 0.4].map((z) => (
-          <group key={`${x}:${z}`}>
-            <PropBox position={[x, 0.42, z]} size={[0.09, 0.78, 0.09]} material={frame} />
-            <PropBox position={[x, 0.025, z]} size={[0.14, 0.05, 0.14]} material={dark} />
+
+        {legPositions.map((pos, i) => (
+          <group key={i}>
+            <PropBox position={pos} scale={[0.08, 0.72, 0.08]} material={stainless.frame} />
+            <PropBox position={[pos[0], 0.025, pos[2]]} scale={[0.11, 0.05, 0.11]} material={stainless.dark} />
           </group>
-        )))}
-        <PropBox position={[0, 0.24, 0]} size={[2.16, 0.05, 0.84]} material={panel} />
-        <Pot position={[-0.78, 0.27, 0.02]} radius={0.18} height={0.28} body={frame} rim={panel} handle="ears" />
-        <Pot position={[-0.32, 0.27, 0.0]} radius={0.17} height={0.26} body={dark} rim={panel} handle="ears" />
-        <Pot position={[0.1, 0.27, 0.02]} radius={0.16} height={0.3} body={frame} rim={panel} />
-        <PropCylinder position={[0.42, 0.4, -0.02]} args={[0.055, 0.06, 0.26, 6]} material={bottle} />
-        <PropBox position={[0.86, 0.42, 0.02]} rotation={[0, 0.16, 0]} size={[0.56, 0.32, 0.42]} material={cardboard} />
-        <PropBox position={[0.86, 0.42, 0.24]} rotation={[0, 0.16, 0]} size={[0.5, 0.05, 0.02]} material={rust} />
-        <PropBox position={[0.4, 0.935, -0.2]} size={[0.3, 0.014, 0.22]} material={slime} />
-        <PropBox position={[-1.02, 0.6, 0.4]} size={[0.1, 0.26, 0.014]} material={rust} />
-        <PropBox position={[0.5, 1.1, -0.39]} size={[0.34, 0.24, 0.014]} material={slime} />
+        ))}
+        <PropBox position={[0, 0.70, 0]} scale={[1.98, 0.05, 0.78]} material={stainless.panel} outline={outlineMat} />
+
+        {/* 백스플래시(허용된 높이 초과 — 후드/수전과 같은 예외) */}
+        <PropBox position={[0, 1.04, -0.44]} scale={[2.26, 0.32, 0.05]} material={stainless.panel} outline={outlineMat} />
+
+        {/* 구스넥 수전 */}
+        <group position={[0, 0, -0.30]}>
+          <PropCylinder position={[0, 1.03, 0]} args={[0.03, 0.03, 0.30, 6]} material={stainless.frame} />
+          <PropCylinder position={[0, 1.16, 0.12]} rotation={[Math.PI / 2, 0, 0]} args={[0.025, 0.025, 0.24, 6]} material={stainless.frame} />
+          <PropCylinder position={[0, 1.10, 0.24]} args={[0.02, 0.02, 0.08, 6]} material={stainless.dark} />
+        </group>
+
+        {/* 상판 소품: 세제병 2개 + 디스펜서 */}
+        <Vessel position={[-0.9, 0.90, 0.28]} args={[0.045, 0.045, 0.16, 6]} material={orange} capMaterial={stainless.dark} />
+        <Vessel position={[-0.78, 0.90, 0.28]} args={[0.045, 0.045, 0.16, 6]} material={green} capMaterial={stainless.dark} />
+        <PropBox position={[0.95, 0.895, 0.30]} scale={[0.14, 0.10, 0.10]} material={stainless.panel} />
+
+        {/* 언더셸프 소품: 냄비 + 유리병 + 목재 박스 */}
+        <group position={[-0.55, 0.735, 0]}>
+          <PropCylinder args={[0.16, 0.15, 0.18, 6]} material={stainless.frame} />
+        </group>
+        <Vessel position={[0, 0.73, 0]} args={[0.09, 0.09, 0.16, 6]} material={green} capMaterial={stainless.dark} />
+        <PropBox position={[0.6, 0.745, 0]} scale={[0.32, 0.18, 0.26]} material={wood} />
       </StudioTunedGroup>
     </group>
   )
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// KitchenRefrigerator — 원화 "REFRIGERATOR" 행. 양문형, 문 경계선 + 긴 수직
+// 손잡이 2개 + 상단 벤트 그릴 + 자석/메모. open=true면 오른쪽 문이 힌지를 축으로
+// 바깥으로 돌아가며 내부 선반이 드러난다(문 스윙은 콜라이더에서 의도적으로 제외).
+// 콜라이더: position [0,0.96,0] size 1.20 x 1.92 x 0.92. SIDE 뷰는 얇다(z=0.92).
+// ─────────────────────────────────────────────────────────────────────────
 export function KitchenRefrigerator({ open = false, ...props }) {
-  const top = useMemo(() => toonMat(0xc2cad1, 0.06), [])
-  const panel = useMemo(() => toonMat(0x99a3ab, 0.04), [])
-  const frame = useMemo(() => toonMat(0x5e676e, 0.03), [])
-  const dark = useMemo(() => toonMat(0x23292e, 0.01), [])
-  const inner = useMemo(() => toonMat(0x141a1e, 0), [])
-  const slime = useMemo(() => toonMat(0x6f8442, 0.05), [])
-  const rust = useMemo(() => toonMat(0x8a5533, 0.04), [])
-  const paper = useMemo(() => toonMat(0xe3d9bc, 0.03), [])
-
-  // 경첩이 오른쪽 모서리(x=+0.59)라 양수 회전이어야 문이 앞(+z)으로 열린다. 음수면 뒤로 접힌다.
-  const doorSwing = open ? 1.78 : 0
+  const stainless = stainlessPalette()
+  const outlineMat = stageOutline()
+  const green = getStagePropToonMaterial(0x8fd13f, 0.15)
+  const red = getStagePropToonMaterial(0xc0392b, 0.15)
+  const white = getStagePropToonMaterial(0xf4f1e8, 0.06)
 
   return (
     <group {...props} name="kitchen-refrigerator">
       <StudioTunedGroup itemId="stage-object-kitchen-refrigerator">
-        {/* 박스 프리미티브로는 본체를 파낼 수 없다. 문을 열면 오른쪽 칸을 뒷벽만 남기고 실제로 비운다. */}
-        {open ? (
+        {/* 본체: 콜라이더 외곽(1.20x1.92x0.92)과 정확히 일치 */}
+        <PropBox position={[0, 0.96, 0]} scale={[1.20, 1.92, 0.92]} material={stainless.panel} outline={outlineMat} />
+        <PropBox position={[0, 1.83, 0.42]} scale={[1.0, 0.12, 0.05]} material={stainless.dark} outline={outlineMat} />
+
+        {!open && (
           <>
-            <PropBox position={[-0.3, 0.94, 0]} size={[0.62, 1.64, 0.82]} material={panel} />
-            <PropBox position={[0.3, 0.94, -0.29]} size={[0.62, 1.64, 0.24]} material={panel} />
+            <PropBox position={[0, 0.96, 0.45]} scale={[0.02, 1.86, 0.02]} material={stainless.dark} />
+            <PropBox position={[-0.10, 0.96, 0.435]} scale={[0.05, 0.85, 0.05]} material={stainless.dark} />
+            <PropBox position={[0.10, 0.96, 0.435]} scale={[0.05, 0.85, 0.05]} material={stainless.dark} />
+            <MagnetTag position={[-0.32, 1.35, 0.455]} scale={[0.09, 0.09, 0.01]} material={green} />
+            <MagnetTag position={[0.30, 1.35, 0.455]} scale={[0.08, 0.08, 0.01]} material={red} />
+            <MagnetTag position={[0.30, 1.15, 0.455]} rotation={[0, 0, 0.05]} scale={[0.12, 0.15, 0.008]} material={white} />
           </>
-        ) : (
-          <PropBox position={[0, 0.94, 0]} size={[1.22, 1.64, 0.82]} material={panel} />
         )}
-        <PropBox position={[0, 1.86, 0]} size={[1.0, 0.2, 0.7]} material={top} />
-        <PropBox position={[0, 1.95, 0]} size={[1.04, 0.04, 0.74]} material={frame} />
-        <PropBox position={[-0.28, 1.86, 0.36]} size={[0.34, 0.14, 0.03]} material={dark} />
-        {[-0.04, 0, 0.04].map((y) => (
-          <PropBox key={y} position={[-0.28, 1.86 + y, 0.375]} size={[0.32, 0.014, 0.02]} material={frame} />
-        ))}
-        <PropBox position={[0.22, 1.88, 0.36]} size={[0.3, 0.08, 0.03]} material={top} />
-        <PropBox position={[0, 1.74, 0]} size={[1.26, 0.06, 0.86]} material={frame} />
-        <PropBox position={[0, 0.16, 0]} size={[1.26, 0.1, 0.86]} material={frame} />
-        {[-0.52, 0.52].flatMap((x) => [-0.32, 0.32].map((z) => (
-          <PropBox key={`${x}:${z}`} position={[x, 0.06, z]} size={[0.14, 0.12, 0.14]} material={dark} />
-        )))}
+
         {open && (
           <>
-            <PropBox position={[0.3, 0.94, -0.15]} size={[0.6, 1.5, 0.04]} material={inner} />
-            {[0.02, 0.58].map((x) => (
-              <PropBox key={x} position={[x, 0.94, 0.06]} size={[0.05, 1.5, 0.58]} material={inner} />
-            ))}
-            <PropBox position={[0.3, 0.2, 0.06]} size={[0.62, 0.07, 0.58]} material={inner} />
-            <PropBox position={[0.3, 1.7, 0.06]} size={[0.62, 0.07, 0.58]} material={inner} />
-            {[0.5, 0.92, 1.34].map((y) => (
-              <PropBox key={y} position={[0.3, y, 0.08]} size={[0.52, 0.04, 0.52]} material={frame} />
-            ))}
-            <GnPan position={[0.3, 0.94, 0.08]} width={0.44} depth={0.34} steel={frame} rim={panel} food={slime} />
-            <Pot position={[0.3, 1.36, 0.08]} radius={0.12} height={0.16} body={frame} rim={panel} />
+            <PropBox position={[0, 0.96, -0.42]} scale={[1.14, 1.86, 0.04]} material={stainless.dark} />
+            <PropBox position={[0, 0.60, 0]} scale={[1.0, 0.03, 0.7]} material={stainless.panel} />
+            <PropBox position={[0, 1.20, 0]} scale={[1.0, 0.03, 0.7]} material={stainless.panel} />
+            <PropBox position={[0, 0.90, 0]} scale={[0.5, 0.18, 0.5]} material={red} />
+
+            <PropBox position={[-0.30, 0.96, 0.435]} scale={[0.58, 1.86, 0.05]} material={stainless.panel} />
+            <PropBox position={[-0.16, 0.96, 0.435]} scale={[0.05, 0.85, 0.05]} material={stainless.dark} />
+
+            <group position={[0.60, 0.96, 0.46]} rotation={[0, -1.65, 0]}>
+              <PropBox position={[0.29, 0, 0]} scale={[0.58, 1.86, 0.05]} material={stainless.panel} />
+              <PropBox position={[0.14, 0, 0.02]} scale={[0.05, 0.85, 0.05]} material={stainless.dark} />
+            </group>
           </>
         )}
-        <PropBox position={[-0.3, 0.96, 0.44]} size={[0.58, 1.5, 0.06]} material={top} />
-        <PropBox position={[-0.3, 0.96, 0.46]} size={[0.48, 1.36, 0.02]} material={panel} />
-        <PropBox position={[-0.1, 0.98, 0.5]} size={[0.05, 0.66, 0.07]} material={dark} />
-        <PropBox position={[-0.42, 1.38, 0.475]} rotation={[0, 0, 0.06]} size={[0.22, 0.3, 0.02]} material={paper} />
-        <PropBox position={[-0.46, 0.5, 0.475]} size={[0.2, 0.26, 0.014]} material={slime} />
-        <group position={[0.59, 0.96, 0.44]} rotation={[0, doorSwing, 0]}>
-          <PropBox position={[-0.29, 0, 0]} size={[0.58, 1.5, 0.06]} material={top} />
-          <PropBox position={[-0.29, 0, 0.02]} size={[0.48, 1.36, 0.02]} material={panel} />
-          <PropBox position={[-0.51, 0.02, 0.06]} size={[0.05, 0.66, 0.07]} material={dark} />
-          <PropBox position={[-0.24, -0.4, 0.035]} size={[0.24, 0.3, 0.014]} material={rust} />
-        </group>
-        <PropBox position={[0.3, 1.62, 0.44]} size={[0.3, 0.24, 0.014]} material={slime} />
-        <PropBox position={[-0.62, 1.2, 0.0]} size={[0.014, 0.4, 0.3]} material={rust} />
       </StudioTunedGroup>
     </group>
   )
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// KitchenTrayRack — 원화 "ROLLING TRAY RACK" 행. 개방 프레임(코너 기둥 4 + 상/
+// 하 레일) + 5단 슬라이딩 GN팬 + 캐스터 4. 상/하 레일이 콜라이더 x/z와 정확히
+// 일치하는 최대 부재다.
+// 콜라이더: position [0,0.84,0] size 0.72 x 1.68 x 0.78.
+// ─────────────────────────────────────────────────────────────────────────
 export function KitchenTrayRack({ ...props }) {
-  const top = useMemo(() => toonMat(0xc2cad1, 0.06), [])
-  const panel = useMemo(() => toonMat(0x99a3ab, 0.04), [])
-  const frame = useMemo(() => toonMat(0x5e676e, 0.03), [])
-  const dark = useMemo(() => toonMat(0x2b3237, 0.02), [])
-  const tire = useMemo(() => toonMat(0x1c2023, 0), [])
-  const stew = useMemo(() => toonMat(0xc98a3a, 0.08), [])
-  const slime = useMemo(() => toonMat(0x6f8442, 0.05), [])
-  const rust = useMemo(() => toonMat(0x8a5533, 0.04), [])
+  const stainless = stainlessPalette()
+  const outlineMat = stageOutline()
+  const red = getStagePropToonMaterial(0xc0392b, 0.1)
+  const green = getStagePropToonMaterial(0x4f9d4a, 0.1)
+  const orange = getStagePropToonMaterial(0xe8862c, 0.1)
+  const yellow = getStagePropToonMaterial(0xe0b93a, 0.1)
 
-  const shelfFoods = [stew, slime, stew, null, slime, null]
+  const postXs = [-0.325, 0.325]
+  const postZs = [-0.335, 0.335]
+  const trayYs = [0.25, 0.55, 0.85, 1.15, 1.45]
+  const trayFills = [red, green, orange, yellow, null]
 
   return (
     <group {...props} name="kitchen-tray-rack">
       <StudioTunedGroup itemId="stage-object-kitchen-tray-rack">
-        {[-0.32, 0.32].flatMap((x) => [-0.28, 0.28].map((z) => (
-          <group key={`${x}:${z}`}>
-            <PropBox position={[x, 0.8, z]} size={[0.07, 1.46, 0.07]} material={frame} />
-            <Caster position={[x, 0.06, z]} material={tire} />
-          </group>
+        <PropBox position={[0, 1.65, 0]} scale={[0.72, 0.06, 0.78]} material={stainless.frame} outline={outlineMat} />
+        <PropBox position={[0, 0.09, 0]} scale={[0.72, 0.06, 0.78]} material={stainless.frame} outline={outlineMat} />
+
+        {postXs.flatMap((x) => postZs.map((z) => (
+          <PropBox key={`${x}:${z}`} position={[x, 0.87, z]} scale={[0.045, 1.5, 0.045]} material={stainless.frame} />
         )))}
-        {[-0.28, 0.28].map((z) => (
-          <PropBox key={`top-x-${z}`} position={[0, 1.55, z]} size={[0.72, 0.06, 0.06]} material={panel} />
+
+        {[[-0.30, -0.30], [0.30, -0.30], [-0.30, 0.30], [0.30, 0.30]].map(([x, z]) => (
+          <Caster key={`${x}:${z}`} position={[x, 0.045, z]} material={stainless.dark} />
         ))}
-        {[-0.32, 0.32].map((x) => (
-          <PropBox key={`top-z-${x}`} position={[x, 1.55, 0]} size={[0.06, 0.06, 0.62]} material={panel} />
+
+        {trayYs.map((y, i) => (
+          <GnPan key={y} position={[0, y, 0]} size={[0.62, 0.035, 0.66]} trayMaterial={stainless.panel} fillMaterial={trayFills[i]} />
         ))}
-        {[-0.32, 0.32].map((x) => (
-          <PropBox key={`base-${x}`} position={[x, 0.14, 0]} size={[0.07, 0.06, 0.6]} material={frame} />
-        ))}
-        {shelfFoods.map((food, index) => {
-          const y = 0.36 + index * 0.21
-          const pulled = index === 2
-          return (
-            <group key={index}>
-              {[-0.31, 0.31].map((x) => (
-                <PropBox key={x} position={[x, y, 0]} size={[0.06, 0.03, 0.58]} material={panel} />
-              ))}
-              <PropBox position={[0, y - 0.02, -0.28]} size={[0.58, 0.03, 0.05]} material={frame} />
-              {food && (
-                <GnPan
-                  position={[0, y, pulled ? 0.14 : 0]}
-                  rotation={[0, pulled ? 0.06 : 0, 0]}
-                  width={0.56}
-                  depth={0.48}
-                  steel={dark}
-                  rim={top}
-                  food={food}
-                />
-              )}
-            </group>
-          )
-        })}
-        {[-0.32, 0.32].map((x) => (
-          <PropBox key={`handle-${x}`} position={[x, 1.63, -0.28]} size={[0.05, 0.16, 0.05]} material={frame} />
-        ))}
-        <PropBox position={[0, 1.7, -0.28]} size={[0.72, 0.05, 0.05]} material={panel} />
-        <PropBox position={[0.34, 0.9, 0.29]} size={[0.014, 0.3, 0.16]} material={rust} />
-        <PropBox position={[-0.34, 0.5, -0.29]} size={[0.014, 0.22, 0.2]} material={slime} />
       </StudioTunedGroup>
     </group>
   )
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// KitchenShelfCart — 원화 "SHELF CART" 행. 3단 선반(색 다른 뚜껑 유리병 + 골판지
+// 박스) + 캐스터 4 + 밀대 손잡이 바. 세 선반 모두 콜라이더 x/z와 정확히 일치.
+// 콜라이더: position [0,0.60,0] size 1.04 x 1.20 x 0.52.
+// ─────────────────────────────────────────────────────────────────────────
 export function KitchenShelfCart({ ...props }) {
-  const top = useMemo(() => toonMat(0xc2cad1, 0.06), [])
-  const panel = useMemo(() => toonMat(0x99a3ab, 0.04), [])
-  const frame = useMemo(() => toonMat(0x5e676e, 0.03), [])
-  const dark = useMemo(() => toonMat(0x2b3237, 0.02), [])
-  const tire = useMemo(() => toonMat(0x1c2023, 0), [])
-  const canGreen = useMemo(() => toonMat(0x5c7a3c, 0.05), [])
-  const canRust = useMemo(() => toonMat(0x8a5533, 0.05), [])
-  const label = useMemo(() => toonMat(0xd8cba6, 0.03), [])
+  const stainless = stainlessPalette()
+  const outlineMat = stageOutline()
+  const red = getStagePropToonMaterial(0xc0392b, 0.1)
+  const blue = getStagePropToonMaterial(0x3f7fc1, 0.1)
+  const green = getStagePropToonMaterial(0x4f9d4a, 0.1)
+  const cardboard = getStagePropToonMaterial(0xb98a55, 0.05)
+  const wood = getStagePropToonMaterial(0xc9a06a, 0.06)
 
-  const cans = [
-    { x: -0.36, z: -0.12, material: canRust, height: 0.22, radius: 0.08 },
-    { x: -0.16, z: 0.1, material: canGreen, height: 0.18, radius: 0.075 },
-    { x: 0.06, z: -0.08, material: panel, height: 0.24, radius: 0.085 },
-    { x: 0.26, z: 0.12, material: canGreen, height: 0.2, radius: 0.08 },
-    { x: 0.4, z: -0.1, material: canRust, height: 0.16, radius: 0.07 },
-  ]
+  const shelfYs = [0.10, 0.60, 1.10]
+  const postXs = [-0.48, 0.48]
+  const postZs = [-0.22, 0.22]
 
   return (
     <group {...props} name="kitchen-shelf-cart">
       <StudioTunedGroup itemId="stage-object-kitchen-shelf-cart">
-        {[0.28, 0.62, 0.96].map((y, index) => (
-          <PropBox key={y} position={[0, y, 0]} size={[0.98, 0.05, 0.56]} material={index === 2 ? top : panel} />
+        {shelfYs.map((y) => (
+          <PropBox key={y} position={[0, y, 0]} scale={[1.04, 0.05, 0.52]} material={stainless.frame} outline={outlineMat} />
         ))}
-        {[-0.45, 0.45].flatMap((x) => [-0.24, 0.24].map((z) => (
-          <group key={`${x}:${z}`}>
-            <PropBox position={[x, 0.56, z]} size={[0.06, 0.92, 0.06]} material={frame} />
-            <Caster position={[x, 0.06, z]} material={tire} />
-          </group>
+
+        {postXs.flatMap((x) => postZs.map((z) => (
+          <PropBox key={`${x}:${z}`} position={[x, 0.60, z]} scale={[0.045, 1.0, 0.045]} material={stainless.frame} />
         )))}
-        <PropBox position={[0, 1.02, -0.24]} size={[1.0, 0.05, 0.05]} material={panel} />
-        {[-0.45, 0.45].map((x) => (
-          <PropBox key={x} position={[x, 1.0, -0.24]} size={[0.06, 0.1, 0.06]} material={frame} />
+
+        {[[-0.46, -0.20], [0.46, -0.20], [-0.46, 0.20], [0.46, 0.20]].map(([x, z]) => (
+          <Caster key={`${x}:${z}`} position={[x, 0.05, z]} material={stainless.dark} />
         ))}
-        {cans.map((can) => (
-          <group key={`${can.x}:${can.z}`}>
-            <PropCylinder position={[can.x, 0.985 + can.height / 2, can.z]} args={[can.radius, can.radius, can.height, 6]} material={can.material} />
-            <PropCylinder position={[can.x, 0.985 + can.height / 2, can.z]} args={[can.radius + 0.004, can.radius + 0.004, can.height * 0.4, 6]} material={label} />
-            <PropCylinder position={[can.x, 0.985 + can.height, can.z]} args={[can.radius + 0.008, can.radius + 0.008, 0.025, 6]} material={panel} />
-          </group>
-        ))}
-        <Pot position={[-0.3, 0.645, 0.02]} radius={0.13} height={0.19} body={frame} rim={panel} />
-        <Pot position={[0.02, 0.645, -0.04]} radius={0.11} height={0.15} body={dark} rim={panel} />
-        <Pot position={[0.32, 0.645, 0.06]} radius={0.14} height={0.2} body={frame} rim={panel} handle="ears" />
-        {[-0.3, 0.0, 0.32].map((x, index) => (
-          <PropBox key={x} position={[x, 0.42, index === 1 ? 0.06 : -0.04]} rotation={[0, index * 0.14, 0]} size={[0.26, 0.22, 0.24]} material={index === 1 ? canGreen : canRust} />
-        ))}
+
+        <PropBox position={[0, 1.16, -0.24]} scale={[1.0, 0.04, 0.04]} material={stainless.dark} />
+        <PropBox position={[-0.46, 1.13, -0.24]} scale={[0.03, 0.08, 0.03]} material={stainless.dark} />
+        <PropBox position={[0.46, 1.13, -0.24]} scale={[0.03, 0.08, 0.03]} material={stainless.dark} />
+
+        {/* 상단 선반: 색 다른 뚜껑 유리병 3개 */}
+        <Vessel position={[-0.3, 1.16, 0]} args={[0.08, 0.08, 0.14, 6]} material={stainless.top} capMaterial={red} />
+        <Vessel position={[0, 1.16, 0]} args={[0.08, 0.08, 0.14, 6]} material={stainless.top} capMaterial={blue} />
+        <Vessel position={[0.3, 1.16, 0]} args={[0.08, 0.08, 0.14, 6]} material={stainless.top} capMaterial={green} />
+
+        {/* 중단/하단 선반: 골판지 박스 + 목재 크레이트 */}
+        <PropBox position={[-0.2, 0.685, 0]} scale={[0.36, 0.18, 0.34]} material={cardboard} />
+        <PropBox position={[0.28, 0.685, 0]} scale={[0.30, 0.18, 0.30]} material={cardboard} />
+        <PropBox position={[-0.15, 0.185, 0]} scale={[0.40, 0.18, 0.36]} material={wood} />
+        <PropBox position={[0.32, 0.185, 0]} scale={[0.30, 0.18, 0.30]} material={cardboard} />
       </StudioTunedGroup>
     </group>
   )
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// KitchenTrashBins — 원화 "TRASH BINS" 행. wheelie: 뚜껑이 본체보다 넓고 바퀴 2 +
+// 정면 흰 아이콘. round: 육각 단면 돔형 뚜껑 + 상단 손잡이. 두 변형 모두 콜라이더
+// 폭(0.68)과 정확히 일치하는 부재(휠리는 뚜껑, 라운드는 몸통 하단 반지름)를 둔다.
+// 콜라이더: position [0,0.51,0] size 0.68 x 1.02 x 0.68.
+// ─────────────────────────────────────────────────────────────────────────
 export function KitchenTrashBins({ variant = 'wheelie', ...props }) {
-  const bin = useMemo(() => toonMat(0x5f7a44, 0.05), [])
-  const binDark = useMemo(() => toonMat(0x445a31, 0.03), [])
-  const steel = useMemo(() => toonMat(0x9aa3ab, 0.04), [])
-  const steelDark = useMemo(() => toonMat(0x5e676e, 0.03), [])
-  const tire = useMemo(() => toonMat(0x1c2023, 0), [])
-  const rust = useMemo(() => toonMat(0x8a5533, 0.04), [])
-  const slime = useMemo(() => toonMat(0x6f8442, 0.05), [])
-
-  const mode = pickVariant(KITCHEN_TRASH_BIN_VARIANTS, variant, 'wheelie')
-
-  if (mode === 'round') {
-    return (
-      <group {...props} name="kitchen-trash-bins">
-        <StudioTunedGroup itemId="stage-object-kitchen-trash-bins">
-          <PropCylinder position={[0, 0.36, 0]} args={[0.3, 0.26, 0.68, 8]} material={steel} />
-          {[0.16, 0.36, 0.56].map((y) => {
-            // 몸통이 아래로 좁아지므로 각 높이의 실제 반지름에 맞춰 골판 링을 얹는다.
-            const bodyRadius = 0.26 + 0.04 * ((y - 0.02) / 0.68)
-            return (
-              <PropCylinder key={y} position={[0, y, 0]} args={[bodyRadius + 0.014, bodyRadius + 0.008, 0.035, 8]} material={steelDark} />
-            )
-          })}
-          <PropCylinder position={[0, 0.72, 0]} args={[0.33, 0.31, 0.06, 8]} material={steelDark} />
-          <PropCylinder position={[0, 0.78, 0]} args={[0.2, 0.3, 0.08, 8]} material={bin} />
-          <PropCylinder position={[0, 0.85, 0]} args={[0.055, 0.055, 0.07, 6]} material={steelDark} />
-          {[-1, 1].map((side) => (
-            <PropBox key={side} position={[side * 0.31, 0.5, 0]} size={[0.06, 0.14, 0.05]} material={steelDark} />
-          ))}
-          <PropBox position={[0.18, 0.32, 0.24]} size={[0.16, 0.24, 0.014]} material={slime} />
-          <PropBox position={[-0.2, 0.5, 0.2]} size={[0.14, 0.18, 0.014]} material={rust} />
-        </StudioTunedGroup>
-      </group>
-    )
-  }
+  const v = pickVariant(variant, KITCHEN_TRASH_BIN_VARIANTS, 'wheelie')
+  const stainless = stainlessPalette()
+  const outlineMat = stageOutline()
+  const green = getStagePropToonMaterial(0x5cad3f, 0.12)
+  const white = getStagePropToonMaterial(0xf4f1e8, 0.08)
 
   return (
     <group {...props} name="kitchen-trash-bins">
       <StudioTunedGroup itemId="stage-object-kitchen-trash-bins">
-        <PropBox position={[0, 0.54, 0]} size={[0.66, 0.82, 0.6]} material={bin} />
-        <PropBox position={[0, 0.28, 0.31]} rotation={[0.06, 0, 0]} size={[0.6, 0.3, 0.03]} material={binDark} />
-        <PropBox position={[0, 0.7, 0.31]} size={[0.6, 0.34, 0.03]} material={binDark} />
-        <PropBox position={[0, 0.99, 0]} size={[0.7, 0.1, 0.66]} material={binDark} />
-        <PropBox position={[0, 0.94, 0.33]} size={[0.7, 0.08, 0.06]} material={bin} />
-        <PropBox position={[0, 1.04, 0.2]} size={[0.34, 0.05, 0.06]} material={bin} />
-        <PropBox position={[0, 0.2, 0.32]} size={[0.5, 0.07, 0.05]} material={binDark} />
-        <PropBox position={[0, 0.9, -0.32]} size={[0.5, 0.16, 0.05]} material={binDark} />
-        {[-0.28, 0.28].map((x) => (
-          <PropCylinder key={x} position={[x, 0.11, -0.2]} rotation={[0, 0, Math.PI / 2]} args={[0.11, 0.11, 0.07, 6]} material={tire} />
-        ))}
-        {[-0.3, 0.3].map((x) => (
-          <PropBox key={`foot-${x}`} position={[x, 0.06, 0.24]} size={[0.1, 0.12, 0.1]} material={binDark} />
-        ))}
-        <PropBox position={[0.16, 0.5, 0.31]} size={[0.2, 0.3, 0.014]} material={rust} />
-        <PropBox position={[-0.2, 0.72, 0.31]} size={[0.16, 0.2, 0.014]} material={slime} />
-        <PropBox position={[0.34, 0.6, 0.0]} size={[0.014, 0.34, 0.24]} material={slime} />
+        {v === 'wheelie' && (
+          <>
+            <PropBox position={[0, 0.41, 0]} scale={[0.60, 0.82, 0.60]} material={green} outline={outlineMat} />
+            {/* 뚜껑: 콜라이더 외곽(0.68x0.68)과 정확히 일치하는 최대 부재 */}
+            <PropBox position={[0, 0.92, 0]} scale={[0.68, 0.20, 0.68]} material={green} outline={outlineMat} />
+            <PropBox position={[0, 1.03, -0.1]} scale={[0.10, 0.05, 0.14]} material={stainless.dark} />
+            <Caster position={[-0.18, 0.06, -0.26]} material={stainless.dark} />
+            <Caster position={[0.18, 0.06, -0.26]} material={stainless.dark} />
+            <MagnetTag position={[0, 0.55, 0.301]} scale={[0.16, 0.20, 0.008]} material={white} />
+          </>
+        )}
+
+        {v === 'round' && (
+          <>
+            <OutlinedCylinder position={[0, 0.39, 0]} args={[0.34, 0.32, 0.78, 6]} material={stainless.dark} outline={outlineMat} />
+            <OutlinedCylinder position={[0, 0.88, 0]} args={[0.32, 0.06, 0.20, 6]} material={stainless.dark} outline={outlineMat} />
+            <PropCylinder position={[0, 1.0, 0]} args={[0.03, 0.03, 0.05, 6]} material={stainless.frame} />
+          </>
+        )}
       </StudioTunedGroup>
     </group>
   )
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// KitchenCrateStack — 원화 "CRATES & BOXES" 행. 층마다 종류를 구분한다(라임 플라스틱
+// 크레이트 / 목재 슬랫 크레이트 / 골판지 박스, 3종을 순환). count(1~6)로 층수를
+// 조절하고, 모든 층이 콜라이더 x/z(0.72x0.60)와 정확히 일치하는 동일 폭을 쓴다.
+// 콜라이더: position [0,0.49,0] size 0.72 x 0.98 x 0.60 (count=3 기준 높이).
+// ─────────────────────────────────────────────────────────────────────────
 export function KitchenCrateStack({ count = 3, ...props }) {
-  const crateGreen = useMemo(() => toonMat(0x4f7a45, 0.05), [])
-  const crateGreenDark = useMemo(() => toonMat(0x35552f, 0.03), [])
-  const wood = useMemo(() => toonMat(0xa97742, 0.04), [])
-  const woodDark = useMemo(() => toonMat(0x7c5730, 0.03), [])
-  const cardboard = useMemo(() => toonMat(0xc2a273, 0.04), [])
-  const cardboardDark = useMemo(() => toonMat(0x9b7c50, 0.03), [])
-  const tape = useMemo(() => toonMat(0xd9cba7, 0.03), [])
-  const stamp = useMemo(() => toonMat(0xb0443a, 0.08), [])
-  const slime = useMemo(() => toonMat(0x6f8442, 0.05), [])
+  const layers = Math.min(6, Math.max(1, Math.round(count)))
+  const stainless = stainlessPalette()
+  const outlineMat = stageOutline()
+  const lime = getStagePropToonMaterial(0x8fd13f, 0.1)
+  const wood = getStagePropToonMaterial(0xc9a06a, 0.06)
+  const cardboard = getStagePropToonMaterial(0xb98a55, 0.05)
+  const label = getStagePropToonMaterial(0xf4f1e8, 0.06)
 
-  const layers = Math.min(6, Math.max(1, Math.round(Number(count) || 1)))
-  const kinds = ['plastic', 'wood', 'cardboard', 'cardboardStamped', 'plastic', 'wood']
+  const layerHeight = 0.98 / 3
+  const bodyHeight = layerHeight * 0.92
 
   return (
     <group {...props} name="kitchen-crate-stack">
       <StudioTunedGroup itemId="stage-object-kitchen-crate-stack">
-        {Array.from({ length: layers }, (_, index) => {
-          const y = 0.17 + index * 0.34
-          const spin = (index % 2 === 0 ? 1 : -1) * (0.05 + index * 0.03)
-          const kind = kinds[index % kinds.length]
+        {Array.from({ length: layers }, (_, i) => i).map((i) => {
+          const y = layerHeight * (i + 0.5)
+          const kind = i % 3
+          const outline = (i === 0 || i === layers - 1) ? outlineMat : undefined
 
-          if (kind === 'plastic') {
+          if (kind === 0) {
             return (
-              <group key={index} position={[index * 0.02, y, index * -0.015]} rotation={[0, spin, 0]}>
-                <PropBox size={[0.62, 0.3, 0.44]} material={crateGreen} />
-                <PropBox position={[0, 0.15, 0]} size={[0.66, 0.045, 0.48]} material={crateGreenDark} />
-                {[-0.08, 0.04].map((sy) => (
-                  <PropBox key={sy} position={[0, sy, 0.225]} size={[0.5, 0.045, 0.02]} material={crateGreenDark} />
-                ))}
-                {[-0.18, 0.18].map((sx) => (
-                  <PropBox key={sx} position={[sx, -0.02, 0.225]} size={[0.04, 0.2, 0.02]} material={crateGreenDark} />
-                ))}
+              <group key={i} position={[0, y, 0]}>
+                <PropBox scale={[0.72, bodyHeight, 0.60]} material={lime} outline={outline} />
+                <PropBox position={[0, 0, 0.295]} scale={[0.60, bodyHeight * 0.7, 0.008]} material={stainless.dark} />
+                <PropBox position={[0, 0, -0.295]} scale={[0.60, bodyHeight * 0.7, 0.008]} material={stainless.dark} />
               </group>
             )
           }
-
-          if (kind === 'wood') {
+          if (kind === 1) {
             return (
-              <group key={index} position={[index * -0.02, y, index * 0.015]} rotation={[0, spin, 0]}>
-                <PropBox size={[0.6, 0.32, 0.44]} material={wood} />
-                {[-0.1, 0.02, 0.13].map((sy) => (
-                  <PropBox key={sy} position={[0, sy, 0.226]} size={[0.6, 0.07, 0.014]} material={woodDark} />
-                ))}
-                {[-0.28, 0.28].map((sx) => (
-                  <PropBox key={sx} position={[sx, 0, 0.226]} size={[0.06, 0.32, 0.02]} material={woodDark} />
-                ))}
-                <PropBox position={[0, 0.16, 0]} size={[0.64, 0.035, 0.48]} material={woodDark} />
+              <group key={i} position={[0, y, 0]}>
+                <PropBox scale={[0.72, bodyHeight, 0.60]} material={wood} outline={outline} />
+                <PropBox position={[0, bodyHeight * 0.22, 0.295]} scale={[0.66, 0.015, 0.008]} material={stainless.dark} />
+                <PropBox position={[0, -bodyHeight * 0.22, 0.295]} scale={[0.66, 0.015, 0.008]} material={stainless.dark} />
               </group>
             )
           }
-
           return (
-            <group key={index} position={[index * 0.015, y, index * 0.02]} rotation={[0, spin, 0]}>
-              <PropBox size={[0.62, 0.34, 0.46]} material={cardboard} />
-              <PropBox position={[0, 0.17, 0]} size={[0.62, 0.02, 0.1]} material={tape} />
-              <PropBox position={[0, 0.0, 0.235]} size={[0.62, 0.02, 0.01]} material={cardboardDark} />
-              {kind === 'cardboardStamped' && (
-                <PropBox position={[0.02, 0.05, 0.236]} size={[0.3, 0.09, 0.012]} material={stamp} />
-              )}
+            <group key={i} position={[0, y, 0]}>
+              <PropBox scale={[0.72, bodyHeight, 0.60]} material={cardboard} outline={outline} />
+              <PropBox position={[0, 0, 0.295]} scale={[0.02, bodyHeight, 0.008]} material={label} />
+              <PropBox position={[0.16, 0.02, 0.296]} scale={[0.20, bodyHeight * 0.4, 0.006]} material={label} />
             </group>
           )
         })}
-        <PropBox position={[0.24, 0.02, 0.26]} size={[0.3, 0.02, 0.22]} material={slime} />
       </StudioTunedGroup>
     </group>
   )
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// KitchenClutter — 원화 "POTS & BOWLS" / "FOOD TRAYS/GN PANS" / "SMALL PROPS"
+// 행. 콜라이더 없음(바닥에 낮게 깔린 시야 통과 소품). 노브/뚜껑 급 디테일과 마찬
+// 가지로 외곽선은 두지 않는다 — 프랍 자체가 이미 작다.
+// ─────────────────────────────────────────────────────────────────────────
 export function KitchenClutter({ variant = 'pots', ...props }) {
-  const steel = useMemo(() => toonMat(0xb4bcc3, 0.05), [])
-  const steelMid = useMemo(() => toonMat(0x8d969d, 0.04), [])
-  const steelDark = useMemo(() => toonMat(0x565f66, 0.03), [])
-  const dark = useMemo(() => toonMat(0x23292e, 0.01), [])
-  const bag = useMemo(() => toonMat(0x1a1d21, 0), [])
-  const slime = useMemo(() => toonMat(0x6f8442, 0.05), [])
-  const stew = useMemo(() => toonMat(0xc98a3a, 0.08), [])
-  const ketchup = useMemo(() => toonMat(0xb03a30, 0.1), [])
-  const canGreen = useMemo(() => toonMat(0x5c7a3c, 0.05), [])
-  const paper = useMemo(() => toonMat(0xe3d9bc, 0.03), [])
-
-  const mode = pickVariant(KITCHEN_CLUTTER_VARIANTS, variant, 'pots')
+  const v = pickVariant(variant, KITCHEN_CLUTTER_VARIANTS, 'pots')
+  const stainless = stainlessPalette()
+  const green = getStagePropToonMaterial(0x4f9d4a, 0.1)
+  const yellow = getStagePropToonMaterial(0xe0b93a, 0.1)
+  const black = getStagePropToonMaterial(0x1c1e20, 0.0)
+  const red = getStagePropToonMaterial(0xc0392b, 0.12)
+  const orange = getStagePropToonMaterial(0xe8862c, 0.1)
+  const blue = getStagePropToonMaterial(0x3f7fc1, 0.1)
+  const white = getStagePropToonMaterial(0xf4f1e8, 0.06)
+  const amber = getStagePropToonMaterial(0x8a5a24, 0.08)
 
   return (
     <group {...props} name="kitchen-clutter">
       <StudioTunedGroup itemId="stage-object-kitchen-clutter">
-        {mode === 'pots' && (
+        {v === 'pots' && (
           <>
-            <Pot position={[-0.44, 0, -0.12]} radius={0.2} height={0.34} body={steelDark} rim={steel} handle="ears" />
-            <Pot position={[0.1, 0, 0.24]} radius={0.14} height={0.18} body={steelMid} rim={dark} handle="long" />
-            <PropCylinder position={[0.56, 0.09, -0.2]} args={[0.24, 0.16, 0.18, 8]} material={steelMid} />
-            <PropCylinder position={[0.56, 0.175, -0.2]} args={[0.205, 0.205, 0.02, 8]} material={dark} />
-            <PropCylinder position={[0.56, 0.02, -0.2]} args={[0.12, 0.1, 0.04, 8]} material={steelDark} />
-            <PropCylinder position={[-0.06, 0.07, -0.5]} args={[0.19, 0.13, 0.14, 8]} material={steelDark} />
-            <PropCylinder position={[-0.06, 0.14, -0.5]} args={[0.16, 0.16, 0.025, 8]} material={slime} />
-            <PropCylinder position={[-0.62, 0.048, 0.36]} rotation={[0, 0, 0.12]} args={[0.19, 0.19, 0.035, 8]} material={steel} />
-            <PropCylinder position={[-0.62, 0.078, 0.36]} args={[0.045, 0.045, 0.05, 6]} material={steelDark} />
-            <PropBox position={[0.2, 0.008, -0.6]} size={[0.34, 0.016, 0.26]} material={slime} />
-          </>
-        )}
-        {mode === 'bags' && (
-          <>
-            <PropBlob position={[-0.4, 0.26, -0.06]} radius={0.3} scale={[1.0, 0.9, 0.95]} rotation={[0.1, 0.4, 0]} material={bag} />
-            <PropBox position={[-0.4, 0.5, -0.06]} rotation={[0, 0.4, 0.2]} size={[0.09, 0.14, 0.09]} material={bag} />
-            <PropBlob position={[0.18, 0.22, 0.3]} radius={0.26} scale={[1.05, 0.85, 1.0]} rotation={[0, -0.5, 0.08]} material={bag} />
-            <PropBox position={[0.18, 0.42, 0.3]} rotation={[0, -0.5, -0.25]} size={[0.08, 0.12, 0.08]} material={bag} />
-            <PropCylinder position={[0.56, 0.07, -0.18]} rotation={[Math.PI / 2, 0, 0.4]} args={[0.07, 0.07, 0.14, 6]} material={canGreen} />
-            <PropCylinder position={[0.34, 0.09, -0.4]} args={[0.075, 0.075, 0.18, 6]} material={steelMid} />
-            <PropCylinder position={[0.34, 0.185, -0.4]} args={[0.078, 0.078, 0.02, 6]} material={steelDark} />
-            <PropCylinder position={[-0.72, 0.13, 0.32]} args={[0.05, 0.055, 0.26, 6]} material={ketchup} />
-            <PropCylinder position={[-0.72, 0.29, 0.32]} args={[0.028, 0.028, 0.07, 6]} material={dark} />
-            <PropBox position={[-0.1, 0.012, 0.6]} rotation={[0, 0.3, 0]} size={[0.3, 0.024, 0.24]} material={paper} />
-            <PropBox position={[0.62, 0.01, 0.44]} size={[0.28, 0.02, 0.2]} material={slime} />
-          </>
-        )}
-        {mode === 'trays' && (
-          <>
-            <GnPan position={[-0.42, 0, -0.1]} rotation={[0, 0.22, 0]} width={0.56} depth={0.4} steel={steelMid} rim={steel} food={stew} />
-            <GnPan position={[-0.4, 0.13, -0.08]} rotation={[0, 0.12, 0]} width={0.56} depth={0.4} steel={steelMid} rim={steel} food={slime} />
-            <GnPan position={[0.24, 0, 0.28]} rotation={[0, -0.42, 0]} width={0.5} depth={0.36} steel={steelDark} rim={steel} />
-            <group position={[0.5, 0.13, -0.34]} rotation={[0.5, 0.3, 0]}>
-              <PropBox position={[0, 0.05, 0]} size={[0.48, 0.1, 0.34]} material={steelMid} />
-              <PropBox position={[0, 0.105, 0]} size={[0.53, 0.03, 0.39]} material={steel} />
+            <group position={[-0.3, 0.11, 0]}>
+              <PropCylinder args={[0.20, 0.18, 0.22, 6]} material={stainless.frame} />
+              <PropBox position={[0.22, 0.02, 0]} scale={[0.10, 0.03, 0.03]} material={stainless.dark} />
             </group>
-            {[0, 1, 2].map((index) => (
-              <PropCylinder key={index} position={[-0.7, 0.02 + index * 0.035, 0.42]} args={[0.16, 0.16, 0.03, 8]} material={paper} />
+            <PropBlob position={[0.15, 0.09, 0.05]} radius={0.14} squashY={0.7} material={yellow} />
+            <PropBlob position={[0.35, 0.08, -0.15]} radius={0.12} squashY={0.65} material={stainless.frame} />
+            <group position={[-0.05, 0.05, -0.28]} rotation={[0, 0.4, 0]}>
+              <PropCylinder args={[0.13, 0.13, 0.03, 6]} material={black} />
+              <PropBox position={[0.16, 0, 0]} scale={[0.16, 0.02, 0.02]} material={black} />
+            </group>
+          </>
+        )}
+
+        {v === 'bags' && (
+          <>
+            <PropBlob position={[-0.25, 0.16, 0]} radius={0.18} squashY={1.1} material={black} />
+            <PropBlob position={[0.05, 0.13, 0.1]} radius={0.15} squashY={0.95} material={black} />
+            <group position={[0.35, 0.08, -0.1]}>
+              <PropCylinder args={[0.06, 0.06, 0.11, 6]} material={red} />
+              <PropBox position={[0, 0.07, 0]} scale={[0.09, 0.02, 0.02]} material={white} />
+            </group>
+            <Vessel position={[0.5, 0.10, 0.15]} args={[0.045, 0.045, 0.18, 6]} material={orange} capMaterial={stainless.dark} />
+            <Vessel position={[-0.5, 0.11, -0.2]} args={[0.05, 0.05, 0.20, 6]} material={red} capMaterial={red} />
+          </>
+        )}
+
+        {v === 'trays' && (
+          <>
+            <GnPan position={[-0.4, 0.03, 0]} size={[0.5, 0.06, 0.32]} trayMaterial={stainless.panel} fillMaterial={green} />
+            <GnPan position={[0.15, 0.03, 0.1]} size={[0.5, 0.06, 0.32]} trayMaterial={stainless.panel} fillMaterial={orange} />
+            <GnPan position={[0.55, 0.03, -0.2]} size={[0.5, 0.06, 0.32]} trayMaterial={stainless.panel} />
+            {[0, 1, 2].map((i) => (
+              <PropBox key={i} position={[-0.75, 0.02 + i * 0.025, 0.25]} scale={[0.22, 0.02, 0.22]} material={white} />
             ))}
-            <PropBox position={[0.02, 0.01, -0.5]} rotation={[0, 0.4, 0]} size={[0.42, 0.02, 0.3]} material={slime} />
-            <PropBox position={[0.12, 0.012, 0.62]} size={[0.26, 0.02, 0.2]} material={stew} />
+            <group position={[-0.7, 0.08, -0.15]}>
+              <PropCylinder args={[0.06, 0.06, 0.09, 6]} material={blue} />
+              <PropBox position={[0.07, 0, 0]} scale={[0.02, 0.05, 0.05]} material={blue} />
+            </group>
+            <PropBox position={[0.1, 0.06, -0.3]} scale={[0.16, 0.12, 0.10]} material={white} />
+            <PropBox position={[0.1, 0.115, -0.3]} scale={[0.13, 0.03, 0.09]} material={amber} />
           </>
         )}
       </StudioTunedGroup>

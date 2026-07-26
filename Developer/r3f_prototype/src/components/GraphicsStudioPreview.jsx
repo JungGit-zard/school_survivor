@@ -22,6 +22,15 @@ import {
   GymScoreboard,
   TrainingCones,
   UnconsciousStudent,
+  KitchenClutter,
+  KitchenCookLine,
+  KitchenCrateStack,
+  KitchenPrepTable,
+  KitchenRefrigerator,
+  KitchenShelfCart,
+  KitchenSinkCounter,
+  KitchenTrashBins,
+  KitchenTrayRack,
 } from './StageObjects/index.js'
 import GoldCoin from './GoldCoin.jsx'
 import XpTextbook from './XpTextbook.jsx'
@@ -549,6 +558,15 @@ function RenderPreviewItem({ item }) {
   if (item.previewKind === 'stageObject' && item.objectType === 'gymBanner') return <GymBanner />
   if (item.previewKind === 'stageObject' && item.objectType === 'gymExitDoor') return <GymExitDoor />
   if (item.previewKind === 'stageObject' && item.objectType === 'gymEquipmentSpill') return <GymEquipmentSpill />
+  if (item.previewKind === 'stageObject' && item.objectType === 'kitchenPrepTable') return <KitchenPrepTable variant={item.variant} />
+  if (item.previewKind === 'stageObject' && item.objectType === 'kitchenCookLine') return <KitchenCookLine />
+  if (item.previewKind === 'stageObject' && item.objectType === 'kitchenSinkCounter') return <KitchenSinkCounter />
+  if (item.previewKind === 'stageObject' && item.objectType === 'kitchenRefrigerator') return <KitchenRefrigerator open />
+  if (item.previewKind === 'stageObject' && item.objectType === 'kitchenTrayRack') return <KitchenTrayRack />
+  if (item.previewKind === 'stageObject' && item.objectType === 'kitchenShelfCart') return <KitchenShelfCart />
+  if (item.previewKind === 'stageObject' && item.objectType === 'kitchenTrashBins') return <KitchenTrashBins variant={item.variant} />
+  if (item.previewKind === 'stageObject' && item.objectType === 'kitchenCrateStack') return <KitchenCrateStack />
+  if (item.previewKind === 'stageObject' && item.objectType === 'kitchenClutter') return <KitchenClutter variant={item.variant} />
   if (item.previewKind === 'pickup') {
     return <PickupPreview type={item.pickupType} />
   }

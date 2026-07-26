@@ -35,6 +35,7 @@ import {
 import { BLOCKING_STAGE_OBJECT_TYPES } from './stageObjectColliders.js'
 import { STAGE_OBJECT_TYPES } from './StageObjectLayer.jsx'
 import { STAGE_PROP_TYPES } from '../../lib/stagePropPlacements.js'
+import { GRAPHICS_STUDIO_CATALOG } from '../../lib/graphicsStudioConfig.js'
 import { getCachedBoxGeo, getCachedOutlineMat } from '../../lib/toon.js'
 import {
   getPropOutlineScale,
@@ -295,5 +296,50 @@ describe('stage object asset catalog', () => {
     // getStageObjectSightObstacles()는 blocking 플래그를 무시하고 타입 멤버십만 본다.
     // 바닥에 깔린 냄비·봉지가 여기 들어가면 스4 시그니처(18초 원거리 조기 발사)가 망가진다.
     expect(BLOCKING_STAGE_OBJECT_TYPES.has('kitchenClutter')).toBe(false)
+  })
+
+  // 2026-07-26: Graphics Studio에 kitchen 10종이 뜨지 않던 버그(등록 누락)의 회귀 테스트.
+  // 세 지점 — graphicsStudioConfig의 카탈로그 항목, GraphicsStudioPreview의 objectType 분기,
+  // KitchenProps.jsx의 StudioTunedGroup itemId — 가 전부 같은 문자열로 일치해야 스튜디오에서
+  // 목록에 뜨고 튜닝값이 실제 게임 프랍에 적용된다. 하나라도 어긋나면 이 테스트가 잡는다.
+  it('wires every Stage 4 kitchen prop to Graphics Studio: catalog id, preview branch, and StudioTunedGroup itemId all match', () => {
+    const kitchenPropsSource = readFileSync(new URL('./KitchenProps.jsx', import.meta.url), 'utf8')
+    const previewSource = readFileSync(new URL('../GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+
+    const kitchenItemIdToObjectType = {
+      'stage-object-kitchen-prep-table': 'kitchenPrepTable',
+      'stage-object-kitchen-cook-line': 'kitchenCookLine',
+      'stage-object-kitchen-sink-counter': 'kitchenSinkCounter',
+      'stage-object-kitchen-refrigerator': 'kitchenRefrigerator',
+      'stage-object-kitchen-tray-rack': 'kitchenTrayRack',
+      'stage-object-kitchen-shelf-cart': 'kitchenShelfCart',
+      'stage-object-kitchen-trash-bins': 'kitchenTrashBins',
+      'stage-object-kitchen-crate-stack': 'kitchenCrateStack',
+      'stage-object-kitchen-clutter': 'kitchenClutter',
+    }
+
+    const kitchenCatalogItems = GRAPHICS_STUDIO_CATALOG.filter((item) => item.id.startsWith('stage-object-kitchen-'))
+    expect(kitchenCatalogItems).toHaveLength(9)
+
+    for (const [itemId, objectType] of Object.entries(kitchenItemIdToObjectType)) {
+      // (a) graphicsStudioConfig.js에 category: 'stageObject'로 등록되어 있고 objectType이 일치한다.
+      const catalogItem = GRAPHICS_STUDIO_CATALOG.find((item) => item.id === itemId)
+      expect(catalogItem, `missing Graphics Studio catalog entry for ${itemId}`).toBeDefined()
+      expect(catalogItem.category).toBe('stageObject')
+      expect(catalogItem.previewKind).toBe('stageObject')
+      expect(catalogItem.objectType).toBe(objectType)
+
+      // (b) GraphicsStudioPreview.jsx에 이 objectType을 렌더하는 분기가 있다.
+      expect(
+        previewSource,
+        `GraphicsStudioPreview.jsx is missing a render branch for objectType '${objectType}'`,
+      ).toContain(`item.objectType === '${objectType}'`)
+
+      // (c) KitchenProps.jsx의 StudioTunedGroup itemId가 카탈로그 id와 문자열 그대로 일치한다.
+      expect(
+        kitchenPropsSource,
+        `KitchenProps.jsx is missing <StudioTunedGroup itemId="${itemId}"> for ${objectType}`,
+      ).toContain(`<StudioTunedGroup itemId="${itemId}">`)
+    }
   })
 })
