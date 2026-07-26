@@ -12339,3 +12339,87 @@ Get-Content -LiteralPath 'SESSION_MEMORY.md' -Encoding utf8 -Tail 35
 - 스테이지 4 에셋과 영구 업그레이드 문서는 이번 범위 밖이므로 계속 보존한다.
 
 ---
+
+## Session 7 · Entry 1 · 2026-07-27 0655 KST
+
+### Git 상태
+
+- 브랜치: `zombie_only`.
+- AAB 빌드 소스: `74801277be2b21e6eb7afca45033c5e8ec43c689`.
+- 최신 기록 커밋: `050a9c7454c893bffd989cae7d629041af1bdbdb Record Android AAB v22 build`.
+- 로컬 `HEAD`와 실제 원격 `refs/heads/zombie_only`가 일치했고, AAB 기록 커밋 직후 작업 트리는 깨끗했다.
+
+### 이번 작업 / 대화
+
+- 이전 사용자 지시에 따른 게임 수정 전체를 커밋·푸시한 뒤 Android AAB 제작 요청을 수행했다.
+- Android 버전을 `versionCode 22`, `versionName 1.0.13`으로 올린 푸시된 소스 SHA를 빌드 정본으로 고정했다.
+- Terra Worker가 Capacitor 동기화, clean release bundle 생성, 서명·무결성·자산 검증, 빌드·QA 기록을 수행했다.
+- Sol Advisor가 원격 SHA, AAB 해시·크기·서명 인증서·매니페스트·AAB 내부 웹 자산을 독립 재검증했다.
+- launchmini 카드 `t_9d793986`는 로컬 AAB Conditional Go / Play No-Go로 완료됐다.
+- balanceqa 카드 `t_984b30dd`는 Hermes openai-codex OAuth token expired HTTP 401로 두 번 실패해 blocked 됐다. 이는 AAB 검증 실패가 아닌 외부 검토 실행기 인증 차단이며 QA 기록에 명시했다.
+
+### 생성 / 수정 파일
+
+- 수정: `Developer/r3f_prototype/android/app/build.gradle` — Android `versionCode 22`, `versionName 1.0.13`.
+- 생성: `Developer/r3f_prototype/android/app/build/outputs/bundle/release/app-release.aab`.
+- 생성: `Developer/r3f_prototype/android/app/build/outputs/bundle/release/app-release-v22.aab`.
+- 생성: `Developer/구현기록/빌드배포/aab_build_v22_2026-07-27.md`.
+- 생성: `Quaility_Assurance/aab_v22_release_validation_2026-07-27.md`.
+- 수정: `Quaility_Assurance/google_play_version_ledger.md` — v22 로컬 빌드와 다음 기본 versionCode 23 기록.
+- 생성: `Developer/agent_room/launchmini_aab_v22_readiness_2026-07-27.md`.
+
+### 명령 로그
+
+```text
+npm test
+npm run build
+npm run browser:reserve
+npm run preview -- --host 127.0.0.1
+npx cap sync android
+.\gradlew.bat clean :app:bundleRelease
+jar tf app-release.aab
+jarsigner -verify -certs -verbose app-release.aab
+keytool -printcert -jarfile app-release.aab
+Get-FileHash -Algorithm SHA256 <AAB 및 웹 자산>
+git ls-remote origin refs/heads/zombie_only
+hermes kanban --board escape-zombie-school create "Review AAB v22 build readiness" --assignee launchmini ...
+hermes kanban --board escape-zombie-school create "Validate signed AAB v22 artifact" --assignee balanceqa ...
+hermes kanban --board escape-zombie-school dispatch --dry-run --max 1 --json
+hermes kanban --board escape-zombie-school dispatch --max 1 --json
+hermes kanban --board escape-zombie-school show t_9d793986
+hermes kanban --board escape-zombie-school show t_984b30dd
+hermes kanban --board escape-zombie-school log t_984b30dd
+git diff --check
+git add -- Developer/구현기록/빌드배포/aab_build_v22_2026-07-27.md Quaility_Assurance/aab_v22_release_validation_2026-07-27.md Quaility_Assurance/google_play_version_ledger.md
+git commit -m "Record Android AAB v22 build"
+git push origin zombie_only
+git status --short --branch
+```
+
+### 검증 결과
+
+- 전체 JS 테스트: 163 files / 1,407 tests 통과.
+- Vite production build 통과.
+- 데스크톱 1440x900 및 모바일 390x844 웹 화면 확인 통과.
+- `npx cap sync android` 통과.
+- Gradle `clean :app:bundleRelease` 통과.
+- AAB 버전: `versionCode 22`, `versionName 1.0.13`.
+- AAB 크기: `15,376,272` bytes.
+- AAB SHA-256: `18fd241812374952f6a289a2dccc31504c7e542335a098a5fb8fd114edf66803`.
+- 서명 인증서 SHA-256: `fe18fa0ebd5ce70f30046f25d3075a658a2c33eadd6f5e300c85fb6ee5540f3b`.
+- `jarsigner` exit 0 및 `jar verified.` 확인.
+- AAB 내부 `index.html`과 `index-CYTGtwQt.js`가 `dist` 및 Android 복사본과 SHA-256까지 일치.
+- Firebase 데이터 변경 없음.
+
+### 확정된 룰 / 정책 변경
+
+- 새 프로젝트 정책 변경 없음.
+- 다음 Android AAB는 Play Console의 최신 versionCode를 확인한 뒤 `23` 이상을 사용한다.
+
+### 미해결 이슈 + 다음 단계
+
+- Android 실기기/AVD 설치·WebView 화면·로그인·입력·게임플레이 스모크는 미수행이다.
+- Play Console 업로드와 versionCode 사용 여부 확인은 미수행이다.
+- Hermes balanceqa 자동 검토는 OAuth 401 인증 갱신 전까지 blocked 상태다.
+
+---
