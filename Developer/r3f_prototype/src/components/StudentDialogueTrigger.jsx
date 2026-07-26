@@ -4,7 +4,7 @@ import { usePlayingFrame } from '../lib/usePlayingFrame.js'
 import { playerPos } from '../lib/refs.js'
 import { getInvestigationTargets, findInvestigationTargetInRange } from '../lib/studentProximity.js'
 import { pickStudentLine } from '../lib/studentDialogueLines.js'
-import { rollStudentSearchReward } from '../lib/studentSearchRewards.js'
+import { rollInvestigationReward } from '../lib/studentSearchRewards.js'
 
 // 조사 대상 근접 감지기(비주얼 없음). 쓰러진 학생과 스테이지 2의
 // 사물함·불레틴보드는 각각 런당 1회만 조사할 수 있다.
@@ -34,7 +34,7 @@ export default function StudentDialogueTrigger() {
     talkedRef.current.add(target.id)
     openStudentDialogue(
       target.line ?? pickStudentLine(),
-      rollStudentSearchReward(),
+      rollInvestigationReward(target.subjectType),
       { subjectType: target.subjectType, subjectName: target.subjectName },
     )
   })
