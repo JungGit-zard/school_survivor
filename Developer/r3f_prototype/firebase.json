@@ -4,5 +4,10 @@
   },
   "functions": {
     "source": "functions"
+  },
+  "hosting": {
+    "public": "hosting",
+    "cleanUrls": true,
+    "ignore": ["**/.*"]
   }
 }

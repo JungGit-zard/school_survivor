@@ -1,0 +1,83 @@
+<!doctype html>
+<!--
+  Google Play "계정 및 데이터 삭제" 정책이 요구하는 공개 URL.
+  https://escape-zombie-school.web.app/delete-account 로 서빙된다(firebase.json cleanUrls).
+
+  ponytail: 손으로 쓴 정적 HTML 한 장. 게임 내 문구(src/lib/legalDocuments.js)와
+  자동 동기화되지 않으므로, 수집 항목·삭제 범위를 바꾸면 이 파일도 같은 커밋에서 고친다.
+-->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>계정 및 데이터 삭제 - Escape! Zombie School</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    margin: 0 auto; padding: 24px 20px 64px; max-width: 720px;
+    font: 16px/1.75 system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+    word-break: keep-all;
+  }
+  h1 { font-size: 1.5rem; line-height: 1.4; margin: 0 0 4px; }
+  h2 { font-size: 1.1rem; margin: 32px 0 8px; }
+  p, li { margin: 8px 0; }
+  ol, ul { padding-left: 22px; }
+  footer { margin-top: 40px; font-size: .875rem; opacity: .7; }
+  code { background: rgba(128,128,128,.18); padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<h1>계정 및 데이터 삭제</h1>
+<p><strong>앱:</strong> Escape! Zombie School (<code>com.jungyoon.zombieschool</code>)</p>
+
+<h2>앱에서 직접 삭제하기</h2>
+<ol>
+  <li>게임을 실행하고 Google 계정으로 로그인합니다.</li>
+  <li>로비 화면에서 <strong>설정</strong>을 엽니다.</li>
+  <li><strong>계정 삭제</strong>를 누릅니다.</li>
+  <li>안내에 따라 삭제를 확인합니다. 확인 즉시 삭제가 진행되며 되돌릴 수 없습니다.</li>
+</ol>
+<p>최근 로그인 이후 시간이 오래 지난 경우, 본인 확인을 위해 Google 재로그인을 요청할 수 있습니다.</p>
+
+<h2>앱 없이 삭제 요청하기</h2>
+<p>
+  앱을 이미 삭제했거나 앱에서 진행할 수 없는 경우
+  <a href="mailto:zard5388@gmail.com?subject=%5BEscape!%20Zombie%20School%5D%20%EA%B3%84%EC%A0%95%20%EC%82%AD%EC%A0%9C%20%EC%9A%94%EC%B2%AD">zard5388@gmail.com</a>
+  으로 <strong>게임 내 닉네임</strong>과 <strong>로그인에 사용한 Google 계정</strong>을 적어 보내주세요.
+  본인 확인 후 30일 이내에 처리하고 결과를 회신합니다.
+</p>
+
+<h2>삭제되는 데이터</h2>
+<ul>
+  <li>계정 정보: Google 계정 식별자(UID), 프로필 표시 이름, 게임 내 닉네임</li>
+  <li>진행 기록: 보유 골드, 영구 강화 수준, 무기 해금 상태, 스테이지 클리어 횟수와 최고 생존 시간</li>
+  <li>랭킹 기록: 표시 이름, 점수, 생존 시간, 클리어 여부, 스테이지, 기록 시각</li>
+  <li>Firebase 인증 계정 자체</li>
+</ul>
+<p>위 데이터는 삭제 요청 즉시 삭제되며 보존 기간 없이 파기됩니다. 복구할 수 없습니다.</p>
+
+<h2>삭제 후 보관되는 데이터</h2>
+<p>
+  게임은 결제·연락처·위치·광고 식별자를 수집하지 않으므로 삭제 후 보관하는 개인정보가 없습니다.
+  다만 서버 운영상 자동 생성되는 접속 로그가 Google Firebase의 기본 정책에 따라 최대 30일간
+  보관된 뒤 자동 삭제될 수 있습니다. 이 로그는 특정 개인을 식별하는 데 사용되지 않습니다.
+</p>
+<p>
+  법령에 따라 보존이 필요한 기록이 있는 경우에는 해당 법정 기간 동안 다른 데이터와 분리해
+  보관한 뒤 파기합니다.
+</p>
+
+<h2>삭제 후 다시 이용하기</h2>
+<p>
+  계정 삭제 후 같은 Google 계정으로 다시 로그인하면 새 계정으로 처음부터 시작하며,
+  이용약관과 개인정보처리방침에 다시 동의해야 합니다.
+</p>
+
+<footer>
+  문의: <a href="mailto:zard5388@gmail.com">zard5388@gmail.com</a><br>
+  최종 수정일: 2026년 7월 29일
+</footer>
+
+</body>
+</html>
