@@ -38,6 +38,7 @@ import XpOrb from './XpOrb.jsx'
 import { LunchModel } from './LunchItems.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 import MatildaMesh from './MatildaMesh.jsx'
+import ProceduralFaceTestZombie from './ProceduralFaceTestZombie.jsx'
 import { StageLockModel } from './StageLock.jsx'
 import { DancingDoge } from './DogeMesh.jsx'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
@@ -525,6 +526,9 @@ function RenderPreviewItem({ item }) {
   }
   if (item.previewKind === 'zombie') {
     return <EnemyVisual type={item.zombieType} animPhase={item.animation ?? 'normal'} hp={ENEMY_STATS[item.zombieType]?.hp} forceMesh />
+  }
+  if (item.previewKind === 'proceduralFaceZombie') {
+    return <ProceduralFaceTestZombie />
   }
   if (item.previewKind === 'matilda') {
     return <MatildaMesh movementPose={item.animation === 'charge'} />

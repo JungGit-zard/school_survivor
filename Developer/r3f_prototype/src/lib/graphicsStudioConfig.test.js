@@ -56,6 +56,7 @@ describe('Firebase runtime Graphics Studio config', () => {
       'player',
       'actor-doge',
       'zombie-e01',
+      'zombie-procedural-face-test',
       'stage2-boss-v2',
       'zombie-b03-pe-teacher',
       'zombie-b04-chef',
@@ -64,6 +65,12 @@ describe('Firebase runtime Graphics Studio config', () => {
     expect(getStudioZombieItemId('E01')).toBe('zombie-e01')
     expect(getStudioZombieItemId('B03')).toBe('zombie-b03-pe-teacher')
     expect(getStudioItemById('player').previewKind).toBe('player')
+    expect(getStudioItemById('zombie-procedural-face-test')).toMatchObject({
+      category: 'enemy',
+      label: '실험 · 직접 그린 얼굴 좀비',
+      source: 'components/ProceduralFaceTestZombie.jsx',
+      previewKind: 'proceduralFaceZombie',
+    })
   })
 
   it('normalizes tuning numbers, colors, and animation safely', () => {

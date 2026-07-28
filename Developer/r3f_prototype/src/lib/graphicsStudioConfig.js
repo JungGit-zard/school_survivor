@@ -138,6 +138,14 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     applyTargets: ['components/ZombieMesh.jsx', 'components/Enemy.jsx', 'lib/toon.js'],
   })),
   {
+    id: 'zombie-procedural-face-test',
+    category: 'enemy',
+    label: '실험 · 직접 그린 얼굴 좀비',
+    source: 'components/ProceduralFaceTestZombie.jsx',
+    previewKind: 'proceduralFaceZombie',
+    applyTargets: ['components/ProceduralFaceTestZombie.jsx', 'lib/toon.js'],
+  },
+  {
     id: 'actor-doge',
     category: 'actor',
     label: 'Doge',

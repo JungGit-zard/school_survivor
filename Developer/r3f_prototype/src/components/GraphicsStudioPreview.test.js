@@ -11,6 +11,14 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(source).toContain("previewKind === 'zombie'")
   })
 
+  it('previews the catalog-only procedural face zombie without adding a runtime enemy type', () => {
+    const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain("import ProceduralFaceTestZombie from './ProceduralFaceTestZombie.jsx'")
+    expect(source).toContain("previewKind === 'proceduralFaceZombie'")
+    expect(source).toContain('<ProceduralFaceTestZombie />')
+  })
+
   it('lets the Matilda studio preview show the movement pose from Motion', () => {
     const source = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
 
