@@ -12,18 +12,20 @@
 // 저장 항목이 바뀌면 이 문서의 §수집 항목도 같은 커밋에서 갱신한다.
 //
 // 주의: 이 문서는 일반적인 캐주얼 게임 관행을 따른 초안이며 법률 자문이 아니다.
-// 서비스 출시 전 CONTACT_EMAIL을 실제 문의 창구로 교체해야 한다.
 
-export const TERMS_VERSION = 1
-export const PRIVACY_VERSION = 1
+export const TERMS_VERSION = 2
+export const PRIVACY_VERSION = 2
 
-// 출시 전 반드시 실제 문의 창구로 교체할 것. 비워 두면 개인정보처리방침의
-// 필수 기재사항(문의처)이 누락된다.
-export const CONTACT_EMAIL = '[문의 이메일을 입력하세요]'
+export const CONTACT_EMAIL = 'zard5388@gmail.com'
 
 export const SERVICE_NAME = 'Escape! Zombie School'
 
-export const EFFECTIVE_DATE = '2026년 7월 28일'
+export const EFFECTIVE_DATE = '2026년 7월 29일'
+
+// 공개 호스팅 주소(Google Play 데이터 안전 섹션에 등록하는 URL의 정본).
+// scripts/build-legal-pages.mjs 가 이 파일을 읽어 hosting/*.html 을 생성한다.
+export const PRIVACY_URL = 'https://escape-zombie-school.web.app/privacy'
+export const ACCOUNT_DELETION_URL = 'https://escape-zombie-school.web.app/delete-account'
 
 export const TERMS_TITLE = '이용약관'
 export const PRIVACY_TITLE = '개인정보처리방침'

@@ -2,6 +2,11 @@
   "database": {
     "rules": "database.rules.json"
   },
+  "hosting": {
+    "public": "hosting",
+    "cleanUrls": true,
+    "ignore": ["**/.*"]
+  },
   "functions": {
     "source": "functions"
   }

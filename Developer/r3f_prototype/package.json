@@ -11,6 +11,8 @@
     "build": "python scripts/single_branch_guard.py run -- npm.cmd exec -- vite build",
     "postbuild": "node scripts/assert-no-legacy-b02.mjs --artifacts=dist",
     "audit:b02-artifacts": "node scripts/assert-no-legacy-b02.mjs --artifacts=all",
+    "build:legal": "node scripts/build-legal-pages.mjs",
+    "deploy:legal": "npm run build:legal && firebase deploy --only hosting",
     "preview": "python scripts/single_branch_guard.py run -- npm.cmd exec -- vite preview",
     "browser:guard": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/guard-game-browser-limit.ps1",
     "browser:reserve": "npm run branch:check && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/guard-game-browser-limit.ps1 -Mode reserve",
