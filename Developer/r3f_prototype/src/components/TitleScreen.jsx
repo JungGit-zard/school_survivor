@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import ConsentGate from './ConsentGate.jsx'
 import GoogleAccountPanel from './GoogleAccountPanel.jsx'
 import TitleSceneCanvas from './TitleSceneCanvas.jsx'
+import { needsConsent } from '../lib/consent.js'
 import { isFirebaseProgressHydrated, requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
@@ -89,6 +91,8 @@ export default function TitleScreen({
   const [nicknameInput, setNicknameInput] = useState('')
   const [nicknameError, setNicknameError] = useState('')
   const [studioError, setStudioError] = useState('')
+  const [consentOpen, setConsentOpen] = useState(false)
+  const [consentUser, setConsentUser] = useState(null)
   const authUser = useAuthStore((s) => s.user)
   const [settings] = useState(() => (
     isFirebaseProgressHydrated(authUser) ? loadTitleSettings() : {
@@ -257,7 +261,22 @@ export default function TitleScreen({
     resetPassiveUpgrades()
   }
 
-  // 로그인/닉네임 게이트: 미로그인 → Google 로그인 → 닉네임 없으면 닉네임 모달 → 있으면 로비 진입.
+  // 닉네임 판정 이후 단계: 닉네임 있으면 로비로, 없으면 닉네임 모달로.
+  const proceedPastConsent = (user) => {
+    const savedNickname = getSavedNickname(user)
+    setCheatOpen(false)
+
+    if (savedNickname) {
+      onEnterLobby?.()
+    } else {
+      setNicknameInput(normalizeInitialNickname(user?.displayName))
+      setNicknameError('')
+      setNicknameOpen(true)
+    }
+  }
+
+  // 로그인/동의/닉네임 게이트: 미로그인 → Google 로그인 → 스튜디오 데이터 준비
+  // → (최초 1회) 이용약관·개인정보처리방침 동의 게이트 → 닉네임 없으면 닉네임 모달 → 로비 진입.
   const handleStartClick = async () => {
     let user = authUser
     if (!user?.uid) {
@@ -276,16 +295,27 @@ export default function TitleScreen({
       return
     }
 
-    const savedNickname = getSavedNickname(user)
-    setCheatOpen(false)
-
-    if (savedNickname) {
-      onEnterLobby?.()
-    } else {
-      setNicknameInput(normalizeInitialNickname(user?.displayName))
-      setNicknameError('')
-      setNicknameOpen(true)
+    // needsConsent는 users/{uid} 하이드레이트가 끝난 뒤에만 정확하다. 위에서 이미
+    // ensureStudioCloudReady(user)를 await했으므로 이 시점에서 호출하는 것이 맞다.
+    if (needsConsent(user)) {
+      setConsentUser(user)
+      setConsentOpen(true)
+      return
     }
+
+    proceedPastConsent(user)
+  }
+
+  const handleConsentConfirmed = () => {
+    setConsentOpen(false)
+    const user = consentUser
+    setConsentUser(null)
+    proceedPastConsent(user)
+  }
+
+  const handleConsentCancel = () => {
+    setConsentOpen(false)
+    setConsentUser(null)
   }
 
   const handleNicknameSubmit = (event) => {
@@ -406,6 +436,14 @@ export default function TitleScreen({
             </div>
           </section>
         </div>
+      )}
+
+      {consentOpen && consentUser && (
+        <ConsentGate
+          user={consentUser}
+          onConfirmed={handleConsentConfirmed}
+          onCancel={handleConsentCancel}
+        />
       )}
 
       {nicknameOpen && (

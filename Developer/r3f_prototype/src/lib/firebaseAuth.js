@@ -78,6 +78,13 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
         throw new Error('Firebase auth is not configured.')
       },
       signOut: async () => {},
+      // 인터페이스 일관성 유지 — 미설정 상태에서 계정 삭제가 조용히 성공한 것처럼 보이면 안 된다.
+      deleteAccount: async () => {
+        throw new Error('Firebase auth is not configured.')
+      },
+      reauthenticateWithGoogle: async () => {
+        throw new Error('Firebase auth is not configured.')
+      },
     }
   }
 
@@ -111,6 +118,25 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
       if (useNativeGoogle) {
         await signOutNativeGoogle()
       }
+    },
+    // Firebase Auth 계정 자체를 삭제한다. 삭제가 성공하면 onAuthStateChanged가 null을
+    // 발행하므로 스토어는 자동으로 signedOut으로 전환된다(별도 signOut 불필요).
+    // 최근 로그인 세션이 아니면 auth/requires-recent-login이 그대로 올라온다 —
+    // 호출자가 reauthenticateWithGoogle 후 재시도해야 한다.
+    deleteAccount: async () => {
+      const current = auth.currentUser
+      if (!current) throw new Error('삭제할 로그인 세션이 없습니다. 다시 로그인한 뒤 시도해 주세요.')
+      await authModule.deleteUser(current)
+    },
+    // 웹(팝업) 경로만 구현한다. Capacitor 네이티브 셸은 팝업 재인증을 쓸 수 없어
+    // "로그아웃 후 재로그인 → 계정 삭제 재시도"로 우회한다(현재 지원 범위 밖).
+    reauthenticateWithGoogle: async () => {
+      const current = auth.currentUser
+      if (!current) throw new Error('재인증할 로그인 세션이 없습니다. 다시 로그인한 뒤 시도해 주세요.')
+      if (useNativeGoogle) {
+        throw new Error('모바일 앱에서는 로그아웃 후 다시 로그인한 다음 계정 삭제를 진행해 주세요.')
+      }
+      await authModule.reauthenticateWithPopup(current, provider)
     },
   }
 }

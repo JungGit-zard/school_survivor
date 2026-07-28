@@ -12,6 +12,7 @@ import { STORAGE_KEY as NICKNAME_STORAGE_KEY, getSavedNickname, saveNicknameForU
 import { resetAdminConfig, saveAdminConfig } from '../lib/adminConfig.js'
 import { SETTINGS_STORAGE_KEY, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
 import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
+import { TERMS_VERSION, PRIVACY_VERSION } from '../lib/legalDocuments.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { useAuthStore, _resetAuthStoreForTests } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
@@ -27,6 +28,29 @@ vi.mock('./TitleScene3D.jsx', () => ({
     <div data-testid="mock-title-scene" data-reduced-effects={String(reducedEffects)} />
   ),
 }))
+
+// consent.js가 실제로 배선된 이후에는(더 이상 항상-false 스캡폴드가 아니다) users/{uid}가
+// 하이드레이트되어 있고 이미 동의 기록이 있는 사용자만 동의 게이트를 건너뛴다. 닉네임/로비
+// 진입 흐름 자체를 검증하는 테스트들은 이 세팅을 통해 동의 게이트가 끼어들지 않게 한다.
+function seedConsentedUser(user) {
+  const now = new Date().toISOString()
+  _seedHydratedFirebaseProgressForTests(user, {
+    schemaVersion: 1,
+    profile: { uid: user.uid, displayName: user.displayName ?? '', nickname: '' },
+    progress: {
+      goldTotal: 0,
+      records: {},
+      weaponUnlocks: {},
+      weaponPermanentUpgrades: {},
+      passiveUpgrades: {},
+      titleSettings: { vibration: true, reducedEffects: false, unlockAllWeaponsCheat: false, unlockAllStagesCheat: false },
+    },
+    consent: {
+      terms: { version: TERMS_VERSION, acceptedAt: now },
+      privacy: { version: PRIVACY_VERSION, acceptedAt: now },
+    },
+  })
+}
 
 beforeEach(() => {
   _seedHydratedFirebaseProgressForTests()
@@ -135,9 +159,11 @@ describe('TitleScreen lobby entry', () => {
   })
 
   it('asks for a nickname before entering the lobby and saves it for the Google user', () => {
+    const user = { uid: 'uid-1', displayName: 'Tester', email: 'tester@example.com', photoURL: '' }
+    seedConsentedUser(user)
     useAuthStore.setState({
       status: 'signedIn',
-      user: { uid: 'uid-1', displayName: 'Tester', email: 'tester@example.com', photoURL: '' },
+      user,
       initialized: true,
     })
     const onEnterLobby = vi.fn()
@@ -158,9 +184,11 @@ describe('TitleScreen lobby entry', () => {
   })
 
   it('enters the lobby immediately when the signed-in user already has a nickname', () => {
+    const user = { uid: 'uid-2', displayName: 'Returner', email: 'r@example.com', photoURL: '' }
+    seedConsentedUser(user)
     useAuthStore.setState({
       status: 'signedIn',
-      user: { uid: 'uid-2', displayName: 'Returner', email: 'r@example.com', photoURL: '' },
+      user,
       initialized: true,
     })
     saveNicknameForUser({ uid: 'uid-2' }, '복도반장')
@@ -181,6 +209,7 @@ describe('TitleScreen lobby entry', () => {
     ['rejects', vi.fn(async () => { throw new Error('Studio hydrate failed') })],
   ])('keeps the lobby closed and offers retry when Studio hydration %s', async (_scenario, ensureStudioCloudReady) => {
     const user = { uid: 'uid-studio-best-effort', displayName: 'Returner', email: 'r@example.com', photoURL: '' }
+    seedConsentedUser(user)
     useAuthStore.setState({ status: 'signedIn', user, initialized: true })
     saveNicknameForUser(user, '복도반장')
 
@@ -212,6 +241,10 @@ describe('TitleScreen lobby entry', () => {
 
   it('starts Google login from the start button when Google is signed out', async () => {
     const googleUser = { uid: 'uid-login', displayName: 'Login Tester', email: 'login@example.com', photoURL: '' }
+    // 이 테스트의 signInWithGoogle 목은 실제 useAuthStore.signInWithGoogle과 달리
+    // syncCloudProgressUser/hydrateCloudProgress를 트리거하지 않으므로, 로그인 이후
+    // needsConsent가 참조할 하이드레이트+동의 상태를 미리 심어 둔다.
+    seedConsentedUser(googleUser)
     const signInWithGoogle = vi.fn(async () => googleUser)
     useAuthStore.setState({
       status: 'signedOut',

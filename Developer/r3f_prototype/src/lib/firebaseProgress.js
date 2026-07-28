@@ -150,6 +150,7 @@ export function applyCloudProgressSnapshot(snapshot, user = cloudUser, { keepClo
     profile: normalized.profile,
     progress: normalized.progress,
     activity: normalized.activity,
+    consent: normalized.consent,
   }
   return true
 }
@@ -179,6 +180,37 @@ export function updateFirebasePlayerProfile(mutator) {
 export function readFirebasePlayerProgress() {
   ensureHydrated()
   return cloneProgress(runtime.progress)
+}
+
+// 약관/개인정보 동의 기록은 users/{uid}.consent — profile·progress 안이 아니라 activity와
+// 같은 최상위 형제 노드다. normalizeProfile/normalizeProgress가 화이트리스트 밖 키를 버리기
+// 때문에 그 안에는 애초에 실을 수 없고, 보안 규칙도 노드별로 검증하므로 정체성 성격의
+// 동의 기록을 독립 노드로 두는 편이 규칙 단위와 1:1로 맞는다.
+export function readFirebasePlayerConsent() {
+  ensureHydrated()
+  return cloneConsent(runtime.consent)
+}
+
+// null을 넘기면 기록을 비운다(저장 실패 롤백 경로에서 사용).
+export function writeFirebasePlayerConsent(consent) {
+  ensureHydrated()
+  runtime = { ...runtime, consent: normalizeConsent(consent) }
+  return cloneConsent(runtime.consent)
+}
+
+// 계정 삭제 경로 전용. users/{uid} 문서 전체를 제거한다.
+// Realtime Database의 remove는 노드가 이미 없어도 성공하므로 재시도가 멱등적이다.
+export async function deleteFirebaseProgressDocument(user = cloudUser) {
+  const path = getUserProgressPath(user)
+  if (!path) throw new FirebaseProgressError('Firebase progress delete requires an authenticated uid.', 'unauthenticated')
+  const client = await getProgressClient()
+  // 런타임을 먼저 비워 대기 중인 저장 큐가 삭제 직후 문서를 되살리지 못하게 한다.
+  // 이미 실행 중인 저장은 큐를 흘려보낸 뒤 삭제한다.
+  runtime = createEmptyRuntime()
+  cloudUser = null
+  await writeQueue.catch(() => {})
+  await client.remove(path)
+  return true
 }
 
 export function recordPlayActivity(stageId, now = Date.now()) {
@@ -287,6 +319,7 @@ async function createFirebaseProgressClient(env = getDefaultEnv()) {
 
   return {
     save: (path, value) => databaseModule.update(databaseModule.ref(database, path), value),
+    remove: (path) => databaseModule.remove(databaseModule.ref(database, path)),
     loadOrCreate: async (path, initialValue) => {
       const result = await databaseModule.runTransaction(
         databaseModule.ref(database, path),
@@ -319,6 +352,7 @@ function buildRemotePayload(now = Date.now()) {
     updatedAt: new Date(now).toISOString(),
     profile: { ...runtime.profile },
     ...(runtime.activity ? { activity: { ...runtime.activity } } : {}),
+    ...(runtime.consent ? { consent: cloneConsent(runtime.consent) } : {}),
     progress: cloneProgress(runtime.progress),
   }
 }
@@ -337,6 +371,7 @@ function normalizeRemoteSnapshot(snapshot, uid, user) {
     profile: normalizeProfile({ uid, displayName: user?.displayName, ...snapshot.profile }, uid),
     progress: normalizeProgress(snapshot.progress),
     activity: normalizePlayActivity(snapshot.activity),
+    consent: normalizeConsent(snapshot.consent),
   }
 }
 
@@ -347,6 +382,7 @@ function createEmptyRuntime(uid = '') {
     profile: normalizeProfile({ uid }, uid),
     progress: createEmptyProgress(),
     activity: null,
+    consent: null,
   }
 }
 
@@ -423,6 +459,34 @@ function normalizePlayActivity(activity) {
   }
 }
 
+function normalizeConsent(consent) {
+  if (!consent || typeof consent !== 'object' || Array.isArray(consent)) return null
+  const terms = normalizeConsentItem(consent.terms)
+  const privacy = normalizeConsentItem(consent.privacy)
+  if (!terms && !privacy) return null
+  return {
+    ...(terms ? { terms } : {}),
+    ...(privacy ? { privacy } : {}),
+  }
+}
+
+function normalizeConsentItem(item) {
+  if (!item || typeof item !== 'object') return null
+  const version = Number(item.version)
+  if (!Number.isFinite(version) || version < 1) return null
+  const acceptedAt = readString(item.acceptedAt)
+  if (!acceptedAt || Number.isNaN(Date.parse(acceptedAt))) return null
+  return { version: Math.floor(version), acceptedAt }
+}
+
+function cloneConsent(consent) {
+  if (!consent) return null
+  return {
+    ...(consent.terms ? { terms: { ...consent.terms } } : {}),
+    ...(consent.privacy ? { privacy: { ...consent.privacy } } : {}),
+  }
+}
+
 function cloneRuntime(value) {
   return {
     uid: value.uid,
@@ -430,6 +494,7 @@ function cloneRuntime(value) {
     profile: { ...value.profile },
     progress: cloneProgress(value.progress),
     activity: value.activity ? { ...value.activity } : null,
+    consent: cloneConsent(value.consent),
   }
 }
 

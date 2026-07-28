@@ -6,6 +6,16 @@ import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/
 import { applyReducedEffects, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
 import { schoolPanel, schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { useAuthStore } from '../store/useAuthStore.js'
+import { deleteAccountAndData, reauthenticateForDeletion } from '../lib/accountDeletion.js'
+import { TERMS_TITLE, TERMS_TEXT, PRIVACY_TITLE, PRIVACY_TEXT } from '../lib/legalDocuments.js'
+
+const DELETE_ERROR_MESSAGES = {
+  reauthRequired: '보안을 위해 다시 로그인해야 계정을 삭제할 수 있습니다.',
+  unauthenticated: '로그인 세션이 만료되었습니다. 다시 로그인한 뒤 시도해 주세요.',
+  network: '네트워크 오류로 삭제하지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.',
+  progressDeleteFailed: '진행도 삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+  unknown: '알 수 없는 오류로 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+}
 
 export default function LobbySettingsModal({ onClose, onNicknameChange, onLogoutToTitle }) {
   const authUser = useAuthStore((s) => s.user)
@@ -15,6 +25,10 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   const [nicknameOpen, setNicknameOpen] = useState(false)
   const [nicknameInput, setNicknameInput] = useState('')
   const [nicknameError, setNicknameError] = useState('')
+  const [legalOpenId, setLegalOpenId] = useState(null)
+  const [deleteStage, setDeleteStage] = useState('idle') // idle | confirm | deleting
+  const [deleteError, setDeleteError] = useState(null)
+  const [reauthBusy, setReauthBusy] = useState(false)
 
   useEffect(() => {
     saveTitleSettings(settings)
@@ -54,6 +68,44 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
     onLogoutToTitle?.()
   }
 
+  const toggleLegal = (id) => {
+    setLegalOpenId((current) => (current === id ? null : id))
+  }
+
+  const openDeleteConfirm = () => {
+    setDeleteError(null)
+    setDeleteStage('confirm')
+  }
+
+  const cancelDelete = () => {
+    if (deleteStage === 'deleting') return
+    setDeleteStage('idle')
+    setDeleteError(null)
+  }
+
+  const runDelete = async () => {
+    if (deleteStage === 'deleting') return
+    setDeleteStage('deleting')
+    const result = await deleteAccountAndData(authUser)
+    if (result.ok) {
+      onLogoutToTitle?.()
+      return
+    }
+    setDeleteError(result)
+    setDeleteStage('confirm')
+  }
+
+  const handleReauthAndRetry = async () => {
+    setReauthBusy(true)
+    const reauthed = await reauthenticateForDeletion()
+    setReauthBusy(false)
+    if (!reauthed) {
+      setDeleteError({ reason: 'reauthRequired', message: '재인증에 실패했습니다. 다시 로그인한 뒤 시도해 주세요.' })
+      return
+    }
+    await runDelete()
+  }
+
   return (
     <div style={styles.overlay}>
       <button type="button" aria-label="설정 닫기 배경" style={styles.scrim} onClick={onClose} />
@@ -89,6 +141,57 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               <button type="submit" style={styles.nicknameSave}>저장</button>
             </div>
           </form>
+        ) : deleteStage !== 'idle' ? (
+          <div style={styles.deletePanel}>
+            <h3 style={styles.deleteHeading}>계정을 삭제할까요?</h3>
+            <p style={styles.deleteWarning}>
+              진행도, 보유 골드, 무기 영구 강화, 랭킹 기록이 모두 영구적으로 삭제되며 복구할 수 없습니다.
+            </p>
+            {deleteError && (
+              <p role="alert" style={styles.deleteErrorText}>
+                {DELETE_ERROR_MESSAGES[deleteError.reason] ?? DELETE_ERROR_MESSAGES.unknown}
+              </p>
+            )}
+            {deleteError?.reason === 'reauthRequired' ? (
+              <div style={styles.nicknameActions}>
+                <button
+                  type="button"
+                  style={styles.nicknameCancel}
+                  onClick={cancelDelete}
+                  disabled={deleteStage === 'deleting' || reauthBusy}
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  style={styles.dangerConfirmButton}
+                  onClick={handleReauthAndRetry}
+                  disabled={deleteStage === 'deleting' || reauthBusy}
+                >
+                  {reauthBusy ? '재인증 중...' : '다시 로그인하고 재시도'}
+                </button>
+              </div>
+            ) : (
+              <div style={styles.nicknameActions}>
+                <button
+                  type="button"
+                  style={styles.nicknameCancel}
+                  onClick={cancelDelete}
+                  disabled={deleteStage === 'deleting'}
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  style={styles.dangerConfirmButton}
+                  onClick={runDelete}
+                  disabled={deleteStage === 'deleting'}
+                >
+                  {deleteStage === 'deleting' ? '삭제 중...' : '영구 삭제'}
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
           <>
             <div style={styles.sectionLabel}>프로필</div>
@@ -147,8 +250,38 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               </div>
             )}
 
+            <div style={styles.sectionLabel}>법적 고지</div>
+            <button type="button" style={styles.settingRow} onClick={() => toggleLegal('terms')}>
+              <span style={styles.rowText}>
+                <strong style={styles.rowTitle}>{TERMS_TITLE}</strong>
+                <span style={styles.rowDescription}>전문 보기</span>
+              </span>
+              <span style={styles.arrow}>{legalOpenId === 'terms' ? '⌃' : '›'}</span>
+            </button>
+            {legalOpenId === 'terms' && (
+              <div style={styles.legalPanel}>
+                <div style={styles.legalBody}>{TERMS_TEXT}</div>
+              </div>
+            )}
+            <button type="button" style={styles.settingRow} onClick={() => toggleLegal('privacy')}>
+              <span style={styles.rowText}>
+                <strong style={styles.rowTitle}>{PRIVACY_TITLE}</strong>
+                <span style={styles.rowDescription}>전문 보기</span>
+              </span>
+              <span style={styles.arrow}>{legalOpenId === 'privacy' ? '⌃' : '›'}</span>
+            </button>
+            {legalOpenId === 'privacy' && (
+              <div style={styles.legalPanel}>
+                <div style={styles.legalBody}>{PRIVACY_TEXT}</div>
+              </div>
+            )}
+
+            <div style={styles.sectionLabel}>계정</div>
             <button type="button" style={styles.logoutButton} onClick={handleLogout} disabled={!authUser?.uid}>
               로그아웃
+            </button>
+            <button type="button" style={styles.deleteAccountButton} onClick={openDeleteConfirm} disabled={!authUser?.uid}>
+              계정 삭제
             </button>
           </>
         )}
@@ -243,6 +376,55 @@ const styles = {
     marginBottom: 7,
     fontSize: 14,
   },
+  deleteAccountButton: {
+    ...schoolButton('danger'),
+    width: '100%',
+    minHeight: 44,
+    marginBottom: 7,
+    fontSize: 14,
+    opacity: 0.9,
+  },
+  legalPanel: {
+    margin: '1px 0 3px',
+    padding: '9px 10px',
+    border: uiBorders.strong,
+    borderRadius: 8,
+    background: uiPalette.chalkboardDeep,
+    boxShadow: uiShadows.pressSmall,
+    maxHeight: 220,
+    overflowY: 'auto',
+  },
+  legalBody: {
+    whiteSpace: 'pre-wrap',
+    margin: 0,
+    color: uiPalette.mutedChalk,
+    fontSize: 10.5,
+    lineHeight: 1.45,
+    fontWeight: 600,
+  },
+  deletePanel: { display: 'flex', flexDirection: 'column', gap: 8 },
+  deleteHeading: {
+    margin: 0,
+    fontSize: 15,
+    lineHeight: 1.3,
+    fontWeight: uiType.weightHeavy,
+    color: uiPalette.paperLight,
+  },
+  deleteWarning: {
+    margin: 0,
+    color: uiPalette.warning,
+    fontSize: 11.5,
+    lineHeight: 1.4,
+    fontWeight: 800,
+  },
+  deleteErrorText: {
+    margin: 0,
+    color: uiPalette.warning,
+    fontSize: 11.5,
+    lineHeight: 1.4,
+    fontWeight: 900,
+  },
+  dangerConfirmButton: { ...schoolButton('danger'), flex: 1, minHeight: 44, fontSize: 14 },
   rowText: { minWidth: 0, display: 'block' },
   rowTitle: { display: 'block', fontSize: 13, lineHeight: 1.2, fontWeight: uiType.weightStrong },
   rowDescription: {

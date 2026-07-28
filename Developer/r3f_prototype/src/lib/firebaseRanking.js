@@ -134,6 +134,54 @@ export async function submitRun(user, { stageId, score, timeMs, cleared } = {}) 
   }))
 }
 
+// 계정 삭제 시 지울 수 있는 랭킹 버킷의 스테이지 목록(규칙의 $stageId 화이트리스트와 일치).
+const RANKING_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4'])
+
+// 계정 삭제 경로 전용. 활성 시즌의 "오늘 daily + 이번 주 weekly" 버킷에서 본인 엔트리를 제거한다.
+// 4스테이지 × 2윈도 + 글로벌 2윈도 = 10경로.
+//
+// 한계(의도된 것이 아니라 구조적 제약): 클라이언트가 지울 수 있는 건 지금 계산 가능한
+// periodKey뿐이다. 과거 날짜/주의 periodKey와 과거 시즌 ID는 열거할 방법이 없다 —
+// 규칙이 entries 노드 아래만 읽기를 허용하고 periodKey 레벨 list 권한이 없으며 시즌
+// 레지스트리도 없다. 즉 과거 기간의 기록은 이 함수로 지워지지 않는다.
+//
+// 각 경로는 독립적으로 시도하고(Promise.allSettled) 실패해도 나머지를 계속한다.
+// 호출자는 failed로 "남는 데이터"를 알 수 있다.
+export async function deleteRankingEntriesForUser(user) {
+  if (!user?.uid || !isFirebaseRankingConfigured()) return { attempted: 0, deleted: [], failed: [] }
+
+  const now = Date.now()
+  // 삭제는 시즌 활성 여부와 무관하게 시도한다(비활성 시즌에도 데이터는 남아 있다).
+  const { seasonId } = getActiveSeason(now)
+  const dailyKey = kstDailyKey(now)
+  const weeklyKey = kstWeeklyKey(now)
+  const paths = [
+    ...RANKING_STAGE_IDS.flatMap((stageId) => [
+      entriesPath(seasonId, stageId, 'daily', dailyKey),
+      entriesPath(seasonId, stageId, 'weekly', weeklyKey),
+    ]),
+    globalEntriesPath(seasonId, 'daily', dailyKey),
+    globalEntriesPath(seasonId, 'weekly', weeklyKey),
+  ].map((path) => `${path}/${user.uid}`)
+
+  let client = null
+  try {
+    client = await getClient()
+  } catch {
+    return { attempted: paths.length, deleted: [], failed: [...paths] }
+  }
+
+  const { db, mod } = client
+  const results = await Promise.allSettled(paths.map((path) => mod.remove(mod.ref(db, path))))
+  const deleted = []
+  const failed = []
+  results.forEach((result, index) => {
+    if (result.status === 'fulfilled') deleted.push(paths[index])
+    else failed.push(paths[index])
+  })
+  return { attempted: paths.length, deleted, failed }
+}
+
 // 랭킹 표시명: 저장된 닉네임 우선, 없으면 구글 표시명, 그래도 없으면 익명. 상한 40자(규칙과 일치).
 function readDisplayName(user) {
   const nickname = typeof getSavedNickname() === 'string' ? getSavedNickname().trim() : ''

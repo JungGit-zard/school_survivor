@@ -105,7 +105,7 @@
                     ".read": "$window === 'daily' || $window === 'weekly'",
                     ".indexOn": ["score"],
                     "$uid": {
-                      ".write": "auth != null && $uid === auth.uid && ($window === 'daily' || $window === 'weekly') && (!data.exists() || newData.child('score').val() >= data.child('score').val())",
+                      ".write": "auth != null && $uid === auth.uid && ($window === 'daily' || $window === 'weekly') && (!newData.exists() || !data.exists() || newData.child('score').val() >= data.child('score').val())",
                       ".validate": "newData.hasChildren(['uid', 'displayName', 'score', 'timeMs', 'cleared', 'stageId', 'submittedAt']) && newData.child('timeMs').val() <= 300000 && newData.child('score').val() >= (newData.child('timeMs').val() / 1000) - 1 && newData.child('score').val() <= (newData.child('timeMs').val() / 1000 + (newData.child('stageId').val() === 'stage1' ? 0 : newData.child('stageId').val() === 'stage2' ? 60 : newData.child('stageId').val() === 'stage3' ? 120 : 180) + (newData.child('cleared').val() === true ? 30 : 0)) * (newData.child('cleared').val() === true ? 1.2 : 1)",
                       "uid": { ".validate": "newData.isString() && newData.val() === $uid" },
                       "displayName": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
@@ -128,7 +128,7 @@
                       ".read": "($window === 'daily' || $window === 'weekly') && ($stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3' || $stageId === 'stage4')",
                       ".indexOn": ["score"],
                       "$uid": {
-                        ".write": "auth != null && $uid === auth.uid && ($window === 'daily' || $window === 'weekly') && ($stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3' || $stageId === 'stage4') && newData.child('stageId').val() === $stageId && (!data.exists() || newData.child('score').val() >= data.child('score').val())",
+                        ".write": "auth != null && $uid === auth.uid && ($window === 'daily' || $window === 'weekly') && ($stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3' || $stageId === 'stage4') && newData.child('stageId').val() === $stageId && (!newData.exists() || !data.exists() || newData.child('score').val() >= data.child('score').val())",
                         ".validate": "newData.hasChildren(['uid', 'displayName', 'score', 'timeMs', 'cleared', 'stageId', 'submittedAt']) && newData.child('timeMs').val() <= 300000 && newData.child('score').val() >= (newData.child('timeMs').val() / 1000) - 1 && newData.child('score').val() <= (newData.child('timeMs').val() / 1000 + (newData.child('stageId').val() === 'stage1' ? 0 : newData.child('stageId').val() === 'stage2' ? 60 : newData.child('stageId').val() === 'stage3' ? 120 : 180) + (newData.child('cleared').val() === true ? 30 : 0)) * (newData.child('cleared').val() === true ? 1.2 : 1)",
                         "uid": { ".validate": "newData.isString() && newData.val() === $uid" },
                         "displayName": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
