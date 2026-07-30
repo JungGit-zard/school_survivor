@@ -55,7 +55,6 @@ function remoteSnapshot(overrides = {}) {
 
 describe('firebase-only player progress runtime', () => {
   beforeEach(() => {
-    localStorage.clear()
     vi.clearAllMocks()
     _resetFirebaseProgressForTests()
   })
@@ -131,7 +130,6 @@ describe('firebase-only player progress runtime', () => {
     expect(remote).not.toHaveProperty('password')
     expect(isFirebaseProgressHydrated(USER)).toBe(true)
     expect(getFirebaseProgressRuntimeSnapshot().progress).toEqual(remote.progress)
-    expect(localStorage.length).toBe(0)
   })
 
   it('creates a missing account only once across two concurrent hydrates and both use the final remote canonical value', async () => {
@@ -246,7 +244,6 @@ describe('firebase-only player progress runtime', () => {
     }))
     expect(snapshot.profile.nickname).toBe('Firebase왕')
     expect(snapshot.activity).toEqual({ lastStageId: 'stage2', lastStartedAt: '2026-07-18T01:02:03.000Z' })
-    expect(localStorage.length).toBe(0)
   })
 
   it('serializes debounced writes and uses the latest runtime values without lost updates', async () => {

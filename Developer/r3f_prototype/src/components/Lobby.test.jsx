@@ -79,7 +79,6 @@ describe('Lobby', () => {
       decals: {},
       propPlacements: {},
     })
-    localStorage.clear()
     vi.clearAllMocks()
     useAuthStore.setState({
       status: 'signedIn',
@@ -120,6 +119,30 @@ describe('Lobby', () => {
 
     expect(labels).toEqual(['무기', '랭킹', '상점'])
     expect(labels).not.toContain('능력치')
+
+    view.unmount()
+  })
+
+  it('keeps the settings control at the 44px touch-target minimum', () => {
+    const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+    const settingsButton = view.container.querySelector('[aria-label="설정 열기"]')
+
+    expect(settingsButton).not.toBeNull()
+    expect(settingsButton.style.width).toBe('44px')
+    expect(settingsButton.style.height).toBe('44px')
+
+    view.unmount()
+  })
+
+  it('keeps every stage primary and ranking control at the 44px touch-target minimum', () => {
+    const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+    const previewRows = Array.from(view.container.querySelectorAll('[data-testid="stage-card-preview-row"]'))
+    const stageControls = previewRows.flatMap((row) => Array.from(row.querySelectorAll('button')))
+
+    expect(stageControls).toHaveLength(previewRows.length * 2)
+    stageControls.forEach((button) => {
+      expect(Number.parseFloat(button.style.minHeight)).toBeGreaterThanOrEqual(44)
+    })
 
     view.unmount()
   })
@@ -188,13 +211,14 @@ describe('Lobby', () => {
     expect(disabledEntry.style.right).toBe('10px')
     expect(disabledEntry.style.bottom).toBe('10px')
     expect(disabledEntry.style.minWidth).toBe('132px')
-    expect(disabledEntry.style.minHeight).toBe('42px')
+    expect(disabledEntry.style.minHeight).toBe('44px')
     expect(disabledEntry.style.fontSize).toBe('11px')
     expect(rankingButton.disabled).toBe(true)
     expect(rankingButton.style.position).toBe('absolute')
     expect(rankingButton.style.top).toBe('34px')
     expect(rankingButton.style.left).toBe('10px')
     expect(rankingButton.style.width).toBe('74px')
+    expect(rankingButton.style.minHeight).toBe('44px')
     expect(stage4Card.children).toHaveLength(1)
 
     act(() => {

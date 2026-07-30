@@ -202,6 +202,7 @@ describe('playSfx', () => {
       now.mockReturnValue(0)
       playSfx(id)
       expect(howlPlay.mock.calls.length, `${id} initial`).toBe(playsBefore + 1)
+      howlConfigs.find((config) => config.src[0] === `/sfx/weapons/${id}.ogg`)?.onend(7)
 
       now.mockReturnValue(duration - 1)
       playSfx(id)
@@ -210,6 +211,7 @@ describe('playSfx', () => {
       now.mockReturnValue(duration)
       playSfx(id)
       expect(howlPlay.mock.calls.length, `${id} duration`).toBe(playsBefore + 2)
+      howlConfigs.find((config) => config.src[0] === `/sfx/weapons/${id}.ogg`)?.onend(7)
     }
   })
 
@@ -232,5 +234,70 @@ describe('playSfx', () => {
     playSfx('pencilFire')
 
     expect(howlRate).toHaveBeenLastCalledWith(1, 7)
+  })
+
+  it('drops low-priority combat voices at the global cap and releases a voice only once', async () => {
+    const { COMBAT_VOICE_CAP, playSfx } = await import('./sfxRegistry.js')
+    howlPlay.mockImplementationOnce(() => 1)
+      .mockImplementationOnce(() => 2)
+      .mockImplementationOnce(() => 3)
+      .mockImplementationOnce(() => 4)
+      .mockImplementationOnce(() => 5)
+      .mockImplementationOnce(() => 6)
+
+    for (let index = 0; index < COMBAT_VOICE_CAP; index++) playSfx(`pencilFire`)
+    playSfx('rulerFire')
+    expect(howlPlay).toHaveBeenCalledTimes(COMBAT_VOICE_CAP)
+
+    howlConfigs[0].onend(1)
+    howlConfigs[0].onstop(1)
+    playSfx('rulerFire')
+    expect(howlPlay).toHaveBeenCalledTimes(COMBAT_VOICE_CAP + 1)
+
+    howlConfigs[1].onplayerror(7)
+    howlConfigs[1].onend(7)
+    playSfx('boxCutterFire')
+    expect(howlPlay).toHaveBeenCalledTimes(COMBAT_VOICE_CAP + 2)
+  })
+
+  it('releases every voice token for a logical ID after a load error', async () => {
+    const { COMBAT_VOICE_CAP, playSfx } = await import('./sfxRegistry.js')
+    howlPlay.mockImplementation((() => {
+      let id = 0
+      return () => ++id
+    })())
+
+    for (let index = 0; index < COMBAT_VOICE_CAP; index++) playSfx('pencilFire')
+    playSfx('rulerFire')
+    expect(howlPlay).toHaveBeenCalledTimes(COMBAT_VOICE_CAP)
+
+    howlConfigs[0].onloaderror(null, 'mock load error')
+    howlConfigs[0].onloaderror(null, 'duplicate mock load error')
+    playSfx('rulerFire')
+
+    expect(howlPlay).toHaveBeenCalledTimes(COMBAT_VOICE_CAP + 1)
+    expect(howlConfigs.at(-1).src).toEqual(['/sfx/weapons/rulerFire.ogg', '/sfx/weapons/rulerFire.mp3'])
+  })
+
+  it('always plays protected danger cues even when combat voices reach the cap', async () => {
+    const { COMBAT_VOICE_CAP, isProtectedSfx, playSfx } = await import('./sfxRegistry.js')
+    howlPlay.mockImplementation((() => {
+      let id = 0
+      return () => ++id
+    })())
+
+    for (let index = 0; index < COMBAT_VOICE_CAP; index++) playSfx(`pencilFire`)
+    playSfx('bossWarning')
+    playSfx('playerHit')
+    playSfx('matildaCountdownEnd')
+    playSfx('bossRoar')
+    playSfx('matildaDash')
+
+    expect(isProtectedSfx('bossWarning')).toBe(true)
+    expect(isProtectedSfx('playerHit')).toBe(true)
+    expect(isProtectedSfx('matildaCountdownEnd')).toBe(true)
+    expect(isProtectedSfx('bossRoar')).toBe(true)
+    expect(isProtectedSfx('matildaDash')).toBe(true)
+    expect(howlPlay).toHaveBeenCalledTimes(COMBAT_VOICE_CAP + 5)
   })
 })

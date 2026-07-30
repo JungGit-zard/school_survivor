@@ -7,6 +7,7 @@
 // 버전 상수는 legalDocuments.js를 단일 출처로 삼는다 — 문서가 개정되어 버전이 오르면
 // needsConsent가 자동으로 다시 게이트를 연다.
 import { TERMS_VERSION, PRIVACY_VERSION } from './legalDocuments.js'
+import { isE2EAuthBypass } from './e2eAuth.js'
 import {
   isFirebaseProgressHydrated,
   readFirebasePlayerConsent,
@@ -35,6 +36,17 @@ export async function recordConsent(user) {
   const consent = {
     terms: { version: TERMS_VERSION, acceptedAt: now },
     privacy: { version: PRIVACY_VERSION, acceptedAt: now },
+  }
+
+  // DEV E2E는 Firebase 인증/RTDB를 의도적으로 우회하고 hydrated 메모리 런타임만 사용한다.
+  // import.meta.env.DEV로 보호된 isE2EAuthBypass는 프로덕션 빌드에서 항상 false다.
+  if (isE2EAuthBypass()) {
+    try {
+      writeFirebasePlayerConsent(consent)
+      return true
+    } catch {
+      return false
+    }
   }
 
   try {

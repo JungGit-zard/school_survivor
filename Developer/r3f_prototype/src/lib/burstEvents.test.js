@@ -21,14 +21,14 @@ describe('burstEvents 보스 등장 시각 파생', () => {
   })
 
   it('보스 등장 시각 = 보스 버스트(B01/B02) sec 단일 소스', () => {
-    // stage1 B01, stage2 B02 모두 2:00(120s)에 정의됨
-    expect(getBossSpawnSec('stage1')).toBe(120)
+    // stage1 B01은 3:12(192s), stage2 B02는 2:00(120s)에 정의됨
+    expect(getBossSpawnSec('stage1')).toBe(192)
     expect(getBossSpawnSec('stage2')).toBe(120)
   })
 
   it('런타임 버스트는 웨이브와 중복되지 않는 보스 등장만 반환한다', () => {
     expect(getRuntimeBurstEventsForStage('stage1')).toEqual([
-      { sec: 120, type: 'B01', count: 1 },
+      { sec: 192, type: 'B01', count: 1 },
     ])
     expect(getRuntimeBurstEventsForStage('stage2')).toEqual([
       { sec: 120, type: 'B02', count: 1 },
@@ -46,8 +46,8 @@ describe('burstEvents 보스 등장 시각 파생', () => {
     expect(isBossPhase(120, 'stage2')).toBe(true)
     expect(isBossPhase(119, 'stage2')).toBe(false)
     expect(isBossPhase(192, 'stage2')).toBe(true)
-    expect(isBossPhase(120, 'stage1')).toBe(true)
-    expect(isBossPhase(108, 'stage1')).toBe(false)
+    expect(isBossPhase(192, 'stage1')).toBe(true)
+    expect(isBossPhase(191, 'stage1')).toBe(false)
   })
 })
 
@@ -78,7 +78,7 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
     expect(runtime.filter((e) => e.type === 'B03')).toHaveLength(1)
     expect(runtime.filter((e) => e.type === 'B01' || e.type === 'B02')).toHaveLength(0)
     // 회귀 방지: stage1/stage2는 여전히 보스만 런타임 발화한다.
-    expect(getRuntimeBurstEventsForStage('stage1')).toEqual([{ sec: 120, type: 'B01', count: 1 }])
+    expect(getRuntimeBurstEventsForStage('stage1')).toEqual([{ sec: 192, type: 'B01', count: 1 }])
     expect(getRuntimeBurstEventsForStage('stage2')).toEqual([{ sec: 120, type: 'B02', count: 1 }])
   })
 
@@ -140,7 +140,7 @@ describe('stage4 급식실 대탈출 버스트', () => {
     expect(runtime.some((e) => e.formation)).toBe(true)
     expect(runtime.filter((e) => e.type === 'B04')).toHaveLength(1)
     // 회귀 방지: stage1/stage2는 여전히 보스만 런타임 발화.
-    expect(getRuntimeBurstEventsForStage('stage1')).toEqual([{ sec: 120, type: 'B01', count: 1 }])
+    expect(getRuntimeBurstEventsForStage('stage1')).toEqual([{ sec: 192, type: 'B01', count: 1 }])
     expect(getRuntimeBurstEventsForStage('stage2')).toEqual([{ sec: 120, type: 'B02', count: 1 }])
   })
 

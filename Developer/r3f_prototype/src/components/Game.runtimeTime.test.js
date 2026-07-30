@@ -10,8 +10,11 @@ describe('runtime elapsed clock wiring', () => {
     const frameEnd = gameSource.indexOf('\n  return (', frameStart)
     const frameSource = gameSource.slice(frameStart, frameEnd)
 
-    expect(frameSource).toContain('advanceRuntimeTime(dt * 1000)')
-    expect(frameSource).not.toContain('tickTime(dt * 1000)')
+    expect(frameSource).toContain('advanceRuntimeTime(fixedDelta * 1000)')
+    expect(frameSource).toContain('runGameplayFixedSteps(gameplayClockRef.current, delta')
+    expect(gameSource).toContain("import { clampGameplayFrameDelta, createGameplayFixedStepClock, runGameplayFixedSteps } from '../lib/gameplayFrameTime.js'")
+    expect(frameSource).toContain('camera.position.lerp(_camTarget, followAlpha)')
+    expect(frameSource).not.toContain('tickTime(fixedDelta * 1000)')
     expect(frameSource).not.toContain('publishRuntimeElapsedMs')
     expect(frameSource).toContain("useGameStore.getState().phase === 'playing'")
     expect(gameSource).toContain('window.setInterval(publishRuntimeElapsedMs, PUBLISH_INTERVAL_MS)')

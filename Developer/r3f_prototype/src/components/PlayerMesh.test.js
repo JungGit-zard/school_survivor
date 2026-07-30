@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { PLAYER_MESH_LAYOUT, PLAYER_STENCIL_REF } from './PlayerMesh.jsx'
+import {
+  createPlayerCrowdOutlineMaterial,
+  PLAYER_CROWD_OUTLINE_RENDER_ORDER,
+  PLAYER_MESH_LAYOUT,
+  PLAYER_STENCIL_REF,
+} from './PlayerMesh.jsx'
 
 describe('PlayerMesh layout', () => {
   it('keeps the player head connected to the torso during idle and walk bobbing', () => {
@@ -23,7 +28,7 @@ describe('PlayerMesh layout', () => {
     expect(PLAYER_STENCIL_REF).toBe(3)
     expect(source).toContain('material.stencilRef = PLAYER_STENCIL_REF')
     expect(source).toContain('usePlayerStencilMaterial(() => toonMat')
-    expect(source).toContain('usePlayerStencilMaterial(() => outlineMat')
+    expect(source).toContain('crowdVisible ? createPlayerCrowdOutlineMaterial : () => outlineMat(0.98)')
   })
 
   it('places the lantern prop at the right hand tip', () => {
@@ -54,6 +59,18 @@ describe('PlayerMesh layout', () => {
     expect(shadowMaterial).toContain('polygonOffset: true')
     expect(source).toContain('position={PLAYER_MESH_LAYOUT.floorShadow.position}')
     expect(source).toContain('renderOrder={1}')
+  })
+
+  it('draws only the existing player silhouette above a dense enemy crowd', () => {
+    const material = createPlayerCrowdOutlineMaterial()
+
+    expect(PLAYER_CROWD_OUTLINE_RENDER_ORDER).toBeGreaterThan(20)
+    expect(material.depthTest).toBe(false)
+    expect(material.depthWrite).toBe(false)
+    expect(material.transparent).toBe(true)
+    expect(material.opacity).toBe(0.98)
+
+    material.dispose()
   })
 
   it('lifts the mesh so feet touch the floor and the shadow sits above it', () => {

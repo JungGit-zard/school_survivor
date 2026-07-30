@@ -23,7 +23,7 @@ import { vibrateFeedback } from '../lib/titleSettings.js'
 import { recordPlayActivity, requestCloudProgressSave, readFirebasePlayerProgress, updateFirebasePlayerProgress } from '../lib/firebaseProgress.js'
 import { submitRun } from '../lib/firebaseRanking.js'
 import { useAuthStore } from './useAuthStore.js'
-import { getRankingScore, getRankingScorePolicy, STAGE_BONUS, CLEAR_BONUS } from '../lib/rankingScorePolicy.js'
+import { getBossClearBonus, getRankingScore, getRankingScorePolicy } from '../lib/rankingScorePolicy.js'
 import { logDamageTaken } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
@@ -149,10 +149,13 @@ export const useGameStore = create(
     // 같은 runId를 만들어 서버 dedup으로 이중가산을 막는다(M6).
     runStartedAt: Date.now(),
     currentStageId: DEFAULT_STAGE_ID,
+    e2eInvincible: false,
     bossSpawned: false,
-    // 현재 생존 중인 보스 수. 더블 보스(stage3) 클리어 게이팅에 쓴다 — 마지막 보스 처치 시에만 클리어.
-    // 단일 보스(stage1/2)는 spawnBoss 1회 → 1, 처치 시 0 → 즉시 클리어(기존 거동 불변).
+    // 현재 생존 중인 보스 수. 스폰마다 증가하고 처치마다 감소한다.
+    // 마지막 보스 처치는 보너스 성취일 뿐, 스테이지 클리어와 런 종료는 포탈 진입만 담당한다.
     bossAliveCount: 0,
+    // 마지막 보스 처치 사실. 점수 보너스는 포탈 클리어 시에만 확정한다.
+    bossDefeated: false,
     escapePortalActive: false,
     matildaSpawned: false,
     bossBonus: 0,
@@ -189,8 +192,9 @@ export const useGameStore = create(
 
     // 플레이어 피해
     damagePlayer: (amount, { ignoreInvulnerability = false } = {}) => {
-      const { player, phase } = get()
+      const { player, phase, e2eInvincible } = get()
       if (phase !== 'playing') return
+      if (e2eInvincible) return
       if (player.invulnerable && !ignoreInvulnerability) return
       const hp = Math.max(0, player.hp - amount)
       logDamageTaken(amount, hp)
@@ -316,10 +320,17 @@ export const useGameStore = create(
 
       // 랭킹 제출 — 로그인 상태 + Firebase 설정 시에만 동작 (실패해도 게임에 영향 없음).
       const cleared = phaseName === 'cleared'
+      const policy = getRankingScorePolicy()
+      const bossBonus = getBossClearBonus({
+        stageId: s.currentStageId,
+        survivalSeconds: runSurvivalSeconds,
+        cleared,
+        bossDefeated: s.bossDefeated,
+      }, policy)
+      if (s.bossBonus !== bossBonus) set({ bossBonus })
       const user = useAuthStore.getState().user
       if (user) {
-        const policy = getRankingScorePolicy()
-        const score = getRankingScore({ stageId: s.currentStageId, survivalSeconds: runSurvivalSeconds, cleared, bossBonus: s.bossBonus }, policy)
+        const score = getRankingScore({ stageId: s.currentStageId, survivalSeconds: runSurvivalSeconds, cleared, bossBonus }, policy)
         // 런당 결정적 runId(M6): 같은 런의 종료가 2회 발화해도 동일 id → 서버 dedup으로 이중가산 방지.
         // uid/stageId는 영숫자, runStartedAt은 숫자라 정규식 ^[A-Za-z0-9_-]{12,80}$를 통과한다.
         const runId = `${user.uid}_${s.currentStageId}_${s.runStartedAt ?? 0}`.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 80)
@@ -601,27 +612,20 @@ export const useGameStore = create(
     activateEscapePortal: () => set({ escapePortalActive: true }),
     spawnMatilda: () => set({ matildaSpawned: true }),
 
-    // 보스 격퇴 시 호출(Enemy.jsx). 그 시점 총점의 20%를 bossBonus로 저장 후 클리어.
-    // 더블 보스(stage3): 아직 살아있는 보스가 남으면 클리어를 미루고 카운트만 감소 —
-    // 마지막 보스를 처치해 bossAliveCount가 0이 될 때만 실제 클리어/보너스를 진행한다.
-    clearStageWithBossBonus: () => {
+    // 보스 처치 시 호출(Enemy.jsx). 마지막 생존 보스에서는 처치 사실과 징글만 기록한다.
+    // 스테이지 클리어/런 종료는 하지 않으며, 점수 보너스는 포탈 클리어에서만 확정한다.
+    // bossAliveCount=0 가드가 중복 기록과 징글을 막는다.
+    recordBossDefeat: () => {
       const s = get()
-      if (s.phase !== 'playing') return
+      if (s.phase !== 'playing' || s.bossAliveCount <= 0) return false
       const remaining = Math.max(0, s.bossAliveCount - 1)
       if (remaining > 0) {
         set({ bossAliveCount: remaining })
-        return
+        return true
       }
-      set({ bossAliveCount: 0 })
-      const policy = getRankingScorePolicy()
-      const survivalSec = Math.floor(getRuntimeElapsedMs(s.elapsedMs) / 1000)
-      const stageBonus = policy.stageBonus?.[s.currentStageId] ?? STAGE_BONUS[s.currentStageId] ?? 0
-      const clearBonus = policy.clearBonus ?? CLEAR_BONUS
-      const baseScore = survivalSec + stageBonus + clearBonus
-      const bonus = Math.floor(baseScore * 0.2)
-      set({ bossBonus: bonus, phase: 'cleared', pauseSource: null })
+      set({ bossAliveCount: 0, bossDefeated: true })
       emitSfx({ id: 'bossClearJingle' })
-      get()._onRunEnd('cleared')
+      return true
     },
 
     clearStage: () => {
@@ -662,8 +666,10 @@ export const useGameStore = create(
         elapsedMs:   0,
         runStartedAt: Date.now(),
         currentStageId: nextStageId,
+        e2eInvincible: false,
         bossSpawned: false,
         bossAliveCount: 0,
+        bossDefeated: false,
         escapePortalActive: false,
         matildaSpawned: false,
         bossBonus: 0,

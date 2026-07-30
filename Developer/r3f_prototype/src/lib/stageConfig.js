@@ -14,9 +14,9 @@ export const STAGE_CONFIGS = {
     durationSec: STAGE_DURATION_SEC,
     clearRecordKey: 'stage1Clears',
     bestRecordKey: 'bestSurvivalSeconds',
-    bossWarningSec: 120,
+    bossWarningSec: 186,
     bossType: 'B01',
-    escapePortalSec: 150,
+    escapePortalSec: 240,
     matildaWarningSec: 170,
     matildaSec: 180,
     // 맵 경계(월드 유닛, 중심 0). 교실 구도에 맞춰 세로로 긴 직사각형 — 화면 세로=Z, 가로=X.

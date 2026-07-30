@@ -34,7 +34,8 @@ export function GoogleAccountPanelView({ status, user, error, signingIn, onSignI
   const label = getPanelLabel(status, signingIn)
 
   return (
-    <section style={styles.panel} aria-label="Google account">
+    <section className="google-account-panel" style={styles.panel} aria-label="Google account">
+      <style data-google-account-accessibility-css>{GOOGLE_ACCOUNT_ACCESSIBILITY_CSS}</style>
       <div style={styles.identity}>
         {signedIn && user.photoURL ? (
           <img src={user.photoURL} alt="" style={styles.avatar} />
@@ -43,24 +44,48 @@ export function GoogleAccountPanelView({ status, user, error, signingIn, onSignI
         )}
         <span style={styles.copy}>
           <strong style={styles.title}>{signedIn ? (user.displayName || 'Google 계정') : label}</strong>
-          <span style={styles.detail}>
+          <span className="google-account-detail" style={styles.detail}>
             {signedIn ? (user.email || '계정 연결됨') : getPanelDetail(status, error)}
           </span>
           {signedIn && isProjectMaster(user) && <span style={styles.masterBadge}>최고관리자</span>}
         </span>
       </div>
       {signedIn ? (
-        <button type="button" style={styles.secondaryButton} onClick={onSignOut}>
+        <button type="button" className="google-account-action" style={styles.secondaryButton} onClick={onSignOut}>
           로그아웃
         </button>
       ) : (
-        <button type="button" style={styles.primaryButton} disabled={disabled} onClick={onSignIn}>
+        <button type="button" className="google-account-action" style={styles.primaryButton} disabled={disabled} onClick={onSignIn}>
           {signingIn ? '로그인 중...' : 'Google 로그인'}
         </button>
       )}
     </section>
   )
 }
+
+const GOOGLE_ACCOUNT_ACCESSIBILITY_CSS = `
+  .google-account-panel button:focus-visible {
+    outline: 3px solid #fff8e8;
+    outline-offset: 3px;
+  }
+  @media (max-width: 360px) {
+    .google-account-panel {
+      width: min(218px, calc(100% - 28px)) !important;
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
+    .google-account-panel .google-account-action {
+      grid-column: 1 / -1;
+      justify-self: stretch;
+      width: 100%;
+    }
+    .google-account-panel strong,
+    .google-account-panel .google-account-detail {
+      overflow: visible !important;
+      text-overflow: clip !important;
+      white-space: normal !important;
+    }
+  }
+`
 
 function getPanelLabel(status, signingIn) {
   if (signingIn) return 'Google 로그인 중'
@@ -164,7 +189,7 @@ const styles = {
   primaryButton: {
     ...schoolButton('primary'),
     minWidth: 76,
-    minHeight: 34,
+    minHeight: 44,
     fontSize: 11,
     lineHeight: 1.1,
     boxShadow: uiShadows.pressSmall,
@@ -172,7 +197,7 @@ const styles = {
   secondaryButton: {
     ...schoolButton('reward'),
     minWidth: 58,
-    minHeight: 34,
+    minHeight: 44,
     fontSize: 11,
     lineHeight: 1.1,
     boxShadow: uiShadows.pressSmall,

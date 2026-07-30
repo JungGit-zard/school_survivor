@@ -110,6 +110,51 @@ export const SFX_TUNING_STORAGE_KEY = 'escape-zombie-school.sfxTunings.v1'
 
 const _cache  = {}
 const _failed = new Set()
+const _activeCombatVoices = new Set()
+
+// 위험/플레이어/UI 신호는 전역 전투 보이스 상한 때문에 버리지 않는다.
+// 반복되는 무기·적·ambient 신호만 작은 상한으로 제어한다.
+export const COMBAT_VOICE_CAP = 6
+export const PROTECTED_DANGER_SFX = Object.freeze([
+  'bossRoar',
+  'bossDeath',
+  'matildaSpawn',
+  'matildaDash',
+  'matildaLaugh',
+  'matildaDeath',
+  'zombieRunnerScreech',
+  'zombieRangedShoot',
+  'zombieChargeRoar',
+  'zombieGiantThud',
+])
+const _protectedDangerSfx = new Set(PROTECTED_DANGER_SFX)
+export const SFX_VOICE_CLASS = Object.freeze(Object.fromEntries(
+  Object.entries(SOUND_MAP).map(([id, src]) => [
+    id,
+    _protectedDangerSfx.has(id) || (!src.includes('/weapons/') && !src.includes('/enemies/'))
+      ? 'protected'
+      : 'combat',
+  ]),
+))
+
+export function isProtectedSfx(id) {
+  return SFX_VOICE_CLASS[id] === 'protected'
+}
+
+function combatVoiceKey(id, soundId) {
+  return `${id}:${soundId}`
+}
+
+function releaseCombatVoice(id, soundId) {
+  _activeCombatVoices.delete(combatVoiceKey(id, soundId))
+}
+
+function releaseCombatVoicesForLogicalId(id) {
+  const prefix = `${id}:`
+  for (const voiceKey of _activeCombatVoices) {
+    if (voiceKey.startsWith(prefix)) _activeCombatVoices.delete(voiceKey)
+  }
+}
 
 // 동시 다발 사망 시 같은 사운드가 같은 프레임에 여러 번 울리는 걸 막는 쿨다운 맵.
 // 한 프레임(~16ms) 안에 같은 ID가 반복 emit돼도 1회만 재생.
@@ -202,6 +247,9 @@ export function playSfx(id, volume = 1, options = {}) {
   const tuning = normalizeSfxTuning(loadSfxTunings()[id])
   const tunedVolume = clamp(volume * tuning.volume, 0, 1)
   const tunedRate = clamp((options.rate ?? 1) * tuning.rate, 0.5, 2)
+  const protectedSfx = isProtectedSfx(id)
+
+  if (!protectedSfx && _activeCombatVoices.size >= COMBAT_VOICE_CAP) return
 
   const cooldown = POLYPHONY_COOLDOWN[id] ?? 0
   if (cooldown > 0) {
@@ -216,10 +264,18 @@ export function playSfx(id, volume = 1, options = {}) {
     _cache[id] = new Howl({
       src: [ogg, mp3],   // OGG 우선, 미지원 브라우저는 MP3 fallback
       volume: tunedVolume,
-      onloaderror: () => { _failed.add(id); delete _cache[id] },
+      onloaderror: () => {
+        releaseCombatVoicesForLogicalId(id)
+        _failed.add(id)
+        delete _cache[id]
+      },
+      onend: (soundId) => releaseCombatVoice(id, soundId),
+      onstop: (soundId) => releaseCombatVoice(id, soundId),
+      onplayerror: (soundId) => releaseCombatVoice(id, soundId),
     })
   }
   const soundId = _cache[id].play()
+  if (!protectedSfx) _activeCombatVoices.add(combatVoiceKey(id, soundId))
   _cache[id].volume?.(tunedVolume, soundId)
   // Howler retains a cached instance's prior playback rate. Apply the saved
   // value even when it is 1 so an admin reset takes effect on the next play.

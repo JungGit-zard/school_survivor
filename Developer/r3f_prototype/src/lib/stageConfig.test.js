@@ -14,7 +14,6 @@ import { saveAdminConfig } from './adminConfig.js'
 
 describe('stage configuration registry', () => {
   beforeEach(() => {
-    localStorage.clear()
   })
 
   it('keeps stage 1 as the default 240 second survival stage', () => {
@@ -43,8 +42,8 @@ describe('stage configuration registry', () => {
 
   it('uses the current boss, escape portal, and Matilda timing for each stage', () => {
     expect(getStageConfig('stage1')).toMatchObject({
-      bossWarningSec: 120,
-      escapePortalSec: 150,
+      bossWarningSec: 186,
+      escapePortalSec: 240,
       matildaWarningSec: 170,
       matildaSec: 180,
     })

@@ -138,7 +138,6 @@ describe('App virtual joystick mounting', () => {
   })
 
   it('refetches Firebase on an allowed Studio sync message and ignores injected payloads', async () => {
-    localStorage.clear()
     resetStagePropPlacementsCache()
     saveStudioTunings({ stale: { scale: 1.3 } })
     saveStagePropPlacements({
@@ -181,7 +180,6 @@ describe('App virtual joystick mounting', () => {
   })
 
   it('does not consume malformed or arbitrary datasets from a Studio message', async () => {
-    localStorage.clear()
     resetStagePropPlacementsCache()
     saveStudioTunings({ player: { scale: 1.63 } })
     saveStagePropPlacements({

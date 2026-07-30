@@ -24,7 +24,7 @@ export const BURST_EVENTS = [
   { sec: 184, type: 'E01', count:  5 },  // 마지막 러시 (보스 직전) — 과부하 완화
   { sec: 184, type: 'E02', count:  3 },
   { sec: 184, type: 'E05', count:  2 },
-  { sec: 120, type: 'B01', count:  1 },  // 보스 등장 (2:00) — 보스 구간 파생 기준
+  { sec: 192, type: 'B01', count:  1 },  // 보스 등장 (3:12) — 보스 구간 파생 기준
   { sec: 216, type: 'E05', count:  3 },
 ]
 

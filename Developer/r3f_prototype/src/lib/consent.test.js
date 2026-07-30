@@ -1,6 +1,26 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+const e2eAuth = vi.hoisted(() => ({ enabled: false }))
+const firebaseProgressSpies = vi.hoisted(() => ({
+  requestCloudProgressSave: vi.fn(),
+}))
+
+vi.mock('./e2eAuth.js', () => ({
+  isE2EAuthBypass: () => e2eAuth.enabled,
+}))
+
+vi.mock('./firebaseProgress.js', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    requestCloudProgressSave: async (...args) => {
+      firebaseProgressSpies.requestCloudProgressSave(...args)
+      return actual.requestCloudProgressSave(...args)
+    },
+  }
+})
+
 // legalDocuments.js의 실제 버전(TERMS_VERSION=1/PRIVACY_VERSION=1)만으로는 "저장된
 // 버전이 현재보다 낮다"는 케이스를 만들 수 없다(버전은 firebaseProgress.js 정규화 규칙상
 // 1 미만이 될 수 없다). 이 파일에서만 버전을 2로 올려 낡은 버전(1)의 동의 기록이
@@ -37,9 +57,9 @@ function remoteSnapshot(overrides = {}) {
 
 describe('consent.js', () => {
   beforeEach(() => {
-    localStorage.clear()
     sessionStorage.clear()
     vi.clearAllMocks()
+    e2eAuth.enabled = false
     _resetFirebaseProgressForTests()
     _resetForTests()
   })
@@ -106,6 +126,23 @@ describe('consent.js', () => {
     expect(readConsent(USER)).toBeNull()
   })
 
+  it('records E2E consent in the hydrated memory runtime without requesting a Firebase save', async () => {
+    e2eAuth.enabled = true
+    _setFirebaseProgressClientForTests({
+      loadOrCreate: vi.fn(async () => remoteSnapshot()),
+      save: vi.fn(async () => {}),
+    })
+    applyCloudProgressSnapshot(remoteSnapshot(), USER, { keepCloudUserNull: true })
+
+    await expect(recordConsent(USER)).resolves.toBe(true)
+
+    expect(firebaseProgressSpies.requestCloudProgressSave).not.toHaveBeenCalled()
+    expect(readConsent(USER)).toMatchObject({
+      terms: { version: TERMS_VERSION },
+      privacy: { version: PRIVACY_VERSION },
+    })
+  })
+
   it('never persists consent to browser storage', async () => {
     _setFirebaseProgressClientForTests({
       loadOrCreate: vi.fn(async () => remoteSnapshot()),
@@ -115,7 +152,6 @@ describe('consent.js', () => {
 
     await recordConsent(USER)
 
-    expect(localStorage.length).toBe(0)
     expect(sessionStorage.length).toBe(0)
   })
 

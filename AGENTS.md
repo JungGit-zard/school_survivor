@@ -153,3 +153,10 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 - Corporate operations, tax/VAT, settlement exports, revenue evidence, or accountant-handoff work always requires separately managed `corpopsmini` involvement.
 - Accepted evidence: Kanban card, `Developer/agent_room/` artifact, or `.claude/agents/<profile>.md` review trail.
 
+## 타이틀 전면 정본 잠금
+
+- 타이틀 화면의 문구·카피, UI, 버튼·입력, 레이아웃·좌표·크기, 캐릭터·모델·텍스처·재질·외곽선, 조명·배경·카메라, 애니메이션, 오디오·BGM, 설정, Studio 연결·동기화, 관련 자산 및 runtime source는 최종결정권자인 사용자가 현재 대화에서 직접 대상과 변경을 명시하지 않는 한 절대로 변경하지 않는다.
+- 비평가 점수, 품질 개선, 최적화, 접근성, 라이선스·권리, 리팩터링, 테스트 편의는 변경 권한이 아니다. 타이틀 프레젠테이션을 바꾸려는 목적으로 공유 gameplay 모델·코드를 변경하는 일도 금지한다.
+- `Developer/r3f_prototype/src/assets/audio/title_bgm.m4a`는 bytes `998122`, SHA-256 `991bf9871fe70b55852920390b3b1434892cfc50da79d3e8fd900062b191cffe`의 영구 정본이며, 모든 개발 실행·빌드·AAB에 반드시 포함한다. 삭제·교체·변환·재생 경로 변경·대체 생성은 금지한다.
+- 권리·출처·품질·최적화·비평 점수는 이 정본을 교체하거나 제외할 사유가 아니며, 사용자 새 명시 지시만 변경을 허용한다. 권리·출처 검토는 별도 기록일 뿐 정본 교체·제외 권한이 아니다.
+

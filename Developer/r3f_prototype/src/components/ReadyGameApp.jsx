@@ -3,6 +3,7 @@ import TitleScreen from './TitleScreen.jsx'
 import Lobby from './Lobby.jsx'
 import VirtualJoystick from './VirtualJoystick.jsx'
 import SfxLayer from './SfxLayer.jsx'
+import GameplayBgm from './GameplayBgm.jsx'
 import { useGameStore } from '../store/useGameStore.js'
 import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { initPlaytestLogger } from '../lib/playtestLogger.js'
@@ -10,6 +11,8 @@ import { isMobileJoystickEnvironment } from '../lib/mobileInput.js'
 import { initKeyboardInput } from '../lib/keyboardInput.js'
 import { loadTitleSettings } from '../lib/titleSettings.js'
 import { loadGameCanvas } from './gameCanvasLoader.js'
+import E2ERuntimePerformanceDiagnostics from './E2ERuntimePerformanceDiagnostics.jsx'
+import { isE2EPerformanceDiagnostics } from '../lib/e2eAuth.js'
 
 const CoinShop = lazy(() => import('./CoinShop.jsx'))
 const UserRanking = lazy(() => import('./UserRanking.jsx'))
@@ -36,6 +39,7 @@ export default function ReadyGameApp({
   const [rankingStageId, setRankingStageId] = useState(null)
   const [mobileJoystickEnabled, setMobileJoystickEnabled] = useState(false)
   const [devCheatsVisible, setDevCheatsVisible] = useState(false)
+  const [gameStartedByUser, setGameStartedByUser] = useState(false)
   const [devAllStagesUnlocked, setDevAllStagesUnlocked] = useState(() => (
     isFirebaseProgressHydrated(authUser) ? loadTitleSettings().unlockAllStagesCheat : false
   ))
@@ -88,6 +92,7 @@ export default function ReadyGameApp({
     if (!isFirebaseProgressHydrated(authUser)) return
     resetGame(stageId)
     if (stageId === 'stage1') useGameStore.getState().startStage1Intro()
+    setGameStartedByUser(true)
     setScreen('game')
   }
 
@@ -150,6 +155,7 @@ export default function ReadyGameApp({
 
         {screen === 'game' && (
           <>
+            <GameplayBgm key={gameKey} phase={phase} userStarted={gameStartedByUser} />
             <Suspense fallback={<ScreenLoading label="게임 불러오는 중…" />}>
               <GameCanvas gameKey={gameKey} phase={phase} />
               <HUD
@@ -162,6 +168,9 @@ export default function ReadyGameApp({
             </Suspense>
             {mobileJoystickEnabled && (
               <VirtualJoystick enabled phase={phase} playAreaRef={phoneFrameRef} />
+            )}
+            {isE2EPerformanceDiagnostics() && (
+              <E2ERuntimePerformanceDiagnostics canvasRootRef={phoneFrameRef} />
             )}
           </>
         )}

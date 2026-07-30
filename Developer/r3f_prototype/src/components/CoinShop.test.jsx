@@ -13,7 +13,6 @@ import { useGameStore } from '../store/useGameStore.js'
 
 describe('CoinShop', () => {
   beforeEach(() => {
-    localStorage.clear()
     _seedHydratedFirebaseProgressForTests()
     resetAllLevels()
     resetWeaponUnlocks()

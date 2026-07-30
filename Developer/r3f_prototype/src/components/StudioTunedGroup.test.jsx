@@ -112,7 +112,6 @@ describe('StudioTunedGroup', () => {
   })
 
   it('updates game groups immediately when studio tuning is saved', () => {
-    localStorage.clear()
     const container = document.createElement('div')
     const root = createRoot(container)
 

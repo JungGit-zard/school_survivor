@@ -25,6 +25,18 @@ describe('GoogleAccountPanelView', () => {
     expect(html).toContain('계정 연동 가능')
   })
 
+  it('keeps the account action touch-safe and supplies the narrow-screen wrapping rules', () => {
+    const html = renderToStaticMarkup(
+      <GoogleAccountPanelView status="signedOut" signingIn={false} onSignIn={() => {}} onSignOut={() => {}} />,
+    )
+
+    expect(html).toContain('min-height:44px')
+    expect(html).toContain('google-account-action')
+    expect(html).toContain('@media (max-width: 360px)')
+    expect(html).toContain('grid-column: 1 / -1')
+    expect(html).toContain(':focus-visible')
+  })
+
   it('shows account identity and sign out when signed in', () => {
     const html = renderToStaticMarkup(
       <GoogleAccountPanelView

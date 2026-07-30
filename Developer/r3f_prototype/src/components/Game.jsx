@@ -15,6 +15,7 @@ import StudentDialogueTrigger from './StudentDialogueTrigger.jsx'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { createCriticalScreenShakeFrame, sampleCriticalScreenShake } from '../lib/criticalScreenShake.js'
 import { PUBLISH_INTERVAL_MS, advanceRuntimeTime } from '../lib/gameRuntimeTime.js'
+import { clampGameplayFrameDelta, createGameplayFixedStepClock, runGameplayFixedSteps } from '../lib/gameplayFrameTime.js'
 import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon, ChibikoWeapon, SharkMissileWeapon, StudentLanternWeapon } from './Weapons/index.js'
 
 const _camTarget = new THREE.Vector3()
@@ -55,7 +56,9 @@ function clampFocus(value, reachNeg, reachPos, half) {
 export default function Game() {
   const { camera } = useThree()
   const previousCameraShakeOffsetRef = useRef(null)
+  const gameplayClockRef = useRef(null)
   if (previousCameraShakeOffsetRef.current === null) previousCameraShakeOffsetRef.current = new THREE.Vector3()
+  if (gameplayClockRef.current === null) gameplayClockRef.current = createGameplayFixedStepClock()
   const phase      = useGameStore((s) => s.phase)
   const currentStageId = useGameStore((s) => s.currentStageId)
   const escapePortalActive = useGameStore((s) => s.escapePortalActive)
@@ -87,22 +90,24 @@ export default function Game() {
     camera.position.sub(previousCameraShakeOffset)
     previousCameraShakeOffset.set(0, 0, 0)
 
-    const dt = Math.min(delta, 0.1)
+    const cameraDt = clampGameplayFrameDelta(delta)
     if (useGameStore.getState().phase === 'playing') {
-      const elapsedMs = advanceRuntimeTime(dt * 1000)
-      checkSurvivalMilestone(elapsedMs)
-      // getState()로 최신 값 읽기 — React 클로저 stale 방지
-      const gs = useGameStore.getState()
-      const stageConfig = getStageConfig(currentStageId)
-      // 스테이지 설정 시간에 자동 클리어 대신 탈출구 등장
-      if (!gs.escapePortalActive && elapsedMs >= stageConfig.escapePortalSec * 1000) {
-        activateEscapePortal()
-        emitSfx({ id: 'portalAppear' })
-      }
-      // 스테이지 설정 시간에 마틸다 스폰
-      if (!gs.matildaSpawned && elapsedMs >= stageConfig.matildaSec * 1000) {
-        spawnMatilda()
-      }
+      runGameplayFixedSteps(gameplayClockRef.current, delta, (fixedDelta) => {
+        const elapsedMs = advanceRuntimeTime(fixedDelta * 1000)
+        checkSurvivalMilestone(elapsedMs)
+        // getState()로 최신 값 읽기 — React 클로저 stale 방지
+        const gs = useGameStore.getState()
+        const stageConfig = getStageConfig(currentStageId)
+        // 스테이지 설정 시간에 자동 클리어 대신 탈출구 등장
+        if (!gs.escapePortalActive && elapsedMs >= stageConfig.escapePortalSec * 1000) {
+          activateEscapePortal()
+          emitSfx({ id: 'portalAppear' })
+        }
+        // 스테이지 설정 시간에 마틸다 스폰
+        if (!gs.matildaSpawned && elapsedMs >= stageConfig.matildaSec * 1000) {
+          spawnMatilda()
+        }
+      })
     }
 
     // smooth camera follow + 경계 클램프.
@@ -129,7 +134,8 @@ export default function Game() {
     screenBounds.minZ = fz - reachUp
     screenBounds.maxZ = fz + reachDown
     _camTarget.set(fx, CAM_HEIGHT, fz + CAM_BACK)
-    camera.position.lerp(_camTarget, 0.08)
+    const followAlpha = 1 - Math.pow(0.92, cameraDt * 60)
+    camera.position.lerp(_camTarget, followAlpha)
     camera.lookAt(fx, 0, fz)
 
     // Keep the normal follow/lookAt pose as the source of truth, then add one

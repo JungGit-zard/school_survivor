@@ -5,6 +5,7 @@ import { useGameStore } from '../store/useGameStore.js'
 import { playerFacing, playerPos, joystickDir } from '../lib/refs.js'
 import { moveKeys } from '../lib/keyboardInput.js'
 import { clampPlayerPosition } from '../lib/playerMovementBounds.js'
+import { createGameplayFixedStepClock, runGameplayFixedSteps } from '../lib/gameplayFrameTime.js'
 import PlayerMesh from './PlayerMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 
@@ -39,6 +40,7 @@ export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 
 
 export default function Player() {
   const rb        = useRef()
+  const gameplayClockRef = useRef(null)
   const meshGroup = useRef()
   const movingRef = useRef(false)
   const invTimer  = useRef(0)
@@ -54,6 +56,7 @@ export default function Player() {
   const lastKnockbackHitToken = useRef(hitFlashToken)
   const endInvulnerable = useGameStore((s) => s.endInvulnerable)
   const damagePlayer    = useGameStore((s) => s.damagePlayer)
+  if (gameplayClockRef.current === null) gameplayClockRef.current = createGameplayFixedStepClock()
 
   // 적 투사체가 플레이어를 감지할 수 있도록 RigidBody ref에 핸들러 등록
   useEffect(() => {
@@ -69,6 +72,7 @@ export default function Player() {
   useFrame((_, delta) => {
     if (!rb.current) return
     if (phase !== 'playing') { rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true); return }
+    runGameplayFixedSteps(gameplayClockRef.current, delta, (dt) => {
 
     if (hitFlashToken !== lastKnockbackHitToken.current) {
       lastKnockbackHitToken.current = hitFlashToken
@@ -84,7 +88,7 @@ export default function Player() {
       _v.x = knockback.x
       _v.z = knockback.z
       movingRef.current = false
-      knockbackRemainingMs.current = Math.max(0, knockbackRemainingMs.current - delta * 1000)
+      knockbackRemainingMs.current = Math.max(0, knockbackRemainingMs.current - dt * 1000)
     } else if (joystickDir.active) {
       _v.x = joystickDir.x
       _v.z = joystickDir.z
@@ -101,7 +105,7 @@ export default function Player() {
       const targetY = Math.atan2(nx, nz)
 
       if (meshGroup.current) {
-        const turnRatio = Math.min(1, delta * TURN_SPEED)
+        const turnRatio = Math.min(1, dt * TURN_SPEED)
         meshGroup.current.rotation.y += shortestAngleDiff(targetY, meshGroup.current.rotation.y) * turnRatio
       }
 
@@ -125,7 +129,7 @@ export default function Player() {
     // 무적 타이머 (setTimeout 대신 useFrame에서 처리)
     const inv = useGameStore.getState().player.invulnerable
     if (inv) {
-      invTimer.current += delta * 1000
+      invTimer.current += dt * 1000
       if (invTimer.current >= INV_DURATION) {
         invTimer.current = 0
         endInvulnerable()
@@ -148,6 +152,7 @@ export default function Player() {
     if (meshGroup.current) {
       playerFacing.set(Math.sin(meshGroup.current.rotation.y), 0, Math.cos(meshGroup.current.rotation.y))
     }
+    })
   })
 
   return (

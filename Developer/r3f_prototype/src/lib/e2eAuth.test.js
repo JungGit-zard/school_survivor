@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from 'vitest'
-import { isE2EAuthBypass, getE2EUser, getE2EOverrides, applyE2EOverridesToStore } from './e2eAuth.js'
+import { isE2EAudioDiagnostics, isE2EAuthBypass, isE2EPerformanceDiagnostics, getE2EUser, getE2EOverrides, applyE2EOverridesToStore } from './e2eAuth.js'
 
 afterEach(() => {
   window.history.replaceState(null, '', '/')
@@ -61,6 +61,17 @@ describe('getE2EOverrides (DEV 전용 런 오버라이드 파서)', () => {
     const o = getE2EOverrides('?e2e=1&e2eweapon=starlink&e2ecd=0')
     expect(o).toEqual({ weapons: ['starlink'], cooldownMs: 0 })
   })
+
+  it('명시적인 e2einvincible=1에서만 무적 오버라이드를 만든다', () => {
+    expect(getE2EOverrides('?e2einvincible=1')).toBeNull()
+    expect(getE2EOverrides('?e2e=1&e2einvincible=0')).toBeNull()
+    expect(getE2EOverrides('?e2e=1&e2einvincible=false')).toBeNull()
+    expect(getE2EOverrides('?e2e=1&e2einvincible=1')).toEqual({ e2eInvincible: true })
+  })
+
+  it('e2ehp만으로는 무적 상태를 만들지 않는다', () => {
+    expect(getE2EOverrides('?e2e=1&e2ehp=9999')).toEqual({ hp: 9999 })
+  })
 })
 
 describe('applyE2EOverridesToStore', () => {
@@ -97,5 +108,37 @@ describe('applyE2EOverridesToStore', () => {
     const before = store.getState()
     expect(applyE2EOverridesToStore(store, '?e2e=1')).toBeNull()
     expect(store.getState()).toBe(before)
+  })
+
+  it('e2einvincible=1을 store의 전용 상태에 적용한다', () => {
+    const store = makeStore({
+      weapons: {},
+      player: { hp: 100, maxHp: 100 },
+      e2eInvincible: false,
+    })
+
+    expect(applyE2EOverridesToStore(store, '?e2e=1&e2einvincible=1'))
+      .toEqual({ e2eInvincible: true })
+    expect(store.getState().e2eInvincible).toBe(true)
+  })
+})
+
+describe('isE2EAudioDiagnostics', () => {
+  it('requires both exact e2e=1 and e2eaudio=1 values', () => {
+    expect(isE2EAudioDiagnostics('?e2e=1')).toBe(false)
+    expect(isE2EAudioDiagnostics('?e2eaudio=1')).toBe(false)
+    expect(isE2EAudioDiagnostics('?e2e=true&e2eaudio=1')).toBe(false)
+    expect(isE2EAudioDiagnostics('?e2e=1&e2eaudio=true')).toBe(false)
+    expect(isE2EAudioDiagnostics('?e2e=1&e2eaudio=1')).toBe(true)
+  })
+})
+
+describe('isE2EPerformanceDiagnostics', () => {
+  it('requires both exact e2e=1 and e2eperf=1 values', () => {
+    expect(isE2EPerformanceDiagnostics('?e2e=1')).toBe(false)
+    expect(isE2EPerformanceDiagnostics('?e2eperf=1')).toBe(false)
+    expect(isE2EPerformanceDiagnostics('?e2e=true&e2eperf=1')).toBe(false)
+    expect(isE2EPerformanceDiagnostics('?e2e=1&e2eperf=true')).toBe(false)
+    expect(isE2EPerformanceDiagnostics('?e2e=1&e2eperf=1')).toBe(true)
   })
 })

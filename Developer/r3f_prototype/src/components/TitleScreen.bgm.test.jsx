@@ -3,7 +3,7 @@ import React, { act } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRoot } from 'react-dom/client'
 import TitleScreen from './TitleScreen.jsx'
-import { _resetAuthStoreForTests } from '../store/useAuthStore.js'
+import { _resetAuthStoreForTests, useAuthStore } from '../store/useAuthStore.js'
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }) => <div>{children}</div>,
@@ -39,7 +39,7 @@ describe('TitleScreen BGM', () => {
     vi.unstubAllGlobals()
   })
 
-  it('tries the looping title song immediately and releases it when leaving the title', async () => {
+  it('starts the looping title song on mount and releases it when leaving', async () => {
     const container = document.createElement('div')
     document.body.appendChild(container)
     const root = createRoot(container)
@@ -53,8 +53,8 @@ describe('TitleScreen BGM', () => {
     expect(audio.preload).toBe('auto')
     expect(audio.volume).toBe(0.5)
     expect(audio.load).toHaveBeenCalledOnce()
+    // 자동재생: 타이틀 진입 즉시 재생을 시도한다(사용자 제스처를 기다리지 않는다).
     expect(audio.play).toHaveBeenCalledOnce()
-    expect(window.__titleBgm).toBe(audio)
 
     act(() => root.unmount())
 
@@ -63,7 +63,7 @@ describe('TitleScreen BGM', () => {
     container.remove()
   })
 
-  it('keeps the input fallback armed when immediate playback is rejected', async () => {
+  it('falls back to the first user gesture when autoplay is rejected', async () => {
     audio.play
       .mockRejectedValueOnce(new Error('autoplay blocked'))
       .mockResolvedValueOnce()
@@ -74,11 +74,66 @@ describe('TitleScreen BGM', () => {
     await act(async () => {
       root.render(<TitleScreen onEnterLobby={() => {}} />)
     })
+    expect(audio.play).toHaveBeenCalledOnce()
+
     await act(async () => {
       window.dispatchEvent(new Event('pointerdown'))
     })
-
     expect(audio.play).toHaveBeenCalledTimes(2)
+
+    // 재생에 성공했으면 리스너를 풀어 중복 재생을 만들지 않는다.
+    await act(async () => {
+      window.dispatchEvent(new Event('keydown'))
+    })
+    expect(audio.play).toHaveBeenCalledTimes(2)
+
+    act(() => root.unmount())
+    container.remove()
+  })
+
+  it('retries on tab visibility when autoplay was rejected', async () => {
+    audio.play
+      .mockRejectedValueOnce(new Error('autoplay blocked'))
+      .mockResolvedValueOnce()
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+
+    await act(async () => {
+      root.render(<TitleScreen onEnterLobby={() => {}} />)
+    })
+    expect(audio.play).toHaveBeenCalledOnce()
+
+    await act(async () => {
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+    expect(audio.play).toHaveBeenCalledTimes(2)
+
+    act(() => root.unmount())
+    container.remove()
+  })
+
+  it('pauses immediately on sign-in and never retries title BGM on that mount', async () => {
+    audio.play.mockRejectedValueOnce(new Error('autoplay blocked'))
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+
+    await act(async () => {
+      root.render(<TitleScreen onEnterLobby={() => {}} />)
+    })
+    expect(audio.play).toHaveBeenCalledOnce()
+
+    await act(async () => {
+      useAuthStore.setState({ signingIn: true })
+    })
+    expect(audio.pause).toHaveBeenCalledOnce()
+
+    await act(async () => {
+      window.dispatchEvent(new Event('pointerdown'))
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+    expect(audio.play).toHaveBeenCalledOnce()
 
     act(() => root.unmount())
     container.remove()

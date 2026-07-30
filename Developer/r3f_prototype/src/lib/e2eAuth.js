@@ -17,6 +17,30 @@ export function isE2EAuthBypass() {
     && new URLSearchParams(window.location.search).has('e2e')
 }
 
+// A stricter, decode-only route. It is separate from the general E2E auth
+// bypass so production URLs and ordinary E2E game sessions never create a
+// Web Audio context or fetch every asset.
+export function isE2EAudioDiagnostics(search) {
+  if (!import.meta.env.DEV) return false
+  const query = typeof search === 'string'
+    ? search
+    : (typeof window !== 'undefined' ? window.location.search : '')
+  const params = new URLSearchParams(query)
+  return params.get('e2e') === '1' && params.get('e2eaudio') === '1'
+}
+
+// A gameplay-only browser performance probe. Unlike the audio route, this
+// keeps the normal game runtime intact and only mounts its probe after the
+// game screen exists. Production builds and ordinary E2E sessions are no-ops.
+export function isE2EPerformanceDiagnostics(search) {
+  if (!import.meta.env.DEV) return false
+  const query = typeof search === 'string'
+    ? search
+    : (typeof window !== 'undefined' ? window.location.search : '')
+  const params = new URLSearchParams(query)
+  return params.get('e2e') === '1' && params.get('e2eperf') === '1'
+}
+
 export function getE2EUser() {
   return {
     uid: 'e2e-local-test',
@@ -32,7 +56,8 @@ export function getE2EUser() {
 //
 //   ?e2e=1&e2eweapon=starlink,onigiri  — 해당 무기를 active:true, level:1로 시작
 //   &e2ecd=400                          — 위 무기들의 cooldown을 400ms로
-//   &e2ehp=9999                         — player hp·maxHp를 9999로 (생존 보장)
+//   &e2ehp=9999                         — player hp·maxHp를 9999로 (무적은 아님)
+//   &e2einvincible=1                    — 중앙 피해 처리를 차단해 장시간 검증 생존 보장
 //
 // 존재하지 않는 무기 id는 무시(weaponCatalog 기준). 순수 함수 — 부작용 없음.
 export function getE2EOverrides(search) {
@@ -63,11 +88,13 @@ export function getE2EOverrides(search) {
     if (Number.isFinite(hp) && hp > 0) overrides.hp = hp
   }
 
+  if (params.get('e2einvincible') === '1') overrides.e2eInvincible = true
+
   return Object.keys(overrides).length ? overrides : null
 }
 
 // 파싱된 오버라이드를 zustand store에 setState로 패치한다. 매 런 시작(resetGame 이후)에
-// 1회 호출한다. resetGame 본체·damagePlayer·무기 로직은 절대 건드리지 않는 순수 추가.
+// 1회 호출한다. DEV가 아니거나 e2e 쿼리가 없으면 파서에서 null이 되어 완전 no-op이다.
 export function applyE2EOverridesToStore(store, search) {
   const overrides = getE2EOverrides(search)
   if (!overrides || !store || typeof store.setState !== 'function') return null
@@ -93,6 +120,8 @@ export function applyE2EOverridesToStore(store, search) {
     if (overrides.hp != null) {
       next.player = { ...s.player, hp: overrides.hp, maxHp: overrides.hp }
     }
+
+    if (overrides.e2eInvincible) next.e2eInvincible = true
 
     return next
   })

@@ -83,11 +83,23 @@ function Block({ size, position, rotation, color, emissive = 0.14 }) {
   )
 }
 
-function OutlineBlock({ size, position, rotation, scale = 1.08 }) {
-  const mat = usePlayerStencilMaterial(() => outlineMat(0.98), [])
+export const PLAYER_CROWD_OUTLINE_RENDER_ORDER = 90
+
+export function createPlayerCrowdOutlineMaterial() {
+  const material = outlineMat(0.98)
+  material.depthTest = false
+  material.depthWrite = false
+  return material
+}
+
+function OutlineBlock({ size, position, rotation, scale = 1.08, crowdVisible = false }) {
+  const mat = usePlayerStencilMaterial(
+    crowdVisible ? createPlayerCrowdOutlineMaterial : () => outlineMat(0.98),
+    [crowdVisible],
+  )
   const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
   const s = inflateScale(scale)
-  return <mesh renderOrder={0} geometry={geo} material={mat} position={position} rotation={rotation} scale={[s, s, s]} />
+  return <mesh renderOrder={crowdVisible ? PLAYER_CROWD_OUTLINE_RENDER_ORDER : 0} geometry={geo} material={mat} position={position} rotation={rotation} scale={[s, s, s]} />
 }
 
 function PlayerLanternLight() {
@@ -109,11 +121,11 @@ function PlayerLanternLight() {
 function PlayerOuterOutline() {
   return (
     <group>
-      <OutlineBlock size={[0.98, 0.9, 0.58]} position={[0, 0.33, 0]} />
-      <OutlineBlock size={PLAYER_MESH_LAYOUT.head.size} position={[0, PLAYER_MESH_LAYOUT.head.baseY + 0.06, 0]} scale={1.3} />
-      <OutlineBlock size={[0.24, 1.05, 0.30]} position={[-0.68, 0.32, 0]} scale={1.07} />
-      <OutlineBlock size={[0.24, 1.05, 0.30]} position={[0.68, 0.32, 0]} scale={1.07} />
-      <OutlineBlock size={[0.56, 0.78, 0.36]} position={[-0.54, 0.46, -0.22]} scale={1.07} />
+      <OutlineBlock size={[0.98, 0.9, 0.58]} position={[0, 0.33, 0]} crowdVisible />
+      <OutlineBlock size={PLAYER_MESH_LAYOUT.head.size} position={[0, PLAYER_MESH_LAYOUT.head.baseY + 0.06, 0]} scale={1.3} crowdVisible />
+      <OutlineBlock size={[0.24, 1.05, 0.30]} position={[-0.68, 0.32, 0]} scale={1.07} crowdVisible />
+      <OutlineBlock size={[0.24, 1.05, 0.30]} position={[0.68, 0.32, 0]} scale={1.07} crowdVisible />
+      <OutlineBlock size={[0.56, 0.78, 0.36]} position={[-0.54, 0.46, -0.22]} scale={1.07} crowdVisible />
     </group>
   )
 }

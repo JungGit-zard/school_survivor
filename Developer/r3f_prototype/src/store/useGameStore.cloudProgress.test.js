@@ -32,7 +32,6 @@ const { recordPlayActivity, requestCloudProgressSave } = await import('../lib/fi
 describe('useGameStore cloud progress integration', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    localStorage.clear()
     mockProgress = createMockProgress()
     useGameStore.setState({
       elapsedMs: 0,

@@ -1,7 +1,8 @@
 ﻿import { useEffect, useState, useMemo, useRef } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useGameStore, STAGE1_INTRO_LINES } from '../store/useGameStore.js'
-import { joystickDir } from '../lib/refs.js'
+import { joystickDir, playerPos, portalTarget } from '../lib/refs.js'
+import { getPortalObjective } from '../lib/portalObjective.js'
 import { UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
 import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
@@ -11,6 +12,7 @@ import { playDialogueVoice, stopDialogueVoice } from '../lib/dialogueVoice.js'
 import { getNextStageId, getStageConfig } from '../lib/stageConfig.js'
 import { STAGE2_SPAWN_TELEGRAPHS, STAGE3_SPAWN_TELEGRAPHS, STAGE4_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
+import { MATILDA_DIALOGUE_MS } from '../lib/matildaEntryGrace.js'
 import {
   DEFAULT_STUDIO_TUNING,
   GRAPHICS_STUDIO_TUNING_EVENT,
@@ -39,7 +41,6 @@ import matildaConversationPortraitSrc from '../assets/character/matilda_conversa
 
 const GAMEOVER_TRANSITION_MS = 1000
 const MATILDA_COUNTDOWN_SECONDS = 5
-const MATILDA_DIALOGUE_MS = 4500
 const MATILDA_DIALOGUE_NAME = '마틸다'
 const MATILDA_DIALOGUE_LINE = '오호호호! 떡하나주면 안잡아먹지!'
 
@@ -510,6 +511,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
   const [isTitleReturnConfirmOpen, setIsTitleReturnConfirmOpen] = useState(false)
   const [weaponCheatOpen, setWeaponCheatOpen] = useState(false)
   const [matildaDialogueVisible, setMatildaDialogueVisible] = useState(false)
+  const [portalObjective, setPortalObjective] = useState(null)
   const previousMatildaSpawnedRef = useRef(matildaSpawned)
   const weaponCheatItems = useMemo(
     () => Object.entries(WEAPON_CATALOG).map(([id, entry]) => ({ id, label: entry.label, icon: WEAPON_KEY_TO_ICON[id] })),
@@ -608,6 +610,18 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
   }, [escapePortalActive, elapsed, phase, stageConfig.escapePortalSec])
 
   useEffect(() => {
+    if (!escapePortalActive || phase !== 'playing') {
+      setPortalObjective(null)
+      return undefined
+    }
+
+    const refreshPortalObjective = () => setPortalObjective(getPortalObjective(playerPos, portalTarget))
+    refreshPortalObjective()
+    const interval = setInterval(refreshPortalObjective, 250)
+    return () => clearInterval(interval)
+  }, [escapePortalActive, phase])
+
+  useEffect(() => {
     if (!recentMilestone) return undefined
     const timer = setTimeout(clearMilestone, 2000)
     return () => clearTimeout(timer)
@@ -685,6 +699,13 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
       @keyframes studentDialoguePop { 0%{transform:scale(0);opacity:0.4} 70%{transform:scale(1.04)} 100%{transform:scale(1);opacity:1} }
       @keyframes matildaDialoguePop { 0%{transform:translateX(-50%) scale(0.92);opacity:0.4} 70%{transform:translateX(-50%) scale(1.03)} 100%{transform:translateX(-50%) scale(1);opacity:1} }
       @keyframes levelupCardPop { 0%{opacity:0;transform:translateY(14px) scale(0.92)} 100%{opacity:1;transform:translateY(0) scale(1)} }
+      .hud-pause-button:focus-visible,
+      .levelup-upgrade-choice:focus-visible { outline:3px solid #fff8e8; outline-offset:3px; }
+      @media (max-width:360px) {
+        .levelup-upgrade-choice { min-height:126px !important; padding:7px 4px 8px !important; gap:3px !important; }
+        .levelup-upgrade-choice .levelup-choice-label { font-size:12px !important; line-height:1.12 !important; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
+        .levelup-upgrade-choice .levelup-choice-desc { font-size:11px !important; line-height:1.2 !important; }
+      }
     `
     // StrictMode에서 cleanup이 먼저 실행돼 style이 제거될 수 있으므로
     // 항상 교체(remove → append) 방식으로 주입한다.
@@ -695,7 +716,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
 
   useEffect(() => {
     const onKeyDown = (event) => {
-      if (event.code !== 'KeyP' || event.repeat) return
+      if ((event.code !== 'KeyP' && event.key !== 'Escape') || event.repeat) return
       togglePause()
     }
     window.addEventListener('keydown', onKeyDown)
@@ -768,6 +789,14 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
           탈출구가 나타났다!
         </div>
       )}
+      {portalObjective && (
+        <>
+          <div data-testid="portal-objective" style={styles.portalObjective} aria-hidden="true">
+            탈출구 {portalObjective.arrow} {portalObjective.distanceZm}zm
+          </div>
+          <div role="status" aria-label="탈출구로 이동" style={styles.screenReaderOnly}>탈출구로 이동</div>
+        </>
+      )}
       {/* Top bar — 스테이지 번호 + 시간만 한 줄 */}
       <div style={styles.topBar}>
         <span style={styles.stageChip}>{stageConfig.label}</span>
@@ -810,7 +839,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
 
       {(phase === 'playing' || (phase === 'paused' && pauseSource !== 'dialogue' && pauseSource !== 'intro')) && (
         <div style={styles.topLeftControls}>
-          <button type="button" style={styles.pauseButton} onClick={() => { emitSfx({ id: 'buttonClick' }); togglePause() }}>
+          <button type="button" className="hud-pause-button" aria-label={phase === 'paused' ? '게임 재개' : '게임 일시정지'} style={styles.pauseButton} onClick={() => { emitSfx({ id: 'buttonClick' }); togglePause() }}>
           {phase === 'paused' ? '▶' : 'Ⅱ'}
           </button>
           {devCheatsVisible && (
@@ -864,6 +893,8 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
                 <button
                   key={`${levelUpChoiceSerial}-${c.key}`}
                   data-testid="levelup-upgrade-choice"
+                  className="levelup-upgrade-choice"
+                  aria-label={`${getUpgradeChoiceLabel(c, weapons)}: ${getUpgradeChoiceDesc(c) ?? ''}`}
                   style={{
                     ...styles.levelupChoiceBtn,
                     animation: 'levelupCardPop 0.15s ease-out both',
@@ -872,8 +903,8 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
                   onClick={() => applyUpgrade(c.key)}
                 >
                   <UpgradeIcon type={c.icon} />
-                  <div style={styles.choiceLabel}>{getUpgradeChoiceLabel(c, weapons)}</div>
-                  <div style={styles.choiceDesc}>{getUpgradeChoiceDesc(c)}</div>
+                  <div className="levelup-choice-label" style={styles.choiceLabel}>{getUpgradeChoiceLabel(c, weapons)}</div>
+                  <div className="levelup-choice-desc" style={styles.choiceDesc}>{getUpgradeChoiceDesc(c)}</div>
                 </button>
               ))}
             </div>
@@ -1087,7 +1118,7 @@ const styles = {
     fontFamily: uiType.family, userSelect: 'none',
   },
   topBar: {
-    position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)',
+    position: 'absolute', top: 'var(--hud-safe-top)', '--hud-safe-top': 'max(14px, env(safe-area-inset-top, 0px))', left: '50%', transform: 'translateX(-50%)',
     display: 'flex', gap: 10, alignItems: 'center',
     pointerEvents: 'auto',
   },
@@ -1306,6 +1337,35 @@ const styles = {
     animation: 'bossPulse 0.8s ease-in-out infinite',
     pointerEvents: 'none',
   },
+  portalObjective: {
+    position: 'absolute',
+    left: '50%',
+    bottom: 102,
+    transform: 'translateX(-50%)',
+    minWidth: 148,
+    padding: '7px 12px',
+    border: '2px solid #00d9b5',
+    borderRadius: 9,
+    background: 'rgba(7, 44, 43, 0.94)',
+    color: '#d8fff7',
+    fontSize: 15,
+    fontWeight: uiType.weightHeavy,
+    lineHeight: 1.2,
+    textAlign: 'center',
+    boxShadow: '0 2px 0 rgba(0,0,0,0.35)',
+    pointerEvents: 'none',
+  },
+  screenReaderOnly: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    padding: 0,
+    margin: -1,
+    overflow: 'hidden',
+    clip: 'rect(0, 0, 0, 0)',
+    whiteSpace: 'nowrap',
+    border: 0,
+  },
   stageChip: {
     color: uiPalette.reward,
     fontSize: 15,
@@ -1325,7 +1385,7 @@ const styles = {
   },
   goldChip: {
     position: 'absolute',
-    top: 14, right: 14,
+    top: 'var(--hud-safe-top)', '--hud-safe-top': 'max(14px, env(safe-area-inset-top, 0px))', right: 14,
     display: 'flex', alignItems: 'center', gap: 5,
     pointerEvents: 'auto',
   },
@@ -1500,22 +1560,22 @@ const styles = {
   },
   topLeftControls: {
     position: 'absolute',
-    top: 14,
+    top: 'var(--hud-safe-top)', '--hud-safe-top': 'max(14px, env(safe-area-inset-top, 0px))',
     left: 14,
     display: 'flex',
     gap: 8,
     pointerEvents: 'auto',
   },
   pauseButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: 8,
     border: uiBorders.strong,
     background: uiPalette.chalkboard,
     color: uiPalette.paperLight,
     fontSize: 18,
     fontWeight: uiType.weightHeavy,
-    lineHeight: '36px',
+    lineHeight: '40px',
     textAlign: 'center',
     pointerEvents: 'auto',
     cursor: 'pointer',
@@ -1804,7 +1864,7 @@ const styles = {
     overflowWrap: 'anywhere',
   },
   choiceDesc: {
-    fontSize: 10,
+    fontSize: 11,
     color: '#493f4d',
     lineHeight: 1.28,
     fontWeight: 700,

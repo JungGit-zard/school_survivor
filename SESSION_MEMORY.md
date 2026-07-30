@@ -12423,3 +12423,139 @@ git status --short --branch
 - Hermes balanceqa 자동 검토는 OAuth 401 인증 갱신 전까지 blocked 상태다.
 
 ---
+
+## Session 7 · Entry 2 · 2026-07-28 1510 KST
+
+### Git 상태
+
+- 브랜치: `zombie_only`.
+- HEAD: `11e0b01b78af883a0a9882f204e26af15f342e54`.
+- 이번 작업의 6개 파일은 미커밋 상태다.
+- 별도 작업자의 `TitleScreen.jsx`, `firebaseProgress.js`, Consent 관련 미추적 파일, 출시노트는 보존했고 수정하지 않았다.
+
+### 이번 3시간 작업 / 대화
+
+- 사용자가 텍스처나 눈·코·입 모델링 없이 얼굴을 직접 그리는 방식의 테스트 좀비 1마리를 Graphics Studio에 세팅해 달라고 요청했다.
+- Terra Worker가 Studio 전용 `zombie-procedural-face-test` 항목과 셰이더 얼굴 테스트 좀비를 구현했다.
+- 얼굴은 이미지 텍스처 없이 단일 평면의 fragment shader가 눈, 눈동자, 눈썹, 코, 입, 흉터를 직접 그리며 짧은 눈깜박임을 수행한다.
+- 실제 게임 적 타입과 스폰 목록은 변경하지 않았고, 기존 E01-E06/B01-B04/B02도 변경하지 않았다.
+- Studio의 기존 Firebase 정본 변환·적용 경로만 재사용했으며 Firebase 쓰기, Apply, localStorage 사용은 하지 않았다.
+- 브라우저에서 Studio 딥링크를 열었지만 로그아웃 상태여서 Google 로그인 전 안내 화면까지만 확인하고 로그인·Apply는 수행하지 않았다.
+- 의무 그래픽 라우팅 카드 `t_3677b5e8`을 `threemini`에 배정했으나 Hermes openai-codex OAuth token expired HTTP 401로 자동 차단됐다.
+
+### 생성 / 수정 파일
+
+- 생성: `Developer/r3f_prototype/src/components/ProceduralFaceTestZombie.jsx` — Studio 전용 직접 그린 얼굴 테스트 좀비.
+- 생성: `Developer/r3f_prototype/src/components/ProceduralFaceTestZombie.test.jsx` — 텍스처·얼굴 지오메트리 부재와 셰이더/부품 계약 검증.
+- 수정: `Developer/r3f_prototype/src/lib/graphicsStudioConfig.js` — Studio enemy 카탈로그 항목 등록.
+- 수정: `Developer/r3f_prototype/src/components/GraphicsStudioPreview.jsx` — 전용 프리뷰 렌더 분기 연결.
+- 수정: `Developer/r3f_prototype/src/lib/graphicsStudioConfig.test.js` — 카탈로그 등록 회귀 검증.
+- 수정: `Developer/r3f_prototype/src/components/GraphicsStudioPreview.test.js` — 프리뷰 연결 회귀 검증.
+
+### 명령 로그
+
+```text
+Get-Content -Raw SESSION_CONTINUITY.md; Get-Content -Raw project_develop_policy.md
+Get-Content -Raw Bang_Rules.md; Get-Content -Raw AGENTS.md; Get-Content -Raw CLAUDE.md; SESSION_MEMORY.md 최근 엔트리 조회
+gstack 설치 경로 확인
+npm test
+npm run build
+rg 금지 경로 스캔
+git -c core.whitespace=cr-at-eol diff --check -- <이번 작업 6개 파일>
+git diff 및 git status 조회
+npm run browser:reserve
+npm run preview -- --host 127.0.0.1
+Browser Plugin으로 http://localhost:4173/graphics-studio#zombie-procedural-face-test 열기 및 스크린샷 확인
+Get-Content -Raw Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md
+Get-Content -Raw Developer/agent_room/game_development_kanban_process.md
+hermes kanban --board escape-zombie-school assignees
+hermes kanban --board escape-zombie-school stats
+hermes kanban --board escape-zombie-school create 'Review procedural face test zombie in Graphics Studio' --assignee threemini ...
+hermes kanban --board escape-zombie-school dispatch --dry-run --max 1 --json
+hermes kanban --board escape-zombie-school dispatch --max 1 --json
+hermes kanban --board escape-zombie-school show t_3677b5e8
+hermes kanban --board escape-zombie-school log t_3677b5e8
+git status --short --branch
+git rev-parse --short HEAD
+```
+
+### 검증 결과
+
+- 집중 테스트: 3 files / 33 tests 통과.
+- 전체 테스트: 164 files / 1,418 tests 통과, 1 file / 5 tests 실패.
+- 전체 테스트 실패는 별도 미커밋 `src/lib/consent.js`의 의도적 `NOT_IMPLEMENTED` 예외 때문에 발생했고 이번 얼굴 구현 테스트는 모두 통과했다.
+- Vite production build 통과.
+- branch guard, legacy B02 source/artifact gate 통과.
+- 이번 작업 파일 scoped diff check 통과.
+- `ProceduralFaceTestZombie.jsx`에서 `TextureLoader`, `useLoader`, `CanvasTexture`, `sampler2D`, `texture()`, `texture2D()`, `assets/faces`, `localStorage` 미검출.
+- Firebase 데이터 변경 없음.
+
+### 확정된 룰 / 정책 변경
+
+- 새 프로젝트 정책 변경 없음.
+- 테스트 좀비는 Studio 전용 카탈로그 항목이며 실제 게임 스폰 대상이 아니다.
+
+### 미해결 이슈 + 다음 단계
+
+- 브라우저가 Google 로그아웃 상태이므로 사용자가 로그인한 뒤 Studio enemy 목록의 `실험 · 직접 그린 얼굴 좀비`를 직접 확인해야 한다.
+- Hermes `threemini` 전문 검토는 OAuth HTTP 401 인증 갱신 전까지 차단 상태다.
+- 전체 테스트의 Consent 관련 5개 실패는 별도 작업자가 `consent.js` 정본 구현을 완료해야 해소된다.
+- 이번 변경은 아직 커밋하지 않았다.
+
+---
+
+## Session 7 · Entry 3 · 2026-07-29 0015 KST
+
+### Git 상태
+
+- 브랜치: `zombie_only`, HEAD `11e0b01b78af883a0a9882f204e26af15f342e54`.
+- Graphics Studio 웃는 좀비 관련 코드와 `SESSION_MEMORY.md`는 미커밋 상태다.
+- Firebase/Auth/Consent/Lobby/출시노트 관련 별도 사용자·에이전트 변경은 보존했고 수정하지 않았다.
+
+### 이번 3시간 작업 / 대화
+
+- 사용자는 셰이더로 좀비 얼굴을 직접 그린 방식을 다른 에이전트도 재사용할 수 있도록 핸드오프 문서 작성을 요청했다.
+- `handoff` 스킬 규칙에 따라 workspace가 아닌 Windows 임시 폴더에 문서를 작성했다.
+- 문서는 단일 shader plane, UV 기반 `softCircle`/`softLine`, feature-only alpha, 웃는 입 좌표, `uTime` 애니메이션, Studio catalog/preview 연결, Firebase-only 경계, 절대 금지사항과 재사용 검증 절차를 설명한다.
+- 구현 코드를 장문 복제하지 않고 실제 소스 경로와 심볼을 참조하도록 구성했다.
+
+### 생성 / 수정 파일
+
+- workspace 밖 생성: `C:/Users/admin/AppData/Local/Temp/escape_zombie_school_procedural_face_shader_handoff_2026-07-29.md` — 다른 에이전트용 procedural face shader 재사용 핸드오프.
+- workspace 코드 변경 없음.
+- 세션 규정에 따라 `SESSION_MEMORY.md`에 이번 엔트리를 추가했다.
+
+### 명령 로그
+
+```text
+Get-Content -Raw C:/Users/admin/.agents/skills/handoff/SKILL.md
+$env:TEMP; git status --short --branch
+Get-Content -Raw -Encoding utf8 C:/Users/admin/AppData/Local/Temp/escape_zombie_school_procedural_face_shader_handoff_2026-07-29.md
+Get-Item <handoff path> | Select-Object FullName,Length,LastWriteTime
+rg -n '^## (1|2|3|4|5|6|7|8|9|10|11|12|13)\.' <handoff path>
+rg -n '(api[_-]?key|password|oauth token|id token|refresh token|@gmail\.com|@naver\.com)' <handoff path>
+Get-Date -Format 'yyyy-MM-dd HHmm'
+git status --short --branch
+```
+
+### 검증 결과
+
+- 핸드오프 파일 크기: 10,901 bytes.
+- 필수 13개 섹션 모두 확인.
+- Suggested skills 섹션 확인.
+- 민감정보 패턴 미검출.
+- workspace Git 상태에는 핸드오프 파일 생성으로 인한 새 변경이 없다.
+- Firebase 데이터 접근·변경·Apply 없음.
+
+### 확정된 룰 / 정책 변경
+
+- 새 프로젝트 정책 변경 없음.
+- 이 핸드오프는 기존 프로젝트 정책과 구현을 설명하는 재사용 문서이며 새로운 정본을 만들지 않는다.
+
+### 미해결 이슈 + 다음 단계
+
+- `threemini` 카드 `t_3677b5e8`은 Hermes OAuth HTTP 401로 blocked 상태다.
+- 핸드오프 파일은 임시 폴더에 있으므로 장기 보존이 필요하면 사용자가 별도로 workspace 영구 문서화를 지시해야 한다.
+- 관련 코드와 문서는 아직 커밋하지 않았다.
+
+---

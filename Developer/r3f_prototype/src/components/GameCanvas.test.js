@@ -22,6 +22,12 @@ describe('GameCanvas reset ownership', () => {
     expect(source).toContain('<StageEntryRuntimeDiagnostics gameKey={gameKey} />')
   })
 
+  it('uses a fixed 60 Hz Rapier step while preserving the phase pause contract', () => {
+    expect(source).toContain('timeStep={1 / 60}')
+    expect(source).not.toContain('timeStep="vary"')
+    expect(source).toContain("paused={phase !== 'playing'}")
+  })
+
   it('starts Canvas-local shader warmup in every build and gates only diagnostics to DEV', () => {
     const diagnostics = readFileSync(new URL('./StageEntryRuntimeDiagnostics.jsx', import.meta.url), 'utf8')
     expect(diagnostics).toContain('useLayoutEffect')

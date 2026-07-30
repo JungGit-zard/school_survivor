@@ -1,0 +1,1543 @@
+{
+  "manifestVersion": 2,
+  "generatedAt": "2026-07-30",
+  "assets": [
+    {
+      "logicalId": "pencilFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/pencilFire.ogg",
+          "bytes": 5939,
+          "sha256": "7eb3d51380b30ac66386b19cbcdebee1dfa3e9d23b6670b5bcdb80de101e1c31"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/pencilFire.mp3",
+          "bytes": 2285,
+          "sha256": "b27a51d1a12c2816e38fcc3036b3a2f1beb7cfb11108a5d4395742de97892ade"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "rulerFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/rulerFire.ogg",
+          "bytes": 6516,
+          "sha256": "f49988ac6c94439d262858536b8174b7698740b31b303c22ffaf24ce0b915fcf"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/rulerFire.mp3",
+          "bytes": 2779,
+          "sha256": "d9febb08ccd151cf373d314fd4e33be5b55246abf6e43fd6d2186ab1bbb49a85"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "boxCutterFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/boxCutterFire.ogg",
+          "bytes": 5797,
+          "sha256": "74a79fc6b9265b3fa896df68cf7a595104824e82fa93a5bf0da1c0b7ea5bc761"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/boxCutterFire.mp3",
+          "bytes": 2206,
+          "sha256": "91c9a73667737c2f674e6facf687ad6f6e93c7cb04ef6dc31c4252d514e83f7a"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "tumblerFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/tumblerFire.ogg",
+          "bytes": 5033,
+          "sha256": "c94d363fcdfe4bd3f9021fafae74185f3dcbfbe36f906503716c06dfd1d6fe94"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/tumblerFire.mp3",
+          "bytes": 2439,
+          "sha256": "bb45fc72d4af18ec7024f58f13f3ea1e866bb3e1a6fffd206cb24cef07f3c717"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "bellFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/bellFire.ogg",
+          "bytes": 7293,
+          "sha256": "7c5087048f655b0199f6fc9cc763b82b0321f5b6b36eaf677b8cb82e36e45294"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/bellFire.mp3",
+          "bytes": 4181,
+          "sha256": "36e7645ddf3d8b5fe780707bb45bce3d73034865ea5e5128490da76658d26ad0"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "flaskFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/flaskFire.ogg",
+          "bytes": 6388,
+          "sha256": "5fe3486cc36b844a7b06f82008c6819ed57c91f005b4b9082cc4be50161b85eb"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/flaskFire.mp3",
+          "bytes": 2571,
+          "sha256": "c8a2e72897f349c8ea3fa4a38bfa1421d137eeb88a8bf4fd20cf12167d70d8f3"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "onigiriFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/onigiriFire.ogg",
+          "bytes": 6899,
+          "sha256": "2b6c71085fd657380f6d79495c029c535e2c89a0cf0d319f8ac9f9b4be14aa8b"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/onigiriFire.mp3",
+          "bytes": 3040,
+          "sha256": "41bdf843da959b6ff674420a51952da19a79273661fe5d5594aaafc68a86bfa0"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "stunGunFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/stunGunFire.ogg",
+          "bytes": 7919,
+          "sha256": "e492f0fe4a85805dfd2eae3a6a659d548b89054bef7a9555044e7a5aedad8f6f"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/stunGunFire.mp3",
+          "bytes": 3455,
+          "sha256": "908f181c59307210473924cfd02b90989346664e175c5e086d39cd2f3287dd3b"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "missileFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/missileFire.ogg",
+          "bytes": 8135,
+          "sha256": "fd718e64d24bf712403f1afbdd3535a63b43ed1e804d84377b469f2dfb24abd7"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/missileFire.mp3",
+          "bytes": 3924,
+          "sha256": "26a8b021cb991dc9e6d7dea8443b338e60375ba1fe65b8c148e2c948de50faf9"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "starlinkFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/starlinkFire.ogg",
+          "bytes": 7043,
+          "sha256": "3c7c2656cdc45b0422fe25acfe0e97a8d371096dc6581eff905d7784a10c2d65"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/starlinkFire.mp3",
+          "bytes": 3301,
+          "sha256": "76a2a381f165acaf0d5c0039ecc9387005e1ae853fe25dc117279f7daaddf5d7"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "starlinkFall",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/starlinkFall.ogg",
+          "bytes": 11534,
+          "sha256": "023c2414fe016b76191c8530276357860248ecacd6c4cd1de2c08a0decff9997"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/starlinkFall.mp3",
+          "bytes": 10029,
+          "sha256": "ae2454df25a840c111dd7170a2baacc596df86e4da181c2276063552f49cc7f5"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "starlinkExplosion",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/starlinkExplosion.ogg",
+          "bytes": 10151,
+          "sha256": "2caf7477d3b931d5755acba0265456c28e81884e94a6c8c27270e0435bd65836"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/starlinkExplosion.mp3",
+          "bytes": 7341,
+          "sha256": "62779317a2714e5132c64a25daca727fa365d4613f619ba31c92551ad615c5e3"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "compassFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/compassFire.ogg",
+          "bytes": 6317,
+          "sha256": "14892e3ec5c952c3761f9d61e303fa7e937fe71ef2348f113ba2b06032b87e49"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/compassFire.mp3",
+          "bytes": 2963,
+          "sha256": "23ec5301ee42e819fcb76d1b8ffc35d99ae219d4c78684688ccb3e5b46c12e67"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "umbrellaFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/umbrellaFire.ogg",
+          "bytes": 7097,
+          "sha256": "39091c41133c80a7b8aad67c8c343d52bd6620f32a4285659bf119619eef226b"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/umbrellaFire.mp3",
+          "bytes": 3352,
+          "sha256": "aa60659632ebc65201591ad9ab0e0ad22d4e7ceb62d83b59ee07572997ce06c7"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "eraserFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/eraserFire.ogg",
+          "bytes": 7217,
+          "sha256": "7aeea152d8c277dd620e4398c77b13730bc618210410906c94acf53f8ba9328d"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/eraserFire.mp3",
+          "bytes": 3169,
+          "sha256": "c389edcd918c81ab952a2aeb4957e44065e56a24dcb11cb1f74ac2351ad25873"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "chibikoFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/chibikoFire.ogg",
+          "bytes": 5629,
+          "sha256": "9eccd72054babe3026c80d4e7cebf403034731623808dd094c56ab76b937adaf"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/chibikoFire.mp3",
+          "bytes": 2156,
+          "sha256": "b324ae0686c803e3d796bc3720ea739b48d16f68d2d049008c3e519cda83fa6c"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "sharkFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/sharkFire.ogg",
+          "bytes": 8576,
+          "sha256": "28fcb189a0c4944aabc71884109e26f03439557aa0b701b769119a808d3e6cb6"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/sharkFire.mp3",
+          "bytes": 4210,
+          "sha256": "00553ea74898fb919341bfb1da013359a90a2434f0ed2e6097fff8c123447e53"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "lanternFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/lanternFire.ogg",
+          "bytes": 6611,
+          "sha256": "2a070de7acc20a4d55a84af16b90c9da249cc454c12158cf825e1970131cc974"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/lanternFire.mp3",
+          "bytes": 2910,
+          "sha256": "95f58c956baff894839c53e15470be31662b406aef22d5ac0a960d474648ba02"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "pencilHit",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/pencilHit.ogg",
+          "bytes": 4771,
+          "sha256": "b6d03ebff6381ad689e017adeab529d41b9b8c4fc70154b0386be2ce36b09954"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/pencilHit.mp3",
+          "bytes": 1874,
+          "sha256": "268869f139d4fcf82b74dc26f5a252d84d54f0d2cada5804ed49204eaa7c598d"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "rulerHit",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/rulerHit.ogg",
+          "bytes": 5197,
+          "sha256": "985776cf8a73cb73c6c7c11b1f5fb2dba880841ec17f0d7e0255c26a2bac2d0e"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/rulerHit.mp3",
+          "bytes": 2135,
+          "sha256": "712394e7f4c6cdac8354d0169d6488e0f53d0fb410c0955b6f09860248e07097"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "boxCutterHit",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/boxCutterHit.ogg",
+          "bytes": 4999,
+          "sha256": "868405836804b6264f0143a53124f62da0d2c52e1262dd20c3b07cefb97230f1"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/boxCutterHit.mp3",
+          "bytes": 1874,
+          "sha256": "05f1ef513401cbe6d40c34618054aa3d01dd74f68020816fd0ed661c7c5ced14"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "tumblerHit",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/tumblerHit.ogg",
+          "bytes": 5744,
+          "sha256": "acd1ec3bfcabdd8d52b950ebd036fd0c5a0af589ab1c979ecce1bed6c56bebec"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/tumblerHit.mp3",
+          "bytes": 2919,
+          "sha256": "24232399d103559b14c09b2d9b89bfff2da7a8694fea95c93d38836346f9716a"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "bellHit",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/bellHit.ogg",
+          "bytes": 7037,
+          "sha256": "e4d49835d7a73b12ac92532908521b86f76aa892ba68ebe7b02eb09453a68d1c"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/bellHit.mp3",
+          "bytes": 4225,
+          "sha256": "4a34ba7abc2923ee69f8a8e063cc6758d3c1009c19101b501116b1a07ff02313"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "flaskHit",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/flaskHit.ogg",
+          "bytes": 5975,
+          "sha256": "6980f248e2407d76a608303dce78323a7ff8243ec310f3c17454741da428844a"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/flaskHit.mp3",
+          "bytes": 3180,
+          "sha256": "38b0c06613200b57cf80084209270d3d4734c5b986cd7fa9e5d4c553d4eb4979"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "onigiriHit",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/onigiriHit.ogg",
+          "bytes": 5459,
+          "sha256": "801082cf8c8c60e44e84e159c93941929e00c4eafa043d200f47bf4b49a74f75"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/onigiriHit.mp3",
+          "bytes": 2657,
+          "sha256": "2a338345091e0c0c5c2164d95f0084322d35fc1468f97919991d28d0896196e2"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "stunGunHit",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/stunGunHit.ogg",
+          "bytes": 5441,
+          "sha256": "5b9a285ec7bed4da1cde7c6b676ea7c8472d1f1b55726562c6b145e02aca8893"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/stunGunHit.mp3",
+          "bytes": 2396,
+          "sha256": "3e180f189866701c789992fee829c272445d8930d6dd66349f58d98d24176c76"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "missileHit",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/missileHit.ogg",
+          "bytes": 7225,
+          "sha256": "a30ab1e30e9eb1a5fc0c2d216fca6e0b5e541a7d40c05ec7b0dcb3874aee5fe4"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/missileHit.mp3",
+          "bytes": 4486,
+          "sha256": "6e549e76aa37f86970f8c5a2778032c2a6c0b758e0abb323a540aadafc7f2605"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "starlinkHit",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/starlinkHit.ogg",
+          "bytes": 7532,
+          "sha256": "5e69ea73908ff3291b6a79fc0400a23c3ab80458de2b3d0b0e097f1313868427"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/starlinkHit.mp3",
+          "bytes": 5008,
+          "sha256": "0ac3ccd899bfc1e7b0877d940fca047594db6ef4e1bc28829a096814aaf34de9"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "compassHit",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/compassHit.ogg",
+          "bytes": 6094,
+          "sha256": "235cc60105735ccb68ab7491ae8cc301a6374e578f5169ae992b2d10fdcbf127"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/compassHit.mp3",
+          "bytes": 3180,
+          "sha256": "971a7f791da4dfdd65cf17ec30377b16cb5f16c13c3e55f7ae4736101fefca7d"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "compassQuack",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/compassQuack.ogg",
+          "bytes": 5495,
+          "sha256": "40b8aba9ad0a52e6ce198e4ece861786cd3b6569caa1e6caa2518a4709c2f0a7"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/compassQuack.mp3",
+          "bytes": 2396,
+          "sha256": "15a6f2727866ad1949a481c2b2bb02d8155542caa42d77f63e760a034f2a0f64"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "umbrellaHit",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/umbrellaHit.ogg",
+          "bytes": 6243,
+          "sha256": "5bf4e6c21c04aa5abc1c99e7047d3fa58871ad17d910cdd0131f47679c8b1247"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/umbrellaHit.mp3",
+          "bytes": 3441,
+          "sha256": "1596bba056d203fd263fee1fad9eb424b167ea18a52fe6c5a6a63e0529a511f7"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "eraserHit",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/eraserHit.ogg",
+          "bytes": 6537,
+          "sha256": "2c6fcb426bbb76097a5d89f52941e05045140ababd8c8d7d39b8ca9b7048c1d3"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/eraserHit.mp3",
+          "bytes": 3702,
+          "sha256": "bf502b30a61f06a015222ead511ef14b128fcc320d961e6aa6e18e3c7a4e88af"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "chibikoHit",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/chibikoHit.ogg",
+          "bytes": 4702,
+          "sha256": "5737ca321e00036cdcd717d76c760e5b1e407fdcf159feb9d87bc6327dac6817"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/chibikoHit.mp3",
+          "bytes": 1612,
+          "sha256": "4d6eb494ff3eefc6d2c209b898298f5ed62521870dfb259c7124484c106ab9bb"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "sharkHit",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/sharkHit.ogg",
+          "bytes": 6546,
+          "sha256": "d9842564e7ef020fe9de529ea9e557ae55506854944d5855acff1b7b59c2378e"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/sharkHit.mp3",
+          "bytes": 3702,
+          "sha256": "104f4383c10e5122ece0a51904aa2c162f611c283aa684da297ca563356d4f48"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "flaskTick",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/flaskTick.ogg",
+          "bytes": 5528,
+          "sha256": "3b3575ec0f3a076f5e04464fdaf721a6588730e32d2fe5c8a0646b617147ea97"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/flaskTick.mp3",
+          "bytes": 2396,
+          "sha256": "78b61f8e2174c7907cedcf0f39d0510020f26a52931c49fe2f8c87dfc86faeb2"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "lanternTick",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/lanternTick.ogg",
+          "bytes": 5051,
+          "sha256": "8539e6eabfcb7413ad563255ab2268d6b964fe2dba2a7d1cf53536c0edf0fa43"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/lanternTick.mp3",
+          "bytes": 2135,
+          "sha256": "d729131b0e6c881fa4bd90965325799ef13a2648c98acb1fd25f476bf567fc25"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "playerHit",
+      "category": "player",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/player/playerHit.ogg",
+          "bytes": 4646,
+          "sha256": "6c72229d4422cda55a6f65099ec437b7d50b5fc3d10189f9585a8cc0cda510cf"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/player/playerHit.mp3",
+          "bytes": 1895,
+          "sha256": "ca88afa3d15592329977e935da439e34b53ee5bdbd130e87b50f681ac53eb8b9"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "playerDeath",
+      "category": "player",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/player/playerDeath.ogg",
+          "bytes": 11242,
+          "sha256": "6f307254d09bb9660f8f14a19e92e41a055146fd1fe12b572d781e29253bcc6d"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/player/playerDeath.mp3",
+          "bytes": 5951,
+          "sha256": "324d1c6e23a73252d1e2a63b31596744378902f5277388218db126655e6b6915"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "playerStep",
+      "category": "player",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/player/playerStep.ogg",
+          "bytes": 4643,
+          "sha256": "890c3bcb81b008296dfba5ee390836b86813d03eac9571e8b73c38f7f42e0c7f"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/player/playerStep.mp3",
+          "bytes": 1948,
+          "sha256": "0afccf4e0888b5dafafb39007746ca3b18653e3cf40eb8ada806cc0428882c75"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "zombieGroan",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieGroan.ogg",
+          "bytes": 8706,
+          "sha256": "7309e0bbe0344449ddd76bdba0bd279c66e7fffe6092490f54113c5abba8c6cc"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieGroan.mp3",
+          "bytes": 4105,
+          "sha256": "502b11c6c16960b4b368fb02bf1413e39786d67167c19f5b30df276fc8b0d46b"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "zombieSpawn",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieSpawn.ogg",
+          "bytes": 7587,
+          "sha256": "7ad22ec8e1a5f34c38396bd75672490669af43b7fac5c9f6746711d06313d34f"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieSpawn.mp3",
+          "bytes": 3980,
+          "sha256": "ac6ba81fa0891688247d50992d5db0b250a27d0ef4b5fab7133de96efdb12697"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "zombieTankGroan",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieTankGroan.ogg",
+          "bytes": 9381,
+          "sha256": "d88394fecf33c70e8306068b62b69af65d5c1397bbb532f1bba5d1f3c14ddb9a"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieTankGroan.mp3",
+          "bytes": 4911,
+          "sha256": "505b7fb9ceb1545ee8d656ef6a7f054548748e13b409fb8b9fed5f1a0428ecb0"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "zombieRunnerScreech",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieRunnerScreech.ogg",
+          "bytes": 7572,
+          "sha256": "79a0e91ebe25148fb32b048b9b2d19461cc1b1cc0b84036670e33f88a110ee26"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieRunnerScreech.mp3",
+          "bytes": 3614,
+          "sha256": "a773165d11ecab375efde1ca4557296a137b11146e10abcb3b95cf108b65ea1d"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "zombieRangedShoot",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieRangedShoot.ogg",
+          "bytes": 6727,
+          "sha256": "6869a30ad8a636d94c8ffa2cefd2f57f98876ee561574811d65fa3ac0bff8372"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieRangedShoot.mp3",
+          "bytes": 2987,
+          "sha256": "64630182b83b2136da27d6c877b5781fa8221899149576d7cf50ef07f024ba62"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "zombieChargeRoar",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieChargeRoar.ogg",
+          "bytes": 9496,
+          "sha256": "c775b5d67be30cbc212860b2a0ecb948968953980eb19a93f12176b0724d2bc6"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieChargeRoar.mp3",
+          "bytes": 4885,
+          "sha256": "6df2f939c1cc986110291f3acdebc2bbfec0601b48b141557d818f0dee5f8336"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "zombieGiantThud",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieGiantThud.ogg",
+          "bytes": 9064,
+          "sha256": "bbcb319c9b11b07b054b9ec93cd8f4f6e5d4c11e55242710e8fc19dbc69d5b54"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieGiantThud.mp3",
+          "bytes": 4469,
+          "sha256": "1d01187bb952c1be95fcbb49813335765cc3ee411ca51b6f93cfba335c30495e"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "bossRoar",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/bossRoar.ogg",
+          "bytes": 12619,
+          "sha256": "425a5663e02c2793572780566980ad65589f26bc0054d9ea2d4315e6b0c10145"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/bossRoar.mp3",
+          "bytes": 7173,
+          "sha256": "df48cf81af0f41dbb2051d084e3d4d404ef5382138a196f3ceb6d5295e7ead8a"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "matildaSpawn",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.ogg",
+          "bytes": 14937,
+          "sha256": "e2b654f2e89716db75c4d5f5cf9d11c7b244e7d23b3e70081106c73f49e3d68d"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.mp3",
+          "bytes": 14778,
+          "sha256": "3ce7d136d192e9710cddc06c9acfa9c72d7abc9d0787ea1ac6af71def0a1fc61"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "matildaDash",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDash.ogg",
+          "bytes": 9265,
+          "sha256": "9b9a3a35471f92691d0664e92f8ad6dd5ac3f960fe365e7c91b19cbdeafa769d"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDash.mp3",
+          "bytes": 5492,
+          "sha256": "bc5b3297041df431702e950557c5c10a7b4f650872db11781261cc142bea9dfc"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "matildaLaugh",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.ogg",
+          "bytes": 13114,
+          "sha256": "a1ecee752613d68b6af9c2cd27bf3da2f1377d9b2d6d01401a9f27cd400d9131"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.mp3",
+          "bytes": 9904,
+          "sha256": "1b1800e2cd3b75d5998e5bb4182654ddc97530e9fc263e9bf8b6c888481fb994"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "zombieDeath",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeath.ogg",
+          "bytes": 7402,
+          "sha256": "d687fc7d06a5ab0c1c4ea87f1059f35b52fba6ae959274c62a4ae964cf5864d9"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeath.mp3",
+          "bytes": 3273,
+          "sha256": "778a37d0cd33c05d58a4dc177e655ce546fc789fc8c966b28747c59aab35a9be"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "zombieHeavyDeath",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieHeavyDeath.ogg",
+          "bytes": 9478,
+          "sha256": "8f88aeca2c2986fdf3fde12223166580d50e5a19ca99c1cc59b582c3c38d5f2c"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieHeavyDeath.mp3",
+          "bytes": 4885,
+          "sha256": "7408e85deb7a0384d644283050f6bba93385770ccc9126c697263a2b176d2011"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "bossDeath",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/bossDeath.ogg",
+          "bytes": 15612,
+          "sha256": "8751e3023cecd9858b54d65e08479e279c7504d91e95f382739a4ab4814067c4"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/bossDeath.mp3",
+          "bytes": 9097,
+          "sha256": "6f2811562c604d0110c2ee9492a9be2d2c6d549afa96210a22b33a054f6d1a7a"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "matildaDeath",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDeath.ogg",
+          "bytes": 13164,
+          "sha256": "79cbbedfd1fc8f83212ec1799fb11d09d90d6e63813f9ab0084b1cdf49331817"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDeath.mp3",
+          "bytes": 7777,
+          "sha256": "d81e19ad8cf7c15549d9e952e0a7c541bb52ff52ed6bdf4a47e75dad0652dd28"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "dogeDeath",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/dogeDeath.ogg",
+          "bytes": 6890,
+          "sha256": "b36da71d2e3de4e59600e9b36aa8540731d9fa45049106d325fa64a06a4d6a34"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/dogeDeath.mp3",
+          "bytes": 4225,
+          "sha256": "f75a89fb09f50c80a57501e1a3737b46d28d218808f67f690865c02cbb7fbf2d"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "dogeEscape",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/dogeEscape.ogg",
+          "bytes": 7307,
+          "sha256": "337dd3112b9c237d06401aed1732337de67fc5f1ae2a3f89596ba785a4ab7a14"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/dogeEscape.mp3",
+          "bytes": 5008,
+          "sha256": "e3cfb4f74fdc165db4a2689c35b8359976e18c18d1251d3494f1130e57c7cdf2"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "buttonClick",
+      "category": "ui",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/ui/buttonClick.ogg",
+          "bytes": 4297,
+          "sha256": "490491ec43c3318fac52e1112f15fc180e67463dce456a14ddd70dfe8b6e086d"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/ui/buttonClick.mp3",
+          "bytes": 1295,
+          "sha256": "55524e3ae72546839181210a642c195c59cf77c730535f4ac13e7f43b4e711d5"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "coinCollect",
+      "category": "ui",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/ui/coinCollect.ogg",
+          "bytes": 4968,
+          "sha256": "6499c0d571ca49ea9aacf0e6cdb9e7d5c8d0dfa4c5165d3ede1b09fd6a09507d"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/ui/coinCollect.mp3",
+          "bytes": 1999,
+          "sha256": "abb8d4b08c15259bbe606cb2f212b93bf05693c9174bf851af22c339e4fcc700"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "textbookCollect",
+      "category": "ui",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/ui/textbookCollect.ogg",
+          "bytes": 6301,
+          "sha256": "1730a98a2afa33108fedfdb036285dbc46d57724fb75ad5359c6fd3c743760c3"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/ui/textbookCollect.mp3",
+          "bytes": 3441,
+          "sha256": "cfece25b63cec0f4dc060dd64677d52fb69d141def7444decdaa541a3bc893e9"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "levelUp",
+      "category": "ui",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/ui/levelUp.ogg",
+          "bytes": 6776,
+          "sha256": "d9c3b9c836b168a6351cdd767875cb9d8dbc957fe2c1af6a04aa1818bc3065cc"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/ui/levelUp.mp3",
+          "bytes": 4311,
+          "sha256": "6fb2d16a9166ea0c83a0652a856ca46fc9a79f86f002a82a9197dc5b08f36b4c"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "stageClear",
+      "category": "ui",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/ui/stageClear.ogg",
+          "bytes": 8380,
+          "sha256": "8d5509f78e205181cf231450f1c49c52950cd6dc00d496b179a5e3be41c5044d"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/ui/stageClear.mp3",
+          "bytes": 6651,
+          "sha256": "7daa7ab171b8448742bc0591eae75e725082115d25ecdd232c3f456a09287636"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "gameOver",
+      "category": "ui",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/ui/gameOver.ogg",
+          "bytes": 7582,
+          "sha256": "a2fe089415f60cfd32c74ab9df8c022df955b127be6a407733229416b39e86a8"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/ui/gameOver.mp3",
+          "bytes": 5533,
+          "sha256": "c7ae1c04333e95c3a85f898bcd9bf4663714ab47150be294688a64421c21f273"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "bossWarning",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/bossWarning.ogg",
+          "bytes": 8649,
+          "sha256": "f0ccc5fdd5662045a98a95fbe583b9002d00cdabcdf5dffba0ba7ec991ade0c7"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/bossWarning.mp3",
+          "bytes": 3508,
+          "sha256": "5275baa4b5c1574956cd823eec8c203f04f31f1a3fb71396a902154e33bac46c"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "bossSpawn",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/bossSpawn.ogg",
+          "bytes": 12651,
+          "sha256": "23fe44c4d7ab17c27cbb37bb00dfc3b3f00392456e77b28ca012c9ae9b6d1551"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/bossSpawn.mp3",
+          "bytes": 7043,
+          "sha256": "66f56d74b03519d0533cd93d655e8d2e0fb2e19541aeef2620b76d6307e129e6"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "portalAppear",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/portalAppear.ogg",
+          "bytes": 9983,
+          "sha256": "a29c0f56853a1eb809a7689424337ab92d4a314c70e1ad69924dba5ebea8df65"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/portalAppear.mp3",
+          "bytes": 6609,
+          "sha256": "23fb1ee252f255ccb1f510ca4fc1d2be230856f2c1752c1e5aaf96d67adb9102"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "portalSuction",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/portalSuction.ogg",
+          "bytes": 15069,
+          "sha256": "8f67edb9c43c8335ddefb1c9b04f009f8a5330c4f9e6c7778e69d92cea9b71a2"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/portalSuction.mp3",
+          "bytes": 8837,
+          "sha256": "0601687b94a3c7d72335afc37a4cf845d74c99afe5588a6a57efea53993fe7d9"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "matildaWarningTick",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/matildaWarningTick.ogg",
+          "bytes": 6245,
+          "sha256": "3a4ecf3b714f50a26378b535a80ee1007807cf4339536699c7bb721587694edf"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/matildaWarningTick.mp3",
+          "bytes": 2471,
+          "sha256": "0862a18b73151773e7390013ac01f881b8ff090fd64085767706bf2f28113c9b"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "matildaCountdownEnd",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/matildaCountdownEnd.ogg",
+          "bytes": 10765,
+          "sha256": "f108ad130804b6a915613519caa2f8c753aa0d410530ccba5309fa463e3ea141"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/matildaCountdownEnd.mp3",
+          "bytes": 7057,
+          "sha256": "4f251cf8167e29998e61ebf96d9294fbfdc90a2d734b88105f58effbb4fd353f"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "escapePortalClear",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/escapePortalClear.ogg",
+          "bytes": 8779,
+          "sha256": "6b7e022f1ce97f2689356008df157eed093fffe8c6183b8e4599d0f650296abd"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/escapePortalClear.mp3",
+          "bytes": 6911,
+          "sha256": "b4f04943847e5f53872ebfc6e4cd1f2e4ed0b02c455337871d3a413b062ffbf8"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "bossClearJingle",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/bossClearJingle.ogg",
+          "bytes": 8742,
+          "sha256": "cd1f00a6609ae213c9bd71fd5aa14d5cfe270715ef9bbd39c788f2a6c0964279"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/bossClearJingle.mp3",
+          "bytes": 7042,
+          "sha256": "65183a2475eb365c16d9302d202d7b20131456947cb5948907aa5e56d59ac442"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "milestoneGold",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/milestoneGold.ogg",
+          "bytes": 5428,
+          "sha256": "06b1f941cdd91814011a592c7a5bb6fc69bf3db9c23506d9a29368aef75f5a83"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/milestoneGold.mp3",
+          "bytes": 2389,
+          "sha256": "fe8b09f8b98904d21d2061c945cbd5bc9598bd413ed71e2e7bbdf5acee2e9508"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "chestDrop",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/chestDrop.ogg",
+          "bytes": 6184,
+          "sha256": "6e03746251ba0fa4fc88328a4ddadd5386463e589d9aef7c2c5825ae6e4bcd34"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/chestDrop.mp3",
+          "bytes": 3441,
+          "sha256": "90b41a08786e06e199c814355c54728d2f05e1aee0004e01b796d28c7c0b686b"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "chestOpen",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/chestOpen.ogg",
+          "bytes": 8306,
+          "sha256": "e80ad7f66a390923ffe1c030ab63839deb63fc6a6feab018faf62e8ce593a828"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/chestOpen.mp3",
+          "bytes": 5270,
+          "sha256": "23731552a95e1f9b9a8c88ec434eb2d27d12f4d9d0726aad4a41f294f4336248"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "textbookLand",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/textbookLand.ogg",
+          "bytes": 4957,
+          "sha256": "3b32e09441a0fe8660e2d62df68d9e6126ce87a3eeae7d27673ded537fd2d124"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/textbookLand.mp3",
+          "bytes": 1874,
+          "sha256": "b0203653d12e0019d642866dca484a598af1e14d18b77302a9aacc27a5ce960d"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "rzlWhistle",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/rzlWhistle.ogg",
+          "bytes": 11471,
+          "sha256": "730873cc86cd14b0012b2cc1858872e009d25db9931cebb42f19689165e23800"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/rzlWhistle.mp3",
+          "bytes": 9710,
+          "sha256": "80abca70073f79beff299bf59a90cecbc478e1157e13955f064474f237d074f6"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "titleBgm",
+      "category": "bgm",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/src/assets/audio/title_bgm.m4a",
+          "bytes": 998122,
+          "sha256": "991bf9871fe70b55852920390b3b1434892cfc50da79d3e8fd900062b191cffe"
+        }
+      ],
+      "provenanceType": "owner-mandated-canonical",
+      "licenseEvidence": "owner-mandated-canonical-inclusion; rights/source not verified by this manifest",
+      "canonicalInclusion": "owner-mandated-permanent",
+      "source": "Owner-mandated canonical inclusion; this manifest makes no rights or source verification claim.",
+      "notes": "출처·권리 근거를 이 매니페스트가 확인했다는 주장은 하지 않는다. 2026-07-30 절차 생성 타이틀 교체는 2026-07-31 사용자 명시 지시로 무효화됐다. 권리·출처·품질·최적화·비평 점수는 이 정본을 교체하거나 제외할 사유가 아니다.",
+      "inclusionPolicy": "owner-mandated permanent canonical inclusion in every development run, build, and AAB; do not delete, replace, convert, or redirect playback. Only a new explicit user instruction may change it."
+    },
+    {
+      "logicalId": "gameplayBgm",
+      "category": "bgm",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/src/assets/audio/gameplay_bgm.wav",
+          "bytes": 352844,
+          "sha256": "1bde953a4fac3ee8058b6d20f725fc857e29e7a2c1e503e50ab8b9e08ab6d8d8"
+        }
+      ],
+      "provenanceType": "project-generated-procedural",
+      "licenseEvidence": "project-generated-procedural-no-external-samples",
+      "source": "scripts/generate-project-bgm.mjs (deterministic Node built-in PCM synthesis; no external samples or recorded source)",
+      "notes": "8s 22050Hz mono 16-bit WAV loop; source values are PCM measurements, not a perceptual loudness claim.",
+      "sampleRate": 22050,
+      "channels": 1,
+      "durationSeconds": 8,
+      "pcmPeak": 0.31131931516464734,
+      "pcmRms": 0.12539166866256554
+    }
+  ]
+}

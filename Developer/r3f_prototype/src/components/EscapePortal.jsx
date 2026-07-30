@@ -1,18 +1,25 @@
-import { useRef, useState, useMemo } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { playerPos } from '../lib/refs.js'
+import { clearPortalTarget, playerPos, publishPortalTarget } from '../lib/refs.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 import { STAGE_OBJECT_PLACEMENTS } from './StageObjects/stageObjectPlacements.js'
+import { clampGameplayFrameDelta } from '../lib/gameplayFrameTime.js'
+import {
+  PORTAL_SUCTION_DURATION,
+  advancePortalSuctionClock,
+  createPortalSuctionClock,
+  resetPortalSuctionClock,
+} from '../lib/portalSuctionClock.js'
+import { PORTAL_VISUAL_STATE, applyPortalSuctionVisuals } from '../lib/portalVisualState.js'
 
 const PORTAL_RADIUS = 1.5
 // 작동(흡입) 히트박스 — 시각 링(PORTAL_RADIUS)과 분리해 중앙 좁은 원으로 제한.
 const PORTAL_TRIGGER_RADIUS = 0.6
 const MIN_DIST_FROM_PLAYER = 5
 const MIN_DIST_FROM_OBSTACLE = 2
-const SUCTION_DURATION = 1.0   // seconds
 const MAP_INSET = 3             // stay this far from map edge
 
 function pickPortalPosition(stageId) {
@@ -42,17 +49,27 @@ export default function EscapePortal({ stageId }) {
   const pos      = useMemo(() => pickPortalPosition(stageId), [stageId])
   const ringRef  = useRef()
   const glowRef  = useRef()
+  const ringMaterialRef = useRef()
+  const glowMaterialRef = useRef()
+  const portalLightRef = useRef()
   const suckingRef      = useRef(false)
-  const suckTimerRef    = useRef(0)
+  const suctionClockRef = useRef(null)
   const clearedRef      = useRef(false)
-  const [sucking, setSucking] = useState(false)
+  if (suctionClockRef.current === null) suctionClockRef.current = createPortalSuctionClock()
+
+  useEffect(() => {
+    publishPortalTarget(pos[0], pos[2])
+    return clearPortalTarget
+  }, [pos])
 
   useFrame((_, delta) => {
     if (phase !== 'playing' || clearedRef.current) return
 
+    const visualDelta = clampGameplayFrameDelta(delta)
+
     // rotation animation
-    if (ringRef.current)  ringRef.current.rotation.y  += delta * 1.2
-    if (glowRef.current)  glowRef.current.rotation.y  -= delta * 0.6
+    if (ringRef.current)  ringRef.current.rotation.y  += visualDelta * 1.2
+    if (glowRef.current)  glowRef.current.rotation.y  -= visualDelta * 0.6
 
     const dx = playerPos.x - pos[0]
     const dz = playerPos.z - pos[2]
@@ -60,18 +77,25 @@ export default function EscapePortal({ stageId }) {
 
     if (!suckingRef.current && dist < PORTAL_TRIGGER_RADIUS) {
       suckingRef.current = true
-      suckTimerRef.current = 0
-      setSucking(true)
+      resetPortalSuctionClock(suctionClockRef.current)
+      applyPortalSuctionVisuals({
+        ringMaterial: ringMaterialRef.current,
+        glowMaterial: glowMaterialRef.current,
+        light: portalLightRef.current,
+      })
       emitSfx({ id: 'portalSuction' })
+      // Trigger frame only starts the sequence. The next playing frame owns
+      // the first fixed suction step, preventing a resume hitch from skipping it.
+      return
     }
 
     if (suckingRef.current) {
-      suckTimerRef.current += delta
+      const { elapsed, completedNow } = advancePortalSuctionClock(suctionClockRef.current, delta)
       // scale up glow during suction
-      const t = Math.min(suckTimerRef.current / SUCTION_DURATION, 1)
+      const t = Math.min(elapsed / PORTAL_SUCTION_DURATION, 1)
       if (glowRef.current) glowRef.current.scale.setScalar(1 + t * 1.5)
 
-      if (suckTimerRef.current >= SUCTION_DURATION && !clearedRef.current) {
+      if (completedNow && !clearedRef.current) {
         clearedRef.current = true
         emitSfx({ id: 'escapePortalClear' })
         clearStageAndStartNext()
@@ -79,18 +103,16 @@ export default function EscapePortal({ stageId }) {
     }
   })
 
-  const portalColor  = sucking ? '#ffffff' : '#00ffcc'
-  const emissiveInt  = sucking ? 3 : 1.5
-
   return (
     <group position={pos}>
       {/* outer rotating ring */}
       <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[PORTAL_RADIUS - 0.12, PORTAL_RADIUS, 48]} />
         <meshStandardMaterial
-          color={portalColor}
-          emissive={portalColor}
-          emissiveIntensity={emissiveInt}
+          ref={ringMaterialRef}
+          color={PORTAL_VISUAL_STATE.idle.color}
+          emissive={PORTAL_VISUAL_STATE.idle.color}
+          emissiveIntensity={PORTAL_VISUAL_STATE.idle.ringEmissiveIntensity}
           transparent
           opacity={0.9}
           side={THREE.DoubleSide}
@@ -100,16 +122,23 @@ export default function EscapePortal({ stageId }) {
       <mesh ref={glowRef} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[PORTAL_RADIUS - 0.14, 48]} />
         <meshStandardMaterial
-          color={portalColor}
-          emissive={portalColor}
-          emissiveIntensity={emissiveInt * 0.5}
+          ref={glowMaterialRef}
+          color={PORTAL_VISUAL_STATE.idle.color}
+          emissive={PORTAL_VISUAL_STATE.idle.color}
+          emissiveIntensity={PORTAL_VISUAL_STATE.idle.glowEmissiveIntensity}
           transparent
-          opacity={sucking ? 0.7 : 0.35}
+          opacity={PORTAL_VISUAL_STATE.idle.glowOpacity}
           side={THREE.DoubleSide}
         />
       </mesh>
       {/* point light for scene glow */}
-      <pointLight color={portalColor} intensity={sucking ? 6 : 2.5} distance={6} decay={2} />
+      <pointLight
+        ref={portalLightRef}
+        color={PORTAL_VISUAL_STATE.idle.color}
+        intensity={PORTAL_VISUAL_STATE.idle.lightIntensity}
+        distance={6}
+        decay={2}
+      />
     </group>
   )
 }

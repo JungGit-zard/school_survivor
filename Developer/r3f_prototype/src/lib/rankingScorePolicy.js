@@ -23,7 +23,19 @@ export function getRankingScore({ stageId = 'stage1', survivalSeconds = 0, clear
   return readNonNegativeInt(survivalSeconds)
     + readNonNegativeInt(policy.stageBonus?.[stageId])
     + (cleared ? readNonNegativeInt(policy.clearBonus) : 0)
-    + readNonNegativeInt(bossBonus)
+    // 보스 처치는 포탈 탈출을 대체하지 않는다. 이 마지막 방어선은 호출자가
+    // 중간 처치 보너스를 넘겨도 미클리어 RTDB payload가 규칙 상한을 넘지 않게 한다.
+    + (cleared ? readNonNegativeInt(bossBonus) : 0)
+}
+
+// 마지막 보스를 처치했다는 사실은 런 중에 기록한다. 다만 보너스 점수는 포탈
+// 클리어 시점의 생존 시간·클리어 보너스를 기준으로 단 한 번 확정한다.
+export function getBossClearBonus({ stageId = 'stage1', survivalSeconds = 0, cleared = false, bossDefeated = false } = {}, policy = getRankingScorePolicy()) {
+  if (cleared !== true || bossDefeated !== true) return 0
+  const baseScore = readNonNegativeInt(survivalSeconds)
+    + readNonNegativeInt(policy.stageBonus?.[stageId])
+    + readNonNegativeInt(policy.clearBonus)
+  return Math.floor(baseScore * 0.2)
 }
 
 export function getRankingScorePolicy(seasonConfig = getAdminRankingSeasonConfig()) {

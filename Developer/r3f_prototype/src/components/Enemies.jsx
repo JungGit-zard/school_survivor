@@ -31,6 +31,7 @@ import { logKill } from '../lib/playtestLogger.js'
 import { getStageObjectSightObstacles, isStageObjectSightBlocked } from './StageObjects/stageObjectColliders.js'
 import { createEnemyHitEventQueue } from '../lib/enemyHitEventQueue.js'
 import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
+import { advanceMatildaEntryGrace, canSpawnMatildaEntry, cancelMatildaEntryGrace, createMatildaEntryGrace } from '../lib/matildaEntryGrace.js'
 import { getPooledEnemyRenderTier, shouldRefreshEnemySight } from './PooledEnemyVisuals.js'
 import {
   createPooledEnemySpawnDrainQueue,
@@ -678,6 +679,7 @@ const SCHEDULE_DOGE = 2
 const SCHEDULE_WAVE = 3
 const SCHEDULE_MID_WAVE = 4
 const SCHEDULE_BURST = 5
+const SCHEDULE_MATILDA = 6
 
 function isPooledEnemyType(type) {
   const code = enemyTypeToCode(type)
@@ -748,7 +750,7 @@ export default function Enemies() {
   const [doges, setDoges]           = useState([])
   const [chests, setChests]         = useState([])
   const enemiesRef                = useRef([])
-  const runtimeQueueRef           = useRef({ specialRemovals: [], textbooks: [], gold: [], collapses: [], doges: [], chests: [], flushScheduled: false, raf: 0, scheduleKind: new Uint8Array(64), scheduleA: new Float32Array(64), scheduleB: new Float32Array(64), scheduleRead: 0, scheduleWrite: 0, scheduleCount: 0, processScheduled: null, spawnDrain: createPooledEnemySpawnDrainQueue(), drainPooled: null, deathType: new Uint8Array(MAX_RUNTIME_QUEUE), deathX: new Float32Array(MAX_RUNTIME_QUEUE), deathY: new Float32Array(MAX_RUNTIME_QUEUE), deathZ: new Float32Array(MAX_RUNTIME_QUEUE), deathXp: new Float32Array(MAX_RUNTIME_QUEUE), deathScale: new Float32Array(MAX_RUNTIME_QUEUE), deathDamage: new Float32Array(MAX_RUNTIME_QUEUE), deathMaxHp: new Float32Array(MAX_RUNTIME_QUEUE), deathKnockback: new Float32Array(MAX_RUNTIME_QUEUE), deathStyle: new Uint8Array(MAX_RUNTIME_QUEUE), deathRead: 0, deathWrite: 0, deathCount: 0, hitQueue: createEnemyHitEventQueue(), hitScratch: {} })
+  const runtimeQueueRef           = useRef({ specialRemovals: [], textbooks: [], gold: [], collapses: [], doges: [], chests: [], flushScheduled: false, raf: 0, scheduleKind: new Uint8Array(64), scheduleA: new Float32Array(64), scheduleB: new Float32Array(64), scheduleRead: 0, scheduleWrite: 0, scheduleCount: 0, processScheduled: null, matildaEntry: null, spawnDrain: createPooledEnemySpawnDrainQueue(), drainPooled: null, deathType: new Uint8Array(MAX_RUNTIME_QUEUE), deathX: new Float32Array(MAX_RUNTIME_QUEUE), deathY: new Float32Array(MAX_RUNTIME_QUEUE), deathZ: new Float32Array(MAX_RUNTIME_QUEUE), deathXp: new Float32Array(MAX_RUNTIME_QUEUE), deathScale: new Float32Array(MAX_RUNTIME_QUEUE), deathDamage: new Float32Array(MAX_RUNTIME_QUEUE), deathMaxHp: new Float32Array(MAX_RUNTIME_QUEUE), deathKnockback: new Float32Array(MAX_RUNTIME_QUEUE), deathStyle: new Uint8Array(MAX_RUNTIME_QUEUE), deathRead: 0, deathWrite: 0, deathCount: 0, hitQueue: createEnemyHitEventQueue(), hitScratch: {} })
   const runtimeEventScratchRef    = useRef({})
   const runtimeContextRef         = useRef({ delta: 0, playerX: 0, playerZ: 0, halfX: 1, halfZ: 1, elapsedSec: 0, activeProjectileCount: 0, stageId: 'stage1', e04IntroSec: 72, bossPressure: false, obstacles: null, obstacleCount: 0, sightBlocked: enemySightBlocked })
   const stageRuntimeCacheRef      = useRef(null)
@@ -762,6 +764,7 @@ export default function Enemies() {
   const sightGenerationRef       = useRef(new Uint16Array(MAX_ENEMIES))
   const sightTierRef             = useRef(new Uint8Array(MAX_ENEMIES))
   const sightFrameRef            = useRef(0)
+  const matildaEntryRef          = useRef(null)
 
   const spawnBoss      = useGameStore((s) => s.spawnBoss)
   const matildaSpawned = useGameStore((s) => s.matildaSpawned)
@@ -781,6 +784,7 @@ export default function Enemies() {
     queue.scheduleRead = 0
     queue.scheduleWrite = 0
     queue.scheduleCount = 0
+    queue.matildaEntry = null
     const bounds = getStageBounds(currentStageId)
     stageRuntimeCacheRef.current = {
       id: currentStageId,
@@ -947,6 +951,7 @@ export default function Enemies() {
     queue.scheduleRead = 0
     queue.scheduleWrite = 0
     queue.scheduleCount = 0
+    queue.matildaEntry = null
   }, [])
 
   const enqueueTextbook = useCallback((pos, value) => {
@@ -1023,31 +1028,20 @@ export default function Enemies() {
     return batch
   }, [currentStageId])
 
-  // 마틸다 스폰 — matildaSpawned가 true로 바뀌는 순간 1회만 실행
+  // 마틸다 등장 대사를 읽는 동안에는 실체/AI를 만들지 않는다. 같은 run/stage가
+  // 유지된 경우에만 4.5초 뒤 한 번 스폰하며 cleanup은 reset/stage/unmount stale 스폰을 막는다.
   useEffect(() => {
     if (!matildaSpawned) return
-    const runtime = stageRuntimeCacheRef.current
-    const bounds = runtime?.bounds ?? getStageBounds(currentStageId)
-    const player = useGameStore.getState().player
-    // 플레이어 능력치 기준 동적 스탯: HP/공격력 ×3, 이동속도 ×1.4, 몸 크기는 B01 기본값
-    const matildaStats = {
-      hp:          player.maxHp * 3,
-      speed:       player.speed * 1.4,
-      damage:      player.maxHp * 3,   // 3배 공격력 = 플레이어 최대 체력 3배로 즉사 수준
-      scale:       ENEMY_STATS.B01.scale,
-      contactDist: 0.36,
-      charger:     true,
-      chargeSpeed: player.speed * 2.8,
-      warnDist:    6.0,
-      warnDuration:    400,
-      stunDuration:    800,
-      chargeDuration: 1500,
-      xp: 0,
+    const entry = createMatildaEntryGrace({
+      stageId: currentStageId,
+      gameKey,
+    })
+    matildaEntryRef.current = entry
+    return () => {
+      cancelMatildaEntryGrace(entry)
+      if (matildaEntryRef.current === entry) matildaEntryRef.current = null
     }
-    // 플레이어 근처 랜덤 스폰
-    const spawnPos = randomSpawnPos('B01', bounds, [], Math.random, runtime?.obstacles ?? [], matildaStats.scale)
-    if (spawnPos) addEnemies([{ id: ++_uid, type: 'B01', pos: spawnPos, statOverride: matildaStats, isMatilda: true }])
-  }, [matildaSpawned, currentStageId, addEnemies])
+  }, [matildaSpawned, currentStageId, gameKey])
 
   const dropTextbook = useCallback((pos, value) => {
     enqueueTextbook(pos, value)
@@ -1069,6 +1063,7 @@ export default function Enemies() {
 
   // scheduler는 RAF에서만 객체/배치를 만든다. usePlayingFrame은 scalar 요청만 기록한다.
   runtimeQueueRef.current.processScheduled = (kind, a, b) => {
+    const queue = runtimeQueueRef.current
     const cache = stageRuntimeCacheRef.current
     const store = useGameStore.getState()
     if (!cache || cache.id !== store.currentStageId || cache.gameKey !== store.gameKey) return
@@ -1076,6 +1071,28 @@ export default function Enemies() {
       dropGoldCoin(pickGoldDropPos(cache.bounds))
     } else if (kind === SCHEDULE_DOGE) {
       spawnDoge()
+    } else if (kind === SCHEDULE_MATILDA) {
+      const entry = queue.matildaEntry
+      queue.matildaEntry = null
+      if (!canSpawnMatildaEntry(entry, store)) return
+      const player = store.player
+      // 플레이어 능력치 기준 동적 스탯: HP/공격력 ×3, 이동속도 ×1.4, 몸 크기는 B01 기본값
+      const matildaStats = {
+        hp:          player.maxHp * 3,
+        speed:       player.speed * 1.4,
+        damage:      player.maxHp * 3,   // 3배 공격력 = 플레이어 최대 체력 3배로 즉사 수준
+        scale:       ENEMY_STATS.B01.scale,
+        contactDist: 0.36,
+        charger:     true,
+        chargeSpeed: player.speed * 2.8,
+        warnDist:    6.0,
+        warnDuration:    400,
+        stunDuration:    800,
+        chargeDuration: 1500,
+        xp: 0,
+      }
+      const spawnPos = randomSpawnPos('B01', cache.bounds, [], Math.random, cache.obstacles, matildaStats.scale)
+      if (spawnPos) addEnemies([{ id: ++_uid, type: 'B01', pos: spawnPos, statOverride: matildaStats, isMatilda: true }])
     } else if (kind === SCHEDULE_WAVE || kind === SCHEDULE_MID_WAVE) {
       const phase = cache.wavePhases[Math.trunc(a)] ?? cache.wavePhases[0]
       const size = kind === SCHEDULE_WAVE
@@ -1167,6 +1184,12 @@ export default function Enemies() {
   }, [])
 
   usePlayingFrame((_, delta) => {
+    const matildaEntry = matildaEntryRef.current
+    if (advanceMatildaEntryGrace(matildaEntry, delta)) {
+      runtimeQueueRef.current.matildaEntry = matildaEntry
+      enqueueScheduled(SCHEDULE_MATILDA)
+    }
+
     const sec = getRuntimeElapsedMs(useGameStore.getState().elapsedMs) / 1000
     const stageRuntime = stageRuntimeCacheRef.current
     if (!stageRuntime || stageRuntime.id !== currentStageId) return

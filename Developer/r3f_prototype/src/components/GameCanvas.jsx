@@ -18,7 +18,7 @@ export default function GameCanvas({ gameKey, phase }) {
       gl={{ stencil: true }}
       style={{ width: '100%', height: '100%', background: '#c8c4bc', display: 'block' }}
     >
-      <Physics key={gameKey} gravity={[0, 0, 0]} timeStep="vary" paused={phase !== 'playing'}>
+      <Physics key={gameKey} gravity={[0, 0, 0]} timeStep={1 / 60} paused={phase !== 'playing'}>
         <Game />
       </Physics>
       {/* These visual pools have no Rapier hooks.  Keeping them outside the keyed

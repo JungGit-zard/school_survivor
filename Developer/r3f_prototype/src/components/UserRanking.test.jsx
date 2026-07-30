@@ -17,7 +17,6 @@ vi.mock('../lib/firebaseRanking.js', () => ({
 
 describe('UserRanking', () => {
   beforeEach(() => {
-    localStorage.clear()
     _seedHydratedFirebaseProgressForTests()
     useAuthStore.setState({ user: null })
     isFirebaseRankingConfigured.mockReturnValue(false)

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createEnemyEntityPool, MAX_ENEMIES } from './enemyEntityPool.js'
+import { createGameplayFixedStepClock, runGameplayFixedSteps } from './gameplayFrameTime.js'
 import {
   E04_FIRE_COOLDOWN_MS,
   ENEMY_CONTACT_COOLDOWN_MS,
@@ -64,6 +65,34 @@ describe('EnemySimulation spatial revision', () => {
 function context(overrides = {}) {
   return { delta: 1 / 60, playerX: 0, playerZ: 0, halfX: 12, halfZ: 12, elapsedSec: 100, ...overrides }
 }
+
+function simulateChaseAtHz(hz, seconds = 6) {
+  const pool = createEnemyEntityPool()
+  const runtime = createEnemySimulationRuntime()
+  const handle = spawn(pool, 'E01', 6, 0, { spawnTimer: 300 })
+  const clock = createGameplayFixedStepClock()
+  let elapsedSec = 0
+  for (let frame = 0; frame < hz * seconds; frame += 1) {
+    runGameplayFixedSteps(clock, 1 / hz, (delta) => {
+      elapsedSec += delta
+      runtime.step(pool, context({ delta, elapsedSec }))
+    })
+  }
+  return { elapsedSec, x: pool.posX[handle.index], z: pool.posZ[handle.index], attackCooldown: pool.attackCooldown[handle.index] }
+}
+
+describe('EnemySimulation fixed gameplay clock', () => {
+  it('consumes the same movement and timer steps at 15/30/60/120 Hz', () => {
+    const baseline = simulateChaseAtHz(60)
+    for (const hz of [15, 30, 60, 120]) {
+      const result = simulateChaseAtHz(hz)
+      expect(result.elapsedSec).toBeCloseTo(baseline.elapsedSec, 6)
+      expect(result.x).toBeCloseTo(baseline.x, 5)
+      expect(result.z).toBeCloseTo(baseline.z, 5)
+      expect(result.attackCooldown).toBeCloseTo(baseline.attackCooldown, 5)
+    }
+  })
+})
 
 describe('EnemySimulation knockback facing', () => {
   it('preserves pre-hit facing and knockback movement through the final sight-blocked frame, then resumes chase facing', () => {

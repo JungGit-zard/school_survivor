@@ -118,7 +118,7 @@ describe('late zombie spawn relief', () => {
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
     expect(getBurstEventsForStage('stage2').filter((event) => event.type === 'E04').map((event) => event.sec)).toEqual([72, 216])
     expect(getBurstEventsForStage('stage2').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
-    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 120 && event.type === 'B01').count).toBe(1)
+    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 192 && event.type === 'B01').count).toBe(1)
     expect(getBurstEventsForStage('stage2').find((event) => event.sec === 120 && event.type === 'B02').count).toBe(1)
     expect(getBurstEventsForStage('stage2').some((event) => event.sec === 120 && event.type === 'B01')).toBe(false)
   })
@@ -315,9 +315,9 @@ describe('stage 1 midpoint reinforcement spawns', () => {
 })
 
 describe('boss entrance escort wave', () => {
-  it('spawns one full stage1 wave alongside the B01 boss at 120s', () => {
-    // 120s 활성 phase(start 120, target 24) → 12마리 ×1.15(하향) = 14마리.
-    expect(bossEscortSize('stage1', WAVE_PHASES, 120)).toBe(14)
+  it('spawns one full stage1 wave alongside the B01 boss at 192s', () => {
+    // 192s 활성 phase(start 192, target 11) → 6마리 ×1.15(하향) = 7마리.
+    expect(bossEscortSize('stage1', WAVE_PHASES, 192)).toBe(7)
   })
 
   it('adds no escort on stage2/stage3 bosses (their boss phases are separately tuned)', () => {
@@ -811,6 +811,29 @@ describe('pooled standard enemy runtime wiring', () => {
     expect(frameSource).toContain('stageCombatConfig.bounds')
     expect(source).not.toContain('function EnemyProjectile(')
     expect(source).not.toContain('_activeE04ProjectileIds')
+  })
+
+  it('keeps Matilda out of the world until the shared gameplay-time dialogue grace expires', () => {
+    const enemiesSource = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    const effectStart = enemiesSource.indexOf('// 마틸다 등장 대사를 읽는 동안')
+    const effectEnd = enemiesSource.indexOf('\n\n  const dropTextbook', effectStart)
+    const effectSource = enemiesSource.slice(effectStart, effectEnd)
+    const frameStart = enemiesSource.indexOf('usePlayingFrame((_, delta) =>')
+    const frameEnd = enemiesSource.indexOf('\n\n    const sec =', frameStart)
+    const frameSource = enemiesSource.slice(frameStart, frameEnd)
+    const schedulerStart = enemiesSource.indexOf('runtimeQueueRef.current.processScheduled = (kind, a, b) =>')
+    const schedulerEnd = enemiesSource.indexOf('\n\n  // 도지 처치', schedulerStart)
+    const schedulerSource = enemiesSource.slice(schedulerStart, schedulerEnd)
+
+    expect(enemiesSource).toContain("import { advanceMatildaEntryGrace, canSpawnMatildaEntry, cancelMatildaEntryGrace, createMatildaEntryGrace } from '../lib/matildaEntryGrace.js'")
+    expect(effectSource).toContain('createMatildaEntryGrace({')
+    expect(effectSource).toContain('cancelMatildaEntryGrace(entry)')
+    expect(frameSource).toContain('advanceMatildaEntryGrace(matildaEntry, delta)')
+    expect(frameSource).toContain('enqueueScheduled(SCHEDULE_MATILDA)')
+    expect(frameSource).not.toContain('addEnemies(')
+    expect(schedulerSource).toContain('kind === SCHEDULE_MATILDA')
+    expect(schedulerSource).toContain('canSpawnMatildaEntry(entry, store)')
+    expect(schedulerSource.indexOf('addEnemies([')).toBeGreaterThan(schedulerSource.indexOf('kind === SCHEDULE_MATILDA'))
   })
 })
 

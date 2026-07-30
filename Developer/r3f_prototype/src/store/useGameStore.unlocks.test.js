@@ -239,7 +239,7 @@ describe('useGameStore run-end unlock evaluator', () => {
   })
 })
 
-describe('더블 보스 클리어 게이팅 (stage3)', () => {
+describe('보스 격퇴 보너스와 포탈 클리어 분리', () => {
   beforeEach(() => {
     _seedHydratedFirebaseProgressForTests()
     _resetRecords()
@@ -248,34 +248,38 @@ describe('더블 보스 클리어 게이팅 (stage3)', () => {
     useGameStore.setState({ elapsedMs: 150_000 })
   })
 
-  it('spawnBoss 2회 → bossAliveCount 2, 첫 보스 처치는 클리어하지 않고 카운트만 감소', () => {
+  it('다중 보스는 모두 처치할 때까지 카운트만 줄이고, 마지막 처치도 playing을 유지한다', () => {
     useGameStore.getState().spawnBoss()
     useGameStore.getState().spawnBoss()
     expect(useGameStore.getState().bossAliveCount).toBe(2)
     expect(useGameStore.getState().bossSpawned).toBe(true)
 
-    // 첫 보스 처치 — 아직 한 기 생존 → 클리어 미루고 카운트만 감소.
-    useGameStore.getState().clearStageWithBossBonus()
+    // 첫 보스 처치 — 아직 한 기 생존 → 카운트만 감소.
+    useGameStore.getState().recordBossDefeat()
     expect(useGameStore.getState().phase).toBe('playing')
     expect(useGameStore.getState().bossAliveCount).toBe(1)
     expect(useGameStore.getState().bossBonus).toBe(0)
 
-    // 마지막 보스 처치 — 이제 클리어 + 보너스.
-    useGameStore.getState().clearStageWithBossBonus()
-    expect(useGameStore.getState().phase).toBe('cleared')
+    // 마지막 보스 처치 — 보너스만 기록하고 포탈 전까지 계속 플레이.
+    useGameStore.getState().recordBossDefeat()
+    expect(useGameStore.getState().phase).toBe('playing')
     expect(useGameStore.getState().bossAliveCount).toBe(0)
-    expect(useGameStore.getState().bossBonus).toBeGreaterThan(0)
+    expect(useGameStore.getState()).toMatchObject({ bossDefeated: true, bossBonus: 0 })
   })
 
-  it('단일 보스(stage1/2)는 spawnBoss 1회 → 즉시 클리어(기존 거동 불변)', () => {
+  it('단일 보스도 격퇴 후 playing을 유지하고, 포탈이 런 종료를 처리한다', () => {
     useGameStore.getState().resetGame('stage1')
-    useGameStore.setState({ elapsedMs: 130_000 })
+    useGameStore.setState({ elapsedMs: 240_000 })
     useGameStore.getState().spawnBoss()
     expect(useGameStore.getState().bossAliveCount).toBe(1)
 
-    useGameStore.getState().clearStageWithBossBonus()
-    expect(useGameStore.getState().phase).toBe('cleared')
-    expect(useGameStore.getState().bossBonus).toBeGreaterThan(0)
+    useGameStore.getState().recordBossDefeat()
+    expect(useGameStore.getState().phase).toBe('playing')
+    expect(useGameStore.getState()).toMatchObject({ bossDefeated: true, bossBonus: 0 })
+
+    expect(loadPlayerRecords().totalRuns).toBe(0)
+    expect(useGameStore.getState().clearStageAndStartNext()).toBe(true)
+    expect(loadPlayerRecords()).toMatchObject({ stage1Clears: 1, totalRuns: 1 })
   })
 
   it('resetGame은 bossAliveCount를 0으로 되돌린다', () => {
@@ -284,6 +288,7 @@ describe('더블 보스 클리어 게이팅 (stage3)', () => {
     expect(useGameStore.getState().bossAliveCount).toBe(2)
     useGameStore.getState().resetGame('stage3')
     expect(useGameStore.getState().bossAliveCount).toBe(0)
+    expect(useGameStore.getState().bossDefeated).toBe(false)
     expect(useGameStore.getState().bossSpawned).toBe(false)
   })
 })

@@ -14,7 +14,7 @@ import HUD, {
 import { WEAPON_CATALOG, isStarter } from '../lib/weaponCatalog.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { _resetForTests as resetWeaponUnlocks, setUnlocked } from '../lib/weaponUnlocks.js'
-import { STORAGE_KEY as PLAYER_RECORDS_KEY, load as loadPlayerRecords } from '../lib/playerRecords.js'
+import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { buildLocalPlayerRankingEntry } from '../lib/userRanking.js'
 import { resetAdminConfig, saveAdminConfig } from '../lib/adminConfig.js'
 import { saveStudioTunings } from '../lib/graphicsStudioConfig.js'
@@ -23,6 +23,8 @@ import { STAGE4_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { hydrateFirebaseStudio, setFirebaseStudioUser } from '../lib/firebaseStudio.js'
 import { blockFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
+import { MATILDA_DIALOGUE_MS } from '../lib/matildaEntryGrace.js'
+import { clearPortalTarget, playerPos, publishPortalTarget } from '../lib/refs.js'
 
 const TEST_STUDIO_USER = { uid: 'hud-test-user' }
 const EMPTY_STUDIO_SNAPSHOT = {
@@ -52,10 +54,46 @@ afterEach(() => {
   _seedHydratedFirebaseProgressForTests()
   useGameStore.getState().resetGame()
   resetWeaponUnlocks()
-  localStorage.removeItem(PLAYER_RECORDS_KEY)
   resetAdminConfig()
   setFirebaseStudioUser(null)
   blockFirebaseStudioRuntime()
+  clearPortalTarget()
+  playerPos.set(0, 0, 0)
+})
+
+describe('portal direction objective', () => {
+  it('shows a low-frequency visual objective only while an active portal is playable', () => {
+    vi.useFakeTimers()
+    useGameStore.getState().resetGame('stage1')
+    playerPos.set(0, 0, 0)
+    publishPortalTarget(0, -1.5)
+    useGameStore.setState({ phase: 'playing', escapePortalActive: true })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const objective = container.querySelector('[data-testid="portal-objective"]')
+      expect(objective?.textContent).toBe('탈출구 ↑ 2zm')
+      expect(objective?.getAttribute('aria-hidden')).toBe('true')
+      expect(objective?.style.bottom).toBe('102px')
+      const status = container.querySelector('[role="status"]')
+      expect(status?.getAttribute('aria-label')).toBe('탈출구로 이동')
+      expect(status?.textContent).toBe('탈출구로 이동')
+
+      act(() => {
+        useGameStore.setState({ phase: 'paused' })
+      })
+      expect(container.querySelector('[data-testid="portal-objective"]')).toBeNull()
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
 })
 
 describe('upgrade choice filtering', () => {
@@ -286,6 +324,74 @@ describe('level-up upgrade layout', () => {
       expect(choices).not.toBeNull()
       expect(choices.style.gridTemplateColumns).toBe('repeat(3, minmax(0, 1fr))')
       expect(choiceButtons).toHaveLength(3)
+      expect([...choiceButtons].every((choice) => choice.getAttribute('aria-label')?.includes(': '))).toBe(true)
+      expect([...choiceButtons].every((choice) => choice.classList.contains('levelup-upgrade-choice'))).toBe(true)
+
+      const accessibilityCss = document.getElementById('hud-keyframes')?.textContent ?? ''
+      expect(accessibilityCss).toContain('@media (max-width:360px)')
+      expect(accessibilityCss).toContain('.levelup-upgrade-choice:focus-visible')
+      expect(accessibilityCss).toContain('font-size:11px !important')
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
+})
+
+describe('HUD mobile accessibility', () => {
+  it('uses P and Escape for the same guarded pause transition', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({ phase: 'playing' })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+      act(() => {
+        window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyP', key: 'p', bubbles: true }))
+      })
+      expect(useGameStore.getState().phase).toBe('paused')
+
+      act(() => {
+        window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape', key: 'Escape', bubbles: true }))
+      })
+      expect(useGameStore.getState().phase).toBe('playing')
+
+      act(() => {
+        useGameStore.setState({ phase: 'levelup' })
+        window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape', key: 'Escape', bubbles: true }))
+      })
+      expect(useGameStore.getState().phase).toBe('levelup')
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
+
+  it('keeps the release pause control touch-safe and below the top safe area', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({ phase: 'playing' })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const pauseButton = container.querySelector('.hud-pause-button')
+      expect(pauseButton).not.toBeNull()
+      expect(pauseButton.getAttribute('aria-label')).toBe('게임 일시정지')
+      expect(pauseButton.style.width).toBe('44px')
+      expect(pauseButton.style.height).toBe('44px')
+      expect(pauseButton.parentElement.style.getPropertyValue('--hud-safe-top')).toContain('safe-area-inset-top')
+
+      const accessibilityCss = document.getElementById('hud-keyframes')?.textContent ?? ''
+      expect(accessibilityCss).toContain('.hud-pause-button:focus-visible')
     } finally {
       act(() => {
         root.unmount()
@@ -421,7 +527,7 @@ describe('matilda entrance presentation', () => {
       expect(dialogue.querySelector('img')?.getAttribute('alt')).toBe('마틸다 프로필')
 
       act(() => {
-        vi.advanceTimersByTime(4500)
+        vi.advanceTimersByTime(MATILDA_DIALOGUE_MS)
       })
 
       expect(container.querySelector('[data-testid="matilda-dialogue"]')).toBeNull()
@@ -465,7 +571,6 @@ describe('result action layout', () => {
 
 describe('pause lobby return', () => {
   it('asks before returning to lobby and records the paused score for ranking', () => {
-    localStorage.removeItem(PLAYER_RECORDS_KEY)
     useGameStore.getState().resetGame('stage1')
     useGameStore.setState({
       phase: 'paused',
@@ -488,7 +593,6 @@ describe('pause lobby return', () => {
 
       expect(onGoToLobby).not.toHaveBeenCalled()
       expect(container.textContent).toContain('정말 로비로 돌아갈까요?')
-      expect(localStorage.getItem(PLAYER_RECORDS_KEY)).toBeNull()
 
       clickButtonByText(container, '돌아가기')
 

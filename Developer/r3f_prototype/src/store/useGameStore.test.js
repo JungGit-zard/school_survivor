@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore } from './useGameStore.js'
 import { playerPos, playerFacing, bagSwingState, enemyBodies, joystickDir } from '../lib/refs.js'
 import { advanceRuntimeTime, getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
+import { subscribeSfx } from '../lib/sfxEvents.js'
 
 describe('useGameStore XP and reset behavior', () => {
   beforeEach(() => {
@@ -99,12 +100,83 @@ describe('runtime elapsed time publication', () => {
     expect(getRuntimeElapsedMs()).toBe(60_000)
   })
 
-  it('uses exact runtime time for boss-clear scoring when the HUD snapshot lags', () => {
+  it('records final-boss defeat without granting a pre-portal score bonus when the HUD snapshot lags', () => {
     useGameStore.setState({ elapsedMs: 59_999, bossAliveCount: 1, phase: 'playing' })
     advanceRuntimeTime(60_050)
-    useGameStore.getState().clearStageWithBossBonus()
+    useGameStore.getState().recordBossDefeat()
 
-    // 59.999s snapshot would produce 17, while the exact 60.050s runtime is 18.
-    expect(useGameStore.getState().bossBonus).toBe(18)
+    expect(useGameStore.getState().bossDefeated).toBe(true)
+    expect(useGameStore.getState().bossBonus).toBe(0)
+    expect(useGameStore.getState().phase).toBe('playing')
+  })
+
+  it('records final-boss defeat and plays its jingle once while duplicate reports are harmless', () => {
+    const sfx = []
+    const unsubscribe = subscribeSfx((event) => sfx.push(event.id))
+    try {
+      useGameStore.setState({ elapsedMs: 192_000, bossAliveCount: 1, phase: 'playing' })
+
+      expect(useGameStore.getState().recordBossDefeat()).toBe(true)
+      expect(useGameStore.getState()).toMatchObject({ phase: 'playing', bossAliveCount: 0, bossDefeated: true, bossBonus: 0 })
+
+      expect(useGameStore.getState().recordBossDefeat()).toBe(false)
+      expect(useGameStore.getState().bossBonus).toBe(0)
+      expect(sfx.filter((id) => id === 'bossClearJingle')).toHaveLength(1)
+    } finally {
+      unsubscribe()
+    }
+  })
+
+  it('applies the boss-clear bonus only for the 240s portal-clear path, never for boss-kill gameover', () => {
+    useGameStore.setState({ elapsedMs: 192_000, bossAliveCount: 1, phase: 'playing' })
+    advanceRuntimeTime(192_000)
+    useGameStore.getState().recordBossDefeat()
+    const player = useGameStore.getState().player
+    useGameStore.setState({ player: { ...player, hp: 1 } })
+    useGameStore.getState().damagePlayer(1, { ignoreInvulnerability: true })
+    expect(useGameStore.getState().bossBonus).toBe(0)
+
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({ elapsedMs: 192_000, bossAliveCount: 1, phase: 'playing' })
+    advanceRuntimeTime(192_000)
+    useGameStore.getState().recordBossDefeat()
+    advanceRuntimeTime(48_000)
+    useGameStore.getState().clearStage()
+
+    expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', bossDefeated: true, bossBonus: 54 })
+  })
+})
+
+describe('DEV E2E invincibility state', () => {
+  beforeEach(() => {
+    useGameStore.getState().resetGame()
+  })
+
+  it('defaults to false and resetGame always clears it', () => {
+    expect(useGameStore.getState().e2eInvincible).toBe(false)
+
+    useGameStore.setState({ e2eInvincible: true })
+    useGameStore.getState().resetGame()
+
+    expect(useGameStore.getState().e2eInvincible).toBe(false)
+  })
+
+  it('blocks both normal and ignoreInvulnerability damage while enabled', () => {
+    const initialHp = useGameStore.getState().player.hp
+    useGameStore.setState({ e2eInvincible: true })
+
+    useGameStore.getState().damagePlayer(30)
+    useGameStore.getState().damagePlayer(initialHp * 3, { ignoreInvulnerability: true })
+
+    expect(useGameStore.getState().player.hp).toBe(initialHp)
+    expect(useGameStore.getState().phase).toBe('playing')
+  })
+
+  it('keeps normal damage behavior when the explicit flag is absent', () => {
+    const initialHp = useGameStore.getState().player.hp
+
+    useGameStore.getState().damagePlayer(10)
+
+    expect(useGameStore.getState().player.hp).toBe(initialHp - 10)
   })
 })

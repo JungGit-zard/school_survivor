@@ -8,6 +8,22 @@ import { resetRuntimeTime } from './gameRuntimeTime.js'
 // 컴포넌트 간 플레이어 위치 공유 (re-render 없이)
 export const playerPos = new THREE.Vector3()
 
+// EscapePortal mounts once per active portal. HUD reads this at a low frequency
+// so portal navigation never adds React work to the render loop.
+export const portalTarget = { active: false, x: 0, z: 0 }
+
+export function publishPortalTarget(x, z) {
+  portalTarget.active = true
+  portalTarget.x = x
+  portalTarget.z = z
+}
+
+export function clearPortalTarget() {
+  portalTarget.active = false
+  portalTarget.x = 0
+  portalTarget.z = 0
+}
+
 // 카메라가 실제로 보여주는 월드 영역 (Game.jsx가 매 프레임 갱신)
 export const screenBounds = { minX: -20, maxX: 20, minZ: -20, maxZ: 20 }
 
@@ -36,6 +52,7 @@ export const joystickDir = { x: 0, z: 0, active: false }
 export function resetRuntimeRefs() {
   resetRuntimeTime()
   playerPos.set(0, 0, 0)
+  clearPortalTarget()
   playerFacing.set(0, 0, 1)
   bagSwingState.active = false
   bagSwingState.progress = 0

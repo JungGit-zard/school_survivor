@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
-  STORAGE_KEY,
   isUnlocked,
   setUnlocked,
   getAllUnlocked,
@@ -32,17 +31,15 @@ describe('weaponUnlocks storage', () => {
     expect(isUnlocked('guidedMissile')).toBe(true)
   })
 
-  it('starter 무기에 setUnlocked는 no-op (disk에 안 씀)', () => {
+  it('starter 무기에 setUnlocked는 Firebase runtime 변경 없이 no-op', () => {
     setUnlocked('pencilThrow')
-    const raw = localStorage.getItem(STORAGE_KEY)
-    expect(raw).toBeNull() // 디스크 변경 없음
+    expect(getFirebaseProgressRuntimeSnapshot().progress.weaponUnlocks).toEqual({})
   })
 
   it('미지정 ID는 setUnlocked / isUnlocked 모두 무시', () => {
     setUnlocked('bogusWeapon')
     expect(isUnlocked('bogusWeapon')).toBe(false)
-    const raw = localStorage.getItem(STORAGE_KEY)
-    expect(raw).toBeNull()
+    expect(getFirebaseProgressRuntimeSnapshot().progress.weaponUnlocks).toEqual({})
   })
 
   it('getAllUnlocked는 카탈로그 키 중 unlock된 것만 (starter 제외)', () => {

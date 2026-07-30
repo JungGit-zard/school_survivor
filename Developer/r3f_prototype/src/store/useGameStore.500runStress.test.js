@@ -28,7 +28,6 @@ function applyDirection(direction) {
 
 describe('500 internal gameplay stress runs', () => {
   beforeEach(() => {
-    localStorage.clear()
     resetPlayerRecords()
     resetWeaponUnlocks()
     resetPassiveUpgrades()

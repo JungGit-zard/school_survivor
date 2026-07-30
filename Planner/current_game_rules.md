@@ -1,21 +1,19 @@
 # Current Game Rules
 
-> 🔄 **2026-06-11 — 스테이지 길이 5분→4분:** 각 스테이지가 300초(5분)→**240초(4분)**로 단축, 전체 타임라인 ×0.8 비례 축소 (보스 240→192s, E04 도입 90→72s, 마일스톤 60/180/240/300→48/144/192/240s, 웨이브·버스트 ×0.8). 본 문서의 5분/300초 수치는 ×0.8로 재계산해 읽을 것. 현행 정본: 코드 + `Planner/B. GAME_DESIGN/Stage_balance_summary.md`.
+> 현행 시간·보스 정본: Stage 1은 240초(4분) 생존이며 B01은 192초, 탈출 포탈은 240초에 활성화된다. 세부 값은 `Developer/r3f_prototype/src/lib/stageConfig.js`와 `Developer/r3f_prototype/src/lib/burstEvents.js`를 따른다.
 
-Last updated: 2026-05-26
-
-2026-05-26 update: 한 판에서 보유할 수 있는 무기 슬롯 상한은 8개다.
+Last updated: 2026-07-30
 
 ## 1. 게임 정체성
 
-Escape! zombie school는 학교 콘셉트의 5분 생존형 미니게임이다.
+Escape! zombie school는 학교 콘셉트의 4분 생존형 미니게임이다.
 
 현재 목표는 장식적인 구조보다 플레이 가능한 1스테이지 루프를 안정화하는 것이다.
 
 ## 2. 현재 Stage 1 기준
 
-- 플레이 시간: 5분
-- 300초 도달 시 클리어
+- 플레이 시간: 4분(240초)
+- 240초에 탈출 포탈이 활성화되고, 포탈 진입 시 클리어
 - HP 0 도달 시 게임오버
 - 현재 초기 상태는 별도 `start` 없이 바로 `playing`
 - 일시정지는 키보드 `p` 기준으로 동작
@@ -37,68 +35,31 @@ Escape! zombie school는 학교 콘셉트의 5분 생존형 미니게임이다.
 
 ## 4. 보스 기준
 
-- B01은 240초에 1회 등장한다.
+- B01은 192초에 1회 등장하며, 경고 기준 시각은 186초다.
 - 현재 B01은 추격/돌진 중심이다.
 - Stage 1에서는 B01 부채꼴 투사체 패턴을 쓰지 않는 방향이다.
 - B01 기본 `xp`는 0이지만 보너스 교과서는 별도 XP 값을 사용한다.
+- 보스 처치는 별도 보너스 성취다. 보스 생존 여부와 무관하게 240초 포탈 진입이 Stage 1 클리어를 결정한다.
 
 ## 5. 성장과 보상
 
 - XP는 교과서 형태로 드랍된다.
 - 일반 적 교과서 드랍 확률은 30% 기준이다.
 - 골드는 시간 기반 코인과 엘리트/보스 처치 보상으로 획득한다.
-- 골드 누적은 `localStorage`의 `school_survivor:goldTotal` 키를 사용한다.
+- 계정 진행과 골드 누적 정본은 Firebase progress이며, 브라우저 `localStorage`에는 저장하지 않는다.
 
 현재 위험:
-- 시간 기반 골드 코인은 최악 분포에서 5분 8개만 나올 수 있다.
+- 시간 기반 골드 코인의 분포는 4분 런 기준으로 QA한다.
 
 ## 6. 무기 기준
 
-### 1차 서비스 무기 총수 (2026-05-17 확정)
-
-1차 서비스 무기 카탈로그는 **총 9종**이다. 7종은 플레이어 레벨 카드 게이트로 즉시 접근 가능하며, 2종은 계정 누적 조건이 충족된 계정에서 추가 해금되어 동일한 카드 풀에 진입한다.
-
-### 카드 게이트 (정본: `Planner/game_contents/weapons/weapon_upgrade_flow_and_unlock_plan_2026-05-14.md` §2)
-
-| 무기 | 카드 등장 조건 | 비고 |
-|---|---|---|
-| `pencilThrow` / 연필 | 시작 지급 | 기본 활성 |
-| `schoolBag` / 30cm 자 | Lv.2 이상 | – |
-| `tumbler` / 텀블러 궤도 | Lv.2 이상 | – |
-| `scienceFlask` / 과학 플라스크 | Lv.4 이상 | – |
-| `bell` / 종 충격파 | Lv.4 이상 | – |
-| `stunGun` / 전기 스턴건 | Lv.6 이상 | – |
-| `onigiri` / 오니기리 팡팡 | Lv.8 이상 | 2026-05-17 정정 (Bang_Rules 임시 Lv.6 표기 폐기) |
-| `guidedMissile` / 보조배터리 미사일 | 계정 누적 해금 후 Lv.6 이상(1차안) | 메타프로그레션 도입 시 확정 |
-| `starlink` / 고장난 스타링크 | 계정 누적 해금 후 Lv.8 이상(1차안) | 메타프로그레션 도입 시 확정 |
-
-### 누적 플레이 해금 (`guidedMissile`, `starlink`)
-
-다음 무기는 **누적 플레이 횟수 / 누적 조건이 충족된 계정에서 해금되어 카드 풀에 진입**한다. 일시 코드 제거 상태이며, 메타프로그레션이 도입되는 시점에 복귀한다.
-
-| 무기 | 한글명 | 해금 트리거 (잠정) | 코드 상태 |
-|---|---|---|---|
-| `guidedMissile` | 보조배터리 미사일 | 누적 플레이 N회 후 (TBD: 5–10회 권장) 또는 별도 도전 조건 | 코드 일시 제거 (`Weapons/Missile.jsx`, `UPGRADE_EFFECTS`의 `unlockMissile/missileDamage/missileCount`) — 복원 필요 |
-| `starlink` | 고장난 스타링크 | 누적 플레이 N회 후 (TBD: 10–20회 권장) 또는 누적 처치 5000마리 | 코드 일시 제거 (`Weapons/Starlink.jsx`, `UPGRADE_EFFECTS`의 `unlockStarlink/starlinkDamage/starlinkCount`) — 복원 필요 |
-
-### 메타 해금 처리 원칙
-
-- 1차 서비스 9종 무기 풀 중 본 계정의 누적 조건이 충족된 무기(`guidedMissile`, `starlink`)는 1스테이지 `levelup` 카드 후보에 포함된다.
-- 해금된 무기는 4-보유 상한과 Lv.5 상한 룰을 동일하게 따른다.
-- 누적 플레이 횟수 카운터(가칭 `runCount`)와 누적 처치 수(가칭 `kills`)는 `localStorage`에 영구 저장된다.
-- 정확한 트리거 수치, UI(해금 알림), 카탈로그 표시 등은 `Planner/Essential_game_plan/`에 별도 메타프로그레션 기획 문서가 작성된 이후 확정한다.
-- 신규 무기 10종(`compassBlade` 외)의 해금 조건은 **OR 원칙**(실력 조건 ∨ 누적 조건)으로 작성한다. 정본은 `Planner/game_contents/weapons/weapon_expansion_unlock_plan_2026-05-10.md` §7.
-
-> 작업 우선순위 메모: 단일 런 밸런스 검증과 출근길 친화 작업이 1차 완료된 뒤, 메타프로그레션 기획 → 본 절의 해금 무기 복원 → 코인상점 패시브 카탈로그(`commuter_friendly_implementation_request_2026-05-17.md` §7) 순서로 진행한다.
-
-구현 구조:
-- 기존 `Weapons.jsx` 단일 파일은 삭제됐다.
-- 현재는 `Developer/r3f_prototype/src/components/Weapons/` 아래 무기별 파일과 `index.js` barrel 구조를 쓴다.
-- 누적 해금 무기 복원 시 동일 폴더에 `Missile.jsx` / `Starlink.jsx`를 다시 추가하고, `index.js` barrel에 re-export 라인을 복원한다.
+- 한 런에서 보유 가능한 무기 슬롯은 8개다.
+- 현행 무기 카탈로그·레벨 카드·해금 조건의 정본은 `Developer/r3f_prototype/src/lib/weaponCatalog.js`, `Developer/r3f_prototype/src/lib/upgrades.js`, `Developer/r3f_prototype/src/lib/weaponUnlocks.js`다.
+- 계정 누적 해금과 진행 기록은 Firebase progress를 통해 유지한다. 제거되었거나 복원이 필요한 무기를 전제로 하지 않는다.
 
 ## 7. 다음 규칙 판단 시 주의
 
 - 새 기획은 반드시 `Planner/`에 먼저 기록한다.
-- 5분 생존 루프를 흔드는 변경은 QA 기준을 먼저 만든다.
+- 4분 생존 루프를 바꾸는 변경은 QA 기준을 먼저 만든다.
 - 모바일 조작이 빠진 기능은 완료로 보지 않는다.
 - 검증하지 않은 기능을 검증 완료로 기록하지 않는다.

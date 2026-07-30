@@ -3,6 +3,7 @@ import {
   CLEAR_BONUS,
   STAGE_BONUS,
   compareRankingEntries,
+  getBossClearBonus,
   getRankingScore,
   getRankingScorePolicy,
   getStagePriority,
@@ -33,6 +34,20 @@ describe('ranking score policy', () => {
     expect(getStagePriority('stage2')).toBe(2)
     expect(getStagePriority('stage3')).toBe(3)
     expect(getStagePriority('stage4')).toBe(4)
+  })
+
+  it('includes the boss-clear bonus only after a portal clear', () => {
+    const prePortalBonus = getBossClearBonus({
+      stageId: 'stage1', survivalSeconds: 192, cleared: false, bossDefeated: true,
+    })
+    const portalBonus = getBossClearBonus({
+      stageId: 'stage1', survivalSeconds: 240, cleared: true, bossDefeated: true,
+    })
+
+    expect(prePortalBonus).toBe(0)
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 192, cleared: false, bossBonus: 44 })).toBe(192)
+    expect(portalBonus).toBe(54)
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 240, cleared: true, bossBonus: portalBonus })).toBe(324)
   })
 
   it('breaks equal score/clear/survival ties by higher stage priority (stage4 > stage1)', () => {

@@ -104,7 +104,6 @@ describe('GraphicsStudio', () => {
   }
 
   beforeEach(() => {
-    localStorage.clear()
     commitFirebaseStudioRuntime({
       tunings: {},
       sfxTunings: {},
