@@ -46,6 +46,22 @@
           "lastStageId": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100" },
           "$other": { ".validate": false }
         },
+        "consent": {
+          ".validate": "newData.hasChildren(['terms', 'privacy'])",
+          "terms": {
+            ".validate": "newData.hasChildren(['version', 'acceptedAt'])",
+            "version": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 100 && newData.val() % 1 === 0" },
+            "acceptedAt": { ".validate": "newData.isString() && newData.val().length >= 10 && newData.val().length <= 40" },
+            "$other": { ".validate": false }
+          },
+          "privacy": {
+            ".validate": "newData.hasChildren(['version', 'acceptedAt'])",
+            "version": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 100 && newData.val() % 1 === 0" },
+            "acceptedAt": { ".validate": "newData.isString() && newData.val().length >= 10 && newData.val().length <= 40" },
+            "$other": { ".validate": false }
+          },
+          "$other": { ".validate": false }
+        },
         "$other": { ".validate": false }
       }
     },

@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react'
+import { readFileSync } from 'node:fs'
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -22,7 +23,6 @@ const { deleteAccountAndData, reauthenticateForDeletion } = await import('../lib
 
 describe('LobbySettingsModal', () => {
   beforeEach(() => {
-    localStorage.clear()
     _seedHydratedFirebaseProgressForTests()
     vi.clearAllMocks()
     mockDeleteResult = { ok: true, ranking: {} }
@@ -136,20 +136,82 @@ describe('LobbySettingsModal', () => {
     view.unmount()
   })
 
-  it('shows the terms of service and privacy policy full text on demand', async () => {
+  it('exposes legal disclosure accordion state and scrollable panels to assistive tech', async () => {
     useAuthStore.setState({
       status: 'signedIn',
-      user: { uid: 'legal-user' },
+      user: { uid: 'legal-a11y-user' },
       signOutOfGoogle: vi.fn(async () => {}),
     })
     const view = renderSettings()
 
+    const termsButton = getButtonByText(view.container, TERMS_TITLE)
+    const privacyButton = getButtonByText(view.container, PRIVACY_TITLE)
+    expect(termsButton.getAttribute('aria-expanded')).toBe('false')
+    expect(termsButton.getAttribute('aria-controls')).toBe('lobby-settings-legal-terms-panel')
+    expect(privacyButton.getAttribute('aria-expanded')).toBe('false')
+    expect(privacyButton.getAttribute('aria-controls')).toBe('lobby-settings-legal-privacy-panel')
+
     await clickButtonByText(view.container, TERMS_TITLE)
-    expect(view.container.textContent).toContain('시행일')
+    const termsPanel = view.container.querySelector('#lobby-settings-legal-terms-panel')
+    expect(termsButton.getAttribute('aria-expanded')).toBe('true')
+    expect(termsPanel).not.toBeNull()
+    expect(termsPanel.getAttribute('role')).toBe('region')
+    expect(readFileSync('src/components/LobbySettingsModal.jsx', 'utf8'))
+      .toContain("WebkitOverflowScrolling: 'touch'")
 
-    await clickButtonByText(view.container, PRIVACY_TITLE)
-    expect(view.container.textContent).toContain('처리하는 항목')
+    view.unmount()
+  })
 
+  it('closes with Escape and keeps keyboard focus trapped inside the modal', async () => {
+    useAuthStore.setState({
+      status: 'signedIn',
+      user: { uid: 'modal-a11y-user' },
+      signOutOfGoogle: vi.fn(async () => {}),
+    })
+    const onClose = vi.fn()
+    const view = renderSettings({ onClose })
+    const outside = document.createElement('button')
+    outside.textContent = 'outside'
+    document.body.appendChild(outside)
+
+    const dialog = view.container.querySelector('[role="dialog"]')
+    const focusable = Array.from(dialog.querySelectorAll('button:not([disabled]), input:not([disabled])'))
+    focusable.at(-1).focus()
+    await pressKey(dialog, 'Tab')
+    expect(document.activeElement).toBe(focusable[0])
+
+    focusable[0].focus()
+    await pressKey(dialog, 'Tab', { shiftKey: true })
+    expect(document.activeElement).toBe(focusable.at(-1))
+
+    await pressKey(dialog, 'Escape')
+    expect(onClose).toHaveBeenCalledTimes(1)
+
+    outside.remove()
+    view.unmount()
+  })
+
+  it('does not close from scrim, close button, or Escape while account deletion is busy', async () => {
+    let resolveDelete
+    deleteAccountAndData.mockImplementation(() => new Promise((resolve) => { resolveDelete = resolve }))
+    const onClose = vi.fn()
+    useAuthStore.setState({
+      status: 'signedIn',
+      user: { uid: 'busy-delete-user' },
+      signOutOfGoogle: vi.fn(async () => {}),
+    })
+    const view = renderSettings({ onClose })
+
+    await clickButtonByText(view.container, '계정 삭제')
+    await clickButtonByText(view.container, '영구 삭제')
+    await clickButtonByLabel(view.container, '닫기')
+    await clickButtonByLabel(view.container, '설정 닫기 배경')
+    await pressKey(view.container.querySelector('[role="dialog"]'), 'Escape')
+
+    expect(onClose).not.toHaveBeenCalled()
+
+    resolveDelete({ ok: true, ranking: {} })
+    await flushAsyncWork()
     view.unmount()
   })
 })
@@ -179,10 +241,29 @@ function renderSettings(props = {}) {
 }
 
 async function clickButtonByText(container, text) {
+  const button = getButtonByText(container, text)
+  await act(async () => {
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
+}
+
+function getButtonByText(container, text) {
   const button = Array.from(container.querySelectorAll('button'))
     .find((candidate) => candidate.textContent.includes(text))
   if (!button) throw new Error(`Missing button: ${text}`)
+  return button
+}
+
+async function clickButtonByLabel(container, label) {
+  const button = container.querySelector(`button[aria-label="${label}"]`)
+  if (!button) throw new Error(`Missing button label: ${label}`)
   await act(async () => {
     button.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
+}
+
+async function pressKey(target, key, options = {}) {
+  await act(async () => {
+    target.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...options }))
   })
 }

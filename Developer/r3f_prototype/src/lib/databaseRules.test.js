@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { STAGE_BONUS, CLEAR_BONUS, getRankingScore } from './rankingScorePolicy.js'
+import { STAGE_BONUS, CLEAR_BONUS, getBossClearBonus, getRankingScore } from './rankingScorePolicy.js'
 
 const RULES_PATH = fileURLToPath(new URL('../../database.rules.json', import.meta.url))
 const FIREBASE_RC_PATH = fileURLToPath(new URL('../../.firebaserc', import.meta.url))
@@ -15,10 +15,18 @@ describe('Realtime Database rules', () => {
     expect(rules.users.$uid['.write']).toContain('auth.uid === $uid')
   })
 
-  it('validates activity and rejects unknown account-bound progress fields', () => {
+  it('validates activity and consent while rejecting unknown account-bound progress fields', () => {
     const user = rules.users.$uid
     expect(user.activity.lastStartedAt['.validate']).toContain('newData.isString()')
     expect(user.activity.lastStageId['.validate']).toContain('newData.isString()')
+    expect(user.consent['.validate']).toContain("'terms'")
+    expect(user.consent['.validate']).toContain("'privacy'")
+    expect(user.consent.terms.version['.validate']).toContain('newData.isNumber()')
+    expect(user.consent.terms.version['.validate']).toContain('newData.val() >= 1')
+    expect(user.consent.terms.acceptedAt['.validate']).toContain('newData.isString()')
+    expect(user.consent.privacy.version['.validate']).toContain('newData.isNumber()')
+    expect(user.consent.privacy.acceptedAt['.validate']).toContain('newData.isString()')
+    expect(user.consent.$other['.validate']).toBe(false)
     expect(user.progress.$other['.validate']).toBe(false)
     expect(user.$other['.validate']).toBe(false)
   })
@@ -141,6 +149,23 @@ describe('ranking entry write rules (evaluated against the real rule strings)', 
         expect(fullyAccepts(globalRule, { ...ctx, $stageId: undefined })).toBe(true)
       }
     }
+  })
+
+  it('keeps a Stage 1 boss-kill gameover under the uncleared cap and accepts the portal-clear bonus only on clear', () => {
+    const gameover = honestEntry({ stageId: 'stage1', timeMs: 192_000, cleared: false })
+    // A stale caller may still pass the old 44-point value; score policy must
+    // strip it before this payload reaches the RTDB rule.
+    gameover.score = getRankingScore({ stageId: 'stage1', survivalSeconds: 192, cleared: false, bossBonus: 44 })
+    expect(gameover.score).toBe(192)
+    expect(fullyAccepts(stageRule, { ...base, $stageId: 'stage1', entry: gameover })).toBe(true)
+
+    const bossBonus = getBossClearBonus({ stageId: 'stage1', survivalSeconds: 240, cleared: true, bossDefeated: true })
+    const cleared = {
+      ...honestEntry({ stageId: 'stage1', timeMs: 240_000, cleared: true }),
+      score: getRankingScore({ stageId: 'stage1', survivalSeconds: 240, cleared: true, bossBonus }),
+    }
+    expect(cleared.score).toBe(324)
+    expect(fullyAccepts(stageRule, { ...base, $stageId: 'stage1', entry: cleared })).toBe(true)
   })
 
   it('rejects an unauthenticated write', () => {

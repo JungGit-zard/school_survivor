@@ -6,12 +6,12 @@ import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import TitleScreen from './TitleScreen.jsx'
 import { WEAPON_CATALOG, isStarter } from '../lib/weaponCatalog.js'
-import { STORAGE_KEY as WEAPON_UNLOCKS_KEY, getAllUnlocked, _resetForTests as resetWeaponUnlocks } from '../lib/weaponUnlocks.js'
-import { STORAGE_KEY as PASSIVE_STORAGE_KEY, purchase as purchasePassiveStorage } from '../lib/passiveUpgrades.js'
-import { STORAGE_KEY as NICKNAME_STORAGE_KEY, getSavedNickname, saveNicknameForUser } from '../lib/userNickname.js'
+import { getAllUnlocked, _resetForTests as resetWeaponUnlocks } from '../lib/weaponUnlocks.js'
+import { purchase as purchasePassiveStorage } from '../lib/passiveUpgrades.js'
+import { getSavedNickname, saveNicknameForUser } from '../lib/userNickname.js'
 import { resetAdminConfig, saveAdminConfig } from '../lib/adminConfig.js'
-import { SETTINGS_STORAGE_KEY, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
-import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
+import { loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
+import { _seedHydratedFirebaseProgressForTests, _resetFirebaseProgressForTests, _setFirebaseProgressClientForTests } from '../lib/firebaseProgress.js'
 import { TERMS_VERSION, PRIVACY_VERSION } from '../lib/legalDocuments.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { useAuthStore, _resetAuthStoreForTests } from '../store/useAuthStore.js'
@@ -64,10 +64,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  localStorage.removeItem(PASSIVE_STORAGE_KEY)
-  localStorage.removeItem(NICKNAME_STORAGE_KEY)
   resetAdminConfig()
-  localStorage.removeItem(SETTINGS_STORAGE_KEY)
   resetWeaponUnlocks()
   _resetAuthStoreForTests()
   useGameStore.getState().resetPassiveUpgrades()
@@ -76,6 +73,31 @@ afterEach(() => {
 })
 
 describe('TitleScreen lobby entry', () => {
+  it('shows the first-play guide beside the start CTA with a visible keyboard focus style', () => {
+    const { container, cleanup } = renderTitleScreen()
+
+    expect(container.querySelector('[data-testid="title-gameplay-guide"]')?.textContent)
+      .toContain('자동 공격 · 화면을 드래그해 이동 · 레벨업 때 카드 선택')
+    expect(container.querySelector('.title-main-action')).not.toBeNull()
+    expect(container.querySelector('style[data-title-intro-css]')?.textContent).toContain('.title-main-action:focus-visible')
+
+    cleanup()
+  })
+
+  it('reserves title copy space below the two-row account panel on short 320px-wide mobile screens', () => {
+    const { container, cleanup } = renderTitleScreen()
+    const titleCss = container.querySelector('style[data-title-intro-css]')?.textContent
+
+    expect(container.querySelector('.title-copy')).not.toBeNull()
+    expect(container.querySelector('h1[aria-label="탈출! 좀비학교"]')).not.toBeNull()
+    expect(container.querySelector('[data-testid="title-gameplay-guide"]')).not.toBeNull()
+    expect(container.querySelector('.title-main-action')).not.toBeNull()
+    expect(titleCss).toContain('@media (max-width: 360px) and (max-height: 600px)')
+    expect(titleCss).toContain('.title-copy { top: max(96px, calc(env(safe-area-inset-top, 0px) + 88px)) !important; }')
+
+    cleanup()
+  })
+
   it('slams the title letters, sends the zombie, then gathers the 3D scene', () => {
     const { container, cleanup } = renderTitleScreen()
     const title = container.querySelector('h1[aria-label="탈출! 좀비학교"]')
@@ -239,6 +261,53 @@ describe('TitleScreen lobby entry', () => {
     cleanup()
   })
 
+  it('hydrates player progress before checking consent after Studio readiness', async () => {
+    const user = { uid: 'uid-hydration-race', displayName: 'Hydration Tester', email: 'h@example.com', photoURL: '' }
+    const now = new Date().toISOString()
+    _resetFirebaseProgressForTests()
+    vi.stubEnv('VITE_FIREBASE_API_KEY', 'test-key')
+    vi.stubEnv('VITE_FIREBASE_AUTH_DOMAIN', 'test.firebaseapp.com')
+    vi.stubEnv('VITE_FIREBASE_PROJECT_ID', 'test-project')
+    vi.stubEnv('VITE_FIREBASE_APP_ID', 'test-app')
+    vi.stubEnv('VITE_FIREBASE_DATABASE_URL', 'https://test.firebaseio.com')
+    _setFirebaseProgressClientForTests({
+      loadOrCreate: vi.fn(async () => ({
+        schemaVersion: 1,
+        profile: { uid: user.uid, displayName: user.displayName, nickname: '복도반장' },
+        progress: {
+          goldTotal: 0,
+          records: {},
+          weaponUnlocks: {},
+          weaponPermanentUpgrades: {},
+          passiveUpgrades: {},
+          titleSettings: { vibration: true, reducedEffects: false, unlockAllWeaponsCheat: false, unlockAllStagesCheat: false },
+        },
+        consent: {
+          terms: { version: TERMS_VERSION, acceptedAt: now },
+          privacy: { version: PRIVACY_VERSION, acceptedAt: now },
+        },
+      })),
+      save: vi.fn(async () => true),
+      remove: vi.fn(async () => true),
+    })
+    useAuthStore.setState({ status: 'signedIn', user, initialized: true })
+    const ensureStudioCloudReady = vi.fn(async () => true)
+    const onEnterLobby = vi.fn()
+    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {}, ensureStudioCloudReady)
+
+    await act(async () => {
+      clickButtonByTextRaw(container, '게임 시작')
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+
+    expect(ensureStudioCloudReady).toHaveBeenCalledWith(user)
+    expect(container.textContent).not.toContain('이용약관·개인정보처리방침 동의')
+    expect(onEnterLobby).toHaveBeenCalledTimes(1)
+
+    cleanup()
+  })
+
   it('starts Google login from the start button when Google is signed out', async () => {
     const googleUser = { uid: 'uid-login', displayName: 'Login Tester', email: 'login@example.com', photoURL: '' }
     // 이 테스트의 signInWithGoogle 목은 실제 useAuthStore.signInWithGoogle과 달리
@@ -322,7 +391,6 @@ describe('TitleScreen lobby entry', () => {
     openCheatMenu(container)
     clickButtonByText(container, '코인 레벨업 초기화')
 
-    expect(localStorage.getItem(PASSIVE_STORAGE_KEY)).toBeNull()
 
     cleanup()
   })

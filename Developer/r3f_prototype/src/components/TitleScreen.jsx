@@ -3,7 +3,7 @@ import ConsentGate from './ConsentGate.jsx'
 import GoogleAccountPanel from './GoogleAccountPanel.jsx'
 import TitleSceneCanvas from './TitleSceneCanvas.jsx'
 import { needsConsent } from '../lib/consent.js'
-import { isFirebaseProgressHydrated, requestCloudProgressSave } from '../lib/firebaseProgress.js'
+import { isFirebaseProgressHydrated, hydrateCloudProgress, requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import {
@@ -54,6 +54,10 @@ const TITLE_INTRO_CSS = `
   .title-intro-letter { animation: titleLetterSlam 520ms cubic-bezier(.16,.84,.28,1.08) backwards; }
   .title-intro-zombie { animation: titleZombieScurry 900ms ease-out backwards; }
   .title-intro-scene { animation: titleSceneGather 850ms cubic-bezier(.16,.84,.28,1.04) backwards; }
+  .title-main-action:focus-visible { outline:3px solid #fff8e8; outline-offset:3px; }
+  @media (max-width: 360px) and (max-height: 600px) {
+    .title-copy { top: max(96px, calc(env(safe-area-inset-top, 0px) + 88px)) !important; }
+  }
 `
 
 function TitleLetter({ config }) {
@@ -107,6 +111,7 @@ export default function TitleScreen({
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle)
   const resetPassiveUpgrades = useGameStore((s) => s.resetPassiveUpgrades)
   const cheatBufferRef = useRef([])
+  const titleBgmControllerRef = useRef(null)
   const adminOperations = getAdminOperationsConfig()
   const cheatMenuButtonVisible = devCheatsVisible && adminOperations.cheatMenuButtonVisible
 
@@ -123,6 +128,8 @@ export default function TitleScreen({
   //  2) 그래도 거부되면 첫 pointerdown/touchstart/keydown 제스처에서 재시도(모바일 사파리 포함)
   //  3) 탭이 visible로 복귀할 때도 재시도
   // 성공하면 리스너·타이머를 모두 정리하고, 언마운트 시에도 누수 없이 정리한다. 에러는 조용히 무시.
+  // 로그인 시작 시에는 BGM을 즉시 멈추며, 같은 타이틀 마운트 안에서 로그인이 취소되어도
+  // 자동 재시도하지 않는다. 인증 전환 중 예기치 않은 재생/중복 재생보다 정지를 우선한다.
   useLayoutEffect(() => {
     let audio
     try {
@@ -141,6 +148,7 @@ export default function TitleScreen({
     if (typeof window !== 'undefined') window.__titleBgm = audio
 
     let disposed = false
+    let suspendedForSignIn = false
     let playing = false
     let retryBound = false
     const timers = []
@@ -157,7 +165,7 @@ export default function TitleScreen({
       document.removeEventListener('visibilitychange', handleVisibility)
     }
     const bindRetry = () => {
-      if (disposed || playing || retryBound) return
+      if (disposed || suspendedForSignIn || playing || retryBound) return
       retryBound = true
       window.addEventListener('pointerdown', tryPlay)
       window.addEventListener('touchstart', tryPlay)
@@ -165,7 +173,7 @@ export default function TitleScreen({
       document.addEventListener('visibilitychange', handleVisibility)
     }
     const handleSuccess = () => {
-      if (disposed) return
+      if (disposed || suspendedForSignIn) return
       playing = true
       clearTimers()
       unbindRetry()
@@ -174,7 +182,7 @@ export default function TitleScreen({
       if (document.visibilityState === 'visible') tryPlay()
     }
     function tryPlay() {
-      if (disposed || playing) return
+      if (disposed || suspendedForSignIn || playing) return
       let result
       try {
         result = audio.play()
@@ -195,8 +203,25 @@ export default function TitleScreen({
       timers.push(setTimeout(tryPlay, delay))
     }
 
+    const controller = {
+      suspendForSignIn() {
+        if (disposed || suspendedForSignIn) return
+        suspendedForSignIn = true
+        playing = false
+        clearTimers()
+        unbindRetry()
+        try {
+          audio.pause()
+        } catch {
+          // 브라우저 Audio 정지 실패는 재생 재시도 없이 무시한다.
+        }
+      },
+    }
+    titleBgmControllerRef.current = controller
+
     return () => {
       disposed = true
+      if (titleBgmControllerRef.current === controller) titleBgmControllerRef.current = null
       clearTimers()
       unbindRetry()
       try {
@@ -207,6 +232,10 @@ export default function TitleScreen({
       }
     }
   }, [])
+
+  useLayoutEffect(() => {
+    if (signingIn) titleBgmControllerRef.current?.suspendForSignIn()
+  }, [signingIn])
 
   useEffect(() => {
     if (!cheatOpen && !nicknameOpen) return undefined
@@ -291,12 +320,21 @@ export default function TitleScreen({
         return
       }
     } catch {
-      setStudioError('그래픽 데이터를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.')
+      setStudioError('그래픽 데이터를 불러오지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.')
       return
     }
 
-    // needsConsent는 users/{uid} 하이드레이트가 끝난 뒤에만 정확하다. 위에서 이미
-    // ensureStudioCloudReady(user)를 await했으므로 이 시점에서 호출하는 것이 맞다.
+    try {
+      if (!isFirebaseProgressHydrated(user)) {
+        await hydrateCloudProgress(user)
+      }
+    } catch {
+      setStudioError('계정 진행도를 불러오는 중 오류가 발생했습니다. 연결을 확인한 뒤 다시 시도해 주세요.')
+      return
+    }
+
+    // needsConsent는 users/{uid} 플레이어 진행도 하이드레이트가 끝난 뒤에만 정확하다.
+    // Studio 데이터 준비와 별개로 위에서 hydrateCloudProgress(user)를 명시적으로 보장한다.
     if (needsConsent(user)) {
       setConsentUser(user)
       setConsentOpen(true)
@@ -364,7 +402,7 @@ export default function TitleScreen({
           치트
         </button>
       )}
-      <div style={styles.content}>
+      <div className="title-copy" style={styles.content}>
         <div aria-hidden="true" data-title-service-name style={styles.serviceName}>탈출! 좀비학교</div>
         <h1 aria-label="탈출! 좀비학교" style={styles.title}>
           <span style={{ ...styles.titleAccent, ...styles.titleWord }}>
@@ -399,7 +437,8 @@ export default function TitleScreen({
 
       <div style={styles.actions}>
         <div style={styles.mainActionStack}>
-          <button type="button" style={{ ...styles.primaryButton, ...styles.mainActionButton }} onClick={handleStartClick}>
+          <p data-testid="title-gameplay-guide" style={styles.gameplayGuide}>자동 공격 · 화면을 드래그해 이동 · 레벨업 때 카드 선택</p>
+          <button type="button" className="title-main-action" style={{ ...styles.primaryButton, ...styles.mainActionButton }} onClick={handleStartClick}>
             게임 시작
           </button>
           {studioError && (
@@ -670,6 +709,14 @@ const styles = {
     minWidth: 180,
     maxWidth: 230,
     transform: 'rotate(0.8deg)',
+  },
+  gameplayGuide: {
+    margin: 0,
+    color: uiPalette.ink,
+    fontSize: 12,
+    lineHeight: 1.35,
+    fontWeight: uiType.weightStrong,
+    textAlign: 'center',
   },
   studioError: {
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

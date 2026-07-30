@@ -1,6 +1,6 @@
 // 로비 설정 모달. 타이틀에서 이관된 게임 환경 설정 + 닉네임 편집을 담당한다.
 // 설정 저장은 titleSettings(단일 저장 소스), 닉네임은 userNickname을 그대로 사용한다.
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
 import { applyReducedEffects, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
@@ -29,6 +29,8 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   const [deleteStage, setDeleteStage] = useState('idle') // idle | confirm | deleting
   const [deleteError, setDeleteError] = useState(null)
   const [reauthBusy, setReauthBusy] = useState(false)
+  const modalRef = useRef(null)
+  const closeDisabled = deleteStage === 'deleting' || reauthBusy
 
   useEffect(() => {
     saveTitleSettings(settings)
@@ -72,6 +74,35 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
     setLegalOpenId((current) => (current === id ? null : id))
   }
 
+  const handleClose = () => {
+    if (closeDisabled) return
+    onClose?.()
+  }
+
+  const handleModalKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      handleClose()
+      return
+    }
+    if (event.key !== 'Tab') return
+
+    const focusable = Array.from(modalRef.current?.querySelectorAll(
+      'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+    ) ?? [])
+    if (!focusable.length) return
+
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
+
   const openDeleteConfirm = () => {
     setDeleteError(null)
     setDeleteStage('confirm')
@@ -108,11 +139,18 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
 
   return (
     <div style={styles.overlay}>
-      <button type="button" aria-label="설정 닫기 배경" style={styles.scrim} onClick={onClose} />
-      <section role="dialog" aria-modal="true" aria-labelledby="lobby-settings-heading" style={styles.modal}>
+      <button type="button" aria-label="설정 닫기 배경" style={styles.scrim(closeDisabled)} onClick={handleClose} disabled={closeDisabled} />
+      <section
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="lobby-settings-heading"
+        style={styles.modal}
+        onKeyDown={handleModalKeyDown}
+      >
         <div style={styles.modalHeader}>
           <h2 id="lobby-settings-heading" style={styles.modalTitle}>설정</h2>
-          <button type="button" aria-label="닫기" style={styles.closeButton} onClick={onClose}>×</button>
+          <button type="button" aria-label="닫기" style={styles.closeButton} onClick={handleClose} disabled={closeDisabled}>×</button>
         </div>
 
         {nicknameOpen ? (
@@ -251,7 +289,13 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
             )}
 
             <div style={styles.sectionLabel}>법적 고지</div>
-            <button type="button" style={styles.settingRow} onClick={() => toggleLegal('terms')}>
+            <button
+              type="button"
+              style={styles.settingRow}
+              aria-expanded={legalOpenId === 'terms'}
+              aria-controls="lobby-settings-legal-terms-panel"
+              onClick={() => toggleLegal('terms')}
+            >
               <span style={styles.rowText}>
                 <strong style={styles.rowTitle}>{TERMS_TITLE}</strong>
                 <span style={styles.rowDescription}>전문 보기</span>
@@ -259,11 +303,22 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               <span style={styles.arrow}>{legalOpenId === 'terms' ? '⌃' : '›'}</span>
             </button>
             {legalOpenId === 'terms' && (
-              <div style={styles.legalPanel}>
+              <div
+                id="lobby-settings-legal-terms-panel"
+                role="region"
+                aria-label={TERMS_TITLE}
+                style={styles.legalPanel}
+              >
                 <div style={styles.legalBody}>{TERMS_TEXT}</div>
               </div>
             )}
-            <button type="button" style={styles.settingRow} onClick={() => toggleLegal('privacy')}>
+            <button
+              type="button"
+              style={styles.settingRow}
+              aria-expanded={legalOpenId === 'privacy'}
+              aria-controls="lobby-settings-legal-privacy-panel"
+              onClick={() => toggleLegal('privacy')}
+            >
               <span style={styles.rowText}>
                 <strong style={styles.rowTitle}>{PRIVACY_TITLE}</strong>
                 <span style={styles.rowDescription}>전문 보기</span>
@@ -271,7 +326,12 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               <span style={styles.arrow}>{legalOpenId === 'privacy' ? '⌃' : '›'}</span>
             </button>
             {legalOpenId === 'privacy' && (
-              <div style={styles.legalPanel}>
+              <div
+                id="lobby-settings-legal-privacy-panel"
+                role="region"
+                aria-label={PRIVACY_TITLE}
+                style={styles.legalPanel}
+              >
                 <div style={styles.legalBody}>{PRIVACY_TEXT}</div>
               </div>
             )}
@@ -300,7 +360,7 @@ const styles = {
     justifyContent: 'center',
     fontFamily: uiType.family,
   },
-  scrim: {
+  scrim: (disabled) => ({
     position: 'absolute',
     inset: 0,
     width: '100%',
@@ -309,8 +369,8 @@ const styles = {
     padding: 0,
     background: 'rgba(5,2,9,0.5)',
     backdropFilter: 'blur(2px)',
-    cursor: 'pointer',
-  },
+    cursor: disabled ? 'not-allowed' : 'pointer',
+  }),
   modal: {
     ...schoolPanel('dark'),
     position: 'relative',
@@ -393,6 +453,7 @@ const styles = {
     boxShadow: uiShadows.pressSmall,
     maxHeight: 220,
     overflowY: 'auto',
+    WebkitOverflowScrolling: 'touch',
   },
   legalBody: {
     whiteSpace: 'pre-wrap',
