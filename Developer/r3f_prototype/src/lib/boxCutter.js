@@ -34,6 +34,15 @@ export function isPointInBoxCutterStrike({
   return Math.abs(lateral) <= width / 2 + pad
 }
 
+// 영구 강화 Lv10 "일정 확률로 추가 절단 1회". 확률이 맞으면 같은 대상 목록에 피해를 한 번 더
+// 적용한다(2회). 첫 절단으로 죽은 적은 generation이 올라가 두 번째 절단이 자동으로 거부되므로
+// 이중 처치·이중 보상은 생기지 않는다.
+export function resolveBoxCutterSlashCount(weapon, random = Math.random) {
+  const chance = Number(weapon?.permanentExtraSlashChance)
+  if (!Number.isFinite(chance) || chance <= 0) return 1
+  return random() < chance ? 2 : 1
+}
+
 function isPoolProxy(rb) {
   return Number.isInteger(rb?.index) && rb.index >= 0 && rb.index < enemyPool.proxies.length
     && enemyPool.proxies[rb.index] === rb

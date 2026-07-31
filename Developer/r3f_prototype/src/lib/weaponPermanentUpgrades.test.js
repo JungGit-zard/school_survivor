@@ -188,6 +188,9 @@ describe('weaponPermanentUpgrades storage layer', () => {
     expect(upgraded('stunGun')).toMatchObject({ damage: 19.4, cooldown: 3000, chainCount: 3, permanentStunChance: 0.08, critChance: 0.14 })
     expect(upgraded('onigiri')).toMatchObject({ damage: 21, bounces: 4, critChance: 0.16 })
     expect(upgraded('chibiko')).toMatchObject({ damage: 1.4, cooldown: 1012, projectileCount: 2, critChance: 0.09 })
+    // Lv.10 "일정 확률로 추가 절단 1회" — 라벨만 있고 런타임 효과가 없던 구멍을 막는다.
+    expect(upgraded('boxCutter')).toMatchObject({ permanentExtraSlashChance: 0.1 })
+    expect(upgraded('boxCutter', 9).permanentExtraSlashChance).toBeUndefined()
     expect(upgraded('guidedMissile')).toMatchObject({ damage: 18.6, radius: 1.76, homingStrength: 1.1 })
     expect(upgraded('sharkMissile')).toMatchObject({ damage: 24.1, speed: 9.18, retargetIntervalMs: 270, permanentHomingStartMultiplier: 0.9, radius: 2.016 })
     expect(upgraded('starlink')).toMatchObject({ damage: 30.2, strikeRadius: 1.32, permanentBonusStrikeChance: 0.1, critChance: 0.15 })

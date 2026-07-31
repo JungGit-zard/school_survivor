@@ -241,6 +241,7 @@ export function applyWeaponPermanentUpgradesToBaseWeapon(id, weapon) {
   if (id === 'onigiri' && level >= 5) out.bounces = (out.bounces ?? 0) + 1
   if (id === 'onigiri' && level >= 10) out.bounces = (out.bounces ?? 0) + 1
   if (id === 'chibiko' && level >= 10) out.projectileCount = (out.projectileCount ?? 1) + 1
+  if (id === 'boxCutter' && level >= 10) out.permanentExtraSlashChance = 0.1
   if (id === 'guidedMissile' && level >= 5) out.homingStrength = 1.1
   if (id === 'sharkMissile' && level >= 5) out.permanentHomingStartMultiplier = 0.9
   if (id === 'starlink' && level >= 10) out.permanentBonusStrikeChance = 0.1

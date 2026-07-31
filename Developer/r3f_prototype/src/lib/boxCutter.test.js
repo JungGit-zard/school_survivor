@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { isPointInBoxCutterStrike, pickBoxCutterTargets, ENEMY_HIT_PAD } from './boxCutter.js'
+import { isPointInBoxCutterStrike, pickBoxCutterTargets, resolveBoxCutterSlashCount, ENEMY_HIT_PAD } from './boxCutter.js'
 import { enemyBodies, enemyPool } from './refs.js'
 
 afterEach(() => {
@@ -126,5 +126,36 @@ describe('box cutter strike targeting', () => {
     const targets = pickBoxCutterTargets({ origin, facing, range: 0.85, width: 0.22 })
 
     expect(targets).toHaveLength(1)
+  })
+})
+
+describe('box cutter permanent Lv10 extra slash', () => {
+  it('slashes once when the permanent perk is not owned', () => {
+    expect(resolveBoxCutterSlashCount({}, () => 0)).toBe(1)
+    expect(resolveBoxCutterSlashCount({ permanentExtraSlashChance: 0 }, () => 0)).toBe(1)
+    expect(resolveBoxCutterSlashCount(undefined, () => 0)).toBe(1)
+  })
+
+  it('adds exactly one extra slash when the roll lands under the chance', () => {
+    expect(resolveBoxCutterSlashCount({ permanentExtraSlashChance: 0.1 }, () => 0.09)).toBe(2)
+    expect(resolveBoxCutterSlashCount({ permanentExtraSlashChance: 0.1 }, () => 0.1)).toBe(1)
+    expect(resolveBoxCutterSlashCount({ permanentExtraSlashChance: 0.1 }, () => 0.9)).toBe(1)
+  })
+
+  it('ignores a malformed chance instead of slashing forever', () => {
+    for (const chance of [NaN, Infinity, -1, 'x', null]) {
+      expect(resolveBoxCutterSlashCount({ permanentExtraSlashChance: chance }, () => 0)).toBe(1)
+    }
+  })
+
+  // 첫 절단으로 죽으면 generation이 올라가 두 번째 절단은 거부돼야 한다(이중 처치 방지).
+  it('does not let the extra slash hit an enemy the first slash already killed', () => {
+    const { handle } = spawnPooledEnemy(0, 0.5)
+    const proxy = enemyPool.get(handle)
+    const staleGeneration = handle.generation
+    enemyPool.despawn(handle)
+
+    expect(enemyPool.isIndexGenerationAlive(handle.index, staleGeneration)).toBe(false)
+    expect(proxy._enemyDead).toBe(true)
   })
 })

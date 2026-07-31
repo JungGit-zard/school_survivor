@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { usePlayingFrame } from '../../lib/usePlayingFrame.js'
 import { emitSfx } from '../../lib/sfxEvents.js'
 import { playerArmActionState, playerFacing, playerPos } from '../../lib/refs.js'
-import { pickBoxCutterTargets, normalizePlanarFacing } from '../../lib/boxCutter.js'
+import { pickBoxCutterTargets, normalizePlanarFacing, resolveBoxCutterSlashCount } from '../../lib/boxCutter.js'
 import { applyEnemyHit } from '../../lib/weaponCollision.js'
 import { startPlayerArmAction, computeBoxCutterActionPhases, BOX_CUTTER_ACTION_MS } from '../../lib/playerArmAction.js'
 import { useGameStore } from '../../store/useGameStore.js'
@@ -227,21 +227,25 @@ export function BoxCutterWeapon() {
     lastFireRef.current = now
     emitSfx({ id: 'boxCutterFire' })
     startPlayerArmAction(playerArmActionState, 'boxCutter', now, duration)
-    targets.forEach(({ rb, generation }) => {
-      const hit = applyEnemyHit(rb, generation, w.damage, {
-        source: { x: playerPos.x, z: playerPos.z },
-        knockback: w.knockback ?? 1.8,
-        knockbackMs: 80,
-        critChance: w.critChance,
-        critMultiplier: w.critMultiplier,
+    // 영구 강화 Lv10이면 확률적으로 한 번 더 벤다(같은 대상 목록에 재적용).
+    const slashCount = resolveBoxCutterSlashCount(w)
+    for (let slash = 0; slash < slashCount; slash += 1) {
+      targets.forEach(({ rb, generation }) => {
+        const hit = applyEnemyHit(rb, generation, w.damage, {
+          source: { x: playerPos.x, z: playerPos.z },
+          knockback: w.knockback ?? 1.8,
+          knockbackMs: 80,
+          critChance: w.critChance,
+          critMultiplier: w.critMultiplier,
+        })
+        if (!hit) return
+        emitSfx({
+          id: 'boxCutterHit',
+          volume: 0.52,
+          rate: 1.00 + Math.random() * 0.10,
+        })
       })
-      if (!hit) return
-      emitSfx({
-        id: 'boxCutterHit',
-        volume: 0.52,
-        rate: 1.00 + Math.random() * 0.10,
-      })
-    })
+    }
     setStrike({ startMs: now, facing, range: w.range ?? 1.275, width: w.width ?? 0.22 })
   })
 
