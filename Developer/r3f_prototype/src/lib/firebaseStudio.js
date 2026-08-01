@@ -12,6 +12,7 @@ import {
 import {
   loadSfxTunings,
 } from './sfxRegistry.js'
+import { BOSS_FACE_RECIPES_EVENT, loadBossFaceRecipes } from './bossFaceParts.js'
 import {
   STAGE_PROP_PLACEMENTS_EVENT,
   loadStagePropPlacements,
@@ -32,6 +33,7 @@ export const FIREBASE_STUDIO_DATASET_KEYS = Object.freeze([
   'stageBossPreview',
   'decals',
   'propPlacements',
+  'bossFaceRecipes',
 ])
 
 const DATABASE_URL_KEY = 'VITE_FIREBASE_DATABASE_URL'
@@ -62,6 +64,7 @@ export function loadStudioRuntimeDatasets() {
     stageBossPreview: loadStageBossPreview(),
     decals: loadTextureDecals(),
     propPlacements: loadStagePropPlacements(),
+    bossFaceRecipes: loadBossFaceRecipes(),
   }
 }
 
@@ -108,6 +111,7 @@ export function normalizeFirebaseStudioSnapshot(snapshot) {
       stageBossPreview: datasets.stageBossPreview ?? {},
       decals: datasets.decals ?? {},
       propPlacements: datasets.propPlacements ?? {},
+      bossFaceRecipes: datasets.bossFaceRecipes ?? {},
     },
   }
 }
@@ -591,6 +595,7 @@ function emitStudioRuntimeDatasets() {
     [STAGE_BOSS_PREVIEW_EVENT, restored.stageBossPreview],
     [TEXTURE_DECALS_EVENT, restored.decals],
     [STAGE_PROP_PLACEMENTS_EVENT, restored.propPlacements],
+    [BOSS_FACE_RECIPES_EVENT, restored.bossFaceRecipes],
     [FIREBASE_STUDIO_REVISION_EVENT, getFirebaseStudioRuntimeState().revision],
   ]
   for (const [type, detail] of events) {

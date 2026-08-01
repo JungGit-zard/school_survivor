@@ -17,6 +17,15 @@ export function isE2EAuthBypass() {
     && new URLSearchParams(window.location.search).has('e2e')
 }
 
+export function isE2EGraphicsStudioBypass(search) {
+  if (!import.meta.env.DEV) return false
+  const query = typeof search === 'string'
+    ? search
+    : (typeof window !== 'undefined' ? window.location.search : '')
+  const params = new URLSearchParams(query)
+  return params.get('e2e') === '1' && params.get('studio') === '1'
+}
+
 // A stricter, decode-only route. It is separate from the general E2E auth
 // bypass so production URLs and ordinary E2E game sessions never create a
 // Web Audio context or fetch every asset.

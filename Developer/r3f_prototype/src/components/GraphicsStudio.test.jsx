@@ -13,6 +13,7 @@ import {
   saveTextureDecals,
 } from '../lib/graphicsStudioConfig.js'
 import { loadSfxTunings, saveSfxTunings } from '../lib/sfxRegistry.js'
+import { loadBossFaceRecipes } from '../lib/bossFaceParts.js'
 import { loadStagePropPlacements, resetStagePropPlacementsCache, saveStagePropPlacements } from '../lib/stagePropPlacements.js'
 import { commitFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
 
@@ -95,7 +96,7 @@ describe('GraphicsStudio', () => {
 
   const clickButton = async (label) => {
     const button = Array.from(container.querySelectorAll('button'))
-      .find((candidate) => candidate.textContent === label)
+      .find((candidate) => candidate.textContent.includes(label))
     await act(async () => {
       button.dispatchEvent(new MouseEvent('click', { bubbles: true }))
       await Promise.resolve()
@@ -110,7 +111,9 @@ describe('GraphicsStudio', () => {
       stageBossPreview: {},
       decals: {},
       propPlacements: {},
+      bossFaceRecipes: {},
     }, { revision: 1 })
+    window.history.replaceState(null, '', '/')
     window.location.hash = ''
     authMocks.state.status = 'unconfigured'
     authMocks.state.user = null
@@ -137,6 +140,7 @@ describe('GraphicsStudio', () => {
   afterEach(() => {
     act(() => root.unmount())
     container.remove()
+    window.history.replaceState(null, '', '/')
     window.location.hash = ''
     resetStagePropPlacementsCache()
     vi.restoreAllMocks()
@@ -898,5 +902,53 @@ describe('GraphicsStudio', () => {
 
     expect(loadSfxTunings().pencilFire.rate).toBe(1.37)
     expect(container.textContent).toContain('Audio applied')
+  })
+
+  it('opens directly to the Faces tab from the dev studio section query', async () => {
+    window.history.replaceState(null, '', '/graphics-studio?e2e=1&studio=1&section=faces')
+
+    await renderSignedInStudio()
+
+    expect(container.textContent).toContain('Face Parts')
+    expect(container.querySelector('[data-testid="boss-face-grid-preview"]')).toBeTruthy()
+    expect(container.querySelector('[data-testid="graphics-preview"]')?.textContent).toContain('zombie-b01')
+  })
+
+  it('opens the Faces tab with a boss face grid preview and 5 selectable parts per category', async () => {
+    await renderSignedInStudio()
+
+    await clickButton('Faces')
+
+    expect(container.textContent).toContain('Face Parts')
+    expect(container.querySelector('[data-testid="boss-face-grid-preview"]')).toBeTruthy()
+    expect(container.querySelector('[data-testid="boss-face-boss-list"]')?.textContent).toContain('B01')
+    expect(container.querySelector('[data-testid="graphics-preview"]')?.textContent).toContain('zombie-b01')
+
+    for (const key of ['brow', 'eye', 'nose', 'mouth']) {
+      const category = container.querySelector(`[data-testid="face-category-${key}"]`)
+      expect(category).toBeTruthy()
+      expect(category.querySelectorAll('button')).toHaveLength(5)
+    }
+
+    await clickButton('화난 사선眉')
+    await clickButton('빙글 X 눈')
+    await clickButton('돼지 콧구멍')
+    await clickButton('삐뚤 지그재그')
+
+    expect(loadBossFaceRecipes()).not.toHaveProperty('B01')
+    expect(container.querySelector('[data-testid="boss-face-grid-preview"]')?.textContent).toContain('brow-angry-slash')
+    expect(container.querySelector('[data-testid="boss-face-grid-preview"]')?.textContent).toContain('eye-x-dizzy')
+    expect(container.querySelector('[data-testid="boss-face-grid-preview"]')?.textContent).toContain('nose-piggy')
+    expect(container.querySelector('[data-testid="boss-face-grid-preview"]')?.textContent).toContain('mouth-zigzag')
+
+    await clickButton('Apply')
+
+    expect(loadBossFaceRecipes().B01).toEqual({
+      brow: 'brow-angry-slash',
+      eye: 'eye-x-dizzy',
+      nose: 'nose-piggy',
+      mouth: 'mouth-zigzag',
+    })
+    expect(container.textContent).toContain('Face parts applied')
   })
 })

@@ -11,9 +11,9 @@ import {
 import { installPlayerStorageFatalGuard } from './lib/firebaseProgress.js'
 import { STUDIO_GAME_SYNC_MESSAGE, isAllowedStudioGameOrigin } from './lib/studioGameBridge.js'
 import { useAuthStore } from './store/useAuthStore.js'
-import { isFirebaseStudioRuntimeReady } from './lib/studioRuntimeState.js'
+import { commitFirebaseStudioRuntime, isFirebaseStudioRuntimeReady } from './lib/studioRuntimeState.js'
 import { isProjectMaster } from './lib/projectAdmin.js'
-import { isE2EAuthBypass } from './lib/e2eAuth.js'
+import { isE2EAuthBypass, isE2EGraphicsStudioBypass } from './lib/e2eAuth.js'
 
 const AdminPage = lazy(() => import('./components/AdminPage.jsx'))
 const GraphicsStudio = lazy(() => import('./components/GraphicsStudio.jsx'))
@@ -186,10 +186,14 @@ export default function App() {
     && isFirebaseStudioRuntimeReady()
   const isGraphicsStudioRoute = typeof window !== 'undefined'
     && window.location.pathname.startsWith('/graphics-studio')
+  const isDevGraphicsStudioBypass = isGraphicsStudioRoute && isE2EGraphicsStudioBypass()
+  if (isDevGraphicsStudioBypass && !isFirebaseStudioRuntimeReady()) {
+    commitFirebaseStudioRuntime({}, { revision: 0 })
+  }
   // 스튜디오 입구 로그인: /graphics-studio는 로그인해야 진입한다(로그인 지점 2곳 중 하나).
   // canonicalTitlePlayer 하이드레이트로 studioReady가 로그인 전에도 true가 될 수 있으므로,
   // 로그인 없이 편집기가 열려 Apply가 unauthenticated로 실패하지 않도록 signedIn을 함께 요구한다.
-  if (isGraphicsStudioRoute && (authStatus !== 'signedIn' || !studioReady)) {
+  if (isGraphicsStudioRoute && !isDevGraphicsStudioBypass && (authStatus !== 'signedIn' || !studioReady)) {
     return (
       <AppBootstrap message={getStudioBootstrapMessage(authStatus, studioCloudStatus)} />
     )

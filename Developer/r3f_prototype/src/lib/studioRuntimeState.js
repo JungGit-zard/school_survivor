@@ -4,6 +4,7 @@ export const FIREBASE_STUDIO_RUNTIME_DATASET_KEYS = Object.freeze([
   'stageBossPreview',
   'decals',
   'propPlacements',
+  'bossFaceRecipes',
 ])
 
 let runtimeState = {

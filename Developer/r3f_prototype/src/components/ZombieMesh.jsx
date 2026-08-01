@@ -9,6 +9,7 @@ import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.webp'
 import boss04FaceUrl from '../assets/faces/b04_chef_boss_face.webp'
 import MatildaMesh from './MatildaMesh.jsx'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
+import BossFacePartsOverlay from './BossFacePartsOverlay.jsx'
 
 const disableRaycast = () => null
 
@@ -352,7 +353,7 @@ function B01MathTeacherFaceTexture() {
   )
 }
 
-function B01BossZombieMesh({ hitFlash, reg }) {
+function B01BossZombieMesh({ hitFlash, reg, bossFaceRecipe }) {
   const pal = B01_BOSS_VISUAL_PALETTE
 
   return (
@@ -362,6 +363,7 @@ function B01BossZombieMesh({ hitFlash, reg }) {
         <ZBlock size={[0.60, 0.18, 0.56]} position={[-0.02, 0.25, -0.02]} rotation={[0.06, 0, -0.08]} color={pal.hair} emissive={0.04} outlineScale={1.06} flash={hitFlash} />
         {/* 눈·눈썹·입·치아·볼 그림자 등 모델링 이목구비 대신 사용자 제공 수학선생 얼굴 텍스처 데칼 사용 */}
         <B01MathTeacherFaceTexture />
+        <BossFacePartsOverlay bossType="B01" recipe={bossFaceRecipe} />
       </group>
 
       <group ref={reg('body')} position={[0, 0.26, 0]}>
@@ -419,7 +421,7 @@ function B03PeTeacherFaceTexture() {
   )
 }
 
-function B03PhysicalEducationBossMesh({ hitFlash, reg }) {
+function B03PhysicalEducationBossMesh({ hitFlash, reg, bossFaceRecipe }) {
   const pal = B03_PE_TEACHER_PALETTE
 
   return (
@@ -429,6 +431,7 @@ function B03PhysicalEducationBossMesh({ hitFlash, reg }) {
         <ZBlock name="b01SportHair" size={[0.58, 0.13, 0.45]} position={[0, 0.28, -0.01]} color={pal.hair} emissive={0.03} outlineScale={1.04} flash={hitFlash} />
         {/* 눈·눈썹·코·입·이빨 등 모델링 이목구비 대신 사용자 제공 얼굴 텍스처 데칼 사용 */}
         <B03PeTeacherFaceTexture />
+        <BossFacePartsOverlay bossType="B03" recipe={bossFaceRecipe} />
       </group>
 
       <group name="b01PeTeacherBodyRig" ref={reg('body')} position={[0, 0.28, 0]}>
@@ -506,7 +509,7 @@ function B04ChefBossFaceTexture() {
   )
 }
 
-function B04ChefBossMesh({ hitFlash, reg }) {
+function B04ChefBossMesh({ hitFlash, reg, bossFaceRecipe }) {
   const pal = B04_CHEF_PALETTE
 
   return (
@@ -523,6 +526,7 @@ function B04ChefBossMesh({ hitFlash, reg }) {
       <group name="chefHeadRig" ref={reg('head')} position={[0, 0.93, 0]}>
         <ZBlock name="chefHead" size={[0.66, 0.48, 0.52]} position={[0, 0, 0]} color={pal.skin} emissive={0.07} outlineScale={1.08} flash={hitFlash} />
         <B04ChefBossFaceTexture />
+        <BossFacePartsOverlay bossType="B04" recipe={bossFaceRecipe} />
         <ZBlock name="chefEarL" size={[0.13, 0.22, 0.16]} position={[-0.39, -0.01, 0]} color={pal.skinShadow} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
         <ZBlock name="chefEarR" size={[0.13, 0.22, 0.16]} position={[0.39, -0.01, 0]} color={pal.skinShadow} emissive={0.05} outlineScale={1.04} flash={hitFlash} />
       </group>
@@ -589,7 +593,7 @@ function B04ChefBossMesh({ hitFlash, reg }) {
   )
 }
 
-function B02Stage2BossMesh({ hitFlash, reg }) {
+function B02Stage2BossMesh({ hitFlash, reg, bossFaceRecipe }) {
   const pal = B02_STAGE2_BOSS_PALETTE
 
   return (
@@ -602,6 +606,7 @@ function B02Stage2BossMesh({ hitFlash, reg }) {
         <ZBlock name="b02BackHair" size={[0.58, 0.44, 0.18]} position={[0.02, 0.06, -0.30]} color={pal.hair} emissive={0.03} outlineScale={1.05} flash={hitFlash} />
         <ZBlock name="b02HairBun" size={[0.24, 0.22, 0.22]} position={[0.24, 0.33, -0.24]} rotation={[0.05, 0, 0.08]} color={pal.hair} emissive={0.03} outlineScale={1.05} flash={hitFlash} />
         <B02Stage2BossFaceTexture />
+        <BossFacePartsOverlay bossType="B02" recipe={bossFaceRecipe} />
       </group>
 
       <group name="b02BodyRig" ref={reg('body')} position={[0, 0.28, 0]}>
@@ -669,7 +674,7 @@ function ZombieOuterOutline() {
 
 // animPhase: 'normal' | 'warn' | 'charge' | 'stun' | 'retreat'
 // staticPose: 로비 보스 카드처럼 상호작용 없는 프리뷰에서 내부 파트 애니메이션 계산을 완전히 건너뛰는 정적 포즈 게이트.
-export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false, staticPose = false }) {
+export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false, staticPose = false, bossFaceRecipe }) {
   const p    = useRef({})
   const pal  = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
   const specialAgeRef = useRef(0)
@@ -830,7 +835,7 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
   if (type === 'B01') {
     return (
       <StudioTunedGroup itemId="zombie-b01">
-        <B01BossZombieMesh hitFlash={hitFlash} reg={reg} />
+        <B01BossZombieMesh hitFlash={hitFlash} reg={reg} bossFaceRecipe={bossFaceRecipe} />
       </StudioTunedGroup>
     )
   }
@@ -846,7 +851,7 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
   if (type === 'B03') {
     return (
       <StudioTunedGroup itemId={getStudioZombieItemId('B03')}>
-        <B03PhysicalEducationBossMesh hitFlash={hitFlash} reg={reg} />
+        <B03PhysicalEducationBossMesh hitFlash={hitFlash} reg={reg} bossFaceRecipe={bossFaceRecipe} />
       </StudioTunedGroup>
     )
   }
@@ -854,7 +859,7 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
   if (type === 'B04') {
     return (
       <StudioTunedGroup itemId={getStudioZombieItemId('B04')}>
-        <B04ChefBossMesh hitFlash={hitFlash} reg={reg} />
+        <B04ChefBossMesh hitFlash={hitFlash} reg={reg} bossFaceRecipe={bossFaceRecipe} />
       </StudioTunedGroup>
     )
   }
@@ -862,7 +867,7 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
   if (type === 'B02') {
     return (
       <StudioTunedGroup itemId={getStudioZombieItemId(type)}>
-        <B02Stage2BossMesh hitFlash={hitFlash} reg={reg} />
+        <B02Stage2BossMesh hitFlash={hitFlash} reg={reg} bossFaceRecipe={bossFaceRecipe} />
       </StudioTunedGroup>
     )
   }

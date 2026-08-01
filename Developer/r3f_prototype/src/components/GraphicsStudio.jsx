@@ -19,7 +19,17 @@ import {
 } from '../lib/graphicsStudioConfig.js'
 import { fileToDecalDataUrl } from '../lib/textureDecal.js'
 import { normalizeStagePropPlacements } from '../lib/stagePropPlacements.js'
+import {
+  BOSS_FACE_BOSS_OPTIONS,
+  BOSS_FACE_PART_CATEGORIES,
+  DEFAULT_BOSS_FACE_RECIPE,
+  loadBossFaceRecipes,
+  normalizeBossFaceRecipe,
+  normalizeBossFaceRecipeMap,
+  saveBossFaceRecipes,
+} from '../lib/bossFaceParts.js'
 import StagePropPlacementEditor from './StagePropPlacementEditor.jsx'
+import BossFaceGridPreview from './BossFaceGridPreview.jsx'
 import { DEFAULT_SFX_TUNING, getSfxCatalog, loadSfxTunings, normalizeSfxTuning, playSfx } from '../lib/sfxRegistry.js'
 import {
   STUDIO_GAME_SYNC_MESSAGE,
@@ -38,9 +48,11 @@ import {
   saveFirebaseStudio,
   setFirebaseStudioUser,
 } from '../lib/firebaseStudio.js'
+import { isE2EGraphicsStudioBypass } from '../lib/e2eAuth.js'
 
 const categoryLabels = Object.fromEntries(GRAPHICS_STUDIO_CATEGORIES.map((category) => [category.id, category.label]))
 const UNDO_LIMIT = 10
+const STUDIO_SECTIONS = new Set(['graphics', 'audio', 'props', 'faces'])
 
 // 프리뷰 배경 스와치(스튜디오 로컬 전용). 첫 항목이 기본값(기존 어두운색).
 const PREVIEW_BG_SWATCHES = [
@@ -189,6 +201,12 @@ function groupCatalogByCategory() {
   }))
 }
 
+function getInitialStudioSection() {
+  if (typeof window === 'undefined' || !isE2EGraphicsStudioBypass()) return 'graphics'
+  const section = new URLSearchParams(window.location.search).get('section')
+  return STUDIO_SECTIONS.has(section) ? section : 'graphics'
+}
+
 function useCompactLayout() {
   const getCompact = () => typeof window !== 'undefined' && window.innerWidth < 900
   const [compact, setCompact] = useState(getCompact)
@@ -224,7 +242,7 @@ export default function GraphicsStudio() {
   const groupedCatalog = useMemo(groupCatalogByCategory, [])
   const sfxCatalog = useMemo(getSfxCatalog, [])
   const compact = useCompactLayout()
-  const [activeSection, setActiveSection] = useState('graphics')
+  const [activeSection, setActiveSection] = useState(getInitialStudioSection)
   const [selectedItemId, setSelectedItemId] = useState(() => {
     if (typeof window !== 'undefined' && window.location.hash) return getStudioItemById(window.location.hash.slice(1)).id
     return 'player'
@@ -233,6 +251,9 @@ export default function GraphicsStudio() {
   const [sfxTunings, setSfxTunings] = useState(() => loadSfxTunings())
   const [confirmedTunings, setConfirmedTunings] = useState(() => loadStudioTunings())
   const [stageBossPreview, setStageBossPreview] = useState(() => loadStageBossPreview())
+  const [selectedFaceBossType, setSelectedFaceBossType] = useState(() => BOSS_FACE_BOSS_OPTIONS[0]?.type ?? 'B01')
+  const [bossFaceRecipes, setBossFaceRecipes] = useState(() => loadBossFaceRecipes())
+  const [draftBossFaceRecipes, setDraftBossFaceRecipes] = useState(() => ({}))
   // 프리뷰 배경색은 스튜디오 로컬 상태(게임 런타임/저장 데이터셋 미반영)
   const [previewBg, setPreviewBg] = useState(PREVIEW_BG_SWATCHES[0].value)
   const [resetBaseline] = useState(() => ensureStudioResetBaseline(loadStudioTunings()))
@@ -268,6 +289,17 @@ export default function GraphicsStudio() {
   const tuning = normalizeStudioTuning(draftTuningById[activeTuningId] ?? savedTuning)
   const selectedSfx = sfxCatalog.find((sound) => sound.id === selectedSfxId) ?? sfxCatalog[0]
   const sfxTuning = normalizeSfxTuning(sfxTunings[selectedSfx?.id] ?? DEFAULT_SFX_TUNING)
+  const selectedFaceBoss = BOSS_FACE_BOSS_OPTIONS.find((boss) => boss.type === selectedFaceBossType) ?? BOSS_FACE_BOSS_OPTIONS[0]
+  const facePreviewBaseItem = selectedFaceBoss ? getStudioItemById(selectedFaceBoss.itemId) : selectedItem
+  const faceRecipe = normalizeBossFaceRecipe(
+    draftBossFaceRecipes[selectedFaceBossType]
+      ?? bossFaceRecipes[selectedFaceBossType]
+      ?? DEFAULT_BOSS_FACE_RECIPE,
+  )
+  const facePreviewItem = {
+    ...facePreviewBaseItem,
+    bossFaceRecipe: faceRecipe,
+  }
   const exportTunings = {
     ...confirmedTunings,
     [activeTuningId]: tuning,
@@ -287,8 +319,8 @@ export default function GraphicsStudio() {
     ? itemDecals.find((decal) => decal.partId === focusedDecalPartId && decal.faceAxis === focusedFaceAxis) ?? null
     : null
   const exportJson = useMemo(
-    () => serializeStudioSnapshot({ selectedItemId: selectedItem.id, tunings: exportTunings, stageBossPreview, decals: decalsByItem }),
-    [selectedItem.id, activeTuningId, tuning, confirmedTunings, stageBossPreview, decalsByItem],
+    () => serializeStudioSnapshot({ selectedItemId: selectedItem.id, tunings: exportTunings, stageBossPreview, decals: decalsByItem, bossFaceRecipes: normalizeBossFaceRecipeMap({ ...bossFaceRecipes, ...draftBossFaceRecipes }) }),
+    [selectedItem.id, activeTuningId, tuning, confirmedTunings, stageBossPreview, decalsByItem, bossFaceRecipes, draftBossFaceRecipes],
   )
 
   const refreshStudioState = () => {
@@ -297,8 +329,9 @@ export default function GraphicsStudio() {
     setSfxTunings(datasets.sfxTunings)
     setStageBossPreview(datasets.stageBossPreview)
     setDecalsByItem(datasets.decals)
+    setBossFaceRecipes(datasets.bossFaceRecipes)
     setDraftTuningById({})
-    setFocusedParts([])
+    setDraftBossFaceRecipes({})
     setUndoStack([])
     setPropEditorVersion((version) => version + 1)
   }
@@ -718,6 +751,45 @@ export default function GraphicsStudio() {
     }
   }
 
+  const updateBossFacePart = (categoryKey, partId) => {
+    setDraftBossFaceRecipes((current) => ({
+      ...current,
+      [selectedFaceBossType]: normalizeBossFaceRecipe({
+        ...faceRecipe,
+        [categoryKey]: partId,
+      }),
+    }))
+    setApplyStatus('Face draft — Apply to save Firebase')
+  }
+
+  const applyBossFaceRecipe = async () => {
+    const datasets = loadStudioRuntimeDatasets()
+    const nextRecipes = saveBossFaceRecipes({
+      ...datasets.bossFaceRecipes,
+      [selectedFaceBossType]: faceRecipe,
+    })
+    setBossFaceRecipes(nextRecipes)
+    setDraftBossFaceRecipes((current) => {
+      const { [selectedFaceBossType]: _saved, ...rest } = current
+      return rest
+    })
+    const result = await persistDatasetsOnApply({
+      ...datasets,
+      bossFaceRecipes: nextRecipes,
+    })
+    if (result.status === 'saved' && sendGameSync({ openGame: true, retryAfterLoad: true })) {
+      setApplyStatus('Face parts applied')
+    }
+  }
+
+  const resetBossFaceRecipe = () => {
+    setDraftBossFaceRecipes((current) => ({
+      ...current,
+      [selectedFaceBossType]: DEFAULT_BOSS_FACE_RECIPE,
+    }))
+    setApplyStatus('Face reset draft — Apply to save Firebase')
+  }
+
   return (
     <main style={styles.page}>
       <style>{STUDIO_SLIDER_CSS}</style>
@@ -730,7 +802,9 @@ export default function GraphicsStudio() {
                 ? `${categoryLabels[selectedItem.category]} / ${selectedItem.label}`
                 : activeSection === 'audio'
                   ? `Audio / ${selectedSfx?.id ?? ''}`
-                  : 'Map Props / 스테이지 프랍 배치'}
+                  : activeSection === 'faces'
+                    ? `Face Parts / ${selectedFaceBoss?.label ?? selectedFaceBossType}`
+                    : 'Map Props / 스테이지 프랍 배치'}
             </p>
           </div>
           <div style={styles.tabs}>
@@ -755,6 +829,13 @@ export default function GraphicsStudio() {
             >
               Props
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveSection('faces')}
+              style={{ ...styles.tabButton, ...(activeSection === 'faces' ? styles.tabButtonActive : null) }}
+            >
+              Faces
+            </button>
           </div>
           <label style={styles.gameBridge}>
             <span style={styles.gameBridgeLabel}>Game URL</span>
@@ -769,7 +850,7 @@ export default function GraphicsStudio() {
             <button type="button" onClick={connectGameWindow} style={styles.gameBridgeButton}>Connect</button>
           </label>
           <div style={styles.statusLine}>
-            <span style={styles.sourceLabel}>{activeSection === 'graphics' ? selectedItem.source : selectedSfx?.src}</span>
+            <span style={styles.sourceLabel}>{activeSection === 'graphics' ? selectedItem.source : activeSection === 'faces' ? 'procedural shader face parts' : selectedSfx?.src}</span>
             <span data-testid="studio-firebase-status" data-status={firebaseStatus} aria-live="polite" style={styles.sourceLabel}>
               Firebase: {firebaseStatus}
             </span>
@@ -814,7 +895,31 @@ export default function GraphicsStudio() {
                 })}
               </div>
             </section>
-          )) : (
+          )) : activeSection === 'faces' ? (
+            <section style={styles.catalogGroup} data-testid="boss-face-boss-list">
+              <h2 style={styles.catalogTitle}>Boss Face Target</h2>
+              <div style={styles.itemList}>
+                {BOSS_FACE_BOSS_OPTIONS.map((boss) => {
+                  const selected = boss.type === selectedFaceBossType
+                  return (
+                    <button
+                      key={boss.type}
+                      type="button"
+                      onClick={() => setSelectedFaceBossType(boss.type)}
+                      style={{
+                        ...styles.itemButton,
+                        ...styles.itemButtonBoss,
+                        ...(selected ? styles.itemButtonSelected : null),
+                      }}
+                    >
+                      <span style={styles.itemButtonLabelBoss}>{boss.label}</span>
+                      <span style={styles.bossBadge}>{boss.type}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+          ) : (
             <section style={styles.catalogGroup}>
               <h2 style={styles.catalogTitle}>SFX</h2>
               <div style={styles.itemList}>
@@ -840,16 +945,16 @@ export default function GraphicsStudio() {
         </aside>
 
         <section style={{ ...styles.previewPanel, ...(compact ? styles.previewPanelCompact : null) }}>
-          {activeSection === 'graphics' ? (
+          {activeSection === 'graphics' || activeSection === 'faces' ? (
             <>
               <GraphicsStudioPreview
-                selectedItem={selectedItem}
-                tuning={itemTuning}
-                focusedPartKeys={focusedParts.map((part) => part.key)}
-                focusedPartTuning={focusedParts.length ? tuning : null}
+                selectedItem={activeSection === 'faces' ? facePreviewItem : selectedItem}
+                tuning={activeSection === 'faces' ? normalizeStudioTuning(confirmedTunings[facePreviewItem.id] ?? DEFAULT_STUDIO_TUNING) : itemTuning}
+                focusedPartKeys={activeSection === 'faces' ? [] : focusedParts.map((part) => part.key)}
+                focusedPartTuning={activeSection === 'graphics' && focusedParts.length ? tuning : null}
                 partTunings={livePreviewTunings}
-                decals={itemDecals}
-                onPartFocus={updateFocusedParts}
+                decals={activeSection === 'faces' ? (decalsByItem[facePreviewItem.id] ?? []) : itemDecals}
+                onPartFocus={activeSection === 'faces' ? undefined : updateFocusedParts}
                 backgroundColor={previewBg}
               />
               <div style={styles.previewBgSwatches} data-testid="preview-bg-swatches">
@@ -1015,6 +1120,54 @@ export default function GraphicsStudio() {
             <button type="button" onClick={copyExport} style={styles.secondaryButton}>Copy JSON</button>
           </div>
           <div style={styles.applyStatus} aria-live="polite">{applyStatus}</div>
+            </>
+          ) : activeSection === 'faces' ? (
+            <>
+              <div style={styles.inspectorTitleRow}>
+                <div style={styles.inspectorTitleText}>
+                  <h2 style={styles.panelTitle}>Boss Face Parts</h2>
+                  <span style={styles.partFocusLabel}>{selectedFaceBoss?.label}</span>
+                </div>
+                <button type="button" onClick={resetBossFaceRecipe} style={styles.exitPartButton}>
+                  Reset
+                </button>
+              </div>
+              <div style={styles.controls} data-testid="boss-face-parts-panel">
+                <BossFaceGridPreview bossLabel={selectedFaceBoss?.label} recipe={faceRecipe} />
+                <p style={styles.facePartsHelp}>
+                  보스 얼굴 위에 눈썹/눈/코/입을 절차적 셰이더 선으로 그리는 파츠 조합입니다. 파츠는 각 5개씩 하나가 직접 그려둔 심플 좀비 스타일이에요.
+                </p>
+                {BOSS_FACE_PART_CATEGORIES.map((category) => (
+                  <section key={category.key} style={styles.transformGroup} data-testid={`face-category-${category.key}`}>
+                    <span style={styles.transformGroupTitle}>{category.label}</span>
+                    <div style={styles.facePartGrid}>
+                      {category.parts.map((part, index) => {
+                        const selected = faceRecipe[category.key] === part.id
+                        return (
+                          <button
+                            key={part.id}
+                            type="button"
+                            onClick={() => updateBossFacePart(category.key, part.id)}
+                            style={{
+                              ...styles.facePartButton,
+                              ...(selected ? styles.facePartButtonSelected : null),
+                            }}
+                          >
+                            <span style={styles.facePartPreview}>{category.label.slice(0, 1)}{index + 1}</span>
+                            <span>{part.label}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </section>
+                ))}
+              </div>
+              <div style={styles.actions}>
+                <button type="button" onClick={applyBossFaceRecipe} style={styles.primaryButton}>Apply</button>
+                <button type="button" onClick={resetBossFaceRecipe} style={styles.secondaryButton}>Reset</button>
+                <button type="button" onClick={() => navigator.clipboard?.writeText(JSON.stringify({ [selectedFaceBossType]: faceRecipe }, null, 2))} style={styles.secondaryButton}>Copy JSON</button>
+              </div>
+              <div style={styles.applyStatus} aria-live="polite">{applyStatus}</div>
             </>
           ) : (
             <>
@@ -1417,6 +1570,54 @@ const styles = {
     fontSize: 12,
     fontWeight: 800,
     letterSpacing: '0.02em',
+  },
+  facePartsHelp: {
+    margin: 0,
+    padding: '8px 10px',
+    border: '1px solid #3f443c',
+    borderRadius: 8,
+    background: '#151614',
+    color: '#cfd5ca',
+    fontSize: 11,
+    lineHeight: '16px',
+  },
+  facePartGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: 6,
+  },
+  facePartButton: {
+    minWidth: 0,
+    minHeight: 42,
+    display: 'grid',
+    gridTemplateColumns: '30px minmax(0, 1fr)',
+    alignItems: 'center',
+    gap: 7,
+    border: '1px solid #2b2e2a',
+    borderRadius: 7,
+    background: '#1e201d',
+    color: '#e6e1d8',
+    padding: '5px 7px',
+    textAlign: 'left',
+    fontSize: 11,
+    cursor: 'pointer',
+  },
+  facePartButtonSelected: {
+    border: '1px solid #d3a53f',
+    background: '#2a2619',
+    color: '#fff6cf',
+    boxShadow: '0 0 0 1px rgba(211, 165, 63, 0.18)',
+  },
+  facePartPreview: {
+    width: 26,
+    height: 26,
+    display: 'grid',
+    placeItems: 'center',
+    borderRadius: 6,
+    background: '#111210',
+    color: '#f0c765',
+    fontWeight: 900,
+    fontSize: 11,
   },
   decalSection: {
     display: 'grid',

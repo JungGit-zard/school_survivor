@@ -525,7 +525,7 @@ function RenderPreviewItem({ item }) {
     return <PlayerVisual meshGroup={playerRef} movingRef={movingRef} hp={100} maxHp={100} previewArmAction={PLAYER_STUDIO_ARM_ACTIONS[item.animation] ?? null} />
   }
   if (item.previewKind === 'zombie') {
-    return <EnemyVisual type={item.zombieType} animPhase={item.animation ?? 'normal'} hp={ENEMY_STATS[item.zombieType]?.hp} forceMesh />
+    return <EnemyVisual type={item.zombieType} animPhase={item.animation ?? 'normal'} hp={ENEMY_STATS[item.zombieType]?.hp} forceMesh bossFaceRecipe={item.bossFaceRecipe} />
   }
   if (item.previewKind === 'proceduralFaceZombie') {
     return <ProceduralFaceTestZombie />
