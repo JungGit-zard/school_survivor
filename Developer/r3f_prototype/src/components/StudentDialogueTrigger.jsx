@@ -7,7 +7,7 @@ import { pickStudentLine } from '../lib/studentDialogueLines.js'
 import { rollInvestigationReward } from '../lib/studentSearchRewards.js'
 
 // 조사 대상 근접 감지기(비주얼 없음). 쓰러진 학생과 스테이지 2의
-// 사물함·불레틴보드는 각각 런당 1회만 조사할 수 있다.
+// 모든 배치 소품은 각각 런당 1회만 조사할 수 있다.
 export default function StudentDialogueTrigger() {
   const currentStageId = useGameStore((s) => s.currentStageId)
   const gameKey = useGameStore((s) => s.gameKey)

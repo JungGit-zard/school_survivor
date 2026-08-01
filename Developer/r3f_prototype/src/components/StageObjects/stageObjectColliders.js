@@ -314,6 +314,43 @@ export function getStageObjectColliderParts(placement = {}) {
   })
 }
 
+// A single horizontal AABB for interaction systems.  It deliberately uses the
+// same scaled/variant-aware collider parts that Rapier receives, so contact
+// prompts cannot drift from physical prop footprints.
+export function getStageObjectFootprint(placement = {}) {
+  const parts = getStageObjectColliderParts(placement)
+  if (parts.length === 0) return null
+
+  const rootPosition = new THREE.Vector3(...placement.position)
+  const rootRotation = new THREE.Quaternion().setFromEuler(
+    new THREE.Euler(...normalizeRotation(placement.rotation))
+  )
+  const bounds = { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity }
+
+  for (const part of parts) {
+    const center = new THREE.Vector3(...part.position).applyQuaternion(rootRotation).add(rootPosition)
+    const rotation = rootRotation.clone().multiply(
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(...part.rotation))
+    )
+    const matrix = new THREE.Matrix4().makeRotationFromQuaternion(rotation).elements
+    const [halfX, halfY, halfZ] = part.args
+    const worldHalfX = Math.abs(matrix[0]) * halfX + Math.abs(matrix[4]) * halfY + Math.abs(matrix[8]) * halfZ
+    const worldHalfZ = Math.abs(matrix[2]) * halfX + Math.abs(matrix[6]) * halfY + Math.abs(matrix[10]) * halfZ
+
+    bounds.minX = Math.min(bounds.minX, center.x - worldHalfX)
+    bounds.maxX = Math.max(bounds.maxX, center.x + worldHalfX)
+    bounds.minZ = Math.min(bounds.minZ, center.z - worldHalfZ)
+    bounds.maxZ = Math.max(bounds.maxZ, center.z + worldHalfZ)
+  }
+
+  return {
+    x: (bounds.minX + bounds.maxX) / 2,
+    z: (bounds.minZ + bounds.maxZ) / 2,
+    halfX: (bounds.maxX - bounds.minX) / 2,
+    halfZ: (bounds.maxZ - bounds.minZ) / 2,
+  }
+}
+
 export function getStageObjectColliders(stageId = 'stage1') {
   return getStageObjectPlacements(stageId)
     .filter(({ type, blocking }) => BLOCKING_STAGE_OBJECT_TYPES.has(type) && (stageId === 'stage3' || blocking !== false))

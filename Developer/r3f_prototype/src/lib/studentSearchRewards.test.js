@@ -29,8 +29,10 @@ describe('student search rewards', () => {
 
   it('keeps bulletin boards and other subjects at the 10 percent reward boundary', () => {
     expect(DEFAULT_INVESTIGATION_REWARD_CHANCE).toBe(0.1)
-    expect(rollInvestigationReward('bulletinBoard', viSequence(0.099, 0.2))).toEqual({ type: 'upgrade' })
-    expect(rollInvestigationReward('bulletinBoard', () => 0.1)).toBeNull()
+    for (const subjectType of ['bulletinBoard', 'janitorCart', 'desk']) {
+      expect(rollInvestigationReward(subjectType, viSequence(0.099, 0.2))).toEqual({ type: 'upgrade' })
+      expect(rollInvestigationReward(subjectType, () => 0.1)).toBeNull()
+    }
   })
 })
 

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
   STUDENT_DIALOGUE_RADIUS,
   OBJECT_CONTACT_MARGIN,
@@ -7,12 +7,20 @@ import {
   findInvestigationTargetInRange,
   findStudentInRange,
 } from './studentProximity.js'
+import { getStageObjectPlacements } from '../components/StageObjects/stageObjectPlacements.js'
+import { STAGE_PROP_PALETTE } from './stagePropEditorGeometry.js'
+import { saveStagePropPlacements } from './stagePropPlacements.js'
+import { commitFirebaseStudioRuntime } from './studioRuntimeState.js'
 
 const students = [
   { id: 'a', position: [0, 0, 0] },
   { id: 'b', position: [5, 0, 5] },
   { id: 'c', position: [0, 0, 2] },
 ]
+
+beforeEach(() => {
+  commitFirebaseStudioRuntime({ propPlacements: {} }, { revision: 0 })
+})
 
 describe('findStudentInRange', () => {
   it('반경 안의 학생 id를 반환한다', () => {
@@ -53,11 +61,30 @@ describe('findStudentInRange', () => {
 })
 
 describe('스테이지 2 공용 조사 대상', () => {
-  it('학생과 사물함·불레틴보드를 조사 대상으로 포함한다', () => {
+  it('학생과 스테이지 2의 모든 소품을 조사 대상으로 포함한다', () => {
     const targets = getInvestigationTargets('stage2')
+    const propPlacements = getStageObjectPlacements('stage2')
+      .filter(({ type }) => type !== 'unconsciousStudent')
+
     expect(targets.some(({ subjectType }) => subjectType === 'student')).toBe(true)
     expect(targets.some(({ subjectType }) => subjectType === 'locker')).toBe(true)
     expect(targets.some(({ subjectType }) => subjectType === 'bulletinBoard')).toBe(true)
+    expect(targets.some(({ subjectType }) => subjectType === 'janitorCart')).toBe(true)
+    expect(targets.some(({ subjectType }) => subjectType === 'desk')).toBe(true)
+    expect(propPlacements.every(({ id }) => targets.some((target) => target.id === id))).toBe(true)
+  })
+
+  it('모든 스테이지 2 소품에 이름·재치 있는 조사문·접촉 판정 크기를 제공한다', () => {
+    const propTargets = getInvestigationTargets('stage2')
+      .filter(({ subjectType }) => subjectType !== 'student')
+
+    for (const target of propTargets) {
+      expect(target.subjectName.length).toBeGreaterThan(0)
+      expect(target.line.length).toBeGreaterThan(15)
+      expect(target.halfX).toBeGreaterThan(0)
+      expect(target.halfZ).toBeGreaterThan(0)
+    }
+    expect(new Set(propTargets.map(({ line }) => line)).size).toBeGreaterThanOrEqual(8)
   })
 
   it('다른 스테이지에서는 사물함·불레틴보드를 추가하지 않는다', () => {
@@ -80,6 +107,34 @@ describe('스테이지 2 공용 조사 대상', () => {
     expect(locker.halfX).toBeGreaterThan(0)
     expect(locker.halfZ).toBeGreaterThan(0)
     expect(locker.radius).toBeUndefined() // 더 이상 원형 반경 아님
+  })
+  it('makes every valid non-student Firebase override investigable only on Stage 2', () => {
+    const props = STAGE_PROP_PALETTE
+      .filter(({ type }) => type !== 'unconsciousStudent')
+      .map(({ type }, index) => ({
+        id: `override-${type}`,
+        type,
+        position: [index, 0, index],
+        rotation: [0, index * 0.1, 0],
+        scale: 1,
+      }))
+    saveStagePropPlacements({ stage1: props, stage2: props })
+
+    const targets = getInvestigationTargets('stage2')
+    expect(targets).toHaveLength(props.length)
+    expect(targets.map(({ id }) => id)).toEqual(props.map(({ id }) => id))
+    for (const target of targets) {
+      expect(target.subjectName.length).toBeGreaterThan(0)
+      expect(target.line.length).toBeGreaterThan(15)
+      expect(target.halfX).toBeGreaterThan(0)
+      expect(target.halfZ).toBeGreaterThan(0)
+    }
+
+    expect(targets.some(({ id }) => id === 'override-classroomChair')).toBe(true)
+    expect(targets.some(({ id }) => id === 'override-basketballHoop')).toBe(true)
+    expect(targets.some(({ id }) => id === 'override-kitchenPrepTable')).toBe(true)
+    expect(targets.some(({ id }) => id === 'override-kitchenClutter')).toBe(true)
+    expect(getInvestigationTargets('stage1')).toEqual([])
   })
 })
 
