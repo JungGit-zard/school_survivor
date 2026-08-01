@@ -1,11 +1,11 @@
 {
   "note": "사용자가 현재 대화에서 직접 대상과 변경을 명시하지 않는 한 이 기준선과 타이틀 전면 구성은 변경 금지다. 이 파일은 자동 갱신하거나 재생성하지 않는다.",
   "files": [
-    { "path": "src/components/TitleScreen.jsx", "sha256": "562f320760cfcd3c00337c9ce5374881e04b056ff5ba5af522fa3ea51443e30c" },
+    { "path": "src/components/TitleScreen.jsx", "sha256": "cf9c1b8e1d68486bcfc7cbd32821a74ac4c154c08095e4f606933abb5ff4d634" },
     { "path": "src/components/TitleSceneCanvas.jsx", "sha256": "e93ae4199f8a8d18b48dcb0550af317bce12ac8ce538d7e82d3790e01e27d667" },
     { "path": "src/components/TitleScene3D.jsx", "sha256": "034d92149614caa7f75a484abc7bc2b575a8da2bd2ad97b9b5acedf6a675adb3" },
     { "path": "src/lib/titleSettings.js", "sha256": "e8656e92ce2edb1b1049889518d9e9fe75d9b393e998ae14e107a52f03d7ac42" },
-    { "path": "src/components/TitleScreen.bgm.test.jsx", "sha256": "c45de159e8c4ae5d711985670976c6a4d70976cf9b2cdcd9b834601b33068750" },
+    { "path": "src/components/TitleScreen.bgm.test.jsx", "sha256": "518134f79b14c46a29d3d686d996e608b1cd4f5bc3566309e4fd91acffcb9d2f" },
     { "path": "src/components/TitleScreen.settings.test.jsx", "sha256": "4f759937d62215764158ddf0310be1cd240f6e4d8a1ea470b3405b43e8536413" },
     { "path": "src/components/TitleScene3D.test.jsx", "sha256": "d001d0d7bbfafcc0733457e95f4e1db8b5075de0e574a52589891f886da40500" },
     { "path": "src/assets/audio/title_bgm.m4a", "sha256": "991bf9871fe70b55852920390b3b1434892cfc50da79d3e8fd900062b191cffe" }

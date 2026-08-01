@@ -67,16 +67,20 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 - After meaningful changes, check `git status` and summarize what changed.
 - When possible, verify work with a syntax check, build, test, or direct file inspection.
 
-## 모델 역할 분담: Sol / Terra / GPT-5.3 Codex Spark
+## Direct Scope-Controlled Execution Rules
 
-- 이 3단계 역할 분담은 매 세션 시작(`startup`, `resume`, `compact`)부터 모든 사용자 지시와 작업에 무조건 적용한다.
-- Sol(메인 세션)은 Advisor다. 모든 지시를 먼저 판단·설계하고, 작업 분해와 브리프 작성, 최종 diff·테스트 직접 검증, 커밋 승인과 사용자 보고를 담당한다.
-- Terra는 메인 구현 Worker다. 코드 작성·수정, 테스트 작성 등 구현 작업 전부를 담당한다. Agent 도구로 위임할 때는 `model=terra`를 지정하고, 서로 독립적인 작업은 병렬로 위임한다.
-- GPT-5.3 Codex Spark는 단순 검색, 기계적 반복, 가벼운 명령 실행을 담당하는 lightweight executor다.
-- Spark가 현재 도구에 없거나 호출에 실패하면 가용하다고 주장하거나 다른 모델로 위장하지 않는다. 반드시 사용자에게 `Spark 미지원 → Terra 대행` 사실을 명시하고 Terra가 처리한다.
-- Hermes/Kanban specialist profile(`threemini` 등)은 이 모델 계층과 별개의 도메인 역할이다. specialist 라우팅은 유지하되 실제 실행 모델은 이 3단계 정책을 따른다.
-- Advisor가 작성하는 브리프에는 이미 파악한 컨텍스트, 파일 경로, 프로젝트 컨벤션, 알려진 함정, 완료 기준과 통과해야 할 테스트를 포함한다.
-- Advisor는 Worker의 완료 보고만 믿지 않고 diff와 테스트를 직접 검증한다. 검증 실패는 수정 브리프로 Terra에 재위임하며, 한두 줄의 사소한 마무리처럼 위임 오버헤드가 더 큰 경우에만 직접 수정할 수 있다.
+<!-- boot-policy: immediate-execution smallest-coherent-change no-subagent-by-default minimal-verification concise-final-report -->
+
+- 이 규칙은 매 세션 시작(`startup`, `resume`, `compact`)부터 모든 작업에 적용하며, 기존의 의무적 Advisor/Worker·서브에이전트 라우팅 규칙보다 우선한다.
+- 사용자의 요청을 권위 있는 범위로 삼고 즉시 실행한다. 사용자가 계획이나 승인을 요구하지 않는 한 시작 전에 계획을 제시하거나 승인을 요청하지 않는다.
+- 요청을 완전히 충족하는 가장 작은 일관된 변경만 수행하고, 필요하지 않은 아키텍처·동작·인터페이스와 관련 없는 코드는 보존한다.
+- 선택적 개선, 미래 요구 추측, 대규모 정리·리팩터링, 전체 파일 재작성은 요청 달성에 반드시 필요하지 않으면 하지 않는다.
+- 서브에이전트, 반복 리뷰, 광범위한 감사·문서·테스트, E2E·벤치마크·마이그레이션·인프라는 사용자가 요구하거나 검증에 엄격히 필요한 경우에만 사용한다.
+- 관련 코드 검사, 내부 판단, 비례적인 검증과 일반적인 기술 결정은 별도 승인 없이 수행한다.
+- 질문은 올바른 구현이 불가능하거나 파괴적 데이터 손실 위험이 있거나 합리적 기본값이 없는 중대한 선택에만 한다. 그 외에는 가장 보수적인 합리적 해석으로 진행한다.
+- 관련 없는 결함은 자동 수정하지 않으며, 요청 결과에 실제 영향을 줄 때만 최종 보고에 짧게 언급한다.
+- 요청 결과가 구현되고 비례적인 최소 검증이 끝나면 즉시 멈춘다.
+- 최종 답변은 변경 내용, 검증 결과, 실제 제한·차단 사항만 간결하게 보고하며 새 계획이나 로드맵을 덧붙이지 않는다.
 
 ## Game Development Rules
 
@@ -112,9 +116,9 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 - Subagents do not replace methodology. If Superpowers, Compound Engineering, g-stack, Kanban, or `project_develop_policy.md` applies to the request, the selected agents must work inside that methodology instead of bypassing it.
 - If a new case-specific agent or temporary agent team is created, record its persona, role, main viewpoint, authority, methodology gates, and output folder in `Developer/agent_room/` using a `.toh` record.
 - Do not assign durable Kanban cards to non-spawnable placeholder assignees. Use the registered Hermes profiles: `threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`, `corpopsmini`.
-- Codex subagents are not silently bypassed: every non-empty Escape! zombie school request must run the mandatory routing check before completion. Tiny one-step edits may be executed directly only after the routing check is acknowledged and no specialist domain requires involvement.
-- Sound/audio work is a hard exception to the tiny-edit shortcut: any Escape! zombie school SFX, BGM, voice, chiptune, WebAudio/ZzFX/jsfxr, Howler `SOUND_MAP`, `public/sfx`, audio parameter, cooldown/polyphony, or audio licensing change must involve `soundmini` / Sound_Mini before the change is finalized. Leave a `soundmini` Kanban card, `soundmini` artifact, or Claude `.claude/agents/soundmini.md` review trail.
-- When the task includes UI, HUD, menus, responsive layout, touch targets, interaction states, readability, or accessibility, route that UI portion to `uimini`; when it includes graphics, visual QA, game art direction, asset implementation, Phaser/Three.js visual integration, or image/asset pipeline work, route that graphics portion to `threemini` or a local `graphic_designer` agent if one is available.
+- Run Codex subagent or Agent Room/Kanban routing only when the user requests it or it is strictly necessary for the requested result or its minimum verification.
+- Sound/audio work may use `soundmini` / Sound_Mini when the user requests it or specialist involvement is strictly necessary; routine scoped changes may be handled directly.
+- UI and graphics work may be routed to `uimini`, `threemini`, or a local `graphic_designer` agent when the user requests it or specialist involvement is strictly necessary.
 - Graphic working output and role records belong in `Graphic_designer/`, regardless of whether the work is routed to Hermes `threemini` or a local IDE/Codex graphics agent.
 - Useful project subagents/profiles include:
   - `agent-room-executor` or the Hermes/Kanban routing docs for choosing between saved agents, newly created case agents, Superpowers, Compound Engineering, g-stack, and project-native policy.

@@ -15,6 +15,7 @@ import {
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
+import { Howl } from 'howler'
 import titleBgmUrl from '../assets/audio/title_bgm.m4a'
 
 const REVEAL_CHEATS_CODE = ['arrowup', 'arrowdown', 'arrowup', 'arrowdown', 'a', 's', 'd']
@@ -133,13 +134,21 @@ export default function TitleScreen({
   useLayoutEffect(() => {
     let audio
     try {
-      audio = new Audio(titleBgmUrl)
+      audio = new Howl({
+        src: [titleBgmUrl],
+        loop: true,
+        html5: false,
+        preload: false,
+        volume: 0.5,
+        onplay: () => handleSuccess(),
+        onplayerror: () => {
+          playing = false
+          bindRetry()
+        },
+      })
     } catch {
       return undefined
     }
-    audio.loop = true
-    audio.preload = 'auto'
-    audio.volume = 0.5
     try {
       audio.load?.()
     } catch {
@@ -226,7 +235,7 @@ export default function TitleScreen({
       unbindRetry()
       try {
         audio.pause()
-        audio.src = ''
+        audio.unload?.()
       } catch {
         // 정리 실패는 무시
       }
