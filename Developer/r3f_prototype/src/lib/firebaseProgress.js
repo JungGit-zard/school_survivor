@@ -50,6 +50,12 @@ let testProgressClient = null
 let writeQueue = Promise.resolve()
 let storageGuardInstalled = false
 
+const VITEST_PROGRESS_CLIENT = Object.freeze({
+  loadOrCreate: async () => null,
+  save: async () => true,
+  remove: async () => true,
+})
+
 let runtime = createEmptyRuntime()
 
 export class FirebaseProgressError extends Error {
@@ -288,7 +294,9 @@ export function _selectInitialProgressValueForTransaction(currentValue, initialV
 export function _resetFirebaseProgressForTests() {
   cloudUser = null
   progressClientPromise = null
-  testProgressClient = null
+  // Vitest must never fall through to the real Firebase SDK after a reset.
+  // Tests that need transport behavior replace this with their explicit fake.
+  testProgressClient = VITEST_PROGRESS_CLIENT
   writeQueue = Promise.resolve()
   runtime = createEmptyRuntime()
 }

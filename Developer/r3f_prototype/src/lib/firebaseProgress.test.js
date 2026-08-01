@@ -1,5 +1,22 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+const firebaseSdk = vi.hoisted(() => ({
+  getApps: vi.fn(() => {
+    throw new Error('Firebase SDK must not be constructed by Vitest.')
+  }),
+  getApp: vi.fn(),
+  initializeApp: vi.fn(),
+}))
+
+vi.mock('firebase/app', () => firebaseSdk)
+vi.mock('firebase/database', () => ({
+  getDatabase: vi.fn(),
+  ref: vi.fn(),
+  update: vi.fn(),
+  remove: vi.fn(),
+  runTransaction: vi.fn(),
+}))
 import {
   _resetFirebaseProgressForTests,
   _selectInitialProgressValueForTransaction,
@@ -59,9 +76,27 @@ describe('firebase-only player progress runtime', () => {
     _resetFirebaseProgressForTests()
   })
 
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
   it('requires a Realtime Database URL in addition to auth config', () => {
     expect(isFirebaseProgressConfigured(COMPLETE_ENV)).toBe(true)
     expect(isFirebaseProgressConfigured({ ...COMPLETE_ENV, VITE_FIREBASE_DATABASE_URL: '' })).toBe(false)
+  })
+
+  it('keeps a reset Vitest runtime on the injected test client even when Firebase is configured', async () => {
+    vi.stubEnv('VITE_FIREBASE_API_KEY', COMPLETE_ENV.VITE_FIREBASE_API_KEY)
+    vi.stubEnv('VITE_FIREBASE_AUTH_DOMAIN', COMPLETE_ENV.VITE_FIREBASE_AUTH_DOMAIN)
+    vi.stubEnv('VITE_FIREBASE_DATABASE_URL', COMPLETE_ENV.VITE_FIREBASE_DATABASE_URL)
+    vi.stubEnv('VITE_FIREBASE_PROJECT_ID', COMPLETE_ENV.VITE_FIREBASE_PROJECT_ID)
+    vi.stubEnv('VITE_FIREBASE_APP_ID', COMPLETE_ENV.VITE_FIREBASE_APP_ID)
+    _resetFirebaseProgressForTests()
+    applyCloudProgressSnapshot(remoteSnapshot(), USER)
+
+    await expect(requestCloudProgressSave(USER)).resolves.toBe(true)
+
+    expect(firebaseSdk.getApps).not.toHaveBeenCalled()
   })
 
   it('builds a private per-user database path', () => {
