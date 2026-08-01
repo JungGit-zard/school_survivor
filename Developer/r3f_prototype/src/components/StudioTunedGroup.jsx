@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+﻿import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { invalidate } from '@react-three/fiber'
 import * as THREE from 'three'
 import {
@@ -208,7 +208,17 @@ export function applyStudioTuning(root, tuning = DEFAULT_STUDIO_TUNING, { scope 
   })
 }
 
-function findStudioPartFromRuntimeRoot(root, key) {
+// 파츠 조회 정본. 미리보기와 게임 런타임이 **같은 함수**를 쓴다.
+//
+// 앞 세그먼트를 하나씩 떼며 재시도하는 이유(제거하면 안 된다):
+// 스튜디오 미리보기 루트에는 조명·바닥 같은 형제가 함께 들어 있어 편집 대상 아이템이
+// 루트의 N번째 자식에 놓인다. 그래서 저장 키에 그 N이 앞에 붙는다(예: `player::group::7.0+7.1`).
+// 게임 런타임에서는 StudioTunedGroup 루트가 곧 아이템이라 그 선행 세그먼트가 없다.
+// 정확 경로(offset 0)를 항상 먼저 시도하고, 실패할 때만 선행 세그먼트를 떼어 본다.
+//
+// 예전에는 이 재시도가 런타임 구현에만 있고 미리보기 구현에는 없었다. 같은 저장값이
+// 한쪽에서만 해석되는 드리프트였고, 두 구현이 따로 유지보수된 결과다. 이제 하나만 쓴다.
+export function findStudioPartByKey(root, key) {
   if (!root || !key) return null
   if (key.startsWith(STABLE_PART_KEY_PREFIX)) {
     const id = key.slice(STABLE_PART_KEY_PREFIX.length)
@@ -219,14 +229,12 @@ function findStudioPartFromRuntimeRoot(root, key) {
     return found
   }
   const parts = key.split('.')
-
   for (let offset = 0; offset < parts.length; offset += 1) {
     const found = parts
       .slice(offset)
       .reduce((node, index) => node?.children?.[Number(index)] ?? null, root)
     if (found) return found
   }
-
   return null
 }
 
@@ -250,6 +258,25 @@ export function captureStudioPartBaseTransform(object) {
   if (!object.userData.studioPartBasePosition) object.userData.studioPartBasePosition = object.position.clone()
 }
 
+// base 소유권 정본:
+//   base는 "StudioTunedGroup 루트가 이 파츠를 처음 편입시킨 순간의 JSX 선언값"이며,
+//   그 파츠에 스튜디오 튜닝이 걸렸는지와 무관하게 항상 먼저 존재한다.
+//
+// 예전에는 파츠에 튜닝이 처음 적용되는 순간에만 지연 캡처했다. 그 순간 애니메이션이 파츠를
+// 이미 움직여 놨다면 rest 포즈가 아닌 자세가 base로 굳어, 사용자가 0을 다시 입력해도
+// 원래 자리가 아니라 그 오염된 자세로 돌아갔다. 마운트 시점(첫 프레임 이전)에 서브트리
+// 전체를 한 번 훑어 두면 그 경합 자체가 사라진다. 매 프레임 비용이 아니라 1회성이다.
+export function captureStudioPartBaseTransforms(root) {
+  if (!root || typeof root.traverse !== 'function') return 0
+  let captured = 0
+  root.traverse((object) => {
+    if (object.userData.studioPartBasePosition) return
+    captureStudioPartBaseTransform(object)
+    captured += 1
+  })
+  return captured
+}
+
 export function composeStudioPartPosition(object, axis, fallbackBase, animationOffset = 0) {
   const base = object?.userData?.studioPartBasePosition?.[axis] ?? fallbackBase
   const studioOffset = object?.userData?.studioPartPositionOffset?.[axis] ?? 0
@@ -260,6 +287,30 @@ export function composeStudioPartRotation(object, axis, fallbackBase, animationO
   const base = object?.userData?.studioPartBaseRotation?.[axis] ?? fallbackBase
   const studioOffset = object?.userData?.studioPartRotationOffset?.[axis] ?? 0
   return base + studioOffset + animationOffset
+}
+
+// 스케일은 더하기가 아니라 곱하기다. 애니메이션이 파츠를 부풀리거나 눌러도
+// 스튜디오 배율이 지워지지 않게 base × 스튜디오배율 × 애니메이션배율로 합성한다.
+export function composeStudioPartScale(object, axis, fallbackBase = 1, animationMultiplier = 1) {
+  const base = object?.userData?.studioPartBaseScale?.[axis] ?? fallbackBase
+  const studioMultiplier = object?.userData?.studioPartScaleMultiplier?.[axis] ?? 1
+  return base * studioMultiplier * animationMultiplier
+}
+
+// 애니메이션이 "절대 자세"를 직접 계산해 쓰는 경우(예: `arm.rotation.z = 1.25 - s * 1.05`)를 위한
+// 정본 접근자. 이 경우 base는 이미 그 절대값 안에 녹아 있으므로 compose*를 쓰면 base가 두 번
+// 더해진다. 스튜디오 오프셋만 얹는 것이 맞다:  `절대값 + studioPartRotationOffset(part, 'z')`.
+// userData 키를 각 컴포넌트가 직접 들여다보지 않게 하려고 여기서 노출한다.
+export function studioPartRotationOffset(object, axis) {
+  return object?.userData?.studioPartRotationOffset?.[axis] ?? 0
+}
+
+export function studioPartPositionOffset(object, axis) {
+  return object?.userData?.studioPartPositionOffset?.[axis] ?? 0
+}
+
+export function studioPartScaleMultiplier(object, axis) {
+  return object?.userData?.studioPartScaleMultiplier?.[axis] ?? 1
 }
 
 function getSavedPartTuning(itemId, savedKey, tuning) {
@@ -318,7 +369,7 @@ export function applySavedStudioPartTunings(root, itemId, tunings = loadStudioTu
   Array.from(tuningsByPartKey.entries())
     .sort(([a], [b]) => a.localeCompare(b))
     .forEach(([partKey, entries]) => {
-      const part = findStudioPartFromRuntimeRoot(root, partKey)
+      const part = findStudioPartByKey(root, partKey)
       if (!part) return
 
       captureStudioPartBaseTransform(part)
@@ -395,6 +446,12 @@ function StudioTunedRuntimeGroup({ itemId, children, materialTuning = true }) {
 
   const { tuning, tunings, decals } = studioState
   const transform = useMemo(() => getStudioTransformProps(tuning), [tuning])
+
+  // 첫 useFrame(애니메이션)이 돌기 전에 rest 포즈를 base로 확정한다.
+  // useLayoutEffect는 R3F의 rAF 루프보다 먼저 실행되므로 경합이 없다.
+  useLayoutEffect(() => {
+    captureStudioPartBaseTransforms(groupRef.current)
+  })
 
   useEffect(() => {
     if (!groupRef.current) return

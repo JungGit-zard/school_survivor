@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { useFrame, useLoader } from '@react-three/fiber'
 import { Billboard } from '@react-three/drei'
+import StudioTunedGroup from './StudioTunedGroup.jsx'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import * as THREE from 'three'
 import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.png'
@@ -471,6 +472,7 @@ export function SpawnSmokeEffect({ position, visualScale, frozen = false }) {
 
   const startSize = visualScale * SPAWN_SMOKE_START_SCALE
   return (
+    <StudioTunedGroup itemId="vfx-zombie-spawn-puff">
     <Billboard
       ref={billboardRef}
       follow
@@ -491,6 +493,7 @@ export function SpawnSmokeEffect({ position, visualScale, frozen = false }) {
         />
       </mesh>
     </Billboard>
+    </StudioTunedGroup>
   )
 }
 

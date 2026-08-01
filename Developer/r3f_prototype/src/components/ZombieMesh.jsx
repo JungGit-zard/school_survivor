@@ -8,7 +8,7 @@ import boss02FaceUrl from '../assets/faces/b02_stage2_boss_face.webp'
 import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.webp'
 import boss04FaceUrl from '../assets/faces/b04_chef_boss_face.webp'
 import MatildaMesh from './MatildaMesh.jsx'
-import StudioTunedGroup from './StudioTunedGroup.jsx'
+import StudioTunedGroup, { composeStudioPartRotation, composeStudioPartScale } from './StudioTunedGroup.jsx'
 import BossFacePartsOverlay from './BossFacePartsOverlay.jsx'
 
 const disableRaycast = () => null
@@ -672,12 +672,46 @@ function ZombieOuterOutline() {
   )
 }
 
+// ZombieMesh의 애니메이션은 파츠 그룹의 JSX 선언 회전(스튜디오가 캡처하는 base)과 무관하게
+// 매 프레임 절대값을 강제 대입한다(예: 팔 rotation.x). 보스 타입마다 팔의 JSX 회전값이 서로
+// 달라(예: E01 -1.15, B04 -0.96), composeStudioPartRotation에 원래 식을 그대로 넘기면 캡처된
+// base가 중복으로 더해져 타입마다 다른 크기로 포즈가 틀어진다. composeZombieRotation은
+// animOffset에서 캡처된 base를 미리 상쇄해 지정한 절대값(target)을 그대로 보존하고
+// 그 위에 스튜디오 튜닝 오프셋만 얹는다.
+function composeZombieRotation(object, axis, target) {
+  const capturedBase = object?.userData?.studioPartBaseRotation?.[axis] ?? 0
+  return composeStudioPartRotation(object, axis, 0, target - capturedBase)
+}
+
+function setZombieScale(object, multiplier) {
+  if (!object) return
+  object.scale.set(
+    composeStudioPartScale(object, 'x', 1, multiplier),
+    composeStudioPartScale(object, 'y', 1, multiplier),
+    composeStudioPartScale(object, 'z', 1, multiplier),
+  )
+}
+
 // animPhase: 'normal' | 'warn' | 'charge' | 'stun' | 'retreat'
 // staticPose: 로비 보스 카드처럼 상호작용 없는 프리뷰에서 내부 파트 애니메이션 계산을 완전히 건너뛰는 정적 포즈 게이트.
 export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false, staticPose = false, bossFaceRecipe }) {
   const p    = useRef({})
   const pal  = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
   const specialAgeRef = useRef(0)
+  // 누적(+=,*=) 애니메이션의 순수 오프셋만 담는다. THREE 오브젝트의 rotation을 직접
+  // 읽어 누적하면 거기 이미 섞여 들어간 스튜디오 오프셋까지 감쇠·수렴 대상이 되어
+  // 매 프레임 지수적으로 지워진다(스튜디오 튜닝이 서서히 사라지는 버그).
+  const anim = useRef({
+    bodyRotX: 0,
+    bodyRotZ: 0,
+    headRotX: 0,
+    armLRotY: 0,
+    armRRotY: 0,
+    armLRotZ: 0,
+    armRRotZ: 0,
+    legLRotX: 0,
+    legRRotX: 0,
+  })
 
   // 안정적인 ref 콜백 — 매 렌더마다 새 함수 생성 방지
   const regRef = useRef(null)
@@ -709,22 +743,30 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     if (pt.mathSetSquare) pt.mathSetSquare.visible = specialActive
     const t = state.clock.elapsedTime
     specialAgeRef.current = specialActive ? specialAgeRef.current + delta : 0
+    const a = anim.current
 
     if (specialActive) {
       const progress = Math.min(1, specialAgeRef.current / 0.75)
       if (pt.body) {
-        pt.body.scale.setScalar(1)
-        pt.body.rotation.x += (0.10 - pt.body.rotation.x) * Math.min(1, delta * 14)
-        pt.body.rotation.z = Math.sin(progress * Math.PI) * -0.16
+        setZombieScale(pt.body, 1)
+        a.bodyRotX += (0.10 - a.bodyRotX) * Math.min(1, delta * 14)
+        pt.body.rotation.x = composeZombieRotation(pt.body, 'x', a.bodyRotX)
+        a.bodyRotZ = Math.sin(progress * Math.PI) * -0.16
+        pt.body.rotation.z = composeZombieRotation(pt.body, 'z', a.bodyRotZ)
       }
-      if (pt.head) pt.head.rotation.z = Math.sin(progress * Math.PI) * 0.12
-      pt.armR.rotation.x = -0.82
-      pt.armR.rotation.y = -0.22
-      pt.armR.rotation.z = -1.20 + progress * 2.80
-      pt.armL.rotation.x = -0.92
-      pt.armL.rotation.z = 0.38
-      pt.legL.rotation.x *= 0.82
-      pt.legR.rotation.x *= 0.82
+      if (pt.head) pt.head.rotation.z = composeZombieRotation(pt.head, 'z', Math.sin(progress * Math.PI) * 0.12)
+      pt.armR.rotation.x = composeZombieRotation(pt.armR, 'x', -0.82)
+      a.armRRotY = -0.22
+      pt.armR.rotation.y = composeZombieRotation(pt.armR, 'y', a.armRRotY)
+      a.armRRotZ = -1.20 + progress * 2.80
+      pt.armR.rotation.z = composeZombieRotation(pt.armR, 'z', a.armRRotZ)
+      pt.armL.rotation.x = composeZombieRotation(pt.armL, 'x', -0.92)
+      a.armLRotZ = 0.38
+      pt.armL.rotation.z = composeZombieRotation(pt.armL, 'z', a.armLRotZ)
+      a.legLRotX *= 0.82
+      pt.legL.rotation.x = composeZombieRotation(pt.legL, 'x', a.legLRotX)
+      a.legRRotX *= 0.82
+      pt.legR.rotation.x = composeZombieRotation(pt.legR, 'x', a.legRRotX)
       return
     }
 
@@ -732,25 +774,32 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     if (animPhase === 'retreat') {
       // 몸통: 뒤로 강하게 기울고 좌우로 비틀림
       if (pt.body) {
-        pt.body.scale.setScalar(1)
-        pt.body.rotation.x += (-0.52 - pt.body.rotation.x) * Math.min(1, delta * 18)
-        pt.body.rotation.z += (Math.sin(t * 8) * 0.14 - pt.body.rotation.z) * Math.min(1, delta * 12)
+        setZombieScale(pt.body, 1)
+        a.bodyRotX += (-0.52 - a.bodyRotX) * Math.min(1, delta * 18)
+        pt.body.rotation.x = composeZombieRotation(pt.body, 'x', a.bodyRotX)
+        a.bodyRotZ += (Math.sin(t * 8) * 0.14 - a.bodyRotZ) * Math.min(1, delta * 12)
+        pt.body.rotation.z = composeZombieRotation(pt.body, 'z', a.bodyRotZ)
       }
       // 다리: 빠른 역방향 2보
       const freq = type === 'E02' ? 10.0 : type === 'E03' ? 6.5 : 8.5
       const sw = Math.sin(-t * freq * 1.6) * 0.55
-      pt.legL.rotation.x =  sw
-      pt.legR.rotation.x = -sw
+      a.legLRotX = sw
+      pt.legL.rotation.x = composeZombieRotation(pt.legL, 'x', a.legLRotX)
+      a.legRRotX = -sw
+      pt.legR.rotation.x = composeZombieRotation(pt.legR, 'x', a.legRRotX)
       // 팔: 좌우로 크게 벌어짐 (위에서 봐도 확실히 보임) + 뒤로 들림
       const armFlail = Math.sin(t * 5.5) * 0.22
-      pt.armL.rotation.x = -0.70 + armFlail
-      pt.armR.rotation.x = -0.70 - armFlail
-      pt.armL.rotation.z =  0.95 + Math.sin(t * 3.8) * 0.18   // 오른쪽으로 크게 벌어짐
-      pt.armR.rotation.z = -0.95 - Math.sin(t * 3.8) * 0.18   // 왼쪽으로 크게 벌어짐
+      pt.armL.rotation.x = composeZombieRotation(pt.armL, 'x', -0.70 + armFlail)
+      pt.armR.rotation.x = composeZombieRotation(pt.armR, 'x', -0.70 - armFlail)
+      a.armLRotZ = 0.95 + Math.sin(t * 3.8) * 0.18   // 오른쪽으로 크게 벌어짐
+      pt.armL.rotation.z = composeZombieRotation(pt.armL, 'z', a.armLRotZ)
+      a.armRRotZ = -0.95 - Math.sin(t * 3.8) * 0.18   // 왼쪽으로 크게 벌어짐
+      pt.armR.rotation.z = composeZombieRotation(pt.armR, 'z', a.armRRotZ)
       // 머리: 뒤로 젖혀지고 좌우로 흔들림
       if (pt.head) {
-        pt.head.rotation.x += (0.42 - pt.head.rotation.x) * Math.min(1, delta * 20)
-        pt.head.rotation.z = Math.sin(t * 9) * 0.18
+        a.headRotX += (0.42 - a.headRotX) * Math.min(1, delta * 20)
+        pt.head.rotation.x = composeZombieRotation(pt.head, 'x', a.headRotX)
+        pt.head.rotation.z = composeZombieRotation(pt.head, 'z', Math.sin(t * 9) * 0.18)
       }
       return
     }
@@ -759,33 +808,51 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     if (animPhase === 'warn') {
       const fl = Math.floor(t * 14) % 2
       if (pt.body) {
-        pt.body.scale.setScalar(fl ? 1.06 : 0.96)
-        pt.body.rotation.x += (0 - pt.body.rotation.x) * Math.min(1, delta * 10)
-        pt.body.rotation.z += (0 - pt.body.rotation.z) * Math.min(1, delta * 10)
+        setZombieScale(pt.body, fl ? 1.06 : 0.96)
+        a.bodyRotX += (0 - a.bodyRotX) * Math.min(1, delta * 10)
+        pt.body.rotation.x = composeZombieRotation(pt.body, 'x', a.bodyRotX)
+        a.bodyRotZ += (0 - a.bodyRotZ) * Math.min(1, delta * 10)
+        pt.body.rotation.z = composeZombieRotation(pt.body, 'z', a.bodyRotZ)
       }
-      if (pt.head) pt.head.rotation.x += (0 - pt.head.rotation.x) * Math.min(1, delta * 10)
-      pt.armL.rotation.z += (0 - pt.armL.rotation.z) * Math.min(1, delta * 8)
-      pt.armR.rotation.z += (0 - pt.armR.rotation.z) * Math.min(1, delta * 8)
+      if (pt.head) {
+        a.headRotX += (0 - a.headRotX) * Math.min(1, delta * 10)
+        pt.head.rotation.x = composeZombieRotation(pt.head, 'x', a.headRotX)
+      }
+      a.armLRotZ += (0 - a.armLRotZ) * Math.min(1, delta * 8)
+      pt.armL.rotation.z = composeZombieRotation(pt.armL, 'z', a.armLRotZ)
+      a.armRRotZ += (0 - a.armRRotZ) * Math.min(1, delta * 8)
+      pt.armR.rotation.z = composeZombieRotation(pt.armR, 'z', a.armRRotZ)
       return
     }
-    if (pt.body) pt.body.scale.setScalar(1)
+    if (pt.body) setZombieScale(pt.body, 1)
 
     // charge: 앞으로 기울임 / 그 외: retreat에서 남은 팔·머리 리셋
     const bodyTiltX = animPhase === 'charge' ? 0.45 : 0
     if (pt.body) {
-      pt.body.rotation.x += (bodyTiltX - pt.body.rotation.x) * Math.min(1, delta * 12)
-      pt.body.rotation.z += (0 - pt.body.rotation.z) * Math.min(1, delta * 8)
+      a.bodyRotX += (bodyTiltX - a.bodyRotX) * Math.min(1, delta * 12)
+      pt.body.rotation.x = composeZombieRotation(pt.body, 'x', a.bodyRotX)
+      a.bodyRotZ += (0 - a.bodyRotZ) * Math.min(1, delta * 8)
+      pt.body.rotation.z = composeZombieRotation(pt.body, 'z', a.bodyRotZ)
     }
-    if (pt.head) pt.head.rotation.x += (0 - pt.head.rotation.x) * Math.min(1, delta * 8)
-    pt.armL.rotation.y += (0 - pt.armL.rotation.y) * Math.min(1, delta * 6)
-    pt.armR.rotation.y += (0 - pt.armR.rotation.y) * Math.min(1, delta * 6)
-    pt.armL.rotation.z += (0 - pt.armL.rotation.z) * Math.min(1, delta * 6)
-    pt.armR.rotation.z += (0 - pt.armR.rotation.z) * Math.min(1, delta * 6)
+    if (pt.head) {
+      a.headRotX += (0 - a.headRotX) * Math.min(1, delta * 8)
+      pt.head.rotation.x = composeZombieRotation(pt.head, 'x', a.headRotX)
+    }
+    a.armLRotY += (0 - a.armLRotY) * Math.min(1, delta * 6)
+    pt.armL.rotation.y = composeZombieRotation(pt.armL, 'y', a.armLRotY)
+    a.armRRotY += (0 - a.armRRotY) * Math.min(1, delta * 6)
+    pt.armR.rotation.y = composeZombieRotation(pt.armR, 'y', a.armRRotY)
+    a.armLRotZ += (0 - a.armLRotZ) * Math.min(1, delta * 6)
+    pt.armL.rotation.z = composeZombieRotation(pt.armL, 'z', a.armLRotZ)
+    a.armRRotZ += (0 - a.armRRotZ) * Math.min(1, delta * 6)
+    pt.armR.rotation.z = composeZombieRotation(pt.armR, 'z', a.armRRotZ)
 
     // stun: 멈춤
     if (animPhase === 'stun') {
-      p.current.legL.rotation.x *= 0.85
-      p.current.legR.rotation.x *= 0.85
+      a.legLRotX *= 0.85
+      pt.legL.rotation.x = composeZombieRotation(pt.legL, 'x', a.legLRotX)
+      a.legRRotX *= 0.85
+      pt.legR.rotation.x = composeZombieRotation(pt.legR, 'x', a.legRRotX)
       return
     }
 
@@ -795,19 +862,25 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
       const stride = Math.sin(t * 13.5)
       const pump = Math.sin(t * 13.5 + Math.PI)
       if (pt.body) {
-        pt.body.rotation.x += (0.36 - pt.body.rotation.x) * Math.min(1, delta * 14)
-        pt.body.rotation.z = Math.sin(t * 7.2) * 0.055
+        a.bodyRotX += (0.36 - a.bodyRotX) * Math.min(1, delta * 14)
+        pt.body.rotation.x = composeZombieRotation(pt.body, 'x', a.bodyRotX)
+        pt.body.rotation.z = composeZombieRotation(pt.body, 'z', Math.sin(t * 7.2) * 0.055)
       }
       if (pt.head) {
-        pt.head.rotation.x += (-0.08 - pt.head.rotation.x) * Math.min(1, delta * 12)
-        pt.head.rotation.z = Math.sin(t * 8.5) * 0.11
+        a.headRotX += (-0.08 - a.headRotX) * Math.min(1, delta * 12)
+        pt.head.rotation.x = composeZombieRotation(pt.head, 'x', a.headRotX)
+        pt.head.rotation.z = composeZombieRotation(pt.head, 'z', Math.sin(t * 8.5) * 0.11)
       }
-      pt.legL.rotation.x = stride * 0.82
-      pt.legR.rotation.x = -stride * 0.82
-      pt.armL.rotation.x = -1.05 + pump * 0.50
-      pt.armR.rotation.x = -1.05 - pump * 0.50
-      pt.armL.rotation.z = -0.22 + Math.sin(t * 6.5) * 0.08
-      pt.armR.rotation.z = 0.22 - Math.sin(t * 6.5) * 0.08
+      a.legLRotX = stride * 0.82
+      pt.legL.rotation.x = composeZombieRotation(pt.legL, 'x', a.legLRotX)
+      a.legRRotX = -stride * 0.82
+      pt.legR.rotation.x = composeZombieRotation(pt.legR, 'x', a.legRRotX)
+      pt.armL.rotation.x = composeZombieRotation(pt.armL, 'x', -1.05 + pump * 0.50)
+      pt.armR.rotation.x = composeZombieRotation(pt.armR, 'x', -1.05 - pump * 0.50)
+      a.armLRotZ = -0.22 + Math.sin(t * 6.5) * 0.08
+      pt.armL.rotation.z = composeZombieRotation(pt.armL, 'z', a.armLRotZ)
+      a.armRRotZ = 0.22 - Math.sin(t * 6.5) * 0.08
+      pt.armR.rotation.z = composeZombieRotation(pt.armR, 'z', a.armRRotZ)
       return
     }
 
@@ -815,17 +888,19 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     const freq = type === 'B02' ? 6.2 : type === 'E02' ? 9.0 : type === 'E03' ? 5.0 : 7.0
     const amp  = type === 'B02' ? (animPhase === 'charge' ? 0.46 : 0.30) : (animPhase === 'charge' ? 0.55 : 0.38)
     const sw   = Math.sin(t * freq) * amp
-    pt.legL.rotation.x =  sw
-    pt.legR.rotation.x = -sw
+    a.legLRotX = sw
+    pt.legL.rotation.x = composeZombieRotation(pt.legL, 'x', a.legLRotX)
+    a.legRRotX = -sw
+    pt.legR.rotation.x = composeZombieRotation(pt.legR, 'x', a.legRRotX)
 
     // 좀비 팔: 항상 앞으로 뻗은 상태에서 소폭 흔들림
     const armBase = type === 'B02' ? -1.05 : -1.15
     const armAmp = type === 'B02' ? 0.045 : 0.06
-    pt.armL.rotation.x = armBase + Math.sin(t * 2.8) * armAmp
-    pt.armR.rotation.x = armBase + Math.sin(t * 2.8 + Math.PI) * armAmp
+    pt.armL.rotation.x = composeZombieRotation(pt.armL, 'x', armBase + Math.sin(t * 2.8) * armAmp)
+    pt.armR.rotation.x = composeZombieRotation(pt.armR, 'x', armBase + Math.sin(t * 2.8 + Math.PI) * armAmp)
 
     // 머리 흔들림
-    if (pt.head) pt.head.rotation.z = Math.sin(t * 1.6) * (type === 'B02' ? 0.045 : 0.07)
+    if (pt.head) pt.head.rotation.z = composeZombieRotation(pt.head, 'z', Math.sin(t * 1.6) * (type === 'B02' ? 0.045 : 0.07))
   })
 
   if (isMatilda) {

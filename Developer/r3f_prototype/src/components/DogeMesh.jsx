@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { inflateScale, outlineMat, toonMat } from '../lib/toon.js'
+import StudioTunedGroup, { studioPartRotationOffset } from './StudioTunedGroup.jsx'
 
 // ── 코믹 도지 (시바견 밈) 복셀 카툰 메쉬 ─────────────────────────────────
 // 박스 조합 + MeshToonMaterial + 인버티드 헐 아웃라인. 씬 의존성 없음 —
@@ -141,14 +142,18 @@ export function DancingDoge({ position = [0, 0, 0], dance = 'twist', delay = 0, 
     const root = rootRef.current
     if (!hip || !head || !lArm || !rArm || !tail || !root) return
 
+    // 리그 파츠는 스튜디오 튜닝 대상이다. 애니메이션이 절대 자세를 쓰므로 오프셋만 얹는다.
+    const rot = (part, axis, absolute) => absolute + studioPartRotationOffset(part, axis)
+    const setRot = (part, x, y, z) => part.rotation.set(rot(part, 'x', x), rot(part, 'y', y), rot(part, 'z', z))
+
     if (paused) {
       root.position.y = baseY
       root.rotation.y = yaw
-      hip.rotation.set(0, 0, 0)
-      head.rotation.set(0, 0, 0)
-      lArm.rotation.set(0, 0, -0.28)
-      rArm.rotation.set(0, 0, 0.28)
-      tail.rotation.set(0, 0, 0)
+      setRot(hip, 0, 0, 0)
+      setRot(head, 0, 0, 0)
+      setRot(lArm, 0, 0, -0.28)
+      setRot(rArm, 0, 0, 0.28)
+      setRot(tail, 0, 0, 0)
       return
     }
 
@@ -160,40 +165,43 @@ export function DancingDoge({ position = [0, 0, 0], dance = 'twist', delay = 0, 
       const s = Math.sin(t * tempo)
       root.position.y = baseY + Math.abs(s) * 0.2
       root.rotation.y = yaw + Math.sin(t * 2.0) * 0.28
-      hip.rotation.y = Math.sin(t * tempo) * 0.22 // 좌우 그루브
-      hip.rotation.z = Math.cos(t * tempo) * 0.08
-      head.rotation.x = s * 0.16 // 까딱임 강화
-      head.rotation.z = Math.sin(t * 2.0) * 0.2
-      head.rotation.y = 0
+      hip.rotation.y = rot(hip, 'y', Math.sin(t * tempo) * 0.22) // 좌우 그루브
+      hip.rotation.z = rot(hip, 'z', Math.cos(t * tempo) * 0.08)
+      head.rotation.x = rot(head, 'x', s * 0.16) // 까딱임 강화
+      head.rotation.z = rot(head, 'z', Math.sin(t * 2.0) * 0.2)
+      head.rotation.y = rot(head, 'y', 0)
       // 오른팔은 +z(오른쪽 바깥), 왼팔은 -z(왼쪽 바깥)로만 움직여 몸통에 파고들지 않는다.
-      rArm.rotation.z = 1.25 - s * 1.05 // 0.2~2.3 (팔 끝 +x 바깥)
-      rArm.rotation.x = -Math.max(0, -s) * 0.3 // 찌를 때 전방 스러스트
-      lArm.rotation.z = -1.25 - s * 1.05 // -2.3~-0.2 (팔 끝 -x 바깥, 반대 위상)
-      lArm.rotation.x = -Math.max(0, s) * 0.3
-      tail.rotation.z = Math.sin(t * 8.0) * 0.36
-      tail.rotation.x = 0
+      rArm.rotation.z = rot(rArm, 'z', 1.25 - s * 1.05) // 0.2~2.3 (팔 끝 +x 바깥)
+      rArm.rotation.x = rot(rArm, 'x', -Math.max(0, -s) * 0.3) // 찌를 때 전방 스러스트
+      lArm.rotation.z = rot(lArm, 'z', -1.25 - s * 1.05) // -2.3~-0.2 (팔 끝 -x 바깥, 반대 위상)
+      lArm.rotation.x = rot(lArm, 'x', -Math.max(0, s) * 0.3)
+      tail.rotation.z = rot(tail, 'z', Math.sin(t * 8.0) * 0.36)
+      tail.rotation.x = rot(tail, 'x', 0)
     } else {
       // 좌우 트위스트 + 엉덩이 씰룩 + 팔 엇갈려 흔들기
       const s = Math.sin(t * 3.2)
       root.position.y = baseY + Math.abs(Math.sin(t * 3.2)) * 0.05
       root.rotation.y = yaw
-      hip.rotation.y = s * 0.5
-      hip.rotation.z = Math.sin(t * 6.4) * 0.09
-      head.rotation.y = -s * 0.22
-      head.rotation.z = Math.sin(t * 3.2 + 0.6) * 0.13
-      head.rotation.x = 0
-      lArm.rotation.z = -0.32
-      lArm.rotation.x = s * 0.95
-      rArm.rotation.z = 0.32
-      rArm.rotation.x = -s * 0.95
-      tail.rotation.z = Math.sin(t * 6.4) * 0.42
-      tail.rotation.x = 0
+      hip.rotation.y = rot(hip, 'y', s * 0.5)
+      hip.rotation.z = rot(hip, 'z', Math.sin(t * 6.4) * 0.09)
+      head.rotation.y = rot(head, 'y', -s * 0.22)
+      head.rotation.z = rot(head, 'z', Math.sin(t * 3.2 + 0.6) * 0.13)
+      head.rotation.x = rot(head, 'x', 0)
+      lArm.rotation.z = rot(lArm, 'z', -0.32)
+      lArm.rotation.x = rot(lArm, 'x', s * 0.95)
+      rArm.rotation.z = rot(rArm, 'z', 0.32)
+      rArm.rotation.x = rot(rArm, 'x', -s * 0.95)
+      tail.rotation.z = rot(tail, 'z', Math.sin(t * 6.4) * 0.42)
+      tail.rotation.x = rot(tail, 'x', 0)
     }
   })
 
   return (
     <group ref={rootRef} position={position} rotation={[0, yaw, 0]} scale={scale}>
-      <DogeMesh hipRef={hipRef} headRef={headRef} lArmRef={lArmRef} rArmRef={rArmRef} tailRef={tailRef} />
+      {/* rootRef는 월드 배치·바운스(게임 로직)이라 스튜디오 대상이 아니다. 튜닝 대상은 리그뿐이다. */}
+      <StudioTunedGroup itemId="actor-doge">
+        <DogeMesh hipRef={hipRef} headRef={headRef} lArmRef={lArmRef} rArmRef={rArmRef} tailRef={tailRef} />
+      </StudioTunedGroup>
     </group>
   )
 }

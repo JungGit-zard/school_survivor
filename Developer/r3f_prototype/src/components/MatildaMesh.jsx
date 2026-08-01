@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import matildaFaceTextureUrl from '../assets/character/matilda_face_texture.webp'
 import { PLAYER_MESH_RAW_HEIGHT, PLAYER_MESH_SCALE, PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { inflateScale, outlineMat, toonMat } from '../lib/toon.js'
-import StudioTunedGroup from './StudioTunedGroup.jsx'
+import StudioTunedGroup, { composeStudioPartPosition, composeStudioPartRotation } from './StudioTunedGroup.jsx'
 
 export const MATILDA_VISUAL_SCALE = PLAYER_MESH_SCALE * 2
 export const MATILDA_WORLD_HEIGHT = PLAYER_MESH_RAW_HEIGHT * MATILDA_VISUAL_SCALE
@@ -186,17 +186,17 @@ export default function MatildaMesh({ faceTextureUrl = matildaFaceTextureUrl, mo
     if (!idleRef.current) return
     const t = clock.elapsedTime
     const pose = movementPose ? MATILDA_MOVEMENT_POSE : MATILDA_IDLE_POSE
-    idleRef.current.position.y = pose.rootFloatY + Math.sin(t * MATILDA_IDLE_ANIMATION.floatSpeed) * MATILDA_IDLE_ANIMATION.floatBobY
-    idleRef.current.position.z = pose.rootOffsetZ
-    idleRef.current.rotation.z = Math.sin(t * 1.25) * MATILDA_IDLE_ANIMATION.swayZ
+    idleRef.current.position.y = composeStudioPartPosition(idleRef.current, 'y', pose.rootFloatY, Math.sin(t * MATILDA_IDLE_ANIMATION.floatSpeed) * MATILDA_IDLE_ANIMATION.floatBobY)
+    idleRef.current.position.z = composeStudioPartPosition(idleRef.current, 'z', pose.rootOffsetZ, 0)
+    idleRef.current.rotation.z = composeStudioPartRotation(idleRef.current, 'z', 0, Math.sin(t * 1.25) * MATILDA_IDLE_ANIMATION.swayZ)
     if (upperRef.current) {
-      upperRef.current.position.y = pose.upperPivotOffsetY
-      upperRef.current.position.z = pose.upperPivotOffsetZ
-      upperRef.current.rotation.x = pose.upperLeanX
+      upperRef.current.position.y = composeStudioPartPosition(upperRef.current, 'y', 0, pose.upperPivotOffsetY)
+      upperRef.current.position.z = composeStudioPartPosition(upperRef.current, 'z', 0, pose.upperPivotOffsetZ)
+      upperRef.current.rotation.x = composeStudioPartRotation(upperRef.current, 'x', 0, pose.upperLeanX)
     }
-    if (headRef.current) headRef.current.rotation.x = pose.headLeanX
-    if (leftFootRef.current) leftFootRef.current.rotation.x = pose.leftFoot.rotationX
-    if (rightFootRef.current) rightFootRef.current.rotation.x = pose.rightFoot.rotationX
+    if (headRef.current) headRef.current.rotation.x = composeStudioPartRotation(headRef.current, 'x', 0, pose.headLeanX)
+    if (leftFootRef.current) leftFootRef.current.rotation.x = composeStudioPartRotation(leftFootRef.current, 'x', 0, pose.leftFoot.rotationX)
+    if (rightFootRef.current) rightFootRef.current.rotation.x = composeStudioPartRotation(rightFootRef.current, 'x', 0, pose.rightFoot.rotationX)
   })
 
   const pose = movementPose ? MATILDA_MOVEMENT_POSE : MATILDA_IDLE_POSE

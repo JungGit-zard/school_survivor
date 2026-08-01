@@ -126,10 +126,12 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     runtimePreviewComponent: 'PlayerVisual',
     applyTargets: ['components/PlayerMesh.jsx', 'components/Player.jsx', 'lib/characterVisualScale.js', 'lib/toon.js'],
   },
-  ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'B01', 'B02', 'B03', 'B04'].map((type) => ({
+  // RZL/RZC(스테이지3 런좀비 크루)는 ZombieMesh.jsx에서 이미 StudioTunedGroup으로 감싸여
+  // 게임 런타임 배선이 E01과 동일하다. 이 배열에서 빠져 있어 스튜디오에서 선택만 불가능했다.
+  ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04'].map((type) => ({
     id: getStudioZombieItemId(type),
     category: 'enemy',
-    label: type === 'B02' ? 'Stage 2 Boss' : type === 'B03' ? 'Boss B03 · 몸짱 체육교사' : type === 'B04' ? 'Boss B04 · 주방장 좀비' : `Zombie ${type}`,
+    label: type === 'B02' ? 'Stage 2 Boss' : type === 'B03' ? 'Boss B03 · 몸짱 체육교사' : type === 'B04' ? 'Boss B04 · 주방장 좀비' : type === 'RZL' ? 'Run Zombie · 리더' : type === 'RZC' ? 'Run Zombie · 크루' : `Zombie ${type}`,
     source: 'components/ZombieMesh.jsx',
     previewKind: 'zombie',
     runtimePreviewSource: 'components/Enemy.jsx',
@@ -284,6 +286,17 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     crashPhase: 'falling',
     assetUrl: starlinkIconUrl,
     applyTargets: ['components/Weapons/StarlinkSatellite.jsx', 'lib/starlinkCrash.js', 'lib/toon.js'],
+  },
+  {
+    // TitleScene3D.jsx가 StarlinkSatelliteModel에 이 studioItemId를 넘겨 이미 게임에 배선돼 있는데
+    // 카탈로그에만 없어서 스튜디오에서 선택이 불가능했다.
+    id: 'title-crashed-starlink',
+    category: 'title',
+    label: '타이틀 · 추락한 스타링크',
+    source: 'components/Weapons/StarlinkSatellite.jsx',
+    previewKind: 'starlinkSatellite',
+    assetUrl: starlinkIconUrl,
+    applyTargets: ['components/TitleScene3D.jsx', 'components/Weapons/StarlinkSatellite.jsx', 'lib/toon.js'],
   },
   {
     id: 'weapon-starlink-crash-impact',

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import { Html, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
@@ -61,7 +61,7 @@ import { BoxCutterModel } from './Weapons/BoxCutter.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
 import { SharkMissileModel, FlameTrail } from './Weapons/SharkMissile.jsx'
 import { CrashExplosionVisual, StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
-import { StudioTuningPreviewProvider, applySavedStudioPartTunings, applyStudioTuning, disposeStudioOwnedMaterials, getStudioTransformProps } from './StudioTunedGroup.jsx'
+import { StudioTuningPreviewProvider, applySavedStudioPartTunings, applyStudioTuning, captureStudioPartBaseTransforms, disposeStudioOwnedMaterials, findStudioPartByKey, getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { disposeTextureDecals, syncTextureDecals } from './TextureDecal.jsx'
 import { snapLocalNormalToFaceAxis } from '../lib/textureDecal.js'
 import { getCrashPose } from '../lib/starlinkCrash.js'
@@ -107,17 +107,11 @@ export function getStudioPartKey(root, object) {
   return current === root ? path.join('.') : null
 }
 
+// 파츠 조회는 StudioTunedGroup의 정본 하나만 쓴다. 예전에는 미리보기와 런타임이 각자
+// 구현을 들고 있어 한쪽만 고쳐지는 드리프트가 실제로 발생했다(런타임에만 offset 재시도가
+// 있었다). 여기서는 이름만 유지하고 해석은 정본에 위임한다.
 export function findStudioPart(root, key) {
-  if (!root || !key) return null
-  if (key.startsWith(STABLE_PART_KEY_PREFIX)) {
-    const id = key.slice(STABLE_PART_KEY_PREFIX.length)
-    let found = null
-    root.traverse((object) => {
-      if (!found && object.userData?.studioPartId === id) found = object
-    })
-    return found
-  }
-  return key.split('.').reduce((node, index) => node?.children?.[Number(index)] ?? null, root)
+  return findStudioPartByKey(root, key)
 }
 
 function getStudioPartLabel(object) {
@@ -249,6 +243,13 @@ function applyFocusedPartTuning(root, focusedPartKeys, focusedPartTuning) {
 }
 
 function useApplyStudioTuning(rootRef, itemId, tuning, focusedPartKeys, partTunings, decals) {
+  // 게임 런타임과 같은 규칙: 첫 프레임 전에 rest 포즈를 base로 확정한다.
+  // 이게 없으면 애니메이션이 도는 프리뷰에서 파츠를 처음 만지는 순간의 자세가 base로 굳어,
+  // 0을 다시 입력해도 원래 자리로 돌아오지 않는다.
+  useLayoutEffect(() => {
+    captureStudioPartBaseTransforms(rootRef.current)
+  })
+
   useEffect(() => {
     if (!rootRef.current) return
     applyStudioTuning(rootRef.current, tuning)

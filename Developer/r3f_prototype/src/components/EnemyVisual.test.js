@@ -209,7 +209,7 @@ describe("Matilda's rendered body matches her physics collider (no untouchable-l
     // reaches both the visual and collider path. Matilda deliberately supplies
     // B01's base 2.00 scale to restore her intended visible size.
     expect(enemySource).toContain(
-      "export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false, scale }) {",
+      "export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false, scale, bossFaceRecipe }) {",
     )
     expect(enemySource).toContain('const cs = (scale ?? stats.scale) * ENEMY_SIZE_MULTIPLIER')
 

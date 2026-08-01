@@ -17,7 +17,7 @@ import {
   getZomlonPosition,
   isEscapeDone,
 } from '../../lib/starlinkCrash.js'
-import StudioTunedGroup from '../StudioTunedGroup.jsx'
+import StudioTunedGroup, { composeStudioPartPosition, composeStudioPartRotation } from '../StudioTunedGroup.jsx'
 
 const ZOMLON_ESCAPE_SCALE = 0.5
 const SATELLITE_CRASH_PIVOT_Y = 0.34
@@ -120,7 +120,7 @@ function MastSparks() {
     const g = groupRef.current
     if (!g) return
     const t = clock.elapsedTime
-    g.rotation.y = t * 5.2
+    g.rotation.y = composeStudioPartRotation(g, 'y', 0, t * 5.2)
     // 불규칙 깜빡임 (고장난 느낌)
     const flickerA = Math.sin(t * 21) > -0.35 ? 1 : 0.12
     const flickerB = Math.sin(t * 17 + 1.7) > -0.2 ? 1 : 0.1
@@ -200,24 +200,24 @@ export function ZomlonbiskModel({ running = true }) {
     const p = parts.current
     if (!p.legL) return
     if (!running) {
-      p.legL.rotation.x = 0
-      p.legR.rotation.x = 0
-      p.armL.rotation.x = 0
-      p.armR.rotation.x = 0
-      if (p.root) p.root.rotation.x = 0
+      p.legL.rotation.x = composeStudioPartRotation(p.legL, 'x', 0, 0)
+      p.legR.rotation.x = composeStudioPartRotation(p.legR, 'x', 0, 0)
+      p.armL.rotation.x = composeStudioPartRotation(p.armL, 'x', 0, 0)
+      p.armR.rotation.x = composeStudioPartRotation(p.armR, 'x', 0, 0)
+      if (p.root) p.root.rotation.x = composeStudioPartRotation(p.root, 'x', 0, 0)
       return
     }
     const t = clock.elapsedTime
     const sw = Math.sin(t * 11.5) * 0.75
-    p.legL.rotation.x = sw
-    p.legR.rotation.x = -sw
-    p.armL.rotation.x = -sw * 0.9
-    p.armR.rotation.x = sw * 0.9
+    p.legL.rotation.x = composeStudioPartRotation(p.legL, 'x', 0, sw)
+    p.legR.rotation.x = composeStudioPartRotation(p.legR, 'x', 0, -sw)
+    p.armL.rotation.x = composeStudioPartRotation(p.armL, 'x', 0, -sw * 0.9)
+    p.armR.rotation.x = composeStudioPartRotation(p.armR, 'x', 0, sw * 0.9)
     if (p.root) {
-      p.root.rotation.x = 0.24                      // 필사적으로 앞으로 기울여 달림
-      p.root.position.y = Math.abs(Math.sin(t * 11.5)) * 0.05
+      p.root.rotation.x = composeStudioPartRotation(p.root, 'x', 0, 0.24)  // 필사적으로 앞으로 기울여 달림
+      p.root.position.y = composeStudioPartPosition(p.root, 'y', 0, Math.abs(Math.sin(t * 11.5)) * 0.05)
     }
-    if (p.head) p.head.rotation.z = Math.sin(t * 6) * 0.08
+    if (p.head) p.head.rotation.z = composeStudioPartRotation(p.head, 'z', 0, Math.sin(t * 6) * 0.08)
   })
 
   return (
@@ -280,6 +280,7 @@ export function CrashExplosionVisual({ x, z, t }) {
   const ringScale = 0.6 + t * 3.4
 
   return (
+    <StudioTunedGroup itemId="weapon-starlink-crash-impact">
     <group position={[x, 0, z]}>
       {/* 백색 코어 플래시 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.06, 0]} renderOrder={6}>
@@ -309,6 +310,7 @@ export function CrashExplosionVisual({ x, z, t }) {
         </mesh>
       )}
     </group>
+    </StudioTunedGroup>
   )
 }
 

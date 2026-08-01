@@ -64,8 +64,8 @@ describe('Stage 1 boss visual reference', () => {
   })
 
   it('keeps the original B01 model separate from the PE teacher model', () => {
-    expect(zombieMeshSource).toContain('<B01BossZombieMesh hitFlash={hitFlash} reg={reg} />')
-    expect(zombieMeshSource).toContain('<B03PhysicalEducationBossMesh hitFlash={hitFlash} reg={reg} />')
+    expect(zombieMeshSource).toContain('<B01BossZombieMesh hitFlash={hitFlash} reg={reg} bossFaceRecipe={bossFaceRecipe} />')
+    expect(zombieMeshSource).toContain('<B03PhysicalEducationBossMesh hitFlash={hitFlash} reg={reg} bossFaceRecipe={bossFaceRecipe} />')
   })
 
   it('equips B01 with a toon set square that appears only during the special swing', () => {
@@ -210,7 +210,7 @@ describe('Stage 4 chef zombie boss', () => {
 
     expect(zombieMeshSource).toContain("if (type === 'B04')")
     expect(zombieMeshSource).toContain("itemId={getStudioZombieItemId('B04')}")
-    expect(zombieMeshSource).toContain('<B04ChefBossMesh hitFlash={hitFlash} reg={reg} />')
+    expect(zombieMeshSource).toContain('<B04ChefBossMesh hitFlash={hitFlash} reg={reg} bossFaceRecipe={bossFaceRecipe} />')
     expect(zombieMeshSource).toContain("import boss04FaceUrl from '../assets/faces/b04_chef_boss_face.webp'")
     expect(zombieMeshSource).toContain('function B04ChefBossFaceTexture()')
     expect(zombieMeshSource).toContain('texture.colorSpace = THREE.SRGBColorSpace')
@@ -340,7 +340,7 @@ describe('Stage 2 boss visual reference', () => {
 
     expect(source).toContain("import boss02FaceUrl from '../assets/faces/b02_stage2_boss_face.webp'")
     expect(source).toContain('<B02Stage2BossFaceTexture />')
-    expect(source).toContain('<B02Stage2BossMesh hitFlash={hitFlash} reg={reg} />')
+    expect(source).toContain('<B02Stage2BossMesh hitFlash={hitFlash} reg={reg} bossFaceRecipe={bossFaceRecipe} />')
     expect(source).toContain('itemId={getStudioZombieItemId(type)}')
     expect(source).toContain('studioRenderOutline')
     expect(source).not.toContain(legacyB02ItemId)

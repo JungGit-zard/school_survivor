@@ -14,7 +14,7 @@ import { createWeaponTargetScratch, resolveWeaponTarget, scanClosestEnemiesInto,
 import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
 import { useDeferredProjectileState } from '../../lib/useDeferredProjectileState.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
-import StudioTunedGroup from '../StudioTunedGroup.jsx'
+import StudioTunedGroup, { composeStudioPartPosition, composeStudioPartRotation } from '../StudioTunedGroup.jsx'
 
 let _chibikoPencilId = 0
 
@@ -33,6 +33,10 @@ function Part({ size, position, rotation = [0, 0, 0], material, outlineMaterial,
 
 export function ChibikoModel({ attackPhaseRef }) {
   const parts = useRef({})
+  // armR.rotation은 +=로 목표값에 수렴시키는 누적 애니메이션이라, THREE 오브젝트의
+  // rotation을 직접 읽어 누적하면 스튜디오 오프셋까지 감쇠 대상이 되어 매 프레임
+  // 지워진다. 순수 애니메이션 오프셋만 별도로 들고 있는다.
+  const armRAnim = useRef({ x: 0, z: 0 })
   const outline = useMemo(() => outlineMat(0.96), [])
   const hairMat = useMemo(() => toonMat(0x120d14, 0.05), [])
   const hairShadeMat = useMemo(() => toonMat(0x2a1c28, 0.04), [])
@@ -54,21 +58,24 @@ export function ChibikoModel({ attackPhaseRef }) {
     const sway = Math.sin(t * 3.2) * 0.045
 
     if (parts.current.root) {
-      parts.current.root.position.y = idleBob - prep * 0.035
-      parts.current.root.rotation.z = sway * 0.35 + throwSnap * 0.1
+      parts.current.root.position.y = composeStudioPartPosition(parts.current.root, 'y', 0, idleBob - prep * 0.035)
+      parts.current.root.rotation.z = composeStudioPartRotation(parts.current.root, 'z', 0, sway * 0.35 + throwSnap * 0.1)
     }
     if (parts.current.hairFront) {
-      parts.current.hairFront.position.y = 0.97 + idleBob * 0.7
-      parts.current.hairFront.rotation.x = -0.06 - throwSnap * 0.08
+      parts.current.hairFront.position.y = composeStudioPartPosition(parts.current.hairFront, 'y', 0.97, idleBob * 0.7)
+      parts.current.hairFront.rotation.x = composeStudioPartRotation(parts.current.hairFront, 'x', 0, -0.06 - throwSnap * 0.08)
     }
     if (parts.current.armR) {
-      parts.current.armR.rotation.x += ((prep ? -1.05 : -0.18) - parts.current.armR.rotation.x) * Math.min(1, delta * 14)
-      parts.current.armR.rotation.z += ((prep ? -0.42 : -0.18) - parts.current.armR.rotation.z) * Math.min(1, delta * 14)
-      if (throwSnap > 0) parts.current.armR.rotation.x = -1.2 + throwSnap * 1.8
+      const anim = armRAnim.current
+      anim.x += ((prep ? -1.05 : -0.18) - anim.x) * Math.min(1, delta * 14)
+      anim.z += ((prep ? -0.42 : -0.18) - anim.z) * Math.min(1, delta * 14)
+      if (throwSnap > 0) anim.x = -1.2 + throwSnap * 1.8
+      parts.current.armR.rotation.x = composeStudioPartRotation(parts.current.armR, 'x', 0, anim.x)
+      parts.current.armR.rotation.z = composeStudioPartRotation(parts.current.armR, 'z', 0, anim.z)
     }
     if (parts.current.armL) {
-      parts.current.armL.rotation.x = -0.08 + sway * 0.4
-      parts.current.armL.rotation.z = 0.22
+      parts.current.armL.rotation.x = composeStudioPartRotation(parts.current.armL, 'x', 0, -0.08 + sway * 0.4)
+      parts.current.armL.rotation.z = composeStudioPartRotation(parts.current.armL, 'z', 0, 0.22)
     }
   })
 

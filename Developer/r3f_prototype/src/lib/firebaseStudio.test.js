@@ -231,7 +231,7 @@ describe('Firebase-only Graphics Studio persistence', () => {
     expect(loadStudioTunings().player.scale).toBe(1.5)
   })
 
-  it('builds and validates the exact five-dataset Firebase envelope', () => {
+  it('builds and validates the exact six-dataset Firebase envelope', () => {
     const datasets = remoteSnapshot().datasets
     const snapshot = buildFirebaseStudioSnapshot(datasets, {
       revision: 3,
@@ -244,6 +244,7 @@ describe('Firebase-only Graphics Studio persistence', () => {
       'stageBossPreview',
       'decals',
       'propPlacements',
+      'bossFaceRecipes',
     ])
     expect(normalizeFirebaseStudioSnapshot(snapshot)).toEqual(snapshot)
     expect(applyFirebaseStudioSnapshot(snapshot)).toBe(true)
