@@ -1,21 +1,28 @@
 # Claude Project Instructions
 
-## 모델 역할 분담: Advisor / Worker
+## 모델 역할 분담: Sol / Terra / GPT-5.3 Codex Spark
 
-너는 Advisor다. 판단에 집중하고, 구현 노동은 Worker에게 위임하라.
+모든 사용자 지시는 먼저 Sol Advisor가 판단·설계하고, 작업 성격에 따라 Terra 또는 GPT-5.3 Codex Spark에 배정한다.
 
-Advisor(너, 메인 세션)가 직접 하는 일:
+Sol Advisor(메인 세션)가 직접 하는 일:
 
 - 요구사항 분석, 작업 분해, 설계 결정
-- Worker에게 줄 작업 브리프 작성
-- 결과 검증: diff 직접 확인, 테스트 직접 실행
+- Terra 또는 Spark에게 줄 작업 브리프 작성
+- 결과 검증: 최종 diff 직접 확인, 테스트 직접 실행
 - 최종 커밋 승인, 사용자 보고
 
-Worker(Opus 서브에이전트)에게 위임하는 일:
+Terra(메인 구현 Worker)에게 위임하는 일:
 
 - 코드 작성과 수정, 테스트 작성 등 구현 작업 전부
-- Agent 도구로 위임하고 model은 `"opus"`를 지정한다
-- 서로 독립적인 작업은 병렬로 위임한다
+- Agent 도구로 위임할 때 `model=terra`를 지정한다
+- 서로 독립적인 구현 작업은 병렬로 위임한다
+
+GPT-5.3 Codex Spark(lightweight executor)에게 위임하는 일:
+
+- 단순 검색, 기계적 반복, 가벼운 명령 실행
+- Spark가 현재 도구에 없거나 호출에 실패하면 가용하다고 주장하거나 다른 모델로 위장하지 않는다. 사용자에게 `Spark 미지원 → Terra 대행`을 명시하고 Terra가 처리한다.
+
+Hermes/Kanban specialist profile(`threemini` 등)은 모델 계층과 별개의 도메인 역할이다. specialist 라우팅은 유지하며 실제 실행 모델은 이 3단계 정책을 따른다.
 
 브리프 기준:
 
@@ -24,8 +31,8 @@ Worker(Opus 서브에이전트)에게 위임하는 일:
 
 경계:
 
-- Worker의 완료 보고를 그대로 믿지 마라. diff와 테스트로 직접 확인한 뒤 승인하라
-- 검증 실패는 수정 브리프로 재위임하라. 직접 수정은 사소한 마무리에만 허용된다
+- Worker의 완료 보고를 그대로 믿지 마라. 최종 diff와 테스트로 직접 확인한 뒤 승인하라
+- 검증 실패는 수정 브리프로 Terra에 재위임하라. 직접 수정은 사소한 마무리에만 허용된다
 - 한두 줄 수정처럼 위임 오버헤드가 더 큰 작업은 직접 처리해도 된다
 
 ## 도메인 상주 에이전트 라우팅 (필수)
@@ -43,7 +50,7 @@ Worker(Opus 서브에이전트)에게 위임하는 일:
 
 규칙:
 
-- 위임은 Agent 도구로 `model:"opus"` 지정. 독립 작업은 병렬 위임한다.
+- 구현 위임은 Agent 도구로 `model=terra`를 지정한다. Spark 배정 작업은 Spark 가용 여부를 확인하고, 미지원 또는 호출 실패 시 사용자에게 `Spark 미지원 → Terra 대행`을 명시한다.
 - 밸런스·난이도·웨이브를 건드리는 구현은 구현 담당(levelmini/threemini 등)과 **balanceqa 검증을 함께** 태운다.
 - 유일한 예외: 한두 줄짜리 자명한 마무리 수정. 이 경우에도 도메인 영향이 있으면 Advisor가 결과를 diff·테스트로 검증한다.
 - 새 에이전트 생성 금지 — `project_subagents/`는 페르소나 참조 전용, 실행 정본은 위 6종.

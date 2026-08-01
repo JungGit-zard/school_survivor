@@ -67,13 +67,16 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 - After meaningful changes, check `git status` and summarize what changed.
 - When possible, verify work with a syntax check, build, test, or direct file inspection.
 
-## 모델 역할 분담: Advisor / Worker
+## 모델 역할 분담: Sol / Terra / GPT-5.3 Codex Spark
 
-- 이 역할 분담은 매 세션 시작(`startup`, `resume`, `compact`)부터 무조건 적용한다.
-- Sol(메인 세션)은 Advisor다. 요구사항 분석, 작업 분해, 설계 결정, Worker 작업 브리프 작성, diff 직접 확인, 테스트 직접 실행, 최종 커밋 승인과 사용자 보고를 담당한다.
-- Terra는 Worker다. 코드 작성과 수정, 테스트 작성 등 구현 작업 전부를 담당한다. Agent 도구로 위임할 때는 `model=terra`를 지정하고, 서로 독립적인 작업은 병렬로 위임한다.
+- 이 3단계 역할 분담은 매 세션 시작(`startup`, `resume`, `compact`)부터 모든 사용자 지시와 작업에 무조건 적용한다.
+- Sol(메인 세션)은 Advisor다. 모든 지시를 먼저 판단·설계하고, 작업 분해와 브리프 작성, 최종 diff·테스트 직접 검증, 커밋 승인과 사용자 보고를 담당한다.
+- Terra는 메인 구현 Worker다. 코드 작성·수정, 테스트 작성 등 구현 작업 전부를 담당한다. Agent 도구로 위임할 때는 `model=terra`를 지정하고, 서로 독립적인 작업은 병렬로 위임한다.
+- GPT-5.3 Codex Spark는 단순 검색, 기계적 반복, 가벼운 명령 실행을 담당하는 lightweight executor다.
+- Spark가 현재 도구에 없거나 호출에 실패하면 가용하다고 주장하거나 다른 모델로 위장하지 않는다. 반드시 사용자에게 `Spark 미지원 → Terra 대행` 사실을 명시하고 Terra가 처리한다.
+- Hermes/Kanban specialist profile(`threemini` 등)은 이 모델 계층과 별개의 도메인 역할이다. specialist 라우팅은 유지하되 실제 실행 모델은 이 3단계 정책을 따른다.
 - Advisor가 작성하는 브리프에는 이미 파악한 컨텍스트, 파일 경로, 프로젝트 컨벤션, 알려진 함정, 완료 기준과 통과해야 할 테스트를 포함한다.
-- Advisor는 Worker의 완료 보고만 믿지 않고 diff와 테스트를 직접 검증한다. 검증 실패는 수정 브리프로 Worker에게 재위임하며, 한두 줄의 사소한 마무리처럼 위임 오버헤드가 더 큰 경우에만 직접 수정할 수 있다.
+- Advisor는 Worker의 완료 보고만 믿지 않고 diff와 테스트를 직접 검증한다. 검증 실패는 수정 브리프로 Terra에 재위임하며, 한두 줄의 사소한 마무리처럼 위임 오버헤드가 더 큰 경우에만 직접 수정할 수 있다.
 
 ## Game Development Rules
 

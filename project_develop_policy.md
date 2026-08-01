@@ -15,6 +15,12 @@
 - Before planning, implementation, asset work, QA, Git workflow changes, folder-structure changes, or project-direction decisions, check this document for relevant rules.
 - If a rule in this document is unclear, follow the safest narrow interpretation and ask the user when the decision could change project direction.
 
+## 모델 배정 최우선 정책
+
+- 모든 사용자 지시는 Sol Advisor가 먼저 판단·설계하고, 구현·테스트 작성은 Terra 메인 Worker, 단순 검색·기계적 반복·가벼운 명령 실행은 GPT-5.3 Codex Spark에 배정한다. 최종 diff·테스트·승인은 Sol이 수행한다.
+- Spark가 현재 도구에 없거나 호출에 실패하면 가용하다고 주장하거나 다른 모델로 위장하지 않는다. 반드시 사용자에게 `Spark 미지원 → Terra 대행`을 명시하고 Terra가 처리한다.
+- Hermes/Kanban specialist profile(`threemini` 등)은 모델 계층과 별개의 도메인 역할이며, specialist 라우팅은 유지하고 실제 실행 모델은 이 정책을 따른다.
+
 ## Session Memory
 
 세션 메모리 / 시작 시 필독 / 3시간 요약 관련 규정은 `SESSION_CONTINUITY.md` 단일 정본을 따른다. 본 정책 문서에 중복 기재하지 않는다.
