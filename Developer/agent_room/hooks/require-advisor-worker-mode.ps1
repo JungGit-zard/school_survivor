@@ -42,6 +42,19 @@ foreach ($requirement in $requiredPatterns) {
     }
 }
 
+$sparkPatterns = @(
+    @{ Name = "Spark-only repetitive routing"; Pattern = "spark-only-repetitive" },
+    @{ Name = "no Sol/Terra fallback for Spark work"; Pattern = "no-terra-sol-fallback" },
+    @{ Name = "all-session Spark routing"; Pattern = "all-sessions" }
+)
+
+foreach ($requirement in $sparkPatterns) {
+    if ($agentsContent -notmatch $requirement.Pattern) {
+        Write-Error "AGENTS.md Spark routing policy is incomplete: missing $($requirement.Name)."
+        exit 1
+    }
+}
+
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 [Console]::OutputEncoding = $utf8
 $OutputEncoding = $utf8
@@ -55,5 +68,7 @@ $OutputEncoding = $utf8
 - Ask only when correct implementation is impossible, destructive data loss is a real risk, or no reasonable default exists.
 - Do not fix unrelated defects. Stop after implementation and proportionate minimum verification.
 - Final response: only what changed, what was verified, and any genuine limitation or blocker; keep it concise.
+- Every simple, repetitive, mechanical, clerical, or bulk task must run exclusively on gpt-5.3-codex-spark in every session.
+- Never substitute Sol or Terra for Spark-class work. If one dispatcher lacks Spark, use a Spark-capable Codex execution path and name only the exact path limitation.
 === END REQUIRED DIRECT / SCOPE-CONTROLLED EXECUTION MODE ===
 "@

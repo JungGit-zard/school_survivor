@@ -82,6 +82,16 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 - 요청 결과가 구현되고 비례적인 최소 검증이 끝나면 즉시 멈춘다.
 - 최종 답변은 변경 내용, 검증 결과, 실제 제한·차단 사항만 간결하게 보고하며 새 계획이나 로드맵을 덧붙이지 않는다.
 
+## Mandatory Spark Routing
+
+<!-- model-routing: spark-only-repetitive no-terra-sol-fallback all-sessions -->
+
+- 모든 세션에서 단순·반복·기계적·사무적·대량 작업은 예외 없이 `gpt-5.3-codex-spark`만 사용한다.
+- Spark 대상 작업을 Sol, Terra 또는 다른 모델로 대체하지 않는다.
+- 내부 서브에이전트 호출 도구 하나가 Spark를 노출하지 않으면 `gpt-5.3-codex-spark`를 명시적으로 지원하는 Codex 실행 경로를 사용한다.
+- 특정 호출 경로의 제한을 Codex Spark 전체 미지원·서비스 종료로 확대해 보고하지 않는다. 제한이 있으면 정확한 도구와 경로만 명시한다.
+- 이 규칙은 `startup`, `resume`, `compact`마다 적용하며 단순·반복 작업에 관한 기존 Advisor/Worker 규칙보다 우선한다.
+
 ## Game Development Rules
 
 - Prioritize playable behavior over decorative structure.
