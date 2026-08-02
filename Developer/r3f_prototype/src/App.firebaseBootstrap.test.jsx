@@ -179,6 +179,21 @@ describe('App Firebase bootstrap boundary', () => {
     view.unmount()
   })
 
+  it('hydrates a signed-in player personal Studio workspace even when canonical visuals were preloaded', async () => {
+    mocks.authState.status = 'signedIn'
+    mocks.authState.user = { uid: 'studio-user' }
+    mocks.studioRuntimeReady = true
+    mocks.canonicalHydrate.mockResolvedValue({ status: 'remote-applied', revision: 11 })
+    mocks.studioHydrate.mockResolvedValue({ status: 'remote-applied', revision: 22 })
+
+    const view = await renderApp()
+
+    await vi.waitFor(() => expect(mocks.studioHydrate).toHaveBeenCalledWith({ user: mocks.authState.user }))
+    expect(await mocks.readyGameProps.ensureStudioCloudReady(mocks.authState.user)).toBe(true)
+    await vi.waitFor(() => expect(mocks.studioSubscribe).toHaveBeenCalledWith(expect.objectContaining({ user: mocks.authState.user })))
+    view.unmount()
+  })
+
   it('hydrates only the public canonical Studio revision for the DEV E2E user', async () => {
     window.history.replaceState({}, '', '/?e2e=1')
     mocks.authState.status = 'signedIn'

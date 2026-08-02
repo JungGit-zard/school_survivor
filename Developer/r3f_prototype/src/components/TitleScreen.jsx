@@ -19,6 +19,7 @@ import { Howl } from 'howler'
 import titleBgmUrl from '../assets/audio/title_bgm.m4a'
 
 const REVEAL_CHEATS_CODE = ['arrowup', 'arrowdown', 'arrowup', 'arrowdown', 'a', 's', 'd']
+const DEV_CHEATS_ENABLED = import.meta.env.DEV
 const TITLE_ACCENT_LETTERS = [
   { char: '탈', order: 0, x: '-110vw', y: '-5vh', rotation: '-18deg' },
   { char: '출', order: 1, x: '8vw', y: '-55vh', rotation: '14deg' },
@@ -114,7 +115,7 @@ export default function TitleScreen({
   const cheatBufferRef = useRef([])
   const titleBgmControllerRef = useRef(null)
   const adminOperations = getAdminOperationsConfig()
-  const cheatMenuButtonVisible = devCheatsVisible && adminOperations.cheatMenuButtonVisible
+  const cheatMenuButtonVisible = DEV_CHEATS_ENABLED && devCheatsVisible && adminOperations.cheatMenuButtonVisible
 
   // 타이틀 연출은 항상 재생하고, 화면을 벗어날 때 저장된 전역 설정을 복원한다.
   useEffect(() => {
@@ -261,6 +262,8 @@ export default function TitleScreen({
   }, [cheatOpen, nicknameOpen])
 
   useEffect(() => {
+    if (!DEV_CHEATS_ENABLED) return undefined
+
     const handleCheatKeyDown = (event) => {
       if (event.ctrlKey || event.altKey || event.metaKey) return
 

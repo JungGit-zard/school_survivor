@@ -46,6 +46,7 @@ const MATILDA_DIALOGUE_NAME = '마틸다'
 const MATILDA_DIALOGUE_LINE = '오호호호! 떡하나주면 안잡아먹지!'
 const MATILDA_DEATH_DIALOGUE_LINE = '오호호호!!!!! 맛있게 먹을께!!!!'
 const MATILDA_GAMEOVER_LINE = '마틸다 에게 영혼을 뺴앗겨 버렸다!!'
+const DEV_CHEATS_ENABLED = import.meta.env.DEV
 
 const damageLabel = (name, weaponKey, upgradeKey) => (w) =>
   `${name} +${UPGRADE_EFFECTS[upgradeKey].dmg} (Lv${(w[weaponKey].level ?? 1) + 1})`
@@ -463,6 +464,7 @@ export function UpgradeIcon({ type }) {
 }
 
 export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRanking, devCheatsVisible = false }) {
+  const devToolsVisible = DEV_CHEATS_ENABLED && devCheatsVisible
   const questBagButtonRef = useRef(null)
   const questCloseButtonRef = useRef(null)
   const wasQuestInventoryOpenRef = useRef(false)
@@ -522,7 +524,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
   const secs = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, '0')
   const stageConfig = getStageConfig(currentStageId)
   const nextStageId = getNextStageId(currentStageId)
-  const showResultDevTools = devCheatsVisible && getAdminOperationsConfig().cheatMenuButtonVisible && (phase === 'gameover' || phase === 'cleared')
+  const showResultDevTools = devToolsVisible && getAdminOperationsConfig().cheatMenuButtonVisible && (phase === 'gameover' || phase === 'cleared')
   const questInventoryOpen = phase === 'paused' && pauseSource === 'quest'
   const stageQuests = useMemo(() => getStageQuestDefinitions(currentStageId), [currentStageId])
   const visibleQuests = useMemo(
@@ -941,7 +943,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
             <QuestBagIcon />
             {newQuestItemIds?.length > 0 && <span aria-label="새 퀘스트 아이템" style={styles.questNewBadge}>!</span>}
           </button>
-          {devCheatsVisible && (
+          {devToolsVisible && (
             <>
               <button type="button" style={styles.quickRestartButton} onClick={() => resetGame(currentStageId)} aria-label="Restart" title="Restart">
                 R
@@ -960,7 +962,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         </div>
       )}
 
-      {devCheatsVisible && weaponCheatOpen && (phase === 'playing' || phase === 'paused') && (
+      {devToolsVisible && weaponCheatOpen && (phase === 'playing' || phase === 'paused') && (
         <div data-testid="weapon-cheat-panel" style={styles.weaponCheatPanel}>
           <div style={styles.weaponCheatTitle}>모든 무기</div>
           <div style={styles.weaponCheatGrid}>

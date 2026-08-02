@@ -2,7 +2,7 @@ const query = typeof window !== 'undefined'
   ? new URLSearchParams(window.location.search)
   : null
 
-if (query?.has('cdp') || query?.has('inspector')) {
+if (import.meta.env.DEV && (query?.has('cdp') || query?.has('inspector'))) {
   installScreenElementInspector()
 }
 
