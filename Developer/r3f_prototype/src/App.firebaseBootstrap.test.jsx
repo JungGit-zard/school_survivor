@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   },
   progressHydrated: false,
   readyGameModuleLoaded: vi.fn(),
+  readyGameProps: null,
   studioHydrate: vi.fn(),
   studioSubscribe: vi.fn(),
   canonicalHydrate: vi.fn(() => Promise.resolve({ status: 'missing-remote' })),
@@ -56,7 +57,10 @@ vi.mock('./components/GoogleAccountPanel.jsx', () => ({
 vi.mock('./components/ReadyGameApp.jsx', () => {
   mocks.readyGameModuleLoaded()
   return {
-    default: () => <main data-testid="ready-game-app">게임 준비 완료</main>,
+    default: (props) => {
+      mocks.readyGameProps = props
+      return <main data-testid="ready-game-app">게임 준비 완료</main>
+    },
   }
 })
 
@@ -90,6 +94,7 @@ describe('App Firebase bootstrap boundary', () => {
     mocks.authState.progressStatus = 'idle'
     mocks.authState.progressError = null
     mocks.progressHydrated = false
+    mocks.readyGameProps = null
     mocks.readyGameModuleLoaded.mockClear()
     mocks.studioHydrate.mockReset().mockResolvedValue({ status: 'remote-applied', revision: 1 })
     mocks.studioSubscribe.mockReset().mockResolvedValue({
@@ -157,6 +162,20 @@ describe('App Firebase bootstrap boundary', () => {
     const view = await renderApp()
 
     expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
+    view.unmount()
+  })
+
+  it('falls back to the public canonical Studio revision for a signed-in player without a personal graphics workspace', async () => {
+    mocks.authState.status = 'signedIn'
+    mocks.authState.user = { uid: 'new-player' }
+    mocks.studioHydrate.mockResolvedValue({ status: 'missing-remote' })
+    mocks.canonicalHydrate.mockResolvedValue({ status: 'remote-applied', revision: 11 })
+
+    const view = await renderApp()
+
+    await vi.waitFor(() => expect(mocks.canonicalHydrate).toHaveBeenCalled())
+    expect(await mocks.readyGameProps.ensureStudioCloudReady(mocks.authState.user)).toBe(true)
+    expect(mocks.studioSubscribe).not.toHaveBeenCalled()
     view.unmount()
   })
 
@@ -230,6 +249,22 @@ describe('App Firebase bootstrap boundary', () => {
     // 편집기(GraphicsStudio) 대신 Google 로그인 부트스트랩이 떠야 한다 — 미로그인 Apply 실패 방지.
     expect(view.container.querySelector('[data-testid="graphics-studio"]')).toBe(null)
     expect(view.container.textContent).toContain('Google 로그인')
+    view.unmount()
+  })
+
+  it('keeps the graphics studio route blocked when the signed-in account has no personal graphics workspace', async () => {
+    window.history.replaceState({}, '', '/graphics-studio')
+    mocks.authState.status = 'signedIn'
+    mocks.authState.user = { uid: 'new-player' }
+    mocks.studioHydrate.mockResolvedValue({ status: 'missing-remote' })
+    mocks.canonicalHydrate.mockResolvedValue({ status: 'remote-applied', revision: 11 })
+
+    const view = await renderApp()
+    await act(async () => { await Promise.resolve(); await Promise.resolve() })
+
+    expect(view.container.querySelector('[data-testid="graphics-studio"]')).toBe(null)
+    expect(view.container.textContent).toContain('Firebase Studio 데이터를 불러오지 못했습니다')
+    expect(mocks.canonicalHydrate).not.toHaveBeenCalled()
     view.unmount()
   })
 

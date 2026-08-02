@@ -45,6 +45,7 @@ export default function App() {
     () => isFirebaseStudioRuntimeReady() ? 'remote-applied' : 'idle',
   )
   const hydratedUidRef = useRef('')
+  const studioRuntimeSourceRef = useRef(isFirebaseStudioRuntimeReady() ? 'unknown' : 'none')
   const hydrationRef = useRef(null)
 
   useEffect(() => {
@@ -58,6 +59,7 @@ export default function App() {
     if (isE2EAuthBypass()) {
       setFirebaseStudioUser(null)
       hydratedUidRef.current = ''
+      studioRuntimeSourceRef.current = 'none'
       hydrationRef.current = null
       if (typeof window !== 'undefined' && window.location.pathname.startsWith('/graphics-studio')) {
         setStudioCloudStatus('unauthenticated')
@@ -66,6 +68,7 @@ export default function App() {
       setStudioCloudStatus('loading')
       const result = await hydrateCanonicalTitlePlayer({}).catch(() => ({ status: 'read-failed' }))
       const ready = result?.status === 'remote-applied'
+      studioRuntimeSourceRef.current = ready ? 'canonical' : 'none'
       setStudioCloudStatus(result?.status ?? 'read-failed')
       return ready
     }
@@ -73,24 +76,51 @@ export default function App() {
     if (!uid) {
       setFirebaseStudioUser(null)
       hydratedUidRef.current = ''
+      studioRuntimeSourceRef.current = 'none'
       hydrationRef.current = null
       setStudioCloudStatus('unauthenticated')
       return false
     }
+    const isGraphicsStudioRouteNow = typeof window !== 'undefined'
+      && window.location.pathname.startsWith('/graphics-studio')
     if (hydratedUidRef.current === uid && isFirebaseStudioRuntimeReady()) return true
+    if (!isGraphicsStudioRouteNow && studioRuntimeSourceRef.current === 'canonical' && isFirebaseStudioRuntimeReady()) {
+      setStudioCloudStatus('remote-applied')
+      return true
+    }
     if (hydrationRef.current?.uid === uid) return hydrationRef.current.promise
 
     setFirebaseStudioUser(user)
     setStudioCloudStatus('loading')
     const promise = hydrateFirebaseStudio({ user })
-      .then((result) => {
+      .then(async (result) => {
         const ready = result?.status === 'remote-applied'
-        hydratedUidRef.current = ready ? uid : ''
+        if (ready) {
+          hydratedUidRef.current = uid
+          studioRuntimeSourceRef.current = 'user'
+          setStudioCloudStatus('remote-applied')
+          return true
+        }
+        hydratedUidRef.current = ''
+
+        if (!isGraphicsStudioRouteNow && result?.status === 'missing-remote') {
+          if (studioRuntimeSourceRef.current === 'canonical' && isFirebaseStudioRuntimeReady()) {
+            setStudioCloudStatus('remote-applied')
+            return true
+          }
+          const canonical = await hydrateCanonicalTitlePlayer({}).catch(() => ({ status: 'read-failed' }))
+          const canonicalReady = canonical?.status === 'remote-applied'
+          studioRuntimeSourceRef.current = canonicalReady ? 'canonical' : 'none'
+          setStudioCloudStatus(canonicalReady ? 'remote-applied' : (canonical?.status ?? 'read-failed'))
+          return canonicalReady
+        }
+        studioRuntimeSourceRef.current = 'none'
         setStudioCloudStatus(result?.status ?? 'read-failed')
-        return ready
+        return false
       })
       .catch(() => {
         hydratedUidRef.current = ''
+        studioRuntimeSourceRef.current = 'none'
         setStudioCloudStatus('read-failed')
         return false
       })
@@ -109,6 +139,7 @@ export default function App() {
     hydratedUidRef.current = ''
     hydrationRef.current = null
     const result = await hydrateCanonicalTitlePlayer({}).catch(() => ({ status: 'read-failed' }))
+    studioRuntimeSourceRef.current = result?.status === 'remote-applied' ? 'canonical' : 'none'
     setStudioCloudStatus(result?.status === 'remote-applied'
       ? 'remote-applied'
       : (result?.status ?? 'unauthenticated'))
@@ -147,6 +178,8 @@ export default function App() {
       || !authUser?.uid
       || studioCloudStatus !== 'remote-applied'
       || !isFirebaseStudioRuntimeReady()
+      || studioRuntimeSourceRef.current !== 'user'
+      || hydratedUidRef.current !== authUser.uid
     ) return undefined
 
     let cancelled = false
