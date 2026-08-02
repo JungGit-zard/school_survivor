@@ -8,11 +8,17 @@ export const QUEST_DEFINITIONS = Object.freeze([
     item: {
       id: 'talk-book',
       name: '말빨기술책',
-      description: '표지부터 말이 많은 분홍색 기술책.',
-      visualKind: 'book',
+      description: '표지부터 말이 많은 붉은색 기술책.',
+      visualKind: 'red-book',
     },
     giver: { placementId: 'stage1-student-west-01', name: '말이 막힌 학생' },
-    itemTarget: { placementId: 'stage1-desk-ne-01', type: 'classroomDesk' },
+    itemTarget: {
+      placementId: 'stage1-desk-mid-02',
+      type: 'classroomDesk',
+      // The book sits near the desk's reachable front edge. This is in desk
+      // local space so Studio placement yaw and scale keep it on the tabletop.
+      surface: { localPosition: [0.54, 0.89, 0.24] },
+    },
     completion: { kind: 'return', placementId: 'stage1-student-west-01', name: '말이 막힌 학생' },
     completionLine: '좋아… 이제 말할 수 있어. 다들 내 말 듣고 침착하게 나가자!',
     rewardGold: 2,

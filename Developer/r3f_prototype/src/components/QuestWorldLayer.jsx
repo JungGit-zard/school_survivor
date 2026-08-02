@@ -11,8 +11,9 @@ import { getStageObjectPlacements } from './StageObjects/stageObjectPlacements.j
 
 export const QUEST_ITEM_INTERACTION_RADIUS = 0.82
 
-const QUEST_ITEM_STYLE = Object.freeze({
+export const QUEST_ITEM_STYLE = Object.freeze({
   book: { color: 0xe85c9b, shape: 'book' },
+  'red-book': { color: 0xc92f38, shape: 'red-book' },
   'attendance-sheet': { color: 0xf1e0ae, shape: 'sheet' },
   bandage: { color: 0xf4f0de, shape: 'bandage' },
   key: { color: 0xd6af43, shape: 'key' },
@@ -24,6 +25,29 @@ const QUEST_ITEM_STYLE = Object.freeze({
 
 function targetTypes(target = {}) {
   return [target.type, ...(target.fallbackTypes ?? [])].filter(Boolean)
+}
+
+function getPlacementRotationY(placement = {}) {
+  return Array.isArray(placement.rotation) ? placement.rotation[1] ?? 0 : placement.rotation ?? 0
+}
+
+function getPlacementScale(placement = {}) {
+  return Array.isArray(placement.scale) ? placement.scale : [placement.scale ?? 1, placement.scale ?? 1, placement.scale ?? 1]
+}
+
+export function getQuestSurfacePosition(placement, localPosition) {
+  const [scaleX, scaleY, scaleZ] = getPlacementScale(placement)
+  const [localX, localY, localZ] = localPosition
+  const yaw = getPlacementRotationY(placement)
+  const scaledX = localX * scaleX
+  const scaledZ = localZ * scaleZ
+  const [x, y = 0, z] = placement.position
+
+  return [
+    x + scaledX * Math.cos(yaw) + scaledZ * Math.sin(yaw),
+    y + localY * scaleY,
+    z - scaledX * Math.sin(yaw) + scaledZ * Math.cos(yaw),
+  ]
 }
 
 // placementId is authoritative. Type fallbacks keep authored quests usable when
@@ -75,6 +99,14 @@ export function getQuestTargetPosition(stageId, questId, target, placements = []
   }
 
   const [x, y = 0, z] = placement.position
+  if (target?.surface?.localPosition) {
+    return {
+      position: getQuestSurfacePosition(placement, target.surface.localPosition),
+      rotationY: getPlacementRotationY(placement),
+      sourceId: placement.id,
+      placement,
+    }
+  }
   const footprint = getStageObjectFootprint(placement)
   if (!footprint) {
     return {
@@ -164,31 +196,77 @@ function QuestItemModel({ visualKind }) {
       <mesh>{material}<boxGeometry args={[0.1, 0.62, 0.1]} /></mesh>
     </group>
   }
+  if (style.shape === 'red-book') {
+    return <group>
+      <mesh position={[0, -0.045, 0]}>
+        <boxGeometry args={[0.54, 0.035, 0.4]} />
+        <meshStandardMaterial color={0x8e1722} roughness={0.46} />
+      </mesh>
+      <mesh>
+        <boxGeometry args={[0.5, 0.085, 0.36]} />
+        <meshStandardMaterial color={0xf3dfb2} roughness={0.58} />
+      </mesh>
+      <mesh position={[0, 0.06, 0]}>
+        <boxGeometry args={[0.54, 0.035, 0.4]} />
+        <meshStandardMaterial color={style.color} roughness={0.38} metalness={0.06} />
+      </mesh>
+      <mesh position={[-0.255, 0.008, 0]}>
+        <boxGeometry args={[0.035, 0.125, 0.4]} />
+        <meshStandardMaterial color={0x70101a} roughness={0.42} />
+      </mesh>
+    </group>
+  }
   return <mesh>{material}<boxGeometry args={[0.62, 0.18, 0.46]} /></mesh>
 }
 
-function QuestItemMarker({ position, visualKind }) {
+function QuestItemMarker({ position, visualKind, rotationY = 0, resting = false }) {
   const groupRef = useRef(null)
+  const markerRef = useRef(null)
   const baseY = position[1]
 
   useFrame(({ clock }, delta) => {
+    if (resting) {
+      if (!markerRef.current) return
+      const elapsed = clock.getElapsedTime()
+      markerRef.current.position.y = Math.sin(elapsed * 2.4) * 0.06
+      markerRef.current.rotation.y += delta * 0.72
+      return
+    }
     if (!groupRef.current) return
     const elapsed = clock.getElapsedTime()
     groupRef.current.position.y = baseY + Math.sin(elapsed * 2.4) * 0.09
     groupRef.current.rotation.y += delta * 0.72
   })
 
+  if (!resting) {
+    return (
+      <group ref={groupRef} position={position}>
+        <QuestItemModel visualKind={visualKind} />
+        <mesh position={[0, -0.16, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.38, 0.45, 16]} />
+          <meshBasicMaterial color={0x21162e} side={THREE.DoubleSide} />
+        </mesh>
+        <mesh position={[0, 0.62, 0]}>
+          <octahedronGeometry args={[0.09, 0]} />
+          <meshBasicMaterial color={0xfff1a8} />
+        </mesh>
+      </group>
+    )
+  }
+
   return (
-    <group ref={groupRef} position={position}>
-      <QuestItemModel visualKind={visualKind} />
-      <mesh position={[0, -0.16, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.38, 0.45, 16]} />
-        <meshBasicMaterial color={0x21162e} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh position={[0, 0.62, 0]}>
-        <octahedronGeometry args={[0.09, 0]} />
-        <meshBasicMaterial color={0xfff1a8} />
-      </mesh>
+    <group position={position}>
+      <group rotation={[0, rotationY, 0]}><QuestItemModel visualKind={visualKind} /></group>
+      <group ref={markerRef}>
+        <mesh position={[0, 0.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.31, 0.37, 16]} />
+          <meshBasicMaterial color={0x21162e} side={THREE.DoubleSide} />
+        </mesh>
+        <mesh position={[0, 0.42, 0]}>
+          <octahedronGeometry args={[0.09, 0]} />
+          <meshBasicMaterial color={0xfff1a8} />
+        </mesh>
+      </group>
     </group>
   )
 }
@@ -255,7 +333,13 @@ export default function QuestWorldLayer({ stageId }) {
       {itemTargets.map(({ quest, target }) => {
         const progress = questProgress?.[quest.id]
         if (progress?.status !== 'active') return null
-        return <QuestItemMarker key={quest.id} position={target.position} visualKind={quest.item.visualKind} />
+        return <QuestItemMarker
+          key={quest.id}
+          position={target.position}
+          rotationY={target.rotationY}
+          resting={Boolean(quest.itemTarget.surface)}
+          visualKind={quest.item.visualKind}
+        />
       })}
     </group>
   )

@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   getQuestFallbackPosition,
+  getQuestSurfacePosition,
   getQuestTargetPosition,
   getQuestWorldInteraction,
   isQuestInteractionInRange,
   markQuestActionHandled,
+  QUEST_ITEM_STYLE,
   resolveQuestTargetPlacement,
 } from './QuestWorldLayer.jsx'
 import {
@@ -53,6 +55,27 @@ describe('quest world placement resolution', () => {
     expect(copy).toBeDefined()
     expect(resolveQuestTargetPlacement(quest.completion, placements)).toBe(copy)
     expect(getQuestTargetPosition('stage2', quest.id, quest.completion, placements).sourceId).toBe(copy.id)
+  })
+
+  it('keeps the speech book on the reachable surface of the designated middle desk', () => {
+    const quest = getStageQuestDefinitions('stage1').find(({ id }) => id === 'stage1-talk-book')
+    const desk = getStageObjectPlacements('stage1').find(({ id }) => id === 'stage1-desk-mid-02')
+    const target = getQuestTargetPosition('stage1', quest.id, quest.itemTarget, [desk])
+
+    expect(target.sourceId).toBe('stage1-desk-mid-02')
+    expect(target.position).toEqual(getQuestSurfacePosition(desk, [0.54, 0.89, 0.24]))
+    expect(target.position[1]).toBeGreaterThan(0.7)
+    expect(target.rotationY).toBe(desk.rotation[1])
+  })
+
+  it('transforms surface targets by the placement yaw and scale', () => {
+    const placement = { id: 'desk', position: [10, 1, 20], rotation: [0, Math.PI / 2, 0], scale: [2, 3, 4] }
+
+    expect(getQuestSurfacePosition(placement, [1, 2, 3])).toEqual([22, 7, 18])
+  })
+
+  it('uses the layered red-book visual specification for the speech book', () => {
+    expect(QUEST_ITEM_STYLE['red-book']).toEqual({ color: 0xc92f38, shape: 'red-book' })
   })
 
   it('uses type and fallback types when an exact Firebase placement is absent', () => {

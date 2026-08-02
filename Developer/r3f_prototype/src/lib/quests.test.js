@@ -73,4 +73,14 @@ describe('stage quest definitions', () => {
       expect(quest.rewardGold).toBe(2)
     }
   })
+
+  it('places the Stage 1 speech book on the designated middle desk as a red book', () => {
+    const talkBook = getQuestDefinition('stage1-talk-book')
+
+    expect(talkBook.item.visualKind).toBe('red-book')
+    expect(talkBook.itemTarget).toMatchObject({
+      placementId: 'stage1-desk-mid-02',
+      surface: { localPosition: [0.54, 0.89, 0.24] },
+    })
+  })
 })
