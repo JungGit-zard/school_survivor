@@ -60,35 +60,36 @@ describe('findStudentInRange', () => {
   })
 })
 
-describe('스테이지 2 공용 조사 대상', () => {
-  it('학생과 스테이지 2의 모든 소품을 조사 대상으로 포함한다', () => {
-    const targets = getInvestigationTargets('stage2')
-    const propPlacements = getStageObjectPlacements('stage2')
-      .filter(({ type }) => type !== 'unconsciousStudent')
+describe('전 스테이지 공용 조사 대상', () => {
+  it('네 스테이지의 실제 배치를 빠짐없이 조사 대상으로 포함한다', () => {
+    for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
+      const placements = getStageObjectPlacements(stageId)
+      const targets = getInvestigationTargets(stageId)
 
-    expect(targets.some(({ subjectType }) => subjectType === 'student')).toBe(true)
-    expect(targets.some(({ subjectType }) => subjectType === 'locker')).toBe(true)
-    expect(targets.some(({ subjectType }) => subjectType === 'bulletinBoard')).toBe(true)
-    expect(targets.some(({ subjectType }) => subjectType === 'janitorCart')).toBe(true)
-    expect(targets.some(({ subjectType }) => subjectType === 'desk')).toBe(true)
-    expect(propPlacements.every(({ id }) => targets.some((target) => target.id === id))).toBe(true)
-  })
-
-  it('모든 스테이지 2 소품에 이름·재치 있는 조사문·접촉 판정 크기를 제공한다', () => {
-    const propTargets = getInvestigationTargets('stage2')
-      .filter(({ subjectType }) => subjectType !== 'student')
-
-    for (const target of propTargets) {
-      expect(target.subjectName.length).toBeGreaterThan(0)
-      expect(target.line.length).toBeGreaterThan(15)
-      expect(target.halfX).toBeGreaterThan(0)
-      expect(target.halfZ).toBeGreaterThan(0)
+      expect(targets.map(({ id }) => id)).toEqual(placements.map(({ id }) => id))
     }
-    expect(new Set(propTargets.map(({ line }) => line)).size).toBeGreaterThanOrEqual(8)
   })
 
-  it('다른 스테이지에서는 사물함·불레틴보드를 추가하지 않는다', () => {
-    expect(getInvestigationTargets('stage1').every(({ subjectType }) => subjectType === 'student')).toBe(true)
+  it('모든 조사 대상에 이름·충분한 1인칭 조사문·대상별 접촉 정보를 제공한다', () => {
+    for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
+      for (const target of getInvestigationTargets(stageId)) {
+        expect(target.subjectName.length).toBeGreaterThan(0)
+        expect(target.line.length).toBeGreaterThan(20)
+        if (target.subjectType === 'student') {
+          expect(target.radius).toBe(STUDENT_DIALOGUE_RADIUS)
+        } else {
+          expect(target.halfX).toBeGreaterThan(0)
+          expect(target.halfZ).toBeGreaterThan(0)
+        }
+      }
+    }
+  })
+
+  it('스테이지별 조사문은 교실·복도·체육관·급식실의 분위기를 담는다', () => {
+    expect(getInvestigationTargets('stage1').map(({ line }) => line).join(' ')).toMatch(/책상|의자|교복|선생님/)
+    expect(getInvestigationTargets('stage2').map(({ line }) => line).join(' ')).toMatch(/사물함|복도|청소|시간표/)
+    expect(getInvestigationTargets('stage3').map(({ line }) => line).join(' ')).toMatch(/농구|체육|골대|체육관/)
+    expect(getInvestigationTargets('stage4').map(({ line }) => line).join(' ')).toMatch(/급식|조리|주방|쟁반/)
   })
 
   it('물체는 콜라이더 표면에 닿아야(접촉 margin 이내) 조사되고, 멀리서는 발동하지 않는다', () => {
@@ -108,7 +109,7 @@ describe('스테이지 2 공용 조사 대상', () => {
     expect(locker.halfZ).toBeGreaterThan(0)
     expect(locker.radius).toBeUndefined() // 더 이상 원형 반경 아님
   })
-  it('makes every valid non-student Firebase override investigable only on Stage 2', () => {
+  it('makes every valid non-student Firebase override investigable on every stage', () => {
     const props = STAGE_PROP_PALETTE
       .filter(({ type }) => type !== 'unconsciousStudent')
       .map(({ type }, index) => ({
@@ -134,7 +135,9 @@ describe('스테이지 2 공용 조사 대상', () => {
     expect(targets.some(({ id }) => id === 'override-basketballHoop')).toBe(true)
     expect(targets.some(({ id }) => id === 'override-kitchenPrepTable')).toBe(true)
     expect(targets.some(({ id }) => id === 'override-kitchenClutter')).toBe(true)
-    expect(getInvestigationTargets('stage1')).toEqual([])
+    expect(getInvestigationTargets('stage1').map(({ id }) => id)).toEqual(
+      getStageObjectPlacements('stage1').map(({ id }) => id),
+    )
   })
 })
 

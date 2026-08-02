@@ -3,7 +3,6 @@ import { useGameStore } from '../store/useGameStore.js'
 import { usePlayingFrame } from '../lib/usePlayingFrame.js'
 import { playerPos } from '../lib/refs.js'
 import { getInvestigationTargets, findInvestigationTargetInRange } from '../lib/studentProximity.js'
-import { pickStudentLine } from '../lib/studentDialogueLines.js'
 import { rollInvestigationReward } from '../lib/studentSearchRewards.js'
 import { getStageQuestDefinitions } from '../lib/quests.js'
 
@@ -24,8 +23,8 @@ export function findQuestByGiverPlacementId(quests, placementId) {
   )) ?? null
 }
 
-// 조사 대상 근접 감지기(비주얼 없음). 쓰러진 학생과 스테이지 2의
-// 모든 배치 소품은 각각 런당 1회만 조사할 수 있다.
+// 조사 대상 근접 감지기(비주얼 없음). 모든 스테이지의 학생·소품은
+// 각각 런당 1회만 조사할 수 있으며, 생성된 대상은 항상 조사문을 가진다.
 export default function StudentDialogueTrigger() {
   const currentStageId = useGameStore((s) => s.currentStageId)
   const gameKey = useGameStore((s) => s.gameKey)
@@ -69,7 +68,7 @@ export default function StudentDialogueTrigger() {
     }
     talkedRef.current.add(target.id)
     openStudentDialogue(
-      target.line ?? pickStudentLine(),
+      target.line,
       rollInvestigationReward(target.subjectType),
       { subjectType: target.subjectType, subjectName: target.subjectName },
     )
