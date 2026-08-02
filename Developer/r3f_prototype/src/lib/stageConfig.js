@@ -4,21 +4,34 @@ import { getAdminBalanceConfig } from './adminConfig.js'
 export const DEFAULT_STAGE_ID = 'stage1'
 
 export const STAGE_DURATION_SEC = 240
+export const BOSS_SPAWN_CENTER_SEC = 180
+export const BOSS_SPAWN_JITTER_SEC = 10
+export const ESCAPE_PORTAL_OPEN_SEC = 210
+export const MATILDA_SPAWN_SEC = 300
+export const MATILDA_WARNING_SEC = MATILDA_SPAWN_SEC - 5
+
+export function rollBossSpawnSec(random = Math.random) {
+  const roll = Number(random())
+  if (!Number.isFinite(roll)) return BOSS_SPAWN_CENTER_SEC
+  const normalized = Math.min(1, Math.max(0, roll))
+  return BOSS_SPAWN_CENTER_SEC - BOSS_SPAWN_JITTER_SEC
+    + Math.min(BOSS_SPAWN_JITTER_SEC * 2, Math.floor(normalized * (BOSS_SPAWN_JITTER_SEC * 2 + 1)))
+}
 
 export const STAGE_CONFIGS = {
   stage1: {
     id: 'stage1',
     label: 'Stage 1',
     title: '교실 생존',
-    description: '감염된 교실에서 240초 동안 버티기',
+    description: '3분 30초 후 열린 탈출구로 탈출하기',
     durationSec: STAGE_DURATION_SEC,
     clearRecordKey: 'stage1Clears',
     bestRecordKey: 'bestSurvivalSeconds',
-    bossWarningSec: 186,
+    bossWarningSec: BOSS_SPAWN_CENTER_SEC,
     bossType: 'B01',
-    escapePortalSec: 240,
-    matildaWarningSec: 170,
-    matildaSec: 180,
+    escapePortalSec: ESCAPE_PORTAL_OPEN_SEC,
+    matildaWarningSec: MATILDA_WARNING_SEC,
+    matildaSec: MATILDA_SPAWN_SEC,
     // 맵 경계(월드 유닛, 중심 0). 교실 구도에 맞춰 세로로 긴 직사각형 — 화면 세로=Z, 가로=X.
     mapHalfX: 10,
     mapHalfZ: 14.4,
@@ -33,16 +46,16 @@ export const STAGE_CONFIGS = {
     id: 'stage2',
     label: 'Stage 2',
     title: '복도 투사체 시험',
-    description: '복도에서 탄환을 피하며 240초 생존',
+    description: '3분 30초 후 열린 탈출구로 탈출하기',
     durationSec: STAGE_DURATION_SEC,
     clearRecordKey: 'stage2Clears',
     bestRecordKey: 'stage2BestSurvivalSec',
-    bossWarningSec: 120,
+    bossWarningSec: BOSS_SPAWN_CENTER_SEC,
     bossType: 'B02',
     e04IntroSec: 72,
-    escapePortalSec: 240,
-    matildaWarningSec: 170,
-    matildaSec: 180,
+    escapePortalSec: ESCAPE_PORTAL_OPEN_SEC,
+    matildaWarningSec: MATILDA_WARNING_SEC,
+    matildaSec: MATILDA_SPAWN_SEC,
     // 복도형: 벽/바닥/포탈/이동경계 모두 이 값에서 파생.
     mapHalfX: 7.5,
     mapHalfZ: 19.2,
@@ -57,19 +70,18 @@ export const STAGE_CONFIGS = {
     id: 'stage3',
     label: 'Stage 3',
     title: '체육관 총력전',
-    description: '사방에서 몰려오는 혼돈 속 240초 생존',
+    description: '3분 30초 후 열린 탈출구로 탈출하기',
     durationSec: STAGE_DURATION_SEC,
     clearRecordKey: 'stage3Clears',
     bestRecordKey: 'stage3BestSurvivalSec',
-    // 보스 = 체육교사 B03 단일(135). 경고는 등장 6초 전. 로비 카드와 실제 전투 일치(2026-07-21).
-    bossWarningSec: 129,
+    // 보스 = 체육교사 B03 단일. 실제 등장 시각은 런 시작 시 170~190초로 결정된다.
+    bossWarningSec: BOSS_SPAWN_CENTER_SEC,
     bossType: 'B03',
     // 원거리 조기 등장(HUD 튜토 힌트용, 스2는 72). 실제 발사 게이트는 Enemy.jsx 소관.
     e04IntroSec: 34,
-    escapePortalSec: 240,
-    // 마틸다를 220s로 늦춰 보스(135)와의 겹침 창을 축소(balanceqa 권고).
-    matildaWarningSec: 210,
-    matildaSec: 220,
+    escapePortalSec: ESCAPE_PORTAL_OPEN_SEC,
+    matildaWarningSec: MATILDA_WARNING_SEC,
+    matildaSec: MATILDA_SPAWN_SEC,
     // 체육관 아레나. 맵 경계를 stage2와 동일하게 맞춘다(2026-07-23 사용자 지시): halfX 6→7.5, halfZ 18→19.2.
     // 잡몹 총 HP +10% 개편의 밀도 배율(×1.23)이 좁은 폭에 몰리던 R1 리스크를 폭 확장으로 근본 해소.
     mapHalfX: 7.5,
@@ -85,18 +97,18 @@ export const STAGE_CONFIGS = {
     id: 'stage4',
     label: 'Stage 4',
     title: '급식실 대탈출',
-    description: '주방장 좀비가 지키는 급식실에서 240초 동안 버티기',
+    description: '3분 30초 후 열린 탈출구로 탈출하기',
     durationSec: STAGE_DURATION_SEC,
     clearRecordKey: 'stage4Clears',
     bestRecordKey: 'stage4BestSurvivalSec',
     bossType: 'B04',
-    // 단일 보스 B04(주방장). 경고는 등장 6초 전.
-    bossWarningSec: 134,
+    // 단일 보스 B04(주방장). 실제 등장 시각은 런 시작 시 170~190초로 결정된다.
+    bossWarningSec: BOSS_SPAWN_CENTER_SEC,
     // 원거리 E04 조기 도입/발사 게이트(스4 시그니처 "안전지대 소멸"). 실제 발사 게이트도 이 값(Enemy.jsx).
     e04IntroSec: 18,
-    escapePortalSec: 240,
-    matildaWarningSec: 205,
-    matildaSec: 215,
+    escapePortalSec: ESCAPE_PORTAL_OPEN_SEC,
+    matildaWarningSec: MATILDA_WARNING_SEC,
+    matildaSec: MATILDA_SPAWN_SEC,
     // 급식실 맵 경계(월드 유닛, 중심 0).
     // 프롭 정책(2026-07-25): 대형 가구 8종(조리대·쿡라인·싱크대·냉장고·배식랙·선반카트·
     // 쓰레기통·크레이트)은 콜라이더가 있는 solid 장애물이고, 중앙 조리대 4기도 여기 포함된다.
@@ -155,7 +167,7 @@ export function getStageBounds(stageId = DEFAULT_STAGE_ID) {
 export function isStageUnlocked(stageId, records = {}) {
   if (stageId === 'stage1') return true
   if (stageId === 'stage2') {
-    return (records.stage1Clears ?? 0) >= 1 || (records.stage1Survival180Runs ?? 0) >= 3
+    return (records.stage1Clears ?? 0) >= 1
   }
   if (stageId === 'stage3') {
     return (records.stage2Clears ?? 0) >= 1

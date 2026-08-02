@@ -769,6 +769,7 @@ export default function Enemies() {
   const spawnBoss      = useGameStore((s) => s.spawnBoss)
   const matildaSpawned = useGameStore((s) => s.matildaSpawned)
   const currentStageId = useGameStore((s) => s.currentStageId)
+  const bossSpawnSec = useGameStore((s) => s.bossSpawnSec)
   const gameKey = useGameStore((s) => s.gameKey)
   const gamePhase = useGameStore((s) => s.phase)
   projectileHitRef.current = (_index, _generation, damage) => {
@@ -792,7 +793,7 @@ export default function Enemies() {
       spawnToken: stageSpawnTokenRef.current,
       bounds,
       wavePhases: getWavePhasesForStage(currentStageId),
-      burstEvents: getRuntimeBurstEventsForStage(currentStageId),
+      burstEvents: getRuntimeBurstEventsForStage(currentStageId, bossSpawnSec),
       obstacles: getStageObjectSightObstacles(currentStageId),
       stageConfig: getStageConfig(currentStageId),
       lastEnd: getWavePhasesForStage(currentStageId).at(-1)?.end ?? 0,
@@ -802,7 +803,7 @@ export default function Enemies() {
     sightTierRef.current.fill(0)
     enemySightBlocked.fill(0)
     sightFrameRef.current = 0
-  }, [currentStageId, gameKey])
+  }, [bossSpawnSec, currentStageId, gameKey])
 
   // 프레임 루프는 typed-array와 이 bounded queue만 바꾼다. React state는 다음 RAF에서 한 번만 flush한다.
   const scheduleRuntimeFlush = useCallback(() => {
@@ -1029,12 +1030,14 @@ export default function Enemies() {
   }, [currentStageId])
 
   // 마틸다 등장 대사를 읽는 동안에는 실체/AI를 만들지 않는다. 같은 run/stage가
-  // 유지된 경우에만 4.5초 뒤 한 번 스폰하며 cleanup은 reset/stage/unmount stale 스폰을 막는다.
+  // 유지된 경우에만 5초 뒤(정확히 300초) 한 번 스폰하며 cleanup은 reset/stage/unmount stale 스폰을 막는다.
   useEffect(() => {
     if (!matildaSpawned) return
+    const { matildaSec, matildaWarningSec } = getStageConfig(currentStageId)
     const entry = createMatildaEntryGrace({
       stageId: currentStageId,
       gameKey,
+      delayMs: (matildaSec - matildaWarningSec) * 1000,
     })
     matildaEntryRef.current = entry
     return () => {
@@ -1223,7 +1226,7 @@ export default function Enemies() {
     context.activeProjectileCount = enemyProjectilePool.activeCount
     context.stageId = currentStageId
     context.e04IntroSec = getE04IntroSec(currentStageId)
-    context.bossPressure = currentStageId !== 'stage4' && sec >= (stageConfig.bossWarningSec ?? 120) && sec < (stageConfig.escapePortalSec ?? 150)
+    context.bossPressure = currentStageId !== 'stage4' && sec >= bossSpawnSec && sec < (stageConfig.escapePortalSec ?? 210)
     context.obstacles = obstacles
     context.obstacleCount = obstacles.length
     enemySimulationRuntime.step(enemyPool, context)

@@ -105,7 +105,7 @@ export default function Game() {
           emitSfx({ id: 'portalAppear' })
         }
         // 스테이지 설정 시간에 마틸다 스폰
-        if (!gs.matildaSpawned && elapsedMs >= stageConfig.matildaSec * 1000) {
+        if (!gs.matildaSpawned && elapsedMs >= stageConfig.matildaWarningSec * 1000) {
           spawnMatilda()
         }
       })

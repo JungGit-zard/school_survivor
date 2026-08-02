@@ -8,18 +8,19 @@ import {
 } from './matildaEntryGrace.js'
 
 describe('Matilda dialogue entry grace', () => {
-  it('does not complete at 4.4s and completes exactly once at 4.5s of gameplay', () => {
+  it('keeps the 0.5 second safety margin after the 4.5 second HUD introduction', () => {
+    expect(MATILDA_DIALOGUE_MS).toBe(5000)
     const entry = createMatildaEntryGrace({ stageId: 'stage1', gameKey: 8 })
 
-    expect(advanceMatildaEntryGrace(entry, 4.4)).toBe(false)
-    expect(entry.remainingMs).toBeCloseTo(100, 8)
-    expect(advanceMatildaEntryGrace(entry, 0.1)).toBe(true)
+    expect(advanceMatildaEntryGrace(entry, 4.5)).toBe(false)
+    expect(entry.remainingMs).toBeCloseTo(500, 8)
+    expect(advanceMatildaEntryGrace(entry, 0.5)).toBe(true)
     expect(advanceMatildaEntryGrace(entry, 20)).toBe(false)
   })
 
-  it('completes deterministically on the 270th 60 Hz gameplay step', () => {
+  it('completes deterministically on the 300th 60 Hz gameplay step', () => {
     const entry = createMatildaEntryGrace()
-    for (let step = 0; step < 269; step += 1) {
+    for (let step = 0; step < 299; step += 1) {
       expect(advanceMatildaEntryGrace(entry, 1 / 60)).toBe(false)
     }
 
@@ -31,7 +32,7 @@ describe('Matilda dialogue entry grace', () => {
 
   it('does not consume paused or level-up wall-clock time because no gameplay step advances it', () => {
     const entry = createMatildaEntryGrace()
-    advanceMatildaEntryGrace(entry, 4.4)
+    advanceMatildaEntryGrace(entry, 4.9)
     const beforePause = entry.remainingMs
 
     // Pause/level-up: usePlayingFrame calls no callback, so the entry is untouched.

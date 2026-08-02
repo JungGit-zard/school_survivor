@@ -328,6 +328,7 @@ describe('boss entrance escort wave', () => {
 
   it('wires the boss escort and midpoint reinforcement into the spawn frame loop', () => {
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('getRuntimeBurstEventsForStage(currentStageId, bossSpawnSec)')
     // 보스 브랜치가 호위 물량을 buildWaveBatch로 함께 스폰한다.
     expect(source).toContain('bossEscortSize(cache.id, cache.wavePhases, evt.sec)')
     // 웨이브 예약 시 중간 보강 시각을 함께 예약하고, 도달 시 발화한다.
@@ -827,6 +828,7 @@ describe('pooled standard enemy runtime wiring', () => {
 
     expect(enemiesSource).toContain("import { advanceMatildaEntryGrace, canSpawnMatildaEntry, cancelMatildaEntryGrace, createMatildaEntryGrace } from '../lib/matildaEntryGrace.js'")
     expect(effectSource).toContain('createMatildaEntryGrace({')
+    expect(effectSource).toContain('delayMs: (matildaSec - matildaWarningSec) * 1000')
     expect(effectSource).toContain('cancelMatildaEntryGrace(entry)')
     expect(frameSource).toContain('advanceMatildaEntryGrace(matildaEntry, delta)')
     expect(frameSource).toContain('enqueueScheduled(SCHEDULE_MATILDA)')

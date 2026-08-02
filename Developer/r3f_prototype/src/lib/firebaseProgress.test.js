@@ -244,6 +244,30 @@ describe('firebase-only player progress runtime', () => {
     expect(getFirebaseProgressRuntimeSnapshot().progress.goldTotal).toBe(0)
   })
 
+  it('keeps the newest account runtime when an older hydrate resolves last', async () => {
+    let resolveA
+    let resolveB
+    const a = { uid: 'uid-a', displayName: 'A' }
+    const b = { uid: 'uid-b', displayName: 'B' }
+    _setFirebaseProgressClientForTests({
+      loadOrCreate: vi.fn((path) => new Promise((resolve) => {
+        if (path.includes(a.uid)) resolveA = resolve
+        else resolveB = resolve
+      })),
+      save: vi.fn(async () => {}),
+    })
+
+    const pendingA = hydrateCloudProgress(a)
+    const pendingB = hydrateCloudProgress(b)
+    await Promise.resolve()
+    resolveB(remoteSnapshot({ profile: { uid: b.uid, displayName: 'B' }, progress: { goldTotal: 22 } }))
+    await expect(pendingB).resolves.toBe(true)
+    resolveA(remoteSnapshot({ profile: { uid: a.uid, displayName: 'A' }, progress: { goldTotal: 11 } }))
+    await expect(pendingA).resolves.toBe(false)
+
+    expect(getFirebaseProgressRuntimeSnapshot()).toMatchObject({ uid: b.uid, hydrated: true, progress: { goldTotal: 22 } })
+  })
+
   it('keeps the E2E memory runtime hydrated without registering a Firebase write user', async () => {
     const e2eUser = { uid: 'e2e-local-test', displayName: 'E2E테스트' }
     const save = vi.fn(async () => {})

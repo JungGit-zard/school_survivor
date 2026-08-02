@@ -11,7 +11,7 @@ describe('HUD dialogue voice wiring', () => {
   })
 
   it('plays the distinct Matilda dialogue voice when her dialogue appears', () => {
-    expect(source).toContain("playDialogueVoice(MATILDA_DIALOGUE_LINE, 'matilda'")
+    expect(source).toContain("playDialogueVoice(matildaDialogueLine, 'matilda'")
     expect(source).toContain('delayMs: 180')
     expect(source).toContain('matildaDialogueVisible')
   })

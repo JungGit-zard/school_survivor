@@ -1,4 +1,4 @@
-export const MATILDA_DIALOGUE_MS = 4500
+export const MATILDA_DIALOGUE_MS = 5000
 const MATILDA_ENTRY_EPSILON_MS = 1e-6
 
 // This is advanced only by usePlayingFrame. A wall-clock timer would keep

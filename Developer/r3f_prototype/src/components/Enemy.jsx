@@ -568,16 +568,17 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const damagePlayer = useGameStore((s) => s.damagePlayer)
   const phase        = useGameStore((s) => s.phase)
   const currentStageId = useGameStore((s) => s.currentStageId)
+  const bossSpawnSec = useGameStore((s) => s.bossSpawnSec)
   const sightObstacles = useMemo(() => getStageObjectSightObstacles(currentStageId), [currentStageId])
   const stageCombatConfig = useMemo(() => {
     const config = getStageConfig(currentStageId)
     return {
-      bossPressureStartSec: config.bossWarningSec ?? 120,
-      bossPressureEndSec: config.escapePortalSec ?? 150,
+      bossPressureStartSec: bossSpawnSec,
+      bossPressureEndSec: config.escapePortalSec ?? 210,
       e04IntroSec: getE04IntroSec(currentStageId),
       bounds: getStageBounds(currentStageId),
     }
-  }, [currentStageId])
+  }, [bossSpawnSec, currentStageId])
   const sightBlockedRef = useRef(false)
   const nextSightCheckRef = useRef(0)
 

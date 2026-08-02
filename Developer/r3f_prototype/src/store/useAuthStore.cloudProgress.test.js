@@ -9,6 +9,7 @@ const authUser = Object.freeze({
 })
 
 let authChange = null
+const reloadPersistentProgress = vi.fn()
 const authClient = {
   configured: true,
   subscribe: vi.fn((onChange) => {
@@ -32,16 +33,17 @@ vi.mock('../lib/firebaseProgress.js', () => ({
 }))
 
 vi.mock('./useGameStore.js', () => ({
-  useGameStore: { getState: () => ({ reloadPersistentProgress: vi.fn() }) },
+  useGameStore: { getState: () => ({ reloadPersistentProgress }) },
 }))
 
 const { useAuthStore, _resetAuthStoreForTests } = await import('./useAuthStore.js')
-const { setCloudProgressUser, hydrateCloudProgress, applyCloudProgressSnapshot } = await import('../lib/firebaseProgress.js')
+const { setCloudProgressUser, hydrateCloudProgress, isFirebaseProgressHydrated, applyCloudProgressSnapshot } = await import('../lib/firebaseProgress.js')
 
 describe('useAuthStore cloud progress integration', () => {
   beforeEach(() => {
     window.history.replaceState({}, '', '/')
     vi.clearAllMocks()
+    reloadPersistentProgress.mockClear()
     authClient.signInWithGoogle.mockResolvedValue(authUser)
     authChange = null
     _resetAuthStoreForTests()
@@ -90,5 +92,28 @@ describe('useAuthStore cloud progress integration', () => {
       { keepCloudUserNull: true },
     )
     expect(setCloudProgressUser).not.toHaveBeenCalled()
+  })
+
+  it('ignores a stale account hydrate completion after the auth user switches', async () => {
+    const userA = { uid: 'uid-a' }
+    const userB = { uid: 'uid-b' }
+    let resolveA
+    let bHydrated = false
+    hydrateCloudProgress.mockImplementation((user) => new Promise((resolve) => {
+      if (user.uid === userA.uid) resolveA = resolve
+      else resolve(true)
+    }))
+    isFirebaseProgressHydrated.mockImplementation((user) => user?.uid === userB.uid && bHydrated)
+
+    await useAuthStore.getState().initializeAuth()
+    authChange(userA)
+    authChange(userB)
+    bHydrated = true
+    await vi.waitFor(() => expect(useAuthStore.getState().progressStatus).toBe('ready'))
+    resolveA(false)
+    await Promise.resolve()
+
+    expect(useAuthStore.getState()).toMatchObject({ user: userB, progressStatus: 'ready', progressError: null })
+    expect(reloadPersistentProgress).toHaveBeenCalledTimes(1)
   })
 })

@@ -6,6 +6,8 @@
 
 // 보스 버스트 타입. 등장 시각 파생의 기준 + 보스 판별 단일 소스.
 // (하드코딩 나열이 여러 파일로 번지지 않도록 isBossType 헬퍼로 통일 — Enemy/Enemies/AdminPage가 재사용한다.)
+import { BOSS_SPAWN_CENTER_SEC, BOSS_SPAWN_JITTER_SEC } from './stageConfig.js'
+
 export const BOSS_BURST_TYPES = ['B01', 'B02', 'B03', 'B04']
 export const isBossType = (type) => BOSS_BURST_TYPES.includes(type)
 export const RUN_ZOMBIE_CREW_FORMATION = 'runZombieCrew'
@@ -52,7 +54,7 @@ export const STAGE2_BURST_EVENTS = [
 // 4분 타임라인 — 스테이지3 "총력전/혼돈".
 // 보스 = 체육교사 B03 단일(135). 로비 카드 광고(체육교사)와 실제 전투를 일치시킨다.
 // (이전 더블 보스 B02/B01은 로비의 체육교사 광고와 불일치라 폐기 — 2026-07-21 사용자 지시.)
-// getBossSpawnSec=135에서 보스 구간이 파생된다.
+// 정적 원본은 135초를 유지하지만 실제 런과 보스 구간 대표값은 180초를 사용한다.
 // stage1/stage2와 달리 stage3는 형태/그룹 버스트가 런타임에 실제 발화한다(아래 getRuntimeBurstEventsForStage).
 // 설계 정본: Developer/agent_room/levelmini_stage3_wave_balance_design_2026-07-11.md §4-1.
 export const STAGE3_BURST_EVENTS = [
@@ -80,7 +82,7 @@ export const STAGE3_BURST_EVENTS = [
 
 // 4분 타임라인 — 스테이지4 "급식실 대탈출".
 // 시그니처 = 원거리 E04 "안전지대 소멸"(조기 18s + 상시 고비중, 보스 구간에도 유지).
-// 보스 = 단일 B04 주방장(경고 134/등장 140). getBossSpawnSec=140에서 보스 구간이 파생된다.
+// 보스 = 단일 B04 주방장. 정적 원본은 140초를 유지하지만 실제 런은 170~190초에 등장한다.
 // 급식실 맵은 12×16으로 스3(18×18)보다 좁아 실효 밀도가 높으므로 물량은 억제하고
 // 난이도는 마릿수가 아니라 원거리 지속 압박·보스에서 온다("마릿수로 어렵게 하지 않음").
 // 형태 버스트는 스3와 동일하게 개방 맵 안티카이팅(ring/pincer)만 사용. RZL은 스3 시그니처라 스4는 미채용.
@@ -110,10 +112,16 @@ export function getBurstEventsForStage(stageId) {
 // - stage1/stage2: 물량은 랜덤 간격 웨이브가 전담하므로 보스 등장만 버스트로 발화한다(거동 불변).
 // - stage3: 형태/그룹 버스트를 되살려 "개방 아레나 포위(ring/gauntlet)" + 조기 등장 보장 +
 //   체육교사 B03 단일 보스를 모두 발화한다(스폰 엔진이 formation/보스/그룹을 분기 처리).
-export function getRuntimeBurstEventsForStage(stageId) {
+// 보스 이벤트만 런 시작 시 결정된 170~190초 시각으로 치환한다.
+export function getRuntimeBurstEventsForStage(stageId, bossSpawnSec = null) {
   const events = getBurstEventsForStage(stageId)
-  if (stageId === 'stage3' || stageId === 'stage4') return events
-  return events.filter((event) => isBossType(event.type))
+  const runtimeEvents = stageId === 'stage3' || stageId === 'stage4'
+    ? events
+    : events.filter((event) => isBossType(event.type))
+  if (!Number.isFinite(bossSpawnSec)) return runtimeEvents
+  return runtimeEvents.map((event) => (
+    isBossType(event.type) ? { ...event, sec: bossSpawnSec } : event
+  ))
 }
 
 // 보스(B01/B02) 등장 시각 — 없으면 Infinity. 보스 구간 파생의 단일 소스.
@@ -121,7 +129,13 @@ export function getBossSpawnSec(stageId) {
   const bossSecs = getBurstEventsForStage(stageId)
     .filter((e) => isBossType(e.type))
     .map((e) => e.sec)
-  return bossSecs.length > 0 ? Math.min(...bossSecs) : Infinity
+  return bossSecs.length > 0 ? BOSS_SPAWN_CENTER_SEC : Infinity
+}
+
+export function getBossPhaseStatus(startSec) {
+  if (startSec < BOSS_SPAWN_CENTER_SEC - BOSS_SPAWN_JITTER_SEC) return 'before'
+  if (startSec < BOSS_SPAWN_CENTER_SEC + BOSS_SPAWN_JITTER_SEC) return 'variable'
+  return 'after'
 }
 
 // 웨이브 시작 시각이 보스 등장 이후면 보스 구간. (하드코딩 시간 없음 — 순수 파생)

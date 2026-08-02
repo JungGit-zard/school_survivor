@@ -89,6 +89,16 @@ describe('user ranking helpers', () => {
     })
   })
 
+  it('does not mark a 240 second local survival as cleared without an exit clear record', () => {
+    const entry = buildLocalPlayerRankingEntry({ bestSurvivalSeconds: 240, stage1Clears: 0 })
+    expect(entry).toMatchObject({ survivalSeconds: 240, cleared: false, score: 240 })
+  })
+
+  it('does not infer a cloud clear from survival time alone', () => {
+    const [entry] = createRankingRows([{ displayName: 'Long Runner', survivalSeconds: 240, stageId: 'stage1', cleared: false }], 1)
+    expect(entry).toMatchObject({ survivalSeconds: 240, cleared: false, score: 240 })
+  })
+
   it('prefers the saved Google-matched nickname for the local player ranking entry', () => {
     saveNicknameForUser({ uid: 'uid-1' }, '랭킹 생존자')
 

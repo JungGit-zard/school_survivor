@@ -117,7 +117,7 @@ function buildLocalStageEntry({ displayName, stageId, survivalSeconds, clearCoun
   const safeSurvivalSeconds = readScore(survivalSeconds)
   if (safeSurvivalSeconds <= 0) return null
 
-  const cleared = safeSurvivalSeconds >= stage.durationSec || readScore(clearCount) > 0
+  const cleared = readScore(clearCount) > 0
   return normalizeRankingEntry({
     displayName,
     stageId,
@@ -135,7 +135,7 @@ function normalizeRankingEntry(entry, policy) {
   const survivalSeconds = readScore(entry.survivalSeconds ?? entry.scoreSec ?? entry.bestSurvivalSeconds ?? Math.floor(readScore(entry.timeMs) / 1000))
   if (survivalSeconds <= 0) return null
 
-  const cleared = entry.cleared === true || survivalSeconds >= stage.durationSec
+  const cleared = entry.cleared === true
   // entry.score가 null이면 Number(null)=0 으로 isFinite를 통과해 0점 오분류된다.
   // null과 undefined 모두 명시적으로 제외해 누락된 score는 재계산 경로를 탄다.
   const score = entry.score != null && Number.isFinite(Number(entry.score))

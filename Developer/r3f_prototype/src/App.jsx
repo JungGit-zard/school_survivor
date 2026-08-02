@@ -39,6 +39,7 @@ if (typeof window !== 'undefined') {
 export default function App() {
   const authStatus = useAuthStore((state) => state.status)
   const authUser = useAuthStore((state) => state.user)
+  const progressStatus = useAuthStore((state) => state.progressStatus)
   const initializeAuth = useAuthStore((state) => state.initializeAuth)
   const [studioCloudStatus, setStudioCloudStatus] = useState(
     () => isFirebaseStudioRuntimeReady() ? 'remote-applied' : 'idle',
@@ -238,6 +239,7 @@ export default function App() {
   return (
     <ReadyGameApp
       authUser={authUser}
+      progressStatus={progressStatus}
       studioVisualsReady={studioReady}
       ensureStudioCloudReady={ensureStudioCloudReady}
     />

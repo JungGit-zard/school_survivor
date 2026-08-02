@@ -110,6 +110,7 @@ export function buildCloudProgressSnapshot(now = Date.now()) {
 
 export async function hydrateCloudProgress(user = cloudUser) {
   setCloudProgressUser(user)
+  const requestedUid = readUserId(user)
   const path = getUserProgressPath(user)
   if (!path) throw new FirebaseProgressError('Firebase progress hydrate requires an authenticated uid.', 'unauthenticated')
   if (!isFirebaseProgressConfigured()) throw new FirebaseProgressError('Firebase progress is not configured.', 'unconfigured')
@@ -117,16 +118,18 @@ export async function hydrateCloudProgress(user = cloudUser) {
   try {
     const client = await getProgressClient()
     const snapshot = await client.loadOrCreate(path, createInitialRemotePayload(user))
+    if (readUserId(cloudUser) !== requestedUid) return false
     if (!snapshot) {
-      runtime = createEmptyRuntime(readUserId(user))
+      runtime = createEmptyRuntime(requestedUid)
       throw new FirebaseProgressError(`Remote Firebase user snapshot is missing at ${path}.`, 'missing-remote')
     }
     if (!applyCloudProgressSnapshot(snapshot, user)) {
-      runtime = createEmptyRuntime(readUserId(user))
+      runtime = createEmptyRuntime(requestedUid)
       throw new FirebaseProgressError(`Remote Firebase user snapshot is invalid at ${path}.`, 'invalid-remote')
     }
     return true
   } catch (error) {
+    if (readUserId(cloudUser) !== requestedUid) return false
     if (!(error instanceof FirebaseProgressError)) {
       runtime = createEmptyRuntime()
     }

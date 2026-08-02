@@ -2,6 +2,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   DEFAULT_STAGE_ID,
+  BOSS_SPAWN_CENTER_SEC,
+  BOSS_SPAWN_JITTER_SEC,
   STAGE_CONFIGS,
   getNextStageId,
   getStageBossType,
@@ -9,6 +11,7 @@ import {
   getStageConfig,
   getStageDurationSec,
   isStageUnlocked,
+  rollBossSpawnSec,
 } from './stageConfig.js'
 import { saveAdminConfig } from './adminConfig.js'
 
@@ -40,26 +43,29 @@ describe('stage configuration registry', () => {
     expect(getStageBossType('stage2')).toBe('B02')
   })
 
-  it('uses the current boss, escape portal, and Matilda timing for each stage', () => {
-    expect(getStageConfig('stage1')).toMatchObject({
-      bossWarningSec: 186,
-      escapePortalSec: 240,
-      matildaWarningSec: 170,
-      matildaSec: 180,
-    })
-    expect(getStageConfig('stage2')).toMatchObject({
-      bossWarningSec: 120,
-      escapePortalSec: 240,
-      matildaWarningSec: 170,
-      matildaSec: 180,
-    })
+  it('opens every exit at 3:30 and spawns every Matilda at 5:00', () => {
+    for (const stageId of Object.keys(STAGE_CONFIGS)) {
+      expect(getStageConfig(stageId)).toMatchObject({
+        escapePortalSec: 210,
+        matildaWarningSec: 295,
+        matildaSec: 300,
+      })
+    }
   })
 
-  it('unlocks stage 2 after one stage 1 clear or three 180 second stage 1 runs', () => {
+  it('unlocks stage 2 only after clearing stage 1 through the exit', () => {
     expect(isStageUnlocked('stage2', {})).toBe(false)
     expect(isStageUnlocked('stage2', { stage1Clears: 1 })).toBe(true)
-    expect(isStageUnlocked('stage2', { stage1Survival180Runs: 3 })).toBe(true)
+    expect(isStageUnlocked('stage2', { stage1Survival180Runs: 3 })).toBe(false)
     expect(isStageUnlocked('stage2', { stage1Survival180Runs: 2 })).toBe(false)
+  })
+
+  it('rolls each run boss spawn once within 3:00 plus or minus 10 seconds', () => {
+    expect(BOSS_SPAWN_CENTER_SEC).toBe(180)
+    expect(BOSS_SPAWN_JITTER_SEC).toBe(10)
+    expect(rollBossSpawnSec(() => 0)).toBe(170)
+    expect(rollBossSpawnSec(() => 0.5)).toBe(180)
+    expect(rollBossSpawnSec(() => 0.999999)).toBe(190)
   })
 
   it('defines stage 3 as a 240 second gymnasium stage with the PE teacher (B03) boss', () => {
@@ -70,10 +76,9 @@ describe('stage configuration registry', () => {
       clearRecordKey: 'stage3Clears',
       bestRecordKey: 'stage3BestSurvivalSec',
       e04IntroSec: 34,
-      escapePortalSec: 240,
-      bossWarningSec: 129,
-      matildaWarningSec: 210,
-      matildaSec: 220,
+      escapePortalSec: 210,
+      matildaWarningSec: 295,
+      matildaSec: 300,
       bossType: 'B03',
     })
     // 로비 카드와 실제 전투가 일치하므로 lobbyBossType 분리는 제거됨.
@@ -97,7 +102,7 @@ describe('stage configuration registry', () => {
       id: 'stage4',
       label: 'Stage 4',
       title: '급식실 대탈출',
-      description: '주방장 좀비가 지키는 급식실에서 240초 동안 버티기',
+      description: '3분 30초 후 열린 탈출구로 탈출하기',
       clearRecordKey: 'stage4Clears',
       bestRecordKey: 'stage4BestSurvivalSec',
       bossType: 'B04',
@@ -125,11 +130,10 @@ describe('stage configuration registry', () => {
   it('wires Stage 4 cafeteria timing, bounds, and cafeteria-themed milestones', () => {
     expect(getStageConfig('stage4')).toMatchObject({
       bossType: 'B04',
-      bossWarningSec: 134,
       e04IntroSec: 18,
-      escapePortalSec: 240,
-      matildaWarningSec: 205,
-      matildaSec: 215,
+      escapePortalSec: 210,
+      matildaWarningSec: 295,
+      matildaSec: 300,
     })
     // 급식실 맵 경계 12×16(스3 18×18보다 좁음 — 밀도 억제 근거).
     expect(getStageBounds('stage4')).toMatchObject({ halfX: 14.4, halfZ: 16 })

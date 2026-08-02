@@ -468,7 +468,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
   const wasQuestInventoryOpenRef = useRef(false)
   const {
     player, weapons, phase, pauseSource,
-    elapsed, currentStageId, bossSpawned,
+    elapsed, currentStageId, bossSpawned, bossSpawnSec,
     goldSession, goldTotal, recentMilestone,
     newlyUnlockedWeaponIds, levelUpChoiceSerial,
     escapePortalActive, matildaSpawned, deathCause, bossBonus,
@@ -486,6 +486,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     elapsed:              s.elapsedMs,
     currentStageId:       s.currentStageId,
     bossSpawned:          s.bossSpawned,
+    bossSpawnSec:         s.bossSpawnSec,
     goldSession:          s.goldSession,
     goldTotal:            s.goldTotal,
     recentMilestone:      s.recentMilestone,
@@ -600,10 +601,10 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
   const bossWarning = useMemo(() => {
     if (bossSpawned || phase !== 'playing') return null
     const elapsedSec = elapsed / 1000
-    const warningSec = stageConfig.bossWarningSec ?? 240
+    const warningSec = bossSpawnSec ?? stageConfig.bossWarningSec ?? 180
     if (elapsedSec < warningSec - 3 || elapsedSec >= warningSec) return null
     return Math.max(1, Math.ceil(warningSec - elapsedSec))
-  }, [bossSpawned, elapsed, phase, stageConfig.bossWarningSec])
+  }, [bossSpawnSec, bossSpawned, elapsed, phase, stageConfig.bossWarningSec])
 
   // stage2/stage4는 e04IntroSec가 E04 실발사 게이트와 일치하므로 허위 경고가 아니다.
   // stage3은 e04IntroSec(34)이 HUD 힌트용이라 실발사(72)와 어긋나 여기서 제외한다.
@@ -637,13 +638,13 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
 
   // 마틸다 등장 전 카운트다운
   const matildaWarning = useMemo(() => {
-    if (matildaSpawned || phase !== 'playing') return null
+    if (phase !== 'playing') return null
     const elapsedSec = elapsed / 1000
     const spawnSec = stageConfig.matildaSec ?? 420
     const warnSec = Math.max(0, spawnSec - MATILDA_COUNTDOWN_SECONDS)
     if (elapsedSec < warnSec || elapsedSec >= spawnSec) return null
     return Math.max(1, Math.ceil(spawnSec - elapsedSec))
-  }, [matildaSpawned, elapsed, phase, stageConfig.matildaSec])
+  }, [elapsed, phase, stageConfig.matildaSec])
 
   // 보스/마틸다 경고 카운트가 바뀔 때마다 틱 사운드 1회
   useEffect(() => { if (bossWarning != null) emitSfx({ id: 'bossWarning', volume: 0.5 }) }, [bossWarning])

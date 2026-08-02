@@ -150,11 +150,19 @@ function syncCloudProgressUser(user) {
     return
   }
   useAuthStore.setState({ progressStatus: 'loading', progressError: null })
+  const requestedUid = user.uid
+  const isCurrentHydratedUser = () => (
+    useAuthStore.getState().user?.uid === requestedUid
+    && isFirebaseProgressHydrated(user)
+  )
   void (async () => {
     await hydrateCloudProgress(user)
+    if (!isCurrentHydratedUser()) return
     await refreshGameStoreFromStorage().catch(() => {})
+    if (!isCurrentHydratedUser()) return
     useAuthStore.setState({ progressStatus: 'ready', progressError: null })
   })().catch((error) => {
+    if (useAuthStore.getState().user?.uid !== requestedUid) return
     useAuthStore.setState({ progressStatus: 'error', progressError: getErrorMessage(error) })
     if (typeof console !== 'undefined') {
       console.warn('Firebase progress hydrate failed.', error)

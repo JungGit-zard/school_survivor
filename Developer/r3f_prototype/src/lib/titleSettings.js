@@ -2,7 +2,6 @@
 // Durable player settings live only in Firebase users/{uid}. Admin/dev config remains separate.
 import { getAllWeaponIds, isStarter } from './weaponCatalog.js'
 import { setUnlocked as setWeaponUnlocked } from './weaponUnlocks.js'
-import { incrementRecord } from './playerRecords.js'
 import { readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
 
 export const SETTINGS_STORAGE_KEY = 'school_survivor:titleSettings'
@@ -60,8 +59,5 @@ export function unlockAllNonStarterWeapons() {
 }
 
 export function unlockAllStagesForDevCheat() {
-  for (const key of ['stage1Clears', 'stage2Clears', 'stage3Clears']) {
-    incrementRecord(key, 1)
-  }
   saveTitleSettings({ unlockAllStagesCheat: true })
 }

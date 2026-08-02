@@ -79,7 +79,7 @@ describe('UserRanking', () => {
     expect(html).toContain('내 누적플레이')
     expect(html).toContain('411')
     expect(html).toContain('내 시즌최고점')
-    expect(html).toContain('826')
+    expect(html).toContain('796')
   })
 
   it('keeps the bottom back button above mobile system UI safe areas', () => {

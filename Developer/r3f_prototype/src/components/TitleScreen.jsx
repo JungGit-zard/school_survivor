@@ -441,7 +441,7 @@ export default function TitleScreen({
             </span>
           </span>
         </h1>
-        <p style={styles.subtitle}>감염된 학교에서 4분만 버티면, 교문이 열린다</p>
+        <p style={styles.subtitle}>3분 30초 후 열리는 탈출구로 탈출하라</p>
       </div>
 
       <div style={styles.actions}>

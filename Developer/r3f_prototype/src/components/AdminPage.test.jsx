@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import AdminPage from './AdminPage.jsx'
-import { loadAdminConfig, resetAdminConfig } from '../lib/adminConfig.js'
+import { loadAdminConfig, resetAdminConfig, saveAdminConfig } from '../lib/adminConfig.js'
 import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { getStageConfig } from '../lib/stageConfig.js'
 import { useGameStore } from '../store/useGameStore.js'
@@ -111,9 +111,28 @@ describe('AdminPage', () => {
     // stage2 보스(B02)는 sec 120(2:00)에 '보스 등장'으로 강조 표기
     const bossRow = rows.find((row) => row.textContent.includes('보스 등장'))
     expect(bossRow).toBeTruthy()
-    expect(bossRow.getAttribute('data-sec')).toBe('120')
-    expect(bossRow.textContent).toContain('2:00')
+    expect(bossRow.getAttribute('data-sec')).toBe('180')
+    expect(bossRow.textContent).toContain('2:50~3:10')
     expect(bossRow.textContent).toContain('보스')
+  })
+
+  it('marks the randomized boss window as mixed instead of checked', () => {
+    saveAdminConfig({
+      waveControl: {
+        stage1: [{ start: 180, end: 200, counts: { E01: 10 } }],
+      },
+    })
+    act(() => {
+      root.render(<AdminPage />)
+    })
+    const wavesTab = container.querySelectorAll('nav button')[2]
+    act(() => wavesTab.click())
+
+    const variable = container.querySelector('[data-boss-phase="variable"]')
+    expect(variable).not.toBeNull()
+    expect(variable.checked).toBe(false)
+    expect(variable.getAttribute('aria-checked')).toBe('mixed')
+    expect(variable.dataset.bossPhase).toBe('variable')
   })
 
   it('applies saved admin balance inputs to game stage and player startup config', () => {

@@ -10,7 +10,7 @@ import { getAllUnlocked, _resetForTests as resetWeaponUnlocks } from '../lib/wea
 import { purchase as purchasePassiveStorage } from '../lib/passiveUpgrades.js'
 import { getSavedNickname, saveNicknameForUser } from '../lib/userNickname.js'
 import { resetAdminConfig, saveAdminConfig } from '../lib/adminConfig.js'
-import { loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
+import { loadTitleSettings, saveTitleSettings, unlockAllStagesForDevCheat } from '../lib/titleSettings.js'
 import { _seedHydratedFirebaseProgressForTests, _resetFirebaseProgressForTests, _setFirebaseProgressClientForTests } from '../lib/firebaseProgress.js'
 import { TERMS_VERSION, PRIVACY_VERSION } from '../lib/legalDocuments.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
@@ -78,6 +78,8 @@ describe('TitleScreen lobby entry', () => {
 
     expect(container.querySelector('[data-testid="title-gameplay-guide"]')?.textContent)
       .toContain('자동 공격 · 화면을 드래그해 이동 · 레벨업 때 카드 선택')
+    expect(container.textContent).toContain('3분 30초 후 열리는 탈출구로 탈출하라')
+    expect(container.textContent).not.toContain('4분만 버티면')
     expect(container.querySelector('.title-main-action')).not.toBeNull()
     expect(container.querySelector('style[data-title-intro-css]')?.textContent).toContain('.title-main-action:focus-visible')
 
@@ -366,7 +368,7 @@ describe('TitleScreen lobby entry', () => {
     cleanup()
   })
 
-  it('unlocks every stage from the cheat modal and persists the Stage 4 entry override', () => {
+  it('persists the all-stages dev bypass without altering progression records', () => {
     const onUnlockAllStages = vi.fn()
     const { container, cleanup } = renderTitleScreen(() => {}, true, onUnlockAllStages)
 
@@ -374,13 +376,24 @@ describe('TitleScreen lobby entry', () => {
     clickButtonByText(container, '모든 스테이지 해금')
 
     const records = loadPlayerRecords()
-    expect(records.stage1Clears).toBeGreaterThanOrEqual(1)
-    expect(records.stage2Clears).toBeGreaterThanOrEqual(1)
-    expect(records.stage3Clears).toBeGreaterThanOrEqual(1)
+    expect(records.stage1Clears ?? 0).toBe(0)
+    expect(records.stage2Clears ?? 0).toBe(0)
+    expect(records.stage3Clears ?? 0).toBe(0)
     expect(loadTitleSettings().unlockAllStagesCheat).toBe(true)
     expect(onUnlockAllStages).toHaveBeenCalledTimes(1)
 
     cleanup()
+  })
+
+  it('keeps repeated all-stages dev bypass actions out of progression records', () => {
+    unlockAllStagesForDevCheat()
+    unlockAllStagesForDevCheat()
+
+    const records = loadPlayerRecords()
+    expect(records.stage1Clears ?? 0).toBe(0)
+    expect(records.stage2Clears ?? 0).toBe(0)
+    expect(records.stage3Clears ?? 0).toBe(0)
+    expect(loadTitleSettings().unlockAllStagesCheat).toBe(true)
   })
 
   it('resets coin passive levels from the visible title reset button', () => {

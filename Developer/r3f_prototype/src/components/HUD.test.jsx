@@ -475,7 +475,7 @@ describe('matilda entrance presentation', () => {
       expect(container.querySelector('[data-testid="matilda-warning"]')).toBeNull()
 
       act(() => {
-        useGameStore.setState({ elapsedMs: spawnMs - 5000 })
+        useGameStore.setState({ elapsedMs: spawnMs - 5000, matildaSpawned: true })
       })
 
       expect(container.querySelector('[data-testid="matilda-warning-count"]').textContent).toBe('5')
@@ -814,15 +814,14 @@ describe('stage4 HUD telegraphs', () => {
     expect(STAGE4_SPAWN_TELEGRAPHS.length).toBe(4)
   })
 
-  it('shows the stage4 boss warning starting 3s before bossWarningSec (134s)', () => {
-    const warningSec = getStageConfig('stage4').bossWarningSec
-    expect(warningSec).toBe(134)
-    const { container, root } = renderPlayingStage('stage4', (warningSec - 2) * 1000)
+  it('shows the boss warning 3s before the run-scoped randomized spawn second', () => {
+    const bossSpawnSec = 173
+    const { container, root } = renderPlayingStage('stage4', (bossSpawnSec - 2) * 1000, { bossSpawnSec })
     try {
       expect(container.textContent).toContain('보스 출현')
       // 스폰 시각 도달 후엔 경고를 감춘다.
       act(() => {
-        useGameStore.setState({ elapsedMs: warningSec * 1000 })
+        useGameStore.setState({ elapsedMs: bossSpawnSec * 1000 })
       })
       expect(container.textContent).not.toContain('보스 출현')
     } finally {

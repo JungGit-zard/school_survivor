@@ -70,6 +70,7 @@ describe('E2ERuntimePerformanceDiagnostics', () => {
   it('publishes exactly one completed JSON result and excludes hidden-frame intervals', () => {
     window.history.replaceState(null, '', '/?e2eperfseconds=5')
     setDocumentHidden(false) // 앞선 파일이 남긴 hidden 상태에 의존하지 않는다
+    const frameStart = performance.now()
     const callbacks = []
     vi.stubGlobal('requestAnimationFrame', vi.fn((next) => { callbacks.push(next); return callbacks.length }))
     vi.stubGlobal('cancelAnimationFrame', vi.fn())
@@ -77,15 +78,15 @@ describe('E2ERuntimePerformanceDiagnostics', () => {
     window.dispatchEvent(new CustomEvent(STAGE_ENTRY_METRIC_EVENT, {
       detail: { compileStatus: 'compiled', renderer: { calls: 4, triangles: 24, geometries: 3, textures: 5 } },
     }))
-    act(() => callbacks.shift()(0))
-    act(() => callbacks.shift()(16))
+    act(() => callbacks.shift()(frameStart))
+    act(() => callbacks.shift()(frameStart + 16))
     setDocumentHidden(true)
     act(() => document.dispatchEvent(new Event('visibilitychange')))
-    act(() => callbacks.shift()(2000))
+    act(() => callbacks.shift()(frameStart + 2000))
     setDocumentHidden(false)
     act(() => document.dispatchEvent(new Event('visibilitychange')))
     canvas.dispatchEvent(new Event('webglcontextlost'))
-    act(() => callbacks.shift()(10000))
+    act(() => callbacks.shift()(frameStart + 10000))
 
     expect(container.querySelector('[data-testid="e2e-runtime-performance-status"]').textContent).toBe('complete')
     const result = JSON.parse(container.querySelector('[data-testid="e2e-runtime-performance-json"]').textContent)

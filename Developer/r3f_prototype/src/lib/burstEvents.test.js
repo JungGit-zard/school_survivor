@@ -10,10 +10,18 @@ import {
   getBurstEventsForStage,
   getRuntimeBurstEventsForStage,
   getBossSpawnSec,
+  getBossPhaseStatus,
   isBossPhase,
 } from './burstEvents.js'
+import { BOSS_SPAWN_CENTER_SEC } from './stageConfig.js'
 
 describe('burstEvents 보스 등장 시각 파생', () => {
+  it('classifies the randomized boss window without claiming a fixed phase', () => {
+    expect(getBossPhaseStatus(169)).toBe('before')
+    expect(getBossPhaseStatus(170)).toBe('variable')
+    expect(getBossPhaseStatus(189)).toBe('variable')
+    expect(getBossPhaseStatus(190)).toBe('after')
+  })
   it('getBurstEventsForStage: stage2는 STAGE2, 그 외 stage1 기본', () => {
     expect(getBurstEventsForStage('stage2')).toBe(STAGE2_BURST_EVENTS)
     expect(getBurstEventsForStage('stage1')).toBe(BURST_EVENTS)
@@ -22,8 +30,8 @@ describe('burstEvents 보스 등장 시각 파생', () => {
 
   it('보스 등장 시각 = 보스 버스트(B01/B02) sec 단일 소스', () => {
     // stage1 B01은 3:12(192s), stage2 B02는 2:00(120s)에 정의됨
-    expect(getBossSpawnSec('stage1')).toBe(192)
-    expect(getBossSpawnSec('stage2')).toBe(120)
+    expect(getBossSpawnSec('stage1')).toBe(BOSS_SPAWN_CENTER_SEC)
+    expect(getBossSpawnSec('stage2')).toBe(BOSS_SPAWN_CENTER_SEC)
   })
 
   it('런타임 버스트는 웨이브와 중복되지 않는 보스 등장만 반환한다', () => {
@@ -35,6 +43,15 @@ describe('burstEvents 보스 등장 시각 파생', () => {
     ])
   })
 
+  it('applies the run-scoped randomized boss second to every stage runtime schedule', () => {
+    for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
+      const runtime = getRuntimeBurstEventsForStage(stageId, 173)
+      const bosses = runtime.filter((event) => isBossType(event.type))
+      expect(bosses).toHaveLength(1)
+      expect(bosses[0].sec).toBe(173)
+    }
+  })
+
   it('보스 버스트가 없는 스테이지는 Infinity (보스 구간 없음)', () => {
     // 존재하지 않는 스테이지는 stage1 기본으로 폴백되지만, 보스 없는 목록을 가정한 경계 확인
     const noBoss = [{ sec: 0, type: 'E01', count: 5 }]
@@ -43,11 +60,10 @@ describe('burstEvents 보스 등장 시각 파생', () => {
   })
 
   it('isBossPhase: 시작 시각이 보스 등장 이후면 true (경계 포함)', () => {
-    expect(isBossPhase(120, 'stage2')).toBe(true)
-    expect(isBossPhase(119, 'stage2')).toBe(false)
-    expect(isBossPhase(192, 'stage2')).toBe(true)
-    expect(isBossPhase(192, 'stage1')).toBe(true)
-    expect(isBossPhase(191, 'stage1')).toBe(false)
+    expect(isBossPhase(180, 'stage2')).toBe(true)
+    expect(isBossPhase(179, 'stage2')).toBe(false)
+    expect(isBossPhase(180, 'stage1')).toBe(true)
+    expect(isBossPhase(179, 'stage1')).toBe(false)
   })
 })
 
@@ -61,13 +77,13 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
     expect(bosses).toEqual([
       { sec: 135, type: 'B03', count: 1 },
     ])
-    expect(getBossSpawnSec('stage3')).toBe(135)
+    expect(getBossSpawnSec('stage3')).toBe(BOSS_SPAWN_CENTER_SEC)
   })
 
   it('isBossPhase(stage3): 135 이후 시작 phase만 보스 구간', () => {
-    expect(isBossPhase(135, 'stage3')).toBe(true)
-    expect(isBossPhase(134, 'stage3')).toBe(false)
-    expect(isBossPhase(150, 'stage3')).toBe(true)
+    expect(isBossPhase(180, 'stage3')).toBe(true)
+    expect(isBossPhase(179, 'stage3')).toBe(false)
+    expect(isBossPhase(150, 'stage3')).toBe(false)
   })
 
   it('런타임 버스트: stage3는 보스 외 형태/그룹까지 모두 발화 대상(stage1/2는 보스만 불변)', () => {
@@ -118,13 +134,13 @@ describe('stage4 급식실 대탈출 버스트', () => {
   it('보스 B04@140 count 1 — 보스 등장 시각은 140', () => {
     const bosses = STAGE4_BURST_EVENTS.filter((e) => isBossType(e.type))
     expect(bosses).toEqual([{ sec: 140, type: 'B04', count: 1 }])
-    expect(getBossSpawnSec('stage4')).toBe(140)
+    expect(getBossSpawnSec('stage4')).toBe(BOSS_SPAWN_CENTER_SEC)
   })
 
   it('isBossPhase(stage4): 140 이후 시작 phase만 보스 구간(경계 포함)', () => {
-    expect(isBossPhase(140, 'stage4')).toBe(true)
-    expect(isBossPhase(139, 'stage4')).toBe(false)
-    expect(isBossPhase(178, 'stage4')).toBe(true)
+    expect(isBossPhase(180, 'stage4')).toBe(true)
+    expect(isBossPhase(179, 'stage4')).toBe(false)
+    expect(isBossPhase(178, 'stage4')).toBe(false)
   })
 
   it('조기 등장 보장 버스트: E04@18·E05@30·E06@74', () => {

@@ -7,7 +7,8 @@ import {
   saveAdminConfig,
 } from '../lib/adminConfig.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
-import { getRuntimeBurstEventsForStage, isBossPhase, isBossType } from '../lib/burstEvents.js'
+import { getBossPhaseStatus, getRuntimeBurstEventsForStage, isBossType } from '../lib/burstEvents.js'
+import { BOSS_SPAWN_CENTER_SEC, BOSS_SPAWN_JITTER_SEC } from '../lib/stageConfig.js'
 import {
   WAVE_ZOMBIE_TYPES,
   phaseToEditorEntry,
@@ -335,7 +336,7 @@ function WaveControls({ draft, ensureWaveEntries, updateWaveEntry, updateWaveCou
 // 그대로 읽어 시각순 렌더. 복제/수기 입력 없음 — 코드가 바뀌면 여기 자동 반영.
 function BurstSpawnSection({ stageId }) {
   const events = useMemo(
-    () => [...getRuntimeBurstEventsForStage(stageId)].sort((a, b) => a.sec - b.sec),
+    () => [...getRuntimeBurstEventsForStage(stageId, BOSS_SPAWN_CENTER_SEC)].sort((a, b) => a.sec - b.sec),
     [stageId],
   )
 
@@ -355,7 +356,7 @@ function BurstSpawnSection({ stageId }) {
               data-sec={event.sec}
               style={styles.burstRow(boss)}
             >
-              <span style={styles.burstTime}>{formatMinSec(event.sec)}</span>
+              <span style={styles.burstTime}>{boss ? `${formatMinSec(BOSS_SPAWN_CENTER_SEC - BOSS_SPAWN_JITTER_SEC)}~${formatMinSec(BOSS_SPAWN_CENTER_SEC + BOSS_SPAWN_JITTER_SEC)}` : formatMinSec(event.sec)}</span>
               <span style={styles.burstType}>{burstTypeLabel(event.type)}</span>
               <span style={styles.burstCount}>×{event.count}</span>
               {boss && <span style={styles.burstBossBadge}>보스 등장</span>}
@@ -388,16 +389,18 @@ function WaveTimeInput({ label, sec, onChange }) {
 function WaveRow({ entry, index, stageId, onTime, onCount, onRemove }) {
   const total = WAVE_ZOMBIE_TYPES.reduce((sum, t) => sum + (entry.counts[t] ?? 0), 0)
   // 보스 구간은 편집 대상이 아니라 파생 표시 — 시작 시각이 보스 등장 이후면 자동 체크.
-  const bossPhase = isBossPhase(entry.start, stageId)
+  const bossPhaseStatus = getBossPhaseStatus(entry.start)
+  const bossPhase = bossPhaseStatus === 'after'
+  const bossPhaseVariable = bossPhaseStatus === 'variable'
   return (
     <div style={styles.waveRow}>
       <div style={styles.waveRowHead}>
         <strong style={styles.waveRowTitle}>웨이브 {index + 1}</strong>
         <WaveTimeInput label="시작" sec={entry.start} onChange={(start) => onTime({ start })} />
         <WaveTimeInput label="끝" sec={entry.end} onChange={(end) => onTime({ end })} />
-        <label style={styles.waveBossLabel} title="보스 등장 시각 이후 자동 표시(편집 불가)">
-          <input type="checkbox" checked={bossPhase} readOnly disabled />
-          보스 구간
+        <label style={styles.waveBossLabel} title={bossPhaseVariable ? '보스 등장 시각은 2:50~3:10 사이에서 변동' : '보스 등장 시각 이후 자동 표시(편집 불가)'}>
+          <input type="checkbox" checked={bossPhase} aria-checked={bossPhaseVariable ? 'mixed' : String(bossPhase)} data-boss-phase={bossPhaseStatus} readOnly disabled />
+          {bossPhaseVariable ? '보스 구간 변동' : '보스 구간'}
         </label>
         <span style={styles.waveTotal}>합계 {total}마리</span>
         <button type="button" style={styles.waveRemoveButton} onClick={onRemove}>－ 웨이브 빼기</button>

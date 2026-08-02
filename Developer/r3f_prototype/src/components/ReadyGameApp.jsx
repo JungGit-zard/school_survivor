@@ -31,6 +31,7 @@ function initializeRuntimeUtilities() {
 
 export default function ReadyGameApp({
   authUser,
+  progressStatus,
   studioVisualsReady,
   ensureStudioCloudReady,
 }) {
@@ -40,9 +41,7 @@ export default function ReadyGameApp({
   const [mobileJoystickEnabled, setMobileJoystickEnabled] = useState(false)
   const [devCheatsVisible, setDevCheatsVisible] = useState(false)
   const [gameStartedByUser, setGameStartedByUser] = useState(false)
-  const [devAllStagesUnlocked, setDevAllStagesUnlocked] = useState(() => (
-    isFirebaseProgressHydrated(authUser) ? loadTitleSettings().unlockAllStagesCheat : false
-  ))
+  const [devAllStagesUnlocked, setDevAllStagesUnlocked] = useState(false)
   const phoneFrameRef = useRef(null)
   const gameKey = useGameStore((s) => s.gameKey)
   const phase = useGameStore((s) => s.phase)
@@ -51,6 +50,11 @@ export default function ReadyGameApp({
   useEffect(() => {
     initializeRuntimeUtilities()
   }, [])
+
+  useEffect(() => {
+    const ready = progressStatus === 'ready' && isFirebaseProgressHydrated(authUser)
+    setDevAllStagesUnlocked(ready ? loadTitleSettings().unlockAllStagesCheat : false)
+  }, [authUser?.uid, progressStatus])
 
   useEffect(() => {
     function updateMobileInputMode() {

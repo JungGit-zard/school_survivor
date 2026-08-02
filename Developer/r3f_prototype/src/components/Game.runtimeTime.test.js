@@ -19,6 +19,8 @@ describe('runtime elapsed clock wiring', () => {
     expect(frameSource).toContain("useGameStore.getState().phase === 'playing'")
     expect(gameSource).toContain('window.setInterval(publishRuntimeElapsedMs, PUBLISH_INTERVAL_MS)')
     expect(frameSource).toContain('checkSurvivalMilestone(elapsedMs)')
+    expect(frameSource).toContain('elapsedMs >= stageConfig.matildaWarningSec * 1000')
+    expect(frameSource).not.toContain('elapsedMs >= stageConfig.matildaSec * 1000')
     expect(enemiesSource).toContain('getRuntimeElapsedMs(useGameStore.getState().elapsedMs) / 1000')
     expect(enemySource).toContain('getRuntimeElapsedMs(useGameStore.getState().elapsedMs)')
   })
