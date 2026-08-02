@@ -21,10 +21,10 @@ describe('weaponCatalog', () => {
   it('Starter base 스탯이 BASE_WEAPONS 정본 값과 일치한다', () => {
     const source = readFileSync(new URL('./weaponCatalog.js', import.meta.url), 'utf8')
 
-    // 2026-08-01 Stage 2 초반 밸런스: 1.5→2.4 / 550→450 / pierce 1→2 (단일 대상 DPS 2.73→5.33)
+    // 2026-08-02 사용자 확정: 공격력 2.4만 유지하고 cooldown/pierce는 변경 전 값으로 롤백.
     expect(WEAPON_CATALOG.pencilThrow.base.damage).toBe(2.4)
-    expect(WEAPON_CATALOG.pencilThrow.base.cooldown).toBe(450)
-    expect(WEAPON_CATALOG.pencilThrow.base.pierce).toBe(2)
+    expect(WEAPON_CATALOG.pencilThrow.base.cooldown).toBe(550)
+    expect(WEAPON_CATALOG.pencilThrow.base.pierce).toBe(1)
     expect(WEAPON_CATALOG.pencilThrow.base.projectileCount).toBe(1) // 레벨업 성장 여지 보존
     // E01 collider 지름 약 0.747을 1zm=0.75 world units로 고정한다.
     // 연필 발사 원 지름 6zm → 반지름 3zm = 2.25 world units.

@@ -15,10 +15,11 @@ export const WEAPON_CATALOG = {
     label: '연필',
     // damage 3→1.5: 연필 직접 피해를 다시 절반으로 조정. pierce 0→1: 1열 관통으로 초반 군집 대응.
     // cooldown 1100→550: 발사속도 2배 전체 적용 (2026-07-22). base가 유일 출처라 전 스테이지·전 레벨 반영.
-    // 2026-08-01 Stage 2 초반 밸런스: damage 1.5→2.4, cooldown 550→450, pierce 1→2.
-    // 단일 대상 DPS 2.73 → 5.33. E01(HP 8) 처치 2.9초 → 1.5초.
+    // 2026-08-01 Stage 2 초반 밸런스: damage 1.5→2.4.
+    // 2026-08-02 사용자 확정: 공격력만 유지하고 cooldown 450→550, pierce 2→1 롤백.
+    // 단일 대상 DPS 2.73 → 4.36. 발사 속도와 관통은 변경 전 값을 유지한다.
     // projectileCount는 1 유지 — 레벨업 성장 여지를 남긴다.
-    base: { damage: 2.4, cooldown: 450, lastFired: 0, projectileCount: 1, pierce: 2, speed: 12, range: PENCIL_FIRE_RANGE_WORLD_UNITS, critChance: 0.08, critMultiplier: 1.5 },
+    base: { damage: 2.4, cooldown: 550, lastFired: 0, projectileCount: 1, pierce: 1, speed: 12, range: PENCIL_FIRE_RANGE_WORLD_UNITS, critChance: 0.08, critMultiplier: 1.5 },
     unlockConditions: STARTER,
     minLevelToAppear: 1,
     startsActive: true,

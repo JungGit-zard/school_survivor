@@ -62,7 +62,7 @@ describe('useGameStore weapon permanent upgrades', () => {
 
     expect(useGameStore.getState().weapons.pencilThrow).toMatchObject({
       damage: 2.64,   // 2.4 * 1.10 (치비코 전체 능력 +10%)
-      cooldown: 405,  // 450 * 0.90
+      cooldown: 495,  // 550 * 0.90
       chibikoBoostPercent: 0.1,
     })
 
