@@ -327,6 +327,33 @@ describe('firebase-only player progress runtime', () => {
     expect(saved).toEqual([42, 99])
   })
 
+  // 회귀: 저장 큐가 rejected 상태로 남으면 이후 .then 핸들러가 실행되지 않아 그 세션의
+  // 코인·업그레이드 저장이 전부 조용히 사라진다. 순간 오프라인 한 번으로 진행도가 날아갔다.
+  it('keeps saving coins and upgrades after one transient save failure', async () => {
+    const saved = []
+    let failNextSave = true
+    _setFirebaseProgressClientForTests({
+      loadOrCreate: vi.fn(async () => remoteSnapshot()),
+      save: vi.fn(async (_path, value) => {
+        if (failNextSave) {
+          failNextSave = false
+          throw new Error('transient network failure')
+        }
+        saved.push(value.progress.goldTotal)
+      }),
+    })
+    await hydrateCloudProgress(USER)
+
+    await expect(requestCloudProgressSave()).resolves.toBe(false)
+
+    applyCloudProgressSnapshot(remoteSnapshot({ progress: { goldTotal: 120 } }), USER)
+    await expect(requestCloudProgressSave()).resolves.toBe(true)
+    applyCloudProgressSnapshot(remoteSnapshot({ progress: { goldTotal: 340 } }), USER)
+    await expect(requestCloudProgressSave()).resolves.toBe(true)
+
+    expect(saved).toEqual([120, 340])
+  })
+
   it('throws a fatal error for browser durable storage attempts using player-data keys', () => {
     installPlayerStorageFatalGuard()
 

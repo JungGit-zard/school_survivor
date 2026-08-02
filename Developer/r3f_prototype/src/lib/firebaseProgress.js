@@ -238,19 +238,24 @@ export function recordPlayActivity(stageId, now = Date.now()) {
   return true
 }
 
+// writeQueue는 쓰기 순서를 직렬화하는 용도일 뿐이며, 절대 rejected 상태로 남으면 안 된다.
+// rejected promise에 .then(handler)를 걸면 handler가 아예 실행되지 않으므로, 저장이 한 번
+// 실패한 순간부터 그 세션의 모든 코인·업그레이드 저장이 조용히 건너뛰어진다(오프라인 한 번에
+// 이후 진행도 전부 유실). 실패는 큐에서 흡수하고 호출자에게는 false로 알린다.
 export async function requestCloudProgressSave(user = cloudUser) {
   if (!isFirebaseProgressHydrated(user)) return false
   if (!isFirebaseProgressConfigured()) return false
   const uidAtRequest = readUserId(user)
   const path = getUserProgressPath(user)
   const payload = buildRemotePayload()
-  writeQueue = writeQueue.then(async () => {
+  const attempt = writeQueue.then(async () => {
     if (!isFirebaseProgressHydrated({ uid: uidAtRequest })) return false
     const client = await getProgressClient()
     await client.save(path, payload)
     return true
-  })
-  return writeQueue
+  }).catch(() => false)
+  writeQueue = attempt
+  return attempt
 }
 
 export function installPlayerStorageFatalGuard() {
