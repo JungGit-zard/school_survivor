@@ -17,6 +17,14 @@ describe('getInvestigationDialogue', () => {
       .toEqual(getInvestigationDialogue('stage3', 'basketballHoop', 'stage3-hoop-north-normal'))
   })
 
+  it('기존 조사 보상 규칙용 대상 타입을 보존한다', () => {
+    expect(getInvestigationDialogue('stage2', 'corridorLockerBank', 'locker')?.subjectType).toBe('locker')
+    expect(getInvestigationDialogue('stage2', 'corridorJanitorCart', 'cart')?.subjectType).toBe('janitorCart')
+    expect(getInvestigationDialogue('stage2', 'corridorLostFoundBoard', 'board')?.subjectType).toBe('bulletinBoard')
+    expect(getInvestigationDialogue('stage1', 'classroomDesk', 'desk')?.subjectType).toBe('desk')
+    expect(getInvestigationDialogue('stage3', 'basketballHoop', 'hoop')?.subjectType).toBe('basketballHoop')
+  })
+
   it('쓰러진 학생 조사문도 스테이지별 1인칭 독백으로 제공한다', () => {
     for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
       const dialogue = getInvestigationDialogue(stageId, 'unconsciousStudent', `${stageId}-student`)

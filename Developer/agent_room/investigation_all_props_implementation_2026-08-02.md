@@ -18,6 +18,8 @@
 - 교실·복도·체육관·급식실에 맞춘 부드럽고 우스운 17세 여학생 주인공의 1인칭 관찰문을 제공한다. 학생과 선생님이 좀비가 된 상황은 가볍고 비잔혹적으로만 다룬다.
 - 퀘스트 지급 학생은 `StudentDialogueTrigger`의 기존 우선 처리로 먼저 퀘스트 대사를 출력한다. 일반 조사 보상 타입·확률, 일시정지, 런당 1회 처리는 변경하지 않았다.
 - 모든 생성 target이 `line`을 보장하므로 레거시 speaking-student 무작위 fallback은 제거했다.
+- 활성 퀘스트 아이템 또는 아이템 획득 뒤 반납·설치 지점에 플레이어가 닿으면, 동일 프레임의 일반 조사를 먼저 양보한다. `QuestWorldLayer`의 위치·상호작용 해석을 그대로 재사용하므로 아이템 수집·반납이 대사/보상/런당 조사 소비에 가로막히지 않는다.
+- 양보로 겹친 일반 조사 대상은 플레이어가 접촉 범위를 벗어날 때까지만 임시 억제한다. 퀘스트 처리 다음 프레임의 중복 보상은 막고, 재접근하면 해당 소품·학생을 정상 조사할 수 있다.
 
 ## 변경 파일
 
@@ -43,6 +45,9 @@ production build passed; branch guard, canonical title surface/BGM, and legacy B
 
 git -c core.whitespace=cr-at-eol diff --check
 passed; only expected Windows LF-to-CRLF working-copy warnings were printed
+
+npx vitest run src/lib/studentProximity.test.js src/lib/investigationDialogue.test.js src/components/StudentDialogueTrigger.test.jsx src/components/QuestWorldLayer.test.jsx src/store/useGameStore.quests.test.js src/store/useGameStore.studentDialogue.test.js src/lib/studentSearchRewards.test.js
+7 files, 52 tests passed
 ```
 
 ## Blockers
