@@ -79,7 +79,7 @@ const UPGRADES = [
   { key: 'stunChain', icon: 'stun', label: '전기 연쇄 +1', desc: '연쇄 대상 수 증가 (최대 4)' },
   { key: 'stunCrit', icon: 'stun', label: '전기 치명타 강화', desc: '치명타 확률 +2%, 치명타 피해 배율 +0.75배 (최대 4.5배)' },
   { key: 'acquireOnigiri', icon: 'onigiri', label: '오니기리 해금', desc: '적 사이를 튕기며 공격하는 주먹밥' },
-  { key: 'onigiiriBounce', icon: 'onigiri', label: '오니기리 바운스 +1', desc: '튕기는 횟수 증가 (최대 7회)' },
+  { key: 'onigiiriBounce', icon: 'onigiri', label: '오니기리 바운스 +1', desc: '튕기는 횟수 증가 (최대 10회)' },
   { key: 'onigiiriDamage', icon: 'onigiri', labelFn: damageLabel('오니기리 피해', 'onigiri', 'onigiiriDamage'), desc: '충돌 피해 증가' },
   { key: 'onigiiriCrit', icon: 'onigiri', label: '오니기리 치명타 강화', desc: '치명타 확률 +2%, 치명타 피해 배율 +0.75배 (최대 4.5배)' },
   { key: 'acquireMissile', icon: 'missile', label: '보조배터리 미사일 해금', desc: '먼 적 무리를 호밍 폭발로 처리' },

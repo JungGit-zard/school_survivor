@@ -86,6 +86,27 @@ describe('onigiri targeting', () => {
     expect(next.rb).toBe(enemyPool.get(pooled.handle))
   })
 
+  // "적이 죽어도 바운스한다": 맞은 적이 그 타격으로 죽어 풀에서 빠져나가도
+  // 다음 대상을 계속 찾아야 한다. 죽은 슬롯은 hitSet과 무관하게 비활성이므로 후보에서 빠진다.
+  it('keeps bouncing after the hit target dies and leaves the pool', () => {
+    const killed = spawnPooledEnemy(0.5, 0)
+    const survivor = spawnPooledEnemy(2, 0)
+    const killedProxy = enemyPool.get(killed.handle)
+    const killedEnemyId = killedProxy._enemyId
+
+    enemyPool.despawn(killed.handle) // 사망 = 풀에서 despawn
+
+    expect(killedProxy._enemyDead).toBe(true)
+    const next = pickNextOnigiriTarget({
+      from: { x: 0.5, z: 0 },
+      hitSet: new Set([killedEnemyId]),
+      range: 4.5,
+    })
+
+    expect(next).not.toBeNull()
+    expect(next.rb).toBe(enemyPool.get(survivor.handle))
+  })
+
   it('creates short scattered rice grains for the instant disappearance burst', () => {
     const grains = createOnigiriBurstGrains({ id: 5, x: 1, z: -2, count: 12 })
 

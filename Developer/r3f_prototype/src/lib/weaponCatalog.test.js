@@ -47,7 +47,7 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.stunGun.base.chainCount).toBe(2)
     expect(WEAPON_CATALOG.onigiri.base.damage).toBe(21)
     expect(WEAPON_CATALOG.onigiri.base.cooldown).toBe(5000)
-    expect(WEAPON_CATALOG.onigiri.base.bounces).toBe(2)
+    expect(WEAPON_CATALOG.onigiri.base.bounces).toBe(4)
     expect(WEAPON_CATALOG.chibiko.base.damage).toBe(1.25)
     expect(WEAPON_CATALOG.chibiko.base.cooldown).toBe(1100)
     expect(WEAPON_CATALOG.chibiko.base.followDistance).toBe(0.72)
