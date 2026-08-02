@@ -8,7 +8,8 @@ describe('getInvestigationDialogue', () => {
       const dialogue = getInvestigationDialogue('stage2', type, `test-${type}`)
 
       expect(dialogue?.subjectName.length).toBeGreaterThan(0)
-      expect(dialogue?.line.length).toBeGreaterThan(20)
+      expect(dialogue?.line.length).toBeGreaterThan(10)
+      expect([...dialogue.line].length).toBeLessThanOrEqual(50)
       expect(dialogue?.line).toMatch(/나|내|나는|내가/)
       expect(dialogue?.line).toMatch(/당황|놀라|깜짝|억울|부끄|머쓱|눈을|말문|어떡|뻔했다|몰라/)
       expect(dialogue?.line).toMatch(/같아|처럼|마치|아니|왜|너무|괜히|공포|무서|조심|살짝|작게|조용히/)
