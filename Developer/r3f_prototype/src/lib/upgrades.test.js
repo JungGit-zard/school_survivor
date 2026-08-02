@@ -25,7 +25,9 @@ describe('applyUpgradeToWeapon', () => {
       wpn({ active: true, level: 1, damage: WEAPON_CATALOG.pencilThrow.base.damage }),
       UPGRADE_EFFECTS.pencilDamage,
     )
-    expect(out.damage).toBe(2.25)
+    // base 2.4(2026-08-01 Stage 2 밸런스) + 카드 증가분 0.75 = 3.15. 증가분 자체는 그대로다.
+    expect(out.damage).toBe(3.15)
+    expect(out.damage - WEAPON_CATALOG.pencilThrow.base.damage).toBeCloseTo(0.75, 10)
   })
 
   it('unlock effect: active=true, level=1로 초기화', () => {

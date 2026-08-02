@@ -15,7 +15,10 @@ export const WEAPON_CATALOG = {
     label: '연필',
     // damage 3→1.5: 연필 직접 피해를 다시 절반으로 조정. pierce 0→1: 1열 관통으로 초반 군집 대응.
     // cooldown 1100→550: 발사속도 2배 전체 적용 (2026-07-22). base가 유일 출처라 전 스테이지·전 레벨 반영.
-    base: { damage: 1.5, cooldown: 550, lastFired: 0, projectileCount: 1, pierce: 1, speed: 12, range: PENCIL_FIRE_RANGE_WORLD_UNITS, critChance: 0.08, critMultiplier: 1.5 },
+    // 2026-08-01 Stage 2 초반 밸런스: damage 1.5→2.4, cooldown 550→450, pierce 1→2.
+    // 단일 대상 DPS 2.73 → 5.33. E01(HP 8) 처치 2.9초 → 1.5초.
+    // projectileCount는 1 유지 — 레벨업 성장 여지를 남긴다.
+    base: { damage: 2.4, cooldown: 450, lastFired: 0, projectileCount: 1, pierce: 2, speed: 12, range: PENCIL_FIRE_RANGE_WORLD_UNITS, critChance: 0.08, critMultiplier: 1.5 },
     unlockConditions: STARTER,
     minLevelToAppear: 1,
     startsActive: true,
@@ -183,10 +186,15 @@ export const WEAPON_CATALOG = {
   },
 }
 
-// 플라스크 웅덩이 틱 데미지 = 연필 레벨1 데미지 (기획 정본: 단일 출처 참조)
-WEAPON_CATALOG.scienceFlask.base.zoneTickDamage = WEAPON_CATALOG.pencilThrow.base.damage
-// 학생용 랜턴 위력 = 연필 레벨1의 1/10 (기획 정본: 단일 출처 참조)
-WEAPON_CATALOG.studentLantern.base.damage = WEAPON_CATALOG.pencilThrow.base.damage * 0.1
+// 예전에는 플라스크 틱 데미지와 랜턴 위력을 pencilThrow.base.damage에서 직접 파생시켰다.
+// 2026-08-01 Stage 2 초반 밸런스 작업에서 연필만 1.5 → 2.4로 올리면서 그 사슬을 끊었다.
+// 그대로 두면 손대지 않기로 한 두 무기가 전 스테이지에서 +60%로 함께 올라간다.
+// 두 값은 연필 상향 직전의 수치에 고정하며, 이후 연필 수치와 독립적으로 조정한다.
+const PENCIL_DERIVED_DAMAGE_BASELINE = 1.5
+// 플라스크 웅덩이 틱 데미지 (구 정본: 연필 레벨1 데미지)
+WEAPON_CATALOG.scienceFlask.base.zoneTickDamage = PENCIL_DERIVED_DAMAGE_BASELINE
+// 학생용 랜턴 위력 (구 정본: 연필 레벨1의 1/10)
+WEAPON_CATALOG.studentLantern.base.damage = PENCIL_DERIVED_DAMAGE_BASELINE * 0.1
 
 const ALL_IDS = Object.keys(WEAPON_CATALOG)
 const STARTER_IDS = ALL_IDS.filter((id) => WEAPON_CATALOG[id].unlockConditions === STARTER)

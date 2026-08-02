@@ -5,8 +5,11 @@ const BASE_PULL_RADIUS = 0.75
 let _pullRadius = 0
 let _pullRadiusSq = 0
 
-// 수집 판정 반경도 함께 확대 (0.22 → 0.38)
-export const COLLECT_RADIUS_SQ = 0.38 * 0.38
+// 수집 판정 반경 0.22 → 0.38 → 1.2 (2026-08-01).
+// 0.38은 E01 접촉 판정 0.373(CONTACT_DIST 0.28 × ENEMY_SIZE_MULTIPLIER 4/3)과 거의 같아서,
+// 경험치를 주우려면 피격 거리까지 들어가야 했다. 자석 패시브가 없으면 흡입 반경은 0이라
+// 초반에는 이 반경이 유일한 회수 수단이다. 성장 루프가 성립하도록 접촉 판정 밖으로 넓힌다.
+export const COLLECT_RADIUS_SQ = 1.2 * 1.2
 
 export function setMagnetMultiplier(mult) {
   const m = Number.isFinite(mult) && mult >= 0 ? mult : 1

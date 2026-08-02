@@ -45,7 +45,7 @@ describe('useGameStore weapon permanent upgrades', () => {
     useGameStore.getState().purchaseWeaponPermanentUpgrade('pencilThrow')
     useGameStore.getState().resetGame('stage1')
 
-    expect(useGameStore.getState().weapons.pencilThrow.damage).toBeCloseTo(1.6, 1)
+    expect(useGameStore.getState().weapons.pencilThrow.damage).toBeCloseTo(2.5, 1) // base 2.4 기준 (2026-08-01)
   })
 
   it('allows unlocked non-starter weapon permanent upgrades through the store action', () => {
@@ -61,8 +61,8 @@ describe('useGameStore weapon permanent upgrades', () => {
     useGameStore.getState().applyUpgrade('acquireChibiko')
 
     expect(useGameStore.getState().weapons.pencilThrow).toMatchObject({
-      damage: 1.65,
-      cooldown: 495,
+      damage: 2.64,   // 2.4 * 1.10 (치비코 전체 능력 +10%)
+      cooldown: 405,  // 450 * 0.90
       chibikoBoostPercent: 0.1,
     })
 
@@ -78,6 +78,6 @@ describe('useGameStore weapon permanent upgrades', () => {
     useGameStore.getState().applyUpgrade('acquireChibiko')
     useGameStore.getState().applyUpgrade('pencilDamage')
 
-    expect(useGameStore.getState().weapons.pencilThrow.damage).toBe(2.475)
+    expect(useGameStore.getState().weapons.pencilThrow.damage).toBe(3.465) // (2.4 + 0.75) * 1.10
   })
 })

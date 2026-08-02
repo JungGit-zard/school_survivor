@@ -21,8 +21,11 @@ describe('weaponCatalog', () => {
   it('Starter base 스탯이 BASE_WEAPONS 정본 값과 일치한다', () => {
     const source = readFileSync(new URL('./weaponCatalog.js', import.meta.url), 'utf8')
 
-    expect(WEAPON_CATALOG.pencilThrow.base.damage).toBe(1.5) // 3→1.5 (연필 직접 피해 재차 절반)
-    expect(WEAPON_CATALOG.pencilThrow.base.cooldown).toBe(550) // 발사속도 2배 (1100→550)
+    // 2026-08-01 Stage 2 초반 밸런스: 1.5→2.4 / 550→450 / pierce 1→2 (단일 대상 DPS 2.73→5.33)
+    expect(WEAPON_CATALOG.pencilThrow.base.damage).toBe(2.4)
+    expect(WEAPON_CATALOG.pencilThrow.base.cooldown).toBe(450)
+    expect(WEAPON_CATALOG.pencilThrow.base.pierce).toBe(2)
+    expect(WEAPON_CATALOG.pencilThrow.base.projectileCount).toBe(1) // 레벨업 성장 여지 보존
     // E01 collider 지름 약 0.747을 1zm=0.75 world units로 고정한다.
     // 연필 발사 원 지름 6zm → 반지름 3zm = 2.25 world units.
     expect(WEAPON_CATALOG.pencilThrow.base.range).toBe(2.25)
@@ -90,13 +93,17 @@ describe('weaponCatalog', () => {
     expect(flask.cooldown).toBe(8400)
     expect(flask.zoneRadius).toBe(1.4)       // E01 9마리 3×3 밀집 대형 커버
     expect(flask.zoneDurationMs).toBe(5000)  // 1레벨 5초
-    // 존 틱 데미지 = 연필 레벨1 데미지 (단일 출처)
-    expect(flask.zoneTickDamage).toBe(WEAPON_CATALOG.pencilThrow.base.damage)
+    // 2026-08-01: 연필 damage 파생을 끊고 1.5에 고정했다. Stage 2 초반 밸런스로 연필만
+    // 2.4로 올리면서, 이번 범위가 아닌 플라스크가 전 스테이지에서 함께 오르는 것을 막기 위해서다.
+    expect(flask.zoneTickDamage).toBe(1.5)
+    expect(flask.zoneTickDamage).not.toBe(WEAPON_CATALOG.pencilThrow.base.damage)
   })
 
   it('studentLantern 스펙 (신무기 기획 정본)', () => {
     const lantern = WEAPON_CATALOG.studentLantern.base
-    expect(lantern.damage).toBe(WEAPON_CATALOG.pencilThrow.base.damage * 0.1)
+    // 위와 같은 이유로 연필 파생에서 분리해 0.15(구 연필 1.5의 1/10)에 고정했다.
+    expect(lantern.damage).toBeCloseTo(0.15, 10)
+    expect(lantern.damage).not.toBe(WEAPON_CATALOG.pencilThrow.base.damage * 0.1)
     expect(lantern.durationMs).toBe(3000)      // 1레벨 3초 점등 → 3타
     expect(lantern.hitIntervalMs).toBe(300)
     expect(lantern.lightLength).toBe(2.08)

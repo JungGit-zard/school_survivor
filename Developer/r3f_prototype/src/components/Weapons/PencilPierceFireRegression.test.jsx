@@ -99,6 +99,14 @@ describe('Pencil pierce fire regression', () => {
     enemyPool.setHitHandler(target, targetHit)
 
     // Baseline: the unupgraded weapon finds the same live in-range target and creates one projectile.
+    // 이 테스트가 지키는 회귀는 "관통 대상이 살아남아도 쿨다운마다 계속 발사되는가"이며
+    // pierce 기본값 자체가 아니다. base가 밸런스로 바뀌어도(2026-08-01 1→2) 시나리오가
+    // 흔들리지 않도록 시작 pierce를 1로 명시 고정한 뒤 업그레이드로 2를 만든다.
+    await act(async () => {
+      useGameStore.setState((s) => ({
+        weapons: { ...s.weapons, pencilThrow: { ...s.weapons.pencilThrow, pierce: 1 } },
+      }))
+    })
     const baseWeapon = useGameStore.getState().weapons.pencilThrow
     expect(baseWeapon).toMatchObject({ active: true, pierce: 1 })
     await act(async () => {
