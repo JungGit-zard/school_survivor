@@ -12,6 +12,7 @@ import LunchItems from './LunchItems.jsx'
 import VFXLayer from './VFXLayer.jsx'
 import EscapePortal from './EscapePortal.jsx'
 import StudentDialogueTrigger from './StudentDialogueTrigger.jsx'
+import QuestWorldLayer from './QuestWorldLayer.jsx'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { createCriticalScreenShakeFrame, sampleCriticalScreenShake } from '../lib/criticalScreenShake.js'
 import { PUBLISH_INTERVAL_MS, advanceRuntimeTime } from '../lib/gameRuntimeTime.js'
@@ -200,6 +201,7 @@ export default function Game() {
 
       {/* ── 쓰러진 학생 근접 대화 트리거(비주얼 없음) ── */}
       <StudentDialogueTrigger />
+      <QuestWorldLayer stageId={currentStageId} />
     </>
   )
 }

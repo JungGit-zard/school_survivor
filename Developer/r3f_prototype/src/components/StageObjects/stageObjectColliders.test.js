@@ -157,8 +157,10 @@ describe('stage object blocking colliders', () => {
       'gymEquipmentSpill',
     ])
     const gymProps = stage3Props.filter(({ type }) => gymTypes.has(type))
+    const unconsciousStudents = stage3Props.filter(({ type }) => type === 'unconsciousStudent')
 
-    expect(gymProps).toHaveLength(stage3Props.length)
+    expect(gymProps.length + unconsciousStudents.length).toBe(stage3Props.length)
+    expect(unconsciousStudents.every((placement) => getStageObjectColliderParts(placement).length === 0)).toBe(true)
     expect(gymProps.every(({ type }) => BLOCKING_STAGE_OBJECT_TYPES.has(type))).toBe(true)
     expect(getStageObjectColliders('stage3')).toHaveLength(gymProps.length)
     expect(gymProps.every((placement) => getStageObjectColliderParts(placement).length > 0)).toBe(true)
@@ -227,7 +229,9 @@ describe('stage object blocking colliders', () => {
       0,
     )
 
-    expect(solidProps.length + clutterProps.length).toBe(stage4Props.length)
+    const unconsciousStudents = stage4Props.filter(({ type }) => type === 'unconsciousStudent')
+    expect(solidProps.length + clutterProps.length + unconsciousStudents.length).toBe(stage4Props.length)
+    expect(unconsciousStudents.every((placement) => getStageObjectColliderParts(placement).length === 0)).toBe(true)
     expect(new Set(solidProps.map(({ type }) => type))).toEqual(solidTypes)
     expect(clutterProps.length).toBeGreaterThan(0)
     expect(colliders).toHaveLength(solidProps.length)

@@ -268,7 +268,12 @@ describe('stage object placements', () => {
       'gymBanner',
       'gymExitDoor',
       'gymEquipmentSpill',
+      'unconsciousStudent',
     ]))
+    expect(placements.filter(({ type }) => type === 'unconsciousStudent').map(({ id }) => id)).toEqual([
+      'stage3-student-captain-west',
+      'stage3-student-facilities-east',
+    ])
   })
 
   it('keeps Stage 3 authored props inside the gym bounds while preserving the center combat lane', () => {
@@ -329,7 +334,7 @@ describe('stage 4 cafeteria kitchen placements', () => {
     const placements = computeDefaultStageObjectPlacements('stage4')
 
     expect(authored.length).toBeGreaterThanOrEqual(28)
-    expect(authored.length).toBeLessThanOrEqual(36)
+    expect(authored.length).toBeLessThanOrEqual(38)
     expect(placements).toHaveLength(authored.length)
     expect(placements.every(({ id }) => !id.includes('-copy-'))).toBe(true)
     placements.forEach((item, index) => {
@@ -392,8 +397,14 @@ describe('stage 4 cafeteria kitchen placements', () => {
   it('uses only the agreed stage4 kitchen prop type contract, covering all nine types', () => {
     const usedTypes = new Set(computeDefaultStageObjectPlacements('stage4').map(({ type }) => type))
 
-    expect([...usedTypes].every((type) => STAGE4_KITCHEN_TYPES.includes(type))).toBe(true)
-    expect(usedTypes).toEqual(new Set(STAGE4_KITCHEN_TYPES))
+    expect([...usedTypes].every((type) => STAGE4_KITCHEN_TYPES.includes(type) || type === 'unconsciousStudent')).toBe(true)
+    expect(usedTypes).toEqual(new Set([...STAGE4_KITCHEN_TYPES, 'unconsciousStudent']))
+    expect(computeDefaultStageObjectPlacements('stage4')
+      .filter(({ type }) => type === 'unconsciousStudent')
+      .map(({ id }) => id)).toEqual([
+      'stage4-student-serving-south',
+      'stage4-student-kitchen-northeast',
+    ])
   })
 
   it('registers the stage4 kitchen types in STAGE_PROP_TYPES all-or-nothing (no partial editor support)', () => {

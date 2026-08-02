@@ -417,6 +417,22 @@ export const STAGE_OBJECT_PLACEMENTS = {
       scale: 1.08,
       blocking: false,
     },
+    {
+      id: 'stage3-student-captain-west',
+      type: 'unconsciousStudent',
+      position: [-6.35, 0, 0.2],
+      rotation: [0, Math.PI / 2, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'sideRight' },
+    },
+    {
+      id: 'stage3-student-facilities-east',
+      type: 'unconsciousStudent',
+      position: [6.15, 0, 7.3],
+      rotation: [0, -Math.PI / 2, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'sideLeft' },
+    },
   ],
   // stage4: 급식실/주방(mapHalfX 14.4 · mapHalfZ 16). 원화 st4_concept.png 매핑.
   // 프랍은 전부 시각 전용(blocking: false) — 충돌체가 없으므로 중앙 전투 공간은 완전히 비운다.
@@ -714,6 +730,22 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, 0, 0],
       scale: 1.12,
       props: { variant: 'pans' },
+    },
+    {
+      id: 'stage4-student-serving-south',
+      type: 'unconsciousStudent',
+      position: [4.2, 0, 12.5],
+      rotation: [0, Math.PI, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'faceUp' },
+    },
+    {
+      id: 'stage4-student-kitchen-northeast',
+      type: 'unconsciousStudent',
+      position: [9.1, 0, -6.4],
+      rotation: [0, -2.5, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+      props: { variant: 'sideLeft' },
     },
   ],
 }

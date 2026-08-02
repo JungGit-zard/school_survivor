@@ -13,6 +13,7 @@ import { getNextStageId, getStageConfig } from '../lib/stageConfig.js'
 import { STAGE2_SPAWN_TELEGRAPHS, STAGE3_SPAWN_TELEGRAPHS, STAGE4_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import { MATILDA_DIALOGUE_MS } from '../lib/matildaEntryGrace.js'
+import { getQuestDefinition, getStageQuestDefinitions } from '../lib/quests.js'
 import {
   DEFAULT_STUDIO_TUNING,
   GRAPHICS_STUDIO_TUNING_EVENT,
@@ -302,6 +303,18 @@ function WeaponMiniIcon({ src }) {
   )
 }
 
+function QuestBagIcon() {
+  return (
+    <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true" focusable="false">
+      <path d="M10 10V8.5A6 6 0 0 1 22 8.5V10" fill="none" stroke="#ffb4d2" strokeWidth="2.6" strokeLinecap="round" />
+      <path d="M7 11.5h18v15H7z" fill="#ff79b1" stroke="#5f173c" strokeWidth="2" strokeLinejoin="round" />
+      <path d="M10 17h12v7H10z" fill="#c83272" stroke="#5f173c" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M8.5 13.5 5.5 18M23.5 13.5l3 4.5" fill="none" stroke="#ffb4d2" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="16" cy="20.5" r="1.15" fill="#ffe9f3" />
+    </svg>
+  )
+}
+
 export function UpgradeIcon({ type }) {
   const imageSrc = getWeaponUpgradeIconSrc(type)
   const studioItemId = WEAPON_ICON_STUDIO_ITEMS[type]
@@ -448,6 +461,9 @@ export function UpgradeIcon({ type }) {
 }
 
 export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRanking, devCheatsVisible = false }) {
+  const questBagButtonRef = useRef(null)
+  const questCloseButtonRef = useRef(null)
+  const wasQuestInventoryOpenRef = useRef(false)
   const {
     player, weapons, phase, pauseSource,
     elapsed, currentStageId, bossSpawned,
@@ -455,9 +471,11 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     newlyUnlockedWeaponIds, levelUpChoiceSerial,
     escapePortalActive, matildaSpawned, bossBonus,
     studentDialogue, introDialogue,
+    questProgress, questToast, newQuestItemIds,
     clearMilestone, applyUpgrade, cheatAcquireWeapon, resumeFromLevelup,
     resetGame, togglePause, resumeGame, quitPausedRun, spawnMatilda,
-    closeStudentDialogue, advanceIntro,
+    closeStudentDialogue, advanceIntro, toggleQuestInventory, closeQuestInventory,
+    clearQuestToast, markQuestInventorySeen,
   } = useGameStore(useShallow((s) => ({
     player:               s.player,
     weapons:              s.weapons,
@@ -476,6 +494,9 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     bossBonus:            s.bossBonus,
     studentDialogue:      s.studentDialogue,
     introDialogue:        s.introDialogue,
+    questProgress:        s.questProgress,
+    questToast:           s.questToast,
+    newQuestItemIds:      s.newQuestItemIds,
     clearMilestone:       s.clearMilestone,
     applyUpgrade:         s.applyUpgrade,
     cheatAcquireWeapon:   s.cheatAcquireWeapon,
@@ -487,6 +508,10 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     spawnMatilda:         s.spawnMatilda,
     closeStudentDialogue: s.closeStudentDialogue,
     advanceIntro:         s.advanceIntro,
+    toggleQuestInventory: s.toggleQuestInventory,
+    closeQuestInventory:  s.closeQuestInventory,
+    clearQuestToast:      s.clearQuestToast,
+    markQuestInventorySeen: s.markQuestInventorySeen,
   })))
 
   const mins = String(Math.floor(elapsed / 60000)).padStart(2, '0')
@@ -494,6 +519,32 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
   const stageConfig = getStageConfig(currentStageId)
   const nextStageId = getNextStageId(currentStageId)
   const showResultDevTools = devCheatsVisible && getAdminOperationsConfig().cheatMenuButtonVisible && (phase === 'gameover' || phase === 'cleared')
+  const questInventoryOpen = phase === 'paused' && pauseSource === 'quest'
+  const stageQuests = useMemo(() => getStageQuestDefinitions(currentStageId), [currentStageId])
+  const visibleQuests = useMemo(
+    () => stageQuests.filter((quest) => ['active', 'item-acquired', 'completed'].includes(questProgress?.[quest.id]?.status)).slice(0, 2),
+    [questProgress, stageQuests],
+  )
+  const activeQuestCount = useMemo(
+    () => stageQuests.filter((quest) => ['active', 'item-acquired'].includes(questProgress?.[quest.id]?.status)).length,
+    [questProgress, stageQuests],
+  )
+  const heldQuestItems = useMemo(
+    () => stageQuests.filter((quest) => {
+      const progress = questProgress?.[quest.id]
+      return progress?.itemHeld || progress?.status === 'item-acquired'
+    }),
+    [questProgress, stageQuests],
+  )
+  const questToastMessage = useMemo(() => {
+    if (!questToast) return null
+    if (typeof questToast === 'string') return questToast
+    const quest = getQuestDefinition(questToast.questId)
+    if (!quest) return null
+    if (questToast.type === 'item') return `가방에 보관했습니다: ${quest.item.name}`
+    if (questToast.type === 'completed') return `${quest.title} 완료! 보상 ${quest.rewardGold}G`
+    return `${quest.title} 퀘스트를 받았습니다.`
+  }, [questToast])
   const activeWeapons = useMemo(
     () => Object.entries(weapons).filter(([, w]) => w.active),
     [weapons],
@@ -700,11 +751,15 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
       @keyframes matildaDialoguePop { 0%{transform:translateX(-50%) scale(0.92);opacity:0.4} 70%{transform:translateX(-50%) scale(1.03)} 100%{transform:translateX(-50%) scale(1);opacity:1} }
       @keyframes levelupCardPop { 0%{opacity:0;transform:translateY(14px) scale(0.92)} 100%{opacity:1;transform:translateY(0) scale(1)} }
       .hud-pause-button:focus-visible,
+      .hud-quest-bag-button:focus-visible,
       .levelup-upgrade-choice:focus-visible { outline:3px solid #fff8e8; outline-offset:3px; }
       @media (max-width:360px) {
         .levelup-upgrade-choice { min-height:126px !important; padding:7px 4px 8px !important; gap:3px !important; }
         .levelup-upgrade-choice .levelup-choice-label { font-size:12px !important; line-height:1.12 !important; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
         .levelup-upgrade-choice .levelup-choice-desc { font-size:11px !important; line-height:1.2 !important; }
+      }
+      @media (max-width:600px) {
+        .quest-inventory-panel { top:auto !important; bottom:12px; left:12px !important; width:calc(100% - 24px) !important; max-height:72dvh !important; }
       }
     `
     // StrictMode에서 cleanup이 먼저 실행돼 style이 제거될 수 있으므로
@@ -715,13 +770,33 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
   }, [])
 
   useEffect(() => {
+    if (questInventoryOpen) {
+      markQuestInventorySeen()
+      questCloseButtonRef.current?.focus()
+    } else if (wasQuestInventoryOpenRef.current) {
+      questBagButtonRef.current?.focus()
+    }
+    wasQuestInventoryOpenRef.current = questInventoryOpen
+  }, [markQuestInventorySeen, questInventoryOpen])
+
+  useEffect(() => {
+    if (!questToast) return undefined
+    const timer = setTimeout(clearQuestToast, 2000)
+    return () => clearTimeout(timer)
+  }, [clearQuestToast, questToast])
+
+  useEffect(() => {
     const onKeyDown = (event) => {
+      if (event.key === 'Escape' && questInventoryOpen) {
+        closeQuestInventory()
+        return
+      }
       if ((event.code !== 'KeyP' && event.key !== 'Escape') || event.repeat) return
       togglePause()
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [togglePause])
+  }, [closeQuestInventory, questInventoryOpen, togglePause])
 
   return (
     <div style={styles.root}>
@@ -841,6 +916,19 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         <div style={styles.topLeftControls}>
           <button type="button" className="hud-pause-button" aria-label={phase === 'paused' ? '게임 재개' : '게임 일시정지'} style={styles.pauseButton} onClick={() => { emitSfx({ id: 'buttonClick' }); togglePause() }}>
           {phase === 'paused' ? '▶' : 'Ⅱ'}
+          </button>
+          <button
+            type="button"
+            className="hud-quest-bag-button"
+            aria-label={questInventoryOpen ? '퀘스트 가방 닫기' : '퀘스트 가방 열기'}
+            aria-expanded={questInventoryOpen}
+            aria-controls="quest-inventory-panel"
+            ref={questBagButtonRef}
+            style={styles.questBagButton}
+            onClick={() => { emitSfx({ id: 'buttonClick' }); toggleQuestInventory() }}
+          >
+            <QuestBagIcon />
+            {newQuestItemIds?.length > 0 && <span aria-label="새 퀘스트 아이템" style={styles.questNewBadge}>!</span>}
           </button>
           {devCheatsVisible && (
             <>
@@ -962,7 +1050,59 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         </div>
       )}
 
-      {phase === 'paused' && pauseSource !== 'dialogue' && pauseSource !== 'intro' && (
+      {questToastMessage && (
+        <div role="status" aria-live="polite" style={styles.questToast}>
+          <QuestBagIcon />
+          <span>{questToastMessage}</span>
+        </div>
+      )}
+
+      {questInventoryOpen && (
+        <aside id="quest-inventory-panel" className="quest-inventory-panel" role="dialog" aria-modal="true" aria-labelledby="quest-inventory-title" style={styles.questInventoryPanel}>
+          <div style={styles.questPanelHeader}>
+            <div>
+              <h2 id="quest-inventory-title" style={styles.questPanelTitle}>퀘스트 가방</h2>
+              <div style={styles.questSummary}>진행 중 {activeQuestCount} · 아이템 {heldQuestItems.length}</div>
+            </div>
+            <button ref={questCloseButtonRef} type="button" aria-label="퀘스트 가방 닫기" style={styles.questCloseButton} onClick={closeQuestInventory}>×</button>
+          </div>
+          {visibleQuests.length === 0 ? (
+            <p style={styles.questEmpty}>아직 받은 퀘스트가 없어요.<br />도움이 필요한 학생을 조사해 보세요.</p>
+          ) : (
+            <div style={styles.questCardList}>
+              {visibleQuests.map((quest) => {
+                const progress = questProgress?.[quest.id]
+                const completed = progress?.status === 'completed'
+                const statusLabel = completed
+                  ? '완료'
+                  : progress?.status === 'active'
+                    ? '아이템 찾기'
+                    : quest.completion.kind === 'install' ? '시설에 설치하기' : '학생에게 돌아가기'
+                return (
+                  <article key={quest.id} style={styles.questCard}>
+                    <div style={styles.questCardTitle}>{completed && <span aria-label="완료" style={styles.questCompleteMark}>✓</span>}{quest.title}</div>
+                    <p style={styles.questObjective}>{quest.objective}</p>
+                    <div style={styles.questCardFooter}><span>{statusLabel}</span><span>보상 {quest.rewardGold}G</span></div>
+                  </article>
+                )
+              })}
+            </div>
+          )}
+          {heldQuestItems.length > 0 && (
+            <section aria-label="퀘스트 아이템" style={styles.questItemSection}>
+              <h3 style={styles.questItemHeading}>퀘스트 아이템</h3>
+              {heldQuestItems.map((quest) => (
+                <div key={quest.item.id} style={styles.questItem}>
+                  <QuestBagIcon />
+                  <div><strong>{quest.item.name}</strong><p>{quest.item.description}</p></div>
+                </div>
+              ))}
+            </section>
+          )}
+        </aside>
+      )}
+
+      {phase === 'paused' && pauseSource !== 'dialogue' && pauseSource !== 'intro' && pauseSource !== 'quest' && (
         <div style={styles.overlay}>
           <div
             style={styles.pausePanel}
@@ -1581,6 +1721,91 @@ const styles = {
     cursor: 'pointer',
     boxShadow: uiShadows.pressSmall,
   },
+  questBagButton: {
+    position: 'relative',
+    width: 44,
+    height: 44,
+    padding: 0,
+    display: 'grid',
+    placeItems: 'center',
+    borderRadius: 8,
+    border: uiBorders.strong,
+    background: uiPalette.chalkboard,
+    cursor: 'pointer',
+    boxShadow: uiShadows.pressSmall,
+  },
+  questNewBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    width: 18,
+    height: 18,
+    borderRadius: '50%',
+    border: uiBorders.strong,
+    background: uiPalette.reward,
+    color: uiPalette.ink,
+    fontSize: 13,
+    fontWeight: uiType.weightHeavy,
+    lineHeight: '16px',
+  },
+  questToast: {
+    position: 'absolute',
+    top: 66,
+    left: '50%',
+    transform: 'translateX(-50%)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 7,
+    padding: '7px 12px',
+    border: uiBorders.strong,
+    borderRadius: 8,
+    background: uiPalette.paper,
+    color: uiPalette.ink,
+    boxShadow: uiShadows.pressSmall,
+    fontSize: 13,
+    fontWeight: uiType.weightStrong,
+    pointerEvents: 'none',
+  },
+  questInventoryPanel: {
+    ...schoolPanel('paper'),
+    position: 'absolute',
+    top: 66,
+    left: 14,
+    width: 'min(360px, calc(100% - 28px))',
+    maxHeight: 'calc(100dvh - 84px)',
+    overflowY: 'auto',
+    boxSizing: 'border-box',
+    padding: 16,
+    pointerEvents: 'auto',
+  },
+  questPanelHeader: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+    borderBottom: uiBorders.hairline,
+    paddingBottom: 10,
+  },
+  questPanelTitle: { margin: 0, fontSize: 22, fontWeight: uiType.weightHeavy },
+  questSummary: { marginTop: 3, color: '#5d554e', fontSize: 13, fontWeight: uiType.weightStrong },
+  questCloseButton: {
+    ...schoolButton('chalk'),
+    minHeight: 36,
+    width: 36,
+    padding: 0,
+    fontSize: 25,
+    lineHeight: 1,
+  },
+  questEmpty: { margin: '26px 0 12px', textAlign: 'center', lineHeight: 1.6, fontSize: 14, fontWeight: uiType.weightStrong },
+  questCardList: { display: 'grid', gap: 9, marginTop: 12 },
+  questCard: { border: uiBorders.hairline, borderRadius: 8, padding: '10px 11px', background: uiPalette.paperLight },
+  questCardTitle: { display: 'flex', gap: 6, alignItems: 'center', fontSize: 15, fontWeight: uiType.weightHeavy },
+  questCompleteMark: { color: '#247a45', fontSize: 18 },
+  questObjective: { margin: '6px 0 8px', fontSize: 13, lineHeight: 1.4 },
+  questCardFooter: { display: 'flex', justifyContent: 'space-between', gap: 8, color: '#5d554e', fontSize: 12, fontWeight: uiType.weightStrong },
+  questItemSection: { marginTop: 14, paddingTop: 11, borderTop: uiBorders.hairline },
+  questItemHeading: { margin: '0 0 8px', fontSize: 15, fontWeight: uiType.weightHeavy },
+  questItem: { display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0' },
   quickRestartButton: {
     width: 40,
     height: 40,

@@ -34,6 +34,8 @@ import {
   markRuntimeTimePublished,
   setRuntimeElapsedMs,
 } from '../lib/gameRuntimeTime.js'
+import { createStageQuestProgress, getQuestDefinition } from '../lib/quests.js'
+import { getStageObjectPlacements } from '../components/StageObjects/stageObjectPlacements.js'
 
 const BASE_PLAYER = {
   hp: 100, maxHp: 100,
@@ -124,6 +126,24 @@ function finishLevelupState(s) {
   }
 }
 
+function matchesQuestItemSource(quest, sourceId) {
+  const target = quest.itemTarget
+  const placements = getStageObjectPlacements(quest.stageId)
+  const allowedTypes = [target.type, ...(target.fallbackTypes ?? [])]
+  if (sourceId === `${quest.id}:fallback`) {
+    return !placements.some(({ id, type }) => id === target.placementId || allowedTypes.includes(type))
+  }
+  if (target.placementId === sourceId) return true
+  const placement = placements.find(({ id }) => id === sourceId)
+  return allowedTypes.includes(placement?.type)
+}
+
+function matchesQuestCompletionSource(quest, sourceId) {
+  const placementId = quest.completion.placementId
+  return sourceId === placementId
+    || (quest.stageId === 'stage2' && sourceId.startsWith(`${placementId}-copy-`))
+}
+
 // 스테이지1 스토리 인트로 내레이션 3줄. 화면 탭마다 다음 줄, 마지막 탭에 플레이 시작.
 export const STAGE1_INTRO_LINES = [
   '공부가 하기싫은 학생들의 마음은 그들을 좀비로 만들었다…',
@@ -169,6 +189,11 @@ export const useGameStore = create(
     recentMilestone: null,
     pendingLevelUps: 0,
     levelUpChoiceSerial: 0,
+    questProgress: createStageQuestProgress(DEFAULT_STAGE_ID),
+    questJourneyCompletedIds: [],
+    questToast: null,
+    newQuestItemIds: [],
+    questCollectedSourceIds: [],
 
     // Public/test compatibility only. Game's frame loop advances the mutable runtime
     // clock directly and the UI snapshot is published at 10Hz from Game's effect.
@@ -446,6 +471,82 @@ export const useGameStore = create(
       return { phase: 'paused', pauseSource: source }
     }),
 
+    startQuest: (questId) => {
+      const s = get()
+      const quest = getQuestDefinition(questId)
+      const progress = s.questProgress?.[questId]
+      if (s.phase !== 'playing' || !quest || quest.stageId !== s.currentStageId
+        || progress?.status !== 'undiscovered') return false
+      set({
+        questProgress: {
+          ...s.questProgress,
+          [questId]: { ...progress, status: 'active' },
+        },
+        questToast: { type: 'started', questId },
+      })
+      return true
+    },
+
+    collectQuestItem: (questId, sourceId) => {
+      const s = get()
+      const quest = getQuestDefinition(questId)
+      const progress = s.questProgress?.[questId]
+      const sourceKey = `${questId}:${sourceId}`
+      if (s.phase !== 'playing' || !quest || quest.stageId !== s.currentStageId || progress?.status !== 'active'
+        || s.questCollectedSourceIds.includes(sourceKey)
+        || !matchesQuestItemSource(quest, sourceId)) return false
+      set({
+        questProgress: {
+          ...s.questProgress,
+          [questId]: { ...progress, status: 'item-acquired', itemHeld: true },
+        },
+        questCollectedSourceIds: [...s.questCollectedSourceIds, sourceKey],
+        newQuestItemIds: [...s.newQuestItemIds, quest.item.id],
+        questToast: { type: 'item', questId },
+      })
+      return true
+    },
+
+    completeQuest: (questId, sourceId) => {
+      const s = get()
+      const quest = getQuestDefinition(questId)
+      const progress = s.questProgress?.[questId]
+      if (s.phase !== 'playing' || !quest || quest.stageId !== s.currentStageId || progress?.status !== 'item-acquired'
+        || !matchesQuestCompletionSource(quest, sourceId)) return false
+      const gold = quest.rewardGold
+      const goldTotal = s.goldTotal + gold
+      saveGoldTotal(goldTotal)
+      set({
+        questProgress: {
+          ...s.questProgress,
+          [questId]: { ...progress, status: 'completed', itemHeld: false },
+        },
+        questJourneyCompletedIds: [...s.questJourneyCompletedIds, questId],
+        newQuestItemIds: s.newQuestItemIds.filter((itemId) => itemId !== quest.item.id),
+        goldSession: s.goldSession + gold,
+        goldTotal,
+        questToast: { type: 'completed', questId },
+      })
+      requestCloudProgressSave()
+      return true
+    },
+
+    clearQuestToast: () => set({ questToast: null }),
+
+    markQuestInventorySeen: () => set({ newQuestItemIds: [] }),
+
+    toggleQuestInventory: () => set((s) => {
+      if (s.phase === 'playing') return { phase: 'paused', pauseSource: 'quest' }
+      if (s.phase === 'paused' && s.pauseSource === 'quest') return { phase: 'playing', pauseSource: null }
+      return {}
+    }),
+
+    closeQuestInventory: () => set((s) => (
+      s.phase === 'paused' && s.pauseSource === 'quest'
+        ? { phase: 'playing', pauseSource: null }
+        : {}
+    )),
+
     resumeGame: () => set((s) => {
       if (s.phase !== 'paused') return {}
       return { phase: 'playing', pauseSource: null }
@@ -644,12 +745,12 @@ export const useGameStore = create(
       }
       emitSfx({ id: 'stageClear' })
       get()._onRunEnd('cleared')
-      get().resetGame(nextStageId)
+      get().resetGame(nextStageId, { preserveQuestJourney: true })
       return true
     },
 
     // 게임 리셋. gameKey를 올려 Physics 트리를 새로 마운트한다.
-    resetGame: (stageId = DEFAULT_STAGE_ID) => {
+    resetGame: (stageId = DEFAULT_STAGE_ID, { preserveQuestJourney = false } = {}) => {
       resetRuntimeRefs()
       const levels = getAllLevels()
       const nextStageId = getStageConfig(stageId).id
@@ -682,6 +783,11 @@ export const useGameStore = create(
         recentMilestone: null,
         pendingLevelUps: 0,
         levelUpChoiceSerial: s.levelUpChoiceSerial + 1,
+        questProgress: createStageQuestProgress(nextStageId),
+        questJourneyCompletedIds: preserveQuestJourney ? s.questJourneyCompletedIds : [],
+        questToast: null,
+        newQuestItemIds: [],
+        questCollectedSourceIds: [],
       }))
       recordPlayActivity(nextStageId)
       requestCloudProgressSave()
