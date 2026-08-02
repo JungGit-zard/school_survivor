@@ -3,12 +3,14 @@ import { STAGE_PROP_PALETTE } from './stagePropEditorGeometry.js'
 import { getInvestigationDialogue } from './investigationDialogue.js'
 
 describe('getInvestigationDialogue', () => {
-  it('모든 배치 팔레트 타입에 이름과 충분한 조사문을 제공한다', () => {
+  it('모든 배치 팔레트 타입에 이름과 17세 여학생 주인공의 순수하고 가녀린 1인칭 조사문을 제공한다', () => {
     for (const { type } of STAGE_PROP_PALETTE) {
       const dialogue = getInvestigationDialogue('stage2', type, `test-${type}`)
 
       expect(dialogue?.subjectName.length).toBeGreaterThan(0)
       expect(dialogue?.line.length).toBeGreaterThan(20)
+      expect(dialogue?.line).toMatch(/나|내|나는|내가/)
+      expect(dialogue?.line).toMatch(/조심|살짝|작게|마음|무서|떨|빌|고마|미안|괜찮|숨|천천히/)
     }
   })
 
