@@ -873,7 +873,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           contactArgs.halfZ = matildaHalfExtents.halfZ
           if (isMatildaBodyContact(contactArgs) && now - lastContactDmgRef.current >= 500) {
             lastContactDmgRef.current = now
-            damagePlayer(stats.damage)
+            damagePlayer(stats.damage, { source: 'matilda' })
           }
 
           if (isMatildaChargingOutward(t, cd, stageCombatConfig.bounds)) {

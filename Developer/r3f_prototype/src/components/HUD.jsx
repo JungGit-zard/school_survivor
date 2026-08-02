@@ -44,6 +44,8 @@ const GAMEOVER_TRANSITION_MS = 1000
 const MATILDA_COUNTDOWN_SECONDS = 5
 const MATILDA_DIALOGUE_NAME = '마틸다'
 const MATILDA_DIALOGUE_LINE = '오호호호! 떡하나주면 안잡아먹지!'
+const MATILDA_DEATH_DIALOGUE_LINE = '오호호호!!!!! 맛있게 먹을께!!!!'
+const MATILDA_GAMEOVER_LINE = '마틸다 에게 영혼을 뺴앗겨 버렸다!!'
 
 const damageLabel = (name, weaponKey, upgradeKey) => (w) =>
   `${name} +${UPGRADE_EFFECTS[upgradeKey].dmg} (Lv${(w[weaponKey].level ?? 1) + 1})`
@@ -469,7 +471,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     elapsed, currentStageId, bossSpawned,
     goldSession, goldTotal, recentMilestone,
     newlyUnlockedWeaponIds, levelUpChoiceSerial,
-    escapePortalActive, matildaSpawned, bossBonus,
+    escapePortalActive, matildaSpawned, deathCause, bossBonus,
     studentDialogue, introDialogue,
     questProgress, questToast, newQuestItemIds,
     clearMilestone, applyUpgrade, cheatAcquireWeapon, resumeFromLevelup,
@@ -491,6 +493,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     levelUpChoiceSerial:  s.levelUpChoiceSerial,
     escapePortalActive:   s.escapePortalActive,
     matildaSpawned:       s.matildaSpawned,
+    deathCause:           s.deathCause,
     bossBonus:            s.bossBonus,
     studentDialogue:      s.studentDialogue,
     introDialogue:        s.introDialogue,
@@ -558,6 +561,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
   )
   const lowHp   = player.hp / player.maxHp < 0.3
   const isGameover = phase === 'gameover'
+  const isMatildaGameover = isGameover && deathCause === 'matilda'
   const [gameoverModalReady, setGameoverModalReady] = useState(false)
   const [isTitleReturnConfirmOpen, setIsTitleReturnConfirmOpen] = useState(false)
   const [weaponCheatOpen, setWeaponCheatOpen] = useState(false)
@@ -685,9 +689,12 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     }
 
     setGameoverModalReady(false)
-    const timer = setTimeout(() => setGameoverModalReady(true), GAMEOVER_TRANSITION_MS)
+    const delayMs = isMatildaGameover
+      ? GAMEOVER_TRANSITION_MS + MATILDA_DIALOGUE_MS
+      : GAMEOVER_TRANSITION_MS
+    const timer = setTimeout(() => setGameoverModalReady(true), delayMs)
     return () => clearTimeout(timer)
-  }, [isGameover])
+  }, [isGameover, isMatildaGameover])
 
   useEffect(() => {
     if (phase !== 'paused') setIsTitleReturnConfirmOpen(false)
@@ -718,11 +725,14 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     return () => stopDialogueVoice()
   }, [introDialogue])
 
+  const showMatildaDialogue = matildaDialogueVisible || (isMatildaGameover && !gameoverModalReady)
+  const matildaDialogueLine = isMatildaGameover ? MATILDA_DEATH_DIALOGUE_LINE : MATILDA_DIALOGUE_LINE
+
   useEffect(() => {
-    if (!matildaDialogueVisible) return undefined
-    const stop = playDialogueVoice(MATILDA_DIALOGUE_LINE, 'matilda', { delayMs: 180, volume: 0.92 })
+    if (!showMatildaDialogue) return undefined
+    const stop = playDialogueVoice(matildaDialogueLine, 'matilda', { delayMs: 180, volume: 0.92 })
     return () => stop()
-  }, [matildaDialogueVisible])
+  }, [matildaDialogueLine, showMatildaDialogue])
 
   const confirmLobbyReturn = () => {
     if (!quitPausedRun()) return
@@ -832,7 +842,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
           <div data-testid="matilda-warning-count" style={styles.matildaWarningCount}>{matildaWarning}</div>
         </div>
       )}
-      {matildaDialogueVisible && (
+      {showMatildaDialogue && (
         <div
           data-testid="matilda-dialogue"
           style={styles.matildaDialogueBox}
@@ -850,7 +860,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
           </div>
           <div style={styles.matildaDialogueTextCol}>
             <div style={styles.matildaDialogueName}>{MATILDA_DIALOGUE_NAME}</div>
-            <div style={styles.matildaDialogueLine}>{MATILDA_DIALOGUE_LINE}</div>
+            <div style={styles.matildaDialogueLine}>{matildaDialogueLine}</div>
           </div>
         </div>
       )}
@@ -1012,8 +1022,9 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         <div data-testid="gameover-result-overlay" style={styles.overlay}>
           <div style={styles.modal}>
             <h2 style={{ ...styles.modalTitle, color: '#ff4060' }}>GAME OVER</h2>
+            {isMatildaGameover && <p data-testid="gameover-death-line" style={styles.gameoverDeathLine}>{MATILDA_GAMEOVER_LINE}</p>}
             <p style={{ color: '#ccc', marginBottom: 8 }}>생존 시간: {mins}:{secs}</p>
-            <p style={{ color: '#ffd040', marginBottom: nextUnlock || (newlyUnlockedWeaponIds?.length > 0) ? 12 : 20 }}>획득 골드: {goldSession} (누적 {goldTotal})</p>
+            <p style={{ color: '#ffd040', marginBottom: (newlyUnlockedWeaponIds?.length > 0) ? 12 : 20 }}>획득 골드: {goldSession} (누적 {goldTotal})</p>
             {newlyUnlockedWeaponIds?.length > 0 && (
               <div style={styles.newlyUnlocked}>
                 <span style={styles.newlyUnlockedLabel}>🎉 새 무기 해금!</span>
@@ -1025,25 +1036,11 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
                 <div style={styles.newlyUnlockedHint}>다음 판부터 카드에 등장합니다</div>
               </div>
             )}
-            {nextUnlock && (
-              <div style={styles.nextUnlock}>
-                <span style={styles.nextUnlockLabel}>다음에 만날 무기</span>
-                <div style={styles.nextUnlockBody}>
-                  <div style={styles.nextUnlockSilhouette}>
-                    <UpgradeIcon type={nextUnlock.icon} />
-                  </div>
-                  <div style={styles.nextUnlockText}>
-                    <div style={styles.nextUnlockName}>???</div>
-                    <div style={styles.nextUnlockHint}>Lv.{nextUnlock.minLevel} 도달 시 획득 가능</div>
-                  </div>
-                </div>
-              </div>
-            )}
             <div data-testid="result-primary-actions" style={styles.resultButtons}>
-              {onGoToRanking && <button style={{ ...styles.rankingBtn, ...styles.resultActionBtn }} onClick={onGoToRanking}>🏆 랭킹</button>}
+              <button style={{ ...styles.restartBtn, ...styles.resultActionBtn }} onClick={() => resetGame(currentStageId)}>다시시작</button>
               <button style={{ ...styles.titleBtn, ...styles.resultActionBtn }} onClick={onGoToTitle}>타이틀로</button>
               <button style={{ ...styles.shopBtn, ...styles.resultActionBtn }} onClick={onOpenCoinShop}>코인상점</button>
-              <button style={{ ...styles.restartBtn, ...styles.resultActionBtn }} onClick={() => resetGame(currentStageId)}>다시 시작</button>
+              {onGoToRanking && <button style={{ ...styles.rankingBtn, ...styles.resultActionBtn }} onClick={onGoToRanking}>랭킹</button>}
             </div>
           </div>
           {resultDevTools}
@@ -1610,8 +1607,8 @@ const styles = {
   },
   modal: {
     ...schoolPanel('dark'),
-    padding: '24px 16px', textAlign: 'center',
-    width: 'calc(100% - 28px)', maxWidth: 440, boxSizing: 'border-box',
+    padding: '18px 12px', textAlign: 'center',
+    width: 'min(220px, calc(100% - 28px))', maxWidth: 220, boxSizing: 'border-box',
   },
   modalTitle: {
     color: uiPalette.paperLight,
@@ -1619,6 +1616,14 @@ const styles = {
     fontSize: 26,
     fontWeight: uiType.weightHeavy,
     textShadow: `0 2px 0 ${uiPalette.ink}`,
+  },
+  gameoverDeathLine: {
+    color: '#ffe9f3',
+    margin: '-12px 0 12px',
+    fontSize: 14,
+    fontWeight: uiType.weightHeavy,
+    lineHeight: 1.35,
+    wordBreak: 'keep-all',
   },
   pausePanel: {
     ...schoolPanel('dark'),

@@ -540,9 +540,14 @@ describe('matilda entrance presentation', () => {
 })
 
 describe('result action layout', () => {
-  it('shows ranking above title on the game over result buttons', () => {
+  it('keeps the game over result popup compact and orders actions from restart to ranking', () => {
     vi.useFakeTimers()
-    useGameStore.setState({ phase: 'gameover', goldSession: 8, goldTotal: 20 })
+    useGameStore.setState({
+      phase: 'gameover',
+      goldSession: 8,
+      goldTotal: 20,
+      newlyUnlockedWeaponIds: [],
+    })
     const container = document.createElement('div')
     const root = createRoot(container)
 
@@ -557,10 +562,54 @@ describe('result action layout', () => {
       const labels = [...container.querySelector('[data-testid="result-primary-actions"]').querySelectorAll('button')]
         .map((button) => button.textContent.trim())
       const primaryActions = container.querySelector('[data-testid="result-primary-actions"]')
+      const modal = container.querySelector('[data-testid="gameover-result-overlay"] > div')
 
-      expect(labels.slice(0, 4)).toEqual(['🏆 랭킹', '타이틀로', '코인상점', '다시 시작'])
+      expect(labels).toEqual(['다시시작', '타이틀로', '코인상점', '랭킹'])
+      expect(container.textContent).not.toContain('다음에 만날 무기')
       expect(primaryActions.style.flexDirection).toBe('column')
+      expect(modal.style.maxWidth).toBe('220px')
       expect([...primaryActions.querySelectorAll('button')].every((button) => button.style.width === '136px')).toBe(true)
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
+
+  it('shows Matilda death dialogue before the game over popup and prints the Matilda death line', () => {
+    vi.useFakeTimers()
+    useGameStore.getState().resetGame('stage3')
+    useGameStore.setState({
+      phase: 'gameover',
+      deathCause: 'matilda',
+      goldSession: 8,
+      goldTotal: 20,
+    })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} onGoToRanking={() => {}} />)
+      })
+
+      expect(container.querySelector('[data-testid="matilda-dialogue"]')).not.toBeNull()
+      expect(container.textContent).toContain('오호호호!!!!! 맛있게 먹을께!!!!')
+      expect(container.querySelector('[data-testid="gameover-result-overlay"]')).toBeNull()
+
+      act(() => {
+        vi.advanceTimersByTime(MATILDA_DIALOGUE_MS + 999)
+      })
+      expect(container.querySelector('[data-testid="gameover-result-overlay"]')).toBeNull()
+      expect(container.querySelector('[data-testid="matilda-dialogue"]')).not.toBeNull()
+
+      act(() => {
+        vi.advanceTimersByTime(1)
+      })
+      expect(container.querySelector('[data-testid="matilda-dialogue"]')).toBeNull()
+      expect(container.querySelector('[data-testid="gameover-result-overlay"]')).not.toBeNull()
+      expect(container.querySelector('[data-testid="gameover-death-line"]').textContent)
+        .toBe('마틸다 에게 영혼을 뺴앗겨 버렸다!!')
     } finally {
       act(() => {
         root.unmount()

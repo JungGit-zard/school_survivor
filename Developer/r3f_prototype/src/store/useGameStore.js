@@ -178,6 +178,7 @@ export const useGameStore = create(
     bossDefeated: false,
     escapePortalActive: false,
     matildaSpawned: false,
+    deathCause: null,
     bossBonus: 0,
     gameKey:     0,
     goldSession: 0,
@@ -216,7 +217,7 @@ export const useGameStore = create(
     },
 
     // 플레이어 피해
-    damagePlayer: (amount, { ignoreInvulnerability = false } = {}) => {
+    damagePlayer: (amount, { ignoreInvulnerability = false, source = null } = {}) => {
       const { player, phase, e2eInvincible } = get()
       if (phase !== 'playing') return
       if (e2eInvincible) return
@@ -232,7 +233,7 @@ export const useGameStore = create(
         colorHex: DAMAGE_NUMBER_COLORS.player,
       })
       if (hp <= 0) {
-        set({ player: { ...player, hp }, phase: 'gameover', pauseSource: null })
+        set({ player: { ...player, hp }, phase: 'gameover', pauseSource: null, deathCause: source })
         emitSfx({ id: 'playerDeath' })
         vibrateFeedback([40, 60, 40])
         get()._onRunEnd('gameover')
@@ -773,6 +774,7 @@ export const useGameStore = create(
         bossDefeated: false,
         escapePortalActive: false,
         matildaSpawned: false,
+        deathCause: null,
         bossBonus: 0,
         gameKey:     s.gameKey + 1,
         goldSession: 0,
