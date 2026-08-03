@@ -40,6 +40,7 @@ const RECORD_KEYS = [
 const DEFAULT_TITLE_SETTINGS = Object.freeze({
   vibration: true,
   reducedEffects: false,
+  hitCameraShake: true,
   unlockAllWeaponsCheat: false,
   unlockAllStagesCheat: false,
 })
@@ -456,6 +457,7 @@ function normalizeTitleSettings(value) {
   return {
     vibration: typeof value.vibration === 'boolean' ? value.vibration : DEFAULT_TITLE_SETTINGS.vibration,
     reducedEffects: typeof value.reducedEffects === 'boolean' ? value.reducedEffects : DEFAULT_TITLE_SETTINGS.reducedEffects,
+    hitCameraShake: typeof value.hitCameraShake === 'boolean' ? value.hitCameraShake : DEFAULT_TITLE_SETTINGS.hitCameraShake,
     unlockAllWeaponsCheat: typeof value.unlockAllWeaponsCheat === 'boolean'
       ? value.unlockAllWeaponsCheat
       : DEFAULT_TITLE_SETTINGS.unlockAllWeaponsCheat,

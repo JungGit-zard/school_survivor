@@ -12,6 +12,7 @@ export const CRITICAL_SHAKE_NORMAL_X_RATIO = 0.007
 export const CRITICAL_SHAKE_NORMAL_Y_RATIO = 0.0035
 export const CRITICAL_SHAKE_STRONG_X_RATIO = 0.0115
 export const CRITICAL_SHAKE_STRONG_Y_RATIO = 0.0055
+export const ENEMY_HIT_SHAKE_STRENGTH = 0.58
 
 let active = false
 let startedAtMs = 0
@@ -59,6 +60,11 @@ function reducedMotionEnabled() {
   return reducedMotionQuery?.matches === true
 }
 
+function hitCameraShakeSettingEnabled() {
+  if (typeof document !== 'undefined' && document.documentElement?.dataset?.hitCameraShake === 'false') return false
+  return true
+}
+
 function clearActiveState() {
   active = false
   startedAtMs = 0
@@ -79,13 +85,13 @@ export function resetCriticalScreenShakeForTest() {
 }
 
 export function isCriticalScreenShakeReduced() {
-  return reducedMotionEnabled()
+  return reducedMotionEnabled() || !hitCameraShakeSettingEnabled()
 }
 
 // `impactX`/`impactZ` are world-ground deltas from player to target. The camera
 // converts them to its screen-local right/up axes when it applies this frame.
 export function emitCriticalScreenShake(impactX = 0, impactZ = 0, strong = false, requestedStrength = 1, nowMs) {
-  if (reducedMotionEnabled()) return false
+  if (reducedMotionEnabled() || !hitCameraShakeSettingEnabled()) return false
 
   const now = finiteNow(nowMs)
   const candidateStrength = Math.min(
@@ -133,6 +139,10 @@ export function emitCriticalScreenShake(impactX = 0, impactZ = 0, strong = false
   return true
 }
 
+export function emitEnemyHitScreenShake(impactX = 0, impactZ = 0, { strong = false, strength = ENEMY_HIT_SHAKE_STRENGTH, nowMs } = {}) {
+  return emitCriticalScreenShake(impactX, impactZ, strong, strength, nowMs)
+}
+
 // Writes into caller-owned `out`, so Game.jsx can reuse one object in useFrame.
 export function sampleCriticalScreenShake(out, nowMs) {
   const target = out
@@ -143,8 +153,8 @@ export function sampleCriticalScreenShake(out, nowMs) {
   target.active = false
 
   if (!active) return target
-  if (reducedMotionEnabled()) {
-    // A newly enabled reduced-motion setting must not resume a stale impulse if
+  if (reducedMotionEnabled() || !hitCameraShakeSettingEnabled()) {
+    // A newly enabled reduced-motion/effect setting must not resume a stale impulse if
     // the player turns the setting off again before its original duration ends.
     clearActiveState()
     return target

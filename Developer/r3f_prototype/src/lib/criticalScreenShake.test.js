@@ -8,6 +8,7 @@ import {
   CRITICAL_SHAKE_STRONG_X_RATIO,
   createCriticalScreenShakeFrame,
   emitCriticalScreenShake,
+  emitEnemyHitScreenShake,
   isCriticalScreenShakeReduced,
   resetCriticalScreenShakeForTest,
   sampleCriticalScreenShake,
@@ -20,6 +21,7 @@ function frameAt(nowMs) {
 afterEach(() => {
   resetCriticalScreenShakeForTest()
   delete document.documentElement.dataset.reducedEffects
+  delete document.documentElement.dataset.hitCameraShake
   Object.defineProperty(window, 'matchMedia', { configurable: true, value: undefined })
 })
 
@@ -80,6 +82,22 @@ describe('critical screen shake runtime', () => {
     })
     expect(isCriticalScreenShakeReduced()).toBe(true)
     expect(emitCriticalScreenShake(0, 0, false, 1, 1)).toBe(false)
+  })
+
+  it('피격 카메라 흔들림 설정을 끄면 일반/치명타 흔들림을 모두 막고 활성 impulse도 취소한다', () => {
+    expect(emitEnemyHitScreenShake(1, 0, { nowMs: 0 })).toBe(true)
+    expect(frameAt(10).active).toBe(true)
+
+    document.documentElement.dataset.hitCameraShake = 'false'
+    expect(isCriticalScreenShakeReduced()).toBe(true)
+    expect(frameAt(20).active).toBe(false)
+    expect(emitCriticalScreenShake(1, 0, true, 1, 140)).toBe(false)
+  })
+
+  it('일반 좀비 피격은 치명타보다 약한 90ms impulse를 사용한다', () => {
+    expect(emitEnemyHitScreenShake(1, 0, { nowMs: 0 })).toBe(true)
+    expect(frameAt(0).horizontal).toBeCloseTo(CRITICAL_SHAKE_NORMAL_X_RATIO * 0.58)
+    expect(frameAt(CRITICAL_SHAKE_NORMAL_DURATION_MS).active).toBe(false)
   })
 
   it('matchMedia는 최초 1회만 조회하고 reset 뒤 교체된 테스트 환경을 다시 읽는다', () => {

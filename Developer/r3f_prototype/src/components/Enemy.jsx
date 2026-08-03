@@ -13,7 +13,7 @@ import { emitSfx } from '../lib/sfxEvents.js'
 import { emitVfx } from '../lib/vfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
 import { resolveCriticalHit } from '../lib/criticalHits.js'
-import { emitCriticalScreenShake } from '../lib/criticalScreenShake.js'
+import { emitEnemyHitScreenShake } from '../lib/criticalScreenShake.js'
 import { createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { canE04FireProjectile, getE04IntroSec } from '../lib/stage2ProjectileRules.js'
@@ -624,13 +624,14 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       })
       const finalDamage = criticalHit.damage
       const willKill = hpRef.current <= finalDamage
-      if (criticalHit.isCritical) {
-        emitCriticalScreenShake(
-          hitPos.x - playerPos.x,
-          hitPos.z - playerPos.z,
-          (willKill && isBossType(type)) || (Number.isFinite(stats.hp) && stats.hp > 0 && finalDamage >= stats.hp * 0.25),
-        )
-      }
+      emitEnemyHitScreenShake(
+        hitPos.x - playerPos.x,
+        hitPos.z - playerPos.z,
+        {
+          strong: criticalHit.isCritical && ((willKill && isBossType(type)) || (Number.isFinite(stats.hp) && stats.hp > 0 && finalDamage >= stats.hp * 0.25)),
+          strength: criticalHit.isCritical ? 1 : undefined,
+        },
+      )
       // 모든 무기가 이 지점(_enemyHit)을 공통으로 지난다 → 여기서 데미지 숫자 1회 emit하면 무기별 누락이 없다.
       emitDamageNumber({
         x: hitPos.x,

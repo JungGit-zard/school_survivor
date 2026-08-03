@@ -9,6 +9,7 @@ export const SETTINGS_STORAGE_KEY = 'school_survivor:titleSettings'
 export const DEFAULT_SETTINGS = {
   vibration: true,
   reducedEffects: false,
+  hitCameraShake: true,
   unlockAllWeaponsCheat: false,
   unlockAllStagesCheat: false,
 }
@@ -18,6 +19,7 @@ export function loadTitleSettings() {
   return {
     vibration: typeof settings.vibration === 'boolean' ? settings.vibration : DEFAULT_SETTINGS.vibration,
     reducedEffects: typeof settings.reducedEffects === 'boolean' ? settings.reducedEffects : DEFAULT_SETTINGS.reducedEffects,
+    hitCameraShake: typeof settings.hitCameraShake === 'boolean' ? settings.hitCameraShake : DEFAULT_SETTINGS.hitCameraShake,
     unlockAllWeaponsCheat: typeof settings.unlockAllWeaponsCheat === 'boolean'
       ? settings.unlockAllWeaponsCheat
       : DEFAULT_SETTINGS.unlockAllWeaponsCheat,
@@ -43,6 +45,15 @@ export function applyReducedEffects(reducedEffects) {
     document.documentElement.dataset.reducedEffects = 'true'
   } else {
     document.documentElement.removeAttribute('data-reduced-effects')
+  }
+}
+
+export function applyHitCameraShake(hitCameraShake) {
+  if (typeof document === 'undefined') return
+  if (hitCameraShake === false) {
+    document.documentElement.dataset.hitCameraShake = 'false'
+  } else {
+    document.documentElement.removeAttribute('data-hit-camera-shake')
   }
 }
 

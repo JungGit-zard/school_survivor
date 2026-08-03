@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
-import { applyReducedEffects, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
+import { applyHitCameraShake, applyReducedEffects, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
 import { schoolPanel, schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { deleteAccountAndData, reauthenticateForDeletion } from '../lib/accountDeletion.js'
@@ -35,6 +35,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   useEffect(() => {
     saveTitleSettings(settings)
     applyReducedEffects(settings.reducedEffects)
+    applyHitCameraShake(settings.hitCameraShake)
   }, [settings])
 
   const toggleSetting = (key) => {
@@ -269,6 +270,21 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               </span>
               <span style={styles.toggleTrack(settings.reducedEffects)}>
                 <span style={styles.toggleKnob(settings.reducedEffects)} />
+              </span>
+            </button>
+
+            <button
+              type="button"
+              aria-label={settings.hitCameraShake ? '피격 카메라 흔들림 끄기' : '피격 카메라 흔들림 켜기'}
+              style={styles.settingRow}
+              onClick={() => toggleSetting('hitCameraShake')}
+            >
+              <span style={styles.rowText}>
+                <strong style={styles.rowTitle}>피격 카메라 흔들림</strong>
+                <span style={styles.rowDescription}>좀비가 맞을 때 짧게 흔들어 타격감을 줌</span>
+              </span>
+              <span style={styles.toggleTrack(settings.hitCameraShake)}>
+                <span style={styles.toggleKnob(settings.hitCameraShake)} />
               </span>
             </button>
 

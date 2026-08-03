@@ -7,6 +7,7 @@ import { isFirebaseProgressHydrated, hydrateCloudProgress, requestCloudProgressS
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import {
+  applyHitCameraShake,
   applyReducedEffects,
   loadTitleSettings,
   unlockAllNonStarterWeapons,
@@ -104,6 +105,7 @@ export default function TitleScreen({
     isFirebaseProgressHydrated(authUser) ? loadTitleSettings() : {
       vibration: true,
       reducedEffects: false,
+      hitCameraShake: true,
       unlockAllWeaponsCheat: false,
       unlockAllStagesCheat: false,
     }
@@ -120,8 +122,12 @@ export default function TitleScreen({
   // 타이틀 연출은 항상 재생하고, 화면을 벗어날 때 저장된 전역 설정을 복원한다.
   useEffect(() => {
     applyReducedEffects(false)
-    return () => applyReducedEffects(settings.reducedEffects)
-  }, [settings.reducedEffects])
+    applyHitCameraShake(settings.hitCameraShake)
+    return () => {
+      applyReducedEffects(settings.reducedEffects)
+      applyHitCameraShake(settings.hitCameraShake)
+    }
+  }, [settings.hitCameraShake, settings.reducedEffects])
 
   // 타이틀 BGM: 타이틀 DOM 커밋 직후(첫 페인트 전) 루프 재생을 시도하고,
   // 언마운트(게임 시작/로비 이동) 시 정지·정리한다.

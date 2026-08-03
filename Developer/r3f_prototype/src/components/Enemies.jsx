@@ -23,7 +23,7 @@ import { createEnemyProjectilePool, MAX_ENEMY_PROJECTILES } from '../lib/enemyPr
 import { emitVfx } from '../lib/vfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
 import { resolveCriticalHitInto } from '../lib/criticalHits.js'
-import { emitCriticalScreenShake } from '../lib/criticalScreenShake.js'
+import { emitEnemyHitScreenShake } from '../lib/criticalScreenShake.js'
 import { createEnemyHitSparkEvent, COMMON_ENEMY_HIT_KNOCKBACK } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { isPlayerWeaponSightBlocked } from '../lib/weaponTargeting.js'
@@ -919,13 +919,14 @@ export default function Enemies() {
     const critical = resolveCriticalHitInto(pooledCriticalScratchRef.current, damage, safeImpact.canCrit, safeImpact.damageType, safeImpact.attackTags, safeImpact.critChance, safeImpact.critMultiplier)
     const maxHp = enemyPool.maxHp[index]
     const killed = enemyPool.hp[index] <= critical.damage
-    if (critical.isCritical) {
-      emitCriticalScreenShake(
-        x - playerPos.x,
-        z - playerPos.z,
-        (killed && isBossType(type)) || (Number.isFinite(maxHp) && maxHp > 0 && critical.damage >= maxHp * 0.25),
-      )
-    }
+    emitEnemyHitScreenShake(
+      x - playerPos.x,
+      z - playerPos.z,
+      {
+        strong: critical.isCritical && ((killed && isBossType(type)) || (Number.isFinite(maxHp) && maxHp > 0 && critical.damage >= maxHp * 0.25)),
+        strength: critical.isCritical ? 1 : undefined,
+      },
+    )
     enqueuePooledHit(x, 0.42 * enemyPool.visualScale[index], 0.95 * enemyPool.visualScale[index], z, critical.damage, critical.isCritical)
     if (safeImpact.sfxId) emitSfx({ id: safeImpact.sfxId, volume: 0.6 })
     const knockbackSpeed = Number.isFinite(safeImpact.knockback) ? safeImpact.knockback : COMMON_ENEMY_HIT_KNOCKBACK.speed

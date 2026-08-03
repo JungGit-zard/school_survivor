@@ -8,6 +8,7 @@ import LobbySettingsModal from './LobbySettingsModal.jsx'
 import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { TERMS_TITLE, PRIVACY_TITLE } from '../lib/legalDocuments.js'
+import { loadTitleSettings } from '../lib/titleSettings.js'
 
 // vi.mock factory는 파일 최상단으로 호이스팅되므로 팩토리 내부에서 참조하는 바깥
 // 변수는 "mock" 접두사가 필요하다(이 저장소 관례).
@@ -158,6 +159,30 @@ describe('LobbySettingsModal', () => {
     expect(termsPanel.getAttribute('role')).toBe('region')
     expect(readFileSync('src/components/LobbySettingsModal.jsx', 'utf8'))
       .toContain("WebkitOverflowScrolling: 'touch'")
+
+    view.unmount()
+  })
+
+  it('exposes a separate hit camera shake toggle and applies it to runtime dataset', async () => {
+    useAuthStore.setState({
+      status: 'signedIn',
+      user: { uid: 'hit-shake-settings-user' },
+      signOutOfGoogle: vi.fn(async () => {}),
+    })
+    const view = renderSettings()
+
+    expect(view.container.textContent).toContain('피격 카메라 흔들림')
+    expect(loadTitleSettings().hitCameraShake).toBe(true)
+
+    await clickButtonByLabel(view.container, '피격 카메라 흔들림 끄기')
+
+    expect(loadTitleSettings().hitCameraShake).toBe(false)
+    expect(document.documentElement.dataset.hitCameraShake).toBe('false')
+
+    await clickButtonByLabel(view.container, '피격 카메라 흔들림 켜기')
+
+    expect(loadTitleSettings().hitCameraShake).toBe(true)
+    expect(document.documentElement.dataset.hitCameraShake).toBeUndefined()
 
     view.unmount()
   })

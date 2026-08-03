@@ -154,6 +154,7 @@ describe('firebase-only player progress runtime', () => {
         titleSettings: {
           vibration: true,
           reducedEffects: false,
+          hitCameraShake: true,
           unlockAllWeaponsCheat: false,
           unlockAllStagesCheat: false,
         },

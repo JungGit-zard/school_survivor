@@ -3,7 +3,7 @@
   "files": [
     {
       "path": "src/components/TitleScreen.jsx",
-      "sha256": "a9ed5c8268821c6d9796d76dc46a13e874e4d3946968ad31b7168f0b5dba6e53"
+      "sha256": "d57142d24d33963dc29f9c3761482cd845c7da279cb11cbaa52fb029eb42b9ce"
     },
     {
       "path": "src/components/TitleSceneCanvas.jsx",
@@ -15,7 +15,7 @@
     },
     {
       "path": "src/lib/titleSettings.js",
-      "sha256": "db05e602b35faaa3a61078da8551109ac898ddfb12b0c4ef54f6eac0e3179df8"
+      "sha256": "dc5ec02a115ca6e28e5ac940f109f114512ebea4a5683045c02e26704fcfb7b1"
     },
     {
       "path": "src/components/TitleScreen.bgm.test.jsx",
