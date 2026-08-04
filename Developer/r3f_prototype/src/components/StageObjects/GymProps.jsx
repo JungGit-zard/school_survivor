@@ -1,6 +1,4 @@
-import { useMemo } from 'react'
-import { toonMat } from '../../lib/toon.js'
-import { STAGE_PROP_MESH_RENDERING } from './propRendering.js'
+import { getStagePropToonMaterial, STAGE_PROP_MESH_RENDERING } from './propRendering.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 function PropBox({ position = [0, 0, 0], rotation = [0, 0, 0], size = [1, 1, 1], material }) {
@@ -54,14 +52,14 @@ function HoopRim({ position = [0, 0, 0], damaged = false, red, net }) {
 }
 
 export function BasketballHoop({ damaged = false, ...props }) {
-  const blue = useMemo(() => toonMat(0x2457a6, 0.08), [])
-  const red = useMemo(() => toonMat(0xb53625, 0.1), [])
-  const metal = useMemo(() => toonMat(0x44484d, 0.04), [])
-  const white = useMemo(() => toonMat(0xf2eee4, 0.04), [])
-  const glass = useMemo(() => toonMat(0xdfe7ec, 0.02), [])
-  const crack = useMemo(() => toonMat(0x1e2428, 0), [])
-  const net = useMemo(() => toonMat(0xe8ded0, 0.03), [])
-  const wood = useMemo(() => toonMat(0xb9834a, 0.06), [])
+  const blue = getStagePropToonMaterial(0x2457a6, 0.08)
+  const red = getStagePropToonMaterial(0xb53625, 0.1)
+  const metal = getStagePropToonMaterial(0x44484d, 0.04)
+  const white = getStagePropToonMaterial(0xf2eee4, 0.04)
+  const glass = getStagePropToonMaterial(0xdfe7ec, 0.02)
+  const crack = getStagePropToonMaterial(0x1e2428, 0)
+  const net = getStagePropToonMaterial(0xe8ded0, 0.03)
+  const wood = getStagePropToonMaterial(0xb9834a, 0.06)
 
   return (
     <group {...props} name={damaged ? 'gym-basketball-hoop-damaged' : 'gym-basketball-hoop'}>
@@ -93,10 +91,10 @@ export function BasketballHoop({ damaged = false, ...props }) {
 }
 
 export function BallCart({ ...props }) {
-  const frame = useMemo(() => toonMat(0x4c5558, 0.04), [])
-  const dark = useMemo(() => toonMat(0x1f2528, 0.02), [])
-  const orange = useMemo(() => toonMat(0xd97424, 0.12), [])
-  const seam = useMemo(() => toonMat(0x2b2119, 0), [])
+  const frame = getStagePropToonMaterial(0x4c5558, 0.04)
+  const dark = getStagePropToonMaterial(0x1f2528, 0.02)
+  const orange = getStagePropToonMaterial(0xd97424, 0.12)
+  const seam = getStagePropToonMaterial(0x2b2119, 0)
 
   return (
     <group {...props} name="gym-ball-cart">
@@ -117,8 +115,8 @@ export function BallCart({ ...props }) {
 }
 
 export function BasketballCluster({ count = 5, ...props }) {
-  const orange = useMemo(() => toonMat(0xd97424, 0.12), [])
-  const seam = useMemo(() => toonMat(0x2b2119, 0), [])
+  const orange = getStagePropToonMaterial(0xd97424, 0.12)
+  const seam = getStagePropToonMaterial(0x2b2119, 0)
   const positions = [
     [-0.62, 0.19, -0.22],
     [-0.18, 0.19, 0.24],
@@ -140,8 +138,8 @@ export function BasketballCluster({ count = 5, ...props }) {
 }
 
 export function GymBench({ knockedOver = false, ...props }) {
-  const wood = useMemo(() => toonMat(0xa66b38, 0.06), [])
-  const metal = useMemo(() => toonMat(0x3f4a50, 0.03), [])
+  const wood = getStagePropToonMaterial(0xa66b38, 0.06)
+  const metal = getStagePropToonMaterial(0x3f4a50, 0.03)
   const modelRotation = knockedOver ? [0, 0, -Math.PI / 2] : [0, 0, 0]
   const modelPosition = knockedOver ? [0, 0.34, 0] : [0, 0, 0]
 
@@ -162,8 +160,8 @@ export function GymBench({ knockedOver = false, ...props }) {
 }
 
 export function TrainingCones({ ...props }) {
-  const orange = useMemo(() => toonMat(0xe36f1e, 0.13), [])
-  const white = useMemo(() => toonMat(0xf2eee4, 0.04), [])
+  const orange = getStagePropToonMaterial(0xe36f1e, 0.13)
+  const white = getStagePropToonMaterial(0xf2eee4, 0.04)
   const conePositions = [
     [-0.78, 0, -0.44],
     [-0.34, 0, 0.16],
@@ -187,11 +185,11 @@ export function TrainingCones({ ...props }) {
 }
 
 export function GymMats({ ...props }) {
-  const blue = useMemo(() => toonMat(0x3169bf, 0.08), [])
-  const green = useMemo(() => toonMat(0x3f8c4d, 0.08), [])
-  const red = useMemo(() => toonMat(0xc7493f, 0.08), [])
-  const yellow = useMemo(() => toonMat(0xd9b747, 0.1), [])
-  const strap = useMemo(() => toonMat(0x2f363b, 0.02), [])
+  const blue = getStagePropToonMaterial(0x3169bf, 0.08)
+  const green = getStagePropToonMaterial(0x3f8c4d, 0.08)
+  const red = getStagePropToonMaterial(0xc7493f, 0.08)
+  const yellow = getStagePropToonMaterial(0xd9b747, 0.1)
+  const strap = getStagePropToonMaterial(0x2f363b, 0.02)
   const mats = [yellow, red, green, blue]
 
   return (
@@ -208,12 +206,12 @@ export function GymMats({ ...props }) {
 }
 
 export function GymScoreboard({ ...props }) {
-  const body = useMemo(() => toonMat(0x202326, 0.02), [])
-  const trim = useMemo(() => toonMat(0x3a4147, 0.04), [])
-  const green = useMemo(() => toonMat(0x72e05d, 0.4), [])
-  const red = useMemo(() => toonMat(0xff503e, 0.35), [])
-  const yellow = useMemo(() => toonMat(0xffc846, 0.4), [])
-  const label = useMemo(() => toonMat(0xf0efe9, 0.08), [])
+  const body = getStagePropToonMaterial(0x202326, 0.02)
+  const trim = getStagePropToonMaterial(0x3a4147, 0.04)
+  const green = getStagePropToonMaterial(0x72e05d, 0.4)
+  const red = getStagePropToonMaterial(0xff503e, 0.35)
+  const yellow = getStagePropToonMaterial(0xffc846, 0.4)
+  const label = getStagePropToonMaterial(0xf0efe9, 0.08)
 
   return (
     <group {...props} name="gym-scoreboard">
@@ -232,11 +230,11 @@ export function GymScoreboard({ ...props }) {
 }
 
 export function GymBanner({ ...props }) {
-  const cloth = useMemo(() => toonMat(0xf1dfbd, 0.06), [])
-  const red = useMemo(() => toonMat(0xc84035, 0.12), [])
-  const blue = useMemo(() => toonMat(0x2f6eb9, 0.1), [])
-  const green = useMemo(() => toonMat(0x4d9a5d, 0.1), [])
-  const rope = useMemo(() => toonMat(0x7b5b39, 0.04), [])
+  const cloth = getStagePropToonMaterial(0xf1dfbd, 0.06)
+  const red = getStagePropToonMaterial(0xc84035, 0.12)
+  const blue = getStagePropToonMaterial(0x2f6eb9, 0.1)
+  const green = getStagePropToonMaterial(0x4d9a5d, 0.1)
+  const rope = getStagePropToonMaterial(0x7b5b39, 0.04)
 
   return (
     <group {...props} name="gym-sports-day-banner">
@@ -255,10 +253,10 @@ export function GymBanner({ ...props }) {
 }
 
 export function GymExitDoor({ ...props }) {
-  const door = useMemo(() => toonMat(0x5c7f83, 0.04), [])
-  const green = useMemo(() => toonMat(0x3da36a, 0.2), [])
-  const white = useMemo(() => toonMat(0xeef4e6, 0.08), [])
-  const metal = useMemo(() => toonMat(0x2d373c, 0.03), [])
+  const door = getStagePropToonMaterial(0x5c7f83, 0.04)
+  const green = getStagePropToonMaterial(0x3da36a, 0.2)
+  const white = getStagePropToonMaterial(0xeef4e6, 0.08)
+  const metal = getStagePropToonMaterial(0x2d373c, 0.03)
 
   return (
     <group {...props} name="gym-exit-door">
@@ -275,13 +273,13 @@ export function GymExitDoor({ ...props }) {
 }
 
 export function GymEquipmentSpill({ ...props }) {
-  const cooler = useMemo(() => toonMat(0xe8e1d0, 0.04), [])
-  const blue = useMemo(() => toonMat(0x80b6d4, 0.08), [])
-  const water = useMemo(() => toonMat(0x7fcbe6, 0.18), [])
-  const box = useMemo(() => toonMat(0x68a85d, 0.08), [])
-  const orange = useMemo(() => toonMat(0xe07a22, 0.12), [])
-  const whistle = useMemo(() => toonMat(0xaeb6bb, 0.05), [])
-  const cord = useMemo(() => toonMat(0xc73f32, 0.06), [])
+  const cooler = getStagePropToonMaterial(0xe8e1d0, 0.04)
+  const blue = getStagePropToonMaterial(0x80b6d4, 0.08)
+  const water = getStagePropToonMaterial(0x7fcbe6, 0.18)
+  const box = getStagePropToonMaterial(0x68a85d, 0.08)
+  const orange = getStagePropToonMaterial(0xe07a22, 0.12)
+  const whistle = getStagePropToonMaterial(0xaeb6bb, 0.05)
+  const cord = getStagePropToonMaterial(0xc73f32, 0.06)
 
   return (
     <group {...props} name="gym-equipment-spill">

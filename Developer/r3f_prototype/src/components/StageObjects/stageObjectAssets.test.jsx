@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import * as THREE from 'three'
 import {
   CLASSROOM_CHAIR_VARIANTS,
   CLASSROOM_DESK_VARIANTS,
@@ -36,10 +37,11 @@ import { BLOCKING_STAGE_OBJECT_TYPES } from './stageObjectColliders.js'
 import { STAGE_OBJECT_TYPES } from './StageObjectLayer.jsx'
 import { STAGE_PROP_TYPES } from '../../lib/stagePropPlacements.js'
 import { GRAPHICS_STUDIO_CATALOG } from '../../lib/graphicsStudioConfig.js'
-import { getCachedBoxGeo, getCachedOutlineMat } from '../../lib/toon.js'
+import { getCachedBoxGeo, getCachedOutlineMat, getCachedToonMat } from '../../lib/toon.js'
 import {
   getPropOutlineScale,
   getStagePropOutlineMaterial,
+  getStagePropToonMaterial,
   STAGE_PROP_MESH_RENDERING,
   STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING,
   STAGE_PROP_UNIT_BOX_GEOMETRY,
@@ -102,6 +104,37 @@ describe('stage object asset catalog', () => {
       receiveShadow: false,
       dispose: null,
     })
+  })
+
+  it('keeps every stage prop toon surface visible from both sides while outlines stay inverted hulls', () => {
+    const originalDocument = globalThis.document
+    globalThis.document = {
+      createElement: () => ({
+        getContext: () => ({ fillStyle: '', fillRect: () => {} }),
+      }),
+    }
+
+    let surfaceMaterial
+    try {
+      surfaceMaterial = getStagePropToonMaterial(0x7394a0, 0.06)
+    } finally {
+      if (originalDocument === undefined) Reflect.deleteProperty(globalThis, 'document')
+      else globalThis.document = originalDocument
+    }
+    const outlineMaterial = getStagePropOutlineMaterial(0.9, 0x24170f)
+    const defaultSurfaceMaterial = getCachedToonMat(0x7394a0, 0.06)
+
+    expect(surfaceMaterial.side).toBe(THREE.DoubleSide)
+    expect(defaultSurfaceMaterial.side).toBe(THREE.FrontSide)
+    expect(surfaceMaterial).not.toBe(defaultSurfaceMaterial)
+    expect(outlineMaterial.side).toBe(THREE.BackSide)
+
+    for (const file of ['CorridorProps.jsx', 'GymProps.jsx']) {
+      const source = readFileSync(new URL(`./${file}`, import.meta.url), 'utf8')
+
+      expect(source).toContain('getStagePropToonMaterial(')
+      expect(source).not.toContain('toonMat(')
+    }
   })
 
   it('does not reintroduce direct shadow props in classroom prop components', () => {

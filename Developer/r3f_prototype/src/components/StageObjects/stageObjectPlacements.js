@@ -795,6 +795,20 @@ function withMixedUnconsciousStudentFacing(item) {
   }
 }
 
+function withAuthoredClassPresidentUniform(item) {
+  if (item.id !== 'stage1-student-south-01' || item.props?.uniformColor !== undefined) {
+    return item
+  }
+
+  return {
+    ...item,
+    props: {
+      ...item.props,
+      uniformColor: 0xc23535,
+    },
+  }
+}
+
 function enlargeScale(scale = 1) {
   return Array.isArray(scale)
     ? scale.map((value) => value * 1.1)
@@ -906,5 +920,7 @@ export function getStageObjectPlacements(stageId = 'stage1') {
   const visiblePlacements = stageId === 'stage1'
     ? placements.filter(isStage1VisiblePropPlacement)
     : placements
-  return visiblePlacements.map(withMixedUnconsciousStudentFacing)
+  return visiblePlacements
+    .map(withAuthoredClassPresidentUniform)
+    .map(withMixedUnconsciousStudentFacing)
 }

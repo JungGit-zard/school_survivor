@@ -35,12 +35,13 @@ export function inflateScale(s) {
 //       그려지지 않아, 부품 사이 seam이 아닌 외곽 silhouette만 외곽선으로 남는다.
 const OUTLINE_STENCIL_REF = 1
 
-export function toonMat(hex, emissiveIntensity = 0.08) {
+export function toonMat(hex, emissiveIntensity = 0.08, side = THREE.FrontSide) {
   const m = new THREE.MeshToonMaterial({
     color: hex,
     gradientMap: getToonGradient(),
     emissive: hex,
     emissiveIntensity,
+    side,
   })
   m.stencilWrite = true
   m.stencilRef   = OUTLINE_STENCIL_REF
@@ -95,10 +96,10 @@ export function getCachedBoxGeo(w, h, d) {
 
 // toonMat: 동일 색상+발광 조합의 머티리얼 공유
 const _toonMatCache = new Map()
-export function getCachedToonMat(color, emissive = 0.08) {
-  const key = `${color},${emissive}`
+export function getCachedToonMat(color, emissive = 0.08, side = THREE.FrontSide) {
+  const key = `${color},${emissive},${side}`
   let m = _toonMatCache.get(key)
-  if (!m) { m = toonMat(color, emissive); _toonMatCache.set(key, m) }
+  if (!m) { m = toonMat(color, emissive, side); _toonMatCache.set(key, m) }
   return m
 }
 

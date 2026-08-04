@@ -1,6 +1,4 @@
-import { useMemo } from 'react'
-import { toonMat } from '../../lib/toon.js'
-import { STAGE_PROP_MESH_RENDERING } from './propRendering.js'
+import { getStagePropToonMaterial, STAGE_PROP_MESH_RENDERING } from './propRendering.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 function PropBox({ position = [0, 0, 0], rotation = [0, 0, 0], size, material, outline }) {
@@ -24,10 +22,10 @@ function PropCylinder({ position = [0, 0, 0], rotation = [0, 0, 0], args, materi
 }
 
 export function CorridorLockerBank(props) {
-  const locker = useMemo(() => toonMat(0x7394a0, 0.06), [])
-  const dark = useMemo(() => toonMat(0x35454a, 0.03), [])
-  const tag = useMemo(() => toonMat(0xc8483c, 0.1), [])
-  const metal = useMemo(() => toonMat(0xaebfc1, 0.04), [])
+  const locker = getStagePropToonMaterial(0x7394a0, 0.06)
+  const dark = getStagePropToonMaterial(0x35454a, 0.03)
+  const tag = getStagePropToonMaterial(0xc8483c, 0.1)
+  const metal = getStagePropToonMaterial(0xaebfc1, 0.04)
   const outline = null
 
   return (
@@ -51,13 +49,13 @@ export function CorridorLockerBank(props) {
 }
 
 export function CorridorJanitorCart(props) {
-  const frame = useMemo(() => toonMat(0x3c4b50, 0.04), [])
-  const bucket = useMemo(() => toonMat(0xe0a72b, 0.12), [])
-  const bag = useMemo(() => toonMat(0x1e2a2e, 0.02), [])
-  const bottleBlue = useMemo(() => toonMat(0x417fa6, 0.12), [])
-  const bottleWhite = useMemo(() => toonMat(0xe9e6d7, 0.03), [])
-  const wood = useMemo(() => toonMat(0x9c6a37, 0.03), [])
-  const tire = useMemo(() => toonMat(0x202326, 0), [])
+  const frame = getStagePropToonMaterial(0x3c4b50, 0.04)
+  const bucket = getStagePropToonMaterial(0xe0a72b, 0.12)
+  const bag = getStagePropToonMaterial(0x1e2a2e, 0.02)
+  const bottleBlue = getStagePropToonMaterial(0x417fa6, 0.12)
+  const bottleWhite = getStagePropToonMaterial(0xe9e6d7, 0.03)
+  const wood = getStagePropToonMaterial(0x9c6a37, 0.03)
+  const tire = getStagePropToonMaterial(0x202326, 0)
   const outline = null
 
   return (
@@ -84,13 +82,13 @@ export function CorridorJanitorCart(props) {
 }
 
 export function CorridorLostFoundBoard(props) {
-  const frame = useMemo(() => toonMat(0x704a2d, 0.04), [])
-  const cork = useMemo(() => toonMat(0xa97445, 0.03), [])
-  const paper = useMemo(() => toonMat(0xf0e4c3, 0.02), [])
-  const bluePaper = useMemo(() => toonMat(0x8cbcc2, 0.04), [])
-  const pinkPaper = useMemo(() => toonMat(0xd99791, 0.04), [])
-  const pin = useMemo(() => toonMat(0xbd463f, 0.12), [])
-  const umbrella = useMemo(() => toonMat(0x973e3a, 0.05), [])
+  const frame = getStagePropToonMaterial(0x704a2d, 0.04)
+  const cork = getStagePropToonMaterial(0xa97445, 0.03)
+  const paper = getStagePropToonMaterial(0xf0e4c3, 0.02)
+  const bluePaper = getStagePropToonMaterial(0x8cbcc2, 0.04)
+  const pinkPaper = getStagePropToonMaterial(0xd99791, 0.04)
+  const pin = getStagePropToonMaterial(0xbd463f, 0.12)
+  const umbrella = getStagePropToonMaterial(0x973e3a, 0.05)
   const outline = null
 
   return (

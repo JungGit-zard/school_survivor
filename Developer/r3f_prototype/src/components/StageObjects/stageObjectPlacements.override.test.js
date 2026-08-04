@@ -100,6 +100,22 @@ describe('getStageObjectPlacements override priority', () => {
     expect(classPresident.props.uniformColor).toBe(0xc23535)
   })
 
+  it('keeps the authored class president uniform when a Firebase override omits the color', () => {
+    saveStagePropPlacements({
+      stage1: [{
+        id: 'stage1-student-south-01',
+        type: 'unconsciousStudent',
+        position: [-3.7, 0, 17.2],
+        rotation: [0, 1.42, 0],
+        scale: 1,
+        props: { variant: 'sideLeft' },
+      }],
+    })
+
+    const [classPresident] = getStageObjectPlacements('stage1')
+    expect(classPresident.props.uniformColor).toBe(0xc23535)
+  })
+
   it('reverts to defaults after the override is cleared to null', () => {
     saveStagePropPlacements({ stage2: [{ id: 'x', type: 'classroomDesk', position: [0, 0, 0] }] })
     expect(getStageObjectPlacements('stage2')).toHaveLength(1)
