@@ -20,6 +20,7 @@ import {
   loadStudioTunings,
 } from '../lib/graphicsStudioConfig.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
+import { milestoneLabel, t as translate, useT, weaponLabel } from '../lib/i18n.js'
 import { dispatchStarlinkCheatCrash } from './Weapons/Starlink.jsx'
 import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.webp'
 import rulerIconSrc from '../assets/weapon_icon/02_wea_30ruller.png.webp'
@@ -48,8 +49,12 @@ const MATILDA_DEATH_DIALOGUE_LINE = '오호호호!!!!! 맛있게 먹을께!!!!'
 const MATILDA_GAMEOVER_LINE = '마틸다 에게 영혼을 뺴앗겨 버렸다!!'
 const DEV_CHEATS_ENABLED = import.meta.env.DEV
 
-const damageLabel = (name, weaponKey, upgradeKey) => (w) =>
-  `${name} +${UPGRADE_EFFECTS[upgradeKey].dmg} (Lv${(w[weaponKey].level ?? 1) + 1})`
+// 한국어 라벨은 그대로 폴백으로 남기고, 번역은 업그레이드 키(up.<key>.label)로 찾는다.
+const damageLabel = (name, weaponKey, upgradeKey) => (w) => {
+  const amount = UPGRADE_EFFECTS[upgradeKey].dmg
+  const level = (w[weaponKey].level ?? 1) + 1
+  return translate(`up.${upgradeKey}.label`, { amount, level }, `${name} +${amount} (Lv${level})`)
+}
 
 const UPGRADES = [
   { key: 'acquireBoxCutter', icon: 'boxCutter', label: '커터칼 해금', desc: '전방 좁은 범위를 찌르고 옆으로 베어냄' },
@@ -262,18 +267,26 @@ export function limitDuplicateWeaponUpgradeOptions(options, random = Math.random
   return limited
 }
 
+function introLine(index) {
+  return translate(`intro.stage1.${index}`, null, STAGE1_INTRO_LINES[index] ?? '')
+}
+
 export function getUpgradeChoiceLabel(option, weapons = {}) {
   const effect = UPGRADE_EFFECTS[option.key]
   if (effect?.kind === 'acquire') {
-    return `${WEAPON_CATALOG[effect.weapon]?.label ?? weapons[effect.weapon]?.label ?? effect.weapon} 획득`
+    const koreanName = WEAPON_CATALOG[effect.weapon]?.label ?? weapons[effect.weapon]?.label ?? effect.weapon
+    return translate('up.acquireLabel', { weapon: weaponLabel(effect.weapon, koreanName) }, `${koreanName} 획득`)
   }
-  return option.labelFn ? option.labelFn(weapons) : option.label
+  return option.labelFn ? option.labelFn(weapons) : translate(`up.${option.key}.label`, null, option.label)
 }
 
 export function getUpgradeChoiceDesc(option) {
   const effect = UPGRADE_EFFECTS[option.key]
-  if (effect?.kind === 'acquire') return option.desc?.replaceAll('해금', '획득') ?? ''
-  return option.desc
+  const desc = translate(`up.${option.key}.desc`, null, option.desc)
+  if (effect?.kind !== 'acquire') return desc
+  const unlockWord = translate('up.unlockWord', null, '해금')
+  const acquireWord = translate('up.acquireWord', null, '획득')
+  return desc?.replaceAll(unlockWord, acquireWord) ?? ''
 }
 
 function pickThree(level, weapons, player) {
@@ -464,6 +477,7 @@ export function UpgradeIcon({ type }) {
 }
 
 export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRanking, devCheatsVisible = false }) {
+  const t = useT()
   const devToolsVisible = DEV_CHEATS_ENABLED && devCheatsVisible
   const questBagButtonRef = useRef(null)
   const questCloseButtonRef = useRef(null)
@@ -547,9 +561,13 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     if (typeof questToast === 'string') return questToast
     const quest = getQuestDefinition(questToast.questId)
     if (!quest) return null
-    if (questToast.type === 'item') return `가방에 보관했습니다: ${quest.item.name}`
-    if (questToast.type === 'completed') return `${quest.title} 완료! 보상 ${quest.rewardGold}G`
-    return `${quest.title} 퀘스트를 받았습니다.`
+    const title = translate(`quest.${quest.id}.title`, null, quest.title)
+    if (questToast.type === 'item') {
+      const item = translate(`quest.${quest.id}.itemName`, null, quest.item.name)
+      return translate('hud.questToastItem', { item })
+    }
+    if (questToast.type === 'completed') return translate('hud.questToastDone', { title, gold: quest.rewardGold })
+    return translate('hud.questToastStart', { title })
   }, [questToast])
   const activeWeapons = useMemo(
     () => Object.entries(weapons).filter(([, w]) => w.active),
@@ -595,7 +613,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
   const resultDevTools = showResultDevTools ? (
     <div data-testid="result-dev-tools" style={styles.resultDevTools}>
       <button type="button" style={styles.devCopyBtn} onClick={copyPlaytestLog}>
-        {copyStatus === 'copied' ? '개발 로그 복사됨' : copyStatus === 'error' ? '개발 로그 복사 실패' : '개발 로그 복사'}
+        {copyStatus === 'copied' ? translate('hud.copyLogDone') : copyStatus === 'error' ? translate('hud.copyLogFail') : translate('hud.copyLog')}
       </button>
     </div>
   ) : null
@@ -723,13 +741,15 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
       stopDialogueVoice()
       return undefined
     }
-    const line = STAGE1_INTRO_LINES[introDialogue.index] ?? ''
+    const line = introLine(introDialogue.index)
     playDialogueVoice(line, 'protagonistIntro', { volume: 1 })
     return () => stopDialogueVoice()
   }, [introDialogue])
 
   const showMatildaDialogue = matildaDialogueVisible || (isMatildaGameover && !gameoverModalReady)
-  const matildaDialogueLine = isMatildaGameover ? MATILDA_DEATH_DIALOGUE_LINE : MATILDA_DIALOGUE_LINE
+  const matildaDialogueLine = isMatildaGameover
+    ? t('hud.matildaDeathLine', null, MATILDA_DEATH_DIALOGUE_LINE)
+    : t('hud.matildaLine', null, MATILDA_DIALOGUE_LINE)
 
   useEffect(() => {
     if (!showMatildaDialogue) return undefined
@@ -823,25 +843,25 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
       )}
       {recentMilestone && (
         <div style={styles.milestoneToast}>
-          <span style={styles.milestoneLabel}>{recentMilestone.label}</span>
-          <span style={styles.milestoneGold}>+{recentMilestone.gold} 골드</span>
+          <span style={styles.milestoneLabel}>{milestoneLabel(recentMilestone.label)}</span>
+          <span style={styles.milestoneGold}>{t('hud.milestoneGold', { gold: recentMilestone.gold })}</span>
         </div>
       )}
       {bossWarning != null && (
         <div style={styles.bossWarning}>
-          <div style={styles.bossWarningLabel}>보스 출현</div>
+          <div style={styles.bossWarningLabel}>{t('hud.bossWarning')}</div>
           <div style={styles.bossWarningCount}>{bossWarning}</div>
         </div>
       )}
       {e04IntroWarning != null && (
         <div style={styles.projectileWarning}>
-          <div style={styles.projectileWarningLabel}>복도 탄환 주의</div>
+          <div style={styles.projectileWarningLabel}>{t('hud.projectileWarning')}</div>
           <div style={styles.projectileWarningCount}>{e04IntroWarning}</div>
         </div>
       )}
       {matildaWarning != null && (
         <div data-testid="matilda-warning" style={styles.matildaWarning}>
-          <div style={styles.matildaWarningLabel}>⚠ 사신 마틸다 출현</div>
+          <div style={styles.matildaWarningLabel}>{t('hud.matildaWarning')}</div>
           <div data-testid="matilda-warning-count" style={styles.matildaWarningCount}>{matildaWarning}</div>
         </div>
       )}
@@ -850,19 +870,19 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
           data-testid="matilda-dialogue"
           style={styles.matildaDialogueBox}
           role="dialog"
-          aria-label="마틸다 등장 대사"
+          aria-label={t('hud.matildaDialogueAria')}
           aria-live="assertive"
         >
           <div style={styles.matildaDialoguePortraitFrame}>
             <img
               src={matildaConversationPortraitSrc}
-              alt="마틸다 프로필"
+              alt={t('hud.matildaPortraitAlt')}
               draggable={false}
               style={styles.matildaDialoguePortrait}
             />
           </div>
           <div style={styles.matildaDialogueTextCol}>
-            <div style={styles.matildaDialogueName}>{MATILDA_DIALOGUE_NAME}</div>
+            <div style={styles.matildaDialogueName}>{t('hud.matildaName', null, MATILDA_DIALOGUE_NAME)}</div>
             <div style={styles.matildaDialogueLine}>{matildaDialogueLine}</div>
           </div>
         </div>
@@ -874,15 +894,15 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
       )}
       {portalFlash && (
         <div style={styles.portalFlash}>
-          탈출구가 나타났다!
+          {t('hud.portalAppeared')}
         </div>
       )}
       {portalObjective && (
         <>
           <div data-testid="portal-objective" style={styles.portalObjective} aria-hidden="true">
-            탈출구 {portalObjective.arrow} {portalObjective.distanceZm}zm
+            {t('hud.portalDistance', { arrow: portalObjective.arrow, distance: portalObjective.distanceZm })}
           </div>
-          <div role="status" aria-label="탈출구로 이동" style={styles.screenReaderOnly}>탈출구로 이동</div>
+          <div role="status" aria-label={t('hud.portalMoveAria')} style={styles.screenReaderOnly}>{t('hud.portalMoveAria')}</div>
         </>
       )}
       {/* Top bar — 스테이지 번호 + 시간만 한 줄 */}
@@ -927,13 +947,13 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
 
       {(phase === 'playing' || (phase === 'paused' && pauseSource !== 'dialogue' && pauseSource !== 'intro')) && (
         <div style={styles.topLeftControls}>
-          <button type="button" className="hud-pause-button" aria-label={phase === 'paused' ? '게임 재개' : '게임 일시정지'} style={styles.pauseButton} onClick={() => { emitSfx({ id: 'buttonClick' }); togglePause() }}>
+          <button type="button" className="hud-pause-button" aria-label={phase === 'paused' ? t('hud.resumeAria') : t('hud.pauseAria')} style={styles.pauseButton} onClick={() => { emitSfx({ id: 'buttonClick' }); togglePause() }}>
           {phase === 'paused' ? '▶' : 'Ⅱ'}
           </button>
           <button
             type="button"
             className="hud-quest-bag-button"
-            aria-label={questInventoryOpen ? '퀘스트 가방 닫기' : '퀘스트 가방 열기'}
+            aria-label={questInventoryOpen ? t('hud.questBagCloseAria') : t('hud.questBagOpenAria')}
             aria-expanded={questInventoryOpen}
             aria-controls="quest-inventory-panel"
             ref={questBagButtonRef}
@@ -941,20 +961,20 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
             onClick={() => { emitSfx({ id: 'buttonClick' }); toggleQuestInventory() }}
           >
             <QuestBagIcon />
-            {newQuestItemIds?.length > 0 && <span aria-label="새 퀘스트 아이템" style={styles.questNewBadge}>!</span>}
+            {newQuestItemIds?.length > 0 && <span aria-label={t('hud.newQuestItemAria')} style={styles.questNewBadge}>!</span>}
           </button>
           {devToolsVisible && (
             <>
               <button type="button" style={styles.quickRestartButton} onClick={() => resetGame(currentStageId)} aria-label="Restart" title="Restart">
                 R
               </button>
-              <button type="button" style={styles.matildaBtn} onClick={() => { joystickDir.x = 0; joystickDir.z = 0; joystickDir.active = false; spawnMatilda() }} title="마틸다 소환">
+              <button type="button" style={styles.matildaBtn} onClick={() => { joystickDir.x = 0; joystickDir.z = 0; joystickDir.active = false; spawnMatilda() }} title={t('hud.summonMatilda')}>
                 M
               </button>
-              <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => setWeaponCheatOpen((open) => !open)} aria-label="무기 치트" title="무기 치트">
+              <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => setWeaponCheatOpen((open) => !open)} aria-label={t('hud.weaponCheat')} title={t('hud.weaponCheat')}>
                 W
               </button>
-              <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => { emitSfx({ id: 'buttonClick' }); dispatchStarlinkCheatCrash() }} aria-label="스타링크 추락 치트" title="스타링크 즉시 추락">
+              <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => { emitSfx({ id: 'buttonClick' }); dispatchStarlinkCheatCrash() }} aria-label={t('hud.starlinkCheatAria')} title={t('hud.starlinkCheatTitle')}>
                 S
               </button>
             </>
@@ -964,7 +984,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
 
       {devToolsVisible && weaponCheatOpen && (phase === 'playing' || phase === 'paused') && (
         <div data-testid="weapon-cheat-panel" style={styles.weaponCheatPanel}>
-          <div style={styles.weaponCheatTitle}>모든 무기</div>
+          <div style={styles.weaponCheatTitle}>{t('hud.allWeapons')}</div>
           <div style={styles.weaponCheatGrid}>
             {weaponCheatItems.map(({ id, label, icon }) => {
               const active = !!weapons[id]?.active
@@ -977,7 +997,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
                   disabled={active}
                 >
                   <UpgradeIcon type={icon} />
-                  <span style={styles.weaponCheatLabel}>{label}</span>
+                  <span style={styles.weaponCheatLabel}>{weaponLabel(id, label)}</span>
                 </button>
               )
             })}
@@ -988,7 +1008,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
       {phase === 'levelup' && (
         <div data-testid="levelup-upgrade-overlay" style={styles.levelupOverlay}>
           <div data-testid="levelup-upgrade-panel" style={styles.levelupPanel}>
-            <h2 style={styles.levelupTitle}>레벨 업! Lv.{player.level}</h2>
+            <h2 style={styles.levelupTitle}>{t('hud.levelUp', { level: player.level })}</h2>
             <div data-testid="levelup-upgrade-choices" style={styles.levelupChoices}>
               {choices.map((c, i) => (
                 <button
@@ -1025,25 +1045,25 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         <div data-testid="gameover-result-overlay" style={styles.overlay}>
           <div style={styles.modal}>
             <h2 style={{ ...styles.modalTitle, color: '#ff4060' }}>GAME OVER</h2>
-            {isMatildaGameover && <p data-testid="gameover-death-line" style={styles.gameoverDeathLine}>{MATILDA_GAMEOVER_LINE}</p>}
-            <p style={{ color: '#ccc', marginBottom: 8 }}>생존 시간: {mins}:{secs}</p>
-            <p style={{ color: '#ffd040', marginBottom: (newlyUnlockedWeaponIds?.length > 0) ? 12 : 20 }}>획득 골드: {goldSession} (누적 {goldTotal})</p>
+            {isMatildaGameover && <p data-testid="gameover-death-line" style={styles.gameoverDeathLine}>{t('hud.matildaGameoverLine', null, MATILDA_GAMEOVER_LINE)}</p>}
+            <p style={{ color: '#ccc', marginBottom: 8 }}>{t('hud.survivalTime', { time: `${mins}:${secs}` })}</p>
+            <p style={{ color: '#ffd040', marginBottom: (newlyUnlockedWeaponIds?.length > 0) ? 12 : 20 }}>{t('hud.goldEarned', { session: goldSession, total: goldTotal })}</p>
             {newlyUnlockedWeaponIds?.length > 0 && (
               <div style={styles.newlyUnlocked}>
-                <span style={styles.newlyUnlockedLabel}>🎉 새 무기 해금!</span>
+                <span style={styles.newlyUnlockedLabel}>{t('hud.newWeaponUnlocked')}</span>
                 {newlyUnlockedWeaponIds.map((id) => (
                   <div key={id} style={styles.newlyUnlockedItem}>
-                    {WEAPON_CATALOG[id]?.label ?? id}
+                    {weaponLabel(id, WEAPON_CATALOG[id]?.label ?? id)}
                   </div>
                 ))}
-                <div style={styles.newlyUnlockedHint}>다음 판부터 카드에 등장합니다</div>
+                <div style={styles.newlyUnlockedHint}>{t('hud.newWeaponHint')}</div>
               </div>
             )}
             <div data-testid="result-primary-actions" style={styles.resultButtons}>
-              <button style={{ ...styles.restartBtn, ...styles.resultActionBtn }} onClick={() => resetGame(currentStageId)}>다시시작</button>
-              <button style={{ ...styles.titleBtn, ...styles.resultActionBtn }} onClick={onGoToTitle}>타이틀로</button>
-              <button style={{ ...styles.shopBtn, ...styles.resultActionBtn }} onClick={onOpenCoinShop}>코인상점</button>
-              {onGoToRanking && <button style={{ ...styles.rankingBtn, ...styles.resultActionBtn }} onClick={onGoToRanking}>랭킹</button>}
+              <button style={{ ...styles.restartBtn, ...styles.resultActionBtn }} onClick={() => resetGame(currentStageId)}>{t('hud.restart')}</button>
+              <button style={{ ...styles.titleBtn, ...styles.resultActionBtn }} onClick={onGoToTitle}>{t('hud.toTitle')}</button>
+              <button style={{ ...styles.shopBtn, ...styles.resultActionBtn }} onClick={onOpenCoinShop}>{t('hud.coinShop')}</button>
+              {onGoToRanking && <button style={{ ...styles.rankingBtn, ...styles.resultActionBtn }} onClick={onGoToRanking}>{t('hud.ranking')}</button>}
             </div>
           </div>
           {resultDevTools}
@@ -1061,40 +1081,40 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         <aside id="quest-inventory-panel" className="quest-inventory-panel" role="dialog" aria-modal="true" aria-labelledby="quest-inventory-title" style={styles.questInventoryPanel}>
           <div style={styles.questPanelHeader}>
             <div>
-              <h2 id="quest-inventory-title" style={styles.questPanelTitle}>퀘스트 가방</h2>
-              <div style={styles.questSummary}>진행 중 {activeQuestCount} · 아이템 {heldQuestItems.length}</div>
+              <h2 id="quest-inventory-title" style={styles.questPanelTitle}>{t('hud.questBagTitle')}</h2>
+              <div style={styles.questSummary}>{t('hud.questSummary', { active: activeQuestCount, items: heldQuestItems.length })}</div>
             </div>
-            <button ref={questCloseButtonRef} type="button" aria-label="퀘스트 가방 닫기" style={styles.questCloseButton} onClick={closeQuestInventory}>×</button>
+            <button ref={questCloseButtonRef} type="button" aria-label={t('hud.questBagCloseLabel')} style={styles.questCloseButton} onClick={closeQuestInventory}>×</button>
           </div>
           {visibleQuests.length === 0 ? (
-            <p style={styles.questEmpty}>아직 받은 퀘스트가 없어요.<br />도움이 필요한 학생을 조사해 보세요.</p>
+            <p style={styles.questEmpty}>{t('hud.questEmpty')}<br />{t('hud.questEmptyHint')}</p>
           ) : (
             <div style={styles.questCardList}>
               {visibleQuests.map((quest) => {
                 const progress = questProgress?.[quest.id]
                 const completed = progress?.status === 'completed'
                 const statusLabel = completed
-                  ? '완료'
+                  ? t('hud.questCompleted')
                   : progress?.status === 'active'
-                    ? '아이템 찾기'
-                    : quest.completion.kind === 'install' ? '시설에 설치하기' : '학생에게 돌아가기'
+                    ? t('hud.questFindItem')
+                    : quest.completion.kind === 'install' ? t('hud.questInstall') : t('hud.questReturn')
                 return (
                   <article key={quest.id} style={styles.questCard}>
-                    <div style={styles.questCardTitle}>{completed && <span aria-label="완료" style={styles.questCompleteMark}>✓</span>}{quest.title}</div>
-                    <p style={styles.questObjective}>{quest.objective}</p>
-                    <div style={styles.questCardFooter}><span>{statusLabel}</span><span>보상 {quest.rewardGold}G</span></div>
+                    <div style={styles.questCardTitle}>{completed && <span aria-label={t('hud.questCompleteMark')} style={styles.questCompleteMark}>✓</span>}{t(`quest.${quest.id}.title`, null, quest.title)}</div>
+                    <p style={styles.questObjective}>{t(`quest.${quest.id}.objective`, null, quest.objective)}</p>
+                    <div style={styles.questCardFooter}><span>{statusLabel}</span><span>{t('hud.questReward', { gold: quest.rewardGold })}</span></div>
                   </article>
                 )
               })}
             </div>
           )}
           {heldQuestItems.length > 0 && (
-            <section aria-label="퀘스트 아이템" style={styles.questItemSection}>
-              <h3 style={styles.questItemHeading}>퀘스트 아이템</h3>
+            <section aria-label={t('hud.questItemsAria')} style={styles.questItemSection}>
+              <h3 style={styles.questItemHeading}>{t('hud.questItemHeading')}</h3>
               {heldQuestItems.map((quest) => (
                 <div key={quest.item.id} style={styles.questItem}>
                   <QuestBagIcon />
-                  <div><strong>{quest.item.name}</strong><p>{quest.item.description}</p></div>
+                  <div><strong>{t(`quest.${quest.id}.itemName`, null, quest.item.name)}</strong><p>{t(`quest.${quest.id}.itemDesc`, null, quest.item.description)}</p></div>
                 </div>
               ))}
             </section>
@@ -1108,35 +1128,35 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
             style={styles.pausePanel}
             role="dialog"
             aria-modal="true"
-            aria-label={isTitleReturnConfirmOpen ? '로비 복귀 확인' : '일시정지'}
+            aria-label={isTitleReturnConfirmOpen ? t('hud.confirmLobbyAria') : t('hud.pauseTitleAria')}
           >
             {isTitleReturnConfirmOpen ? (
               <>
-                <h2 style={styles.modalTitle}>정말 로비로 돌아갈까요?</h2>
-                <p style={styles.pauseMessage}>현재 생존 점수는 랭킹에 기록됩니다.</p>
+                <h2 style={styles.modalTitle}>{t('hud.confirmLobbyHeading')}</h2>
+                <p style={styles.pauseMessage}>{t('hud.confirmLobbyBody')}</p>
                 <div style={styles.modalButtons}>
                   <button style={styles.pauseCancelBtn} onClick={() => setIsTitleReturnConfirmOpen(false)}>
-                    취소
+                    {t('common.cancel')}
                   </button>
                   <button style={styles.pauseTitleReturnBtn} onClick={confirmLobbyReturn}>
-                    돌아가기
+                    {t('hud.goBack')}
                   </button>
                 </div>
               </>
             ) : (
               <>
                 <h2 style={styles.modalTitle}>
-                  {pauseSource === 'auto' ? '자리를 비우셨네요' : 'PAUSED'}
+                  {pauseSource === 'auto' ? t('hud.awayTitle') : t('hud.pausedTitle')}
                 </h2>
                 {pauseSource === 'auto' && (
-                  <p style={styles.pauseMessage}>돌아오면 바로 이어서 플레이할 수 있어요.</p>
+                  <p style={styles.pauseMessage}>{t('hud.awayBody')}</p>
                 )}
                 <div style={styles.pauseActions}>
                   <button style={styles.restartBtn} onClick={resumeGame}>
-                    {pauseSource === 'auto' ? '이어하기' : '계속하기'}
+                    {pauseSource === 'auto' ? t('hud.resumeAway') : t('hud.resume')}
                   </button>
                   <button style={styles.titleBtn} onClick={() => setIsTitleReturnConfirmOpen(true)}>
-                    로비로 돌아가기
+                    {t('hud.backToLobby')}
                   </button>
                 </div>
               </>
@@ -1149,34 +1169,34 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         <div style={styles.overlay}>
           <div style={styles.modal}>
             <h2 style={{ ...styles.modalTitle, color: '#ffd040' }}>{currentStageId === 'stage2' ? 'STAGE 2 CLEAR!' : 'STAGE CLEAR!'}</h2>
-            <p style={{ color: '#ccc', marginBottom: 8 }}>클리어 시간: {mins}:{secs}</p>
+            <p style={{ color: '#ccc', marginBottom: 8 }}>{t('hud.clearTime', { time: `${mins}:${secs}` })}</p>
             {bossBonus > 0 && (
               <p style={{ color: '#ff88ff', marginBottom: 6, fontSize: 14 }}>
-                보스 격퇴 보너스: <strong>+{bossBonus}점</strong>
+                {t('hud.bossBonus')}<strong>{t('hud.bossBonusPoints', { points: bossBonus })}</strong>
               </p>
             )}
-            <p style={{ color: '#ffd040', marginBottom: nextUnlock || (newlyUnlockedWeaponIds?.length > 0) ? 12 : 20 }}>획득 골드: {goldSession} (누적 {goldTotal})</p>
+            <p style={{ color: '#ffd040', marginBottom: nextUnlock || (newlyUnlockedWeaponIds?.length > 0) ? 12 : 20 }}>{t('hud.goldEarned', { session: goldSession, total: goldTotal })}</p>
             {newlyUnlockedWeaponIds?.length > 0 && (
               <div style={styles.newlyUnlocked}>
-                <span style={styles.newlyUnlockedLabel}>🎉 새 무기 해금!</span>
+                <span style={styles.newlyUnlockedLabel}>{t('hud.newWeaponUnlocked')}</span>
                 {newlyUnlockedWeaponIds.map((id) => (
                   <div key={id} style={styles.newlyUnlockedItem}>
-                    {WEAPON_CATALOG[id]?.label ?? id}
+                    {weaponLabel(id, WEAPON_CATALOG[id]?.label ?? id)}
                   </div>
                 ))}
-                <div style={styles.newlyUnlockedHint}>다음 판부터 카드에 등장합니다</div>
+                <div style={styles.newlyUnlockedHint}>{t('hud.newWeaponHint')}</div>
               </div>
             )}
             {nextUnlock && (
               <div style={styles.nextUnlock}>
-                <span style={styles.nextUnlockLabel}>다음에 만날 무기</span>
+                <span style={styles.nextUnlockLabel}>{t('hud.nextUnlockLabel')}</span>
                 <div style={styles.nextUnlockBody}>
                   <div style={styles.nextUnlockSilhouette}>
                     <UpgradeIcon type={nextUnlock.icon} />
                   </div>
                   <div style={styles.nextUnlockText}>
                     <div style={styles.nextUnlockName}>???</div>
-                    <div style={styles.nextUnlockHint}>Lv.{nextUnlock.minLevel} 도달 시 획득 가능</div>
+                    <div style={styles.nextUnlockHint}>{t('hud.nextUnlockHint', { level: nextUnlock.minLevel })}</div>
                   </div>
                 </div>
               </div>
@@ -1184,13 +1204,13 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
             <div data-testid="result-primary-actions" style={styles.resultButtons}>
               {nextStageId && (
                 <button style={styles.nextStageBtn} onClick={() => resetGame(nextStageId)}>
-                  다음 스테이지로
+                  {t('hud.nextStage')}
                 </button>
               )}
-              {onGoToRanking && <button style={{ ...styles.rankingBtn, ...styles.resultActionBtn }} onClick={onGoToRanking}>🏆 랭킹</button>}
-              <button style={{ ...styles.titleBtn, ...styles.resultActionBtn }} onClick={onGoToTitle}>타이틀로</button>
-              <button style={{ ...styles.shopBtn, ...styles.resultActionBtn }} onClick={onOpenCoinShop}>코인상점</button>
-              <button style={{ ...styles.restartBtn, ...styles.resultActionBtn }} onClick={() => resetGame(currentStageId)}>다시 시작</button>
+              {onGoToRanking && <button style={{ ...styles.rankingBtn, ...styles.resultActionBtn }} onClick={onGoToRanking}>{t('hud.rankingTrophy')}</button>}
+              <button style={{ ...styles.titleBtn, ...styles.resultActionBtn }} onClick={onGoToTitle}>{t('hud.toTitle')}</button>
+              <button style={{ ...styles.shopBtn, ...styles.resultActionBtn }} onClick={onOpenCoinShop}>{t('hud.coinShop')}</button>
+              <button style={{ ...styles.restartBtn, ...styles.resultActionBtn }} onClick={() => resetGame(currentStageId)}>{t('hud.restartSpaced')}</button>
             </div>
           </div>
           {resultDevTools}
@@ -1204,28 +1224,28 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
           style={styles.dialogueCatcher}
           onPointerDown={() => { emitSfx({ id: 'buttonClick' }); closeStudentDialogue() }}
         >
-          <div style={styles.dialogueBox} role="dialog" aria-label={`${studentDialogue.subjectName ?? '조사 대상'} 조사`}>
+          <div style={styles.dialogueBox} role="dialog" aria-label={t('hud.investigateAria', { name: studentDialogue.subjectName ?? t('hud.defaultSubject') })}>
             {(studentDialogue.subjectType ?? 'student') === 'student' && (
               <div style={styles.dialoguePortraitFrame}>
                 <img
                   src={laidManPortraitSrc}
-                  alt="쓰러진 학생 초상화"
+                  alt={t('hud.laidStudentAlt')}
                   draggable={false}
                   style={styles.dialoguePortrait}
                 />
               </div>
             )}
             <div style={styles.dialogueTextCol}>
-              <div style={styles.dialogueName}>[{studentDialogue.subjectName ?? '지친학생'}]</div>
+              <div style={styles.dialogueName}>[{studentDialogue.subjectName ?? t('hud.tiredStudent')}]</div>
               <div style={styles.dialogueLine} aria-live="polite">{studentDialogue.line}</div>
               {studentDialogue.reward && (
                 <div style={styles.dialogueReward}>
                   {studentDialogue.reward.type === 'gold'
-                    ? `조사 보상: 골드 ${studentDialogue.reward.amount}`
-                    : '조사 보상: 업그레이드 선택 기회'}
+                    ? t('hud.rewardGold', { amount: studentDialogue.reward.amount })
+                    : t('hud.rewardUpgrade')}
                 </div>
               )}
-              <div style={styles.dialogueHint}>화면을 탭하면 계속</div>
+              <div style={styles.dialogueHint}>{t('hud.tapToContinue')}</div>
             </div>
           </div>
         </div>
@@ -1238,12 +1258,12 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
           style={styles.introCatcher}
           onPointerDown={() => { emitSfx({ id: 'buttonClick' }); advanceIntro() }}
         >
-          <div style={styles.introBox} role="dialog" aria-label="스토리 인트로">
+          <div style={styles.introBox} role="dialog" aria-label={t('hud.introAria')}>
             <div style={styles.dialogueLine} aria-live="polite">
-              {STAGE1_INTRO_LINES[introDialogue.index]}
+              {introLine(introDialogue.index)}
             </div>
             <div style={styles.dialogueHint}>
-              {introDialogue.index < STAGE1_INTRO_LINES.length - 1 ? '화면을 탭하면 계속' : '화면을 탭하면 시작'}
+              {introDialogue.index < STAGE1_INTRO_LINES.length - 1 ? t('hud.tapToContinue') : t('hud.tapToStart')}
             </div>
           </div>
         </div>

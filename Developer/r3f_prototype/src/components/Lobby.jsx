@@ -15,6 +15,7 @@ import { getActiveSeason } from '../lib/firebaseRanking.js'
 import { loadStageBossPreview, STAGE_BOSS_PREVIEW_EVENT } from '../lib/graphicsStudioConfig.js'
 import { playSfx } from '../lib/sfxRegistry.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
+import { stageTitle, t as translate, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 import WeaponModal from './WeaponModal.jsx'
@@ -24,9 +25,9 @@ import { StageLockPreview } from './StageLock.jsx'
 import { preloadGameCanvasChunk } from './gameCanvasLoader.js'
 import { preloadStageEntryAssets } from '../lib/stageEntryPreload.js'
 
-const STAGE_UNLOCK_HINT = {
-  stage2: 'Stage 1 클리어 시 열림',
-  stage4: 'Stage 3 클리어 시 열림',
+const STAGE_UNLOCK_HINT_KEYS = {
+  stage2: 'lobby.unlock.stage2',
+  stage4: 'lobby.unlock.stage4',
 }
 
 // 카드 클릭 뒤 약 1초 동안 보스별 쇼타임을 보여준 뒤 해당 스테이지를 시작한다.
@@ -35,9 +36,9 @@ const AMBIENT_DRIFT_INTERVAL_MS = 2400
 const TOUCH_FEEDBACK_MS = 320
 
 export const BOSS_SHOWTIME = Object.freeze({
-  B01: { label: '돌진!', sounds: [{ id: 'bossRoar', volume: 0.9, rate: 0.9 }, { id: 'bossSpawn', volume: 0.62, delay: 170 }] },
-  B02: { label: '선생님 스윙!', sounds: [{ id: 'zombieTankGroan', volume: 0.78, rate: 1.12 }, { id: 'zombieRangedShoot', volume: 0.52, delay: 210, rate: 0.9 }] },
-  B03: { label: '근육 포즈!', sounds: [{ id: 'zombieChargeRoar', volume: 0.82, rate: 0.82 }, { id: 'zombieGiantThud', volume: 0.72, delay: 240, rate: 1.05 }] },
+  B01: { labelKey: 'lobby.showtime.B01', label: '돌진!', sounds: [{ id: 'bossRoar', volume: 0.9, rate: 0.9 }, { id: 'bossSpawn', volume: 0.62, delay: 170 }] },
+  B02: { labelKey: 'lobby.showtime.B02', label: '선생님 스윙!', sounds: [{ id: 'zombieTankGroan', volume: 0.78, rate: 1.12 }, { id: 'zombieRangedShoot', volume: 0.52, delay: 210, rate: 0.9 }] },
+  B03: { labelKey: 'lobby.showtime.B03', label: '근육 포즈!', sounds: [{ id: 'zombieChargeRoar', volume: 0.82, rate: 0.82 }, { id: 'zombieGiantThud', volume: 0.72, delay: 240, rate: 1.05 }] },
 })
 
 function lobbyMotionAllowed() {
@@ -54,18 +55,19 @@ function nextAmbientPosition(random = Math.random) {
 }
 
 function formatSeasonCountdown(season, nowMs = Date.now()) {
-  if (!season.active) return '시즌 준비중'
-  if (season.endsAt == null) return '상시 진행 중'
+  if (!season.active) return translate('lobby.seasonPreparing')
+  if (season.endsAt == null) return translate('lobby.seasonAlways')
   const remain = season.endsAt - nowMs
-  if (remain <= 0) return '곧 종료'
+  if (remain <= 0) return translate('lobby.seasonEndingSoon')
   const days = Math.floor(remain / 86_400_000)
   const hours = Math.floor((remain % 86_400_000) / 3_600_000)
-  if (days > 0) return `종료까지 ${days}일 ${hours}시간`
+  if (days > 0) return translate('lobby.seasonEndsDays', { days, hours })
   const minutes = Math.floor((remain % 3_600_000) / 60_000)
-  return `종료까지 ${hours}시간 ${minutes}분`
+  return translate('lobby.seasonEndsHours', { hours, minutes })
 }
 
 export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onLogoutToTitle, devAllStagesUnlocked = false }) {
+  const t = useT()
   const authUser = useAuthStore((s) => s.user)
   const goldTotal = useGameStore((s) => s.goldTotal)
   const [records, setRecords] = useState(loadPlayerRecords)
@@ -225,21 +227,21 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
       <header style={styles.statusBar}>
         <div style={styles.profileRow}>
           <div style={styles.profileBlock}>
-            <span style={styles.profileEyebrow}>플레이어</span>
-            <strong style={styles.profileName}>{nickname || '이름 없는 생존자'}</strong>
+            <span style={styles.profileEyebrow}>{t('lobby.player')}</span>
+            <strong style={styles.profileName}>{nickname || t('lobby.noName')}</strong>
           </div>
           <div style={styles.coinBadge}>
             <span style={styles.coinDot} />
             <strong style={styles.coinValue}>{goldTotal}</strong>
           </div>
-          <button type="button" aria-label="설정 열기" style={styles.gearButton} onClick={() => !showtimeStageId && setModal('settings')}>
+          <button type="button" aria-label={t('lobby.openSettings')} style={styles.gearButton} onClick={() => !showtimeStageId && setModal('settings')}>
             ⚙
           </button>
         </div>
 
         <div style={styles.seasonStrip}>
           <div style={styles.seasonMainRow}>
-            <span style={styles.seasonLabel}>시즌</span>
+            <span style={styles.seasonLabel}>{t('lobby.season')}</span>
             <span style={styles.seasonName}>{season.name}</span>
             <span style={styles.seasonCountdown}>{formatSeasonCountdown(season)}</span>
           </div>
@@ -248,7 +250,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
       </header>
 
       {/* 스테이지 리스트 */}
-      <div style={styles.stageList} aria-label="스테이지 목록">
+      <div style={styles.stageList} aria-label={t('lobby.stageListAria')}>
         {stageIds.map((stageId, index) => {
           const stage = getStageConfig(stageId)
           const unlocked = devAllStagesUnlocked || isStageUnlocked(stageId, records)
@@ -275,10 +277,10 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
         })}
       </div>
 
-      <nav aria-label="로비 메뉴" style={styles.bottomNav}>
-        <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => !showtimeStageId && setModal('weapon')}>무기</button>
-        <button type="button" className="lobby-press" style={styles.bottomNavButtonAccent} onClick={() => !showtimeStageId && onOpenRanking?.()}>랭킹</button>
-        <button type="button" className="lobby-press" style={styles.bottomNavButtonReward} onClick={() => !showtimeStageId && onOpenCoinShop?.()}>상점</button>
+      <nav aria-label={t('lobby.menuAria')} style={styles.bottomNav}>
+        <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => !showtimeStageId && setModal('weapon')}>{t('lobby.weapons')}</button>
+        <button type="button" className="lobby-press" style={styles.bottomNavButtonAccent} onClick={() => !showtimeStageId && onOpenRanking?.()}>{t('lobby.ranking')}</button>
+        <button type="button" className="lobby-press" style={styles.bottomNavButtonReward} onClick={() => !showtimeStageId && onOpenCoinShop?.()}>{t('lobby.shop')}</button>
       </nav>
 
       {modal === 'weapon' && <WeaponModal onClose={closeModal} />}
@@ -289,7 +291,14 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
   )
 }
 
+function showtimeLabel(translateFn, bossType) {
+  const entry = BOSS_SHOWTIME[bossType] ?? BOSS_SHOWTIME.B01
+  return translateFn(entry.labelKey, null, entry.label)
+}
+
 function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalSec, stageBossPreview, showtimeStageId, devAllStagesUnlocked = false, onBeginShowtime, onFinishShowtime, onStart, onRanking }) {
+  const t = useT()
+  const localizedStageTitle = stageTitle(stageId, stage.title)
   const [showtimeToken, setShowtimeToken] = useState(0)
   const [showtimeActive, setShowtimeActive] = useState(false)
   const startTimerRef = useRef(null)
@@ -345,25 +354,25 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
             }
           : null),
       }}
-      aria-label={`${stage.label} ${stage.title}`}
+      aria-label={`${stage.label} ${localizedStageTitle}`}
       onClick={handleCardClick}
       onPointerEnter={() => preloadStageEntryAssets(stageId)}
       onFocus={() => preloadStageEntryAssets(stageId)}
     >
       {unlocked ? (
         <div style={styles.previewStack} data-testid="stage-card-preview-row">
-          <StageBossPreview framing={stageBossPreview} bossType={lobbyBossType} motionToken={showtimeToken} reactOnTap={false} ariaLabel={`${stageId} 보스 3D`} style={styles.cardBossPreview} />
-          {showtimeActive ? <span data-testid="stage-card-showtime" style={styles.showtimeLabel}>{BOSS_SHOWTIME[lobbyBossType]?.label ?? BOSS_SHOWTIME.B01.label}</span> : null}
-          {cleared ? <span style={styles.previewClearBadge}>클리어</span> : null}
+          <StageBossPreview framing={stageBossPreview} bossType={lobbyBossType} motionToken={showtimeToken} reactOnTap={false} ariaLabel={t('lobby.bossPreviewAria', { stage: stageId })} style={styles.cardBossPreview} />
+          {showtimeActive ? <span data-testid="stage-card-showtime" style={styles.showtimeLabel}>{showtimeLabel(t, lobbyBossType)}</span> : null}
+          {cleared ? <span style={styles.previewClearBadge}>{t('lobby.cleared')}</span> : null}
           <div style={styles.previewTextLayer} data-testid="stage-card-preview-overlay">
             <div style={{ ...styles.cardTitleRow, ...styles.previewTitleRow }}>
               <span style={styles.previewTitle}>
                 <span>{stage.label}</span>
-                <span>{stage.title}</span>
+                <span>{localizedStageTitle}</span>
               </span>
             </div>
             <div style={styles.previewBest}>
-              내 최고기록: {bestSurvivalSec > 0 ? formatSurvivalTime(bestSurvivalSec) : '기록 없음'}
+              {t('lobby.bestRecord', { value: bestSurvivalSec > 0 ? formatSurvivalTime(bestSurvivalSec) : t('lobby.noRecord') })}
             </div>
           </div>
           {playable ? (
@@ -376,11 +385,11 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
                   event.stopPropagation()
                   queueStart()
                 }}
-              >입장하기</button>
+              >{t('lobby.enter')}</button>
               <button type="button" className="lobby-press" style={styles.rankingButton} onClick={(event) => {
                 event.stopPropagation()
                 if (!showtimeStageId) onRanking()
-              }}>점수 레코드</button>
+              }}>{t('lobby.scoreRecord')}</button>
             </>
           ) : (
             <>
@@ -389,32 +398,32 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
                 style={{ ...styles.previewEnterButton, ...styles.previewDisabledButton }}
                 disabled
                 onClick={(event) => event.stopPropagation()}
-              >준비 중</button>
+              >{t('lobby.comingSoon')}</button>
               <button
                 type="button"
                 style={{ ...styles.rankingButton, ...styles.previewDisabledButton }}
                 disabled
                 onClick={(event) => event.stopPropagation()}
-              >점수 레코드</button>
+              >{t('lobby.scoreRecord')}</button>
             </>
           )}
         </div>
       ) : (
         <div style={styles.previewStack} data-testid="stage-card-preview-row">
           <StageLockPreview
-            ariaLabel={`${stageId} 잠김 3D 자물쇠`}
+            ariaLabel={t('lobby.lockPreviewAria', { stage: stageId })}
             style={styles.cardBossPreview}
           />
-          {cleared ? <span style={styles.previewClearBadge}>클리어</span> : null}
+          {cleared ? <span style={styles.previewClearBadge}>{t('lobby.cleared')}</span> : null}
           <div style={styles.previewTextLayer} data-testid="stage-card-preview-overlay">
             <div style={{ ...styles.cardTitleRow, ...styles.previewTitleRow }}>
               <span style={styles.previewTitle}>
                 <span>{stage.label}</span>
-                <span>{stage.title}</span>
+                <span>{localizedStageTitle}</span>
               </span>
             </div>
             <div style={styles.previewBest}>
-              내 최고기록: {bestSurvivalSec > 0 ? formatSurvivalTime(bestSurvivalSec) : '기록 없음'}
+              {t('lobby.bestRecord', { value: bestSurvivalSec > 0 ? formatSurvivalTime(bestSurvivalSec) : t('lobby.noRecord') })}
             </div>
           </div>
           <button
@@ -422,13 +431,13 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
             style={{ ...styles.previewEnterButton, ...styles.previewDisabledButton, ...styles.lockedHintEntryButton }}
             disabled
             onClick={(event) => event.stopPropagation()}
-          >{STAGE_UNLOCK_HINT[stageId] ?? '이전 스테이지를 클리어하면 열립니다'}</button>
+          >{t(STAGE_UNLOCK_HINT_KEYS[stageId] ?? 'lobby.lockedDefault')}</button>
           <button
             type="button"
             style={{ ...styles.rankingButton, ...styles.previewDisabledButton }}
             disabled
             onClick={(event) => event.stopPropagation()}
-          >점수 레코드</button>
+          >{t('lobby.scoreRecord')}</button>
         </div>
       )}
     </section>

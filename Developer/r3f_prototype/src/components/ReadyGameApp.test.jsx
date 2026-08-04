@@ -17,7 +17,10 @@ vi.mock('../lib/playtestLogger.js', () => ({ initPlaytestLogger: vi.fn() }))
 vi.mock('../lib/keyboardInput.js', () => ({ initKeyboardInput: vi.fn() }))
 vi.mock('../lib/mobileInput.js', () => ({ isMobileJoystickEnvironment: () => false }))
 vi.mock('../lib/firebaseProgress.js', () => ({ isFirebaseProgressHydrated: () => mocks.hydrated }))
-vi.mock('../lib/titleSettings.js', () => ({ loadTitleSettings: () => ({ unlockAllStagesCheat: mocks.titleCheat }) }))
+vi.mock('../lib/titleSettings.js', () => ({
+  loadTitleSettings: () => ({ unlockAllStagesCheat: mocks.titleCheat, language: null }),
+  applyLanguage: vi.fn(),
+}))
 vi.mock('../store/useGameStore.js', () => ({
   useGameStore: (selector) => selector({ gameKey: 0, phase: 'idle', resetGame: vi.fn() }),
 }))

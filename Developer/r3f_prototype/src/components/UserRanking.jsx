@@ -11,13 +11,15 @@ import {
 import { isFirebaseRankingConfigured, subscribeGlobalRanking } from '../lib/firebaseRanking.js'
 import { getAdminRankingSeasonConfig } from '../lib/adminConfig.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
+import { t as translate, useT } from '../lib/i18n.js'
 
 const WINDOWS = [
-  { id: 'daily', label: '일일랭킹', note: '한국시간 당일 00:00:01 - 23:59:59 실시간 최고점' },
-  { id: 'weekly', label: '주간랭킹', note: '한국시간 월요일 00:00:01 - 일요일 23:59:59 최고점' },
+  { id: 'daily', labelKey: 'ranking.tab.daily', noteKey: 'ranking.tab.dailyNote' },
+  { id: 'weekly', labelKey: 'ranking.tab.weekly', noteKey: 'ranking.tab.weeklyNote' },
 ]
 
 export default function UserRanking({ onBack, entries }) {
+  const t = useT()
   const user = useAuthStore((s) => s.user)
   const [activeWindow, setActiveWindow] = useState('daily')
   const [cloudBoards, setCloudBoards] = useState({ daily: null, weekly: null })
@@ -60,15 +62,15 @@ export default function UserRanking({ onBack, entries }) {
       <header style={styles.header}>
         <div>
           <div style={styles.eyebrow}>TOP {RANKING_LIMIT}</div>
-          <h1 style={styles.title}>통합 랭킹</h1>
+          <h1 style={styles.title}>{t('ranking.globalTitle')}</h1>
         </div>
         <div style={styles.playerStats}>
-          <span style={styles.playerStatChip}>내 누적플레이 <strong>{totalRuns}</strong>판</span>
-          <span style={styles.playerStatChip}>내 시즌최고점 <strong>{formatRankScore(bestScore)}</strong></span>
+          <span style={styles.playerStatChip}>{t('ranking.myRuns')} <strong>{totalRuns}</strong>{t('ranking.myRunsUnit')}</span>
+          <span style={styles.playerStatChip}>{t('ranking.myBest')} <strong>{formatRankScore(bestScore)}</strong></span>
         </div>
       </header>
 
-      <nav style={styles.tabs} aria-label="통합 랭킹 탭">
+      <nav style={styles.tabs} aria-label={t('ranking.tabsAria')}>
         {WINDOWS.map((window) => (
           <button
             key={window.id}
@@ -76,33 +78,33 @@ export default function UserRanking({ onBack, entries }) {
             style={window.id === activeWindow ? styles.tabActive : styles.tab}
             onClick={() => setActiveWindow(window.id)}
           >
-            {window.label}
+            {t(window.labelKey)}
           </button>
         ))}
       </nav>
 
-      <p style={styles.windowNote}>{activeCopy.note}</p>
+      <p style={styles.windowNote}>{t(activeCopy.noteKey)}</p>
 
       <div style={styles.tableHeader} aria-hidden="true">
-        <span>순위</span>
-        <span>유저</span>
-        <span>점수</span>
+        <span>{t('ranking.colRank')}</span>
+        <span>{t('ranking.colUser')}</span>
+        <span>{t('ranking.colScore')}</span>
       </div>
 
       <section style={styles.seasonPanel}>
-        <span style={styles.seasonLabel}>시즌</span>
+        <span style={styles.seasonLabel}>{t('lobby.season')}</span>
         <strong style={styles.seasonName}>{season.seasonName}</strong>
         <span style={styles.seasonReward}>{rewardSummary}</span>
       </section>
 
-      <ol style={styles.list} aria-label={`유저랭킹 1위부터 ${RANKING_LIMIT}위까지`}>
+      <ol style={styles.list} aria-label={t('ranking.listAria', { limit: RANKING_LIMIT })}>
         {rows.map((row) => (
           <RankingRow key={row.rank} row={row} />
         ))}
       </ol>
 
       <button type="button" style={styles.backButton} onClick={onBack}>
-        돌아가기
+        {t('ranking.goBack')}
       </button>
     </div>
   )
@@ -111,13 +113,13 @@ export default function UserRanking({ onBack, entries }) {
 function RankingRow({ row }) {
   return (
     <li style={styles.row(row.empty, row.local)}>
-      <span style={styles.rank}>{row.rank}위</span>
+      <span style={styles.rank}>{translate('ranking.rankSuffix', { rank: row.rank })}</span>
       <span style={styles.name}>
-        {row.empty ? '기록 없음' : row.displayName}
+        {row.empty ? translate('ranking.noRecord') : row.displayName}
         {!row.empty && row.local && <span style={styles.localBadge}>ME</span>}
       </span>
       <span style={styles.score}>{row.empty ? '-' : formatRankScore(row.score)}</span>
-      <span style={styles.stage}>{row.empty ? '' : `${row.stageLabel} · ${formatSurvivalTime(row.survivalSeconds)}${row.cleared ? ' · 클리어' : ''}`}</span>
+      <span style={styles.stage}>{row.empty ? '' : `${row.stageLabel} · ${formatSurvivalTime(row.survivalSeconds)}${row.cleared ? translate('ranking.clearedSuffix') : ''}`}</span>
     </li>
   )
 }

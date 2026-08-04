@@ -1,3 +1,5 @@
+import { passiveLabel } from './i18n.js'
+
 // MVP 영구 패시브 카탈로그.
 // CEO 락 범위: magnet / moveSpeed / maxHp / might / growth × Lv.3.
 // armor / cooldown / greed는 enabled:false로만 등록해 둔다. 2차 확장은 enabled 토글 + maxLevel 상향 한 줄로 가능.
@@ -79,13 +81,14 @@ export function isValidPassiveId(id) {
 export function formatEffectLabel(id, currentLevel) {
   const entry = PASSIVE_CATALOG[id]
   if (!entry) return ''
+  const label = passiveLabel(id, entry.label)
   const currentEffect = entry.perLevel * currentLevel
   if (currentLevel >= entry.maxLevel) {
-    return `${entry.label} +${currentEffect}${entry.unit}`
+    return `${label} +${currentEffect}${entry.unit}`
   }
   const nextEffect = entry.perLevel * (currentLevel + 1)
   if (currentLevel === 0) {
-    return `${entry.label} +${nextEffect}${entry.unit}`
+    return `${label} +${nextEffect}${entry.unit}`
   }
-  return `${entry.label} +${currentEffect}${entry.unit} → +${nextEffect}${entry.unit}`
+  return `${label} +${currentEffect}${entry.unit} → +${nextEffect}${entry.unit}`
 }

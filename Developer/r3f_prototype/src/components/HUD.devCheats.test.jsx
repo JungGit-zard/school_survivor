@@ -6,7 +6,7 @@ describe('HUD dev cheat buttons', () => {
     const source = readFileSync(new URL('./HUD.jsx', import.meta.url), 'utf8')
 
     expect(source).toContain('dispatchStarlinkCheatCrash')
-    expect(source).toContain('aria-label="스타링크 추락 치트"')
-    expect(source).toContain('스타링크 즉시 추락')
+    expect(source).toContain("aria-label={t('hud.starlinkCheatAria')}")
+    expect(source).toContain("title={t('hud.starlinkCheatTitle')}")
   })
 })

@@ -2,6 +2,7 @@ import { getFirebaseConfig } from './firebaseAuth.js'
 import { isE2EAuthBypass } from './e2eAuth.js'
 import { getAdminRankingSeasonConfig } from './adminConfig.js'
 import { getSavedNickname } from './userNickname.js'
+import { t } from './i18n.js'
 import {
   kstDailyKey,
   kstWeeklyKey,
@@ -13,6 +14,7 @@ import {
 const DATABASE_URL_KEY = 'VITE_FIREBASE_DATABASE_URL'
 const DEFAULT_SEASON_ID = 'season-001'
 const DEFAULT_SEASON_NAME = '상시 시즌'
+const defaultSeasonName = () => t('ranking.defaultSeason', null, DEFAULT_SEASON_NAME)
 const DAY_MS = 24 * 60 * 60 * 1000
 const RANKING_ROOT = 'rankingService/v1/public'
 const MAX_DISPLAY_NAME = 40
@@ -56,7 +58,7 @@ async function createClient() {
 // 반환: { seasonId, name, endsAt(ms|null), active }
 export function getActiveSeason(nowMs = Date.now(), config = getAdminRankingSeasonConfig()) {
   const seasonId = readSeasonId(config?.seasonId) || DEFAULT_SEASON_ID
-  const name = (typeof config?.seasonName === 'string' && config.seasonName.trim()) || DEFAULT_SEASON_NAME
+  const name = (typeof config?.seasonName === 'string' && config.seasonName.trim()) || defaultSeasonName()
   const startMs = kstDateStartMs(config?.startsAt) // null = 하한 없음
   const endMs = kstDateEndMs(config?.endsAt) // null = 상한 없음
   const afterStart = startMs == null || nowMs >= startMs
@@ -186,7 +188,7 @@ export async function deleteRankingEntriesForUser(user) {
 function readDisplayName(user) {
   const nickname = typeof getSavedNickname() === 'string' ? getSavedNickname().trim() : ''
   const googleName = typeof user?.displayName === 'string' ? user.displayName.trim() : ''
-  return (nickname || googleName || '익명 생존자').slice(0, MAX_DISPLAY_NAME)
+  return (nickname || googleName || t('ranking.anonymousSurvivor', null, '익명 생존자')).slice(0, MAX_DISPLAY_NAME)
 }
 
 // 활성 시즌 현재 period의 스테이지별 top N (score 내림차순 + tie-break). window=daily|weekly.

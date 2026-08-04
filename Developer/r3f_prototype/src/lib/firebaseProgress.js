@@ -37,7 +37,11 @@ const RECORD_KEYS = [
   'weaponMasterCount',
 ]
 
+const SUPPORTED_LANGUAGES = new Set(['ko', 'en', 'ja'])
+
 const DEFAULT_TITLE_SETTINGS = Object.freeze({
+  // null = 저장된 언어 없음 → 브라우저 언어를 쓴다(lib/i18n.js).
+  language: null,
   vibration: true,
   reducedEffects: false,
   hitCameraShake: true,
@@ -455,6 +459,7 @@ function normalizeFlagMap(value) {
 function normalizeTitleSettings(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return { ...DEFAULT_TITLE_SETTINGS }
   return {
+    language: SUPPORTED_LANGUAGES.has(value.language) ? value.language : DEFAULT_TITLE_SETTINGS.language,
     vibration: typeof value.vibration === 'boolean' ? value.vibration : DEFAULT_TITLE_SETTINGS.vibration,
     reducedEffects: typeof value.reducedEffects === 'boolean' ? value.reducedEffects : DEFAULT_TITLE_SETTINGS.reducedEffects,
     hitCameraShake: typeof value.hitCameraShake === 'boolean' ? value.hitCameraShake : DEFAULT_TITLE_SETTINGS.hitCameraShake,

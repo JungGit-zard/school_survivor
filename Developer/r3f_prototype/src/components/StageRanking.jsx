@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { getActiveSeason, subscribeStageRanking } from '../lib/firebaseRanking.js'
 import { getStageConfig } from '../lib/stageConfig.js'
 import { formatRankScore, formatSurvivalTime } from '../lib/userRanking.js'
+import { stageTitle, t as translate, useT } from '../lib/i18n.js'
 
 export default function StageRanking({ stageId = 'stage1', onBack }) {
+  const t = useT()
   const stage = useMemo(() => getStageConfig(stageId), [stageId])
   const season = useMemo(() => getActiveSeason(), [])
   const [rows, setRows] = useState([])
@@ -16,23 +18,23 @@ export default function StageRanking({ stageId = 'stage1', onBack }) {
     <div style={styles.root}>
       <header style={styles.hero}>
         <div>
-          <div style={styles.eyebrow}>{stage.label} · {stage.title}</div>
-          <h1 style={styles.title}>스테이지 랭킹</h1>
+          <div style={styles.eyebrow}>{stage.label} · {stageTitle(stageId, stage.title)}</div>
+          <h1 style={styles.title}>{t('ranking.stageTitle')}</h1>
         </div>
-        <button type="button" style={styles.backTop} onClick={onBack}>뒤로</button>
+        <button type="button" style={styles.backTop} onClick={onBack}>{t('common.back')}</button>
       </header>
 
       <section style={styles.summary}>
-        <TopWinner label="오늘 1위" entry={rows[0]} />
+        <TopWinner label={t('ranking.todayFirst')} entry={rows[0]} />
       </section>
 
-      <div style={styles.seasonLine}>{season.name} · 한국시간 당일 00:00:01 - 23:59:59 실시간 반영</div>
+      <div style={styles.seasonLine}>{season.name} · {t('ranking.dailyWindow')}</div>
 
-      <ol style={styles.list} aria-label={`${stage.label} 일일랭킹`}>
+      <ol style={styles.list} aria-label={t('ranking.dailyBoardAria', { stage: stage.label })}>
         {rows.length > 0 ? rows.map((entry, index) => (
           <StageRankingRow key={entry.uid ?? `daily-${index}`} entry={entry} rank={index + 1} />
         )) : (
-          <li style={styles.empty}>기록 대기 중</li>
+          <li style={styles.empty}>{t('ranking.waiting')}</li>
         )}
       </ol>
     </div>
@@ -43,7 +45,7 @@ function TopWinner({ label, entry }) {
   return (
     <div style={styles.winnerCard}>
       <span style={styles.winnerLabel}>{label}</span>
-      <strong style={styles.winnerName}>{entry?.displayName || '기록 대기 중'}</strong>
+      <strong style={styles.winnerName}>{entry?.displayName || translate('ranking.waiting')}</strong>
       <span style={styles.winnerScore}>{entry ? formatRankScore(entry.score) : '-'}</span>
     </div>
   )
@@ -53,10 +55,10 @@ function StageRankingRow({ entry, rank }) {
   const seconds = Math.floor((entry.timeMs ?? 0) / 1000)
   return (
     <li style={styles.row}>
-      <span style={styles.rank}>{rank}위</span>
-      <span style={styles.name}>{entry.displayName || '익명'}</span>
+      <span style={styles.rank}>{translate('ranking.rankSuffix', { rank })}</span>
+      <span style={styles.name}>{entry.displayName || translate('ranking.anonymous')}</span>
       <span style={styles.score}>{formatRankScore(entry.score)}</span>
-      <span style={styles.meta}>{seconds > 0 ? formatSurvivalTime(seconds) : ''}{entry.cleared ? ' · 클리어' : ''}</span>
+      <span style={styles.meta}>{seconds > 0 ? formatSurvivalTime(seconds) : ''}{entry.cleared ? translate('ranking.clearedSuffix') : ''}</span>
     </li>
   )
 }

@@ -9,10 +9,11 @@ import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { initPlaytestLogger } from '../lib/playtestLogger.js'
 import { isMobileJoystickEnvironment } from '../lib/mobileInput.js'
 import { initKeyboardInput } from '../lib/keyboardInput.js'
-import { loadTitleSettings } from '../lib/titleSettings.js'
+import { applyLanguage, loadTitleSettings } from '../lib/titleSettings.js'
 import { loadGameCanvas } from './gameCanvasLoader.js'
 import E2ERuntimePerformanceDiagnostics from './E2ERuntimePerformanceDiagnostics.jsx'
 import { isE2EPerformanceDiagnostics } from '../lib/e2eAuth.js'
+import { t, useT } from '../lib/i18n.js'
 
 const CoinShop = lazy(() => import('./CoinShop.jsx'))
 const UserRanking = lazy(() => import('./UserRanking.jsx'))
@@ -35,6 +36,7 @@ export default function ReadyGameApp({
   studioVisualsReady,
   ensureStudioCloudReady,
 }) {
+  useT()
   const [screen, setScreen] = useState('title')
   const [prevScreen, setPrevScreen] = useState('title')
   const [rankingStageId, setRankingStageId] = useState(null)
@@ -53,7 +55,10 @@ export default function ReadyGameApp({
 
   useEffect(() => {
     const ready = progressStatus === 'ready' && isFirebaseProgressHydrated(authUser)
-    setDevAllStagesUnlocked(ready ? loadTitleSettings().unlockAllStagesCheat : false)
+    const settings = ready ? loadTitleSettings() : null
+    setDevAllStagesUnlocked(settings ? settings.unlockAllStagesCheat : false)
+    // 계정 진행도가 준비되면 저장된 언어를 적용한다. 로그인 전에는 브라우저 언어를 쓴다.
+    if (settings) applyLanguage(settings.language)
   }, [authUser?.uid, progressStatus])
 
   useEffect(() => {
@@ -141,16 +146,16 @@ export default function ReadyGameApp({
         )}
 
         {screen === 'coinShop' && (
-          <Suspense fallback={<ScreenLoading label="상점 불러오는 중…" />}>
+          <Suspense fallback={<ScreenLoading label={t('loading.shop')} />}>
             <CoinShop
               onBack={returnToPreviousScreen}
-              backLabel={prevScreen === 'game' ? '결과로 돌아가기' : prevScreen === 'lobby' ? '로비로 돌아가기' : '타이틀로 돌아가기'}
+              backLabel={prevScreen === 'game' ? t('back.toResult') : prevScreen === 'lobby' ? t('back.toLobby') : t('back.toTitle')}
             />
           </Suspense>
         )}
 
         {screen === 'ranking' && (
-          <Suspense fallback={<ScreenLoading label="랭킹 불러오는 중…" />}>
+          <Suspense fallback={<ScreenLoading label={t('loading.ranking')} />}>
             {rankingStageId
               ? <StageRanking stageId={rankingStageId} onBack={returnToPreviousScreen} />
               : <UserRanking onBack={returnToPreviousScreen} />}
@@ -160,7 +165,7 @@ export default function ReadyGameApp({
         {screen === 'game' && (
           <>
             <GameplayBgm key={gameKey} phase={phase} userStarted={gameStartedByUser} />
-            <Suspense fallback={<ScreenLoading label="게임 불러오는 중…" />}>
+            <Suspense fallback={<ScreenLoading label={t('loading.game')} />}>
               <GameCanvas gameKey={gameKey} phase={phase} />
               <HUD
                 onOpenCoinShop={() => openCoinShopFrom('game')}

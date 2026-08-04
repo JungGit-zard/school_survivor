@@ -152,6 +152,7 @@ describe('firebase-only player progress runtime', () => {
         weaponPermanentUpgrades: {},
         passiveUpgrades: {},
         titleSettings: {
+          language: null,
           vibration: true,
           reducedEffects: false,
           hitCameraShake: true,

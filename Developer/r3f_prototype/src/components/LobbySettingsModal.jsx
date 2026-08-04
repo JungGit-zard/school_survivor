@@ -3,21 +3,24 @@
 import { useEffect, useRef, useState } from 'react'
 import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
-import { applyHitCameraShake, applyReducedEffects, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
+import { applyHitCameraShake, applyLanguage, applyReducedEffects, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
 import { schoolPanel, schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
+import { LOCALE_OPTIONS, useLocale, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { deleteAccountAndData, reauthenticateForDeletion } from '../lib/accountDeletion.js'
 import { TERMS_TITLE, TERMS_TEXT, PRIVACY_TITLE, PRIVACY_TEXT } from '../lib/legalDocuments.js'
 
-const DELETE_ERROR_MESSAGES = {
-  reauthRequired: '보안을 위해 다시 로그인해야 계정을 삭제할 수 있습니다.',
-  unauthenticated: '로그인 세션이 만료되었습니다. 다시 로그인한 뒤 시도해 주세요.',
-  network: '네트워크 오류로 삭제하지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.',
-  progressDeleteFailed: '진행도 삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.',
-  unknown: '알 수 없는 오류로 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.',
-}
+const DELETE_ERROR_KEYS = new Set([
+  'reauthRequired', 'unauthenticated', 'network', 'progressDeleteFailed', 'unknown',
+])
+
+const deleteErrorText = (reason) => (
+  `settings.err.${DELETE_ERROR_KEYS.has(reason) ? reason : 'unknown'}`
+)
 
 export default function LobbySettingsModal({ onClose, onNicknameChange, onLogoutToTitle }) {
+  const t = useT()
+  const locale = useLocale()
   const authUser = useAuthStore((s) => s.user)
   const signOutOfGoogle = useAuthStore((s) => s.signOutOfGoogle)
   const [settings, setSettings] = useState(loadTitleSettings)
@@ -36,6 +39,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
     saveTitleSettings(settings)
     applyReducedEffects(settings.reducedEffects)
     applyHitCameraShake(settings.hitCameraShake)
+    applyLanguage(settings.language)
   }, [settings])
 
   const toggleSetting = (key) => {
@@ -132,7 +136,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
     const reauthed = await reauthenticateForDeletion()
     setReauthBusy(false)
     if (!reauthed) {
-      setDeleteError({ reason: 'reauthRequired', message: '재인증에 실패했습니다. 다시 로그인한 뒤 시도해 주세요.' })
+      setDeleteError({ reason: 'reauthRequired', message: t('settings.err.reauthFailed') })
       return
     }
     await runDelete()
@@ -140,7 +144,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
 
   return (
     <div style={styles.overlay}>
-      <button type="button" aria-label="설정 닫기 배경" style={styles.scrim(closeDisabled)} onClick={handleClose} disabled={closeDisabled} />
+      <button type="button" aria-label={t('settings.closeBackdropAria')} style={styles.scrim(closeDisabled)} onClick={handleClose} disabled={closeDisabled} />
       <section
         ref={modalRef}
         role="dialog"
@@ -150,16 +154,16 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
         onKeyDown={handleModalKeyDown}
       >
         <div style={styles.modalHeader}>
-          <h2 id="lobby-settings-heading" style={styles.modalTitle}>설정</h2>
-          <button type="button" aria-label="닫기" style={styles.closeButton} onClick={handleClose} disabled={closeDisabled}>×</button>
+          <h2 id="lobby-settings-heading" style={styles.modalTitle}>{t('settings.title')}</h2>
+          <button type="button" aria-label={t('common.close')} style={styles.closeButton} onClick={handleClose} disabled={closeDisabled}>×</button>
         </div>
 
         {nicknameOpen ? (
           <form style={styles.nicknameForm} onSubmit={handleNicknameSubmit}>
-            <label style={styles.nicknameLabel} htmlFor="lobby-nickname-input">유저 닉네임</label>
+            <label style={styles.nicknameLabel} htmlFor="lobby-nickname-input">{t('settings.nicknameLabel')}</label>
             <input
               id="lobby-nickname-input"
-              aria-label="유저 닉네임"
+              aria-label={t('settings.nicknameLabel')}
               value={nicknameInput}
               maxLength={12}
               style={styles.nicknameInput}
@@ -173,22 +177,22 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               autoFocus
             />
             <p style={nicknameError ? styles.nicknameError : styles.nicknameHint}>
-              {nicknameError || '닉네임은 랭킹과 계정 진행도에 함께 표시됩니다.'}
+              {nicknameError || t('settings.nicknameHint')}
             </p>
             <div style={styles.nicknameActions}>
-              <button type="button" style={styles.nicknameCancel} onClick={() => setNicknameOpen(false)}>취소</button>
-              <button type="submit" style={styles.nicknameSave}>저장</button>
+              <button type="button" style={styles.nicknameCancel} onClick={() => setNicknameOpen(false)}>{t('common.cancel')}</button>
+              <button type="submit" style={styles.nicknameSave}>{t('common.save')}</button>
             </div>
           </form>
         ) : deleteStage !== 'idle' ? (
           <div style={styles.deletePanel}>
-            <h3 style={styles.deleteHeading}>계정을 삭제할까요?</h3>
+            <h3 style={styles.deleteHeading}>{t('settings.deleteHeading')}</h3>
             <p style={styles.deleteWarning}>
-              진행도, 보유 골드, 무기 영구 강화, 랭킹 기록이 모두 영구적으로 삭제되며 복구할 수 없습니다.
+              {t('settings.deleteWarning')}
             </p>
             {deleteError && (
               <p role="alert" style={styles.deleteErrorText}>
-                {DELETE_ERROR_MESSAGES[deleteError.reason] ?? DELETE_ERROR_MESSAGES.unknown}
+                {t(deleteErrorText(deleteError.reason))}
               </p>
             )}
             {deleteError?.reason === 'reauthRequired' ? (
@@ -199,7 +203,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
                   onClick={cancelDelete}
                   disabled={deleteStage === 'deleting' || reauthBusy}
                 >
-                  취소
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -207,7 +211,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
                   onClick={handleReauthAndRetry}
                   disabled={deleteStage === 'deleting' || reauthBusy}
                 >
-                  {reauthBusy ? '재인증 중...' : '다시 로그인하고 재시도'}
+                  {reauthBusy ? t('settings.reauthBusy') : t('settings.reauthRetry')}
                 </button>
               </div>
             ) : (
@@ -218,7 +222,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
                   onClick={cancelDelete}
                   disabled={deleteStage === 'deleting'}
                 >
-                  취소
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -226,32 +230,53 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
                   onClick={runDelete}
                   disabled={deleteStage === 'deleting'}
                 >
-                  {deleteStage === 'deleting' ? '삭제 중...' : '영구 삭제'}
+                  {deleteStage === 'deleting' ? t('settings.deleting') : t('settings.deletePermanent')}
                 </button>
               </div>
             )}
           </div>
         ) : (
           <>
-            <div style={styles.sectionLabel}>프로필</div>
+            <div style={styles.sectionLabel}>{t('settings.profile')}</div>
             <button type="button" style={styles.settingRow} onClick={openNicknameEditor} disabled={!authUser?.uid}>
               <span style={styles.rowText}>
-                <strong style={styles.rowTitle}>닉네임</strong>
-                <span style={styles.rowDescription}>{getSavedNickname(authUser) || '미설정'}</span>
+                <strong style={styles.rowTitle}>{t('settings.nickname')}</strong>
+                <span style={styles.rowDescription}>{getSavedNickname(authUser) || t('settings.notSet')}</span>
               </span>
               <span style={styles.arrow}>›</span>
             </button>
 
-            <div style={styles.sectionLabel}>게임 환경</div>
+            <div style={styles.sectionLabel}>{t('settings.gameEnv')}</div>
+            <div style={styles.languageRow}>
+              <span style={styles.rowText}>
+                <strong style={styles.rowTitle}>{t('settings.language')}</strong>
+                <span style={styles.rowDescription}>{t('settings.languageDesc')}</span>
+              </span>
+              <div style={styles.languageChoices} role="group" aria-label={t('settings.languageAria')}>
+                {LOCALE_OPTIONS.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    lang={option.id}
+                    aria-pressed={locale === option.id}
+                    style={styles.languageButton(locale === option.id)}
+                    onClick={() => setSettings((current) => ({ ...current, language: option.id }))}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <button
               type="button"
-              aria-label={settings.vibration ? '진동 끄기' : '진동 켜기'}
+              aria-label={settings.vibration ? t('settings.vibrationOff') : t('settings.vibrationOn')}
               style={styles.settingRow}
               onClick={() => toggleSetting('vibration')}
             >
               <span style={styles.rowText}>
-                <strong style={styles.rowTitle}>진동</strong>
-                <span style={styles.rowDescription}>피격/보상 피드백을 진동으로 알림</span>
+                <strong style={styles.rowTitle}>{t('settings.vibration')}</strong>
+                <span style={styles.rowDescription}>{t('settings.vibrationDesc')}</span>
               </span>
               <span style={styles.toggleTrack(settings.vibration)}>
                 <span style={styles.toggleKnob(settings.vibration)} />
@@ -260,13 +285,13 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
 
             <button
               type="button"
-              aria-label={settings.reducedEffects ? '연출 줄이기 끄기' : '연출 줄이기 켜기'}
+              aria-label={settings.reducedEffects ? t('settings.reducedEffectsOff') : t('settings.reducedEffectsOn')}
               style={styles.settingRow}
               onClick={() => toggleSetting('reducedEffects')}
             >
               <span style={styles.rowText}>
-                <strong style={styles.rowTitle}>연출 줄이기</strong>
-                <span style={styles.rowDescription}>강한 그림자와 빛 번짐을 낮춤</span>
+                <strong style={styles.rowTitle}>{t('settings.reducedEffects')}</strong>
+                <span style={styles.rowDescription}>{t('settings.reducedEffectsDesc')}</span>
               </span>
               <span style={styles.toggleTrack(settings.reducedEffects)}>
                 <span style={styles.toggleKnob(settings.reducedEffects)} />
@@ -275,36 +300,36 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
 
             <button
               type="button"
-              aria-label={settings.hitCameraShake ? '피격 카메라 흔들림 끄기' : '피격 카메라 흔들림 켜기'}
+              aria-label={settings.hitCameraShake ? t('settings.hitShakeOff') : t('settings.hitShakeOn')}
               style={styles.settingRow}
               onClick={() => toggleSetting('hitCameraShake')}
             >
               <span style={styles.rowText}>
-                <strong style={styles.rowTitle}>피격 카메라 흔들림</strong>
-                <span style={styles.rowDescription}>좀비가 맞을 때 짧게 흔들어 타격감을 줌</span>
+                <strong style={styles.rowTitle}>{t('settings.hitShake')}</strong>
+                <span style={styles.rowDescription}>{t('settings.hitShakeDesc')}</span>
               </span>
               <span style={styles.toggleTrack(settings.hitCameraShake)}>
                 <span style={styles.toggleKnob(settings.hitCameraShake)} />
               </span>
             </button>
 
-            <div style={styles.sectionLabel}>도움말</div>
+            <div style={styles.sectionLabel}>{t('settings.help')}</div>
             <button type="button" style={styles.settingRow} onClick={() => setControlsOpen((v) => !v)}>
               <span style={styles.rowText}>
-                <strong style={styles.rowTitle}>조작법 보기</strong>
-                <span style={styles.rowDescription}>이동, 레벨업 카드, 일시정지 안내</span>
+                <strong style={styles.rowTitle}>{t('settings.controls')}</strong>
+                <span style={styles.rowDescription}>{t('settings.controlsDesc')}</span>
               </span>
               <span style={styles.arrow}>{controlsOpen ? '⌃' : '›'}</span>
             </button>
             {controlsOpen && (
               <div style={styles.controlsPanel}>
-                <p style={styles.controlLine}>모바일: 화면 아래 조이스틱으로 이동합니다.</p>
-                <p style={styles.controlLine}>레벨업: 카드를 눌러 무기나 패시브를 선택합니다.</p>
-                <p style={styles.controlLine}>일시정지: 전투 화면의 일시정지 버튼을 사용합니다.</p>
+                <p style={styles.controlLine}>{t('settings.control1')}</p>
+                <p style={styles.controlLine}>{t('settings.control2')}</p>
+                <p style={styles.controlLine}>{t('settings.control3')}</p>
               </div>
             )}
 
-            <div style={styles.sectionLabel}>법적 고지</div>
+            <div style={styles.sectionLabel}>{t('settings.legal')}</div>
             <button
               type="button"
               style={styles.settingRow}
@@ -313,8 +338,8 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               onClick={() => toggleLegal('terms')}
             >
               <span style={styles.rowText}>
-                <strong style={styles.rowTitle}>{TERMS_TITLE}</strong>
-                <span style={styles.rowDescription}>전문 보기</span>
+                <strong style={styles.rowTitle}>{t('legal.terms.title', null, TERMS_TITLE)}</strong>
+                <span style={styles.rowDescription}>{t('settings.viewFull')}</span>
               </span>
               <span style={styles.arrow}>{legalOpenId === 'terms' ? '⌃' : '›'}</span>
             </button>
@@ -322,10 +347,10 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               <div
                 id="lobby-settings-legal-terms-panel"
                 role="region"
-                aria-label={TERMS_TITLE}
+                aria-label={t('legal.terms.title', null, TERMS_TITLE)}
                 style={styles.legalPanel}
               >
-                <div style={styles.legalBody}>{TERMS_TEXT}</div>
+                <div style={styles.legalBody}>{t('legal.terms.text', null, TERMS_TEXT)}</div>
               </div>
             )}
             <button
@@ -336,8 +361,8 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               onClick={() => toggleLegal('privacy')}
             >
               <span style={styles.rowText}>
-                <strong style={styles.rowTitle}>{PRIVACY_TITLE}</strong>
-                <span style={styles.rowDescription}>전문 보기</span>
+                <strong style={styles.rowTitle}>{t('legal.privacy.title', null, PRIVACY_TITLE)}</strong>
+                <span style={styles.rowDescription}>{t('settings.viewFull')}</span>
               </span>
               <span style={styles.arrow}>{legalOpenId === 'privacy' ? '⌃' : '›'}</span>
             </button>
@@ -345,19 +370,19 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               <div
                 id="lobby-settings-legal-privacy-panel"
                 role="region"
-                aria-label={PRIVACY_TITLE}
+                aria-label={t('legal.privacy.title', null, PRIVACY_TITLE)}
                 style={styles.legalPanel}
               >
-                <div style={styles.legalBody}>{PRIVACY_TEXT}</div>
+                <div style={styles.legalBody}>{t('legal.privacy.text', null, PRIVACY_TEXT)}</div>
               </div>
             )}
 
-            <div style={styles.sectionLabel}>계정</div>
+            <div style={styles.sectionLabel}>{t('settings.account')}</div>
             <button type="button" style={styles.logoutButton} onClick={handleLogout} disabled={!authUser?.uid}>
-              로그아웃
+              {t('settings.logout')}
             </button>
             <button type="button" style={styles.deleteAccountButton} onClick={openDeleteConfirm} disabled={!authUser?.uid}>
-              계정 삭제
+              {t('settings.deleteAccount')}
             </button>
           </>
         )}
@@ -445,6 +470,39 @@ const styles = {
     cursor: 'pointer',
     boxShadow: uiShadows.pressSmall,
   },
+  languageRow: {
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    padding: '8px 10px',
+    marginBottom: 7,
+    border: uiBorders.strong,
+    borderRadius: 8,
+    background: uiPalette.chalkboard,
+    color: uiPalette.paperLight,
+    boxSizing: 'border-box',
+    boxShadow: uiShadows.pressSmall,
+  },
+  languageChoices: {
+    flex: '0 0 auto',
+    display: 'flex',
+    gap: 4,
+  },
+  languageButton: (active) => ({
+    minWidth: 44,
+    minHeight: 34,
+    padding: '0 7px',
+    border: uiBorders.strong,
+    borderRadius: 8,
+    background: active ? uiPalette.cta : uiPalette.paperLight,
+    color: uiPalette.ink,
+    fontSize: 11,
+    lineHeight: 1.1,
+    fontWeight: uiType.weightHeavy,
+    cursor: 'pointer',
+  }),
   logoutButton: {
     ...schoolButton('danger'),
     width: '100%',

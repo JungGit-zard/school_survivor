@@ -14,6 +14,7 @@ import {
   unlockAllStagesForDevCheat,
 } from '../lib/titleSettings.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
+import { useLocale, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { Howl } from 'howler'
@@ -21,6 +22,7 @@ import titleBgmUrl from '../assets/audio/title_bgm.m4a'
 
 const REVEAL_CHEATS_CODE = ['arrowup', 'arrowdown', 'arrowup', 'arrowdown', 'a', 's', 'd']
 const DEV_CHEATS_ENABLED = import.meta.env.DEV
+// 한국어 정본 슬램 배치. 문자 수·진입 벡터·순서를 그대로 보존한다.
 const TITLE_ACCENT_LETTERS = [
   { char: '탈', order: 0, x: '-110vw', y: '-5vh', rotation: '-18deg' },
   { char: '출', order: 1, x: '8vw', y: '-55vh', rotation: '14deg' },
@@ -32,6 +34,40 @@ const TITLE_SCHOOL_LETTERS = [
   { char: '학', order: 4, x: '-100vw', y: '-35vh', rotation: '-16deg' },
   { char: '교', order: 5, x: '100vw', y: '-28vh', rotation: '18deg' },
 ]
+// 다른 언어는 글자 수가 달라 정본 배열을 쓸 수 없다. 같은 진입 벡터 풀을 순환시켜
+// 글자별 슬램을 만들고, 전체 인트로 길이는 한국어와 같게 유지한다.
+const TITLE_ENTER_VECTORS = [
+  { x: '-110vw', y: '-5vh', rotation: '-18deg' },
+  { x: '110vw', y: '-8vh', rotation: '16deg' },
+  { x: '8vw', y: '-55vh', rotation: '14deg' },
+  { x: '-6vw', y: '75vh', rotation: '-12deg' },
+  { x: '-100vw', y: '-35vh', rotation: '-16deg' },
+  { x: '100vw', y: '-28vh', rotation: '18deg' },
+  { x: '15vw', y: '-65vh', rotation: '24deg' },
+]
+const TITLE_SLAM_SPAN_MS = 1610
+
+function buildTitleLetters(word, startOrder) {
+  return Array.from(word, (char, index) => ({
+    char: char === ' ' ? ' ' : char,
+    order: startOrder + index,
+    ...TITLE_ENTER_VECTORS[(startOrder + index) % TITLE_ENTER_VECTORS.length],
+  }))
+}
+
+function getTitleWords(locale, translate) {
+  if (locale === 'ko') return { accent: TITLE_ACCENT_LETTERS, school: TITLE_SCHOOL_LETTERS }
+  const accentWord = translate('title.wordAccent')
+  const schoolWord = translate('title.wordSchool')
+  return {
+    accent: buildTitleLetters(accentWord, 0),
+    school: buildTitleLetters(schoolWord, accentWord.length),
+  }
+}
+
+function titleLetterDelayMs(order, total) {
+  return 120 + order * Math.max(70, Math.round(TITLE_SLAM_SPAN_MS / Math.max(1, total)))
+}
 const TITLE_EMOJI_CLUSTER = '🧟‍♀️❤️'
 const TITLE_SCHOOL_EMOJI = '🏫'
 const TITLE_INTRO_CSS = `
@@ -63,7 +99,7 @@ const TITLE_INTRO_CSS = `
   }
 `
 
-function TitleLetter({ config }) {
+function TitleLetter({ config, total }) {
   return (
     <span
       aria-hidden="true"
@@ -74,7 +110,7 @@ function TitleLetter({ config }) {
         '--title-enter-x': config.x,
         '--title-enter-y': config.y,
         '--title-enter-rotation': config.rotation,
-        animationDelay: `${120 + config.order * 230}ms`,
+        animationDelay: `${titleLetterDelayMs(config.order, total)}ms`,
       }}
     >
       {config.char}
@@ -93,6 +129,8 @@ export default function TitleScreen({
   studioVisualsReady = false,
   ensureStudioCloudReady,
 }) {
+  const t = useT()
+  const locale = useLocale()
   const [cheatOpen, setCheatOpen] = useState(false)
   const [nicknameOpen, setNicknameOpen] = useState(false)
   const [nicknameInput, setNicknameInput] = useState('')
@@ -118,6 +156,8 @@ export default function TitleScreen({
   const titleBgmControllerRef = useRef(null)
   const adminOperations = getAdminOperationsConfig()
   const cheatMenuButtonVisible = DEV_CHEATS_ENABLED && devCheatsVisible && adminOperations.cheatMenuButtonVisible
+  const titleWords = getTitleWords(locale, t)
+  const titleLetterTotal = titleWords.accent.length + titleWords.school.length
 
   // 타이틀 연출은 항상 재생하고, 화면을 벗어날 때 저장된 전역 설정을 복원한다.
   useEffect(() => {
@@ -334,11 +374,11 @@ export default function TitleScreen({
     setStudioError('')
     try {
       if (ensureStudioCloudReady && !await ensureStudioCloudReady(user)) {
-        setStudioError('그래픽 데이터를 불러오지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.')
+        setStudioError(t('title.studioError'))
         return
       }
     } catch {
-      setStudioError('그래픽 데이터를 불러오지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.')
+      setStudioError(t('title.studioError'))
       return
     }
 
@@ -347,7 +387,7 @@ export default function TitleScreen({
         await hydrateCloudProgress(user)
       }
     } catch {
-      setStudioError('계정 진행도를 불러오는 중 오류가 발생했습니다. 연결을 확인한 뒤 다시 시도해 주세요.')
+      setStudioError(t('title.progressError'))
       return
     }
 
@@ -406,26 +446,26 @@ export default function TitleScreen({
       <div style={styles.vignette} />
       <GoogleAccountPanel />
       {cheatRevealMessage && (
-        <div style={styles.cheatRevealToast}>치트키가 보입니다</div>
+        <div style={styles.cheatRevealToast}>{t('title.cheatToast')}</div>
       )}
       {cheatMenuButtonVisible && (
         <button
           type="button"
-          aria-label="치트 메뉴 열기"
+          aria-label={t('title.cheatOpenAria')}
           aria-haspopup="dialog"
           aria-expanded={cheatOpen}
           style={styles.cheatMenuButton}
           onClick={() => setCheatOpen(true)}
         >
-          치트
+          {t('title.cheatButton')}
         </button>
       )}
       <div className="title-copy" style={styles.content}>
-        <div aria-hidden="true" data-title-service-name style={styles.serviceName}>탈출! 좀비학교</div>
-        <h1 aria-label="탈출! 좀비학교" style={styles.title}>
+        <div aria-hidden="true" data-title-service-name style={styles.serviceName}>{t('title.serviceName')}</div>
+        <h1 aria-label={t('title.serviceName')} style={{ ...styles.title, fontSize: t('title.fontSize') }}>
           <span style={{ ...styles.titleAccent, ...styles.titleWord }}>
-            {TITLE_ACCENT_LETTERS.map((config) => (
-              <TitleLetter key={config.char} config={config} />
+            {titleWords.accent.map((config) => (
+              <TitleLetter key={`${config.char}-${config.order}`} config={config} total={titleLetterTotal} />
             ))}
             <span
               aria-hidden="true"
@@ -437,8 +477,8 @@ export default function TitleScreen({
             </span>
           </span>
           <span style={styles.titleWord}>
-            {TITLE_SCHOOL_LETTERS.map((config) => (
-              <TitleLetter key={config.char} config={config} />
+            {titleWords.school.map((config) => (
+              <TitleLetter key={`${config.char}-${config.order}`} config={config} total={titleLetterTotal} />
             ))}
             <span
               aria-hidden="true"
@@ -450,19 +490,19 @@ export default function TitleScreen({
             </span>
           </span>
         </h1>
-        <p style={styles.subtitle}>3분 30초 후 열리는 탈출구로 탈출하라</p>
+        <p style={styles.subtitle}>{t('title.subtitle')}</p>
       </div>
 
       <div style={styles.actions}>
         <div style={styles.mainActionStack}>
-          <p data-testid="title-gameplay-guide" style={styles.gameplayGuide}>자동 공격 · 화면을 드래그해 이동 · 레벨업 때 카드 선택</p>
+          <p data-testid="title-gameplay-guide" style={styles.gameplayGuide}>{t('title.gameplayGuide')}</p>
           <button type="button" className="title-main-action" style={{ ...styles.primaryButton, ...styles.mainActionButton }} onClick={handleStartClick}>
-            게임 시작
+            {t('title.start')}
           </button>
           {studioError && (
             <div role="alert" style={styles.studioError}>
               <span>{studioError}</span>
-              <button type="button" style={styles.studioRetryButton} onClick={handleStartClick}>다시 시도</button>
+              <button type="button" style={styles.studioRetryButton} onClick={handleStartClick}>{t('common.retry')}</button>
             </div>
           )}
         </div>
@@ -470,25 +510,25 @@ export default function TitleScreen({
 
       {cheatOpen && cheatMenuButtonVisible && (
         <div style={styles.modalLayer}>
-          <button type="button" aria-label="치트 메뉴 닫기 배경" style={styles.modalScrim} onClick={closeCheat} />
+          <button type="button" aria-label={t('title.cheatCloseAria')} style={styles.modalScrim} onClick={closeCheat} />
           <section role="dialog" aria-modal="true" aria-labelledby="title-cheat-heading" style={styles.cheatModal}>
             <div style={styles.modalHeader}>
-              <h2 id="title-cheat-heading" style={styles.modalTitle}>치트 메뉴</h2>
-              <button type="button" aria-label="닫기" style={styles.closeButton} onClick={closeCheat}>
+              <h2 id="title-cheat-heading" style={styles.modalTitle}>{t('title.cheatHeading')}</h2>
+              <button type="button" aria-label={t('common.close')} style={styles.closeButton} onClick={closeCheat}>
                 ×
               </button>
             </div>
 
-            <div style={styles.sectionLabel}>개발 기능</div>
+            <div style={styles.sectionLabel}>{t('title.devSection')}</div>
             <div style={styles.cheatButtons}>
               <button type="button" style={styles.cheatButton} onClick={handleUnlockAllWeapons}>
-                모든 무기 해금
+                {t('title.unlockWeapons')}
               </button>
               <button type="button" style={styles.cheatButton} onClick={handleUnlockAllStages}>
-                모든 스테이지 해금
+                {t('title.unlockStages')}
               </button>
               <button type="button" style={styles.resetButton} onClick={handleResetPassiveUpgrades}>
-                코인 레벨업 초기화
+                {t('title.resetPassives')}
               </button>
             </div>
           </section>
@@ -505,22 +545,22 @@ export default function TitleScreen({
 
       {nicknameOpen && (
         <div style={styles.modalLayer}>
-          <button type="button" aria-label="닉네임 입력 닫기 배경" style={styles.modalScrim} onClick={() => setNicknameOpen(false)} />
+          <button type="button" aria-label={t('title.nicknameCloseAria')} style={styles.modalScrim} onClick={() => setNicknameOpen(false)} />
           <section role="dialog" aria-modal="true" aria-labelledby="title-nickname-heading" style={styles.nicknameModal}>
             <div style={styles.modalHeader}>
-              <h2 id="title-nickname-heading" style={styles.modalTitle}>닉네임 설정</h2>
-              <button type="button" aria-label="닫기" style={styles.closeButton} onClick={() => setNicknameOpen(false)}>
+              <h2 id="title-nickname-heading" style={styles.modalTitle}>{t('title.nicknameHeading')}</h2>
+              <button type="button" aria-label={t('common.close')} style={styles.closeButton} onClick={() => setNicknameOpen(false)}>
                 ×
               </button>
             </div>
 
             <form style={styles.nicknameForm} onSubmit={handleNicknameSubmit}>
               <label style={styles.nicknameLabel} htmlFor="title-nickname-input">
-                유저 닉네임
+                {t('title.nicknameLabel')}
               </label>
               <input
                 id="title-nickname-input"
-                aria-label="유저 닉네임"
+                aria-label={t('title.nicknameLabel')}
                 value={nicknameInput}
                 maxLength={12}
                 style={styles.nicknameInput}
@@ -534,10 +574,10 @@ export default function TitleScreen({
                 autoFocus
               />
               <p style={nicknameError ? styles.nicknameError : styles.nicknameHint}>
-                {nicknameError || 'Google 로그인 중이면 이 닉네임이 계정 진행도에 함께 저장됩니다.'}
+                {nicknameError || t('title.nicknameHint')}
               </p>
               <button type="submit" style={styles.nicknameSubmitButton}>
-                저장하고 시작
+                {t('title.nicknameSubmit')}
               </button>
             </form>
           </section>

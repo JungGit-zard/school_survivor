@@ -7,6 +7,7 @@ import {
 import { getAllWeaponIds } from '../lib/weaponCatalog.js'
 import { isUnlocked } from '../lib/weaponUnlocks.js'
 import { schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
+import { permanentSummary, t as translate, useT, weaponLabel } from '../lib/i18n.js'
 import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.webp'
 import rulerIconSrc from '../assets/weapon_icon/02_wea_30ruller.png.webp'
 import boxCutterIconSrc from '../assets/weapon_icon/13_wea_boxcutter.svg'
@@ -44,6 +45,7 @@ const WEAPON_PERMANENT_ICON_SRC = {
 }
 
 export default function WeaponPermanentUpgradeList({ style }) {
+  const t = useT()
   const goldTotal = useGameStore((s) => s.goldTotal)
   const passiveVersion = useGameStore((s) => s.passiveVersion)
   const purchaseWeaponPermanentUpgrade = useGameStore((s) => s.purchaseWeaponPermanentUpgrade)
@@ -58,7 +60,7 @@ export default function WeaponPermanentUpgradeList({ style }) {
 
   return (
     <div style={{ ...styles.list, ...style }}>
-      <div style={styles.notice}>무기 기본능력 영구 강화</div>
+      <div style={styles.notice}>{t('shop.permanentNotice')}</div>
       {ids.map((id) => {
         const plan = getWeaponPermanentUpgradePlan(id)
         if (!plan) return null
@@ -89,19 +91,19 @@ function WeaponPermanentCard({ plan, unlocked, currentLevel, isMax, price, canAf
   const next = plan.levels[Math.min(currentLevel + 1, plan.maxLevel)]
   const current = currentLevel > 0 ? plan.levels[currentLevel] : null
   const iconSrc = WEAPON_PERMANENT_ICON_SRC[plan.id]
-  let buttonLabel = '강화'
+  let buttonLabel = translate('shop.upgrade')
   let disabled = false
   let buttonStyle = styles.buyButton
   if (!unlocked) {
-    buttonLabel = '잠김'
+    buttonLabel = translate('common.locked')
     disabled = true
     buttonStyle = styles.lockedButton
   } else if (isMax) {
-    buttonLabel = '최대'
+    buttonLabel = translate('common.max')
     disabled = true
     buttonStyle = styles.maxButton
   } else if (!canAfford) {
-    buttonLabel = '코인 부족'
+    buttonLabel = translate('common.notEnoughCoins')
     disabled = true
     buttonStyle = styles.insufficientButton
   }
@@ -124,18 +126,28 @@ function WeaponPermanentCard({ plan, unlocked, currentLevel, isMax, price, canAf
       </div>
       <div style={styles.cardMain}>
         <div style={styles.metaRow}>
-          <span style={styles.weaponName}>{plan.label}</span>
+          <span style={styles.weaponName}>{weaponLabel(plan.id, plan.label)}</span>
           <span style={styles.level}>Lv.{currentLevel} / {plan.maxLevel}</span>
         </div>
         <div style={styles.effectLine}>
-          {unlocked ? (current ? `현재: ${current.summary}` : '현재: 기본 상태') : '무기 해금 후 강화 가능'}
+          {unlocked
+            ? (current
+              ? translate('shop.currentIs', { value: permanentSummary(current.summary) })
+              : translate('shop.currentBase'))
+            : translate('shop.needUnlock')}
         </div>
         <div style={styles.nextLine}>
-          {unlocked ? (isMax ? '모든 영구 강화 완료' : `다음: ${next.summary}`) : `강화 방향: ${next?.summary ?? '해금 후 확인'}`}
+          {unlocked
+            ? (isMax
+              ? translate('shop.allPermanentDone')
+              : translate('shop.nextIs', { value: permanentSummary(next.summary) }))
+            : translate('shop.upgradeDirection', {
+              value: next?.summary ? permanentSummary(next.summary) : translate('shop.checkAfterUnlock'),
+            })}
         </div>
       </div>
       <div style={styles.priceCol}>
-        <div style={styles.price}>{isMax ? '완료' : unlocked ? `${price} 코인` : '잠김'}</div>
+        <div style={styles.price}>{isMax ? translate('common.done') : unlocked ? translate('common.coinPrice', { price }) : translate('common.locked')}</div>
         <button type="button" style={buttonStyle} onClick={onBuy} disabled={disabled}>
           {buttonLabel}
         </button>

@@ -1,4 +1,5 @@
 import { STAGE_PROP_PALETTE } from './stagePropEditorGeometry.js'
+import { propLabel, t, tList } from './i18n.js'
 
 const SUBJECT_NAMES = new Map(STAGE_PROP_PALETTE.map(({ type, label }) => [type, label]))
 
@@ -137,21 +138,22 @@ function pickDeterministicLine(lines, placementId) {
 
 export function getInvestigationDialogue(stageId, type, placementId) {
   if (type === 'unconsciousStudent') {
-    const lines = STUDENT_LINES[stageId] ?? STUDENT_LINES.stage1
+    const korean = STUDENT_LINES[stageId] ?? STUDENT_LINES.stage1
+    const lines = tList(`dialogue.student.${STUDENT_LINES[stageId] ? stageId : 'stage1'}`, korean)
     return {
       subjectType: 'student',
-      subjectName: '좀비가 된 학생',
+      subjectName: t('dialogue.studentName', null, '좀비가 된 학생'),
       line: pickDeterministicLine(lines, placementId),
     }
   }
 
-  const lines = OBJECT_LINES[type]
-  const subjectName = SUBJECT_NAMES.get(type)
-  if (!lines || !subjectName) return null
+  const koreanLines = OBJECT_LINES[type]
+  const koreanName = SUBJECT_NAMES.get(type)
+  if (!koreanLines || !koreanName) return null
 
   return {
     subjectType: REWARD_SUBJECT_TYPES[type] ?? type,
-    subjectName,
-    line: pickDeterministicLine(lines, placementId),
+    subjectName: propLabel(type, koreanName),
+    line: pickDeterministicLine(tList(`dialogue.obj.${type}`, koreanLines), placementId),
   }
 }

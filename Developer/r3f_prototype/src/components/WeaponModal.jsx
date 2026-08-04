@@ -5,33 +5,37 @@ import { WEAPON_CATALOG, STARTER, getAllWeaponIds, evaluateUnlocks, isStarter } 
 import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { schoolPanel, schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
+import { t as translate, useT, weaponLabel } from '../lib/i18n.js'
 
 // 조건 type → 사람이 읽는 라벨 + 누적 기록에서 측정 가능한지 여부.
 // run* 조건은 한 판 안에서만 측정되어 누적 진행도가 없다(목표만 표시).
 const CONDITION_META = {
-  totalRuns: { label: '누적 플레이', unit: '회', cumulative: true },
+  totalRuns: { label: '누적 플레이', unitKey: 'cond.unit.times', unit: '회', cumulative: true },
   totalKills: { label: '누적 처치', unit: '', cumulative: true },
   totalGold: { label: '누적 코인', unit: '', cumulative: true },
-  totalSurvivalSeconds: { label: '누적 생존', unit: '초', cumulative: true },
-  stage1Clears: { label: 'Stage 1 클리어', unit: '회', cumulative: true },
-  stage2Clears: { label: 'Stage 2 클리어', unit: '회', cumulative: true },
-  stage1Survival180Runs: { label: 'Stage 1 3분 생존', unit: '회', cumulative: true },
+  totalSurvivalSeconds: { label: '누적 생존', unitKey: 'cond.unit.seconds', unit: '초', cumulative: true },
+  stage1Clears: { label: 'Stage 1 클리어', unitKey: 'cond.unit.times', unit: '회', cumulative: true },
+  stage2Clears: { label: 'Stage 2 클리어', unitKey: 'cond.unit.times', unit: '회', cumulative: true },
+  stage1Survival180Runs: { label: 'Stage 1 3분 생존', unitKey: 'cond.unit.times', unit: '회', cumulative: true },
   runKills: { label: '한 판 처치', unit: '', cumulative: false },
-  runSurvivalSeconds: { label: '한 판 생존', unit: '초', cumulative: false },
+  runSurvivalSeconds: { label: '한 판 생존', unitKey: 'cond.unit.seconds', unit: '초', cumulative: false },
   runGold: { label: '한 판 코인', unit: '', cumulative: false },
 }
 
 function describeCondition(cond, records) {
   const meta = CONDITION_META[cond.type] ?? { label: cond.type, unit: '', cumulative: false }
+  const label = translate(`cond.${cond.type}`, null, meta.label)
+  const unit = meta.unitKey ? translate(meta.unitKey, null, meta.unit) : meta.unit
   const target = Number(cond.value)
   if (meta.cumulative) {
     const current = Math.min(Number(records[cond.type] ?? 0), target)
-    return { text: `${meta.label} ${current}/${target}${meta.unit}`, ratio: target > 0 ? current / target : 0, measurable: true }
+    return { text: `${label} ${current}/${target}${unit}`, ratio: target > 0 ? current / target : 0, measurable: true }
   }
-  return { text: `${meta.label} ${target}${meta.unit}`, ratio: 0, measurable: false }
+  return { text: `${label} ${target}${unit}`, ratio: 0, measurable: false }
 }
 
 export default function WeaponModal({ onClose }) {
+  const t = useT()
   const records = loadPlayerRecords()
   const unlockedByRecords = evaluateUnlocks(records)
   const ids = getAllWeaponIds()
@@ -39,20 +43,20 @@ export default function WeaponModal({ onClose }) {
 
   return (
     <div style={styles.overlay}>
-      <button type="button" aria-label="무기 현황 닫기 배경" style={styles.scrim} onClick={onClose} />
+      <button type="button" aria-label={t('weaponModal.closeAria')} style={styles.scrim} onClick={onClose} />
       <section role="dialog" aria-modal="true" aria-labelledby="lobby-weapon-heading" style={styles.modal}>
         <div style={styles.header}>
           <div>
-            <div style={styles.eyebrow}>무기고</div>
-            <h2 id="lobby-weapon-heading" style={styles.title}>무기 해금 현황</h2>
+            <div style={styles.eyebrow}>{t('weaponModal.eyebrow')}</div>
+            <h2 id="lobby-weapon-heading" style={styles.title}>{t('weaponModal.title')}</h2>
           </div>
           <div style={styles.countBadge}>
-            <span style={styles.countLabel}>해금</span>
+            <span style={styles.countLabel}>{t('weaponModal.countLabel')}</span>
             <strong style={styles.countValue}>{unlockedCount}/{ids.length}</strong>
           </div>
         </div>
 
-        <ul style={styles.list} aria-label="무기 목록">
+        <ul style={styles.list} aria-label={t('weaponModal.listAria')}>
           {ids.map((id) => {
             const entry = WEAPON_CATALOG[id]
             const starter = isStarter(id)
@@ -64,7 +68,7 @@ export default function WeaponModal({ onClose }) {
         </ul>
 
         <button type="button" style={styles.closeBtn} onClick={onClose}>
-          닫기
+          {t('common.close')}
         </button>
       </section>
     </div>
@@ -78,18 +82,18 @@ function WeaponRow({ entry, starter, unlocked, records }) {
   return (
     <li style={{ ...styles.row, ...(unlocked ? styles.rowUnlocked : styles.rowLocked) }}>
       <div style={styles.rowTop}>
-        <span style={styles.weaponName}>{entry.label}</span>
+        <span style={styles.weaponName}>{weaponLabel(entry.id, entry.label)}</span>
         <span style={unlocked ? styles.tagUnlocked : styles.tagLocked}>
-          {unlocked ? '해금' : '잠김'}
+          {unlocked ? translate('common.unlocked') : translate('common.locked')}
         </span>
       </div>
       {starter || entry.unlockConditions === STARTER ? (
-        <div style={styles.condText}>기본 제공 무기</div>
+        <div style={styles.condText}>{translate('weaponModal.starter')}</div>
       ) : unlocked ? (
-        <div style={styles.condText}>해금 완료</div>
+        <div style={styles.condText}>{translate('weaponModal.unlockDone')}</div>
       ) : (
         <div style={styles.condGroup}>
-          <div style={styles.condHint}>다음 조건 중 하나 달성 시 해금</div>
+          <div style={styles.condHint}>{translate('weaponModal.anyCondition')}</div>
           {described.map((d, index) => (
             <div key={index} style={styles.condItem}>
               <span style={styles.condLabel}>{d.text}</span>

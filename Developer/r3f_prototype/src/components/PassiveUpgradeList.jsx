@@ -4,6 +4,7 @@ import { useGameStore } from '../store/useGameStore.js'
 import { PASSIVE_CATALOG, getMvpPassiveIds, getPriceFor, formatEffectLabel } from '../lib/passiveCatalog.js'
 import { getLevel } from '../lib/passiveUpgrades.js'
 import { schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
+import { passiveLabel, t as translate, useT } from '../lib/i18n.js'
 import iconMagnet from '../assets/passive_icon/passive_magnet.webp'
 import iconMoveSpeed from '../assets/passive_icon/passive_moveSpeed.webp'
 import iconMight from '../assets/passive_icon/passive_might.webp'
@@ -18,15 +19,8 @@ const PASSIVE_ICON_SRCS = {
   growth: iconGrowth,
 }
 
-const PASSIVE_ICON_LABELS = {
-  magnet: '회수 반경 아이콘',
-  moveSpeed: '이동속도 아이콘',
-  maxHp: '체력 아이콘',
-  might: '공격력 아이콘',
-  growth: '학습력 아이콘',
-}
-
 export default function PassiveUpgradeList({ style }) {
+  useT()
   const goldTotal = useGameStore((s) => s.goldTotal)
   const passiveVersion = useGameStore((s) => s.passiveVersion)
   const purchasePassive = useGameStore((s) => s.purchasePassive)
@@ -65,17 +59,18 @@ export default function PassiveUpgradeList({ style }) {
 function PassiveCard({ index, entry, currentLevel, isMax, price, canAfford, onBuy }) {
   const levelText = isMax ? 'Lv.MAX' : `Lv.${currentLevel}`
   const effectText = formatEffectLabel(entry.id, currentLevel)
+  const label = passiveLabel(entry.id, entry.label)
   const cardStateStyle = isMax ? styles.cardMax : canAfford ? styles.cardReady : styles.cardLocked
 
-  let buttonLabel = '구매'
+  let buttonLabel = translate('shop.buy')
   let buttonStyle = styles.buyButton
   let disabled = false
   if (isMax) {
-    buttonLabel = '최대'
+    buttonLabel = translate('common.max')
     buttonStyle = styles.maxButton
     disabled = true
   } else if (!canAfford) {
-    buttonLabel = '코인 부족'
+    buttonLabel = translate('common.notEnoughCoins')
     buttonStyle = styles.insufficientButton
     disabled = true
   }
@@ -83,19 +78,19 @@ function PassiveCard({ index, entry, currentLevel, isMax, price, canAfford, onBu
   return (
     <div style={{ ...styles.card, ...cardStateStyle }}>
       <div style={styles.cardStamp}>
-        <PassiveIcon id={entry.id} label={PASSIVE_ICON_LABELS[entry.id] ?? `${entry.label} 아이콘`} />
+        <PassiveIcon id={entry.id} label={translate('shop.iconAria', { name: label })} />
       </div>
       <div style={styles.cardMain}>
         <div style={styles.cardMeta}>
-          <span style={styles.cardNumber}>신청 {String(index + 1).padStart(2, '0')}</span>
+          <span style={styles.cardNumber}>{translate('shop.applyNumber', { number: String(index + 1).padStart(2, '0') })}</span>
           <span style={styles.cardLevel}>{levelText}</span>
         </div>
         <div style={styles.cardLine1}>
-          <span style={styles.cardLabel}>{entry.label}</span>
+          <span style={styles.cardLabel}>{label}</span>
         </div>
         <div style={styles.cardLine2}>{effectText}</div>
-        <div style={styles.progressRow} aria-label={`${entry.label} 진행도 ${currentLevel}/${entry.maxLevel}`}>
-          <span style={styles.progressLabel}>진행도</span>
+        <div style={styles.progressRow} aria-label={translate('shop.progressAria', { name: label, current: currentLevel, max: entry.maxLevel })}>
+          <span style={styles.progressLabel}>{translate('shop.progress')}</span>
           <span style={styles.progressDots}>
             {Array.from({ length: entry.maxLevel }, (_, dotIndex) => (
               <span
@@ -107,7 +102,7 @@ function PassiveCard({ index, entry, currentLevel, isMax, price, canAfford, onBu
         </div>
       </div>
       <div style={styles.cardPriceCol}>
-        <div style={styles.cardPrice(isMax)}>{isMax ? '완료' : `${price} 코인`}</div>
+        <div style={styles.cardPrice(isMax)}>{isMax ? translate('common.done') : translate('common.coinPrice', { price })}</div>
         <button type="button" style={buttonStyle} onClick={onBuy} disabled={disabled}>
           {buttonLabel}
         </button>

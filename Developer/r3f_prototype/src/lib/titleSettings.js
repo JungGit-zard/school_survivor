@@ -3,6 +3,7 @@
 import { getAllWeaponIds, isStarter } from './weaponCatalog.js'
 import { setUnlocked as setWeaponUnlocked } from './weaponUnlocks.js'
 import { readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
+import { detectInitialLocale, isSupportedLocale, setLocale } from './i18n.js'
 
 export const SETTINGS_STORAGE_KEY = 'school_survivor:titleSettings'
 
@@ -10,6 +11,8 @@ export const DEFAULT_SETTINGS = {
   vibration: true,
   reducedEffects: false,
   hitCameraShake: true,
+  // 계정에 저장된 언어가 없으면 브라우저 언어를 그대로 쓴다.
+  language: null,
   unlockAllWeaponsCheat: false,
   unlockAllStagesCheat: false,
 }
@@ -17,6 +20,7 @@ export const DEFAULT_SETTINGS = {
 export function loadTitleSettings() {
   const settings = readFirebasePlayerProgress().titleSettings ?? DEFAULT_SETTINGS
   return {
+    language: isSupportedLocale(settings.language) ? settings.language : DEFAULT_SETTINGS.language,
     vibration: typeof settings.vibration === 'boolean' ? settings.vibration : DEFAULT_SETTINGS.vibration,
     reducedEffects: typeof settings.reducedEffects === 'boolean' ? settings.reducedEffects : DEFAULT_SETTINGS.reducedEffects,
     hitCameraShake: typeof settings.hitCameraShake === 'boolean' ? settings.hitCameraShake : DEFAULT_SETTINGS.hitCameraShake,
@@ -37,6 +41,11 @@ export function saveTitleSettings(settings) {
     }
     return progress
   })
+}
+
+// 계정에 저장된 언어를 런타임에 적용한다. 저장값이 없으면 브라우저 언어로 되돌린다.
+export function applyLanguage(language) {
+  setLocale(isSupportedLocale(language) ? language : detectInitialLocale())
 }
 
 export function applyReducedEffects(reducedEffects) {

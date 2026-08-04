@@ -14,6 +14,7 @@ import { useAuthStore } from './store/useAuthStore.js'
 import { commitFirebaseStudioRuntime, isFirebaseStudioRuntimeReady } from './lib/studioRuntimeState.js'
 import { isProjectMaster } from './lib/projectAdmin.js'
 import { isE2EAuthBypass, isE2EGraphicsStudioBypass } from './lib/e2eAuth.js'
+import { t } from './lib/i18n.js'
 
 const AdminPage = lazy(() => import('./components/AdminPage.jsx'))
 const GraphicsStudio = lazy(() => import('./components/GraphicsStudio.jsx'))
@@ -235,7 +236,7 @@ export default function App() {
 
   if (isGraphicsStudioRoute) {
     return (
-      <Suspense fallback={<div style={styles.routeLoading}>그래픽 스튜디오 불러오는 중…</div>}>
+      <Suspense fallback={<div style={styles.routeLoading}>{t('loading.studio')}</div>}>
         <GraphicsStudio />
       </Suspense>
     )
@@ -244,22 +245,22 @@ export default function App() {
   const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
   if (isAdminRoute) {
     if (authStatus === 'checking') {
-      return <AppBootstrap message="Google 로그인 상태를 확인하는 중입니다." />
+      return <AppBootstrap message={t('app.checkingAuth')} />
     }
     if (authStatus === 'error' || authStatus === 'unconfigured') {
       return <AdminAccessDenied reason={authStatus === 'error'
-        ? 'Google 로그인 상태를 확인하지 못했습니다. 다시 로그인해 주세요.'
-        : 'Firebase Google 로그인 설정이 필요합니다.'}
+        ? t('app.authFailed')
+        : t('app.authUnconfigured')}
       />
     }
     if (authStatus !== 'signedIn' || !authUser?.uid) {
-      return <AppBootstrap message="관리 도구는 기존 Google 로그인으로만 접근할 수 있습니다." />
+      return <AppBootstrap message={t('app.adminGoogleOnly')} />
     }
     if (!isProjectMaster(authUser)) {
-      return <AdminAccessDenied reason="이 Google 계정에는 최고관리자 권한이 없습니다." />
+      return <AdminAccessDenied reason={t('app.adminDeniedReason')} />
     }
     return (
-      <Suspense fallback={<div style={styles.routeLoading}>관리 도구 불러오는 중…</div>}>
+      <Suspense fallback={<div style={styles.routeLoading}>{t('loading.admin')}</div>}>
         <AdminPage />
       </Suspense>
     )
@@ -280,10 +281,10 @@ export default function App() {
 }
 
 function getStudioBootstrapMessage(authStatus, studioCloudStatus) {
-  if (authStatus === 'checking') return 'Google 로그인 상태를 확인하는 중입니다.'
-  if (authStatus !== 'signedIn') return 'Google 로그인 후 Firebase Studio 데이터를 불러옵니다.'
-  if (studioCloudStatus === 'loading') return 'Firebase Studio 데이터를 불러오는 중입니다.'
-  return 'Firebase Studio 데이터를 불러오지 못했습니다. 로그인 상태와 연결을 확인해 주세요.'
+  if (authStatus === 'checking') return t('app.checkingAuth')
+  if (authStatus !== 'signedIn') return t('app.studioNeedsSignIn')
+  if (studioCloudStatus === 'loading') return t('app.studioLoading')
+  return t('app.studioFailed')
 }
 
 function AppBootstrap({ message }) {
@@ -299,7 +300,7 @@ function AdminAccessDenied({ reason }) {
   return (
     <main style={styles.studioBootstrap}>
       <section role="alertdialog" aria-modal="true" style={styles.fatalDialog}>
-        <h1 style={styles.fatalTitle}>관리 도구 접근 거부</h1>
+        <h1 style={styles.fatalTitle}>{t('app.adminDeniedTitle')}</h1>
         <p style={styles.fatalMessage}>{reason}</p>
         <GoogleAccountPanel />
       </section>

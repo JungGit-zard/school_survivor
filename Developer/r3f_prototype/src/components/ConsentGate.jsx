@@ -16,8 +16,10 @@ import { useEffect, useRef, useState } from 'react'
 import { recordConsent } from '../lib/consent.js'
 import { CONSENT_ITEMS, SERVICE_NAME } from '../lib/legalDocuments.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
+import { useT } from '../lib/i18n.js'
 
 export default function ConsentGate({ user, onConfirmed, onCancel }) {
+  const t = useT()
   const [checkedById, setCheckedById] = useState(() => (
     Object.fromEntries(CONSENT_ITEMS.map((item) => [item.id, false]))
   ))
@@ -101,13 +103,13 @@ export default function ConsentGate({ user, onConfirmed, onCancel }) {
     try {
       const ok = await recordConsent(user)
       if (!ok) {
-        setError('동의 저장에 실패했습니다. 연결을 확인한 뒤 다시 시도해 주세요.')
+        setError(t('consent.saveFailed'))
         setSubmitting(false)
         return
       }
       onConfirmed?.()
     } catch {
-      setError('동의 저장 중 오류가 발생했습니다. 다시 시도해 주세요.')
+      setError(t('consent.saveError'))
       setSubmitting(false)
     }
   }
@@ -116,7 +118,7 @@ export default function ConsentGate({ user, onConfirmed, onCancel }) {
     <div style={styles.overlay}>
       <button
         type="button"
-        aria-label="동의 취소하고 닫기"
+        aria-label={t('consent.cancelAria')}
         style={styles.scrim}
         onClick={handleCancelClick}
       />
@@ -129,10 +131,10 @@ export default function ConsentGate({ user, onConfirmed, onCancel }) {
         style={styles.dialog}
       >
         <div style={styles.header}>
-          <h2 id="consent-gate-heading" style={styles.title}>이용약관 및 개인정보처리방침 동의</h2>
+          <h2 id="consent-gate-heading" style={styles.title}>{t('consent.heading')}</h2>
           <button
             type="button"
-            aria-label="닫기"
+            aria-label={t('common.close')}
             style={styles.closeButton}
             onClick={handleCancelClick}
             disabled={submitting}
@@ -143,7 +145,7 @@ export default function ConsentGate({ user, onConfirmed, onCancel }) {
 
         <div style={styles.body}>
           <p style={styles.intro}>
-            {SERVICE_NAME} 이용을 위해 아래 항목에 각각 동의해 주세요. 최초 1회만 진행하며, 계정을 삭제하기 전까지 다시 묻지 않습니다.
+            {t('consent.intro', { service: SERVICE_NAME })}
           </p>
 
           <label style={styles.masterRow} htmlFor="consent-master-checkbox">
@@ -155,7 +157,7 @@ export default function ConsentGate({ user, onConfirmed, onCancel }) {
               onChange={toggleAll}
               style={styles.checkboxInput}
             />
-            <span style={styles.masterText}>전체 동의</span>
+            <span style={styles.masterText}>{t('consent.acceptAll')}</span>
           </label>
 
           {CONSENT_ITEMS.map((item) => {
@@ -171,7 +173,7 @@ export default function ConsentGate({ user, onConfirmed, onCancel }) {
                       onChange={() => toggleItem(item.id)}
                       style={styles.checkboxInput}
                     />
-                    <span>{item.label}</span>
+                    <span>{t(`consent.item.${item.id}`, null, item.label)}</span>
                   </label>
                   <button
                     type="button"
@@ -180,13 +182,13 @@ export default function ConsentGate({ user, onConfirmed, onCancel }) {
                     style={styles.expandButton}
                     onClick={() => toggleExpanded(item.id)}
                   >
-                    {expanded ? '접기' : '전문보기'}
+                    {expanded ? t('consent.collapse') : t('consent.expand')}
                   </button>
                 </div>
                 {expanded && (
                   <div id={`consent-text-${item.id}`} style={styles.textPanel}>
-                    <div style={styles.textTitle}>{item.title}</div>
-                    <div style={styles.textBody}>{item.text}</div>
+                    <div style={styles.textTitle}>{t(`legal.${item.id}.title`, null, item.title)}</div>
+                    <div style={styles.textBody}>{t(`legal.${item.id}.text`, null, item.text)}</div>
                   </div>
                 )}
               </div>
@@ -197,11 +199,11 @@ export default function ConsentGate({ user, onConfirmed, onCancel }) {
         <div style={styles.footer}>
           {error && <p role="alert" style={styles.errorText}>{error}</p>}
           {!error && !allChecked && (
-            <p style={styles.helperText}>두 항목에 모두 동의해야 시작할 수 있어요.</p>
+            <p style={styles.helperText}>{t('consent.helper')}</p>
           )}
           <div style={styles.footerButtons}>
             <button type="button" style={styles.cancelButton} onClick={handleCancelClick} disabled={submitting}>
-              취소
+              {t('common.cancel')}
             </button>
             <button
               type="button"
@@ -212,7 +214,7 @@ export default function ConsentGate({ user, onConfirmed, onCancel }) {
               onClick={handleConfirm}
               disabled={!allChecked || submitting}
             >
-              {submitting ? '확인 중...' : '확인하고 시작'}
+              {submitting ? t('consent.submitting') : t('consent.submit')}
             </button>
           </div>
         </div>

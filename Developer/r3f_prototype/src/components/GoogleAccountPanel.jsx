@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { isProjectMaster } from '../lib/projectAdmin.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
+import { t, useT } from '../lib/i18n.js'
 
 export default function GoogleAccountPanel() {
   const status = useAuthStore((s) => s.status)
@@ -29,6 +30,7 @@ export default function GoogleAccountPanel() {
 }
 
 export function GoogleAccountPanelView({ status, user, error, signingIn, onSignIn, onSignOut }) {
+  useT()
   const signedIn = status === 'signedIn' && user
   const disabled = status === 'unconfigured' || status === 'checking' || signingIn
   const label = getPanelLabel(status, signingIn)
@@ -43,20 +45,20 @@ export function GoogleAccountPanelView({ status, user, error, signingIn, onSignI
           <span style={styles.avatarFallback}>G</span>
         )}
         <span style={styles.copy}>
-          <strong style={styles.title}>{signedIn ? (user.displayName || 'Google 계정') : label}</strong>
+          <strong style={styles.title}>{signedIn ? (user.displayName || t('account.google')) : label}</strong>
           <span className="google-account-detail" style={styles.detail}>
-            {signedIn ? (user.email || '계정 연결됨') : getPanelDetail(status, error)}
+            {signedIn ? (user.email || t('account.linked')) : getPanelDetail(status, error)}
           </span>
-          {signedIn && isProjectMaster(user) && <span style={styles.masterBadge}>최고관리자</span>}
+          {signedIn && isProjectMaster(user) && <span style={styles.masterBadge}>{t('account.master')}</span>}
         </span>
       </div>
       {signedIn ? (
         <button type="button" className="google-account-action" style={styles.secondaryButton} onClick={onSignOut}>
-          로그아웃
+          {t('account.logout')}
         </button>
       ) : (
         <button type="button" className="google-account-action" style={styles.primaryButton} disabled={disabled} onClick={onSignIn}>
-          {signingIn ? '로그인 중...' : 'Google 로그인'}
+          {signingIn ? t('account.signingIn') : t('account.signIn')}
         </button>
       )}
     </section>
@@ -88,18 +90,18 @@ const GOOGLE_ACCOUNT_ACCESSIBILITY_CSS = `
 `
 
 function getPanelLabel(status, signingIn) {
-  if (signingIn) return 'Google 로그인 중'
-  if (status === 'unconfigured') return 'Google 로그인 설정 필요'
-  if (status === 'checking') return '저장된 로그인 확인 중'
-  if (status === 'error') return '로그인 오류'
-  return '계정 연동 가능'
+  if (signingIn) return t('account.status.signingIn')
+  if (status === 'unconfigured') return t('account.status.unconfigured')
+  if (status === 'checking') return t('account.status.checking')
+  if (status === 'error') return t('account.status.error')
+  return t('account.status.ready')
 }
 
 function getPanelDetail(status, error) {
-  if (status === 'unconfigured') return 'Firebase .env 설정 필요'
-  if (status === 'checking') return '저장된 로그인 확인 중'
-  if (status === 'error') return error || '다시 시도해 주세요'
-  return '진행 정보 클라우드 저장 준비'
+  if (status === 'unconfigured') return t('account.detail.unconfigured')
+  if (status === 'checking') return t('account.detail.checking')
+  if (status === 'error') return error || t('account.detail.error')
+  return t('account.detail.ready')
 }
 
 const styles = {

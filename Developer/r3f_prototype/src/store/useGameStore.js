@@ -2,6 +2,7 @@
 import { subscribeWithSelector } from 'zustand/middleware'
 import { UPGRADE_EFFECTS, applyChibikoAllWeaponBoost, applyUpgradeWithChibikoBoost } from '../lib/upgrades.js'
 import { resetRuntimeRefs, playerPos } from '../lib/refs.js'
+import { t } from '../lib/i18n.js'
 import { getAllLevels, purchase as purchasePassiveStorage, resetAllLevels as resetPassiveStorage } from '../lib/passiveUpgrades.js'
 import {
   applyWeaponPermanentUpgradesToBaseWeapon,
@@ -565,7 +566,7 @@ export const useGameStore = create(
           line,
           reward,
           subjectType: subject.subjectType ?? 'student',
-          subjectName: subject.subjectName ?? '지친학생',
+          subjectName: subject.subjectName ?? t('hud.tiredStudent', null, '지친학생'),
         },
       }
     }),

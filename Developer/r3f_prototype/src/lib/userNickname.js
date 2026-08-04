@@ -1,4 +1,5 @@
 import { getFirebaseProgressRuntimeSnapshot, updateFirebasePlayerProfile } from './firebaseProgress.js'
+import { t } from './i18n.js'
 
 export const STORAGE_KEY = 'school_survivor:userNicknames'
 
@@ -14,10 +15,10 @@ export function validateNickname(value) {
   const nickname = normalizeNickname(value)
 
   if (nickname.length < MIN_NICKNAME_LENGTH) {
-    return { ok: false, nickname, error: '닉네임은 2글자 이상으로 입력해 주세요.' }
+    return { ok: false, nickname, error: t('nickname.tooShort', null, '닉네임은 2글자 이상으로 입력해 주세요.') }
   }
   if (nickname.length > MAX_NICKNAME_LENGTH) {
-    return { ok: false, nickname, error: '닉네임은 12글자 이하로 입력해 주세요.' }
+    return { ok: false, nickname, error: t('nickname.tooLong', null, '닉네임은 12글자 이하로 입력해 주세요.') }
   }
 
   return { ok: true, nickname, error: '' }

@@ -3,21 +3,23 @@
 import { useGameStore } from '../store/useGameStore.js'
 import PassiveUpgradeList from './PassiveUpgradeList.jsx'
 import { schoolPanel, schoolButton, uiPalette, uiType, warningSticker } from '../lib/uiStyle.js'
+import { useT } from '../lib/i18n.js'
 
 export default function AbilityModal({ onClose }) {
+  const t = useT()
   const goldTotal = useGameStore((s) => s.goldTotal)
 
   return (
     <div style={styles.overlay}>
-      <button type="button" aria-label="능력치 닫기 배경" style={styles.scrim} onClick={onClose} />
+      <button type="button" aria-label={t('ability.closeAria')} style={styles.scrim} onClick={onClose} />
       <section role="dialog" aria-modal="true" aria-labelledby="lobby-ability-heading" style={styles.modal}>
         <div style={styles.header}>
           <div>
-            <div style={styles.eyebrow}>생존 강화 신청서</div>
-            <h2 id="lobby-ability-heading" style={styles.title}>내 능력치</h2>
+            <div style={styles.eyebrow}>{t('shop.eyebrow')}</div>
+            <h2 id="lobby-ability-heading" style={styles.title}>{t('ability.title')}</h2>
           </div>
           <div style={styles.coinBadge}>
-            <span style={styles.coinBadgeLabel}>보유 코인</span>
+            <span style={styles.coinBadgeLabel}>{t('common.ownedCoins')}</span>
             <strong style={styles.coinBadgeValue}>{goldTotal}</strong>
           </div>
         </div>
@@ -25,7 +27,7 @@ export default function AbilityModal({ onClose }) {
         <PassiveUpgradeList style={styles.list} />
 
         <button type="button" style={styles.closeBtn} onClick={onClose}>
-          닫기
+          {t('common.close')}
         </button>
       </section>
     </div>

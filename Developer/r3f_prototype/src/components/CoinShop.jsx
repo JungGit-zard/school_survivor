@@ -3,8 +3,10 @@ import { useGameStore } from '../store/useGameStore.js'
 import PassiveUpgradeList from './PassiveUpgradeList.jsx'
 import WeaponPermanentUpgradeList from './WeaponPermanentUpgradeList.jsx'
 import { schoolButton, schoolPanel, uiPalette, uiType, warningSticker } from '../lib/uiStyle.js'
+import { useT } from '../lib/i18n.js'
 
-export default function CoinShop({ onBack, backLabel = '결과로 돌아가기' }) {
+export default function CoinShop({ onBack, backLabel }) {
+  const t = useT()
   const goldTotal = useGameStore((s) => s.goldTotal)
   const [activeTab, setActiveTab] = useState('passive')
 
@@ -12,29 +14,29 @@ export default function CoinShop({ onBack, backLabel = '결과로 돌아가기' 
     <div style={styles.root}>
       <div style={styles.header}>
         <div style={styles.headerCopy}>
-          <div style={styles.eyebrow}>생존 강화 신청서</div>
-          <div style={styles.title}>코인상점</div>
+          <div style={styles.eyebrow}>{t('shop.eyebrow')}</div>
+          <div style={styles.title}>{t('shop.title')}</div>
         </div>
         <div style={styles.coinBadge}>
-          <span style={styles.coinBadgeLabel}>보유 코인</span>
+          <span style={styles.coinBadgeLabel}>{t('common.ownedCoins')}</span>
           <strong style={styles.coinBadgeValue}>{goldTotal}</strong>
         </div>
       </div>
 
-      <div style={styles.tabs} aria-label="코인상점 탭">
+      <div style={styles.tabs} aria-label={t('shop.tabsAria')}>
         <button
           type="button"
           style={activeTab === 'passive' ? styles.tabActive : styles.tabButton}
           onClick={() => setActiveTab('passive')}
         >
-          주인공 강화
+          {t('shop.tabHero')}
         </button>
         <button
           type="button"
           style={activeTab === 'weapon' ? styles.tabActive : styles.tabButton}
           onClick={() => setActiveTab('weapon')}
         >
-          무기 강화
+          {t('shop.tabWeapon')}
         </button>
       </div>
 
@@ -43,7 +45,7 @@ export default function CoinShop({ onBack, backLabel = '결과로 돌아가기' 
         : <WeaponPermanentUpgradeList style={styles.list} />}
 
       <button type="button" style={styles.backButton} onClick={onBack}>
-        {backLabel}
+        {backLabel ?? t('back.toResult')}
       </button>
     </div>
   )

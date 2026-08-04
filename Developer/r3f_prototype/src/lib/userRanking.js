@@ -2,10 +2,11 @@ import { load as loadPlayerRecords } from './playerRecords.js'
 import { getStageConfig } from './stageConfig.js'
 import { compareRankingEntries, getRankingScore, getRankingScorePolicy, SCORE_TYPE } from './rankingScorePolicy.js'
 import { getSavedNickname } from './userNickname.js'
+import { t } from './i18n.js'
 
 export const RANKING_LIMIT = 30
 
-const DEFAULT_PLAYER_NAME = '내 기록'
+const DEFAULT_PLAYER_NAME = () => t('ranking.myRecord', null, '내 기록')
 
 export function createRankingRows(entries = [], limit = RANKING_LIMIT) {
   // policy를 상위에서 한 번만 읽는다 — 엔트리마다 localStorage를 파싱하는 N회 읽기 방지.
@@ -42,7 +43,7 @@ export function createRankingRows(entries = [], limit = RANKING_LIMIT) {
 }
 
 export function buildLocalPlayerRankingEntry(records = loadPlayerRecords(), profile = {}) {
-  const displayName = readDisplayName(getSavedNickname(profile)) || readDisplayName(profile.displayName) || DEFAULT_PLAYER_NAME
+  const displayName = readDisplayName(getSavedNickname(profile)) || readDisplayName(profile.displayName) || DEFAULT_PLAYER_NAME()
   const candidates = [
     buildLocalStageEntry({
       displayName,
@@ -109,7 +110,7 @@ export function formatSurvivalTime(seconds) {
 }
 
 export function formatRankScore(score) {
-  return `${readScore(score)}점`
+  return t('ranking.scoreSuffix', { score: readScore(score) }, `${readScore(score)}점`)
 }
 
 function buildLocalStageEntry({ displayName, stageId, survivalSeconds, clearCount }) {
@@ -144,7 +145,7 @@ function normalizeRankingEntry(entry, policy) {
 
   return {
     uid: readString(entry.uid),
-    displayName: readDisplayName(entry.displayName) || DEFAULT_PLAYER_NAME,
+    displayName: readDisplayName(entry.displayName) || DEFAULT_PLAYER_NAME(),
     score,
     scoreType: SCORE_TYPE,
     survivalSeconds,
