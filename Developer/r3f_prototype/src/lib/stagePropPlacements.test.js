@@ -50,7 +50,7 @@ describe('Firebase runtime stage prop placements', () => {
       rotation: [1, 0.123456, 2],
       scale: 9,
       blocking: false,
-      props: { variant: 'blue', damaged: true, count: 99, ignored: true },
+      props: { variant: 'blue', damaged: true, uniformColor: 0xc23535, count: 99, ignored: true },
     })).toEqual({
       id: 'bench-1',
       type: 'gymBench',
@@ -58,7 +58,7 @@ describe('Firebase runtime stage prop placements', () => {
       rotation: [0, 0.1235, 0],
       scale: 4,
       blocking: false,
-      props: { variant: 'blue', damaged: true, count: 12 },
+      props: { variant: 'blue', damaged: true, uniformColor: 0xc23535, count: 12 },
     })
   })
 

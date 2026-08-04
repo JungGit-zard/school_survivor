@@ -87,6 +87,9 @@ function normalizeProps(props) {
   if (typeof props.damaged === 'boolean') result.damaged = props.damaged
   if (typeof props.knockedOver === 'boolean') result.knockedOver = props.knockedOver
   if (typeof props.open === 'boolean') result.open = props.open
+  if (Number.isInteger(props.uniformColor) && props.uniformColor >= 0 && props.uniformColor <= 0xffffff) {
+    result.uniformColor = props.uniformColor
+  }
   if (Number.isFinite(props.count)) {
     result.count = Math.min(MAX_PROP_COUNT, Math.max(1, Math.round(Number(props.count))))
   }

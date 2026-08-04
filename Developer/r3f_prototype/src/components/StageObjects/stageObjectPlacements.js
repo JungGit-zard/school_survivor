@@ -77,7 +77,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       position: [-3.7, 0, 17.2],
       rotation: [0, 1.42, 0],
       scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideLeft' },
+      props: { variant: 'sideLeft', uniformColor: 0xc23535 },
     },
     {
       id: 'stage1-desk-se-01',

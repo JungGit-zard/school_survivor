@@ -182,6 +182,17 @@ describe('stage object placements', () => {
     }
   })
 
+  it('marks only the Stage 1 class president with a red uniform', () => {
+    const placements = getStageObjectPlacements('stage1')
+    const classPresident = placements.find(({ id }) => id === 'stage1-student-south-01')
+    const otherStudents = placements.filter(({ type, id }) => (
+      type === 'unconsciousStudent' && id !== 'stage1-student-south-01'
+    ))
+
+    expect(classPresident?.props?.uniformColor).toBe(0xc23535)
+    expect(otherStudents.every(({ props }) => props?.uniformColor === undefined)).toBe(true)
+  })
+
   it('keeps mixed Stage 1 clutter close enough to read from the starting classroom view', () => {
     const readableProps = getStageObjectPlacements('stage1').filter(({ type, position: [x, , z] }) => (
       ['classroomChair', 'classroomDesk', 'unconsciousStudent'].includes(type) &&

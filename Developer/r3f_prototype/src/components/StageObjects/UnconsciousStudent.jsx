@@ -61,13 +61,13 @@ function HairBlock({ position, rotation = [0, 0, 0], scale, material, outline })
   return <StudentBox position={position} rotation={rotation} scale={scale} material={material} outline={outline} />
 }
 
-export default function UnconsciousStudent({ variant = 'faceUp', ...props }) {
+export default function UnconsciousStudent({ variant = 'faceUp', uniformColor = 0x3f5fa8, ...props }) {
   const variantConfig = UNCONSCIOUS_STUDENT_VARIANTS[variant] ?? UNCONSCIOUS_STUDENT_VARIANTS.faceUp
   // 색·발광은 어두운 마루 바닥 대비 가독성 기준으로 책정 — 45° 탑다운에서 누운 자세는
   // 화면 점유가 작아, 어두운 남색/회색이면 잔해처럼 보인다 (2026-06-13 인게임 검증).
   const skinMat = getStagePropToonMaterial(0xf2cba3, 0.12)
   const hairMat = getStagePropToonMaterial(0x55402c, 0.06)
-  const uniformMat = getStagePropToonMaterial(0x3f5fa8, 0.12)
+  const uniformMat = getStagePropToonMaterial(uniformColor, 0.12)
   const pantsMat = getStagePropToonMaterial(0x9aa1ad, 0.06)
   const shoeMat = getStagePropToonMaterial(0x2a2a30, 0.02)
   const tieMat = getStagePropToonMaterial(0xc23535, 0.08)
