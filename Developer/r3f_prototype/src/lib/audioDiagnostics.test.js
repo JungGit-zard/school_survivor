@@ -19,12 +19,12 @@ function makeBuffer({ samples = [[0, 0.5, -0.25, 1]], sampleRate = 22050, durati
 }
 
 describe('audio diagnostics catalog', () => {
-  it('derives the exact 75 SFX plus title and gameplay BGM contract from runtime sources', () => {
+  it('derives the exact 75 SFX plus canonical title BGM contract from runtime sources', () => {
     const catalog = getAudioDiagnosticCatalog()
     expect(catalog).toHaveLength(AUDIO_DIAGNOSTIC_EXPECTED_COUNT)
     expect(catalog.filter((entry) => entry.kind === 'sfx')).toHaveLength(AUDIO_DIAGNOSTIC_SFX_COUNT)
-    expect(catalog.map((entry) => entry.logicalId)).toEqual(expect.arrayContaining(['titleBgm', 'gameplayBgm']))
-    expect(validateAudioDiagnosticCatalog(catalog)).toMatchObject({ valid: true, actualCount: 77, sfxCount: 75, bgmCount: 2 })
+    expect(catalog.map((entry) => entry.logicalId)).toEqual(expect.arrayContaining(['titleBgm']))
+    expect(validateAudioDiagnosticCatalog(catalog)).toMatchObject({ valid: true, actualCount: 76, sfxCount: 75, bgmCount: 1 })
   })
 })
 
@@ -69,9 +69,9 @@ describe('runAudioDiagnostics', () => {
     const fetchImpl = vi.fn(async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) }))
     const audioContext = { decodeAudioData: vi.fn(async () => makeBuffer({ samples: [[0, 1.1, -1.2]] })) }
     const result = await runAudioDiagnostics({ catalog: validCatalog, audioContext, fetchImpl })
-    expect(fetchImpl).toHaveBeenCalledTimes(77)
-    expect(audioContext.decodeAudioData).toHaveBeenCalledTimes(77)
-    expect(result).toMatchObject({ status: 'complete', completed: 77, okCount: 77, errorCount: 0 })
+    expect(fetchImpl).toHaveBeenCalledTimes(76)
+    expect(audioContext.decodeAudioData).toHaveBeenCalledTimes(76)
+    expect(result).toMatchObject({ status: 'complete', completed: 76, okCount: 76, errorCount: 0 })
     expect(result.rows[0]).toMatchObject({
       logicalId: validCatalog[0].logicalId,
       status: 'ok',
@@ -93,7 +93,7 @@ describe('runAudioDiagnostics', () => {
       audioContext: { decodeAudioData: vi.fn(async () => makeBuffer()) },
       fetchImpl,
     })
-    expect(result).toMatchObject({ completed: 77, errorCount: 1, okCount: 76, status: 'complete-with-errors' })
+    expect(result).toMatchObject({ completed: 76, errorCount: 1, okCount: 75, status: 'complete-with-errors' })
     expect(result.rows.find((row) => row.logicalId === 'pencilFire')).toMatchObject({ status: 'error', error: 'Fetch failed (404).' })
   })
 })

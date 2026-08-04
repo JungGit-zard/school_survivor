@@ -1518,26 +1518,6 @@
       "source": "Owner-mandated canonical inclusion; this manifest makes no rights or source verification claim.",
       "notes": "출처·권리 근거를 이 매니페스트가 확인했다는 주장은 하지 않는다. 2026-07-30 절차 생성 타이틀 교체는 2026-07-31 사용자 명시 지시로 무효화됐다. 권리·출처·품질·최적화·비평 점수는 이 정본을 교체하거나 제외할 사유가 아니다.",
       "inclusionPolicy": "owner-mandated permanent canonical inclusion in every development run, build, and AAB; do not delete, replace, convert, or redirect playback. Only a new explicit user instruction may change it."
-    },
-    {
-      "logicalId": "gameplayBgm",
-      "category": "bgm",
-      "paths": [
-        {
-          "path": "Developer/r3f_prototype/src/assets/audio/gameplay_bgm.wav",
-          "bytes": 352844,
-          "sha256": "1bde953a4fac3ee8058b6d20f725fc857e29e7a2c1e503e50ab8b9e08ab6d8d8"
-        }
-      ],
-      "provenanceType": "project-generated-procedural",
-      "licenseEvidence": "project-generated-procedural-no-external-samples",
-      "source": "scripts/generate-project-bgm.mjs (deterministic Node built-in PCM synthesis; no external samples or recorded source)",
-      "notes": "8s 22050Hz mono 16-bit WAV loop; source values are PCM measurements, not a perceptual loudness claim.",
-      "sampleRate": 22050,
-      "channels": 1,
-      "durationSeconds": 8,
-      "pcmPeak": 0.31131931516464734,
-      "pcmRms": 0.12539166866256554
     }
   ]
 }

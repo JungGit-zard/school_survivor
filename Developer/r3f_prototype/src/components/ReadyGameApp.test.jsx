@@ -9,7 +9,6 @@ vi.mock('./TitleScreen.jsx', () => ({ default: ({ onEnterLobby }) => <button onC
 vi.mock('./Lobby.jsx', () => ({ default: ({ devAllStagesUnlocked }) => <output data-testid="stage-bypass">{String(devAllStagesUnlocked)}</output> }))
 vi.mock('./SfxLayer.jsx', () => ({ default: () => null }))
 vi.mock('./VirtualJoystick.jsx', () => ({ default: () => null }))
-vi.mock('./GameplayBgm.jsx', () => ({ default: () => null }))
 vi.mock('./gameCanvasLoader.js', () => ({ loadGameCanvas: async () => ({ default: () => null }) }))
 vi.mock('./E2ERuntimePerformanceDiagnostics.jsx', () => ({ default: () => null }))
 vi.mock('../lib/e2eAuth.js', () => ({ isE2EPerformanceDiagnostics: () => false }))

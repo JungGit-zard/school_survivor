@@ -31,7 +31,7 @@ function runFixture(name, mutate) {
 }
 
 describe('audio manifest verifier', () => {
-  it('accepts a complete exact-path fixture with canonical title and project-generated gameplay BGM provenance', () => {
+  it('accepts a complete exact-path fixture with canonical title BGM provenance', () => {
     const result = runFixture('valid', () => {})
 
     expect(result.status).toBe(0)
@@ -51,22 +51,14 @@ describe('audio manifest verifier', () => {
 
   it.each(['unverified', 'unknown', 'pending'])('rejects non-approved license evidence: %s', (licenseEvidence) => {
     const result = runFixture(`license-${licenseEvidence}`, (manifest) => {
-      manifest.assets.find((asset) => asset.logicalId === 'gameplayBgm').licenseEvidence = licenseEvidence
+      manifest.assets.find((asset) => asset.logicalId === 'pencilFire').licenseEvidence = licenseEvidence
     })
 
     expect(result.status).not.toBe(0)
-    expect(result.stderr).toContain('license pending/unapproved: gameplayBgm')
+    expect(result.stderr).toContain('license pending/unapproved: pencilFire')
   })
 
   // PCM 계약은 절차 생성 gameplay BGM에만 적용한다. 타이틀 곡은 owner-mandated 정본이라 대상이 아니다.
-  it('rejects a generated BGM when its deterministic PCM measurement is missing', () => {
-    const result = runFixture('missing-bgm-measurement', (manifest) => {
-      delete manifest.assets.find((asset) => asset.logicalId === 'gameplayBgm').pcmRms
-    })
-    expect(result.status).not.toBe(0)
-    expect(result.stderr).toContain('missing generated BGM measurement: gameplayBgm.pcmRms')
-  })
-
   it('keeps the owner-mandated title track out of the generated PCM contract', () => {
     const result = runFixture('owner-title-track', () => {})
     expect(result.status).toBe(0)

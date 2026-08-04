@@ -1,17 +1,15 @@
 import { SOUND_MAP } from './sfxRegistry.js'
 import titleBgmUrl from '../assets/audio/title_bgm.m4a'
-import gameplayBgmUrl from '../assets/audio/gameplay_bgm.wav'
 
 export const AUDIO_DIAGNOSTIC_SFX_COUNT = 75
-export const AUDIO_DIAGNOSTIC_EXPECTED_COUNT = 77
+export const AUDIO_DIAGNOSTIC_EXPECTED_COUNT = 76
 
-// This is intentionally derived from the runtime SFX authority plus the two
-// runtime BGM imports. It is not a second audio manifest.
+// This is intentionally derived from the runtime SFX authority plus the
+// canonical title BGM import. It is not a second audio manifest.
 export function getAudioDiagnosticCatalog() {
   return [
     ...Object.entries(SOUND_MAP).map(([logicalId, url]) => ({ logicalId, url, kind: 'sfx' })),
     { logicalId: 'titleBgm', url: titleBgmUrl, kind: 'bgm' },
-    { logicalId: 'gameplayBgm', url: gameplayBgmUrl, kind: 'bgm' },
   ]
 }
 
@@ -23,10 +21,9 @@ export function validateAudioDiagnosticCatalog(catalog = getAudioDiagnosticCatal
   return {
     valid: catalog.length === AUDIO_DIAGNOSTIC_EXPECTED_COUNT
       && sfxEntries.length === AUDIO_DIAGNOSTIC_SFX_COUNT
-      && bgmEntries.length === 2
+      && bgmEntries.length === 1
       && uniqueIds.size === catalog.length
-      && ids.includes('titleBgm')
-      && ids.includes('gameplayBgm'),
+      && ids.includes('titleBgm'),
     expectedCount: AUDIO_DIAGNOSTIC_EXPECTED_COUNT,
     actualCount: catalog.length,
     sfxCount: sfxEntries.length,

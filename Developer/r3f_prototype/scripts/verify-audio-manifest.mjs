@@ -12,7 +12,6 @@ const manifestPath = manifestArgumentIndex >= 0 && process.argv[manifestArgument
   : resolve(workspaceRoot, 'Developer/agent_room/audio_asset_provenance_manifest_2026-07-30.json')
 const bgmPathsByLogicalId = new Map([
   ['titleBgm', ['Developer/r3f_prototype/src/assets/audio/title_bgm.m4a']],
-  ['gameplayBgm', ['Developer/r3f_prototype/src/assets/audio/gameplay_bgm.wav']],
 ])
 const canonicalTitleBgm = {
   path: 'Developer/r3f_prototype/src/assets/audio/title_bgm.m4a',
@@ -100,15 +99,6 @@ if (!existsSync(manifestPath)) {
             fail('canonical title BGM metadata mismatch')
           }
         }
-        if (asset.logicalId === 'gameplayBgm') {
-          for (const field of ['sampleRate', 'channels', 'durationSeconds', 'pcmPeak', 'pcmRms']) {
-            if (!Number.isFinite(asset[field]) || asset[field] <= 0) fail(`missing generated BGM measurement: ${asset.logicalId}.${field}`)
-          }
-          if (asset.sampleRate !== 22050 || asset.channels !== 1 || asset.durationSeconds !== 8) {
-            fail(`unexpected generated BGM format: ${asset.logicalId}`)
-          }
-          if (asset.pcmPeak >= 0.5 || asset.pcmRms >= asset.pcmPeak) fail(`invalid generated BGM PCM range: ${asset.logicalId}`)
-        }
         for (const entry of asset.paths) {
           if (!entry?.path || !Number.isInteger(entry.bytes) || !/^[a-f0-9]{64}$/.test(entry.sha256 ?? '')) {
             fail(`invalid file metadata: ${asset.logicalId}`)
@@ -138,5 +128,5 @@ if (failures.length) {
   for (const message of failures) console.error(`audio manifest: ${message}`)
   process.exitCode = 1
 } else {
-  console.log('audio manifest verified: 75 SFX IDs, 150 fallback files, canonical title BGM, 1 project-generated gameplay BGM loop')
+  console.log('audio manifest verified: 75 SFX IDs, 150 fallback files, canonical title BGM')
 }

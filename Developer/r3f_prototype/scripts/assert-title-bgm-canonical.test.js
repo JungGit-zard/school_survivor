@@ -25,7 +25,6 @@ async function createFixture() {
     'Developer/r3f_prototype/src/assets/audio/title_bgm.m4a',
     'Developer/r3f_prototype/src/components/TitleScreen.jsx',
     'Developer/r3f_prototype/src/lib/audioDiagnostics.js',
-    'Developer/r3f_prototype/scripts/generate-project-bgm.mjs',
     'Developer/agent_room/audio_asset_provenance_manifest_2026-07-30.json',
   ]) copy(relativePath)
   return root
@@ -50,7 +49,6 @@ describe('canonical title BGM gate', () => {
     }, /manifest metadata mismatch/],
     ['missing source', (root) => rmSync(resolve(root, 'Developer/r3f_prototype/src/assets/audio/title_bgm.m4a')), /missing:/],
     ['changed import', (root) => writeFileSync(resolve(root, 'Developer/r3f_prototype/src/lib/audioDiagnostics.js'), "import titleBgmUrl from '../assets/audio/title_bgm.wav'\n"), /canonical m4a import missing/],
-    ['generator reference', (root) => writeFileSync(resolve(root, 'Developer/r3f_prototype/scripts/generate-project-bgm.mjs'), 'const titleBgm = true\n'), /title generation reference forbidden/],
   ])('rejects %s', async (_name, mutate, expected) => {
     const root = await createFixture()
     mutate(root)

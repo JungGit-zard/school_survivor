@@ -62,16 +62,6 @@ function verifyManifest() {
   }
 }
 
-function verifyGenerator() {
-  const relativePath = 'Developer/r3f_prototype/scripts/generate-project-bgm.mjs'
-  const path = resolve(repositoryRoot, relativePath)
-  if (!existsSync(path)) return fail(`missing generator: ${relativePath}`)
-  const source = readFileSync(path, 'utf8')
-  for (const forbidden of ['title_bgm.wav', 'title_bgm.m4a', 'titleBgm']) {
-    if (source.includes(forbidden)) fail(`title generation reference forbidden: ${forbidden}`)
-  }
-}
-
 function listFiles(directory) {
   if (!existsSync(directory)) return []
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -96,7 +86,6 @@ if (artifactScope && artifactScope !== 'dist') {
   verifyExactFile(TITLE_PATH, TITLE_BYTES, TITLE_SHA256)
   verifyExactImport('Developer/r3f_prototype/src/components/TitleScreen.jsx')
   verifyExactImport('Developer/r3f_prototype/src/lib/audioDiagnostics.js')
-  verifyGenerator()
   verifyManifest()
   if (artifactScope === 'dist') verifyDist()
 }

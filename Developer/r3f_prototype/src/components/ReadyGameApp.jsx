@@ -3,7 +3,6 @@ import TitleScreen from './TitleScreen.jsx'
 import Lobby from './Lobby.jsx'
 import VirtualJoystick from './VirtualJoystick.jsx'
 import SfxLayer from './SfxLayer.jsx'
-import GameplayBgm from './GameplayBgm.jsx'
 import { useGameStore } from '../store/useGameStore.js'
 import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { initPlaytestLogger } from '../lib/playtestLogger.js'
@@ -42,7 +41,6 @@ export default function ReadyGameApp({
   const [rankingStageId, setRankingStageId] = useState(null)
   const [mobileJoystickEnabled, setMobileJoystickEnabled] = useState(false)
   const [devCheatsVisible, setDevCheatsVisible] = useState(false)
-  const [gameStartedByUser, setGameStartedByUser] = useState(false)
   const [devAllStagesUnlocked, setDevAllStagesUnlocked] = useState(false)
   const phoneFrameRef = useRef(null)
   const gameKey = useGameStore((s) => s.gameKey)
@@ -101,7 +99,6 @@ export default function ReadyGameApp({
     if (!isFirebaseProgressHydrated(authUser)) return
     resetGame(stageId)
     if (stageId === 'stage1') useGameStore.getState().startStage1Intro()
-    setGameStartedByUser(true)
     setScreen('game')
   }
 
@@ -164,7 +161,6 @@ export default function ReadyGameApp({
 
         {screen === 'game' && (
           <>
-            <GameplayBgm key={gameKey} phase={phase} userStarted={gameStartedByUser} />
             <Suspense fallback={<ScreenLoading label={t('loading.game')} />}>
               <GameCanvas gameKey={gameKey} phase={phase} />
               <HUD
