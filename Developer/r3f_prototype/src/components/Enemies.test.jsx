@@ -20,6 +20,8 @@ import {
   rawWaveSizeForStage,
   waveSizeForStageAtTime,
   stageExpectedBaseJarmobHp,
+  stageExpectedJarmobHp,
+  stageDurationWeightedJarmobHp,
   STAGE_JARMOB_HP_MULTIPLIER,
   STAGE_DENSITY_MULTIPLIER,
   getWaveSpawnSeconds,
@@ -104,11 +106,13 @@ describe('late zombie spawn relief', () => {
     expect(WAVE_PHASES.find((phase) => phase.start === 224).target).toBe(17)
   })
 
-  it('reduces all stage 2 wave targets from 90 seconds onward to about two thirds', () => {
+  // 2026-08-06 톱니 완화: 90~96 구간은 더 이상 '완화 딥'이 아니다. 72~90과 동일 target으로 맞춰
+  // 정규화 격자 표본(t=90)이 6초짜리 phase가 아니라 72~96 전체를 대표하게 했다.
+  it('keeps stage 2 targets flat across the 72-96 ranged-introduction window', () => {
     const phases = getWavePhasesForStage('stage2')
 
     expect(phases.find((phase) => phase.start === 72).target).toBe(30)
-    expect(phases.find((phase) => phase.start === 90).target).toBe(20)
+    expect(phases.find((phase) => phase.start === 90).target).toBe(30)
     expect(phases.find((phase) => phase.start === 96).target).toBe(19)
     expect(phases.find((phase) => phase.start === 224).target).toBe(25)
   })
@@ -362,9 +366,8 @@ describe('ascending stage HP curve (+10% per stage from stage1)', () => {
   })
 })
 
-describe('jarmob expected total HP rises exactly +10% per stage', () => {
-  const STAGES = ['stage1', 'stage2', 'stage3', 'stage4']
-  // 배율 적용 후 잡몹 기대 총 HP(연속 모델) = base × HP배율 × 밀도배율. stage1은 배율 1.
+describe('jarmob expected total HP follows the per-stage target factor table', () => {
+  // 배율 적용 후 잡몹 기대 총 HP = base × HP배율 × 밀도배율. stage1은 배율 1.
   const totalFor = (stageId) => {
     const base = stageExpectedBaseJarmobHp(stageId)
     const hpMult = STAGE_JARMOB_HP_MULTIPLIER[stageId] ?? 1
@@ -381,12 +384,44 @@ describe('jarmob expected total HP rises exactly +10% per stage', () => {
     expect(anchor).toBeLessThanOrEqual(4650)
   })
 
-  it('holds each stage-to-stage jarmob total-HP ratio at 1.10 (+-1%)', () => {
-    for (let i = 1; i < STAGES.length; i++) {
-      const ratio = totalFor(STAGES[i]) / totalFor(STAGES[i - 1])
-      expect(ratio).toBeGreaterThanOrEqual(1.089)  // 1.10 - 1%
-      expect(ratio).toBeLessThanOrEqual(1.111)     // 1.10 + 1%
+  // 총량은 STAGE_JARMOB_TOTAL_HP_FACTOR가 단독 결정한다(블렌드 자기정규화).
+  // stage2는 2026-08-06 난이도 +10% 조정으로 1.10 → 1.21(= stage3와 동률).
+  it('pins each stage total to anchor x its target factor', () => {
+    const anchor = stageExpectedBaseJarmobHp('stage1')
+    const expected = { stage1: 1, stage2: 1.21, stage3: 1.21, stage4: 1.331 }
+    for (const [stageId, factor] of Object.entries(expected)) {
+      expect(totalFor(stageId) / anchor).toBeCloseTo(factor, 6)
+      expect(stageExpectedJarmobHp(stageId) / anchor).toBeCloseTo(factor, 6)
     }
+  })
+
+  // 총량 정책(factor)의 착지점. 주의: 이 값은 앵커×factor와 항등이라 factor 회귀만 잡고
+  // 타임라인 회귀는 못 잡는다 — 타임라인 방어는 아래 지속시간 가중 테스트가 맡는다.
+  it('lands stage2 expected jarmob total HP on the +10% difficulty target (5420 +-3%)', () => {
+    const stage2Total = stageExpectedJarmobHp('stage2')
+    expect(stage2Total).toBeGreaterThanOrEqual(5420 * 0.97)
+    expect(stage2Total).toBeLessThanOrEqual(5420 * 1.03)
+  })
+
+  // 타임라인 회귀 방어. 30초 격자는 표본 8개라 stage2의 72~90·96~120·192~208·224~240(총 56초)을
+  // 아예 못 보고, 격자 총량은 factor에 고정된 항등식이라 target/weights를 반토막 내도 변하지 않는다.
+  // 지속시간 가중 부하는 모든 phase를 길이만큼 반영하므로 그런 회귀를 잡아낸다.
+  // 기준값 4497.8 = 2026-08-06 재배분 직전 stage2 지속시간 가중 부하.
+  it('holds the stage2 duration-weighted jarmob load about 10% above the pre-rebalance baseline', () => {
+    const BEFORE_REBALANCE = 4497.8
+    const ratio = stageDurationWeightedJarmobHp('stage2') / BEFORE_REBALANCE
+    expect(ratio).toBeGreaterThanOrEqual(1.085)
+    expect(ratio).toBeLessThanOrEqual(1.120)
+  })
+
+  // 보스 창(rollBossSpawnSec = 180 +- 10 -> 170~190s)은 168~192 phase가 통째로 덮는다.
+  // 이 구간은 bossPressure로 E04 발사까지 막히므로 잡몹 부하를 깎으면 보스전이 가장 헐거워진다.
+  it('never lets the stage2 boss window phase fall below its pre-rebalance load', () => {
+    const bossPhase = getWavePhasesForStage('stage2').find((phase) => phase.start === 168)
+    const perSpawn = Object.entries(bossPhase.weights)
+      .reduce((sum, [type, weight]) => sum + weight * ENEMY_STATS[type].hp, 0)
+    // 재배분 직전: target 29(웨이브 15마리) x 108.92 = 1633.8
+    expect(waveSizeForPhase(bossPhase) * perSpawn).toBeGreaterThanOrEqual(1633.79)
   })
 
   it('uses equal sqrt(c) multipliers for HP and density (blend splits the burden in half)', () => {

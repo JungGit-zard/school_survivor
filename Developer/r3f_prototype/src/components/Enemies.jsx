@@ -567,19 +567,61 @@ export function stageExpectedBaseJarmobHp(stageId) {
   return total
 }
 
-// 블렌드 배율(모듈 로드시 1회 파생): c = 앵커×1.10^i / 기대총량, √c를 HP·밀도에 동일 적용.
+// 스테이지별 잡몹 기대 총 HP 목표(앵커=stage1 총량의 배수). 이 표가 총량의 유일한 결정자다.
+// 블렌드가 c = 목표/기대총량으로 자기정규화하므로, 타임라인 target·weights를 아무리 흔들어도
+// 총량은 이 표의 값에 고정된다 — 타임라인은 "총량 배분(곡선 모양)"만 바꾼다.
+// 기본 곡선은 스테이지당 ×1.10(1.10^i). stage2만 난이도 +10% 조정(2026-08-06)으로 한 계단 위인
+// 1.10^2를 쓴다. 그 결과 stage2와 stage3의 "웨이브 잡몹" 기대 총 HP는 같아지지만 실제 격차는 유지된다:
+// stage2는 런타임 버스트가 보스만 발화하는 반면(burstEvents.js) stage3는 전 버스트가 발화해
+// RZL 런좀비 크루 4회(~2,068HP)와 조기 도입/형태 버스트(~3,164HP)가 그대로 얹히기 때문이다.
+// (스3 보스는 체육교사 B03 단일 — 더블 보스 B01+B02는 2026-07-21 폐기됐다.)
+const STAGE_JARMOB_TOTAL_HP_FACTOR = {
+  stage1: 1,                  // 앵커
+  stage2: Math.pow(1.10, 2),  // 1.21 — 난이도 +10% 조정(이전 1.10)
+  stage3: Math.pow(1.10, 2),  // 1.21
+  stage4: Math.pow(1.10, 3),  // 1.331
+}
+
+// 블렌드 배율(모듈 로드시 1회 파생): c = 앵커×목표배수 / 기대총량, √c를 HP·밀도에 동일 적용.
 // stage1은 앵커라 배율 없음(undefined → 미적용). rawWaveSizeForStage만 쓰므로 waveSizeForStageAtTime과 순환하지 않는다.
 const _STAGE_BLEND_IDS = ['stage1', 'stage2', 'stage3', 'stage4']
 const _jarmobHpAnchor = stageExpectedBaseJarmobHp('stage1')
 export const STAGE_JARMOB_HP_MULTIPLIER = {}
 export const STAGE_DENSITY_MULTIPLIER = {}
-_STAGE_BLEND_IDS.forEach((stageId, i) => {
+_STAGE_BLEND_IDS.forEach((stageId) => {
   if (stageId === 'stage1') return  // 앵커: 배율 없음
-  const c = (_jarmobHpAnchor * Math.pow(1.10, i)) / stageExpectedBaseJarmobHp(stageId)
+  // 표에 없는 stageId는 NaN이 조용히 전파되므로 앵커 배수 1로 막는다(구 인덱스 방식은 항상 수치를 냈다).
+  const factor = STAGE_JARMOB_TOTAL_HP_FACTOR[stageId] ?? 1
+  const c = (_jarmobHpAnchor * factor) / stageExpectedBaseJarmobHp(stageId)
   const m = Math.sqrt(c)
   STAGE_JARMOB_HP_MULTIPLIER[stageId] = m
   STAGE_DENSITY_MULTIPLIER[stageId] = m
 })
+
+// 잡몹 기대 총 HP(배율 적용 후) = base × HP배율 × 밀도배율 = 앵커 × 목표배수. 테스트/밸런스 분석용.
+// 주의: 이 값은 정의상 앵커×목표배수와 항등이라 타임라인 회귀를 못 잡는다.
+// 타임라인 회귀 방어는 아래 stageDurationWeightedJarmobHp를 써라.
+export function stageExpectedJarmobHp(stageId) {
+  const m = STAGE_JARMOB_HP_MULTIPLIER[stageId] ?? 1
+  return stageExpectedBaseJarmobHp(stageId) * m * m
+}
+
+// 지속시간 가중 잡몹 부하 = Σ(phase 길이 × 웨이브크기 × 1스폰 기대HP / 평균 웨이브 간격) × 배율.
+// stageExpectedBaseJarmobHp의 30초 격자는 표본 8개라 72~90·96~120·192~208·224~240(총 56초)을
+// 아예 못 본다. 이 함수는 모든 phase를 길이만큼 반영하므로 실런타임 전달량에 훨씬 가깝고,
+// 격자에 안 걸리는 구간의 target/weights 회귀도 잡아낸다.
+// 오프닝 프론트로드(t=0/30 ×3)는 특정 시점 1회성이라 구간 평균 부하에서는 제외한다.
+const NON_FRONTLOAD_WAVE_TIME = 1
+export function stageDurationWeightedJarmobHp(stageId) {
+  const phases = getDefaultWavePhases(stageId)
+  const m = STAGE_JARMOB_HP_MULTIPLIER[stageId] ?? 1
+  let total = 0
+  for (const phase of phases) {
+    const perWave = rawWaveSizeForStage(phase, stageId, NON_FRONTLOAD_WAVE_TIME) * jarmobHpPerSpawn(phase)
+    total += (phase.end - phase.start) * (perWave / WAVE_INTERVAL_SEC)
+  }
+  return total * m * m
+}
 
 // 스테이지 상승 HP 곡선 — 보스·런크루·도지 등 비잡몹 전용(2026-07-22 개정): 이전×1.10(+10%).
 // stage1 ×1.0(오버라이드 없음) / stage2 ×1.10 / stage3 ×1.21 / stage4 ×1.331.
@@ -1257,7 +1299,7 @@ export default function Enemies() {
 
     // 버스트 스케줄 발화.
     // - stage1/stage2: 보스 등장만(getRuntimeBurstEventsForStage가 보스만 반환) — 거동 불변.
-    // - stage3: 더블 보스(스태거) + 형태(formation) 포위 + 조기 등장 그룹을 모두 발화한다.
+    // - stage3/stage4: 단일 보스(스3 B03·스4 B04) + 형태(formation) 포위 + 조기 등장 그룹을 모두 발화한다.
     // 좀비 물량 본류는 20~40초 랜덤 간격 웨이브 스케줄러가 전담한다.
     const burstEvents = stageRuntime.burstEvents
     for (let burstIndex = 0; burstIndex < burstEvents.length; burstIndex += 1) {
