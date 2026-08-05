@@ -137,7 +137,7 @@ function pickDeterministicLine(lines, placementId) {
 }
 
 export function getInvestigationDialogue(stageId, type, placementId) {
-  if (type === 'unconsciousStudent') {
+  if (type === 'unconsciousStudent' || type === 'classPresidentStudent') {
     const korean = STUDENT_LINES[stageId] ?? STUDENT_LINES.stage1
     const lines = tList(`dialogue.student.${STUDENT_LINES[stageId] ? stageId : 'stage1'}`, korean)
     return {

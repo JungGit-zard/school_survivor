@@ -6,7 +6,7 @@ describe('getInvestigationDialogue', () => {
   it('모든 배치 팔레트 타입에 짧고 코믹한 소녀체 1인칭 조사문을 제공한다', () => {
     let literalFlusterCount = 0
 
-    for (const { type } of STAGE_PROP_PALETTE) {
+    for (const { type } of STAGE_PROP_PALETTE.filter(({ type }) => type !== 'classPresidentStudent')) {
       const dialogue = getInvestigationDialogue('stage2', type, `test-${type}`)
 
       expect(dialogue?.subjectName.length).toBeGreaterThan(0)
@@ -46,5 +46,10 @@ describe('getInvestigationDialogue', () => {
       expect(dialogue.line).toMatch(/했어|같아|이야|이네|돼|겠어|줬어|따라오네|처음이야|모르겠어/)
       expect(dialogue.line).not.toMatch(/했다|하였다/)
     }
+  })
+
+  it('treats the dedicated class-president model exactly like an unconscious student', () => {
+    expect(getInvestigationDialogue('stage1', 'classPresidentStudent', 'stage1-student-south-01'))
+      .toEqual(getInvestigationDialogue('stage1', 'unconsciousStudent', 'stage1-student-south-01'))
   })
 })

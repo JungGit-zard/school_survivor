@@ -20,6 +20,7 @@ export const TYPE_COLORS = {
   classroomDesk: '#c79a52',
   classroomChair: '#8f6cc0',
   unconsciousStudent: '#5fb0d8',
+  classPresidentStudent: '#c23535',
   corridorLockerBank: '#6fb98a',
   corridorJanitorCart: '#c76f6f',
   corridorLostFoundBoard: '#b8a24a',

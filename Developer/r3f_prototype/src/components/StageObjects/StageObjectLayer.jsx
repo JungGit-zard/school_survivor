@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import ClassroomDesk from './ClassroomDesk.jsx'
 import ClassroomChair from './ClassroomChair.jsx'
 import UnconsciousStudent from './UnconsciousStudent.jsx'
+import ClassPresidentStudent from './ClassPresidentStudent.jsx'
 import { CorridorJanitorCart, CorridorLockerBank, CorridorLostFoundBoard } from './CorridorProps.jsx'
 import {
   BallCart,
@@ -33,6 +34,7 @@ const STAGE_OBJECT_COMPONENTS = {
   classroomChair: ClassroomChair,
   classroomDesk: ClassroomDesk,
   unconsciousStudent: UnconsciousStudent,
+  classPresidentStudent: ClassPresidentStudent,
   corridorLockerBank: CorridorLockerBank,
   corridorJanitorCart: CorridorJanitorCart,
   corridorLostFoundBoard: CorridorLostFoundBoard,

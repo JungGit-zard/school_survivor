@@ -8,6 +8,7 @@ export const STUDENT_DIALOGUE_RADIUS = 0.5
 // 조사 물체는 "닿으면" 성립 — 원형 반경이 아니라 콜라이더 박스 표면까지의 거리로 판정한다.
 // margin = 플레이어 half(콜라이더 0.136) + 프레임 스텝 여유. 표면에서 이 값 안(=사실상 접촉)에서만 발동.
 export const OBJECT_CONTACT_MARGIN = 0.25
+const STUDENT_TYPES = new Set(['unconsciousStudent', 'classPresidentStudent'])
 
 function getFallbackFootprint(item) {
   const scale = Array.isArray(item.scale) ? item.scale : [item.scale ?? 1, item.scale ?? 1, item.scale ?? 1]
@@ -20,7 +21,7 @@ function getFallbackFootprint(item) {
 // (근접 판정에 필요한 최소 정보만 — variant/rotation은 무관.)
 export function getUnconsciousStudents(stageId) {
   return getStageObjectPlacements(stageId)
-    .filter((item) => item.type === 'unconsciousStudent')
+    .filter((item) => STUDENT_TYPES.has(item.type))
     .map((item) => ({ id: item.id, position: item.position }))
 }
 
@@ -31,7 +32,7 @@ export function getInvestigationTargets(stageId) {
       const dialogue = getInvestigationDialogue(stageId, item.type, item.id)
       if (!dialogue) return []
 
-      if (item.type === 'unconsciousStudent') {
+      if (STUDENT_TYPES.has(item.type)) {
         return [{
           id: item.id,
           position: item.position,

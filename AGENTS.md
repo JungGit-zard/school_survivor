@@ -71,25 +71,23 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 
 <!-- boot-policy: immediate-execution smallest-coherent-change no-subagent-by-default minimal-verification concise-final-report -->
 
-- 이 규칙은 매 세션 시작(`startup`, `resume`, `compact`)부터 모든 작업에 적용하며, 기존의 의무적 Advisor/Worker·서브에이전트 라우팅 규칙보다 우선한다.
+- 이 규칙은 매 세션 시작(`startup`, `resume`, `compact`)부터 모든 작업에 적용한다. 단, Escape! zombie school 관련 모든 비어 있지 않은 작업은 `project_develop_policy.md`와 `Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md`의 Kanban/서브에이전트 의무 라우팅 규칙이 우선한다.
 - 사용자의 요청을 권위 있는 범위로 삼고 즉시 실행한다. 사용자가 계획이나 승인을 요구하지 않는 한 시작 전에 계획을 제시하거나 승인을 요청하지 않는다.
 - 요청을 완전히 충족하는 가장 작은 일관된 변경만 수행하고, 필요하지 않은 아키텍처·동작·인터페이스와 관련 없는 코드는 보존한다.
 - 선택적 개선, 미래 요구 추측, 대규모 정리·리팩터링, 전체 파일 재작성은 요청 달성에 반드시 필요하지 않으면 하지 않는다.
-- 서브에이전트, 반복 리뷰, 광범위한 감사·문서·테스트, E2E·벤치마크·마이그레이션·인프라는 사용자가 요구하거나 검증에 엄격히 필요한 경우에만 사용한다.
+- 서브에이전트, 반복 리뷰, 광범위한 감사·문서·테스트, E2E·벤치마크·마이그레이션·인프라는 사용자가 요구하거나 검증에 엄격히 필요한 경우에만 사용한다. 단, Escape! zombie school 관련 작업은 사용자가 모든 작업을 Kanban으로 진행하라고 지시했으므로 Kanban 라우팅을 기본 실행 경로로 사용한다.
 - 관련 코드 검사, 내부 판단, 비례적인 검증과 일반적인 기술 결정은 별도 승인 없이 수행한다.
 - 질문은 올바른 구현이 불가능하거나 파괴적 데이터 손실 위험이 있거나 합리적 기본값이 없는 중대한 선택에만 한다. 그 외에는 가장 보수적인 합리적 해석으로 진행한다.
 - 관련 없는 결함은 자동 수정하지 않으며, 요청 결과에 실제 영향을 줄 때만 최종 보고에 짧게 언급한다.
 - 요청 결과가 구현되고 비례적인 최소 검증이 끝나면 즉시 멈춘다.
 - 최종 답변은 변경 내용, 검증 결과, 실제 제한·차단 사항만 간결하게 보고하며 새 계획이나 로드맵을 덧붙이지 않는다.
 
-## Mandatory Spark Routing
+## Mandatory Simple-Task Routing (Sonnet 5)
 
-<!-- model-routing: spark-only-repetitive no-terra-sol-fallback all-sessions -->
+<!-- model-routing: sonnet5-only-repetitive fable5-plans-only opus5-worker all-sessions -->
 
-- 모든 세션에서 단순·반복·기계적·사무적·대량 작업은 예외 없이 `gpt-5.3-codex-spark`만 사용한다.
-- Spark 대상 작업을 Sol, Terra 또는 다른 모델로 대체하지 않는다.
-- 내부 서브에이전트 호출 도구 하나가 Spark를 노출하지 않으면 `gpt-5.3-codex-spark`를 명시적으로 지원하는 Codex 실행 경로를 사용한다.
-- 특정 호출 경로의 제한을 Codex Spark 전체 미지원·서비스 종료로 확대해 보고하지 않는다. 제한이 있으면 정확한 도구와 경로만 명시한다.
+- 모든 세션에서 단순·반복·기계적·사무적·대량 작업은 예외 없이 Agent `model="sonnet"`(Sonnet 5)만 사용한다.
+- 구현·수정·테스트·검수는 Agent `model="opus"`(Opus 5) Worker가 맡는다. Fable 5(메인)는 계획만 하고 직접 구현하지 않는다.
 - 이 규칙은 `startup`, `resume`, `compact`마다 적용하며 단순·반복 작업에 관한 기존 Advisor/Worker 규칙보다 우선한다.
 
 ## Game Development Rules
@@ -164,11 +162,13 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 ## Mandatory Subagent Routing for Escape! zombie school
 
 - Every non-empty Escape! zombie school request must run the routing check in `Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md` before final completion.
+- Every non-empty Escape! zombie school request must be routed through the `escape-zombie-school` Kanban board. Hana/default assistant acts as Advisor/orchestrator only: classify scope, create or reference the relevant Kanban cards, verify worker output, and report. Actual Worker execution must use the registered agent-room Hermes/Kanban profiles.
 - There is no silent direct-work bypass: even tiny edits must at least classify specialist relevance before completion.
 - Use only real Hermes/Kanban profiles: `threemini`, `uimini`, `levelmini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`, `corpopsmini`.
 - Sound/audio/voice work always requires `soundmini` involvement.
 - Corporate operations, tax/VAT, settlement exports, revenue evidence, or accountant-handoff work always requires separately managed `corpopsmini` involvement.
 - Accepted evidence: Kanban card, `Developer/agent_room/` artifact, or `.claude/agents/<profile>.md` review trail.
+- Preferred evidence after this update: Kanban card(s) on board `escape-zombie-school`; project artifacts or Claude mirror trails are secondary evidence for review/recordkeeping, not a replacement for Kanban routing unless Kanban is blocked.
 
 ## 타이틀 전면 정본 잠금
 

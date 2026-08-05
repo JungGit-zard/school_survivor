@@ -10,6 +10,7 @@ import {
   BasketballCluster,
   BasketballHoop,
   ClassroomChair,
+  ClassPresidentStudent,
   ClassroomDesk,
   CorridorJanitorCart,
   CorridorLockerBank,
@@ -546,6 +547,9 @@ function RenderPreviewItem({ item }) {
   }
   if (item.previewKind === 'stageObject' && item.objectType === 'student') {
     return <UnconsciousStudent variant={item.variant} />
+  }
+  if (item.previewKind === 'stageObject' && item.objectType === 'classPresidentStudent') {
+    return <ClassPresidentStudent variant={item.variant} />
   }
   if (item.previewKind === 'stageLock') {
     return <StageLockModel />

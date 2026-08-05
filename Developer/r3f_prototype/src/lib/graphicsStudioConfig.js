@@ -240,6 +240,16 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     applyTargets: ['components/StageObjects/UnconsciousStudent.jsx', 'components/StageObjects/propRendering.js', 'lib/toon.js'],
   },
   {
+    id: 'stage-object-class-president-student',
+    category: 'stageObject',
+    label: 'Class President Student',
+    source: 'components/StageObjects/ClassPresidentStudent.jsx',
+    previewKind: 'stageObject',
+    objectType: 'classPresidentStudent',
+    variant: 'sideLeft',
+    applyTargets: ['components/StageObjects/ClassPresidentStudent.jsx', 'components/StageObjects/UnconsciousStudent.jsx', 'components/StageObjects/propRendering.js', 'lib/toon.js'],
+  },
+  {
     id: 'stage-floor-stage1',
     category: 'floor',
     label: 'Stage 1 Floor',

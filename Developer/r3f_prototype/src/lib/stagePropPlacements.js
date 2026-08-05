@@ -18,6 +18,7 @@ export const STAGE_PROP_TYPES = Object.freeze([
   'classroomDesk',
   'classroomChair',
   'unconsciousStudent',
+  'classPresidentStudent',
   'corridorLockerBank',
   'corridorJanitorCart',
   'corridorLostFoundBoard',

@@ -73,11 +73,11 @@ export const STAGE_OBJECT_PLACEMENTS = {
     },
     {
       id: 'stage1-student-south-01',
-      type: 'unconsciousStudent',
+      type: 'classPresidentStudent',
       position: [-3.7, 0, 17.2],
       rotation: [0, 1.42, 0],
       scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideLeft', uniformColor: 0xc23535 },
+      props: { variant: 'sideLeft' },
     },
     {
       id: 'stage1-desk-se-01',
@@ -775,7 +775,7 @@ function shouldFlipUnconsciousStudent(id) {
 }
 
 function withMixedUnconsciousStudentFacing(item) {
-  if (item.type !== 'unconsciousStudent' || !shouldFlipUnconsciousStudent(item.id)) {
+  if (!['unconsciousStudent', 'classPresidentStudent'].includes(item.type) || !shouldFlipUnconsciousStudent(item.id)) {
     return item
   }
 
@@ -795,17 +795,17 @@ function withMixedUnconsciousStudentFacing(item) {
   }
 }
 
-function withAuthoredClassPresidentUniform(item) {
-  if (item.id !== 'stage1-student-south-01' || item.props?.uniformColor !== undefined) {
+function withDedicatedClassPresidentModel(item) {
+  if (item.id !== 'stage1-student-south-01' || item.type !== 'unconsciousStudent') {
     return item
   }
 
   return {
     ...item,
-    props: {
-      ...item.props,
-      uniformColor: 0xc23535,
-    },
+    type: 'classPresidentStudent',
+    props: Object.fromEntries(
+      Object.entries(item.props ?? {}).filter(([key]) => key !== 'uniformColor'),
+    ),
   }
 }
 
@@ -921,6 +921,6 @@ export function getStageObjectPlacements(stageId = 'stage1') {
     ? placements.filter(isStage1VisiblePropPlacement)
     : placements
   return visiblePlacements
-    .map(withAuthoredClassPresidentUniform)
+    .map(withDedicatedClassPresidentModel)
     .map(withMixedUnconsciousStudentFacing)
 }

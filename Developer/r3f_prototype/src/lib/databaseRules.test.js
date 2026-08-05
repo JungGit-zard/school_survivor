@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { STAGE_BONUS, CLEAR_BONUS, getBossClearBonus, getRankingScore } from './rankingScorePolicy.js'
+import { DEFAULT_SETTINGS } from './titleSettings.js'
 
 const RULES_PATH = fileURLToPath(new URL('../../database.rules.json', import.meta.url))
 const FIREBASE_RC_PATH = fileURLToPath(new URL('../../.firebaserc', import.meta.url))
@@ -31,10 +32,18 @@ describe('Realtime Database rules', () => {
     expect(user.$other['.validate']).toBe(false)
   })
 
+  // titleSettings는 $other:false라 규칙에 없는 키를 쓰면 그 저장이 통째로 거부된다.
+  // 설정을 추가할 때마다 여기도 같이 갱신해야 해서, 이름을 하나 빠뜨리면 조용히
+  // 저장만 실패한다(hitCameraShake·language가 실제로 그렇게 누락됐었다).
+  // DEFAULT_SETTINGS를 정본으로 삼아 전 키를 대조한다.
   it('accepts every Firebase title setting emitted by the player progress snapshot', () => {
     const settings = rules.users.$uid.progress.titleSettings
+    const missing = Object.keys(DEFAULT_SETTINGS).filter((key) => settings[key] === undefined)
+
+    expect(missing).toEqual([])
     expect(settings['.validate']).toContain("'unlockAllStagesCheat'")
     expect(settings.unlockAllStagesCheat['.validate']).toContain('newData.isBoolean()')
+    expect(settings.language['.validate']).toContain("newData.val() === 'ja'")
     expect(settings.$other['.validate']).toBe(false)
   })
 

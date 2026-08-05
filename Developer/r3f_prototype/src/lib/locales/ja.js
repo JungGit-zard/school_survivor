@@ -555,6 +555,7 @@ export default {
   'prop.classroomDesk': '机',
   'prop.classroomChair': '椅子',
   'prop.unconsciousStudent': '学生',
+  'prop.classPresidentStudent': '学級委員長',
   'prop.corridorLockerBank': 'ロッカー',
   'prop.corridorJanitorCart': '清掃カート',
   'prop.corridorLostFoundBoard': '落とし物掲示板',

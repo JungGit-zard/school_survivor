@@ -61,7 +61,7 @@ function HairBlock({ position, rotation = [0, 0, 0], scale, material, outline })
   return <StudentBox position={position} rotation={rotation} scale={scale} material={material} outline={outline} />
 }
 
-export default function UnconsciousStudent({ variant = 'faceUp', uniformColor = 0x3f5fa8, ...props }) {
+export function UnconsciousStudentVisual({ variant = 'faceUp', uniformColor = 0x3f5fa8 }) {
   const variantConfig = UNCONSCIOUS_STUDENT_VARIANTS[variant] ?? UNCONSCIOUS_STUDENT_VARIANTS.faceUp
   // 색·발광은 어두운 마루 바닥 대비 가독성 기준으로 책정 — 45° 탑다운에서 누운 자세는
   // 화면 점유가 작아, 어두운 남색/회색이면 잔해처럼 보인다 (2026-06-13 인게임 검증).
@@ -75,10 +75,8 @@ export default function UnconsciousStudent({ variant = 'faceUp', uniformColor = 
   const outline = getStagePropOutlineMaterial(0.96, 0x130d0d)
 
   return (
-    <group {...props}>
-      <StudioTunedGroup itemId="stage-object-unconscious-student">
-        <group position={variantConfig.modelPosition} rotation={variantConfig.modelRotation}>
-          <group rotation={variantConfig.bodyRotation}>
+    <group position={variantConfig.modelPosition} rotation={variantConfig.modelRotation}>
+      <group rotation={variantConfig.bodyRotation}>
           <StudentBox position={[0, 0.48, 0]} scale={[0.62, 0.78, 0.28]} material={uniformMat} outline={outline} />
           <StudentBox position={[0, 0.82, 0.17]} scale={[0.18, 0.36, 0.045]} material={tieMat} outline={outline} />
           <StudentBox position={[0.26, 0.66, 0.18]} scale={[0.09, 0.09, 0.035]} material={badgeMat} outline={outline} />
@@ -103,8 +101,16 @@ export default function UnconsciousStudent({ variant = 'faceUp', uniformColor = 
           <StudentBox position={[0.13, 1.24, 0.25]} rotation={[0, 0, 0.72]} scale={[0.13, 0.035, 0.025]} material={shoeMat} outline={outline} />
           <StudentBox position={[0.13, 1.24, 0.25]} rotation={[0, 0, -0.72]} scale={[0.13, 0.035, 0.025]} material={shoeMat} outline={outline} />
           <StudentBox position={[0, 1.08, 0.27]} scale={[0.18, 0.055, 0.03]} material={shoeMat} outline={outline} />
-          </group>
-        </group>
+      </group>
+    </group>
+  )
+}
+
+export default function UnconsciousStudent({ variant = 'faceUp', uniformColor = 0x3f5fa8, ...props }) {
+  return (
+    <group {...props}>
+      <StudioTunedGroup itemId="stage-object-unconscious-student">
+        <UnconsciousStudentVisual variant={variant} uniformColor={uniformColor} />
       </StudioTunedGroup>
     </group>
   )

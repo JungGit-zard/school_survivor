@@ -8,6 +8,7 @@ export const STAGE_PROP_PALETTE = Object.freeze([
   { type: 'classroomDesk', label: '책상', defaultScale: 0.8, defaultVariant: 'upright', glyph: '▬' },
   { type: 'classroomChair', label: '의자', defaultScale: 0.7, defaultVariant: 'abandoned', glyph: '▪' },
   { type: 'unconsciousStudent', label: '학생', defaultScale: UNCONSCIOUS_STUDENT_PLAYER_SCALE, defaultVariant: 'faceUp', glyph: '☻' },
+  { type: 'classPresidentStudent', label: '반장', defaultScale: UNCONSCIOUS_STUDENT_PLAYER_SCALE, defaultVariant: 'faceUp', glyph: '★' },
   { type: 'corridorLockerBank', label: '사물함', defaultScale: 1, defaultVariant: null, glyph: '▤' },
   { type: 'corridorJanitorCart', label: '청소카트', defaultScale: 0.82, defaultVariant: null, glyph: '▥' },
   { type: 'corridorLostFoundBoard', label: '분실물판', defaultScale: 1, defaultVariant: null, glyph: '▦' },

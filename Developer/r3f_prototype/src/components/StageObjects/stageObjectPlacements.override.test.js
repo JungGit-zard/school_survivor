@@ -84,7 +84,7 @@ describe('getStageObjectPlacements override priority', () => {
     expect(['faceUp', 'faceUpFlipped']).toContain(student.props.variant)
   })
 
-  it('preserves the class president red uniform in a Firebase runtime override', () => {
+  it('upgrades the legacy class-president student override to the dedicated model without changing its placement', () => {
     saveStagePropPlacements({
       stage1: [{
         id: 'stage1-student-south-01',
@@ -97,23 +97,15 @@ describe('getStageObjectPlacements override priority', () => {
     })
 
     const [classPresident] = getStageObjectPlacements('stage1')
-    expect(classPresident.props.uniformColor).toBe(0xc23535)
-  })
-
-  it('keeps the authored class president uniform when a Firebase override omits the color', () => {
-    saveStagePropPlacements({
-      stage1: [{
-        id: 'stage1-student-south-01',
-        type: 'unconsciousStudent',
-        position: [-3.7, 0, 17.2],
-        rotation: [0, 1.42, 0],
-        scale: 1,
-        props: { variant: 'sideLeft' },
-      }],
+    expect(classPresident).toMatchObject({
+      id: 'stage1-student-south-01',
+      type: 'classPresidentStudent',
+      position: [-3.7, 0, 17.2],
+      rotation: [0, 1.42, 0],
+      scale: 1,
     })
-
-    const [classPresident] = getStageObjectPlacements('stage1')
-    expect(classPresident.props.uniformColor).toBe(0xc23535)
+    expect(classPresident.props.uniformColor).toBeUndefined()
+    expect(['sideLeft', 'sideLeftFlipped']).toContain(classPresident.props.variant)
   })
 
   it('reverts to defaults after the override is cleared to null', () => {

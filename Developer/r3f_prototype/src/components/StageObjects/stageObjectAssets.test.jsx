@@ -32,6 +32,7 @@ import {
   KitchenTrayRack,
   UNCONSCIOUS_STUDENT_VARIANTS,
   UnconsciousStudent,
+  ClassPresidentStudent,
 } from './index.js'
 import { BLOCKING_STAGE_OBJECT_TYPES } from './stageObjectColliders.js'
 import { STAGE_OBJECT_TYPES } from './StageObjectLayer.jsx'
@@ -57,6 +58,7 @@ describe('stage object asset catalog', () => {
   it('exports classroom chair and unconscious student assets from the StageObjects repository', () => {
     expect(ClassroomChair).toBeTypeOf('function')
     expect(UnconsciousStudent).toBeTypeOf('function')
+    expect(ClassPresidentStudent).toBeTypeOf('function')
   })
 
   it('defines reusable low-poly variants for the classroom chair', () => {
@@ -166,6 +168,15 @@ describe('stage object asset catalog', () => {
       expect(source).toContain('STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING')
       expect(source).toContain(`<StudioTunedGroup itemId="${studioItemIds[file]}">`)
     }
+  })
+
+  it('uses the shared student body under its own fixed-color Studio root for the class president', () => {
+    const source = readFileSync(new URL('./ClassPresidentStudent.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('UnconsciousStudentVisual')
+    expect(source).toContain('CLASS_PRESIDENT_UNIFORM_COLOR = 0xc23535')
+    expect(source).toContain('<StudioTunedGroup itemId="stage-object-class-president-student">')
+    expect(source).not.toContain('uniformColor =')
   })
 
   it('keeps classroom prop outline scales positive for thin boards and legs', () => {

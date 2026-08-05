@@ -23,6 +23,7 @@ describe('stage object placements', () => {
       'classroomChair',
       'classroomDesk',
       'unconsciousStudent',
+      'classPresidentStudent',
       'corridorLockerBank',
       'corridorJanitorCart',
       'corridorLostFoundBoard',
@@ -72,6 +73,7 @@ describe('stage object placements', () => {
     expect(stage1Types).toContain('classroomDesk')
     expect(stage1Types).toContain('classroomChair')
     expect(stage1Types).toContain('unconsciousStudent')
+    expect(stage1Types).toContain('classPresidentStudent')
   })
 
   it('uses zombie-disrupted chair and unconscious student variants in Stage 1', () => {
@@ -110,7 +112,8 @@ describe('stage object placements', () => {
     expect(halfZ + STAGE1_VISIBLE_PROP_PADDING).toBe(17.4)
     expect(placements.filter(({ type }) => type === 'classroomDesk')).toHaveLength(9)
     expect(placements.filter(({ type }) => type === 'classroomChair')).toHaveLength(6)
-    expect(placements.filter(({ type }) => type === 'unconsciousStudent')).toHaveLength(16)
+    expect(placements.filter(({ type }) => type === 'unconsciousStudent')).toHaveLength(15)
+    expect(placements.filter(({ type }) => type === 'classPresidentStudent')).toHaveLength(1)
     placements.forEach((item, index) => {
       const authored = STAGE_OBJECT_PLACEMENTS.stage1[index]
       expect(item.id).toBe(authored.id)
@@ -182,20 +185,26 @@ describe('stage object placements', () => {
     }
   })
 
-  it('marks only the Stage 1 class president with a red uniform', () => {
+  it('uses the dedicated red class-president student model without changing its authored placement', () => {
     const placements = getStageObjectPlacements('stage1')
     const classPresident = placements.find(({ id }) => id === 'stage1-student-south-01')
     const otherStudents = placements.filter(({ type, id }) => (
       type === 'unconsciousStudent' && id !== 'stage1-student-south-01'
     ))
 
-    expect(classPresident?.props?.uniformColor).toBe(0xc23535)
+    expect(classPresident).toMatchObject({
+      type: 'classPresidentStudent',
+      position: [-3.7, 0, 17.2],
+      rotation: [0, 1.42, 0],
+      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
+    })
+    expect(classPresident?.props?.uniformColor).toBeUndefined()
     expect(otherStudents.every(({ props }) => props?.uniformColor === undefined)).toBe(true)
   })
 
   it('keeps mixed Stage 1 clutter close enough to read from the starting classroom view', () => {
     const readableProps = getStageObjectPlacements('stage1').filter(({ type, position: [x, , z] }) => (
-      ['classroomChair', 'classroomDesk', 'unconsciousStudent'].includes(type) &&
+      ['classroomChair', 'classroomDesk', 'unconsciousStudent', 'classPresidentStudent'].includes(type) &&
       Math.max(Math.abs(x), Math.abs(z)) <= 18
     ))
 

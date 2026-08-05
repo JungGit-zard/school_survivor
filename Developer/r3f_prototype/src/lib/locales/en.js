@@ -555,6 +555,7 @@ export default {
   'prop.classroomDesk': 'Desk',
   'prop.classroomChair': 'Chair',
   'prop.unconsciousStudent': 'Student',
+  'prop.classPresidentStudent': 'Class president',
   'prop.corridorLockerBank': 'Lockers',
   'prop.corridorJanitorCart': 'Janitor cart',
   'prop.corridorLostFoundBoard': 'Lost & found board',

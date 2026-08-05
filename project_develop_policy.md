@@ -17,8 +17,8 @@
 
 ## 모델 배정 최우선 정책
 
-- 모든 사용자 지시는 Sol Advisor가 먼저 판단·설계하고, 구현·테스트 작성은 Terra 메인 Worker, 단순 검색·기계적 반복·가벼운 명령 실행은 GPT-5.3 Codex Spark에 배정한다. 최종 diff·테스트·승인은 Sol이 수행한다.
-- Spark가 현재 도구에 없거나 호출에 실패하면 가용하다고 주장하거나 다른 모델로 위장하지 않는다. 반드시 사용자에게 `Spark 미지원 → Terra 대행`을 명시하고 Terra가 처리한다.
+- 모든 사용자 지시는 메인 세션(Fable 5)이 먼저 판단·설계하고, 구현·테스트 작성·검수는 Worker(Opus 5, `model="opus"`), 단순 검색·기계적 반복·가벼운 명령 실행은 Sonnet 5(`model="sonnet"`)에 배정한다. Fable 5는 계획만 하고 직접 구현하지 않는다. 최종 diff·테스트·승인은 Fable 5가 수행한다.
+- 단순작업은 무조건 Sonnet 5로 배정한다. 예외 없음.
 - Hermes/Kanban specialist profile(`threemini` 등)은 모델 계층과 별개의 도메인 역할이며, specialist 라우팅은 유지하고 실제 실행 모델은 이 정책을 따른다.
 
 ## Session Memory
@@ -201,6 +201,7 @@
 
 ### 반드시 지켜야 할 사항
 
+- 반드시 Escape! zombie school 관련 모든 비어 있지 않은 작업은 `escape-zombie-school` Kanban 보드로 라우팅한다. 하나(Hana/default assistant)는 Advisor/오케스트레이터로 범위 판단, 카드 분해, 결과 검증, 최종 보고를 맡고, 실제 Worker 실행은 에이전트룸에 등록된 실제 Hermes/Kanban 서브에이전트 프로필만 담당한다.
 - 반드시 여러 역할이 필요한 게임 개발, 마일스톤, 릴리스 준비, QA 게이트, 그래픽/개발/기획 통합 작업은 `escape-zombie-school` Kanban 보드와 등록된 Hermes 프로필을 통해 분해·배정·검증한다.
 - 반드시 Kanban 서브에이전트 투입 절차는 `Developer/agent_room/game_development_kanban_process.md`를 따른다.
 - 반드시 프로젝트 내부 서브에이전트 연결 정본은 `Developer/agent_room/subagent_system_wiring_2026-07-03.md`로 확인한다.
@@ -212,6 +213,7 @@
 
 ### 절대로 하면 안 되는 사항
 
+- 절대로 하나(Hana/default assistant)가 Escape! zombie school 작업을 Worker처럼 단독 완료하지 않는다. 하나는 Advisor/오케스트레이터로서 Kanban 라우팅, worker 산출물 검토, 최종 승인·보고만 수행한다.
 - 절대로 `game-developer`, `balance_qa`처럼 spawn 불가능한 임시 assignee를 그대로 방치하지 않는다.
 - 절대로 `review-required`로 막힌 코드 작업을 테스트/빌드/정적 점검 없이 완료 처리하지 않는다.
 - 절대로 Kanban worker가 만든 변경을 검증 없이 릴리스 가능 또는 완료로 취급하지 않는다.

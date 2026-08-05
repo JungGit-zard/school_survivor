@@ -10,7 +10,9 @@ Purpose: every Escape! zombie school work session must route through the durable
 
 For Escape! zombie school, every non-empty project request must run the subagent routing check before completion.
 
-There is no silent direct-work bypass. A tiny one-step edit may be executed by the current agent only after the routing check is recorded mentally or in the response, but the current agent must still decide whether any specialist is relevant. If a specialist domain is touched, that specialist must be involved through at least one accepted trail before final completion.
+Updated operating rule: every non-empty Escape! zombie school task goes through the `escape-zombie-school` Kanban board. Hana/default assistant is the Advisor/orchestrator: she classifies scope, decomposes work, creates or references Kanban cards, reviews worker output, and gives the final user-facing report. Actual Worker execution must be assigned to the registered Agent Room Hermes/Kanban subagent profiles listed below.
+
+There is no silent direct-work bypass. Even a tiny one-step edit must be routed through the Kanban board first. Hana/default assistant may perform advisor-level classification, card creation, result review, and final reporting, but implementation/work execution belongs to the registered worker profiles. If Kanban is temporarily blocked, record the blocker explicitly and leave a secondary project artifact/review trail rather than claiming silent completion.
 
 Accepted involvement trail:
 - Kanban card on board `escape-zombie-school` assigned to the real profile.

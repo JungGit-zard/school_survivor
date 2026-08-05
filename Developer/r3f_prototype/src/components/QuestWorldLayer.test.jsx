@@ -27,7 +27,8 @@ describe('quest world placement resolution', () => {
   it('finds both quest givers in every stage, including Stage 2 copy ids', () => {
     for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
       const quests = getStageQuestDefinitions(stageId)
-      const students = getStageObjectPlacements(stageId).filter(({ type }) => type === 'unconsciousStudent')
+      const students = getStageObjectPlacements(stageId)
+        .filter(({ type }) => ['unconsciousStudent', 'classPresidentStudent'].includes(type))
 
       expect(quests).toHaveLength(2)
       for (const quest of quests) {

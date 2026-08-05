@@ -111,7 +111,7 @@ describe('전 스테이지 공용 조사 대상', () => {
   })
   it('makes every valid non-student Firebase override investigable on every stage', () => {
     const props = STAGE_PROP_PALETTE
-      .filter(({ type }) => type !== 'unconsciousStudent')
+      .filter(({ type }) => !['unconsciousStudent', 'classPresidentStudent'].includes(type))
       .map(({ type }, index) => ({
         id: `override-${type}`,
         type,
@@ -154,5 +154,11 @@ describe('getUnconsciousStudents', () => {
 
   it('없는 스테이지는 빈 배열', () => {
     expect(getUnconsciousStudents('nope')).toEqual([])
+  })
+
+  it('includes the dedicated class-president model as a fallen student', () => {
+    const classPresident = getUnconsciousStudents('stage1').find(({ id }) => id === 'stage1-student-south-01')
+
+    expect(classPresident).toEqual({ id: 'stage1-student-south-01', position: [-3.7, 0, 17.2] })
   })
 })
