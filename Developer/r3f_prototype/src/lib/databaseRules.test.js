@@ -59,18 +59,24 @@ describe('Realtime Database rules', () => {
     expect(progressValidation).not.toContain("'passiveUpgrades'")
   })
 
-  it('isolates Studio data to its owner and pins its versioned envelope', () => {
+  it('blocks legacy per-user Studio data and permits only the full canonical envelope', () => {
     const studioUser = rules.studioWorkspaces.v1.users.$uid
-    const studio = studioUser.current
-    expect(studio['.read']).toContain('auth.uid === $uid')
-    expect(studio['.write']).toContain('auth.uid === $uid')
+    const studio = rules.studioWorkspaces.v1.canonical.current
+    expect(studioUser.current['.read']).toBe(false)
+    expect(studioUser.current['.write']).toBe(false)
+    expect(studio['.read']).toBe(true)
+    expect(studio['.write']).toContain("auth.token.email === 'zard5388@gmail.com'")
+    expect(studio['.write']).toContain("auth.token.email_verified === true")
+    expect(studio['.write']).toContain("auth.token.firebase.sign_in_provider === 'google.com'")
     expect(studio.schemaVersion['.validate']).toContain('newData.val() === 1')
     expect(studio.revision['.validate']).toContain('newData.val() >= 0')
     expect(studio.revision['.validate']).toContain('newData.val() % 1 === 0')
     expect(studio.updatedAt['.validate']).toContain('newData.isString()')
     expect(studio.datasets.tunings['.validate']).toContain('newData.isString()')
     expect(studio.datasets.tunings['.validate']).toContain('length <= 1000000')
-    expect(studio['.validate']).not.toContain("'datasets'")
+    expect(studio['.validate']).toContain("'datasets'")
+    expect(Object.keys(studio.datasets).filter((key) => !key.startsWith('.')).sort())
+      .toEqual([...FIREBASE_STUDIO_DATASET_KEYS, '$other'].sort())
     expect(studio.datasets.$other['.validate']).toBe(false)
     expect(studio.$other['.validate']).toBe(false)
     expect(studioUser.$other['.validate']).toBe(false)
