@@ -84,7 +84,12 @@ export default function App() {
     }
     const isGraphicsStudioRouteNow = typeof window !== 'undefined'
       && window.location.pathname.startsWith('/graphics-studio')
-    if (hydratedUidRef.current === uid && isFirebaseStudioRuntimeReady()) return true
+    // 이미 이 uid로 하이드레이트돼 런타임이 준비된 상태. 구독 오류 등으로 상태만 실패로
+    // 남아 있을 수 있으므로 상태도 함께 되돌린다 — 안 그러면 재시도가 아무 일도 안 한다.
+    if (hydratedUidRef.current === uid && isFirebaseStudioRuntimeReady()) {
+      setStudioCloudStatus('remote-applied')
+      return true
+    }
     if (!isGraphicsStudioRouteNow && studioRuntimeSourceRef.current === 'canonical' && isFirebaseStudioRuntimeReady()) {
       setStudioCloudStatus('remote-applied')
       return true
@@ -229,8 +234,15 @@ export default function App() {
   // canonicalTitlePlayer 하이드레이트로 studioReady가 로그인 전에도 true가 될 수 있으므로,
   // 로그인 없이 편집기가 열려 Apply가 unauthenticated로 실패하지 않도록 signedIn을 함께 요구한다.
   if (isGraphicsStudioRoute && !isDevGraphicsStudioBypass && (authStatus !== 'signedIn' || !studioReady)) {
+    // 하이드레이트가 실패로 끝나면 이 화면이 막다른 길이 된다(효과는 authStatus/uid 변화로만 재실행).
+    // 새로고침 없이 같은 로그인으로 다시 시도할 수 있게 재시도만 열어둔다 — fail-closed는 그대로다.
+    const canRetryStudio = authStatus === 'signedIn'
+      && !['loading', 'idle'].includes(studioCloudStatus)
     return (
-      <AppBootstrap message={getStudioBootstrapMessage(authStatus, studioCloudStatus)} />
+      <AppBootstrap
+        message={getStudioBootstrapMessage(authStatus, studioCloudStatus)}
+        onRetry={canRetryStudio ? () => { void ensureStudioCloudReady(authUser) } : null}
+      />
     )
   }
 
@@ -284,14 +296,22 @@ function getStudioBootstrapMessage(authStatus, studioCloudStatus) {
   if (authStatus === 'checking') return t('app.checkingAuth')
   if (authStatus !== 'signedIn') return t('app.studioNeedsSignIn')
   if (studioCloudStatus === 'loading') return t('app.studioLoading')
+  // 이 계정에 워크스페이스가 아직 없는 것과, 있는데 못 읽은 것은 사용자가 할 조치가 다르다.
+  if (studioCloudStatus === 'missing-remote') return t('app.studioNoWorkspace')
+  if (studioCloudStatus === 'account-conflict') return t('app.studioAccountConflict')
   return t('app.studioFailed')
 }
 
-function AppBootstrap({ message }) {
+function AppBootstrap({ message, onRetry = null }) {
   return (
     <main style={styles.studioBootstrap}>
       <GoogleAccountPanel />
       <p style={styles.studioBootstrapMessage}>{message}</p>
+      {onRetry && (
+        <button type="button" style={styles.studioBootstrapRetry} onClick={onRetry}>
+          {t('common.retry')}
+        </button>
+      )}
     </main>
   )
 }
@@ -323,6 +343,17 @@ const styles = {
   studioBootstrapMessage: {
     margin: 0,
     fontWeight: 800,
+  },
+  studioBootstrapRetry: {
+    justifySelf: 'center',
+    minHeight: 44,
+    padding: '10px 22px',
+    border: '3px solid #f7f3e8',
+    borderRadius: 12,
+    background: '#3a0d0d',
+    color: '#f7f3e8',
+    fontWeight: 900,
+    cursor: 'pointer',
   },
   fatalDialog: {
     width: 'min(560px, calc(100vw - 32px))',

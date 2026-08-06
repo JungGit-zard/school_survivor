@@ -278,8 +278,37 @@ describe('App Firebase bootstrap boundary', () => {
     await act(async () => { await Promise.resolve(); await Promise.resolve() })
 
     expect(view.container.querySelector('[data-testid="graphics-studio"]')).toBe(null)
-    expect(view.container.textContent).toContain('Firebase Studio 데이터를 불러오지 못했습니다')
+    // 워크스페이스가 없는 것은 읽기 실패와 다른 상황이라 안내도 달라야 한다.
+    expect(view.container.textContent).toContain('그래픽 스튜디오 작업 공간이 없습니다')
     expect(mocks.canonicalHydrate).not.toHaveBeenCalled()
+    view.unmount()
+  })
+
+  it('recovers the graphics studio route from a transient hydrate failure without a page reload', async () => {
+    window.history.replaceState({}, '', '/graphics-studio')
+    mocks.authState.status = 'signedIn'
+    mocks.authState.user = { uid: 'master' }
+    mocks.studioHydrate.mockResolvedValueOnce({ status: 'read-failed' })
+
+    const view = await renderApp()
+    await act(async () => { await Promise.resolve(); await Promise.resolve() })
+    expect(view.container.querySelector('[data-testid="graphics-studio"]')).toBe(null)
+
+    const retry = [...view.container.querySelectorAll('button')]
+      .find((button) => button.textContent === '다시 시도')
+    expect(retry).toBeTruthy()
+
+    mocks.studioHydrate.mockResolvedValue({ status: 'remote-applied', revision: 2 })
+    mocks.studioRuntimeReady = true
+    await act(async () => {
+      retry.click()
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+    await act(async () => { await Promise.resolve(); await Promise.resolve() })
+
+    expect(mocks.studioHydrate).toHaveBeenCalledTimes(2)
+    expect(view.container.querySelector('[data-testid="graphics-studio"]')).not.toBe(null)
     view.unmount()
   })
 
