@@ -108,6 +108,8 @@ function LunchItem({ item, onCollect }) {
   const groupRef = useRef(null)
   const healPlayer = useGameStore((s) => s.healPlayer)
 
+  // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
+  // 스튜디오 파츠는 건드리지 않으므로 튜닝을 덮어쓰지 않고 부모 변형으로 곱해질 뿐이다.
   useFrame(({ clock }) => {
     if (!groupRef.current || useGameStore.getState().phase !== 'playing') return
     const ageMs = clock.elapsedTime * 1000 - item.spawnMs

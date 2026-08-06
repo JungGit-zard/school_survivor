@@ -37,6 +37,8 @@ export default function XpTextbook({ id, pos, value, onCollect }) {
   const titleAccentMat = useMemo(() => toonMat(0x1a2e58, 0.10), [])
   const outMat   = useMemo(() => outlineMat(0.96), [])
 
+  // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
+  // 스튜디오 파츠는 건드리지 않으므로 튜닝을 덮어쓰지 않고 부모 변형으로 곱해질 뿐이다.
   useFrame(({ clock }, delta) => {
     if (collected.current || !groupRef.current) return
     if (useGameStore.getState().phase !== 'playing') return

@@ -4,6 +4,7 @@ import {
   CHARGE_CUE_LABEL,
   CHARGE_CUE_LAYOUT,
   ENEMY_SIZE_MULTIPLIER,
+  EnemyVisual,
   ENEMY_SPAWN_REVEAL_DELAY_MS,
   ENEMY_STATS,
   MATILDA_EDGE_INSET,
@@ -129,6 +130,23 @@ describe('Enemy charge warning cue', () => {
     expect(CHARGE_CUE_LAYOUT.parts.bang.size[1]).toBeGreaterThan(0.2)
   })
 
+  it('renders the shared GO! cue for B04 only when its phase-2 charger enters warn, without changing B01', () => {
+    const containsChargeCue = (node) => {
+      if (Array.isArray(node)) return node.some(containsChargeCue)
+      if (!node || typeof node !== 'object') return false
+      if (node.type?.name === 'ChargeToonCue') return true
+      return containsChargeCue(node.props?.children)
+    }
+
+    expect(ENEMY_STATS.B04.chefPhase2.charger).toBe(true)
+    expect(containsChargeCue(EnemyVisual({ type: 'B04', animPhase: 'warn', isChefPhase2: false, showHealthBar: false }))).toBe(false)
+    expect(containsChargeCue(EnemyVisual({ type: 'B04', animPhase: 'warn', isChefPhase2: true, showHealthBar: false }))).toBe(true)
+    expect(containsChargeCue(EnemyVisual({ type: 'B01', animPhase: 'warn', showHealthBar: false }))).toBe(true)
+
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('isChefPhase2={isChefPhase2}')
+  })
+
   it('does not reintroduce the previous Html sprite cue', () => {
     const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
 
@@ -209,14 +227,14 @@ describe("Matilda's rendered body matches her physics collider (no untouchable-l
     // reaches both the visual and collider path. Matilda deliberately supplies
     // B01's base 2.00 scale to restore her intended visible size.
     expect(enemySource).toContain(
-      "export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false, scale, bossFaceRecipe }) {",
+      "export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false, scale, bossFaceRecipe, isChefPhase2 = false }) {",
     )
     expect(enemySource).toContain('const cs = (scale ?? stats.scale) * ENEMY_SIZE_MULTIPLIER')
 
     // Enemy forwards the merged scale to EnemyVisual, keeping the visual group
     // and CuboidCollider derived from the exact same `cs`.
     expect(enemySource).toContain(
-      '<EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} isMatilda={isMatilda} scale={stats.scale} />',
+      '<EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} isMatilda={isMatilda} scale={stats.scale} isChefPhase2={isChefPhase2} />',
     )
     expect(enemiesSource).toMatch(/const matildaStats = \{[\s\S]*?scale:\s+ENEMY_STATS\.B01\.scale,/)
   })

@@ -8,10 +8,20 @@
 //   composeStudioPartPosition / composeStudioPartRotation / composeStudioPartScale
 //   studioPartPositionOffset / studioPartRotationOffset / studioPartScaleMultiplier
 //
-// 이 테스트는 "StudioTunedGroup 하위에서 파츠 리그를 애니메이션하는 컴포넌트"가
-// 헬퍼를 쓰고 있는지 소스 수준에서 확인한다. 신규 캐릭터/무기를 추가하며 이 계약을
-// 잊으면 CI에서 즉시 걸린다.
-import { readFileSync } from 'node:fs'
+// 대상 목록은 손으로 적지 않는다. 손으로 적으면 새 에셋이 목록에 안 들어간 채
+// 통과해 버리고, 그게 정확히 이 계약이 뚫리는 방식이었다. 대신 소스를 훑어
+// "StudioTunedGroup을 직접 렌더하면서 매 프레임 돌아가는" 컴포넌트를 전부 찾아내
+// 각각이 둘 중 하나를 반드시 선언하게 만든다:
+//
+//   1. 합성 헬퍼를 쓴다                        → 스튜디오 파츠를 변형하는 컴포넌트
+//   2. STUDIO_OUTER_MOTION_ONLY 마커를 단다    → 자기 바깥 그룹만 움직이는 컴포넌트
+//
+// 2번은 면제가 아니라 선언이다. 코인 회전·오브 부유·체력바 빌보드처럼 StudioTunedGroup의
+// **부모** 노드를 움직이는 코드는 튜닝을 덮어쓰지 않고 곱해질 뿐이라 정당하다. 다만
+// 새 에셋을 추가하는 사람이 "내 컴포넌트는 어느 쪽인가"를 반드시 한 번 판단하게 한다.
+import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const HELPERS = [
@@ -23,31 +33,64 @@ const HELPERS = [
   'studioPartScaleMultiplier',
 ]
 
-// 파츠 리그를 매 프레임 구동하면서 StudioTunedGroup 안에 사는 컴포넌트들.
-// (무기 대부분은 단일 정적 모델 + 바깥 스윙 래퍼라 파츠 리그가 없어 대상이 아니다.)
-const RIGGED_PART_ANIMATORS = [
-  'PlayerMesh.jsx',
-  'ZombieMesh.jsx',
-  'MatildaMesh.jsx',
-  'DogeMesh.jsx',
-  'Weapons/Chibiko.jsx',
-  'Weapons/StarlinkSatellite.jsx',
-]
+// 바깥 그룹만 움직인다고 선언하는 마커. 소스 주석에 이 토큰을 그대로 넣는다.
+const OUTER_MOTION_MARKER = 'STUDIO_OUTER_MOTION_ONLY'
+
+const COMPONENTS_DIR = fileURLToPath(new URL('./', import.meta.url))
+
+function readComponentSources() {
+  const files = []
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir)) {
+      const path = join(dir, entry)
+      if (statSync(path).isDirectory()) {
+        walk(path)
+        continue
+      }
+      if (!/\.jsx?$/.test(entry)) continue
+      if (/\.test\.|\.audit\./.test(entry)) continue
+      files.push(path)
+    }
+  }
+  walk(COMPONENTS_DIR)
+  return files.map((path) => ({
+    name: path.slice(COMPONENTS_DIR.length).replace(/\\/g, '/'),
+    source: readFileSync(path, 'utf8'),
+  }))
+}
+
+// StudioTunedGroup을 직접 렌더하면서 매 프레임 구동되는 컴포넌트 = 계약 대상.
+function findStudioAnimators() {
+  return readComponentSources()
+    .filter(({ source }) => source.includes('<StudioTunedGroup') && source.includes('useFrame'))
+    .map(({ name }) => name)
+}
 
 function read(relativePath) {
   return readFileSync(new URL(`./${relativePath}`, import.meta.url), 'utf8')
 }
 
 describe('스튜디오 파츠 애니메이션 계약', () => {
-  it.each(RIGGED_PART_ANIMATORS)('%s 는 파츠 변형에 합성 헬퍼를 쓴다', (file) => {
+  const animators = findStudioAnimators()
+
+  it('계약 대상이 소스에서 자동으로 도출된다 (하드코딩 목록 금지)', () => {
+    // 목록이 비면 스캔이 깨진 것이다 — 그 상태로 통과하면 계약이 조용히 사라진다.
+    expect(animators.length).toBeGreaterThan(0)
+  })
+
+  it.each(animators)('%s 는 합성 헬퍼를 쓰거나 바깥 그룹 전용임을 선언한다', (file) => {
     const source = read(file)
-    const used = HELPERS.filter((helper) => source.includes(helper))
+    const usesHelper = HELPERS.some((helper) => source.includes(helper))
+    const declaresOuterOnly = source.includes(OUTER_MOTION_MARKER)
+
     expect(
-      used.length,
-      `${file}가 StudioTunedGroup 합성 헬퍼를 전혀 쓰지 않는다. `
-      + `파츠를 매 프레임 원시 대입하면 스튜디오 튜닝이 게임에서 지워진다. `
-      + `PlayerMesh.jsx의 패턴을 따르라.`,
-    ).toBeGreaterThan(0)
+      usesHelper || declaresOuterOnly,
+      `${file}가 StudioTunedGroup을 렌더하면서 매 프레임 돌아가는데, 스튜디오 변형 계약을 `
+      + `선언하지 않았다.\n`
+      + `  - 스튜디오 파츠를 변형한다면: StudioTunedGroup의 합성 헬퍼를 써라 (PlayerMesh.jsx 참고). `
+      + `파츠를 원시 대입하면 스튜디오 튜닝이 다음 프레임에 지워진다.\n`
+      + `  - 자기 바깥 그룹만 움직인다면: 그 useFrame 위에 ${OUTER_MOTION_MARKER} 주석을 달아라.`,
+    ).toBe(true)
   })
 
   it('합성 헬퍼는 StudioTunedGroup 한 곳에서만 정의된다', () => {
@@ -55,6 +98,19 @@ describe('스튜디오 파츠 애니메이션 계약', () => {
     for (const helper of HELPERS) {
       expect(canonical, `${helper} 정의가 정본에 없다`).toContain(`export function ${helper}`)
     }
+  })
+
+  it('합성 헬퍼를 정본 밖에서 재정의하지 않는다 (독자 변형 경로 차단)', () => {
+    const offenders = readComponentSources()
+      .filter(({ name }) => name !== 'StudioTunedGroup.jsx')
+      .filter(({ source }) => HELPERS.some((helper) => source.includes(`function ${helper}`)))
+      .map(({ name }) => name)
+
+    expect(
+      offenders,
+      `합성 헬퍼는 StudioTunedGroup.jsx에만 존재해야 한다. 같은 이름으로 자체 구현을 두면 `
+      + `변형 규칙이 둘로 갈라진다.`,
+    ).toEqual([])
   })
 
   it('파츠 조회는 정본 하나만 존재한다 (미리보기/런타임 이원화 재발 방지)', () => {

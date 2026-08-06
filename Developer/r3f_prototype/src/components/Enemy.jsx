@@ -359,6 +359,8 @@ function ChargeCueDot({ radius, position, color, emissive = 0.26, outlineScale =
 function ChargeToonCue({ y }) {
   const ref = useRef()
 
+  // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
+  // 스튜디오 파츠는 건드리지 않으므로 튜닝을 덮어쓰지 않고 부모 변형으로 곱해질 뿐이다.
   useFrame((state) => {
     if (!ref.current) return
     const t = performance.now() * 0.001
@@ -415,7 +417,7 @@ export function resetActiveE04ProjectileCountForTest() {
 // E01-E06 standard zombies render via ZombieInstanceLayer (instanced). B01 + Matilda use React mesh.
 const INSTANCED_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06'])
 
-export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false, scale, bossFaceRecipe }) {
+export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = false, hp, showHealthBar = true, groupRef = null, isMatilda = false, forceMesh = false, staticPose = false, scale, bossFaceRecipe, isChefPhase2 = false }) {
   const stats = ENEMY_STATS[type] ?? ENEMY_STATS.E01
   // scale prop lets a caller (Enemy) pass the merged statOverride scale (Matilda keeps B01's base scale)
   // so the rendered body matches the physics collider exactly. Falls back to the base
@@ -424,13 +426,14 @@ export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = fal
   const cs = (scale ?? stats.scale) * ENEMY_SIZE_MULTIPLIER
   const useInstanced = !forceMesh && !isMatilda && INSTANCED_TYPES.has(type)
   const currentHp = hp ?? stats.hp
+  const canShowChargeCue = stats.charger || (isChefPhase2 && stats.chefPhase2?.charger)
 
   return (
     <>
       <group ref={groupRef} scale={[cs * 0.333, cs * 0.333, cs * 0.333]}>
         {/* E01-E06: rendered imperatively by ZombieInstanceLayer ??no mesh here */}
         {!useInstanced && <ZombieMesh type={type} animPhase={animPhase} hitFlash={hitFlash} isMatilda={isMatilda} staticPose={staticPose} bossFaceRecipe={bossFaceRecipe} />}
-        {!staticPose && stats.charger && animPhase === 'warn' && <ChargeToonCue y={CHARGE_CUE_LAYOUT.y} />}
+        {!staticPose && canShowChargeCue && animPhase === 'warn' && <ChargeToonCue y={CHARGE_CUE_LAYOUT.y} />}
       </group>
       {showHealthBar && <MiniHealthBar current={currentHp} max={stats.hp} width={0.32 * cs} height={0.045} y={0.72 * cs} />}
     </>
@@ -514,6 +517,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const [hitFlash, setHitFlash] = useState(false)
   const [spawnRevealed, setSpawnRevealed] = useState(false)
   const [animPhase, setAnimPhase] = useState('normal') // normal|warn|charge|special|stun|retreat
+  const [isChefPhase2, setIsChefPhase2] = useState(false)
   const visualFlushRef       = useRef({ scheduled: false, hp: stats.hp, hitFlash: false, spawnRevealed: false, animPhase: 'normal' })
   const spawnRevealedRef     = useRef(false)
   const queueVisualState = useCallback((key, value) => {
@@ -594,6 +598,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     matildaPreviousChargePosRef.current.x = spawnPos[0]
     matildaPreviousChargePosRef.current.z = spawnPos[2]
     chefPhaseRef.current = CHEF_PHASE1
+    setIsChefPhase2(false)
     chefTelegraphStartRef.current = 0
     sightBlockedRef.current = false
     nextSightCheckRef.current = getRuntimeElapsedMs(useGameStore.getState().elapsedMs) + (stableEnemyHash(id) % 90)
@@ -774,6 +779,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         // 텔레그래프 종료 → 돌진 개시: 격노 신호 소등 + 차저 포즈 초기화
         if (hitFlashRef.current) { queueVisualState('hitFlash', false); hitFlashRef.current = false }
         chargeState.current = 'chase'
+        setIsChefPhase2(true)
         queueVisualState('animPhase', 'normal')
       }
       chefPhaseRef.current = nextState
@@ -1056,7 +1062,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           colliders={false}
         >
           <CuboidCollider args={colArgs} />
-          <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} isMatilda={isMatilda} scale={stats.scale} />
+          <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} isMatilda={isMatilda} scale={stats.scale} isChefPhase2={isChefPhase2} />
         </RigidBody>
       )}
 
