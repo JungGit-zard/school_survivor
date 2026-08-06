@@ -1,0 +1,76 @@
+{
+  "tracks": [
+    {
+      "path": "D:/JungSil/2.Minigame_project/school_survivor-integration/Developer/stage_bgm_drafts_2026-08-06/masters/stage1_classroom_toy_rescue_loop_draft.wav",
+      "bytes": 3949758,
+      "sha256": "c56b6e3e783c278a73d1fa60dc4019f017dd444de4478ffd238299083eb7af08",
+      "channels": 1,
+      "sampleRate": 32000,
+      "bitDepth": 16,
+      "frames": 1974857,
+      "durationSec": 61.71428125,
+      "samplePeak": 0.8399658203125,
+      "samplePeakDbfs": -1.5147677157072617,
+      "rms": 0.18319552490935972,
+      "rmsDbfs": -14.741702789226778,
+      "dcOffset": -0.00010442078868914622,
+      "startSample": 0.0,
+      "endSample": 0.0,
+      "loopSeamDiscontinuity": 0.0,
+      "loopSeamWindowRmsDelta1024": 0.20907165011991333,
+      "nonSilentRatio": 0.6720628379675085,
+      "clippedSampleCount": 0,
+      "passesSignalValidation": true
+    },
+    {
+      "path": "D:/JungSil/2.Minigame_project/school_survivor-integration/Developer/stage_bgm_drafts_2026-08-06/masters/stage2_corridor_sports_arcade_loop_draft.wav",
+      "bytes": 3736260,
+      "sha256": "c7c1991803c99173ffa62ee40992ab13b17cc6f3cb8499902852e6931cf7a9e0",
+      "channels": 1,
+      "sampleRate": 32000,
+      "bitDepth": 16,
+      "frames": 1868108,
+      "durationSec": 58.378375,
+      "samplePeak": 0.8399658203125,
+      "samplePeakDbfs": -1.5147677157072617,
+      "rms": 0.18380080497058648,
+      "rmsDbfs": -14.713051818354161,
+      "dcOffset": -0.002013235517289376,
+      "startSample": 0.0,
+      "endSample": 0.0,
+      "loopSeamDiscontinuity": 0.0,
+      "loopSeamWindowRmsDelta1024": 0.30413970369678817,
+      "nonSilentRatio": 0.4893780231121541,
+      "clippedSampleCount": 0,
+      "passesSignalValidation": true
+    }
+  ],
+  "titleBgmCanonical": {
+    "path": "D:/JungSil/2.Minigame_project/school_survivor-integration/Developer/r3f_prototype/src/assets/audio/title_bgm.m4a",
+    "exists": true,
+    "bytes": 998122,
+    "sha256": "991bf9871fe70b55852920390b3b1434892cfc50da79d3e8fd900062b191cffe",
+    "expectedBytes": 998122,
+    "expectedSha256": "991bf9871fe70b55852920390b3b1434892cfc50da79d3e8fd900062b191cffe",
+    "passes": true
+  },
+  "determinism": {
+    "tempDirRemoved": true,
+    "pairs": [
+      {
+        "logicalId": "stage1_classroom_toy_rescue_chiptune_draft",
+        "sha256RunA": "c56b6e3e783c278a73d1fa60dc4019f017dd444de4478ffd238299083eb7af08",
+        "sha256RunB": "c56b6e3e783c278a73d1fa60dc4019f017dd444de4478ffd238299083eb7af08",
+        "same": true
+      },
+      {
+        "logicalId": "stage2_corridor_sports_arcade_run_draft",
+        "sha256RunA": "c7c1991803c99173ffa62ee40992ab13b17cc6f3cb8499902852e6931cf7a9e0",
+        "sha256RunB": "c7c1991803c99173ffa62ee40992ab13b17cc6f3cb8499902852e6931cf7a9e0",
+        "same": true
+      }
+    ],
+    "passes": true
+  },
+  "passes": true
+}

@@ -471,7 +471,7 @@ export default function GraphicsStudio() {
     return target && !target.closed ? target : null
   }
 
-  const sendGameSync = ({ openGame = false, retryAfterLoad = false } = {}) => {
+  const sendGameSync = async ({ openGame = false, retryAfterLoad = false } = {}) => {
     let target = gameWindowRef.current
     if (openGame) {
       const url = parseStudioGameUrl(gameUrl)
@@ -486,21 +486,21 @@ export default function GraphicsStudio() {
       return false
     }
 
+    const result = await flushFirebaseStudioSave({ user: authUser })
+    if (!['saved', 'no-pending'].includes(result?.status)) {
+      if (mountedRef.current) setFirebaseStatus('offline-error')
+      return false
+    }
+
     const postSync = () => target.postMessage({ type: STUDIO_GAME_SYNC_MESSAGE }, gameOriginRef.current)
-    void flushFirebaseStudioSave({ user: authUser }).then((result) => {
-      if (!['saved', 'no-pending'].includes(result?.status)) {
-        if (mountedRef.current) setFirebaseStatus('offline-error')
-        return
-      }
-      postSync()
-      if (retryAfterLoad) {
-        ;[250, 800].forEach((delay) => {
-          window.setTimeout(() => {
-            if (gameWindowRef.current === target && !target.closed) postSync()
-          }, delay)
-        })
-      }
-    })
+    postSync()
+    if (retryAfterLoad) {
+      ;[250, 800].forEach((delay) => {
+        window.setTimeout(() => {
+          if (gameWindowRef.current === target && !target.closed) postSync()
+        }, delay)
+      })
+    }
     return true
   }
 
@@ -511,24 +511,16 @@ export default function GraphicsStudio() {
       ...datasets,
       propPlacements: saved,
     })
-    if (result.status === 'saved' && sendGameSync({ openGame: true, retryAfterLoad: true })) {
+    if (result.status === 'saved' && await sendGameSync({ openGame: true, retryAfterLoad: true })) {
       setApplyStatus('Props applied')
+    } else if (result.status === 'saved') {
+      setApplyStatus('Game sync failed')
     }
     return saved
   }
 
-  const connectGameWindow = () => {
+  const connectFirebaseStudio = () => {
     if (connectInFlightRef.current) return
-    const url = parseStudioGameUrl(gameUrl)
-    if (!url) {
-      setApplyStatus('Invalid Game URL')
-      return
-    }
-    const target = openOrReuseGameWindow(url)
-    if (!target) {
-      setApplyStatus('Unable to open game window')
-      return
-    }
 
     connectInFlightRef.current = true
     setFirebaseStatus('checking')
@@ -555,11 +547,10 @@ export default function GraphicsStudio() {
       }
 
       if (mountedRef.current) {
-        sendGameSync({ retryAfterLoad: true })
         if (!user?.uid && authStatus !== 'unconfigured') setFirebaseStatus('offline-error')
         setApplyStatus(cloudReady
-          ? `Connected: ${url.origin}`
-          : `Firebase connection failed: ${url.origin}`)
+          ? 'Firebase connected'
+          : 'Firebase connection failed')
       }
     })().finally(() => {
       connectInFlightRef.current = false
@@ -685,8 +676,10 @@ export default function GraphicsStudio() {
       stageBossPreview: normalizeStageBossPreview(stageBossPreview),
       decals: nextDecals,
     })
-    if (result.status === 'saved' && sendGameSync({ openGame: true, retryAfterLoad: true })) {
+    if (result.status === 'saved' && await sendGameSync({ openGame: true, retryAfterLoad: true })) {
       setApplyStatus('Game applied')
+    } else if (result.status === 'saved') {
+      setApplyStatus('Game sync failed')
     }
   }
 
@@ -746,8 +739,10 @@ export default function GraphicsStudio() {
       ...datasets,
       sfxTunings: next,
     })
-    if (result.status === 'saved' && sendGameSync({ openGame: true, retryAfterLoad: true })) {
+    if (result.status === 'saved' && await sendGameSync({ openGame: true, retryAfterLoad: true })) {
       setApplyStatus('Audio applied')
+    } else if (result.status === 'saved') {
+      setApplyStatus('Game sync failed')
     }
   }
 
@@ -777,8 +772,10 @@ export default function GraphicsStudio() {
       ...datasets,
       bossFaceRecipes: nextRecipes,
     })
-    if (result.status === 'saved' && sendGameSync({ openGame: true, retryAfterLoad: true })) {
+    if (result.status === 'saved' && await sendGameSync({ openGame: true, retryAfterLoad: true })) {
       setApplyStatus('Face parts applied')
+    } else if (result.status === 'saved') {
+      setApplyStatus('Game sync failed')
     }
   }
 
@@ -847,7 +844,7 @@ export default function GraphicsStudio() {
               onChange={(event) => setGameUrl(event.target.value)}
               style={styles.gameBridgeInput}
             />
-            <button type="button" onClick={connectGameWindow} style={styles.gameBridgeButton}>Connect</button>
+            <button type="button" onClick={connectFirebaseStudio} style={styles.gameBridgeButton}>Connect</button>
           </label>
           <div style={styles.statusLine}>
             <span style={styles.sourceLabel}>{activeSection === 'graphics' ? selectedItem.source : activeSection === 'faces' ? 'procedural shader face parts' : selectedSfx?.src}</span>

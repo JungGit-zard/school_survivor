@@ -254,40 +254,19 @@ describe('GraphicsStudio', () => {
     }))
   })
 
-  it('connects to a typed game URL and asks that game window to refetch Firebase', async () => {
-    const postMessage = vi.fn()
-    vi.spyOn(window, 'open').mockReturnValue({ closed: false, postMessage })
+  it('Connect only rehydrates Firebase Studio and never opens the game', async () => {
+    await renderSignedInStudio({ uid: 'connected-user' })
+    cloudMocks.hydrate.mockClear()
+    cloudMocks.flush.mockClear()
+    window.open.mockClear()
 
-    act(() => {
-      root.render(<GraphicsStudio />)
-    })
+    await clickButton('Connect')
 
-    const gameUrl = container.querySelector('input[name="gameUrl"]')
-    act(() => {
-      gameUrl.value = 'http://localhost:5173/'
-      gameUrl.dispatchEvent(new Event('input', { bubbles: true }))
-    })
-
-    const connect = Array.from(container.querySelectorAll('button'))
-      .find((button) => button.textContent === 'Connect')
-    act(() => {
-      connect.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-
-    const scale = container.querySelector('input[name="scale"]')
-    act(() => {
-      scale.value = '1.55'
-      scale.dispatchEvent(new Event('input', { bubbles: true }))
-    })
-    await act(async () => {
-      await Promise.resolve()
-    })
-
-    expect(window.open).toHaveBeenCalledWith('http://localhost:5173/', 'escape-zombie-school-game')
-    expect(postMessage).toHaveBeenLastCalledWith(
-      { type: 'escape-zombie-school.studioGameSync.v1' },
-      'http://localhost:5173',
-    )
+    expect(window.open).not.toHaveBeenCalled()
+    expect(cloudMocks.flush).toHaveBeenCalledWith(expect.objectContaining({ user: { uid: 'connected-user' } }))
+    expect(cloudMocks.hydrate).toHaveBeenCalledWith(expect.objectContaining({ user: { uid: 'connected-user' } }))
+    expect(container.textContent).toContain('Firebase connected')
+    expect(container.querySelector('[data-testid="studio-firebase-status"]').dataset.status).toBe('synced')
   })
 
   it('hydrates a signed-in user and refreshes preview plus prop editor from cloud', async () => {
@@ -326,7 +305,7 @@ describe('GraphicsStudio', () => {
     expect(container.querySelector('[data-testid="prop-marker-cloud-desk"]')).toBeTruthy()
   })
 
-  it('opens the game and posts the hydrated remote state for a signed-in admin without a Connect-time login', async () => {
+  it('Connect never opens the game for a signed-in user', async () => {
     // 로그인은 스튜디오 입구(App 라우트 게이트)에서만 — 진입 시점에 이미 signedIn.
     authMocks.state.status = 'signedIn'
     authMocks.state.user = { uid: 'connected-user' }
@@ -334,9 +313,6 @@ describe('GraphicsStudio', () => {
       saveStudioTunings({ player: { scale: 1.92 } })
       return { status: 'remote-applied', revision: 8 }
     })
-    const postMessage = vi.fn()
-    window.open.mockReturnValue({ closed: false, postMessage })
-
     await act(async () => {
       root.render(<GraphicsStudio />)
     })
@@ -347,14 +323,11 @@ describe('GraphicsStudio', () => {
       await Promise.resolve()
     })
 
-    expect(window.open).toHaveBeenCalledTimes(1)
+    expect(window.open).not.toHaveBeenCalled()
     // Connect는 2차 로그인을 하지 않는다(입구에서 이미 로그인함).
     expect(authMocks.signIn).not.toHaveBeenCalled()
     expect(cloudMocks.flush).toHaveBeenCalledWith(expect.objectContaining({ user: { uid: 'connected-user' } }))
-    expect(postMessage).toHaveBeenCalledWith(
-      { type: 'escape-zombie-school.studioGameSync.v1' },
-      expect.any(String),
-    )
+    expect(container.textContent).toContain('Firebase connected')
   })
 
   it('keeps Firebase runtime unchanged and blocks Apply when cloud hydrate fails', async () => {
@@ -452,7 +425,9 @@ describe('GraphicsStudio', () => {
     })
 
     expect(cloudMocks.hydrate).toHaveBeenCalledTimes(2)
-    expect(postMessage).toHaveBeenCalled()
+    expect(window.open).not.toHaveBeenCalled()
+    expect(postMessage).not.toHaveBeenCalled()
+    expect(container.querySelector('[data-testid="studio-firebase-status"]').dataset.status).toBe('synced')
   })
 
   it('does not save a draft and writes the full Firebase snapshot only when Apply is pressed', async () => {
@@ -517,7 +492,7 @@ describe('GraphicsStudio', () => {
     root = createRoot(container)
   })
 
-  it('reports a blocked popup for Apply paths that need to open the game', async () => {
+  it('does not report Apply success when the game window cannot open', async () => {
     window.open.mockReturnValue(null)
     await renderSignedInStudio()
 
@@ -528,7 +503,8 @@ describe('GraphicsStudio', () => {
       await Promise.resolve()
     })
 
-    expect(container.textContent).toContain('Unable to open game window')
+    expect(container.textContent).toContain('Game sync failed')
+    expect(container.textContent).not.toContain('Game applied')
   })
 
   it('opens the game and requests a Firebase refresh when Apply is pressed', async () => {

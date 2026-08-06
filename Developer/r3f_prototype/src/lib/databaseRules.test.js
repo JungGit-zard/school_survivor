@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { STAGE_BONUS, CLEAR_BONUS, getBossClearBonus, getRankingScore } from './rankingScorePolicy.js'
 import { DEFAULT_SETTINGS } from './titleSettings.js'
+import { FIREBASE_STUDIO_DATASET_KEYS } from './firebaseStudio.js'
 
 const RULES_PATH = fileURLToPath(new URL('../../database.rules.json', import.meta.url))
 const FIREBASE_RC_PATH = fileURLToPath(new URL('../../.firebaserc', import.meta.url))
