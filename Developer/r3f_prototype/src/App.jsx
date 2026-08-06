@@ -3,8 +3,8 @@ import GoogleAccountPanel from './components/GoogleAccountPanel.jsx'
 import ReadyGameApp from './components/ReadyGameApp.jsx'
 import {
   hydrateFirebaseStudio,
+  initializeFirebaseStudioIfMissing,
   hydrateCanonicalTitlePlayer,
-  publishCanonicalTitlePlayer,
   setFirebaseStudioUser,
   subscribeFirebaseStudio,
 } from './lib/firebaseStudio.js'
@@ -53,6 +53,17 @@ export default function App() {
     void initializeAuth()
   }, [initializeAuth])
 
+  // 스튜디오는 마스터 계정 전용이다. 다른 구글 계정이 /graphics-studio로 들어오면
+  // 편집기 근처까지 가는 것 자체가 치명적이므로 창을 즉시 닫는다.
+  // (스크립트로 연 창이 아니면 브라우저가 close를 막으므로 아래 거부 화면이 최종 방어선이다.)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!window.location.pathname.startsWith('/graphics-studio')) return
+    if (isE2EGraphicsStudioBypass() || isE2EAuthBypass()) return
+    if (authStatus !== 'signedIn' || isProjectMaster(authUser)) return
+    window.close()
+  }, [authStatus, authUser])
+
   const ensureStudioCloudReady = useCallback(async (user = authUser) => {
     // DEV E2E는 가짜 사용자 workspace를 절대 읽거나 쓰지 않는다. 공개 정본만 읽어
     // 유효한 원격 revision을 적용해야 로비와 게임의 Studio 의존 모델이 fail-closed 상태에
@@ -84,6 +95,16 @@ export default function App() {
     }
     const isGraphicsStudioRouteNow = typeof window !== 'undefined'
       && window.location.pathname.startsWith('/graphics-studio')
+    // 스튜디오 주소에서는 마스터가 아니면 워크스페이스를 읽지도 않는다. 게이트가 화면을
+    // 막아도 여기서 읽으면 이미 뚫린 것이다. (게임 주소의 플레이어 하이드레이트는 무관.)
+    if (isGraphicsStudioRouteNow && !isProjectMaster(user)) {
+      setFirebaseStudioUser(null)
+      hydratedUidRef.current = ''
+      studioRuntimeSourceRef.current = 'none'
+      hydrationRef.current = null
+      setStudioCloudStatus('unauthenticated')
+      return false
+    }
     // 이미 이 uid로 하이드레이트돼 런타임이 준비된 상태. 구독 오류 등으로 상태만 실패로
     // 남아 있을 수 있으므로 상태도 함께 되돌린다 — 안 그러면 재시도가 아무 일도 안 한다.
     if (hydratedUidRef.current === uid && isFirebaseStudioRuntimeReady()) {
@@ -109,6 +130,22 @@ export default function App() {
         }
         hydratedUidRef.current = ''
 
+        if (isGraphicsStudioRouteNow && isProjectMaster(user) && result?.status === 'missing-remote') {
+          const initialized = await initializeFirebaseStudioIfMissing({ user }).catch(() => ({ status: 'write-failed' }))
+          if (initialized?.status === 'created' || initialized?.status === 'already-exists') {
+            const hydrated = await hydrateFirebaseStudio({ user })
+            if (hydrated?.status === 'remote-applied') {
+              hydratedUidRef.current = uid
+              studioRuntimeSourceRef.current = 'user'
+              setStudioCloudStatus('remote-applied')
+              return true
+            }
+            setStudioCloudStatus(hydrated?.status ?? 'read-failed')
+            return false
+          }
+          setStudioCloudStatus(initialized?.status ?? 'write-failed')
+          return false
+        }
         if (!isGraphicsStudioRouteNow && result?.status === 'missing-remote') {
           if (studioRuntimeSourceRef.current === 'canonical' && isFirebaseStudioRuntimeReady()) {
             setStudioCloudStatus('remote-applied')
@@ -162,21 +199,6 @@ export default function App() {
     }
   }, [authStatus, authUser, ensureStudioCloudReady, hydratePreLoginCanonicalPlayer])
 
-  // 마스터 세션에서 스튜디오가 준비되면, 현재 주인공 튜닝을 공개 정본 노드에 게시(best-effort).
-  // 이렇게 해서 canonicalTitlePlayer가 항상 마스터의 최신 주인공 세팅으로 유지된다.
-  useEffect(() => {
-    if (isE2EAuthBypass()) return undefined
-    if (
-      authStatus === 'signedIn'
-      && authUser?.uid
-      && isProjectMaster(authUser)
-      && studioCloudStatus === 'remote-applied'
-      && isFirebaseStudioRuntimeReady()
-    ) {
-      void publishCanonicalTitlePlayer({ user: authUser }).catch(() => {})
-    }
-  }, [authStatus, authUser, studioCloudStatus])
-
   useEffect(() => {
     if (isE2EAuthBypass()) return undefined
     if (
@@ -229,6 +251,11 @@ export default function App() {
   const isDevGraphicsStudioBypass = isGraphicsStudioRoute && isE2EGraphicsStudioBypass()
   if (isDevGraphicsStudioBypass && !isFirebaseStudioRuntimeReady()) {
     commitFirebaseStudioRuntime({}, { revision: 0 })
+  }
+  // 마스터가 아닌 로그인 계정은 여기서 끝이다 — 부트스트랩도, 편집기도 보여주지 않는다.
+  if (isGraphicsStudioRoute && !isDevGraphicsStudioBypass
+    && authStatus === 'signedIn' && !isProjectMaster(authUser)) {
+    return null
   }
   // 스튜디오 입구 로그인: /graphics-studio는 로그인해야 진입한다(로그인 지점 2곳 중 하나).
   // canonicalTitlePlayer 하이드레이트로 studioReady가 로그인 전에도 true가 될 수 있으므로,
@@ -299,7 +326,8 @@ function getStudioBootstrapMessage(authStatus, studioCloudStatus) {
   // 이 계정에 워크스페이스가 아직 없는 것과, 있는데 못 읽은 것은 사용자가 할 조치가 다르다.
   if (studioCloudStatus === 'missing-remote') return t('app.studioNoWorkspace')
   if (studioCloudStatus === 'account-conflict') return t('app.studioAccountConflict')
-  return t('app.studioFailed')
+  // 마스터 전용 화면이라 원인 코드를 그대로 노출한다 — 뭉뚱그린 문구로는 원인을 못 좁힌다.
+  return `${t('app.studioFailed')} (${studioCloudStatus})`
 }
 
 function AppBootstrap({ message, onRetry = null }) {

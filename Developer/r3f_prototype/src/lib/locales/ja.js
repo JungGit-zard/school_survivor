@@ -168,6 +168,7 @@ export default {
   'app.studioNeedsSignIn': 'GoogleログインのあとにFirebase Studioデータを読み込みます。',
   'app.studioLoading': 'Firebase Studioデータを読み込んでいます。',
   'app.studioFailed': 'Firebase Studioデータを読み込めませんでした。ログイン状態と接続を確認してください。',
+  'app.studioMasterOnly': 'グラフィックスタジオはマスター専用です。このGoogleアカウントでは入れません。',
   'app.studioNoWorkspace': 'このGoogleアカウントにはまだグラフィックスタジオの作業領域がありません。マスターアカウントでログインしてください。',
   'app.studioAccountConflict': '別のGoogleアカウントの未保存のスタジオ変更が残っています。そのアカウントでログインして適用してから再試行してください。',
   'loading.studio': 'グラフィックスタジオを読み込み中…',

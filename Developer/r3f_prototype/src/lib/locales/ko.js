@@ -163,6 +163,7 @@ export default {
   'app.studioNeedsSignIn': 'Google 로그인 후 Firebase Studio 데이터를 불러옵니다.',
   'app.studioLoading': 'Firebase Studio 데이터를 불러오는 중입니다.',
   'app.studioFailed': 'Firebase Studio 데이터를 불러오지 못했습니다. 로그인 상태와 연결을 확인해 주세요.',
+  'app.studioMasterOnly': '그래픽 스튜디오는 최고관리자 전용입니다. 이 Google 계정으로는 들어갈 수 없습니다.',
   'app.studioNoWorkspace': '이 Google 계정에는 아직 그래픽 스튜디오 작업 공간이 없습니다. 마스터 계정으로 로그인해 주세요.',
   'app.studioAccountConflict': '다른 Google 계정의 저장되지 않은 스튜디오 변경이 남아 있습니다. 원래 계정으로 로그인해 적용한 뒤 다시 시도해 주세요.',
   'loading.studio': '그래픽 스튜디오 불러오는 중…',

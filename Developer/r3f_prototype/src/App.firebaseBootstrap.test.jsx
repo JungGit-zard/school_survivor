@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   readyGameModuleLoaded: vi.fn(),
   readyGameProps: null,
   studioHydrate: vi.fn(),
+  studioInitialize: vi.fn(),
   studioSubscribe: vi.fn(),
   canonicalHydrate: vi.fn(() => Promise.resolve({ status: 'missing-remote' })),
   canonicalPublish: vi.fn(() => Promise.resolve({ status: 'forbidden' })),
@@ -36,6 +37,7 @@ vi.mock('./lib/firebaseProgress.js', () => ({
 
 vi.mock('./lib/firebaseStudio.js', () => ({
   hydrateFirebaseStudio: mocks.studioHydrate,
+  initializeFirebaseStudioIfMissing: mocks.studioInitialize,
   hydrateCanonicalTitlePlayer: mocks.canonicalHydrate,
   publishCanonicalTitlePlayer: mocks.canonicalPublish,
   setFirebaseStudioUser: vi.fn(),
@@ -70,6 +72,14 @@ vi.mock('./components/AdminPage.jsx', () => ({
 
 const { default: App } = await import('./App.jsx')
 
+// 스튜디오 게이트를 통과할 수 있는 유일한 형태의 계정 — projectAdmin.isProjectMaster 기준.
+const MASTER_USER = Object.freeze({
+  uid: 'master',
+  email: 'zard5388@gmail.com',
+  emailVerified: true,
+  providerIds: ['google.com'],
+})
+
 async function renderApp() {
   const container = document.createElement('div')
   document.body.appendChild(container)
@@ -97,6 +107,7 @@ describe('App Firebase bootstrap boundary', () => {
     mocks.readyGameProps = null
     mocks.readyGameModuleLoaded.mockClear()
     mocks.studioHydrate.mockReset().mockResolvedValue({ status: 'remote-applied', revision: 1 })
+    mocks.studioInitialize.mockReset().mockResolvedValue({ status: 'already-exists' })
     mocks.studioSubscribe.mockReset().mockResolvedValue({
       status: 'subscribed',
       unsubscribe: vi.fn(),
@@ -267,27 +278,47 @@ describe('App Firebase bootstrap boundary', () => {
     view.unmount()
   })
 
-  it('keeps the graphics studio route blocked when the signed-in account has no personal graphics workspace', async () => {
+  it('initializes an empty canonical workspace for the master and then enters Studio', async () => {
     window.history.replaceState({}, '', '/graphics-studio')
     mocks.authState.status = 'signedIn'
-    mocks.authState.user = { uid: 'new-player' }
-    mocks.studioHydrate.mockResolvedValue({ status: 'missing-remote' })
-    mocks.canonicalHydrate.mockResolvedValue({ status: 'remote-applied', revision: 11 })
+    mocks.authState.user = MASTER_USER
+    mocks.studioHydrate
+      .mockResolvedValueOnce({ status: 'missing-remote' })
+      .mockImplementationOnce(async () => { mocks.studioRuntimeReady = true; return { status: 'remote-applied', revision: 1 } })
+    mocks.studioInitialize.mockResolvedValue({ status: 'created', revision: 1 })
 
     const view = await renderApp()
     await act(async () => { await Promise.resolve(); await Promise.resolve() })
 
+    expect(mocks.studioInitialize).toHaveBeenCalledWith({ user: MASTER_USER })
+    expect(mocks.studioHydrate).toHaveBeenCalledTimes(2)
+    expect(view.container.querySelector('[data-testid="graphics-studio"]')).not.toBe(null)
+    view.unmount()
+  })
+
+  it('shuts the window on a signed-in non-master and never reads the studio workspace', async () => {
+    window.history.replaceState({}, '', '/graphics-studio')
+    mocks.authState.status = 'signedIn'
+    mocks.authState.user = { uid: 'someone-else', email: 'intruder@example.com', emailVerified: true, providerIds: ['google.com'] }
+    const close = vi.spyOn(window, 'close').mockImplementation(() => {})
+
+    const view = await renderApp()
+    await act(async () => { await Promise.resolve(); await Promise.resolve() })
+
+    expect(close).toHaveBeenCalled()
+    // close가 막히는 브라우저에서도 Studio·부트스트랩·데이터를 렌더하지 않는다.
     expect(view.container.querySelector('[data-testid="graphics-studio"]')).toBe(null)
-    // 워크스페이스가 없는 것은 읽기 실패와 다른 상황이라 안내도 달라야 한다.
-    expect(view.container.textContent).toContain('그래픽 스튜디오 작업 공간이 없습니다')
-    expect(mocks.canonicalHydrate).not.toHaveBeenCalled()
+    expect(view.container.textContent).toBe('')
+    expect(mocks.studioHydrate).not.toHaveBeenCalled()
+    expect(mocks.studioSubscribe).not.toHaveBeenCalled()
+    close.mockRestore()
     view.unmount()
   })
 
   it('recovers the graphics studio route from a transient hydrate failure without a page reload', async () => {
     window.history.replaceState({}, '', '/graphics-studio')
     mocks.authState.status = 'signedIn'
-    mocks.authState.user = { uid: 'master' }
+    mocks.authState.user = MASTER_USER
     mocks.studioHydrate.mockResolvedValueOnce({ status: 'read-failed' })
 
     const view = await renderApp()

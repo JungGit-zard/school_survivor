@@ -168,6 +168,7 @@ export default {
   'app.studioNeedsSignIn': 'Firebase Studio data loads after Google sign-in.',
   'app.studioLoading': 'Loading Firebase Studio data.',
   'app.studioFailed': 'Could not load Firebase Studio data. Check your sign-in status and connection.',
+  'app.studioMasterOnly': 'Graphics Studio is master-only. This Google account cannot enter.',
   'app.studioNoWorkspace': 'This Google account has no Graphics Studio workspace yet. Sign in with the master account.',
   'app.studioAccountConflict': 'Unsaved Studio changes from another Google account are still pending. Sign back in with that account, apply them, then retry.',
   'loading.studio': 'Loading Graphics Studio…',
