@@ -42,7 +42,7 @@ describe('Graphics Studio immediate Firebase contract', () => {
     const apply = [...container.querySelectorAll('button')].find((button) => button.textContent === 'Apply')
     expect(apply.style.minHeight).toBe('64px'); expect(apply.style.fontSize).toBe('28px')
   })
-  it('quietly syncs an existing game once for input changes without retrying after load', async () => {
+  it('does not sync an existing game before Apply', async () => {
     vi.useFakeTimers()
     try {
       const postMessage = vi.fn()
@@ -58,9 +58,9 @@ describe('Graphics Studio immediate Firebase contract', () => {
 
       await change('scale', '1.45')
       expect(window.open).not.toHaveBeenCalled()
-      expect(postMessage).toHaveBeenCalledTimes(1)
+      expect(postMessage).not.toHaveBeenCalled()
       await act(async () => { await vi.runAllTimersAsync() })
-      expect(postMessage).toHaveBeenCalledTimes(1)
+      expect(postMessage).not.toHaveBeenCalled()
     } finally {
       vi.useRealTimers()
     }

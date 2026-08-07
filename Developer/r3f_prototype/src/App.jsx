@@ -46,6 +46,8 @@ export default function App() {
   const hydratedUidRef = useRef('')
   const studioRuntimeSourceRef = useRef(isFirebaseStudioRuntimeReady() ? 'unknown' : 'none')
   const hydrationRef = useRef(null)
+  const isGraphicsStudioRoute = typeof window !== 'undefined'
+    && window.location.pathname.startsWith('/graphics-studio')
 
   useEffect(() => {
     void initializeAuth()
@@ -62,6 +64,9 @@ export default function App() {
   }, [authStatus, authUser])
 
   const ensureStudioCloudReady = useCallback(async (user = authUser) => {
+    const isGraphicsStudioRouteNow = typeof window !== 'undefined'
+      && window.location.pathname.startsWith('/graphics-studio')
+    if (!isGraphicsStudioRouteNow) return false
     // DEV E2E??媛吏??ъ슜??workspace瑜??덈? ?쎄굅???곗? ?딅뒗?? 怨듦컻 ?뺣낯留??쎌뼱
     // ?좏슚???먭꺽 revision???곸슜?댁빞 濡쒕퉬? 寃뚯엫??Studio ?섏〈 紐⑤뜽??fail-closed ?곹깭??
     // 鍮좎?吏 ?딅뒗?? ?쇰컲 濡쒓렇??Graphics Studio???ъ슜?먮퀎 hydrate 寃쎈줈???꾨옒 洹몃?濡??붾떎.
@@ -70,16 +75,8 @@ export default function App() {
       hydratedUidRef.current = ''
       studioRuntimeSourceRef.current = 'none'
       hydrationRef.current = null
-      if (typeof window !== 'undefined' && window.location.pathname.startsWith('/graphics-studio')) {
-        setStudioCloudStatus('unauthenticated')
-        return false
-      }
-      setStudioCloudStatus('loading')
-      const result = await hydrateCanonicalTitlePlayer({}).catch(() => ({ status: 'read-failed' }))
-      const ready = result?.status === 'remote-applied'
-      studioRuntimeSourceRef.current = ready ? 'canonical' : 'none'
-      setStudioCloudStatus(result?.status ?? 'read-failed')
-      return ready
+      setStudioCloudStatus('unauthenticated')
+      return false
     }
     const uid = typeof user?.uid === 'string' ? user.uid.trim() : ''
     if (!uid) {
@@ -90,11 +87,9 @@ export default function App() {
       setStudioCloudStatus('unauthenticated')
       return false
     }
-    const isGraphicsStudioRouteNow = typeof window !== 'undefined'
-      && window.location.pathname.startsWith('/graphics-studio')
     // ?ㅽ뒠?붿삤 二쇱냼?먯꽌??留덉뒪?곌? ?꾨땲硫??뚰겕?ㅽ럹?댁뒪瑜??쎌????딅뒗?? 寃뚯씠?멸? ?붾㈃??
     // 留됱븘???ш린???쎌쑝硫??대? ?ル┛ 寃껋씠?? (寃뚯엫 二쇱냼???뚮젅?댁뼱 ?섏씠?쒕젅?댄듃??臾닿?.)
-    if (isGraphicsStudioRouteNow && !isProjectMaster(user)) {
+    if (!isProjectMaster(user)) {
       setFirebaseStudioUser(null)
       hydratedUidRef.current = ''
       studioRuntimeSourceRef.current = 'none'
@@ -108,10 +103,6 @@ export default function App() {
       setStudioCloudStatus('remote-applied')
       return true
     }
-    if (!isGraphicsStudioRouteNow && studioRuntimeSourceRef.current === 'canonical' && isFirebaseStudioRuntimeReady()) {
-      setStudioCloudStatus('remote-applied')
-      return true
-    }
     if (hydrationRef.current?.uid === uid) return hydrationRef.current.promise
 
     setFirebaseStudioUser(user)
@@ -121,19 +112,19 @@ export default function App() {
         const ready = result?.status === 'remote-applied'
         if (ready) {
           hydratedUidRef.current = uid
-          studioRuntimeSourceRef.current = 'user'
+          studioRuntimeSourceRef.current = 'studio'
           setStudioCloudStatus('remote-applied')
           return true
         }
         hydratedUidRef.current = ''
 
-        if (isGraphicsStudioRouteNow && isProjectMaster(user) && result?.status === 'missing-remote') {
+        if (result?.status === 'missing-remote') {
           const initialized = await initializeFirebaseStudioIfMissing({ user }).catch(() => ({ status: 'write-failed' }))
           if (initialized?.status === 'created' || initialized?.status === 'already-exists') {
             const hydrated = await hydrateFirebaseStudio({ user })
             if (hydrated?.status === 'remote-applied') {
               hydratedUidRef.current = uid
-              studioRuntimeSourceRef.current = 'user'
+              studioRuntimeSourceRef.current = 'studio'
               setStudioCloudStatus('remote-applied')
               return true
             }
@@ -142,17 +133,6 @@ export default function App() {
           }
           setStudioCloudStatus(initialized?.status ?? 'write-failed')
           return false
-        }
-        if (!isGraphicsStudioRouteNow && result?.status === 'missing-remote') {
-          if (studioRuntimeSourceRef.current === 'canonical' && isFirebaseStudioRuntimeReady()) {
-            setStudioCloudStatus('remote-applied')
-            return true
-          }
-          const canonical = await hydrateCanonicalTitlePlayer({}).catch(() => ({ status: 'read-failed' }))
-          const canonicalReady = canonical?.status === 'remote-applied'
-          studioRuntimeSourceRef.current = canonicalReady ? 'canonical' : 'none'
-          setStudioCloudStatus(canonicalReady ? 'remote-applied' : (canonical?.status ?? 'read-failed'))
-          return canonicalReady
         }
         studioRuntimeSourceRef.current = 'none'
         setStudioCloudStatus(result?.status ?? 'read-failed')
@@ -174,10 +154,7 @@ export default function App() {
   // 濡쒓렇????uid ?놁쓬): 怨듦컻 ?뺣낯 ?몃뱶(공개 정본)?먯꽌 二쇱씤怨??쒕떇???섏씠?쒕젅?댄듃?쒕떎.
   // ?깃났 ??studioVisualsReady媛 true媛 ?섏뼱 ?덈? ??꾩젣瑜?吏?ㅻŉ 濡쒓렇???꾩뿉???쒕떇??二쇱씤怨듭씠 蹂댁씤??
   // ?ㅽ뙣(誘몃같??誘멸쾶??硫?remote ?꾨떂 ??二쇱씤怨듭? fail-closed濡??④?(留??ъ쫰 ?뚮뜑 湲덉?).
-  const hydratePreLoginCanonicalPlayer = useCallback(async () => {
-    setFirebaseStudioUser(null)
-    hydratedUidRef.current = ''
-    hydrationRef.current = null
+  const hydrateGameCanonicalStudio = useCallback(async () => {
     const result = await hydrateCanonicalTitlePlayer({}).catch(() => ({ status: 'read-failed' }))
     studioRuntimeSourceRef.current = result?.status === 'remote-applied' ? 'canonical' : 'none'
     setStudioCloudStatus(result?.status === 'remote-applied'
@@ -187,23 +164,34 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    if (isGraphicsStudioRoute) return
+    void hydrateGameCanonicalStudio()
+  }, [isGraphicsStudioRoute, hydrateGameCanonicalStudio])
+
+  useEffect(() => {
+    if (!isGraphicsStudioRoute) return
     if (authStatus === 'signedIn' && authUser?.uid) {
       void ensureStudioCloudReady(authUser)
       return
     }
     if (['signedOut', 'unconfigured', 'error'].includes(authStatus)) {
-      void hydratePreLoginCanonicalPlayer()
+      setFirebaseStudioUser(null)
+      hydratedUidRef.current = ''
+      hydrationRef.current = null
+      studioRuntimeSourceRef.current = 'none'
+      setStudioCloudStatus('unauthenticated')
     }
-  }, [authStatus, authUser, ensureStudioCloudReady, hydratePreLoginCanonicalPlayer])
+  }, [isGraphicsStudioRoute, authStatus, authUser, ensureStudioCloudReady])
 
   useEffect(() => {
+    if (!isGraphicsStudioRoute) return undefined
     if (isE2EAuthBypass()) return undefined
     if (
       authStatus !== 'signedIn'
       || !authUser?.uid
       || studioCloudStatus !== 'remote-applied'
       || !isFirebaseStudioRuntimeReady()
-      || studioRuntimeSourceRef.current !== 'user'
+      || studioRuntimeSourceRef.current !== 'studio'
       || hydratedUidRef.current !== authUser.uid
     ) return undefined
 
@@ -239,12 +227,10 @@ export default function App() {
       cancelled = true
       unsubscribe?.()
     }
-  }, [authStatus, authUser?.uid, studioCloudStatus])
+  }, [isGraphicsStudioRoute, authStatus, authUser?.uid, studioCloudStatus])
 
   const studioReady = studioCloudStatus === 'remote-applied'
     && isFirebaseStudioRuntimeReady()
-  const isGraphicsStudioRoute = typeof window !== 'undefined'
-    && window.location.pathname.startsWith('/graphics-studio')
   // 留덉뒪?곌? ?꾨땶 濡쒓렇??怨꾩젙? ?ш린???앹씠????遺?몄뒪?몃옪?? ?몄쭛湲곕룄 蹂댁뿬二쇱? ?딅뒗??
   if (isGraphicsStudioRoute
     && authStatus === 'signedIn' && !isProjectMaster(authUser)) {

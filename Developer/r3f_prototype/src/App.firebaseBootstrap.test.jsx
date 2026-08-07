@@ -153,7 +153,7 @@ describe('App Firebase bootstrap boundary', () => {
     view.unmount()
   })
 
-  it('keeps an authenticated ordinary user in the game runtime through 1,000 Studio Firebase failures', async () => {
+  it('never connects an authenticated ordinary game user to Graphics Studio', async () => {
     const ordinaryUser = {
       uid: 'ordinary-studio-failure-stress',
       email: 'ordinary@example.com',
@@ -169,7 +169,9 @@ describe('App Firebase bootstrap boundary', () => {
     const view = await renderApp()
     expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
 
-    await vi.waitFor(() => expect(mocks.studioHydrate).toHaveBeenCalledWith({ user: ordinaryUser }))
+    await vi.waitFor(() => expect(mocks.canonicalHydrate).toHaveBeenCalledWith({}))
+    expect(mocks.studioHydrate).not.toHaveBeenCalled()
+    expect(mocks.studioSubscribe).not.toHaveBeenCalled()
     expect(mocks.readyGameProps).not.toHaveProperty('ensureStudioCloudReady')
     expect(view.container.querySelector('[data-testid="graphics-studio"]')).toBe(null)
     view.unmount()
@@ -199,7 +201,7 @@ describe('App Firebase bootstrap boundary', () => {
     view.unmount()
   })
 
-  it('falls back to the public canonical Studio revision for a signed-in player without a personal graphics workspace', async () => {
+  it('reads only the public canonical revision for a signed-in game player', async () => {
     mocks.authState.status = 'signedIn'
     mocks.authState.user = { uid: 'new-player' }
     mocks.studioHydrate.mockResolvedValue({ status: 'missing-remote' })
@@ -209,11 +211,12 @@ describe('App Firebase bootstrap boundary', () => {
 
     await vi.waitFor(() => expect(mocks.canonicalHydrate).toHaveBeenCalled())
     expect(mocks.readyGameProps).not.toHaveProperty('ensureStudioCloudReady')
+    expect(mocks.studioHydrate).not.toHaveBeenCalled()
     expect(mocks.studioSubscribe).not.toHaveBeenCalled()
     view.unmount()
   })
 
-  it('hydrates a signed-in player personal Studio workspace even when canonical visuals were preloaded', async () => {
+  it('never switches a signed-in game player to an authenticated Studio workspace', async () => {
     mocks.authState.status = 'signedIn'
     mocks.authState.user = { uid: 'studio-user' }
     mocks.studioRuntimeReady = true
@@ -222,9 +225,10 @@ describe('App Firebase bootstrap boundary', () => {
 
     const view = await renderApp()
 
-    await vi.waitFor(() => expect(mocks.studioHydrate).toHaveBeenCalledWith({ user: mocks.authState.user }))
+    await vi.waitFor(() => expect(mocks.canonicalHydrate).toHaveBeenCalledWith({}))
+    expect(mocks.studioHydrate).not.toHaveBeenCalled()
     expect(mocks.readyGameProps).not.toHaveProperty('ensureStudioCloudReady')
-    await vi.waitFor(() => expect(mocks.studioSubscribe).toHaveBeenCalledWith(expect.objectContaining({ user: mocks.authState.user })))
+    expect(mocks.studioSubscribe).not.toHaveBeenCalled()
     view.unmount()
   })
 

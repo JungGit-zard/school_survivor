@@ -405,13 +405,12 @@ export default function GraphicsStudio() {
     }
   }
 
-  const queueCanonicalMutation = (mutate, label = 'Saved') => {
+  const queueCanonicalMutation = (mutate, label = 'Saved', { syncGame = false } = {}) => {
     saveChainRef.current = saveChainRef.current.catch(() => undefined).then(async () => {
       const result = await persistDatasetsOnApply(mutate(loadStudioRuntimeDatasets()))
       if (result?.status === 'saved') {
         refreshStudioState()
-        const hasOpenGame = gameWindowRef.current && !gameWindowRef.current.closed
-        if (!hasOpenGame || await sendGameSync()) {
+        if (!syncGame || await sendGameSync({ openGame: true, retryAfterLoad: true })) {
           setApplyStatus(`${label} · revision ${result.revision}`)
         } else {
           setApplyStatus('Game sync failed')
@@ -524,7 +523,11 @@ export default function GraphicsStudio() {
 
   const applyPropPlacements = (config) => {
     const saved = normalizeStagePropPlacements(config)
-    void queueCanonicalMutation((datasets) => ({ ...datasets, propPlacements: saved }), 'Props applied')
+    void queueCanonicalMutation(
+      (datasets) => ({ ...datasets, propPlacements: saved }),
+      'Props applied',
+      { syncGame: true },
+    )
     return saved
   }
 
