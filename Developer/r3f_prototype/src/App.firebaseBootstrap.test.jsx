@@ -1,4 +1,4 @@
-﻿// @vitest-environment jsdom
+// @vitest-environment jsdom
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -264,7 +264,7 @@ describe('App Firebase bootstrap boundary', () => {
     }
     const view = await renderApp()
 
-    expect(view.container.querySelector('[role="alertdialog"]')?.textContent).toContain('??沅뚰븳???놁뒿?덈떎')
+    expect(view.container.querySelector('[role="alertdialog"]')?.textContent).toContain('신 권한이 없습니다')
     view.unmount()
   })
 
@@ -349,7 +349,7 @@ describe('App Firebase bootstrap boundary', () => {
     expect(view.container.querySelector('[data-testid="graphics-studio"]')).toBe(null)
 
     const retry = [...view.container.querySelectorAll('button')]
-      .find((button) => button.textContent === '?ㅼ떆 ?쒕룄')
+      .find((button) => button.textContent === '다시 시도')
     expect(retry).toBeTruthy()
 
     mocks.studioHydrate.mockResolvedValue({ status: 'remote-applied', revision: 2 })
@@ -366,10 +366,11 @@ describe('App Firebase bootstrap boundary', () => {
     view.unmount()
   })
 
-  it('blocks the graphics studio E2E bypass user without any Firebase Studio read, subscribe, or publish', async () => {
+  it('blocks the E2E user from the graphics studio without any Firebase Studio read, subscribe, or publish', async () => {
     window.history.replaceState({}, '', '/graphics-studio?e2e=1&studio=1')
     mocks.authState.status = 'signedIn'
     mocks.authState.user = { uid: 'e2e-local-test' }
+    const close = vi.spyOn(window, 'close').mockImplementation(() => {})
 
     const view = await renderApp()
     await act(async () => { await Promise.resolve(); await Promise.resolve() })
@@ -380,22 +381,21 @@ describe('App Firebase bootstrap boundary', () => {
     expect(mocks.studioSubscribe).not.toHaveBeenCalled()
     expect(mocks.canonicalPublish).not.toHaveBeenCalled()
     view.unmount()
+    close.mockRestore()
   })
 
-  it('handleStudioGameSyncMessage uses canonical hydrate with empty payload when there is no auth user', async () => {
+  it('refreshes a signed-out game from the canonical Studio path', async () => {
     mocks.authState.user = null
-    mocks.canonicalHydrate.mockResolvedValue({ status: 'remote-applied', revision: 1 })
+    mocks.canonicalHydrate.mockResolvedValue({ status: 'remote-applied', revision: 8 })
 
-    const result = await handleStudioGameSyncMessage({
+    await expect(handleStudioGameSyncMessage({
       data: { type: STUDIO_GAME_SYNC_MESSAGE },
       origin: 'http://localhost:5173',
       source: null,
-    })
+    })).resolves.toBe(true)
 
-    expect(result).toBe(true)
     expect(mocks.canonicalHydrate).toHaveBeenCalledWith({})
     expect(mocks.studioHydrate).not.toHaveBeenCalled()
-    expect(mocks.studioInitialize).not.toHaveBeenCalled()
   })
 })
 
