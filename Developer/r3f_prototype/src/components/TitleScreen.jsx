@@ -138,6 +138,7 @@ export default function TitleScreen({
   const [consentOpen, setConsentOpen] = useState(false)
   const [consentUser, setConsentUser] = useState(null)
   const authUser = useAuthStore((s) => s.user)
+  const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle)
   const [settings] = useState(() => (
     isFirebaseProgressHydrated(authUser) ? loadTitleSettings() : {
       vibration: true,
@@ -360,19 +361,27 @@ export default function TitleScreen({
     }
   }
 
-  // 게임 시작은 로그인·동의·닉네임·클라우드 진행도·Studio 그래픽 준비와 무관하게
-  // 무조건 로비로 들어간다. Google 로그인은 좌상단 계정 패널의 선택 기능일 뿐,
-  // 라이브 게임 진입을 막는 게이트가 되어서는 안 된다.
-  const handleStartClick = () => {
+  // 게임 시작: 미로그인이면 Google 로그인부터 요구하고, 로그인 성공 즉시 로비로 보낸다.
+  // 로그인 이후 Studio/클라우드 진행도/닉네임/동의 상태는 로비 진입을 조용히 씹으면 안 된다.
+  const handleStartClick = async () => {
     setCheatOpen(false)
     setNicknameOpen(false)
     setConsentOpen(false)
     setConsentUser(null)
     setStudioError('')
+
+    let user = authUser
+    if (!user?.uid) {
+      user = await signInWithGoogle()
+      if (!user?.uid) {
+        setStudioError(t('title.loginRequired'))
+        return
+      }
+    }
+
     onEnterLobby?.()
 
-    const user = authUser
-    if (!user?.uid || !ensureStudioCloudReady) return
+    if (!ensureStudioCloudReady) return
     void (async () => {
       try {
         if (!await ensureStudioCloudReady(user)) {

@@ -295,8 +295,9 @@ describe('TitleScreen lobby entry', () => {
     cleanup()
   })
 
-  it('enters the lobby from the start button when Google is signed out without starting login', async () => {
-    const signInWithGoogle = vi.fn(async () => ({ uid: 'should-not-be-used' }))
+  it('starts Google login from the start button when Google is signed out and enters the lobby after success', async () => {
+    const googleUser = { uid: 'uid-login', displayName: 'Login Tester', email: 'login@example.com', photoURL: '' }
+    const signInWithGoogle = vi.fn(async () => googleUser)
     useAuthStore.setState({
       status: 'signedOut',
       user: null,
@@ -304,15 +305,18 @@ describe('TitleScreen lobby entry', () => {
       signInWithGoogle,
     })
     const onEnterLobby = vi.fn()
-    const { container, cleanup } = renderTitleScreen(onEnterLobby)
+    const ensureStudioCloudReady = vi.fn(async () => true)
+    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {}, ensureStudioCloudReady)
 
     await act(async () => {
       clickButtonByTextRaw(container, '게임 시작')
       await Promise.resolve()
+      await Promise.resolve()
     })
 
-    expect(signInWithGoogle).not.toHaveBeenCalled()
+    expect(signInWithGoogle).toHaveBeenCalledTimes(1)
     expect(onEnterLobby).toHaveBeenCalledTimes(1)
+    expect(ensureStudioCloudReady).toHaveBeenCalledWith(googleUser)
     expect(container.querySelector('#title-nickname-input')).toBeNull()
     expect(container.textContent).not.toContain('닉네임 설정')
     expect(container.textContent).not.toContain('이용약관·개인정보처리방침 동의')

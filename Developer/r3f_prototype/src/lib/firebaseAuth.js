@@ -95,7 +95,8 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
   const app = getApps().length > 0 ? getApp() : initializeApp(getFirebaseConfig(env))
   await maybeInitAppCheck(app, env)
   const auth = authModule.getAuth(app)
-  await setFirebaseAuthMemoryPersistence(authModule, auth)
+  await setFirebaseAuthBrowserPersistence(authModule, auth)
+  await consumePendingRedirectResult(authModule, auth)
   const provider = new authModule.GoogleAuthProvider()
   provider.setCustomParameters({ prompt: 'select_account' })
   const useNativeGoogle = shouldUseNativeGoogleSignIn(globalScope)
@@ -110,8 +111,14 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
       if (useNativeGoogle) {
         return signInWithNativeGoogle(authModule, auth)
       }
-      const credential = await authModule.signInWithPopup(auth, provider)
-      return toAuthUser(credential.user)
+      try {
+        const credential = await authModule.signInWithPopup(auth, provider)
+        return toAuthUser(credential.user)
+      } catch (error) {
+        if (!shouldFallbackToRedirect(error)) throw error
+        await authModule.signInWithRedirect(auth, provider)
+        return null
+      }
     },
     signOut: async () => {
       await authModule.signOut(auth)
@@ -141,11 +148,32 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
   }
 }
 
-export async function setFirebaseAuthMemoryPersistence(authModule, auth) {
-  if (typeof authModule?.setPersistence !== 'function' || !authModule?.inMemoryPersistence) {
-    throw new Error('Firebase Auth in-memory persistence is unavailable.')
+export async function setFirebaseAuthBrowserPersistence(authModule, auth) {
+  if (typeof authModule?.setPersistence !== 'function') return
+  const persistence = authModule.browserLocalPersistence
+    ?? authModule.browserSessionPersistence
+    ?? authModule.inMemoryPersistence
+  if (!persistence) throw new Error('Firebase Auth persistence is unavailable.')
+  await authModule.setPersistence(auth, persistence)
+}
+
+async function consumePendingRedirectResult(authModule, auth) {
+  if (typeof authModule?.getRedirectResult !== 'function') return null
+  if (typeof window === 'undefined' || typeof window.sessionStorage === 'undefined') return null
+  try {
+    return await authModule.getRedirectResult(auth)
+  } catch (error) {
+    if (typeof console !== 'undefined') console.warn('Firebase Google redirect result failed.', error)
+    return null
   }
-  await authModule.setPersistence(auth, authModule.inMemoryPersistence)
+}
+
+function shouldFallbackToRedirect(error) {
+  const code = typeof error?.code === 'string' ? error.code : ''
+  return code === 'auth/popup-blocked'
+    || code === 'auth/popup-closed-by-user'
+    || code === 'auth/cancelled-popup-request'
+    || code === 'auth/operation-not-supported-in-this-environment'
 }
 
 // App Check(reCAPTCHA v3)은 site key가 있을 때만 1회 초기화한다.

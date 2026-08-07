@@ -3,7 +3,7 @@ import {
   getFirebaseConfig,
   getLocalFirebaseAuthRedirect,
   isFirebaseAuthConfigured,
-  setFirebaseAuthMemoryPersistence,
+  setFirebaseAuthBrowserPersistence,
   shouldUseNativeGoogleSignIn,
   toAuthUser,
 } from './firebaseAuth.js'
@@ -102,21 +102,30 @@ describe('firebase auth configuration', () => {
     expect(getLocalFirebaseAuthRedirect({ href: 'http://127.0.0.1:5175/graphics-studio' }, true)).toBeNull()
   })
 
-  it('keeps the Firebase login session in memory only', async () => {
+  it('keeps the Firebase login session in browser storage when available', async () => {
+    const auth = { name: 'test-auth' }
+    const browserLocalPersistence = { type: 'LOCAL' }
+    const calls = []
+
+    await setFirebaseAuthBrowserPersistence({
+      browserLocalPersistence,
+      inMemoryPersistence: { type: 'NONE' },
+      setPersistence: async (...args) => calls.push(args),
+    }, auth)
+
+    expect(calls).toEqual([[auth, browserLocalPersistence]])
+  })
+
+  it('falls back to in-memory persistence only if browser persistence is unavailable', async () => {
     const auth = { name: 'test-auth' }
     const inMemoryPersistence = { type: 'NONE' }
     const calls = []
 
-    await setFirebaseAuthMemoryPersistence({
+    await setFirebaseAuthBrowserPersistence({
       inMemoryPersistence,
       setPersistence: async (...args) => calls.push(args),
     }, auth)
 
     expect(calls).toEqual([[auth, inMemoryPersistence]])
-  })
-
-  it('fails closed when in-memory Firebase Auth persistence is unavailable', async () => {
-    await expect(setFirebaseAuthMemoryPersistence({}, {}))
-      .rejects.toThrow('Firebase Auth in-memory persistence is unavailable.')
   })
 })
