@@ -70,6 +70,7 @@ afterEach(() => {
   useGameStore.getState().resetPassiveUpgrades()
   delete document.documentElement.dataset.reducedEffects
   vi.unstubAllGlobals()
+  window.sessionStorage.clear()
 })
 
 describe('TitleScreen lobby entry', () => {
@@ -317,9 +318,46 @@ describe('TitleScreen lobby entry', () => {
     expect(signInWithGoogle).toHaveBeenCalledTimes(1)
     expect(onEnterLobby).toHaveBeenCalledTimes(1)
     expect(ensureStudioCloudReady).toHaveBeenCalledWith(googleUser)
+    expect(window.sessionStorage.getItem('eszs:pending-start-after-google-login')).toBeNull()
     expect(container.querySelector('#title-nickname-input')).toBeNull()
     expect(container.textContent).not.toContain('닉네임 설정')
     expect(container.textContent).not.toContain('이용약관·개인정보처리방침 동의')
+
+    cleanup()
+  })
+
+  it('enters the lobby after Google redirect returns with a signed-in user', async () => {
+    const googleUser = { uid: 'uid-redirect', displayName: 'Redirect Tester', email: 'redirect@example.com', photoURL: '' }
+    const signInWithGoogle = vi.fn(async () => null)
+    useAuthStore.setState({
+      status: 'signedOut',
+      user: null,
+      initialized: true,
+      signInWithGoogle,
+    })
+    const onEnterLobby = vi.fn()
+    const ensureStudioCloudReady = vi.fn(async () => true)
+    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {}, ensureStudioCloudReady)
+
+    await act(async () => {
+      clickButtonByTextRaw(container, '게임 시작')
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+
+    expect(signInWithGoogle).toHaveBeenCalledTimes(1)
+    expect(onEnterLobby).not.toHaveBeenCalled()
+    expect(window.sessionStorage.getItem('eszs:pending-start-after-google-login')).toBe('1')
+
+    await act(async () => {
+      useAuthStore.setState({ status: 'signedIn', user: googleUser })
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+
+    expect(onEnterLobby).toHaveBeenCalledTimes(1)
+    expect(ensureStudioCloudReady).toHaveBeenCalledWith(googleUser)
+    expect(window.sessionStorage.getItem('eszs:pending-start-after-google-login')).toBeNull()
 
     cleanup()
   })

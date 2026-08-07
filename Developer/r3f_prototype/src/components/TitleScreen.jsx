@@ -21,6 +21,7 @@ import titleBgmUrl from '../assets/audio/title_bgm.m4a'
 
 const REVEAL_CHEATS_CODE = ['arrowup', 'arrowdown', 'arrowup', 'arrowdown', 'a', 's', 'd']
 const DEV_CHEATS_ENABLED = import.meta.env.DEV
+const PENDING_START_AFTER_LOGIN_KEY = 'eszs:pending-start-after-google-login'
 // 한국어 정본 슬램 배치. 문자 수·진입 벡터·순서를 그대로 보존한다.
 const TITLE_ACCENT_LETTERS = [
   { char: '탈', order: 0, x: '-110vw', y: '-5vh', rotation: '-18deg' },
@@ -58,10 +59,31 @@ function getTitleWords(locale, translate) {
   if (locale === 'ko') return { accent: TITLE_ACCENT_LETTERS, school: TITLE_SCHOOL_LETTERS }
   const accentWord = translate('title.wordAccent')
   const schoolWord = translate('title.wordSchool')
-  return {
-    accent: buildTitleLetters(accentWord, 0),
-    school: buildTitleLetters(schoolWord, accentWord.length),
+  const accent = buildTitleLetters(accentWord, 0)
+  const school = buildTitleLetters(schoolWord, accent.length)
+  return { accent, school }
+}
+
+function markPendingStartAfterLogin() {
+  try {
+    window.sessionStorage?.setItem(PENDING_START_AFTER_LOGIN_KEY, '1')
+  } catch {}
+}
+
+function consumePendingStartAfterLogin() {
+  try {
+    const pending = window.sessionStorage?.getItem(PENDING_START_AFTER_LOGIN_KEY) === '1'
+    if (pending) window.sessionStorage?.removeItem(PENDING_START_AFTER_LOGIN_KEY)
+    return pending
+  } catch {
+    return false
   }
+}
+
+function clearPendingStartAfterLogin() {
+  try {
+    window.sessionStorage?.removeItem(PENDING_START_AFTER_LOGIN_KEY)
+  } catch {}
 }
 
 function titleLetterDelayMs(order, total) {
@@ -361,24 +383,8 @@ export default function TitleScreen({
     }
   }
 
-  // 게임 시작: 미로그인이면 Google 로그인부터 요구하고, 로그인 성공 즉시 로비로 보낸다.
-  // 로그인 이후 Studio/클라우드 진행도/닉네임/동의 상태는 로비 진입을 조용히 씹으면 안 된다.
-  const handleStartClick = async () => {
-    setCheatOpen(false)
-    setNicknameOpen(false)
-    setConsentOpen(false)
-    setConsentUser(null)
-    setStudioError('')
-
-    let user = authUser
-    if (!user?.uid) {
-      user = await signInWithGoogle()
-      if (!user?.uid) {
-        setStudioError(t('title.loginRequired'))
-        return
-      }
-    }
-
+  const enterLobbyFromStart = (user) => {
+    clearPendingStartAfterLogin()
     onEnterLobby?.()
 
     if (!ensureStudioCloudReady) return
@@ -391,6 +397,36 @@ export default function TitleScreen({
         setStudioError(t('title.studioError'))
       }
     })()
+  }
+
+  useEffect(() => {
+    if (!authUser?.uid) return
+    if (!consumePendingStartAfterLogin()) return
+    setCheatOpen(false)
+    setNicknameOpen(false)
+    setConsentOpen(false)
+    setConsentUser(null)
+    setStudioError('')
+    enterLobbyFromStart(authUser)
+  }, [authUser?.uid])
+
+  // 게임 시작: 미로그인이면 Google 로그인부터 요구하고, 로그인 성공 즉시 로비로 보낸다.
+  // redirect 로그인처럼 user가 즉시 반환되지 않는 흐름은 pending flag로 돌아온 뒤 자동 진입한다.
+  const handleStartClick = async () => {
+    setCheatOpen(false)
+    setNicknameOpen(false)
+    setConsentOpen(false)
+    setConsentUser(null)
+    setStudioError('')
+
+    let user = authUser
+    if (!user?.uid) {
+      markPendingStartAfterLogin()
+      user = await signInWithGoogle()
+      if (!user?.uid) return
+    }
+
+    enterLobbyFromStart(user)
   }
 
   const handleConsentConfirmed = () => {
