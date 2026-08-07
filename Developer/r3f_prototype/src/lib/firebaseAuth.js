@@ -66,6 +66,11 @@ export function getLocalFirebaseAuthRedirect(location = getDefaultGlobalScope()?
   return url.href
 }
 
+export function isGraphicsStudioLocation(location = getDefaultGlobalScope()?.location) {
+  if (!location?.pathname) return false
+  return location.pathname.startsWith('/graphics-studio')
+}
+
 export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScope = getDefaultGlobalScope()) {
   if (!isFirebaseAuthConfigured(env)) {
     return {
@@ -95,8 +100,10 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
   const app = getApps().length > 0 ? getApp() : initializeApp(getFirebaseConfig(env))
   await maybeInitAppCheck(app, env)
   const auth = authModule.getAuth(app)
-  await setFirebaseAuthBrowserPersistence(authModule, auth)
-  await consumePendingRedirectResult(authModule, auth)
+  await setFirebaseAuthMemoryPersistence(authModule, auth)
+  if (!isGraphicsStudioLocation(globalScope?.location)) {
+    await consumePendingRedirectResult(authModule, auth)
+  }
   const provider = new authModule.GoogleAuthProvider()
   provider.setCustomParameters({ prompt: 'select_account' })
   const useNativeGoogle = shouldUseNativeGoogleSignIn(globalScope)
@@ -115,6 +122,7 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
         const credential = await authModule.signInWithPopup(auth, provider)
         return toAuthUser(credential.user)
       } catch (error) {
+        if (isGraphicsStudioLocation(globalScope?.location)) throw error
         if (!shouldFallbackToRedirect(error)) throw error
         await authModule.signInWithRedirect(auth, provider)
         return null
@@ -148,13 +156,11 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
   }
 }
 
-export async function setFirebaseAuthBrowserPersistence(authModule, auth) {
-  if (typeof authModule?.setPersistence !== 'function') return
-  const persistence = authModule.browserLocalPersistence
-    ?? authModule.browserSessionPersistence
-    ?? authModule.inMemoryPersistence
-  if (!persistence) throw new Error('Firebase Auth persistence is unavailable.')
-  await authModule.setPersistence(auth, persistence)
+export async function setFirebaseAuthMemoryPersistence(authModule, auth) {
+  if (typeof authModule?.setPersistence !== 'function' || !authModule.inMemoryPersistence) {
+    throw new Error('Firebase Auth memory-only persistence is unavailable.')
+  }
+  await authModule.setPersistence(auth, authModule.inMemoryPersistence)
 }
 
 async function consumePendingRedirectResult(authModule, auth) {

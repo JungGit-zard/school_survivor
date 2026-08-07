@@ -17,7 +17,7 @@ describe('Realtime Database rules', () => {
     expect(rules.users.$uid['.write']).toContain('auth.uid === $uid')
   })
 
-  it('validates activity and consent while rejecting unknown account-bound progress fields', () => {
+  it('validates activity and rejects unknown account-bound progress fields', () => {
     const user = rules.users.$uid
     expect(user.activity.lastStartedAt['.validate']).toContain('newData.isString()')
     expect(user.activity.lastStageId['.validate']).toContain('newData.isString()')
@@ -59,15 +59,15 @@ describe('Realtime Database rules', () => {
     expect(progressValidation).not.toContain("'passiveUpgrades'")
   })
 
-  it('blocks legacy per-user Studio data and permits only the full canonical envelope', () => {
-    const studioUser = rules.studioWorkspaces.v1.users.$uid
-    const studio = rules.studioWorkspaces.v1.canonical.current
-    expect(studioUser.current['.read']).toBe(false)
-    expect(studioUser.current['.write']).toBe(false)
+  it('keeps only one canonical Studio route and restricts Studio writes to GOD account', () => {
+    const studioV1 = rules.studioWorkspaces.v1
+    expect(studioV1.users).toBeUndefined()
+    expect(studioV1.canonicalTitlePlayer).toBeUndefined()
+    const studio = studioV1.canonical.current
     expect(studio['.read']).toBe(true)
-    expect(studio['.write']).toContain("auth.token.email === 'zard5388@gmail.com'")
-    expect(studio['.write']).toContain("auth.token.email_verified === true")
-    expect(studio['.write']).toContain("auth.token.firebase.sign_in_provider === 'google.com'")
+    expect(studio['.write']).toBe(
+      "auth != null && auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com'",
+    )
     expect(studio.schemaVersion['.validate']).toContain('newData.val() === 1')
     expect(studio.revision['.validate']).toContain('newData.val() >= 0')
     expect(studio.revision['.validate']).toContain('newData.val() % 1 === 0')
@@ -79,7 +79,6 @@ describe('Realtime Database rules', () => {
       .toEqual([...FIREBASE_STUDIO_DATASET_KEYS, '$other'].sort())
     expect(studio.datasets.$other['.validate']).toBe(false)
     expect(studio.$other['.validate']).toBe(false)
-    expect(studioUser.$other['.validate']).toBe(false)
   })
 
   it('keeps global daily/weekly rows publicly readable and owner-writable per uid', () => {
@@ -169,8 +168,6 @@ describe('ranking entry write rules (evaluated against the real rule strings)', 
 
   it('keeps a Stage 1 boss-kill gameover under the uncleared cap and accepts the portal-clear bonus only on clear', () => {
     const gameover = honestEntry({ stageId: 'stage1', timeMs: 192_000, cleared: false })
-    // A stale caller may still pass the old 44-point value; score policy must
-    // strip it before this payload reaches the RTDB rule.
     gameover.score = getRankingScore({ stageId: 'stage1', survivalSeconds: 192, cleared: false, bossBonus: 44 })
     expect(gameover.score).toBe(192)
     expect(fullyAccepts(stageRule, { ...base, $stageId: 'stage1', entry: gameover })).toBe(true)

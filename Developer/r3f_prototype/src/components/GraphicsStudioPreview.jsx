@@ -124,20 +124,6 @@ function getStudioPartLabel(object) {
   return object?.name || object?.parent?.name || object?.geometry?.type || object?.type || 'part'
 }
 
-function resetFocusedPartTransforms(root) {
-  root.traverse((object) => {
-    if (object.userData.studioPartBaseScale) {
-      object.scale.copy(object.userData.studioPartBaseScale)
-    }
-    if (object.userData.studioPartBaseRotation) {
-      object.rotation.copy(object.userData.studioPartBaseRotation)
-    }
-    if (object.userData.studioPartBasePosition) {
-      object.position.copy(object.userData.studioPartBasePosition)
-    }
-  })
-}
-
 function clearPartGroupOutlines(root) {
   const outlines = []
   root.traverse((object) => {
@@ -219,33 +205,6 @@ function updatePartGroupOutlines(root) {
     stylePartFocusOutline(object)
     if (typeof object.update === 'function') object.update()
   })
-}
-
-function applyFocusedPartTuning(root, focusedPartKeys, focusedPartTuning) {
-  resetFocusedPartTransforms(root)
-  syncPartGroupOutlines(root, focusedPartKeys)
-  updatePartGroupOutlines(root)
-  if (!focusedPartKeys.length || !focusedPartTuning) return
-
-  const transform = getStudioTransformProps(focusedPartTuning)
-  focusedPartKeys.forEach((focusedPartKey) => {
-    const part = findStudioPart(root, focusedPartKey)
-    if (!part) return
-
-    if (!part.userData.studioPartBaseScale) part.userData.studioPartBaseScale = part.scale.clone()
-    if (!part.userData.studioPartBaseRotation) part.userData.studioPartBaseRotation = part.rotation.clone()
-    if (!part.userData.studioPartBasePosition) part.userData.studioPartBasePosition = part.position.clone()
-
-    part.position.copy(part.userData.studioPartBasePosition).add(new THREE.Vector3(...transform.position))
-    part.scale.copy(part.userData.studioPartBaseScale).multiply(new THREE.Vector3(...transform.scale))
-    part.rotation.set(
-      part.userData.studioPartBaseRotation.x + transform.rotation[0],
-      part.userData.studioPartBaseRotation.y + transform.rotation[1],
-      part.userData.studioPartBaseRotation.z + transform.rotation[2],
-    )
-    applyStudioTuning(part, focusedPartTuning)
-  })
-  updatePartGroupOutlines(root)
 }
 
 function useApplyStudioTuning(rootRef, itemId, tuning, focusedPartKeys, partTunings, decals) {
@@ -546,13 +505,13 @@ function RenderPreviewItem({ item }) {
     // 파트 편집 중에는 정지 포즈로 고정해 base 캡처가 rest 포즈 기준으로 안정되게 한다
     return <DancingDoge dance="twist" />
   }
-  if (item.previewKind === 'stageObject' && item.objectType === 'desk') {
+  if (item.previewKind === 'stageObject' && item.objectType === 'classroomDesk') {
     return <ClassroomDesk variant={item.variant} />
   }
-  if (item.previewKind === 'stageObject' && item.objectType === 'chair') {
+  if (item.previewKind === 'stageObject' && item.objectType === 'classroomChair') {
     return <ClassroomChair variant={item.variant} />
   }
-  if (item.previewKind === 'stageObject' && item.objectType === 'student') {
+  if (item.previewKind === 'stageObject' && item.objectType === 'unconsciousStudent') {
     return <UnconsciousStudent variant={item.variant} />
   }
   if (item.previewKind === 'stageObject' && item.objectType === 'classPresidentStudent') {
@@ -564,9 +523,9 @@ function RenderPreviewItem({ item }) {
   if (item.previewKind === 'stageLock') {
     return <StageLockModel />
   }
-  if (item.previewKind === 'stageObject' && item.objectType === 'corridorLockers') return <CorridorLockerBank />
-  if (item.previewKind === 'stageObject' && item.objectType === 'janitorCart') return <CorridorJanitorCart />
-  if (item.previewKind === 'stageObject' && item.objectType === 'lostFoundBoard') return <CorridorLostFoundBoard />
+  if (item.previewKind === 'stageObject' && item.objectType === 'corridorLockerBank') return <CorridorLockerBank />
+  if (item.previewKind === 'stageObject' && item.objectType === 'corridorJanitorCart') return <CorridorJanitorCart />
+  if (item.previewKind === 'stageObject' && item.objectType === 'corridorLostFoundBoard') return <CorridorLostFoundBoard />
   if (item.previewKind === 'stageObject' && item.objectType === 'basketballHoop') return <BasketballHoop />
   if (item.previewKind === 'stageObject' && item.objectType === 'basketballBallCart') return <BallCart />
   if (item.previewKind === 'stageObject' && item.objectType === 'basketballCluster') return <BasketballCluster />

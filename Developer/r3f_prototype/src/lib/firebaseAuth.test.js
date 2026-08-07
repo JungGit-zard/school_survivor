@@ -1,12 +1,59 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   getFirebaseConfig,
   getLocalFirebaseAuthRedirect,
+  setFirebaseAuthMemoryPersistence,
   isFirebaseAuthConfigured,
-  setFirebaseAuthBrowserPersistence,
   shouldUseNativeGoogleSignIn,
   toAuthUser,
+  createFirebaseAuthClient,
+  isGraphicsStudioLocation,
 } from './firebaseAuth.js'
+
+const firebaseAuthMock = vi.hoisted(() => ({
+  app: { initializeApp: vi.fn(), getApp: vi.fn(), getApps: vi.fn(() => []) },
+  auth: {
+    getAuth: vi.fn(() => ({ currentUser: null })),
+    setPersistence: vi.fn(async () => {}),
+    inMemoryPersistence: { type: 'MEMORY' },
+    browserLocalPersistence: { type: 'LOCAL' },
+    browserSessionPersistence: { type: 'SESSION' },
+    getRedirectResult: vi.fn(async () => null),
+    onAuthStateChanged: vi.fn(() => vi.fn()),
+    signInWithPopup: vi.fn(),
+    signInWithRedirect: vi.fn(),
+    signOut: vi.fn(),
+    reauthenticateWithPopup: vi.fn(),
+    deleteUser: vi.fn(),
+    GoogleAuthProvider: class {
+      setCustomParameters = vi.fn()
+      constructor() {}
+      static credential = vi.fn(() => ({}))
+    },
+  },
+}))
+
+vi.mock('firebase/app', () => ({
+  initializeApp: (...args) => firebaseAuthMock.app.initializeApp(...args),
+  getApp: (...args) => firebaseAuthMock.app.getApp(...args),
+  getApps: (...args) => firebaseAuthMock.app.getApps(...args),
+}))
+
+vi.mock('firebase/auth', () => ({
+  GoogleAuthProvider: firebaseAuthMock.auth.GoogleAuthProvider,
+  getAuth: (...args) => firebaseAuthMock.auth.getAuth(...args),
+  inMemoryPersistence: firebaseAuthMock.auth.inMemoryPersistence,
+  browserLocalPersistence: firebaseAuthMock.auth.browserLocalPersistence,
+  browserSessionPersistence: firebaseAuthMock.auth.browserSessionPersistence,
+  setPersistence: (...args) => firebaseAuthMock.auth.setPersistence(...args),
+  getRedirectResult: (...args) => firebaseAuthMock.auth.getRedirectResult(...args),
+  onAuthStateChanged: (...args) => firebaseAuthMock.auth.onAuthStateChanged(...args),
+  signInWithPopup: (...args) => firebaseAuthMock.auth.signInWithPopup(...args),
+  signInWithRedirect: (...args) => firebaseAuthMock.auth.signInWithRedirect(...args),
+  signOut: (...args) => firebaseAuthMock.auth.signOut(...args),
+  reauthenticateWithPopup: (...args) => firebaseAuthMock.auth.reauthenticateWithPopup(...args),
+  deleteUser: (...args) => firebaseAuthMock.auth.deleteUser(...args),
+}))
 
 const COMPLETE_ENV = {
   VITE_FIREBASE_API_KEY: 'api-key',
@@ -102,30 +149,78 @@ describe('firebase auth configuration', () => {
     expect(getLocalFirebaseAuthRedirect({ href: 'http://127.0.0.1:5175/graphics-studio' }, true)).toBeNull()
   })
 
-  it('keeps the Firebase login session in browser storage when available', async () => {
-    const auth = { name: 'test-auth' }
-    const browserLocalPersistence = { type: 'LOCAL' }
-    const calls = []
-
-    await setFirebaseAuthBrowserPersistence({
-      browserLocalPersistence,
-      inMemoryPersistence: { type: 'NONE' },
-      setPersistence: async (...args) => calls.push(args),
-    }, auth)
-
-    expect(calls).toEqual([[auth, browserLocalPersistence]])
-  })
-
-  it('falls back to in-memory persistence only if browser persistence is unavailable', async () => {
+  it('switches Firebase Auth to memory-only persistence without browser storage', async () => {
     const auth = { name: 'test-auth' }
     const inMemoryPersistence = { type: 'NONE' }
     const calls = []
 
-    await setFirebaseAuthBrowserPersistence({
+    await setFirebaseAuthMemoryPersistence({
+      browserLocalPersistence: { type: 'LOCAL' },
+      browserSessionPersistence: { type: 'SESSION' },
       inMemoryPersistence,
-      setPersistence: async (...args) => calls.push(args),
+      setPersistence: async (...args) => {
+        calls.push(args)
+      },
     }, auth)
 
     expect(calls).toEqual([[auth, inMemoryPersistence]])
+  })
+
+  it('fails closed instead of selecting browser persistence when memory-only persistence is unavailable', async () => {
+    await expect(setFirebaseAuthMemoryPersistence({
+      browserLocalPersistence: { type: 'LOCAL' },
+      browserSessionPersistence: { type: 'SESSION' },
+    }, { name: 'test-auth' })).rejects.toThrow('memory-only persistence is unavailable')
+  })
+
+  it('recognizes graphics-studio paths with the route helper', () => {
+    expect(isGraphicsStudioLocation({ pathname: '/graphics-studio' })).toBe(true)
+    expect(isGraphicsStudioLocation({ pathname: '/graphics-studio/workspace' })).toBe(true)
+    expect(isGraphicsStudioLocation({ pathname: '/admin' })).toBe(false)
+  })
+
+  it('skips pending redirect-result handling when creating auth client on /graphics-studio', async () => {
+    firebaseAuthMock.app.getApps.mockReturnValue([])
+    firebaseAuthMock.auth.getRedirectResult.mockReset()
+
+    const client = await createFirebaseAuthClient(COMPLETE_ENV, {
+      location: { pathname: '/graphics-studio', protocol: 'http:', href: 'http://localhost:5173/graphics-studio' },
+      sessionStorage: {},
+      navigator: { userAgent: 'test-agent' },
+    })
+
+    client.configured
+    expect(client.configured).toBe(true)
+    expect(firebaseAuthMock.auth.getRedirectResult).not.toHaveBeenCalled()
+  })
+
+  it('rethrows popup errors on /graphics-studio instead of redirect fallback and keeps ordinary game fallback behavior', async () => {
+    firebaseAuthMock.app.getApps.mockReturnValue([])
+    firebaseAuthMock.auth.getRedirectResult.mockReset()
+    firebaseAuthMock.auth.signInWithPopup.mockReset().mockRejectedValueOnce(Object.assign(
+      new Error('popup blocked'),
+      { code: 'auth/popup-blocked' },
+    ))
+    firebaseAuthMock.auth.signInWithRedirect.mockReset()
+    const studioClient = await createFirebaseAuthClient(COMPLETE_ENV, {
+      location: { pathname: '/graphics-studio', protocol: 'http:', href: 'http://localhost:5173/graphics-studio' },
+      sessionStorage: {},
+      navigator: { userAgent: 'test-agent' },
+    })
+    await expect(studioClient.signInWithGoogle()).rejects.toThrow('popup blocked')
+    expect(firebaseAuthMock.auth.signInWithRedirect).not.toHaveBeenCalled()
+
+    const gameClient = await createFirebaseAuthClient(COMPLETE_ENV, {
+      location: { pathname: '/game', protocol: 'http:', href: 'http://localhost:5173/game' },
+      sessionStorage: {},
+      navigator: { userAgent: 'test-agent' },
+    })
+    firebaseAuthMock.auth.signInWithPopup.mockRejectedValueOnce(Object.assign(
+      new Error('popup blocked'),
+      { code: 'auth/popup-blocked' },
+    ))
+    firebaseAuthMock.auth.signInWithRedirect.mockResolvedValueOnce()
+    await expect(gameClient.signInWithGoogle()).resolves.toBeNull()
+    expect(firebaseAuthMock.auth.signInWithRedirect).toHaveBeenCalled()
   })
 })

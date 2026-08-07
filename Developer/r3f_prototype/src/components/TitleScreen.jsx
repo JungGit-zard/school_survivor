@@ -114,10 +114,6 @@ const TITLE_INTRO_CSS = `
   .title-intro-letter { animation: titleLetterSlam 520ms cubic-bezier(.16,.84,.28,1.08) backwards; }
   .title-intro-zombie { animation: titleZombieScurry 900ms ease-out backwards; }
   .title-intro-scene { animation: titleSceneGather 850ms cubic-bezier(.16,.84,.28,1.04) backwards; }
-  .title-main-action:focus-visible { outline:3px solid #fff8e8; outline-offset:3px; }
-  @media (max-width: 360px) and (max-height: 600px) {
-    .title-copy { top: max(96px, calc(env(safe-area-inset-top, 0px) + 88px)) !important; }
-  }
 `
 
 function TitleLetter({ config, total }) {
@@ -148,7 +144,6 @@ export default function TitleScreen({
   onRevealDevCheats,
   onUnlockAllStages,
   studioVisualsReady = false,
-  ensureStudioCloudReady,
 }) {
   const t = useT()
   const locale = useLocale()
@@ -156,7 +151,6 @@ export default function TitleScreen({
   const [nicknameOpen, setNicknameOpen] = useState(false)
   const [nicknameInput, setNicknameInput] = useState('')
   const [nicknameError, setNicknameError] = useState('')
-  const [studioError, setStudioError] = useState('')
   const [consentOpen, setConsentOpen] = useState(false)
   const [consentUser, setConsentUser] = useState(null)
   const authUser = useAuthStore((s) => s.user)
@@ -171,10 +165,8 @@ export default function TitleScreen({
     }
   ))
   const [cheatRevealMessage, setCheatRevealMessage] = useState(false)
-  const signingIn = useAuthStore((s) => s.signingIn)
   const resetPassiveUpgrades = useGameStore((s) => s.resetPassiveUpgrades)
   const cheatBufferRef = useRef([])
-  const titleBgmControllerRef = useRef(null)
   const adminOperations = getAdminOperationsConfig()
   const cheatMenuButtonVisible = DEV_CHEATS_ENABLED && devCheatsVisible && adminOperations.cheatMenuButtonVisible
   const titleWords = getTitleWords(locale, t)
@@ -225,7 +217,6 @@ export default function TitleScreen({
     if (typeof window !== 'undefined') window.__titleBgm = audio
 
     let disposed = false
-    let suspendedForSignIn = false
     let playing = false
     let retryBound = false
     const timers = []
@@ -242,7 +233,7 @@ export default function TitleScreen({
       document.removeEventListener('visibilitychange', handleVisibility)
     }
     const bindRetry = () => {
-      if (disposed || suspendedForSignIn || playing || retryBound) return
+      if (disposed || playing || retryBound) return
       retryBound = true
       window.addEventListener('pointerdown', tryPlay)
       window.addEventListener('touchstart', tryPlay)
@@ -250,7 +241,7 @@ export default function TitleScreen({
       document.addEventListener('visibilitychange', handleVisibility)
     }
     const handleSuccess = () => {
-      if (disposed || suspendedForSignIn) return
+      if (disposed) return
       playing = true
       clearTimers()
       unbindRetry()
@@ -259,7 +250,7 @@ export default function TitleScreen({
       if (document.visibilityState === 'visible') tryPlay()
     }
     function tryPlay() {
-      if (disposed || suspendedForSignIn || playing) return
+      if (disposed || playing) return
       let result
       try {
         result = audio.play()
@@ -280,25 +271,9 @@ export default function TitleScreen({
       timers.push(setTimeout(tryPlay, delay))
     }
 
-    const controller = {
-      suspendForSignIn() {
-        if (disposed || suspendedForSignIn) return
-        suspendedForSignIn = true
-        playing = false
-        clearTimers()
-        unbindRetry()
-        try {
-          audio.pause()
-        } catch {
           // 브라우저 Audio 정지 실패는 재생 재시도 없이 무시한다.
-        }
-      },
-    }
-    titleBgmControllerRef.current = controller
-
     return () => {
       disposed = true
-      if (titleBgmControllerRef.current === controller) titleBgmControllerRef.current = null
       clearTimers()
       unbindRetry()
       try {
@@ -309,10 +284,6 @@ export default function TitleScreen({
       }
     }
   }, [])
-
-  useLayoutEffect(() => {
-    if (signingIn) titleBgmControllerRef.current?.suspendForSignIn()
-  }, [signingIn])
 
   useEffect(() => {
     if (!cheatOpen && !nicknameOpen) return undefined
@@ -383,20 +354,9 @@ export default function TitleScreen({
     }
   }
 
-  const enterLobbyFromStart = (user) => {
+  const enterLobbyFromStart = () => {
     clearPendingStartAfterLogin()
     onEnterLobby?.()
-
-    if (!ensureStudioCloudReady) return
-    void (async () => {
-      try {
-        if (!await ensureStudioCloudReady(user)) {
-          setStudioError(t('title.studioError'))
-        }
-      } catch {
-        setStudioError(t('title.studioError'))
-      }
-    })()
   }
 
   useEffect(() => {
@@ -406,8 +366,7 @@ export default function TitleScreen({
     setNicknameOpen(false)
     setConsentOpen(false)
     setConsentUser(null)
-    setStudioError('')
-    enterLobbyFromStart(authUser)
+    enterLobbyFromStart()
   }, [authUser?.uid])
 
   // 게임 시작: 미로그인이면 Google 로그인부터 요구하고, 로그인 성공 즉시 로비로 보낸다.
@@ -417,8 +376,6 @@ export default function TitleScreen({
     setNicknameOpen(false)
     setConsentOpen(false)
     setConsentUser(null)
-    setStudioError('')
-
     let user = authUser
     if (!user?.uid) {
       markPendingStartAfterLogin()
@@ -426,7 +383,7 @@ export default function TitleScreen({
       if (!user?.uid) return
     }
 
-    enterLobbyFromStart(user)
+    enterLobbyFromStart()
   }
 
   const handleConsentConfirmed = () => {
@@ -487,7 +444,7 @@ export default function TitleScreen({
           {t('title.cheatButton')}
         </button>
       )}
-      <div className="title-copy" style={styles.content}>
+      <div style={styles.content}>
         <div aria-hidden="true" data-title-service-name style={styles.serviceName}>{t('title.serviceName')}</div>
         <h1 aria-label={t('title.serviceName')} style={{ ...styles.title, fontSize: t('title.fontSize') }}>
           <span style={{ ...styles.titleAccent, ...styles.titleWord }}>
@@ -522,16 +479,9 @@ export default function TitleScreen({
 
       <div style={styles.actions}>
         <div style={styles.mainActionStack}>
-          <p data-testid="title-gameplay-guide" style={styles.gameplayGuide}>{t('title.gameplayGuide')}</p>
-          <button type="button" className="title-main-action" style={{ ...styles.primaryButton, ...styles.mainActionButton }} onClick={handleStartClick}>
+          <button type="button" style={{ ...styles.primaryButton, ...styles.mainActionButton }} onClick={handleStartClick}>
             {t('title.start')}
           </button>
-          {studioError && (
-            <div role="alert" style={styles.studioError}>
-              <span>{studioError}</span>
-              <button type="button" style={styles.studioRetryButton} onClick={handleStartClick}>{t('common.retry')}</button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -794,23 +744,6 @@ const styles = {
     minWidth: 180,
     maxWidth: 230,
     transform: 'rotate(0.8deg)',
-  },
-  gameplayGuide: {
-    margin: 0,
-    color: uiPalette.ink,
-    fontSize: 12,
-    lineHeight: 1.35,
-    fontWeight: uiType.weightStrong,
-    textAlign: 'center',
-  },
-  studioError: {
-    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-    maxWidth: 360, padding: '9px 12px', borderRadius: 10,
-    background: 'rgba(65, 21, 37, 0.92)', border: '1px solid #ffb0ba',
-    color: '#fff1f3', fontSize: 12, fontWeight: 800, lineHeight: 1.35, textAlign: 'center',
-  },
-  studioRetryButton: {
-    ...schoolButton('paper'), flexShrink: 0, minHeight: 32, padding: '4px 9px', fontSize: 12,
   },
   primaryButton: {
     ...schoolButton('primary'),

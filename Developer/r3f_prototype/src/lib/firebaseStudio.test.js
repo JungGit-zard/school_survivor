@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  CANONICAL_STUDIO_PATH,
   applySubscribedFirebaseStudioSnapshot,
   applyFirebaseStudioSnapshot,
   buildFirebaseStudioSnapshot,
   decodeFirebaseStudioSnapshotFromStorage,
   encodeFirebaseStudioSnapshotForStorage,
-  getUserStudioPath,
   hydrateCanonicalTitlePlayer,
   hydrateFirebaseStudio,
   loadStudioRuntimeDatasets,
@@ -79,6 +79,7 @@ describe('Firebase-only Graphics Studio persistence', () => {
       status: 'remote-applied',
       revision: 7,
     })
+    expect(client.load).toHaveBeenCalledWith(CANONICAL_STUDIO_PATH)
 
     expect(isFirebaseStudioRuntimeReady()).toBe(true)
     expect(loadStudioTunings().player.scale).toBe(1.82)
@@ -195,6 +196,10 @@ describe('Firebase-only Graphics Studio persistence', () => {
     })).resolves.toEqual({ status: 'saved', revision: 8 })
 
     expect(client.transaction).toHaveBeenCalledTimes(1)
+    expect(client.transaction).toHaveBeenCalledWith(
+      CANONICAL_STUDIO_PATH,
+      expect.any(Function),
+    )
     const [, update] = client.transaction.mock.calls[0]
     const saved = update(remoteSnapshot())
     expect(saved.datasets.tunings.player.scale).toBe(1.4)
@@ -252,7 +257,7 @@ describe('Firebase-only Graphics Studio persistence', () => {
       revision: 3,
       now: Date.UTC(2026, 6, 17, 1, 2, 3),
     })
-    expect(getUserStudioPath(USER)).toBe('studioWorkspaces/v1/canonical/current')
+    expect(CANONICAL_STUDIO_PATH).toBe('studioWorkspaces/v1/canonical/current')
     expect(Object.keys(snapshot.datasets)).toEqual([
       'tunings',
       'sfxTunings',
@@ -320,7 +325,7 @@ describe('Firebase-only Graphics Studio persistence', () => {
   })
 })
 
-describe('Canonical title player public node (완전한 예외: 주인공 튜닝만 공개)', () => {
+describe('Canonical studio public node (single route)', () => {
   const MASTER = {
     uid: 'master-uid',
     email: 'zard5388@gmail.com',
@@ -367,7 +372,7 @@ describe('Canonical title player public node (완전한 예외: 주인공 튜닝
     })).resolves.toEqual({ status: 'published', revision: 1 })
 
     expect(publishClient.transaction).toHaveBeenCalledWith(
-      'studioWorkspaces/v1/canonical/current',
+      CANONICAL_STUDIO_PATH,
       expect.any(Function),
     )
     const [, update] = publishClient.transaction.mock.calls[0]
@@ -401,7 +406,7 @@ describe('Canonical title player public node (완전한 예외: 주인공 튜닝
       status: 'remote-applied',
       revision: 5,
     })
-    expect(client.load).toHaveBeenCalledWith('studioWorkspaces/v1/canonical/current')
+    expect(client.load).toHaveBeenCalledWith(CANONICAL_STUDIO_PATH)
     expect(isFirebaseStudioRuntimeReady()).toBe(true)
     expect(loadStudioTunings().player.scale).toBe(1.7)
   })

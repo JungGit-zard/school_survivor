@@ -69,47 +69,6 @@
     },
     "studioWorkspaces": {
       "v1": {
-        "users": {
-          "$uid": {
-            "current": {
-              ".read": false,
-              ".write": false,
-              ".validate": "newData.hasChildren(['schemaVersion', 'revision', 'updatedAt'])",
-              "schemaVersion": { ".validate": "newData.isNumber() && newData.val() === 1" },
-              "revision": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0" },
-              "updatedAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
-              "datasets": {
-                "tunings": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
-                "sfxTunings": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
-                "stageBossPreview": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
-                "decals": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
-                "propPlacements": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
-                "$other": { ".validate": false }
-              },
-              "$other": { ".validate": false }
-            },
-            "$other": { ".validate": false }
-          }
-        },
-        "canonicalTitlePlayer": {
-          "current": {
-            ".read": false,
-            ".write": false,
-            ".validate": "newData.hasChildren(['schemaVersion', 'revision', 'updatedAt'])",
-            "schemaVersion": { ".validate": "newData.isNumber() && newData.val() === 1" },
-            "revision": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0" },
-            "updatedAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
-            "datasets": {
-              "tunings": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
-              "sfxTunings": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
-              "stageBossPreview": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
-              "decals": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
-              "propPlacements": { ".validate": "newData.isString() && newData.val().length <= 1000000" },
-              "$other": { ".validate": false }
-            },
-            "$other": { ".validate": false }
-          }
-        },
         "canonical": {
           "current": {
             ".read": true,

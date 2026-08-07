@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import StudioTunedGroup from '../components/StudioTunedGroup.jsx'
 import {
   DEFAULT_STUDIO_TUNING,
-  getStudioZombieItemId,
+  GRAPHICS_STUDIO_CATALOG,
   normalizeStudioTuning,
 } from './graphicsStudioConfig.js'
 import {
@@ -26,12 +26,8 @@ const USER = {
   emailVerified: true,
   providerIds: ['google.com'],
 }
-const ITERATIONS_PER_MODEL = 300
-const MODEL_IDS = Object.freeze([
-  'player',
-  ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'B01', 'B02', 'B03', 'B04']
-    .map((type) => getStudioZombieItemId(type)),
-])
+const ITERATIONS_PER_ITEM = 1000
+const ITEM_IDS = Object.freeze(GRAPHICS_STUDIO_CATALOG.map(({ id }) => id))
 const EMPTY_DATASETS = Object.freeze({
   tunings: {},
   sfxTunings: {},
@@ -96,7 +92,7 @@ function readVectorAttribute(container, consumer, name) {
     .map(Number)
 }
 
-describe('Firebase Studio 300회 모델별 게임·타이틀 패리티', () => {
+describe('Firebase Studio 1,000회 전체 모델·프랍 게임·타이틀 패리티', () => {
   let container
   let root
 
@@ -117,9 +113,9 @@ describe('Firebase Studio 300회 모델별 게임·타이틀 패리티', () => {
     blockFirebaseStudioRuntime()
   })
 
-  MODEL_IDS.forEach((itemId, modelIndex) => {
-    it(`${itemId}: Firebase 등록 후 게임·타이틀 즉시 반영 ${ITERATIONS_PER_MODEL}회`, async () => {
-      const random = createRandom(0x5eed0000 + modelIndex)
+  ITEM_IDS.forEach((itemId, itemIndex) => {
+    it(`${itemId}: Firebase 등록 후 게임·타이틀 즉시 반영 ${ITERATIONS_PER_ITEM}회`, async () => {
+      const random = createRandom(0x5eed0000 + itemIndex)
       const client = createFirebaseTransactionClient(buildFirebaseStudioSnapshot(
         EMPTY_DATASETS,
         { revision: 1, now: Date.UTC(2026, 6, 19) },
@@ -138,7 +134,7 @@ describe('Firebase Studio 300회 모델별 게임·타이틀 패리티', () => {
         )
       })
 
-      for (let iteration = 0; iteration < ITERATIONS_PER_MODEL; iteration += 1) {
+      for (let iteration = 0; iteration < ITERATIONS_PER_ITEM; iteration += 1) {
         const previousState = getFirebaseStudioRuntimeState()
         const tuning = makeRandomTuning(random)
         const datasets = {
@@ -189,6 +185,6 @@ describe('Firebase Studio 300회 모델별 게임·타이틀 패리티', () => {
         }
         expect(getFirebaseStudioRuntimeState().revision).toBe(expectedRevision)
       }
-    }, 60_000)
+    }, 120_000)
   })
 })

@@ -6,7 +6,7 @@ import { _seedHydratedFirebaseProgressForTests, _setFirebaseProgressClientForTes
 
 describe('useGameStore player hit feedback', () => {
   beforeEach(() => {
-    _setFirebaseProgressClientForTests({ save: async () => {}, loadOrCreate: async () => null })
+    _setFirebaseProgressClientForTests({ save: async () => {}, load: async () => null })
     _seedHydratedFirebaseProgressForTests()
     useGameStore.getState().resetGame()
   })

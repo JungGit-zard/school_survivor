@@ -7,7 +7,7 @@ import { _seedHydratedFirebaseProgressForTests, _setFirebaseProgressClientForTes
 
 describe('useGameStore run-end unlock evaluator', () => {
   beforeEach(() => {
-    _setFirebaseProgressClientForTests({ save: async () => {}, loadOrCreate: async () => null })
+    _setFirebaseProgressClientForTests({ save: async () => {}, load: async () => null })
     _seedHydratedFirebaseProgressForTests()
     _resetRecords()
     _resetUnlocks()

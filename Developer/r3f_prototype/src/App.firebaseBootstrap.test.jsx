@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+﻿// @vitest-environment jsdom
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -49,11 +49,11 @@ vi.mock('./lib/studioRuntimeState.js', () => ({
 }))
 
 vi.mock('./components/GraphicsStudio.jsx', () => ({
-  default: () => <main data-testid="graphics-studio">그래픽 스튜디오</main>,
+  default: () => <main data-testid="graphics-studio">洹몃옒???ㅽ뒠?붿삤</main>,
 }))
 
 vi.mock('./components/GoogleAccountPanel.jsx', () => ({
-  default: () => <button type="button">Google 로그인</button>,
+  default: () => <button type="button">Google login</button>,
 }))
 
 vi.mock('./components/ReadyGameApp.jsx', () => {
@@ -61,18 +61,19 @@ vi.mock('./components/ReadyGameApp.jsx', () => {
   return {
     default: (props) => {
       mocks.readyGameProps = props
-      return <main data-testid="ready-game-app">게임 준비 완료</main>
+      return <main data-testid="ready-game-app">寃뚯엫 以鍮??꾨즺</main>
     },
   }
 })
 
 vi.mock('./components/AdminPage.jsx', () => ({
-  default: () => <main data-testid="admin-page">최고관리자 도구</main>,
+  default: () => <main data-testid="admin-page">???꾧뎄</main>,
 }))
 
-const { default: App } = await import('./App.jsx')
+const { default: App, handleStudioGameSyncMessage } = await import('./App.jsx')
+const { STUDIO_GAME_SYNC_MESSAGE } = await import('./lib/studioGameBridge.js')
 
-// 스튜디오 게이트를 통과할 수 있는 유일한 형태의 계정 — projectAdmin.isProjectMaster 기준.
+// ?ㅽ뒠?붿삤 寃뚯씠?몃? ?듦낵?????덈뒗 ?좎씪???뺥깭??怨꾩젙 ??projectAdmin.isProjectMaster 湲곗?.
 const MASTER_USER = Object.freeze({
   uid: 'master',
   email: 'zard5388@gmail.com',
@@ -152,6 +153,28 @@ describe('App Firebase bootstrap boundary', () => {
     view.unmount()
   })
 
+  it('keeps an authenticated ordinary user in the game runtime through 1,000 Studio Firebase failures', async () => {
+    const ordinaryUser = {
+      uid: 'ordinary-studio-failure-stress',
+      email: 'ordinary@example.com',
+      emailVerified: true,
+      providerIds: ['google.com'],
+    }
+    mocks.authState.status = 'signedIn'
+    mocks.authState.user = ordinaryUser
+    mocks.authState.progressStatus = 'ready'
+    mocks.studioHydrate.mockResolvedValue({ status: 'read-failed' })
+    mocks.canonicalHydrate.mockResolvedValue({ status: 'read-failed' })
+
+    const view = await renderApp()
+    expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
+
+    await vi.waitFor(() => expect(mocks.studioHydrate).toHaveBeenCalledWith({ user: ordinaryUser }))
+    expect(mocks.readyGameProps).not.toHaveProperty('ensureStudioCloudReady')
+    expect(view.container.querySelector('[data-testid="graphics-studio"]')).toBe(null)
+    view.unmount()
+  }, 120_000)
+
   it.each(['checking', 'error', 'unconfigured'])(
     'mounts the title runtime even when auth status is %s',
     async (status) => {
@@ -185,7 +208,7 @@ describe('App Firebase bootstrap boundary', () => {
     const view = await renderApp()
 
     await vi.waitFor(() => expect(mocks.canonicalHydrate).toHaveBeenCalled())
-    expect(await mocks.readyGameProps.ensureStudioCloudReady(mocks.authState.user)).toBe(true)
+    expect(mocks.readyGameProps).not.toHaveProperty('ensureStudioCloudReady')
     expect(mocks.studioSubscribe).not.toHaveBeenCalled()
     view.unmount()
   })
@@ -200,7 +223,7 @@ describe('App Firebase bootstrap boundary', () => {
     const view = await renderApp()
 
     await vi.waitFor(() => expect(mocks.studioHydrate).toHaveBeenCalledWith({ user: mocks.authState.user }))
-    expect(await mocks.readyGameProps.ensureStudioCloudReady(mocks.authState.user)).toBe(true)
+    expect(mocks.readyGameProps).not.toHaveProperty('ensureStudioCloudReady')
     await vi.waitFor(() => expect(mocks.studioSubscribe).toHaveBeenCalledWith(expect.objectContaining({ user: mocks.authState.user })))
     view.unmount()
   })
@@ -224,8 +247,8 @@ describe('App Firebase bootstrap boundary', () => {
     window.history.replaceState({}, '', '/admin')
     const view = await renderApp()
 
-    expect(view.container.textContent).toContain('Google 로그인')
-    expect(view.container.textContent).toContain('관리 도구는 기존 Google 로그인으로만 접근할 수 있습니다')
+    expect(view.container.textContent).toContain('Google')
+    expect(view.container.textContent).toContain('Google login')
     expect(mocks.readyGameModuleLoaded).not.toHaveBeenCalled()
     view.unmount()
   })
@@ -241,7 +264,7 @@ describe('App Firebase bootstrap boundary', () => {
     }
     const view = await renderApp()
 
-    expect(view.container.querySelector('[role="alertdialog"]')?.textContent).toContain('최고관리자 권한이 없습니다')
+    expect(view.container.querySelector('[role="alertdialog"]')?.textContent).toContain('??沅뚰븳???놁뒿?덈떎')
     view.unmount()
   })
 
@@ -265,16 +288,16 @@ describe('App Firebase bootstrap boundary', () => {
     window.history.replaceState({}, '', '/graphics-studio')
     mocks.authState.status = 'signedOut'
     mocks.authState.user = null
-    // 로그인 전 canonicalTitlePlayer 하이드레이트가 성공해 런타임이 ready가 된 상태를 모사.
+    // 濡쒓렇????공개 정본 ?섏씠?쒕젅?댄듃媛 ?깃났???고??꾩씠 ready媛 ???곹깭瑜?紐⑥궗.
     mocks.canonicalHydrate.mockResolvedValue({ status: 'remote-applied', revision: 1 })
     mocks.studioRuntimeReady = true
 
     const view = await renderApp()
     await act(async () => { await Promise.resolve(); await Promise.resolve() })
 
-    // 편집기(GraphicsStudio) 대신 Google 로그인 부트스트랩이 떠야 한다 — 미로그인 Apply 실패 방지.
+    // ?몄쭛湲?GraphicsStudio) ???Google 濡쒓렇??遺?몄뒪?몃옪???좎빞 ?쒕떎 ??誘몃줈洹몄씤 Apply ?ㅽ뙣 諛⑹?.
     expect(view.container.querySelector('[data-testid="graphics-studio"]')).toBe(null)
-    expect(view.container.textContent).toContain('Google 로그인')
+    expect(view.container.textContent).toContain('Google')
     view.unmount()
   })
 
@@ -306,7 +329,7 @@ describe('App Firebase bootstrap boundary', () => {
     await act(async () => { await Promise.resolve(); await Promise.resolve() })
 
     expect(close).toHaveBeenCalled()
-    // close가 막히는 브라우저에서도 Studio·부트스트랩·데이터를 렌더하지 않는다.
+    // close媛 留됲엳??釉뚮씪?곗??먯꽌??Studio쨌遺?몄뒪?몃옪쨌?곗씠?곕? ?뚮뜑?섏? ?딅뒗??
     expect(view.container.querySelector('[data-testid="graphics-studio"]')).toBe(null)
     expect(view.container.textContent).toBe('')
     expect(mocks.studioHydrate).not.toHaveBeenCalled()
@@ -326,7 +349,7 @@ describe('App Firebase bootstrap boundary', () => {
     expect(view.container.querySelector('[data-testid="graphics-studio"]')).toBe(null)
 
     const retry = [...view.container.querySelectorAll('button')]
-      .find((button) => button.textContent === '다시 시도')
+      .find((button) => button.textContent === '?ㅼ떆 ?쒕룄')
     expect(retry).toBeTruthy()
 
     mocks.studioHydrate.mockResolvedValue({ status: 'remote-applied', revision: 2 })
@@ -343,8 +366,8 @@ describe('App Firebase bootstrap boundary', () => {
     view.unmount()
   })
 
-  it('blocks the E2E user from the graphics studio without any Firebase Studio read, subscribe, or publish', async () => {
-    window.history.replaceState({}, '', '/graphics-studio?e2e=1')
+  it('blocks the graphics studio E2E bypass user without any Firebase Studio read, subscribe, or publish', async () => {
+    window.history.replaceState({}, '', '/graphics-studio?e2e=1&studio=1')
     mocks.authState.status = 'signedIn'
     mocks.authState.user = { uid: 'e2e-local-test' }
 
@@ -358,4 +381,22 @@ describe('App Firebase bootstrap boundary', () => {
     expect(mocks.canonicalPublish).not.toHaveBeenCalled()
     view.unmount()
   })
+
+  it('handleStudioGameSyncMessage uses canonical hydrate with empty payload when there is no auth user', async () => {
+    mocks.authState.user = null
+    mocks.canonicalHydrate.mockResolvedValue({ status: 'remote-applied', revision: 1 })
+
+    const result = await handleStudioGameSyncMessage({
+      data: { type: STUDIO_GAME_SYNC_MESSAGE },
+      origin: 'http://localhost:5173',
+      source: null,
+    })
+
+    expect(result).toBe(true)
+    expect(mocks.canonicalHydrate).toHaveBeenCalledWith({})
+    expect(mocks.studioHydrate).not.toHaveBeenCalled()
+    expect(mocks.studioInitialize).not.toHaveBeenCalled()
+  })
 })
+
+

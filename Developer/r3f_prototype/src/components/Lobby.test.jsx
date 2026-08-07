@@ -6,7 +6,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Lobby, { BOSS_SHOWTIME } from './Lobby.jsx'
 import { saveStageBossPreview } from '../lib/graphicsStudioConfig.js'
 import { playSfx } from '../lib/sfxRegistry.js'
-import { _seedHydratedFirebaseProgressForTests, updateFirebasePlayerProgress } from '../lib/firebaseProgress.js'
+import {
+  _resetFirebaseProgressForTests,
+  _seedHydratedFirebaseProgressForTests,
+  updateFirebasePlayerProgress,
+} from '../lib/firebaseProgress.js'
 import { commitFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
@@ -84,6 +88,7 @@ describe('Lobby', () => {
       status: 'signedIn',
       user: { uid: 'lobby-user', displayName: 'Lobby Tester', email: 'lobby@example.com' },
       initialized: true,
+      progressStatus: 'ready',
     })
     useGameStore.setState({ goldTotal: 12 })
     stageBossPreviewRenderState.count = 0
@@ -122,6 +127,94 @@ describe('Lobby', () => {
 
     view.unmount()
   })
+
+  it('uses the authenticated Google account name when no Firebase nickname is set', () => {
+    const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+
+    expect(view.container.textContent).toContain('Lobby Tester')
+    expect(view.container.textContent).not.toContain('이름 없는 생존자')
+    expect(view.container.textContent).not.toContain('Nameless Survivor')
+
+    view.unmount()
+  })
+
+  it('restores every cleared stage when the authenticated account progress arrives after the lobby mounts', () => {
+    useAuthStore.setState({ progressStatus: 'loading' })
+    const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+
+    expect(view.container.querySelector('[data-testid="lobby-records-pending"]')).not.toBeNull()
+    expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(0)
+    expect(view.container.textContent).not.toContain('Stage 1 클리어 시 열림')
+    expect(view.container.textContent).not.toContain('Stage 3 클리어 시 열림')
+
+    seedPlayerRecords({
+      stage1Clears: 1,
+      stage2Clears: 1,
+      stage3Clears: 1,
+      stage4Clears: 1,
+      bestSurvivalSeconds: 766,
+      stage2BestSurvivalSec: 366,
+      stage3BestSurvivalSec: 321,
+      stage4BestSurvivalSec: 481,
+    })
+    act(() => {
+      useAuthStore.setState({ progressStatus: 'ready' })
+    })
+
+    expect(view.container.querySelector('[data-testid="lobby-records-pending"]')).toBeNull()
+    expect(Array.from(view.container.querySelectorAll('button')).filter((button) => button.textContent === '입장하기')).toHaveLength(4)
+    expect(view.container.textContent).toContain('12:46')
+    expect(view.container.textContent).toContain('6:06')
+    expect(view.container.textContent).toContain('5:21')
+    expect(view.container.textContent).toContain('8:01')
+
+    view.unmount()
+  })
+
+  it('keeps the verified account records across 10,000 login-hydrate-lobby cycles', () => {
+    const account = { uid: 'master-account', displayName: '정실장', email: 'zard5388@gmail.com' }
+    const canonicalRecords = {
+      stage1Clears: 23,
+      stage2Clears: 9,
+      stage3Clears: 2,
+      stage4Clears: 1,
+      bestSurvivalSeconds: 766,
+      stage2BestSurvivalSec: 366,
+      stage3BestSurvivalSec: 321,
+      stage4BestSurvivalSec: 481,
+    }
+
+    for (let attempt = 1; attempt <= 10_000; attempt += 1) {
+      _resetFirebaseProgressForTests()
+      useAuthStore.setState({
+        status: 'signedIn',
+        user: account,
+        initialized: true,
+        progressStatus: 'loading',
+        progressError: null,
+      })
+      const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+
+      expect(view.container.querySelector('[data-testid="lobby-records-pending"]'), `attempt ${attempt}`).not.toBeNull()
+      expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]'), `attempt ${attempt}`).toHaveLength(0)
+
+      act(() => {
+        _seedHydratedFirebaseProgressForTests(account)
+        seedPlayerRecords(canonicalRecords)
+        useAuthStore.setState({ progressStatus: 'ready' })
+      })
+
+      expect(view.container.querySelector('[data-testid="lobby-records-pending"]'), `attempt ${attempt}`).toBeNull()
+      expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]'), `attempt ${attempt}`).toHaveLength(0)
+      expect(view.container.textContent, `attempt ${attempt}`).not.toContain('기록 없음')
+      expect(view.container.textContent, `attempt ${attempt}`).toContain('12:46')
+      expect(view.container.textContent, `attempt ${attempt}`).toContain('6:06')
+      expect(view.container.textContent, `attempt ${attempt}`).toContain('5:21')
+      expect(view.container.textContent, `attempt ${attempt}`).toContain('8:01')
+
+      view.unmount()
+    }
+  }, 600_000)
 
   it('keeps the settings control at the 44px touch-target minimum', () => {
     const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })

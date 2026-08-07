@@ -74,29 +74,24 @@ afterEach(() => {
 })
 
 describe('TitleScreen lobby entry', () => {
-  it('shows the first-play guide beside the start CTA with a visible keyboard focus style', () => {
+  it('does not render the removed 6ef title helper copy or action class', () => {
     const { container, cleanup } = renderTitleScreen()
 
-    expect(container.querySelector('[data-testid="title-gameplay-guide"]')?.textContent)
-      .toContain('자동 공격 · 화면을 드래그해 이동 · 레벨업 때 카드 선택')
-    expect(container.textContent).toContain('3분 30초 후 열리는 탈출구로 탈출하라')
-    expect(container.textContent).not.toContain('4분만 버티면')
-    expect(container.querySelector('.title-main-action')).not.toBeNull()
-    expect(container.querySelector('style[data-title-intro-css]')?.textContent).toContain('.title-main-action:focus-visible')
+    expect(container.querySelector('[data-testid="title-gameplay-guide"]')).toBeNull()
+    expect(container.querySelector('.title-main-action')).toBeNull()
+    expect(container.querySelector('style[data-title-intro-css]')?.textContent).not.toContain('.title-main-action:focus-visible')
 
     cleanup()
   })
 
-  it('reserves title copy space below the two-row account panel on short 320px-wide mobile screens', () => {
+  it('does not retain the removed 6ef title-copy mobile override', () => {
     const { container, cleanup } = renderTitleScreen()
     const titleCss = container.querySelector('style[data-title-intro-css]')?.textContent
 
-    expect(container.querySelector('.title-copy')).not.toBeNull()
+    expect(container.querySelector('.title-copy')).toBeNull()
     expect(container.querySelector('h1[aria-label="탈출! 좀비학교"]')).not.toBeNull()
-    expect(container.querySelector('[data-testid="title-gameplay-guide"]')).not.toBeNull()
-    expect(container.querySelector('.title-main-action')).not.toBeNull()
-    expect(titleCss).toContain('@media (max-width: 360px) and (max-height: 600px)')
-    expect(titleCss).toContain('.title-copy { top: max(96px, calc(env(safe-area-inset-top, 0px) + 88px)) !important; }')
+    expect(titleCss).not.toContain('@media (max-width: 360px) and (max-height: 600px)')
+    expect(titleCss).not.toContain('.title-copy')
 
     cleanup()
   })
@@ -228,16 +223,14 @@ describe('TitleScreen lobby entry', () => {
   it.each([
     ['returns false', vi.fn(async () => false)],
     ['rejects', vi.fn(async () => { throw new Error('Studio hydrate failed') })],
-  ])('continues into the lobby and offers a retry warning when Studio hydration %s', async (_scenario, ensureStudioCloudReady) => {
+  ])('enters the lobby without invoking a legacy Studio readiness callback when it %s', async (_scenario, ensureStudioCloudReady) => {
     const user = { uid: 'uid-studio-best-effort', displayName: 'Returner', email: 'r@example.com', photoURL: '' }
     seedConsentedUser(user)
     useAuthStore.setState({ status: 'signedIn', user, initialized: true })
     saveNicknameForUser(user, '복도반장')
 
     const onEnterLobby = vi.fn()
-    const unhandledRejection = vi.fn()
-    window.addEventListener('unhandledrejection', unhandledRejection)
-    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {}, ensureStudioCloudReady)
+    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {})
 
     await act(async () => {
       clickButtonByTextRaw(container, '게임 시작')
@@ -245,19 +238,10 @@ describe('TitleScreen lobby entry', () => {
       await Promise.resolve()
     })
 
-    expect(ensureStudioCloudReady).toHaveBeenCalledWith(user)
+    expect(ensureStudioCloudReady).not.toHaveBeenCalled()
     expect(onEnterLobby).toHaveBeenCalledTimes(1)
-    expect(unhandledRejection).not.toHaveBeenCalled()
-    expect(container.querySelector('[role="alert"]')?.textContent).toContain('그래픽 데이터를')
-
-    ensureStudioCloudReady.mockResolvedValueOnce(true)
-    clickButtonByText(container, '다시 시도')
-    await act(async () => { await Promise.resolve() })
-    expect(ensureStudioCloudReady).toHaveBeenCalledTimes(2)
-    expect(onEnterLobby).toHaveBeenCalledTimes(2)
     expect(container.querySelector('[role="alert"]')).toBeNull()
 
-    window.removeEventListener('unhandledrejection', unhandledRejection)
     cleanup()
   })
 
@@ -270,7 +254,7 @@ describe('TitleScreen lobby entry', () => {
     vi.stubEnv('VITE_FIREBASE_APP_ID', 'test-app')
     vi.stubEnv('VITE_FIREBASE_DATABASE_URL', 'https://test.firebaseio.com')
     _setFirebaseProgressClientForTests({
-      loadOrCreate: vi.fn(async () => {
+      load: vi.fn(async () => {
         await new Promise((resolve) => setTimeout(resolve, 20))
         throw new Error('cloud progress should not gate title start')
       }),
@@ -278,9 +262,8 @@ describe('TitleScreen lobby entry', () => {
       remove: vi.fn(async () => true),
     })
     useAuthStore.setState({ status: 'signedIn', user, initialized: true })
-    const ensureStudioCloudReady = vi.fn(async () => true)
     const onEnterLobby = vi.fn()
-    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {}, ensureStudioCloudReady)
+    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {})
 
     await act(async () => {
       clickButtonByTextRaw(container, '게임 시작')
@@ -289,7 +272,6 @@ describe('TitleScreen lobby entry', () => {
     })
 
     expect(onEnterLobby).toHaveBeenCalledTimes(1)
-    expect(ensureStudioCloudReady).toHaveBeenCalledWith(user)
     expect(container.textContent).not.toContain('이용약관·개인정보처리방침 동의')
     expect(container.querySelector('#title-nickname-input')).toBeNull()
 
@@ -306,8 +288,7 @@ describe('TitleScreen lobby entry', () => {
       signInWithGoogle,
     })
     const onEnterLobby = vi.fn()
-    const ensureStudioCloudReady = vi.fn(async () => true)
-    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {}, ensureStudioCloudReady)
+    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {})
 
     await act(async () => {
       clickButtonByTextRaw(container, '게임 시작')
@@ -317,7 +298,6 @@ describe('TitleScreen lobby entry', () => {
 
     expect(signInWithGoogle).toHaveBeenCalledTimes(1)
     expect(onEnterLobby).toHaveBeenCalledTimes(1)
-    expect(ensureStudioCloudReady).toHaveBeenCalledWith(googleUser)
     expect(window.sessionStorage.getItem('eszs:pending-start-after-google-login')).toBeNull()
     expect(container.querySelector('#title-nickname-input')).toBeNull()
     expect(container.textContent).not.toContain('닉네임 설정')
@@ -336,8 +316,7 @@ describe('TitleScreen lobby entry', () => {
       signInWithGoogle,
     })
     const onEnterLobby = vi.fn()
-    const ensureStudioCloudReady = vi.fn(async () => true)
-    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {}, ensureStudioCloudReady)
+    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {})
 
     await act(async () => {
       clickButtonByTextRaw(container, '게임 시작')
@@ -356,7 +335,6 @@ describe('TitleScreen lobby entry', () => {
     })
 
     expect(onEnterLobby).toHaveBeenCalledTimes(1)
-    expect(ensureStudioCloudReady).toHaveBeenCalledWith(googleUser)
     expect(window.sessionStorage.getItem('eszs:pending-start-after-google-login')).toBeNull()
 
     cleanup()
@@ -432,14 +410,14 @@ describe('TitleScreen lobby entry', () => {
     cleanup()
   })
 
-  it('continues into the lobby when Studio graphics hydration fails after login', async () => {
+  it('does not invoke the removed Studio callback after login', async () => {
     const user = { uid: 'studio-fallback-user', displayName: 'Fallback Player' }
     seedConsentedUser(user)
     useAuthStore.setState({ status: 'signedIn', user, initialized: true })
     saveNicknameForUser(user, 'Fallback')
     const onEnterLobby = vi.fn()
     const ensureStudioCloudReady = vi.fn(() => Promise.resolve(false))
-    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {}, ensureStudioCloudReady)
+    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {})
 
     await act(async () => {
       clickButtonByTextRaw(container, '게임 시작')
@@ -447,20 +425,20 @@ describe('TitleScreen lobby entry', () => {
       await Promise.resolve()
     })
 
-    expect(ensureStudioCloudReady).toHaveBeenCalledWith(user)
-    expect(container.textContent).toContain('그래픽 데이터를 불러오지 못했습니다')
+    expect(ensureStudioCloudReady).not.toHaveBeenCalled()
+    expect(container.querySelector('[role="alert"]')).toBeNull()
     expect(onEnterLobby).toHaveBeenCalledTimes(1)
     cleanup()
   })
 
-  it('continues into the lobby when Studio graphics hydration throws after login', async () => {
+  it('does not invoke a rejected legacy Studio callback after login', async () => {
     const user = { uid: 'studio-throw-user', displayName: 'Throw Player' }
     seedConsentedUser(user)
     useAuthStore.setState({ status: 'signedIn', user, initialized: true })
     saveNicknameForUser(user, 'Thrower')
     const onEnterLobby = vi.fn()
     const ensureStudioCloudReady = vi.fn(() => Promise.reject(new Error('read failed')))
-    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {}, ensureStudioCloudReady)
+    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {})
 
     await act(async () => {
       clickButtonByTextRaw(container, '게임 시작')
@@ -468,8 +446,8 @@ describe('TitleScreen lobby entry', () => {
       await Promise.resolve()
     })
 
-    expect(ensureStudioCloudReady).toHaveBeenCalledWith(user)
-    expect(container.textContent).toContain('그래픽 데이터를 불러오지 못했습니다')
+    expect(ensureStudioCloudReady).not.toHaveBeenCalled()
+    expect(container.querySelector('[role="alert"]')).toBeNull()
     expect(onEnterLobby).toHaveBeenCalledTimes(1)
     cleanup()
   })
@@ -492,7 +470,6 @@ function renderTitleScreen(
   onEnterLobby = () => {},
   initialDevCheatsVisible = true,
   onUnlockAllStages = () => {},
-  ensureStudioCloudReady,
 ) {
   const container = document.createElement('div')
   document.body.appendChild(container)
@@ -506,7 +483,6 @@ function renderTitleScreen(
         devCheatsVisible={devCheatsVisible}
         onRevealDevCheats={() => setDevCheatsVisible(true)}
         onUnlockAllStages={onUnlockAllStages}
-        ensureStudioCloudReady={ensureStudioCloudReady}
       />
     )
   }

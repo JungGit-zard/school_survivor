@@ -15,6 +15,14 @@
 - Before planning, implementation, asset work, QA, Git workflow changes, folder-structure changes, or project-direction decisions, check this document for relevant rules.
 - If a rule in this document is unclear, follow the safest narrow interpretation and ask the user when the decision could change project direction.
 
+## 최고관리자 계정 상태 복원 절대 규칙
+
+- 반드시 Google 계정 `zard5388@gmail.com` 인증 성공 시 동일 Firebase Authentication `uid`의 기존 게임 계정정보를 연결한다.
+- 반드시 현재 확인된 정상 상태인 표시 이름 `정실장`, 골드 `205`, Stage 1 최고 `12:46`, Stage 2 최고 `6:06`, Stage 3 최고 `5:21`, Stage 4 최고 `8:01`, Stage 1~4 클리어·입장 가능 상태를 원격 정본 그대로 표시한다. 이 수치는 테스트 기본값이나 새 시드로 덮어쓸 값이 아니라 현재 계정 매칭을 검증하는 관측 기준이다.
+- 반드시 Google 로그인 성공은 즉시 로그인 완료로 판정한다. Studio 그래픽, 진행도, revision 또는 다른 Firebase 데이터 읽기 실패가 인증 성공을 취소하거나 로비 진입을 막아서는 안 된다.
+- 반드시 계정 진행정보가 로그인보다 늦게 도착하면 로비가 같은 화면에서 즉시 최신 기록과 스테이지 해제 상태를 다시 읽어 반영한다.
+- 위 계정 대신 빈값·다른 사용자·초기 기록을 표시하거나, 기존 클리어 스테이지를 잠그거나, 데이터 읽기 지연 때문에 잠금 상태를 고정하는 모든 동작은 치명적인 계정 매칭 버그로 판정한다.
+
 ## 모델 배정 최우선 정책
 
 - 모든 사용자 지시는 메인 세션(Fable 5)이 먼저 판단·설계하고, 구현·테스트 작성·검수는 Worker(Opus 5, `model="opus"`), 단순 검색·기계적 반복·가벼운 명령 실행은 Sonnet 5(`model="sonnet"`)에 배정한다. Fable 5는 계획만 하고 직접 구현하지 않는다. 최종 diff·테스트·승인은 Fable 5가 수행한다.

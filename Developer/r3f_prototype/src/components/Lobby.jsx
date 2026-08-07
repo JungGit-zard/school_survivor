@@ -9,8 +9,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { STAGE_CONFIGS, getStageConfig, isStageUnlocked } from '../lib/stageConfig.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
+import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { formatSurvivalTime } from '../lib/userRanking.js'
-import { getSavedNickname } from '../lib/userNickname.js'
 import { getActiveSeason } from '../lib/firebaseRanking.js'
 import { loadStageBossPreview, STAGE_BOSS_PREVIEW_EVENT } from '../lib/graphicsStudioConfig.js'
 import { playSfx } from '../lib/sfxRegistry.js'
@@ -69,9 +69,9 @@ function formatSeasonCountdown(season, nowMs = Date.now()) {
 export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onLogoutToTitle, devAllStagesUnlocked = false }) {
   const t = useT()
   const authUser = useAuthStore((s) => s.user)
+  const progressStatus = useAuthStore((s) => s.progressStatus)
   const goldTotal = useGameStore((s) => s.goldTotal)
-  const [records, setRecords] = useState(loadPlayerRecords)
-  const [nickname, setNickname] = useState(() => getSavedNickname(authUser))
+  const [recordsRefreshVersion, setRecordsRefreshVersion] = useState(0)
   const [modal, setModal] = useState(null) // 'weapon' | 'settings' | null
   const [stageBossPreview, setStageBossPreview] = useState(() => loadStageBossPreview())
   const [showtimeStageId, setShowtimeStageId] = useState(null)
@@ -87,14 +87,15 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
   const season = useMemo(() => getActiveSeason(), [])
 
   useEffect(() => {
-    setNickname(getSavedNickname(authUser))
-  }, [authUser])
-
-  useEffect(() => {
     const update = (event) => setStageBossPreview(event.detail ?? loadStageBossPreview())
     window.addEventListener(STAGE_BOSS_PREVIEW_EVENT, update)
     return () => window.removeEventListener(STAGE_BOSS_PREVIEW_EVENT, update)
   }, [])
+
+  const records = useMemo(() => {
+    if (progressStatus !== 'ready' || !isFirebaseProgressHydrated(authUser)) return null
+    return loadPlayerRecords()
+  }, [authUser?.uid, progressStatus, recordsRefreshVersion])
 
   // 배경 빛덩이는 터치/포인터 지점으로 서서히 따라간다(CSS transform transition으로 이징).
   // ref로 transform만 직접 갱신 → 리렌더 없음. transform은 GPU 컴포지터 처리라 무부하.
@@ -190,7 +191,10 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
   }, [])
 
   // 설정/무기 모달을 닫을 때 최신 기록/코인 반영을 위해 기록을 다시 읽는다.
-  const refreshRecords = () => setRecords(loadPlayerRecords())
+  const refreshRecords = () => {
+    if (progressStatus !== 'ready' || !isFirebaseProgressHydrated(authUser)) return
+    setRecordsRefreshVersion((version) => version + 1)
+  }
 
   const closeModal = () => {
     setModal(null)
@@ -228,7 +232,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
         <div style={styles.profileRow}>
           <div style={styles.profileBlock}>
             <span style={styles.profileEyebrow}>{t('lobby.player')}</span>
-            <strong style={styles.profileName}>{nickname || t('lobby.noName')}</strong>
+            <strong style={styles.profileName}>{authUser?.displayName?.trim() || authUser?.email?.trim() || ''}</strong>
           </div>
           <div style={styles.coinBadge}>
             <span style={styles.coinDot} />
@@ -251,7 +255,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
 
       {/* 스테이지 리스트 */}
       <div style={styles.stageList} aria-label={t('lobby.stageListAria')}>
-        {stageIds.map((stageId, index) => {
+        {records ? stageIds.map((stageId, index) => {
           const stage = getStageConfig(stageId)
           const unlocked = devAllStagesUnlocked || isStageUnlocked(stageId, records)
           const bestSurvivalSec = records[stage.bestRecordKey] ?? 0
@@ -274,7 +278,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
               onRanking={() => onOpenRanking?.(stageId)}
             />
           )
-        })}
+        }) : <div data-testid="lobby-records-pending" aria-busy="true" style={styles.recordsPending}>{t('loading.game')}</div>}
       </div>
 
       <nav aria-label={t('lobby.menuAria')} style={styles.bottomNav}>
@@ -630,6 +634,13 @@ const styles = {
     padding: '12px 12px max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px))',
     overflowY: 'auto',
     boxSizing: 'border-box',
+  },
+  recordsPending: {
+    minHeight: 120,
+    display: 'grid',
+    placeItems: 'center',
+    color: uiPalette.paperLight,
+    fontWeight: uiType.weightStrong,
   },
   bottomNav: {
     position: 'relative',

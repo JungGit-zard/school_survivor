@@ -129,7 +129,7 @@ describe('TitleScreen BGM', () => {
     container.remove()
   })
 
-  it('pauses immediately on sign-in and never retries title BGM on that mount', async () => {
+  it('keeps the title BGM playing while sign-in state changes', async () => {
     const container = document.createElement('div')
     document.body.appendChild(container)
     const root = createRoot(container)
@@ -139,21 +139,18 @@ describe('TitleScreen BGM', () => {
     })
     expect(audio.play).toHaveBeenCalledOnce()
     await act(async () => {
-      audio.config.onplayerror?.(1, new Error('autoplay blocked'))
-    })
-
-    await act(async () => {
       useAuthStore.setState({ signingIn: true })
     })
-    expect(audio.pause).toHaveBeenCalledOnce()
+    expect(audio.pause).not.toHaveBeenCalled()
 
     await act(async () => {
-      window.dispatchEvent(new Event('pointerdown'))
-      document.dispatchEvent(new Event('visibilitychange'))
+      useAuthStore.setState({ signingIn: false })
     })
+    expect(audio.pause).not.toHaveBeenCalled()
     expect(audio.play).toHaveBeenCalledOnce()
 
     act(() => root.unmount())
+    expect(audio.pause).toHaveBeenCalledOnce()
     container.remove()
   })
 })

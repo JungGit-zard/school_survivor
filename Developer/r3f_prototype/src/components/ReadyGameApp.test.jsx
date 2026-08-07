@@ -30,7 +30,7 @@ function renderReady(props) {
   const container = document.createElement('div')
   document.body.appendChild(container)
   const root = createRoot(container)
-  const render = (nextProps) => act(() => root.render(<ReadyGameApp studioVisualsReady={false} ensureStudioCloudReady={vi.fn()} {...nextProps} />))
+  const render = (nextProps) => act(() => root.render(<ReadyGameApp studioVisualsReady={false} {...nextProps} />))
   render(props)
   act(() => container.querySelector('button').click())
   return { container, render, unmount: () => act(() => { root.unmount(); container.remove() }) }

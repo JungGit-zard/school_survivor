@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState, useMemo, useRef } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useGameStore, STAGE1_INTRO_LINES } from '../store/useGameStore.js'
+import { useAuthStore } from '../store/useAuthStore.js'
 import { joystickDir, playerPos, portalTarget } from '../lib/refs.js'
 import { getPortalObjective } from '../lib/portalObjective.js'
 import { UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
@@ -19,6 +20,7 @@ import {
   GRAPHICS_STUDIO_TUNING_EVENT,
   loadStudioTunings,
 } from '../lib/graphicsStudioConfig.js'
+import { isProjectMaster } from '../lib/projectAdmin.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { milestoneLabel, t as translate, useT, weaponLabel } from '../lib/i18n.js'
 import { dispatchStarlinkCheatCrash } from './Weapons/Starlink.jsx'
@@ -478,7 +480,9 @@ export function UpgradeIcon({ type }) {
 
 export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRanking, devCheatsVisible = false }) {
   const t = useT()
+  const authUser = useAuthStore((state) => state.user)
   const devToolsVisible = DEV_CHEATS_ENABLED && devCheatsVisible
+  const showMasterRoleBadge = isProjectMaster(authUser)
   const questBagButtonRef = useRef(null)
   const questCloseButtonRef = useRef(null)
   const wasQuestInventoryOpenRef = useRef(false)
@@ -947,6 +951,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
 
       {(phase === 'playing' || (phase === 'paused' && pauseSource !== 'dialogue' && pauseSource !== 'intro')) && (
         <div style={styles.topLeftControls}>
+          {phase === 'playing' && showMasterRoleBadge && <span style={styles.masterRoleBadge}>{t('account.master')}</span>}
           <button type="button" className="hud-pause-button" aria-label={phase === 'paused' ? t('hud.resumeAria') : t('hud.pauseAria')} style={styles.pauseButton} onClick={() => { emitSfx({ id: 'buttonClick' }); togglePause() }}>
           {phase === 'paused' ? '▶' : 'Ⅱ'}
           </button>
@@ -1731,8 +1736,23 @@ const styles = {
     top: 'var(--hud-safe-top)', '--hud-safe-top': 'max(14px, env(safe-area-inset-top, 0px))',
     left: 14,
     display: 'flex',
+    alignItems: 'center',
     gap: 8,
     pointerEvents: 'auto',
+  },
+  masterRoleBadge: {
+    display: 'inline-block',
+    marginTop: 1,
+    padding: '1px 4px',
+    borderRadius: 4,
+    border: uiBorders.strong,
+    background: '#5e2ca5',
+    color: '#fff9d9',
+    fontSize: 9,
+    fontWeight: uiType.weightHeavy,
+    lineHeight: 1.2,
+    pointerEvents: 'none',
+    whiteSpace: 'nowrap',
   },
   pauseButton: {
     width: 44,

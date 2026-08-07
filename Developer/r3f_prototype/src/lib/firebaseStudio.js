@@ -53,11 +53,6 @@ let studioOwnerUid = ''
 let studioDirtyUid = ''
 const deferredRemoteSnapshots = new Map()
 
-export function getUserStudioPath(user = studioUser) {
-  const uid = typeof user?.uid === 'string' ? user.uid.trim() : ''
-  return uid ? CANONICAL_STUDIO_PATH : ''
-}
-
 export function loadStudioRuntimeDatasets() {
   return {
     tunings: loadStudioTunings(),
@@ -178,9 +173,8 @@ export async function hydrateFirebaseStudio({
   env = getDefaultEnv(),
   now = Date.now(),
 } = {}) {
-  const path = getUserStudioPath(user)
-  if (!path) return { status: 'unauthenticated' }
   const uid = readUid(user)
+  if (!uid) return { status: 'unauthenticated' }
   const activeUidAtStart = readUid(studioUser)
   const userGenerationAtStart = studioUserGeneration
   const mutationGenerationAtStart = localMutationGeneration
@@ -205,7 +199,7 @@ export async function hydrateFirebaseStudio({
 
   let remote
   try {
-    remote = await resolved.client.load(path)
+    remote = await resolved.client.load(CANONICAL_STUDIO_PATH)
   } catch (error) {
     return { status: 'read-failed', error }
   }
@@ -240,13 +234,13 @@ export async function initializeFirebaseStudioIfMissing({
   env = getDefaultEnv(),
   now = Date.now(),
 } = {}) {
-  const path = getUserStudioPath(user)
-  if (!path) return { status: 'unauthenticated' }
+  const uid = readUid(user)
+  if (!uid) return { status: 'unauthenticated' }
   if (!isProjectMaster(user)) return { status: 'forbidden' }
   const resolved = await resolveStudioClient(client, env)
   if (resolved.status) return resolved
   try {
-    const result = await resolved.client.transaction(path, (current) => {
+    const result = await resolved.client.transaction(CANONICAL_STUDIO_PATH, (current) => {
       if (current !== null && current !== undefined) return undefined
       return buildFirebaseStudioSnapshot({}, { revision: 1, now })
     })
@@ -260,9 +254,6 @@ export async function initializeFirebaseStudioIfMissing({
 // 로그인 전(uid 없음)에도 절대 대전제(세팅값 미적용 오브젝트 렌더 금지)를 지키며 타이틀 주인공을
 // 튜닝 적용 상태로 보이기 위한 유일 경로. Firebase-only 유지(로컬 시드/localStorage 아님) —
 // "현재 사용자 스냅샷만 소비" 규칙에 대한 의도적 예외. 읽기 공개 / 쓰기 마스터 전용
-// (database.rules.json studioWorkspaces/v1/canonicalTitlePlayer).
-export const CANONICAL_TITLE_PLAYER_PATH = CANONICAL_STUDIO_PATH
-
 function pickPlayerTunings(tunings) {
   const source = isObject(tunings) ? tunings : {}
   const out = {}
@@ -328,9 +319,8 @@ export async function subscribeFirebaseStudio({
   env = getDefaultEnv(),
   onResult = () => {},
 } = {}) {
-  const path = getUserStudioPath(user)
-  if (!path) return { status: 'unauthenticated', unsubscribe: () => {} }
   const uid = readUid(user)
+  if (!uid) return { status: 'unauthenticated', unsubscribe: () => {} }
   const resolved = await resolveStudioClient(client, env)
   if (resolved.status) return { ...resolved, unsubscribe: () => {} }
   if (typeof resolved.client.subscribe !== 'function') {
@@ -339,7 +329,7 @@ export async function subscribeFirebaseStudio({
 
   let active = true
   const unsubscribe = resolved.client.subscribe(
-    path,
+    CANONICAL_STUDIO_PATH,
     (remote) => {
       if (!active) return
       const result = applySubscribedFirebaseStudioSnapshot(remote, { uid })
@@ -404,10 +394,9 @@ export async function saveFirebaseStudio({
   datasets,
   now = Date.now(),
 } = {}) {
-  const path = getUserStudioPath(user)
-  if (!path) return { status: 'unauthenticated' }
-  if (!isProjectMaster(user)) return { status: 'forbidden' }
   const uid = readUid(user)
+  if (!uid) return { status: 'unauthenticated' }
+  if (!isProjectMaster(user)) return { status: 'forbidden' }
   const mutationGenerationAtStart = localMutationGeneration
   const resolvedDatasets = datasets ?? loadStudioRuntimeDatasets()
 
@@ -417,7 +406,7 @@ export async function saveFirebaseStudio({
   let futureSchemaVersion = null
   let nextRevision = null
   try {
-    const result = await resolved.client.transaction(path, (current) => {
+    const result = await resolved.client.transaction(CANONICAL_STUDIO_PATH, (current) => {
       if (isFutureSchema(current)) {
         futureSchemaVersion = current.schemaVersion
         return undefined

@@ -112,7 +112,8 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(source).toContain('label: getStudioPartLabel(part ?? event.object)')
     expect(source).toContain("STABLE_PART_KEY_PREFIX = 'id:'")
     expect(source).toContain('onDoubleClick={handlePartDoubleClick}')
-    expect(source).toContain('applyFocusedPartTuning')
+    expect(source).not.toContain('function applyFocusedPartTuning')
+    expect(source).toContain('applySavedStudioPartTunings(rootRef.current, itemId, partTunings)')
   })
 
   it('does not focus runtime or studio-generated outline objects', () => {

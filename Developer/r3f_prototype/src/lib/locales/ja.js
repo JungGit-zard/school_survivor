@@ -25,7 +25,6 @@ export default {
   'title.wordSchool': 'ゾンビ学校',
   'title.fontSize': 'clamp(42px, 12.6vw, 58px)',
   'title.subtitle': '3分30秒後に開く脱出口から逃げ出せ',
-  'title.gameplayGuide': '自動攻撃 · 画面をドラッグで移動 · レベルアップでカード選択',
   'title.start': 'ゲーム開始',
   'title.studioError': 'グラフィックデータを読み込めませんでした。接続を確認してもう一度お試しください。',
   'title.progressError': 'アカウントの進行データ読み込み中にエラーが発生しました。接続を確認してもう一度お試しください。',
@@ -46,7 +45,6 @@ export default {
 
   // ─── ロビー ───
   'lobby.player': 'プレイヤー',
-  'lobby.noName': '名もなき生存者',
   'lobby.openSettings': '設定を開く',
   'lobby.season': 'シーズン',
   'lobby.seasonPreparing': 'シーズン準備中',

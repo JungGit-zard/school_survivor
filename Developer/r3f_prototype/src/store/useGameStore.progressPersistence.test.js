@@ -15,7 +15,7 @@ import { useGameStore } from './useGameStore.js'
 import { getWeaponPermanentUpgradeLevel, purchaseWeaponPermanentUpgrade } from '../lib/weaponPermanentUpgrades.js'
 
 function resetProgressState(stageId = 'stage1') {
-  _setFirebaseProgressClientForTests({ save: async () => {}, loadOrCreate: async () => null })
+  _setFirebaseProgressClientForTests({ save: async () => {}, load: async () => null })
   _seedHydratedFirebaseProgressForTests({ uid: 'progress-test-user' })
   useGameStore.getState().resetGame(stageId)
   useGameStore.setState({

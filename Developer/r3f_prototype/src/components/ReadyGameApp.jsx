@@ -33,7 +33,6 @@ export default function ReadyGameApp({
   authUser,
   progressStatus,
   studioVisualsReady,
-  ensureStudioCloudReady,
 }) {
   useT()
   const [screen, setScreen] = useState('title')
@@ -129,7 +128,6 @@ export default function ReadyGameApp({
             onRevealDevCheats={() => setDevCheatsVisible(true)}
             onUnlockAllStages={() => setDevAllStagesUnlocked(true)}
             studioVisualsReady={studioVisualsReady}
-            ensureStudioCloudReady={ensureStudioCloudReady}
           />
         )}
 

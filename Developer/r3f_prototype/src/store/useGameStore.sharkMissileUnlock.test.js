@@ -13,7 +13,7 @@ import { _seedHydratedFirebaseProgressForTests, _setFirebaseProgressClientForTes
 
 describe('sharkMissile unlock and card access', () => {
   beforeEach(() => {
-    _setFirebaseProgressClientForTests({ save: async () => {}, loadOrCreate: async () => null })
+    _setFirebaseProgressClientForTests({ save: async () => {}, load: async () => null })
     _seedHydratedFirebaseProgressForTests()
     _resetRecords()
     _resetUnlocks()

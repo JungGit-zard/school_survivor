@@ -56,7 +56,7 @@ let writeQueue = Promise.resolve()
 let storageGuardInstalled = false
 
 const VITEST_PROGRESS_CLIENT = Object.freeze({
-  loadOrCreate: async () => null,
+  load: async () => null,
   save: async () => true,
   remove: async () => true,
 })
@@ -91,7 +91,7 @@ export function setCloudProgressUser(user) {
 
 export function isFirebaseProgressHydrated(user = cloudUser) {
   const uid = readUserId(user)
-  return !!uid && runtime.uid === uid && runtime.hydrated === true
+  return !!uid && runtime.uid === uid && runtime.hydrated === true && runtime.remoteHydrated === true
 }
 
 export function getFirebaseProgressRuntimeSnapshot() {
@@ -99,6 +99,7 @@ export function getFirebaseProgressRuntimeSnapshot() {
 }
 
 export function buildCloudUserProfile(user = cloudUser) {
+  ensureHydrated()
   const uid = readUserId(user) || runtime.uid
   if (!uid) return null
   return {
@@ -122,7 +123,7 @@ export async function hydrateCloudProgress(user = cloudUser) {
 
   try {
     const client = await getProgressClient()
-    const snapshot = await client.loadOrCreate(path, createInitialRemotePayload(user))
+    const snapshot = await client.load(path)
     if (readUserId(cloudUser) !== requestedUid) return false
     if (!snapshot) {
       runtime = createEmptyRuntime(requestedUid)
@@ -158,10 +159,11 @@ export function applyCloudProgressSnapshot(snapshot, user = cloudUser, { keepClo
   const normalized = normalizeRemoteSnapshot(snapshot, uid, user)
   if (!normalized) return false
   cloudUser = keepCloudUserNull ? null : (user ?? cloudUser)
-  runtime = {
-    uid,
-    hydrated: true,
-    profile: normalized.profile,
+    runtime = {
+      uid,
+      hydrated: true,
+      remoteHydrated: true,
+      profile: normalized.profile,
     progress: normalized.progress,
     activity: normalized.activity,
     consent: normalized.consent,
@@ -300,10 +302,6 @@ export function _setFirebaseProgressClientForTests(client) {
   progressClientPromise = null
 }
 
-export function _selectInitialProgressValueForTransaction(currentValue, initialValue) {
-  return currentValue === null ? initialValue : undefined
-}
-
 export function _resetFirebaseProgressForTests() {
   cloudUser = null
   progressClientPromise = null
@@ -329,7 +327,7 @@ async function getProgressClient() {
   return progressClientPromise
 }
 
-async function createFirebaseProgressClient(env = getDefaultEnv()) {
+export async function createFirebaseProgressClient(env = getDefaultEnv()) {
   const [{ initializeApp, getApp, getApps }, databaseModule] = await Promise.all([
     import('firebase/app'),
     import('firebase/database'),
@@ -341,28 +339,11 @@ async function createFirebaseProgressClient(env = getDefaultEnv()) {
   return {
     save: (path, value) => databaseModule.update(databaseModule.ref(database, path), value),
     remove: (path) => databaseModule.remove(databaseModule.ref(database, path)),
-    loadOrCreate: async (path, initialValue) => {
-      const result = await databaseModule.runTransaction(
-        databaseModule.ref(database, path),
-        (currentValue) => _selectInitialProgressValueForTransaction(currentValue, initialValue),
-        { applyLocally: false },
-      )
-      return result.snapshot.exists() ? result.snapshot.val() : null
+    load: async (path) => {
+      const target = databaseModule.ref(database, path)
+      const snapshot = await databaseModule.get(target)
+      return snapshot.exists() ? snapshot.val() : null
     },
-  }
-}
-
-function createInitialRemotePayload(user, now = Date.now()) {
-  const uid = readUserId(user)
-  return {
-    schemaVersion: SCHEMA_VERSION,
-    updatedAt: new Date(now).toISOString(),
-    profile: {
-      uid,
-      displayName: readString(user?.displayName).slice(0, 100),
-      nickname: '',
-    },
-    progress: createEmptyProgress(),
   }
 }
 
@@ -379,20 +360,11 @@ function buildRemotePayload(now = Date.now()) {
 }
 
 function ensureHydrated() {
-  if (runtime.hydrated && runtime.uid) return
-
-  // Live service must fail open: Google/Firebase/cloud hydration is optional for entering
-  // the game. A missing remote snapshot or signed-out guest should use the in-memory
-  // default progress instead of throwing and blanking the app.
-  runtime = {
-    ...runtime,
-    hydrated: true,
-    uid: runtime.uid || '',
-    profile: normalizeProfile(runtime.profile, runtime.uid || ''),
-    progress: normalizeProgress(runtime.progress),
-    activity: normalizePlayActivity(runtime.activity),
-    consent: normalizeConsent(runtime.consent),
-  }
+  if (runtime.hydrated && runtime.remoteHydrated && runtime.uid && runtime.progress) return
+  throw new FirebaseProgressError(
+    'Firebase player progress is unavailable until the authenticated remote snapshot is applied.',
+    'progress-not-hydrated',
+  )
 }
 
 function normalizeRemoteSnapshot(snapshot, uid, user) {
@@ -411,8 +383,11 @@ function createEmptyRuntime(uid = '') {
   return {
     uid,
     hydrated: false,
+    remoteHydrated: false,
     profile: normalizeProfile({ uid }, uid),
-    progress: createEmptyProgress(),
+    // UID-only state must not carry a zero-value player progress object.  Any reader or
+    // writer before the verified Firebase snapshot is a fatal progress boundary violation.
+    progress: null,
     activity: null,
     consent: null,
   }
@@ -525,8 +500,9 @@ function cloneRuntime(value) {
   return {
     uid: value.uid,
     hydrated: value.hydrated,
+    remoteHydrated: value.remoteHydrated,
     profile: { ...value.profile },
-    progress: cloneProgress(value.progress),
+    progress: value.progress ? cloneProgress(value.progress) : null,
     activity: value.activity ? { ...value.activity } : null,
     consent: cloneConsent(value.consent),
   }

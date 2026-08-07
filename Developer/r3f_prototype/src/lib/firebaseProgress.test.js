@@ -9,30 +9,35 @@ const firebaseSdk = vi.hoisted(() => ({
   initializeApp: vi.fn(),
 }))
 
-vi.mock('firebase/app', () => firebaseSdk)
-vi.mock('firebase/database', () => ({
+const databaseSdk = vi.hoisted(() => ({
   getDatabase: vi.fn(),
   ref: vi.fn(),
+  get: vi.fn(),
   update: vi.fn(),
   remove: vi.fn(),
   runTransaction: vi.fn(),
 }))
+
+vi.mock('firebase/app', () => firebaseSdk)
+vi.mock('firebase/database', () => databaseSdk)
 import {
   _resetFirebaseProgressForTests,
-  _selectInitialProgressValueForTransaction,
   _setFirebaseProgressClientForTests,
   applyCloudProgressSnapshot,
   buildCloudProgressSnapshot,
   buildCloudUserProfile,
+  createFirebaseProgressClient,
   getFirebaseProgressRuntimeSnapshot,
   getUserProgressPath,
   hydrateCloudProgress,
   installPlayerStorageFatalGuard,
   isFirebaseProgressConfigured,
   isFirebaseProgressHydrated,
+  readFirebasePlayerProgress,
   recordPlayActivity,
   requestCloudProgressSave,
   setCloudProgressUser,
+  updateFirebasePlayerProgress,
 } from './firebaseProgress.js'
 import { RECORD_KEYS } from './playerRecords.js'
 import { setUnlocked } from './weaponUnlocks.js'
@@ -104,25 +109,17 @@ describe('firebase-only player progress runtime', () => {
     expect(getUserProgressPath(null)).toBe('')
   })
 
-  it('makes the production transaction create only for null and abort for every existing value', () => {
-    const initialValue = { schemaVersion: 1 }
-
-    expect(_selectInitialProgressValueForTransaction(null, initialValue)).toBe(initialValue)
-    expect(_selectInitialProgressValueForTransaction(remoteSnapshot(), initialValue)).toBeUndefined()
-    expect(_selectInitialProgressValueForTransaction(false, initialValue)).toBeUndefined()
-  })
-
   it('hydrates an existing remote account without overwriting it', async () => {
     const saved = remoteSnapshot()
     const savedBeforeHydrate = structuredClone(saved)
     const save = vi.fn(async () => {})
-    const loadOrCreate = vi.fn(async () => saved)
-    _setFirebaseProgressClientForTests({ loadOrCreate, save })
+    const load = vi.fn(async () => saved)
+    _setFirebaseProgressClientForTests({ load, save })
 
     await expect(hydrateCloudProgress(USER)).resolves.toBe(true)
 
-    expect(loadOrCreate).toHaveBeenCalledTimes(1)
-    expect(loadOrCreate.mock.calls[0][0]).toBe('users/uid-1')
+    expect(load).toHaveBeenCalledTimes(1)
+    expect(load).toHaveBeenCalledWith('users/uid-1')
     expect(saved).toEqual(savedBeforeHydrate)
     expect(save).not.toHaveBeenCalled()
     expect(isFirebaseProgressHydrated(USER)).toBe(true)
@@ -130,73 +127,9 @@ describe('firebase-only player progress runtime', () => {
     expect(buildCloudUserProfile(USER)).toEqual({ uid: 'uid-1', displayName: 'Tester', nickname: '생존왕' })
   })
 
-  it('atomically creates and hydrates a schema-valid default account when users/{uid} is missing', async () => {
-    let remote = null
-    const loadOrCreate = vi.fn(async (_path, initialValue) => {
-      if (remote === null) remote = structuredClone(initialValue)
-      return structuredClone(remote)
-    })
-    _setFirebaseProgressClientForTests({ loadOrCreate, save: vi.fn(async () => {}) })
-
-    await expect(hydrateCloudProgress(USER)).resolves.toBe(true)
-
-    expect(loadOrCreate).toHaveBeenCalledTimes(1)
-    expect(remote).toEqual({
-      schemaVersion: 1,
-      updatedAt: expect.any(String),
-      profile: { uid: USER.uid, displayName: USER.displayName, nickname: '' },
-      progress: {
-        goldTotal: 0,
-        records: Object.fromEntries(RECORD_KEYS.map((key) => [key, 0])),
-        weaponUnlocks: {},
-        weaponPermanentUpgrades: {},
-        passiveUpgrades: {},
-        titleSettings: {
-          language: null,
-          vibration: true,
-          reducedEffects: false,
-          hitCameraShake: true,
-          unlockAllWeaponsCheat: false,
-          unlockAllStagesCheat: false,
-        },
-      },
-    })
-    expect(Number.isNaN(Date.parse(remote.updatedAt))).toBe(false)
-    expect(remote).not.toHaveProperty('email')
-    expect(remote).not.toHaveProperty('token')
-    expect(remote).not.toHaveProperty('password')
-    expect(isFirebaseProgressHydrated(USER)).toBe(true)
-    expect(getFirebaseProgressRuntimeSnapshot().progress).toEqual(remote.progress)
-  })
-
-  it('creates a missing account only once across two concurrent hydrates and both use the final remote canonical value', async () => {
-    let remote = null
-    let creationCount = 0
-    const loadOrCreate = vi.fn(async (_path, initialValue) => {
-      await Promise.resolve()
-      if (remote === null) {
-        creationCount += 1
-        remote = structuredClone(initialValue)
-      }
-      return structuredClone(remote)
-    })
-    _setFirebaseProgressClientForTests({ loadOrCreate, save: vi.fn(async () => {}) })
-
-    await expect(Promise.all([
-      hydrateCloudProgress(USER),
-      hydrateCloudProgress(USER),
-    ])).resolves.toEqual([true, true])
-
-    expect(loadOrCreate).toHaveBeenCalledTimes(2)
-    expect(creationCount).toBe(1)
-    expect(isFirebaseProgressHydrated(USER)).toBe(true)
-    expect(buildCloudProgressSnapshot().profile).toEqual(remote.profile)
-    expect(buildCloudProgressSnapshot().progress).toEqual(remote.progress)
-  })
-
-  it('fails closed when the create transaction returns no remote snapshot and never uploads defaults', async () => {
+  it('fails closed when the authenticated account has no remote snapshot and never uploads defaults', async () => {
     const save = vi.fn(async () => {})
-    _setFirebaseProgressClientForTests({ loadOrCreate: vi.fn(async () => null), save })
+    _setFirebaseProgressClientForTests({ load: vi.fn(async () => null), save })
 
     await expect(hydrateCloudProgress(USER)).rejects.toThrow(/missing/i)
     await expect(requestCloudProgressSave()).resolves.toBe(false)
@@ -210,7 +143,7 @@ describe('firebase-only player progress runtime', () => {
     const failingUser = { uid: 'uid-2', displayName: 'Other' }
     const save = vi.fn(async () => {})
     _setFirebaseProgressClientForTests({
-      loadOrCreate: vi.fn(async () => { throw new Error('permission denied') }),
+      load: vi.fn(async () => { throw new Error('permission denied') }),
       save,
     })
 
@@ -225,7 +158,7 @@ describe('firebase-only player progress runtime', () => {
   it('fails closed when the final transaction snapshot is malformed', async () => {
     const save = vi.fn(async () => {})
     _setFirebaseProgressClientForTests({
-      loadOrCreate: vi.fn(async () => ({ schemaVersion: 1, profile: { uid: USER.uid } })),
+      load: vi.fn(async () => ({ schemaVersion: 1, profile: { uid: USER.uid } })),
       save,
     })
 
@@ -243,7 +176,52 @@ describe('firebase-only player progress runtime', () => {
     setCloudProgressUser({ uid: 'uid-2' })
 
     expect(isFirebaseProgressHydrated({ uid: 'uid-2' })).toBe(false)
-    expect(getFirebaseProgressRuntimeSnapshot().progress.goldTotal).toBe(0)
+    expect(getFirebaseProgressRuntimeSnapshot().progress).toBeNull()
+  })
+
+  it('reads an existing remote account before any create transaction so canonical records cannot become zero', async () => {
+    const canonical = remoteSnapshot({
+      progress: {
+        goldTotal: 205,
+        records: {
+          stage1Clears: 23,
+          bestSurvivalSeconds: 766,
+          stage2Clears: 9,
+          stage2BestSurvivalSec: 366,
+          stage3Clears: 2,
+          stage3BestSurvivalSec: 321,
+          stage4Clears: 1,
+          stage4BestSurvivalSec: 481,
+        },
+      },
+    })
+    firebaseSdk.getApps.mockReturnValue([])
+    firebaseSdk.initializeApp.mockReturnValue({ name: 'app' })
+    databaseSdk.getDatabase.mockReturnValue({ name: 'database' })
+    databaseSdk.ref.mockReturnValue({ path: 'users/uid-1' })
+    databaseSdk.get.mockResolvedValue({ exists: () => true, val: () => canonical })
+
+    const client = await createFirebaseProgressClient(COMPLETE_ENV)
+    const snapshot = await client.load('users/uid-1')
+
+    expect(snapshot).toEqual(canonical)
+    expect(databaseSdk.get).toHaveBeenCalledTimes(1)
+    expect(databaseSdk.runTransaction).not.toHaveBeenCalled()
+  })
+
+  it('never materializes temporary zero progress before the remote snapshot is verified', async () => {
+    setCloudProgressUser(USER)
+
+    expect(isFirebaseProgressHydrated(USER)).toBe(false)
+    expect(getFirebaseProgressRuntimeSnapshot()).toMatchObject({
+      uid: USER.uid,
+      hydrated: false,
+      remoteHydrated: false,
+      progress: null,
+    })
+    expect(() => readFirebasePlayerProgress()).toThrow(/unavailable until the authenticated remote snapshot/i)
+    expect(() => updateFirebasePlayerProgress((progress) => progress)).toThrow(/unavailable until the authenticated remote snapshot/i)
+    await expect(requestCloudProgressSave(USER)).resolves.toBe(false)
   })
 
   it('keeps the newest account runtime when an older hydrate resolves last', async () => {
@@ -252,7 +230,7 @@ describe('firebase-only player progress runtime', () => {
     const a = { uid: 'uid-a', displayName: 'A' }
     const b = { uid: 'uid-b', displayName: 'B' }
     _setFirebaseProgressClientForTests({
-      loadOrCreate: vi.fn((path) => new Promise((resolve) => {
+      load: vi.fn((path) => new Promise((resolve) => {
         if (path.includes(a.uid)) resolveA = resolve
         else resolveB = resolve
       })),
@@ -273,7 +251,7 @@ describe('firebase-only player progress runtime', () => {
   it('keeps the E2E memory runtime hydrated without registering a Firebase write user', async () => {
     const e2eUser = { uid: 'e2e-local-test', displayName: 'E2E테스트' }
     const save = vi.fn(async () => {})
-    _setFirebaseProgressClientForTests({ save, loadOrCreate: vi.fn() })
+    _setFirebaseProgressClientForTests({ save, load: vi.fn() })
 
     expect(applyCloudProgressSnapshot({
       ...remoteSnapshot(),
@@ -312,7 +290,7 @@ describe('firebase-only player progress runtime', () => {
     let releaseFirst
     const firstSave = new Promise((resolve) => { releaseFirst = resolve })
     _setFirebaseProgressClientForTests({
-      loadOrCreate: vi.fn(async () => remoteSnapshot()),
+      load: vi.fn(async () => remoteSnapshot()),
       save: vi.fn(async (_path, value) => {
         saved.push(value.progress.goldTotal)
         if (saved.length === 1) await firstSave
@@ -335,7 +313,7 @@ describe('firebase-only player progress runtime', () => {
     const saved = []
     let failNextSave = true
     _setFirebaseProgressClientForTests({
-      loadOrCreate: vi.fn(async () => remoteSnapshot()),
+      load: vi.fn(async () => remoteSnapshot()),
       save: vi.fn(async (_path, value) => {
         if (failNextSave) {
           failNextSave = false

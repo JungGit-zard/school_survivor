@@ -71,7 +71,7 @@ describe('consent.js', () => {
 
   it('requires consent when hydrated but no consent record exists yet', async () => {
     _setFirebaseProgressClientForTests({
-      loadOrCreate: vi.fn(async () => remoteSnapshot()),
+      load: vi.fn(async () => remoteSnapshot()),
       save: vi.fn(async () => {}),
     })
     await hydrateCloudProgress(USER)
@@ -82,7 +82,7 @@ describe('consent.js', () => {
   it('does not need consent after a successful recordConsent, and readConsent reflects it', async () => {
     const save = vi.fn(async () => {})
     _setFirebaseProgressClientForTests({
-      loadOrCreate: vi.fn(async () => remoteSnapshot()),
+      load: vi.fn(async () => remoteSnapshot()),
       save,
     })
     await hydrateCloudProgress(USER)
@@ -99,7 +99,7 @@ describe('consent.js', () => {
 
   it('requires consent again when the stored version is lower than the current legal document version', async () => {
     _setFirebaseProgressClientForTests({
-      loadOrCreate: vi.fn(async () => remoteSnapshot()),
+      load: vi.fn(async () => remoteSnapshot()),
       save: vi.fn(async () => {}),
     })
     await hydrateCloudProgress(USER)
@@ -115,7 +115,7 @@ describe('consent.js', () => {
 
   it('rolls back the runtime consent record and returns false when the remote save fails', async () => {
     _setFirebaseProgressClientForTests({
-      loadOrCreate: vi.fn(async () => remoteSnapshot()),
+      load: vi.fn(async () => remoteSnapshot()),
       save: vi.fn(async () => { throw new Error('network down') }),
     })
     await hydrateCloudProgress(USER)
@@ -129,7 +129,7 @@ describe('consent.js', () => {
   it('records E2E consent in the hydrated memory runtime without requesting a Firebase save', async () => {
     e2eAuth.enabled = true
     _setFirebaseProgressClientForTests({
-      loadOrCreate: vi.fn(async () => remoteSnapshot()),
+      load: vi.fn(async () => remoteSnapshot()),
       save: vi.fn(async () => {}),
     })
     applyCloudProgressSnapshot(remoteSnapshot(), USER, { keepCloudUserNull: true })
@@ -145,7 +145,7 @@ describe('consent.js', () => {
 
   it('never persists consent to browser storage', async () => {
     _setFirebaseProgressClientForTests({
-      loadOrCreate: vi.fn(async () => remoteSnapshot()),
+      load: vi.fn(async () => remoteSnapshot()),
       save: vi.fn(async () => {}),
     })
     await hydrateCloudProgress(USER)
@@ -159,7 +159,7 @@ describe('consent.js', () => {
     // 미하이드레이트 상태에서 이미 true를 반환하지만, 하이드레이트 이후에도 실제
     // 동의 상태에 따라 값이 바뀌는지까지 확인해 "항상 false" 스캡폴드 회귀를 잡는다.
     _setFirebaseProgressClientForTests({
-      loadOrCreate: vi.fn(async () => remoteSnapshot()),
+      load: vi.fn(async () => remoteSnapshot()),
       save: vi.fn(async () => {}),
     })
     await hydrateCloudProgress(USER)

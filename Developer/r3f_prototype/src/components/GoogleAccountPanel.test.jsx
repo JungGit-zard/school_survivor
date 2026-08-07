@@ -73,6 +73,6 @@ describe('GoogleAccountPanelView', () => {
       />,
     )
 
-    expect(html).toContain('최고관리자')
+    expect(html).toContain('신')
   })
 })

@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
+﻿import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import GoogleAccountPanel from './components/GoogleAccountPanel.jsx'
 import ReadyGameApp from './components/ReadyGameApp.jsx'
 import {
@@ -11,9 +11,9 @@ import {
 import { installPlayerStorageFatalGuard } from './lib/firebaseProgress.js'
 import { STUDIO_GAME_SYNC_MESSAGE, isAllowedStudioGameOrigin } from './lib/studioGameBridge.js'
 import { useAuthStore } from './store/useAuthStore.js'
-import { commitFirebaseStudioRuntime, isFirebaseStudioRuntimeReady } from './lib/studioRuntimeState.js'
+import { isFirebaseStudioRuntimeReady } from './lib/studioRuntimeState.js'
 import { isProjectMaster } from './lib/projectAdmin.js'
-import { isE2EAuthBypass, isE2EGraphicsStudioBypass } from './lib/e2eAuth.js'
+import { isE2EAuthBypass } from './lib/e2eAuth.js'
 import { t } from './lib/i18n.js'
 
 const AdminPage = lazy(() => import('./components/AdminPage.jsx'))
@@ -25,9 +25,7 @@ export async function handleStudioGameSyncMessage(event) {
   if (event?.data?.type !== STUDIO_GAME_SYNC_MESSAGE) return false
   if (!event.origin || !isAllowedStudioGameOrigin(event.origin)) return false
   if (typeof window !== 'undefined' && window.opener && event.source !== window.opener) return false
-  const user = useAuthStore.getState().user
-  setFirebaseStudioUser(user)
-  const result = await hydrateFirebaseStudio({ user })
+  const result = await hydrateCanonicalTitlePlayer({})
   return result?.status === 'remote-applied'
 }
 
@@ -53,21 +51,20 @@ export default function App() {
     void initializeAuth()
   }, [initializeAuth])
 
-  // 스튜디오는 마스터 계정 전용이다. 다른 구글 계정이 /graphics-studio로 들어오면
-  // 편집기 근처까지 가는 것 자체가 치명적이므로 창을 즉시 닫는다.
-  // (스크립트로 연 창이 아니면 브라우저가 close를 막으므로 아래 거부 화면이 최종 방어선이다.)
+  // ?�튜?�오??마스??계정 ?�용?�다. ?�른 구�? 계정??/graphics-studio�??�어?�면
+  // ?�집�?근처까�? 가??�??�체가 치명?�이므�?창을 즉시 ?�는??
+  // (?�크립트�???창이 ?�니�?브라?��?가 close�?막으므�??�래 거�? ?�면??최종 방어?�이??)
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (!window.location.pathname.startsWith('/graphics-studio')) return
-    if (isE2EGraphicsStudioBypass() || isE2EAuthBypass()) return
     if (authStatus !== 'signedIn' || isProjectMaster(authUser)) return
     window.close()
   }, [authStatus, authUser])
 
   const ensureStudioCloudReady = useCallback(async (user = authUser) => {
-    // DEV E2E는 가짜 사용자 workspace를 절대 읽거나 쓰지 않는다. 공개 정본만 읽어
-    // 유효한 원격 revision을 적용해야 로비와 게임의 Studio 의존 모델이 fail-closed 상태에
-    // 빠지지 않는다. 일반 로그인/Graphics Studio의 사용자별 hydrate 경로는 아래 그대로 둔다.
+    // DEV E2E??가�??�용??workspace�??��? ?�거???��? ?�는?? 공개 ?�본�??�어
+    // ?�효???�격 revision???�용?�야 로비?� 게임??Studio ?�존 모델??fail-closed ?�태??
+    // 빠�?지 ?�는?? ?�반 로그??Graphics Studio???�용?�별 hydrate 경로???�래 그�?�??�다.
     if (isE2EAuthBypass()) {
       setFirebaseStudioUser(null)
       hydratedUidRef.current = ''
@@ -95,8 +92,8 @@ export default function App() {
     }
     const isGraphicsStudioRouteNow = typeof window !== 'undefined'
       && window.location.pathname.startsWith('/graphics-studio')
-    // 스튜디오 주소에서는 마스터가 아니면 워크스페이스를 읽지도 않는다. 게이트가 화면을
-    // 막아도 여기서 읽으면 이미 뚫린 것이다. (게임 주소의 플레이어 하이드레이트는 무관.)
+    // ?�튜?�오 주소?�서??마스?��? ?�니�??�크?�페?�스�??��????�는?? 게이?��? ?�면??
+    // 막아???�기???�으�??��? ?�린 것이?? (게임 주소???�레?�어 ?�이?�레?�트??무�?.)
     if (isGraphicsStudioRouteNow && !isProjectMaster(user)) {
       setFirebaseStudioUser(null)
       hydratedUidRef.current = ''
@@ -105,8 +102,8 @@ export default function App() {
       setStudioCloudStatus('unauthenticated')
       return false
     }
-    // 이미 이 uid로 하이드레이트돼 런타임이 준비된 상태. 구독 오류 등으로 상태만 실패로
-    // 남아 있을 수 있으므로 상태도 함께 되돌린다 — 안 그러면 재시도가 아무 일도 안 한다.
+    // ?��? ??uid�??�이?�레?�트???��??�이 준비된 ?�태. 구독 ?�류 ?�으�??�태�??�패�?
+    // ?�아 ?�을 ???�으므�??�태???�께 ?�돌린다 ????그러�??�시?��? ?�무 ?�도 ???�다.
     if (hydratedUidRef.current === uid && isFirebaseStudioRuntimeReady()) {
       setStudioCloudStatus('remote-applied')
       return true
@@ -174,9 +171,9 @@ export default function App() {
     return promise
   }, [authUser])
 
-  // 로그인 전(uid 없음): 공개 정본 노드(canonicalTitlePlayer)에서 주인공 튜닝을 하이드레이트한다.
-  // 성공 시 studioVisualsReady가 true가 되어 절대 대전제를 지키며 로그인 전에도 튜닝된 주인공이 보인다.
-  // 실패(미배포/미게시)면 remote 아님 → 주인공은 fail-closed로 숨김(맨 포즈 렌더 금지).
+  // 로그????uid ?�음): 공개 ?�본 ?�드(���� ����)?�서 주인�??�닝???�이?�레?�트?�다.
+  // ?�공 ??studioVisualsReady가 true가 ?�어 ?��? ?�?�제�?지?�며 로그???�에???�닝??주인공이 보인??
+  // ?�패(미배??미게??�?remote ?�님 ??주인공�? fail-closed�??��?(�??�즈 ?�더 금�?).
   const hydratePreLoginCanonicalPlayer = useCallback(async () => {
     setFirebaseStudioUser(null)
     hydratedUidRef.current = ''
@@ -248,21 +245,18 @@ export default function App() {
     && isFirebaseStudioRuntimeReady()
   const isGraphicsStudioRoute = typeof window !== 'undefined'
     && window.location.pathname.startsWith('/graphics-studio')
-  const isDevGraphicsStudioBypass = isGraphicsStudioRoute && isE2EGraphicsStudioBypass()
-  if (isDevGraphicsStudioBypass && !isFirebaseStudioRuntimeReady()) {
-    commitFirebaseStudioRuntime({}, { revision: 0 })
-  }
-  // 마스터가 아닌 로그인 계정은 여기서 끝이다 — 부트스트랩도, 편집기도 보여주지 않는다.
-  if (isGraphicsStudioRoute && !isDevGraphicsStudioBypass
+    // 마스?��? ?�닌 로그??계정?� ?�기???�이????부?�스?�랩?? ?�집기도 보여주�? ?�는??
+  if (isGraphicsStudioRoute
     && authStatus === 'signedIn' && !isProjectMaster(authUser)) {
     return null
   }
-  // 스튜디오 입구 로그인: /graphics-studio는 로그인해야 진입한다(로그인 지점 2곳 중 하나).
-  // canonicalTitlePlayer 하이드레이트로 studioReady가 로그인 전에도 true가 될 수 있으므로,
-  // 로그인 없이 편집기가 열려 Apply가 unauthenticated로 실패하지 않도록 signedIn을 함께 요구한다.
-  if (isGraphicsStudioRoute && !isDevGraphicsStudioBypass && (authStatus !== 'signedIn' || !studioReady)) {
-    // 하이드레이트가 실패로 끝나면 이 화면이 막다른 길이 된다(효과는 authStatus/uid 변화로만 재실행).
-    // 새로고침 없이 같은 로그인으로 다시 시도할 수 있게 재시도만 열어둔다 — fail-closed는 그대로다.
+  // ?�튜?�오 ?�구 로그?? /graphics-studio??로그?�해??진입?�다(로그??지??2�?�??�나).
+  // ���� ���� ?�이?�레?�트�?studioReady가 로그???�에??true가 ?????�으므�?
+  // 로그???�이 ?�집기�? ?�려 Apply가 unauthenticated�??�패?��? ?�도�?signedIn???�께 ?�구?�다.
+  if (isGraphicsStudioRoute
+    && (!isProjectMaster(authUser) || authStatus !== 'signedIn' || !studioReady)) {
+    // ?�이?�레?�트가 ?�패�??�나�????�면??막다�?길이 ?�다(?�과??authStatus/uid 변?�로�??�실??.
+    // ?�로고침 ?�이 같�? 로그?�으�??�시 ?�도?????�게 ?�시?�만 ?�어?�다 ??fail-closed??그�?로다.
     const canRetryStudio = authStatus === 'signedIn'
       && !['loading', 'idle'].includes(studioCloudStatus)
     return (
@@ -305,17 +299,16 @@ export default function App() {
     )
   }
 
-  // 일반 게임 주소의 진입 규칙:
-  // 주소 접속 → ReadyGameApp 즉시 생성 → 초기 title 화면 → TitleSceneCanvas.
-  // Google 로그인 상태는 앱 렌더를 막지 않지만, 타이틀의 게임 시작은 미로그인 사용자를
-  // Google 로그인으로 보낸다. 로그인 성공 뒤에는 Firebase 진행도/Studio 준비 실패가 있어도
-  // 로비·스테이지 진입을 조용히 씹지 않고 계속 진행한다.
+  // ?�반 게임 주소??진입 규칙:
+  // 주소 ?�속 ??ReadyGameApp 즉시 ?�성 ??초기 title ?�면 ??TitleSceneCanvas.
+  // Google 로그???�태?????�더�?막�? ?��?�? ?�?��???게임 ?�작?� 미로그인 ?�용?��?
+  // Google 로그?�으�?보낸?? 로그???�공 ?�에??Firebase 진행??Studio 준�??�패가 ?�어??
+  // 로비·?�테?��? 진입??조용???��? ?�고 계속 진행?�다.
   return (
     <ReadyGameApp
       authUser={authUser}
       progressStatus={progressStatus}
       studioVisualsReady={studioReady}
-      ensureStudioCloudReady={ensureStudioCloudReady}
     />
   )
 }
@@ -324,10 +317,10 @@ function getStudioBootstrapMessage(authStatus, studioCloudStatus) {
   if (authStatus === 'checking') return t('app.checkingAuth')
   if (authStatus !== 'signedIn') return t('app.studioNeedsSignIn')
   if (studioCloudStatus === 'loading') return t('app.studioLoading')
-  // 이 계정에 워크스페이스가 아직 없는 것과, 있는데 못 읽은 것은 사용자가 할 조치가 다르다.
+  // ??계정???�크?�페?�스가 ?�직 ?�는 것과, ?�는??�??��? 것�? ?�용?��? ??조치가 ?�르??
   if (studioCloudStatus === 'missing-remote') return t('app.studioNoWorkspace')
   if (studioCloudStatus === 'account-conflict') return t('app.studioAccountConflict')
-  // 마스터 전용 화면이라 원인 코드를 그대로 노출한다 — 뭉뚱그린 문구로는 원인을 못 좁힌다.
+  // 마스???�용 ?�면?�라 ?�인 코드�?그�?�??�출?�다 ??뭉뚱그린 문구로는 ?�인??�?좁힌??
   return `${t('app.studioFailed')} (${studioCloudStatus})`
 }
 
@@ -427,3 +420,8 @@ const styles = {
     fontWeight: 800,
   },
 }
+
+
+
+
+

@@ -122,4 +122,40 @@ describe('Graphics Studio immediate Firebase contract', () => {
     expect(loadStudioTunings().player.scale).toBe(1.4)
     expect(window.open).not.toHaveBeenCalled(); expect(window.alert).toHaveBeenCalled()
   })
+
+  it('restores the initial numeric state and applies it 1,000 consecutive times', async () => {
+    vi.useFakeTimers()
+    try {
+      const postMessage = vi.fn()
+      window.open.mockReturnValue({ closed: false, postMessage })
+      await render()
+      const apply = [...container.querySelectorAll('button')].find((button) => button.textContent === 'Apply')
+      const reset = [...container.querySelectorAll('button')].find((button) => button.textContent === 'Reset')
+
+      for (let iteration = 0; iteration < 1000; iteration += 1) {
+        await change('scale', iteration % 2 === 0 ? '1.45' : '0.75')
+        await act(async () => {
+          reset.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+          await Promise.resolve()
+          await Promise.resolve()
+        })
+        if (loadStudioTunings().player.scale !== 1) {
+          throw new Error(`Reset mismatch at iteration ${iteration + 1}`)
+        }
+        await act(async () => {
+          apply.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+          await Promise.resolve()
+          await Promise.resolve()
+        })
+      }
+
+      await act(async () => { await vi.runAllTimersAsync() })
+      expect(loadStudioTunings().player.scale).toBe(1)
+      expect(cloud.flush.mock.calls.length).toBeGreaterThanOrEqual(1000)
+      expect(postMessage.mock.calls.length).toBeGreaterThanOrEqual(3000)
+      expect(container.textContent).toContain('Game applied')
+    } finally {
+      vi.useRealTimers()
+    }
+  }, 120_000)
 })

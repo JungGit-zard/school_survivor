@@ -25,7 +25,6 @@ export default {
   'title.wordSchool': 'ZOMBIE SCHOOL',
   'title.fontSize': 'clamp(25px, 7.6vw, 38px)',
   'title.subtitle': 'Escape through the exit that opens after 3:30',
-  'title.gameplayGuide': 'Auto-attack · Drag to move · Pick a card on level up',
   'title.start': 'START GAME',
   'title.studioError': 'Could not load graphics data. Check your connection and try again.',
   'title.progressError': 'Something went wrong loading your account progress. Check your connection and try again.',
@@ -46,7 +45,6 @@ export default {
 
   // ─── Lobby ───
   'lobby.player': 'PLAYER',
-  'lobby.noName': 'Nameless Survivor',
   'lobby.openSettings': 'Open settings',
   'lobby.season': 'SEASON',
   'lobby.seasonPreparing': 'Season starting soon',
