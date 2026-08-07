@@ -66,9 +66,29 @@ export function getLocalFirebaseAuthRedirect(location = getDefaultGlobalScope()?
   return url.href
 }
 
+export const GRAPHICS_STUDIO_FIREBASE_APP_NAME = 'graphics-studio'
+
 export function isGraphicsStudioLocation(location = getDefaultGlobalScope()?.location) {
   if (!location?.pathname) return false
   return location.pathname.startsWith('/graphics-studio')
+}
+
+export function resolveFirebaseAppForRoute(
+  firebaseAppModule,
+  env = getDefaultEnv(),
+  globalScope = getDefaultGlobalScope(),
+) {
+  const apps = firebaseAppModule.getApps()
+  if (isGraphicsStudioLocation(globalScope?.location)) {
+    const studioApp = apps.find((app) => app.name === GRAPHICS_STUDIO_FIREBASE_APP_NAME)
+    return studioApp ?? firebaseAppModule.initializeApp(
+      getFirebaseConfig(env),
+      GRAPHICS_STUDIO_FIREBASE_APP_NAME,
+    )
+  }
+  return apps.length > 0
+    ? firebaseAppModule.getApp()
+    : firebaseAppModule.initializeApp(getFirebaseConfig(env))
 }
 
 export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScope = getDefaultGlobalScope()) {
@@ -93,15 +113,20 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
     }
   }
 
-  const [{ initializeApp, getApp, getApps }, authModule] = await Promise.all([
+  const [firebaseAppModule, authModule] = await Promise.all([
     import('firebase/app'),
     import('firebase/auth'),
   ])
-  const app = getApps().length > 0 ? getApp() : initializeApp(getFirebaseConfig(env))
+  const app = resolveFirebaseAppForRoute(firebaseAppModule, env, globalScope)
   await maybeInitAppCheck(app, env)
   const auth = authModule.getAuth(app)
-  await setFirebaseAuthMemoryPersistence(authModule, auth)
-  if (!isGraphicsStudioLocation(globalScope?.location)) {
+  const isStudioRoute = isGraphicsStudioLocation(globalScope?.location)
+  if (isStudioRoute) {
+    await setFirebaseAuthMemoryPersistence(authModule, auth)
+  } else {
+    await setFirebaseAuthLocalPersistence(authModule, auth)
+  }
+  if (!isStudioRoute) {
     await consumePendingRedirectResult(authModule, auth)
   }
   const provider = new authModule.GoogleAuthProvider()
@@ -161,6 +186,13 @@ export async function setFirebaseAuthMemoryPersistence(authModule, auth) {
     throw new Error('Firebase Auth memory-only persistence is unavailable.')
   }
   await authModule.setPersistence(auth, authModule.inMemoryPersistence)
+}
+
+export async function setFirebaseAuthLocalPersistence(authModule, auth) {
+  if (typeof authModule?.setPersistence !== 'function' || !authModule.browserLocalPersistence) {
+    throw new Error('Firebase Auth local persistence is unavailable.')
+  }
+  await authModule.setPersistence(auth, authModule.browserLocalPersistence)
 }
 
 async function consumePendingRedirectResult(authModule, auth) {

@@ -1016,7 +1016,7 @@ export default function GraphicsStudio() {
                 testId="studio-stage-boss-preview"
               />
               <div style={styles.stageBossPreviewControls}>
-                <SliderRow label="Preview Zoom" name="stageBossPreviewZoom" min="50" max="180" step="1" value={stageBossPreview.zoom} onChange={(zoom) => updateStageBossPreview({ zoom })} />
+                <SliderRow label="Preview Zoom" name="stageBossPreviewZoom" min="0" max="180" step="1" value={stageBossPreview.zoom} onChange={(zoom) => updateStageBossPreview({ zoom })} />
                 <SliderRow label="Preview Pan X" name="stageBossPreviewPanX" min="-2" max="2" step="0.01" value={stageBossPreview.panX} onChange={(panX) => updateStageBossPreview({ panX })} />
                 <SliderRow label="Preview Pan Y" name="stageBossPreviewPanY" min={STAGE_BOSS_PREVIEW_PAN_Y_RANGE[0]} max={STAGE_BOSS_PREVIEW_PAN_Y_RANGE[1]} step="0.01" value={stageBossPreview.panY} onChange={(panY) => updateStageBossPreview({ panY })} />
               </div>

@@ -658,7 +658,7 @@ describe('GraphicsStudio', () => {
       zoom.blur()
     })
     expect(loadStageBossPreview().zoom).toBe(110)
-    expect(zoom.value).toBe('50')
+    expect(zoom.value).toBe('0')
 
     act(() => {
       zoom.focus()

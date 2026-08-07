@@ -710,7 +710,7 @@ function normalizeHexColor(value, fallback) {
 export function normalizeStageBossPreview(input = {}) {
   const source = input && typeof input === 'object' ? input : {}
   return {
-    zoom: Math.round(clampNumber(source.zoom, [50, 180], DEFAULT_STAGE_BOSS_PREVIEW.zoom)),
+    zoom: Math.round(clampNumber(source.zoom, [0, 180], DEFAULT_STAGE_BOSS_PREVIEW.zoom)),
     panX: Number(clampNumber(source.panX, [-2, 2], DEFAULT_STAGE_BOSS_PREVIEW.panX).toFixed(2)),
     panY: Number(clampNumber(source.panY, STAGE_BOSS_PREVIEW_PAN_Y_RANGE, DEFAULT_STAGE_BOSS_PREVIEW.panY).toFixed(2)),
   }

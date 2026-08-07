@@ -1,4 +1,4 @@
-import { getFirebaseConfig } from './firebaseAuth.js'
+import { getFirebaseConfig, resolveFirebaseAppForRoute } from './firebaseAuth.js'
 import { isFirebaseProgressConfigured } from './firebaseProgress.js'
 import { isProjectMaster } from './projectAdmin.js'
 import {
@@ -528,11 +528,11 @@ export function _setFirebaseStudioClientFactoryForTests(factory = createFirebase
 }
 
 async function createFirebaseStudioClient(env) {
-  const [{ initializeApp, getApp, getApps }, databaseModule] = await Promise.all([
+  const [firebaseAppModule, databaseModule] = await Promise.all([
     import('firebase/app'),
     import('firebase/database'),
   ])
-  const app = getApps().length > 0 ? getApp() : initializeApp(getFirebaseConfig(env))
+  const app = resolveFirebaseAppForRoute(firebaseAppModule, env)
   const database = databaseModule.getDatabase(app, readEnv(env, DATABASE_URL_KEY))
 
   return {

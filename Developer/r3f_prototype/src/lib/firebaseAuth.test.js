@@ -2,6 +2,9 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   getFirebaseConfig,
   getLocalFirebaseAuthRedirect,
+  GRAPHICS_STUDIO_FIREBASE_APP_NAME,
+  resolveFirebaseAppForRoute,
+  setFirebaseAuthLocalPersistence,
   setFirebaseAuthMemoryPersistence,
   isFirebaseAuthConfigured,
   shouldUseNativeGoogleSignIn,
@@ -173,6 +176,43 @@ describe('firebase auth configuration', () => {
     }, { name: 'test-auth' })).rejects.toThrow('memory-only persistence is unavailable')
   })
 
+  it('uses browser-local persistence for the game auth client only', async () => {
+    const auth = { name: 'game-auth' }
+    const browserLocalPersistence = { type: 'LOCAL' }
+    const calls = []
+
+    await setFirebaseAuthLocalPersistence({
+      browserLocalPersistence,
+      setPersistence: async (...args) => {
+        calls.push(args)
+      },
+    }, auth)
+
+    expect(calls).toEqual([[auth, browserLocalPersistence]])
+  })
+
+  it('uses an isolated named Firebase app for Studio and the default app for the game', () => {
+    const defaultApp = { name: '[DEFAULT]' }
+    const studioApp = { name: GRAPHICS_STUDIO_FIREBASE_APP_NAME }
+    const firebaseAppModule = {
+      getApps: vi.fn(() => [defaultApp]),
+      getApp: vi.fn(() => defaultApp),
+      initializeApp: vi.fn(() => studioApp),
+    }
+    const studioScope = { location: { pathname: '/graphics-studio' } }
+    const gameScope = { location: { pathname: '/' } }
+
+    expect(resolveFirebaseAppForRoute(firebaseAppModule, COMPLETE_ENV, studioScope)).toBe(studioApp)
+    expect(firebaseAppModule.initializeApp).toHaveBeenCalledWith(
+      getFirebaseConfig(COMPLETE_ENV),
+      GRAPHICS_STUDIO_FIREBASE_APP_NAME,
+    )
+    firebaseAppModule.initializeApp.mockClear()
+    expect(resolveFirebaseAppForRoute(firebaseAppModule, COMPLETE_ENV, gameScope)).toBe(defaultApp)
+    expect(firebaseAppModule.getApp).toHaveBeenCalledWith()
+    expect(firebaseAppModule.initializeApp).not.toHaveBeenCalled()
+  })
+
   it('recognizes graphics-studio paths with the route helper', () => {
     expect(isGraphicsStudioLocation({ pathname: '/graphics-studio' })).toBe(true)
     expect(isGraphicsStudioLocation({ pathname: '/graphics-studio/workspace' })).toBe(true)
@@ -192,6 +232,10 @@ describe('firebase auth configuration', () => {
     client.configured
     expect(client.configured).toBe(true)
     expect(firebaseAuthMock.auth.getRedirectResult).not.toHaveBeenCalled()
+    expect(firebaseAuthMock.auth.setPersistence).toHaveBeenLastCalledWith(
+      expect.anything(),
+      firebaseAuthMock.auth.inMemoryPersistence,
+    )
   })
 
   it('rethrows popup errors on /graphics-studio instead of redirect fallback and keeps ordinary game fallback behavior', async () => {
@@ -222,5 +266,9 @@ describe('firebase auth configuration', () => {
     firebaseAuthMock.auth.signInWithRedirect.mockResolvedValueOnce()
     await expect(gameClient.signInWithGoogle()).resolves.toBeNull()
     expect(firebaseAuthMock.auth.signInWithRedirect).toHaveBeenCalled()
+    expect(firebaseAuthMock.auth.setPersistence).toHaveBeenLastCalledWith(
+      expect.anything(),
+      firebaseAuthMock.auth.browserLocalPersistence,
+    )
   })
 })
