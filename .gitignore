@@ -16,3 +16,5 @@ tmp/
 
 .compound-engineering/*.local.yaml
 .gstack/
+
+.firebase/

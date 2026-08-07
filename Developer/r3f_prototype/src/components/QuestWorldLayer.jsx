@@ -8,6 +8,10 @@ import { usePlayingFrame } from '../lib/usePlayingFrame.js'
 import { playerPos } from '../lib/refs.js'
 import { getStageObjectFootprint } from './StageObjects/stageObjectColliders.js'
 import { getStageObjectPlacements } from './StageObjects/stageObjectPlacements.js'
+import StudioTunedGroup, {
+  composeStudioPartPosition,
+  composeStudioPartRotation,
+} from './StudioTunedGroup.jsx'
 
 export const QUEST_ITEM_INTERACTION_RADIUS = 0.82
 
@@ -219,17 +223,23 @@ function QuestItemModel({ visualKind }) {
   return <mesh>{material}<boxGeometry args={[0.62, 0.18, 0.46]} /></mesh>
 }
 
-function QuestItemMarker({ position, visualKind, rotationY = 0, resting = false }) {
+export function QuestItemMarker({ position, visualKind, rotationY = 0, resting = false }) {
   const groupRef = useRef(null)
   const markerRef = useRef(null)
+  const markerRotationRef = useRef(0)
   const baseY = position[1]
 
   useFrame(({ clock }, delta) => {
     if (resting) {
       if (!markerRef.current) return
       const elapsed = clock.getElapsedTime()
-      markerRef.current.position.y = Math.sin(elapsed * 2.4) * 0.06
-      markerRef.current.rotation.y += delta * 0.72
+      markerRotationRef.current += delta * 0.72
+      markerRef.current.position.y = composeStudioPartPosition(
+        markerRef.current, 'y', 0, Math.sin(elapsed * 2.4) * 0.06,
+      )
+      markerRef.current.rotation.y = composeStudioPartRotation(
+        markerRef.current, 'y', 0, markerRotationRef.current,
+      )
       return
     }
     if (!groupRef.current) return
@@ -241,32 +251,36 @@ function QuestItemMarker({ position, visualKind, rotationY = 0, resting = false 
   if (!resting) {
     return (
       <group ref={groupRef} position={position}>
-        <QuestItemModel visualKind={visualKind} />
-        <mesh position={[0, -0.16, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.38, 0.45, 16]} />
-          <meshBasicMaterial color={0x21162e} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh position={[0, 0.62, 0]}>
-          <octahedronGeometry args={[0.09, 0]} />
-          <meshBasicMaterial color={0xfff1a8} />
-        </mesh>
+        <StudioTunedGroup itemId={`quest-item-${visualKind}`}>
+          <QuestItemModel visualKind={visualKind} />
+          <mesh position={[0, -0.16, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.38, 0.45, 16]} />
+            <meshBasicMaterial color={0x21162e} side={THREE.DoubleSide} />
+          </mesh>
+          <mesh position={[0, 0.62, 0]}>
+            <octahedronGeometry args={[0.09, 0]} />
+            <meshBasicMaterial color={0xfff1a8} />
+          </mesh>
+        </StudioTunedGroup>
       </group>
     )
   }
 
   return (
     <group position={position}>
-      <group rotation={[0, rotationY, 0]}><QuestItemModel visualKind={visualKind} /></group>
-      <group ref={markerRef}>
-        <mesh position={[0, 0.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.31, 0.37, 16]} />
-          <meshBasicMaterial color={0x21162e} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh position={[0, 0.42, 0]}>
-          <octahedronGeometry args={[0.09, 0]} />
-          <meshBasicMaterial color={0xfff1a8} />
-        </mesh>
-      </group>
+      <StudioTunedGroup itemId={`quest-item-${visualKind}`}>
+        <group rotation={[0, rotationY, 0]}><QuestItemModel visualKind={visualKind} /></group>
+        <group ref={markerRef}>
+          <mesh position={[0, 0.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.31, 0.37, 16]} />
+            <meshBasicMaterial color={0x21162e} side={THREE.DoubleSide} />
+          </mesh>
+          <mesh position={[0, 0.42, 0]}>
+            <octahedronGeometry args={[0.09, 0]} />
+            <meshBasicMaterial color={0xfff1a8} />
+          </mesh>
+        </group>
+      </StudioTunedGroup>
     </group>
   )
 }

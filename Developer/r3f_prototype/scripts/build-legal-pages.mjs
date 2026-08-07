@@ -5,7 +5,7 @@
 // `npm run build:legal`로 다시 생성한 뒤 생성 결과를 함께 커밋한다.
 //
 // 실행: node scripts/build-legal-pages.mjs
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -21,7 +21,9 @@ import {
   TERMS_TITLE,
 } from '../src/lib/legalDocuments.js'
 
-const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'hosting')
+const ROOT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..')
+const OUT_DIR = join(ROOT_DIR, 'hosting')
+const DIST_DIR = join(ROOT_DIR, 'dist')
 
 function escapeHtml(text) {
   return String(text)
@@ -152,8 +154,12 @@ function selfCheck() {
 }
 
 selfCheck()
-mkdirSync(OUT_DIR, { recursive: true })
-for (const [file, html] of PAGES) {
-  writeFileSync(join(OUT_DIR, file), html, 'utf8')
-  console.log(`wrote hosting/${file}`)
+const outDirs = [OUT_DIR]
+if (existsSync(DIST_DIR)) outDirs.push(DIST_DIR)
+for (const outDir of outDirs) {
+  mkdirSync(outDir, { recursive: true })
+  for (const [file, html] of PAGES) {
+    writeFileSync(join(outDir, file), html, 'utf8')
+    console.log(`wrote ${outDir === OUT_DIR ? 'hosting' : 'dist'}/${file}`)
+  }
 }

@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "src/components/TitleScreen.jsx",
-      "sha256": "cdd1356e21512f8562f9a84cba707b3e358c390545eca3dcaea38af6bf1cfe43"
+      "sha256": "0a199698dd260d6850a67463db5b5999939d29bd0319357ce6698a16f703a1e0"
     },
     {
       "path": "src/components/TitleSceneCanvas.jsx",
-      "sha256": "e93ae4199f8a8d18b48dcb0550af317bce12ac8ce538d7e82d3790e01e27d667"
+      "sha256": "556dac91320c4dd7e90a1138872dc8413b585a64656757633cda93231f21f754"
     },
     {
       "path": "src/components/TitleScene3D.jsx",
-      "sha256": "034d92149614caa7f75a484abc7bc2b575a8da2bd2ad97b9b5acedf6a675adb3"
+      "sha256": "e90c193360a51f46015d3a55ddba3e5bf9ea1c84eade02f992d216f3abb317f9"
     },
     {
       "path": "src/lib/titleSettings.js",
@@ -23,11 +23,11 @@
     },
     {
       "path": "src/components/TitleScreen.settings.test.jsx",
-      "sha256": "8fb0ae4efcdd9544508182be87f18f1562dc552cdf4cf81ea92710b2d284593e"
+      "sha256": "3058c1310c8fbd937a2300e4111815cc75383375414fed0ed7d8227f21ffc5af"
     },
     {
       "path": "src/components/TitleScene3D.test.jsx",
-      "sha256": "d001d0d7bbfafcc0733457e95f4e1db8b5075de0e574a52589891f886da40500"
+      "sha256": "cf32bd7b53a78df966979a4fd79ad12f57b6814a1e3e15ce4a293838cbd55542"
     },
     {
       "path": "src/assets/audio/title_bgm.m4a",

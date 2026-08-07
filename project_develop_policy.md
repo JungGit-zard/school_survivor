@@ -101,6 +101,7 @@
 ### 반드시 지켜야 할 사항
 
 - 반드시 Graphics Studio의 모든 입력값은 Firebase에 영구 저장된 현재 사용자 스냅샷만 정본으로 사용한다.
+- 반드시 최고관리자 Google 계정만 Graphics Studio에 진입·저장할 수 있고, 모든 Studio 입력 1단계는 Apply·Connect 없이 Firebase 전역 정본 저장 성공 및 동일 revision 확인 뒤에만 Studio·타이틀·게임에 즉시 적용한다. 저장 실패 시 어떤 로컬/게임 렌더 적용도 금지한다.
 - 반드시 Studio, 타이틀, 게임은 Firebase에서 성공적으로 hydrate한 동일 revision의 값만 소비한다.
 - 반드시 Firebase 로그인, 연결, hydrate, revision 또는 payload 검증이 실패하면 저장과 렌더 적용을 즉시 중단하고 fail-closed 처리한다.
 - 반드시 `Source-Controlled Player Seed`, `sourceRevision`, `graphicsStudioPlayerSource.js`, 브라우저 `localStorage`, 소스 기본값 또는 과거 스냅샷을 이용한 초기화·복구·마이그레이션·fallback 방법론 전체를 치명적인 버그로 분류한다.
@@ -245,4 +246,3 @@
 - 비평가 점수, 품질 개선, 최적화, 접근성, 라이선스·권리, 리팩터링, 테스트 편의는 타이틀 변경 권한이 아니다. 타이틀 프레젠테이션을 바꾸기 위한 공유 gameplay 모델·코드 변경도 금지한다.
 - `Developer/r3f_prototype/src/assets/audio/title_bgm.m4a`는 bytes `998122`, SHA-256 `991bf9871fe70b55852920390b3b1434892cfc50da79d3e8fd900062b191cffe`의 영구 정본이다. 모든 개발 실행·빌드·AAB에 반드시 포함하며 삭제·교체·변환·재생 경로 변경·대체 생성은 금지한다.
 - 권리·출처·품질·최적화·비평 점수는 이 정본을 교체하거나 제외할 사유가 될 수 없다. 사용자 새 명시 지시만 예외이며, 매니페스트는 권리·출처를 확인했다는 주장을 하지 않는다.
-

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
 import * as THREE from 'three'
-import { getStudioTransformProps } from './StudioTunedGroup.jsx'
-import { CHARGE_CUE_CAPACITY, ENEMY_RENDER_CULLED, ENEMY_RENDER_FAR, ENEMY_RENDER_MID, ENEMY_RENDER_NEAR, ENEMY_VISUAL_WORLD_SCALE, applyCachedPartTransform, copyRootTransform, e01PartSlotsForNumericPath, fillChargeCueSlots, fillEnemyHealthBarLayout, fillVisibleChargeCueSlots, getPooledEnemyAnimationTime, getPooledChargeCueY, getPooledEnemyRenderTier, getPooledEnemyVisibility, getSpawnSmokeOpacity, hasUnsupportedStudioPartTuning, selectChargeCueSlots, setSlotOpacity, shouldRefreshEnemySight, shouldRenderPooledEnemyPart, updateHealthVisualState } from './PooledEnemyVisuals.js'
+import { composeStudioPartTransformCache, getStudioTransformProps } from './StudioTunedGroup.jsx'
+import { CHARGE_CUE_CAPACITY, ENEMY_RENDER_CULLED, ENEMY_RENDER_FAR, ENEMY_RENDER_MID, ENEMY_RENDER_NEAR, ENEMY_VISUAL_WORLD_SCALE, applyCachedPartTransform, applyPooledZombieStudioPartTunings, copyRootTransform, e01PartSlotsForNumericPath, fillChargeCueSlots, fillEnemyHealthBarLayout, fillVisibleChargeCueSlots, getPooledEnemyAnimationTime, getPooledChargeCueY, getPooledEnemyRenderTier, getPooledEnemyVisibility, getSpawnSmokeOpacity, hasUnsupportedStudioPartTuning, pooledZombiePartSlotsForNumericPath, selectChargeCueSlots, setSlotOpacity, shouldRefreshEnemySight, shouldRenderPooledEnemyPart, updateHealthVisualState } from './PooledEnemyVisuals.js'
 
 describe('pooled enemy visual pure contracts', () => {
   it('holds smoke before and through reveal, then hides it at its final lifetime', () => {
@@ -137,9 +138,9 @@ describe('pooled enemy visual pure contracts', () => {
     const slots = new Int16Array(12); const cache = new Float32Array(12 * 9)
     for (let index=0;index<12;index+=1) { const o=index*9; cache[o+6]=1;cache[o+7]=1;cache[o+8]=1 }
     let count=e01PartSlotsForNumericPath('0.0',slots); expect(count).toBe(3)
-    applyCachedPartTransform(cache,0,slots,count,{position:[1,0,0],rotation:[0,0,0],scale:[2,2,2]})
+    applyCachedPartTransform(cache,0,slots,count,{position:[1,0,0],rotation:[0,0,0],scale:[2,2,2]},composeStudioPartTransformCache)
     count=e01PartSlotsForNumericPath('0.0.1',slots); expect(slots[0]).toBe(1)
-    applyCachedPartTransform(cache,0,slots,count,{position:[0,2,0],rotation:[0,.5,0],scale:[.5,1,1]})
+    applyCachedPartTransform(cache,0,slots,count,{position:[0,2,0],rotation:[0,.5,0],scale:[.5,1,1]},composeStudioPartTransformCache)
     expect(cache[0]).toBe(1); expect(cache[9]).toBe(1); expect(cache[10]).toBe(2); expect(cache[15]).toBeCloseTo(1); expect(cache[6]).toBe(2)
     expect(e01PartSlotsForNumericPath('0.2',slots)).toBe(2); expect(e01PartSlotsForNumericPath('0.4',slots)).toBe(2)
   })
@@ -150,5 +151,47 @@ describe('pooled enemy visual pure contracts', () => {
     for (const [path, expected] of cases) { expect(e01PartSlotsForNumericPath(path,slots)).toBe(1); expect(slots[0]).toBe(expected) }
     expect(e01PartSlotsForNumericPath('0.6.0',slots)).toBe(0)
     expect(e01PartSlotsForNumericPath('bad.path',slots)).toBe(0)
+  })
+
+  it('applies every pooled zombie item part tuning through the canonical Studio cache', () => {
+    const partCount = 33
+    const cache = new Float32Array(9 * partCount * 9)
+    for (let type = 1; type <= 8; type += 1) {
+      const base = type * partCount * 9
+      for (let part = 0; part < partCount; part += 1) {
+        cache[base + part * 9 + 6] = 1
+        cache[base + part * 9 + 7] = 1
+        cache[base + part * 9 + 8] = 1
+      }
+    }
+    const itemIds = ['', 'zombie-e01', 'zombie-e02', 'zombie-e03', 'zombie-e04', 'zombie-e05', 'zombie-e06', 'zombie-rzl', 'zombie-rzc']
+    const tunings = Object.fromEntries(itemIds.slice(1).map((itemId, index) => [`${itemId}::part::0.0.0`, {
+      positionX: (index + 1) * 0.1,
+      rotationY: 15,
+      scale: 1.2,
+    }]))
+    const slots = new Int16Array(12)
+
+    for (let type = 1; type <= 8; type += 1) {
+      applyPooledZombieStudioPartTunings(cache, type, partCount, itemIds[type], tunings, getStudioTransformProps, composeStudioPartTransformCache, slots)
+      const slotCount = pooledZombiePartSlotsForNumericPath(type, '0.0.0', slots)
+      expect(slotCount).toBe(1)
+      const offset = type * partCount * 9 + slots[0] * 9
+      expect(cache[offset]).toBeCloseTo(type * 0.1)
+      expect(cache[offset + 4]).toBeCloseTo(THREE.MathUtils.degToRad(15))
+      expect(cache[offset + 6]).toBeCloseTo(1.2)
+    }
+  })
+
+  it('forbids pooled renderers from redefining the canonical Studio transform arithmetic', () => {
+    const pooledSource = readFileSync(new URL('./PooledEnemyVisuals.js', import.meta.url), 'utf8')
+    const layerSource = readFileSync(new URL('./ZombieInstanceLayer.jsx', import.meta.url), 'utf8')
+
+    expect(pooledSource).toContain('composeStudioTransformCache(cache, offset, transform)')
+    expect(pooledSource).not.toMatch(/cache\[offset(?:\s*\+\s*\d+)?\]\s*(?:\+=|\*=)\s*transform\./)
+    expect(layerSource).toContain('composeStudioPartOffset(part[3][0]')
+    expect(layerSource).toContain('composeStudioPartMultiplier(1,studio.current.partTransforms')
+    expect(layerSource).not.toContain('part[3][0]+studio.current.partTransforms')
+    expect(layerSource).not.toContain('e.x+=studio.current.partTransforms')
   })
 })

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import * as THREE from 'three'
 import { getPreviewFrame, getStudioPartKey } from './GraphicsStudioPreview.jsx'
+import { GRAPHICS_STUDIO_CATALOG } from '../lib/graphicsStudioConfig.js'
+import { QUEST_ITEM_STYLE } from './QuestWorldLayer.jsx'
 
 describe('GraphicsStudioPreview render contracts', () => {
   it('renders standard zombie catalog items with a direct mesh preview', () => {
@@ -215,5 +217,35 @@ describe('GraphicsStudioPreview render contracts', () => {
     expect(sourceByFile['./EnemyDeathCollapse.jsx']).toContain("enemy-death-${String(index + 1).padStart(2, '0')}")
     expect(sourceByFile['./TitleScene3D.jsx']).toContain('StudioTuningRuntimeProvider')
     expect(sourceByFile['./TitleScene3D.jsx']).toContain('playerVisualReady ?')
+  })
+
+  it('uses the identical Studio item IDs for every audited runtime object and preview tree', () => {
+    const ids = new Set(GRAPHICS_STUDIO_CATALOG.map(({ id }) => id))
+    const previewSource = readFileSync(new URL('./GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
+    const sourceByFile = {
+      chest: readFileSync(new URL('./TreasureChest.jsx', import.meta.url), 'utf8'),
+      portal: readFileSync(new URL('./EscapePortal.jsx', import.meta.url), 'utf8'),
+      quest: readFileSync(new URL('./QuestWorldLayer.jsx', import.meta.url), 'utf8'),
+      missile: readFileSync(new URL('./Weapons/Missile.jsx', import.meta.url), 'utf8'),
+      lantern: readFileSync(new URL('./Weapons/StudentLantern.jsx', import.meta.url), 'utf8'),
+    }
+
+    expect([...ids]).toEqual(expect.arrayContaining([
+      'stage-object-treasure-chest',
+      'stage-object-escape-portal',
+      'weapon-guided-missile',
+      'weapon-student-lantern',
+      ...Object.keys(QUEST_ITEM_STYLE).map((visualKind) => `quest-item-${visualKind}`),
+    ]))
+    expect(sourceByFile.chest).toContain('StudioTunedGroup itemId="stage-object-treasure-chest"')
+    expect(sourceByFile.portal).toContain('StudioTunedGroup itemId="stage-object-escape-portal"')
+    expect(sourceByFile.quest).toContain('StudioTunedGroup itemId={`quest-item-${visualKind}`}')
+    expect(sourceByFile.missile).toContain('StudioTunedGroup itemId="weapon-guided-missile"')
+    expect(sourceByFile.lantern).toContain('StudioTunedGroup itemId="weapon-student-lantern"')
+    expect(previewSource).toContain('<TreasureChest id="studio-treasure-chest"')
+    expect(previewSource).toContain('<EscapePortal stageId="stage1" />')
+    expect(previewSource).toContain('<QuestItemMarker position={[0, 0, 0]} visualKind={item.questVisualKind} />')
+    expect(previewSource).toContain("if (type === 'guidedMissile') return <MissileBody />")
+    expect(previewSource).toContain("if (type === 'studentLantern') return <StudentLanternVisual />")
   })
 })

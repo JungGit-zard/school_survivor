@@ -153,7 +153,8 @@ describe('TitleScreen lobby entry', () => {
     saveTitleSettings({ reducedEffects: true })
     const { container, cleanup } = renderTitleScreen()
 
-    expect(container.querySelector('[data-testid="mock-title-scene"]')?.dataset.reducedEffects).toBe('false')
+    expect(container.querySelector('[data-testid="mock-canvas"]')).not.toBeNull()
+    expect(container.querySelector('[data-testid="mock-title-scene"]')).toBeNull()
     expect(container.querySelectorAll('.title-intro-letter')).toHaveLength(7)
     expect(container.querySelector('.title-intro-zombie')).not.toBeNull()
     expect(container.querySelectorAll('[data-title-char]')).toHaveLength(7)
@@ -231,7 +232,7 @@ describe('TitleScreen lobby entry', () => {
   it.each([
     ['returns false', vi.fn(async () => false)],
     ['rejects', vi.fn(async () => { throw new Error('Studio hydrate failed') })],
-  ])('keeps the lobby closed and offers retry when Studio hydration %s', async (_scenario, ensureStudioCloudReady) => {
+  ])('continues into the lobby and offers a retry warning when Studio hydration %s', async (_scenario, ensureStudioCloudReady) => {
     const user = { uid: 'uid-studio-best-effort', displayName: 'Returner', email: 'r@example.com', photoURL: '' }
     seedConsentedUser(user)
     useAuthStore.setState({ status: 'signedIn', user, initialized: true })
@@ -245,10 +246,11 @@ describe('TitleScreen lobby entry', () => {
     await act(async () => {
       clickButtonByTextRaw(container, '게임 시작')
       await Promise.resolve()
+      await Promise.resolve()
     })
 
     expect(ensureStudioCloudReady).toHaveBeenCalledWith(user)
-    expect(onEnterLobby).not.toHaveBeenCalled()
+    expect(onEnterLobby).toHaveBeenCalledTimes(1)
     expect(unhandledRejection).not.toHaveBeenCalled()
     expect(container.querySelector('[role="alert"]')?.textContent).toContain('그래픽 데이터를')
 
@@ -256,7 +258,7 @@ describe('TitleScreen lobby entry', () => {
     clickButtonByText(container, '다시 시도')
     await act(async () => { await Promise.resolve() })
     expect(ensureStudioCloudReady).toHaveBeenCalledTimes(2)
-    expect(onEnterLobby).toHaveBeenCalledTimes(1)
+    expect(onEnterLobby).toHaveBeenCalledTimes(2)
     expect(container.querySelector('[role="alert"]')).toBeNull()
 
     window.removeEventListener('unhandledrejection', unhandledRejection)
@@ -405,6 +407,48 @@ describe('TitleScreen lobby entry', () => {
     clickButtonByText(container, '코인 레벨업 초기화')
 
 
+    cleanup()
+  })
+
+  it('continues into the lobby when Studio graphics hydration fails after login', async () => {
+    const user = { uid: 'studio-fallback-user', displayName: 'Fallback Player' }
+    seedConsentedUser(user)
+    useAuthStore.setState({ status: 'signedIn', user, initialized: true })
+    saveNicknameForUser(user, 'Fallback')
+    const onEnterLobby = vi.fn()
+    const ensureStudioCloudReady = vi.fn(() => Promise.resolve(false))
+    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {}, ensureStudioCloudReady)
+
+    await act(async () => {
+      clickButtonByTextRaw(container, '게임 시작')
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+
+    expect(ensureStudioCloudReady).toHaveBeenCalledWith(user)
+    expect(container.textContent).toContain('그래픽 데이터를 불러오지 못했습니다')
+    expect(onEnterLobby).toHaveBeenCalledTimes(1)
+    cleanup()
+  })
+
+  it('continues into the lobby when Studio graphics hydration throws after login', async () => {
+    const user = { uid: 'studio-throw-user', displayName: 'Throw Player' }
+    seedConsentedUser(user)
+    useAuthStore.setState({ status: 'signedIn', user, initialized: true })
+    saveNicknameForUser(user, 'Thrower')
+    const onEnterLobby = vi.fn()
+    const ensureStudioCloudReady = vi.fn(() => Promise.reject(new Error('read failed')))
+    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {}, ensureStudioCloudReady)
+
+    await act(async () => {
+      clickButtonByTextRaw(container, '게임 시작')
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+
+    expect(ensureStudioCloudReady).toHaveBeenCalledWith(user)
+    expect(container.textContent).toContain('그래픽 데이터를 불러오지 못했습니다')
+    expect(onEnterLobby).toHaveBeenCalledTimes(1)
     cleanup()
   })
 

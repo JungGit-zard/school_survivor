@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@react-three/fiber', () => ({ useFrame: vi.fn() }))
 vi.mock('../lib/sfxEvents.js', () => ({ emitSfx: vi.fn() }))
+vi.mock('./StudioTunedGroup.jsx', () => ({ default: ({ children }) => <>{children}</> }))
 
 import EscapePortal from './EscapePortal.jsx'
 import { clearPortalTarget, portalTarget } from '../lib/refs.js'

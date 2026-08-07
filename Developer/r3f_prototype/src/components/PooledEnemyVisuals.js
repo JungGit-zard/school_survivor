@@ -195,11 +195,104 @@ export function e01PartSlotsForNumericPath(path, out) {
   return 0
 }
 
-export function applyCachedPartTransform(cache, base, slots, slotCount, transform) {
+// E01-E06 share the E01 hierarchy.  The running pair has a richer hierarchy,
+// but it is still resolved into the same canonical Studio transform cache;
+// only this structural path-to-slot mapping differs.
+export function pooledZombiePartSlotsForNumericPath(type, path, out) {
+  if (type >= 1 && type <= 6) return e01PartSlotsForNumericPath(path, out)
+  if (type !== 7 && type !== 8) return 0
+
+  const parts = String(path).split('.').map(Number)
+  let start = -1
+  for (let index = 0; index < parts.length - 1; index += 1) {
+    if (parts[index] === 0 && Number.isInteger(parts[index + 1]) && parts[index + 1] <= 5) {
+      start = index
+      break
+    }
+  }
+  if (start < 0) return 0
+
+  const pivot = parts[start + 1]
+  const leaf = parts[start + 2]
+  const setRange = (first, count) => {
+    for (let index = 0; index < count; index += 1) out[index] = first + index
+    return count
+  }
+
+  if (!Number.isInteger(leaf)) {
+    if (pivot === 0) return setRange(12, 6)
+    if (pivot === 1) {
+      const count = setRange(18, 4)
+      if (type === 7) out[count] = 32
+      return type === 7 ? count + 1 : count
+    }
+    if (pivot === 2) return setRange(22, 2)
+    if (pivot === 3) return setRange(24, 2)
+    if (pivot === 4) return setRange(26, 3)
+    if (pivot === 5) return setRange(29, 3)
+    return 0
+  }
+
+  if (pivot === 0) {
+    if (leaf >= 0 && leaf <= 5) { out[0] = 12 + leaf; return 1 }
+    // The tooth has no separate pooled mesh and follows the mouth proxy.
+    if (leaf === 6) { out[0] = 17; return 1 }
+    return 0
+  }
+  if (pivot === 1) {
+    if (leaf === 0 || leaf === 1) { out[0] = 18 + leaf; return 1 }
+    if (leaf === 2) {
+      const nested = parts[start + 3]
+      if (!Number.isInteger(nested)) return setRange(20, 2)
+      if (nested === 0) { out[0] = 20; return 1 }
+      out[0] = 21; return 1
+    }
+    if (type === 7 && leaf >= 3 && leaf <= 5) { out[0] = 32; return 1 }
+    return 0
+  }
+  if (pivot === 2) {
+    if (leaf === 0) { out[0] = 22; return 1 }
+    if (leaf === 1) { out[0] = 23; return 1 }
+    if (leaf === 2) { out[0] = 22; return 1 }
+    return 0
+  }
+  if (pivot === 3) {
+    if (leaf === 0) { out[0] = 24; return 1 }
+    if (leaf === 1) { out[0] = 25; return 1 }
+    if (leaf === 2) { out[0] = 24; return 1 }
+    return 0
+  }
+  if (pivot === 4 && leaf >= 0 && leaf <= 2) { out[0] = 26 + leaf; return 1 }
+  if (pivot === 5 && leaf >= 0 && leaf <= 2) { out[0] = 29 + leaf; return 1 }
+  return 0
+}
+
+// Pooled rendering is only a path-to-slot adapter. Its numeric composition is
+// injected from StudioTunedGroup's canonical pure kernel.
+export function applyCachedPartTransform(cache, base, slots, slotCount, transform, composeStudioTransformCache) {
   for (let n=0;n<slotCount;n+=1) {
     const offset = base + slots[n] * 9
-    cache[offset] += transform.position[0]; cache[offset+1] += transform.position[1]; cache[offset+2] += transform.position[2]
-    cache[offset+3] += transform.rotation[0]; cache[offset+4] += transform.rotation[1]; cache[offset+5] += transform.rotation[2]
-    cache[offset+6] *= transform.scale[0]; cache[offset+7] *= transform.scale[1]; cache[offset+8] *= transform.scale[2]
+    composeStudioTransformCache(cache, offset, transform)
   }
+}
+
+// All pooled zombies use the same Studio composition rule as StudioTunedGroup:
+// base pose + saved Studio transform + runtime animation.  This helper only
+// selects the matching canonical item keys and maps their numeric paths to the
+// pooled mesh slots; it does not introduce a model-specific transform rule.
+export function applyPooledZombieStudioPartTunings(cache, type, partCount, itemId, tunings, getTransform, composeStudioTransformCache, slots) {
+  const marker = `${itemId}::`
+  const partPrefix = `${marker}part::`
+  const groupPrefix = `${marker}group::`
+  const base = type * partCount * 9
+
+  Object.keys(tunings ?? {}).sort().forEach((savedKey) => {
+    const prefix = savedKey.startsWith(groupPrefix) ? groupPrefix : savedKey.startsWith(partPrefix) ? partPrefix : null
+    if (!prefix) return
+    const transform = getTransform(tunings[savedKey])
+    savedKey.slice(prefix.length).split('+').forEach((path) => {
+      const count = pooledZombiePartSlotsForNumericPath(type, path, slots)
+      applyCachedPartTransform(cache, base, slots, count, transform, composeStudioTransformCache)
+    })
+  })
 }

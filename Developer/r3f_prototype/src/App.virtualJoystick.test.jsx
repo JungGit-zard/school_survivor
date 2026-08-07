@@ -6,7 +6,7 @@ import App, { handleStudioGameSyncMessage } from './App.jsx'
 import { loadStageBossPreview, loadStudioTunings, loadTextureDecals, saveStudioTunings } from './lib/graphicsStudioConfig.js'
 import { loadSfxTunings } from './lib/sfxRegistry.js'
 import { loadStagePropPlacements, resetStagePropPlacementsCache, saveStagePropPlacements } from './lib/stagePropPlacements.js'
-import { commitFirebaseStudioRuntime } from './lib/studioRuntimeState.js'
+import { commitFirebaseStudioRuntime, getFirebaseStudioRuntimeState } from './lib/studioRuntimeState.js'
 import {
   _resetFirebaseProgressForTests,
   _seedHydratedFirebaseProgressForTests,
@@ -177,6 +177,35 @@ describe('App virtual joystick mounting', () => {
     expect(loadStageBossPreview().zoom).not.toBe(133)
     expect(loadTextureDecals()).toEqual({})
     expect(loadStagePropPlacements().stage1[0].id).toBe('stale-desk')
+  })
+
+  it('applies the Firebase snapshot and revision selected by the existing sync hydrate path', async () => {
+    firebaseStudioMocks.hydrate.mockImplementation(async ({ user }) => {
+      expect(user).toEqual({ uid: 'test-user' })
+      commitFirebaseStudioRuntime({
+        tunings: { player: { scale: 1.71 } },
+        sfxTunings: { pencilFire: { volume: 0.4 } },
+        stageBossPreview: { zoom: 133, panX: 0.35, panY: -0.25 },
+        decals: {},
+        propPlacements: { stage1: [] },
+        bossFaceRecipes: {},
+      }, { revision: 42 })
+      return { status: 'remote-applied', revision: 42 }
+    })
+
+    const handled = await handleStudioGameSyncMessage({
+      origin: 'http://localhost:5173',
+      data: {
+        type: 'escape-zombie-school.studioGameSync.v1',
+        tunings: { player: { scale: 99 } },
+      },
+    })
+
+    expect(handled).toBe(true)
+    expect(firebaseStudioMocks.setUser).toHaveBeenCalledWith({ uid: 'test-user' })
+    expect(firebaseStudioMocks.hydrate).toHaveBeenCalledWith({ user: { uid: 'test-user' } })
+    expect(getFirebaseStudioRuntimeState().revision).toBe(42)
+    expect(loadStudioTunings().player.scale).toBe(1.71)
   })
 
   it('does not consume malformed or arbitrary datasets from a Studio message', async () => {

@@ -20,7 +20,12 @@ import {
   getFirebaseStudioRuntimeState,
 } from './studioRuntimeState.js'
 
-const USER = { uid: 'firebase-parity-300-user' }
+const USER = {
+  uid: 'firebase-parity-300-user',
+  email: 'zard5388@gmail.com',
+  emailVerified: true,
+  providerIds: ['google.com'],
+}
 const ITERATIONS_PER_MODEL = 300
 const MODEL_IDS = Object.freeze([
   'player',

@@ -4,6 +4,11 @@ import { useGameStore } from '../store/useGameStore.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { emitVfx } from '../lib/vfxEvents.js'
 import { inflateScale, outlineMat, toonMat } from '../lib/toon.js'
+import StudioTunedGroup, {
+  composeStudioPartPosition,
+  composeStudioPartRotation,
+  composeStudioPartScale,
+} from './StudioTunedGroup.jsx'
 
 // ── 이벤트 보물상자 (2026-07-14) ─────────────────────────────────────────────
 // 춤추는 도지 처치 시 드랍. 드랍 1.5초 뒤 "퍽" 하고 스스로 열리면서 onOpen을 호출한다
@@ -167,8 +172,13 @@ export default function TreasureChest({ id, position, scale = 1, onOpen }) {
     if (lidRef.current) {
       // 뚜껑이 경첩(뒤 모서리)을 축으로 확 젖혀지며 위로 살짝 튄다.
       const fling = 1 - Math.pow(1 - Math.min(1, t / 0.5), 3) // ease-out, 앞 50%에 다 열림
-      lidRef.current.rotation.x = -2.1 * fling
-      lidRef.current.position.y = 0.32 * s + Math.sin(Math.PI * Math.min(1, t / 0.5)) * 0.14 * s
+      lidRef.current.rotation.x = composeStudioPartRotation(lidRef.current, 'x', 0, -2.1 * fling)
+      lidRef.current.position.y = composeStudioPartPosition(
+        lidRef.current,
+        'y',
+        0.32 * s,
+        Math.sin(Math.PI * Math.min(1, t / 0.5)) * 0.14 * s,
+      )
     }
     if (groupRef.current) {
       // 상자 전체 스케일 팝(1→1.18→1) 후 후반부 줄어들며 소멸.
@@ -181,8 +191,12 @@ export default function TreasureChest({ id, position, scale = 1, onOpen }) {
     if (flashRef.current) {
       // 상자 안에서 솟는 금빛 플래시 기둥 — 빠르게 커졌다 사라진다.
       const rise = 1 - Math.pow(1 - t, 2)
-      flashRef.current.scale.set(1 + rise * 0.8, 1 + rise * 2.2, 1 + rise * 0.8)
-      flashRef.current.position.y = (0.3 + rise * 0.5) * s
+      flashRef.current.scale.set(
+        composeStudioPartScale(flashRef.current, 'x', 1, 1 + rise * 0.8),
+        composeStudioPartScale(flashRef.current, 'y', 1, 1 + rise * 2.2),
+        composeStudioPartScale(flashRef.current, 'z', 1, 1 + rise * 0.8),
+      )
+      flashRef.current.position.y = composeStudioPartPosition(flashRef.current, 'y', 0.3 * s, rise * 0.5 * s)
     }
     flashMat.opacity = Math.max(0, 1 - t * 1.6)
     if (glowMatRef.current) glowMatRef.current.opacity = Math.max(0, 0.55 * (1 - t))
@@ -194,24 +208,26 @@ export default function TreasureChest({ id, position, scale = 1, onOpen }) {
 
   return (
     <group ref={groupRef} position={position}>
-      <ChestBody s={s} />
-      {/* 뚜껑 피벗(뒤 모서리 경첩) */}
-      <group ref={lidRef} position={[0, 0.32 * s, -0.19 * s]}>
-        <ChestLid s={s} />
-      </group>
-      {burst && (
-        <>
-          {/* 금빛 플래시 기둥 — 오픈 순간 상자 안에서 솟는다. */}
-          <mesh ref={flashRef} position={[0, 0.3 * s, 0]} material={flashMat} renderOrder={50}>
-            <boxGeometry args={[0.3 * s, 0.3 * s, 0.3 * s]} />
-          </mesh>
-          {/* 바닥 금빛 글로우 원반 */}
-          <mesh position={[0, 0.02 * s, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={49}>
-            <circleGeometry args={[0.55 * s, 24]} />
-            <meshBasicMaterial ref={glowMatRef} color={CHEST_FLASH} transparent opacity={0.55} depthWrite={false} />
-          </mesh>
-        </>
-      )}
+      <StudioTunedGroup itemId="stage-object-treasure-chest">
+        <ChestBody s={s} />
+        {/* 뚜껑 피벗(뒤 모서리 경첩) */}
+        <group ref={lidRef} position={[0, 0.32 * s, -0.19 * s]}>
+          <ChestLid s={s} />
+        </group>
+        {burst && (
+          <>
+            {/* 금빛 플래시 기둥 — 오픈 순간 상자 안에서 솟는다. */}
+            <mesh ref={flashRef} position={[0, 0.3 * s, 0]} material={flashMat} renderOrder={50}>
+              <boxGeometry args={[0.3 * s, 0.3 * s, 0.3 * s]} />
+            </mesh>
+            {/* 바닥 금빛 글로우 원반 */}
+            <mesh position={[0, 0.02 * s, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={49}>
+              <circleGeometry args={[0.55 * s, 24]} />
+              <meshBasicMaterial ref={glowMatRef} color={CHEST_FLASH} transparent opacity={0.55} depthWrite={false} />
+            </mesh>
+          </>
+        )}
+      </StudioTunedGroup>
     </group>
   )
 }

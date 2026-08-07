@@ -8,6 +8,7 @@ import {
   TITLE_PLAYER_RUN_BOUNCE_Y,
   TITLE_PLAYER_RUN_SPEED,
   TITLE_PLAYER_RUN_SWAY_X,
+  TITLE_SCENE_BASE_POSITION,
   TITLE_SCENE_DIRECTION,
   TITLE_ZOMBIE_GROUND_LIFT_Y,
   applyClubLightFrame,
@@ -15,11 +16,29 @@ import {
   applyTitleCharacterOutline,
   clampTitleBackgroundZ,
   disposeTitleCharacterOutlines,
+  getTitleSceneRootPosition,
   prepareTitleCharactersForStudioUpdate,
 } from './TitleScene3D.jsx'
 import { applyStudioTuning } from './StudioTunedGroup.jsx'
 
 describe('TitleScene3D direction', () => {
+  it('uses the Studio preview bypass only for an explicit Studio preview, while preserving title-root offsets', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+
+    expect(TITLE_SCENE_BASE_POSITION).toEqual([0, -1.15, 0])
+    expect(getTitleSceneRootPosition({ position: [0.25, -0.4, 0.6] })).toEqual([0.25, expect.closeTo(-1.55), 0.6])
+    expect(source).toContain('const studioMode = studioTuning != null')
+    expect(source).toContain('{studioMode ? (')
+    expect(source).toContain(') : (\n        <StudioTunedGroup itemId="title-scene">')
+    expect(source).not.toContain('<StudioTuningPreviewProvider>\n        {sceneRoot}\n      </StudioTuningPreviewProvider>')
+    const runtimeRootStart = source.indexOf('<StudioTunedGroup itemId="title-scene">')
+    const runtimeRootEnd = source.indexOf('</StudioTunedGroup>', runtimeRootStart)
+    const runtimeRoot = source.slice(runtimeRootStart, runtimeRootEnd)
+    expect(runtimeRootStart).toBeGreaterThan(-1)
+    expect(runtimeRoot).toContain('{sceneRoot}')
+    expect(runtimeRoot).not.toContain('StudioTuningPreviewProvider')
+  })
+
   it('lifts every title zombie family above the floor without changing model internals', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 

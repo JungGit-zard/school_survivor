@@ -7,6 +7,7 @@ import { useGameStore } from '../../store/useGameStore.js'
 import { applyForwardConeDamage } from '../../lib/weaponTargeting.js'
 import { startPlayerArmAction } from '../../lib/playerArmAction.js'
 import { PLAYER_MESH_SCALE } from '../../lib/characterVisualScale.js'
+import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 const lanternBeamVertexShader = `
   varying vec2 vLocal;
@@ -67,6 +68,65 @@ export function getLanternBeamOrigin(player, facing) {
   }
 }
 
+export function StudentLanternVisual({ beamRef = null, coreRef = null, length = 2.08 * LANTERN_BEAM_VISUAL_SCALE, width = 3.6 * LANTERN_BEAM_VISUAL_SCALE, baseWidth = 0.35 * LANTERN_BEAM_VISUAL_SCALE }) {
+  const coreLength = length * 0.68
+  const coreBaseWidth = baseWidth * 0.65
+  const coreWidth = width * 0.48
+  const beamShape = useMemo(() => {
+    const shape = new THREE.Shape()
+    shape.moveTo(-baseWidth / 2, 0)
+    shape.lineTo(baseWidth / 2, 0)
+    shape.lineTo(width / 2, length)
+    shape.lineTo(-width / 2, length)
+    shape.closePath()
+    return shape
+  }, [baseWidth, length, width])
+  const coreShape = useMemo(() => {
+    const shape = new THREE.Shape()
+    shape.moveTo(-coreBaseWidth / 2, 0)
+    shape.lineTo(coreBaseWidth / 2, 0)
+    shape.lineTo(coreWidth / 2, coreLength)
+    shape.lineTo(-coreWidth / 2, coreLength)
+    shape.closePath()
+    return shape
+  }, [coreBaseWidth, coreLength, coreWidth])
+  const beamUniforms = useMemo(
+    () => createLanternBeamUniforms(0xffd964, 0.3, length, width, baseWidth),
+    [baseWidth, length, width],
+  )
+  const coreUniforms = useMemo(
+    () => createLanternBeamUniforms(0xfff0b0, 0.38, coreLength, coreWidth, coreBaseWidth),
+    [coreBaseWidth, coreLength, coreWidth],
+  )
+
+  return (
+    <>
+      <mesh ref={beamRef} rotation={[Math.PI / 2, 0, 0]} position={[0, 0.08, 0]} renderOrder={3}>
+        <shapeGeometry args={[beamShape]} />
+        <shaderMaterial
+          transparent
+          depthWrite={false}
+          side={THREE.DoubleSide}
+          vertexShader={lanternBeamVertexShader}
+          fragmentShader={lanternBeamFragmentShader}
+          uniforms={beamUniforms}
+        />
+      </mesh>
+      <mesh ref={coreRef} rotation={[Math.PI / 2, 0, 0]} position={[0, 0.09, 0]} renderOrder={4}>
+        <shapeGeometry args={[coreShape]} />
+        <shaderMaterial
+          transparent
+          depthWrite={false}
+          side={THREE.DoubleSide}
+          vertexShader={lanternBeamVertexShader}
+          fragmentShader={lanternBeamFragmentShader}
+          uniforms={coreUniforms}
+        />
+      </mesh>
+    </>
+  )
+}
+
 // 학생용 랜턴 (신무기 2026-07-04, 스탯 정본: weaponCatalog.studentLantern)
 // 점등하면 durationMs 동안 전방으로 퍼지는 빛 콘(lightLength × lightWidth)을 비추고,
 // 그 안의 모든 적이 hitIntervalMs마다 피해를 받는다. 점등 즉시 1타 →
@@ -86,35 +146,6 @@ export function StudentLanternWeapon() {
   const renderLength = (w?.lightLength ?? 2.08) * LANTERN_BEAM_VISUAL_SCALE
   const renderWidth = (w?.lightWidth ?? 3.6) * LANTERN_BEAM_VISUAL_SCALE
   const renderBaseWidth = (w?.lightBaseWidth ?? 0.35) * LANTERN_BEAM_VISUAL_SCALE
-  const renderCoreLength = renderLength * 0.68
-  const renderCoreBaseWidth = renderBaseWidth * 0.65
-  const renderCoreWidth = renderWidth * 0.48
-  const beamShape = useMemo(() => {
-    const shape = new THREE.Shape()
-    shape.moveTo(-renderBaseWidth / 2, 0)
-    shape.lineTo(renderBaseWidth / 2, 0)
-    shape.lineTo(renderWidth / 2, renderLength)
-    shape.lineTo(-renderWidth / 2, renderLength)
-    shape.closePath()
-    return shape
-  }, [renderBaseWidth, renderLength, renderWidth])
-  const coreShape = useMemo(() => {
-    const shape = new THREE.Shape()
-    shape.moveTo(-renderCoreBaseWidth / 2, 0)
-    shape.lineTo(renderCoreBaseWidth / 2, 0)
-    shape.lineTo(renderCoreWidth / 2, renderCoreLength)
-    shape.lineTo(-renderCoreWidth / 2, renderCoreLength)
-    shape.closePath()
-    return shape
-  }, [renderCoreBaseWidth, renderCoreLength, renderCoreWidth])
-  const beamUniforms = useMemo(
-    () => createLanternBeamUniforms(0xffd964, 0.3, renderLength, renderWidth, renderBaseWidth),
-    [renderBaseWidth, renderLength, renderWidth],
-  )
-  const coreUniforms = useMemo(
-    () => createLanternBeamUniforms(0xfff0b0, 0.38, renderCoreLength, renderCoreWidth, renderCoreBaseWidth),
-    [renderCoreBaseWidth, renderCoreLength, renderCoreWidth],
-  )
 
   usePlayingFrame(({ clock }, delta) => {
     if (!w?.active) return
@@ -184,29 +215,16 @@ export function StudentLanternWeapon() {
 
   return (
     <group ref={groupRef} visible={false}>
-      {/* 넓어지는 랜턴 콘 - 플레이어 앞에서 시작해 12시 방향으로 퍼진다. */}
-      <mesh ref={beamRef} rotation={[Math.PI / 2, 0, 0]} position={[0, 0.08, 0]} renderOrder={3}>
-        <shapeGeometry args={[beamShape]} />
-        <shaderMaterial
-          transparent
-          depthWrite={false}
-          side={THREE.DoubleSide}
-          vertexShader={lanternBeamVertexShader}
-          fragmentShader={lanternBeamFragmentShader}
-          uniforms={beamUniforms}
+      <StudioTunedGroup itemId="weapon-student-lantern">
+        {/* 넓어지는 랜턴 콘 - 플레이어 앞에서 시작해 12시 방향으로 퍼진다. */}
+        <StudentLanternVisual
+          beamRef={beamRef}
+          coreRef={coreRef}
+          length={renderLength}
+          width={renderWidth}
+          baseWidth={renderBaseWidth}
         />
-      </mesh>
-      <mesh ref={coreRef} rotation={[Math.PI / 2, 0, 0]} position={[0, 0.09, 0]} renderOrder={4}>
-        <shapeGeometry args={[coreShape]} />
-        <shaderMaterial
-          transparent
-          depthWrite={false}
-          side={THREE.DoubleSide}
-          vertexShader={lanternBeamVertexShader}
-          fragmentShader={lanternBeamFragmentShader}
-          uniforms={coreUniforms}
-        />
-      </mesh>
+      </StudioTunedGroup>
     </group>
   )
 }

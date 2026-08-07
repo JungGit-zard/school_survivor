@@ -27,6 +27,7 @@ import {
 
 export const FIREBASE_STUDIO_SCHEMA_VERSION = 1
 export const FIREBASE_STUDIO_REVISION_EVENT = 'escape-zombie-school.firebaseStudioRevision.changed'
+export const CANONICAL_STUDIO_PATH = 'studioWorkspaces/v1/canonical/current'
 export const FIREBASE_STUDIO_DATASET_KEYS = Object.freeze([
   'tunings',
   'sfxTunings',
@@ -54,7 +55,7 @@ const deferredRemoteSnapshots = new Map()
 
 export function getUserStudioPath(user = studioUser) {
   const uid = typeof user?.uid === 'string' ? user.uid.trim() : ''
-  return uid ? `studioWorkspaces/v1/users/${uid}/current` : ''
+  return uid ? CANONICAL_STUDIO_PATH : ''
 }
 
 export function loadStudioRuntimeDatasets() {
@@ -231,12 +232,36 @@ export async function hydrateFirebaseStudio({
   return { status: 'remote-applied', revision: normalized.revision }
 }
 
+// 빈 전역 정본은 최고관리자만 transaction으로 한 번 생성한다. 런타임은 이 함수가 아닌
+// 뒤이은 hydrateFirebaseStudio가 Firebase에서 다시 읽어 연다.
+export async function initializeFirebaseStudioIfMissing({
+  user = studioUser,
+  client,
+  env = getDefaultEnv(),
+  now = Date.now(),
+} = {}) {
+  const path = getUserStudioPath(user)
+  if (!path) return { status: 'unauthenticated' }
+  if (!isProjectMaster(user)) return { status: 'forbidden' }
+  const resolved = await resolveStudioClient(client, env)
+  if (resolved.status) return resolved
+  try {
+    const result = await resolved.client.transaction(path, (current) => {
+      if (current !== null && current !== undefined) return undefined
+      return buildFirebaseStudioSnapshot({}, { revision: 1, now })
+    })
+    return result?.committed === false ? { status: 'already-exists' } : { status: 'created', revision: 1 }
+  } catch (error) {
+    return { status: 'write-failed', error }
+  }
+}
+
 // ── 완전한 예외(사용자 확정 2026-07-19): 주인공 캐릭터 튜닝만 공개 정본 노드로 분리 ──
 // 로그인 전(uid 없음)에도 절대 대전제(세팅값 미적용 오브젝트 렌더 금지)를 지키며 타이틀 주인공을
 // 튜닝 적용 상태로 보이기 위한 유일 경로. Firebase-only 유지(로컬 시드/localStorage 아님) —
 // "현재 사용자 스냅샷만 소비" 규칙에 대한 의도적 예외. 읽기 공개 / 쓰기 마스터 전용
 // (database.rules.json studioWorkspaces/v1/canonicalTitlePlayer).
-export const CANONICAL_TITLE_PLAYER_PATH = 'studioWorkspaces/v1/canonicalTitlePlayer/current'
+export const CANONICAL_TITLE_PLAYER_PATH = CANONICAL_STUDIO_PATH
 
 function pickPlayerTunings(tunings) {
   const source = isObject(tunings) ? tunings : {}
@@ -255,18 +280,18 @@ export async function publishCanonicalTitlePlayer({
   now = Date.now(),
 } = {}) {
   if (!isProjectMaster(user)) return { status: 'forbidden' }
-  const playerTunings = pickPlayerTunings(loadStudioTunings())
+  const canonicalDatasets = loadStudioRuntimeDatasets()
   const resolved = await resolveStudioClient(client, env)
   if (resolved.status) return resolved
   let nextRevision = null
   try {
-    const result = await resolved.client.transaction(CANONICAL_TITLE_PLAYER_PATH, (current) => {
+    const result = await resolved.client.transaction(CANONICAL_STUDIO_PATH, (current) => {
       if (isFutureSchema(current)) return undefined
       const revision = current?.schemaVersion === FIREBASE_STUDIO_SCHEMA_VERSION
         ? normalizeRevision(current.revision) + 1
         : 1
       nextRevision = revision
-      return buildFirebaseStudioSnapshot({ tunings: playerTunings }, { revision, now })
+      return buildFirebaseStudioSnapshot(canonicalDatasets, { revision, now })
     })
     if (result?.committed === false) return { status: 'write-aborted' }
     return { status: 'published', revision: nextRevision }
@@ -285,7 +310,7 @@ export async function hydrateCanonicalTitlePlayer({
   if (resolved.status) return resolved
   let remote
   try {
-    remote = await resolved.client.load(CANONICAL_TITLE_PLAYER_PATH)
+    remote = await resolved.client.load(CANONICAL_STUDIO_PATH)
   } catch (error) {
     return { status: 'read-failed', error }
   }
@@ -381,6 +406,7 @@ export async function saveFirebaseStudio({
 } = {}) {
   const path = getUserStudioPath(user)
   if (!path) return { status: 'unauthenticated' }
+  if (!isProjectMaster(user)) return { status: 'forbidden' }
   const uid = readUid(user)
   const mutationGenerationAtStart = localMutationGeneration
   const resolvedDatasets = datasets ?? loadStudioRuntimeDatasets()

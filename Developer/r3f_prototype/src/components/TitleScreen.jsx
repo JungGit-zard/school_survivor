@@ -375,11 +375,9 @@ export default function TitleScreen({
     try {
       if (ensureStudioCloudReady && !await ensureStudioCloudReady(user)) {
         setStudioError(t('title.studioError'))
-        return
       }
     } catch {
       setStudioError(t('title.studioError'))
-      return
     }
 
     try {

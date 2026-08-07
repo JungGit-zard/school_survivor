@@ -45,6 +45,9 @@ import { DancingDoge } from './DogeMesh.jsx'
 import EnemyDeathCollapse from './EnemyDeathCollapse.jsx'
 import { ENEMY_DEATH_COLLAPSE_STYLES } from '../lib/enemyDeathCollapse.js'
 import EnemyProjectileVisual from './EnemyProjectileVisual.jsx'
+import TreasureChest from './TreasureChest.jsx'
+import EscapePortal from './EscapePortal.jsx'
+import { QuestItemMarker } from './QuestWorldLayer.jsx'
 import TitleScene3D from './TitleScene3D.jsx'
 import { ChargeWarningLine, HitSpark, PickupPop } from './VFXLayer.jsx'
 import { PencilModel } from './Weapons/Pencil.jsx'
@@ -61,6 +64,8 @@ import { EraserModel } from './Weapons/EraserBomb.jsx'
 import { BoxCutterModel } from './Weapons/BoxCutter.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
 import { SharkMissileModel, FlameTrail } from './Weapons/SharkMissile.jsx'
+import { MissileBody } from './Weapons/Missile.jsx'
+import { StudentLanternVisual } from './Weapons/StudentLantern.jsx'
 import { CrashExplosionVisual, StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
 import { StudioTuningPreviewProvider, applySavedStudioPartTunings, applyStudioTuning, captureStudioPartBaseTransforms, disposeStudioOwnedMaterials, findStudioPartByKey, getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { disposeTextureDecals, syncTextureDecals } from './TextureDecal.jsx'
@@ -366,6 +371,7 @@ function WeaponModelPreview({ type }) {
       </group>
     )
   }
+  if (type === 'guidedMissile') return <MissileBody />
   if (type === 'sharkMissile') {
     return (
       <>
@@ -374,6 +380,7 @@ function WeaponModelPreview({ type }) {
       </>
     )
   }
+  if (type === 'studentLantern') return <StudentLanternVisual />
   return null
 }
 
@@ -551,6 +558,9 @@ function RenderPreviewItem({ item }) {
   if (item.previewKind === 'stageObject' && item.objectType === 'classPresidentStudent') {
     return <ClassPresidentStudent variant={item.variant} />
   }
+  if (item.previewKind === 'treasureChest') return <TreasureChest id="studio-treasure-chest" position={[0, 0, 0]} onOpen={() => {}} />
+  if (item.previewKind === 'escapePortal') return <EscapePortal stageId="stage1" />
+  if (item.previewKind === 'questItem') return <QuestItemMarker position={[0, 0, 0]} visualKind={item.questVisualKind} />
   if (item.previewKind === 'stageLock') {
     return <StageLockModel />
   }

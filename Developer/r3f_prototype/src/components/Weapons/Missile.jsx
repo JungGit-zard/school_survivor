@@ -8,6 +8,7 @@ import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat } from '../../lib/toon.js'
 import { findBestSplashTarget, applyRadialDamage } from '../../lib/weaponTargeting.js'
 import { getGuidedMissileControlTime } from '../../lib/guidedMissileRuntime.js'
+import StudioTunedGroup, { composeStudioPartScale } from '../StudioTunedGroup.jsx'
 
 // guidedMissile / 보조배터리 미사일 — legacy 2단계(충전 → 비행) 연출 부활본.
 // 던지면 0.95s 동안 흔들리며 추진력 축적, 그 뒤 가속 비행해 target 좌표에 폭발.
@@ -132,14 +133,19 @@ function MissileProjectile({ id, start, target, damage, radius, homingStrength =
       if (smokeRef.current) {
         smokeMat.opacity = chargeT * (0.58 + Math.sin(ageRef.current * 12) * 0.10)
         smokeRef.current.scale.set(
-          0.38 + chargeT * 1.4,
-          1.0  + chargeT * 3.0,
-          0.38 + chargeT * 1.4,
+          composeStudioPartScale(smokeRef.current, 'x', 1, 0.38 + chargeT * 1.4),
+          composeStudioPartScale(smokeRef.current, 'y', 1, 1.0 + chargeT * 3.0),
+          composeStudioPartScale(smokeRef.current, 'z', 1, 0.38 + chargeT * 1.4),
         )
       }
       // 화염: 충전이 쌓일수록 점점 밝아짐
       if (flameRef.current) {
-        flameRef.current.scale.setScalar(0.06 + chargeT * 0.20)
+        const flameScale = 0.06 + chargeT * 0.20
+        flameRef.current.scale.set(
+          composeStudioPartScale(flameRef.current, 'x', 1, flameScale),
+          composeStudioPartScale(flameRef.current, 'y', 1, flameScale),
+          composeStudioPartScale(flameRef.current, 'z', 1, flameScale),
+        )
         flameMat.opacity     = 0.06 + chargeT * 0.22
         flameCoreMat.opacity = 0.08 + chargeT * 0.25
       }
@@ -169,7 +175,12 @@ function MissileProjectile({ id, start, target, damage, radius, homingStrength =
     const pulse = 0.82 + Math.sin(ageRef.current * 28) * 0.18
 
     if (flameRef.current) {
-      flameRef.current.scale.setScalar(pulse * (0.18 + t * 0.60))
+      const flameScale = pulse * (0.18 + t * 0.60)
+      flameRef.current.scale.set(
+        composeStudioPartScale(flameRef.current, 'x', 1, flameScale),
+        composeStudioPartScale(flameRef.current, 'y', 1, flameScale),
+        composeStudioPartScale(flameRef.current, 'z', 1, flameScale),
+      )
       flameMat.opacity     = 0.18 + t * 0.37
       flameCoreMat.opacity = 0.22 + t * 0.43
     }
@@ -178,29 +189,31 @@ function MissileProjectile({ id, start, target, damage, radius, homingStrength =
       const smokeT = 1 - t
       smokeMat.opacity = smokeT * (0.50 + Math.sin(ageRef.current * 9) * 0.08)
       smokeRef.current.scale.set(
-        pulse * (0.55 + smokeT * 0.9),
-        1 + smokeT * 2.2,
-        pulse * (0.55 + smokeT * 0.9),
+        composeStudioPartScale(smokeRef.current, 'x', 1, pulse * (0.55 + smokeT * 0.9)),
+        composeStudioPartScale(smokeRef.current, 'y', 1, 1 + smokeT * 2.2),
+        composeStudioPartScale(smokeRef.current, 'z', 1, pulse * (0.55 + smokeT * 0.9)),
       )
     }
   })
 
   return (
     <group ref={groupRef} position={start}>
-      <MissileBody />
-      {/* 발사 직후 연기 구름 — 꼬리 뒤쪽 */}
-      <mesh ref={smokeRef} renderOrder={3} material={smokeMat} position={[0, 0, -0.58]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.05, 0.09, 0.42, 8]} />
-      </mesh>
-      {/* 배기 화염 */}
-      <group ref={flameRef} position={[0, 0, -0.36]}>
-        <mesh renderOrder={4} material={flameMat} rotation={[Math.PI / 2, 0, 0]}>
-          <coneGeometry args={[0.038, 0.20, 8]} />
+      <StudioTunedGroup itemId="weapon-guided-missile">
+        <MissileBody />
+        {/* 발사 직후 연기 구름 — 꼬리 뒤쪽 */}
+        <mesh ref={smokeRef} renderOrder={3} material={smokeMat} position={[0, 0, -0.58]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.05, 0.09, 0.42, 8]} />
         </mesh>
-        <mesh renderOrder={5} material={flameCoreMat} rotation={[Math.PI / 2, 0, 0]} scale={[0.52, 0.58, 0.52]}>
-          <coneGeometry args={[0.038, 0.20, 8]} />
-        </mesh>
-      </group>
+        {/* 배기 화염 */}
+        <group ref={flameRef} position={[0, 0, -0.36]}>
+          <mesh renderOrder={4} material={flameMat} rotation={[Math.PI / 2, 0, 0]}>
+            <coneGeometry args={[0.038, 0.20, 8]} />
+          </mesh>
+          <mesh renderOrder={5} material={flameCoreMat} rotation={[Math.PI / 2, 0, 0]} scale={[0.52, 0.58, 0.52]}>
+            <coneGeometry args={[0.038, 0.20, 8]} />
+          </mesh>
+        </group>
+      </StudioTunedGroup>
     </group>
   )
 }

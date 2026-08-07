@@ -60,7 +60,7 @@ function seedList(stageId, override) {
   }))
 }
 
-export default function StagePropPlacementEditor({ onApply }) {
+export default function StagePropPlacementEditor({ onChange }) {
   const [override] = useState(() => loadStagePropPlacements())
   const [stageId, setStageId] = useState('stage1')
   const [lists, setLists] = useState(() => {
@@ -68,6 +68,8 @@ export default function StagePropPlacementEditor({ onApply }) {
     for (const id of STAGE_PROP_STAGE_IDS) initial[id] = seedList(id, override)
     return initial
   })
+  const listsRef = useRef(lists)
+  const propPlacementsRef = useRef(override)
   const [selectedId, setSelectedId] = useState(null)
   const [status, setStatus] = useState('')
   const [drag, setDrag] = useState(null) // { kind, type?, id?, left, top }
@@ -78,9 +80,20 @@ export default function StagePropPlacementEditor({ onApply }) {
   const viewport = useMemo(() => getEditorViewport(bounds), [bounds])
   const gameBounds = getStageBounds(stageId)
 
-  const setStageList = useCallback((nextList) => {
-    setLists((current) => ({ ...current, [stageId]: nextList }))
-  }, [stageId])
+  const setStageList = useCallback((nextList, nextOverride = nextList) => {
+    const currentList = listsRef.current[stageId] ?? []
+    const resolvedList = typeof nextList === 'function' ? nextList(currentList) : nextList
+    const resolvedOverride = typeof nextOverride === 'function'
+      ? nextOverride(currentList)
+      : nextOverride
+    const nextLists = { ...listsRef.current, [stageId]: resolvedList }
+    const nextConfig = { ...propPlacementsRef.current, [stageId]: resolvedOverride }
+
+    listsRef.current = nextLists
+    propPlacementsRef.current = nextConfig
+    setLists(nextLists)
+    onChange?.(nextConfig)
+  }, [onChange, stageId])
 
   const pointerToWorld = useCallback((clientX, clientY) => {
     const rect = mapRef.current?.getBoundingClientRect()
@@ -119,12 +132,12 @@ export default function StagePropPlacementEditor({ onApply }) {
             ...(defaultProps ? { props: defaultProps } : {}),
           })
           if (placement) {
-            setStageList([...(lists[stageId] ?? []), placement])
+            setStageList((currentList) => [...currentList, placement])
             setSelectedId(placement.id)
             setStatus(`배치: ${entry?.label ?? drag.type}`)
           }
         } else if (drag.kind === 'move') {
-          setStageList((lists[stageId] ?? []).map((item) => (
+          setStageList((currentList) => currentList.map((item) => (
             item.id === drag.id ? { ...item, position: [world.x, 0, world.z] } : item
           )))
         }
@@ -137,7 +150,7 @@ export default function StagePropPlacementEditor({ onApply }) {
       window.removeEventListener('pointermove', handleMove)
       window.removeEventListener('pointerup', handleUp)
     }
-  }, [drag, lists, stageId, setStageList, pointerToWorld, pointerInsideMap])
+  }, [drag, setStageList, pointerToWorld, pointerInsideMap])
 
   // 팔레트: 클릭 = 맵 중앙에 즉시 추가(선택), pointerDown = 드래그 배치 시작.
   const addAtCenter = (type) => {
@@ -152,7 +165,7 @@ export default function StagePropPlacementEditor({ onApply }) {
       ...(defaultProps ? { props: defaultProps } : {}),
     })
     if (!placement) return
-    setStageList([...(lists[stageId] ?? []), placement])
+    setStageList((currentList) => [...currentList, placement])
     setSelectedId(placement.id)
     setStatus(`추가: ${entry?.label ?? type}`)
   }
@@ -173,7 +186,7 @@ export default function StagePropPlacementEditor({ onApply }) {
 
   const deleteSelected = () => {
     if (!selectedId) return
-    setStageList((lists[stageId] ?? []).filter((item) => item.id !== selectedId))
+    setStageList((currentList) => currentList.filter((item) => item.id !== selectedId))
     setSelectedId(null)
     setStatus('삭제됨')
   }
@@ -181,7 +194,7 @@ export default function StagePropPlacementEditor({ onApply }) {
   const rotateSelected = (deltaDeg) => {
     if (!selectedId) return
     const deltaRad = (deltaDeg * Math.PI) / 180
-    setStageList((lists[stageId] ?? []).map((item) => (
+    setStageList((currentList) => currentList.map((item) => (
       item.id === selectedId
         ? { ...item, rotation: [0, Number((item.rotation[1] + deltaRad).toFixed(4)), 0] }
         : item
@@ -190,24 +203,22 @@ export default function StagePropPlacementEditor({ onApply }) {
 
   const scaleSelected = (nextScale) => {
     if (!selectedId) return
-    setStageList((lists[stageId] ?? []).map((item) => (
+    setStageList((currentList) => currentList.map((item) => (
       item.id === selectedId ? { ...item, scale: nextScale } : item
     )))
   }
 
-  const applyStage = () => {
-    const config = { ...loadStagePropPlacements(), [stageId]: lists[stageId] ?? [] }
-    onApply?.(config)
-    setStatus(`Apply 완료 · ${stageId} (${(lists[stageId] ?? []).length}개)`)
-  }
-
   const resetStage = () => {
-    const config = { ...loadStagePropPlacements(), [stageId]: null }
-    onApply?.(config)
+    const config = { ...propPlacementsRef.current, [stageId]: null }
     const seeded = seedList(stageId, config)
-    setStageList(seeded)
+    setStageList(seeded, null)
     setSelectedId(null)
     setStatus(`기본 배치 복귀 · ${stageId}`)
+  }
+
+  const reapplyStage = () => {
+    onChange?.(propPlacementsRef.current)
+    setStatus(`Applied · ${stageId}`)
   }
 
   const selected = list.find((item) => item.id === selectedId) ?? null
@@ -234,7 +245,7 @@ export default function StagePropPlacementEditor({ onApply }) {
           </select>
         </label>
         <span style={styles.countBadge}>{list.length} props</span>
-        <button type="button" data-testid="prop-apply" onClick={applyStage} style={styles.primaryButton}>Apply</button>
+        <button type="button" data-testid="prop-apply" onClick={reapplyStage} style={styles.largePrimaryButton}>Apply</button>
         <button type="button" data-testid="prop-reset" onClick={resetStage} style={styles.secondaryButton}>Reset</button>
       </div>
 
@@ -317,7 +328,7 @@ export default function StagePropPlacementEditor({ onApply }) {
                   onPointerDown={(event) => startMarkerDrag(event, item.id)}
                   onDoubleClick={(event) => {
                     event.stopPropagation()
-                    setStageList((lists[stageId] ?? []).filter((entry) => entry.id !== item.id))
+                    setStageList((currentList) => currentList.filter((entry) => entry.id !== item.id))
                     if (selectedId === item.id) setSelectedId(null)
                     setStatus('삭제됨')
                   }}
@@ -364,7 +375,7 @@ const styles = {
   stageSelectLabel: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 },
   select: { background: '#1d1f1d', color: '#f2eee5', border: '1px solid #444', borderRadius: 4, padding: '3px 6px' },
   countBadge: { fontSize: 12, color: '#9aa', marginRight: 'auto' },
-  primaryButton: { background: '#3f7f52', color: '#fff', border: 'none', borderRadius: 4, padding: '6px 14px', cursor: 'pointer', fontWeight: 600 },
+  largePrimaryButton: { background: '#3f7f52', color: '#fff', border: 'none', borderRadius: 8, padding: '12px 28px', minHeight: 56, minWidth: 112, fontSize: 24, cursor: 'pointer', fontWeight: 800 },
   secondaryButton: { background: '#333', color: '#eee', border: '1px solid #555', borderRadius: 4, padding: '6px 12px', cursor: 'pointer' },
   body: { display: 'flex', gap: 12, padding: 12, minHeight: 0, flex: 1, overflow: 'auto' },
   palette: { width: 150, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6 },

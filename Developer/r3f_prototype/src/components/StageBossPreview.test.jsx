@@ -48,8 +48,14 @@ vi.mock('@react-three/fiber', () => ({
 }))
 
 vi.mock('./Enemy.jsx', () => ({
-  EnemyVisual: ({ staticPose }) => <div data-testid="stage-boss-preview-enemy" data-static-pose={String(staticPose)} />,
-  ENEMY_STATS: { B01: { scale: 2 }, B02: { scale: 2 }, B03: { scale: 2 } },
+  EnemyVisual: ({ staticPose, type }) => (
+    <div
+      data-testid="stage-boss-preview-enemy"
+      data-static-pose={String(staticPose)}
+      data-boss-type={String(type)}
+    />
+  ),
+  ENEMY_STATS: { B01: { scale: 2 }, B02: { scale: 2 }, B03: { scale: 2 }, B04: { scale: 2 } },
   ENEMY_SIZE_MULTIPLIER: 4 / 3,
 }))
 
@@ -140,6 +146,27 @@ describe('StageBossPreview B04 chef framing', () => {
   it('uses the same zoom meaning for B04 and the other stage bosses', () => {
     for (const bossType of ['B01', 'B02', 'B03', 'B04']) {
       expect(resolveBossPreviewZoom(DEFAULT_BASE_ZOOM, bossType)).toBe(DEFAULT_BASE_ZOOM)
+    }
+  })
+})
+
+describe('StageBossPreview boss type propagation', () => {
+  it('forwards each requested bossType to the nested EnemyVisual for B01, B02, B03, and B04', () => {
+    const bossTypes = ['B01', 'B02', 'B03', 'B04']
+    const el = render(
+      <div>
+        {bossTypes.map((bossType) => (
+          <StageBossPreview key={bossType} testId={`stage-boss-preview-${bossType}`} bossType={bossType} />
+        ))}
+      </div>,
+    )
+
+    for (const bossType of bossTypes) {
+      const preview = el.querySelector(`[data-testid="stage-boss-preview-${bossType}"]`)
+      expect(preview).toBeTruthy()
+      const enemy = preview.querySelector('[data-testid="stage-boss-preview-enemy"]')
+      expect(enemy).toBeTruthy()
+      expect(enemy.dataset.bossType).toBe(bossType)
     }
   })
 })

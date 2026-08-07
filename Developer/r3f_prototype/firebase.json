@@ -3,9 +3,16 @@
     "rules": "database.rules.json"
   },
   "hosting": {
-    "public": "hosting",
+    "public": "dist",
     "cleanUrls": true,
-    "ignore": ["**/.*"]
+    "ignore": ["**/.*"],
+    "predeploy": [
+      "npm.cmd run build",
+      "npm.cmd run build:legal"
+    ],
+    "rewrites": [
+      { "source": "**", "destination": "/index.html" }
+    ]
   },
   "functions": {
     "source": "functions"

@@ -6,7 +6,7 @@ import { toonMat } from '../lib/toon.js'
 import { DancingDoge } from './DogeMesh.jsx'
 import MatildaMesh from './MatildaMesh.jsx'
 import ZombieMesh from './ZombieMesh.jsx'
-import {
+import StudioTunedGroup, {
   getStudioTransformProps,
   StudioTuningPreviewProvider,
   StudioTuningRuntimeProvider,
@@ -25,8 +25,17 @@ export const TITLE_PLAYER_RUN_SWAY_X = 0.035
 export const TITLE_PLAYER_RUN_SPEED = 8.4
 export const TITLE_BOARD_BACK_LIMIT_Z = -4.62
 export const TITLE_ZOMBIE_GROUND_LIFT_Y = 0.16
+export const TITLE_SCENE_BASE_POSITION = [0, -1.15, 0]
 const TITLE_CHARACTER_STENCIL_REF = 2
 const TITLE_OUTLINE_SCALE_BOOST = 1.02
+
+export function getTitleSceneRootPosition({ position = [0, 0, 0] } = {}) {
+  return [
+    TITLE_SCENE_BASE_POSITION[0] + position[0],
+    TITLE_SCENE_BASE_POSITION[1] + position[1],
+    TITLE_SCENE_BASE_POSITION[2] + position[2],
+  ]
+}
 const TITLE_MATERIAL_CACHE_KEY = 'titleCharacterMaterials'
 const TITLE_OUTLINE_STATE_KEY = 'titleCharacterOutline'
 const CLUB_LIGHT_BEAMS = [
@@ -212,6 +221,8 @@ function TitlePlayer({ reducedEffects }) {
   const meshGroup = useRef(null)
   const movingRef = useRef(!reducedEffects)
 
+  // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
+  // 스튜디오 파츠는 건드리지 않으므로 튜닝을 덮어쓰지 않고 부모 변형으로 곱해질 뿐이다.
   useFrame((state) => {
     movingRef.current = !reducedEffects
     applyTitlePlayerRunFrame(runnerRef.current, state.clock.elapsedTime, reducedEffects)
@@ -248,6 +259,8 @@ function TitleCompanions() {
 function TitleFarBackgroundStory({ reducedEffects }) {
   const zomlonbiskRef = useRef()
 
+  // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
+  // 스튜디오 파츠는 건드리지 않으므로 튜닝을 덮어쓰지 않고 부모 변형으로 곱해질 뿐이다.
   useFrame(({ clock }) => {
     if (!zomlonbiskRef.current) return
     if (reducedEffects) {
@@ -280,6 +293,8 @@ function TitleZombie({ position, delay = 0, scale = 1, type = 'E01' }) {
   const ref = useRef()
   const yaw = faceTitleTargetYaw(position)
   const liftedPosition = [position[0], position[1] + TITLE_ZOMBIE_GROUND_LIFT_Y, position[2]]
+  // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
+  // 스튜디오 파츠는 건드리지 않으므로 튜닝을 덮어쓰지 않고 부모 변형으로 곱해질 뿐이다.
   useFrame((state) => {
     if (!ref.current) return
     const t = state.clock.elapsedTime + delay
@@ -301,6 +316,8 @@ function TitleMatildaPursuer({ position, delay = 0, scale = 1 }) {
   const ref = useRef()
   const yaw = faceTitleTargetYaw(position)
   const liftedPosition = [position[0], position[1] + TITLE_ZOMBIE_GROUND_LIFT_Y, position[2]]
+  // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
+  // 스튜디오 파츠는 건드리지 않으므로 튜닝을 덮어쓰지 않고 부모 변형으로 곱해질 뿐이다.
   useFrame((state) => {
     if (!ref.current) return
     const t = state.clock.elapsedTime + delay
@@ -321,6 +338,8 @@ function TitleBossZombie({ type = 'B01', position, scale = 1.25, delay = 0 }) {
   const ref = useRef()
   const yaw = faceTitleTargetYaw(position)
   const liftedPosition = [position[0], position[1] + TITLE_ZOMBIE_GROUND_LIFT_Y, position[2]]
+  // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
+  // 스튜디오 파츠는 건드리지 않으므로 튜닝을 덮어쓰지 않고 부모 변형으로 곱해질 뿐이다.
   useFrame((state) => {
     if (!ref.current) return
     const t = state.clock.elapsedTime + delay
@@ -338,6 +357,8 @@ function TitleBossZombie({ type = 'B01', position, scale = 1.25, delay = 0 }) {
 
 function TitleClassroomProps() {
   const ref = useRef()
+  // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
+  // 스튜디오 파츠는 건드리지 않으므로 튜닝을 덮어쓰지 않고 부모 변형으로 곱해질 뿐이다.
   useFrame((state) => {
     if (!ref.current) return
     ref.current.rotation.y = -0.06 + Math.sin(state.clock.elapsedTime * 0.9) * 0.015
@@ -572,6 +593,7 @@ export default function TitleScene3D({
   const doorMat = useMemo(() => toonMat(0x805947, 0.05), [])
   const studioMode = studioTuning != null
   const studioTransform = studioMode ? getStudioTransformProps(studioTuning) : getStudioTransformProps()
+  const titleSceneRootPosition = getTitleSceneRootPosition(studioTransform)
   const playerVisualReady = studioVisualsReady
 
   const sceneRoot = (
@@ -579,7 +601,7 @@ export default function TitleScene3D({
       ref={studioGroupRef}
       onPointerDown={inspectTitleSceneObject}
       rotation={[studioTransform.rotation[0], -0.09 + studioTransform.rotation[1], studioTransform.rotation[2]]}
-      position={[0, -1.15, 0]}
+      position={titleSceneRootPosition}
       scale={studioTransform.scale}
     >
       <mesh receiveShadow position={[0, -0.02, 0]} rotation={[-Math.PI / 2, 0, 0]} material={floorMat}>
@@ -626,9 +648,15 @@ export default function TitleScene3D({
       <directionalLight position={[5, 4, -4]} intensity={0.7} color={0xffa34f} />
       <pointLight position={[0, 1.1, -3.7]} intensity={5.5} color={0xffdf9a} distance={11} decay={2} />
 
-      <StudioTuningPreviewProvider>
-        {sceneRoot}
-      </StudioTuningPreviewProvider>
+      {studioMode ? (
+        <StudioTuningPreviewProvider>
+          {sceneRoot}
+        </StudioTuningPreviewProvider>
+      ) : (
+        <StudioTunedGroup itemId="title-scene">
+          {sceneRoot}
+        </StudioTunedGroup>
+      )}
       {/* 치명적 오류 방지: 스튜디오 세팅값(Firebase 튜닝)이 적용된 상태에서만 렌더한다.
           튜닝 미적용(preview 패스스루/기본 포즈)으로는 절대 그리지 않는다 — 없으면 숨김(fail-closed). */}
       {playerVisualReady ? (

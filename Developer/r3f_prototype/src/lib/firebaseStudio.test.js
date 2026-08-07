@@ -33,7 +33,12 @@ import {
   isFirebaseStudioRuntimeReady,
 } from './studioRuntimeState.js'
 
-const USER = { uid: 'studio-user' }
+const USER = {
+  uid: 'studio-user',
+  email: 'zard5388@gmail.com',
+  emailVerified: true,
+  providerData: [{ providerId: 'google.com' }],
+}
 
 function remoteSnapshot(overrides = {}) {
   return {
@@ -100,7 +105,7 @@ describe('Firebase-only Graphics Studio persistence', () => {
     const subscription = await subscribeFirebaseStudio({ user: USER, client, onResult })
     expect(subscription.status).toBe('subscribed')
     expect(client.subscribe).toHaveBeenCalledWith(
-      'studioWorkspaces/v1/users/studio-user/current',
+      'studioWorkspaces/v1/canonical/current',
       expect.any(Function),
       expect.any(Function),
     )
@@ -197,6 +202,16 @@ describe('Firebase-only Graphics Studio persistence', () => {
     expect(getFirebaseStudioRuntimeState().revision).toBe(8)
   })
 
+  it('refuses a non-master account before opening a canonical Studio write transaction', async () => {
+    const client = { transaction: vi.fn() }
+    await expect(saveFirebaseStudio({
+      user: { uid: 'ordinary-user', email: 'ordinary@example.com', emailVerified: true, providerData: [{ providerId: 'google.com' }] },
+      client,
+      datasets: remoteSnapshot().datasets,
+    })).resolves.toEqual({ status: 'forbidden' })
+    expect(client.transaction).not.toHaveBeenCalled()
+  })
+
   it('does not acknowledge a saved revision over a newer unsaved Studio mutation', async () => {
     let releaseTransaction
     let notifyTransactionStarted
@@ -237,7 +252,7 @@ describe('Firebase-only Graphics Studio persistence', () => {
       revision: 3,
       now: Date.UTC(2026, 6, 17, 1, 2, 3),
     })
-    expect(getUserStudioPath(USER)).toBe('studioWorkspaces/v1/users/studio-user/current')
+    expect(getUserStudioPath(USER)).toBe('studioWorkspaces/v1/canonical/current')
     expect(Object.keys(snapshot.datasets)).toEqual([
       'tunings',
       'sfxTunings',
@@ -352,13 +367,13 @@ describe('Canonical title player public node (완전한 예외: 주인공 튜닝
     })).resolves.toEqual({ status: 'published', revision: 1 })
 
     expect(publishClient.transaction).toHaveBeenCalledWith(
-      'studioWorkspaces/v1/canonicalTitlePlayer/current',
+      'studioWorkspaces/v1/canonical/current',
       expect.any(Function),
     )
     const [, update] = publishClient.transaction.mock.calls[0]
     const written = update(null)
-    // player 키만 담긴다(비-player b01 제외).
-    expect(Object.keys(written.datasets.tunings).sort()).toEqual(['player', 'player::part::head'])
+    // full canonical snapshot — 주인공 전용 partial 정본을 만들지 않는다.
+    expect(Object.keys(written.datasets.tunings).sort()).toEqual(['b01', 'player', 'player::part::head'])
     expect(written.datasets.tunings.player.scale).toBe(1.9)
   })
 
@@ -386,7 +401,7 @@ describe('Canonical title player public node (완전한 예외: 주인공 튜닝
       status: 'remote-applied',
       revision: 5,
     })
-    expect(client.load).toHaveBeenCalledWith('studioWorkspaces/v1/canonicalTitlePlayer/current')
+    expect(client.load).toHaveBeenCalledWith('studioWorkspaces/v1/canonical/current')
     expect(isFirebaseStudioRuntimeReady()).toBe(true)
     expect(loadStudioTunings().player.scale).toBe(1.7)
   })

@@ -16,6 +16,7 @@ import eraserIconUrl from '../assets/weapon_icon/12_wea_eraser.png.webp'
 import boxCutterIconUrl from '../assets/weapon_icon/13_wea_boxcutter.svg'
 import chibikoIconUrl from '../assets/weapon_icon/14_wea_chibiko.svg'
 import sharkMissileIconUrl from '../assets/weapon_icon/14_wea_shark_missile.svg'
+import lanternIconUrl from '../assets/weapon_icon/16_wea_lantern.webp'
 import { ENEMY_DEATH_COLLAPSE_STYLES } from './enemyDeathCollapse.js'
 import {
   getFirebaseStudioRuntimeDataset,
@@ -112,8 +113,12 @@ const weaponVisuals = [
   ['weapon-eraser', 'Eraser', 'eraser', eraserIconUrl, 'components/Weapons/EraserBomb.jsx', 'weaponModel', 'EraserModel'],
   ['weapon-box-cutter', 'Box Cutter', 'boxCutter', boxCutterIconUrl, 'components/Weapons/BoxCutter.jsx', 'weaponModel', 'BoxCutterModel'],
   ['weapon-chibiko', 'Chibiko', 'chibiko', chibikoIconUrl, 'components/Weapons/Chibiko.jsx', 'weaponModel', 'ChibikoModel'],
+  ['weapon-guided-missile', 'Guided Missile', 'guidedMissile', batteryIconUrl, 'components/Weapons/Missile.jsx', 'weaponModel', 'MissileBody'],
   ['weapon-shark-missile', 'Shark Missile', 'sharkMissile', sharkMissileIconUrl, 'components/Weapons/SharkMissile.jsx', 'weaponModel', 'SharkMissileModel'],
+  ['weapon-student-lantern', 'Student Lantern', 'studentLantern', lanternIconUrl, 'components/Weapons/StudentLantern.jsx', 'weaponModel', 'StudentLanternVisual'],
 ]
+
+const questVisualKinds = ['book', 'red-book', 'attendance-sheet', 'bandage', 'key', 'whistle', 'fuse', 'list', 'valve']
 
 export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
   {
@@ -249,6 +254,31 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     variant: 'sideLeft',
     applyTargets: ['components/StageObjects/ClassPresidentStudent.jsx', 'components/StageObjects/UnconsciousStudent.jsx', 'components/StageObjects/propRendering.js', 'lib/toon.js'],
   },
+  {
+    id: 'stage-object-treasure-chest',
+    category: 'stageObject',
+    label: 'Treasure Chest',
+    source: 'components/TreasureChest.jsx',
+    previewKind: 'treasureChest',
+    applyTargets: ['components/TreasureChest.jsx', 'lib/toon.js'],
+  },
+  {
+    id: 'stage-object-escape-portal',
+    category: 'stageObject',
+    label: 'Escape Portal',
+    source: 'components/EscapePortal.jsx',
+    previewKind: 'escapePortal',
+    applyTargets: ['components/EscapePortal.jsx', 'lib/portalVisualState.js'],
+  },
+  ...questVisualKinds.map((questVisualKind) => ({
+    id: `quest-item-${questVisualKind}`,
+    category: 'stageObject',
+    label: `Quest Item / ${questVisualKind}`,
+    source: 'components/QuestWorldLayer.jsx',
+    previewKind: 'questItem',
+    questVisualKind,
+    applyTargets: ['components/QuestWorldLayer.jsx'],
+  })),
   {
     id: 'stage-floor-stage1',
     category: 'floor',

@@ -14,6 +14,10 @@ import {
   resetPortalSuctionClock,
 } from '../lib/portalSuctionClock.js'
 import { PORTAL_VISUAL_STATE, applyPortalSuctionVisuals } from '../lib/portalVisualState.js'
+import StudioTunedGroup, {
+  composeStudioPartRotation,
+  composeStudioPartScale,
+} from './StudioTunedGroup.jsx'
 
 const PORTAL_RADIUS = 1.5
 // 작동(흡입) 히트박스 — 시각 링(PORTAL_RADIUS)과 분리해 중앙 좁은 원으로 제한.
@@ -52,6 +56,7 @@ export default function EscapePortal({ stageId }) {
   const ringMaterialRef = useRef()
   const glowMaterialRef = useRef()
   const portalLightRef = useRef()
+  const spinRef = useRef({ ringY: 0, glowY: 0 })
   const suckingRef      = useRef(false)
   const suctionClockRef = useRef(null)
   const clearedRef      = useRef(false)
@@ -67,9 +72,19 @@ export default function EscapePortal({ stageId }) {
 
     const visualDelta = clampGameplayFrameDelta(delta)
 
-    // rotation animation
-    if (ringRef.current)  ringRef.current.rotation.y  += visualDelta * 1.2
-    if (glowRef.current)  glowRef.current.rotation.y  -= visualDelta * 0.6
+    // Studio 파츠의 회전·스케일은 정본 base/Studio/애니메이션 합성법칙으로만 갱신한다.
+    spinRef.current.ringY += visualDelta * 1.2
+    spinRef.current.glowY -= visualDelta * 0.6
+    if (ringRef.current) {
+      ringRef.current.rotation.y = composeStudioPartRotation(
+        ringRef.current, 'y', 0, spinRef.current.ringY,
+      )
+    }
+    if (glowRef.current) {
+      glowRef.current.rotation.y = composeStudioPartRotation(
+        glowRef.current, 'y', 0, spinRef.current.glowY,
+      )
+    }
 
     const dx = playerPos.x - pos[0]
     const dz = playerPos.z - pos[2]
@@ -93,7 +108,14 @@ export default function EscapePortal({ stageId }) {
       const { elapsed, completedNow } = advancePortalSuctionClock(suctionClockRef.current, delta)
       // scale up glow during suction
       const t = Math.min(elapsed / PORTAL_SUCTION_DURATION, 1)
-      if (glowRef.current) glowRef.current.scale.setScalar(1 + t * 1.5)
+      if (glowRef.current) {
+        const scale = 1 + t * 1.5
+        glowRef.current.scale.set(
+          composeStudioPartScale(glowRef.current, 'x', 1, scale),
+          composeStudioPartScale(glowRef.current, 'y', 1, scale),
+          composeStudioPartScale(glowRef.current, 'z', 1, scale),
+        )
+      }
 
       if (completedNow && !clearedRef.current) {
         clearedRef.current = true
@@ -105,40 +127,42 @@ export default function EscapePortal({ stageId }) {
 
   return (
     <group position={pos}>
-      {/* outer rotating ring */}
-      <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[PORTAL_RADIUS - 0.12, PORTAL_RADIUS, 48]} />
-        <meshStandardMaterial
-          ref={ringMaterialRef}
+      <StudioTunedGroup itemId="stage-object-escape-portal">
+        {/* outer rotating ring */}
+        <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[PORTAL_RADIUS - 0.12, PORTAL_RADIUS, 48]} />
+          <meshStandardMaterial
+            ref={ringMaterialRef}
+            color={PORTAL_VISUAL_STATE.idle.color}
+            emissive={PORTAL_VISUAL_STATE.idle.color}
+            emissiveIntensity={PORTAL_VISUAL_STATE.idle.ringEmissiveIntensity}
+            transparent
+            opacity={0.9}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+        {/* inner glow disc */}
+        <mesh ref={glowRef} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[PORTAL_RADIUS - 0.14, 48]} />
+          <meshStandardMaterial
+            ref={glowMaterialRef}
+            color={PORTAL_VISUAL_STATE.idle.color}
+            emissive={PORTAL_VISUAL_STATE.idle.color}
+            emissiveIntensity={PORTAL_VISUAL_STATE.idle.glowEmissiveIntensity}
+            transparent
+            opacity={PORTAL_VISUAL_STATE.idle.glowOpacity}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+        {/* point light for scene glow */}
+        <pointLight
+          ref={portalLightRef}
           color={PORTAL_VISUAL_STATE.idle.color}
-          emissive={PORTAL_VISUAL_STATE.idle.color}
-          emissiveIntensity={PORTAL_VISUAL_STATE.idle.ringEmissiveIntensity}
-          transparent
-          opacity={0.9}
-          side={THREE.DoubleSide}
+          intensity={PORTAL_VISUAL_STATE.idle.lightIntensity}
+          distance={6}
+          decay={2}
         />
-      </mesh>
-      {/* inner glow disc */}
-      <mesh ref={glowRef} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[PORTAL_RADIUS - 0.14, 48]} />
-        <meshStandardMaterial
-          ref={glowMaterialRef}
-          color={PORTAL_VISUAL_STATE.idle.color}
-          emissive={PORTAL_VISUAL_STATE.idle.color}
-          emissiveIntensity={PORTAL_VISUAL_STATE.idle.glowEmissiveIntensity}
-          transparent
-          opacity={PORTAL_VISUAL_STATE.idle.glowOpacity}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      {/* point light for scene glow */}
-      <pointLight
-        ref={portalLightRef}
-        color={PORTAL_VISUAL_STATE.idle.color}
-        intensity={PORTAL_VISUAL_STATE.idle.lightIntensity}
-        distance={6}
-        decay={2}
-      />
+      </StudioTunedGroup>
     </group>
   )
 }

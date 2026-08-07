@@ -277,16 +277,40 @@ export function captureStudioPartBaseTransforms(root) {
   return captured
 }
 
+// The only numeric transform-composition law used by Studio, runtime meshes,
+// and pooled instances. Position and rotation are additive; scale is
+// multiplicative. Keep these pure so renderers never duplicate the formula.
+export function composeStudioPartOffset(base, studioOffset = 0, animationOffset = 0) {
+  return base + studioOffset + animationOffset
+}
+
+export function composeStudioPartMultiplier(base = 1, studioMultiplier = 1, animationMultiplier = 1) {
+  return base * studioMultiplier * animationMultiplier
+}
+
+// Packed pooled-instance caches use the same canonical numeric composition.
+export function composeStudioPartTransformCache(cache, offset, transform) {
+  cache[offset] = composeStudioPartOffset(cache[offset], transform.position[0])
+  cache[offset + 1] = composeStudioPartOffset(cache[offset + 1], transform.position[1])
+  cache[offset + 2] = composeStudioPartOffset(cache[offset + 2], transform.position[2])
+  cache[offset + 3] = composeStudioPartOffset(cache[offset + 3], transform.rotation[0])
+  cache[offset + 4] = composeStudioPartOffset(cache[offset + 4], transform.rotation[1])
+  cache[offset + 5] = composeStudioPartOffset(cache[offset + 5], transform.rotation[2])
+  cache[offset + 6] = composeStudioPartMultiplier(cache[offset + 6], transform.scale[0])
+  cache[offset + 7] = composeStudioPartMultiplier(cache[offset + 7], transform.scale[1])
+  cache[offset + 8] = composeStudioPartMultiplier(cache[offset + 8], transform.scale[2])
+}
+
 export function composeStudioPartPosition(object, axis, fallbackBase, animationOffset = 0) {
   const base = object?.userData?.studioPartBasePosition?.[axis] ?? fallbackBase
   const studioOffset = object?.userData?.studioPartPositionOffset?.[axis] ?? 0
-  return base + studioOffset + animationOffset
+  return composeStudioPartOffset(base, studioOffset, animationOffset)
 }
 
 export function composeStudioPartRotation(object, axis, fallbackBase, animationOffset = 0) {
   const base = object?.userData?.studioPartBaseRotation?.[axis] ?? fallbackBase
   const studioOffset = object?.userData?.studioPartRotationOffset?.[axis] ?? 0
-  return base + studioOffset + animationOffset
+  return composeStudioPartOffset(base, studioOffset, animationOffset)
 }
 
 // 스케일은 더하기가 아니라 곱하기다. 애니메이션이 파츠를 부풀리거나 눌러도
@@ -294,7 +318,7 @@ export function composeStudioPartRotation(object, axis, fallbackBase, animationO
 export function composeStudioPartScale(object, axis, fallbackBase = 1, animationMultiplier = 1) {
   const base = object?.userData?.studioPartBaseScale?.[axis] ?? fallbackBase
   const studioMultiplier = object?.userData?.studioPartScaleMultiplier?.[axis] ?? 1
-  return base * studioMultiplier * animationMultiplier
+  return composeStudioPartMultiplier(base, studioMultiplier, animationMultiplier)
 }
 
 // 애니메이션이 "절대 자세"를 직접 계산해 쓰는 경우(예: `arm.rotation.z = 1.25 - s * 1.05`)를 위한
@@ -399,12 +423,20 @@ export function applySavedStudioPartTunings(root, itemId, tunings = loadStudioTu
       part.userData.studioPartRotationOffset.set(rotationX, rotationY, rotationZ)
       part.userData.studioPartScaleMultiplier.copy(_partCombinedScale)
       part.userData.studioPartTransformApplied = true
-      part.position.copy(part.userData.studioPartBasePosition).add(_partCombinedPosition)
-      part.scale.copy(part.userData.studioPartBaseScale).multiply(_partCombinedScale)
+      part.position.set(
+        composeStudioPartOffset(part.userData.studioPartBasePosition.x, _partCombinedPosition.x),
+        composeStudioPartOffset(part.userData.studioPartBasePosition.y, _partCombinedPosition.y),
+        composeStudioPartOffset(part.userData.studioPartBasePosition.z, _partCombinedPosition.z),
+      )
+      part.scale.set(
+        composeStudioPartMultiplier(part.userData.studioPartBaseScale.x, _partCombinedScale.x),
+        composeStudioPartMultiplier(part.userData.studioPartBaseScale.y, _partCombinedScale.y),
+        composeStudioPartMultiplier(part.userData.studioPartBaseScale.z, _partCombinedScale.z),
+      )
       part.rotation.set(
-        part.userData.studioPartBaseRotation.x + rotationX,
-        part.userData.studioPartBaseRotation.y + rotationY,
-        part.userData.studioPartBaseRotation.z + rotationZ,
+        composeStudioPartOffset(part.userData.studioPartBaseRotation.x, rotationX),
+        composeStudioPartOffset(part.userData.studioPartBaseRotation.y, rotationY),
+        composeStudioPartOffset(part.userData.studioPartBaseRotation.z, rotationZ),
       )
       if (materialTuning) {
         entries.forEach(({ tuning }) => applyStudioTuning(part, tuning, { scope: 'part' }))

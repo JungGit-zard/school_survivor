@@ -12,7 +12,7 @@ export default function TitleSceneCanvas({ className, style, studioVisualsReady 
       shadows
       style={style}
     >
-      <TitleScene3D reducedEffects={false} studioVisualsReady={studioVisualsReady} />
+      {studioVisualsReady ? <TitleScene3D reducedEffects={false} studioVisualsReady /> : null}
     </Canvas>
   )
 }

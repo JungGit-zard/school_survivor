@@ -448,17 +448,22 @@ export function waveSizeForPhase(phase) {
   return Math.max(1, Math.round((phase?.target ?? 0) * WAVE_SIZE_FACTOR))
 }
 
+// 프론트로드 정본 — "그 시각의 웨이브 1회에만" 곱하는 오프닝 밀도 배수(반복되지 않는다).
+// 기대 총량 추정기가 이 표를 그대로 읽어 "프론트로드 1회분"을 더하므로, 배수를 여기서만 고치면
+// 정규화도 자동으로 따라온다. (2026-08-07: 스테이지별 if문을 표로 통일 — 추정기와 단일 소스 공유.)
+export const STAGE_FRONTLOAD_WAVES = {
+  stage2: { 0: 3, 30: 3 },   // 오프닝(t=0)·30초 웨이브 ×3
+  stage3: { 0: 2 },          // 오프닝(t=0) ×2
+}
+
 // 웨이브의 "구조적" 크기(밀도배율 적용 전) = target 절반 + 스테이지별 프론트로드/오프닝 규칙만.
 // 기대 총량 추정기(stageExpectedBaseJarmobHp)가 이 함수만 사용해 밀도배율과의 순환의존을 피한다.
 //   - stage1: ×STAGE1_SPAWN_MULTIPLIER(반올림)
-//   - stage2: 오프닝(t=0)·30초 웨이브만 ×3 프론트로드
-//   - stage3: 오프닝(t=0)만 ×2 프론트로드
+//   - 그 외: STAGE_FRONTLOAD_WAVES에 등록된 시각만 배수 적용
 export function rawWaveSizeForStage(phase, stageId, waveTime) {
   const size = waveSizeForPhase(phase)
   if (stageId === 'stage1') return Math.max(1, Math.round(size * STAGE1_SPAWN_MULTIPLIER))
-  if (stageId === 'stage2') return (waveTime === 0 || waveTime === 30) ? size * 3 : size
-  if (stageId === 'stage3') return waveTime === 0 ? size * 2 : size
-  return size
+  return size * (STAGE_FRONTLOAD_WAVES[stageId]?.[waveTime] ?? 1)
 }
 
 // 실제 웨이브 크기 = 구조적 크기 × 스테이지 밀도배율(잡몹 총 HP 균등 +10% 곡선의 밀도 절반 부담).
@@ -491,29 +496,43 @@ export function getWaveSpawnSeconds(phases, random = Math.random, stageId = 'sta
   return secs
 }
 
-// ── 스테이지1 보강 스폰(2026-07-13) ───────────────────────────────────────
-// 스1은 20~40초 랜덤 웨이브 사이가 비어 초반 밀도가 헐겁다. 웨이브 사이 '정중앙'에
-// 본 웨이브의 절반 크기 보조 물량을 1회 더 흘려 빈 구간을 채운다. 첫 보강은 t=0
-// 웨이브와 두 번째 웨이브 사이(≈10~20초)라 "스테이지1의 처음" 구간도 함께 덮는다.
-// 스2/스3는 타임라인·보스가 개별 튜닝돼 있어 대상에서 제외한다(순수 함수가 게이트).
+// ── 중간 보강 스폰(2026-07-13 stage1 도입 / 2026-08-07 stage2 확대) ──────────────
+// 20~40초 랜덤 웨이브만으로는 웨이브 사이가 비어 부하가 뚝뚝 끊긴다. 웨이브 사이 '정중앙'에
+// 본 웨이브의 절반 크기 보조 물량을 1회 더 흘려 빈 구간을 채운다. 첫 보강은 t=0 웨이브와
+// 두 번째 웨이브 사이(≈10~20초)라 "스테이지의 처음" 구간도 함께 덮는다.
+//
+// 2026-08-07 stage2 확대: 총량이 비슷해도 보강이 있는 stage1이 훨씬 촘촘해, 20초 구간 12개 중
+// 7개에서 stage2 부하가 stage1보다 낮았다("스2가 스1보다 쉽다"의 체감 주범). 보강을 켜도 총량은
+// 늘지 않는다 — base가 커지는 만큼 √c가 내려가 자기정규화되므로 "같은 총량을 더 촘촘히"가 된다.
+// 대상 스테이지는 이 상수 하나가 정본이다(스케줄러·기대총량 추정기가 같은 값을 읽는다).
+export const MID_WAVE_STAGES = new Set(['stage1', 'stage2'])
 const MID_WAVE_SIZE_FACTOR = 0.5  // 본 웨이브 대비 보조 물량 비율
 
-// 중간 보강 스폰 시각 = 이번 웨이브와 다음 웨이브의 정중앙. stage1만 유효(그 외 Infinity=없음).
+// 중간 보강 스폰 시각 = 이번 웨이브와 다음 웨이브의 정중앙. 대상 외 스테이지는 Infinity(=없음).
 export function midWaveTimeForStage(waveTime, nextTime, stageId) {
-  if (stageId !== 'stage1') return Infinity
+  if (!MID_WAVE_STAGES.has(stageId)) return Infinity
   return (waveTime + nextTime) / 2
 }
 
-// 보강 물량 = 기존 본 웨이브 크기 × 0.5에 Stage 1 물량 배율을 적용(각 단계 반올림, 최소 1).
-export function midWaveSize(phase) {
+// 보강 물량의 "구조적" 크기(밀도배율 적용 전) = 본 웨이브 크기 × 0.5.
+// STAGE1_SPAWN_MULTIPLIER는 stage1 전용 밀도 상수라 stage1에만 곱한다 — stage2는
+// STAGE_DENSITY_MULTIPLIER를 별도로 받으므로 여기서 곱하면 밀도가 이중 적용된다.
+// 기대 총량 추정기는 이 raw 함수만 써서 밀도배율 순환의존을 피한다(rawWaveSizeForStage와 같은 규약).
+export function rawMidWaveSize(phase, stageId = 'stage1') {
   const baseSize = Math.max(1, Math.round(waveSizeForPhase(phase) * MID_WAVE_SIZE_FACTOR))
+  if (stageId !== 'stage1') return baseSize
   return Math.max(1, Math.round(baseSize * STAGE1_SPAWN_MULTIPLIER))
 }
 
+// 실제 보강 물량 = 구조적 크기 × 스테이지 밀도배율(waveSizeForStageAtTime과 동일 규약).
+export function midWaveSizeForStage(phase, stageId = 'stage1') {
+  return Math.max(1, Math.round(rawMidWaveSize(phase, stageId) * (STAGE_DENSITY_MULTIPLIER[stageId] ?? 1)))
+}
+
 // 중간 보강 스폰 시각 목록 — 웨이브 스케줄과 동일 random으로 파생하는 순수 함수(테스트/미리보기용).
-// stage1이 아니면 빈 목록(보강 스폰 없음).
+// 대상 스테이지가 아니면 빈 목록(보강 스폰 없음).
 export function getMidpointSpawnSeconds(phases, stageId = 'stage1', random = Math.random) {
-  if (stageId !== 'stage1') return []
+  if (!MID_WAVE_STAGES.has(stageId)) return []
   const lastEnd = phases?.[phases.length - 1]?.end ?? 0
   const secs = []
   let t = 0
@@ -550,40 +569,93 @@ function jarmobHpPerSpawn(phase) {
   return sum
 }
 
-// 배율 적용 전 잡몹 기대 총 HP(30초 격자 기댓값 모델). rawWaveSizeForStage만 사용해 밀도배율 순환의존을 회피.
-// stage1은 각 30초 구간의 중간보강(midpoint) 물량도 더한다(스2~4는 midpoint 없음).
+// 스테이지 상승 HP 곡선 — 보스·런크루·도지 등 비잡몹 전용(2026-07-22 개정): 이전×1.10(+10%).
+// stage1 ×1.0(오버라이드 없음) / stage2 ×1.10 / stage3 ×1.21 / stage4 ×1.331.
+// 잡몹 E01~E06은 아래 STAGE_JARMOB_HP_MULTIPLIER(√c)로 별도 적용해 총 HP를 균등 +10%로 맞춘다.
+// 마틸다(탈출 추격자)는 별도 동적 statOverride를 쓰므로 여기 대상 아님.
+// (블렌드 파생이 런크루 확정 HP를 먼저 빼야 해서 이 표가 블렌드 블록보다 위에 있어야 한다.)
+const STAGE_HP_MULTIPLIER = { stage2: 1.10, stage3: 1.21, stage4: 1.331 }
+
+// 프론트로드가 아닌 평시 웨이브를 뽑기 위한 대표 시각(어느 스테이지의 프론트로드 표에도 없는 값).
+const NON_FRONTLOAD_WAVE_TIME = 1
+
+// 배율 적용 전 "웨이브계" 잡몹 기대 총 HP = 지속시간 가중 웨이브 + 프론트로드 1회분 + 중간보강.
+// rawWaveSizeForStage/rawMidWaveSize만 사용해 밀도배율과의 순환의존을 회피한다.
+//
+// 2026-08-07 개정: 30초 격자 8표본 모델을 폐기했다. 옛 격자는
+//   (a) 72~90·96~120·192~208·224~240처럼 표본에 안 걸리는 구간(총 56초)을 통째로 못 봤고,
+//   (b) 1회성 프론트로드(stage2 t=0/30 ×3, stage3 t=0 ×2)를 "그 30초 내내의 대표값"으로 읽어
+//       base를 stage2 +8.7% / stage3 +2.6% 부풀렸다.
+// 부푼 base는 c = 앵커×factor/base 를 줄여 √c를 과소산출했고, 그래서 stage2 실전달 총량이
+// 목표 ×1.21이 아니라 ×1.082에 안착했다(= "스2가 스1보다 쉽다"의 총량 측 원인).
 export function stageExpectedBaseJarmobHp(stageId) {
   const phases = getDefaultWavePhases(stageId)
   const activeAt = (t) => phases.findLast((p) => p.start <= t) ?? phases[0]
+  const hasMidWave = MID_WAVE_STAGES.has(stageId)
   let total = 0
-  for (let t = 0; t < 240; t += 30) {
-    const phase = activeAt(t)
-    total += rawWaveSizeForStage(phase, stageId, t) * jarmobHpPerSpawn(phase)
-    if (stageId === 'stage1' && t + 15 < 240) {
-      const midPhase = activeAt(t + 15)
-      total += midWaveSize(midPhase) * jarmobHpPerSpawn(midPhase)
-    }
+  for (const phase of phases) {
+    const perSpawn = jarmobHpPerSpawn(phase)
+    // 중간 보강은 웨이브마다 1회 = 웨이브와 같은 간격이므로 같은 식으로 가중한다.
+    let perWave = rawWaveSizeForStage(phase, stageId, NON_FRONTLOAD_WAVE_TIME) * perSpawn
+    if (hasMidWave) perWave += rawMidWaveSize(phase, stageId) * perSpawn
+    total += (phase.end - phase.start) * (perWave / WAVE_INTERVAL_SEC)
+  }
+  // 프론트로드는 1회성이라 구간 평균이 아니라 "평시 웨이브 대비 초과분 × 정확히 1회"로 더한다.
+  for (const waveTime of Object.keys(STAGE_FRONTLOAD_WAVES[stageId] ?? {})) {
+    const phase = activeAt(Number(waveTime))
+    const extra = rawWaveSizeForStage(phase, stageId, Number(waveTime))
+      - rawWaveSizeForStage(phase, stageId, NON_FRONTLOAD_WAVE_TIME)
+    total += extra * jarmobHpPerSpawn(phase)
   }
   return total
 }
 
-// 스테이지별 잡몹 기대 총 HP 목표(앵커=stage1 총량의 배수). 이 표가 총량의 유일한 결정자다.
-// 블렌드가 c = 목표/기대총량으로 자기정규화하므로, 타임라인 target·weights를 아무리 흔들어도
-// 총량은 이 표의 값에 고정된다 — 타임라인은 "총량 배분(곡선 모양)"만 바꾼다.
-// 기본 곡선은 스테이지당 ×1.10(1.10^i). stage2만 난이도 +10% 조정(2026-08-06)으로 한 계단 위인
-// 1.10^2를 쓴다. 그 결과 stage2와 stage3의 "웨이브 잡몹" 기대 총 HP는 같아지지만 실제 격차는 유지된다:
-// stage2는 런타임 버스트가 보스만 발화하는 반면(burstEvents.js) stage3는 전 버스트가 발화해
-// RZL 런좀비 크루 4회(~2,068HP)와 조기 도입/형태 버스트(~3,164HP)가 그대로 얹히기 때문이다.
-// (스3 보스는 체육교사 B03 단일 — 더블 보스 B01+B02는 2026-07-21 폐기됐다.)
-const STAGE_JARMOB_TOTAL_HP_FACTOR = {
-  stage1: 1,                  // 앵커
-  stage2: Math.pow(1.10, 2),  // 1.21 — 난이도 +10% 조정(이전 1.10)
-  stage3: Math.pow(1.10, 2),  // 1.21
-  stage4: Math.pow(1.10, 3),  // 1.331
+// 런타임에 실제 발화하는 버스트의 잡몹 HP(배율 적용 전).
+// 반드시 getRuntimeBurstEventsForStage를 쓴다 — 정적 getBurstEventsForStage를 쓰면 stage1/stage2의
+// 미발화 형태 버스트까지 세서 base가 또 틀어진다(stage1/2는 보스만 발화).
+// 버스트 count는 리터럴이라 밀도배율을 받지 않는다 → 실전달에서 √c가 1제곱으로만 곱해진다.
+export function stageBurstJarmobBaseHp(stageId) {
+  let total = 0
+  for (const evt of getRuntimeBurstEventsForStage(stageId)) {
+    if (!JARMOB_HP_TYPES.has(evt.type)) continue
+    total += (evt.count ?? 1) * (ENEMY_STATS[evt.type]?.hp ?? 0)
+  }
+  return total
 }
 
-// 블렌드 배율(모듈 로드시 1회 파생): c = 앵커×목표배수 / 기대총량, √c를 HP·밀도에 동일 적용.
-// stage1은 앵커라 배율 없음(undefined → 미적용). rawWaveSizeForStage만 쓰므로 waveSizeForStageAtTime과 순환하지 않는다.
+// 런좀비 크루(RZL 리더 1 + RZC 나머지)의 확정 HP 합. 크루는 잡몹이 아니라 STAGE_HP_MULTIPLIER를
+// 쓰므로 √c 정규화 대상이 아니다 — 목표 총량에서 먼저 빼고 나머지를 웨이브·버스트로 채운다.
+// 실제 생성 인원은 evt.count가 아니라 RUN_ZOMBIE_CREW_SIZE다(createRunZombieCrewEntries).
+export function stageRunCrewFixedHp(stageId) {
+  const mult = STAGE_HP_MULTIPLIER[stageId] ?? 1
+  const crewHp = Math.round(ENEMY_STATS.RZL.hp * mult)
+    + Math.round(ENEMY_STATS.RZC.hp * mult) * (RUN_ZOMBIE_CREW_SIZE - 1)
+  let total = 0
+  for (const evt of getRuntimeBurstEventsForStage(stageId)) {
+    if (evt.formation === RUN_ZOMBIE_CREW_FORMATION) total += crewHp
+  }
+  return total
+}
+
+// 스테이지별 잡몹계 실전달 총 HP 목표(앵커=stage1 총량의 배수). 이 표가 총량의 유일한 결정자다.
+// 블렌드가 실전달 총량을 앵커×factor에 맞추도록 √c를 역산하므로, 타임라인 target·weights를
+// 아무리 흔들어도 총량은 이 표에 고정된다 — 타임라인은 "총량 배분(곡선 모양)"만 바꾼다.
+// 2026-08-07: 단조 +10%/스테이지로 복원했다. 이전에는 stage2·stage3이 둘 다 1.21 동률이었고
+// 그 근거는 "스3는 버스트가 모델 밖에서 그대로 얹히니 실제론 더 어렵다"였는데, 이제 버스트·런크루가
+// 모델 안으로 들어와 실전달 총량에 포함되므로 그 전제 자체가 사라졌다(실측 결과 스3 ×2.50 / 스4 ×1.92
+// 로 스4가 스3보다 쉬운 역전까지 나 있었다).
+const STAGE_JARMOB_TOTAL_HP_FACTOR = {
+  stage1: 1,                  // 앵커
+  stage2: Math.pow(1.10, 2),  // 1.21 — 2026-08-06 난이도 +10% 조정 유지
+  stage3: Math.pow(1.10, 3),  // 1.331
+  stage4: Math.pow(1.10, 4),  // 1.4641
+}
+
+// 블렌드 배율(모듈 로드시 1회 파생). 실전달 총량은 m에 대해 2차식이다:
+//   waveBase×m² + burstJarmobBase×m + crewFixed = 앵커 × factor
+// 웨이브는 HP배율·밀도배율을 둘 다 받아 m², 버스트 잡몹은 count가 리터럴이라 m, 런크루는 별도
+// HP 곡선을 쓰는 상수항이다. 근의 공식으로 정확히 풀어 √c를 구한다(양근만 유효).
+// stage1은 앵커라 배율 없음(undefined → 미적용). rawWaveSizeForStage만 쓰므로 순환하지 않는다.
 const _STAGE_BLEND_IDS = ['stage1', 'stage2', 'stage3', 'stage4']
 const _jarmobHpAnchor = stageExpectedBaseJarmobHp('stage1')
 export const STAGE_JARMOB_HP_MULTIPLIER = {}
@@ -592,42 +664,66 @@ _STAGE_BLEND_IDS.forEach((stageId) => {
   if (stageId === 'stage1') return  // 앵커: 배율 없음
   // 표에 없는 stageId는 NaN이 조용히 전파되므로 앵커 배수 1로 막는다(구 인덱스 방식은 항상 수치를 냈다).
   const factor = STAGE_JARMOB_TOTAL_HP_FACTOR[stageId] ?? 1
-  const c = (_jarmobHpAnchor * factor) / stageExpectedBaseJarmobHp(stageId)
-  const m = Math.sqrt(c)
+  const a = stageExpectedBaseJarmobHp(stageId)
+  const b = stageBurstJarmobBaseHp(stageId)
+  const remaining = _jarmobHpAnchor * factor - stageRunCrewFixedHp(stageId)
+  // ⚠ remaining ≤ 0 = 런크루 확정 HP만으로 목표 총량을 넘겨 웨이브를 0으로 깎아도 factor를 못 맞추는
+  //   상태다. 그때는 배율을 0으로 붕괴시키는 대신 하한 0.5로 막고 factor 표/크루 횟수를 고쳐야 한다.
+  const m = remaining > 0 ? (-b + Math.sqrt(b * b + 4 * a * remaining)) / (2 * a) : 0.5
   STAGE_JARMOB_HP_MULTIPLIER[stageId] = m
   STAGE_DENSITY_MULTIPLIER[stageId] = m
 })
 
-// 잡몹 기대 총 HP(배율 적용 후) = base × HP배율 × 밀도배율 = 앵커 × 목표배수. 테스트/밸런스 분석용.
-// 주의: 이 값은 정의상 앵커×목표배수와 항등이라 타임라인 회귀를 못 잡는다.
-// 타임라인 회귀 방어는 아래 stageDurationWeightedJarmobHp를 써라.
+// 잡몹계 실전달 기대 총 HP(배율 적용 후) = 웨이브 base×m² + 버스트 잡몹×m + 런크루 확정 HP.
+// 설계상 앵커×목표배수와 항등이라 factor 회귀만 잡고 타임라인 회귀는 못 잡는다 —
+// 타임라인 방어는 stageExpectedBaseJarmobHp(웨이브 base)와 stageJarmobLoadWindows 단언이 맡는다.
 export function stageExpectedJarmobHp(stageId) {
   const m = STAGE_JARMOB_HP_MULTIPLIER[stageId] ?? 1
   return stageExpectedBaseJarmobHp(stageId) * m * m
+    + stageBurstJarmobBaseHp(stageId) * m
+    + stageRunCrewFixedHp(stageId)
 }
 
-// 지속시간 가중 잡몹 부하 = Σ(phase 길이 × 웨이브크기 × 1스폰 기대HP / 평균 웨이브 간격) × 배율.
-// stageExpectedBaseJarmobHp의 30초 격자는 표본 8개라 72~90·96~120·192~208·224~240(총 56초)을
-// 아예 못 본다. 이 함수는 모든 phase를 길이만큼 반영하므로 실런타임 전달량에 훨씬 가깝고,
-// 격자에 안 걸리는 구간의 target/weights 회귀도 잡아낸다.
-// 오프닝 프론트로드(t=0/30 ×3)는 특정 시점 1회성이라 구간 평균 부하에서는 제외한다.
-const NON_FRONTLOAD_WAVE_TIME = 1
-export function stageDurationWeightedJarmobHp(stageId) {
+// 구간별 잡몹계 부하 곡선(HP/s). 총량이 같아도 배분이 다르면 체감 난이도가 뒤집히므로,
+// "스2의 어떤 구간도 같은 시각 스1보다 크게 낮지 않다"를 회귀로 지킬 수 있게 하는 분석 함수다.
+// 웨이브·중간보강은 phase가 구간과 겹치는 길이만큼 분배하고, 프론트로드/버스트는 발생 시각 구간에 얹는다.
+export function stageJarmobLoadWindows(stageId, windowSec = 20, totalSec = 240) {
   const phases = getDefaultWavePhases(stageId)
+  const activeAt = (t) => phases.findLast((p) => p.start <= t) ?? phases[0]
+  const hasMidWave = MID_WAVE_STAGES.has(stageId)
   const m = STAGE_JARMOB_HP_MULTIPLIER[stageId] ?? 1
-  let total = 0
-  for (const phase of phases) {
-    const perWave = rawWaveSizeForStage(phase, stageId, NON_FRONTLOAD_WAVE_TIME) * jarmobHpPerSpawn(phase)
-    total += (phase.end - phase.start) * (perWave / WAVE_INTERVAL_SEC)
-  }
-  return total * m * m
-}
+  const count = Math.ceil(totalSec / windowSec)
+  const buckets = new Array(count).fill(0)
+  const bucketAt = (sec) => Math.min(count - 1, Math.max(0, Math.floor(sec / windowSec)))
 
-// 스테이지 상승 HP 곡선 — 보스·런크루·도지 등 비잡몹 전용(2026-07-22 개정): 이전×1.10(+10%).
-// stage1 ×1.0(오버라이드 없음) / stage2 ×1.10 / stage3 ×1.21 / stage4 ×1.331.
-// 잡몹 E01~E06은 위 STAGE_JARMOB_HP_MULTIPLIER(√c)로 별도 적용해 총 HP를 균등 +10%로 맞춘다.
-// 마틸다(탈출 추격자)는 별도 동적 statOverride를 쓰므로 여기 대상 아님.
-const STAGE_HP_MULTIPLIER = { stage2: 1.10, stage3: 1.21, stage4: 1.331 }
+  for (const phase of phases) {
+    const perSpawn = jarmobHpPerSpawn(phase)
+    let perWave = rawWaveSizeForStage(phase, stageId, NON_FRONTLOAD_WAVE_TIME) * perSpawn
+    if (hasMidWave) perWave += rawMidWaveSize(phase, stageId) * perSpawn
+    const hpPerSec = (perWave / WAVE_INTERVAL_SEC) * m * m
+    for (let i = 0; i < count; i += 1) {
+      const overlap = Math.min((i + 1) * windowSec, phase.end) - Math.max(i * windowSec, phase.start)
+      if (overlap > 0) buckets[i] += overlap * hpPerSec
+    }
+  }
+  for (const waveTime of Object.keys(STAGE_FRONTLOAD_WAVES[stageId] ?? {})) {
+    const sec = Number(waveTime)
+    const phase = activeAt(sec)
+    const extra = rawWaveSizeForStage(phase, stageId, sec)
+      - rawWaveSizeForStage(phase, stageId, NON_FRONTLOAD_WAVE_TIME)
+    buckets[bucketAt(sec)] += extra * jarmobHpPerSpawn(phase) * m * m
+  }
+  for (const evt of getRuntimeBurstEventsForStage(stageId)) {
+    if (evt.formation === RUN_ZOMBIE_CREW_FORMATION) {
+      const mult = STAGE_HP_MULTIPLIER[stageId] ?? 1
+      buckets[bucketAt(evt.sec)] += Math.round(ENEMY_STATS.RZL.hp * mult)
+        + Math.round(ENEMY_STATS.RZC.hp * mult) * (RUN_ZOMBIE_CREW_SIZE - 1)
+    } else if (JARMOB_HP_TYPES.has(evt.type)) {
+      buckets[bucketAt(evt.sec)] += (evt.count ?? 1) * (ENEMY_STATS[evt.type]?.hp ?? 0) * m
+    }
+  }
+  return buckets.map((hp) => hp / windowSec)
+}
 
 export function stageHpOverride(type, stageId) {
   // 잡몹은 √c 총HP-균등 배율, 그 외(보스·런크루)는 기존 개별 +10% 곡선.
@@ -1143,7 +1239,7 @@ export default function Enemies() {
       const phase = cache.wavePhases[Math.trunc(a)] ?? cache.wavePhases[0]
       const size = kind === SCHEDULE_WAVE
         ? waveSizeForStageAtTime(phase, cache.id, b)
-        : midWaveSize(phase)
+        : midWaveSizeForStage(phase, cache.id)
       addEnemies(buildWaveBatch(phase, size, b, cache.bounds, cache.obstacles), true, cache.spawnToken)
     } else if (kind === SCHEDULE_BURST) {
       const evt = cache.burstEvents[Math.trunc(a)]
@@ -1321,14 +1417,15 @@ export default function Enemies() {
       const waveTime = nextWaveTimeRef.current
       const nextTime = nextWaveTimeForStage(waveTime, currentStageId)
       nextWaveTimeRef.current = nextTime
-      // stage1: 이번 웨이브와 다음 웨이브 정중앙에 보강 스폰을 예약한다(그 외 stageId는 Infinity=미예약).
+      // MID_WAVE_STAGES(stage1·stage2): 이번 웨이브와 다음 웨이브 정중앙에 보강 스폰을 예약한다
+      // (대상 외 stageId는 midWaveTimeForStage가 Infinity를 줘서 미예약).
       nextMidTimeRef.current = midWaveTimeForStage(waveTime, nextTime, currentStageId)
       const phaseIndex = phaseIndexAtTime(wavePhases, waveTime)
       enqueueScheduled(SCHEDULE_WAVE, phaseIndex, waveTime)
     }
 
-    // stage1 중간 보강 스폰 — 예약된 정중앙 시점 도달 시 본 웨이브 절반 크기로 1회 흘린다.
-    // (midWaveTimeForStage가 stage1만 유한값을 예약하므로 다른 스테이지에선 Infinity라 발화하지 않는다.)
+    // 중간 보강 스폰 — 예약된 정중앙 시점 도달 시 본 웨이브 절반 크기로 1회 흘린다.
+    // (midWaveTimeForStage가 MID_WAVE_STAGES에만 유한값을 예약하므로 그 외에는 Infinity라 발화하지 않는다.)
     if (nextMidTimeRef.current < lastEnd && sec >= nextMidTimeRef.current) {
       const midTime = nextMidTimeRef.current
       nextMidTimeRef.current = Infinity  // 1회 발화 후 소진; 다음 웨이브가 다시 예약한다.

@@ -281,6 +281,7 @@ export default function GraphicsStudio() {
   const mountedRef = useRef(true)
   const connectInFlightRef = useRef(false)
   const applyInFlightRef = useRef(false)
+  const saveChainRef = useRef(Promise.resolve())
   const [gameUrl, setGameUrl] = useState(() => getDefaultStudioGameUrl())
   const activeTuningId = getPartTuningId(selectedItem.id, focusedParts)
   const itemSavedTuning = confirmedTunings[selectedItem.id] ?? DEFAULT_STUDIO_TUNING
@@ -366,7 +367,7 @@ export default function GraphicsStudio() {
     const status = result?.status ?? 'unavailable'
     setFirebaseStatus(status === 'future-version' ? 'future-version' : 'offline-error')
     setApplyStatus(`Firebase save blocked: ${status}`)
-    window.alert?.(`Firebase 저장 불가 (${status}). Apply 값은 저장되거나 게임·타이틀에 적용되지 않았습니다.`)
+    window.alert?.(`Firebase 저장 불가 (${status}). 입력값은 저장되거나 게임·타이틀에 적용되지 않았습니다.`)
   }
 
   const persistDatasetsOnApply = async (datasets) => {
@@ -402,6 +403,23 @@ export default function GraphicsStudio() {
     } finally {
       applyInFlightRef.current = false
     }
+  }
+
+  const queueCanonicalMutation = (mutate, label = 'Saved') => {
+    saveChainRef.current = saveChainRef.current.catch(() => undefined).then(async () => {
+      const result = await persistDatasetsOnApply(mutate(loadStudioRuntimeDatasets()))
+      if (result?.status === 'saved') {
+        refreshStudioState()
+        const hasOpenGame = gameWindowRef.current && !gameWindowRef.current.closed
+        if (!hasOpenGame || await sendGameSync()) {
+          setApplyStatus(`${label} · revision ${result.revision}`)
+        } else {
+          setApplyStatus('Game sync failed')
+        }
+      }
+      return result
+    })
+    return saveChainRef.current
   }
 
   useEffect(() => {
@@ -504,18 +522,9 @@ export default function GraphicsStudio() {
     return true
   }
 
-  const applyPropPlacements = async (config) => {
-    const datasets = loadStudioRuntimeDatasets()
+  const applyPropPlacements = (config) => {
     const saved = normalizeStagePropPlacements(config)
-    const result = await persistDatasetsOnApply({
-      ...datasets,
-      propPlacements: saved,
-    })
-    if (result.status === 'saved' && await sendGameSync({ openGame: true, retryAfterLoad: true })) {
-      setApplyStatus('Props applied')
-    } else if (result.status === 'saved') {
-      setApplyStatus('Game sync failed')
-    }
+    void queueCanonicalMutation((datasets) => ({ ...datasets, propPlacements: saved }), 'Props applied')
     return saved
   }
 
@@ -558,21 +567,16 @@ export default function GraphicsStudio() {
   }
 
   const updateTuning = (patch) => {
-    setDraftTuningById((current) => {
-      const currentTuning = normalizeStudioTuning(current[activeTuningId] ?? confirmedTunings[activeTuningId] ?? DEFAULT_STUDIO_TUNING)
-      const nextTuning = normalizeStudioTuning({
-        ...currentTuning,
-        ...patch,
-      })
-      if (!isSameTuning(currentTuning, nextTuning)) {
-        setUndoStack((stack) => [...stack, { id: activeTuningId, tuning: currentTuning }].slice(-UNDO_LIMIT))
-      }
-      setApplyStatus('Draft — Apply to save Firebase')
-      return {
-        ...current,
-        [activeTuningId]: nextTuning,
-      }
-    })
+    const id = activeTuningId
+    setUndoStack((stack) => [...stack, { id, tuning: confirmedTunings[id] ?? DEFAULT_STUDIO_TUNING }].slice(-UNDO_LIMIT))
+    setDraftTuningById((current) => ({
+      ...current,
+      [id]: normalizeStudioTuning({ ...current[id], ...patch }),
+    }))
+    void queueCanonicalMutation((datasets) => ({
+      ...datasets,
+      tunings: { ...datasets.tunings, [id]: normalizeStudioTuning({ ...datasets.tunings[id], ...patch }) },
+    }), 'Graphics saved')
   }
 
   const confirmTextureDecals = (nextItemDecals) => {
@@ -581,7 +585,10 @@ export default function GraphicsStudio() {
       [selectedItem.id]: nextItemDecals,
     })
     setDecalsByItem(next)
-    setApplyStatus('Decal draft — Apply to save Firebase')
+    void queueCanonicalMutation((datasets) => ({
+      ...datasets,
+      decals: normalizeTextureDecalMap({ ...datasets.decals, [selectedItem.id]: nextItemDecals }),
+    }), 'Decal saved')
     return next
   }
 
@@ -611,7 +618,7 @@ export default function GraphicsStudio() {
     }
     const rest = itemDecals.filter((decal) => !(decal.partId === nextDecal.partId && decal.faceAxis === nextDecal.faceAxis))
     confirmTextureDecals([...rest, nextDecal])
-    setApplyStatus(`Decal draft: ${nextDecal.partId} ${nextDecal.faceAxis}`)
+    setApplyStatus(`Decal saving: ${nextDecal.partId} ${nextDecal.faceAxis}`)
   }
 
   const updateActiveDecal = (patch) => {
@@ -621,12 +628,12 @@ export default function GraphicsStudio() {
     confirmTextureDecals(itemDecals.map((decal) => (
       decal.partId === activeDecal.partId && decal.faceAxis === activeDecal.faceAxis ? nextDecal : decal
     )))
-    setApplyStatus('Decal draft — Apply to save Firebase')
+    setApplyStatus('Decal saving')
   }
 
   const removeDecal = (target) => {
     confirmTextureDecals(itemDecals.filter((decal) => !(decal.partId === target.partId && decal.faceAxis === target.faceAxis)))
-    setApplyStatus(`Decal removal draft: ${target.partId} ${target.faceAxis}`)
+    setApplyStatus(`Decal saving: ${target.partId} ${target.faceAxis}`)
   }
 
   const focusDecal = (decal) => {
@@ -637,7 +644,10 @@ export default function GraphicsStudio() {
 
   const updateStageBossPreview = (patch) => {
     setStageBossPreview((current) => normalizeStageBossPreview({ ...current, ...patch }))
-    setApplyStatus('Boss preview draft — Apply to save Firebase')
+    void queueCanonicalMutation((datasets) => ({
+      ...datasets,
+      stageBossPreview: normalizeStageBossPreview({ ...datasets.stageBossPreview, ...patch }),
+    }), 'Boss preview saved')
   }
 
   useEffect(() => {
@@ -647,11 +657,10 @@ export default function GraphicsStudio() {
       setUndoStack((stack) => {
         const entry = stack[stack.length - 1]
         if (!entry) return stack
-        setDraftTuningById((current) => ({
-          ...current,
-          [entry.id]: entry.tuning,
-        }))
-        setApplyStatus('Draft — Apply to save Firebase')
+        void queueCanonicalMutation((datasets) => ({
+          ...datasets,
+          tunings: { ...datasets.tunings, [entry.id]: entry.tuning },
+        }), 'Undo saved')
         return stack.slice(0, -1)
       })
     }
@@ -660,7 +669,13 @@ export default function GraphicsStudio() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  const resetCurrent = () => {
+    const baselineTuning = resetBaseline[activeTuningId] ?? DEFAULT_STUDIO_TUNING
+    updateTuning(baselineTuning)
+  }
+
   const applyCurrent = async () => {
+    await saveChainRef.current.catch(() => undefined)
     const datasets = loadStudioRuntimeDatasets()
     const nextTunings = {
       ...datasets.tunings,
@@ -681,15 +696,6 @@ export default function GraphicsStudio() {
     } else if (result.status === 'saved') {
       setApplyStatus('Game sync failed')
     }
-  }
-
-  const resetCurrent = () => {
-    const baselineTuning = resetBaseline[activeTuningId] ?? DEFAULT_STUDIO_TUNING
-    setDraftTuningById((current) => ({
-      ...current,
-      [activeTuningId]: baselineTuning,
-    }))
-    setApplyStatus('Reset draft — Apply to save Firebase')
   }
 
   const copyExport = async () => {
@@ -715,29 +721,27 @@ export default function GraphicsStudio() {
 
   const updateSfxTuning = (patch) => {
     if (!selectedSfx) return
-    setSfxTunings((current) => {
-      const next = {
-        ...current,
-        [selectedSfx.id]: normalizeSfxTuning({
-          ...sfxTuning,
-          ...patch,
-        }),
-      }
-      return next
-    })
-    setApplyStatus('Audio draft — Apply to save Firebase')
+    const soundId = selectedSfx.id
+    setSfxTunings((current) => ({
+      ...current,
+      [soundId]: normalizeSfxTuning({ ...current[soundId], ...patch }),
+    }))
+    void queueCanonicalMutation((datasets) => ({
+      ...datasets,
+      sfxTunings: { ...datasets.sfxTunings, [soundId]: normalizeSfxTuning({ ...datasets.sfxTunings[soundId], ...patch }) },
+    }), 'Audio saved')
   }
 
   const applySfxCurrent = async () => {
     if (!selectedSfx) return
+    await saveChainRef.current.catch(() => undefined)
     const datasets = loadStudioRuntimeDatasets()
-    const next = {
-      ...datasets.sfxTunings,
-      [selectedSfx.id]: sfxTuning,
-    }
     const result = await persistDatasetsOnApply({
       ...datasets,
-      sfxTunings: next,
+      sfxTunings: {
+        ...datasets.sfxTunings,
+        [selectedSfx.id]: sfxTuning,
+      },
     })
     if (result.status === 'saved' && await sendGameSync({ openGame: true, retryAfterLoad: true })) {
       setApplyStatus('Audio applied')
@@ -747,17 +751,22 @@ export default function GraphicsStudio() {
   }
 
   const updateBossFacePart = (categoryKey, partId) => {
+    const bossType = selectedFaceBossType
     setDraftBossFaceRecipes((current) => ({
       ...current,
-      [selectedFaceBossType]: normalizeBossFaceRecipe({
-        ...faceRecipe,
-        [categoryKey]: partId,
-      }),
+      [bossType]: normalizeBossFaceRecipe({ ...faceRecipe, [categoryKey]: partId }),
     }))
-    setApplyStatus('Face draft — Apply to save Firebase')
+    void queueCanonicalMutation((datasets) => ({
+      ...datasets,
+      bossFaceRecipes: normalizeBossFaceRecipeMap({
+        ...datasets.bossFaceRecipes,
+        [bossType]: normalizeBossFaceRecipe({ ...datasets.bossFaceRecipes[bossType], [categoryKey]: partId }),
+      }),
+    }), 'Face saved')
   }
 
   const applyBossFaceRecipe = async () => {
+    await saveChainRef.current.catch(() => undefined)
     const datasets = loadStudioRuntimeDatasets()
     const nextRecipes = saveBossFaceRecipes({
       ...datasets.bossFaceRecipes,
@@ -780,11 +789,11 @@ export default function GraphicsStudio() {
   }
 
   const resetBossFaceRecipe = () => {
-    setDraftBossFaceRecipes((current) => ({
-      ...current,
-      [selectedFaceBossType]: DEFAULT_BOSS_FACE_RECIPE,
-    }))
-    setApplyStatus('Face reset draft — Apply to save Firebase')
+    const bossType = selectedFaceBossType
+    void queueCanonicalMutation((datasets) => ({
+      ...datasets,
+      bossFaceRecipes: normalizeBossFaceRecipeMap({ ...datasets.bossFaceRecipes, [bossType]: DEFAULT_BOSS_FACE_RECIPE }),
+    }), 'Face reset saved')
   }
 
   return (
@@ -834,18 +843,6 @@ export default function GraphicsStudio() {
               Faces
             </button>
           </div>
-          <label style={styles.gameBridge}>
-            <span style={styles.gameBridgeLabel}>Game URL</span>
-            <input
-              name="gameUrl"
-              type="url"
-              value={gameUrl}
-              onInput={(event) => setGameUrl(event.target.value)}
-              onChange={(event) => setGameUrl(event.target.value)}
-              style={styles.gameBridgeInput}
-            />
-            <button type="button" onClick={connectFirebaseStudio} style={styles.gameBridgeButton}>Connect</button>
-          </label>
           <div style={styles.statusLine}>
             <span style={styles.sourceLabel}>{activeSection === 'graphics' ? selectedItem.source : activeSection === 'faces' ? 'procedural shader face parts' : selectedSfx?.src}</span>
             <span data-testid="studio-firebase-status" data-status={firebaseStatus} aria-live="polite" style={styles.sourceLabel}>
@@ -859,7 +856,7 @@ export default function GraphicsStudio() {
             style={styles.propEditorPanel}
             data-testid="studio-prop-editor-shell"
           >
-            <StagePropPlacementEditor key={propEditorVersion} onApply={applyPropPlacements} />
+            <StagePropPlacementEditor key={propEditorVersion} onChange={applyPropPlacements} />
           </section>
         ) : (
         <>
@@ -1112,7 +1109,7 @@ export default function GraphicsStudio() {
             </section>
           </div>
           <div style={styles.actions}>
-            <button type="button" onClick={applyCurrent} style={styles.primaryButton}>Apply</button>
+            <button type="button" onClick={applyCurrent} style={styles.largePrimaryButton}>Apply</button>
             <button type="button" onClick={resetCurrent} style={styles.secondaryButton}>Reset</button>
             <button type="button" onClick={copyExport} style={styles.secondaryButton}>Copy JSON</button>
           </div>
@@ -1160,7 +1157,7 @@ export default function GraphicsStudio() {
                 ))}
               </div>
               <div style={styles.actions}>
-                <button type="button" onClick={applyBossFaceRecipe} style={styles.primaryButton}>Apply</button>
+                <button type="button" onClick={applyBossFaceRecipe} style={styles.largePrimaryButton}>Apply</button>
                 <button type="button" onClick={resetBossFaceRecipe} style={styles.secondaryButton}>Reset</button>
                 <button type="button" onClick={() => navigator.clipboard?.writeText(JSON.stringify({ [selectedFaceBossType]: faceRecipe }, null, 2))} style={styles.secondaryButton}>Copy JSON</button>
               </div>
@@ -1182,7 +1179,7 @@ export default function GraphicsStudio() {
                 <SliderRow label="Pitch" name="sfxRate" min="0.5" max="2" step="0.01" value={sfxTuning.rate} onChange={(rate) => updateSfxTuning({ rate })} />
               </div>
               <div style={styles.actions}>
-                <button type="button" onClick={applySfxCurrent} style={styles.primaryButton}>Apply</button>
+                <button type="button" onClick={applySfxCurrent} style={styles.largePrimaryButton}>Apply</button>
                 <button type="button" onClick={() => updateSfxTuning(DEFAULT_SFX_TUNING)} style={styles.secondaryButton}>Reset</button>
                 <button type="button" onClick={() => selectedSfx && playSfx(selectedSfx.id, 1)} style={styles.secondaryButton}>Play</button>
                 <button type="button" onClick={() => navigator.clipboard?.writeText(JSON.stringify(sfxTunings, null, 2))} style={styles.secondaryButton}>Copy JSON</button>
@@ -1746,6 +1743,10 @@ const styles = {
     color: '#fff8ec',
     fontWeight: 800,
     cursor: 'pointer',
+  },
+  largePrimaryButton: {
+    background: '#e35d3d', color: '#171817', border: 'none', borderRadius: 10,
+    padding: '16px 28px', minHeight: 64, minWidth: 128, fontSize: 28, fontWeight: 800, cursor: 'pointer',
   },
   secondaryButton: {
     border: '1px solid #3f443c',

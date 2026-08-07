@@ -21,14 +21,18 @@ import {
   waveSizeForStageAtTime,
   stageExpectedBaseJarmobHp,
   stageExpectedJarmobHp,
-  stageDurationWeightedJarmobHp,
+  stageBurstJarmobBaseHp,
+  stageRunCrewFixedHp,
+  stageJarmobLoadWindows,
   STAGE_JARMOB_HP_MULTIPLIER,
   STAGE_DENSITY_MULTIPLIER,
   getWaveSpawnSeconds,
   nextWaveInterval,
   nextWaveTimeForStage,
   midWaveTimeForStage,
-  midWaveSize,
+  rawMidWaveSize,
+  midWaveSizeForStage,
+  MID_WAVE_STAGES,
   getMidpointSpawnSeconds,
   bossEscortSize,
   stageHpOverride,
@@ -106,14 +110,17 @@ describe('late zombie spawn relief', () => {
     expect(WAVE_PHASES.find((phase) => phase.start === 224).target).toBe(17)
   })
 
-  // 2026-08-06 톱니 완화: 90~96 구간은 더 이상 '완화 딥'이 아니다. 72~90과 동일 target으로 맞춰
-  // 정규화 격자 표본(t=90)이 6초짜리 phase가 아니라 72~96 전체를 대표하게 했다.
+  // 2026-08-06 톱니 완화: 90~96 구간은 더 이상 '완화 딥'이 아니다. 72~90과 동일 target으로 맞췄다.
+  // (원래 이유였던 '정규화 격자 표본 t=90' 왜곡은 2026-08-07 격자 폐기로 사라졌지만, 6초짜리 구간만
+  //  따로 꺼뜨리지 않는다는 연속성 규칙 자체는 유지한다.)
+  // 96~120은 2026-08-07 재배분에서 19→17로 내렸다 — 골짜기가 아니라 스1 대비 1.7배 봉우리였고,
+  // 그 몫을 120~168s 골짜기로 넘겼다.
   it('keeps stage 2 targets flat across the 72-96 ranged-introduction window', () => {
     const phases = getWavePhasesForStage('stage2')
 
     expect(phases.find((phase) => phase.start === 72).target).toBe(30)
     expect(phases.find((phase) => phase.start === 90).target).toBe(30)
-    expect(phases.find((phase) => phase.start === 96).target).toBe(19)
+    expect(phases.find((phase) => phase.start === 96).target).toBe(17)
     expect(phases.find((phase) => phase.start === 224).target).toBe(25)
   })
 
@@ -217,7 +224,9 @@ describe('random-interval discrete wave scheduler', () => {
     expect(wave1Phase.target).toBe(17)
     expect(waveSizeForStageAtTime(wave1Phase, 'stage1', 0)).toBe(10)
     // 중간 보강 스폰도 함께 하향: base round(9×0.5)=5 → round(5×1.15)=6 (기존 7에서 하향).
-    expect(midWaveSize(wave1Phase)).toBe(6)
+    // stage1은 밀도배율 앵커(×1)라 구조값(raw)과 실제 크기가 같다.
+    expect(rawMidWaveSize(wave1Phase, 'stage1')).toBe(6)
+    expect(midWaveSizeForStage(wave1Phase, 'stage1')).toBe(6)
   })
 
   it('schedules stage 2 opening waves at 0s and 30s, then triples only those two spawns', () => {
@@ -273,25 +282,37 @@ describe('random-interval discrete wave scheduler', () => {
   })
 })
 
-describe('stage 1 midpoint reinforcement spawns', () => {
-  it('schedules a reinforcement at the exact midpoint between two stage1 waves only', () => {
+describe('midpoint reinforcement spawns (stage1 + stage2)', () => {
+  it('schedules a reinforcement at the exact midpoint between two waves, for MID_WAVE_STAGES only', () => {
     expect(midWaveTimeForStage(0, 30, 'stage1')).toBe(15)
     expect(midWaveTimeForStage(30, 60, 'stage1')).toBe(45)
-    // 스2/스3는 중간 보강 없음 → Infinity(스케줄러가 발화하지 않는 센티넬).
-    expect(midWaveTimeForStage(0, 30, 'stage2')).toBe(Infinity)
+    // 2026-08-07: stage2도 보강 대상에 포함(웨이브 사이 dead air 제거). 대상 정본은 MID_WAVE_STAGES.
+    expect(MID_WAVE_STAGES.has('stage2')).toBe(true)
+    expect(midWaveTimeForStage(0, 30, 'stage2')).toBe(15)
+    // 스3/스4는 여전히 보강 없음 → Infinity(스케줄러가 발화하지 않는 센티넬).
     expect(midWaveTimeForStage(0, 30, 'stage3')).toBe(Infinity)
+    expect(midWaveTimeForStage(0, 30, 'stage4')).toBe(Infinity)
   })
 
   it('sizes the reinforcement at half the main wave, minimum one', () => {
     // 기존 보강값(본 웨이브의 절반)에 Stage 1 ×1.15(하향)를 적용한다.
-    expect(midWaveSize({ target: 24 })).toBe(7)   // base 6 × 1.15
-    expect(midWaveSize({ target: 34 })).toBe(10)  // base 9 × 1.15
-    expect(midWaveSize({ target: 15 })).toBe(5)   // base 4 × 1.15
-    expect(midWaveSize({ target: 11 })).toBe(3)   // base 3 × 1.15
+    expect(rawMidWaveSize({ target: 24 }, 'stage1')).toBe(7)   // base 6 × 1.15
+    expect(rawMidWaveSize({ target: 34 }, 'stage1')).toBe(10)  // base 9 × 1.15
+    expect(rawMidWaveSize({ target: 15 }, 'stage1')).toBe(5)   // base 4 × 1.15
+    expect(rawMidWaveSize({ target: 11 }, 'stage1')).toBe(3)   // base 3 × 1.15
     // 빈 보강 방지: 아주 작은/누락 phase도 최소 1.
-    expect(midWaveSize({ target: 1 })).toBe(1)
-    expect(midWaveSize({ target: 0 })).toBe(1)
-    expect(midWaveSize(undefined)).toBe(1)
+    expect(rawMidWaveSize({ target: 1 }, 'stage1')).toBe(1)
+    expect(rawMidWaveSize({ target: 0 }, 'stage1')).toBe(1)
+    expect(rawMidWaveSize(undefined, 'stage1')).toBe(1)
+  })
+
+  // STAGE1_SPAWN_MULTIPLIER는 stage1 전용 밀도 상수다. stage2는 STAGE_DENSITY_MULTIPLIER를
+  // 따로 받으므로 여기서 1.15를 곱하면 밀도가 이중 적용된다 — raw는 순수 절반이어야 한다.
+  it('never applies the stage1 1.15x density constant to stage2 reinforcements', () => {
+    expect(rawMidWaveSize({ target: 24 }, 'stage2')).toBe(6)   // round(12 × 0.5) — ×1.15 없음
+    expect(rawMidWaveSize({ target: 34 }, 'stage2')).toBe(9)
+    expect(midWaveSizeForStage({ target: 24 }, 'stage2'))
+      .toBe(Math.max(1, Math.round(6 * STAGE_DENSITY_MULTIPLIER.stage2)))
   })
 
   it('derives stage1 midpoints strictly interleaved with the wave schedule', () => {
@@ -312,9 +333,15 @@ describe('stage 1 midpoint reinforcement spawns', () => {
     })
   })
 
-  it('produces no midpoint reinforcements for stage2 or stage3', () => {
-    expect(getMidpointSpawnSeconds(STAGE2_WAVE_PHASES, 'stage2', () => 0.5)).toEqual([])
+  it('derives stage2 midpoints too (stage2 joined MID_WAVE_STAGES on 2026-08-07)', () => {
+    // random 0.5 → 30초 간격. 단 stage2의 첫 간격은 nextWaveTimeForStage가 0→30으로 고정한다.
+    expect(getMidpointSpawnSeconds(STAGE2_WAVE_PHASES, 'stage2', () => 0.5))
+      .toEqual([15, 45, 75, 105, 135, 165, 195, 225])
+  })
+
+  it('produces no midpoint reinforcements for stage3 or stage4', () => {
     expect(getMidpointSpawnSeconds(STAGE3_WAVE_PHASES, 'stage3', () => 0.5)).toEqual([])
+    expect(getMidpointSpawnSeconds(STAGE4_WAVE_PHASES, 'stage4', () => 0.5)).toEqual([])
   })
 })
 
@@ -337,7 +364,7 @@ describe('boss entrance escort wave', () => {
     expect(source).toContain('bossEscortSize(cache.id, cache.wavePhases, evt.sec)')
     // 웨이브 예약 시 중간 보강 시각을 함께 예약하고, 도달 시 발화한다.
     expect(source).toContain('nextMidTimeRef.current = midWaveTimeForStage(waveTime, nextTime, currentStageId)')
-    expect(source).toContain('midWaveSize(phase)')
+    expect(source).toContain('midWaveSizeForStage(phase, cache.id)')
   })
 })
 
@@ -367,51 +394,75 @@ describe('ascending stage HP curve (+10% per stage from stage1)', () => {
 })
 
 describe('jarmob expected total HP follows the per-stage target factor table', () => {
-  // 배율 적용 후 잡몹 기대 총 HP = base × HP배율 × 밀도배율. stage1은 배율 1.
+  // 2026-08-07 개정: 실전달 총량 = 웨이브 base×m² + 버스트 잡몹×m + 런크루 확정 HP.
+  // 버스트는 count가 리터럴이라 밀도배율을 안 받고(m 1제곱), 런크루는 STAGE_HP_MULTIPLIER를 써서
+  // √c 정규화 대상이 아니다(상수항). 그래서 m은 √c가 아니라 근의 공식으로 푼다.
   const totalFor = (stageId) => {
-    const base = stageExpectedBaseJarmobHp(stageId)
-    const hpMult = STAGE_JARMOB_HP_MULTIPLIER[stageId] ?? 1
-    const densMult = STAGE_DENSITY_MULTIPLIER[stageId] ?? 1
-    return base * hpMult * densMult
+    const m = STAGE_JARMOB_HP_MULTIPLIER[stageId] ?? 1
+    return stageExpectedBaseJarmobHp(stageId) * m * m
+      + stageBurstJarmobBaseHp(stageId) * m
+      + stageRunCrewFixedHp(stageId)
   }
 
-  // 2026-07-26: 1웨이브 target 24→17(사용자 요청 70% 조정)로 앵커가 소폭 하락(4565.86→4493.86, -1.6%).
-  // stage2~4 HP/밀도 배율도 √c 파생이라 함께 ~0.79% 하락하지만(예: stage2 1.1133→1.1045),
-  // 실효 영향은 무시 가능한 수준 — 이 테스트의 하한만 새 값에 맞춰 낮춘다.
-  it('anchors stage1 base expected jarmob HP in the ~4450-4650 range', () => {
+  // 앵커 기준값이 4494 → 4597로 바뀐 이유: 30초 격자 8표본 모델을 폐기하고 지속시간 가중 모델로
+  // 교체했다(격자는 stage1 240초 중 표본에 안 걸리는 구간을 통째로 빠뜨렸다).
+  // stage1은 프론트로드가 없고 런타임 버스트도 보스뿐이라 앵커 = 웨이브+중간보강 지속시간 가중 부하다.
+  it('anchors stage1 base expected jarmob HP in the ~4500-4700 range', () => {
     const anchor = stageExpectedBaseJarmobHp('stage1')
-    expect(anchor).toBeGreaterThanOrEqual(4450)
-    expect(anchor).toBeLessThanOrEqual(4650)
+    expect(anchor).toBeGreaterThanOrEqual(4500)
+    expect(anchor).toBeLessThanOrEqual(4700)
   })
 
   // 총량은 STAGE_JARMOB_TOTAL_HP_FACTOR가 단독 결정한다(블렌드 자기정규화).
-  // stage2는 2026-08-06 난이도 +10% 조정으로 1.10 → 1.21(= stage3와 동률).
+  // 2026-08-07: stage2·stage3 동률(1.21/1.21)을 단조 +10% 사다리로 복원했다. 이전 동률의 근거였던
+  // "스3는 버스트가 모델 밖에서 그대로 얹힌다"는 전제는 버스트·크루를 모델에 넣으면서 사라졌다.
   it('pins each stage total to anchor x its target factor', () => {
     const anchor = stageExpectedBaseJarmobHp('stage1')
-    const expected = { stage1: 1, stage2: 1.21, stage3: 1.21, stage4: 1.331 }
+    const expected = { stage1: 1, stage2: 1.21, stage3: 1.331, stage4: 1.4641 }
     for (const [stageId, factor] of Object.entries(expected)) {
       expect(totalFor(stageId) / anchor).toBeCloseTo(factor, 6)
       expect(stageExpectedJarmobHp(stageId) / anchor).toBeCloseTo(factor, 6)
     }
   })
 
-  // 총량 정책(factor)의 착지점. 주의: 이 값은 앵커×factor와 항등이라 factor 회귀만 잡고
-  // 타임라인 회귀는 못 잡는다 — 타임라인 방어는 아래 지속시간 가중 테스트가 맡는다.
-  it('lands stage2 expected jarmob total HP on the +10% difficulty target (5420 +-3%)', () => {
-    const stage2Total = stageExpectedJarmobHp('stage2')
-    expect(stage2Total).toBeGreaterThanOrEqual(5420 * 0.97)
-    expect(stage2Total).toBeLessThanOrEqual(5420 * 1.03)
+  // 회귀 방어(신규 2026-08-07): 실전달 총량이 스1→스4 단조증가이고 각 단계가 정확히 +10%씩이어야 한다.
+  // 이 단언이 없던 탓에 실측 ×1.000 / ×1.082 / ×2.496 / ×1.924 (스4가 스3보다 쉬운 역전 포함)를
+  // 아무도 못 잡았다. factor 표만 보고는 못 잡는다 — 버스트/크루가 모델 밖에 있었기 때문이다.
+  it('keeps the delivered jarmob total strictly ascending at +10% per stage', () => {
+    const ids = ['stage1', 'stage2', 'stage3', 'stage4']
+    const totals = ids.map((stageId) => stageExpectedJarmobHp(stageId))
+    for (let i = 1; i < totals.length; i += 1) {
+      expect(totals[i]).toBeGreaterThan(totals[i - 1])
+    }
+    // 스1 대비 누적 배율이 factor 표와 ±1% 이내로 일치.
+    const expectedRatio = [1, 1.21, 1.331, 1.4641]
+    totals.forEach((total, i) => {
+      expect(total / totals[0]).toBeGreaterThanOrEqual(expectedRatio[i] * 0.99)
+      expect(total / totals[0]).toBeLessThanOrEqual(expectedRatio[i] * 1.01)
+    })
   })
 
-  // 타임라인 회귀 방어. 30초 격자는 표본 8개라 stage2의 72~90·96~120·192~208·224~240(총 56초)을
-  // 아예 못 보고, 격자 총량은 factor에 고정된 항등식이라 target/weights를 반토막 내도 변하지 않는다.
-  // 지속시간 가중 부하는 모든 phase를 길이만큼 반영하므로 그런 회귀를 잡아낸다.
-  // 기준값 4497.8 = 2026-08-06 재배분 직전 stage2 지속시간 가중 부하.
-  it('holds the stage2 duration-weighted jarmob load about 10% above the pre-rebalance baseline', () => {
-    const BEFORE_REBALANCE = 4497.8
-    const ratio = stageDurationWeightedJarmobHp('stage2') / BEFORE_REBALANCE
-    expect(ratio).toBeGreaterThanOrEqual(1.085)
-    expect(ratio).toBeLessThanOrEqual(1.120)
+  // 총량 정책(factor)의 착지점. 주의: 이 값은 앵커×factor와 항등이라 factor 회귀만 잡고
+  // 타임라인 회귀는 못 잡는다 — 타임라인 방어는 아래 20초 구간 단언이 맡는다.
+  // 기준 5562 = 새 앵커 4597 × 1.21 (이전 5420은 옛 격자 앵커 4494 기준이라 폐기).
+  it('lands stage2 expected jarmob total HP on the +10% difficulty target (5562 +-3%)', () => {
+    const stage2Total = stageExpectedJarmobHp('stage2')
+    expect(stage2Total).toBeGreaterThanOrEqual(5562 * 0.97)
+    expect(stage2Total).toBeLessThanOrEqual(5562 * 1.03)
+  })
+
+  // ★ "스2가 스1보다 쉽다"의 직접 회귀 방어(신규 2026-08-07).
+  // 총량이 맞아도 배분이 뒤로 몰리면 체감은 뒤집힌다. 실제로 재교정 전 stage2는 20초 구간 12개 중
+  // 7개가 stage1보다 낮았고(최저 0.69배), 그게 사용자 신고의 실체였다.
+  // 168s 이후는 양쪽 다 보스 창이라 비교 대상에서 제외한다.
+  it('never lets any stage2 20s window fall below 0.85x the stage1 load before the boss window', () => {
+    const windowSec = 20
+    const stage1 = stageJarmobLoadWindows('stage1', windowSec)
+    const stage2 = stageJarmobLoadWindows('stage2', windowSec)
+    const lastComparable = Math.floor(168 / windowSec)   // 0~168s = 앞 8구간
+    for (let i = 0; i < lastComparable; i += 1) {
+      expect(stage2[i] / stage1[i]).toBeGreaterThanOrEqual(0.85)
+    }
   })
 
   // 보스 창(rollBossSpawnSec = 180 +- 10 -> 170~190s)은 168~192 phase가 통째로 덮는다.
@@ -424,10 +475,13 @@ describe('jarmob expected total HP follows the per-stage target factor table', (
     expect(waveSizeForPhase(bossPhase) * perSpawn).toBeGreaterThanOrEqual(1633.79)
   })
 
-  it('uses equal sqrt(c) multipliers for HP and density (blend splits the burden in half)', () => {
+  // 블렌드는 부담을 HP와 밀도가 똑같이 나눠 진다. 2026-08-07부터 배율이 1 미만이 될 수 있다 —
+  // 웨이브 외 고정 부하(버스트·런크루)가 목표 총량의 상당 부분을 먹으면 웨이브 몫이 줄기 때문이다
+  // (스3는 버스트+크루가 목표의 ~64%). "1보다 크다"가 아니라 "둘이 같다 + 양수다"가 불변식이다.
+  it('uses equal multipliers for HP and density (blend splits the burden in half)', () => {
     for (const stageId of ['stage2', 'stage3', 'stage4']) {
       expect(STAGE_JARMOB_HP_MULTIPLIER[stageId]).toBe(STAGE_DENSITY_MULTIPLIER[stageId])
-      expect(STAGE_JARMOB_HP_MULTIPLIER[stageId]).toBeGreaterThan(1)
+      expect(STAGE_JARMOB_HP_MULTIPLIER[stageId]).toBeGreaterThan(0)
     }
     // stage1은 앵커라 배율이 없다(undefined).
     expect(STAGE_JARMOB_HP_MULTIPLIER.stage1).toBeUndefined()
