@@ -106,6 +106,12 @@ export const STUDIO_SLIDER_CSS = `
 .studio-range:focus-visible::-webkit-slider-thumb {
   box-shadow: 0 0 0 3px rgba(227, 93, 61, 0.4);
 }
+
+.studio-number-input::-webkit-inner-spin-button,
+.studio-number-input::-webkit-outer-spin-button {
+  margin-left: 10px;
+  margin-right: 0;
+}
 `
 
 function SliderRow({ label, name, min, max, step, value, onChange }) {
@@ -159,6 +165,7 @@ function SliderRow({ label, name, min, max, step, value, onChange }) {
         min={min}
         max={max}
         step={step}
+        className="studio-number-input"
         value={draftValue}
         onFocus={() => setFocused(true)}
         onInput={handleValueInput}
@@ -1216,11 +1223,14 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
     fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
   },
   shell: {
-    width: 'min(1280px, 100vw)',
-    height: 'min(720px, 100vh)',
+    width: '50vw',
+    height: '50vh',
+    transform: 'scale(2)',
+    transformOrigin: '50% 50%',
     display: 'grid',
     gridTemplateColumns: '250px minmax(0, 1fr) 340px',
     gridTemplateRows: '58px minmax(0, 1fr) 160px',
@@ -1229,7 +1239,6 @@ const styles = {
     overflow: 'hidden',
   },
   shellCompact: {
-    height: '100vh',
     gridTemplateColumns: 'minmax(0, 1fr)',
     gridTemplateRows: '58px 170px minmax(280px, 1fr) 430px 170px',
     overflow: 'auto',
@@ -1660,7 +1669,7 @@ const styles = {
   },
   controlRow: {
     display: 'grid',
-    gridTemplateColumns: '92px minmax(0, 1fr) 88px',
+    gridTemplateColumns: '92px minmax(0, 1fr) 176px',
     alignItems: 'center',
     gap: 14,
     minHeight: 56,
@@ -1677,7 +1686,7 @@ const styles = {
     fontSize: 12,
   },
   controlValueInput: {
-    width: 88,
+    width: 176,
     minWidth: 0,
     border: '1px solid #353833',
     borderRadius: 6,
@@ -1686,7 +1695,7 @@ const styles = {
     fontVariantNumeric: 'tabular-nums',
     textAlign: 'right',
     fontSize: 20,
-    padding: '8px 8px',
+    padding: 8,
   },
   range: {
     width: '100%',

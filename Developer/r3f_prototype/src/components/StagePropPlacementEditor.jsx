@@ -246,6 +246,19 @@ export default function StagePropPlacementEditor({ onChange }) {
         </label>
         <span style={styles.countBadge}>{list.length} props</span>
         <button type="button" data-testid="prop-apply" onClick={reapplyStage} style={styles.largePrimaryButton}>Apply</button>
+        <button
+          type="button"
+          data-testid="prop-delete-toolbar"
+          onClick={deleteSelected}
+          disabled={!selectedId}
+          style={{
+            ...styles.largePrimaryButton,
+            background: '#b01d1d',
+            ...(selectedId ? {} : { opacity: 0.45, cursor: 'not-allowed' }),
+          }}
+        >
+          삭제
+        </button>
         <button type="button" data-testid="prop-reset" onClick={resetStage} style={styles.secondaryButton}>Reset</button>
       </div>
 
