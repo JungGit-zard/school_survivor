@@ -79,7 +79,7 @@ export default function BossFaceGridPreview({ bossLabel, recipe }) {
 const styles = {
   shell: {
     display: 'grid',
-    gap: 10,
+    gap: 12,
     padding: 10,
     border: '1px solid #805c38',
     borderTop: '3px solid #d3a53f',
@@ -94,7 +94,7 @@ const styles = {
   },
   title: {
     color: '#fff6cf',
-    fontSize: 12,
+    fontSize: 24,
   },
   boss: {
     minWidth: 0,
@@ -102,7 +102,7 @@ const styles = {
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
     color: '#d3a53f',
-    fontSize: 10,
+    fontSize: 20,
   },
   svg: {
     width: '100%',
@@ -124,6 +124,6 @@ const styles = {
     borderRadius: 999,
     background: '#151614',
     color: '#cfd5ca',
-    fontSize: 10,
+    fontSize: 20,
   },
 }
