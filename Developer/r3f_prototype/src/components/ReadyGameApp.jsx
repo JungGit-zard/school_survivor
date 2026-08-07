@@ -96,7 +96,8 @@ export default function ReadyGameApp({
   }, [screen])
 
   const startGame = (stageId) => {
-    if (!isFirebaseProgressHydrated(authUser)) return
+    // Stage entry must never be blocked by Google/Firebase progress hydration.
+    // Guest or failed-cloud sessions run on in-memory default progress; cloud save is optional.
     resetGame(stageId)
     if (stageId === 'stage1') useGameStore.getState().startStage1Intro()
     setScreen('game')

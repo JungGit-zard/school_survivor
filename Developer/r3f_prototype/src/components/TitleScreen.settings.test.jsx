@@ -183,7 +183,7 @@ describe('TitleScreen lobby entry', () => {
     cleanup()
   })
 
-  it('asks for a nickname before entering the lobby and saves it for the Google user', () => {
+  it('enters the lobby immediately even when the signed-in user has no nickname', () => {
     const user = { uid: 'uid-1', displayName: 'Tester', email: 'tester@example.com', photoURL: '' }
     seedConsentedUser(user)
     useAuthStore.setState({
@@ -196,14 +196,9 @@ describe('TitleScreen lobby entry', () => {
 
     clickButtonByText(container, '게임 시작')
 
-    expect(onEnterLobby).not.toHaveBeenCalled()
-    expect(container.textContent).toContain('닉네임 설정')
-
-    setInputValue(container.querySelector('#title-nickname-input'), '  교실 생존자  ')
-    clickButtonByText(container, '저장하고 시작')
-
     expect(onEnterLobby).toHaveBeenCalledTimes(1)
-    expect(getSavedNickname({ uid: 'uid-1' })).toBe('교실 생존자')
+    expect(container.textContent).not.toContain('닉네임 설정')
+    expect(container.querySelector('#title-nickname-input')).toBeNull()
 
     cleanup()
   })
@@ -265,9 +260,8 @@ describe('TitleScreen lobby entry', () => {
     cleanup()
   })
 
-  it('hydrates player progress before checking consent after Studio readiness', async () => {
+  it('does not wait for cloud progress hydration before entering the lobby', async () => {
     const user = { uid: 'uid-hydration-race', displayName: 'Hydration Tester', email: 'h@example.com', photoURL: '' }
-    const now = new Date().toISOString()
     _resetFirebaseProgressForTests()
     vi.stubEnv('VITE_FIREBASE_API_KEY', 'test-key')
     vi.stubEnv('VITE_FIREBASE_AUTH_DOMAIN', 'test.firebaseapp.com')
@@ -275,22 +269,10 @@ describe('TitleScreen lobby entry', () => {
     vi.stubEnv('VITE_FIREBASE_APP_ID', 'test-app')
     vi.stubEnv('VITE_FIREBASE_DATABASE_URL', 'https://test.firebaseio.com')
     _setFirebaseProgressClientForTests({
-      loadOrCreate: vi.fn(async () => ({
-        schemaVersion: 1,
-        profile: { uid: user.uid, displayName: user.displayName, nickname: '복도반장' },
-        progress: {
-          goldTotal: 0,
-          records: {},
-          weaponUnlocks: {},
-          weaponPermanentUpgrades: {},
-          passiveUpgrades: {},
-          titleSettings: { vibration: true, reducedEffects: false, unlockAllWeaponsCheat: false, unlockAllStagesCheat: false },
-        },
-        consent: {
-          terms: { version: TERMS_VERSION, acceptedAt: now },
-          privacy: { version: PRIVACY_VERSION, acceptedAt: now },
-        },
-      })),
+      loadOrCreate: vi.fn(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 20))
+        throw new Error('cloud progress should not gate title start')
+      }),
       save: vi.fn(async () => true),
       remove: vi.fn(async () => true),
     })
@@ -305,20 +287,16 @@ describe('TitleScreen lobby entry', () => {
       await Promise.resolve()
     })
 
+    expect(onEnterLobby).toHaveBeenCalledTimes(1)
     expect(ensureStudioCloudReady).toHaveBeenCalledWith(user)
     expect(container.textContent).not.toContain('이용약관·개인정보처리방침 동의')
-    expect(onEnterLobby).toHaveBeenCalledTimes(1)
+    expect(container.querySelector('#title-nickname-input')).toBeNull()
 
     cleanup()
   })
 
-  it('starts Google login from the start button when Google is signed out', async () => {
-    const googleUser = { uid: 'uid-login', displayName: 'Login Tester', email: 'login@example.com', photoURL: '' }
-    // 이 테스트의 signInWithGoogle 목은 실제 useAuthStore.signInWithGoogle과 달리
-    // syncCloudProgressUser/hydrateCloudProgress를 트리거하지 않으므로, 로그인 이후
-    // needsConsent가 참조할 하이드레이트+동의 상태를 미리 심어 둔다.
-    seedConsentedUser(googleUser)
-    const signInWithGoogle = vi.fn(async () => googleUser)
+  it('enters the lobby from the start button when Google is signed out without starting login', async () => {
+    const signInWithGoogle = vi.fn(async () => ({ uid: 'should-not-be-used' }))
     useAuthStore.setState({
       status: 'signedOut',
       user: null,
@@ -333,9 +311,11 @@ describe('TitleScreen lobby entry', () => {
       await Promise.resolve()
     })
 
-    expect(signInWithGoogle).toHaveBeenCalledTimes(1)
-    expect(onEnterLobby).not.toHaveBeenCalled()
-    expect(container.querySelector('#title-nickname-input')).not.toBeNull()
+    expect(signInWithGoogle).not.toHaveBeenCalled()
+    expect(onEnterLobby).toHaveBeenCalledTimes(1)
+    expect(container.querySelector('#title-nickname-input')).toBeNull()
+    expect(container.textContent).not.toContain('닉네임 설정')
+    expect(container.textContent).not.toContain('이용약관·개인정보처리방침 동의')
 
     cleanup()
   })

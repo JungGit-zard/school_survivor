@@ -2,8 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import ConsentGate from './ConsentGate.jsx'
 import GoogleAccountPanel from './GoogleAccountPanel.jsx'
 import TitleSceneCanvas from './TitleSceneCanvas.jsx'
-import { needsConsent } from '../lib/consent.js'
-import { isFirebaseProgressHydrated, hydrateCloudProgress, requestCloudProgressSave } from '../lib/firebaseProgress.js'
+import { isFirebaseProgressHydrated, requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import {
@@ -150,7 +149,6 @@ export default function TitleScreen({
   ))
   const [cheatRevealMessage, setCheatRevealMessage] = useState(false)
   const signingIn = useAuthStore((s) => s.signingIn)
-  const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle)
   const resetPassiveUpgrades = useGameStore((s) => s.resetPassiveUpgrades)
   const cheatBufferRef = useRef([])
   const titleBgmControllerRef = useRef(null)
@@ -362,42 +360,28 @@ export default function TitleScreen({
     }
   }
 
-  // 로그인/동의/닉네임 게이트: 미로그인 → Google 로그인 → 스튜디오 데이터 준비
-  // → (최초 1회) 이용약관·개인정보처리방침 동의 게이트 → 닉네임 없으면 닉네임 모달 → 로비 진입.
-  const handleStartClick = async () => {
-    let user = authUser
-    if (!user?.uid) {
-      if (signingIn) return
-      user = await signInWithGoogle()
-      if (!user?.uid) return
-    }
+  // 게임 시작은 로그인·동의·닉네임·클라우드 진행도·Studio 그래픽 준비와 무관하게
+  // 무조건 로비로 들어간다. Google 로그인은 좌상단 계정 패널의 선택 기능일 뿐,
+  // 라이브 게임 진입을 막는 게이트가 되어서는 안 된다.
+  const handleStartClick = () => {
+    setCheatOpen(false)
+    setNicknameOpen(false)
+    setConsentOpen(false)
+    setConsentUser(null)
     setStudioError('')
-    try {
-      if (ensureStudioCloudReady && !await ensureStudioCloudReady(user)) {
+    onEnterLobby?.()
+
+    const user = authUser
+    if (!user?.uid || !ensureStudioCloudReady) return
+    void (async () => {
+      try {
+        if (!await ensureStudioCloudReady(user)) {
+          setStudioError(t('title.studioError'))
+        }
+      } catch {
         setStudioError(t('title.studioError'))
       }
-    } catch {
-      setStudioError(t('title.studioError'))
-    }
-
-    try {
-      if (!isFirebaseProgressHydrated(user)) {
-        await hydrateCloudProgress(user)
-      }
-    } catch {
-      setStudioError(t('title.progressError'))
-      return
-    }
-
-    // needsConsent는 users/{uid} 플레이어 진행도 하이드레이트가 끝난 뒤에만 정확하다.
-    // Studio 데이터 준비와 별개로 위에서 hydrateCloudProgress(user)를 명시적으로 보장한다.
-    if (needsConsent(user)) {
-      setConsentUser(user)
-      setConsentOpen(true)
-      return
-    }
-
-    proceedPastConsent(user)
+    })()
   }
 
   const handleConsentConfirmed = () => {

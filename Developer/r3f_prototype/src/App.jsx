@@ -307,8 +307,9 @@ export default function App() {
 
   // 일반 게임 주소의 진입 규칙:
   // 주소 접속 → ReadyGameApp 즉시 생성 → 초기 title 화면 → TitleSceneCanvas.
-  // Google 로그인 상태와 Firebase 데이터 준비 상태는 이 렌더 경로를 절대 차단하지 않는다.
-  // 인증은 타이틀의 "게임 시작" 버튼을 누른 뒤 로비로 진입할 때만 요구한다.
+  // Google 로그인/Firebase 진행도/Studio 데이터 준비 상태는 일반 게임 렌더·로비·스테이지 진입을
+  // 절대 차단하지 않는다. 로그인은 계정 연동/클라우드 저장을 위한 선택 기능이고,
+  // 미로그인·하이드레이트 실패 세션은 메모리 기본 진행도로 즉시 플레이한다.
   return (
     <ReadyGameApp
       authUser={authUser}

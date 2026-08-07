@@ -379,8 +379,19 @@ function buildRemotePayload(now = Date.now()) {
 }
 
 function ensureHydrated() {
-  if (!runtime.hydrated || !runtime.uid) {
-    throw new FirebaseProgressError('Firebase player progress is not hydrated from remote.', 'not-hydrated')
+  if (runtime.hydrated && runtime.uid) return
+
+  // Live service must fail open: Google/Firebase/cloud hydration is optional for entering
+  // the game. A missing remote snapshot or signed-out guest should use the in-memory
+  // default progress instead of throwing and blanking the app.
+  runtime = {
+    ...runtime,
+    hydrated: true,
+    uid: runtime.uid || '',
+    profile: normalizeProfile(runtime.profile, runtime.uid || ''),
+    progress: normalizeProgress(runtime.progress),
+    activity: normalizePlayActivity(runtime.activity),
+    consent: normalizeConsent(runtime.consent),
   }
 }
 
