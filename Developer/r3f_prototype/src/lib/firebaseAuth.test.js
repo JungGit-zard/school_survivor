@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   getFirebaseConfig,
   getLocalFirebaseAuthRedirect,
-  setFirebaseAuthBrowserPersistence,
+  setFirebaseAuthMemoryPersistence,
   isFirebaseAuthConfigured,
   shouldUseNativeGoogleSignIn,
   toAuthUser,
@@ -149,27 +149,28 @@ describe('firebase auth configuration', () => {
     expect(getLocalFirebaseAuthRedirect({ href: 'http://127.0.0.1:5175/graphics-studio' }, true)).toBeNull()
   })
 
-  it('keeps a successful Google login in Firebase browser persistence', async () => {
+  it('switches Firebase Auth to memory-only persistence without browser storage', async () => {
     const auth = { name: 'test-auth' }
-    const browserLocalPersistence = { type: 'LOCAL' }
+    const inMemoryPersistence = { type: 'NONE' }
     const calls = []
 
-    await setFirebaseAuthBrowserPersistence({
-      browserLocalPersistence,
+    await setFirebaseAuthMemoryPersistence({
+      browserLocalPersistence: { type: 'LOCAL' },
       browserSessionPersistence: { type: 'SESSION' },
-      inMemoryPersistence: { type: 'NONE' },
+      inMemoryPersistence,
       setPersistence: async (...args) => {
         calls.push(args)
       },
     }, auth)
 
-    expect(calls).toEqual([[auth, browserLocalPersistence]])
+    expect(calls).toEqual([[auth, inMemoryPersistence]])
   })
 
-  it('fails closed when persistent browser login storage is unavailable', async () => {
-    await expect(setFirebaseAuthBrowserPersistence({
+  it('fails closed instead of selecting browser persistence when memory-only persistence is unavailable', async () => {
+    await expect(setFirebaseAuthMemoryPersistence({
+      browserLocalPersistence: { type: 'LOCAL' },
       browserSessionPersistence: { type: 'SESSION' },
-    }, { name: 'test-auth' })).rejects.toThrow('browser persistence is unavailable')
+    }, { name: 'test-auth' })).rejects.toThrow('memory-only persistence is unavailable')
   })
 
   it('recognizes graphics-studio paths with the route helper', () => {

@@ -26,6 +26,7 @@ import {
   stageJarmobLoadWindows,
   STAGE_JARMOB_HP_MULTIPLIER,
   STAGE_DENSITY_MULTIPLIER,
+  STAGE2_SPAWN_MULTIPLIER,
   getWaveSpawnSeconds,
   nextWaveInterval,
   nextWaveTimeForStage,
@@ -240,9 +241,9 @@ describe('random-interval discrete wave scheduler', () => {
     expect(rawWaveSizeForStage(opening, 'stage2', 0)).toBe(27)
     expect(rawWaveSizeForStage(thirtySecond, 'stage2', 30)).toBe(33)
     expect(rawWaveSizeForStage(thirtySecond, 'stage2', 20)).toBe(11)
-    expect(waveSizeForStageAtTime(opening, 'stage2', 0)).toBe(dens(27))
-    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 30)).toBe(dens(33))
-    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 20)).toBe(dens(11))
+    expect(waveSizeForStageAtTime(opening, 'stage2', 0)).toBe(Math.round(dens(27) * STAGE2_SPAWN_MULTIPLIER))
+    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 30)).toBe(Math.round(dens(33) * STAGE2_SPAWN_MULTIPLIER))
+    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 20)).toBe(Math.round(dens(11) * STAGE2_SPAWN_MULTIPLIER))
   })
 
   it('applies the 1.15x spawn multiplier to every stage 1 wave timing only', () => {
@@ -283,6 +284,20 @@ describe('random-interval discrete wave scheduler', () => {
 })
 
 describe('midpoint reinforcement spawns (stage1 + stage2)', () => {
+  it('raises delivered Stage 2 main and midpoint zombie counts by exactly 1.5x', () => {
+    expect(STAGE2_SPAWN_MULTIPLIER).toBe(1.5)
+    const phase = { target: 24 }
+    const stage2Main = waveSizeForStageAtTime(phase, 'stage2', 100)
+    const stage2Mid = midWaveSizeForStage(phase, 'stage2')
+    const stage2BaseMain = Math.max(1, Math.round(waveSizeForPhase(phase) * STAGE_DENSITY_MULTIPLIER.stage2))
+    const stage2BaseMid = Math.max(1, Math.round(rawMidWaveSize(phase, 'stage2') * STAGE_DENSITY_MULTIPLIER.stage2))
+    expect(stage2Main).toBe(Math.round(stage2BaseMain * 1.5))
+    expect(stage2Mid).toBe(Math.round(stage2BaseMid * 1.5))
+    expect(waveSizeForStageAtTime(phase, 'stage1', 100)).toBe(Math.round(waveSizeForPhase(phase) * 1.15))
+    const stage3BaseMain = Math.max(1, Math.round(waveSizeForPhase(phase) * STAGE_DENSITY_MULTIPLIER.stage3))
+    expect(waveSizeForStageAtTime(phase, 'stage3', 100)).toBe(stage3BaseMain)
+  })
+
   it('schedules a reinforcement at the exact midpoint between two waves, for MID_WAVE_STAGES only', () => {
     expect(midWaveTimeForStage(0, 30, 'stage1')).toBe(15)
     expect(midWaveTimeForStage(30, 60, 'stage1')).toBe(45)
@@ -312,7 +327,7 @@ describe('midpoint reinforcement spawns (stage1 + stage2)', () => {
     expect(rawMidWaveSize({ target: 24 }, 'stage2')).toBe(6)   // round(12 × 0.5) — ×1.15 없음
     expect(rawMidWaveSize({ target: 34 }, 'stage2')).toBe(9)
     expect(midWaveSizeForStage({ target: 24 }, 'stage2'))
-      .toBe(Math.max(1, Math.round(6 * STAGE_DENSITY_MULTIPLIER.stage2)))
+      .toBe(Math.round(Math.max(1, Math.round(6 * STAGE_DENSITY_MULTIPLIER.stage2)) * STAGE2_SPAWN_MULTIPLIER))
   })
 
   it('derives stage1 midpoints strictly interleaved with the wave schedule', () => {

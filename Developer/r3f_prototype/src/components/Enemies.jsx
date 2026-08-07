@@ -442,6 +442,9 @@ export const WAVE_INTERVAL_MAX_SEC = 40
 const WAVE_SIZE_FACTOR = 0.5
 // stage1 밀도 하향(2026-07-22): 잡몹 총 HP 균등 +10% 곡선의 앵커를 만들기 위해 1.3→1.15로 낮춘다.
 export const STAGE1_SPAWN_MULTIPLIER = 1.15
+// Stage 2 spawn-count tuning (2026-08-08): increase delivered zombie count
+// without changing HP normalization or the wave timeline/composition.
+export const STAGE2_SPAWN_MULTIPLIER = 1.5
 
 // 웨이브당 마릿수 = 활성 phase target × 0.5 (반올림, 최소 1 보장).
 export function waveSizeForPhase(phase) {
@@ -470,7 +473,10 @@ export function rawWaveSizeForStage(phase, stageId, waveTime) {
 // stage1은 밀도배율 없음(앵커) → raw 그대로. stage2~4는 √c 밀도배율이 적용된다.
 export function waveSizeForStageAtTime(phase, stageId, waveTime) {
   const raw = rawWaveSizeForStage(phase, stageId, waveTime)
-  return Math.max(1, Math.round(raw * (STAGE_DENSITY_MULTIPLIER[stageId] ?? 1)))
+  const densitySize = Math.max(1, Math.round(raw * (STAGE_DENSITY_MULTIPLIER[stageId] ?? 1)))
+  return stageId === 'stage2'
+    ? Math.max(1, Math.round(densitySize * STAGE2_SPAWN_MULTIPLIER))
+    : densitySize
 }
 
 // 다음 웨이브까지 간격 = 20~40초 균등분포 랜덤. random 주입으로 테스트 결정성 확보.
@@ -526,7 +532,10 @@ export function rawMidWaveSize(phase, stageId = 'stage1') {
 
 // 실제 보강 물량 = 구조적 크기 × 스테이지 밀도배율(waveSizeForStageAtTime과 동일 규약).
 export function midWaveSizeForStage(phase, stageId = 'stage1') {
-  return Math.max(1, Math.round(rawMidWaveSize(phase, stageId) * (STAGE_DENSITY_MULTIPLIER[stageId] ?? 1)))
+  const densitySize = Math.max(1, Math.round(rawMidWaveSize(phase, stageId) * (STAGE_DENSITY_MULTIPLIER[stageId] ?? 1)))
+  return stageId === 'stage2'
+    ? Math.max(1, Math.round(densitySize * STAGE2_SPAWN_MULTIPLIER))
+    : densitySize
 }
 
 // 중간 보강 스폰 시각 목록 — 웨이브 스케줄과 동일 random으로 파생하는 순수 함수(테스트/미리보기용).

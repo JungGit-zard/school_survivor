@@ -1,27 +1,9 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from 'vitest'
-import { isE2EAudioDiagnostics, isE2EAuthBypass, isE2EPerformanceDiagnostics, getE2EUser, getE2EOverrides, applyE2EOverridesToStore } from './e2eAuth.js'
+import { isE2EAudioDiagnostics, isE2EPerformanceDiagnostics, getE2EOverrides, applyE2EOverridesToStore } from './e2eAuth.js'
 
 afterEach(() => {
   window.history.replaceState(null, '', '/')
-})
-
-describe('e2eAuth (DEV 전용 로그인 우회)', () => {
-  it('e2e 파라미터가 없으면 우회하지 않는다', () => {
-    window.history.replaceState(null, '', '/')
-    expect(isE2EAuthBypass()).toBe(false)
-  })
-
-  it('?e2e=1이면 DEV 환경에서 우회한다 (vitest는 DEV=true)', () => {
-    window.history.replaceState(null, '', '/?e2e=1')
-    expect(isE2EAuthBypass()).toBe(true)
-  })
-
-  it('가짜 유저는 고정 uid를 갖고, 실계정과 겹칠 수 없는 형태다', () => {
-    const user = getE2EUser()
-    expect(user.uid).toBe('e2e-local-test')
-    expect(user.displayName).toBeTruthy()
-  })
 })
 
 describe('getE2EOverrides (DEV 전용 런 오버라이드 파서)', () => {

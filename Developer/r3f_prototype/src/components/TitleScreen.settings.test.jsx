@@ -74,12 +74,13 @@ afterEach(() => {
 })
 
 describe('TitleScreen lobby entry', () => {
-  it('does not render the removed 6ef title helper copy or action class', () => {
+  it('renders the canonical gameplay guide and game-start action', () => {
     const { container, cleanup } = renderTitleScreen()
 
-    expect(container.querySelector('[data-testid="title-gameplay-guide"]')).toBeNull()
-    expect(container.querySelector('.title-main-action')).toBeNull()
-    expect(container.querySelector('style[data-title-intro-css]')?.textContent).not.toContain('.title-main-action:focus-visible')
+    expect(container.querySelector('[data-testid="title-gameplay-guide"]')?.textContent)
+      .toBe('자동 공격 · 화면을 드래그해 이동 · 레벨업 때 카드 선택')
+    expect(container.querySelector('.title-main-action')?.textContent).toBe('게임 시작')
+    expect(container.querySelector('style[data-title-intro-css]')?.textContent).toContain('.title-main-action:focus-visible')
 
     cleanup()
   })

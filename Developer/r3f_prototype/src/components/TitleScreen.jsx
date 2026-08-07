@@ -114,6 +114,7 @@ const TITLE_INTRO_CSS = `
   .title-intro-letter { animation: titleLetterSlam 520ms cubic-bezier(.16,.84,.28,1.08) backwards; }
   .title-intro-zombie { animation: titleZombieScurry 900ms ease-out backwards; }
   .title-intro-scene { animation: titleSceneGather 850ms cubic-bezier(.16,.84,.28,1.04) backwards; }
+  .title-main-action:focus-visible { outline:3px solid #fff8e8; outline-offset:3px; }
 `
 
 function TitleLetter({ config, total }) {
@@ -479,7 +480,8 @@ export default function TitleScreen({
 
       <div style={styles.actions}>
         <div style={styles.mainActionStack}>
-          <button type="button" style={{ ...styles.primaryButton, ...styles.mainActionButton }} onClick={handleStartClick}>
+          <p data-testid="title-gameplay-guide" style={styles.gameplayGuide}>{t('title.gameplayGuide')}</p>
+          <button type="button" className="title-main-action" style={{ ...styles.primaryButton, ...styles.mainActionButton }} onClick={handleStartClick}>
             {t('title.start')}
           </button>
         </div>
@@ -744,6 +746,14 @@ const styles = {
     minWidth: 180,
     maxWidth: 230,
     transform: 'rotate(0.8deg)',
+  },
+  gameplayGuide: {
+    margin: 0,
+    color: uiPalette.ink,
+    fontSize: 12,
+    lineHeight: 1.35,
+    fontWeight: uiType.weightStrong,
+    textAlign: 'center',
   },
   primaryButton: {
     ...schoolButton('primary'),

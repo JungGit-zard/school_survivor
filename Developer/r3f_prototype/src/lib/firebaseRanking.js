@@ -1,5 +1,4 @@
 import { getFirebaseConfig } from './firebaseAuth.js'
-import { isE2EAuthBypass } from './e2eAuth.js'
 import { getAdminRankingSeasonConfig } from './adminConfig.js'
 import { getSavedNickname } from './userNickname.js'
 import { t } from './i18n.js'
@@ -89,7 +88,6 @@ function globalEntriesPath(seasonId, window, key) {
 export async function submitRun(user, { stageId, score, timeMs, cleared } = {}) {
   if (!user?.uid || !isFirebaseRankingConfigured()) return
   // E2E 우회 유저 점수는 실랭킹에 오염되지 않게 차단
-  if (isE2EAuthBypass()) return
   const now = Date.now()
   const season = getActiveSeason(now)
   if (!season.active) return // seasonOff: 제출 skip

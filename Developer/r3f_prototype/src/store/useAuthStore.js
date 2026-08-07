@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { createFirebaseAuthClient, isFirebaseAuthConfigured } from '../lib/firebaseAuth.js'
-import { applyCloudProgressSnapshot, hydrateCloudProgress, isFirebaseProgressHydrated, setCloudProgressUser } from '../lib/firebaseProgress.js'
-import { isE2EAuthBypass, getE2EUser } from '../lib/e2eAuth.js'
+import { hydrateCloudProgress, isFirebaseProgressHydrated, setCloudProgressUser } from '../lib/firebaseProgress.js'
 
 let authClientPromise = null
 let unsubscribeAuth = null
@@ -20,16 +19,6 @@ export const useAuthStore = create((set, get) => ({
     if (get().initialized) return
     // DEV 전용 E2E 우회 — 가짜 유저로 즉시 signedIn. syncCloudProgressUser를
     // 호출하지 않아 클라우드 저장/로드는 전부 no-op (e2eAuth.js 참조).
-    if (isE2EAuthBypass()) {
-      const user = getE2EUser()
-      applyCloudProgressSnapshot({
-        schemaVersion: 1,
-        profile: { uid: user.uid, displayName: user.displayName, nickname: 'E2E 생존자' },
-        progress: {},
-      }, user, { keepCloudUserNull: true })
-      set({ status: 'signedIn', user, initialized: true, error: null, signingIn: false, progressStatus: 'ready', progressError: null })
-      return
-    }
     if (!isFirebaseAuthConfigured()) {
       set({ status: 'unconfigured', initialized: true, user: null, error: null })
       return
@@ -67,17 +56,6 @@ export const useAuthStore = create((set, get) => ({
     // 타이틀 시작·계정 패널 등 여러 진입점에서 같은 순간 요청해도 OAuth 팝업은 하나만 연다.
     // 진행도 로딩이나 세션 상태를 재해석하지 않는, 로그인 요청 자체의 단일화 가드다.
     if (googleSignInInFlight) return googleSignInInFlight
-
-    if (isE2EAuthBypass()) {
-      const user = getE2EUser()
-      applyCloudProgressSnapshot({
-        schemaVersion: 1,
-        profile: { uid: user.uid, displayName: user.displayName, nickname: 'E2E 생존자' },
-        progress: {},
-      }, user, { keepCloudUserNull: true })
-      set({ status: 'signedIn', user, signingIn: false, error: null, progressStatus: 'ready', progressError: null })
-      return Promise.resolve(user)
-    }
     if (!isFirebaseAuthConfigured()) {
       set({ status: 'unconfigured', user: null, error: null, signingIn: false })
       return Promise.resolve(null)

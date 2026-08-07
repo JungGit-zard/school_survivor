@@ -13,7 +13,6 @@ import { STUDIO_GAME_SYNC_MESSAGE, isAllowedStudioGameOrigin } from './lib/studi
 import { useAuthStore } from './store/useAuthStore.js'
 import { isFirebaseStudioRuntimeReady } from './lib/studioRuntimeState.js'
 import { isProjectMaster } from './lib/projectAdmin.js'
-import { isE2EAuthBypass } from './lib/e2eAuth.js'
 import { t } from './lib/i18n.js'
 
 const AdminPage = lazy(() => import('./components/AdminPage.jsx'))
@@ -70,14 +69,6 @@ export default function App() {
     // DEV E2E??媛吏??ъ슜??workspace瑜??덈? ?쎄굅???곗? ?딅뒗?? 怨듦컻 ?뺣낯留??쎌뼱
     // ?좏슚???먭꺽 revision???곸슜?댁빞 濡쒕퉬? 寃뚯엫??Studio ?섏〈 紐⑤뜽??fail-closed ?곹깭??
     // 鍮좎?吏 ?딅뒗?? ?쇰컲 濡쒓렇??Graphics Studio???ъ슜?먮퀎 hydrate 寃쎈줈???꾨옒 洹몃?濡??붾떎.
-    if (isE2EAuthBypass()) {
-      setFirebaseStudioUser(null)
-      hydratedUidRef.current = ''
-      studioRuntimeSourceRef.current = 'none'
-      hydrationRef.current = null
-      setStudioCloudStatus('unauthenticated')
-      return false
-    }
     const uid = typeof user?.uid === 'string' ? user.uid.trim() : ''
     if (!uid) {
       setFirebaseStudioUser(null)
@@ -185,7 +176,6 @@ export default function App() {
 
   useEffect(() => {
     if (!isGraphicsStudioRoute) return undefined
-    if (isE2EAuthBypass()) return undefined
     if (
       authStatus !== 'signedIn'
       || !authUser?.uid

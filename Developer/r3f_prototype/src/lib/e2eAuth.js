@@ -11,12 +11,6 @@
 
 import { isValidWeaponId } from './weaponCatalog.js'
 
-export function isE2EAuthBypass() {
-  return Boolean(import.meta.env.DEV)
-    && typeof window !== 'undefined'
-    && new URLSearchParams(window.location.search).has('e2e')
-}
-
 export function isE2EGraphicsStudioBypass(search) {
   if (!import.meta.env.DEV) return false
   const query = typeof search === 'string'
@@ -48,15 +42,6 @@ export function isE2EPerformanceDiagnostics(search) {
     : (typeof window !== 'undefined' ? window.location.search : '')
   const params = new URLSearchParams(query)
   return params.get('e2e') === '1' && params.get('e2eperf') === '1'
-}
-
-export function getE2EUser() {
-  return {
-    uid: 'e2e-local-test',
-    displayName: 'E2E테스트',
-    email: 'e2e@local.test',
-    photoURL: null,
-  }
 }
 
 // DEV 전용 E2E 런 오버라이드 파서 (2026-07-04).
