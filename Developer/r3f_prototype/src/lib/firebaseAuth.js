@@ -100,7 +100,7 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
   const app = getApps().length > 0 ? getApp() : initializeApp(getFirebaseConfig(env))
   await maybeInitAppCheck(app, env)
   const auth = authModule.getAuth(app)
-  await setFirebaseAuthMemoryPersistence(authModule, auth)
+  await setFirebaseAuthBrowserPersistence(authModule, auth)
   if (!isGraphicsStudioLocation(globalScope?.location)) {
     await consumePendingRedirectResult(authModule, auth)
   }
@@ -156,11 +156,11 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
   }
 }
 
-export async function setFirebaseAuthMemoryPersistence(authModule, auth) {
-  if (typeof authModule?.setPersistence !== 'function' || !authModule.inMemoryPersistence) {
-    throw new Error('Firebase Auth memory-only persistence is unavailable.')
+export async function setFirebaseAuthBrowserPersistence(authModule, auth) {
+  if (typeof authModule?.setPersistence !== 'function' || !authModule.browserLocalPersistence) {
+    throw new Error('Firebase Auth browser persistence is unavailable.')
   }
-  await authModule.setPersistence(auth, authModule.inMemoryPersistence)
+  await authModule.setPersistence(auth, authModule.browserLocalPersistence)
 }
 
 async function consumePendingRedirectResult(authModule, auth) {
