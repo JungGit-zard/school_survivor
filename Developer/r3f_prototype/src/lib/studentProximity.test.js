@@ -125,7 +125,9 @@ describe('전 스테이지 공용 조사 대상', () => {
     })
     const board = getInvestigationTargets('stage2')[0]
     expect(BULLETIN_BOARD_CONTACT_DOTS).toBe(3)
-    expect(BULLETIN_BOARD_CONTACT_MARGIN).toBe(BULLETIN_BOARD_CONTACT_DOTS * INVESTIGATION_DOT_WORLD_UNITS)
+    expect(BULLETIN_BOARD_CONTACT_MARGIN).toBeCloseTo(
+      0.136 + BULLETIN_BOARD_CONTACT_DOTS * INVESTIGATION_DOT_WORLD_UNITS,
+    )
     expect(board.contactMargin).toBe(BULLETIN_BOARD_CONTACT_MARGIN)
     expect(board.rotationY).toBeCloseTo(Math.PI / 4)
     expect(board.halfX).toBeCloseTo(0.67)
