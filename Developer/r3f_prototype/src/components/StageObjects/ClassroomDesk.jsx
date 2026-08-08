@@ -2,7 +2,7 @@ import {
   getPropOutlineScale,
   getStagePropOutlineUserData,
   getStagePropOutlineMaterial,
-  getStagePropToonMaterial,
+  getStagePropDepthWritingToonMaterial,
   STAGE_PROP_SHARED_OUTLINE_RENDERING,
   STAGE_PROP_SHARED_SURFACE_RENDERING,
   STAGE_PROP_UNIT_BOX_GEOMETRY,
@@ -47,11 +47,11 @@ function DeskBox({
 
 export default function ClassroomDesk({ variant = 'upright', ...props }) {
   const variantConfig = CLASSROOM_DESK_VARIANTS[variant] ?? CLASSROOM_DESK_VARIANTS.upright
-  const topMat = getStagePropToonMaterial(0xd9b27a, 0.08)
-  const topHighlightMat = getStagePropToonMaterial(0xe6c697, 0.12)
-  const frameMat = getStagePropToonMaterial(0xb0b0b0, 0.03)
-  const storageMat = getStagePropToonMaterial(0x7a7a7a, 0.02)
-  const capMat = getStagePropToonMaterial(0x333333, 0)
+  const topMat = getStagePropDepthWritingToonMaterial(0xd9b27a, 0.08)
+  const topHighlightMat = getStagePropDepthWritingToonMaterial(0xe6c697, 0.12)
+  const frameMat = getStagePropDepthWritingToonMaterial(0xb0b0b0, 0.03)
+  const storageMat = getStagePropDepthWritingToonMaterial(0x7a7a7a, 0.02)
+  const capMat = getStagePropDepthWritingToonMaterial(0x333333, 0)
   const outline = getStagePropOutlineMaterial(0.9, 0x24170f)
 
   return (

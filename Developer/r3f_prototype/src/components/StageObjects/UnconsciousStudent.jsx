@@ -2,7 +2,7 @@ import {
   getPropOutlineScale,
   getStagePropOutlineUserData,
   getStagePropOutlineMaterial,
-  getStagePropToonMaterial,
+  getStagePropDepthWritingToonMaterial,
   STAGE_PROP_SHARED_OUTLINE_RENDERING,
   STAGE_PROP_SHARED_SURFACE_RENDERING,
   STAGE_PROP_UNIT_BOX_GEOMETRY,
@@ -67,13 +67,13 @@ export function UnconsciousStudentVisual({ variant = 'faceUp', uniformColor = 0x
   const variantConfig = UNCONSCIOUS_STUDENT_VARIANTS[variant] ?? UNCONSCIOUS_STUDENT_VARIANTS.faceUp
   // 색·발광은 어두운 마루 바닥 대비 가독성 기준으로 책정 — 45° 탑다운에서 누운 자세는
   // 화면 점유가 작아, 어두운 남색/회색이면 잔해처럼 보인다 (2026-06-13 인게임 검증).
-  const skinMat = getStagePropToonMaterial(0xf2cba3, 0.12)
-  const hairMat = getStagePropToonMaterial(0x55402c, 0.06)
-  const uniformMat = getStagePropToonMaterial(uniformColor, 0.12)
-  const pantsMat = getStagePropToonMaterial(0x9aa1ad, 0.06)
-  const shoeMat = getStagePropToonMaterial(0x2a2a30, 0.02)
-  const tieMat = getStagePropToonMaterial(0xc23535, 0.08)
-  const badgeMat = getStagePropToonMaterial(0xf2c14e, 0.12)
+  const skinMat = getStagePropDepthWritingToonMaterial(0xf2cba3, 0.12)
+  const hairMat = getStagePropDepthWritingToonMaterial(0x55402c, 0.06)
+  const uniformMat = getStagePropDepthWritingToonMaterial(uniformColor, 0.12)
+  const pantsMat = getStagePropDepthWritingToonMaterial(0x9aa1ad, 0.06)
+  const shoeMat = getStagePropDepthWritingToonMaterial(0x2a2a30, 0.02)
+  const tieMat = getStagePropDepthWritingToonMaterial(0xc23535, 0.08)
+  const badgeMat = getStagePropDepthWritingToonMaterial(0xf2c14e, 0.12)
   const outline = getStagePropOutlineMaterial(0.96, 0x130d0d)
 
   return (
