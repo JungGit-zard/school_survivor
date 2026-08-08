@@ -29,7 +29,7 @@ try {
     }
 
     Write-Output "Starting the game server at http://localhost:$Port/"
-    & npm.cmd run dev -- --port $Port --strictPort
+    & npm.cmd exec -- vite --host localhost --port $Port --strictPort
     Write-Output "Game server exited. Restarting in $RestartDelayMilliseconds ms."
     Start-Sleep -Milliseconds $RestartDelayMilliseconds
   }
