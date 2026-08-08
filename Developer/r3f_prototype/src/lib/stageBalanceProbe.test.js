@@ -62,20 +62,17 @@ describe('초반 XP 스노볼 회귀 가드', () => {
     expect(ENEMY_STATS.E01.xp * 2).toBeLessThan(9)
   })
 
-  it('스테이지2 첫 레벨업 중앙값이 6초 이상이고, 스테이지1과의 격차가 5배 이내다', () => {
+  it('스테이지2 첫 레벨업 중앙값이 20초 이상이고, 스테이지1과의 격차가 2배 이내다', () => {
     const stage2 = medianFirstLevelUp('stage2', SEEDS)
     const stage1 = medianFirstLevelUp('stage1', SEEDS.map((s) => s + 100))
     console.log('[스노볼 가드]', JSON.stringify({ stage2, stage1 }))
 
     expect(stage2).not.toBeNull()
     expect(stage1).not.toBeNull()
-    // 2026-08-09 사용자 지시로 stage2 첫 웨이브 간격을 30s→5s로 당겼다. 오프닝 물량이 5초에
-    // 몰리면서 첫 레벨업 중앙값이 20.x초 → 8.3초로 내려갔다. 의도된 스노볼이므로 하한을
-    // 6초로 낮춘다 — 잡몹 한 마리로 터지는 수준(≈2초)까지는 여전히 막는다.
-    expect(stage2).toBeGreaterThanOrEqual(6)
+    expect(stage2).toBeGreaterThanOrEqual(20)
     // 스테이지1은 앵커다. 너무 빨라져도(스노볼) 너무 늦어져도(전체 둔화) 안 된다.
     expect(stage1).toBeGreaterThanOrEqual(21)
     expect(stage1).toBeLessThanOrEqual(45)
-    expect(Math.max(stage1, stage2) / Math.min(stage1, stage2)).toBeLessThanOrEqual(5)
+    expect(Math.max(stage1, stage2) / Math.min(stage1, stage2)).toBeLessThanOrEqual(2)
   }, 10 * 60 * 1000)
 })

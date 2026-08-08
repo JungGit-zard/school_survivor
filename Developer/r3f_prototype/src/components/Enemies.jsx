@@ -461,7 +461,7 @@ export function waveSizeForPhase(phase) {
 // 기대 총량 추정기가 이 표를 그대로 읽어 "프론트로드 1회분"을 더하므로, 배수를 여기서만 고치면
 // 정규화도 자동으로 따라온다. (2026-08-07: 스테이지별 if문을 표로 통일 — 추정기와 단일 소스 공유.)
 export const STAGE_FRONTLOAD_WAVES = {
-  stage2: { 0: 3, 5: 3 },    // 오프닝(t=0)·5초 웨이브 ×3
+  stage2: { 0: 3, 30: 3 },   // 오프닝(t=0)·30초 웨이브 ×3
   stage3: { 0: 2 },          // 오프닝(t=0) ×2
 }
 
@@ -491,7 +491,7 @@ export function nextWaveInterval(random = Math.random) {
 }
 
 export function nextWaveTimeForStage(waveTime, stageId, random = Math.random) {
-  if (stageId === 'stage2' && waveTime === 0) return 5
+  if (stageId === 'stage2' && waveTime === 0) return 30
   return waveTime + nextWaveInterval(random)
 }
 
