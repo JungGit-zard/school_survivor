@@ -29,9 +29,11 @@ import {
   STAGE_JARMOB_HP_MULTIPLIER,
   STAGE_DENSITY_MULTIPLIER,
   STAGE2_SPAWN_MULTIPLIER,
+  STAGE2_OPENING_GREEN_WAVE_MULTIPLIER,
   getWaveSpawnSeconds,
   nextWaveInterval,
   nextWaveTimeForStage,
+  firstWaveTimeForStage,
   midWaveTimeForStage,
   rawMidWaveSize,
   midWaveSizeForStage,
@@ -279,20 +281,23 @@ describe('random-interval discrete wave scheduler', () => {
     expect(midWaveSizeForStage(wave1Phase, 'stage1')).toBe(6)
   })
 
-  it('schedules stage 2 opening waves at 0s and 30s, then triples only those two spawns', () => {
+  it('cuts only the first two Stage 2 waves at 5s and 30s to half', () => {
     const opening = { target: 18 }
     const thirtySecond = { target: 22 }
-    // 실제 크기 = 구조적 크기(raw) × stage2 밀도배율. raw는 오프닝/30초만 ×3 프론트로드.
+    // 구조적 ×3 프론트로드와 밀도 계산은 유지하고, 최종 실제 산출 수만 절반으로 줄인다.
     const dens = (raw) => Math.max(1, Math.round(raw * STAGE_DENSITY_MULTIPLIER.stage2))
+    const beforeHalf = (raw) => Math.round(dens(raw) * STAGE2_SPAWN_MULTIPLIER)
 
-    expect(nextWaveTimeForStage(0, 'stage2', () => 0)).toBe(30)
-    // raw: 9×3=27, 11×3=33, 11(비프론트로드) — 밀도배율(√c≈1.11)로 스케일된다.
-    expect(rawWaveSizeForStage(opening, 'stage2', 0)).toBe(27)
+    expect(firstWaveTimeForStage('stage2')).toBe(5)
+    expect(firstWaveTimeForStage('stage1')).toBe(0)
+    expect(nextWaveTimeForStage(5, 'stage2', () => 0)).toBe(30)
+    expect(STAGE2_OPENING_GREEN_WAVE_MULTIPLIER).toBe(0.5)
+    expect(rawWaveSizeForStage(opening, 'stage2', 5)).toBe(27)
     expect(rawWaveSizeForStage(thirtySecond, 'stage2', 30)).toBe(33)
     expect(rawWaveSizeForStage(thirtySecond, 'stage2', 20)).toBe(11)
-    expect(waveSizeForStageAtTime(opening, 'stage2', 0)).toBe(Math.round(dens(27) * STAGE2_SPAWN_MULTIPLIER))
-    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 30)).toBe(Math.round(dens(33) * STAGE2_SPAWN_MULTIPLIER))
-    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 20)).toBe(Math.round(dens(11) * STAGE2_SPAWN_MULTIPLIER))
+    expect(waveSizeForStageAtTime(opening, 'stage2', 5)).toBe(Math.round(beforeHalf(27) * 0.5))
+    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 30)).toBe(Math.round(beforeHalf(33) * 0.5))
+    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 20)).toBe(beforeHalf(11))
   })
 
   it('applies the 1.15x spawn multiplier to every stage 1 wave timing only', () => {
@@ -398,9 +403,9 @@ describe('midpoint reinforcement spawns (stage1 + stage2)', () => {
   })
 
   it('derives stage2 midpoints too (stage2 joined MID_WAVE_STAGES on 2026-08-07)', () => {
-    // random 0.5 → 30초 간격. 단 stage2의 첫 간격은 nextWaveTimeForStage가 0→30으로 고정한다.
+    // random 0.5 → 30초 간격. 단 stage2는 첫 웨이브가 5초, 그 다음이 30초로 고정된다.
     expect(getMidpointSpawnSeconds(STAGE2_WAVE_PHASES, 'stage2', () => 0.5))
-      .toEqual([15, 45, 75, 105, 135, 165, 195, 225])
+      .toEqual([17.5, 45, 75, 105, 135, 165, 195, 225])
   })
 
   it('produces no midpoint reinforcements for stage3 or stage4', () => {

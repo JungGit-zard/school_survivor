@@ -451,6 +451,7 @@ export const STAGE1_SPAWN_MULTIPLIER = 1.15
 // Stage 2 spawn-count tuning (2026-08-08): increase delivered zombie count
 // without changing HP normalization or the wave timeline/composition.
 export const STAGE2_SPAWN_MULTIPLIER = 1.5
+export const STAGE2_OPENING_GREEN_WAVE_MULTIPLIER = 0.5
 
 // 웨이브당 마릿수 = 활성 phase target × 0.5 (반올림, 최소 1 보장).
 export function waveSizeForPhase(phase) {
@@ -460,8 +461,16 @@ export function waveSizeForPhase(phase) {
 // 프론트로드 정본 — "그 시각의 웨이브 1회에만" 곱하는 오프닝 밀도 배수(반복되지 않는다).
 // 기대 총량 추정기가 이 표를 그대로 읽어 "프론트로드 1회분"을 더하므로, 배수를 여기서만 고치면
 // 정규화도 자동으로 따라온다. (2026-08-07: 스테이지별 if문을 표로 통일 — 추정기와 단일 소스 공유.)
+// 스테이지별 첫 웨이브 발화 시각. 미등록 스테이지는 0(즉시).
+// stage2는 2026-08-09 사용자 지시로 첫 웨이브를 5초로 미뤘다 — 입장 직후 무방비 스폰을 없앤다.
+export const STAGE_FIRST_WAVE_SEC = { stage2: 5 }
+
+export function firstWaveTimeForStage(stageId) {
+  return STAGE_FIRST_WAVE_SEC[stageId] ?? 0
+}
+
 export const STAGE_FRONTLOAD_WAVES = {
-  stage2: { 0: 3, 30: 3 },   // 오프닝(t=0)·30초 웨이브 ×3
+  stage2: { 5: 3, 30: 3 },   // 오프닝(t=5)·30초 웨이브 ×3
   stage3: { 0: 2 },          // 오프닝(t=0) ×2
 }
 
@@ -480,9 +489,11 @@ export function rawWaveSizeForStage(phase, stageId, waveTime) {
 export function waveSizeForStageAtTime(phase, stageId, waveTime) {
   const raw = rawWaveSizeForStage(phase, stageId, waveTime)
   const densitySize = Math.max(1, Math.round(raw * (STAGE_DENSITY_MULTIPLIER[stageId] ?? 1)))
-  return stageId === 'stage2'
-    ? Math.max(1, Math.round(densitySize * STAGE2_SPAWN_MULTIPLIER))
-    : densitySize
+  if (stageId !== 'stage2') return densitySize
+  const stage2Size = Math.max(1, Math.round(densitySize * STAGE2_SPAWN_MULTIPLIER))
+  return waveTime === 5 || waveTime === 30
+    ? Math.max(1, Math.round(stage2Size * STAGE2_OPENING_GREEN_WAVE_MULTIPLIER))
+    : stage2Size
 }
 
 // 다음 웨이브까지 간격 = 20~40초 균등분포 랜덤. random 주입으로 테스트 결정성 확보.
@@ -491,16 +502,16 @@ export function nextWaveInterval(random = Math.random) {
 }
 
 export function nextWaveTimeForStage(waveTime, stageId, random = Math.random) {
-  if (stageId === 'stage2' && waveTime === 0) return 30
+  if (stageId === 'stage2' && waveTime === firstWaveTimeForStage(stageId)) return 30
   return waveTime + nextWaveInterval(random)
 }
 
-// 웨이브 발화 시각 목록 = 0에서 시작, 각 웨이브 후 20~40초 랜덤 간격 누적, 마지막 phase.end 미만까지.
+// 웨이브 발화 시각 목록 = 스테이지별 첫 웨이브 시각에서 시작, 각 웨이브 후 20~40초 랜덤 간격 누적, 마지막 phase.end 미만까지.
 // 프레임 스케줄러(nextWaveTimeRef)와 동일한 논리의 순수 함수 — 테스트/미리보기용.
 export function getWaveSpawnSeconds(phases, random = Math.random, stageId = 'stage1') {
   const lastEnd = phases?.[phases.length - 1]?.end ?? 0
   const secs = []
-  let t = 0
+  let t = firstWaveTimeForStage(stageId)
   while (t < lastEnd) {
     secs.push(t)
     t = nextWaveTimeForStage(t, stageId, random)
@@ -592,7 +603,7 @@ export function getMidpointSpawnSeconds(phases, stageId = 'stage1', random = Mat
   if (!MID_WAVE_STAGES.has(stageId)) return []
   const lastEnd = phases?.[phases.length - 1]?.end ?? 0
   const secs = []
-  let t = 0
+  let t = firstWaveTimeForStage(stageId)
   while (t < lastEnd) {
     const next = nextWaveTimeForStage(t, stageId, random)
     const mid = midWaveTimeForStage(t, next, stageId)
@@ -971,7 +982,7 @@ export default function Enemies() {
   const stageRuntimeCacheRef      = useRef(null)
   const projectileHitRef          = useRef(null)
   const firedBurstsRef            = useRef(new Uint8Array(64))
-  const nextWaveTimeRef          = useRef(0)
+  const nextWaveTimeRef          = useRef(0)   // 스테이지 전환 effect가 firstWaveTimeForStage로 재설정한다
   const nextMidTimeRef           = useRef(Infinity)  // stage1 중간 보강 스폰 예약 시각(웨이브가 예약)
   const goldTimerRef              = useRef(nextGoldInterval())
   const dogeSpawnedRef           = useRef(false)     // 60초 도지 이벤트 1회 스폰 가드
@@ -1001,6 +1012,9 @@ export default function Enemies() {
     queue.scheduleWrite = 0
     queue.scheduleCount = 0
     queue.matildaEntry = null
+    // 첫 웨이브 시각은 스테이지마다 다르다(stage2=5초). 재시작/전환마다 다시 잡는다.
+    nextWaveTimeRef.current = firstWaveTimeForStage(currentStageId)
+    nextMidTimeRef.current = Infinity
     const bounds = getStageBounds(currentStageId)
     stageRuntimeCacheRef.current = {
       id: currentStageId,
@@ -1494,7 +1508,7 @@ export default function Enemies() {
     }
 
     // 랜덤 간격 이산 웨이브 — 발화 시각·구성은 여기서 확정하고 실제 일반 적 생성은 RAF당 3마리로 분산한다.
-    // 첫 웨이브 t=0, 이후 직전 발화 + 20~40초 랜덤 간격(마지막 phase.end 미만).
+    // 첫 웨이브 t=firstWaveTimeForStage(stage2는 5초), 이후 직전 발화 + 20~40초 랜덤 간격(마지막 phase.end 미만).
     // Stage 1 실제 마릿수 = 활성 phase target × 0.5의 반올림값에 ×1.3 적용 후 다시 반올림.
     // 활성 phase는 발화 시각(waveTime) 기준 findLast로 결정한다.
     // 축소된 스폰 링(4.0~6.5) 안 화면 내 위치에 360° 흩어져 '펑' 리빌로 등장(Enemy가 처리).
