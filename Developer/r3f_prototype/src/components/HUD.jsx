@@ -1290,6 +1290,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
 const styles = {
   root: {
     position: 'fixed', inset: 0, pointerEvents: 'none',
+    zIndex: 10,
     fontFamily: uiType.family, userSelect: 'none',
   },
   topBar: {

@@ -73,6 +73,7 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 ## Working Rules
 
 - Before editing code or documents, inspect the existing files and structure.
+- 사용자가 제공하거나 프로젝트에 이미 지정된 자산 파일은 별도 검수 없이 무조건 사용한다. 자산의 존재·해시·디코드·포맷·품질·번들 포함 여부를 선행 검수하지 않으며, 실제 화면에서 자산 자체가 명백히 문제인 경우에만 사용자에게 보고하고 해당 자산을 변경한다. 기존에 정상 표시되던 자산이 안 나오는 회귀는 자산이 아니라 최근 코드의 import·렌더 조건·표시 연결부터 조사한다.
 - Before changing project direction, folder structure, branch strategy, or workflow rules, read `project_develop_policy.md`.
 - Session memory / startup reading / 3-hour summary rules: follow `SESSION_CONTINUITY.md` (single source of truth). Do not duplicate those rules here.
 - Do not overwrite or delete user changes unless the user explicitly asks for it.

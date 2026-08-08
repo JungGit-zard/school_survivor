@@ -17,7 +17,7 @@ import { _resetForTests as resetWeaponUnlocks, setUnlocked } from '../lib/weapon
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { buildLocalPlayerRankingEntry } from '../lib/userRanking.js'
 import { resetAdminConfig, saveAdminConfig } from '../lib/adminConfig.js'
-import { saveStudioTunings } from '../lib/graphicsStudioConfig.js'
+import { DEFAULT_STAGE_BOSS_PREVIEW, saveStudioTunings } from '../lib/graphicsStudioConfig.js'
 import { getStageConfig } from '../lib/stageConfig.js'
 import { STAGE4_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
@@ -35,7 +35,7 @@ const EMPTY_STUDIO_SNAPSHOT = {
   datasets: {
     tunings: {},
     sfxTunings: {},
-    stageBossPreview: {},
+    stageBossPreview: DEFAULT_STAGE_BOSS_PREVIEW,
     decals: {},
     propPlacements: { stage1: null, stage2: [], stage3: null },
   },
@@ -114,6 +114,45 @@ describe('student dialogue IDs', () => {
         useGameStore.getState().openStudentDialogue('missing.dialogue.id')
       })
       expect(container.textContent).not.toContain('missing.dialogue.id')
+    } finally {
+      act(() => { root.unmount() })
+    }
+  })
+
+  it('renders the laid student profile image above the game canvas layer', () => {
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        useGameStore.getState().openStudentDialogue('quest.stage1-talk-book.start', null, { subjectType: 'student' })
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const portrait = container.querySelector('[data-testid="student-dialogue-catcher"] img')
+      expect(portrait).not.toBeNull()
+      expect(portrait.getAttribute('src')).toContain('laid_man')
+      expect(container.firstElementChild.style.zIndex).toBe('10')
+    } finally {
+      act(() => { root.unmount() })
+    }
+  })
+})
+
+describe('active weapon HUD icons', () => {
+  it('renders the active weapon image above the game canvas layer', () => {
+    useGameStore.getState().resetGame('stage1')
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const icon = container.querySelector('img[src*="01_wea_pencil"]')
+      expect(icon).not.toBeNull()
+      expect(container.firstElementChild.style.zIndex).toBe('10')
     } finally {
       act(() => { root.unmount() })
     }
@@ -253,7 +292,7 @@ describe('weapon upgrade icon assets', () => {
     blockFirebaseStudioRuntime()
     const container = document.createElement('div')
     const root = createRoot(container)
-    act(() => root.render(<UpgradeIcon type="pencil" />))
+    act(() => root.render(<UpgradeIcon type="missile" />))
     expect(container.querySelector('img')).toBeNull()
     expect(container.textContent).toBe('')
     act(() => root.unmount())
