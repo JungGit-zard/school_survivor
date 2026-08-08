@@ -63,7 +63,17 @@ Do not use placeholder assignees such as `planner`, `reviewer`, `game-developer`
 4. Any corporate/tax/revenue-settlement task: `corpopsmini` is mandatory and remains separately managed from game-development agents.
 5. Any uncertain task: prefer `madangsue` for routing/smoke plus the likely specialist rather than bypassing the room.
 
+## Required pre-command document index
+
+Before any task command, every Escape! zombie school subagent must use the central mandatory pre-command repository at `Developer/agent_room/mandatory_precommand/README.md` and run the checker below. Read the exact `READ_REQUIRED` paths emitted by the checker: common documents for all agents, only the latest `SESSION_MEMORY.md` entry, profile-default documents, and conditional domain documents matched from the safe `TaskSummary`.
+
 ## Required first commands for Hermes agents
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "Developer/agent_room/mandatory_precommand/check-required-documents.ps1" -Profile <name> -Domain auto -TaskSummary "<safe short keyword summary>"
+```
+
+Then run the normal repository state checks:
 
 ```bash
 hermes kanban --board escape-zombie-school assignees
@@ -73,7 +83,7 @@ git status --short --branch
 
 ## Claude Code hook enforcement
 
-`.claude/settings.json` registers `.claude/hooks/require-subagent-routing-for-project.sh` for `Write`, `Edit`, and `MultiEdit`.
+`.claude/settings.json` registers `Developer/agent_room/mandatory_precommand/check-required-documents.ps1` for `SessionStart` and PreToolUse `Bash|PowerShell|shell_command|Write|Edit|MultiEdit`, while preserving the subagent routing hook for edit tools.
 The hook does not complete the routing by itself; it forces the current agent to acknowledge the mandatory routing gate before project edits proceed.
 
 ## Reporting format

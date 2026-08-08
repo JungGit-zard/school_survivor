@@ -36,6 +36,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/Developer/agent_room/mandatory_precommand/check-required-documents.ps1\" -Profile \"${CLAUDE_AGENT_PROFILE:-madangsue}\" -Domain auto"
+          },
+          {
+            "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/.claude/hooks/require-today-resume-summary.ps1\""
           },
           {
@@ -60,6 +64,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/Developer/agent_room/mandatory_precommand/check-required-documents.ps1\" -Profile \"${CLAUDE_AGENT_PROFILE:-madangsue}\" -Domain auto"
+          },
+          {
+            "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-stage2-boss-v2-gate.sh\""
           }
         ]
@@ -67,6 +75,10 @@
       {
         "matcher": "Write",
         "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/Developer/agent_room/mandatory_precommand/check-required-documents.ps1\" -Profile \"${CLAUDE_AGENT_PROFILE:-madangsue}\" -Domain auto"
+          },
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-subagent-routing-for-project.sh\""
@@ -90,6 +102,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/Developer/agent_room/mandatory_precommand/check-required-documents.ps1\" -Profile \"${CLAUDE_AGENT_PROFILE:-madangsue}\" -Domain auto"
+          },
+          {
+            "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-subagent-routing-for-project.sh\""
           },
           {
@@ -109,6 +125,10 @@
       {
         "matcher": "MultiEdit",
         "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/Developer/agent_room/mandatory_precommand/check-required-documents.ps1\" -Profile \"${CLAUDE_AGENT_PROFILE:-madangsue}\" -Domain auto"
+          },
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-subagent-routing-for-project.sh\""

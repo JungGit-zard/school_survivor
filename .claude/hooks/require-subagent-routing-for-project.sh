@@ -15,6 +15,8 @@ cat >&2 <<'MSG'
 SUBAGENT ROUTING REQUIRED: Escape! zombie school project edits must run the mandatory subagent routing check before completion.
 
 Read: Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md
+Mandatory first command: powershell -NoProfile -ExecutionPolicy Bypass -File "Developer/agent_room/mandatory_precommand/check-required-documents.ps1" -Profile <name> -Domain auto -TaskSummary "<safe short keyword summary>"
+Central README: Developer/agent_room/mandatory_precommand/README.md
 Use board: escape-zombie-school
 Real profiles: threemini, uimini, levelmini, balanceqa, bizmini, launchmini, backendmini, englishgradmini, madangsue, jabdareminder, soundmini, corpopsmini.
 Hard gates: sound/audio -> soundmini; corporate/tax/revenue-settlement -> corpopsmini.

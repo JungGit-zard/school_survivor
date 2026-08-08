@@ -1,0 +1,422 @@
+{
+  "schemaVersion": 1,
+  "repository": "Escape! zombie school",
+  "centralDirectory": "Developer/agent_room/mandatory_precommand",
+  "notes": [
+    "Manifest contains canonical paths only; policy bodies stay in their source files.",
+    "SESSION_MEMORY.md is listed as a required file; readers must read only the latest single `## Session ...` entry unless explicitly directed otherwise.",
+    "AAB domain includes both 2026-08-08 postmortem/reflection and AAB solution/readiness records.",
+    "Profile-specific always-required documents are selected for the matching profile in addition to common/domain documents; launchmini uses a generic AAB physical Android Google login preflight, not a version-specific mandatory file."
+  ],
+  "profileDomains": {
+    "threemini": "graphics",
+    "uimini": "ui",
+    "levelmini": "gameplay",
+    "balanceqa": "qa",
+    "bizmini": "corporate",
+    "launchmini": "aab",
+    "backendmini": "backend",
+    "englishgradmini": "localization",
+    "madangsue": "operations",
+    "jabdareminder": "operations",
+    "soundmini": "audio",
+    "corpopsmini": "corporate"
+  },
+  "domains": {
+    "common": {
+      "taskKeywords": [
+        "common",
+        "공통",
+        "policy",
+        "정책"
+      ],
+      "required": [
+        {
+          "path": "project_develop_policy.md",
+          "why": "highest-priority project policy"
+        },
+        {
+          "path": "Bang_Rules.md",
+          "why": "project hard rules and constraints"
+        },
+        {
+          "path": "AGENTS.md",
+          "why": "repository agent instructions and routing pointers"
+        },
+        {
+          "path": "CLAUDE.md",
+          "why": "Claude/Codex-facing project instructions"
+        },
+        {
+          "path": "SESSION_CONTINUITY.md",
+          "why": "startup reading and session-memory rule source"
+        },
+        {
+          "path": "SESSION_MEMORY.md",
+          "why": "latest single session entry only"
+        },
+        {
+          "path": "Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md",
+          "why": "mandatory Kanban/subagent routing map"
+        },
+        {
+          "path": "Developer/agent_room/mandatory_precommand/README.md",
+          "why": "central pre-command index"
+        },
+        {
+          "path": "Developer/agent_room/mandatory_precommand/manifest.json",
+          "why": "canonical required document manifest"
+        }
+      ]
+    },
+    "aab": {
+      "taskKeywords": [
+        "aab",
+        "android app bundle",
+        "bundle",
+        "versioncode",
+        "version code",
+        "버전코드",
+        "google play",
+        "play console",
+        "업로드",
+        "내부테스트",
+        "릴리스",
+        "출시"
+      ],
+      "required": [
+        {
+          "path": "Developer/agent_room/codex_session_failure_postmortem_2026-08-08.md",
+          "why": "2026-08-08 AAB/reporting failure postmortem"
+        },
+        {
+          "path": "Developer/agent_room/codex_session_responsibility_reflection_2026-08-08.md",
+          "why": "2026-08-08 responsibility/reflection commitments"
+        },
+        {
+          "path": "docs/solutions/integration-issues/capacitor-android-firebase-google-login-aab.md",
+          "why": "Android AAB Google login solution"
+        },
+        {
+          "path": "docs/solutions/integration-issues/graphics-studio-title-state-release-regression.md",
+          "why": "AAB visual parity and Studio release regression solution"
+        },
+        {
+          "path": "Developer/agent_room/launchmini_aab_v22_readiness_2026-07-27.md",
+          "why": "launchmini AAB readiness/no-upload boundary"
+        },
+        {
+          "path": "Developer/agent_room/launchmini_aab_v23_build_2026-07-31.md",
+          "why": "recent launchmini AAB build/provenance practice"
+        },
+        {
+          "path": "Quaility_Assurance/google_play_version_ledger.md",
+          "why": "Google Play/version ledger"
+        },
+        {
+          "glob": "Developer/구현기록/빌드배포/aab_build_*.md",
+          "select": "latest",
+          "why": "latest AAB build record for version/provenance pattern"
+        }
+      ]
+    },
+    "graphics": {
+      "taskKeywords": [
+        "graphics",
+        "그래픽",
+        "visual",
+        "비주얼",
+        "three",
+        "three.js",
+        "r3f",
+        "캐릭터",
+        "모델",
+        "studio",
+        "스튜디오",
+        "타이틀"
+      ],
+      "required": [
+        {
+          "path": "STUDIO_GAME_TITLE_CHARACTER_ABSOLUTE_LAW.md",
+          "why": "canonical title/character visual state law"
+        },
+        {
+          "path": "docs/solutions/integration-issues/graphics-studio-title-state-release-regression.md",
+          "why": "Graphics Studio/title regression solution"
+        },
+        {
+          "path": "CONCEPTS.md",
+          "why": "shared visual/release vocabulary"
+        },
+        {
+          "path": "Developer/agent_room/codex_session_failure_postmortem_2026-08-08.md",
+          "why": "asset-first/UI-unverified failure modes"
+        }
+      ]
+    },
+    "ui": {
+      "taskKeywords": [
+        "ui",
+        "hud",
+        "ux",
+        "인터페이스",
+        "메뉴",
+        "버튼",
+        "아이콘",
+        "icon",
+        "모바일",
+        "mobile",
+        "레이아웃",
+        "layout"
+      ],
+      "required": [
+        {
+          "path": "Developer/agent_room/codex_session_failure_postmortem_2026-08-08.md",
+          "why": "UI verification failure modes"
+        },
+        {
+          "glob": "Developer/agent_room/uimini_*.md",
+          "select": "latest",
+          "why": "latest UI specialist handoff record"
+        }
+      ]
+    },
+    "gameplay": {
+      "taskKeywords": [
+        "gameplay",
+        "게임플레이",
+        "stage",
+        "스테이지",
+        "boss",
+        "보스",
+        "wave",
+        "웨이브",
+        "spawn",
+        "스폰",
+        "weapon",
+        "무기",
+        "level",
+        "레벨",
+        "난이도",
+        "difficulty"
+      ],
+      "required": [
+        {
+          "glob": "Planner/**/*.md",
+          "select": "latest",
+          "why": "latest gameplay/stage/system planning record"
+        },
+        {
+          "glob": "Developer/agent_room/levelmini_*.md",
+          "select": "latest",
+          "why": "latest level/gameplay handoff record"
+        },
+        {
+          "glob": "Developer/agent_room/balanceqa_*.md",
+          "select": "latest",
+          "why": "latest balance/QA handoff record"
+        },
+        {
+          "path": "docs/solutions/integration-issues/stage2-boss-v2-no-legacy-gate.md",
+          "why": "Stage 2/B02 no-legacy gate"
+        }
+      ]
+    },
+    "qa": {
+      "taskKeywords": [
+        "qa",
+        "검수",
+        "review",
+        "리뷰",
+        "test",
+        "테스트",
+        "validation",
+        "검증",
+        "회귀",
+        "regression",
+        "acceptance",
+        "판정"
+      ],
+      "required": [
+        {
+          "glob": "Quaility_Assurance/**/*.md",
+          "select": "latest",
+          "why": "latest QA record or ledger"
+        },
+        {
+          "glob": "Developer/agent_room/balanceqa_*.md",
+          "select": "latest",
+          "why": "latest balanceqa acceptance record"
+        }
+      ]
+    },
+    "backend": {
+      "taskKeywords": [
+        "backend",
+        "백엔드",
+        "firebase",
+        "파이어베이스",
+        "auth",
+        "login",
+        "로그인",
+        "database",
+        "db",
+        "realtime",
+        "privacy",
+        "계정삭제",
+        "보안"
+      ],
+      "required": [
+        {
+          "path": "docs/solutions/integration-issues/capacitor-android-firebase-google-login-aab.md",
+          "why": "Firebase/Google login AAB solution"
+        },
+        {
+          "path": "Developer/auto_deploy_backend_boundary_2026-06-24.md",
+          "why": "backend boundary"
+        },
+        {
+          "path": "Developer/firebase_google_login_realtime_database_integration_2026-06-20.md",
+          "why": "Firebase Google login/realtime database integration"
+        }
+      ]
+    },
+    "audio": {
+      "taskKeywords": [
+        "audio",
+        "sound",
+        "사운드",
+        "소리",
+        "sfx",
+        "bgm",
+        "효과음",
+        "음성",
+        "voice",
+        "webaudio",
+        "howler",
+        "zzfx",
+        "chiptune",
+        "8비트"
+      ],
+      "required": [
+        {
+          "glob": "Developer/agent_room/soundmini_*.md",
+          "select": "latest",
+          "why": "latest soundmini audio record"
+        },
+        {
+          "path": "Developer/agent_room/soundmini_mobile_webaudio_constraints_2026-07-04.md",
+          "why": "mobile WebAudio constraints"
+        }
+      ]
+    },
+    "corporate": {
+      "taskKeywords": [
+        "corporate",
+        "법인",
+        "세무",
+        "tax",
+        "vat",
+        "정산",
+        "settlement",
+        "매출",
+        "revenue",
+        "회계사",
+        "accountant",
+        "수익화",
+        "bm",
+        "business"
+      ],
+      "required": [
+        {
+          "path": "Developer/agent_room/game_development_kanban_process.md",
+          "why": "routing boundaries for non-game corporate operations"
+        },
+        {
+          "glob": "CEO/**/*.md",
+          "select": "latest",
+          "why": "latest product/business/corporate record"
+        }
+      ]
+    },
+    "localization": {
+      "taskKeywords": [
+        "localization",
+        "번역",
+        "현지화",
+        "english",
+        "영어",
+        "store copy",
+        "스토어 문구",
+        "copy",
+        "카피",
+        "일본어",
+        "japanese"
+      ],
+      "required": [
+        {
+          "glob": "Developer/agent_room/englishgradmini_*.md",
+          "select": "latest",
+          "why": "latest English/localization specialist record"
+        },
+        {
+          "path": "CEO/current_product_priorities.md",
+          "why": "product priorities for store/localization context"
+        },
+        {
+          "path": "CEO/Game_service_purpose_target.md",
+          "why": "service purpose/target audience context"
+        }
+      ]
+    },
+    "operations": {
+      "taskKeywords": [
+        "operations",
+        "운영",
+        "agent",
+        "subagent",
+        "서브에이전트",
+        "kanban",
+        "칸반",
+        "routing",
+        "라우팅",
+        "ledger",
+        "장부",
+        "reminder",
+        "리마인더",
+        "schedule",
+        "스케줄"
+      ],
+      "required": [
+        {
+          "path": "Developer/agent_room/game_development_kanban_process.md",
+          "why": "Kanban process"
+        },
+        {
+          "path": "Developer/agent_room/subagent_system_wiring_2026-07-03.md",
+          "why": "project-local subagent system wiring"
+        },
+        {
+          "path": "Developer/agent_room/ide_agent_subagent_autocall_handoff.md",
+          "why": "IDE autocall handoff"
+        },
+        {
+          "path": "Developer/agent_room/escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md",
+          "why": "latest auto-involve handoff"
+        },
+        {
+          "path": "Developer/agent_room/antigravity_ide_subagent_handoff.md",
+          "why": "Antigravity-specific routing"
+        }
+      ]
+    }
+  },
+  "profileAlwaysRequired": {
+    "launchmini": [
+      {
+        "path": "Developer/agent_room/launchmini_aab_physical_android_google_login_mandatory_preflight.md",
+        "why": "launchmini generic mandatory AAB physical Android Google login preflight"
+      }
+    ]
+  }
+}

@@ -177,6 +177,7 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 ## Mandatory Subagent Routing for Escape! zombie school
 
 - Every non-empty Escape! zombie school request must run the routing check in `Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md` before final completion.
+- Before any task command, each Escape! zombie school subagent must run `powershell -NoProfile -ExecutionPolicy Bypass -File "Developer/agent_room/mandatory_precommand/check-required-documents.ps1" -Profile <name> -Domain auto -TaskSummary "<safe short keyword summary>"` and read the exact `READ_REQUIRED` paths emitted by the central README/manifest at `Developer/agent_room/mandatory_precommand/README.md`: common documents, latest `SESSION_MEMORY.md` entry only, then matched domain documents.
 - Every non-empty Escape! zombie school request must be routed through the `escape-zombie-school` Kanban board. Hana/default assistant acts as Advisor/orchestrator only: classify scope, create or reference the relevant Kanban cards, verify worker output, and report. Actual Worker execution must use the registered agent-room Hermes/Kanban profiles.
 - There is no silent direct-work bypass: even tiny edits must at least classify specialist relevance before completion.
 - Use only real Hermes/Kanban profiles: `threemini`, `uimini`, `levelmini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`, `corpopsmini`.
