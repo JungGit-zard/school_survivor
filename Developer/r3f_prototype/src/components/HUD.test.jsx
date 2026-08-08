@@ -410,6 +410,63 @@ describe('level-up upgrade layout', () => {
       })
     }
   })
+
+  it('blocks selection until the last upgrade card finishes opening', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState((state) => ({
+      phase: 'levelup',
+      pendingLevelUps: 1,
+      player: { ...state.player, level: 2 },
+    }))
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+    const animationEnd = (name) => {
+      // jsdom에는 AnimationEvent가 없어 React가 WebKit 이벤트명으로 폴백한다.
+      const event = new window.Event('webkitAnimationEnd', { bubbles: true })
+      Object.defineProperty(event, 'animationName', { value: name })
+      return event
+    }
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      let buttons = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
+      expect(buttons).toHaveLength(3)
+      expect(buttons.every((button) => button.disabled)).toBe(true)
+
+      act(() => buttons[0].click())
+      expect(useGameStore.getState().phase).toBe('levelup')
+
+      act(() => buttons[1].dispatchEvent(animationEnd('levelupCardPop')))
+      expect(buttons.every((button) => button.disabled)).toBe(true)
+
+      act(() => buttons[2].dispatchEvent(animationEnd('otherAnimation')))
+      expect(buttons.every((button) => button.disabled)).toBe(true)
+
+      act(() => buttons[2].dispatchEvent(animationEnd('levelupCardPop')))
+      buttons = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
+      expect(buttons.every((button) => button.disabled)).toBe(false)
+
+      act(() => buttons[0].click())
+      expect(useGameStore.getState().phase).toBe('playing')
+
+      act(() => {
+        useGameStore.setState((state) => ({
+          phase: 'levelup',
+          pendingLevelUps: 1,
+          levelUpChoiceSerial: state.levelUpChoiceSerial + 1,
+        }))
+      })
+      expect([...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
+        .every((button) => button.disabled)).toBe(true)
+    } finally {
+      act(() => root.unmount())
+      container.remove()
+    }
+  })
 })
 
 describe('HUD mobile accessibility', () => {

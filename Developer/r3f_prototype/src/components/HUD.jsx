@@ -591,6 +591,15 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     () => phase === 'levelup' ? pickThree(player.level, weapons, player) : [],
     [phase, player.level, weapons, levelUpChoiceSerial],
   )
+  const [levelupChoicesReadySerial, setLevelupChoicesReadySerial] = useState(null)
+  const levelupChoicesReady = phase === 'levelup' && levelupChoicesReadySerial === levelUpChoiceSerial
+  const handleLevelupChoiceAnimationEnd = (event, index) => {
+    if (index !== choices.length - 1) return
+    if (event.target !== event.currentTarget) return
+    const animationName = event.animationName ?? event.nativeEvent?.animationName
+    if (animationName !== 'levelupCardPop') return
+    setLevelupChoicesReadySerial(levelUpChoiceSerial)
+  }
   const lowHp   = player.hp / player.maxHp < 0.3
   const isGameover = phase === 'gameover'
   const isMatildaGameover = isGameover && deathCause === 'matilda'
@@ -1031,7 +1040,11 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
                     animation: 'levelupCardPop 0.15s ease-out both',
                     animationDelay: `${i * 90}ms`,
                   }}
-                  onClick={() => applyUpgrade(c.key)}
+                  onClick={() => {
+                    if (levelupChoicesReady) applyUpgrade(c.key)
+                  }}
+                  onAnimationEnd={(event) => handleLevelupChoiceAnimationEnd(event, i)}
+                  disabled={!levelupChoicesReady}
                 >
                   <UpgradeIcon type={c.icon} />
                   <div className="levelup-choice-label" style={styles.choiceLabel}>{getUpgradeChoiceLabel(c, weapons)}</div>
