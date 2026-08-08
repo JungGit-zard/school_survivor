@@ -32,6 +32,7 @@ import { getStageObjectSightObstacles, isStageObjectEnemyTrackingBlocked } from 
 import { createEnemyHitEventQueue } from '../lib/enemyHitEventQueue.js'
 import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { advanceMatildaEntryGrace, canSpawnMatildaEntry, cancelMatildaEntryGrace, createMatildaEntryGrace } from '../lib/matildaEntryGrace.js'
+import { matildaHpFromWeapons } from '../lib/playerDpsEstimate.js'
 import { getPooledEnemyRenderTier, shouldRefreshEnemySight } from './PooledEnemyVisuals.js'
 import {
   createPooledEnemySpawnDrainQueue,
@@ -1294,19 +1295,25 @@ export default function Enemies() {
       queue.matildaEntry = null
       if (!canSpawnMatildaEntry(entry, store)) return
       const player = store.player
-      // 플레이어 능력치 기준 동적 스탯: HP/공격력 ×3, 이동속도 ×1.4, 몸 크기는 B01 기본값
+      // 신 지정 사양(2026-08-09). 값을 clamp/보정하지 않는다.
+      //  S1 즉사 — 몸에 닿으면 플레이어 능력과 무관하게 즉사. damage 스탯이 아니라
+      //            Enemy.jsx가 useGameStore.killPlayer('matilda')를 직접 호출하는 경로라
+      //            무적프레임도 관통한다. 그래서 여기에는 damage를 두지 않는다
+      //            (두면 실제로는 아무도 읽지 않는 유령 값이 된다).
+      //  S2 체력 — 쉬지 않고 30분을 때려야 하는 체력 = 스폰 시점 플레이어 DPS × 1800초.
+      //  S3 기준 — 등장 순간에 1회 산출해 고정. 이후 플레이어가 더 강해져도 재계산하지 않는다.
+      //
+      // 남긴 필드는 전부 마틸다 경로에서 실제로 읽힌다:
+      //  - scale: 아래 randomSpawnPos 인자 + 콜라이더/몸통 접촉 반extent(Enemy.jsx).
+      //  - charger: Enemy.jsx의 돌진 AI 진입 게이트.
+      //  - xp: 사망 처리에서 읽는다(B01도 0이지만 보상 없음을 명시적으로 고정).
+      // 삭제한 speed/warnDist/warnDuration/stunDuration/chargeDuration/contactDist는
+      // 마틸다 AI 분기가 한 번도 읽지 않는다(2026-08-09 감사에서 grep 재확인).
       const matildaStats = {
-        hp:          player.maxHp * 3,
-        speed:       player.speed * 1.4,
-        damage:      player.maxHp * 3,   // 3배 공격력 = 플레이어 최대 체력 3배로 즉사 수준
+        hp:          matildaHpFromWeapons(store.weapons),
         scale:       ENEMY_STATS.B01.scale,
-        contactDist: 0.36,
         charger:     true,
         chargeSpeed: player.speed * 2.8,
-        warnDist:    6.0,
-        warnDuration:    400,
-        stunDuration:    800,
-        chargeDuration: 1500,
         xp: 0,
       }
       const spawnPos = randomSpawnPos('B01', cache.bounds, [], Math.random, cache.obstacles, matildaStats.scale)

@@ -577,6 +577,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const mathEndLogRef = useRef({ bossId: '' })
 
   const damagePlayer = useGameStore((s) => s.damagePlayer)
+  const killPlayer = useGameStore((s) => s.killPlayer)
   const phase        = useGameStore((s) => s.phase)
   const currentStageId = useGameStore((s) => s.currentStageId)
   const bossSpawnSec = useGameStore((s) => s.bossSpawnSec)
@@ -886,9 +887,12 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           contactArgs.playerZ = playerPos.z
           contactArgs.halfX = matildaHalfExtents.halfX
           contactArgs.halfZ = matildaHalfExtents.halfZ
-          if (isMatildaBodyContact(contactArgs) && now - lastContactDmgRef.current >= 500) {
-            lastContactDmgRef.current = now
-            damagePlayer(stats.damage, { source: 'matilda' })
+          // 신 지정 사양 S1: 마틸다 접촉은 플레이어 능력·무적프레임과 무관하게 즉사다.
+          // 접촉 쿨다운(구 500ms)을 두지 않는다 — 첫 접촉에서 런이 끝나 두 번째 접촉이
+          // 없을뿐더러, 쿨다운이 있으면 무적프레임 520ms와 겹쳐 즉사가 통째로 무효화되던
+          // 버그(2026-08-09 감사 #8)가 그대로 재발한다.
+          if (isMatildaBodyContact(contactArgs)) {
+            killPlayer('matilda')
           }
 
           if (isMatildaChargingOutward(t, cd, stageCombatConfig.bounds)) {

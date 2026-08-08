@@ -266,6 +266,21 @@ export const useGameStore = create(
       // 무적 해제는 Player.jsx의 useFrame에서 처리한다. setTimeout을 쓰지 않는다.
     },
 
+    // 마틸다 즉사 전용. 신 지정 사양 S1: 마틸다 몸에 닿으면 플레이어 능력(최대 체력·
+    // 체력 강화·피해 감소)과 무관하게 즉시 사망하며, 무적프레임(invulnerable)도 관통한다.
+    // damagePlayer를 큰 수로 호출하지 않고 별도 경로를 쓰는 이유:
+    //  - damagePlayer는 invulnerable에서 early return 한다(과거 이 때문에 무적 520ms가
+    //    마틸다 접촉 쿨다운 500ms를 덮어 즉사가 무효화되는 버그가 있었다).
+    //  - 데미지 숫자 연출에 Infinity 같은 값이 뜨는 것도 막는다.
+    killPlayer: (source = null) => {
+      const { player, phase } = get()
+      if (phase !== 'playing') return
+      set({ player: { ...player, hp: 0 }, phase: 'gameover', pauseSource: null, deathCause: source })
+      emitSfx({ id: 'playerDeath' })
+      vibrateRuntimeFeedback([40, 60, 40])
+      get()._onRunEnd('gameover')
+    },
+
     endInvulnerable: () => set((s) => ({ player: { ...s.player, invulnerable: false } })),
 
     healPlayer: (amount) => set((s) => ({
