@@ -155,7 +155,6 @@ function SliderRow({ label, name, min, max, step, value, onChange }) {
         step={step}
         value={value}
         onInput={handleInput}
-        onChange={handleInput}
         className="studio-range"
         style={styles.range}
       />
@@ -289,6 +288,9 @@ export default function GraphicsStudio() {
   const connectInFlightRef = useRef(false)
   const applyInFlightRef = useRef(false)
   const saveChainRef = useRef(Promise.resolve())
+  const draftTuningByIdRef = useRef({})
+  const pendingTuningByIdRef = useRef({})
+  const tuningSaveTimerRef = useRef(null)
   const [gameUrl, setGameUrl] = useState(() => getDefaultStudioGameUrl())
   const activeTuningId = getPartTuningId(selectedItem.id, focusedParts)
   const itemSavedTuning = confirmedTunings[selectedItem.id] ?? DEFAULT_STUDIO_TUNING
@@ -338,6 +340,7 @@ export default function GraphicsStudio() {
     setStageBossPreview(datasets.stageBossPreview)
     setDecalsByItem(datasets.decals)
     setBossFaceRecipes(datasets.bossFaceRecipes)
+    draftTuningByIdRef.current = {}
     setDraftTuningById({})
     setDraftBossFaceRecipes({})
     setUndoStack([])
@@ -412,11 +415,23 @@ export default function GraphicsStudio() {
     }
   }
 
-  const queueCanonicalMutation = (mutate, label = 'Saved', { syncGame = false } = {}) => {
+  const queueCanonicalMutation = (mutate, label = 'Saved', { syncGame = false, savedTunings = null } = {}) => {
     saveChainRef.current = saveChainRef.current.catch(() => undefined).then(async () => {
       const result = await persistDatasetsOnApply(mutate(loadStudioRuntimeDatasets()))
       if (result?.status === 'saved') {
-        refreshStudioState()
+        if (savedTunings) {
+          setConfirmedTunings(loadStudioRuntimeDatasets().tunings)
+          setDraftTuningById((current) => {
+            const next = { ...current }
+            Object.entries(savedTunings).forEach(([id, savedTuning]) => {
+              if (isSameTuning(draftTuningByIdRef.current[id], savedTuning)) delete next[id]
+            })
+            draftTuningByIdRef.current = next
+            return next
+          })
+        } else {
+          refreshStudioState()
+        }
         if (!syncGame || await sendGameSync({ openGame: true, retryAfterLoad: true })) {
           setApplyStatus(`${label} · revision ${result.revision}`)
         } else {
@@ -426,6 +441,31 @@ export default function GraphicsStudio() {
       return result
     })
     return saveChainRef.current
+  }
+
+  const flushPendingTuningSave = () => {
+    if (tuningSaveTimerRef.current !== null) {
+      window.clearTimeout(tuningSaveTimerRef.current)
+      tuningSaveTimerRef.current = null
+    }
+    const pendingTunings = pendingTuningByIdRef.current
+    pendingTuningByIdRef.current = {}
+    if (Object.keys(pendingTunings).length === 0) return Promise.resolve({ status: 'no-pending' })
+    return queueCanonicalMutation((datasets) => ({
+      ...datasets,
+      tunings: { ...datasets.tunings, ...pendingTunings },
+    }), 'Graphics saved', { savedTunings: pendingTunings })
+  }
+
+  const scheduleTuningSave = (id, nextTuning) => {
+    pendingTuningByIdRef.current = {
+      ...pendingTuningByIdRef.current,
+      [id]: nextTuning,
+    }
+    if (tuningSaveTimerRef.current !== null) window.clearTimeout(tuningSaveTimerRef.current)
+    tuningSaveTimerRef.current = window.setTimeout(() => {
+      void flushPendingTuningSave()
+    }, 500)
   }
 
   useEffect(() => {
@@ -472,6 +512,7 @@ export default function GraphicsStudio() {
     mountedRef.current = true
     return () => {
       mountedRef.current = false
+      void flushPendingTuningSave()
       void flushFirebaseStudioSave()
     }
   }, [])
@@ -579,14 +620,13 @@ export default function GraphicsStudio() {
   const updateTuning = (patch) => {
     const id = activeTuningId
     setUndoStack((stack) => [...stack, { id, tuning: confirmedTunings[id] ?? DEFAULT_STUDIO_TUNING }].slice(-UNDO_LIMIT))
-    setDraftTuningById((current) => ({
-      ...current,
-      [id]: normalizeStudioTuning({ ...current[id], ...patch }),
-    }))
-    void queueCanonicalMutation((datasets) => ({
-      ...datasets,
-      tunings: { ...datasets.tunings, [id]: normalizeStudioTuning({ ...datasets.tunings[id], ...patch }) },
-    }), 'Graphics saved')
+    const nextTuning = normalizeStudioTuning({
+      ...(draftTuningByIdRef.current[id] ?? confirmedTunings[id]),
+      ...patch,
+    })
+    draftTuningByIdRef.current = { ...draftTuningByIdRef.current, [id]: nextTuning }
+    setDraftTuningById(draftTuningByIdRef.current)
+    scheduleTuningSave(id, nextTuning)
   }
 
   const confirmTextureDecals = (nextItemDecals) => {
@@ -685,6 +725,7 @@ export default function GraphicsStudio() {
   }
 
   const applyCurrent = async () => {
+    await flushPendingTuningSave()
     await saveChainRef.current.catch(() => undefined)
     const datasets = loadStudioRuntimeDatasets()
     const nextTunings = {

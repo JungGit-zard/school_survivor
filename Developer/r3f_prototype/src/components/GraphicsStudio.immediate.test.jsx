@@ -32,15 +32,21 @@ describe('Graphics Studio immediate Firebase contract', () => {
     await act(async () => { control.value = value; control.dispatchEvent(new Event('input', { bubbles: true })); await Promise.resolve(); await Promise.resolve() })
   }
   it('saves one graphics input without opening a game that Apply has not opened', async () => {
-    const postMessage = vi.fn()
-    window.open.mockReturnValue({ closed: false, postMessage })
-    await render(); await change('scale', '1.45')
-    expect(cloud.save).toHaveBeenCalledWith(expect.objectContaining({ datasets: expect.objectContaining({ tunings: expect.objectContaining({ player: expect.objectContaining({ scale: 1.45 }) }) }) }))
-    expect(loadStudioTunings().player.scale).toBe(1.45)
-    expect(window.open).not.toHaveBeenCalled()
-    expect(postMessage).not.toHaveBeenCalled()
-    const apply = [...container.querySelectorAll('button')].find((button) => button.textContent === 'Apply')
-    expect(apply.style.minHeight).toBe('64px'); expect(apply.style.fontSize).toBe('28px')
+    vi.useFakeTimers()
+    try {
+      const postMessage = vi.fn()
+      window.open.mockReturnValue({ closed: false, postMessage })
+      await render(); await change('scale', '1.45')
+      await act(async () => { await vi.advanceTimersByTimeAsync(500) })
+      expect(cloud.save).toHaveBeenCalledWith(expect.objectContaining({ datasets: expect.objectContaining({ tunings: expect.objectContaining({ player: expect.objectContaining({ scale: 1.45 }) }) }) }))
+      expect(loadStudioTunings().player.scale).toBe(1.45)
+      expect(window.open).not.toHaveBeenCalled()
+      expect(postMessage).not.toHaveBeenCalled()
+      const apply = [...container.querySelectorAll('button')].find((button) => button.textContent === 'Apply')
+      expect(apply.style.minHeight).toBe('64px'); expect(apply.style.fontSize).toBe('28px')
+    } finally {
+      vi.useRealTimers()
+    }
   })
   it('does not sync an existing game before Apply', async () => {
     vi.useFakeTimers()
@@ -115,12 +121,94 @@ describe('Graphics Studio immediate Firebase contract', () => {
     expect(postMessage.mock.calls.length).toBeGreaterThan(syncCountBeforePropsApply)
   })
   it('serializes rapid changes and fail-closes a rejected write', async () => {
-    await render(); await change('scale', '1.4'); await change('scaleX', '1.2')
-    expect(loadStudioTunings().player).toMatchObject({ scale: 1.4, scaleX: 1.2 })
-    window.open.mockClear()
-    cloud.save.mockResolvedValueOnce({ status: 'write-failed' }); await change('scale', '1.7')
-    expect(loadStudioTunings().player.scale).toBe(1.4)
-    expect(window.open).not.toHaveBeenCalled(); expect(window.alert).toHaveBeenCalled()
+    vi.useFakeTimers()
+    try {
+      await render(); await change('scale', '1.4'); await change('scaleX', '1.2')
+      await act(async () => { await vi.advanceTimersByTimeAsync(500) })
+      expect(loadStudioTunings().player).toMatchObject({ scale: 1.4, scaleX: 1.2 })
+      window.open.mockClear()
+      cloud.save.mockResolvedValueOnce({ status: 'write-failed' }); await change('scale', '1.7')
+      await act(async () => { await vi.advanceTimersByTimeAsync(500) })
+      expect(loadStudioTunings().player.scale).toBe(1.4)
+      expect(window.open).not.toHaveBeenCalled(); expect(window.alert).toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('defers slider writes until dragging stops and saves the exact final value once', async () => {
+    vi.useFakeTimers()
+    try {
+      await render()
+      const scale = container.querySelector('input[name="scale"]')
+      await act(async () => {
+        for (const value of ['1.1', '1.3', '1.7']) {
+          scale.value = value
+          scale.dispatchEvent(new Event('input', { bubbles: true }))
+        }
+        await Promise.resolve()
+      })
+
+      expect(cloud.save).not.toHaveBeenCalled()
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500)
+      })
+      expect(cloud.save).toHaveBeenCalledTimes(1)
+      expect(cloud.save).toHaveBeenLastCalledWith(expect.objectContaining({
+        datasets: expect.objectContaining({
+          tunings: expect.objectContaining({ player: expect.objectContaining({ scale: 1.7 }) }),
+        }),
+      }))
+      expect(loadStudioTunings().player.scale).toBe(1.7)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('keeps a newer slider draft while an earlier Firebase save is still in flight', async () => {
+    vi.useFakeTimers()
+    try {
+      let resolveFirstSave
+      cloud.save
+        .mockImplementationOnce(() => new Promise((resolve) => { resolveFirstSave = resolve }))
+        .mockResolvedValueOnce({ status: 'saved', revision: 3 })
+      await render()
+
+      const scale = container.querySelector('input[name="scale"]')
+      const scaleX = container.querySelector('input[name="scaleX"]')
+      await act(async () => {
+        scale.value = '1.1'
+        scale.dispatchEvent(new Event('input', { bubbles: true }))
+        await vi.advanceTimersByTimeAsync(500)
+      })
+      expect(cloud.save).toHaveBeenCalledTimes(1)
+
+      await act(async () => {
+        scale.value = '1.7'
+        scale.dispatchEvent(new Event('input', { bubbles: true }))
+        scaleX.value = '1.2'
+        scaleX.dispatchEvent(new Event('input', { bubbles: true }))
+        await vi.advanceTimersByTimeAsync(500)
+      })
+      expect(cloud.save).toHaveBeenCalledTimes(1)
+
+      await act(async () => {
+        resolveFirstSave({ status: 'saved', revision: 2 })
+        await Promise.resolve(); await Promise.resolve(); await Promise.resolve()
+      })
+
+      expect(container.querySelector('input[name="scale"]').value).toBe('1.7')
+      expect(container.querySelector('input[name="scaleX"]').value).toBe('1.2')
+      expect(cloud.save).toHaveBeenCalledTimes(2)
+      expect(cloud.save).toHaveBeenLastCalledWith(expect.objectContaining({
+        datasets: expect.objectContaining({
+          tunings: expect.objectContaining({ player: expect.objectContaining({ scale: 1.7, scaleX: 1.2 }) }),
+        }),
+      }))
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('restores the initial numeric state and applies it 1,000 consecutive times', async () => {
@@ -139,14 +227,14 @@ describe('Graphics Studio immediate Firebase contract', () => {
           await Promise.resolve()
           await Promise.resolve()
         })
-        if (loadStudioTunings().player.scale !== 1) {
-          throw new Error(`Reset mismatch at iteration ${iteration + 1}`)
-        }
         await act(async () => {
           apply.dispatchEvent(new MouseEvent('click', { bubbles: true }))
           await Promise.resolve()
           await Promise.resolve()
         })
+        if (loadStudioTunings().player.scale !== 1) {
+          throw new Error(`Reset mismatch at iteration ${iteration + 1}`)
+        }
       }
 
       await act(async () => { await vi.runAllTimersAsync() })
