@@ -68,10 +68,10 @@ export const STAGE3_BURST_EVENTS = [
   { sec:  16, type: 'E03', count:  4 },                         // 러너 조기 압박
   { sec:  34, type: 'E04', count:  1 },                         // 원거리 조기 등장 신호
   { sec:  52, type: 'E05', count:  2 },                         // 차저 조기 등장 신호
-  { sec:  35, type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 1차: 리더 1 + 러닝크루 12, 대각선 화면 횡단
-  { sec:  80, type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 2차: 이완 창 내부 대각선 압박
-  { sec: 120, type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 3차: 2분 압박 체크포인트
-  { sec: 150, type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 4차: 보스 직후 재압박
+  { sec:  35, type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 1차: 리더 1 + 러닝크루 6, 대각선 화면 횡단
+  { sec:  80, type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 2차: 이완 창 내부 대각선 압박
+  { sec: 120, type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 3차: 2분 압박 체크포인트
+  { sec: 150, type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 4차: 보스 직후 재압박
   { sec: 108, type: 'E06', count:  1 },                         // 거대 조기 등장 보장
   { sec: 132, type: 'E06', count:  1 },                         // 피크 거대 1기 추가(미조우 방어)
   // ── 보스: 체육교사 B03 단일 등장(135). 로비 카드(체육교사)와 실제 전투 일치. ──

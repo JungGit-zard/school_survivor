@@ -58,6 +58,18 @@ const ALL_PARTS = STANDARD.concat(RUN, RZT, RZG)
 const PART_STRIDE = 9
 const PART_COUNT = ALL_PARTS.length
 const partSlotScratch = new Int16Array(12)
+function createDefaultStudioPartTransforms() {
+  const transforms = new Float32Array(15 * PART_COUNT * PART_STRIDE)
+  for (let type = 0; type < 15; type += 1) {
+    for (let part = 0; part < PART_COUNT; part += 1) {
+      const scaleOffset = (type * PART_COUNT + part) * PART_STRIDE + 6
+      transforms[scaleOffset] = 1
+      transforms[scaleOffset + 1] = 1
+      transforms[scaleOffset + 2] = 1
+    }
+  }
+  return transforms
+}
 // Bubble, tail and block-letter GO! parts from ChargeToonCue.  A fixed 16-slot
 // pool bounds its draw cost even when every E05 enters warning together.
 const CUE = POOLED_CHARGE_CUE_PARTS
@@ -96,7 +108,7 @@ function markOne(x) { x.instanceMatrix.needsUpdate=true; if(x.instanceColor)x.in
 
 export default function ZombieInstanceLayer({ resetKey }) {
   const { camera } = useThree(); const smokeTexture = useLoader(THREE.TextureLoader, spawnSmokeUrl)
-  const studio = useRef({ revision: null, rootMatrices: [], rootScaleX: new Float32Array(15), rootScaleZ: new Float32Array(15), supported: new Uint8Array(15), partTransforms: new Float32Array(15 * PART_COUNT * PART_STRIDE) }); const cueOverflowRef = useRef(0); const cueIndicesRef = useRef(new Int16Array(16))
+  const studio = useRef({ revision: null, rootMatrices: [], rootScaleX: new Float32Array(15), rootScaleZ: new Float32Array(15), supported: new Uint8Array(15), partTransforms: createDefaultStudioPartTransforms() }); const cueOverflowRef = useRef(0); const cueIndicesRef = useRef(new Int16Array(16))
   const renderTiers = useRef(new Uint8Array(POOLED_ENEMY_CAPACITY))
   const partCounts = useRef(new Int16Array(PART_COUNT))
   const health = useRef({ generation:new Uint16Array(200), lastRatio:new Float32Array(200), trailRatio:new Float32Array(200), flash:new Float32Array(200), ratio:new Float32Array(200), visibleTrailRatio:new Float32Array(200) })

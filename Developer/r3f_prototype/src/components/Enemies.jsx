@@ -284,7 +284,7 @@ const COLUMN_WIDTH_RATIO = 0.6
 // gauntlet 두 줄을 벽에서 이만큼 안쪽에 둔다(벽에 완전히 붙으면 place가 경계로 clamp).
 const GAUNTLET_WALL_INSET = 0.8
 
-export const RUN_ZOMBIE_CREW_SIZE = 13
+export const RUN_ZOMBIE_CREW_SIZE = 7
 export const RUN_ZOMBIE_CREW_DIR = Object.freeze({ x: 1, z: 1 })
 export const STAGE2_GUARD_CHASE_SIZE = 7
 
@@ -558,24 +558,47 @@ export function midWaveSizeForStage(phase, stageId = 'stage1') {
 // Stage 2 chase crew deliberately does not use obstacle-safe placement: both
 // roles are screen-crossing runners and the simulation lets these two types
 // pass through classroom props. Injected random keeps every edge case testable.
-export function createStage2GuardChaseEntries(bounds, random = Math.random) {
+export function createStage2GuardChaseEntries(bounds, random = Math.random, visibleBounds = null) {
   const edge = Math.floor(random() * 4) % 4
   const startAlong = (random() * 2 - 1) * 0.72
   const endAlong = (random() * 2 - 1) * 0.72
-  const outer = 1.2
+  const hasVisibleBounds = visibleBounds
+    && Number.isFinite(visibleBounds.minX)
+    && Number.isFinite(visibleBounds.maxX)
+    && Number.isFinite(visibleBounds.minZ)
+    && Number.isFinite(visibleBounds.maxZ)
+  const spawnBounds = hasVisibleBounds
+    ? {
+      minX: visibleBounds.minX, maxX: visibleBounds.maxX,
+      minZ: visibleBounds.minZ, maxZ: visibleBounds.maxZ,
+      halfX: (visibleBounds.maxX - visibleBounds.minX) * 0.5,
+      halfZ: (visibleBounds.maxZ - visibleBounds.minZ) * 0.5,
+      centerX: (visibleBounds.minX + visibleBounds.maxX) * 0.5,
+      centerZ: (visibleBounds.minZ + visibleBounds.maxZ) * 0.5,
+      outer: 0,
+    }
+    : {
+      minX: -bounds.halfX, maxX: bounds.halfX,
+      minZ: -bounds.halfZ, maxZ: bounds.halfZ,
+      halfX: bounds.halfX,
+      halfZ: bounds.halfZ,
+      centerX: 0,
+      centerZ: 0,
+      outer: 1.2,
+    }
   let startX = 0; let startZ = 0; let endX = 0; let endZ = 0
   if (edge === 0) {
-    startX = -bounds.halfX - outer; startZ = startAlong * bounds.halfZ
-    endX = bounds.halfX + outer; endZ = endAlong * bounds.halfZ
+    startX = spawnBounds.minX - spawnBounds.outer; startZ = spawnBounds.centerZ + startAlong * spawnBounds.halfZ
+    endX = spawnBounds.maxX + spawnBounds.outer; endZ = spawnBounds.centerZ + endAlong * spawnBounds.halfZ
   } else if (edge === 1) {
-    startX = bounds.halfX + outer; startZ = startAlong * bounds.halfZ
-    endX = -bounds.halfX - outer; endZ = endAlong * bounds.halfZ
+    startX = spawnBounds.maxX + spawnBounds.outer; startZ = spawnBounds.centerZ + startAlong * spawnBounds.halfZ
+    endX = spawnBounds.minX - spawnBounds.outer; endZ = spawnBounds.centerZ + endAlong * spawnBounds.halfZ
   } else if (edge === 2) {
-    startX = startAlong * bounds.halfX; startZ = -bounds.halfZ - outer
-    endX = endAlong * bounds.halfX; endZ = bounds.halfZ + outer
+    startX = spawnBounds.centerX + startAlong * spawnBounds.halfX; startZ = spawnBounds.minZ - spawnBounds.outer
+    endX = spawnBounds.centerX + endAlong * spawnBounds.halfX; endZ = spawnBounds.maxZ + spawnBounds.outer
   } else {
-    startX = startAlong * bounds.halfX; startZ = bounds.halfZ + outer
-    endX = endAlong * bounds.halfX; endZ = -bounds.halfZ - outer
+    startX = spawnBounds.centerX + startAlong * spawnBounds.halfX; startZ = spawnBounds.maxZ + spawnBounds.outer
+    endX = spawnBounds.centerX + endAlong * spawnBounds.halfX; endZ = spawnBounds.minZ - spawnBounds.outer
   }
   const length = Math.hypot(endX - startX, endZ - startZ) || 1
   const runCrewDir = { x: (endX - startX) / length, z: (endZ - startZ) / length }
@@ -593,6 +616,26 @@ export function createStage2GuardChaseEntries(bounds, random = Math.random) {
       runCrewDir,
       runCrewRole: 'guard',
     })
+  }
+  if (hasVisibleBounds) {
+    const inset = 0.8
+    const offsets = entries.map((entry) => ({ x: entry.pos[0] - startX, z: entry.pos[2] - startZ }))
+    const minOffsetX = Math.min(...offsets.map((offset) => offset.x))
+    const maxOffsetX = Math.max(...offsets.map((offset) => offset.x))
+    const minOffsetZ = Math.min(...offsets.map((offset) => offset.z))
+    const maxOffsetZ = Math.max(...offsets.map((offset) => offset.z))
+    const minAnchorX = visibleBounds.minX + inset - minOffsetX
+    const maxAnchorX = visibleBounds.maxX - inset - maxOffsetX
+    const minAnchorZ = visibleBounds.minZ + inset - minOffsetZ
+    const maxAnchorZ = visibleBounds.maxZ - inset - maxOffsetZ
+    const nextStartX = minAnchorX <= maxAnchorX ? Math.max(minAnchorX, Math.min(maxAnchorX, startX)) : (visibleBounds.minX + visibleBounds.maxX) * 0.5
+    const nextStartZ = minAnchorZ <= maxAnchorZ ? Math.max(minAnchorZ, Math.min(maxAnchorZ, startZ)) : (visibleBounds.minZ + visibleBounds.maxZ) * 0.5
+    const deltaX = nextStartX - startX
+    const deltaZ = nextStartZ - startZ
+    for (const entry of entries) {
+      entry.pos[0] += deltaX
+      entry.pos[2] += deltaZ
+    }
   }
   return entries
 }
@@ -1361,7 +1404,7 @@ export default function Enemies() {
       }
       if (evt.formation === STAGE2_GUARD_CHASE_FORMATION) {
         emitSfx({ id: 'stage2GuardWhistle', volume: 0.62 })
-        addEnemies(createStage2GuardChaseEntries(cache.bounds, Math.random).map((entry) => ({ id: ++_uid, ...entry, statOverride: stageHpOverride(entry.type, cache.id) })), true, cache.spawnToken)
+        addEnemies(createStage2GuardChaseEntries(cache.bounds, Math.random, screenBounds).map((entry) => ({ id: ++_uid, ...entry, statOverride: stageHpOverride(entry.type, cache.id) })), true, cache.spawnToken)
         return
       }
       const count = evt.count ?? 1
