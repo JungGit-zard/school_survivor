@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
 import {
   MULTI_HZ_CHECKPOINT_SECONDS,
   MULTI_HZ_RENDER_RATES,
@@ -49,5 +50,11 @@ describe('Stage 1~4 deterministic multi-Hz parity (pure simulation harness)', ()
       second120: 1,
       ok: true,
     })
+  })
+
+  it('uses the Stage 2 runtime burst schedule rather than dormant authored formations', () => {
+    const source = readFileSync(new URL('./stageMultiHzParity.js', import.meta.url), 'utf8')
+    expect(source).toContain('getRuntimeBurstEventsForStage(stageId)')
+    expect(source).not.toContain('getBurstEventsForStage(stageId)')
   })
 })

@@ -15,10 +15,12 @@ export const ENEMY_TYPE_CODES = Object.freeze({
   B02: 10,
   B03: 11,
   B04: 12,
+  RZT: 13,
+  RZG: 14,
 })
 
 export const ENEMY_TYPE_NAMES = Object.freeze([
-  '', 'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04',
+  '', 'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG',
 ])
 
 const MAX_GENERATION = MAX_ENEMY_GENERATION

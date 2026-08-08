@@ -45,6 +45,14 @@ export function shouldRenderPooledEnemyPart(type, partIndex, tier) {
   if (tier >= ENEMY_RENDER_NEAR) return true
   // Every visible tier keeps a 3D head/body/limbs silhouette and its matching
   // outline.  Far tiers omit only small readable-detail boxes.
+  if (type === 13) {
+    if (tier === ENEMY_RENDER_MID) return partIndex !== 34 && partIndex !== 35 && partIndex !== 36 && partIndex !== 37 && partIndex !== 39 && partIndex !== 40 && partIndex !== 42 && partIndex !== 44 && partIndex !== 46 && partIndex !== 48
+    return partIndex === 33 || partIndex === 38 || partIndex === 41 || partIndex === 43 || partIndex === 45 || partIndex === 46 || partIndex === 47 || partIndex === 48
+  }
+  if (type === 14) {
+    if (tier === ENEMY_RENDER_MID) return partIndex !== 51 && partIndex !== 52 && partIndex !== 53 && partIndex !== 54 && partIndex !== 57 && partIndex !== 59 && partIndex !== 61 && partIndex !== 63 && partIndex !== 65
+    return partIndex === 49 || partIndex === 50 || partIndex === 55 || partIndex === 56 || partIndex === 58 || partIndex === 60 || partIndex === 62 || partIndex === 63 || partIndex === 64 || partIndex === 65
+  }
   if (type === 7 || type === 8) {
     if (tier === ENEMY_RENDER_MID) return partIndex !== 14 && partIndex !== 17 && partIndex !== 19 && partIndex !== 20 && partIndex !== 21 && partIndex !== 23 && partIndex !== 25 && partIndex !== 28 && partIndex !== 31 && partIndex !== 32
     return partIndex === 12 || partIndex === 18 || partIndex === 22 || partIndex === 24 || partIndex === 26 || partIndex === 27 || partIndex === 28 || partIndex === 29 || partIndex === 30 || partIndex === 31
@@ -200,7 +208,7 @@ export function e01PartSlotsForNumericPath(path, out) {
 // only this structural path-to-slot mapping differs.
 export function pooledZombiePartSlotsForNumericPath(type, path, out) {
   if (type >= 1 && type <= 6) return e01PartSlotsForNumericPath(path, out)
-  if (type !== 7 && type !== 8) return 0
+  if (type !== 7 && type !== 8 && type !== 13 && type !== 14) return 0
 
   const parts = String(path).split('.').map(Number)
   let start = -1
@@ -217,6 +225,31 @@ export function pooledZombiePartSlotsForNumericPath(type, path, out) {
   const setRange = (first, count) => {
     for (let index = 0; index < count; index += 1) out[index] = first + index
     return count
+  }
+
+  // Stage 2's fugitive and guard are not recolored RZ meshes. Their fixed
+  // pooled arrays follow Stage2GuardChaseZombieMesh exactly: head/body then
+  // left/right arms and legs. Keeping this mapping separate preserves the
+  // shared Studio numeric-path transform contract without a model-specific
+  // transform rule.
+  if (type === 13 || type === 14) {
+    const offset = type === 13 ? 33 : 49
+    const headCount = type === 13 ? 5 : 6
+    const bodyCount = 3
+    const groups = [
+      [offset, headCount],
+      [offset + headCount, bodyCount],
+      [offset + headCount + bodyCount, 2],
+      [offset + headCount + bodyCount + 2, 2],
+      [offset + headCount + bodyCount + 4, 2],
+      [offset + headCount + bodyCount + 6, 2],
+    ]
+    const group = groups[pivot]
+    if (!group) return 0
+    if (!Number.isInteger(leaf)) return setRange(group[0], group[1])
+    if (leaf < 0 || leaf >= group[1]) return 0
+    out[0] = group[0] + leaf
+    return 1
   }
 
   if (!Number.isInteger(leaf)) {

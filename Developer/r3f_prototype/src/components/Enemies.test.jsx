@@ -14,8 +14,10 @@ import {
   pickTypeByWeightExcluding,
   formationSpawnPositions,
   createRunZombieCrewEntries,
+  createStage2GuardChaseEntries,
   RUN_ZOMBIE_CREW_SIZE,
   RUN_ZOMBIE_CREW_DIR,
+  STAGE2_GUARD_CHASE_SIZE,
   waveSizeForPhase,
   rawWaveSizeForStage,
   waveSizeForStageAtTime,
@@ -749,6 +751,27 @@ describe('formation spawns', () => {
     expect(leader.pos[2]).toBeLessThan(-15)
     expect(last.pos[0]).toBeLessThan(leader.pos[0])
     expect(last.pos[2]).toBeLessThan(leader.pos[2])
+  })
+
+  it('creates the Stage 2 guard chase as one fugitive ahead of six guards for every map edge', () => {
+    const stage2Arena = { halfX: 12, halfZ: 16 }
+    for (let edge = 0; edge < 4; edge += 1) {
+      const entries = createStage2GuardChaseEntries(stage2Arena, (() => {
+        const values = [edge / 4 + 0.01, 0.2, 0.8]
+        let index = 0
+        return () => values[index++]
+      })())
+      expect(entries).toHaveLength(STAGE2_GUARD_CHASE_SIZE)
+      expect(entries[0]).toMatchObject({ type: 'RZT', runCrewRole: 'fugitive' })
+      expect(entries.slice(1).every((entry) => entry.type === 'RZG' && entry.runCrewRole === 'guard')).toBe(true)
+      const dir = entries[0].runCrewDir
+      expect(Math.hypot(dir.x, dir.z)).toBeCloseTo(1, 6)
+      for (const guard of entries.slice(1)) {
+        expect(guard.runCrewDir).toEqual(dir)
+        const behind = (entries[0].pos[0] - guard.pos[0]) * dir.x + (entries[0].pos[2] - guard.pos[2]) * dir.z
+        expect(behind).toBeGreaterThan(0)
+      }
+    }
   })
 
   it('blows the coach whistle once per run-zombie crew burst (crew-level, not per entity)', () => {

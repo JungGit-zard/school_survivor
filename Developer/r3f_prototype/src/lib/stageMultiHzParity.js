@@ -16,7 +16,7 @@ import {
 } from './enemySimulation.js'
 import { getStageBounds, getStageDurationSec } from './stageConfig.js'
 import { getDefaultWavePhases } from './waveTimelines.js'
-import { getBurstEventsForStage, isBossType } from './burstEvents.js'
+import { STAGE2_GUARD_CHASE_FORMATION, getRuntimeBurstEventsForStage, isBossType } from './burstEvents.js'
 import { getE04IntroSec } from './stage2ProjectileRules.js'
 import {
   GAMEPLAY_FIXED_STEP,
@@ -140,8 +140,35 @@ function spawnBurst(pool, event, bounds, random, stats) {
     }
     return
   }
+  if (event.formation === STAGE2_GUARD_CHASE_FORMATION) {
+    const edge = Math.floor(random() * 4) % 4
+    const startAlong = (random() * 2 - 1) * 0.72
+    const endAlong = (random() * 2 - 1) * 0.72
+    const outer = 1.2
+    const start = edge === 0 ? { x: -bounds.halfX - outer, z: startAlong * bounds.halfZ }
+      : edge === 1 ? { x: bounds.halfX + outer, z: startAlong * bounds.halfZ }
+        : edge === 2 ? { x: startAlong * bounds.halfX, z: -bounds.halfZ - outer }
+          : { x: startAlong * bounds.halfX, z: bounds.halfZ + outer }
+    const end = edge === 0 ? { x: bounds.halfX + outer, z: endAlong * bounds.halfZ }
+      : edge === 1 ? { x: -bounds.halfX - outer, z: endAlong * bounds.halfZ }
+        : edge === 2 ? { x: endAlong * bounds.halfX, z: bounds.halfZ + outer }
+          : { x: endAlong * bounds.halfX, z: -bounds.halfZ - outer }
+    const length = Math.hypot(end.x - start.x, end.z - start.z) || 1
+    const dir = { x: (end.x - start.x) / length, z: (end.z - start.z) / length }
+    if (spawn(pool, 'RZT', start, dir)) stats.spawns += 1
+    else stats.spawnFailures += 1
+    for (let slot = 0; slot < 6; slot += 1) {
+      const row = Math.floor(slot / 2)
+      const side = slot % 2 === 0 ? -0.46 : 0.46
+      const trail = 1.08 + row * 0.96
+      const position = { x: start.x - dir.x * trail - dir.z * side, z: start.z - dir.z * trail + dir.x * side }
+      if (spawn(pool, 'RZG', position, dir)) stats.spawns += 1
+      else stats.spawnFailures += 1
+    }
+    return
+  }
   const count = event.count ?? 1
-  const runCrew = event.type === 'RZL' || event.type === 'RZC'
+  const runCrew = event.type === 'RZL' || event.type === 'RZC' || event.type === 'RZT' || event.type === 'RZG'
   for (let slot = 0; slot < count; slot += 1) {
     const position = randomSpawnPosition(bounds, random, slot)
     const runDirection = runCrew ? { x: -Math.sign(position.x || 1), z: -Math.sign(position.z || 1) } : null
@@ -246,7 +273,7 @@ export function runStageAtRenderHz({ stageId, renderHz, seed = MULTI_HZ_SEED } =
   const simulation = createEnemySimulationRuntime()
   const projectiles = createEnemyProjectilePool()
   const phases = getDefaultWavePhases(stageId)
-  const bursts = getBurstEventsForStage(stageId)
+  const bursts = getRuntimeBurstEventsForStage(stageId)
   const random = mulberry32((seed ^ hashStage(stageId)) >>> 0)
   const inputLog = createDeterministicStageInputLog(stageId, seed)
   const clock = createGameplayFixedStepClock()

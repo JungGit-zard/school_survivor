@@ -14,7 +14,7 @@ import { getE04Cap, getE04IntroSec } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { dogeEscapeDirection } from '../lib/dogeEscape.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
-import { RUN_ZOMBIE_CREW_FORMATION, getBurstEventsForStage, getRuntimeBurstEventsForStage, isBossType } from '../lib/burstEvents.js'
+import { RUN_ZOMBIE_CREW_FORMATION, STAGE2_GUARD_CHASE_FORMATION, getBurstEventsForStage, getRuntimeBurstEventsForStage, isBossType } from '../lib/burstEvents.js'
 import { buildWavePhasesFromEntries } from '../lib/waveControl.js'
 import { getAdminWaveControlConfig } from '../lib/adminConfig.js'
 import { enemyTypeToCode, enemyTypeFromCode, createEnemyEntityPool, MAX_ENEMIES } from '../lib/enemyEntityPool.js'
@@ -281,6 +281,7 @@ const GAUNTLET_WALL_INSET = 0.8
 
 export const RUN_ZOMBIE_CREW_SIZE = 13
 export const RUN_ZOMBIE_CREW_DIR = Object.freeze({ x: 1, z: 1 })
+export const STAGE2_GUARD_CHASE_SIZE = 7
 
 export function formationSpawnPositions(formation, count, bounds, player, random = Math.random, obstacles = [], type = 'E01') {
   const limX = bounds.halfX - SPAWN_INSET
@@ -538,6 +539,48 @@ export function midWaveSizeForStage(phase, stageId = 'stage1') {
     : densitySize
 }
 
+// Stage 2 chase crew deliberately does not use obstacle-safe placement: both
+// roles are screen-crossing runners and the simulation lets these two types
+// pass through classroom props. Injected random keeps every edge case testable.
+export function createStage2GuardChaseEntries(bounds, random = Math.random) {
+  const edge = Math.floor(random() * 4) % 4
+  const startAlong = (random() * 2 - 1) * 0.72
+  const endAlong = (random() * 2 - 1) * 0.72
+  const outer = 1.2
+  let startX = 0; let startZ = 0; let endX = 0; let endZ = 0
+  if (edge === 0) {
+    startX = -bounds.halfX - outer; startZ = startAlong * bounds.halfZ
+    endX = bounds.halfX + outer; endZ = endAlong * bounds.halfZ
+  } else if (edge === 1) {
+    startX = bounds.halfX + outer; startZ = startAlong * bounds.halfZ
+    endX = -bounds.halfX - outer; endZ = endAlong * bounds.halfZ
+  } else if (edge === 2) {
+    startX = startAlong * bounds.halfX; startZ = -bounds.halfZ - outer
+    endX = endAlong * bounds.halfX; endZ = bounds.halfZ + outer
+  } else {
+    startX = startAlong * bounds.halfX; startZ = bounds.halfZ + outer
+    endX = endAlong * bounds.halfX; endZ = -bounds.halfZ - outer
+  }
+  const length = Math.hypot(endX - startX, endZ - startZ) || 1
+  const runCrewDir = { x: (endX - startX) / length, z: (endZ - startZ) / length }
+  const perpendicular = { x: -runCrewDir.z, z: runCrewDir.x }
+  const entries = [{
+    type: 'RZT', pos: [startX, 0, startZ], runCrewDir, runCrewRole: 'fugitive',
+  }]
+  for (let index = 0; index < STAGE2_GUARD_CHASE_SIZE - 1; index += 1) {
+    const row = Math.floor(index / 2)
+    const side = index % 2 === 0 ? -0.46 : 0.46
+    const trail = 1.08 + row * 0.96
+    entries.push({
+      type: 'RZG',
+      pos: [startX - runCrewDir.x * trail + perpendicular.x * side, 0, startZ - runCrewDir.z * trail + perpendicular.z * side],
+      runCrewDir,
+      runCrewRole: 'guard',
+    })
+  }
+  return entries
+}
+
 // 중간 보강 스폰 시각 목록 — 웨이브 스케줄과 동일 random으로 파생하는 순수 함수(테스트/미리보기용).
 // 대상 스테이지가 아니면 빈 목록(보강 스폰 없음).
 export function getMidpointSpawnSeconds(phases, stageId = 'stage1', random = Math.random) {
@@ -646,6 +689,16 @@ export function stageRunCrewFixedHp(stageId) {
   return total
 }
 
+export function stage2GuardChaseFixedHp(stageId) {
+  if (stageId !== 'stage2') return 0
+  const mult = STAGE_HP_MULTIPLIER[stageId] ?? 1
+  const crewHp = Math.round(ENEMY_STATS.RZT.hp * mult)
+    + Math.round(ENEMY_STATS.RZG.hp * mult) * (STAGE2_GUARD_CHASE_SIZE - 1)
+  return getRuntimeBurstEventsForStage(stageId)
+    .filter((evt) => evt.formation === STAGE2_GUARD_CHASE_FORMATION)
+    .length * crewHp
+}
+
 // 스테이지별 잡몹계 실전달 총 HP 목표(앵커=stage1 총량의 배수). 이 표가 총량의 유일한 결정자다.
 // 블렌드가 실전달 총량을 앵커×factor에 맞추도록 √c를 역산하므로, 타임라인 target·weights를
 // 아무리 흔들어도 총량은 이 표에 고정된다 — 타임라인은 "총량 배분(곡선 모양)"만 바꾼다.
@@ -727,6 +780,10 @@ export function stageJarmobLoadWindows(stageId, windowSec = 20, totalSec = 240) 
       const mult = STAGE_HP_MULTIPLIER[stageId] ?? 1
       buckets[bucketAt(evt.sec)] += Math.round(ENEMY_STATS.RZL.hp * mult)
         + Math.round(ENEMY_STATS.RZC.hp * mult) * (RUN_ZOMBIE_CREW_SIZE - 1)
+    } else if (evt.formation === STAGE2_GUARD_CHASE_FORMATION) {
+      const mult = STAGE_HP_MULTIPLIER[stageId] ?? 1
+      buckets[bucketAt(evt.sec)] += Math.round(ENEMY_STATS.RZT.hp * mult)
+        + Math.round(ENEMY_STATS.RZG.hp * mult) * (STAGE2_GUARD_CHASE_SIZE - 1)
     } else if (JARMOB_HP_TYPES.has(evt.type)) {
       buckets[bucketAt(evt.sec)] += (evt.count ?? 1) * (ENEMY_STATS[evt.type]?.hp ?? 0) * m
     }
@@ -817,7 +874,7 @@ let _coinId = 0
 let _collapseId = 0
 let _chestId = 0
 
-const STANDARD_POOL_TYPE_MAX = 8
+const STANDARD_POOL_TYPE_MAX = 14
 const MAX_SPECIAL_ENEMIES = 3
 const MAX_RUNTIME_QUEUE = 256
 const EMPTY_IMPACT = Object.freeze({})
@@ -980,7 +1037,7 @@ export default function Enemies() {
       }
       while (queue.deathCount > 0) {
         const slot = queue.deathRead
-        const type = ['','E01','E02','E03','E04','E05','E06','RZL','RZC'][queue.deathType[slot]]
+        const type = enemyTypeFromCode(queue.deathType[slot])
         const pos = [queue.deathX[slot], queue.deathY[slot], queue.deathZ[slot]]
         const dropData = {
           pos, xp: queue.deathXp[slot], type, visualScale: queue.deathScale[slot],
@@ -1269,6 +1326,10 @@ export default function Enemies() {
       if (evt.formation === RUN_ZOMBIE_CREW_FORMATION) {
         emitSfx({ id: 'rzlWhistle', volume: 0.5 })
         addEnemies(createRunZombieCrewEntries(cache.bounds, Math.random, cache.obstacles).map((entry) => ({ id: ++_uid, ...entry, statOverride: stageHpOverride(entry.type, cache.id) })), true, cache.spawnToken)
+        return
+      }
+      if (evt.formation === STAGE2_GUARD_CHASE_FORMATION) {
+        addEnemies(createStage2GuardChaseEntries(cache.bounds, Math.random).map((entry) => ({ id: ++_uid, ...entry, statOverride: stageHpOverride(entry.type, cache.id) })), true, cache.spawnToken)
         return
       }
       const count = evt.count ?? 1

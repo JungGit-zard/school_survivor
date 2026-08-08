@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { ENEMY_STATS } from './Enemy.jsx'
-import { B01_BOSS_FACE, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_STAGE2_BOSS_FACE, B02_STAGE2_BOSS_PALETTE, B02_STAGE2_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS, B04_CHEF_FACE, B04_CHEF_PALETTE, B04_CHEF_PARTS, RUN_ZOMBIE_VISUAL, ZOMBIE_PALETTE } from './ZombieMesh.jsx'
+import { B01_BOSS_FACE, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_STAGE2_BOSS_FACE, B02_STAGE2_BOSS_PALETTE, B02_STAGE2_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS, B04_CHEF_FACE, B04_CHEF_PALETTE, B04_CHEF_PARTS, RUN_ZOMBIE_VISUAL, STAGE2_GUARD_CHASE_VISUAL, ZOMBIE_PALETTE } from './ZombieMesh.jsx'
 import { GRAPHICS_STUDIO_CATALOG, getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
 
 const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
@@ -271,6 +271,23 @@ describe('Stage 3 run zombie crew visual reference', () => {
     expect(zombieMeshSource).toContain("type === 'RZL' || type === 'RZC'")
     expect(zombieMeshSource).toContain("role={type === 'RZL' ? 'leader' : 'crew'}")
     expect(zombieMeshSource).toContain('<BibDigits text={cfg.bib} />')
+  })
+})
+
+describe('Stage 2 security guard chase visuals', () => {
+  it('registers fully clothed fugitive and guard models through the shared Studio wrapper', () => {
+    expect(ENEMY_STATS.RZT).toMatchObject({ hp: 28, speed: 2.55, damage: 6, scale: 0.88, xp: 5, contactDist: 0.22, runCrew: true })
+    expect(ENEMY_STATS.RZG).toMatchObject({ hp: 48, speed: 2.45, damage: 9, scale: 0.92, xp: 6, contactDist: 0.24, runCrew: true })
+    expect(ZOMBIE_PALETTE.RZT).toMatchObject({ body: 0xa87843 })
+    expect(ZOMBIE_PALETTE.RZG).toMatchObject({ body: 0x173a5e })
+    expect(STAGE2_GUARD_CHASE_VISUAL.parts).toEqual(expect.arrayContaining(['longTanTrenchCoat', 'navySecurityCap', 'yellowSecurityVest', 'fullClothing']))
+    expect(getStudioZombieItemId('RZT')).toBe('zombie-rzt')
+    expect(getStudioZombieItemId('RZG')).toBe('zombie-rzg')
+    expect(GRAPHICS_STUDIO_CATALOG.some((entry) => entry.id === 'zombie-rzt')).toBe(true)
+    expect(GRAPHICS_STUDIO_CATALOG.some((entry) => entry.id === 'zombie-rzg')).toBe(true)
+    expect(zombieMeshSource).toContain('function Stage2GuardChaseZombieMesh')
+    expect(zombieMeshSource).toContain("if (type === 'RZT' || type === 'RZG')")
+    expect(zombieMeshSource).toContain('<StudioTunedGroup itemId={getStudioZombieItemId(type)}>')
   })
 })
 

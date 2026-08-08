@@ -154,9 +154,9 @@ describe('pooled enemy visual pure contracts', () => {
   })
 
   it('applies every pooled zombie item part tuning through the canonical Studio cache', () => {
-    const partCount = 33
-    const cache = new Float32Array(9 * partCount * 9)
-    for (let type = 1; type <= 8; type += 1) {
+    const partCount = 66
+    const cache = new Float32Array(15 * partCount * 9)
+    for (const type of [1, 2, 3, 4, 5, 6, 7, 8, 13, 14]) {
       const base = type * partCount * 9
       for (let part = 0; part < partCount; part += 1) {
         cache[base + part * 9 + 6] = 1
@@ -164,23 +164,47 @@ describe('pooled enemy visual pure contracts', () => {
         cache[base + part * 9 + 8] = 1
       }
     }
-    const itemIds = ['', 'zombie-e01', 'zombie-e02', 'zombie-e03', 'zombie-e04', 'zombie-e05', 'zombie-e06', 'zombie-rzl', 'zombie-rzc']
-    const tunings = Object.fromEntries(itemIds.slice(1).map((itemId, index) => [`${itemId}::part::0.0.0`, {
+    const itemIds = ['', 'zombie-e01', 'zombie-e02', 'zombie-e03', 'zombie-e04', 'zombie-e05', 'zombie-e06', 'zombie-rzl', 'zombie-rzc', '', '', '', '', 'zombie-rzt', 'zombie-rzg']
+    const types = [1, 2, 3, 4, 5, 6, 7, 8, 13, 14]
+    const tunings = Object.fromEntries(types.map((type, index) => [`${itemIds[type]}::part::0.0.0`, {
       positionX: (index + 1) * 0.1,
       rotationY: 15,
       scale: 1.2,
     }]))
     const slots = new Int16Array(12)
 
-    for (let type = 1; type <= 8; type += 1) {
+    for (const [index, type] of types.entries()) {
       applyPooledZombieStudioPartTunings(cache, type, partCount, itemIds[type], tunings, getStudioTransformProps, composeStudioPartTransformCache, slots)
       const slotCount = pooledZombiePartSlotsForNumericPath(type, '0.0.0', slots)
       expect(slotCount).toBe(1)
       const offset = type * partCount * 9 + slots[0] * 9
-      expect(cache[offset]).toBeCloseTo(type * 0.1)
+      expect(cache[offset]).toBeCloseTo((index + 1) * 0.1)
       expect(cache[offset + 4]).toBeCloseTo(THREE.MathUtils.degToRad(15))
       expect(cache[offset + 6]).toBeCloseTo(1.2)
     }
+  })
+
+  it('maps Stage 2 fugitive and guard numeric paths to their dedicated pooled slots', () => {
+    const slots = new Int16Array(12)
+    const cases = [
+      [13, '0.0.0', 33], [13, '0.0.1', 34], [13, '0.0.4', 37], [13, '0.1.0', 38], [13, '0.2.0', 41], [13, '0.4.1', 46],
+      [14, '0.0.0', 49], [14, '0.0.5', 54], [14, '0.1.2', 57], [14, '0.2.0', 58], [14, '0.5.1', 65],
+    ]
+    for (const [type, path, expected] of cases) {
+      expect(pooledZombiePartSlotsForNumericPath(type, path, slots)).toBe(1)
+      expect(slots[0]).toBe(expected)
+    }
+    expect(pooledZombiePartSlotsForNumericPath(13, '0.0', slots)).toBe(5)
+    expect(pooledZombiePartSlotsForNumericPath(14, '0.1', slots)).toBe(3)
+  })
+
+  it('uses dedicated RZT/RZG fixed geometry instead of the Stage 3 RUN array', () => {
+    const layerSource = readFileSync(new URL('./ZombieInstanceLayer.jsx', import.meta.url), 'utf8')
+    expect(layerSource).toContain("const RZT = [")
+    expect(layerSource).toContain("const RZG = [")
+    expect(layerSource).toContain("['scarf','scarf',[.60,.075,.44]")
+    expect(layerSource).toContain("['capBrim','cap',[.34,.055,.18]")
+    expect(layerSource).toContain('const parts=type===13?RZT:type===14?RZG:RUN_TYPES.has(type)?RUN:STANDARD')
   })
 
   it('forbids pooled renderers from redefining the canonical Studio transform arithmetic', () => {

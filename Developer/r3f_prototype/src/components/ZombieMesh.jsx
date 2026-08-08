@@ -26,6 +26,8 @@ export const ZOMBIE_PALETTE = {
   B03: { body: 0x18324a, skin: 0x91ad68, eye: 0xff493d },
   RZL: { body: 0x5a2484, skin: 0x8fa85e, eye: 0x101010 },
   RZC: { body: 0x1671a6, skin: 0x8fa85e, eye: 0x101010 },
+  RZT: { body: 0xa87843, skin: 0x8fa85e, eye: 0xffd45c },
+  RZG: { body: 0x173a5e, skin: 0x88a75f, eye: 0xff573d },
 }
 
 export const B01_BOSS_VISUAL_PALETTE = {
@@ -194,6 +196,12 @@ export const RUN_ZOMBIE_VISUAL = {
   parts: ['headband', 'bib', 'medal', 'wristbands', 'chunkyRunningShoes', 'runningPose'],
 }
 
+export const STAGE2_GUARD_CHASE_VISUAL = {
+  fugitive: { coat: 0xb48755, coatShadow: 0x76502d, scarf: 0xd8b057, pants: 0x382d29, shoe: 0x171717, hair: 0x35251c },
+  guard: { uniform: 0x173a5e, vest: 0xe3bf3f, cap: 0x102c4a, badge: 0xf3d46b, pants: 0x13263b, shoe: 0x111317 },
+  parts: ['longTanTrenchCoat', 'panicScarf', 'navySecurityCap', 'yellowSecurityVest', 'badge', 'fullClothing'],
+}
+
 function BibDigits({ text, y = 0.03 }) {
   const digitColor = 0x151515
   return (
@@ -259,6 +267,49 @@ function RunZombieMesh({ role = 'crew', hitFlash, reg }) {
         <ZBlock size={[0.28, 0.13, 0.38]} position={[0, -0.53, 0.08]} color={cfg.shoe} emissive={0.07} outlineScale={1.04} flash={hitFlash} />
         <ZBlock size={[0.30, 0.045, 0.40]} position={[0, -0.61, 0.08]} color={0xf5f1e8} emissive={0.03} outlineScale={1.0} flash={hitFlash} />
       </group>
+    </group>
+  )
+}
+
+function Stage2GuardChaseZombieMesh({ type, hitFlash, reg }) {
+  const isFugitive = type === 'RZT'
+  const pal = ZOMBIE_PALETTE[type]
+  const visual = isFugitive ? STAGE2_GUARD_CHASE_VISUAL.fugitive : STAGE2_GUARD_CHASE_VISUAL.guard
+  const torso = isFugitive ? visual.coat : visual.uniform
+
+  return (
+    <group name={isFugitive ? 'stage2TrenchCoatFugitive' : 'stage2SecurityGuardPursuer'}>
+      <group ref={reg('head')} position={[0, 0.84, 0]}>
+        <ZBlock name="chaseHead" size={[0.52, 0.48, 0.46]} position={[0, 0, 0]} color={pal.skin} emissive={0.07} outlineScale={1.08} flash={hitFlash} />
+        {isFugitive ? (
+          <>
+            <ZBlock name="fugitiveHair" size={[0.54, 0.14, 0.47]} position={[0, 0.17, -0.015]} color={visual.hair} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
+            <ZBlock name="fugitiveEyeL" size={[0.11, 0.10, 0.05]} position={[-0.12, 0.015, 0.25]} color={pal.eye} emissive={0.16} outlineScale={1} flash={hitFlash} />
+            <ZBlock name="fugitiveEyeR" size={[0.11, 0.10, 0.05]} position={[0.12, 0.015, 0.25]} color={pal.eye} emissive={0.16} outlineScale={1} flash={hitFlash} />
+            <ZBlock name="fugitivePanicMouth" size={[0.18, 0.10, 0.05]} position={[0, -0.16, 0.25]} color={0x381510} emissive={0.04} outlineScale={1} flash={hitFlash} />
+          </>
+        ) : (
+          <>
+            <ZBlock name="guardCap" size={[0.56, 0.12, 0.50]} position={[0, 0.18, 0]} color={visual.cap} emissive={0.06} outlineScale={1.03} flash={hitFlash} />
+            <ZBlock name="guardCapBrim" size={[0.34, 0.055, 0.18]} position={[0, 0.13, 0.28]} color={visual.cap} emissive={0.05} outlineScale={1} flash={hitFlash} />
+            <ZBlock name="guardEyeL" size={[0.11, 0.10, 0.05]} position={[-0.12, 0.015, 0.25]} color={pal.eye} emissive={0.12} outlineScale={1} flash={hitFlash} />
+            <ZBlock name="guardEyeR" size={[0.11, 0.10, 0.05]} position={[0.12, 0.015, 0.25]} color={pal.eye} emissive={0.12} outlineScale={1} flash={hitFlash} />
+            <ZBlock name="guardCommandMouth" size={[0.22, 0.075, 0.05]} position={[0, -0.15, 0.25]} color={0x35100f} emissive={0.04} outlineScale={1} flash={hitFlash} />
+          </>
+        )}
+      </group>
+      <group ref={reg('body')} position={[0, 0.28, 0]}>
+        <ZBlock name="chaseTorso" size={[0.58, isFugitive ? 0.68 : 0.58, 0.42]} position={[0, 0, 0]} color={torso} emissive={0.10} outlineScale={1.08} flash={hitFlash} />
+        {isFugitive ? (
+          <><ZBlock name="fugitiveScarf" size={[0.60, 0.075, 0.44]} position={[0, 0.25, 0.02]} color={visual.scarf} emissive={0.08} outlineScale={1} flash={hitFlash} /><ZBlock name="fugitiveCoatBelt" size={[0.62, 0.06, 0.44]} position={[0, -0.10, 0.02]} color={visual.coatShadow} emissive={0.05} outlineScale={1} flash={hitFlash} /></>
+        ) : (
+          <><ZBlock name="guardSafetyVest" size={[0.61, 0.48, 0.055]} position={[0, 0.01, 0.24]} color={visual.vest} emissive={0.12} outlineScale={1} flash={hitFlash} /><ZBlock name="guardBadge" size={[0.10, 0.13, 0.05]} position={[-0.14, 0.12, 0.285]} color={visual.badge} emissive={0.18} outlineScale={1} flash={hitFlash} /></>
+        )}
+      </group>
+      <group ref={reg('armL')} position={[-0.40, 0.52, 0]} rotation={[-1.18, 0, -0.20]}><ZBlock name="chaseArmL" size={[0.20, 0.50, 0.20]} position={[0, -0.25, 0]} color={torso} emissive={0.08} outlineScale={1.05} flash={hitFlash} /><ZBlock name="chaseHandL" size={[0.18, 0.16, 0.18]} position={[0, -0.55, 0]} color={pal.skin} emissive={0.07} outlineScale={1.03} flash={hitFlash} /></group>
+      <group ref={reg('armR')} position={[0.40, 0.52, 0]} rotation={[-1.50, 0, 0.20]}><ZBlock name="chaseArmR" size={[0.20, 0.50, 0.20]} position={[0, -0.25, 0]} color={torso} emissive={0.08} outlineScale={1.05} flash={hitFlash} /><ZBlock name="chaseHandR" size={[0.18, 0.16, 0.18]} position={[0, -0.55, 0]} color={pal.skin} emissive={0.07} outlineScale={1.03} flash={hitFlash} /></group>
+      <group ref={reg('legL')} position={[-0.15, 0, 0]}><ZBlock name="chaseLegL" size={[0.22, 0.50, 0.26]} position={[0, -0.25, 0]} color={visual.pants} emissive={0.07} outlineScale={1.05} flash={hitFlash} /><ZBlock name="chaseShoeL" size={[0.26, 0.12, 0.36]} position={[0, -0.55, 0.06]} color={visual.shoe} emissive={0.05} outlineScale={1.03} flash={hitFlash} /></group>
+      <group ref={reg('legR')} position={[0.15, 0, 0]}><ZBlock name="chaseLegR" size={[0.22, 0.50, 0.26]} position={[0, -0.25, 0]} color={visual.pants} emissive={0.07} outlineScale={1.05} flash={hitFlash} /><ZBlock name="chaseShoeR" size={[0.26, 0.12, 0.36]} position={[0, -0.55, 0.06]} color={visual.shoe} emissive={0.05} outlineScale={1.03} flash={hitFlash} /></group>
     </group>
   )
 }
@@ -858,7 +909,7 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
 
     // 런좀비 크루: 일반 좀비 보행이 아니라 전력질주 실루엣.
     // 팔은 앞뒤로 크게 펌핑, 몸은 진행 방향으로 숙이고, 다리는 빠른 보폭으로 교차한다.
-    if (type === 'RZL' || type === 'RZC') {
+    if (type === 'RZL' || type === 'RZC' || type === 'RZT' || type === 'RZG') {
       const stride = Math.sin(t * 13.5)
       const pump = Math.sin(t * 13.5 + Math.PI)
       if (pt.body) {
@@ -919,6 +970,14 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     return (
       <StudioTunedGroup itemId={getStudioZombieItemId(type)}>
         <RunZombieMesh role={type === 'RZL' ? 'leader' : 'crew'} hitFlash={hitFlash} reg={reg} />
+      </StudioTunedGroup>
+    )
+  }
+
+  if (type === 'RZT' || type === 'RZG') {
+    return (
+      <StudioTunedGroup itemId={getStudioZombieItemId(type)}>
+        <Stage2GuardChaseZombieMesh type={type} hitFlash={hitFlash} reg={reg} />
       </StudioTunedGroup>
     )
   }

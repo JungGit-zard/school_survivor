@@ -52,8 +52,9 @@ import {
   randomSpawnPos,
   stageHpOverride,
   waveSizeForStageAtTime,
+  createStage2GuardChaseEntries,
 } from '../components/Enemies.jsx'
-import { getRuntimeBurstEventsForStage, isBossType, RUN_ZOMBIE_CREW_FORMATION } from './burstEvents.js'
+import { getRuntimeBurstEventsForStage, isBossType, RUN_ZOMBIE_CREW_FORMATION, STAGE2_GUARD_CHASE_FORMATION } from './burstEvents.js'
 import { ENEMY_STATS } from '../components/Enemy.jsx'
 import { useGameStore } from '../store/useGameStore.js'
 
@@ -151,6 +152,12 @@ function enqueueBurst(spawnDrain, evt, context, stats) {
   }
   if (evt.formation === RUN_ZOMBIE_CREW_FORMATION) {
     const entries = createRunZombieCrewEntries(context.spawnBounds, Math.random, context.obstacles)
+    for (const entry of entries) push({ ...entry, statOverride: stageHpOverride(entry.type, context.stageId) })
+    stats.crewSpawns += entries.length
+    return
+  }
+  if (evt.formation === STAGE2_GUARD_CHASE_FORMATION) {
+    const entries = createStage2GuardChaseEntries(context.spawnBounds, Math.random)
     for (const entry of entries) push({ ...entry, statOverride: stageHpOverride(entry.type, context.stageId) })
     stats.crewSpawns += entries.length
     return

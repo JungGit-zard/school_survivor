@@ -45,12 +45,12 @@ export const ENEMY_STUCK_RECOVERY_MS = 1200
 export const ENEMY_STUCK_MOVE_EPSILON_SQ = 1e-6
 
 // JSX ENEMY_STATS와 수치를 맞춘 순수 런타임 lookup. 다음 통합 단계에서 Enemy.jsx가 이 정본을 import한다.
-export const ENEMY_RUNTIME_HP = new Float32Array([0, 8, 70, 14, 32, 70, 320, 90, 28])
-export const ENEMY_RUNTIME_SPEED = new Float32Array([0, 0.475, 0.385, 1.1, 0.45, 0.5, 0.6, 2.45, 2.18])
-export const ENEMY_RUNTIME_DAMAGE = new Float32Array([0, 8, 14, 6, 8, 16, 20, 14, 7])
-export const ENEMY_RUNTIME_SCALE = new Float32Array([0, 1, 1.4, 0.75, 0.9, 1.15, 1.6, 1.08, 0.78])
-export const ENEMY_RUNTIME_XP = new Float32Array([0, 6, 15, 5, 10, 15, 56, 12, 5])
-export const ENEMY_RUNTIME_CONTACT_DIST = new Float32Array([0, 0.28, 0.36, 0.22, 0.26, 0.32, 0.42, 0.28, 0.22])
+export const ENEMY_RUNTIME_HP = new Float32Array([0, 8, 70, 14, 32, 70, 320, 90, 28, 0, 0, 0, 0, 28, 48])
+export const ENEMY_RUNTIME_SPEED = new Float32Array([0, 0.475, 0.385, 1.1, 0.45, 0.5, 0.6, 2.45, 2.18, 0, 0, 0, 0, 2.55, 2.45])
+export const ENEMY_RUNTIME_DAMAGE = new Float32Array([0, 8, 14, 6, 8, 16, 20, 14, 7, 0, 0, 0, 0, 6, 9])
+export const ENEMY_RUNTIME_SCALE = new Float32Array([0, 1, 1.4, 0.75, 0.9, 1.15, 1.6, 1.08, 0.78, 0, 0, 0, 0, 0.88, 0.92])
+export const ENEMY_RUNTIME_XP = new Float32Array([0, 6, 15, 5, 10, 15, 56, 12, 5, 0, 0, 0, 0, 5, 6])
+export const ENEMY_RUNTIME_CONTACT_DIST = new Float32Array([0, 0.28, 0.36, 0.22, 0.26, 0.32, 0.42, 0.28, 0.22, 0, 0, 0, 0, 0.22, 0.24])
 
 function isFiniteNumber(value) {
   return Number.isFinite(value)
@@ -77,8 +77,16 @@ function isRunCrew(type) {
   return type === 7 || type === 8
 }
 
+function isScreenRunner(type) {
+  return isRunCrew(type) || type === 13 || type === 14
+}
+
+function ignoresObstacles(type) {
+  return type === 13 || type === 14
+}
+
 function isMelee(type) {
-  return type === 1 || type === 2 || type === 3 || type === 5 || type === 6 || type === 7 || type === 8
+  return type === 1 || type === 2 || type === 3 || type === 5 || type === 6 || type === 7 || type === 8 || type === 13 || type === 14
 }
 
 function contactDistance(type) {
@@ -505,7 +513,7 @@ export class EnemySimulationRuntime {
 
     for (let index = 0; index <= pool.highestActive; index += 1) {
       if (!pool.active[index]) continue
-      if (pool.type[index] < 1 || pool.type[index] > 8 || !hasFiniteSlot(pool, index)) {
+      if (pool.type[index] < 1 || pool.type[index] > 8 && pool.type[index] < 13 || pool.type[index] > 14 || !hasFiniteSlot(pool, index)) {
         this._despawn(pool, index, ENEMY_EVENT_ERROR, 0, null)
         continue
       }
@@ -521,9 +529,12 @@ export class EnemySimulationRuntime {
       // reveal은 공격/이동만 막는다. legacy/direct invalid spawn도 첫 step부터 obstacle
       // 밖에 있어야 하므로 위치 정리는 phase 판정보다 앞에서 수행한다.
       const radius = enemyCollisionRadius(type)
-      const allowOuterBounds = isRunCrew(type)
+      const allowOuterBounds = isScreenRunner(type)
+      const ignoreObstacles = ignoresObstacles(type)
       let placementSafe = true
-      if (obstacleCount > 0 && obstacles) {
+      if (ignoreObstacles) {
+        clampEnemyPosition(pool.posX[index], pool.posZ[index], radius, halfX, halfZ, allowOuterBounds, this._positionScratch)
+      } else if (obstacleCount > 0 && obstacles) {
         placementSafe = resolveEnemyObstaclePenetrationInto(this._positionScratch, pool.posX[index], pool.posZ[index], radius,
           obstacles, obstacleCount, halfX, halfZ, allowOuterBounds)
         if (!placementSafe) {
@@ -567,7 +578,7 @@ export class EnemySimulationRuntime {
       let moving = false
       let preserveFacing = false
 
-      if (isRunCrew(type)) {
+      if (isScreenRunner(type)) {
         velocityX = pool.runDirX[index] * ENEMY_RUNTIME_SPEED[type]
         velocityZ = pool.runDirZ[index] * ENEMY_RUNTIME_SPEED[type]
         moving = true
@@ -632,7 +643,7 @@ export class EnemySimulationRuntime {
         }
       }
 
-      if (sightBlocked && sightBlocked[index] && !isRunCrew(type) && !preserveFacing) {
+      if (sightBlocked && sightBlocked[index] && !isScreenRunner(type) && !preserveFacing) {
         const side = ((index + generation) & 1) === 0 ? 1 : -1
         velocityX = -nz * side * ENEMY_RUNTIME_SPEED[type] * 0.55
         velocityZ = nx * side * ENEMY_RUNTIME_SPEED[type] * 0.55
@@ -688,7 +699,7 @@ export class EnemySimulationRuntime {
       pool.velZ[index] = velocityZ
       let nextX = posX
       let nextZ = posZ
-      if (obstacleCount > 0 && obstacles) {
+      if (!ignoreObstacles && obstacleCount > 0 && obstacles) {
         const tangentSign = pool.detourSign[index] || (((index + generation) & 1) === 0 ? 1 : -1)
         moveEnemyWithObstacleSlideInto(this._positionScratch, posX, posZ, velocityX, velocityZ, delta, radius,
           obstacles, obstacleCount, halfX, halfZ, allowOuterBounds, tangentSign)
@@ -701,7 +712,7 @@ export class EnemySimulationRuntime {
       }
       const movedX = nextX - posX
       const movedZ = nextZ - posZ
-      const overlapAfterMove = obstacleCount > 0 && obstacles
+      const overlapAfterMove = !ignoreObstacles && obstacleCount > 0 && obstacles
         && collidesEnemyObstacle(nextX, nextZ, radius, obstacles, obstacleCount)
       if (moving && (velocityX !== 0 || velocityZ !== 0) && (movedX * movedX + movedZ * movedZ < ENEMY_STUCK_MOVE_EPSILON_SQ || overlapAfterMove)) {
         pool.stuckMs[index] += deltaMs
@@ -728,7 +739,7 @@ export class EnemySimulationRuntime {
       pool.posX[index] = nextX
       pool.posZ[index] = nextZ
 
-      if (isRunCrew(type) && (Math.abs(nextX) > halfX + 6 || Math.abs(nextZ) > halfZ + 6)) {
+      if (isScreenRunner(type) && (Math.abs(nextX) > halfX + 6 || Math.abs(nextZ) > halfZ + 6)) {
         this._despawn(pool, index, ENEMY_EVENT_DESPAWN, 0, context.onDespawn)
         continue
       }

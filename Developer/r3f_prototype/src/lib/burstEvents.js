@@ -11,6 +11,7 @@ import { BOSS_SPAWN_CENTER_SEC, BOSS_SPAWN_JITTER_SEC } from './stageConfig.js'
 export const BOSS_BURST_TYPES = ['B01', 'B02', 'B03', 'B04']
 export const isBossType = (type) => BOSS_BURST_TYPES.includes(type)
 export const RUN_ZOMBIE_CREW_FORMATION = 'runZombieCrew'
+export const STAGE2_GUARD_CHASE_FORMATION = 'stage2GuardChase'
 
 // 4분 타임라인. 5분 기준 sec ×0.8.
 export const BURST_EVENTS = [
@@ -42,6 +43,11 @@ export const STAGE2_BURST_EVENTS = [
   { sec: 120, type: 'B02', count:  1 },  // 보스 등장 (2:00) — 보스 구간 파생 기준
   { sec: 216, type: 'E05', count:  3 },
   { sec: 216, type: 'E04', count:  1 },
+  // Stage 2 only: fleeing trench-coat zombie followed by six security guards.
+  { sec:  42, type: 'RZT', count:  7, formation: STAGE2_GUARD_CHASE_FORMATION },
+  { sec:  88, type: 'RZT', count:  7, formation: STAGE2_GUARD_CHASE_FORMATION },
+  { sec: 136, type: 'RZT', count:  7, formation: STAGE2_GUARD_CHASE_FORMATION },
+  { sec: 216, type: 'RZT', count:  7, formation: STAGE2_GUARD_CHASE_FORMATION },
   // ── 형태(formation) 버스트 (2026-07-10) — 균일 압력을 깨는 스파이크→이완 비트.
   // 유지 루프가 총원을 target과 비교하므로 형태로 채운 만큼 자동으로 덜 스폰된다(의도).
   // E04/보스와 시각 겹치지 않게 배치. 예고 정본은 waveTimelines.STAGE2_SPAWN_TELEGRAPHS.
@@ -117,7 +123,9 @@ export function getRuntimeBurstEventsForStage(stageId, bossSpawnSec = null) {
   const events = getBurstEventsForStage(stageId)
   const runtimeEvents = stageId === 'stage3' || stageId === 'stage4'
     ? events
-    : events.filter((event) => isBossType(event.type))
+    : stageId === 'stage2'
+      ? events.filter((event) => isBossType(event.type) || event.formation === STAGE2_GUARD_CHASE_FORMATION)
+      : events.filter((event) => isBossType(event.type))
   if (!Number.isFinite(bossSpawnSec)) return runtimeEvents
   return runtimeEvents.map((event) => (
     isBossType(event.type) ? { ...event, sec: bossSpawnSec } : event

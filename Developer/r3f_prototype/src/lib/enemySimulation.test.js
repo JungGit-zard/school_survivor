@@ -573,4 +573,23 @@ describe('enemySimulation 순수 일반 적 런타임', () => {
     expect([pool.active, pool.posX, runtime.grid.head, runtime.grid.next, runtime.events.type].map((item) => item.length)).toEqual(lengths)
     expect(pool.get(old[0])).not.toBeNull()
   })
+
+  it('lets only Stage 2 chase runners pass straight through props and despawn beyond the opposite boundary', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const obstacles = [{ x: 0, z: 0, halfX: 1.1, halfZ: 1.1 }]
+    const fugitive = spawn(pool, 'RZT', -2, 0, { spawnTimer: 300, runDirX: 1, runDirZ: 0 })
+    const guard = spawn(pool, 'RZG', -2.8, 0, { spawnTimer: 300, runDirX: 1, runDirZ: 0 })
+    for (let frame = 0; frame < 60; frame += 1) runtime.step(pool, context({ halfX: 3, halfZ: 3, obstacles, obstacleCount: 1 }))
+    expect(pool.posX[fugitive.index]).toBeGreaterThan(0)
+    expect(pool.posX[guard.index]).toBeGreaterThan(-1)
+    expect(collidesEnemyObstacle(pool.posX[fugitive.index], pool.posZ[fugitive.index], enemyCollisionRadius(13), obstacles, 1)).toBe(true)
+    for (let frame = 0; frame < 250; frame += 1) runtime.step(pool, context({ halfX: 3, halfZ: 3, obstacles, obstacleCount: 1 }))
+    expect(pool.get(fugitive)).toBeNull()
+    expect(pool.get(guard)).toBeNull()
+    const event = {}
+    let despawns = 0
+    while (runtime.events.drainInto(event)) if (event.type === ENEMY_EVENT_DESPAWN) despawns += 1
+    expect(despawns).toBeGreaterThanOrEqual(2)
+  })
 })

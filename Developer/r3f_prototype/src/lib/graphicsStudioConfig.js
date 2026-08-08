@@ -133,10 +133,10 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
   },
   // RZL/RZC(스테이지3 런좀비 크루)는 ZombieMesh.jsx에서 이미 StudioTunedGroup으로 감싸여
   // 게임 런타임 배선이 E01과 동일하다. 이 배열에서 빠져 있어 스튜디오에서 선택만 불가능했다.
-  ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04'].map((type) => ({
+  ...['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'B01', 'B02', 'B03', 'B04'].map((type) => ({
     id: getStudioZombieItemId(type),
     category: 'enemy',
-    label: type === 'B02' ? 'Stage 2 Boss' : type === 'B03' ? 'Boss B03 · 몸짱 체육교사' : type === 'B04' ? 'Boss B04 · 주방장 좀비' : type === 'RZL' ? 'Run Zombie · 리더' : type === 'RZC' ? 'Run Zombie · 크루' : `Zombie ${type}`,
+    label: type === 'B02' ? 'Stage 2 Boss' : type === 'B03' ? 'Boss B03 · 몸짱 체육교사' : type === 'B04' ? 'Boss B04 · 주방장 좀비' : type === 'RZL' ? 'Run Zombie · 리더' : type === 'RZC' ? 'Run Zombie · 크루' : type === 'RZT' ? 'Stage 2 Chase · 바바리맨' : type === 'RZG' ? 'Stage 2 Chase · 경비원' : `Zombie ${type}`,
     source: 'components/ZombieMesh.jsx',
     previewKind: 'zombie',
     runtimePreviewSource: 'components/Enemy.jsx',
