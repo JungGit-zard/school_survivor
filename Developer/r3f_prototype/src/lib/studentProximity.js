@@ -8,6 +8,7 @@ export const STUDENT_DIALOGUE_RADIUS = 0.5
 // 조사 물체는 "닿으면" 성립 — 원형 반경이 아니라 콜라이더 박스 표면까지의 거리로 판정한다.
 // margin = 플레이어 half(콜라이더 0.136) + 프레임 스텝 여유. 표면에서 이 값 안(=사실상 접촉)에서만 발동.
 export const OBJECT_CONTACT_MARGIN = 0.25
+export const BULLETIN_BOARD_CONTACT_MARGIN = 0.14
 const STUDENT_TYPES = new Set(['unconsciousStudent', 'classPresidentStudent'])
 
 function getFallbackFootprint(item) {
@@ -48,6 +49,7 @@ export function getInvestigationTargets(stageId) {
         ...dialogue,
         halfX: footprint.halfX,
         halfZ: footprint.halfZ,
+        contactMargin: item.type === 'corridorLostFoundBoard' ? BULLETIN_BOARD_CONTACT_MARGIN : OBJECT_CONTACT_MARGIN,
       }]
     })
 }
@@ -61,7 +63,8 @@ export function findInvestigationTargetInRange(playerX, playerZ, targets, invest
       // 물체: 콜라이더 박스 표면까지 거리 ≤ 접촉 margin일 때만(=닿으면) 발동. 원형 반경 아님.
       const ddx = Math.max(0, Math.abs(dx) - target.halfX)
       const ddz = Math.max(0, Math.abs(dz) - target.halfZ)
-      if (ddx * ddx + ddz * ddz <= OBJECT_CONTACT_MARGIN * OBJECT_CONTACT_MARGIN) return target
+      const contactMargin = target.contactMargin ?? OBJECT_CONTACT_MARGIN
+      if (ddx * ddx + ddz * ddz <= contactMargin * contactMargin) return target
       continue
     }
     // 학생: 몸 위에 올라섰을 때(원형 반경).

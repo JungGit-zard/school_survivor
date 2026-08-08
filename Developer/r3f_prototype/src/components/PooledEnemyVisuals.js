@@ -3,6 +3,21 @@ export const POOLED_ENEMY_CAPACITY = 200
 export const SPAWN_REVEAL_MS = 300
 export const SPAWN_SMOKE_MS = 850
 export const CHARGE_CUE_CAPACITY = 16
+export const POOLED_CHARGE_CUE_TYPE_CODE = 5
+export const POOLED_CHARGE_CUE_PARTS = [
+  { name: 'bubble', size: [1.05, 0.46, 0.08], position: [0, 0.07, 0], color: 0xfff4d8 },
+  { name: 'tail', size: [0.22, 0.18, 0.08], position: [-0.28, -0.25, 0], rotation: [0, 0, 0.72], color: 0xfff4d8 },
+  { name: 'gVertical', size: [0.08, 0.27, 0.06], position: [-0.36, 0.08, 0.08], color: 0x241426 },
+  { name: 'gTop', size: [0.22, 0.07, 0.06], position: [-0.26, 0.20, 0.08], color: 0x241426 },
+  { name: 'gBottom', size: [0.22, 0.07, 0.06], position: [-0.26, -0.04, 0.08], color: 0x241426 },
+  { name: 'gMiddle', size: [0.15, 0.07, 0.06], position: [-0.20, 0.06, 0.08], color: 0x241426 },
+  { name: 'oLeft', size: [0.08, 0.27, 0.06], position: [0.02, 0.08, 0.08], color: 0x241426 },
+  { name: 'oRight', size: [0.08, 0.27, 0.06], position: [0.22, 0.08, 0.08], color: 0x241426 },
+  { name: 'oTop', size: [0.20, 0.07, 0.06], position: [0.12, 0.20, 0.08], color: 0x241426 },
+  { name: 'oBottom', size: [0.20, 0.07, 0.06], position: [0.12, -0.04, 0.08], color: 0x241426 },
+  { name: 'bang', size: [0.07, 0.25, 0.06], position: [0.42, 0.10, 0.08], color: 0xff392e },
+  { name: 'bangDot', radius: 0.045, position: [0.42, -0.08, 0.08], color: 0xff392e },
+]
 export const ENEMY_HEALTH_BAR_WIDTH = 0.32
 export const ENEMY_HEALTH_BAR_HEIGHT = 0.045
 export const ENEMY_HEALTH_BAR_Y = 0.72
@@ -50,8 +65,7 @@ export function shouldRenderPooledEnemyPart(type, partIndex, tier) {
     return partIndex === 33 || partIndex === 38 || partIndex === 41 || partIndex === 43 || partIndex === 45 || partIndex === 46 || partIndex === 47 || partIndex === 48
   }
   if (type === 14) {
-    if (tier === ENEMY_RENDER_MID) return partIndex !== 51 && partIndex !== 52 && partIndex !== 53 && partIndex !== 54 && partIndex !== 57 && partIndex !== 59 && partIndex !== 61 && partIndex !== 63 && partIndex !== 65
-    return partIndex === 49 || partIndex === 50 || partIndex === 55 || partIndex === 56 || partIndex === 58 || partIndex === 60 || partIndex === 62 || partIndex === 63 || partIndex === 64 || partIndex === 65
+    return true
   }
   if (type === 7 || type === 8) {
     if (tier === ENEMY_RENDER_MID) return partIndex !== 14 && partIndex !== 17 && partIndex !== 19 && partIndex !== 20 && partIndex !== 21 && partIndex !== 23 && partIndex !== 25 && partIndex !== 28 && partIndex !== 31 && partIndex !== 32
@@ -107,7 +121,7 @@ export function selectChargeCueSlots(pool, capacity = CHARGE_CUE_CAPACITY) {
   let overflow = 0
   const highest = Math.min(POOLED_ENEMY_CAPACITY - 1, Number.isInteger(pool?.highestActive) ? pool.highestActive : POOLED_ENEMY_CAPACITY - 1)
   for (let index = 0; index <= highest; index += 1) {
-    if (pool.active[index] !== 1 || pool.type[index] !== 5 || pool.state[index] !== 2 || pool.spawnTimer[index] < SPAWN_REVEAL_MS) continue
+    if (pool.active[index] !== 1 || pool.type[index] !== POOLED_CHARGE_CUE_TYPE_CODE || pool.state[index] !== 2 || pool.spawnTimer[index] < SPAWN_REVEAL_MS) continue
     if (selected.length < capacity) selected.push(index)
     else overflow += 1
   }
@@ -120,7 +134,7 @@ export function fillChargeCueSlots(pool, out, capacity = CHARGE_CUE_CAPACITY) {
   let used = 0; let overflow = 0
   const highest = Math.min(POOLED_ENEMY_CAPACITY - 1, Number.isInteger(pool?.highestActive) ? pool.highestActive : POOLED_ENEMY_CAPACITY - 1)
   for (let index = 0; index <= highest; index += 1) {
-    if (pool.active[index] !== 1 || pool.type[index] !== 5 || pool.state[index] !== 2 || pool.spawnTimer[index] < SPAWN_REVEAL_MS) continue
+    if (pool.active[index] !== 1 || pool.type[index] !== POOLED_CHARGE_CUE_TYPE_CODE || pool.state[index] !== 2 || pool.spawnTimer[index] < SPAWN_REVEAL_MS) continue
     if (used < capacity) out[used++] = index
     else overflow += 1
   }
@@ -136,7 +150,7 @@ export function fillVisibleChargeCueSlots(pool, tiers, out, capacity = CHARGE_CU
   let used = 0; let overflow = 0
   const highest = Math.min(POOLED_ENEMY_CAPACITY - 1, Number.isInteger(pool?.highestActive) ? pool.highestActive : POOLED_ENEMY_CAPACITY - 1)
   for (let index = 0; index <= highest; index += 1) {
-    if (tiers[index] === ENEMY_RENDER_CULLED || pool.active[index] !== 1 || pool.type[index] !== 5 || pool.state[index] !== 2 || pool.spawnTimer[index] < SPAWN_REVEAL_MS) continue
+    if (tiers[index] === ENEMY_RENDER_CULLED || pool.active[index] !== 1 || pool.type[index] !== POOLED_CHARGE_CUE_TYPE_CODE || pool.state[index] !== 2 || pool.spawnTimer[index] < SPAWN_REVEAL_MS) continue
     if (used < capacity) out[used++] = index
     else overflow += 1
   }
@@ -213,7 +227,7 @@ export function pooledZombiePartSlotsForNumericPath(type, path, out) {
   const parts = String(path).split('.').map(Number)
   let start = -1
   for (let index = 0; index < parts.length - 1; index += 1) {
-    if (parts[index] === 0 && Number.isInteger(parts[index + 1]) && parts[index + 1] <= 5) {
+    if (parts.length - index <= 4 && parts[index] === 0 && Number.isInteger(parts[index + 1]) && parts[index + 1] <= 5) {
       start = index
       break
     }

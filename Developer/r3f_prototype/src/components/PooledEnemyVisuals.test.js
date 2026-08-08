@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import * as THREE from 'three'
 import { composeStudioPartTransformCache, getStudioTransformProps } from './StudioTunedGroup.jsx'
-import { CHARGE_CUE_CAPACITY, ENEMY_RENDER_CULLED, ENEMY_RENDER_FAR, ENEMY_RENDER_MID, ENEMY_RENDER_NEAR, ENEMY_VISUAL_WORLD_SCALE, applyCachedPartTransform, applyPooledZombieStudioPartTunings, copyRootTransform, e01PartSlotsForNumericPath, fillChargeCueSlots, fillEnemyHealthBarLayout, fillVisibleChargeCueSlots, getPooledEnemyAnimationTime, getPooledChargeCueY, getPooledEnemyRenderTier, getPooledEnemyVisibility, getSpawnSmokeOpacity, hasUnsupportedStudioPartTuning, pooledZombiePartSlotsForNumericPath, selectChargeCueSlots, setSlotOpacity, shouldRefreshEnemySight, shouldRenderPooledEnemyPart, updateHealthVisualState } from './PooledEnemyVisuals.js'
+import { CHARGE_CUE_CAPACITY, ENEMY_RENDER_CULLED, ENEMY_RENDER_FAR, ENEMY_RENDER_MID, ENEMY_RENDER_NEAR, ENEMY_VISUAL_WORLD_SCALE, POOLED_CHARGE_CUE_PARTS, POOLED_CHARGE_CUE_TYPE_CODE, applyCachedPartTransform, applyPooledZombieStudioPartTunings, copyRootTransform, e01PartSlotsForNumericPath, fillChargeCueSlots, fillEnemyHealthBarLayout, fillVisibleChargeCueSlots, getPooledEnemyAnimationTime, getPooledChargeCueY, getPooledEnemyRenderTier, getPooledEnemyVisibility, getSpawnSmokeOpacity, hasUnsupportedStudioPartTuning, pooledZombiePartSlotsForNumericPath, selectChargeCueSlots, setSlotOpacity, shouldRefreshEnemySight, shouldRenderPooledEnemyPart, updateHealthVisualState } from './PooledEnemyVisuals.js'
 
 describe('pooled enemy visual pure contracts', () => {
   it('holds smoke before and through reveal, then hides it at its final lifetime', () => {
@@ -46,6 +46,44 @@ describe('pooled enemy visual pure contracts', () => {
     expect(result.selected[0]).toBe(0)
     expect(result.selected.at(-1)).toBe(15)
     expect(result.overflow).toBe(4)
+  })
+
+  it('keeps the pooled red charger GO! cue layout bound to the E05 runtime code', () => {
+    expect(POOLED_CHARGE_CUE_TYPE_CODE).toBe(5)
+
+    const layerSource = readFileSync(new URL('./ZombieInstanceLayer.jsx', import.meta.url), 'utf8')
+    expect(layerSource).toContain('const CUE = POOLED_CHARGE_CUE_PARTS')
+    expect(layerSource).not.toContain('[[.52,.30,.04]')
+
+    const bubble = POOLED_CHARGE_CUE_PARTS.find((part) => part.name === 'bubble')
+    const tail = POOLED_CHARGE_CUE_PARTS.find((part) => part.name === 'tail')
+    const letters = Object.fromEntries(POOLED_CHARGE_CUE_PARTS.map((part) => [part.name, part]))
+
+    expect(bubble?.size).toEqual([1.05, 0.46, 0.08])
+    expect(bubble?.position).toEqual([0, 0.07, 0])
+    expect(tail?.size).toEqual([0.22, 0.18, 0.08])
+    expect(tail?.position).toEqual([-0.28, -0.25, 0])
+    for (const required of ['gVertical', 'gTop', 'gBottom', 'gMiddle', 'oLeft', 'oRight', 'oTop', 'oBottom', 'bang', 'bangDot']) {
+      expect(letters[required]).toBeTruthy()
+    }
+    const bubbleHalfWidth = bubble.size[0] / 2
+    for (const part of POOLED_CHARGE_CUE_PARTS.filter((part) => !['tail', 'bubble'].includes(part.name))) {
+      const width = part.size?.[0] ?? part.radius * 2
+      expect(Math.abs(part.position[0]) + width / 2).toBeLessThanOrEqual(bubbleHalfWidth)
+    }
+
+    const pool = { highestActive: 5, active: new Uint8Array(200), type: new Uint8Array(200), state: new Uint8Array(200), spawnTimer: new Float32Array(200) }
+    pool.active[4] = 1
+    pool.type[4] = POOLED_CHARGE_CUE_TYPE_CODE
+    pool.state[4] = 2
+    pool.spawnTimer[4] = 300
+    pool.active[5] = 1
+    pool.type[5] = 14
+    pool.state[5] = 2
+    pool.spawnTimer[5] = 300
+
+    const result = selectChargeCueSlots(pool)
+    expect(result.selected).toEqual([4])
   })
 
   it('resets health trail state when a slot is reused by a new generation', () => {
@@ -189,6 +227,7 @@ describe('pooled enemy visual pure contracts', () => {
     const cases = [
       [13, '0.0.0', 33], [13, '0.0.1', 34], [13, '0.0.4', 37], [13, '0.1.0', 38], [13, '0.2.0', 41], [13, '0.4.1', 46],
       [14, '0.0.0', 49], [14, '0.0.5', 54], [14, '0.1.2', 57], [14, '0.2.0', 58], [14, '0.5.1', 65],
+      [14, '0.0.0.1.1', 50], [14, '0.0.0.2.1', 51],
     ]
     for (const [type, path, expected] of cases) {
       expect(pooledZombiePartSlotsForNumericPath(type, path, slots)).toBe(1)
@@ -196,6 +235,15 @@ describe('pooled enemy visual pure contracts', () => {
     }
     expect(pooledZombiePartSlotsForNumericPath(13, '0.0', slots)).toBe(5)
     expect(pooledZombiePartSlotsForNumericPath(14, '0.1', slots)).toBe(3)
+  })
+
+  it('keeps the complete Stage 2 guard model at far LOD', () => {
+    const visible = []
+    for (let slot = 49; slot <= 65; slot += 1) {
+      if (shouldRenderPooledEnemyPart(14, slot, ENEMY_RENDER_FAR)) visible.push(slot)
+    }
+
+    expect(visible).toEqual(Array.from({ length: 17 }, (_, index) => 49 + index))
   })
 
   it('uses dedicated RZT/RZG fixed geometry instead of the Stage 3 RUN array', () => {

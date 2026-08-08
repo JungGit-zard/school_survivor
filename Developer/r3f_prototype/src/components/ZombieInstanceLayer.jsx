@@ -11,7 +11,7 @@ import { GRAPHICS_STUDIO_TUNING_EVENT, getStudioZombieItemId, loadStudioTunings 
 import { composeStudioPartMultiplier, composeStudioPartOffset, composeStudioPartTransformCache, getStudioTransformProps } from './StudioTunedGroup.jsx'
 import { getToonGradient } from '../lib/toon.js'
 import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
-import { ENEMY_RENDER_FAR, POOLED_ENEMY_CAPACITY, SPAWN_REVEAL_MS, SPAWN_SMOKE_MS, applyPooledZombieStudioPartTunings, fillEnemyHealthBarLayout, fillVisibleChargeCueSlots, getPooledChargeCueY, getPooledEnemyAnimationTime, getPooledEnemyRenderTier, getSpawnSmokeOpacity, setSlotOpacity, shouldRenderPooledEnemyPart, updateHealthVisualState } from './PooledEnemyVisuals.js'
+import { ENEMY_RENDER_FAR, POOLED_CHARGE_CUE_PARTS, POOLED_ENEMY_CAPACITY, SPAWN_REVEAL_MS, SPAWN_SMOKE_MS, applyPooledZombieStudioPartTunings, fillEnemyHealthBarLayout, fillVisibleChargeCueSlots, getPooledChargeCueY, getPooledEnemyAnimationTime, getPooledEnemyRenderTier, getSpawnSmokeOpacity, setSlotOpacity, shouldRenderPooledEnemyPart, updateHealthVisualState } from './PooledEnemyVisuals.js'
 
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0)
 const m = new THREE.Matrix4(); const a = new THREE.Matrix4(); const e = new THREE.Euler('XYZ')
@@ -60,12 +60,7 @@ const PART_COUNT = ALL_PARTS.length
 const partSlotScratch = new Int16Array(12)
 // Bubble, tail and block-letter GO! parts from ChargeToonCue.  A fixed 16-slot
 // pool bounds its draw cost even when every E05 enters warning together.
-const CUE = [
-  [[.52,.30,.04],[0,0,0],0xfff4d8], [[.16,.12,.04],[-.18,-.18,0],0xfff4d8],
-  [[.035,.15,.045],[-.13,.02,.05],0x241426], [[.11,.035,.045],[-.08,.10,.05],0x241426], [[.11,.035,.045],[-.08,-.08,.05],0x241426], [[.10,.035,.045],[-.075,.01,.05],0x241426],
-  [[.035,.15,.045],[.12,.02,.05],0x241426], [[.11,.035,.045],[.12,.10,.05],0x241426], [[.11,.035,.045],[.12,-.08,.05],0x241426], [[.035,.15,.045],[.22,.02,.05],0x241426],
-  [[.035,.16,.045],[.34,.02,.05],0xff392e], [[.045,.045,.045],[.34,-.12,.05],0xff392e],
-]
+const CUE = POOLED_CHARGE_CUE_PARTS
 
 function phase(pool, i) { return pool.state[i] === 2 ? 'warn' : pool.state[i] === 3 ? 'charge' : pool.state[i] === 4 ? 'stun' : 'normal' }
 function setPartRotation(dst, key, time, type, state) {
@@ -95,7 +90,7 @@ function makeCueMat() { const x = new THREE.MeshBasicMaterial({ color: 0xffffff,
 function im(part, material) { const x = new THREE.InstancedMesh(new THREE.BoxGeometry(...part[2]), material, POOLED_ENEMY_CAPACITY); x.frustumCulled = false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for (let i=0;i<POOLED_ENEMY_CAPACITY;i++) x.setMatrixAt(i,ZERO); x.count=0; return x }
 export function installInstanceAlpha(geometry, material, count) { const alpha = new THREE.InstancedBufferAttribute(new Float32Array(count).fill(1), 1); geometry.setAttribute('instanceAlpha', alpha); material.onBeforeCompile = (shader) => { shader.vertexShader = `attribute float instanceAlpha; varying float pooledInstanceAlpha;\n${shader.vertexShader}`.replace('#include <begin_vertex>', '#include <begin_vertex>\npooledInstanceAlpha = instanceAlpha;'); shader.fragmentShader = `varying float pooledInstanceAlpha;\n${shader.fragmentShader}`.replace('#include <output_fragment>', '#include <output_fragment>\ngl_FragColor.a *= pooledInstanceAlpha;') }; material.customProgramCacheKey = () => 'pooled-instance-alpha-v1'; return alpha }
 function plane(material) { const geometry=new THREE.PlaneGeometry(1,1); const x = new THREE.InstancedMesh(geometry,material,POOLED_ENEMY_CAPACITY); x.frustumCulled=false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); x.userData.instanceAlpha=installInstanceAlpha(geometry,material,POOLED_ENEMY_CAPACITY); for(let i=0;i<POOLED_ENEMY_CAPACITY;i++) x.setMatrixAt(i,ZERO); x.count=0; return x }
-function cueIM(def, material) { const x = new THREE.InstancedMesh(new THREE.BoxGeometry(...def[0]), material, 16); x.frustumCulled=false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for(let i=0;i<16;i++)x.setMatrixAt(i,ZERO); x.count=0; return x }
+function cueIM(def, material) { const geometry=def.radius?new THREE.SphereGeometry(def.radius,12,8):new THREE.BoxGeometry(...def.size); const x = new THREE.InstancedMesh(geometry, material, 16); x.frustumCulled=false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for(let i=0;i<16;i++)x.setMatrixAt(i,ZERO); x.count=0; return x }
 function mark(meshes) { for (let i=0;i<meshes.length;i++) { const x=meshes[i]; x.instanceMatrix.needsUpdate = true; if (x.instanceColor) x.instanceColor.needsUpdate = true; if (x.userData.instanceAlpha) x.userData.instanceAlpha.needsUpdate=true } }
 function markOne(x) { x.instanceMatrix.needsUpdate=true; if(x.instanceColor)x.instanceColor.needsUpdate=true; if(x.userData.instanceAlpha)x.userData.instanceAlpha.needsUpdate=true }
 
@@ -177,7 +172,7 @@ export default function ZombieInstanceLayer({ resetKey }) {
       if(smokeVisible){const smokeSlot=smokeCount++;const t=timer/SPAWN_SMOKE_MS;const size=(pool.visualScale[i]||1)*.333*(1.7+(1-(1-t)*(1-t))*(3.1-1.7));p.set(pool.posX[i],pool.posY[i]+(pool.visualScale[i]||1)*.333*(1+t*.32),pool.posZ[i]);q.copy(camera.quaternion);s.set(size,size,1);a.compose(p,q,s);all.smoke.setMatrixAt(smokeSlot,a);setSlotOpacity(all.smoke.userData.instanceAlpha,smokeSlot,getSpawnSmokeOpacity(timer))}
     }
     const cueIndices=cueIndicesRef.current;cueOverflowRef.current=fillVisibleChargeCueSlots(pool,tiers,cueIndices);let cueCount=0
-    for(let ci=0;ci<16;ci++){const enemyIndex=cueIndices[ci];if(enemyIndex<0)continue;const cueSlot=cueCount++;const pulse=1+Math.sin(pool.spawnTimer[enemyIndex]*.012)*.08;p.set(pool.posX[enemyIndex],getPooledChargeCueY(pool.posY[enemyIndex],pool.visualScale[enemyIndex]),pool.posZ[enemyIndex]);q.copy(camera.quaternion);s.set(pulse,pulse,pulse);m.compose(p,q,s);for(let part=0;part<CUE.length;part++){a.copy(m);translate.makeTranslation(CUE[part][1][0],CUE[part][1][1],CUE[part][1][2]);a.multiply(translate);all.cue[part].setMatrixAt(cueSlot,a);color.setHex(CUE[part][2]);all.cue[part].setColorAt(cueSlot,color)}}
+    for(let ci=0;ci<16;ci++){const enemyIndex=cueIndices[ci];if(enemyIndex<0)continue;const cueSlot=cueCount++;const pulse=1+Math.sin(pool.spawnTimer[enemyIndex]*.012)*.08;p.set(pool.posX[enemyIndex],getPooledChargeCueY(pool.posY[enemyIndex],pool.visualScale[enemyIndex]),pool.posZ[enemyIndex]);q.copy(camera.quaternion);s.set(pulse,pulse,pulse);m.compose(p,q,s);for(let part=0;part<CUE.length;part++){a.copy(m);const cuePart=CUE[part];translate.makeTranslation(cuePart.position[0],cuePart.position[1],cuePart.position[2]);a.multiply(translate);if(cuePart.rotation){e.set(cuePart.rotation[0],cuePart.rotation[1],cuePart.rotation[2]);rotate.makeRotationFromEuler(e);a.multiply(rotate)}all.cue[part].setMatrixAt(cueSlot,a);color.setHex(cuePart.color);all.cue[part].setColorAt(cueSlot,color)}}
     for(let i=0;i<all.body.length;i++){all.body[i].count=counts[i];all.out[i].count=counts[i]}for(let i=0;i<all.bars.length;i++)all.bars[i].count=healthCount;for(let i=0;i<all.cue.length;i++)all.cue[i].count=cueCount;all.shadow.count=bodyCount;all.smoke.count=smokeCount
     mark(all.body);mark(all.out);markOne(all.shadow);mark(all.bars);markOne(all.smoke);mark(all.cue)
   })
