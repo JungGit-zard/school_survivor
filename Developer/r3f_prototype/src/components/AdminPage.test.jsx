@@ -1,13 +1,30 @@
 // @vitest-environment jsdom
 import React from 'react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRoot } from 'react-dom/client'
-import { act } from 'react-dom/test-utils'
+import { act, Simulate } from 'react-dom/test-utils'
 import AdminPage from './AdminPage.jsx'
 import { loadAdminConfig, resetAdminConfig, saveAdminConfig } from '../lib/adminConfig.js'
 import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { getStageConfig } from '../lib/stageConfig.js'
 import { useGameStore } from '../store/useGameStore.js'
+
+const inspectionMocks = vi.hoisted(() => ({
+  start: vi.fn(),
+  stop: vi.fn(),
+  subscribe: vi.fn(),
+}))
+
+vi.mock('../lib/firebaseInspectionMode.js', () => ({
+  startInspection: inspectionMocks.start,
+  stopInspection: inspectionMocks.stop,
+  subscribeInspectionMode: inspectionMocks.subscribe,
+  getInspectionPhase: (state, nowMs) => {
+    if (!state?.enabled) return 'inactive'
+    if (nowMs < state.startsAt) return 'scheduled'
+    return nowMs < state.endsAt ? 'active' : 'inactive'
+  },
+}))
 
 describe('AdminPage', () => {
   let container
@@ -20,6 +37,9 @@ describe('AdminPage', () => {
     container = document.createElement('div')
     document.body.appendChild(container)
     root = createRoot(container)
+    inspectionMocks.start.mockReset()
+    inspectionMocks.stop.mockReset()
+    inspectionMocks.subscribe.mockReset().mockReturnValue(vi.fn())
   })
 
   afterEach(() => {
@@ -101,7 +121,7 @@ describe('AdminPage', () => {
     expect(container.textContent).toContain('게임 코드에서 자동 반영')
 
     const rows = Array.from(container.querySelectorAll('[data-testid="burst-row"]'))
-    expect(rows).toHaveLength(1)
+    expect(rows).toHaveLength(5)
 
     // 시각 오름차순 정렬 검증
     const secs = rows.map((row) => Number(row.getAttribute('data-sec')))
@@ -165,5 +185,53 @@ describe('AdminPage', () => {
     useGameStore.getState().resetGame('stage1')
     expect(useGameStore.getState().player.maxHp).toBe(140)
     expect(useGameStore.getState().player.speed).toBeCloseTo(3.6)
+  })
+
+  it('starts inspection with the configured period and message', async () => {
+    const user = { uid: 'master' }
+    inspectionMocks.start.mockResolvedValue({
+      enabled: true, startsAt: Date.parse('2026-08-08T10:00'), endsAt: Date.parse('2026-08-08T11:00'), message: '점검 안내',
+    })
+    act(() => root.render(<AdminPage user={user} />))
+
+    const tab = [...container.querySelectorAll('button')].find((button) => button.textContent === '점검 모드')
+    act(() => tab.click())
+    const setValue = (name, value) => {
+      const input = container.querySelector(`[name="${name}"]`)
+      act(() => {
+        Simulate.change(input, { target: { value } })
+      })
+    }
+    setValue('inspectionStartsAt', '2026-08-08T10:00')
+    setValue('inspectionEndsAt', '2026-08-08T11:00')
+    setValue('inspectionMessage', '점검 안내')
+
+    await act(async () => {
+      [...container.querySelectorAll('button')].find((button) => button.textContent === '점검 시작').click()
+      await Promise.resolve()
+    })
+
+    expect(inspectionMocks.start).toHaveBeenCalledWith({
+      user,
+      startsAt: Date.parse('2026-08-08T10:00'),
+      endsAt: Date.parse('2026-08-08T11:00'),
+      message: '점검 안내',
+    })
+    expect(container.textContent).toContain('점검 기간을 저장했습니다.')
+  })
+
+  it('stops inspection immediately for the current verified user', async () => {
+    const user = { uid: 'master' }
+    inspectionMocks.stop.mockResolvedValue({ enabled: false, startsAt: 0, endsAt: 1, message: '' })
+    act(() => root.render(<AdminPage user={user} />))
+    act(() => [...container.querySelectorAll('button')].find((button) => button.textContent === '점검 모드').click())
+
+    await act(async () => {
+      [...container.querySelectorAll('button')].find((button) => button.textContent === '즉시 종료').click()
+      await Promise.resolve()
+    })
+
+    expect(inspectionMocks.stop).toHaveBeenCalledWith({ user })
+    expect(container.textContent).toContain('점검을 즉시 종료했습니다.')
   })
 })

@@ -6,9 +6,11 @@ import { commitFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
 import { getStageObjectPlacements } from './StageObjects/stageObjectPlacements.js'
 import { getQuestTargetPosition } from './QuestWorldLayer.jsx'
 import {
+  getGenericInvestigationDialogueId,
   nextDeferredInvestigationSuppressionId,
   shouldDeferGenericInvestigation,
 } from './StudentDialogueTrigger.jsx'
+import { getPoolIds } from '../dialogues/dialogueStore.js'
 
 const triggerSource = readFileSync(new URL('./StudentDialogueTrigger.jsx', import.meta.url), 'utf8')
 
@@ -19,6 +21,37 @@ beforeEach(() => {
 describe('StudentDialogueTrigger', () => {
   it('passes the investigation subject type to the reward policy', () => {
     expect(triggerSource).toContain("rollInvestigationReward(target.subjectType)")
+  })
+
+  it('routes every generic Stage 1 fallen student to the shared ID pool', () => {
+    const targets = getInvestigationTargets('stage1')
+    const unconsciousStudent = targets.find(({ id }) => id === 'stage1-student-sw-01')
+    const classPresidentStudent = targets.find(({ id }) => id === 'stage1-student-south-01')
+
+    for (const target of [unconsciousStudent, classPresidentStudent]) {
+      expect(target).toBeTruthy()
+      expect(getPoolIds('student.stage1')).toContain(getGenericInvestigationDialogueId({ target }))
+    }
+  })
+
+  it('keeps the fixed fallen-student investigation dialogue outside Stage 1', () => {
+    for (const stageId of ['stage2', 'stage3', 'stage4']) {
+      const target = getInvestigationTargets(stageId).find(({ subjectType }) => subjectType === 'student')
+      expect(getGenericInvestigationDialogueId({ target })).toBe(target.dialogueId)
+    }
+  })
+
+  it('preserves the quest-start priority before generic fallen-student dialogue', () => {
+    const quest = getStageQuestDefinitions('stage1').find(({ id }) => id === 'stage1-talk-book')
+    expect(triggerSource).toContain('const questInteraction = getQuestGiverInteraction(quest, progress)')
+    expect(triggerSource.indexOf('if (questInteraction?.type === \'start\')'))
+      .toBeLessThan(triggerSource.lastIndexOf('getGenericInvestigationDialogueId({'))
+    expect(triggerSource).toContain('openStudentDialogue(quest.startDialogueId, null')
+    expect(quest).toBeTruthy()
+  })
+
+  it('uses the Stage 1 pool resolver in the real generic dialogue runtime call', () => {
+    expect(triggerSource).toMatch(/openStudentDialogue\(\s*getGenericInvestigationDialogueId\(\{ target \}\),\s*rollInvestigationReward\(target\.subjectType\)/)
   })
 
   it('defers the Stage 1 speech-book overlap to the active quest interaction', () => {

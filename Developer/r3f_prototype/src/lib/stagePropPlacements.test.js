@@ -39,6 +39,7 @@ describe('Firebase runtime stage prop placements', () => {
       stage1: [],
       stage2: null,
       stage3: null,
+      stage4: null,
     })
   })
 

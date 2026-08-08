@@ -29,7 +29,6 @@ vi.mock('../lib/firebaseProgress.js', () => ({
   setCloudProgressUser: vi.fn(),
   hydrateCloudProgress: vi.fn(async () => true),
   isFirebaseProgressHydrated: vi.fn(() => false),
-  applyCloudProgressSnapshot: vi.fn(),
 }))
 
 vi.mock('./useGameStore.js', () => ({
@@ -37,7 +36,7 @@ vi.mock('./useGameStore.js', () => ({
 }))
 
 const { useAuthStore, _resetAuthStoreForTests } = await import('./useAuthStore.js')
-const { setCloudProgressUser, hydrateCloudProgress, isFirebaseProgressHydrated, applyCloudProgressSnapshot } = await import('../lib/firebaseProgress.js')
+const { setCloudProgressUser, hydrateCloudProgress, isFirebaseProgressHydrated } = await import('../lib/firebaseProgress.js')
 
 describe('useAuthStore cloud progress integration', () => {
   beforeEach(() => {
@@ -81,17 +80,20 @@ describe('useAuthStore cloud progress integration', () => {
     await expect(second).resolves.toEqual(authUser)
   })
 
-  it.each(['initializeAuth', 'signInWithGoogle'])('%s keeps E2E progress in memory without a cloud user', async (action) => {
-    window.history.replaceState({}, '', '/?e2e=1')
+  it('does not fabricate an account or progress snapshot while initializing auth', async () => {
+    await useAuthStore.getState().initializeAuth()
 
-    await useAuthStore.getState()[action]()
-
-    expect(applyCloudProgressSnapshot).toHaveBeenCalledWith(
-      expect.objectContaining({ profile: expect.objectContaining({ uid: 'e2e-local-test', nickname: 'E2E 생존자' }) }),
-      expect.objectContaining({ uid: 'e2e-local-test' }),
-      { keepCloudUserNull: true },
-    )
     expect(setCloudProgressUser).not.toHaveBeenCalled()
+    expect(hydrateCloudProgress).not.toHaveBeenCalled()
+    expect(useAuthStore.getState().user).toBeNull()
+  })
+
+  it('preserves a real Google account and its progress hydrate', async () => {
+    await useAuthStore.getState().signInWithGoogle()
+
+    expect(useAuthStore.getState().user).toEqual(authUser)
+    expect(setCloudProgressUser).toHaveBeenCalledWith(authUser)
+    await vi.waitFor(() => expect(hydrateCloudProgress).toHaveBeenCalledWith(authUser))
   })
 
   it('ignores a stale account hydrate completion after the auth user switches', async () => {

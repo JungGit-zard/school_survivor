@@ -3,19 +3,19 @@
   "files": [
     {
       "path": "src/components/TitleScreen.jsx",
-      "sha256": "dfe04d6df91199854c3801e1be56310f7f6f20309e4707bde037b8f6cde02156"
+      "sha256": "888b13602fa99653c8c3c499a6b22f12206d04897c0b4d40a408f2720155faff"
     },
     {
       "path": "src/components/TitleSceneCanvas.jsx",
-      "sha256": "556dac91320c4dd7e90a1138872dc8413b585a64656757633cda93231f21f754"
+      "sha256": "4c4ce75fd1b062fa91ca1d6b8feab9bc8b36010d595a8495a0675e57b438c352"
     },
     {
       "path": "src/components/TitleScene3D.jsx",
-      "sha256": "e90c193360a51f46015d3a55ddba3e5bf9ea1c84eade02f992d216f3abb317f9"
+      "sha256": "dedabe093904b7c078cd783c2acf39e912bad16c121aa6a6fe3350f2a593c2c2"
     },
     {
       "path": "src/lib/titleSettings.js",
-      "sha256": "ccf57c4e36cf5a651d00a3dff7a616b9282ba2c7283594a3c9c2a08914a44cb7"
+      "sha256": "ed9b560962bd80e77ab2cf8d9e15d704f3f66fff0ff43d7cbb02e3e1a25a9f6a"
     },
     {
       "path": "src/components/TitleScreen.bgm.test.jsx",
@@ -23,11 +23,11 @@
     },
     {
       "path": "src/components/TitleScreen.settings.test.jsx",
-      "sha256": "374bae17a70ba6918bd96b90acbb9b4423483e6d3c508b9fb3532a4f106affe6"
+      "sha256": "0ff6424c06c62a48ac02fd79cc3945f0cc975562c5137c6701fe90e0b1a0a8cf"
     },
     {
       "path": "src/components/TitleScene3D.test.jsx",
-      "sha256": "cf32bd7b53a78df966979a4fd79ad12f57b6814a1e3e15ce4a293838cbd55542"
+      "sha256": "456da448ea2e20f55fd5a36e3d5a93df685c4d20d2ef1650609c58c6d287daab"
     },
     {
       "path": "src/assets/audio/title_bgm.m4a",

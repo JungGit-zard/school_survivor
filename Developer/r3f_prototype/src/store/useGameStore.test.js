@@ -155,37 +155,3 @@ describe('runtime elapsed time publication', () => {
     expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', bossDefeated: true, bossBonus: 54 })
   })
 })
-
-describe('DEV E2E invincibility state', () => {
-  beforeEach(() => {
-    useGameStore.getState().resetGame()
-  })
-
-  it('defaults to false and resetGame always clears it', () => {
-    expect(useGameStore.getState().e2eInvincible).toBe(false)
-
-    useGameStore.setState({ e2eInvincible: true })
-    useGameStore.getState().resetGame()
-
-    expect(useGameStore.getState().e2eInvincible).toBe(false)
-  })
-
-  it('blocks both normal and ignoreInvulnerability damage while enabled', () => {
-    const initialHp = useGameStore.getState().player.hp
-    useGameStore.setState({ e2eInvincible: true })
-
-    useGameStore.getState().damagePlayer(30)
-    useGameStore.getState().damagePlayer(initialHp * 3, { ignoreInvulnerability: true })
-
-    expect(useGameStore.getState().player.hp).toBe(initialHp)
-    expect(useGameStore.getState().phase).toBe('playing')
-  })
-
-  it('keeps normal damage behavior when the explicit flag is absent', () => {
-    const initialHp = useGameStore.getState().player.hp
-
-    useGameStore.getState().damagePlayer(10)
-
-    expect(useGameStore.getState().player.hp).toBe(initialHp - 10)
-  })
-})

@@ -12,7 +12,7 @@ describe('쓰러진 학생 대화 상태 (useGameStore)', () => {
     expect(s.phase).toBe('paused')
     expect(s.pauseSource).toBe('dialogue')
     expect(s.studentDialogue).toEqual({
-      line: '테스트 대사',
+      dialogueId: '테스트 대사',
       reward: null,
       subjectType: 'student',
       subjectName: '지친학생',

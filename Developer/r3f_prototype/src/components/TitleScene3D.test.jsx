@@ -130,7 +130,10 @@ describe('TitleScene3D direction', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
     expect(source).toContain("import ZombieMesh from './ZombieMesh.jsx'")
-    expect(source).toContain("import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'")
+    expect(source).toContain("import ClassroomChair from './StageObjects/ClassroomChair.jsx'")
+    expect(source).toContain("import ClassroomDesk from './StageObjects/ClassroomDesk.jsx'")
+    expect(source).toContain("import UnconsciousStudent from './StageObjects/UnconsciousStudent.jsx'")
+    expect(source).not.toContain("from './StageObjects/index.js'")
     expect(source).toContain('<ZombieMesh type={type} animPhase="charge" />')
     expect(source).toContain('<TitleBossZombie type="B02" position={[-1.99, 0.18, -3.7]} scale={0.93} delay={0.9} />')
     expect(source).toContain('<TitleBossZombie type="B03" position={[0.02, 0.4, -4.04]} scale={1.344} delay={1.35} />')

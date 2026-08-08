@@ -29,7 +29,7 @@ function readyRuntime(overrides = {}) {
   commitFirebaseStudioRuntime({
     tunings: {},
     sfxTunings: {},
-    stageBossPreview: {},
+    stageBossPreview: DEFAULT_STAGE_BOSS_PREVIEW,
     decals: {},
     propPlacements: {},
     ...overrides,
@@ -114,6 +114,11 @@ describe('Firebase runtime Graphics Studio config', () => {
     expect(loadStageBossPreview()).toEqual(DEFAULT_STAGE_BOSS_PREVIEW)
     saveStageBossPreview({ zoom: 133, panX: 0.35, panY: -0.25 })
     expect(loadStageBossPreview()).toEqual({ zoom: 133, panX: 0.35, panY: -0.25 })
+  })
+
+  it('rejects an incomplete Firebase stage boss preview instead of rendering a local default', () => {
+    readyRuntime({ stageBossPreview: {} })
+    expect(() => loadStageBossPreview()).toThrowError(/payload is incomplete/i)
   })
 
   it('normalizes texture decals and drops invalid layers', () => {

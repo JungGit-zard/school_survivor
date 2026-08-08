@@ -18,7 +18,7 @@ export const useAuthStore = create((set, get) => ({
   initializeAuth: async () => {
     if (get().initialized) return
     // DEV 전용 E2E 우회 — 가짜 유저로 즉시 signedIn. syncCloudProgressUser를
-    // 호출하지 않아 클라우드 저장/로드는 전부 no-op (e2eAuth.js 참조).
+    // 호출하지 않아 클라우드 저장/로드는 전부 no-op.
     if (!isFirebaseAuthConfigured()) {
       set({ status: 'unconfigured', initialized: true, user: null, error: null })
       return

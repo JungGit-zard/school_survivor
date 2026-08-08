@@ -6,9 +6,10 @@
   "scripts": {
     "branch:check": "python scripts/single_branch_guard.py check",
     "branch:run": "python scripts/single_branch_guard.py run --",
-    "predev": "npm run verify:title-canonical && npm run branch:check && node scripts/assert-no-legacy-b02.mjs",
+    "predev": "npm run verify:title-canonical && npm run branch:check && node scripts/assert-no-legacy-b02.mjs && node scripts/assert-dialogue-store.mjs",
     "dev": "python scripts/single_branch_guard.py run -- npm.cmd exec -- vite",
-    "prebuild": "npm run branch:check && node scripts/assert-title-surface-canonical.mjs && node scripts/assert-title-bgm-canonical.mjs && node scripts/assert-no-legacy-b02.mjs",
+    "dev:keepalive": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/keep-dev-server-alive.ps1 -Port 5173",
+    "prebuild": "npm run branch:check && node scripts/assert-title-surface-canonical.mjs && node scripts/assert-title-bgm-canonical.mjs && node scripts/assert-no-legacy-b02.mjs && node scripts/assert-dialogue-store.mjs",
     "build": "python scripts/single_branch_guard.py run -- npm.cmd exec -- vite build",
     "postbuild": "node scripts/assert-no-legacy-b02.mjs --artifacts=dist && node scripts/assert-title-surface-canonical.mjs && node scripts/assert-title-bgm-canonical.mjs --artifacts=dist",
     "audit:b02-artifacts": "node scripts/assert-no-legacy-b02.mjs --artifacts=all",
@@ -22,7 +23,8 @@
     "preview": "python scripts/single_branch_guard.py run -- npm.cmd exec -- vite preview",
     "browser:guard": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/guard-game-browser-limit.ps1",
     "browser:reserve": "npm run branch:check && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/guard-game-browser-limit.ps1 -Mode reserve",
-    "pretest": "npm run branch:check && node scripts/assert-title-surface-canonical.mjs && node scripts/assert-title-bgm-canonical.mjs && node scripts/assert-no-legacy-b02.mjs",
+    "pretest": "npm run branch:check && node scripts/assert-title-surface-canonical.mjs && node scripts/assert-title-bgm-canonical.mjs && node scripts/assert-no-legacy-b02.mjs && node scripts/assert-dialogue-store.mjs",
+    "verify:dialogue-targets": "node scripts/assert-dialogue-store.mjs --require-targets",
     "test": "vitest run",
     "pretest:watch": "npm run verify:title-canonical",
     "test:watch": "python scripts/single_branch_guard.py run -- npm.cmd exec -- vitest"

@@ -14,10 +14,10 @@ describe('project master authorization', () => {
     expect(isProjectMaster({ ...verifiedGoogleMaster, email: 'zard5388@gmail.com.evil.test' })).toBe(false)
   })
 
-  it('rejects unverified, non-Google, and E2E-shaped users', () => {
+  it('rejects unverified, non-Google, and incomplete users', () => {
     expect(isProjectMaster({ ...verifiedGoogleMaster, emailVerified: false })).toBe(false)
     expect(isProjectMaster({ ...verifiedGoogleMaster, providerData: [{ providerId: 'password' }] })).toBe(false)
-    expect(isProjectMaster({ uid: 'e2e-local-test', email: 'zard5388@gmail.com' })).toBe(false)
+    expect(isProjectMaster({ uid: 'unverified-user', email: 'zard5388@gmail.com' })).toBe(false)
   })
 
   it('uses provider IDs from Firebase provider data or the minimal auth user', () => {

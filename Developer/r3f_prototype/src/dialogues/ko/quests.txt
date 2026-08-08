@@ -1,0 +1,23 @@
+quest.stage1-talk-book.start	난 말을 잘 못하거든… '말빨기술책'이 있다면!!!
+quest.stage1-talk-book.completion	좋아… 이제 말할 수 있어. 다들 내 말 듣고 침착하게 나가자!
+quest.stage1-attendance.start	누가 교실을 빠져나갔는지 알아야 해… 비상 출석부가 앞쪽 책상에 있을 거야.
+quest.stage1-attendance.completion	확인했어. 복도로 나간 애들이 있어. 우리도 뒤따라가자.
+quest.stage2-bandage.start	304번 사물함에 압박붕대가 있어. 비밀번호는 0304… 보안은 원래부터 포기했어.
+quest.stage2-bandage.completion	됐다. 이제 혼자서도 움직일 수 있어. 고마워.
+quest.stage2-broadcast-key.start	비상 방송을 해야 해. 방송실 마스터키를 분실물 게시판 뒤에 붙여 뒀어.
+quest.stage2-broadcast-key.completion	좋아. 복도 끝까지 대피 방송을 내보낼게. 넌 계속 가!
+quest.stage3-whistle.start	애들이 패닉이야… 내 호루라기만 있으면 한쪽으로 모이게 할 수 있어.
+quest.stage3-whistle.completion	좋아, 내가 애들을 정리할게. 체육관 출구는 네가 열어 줘!
+quest.stage3-scoreboard-fuse.start	북쪽 전광판을 켜면 비상구 방향을 띄울 수 있어. 예비 퓨즈가 공 보관 카트에 있어.
+quest.stage3-scoreboard-fuse.completion	전광판이 켜지고 비상구 방향 화살표가 나타났다.
+quest.stage4-allergy-list.start	남은 음식을 나눠 주고 싶은데, 알레르기 있는 애들 명단이 없어. 동쪽 조리대에 있을 거야.
+quest.stage4-allergy-list.completion	이제 안전하게 나눠 줄 수 있어. 한 명도 더 아프게 하지 않을게.
+quest.stage4-gas-valve.start	쿡라인 가스가 새! 빨간 밸브 손잡이가 싱크대 쪽으로 굴러갔어.
+quest.stage4-gas-valve.completion	밸브를 잠갔다. 쿡라인의 불꽃과 가스 소리가 잦아든다.
+matilda.entry	오호호호! 떡하나주면 안잡아먹지!
+matilda.death	오호호호!!!!! 맛있게 먹을께!!!!
+matilda.gameover	마틸다 에게 영혼을 뺴앗겨 버렸다!!
+intro.stage1.001	공부가 하기싫은 학생들의 마음은 그들을 좀비로 만들었다…
+intro.stage1.002	일하기 싫은 교사들도 마찬가지로 좀비화 하였다.
+intro.stage1.003	난 여기서 빠져나가야겠어, 여긴… 좀비학교다!
+dialogue.unavailable	??? ???? ???.

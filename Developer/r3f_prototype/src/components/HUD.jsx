@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState, useMemo, useRef } from 'react'
 import { useShallow } from 'zustand/react/shallow'
-import { useGameStore, STAGE1_INTRO_LINES } from '../store/useGameStore.js'
+import { useGameStore, STAGE1_INTRO_IDS } from '../store/useGameStore.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { joystickDir, playerPos, portalTarget } from '../lib/refs.js'
 import { getPortalObjective } from '../lib/portalObjective.js'
@@ -14,12 +14,17 @@ import { getNextStageId, getStageConfig } from '../lib/stageConfig.js'
 import { STAGE2_SPAWN_TELEGRAPHS, STAGE3_SPAWN_TELEGRAPHS, STAGE4_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import { MATILDA_DIALOGUE_MS } from '../lib/matildaEntryGrace.js'
+import { getDialogueText } from '../dialogues/dialogueStore.js'
 import { getQuestDefinition, getStageQuestDefinitions } from '../lib/quests.js'
 import {
   DEFAULT_STUDIO_TUNING,
   GRAPHICS_STUDIO_TUNING_EVENT,
   loadStudioTunings,
 } from '../lib/graphicsStudioConfig.js'
+import {
+  FIREBASE_STUDIO_RUNTIME_EVENT,
+  isFirebaseStudioRuntimeReady,
+} from '../lib/studioRuntimeState.js'
 import { isProjectMaster } from '../lib/projectAdmin.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { milestoneLabel, t as translate, useT, weaponLabel } from '../lib/i18n.js'
@@ -46,9 +51,6 @@ import matildaConversationPortraitSrc from '../assets/character/matilda_conversa
 const GAMEOVER_TRANSITION_MS = 1000
 const MATILDA_COUNTDOWN_SECONDS = 5
 const MATILDA_DIALOGUE_NAME = '마틸다'
-const MATILDA_DIALOGUE_LINE = '오호호호! 떡하나주면 안잡아먹지!'
-const MATILDA_DEATH_DIALOGUE_LINE = '오호호호!!!!! 맛있게 먹을께!!!!'
-const MATILDA_GAMEOVER_LINE = '마틸다 에게 영혼을 뺴앗겨 버렸다!!'
 const DEV_CHEATS_ENABLED = import.meta.env.DEV
 
 // 한국어 라벨은 그대로 폴백으로 남기고, 번역은 업그레이드 키(up.<key>.label)로 찾는다.
@@ -197,8 +199,8 @@ function hexToRgba(hex, opacity) {
 }
 
 function loadDomStudioTuning(itemId) {
-  if (!itemId) return DEFAULT_STUDIO_TUNING
-  return loadStudioTunings()[itemId] ?? DEFAULT_STUDIO_TUNING
+  if (!itemId || !isFirebaseStudioRuntimeReady()) return null
+  return loadStudioTunings()[itemId] ?? null
 }
 
 function useDomStudioTuning(itemId) {
@@ -208,8 +210,10 @@ function useDomStudioTuning(itemId) {
     if (!itemId || typeof window === 'undefined') return undefined
     const update = () => setTuning(loadDomStudioTuning(itemId))
     window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
+    window.addEventListener(FIREBASE_STUDIO_RUNTIME_EVENT, update)
     return () => {
       window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
+      window.removeEventListener(FIREBASE_STUDIO_RUNTIME_EVENT, update)
     }
   }, [itemId])
 
@@ -270,7 +274,7 @@ export function limitDuplicateWeaponUpgradeOptions(options, random = Math.random
 }
 
 function introLine(index) {
-  return translate(`intro.stage1.${index}`, null, STAGE1_INTRO_LINES[index] ?? '')
+  return getDialogueText(STAGE1_INTRO_IDS[index])
 }
 
 export function getUpgradeChoiceLabel(option, weapons = {}) {
@@ -337,12 +341,14 @@ export function UpgradeIcon({ type }) {
   const imageSrc = getWeaponUpgradeIconSrc(type)
   const studioItemId = WEAPON_ICON_STUDIO_ITEMS[type]
   const studioTuning = useDomStudioTuning(studioItemId)
-  const studioStyle = studioItemId ? getDomStudioTuningStyle(studioTuning) : null
+  const studioStyle = studioItemId && studioTuning ? getDomStudioTuningStyle(studioTuning) : null
   const [imageFailed, setImageFailed] = useState(false)
 
   useEffect(() => {
     setImageFailed(false)
   }, [imageSrc])
+
+  if (studioItemId && !studioTuning) return null
 
   return (
     <div style={styles.iconBox}>
@@ -573,6 +579,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     if (questToast.type === 'completed') return translate('hud.questToastDone', { title, gold: quest.rewardGold })
     return translate('hud.questToastStart', { title })
   }, [questToast])
+  const questStarted = typeof questToast === 'object' && questToast?.type === 'started'
   const activeWeapons = useMemo(
     () => Object.entries(weapons).filter(([, w]) => w.active),
     [weapons],
@@ -751,9 +758,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
   }, [introDialogue])
 
   const showMatildaDialogue = matildaDialogueVisible || (isMatildaGameover && !gameoverModalReady)
-  const matildaDialogueLine = isMatildaGameover
-    ? t('hud.matildaDeathLine', null, MATILDA_DEATH_DIALOGUE_LINE)
-    : t('hud.matildaLine', null, MATILDA_DIALOGUE_LINE)
+  const matildaDialogueLine = getDialogueText(isMatildaGameover ? 'matilda.death' : 'matilda.entry')
 
   useEffect(() => {
     if (!showMatildaDialogue) return undefined
@@ -1050,7 +1055,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         <div data-testid="gameover-result-overlay" style={styles.overlay}>
           <div style={styles.modal}>
             <h2 style={{ ...styles.modalTitle, color: '#ff4060' }}>GAME OVER</h2>
-            {isMatildaGameover && <p data-testid="gameover-death-line" style={styles.gameoverDeathLine}>{t('hud.matildaGameoverLine', null, MATILDA_GAMEOVER_LINE)}</p>}
+            {isMatildaGameover && <p data-testid="gameover-death-line" style={styles.gameoverDeathLine}>{getDialogueText('matilda.gameover')}</p>}
             <p style={{ color: '#ccc', marginBottom: 8 }}>{t('hud.survivalTime', { time: `${mins}:${secs}` })}</p>
             <p style={{ color: '#ffd040', marginBottom: (newlyUnlockedWeaponIds?.length > 0) ? 12 : 20 }}>{t('hud.goldEarned', { session: goldSession, total: goldTotal })}</p>
             {newlyUnlockedWeaponIds?.length > 0 && (
@@ -1076,7 +1081,12 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
       )}
 
       {questToastMessage && (
-        <div role="status" aria-live="polite" style={styles.questToast}>
+        <div
+          role="status"
+          aria-live={questStarted ? 'assertive' : 'polite'}
+          data-testid={questStarted ? 'quest-start-popup' : 'quest-toast'}
+          style={{ ...styles.questToast, ...(questStarted ? styles.questStartPopup : null) }}
+        >
           <QuestBagIcon />
           <span>{questToastMessage}</span>
         </div>
@@ -1242,7 +1252,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
             )}
             <div style={styles.dialogueTextCol}>
               <div style={styles.dialogueName}>[{studentDialogue.subjectName ?? t('hud.tiredStudent')}]</div>
-              <div style={styles.dialogueLine} aria-live="polite">{studentDialogue.line}</div>
+              <div style={styles.dialogueLine} aria-live="polite">{getDialogueText(studentDialogue.dialogueId)}</div>
               {studentDialogue.reward && (
                 <div style={styles.dialogueReward}>
                   {studentDialogue.reward.type === 'gold'
@@ -1268,7 +1278,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
               {introLine(introDialogue.index)}
             </div>
             <div style={styles.dialogueHint}>
-              {introDialogue.index < STAGE1_INTRO_LINES.length - 1 ? t('hud.tapToContinue') : t('hud.tapToStart')}
+              {introDialogue.index < STAGE1_INTRO_IDS.length - 1 ? t('hud.tapToContinue') : t('hud.tapToStart')}
             </div>
           </div>
         </div>
@@ -1813,6 +1823,21 @@ const styles = {
     fontSize: 13,
     fontWeight: uiType.weightStrong,
     pointerEvents: 'none',
+  },
+  questStartPopup: {
+    top: '50%',
+    transform: 'translate(-50%, -50%)',
+    zIndex: 30,
+    maxWidth: 'min(88vw, 960px)',
+    padding: '24px 34px',
+    borderWidth: 4,
+    borderRadius: 16,
+    background: uiPalette.paper,
+    boxShadow: '0 12px 0 rgba(22, 19, 16, 0.36), 0 0 0 8px rgba(255, 232, 135, 0.32)',
+    fontSize: 56,
+    fontWeight: uiType.weightHeavy,
+    lineHeight: 1.12,
+    textAlign: 'center',
   },
   questInventoryPanel: {
     ...schoolPanel('paper'),

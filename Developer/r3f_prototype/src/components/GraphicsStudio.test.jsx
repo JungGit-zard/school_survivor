@@ -880,16 +880,6 @@ describe('GraphicsStudio', () => {
     expect(container.textContent).toContain('Audio applied')
   })
 
-  it('opens directly to the Faces tab from the dev studio section query', async () => {
-    window.history.replaceState(null, '', '/graphics-studio?e2e=1&studio=1&section=faces')
-
-    await renderSignedInStudio()
-
-    expect(container.textContent).toContain('Face Parts')
-    expect(container.querySelector('[data-testid="boss-face-grid-preview"]')).toBeTruthy()
-    expect(container.querySelector('[data-testid="graphics-preview"]')?.textContent).toContain('zombie-b01')
-  })
-
   it.skip('legacy face draft assertion is replaced by immediate commit', async () => {
     await renderSignedInStudio()
 

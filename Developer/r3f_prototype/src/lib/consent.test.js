@@ -1,13 +1,8 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const e2eAuth = vi.hoisted(() => ({ enabled: false }))
 const firebaseProgressSpies = vi.hoisted(() => ({
   requestCloudProgressSave: vi.fn(),
-}))
-
-vi.mock('./e2eAuth.js', () => ({
-  isE2EAuthBypass: () => e2eAuth.enabled,
 }))
 
 vi.mock('./firebaseProgress.js', async (importOriginal) => {
@@ -59,7 +54,6 @@ describe('consent.js', () => {
   beforeEach(() => {
     sessionStorage.clear()
     vi.clearAllMocks()
-    e2eAuth.enabled = false
     _resetFirebaseProgressForTests()
     _resetForTests()
   })
@@ -124,23 +118,6 @@ describe('consent.js', () => {
 
     expect(needsConsent(USER)).toBe(true)
     expect(readConsent(USER)).toBeNull()
-  })
-
-  it('records E2E consent in the hydrated memory runtime without requesting a Firebase save', async () => {
-    e2eAuth.enabled = true
-    _setFirebaseProgressClientForTests({
-      load: vi.fn(async () => remoteSnapshot()),
-      save: vi.fn(async () => {}),
-    })
-    applyCloudProgressSnapshot(remoteSnapshot(), USER, { keepCloudUserNull: true })
-
-    await expect(recordConsent(USER)).resolves.toBe(true)
-
-    expect(firebaseProgressSpies.requestCloudProgressSave).not.toHaveBeenCalled()
-    expect(readConsent(USER)).toMatchObject({
-      terms: { version: TERMS_VERSION },
-      privacy: { version: PRIVACY_VERSION },
-    })
   })
 
   it('never persists consent to browser storage', async () => {

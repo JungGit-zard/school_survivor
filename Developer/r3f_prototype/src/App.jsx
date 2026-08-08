@@ -1,6 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import GoogleAccountPanel from './components/GoogleAccountPanel.jsx'
-import ReadyGameApp from './components/ReadyGameApp.jsx'
 import {
   hydrateFirebaseStudio,
   initializeFirebaseStudioIfMissing,
@@ -14,9 +13,16 @@ import { useAuthStore } from './store/useAuthStore.js'
 import { isFirebaseStudioRuntimeReady } from './lib/studioRuntimeState.js'
 import { isProjectMaster } from './lib/projectAdmin.js'
 import { t } from './lib/i18n.js'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
+import {
+  getInspectionPhase,
+  subscribeInspectionMode,
+} from './lib/firebaseInspectionMode.js'
 
 const AdminPage = lazy(() => import('./components/AdminPage.jsx'))
 const GraphicsStudio = lazy(() => import('./components/GraphicsStudio.jsx'))
+const ReadyGameApp = lazy(() => import('./components/ReadyGameApp.jsx'))
+const InspectionModeScreen = lazy(() => import('./components/InspectionModeScreen.jsx'))
 
 installPlayerStorageFatalGuard()
 
@@ -42,15 +48,62 @@ export default function App() {
   const [studioCloudStatus, setStudioCloudStatus] = useState(
     () => isFirebaseStudioRuntimeReady() ? 'remote-applied' : 'idle',
   )
+  const [inspectionState, setInspectionState] = useState(null)
+  const [inspectionNowMs, setInspectionNowMs] = useState(() => Date.now())
   const hydratedUidRef = useRef('')
   const studioRuntimeSourceRef = useRef(isFirebaseStudioRuntimeReady() ? 'unknown' : 'none')
   const hydrationRef = useRef(null)
   const isGraphicsStudioRoute = typeof window !== 'undefined'
     && window.location.pathname.startsWith('/graphics-studio')
+  const isAdminRoute = typeof window !== 'undefined'
+    && window.location.pathname.startsWith('/admin')
 
   useEffect(() => {
     void initializeAuth()
   }, [initializeAuth])
+
+  useEffect(() => {
+    let unsubscribe = null
+    let disposed = false
+    const result = subscribeInspectionMode({
+      onState: (nextState) => {
+        if (!disposed) setInspectionState(nextState ?? null)
+      },
+      onError: () => {
+        // A subscription failure must not prevent normal game access.
+        if (!disposed) setInspectionState(null)
+      },
+    })
+    if (typeof result === 'function') {
+      unsubscribe = result
+    } else if (result?.then) {
+      void result.then((nextUnsubscribe) => {
+        if (disposed) nextUnsubscribe?.()
+        else unsubscribe = nextUnsubscribe
+      }).catch(() => {
+        if (!disposed) setInspectionState(null)
+      })
+    }
+    return () => {
+      disposed = true
+      unsubscribe?.()
+    }
+  }, [])
+
+  useEffect(() => {
+    const phase = getInspectionPhase(inspectionState, inspectionNowMs)
+    const transitionAt = phase === 'scheduled'
+      ? Number(inspectionState?.startsAt)
+      : phase === 'active'
+        ? Number(inspectionState?.endsAt)
+        : null
+    if (!Number.isFinite(transitionAt)) return undefined
+    const timer = window.setTimeout(
+      () => setInspectionNowMs(Date.now()),
+      Math.max(0, transitionAt - Date.now() + 1),
+    )
+    return () => window.clearTimeout(timer)
+  }, [inspectionState, inspectionNowMs])
 
   // ?ㅽ뒠?붿삤??留덉뒪??怨꾩젙 ?꾩슜?대떎. ?ㅻⅨ 援ш? 怨꾩젙??/graphics-studio濡??ㅼ뼱?ㅻ㈃
   // ?몄쭛湲?洹쇱쿂源뚯? 媛??寃??먯껜媛 移섎챸?곸씠誘濡?李쎌쓣 利됱떆 ?ル뒗??
@@ -244,13 +297,14 @@ export default function App() {
 
   if (isGraphicsStudioRoute) {
     return (
-      <Suspense fallback={<div style={styles.routeLoading}>{t('loading.studio')}</div>}>
-        <GraphicsStudio />
-      </Suspense>
+      <ErrorBoundary fallback={({ retry, reload }) => <RouteLoadFailure label={t('loading.studio')} retry={retry} reload={reload} />}>
+        <Suspense fallback={<div style={styles.routeLoading}>{t('loading.studio')}</div>}>
+          <GraphicsStudio />
+        </Suspense>
+      </ErrorBoundary>
     )
   }
 
-  const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
   if (isAdminRoute) {
     if (authStatus === 'checking') {
       return <AppBootstrap message={t('app.checkingAuth')} />
@@ -268,8 +322,18 @@ export default function App() {
       return <AdminAccessDenied reason={t('app.adminDeniedReason')} />
     }
     return (
-      <Suspense fallback={<div style={styles.routeLoading}>{t('loading.admin')}</div>}>
-        <AdminPage />
+      <ErrorBoundary fallback={({ retry, reload }) => <RouteLoadFailure label={t('loading.admin')} retry={retry} reload={reload} />}>
+        <Suspense fallback={<div style={styles.routeLoading}>{t('loading.admin')}</div>}>
+          <AdminPage user={authUser} />
+        </Suspense>
+      </ErrorBoundary>
+    )
+  }
+
+  if (getInspectionPhase(inspectionState, inspectionNowMs) === 'active') {
+    return (
+      <Suspense fallback={<div style={styles.routeLoading}>점검 화면을 불러오는 중입니다.</div>}>
+        <InspectionModeScreen state={inspectionState} />
       </Suspense>
     )
   }
@@ -280,11 +344,28 @@ export default function App() {
   // Google 濡쒓렇?몄쑝濡?蹂대궦?? 濡쒓렇???깃났 ?ㅼ뿉??Firebase 吏꾪뻾??Studio 以鍮??ㅽ뙣媛 ?덉뼱??
   // 濡쒕퉬쨌?ㅽ뀒?댁? 吏꾩엯??議곗슜???뱀? ?딄퀬 怨꾩냽 吏꾪뻾?쒕떎.
   return (
-    <ReadyGameApp
-      authUser={authUser}
-      progressStatus={progressStatus}
-      studioVisualsReady={studioReady}
-    />
+    <ErrorBoundary>
+      <Suspense fallback={<div style={styles.routeLoading}>{t('loading.game')}</div>}>
+        <ReadyGameApp
+          authUser={authUser}
+          progressStatus={progressStatus}
+          studioVisualsReady={studioReady}
+        />
+      </Suspense>
+    </ErrorBoundary>
+  )
+}
+
+function RouteLoadFailure({ label, retry, reload }) {
+  return (
+    <main role="alert" style={styles.routeFailure}>
+      <h1 style={styles.routeFailureTitle}>{label}</h1>
+      <p style={styles.routeFailureMessage}>이 화면을 불러오지 못했습니다. 다시 시도하거나 새로고침해 주세요.</p>
+      <div style={styles.routeFailureActions}>
+        <button type="button" style={styles.studioBootstrapRetry} onClick={retry}>다시 시도</button>
+        <button type="button" style={styles.studioBootstrapRetry} onClick={reload}>새로고침</button>
+      </div>
+    </main>
   )
 }
 
@@ -393,6 +474,19 @@ const styles = {
     color: '#f8fafc',
     fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif',
     fontWeight: 800,
+  },
+  routeFailure: {
+    minHeight: '100vh', display: 'grid', placeContent: 'center', gap: 16, padding: 24,
+    background: '#111827', color: '#f8fafc', textAlign: 'center',
+  },
+  routeFailureTitle: {
+    margin: 0, fontSize: 'clamp(24px, 5vw, 34px)',
+  },
+  routeFailureMessage: {
+    margin: 0, fontWeight: 700,
+  },
+  routeFailureActions: {
+    display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap',
   },
 }
 

@@ -1,0 +1,428 @@
+student.stage1.001	…It is not the zombies… I am lying here because I hate studying…
+student.stage1.002	Five more minutes… just five more minutes…
+student.stage1.003	If I get up there is a test. I am not getting up.
+student.stage1.004	Scarier than zombies is performance grading…
+student.stage1.005	My grades are already ruined — what is one zombie apocalypse…
+student.stage1.006	This floor… is cooler than I expected…
+student.stage1.007	Mom… I do not want to go to cram school today…
+student.stage1.008	I am going to sleep straight through to vacation…
+student.stage1.009	I skipped night study to lie down and the world ended.
+student.stage1.010	I closed my eyes after 5th period and they still will not open…
+student.stage1.011	100 days to the exam and the world finished first…
+student.stage1.012	Even zombies do not make you do night study…
+student.stage1.013	Bean sprouts in lunch again… I would rather lie here…
+student.stage1.014	I did not do my homework, so this timing is perfect…
+student.stage1.015	Will they write "survived the zombie outbreak" on my record…
+student.stage1.016	I collapsed after seeing my mock exam ranking…
+student.stage1.017	Mom’s nagging lasts longer than the zombie groans…
+student.stage1.018	I was late and wished school would disappear… well, it did…
+student.stage1.019	I passed out memorizing 100 English words…
+student.stage1.020	Even zombies listen to morning assembly standing up…
+student.stage1.021	I bought three workbooks and only looked at the covers…
+student.stage1.022	A zombie experience instead of the school trip, huh…
+student.stage1.023	The world ended while I was changing into my gym clothes…
+student.stage1.024	Lucky I missed the cram school shuttle… for once…
+student.stage1.025	Report cards come out today so I am not getting up…
+student.stage1.026	Even the top student next door is equal before a zombie…
+student.stage1.027	Anything is fine as long as it is not supplementary class… even zombies…
+student.stage1.028	All my group project teammates turned into zombies… so peaceful…
+student.stage1.029	I miss the 10-minute break the most…
+student.stage1.030	At least zombies do not check homework…
+student.stage1.031	I have never once been awake during morning study hall…
+student.stage1.032	They said college fixes everything… but school went first…
+student.stage1.033	If I had skipped school today it would have been a normal absence…
+student.stage1.034	There are fewer zombies than exam topics — I was surprised…
+student.stage1.035	I got pushed in the lunch line and I am pretending to have fallen…
+student.stage1.036	A zombie beats being called to the staff room…
+student.stage1.037	I came to fill volunteer hours and ended up like this…
+student.stage1.038	One question dropped my grade today… do not touch me…
+student.stage1.039	I turned off five alarms and the world turned out like this…
+student.stage1.040	I left the vacation homework to the me of the day before school starts…
+student.stage1.041	Even a zombie would run if it saw my mistake notebook…
+student.stage1.042	I was writing my personal statement and forgot who I am…
+student.stage1.043	Who knew survival came right after math and English…
+student.stage1.044	It is not cheating… my eyes just went there on their own…
+student.stage1.045	I prayed not to go to school, but not like this…
+student.stage1.046	The fitness test long run… that is my biggest regret right now…
+student.stage1.047	I was happy thinking it was a short day…
+student.stage1.048	I just bought a new uniform and the world ended…
+student.stage1.049	During math class I was already a zombie anyway…
+student.stage1.050	I was going to play after midterms… and the world ended…
+student.stage1.051	If I fall asleep solving problems, I solve problems in my dreams…
+student.stage1.052	There were no zombies in my life plan…
+student.stage1.053	Opened the classroom door, asked “attendance?”; a zombie raised its hand.
+student.stage1.054	PE became zombie-tracing sprint day, so the 3-minute run felt easy.
+student.stage1.055	Lunch turned messy as zombies blocked the line and tray handoff.
+student.stage1.056	When I handed in homework, a zombie flipped through my papers first.
+student.stage1.057	Our piano club turned the bell into zombie rhythm practice.
+student.stage1.058	The food got cold before me. Faster than a zombie sprint.
+student.stage1.059	Sir stopped checking homework because a zombie alarm suddenly rang.
+student.stage1.060	Open the club room and the first greeters were tired zombies.
+student.stage1.061	On English day one, the zombie said “hi” and nailing my accent.
+student.stage1.062	Library said “quiet,” but this zombie kept thudding behind me.
+student.stage1.063	Before roll call, everyone stood in one line. Even zombies panicked.
+student.stage1.064	Art class had good lines, but my zombie silhouette was top grade.
+student.stage1.065	In science lab, zombie sniffed the reagent and drank one exact drop.
+student.stage1.066	The lunch line was longer than the zombies—like a defense wall.
+student.stage1.067	I learned Three Kingdoms, but this zombie horde felt unbeatable.
+student.stage1.068	I was cleaning duty, so I grabbed a respirator too.
+student.stage1.069	Staff office felt calm. Corridor end sounded like zombie debate.
+student.stage1.070	Once in gym uniform, the zombie raised its arm before I did.
+student.stage1.071	I ran 400m in gym and got near-full score by barely surviving.
+student.stage1.072	Windows shook, piano rang, and the zombie became the window guard.
+student.stage1.073	In the last 30 minutes, a zombie yelled “time!” and grabbed my cup.
+student.stage1.074	Phones should be returned, but the zombie stole my notebook first.
+student.stage1.075	After my presentation, everyone clapped; zombies only made noise.
+student.stage1.076	Creative writing prompt: one day in zombie kingdom, top marks.
+student.stage1.077	Today, the survivor list mattered more than attendance.
+student.stage1.078	The library’s books weren’t missing. The zombie defense manual was.
+student.stage1.079	Cafeteria emergency bell rang, and zombies poured soup first.
+student.stage1.080	During the school festival, zombie dancing cut my bonus points.
+student.stage1.081	Even if science lab door broke, no zombie became an experiment.
+student.stage1.082	Self-study says silent, but zombie hit my pen on the clock.
+student.stage1.083	My Korean paper had “zombie,” then the prompt said “my day.”
+student.stage1.084	Group work had a zombie leader; minutes went missing too.
+student.stage1.085	When chalk hit the floor, zombies grabbed it first. New school rule.
+student.stage1.086	First night in club retreat, zombies carried rulebooks too.
+student.stage1.087	The soccer ball was slower than the zombie goalie.
+student.stage1.088	Recess is ten minutes. My heart paused ten too.
+student.stage1.089	I put a badge in the late column instead of my name.
+student.stage1.090	After lunch cleanup, the trash bin was already owned by zombies.
+student.stage1.091	Don’t add a zombie-trait field to my report card. I agree.
+student.stage1.092	Health class checked infection first, handwashing second.
+student.stage1.093	The zombie hit piano keys harder than my whole song.
+student.stage1.094	Before finals, everyone studied hard. Zombies stayed panic-mode.
+student.stage1.095	At bus stop, zombies checked boarding before every student.
+student.stage1.096	At parent night, teacher said my face looked zombie-like.
+student.stage1.097	After-school, zombie boss rehearsal beat club activities.
+student.stage1.098	In light run, zombie said “dart,” then chased me.
+student.stage1.099	English vocab had “zombie” as the easiest word.
+student.stage1.100	The challenge was simple: dodge three zombies and return to class.
+student.stage1.101	Cleaning day: one broom lost to one zombie shield.
+student.stage1.102	Saying “deadline,” I saw even zombies line up quietly.
+student.stage1.103	Class president election picked one of three zombie candidates.
+student.stage1.104	The field trip bus had a special zombie seat chart.
+student.stage1.105	Life assignment came back: too hard even for zombies.
+student.stage1.106	I pretended to eat burgers. Zombie ate first, as usual.
+student.stage1.107	At art room, my splash style got zombie-paint praise.
+student.stage1.108	In Korean lit, more eyes watched the zombies than my essay.
+student.stage1.109	My attendance was always late, but the zombie timetable was exact.
+student.stage1.110	I blew birthday candles using zombie breathing.
+student.stage1.111	PE relay rule: get tagged, get infected instantly.
+student.stage1.112	Lunch queue: canteen said “more,” and zombies screamed in chorus.
+student.stage1.113	They asked us to close windows; zombies took roll call outside.
+student.stage1.114	Search a dictionary and zombie words popped up first.
+student.stage1.115	Club meeting notes became zombie security shift notes.
+student.stage1.116	One loose school uniform button, and zombies sent backup.
+student.stage1.117	On commute, a security zombie rushed the bus line.
+student.stage1.118	Chemicals mixed badly, but zombie drinks mixed easier.
+student.stage1.119	That day, the survival board beat the score sheet.
+student.stage1.120	When school broadcast cut, everyone froze and zombies breathed deep.
+student.stage1.121	Homeroom asked, “Did you come from zombie squad?”
+student.stage1.122	Gate queue drill made the zombie line captain.
+student.stage1.123	At test end, zombie had hand up before I did.
+student.stage1.124	Cleanup proved footsteps loudest; zombie confirmed.
+student.stage1.125	Humidifier broke, and zombie started breathing drills.
+student.stage1.126	Sports day finish line: zombie speed mattered more than style.
+student.stage1.127	“Reaction speed,” asked science. Zombie raised hand first.
+student.stage1.128	Club contest renamed us: “Zombie Survival Class 1.”
+student.stage1.129	While studying, a knock came; it was a zombie sprinting.
+student.stage1.130	Lunch menu said “split” and smelled half-and-half panic.
+student.stage1.131	Class leader said quiet. Zombie made the loudest noise.
+student.stage1.132	Reading log with zombie lead got me no penalty.
+student.stage1.133	After-school study, I left first; zombie became TA.
+student.stage1.134	At field corner, I found a zombie home-run net.
+student.stage1.135	Class officers got busy; zombies stayed calm.
+student.stage1.136	Science field day made zombies the coolest models.
+student.stage1.137	Teacher praised me too much; zombie quietly laughed behind.
+student.stage1.138	End-of-day attendance password: “still alive.”
+student.stage1.139	A maze task solved slower than zombie dodging.
+student.stage1.140	While tying shoes, zombie signaled scissors from behind.
+student.stage1.141	Clubroom lights were off, but the zombie face was bright.
+student.stage1.142	On side-dish day, lunch orders vanished before zombie hands did.
+student.stage1.143	Career block: zombie job ideas won the top spot.
+student.stage1.144	In lab coat, my thermometer hit zombie body heat first.
+student.stage1.145	Tug-of-war: I pulled rope; zombie just watched.
+student.stage1.146	Gate check: teacher asked “late?” Zombie said “Too crowded.”
+student.stage1.147	Our group leader’s words were few, actions were zombie-level.
+student.stage1.148	At group meeting, my PPT lost to a zombie sketch.
+student.stage1.149	Lunch bell rang and the zombie sprinted for ramen.
+student.stage1.150	In after-school study I nodded off; zombie checked homework map.
+student.stage1.151	At library booking, zombie picked a seat number first.
+student.stage1.152	With gymwear on, zombies recognized me before the mask.
+student.stage1.153	I thought class was over, but the zombie alarm on the board screamed first.
+student.stage1.154	I wanted to meet the homework deadline, but the zombie drill came first.
+student.stage1.155	On mock-exam day, zombies checked attendance before I opened my notes.
+student.stage1.156	I’m more scared the zombie survival score drops than my grade report.
+student.stage1.157	I can skip studying, the zombies are already sprinting toward the gate.
+student.stage1.158	I forgot English words, but the zombie-defense spell sticks in my head.
+student.stage1.159	Lunch menu stayed normal, but zombies got the line first.
+student.stage1.160	I stood in lunch line, and a zombie already had my tray.
+student.stage1.161	At lunch, checking escape routes is still higher priority than homework.
+student.stage1.162	Lockdown prep had more people than my club meeting.
+student.stage1.163	In PE, I dodged zombies instead of doing push-ups.
+student.stage1.164	My gym shirt can wrinkle, and the zombie still gets closer.
+student.stage1.165	I cleaned the blackboard after I scrubbed zombie footprints first.
+student.stage1.166	Reading in the library was funny until a zombie noise storm started.
+student.stage1.167	The teacher said “quiet,” but the zombie started class inspection first.
+student.stage1.168	Attendance says “late” today, and I marked one extra escape step.
+student.stage1.169	Even with loose uniform buttons, neatness is survival armor around zombies.
+student.stage1.170	I finished the admin draft; the zombie briefing message came out sooner.
+student.stage1.171	The teacher smelled my homework, and now I get infection checks too.
+student.stage1.172	Mom texted me, “Are you home?” then corrected it: “Any zombies?”
+student.stage1.173	My parent asked for evacuation drill footage before test scores.
+student.stage1.174	Still deciding afterschool class, with zombies already waiting.
+student.stage1.175	My exam is tomorrow, but the speakers only play evacuation repeats.
+student.stage1.176	Gym floor is slippery, and zombie chases turn every drill into exits.
+student.stage1.177	Zombie front lines rotate by classroom like club rivalry matches.
+student.stage1.178	This feels less like science and more like a zombie infection demo.
+student.stage1.179	The librarian whispered “be quiet” and gave me a zombie exit route.
+student.stage1.180	Overtime homework can vanish; zombie routes must stay memorized.
+student.stage1.181	The lunch line is shorter, but the survival queue is slower and longer.
+student.stage1.182	The cafeteria smell is gone; zombie breath spread first.
+student.stage1.183	Studio practice was fake, but zombie warning calls were serious.
+student.stage1.184	The in-school broadcast cut early, then zombie notices played on.
+student.stage1.185	I swept the hallway and wiped zombie traces, then lowered my prep hat.
+student.stage1.186	The gym tape is less important than blocking a zombie corridor.
+student.stage1.187	Club activity paused because a zombie tracking team was deployed.
+student.stage1.188	Midterm range was small, but the zombie expanded it on purpose.
+student.stage1.189	The parent talk was online; the side screen kept showing evacuation alerts.
+student.stage1.190	I was waiting near the office, yet I had to block a zombie meetup.
+student.stage1.191	My grade board updates later than the zombie survival checker.
+student.stage1.192	At the gate, lunch line or not, zombies taught me “keep distance.”
+student.stage1.193	In PE, rope jumping got easier than outsmarting zombies.
+student.stage1.194	I folded my assignment notebook and tied my backpack strap early.
+student.stage1.195	The wind in the uniform mattered less than the zombie wind wave.
+student.stage1.196	Rehearsal got canceled, so I practiced zombie alert lines again.
+student.stage1.197	Hallway occupation is suspended; evacuation flow is the real class.
+student.stage1.198	Group homework is postponed while survival explanation is now urgent.
+student.stage1.199	I can’t focus in class; zombies notice me before the teacher does.
+student.stage1.200	Counseling is later; first I check suspected zombie infections.
+student.stage1.201	I borrowed only one tracking gadget from the science club.
+student.stage1.202	I skipped Korean performance scoring and wrote zombie survival stories.
+student.stage1.203	My funny moment was walking beside a zombie, not doing homework.
+student.stage1.204	Evacuation diagrams were posted before class handouts.
+student.stage1.205	Period one is canceled; today we memorize zombie routes as schedule.
+student.stage1.206	Hiding my homework list means zombies steal it first anyway.
+student.stage1.207	My new proof is an evacuation-complete stamp, not a score report.
+student.stage1.208	The class rep shouted “quiet,” and a zombie blasted past right behind.
+student.stage1.209	Tteokbokki sold slower than snacks built for zombie escape.
+student.stage1.210	Booking a library seat is easy; blocking a zombie corridor is brutal.
+student.stage1.211	The librarian now recommends a survival guide instead of novels.
+student.stage1.212	Cleaning the hallway is easy; zombie passage checks are hard.
+student.stage1.213	I expected release, but zombies kept us stuck longer.
+student.stage1.214	Zombie check-ins matter more than my written test prep.
+student.stage1.215	Nurse lines are short, then infection screening slows everything.
+student.stage1.216	The nurse used wipes second, because zombie alerts were priority.
+student.stage1.217	Medicine got delayed while door-seal tape got handed out first.
+student.stage1.218	Even the sports log got replaced by precise zombie-tracking logs.
+student.stage1.219	Soccer changed into a zombie-avoidance passing drill.
+student.stage1.220	The club dinner got re-packed as “zombie-safe” food.
+student.stage1.221	As a cleaner I can wipe boards, not zombie footprints.
+student.stage1.222	Classroom cleanup beep is mild; zombie corridor lock is loud.
+student.stage1.223	Room tidy-up can wait; zombies need action now.
+student.stage1.224	The library was full because someone marked infection zones.
+student.stage1.225	The test ended, but I couldn’t go home—school is a shelter now.
+student.stage1.226	I had to draw a zombie map before filing field-trip forms.
+student.stage1.227	The field trip changed into a hallway map for survival routes.
+student.stage1.228	Even locked club doors can’t stop a zombie finding a window route.
+student.stage1.229	Attendance checks stopped; zombie queue control is all that works.
+student.stage1.230	Teacher training was on, and even teachers laughed at the alarm.
+student.stage1.231	My homeroom teacher said “hand in homework,” zombies said “shut the doors.”
+student.stage1.232	The teacher looked tired but said, “Even zombies take this exam.”
+student.stage1.233	The principal’s speech got shorter than the survival notice.
+student.stage1.234	The office handed out protective masks instead of certificates.
+student.stage1.235	In-school broadcast is clipped, then the zombie alarm restarts cleanly.
+student.stage1.236	The store has fewer snacks and more zombie defense gloves.
+student.stage1.237	The clerk sold a whistle instead of buns today.
+student.stage1.238	Both uniform buttons and shoelaces are now survival gear.
+student.stage1.239	Hide weak-point pockets; don’t let zombies chew through them.
+student.stage1.240	In my sports uniform, I carried a whistle over pens.
+student.stage1.241	Trip maps are now for checking zombie routes, not romance.
+student.stage1.242	The field-trip bus became an evacuation bus skipping zombie zones.
+student.stage1.243	Event drills got delayed because broadcast changed schedules.
+student.stage1.244	My fitness score today is how well I survive a chase.
+student.stage1.245	I was studying when an evacuation alert pulled me up immediately.
+student.stage1.246	Broadcast practice now means rehearsing the three-second zombie line.
+student.stage1.247	My radio script got overshadowed by a zombie announcement draft.
+student.stage1.248	The commute bell rang, but the zombie alarm changed start time.
+student.stage1.249	Before toilet, I wash, then check for zombie corridors.
+student.stage1.250	The trash bin line vanished; the toilet door became the route.
+student.stage1.251	Toilet keys can disappear, but zombies seal safe doors first.
+student.stage1.252	The toilet queue is now an accidental zombie-drill class.
+student.stage1.253	The intercom blasted “evacuate” louder than “be quiet.”
+student.stage1.254	The gym booth became a full zombie-announcement studio.
+student.stage1.255	My emergency narrator can’t stop the evacuation script.
+student.stage1.256	School alert tones are short, but zombie warnings go on long.
+student.stage1.257	School announcements continue later; zombies start now.
+student.stage1.258	Budget update for zombie response came before lunch accounting.
+student.stage1.259	Lunch distribution shortened, but the survival path got longer.
+student.stage1.260	Allergy check paused; I only passed zombie-contact verification.
+student.stage1.261	The lunchbox line disappeared; gate line holds zombie checks.
+student.stage1.262	At the clinic I filled infection forms before taking medicine.
+student.stage1.263	Even pencils sold less than zombie survival kits today.
+student.stage1.264	My backpack feels lighter, but zombie gear is heavier.
+student.stage1.265	I packed a zombie whistle instead of random stationery.
+student.stage1.266	I grumble at receipts, yet always buy extra security items.
+student.stage1.267	While waiting for the bus, zombie-dodging training starts right away.
+student.stage1.268	I skipped uniform laundry and finished corridor checks first.
+student.stage1.269	The hallway walls now show more evacuation signs than blackboard.
+student.stage1.270	My mentor gives me zombie commands before homework comments.
+student.stage1.271	After library checkout I’m immediately zombie watch leader.
+student.stage1.272	Learning alerts repeat often, but zombie notices repeat even more.
+student.stage1.273	At attendance we call names; for zombies we listen for footsteps.
+student.stage1.274	Teacher instructions are good, but zombies are pounding the back door.
+student.stage1.275	Exam eve should be quiet, but zombies make even more noise.
+student.stage1.276	Parent call logs now include extra infection-prevention lines.
+student.stage1.277	Mom asks my health before my grades when zombie news is up.
+student.stage1.278	Lunch homework check passes only after zombie control passes.
+student.stage1.279	Even after the exam, home felt far; zombies blocked the gate.
+student.stage1.280	Field trip is gone, so I draw the survival map first.
+student.stage1.281	Council meeting is late; zombies now patrol our hallway.
+student.stage1.282	The club adviser has become our zombie squad lead anyway.
+student.stage1.283	I chose an emergency guidebook over afterschool notes.
+student.stage1.284	I added one category: “Zombie readiness 100 points.”
+student.stage1.285	Cleanup can wait until I finish marking block lines for safety.
+student.stage1.286	The cleaner in the hallway is now measuring zombie angles.
+student.stage1.287	I check for hiding spots before shelving books.
+student.stage1.288	The big exam is hard, but the library door opened only to stay clear.
+student.stage1.289	The exam is hard, and evacuation-door drills are harder.
+student.stage1.290	If exam hall doors close, we switch to zombie-avoid mode fast.
+student.stage1.291	During lunch shifts, I read zombie routes before joining line.
+student.stage1.292	In fitness test, zombie distance appears before my answer sheet.
+student.stage1.293	The year-end workbook can wait; infection notice comes first.
+student.stage1.294	If the lunch sheet changes, safe-route snacks change too.
+student.stage1.295	“Sports class?” I said. “Tomorrow’s still zombie speed training.”
+student.stage1.296	I cleaned a doorframe, then sealed another one for zombies.
+student.stage1.297	The station says “seatbelt” less; “evacuation belt” more.
+student.stage1.298	I was told: never open the emergency door before the zombies do.
+student.stage1.299	Even with a bathroom emergency, I still make way for passing zombies.
+student.stage1.300	The exam starts with a sigh again and ends with leaving beside zombies.
+investigation.student.stage1.001	The notebook says "homework: not done". Even today, homework follows you.
+investigation.student.stage1.002	The ribbon is crooked. Too scared to get close, so I fixed it in my heart.
+investigation.student.stage2.001	That timetable is packed solid. Nobody should be this busy, even as a zombie.
+investigation.student.stage2.002	A shoelace came undone. Sorry, lace — cheer up for me instead.
+investigation.student.stage3.001	I can see a whistle. One blow and PE class might start again.
+investigation.student.stage3.002	A basketball is stuck to their side. Friend or accomplice? Still unclear.
+investigation.student.stage4.001	The tray is so polite. It looks like it is waiting for food, which is oddly sad.
+investigation.student.stage4.002	The spoon and chopsticks are perfectly lined up. My first well-mannered horror.
+investigation.classroomDesk.001	A pencil jabbed the back of my hand. So the desk is on the zombies’ side too.
+investigation.classroomDesk.002	"Lunch is the best" is carved here. Now my stomach is the one that panicked.
+investigation.classroomDesk.003	The desk's scratches form a map. I can hide in it.
+investigation.classroomDesk.004	The drawer rattles before I touch it, warning me out.
+investigation.classroomDesk.005	Its top is a tiny confession booth for my panic.
+investigation.classroomChair.001	The chair creaks like it is scolding me. And I never even sat down.
+investigation.classroomChair.002	Eraser dust looks like a fuzz monster. Sorry, I looked away first.
+investigation.classroomChair.003	The chair legs stand like guards measuring my footing.
+investigation.classroomChair.004	Even before sitting, the seat grades my confidence.
+investigation.classroomChair.005	Its backrest enforces perfect posture by force.
+investigation.corridorLockerBank.001	A gym shirt sleeve looked like it was waving. I almost waved back.
+investigation.corridorLockerBank.002	The schedule says fitness test. I am already running plenty, thanks.
+investigation.corridorLockerBank.003	Locker handles line up like guards at the dawn parade.
+investigation.corridorLockerBank.004	Open one door and the whole hallway claps in.
+investigation.corridorLockerBank.005	The metal smell seals my own little secrets.
+investigation.corridorJanitorCart.001	The mop gave me a little bow. I bowed back without thinking.
+investigation.corridorJanitorCart.002	My face in the bucket is stretched like a noodle. Longer than my hair today.
+investigation.corridorJanitorCart.003	The cart wheels draw a perfect cleaning orbit on the floor.
+investigation.corridorJanitorCart.004	The mop pole bows first, so I bow right back.
+investigation.corridorJanitorCart.005	A dented bucket rim sounds like a shy sneeze.
+investigation.corridorLostFoundBoard.001	A note about a sock that lost its pair. Now I feel lonely too.
+investigation.corridorLostFoundBoard.002	A sheet of paper flapped at me. Nothing fakes scary better than paper.
+investigation.corridorLostFoundBoard.003	Lost-and-found notes look like a roll call of missing things.
+investigation.corridorLostFoundBoard.004	Each paper flap reads my name in paper whispers.
+investigation.corridorLostFoundBoard.005	The board corner holds my face as another lost item.
+investigation.basketballHoop.001	The net seems to wink at me. Why is it so relaxed?
+investigation.basketballHoop.002	Standing under the hoop reminded me of PE grading. Gym beats zombies.
+investigation.basketballHoop.003	The rim stares at me like a referee with standards.
+investigation.basketballHoop.004	A swing of the net feels like fake cheering around me.
+investigation.basketballHoop.005	The backboard orders: “Shoot first, panic later.”
+investigation.basketballBallCart.001	The basketballs stare at me in a circle. Feels like a judging panel.
+investigation.basketballBallCart.002	A wheel squeaked. My secret agent walk was busted instantly.
+investigation.basketballBallCart.003	The ball cart gives me a committee of eyes.
+investigation.basketballBallCart.004	One wheel squeaks like a VIP entrance bell.
+investigation.basketballBallCart.005	The lip of the cart hides secrets under one row.
+investigation.basketballCluster.001	A ball tapped my toe. I said "huh?" like it had spoken to me.
+investigation.basketballCluster.002	The basketballs look like they are napping. I tried not to wake them.
+investigation.basketballCluster.003	Balls in a knot look like they’re voting on me.
+investigation.basketballCluster.004	A step makes their bounce answer for me.
+investigation.basketballCluster.005	One eager ball peeks out like a tiny captain.
+investigation.gymBench.001	Dust sits here like an audience. Feels like my own opening ceremony.
+investigation.gymBench.002	I bumped my forehead picking up a name tag. I got found before the tag did.
+investigation.gymBench.003	Bench edges stand like stage tape for a private parade.
+investigation.gymBench.004	The seat trembles when I shift, as if scoring me.
+investigation.gymBench.005	No backrest means this bench is a strict coach.
+investigation.gymTrainingCones.001	The cones stand like hall monitors. I straightened my feet for no reason.
+investigation.gymTrainingCones.002	I stood a cone up and it looks even more crooked. Did I ruin its style?
+investigation.gymTrainingCones.003	Cones line up like strict hall monitors.
+investigation.gymTrainingCones.004	When I straighten one, it looks more crooked.
+investigation.gymTrainingCones.005	The rubber bottoms bounce with a private laugh.
+investigation.gymMats.001	This mat is far too soft. I want to lie down for a second — dangerous.
+investigation.gymMats.002	The rolled mat looks like a gimbap roll. My stomach should not react right now.
+investigation.gymMats.003	Rolled mats look so soft I could nap right now.
+investigation.gymMats.004	The rim of foam begs my feet to touch gently.
+investigation.gymMats.005	This obstacle’s a mattress with a black-belt.
+investigation.gymScoreboard.001	The score froze at an awkward number. Even at the end of the world, records nag.
+investigation.gymScoreboard.002	The scoreboard looks like it is quizzing me. No idea, but I nodded anyway.
+investigation.gymScoreboard.003	The score stops at an awkward number on purpose.
+investigation.gymScoreboard.004	Each blink chooses which fear I should read.
+investigation.gymScoreboard.005	My own reflection edits the score for a second.
+investigation.gymBanner.001	The banner shouts "to the end!". So spirited I answered "yes…".
+investigation.gymBanner.002	The letters look like they are dancing. The banner is more hyped than the cheer squad.
+investigation.gymBanner.003	The banner makes letters dance when I blink.
+investigation.gymBanner.004	Its cloth moves me around like a relentless coach.
+investigation.gymBanner.005	Slogan after slogan, it leads me to the finish.
+investigation.gymExitDoor.001	The handle is ice cold. I think it pranked me first.
+investigation.gymExitDoor.002	The green sign looks confident. Open up and I will believe you instantly.
+investigation.gymExitDoor.003	The green sign smiles at my hesitation.
+investigation.gymExitDoor.004	The handle vibration copies my heartbeat.
+investigation.gymExitDoor.005	The frame keeps a secret route in every jolt.
+investigation.gymEquipmentSpill.001	A jump rope wriggles like a snake. At least it is only a rope.
+investigation.gymEquipmentSpill.002	One ball is peeking out of hiding. I almost shouted "found you".
+investigation.gymEquipmentSpill.003	Ropes and balls pile up like a snake costume.
+investigation.gymEquipmentSpill.004	A hidden ball pokes up like a warning light.
+investigation.gymEquipmentSpill.005	This spill area swallows shouts before they form.
+investigation.kitchenPrepTable.001	These carrot slices are too neat. The top student in this school is a carrot.
+investigation.kitchenPrepTable.002	The knife marks look like a map. Probably an onion’s adventure route.
+investigation.kitchenPrepTable.003	Carrot slices in rows look like the class topper.
+investigation.kitchenPrepTable.004	Knife lines make perfect tiny route maps.
+investigation.kitchenPrepTable.005	The table edge feels like a warning note.
+investigation.kitchenCookLine.001	A pot lid rattled. I think it is handling its own entrance music.
+investigation.kitchenCookLine.002	At the cook line, I felt like serving duty. “More soup, please.” kept echoing.
+investigation.kitchenCookLine.003	A pot lid keeps drumroll as I approach.
+investigation.kitchenCookLine.004	Steam rises and judges my appetite for me.
+investigation.kitchenCookLine.005	The line cooks panic faster than I can.
+investigation.kitchenSinkCounter.001	Water drips right on the beat. Feels like a music exam.
+investigation.kitchenSinkCounter.002	The scrubber is flattened. It carries all the world’s exhaustion alone.
+investigation.kitchenSinkCounter.003	Water drips like metronome practice.
+investigation.kitchenSinkCounter.004	The sponge performs an exhausted report.
+investigation.kitchenSinkCounter.005	The wet rim is a moat I shouldn’t cross.
+investigation.kitchenRefrigerator.001	The fridge seems to sigh. I ended up sighing along with it.
+investigation.kitchenRefrigerator.002	The side-dish tubs are lined up perfectly. Calmer than me — I lost a little.
+investigation.kitchenRefrigerator.003	The fridge sighs, and I end up sighing too.
+investigation.kitchenRefrigerator.004	Side-dish tubs march in order; I am the only off-beat.
+investigation.kitchenRefrigerator.005	Its light reveals the snack I tried to hide.
+investigation.kitchenTrayRack.001	Several of me reflect in the trays. A meeting of frightened mes.
+investigation.kitchenTrayRack.002	The tray looks ready to announce the menu. Fear-flavored is new to me.
+investigation.kitchenTrayRack.003	Many reflections in trays make me look like a meeting.
+investigation.kitchenTrayRack.004	Lift one tray and the others clap back in steel.
+investigation.kitchenTrayRack.005	The trays sound like menu bells to my ears.
+investigation.kitchenShelfCart.001	The dishes clatter in chorus. I held back from clapping in case it got louder.
+investigation.kitchenShelfCart.002	I tried to help the cart and it creaked more. Good deeds have loud sound effects.
+investigation.kitchenShelfCart.003	Dishes clatter like an accidental orchestra.
+investigation.kitchenShelfCart.004	A little push teaches the cart its own laws.
+investigation.kitchenShelfCart.005	Its handle sticks out like a cat giving warning.
+investigation.kitchenTrashBins.001	The bin looks like a very talkative face. Sorry, counseling later.
+investigation.kitchenTrashBins.002	Reading the lunch menu made my stomach growl. Stomach, we are in a meeting.
+investigation.kitchenTrashBins.003	One bin has a talkative face, another nods.
+investigation.kitchenTrashBins.004	The lid opens only when my lunch bell rings.
+investigation.kitchenTrashBins.005	Food smell and my stomach hold a loud argument.
+investigation.kitchenCrateStack.001	The crates look ready to collapse if I even breathe. So I breathed quietly.
+investigation.kitchenCrateStack.002	The word "careful" nags at me. I am already being extremely careful.
+investigation.kitchenCrateStack.003	The stack quivers if I dare breathe loud.
+investigation.kitchenCrateStack.004	The top crate acts like a strict captain.
+investigation.kitchenCrateStack.005	Wood grain whispers “careful” every time.
+investigation.kitchenClutter.001	Ladles and pots sound like an orchestra. No conductor, so it is all clatter.
+investigation.kitchenClutter.002	That spoon is too well behaved. Suspicious — I looked away first.
+investigation.kitchenClutter.003	Pots and ladles have a meeting in code.
+investigation.kitchenClutter.004	The quiet spoon is the one that scares me.
+investigation.kitchenClutter.005	Steam carries my shadow into a complaint form.

@@ -81,6 +81,25 @@ describe('Realtime Database rules', () => {
     expect(studio.$other['.validate']).toBe(false)
   })
 
+  it('keeps inspection control publicly readable and Google-master writable with a closed schema', () => {
+    const inspection = rules.runtimeControl.v1.inspection
+    expect(inspection['.read']).toBe(true)
+    expect(inspection['.write']).toBe(
+      "auth != null && auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com'",
+    )
+    expect(inspection['.validate']).toContain("'schemaVersion'")
+    expect(inspection.schemaVersion['.validate']).toContain('newData.val() === 1')
+    expect(inspection.enabled['.validate']).toContain('newData.isBoolean()')
+    expect(inspection.startsAt['.validate']).toContain('now - 300000')
+    expect(inspection.endsAt['.validate']).toContain("newData.parent().child('startsAt').val()")
+    expect(inspection.endsAt['.validate']).toContain('604800000')
+    expect(inspection.message['.validate']).toContain('length <= 200')
+    expect(inspection.updatedAt['.validate']).toContain('now + 300000')
+    expect(inspection.updatedByUid['.validate']).toContain('newData.val() === auth.uid')
+    expect(inspection.$other['.validate']).toBe(false)
+    expect(rules.runtimeControl.v1.$other['.validate']).toBe(false)
+  })
+
   it('keeps global daily/weekly rows publicly readable and owner-writable per uid', () => {
     const entries = rules.rankingService.v1.public.$seasonId.global.$window.$periodKey.entries
     expect(entries['.read']).toContain("$window === 'daily' || $window === 'weekly'")

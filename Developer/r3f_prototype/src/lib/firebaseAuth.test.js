@@ -4,7 +4,6 @@ import {
   getLocalFirebaseAuthRedirect,
   GRAPHICS_STUDIO_FIREBASE_APP_NAME,
   resolveFirebaseAppForRoute,
-  setFirebaseAuthLocalPersistence,
   setFirebaseAuthMemoryPersistence,
   isFirebaseAuthConfigured,
   shouldUseNativeGoogleSignIn,
@@ -19,12 +18,11 @@ const firebaseAuthMock = vi.hoisted(() => ({
     getAuth: vi.fn(() => ({ currentUser: null })),
     setPersistence: vi.fn(async () => {}),
     inMemoryPersistence: { type: 'MEMORY' },
-    browserLocalPersistence: { type: 'LOCAL' },
-    browserSessionPersistence: { type: 'SESSION' },
     getRedirectResult: vi.fn(async () => null),
     onAuthStateChanged: vi.fn(() => vi.fn()),
     signInWithPopup: vi.fn(),
     signInWithRedirect: vi.fn(),
+    signInWithCredential: vi.fn(),
     signOut: vi.fn(),
     reauthenticateWithPopup: vi.fn(),
     deleteUser: vi.fn(),
@@ -46,16 +44,24 @@ vi.mock('firebase/auth', () => ({
   GoogleAuthProvider: firebaseAuthMock.auth.GoogleAuthProvider,
   getAuth: (...args) => firebaseAuthMock.auth.getAuth(...args),
   inMemoryPersistence: firebaseAuthMock.auth.inMemoryPersistence,
-  browserLocalPersistence: firebaseAuthMock.auth.browserLocalPersistence,
-  browserSessionPersistence: firebaseAuthMock.auth.browserSessionPersistence,
   setPersistence: (...args) => firebaseAuthMock.auth.setPersistence(...args),
   getRedirectResult: (...args) => firebaseAuthMock.auth.getRedirectResult(...args),
   onAuthStateChanged: (...args) => firebaseAuthMock.auth.onAuthStateChanged(...args),
   signInWithPopup: (...args) => firebaseAuthMock.auth.signInWithPopup(...args),
   signInWithRedirect: (...args) => firebaseAuthMock.auth.signInWithRedirect(...args),
+  signInWithCredential: (...args) => firebaseAuthMock.auth.signInWithCredential(...args),
   signOut: (...args) => firebaseAuthMock.auth.signOut(...args),
   reauthenticateWithPopup: (...args) => firebaseAuthMock.auth.reauthenticateWithPopup(...args),
   deleteUser: (...args) => firebaseAuthMock.auth.deleteUser(...args),
+}))
+
+const nativeAuthMock = vi.hoisted(() => ({
+  signInWithGoogle: vi.fn(),
+  signOut: vi.fn(),
+}))
+
+vi.mock('@capacitor-firebase/authentication', () => ({
+  FirebaseAuthentication: nativeAuthMock,
 }))
 
 const COMPLETE_ENV = {
@@ -158,8 +164,6 @@ describe('firebase auth configuration', () => {
     const calls = []
 
     await setFirebaseAuthMemoryPersistence({
-      browserLocalPersistence: { type: 'LOCAL' },
-      browserSessionPersistence: { type: 'SESSION' },
       inMemoryPersistence,
       setPersistence: async (...args) => {
         calls.push(args)
@@ -170,25 +174,8 @@ describe('firebase auth configuration', () => {
   })
 
   it('fails closed instead of selecting browser persistence when memory-only persistence is unavailable', async () => {
-    await expect(setFirebaseAuthMemoryPersistence({
-      browserLocalPersistence: { type: 'LOCAL' },
-      browserSessionPersistence: { type: 'SESSION' },
-    }, { name: 'test-auth' })).rejects.toThrow('memory-only persistence is unavailable')
-  })
-
-  it('uses browser-local persistence for the game auth client only', async () => {
-    const auth = { name: 'game-auth' }
-    const browserLocalPersistence = { type: 'LOCAL' }
-    const calls = []
-
-    await setFirebaseAuthLocalPersistence({
-      browserLocalPersistence,
-      setPersistence: async (...args) => {
-        calls.push(args)
-      },
-    }, auth)
-
-    expect(calls).toEqual([[auth, browserLocalPersistence]])
+    await expect(setFirebaseAuthMemoryPersistence({}, { name: 'test-auth' }))
+      .rejects.toThrow('memory-only persistence is unavailable')
   })
 
   it('uses an isolated named Firebase app for Studio and the default app for the game', () => {
@@ -268,7 +255,39 @@ describe('firebase auth configuration', () => {
     expect(firebaseAuthMock.auth.signInWithRedirect).toHaveBeenCalled()
     expect(firebaseAuthMock.auth.setPersistence).toHaveBeenLastCalledWith(
       expect.anything(),
-      firebaseAuthMock.auth.browserLocalPersistence,
+      firebaseAuthMock.auth.inMemoryPersistence,
+    )
+  })
+
+  it('uses only a native Google credential inside Capacitor without web popup or redirect calls', async () => {
+    firebaseAuthMock.app.getApps.mockReturnValue([])
+    firebaseAuthMock.auth.getRedirectResult.mockReset()
+    firebaseAuthMock.auth.signInWithPopup.mockReset()
+    firebaseAuthMock.auth.signInWithRedirect.mockReset()
+    firebaseAuthMock.auth.signInWithCredential.mockReset().mockResolvedValueOnce({
+      user: {
+        uid: 'native-user', displayName: 'Native', email: 'native@example.com', photoURL: '',
+        emailVerified: true, providerData: [{ providerId: 'google.com' }],
+      },
+    })
+    nativeAuthMock.signInWithGoogle.mockReset().mockResolvedValueOnce({
+      credential: { idToken: 'native-id-token', accessToken: 'native-access-token' },
+    })
+
+    const client = await createFirebaseAuthClient(COMPLETE_ENV, {
+      Capacitor: { getPlatform: () => 'android', isNativePlatform: () => true },
+      location: { pathname: '/game', protocol: 'http:', href: 'http://localhost/game' },
+    })
+
+    await expect(client.signInWithGoogle()).resolves.toMatchObject({ uid: 'native-user' })
+    expect(nativeAuthMock.signInWithGoogle).toHaveBeenCalledWith({ skipNativeAuth: true })
+    expect(firebaseAuthMock.auth.signInWithCredential).toHaveBeenCalledOnce()
+    expect(firebaseAuthMock.auth.signInWithPopup).not.toHaveBeenCalled()
+    expect(firebaseAuthMock.auth.signInWithRedirect).not.toHaveBeenCalled()
+    expect(firebaseAuthMock.auth.getRedirectResult).not.toHaveBeenCalled()
+    expect(firebaseAuthMock.auth.setPersistence).toHaveBeenLastCalledWith(
+      expect.anything(),
+      firebaseAuthMock.auth.inMemoryPersistence,
     )
   })
 })

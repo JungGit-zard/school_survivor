@@ -9,13 +9,11 @@ import {
   applyHitCameraShake,
   applyReducedEffects,
   loadTitleSettings,
-  unlockAllNonStarterWeapons,
   unlockAllStagesForDevCheat,
 } from '../lib/titleSettings.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { useLocale, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
-import { useGameStore } from '../store/useGameStore.js'
 import { Howl } from 'howler'
 import titleBgmUrl from '../assets/audio/title_bgm.m4a'
 
@@ -166,7 +164,6 @@ export default function TitleScreen({
     }
   ))
   const [cheatRevealMessage, setCheatRevealMessage] = useState(false)
-  const resetPassiveUpgrades = useGameStore((s) => s.resetPassiveUpgrades)
   const cheatBufferRef = useRef([])
   const adminOperations = getAdminOperationsConfig()
   const cheatMenuButtonVisible = DEV_CHEATS_ENABLED && devCheatsVisible && adminOperations.cheatMenuButtonVisible
@@ -328,7 +325,9 @@ export default function TitleScreen({
   }, [cheatRevealMessage])
 
   const handleUnlockAllWeapons = () => {
-    unlockAllNonStarterWeapons()
+    void import('../lib/titleSettings.js')
+      .then(({ unlockAllNonStarterWeapons }) => unlockAllNonStarterWeapons())
+      .catch(() => {})
   }
 
   const handleUnlockAllStages = () => {
@@ -338,7 +337,9 @@ export default function TitleScreen({
   }
 
   const handleResetPassiveUpgrades = () => {
-    resetPassiveUpgrades()
+    void import('../store/useGameStore.js')
+      .then(({ useGameStore }) => useGameStore.getState().resetPassiveUpgrades())
+      .catch(() => {})
   }
 
   // 닉네임 판정 이후 단계: 닉네임 있으면 로비로, 없으면 닉네임 모달로.
@@ -478,9 +479,8 @@ export default function TitleScreen({
         <p style={styles.subtitle}>{t('title.subtitle')}</p>
       </div>
 
-      <div style={styles.actions}>
+        <div style={styles.actions}>
         <div style={styles.mainActionStack}>
-          <p data-testid="title-gameplay-guide" style={styles.gameplayGuide}>{t('title.gameplayGuide')}</p>
           <button type="button" className="title-main-action" style={{ ...styles.primaryButton, ...styles.mainActionButton }} onClick={handleStartClick}>
             {t('title.start')}
           </button>
@@ -746,14 +746,6 @@ const styles = {
     minWidth: 180,
     maxWidth: 230,
     transform: 'rotate(0.8deg)',
-  },
-  gameplayGuide: {
-    margin: 0,
-    color: uiPalette.ink,
-    fontSize: 12,
-    lineHeight: 1.35,
-    fontWeight: uiType.weightStrong,
-    textAlign: 'center',
   },
   primaryButton: {
     ...schoolButton('primary'),

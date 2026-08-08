@@ -16,6 +16,7 @@ const firebaseStudioMocks = vi.hoisted(() => ({
   hydrate: vi.fn(),
   setUser: vi.fn(),
   subscribe: vi.fn(),
+  canonicalHydrate: vi.fn(),
 }))
 
 vi.mock('./store/useAuthStore.js', () => {
@@ -39,6 +40,7 @@ vi.mock('./lib/firebaseStudio.js', async (importOriginal) => ({
   hydrateFirebaseStudio: firebaseStudioMocks.hydrate,
   setFirebaseStudioUser: firebaseStudioMocks.setUser,
   subscribeFirebaseStudio: firebaseStudioMocks.subscribe,
+  hydrateCanonicalTitlePlayer: firebaseStudioMocks.canonicalHydrate,
 }))
 
 vi.mock('@react-three/fiber', () => ({
@@ -73,6 +75,12 @@ vi.mock('./components/VirtualJoystick.jsx', () => ({
   default: () => <div data-testid="virtual-joystick-mounted" />,
 }))
 
+vi.mock('./components/GameplayScreen.jsx', () => ({
+  default: ({ mobileJoystickEnabled }) => (
+    mobileJoystickEnabled ? <div data-testid="virtual-joystick-mounted" /> : null
+  ),
+}))
+
 function setInputEnvironment({ maxTouchPoints, userAgent, platform = '', coarse }) {
   Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, value: maxTouchPoints })
   Object.defineProperty(navigator, 'userAgent', { configurable: true, value: userAgent })
@@ -92,16 +100,21 @@ async function renderAppAndStart() {
 
   await act(async () => {
     root.render(<App />)
-    await new Promise((resolve) => setTimeout(resolve, 0))
+    await vi.dynamicImportSettled()
   })
   await vi.waitFor(() => {
     expect(container.querySelector('button')).not.toBe(null)
   })
-  act(() => {
+  await act(async () => {
     container.querySelector('button').dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    await vi.dynamicImportSettled()
   })
-  act(() => {
+  await vi.waitFor(() => {
+    expect(container.querySelector('button')).not.toBe(null)
+  })
+  await act(async () => {
     container.querySelector('button').dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    await vi.dynamicImportSettled()
   })
 
   return {
@@ -135,6 +148,7 @@ describe('App virtual joystick mounting', () => {
       status: 'subscribed',
       unsubscribe: vi.fn(),
     })
+    firebaseStudioMocks.canonicalHydrate.mockReset().mockResolvedValue({ status: 'remote-applied', revision: 2 })
   })
 
   it('refetches Firebase on an allowed Studio sync message and ignores injected payloads', async () => {
@@ -171,7 +185,7 @@ describe('App virtual joystick mounting', () => {
     })
 
     expect(handled).toBe(true)
-    expect(firebaseStudioMocks.hydrate).toHaveBeenCalledOnce()
+    expect(firebaseStudioMocks.canonicalHydrate).toHaveBeenCalledWith({})
     expect(loadStudioTunings().stale.scale).toBe(1.3)
     expect(loadSfxTunings()).toEqual({})
     expect(loadStageBossPreview().zoom).not.toBe(133)
@@ -180,8 +194,7 @@ describe('App virtual joystick mounting', () => {
   })
 
   it('applies the Firebase snapshot and revision selected by the existing sync hydrate path', async () => {
-    firebaseStudioMocks.hydrate.mockImplementation(async ({ user }) => {
-      expect(user).toEqual({ uid: 'test-user' })
+    firebaseStudioMocks.canonicalHydrate.mockImplementation(async () => {
       commitFirebaseStudioRuntime({
         tunings: { player: { scale: 1.71 } },
         sfxTunings: { pencilFire: { volume: 0.4 } },
@@ -202,8 +215,7 @@ describe('App virtual joystick mounting', () => {
     })
 
     expect(handled).toBe(true)
-    expect(firebaseStudioMocks.setUser).toHaveBeenCalledWith({ uid: 'test-user' })
-    expect(firebaseStudioMocks.hydrate).toHaveBeenCalledWith({ user: { uid: 'test-user' } })
+    expect(firebaseStudioMocks.canonicalHydrate).toHaveBeenCalledWith({})
     expect(getFirebaseStudioRuntimeState().revision).toBe(42)
     expect(loadStudioTunings().player.scale).toBe(1.71)
   })

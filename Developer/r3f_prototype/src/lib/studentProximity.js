@@ -29,7 +29,7 @@ export function getUnconsciousStudents(stageId) {
 export function getInvestigationTargets(stageId) {
   return getStageObjectPlacements(stageId)
     .flatMap((item) => {
-      const dialogue = getInvestigationDialogue(stageId, item.type, item.id)
+      const dialogue = getInvestigationDialogue(stageId, item.type)
       if (!dialogue) return []
 
       if (STUDENT_TYPES.has(item.type)) {

@@ -117,4 +117,41 @@ describe('quest inventory HUD', () => {
       act(() => root.unmount())
     }
   })
+
+  it('shows a dominant centered popup only when a quest starts, while item and completion toasts stay compact', () => {
+    const [quest] = getStageQuestDefinitions('stage1')
+    const { container, root } = renderHud()
+
+    try {
+      act(() => {
+        expect(useGameStore.getState().startQuest(quest.id)).toBe(true)
+      })
+
+      const popup = container.querySelector('[data-testid="quest-start-popup"]')
+      expect(popup).not.toBeNull()
+      expect(popup.textContent).toContain(quest.title)
+      expect(popup.style.top).toBe('50%')
+      expect(popup.style.transform).toBe('translate(-50%, -50%)')
+      expect(popup.style.fontSize).toBe('56px')
+      expect(popup.style.pointerEvents).toBe('none')
+      expect(popup.getAttribute('aria-live')).toBe('assertive')
+
+      act(() => {
+        useGameStore.setState({ questToast: { type: 'item', questId: quest.id } })
+      })
+      const itemToast = container.querySelector('[data-testid="quest-toast"]')
+      expect(itemToast).not.toBeNull()
+      expect(container.querySelector('[data-testid="quest-start-popup"]')).toBeNull()
+      expect(itemToast.style.top).toBe('66px')
+      expect(itemToast.getAttribute('aria-live')).toBe('polite')
+
+      act(() => {
+        useGameStore.setState({ questToast: { type: 'completed', questId: quest.id } })
+      })
+      expect(container.querySelector('[data-testid="quest-toast"]')).not.toBeNull()
+      expect(container.querySelector('[data-testid="quest-start-popup"]')).toBeNull()
+    } finally {
+      act(() => root.unmount())
+    }
+  })
 })

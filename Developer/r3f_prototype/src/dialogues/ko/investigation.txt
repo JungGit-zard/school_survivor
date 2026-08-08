@@ -1,0 +1,428 @@
+student.stage1.001	…좀비 때문이 아니야… 공부가 하기 싫어서 누워있는 거야…
+student.stage1.002	5분만… 딱 5분만 더 잘게요…
+student.stage1.003	일어나면 시험이야. 나 안 일어날래.
+student.stage1.004	좀비보다 무서운 건 수행평가야…
+student.stage1.005	내신 다 망했는데 좀비가 대수냐…
+student.stage1.006	여기 바닥… 생각보다 시원하네…
+student.stage1.007	엄마… 나 오늘 학원 가기 싫어…
+student.stage1.008	이대로 방학까지 잘래…
+student.stage1.009	야자 째고 누웠더니 세상이 망했네…
+student.stage1.010	5교시 끝나고 눈 감았는데 아직도 안 떠져…
+student.stage1.011	수능 D-100인데 세상이 먼저 끝났네…
+student.stage1.012	좀비도 야자는 안 시키던데…
+student.stage1.013	급식에 또 콩나물… 차라리 여기 누울래…
+student.stage1.014	숙제 안 했는데 마침 잘 됐다…
+student.stage1.015	생기부에 "좀비 사태 생존" 한 줄 적어주려나…
+student.stage1.016	모의고사 등급표 보고 먼저 쓰러진 거야…
+student.stage1.017	엄마 잔소리가 좀비 소리보다 오래 가…
+student.stage1.018	지각인데 학교가 없어졌으면 했더니… 진짜네…
+student.stage1.019	영어 단어 100개 외우다 정신을 잃었어…
+student.stage1.020	좀비들도 조례는 서서 듣더라…
+student.stage1.021	문제집 세 권 샀는데 표지만 봤어…
+student.stage1.022	수학여행 대신 좀비 체험이라니…
+student.stage1.023	체육복 갈아입다가 세상이 망했어…
+student.stage1.024	학원 셔틀 놓쳐서 다행이다… 처음으로…
+student.stage1.025	성적표 나오는 날이라 안 일어날 거야…
+student.stage1.026	옆 반 1등도 좀비 앞에선 평등하더라…
+student.stage1.027	보충수업만 아니면 뭐든 괜찮아… 좀비도…
+student.stage1.028	조별과제 조원이 다 좀비 됐어… 편하다…
+student.stage1.029	쉬는 시간 10분이 제일 그리워…
+student.stage1.030	좀비는 최소한 숙제 검사는 안 해…
+student.stage1.031	아침 자습 시간에 눈 떠본 적이 없어…
+student.stage1.032	대학 가면 다 된다더니… 학교가 먼저 갔네…
+student.stage1.033	오늘 등교 안 했으면 평범한 결석이었을 텐데…
+student.stage1.034	시험 범위보다 좀비가 더 적어서 놀랐어…
+student.stage1.035	급식 줄 서다 밀려서 넘어진 척하는 중이야…
+student.stage1.036	교무실 호출보다는 좀비가 낫지…
+student.stage1.037	봉사시간 채우러 왔다가 이 꼴이야…
+student.stage1.038	한 문제 차이로 등급 떨어진 날이야… 건들지 마…
+student.stage1.039	알람 다섯 개 껐더니 세상이 이렇게 됐어…
+student.stage1.040	방학 숙제는 개학 전날의 나에게 맡겼는데…
+student.stage1.041	좀비도 내 오답노트 보면 도망갈걸…
+student.stage1.042	자소서 쓰다가 내가 누군지 모르게 됐어…
+student.stage1.043	국영수 다음이 생존과목일 줄이야…
+student.stage1.044	컨닝 아니야… 눈이 저절로 간 거지…
+student.stage1.045	학교 가기 싫다고 빌었는데 이렇게까지…
+student.stage1.046	체력장 오래달리기… 지금 제일 후회돼…
+student.stage1.047	단축수업인 줄 알고 좋아했는데…
+student.stage1.048	교복 새로 샀는데 세상이 망했어…
+student.stage1.049	수학 시간엔 나도 이미 좀비였어…
+student.stage1.050	중간고사 끝나면 놀려고 했는데… 세상이 끝났네…
+student.stage1.051	문제 풀다 잠들면 꿈에서도 문제 풀어…
+student.stage1.052	내 인생 계획표엔 좀비가 없었는데…
+student.stage1.053	시험 끝난 줄 알았더니, 좀비 경보가 먼저 울렸어.
+student.stage1.054	과제 마감보다 대피 훈련이 먼저 시작됐어.
+student.stage1.055	모의고사날 출석부부터 챙기는 좀비가 더 바빠.
+student.stage1.056	성적표보다 좀비 생존점수 먼저 깎일까 무서워.
+student.stage1.057	시험공부 잠깐, 교문엔 좀비가 돌진 중.
+student.stage1.058	영단어보다 좀비 방어 주문이 더 외워져.
+student.stage1.059	급식 메뉴는 그대로, 좀비들이 줄부터 선다.
+student.stage1.060	급식줄 서면 앞에서 좀비가 먼저 접시를 든다.
+student.stage1.061	점심은 과제보다, 대피로 체크가 더 급해.
+student.stage1.062	동아리 회의는 미뤄도, 좀비 봉쇄 회의는 만원.
+student.stage1.063	체육시간엔 팔굽혀펴기 대신 좀비 피신 훈련.
+student.stage1.064	체육복 단추보다 좀비의 접근이 더 촘촘해.
+student.stage1.065	청소할 땐 칠판보다 좀비 발자국부터 닦는다.
+student.stage1.066	도서관 조용히 읽다, 갑자기 좀비 소용돌이.
+student.stage1.067	선생님은 조용히 하랬지, 좀비 점검이 먼저네.
+student.stage1.068	출석부엔 지각 체크, 난 대피로 1칸 더.
+student.stage1.069	교복 단추가 떨어져도 단정함은 생존 무기.
+student.stage1.070	교무실 업무보다 먼저 작성된 좀비 안내문.
+student.stage1.071	숙제 냄새 맡는 교수? 감염 체크까지 함.
+student.stage1.072	학부모 문자, "집 있어?"보다 "좀비 있니?"
+student.stage1.073	부모는 성적보다 대피연습 영상 먼저 달라.
+student.stage1.074	방과후 갈지 말지? 좀비가 이미 교문에서 대기.
+student.stage1.075	내일 시험인데 오늘은 방송이 대피만 반복.
+student.stage1.076	체육관 미끄러워도 좀비 추격은 퇴장 연습뿐.
+student.stage1.077	동아리전처럼 좀비 전선이 교실마다 이동 중.
+student.stage1.078	과학실험보다 실감 나는 건 좀비 감염 실습.
+student.stage1.079	사서도 조용히 하랬지만, 좀비 출구도 알려줌.
+student.stage1.080	잔업 과제는 취소, 대피 루트만 외워둘래.
+student.stage1.081	급식줄보다 생존줄이 더 길고 더 느려.
+student.stage1.082	급식냄새보다 먼저 퍼지는 건 좀비 냄새.
+student.stage1.083	방송연습보다 좀비 경고톤이 훨씬 실전.
+student.stage1.084	교내방송 끊겨도 좀비 경보는 다시 이어져.
+student.stage1.085	복도 청소하며 좀비 흔적 닦고 출석 모자 착용.
+student.stage1.086	운동장 테이프는 포스터보다 통로 차단이 급해.
+student.stage1.087	동아리활동 잠깐, 좀비 추적조 합류 출발.
+student.stage1.088	중간고사 범위? 좀비가 직접 넓혀버렸지.
+student.stage1.089	학부모 상담은 화상, 화면은 대피 지시 투성.
+student.stage1.090	교무실 앞 대기 중엔 좀비 회동까지 막아야 해.
+student.stage1.091	점수표보다 먼저 뜨는 건 좀비 생존 점검표.
+student.stage1.092	교문 앞 점심줄, 먼저 가르쳐준 건 안전거리.
+student.stage1.093	줄넘기보다 좀비 회피가 체육수업엔 빨라.
+student.stage1.094	과제노트 접고 가방끈부터 먼저 묶어.
+student.stage1.095	교복 바람보다 좀비 바람이 먼저 스친다.
+student.stage1.096	방송 리허설은 취소, 경보문만 다시 읽어.
+student.stage1.097	복도 점거 아님, 오늘 대피 동선이 핵심.
+student.stage1.098	조별발표 미뤄! 좀비 생존설명이 더 급해.
+student.stage1.099	수업집중? 선생님보다 먼저 눈치챈 건 좀비.
+student.stage1.100	카운슬링은 나중이야, 먼저 감염의심자 점검.
+student.stage1.101	과학실험기구는 비우고 추적장비만 빌려.
+student.stage1.102	국어수행은 미루고, 좀비 생존 스토리 낭독.
+student.stage1.103	오늘 농담거리=과제X, 좀비와 같이 걷는 거리.
+student.stage1.104	수업자료보다 대피 도면이 먼저 배포돼.
+student.stage1.105	시험1교시 취소, 좀비 경로 외우는 시간.
+student.stage1.106	숙제함 몰래 적어두면 좀비가 제일 빨리 훔치네.
+student.stage1.107	성적표 대신 생존 스탬프 하나로 통과.
+student.stage1.108	반장이 "조용" 외치는데 좀비는 바로 뒤에서 뛰어.
+student.stage1.109	급식 코너엔 떡볶이보다 회피간식이 먼저팔려.
+student.stage1.110	도서실 좌석보다 통로 확보가 더 빡센 수업.
+student.stage1.111	사서선생님은 책 대신 좀비 대피 도감 추천.
+student.stage1.112	복도정리는 쉬워도 좀비 통과점검은 어렵네.
+student.stage1.113	조기 하교라 믿었더니 좀비가 오래 붙잡아.
+student.stage1.114	필기시험보다 좀비 알림 확인이 성적보다 중요.
+student.stage1.115	보건실 줄은 짧아도 감염검사는 더 길어.
+student.stage1.116	보건교사도 약보다 티슈보다 경보를 먼저 건네.
+student.stage1.117	치료약 대신 문단속 테이프, 오늘도 생존수업.
+student.stage1.118	체육부 기록부보다 좀비 추적 기록이 정교해.
+student.stage1.119	축구 패스도 오늘은 좀비 피하기 패턴으로.
+student.stage1.120	회식 메뉴는 모두 바뀌어 좀비 안심식이 됨.
+student.stage1.121	청소는 칠판만 닦으면 안돼, 발자국도 같이.
+student.stage1.122	청소 알림보다 좀비 통로 봉쇄 방송이 더 큼.
+student.stage1.123	정리정돈은 내일로, 지금은 좀비 대기만.
+student.stage1.124	열람석도 꽉 참, 전파구역 표시 때문이야.
+student.stage1.125	시험 끝나도 집은 못 가, 학교가 임시 대피소.
+student.stage1.126	수학여행 신청서보다 먼저 그리는 건 생존지도.
+student.stage1.127	현체험학습은 취소, 대피맵으로 교실지도 바뀜.
+student.stage1.128	동아리문 닫혀도 창문 통해 출입 통로 찾는다.
+student.stage1.129	출석점검은 생략, 지금은 분산 대기만.
+student.stage1.130	교원연수는 잠시, 경보 들으니 선생님도 깜짝.
+student.stage1.131	숙제 챙기라 했던 말보다 출입통제가 먼저.
+student.stage1.132	선생님은 피곤하지만 "좀비도 시험 본다"라며.
+student.stage1.133	교장연설보다 좀비 안내문이 훨씬 길게 이어져.
+student.stage1.134	상장보다 방호마스크, 교무실이 긴급 배급.
+student.stage1.135	방송이 끊겨도 좀비 경보는 정확히 이어져.
+student.stage1.136	매점엔 간식보다 좀비 방어장갑 재고 더 많아.
+student.stage1.137	매점 알바도 빵보다 호루라기 하나 더 팔아.
+student.stage1.138	교복단추와 신발끈, 둘 다 생존템으로 써.
+student.stage1.139	교복치마 말고 물기 쉬운 주머니는 숨겨둬.
+student.stage1.140	체육복 속엔 필통보다 호루라기 먼저 넣어.
+student.stage1.141	필드트립 지도는 낭만보다 대피 경로 체크.
+student.stage1.142	현장학습버스는 대피버스로, 구간만 피했어.
+student.stage1.143	운동회 리허설은 미루고 좀비 시간표부터.
+student.stage1.144	체력단련보다 좀비 추적 기록이 오늘 점수.
+student.stage1.145	공부하다 비상방송 들리면 바로 일어나.
+student.stage1.146	방송부도 오늘은 경보 멘트 3초 리허설.
+student.stage1.147	방송문안보다 먼저 좀비 안내문이 완성.
+student.stage1.148	통학벨보다 알람이 먼저, 출발시간 변경.
+student.stage1.149	화장실 가기 전 손 씻고 통로부터 점검해.
+student.stage1.150	휴지통보다 화장실문 앞이 오늘 생존 통로.
+student.stage1.151	열쇠는 없어도 안전문은 먼저 좀비가 막아.
+student.stage1.152	대기줄은 길어도, 지금은 좀비 순번 훈련.
+student.stage1.153	수업 끝났는데 칠판 경보가 먼저 울렸어.
+student.stage1.154	숙제 마감보다 먼저 좀비 훈련이 왔어.
+student.stage1.155	모의고사 날 노트 열기 전 출석은 좀비.
+student.stage1.156	성적표보다 좀비 생존점수 떨어질까 무서워.
+student.stage1.157	공부 접고 도망, 좀비는 이미 달려.
+student.stage1.158	영단어는 잊어도 좀비방어 주문은 남아.
+student.stage1.159	급식표는 그대로, 줄은 좀비가 선점.
+student.stage1.160	점심줄 서자 내 쟁반부터 좀비가 챙김.
+student.stage1.161	점심보다 먼저 확인은 대피로.
+student.stage1.162	비상훈련 인원, 동아리모임 제로초과.
+student.stage1.163	체육은 팔굽혀펴기보다 좀비 회피.
+student.stage1.164	체육복 주름보다 좀비 거리가 좁아.
+student.stage1.165	칠판 닦기 전 발자국부터 씻음.
+student.stage1.166	도서관 조용, 갑자기 좀비 소란.
+student.stage1.167	선생님 조용히 보다 점검좀비 먼저.
+student.stage1.168	출석부엔 지각, 나는 탈출 한칸 추가.
+student.stage1.169	단추가 풀려도 정돈은 생존 방패.
+student.stage1.170	행정마감 끝나자마자 브리핑은 좀비가 먼저.
+student.stage1.171	숙제 냄새 맡더니 감염검사까지.
+student.stage1.172	엄마 문자도 “집 있어?”에서 “좀비?”로.
+student.stage1.173	성적보다 피난 영상을 먼저 봐야 해.
+student.stage1.174	방과후 망설이는 사이 문 앞 좀비 대기.
+student.stage1.175	내일 시험인데 방송은 피난만 반복.
+student.stage1.176	운동장 미끄러워도 추적은 탈출연습.
+student.stage1.177	교실마다 좀비 전선 이동은 동아리전.
+student.stage1.178	과학실험보다 감염 실습이 진짜야.
+student.stage1.179	도서관은 조용, 출구는 탈출로.
+student.stage1.180	과제는 뒤로, 대피 경로는 암기.
+student.stage1.181	급식줄은 짧아도 생존줄은 길어.
+student.stage1.182	급식 냄새보다 좀비 숨결이 먼저.
+student.stage1.183	리허설은 가짜, 경보는 진짜.
+student.stage1.184	방송 끊겨도 좀비 알림은 재개.
+student.stage1.185	복도닦고 발자국도 다시 닦음.
+student.stage1.186	테이프보다 통로 봉쇄가 급함.
+student.stage1.187	동아리활동 멈춤, 추적팀 투입.
+student.stage1.188	중간고사 범위보다 좀비 범위 확장.
+student.stage1.189	부모상담은 온라인, 모니터엔 경보.
+student.stage1.190	교무실 앞 대기와 좀비집회 겸직.
+student.stage1.191	성적표 업데이트보다 점검표가 먼저.
+student.stage1.192	교문에서 거리두기 가르치는 건 좀비.
+student.stage1.193	줄넘기는 쉽고 좀비 추적은 더 쉬운가.
+student.stage1.194	과제노트 접고 가방끈부터 매듭.
+student.stage1.195	교복 바람보다 좀비 바람이 스침.
+student.stage1.196	리허설 취소, 경보 멘트만 반복.
+student.stage1.197	점거 말고 대피 동선이 본 수업.
+student.stage1.198	조별과제 뒤로, 긴급 설명 먼저.
+student.stage1.199	선생님보다 먼저 나를 본 건 좀비.
+student.stage1.200	상담은 늦어, 의심자 점검이 우선.
+student.stage1.201	과학동아리서 추적장비 하나 챙김.
+student.stage1.202	국어 수행은 이제 좀비 생존회화.
+student.stage1.203	웃긴 건 숙제X, 좀비와 동행함.
+student.stage1.204	수업자료보다 먼저 대피도면.
+student.stage1.205	1교시 폐강, 경로 암기 수업.
+student.stage1.206	숙제 숨겨도 좀비가 먼저 훔침.
+student.stage1.207	성적표 대신 통과 스탬프 하나.
+student.stage1.208	반장 외치는데 바로 뒤로 좀비 통과.
+student.stage1.209	떡볶이보다 피난간식이 더 잘팔려.
+student.stage1.210	좌석예약 쉬워도 통로봉쇄는 빡셈.
+student.stage1.211	사서도 소설보다 생존가이드를.
+student.stage1.212	복도청소 쉽고 통로 점검은 빡침.
+student.stage1.213	조기하교는 꿈, 좀비가 더 붙잡음.
+student.stage1.214	시험공부보다 먼저 생존 점검.
+student.stage1.215	보건줄 짧고 감염검사만 길어.
+student.stage1.216	약보다 먼저 경고문이 날아옴.
+student.stage1.217	약품보다 문단속 테이프가 먼저.
+student.stage1.218	체육 기록보다 추적 로그가 정밀.
+student.stage1.219	축구는 좀비회피 패스 연습.
+student.stage1.220	행사식도 피난식 메뉴로 변경.
+student.stage1.221	칠판만 닦으면 안돼, 자국부터.
+student.stage1.222	청소알림보다 통로봉쇄 방송 큼.
+student.stage1.223	정리정돈 잠깐, 지금은 탈출.
+student.stage1.224	열람실 혼잡은 감염구역표 때문.
+student.stage1.225	시험끝도 집 못가, 학교는 대피소.
+student.stage1.226	신청서보다 먼저 그린 건 대피지도.
+student.stage1.227	체험학습은 생존 경로 지도됨.
+student.stage1.228	동아리문 닫아도 창문으로 뚫림.
+student.stage1.229	출석점검 멈추고 좀비줄 통제.
+student.stage1.230	교원연수도 멈춤, 선생님도 멈칫.
+student.stage1.231	숙제 챙기보다 “문 닫아”가 먼저.
+student.stage1.232	선생님 한마디, “좀비도 시험 보네.”
+student.stage1.233	교장연설보다 생존공지 더 김.
+student.stage1.234	상장 대신 방호마스크 즉시 지급.
+student.stage1.235	방송 멈겨도 경보는 또 시작.
+student.stage1.236	매점 간식 적고 방어장갑 많음.
+student.stage1.237	오늘 빵보다 호루라기 하나 더 팔고.
+student.stage1.238	단추와 끈도 생존장비 카운트.
+student.stage1.239	약한 가방은 숨기고 좀비 피함.
+student.stage1.240	체육복엔 펜보다 호루라기 먼저.
+student.stage1.241	필드맵은 연애지도 대신 대피 체크.
+student.stage1.242	현장버스는 좀비구간 스킵 모드.
+student.stage1.243	행사용 리허설 뒤로 미뤄짐.
+student.stage1.244	오늘 체력점수는 추격 생존율.
+student.stage1.245	공부 중 경보 하나에 즉시 기상.
+student.stage1.246	방송부는 3초 경보 리허설.
+student.stage1.247	방송문안보다 안내문 초안 먼저.
+student.stage1.248	통학벨보다 경보가 출발시간 바꿈.
+student.stage1.249	화장실 전엔 손 씻고 통로 점검.
+student.stage1.250	쓰레기줄 사라져 문이 통로가 됨.
+student.stage1.251	열쇠 없어도 안전문은 좀비 봉쇄.
+student.stage1.252	화장실줄은 우연한 소규모훈련.
+student.stage1.253	인터컴은 조용보다 대피를 크게.
+student.stage1.254	체육부스 지금은 좀비방송소.
+student.stage1.255	내레이션 못 멈추고 대피멘트 반복.
+student.stage1.256	경고음 짧아도 좀비 알림 길어.
+student.stage1.257	방송은 나중, 좀비는 지금부터.
+student.stage1.258	점심정산보다 좀비대응 예산 먼저.
+student.stage1.259	분식은 짧아도 라인은 더 길다.
+student.stage1.260	알레르기보다 좀비접촉 체크 먼저.
+student.stage1.261	도시락줄 사라지고 출입통제 라인.
+student.stage1.262	진료대기 전에 접촉기록 작성.
+student.stage1.263	연필은 안 팔리고 방어키트는 팔려.
+student.stage1.264	가방은 가벼워도 장비는 무거움.
+student.stage1.265	문구는 적고 호루라기 하나.
+student.stage1.266	영수증은 불평, 방어품은 추가.
+student.stage1.267	정류장도 대기중이 회피훈련 시작.
+student.stage1.268	빨래보다 복도점검 먼저.
+student.stage1.269	벽은 칠판보다 표지판이 많아.
+student.stage1.270	멘토보다 먼저 좀비지시 받음.
+student.stage1.271	대출 끝나면 난 감시반장.
+student.stage1.272	알림은 반복, 좀비경고 더 반복.
+student.stage1.273	출석은 이름, 좀비는 발소리.
+student.stage1.274	수업안내보다 뒷문 두드리는 소리.
+student.stage1.275	시험 전날은 조용해야? 좀비가 더 큼.
+student.stage1.276	통화기록에 방역안내 한 줄 추가.
+student.stage1.277	엄마는 성적보다 몸 상태부터.
+student.stage1.278	점심숙제는 통제 통과 뒤 가능.
+student.stage1.279	시험끝나도 집 멀고 문 앞엔 좀비.
+student.stage1.280	현장학습 없어져 대피지도 먼저.
+student.stage1.281	회의 미루고 복도순찰 개시.
+student.stage1.282	평의회 미루고 좀비 순찰.
+student.stage1.283	동아리노트 대신 긴급안내서.
+student.stage1.284	새 항목: 좀비대비 100점.
+student.stage1.285	청소는 나중, 경로선 먼저.
+student.stage1.286	복도청소원도 각도 재는 관측자.
+student.stage1.287	책넣기 전 숨은 곳 체크.
+student.stage1.288	시험은 빡세, 도서문은 대피용.
+student.stage1.289	시험장이 닫히면 회피모드로 전환.
+student.stage1.290	시험시작 한숨, 종료는 좀비동행.
+student.stage1.291	급식 앞줄보다 경로 먼저 점검.
+student.stage1.292	체력시험은 거리 우선, 답안은 나중.
+student.stage1.293	연말책은 미뤄, 감염공지 먼저.
+student.stage1.294	메뉴 바뀌면 안전 간식도 바뀜.
+student.stage1.295	운동수업? 내일도 좀비스피드 연습.
+student.stage1.296	문틀 닦고 또 문 하나 봉함.
+student.stage1.297	역 안내는 안전벨트? 대피벨트 위주.
+student.stage1.298	비상문은 좀비 먼저 열어야.
+student.stage1.299	화장실 비상도 통과중인 좀비 우선.
+student.stage1.300	시험은 한숨, 끝은 좀비동행 퇴실.
+investigation.student.stage1.001	공책에 “숙제 안 함”이 보여. 이런 날에도 숙제는 따라오네.
+investigation.student.stage1.002	리본이 삐뚤어져 있어. 가까이는 무서워서 마음으로만 고쳐 줬어.
+investigation.student.stage2.001	시간표가 너무 빽빽해. 좀비가 돼도 이렇게 바쁘면 안 돼.
+investigation.student.stage2.002	운동화 끈이 풀려 있어. 끈아 미안, 나 대신 힘내 줬으면 해.
+investigation.student.stage3.001	호루라기가 보여. 삑 불면 체육 시간이 시작될 것 같아.
+investigation.student.stage3.002	농구공이 옆에 붙어 있어. 친구인지 공범인지 아직 모르겠어.
+investigation.student.stage4.001	쟁반이 너무 공손해. 밥 기다리는 자세 같아서 괜히 짠해.
+investigation.student.stage4.002	수저가 가지런해. 이렇게 예의 바른 공포는 처음이야.
+investigation.classroomDesk.001	연필이 손등을 콕 찔렀어. 책상도 좀비 편인 줄 알았네.
+investigation.classroomDesk.002	“급식 최고” 낙서라니. 나 지금 배가 먼저 놀라잖아.
+investigation.classroomDesk.003	책상 흠집이 지도로 보여, 그 안에 숨을 수 있을 것 같아.
+investigation.classroomDesk.004	손대기 전부터 서랍이 미리 삐걱거리며 경고해.
+investigation.classroomDesk.005	책상 위가 내 공포를 고백하는 작은 부스 같아.
+investigation.classroomChair.001	의자가 삐걱대며 혼내는 것 같아. 나, 앉지도 않았는데 말이야.
+investigation.classroomChair.002	지우개 먼지가 털괴물 같아. 미안, 내가 먼저 눈 피했어.
+investigation.classroomChair.003	의자 다리가 경비병처럼 서서 내 발끝을 재봐.
+investigation.classroomChair.004	앉기도 전에 좌석이 내 자신감을 채점해.
+investigation.classroomChair.005	등받이가 억지로 내 자세를 똑바르게 세워.
+investigation.corridorLockerBank.001	체육복 소매가 인사하는 줄 알았어. 나도 손 흔들 뻔했네.
+investigation.corridorLockerBank.002	계획표에 체력장이라니. 나 지금도 충분히 뛰고 있어, 너무해.
+investigation.corridorLockerBank.003	사물함 손잡이가 새벽 행군 병사처럼 줄을 서 있어.
+investigation.corridorLockerBank.004	문 하나 열면 복도 전체가 박수치는 느낌.
+investigation.corridorLockerBank.005	금속 냄새가 내 작은 비밀을 봉해.
+investigation.corridorJanitorCart.001	대걸레가 꾸벅 인사했어. 나도 모르게 같이 꾸벅했네.
+investigation.corridorJanitorCart.002	양동이 속 내 얼굴이 국수처럼 길어. 오늘 머리보다 길어 보였어.
+investigation.corridorJanitorCart.003	카트 바퀴가 바닥에 청소 궤적을 또렷이 긋네.
+investigation.corridorJanitorCart.004	걸레대가 먼저 숙여서 내가 따라 숙였어.
+investigation.corridorJanitorCart.005	찌그러진 양동이 가장자리가 조용한 재채기야.
+investigation.corridorLostFoundBoard.001	짝 잃은 양말 사연이 붙어 있어. 나까지 괜히 쓸쓸해졌어.
+investigation.corridorLostFoundBoard.002	종이가 펄럭하고 덤볐어. 무서운 척은 종이가 제일 잘하네.
+investigation.corridorLostFoundBoard.003	분실물 쪽지가 사라진 것들의 이름부르기 같아.
+investigation.corridorLostFoundBoard.004	종이 조각마다 내 이름이 종이 속삭임으로 읽혀.
+investigation.corridorLostFoundBoard.005	게시판 모서리가 또 다른 분실물처럼 날 비춘다.
+investigation.basketballHoop.001	그물이 나한테 윙크하는 것 같아. 왜 이렇게 여유롭지?
+investigation.basketballHoop.002	골대 아래 서니 수행평가 생각났어. 좀비보다 체육이 세네.
+investigation.basketballHoop.003	후프 고리가 심판처럼 나를 살펴.
+investigation.basketballHoop.004	네트 스윙이 가짜 응원처럼 들려.
+investigation.basketballHoop.005	백보드가 먼저 말해: “먼저 던지고, 나중에 겁내.”
+investigation.basketballBallCart.001	농구공들이 동그랗게 날 보는 것 같아. 심사위원단 같네.
+investigation.basketballBallCart.002	바퀴가 삐익 울었어. 내 비밀 요원 걸음은 바로 들켰어.
+investigation.basketballBallCart.003	공차가 심사위원단 시선이 돼.
+investigation.basketballBallCart.004	바퀴 하나가 VIP 종소리처럼 삑삑해.
+investigation.basketballBallCart.005	카트 립 끝에 비밀이 한 줄 숨어 있어.
+investigation.basketballCluster.001	공이 발끝을 톡 쳤어. 말을 건 줄 알고 나도 “응?” 했어.
+investigation.basketballCluster.002	농구공들이 낮잠 중인 것 같아. 나 깨울까 봐 조심했어.
+investigation.basketballCluster.003	엉킨 공들이 나를 뽑기투표하는 느낌.
+investigation.basketballCluster.004	내 발걸음만으로도 공들이 대답해.
+investigation.basketballCluster.005	작은 주장 하나가 먼저 눈짓해.
+investigation.gymBench.001	먼지가 관중처럼 앉아 있어. 나 혼자 입장식 하는 기분이야.
+investigation.gymBench.002	이름표 줍다 이마를 콩 했어. 이름표보다 내가 먼저 발견됐네.
+investigation.gymBench.003	벤치 모서리가 제 개인 입장식의 줄 같아.
+investigation.gymBench.004	의자가 미세하게 흔들려 내가 채점되는 느낌.
+investigation.gymBench.005	등받이 없는 벤치가 엄격한 코치야.
+investigation.gymTrainingCones.001	콘들이 선도부처럼 서 있어. 나 괜히 발끝을 모으게 돼.
+investigation.gymTrainingCones.002	콘을 세웠더니 더 삐뚤어 보여. 내가 패션을 망친 걸까?
+investigation.gymTrainingCones.003	콘들이 반장처럼 줄을 서 있어.
+investigation.gymTrainingCones.004	하나를 세우면 더 삐딱해 보여.
+investigation.gymTrainingCones.005	고무 바닥이 몰래 웃는 소리야.
+investigation.gymMats.001	매트가 너무 폭신해. 나 잠깐 눕고 싶어져, 위험해.
+investigation.gymMats.002	말린 매트가 김밥 같아. 이런 때 배가 반응하면 안 되는데.
+investigation.gymMats.003	말린 매트는 너무 부드러워서 한 번 눕고 싶어.
+investigation.gymMats.004	폼 가장자리가 발끝을 다정히 부른다.
+investigation.gymMats.005	이 장애물은 검은띠 매트 같아.
+investigation.gymScoreboard.001	점수가 애매하게 멈췄어. 세상 끝에도 기록은 찜찜하구나.
+investigation.gymScoreboard.002	점수판이 퀴즈 내는 것 같아. 답은 모르지만 고개는 끄덕였어.
+investigation.gymScoreboard.003	점수는 멈춤이 의도적일까 봐 수상해.
+investigation.gymScoreboard.004	깜박임마다 읽어야 할 공포를 바꿔.
+investigation.gymScoreboard.005	내 반사막이 순간 점수를 고쳐.
+investigation.gymBanner.001	배너가 “끝까지!” 외쳐. 너무 씩씩해서 나도 “네…” 했어.
+investigation.gymBanner.002	글자가 춤추는 것 같아. 응원단보다 배너가 더 신났네.
+investigation.gymBanner.003	눈을 깜빡일수록 배너 글자가 춤춰.
+investigation.gymBanner.004	천이 늘 코치처럼 날 이리저리 끌어.
+investigation.gymBanner.005	구호가 이어져 결승으로 데려가.
+investigation.gymExitDoor.001	손잡이가 얼음처럼 차가워. 나한테 먼저 장난친 것 같아.
+investigation.gymExitDoor.002	초록 표지가 당당해. 문만 열리면 내가 바로 믿어 줄게.
+investigation.gymExitDoor.003	초록 표지가 내 망설임에 살짝 웃음.
+investigation.gymExitDoor.004	손잡이 떨림이 내 심장 박동 흉내해.
+investigation.gymExitDoor.005	문틀은 흔들릴 때마다 비밀 길을 남겨.
+investigation.gymEquipmentSpill.001	줄넘기가 뱀처럼 꼬물거려. 나, 그래도 줄이라 다행이야.
+investigation.gymEquipmentSpill.002	공 하나가 빼꼼 숨어 있어. 나, 찾았다 말할 뻔했어.
+investigation.gymEquipmentSpill.003	줄과 공이 모여 뱀 가면 같아.
+investigation.gymEquipmentSpill.004	감춰진 공이 경고등처럼 얼굴을 내민다.
+investigation.gymEquipmentSpill.005	이쪽곳은 내 고함을 삼키는 구역.
+investigation.kitchenPrepTable.001	당근 조각이 너무 반듯해. 이 학교 최고 모범생은 당근이네.
+investigation.kitchenPrepTable.002	칼자국이 지도 같아. 아무래도 양파의 모험 루트였나 봐.
+investigation.kitchenPrepTable.003	당근 조각들이 줄줄이 반듯하게 서 있어.
+investigation.kitchenPrepTable.004	칼자국이 완벽한 미니 경로도가 됐네.
+investigation.kitchenPrepTable.005	테이블 모서리가 경고 쪽지처럼 보여.
+investigation.kitchenCookLine.001	냄비 뚜껑이 달그락댔어. 혼자 등장 음악을 맡았나 봐.
+investigation.kitchenCookLine.002	쿡라인 앞에 서니 나 급식 당번 같아. “국 더요”가 떠올랐어.
+investigation.kitchenCookLine.003	뚜껑이 다가올수록 북소리만 더해.
+investigation.kitchenCookLine.004	김이 오르며 내 식욕을 채점해.
+investigation.kitchenCookLine.005	조리줄이 내 속도보다 빨리 패닉.
+investigation.kitchenSinkCounter.001	물방울이 똑, 박자를 맞춰. 나, 음악 수행 보는 것 같아.
+investigation.kitchenSinkCounter.002	수세미가 납작해. 세상 피곤을 혼자 맡은 표정이야.
+investigation.kitchenSinkCounter.003	물방울이 메트로놈처럼 박자 맞춰.
+investigation.kitchenSinkCounter.004	수세미가 지친 보고서를 읽는 중.
+investigation.kitchenSinkCounter.005	젖은 테두리가 넘지 말아야 할 해자야.
+investigation.kitchenRefrigerator.001	냉장고가 한숨 쉬는 것 같아. 나도 같이 후우 해 버렸어.
+investigation.kitchenRefrigerator.002	반찬통들이 줄을 딱 맞췄어. 나보다 침착해서 조금 진 것 같아.
+investigation.kitchenRefrigerator.003	냉장고 한숨이 나한테도 전염돼.
+investigation.kitchenRefrigerator.004	반찬통 줄이 딱 맞아, 난 한 박자 늦어.
+investigation.kitchenRefrigerator.005	불빛이 숨긴 과자를 다 보여줘.
+investigation.kitchenTrayRack.001	쟁반에 내가 여러 명 비쳐. 겁먹은 나들이 회의 중이네.
+investigation.kitchenTrayRack.002	쟁반이 메뉴를 발표할 것 같아. 나, 공포 맛은 처음이야.
+investigation.kitchenTrayRack.003	쟁반들에 내 얼굴이 여러 개 비쳐.
+investigation.kitchenTrayRack.004	한 쟁반 들면 다른 쟁반이 철로 박수.
+investigation.kitchenTrayRack.005	쟁반 울림이 메뉴 종소리 같아.
+investigation.kitchenShelfCart.001	그릇들이 달그락 합창해. 나 박수치면 더 커질까 봐 참았어.
+investigation.kitchenShelfCart.002	카트를 도우려 했는데 더 삐걱댔어. 착한 일도 효과음이 크네.
+investigation.kitchenShelfCart.003	그릇이 우연히 합창단처럼 울려.
+investigation.kitchenShelfCart.004	카트를 살짝 밀면 자기 법칙을 가르쳐.
+investigation.kitchenShelfCart.005	손잡이가 경고 고양이처럼 튀어나와.
+investigation.kitchenTrashBins.001	쓰레기통이 말 많은 얼굴 같아. 미안, 나 상담은 나중에 할게.
+investigation.kitchenTrashBins.002	급식표를 보니 배가 꼬르륵했어. 내 배야, 회의 중이잖아.
+investigation.kitchenTrashBins.003	한 통은 말 많은 얼굴, 한 통은 고개.
+investigation.kitchenTrashBins.004	점심 종만 울리면 뚜껑이 열려.
+investigation.kitchenTrashBins.005	음식 냄새와 배가 한목소리로 말해.
+investigation.kitchenCrateStack.001	상자가 숨만 쉬어도 무너질 것 같아. 나도 숨을 작게 쉬었어.
+investigation.kitchenCrateStack.002	“조심” 글자가 잔소리 같아. 나 이미 엄청 조심하고 있어.
+investigation.kitchenCrateStack.003	박스 더미가 살짝 숨 쉬면 떨려.
+investigation.kitchenCrateStack.004	맨 위 상자가 엄한 반장 같은데.
+investigation.kitchenCrateStack.005	나무결은 매번 “조심”이라 속삭여.
+investigation.kitchenClutter.001	국자와 냄비가 오케스트라 같아. 지휘자만 없어서 다 달그락이야.
+investigation.kitchenClutter.002	숟가락이 너무 얌전해. 오히려 수상해서 내가 먼저 눈을 피했어.
+investigation.kitchenClutter.003	냄비·국자들이 암호 회의 중이야.
+investigation.kitchenClutter.004	조용한 숟가락이 제일 무서워.
+investigation.kitchenClutter.005	김이 내 그림자를 민원지로 몰아.

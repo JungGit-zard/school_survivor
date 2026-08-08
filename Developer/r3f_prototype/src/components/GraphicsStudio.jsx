@@ -48,7 +48,6 @@ import {
   saveFirebaseStudio,
   setFirebaseStudioUser,
 } from '../lib/firebaseStudio.js'
-import { isE2EGraphicsStudioBypass } from '../lib/e2eAuth.js'
 
 const categoryLabels = Object.fromEntries(GRAPHICS_STUDIO_CATEGORIES.map((category) => [category.id, category.label]))
 const UNDO_LIMIT = 10
@@ -208,9 +207,7 @@ function groupCatalogByCategory() {
 }
 
 function getInitialStudioSection() {
-  if (typeof window === 'undefined' || !isE2EGraphicsStudioBypass()) return 'graphics'
-  const section = new URLSearchParams(window.location.search).get('section')
-  return STUDIO_SECTIONS.has(section) ? section : 'graphics'
+  return 'graphics'
 }
 
 function useCompactLayout() {

@@ -335,7 +335,7 @@ export default function QuestWorldLayer({ stageId }) {
     const completed = store.completeQuest?.(quest.id, target.sourceId)
     if (!markQuestActionHandled(handledRef.current, key, completed)) return
     if (useGameStore.getState().questProgress?.[quest.id]?.status === 'completed') {
-      store.openStudentDialogue?.(quest.completionLine, null, {
+      store.openStudentDialogue?.(quest.completionDialogueId, null, {
         subjectType: 'quest',
         subjectName: quest.completion.name,
       })

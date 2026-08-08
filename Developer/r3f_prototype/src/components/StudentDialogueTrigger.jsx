@@ -18,6 +18,10 @@ export function shouldSkipGenericInvestigationReward(quest) {
   return Boolean(quest)
 }
 
+export function getGenericInvestigationDialogueId({ target }) {
+  return target.dialogueId
+}
+
 export function shouldDeferGenericInvestigation({
   playerX,
   playerZ,
@@ -124,7 +128,7 @@ export default function StudentDialogueTrigger() {
     if (questInteraction?.type === 'start') {
       if (store.startQuest?.(quest.id)) {
         talkedRef.current.add(target.id)
-        openStudentDialogue(quest.startLine, null, {
+        openStudentDialogue(quest.startDialogueId, null, {
           subjectType: 'quest',
           subjectName: quest.giver.name,
         })
@@ -137,7 +141,7 @@ export default function StudentDialogueTrigger() {
     }
     talkedRef.current.add(target.id)
     openStudentDialogue(
-      target.line,
+      getGenericInvestigationDialogueId({ target }),
       rollInvestigationReward(target.subjectType),
       { subjectType: target.subjectType, subjectName: target.subjectName },
     )

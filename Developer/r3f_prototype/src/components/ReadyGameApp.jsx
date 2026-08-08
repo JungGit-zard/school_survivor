@@ -1,24 +1,19 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react'
-import TitleScreen from './TitleScreen.jsx'
-import Lobby from './Lobby.jsx'
-import VirtualJoystick from './VirtualJoystick.jsx'
-import SfxLayer from './SfxLayer.jsx'
-import { useGameStore } from '../store/useGameStore.js'
+import ErrorBoundary from './ErrorBoundary.jsx'
 import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { initPlaytestLogger } from '../lib/playtestLogger.js'
 import { isMobileJoystickEnvironment } from '../lib/mobileInput.js'
 import { initKeyboardInput } from '../lib/keyboardInput.js'
 import { applyLanguage, loadTitleSettings } from '../lib/titleSettings.js'
-import { loadGameCanvas } from './gameCanvasLoader.js'
-import E2ERuntimePerformanceDiagnostics from './E2ERuntimePerformanceDiagnostics.jsx'
-import { isE2EPerformanceDiagnostics } from '../lib/e2eAuth.js'
 import { t, useT } from '../lib/i18n.js'
 
+const TitleScreen = lazy(() => import('./TitleScreen.jsx'))
+const Lobby = lazy(() => import('./Lobby.jsx'))
+const GameplayScreen = lazy(() => import('./GameplayScreen.jsx'))
+const SfxLayer = lazy(() => import('./SfxLayer.jsx'))
 const CoinShop = lazy(() => import('./CoinShop.jsx'))
 const UserRanking = lazy(() => import('./UserRanking.jsx'))
 const StageRanking = lazy(() => import('./StageRanking.jsx'))
-const GameCanvas = lazy(loadGameCanvas)
-const HUD = lazy(() => import('./HUD.jsx'))
 
 let runtimeUtilitiesInitialized = false
 
@@ -42,9 +37,6 @@ export default function ReadyGameApp({
   const [devCheatsVisible, setDevCheatsVisible] = useState(false)
   const [devAllStagesUnlocked, setDevAllStagesUnlocked] = useState(false)
   const phoneFrameRef = useRef(null)
-  const gameKey = useGameStore((s) => s.gameKey)
-  const phase = useGameStore((s) => s.phase)
-  const resetGame = useGameStore((s) => s.resetGame)
 
   useEffect(() => {
     initializeRuntimeUtilities()
@@ -73,33 +65,17 @@ export default function ReadyGameApp({
     }
   }, [])
 
-  useEffect(() => {
-    if (screen !== 'game') return
-
-    const pauseIfPlaying = () => {
-      const { phase: currentPhase, pauseGame } = useGameStore.getState()
-      if (currentPhase === 'playing') pauseGame('auto')
-    }
-    const handleVisibility = () => {
-      if (document.hidden || document.visibilityState === 'hidden') pauseIfPlaying()
-    }
-
-    document.addEventListener('visibilitychange', handleVisibility)
-    window.addEventListener('pagehide', pauseIfPlaying)
-    window.addEventListener('blur', pauseIfPlaying)
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibility)
-      window.removeEventListener('pagehide', pauseIfPlaying)
-      window.removeEventListener('blur', pauseIfPlaying)
-    }
-  }, [screen])
-
-  const startGame = (stageId) => {
+  const startGame = async (stageId) => {
     // Stage entry must never be blocked by Google/Firebase progress hydration.
     // Guest or failed-cloud sessions run on in-memory default progress; cloud save is optional.
-    resetGame(stageId)
-    if (stageId === 'stage1') useGameStore.getState().startStage1Intro()
-    setScreen('game')
+    try {
+      const { useGameStore } = await import('../store/useGameStore.js')
+      useGameStore.getState().resetGame(stageId)
+      if (stageId === 'stage1') useGameStore.getState().startStage1Intro()
+      setScreen('game')
+    } catch {
+      setScreen('game-load-failed')
+    }
   }
 
   const openCoinShopFrom = (from) => {
@@ -119,26 +95,36 @@ export default function ReadyGameApp({
 
   return (
     <div style={styles.viewport}>
-      <SfxLayer />
+      <ErrorBoundary fallback={null}>
+        <Suspense fallback={null}><SfxLayer /></Suspense>
+      </ErrorBoundary>
       <div ref={phoneFrameRef} style={styles.phoneFrame}>
         {screen === 'title' && (
-          <TitleScreen
-            onEnterLobby={() => setScreen('lobby')}
-            devCheatsVisible={devCheatsVisible}
-            onRevealDevCheats={() => setDevCheatsVisible(true)}
-            onUnlockAllStages={() => setDevAllStagesUnlocked(true)}
-            studioVisualsReady={studioVisualsReady}
-          />
+          <ErrorBoundary fallback={({ retry, reload }) => <ScreenFailure label={t('loading.game')} retry={retry} reload={reload} />}>
+            <Suspense fallback={<ScreenLoading label={t('loading.game')} />}>
+              <TitleScreen
+                onEnterLobby={() => setScreen('lobby')}
+                devCheatsVisible={devCheatsVisible}
+                onRevealDevCheats={() => setDevCheatsVisible(true)}
+                onUnlockAllStages={() => setDevAllStagesUnlocked(true)}
+                studioVisualsReady={studioVisualsReady}
+              />
+            </Suspense>
+          </ErrorBoundary>
         )}
 
         {screen === 'lobby' && (
-          <Lobby
-            onStartStage={startGame}
-            onOpenCoinShop={() => openCoinShopFrom('lobby')}
-            onOpenRanking={(stageId) => openRankingFrom('lobby', stageId)}
-            onLogoutToTitle={() => setScreen('title')}
-            devAllStagesUnlocked={devAllStagesUnlocked}
-          />
+          <ErrorBoundary fallback={({ retry, reload }) => <ScreenFailure label="로비" retry={retry} reload={reload} onBack={() => setScreen('title')} />}>
+            <Suspense fallback={<ScreenLoading label="로비" />}>
+              <Lobby
+                onStartStage={startGame}
+                onOpenCoinShop={() => openCoinShopFrom('lobby')}
+                onOpenRanking={(stageId) => openRankingFrom('lobby', stageId)}
+                onLogoutToTitle={() => setScreen('title')}
+                devAllStagesUnlocked={devAllStagesUnlocked}
+              />
+            </Suspense>
+          </ErrorBoundary>
         )}
 
         {screen === 'coinShop' && (
@@ -159,10 +145,11 @@ export default function ReadyGameApp({
         )}
 
         {screen === 'game' && (
-          <>
+          <ErrorBoundary fallback={({ retry, reload }) => <ScreenFailure label={t('loading.game')} retry={retry} reload={reload} onBack={() => setScreen('lobby')} />}>
             <Suspense fallback={<ScreenLoading label={t('loading.game')} />}>
-              <GameCanvas gameKey={gameKey} phase={phase} />
-              <HUD
+              <GameplayScreen
+                mobileJoystickEnabled={mobileJoystickEnabled}
+                phoneFrameRef={phoneFrameRef}
                 onOpenCoinShop={() => openCoinShopFrom('game')}
                 onGoToTitle={() => setScreen('title')}
                 onGoToLobby={() => setScreen('lobby')}
@@ -170,13 +157,11 @@ export default function ReadyGameApp({
                 devCheatsVisible={devCheatsVisible}
               />
             </Suspense>
-            {mobileJoystickEnabled && (
-              <VirtualJoystick enabled phase={phase} playAreaRef={phoneFrameRef} />
-            )}
-            {isE2EPerformanceDiagnostics() && (
-              <E2ERuntimePerformanceDiagnostics canvasRootRef={phoneFrameRef} />
-            )}
-          </>
+          </ErrorBoundary>
+        )}
+
+        {screen === 'game-load-failed' && (
+          <ScreenFailure label={t('loading.game')} onBack={() => setScreen('lobby')} />
         )}
       </div>
     </div>
@@ -185,6 +170,20 @@ export default function ReadyGameApp({
 
 function ScreenLoading({ label }) {
   return <div style={styles.screenLoading}>{label}</div>
+}
+
+function ScreenFailure({ label, retry = null, reload = () => window.location.reload(), onBack = null }) {
+  return (
+    <main role="alert" data-testid="deferred-screen-failure" style={styles.screenFailure}>
+      <h1 style={styles.screenFailureTitle}>{label}</h1>
+      <p style={styles.screenFailureMessage}>이 화면을 불러오지 못했습니다.</p>
+      <div style={styles.screenFailureActions}>
+        {retry && <button type="button" style={styles.screenFailureButton} onClick={retry}>다시 시도</button>}
+        {onBack && <button type="button" style={styles.screenFailureButton} onClick={onBack}>이전 화면</button>}
+        <button type="button" style={styles.screenFailureButton} onClick={reload}>새로고침</button>
+      </div>
+    </main>
+  )
 }
 
 const styles = {
@@ -206,6 +205,17 @@ const styles = {
     fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     fontWeight: 800,
     zIndex: 20,
+  },
+  screenFailure: {
+    position: 'absolute', inset: 0, display: 'grid', placeContent: 'center', gap: 16, padding: 24,
+    background: '#16121d', color: '#f8fafc', textAlign: 'center', zIndex: 20,
+  },
+  screenFailureTitle: { margin: 0, fontSize: 'clamp(24px, 5vw, 34px)' },
+  screenFailureMessage: { margin: 0, fontWeight: 700 },
+  screenFailureActions: { display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' },
+  screenFailureButton: {
+    minHeight: 44, padding: '10px 22px', border: '2px solid #f8fafc', borderRadius: 10,
+    background: '#2b145b', color: '#f8fafc', fontWeight: 800, cursor: 'pointer',
   },
   phoneFrame: {
     position: 'relative',

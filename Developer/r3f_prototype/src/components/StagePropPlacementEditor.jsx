@@ -15,6 +15,7 @@ import {
 } from '../lib/stagePropEditorGeometry.js'
 import { computeDefaultStageObjectPlacements } from './StageObjects/stageObjectPlacements.js'
 import { getStageBounds } from '../lib/stageConfig.js'
+import { QUEST_DEFINITIONS, getStageQuestDefinitions } from '../lib/quests.js'
 
 export const TYPE_COLORS = {
   classroomDesk: '#c79a52',
@@ -35,6 +36,33 @@ export const TYPE_COLORS = {
   gymBanner: '#d64f8f',
   gymExitDoor: '#2f9e57',
   gymEquipmentSpill: '#b56ad0',
+}
+
+const QUEST_GIVER_COLORS = Object.freeze([
+  '#e85c9b', '#f0a43a', '#55c4d8', '#aa7be8',
+  '#ef6b64', '#72c46b', '#e56db3', '#e0c64d',
+])
+
+export function getQuestGiverPresentation(stageId, placementId) {
+  const quest = getStageQuestDefinitions(stageId).find(({ giver }) => (
+    placementId === giver.placementId || placementId.startsWith(`${giver.placementId}-copy-`)
+  ))
+  if (!quest) return null
+  return {
+    quest,
+    color: QUEST_GIVER_COLORS[QUEST_DEFINITIONS.indexOf(quest) % QUEST_GIVER_COLORS.length],
+  }
+}
+
+export function getCanonicalQuestGiverPlacements(stageId) {
+  return computeDefaultStageObjectPlacements(stageId)
+    .filter(({ id }) => getQuestGiverPresentation(stageId, id))
+    .map((placement) => ({
+      ...placement,
+      position: [...placement.position],
+      rotation: Array.isArray(placement.rotation) ? [...placement.rotation] : placement.rotation,
+      ...(placement.props ? { props: { ...placement.props } } : {}),
+    }))
 }
 
 let _newIdCounter = 0
@@ -76,6 +104,10 @@ export default function StagePropPlacementEditor({ onChange }) {
   const mapRef = useRef(null)
 
   const list = lists[stageId] ?? []
+  const questGiverRestorations = useMemo(
+    () => getCanonicalQuestGiverPlacements(stageId),
+    [stageId],
+  )
   const bounds = useMemo(() => getStagePropEditorBounds(stageId, list), [stageId, list])
   const viewport = useMemo(() => getEditorViewport(bounds), [bounds])
   const gameBounds = getStageBounds(stageId)
@@ -221,6 +253,15 @@ export default function StagePropPlacementEditor({ onChange }) {
     setStatus(`Applied · ${stageId}`)
   }
 
+  const restoreQuestGiver = (placement) => {
+    setStageList((currentList) => {
+      if (currentList.some((item) => item.id === placement.id)) return currentList
+      return [...currentList, placement]
+    })
+    setSelectedId(placement.id)
+    setStatus(`퀘스트 제공자 복원: ${placement.id}`)
+  }
+
   const selected = list.find((item) => item.id === selectedId) ?? null
   const gameBox = {
     left: worldToScreen(-gameBounds.halfX, -gameBounds.halfZ, bounds, viewport),
@@ -264,6 +305,31 @@ export default function StagePropPlacementEditor({ onChange }) {
 
       <div style={styles.body}>
         <div style={styles.palette}>
+          <section style={styles.questGiverSection} data-testid="quest-giver-palette">
+            <h3 style={styles.paletteTitle}>퀘스트 제공자</h3>
+            <p style={styles.paletteHint}>삭제된 제공자는 여기서만 정본 위치와 ID로 복원합니다.</p>
+            {questGiverRestorations.map((placement) => {
+              const presentation = getQuestGiverPresentation(stageId, placement.id)
+              const restored = list.some((item) => item.id === placement.id)
+              return (
+                <button
+                  key={placement.id}
+                  type="button"
+                  data-testid={`quest-giver-restore-${placement.id}`}
+                  disabled={restored}
+                  onClick={() => restoreQuestGiver(placement)}
+                  style={{
+                    ...styles.questGiverRestore,
+                    borderColor: presentation.color,
+                    color: presentation.color,
+                    ...(restored ? styles.questGiverRestoreDisabled : null),
+                  }}
+                >
+                  퀘스트 제공자 · {presentation.quest.giver.name} {restored ? '(배치됨)' : '복원'}
+                </button>
+              )
+            })}
+          </section>
           <h3 style={styles.paletteTitle}>팔레트</h3>
           <p style={styles.paletteHint}>클릭=중앙 추가 · 드래그=맵에 놓기</p>
           {STAGE_PROP_PALETTE.map((entry) => (
@@ -308,6 +374,29 @@ export default function StagePropPlacementEditor({ onChange }) {
           ) : (
             <p style={styles.paletteHint}>마커 클릭=선택 · 더블클릭=삭제</p>
           )}
+          <section style={styles.propList} aria-label="프랍 목록">
+            <h3 style={styles.paletteTitle}>프랍 목록</h3>
+            {list.map((item) => {
+              const presentation = getQuestGiverPresentation(stageId, item.id)
+              const color = presentation?.color ?? TYPE_COLORS[item.type] ?? '#ccc'
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  data-testid={`prop-list-${item.id}`}
+                  onClick={() => setSelectedId(item.id)}
+                  style={{
+                    ...styles.propListItem,
+                    borderColor: color,
+                    color,
+                    ...(item.id === selectedId ? styles.propListItemSelected : null),
+                  }}
+                >
+                  {presentation ? `퀘스트 제공자 · ${presentation.quest.giver.name}` : (getPaletteEntry(item.type)?.label ?? item.type)}
+                </button>
+              )
+            })}
+          </section>
         </div>
 
         <div style={styles.mapWrap}>
@@ -334,10 +423,13 @@ export default function StagePropPlacementEditor({ onChange }) {
             {list.map((item) => {
               const screen = worldToScreen(item.position[0], item.position[2], bounds, viewport)
               const isSelected = item.id === selectedId
+              const presentation = getQuestGiverPresentation(stageId, item.id)
+              const markerColor = presentation?.color ?? TYPE_COLORS[item.type] ?? '#ccc'
               return (
                 <div
                   key={item.id}
                   data-testid={`prop-marker-${item.id}`}
+                  aria-label={presentation ? `퀘스트 제공자: ${presentation.quest.giver.name}` : (getPaletteEntry(item.type)?.label ?? item.type)}
                   onPointerDown={(event) => startMarkerDrag(event, item.id)}
                   onDoubleClick={(event) => {
                     event.stopPropagation()
@@ -349,14 +441,15 @@ export default function StagePropPlacementEditor({ onChange }) {
                     ...styles.marker,
                     left: screen.left,
                     top: screen.top,
-                    borderColor: TYPE_COLORS[item.type] ?? '#ccc',
-                    background: isSelected ? TYPE_COLORS[item.type] : 'rgba(20,22,20,0.85)',
-                    color: isSelected ? '#101010' : TYPE_COLORS[item.type],
+                    borderColor: markerColor,
+                    background: isSelected ? markerColor : 'rgba(20,22,20,0.85)',
+                    color: isSelected ? '#101010' : markerColor,
                     transform: `translate(-50%, -50%) rotate(${item.rotation[1]}rad)`,
                     boxShadow: isSelected ? '0 0 0 2px #fff' : 'none',
                   }}
                 >
                   {getPaletteEntry(item.type)?.glyph ?? '?'}
+                  {presentation && <span style={{ ...styles.questGiverMarkerLabel, background: markerColor }}>퀘스트 제공자</span>}
                 </div>
               )
             })}
@@ -394,6 +487,12 @@ const styles = {
   palette: { width: 250, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 },
   paletteTitle: { margin: '0 0 4px', fontSize: 26 },
   paletteHint: { margin: '4px 0', fontSize: 22, color: '#889' },
+  questGiverSection: { padding: 9, border: '1px solid #48515a', borderRadius: 6, background: 'rgba(34, 38, 48, 0.72)' },
+  questGiverRestore: { width: '100%', marginTop: 6, padding: '7px 8px', border: '2px solid', borderRadius: 5, background: '#171b22', textAlign: 'left', cursor: 'pointer', fontSize: 13, fontWeight: 800 },
+  questGiverRestoreDisabled: { opacity: 0.55, cursor: 'default' },
+  propList: { marginTop: 16, borderTop: '1px solid #3d434d', paddingTop: 12 },
+  propListItem: { width: '100%', marginTop: 5, padding: '6px 8px', border: '1px solid', borderRadius: 4, background: '#15181d', textAlign: 'left', cursor: 'pointer', fontSize: 13 },
+  propListItemSelected: { background: '#2a3039', boxShadow: '0 0 0 1px #fff inset' },
   paletteButton: { display: 'flex', alignItems: 'center', gap: 8, background: '#1d1f1d', color: '#eee', border: '1px solid', borderRadius: 5, padding: '10px 10px', cursor: 'grab', fontSize: 24, textAlign: 'left' },
   paletteGlyph: { fontSize: 22, width: 22, textAlign: 'center' },
   inspector: { marginTop: 10, padding: 10, background: '#191b19', border: '1px solid #3a3d3a', borderRadius: 6, display: 'flex', flexDirection: 'column', gap: 6 },
@@ -410,6 +509,7 @@ const styles = {
   centerLineV: { position: 'absolute', top: 0, bottom: 0, width: 1, background: 'rgba(120,140,120,0.25)', pointerEvents: 'none' },
   centerLineH: { position: 'absolute', left: 0, right: 0, height: 1, background: 'rgba(120,140,120,0.25)', pointerEvents: 'none' },
   marker: { position: 'absolute', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid', borderRadius: 5, fontSize: 26, cursor: 'grab', userSelect: 'none' },
+  questGiverMarkerLabel: { position: 'absolute', left: 30, top: -1, zIndex: 2, padding: '2px 5px', borderRadius: 3, color: '#101010', fontSize: 11, fontWeight: 900, lineHeight: 1.2, whiteSpace: 'nowrap', transform: 'rotate(0deg)' },
   ghost: { position: 'absolute', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed', borderRadius: 5, fontSize: 26, opacity: 0.7, transform: 'translate(-50%, -50%)', pointerEvents: 'none', color: '#fff' },
   status: { fontSize: 24, color: '#8fb98a', minHeight: 20 },
   legend: { fontSize: 22, color: '#778', margin: 0 },

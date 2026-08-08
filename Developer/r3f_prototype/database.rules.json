@@ -91,6 +91,25 @@
         }
       }
     },
+    "runtimeControl": {
+      "v1": {
+        "inspection": {
+          ".read": true,
+          ".write": "auth != null && auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com'",
+          ".validate": "newData.hasChildren(['schemaVersion', 'enabled', 'startsAt', 'endsAt', 'message', 'updatedAt', 'updatedByUid'])",
+          "schemaVersion": { ".validate": "newData.isNumber() && newData.val() === 1" },
+          "enabled": { ".validate": "newData.isBoolean()" },
+          "startsAt": { ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= now - 300000 && newData.val() <= now + 604800000" },
+          "endsAt": { ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() > newData.parent().child('startsAt').val() && newData.val() - newData.parent().child('startsAt').val() <= 604800000 && newData.val() <= now + 604800000" },
+          "message": { ".validate": "newData.isString() && newData.val().length <= 200" },
+          "updatedAt": { ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= now - 300000 && newData.val() <= now + 300000" },
+          "updatedByUid": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 128 && newData.val() === auth.uid" },
+          "$other": { ".validate": false }
+        },
+        "$other": { ".validate": false }
+      },
+      "$other": { ".validate": false }
+    },
     "rankingService": {
       "v1": {
         "public": {

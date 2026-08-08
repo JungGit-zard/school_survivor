@@ -292,3 +292,15 @@ describe('보스 격퇴 보너스와 포탈 클리어 분리', () => {
     expect(useGameStore.getState().bossSpawned).toBe(false)
   })
 })
+
+describe('useGameStore unavailable Firebase progress', () => {
+  it('continues reset and run-end in memory without hydrated-only getters', async () => {
+    const { _resetFirebaseProgressForTests } = await import('../lib/firebaseProgress.js')
+    _resetFirebaseProgressForTests()
+
+    expect(() => useGameStore.getState().resetGame('stage1')).not.toThrow()
+    useGameStore.setState({ runKills: 80, elapsedMs: 180_000 })
+    expect(() => useGameStore.getState()._onRunEnd('gameover')).not.toThrow()
+    expect(useGameStore.getState().newlyUnlockedWeaponIds).toContain('compassBlade')
+  })
+})

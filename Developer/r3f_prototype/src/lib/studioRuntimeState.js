@@ -7,6 +7,8 @@ export const FIREBASE_STUDIO_RUNTIME_DATASET_KEYS = Object.freeze([
   'bossFaceRecipes',
 ])
 
+export const FIREBASE_STUDIO_RUNTIME_EVENT = 'escape-zombie-school.firebaseStudioRuntime.changed'
+
 let runtimeState = {
   status: 'blocked',
   revision: null,
@@ -28,6 +30,7 @@ export function blockFirebaseStudioRuntime() {
     datasets: null,
     generation: runtimeState.generation + 1,
   }
+  emitRuntimeStateChange()
 }
 
 export function commitFirebaseStudioRuntime(datasets, { revision = null } = {}) {
@@ -41,11 +44,15 @@ export function commitFirebaseStudioRuntime(datasets, { revision = null } = {}) 
       isObject(source[key]) ? source[key] : {},
     ])),
   }
+  emitRuntimeStateChange()
   return runtimeState
 }
 
 export function isFirebaseStudioRuntimeReady() {
-  return runtimeState.status === 'ready' && runtimeState.datasets !== null
+  return runtimeState.status === 'ready'
+    && runtimeState.datasets !== null
+    && Number.isInteger(runtimeState.revision)
+    && runtimeState.revision >= 0
 }
 
 export function getFirebaseStudioRuntimeState() {
@@ -96,4 +103,9 @@ export function assertFirebaseStudioRuntimeReady(operation = 'read') {
 
 function isObject(value) {
   return !!value && typeof value === 'object' && !Array.isArray(value)
+}
+
+function emitRuntimeStateChange() {
+  if (typeof window === 'undefined' || typeof CustomEvent === 'undefined') return
+  window.dispatchEvent(new CustomEvent(FIREBASE_STUDIO_RUNTIME_EVENT, { detail: runtimeState }))
 }

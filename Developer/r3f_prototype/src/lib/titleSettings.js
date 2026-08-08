@@ -1,7 +1,5 @@
 // Player title/settings runtime layer.
 // Durable player settings live only in Firebase users/{uid}. Admin/dev config remains separate.
-import { getAllWeaponIds, isStarter } from './weaponCatalog.js'
-import { setUnlocked as setWeaponUnlocked } from './weaponUnlocks.js'
 import { readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
 import { detectInitialLocale, isSupportedLocale, setLocale } from './i18n.js'
 
@@ -72,7 +70,11 @@ export function vibrateFeedback(pattern = 18) {
   navigator.vibrate(pattern)
 }
 
-export function unlockAllNonStarterWeapons() {
+export async function unlockAllNonStarterWeapons() {
+  const [{ getAllWeaponIds, isStarter }, { setUnlocked: setWeaponUnlocked }] = await Promise.all([
+    import('./weaponCatalog.js'),
+    import('./weaponUnlocks.js'),
+  ])
   for (const id of getAllWeaponIds()) {
     if (!isStarter(id)) setWeaponUnlocked(id)
   }

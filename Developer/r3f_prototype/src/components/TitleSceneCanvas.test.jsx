@@ -20,7 +20,7 @@ describe('TitleSceneCanvas Firebase Studio hydration boundary', () => {
     document.body.innerHTML = ''
   })
 
-  it('does not mount TitleScene3D before Studio hydration, then mounts it when the existing readiness prop becomes true', () => {
+  it('does not mount TitleScene3D before Studio hydration, then mounts it when the existing readiness prop becomes true', async () => {
     const appSource = readFileSync(resolve(process.cwd(), 'src/App.jsx'), 'utf8')
     const readyGameSource = readFileSync(resolve(process.cwd(), 'src/components/ReadyGameApp.jsx'), 'utf8')
     const titleScreenSource = readFileSync(resolve(process.cwd(), 'src/components/TitleScreen.jsx'), 'utf8')
@@ -40,7 +40,10 @@ describe('TitleSceneCanvas Firebase Studio hydration boundary', () => {
     expect(container.querySelector('[data-testid="title-canvas"]')).not.toBeNull()
     expect(container.querySelector('[data-testid="title-scene-3d"]')).toBeNull()
 
-    act(() => root.render(<TitleSceneCanvas studioVisualsReady />))
+    await act(async () => {
+      root.render(<TitleSceneCanvas studioVisualsReady />)
+      await vi.dynamicImportSettled()
+    })
     expect(container.querySelector('[data-testid="title-scene-3d"]')).not.toBeNull()
 
     act(() => root.unmount())

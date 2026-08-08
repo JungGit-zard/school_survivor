@@ -2,9 +2,8 @@ import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // season/E2E 게이트를 결정적으로 제어하기 위한 훅(hoisted — 팩토리가 참조해도 TDZ 안전).
-const gates = vi.hoisted(() => ({ seasonConfig: {}, e2eBypass: false }))
+const gates = vi.hoisted(() => ({ seasonConfig: {} }))
 vi.mock('./adminConfig.js', () => ({ getAdminRankingSeasonConfig: () => gates.seasonConfig }))
-vi.mock('./e2eAuth.js', () => ({ isE2EAuthBypass: () => gates.e2eBypass }))
 
 import { submitRun, _setFirebaseRankingClientForTests } from './firebaseRanking.js'
 
@@ -26,7 +25,6 @@ function makeFakeClient({ existingScore = null } = {}) {
 describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function)', () => {
   beforeEach(() => {
     gates.seasonConfig = {}
-    gates.e2eBypass = false
     vi.stubEnv('VITE_FIREBASE_DATABASE_URL', 'https://x-default-rtdb.firebaseio.com')
   })
   afterEach(() => {
@@ -97,16 +95,6 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
     _setFirebaseRankingClientForTests(client)
 
     await submitRun({ uid: 'me' }, { stageId: 'stage1', score: 10, timeMs: 1000 })
-
-    expect(mod.set).not.toHaveBeenCalled()
-  })
-
-  it('skips submission for E2E-bypass users so real rankings stay uncontaminated', async () => {
-    gates.e2eBypass = true
-    const { client, mod } = makeFakeClient()
-    _setFirebaseRankingClientForTests(client)
-
-    await submitRun({ uid: 'e2e-local-test' }, { stageId: 'stage1', score: 10, timeMs: 1000 })
 
     expect(mod.set).not.toHaveBeenCalled()
   })

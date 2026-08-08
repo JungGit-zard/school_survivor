@@ -861,7 +861,11 @@ export function saveStudioTunings(tunings, storage) {
 
 export function loadStageBossPreview(storage) {
   if (storage) throw new TypeError('Graphics Studio storage adapters are forbidden. Firebase runtime only.')
-  return normalizeStageBossPreview(getFirebaseStudioRuntimeDataset('stageBossPreview'))
+  const framing = getFirebaseStudioRuntimeDataset('stageBossPreview')
+  if (!isCompleteStageBossPreview(framing)) {
+    throw new TypeError('Firebase Graphics Studio stage boss preview payload is incomplete.')
+  }
+  return normalizeStageBossPreview(framing)
 }
 
 export function saveStageBossPreview(framing, storage) {
@@ -872,6 +876,13 @@ export function saveStageBossPreview(framing, storage) {
     window.dispatchEvent(new CustomEvent(STAGE_BOSS_PREVIEW_EVENT, { detail: normalized }))
   }
   return normalized
+}
+
+function isCompleteStageBossPreview(value) {
+  return !!value
+    && typeof value === 'object'
+    && !Array.isArray(value)
+    && ['zoom', 'panX', 'panY'].every((key) => Number.isFinite(value[key]))
 }
 
 let studioResetBaseline = null

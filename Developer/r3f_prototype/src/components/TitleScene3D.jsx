@@ -11,7 +11,9 @@ import StudioTunedGroup, {
   StudioTuningPreviewProvider,
   StudioTuningRuntimeProvider,
 } from './StudioTunedGroup.jsx'
-import { ClassroomChair, ClassroomDesk, UnconsciousStudent } from './StageObjects/index.js'
+import ClassroomChair from './StageObjects/ClassroomChair.jsx'
+import ClassroomDesk from './StageObjects/ClassroomDesk.jsx'
+import UnconsciousStudent from './StageObjects/UnconsciousStudent.jsx'
 import { CompassBladeModel } from './Weapons/CompassBlade.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
 import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'

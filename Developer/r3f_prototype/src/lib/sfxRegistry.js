@@ -232,6 +232,14 @@ export function loadSfxTunings() {
   )
 }
 
+export function loadOptionalSfxTunings() {
+  try {
+    return loadSfxTunings()
+  } catch {
+    return {}
+  }
+}
+
 export function saveSfxTunings(tunings) {
   const next = Object.fromEntries(
     Object.keys(SOUND_MAP)
@@ -244,7 +252,7 @@ export function saveSfxTunings(tunings) {
 export function playSfx(id, volume = 1, options = {}) {
   if (!SOUND_MAP[id] || _failed.has(id)) return
   if (!isSfxAllowedForAuthOverlay(id, options.authOverlayActive)) return
-  const tuning = normalizeSfxTuning(loadSfxTunings()[id])
+  const tuning = normalizeSfxTuning(loadOptionalSfxTunings()[id])
   const tunedVolume = clamp(volume * tuning.volume, 0, 1)
   const tunedRate = clamp((options.rate ?? 1) * tuning.rate, 0.5, 2)
   const protectedSfx = isProtectedSfx(id)

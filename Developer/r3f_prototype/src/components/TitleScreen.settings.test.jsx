@@ -74,11 +74,10 @@ afterEach(() => {
 })
 
 describe('TitleScreen lobby entry', () => {
-  it('renders the canonical gameplay guide and game-start action', () => {
+  it('renders the game-start action without gameplay guide text', () => {
     const { container, cleanup } = renderTitleScreen()
 
-    expect(container.querySelector('[data-testid="title-gameplay-guide"]')?.textContent)
-      .toBe('자동 공격 · 화면을 드래그해 이동 · 레벨업 때 카드 선택')
+    expect(container.querySelector('[data-testid="title-gameplay-guide"]')).toBe(null)
     expect(container.querySelector('.title-main-action')?.textContent).toBe('게임 시작')
     expect(container.querySelector('style[data-title-intro-css]')?.textContent).toContain('.title-main-action:focus-visible')
 
@@ -355,18 +354,22 @@ describe('TitleScreen lobby entry', () => {
     cleanup()
   })
 
-  it('unlocks every non-starter weapon from the cheat modal action', () => {
+  it('unlocks every non-starter weapon from the cheat modal action', async () => {
+    const user = { uid: 'title-cheat-user', displayName: 'Cheat Tester' }
+    seedConsentedUser(user)
+    useAuthStore.setState({ status: 'signedIn', user, initialized: true })
     const { container, cleanup } = renderTitleScreen()
 
     openCheatMenu(container)
     clickButtonByText(container, '모든 무기 해금')
 
-    const unlocks = getAllUnlocked()
-    const nonStarterIds = Object.keys(WEAPON_CATALOG).filter((id) => !isStarter(id))
+    await vi.dynamicImportSettled()
 
-    for (const id of nonStarterIds) {
-      expect(unlocks.has(id), id).toBe(true)
-    }
+    const nonStarterIds = Object.keys(WEAPON_CATALOG).filter((id) => !isStarter(id))
+    await vi.waitFor(() => {
+      const unlocks = getAllUnlocked()
+      for (const id of nonStarterIds) expect(unlocks.has(id), id).toBe(true)
+    })
 
     cleanup()
   })

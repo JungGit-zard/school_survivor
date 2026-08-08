@@ -24,6 +24,7 @@ import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.j
 import { hydrateFirebaseStudio, setFirebaseStudioUser } from '../lib/firebaseStudio.js'
 import { blockFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
 import { MATILDA_DIALOGUE_MS } from '../lib/matildaEntryGrace.js'
+import { getDialogueText } from '../dialogues/dialogueStore.js'
 import { clearPortalTarget, playerPos, publishPortalTarget } from '../lib/refs.js'
 
 const TEST_STUDIO_USER = { uid: 'hud-test-user' }
@@ -92,6 +93,29 @@ describe('portal direction objective', () => {
       act(() => {
         root.unmount()
       })
+    }
+  })
+})
+
+describe('student dialogue IDs', () => {
+  it('renders the resolved known text and never renders an unknown raw ID', () => {
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        useGameStore.getState().openStudentDialogue('quest.stage1-talk-book.start')
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+      expect(container.textContent).toContain(getDialogueText('quest.stage1-talk-book.start'))
+
+      act(() => {
+        useGameStore.getState().closeStudentDialogue()
+        useGameStore.getState().openStudentDialogue('missing.dialogue.id')
+      })
+      expect(container.textContent).not.toContain('missing.dialogue.id')
+    } finally {
+      act(() => { root.unmount() })
     }
   })
 })
@@ -223,6 +247,16 @@ describe('weapon upgrade icon assets', () => {
     act(() => {
       root.unmount()
     })
+  })
+
+  it('renders no Studio-controlled weapon icon while Firebase Studio is blocked', () => {
+    blockFirebaseStudioRuntime()
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    act(() => root.render(<UpgradeIcon type="pencil" />))
+    expect(container.querySelector('img')).toBeNull()
+    expect(container.textContent).toBe('')
+    act(() => root.unmount())
   })
 
   it('applies Graphics Studio tuning to the image-only extra battery icon', () => {

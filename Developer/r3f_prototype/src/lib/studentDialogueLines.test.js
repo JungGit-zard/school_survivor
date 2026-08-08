@@ -1,30 +1,27 @@
+import { createHash } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
-import { STUDENT_DIALOGUE_LINES, pickStudentLine } from './studentDialogueLines.js'
+import { getDialogueText } from '../dialogues/dialogueStore.js'
+import { STUDENT_DIALOGUE_IDS, pickStudentDialogueId } from './studentDialogueLines.js'
 
-describe('studentDialogueLines', () => {
-  it('대사 풀은 비어있지 않고 모두 문자열이다', () => {
-    expect(STUDENT_DIALOGUE_LINES.length).toBeGreaterThan(0)
-    for (const line of STUDENT_DIALOGUE_LINES) {
-      expect(typeof line).toBe('string')
-      expect(line.length).toBeGreaterThan(0)
-    }
+const ORIGINAL_DIALOGUE_COUNT = 52
+const ORIGINAL_KO_HASH = '6d447e90cfd2b232c188a25693dba020dc40b7ed3da587f17c571b2e318505a3'
+
+describe('student dialogue ID pool', () => {
+  it('keeps every currently migrated Stage 1 entry addressable through IDs', () => {
+    expect(STUDENT_DIALOGUE_IDS.length).toBeGreaterThan(0)
+    expect(STUDENT_DIALOGUE_IDS.length).toBeLessThanOrEqual(300)
+    expect(new Set(STUDENT_DIALOGUE_IDS).size).toBe(STUDENT_DIALOGUE_IDS.length)
+    for (const id of STUDENT_DIALOGUE_IDS) expect(getDialogueText(id)).not.toBe('')
   })
 
-  it('대사 풀은 50줄 이상이고 전 줄이 서로 다르다', () => {
-    expect(STUDENT_DIALOGUE_LINES.length).toBeGreaterThanOrEqual(50)
-    expect(new Set(STUDENT_DIALOGUE_LINES).size).toBe(STUDENT_DIALOGUE_LINES.length)
+  it('locks the original first 52 Korean texts after raw-store migration', () => {
+    const original = STUDENT_DIALOGUE_IDS.slice(0, ORIGINAL_DIALOGUE_COUNT).map((id) => getDialogueText(id, 'ko'))
+    const hash = createHash('sha256').update(JSON.stringify(original)).digest('hex')
+    expect(hash).toBe(ORIGINAL_KO_HASH)
   })
 
-  it('seed된 random으로 결정적으로 선택한다', () => {
-    expect(pickStudentLine(() => 0)).toBe(STUDENT_DIALOGUE_LINES[0])
-    expect(pickStudentLine(() => 0.999999)).toBe(STUDENT_DIALOGUE_LINES[STUDENT_DIALOGUE_LINES.length - 1])
-    const mid = Math.floor(0.5 * STUDENT_DIALOGUE_LINES.length)
-    expect(pickStudentLine(() => 0.5)).toBe(STUDENT_DIALOGUE_LINES[mid])
-  })
-
-  it('기본 random(Math.random)으로도 항상 풀 내의 값을 반환한다', () => {
-    for (let i = 0; i < 50; i += 1) {
-      expect(STUDENT_DIALOGUE_LINES).toContain(pickStudentLine())
-    }
+  it('chooses only IDs from the generic Stage 1 pool', () => {
+    expect(pickStudentDialogueId(() => 0)).toBe(STUDENT_DIALOGUE_IDS[0])
+    expect(pickStudentDialogueId(() => 0.999999)).toBe(STUDENT_DIALOGUE_IDS.at(-1))
   })
 })

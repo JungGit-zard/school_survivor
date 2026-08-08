@@ -10,7 +10,7 @@ export const STAGE_PROP_PLACEMENTS_STORAGE_KEY = 'escape-zombie-school.stageProp
 export const STAGE_PROP_PLACEMENTS_EVENT = 'escape-zombie-school.stagePropPlacements.changed'
 
 // 편집 가능한 스테이지 목록.
-export const STAGE_PROP_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3'])
+export const STAGE_PROP_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4'])
 
 // StageObjectLayer의 STAGE_OBJECT_COMPONENTS 매핑과 반드시 동기 유지.
 // (stagePropPlacements.test.js의 동기화 단언 테스트가 드리프트를 자동 감지한다.)

@@ -22,6 +22,7 @@ const mocks = vi.hoisted(() => ({
   canonicalHydrate: vi.fn(() => Promise.resolve({ status: 'missing-remote' })),
   canonicalPublish: vi.fn(() => Promise.resolve({ status: 'forbidden' })),
   studioRuntimeReady: false,
+  inspectionSubscribe: vi.fn(),
 }))
 
 vi.mock('./store/useAuthStore.js', () => {
@@ -48,6 +49,15 @@ vi.mock('./lib/studioRuntimeState.js', () => ({
   isFirebaseStudioRuntimeReady: vi.fn(() => mocks.studioRuntimeReady),
 }))
 
+vi.mock('./lib/firebaseInspectionMode.js', () => ({
+  subscribeInspectionMode: mocks.inspectionSubscribe,
+  getInspectionPhase: (state, nowMs) => {
+    if (!state?.enabled) return 'inactive'
+    if (nowMs < state.startsAt) return 'scheduled'
+    return nowMs < state.endsAt ? 'active' : 'inactive'
+  },
+}))
+
 vi.mock('./components/GraphicsStudio.jsx', () => ({
   default: () => <main data-testid="graphics-studio">洹몃옒???ㅽ뒠?붿삤</main>,
 }))
@@ -68,6 +78,10 @@ vi.mock('./components/ReadyGameApp.jsx', () => {
 
 vi.mock('./components/AdminPage.jsx', () => ({
   default: () => <main data-testid="admin-page">???꾧뎄</main>,
+}))
+
+vi.mock('./components/InspectionModeScreen.jsx', () => ({
+  default: ({ state }) => <main data-testid="inspection-mode-screen">점검: {state.message}</main>,
 }))
 
 const { default: App, handleStudioGameSyncMessage } = await import('./App.jsx')
@@ -115,6 +129,7 @@ describe('App Firebase bootstrap boundary', () => {
     })
     mocks.canonicalHydrate.mockReset().mockResolvedValue({ status: 'missing-remote' })
     mocks.canonicalPublish.mockReset().mockResolvedValue({ status: 'forbidden' })
+    mocks.inspectionSubscribe.mockReset().mockReturnValue(vi.fn())
     mocks.studioRuntimeReady = false
     window.history.replaceState({}, '', '/')
   })
@@ -229,21 +244,6 @@ describe('App Firebase bootstrap boundary', () => {
     expect(mocks.studioHydrate).not.toHaveBeenCalled()
     expect(mocks.readyGameProps).not.toHaveProperty('ensureStudioCloudReady')
     expect(mocks.studioSubscribe).not.toHaveBeenCalled()
-    view.unmount()
-  })
-
-  it('hydrates only the public canonical Studio revision for the DEV E2E user', async () => {
-    window.history.replaceState({}, '', '/?e2e=1')
-    mocks.authState.status = 'signedIn'
-    mocks.authState.user = { uid: 'e2e-local-test' }
-    mocks.canonicalHydrate.mockResolvedValue({ status: 'remote-applied', revision: 7 })
-
-    const view = await renderApp()
-
-    await vi.waitFor(() => expect(mocks.canonicalHydrate).toHaveBeenCalledTimes(1))
-    expect(mocks.studioHydrate).not.toHaveBeenCalled()
-    expect(mocks.studioSubscribe).not.toHaveBeenCalled()
-    expect(mocks.canonicalPublish).not.toHaveBeenCalled()
     view.unmount()
   })
 
@@ -370,24 +370,6 @@ describe('App Firebase bootstrap boundary', () => {
     view.unmount()
   })
 
-  it('blocks the E2E user from the graphics studio without any Firebase Studio read, subscribe, or publish', async () => {
-    window.history.replaceState({}, '', '/graphics-studio?e2e=1&studio=1')
-    mocks.authState.status = 'signedIn'
-    mocks.authState.user = { uid: 'e2e-local-test' }
-    const close = vi.spyOn(window, 'close').mockImplementation(() => {})
-
-    const view = await renderApp()
-    await act(async () => { await Promise.resolve(); await Promise.resolve() })
-
-    expect(view.container.querySelector('[data-testid="graphics-studio"]')).toBe(null)
-    expect(mocks.studioHydrate).not.toHaveBeenCalled()
-    expect(mocks.canonicalHydrate).not.toHaveBeenCalled()
-    expect(mocks.studioSubscribe).not.toHaveBeenCalled()
-    expect(mocks.canonicalPublish).not.toHaveBeenCalled()
-    view.unmount()
-    close.mockRestore()
-  })
-
   it('refreshes a signed-out game from the canonical Studio path', async () => {
     mocks.authState.user = null
     mocks.canonicalHydrate.mockResolvedValue({ status: 'remote-applied', revision: 8 })
@@ -400,6 +382,84 @@ describe('App Firebase bootstrap boundary', () => {
 
     expect(mocks.canonicalHydrate).toHaveBeenCalledWith({})
     expect(mocks.studioHydrate).not.toHaveBeenCalled()
+  })
+
+  it('shows the active inspection screen on a normal game route', async () => {
+    const now = Date.now()
+    mocks.inspectionSubscribe.mockImplementation(({ onState }) => {
+      onState({ enabled: true, startsAt: now - 1, endsAt: now + 60_000, message: '긴급 점검' })
+      return vi.fn()
+    })
+    const view = await renderApp()
+
+    await vi.waitFor(() => expect(view.container.querySelector('[data-testid="inspection-mode-screen"]')).not.toBe(null))
+    expect(view.container.querySelector('[data-testid="ready-game-app"]')).toBe(null)
+    view.unmount()
+  })
+
+  it('keeps the normal game route open for expired inspection state', async () => {
+    const now = Date.now()
+    mocks.inspectionSubscribe.mockImplementation(({ onState }) => {
+      onState({ enabled: true, startsAt: now - 60_000, endsAt: now - 1, message: '종료됨' })
+      return vi.fn()
+    })
+    const view = await renderApp()
+
+    expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
+    view.unmount()
+  })
+
+  it('keeps the admin route accessible during an active inspection', async () => {
+    window.history.replaceState({}, '', '/admin')
+    mocks.authState.status = 'signedIn'
+    mocks.authState.user = MASTER_USER
+    const now = Date.now()
+    mocks.inspectionSubscribe.mockImplementation(({ onState }) => {
+      onState({ enabled: true, startsAt: now - 1, endsAt: now + 60_000, message: '점검 중' })
+      return vi.fn()
+    })
+    const view = await renderApp()
+
+    await vi.waitFor(() => expect(view.container.querySelector('[data-testid="admin-page"]')).not.toBe(null))
+    expect(view.container.querySelector('[data-testid="inspection-mode-screen"]')).toBe(null)
+    view.unmount()
+  })
+
+  it('fails open when the inspection subscription reports an error', async () => {
+    mocks.inspectionSubscribe.mockImplementation(({ onError }) => {
+      onError(new Error('permission denied'))
+      return vi.fn()
+    })
+    const view = await renderApp()
+
+    expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
+    view.unmount()
+  })
+
+  it('re-evaluates a scheduled inspection at both start and end without another subscription event', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-08-08T10:00:00'))
+    const now = Date.now()
+    mocks.inspectionSubscribe.mockImplementation(({ onState }) => {
+      onState({ enabled: true, startsAt: now + 1000, endsAt: now + 2000, message: '예약 점검' })
+      return vi.fn()
+    })
+    const view = await renderApp()
+    expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1001)
+      await Promise.resolve()
+    })
+    expect(view.container.querySelector('[data-testid="inspection-mode-screen"]')).not.toBe(null)
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000)
+      await Promise.resolve()
+    })
+    expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
+    view.unmount()
+    vi.useRealTimers()
   })
 })
 

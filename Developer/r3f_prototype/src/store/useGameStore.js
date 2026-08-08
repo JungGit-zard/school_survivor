@@ -21,7 +21,7 @@ import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponU
 import { DEFAULT_STAGE_ID, getNextStageId, getStageConfig, rollBossSpawnSec } from '../lib/stageConfig.js'
 import { getAdminBalanceConfig } from '../lib/adminConfig.js'
 import { vibrateFeedback } from '../lib/titleSettings.js'
-import { recordPlayActivity, requestCloudProgressSave, readFirebasePlayerProgress, updateFirebasePlayerProgress } from '../lib/firebaseProgress.js'
+import { isFirebaseProgressHydrated, recordPlayActivity, requestCloudProgressSave, readFirebasePlayerProgress, updateFirebasePlayerProgress } from '../lib/firebaseProgress.js'
 import { submitRun } from '../lib/firebaseRanking.js'
 import { useAuthStore } from './useAuthStore.js'
 import { getBossClearBonus, getRankingScore, getRankingScorePolicy } from '../lib/rankingScorePolicy.js'
@@ -98,17 +98,21 @@ export const SURVIVAL_MILESTONES = [
 ]
 
 function loadGoldTotal() {
+  if (!isFirebaseProgressHydrated()) return 0
   return readFirebasePlayerProgress().goldTotal ?? 0
 }
 
 function saveGoldTotal(value) {
+  if (!isFirebaseProgressHydrated()) return false
   updateFirebasePlayerProgress((progress) => {
     progress.goldTotal = Math.max(0, Math.floor(Number(value) || 0))
     return progress
   })
+  return true
 }
 
 function syncStoredWeaponUnlocksFromRecords() {
+  if (!isFirebaseProgressHydrated()) return
   const nextUnlocked = evaluateUnlocks(loadPlayerRecords())
   const prevUnlocked = getAllUnlocked()
   for (const id of nextUnlocked) {
@@ -116,6 +120,22 @@ function syncStoredWeaponUnlocksFromRecords() {
     if (prevUnlocked.has(id)) continue
     setWeaponUnlocked(id)
   }
+}
+
+function loadRuntimePassiveLevels() {
+  return isFirebaseProgressHydrated() ? getAllLevels() : EMPTY_PASSIVE_LEVELS
+}
+
+function saveRuntimeProgress() {
+  if (isFirebaseProgressHydrated()) void requestCloudProgressSave()
+}
+
+function recordRuntimePlayActivity(stageId) {
+  if (isFirebaseProgressHydrated()) recordPlayActivity(stageId)
+}
+
+function vibrateRuntimeFeedback(pattern) {
+  if (isFirebaseProgressHydrated()) vibrateFeedback(pattern)
 }
 
 function finishLevelupState(s) {
@@ -146,11 +166,11 @@ function matchesQuestCompletionSource(quest, sourceId) {
 }
 
 // 스테이지1 스토리 인트로 내레이션 3줄. 화면 탭마다 다음 줄, 마지막 탭에 플레이 시작.
-export const STAGE1_INTRO_LINES = [
-  '공부가 하기싫은 학생들의 마음은 그들을 좀비로 만들었다…',
-  '일하기 싫은 교사들도 마찬가지로 좀비화 하였다.',
-  '난 여기서 빠져나가야겠어, 여긴… 좀비학교다!',
-]
+export const STAGE1_INTRO_IDS = Object.freeze([
+  'intro.stage1.001',
+  'intro.stage1.002',
+  'intro.stage1.003',
+])
 
 const EMPTY_PASSIVE_LEVELS = Object.freeze({})
 applyMagnetPassive(EMPTY_PASSIVE_LEVELS)
@@ -163,14 +183,13 @@ export const useGameStore = create(
     passiveVersion: 0,
     phase:       'playing',   // 'playing' | 'paused' | 'levelup' | 'gameover' | 'cleared'
     pauseSource: null,        // 'manual' | 'auto' | 'dialogue' | null
-    studentDialogue: null,    // null | { line, reward?, subjectType, subjectName } — 조사 결과
+    studentDialogue: null,    // null | { dialogueId, reward?, subjectType, subjectName } — 조사 결과
     introDialogue: null,      // null | { index } — 스테이지1 스토리 인트로 대화창 상태
     elapsedMs:   0,
     // 런 시작 시각(ms). 런당 결정적 runId의 안정 토큰 — 종료 이벤트가 2회 발화해도
     // 같은 runId를 만들어 서버 dedup으로 이중가산을 막는다(M6).
     runStartedAt: Date.now(),
     currentStageId: DEFAULT_STAGE_ID,
-    e2eInvincible: false,
     bossSpawnSec: rollBossSpawnSec(),
     bossSpawned: false,
     // 현재 생존 중인 보스 수. 스폰마다 증가하고 처치마다 감소한다.
@@ -220,9 +239,8 @@ export const useGameStore = create(
 
     // 플레이어 피해
     damagePlayer: (amount, { ignoreInvulnerability = false, source = null } = {}) => {
-      const { player, phase, e2eInvincible } = get()
+      const { player, phase } = get()
       if (phase !== 'playing') return
-      if (e2eInvincible) return
       if (player.invulnerable && !ignoreInvulnerability) return
       const hp = Math.max(0, player.hp - amount)
       logDamageTaken(amount, hp)
@@ -237,12 +255,12 @@ export const useGameStore = create(
       if (hp <= 0) {
         set({ player: { ...player, hp }, phase: 'gameover', pauseSource: null, deathCause: source })
         emitSfx({ id: 'playerDeath' })
-        vibrateFeedback([40, 60, 40])
+        vibrateRuntimeFeedback([40, 60, 40])
         get()._onRunEnd('gameover')
         return
       }
       emitSfx({ id: 'playerHit' })
-      vibrateFeedback(18)
+      vibrateRuntimeFeedback(18)
       set({ player: { ...player, hp, invulnerable: true, hitFlashToken: player.hitFlashToken + 1 } })
       // 무적 해제는 Player.jsx의 useFrame에서 처리한다. setTimeout을 쓰지 않는다.
     },
@@ -283,6 +301,7 @@ export const useGameStore = create(
 
     // 보스 처치는 mid-run에 즉시 cumulative에 누적. B01은 한 런에 1회 이하이므로 안전.
     recordBossKill: () => {
+      if (!isFirebaseProgressHydrated()) return
       incrementPlayerRecord('bossKills', 1)
     },
 
@@ -296,8 +315,9 @@ export const useGameStore = create(
       const stage = getStageConfig(s.currentStageId)
 
       // 1. 합본 (snapshot 전). bossKills는 mid-run에 이미 cumulative에 들어 있음.
+      const progressReady = isFirebaseProgressHydrated()
       const evalInput = {
-        ...loadPlayerRecords(),
+        ...(progressReady ? loadPlayerRecords() : {}),
         runKills: s.runKills,
         runGold: s.goldSession,
         runLevelUps: s.runLevelUps,
@@ -314,14 +334,20 @@ export const useGameStore = create(
 
       // 2. 평가 → diff (starter 제외, 이미 unlock된 것 제외)
       const nextUnlocked = evaluateUnlocks(evalInput)
-      const prevUnlocked = getAllUnlocked()
+      const prevUnlocked = progressReady ? getAllUnlocked() : new Set()
       const diff = []
       for (const id of nextUnlocked) {
         if (isStarter(id)) continue
         if (prevUnlocked.has(id)) continue
         diff.push(id)
       }
-      diff.forEach((id) => setWeaponUnlocked(id))
+      if (progressReady) diff.forEach((id) => setWeaponUnlocked(id))
+
+      if (!progressReady) {
+        if (phaseName === 'gameover') emitSfx({ id: 'gameOver' })
+        set({ newlyUnlockedWeaponIds: Object.freeze(diff) })
+        return
+      }
 
       // 3. 평가 후 누적 snapshot
       snapshotPlayerRecords({
@@ -344,7 +370,7 @@ export const useGameStore = create(
       if (phaseName === 'gameover') emitSfx({ id: 'gameOver' })
 
       set({ newlyUnlockedWeaponIds: Object.freeze(diff) })
-      requestCloudProgressSave()
+      saveRuntimeProgress()
 
       // 랭킹 제출 — 로그인 상태 + Firebase 설정 시에만 동작 (실패해도 게임에 영향 없음).
       const cleared = phaseName === 'cleared'
@@ -372,7 +398,7 @@ export const useGameStore = create(
       const nextTotal = goldTotal + amount
       saveGoldTotal(nextTotal)
       set({ goldSession: goldSession + amount, goldTotal: nextTotal })
-      requestCloudProgressSave()
+      saveRuntimeProgress()
     },
 
     spendGold: (amount) => {
@@ -382,21 +408,23 @@ export const useGameStore = create(
       const nextTotal = goldTotal - amount
       saveGoldTotal(nextTotal)
       set({ goldTotal: nextTotal })
-      requestCloudProgressSave()
+      saveRuntimeProgress()
       return true
     },
 
     purchasePassive: (id) => {
+      if (!isFirebaseProgressHydrated()) return { ok: false, reason: 'progressUnavailable' }
       const { goldTotal } = get()
       const result = purchasePassiveStorage(id, goldTotal)
       if (!result.ok) return result
       saveGoldTotal(result.nextGold)
       set((s) => ({ goldTotal: result.nextGold, passiveVersion: s.passiveVersion + 1 }))
-      requestCloudProgressSave()
+      saveRuntimeProgress()
       return result
     },
 
     purchaseWeaponPermanentUpgrade: (id) => {
+      if (!isFirebaseProgressHydrated()) return { ok: false, reason: 'progressUnavailable' }
       const { goldTotal } = get()
       const result = purchaseWeaponPermanentUpgradeStorage(id, goldTotal)
       if (!result.ok) return result
@@ -408,11 +436,12 @@ export const useGameStore = create(
         passiveVersion: s.passiveVersion + 1,
         levelUpChoiceSerial: s.levelUpChoiceSerial + 1,
       }))
-      requestCloudProgressSave()
+      saveRuntimeProgress()
       return result
     },
 
     resetPassiveUpgrades: () => {
+      if (!isFirebaseProgressHydrated()) return false
       resetPassiveStorage()
       const levels = getAllLevels()
       applyMagnetPassive(levels)
@@ -423,10 +452,12 @@ export const useGameStore = create(
         passiveVersion: s.passiveVersion + 1,
         levelUpChoiceSerial: s.levelUpChoiceSerial + 1,
       }))
-      requestCloudProgressSave()
+      saveRuntimeProgress()
+      return true
     },
 
     reloadPersistentProgress: () => {
+      if (!isFirebaseProgressHydrated()) return false
       const levels = getAllLevels()
       applyMagnetPassive(levels)
       syncStoredWeaponUnlocksFromRecords()
@@ -437,6 +468,7 @@ export const useGameStore = create(
         growthMultiplier: buildGrowthMultiplier(levels),
         passiveVersion: s.passiveVersion + 1,
       }))
+      return true
     },
 
     checkSurvivalMilestone: (elapsedOverrideMs) => {
@@ -462,7 +494,7 @@ export const useGameStore = create(
         ],
         recentMilestone: earned[earned.length - 1],
       })
-      requestCloudProgressSave()
+      saveRuntimeProgress()
     },
 
     clearMilestone: () => set({ recentMilestone: null }),
@@ -530,7 +562,7 @@ export const useGameStore = create(
         goldTotal,
         questToast: { type: 'completed', questId },
       })
-      requestCloudProgressSave()
+      saveRuntimeProgress()
       return true
     },
 
@@ -557,13 +589,13 @@ export const useGameStore = create(
 
     // 쓰러진 학생 대화: playing일 때만 대화용으로 일시정지(pauseSource='dialogue')한다.
     // 일반 일시정지 메뉴와 구분하기 위해 pauseSource로 분기 — HUD가 이 값으로 오버레이를 나눈다.
-    openStudentDialogue: (line, reward = null, subject = {}) => set((s) => {
+    openStudentDialogue: (dialogueId, reward = null, subject = {}) => set((s) => {
       if (s.phase !== 'playing') return {}
       return {
         phase: 'paused',
         pauseSource: 'dialogue',
         studentDialogue: {
-          line,
+          dialogueId: typeof dialogueId === 'string' && dialogueId ? dialogueId : 'dialogue.unavailable',
           reward,
           subjectType: subject.subjectType ?? 'student',
           subjectName: subject.subjectName ?? t('hud.tiredStudent', null, '지친학생'),
@@ -611,7 +643,7 @@ export const useGameStore = create(
     advanceIntro: () => set((s) => {
       if (!s.introDialogue) return {}
       const next = s.introDialogue.index + 1
-      if (next >= STAGE1_INTRO_LINES.length) {
+      if (next >= STAGE1_INTRO_IDS.length) {
         return { phase: 'playing', pauseSource: null, introDialogue: null }
       }
       return { introDialogue: { index: next } }
@@ -658,7 +690,7 @@ export const useGameStore = create(
       set((s) => {
         const chibikoWasActive = s.weapons.chibiko?.active === true
         const acquiringChibiko = effect.kind === 'acquire' && effect.weapon === 'chibiko'
-        const boost = getChibikoAllWeaponBoost(s.weapons.chibiko?.permanentUpgradeLevel)
+        const boost = getChibikoAllWeaponBoost(s.weapons.chibiko?.permanentUpgradeLevel ?? 0)
         const upgraded = applyUpgradeWithChibikoBoost(wpn, effect, boost)
 
         if (acquiringChibiko) {
@@ -691,7 +723,7 @@ export const useGameStore = create(
         const acquired = { ...wpn, active: true, level: Math.max(1, wpn.level ?? 0) }
         const acquiringChibiko = id === 'chibiko' && !s.weapons.chibiko?.active
         const chibikoActive = s.weapons.chibiko?.active || acquiringChibiko
-        const boost = getChibikoAllWeaponBoost(s.weapons.chibiko?.permanentUpgradeLevel)
+        const boost = getChibikoAllWeaponBoost(s.weapons.chibiko?.permanentUpgradeLevel ?? 0)
         if (acquiringChibiko) {
           return {
             weapons: Object.fromEntries(Object.entries({ ...s.weapons, [id]: acquired }).map(([weaponId, weapon]) => [
@@ -755,13 +787,14 @@ export const useGameStore = create(
     // 게임 리셋. gameKey를 올려 Physics 트리를 새로 마운트한다.
     resetGame: (stageId = DEFAULT_STAGE_ID, { preserveQuestJourney = false } = {}) => {
       resetRuntimeRefs()
-      const levels = getAllLevels()
+      const progressReady = isFirebaseProgressHydrated()
+      const levels = loadRuntimePassiveLevels()
       const nextStageId = getStageConfig(stageId).id
       applyMagnetPassive(levels)
       syncStoredWeaponUnlocksFromRecords()
       set((s) => ({
         player:      buildInitialPlayer(levels),
-        weapons:     buildInitialWeapons(levels),
+        weapons:     buildInitialWeapons(levels, { applyPermanent: progressReady }),
         growthMultiplier: buildGrowthMultiplier(levels),
         phase:       'playing',
         pauseSource: null,
@@ -770,7 +803,6 @@ export const useGameStore = create(
         elapsedMs:   0,
         runStartedAt: Date.now(),
         currentStageId: nextStageId,
-        e2eInvincible: false,
         bossSpawnSec: rollBossSpawnSec(),
         bossSpawned: false,
         bossAliveCount: 0,
@@ -794,8 +826,8 @@ export const useGameStore = create(
         newQuestItemIds: [],
         questCollectedSourceIds: [],
       }))
-      recordPlayActivity(nextStageId)
-      requestCloudProgressSave()
+      recordRuntimePlayActivity(nextStageId)
+      saveRuntimeProgress()
     },
   }))
 )

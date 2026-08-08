@@ -121,17 +121,17 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
   await maybeInitAppCheck(app, env)
   const auth = authModule.getAuth(app)
   const isStudioRoute = isGraphicsStudioLocation(globalScope?.location)
-  if (isStudioRoute) {
-    await setFirebaseAuthMemoryPersistence(authModule, auth)
-  } else {
-    await setFirebaseAuthLocalPersistence(authModule, auth)
-  }
-  if (!isStudioRoute) {
+  const useNativeGoogle = shouldUseNativeGoogleSignIn(globalScope)
+  // Firebase Auth must never create a browser login cache. Every route uses
+  // memory-only persistence; Firebase remains the sole auth authority.
+  await setFirebaseAuthMemoryPersistence(authModule, auth)
+  // A Capacitor shell must never consume a web redirect result: Android/iOS
+  // sign-in is bridged exclusively through the native Google credential.
+  if (!isStudioRoute && !useNativeGoogle) {
     await consumePendingRedirectResult(authModule, auth)
   }
   const provider = new authModule.GoogleAuthProvider()
   provider.setCustomParameters({ prompt: 'select_account' })
-  const useNativeGoogle = shouldUseNativeGoogleSignIn(globalScope)
 
   return {
     configured: true,
@@ -186,13 +186,6 @@ export async function setFirebaseAuthMemoryPersistence(authModule, auth) {
     throw new Error('Firebase Auth memory-only persistence is unavailable.')
   }
   await authModule.setPersistence(auth, authModule.inMemoryPersistence)
-}
-
-export async function setFirebaseAuthLocalPersistence(authModule, auth) {
-  if (typeof authModule?.setPersistence !== 'function' || !authModule.browserLocalPersistence) {
-    throw new Error('Firebase Auth local persistence is unavailable.')
-  }
-  await authModule.setPersistence(auth, authModule.browserLocalPersistence)
 }
 
 async function consumePendingRedirectResult(authModule, auth) {

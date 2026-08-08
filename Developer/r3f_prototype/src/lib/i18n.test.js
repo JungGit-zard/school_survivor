@@ -55,9 +55,9 @@ describe('i18n', () => {
     for (const key of koOnlyKeys) expect(t(key)).toBe(ko[key])
   })
 
-  it('returns localized list copy with an array fallback', () => {
+  it('keeps UI dictionary array fallback behavior without owning narrative dialogue pools', () => {
     setLocale('en')
-    expect(tList('dialogue.laid')).toHaveLength(52)
+    expect(tList('dialogue.laid')).toEqual([])
     expect(tList('dialogue.nope', ['a', 'b'])).toEqual(['a', 'b'])
     expect(tList('title.start')).toEqual([])
   })

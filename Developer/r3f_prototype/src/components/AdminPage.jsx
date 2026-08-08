@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   DEFAULT_ADMIN_CONFIG,
   loadAdminConfig,
@@ -16,10 +16,17 @@ import {
   secToMin,
   secToRemainder,
 } from '../lib/waveControl.js'
+import {
+  getInspectionPhase,
+  startInspection,
+  stopInspection,
+  subscribeInspectionMode,
+} from '../lib/firebaseInspectionMode.js'
 
 const TAB_BALANCE = 'balance'
 const TAB_RANKING = 'ranking'
 const TAB_WAVES = 'waves'
+const TAB_INSPECTION = 'inspection'
 
 const ZOMBIE_LABELS = {
   E01: 'E01 기본',
@@ -35,11 +42,43 @@ const ZOMBIE_LABELS = {
 const burstTypeLabel = (type) => (isBossType(type) ? '보스' : (ZOMBIE_LABELS[type] ?? type))
 const formatMinSec = (sec) => `${secToMin(sec)}:${String(secToRemainder(sec)).padStart(2, '0')}`
 
-export default function AdminPage() {
+export default function AdminPage({ user = null }) {
   const [activeTab, setActiveTab] = useState(TAB_BALANCE)
   const [draft, setDraft] = useState(() => loadAdminConfig())
   const [status, setStatus] = useState('변경 전')
+  const [inspectionState, setInspectionState] = useState(null)
+  const [inspectionBusy, setInspectionBusy] = useState(false)
+  const [inspectionFeedback, setInspectionFeedback] = useState('')
+  const [inspectionDraft, setInspectionDraft] = useState(() => ({
+    startsAt: toDateTimeLocal(Date.now()),
+    endsAt: toDateTimeLocal(Date.now() + 60 * 60 * 1000),
+    message: '서비스 점검 중입니다.',
+  }))
   const preview = useMemo(() => buildPreview(draft), [draft])
+
+  useEffect(() => {
+    let unsubscribe = null
+    let disposed = false
+    const handleState = (nextState) => {
+      if (!disposed) setInspectionState(nextState ?? null)
+    }
+    const handleError = () => {
+      if (!disposed) setInspectionFeedback('현재 점검 상태를 불러오지 못했습니다.')
+    }
+    const result = subscribeInspectionMode({ onState: handleState, onError: handleError })
+    if (typeof result === 'function') {
+      unsubscribe = result
+    } else if (result?.then) {
+      void result.then((nextUnsubscribe) => {
+        if (disposed) nextUnsubscribe?.()
+        else unsubscribe = nextUnsubscribe
+      }).catch(handleError)
+    }
+    return () => {
+      disposed = true
+      unsubscribe?.()
+    }
+  }, [])
 
   const updateBalance = (section, key, value) => {
     setDraft((prev) => normalizeAdminConfig({
@@ -180,6 +219,54 @@ export default function AdminPage() {
     setStatus('기본값 복원')
   }
 
+  const updateInspectionDraft = (key, value) => {
+    setInspectionDraft((previous) => ({ ...previous, [key]: value }))
+    setInspectionFeedback('')
+  }
+
+  const beginInspection = async () => {
+    const startsAt = Date.parse(inspectionDraft.startsAt)
+    const endsAt = Date.parse(inspectionDraft.endsAt)
+    const message = inspectionDraft.message.trim()
+    if (!Number.isFinite(startsAt) || !Number.isFinite(endsAt)) {
+      setInspectionFeedback('점검 시작과 종료 시각을 모두 입력해 주세요.')
+      return
+    }
+    if (endsAt <= startsAt) {
+      setInspectionFeedback('종료 시각은 시작 시각보다 뒤여야 합니다.')
+      return
+    }
+    if (!message) {
+      setInspectionFeedback('점검 안내문을 입력해 주세요.')
+      return
+    }
+    setInspectionBusy(true)
+    setInspectionFeedback('')
+    try {
+      const result = await startInspection({ user, startsAt, endsAt, message })
+      if (result) setInspectionState(result.state ?? result)
+      setInspectionFeedback('점검 기간을 저장했습니다.')
+    } catch {
+      setInspectionFeedback('점검 시작을 저장하지 못했습니다.')
+    } finally {
+      setInspectionBusy(false)
+    }
+  }
+
+  const endInspectionNow = async () => {
+    setInspectionBusy(true)
+    setInspectionFeedback('')
+    try {
+      const result = await stopInspection({ user })
+      if (result) setInspectionState(result.state ?? result)
+      setInspectionFeedback('점검을 즉시 종료했습니다.')
+    } catch {
+      setInspectionFeedback('점검 종료를 저장하지 못했습니다.')
+    } finally {
+      setInspectionBusy(false)
+    }
+  }
+
   return (
     <div style={styles.page}>
       <header style={styles.header}>
@@ -215,6 +302,13 @@ export default function AdminPage() {
         >
           스테이지별 웨이브 컨트롤
         </button>
+        <button
+          type="button"
+          style={styles.tab(activeTab === TAB_INSPECTION)}
+          onClick={() => setActiveTab(TAB_INSPECTION)}
+        >
+          점검 모드
+        </button>
       </nav>
 
       <main style={styles.content}>
@@ -240,6 +334,17 @@ export default function AdminPage() {
               addWaveEntry={addWaveEntry}
               removeWaveEntry={removeWaveEntry}
               resetWaveEntries={resetWaveEntries}
+            />
+          )}
+          {activeTab === TAB_INSPECTION && (
+            <InspectionControls
+              draft={inspectionDraft}
+              state={inspectionState}
+              busy={inspectionBusy}
+              feedback={inspectionFeedback}
+              onChange={updateInspectionDraft}
+              onStart={beginInspection}
+              onStop={endInspectionNow}
             />
           )}
         </section>
@@ -606,6 +711,55 @@ function RankingControls({ draft, updateSeason, updateScorePolicy, updateStageBo
   )
 }
 
+function toDateTimeLocal(timestamp) {
+  const date = new Date(timestamp)
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
+  return localDate.toISOString().slice(0, 16)
+}
+
+function formatInspectionDate(timestamp) {
+  const date = new Date(timestamp)
+  return Number.isFinite(date.getTime())
+    ? new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium', timeStyle: 'short' }).format(date)
+    : '설정되지 않음'
+}
+
+function InspectionControls({ draft, state, busy, feedback, onChange, onStart, onStop }) {
+  const phase = getInspectionPhase(state, Date.now())
+  const currentLabel = phase === 'active' ? '현재 점검 중' : phase === 'scheduled' ? '점검 예약됨' : '점검 없음'
+  return (
+    <div>
+      <SectionTitle
+        title="점검 모드"
+        subtitle="설정한 기간에는 일반 게임 화면 대신 점검 안내 화면이 표시됩니다. 관리자 페이지는 점검 중에도 계속 접근할 수 있습니다."
+      />
+      <div style={styles.inspectionGrid}>
+        <label style={styles.field}>
+          <span style={styles.label}>점검 시작</span>
+          <input name="inspectionStartsAt" type="datetime-local" value={draft.startsAt} onChange={(event) => onChange('startsAt', event.target.value)} style={styles.input} disabled={busy} />
+        </label>
+        <label style={styles.field}>
+          <span style={styles.label}>점검 종료</span>
+          <input name="inspectionEndsAt" type="datetime-local" value={draft.endsAt} onChange={(event) => onChange('endsAt', event.target.value)} style={styles.input} disabled={busy} />
+        </label>
+      </div>
+      <label style={styles.field}>
+        <span style={styles.label}>안내문</span>
+        <textarea name="inspectionMessage" value={draft.message} onChange={(event) => onChange('message', event.target.value)} style={styles.inspectionMessage} disabled={busy} />
+      </label>
+      <div style={styles.inspectionState} aria-live="polite">
+        <strong>원격 상태: {currentLabel}</strong>
+        {state?.endsAt && <span>종료 예정: {formatInspectionDate(state.endsAt)}</span>}
+      </div>
+      {feedback && <p role="status" style={styles.inspectionFeedback}>{feedback}</p>}
+      <div style={styles.buttonRow}>
+        <button type="button" style={styles.saveButton} onClick={() => void onStart()} disabled={busy}>점검 시작</button>
+        <button type="button" style={styles.resetButton} onClick={() => void onStop()} disabled={busy}>즉시 종료</button>
+      </div>
+    </div>
+  )
+}
+
 function SectionTitle({ title, subtitle }) {
   return (
     <div style={styles.sectionTitle}>
@@ -709,6 +863,10 @@ function buildPreview(config) {
 }
 
 const styles = {
+  inspectionGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, marginBottom: 10 },
+  inspectionMessage: { width: '100%', minHeight: 84, boxSizing: 'border-box', resize: 'vertical', padding: '9px 10px', borderRadius: 8, border: '1px solid #344052', background: '#111922', color: '#f5f8fb', font: 'inherit' },
+  inspectionState: { display: 'grid', gap: 4, marginTop: 14, padding: 12, border: '1px solid #344052', borderRadius: 8, background: '#111922', color: '#dfe8f5', fontSize: 13 },
+  inspectionFeedback: { margin: '10px 0 0', color: '#9de8d3', fontWeight: 800, fontSize: 13 },
   // ── 웨이브 컨트롤 탭 ──
   waveStageRow: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' },
   waveBadge: (custom) => ({
