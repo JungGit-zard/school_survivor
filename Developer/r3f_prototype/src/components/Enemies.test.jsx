@@ -670,6 +670,22 @@ describe('enemy spawn placement', () => {
     expect(pos[0]).not.toBeCloseTo(0)
   })
 
+  it('큰 배치에서도 형태선 검사가 산출을 상한시키지 않는다 (36 요청 → 34+ 전달)', () => {
+    // 회귀 방지: formsSpawnLine이 taken 전체를 검사하던 시절 이 루프는 배치 크기와 무관하게
+    // ~14마리에서 포화했다(스2 프론트로드 36/45마리가 통째로 폐기됨).
+    playerPos.x = 0
+    playerPos.z = 0
+    let seed = 1
+    const random = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648
+    const taken = []
+    for (let i = 0; i < 36; i += 1) {
+      const pos = randomSpawnPos('E01', { halfX: 7.5, halfZ: 19.2 }, taken, random)  // stage2 복도
+      if (pos) taken.push(pos)
+    }
+
+    expect(taken.length).toBeGreaterThanOrEqual(34)
+  })
+
   it('type별 반경으로 obstacle 스폰을 거절하고 안전 후보가 없으면 null을 반환한다', () => {
     playerPos.x = 0
     playerPos.z = 0

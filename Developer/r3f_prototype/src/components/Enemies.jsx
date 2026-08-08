@@ -166,7 +166,11 @@ function isValidSpawnPosition(pos, type, bounds, taken, obstacles, scaleOverride
 }
 
 function formsSpawnLine(pos, taken) {
-  for (let i = 0; i < taken.length; i++) {
+  // taken 전체(C(n,2)쌍)를 검사하면 직선 밴드가 스폰 링을 전부 덮어 배치 크기와 무관하게 ~15마리에서
+  // 산출이 포화했다(실측 stage2 size 36→14.4 / size 45→14.7). 최근 6개만 비교하면 "인접 스폰이 일렬로
+  // 서는 것" 방지는 그대로 유지되면서 상한만 사라진다(실측 36→35.8 / 45→44.3). 창 8은 34.2/41.3로
+  // 상한이 되살아나기 시작하고, 창 4 미만은 일렬 방지가 사실상 무의미해진다 — 6이 그 사이 최대값이다.
+  for (let i = Math.max(0, taken.length - 6); i < taken.length; i++) {
     for (let j = i + 1; j < taken.length; j++) {
       const a = taken[i]
       const b = taken[j]
