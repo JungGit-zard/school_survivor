@@ -279,19 +279,19 @@ describe('random-interval discrete wave scheduler', () => {
     expect(midWaveSizeForStage(wave1Phase, 'stage1')).toBe(6)
   })
 
-  it('schedules stage 2 opening waves at 0s and 30s, then triples only those two spawns', () => {
+  it('schedules stage 2 opening waves at 0s and 5s, then triples only those two spawns', () => {
     const opening = { target: 18 }
     const thirtySecond = { target: 22 }
     // 실제 크기 = 구조적 크기(raw) × stage2 밀도배율. raw는 오프닝/30초만 ×3 프론트로드.
     const dens = (raw) => Math.max(1, Math.round(raw * STAGE_DENSITY_MULTIPLIER.stage2))
 
-    expect(nextWaveTimeForStage(0, 'stage2', () => 0)).toBe(30)
+    expect(nextWaveTimeForStage(0, 'stage2', () => 0)).toBe(5)
     // raw: 9×3=27, 11×3=33, 11(비프론트로드) — 밀도배율(√c≈1.11)로 스케일된다.
     expect(rawWaveSizeForStage(opening, 'stage2', 0)).toBe(27)
-    expect(rawWaveSizeForStage(thirtySecond, 'stage2', 30)).toBe(33)
+    expect(rawWaveSizeForStage(thirtySecond, 'stage2', 5)).toBe(33)
     expect(rawWaveSizeForStage(thirtySecond, 'stage2', 20)).toBe(11)
     expect(waveSizeForStageAtTime(opening, 'stage2', 0)).toBe(Math.round(dens(27) * STAGE2_SPAWN_MULTIPLIER))
-    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 30)).toBe(Math.round(dens(33) * STAGE2_SPAWN_MULTIPLIER))
+    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 5)).toBe(Math.round(dens(33) * STAGE2_SPAWN_MULTIPLIER))
     expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 20)).toBe(Math.round(dens(11) * STAGE2_SPAWN_MULTIPLIER))
   })
 
@@ -398,9 +398,9 @@ describe('midpoint reinforcement spawns (stage1 + stage2)', () => {
   })
 
   it('derives stage2 midpoints too (stage2 joined MID_WAVE_STAGES on 2026-08-07)', () => {
-    // random 0.5 → 30초 간격. 단 stage2의 첫 간격은 nextWaveTimeForStage가 0→30으로 고정한다.
+    // random 0.5 → 30초 간격. 단 stage2의 첫 간격은 nextWaveTimeForStage가 0→5로 고정한다.
     expect(getMidpointSpawnSeconds(STAGE2_WAVE_PHASES, 'stage2', () => 0.5))
-      .toEqual([15, 45, 75, 105, 135, 165, 195, 225])
+      .toEqual([2.5, 20, 50, 80, 110, 140, 170, 200, 230])
   })
 
   it('produces no midpoint reinforcements for stage3 or stage4', () => {
