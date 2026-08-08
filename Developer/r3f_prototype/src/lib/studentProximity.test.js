@@ -2,6 +2,9 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import {
   STUDENT_DIALOGUE_RADIUS,
   OBJECT_CONTACT_MARGIN,
+  BULLETIN_BOARD_CONTACT_DOTS,
+  BULLETIN_BOARD_CONTACT_MARGIN,
+  INVESTIGATION_DOT_WORLD_UNITS,
   getUnconsciousStudents,
   getInvestigationTargets,
   findInvestigationTargetInRange,
@@ -11,6 +14,7 @@ import { getStageObjectPlacements } from '../components/StageObjects/stageObject
 import { STAGE_PROP_PALETTE } from './stagePropEditorGeometry.js'
 import { saveStagePropPlacements } from './stagePropPlacements.js'
 import { commitFirebaseStudioRuntime } from './studioRuntimeState.js'
+import { getPlayerMovementBounds } from './playerMovementBounds.js'
 
 const students = [
   { id: 'a', position: [0, 0, 0] },
@@ -109,6 +113,49 @@ describe('전 스테이지 공용 조사 대상', () => {
     expect(locker.halfZ).toBeGreaterThan(0)
     expect(locker.radius).toBeUndefined() // 더 이상 원형 반경 아님
   })
+
+  it('게시판 조사는 회전된 게시판 표면에서 3도트 이하일 때만 가능하다', () => {
+    saveStagePropPlacements({
+      stage2: [{
+        id: 'stage2-lost-found-board-left-south',
+        type: 'corridorLostFoundBoard',
+        position: [-6.92, 0, 13.4],
+        rotation: [0, Math.PI / 4, 0],
+      }],
+    })
+    const board = getInvestigationTargets('stage2')[0]
+    expect(BULLETIN_BOARD_CONTACT_DOTS).toBe(3)
+    expect(BULLETIN_BOARD_CONTACT_MARGIN).toBe(BULLETIN_BOARD_CONTACT_DOTS * INVESTIGATION_DOT_WORLD_UNITS)
+    expect(board.contactMargin).toBe(BULLETIN_BOARD_CONTACT_MARGIN)
+    expect(board.rotationY).toBeCloseTo(Math.PI / 4)
+    expect(board.halfX).toBeCloseTo(0.67)
+    expect(board.halfZ).toBeCloseTo(0.09)
+
+    const toWorld = (localX, localZ) => {
+      const cos = Math.cos(board.rotationY)
+      const sin = Math.sin(board.rotationY)
+      return [
+        board.position[0] + localX * cos + localZ * sin,
+        board.position[2] - localX * sin + localZ * cos,
+      ]
+    }
+    const insideFront = toWorld(0, board.halfZ + BULLETIN_BOARD_CONTACT_MARGIN)
+    const justOutsideFront = toWorld(0, board.halfZ + BULLETIN_BOARD_CONTACT_MARGIN + 0.001)
+    const emptyAabbCorner = toWorld(board.halfX + BULLETIN_BOARD_CONTACT_MARGIN + 0.01, 0)
+    const reachableBoardCorner = toWorld(board.halfX, board.halfZ)
+    const stage2MovementBounds = getPlayerMovementBounds('stage2')
+
+    expect(findInvestigationTargetInRange(insideFront[0], insideFront[1], [board], new Set())).toBe(board)
+    expect(findInvestigationTargetInRange(justOutsideFront[0], justOutsideFront[1], [board], new Set())).toBeNull()
+    expect(findInvestigationTargetInRange(emptyAabbCorner[0], emptyAabbCorner[1], [board], new Set())).toBeNull()
+    expect(findInvestigationTargetInRange(
+      stage2MovementBounds.minX,
+      reachableBoardCorner[1],
+      [board],
+      new Set(),
+    )).toBe(board)
+  })
+
   it('makes every valid non-student Firebase override investigable on every stage', () => {
     const props = STAGE_PROP_PALETTE
       .filter(({ type }) => !['unconsciousStudent', 'classPresidentStudent'].includes(type))

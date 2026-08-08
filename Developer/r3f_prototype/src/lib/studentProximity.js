@@ -1,5 +1,5 @@
 import { getStageObjectPlacements } from '../components/StageObjects/stageObjectPlacements.js'
-import { getStageObjectFootprint } from '../components/StageObjects/stageObjectColliders.js'
+import { getStageObjectColliderParts, getStageObjectFootprint } from '../components/StageObjects/stageObjectColliders.js'
 import { getInvestigationDialogue } from './investigationDialogue.js'
 
 // 플레이어가 쓰러진 학생 몸 위(이 반경, 월드 유닛)에 올라서면(밟으면) 말을 건다.
@@ -8,8 +8,34 @@ export const STUDENT_DIALOGUE_RADIUS = 0.5
 // 조사 물체는 "닿으면" 성립 — 원형 반경이 아니라 콜라이더 박스 표면까지의 거리로 판정한다.
 // margin = 플레이어 half(콜라이더 0.136) + 프레임 스텝 여유. 표면에서 이 값 안(=사실상 접촉)에서만 발동.
 export const OBJECT_CONTACT_MARGIN = 0.25
-export const BULLETIN_BOARD_CONTACT_MARGIN = 0.14
+export const INVESTIGATION_DOT_WORLD_UNITS = 0.05
+export const BULLETIN_BOARD_CONTACT_DOTS = 3
+export const BULLETIN_BOARD_CONTACT_MARGIN = BULLETIN_BOARD_CONTACT_DOTS * INVESTIGATION_DOT_WORLD_UNITS
 const STUDENT_TYPES = new Set(['unconsciousStudent', 'classPresidentStudent'])
+
+function getRotationY(rotation = [0, 0, 0]) {
+  return Array.isArray(rotation) ? rotation[1] ?? 0 : rotation ?? 0
+}
+
+function getBulletinBoardFootprint(item) {
+  const [part] = getStageObjectColliderParts(item)
+  if (!part) return null
+
+  const rootRotationY = getRotationY(item.rotation)
+  const cos = rootRotationY === 0 ? 1 : Math.cos(rootRotationY)
+  const sin = rootRotationY === 0 ? 0 : Math.sin(rootRotationY)
+  const localX = part.position[0] ?? 0
+  const localZ = part.position[2] ?? 0
+  const [halfX, , halfZ] = part.args
+
+  return {
+    x: item.position[0] + localX * cos + localZ * sin,
+    z: item.position[2] - localX * sin + localZ * cos,
+    halfX,
+    halfZ,
+    rotationY: rootRotationY + getRotationY(part.rotation),
+  }
+}
 
 function getFallbackFootprint(item) {
   const scale = Array.isArray(item.scale) ? item.scale : [item.scale ?? 1, item.scale ?? 1, item.scale ?? 1]
@@ -42,13 +68,16 @@ export function getInvestigationTargets(stageId) {
         }]
       }
       // 배치 회전/스케일을 반영한 축정렬(AABB) 반-크기 — "닿으면" 박스 접촉 판정용.
-      const footprint = getStageObjectFootprint(item) ?? getFallbackFootprint(item)
+      const footprint = item.type === 'corridorLostFoundBoard'
+        ? getBulletinBoardFootprint(item) ?? getStageObjectFootprint(item) ?? getFallbackFootprint(item)
+        : getStageObjectFootprint(item) ?? getFallbackFootprint(item)
       return [{
         id: item.id,
         position: [footprint.x, item.position[1] ?? 0, footprint.z],
         ...dialogue,
         halfX: footprint.halfX,
         halfZ: footprint.halfZ,
+        rotationY: footprint.rotationY,
         contactMargin: item.type === 'corridorLostFoundBoard' ? BULLETIN_BOARD_CONTACT_MARGIN : OBJECT_CONTACT_MARGIN,
       }]
     })
@@ -61,10 +90,16 @@ export function findInvestigationTargetInRange(playerX, playerZ, targets, invest
     const dz = playerZ - target.position[2]
     if (target.halfX != null) {
       // 물체: 콜라이더 박스 표면까지 거리 ≤ 접촉 margin일 때만(=닿으면) 발동. 원형 반경 아님.
-      const ddx = Math.max(0, Math.abs(dx) - target.halfX)
-      const ddz = Math.max(0, Math.abs(dz) - target.halfZ)
+      // 게시판처럼 회전된 얇은 물체는 월드 AABB의 빈 모서리가 아니라 실제 회전 콜라이더 표면 기준으로 잰다.
+      const rotationY = target.rotationY ?? 0
+      const cos = rotationY === 0 ? 1 : Math.cos(-rotationY)
+      const sin = rotationY === 0 ? 0 : Math.sin(-rotationY)
+      const localX = dx * cos + dz * sin
+      const localZ = -dx * sin + dz * cos
+      const ddx = Math.max(0, Math.abs(localX) - target.halfX)
+      const ddz = Math.max(0, Math.abs(localZ) - target.halfZ)
       const contactMargin = target.contactMargin ?? OBJECT_CONTACT_MARGIN
-      if (ddx * ddx + ddz * ddz <= contactMargin * contactMargin) return target
+      if (ddx * ddx + ddz * ddz <= contactMargin * contactMargin + Number.EPSILON) return target
       continue
     }
     // 학생: 몸 위에 올라섰을 때(원형 반경).

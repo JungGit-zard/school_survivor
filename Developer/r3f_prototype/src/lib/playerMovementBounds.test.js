@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   PLAYER_INSET_X,
+  STAGE2_PLAYER_INSET_X,
   PLAYER_INSET_Z,
   PLAYER_INSET_Z_BOTTOM,
   getPlayerMovementBounds,
@@ -25,8 +26,10 @@ describe('player movement bounds', () => {
 
   it('keeps Stage 2 movement inside the corridor map and before the end wall', () => {
     const bounds = getPlayerMovementBounds('stage2')
-    const { halfZ } = getStageBounds('stage2')
+    const { halfX, halfZ } = getStageBounds('stage2')
 
+    expect(bounds.minX).toBeCloseTo(-halfX + STAGE2_PLAYER_INSET_X)
+    expect(bounds.maxX).toBeCloseTo(halfX - STAGE2_PLAYER_INSET_X)
     expect(bounds.minZ).toBeCloseTo(-halfZ + PLAYER_INSET_Z)
     expect(bounds.minZ).toBeGreaterThan(STAGE2_CORRIDOR_WALL.bottomZ)
   })
