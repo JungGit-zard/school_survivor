@@ -17,7 +17,8 @@ import {
   getPropOutlineScale,
   getStagePropOutlineMaterial,
   getStagePropToonMaterial,
-  STAGE_PROP_MESH_RENDERING,
+  STAGE_PROP_OUTLINE_RENDERING,
+  STAGE_PROP_SURFACE_RENDERING,
   STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING,
   STAGE_PROP_UNIT_BOX_GEOMETRY,
 } from './propRendering.js'
@@ -73,7 +74,7 @@ function PropBox({ position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 1, 1]
 // 육각형 단면(radialSegments=6) 실린더 헬퍼 — 양동이·수전·캐스터·병 몸체에 공용.
 function PropCylinder({ position = [0, 0, 0], rotation = [0, 0, 0], args, material }) {
   return (
-    <mesh {...STAGE_PROP_MESH_RENDERING} position={position} rotation={rotation} material={material}>
+    <mesh {...STAGE_PROP_SURFACE_RENDERING} position={position} rotation={rotation} material={material}>
       <cylinderGeometry args={args} />
     </mesh>
   )
@@ -84,11 +85,11 @@ function OutlinedCylinder({ position = [0, 0, 0], rotation = [0, 0, 0], args, ma
   const s = getPropOutlineScale(1)
   return (
     <group position={position} rotation={rotation}>
-      <mesh {...STAGE_PROP_MESH_RENDERING} material={material}>
+      <mesh {...STAGE_PROP_SURFACE_RENDERING} material={material}>
         <cylinderGeometry args={args} />
       </mesh>
       {outlineMaterial && (
-        <mesh {...STAGE_PROP_MESH_RENDERING} material={outlineMaterial} scale={[s, s, s]}>
+        <mesh {...STAGE_PROP_OUTLINE_RENDERING} material={outlineMaterial} scale={[s, s, s]}>
           <cylinderGeometry args={args} />
         </mesh>
       )}
@@ -99,7 +100,7 @@ function OutlinedCylinder({ position = [0, 0, 0], rotation = [0, 0, 0], args, ma
 // detail-0 정20면체(저분할) 헬퍼 — 냄비·볼·봉지 같은 각진 블롭 형태에 공용.
 function PropBlob({ position = [0, 0, 0], radius = 0.16, squashY = 1, material }) {
   return (
-    <mesh {...STAGE_PROP_MESH_RENDERING} position={position} material={material} scale={[radius, radius * squashY, radius]}>
+    <mesh {...STAGE_PROP_SURFACE_RENDERING} position={position} material={material} scale={[radius, radius * squashY, radius]}>
       <icosahedronGeometry args={[1, 0]} />
     </mesh>
   )
@@ -145,7 +146,7 @@ function GnPan({ position = [0, 0, 0], rotation = [0, 0, 0], size = [0.5, 0.06, 
 // 직접 쓴다(공유 유닛박스를 쓸 만큼 반복되지 않는 1~3회성 소품이라 굳이 캐시를 태우지 않음).
 function MagnetTag({ position = [0, 0, 0], rotation = [0, 0, 0], scale = [0.05, 0.05, 0.01], material }) {
   return (
-    <mesh {...STAGE_PROP_MESH_RENDERING} position={position} rotation={rotation} scale={scale} material={material}>
+    <mesh {...STAGE_PROP_SURFACE_RENDERING} position={position} rotation={rotation} scale={scale} material={material}>
       <boxGeometry args={[1, 1, 1]} />
     </mesh>
   )

@@ -2,7 +2,8 @@ import {
   getPropOutlineScale,
   getStagePropOutlineMaterial,
   getStagePropToonMaterial,
-  STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING,
+  STAGE_PROP_SHARED_OUTLINE_RENDERING,
+  STAGE_PROP_SHARED_SURFACE_RENDERING,
   STAGE_PROP_UNIT_BOX_GEOMETRY,
 } from './propRendering.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
@@ -37,8 +38,8 @@ function DeskBox({
 
   return (
     <group position={position} rotation={rotation}>
-      <mesh {...STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING} scale={scale} material={material} geometry={STAGE_PROP_UNIT_BOX_GEOMETRY} />
-      <mesh {...STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING} scale={outlineScale} material={outline} geometry={STAGE_PROP_UNIT_BOX_GEOMETRY} />
+      <mesh {...STAGE_PROP_SHARED_SURFACE_RENDERING} scale={scale} material={material} geometry={STAGE_PROP_UNIT_BOX_GEOMETRY} />
+      <mesh {...STAGE_PROP_SHARED_OUTLINE_RENDERING} scale={outlineScale} material={outline} geometry={STAGE_PROP_UNIT_BOX_GEOMETRY} />
     </group>
   )
 }

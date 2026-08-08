@@ -20,8 +20,10 @@ export default class ErrorBoundary extends Component {
     if (!error) return this.props.children
 
     const fallbackProps = { error, retry: this.retry, reload: this.reload }
-    if (typeof this.props.fallback === 'function') return this.props.fallback(fallbackProps)
-    if (this.props.fallback) return this.props.fallback
+    if (Object.prototype.hasOwnProperty.call(this.props, 'fallback')) {
+      if (typeof this.props.fallback === 'function') return this.props.fallback(fallbackProps)
+      return this.props.fallback
+    }
 
     return (
       <main role="alert" style={styles.screen}>

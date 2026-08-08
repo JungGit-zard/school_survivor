@@ -44,7 +44,13 @@ import {
   getStagePropOutlineMaterial,
   getStagePropToonMaterial,
   STAGE_PROP_MESH_RENDERING,
+  STAGE_PROP_OUTLINE_RENDERING,
+  STAGE_PROP_OUTLINE_RENDER_ORDER,
+  STAGE_PROP_SHARED_OUTLINE_RENDERING,
   STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING,
+  STAGE_PROP_SHARED_SURFACE_RENDERING,
+  STAGE_PROP_SURFACE_RENDERING,
+  STAGE_PROP_SURFACE_RENDER_ORDER,
   STAGE_PROP_UNIT_BOX_GEOMETRY,
 } from './propRendering.js'
 
@@ -86,10 +92,25 @@ describe('stage object asset catalog', () => {
     }
   })
 
-  it('keeps classroom prop mesh shadows disabled', () => {
+  it('keeps classroom prop mesh shadows disabled and renders fills before outline hulls', () => {
     expect(STAGE_PROP_MESH_RENDERING).toMatchObject({
       castShadow: false,
       receiveShadow: false,
+    })
+    expect(STAGE_PROP_SURFACE_RENDER_ORDER).toBeLessThan(STAGE_PROP_OUTLINE_RENDER_ORDER)
+    expect(STAGE_PROP_SURFACE_RENDERING).toMatchObject({
+      castShadow: false,
+      receiveShadow: false,
+      renderOrder: STAGE_PROP_SURFACE_RENDER_ORDER,
+    })
+    expect(STAGE_PROP_OUTLINE_RENDERING).toMatchObject({
+      castShadow: false,
+      receiveShadow: false,
+      renderOrder: STAGE_PROP_OUTLINE_RENDER_ORDER,
+    })
+    expect(STAGE_PROP_OUTLINE_RENDERING.userData).toMatchObject({
+      studioRenderOutline: true,
+      stagePropOutline: true,
     })
   })
 
@@ -101,9 +122,17 @@ describe('stage object asset catalog', () => {
     expect(getStagePropOutlineMaterial(0.9, 0x24170f)).toBe(
       getCachedOutlineMat(0.9, 0x24170f),
     )
-    expect(STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING).toMatchObject({
+    expect(STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING).toBe(STAGE_PROP_SHARED_SURFACE_RENDERING)
+    expect(STAGE_PROP_SHARED_SURFACE_RENDERING).toMatchObject({
       castShadow: false,
       receiveShadow: false,
+      renderOrder: STAGE_PROP_SURFACE_RENDER_ORDER,
+      dispose: null,
+    })
+    expect(STAGE_PROP_SHARED_OUTLINE_RENDERING).toMatchObject({
+      castShadow: false,
+      receiveShadow: false,
+      renderOrder: STAGE_PROP_OUTLINE_RENDER_ORDER,
       dispose: null,
     })
   })
@@ -165,7 +194,8 @@ describe('stage object asset catalog', () => {
       expect(source).toContain('geometry={STAGE_PROP_UNIT_BOX_GEOMETRY}')
       expect(source).toContain('getStagePropToonMaterial(')
       expect(source).toContain('getStagePropOutlineMaterial(')
-      expect(source).toContain('STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING')
+      expect(source).toContain('STAGE_PROP_SHARED_SURFACE_RENDERING')
+      expect(source).toContain('STAGE_PROP_SHARED_OUTLINE_RENDERING')
       expect(source).toContain(`<StudioTunedGroup itemId="${studioItemIds[file]}">`)
     }
   })

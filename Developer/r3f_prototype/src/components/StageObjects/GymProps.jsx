@@ -1,10 +1,10 @@
-import { getStagePropToonMaterial, STAGE_PROP_MESH_RENDERING } from './propRendering.js'
+import { getStagePropToonMaterial, STAGE_PROP_SURFACE_RENDERING } from './propRendering.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 function PropBox({ position = [0, 0, 0], rotation = [0, 0, 0], size = [1, 1, 1], material }) {
   return (
     <group position={position} rotation={rotation}>
-      <mesh {...STAGE_PROP_MESH_RENDERING} material={material} scale={size}>
+      <mesh {...STAGE_PROP_SURFACE_RENDERING} material={material} scale={size}>
         <boxGeometry args={[1, 1, 1]} />
       </mesh>
     </group>
@@ -14,7 +14,7 @@ function PropBox({ position = [0, 0, 0], rotation = [0, 0, 0], size = [1, 1, 1],
 function PropCylinder({ position = [0, 0, 0], rotation = [0, 0, 0], args, material }) {
   return (
     <group position={position} rotation={rotation}>
-      <mesh {...STAGE_PROP_MESH_RENDERING} material={material}>
+      <mesh {...STAGE_PROP_SURFACE_RENDERING} material={material}>
         <cylinderGeometry args={args} />
       </mesh>
     </group>
@@ -24,7 +24,7 @@ function PropCylinder({ position = [0, 0, 0], rotation = [0, 0, 0], args, materi
 function LowPolyBall({ position = [0, 0, 0], radius = 0.18, material, seamMaterial }) {
   return (
     <group position={position}>
-      <mesh {...STAGE_PROP_MESH_RENDERING} material={material}>
+      <mesh {...STAGE_PROP_SURFACE_RENDERING} material={material}>
         <icosahedronGeometry args={[radius, 1]} />
       </mesh>
       <PropBox position={[0, radius * 0.05, 0]} size={[radius * 1.72, radius * 0.08, radius * 0.16]} material={seamMaterial} />

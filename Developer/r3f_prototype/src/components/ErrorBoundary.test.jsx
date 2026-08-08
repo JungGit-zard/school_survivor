@@ -45,4 +45,24 @@ describe('ErrorBoundary', () => {
     expect(container.textContent).toContain('retry route')
     expect(consoleError).toHaveBeenCalled()
   })
+
+  it('honors an explicit null fallback so Canvas boundaries do not render DOM buttons into R3F', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    container = document.createElement('div')
+    document.body.append(container)
+    root = createRoot(container)
+
+    act(() => {
+      root.render(
+        <ErrorBoundary fallback={null}>
+          <BrokenRoute />
+        </ErrorBoundary>,
+      )
+    })
+
+    expect(container.innerHTML).toBe('')
+    expect(container.querySelector('button')).toBe(null)
+    expect(consoleError).toHaveBeenCalled()
+  })
+
 })

@@ -11,17 +11,38 @@ export const STAGE_PROP_SURFACE_SIDE = THREE.DoubleSide
 // 인스턴스마다 JSX로 생성하지 않고 모듈 수명 동안 하나만 공유한다.
 export const STAGE_PROP_UNIT_BOX_GEOMETRY = getCachedBoxGeo(1, 1, 1)
 
+export const STAGE_PROP_SURFACE_RENDER_ORDER = 18
+export const STAGE_PROP_OUTLINE_RENDER_ORDER = STAGE_PROP_SURFACE_RENDER_ORDER + 1
+
 export const STAGE_PROP_MESH_RENDERING = Object.freeze({
   castShadow: false,
   receiveShadow: false,
 })
 
+export const STAGE_PROP_SURFACE_RENDERING = Object.freeze({
+  ...STAGE_PROP_MESH_RENDERING,
+  renderOrder: STAGE_PROP_SURFACE_RENDER_ORDER,
+})
+
+export const STAGE_PROP_OUTLINE_RENDERING = Object.freeze({
+  ...STAGE_PROP_MESH_RENDERING,
+  renderOrder: STAGE_PROP_OUTLINE_RENDER_ORDER,
+  userData: Object.freeze({ studioRenderOutline: true, stagePropOutline: true }),
+})
+
 // 공유 geometry/material은 개별 프랍 언마운트 때 dispose하면 안 된다. HMR 때에는
 // toon.js의 중앙 캐시 정리 경로가 안전하게 해제한다.
-export const STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING = Object.freeze({
-  ...STAGE_PROP_MESH_RENDERING,
+export const STAGE_PROP_SHARED_SURFACE_RENDERING = Object.freeze({
+  ...STAGE_PROP_SURFACE_RENDERING,
   dispose: null,
 })
+
+export const STAGE_PROP_SHARED_OUTLINE_RENDERING = Object.freeze({
+  ...STAGE_PROP_OUTLINE_RENDERING,
+  dispose: null,
+})
+
+export const STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING = STAGE_PROP_SHARED_SURFACE_RENDERING
 
 export function getStagePropToonMaterial(color, emissiveIntensity = 0.08) {
   const material = getCachedToonMat(color, emissiveIntensity, STAGE_PROP_SURFACE_SIDE)
