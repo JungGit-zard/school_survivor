@@ -8,6 +8,7 @@ import {
   loadStageBossPreview,
   loadStudioTunings,
   loadTextureDecals,
+  normalizeStageBossPreview,
 } from './graphicsStudioConfig.js'
 import {
   loadSfxTunings,
@@ -570,10 +571,14 @@ async function createFirebaseStudioClient(env) {
 
 function pickStudioDatasets(datasets) {
   const source = isObject(datasets) ? datasets : {}
-  return Object.fromEntries(FIREBASE_STUDIO_DATASET_KEYS.map((key) => [
-    key,
-    source[key] ?? {},
-  ]))
+  return {
+    tunings: source.tunings ?? {},
+    sfxTunings: source.sfxTunings ?? {},
+    stageBossPreview: normalizeStageBossPreview(source.stageBossPreview),
+    decals: source.decals ?? {},
+    propPlacements: source.propPlacements ?? {},
+    bossFaceRecipes: source.bossFaceRecipes ?? {},
+  }
 }
 
 function claimLocalWorkspace(uid, savedMutationGeneration) {

@@ -18,6 +18,7 @@ import {
   subscribeFirebaseStudio,
 } from './firebaseStudio.js'
 import {
+  DEFAULT_STAGE_BOSS_PREVIEW,
   DEFAULT_STUDIO_TUNING,
   GRAPHICS_STUDIO_CATALOG,
   loadStageBossPreview,
@@ -409,6 +410,7 @@ describe('Canonical studio public node (single route)', () => {
     expect(client.load).toHaveBeenCalledWith(CANONICAL_STUDIO_PATH)
     expect(isFirebaseStudioRuntimeReady()).toBe(true)
     expect(loadStudioTunings().player.scale).toBe(1.7)
+    expect(loadStageBossPreview()).toEqual(DEFAULT_STAGE_BOSS_PREVIEW)
   })
 
   it('reports missing-remote (fail-closed) when the canonical node is empty', async () => {
