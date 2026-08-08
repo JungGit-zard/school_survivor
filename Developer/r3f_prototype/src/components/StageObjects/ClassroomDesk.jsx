@@ -1,5 +1,6 @@
 import {
   getPropOutlineScale,
+  getStagePropOutlineUserData,
   getStagePropOutlineMaterial,
   getStagePropToonMaterial,
   STAGE_PROP_SHARED_OUTLINE_RENDERING,
@@ -39,7 +40,7 @@ function DeskBox({
   return (
     <group position={position} rotation={rotation}>
       <mesh {...STAGE_PROP_SHARED_SURFACE_RENDERING} scale={scale} material={material} geometry={STAGE_PROP_UNIT_BOX_GEOMETRY} />
-      <mesh {...STAGE_PROP_SHARED_OUTLINE_RENDERING} scale={outlineScale} material={outline} geometry={STAGE_PROP_UNIT_BOX_GEOMETRY} />
+      <mesh {...STAGE_PROP_SHARED_OUTLINE_RENDERING} userData={getStagePropOutlineUserData()} scale={outlineScale} material={outline} geometry={STAGE_PROP_UNIT_BOX_GEOMETRY} />
     </group>
   )
 }

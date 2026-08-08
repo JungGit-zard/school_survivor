@@ -13,6 +13,7 @@ export const STAGE_PROP_UNIT_BOX_GEOMETRY = getCachedBoxGeo(1, 1, 1)
 
 export const STAGE_PROP_SURFACE_RENDER_ORDER = 18
 export const STAGE_PROP_OUTLINE_RENDER_ORDER = STAGE_PROP_SURFACE_RENDER_ORDER + 1
+export const STAGE_PROP_OUTLINE_USER_DATA = Object.freeze({ studioRenderOutline: true, stagePropOutline: true })
 
 export const STAGE_PROP_MESH_RENDERING = Object.freeze({
   castShadow: false,
@@ -27,7 +28,6 @@ export const STAGE_PROP_SURFACE_RENDERING = Object.freeze({
 export const STAGE_PROP_OUTLINE_RENDERING = Object.freeze({
   ...STAGE_PROP_MESH_RENDERING,
   renderOrder: STAGE_PROP_OUTLINE_RENDER_ORDER,
-  userData: Object.freeze({ studioRenderOutline: true, stagePropOutline: true }),
 })
 
 // 공유 geometry/material은 개별 프랍 언마운트 때 dispose하면 안 된다. HMR 때에는
@@ -44,14 +44,18 @@ export const STAGE_PROP_SHARED_OUTLINE_RENDERING = Object.freeze({
 
 export const STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING = STAGE_PROP_SHARED_SURFACE_RENDERING
 
+export function getStagePropOutlineUserData() {
+  return { ...STAGE_PROP_OUTLINE_USER_DATA }
+}
+
 export function getStagePropToonMaterial(color, emissiveIntensity = 0.08) {
-  const material = getCachedToonMat(color, emissiveIntensity, STAGE_PROP_SURFACE_SIDE)
-  // Props are physical cover, not camera occluders.  If they write depth, pooled
-  // character bodies behind them disappear while blob shadows/health UI can still
-  // render through higher renderOrder paths, producing the "shadow-only" bug.
-  // Keep the prop surface visible, but do not let it erase later character draws.
-  material.depthWrite = false
-  return material
+  return getCachedToonMat(color, emissiveIntensity, STAGE_PROP_SURFACE_SIDE, false)
+}
+
+// 복도 소품은 겹친 전면·후면 파츠가 많은 복합 모델이다. 각 파츠가 깊이를 기록해야
+// 뒤쪽 파츠가 앞쪽 면을 뚫고 보이지 않는다. toon.js 캐시는 depthWrite까지 구분한다.
+export function getStagePropDepthWritingToonMaterial(color, emissiveIntensity = 0.08) {
+  return getCachedToonMat(color, emissiveIntensity, STAGE_PROP_SURFACE_SIDE, true)
 }
 
 export function getStagePropOutlineMaterial(opacity = 0.96, color = 0x050209) {

@@ -96,10 +96,14 @@ export function getCachedBoxGeo(w, h, d) {
 
 // toonMat: 동일 색상+발광 조합의 머티리얼 공유
 const _toonMatCache = new Map()
-export function getCachedToonMat(color, emissive = 0.08, side = THREE.FrontSide) {
-  const key = `${color},${emissive},${side}`
+export function getCachedToonMat(color, emissive = 0.08, side = THREE.FrontSide, depthWrite = true) {
+  const key = `${color},${emissive},${side},${depthWrite}`
   let m = _toonMatCache.get(key)
-  if (!m) { m = toonMat(color, emissive, side); _toonMatCache.set(key, m) }
+  if (!m) {
+    m = toonMat(color, emissive, side)
+    m.depthWrite = depthWrite
+    _toonMatCache.set(key, m)
+  }
   return m
 }
 

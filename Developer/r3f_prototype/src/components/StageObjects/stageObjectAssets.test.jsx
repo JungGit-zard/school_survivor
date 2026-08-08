@@ -41,11 +41,14 @@ import { GRAPHICS_STUDIO_CATALOG } from '../../lib/graphicsStudioConfig.js'
 import { getCachedBoxGeo, getCachedOutlineMat, getCachedToonMat } from '../../lib/toon.js'
 import {
   getPropOutlineScale,
+  getStagePropOutlineUserData,
   getStagePropOutlineMaterial,
+  getStagePropDepthWritingToonMaterial,
   getStagePropToonMaterial,
   STAGE_PROP_MESH_RENDERING,
   STAGE_PROP_OUTLINE_RENDERING,
   STAGE_PROP_OUTLINE_RENDER_ORDER,
+  STAGE_PROP_OUTLINE_USER_DATA,
   STAGE_PROP_SHARED_OUTLINE_RENDERING,
   STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING,
   STAGE_PROP_SHARED_SURFACE_RENDERING,
@@ -108,10 +111,11 @@ describe('stage object asset catalog', () => {
       receiveShadow: false,
       renderOrder: STAGE_PROP_OUTLINE_RENDER_ORDER,
     })
-    expect(STAGE_PROP_OUTLINE_RENDERING.userData).toMatchObject({
+    expect(STAGE_PROP_OUTLINE_USER_DATA).toMatchObject({
       studioRenderOutline: true,
       stagePropOutline: true,
     })
+    expect(STAGE_PROP_OUTLINE_RENDERING.userData).toBeUndefined()
   })
 
   it('shares the unit box geometry and keeps it alive across individual prop unmounts', () => {
@@ -135,6 +139,12 @@ describe('stage object asset catalog', () => {
       renderOrder: STAGE_PROP_OUTLINE_RENDER_ORDER,
       dispose: null,
     })
+    const outlineUserDataA = getStagePropOutlineUserData()
+    const outlineUserDataB = getStagePropOutlineUserData()
+    expect(outlineUserDataA).toMatchObject(STAGE_PROP_OUTLINE_USER_DATA)
+    expect(outlineUserDataB).toMatchObject(STAGE_PROP_OUTLINE_USER_DATA)
+    expect(outlineUserDataA).not.toBe(outlineUserDataB)
+    expect(Object.isExtensible(outlineUserDataA)).toBe(true)
   })
 
   it('keeps every stage prop toon surface visible from both sides while outlines stay inverted hulls', () => {
@@ -163,7 +173,11 @@ describe('stage object asset catalog', () => {
     for (const file of ['CorridorProps.jsx', 'GymProps.jsx']) {
       const source = readFileSync(new URL(`./${file}`, import.meta.url), 'utf8')
 
-      expect(source).toContain('getStagePropToonMaterial(')
+      expect(source).toContain(
+        file === 'CorridorProps.jsx'
+          ? 'getStagePropDepthWritingToonMaterial('
+          : 'getStagePropToonMaterial(',
+      )
       expect(source).not.toContain('toonMat(')
     }
   })
@@ -198,6 +212,19 @@ describe('stage object asset catalog', () => {
       expect(source).toContain('STAGE_PROP_SHARED_OUTLINE_RENDERING')
       expect(source).toContain(`<StudioTunedGroup itemId="${studioItemIds[file]}">`)
     }
+  })
+
+  it('uses shared rendering only for kitchen meshes with shared geometry', () => {
+    const source = readFileSync(new URL('./KitchenProps.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('STAGE_PROP_SHARED_SURFACE_RENDERING')
+    expect(source).toContain('STAGE_PROP_SHARED_OUTLINE_RENDERING')
+    expect(source).toContain('STAGE_PROP_SURFACE_RENDERING')
+    expect(source).toContain('STAGE_PROP_OUTLINE_RENDERING')
+    expect(source.match(/userData=\{getStagePropOutlineUserData\(\)\}/g)).toHaveLength(2)
+    expect(source).not.toContain('STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING')
+    expect(source).toMatch(/function PropBox[\s\S]*?\{\.\.\.STAGE_PROP_SHARED_SURFACE_RENDERING\}[\s\S]*?\{\.\.\.STAGE_PROP_SHARED_OUTLINE_RENDERING\}/)
+    expect(source).toMatch(/function OutlinedCylinder[\s\S]*?\{\.\.\.STAGE_PROP_SURFACE_RENDERING\}[\s\S]*?\{\.\.\.STAGE_PROP_OUTLINE_RENDERING\} userData=\{getStagePropOutlineUserData\(\)\}/)
   })
 
   it('uses the shared student body under its own fixed-color Studio root for the class president', () => {
@@ -256,6 +283,21 @@ describe('stage object asset catalog', () => {
     expect(source).not.toContain('material={outline}')
     expect(source).not.toContain(', 8]')
     expect(source).not.toContain(', 10]')
+  })
+
+  it('keeps every multi-part Stage 2 corridor prop in the normal opaque depth pass', () => {
+    const source = readFileSync(new URL('./CorridorProps.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('getStagePropDepthWritingToonMaterial')
+    expect(source).toContain('STAGE_PROP_MESH_RENDERING')
+    expect(source).not.toContain('STAGE_PROP_SURFACE_RENDERING')
+
+    const corridorMaterial = getStagePropDepthWritingToonMaterial(0x7394a0, 0.06)
+    const nonOccludingPropMaterial = getStagePropToonMaterial(0x7394a0, 0.06)
+
+    expect(corridorMaterial.depthWrite).toBe(true)
+    expect(corridorMaterial).not.toBe(nonOccludingPropMaterial)
+    expect(nonOccludingPropMaterial.depthWrite).toBe(false)
   })
 
   it('exports Stage 3 voxel gym prop models and the matching concept sheet', () => {

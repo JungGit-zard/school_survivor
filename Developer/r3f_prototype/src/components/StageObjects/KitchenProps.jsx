@@ -15,11 +15,13 @@
 // 주 몸통 박스(상판·바디·후드 등)에만 적용한다.
 import {
   getPropOutlineScale,
+  getStagePropOutlineUserData,
   getStagePropOutlineMaterial,
   getStagePropToonMaterial,
   STAGE_PROP_OUTLINE_RENDERING,
   STAGE_PROP_SURFACE_RENDERING,
-  STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING,
+  STAGE_PROP_SHARED_OUTLINE_RENDERING,
+  STAGE_PROP_SHARED_SURFACE_RENDERING,
   STAGE_PROP_UNIT_BOX_GEOMETRY,
 } from './propRendering.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
@@ -54,14 +56,15 @@ function PropBox({ position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 1, 1]
   return (
     <group position={position} rotation={rotation}>
       <mesh
-        {...STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING}
+        {...STAGE_PROP_SHARED_SURFACE_RENDERING}
         geometry={STAGE_PROP_UNIT_BOX_GEOMETRY}
         material={material}
         scale={scale}
       />
       {outlineMaterial && (
         <mesh
-          {...STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING}
+          {...STAGE_PROP_SHARED_OUTLINE_RENDERING}
+          userData={getStagePropOutlineUserData()}
           geometry={STAGE_PROP_UNIT_BOX_GEOMETRY}
           material={outlineMaterial}
           scale={getPropOutlineScale(scale)}
@@ -89,7 +92,7 @@ function OutlinedCylinder({ position = [0, 0, 0], rotation = [0, 0, 0], args, ma
         <cylinderGeometry args={args} />
       </mesh>
       {outlineMaterial && (
-        <mesh {...STAGE_PROP_OUTLINE_RENDERING} material={outlineMaterial} scale={[s, s, s]}>
+        <mesh {...STAGE_PROP_OUTLINE_RENDERING} userData={getStagePropOutlineUserData()} material={outlineMaterial} scale={[s, s, s]}>
           <cylinderGeometry args={args} />
         </mesh>
       )}
