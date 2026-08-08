@@ -12,6 +12,7 @@ import {
   ENEMY_EVENT_RANGED_FIRE,
   ENEMY_PHASE_ACTIVE,
   ENEMY_PHASE_REVEAL,
+  ENEMY_RUNTIME_SPEED,
   ENEMY_STUCK_DETOUR_MS,
   ENEMY_STUCK_RECOVERY_MS,
   ENEMY_STATE_CHARGE,
@@ -574,17 +575,24 @@ describe('enemySimulation 순수 일반 적 런타임', () => {
     expect(pool.get(old[0])).not.toBeNull()
   })
 
+  it('keeps Stage 2 guard chase runtime speeds at the required half-speed values', () => {
+    expect(ENEMY_RUNTIME_SPEED[13]).toBeCloseTo(1.275, 6)
+    expect(ENEMY_RUNTIME_SPEED[14]).toBeCloseTo(1.225, 6)
+    expect(ENEMY_RUNTIME_SPEED[7]).toBeCloseTo(2.45, 6)
+    expect(ENEMY_RUNTIME_SPEED[8]).toBeCloseTo(2.18, 6)
+  })
+
   it('lets only Stage 2 chase runners pass straight through props and despawn beyond the opposite boundary', () => {
     const pool = createEnemyEntityPool()
     const runtime = createEnemySimulationRuntime()
     const obstacles = [{ x: 0, z: 0, halfX: 1.1, halfZ: 1.1 }]
     const fugitive = spawn(pool, 'RZT', -2, 0, { spawnTimer: 300, runDirX: 1, runDirZ: 0 })
     const guard = spawn(pool, 'RZG', -2.8, 0, { spawnTimer: 300, runDirX: 1, runDirZ: 0 })
-    for (let frame = 0; frame < 60; frame += 1) runtime.step(pool, context({ halfX: 3, halfZ: 3, obstacles, obstacleCount: 1 }))
+    for (let frame = 0; frame < 120; frame += 1) runtime.step(pool, context({ halfX: 3, halfZ: 3, obstacles, obstacleCount: 1 }))
     expect(pool.posX[fugitive.index]).toBeGreaterThan(0)
     expect(pool.posX[guard.index]).toBeGreaterThan(-1)
     expect(collidesEnemyObstacle(pool.posX[fugitive.index], pool.posZ[fugitive.index], enemyCollisionRadius(13), obstacles, 1)).toBe(true)
-    for (let frame = 0; frame < 250; frame += 1) runtime.step(pool, context({ halfX: 3, halfZ: 3, obstacles, obstacleCount: 1 }))
+    for (let frame = 0; frame < 500; frame += 1) runtime.step(pool, context({ halfX: 3, halfZ: 3, obstacles, obstacleCount: 1 }))
     expect(pool.get(fugitive)).toBeNull()
     expect(pool.get(guard)).toBeNull()
     const event = {}

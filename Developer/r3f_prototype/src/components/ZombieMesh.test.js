@@ -276,8 +276,8 @@ describe('Stage 3 run zombie crew visual reference', () => {
 
 describe('Stage 2 security guard chase visuals', () => {
   it('registers fully clothed fugitive and guard models through the shared Studio wrapper', () => {
-    expect(ENEMY_STATS.RZT).toMatchObject({ hp: 28, speed: 2.55, damage: 6, scale: 0.88, xp: 5, contactDist: 0.22, runCrew: true })
-    expect(ENEMY_STATS.RZG).toMatchObject({ hp: 48, speed: 2.45, damage: 9, scale: 0.92, xp: 6, contactDist: 0.24, runCrew: true })
+    expect(ENEMY_STATS.RZT).toMatchObject({ hp: 28, speed: 1.275, damage: 6, scale: 0.88, xp: 5, contactDist: 0.22, runCrew: true })
+    expect(ENEMY_STATS.RZG).toMatchObject({ hp: 48, speed: 1.225, damage: 9, scale: 0.92, xp: 6, contactDist: 0.24, runCrew: true })
     expect(ZOMBIE_PALETTE.RZT).toMatchObject({ body: 0xa87843 })
     expect(ZOMBIE_PALETTE.RZG).toMatchObject({ body: 0x173a5e })
     expect(STAGE2_GUARD_CHASE_VISUAL.parts).toEqual(expect.arrayContaining(['longTanTrenchCoat', 'navySecurityCap', 'yellowSecurityVest', 'fullClothing']))

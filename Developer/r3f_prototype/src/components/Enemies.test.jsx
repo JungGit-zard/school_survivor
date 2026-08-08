@@ -842,6 +842,14 @@ describe('formation spawns', () => {
     }
   })
 
+  it('keeps Stage 2 guard chase stats at the required half-speed without changing HP, damage, count, or Stage 3 runners', () => {
+    expect(ENEMY_STATS.RZT).toMatchObject({ hp: 28, speed: 1.275, damage: 6 })
+    expect(ENEMY_STATS.RZG).toMatchObject({ hp: 48, speed: 1.225, damage: 9 })
+    expect(STAGE2_GUARD_CHASE_SIZE).toBe(7)
+    expect(ENEMY_STATS.RZL.speed).toBe(2.45)
+    expect(ENEMY_STATS.RZC.speed).toBe(2.18)
+  })
+
   it('blows the coach whistle once per run-zombie crew burst (crew-level, not per entity)', () => {
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
     expect(source).toMatch(/RUN_ZOMBIE_CREW_FORMATION\)\s*\{\s*emitSfx\(\{ id: 'rzlWhistle', volume: 0\.5 \}\)/)
