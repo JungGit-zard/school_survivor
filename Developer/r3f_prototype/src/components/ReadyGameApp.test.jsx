@@ -31,7 +31,7 @@ async function renderReady(props) {
   const root = createRoot(container)
   const render = async (nextProps) => {
     await act(async () => {
-      root.render(<ReadyGameApp studioVisualsReady={false} {...nextProps} />)
+      root.render(<ReadyGameApp {...nextProps} />)
       await vi.dynamicImportSettled()
     })
   }

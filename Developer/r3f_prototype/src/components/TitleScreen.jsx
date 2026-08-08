@@ -142,7 +142,6 @@ export default function TitleScreen({
   devCheatsVisible = false,
   onRevealDevCheats,
   onUnlockAllStages,
-  studioVisualsReady = false,
 }) {
   const t = useT()
   const locale = useLocale()
@@ -433,7 +432,6 @@ export default function TitleScreen({
       <TitleSceneCanvas
         className="title-intro-scene"
         style={{ ...styles.canvas, animationDelay: '3000ms' }}
-        studioVisualsReady={studioVisualsReady}
       />
 
       <div style={styles.tint} />

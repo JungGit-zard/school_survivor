@@ -265,26 +265,24 @@ describe('TitleScene3D direction', () => {
     expect(source).not.toContain('function TitlePlayerRunner')
     expect(source).not.toContain('graphicsStudioPlayerSource')
     expect(source).not.toContain('{!studioMode && (')
-    expect(source).toContain('const playerVisualReady = studioVisualsReady')
     expect(source).not.toContain('hasFirebaseTitlePlayerTuning')
     expect(titlePlayerIndex).toBeGreaterThan(outlineEnd)
   })
 
-  it('never renders the title player without Firebase studio tuning applied (fail-closed, no default-pose fallback)', () => {
+  it('renders the title player unconditionally from the frozen snapshot, with no Firebase readiness gate', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
-    expect(source).toContain('const playerVisualReady = studioVisualsReady')
+    // 타이틀은 Firebase와 분리됐다: 준비 여부로 플레이어를 숨기는 경로가 남아 있으면 안 된다.
+    expect(source).not.toContain('studioVisualsReady')
+    expect(source).not.toContain('playerVisualReady')
     expect(source).not.toContain('hasFirebaseTitlePlayerTuning')
-    expect(source).toContain('studioVisualsReady = false')
 
-    // 대전제: 세팅값 미적용 오브젝트 렌더 금지. 플레이어는 runtime(튜닝 적용) 경로에서만,
-    // 준비 전에는 null(숨김)로 그린다. preview 패스스루로 플레이어를 그리지 않는다.
-    const gateIdx = source.indexOf('{playerVisualReady ? (')
-    expect(gateIdx).toBeGreaterThan(-1)
-    const playerBlock = source.slice(gateIdx, source.indexOf(') : null}', gateIdx))
+    // 세팅값은 동결 스냅샷에서 오므로 runtime(튜닝 적용) 경로로만 그린다.
+    const playerIdx = source.indexOf('<TitlePlayer reducedEffects={reducedEffects} />')
+    expect(playerIdx).toBeGreaterThan(-1)
+    const playerBlock = source.slice(source.lastIndexOf('<group', playerIdx), playerIdx)
     expect(playerBlock).toContain('StudioTuningRuntimeProvider')
     expect(playerBlock).not.toContain('StudioTuningPreviewProvider')
-    expect(source).toContain(') : null}')
     // 플레이어 인스턴스는 정확히 1개(중복/폴백 렌더 없음).
     expect(source.match(/<TitlePlayer reducedEffects=\{reducedEffects\} \/>/g)).toHaveLength(1)
   })

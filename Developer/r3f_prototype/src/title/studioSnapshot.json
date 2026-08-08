@@ -1,0 +1,1209 @@
+{
+  "schemaVersion": 1,
+  "revision": 1861,
+  "updatedAt": "2026-08-08T04:52:39.863Z",
+  "datasets": {
+    "tunings": {
+      "player::part::0.0.8.0.0": {
+        "scale": 1.35,
+        "scaleX": 1,
+        "scaleY": 1.72,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0.01,
+        "positionZ": -0.59,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1.25,
+        "brightness": 0.95,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.3.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 0.93,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": -0.15,
+        "positionZ": -0.02,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.19.0.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 0.4,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.19.2.0.8": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": -0.74,
+        "positionZ": 0.9,
+        "outlineThickness": 1.16,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.0": {
+        "scale": 1.24,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 0.9,
+        "positionX": 0,
+        "positionY": -0.18,
+        "positionZ": -0.02,
+        "outlineThickness": 0.4,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.46,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 0.4,
+        "outlineOpacity": 1,
+        "outlineColor": "#000000",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.1.1": {
+        "scale": 0.35,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0.11,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.1.3": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::group::0.0.19.0.0+0.0.19.1.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.15.0.0": {
+        "scale": 1.03,
+        "scaleX": 1.05,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0.13,
+        "positionY": 0,
+        "positionZ": -0.14,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 2,
+        "animation": "normal"
+      },
+      "player::group::0.0.19.0.0+0.0.19.2.0.1.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.15,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.19.2.0.1.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": -48,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::3": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::group::0.0.19.0.0+0.0.19.2.0.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.19.1.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.11.0.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0.09,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 90,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::2": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#fe1616",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.15.1.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": -0.1,
+        "positionZ": 0.22,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.12.0.0": {
+        "scale": 0.79,
+        "scaleX": 0.99,
+        "scaleY": 0.35,
+        "scaleZ": 1,
+        "positionX": -0.5,
+        "positionY": 0.01,
+        "positionZ": -0.41,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 1,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.4.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": -0.08,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.10.0.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1.32,
+        "scaleZ": 1,
+        "positionX": -0.08,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 0.8,
+        "brightness": 1.33,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.9.0.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0.08,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 0.8,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.7.0.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1.33,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": -0.08,
+        "positionZ": 0,
+        "outlineThickness": 0.4,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1.8,
+        "brightness": 0.91,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::group::0.0.7.0.0+0.0.8.0.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#f75050",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 0.91,
+        "emissiveIntensity": 0.28,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::group::0.0.10.0.0+0.0.9.0.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 0.65,
+        "brightness": 1.24,
+        "emissiveIntensity": 0.27,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.6.0.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 0.4,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "zombie-procedural-face-test::part::0.3.0.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": -0.21,
+        "positionZ": -0.06,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "zombie-e01::part::0.0.0.0.1": {
+        "scale": 1.15,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "zombie-e04": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0.03,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.5.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "zombie-procedural-face-test::part::0.2.0.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": -0.21,
+        "positionZ": -0.06,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "zombie-b04-chef": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "zombie-b01": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "player::part::0.0.18.1.0": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "actor-doge::part::0.0.1.3.0.0.1": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "zombie-rzt::part::0.0.0.1.1": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0.09,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "zombie-rzg::part::0.0.0.1.1": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 2.3,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0.09,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "zombie-rzg::part::0.0.0.2.1": {
+        "scale": 1,
+        "scaleX": 1.59,
+        "scaleY": 1.35,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0.02,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      },
+      "zombie-rzt": {
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "scaleZ": 1,
+        "positionX": 0,
+        "positionY": 0,
+        "positionZ": 0,
+        "outlineThickness": 1,
+        "outlineOpacity": 0.96,
+        "outlineColor": "#050209",
+        "color": "#ffffff",
+        "colorStrength": 0,
+        "saturation": 1,
+        "brightness": 1,
+        "emissiveIntensity": 0.14,
+        "rotationX": 0,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "animation": "normal"
+      }
+    },
+    "sfxTunings": {},
+    "stageBossPreview": {
+      "zoom": 67,
+      "panX": -0.33,
+      "panY": 0.44
+    },
+    "decals": {},
+    "propPlacements": {
+      "stage1": [
+        {
+          "id": "stage1-chair-nw-01",
+          "type": "classroomChair",
+          "position": [
+            -4.604,
+            0,
+            -9.935
+          ],
+          "rotation": [
+            0,
+            -0.92,
+            0
+          ],
+          "scale": 0.736,
+          "props": {
+            "variant": "tilted"
+          }
+        },
+        {
+          "id": "stage1-desk-ne-01",
+          "type": "classroomDesk",
+          "position": [
+            -2.579,
+            0,
+            10.568
+          ],
+          "rotation": [
+            0,
+            -0.72,
+            0
+          ],
+          "scale": 0.784,
+          "props": {
+            "variant": "abandoned"
+          }
+        },
+        {
+          "id": "stage1-chair-ne-01",
+          "type": "classroomChair",
+          "position": [
+            7.361,
+            0,
+            -10.182
+          ],
+          "rotation": [
+            0,
+            1.28,
+            0
+          ],
+          "scale": 0.704,
+          "props": {
+            "variant": "overturned"
+          }
+        },
+        {
+          "id": "stage1-desk-sw-01",
+          "type": "classroomDesk",
+          "position": [
+            -7.742,
+            0,
+            13.529
+          ],
+          "rotation": [
+            0,
+            1.35,
+            0
+          ],
+          "scale": 0.816,
+          "props": {
+            "variant": "overturned"
+          }
+        },
+        {
+          "id": "stage1-student-sw-02",
+          "type": "unconsciousStudent",
+          "position": [
+            -7.104,
+            0,
+            9.732
+          ],
+          "rotation": [
+            0,
+            2.16,
+            0
+          ],
+          "scale": 0.3673,
+          "props": {
+            "variant": "sideRightFlipped"
+          }
+        },
+        {
+          "id": "stage1-student-south-01",
+          "type": "classPresidentStudent",
+          "position": [
+            -5.796,
+            0,
+            -0.031
+          ],
+          "rotation": [
+            0,
+            1.42,
+            0
+          ],
+          "scale": 0.3673,
+          "props": {
+            "variant": "sideLeftFlipped"
+          }
+        },
+        {
+          "id": "stage1-desk-se-01",
+          "type": "classroomDesk",
+          "position": [
+            7.043,
+            0,
+            13.123
+          ],
+          "rotation": [
+            0,
+            -1.18,
+            0
+          ],
+          "scale": 0.8,
+          "props": {
+            "variant": "abandoned"
+          }
+        },
+        {
+          "id": "stage1-student-se-02",
+          "type": "unconsciousStudent",
+          "position": [
+            7.582,
+            0,
+            10.126
+          ],
+          "rotation": [
+            0,
+            -2.28,
+            0
+          ],
+          "scale": 0.3673,
+          "props": {
+            "variant": "faceUpFlipped"
+          }
+        },
+        {
+          "id": "stage1-desk-west-02",
+          "type": "classroomDesk",
+          "position": [
+            -5.958,
+            0,
+            -3.734
+          ],
+          "rotation": [
+            0,
+            2.55,
+            0
+          ],
+          "scale": 0.768,
+          "props": {
+            "variant": "tilted"
+          }
+        },
+        {
+          "id": "stage1-chair-west-02",
+          "type": "classroomChair",
+          "position": [
+            -6.2,
+            0,
+            4.8
+          ],
+          "rotation": [
+            0,
+            -2.8,
+            0
+          ],
+          "scale": 0.688,
+          "props": {
+            "variant": "abandoned"
+          }
+        },
+        {
+          "id": "stage1-student-nw-01",
+          "type": "unconsciousStudent",
+          "position": [
+            -5.053,
+            0,
+            -2.069
+          ],
+          "rotation": [
+            0,
+            0.52,
+            0
+          ],
+          "scale": 0.3673,
+          "props": {
+            "variant": "sideLeftFlipped"
+          }
+        },
+        {
+          "id": "stage1-desk-east-02",
+          "type": "classroomDesk",
+          "position": [
+            7.679,
+            0,
+            5.01
+          ],
+          "rotation": [
+            0,
+            -2.35,
+            0
+          ],
+          "scale": 0.752,
+          "props": {
+            "variant": "abandoned"
+          }
+        },
+        {
+          "id": "stage1-student-east-01",
+          "type": "unconsciousStudent",
+          "position": [
+            7.439,
+            0,
+            1.888
+          ],
+          "rotation": [
+            0,
+            1.94,
+            0
+          ],
+          "scale": 0.3673,
+          "props": {
+            "variant": "sideRightFlipped"
+          }
+        },
+        {
+          "id": "stage1-student-ne-01",
+          "type": "unconsciousStudent",
+          "position": [
+            7.202,
+            0,
+            -7.318
+          ],
+          "rotation": [
+            0,
+            -0.48,
+            0
+          ],
+          "scale": 0.3673,
+          "props": {
+            "variant": "faceUpFlipped"
+          }
+        },
+        {
+          "id": "stage1-student-mid-02",
+          "type": "unconsciousStudent",
+          "position": [
+            -1.038,
+            0,
+            -11.09
+          ],
+          "rotation": [
+            0,
+            -0.52,
+            0
+          ],
+          "scale": 0.3673,
+          "props": {
+            "variant": "faceUp"
+          }
+        },
+        {
+          "id": "stage1-desk-mid-02",
+          "type": "classroomDesk",
+          "position": [
+            6.358,
+            0,
+            -4.351
+          ],
+          "rotation": [
+            0,
+            2.76,
+            0
+          ],
+          "scale": 0.83,
+          "props": {
+            "variant": "abandoned"
+          }
+        },
+        {
+          "id": "stage1-chair-mid-02",
+          "type": "classroomChair",
+          "position": [
+            7.918,
+            0,
+            -2.546
+          ],
+          "rotation": [
+            0,
+            0.12,
+            0
+          ],
+          "scale": 0.676,
+          "props": {
+            "variant": "tilted"
+          }
+        },
+        {
+          "id": "stage1-student-mid-03",
+          "type": "unconsciousStudent",
+          "position": [
+            -6.883,
+            0,
+            -7.398
+          ],
+          "rotation": [
+            0,
+            2.62,
+            0
+          ],
+          "scale": 0.3673,
+          "props": {
+            "variant": "sideLeftFlipped"
+          }
+        },
+        {
+          "id": "stage1-desk-mid-03",
+          "type": "classroomDesk",
+          "position": [
+            -6.5,
+            0,
+            6
+          ],
+          "rotation": [
+            0,
+            -0.84,
+            0
+          ],
+          "scale": 0.79,
+          "props": {
+            "variant": "tilted"
+          }
+        },
+        {
+          "id": "stage1-student-mid-07",
+          "type": "unconsciousStudent",
+          "position": [
+            -7.437,
+            0,
+            2.661
+          ],
+          "rotation": [
+            0,
+            1.32,
+            0
+          ],
+          "scale": 0.3673,
+          "props": {
+            "variant": "sideLeftFlipped"
+          }
+        }
+      ],
+      "stage2": null,
+      "stage3": null
+    },
+    "bossFaceRecipes": {
+      "B01": {
+        "brow": "brow-flat-deadpan",
+        "eye": "eye-happy-arc",
+        "nose": "nose-triangle",
+        "mouth": "mouth-big-smile"
+      }
+    }
+  }
+}

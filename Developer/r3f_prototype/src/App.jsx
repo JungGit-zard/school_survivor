@@ -195,23 +195,6 @@ export default function App() {
     return promise
   }, [authUser])
 
-  // 濡쒓렇????uid ?놁쓬): 怨듦컻 ?뺣낯 ?몃뱶(공개 정본)?먯꽌 二쇱씤怨??쒕떇???섏씠?쒕젅?댄듃?쒕떎.
-  // ?깃났 ??studioVisualsReady媛 true媛 ?섏뼱 ?덈? ??꾩젣瑜?吏?ㅻŉ 濡쒓렇???꾩뿉???쒕떇??二쇱씤怨듭씠 蹂댁씤??
-  // ?ㅽ뙣(誘몃같??誘멸쾶??硫?remote ?꾨떂 ??二쇱씤怨듭? fail-closed濡??④?(留??ъ쫰 ?뚮뜑 湲덉?).
-  const hydrateGameCanonicalStudio = useCallback(async () => {
-    const result = await hydrateCanonicalTitlePlayer({}).catch(() => ({ status: 'read-failed' }))
-    studioRuntimeSourceRef.current = result?.status === 'remote-applied' ? 'canonical' : 'none'
-    setStudioCloudStatus(result?.status === 'remote-applied'
-      ? 'remote-applied'
-      : (result?.status ?? 'unauthenticated'))
-    return result?.status === 'remote-applied'
-  }, [])
-
-  useEffect(() => {
-    if (isGraphicsStudioRoute) return
-    void hydrateGameCanonicalStudio()
-  }, [isGraphicsStudioRoute, hydrateGameCanonicalStudio])
-
   useEffect(() => {
     if (!isGraphicsStudioRoute) return
     if (authStatus === 'signedIn' && authUser?.uid) {
@@ -349,7 +332,6 @@ export default function App() {
         <ReadyGameApp
           authUser={authUser}
           progressStatus={progressStatus}
-          studioVisualsReady={studioReady}
         />
       </Suspense>
     </ErrorBoundary>

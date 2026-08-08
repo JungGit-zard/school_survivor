@@ -184,7 +184,8 @@ describe('App Firebase bootstrap boundary', () => {
     const view = await renderApp()
     expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
 
-    await vi.waitFor(() => expect(mocks.canonicalHydrate).toHaveBeenCalledWith({}))
+    // 타이틀·게임은 동결 스냅샷만 쓴다 — Firebase 정본을 읽지 않는다.
+    expect(mocks.canonicalHydrate).not.toHaveBeenCalled()
     expect(mocks.studioHydrate).not.toHaveBeenCalled()
     expect(mocks.studioSubscribe).not.toHaveBeenCalled()
     expect(mocks.readyGameProps).not.toHaveProperty('ensureStudioCloudReady')
@@ -216,7 +217,7 @@ describe('App Firebase bootstrap boundary', () => {
     view.unmount()
   })
 
-  it('reads only the public canonical revision for a signed-in game player', async () => {
+  it('never reads any Firebase studio node for a signed-in game player', async () => {
     mocks.authState.status = 'signedIn'
     mocks.authState.user = { uid: 'new-player' }
     mocks.studioHydrate.mockResolvedValue({ status: 'missing-remote' })
@@ -224,7 +225,7 @@ describe('App Firebase bootstrap boundary', () => {
 
     const view = await renderApp()
 
-    await vi.waitFor(() => expect(mocks.canonicalHydrate).toHaveBeenCalled())
+    expect(mocks.canonicalHydrate).not.toHaveBeenCalled()
     expect(mocks.readyGameProps).not.toHaveProperty('ensureStudioCloudReady')
     expect(mocks.studioHydrate).not.toHaveBeenCalled()
     expect(mocks.studioSubscribe).not.toHaveBeenCalled()
@@ -240,7 +241,7 @@ describe('App Firebase bootstrap boundary', () => {
 
     const view = await renderApp()
 
-    await vi.waitFor(() => expect(mocks.canonicalHydrate).toHaveBeenCalledWith({}))
+    expect(mocks.canonicalHydrate).not.toHaveBeenCalled()
     expect(mocks.studioHydrate).not.toHaveBeenCalled()
     expect(mocks.readyGameProps).not.toHaveProperty('ensureStudioCloudReady')
     expect(mocks.studioSubscribe).not.toHaveBeenCalled()

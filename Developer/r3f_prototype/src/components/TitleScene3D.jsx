@@ -589,14 +589,12 @@ export default function TitleScene3D({
   studioGroupRef = null,
   studioTuning = null,
   reducedEffects = false,
-  studioVisualsReady = false,
 }) {
   const floorMat = useMemo(() => toonMat(0x4a4054, 0.05), [])
   const doorMat = useMemo(() => toonMat(0x805947, 0.05), [])
   const studioMode = studioTuning != null
   const studioTransform = studioMode ? getStudioTransformProps(studioTuning) : getStudioTransformProps()
   const titleSceneRootPosition = getTitleSceneRootPosition(studioTransform)
-  const playerVisualReady = studioVisualsReady
 
   const sceneRoot = (
     <group
@@ -659,15 +657,12 @@ export default function TitleScene3D({
           {sceneRoot}
         </StudioTunedGroup>
       )}
-      {/* 치명적 오류 방지: 스튜디오 세팅값(Firebase 튜닝)이 적용된 상태에서만 렌더한다.
-          튜닝 미적용(preview 패스스루/기본 포즈)으로는 절대 그리지 않는다 — 없으면 숨김(fail-closed). */}
-      {playerVisualReady ? (
-        <group rotation={[0, -0.09, 0]} position={[0, -1.15, 0]}>
-          <StudioTuningRuntimeProvider>
-            <TitlePlayer reducedEffects={reducedEffects} />
-          </StudioTuningRuntimeProvider>
-        </group>
-      ) : null}
+      {/* 세팅값은 동결 스냅샷(src/title/studioSnapshot.json)에서 온다 — Firebase 대기 없이 항상 렌더. */}
+      <group rotation={[0, -0.09, 0]} position={[0, -1.15, 0]}>
+        <StudioTuningRuntimeProvider>
+          <TitlePlayer reducedEffects={reducedEffects} />
+        </StudioTuningRuntimeProvider>
+      </group>
     </>
   )
 }

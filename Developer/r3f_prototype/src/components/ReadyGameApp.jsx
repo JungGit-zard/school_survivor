@@ -27,7 +27,6 @@ function initializeRuntimeUtilities() {
 export default function ReadyGameApp({
   authUser,
   progressStatus,
-  studioVisualsReady,
 }) {
   useT()
   const [screen, setScreen] = useState('title')
@@ -107,7 +106,6 @@ export default function ReadyGameApp({
                 devCheatsVisible={devCheatsVisible}
                 onRevealDevCheats={() => setDevCheatsVisible(true)}
                 onUnlockAllStages={() => setDevAllStagesUnlocked(true)}
-                studioVisualsReady={studioVisualsReady}
               />
             </Suspense>
           </ErrorBoundary>
