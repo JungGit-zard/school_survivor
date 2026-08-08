@@ -18,7 +18,8 @@ import {
 } from '../lib/playerRecords.js'
 import { evaluateUnlocks, isStarter, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { getAllUnlocked, setUnlocked as setWeaponUnlocked } from '../lib/weaponUnlocks.js'
-import { DEFAULT_STAGE_ID, getNextStageId, getStageConfig, rollBossSpawnSec } from '../lib/stageConfig.js'
+import { DEFAULT_STAGE_ID, getNextStageId, getStageConfig } from '../lib/stageConfig.js'
+import { getBossSpawnSec } from '../lib/burstEvents.js'
 import { getAdminBalanceConfig } from '../lib/adminConfig.js'
 import { vibrateFeedback } from '../lib/titleSettings.js'
 import { isFirebaseProgressHydrated, recordPlayActivity, requestCloudProgressSave, readFirebasePlayerProgress, updateFirebasePlayerProgress } from '../lib/firebaseProgress.js'
@@ -192,7 +193,7 @@ export const useGameStore = create(
     // 같은 runId를 만들어 서버 dedup으로 이중가산을 막는다(M6).
     runStartedAt: Date.now(),
     currentStageId: DEFAULT_STAGE_ID,
-    bossSpawnSec: rollBossSpawnSec(),
+    bossSpawnSec: getBossSpawnSec(DEFAULT_STAGE_ID),
     bossSpawned: false,
     // 현재 생존 중인 보스 수. 스폰마다 증가하고 처치마다 감소한다.
     // 마지막 보스 처치는 보너스 성취일 뿐, 스테이지 클리어와 런 종료는 포탈 진입만 담당한다.
@@ -842,7 +843,7 @@ export const useGameStore = create(
         elapsedMs:   0,
         runStartedAt: Date.now(),
         currentStageId: nextStageId,
-        bossSpawnSec: rollBossSpawnSec(),
+        bossSpawnSec: getBossSpawnSec(nextStageId),
         bossSpawned: false,
         bossAliveCount: 0,
         bossDefeated: false,

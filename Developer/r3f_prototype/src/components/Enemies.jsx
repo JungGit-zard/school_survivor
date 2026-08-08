@@ -10,7 +10,7 @@ import XpTextbook from './XpTextbook.jsx'
 import DancingDogeEvent from './DancingDogeEvent.jsx'
 import TreasureChest from './TreasureChest.jsx'
 import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
-import { getE04Cap, getE04IntroSec } from '../lib/stage2ProjectileRules.js'
+import { getE04IntroSec } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { dogeEscapeDirection } from '../lib/dogeEscape.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
@@ -507,7 +507,7 @@ export function nextWaveTimeForStage(waveTime, stageId, random = Math.random) {
 }
 
 // 웨이브 발화 시각 목록 = 스테이지별 첫 웨이브 시각에서 시작, 각 웨이브 후 20~40초 랜덤 간격 누적, 마지막 phase.end 미만까지.
-// 프레임 스케줄러(nextWaveTimeRef)와 동일한 논리의 순수 함수 — 테스트/미리보기용.
+// 과거 웨이브 타임라인을 읽는 테스트/미리보기용 순수 함수. 런타임 스폰에는 사용하지 않는다.
 export function getWaveSpawnSeconds(phases, random = Math.random, stageId = 'stage1') {
   const lastEnd = phases?.[phases.length - 1]?.end ?? 0
   const secs = []
@@ -656,12 +656,10 @@ export function getMidpointSpawnSeconds(phases, stageId = 'stage1', random = Mat
   return secs
 }
 
-// 보스 등장과 동시에 함께 스폰할 호위 웨이브 크기. stage1만 한 웨이브 분량, 그 외 0(제외).
-// 스2/스3 보스 구간은 target을 별도로 낮춰 튜닝했으므로 호위를 얹지 않는다.
-export function bossEscortSize(stageId, wavePhases, bossSec) {
-  if (stageId !== 'stage1') return 0
-  const phase = wavePhases.findLast((p) => bossSec >= p.start) ?? wavePhases[0]
-  return waveSizeForStageAtTime(phase, stageId, bossSec)
+// 명시 버스트 전환 이후 런타임 보스 호위 자동 웨이브는 사용하지 않는다.
+// 보스 주변 추가 적이 필요하면 BURST_EVENTS 계열에 별도 이벤트로 고정 기록한다.
+export function bossEscortSize() {
+  return 0
 }
 
 // ── 잡몹 총 HP 균등 상승(+10%/스테이지) 블렌드 배율(2026-07-22) ─────────────────
@@ -904,16 +902,6 @@ export function dogeTreasureCoinPositions(center, count = DOGE_COIN_COUNT, rando
   return positions
 }
 
-function pickTypeByWeight(weights) {
-  const r = Math.random()
-  let acc = 0
-  for (const [type, w] of Object.entries(weights)) {
-    acc += w
-    if (r <= acc) return type
-  }
-  return Object.keys(weights)[0]
-}
-
 export function pickTypeByWeightExcluding(weights, excludedType) {
   const entries = Object.entries(weights).filter(([type, weight]) => type !== excludedType && weight > 0)
   if (entries.length === 0) return null
@@ -939,8 +927,6 @@ const MAX_RUNTIME_QUEUE = 256
 const EMPTY_IMPACT = Object.freeze({})
 const SCHEDULE_GOLD = 1
 const SCHEDULE_DOGE = 2
-const SCHEDULE_WAVE = 3
-const SCHEDULE_MID_WAVE = 4
 const SCHEDULE_BURST = 5
 const SCHEDULE_MATILDA = 6
 
@@ -968,14 +954,6 @@ function pushBounded(queue, value, cap = MAX_RUNTIME_QUEUE) {
   if (queue.length < cap) queue.push(value)
 }
 
-function phaseIndexAtTime(phases, time) {
-  let selected = 0
-  for (let index = 0; index < phases.length; index += 1) {
-    if (time < phases[index].start) break
-    selected = index
-  }
-  return selected
-}
 
 // 브라우저 없이도 풀 churn의 상한·이벤트 drop·투사체 상한을 검증하는 QA harness다.
 export function runPooledEnemyRuntimeSoak(frames = 10_800) {
@@ -1025,8 +1003,6 @@ export default function Enemies() {
   const stageRuntimeCacheRef      = useRef(null)
   const projectileHitRef          = useRef(null)
   const firedBurstsRef            = useRef(new Uint8Array(64))
-  const nextWaveTimeRef          = useRef(0)   // 스테이지 전환 effect가 firstWaveTimeForStage로 재설정한다
-  const nextMidTimeRef           = useRef(Infinity)  // stage1 중간 보강 스폰 예약 시각(웨이브가 예약)
   const goldTimerRef              = useRef(nextGoldInterval())
   const dogeSpawnedRef           = useRef(false)     // 60초 도지 이벤트 1회 스폰 가드
   const stageSpawnTokenRef       = useRef(0)
@@ -1055,27 +1031,22 @@ export default function Enemies() {
     queue.scheduleWrite = 0
     queue.scheduleCount = 0
     queue.matildaEntry = null
-    // 첫 웨이브 시각은 스테이지마다 다르다(stage2=5초). 재시작/전환마다 다시 잡는다.
-    nextWaveTimeRef.current = firstWaveTimeForStage(currentStageId)
-    nextMidTimeRef.current = Infinity
     const bounds = getStageBounds(currentStageId)
     stageRuntimeCacheRef.current = {
       id: currentStageId,
       gameKey,
       spawnToken: stageSpawnTokenRef.current,
       bounds,
-      wavePhases: getWavePhasesForStage(currentStageId),
-      burstEvents: getRuntimeBurstEventsForStage(currentStageId, bossSpawnSec),
+      burstEvents: getRuntimeBurstEventsForStage(currentStageId),
       obstacles: getStageObjectSightObstacles(currentStageId),
       stageConfig: getStageConfig(currentStageId),
-      lastEnd: getWavePhasesForStage(currentStageId).at(-1)?.end ?? 0,
     }
     firedBurstsRef.current.fill(0)
     sightGenerationRef.current.fill(0)
     sightTierRef.current.fill(0)
     enemySightBlocked.fill(0)
     sightFrameRef.current = 0
-  }, [bossSpawnSec, currentStageId, gameKey])
+  }, [currentStageId, gameKey])
 
   // 프레임 루프는 typed-array와 이 bounded queue만 바꾼다. React state는 다음 RAF에서 한 번만 flush한다.
   const scheduleRuntimeFlush = useCallback(() => {
@@ -1084,8 +1055,8 @@ export default function Enemies() {
     queue.flushScheduled = true
     queue.raf = requestAnimationFrame(() => {
       queue.flushScheduled = false
-      // pause/gameover/clear에서는 예약된 웨이브 및 pending drain을 소비하지 않는다.
-      // 재개 시 아래 phase effect가 남은 큐를 다시 예약한다.
+      // pause/gameover/clear에서는 예약된 버스트 및 pending drain을 소비하지 않는다.
+      // 재개 시 프레임 루프가 남은 큐를 다시 소비한다.
       if (useGameStore.getState().phase !== 'playing') return
       while (queue.scheduleCount > 0) {
         const slot = queue.scheduleRead
@@ -1278,29 +1249,6 @@ export default function Enemies() {
     if (specialAdded) setSpecialEnemies([...enemiesRef.current])
   }, [spawnPooledEnemy])
 
-  // 한 phase의 weights로 size만큼 좀비 배치를 생성(E04 상한/스폰 위치 규칙 공유).
-  // 웨이브·중간 보강·보스 호위가 모두 이 배치 빌더를 재사용한다(중복 로직 제거).
-  const buildWaveBatch = useCallback((phase, size, sec, bounds, obstacles = []) => {
-    const batch = []
-    for (let i = 0; i < size; i++) {
-      let type = pickTypeByWeight(phase.weights)
-      if ((currentStageId === 'stage2' || currentStageId === 'stage3' || currentStageId === 'stage4') && type === 'E04') {
-        const currentE04Count =
-          countPooledType('E04') +
-          enemiesRef.current.filter((e) => e.type === 'E04').length +
-          batch.filter((e) => e.type === 'E04').length
-        if (currentE04Count >= getE04Cap(sec, currentStageId)) {
-          type = pickTypeByWeightExcluding(phase.weights, 'E04')
-          if (!type) continue
-        }
-      }
-      const taken = batch.map((e) => e.pos)
-      const pos = type === 'E04' ? rangedSpawnPos(bounds, taken, Math.random, obstacles) : randomSpawnPos(type, bounds, taken, Math.random, obstacles)
-      if (!pos) continue
-      batch.push({ id: ++_uid, type, pos, statOverride: stageHpOverride(type, currentStageId) })
-    }
-    return batch
-  }, [currentStageId])
 
   // 마틸다 등장 대사를 읽는 동안에는 실체/AI를 만들지 않는다. 같은 run/stage가
   // 유지된 경우에만 5초 뒤(정확히 300초) 한 번 스폰하며 cleanup은 reset/stage/unmount stale 스폰을 막는다.
@@ -1375,12 +1323,6 @@ export default function Enemies() {
       }
       const spawnPos = randomSpawnPos('B01', cache.bounds, [], Math.random, cache.obstacles, matildaStats.scale)
       if (spawnPos) addEnemies([{ id: ++_uid, type: 'B01', pos: spawnPos, statOverride: matildaStats, isMatilda: true }])
-    } else if (kind === SCHEDULE_WAVE || kind === SCHEDULE_MID_WAVE) {
-      const phase = cache.wavePhases[Math.trunc(a)] ?? cache.wavePhases[0]
-      const size = kind === SCHEDULE_WAVE
-        ? waveSizeForStageAtTime(phase, cache.id, b)
-        : midWaveSizeForStage(phase, cache.id)
-      addEnemies(buildWaveBatch(phase, size, b, cache.bounds, cache.obstacles), true, cache.spawnToken)
     } else if (kind === SCHEDULE_BURST) {
       const evt = cache.burstEvents[Math.trunc(a)]
       if (!evt) return
@@ -1389,11 +1331,6 @@ export default function Enemies() {
         const bossBatch = []
         const bossPos = randomSpawnPos(evt.type, cache.bounds, [], Math.random, cache.obstacles)
         if (bossPos) bossBatch.push({ id: ++_uid, type: evt.type, pos: bossPos, statOverride: stageHpOverride(evt.type, cache.id) })
-        const escortSize = bossEscortSize(cache.id, cache.wavePhases, evt.sec)
-        if (escortSize > 0) {
-          const bossPhase = cache.wavePhases.findLast((phase) => evt.sec >= phase.start) ?? cache.wavePhases[0]
-          bossBatch.push(...buildWaveBatch(bossPhase, escortSize, b, cache.bounds, cache.obstacles))
-        }
         addEnemies(bossBatch, true, cache.spawnToken)
         return
       }
@@ -1481,9 +1418,6 @@ export default function Enemies() {
     const stageRuntime = stageRuntimeCacheRef.current
     if (!stageRuntime || stageRuntime.id !== currentStageId) return
     const bounds = stageRuntime.bounds
-    const wavePhases = stageRuntime.wavePhases
-    const lastEnd = stageRuntime.lastEnd
-
     // 표준 적은 React/Rapier가 아닌 하나의 풀 step만 수행한다. 시야/장애물 배열은 stage 캐시를 그대로 쓴다.
     const obstacles = stageRuntime.obstacles
     const sightGeneration = sightGenerationRef.current
@@ -1539,9 +1473,8 @@ export default function Enemies() {
     }
 
     // 버스트 스케줄 발화.
-    // - stage1/stage2: 보스 등장만(getRuntimeBurstEventsForStage가 보스만 반환) — 거동 불변.
-    // - stage3/stage4: 단일 보스(스3 B03·스4 B04) + 형태(formation) 포위 + 조기 등장 그룹을 모두 발화한다.
-    // 좀비 물량 본류는 20~40초 랜덤 간격 웨이브 스케줄러가 전담한다.
+    // 모든 일반 좀비와 보스는 명시 BURST_EVENTS/STAGE2/3/4_BURST_EVENTS에서만 발화한다.
+    // 20~40초 랜덤 웨이브, 중간 보강, 보스 호위 자동 웨이브는 런타임에서 발화하지 않는다.
     const burstEvents = stageRuntime.burstEvents
     for (let burstIndex = 0; burstIndex < burstEvents.length; burstIndex += 1) {
       const evt = burstEvents[burstIndex]
@@ -1550,33 +1483,6 @@ export default function Enemies() {
       enqueueScheduled(SCHEDULE_BURST, burstIndex, sec)
     }
 
-    // 랜덤 간격 이산 웨이브 — 발화 시각·구성은 여기서 확정하고 실제 일반 적 생성은 RAF당 3마리로 분산한다.
-    // 첫 웨이브 t=firstWaveTimeForStage(stage2는 5초), 이후 직전 발화 + 20~40초 랜덤 간격(마지막 phase.end 미만).
-    // Stage 1 실제 마릿수 = 활성 phase target × 0.5의 반올림값에 ×1.3 적용 후 다시 반올림.
-    // 활성 phase는 발화 시각(waveTime) 기준 findLast로 결정한다.
-    // 축소된 스폰 링(4.0~6.5) 안 화면 내 위치에 360° 흩어져 '펑' 리빌로 등장(Enemy가 처리).
-    while (
-      nextWaveTimeRef.current < lastEnd &&
-      sec >= nextWaveTimeRef.current
-    ) {
-      const waveTime = nextWaveTimeRef.current
-      const nextTime = nextWaveTimeForStage(waveTime, currentStageId)
-      nextWaveTimeRef.current = nextTime
-      // MID_WAVE_STAGES(stage1·stage2): 이번 웨이브와 다음 웨이브 정중앙에 보강 스폰을 예약한다
-      // (대상 외 stageId는 midWaveTimeForStage가 Infinity를 줘서 미예약).
-      nextMidTimeRef.current = midWaveTimeForStage(waveTime, nextTime, currentStageId)
-      const phaseIndex = phaseIndexAtTime(wavePhases, waveTime)
-      enqueueScheduled(SCHEDULE_WAVE, phaseIndex, waveTime)
-    }
-
-    // 중간 보강 스폰 — 예약된 정중앙 시점 도달 시 본 웨이브 절반 크기로 1회 흘린다.
-    // (midWaveTimeForStage가 MID_WAVE_STAGES에만 유한값을 예약하므로 그 외에는 Infinity라 발화하지 않는다.)
-    if (nextMidTimeRef.current < lastEnd && sec >= nextMidTimeRef.current) {
-      const midTime = nextMidTimeRef.current
-      nextMidTimeRef.current = Infinity  // 1회 발화 후 소진; 다음 웨이브가 다시 예약한다.
-      const phaseIndex = phaseIndexAtTime(wavePhases, midTime)
-      enqueueScheduled(SCHEDULE_MID_WAVE, phaseIndex, midTime)
-    }
   })
 
   return (

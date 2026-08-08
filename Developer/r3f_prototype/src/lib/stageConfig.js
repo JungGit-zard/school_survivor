@@ -5,17 +5,13 @@ export const DEFAULT_STAGE_ID = 'stage1'
 
 export const STAGE_DURATION_SEC = 240
 export const BOSS_SPAWN_CENTER_SEC = 180
-export const BOSS_SPAWN_JITTER_SEC = 10
+export const BOSS_SPAWN_JITTER_SEC = 0
 export const ESCAPE_PORTAL_OPEN_SEC = 210
 export const MATILDA_SPAWN_SEC = 300
 export const MATILDA_WARNING_SEC = MATILDA_SPAWN_SEC - 5
 
-export function rollBossSpawnSec(random = Math.random) {
-  const roll = Number(random())
-  if (!Number.isFinite(roll)) return BOSS_SPAWN_CENTER_SEC
-  const normalized = Math.min(1, Math.max(0, roll))
-  return BOSS_SPAWN_CENTER_SEC - BOSS_SPAWN_JITTER_SEC
-    + Math.min(BOSS_SPAWN_JITTER_SEC * 2, Math.floor(normalized * (BOSS_SPAWN_JITTER_SEC * 2 + 1)))
+export function rollBossSpawnSec() {
+  return BOSS_SPAWN_CENTER_SEC
 }
 
 export const STAGE_CONFIGS = {
@@ -74,7 +70,7 @@ export const STAGE_CONFIGS = {
     durationSec: STAGE_DURATION_SEC,
     clearRecordKey: 'stage3Clears',
     bestRecordKey: 'stage3BestSurvivalSec',
-    // 보스 = 체육교사 B03 단일. 실제 등장 시각은 런 시작 시 170~190초로 결정된다.
+    // 보스 = 체육교사 B03 단일. 명시 버스트 시각에 고정 등장한다.
     bossWarningSec: BOSS_SPAWN_CENTER_SEC,
     bossType: 'B03',
     // 원거리 조기 등장(HUD 튜토 힌트용, 스2는 72). 실제 발사 게이트는 Enemy.jsx 소관.
@@ -102,7 +98,7 @@ export const STAGE_CONFIGS = {
     clearRecordKey: 'stage4Clears',
     bestRecordKey: 'stage4BestSurvivalSec',
     bossType: 'B04',
-    // 단일 보스 B04(주방장). 실제 등장 시각은 런 시작 시 170~190초로 결정된다.
+    // 단일 보스 B04(주방장). 명시 버스트 시각에 고정 등장한다.
     bossWarningSec: BOSS_SPAWN_CENTER_SEC,
     // 원거리 E04 조기 도입/발사 게이트(스4 시그니처 "안전지대 소멸"). 실제 발사 게이트도 이 값(Enemy.jsx).
     e04IntroSec: 18,
