@@ -9,6 +9,8 @@ Canonical path: `Developer/agent_room/launchmini_aab_physical_android_google_log
 
 This document is the reusable mandatory launchmini preflight for any AAB, not a version-specific learning note.
 
+> AAB 생성 후 반드시 Google Play 배포 경로의 실제 Android 기기에서 로그인·타이틀·로비·게임 진입을 테스트해 주세요.
+
 Before the first task action in every Escape! zombie school invocation, launchmini must:
 
 1. Run the central mandatory pre-command checker.

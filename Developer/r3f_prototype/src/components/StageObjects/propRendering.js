@@ -24,11 +24,19 @@ export const STAGE_PROP_SHARED_RESOURCE_MESH_RENDERING = Object.freeze({
 })
 
 export function getStagePropToonMaterial(color, emissiveIntensity = 0.08) {
-  return getCachedToonMat(color, emissiveIntensity, STAGE_PROP_SURFACE_SIDE)
+  const material = getCachedToonMat(color, emissiveIntensity, STAGE_PROP_SURFACE_SIDE)
+  // Props are physical cover, not camera occluders.  If they write depth, pooled
+  // character bodies behind them disappear while blob shadows/health UI can still
+  // render through higher renderOrder paths, producing the "shadow-only" bug.
+  // Keep the prop surface visible, but do not let it erase later character draws.
+  material.depthWrite = false
+  return material
 }
 
 export function getStagePropOutlineMaterial(opacity = 0.96, color = 0x050209) {
-  return getCachedOutlineMat(opacity, color)
+  const material = getCachedOutlineMat(opacity, color)
+  material.depthWrite = false
+  return material
 }
 
 export function getPropOutlineScale(scale) {

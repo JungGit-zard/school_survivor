@@ -153,7 +153,9 @@ export default function TitleScreen({
   const [consentOpen, setConsentOpen] = useState(false)
   const [consentUser, setConsentUser] = useState(null)
   const authUser = useAuthStore((s) => s.user)
+  const authError = useAuthStore((s) => s.error)
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle)
+  const [authFailureOpen, setAuthFailureOpen] = useState(false)
   const [settings] = useState(() => (
     isFirebaseProgressHydrated(authUser) ? loadTitleSettings() : {
       vibration: true,
@@ -382,7 +384,13 @@ export default function TitleScreen({
     if (!user?.uid) {
       markPendingStartAfterLogin()
       user = await signInWithGoogle()
-      if (!user?.uid) return
+      if (!user?.uid) {
+        if (useAuthStore.getState().error) {
+          clearPendingStartAfterLogin()
+          setAuthFailureOpen(true)
+        }
+        return
+      }
     }
 
     enterLobbyFromStart()
@@ -559,6 +567,29 @@ export default function TitleScreen({
                 {t('title.nicknameSubmit')}
               </button>
             </form>
+          </section>
+        </div>
+      )}
+
+      {authFailureOpen && (
+        <div style={styles.modalLayer}>
+          <button type="button" aria-label={t('app.authFailureCloseAria')} style={styles.modalScrim} onClick={() => setAuthFailureOpen(false)} />
+          <section role="dialog" aria-modal="true" aria-labelledby="title-auth-failure-heading" style={styles.authFailureModal}>
+            <div style={styles.modalHeader}>
+              <h2 id="title-auth-failure-heading" style={styles.modalTitle}>{t('app.authFailureTitle')}</h2>
+              <button type="button" aria-label={t('common.close')} style={styles.closeButton} onClick={() => setAuthFailureOpen(false)}>
+                횞
+              </button>
+            </div>
+            <p style={styles.authFailureMessage}>{authError || t('app.authFailed')}</p>
+            <div style={styles.authFailureActions}>
+              <button type="button" style={styles.authFailureCloseButton} onClick={() => setAuthFailureOpen(false)}>
+                {t('common.close')}
+              </button>
+              <button type="button" style={styles.authFailureRetryButton} onClick={handleStartClick}>
+                {t('common.retry')}
+              </button>
+            </div>
           </section>
         </div>
       )}
@@ -806,6 +837,15 @@ const styles = {
     transform: 'translateY(-50%)',
     padding: 14,
   },
+  authFailureModal: {
+    ...schoolPanel('dark'),
+    position: 'absolute',
+    top: '50%',
+    left: 'max(24px, calc(env(safe-area-inset-left, 0px) + 16px))',
+    right: 'max(24px, calc(env(safe-area-inset-right, 0px) + 16px))',
+    transform: 'translateY(-50%)',
+    padding: 14,
+  },
   modalHeader: {
     display: 'flex',
     alignItems: 'center',
@@ -881,6 +921,28 @@ const styles = {
     fontSize: 11,
     lineHeight: 1.35,
     fontWeight: 900,
+  },
+  authFailureMessage: {
+    margin: '0 0 14px',
+    color: uiPalette.chalk,
+    fontSize: 14,
+    lineHeight: 1.45,
+    fontWeight: uiType.weightStrong,
+  },
+  authFailureActions: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 8,
+  },
+  authFailureCloseButton: {
+    ...schoolButton('paper'),
+    minHeight: 44,
+    fontSize: 14,
+  },
+  authFailureRetryButton: {
+    ...schoolButton('primary'),
+    minHeight: 44,
+    fontSize: 14,
   },
   nicknameSubmitButton: {
     ...schoolButton('primary'),

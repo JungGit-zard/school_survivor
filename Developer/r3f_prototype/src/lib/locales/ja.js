@@ -27,8 +27,6 @@ export default {
     'title.subtitle': '3分30秒後に開く脱出口から逃げ出せ',
     'title.gameplayGuide': '自動攻撃 · 画面をドラッグで移動 · レベルアップでカード選択',
     'title.start': 'ゲーム開始',
-  'title.studioError': 'グラフィックデータを読み込めませんでした。接続を確認してもう一度お試しください。',
-  'title.progressError': 'アカウントの進行データ読み込み中にエラーが発生しました。接続を確認してもう一度お試しください。',
   'title.cheatToast': 'チートが表示されました',
   'title.cheatButton': 'チート',
   'title.cheatOpenAria': 'チートメニューを開く',
@@ -160,6 +158,8 @@ export default {
   // ─── 起動 / 読み込み ───
   'app.checkingAuth': 'Googleログインの状態を確認しています。',
   'app.authFailed': 'Googleログインの状態を確認できませんでした。再ログインしてください。',
+  'app.authFailureTitle': 'ログインできません',
+  'app.authFailureCloseAria': 'ログイン失敗の案内を閉じる',
   'app.authUnconfigured': 'Firebase Googleログインの設定が必要です。',
   'app.adminGoogleOnly': '管理ツールは既存のGoogleログインからのみアクセスできます。',
   'app.adminDeniedReason': 'このGoogleアカウントには最高管理者権限がありません。',
@@ -745,4 +745,3 @@ export default {
 
 施行日: ${EFFECTIVE_DATE}`,
 }
-

@@ -580,6 +580,13 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     return translate('hud.questToastStart', { title })
   }, [questToast])
   const questStarted = typeof questToast === 'object' && questToast?.type === 'started'
+  const questCompleted = typeof questToast === 'object' && questToast?.type === 'completed'
+  const questPopupNextAction = useMemo(() => {
+    if (!questStarted || typeof questToast !== 'object') return null
+    const quest = getQuestDefinition(questToast.questId)
+    if (!quest) return null
+    return `다음 행동: ${translate(`quest.${quest.id}.objective`, null, quest.objective)}`
+  }, [questStarted, questToast])
   const activeWeapons = useMemo(
     () => Object.entries(weapons).filter(([, w]) => w.active),
     [weapons],
@@ -1096,12 +1103,15 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
       {questToastMessage && (
         <div
           role="status"
-          aria-live={questStarted ? 'assertive' : 'polite'}
-          data-testid={questStarted ? 'quest-start-popup' : 'quest-toast'}
-          style={{ ...styles.questToast, ...(questStarted ? styles.questStartPopup : null) }}
+          aria-live={questStarted || questCompleted ? 'assertive' : 'polite'}
+          data-testid={questStarted ? 'quest-start-popup' : questCompleted ? 'quest-complete-popup' : 'quest-toast'}
+          style={{ ...styles.questToast, ...(questStarted || questCompleted ? styles.questPopupCenter : null) }}
         >
           <QuestBagIcon />
-          <span>{questToastMessage}</span>
+          <span style={styles.questPopupText}>
+            <strong>{questToastMessage}</strong>
+            {questPopupNextAction && <small style={styles.questPopupNextAction}>{questPopupNextAction}</small>}
+          </span>
         </div>
       )}
 
@@ -1838,21 +1848,23 @@ const styles = {
     fontWeight: uiType.weightStrong,
     pointerEvents: 'none',
   },
-  questStartPopup: {
+  questPopupCenter: {
     top: '50%',
     transform: 'translate(-50%, -50%)',
     zIndex: 30,
-    maxWidth: 'min(88vw, 960px)',
-    padding: '24px 34px',
-    borderWidth: 4,
-    borderRadius: 16,
+    maxWidth: 'min(88vw, 320px)',
+    padding: '8px 11px',
+    borderWidth: 2,
+    borderRadius: 8,
     background: uiPalette.paper,
-    boxShadow: '0 12px 0 rgba(22, 19, 16, 0.36), 0 0 0 8px rgba(255, 232, 135, 0.32)',
-    fontSize: 56,
+    boxShadow: '0 4px 0 rgba(22, 19, 16, 0.36), 0 0 0 3px rgba(255, 232, 135, 0.32)',
+    fontSize: 19,
     fontWeight: uiType.weightHeavy,
-    lineHeight: 1.12,
+    lineHeight: 1.15,
     textAlign: 'center',
   },
+  questPopupText: { display: 'grid', gap: 3 },
+  questPopupNextAction: { display: 'block', fontSize: 12, lineHeight: 1.25, fontWeight: uiType.weightStrong, color: '#5d554e' },
   questInventoryPanel: {
     ...schoolPanel('paper'),
     position: 'absolute',

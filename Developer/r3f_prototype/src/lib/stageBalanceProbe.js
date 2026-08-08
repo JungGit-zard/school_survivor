@@ -27,6 +27,7 @@ import { getStageBounds } from './stageConfig.js'
 import { clampPlayerPosition } from './playerMovementBounds.js'
 import { getE04IntroSec } from './stage2ProjectileRules.js'
 import { COLLECT_RADIUS_SQ } from './pickup.js'
+import { XP_TO_NEXT_START, nextXpThreshold } from './xpCurve.js'
 import { WEAPON_CATALOG } from './weaponCatalog.js'
 import { getStageObjectSightObstacles } from '../components/StageObjects/stageObjectColliders.js'
 import {
@@ -159,11 +160,22 @@ export function runStageBalanceRun({
   // 변경 전/후를 같은 하네스로 비교하기 위한 오버라이드. 미지정이면 현재 정본 수치를 쓴다.
   weaponOverride = null,
   collectRadiusSq = COLLECT_RADIUS_SQ,
+  // XP 곡선도 같은 이유의 A/B 오버라이드. 미지정이면 xpCurve.js 정본을 그대로 쓴다 —
+  // 여기에 리터럴 곡선을 복제하면 프로브가 옛 곡선으로 돌면서 거짓 합격을 낸다.
+  xpCurveOverride = null,
+  // 적 XP 보상 A/B 오버라이드. { [typeCode]: value } 형태로 ENEMY_RUNTIME_XP를 덮는다.
+  enemyXpOverride = null,
+  // XP 페이싱 전용 측정 모드. 기본(false)은 "죽는 시각이 측정값"이라는 이 프로브의 원칙 그대로다.
+  // 다만 카이팅 AI는 40~60초에 죽으므로 그 상태로는 240초 레벨 곡선을 잴 수 없다.
+  // true면 접촉 피해만 무시해 maxSec까지 완주시키고, XP 획득 페이스 자체를 측정한다.
+  // 생존 시간 측정에는 절대 쓰지 말 것.
+  ignoreContactDamage = false,
 } = {}) {
-  const random = mulberry32(seed)
-  const originalRandom = Math.random
-  Math.random = random
-
+  // 스테이지 정적 데이터는 시드 RNG를 걸기 **전에** 만든다.
+  // getStageObjectSightObstacles는 모듈 레벨 Map으로 메모이즈되므로, 시드 RNG 안에서 처음 호출하면
+  // 그 프로세스의 첫 판만 캐시 생성 비용만큼 난수를 더 소비하고 2번째 판부터는 소비하지 않는다.
+  // 그러면 같은 시드인데도 판마다 결과가 달라져(실측: 같은 config 4회 반복이 kills 26/24/23/28)
+  // A/B 비교가 통째로 무의미해진다. 순서 자체가 결정론의 조건이다.
   const stats = { shotsFired: 0, shotsHit: 0 }
   const spawnDrain = createPooledEnemySpawnDrainQueue()
   const bounds = getStageBounds(stageId)
@@ -171,6 +183,12 @@ export function runStageBalanceRun({
   const phases = getWavePhasesForStage(stageId)
   const lastEnd = phases.at(-1)?.end ?? 0
   const weapon = { ...WEAPON_CATALOG.pencilThrow.base, ...(weaponOverride ?? {}) }
+
+  const baseRandom = mulberry32(seed)
+  let randomDraws = 0
+  const random = () => { randomDraws += 1; return baseRandom() }
+  const originalRandom = Math.random
+  Math.random = random
 
   const context = {
     delta: FRAME_DELTA,
@@ -194,13 +212,18 @@ export function runStageBalanceRun({
   let invulnerableMs = 0
   let level = 1
   let xp = 0
-  let xpToNext = 4
+  const curveStart = xpCurveOverride ? xpCurveOverride.start : XP_TO_NEXT_START
+  const curveNext = xpCurveOverride ? xpCurveOverride.next : nextXpThreshold
+  let xpToNext = curveStart
   let firstLevelUpSec = null
   let kills = 0
   let xpCollected = 0
   let nextWaveTime = 0
   let lastFiredMs = -Infinity
-  const orbs = [] // { x, z, value }
+  const orbs = [] // { x, z, type, value }
+  // XP를 "언제 어떤 타입에서" 주웠는지의 원본 기록. 곡선/보상값 후보를 비교할 때
+  // 이 타임라인 하나에 여러 곡선을 대입하면 시뮬레이션 노이즈 없이 곡선만 비교할 수 있다.
+  const xpTimeline = []
   const flee = { x: 0, z: 0 }
   const event = {}
   const spawnToken = 1
@@ -260,7 +283,7 @@ export function runStageBalanceRun({
       while (enemySimulationRuntime.events.drainInto(event)) {
         if (event.type === ENEMY_EVENT_CONTACT) {
           if (invulnerableMs <= CONTACT_COOLDOWN_GRACE) {
-            hp -= event.value
+            if (!ignoreContactDamage) hp -= event.value
             invulnerableMs = INVULNERABLE_MS
           }
         }
@@ -272,7 +295,7 @@ export function runStageBalanceRun({
         lastFiredMs = nowMs
         firePencil(weapon, stats, (type, x, z) => {
           kills += 1
-          orbs.push({ x, z, value: ENEMY_RUNTIME_XP[type] || 5 })
+          orbs.push({ x, z, type, value: enemyXpOverride?.[type] ?? ENEMY_RUNTIME_XP[type] })
         })
       }
 
@@ -283,11 +306,12 @@ export function runStageBalanceRun({
         if (dx * dx + dz * dz >= collectRadiusSq) continue
         xp += orbs[index].value
         xpCollected += 1
+        xpTimeline.push({ sec: Math.round(sec * 100) / 100, type: orbs[index].type })
         orbs.splice(index, 1)
         while (xp >= xpToNext) {
           xp -= xpToNext
           level += 1
-          xpToNext = Math.ceil(xpToNext * 1.24 + 2)
+          xpToNext = curveNext(xpToNext)
           if (firstLevelUpSec === null) firstLevelUpSec = sec
         }
       }
@@ -311,6 +335,9 @@ export function runStageBalanceRun({
     kills,
     xpCollected,
     accuracy: stats.shotsFired ? Math.round((stats.shotsHit / stats.shotsFired) * 100) / 100 : 0,
+    // 결정론 회귀 감시용. 같은 시드/같은 config면 이 값이 반드시 같아야 한다.
+    randomDraws,
+    xpTimeline,
   }
 }
 

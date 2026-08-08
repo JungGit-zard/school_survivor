@@ -76,6 +76,7 @@ export const SOUND_MAP = {
   matildaDeath:       '/sfx/enemies/matildaDeath.ogg',
   dogeDeath:          '/sfx/enemies/dogeDeath.ogg',
   dogeEscape:         '/sfx/enemies/dogeEscape.ogg',
+  dogeYelp:           '/sfx/enemies/dogeYelp.wav',
 
   // ── UI ───────────────────────────────────────────────────────────────────────
   buttonClick:    '/sfx/ui/buttonClick.ogg',
@@ -99,6 +100,7 @@ export const SOUND_MAP = {
   chestOpen:          '/sfx/events/chestOpen.ogg',
   textbookLand:       '/sfx/events/textbookLand.ogg',
   rzlWhistle:         '/sfx/events/rzlWhistle.ogg',
+  stage2GuardWhistle: '/sfx/events/stage2GuardWhistle.wav',
 }
 
 export const DEFAULT_SFX_TUNING = {

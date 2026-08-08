@@ -1,4 +1,4 @@
-param(
+﻿param(
   [Parameter(Mandatory = $true)]
   [string]$Profile,
 
@@ -202,6 +202,9 @@ $jsonObject = New-Object psobject -Property ([ordered]@{
   read_required = $readRequired
   combined_receipt_sha256 = $combined
 })
+if ($profileKey -eq 'launchmini') {
+  $jsonObject | Add-Member -NotePropertyName mandatory_aab_notice -NotePropertyValue 'AAB 생성 후 반드시 Google Play 배포 경로의 실제 Android 기기에서 로그인·타이틀·로비·게임 진입을 테스트해 주세요.'
+}
 $json = $jsonObject | ConvertTo-Json -Depth 8
 
 $bytes = $utf8NoBom.GetBytes($json + "`n")

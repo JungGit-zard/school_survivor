@@ -27,8 +27,6 @@ export default {
     'title.subtitle': 'Escape through the exit that opens after 3:30',
     'title.gameplayGuide': 'Auto-attack · Drag to move · Pick a card on level up',
     'title.start': 'START GAME',
-  'title.studioError': 'Could not load graphics data. Check your connection and try again.',
-  'title.progressError': 'Something went wrong loading your account progress. Check your connection and try again.',
   'title.cheatToast': 'Cheats are now visible',
   'title.cheatButton': 'Cheat',
   'title.cheatOpenAria': 'Open cheat menu',
@@ -160,6 +158,8 @@ export default {
   // ─── App bootstrap / loading ───
   'app.checkingAuth': 'Checking your Google sign-in status.',
   'app.authFailed': 'Could not verify your Google sign-in. Please sign in again.',
+  'app.authFailureTitle': 'Unable to sign in',
+  'app.authFailureCloseAria': 'Close sign-in failure notice',
   'app.authUnconfigured': 'Firebase Google sign-in setup is required.',
   'app.adminGoogleOnly': 'Admin tools are only accessible with an existing Google sign-in.',
   'app.adminDeniedReason': 'This Google account does not have owner permissions.',
@@ -745,4 +745,3 @@ If this Privacy Policy changes, notice is given inside the Game, and consent is 
 
 Effective date: ${EFFECTIVE_DATE}`,
 }
-

@@ -24,8 +24,6 @@ export default {
     'title.subtitle': '3분 30초 후 열리는 탈출구로 탈출하라',
     'title.gameplayGuide': '자동 공격 · 화면을 드래그해 이동 · 레벨업 때 카드 선택',
     'title.start': '게임 시작',
-  'title.studioError': '그래픽 데이터를 불러오지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.',
-  'title.progressError': '계정 진행도를 불러오는 중 오류가 발생했습니다. 연결을 확인한 뒤 다시 시도해 주세요.',
   'title.cheatToast': '치트키가 보입니다',
   'title.cheatButton': '치트',
   'title.cheatOpenAria': '치트 메뉴 열기',
@@ -155,6 +153,8 @@ export default {
   // ─── 앱 부트스트랩 / 로딩 ───
   'app.checkingAuth': 'Google 로그인 상태를 확인하는 중입니다.',
   'app.authFailed': 'Google 로그인 상태를 확인하지 못했습니다. 다시 로그인해 주세요.',
+  'app.authFailureTitle': '로그인할 수 없습니다.',
+  'app.authFailureCloseAria': '로그인 실패 안내 닫기',
   'app.authUnconfigured': 'Firebase Google 로그인 설정이 필요합니다.',
   'app.adminGoogleOnly': '관리 도구는 기존 Google 로그인으로만 접근할 수 있습니다.',
   'app.adminDeniedReason': '이 Google 계정에는 신 권한이 없습니다.',

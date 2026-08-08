@@ -30,6 +30,17 @@ describe('waveTimelines 기본 타임라인', () => {
     const stage2Pre = STAGE2_WAVE_PHASES.filter((p) => p.start < 180)
     expect(stage2Pre.every((p) => !isBossPhase(p.start, 'stage2'))).toBe(true)
   })
+
+  it('abb28 기준 녹색 러너(E03)와 보라색 탱커(E02) 비중을 10% 줄이고 weights 합은 유지한다', () => {
+    const stage2RunnerIntro = STAGE2_WAVE_PHASES.find((p) => p.start === 24)
+    expect(stage2RunnerIntro.weights.E03).toBeCloseTo(0.28 * 0.9)
+    expect(Object.values(stage2RunnerIntro.weights).reduce((a, b) => a + b, 0)).toBeCloseTo(1)
+
+    const stage2TankIntro = STAGE2_WAVE_PHASES.find((p) => p.start === 48)
+    expect(stage2TankIntro.weights.E02).toBeCloseTo(0.22 * 0.9)
+    expect(stage2TankIntro.weights.E03).toBeCloseTo(0.30 * 0.9)
+    expect(Object.values(stage2TankIntro.weights).reduce((a, b) => a + b, 0)).toBeCloseTo(1)
+  })
 })
 
 describe('stage3 총력전 타임라인', () => {

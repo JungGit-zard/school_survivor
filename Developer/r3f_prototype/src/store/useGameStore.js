@@ -36,12 +36,13 @@ import {
   setRuntimeElapsedMs,
 } from '../lib/gameRuntimeTime.js'
 import { createStageQuestProgress, getQuestDefinition } from '../lib/quests.js'
+import { XP_TO_NEXT_START, nextXpThreshold } from '../lib/xpCurve.js'
 import { getStageObjectPlacements } from '../components/StageObjects/stageObjectPlacements.js'
 
 const BASE_PLAYER = {
   hp: 100, maxHp: 100,
   speed: 3, baseSpeed: 3,
-  level: 1, xp: 0, xpToNext: 4,
+  level: 1, xp: 0, xpToNext: XP_TO_NEXT_START,
   invulnerable: false,
   hitFlashToken: 0,
 }
@@ -281,7 +282,7 @@ export const useGameStore = create(
         xp -= xpToNext
         level += 1
         gainedLevelUps += 1
-        xpToNext = Math.ceil(xpToNext * 1.24 + 2)
+        xpToNext = nextXpThreshold(xpToNext)
       }
       if (gainedLevelUps > 0) {
         emitSfx({ id: 'levelUp' })

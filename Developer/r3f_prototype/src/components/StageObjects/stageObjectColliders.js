@@ -257,6 +257,33 @@ export function isStageObjectSightBlocked(from, to, obstacles, padding = SIGHT_B
   return false
 }
 
+export function isStageObjectEnemyTrackingBlocked(from, to, obstacles, padding = SIGHT_BLOCK_PADDING) {
+  for (const obstacle of obstacles) {
+    // Enemy chase should only be interrupted by the stage2 lost-and-found board,
+    // and only when the player/enemy are on opposite sides of that board. Other
+    // props still block physics/projectiles, but do not make zombies give up
+    // tracking merely because the player brushes against their front face.
+    if (obstacle.type !== 'corridorLostFoundBoard') continue
+    const fromBeyondZ = from.z < obstacle.z - obstacle.halfZ - padding
+      || from.z > obstacle.z + obstacle.halfZ + padding
+    const toBeyondZ = to.z < obstacle.z - obstacle.halfZ - padding
+      || to.z > obstacle.z + obstacle.halfZ + padding
+    const oppositeZ = (from.z - obstacle.z) * (to.z - obstacle.z) < 0
+    const crossesBoardWidth = Math.abs(from.x - obstacle.x) <= obstacle.halfX + padding
+      || Math.abs(to.x - obstacle.x) <= obstacle.halfX + padding
+      || segmentIntersectsAxisAlignedBox(
+        from.x - obstacle.x,
+        from.z - obstacle.z,
+        to.x - obstacle.x,
+        to.z - obstacle.z,
+        obstacle.halfX + padding,
+        obstacle.halfZ + padding,
+      )
+    if (fromBeyondZ && toBeyondZ && oppositeZ && crossesBoardWidth) return true
+  }
+  return false
+}
+
 function normalizeRotation(rotation = [0, 0, 0]) {
   return Array.isArray(rotation) ? rotation : [0, rotation, 0]
 }
@@ -386,6 +413,8 @@ export function getStageObjectSightObstacles(stageId = 'stage1') {
       const matrix = new THREE.Matrix4().makeRotationFromQuaternion(rotation).elements
       const [halfX, halfY, halfZ] = part.args
       return Object.freeze({
+        id: placement.id,
+        type: placement.type,
         x: center.x,
         z: center.z,
         halfX: Math.abs(matrix[0]) * halfX + Math.abs(matrix[4]) * halfY + Math.abs(matrix[8]) * halfZ,

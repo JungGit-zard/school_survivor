@@ -5,7 +5,7 @@ Board: escape-zombie-school
 
 ## User report
 
-When logging in with another Google account, the title flow says it could not load graphics data.
+When logging in with another Google account, the title flow displayed the now-deleted readiness failure banner.
 
 ## Root cause
 
@@ -15,11 +15,7 @@ The regular game start path called `ensureStudioCloudReady(user)` after login. F
 studioWorkspaces/v1/users/{uid}/current
 ```
 
-New or non-master player accounts do not necessarily have a personal Graphics Studio workspace, so Firebase returned `missing-remote`. The title start button treated that as fatal and showed:
-
-```text
-그래픽 데이터를 불러오지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.
-```
+New or non-master player accounts do not necessarily have a personal Graphics Studio workspace, so Firebase returned `missing-remote`. The title start button treated that as fatal and displayed the now-discarded graphics-readiness failure banner.
 
 This was correct for `/graphics-studio` editing, but too strict for the normal game route. Regular players should be allowed to use the public canonical Studio revision instead of requiring their own editor workspace.
 

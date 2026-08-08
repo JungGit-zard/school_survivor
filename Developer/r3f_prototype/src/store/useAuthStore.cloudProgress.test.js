@@ -96,6 +96,21 @@ describe('useAuthStore cloud progress integration', () => {
     await vi.waitFor(() => expect(hydrateCloudProgress).toHaveBeenCalledWith(authUser))
   })
 
+  it('reports an expired Google session as a reauthentication-required message', async () => {
+    authClient.signInWithGoogle.mockRejectedValueOnce(Object.assign(
+      new Error('Firebase token expired'),
+      { code: 'auth/id-token-expired' },
+    ))
+
+    await expect(useAuthStore.getState().signInWithGoogle()).resolves.toBeNull()
+
+    expect(useAuthStore.getState()).toMatchObject({
+      status: 'error',
+      error: '인증이 만료되었습니다. 다시 인증해 주세요.',
+      signingIn: false,
+    })
+  })
+
   it('ignores a stale account hydrate completion after the auth user switches', async () => {
     const userA = { uid: 'uid-a' }
     const userB = { uid: 'uid-b' }

@@ -220,31 +220,6 @@ describe('TitleScreen lobby entry', () => {
     cleanup()
   })
 
-  it.each([
-    ['returns false', vi.fn(async () => false)],
-    ['rejects', vi.fn(async () => { throw new Error('Studio hydrate failed') })],
-  ])('enters the lobby without invoking a legacy Studio readiness callback when it %s', async (_scenario, ensureStudioCloudReady) => {
-    const user = { uid: 'uid-studio-best-effort', displayName: 'Returner', email: 'r@example.com', photoURL: '' }
-    seedConsentedUser(user)
-    useAuthStore.setState({ status: 'signedIn', user, initialized: true })
-    saveNicknameForUser(user, '복도반장')
-
-    const onEnterLobby = vi.fn()
-    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {})
-
-    await act(async () => {
-      clickButtonByTextRaw(container, '게임 시작')
-      await Promise.resolve()
-      await Promise.resolve()
-    })
-
-    expect(ensureStudioCloudReady).not.toHaveBeenCalled()
-    expect(onEnterLobby).toHaveBeenCalledTimes(1)
-    expect(container.querySelector('[role="alert"]')).toBeNull()
-
-    cleanup()
-  })
-
   it('does not wait for cloud progress hydration before entering the lobby', async () => {
     const user = { uid: 'uid-hydration-race', displayName: 'Hydration Tester', email: 'h@example.com', photoURL: '' }
     _resetFirebaseProgressForTests()
@@ -304,6 +279,38 @@ describe('TitleScreen lobby entry', () => {
     expect(container.textContent).not.toContain('이용약관·개인정보처리방침 동의')
 
     cleanup()
+  })
+
+  it('shows the actual authentication failure in a central dialog without expanding the start button card', async () => {
+    const authFailure = '인증이 만료되었습니다. 다시 인증해 주세요.'
+    const signInWithGoogle = vi.fn(async () => {
+      useAuthStore.setState({ status: 'error', error: authFailure })
+      return null
+    })
+    useAuthStore.setState({
+      status: 'signedOut',
+      user: null,
+      initialized: true,
+      signInWithGoogle,
+    })
+    const onEnterLobby = vi.fn()
+    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {})
+
+    try {
+      await act(async () => {
+        clickButtonByTextRaw(container, '게임 시작')
+        await Promise.resolve()
+        await Promise.resolve()
+      })
+
+      const dialog = container.querySelector('[role="dialog"][aria-labelledby="title-auth-failure-heading"]')
+      const startButton = container.querySelector('.title-main-action')
+      expect(dialog?.textContent).toContain(authFailure)
+      expect(startButton?.parentElement?.querySelector('[role="dialog"]')).toBeNull()
+      expect(onEnterLobby).not.toHaveBeenCalled()
+    } finally {
+      cleanup()
+    }
   })
 
   it('enters the lobby after Google redirect returns with a signed-in user', async () => {
@@ -411,48 +418,6 @@ describe('TitleScreen lobby entry', () => {
     clickButtonByText(container, '코인 레벨업 초기화')
 
 
-    cleanup()
-  })
-
-  it('does not invoke the removed Studio callback after login', async () => {
-    const user = { uid: 'studio-fallback-user', displayName: 'Fallback Player' }
-    seedConsentedUser(user)
-    useAuthStore.setState({ status: 'signedIn', user, initialized: true })
-    saveNicknameForUser(user, 'Fallback')
-    const onEnterLobby = vi.fn()
-    const ensureStudioCloudReady = vi.fn(() => Promise.resolve(false))
-    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {})
-
-    await act(async () => {
-      clickButtonByTextRaw(container, '게임 시작')
-      await Promise.resolve()
-      await Promise.resolve()
-    })
-
-    expect(ensureStudioCloudReady).not.toHaveBeenCalled()
-    expect(container.querySelector('[role="alert"]')).toBeNull()
-    expect(onEnterLobby).toHaveBeenCalledTimes(1)
-    cleanup()
-  })
-
-  it('does not invoke a rejected legacy Studio callback after login', async () => {
-    const user = { uid: 'studio-throw-user', displayName: 'Throw Player' }
-    seedConsentedUser(user)
-    useAuthStore.setState({ status: 'signedIn', user, initialized: true })
-    saveNicknameForUser(user, 'Thrower')
-    const onEnterLobby = vi.fn()
-    const ensureStudioCloudReady = vi.fn(() => Promise.reject(new Error('read failed')))
-    const { container, cleanup } = renderTitleScreen(onEnterLobby, true, () => {})
-
-    await act(async () => {
-      clickButtonByTextRaw(container, '게임 시작')
-      await Promise.resolve()
-      await Promise.resolve()
-    })
-
-    expect(ensureStudioCloudReady).not.toHaveBeenCalled()
-    expect(container.querySelector('[role="alert"]')).toBeNull()
-    expect(onEnterLobby).toHaveBeenCalledTimes(1)
     cleanup()
   })
 

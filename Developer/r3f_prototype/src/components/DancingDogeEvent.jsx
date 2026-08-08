@@ -235,6 +235,7 @@ export default function DancingDogeEvent({
               })
               if (!knockback) return
               playerBody._applyKnockback(knockback.vx, knockback.vz, knockback.durationMs)
+              emitSfx({ id: 'dogeYelp', volume: 0.7, rate: 0.96 + Math.random() * 0.08 })
               lastKnockbackAtRef.current = knockback.appliedAt
             }}
           />

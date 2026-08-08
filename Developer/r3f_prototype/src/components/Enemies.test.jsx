@@ -51,12 +51,16 @@ import {
   dogeHpForStage,
   shouldSpawnDoge,
   dogeTreasureCoinPositions,
+  isPooledEnemyType,
+  shouldScheduleBurst,
   runPooledEnemyRuntimeSoak,
 } from './Enemies.jsx'
 import { CHEST_OPEN_DELAY_MS } from './TreasureChest.jsx'
 import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { STAGE2_SPAWN_TELEGRAPHS, STAGE2_WAVE_PHASES, STAGE3_WAVE_PHASES, STAGE4_WAVE_PHASES } from '../lib/waveTimelines.js'
-import { getBurstEventsForStage as burstsForStage } from '../lib/burstEvents.js'
+import { BOSS_BURST_TYPES, getBurstEventsForStage as burstsForStage, getRuntimeBurstEventsForStage, isBossType } from '../lib/burstEvents.js'
+import { getStageBounds } from '../lib/stageConfig.js'
+import { getStageObjectSightObstacles } from './StageObjects/stageObjectColliders.js'
 import { ENEMY_STATS, getActiveE04ProjectileCount, resetActiveE04ProjectileCountForTest } from './Enemy.jsx'
 import { playerPos } from '../lib/refs.js'
 import { resolveRangedEnemyVelocity } from './Enemy.jsx'
@@ -72,6 +76,49 @@ describe('elite bonus rewards', () => {
 
   it('E06 bonus textbooks keep the existing enemy XP value', () => {
     expect(getEliteBonusTextbookXp('E06', 40)).toBe(40)
+  })
+})
+
+describe('boss runtime spawn routes', () => {
+  const bossStages = [
+    ['stage1', 'B01'],
+    ['stage2', 'B02'],
+    ['stage3', 'B03'],
+    ['stage4', 'B04'],
+  ]
+
+  it('schedules exactly one current boss event per stage and routes every boss to ZombieMesh', () => {
+    const pooledRendererSource = readFileSync(new URL('./ZombieInstanceLayer.jsx', import.meta.url), 'utf8')
+    const enemySource = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
+
+    expect(BOSS_BURST_TYPES).toEqual(bossStages.map(([, type]) => type))
+    expect(pooledRendererSource).toContain('type>=1&&type<=8)||type===13||type===14')
+    expect(enemySource).toContain('!useInstanced && <ZombieMesh')
+    const previousPlayerPosition = { x: playerPos.x, z: playerPos.z }
+    playerPos.x = 0
+    playerPos.z = 0
+    for (const [stageId, type] of bossStages) {
+      const bosses = getRuntimeBurstEventsForStage(stageId, 173)
+        .filter((event) => isBossType(event.type))
+      expect(bosses).toEqual([{ sec: 173, type, count: 1 }])
+      expect(isPooledEnemyType(type)).toBe(false)
+      expect(zombieMeshSource).toContain(`if (type === '${type}')`)
+      expect(randomSpawnPos(type, getStageBounds(stageId), [], () => 0.25, getStageObjectSightObstacles(stageId))).not.toBeNull()
+    }
+    playerPos.x = previousPlayerPosition.x
+    playerPos.z = previousPlayerPosition.z
+    expect(isPooledEnemyType('E06')).toBe(true)
+    expect(isPooledEnemyType('RZT')).toBe(true)
+  })
+
+  it('fires each boss burst once when elapsed time reaches its event second', () => {
+    for (const [stageId] of bossStages) {
+      const [boss] = getRuntimeBurstEventsForStage(stageId, 173).filter((event) => isBossType(event.type))
+      expect(shouldScheduleBurst(0, boss.sec - 0.001, boss.sec)).toBe(false)
+      expect(shouldScheduleBurst(0, boss.sec, boss.sec)).toBe(true)
+      expect(shouldScheduleBurst(1, boss.sec + 300, boss.sec)).toBe(false)
+    }
   })
 })
 
@@ -424,10 +471,10 @@ describe('jarmob expected total HP follows the per-stage target factor table', (
   // 앵커 기준값이 4494 → 4597로 바뀐 이유: 30초 격자 8표본 모델을 폐기하고 지속시간 가중 모델로
   // 교체했다(격자는 stage1 240초 중 표본에 안 걸리는 구간을 통째로 빠뜨렸다).
   // stage1은 프론트로드가 없고 런타임 버스트도 보스뿐이라 앵커 = 웨이브+중간보강 지속시간 가중 부하다.
-  it('anchors stage1 base expected jarmob HP in the ~4500-4700 range', () => {
+  it('anchors stage1 base expected jarmob HP in the abb28 10% E02/E03-reduced range', () => {
     const anchor = stageExpectedBaseJarmobHp('stage1')
-    expect(anchor).toBeGreaterThanOrEqual(4500)
-    expect(anchor).toBeLessThanOrEqual(4700)
+    expect(anchor).toBeGreaterThanOrEqual(4350)
+    expect(anchor).toBeLessThanOrEqual(4500)
   })
 
   // 총량은 STAGE_JARMOB_TOTAL_HP_FACTOR가 단독 결정한다(블렌드 자기정규화).
@@ -461,11 +508,11 @@ describe('jarmob expected total HP follows the per-stage target factor table', (
 
   // 총량 정책(factor)의 착지점. 주의: 이 값은 앵커×factor와 항등이라 factor 회귀만 잡고
   // 타임라인 회귀는 못 잡는다 — 타임라인 방어는 아래 20초 구간 단언이 맡는다.
-  // 기준 5562 = 새 앵커 4597 × 1.21 (이전 5420은 옛 격자 앵커 4494 기준이라 폐기).
-  it('lands stage2 expected jarmob total HP on the +10% difficulty target (5562 +-3%)', () => {
+  // abb28 10% E02/E03 감소 후 기준 5330 ≈ 새 앵커 4405 × 1.21.
+  it('lands stage2 expected jarmob total HP on the reduced abb28 +10% difficulty target (5330 +-3%)', () => {
     const stage2Total = stageExpectedJarmobHp('stage2')
-    expect(stage2Total).toBeGreaterThanOrEqual(5562 * 0.97)
-    expect(stage2Total).toBeLessThanOrEqual(5562 * 1.03)
+    expect(stage2Total).toBeGreaterThanOrEqual(5330 * 0.97)
+    expect(stage2Total).toBeLessThanOrEqual(5330 * 1.03)
   })
 
   // ★ "스2가 스1보다 쉽다"의 직접 회귀 방어(신규 2026-08-07).
@@ -488,8 +535,8 @@ describe('jarmob expected total HP follows the per-stage target factor table', (
     const bossPhase = getWavePhasesForStage('stage2').find((phase) => phase.start === 168)
     const perSpawn = Object.entries(bossPhase.weights)
       .reduce((sum, [type, weight]) => sum + weight * ENEMY_STATS[type].hp, 0)
-    // 재배분 직전: target 29(웨이브 15마리) x 108.92 = 1633.8
-    expect(waveSizeForPhase(bossPhase) * perSpawn).toBeGreaterThanOrEqual(1633.79)
+    // abb28 10% E02 감소 적용 후: target 29(웨이브 15마리) x 104.83 = 1572.4
+    expect(waveSizeForPhase(bossPhase) * perSpawn).toBeGreaterThanOrEqual(1572.4)
   })
 
   // 블렌드는 부담을 HP와 밀도가 똑같이 나눠 진다. 2026-08-07부터 배율이 1 미만이 될 수 있다 —
@@ -959,6 +1006,8 @@ describe('pooled standard enemy runtime wiring', () => {
 
   it('keeps Matilda out of the world until the shared gameplay-time dialogue grace expires', () => {
     const enemiesSource = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
+    const matildaMeshSource = readFileSync(new URL('./MatildaMesh.jsx', import.meta.url), 'utf8')
     const effectStart = enemiesSource.indexOf('// 마틸다 등장 대사를 읽는 동안')
     const effectEnd = enemiesSource.indexOf('\n\n  const dropTextbook', effectStart)
     const effectSource = enemiesSource.slice(effectStart, effectEnd)
@@ -968,6 +1017,9 @@ describe('pooled standard enemy runtime wiring', () => {
     const schedulerStart = enemiesSource.indexOf('runtimeQueueRef.current.processScheduled = (kind, a, b) =>')
     const schedulerEnd = enemiesSource.indexOf('\n\n  // 도지 처치', schedulerStart)
     const schedulerSource = enemiesSource.slice(schedulerStart, schedulerEnd)
+    const matildaBranchStart = schedulerSource.indexOf('kind === SCHEDULE_MATILDA')
+    const matildaBranchEnd = schedulerSource.indexOf('} else if (kind === SCHEDULE_WAVE', matildaBranchStart)
+    const matildaBranch = schedulerSource.slice(matildaBranchStart, matildaBranchEnd)
 
     expect(enemiesSource).toContain("import { advanceMatildaEntryGrace, canSpawnMatildaEntry, cancelMatildaEntryGrace, createMatildaEntryGrace } from '../lib/matildaEntryGrace.js'")
     expect(effectSource).toContain('createMatildaEntryGrace({')
@@ -979,6 +1031,15 @@ describe('pooled standard enemy runtime wiring', () => {
     expect(schedulerSource).toContain('kind === SCHEDULE_MATILDA')
     expect(schedulerSource).toContain('canSpawnMatildaEntry(entry, store)')
     expect(schedulerSource.indexOf('addEnemies([')).toBeGreaterThan(schedulerSource.indexOf('kind === SCHEDULE_MATILDA'))
+    expect(matildaBranch).toContain("randomSpawnPos('B01'")
+    expect(matildaBranch).toContain("type: 'B01'")
+    expect(matildaBranch).toContain('statOverride: matildaStats')
+    expect(matildaBranch).toContain('isMatilda: true')
+    expect(matildaBranch).not.toContain('spawnBoss()')
+    expect(isPooledEnemyType('B01')).toBe(false)
+    expect(zombieMeshSource).toContain("import MatildaMesh from './MatildaMesh.jsx'")
+    expect(zombieMeshSource).toContain('<MatildaMesh movementPose={animPhase !== \'stun\'} />')
+    expect(matildaMeshSource).toContain("import matildaFaceTextureUrl from '../assets/character/matilda_face_texture.webp'")
   })
 })
 

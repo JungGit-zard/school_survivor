@@ -49,7 +49,7 @@ export const ENEMY_RUNTIME_HP = new Float32Array([0, 8, 70, 14, 32, 70, 320, 90,
 export const ENEMY_RUNTIME_SPEED = new Float32Array([0, 0.475, 0.385, 1.1, 0.45, 0.5, 0.6, 2.45, 2.18, 0, 0, 0, 0, 2.55, 2.45])
 export const ENEMY_RUNTIME_DAMAGE = new Float32Array([0, 8, 14, 6, 8, 16, 20, 14, 7, 0, 0, 0, 0, 6, 9])
 export const ENEMY_RUNTIME_SCALE = new Float32Array([0, 1, 1.4, 0.75, 0.9, 1.15, 1.6, 1.08, 0.78, 0, 0, 0, 0, 0.88, 0.92])
-export const ENEMY_RUNTIME_XP = new Float32Array([0, 6, 15, 5, 10, 15, 56, 12, 5, 0, 0, 0, 0, 5, 6])
+export const ENEMY_RUNTIME_XP = new Float32Array([0, 4, 15, 5, 10, 15, 56, 12, 5, 0, 0, 0, 0, 5, 6])
 export const ENEMY_RUNTIME_CONTACT_DIST = new Float32Array([0, 0.28, 0.36, 0.22, 0.26, 0.32, 0.42, 0.28, 0.22, 0, 0, 0, 0, 0.22, 0.24])
 
 function isFiniteNumber(value) {

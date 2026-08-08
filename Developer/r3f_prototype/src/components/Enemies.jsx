@@ -28,7 +28,7 @@ import { createEnemyHitSparkEvent, COMMON_ENEMY_HIT_KNOCKBACK } from '../lib/ene
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { isPlayerWeaponSightBlocked } from '../lib/weaponTargeting.js'
 import { logKill } from '../lib/playtestLogger.js'
-import { getStageObjectSightObstacles, isStageObjectSightBlocked } from './StageObjects/stageObjectColliders.js'
+import { getStageObjectSightObstacles, isStageObjectEnemyTrackingBlocked } from './StageObjects/stageObjectColliders.js'
 import { createEnemyHitEventQueue } from '../lib/enemyHitEventQueue.js'
 import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { advanceMatildaEntryGrace, canSpawnMatildaEntry, cancelMatildaEntryGrace, createMatildaEntryGrace } from '../lib/matildaEntryGrace.js'
@@ -889,9 +889,15 @@ const SCHEDULE_MID_WAVE = 4
 const SCHEDULE_BURST = 5
 const SCHEDULE_MATILDA = 6
 
-function isPooledEnemyType(type) {
+export function isPooledEnemyType(type) {
   const code = enemyTypeToCode(type)
-  return code >= 1 && code <= STANDARD_POOL_TYPE_MAX
+  // Boss meshes (including the current stage2-boss-v2 B02) are rendered by
+  // Enemy/ZombieMesh. ZombieInstanceLayer intentionally has no boss body mesh.
+  return code >= 1 && code <= STANDARD_POOL_TYPE_MAX && !isBossType(type)
+}
+
+export function shouldScheduleBurst(fired, elapsedSec, eventSec) {
+  return !fired && elapsedSec >= eventSec
 }
 
 function countPooledType(type) {
@@ -1333,6 +1339,7 @@ export default function Enemies() {
         return
       }
       if (evt.formation === STAGE2_GUARD_CHASE_FORMATION) {
+        emitSfx({ id: 'stage2GuardWhistle', volume: 0.62 })
         addEnemies(createStage2GuardChaseEntries(cache.bounds, Math.random).map((entry) => ({ id: ++_uid, ...entry, statOverride: stageHpOverride(entry.type, cache.id) })), true, cache.spawnToken)
         return
       }
@@ -1425,7 +1432,7 @@ export default function Enemies() {
       const generation = enemyPool.generation[index]
       if (!shouldRefreshEnemySight(tier, index, sightFrame, sightGeneration[index], generation)) continue
       const proxy = enemyPool.proxies[index]
-      enemySightBlocked[index] = isStageObjectSightBlocked(proxy.translation(), playerPos, obstacles) ? 1 : 0
+      enemySightBlocked[index] = isStageObjectEnemyTrackingBlocked(proxy.translation(), playerPos, obstacles) ? 1 : 0
       sightGeneration[index] = generation
     }
     const stageConfig = stageRuntime.stageConfig
@@ -1474,7 +1481,7 @@ export default function Enemies() {
     const burstEvents = stageRuntime.burstEvents
     for (let burstIndex = 0; burstIndex < burstEvents.length; burstIndex += 1) {
       const evt = burstEvents[burstIndex]
-      if (firedBurstsRef.current[burstIndex] || sec < evt.sec) continue
+      if (!shouldScheduleBurst(firedBurstsRef.current[burstIndex], sec, evt.sec)) continue
       firedBurstsRef.current[burstIndex] = 1
       enqueueScheduled(SCHEDULE_BURST, burstIndex, sec)
     }

@@ -28,7 +28,7 @@ import {
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { isBossType } from '../lib/burstEvents.js'
-import { getStageObjectSightObstacles, isStageObjectSightBlocked } from './StageObjects/stageObjectColliders.js'
+import { getStageObjectSightObstacles, isStageObjectEnemyTrackingBlocked } from './StageObjects/stageObjectColliders.js'
 import { isPlayerWeaponSightBlocked } from '../lib/weaponTargeting.js'
 import ZombieMesh from './ZombieMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
@@ -250,7 +250,11 @@ export function isMatildaBodyContact({ enemyX, enemyZ, yaw = 0, playerX, playerZ
 
 // XP 媛믪? 援먭낵??30% ?쒕엻瑜좎쓣 蹂댁젙????3.3諛곕줈 梨낆젙 (Planner/B.寃뚯엫湲고쉷,諛몃윴??援ы쁽/B-1 罹먮┃???깆옣,?λ젰移??낃렇?덉씠??援ъ“ 援ы쁽/Rewards_Drops/dual_drop_system_2026-05-08.md 짠7-2).
 export const ENEMY_STATS = {
-  E01: { hp: 8,    speed: 0.475, damage: 8,  scale: 1.00, xp: 6,  contactDist: 0.28 },
+  // E01 xp 6 → 4 (2026-08-08): E01(hp 8)이 더 강한 E03(hp 14, speed 1.1, xp 5)보다
+  // 보상이 높은 역전 상태였다. 최약체가 최고 효율이면 강적을 잡을 이유가 없다.
+  // 이 값을 바꾸면 enemySimulation.js의 ENEMY_RUNTIME_XP도 같이 바꿔야 한다
+  // (enemySimulation.parity.test.js가 강제한다).
+  E01: { hp: 8,    speed: 0.475, damage: 8,  scale: 1.00, xp: 4,  contactDist: 0.28 },
   E02: { hp: 70,   speed: 0.385, damage: 14, scale: 1.40, xp: 15, contactDist: 0.36 },
   E03: { hp: 14,   speed: 1.1,  damage: 6,  scale: 0.75, xp: 5,  contactDist: 0.22 },
   E04: { hp: 32,   speed: 0.45, damage: 8,  scale: 0.90, xp: 10, contactDist: 0.26,
@@ -748,7 +752,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     // 무기도 같은 장애물에 막혀(weaponTargeting.js) 상호 무피해 교착이 된다.
     // 승리 조건이 240초 생존이라 그 교착은 곧 플레이어 승 — 마틸다와 같은 이유로 면제한다.
     if (!isMatilda && !stats.chefBoss && elapsedMs >= nextSightCheckRef.current) {
-      sightBlockedRef.current = isStageObjectSightBlocked(t, playerPos, sightObstacles)
+      sightBlockedRef.current = isStageObjectEnemyTrackingBlocked(t, playerPos, sightObstacles)
       nextSightCheckRef.current = elapsedMs + 90 + (stableEnemyHash(id) % 31)
     }
     if (writeSightBlockedEnemyVelocity(_sightBlockedVelocity, sightBlockedRef.current, id, _dir.x, _dir.z, stats.speed)) {

@@ -220,8 +220,8 @@ describe('useGameStore run-end unlock evaluator', () => {
   })
 
   it('gainXp의 level-up 분기에서 runLevelUps 증가', () => {
-    useGameStore.getState().gainXp(40) // 4번 레벨업
-    expect(useGameStore.getState().runLevelUps).toBe(4)
+    useGameStore.getState().gainXp(40) // 관문 9,13,17 소진 → 3번 레벨업
+    expect(useGameStore.getState().runLevelUps).toBe(3)
   })
 
   it('damagePlayer HP≤0 분기는 _onRunEnd를 호출한다', () => {

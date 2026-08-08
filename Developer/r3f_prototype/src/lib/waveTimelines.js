@@ -3,10 +3,41 @@
 // 3D 컴포넌트 체인 없이 기본 타임라인을 읽을 수 있게 한다.
 // 기존 import 경로 호환을 위해 Enemies.jsx가 재수출한다.
 
+const REDUCED_STAGE_ZOMBIE_WEIGHTS = Object.freeze({
+  E02: 0.9, // 보라색 탱커 좀비: abb28 기준 개체수 10% 감소
+  E03: 0.9, // 녹색 러너 좀비: abb28 기준 개체수 10% 감소
+})
+
+function retuneReducedStageZombieWeights(phases) {
+  return phases.map((phase) => {
+    const weights = phase.weights ?? {}
+    let freedWeight = 0
+    const nextWeights = {}
+
+    for (const [type, weight] of Object.entries(weights)) {
+      const multiplier = REDUCED_STAGE_ZOMBIE_WEIGHTS[type]
+      if (Number.isFinite(multiplier)) {
+        nextWeights[type] = weight * multiplier
+        freedWeight += weight - nextWeights[type]
+      } else {
+        nextWeights[type] = weight
+      }
+    }
+
+    if (freedWeight > 0) {
+      // E04/E06 같은 시그니처 타입 압력은 건드리지 않고, 줄어든 E02/E03 물량은 기본 잡몹 쪽으로 돌린다.
+      const fillerType = weights.E01 ? 'E01' : weights.E05 ? 'E05' : 'E01'
+      nextWeights[fillerType] = (nextWeights[fillerType] ?? 0) + freedWeight
+    }
+
+    return { ...phase, weights: nextWeights }
+  })
+}
+
 // 1스테이지는 추격/돌진형만 사용한다 (Bang_Rules 2026-05-09 부록 / stage1_replan §3-2).
 // 기존 E04 비중은 추격 압박을 늘리도록 E02/E03/E05로 재분배.
 // 4분(240초) 타임라인. 5분 기준에서 전체 ×0.8 비례 축소.
-export const WAVE_PHASES = [
+const BASE_WAVE_PHASES = [
   // 0:00–0:40 단일 좀비 구간.
   // 2026-07-26 사용자 요청: 1웨이브 수량 70%(24→17). 이전 서술("E01 밀도 2배")은 더 이상 정확하지 않다.
   { start:   0, end:  40, target: 17, weights: { E01: 1.00 } },
@@ -68,7 +99,7 @@ export const WAVE_PHASES = [
 // 그 재원은 봉우리였던 96~120s(1.7배)의 target 19→17에서 마련했다. 결과: 0~168s 최저 0.91배.
 // 또한 stage2가 MID_WAVE_STAGES에 합류해 웨이브 사이 정중앙 보강이 들어온다(Enemies.jsx) —
 // 같은 총량을 훨씬 촘촘히 흘리는 것이 "스2가 스1보다 쉽다"의 진짜 해법이었다.
-export const STAGE2_WAVE_PHASES = [
+const BASE_STAGE2_WAVE_PHASES = [
   // 0:00–0:24 온보딩 — E01 단일. t=0 웨이브는 ×3 프론트로드(rawWaveSizeForStage)로 오프닝 밀도 확보.
   { start:   0, end:  24, target: 18, weights: { E01: 1.00 } },
   // 0:24–0:48 러너 합류 — 이동 압박 시작. t=30 웨이브도 ×3 프론트로드 대상.
@@ -112,7 +143,7 @@ export const STAGE2_WAVE_PHASES = [
 // 재설계(2026-07-18): 발견 C(밀도 절반) 대응 = 오프닝 프론트로드(t=0 ×2, Enemies.jsx) +
 // 카이팅 차단 형태(ring/pincer) + ×1.44 실효 HP 전제 곡선. RZL@35/80/120/150 반복 스파이크로 대각 압박 리듬 강화.
 // 조기 도입 사슬(E04@34·E05@52·E06@108) 유지. 설계 정본: Planner/stage3_zombie_wave_redesign_2026-07-18.md.
-export const STAGE3_WAVE_PHASES = [
+const BASE_STAGE3_WAVE_PHASES = [
   // 0:00–0:16 도입 — 온보딩 16s 압축. t=0 프론트로드 ×2로 오프닝 밀도 확립. 러너 비중↑ 이동 압박 즉시.
   { start:   0, end:  16, target: 20, weights: { E01: 0.80, E03: 0.20 } },
   // 0:16–0:34 러너 강화 + 탱커 조기 등장(처치지연 시작)
@@ -156,7 +187,7 @@ export const STAGE3_WAVE_PHASES = [
 // 타입 지속(persistence) 원칙 계승(스3): 한 번 등장한 타입은 이후 유지, 조기 도입 사슬 E04@18·E05@30·E06@74.
 // 조기 등장 자체는 STAGE4_BURST_EVENTS(E04@18·E05@30·E06@74)가 보장하고, 웨이브 weights는 지속 압박을 담당한다.
 // weights 합 = 1.00. 보스@140 이후 잡몹 target 급감(16~20, 보스 집중), 215~240 탈출 스프린트는 E01 다수.
-export const STAGE4_WAVE_PHASES = [
+const BASE_STAGE4_WAVE_PHASES = [
   // 0:00–0:12 온보딩 압축(12s) — 러너로 이동 압박 즉시 부여
   { start:   0, end:  12, target: 18, weights: { E01: 0.80, E03: 0.20 } },
   // 0:12–0:30 원거리 E04 + 탱커 E02 합류 — "안전지대 소멸" 시작(원거리 축 또렷하게 0.14)
@@ -185,6 +216,11 @@ export const STAGE4_WAVE_PHASES = [
   // 3:35–4:00 탈출 스프린트 — E01 다수로 포탈까지, 원거리 경량
   { start: 215, end: 240, target: 22, weights: { E01: 0.56, E02: 0.24, E05: 0.14, E04: 0.06 } },
 ]
+
+export const WAVE_PHASES = retuneReducedStageZombieWeights(BASE_WAVE_PHASES)
+export const STAGE2_WAVE_PHASES = retuneReducedStageZombieWeights(BASE_STAGE2_WAVE_PHASES)
+export const STAGE3_WAVE_PHASES = retuneReducedStageZombieWeights(BASE_STAGE3_WAVE_PHASES)
+export const STAGE4_WAVE_PHASES = retuneReducedStageZombieWeights(BASE_STAGE4_WAVE_PHASES)
 
 export function getDefaultWavePhases(stageId = 'stage1') {
   if (stageId === 'stage2') return STAGE2_WAVE_PHASES

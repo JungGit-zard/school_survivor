@@ -154,6 +154,23 @@ async function refreshGameStoreFromStorage() {
 }
 
 function getErrorMessage(error) {
-  if (error instanceof Error && error.message) return error.message
-  return 'Google login failed.'
+  const code = typeof error?.code === 'string' ? error.code : ''
+  const status = Number(error?.status ?? error?.response?.status)
+  if (
+    status === 401
+    || code === 'auth/id-token-expired'
+    || code === 'auth/user-token-expired'
+    || code === 'auth/invalid-user-token'
+    || code === 'auth/requires-recent-login'
+    || code === 'auth/reauthentication-required'
+  ) {
+    return '인증이 만료되었습니다. 다시 인증해 주세요.'
+  }
+  if (code === 'auth/network-request-failed') {
+    return '네트워크 문제로 로그인하지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.'
+  }
+  if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+    return 'Google 로그인이 취소되었습니다. 다시 시도해 주세요.'
+  }
+  return 'Google 로그인에 실패했습니다. 다시 시도해 주세요.'
 }

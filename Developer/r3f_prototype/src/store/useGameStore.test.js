@@ -10,14 +10,16 @@ describe('useGameStore XP and reset behavior', () => {
     useGameStore.getState().resetGame()
   })
 
+  // 곡선 정본이 start 4 / growth 1.24에서 start 9 / growth 1.12로 바뀌었다(초반 XP 스노볼 제거).
+  // 관문 9,13,17,22 → 40 XP면 9+13+17=39를 쓰고 xp 1이 남아 레벨4, 다음 관문은 22.
   it('큰 XP를 한 번에 얻어도 필요한 만큼 레벨업을 큐에 쌓는다', () => {
     useGameStore.getState().gainXp(40)
     const state = useGameStore.getState()
 
-    expect(state.player.level).toBe(5)
-    expect(state.player.xp).toBe(2)
+    expect(state.player.level).toBe(4)
+    expect(state.player.xp).toBe(1)
     expect(state.player.xpToNext).toBe(22)
-    expect(state.pendingLevelUps).toBe(4)
+    expect(state.pendingLevelUps).toBe(3)
     expect(state.phase).toBe('levelup')
   })
 
@@ -27,7 +29,7 @@ describe('useGameStore XP and reset behavior', () => {
     const state = useGameStore.getState()
 
     expect(state.player.maxHp).toBe(120)
-    expect(state.pendingLevelUps).toBe(3)
+    expect(state.pendingLevelUps).toBe(2)
     expect(state.phase).toBe('levelup')
   })
 
