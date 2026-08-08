@@ -120,12 +120,11 @@ describe('TitleScreen lobby entry', () => {
     expect(emojis.every((node) => node.classList.contains('title-intro-zombie'))).toBe(true)
     expect(emojis.every((node) => node.getAttribute('aria-hidden') === 'true')).toBe(true)
     expect(emojis.every((node) => parseFloat(node.style.animationDelay) > (
-      Math.max(...letters.map((letter) => parseFloat(letter.style.animationDelay))) + 520
+      Math.max(...letters.map((letter) => parseFloat(letter.style.animationDelay))) + 260
     ))).toBe(true)
+    expect(emojis.every((node) => node.style.animationDelay === '1025ms')).toBe(true)
     expect(scene.classList.contains('title-intro-scene')).toBe(true)
-    expect(parseFloat(scene.style.animationDelay)).toBeGreaterThanOrEqual(
-      Math.max(...emojis.map((node) => parseFloat(node.style.animationDelay))) + 900,
-    )
+    expect(scene.style.animationDelay).toBe('1500ms')
     expect(container.querySelector('[data-title-service-name]').getAttribute('aria-hidden')).toBe('true')
 
     const motionCss = container.querySelector('style[data-title-intro-css]').textContent
@@ -135,7 +134,9 @@ describe('TitleScreen lobby entry', () => {
     expect(motionCss).toContain('@keyframes titleZombieScurry')
     expect(motionCss).toContain('@keyframes titleSceneGather')
     expect(motionCss).toContain('0% { opacity: 0; transform: translate3d(0, 105vh, 0); }')
-    expect(motionCss).toContain('.title-intro-scene')
+    expect(motionCss).toContain('.title-intro-letter { animation: titleLetterSlam 260ms')
+    expect(motionCss).toContain('.title-intro-zombie { animation: titleZombieScurry 450ms')
+    expect(motionCss).toContain('.title-intro-scene { animation: titleSceneGather 425ms')
     expect(motionCss).not.toContain('@media (prefers-reduced-motion: reduce)')
     expect(motionCss).not.toContain(':root[data-reduced-effects]')
 

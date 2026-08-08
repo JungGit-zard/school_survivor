@@ -288,13 +288,12 @@ describe('weapon upgrade icon assets', () => {
     })
   })
 
-  it('renders no Studio-controlled weapon icon while Firebase Studio is blocked', () => {
+  it('keeps the extra-battery weapon icon visible while Firebase Studio is blocked', () => {
     blockFirebaseStudioRuntime()
     const container = document.createElement('div')
     const root = createRoot(container)
     act(() => root.render(<UpgradeIcon type="missile" />))
-    expect(container.querySelector('img')).toBeNull()
-    expect(container.textContent).toBe('')
+    expect(container.querySelector('img')?.getAttribute('src')).toContain('08_wea_extrabattery.png.webp')
     act(() => root.unmount())
   })
 

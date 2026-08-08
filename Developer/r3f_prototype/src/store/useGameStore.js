@@ -23,6 +23,7 @@ import { getAdminBalanceConfig } from '../lib/adminConfig.js'
 import { vibrateFeedback } from '../lib/titleSettings.js'
 import { isFirebaseProgressHydrated, recordPlayActivity, requestCloudProgressSave, readFirebasePlayerProgress, updateFirebasePlayerProgress } from '../lib/firebaseProgress.js'
 import { submitRun } from '../lib/firebaseRanking.js'
+import { isProjectMaster } from '../lib/projectAdmin.js'
 import { useAuthStore } from './useAuthStore.js'
 import { getBossClearBonus, getRankingScore, getRankingScorePolicy } from '../lib/rankingScorePolicy.js'
 import { logDamageTaken } from '../lib/playtestLogger.js'
@@ -202,6 +203,7 @@ export const useGameStore = create(
     matildaSpawned: false,
     deathCause: null,
     bossBonus: 0,
+    godMode: false,
     gameKey:     0,
     goldSession: 0,
     goldTotal:   0,
@@ -240,8 +242,12 @@ export const useGameStore = create(
 
     // 플레이어 피해
     damagePlayer: (amount, { ignoreInvulnerability = false, source = null } = {}) => {
-      const { player, phase } = get()
+      const { player, phase, godMode } = get()
       if (phase !== 'playing') return
+      if (godMode) {
+        if (isProjectMaster(useAuthStore.getState().user)) return
+        set({ godMode: false })
+      }
       if (player.invulnerable && !ignoreInvulnerability) return
       const hp = Math.max(0, player.hp - amount)
       logDamageTaken(amount, hp)
@@ -273,8 +279,12 @@ export const useGameStore = create(
     //    마틸다 접촉 쿨다운 500ms를 덮어 즉사가 무효화되는 버그가 있었다).
     //  - 데미지 숫자 연출에 Infinity 같은 값이 뜨는 것도 막는다.
     killPlayer: (source = null) => {
-      const { player, phase } = get()
+      const { player, phase, godMode } = get()
       if (phase !== 'playing') return
+      if (godMode) {
+        if (isProjectMaster(useAuthStore.getState().user)) return
+        set({ godMode: false })
+      }
       set({ player: { ...player, hp: 0 }, phase: 'gameover', pauseSource: null, deathCause: source })
       emitSfx({ id: 'playerDeath' })
       vibrateRuntimeFeedback([40, 60, 40])
@@ -282,6 +292,19 @@ export const useGameStore = create(
     },
 
     endInvulnerable: () => set((s) => ({ player: { ...s.player, invulnerable: false } })),
+
+    setGodMode: (enabled) => {
+      if (enabled !== true) {
+        set({ godMode: false })
+        return true
+      }
+      if (!isProjectMaster(useAuthStore.getState().user)) {
+        set({ godMode: false })
+        return false
+      }
+      set({ godMode: true })
+      return true
+    },
 
     healPlayer: (amount) => set((s) => ({
       player: { ...s.player, hp: Math.min(s.player.maxHp, s.player.hp + amount) },
@@ -827,6 +850,7 @@ export const useGameStore = create(
         matildaSpawned: false,
         deathCause: null,
         bossBonus: 0,
+        godMode: false,
         gameKey:     s.gameKey + 1,
         goldSession: 0,
         runKills:    0,

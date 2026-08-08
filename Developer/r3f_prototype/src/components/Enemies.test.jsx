@@ -281,22 +281,22 @@ describe('random-interval discrete wave scheduler', () => {
     expect(midWaveSizeForStage(wave1Phase, 'stage1')).toBe(6)
   })
 
-  it('cuts only the first two Stage 2 waves at 5s and 30s to half', () => {
+  it('keeps only the first two Stage 2 waves at 5s and 30s at 60 percent', () => {
     const opening = { target: 18 }
     const thirtySecond = { target: 22 }
-    // 구조적 ×3 프론트로드와 밀도 계산은 유지하고, 최종 실제 산출 수만 절반으로 줄인다.
+    // 구조적 ×3 프론트로드와 밀도 계산은 유지하고, 최종 실제 산출 수만 원래의 60%로 줄인다.
     const dens = (raw) => Math.max(1, Math.round(raw * STAGE_DENSITY_MULTIPLIER.stage2))
     const beforeHalf = (raw) => Math.round(dens(raw) * STAGE2_SPAWN_MULTIPLIER)
 
     expect(firstWaveTimeForStage('stage2')).toBe(5)
     expect(firstWaveTimeForStage('stage1')).toBe(0)
     expect(nextWaveTimeForStage(5, 'stage2', () => 0)).toBe(30)
-    expect(STAGE2_OPENING_GREEN_WAVE_MULTIPLIER).toBe(0.5)
+    expect(STAGE2_OPENING_GREEN_WAVE_MULTIPLIER).toBe(0.6)
     expect(rawWaveSizeForStage(opening, 'stage2', 5)).toBe(27)
     expect(rawWaveSizeForStage(thirtySecond, 'stage2', 30)).toBe(33)
     expect(rawWaveSizeForStage(thirtySecond, 'stage2', 20)).toBe(11)
-    expect(waveSizeForStageAtTime(opening, 'stage2', 5)).toBe(Math.round(beforeHalf(27) * 0.5))
-    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 30)).toBe(Math.round(beforeHalf(33) * 0.5))
+    expect(waveSizeForStageAtTime(opening, 'stage2', 5)).toBe(Math.round(beforeHalf(27) * 0.6))
+    expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 30)).toBe(Math.round(beforeHalf(33) * 0.6))
     expect(waveSizeForStageAtTime(thirtySecond, 'stage2', 20)).toBe(beforeHalf(11))
   })
 

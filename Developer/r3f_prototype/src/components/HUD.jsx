@@ -348,8 +348,6 @@ export function UpgradeIcon({ type }) {
     setImageFailed(false)
   }, [imageSrc])
 
-  if (studioItemId && !studioTuning) return null
-
   return (
     <div style={styles.iconBox}>
       {imageSrc && !imageFailed && (

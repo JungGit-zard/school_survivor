@@ -43,7 +43,7 @@ const TITLE_ENTER_VECTORS = [
   { x: '100vw', y: '-28vh', rotation: '18deg' },
   { x: '15vw', y: '-65vh', rotation: '24deg' },
 ]
-const TITLE_SLAM_SPAN_MS = 1610
+const TITLE_SLAM_SPAN_MS = 805
 
 function buildTitleLetters(word, startOrder) {
   return Array.from(word, (char, index) => ({
@@ -85,7 +85,7 @@ function clearPendingStartAfterLogin() {
 }
 
 function titleLetterDelayMs(order, total) {
-  return 120 + order * Math.max(70, Math.round(TITLE_SLAM_SPAN_MS / Math.max(1, total)))
+  return 60 + order * Math.max(35, Math.round(TITLE_SLAM_SPAN_MS / Math.max(1, total)))
 }
 const TITLE_EMOJI_CLUSTER = '🧟‍♀️❤️'
 const TITLE_SCHOOL_EMOJI = '🏫'
@@ -109,9 +109,9 @@ const TITLE_INTRO_CSS = `
     72% { opacity: 1; transform: translate3d(0, -2vh, 0); }
     100% { opacity: 1; transform: translate3d(0, 0, 0); }
   }
-  .title-intro-letter { animation: titleLetterSlam 520ms cubic-bezier(.16,.84,.28,1.08) backwards; }
-  .title-intro-zombie { animation: titleZombieScurry 900ms ease-out backwards; }
-  .title-intro-scene { animation: titleSceneGather 850ms cubic-bezier(.16,.84,.28,1.04) backwards; }
+  .title-intro-letter { animation: titleLetterSlam 260ms cubic-bezier(.16,.84,.28,1.08) backwards; }
+  .title-intro-zombie { animation: titleZombieScurry 450ms ease-out backwards; }
+  .title-intro-scene { animation: titleSceneGather 425ms cubic-bezier(.16,.84,.28,1.04) backwards; }
   .title-main-action:focus-visible { outline:3px solid #fff8e8; outline-offset:3px; }
 `
 
@@ -431,7 +431,7 @@ export default function TitleScreen({
       <style data-title-intro-css>{TITLE_INTRO_CSS}</style>
       <TitleSceneCanvas
         className="title-intro-scene"
-        style={{ ...styles.canvas, animationDelay: '3000ms' }}
+        style={{ ...styles.canvas, animationDelay: '1500ms' }}
       />
 
       <div style={styles.tint} />
@@ -463,7 +463,7 @@ export default function TitleScreen({
               aria-hidden="true"
               className="title-intro-zombie"
               data-title-emoji
-              style={{ ...styles.titleEmoji, animationDelay: '2050ms' }}
+              style={{ ...styles.titleEmoji, animationDelay: '1025ms' }}
             >
               {TITLE_SCHOOL_EMOJI}
             </span>
@@ -476,7 +476,7 @@ export default function TitleScreen({
               aria-hidden="true"
               className="title-intro-zombie"
               data-title-emoji
-              style={{ ...styles.titleEmoji, animationDelay: '2050ms' }}
+              style={{ ...styles.titleEmoji, animationDelay: '1025ms' }}
             >
               {TITLE_EMOJI_CLUSTER}
             </span>

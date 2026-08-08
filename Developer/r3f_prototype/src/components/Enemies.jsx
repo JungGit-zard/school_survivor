@@ -451,7 +451,7 @@ export const STAGE1_SPAWN_MULTIPLIER = 1.15
 // Stage 2 spawn-count tuning (2026-08-08): increase delivered zombie count
 // without changing HP normalization or the wave timeline/composition.
 export const STAGE2_SPAWN_MULTIPLIER = 1.5
-export const STAGE2_OPENING_GREEN_WAVE_MULTIPLIER = 0.5
+export const STAGE2_OPENING_GREEN_WAVE_MULTIPLIER = 0.6
 
 // 웨이브당 마릿수 = 활성 phase target × 0.5 (반올림, 최소 1 보장).
 export function waveSizeForPhase(phase) {
