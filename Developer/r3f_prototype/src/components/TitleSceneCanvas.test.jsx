@@ -21,7 +21,7 @@ describe('TitleSceneCanvas is fully detached from Firebase', () => {
     document.body.innerHTML = ''
   })
 
-  it('mounts TitleScene3D unconditionally, with no Studio readiness prop left in the title path', async () => {
+  it('mounts TitleScene3D synchronously and unconditionally, with no Studio readiness prop left in the title path', async () => {
     const appSource = readFileSync(resolve(process.cwd(), 'src/App.jsx'), 'utf8')
     const readyGameSource = readFileSync(resolve(process.cwd(), 'src/components/ReadyGameApp.jsx'), 'utf8')
     const titleScreenSource = readFileSync(resolve(process.cwd(), 'src/components/TitleScreen.jsx'), 'utf8')
@@ -36,6 +36,9 @@ describe('TitleSceneCanvas is fully detached from Firebase', () => {
     // 게임 주소에서 Firebase 정본을 읽는 경로가 없어야 한다.
     expect(appSource).not.toContain('hydrateGameCanonicalStudio')
     expect(canvasSource).toContain('applyFrozenStudioSnapshot()')
+    expect(canvasSource).toContain("import TitleScene3D from './TitleScene3D.jsx'")
+    expect(canvasSource).not.toContain("lazy(() => import('./TitleScene3D.jsx'))")
+    expect(canvasSource).not.toContain('<Suspense fallback={null}>')
 
     // 동결 스냅샷을 임포트 시점에 적용하므로 로그인·네트워크 없이 런타임이 준비된다.
     expect(isFirebaseStudioRuntimeReady()).toBe(true)
@@ -46,7 +49,6 @@ describe('TitleSceneCanvas is fully detached from Firebase', () => {
 
     await act(async () => {
       root.render(<TitleSceneCanvas />)
-      await vi.dynamicImportSettled()
     })
     expect(container.querySelector('[data-testid="title-canvas"]')).not.toBeNull()
     expect(container.querySelector('[data-testid="title-scene-3d"]')).not.toBeNull()

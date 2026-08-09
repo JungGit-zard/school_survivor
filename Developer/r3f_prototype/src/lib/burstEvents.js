@@ -13,6 +13,10 @@ export const isBossType = (type) => BOSS_BURST_TYPES.includes(type)
 export const RUN_ZOMBIE_CREW_FORMATION = 'runZombieCrew'
 export const STAGE2_GUARD_CHASE_FORMATION = 'stage2GuardChase'
 export const STAGE2_MIXED_REINFORCEMENT = 'stage2MixedReinforcement'
+export const ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS = [
+  { sec: 110, type: 'E07', count: 3 },
+  { sec: 110, type: 'E02', count: 3 },
+]
 
 // Stage 2 추가 보강(2026-08-09 사용자 지시): 120초부터 30초마다,
 // 240초 종료 전까지만 15마리씩 일반 좀비를 현재 phase 구성 안에서 섞어 더한다.
@@ -31,6 +35,7 @@ export const BURST_EVENTS = [
   { sec:  72, type: 'E03', count:  2 },  // 러너 압박 — 6→2 (E03 전 구간 ×1/3, 2026-07-04)
   { sec: 108, type: 'E01', count:  5 },  // 90–108초 완화 구간 이후 잡몹 러시
   { sec: 108, type: 'E02', count:  3 },
+  ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
   { sec: 120, type: 'E05', count:  3 },  // 돌진 첫 등장 (E04 탄환형 폐기 — 2026-05-09)
   { sec: 144, type: 'E05', count:  3 },  // 돌진 압박 강화
   { sec: 168, type: 'E06', count:  1 },  // 거대 첫 등장
@@ -65,6 +70,7 @@ export const STAGE2_BURST_EVENTS = [
   { sec:  30, type: 'E01', count: 20 },                       // 30초 녹색좀비 추가 러시(2026-08-09)
   { sec:  90, type: 'E01', count: 20 },                       // 1분 30초 녹색좀비 러시(2026-08-09)
   { sec:  90, type: 'E02', count:  3 },                       // 1분 30초 탱커 동반(2026-08-09)
+  ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
   ...STAGE2_MIXED_REINFORCEMENT_EVENTS,
   { sec:  60, type: 'E03', count:  5, formation: 'ring' },    // 러너 포위
   { sec:  60, type: 'E07', count:  5 },                       // 1분 웃는얼굴 좀비 5마리(E01 2배 스탯, 2026-08-09)
@@ -88,6 +94,7 @@ export const STAGE3_BURST_EVENTS = [
   { sec: 120, type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 3차: 2분 압박 체크포인트
   { sec: 150, type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 4차: 보스 직후 재압박
   { sec: 108, type: 'E06', count:  1 },                         // 거대 조기 등장 보장
+  ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
   { sec: 132, type: 'E06', count:  1 },                         // 피크 거대 1기 추가(미조우 방어)
   // ── 보스: 체육교사 B03 단일 등장(135). 로비 카드(체육교사)와 실제 전투 일치. ──
   { sec: 135, type: 'B03', count:  1 },
@@ -118,6 +125,7 @@ export const STAGE4_BURST_EVENTS = [
   // 예고 정본 STAGE4_SPAWN_TELEGRAPHS와 sec 1:1 정렬.
   { sec:  40, type: 'E03', count:  6, formation: 'ring' },     // 첫 완전 포위(러너)
   { sec:  96, type: 'E02', count:  6, formation: 'pincer' },   // 탱커 앞뒤 협공(피크 예열)
+  ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
   { sec: 120, type: 'E05', count:  4, formation: 'ring' },     // 차저 포위(피크 정점, 보스 직전)
   { sec: 178, type: 'E06', count:  2, formation: 'pincer' },   // 보스 구간 거대 앞뒤 벽
 ]

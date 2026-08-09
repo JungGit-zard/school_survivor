@@ -26,6 +26,7 @@ This repository is self-contained for the current Three_Mini mandatory startup c
 - `contents/11_SESSION_CONTINUITY.md` — source: `SESSION_CONTINUITY.md` — startup reading and session-memory rule source
 - `contents/12_SESSION_MEMORY_latest_entry.md` — source: `SESSION_MEMORY.md (latest single ## Session entry only)` — latest single session entry only
 - `contents/13_STUDIO_GAME_TITLE_CHARACTER_ABSOLUTE_LAW.md` — source: `STUDIO_GAME_TITLE_CHARACTER_ABSOLUTE_LAW.md` — canonical title/character visual state law
+- `contents/14_THREEMINI_GIT_MUTATION_PROHIBITION.md` — source: `Developer/agent_room/mandatory_precommand/threemini_mandatory_context/contents/14_THREEMINI_GIT_MUTATION_PROHIBITION.md` — Three_Mini Advisor-only Git mutation hard guard
 
 ## Provenance note
 

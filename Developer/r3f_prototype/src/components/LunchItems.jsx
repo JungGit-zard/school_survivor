@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { playerPos } from '../lib/refs.js'
@@ -12,15 +12,44 @@ const SPAWN_INTERVAL_MS = 60000
 const SPAWN_INTERVAL_JITTER_MS = 0
 const COLLECT_RADIUS = 0.65
 const DESPAWN_MS = 28000
+const LUNCH_DROP_Y = 0.38
+const MAX_FORCED_DROP_SUBSCRIBERS = 1
 
 let _lunchId = 0
+const forcedLunchDropSubscribers = new Set()
+
+function makeLunchItem(pos, spawnMs) {
+  const kind = Math.random() < 0.45 ? 'milk' : 'meal'
+  return {
+    id: ++_lunchId,
+    kind,
+    heal: kind === 'milk' ? 8 : 14,
+    pos,
+    spawnMs,
+  }
+}
+
+function subscribeForcedLunchDrop(listener) {
+  if (typeof listener !== 'function' || forcedLunchDropSubscribers.size >= MAX_FORCED_DROP_SUBSCRIBERS) return () => {}
+  forcedLunchDropSubscribers.add(listener)
+  return () => forcedLunchDropSubscribers.delete(listener)
+}
+
+export function emitRztLunchFoodDrop(position) {
+  const x = Array.isArray(position) ? position[0] : position?.x
+  const z = Array.isArray(position) ? position[2] : position?.z
+  if (!Number.isFinite(x) || !Number.isFinite(z)) return false
+  const copiedPos = [x, LUNCH_DROP_Y, z]
+  for (const listener of forcedLunchDropSubscribers) listener(copiedPos)
+  return forcedLunchDropSubscribers.size > 0
+}
 
 function randomLunchPos() {
   const angle = Math.random() * Math.PI * 2
   const radius = 2.8 + Math.random() * 5.8
   return [
     playerPos.x + Math.sin(angle) * radius,
-    0.38,
+    LUNCH_DROP_Y,
     playerPos.z + Math.cos(angle) * radius,
   ]
 }
@@ -137,25 +166,25 @@ export default function LunchItems() {
   const [items, setItems] = useState([])
   const itemsRef = useRef([])
   const nextSpawnRef = useRef(1600)
+  const clockMsRef = useRef(0)
 
   const removeItem = (id) => {
     itemsRef.current = itemsRef.current.filter((item) => item.id !== id)
     setItems([...itemsRef.current])
   }
 
+  useEffect(() => subscribeForcedLunchDrop((pos) => {
+    itemsRef.current = [...itemsRef.current, makeLunchItem(pos, clockMsRef.current)]
+    setItems([...itemsRef.current])
+  }), [])
+
   useFrame(({ clock }) => {
     if (useGameStore.getState().phase !== 'playing') return
     const now = clock.elapsedTime * 1000
+    clockMsRef.current = now
     if (now < nextSpawnRef.current || itemsRef.current.length >= MAX_ITEMS) return
 
-    const kind = Math.random() < 0.45 ? 'milk' : 'meal'
-    const next = {
-      id: ++_lunchId,
-      kind,
-      heal: kind === 'milk' ? 8 : 14,
-      pos: randomLunchPos(),
-      spawnMs: now,
-    }
+    const next = makeLunchItem(randomLunchPos(), now)
     itemsRef.current = [...itemsRef.current, next]
     setItems([...itemsRef.current])
     nextSpawnRef.current = now + SPAWN_INTERVAL_MS + Math.random() * SPAWN_INTERVAL_JITTER_MS

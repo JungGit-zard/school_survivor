@@ -17,7 +17,7 @@ import UnconsciousStudent from './StageObjects/UnconsciousStudent.jsx'
 import { CompassBladeModel } from './Weapons/CompassBlade.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
 import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
-import { PlayerVisual } from './Player.jsx'
+import PlayerMesh from './PlayerMesh.jsx'
 
 const TITLE_CHASE_TARGET = [0.48, 0.08]
 export const TITLE_PLAYER_RUN_BASE_POSITION = [0.48, 0.88, 0.38]
@@ -232,13 +232,7 @@ function TitlePlayer({ reducedEffects }) {
 
   return (
     <group ref={runnerRef} position={TITLE_PLAYER_RUN_BASE_POSITION} rotation={TITLE_PLAYER_RUN_BASE_ROTATION} scale={2}>
-      <PlayerVisual
-        meshGroup={meshGroup}
-        movingRef={movingRef}
-        hp={100}
-        maxHp={100}
-        showHealthBar={false}
-      />
+      <PlayerMesh groupRef={meshGroup} movingRef={movingRef} />
     </group>
   )
 }

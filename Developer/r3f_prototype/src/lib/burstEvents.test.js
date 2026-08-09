@@ -16,6 +16,25 @@ import {
 } from './burstEvents.js'
 import { BOSS_SPAWN_CENTER_SEC } from './stageConfig.js'
 
+const allStageBurstTables = [
+  ['stage1', BURST_EVENTS],
+  ['stage2', STAGE2_BURST_EVENTS],
+  ['stage3', STAGE3_BURST_EVENTS],
+  ['stage4', STAGE4_BURST_EVENTS],
+]
+
+describe('전 스테이지 1:50 웃는좀비·탱커 보강', () => {
+  it.each(allStageBurstTables)('%s는 110초 E07 3마리와 E02 3마리를 정확히 1개씩 추가한다', (_stageId, events) => {
+    expect(events.filter((event) => event.sec === 110 && event.type === 'E07' && event.count === 3)).toHaveLength(1)
+    expect(events.filter((event) => event.sec === 110 && event.type === 'E02' && event.count === 3)).toHaveLength(1)
+  })
+
+  it('기존 Stage 2 웃는좀비 버스트를 그대로 보존한다', () => {
+    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 60, type: 'E07', count: 5 })
+    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 82, type: 'E07', count: 10 })
+  })
+})
+
 describe('burstEvents 보스 등장 시각 파생', () => {
   it('classifies the randomized boss window without claiming a fixed phase', () => {
     expect(getBossPhaseStatus(169)).toBe('before')

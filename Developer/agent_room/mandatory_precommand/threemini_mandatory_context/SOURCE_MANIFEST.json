@@ -114,6 +114,14 @@
       "sha256_utf8_content": "efb102e6dda583da06902d5c29b742ff97e652bb21b3db6d29dab89db7f5f677",
       "bytes_utf8": 3467,
       "lines": 56
+    },
+    {
+      "file": "contents/14_THREEMINI_GIT_MUTATION_PROHIBITION.md",
+      "source_path": "Developer/agent_room/mandatory_precommand/threemini_mandatory_context/contents/14_THREEMINI_GIT_MUTATION_PROHIBITION.md",
+      "why": "Three_Mini Advisor-only Git mutation hard guard",
+      "sha256_utf8_content": "cdd62ead38d26a50992022540901870f4cfec6a4e043f5fbb0c9eb9b8616e2ba",
+      "bytes_utf8": 934,
+      "lines": 11
     }
   ]
 }

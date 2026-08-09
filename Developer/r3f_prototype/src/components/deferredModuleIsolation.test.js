@@ -20,12 +20,13 @@ describe('initial-screen deferred module isolation', () => {
     expect(title).not.toContain("from '../store/useGameStore.js'")
   })
 
-  it('isolates optional title 3D and stage props behind direct, deferred imports', () => {
+  it('keeps title 3D in the initial title module while stage props use direct imports', () => {
     const canvas = source('./TitleSceneCanvas.jsx')
     const scene = source('./TitleScene3D.jsx')
 
-    expect(canvas).toContain("const TitleScene3D = lazy(() => import('./TitleScene3D.jsx'))")
-    expect(canvas).not.toContain("import TitleScene3D from './TitleScene3D.jsx'")
+    expect(canvas).toContain("import TitleScene3D from './TitleScene3D.jsx'")
+    expect(canvas).not.toContain("lazy(() => import('./TitleScene3D.jsx'))")
+    expect(canvas).not.toContain('<Suspense fallback={null}>')
     expect(scene).not.toContain("from './StageObjects/index.js'")
     expect(scene).toContain("import ClassroomDesk from './StageObjects/ClassroomDesk.jsx'")
   })

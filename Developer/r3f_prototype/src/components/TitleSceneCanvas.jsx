@@ -1,15 +1,12 @@
-import { Suspense, lazy } from 'react'
 import { Canvas } from '@react-three/fiber'
 import ErrorBoundary from './ErrorBoundary.jsx'
+import TitleScene3D from './TitleScene3D.jsx'
 import { applyFrozenStudioSnapshot } from '../title/frozenStudio.js'
-
-const TitleScene3D = lazy(() => import('./TitleScene3D.jsx'))
 
 // 타이틀은 Firebase와 완전히 분리돼 있다. 동결 스냅샷(src/title/)만 보고 무조건 렌더한다.
 applyFrozenStudioSnapshot()
 
-// Title 3D는 Three/R3F를 끌고 오므로 TitleScreen 본체에서 분리한다.
-// 이렇게 해야 버튼/로그인 UI가 먼저 뜨고, 무거운 3D 씬은 별도 chunk로 뒤따라 로드된다.
+// 타이틀 UI와 3D 장면은 함께 로드해 문구만 보이고 그래픽이 비는 상태를 만들지 않는다.
 export default function TitleSceneCanvas({ className, style }) {
   return (
     <Canvas
@@ -20,7 +17,7 @@ export default function TitleSceneCanvas({ className, style }) {
       style={style}
     >
       <ErrorBoundary fallback={null}>
-        <Suspense fallback={null}><TitleScene3D reducedEffects={false} /></Suspense>
+        <TitleScene3D reducedEffects={false} />
       </ErrorBoundary>
     </Canvas>
   )

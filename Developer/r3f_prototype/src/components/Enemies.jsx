@@ -9,6 +9,7 @@ import GoldCoin from './GoldCoin.jsx'
 import XpTextbook from './XpTextbook.jsx'
 import DancingDogeEvent from './DancingDogeEvent.jsx'
 import TreasureChest from './TreasureChest.jsx'
+import { emitRztLunchFoodDrop } from './LunchItems.jsx'
 import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { getE04IntroSec } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
@@ -1109,6 +1110,7 @@ export default function Enemies() {
           styleOverride: queue.deathStyle[slot] === 1 ? 'shatter5' : undefined,
         }
         pushBounded(queue.collapses, createDeathCollapseEntry(++_collapseId, dropData), 12)
+        if (type === 'RZT') emitRztLunchFoodDrop(pos)
         const bonus = ELITE_BONUS[type]
         if (bonus) {
           const textbookXp = getEliteBonusTextbookXp(type, dropData.xp)
@@ -1411,6 +1413,7 @@ export default function Enemies() {
     if (!dropData?.pos) return
 
     pushBounded(runtimeQueueRef.current.collapses, createDeathCollapseEntry(++_collapseId, dropData), 12)
+    if (dropData.type === 'RZT') emitRztLunchFoodDrop(dropData.pos)
 
     const bonus = ELITE_BONUS[dropData.type]
     if (bonus) {
