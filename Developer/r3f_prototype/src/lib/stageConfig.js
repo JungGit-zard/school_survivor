@@ -7,7 +7,10 @@ export const STAGE_DURATION_SEC = 240
 export const BOSS_SPAWN_CENTER_SEC = 180
 export const BOSS_SPAWN_JITTER_SEC = 0
 export const ESCAPE_PORTAL_OPEN_SEC = 210
-export const MATILDA_SPAWN_SEC = 300
+// 마틸다는 전 스테이지 3:50에 무조건 등장한다(2026-08-09 소유자 사양).
+// 스테이지 길이가 240초라 300초는 사실상 등장 불가였다 — 탈출 포탈(210초)이
+// 열린 뒤 마지막 10초를 마틸다 추격 구간으로 쓴다.
+export const MATILDA_SPAWN_SEC = 230
 export const MATILDA_WARNING_SEC = MATILDA_SPAWN_SEC - 5
 
 export function rollBossSpawnSec() {

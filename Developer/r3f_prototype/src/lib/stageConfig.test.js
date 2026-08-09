@@ -43,12 +43,12 @@ describe('stage configuration registry', () => {
     expect(getStageBossType('stage2')).toBe('B02')
   })
 
-  it('opens every exit at 3:30 and spawns every Matilda at 5:00', () => {
+  it('opens every exit at 3:30 and spawns every Matilda at 3:50', () => {
     for (const stageId of Object.keys(STAGE_CONFIGS)) {
       expect(getStageConfig(stageId)).toMatchObject({
         escapePortalSec: 210,
-        matildaWarningSec: 295,
-        matildaSec: 300,
+        matildaWarningSec: 225,
+        matildaSec: 230,
       })
     }
   })
@@ -60,12 +60,12 @@ describe('stage configuration registry', () => {
     expect(isStageUnlocked('stage2', { stage1Survival180Runs: 2 })).toBe(false)
   })
 
-  it('rolls each run boss spawn once within 3:00 plus or minus 10 seconds', () => {
+  it('spawns every boss at exactly 3:00 with no jitter', () => {
     expect(BOSS_SPAWN_CENTER_SEC).toBe(180)
-    expect(BOSS_SPAWN_JITTER_SEC).toBe(10)
-    expect(rollBossSpawnSec(() => 0)).toBe(170)
+    expect(BOSS_SPAWN_JITTER_SEC).toBe(0)
+    expect(rollBossSpawnSec(() => 0)).toBe(180)
     expect(rollBossSpawnSec(() => 0.5)).toBe(180)
-    expect(rollBossSpawnSec(() => 0.999999)).toBe(190)
+    expect(rollBossSpawnSec(() => 0.999999)).toBe(180)
   })
 
   it('defines stage 3 as a 240 second gymnasium stage with the PE teacher (B03) boss', () => {
@@ -77,8 +77,8 @@ describe('stage configuration registry', () => {
       bestRecordKey: 'stage3BestSurvivalSec',
       e04IntroSec: 34,
       escapePortalSec: 210,
-      matildaWarningSec: 295,
-      matildaSec: 300,
+      matildaWarningSec: 225,
+      matildaSec: 230,
       bossType: 'B03',
     })
     // 로비 카드와 실제 전투가 일치하므로 lobbyBossType 분리는 제거됨.
@@ -132,8 +132,8 @@ describe('stage configuration registry', () => {
       bossType: 'B04',
       e04IntroSec: 18,
       escapePortalSec: 210,
-      matildaWarningSec: 295,
-      matildaSec: 300,
+      matildaWarningSec: 225,
+      matildaSec: 230,
     })
     // 급식실 맵 경계 12×16(스3 18×18보다 좁음 — 밀도 억제 근거).
     expect(getStageBounds('stage4')).toMatchObject({ halfX: 14.4, halfZ: 16 })
