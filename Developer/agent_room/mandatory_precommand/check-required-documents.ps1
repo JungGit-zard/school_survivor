@@ -167,6 +167,18 @@ if ($null -ne $profileAlwaysRequired) {
   }
 }
 
+$profileCentralizedRequired = $manifest.profileCentralizedRequired.$profileKey
+if ($null -ne $profileCentralizedRequired) {
+  $centralizedSelected = New-Object System.Collections.Generic.List[object]
+  foreach ($entry in @($profileCentralizedRequired)) {
+    foreach ($resolved in @(Resolve-ManifestEntry -RepoRoot $repoRoot -Entry $entry)) {
+      $centralizedSelected.Add([pscustomobject]@{ domain = ("profile:${profileKey}:centralized"); path = $resolved.path; fullPath = $resolved.fullPath; why = $resolved.why })
+    }
+  }
+  if ($centralizedSelected.Count -eq 0) { throw "Missing centralized required entry for profile: $Profile" }
+  $selected = $centralizedSelected
+}
+
 $dedup = @{}
 foreach ($item in $selected) {
   if (!$dedup.ContainsKey($item.path)) { $dedup[$item.path] = $item }

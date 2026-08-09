@@ -132,6 +132,7 @@ describe('quest inventory HUD', () => {
       expect(popup.textContent).toContain(quest.title)
       expect(popup.style.top).toBe('50%')
       expect(popup.style.transform).toBe('translate(-50%, -50%)')
+      expect(popup.querySelector('small')?.style.color).toBe('rgb(21, 128, 61)')
       expect(popup.style.fontSize).toBe('56px')
       expect(popup.style.pointerEvents).toBe('none')
       expect(popup.getAttribute('aria-live')).toBe('assertive')

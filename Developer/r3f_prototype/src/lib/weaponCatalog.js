@@ -1,5 +1,5 @@
-// 14종 무기의 단일 진실 카탈로그 (9 starter + 복원 2 + 신규 3).
-// starter 9종 base는 buildInitialWeapons(useGameStore.js)가 그대로 사용하는 base 스탯.
+// 17종 무기의 단일 진실 카탈로그 (10 starter + 복원 2 + 신규 3).
+// starter 10종 base는 buildInitialWeapons(useGameStore.js)가 그대로 사용하는 base 스탯.
 // 복원 2종(guidedMissile, starlink)·신규 3종(compassBlade, umbrellaGuard, eraserBomb)은
 // 컴포넌트·카드 효과 wiring까지 완료된 상태다.
 
@@ -88,7 +88,12 @@ export const WEAPON_CATALOG = {
     unlockConditions: STARTER,
     minLevelToAppear: 8,
   },
-
+  hanako: {
+    id: 'hanako',
+    label: '하나코',
+    base: { healIntervalMs: 20000, healPercent: 0.05, followDistance: 1.44 },
+    unlockConditions: STARTER,
+  },
   // ─── 복원 2종 (1차 9종 정본에 포함, 코드 일시 제거 상태 — U5/U6에서 컴포넌트 추가) ───
   guidedMissile: {
     id: 'guidedMissile',

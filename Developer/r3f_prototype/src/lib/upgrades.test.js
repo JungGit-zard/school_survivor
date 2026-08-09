@@ -121,6 +121,33 @@ describe('isUpgradeAvailable', () => {
     expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireChibiko, 8, weapons)).toBe(true)
   })
 
+  it('하나코 획득은 치비코 선행 활성만 요구하고 계정 해금과 독립 레벨 게이트는 요구하지 않는다', () => {
+    expect(UPGRADE_EFFECTS.acquireHanako).toEqual({
+      weapon: 'hanako',
+      kind: 'acquire',
+      requiresActiveWeapon: 'chibiko',
+      skipAccountUnlock: true,
+    })
+    expect(UPGRADE_EFFECTS.acquireHanako).not.toHaveProperty('minLevel')
+
+    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireHanako, 1, {
+      chibiko: wpn({ active: false }),
+      hanako: wpn({ active: false }),
+    })).toBe(false)
+  })
+
+  it('하나코 획득은 치비코 활성 후 Lv.1에서 가능하고 하나코 활성 후에는 다시 나오지 않는다', () => {
+    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireHanako, 1, {
+      chibiko: wpn({ active: true, level: 1 }),
+      hanako: wpn({ active: false }),
+    })).toBe(true)
+
+    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireHanako, 1, {
+      chibiko: wpn({ active: true, level: 1 }),
+      hanako: wpn({ active: true, level: 1 }),
+    })).toBe(false)
+  })
+
   it('unlock: 이미 active이면 false', () => {
     expect(isUpgradeAvailable(
       { weapon: 'bell', kind: 'acquire' }, 10,

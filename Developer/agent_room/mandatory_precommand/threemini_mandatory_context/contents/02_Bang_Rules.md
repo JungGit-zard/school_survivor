@@ -1,0 +1,352 @@
+# Bang_Rules.md
+
+> 🔄 **2026-08-09 — 커터칼 기본 치명타 +15%p:** `boxCutter` 기본 치명타 확률은 **0.10→0.25 (+15 percentage points)**로 올린다. 영구 치명타 업그레이드 +0.08 적용 후 최대 기본+영구 값은 **0.33**, 런 중 `boxCutterCrit` 4회(+0.08)를 포함한 clamp 상한은 **0.41**이다. 피해·쿨다운·사거리·폭·넉백·치명타 배율·다른 무기는 변경하지 않는다.
+
+> 🔄 **2026-08-09 — 게시판 조사 3도트 접촉:** Stage 2 분실물 게시판은 실제 회전 콜라이더 표면에서 **3도트(0.15 world units) 이하**로 붙었을 때만 조사할 수 있어야 하며, 플레이어 이동 한계 때문에 이 접촉 구간에 도달하지 못하는 상태를 금지한다.
+
+> 🔄 **2026-08-09 — Stage 2 바바리·경비원 속도 절반:** Stage 2 추격 이벤트의 바바리 좀비 `RZT` 이동속도는 **2.55→1.275 units/s**, 경비원 좀비 `RZG` 이동속도는 **2.45→1.225 units/s**로 각각 정확히 절반으로 낮춘다. 수량·체력·피해·배치와 Stage 3 달리기 좀비는 변경하지 않는다.
+
+> 🔄 **2026-08-09 — Stage 2 시작 녹색 좀비 2웨이브 60%:** Stage 2의 `t=5초`·`t=30초` 첫 두 웨이브는 기존 실제 산출 마릿수의 **60%**로 반올림한다. 다른 웨이브·중간 보강·스폰 시각·구성 비중은 변경하지 않는다.
+
+> 🔄 **2026-07-16 — Stage 1 좀비 스폰 수 ×1.3:** Stage 1의 모든 실제 좀비 스폰 묶음(기본 웨이브, 웨이브 사이 중간 보강, 보스 등장 동시 호위)은 기존 산출 마릿수에 **1.3배**를 적용하고 가장 가까운 정수로 반올림한다. 스폰 시각·간격·적 구성 비중은 유지하며, 보스와 이벤트 몬스터 자체 수 및 Stage 2·3에는 적용하지 않는다.
+
+> 🔄 **2026-07-23 — B01 삼각자·도지 접촉 조정:** B01 수학선생 삼각자 휘두르기 플레이어 피격 반경은 **1.05 units (0.2625 블록)**으로 제한한다. 도지 접촉 넉백은 일반 좀비 피격과 동일하게 **4 units/s, 160ms**이며 피해는 주지 않는다.
+
+> 🔄 **2026-06-11 — 스테이지 길이 5분→4분:** 각 스테이지가 300초(5분)→**240초(4분)**로 단축, 전체 타임라인 ×0.8 비례 축소 (보스 240→192s, E04 도입 90→72s, 마일스톤·웨이브·버스트 ×0.8). 본 문서의 5분/300초 수치는 ×0.8로 재계산해 읽을 것. 현행 정본: 코드 + `Planner/B. GAME_DESIGN/Stage_balance_summary.md`.
+> **이 문서는 Escape! zombie school 프로젝트의 최상위 정책 문서입니다.**
+> 기획·개발·디자인 작업 시 반드시 이 문서를 먼저 참조하고, 내용에 위배되는 수치·설계를 사용하지 마십시오.
+
+---
+
+## 1. 단위 기준 (Unit Standard)
+
+### 1-1. 블록(Block) 정의
+- **1 블록 = 필드에서 눈에 보이는 바닥 타일 1칸**
+- 엔진 내부 단위: **1 블록 = 4 units** (Three.js / Rapier 물리 좌표계 기준)
+- 모든 거리·크기·범위 수치를 기획서·코드에 기재할 때는 반드시 **블록 단위**를 병기한다.
+  - 예시: `range: 22 units (5.5 블록)`
+
+### 1-2. 맵 크기
+| 항목 | 블록 | units |
+|------|------|-------|
+| 맵 가로·세로 | **24 블록** | 96 units |
+| 경계 벽 위치 | ±12 블록 | ±48 units |
+
+### 1-3. 카메라 줌
+- Orthographic zoom **60** = 화면에 가로 약 **17 블록** 가시
+- 줌 수치 변경 시 이 문서에도 반영 필수
+
+---
+
+## 2. 물리 좌표계 (Physics Coordinate System)
+
+- Y축 중력: **0** (위에서 내려다보는 탑다운, 중력 없음)
+- 플레이어 발바닥 Y: **≈ 0.32 units** (Collider 반높이)
+- 모든 충돌 판정은 **XZ 평면** 기준
+
+---
+
+## 3. 플레이어 기준 수치 (Player Reference Values)
+
+| 항목 | 기본값 | 단위 |
+|------|--------|------|
+| 이동속도 | 3 | units/s |
+| 최대 HP | 100 | — |
+| 무적 시간 | 520 ms | — |
+| 충돌 반경 | 0.192 units | 0.048 블록 |
+
+---
+
+## 4. 적 기준 수치 (Enemy Reference Values)
+
+| ID | 이름 | 속도 (units/s) | HP | 접촉 데미지 | 접촉 거리 (units) |
+|----|------|---------------|----|------------|-----------------|
+| E01 | 기본 | 0.475 | 8 | 8 | 0.28 |
+| E02 | 빠름 | 0.55 | 55 | 14 | 0.36 |
+| E03 | 유리 | 1.1 | 10 | 6 | 0.22 |
+| E04 | 1스테이지 제외 | 0.45 | 35 | 8 | 탄환형은 2스테이지 이후 보류 |
+| E05 | 돌진 | 0.5 | 70 | 16 | 돌진 시 1.7 |
+| E06 | 엘리트 | 0.6 | 240 | 20 | 0.42 |
+| B01 | 보스 | 0.475 | 1200 | 22 | — |
+
+**스폰 반경 기준:**
+- 일반 적: 플레이어 기준 8.5–12.5 units (2.1–3.1 블록)
+- E04 원거리: 1스테이지 미사용 (2스테이지 이후 보류)
+
+---
+
+## 5. 무기 기준 수치 (Weapon Reference Values)
+
+| 무기 | 쿨다운 (ms) | 기본 데미지 | 사거리 (units) | 비고 |
+|------|-----------|------------|--------------|------|
+| 연필 던지기 | 1100 | 5 | 22 (5.5 블록) | E01 체력 8 기준 약 2/3 피해, 성장 후 1방 가능 |
+| 책가방 휘두르기 | 1000 | 22 | 0.633 (근접) | 0.387 이내 적 있을 때 발동 |
+| 텀블러 궤도 | 상시 | 10 | 궤도 반경 1.0 | 초당 3.5회 타격, 1–3개 |
+| 과학 플라스크 | 2600 | 32 | 18 (4.5 블록) | 폭발 반경 1.6–2.4 |
+| 종 충격파 | 4200 | 14 | 반경 1.7 | 8방향 레이, 넉백 4.8 |
+| 스턴건 | 2800 | 22 | 체인 2–4 | 현재 잠김 |
+
+---
+
+## 6. 게임 타임라인 (Game Timeline)
+
+| 구간 | 시간 | 내용 |
+|------|------|------|
+| 초반 | 0–60s | E01 위주, 점진 증가 |
+| 중반 | 60–180s | E01~E06 모두 등장 |
+| 후반 | 180–240s | 최대 밀도 |
+| 보스전 | 240–300s | B01 소환, 동시 적 수 45 제한 |
+| 클리어 | 300s (5분) | 스테이지 클리어 |
+
+---
+
+## 7. XP & 레벨업 (Progression)
+
+- 초기 XP 임계값: **4** (2026-05-16 CEO 리뷰로 6→4 인하 — 첫 레벨업 < 15s 보장)
+- 레벨업 후 임계값: `ceil(xpToNext × 1.24 + 2)`
+- 레벨업 시 랜덤 업그레이드 3종 선택
+
+---
+
+## 8. 성능 제한 (Performance Limits)
+
+| 항목 | 제한값 |
+|------|--------|
+| 일반 구간 최대 동시 적 수 | 85 |
+| 보스 구간 최대 동시 적 수 | 45 |
+| 아이템 스폰 간격 | 60s (1분에 1개) |
+
+---
+
+## 9. 개발 정책 (Development Policy)
+
+1. **단위 혼용 금지** — 기획서와 코드 모두 블록 단위와 units를 병기한다. units만 단독 사용 금지.
+2. **수치 변경 시 이 문서 우선 수정** — 코드를 먼저 바꾸고 문서를 나중에 고치는 방식 금지.
+3. **신규 적/무기 추가 시** — 이 문서의 해당 표에 먼저 등록 후 구현.
+4. **맵 크기·카메라 줌 변경 금지** — 전체 수치 재조정이 필요한 근본 변경이므로, 반드시 별도 논의 후 이 문서를 개정.
+5. **물리 중력 유지** — `gravity: [0, 0, 0]` 탑다운 정책 유지. 변경 시 전 시스템 검토 필요.
+6. **gameKey 패턴 유지** — 게임 재시작 시 Physics 트리 전체 리마운트 방식(`gameKey` 증가)을 유지. 부분 리셋 금지.
+
+---
+
+## 10. 디렉터리 구조 요약 (Quick Reference)
+
+```
+Escape_zombie_school/
+├── Bang_Rules.md              ← 이 문서 (최우선 참조)
+├── Planner/                   ← 기획 문서
+├── Graphic_designer/          ← 비주얼 가이드
+├── CEO/                       ← 서비스 목표
+└── Developer/
+    ├── git_branch_addresses_2026-04-27.md
+    └── r3f_prototype/src/
+        ├── store/useGameStore.js
+        ├── lib/refs.js
+        ├── lib/toon.js
+        └── components/        ← 모든 게임 컴포넌트
+```
+
+---
+
+*최초 작성: 2026-05-01 | 작성자: Claude (claude/fixes-and-review 브랜치)*
+
+---
+
+## 2026-05-09 Stage 1 Projectile Enemy Removal Addendum
+
+This section records the accepted Stage 1 monster-direction change requested on 2026-05-09.
+
+### Mandatory Rules
+
+- Stage 1 must use only monsters that approach, chase, or charge toward the player.
+- Projectile-firing monsters are not allowed in Stage 1.
+- The monster introduced around 2 minutes must not fire bullets or projectiles in Stage 1.
+- `E04` ranged/projectile behavior is reserved for Stage 2 or later and must be removed from Stage 1 spawn tables.
+- `B01` Stage 1 boss pressure must be based on chase/charge behavior, not projectile fan shots.
+
+### Required Implementation Updates
+
+- Update `Developer/r3f_prototype/src/components/Enemies.jsx` so Stage 1 `WAVE_PHASES` and `BURST_EVENTS` do not spawn `E04`.
+- Update `Developer/r3f_prototype/src/components/Enemy.jsx` so `B01` does not fire projectile fan shots in Stage 1.
+- Stage 1 difficulty should come from enemy density, movement pressure, charge warnings, and boss charge behavior.
+
+---
+
+## 2026-05-03 Current Implementation Addendum
+
+This section records the current accepted implementation values after the 2026-05-03 review.
+
+### Stage Timing
+
+- Boss B01 spawn timing: 240 seconds (4:00).
+- Stage clear timing: 300 seconds (5:00).
+
+### Starting Weapon Rule
+
+- Start active weapon count: 1.
+- Start active weapon: `pencilThrow`.
+- `schoolBag` / 30 cm ruler and `tumbler` start inactive and are unlocked from level-up choices.
+
+### Current Weapon Values
+
+| Weapon key | Current role | Start active | Core values |
+| --- | --- | --- | --- |
+| `pencilThrow` | Basic projectile | Yes | Damage 5, cooldown 1100 ms, range 22 units (5.5 blocks). First E01 hit removes about 2/3 HP; damage growth enables one-shot later. |
+| `schoolBag` | Close ruler swing defense | No | Damage 22, cooldown 1000 ms, range 0.633 units, trigger range 1.0 unit |
+| `tumbler` | Orbiting close defense | No | Damage 10, radius 1.0 unit (0.25 blocks), 3.5 hits/sec |
+| `scienceFlask` | Dense group splash | No | Damage 32, cooldown 2600 ms, target range 2 units (0.5 blocks), splash radius 1.6 units (0.4 blocks) |
+| `bell` | 8-direction shockwave | No | Damage 14, cooldown 4200 ms, radius 1.7 units |
+| `stunGun` | Chain attack | No | Damage 22, cooldown 2800 ms, chain count 2 |
+| `guidedMissile` | Power-bank missile splash | No | Damage 16, cooldown 4000 ms, range 22 units (5.5 blocks), radius 1.6 units |
+| `starlink` | Random nearby lightning | No | Damage 28, cooldown 3800 ms, strike center within 5 units (1.25 blocks), strike radius 1.2 units |
+| `onigiri` | Bouncing multi-target projectile | No | Damage 18, cooldown 1800 ms, range 18 units (4.5 blocks), 4 bounces, bounce range 4.5 units |
+
+### Notes
+
+- Science Flask keeps the current implemented range because the current feel was accepted.
+- Starlink documentation uses 5 units, not 5 blocks, because that is the current implementation.
+
+---
+
+## 2026-05-06 Stage 1 Re-balance Addendum
+
+This section records the new accepted values after the 2026-05-06 full re-planning.
+근거: `Planner/B.게임기획,밸런스 구현/B-3 스테이지진행과 몬스터 등장구현/Stage1_Balance/stage1_replan_2026-05-06.md` and `Planner/Ref_Vampire_GameDesign/`.
+
+### Re-balance Principle
+
+- 데미지는 절대값보다 **"몇 방에 죽는가"** 기준 (게임데미지공식기획기준).
+- 후반 압박은 개별 HP 상승보다 **스폰 수와 적 조합** 으로 만든다.
+
+### New Weapon Values (Lv.1 base)
+
+| Weapon key | Lv.1 damage | Cooldown | Lv.5 damage |
+| --- | --- | --- | --- |
+| `pencilThrow` | 5 | 1100 ms | 17 |
+| `schoolBag` | 12 | 1300 ms | 32 |
+| `tumbler` | 4 | 0.4s tick | 12 |
+| `scienceFlask` | 30 | 2800 ms | 62 |
+| `bell` | 10 | 4500 ms | 26 |
+| `stunGun` | 18 | 3000 ms | 38 |
+| `onigiri` | 14 | 2000 ms | 34 |
+
+> 2026-05-17 확정: 1차 서비스 무기 총수는 **9종 유지**. 기본 카드 풀에 7종(`pencilThrow`, `schoolBag`, `tumbler`, `scienceFlask`, `bell`, `stunGun`, `onigiri`)이 즉시 등장하고, `guidedMissile`·`starlink` 2종은 계정 누적 조건 충족 시 해금되어 카드 풀에 진입한다 (`Planner/current_game_rules.md` §6 참조). 2026-05-16 CEO 리뷰의 "9→7 축소" 표현은 폐기.
+
+### New Enemy Values
+
+| ID | 이름 | HP | 속도 | 접촉 데미지 | XP |
+| --- | --- | --- | --- | --- | --- |
+| E01 | 잡몹 | 8 | 0.475 | 8 | 1 |
+| E02 | 탱커 | 70 | 0.55 | 14 | 3 |
+| E03 | 러너 | 14 | 1.10 | 6 | 1 |
+| E04 | 1스테이지 제외 | 32 | 0.45 | 8 | 2 |
+| E05 | 돌진 | 70 | 0.50 | 16 | 3 |
+| E06 | 거대 | 320 | 0.60 | 20 | 12 |
+| B01 | 보스 | 1400 | 0.475 | 22 | 0 |
+
+### 2026-05-09 E01 Early Speed Adjustment
+
+- 처음 등장하는 기본 좀비 `E01`의 Stage 1 이동속도는 기존 0.95에서 **0.475**로 절반 감소한다.
+- 목적: 첫 30초 구간에서 초보 유저가 이동, 자동 공격, XP 수집을 익히기 전에 너무 빨리 포위되지 않게 한다.
+- 이 변경은 기획 문서 기준이며, 코드 반영 시 `Developer/r3f_prototype/src/components/Enemy.jsx`의 `ENEMY_STATS.E01.speed`도 같은 값으로 맞춘다.
+
+### Weapon Slot / Level Caps
+
+- Max owned weapons: 4
+- Max weapon level: Lv.5
+- Stage 1 target end-state: 2–3 weapons at Lv.5
+
+### Weapon Unlock Gating (1st service — 2026-05-17 확정)
+
+근거: `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/weapon_upgrade_flow_and_unlock_plan_2026-05-14.md` §2 (4단 게이트 정본).
+
+- `pencilThrow`: 시작 지급.
+- `schoolBag` / `tumbler`: card visible from Lv.2.
+- `scienceFlask` / `bell`: card visible from Lv.4.
+- `stunGun`: card visible from Lv.6.
+- `onigiri`: card visible from Lv.8.
+- `guidedMissile` / `starlink`: 계정 누적 해금 (메타프로그레션 도입 시 트리거 확정 — `Planner/current_game_rules.md` §6). 해금 후 카드 등장 레벨은 1차안 Lv.6/Lv.8로 두되 메타프로그레션 기획에서 최종 결정.
+- 신규 무기 10종(`compassBlade`, `umbrellaGuard`, `eraserBomb`, `notebookBoomerang`, `chalkLine`, `deskPush`, `lockerDoor`, `cleaningMop`, `broadcastSpeaker`, `fireExtinguisher`)은 누적 해금 카탈로그. 게이트는 `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/weapon_expansion_unlock_plan_2026-05-10.md` §7 표 사용.
+
+### Weapon Unlock Condition Policy (2026-05-17 확정)
+
+- 신규 무기(누적 해금 카탈로그)의 해금 조건은 **OR 원칙**으로 작성한다.
+- 실력 조건(예: 한 판 처치 120, 보스 처치 1회)과 누적 조건(예: 누적 처치 300, 누적 클리어 5회) 둘 중 하나만 만족하면 해금.
+- 목적: 실력이 부족한 플레이어도 반복 플레이를 통해 동일 카탈로그에 접근 가능.
+- 정본 표: `Planner/B.게임기획,밸런스 구현/B-2 무기업그레이드,해금구현/Weapons/weapon_expansion_unlock_plan_2026-05-10.md` §7 "대체 조건" 절.
+
+---
+
+## 2026-05-17 Commuter-Friendly Session Addendum
+
+### Stage Duration Source
+
+- Stage 1 clear timing remains 300 seconds (5 minutes).
+- Code must read the duration from `Developer/r3f_prototype/src/lib/stageConfig.js` as `STAGE_DURATION_SEC = 300`.
+- Avoid reintroducing hard-coded `5 * 60 * 1000` checks in gameplay loop code.
+
+### Survival Milestone Gold Bonus
+
+| Time | Bonus | Label |
+| --- | ---: | --- |
+| 60s | +1 gold | 1분 생존 보너스 |
+| 180s | +3 gold | 3분 돌파 보너스 |
+| 240s | +4 gold | 보스 조우 보너스 |
+| 300s | +8 gold | 학교 탈출 보너스 |
+
+- Each milestone is awarded once per run.
+- Milestone gold increases both session gold and persistent `school_survivor:goldTotal`.
+
+### Opening Single-Type Density
+
+- Before 50 seconds, the opening zombie mix must stay as E01 only.
+- In that one-type opening section, only E01 density is doubled: wave target 12 -> 24, 0s burst 8 -> 16, 30s burst 6 -> 12.
+- Other enemy mix and later wave values should remain unchanged unless separately requested.
+
+### Upgrade Choice UI Constraint
+
+- Level-up weapon upgrade choices may show at most one pencil upgrade card at a time.
+- Pencil upgrade cards are `pencilDamage`, `pencilCount`, and `pencilPierce`.
+- This only limits simultaneous UI choices; it does not remove pencil upgrades from the upgrade pool.
+
+---
+
+## 2026-05-09 Dual Drop System Addendum
+
+근거: `Planner/B.게임기획,밸런스 구현/B-1 캐릭터 성장,능력치 업그레이드 구조 구현/Rewards_Drops/dual_drop_system_2026-05-08.md`.
+
+### Two Drop Currencies
+
+| 재화 | 키 | 역할 | 보존 |
+| --- | --- | --- | --- |
+| 교과서 | `xpTextbook` | 스테이지 내 XP / 레벨업 | 스테이지 종료 시 소멸 |
+| 황금 코인 | `goldCoin` | 계정 영구 패시브 재화 | localStorage `school_survivor:goldTotal` |
+
+### Drop Rules
+
+- 교과서: 일반 적 사망 시 **30% 확률** 드랍.
+- 황금 코인: **시간 기반 시계 드랍** — 25–35s 무작위 간격 (5분간 평균 약 10개). 위치는 화면 안 무작위 적 위치, 적이 없으면 플레이어 주변 3.0–6.0 units 링.
+
+### Boss / Elite Bonus
+
+| 적 | 교과서 | 황금 코인 |
+| --- | --- | --- |
+| E06 (거대) | 1 (확정) | 1 (확정) |
+| B01 (보스) | 3 (확정) | 5 (확정) |
+
+### Enemy XP Values
+
+교과서 30% 드랍률을 보정해 적별 XP를 약 3.3배로 올렸다 (5분 18–22 레벨업 목표 유지).
+
+| ID | XP |
+| --- | --- |
+| E01 | 6 |
+| E02 | 15 |
+| E03 | 5 |
+| E04 | 10 |
+| E05 | 15 |
+| E06 | 56 |
+| B01 | 0 |
+
+> 2026-05-25 밸런스 정정: E01 HP는 8로 유지하고 pencilThrow Lv.1 피해를 5로 조정한다. 첫 연필은 E01 체력의 약 2/3만 깎고, 연필 피해 성장 후 1방 처치가 가능해진다.
+> 2026-05-16 Run #1 실측 후: 5분 실제 Lv11 (목표 18-22의 절반). XP 전반 +50% 부스트 (E01 4→6, E02 10→15, E03 3→5, E04 7→10, E05 10→15, E06 40→56). 함께 5분 목표 Lv를 15-17로 하향.

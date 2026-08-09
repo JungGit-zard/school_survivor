@@ -9,6 +9,7 @@ export const PLAYER_DURABLE_STORAGE_KEYS = Object.freeze([
   'school_survivor:weaponUnlocks',
   'school_survivor:weaponPermanentUpgrades',
   'school_survivor:passiveUpgrades',
+  'school_survivor:zombieEncounters',
   'school_survivor:userNicknames',
   'school_survivor:titleSettings',
   'school_survivor:lastPlayActivity',
@@ -38,6 +39,7 @@ const RECORD_KEYS = [
 ]
 
 const SUPPORTED_LANGUAGES = new Set(['ko', 'en', 'ja'])
+const ZOMBIE_ENCOUNTER_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07'])
 
 const DEFAULT_TITLE_SETTINGS = Object.freeze({
   // null = 저장된 언어 없음 → 브라우저 언어를 쓴다(lib/i18n.js).
@@ -400,6 +402,7 @@ function createEmptyProgress() {
     weaponUnlocks: {},
     weaponPermanentUpgrades: {},
     passiveUpgrades: {},
+    encounteredZombieTypes: {},
     titleSettings: { ...DEFAULT_TITLE_SETTINGS },
   }
 }
@@ -411,6 +414,7 @@ function normalizeProgress(progress) {
   out.weaponUnlocks = normalizeFlagMap(progress.weaponUnlocks)
   out.weaponPermanentUpgrades = normalizeNumberMap(progress.weaponPermanentUpgrades)
   out.passiveUpgrades = normalizeNumberMap(progress.passiveUpgrades)
+  out.encounteredZombieTypes = normalizeZombieEncounterMap(progress.encounteredZombieTypes)
   out.titleSettings = normalizeTitleSettings(progress.titleSettings)
   return out
 }
@@ -438,6 +442,15 @@ function normalizeFlagMap(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return out
   for (const [key, raw] of Object.entries(value)) {
     if (raw === 1 || raw === true) out[key] = 1
+  }
+  return out
+}
+
+function normalizeZombieEncounterMap(value) {
+  const out = {}
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return out
+  for (const [key, raw] of Object.entries(value)) {
+    if (ZOMBIE_ENCOUNTER_TYPES.has(key) && (raw === 1 || raw === true)) out[key] = 1
   }
   return out
 }
@@ -515,6 +528,7 @@ function cloneProgress(progress) {
     weaponUnlocks: { ...progress.weaponUnlocks },
     weaponPermanentUpgrades: { ...progress.weaponPermanentUpgrades },
     passiveUpgrades: { ...progress.passiveUpgrades },
+    encounteredZombieTypes: { ...progress.encounteredZombieTypes },
     titleSettings: { ...progress.titleSettings },
   }
 }

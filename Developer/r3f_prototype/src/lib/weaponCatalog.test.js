@@ -11,11 +11,11 @@ import {
 } from './weaponCatalog.js'
 
 describe('weaponCatalog', () => {
-  it('14종 entry 등록 + starter 9종', () => {
+  it('17종 entry 등록 + starter 10종', () => {
     const all = getAllWeaponIds()
-    expect(all.length).toBe(16)
+    expect(all.length).toBe(17)
     const starter = getStarterIds()
-    expect(starter).toEqual(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'chibiko'])
+    expect(starter).toEqual(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'chibiko', 'hanako'])
   })
 
   it('Starter base 스탯이 BASE_WEAPONS 정본 값과 일치한다', () => {
@@ -51,6 +51,17 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.chibiko.base.damage).toBe(1.25)
     expect(WEAPON_CATALOG.chibiko.base.cooldown).toBe(1100)
     expect(WEAPON_CATALOG.chibiko.base.followDistance).toBe(0.72)
+    expect(WEAPON_CATALOG.hanako).toMatchObject({
+      id: 'hanako',
+      label: '하나코',
+      base: {
+        healIntervalMs: 20000,
+        healPercent: 0.05,
+        followDistance: 1.44,
+      },
+      unlockConditions: STARTER,
+    })
+    expect(WEAPON_CATALOG.hanako.minLevelToAppear).toBeUndefined()
   })
 
   it('복원 2종(R6) Lv.1 스탯 정확히 일치', () => {
@@ -139,9 +150,9 @@ describe('weaponCatalog', () => {
     })
   })
 
-  it('evaluateUnlocks 빈 records → starter 9종만', () => {
+  it('evaluateUnlocks 빈 records → starter 10종만', () => {
     const u = evaluateUnlocks({})
-    expect(u.size).toBe(9)
+    expect(u.size).toBe(10)
     for (const id of getStarterIds()) expect(u.has(id)).toBe(true)
     expect(u.has('compassBlade')).toBe(false)
   })
@@ -201,7 +212,7 @@ describe('weaponCatalog', () => {
   it('null/undefined records 안전', () => {
     expect(() => evaluateUnlocks(null)).not.toThrow()
     expect(() => evaluateUnlocks(undefined)).not.toThrow()
-    expect(evaluateUnlocks(null).size).toBe(9) // starter only
+    expect(evaluateUnlocks(null).size).toBe(10) // starter only
   })
 
   it('isStarter / isValidWeaponId / STARTER 상수', () => {

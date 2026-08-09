@@ -27,7 +27,7 @@ describe('weaponPermanentUpgrades storage layer', () => {
 
     expect(levels.pencilThrow).toBe(0)
     expect(levels.studentLantern).toBe(0)
-    expect(Object.keys(levels).length).toBe(16)
+    expect(Object.keys(levels).length).toBe(17)
   })
 
   it('starter 무기는 해금 저장값 없이도 구매되고 코인을 차감한다', () => {

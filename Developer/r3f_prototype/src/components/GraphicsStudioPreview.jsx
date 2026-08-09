@@ -63,6 +63,7 @@ import { UmbrellaModel } from './Weapons/UmbrellaGuard.jsx'
 import { EraserModel } from './Weapons/EraserBomb.jsx'
 import { BoxCutterModel } from './Weapons/BoxCutter.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
+import { HanakoModel } from './Weapons/Hanako.jsx'
 import { SharkMissileModel, FlameTrail } from './Weapons/SharkMissile.jsx'
 import { MissileBody } from './Weapons/Missile.jsx'
 import { StudentLanternVisual } from './Weapons/StudentLantern.jsx'
@@ -327,6 +328,13 @@ function WeaponModelPreview({ type }) {
     return (
       <group scale={[0.255, 0.255, 0.255]}>
         <ChibikoModel attackPhaseRef={chibikoAttackPhase} />
+      </group>
+    )
+  }
+  if (type === 'hanako') {
+    return (
+      <group scale={[0.255, 0.255, 0.255]}>
+        <HanakoModel />
       </group>
     )
   }

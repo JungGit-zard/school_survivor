@@ -17,3 +17,17 @@ describe('launchmini AAB pre-command notice', () => {
     expect(JSON.parse(result.stdout).mandatory_aab_notice).toBe(requiredNotice)
   })
 })
+
+describe('threemini centralized mandatory context', () => {
+  it.each(['auto', 'common', 'graphics'])('emits only START_HERE for %s domain', (domain) => {
+    const result = spawnSync('powershell.exe', [
+      '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', checker,
+      '-Profile', 'threemini', '-Domain', domain, '-TaskSummary', 'graphics startup context',
+    ], { cwd: repositoryRoot, encoding: 'utf8' })
+
+    expect(result.status).toBe(0)
+    expect(JSON.parse(result.stdout).read_required.map(({ path }) => path)).toEqual([
+      'Developer/agent_room/mandatory_precommand/threemini_mandatory_context/START_HERE.md',
+    ])
+  })
+})

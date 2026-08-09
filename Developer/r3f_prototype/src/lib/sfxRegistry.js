@@ -270,6 +270,8 @@ export function playSfx(id, volume = 1, options = {}) {
     _lastPlayed[id] = now
   }
 
+  const playbackVoiceCount = id === 'criticalHit' ? 2 : 1
+
   if (!_cache[id]) {
     const ogg = SOUND_MAP[id]
     const mp3 = ogg.replace('.ogg', '.mp3')
@@ -286,12 +288,14 @@ export function playSfx(id, volume = 1, options = {}) {
       onplayerror: (soundId) => releaseCombatVoice(id, soundId),
     })
   }
-  const soundId = _cache[id].play()
-  if (!protectedSfx) _activeCombatVoices.add(combatVoiceKey(id, soundId))
-  _cache[id].volume?.(tunedVolume, soundId)
-  // Howler retains a cached instance's prior playback rate. Apply the saved
-  // value even when it is 1 so an admin reset takes effect on the next play.
-  _cache[id].rate?.(tunedRate, soundId)
+  for (let voiceIndex = 0; voiceIndex < playbackVoiceCount; voiceIndex += 1) {
+    const soundId = _cache[id].play()
+    if (!protectedSfx) _activeCombatVoices.add(combatVoiceKey(id, soundId))
+    _cache[id].volume?.(tunedVolume, soundId)
+    // Howler retains a cached instance's prior playback rate. Apply the saved
+    // value even when it is 1 so an admin reset takes effect on the next play.
+    _cache[id].rate?.(tunedRate, soundId)
+  }
 }
 
 // 볼륨 조절 (뮤트/글로벌 볼륨 슬라이더 연동용)

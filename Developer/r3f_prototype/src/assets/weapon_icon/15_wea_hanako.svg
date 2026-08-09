@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Hanako companion icon">
+  <rect width="64" height="64" rx="16" fill="#f9d2df"/>
+  <circle cx="32" cy="23" r="12" fill="#f0d7cf" stroke="#21151c" stroke-width="3"/>
+  <path d="M20 22c1-10 7-15 16-13 7 1 10 6 10 14v8c-4-4-8-5-14-5s-10 1-14 5z" fill="#151016" stroke="#21151c" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M21 36h22l7 20H14z" fill="#f3a1b8" stroke="#21151c" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M24 40h16" stroke="#d74f82" stroke-width="4" stroke-linecap="round"/>
+  <g transform="translate(45 13) rotate(18)">
+    <ellipse cx="0" cy="-5" rx="3" ry="6" fill="#ffd1dc" stroke="#21151c" stroke-width="1.5"/>
+    <ellipse cx="5" cy="0" rx="3" ry="6" fill="#ffd1dc" stroke="#21151c" stroke-width="1.5" transform="rotate(72 5 0)"/>
+    <ellipse cx="0" cy="5" rx="3" ry="6" fill="#ffd1dc" stroke="#21151c" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="2.5" fill="#ffe977" stroke="#21151c" stroke-width="1"/>
+  </g>
+</svg>

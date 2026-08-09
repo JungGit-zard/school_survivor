@@ -40,6 +40,7 @@ import {
   enqueuePooledEnemySpawn,
   resetPooledEnemySpawnDrainQueue,
 } from '../lib/pooledEnemySpawnDrain.js'
+import { recordZombieEncounter } from '../lib/zombieEncyclopedia.js'
 
 // 황금 코인 시계 드랍: 4분에 약 10개 → 20–28s 무작위 간격 (5분 기준 ×0.8)
 const GOLD_INTERVAL_MIN_MS = 20_000
@@ -1236,11 +1237,13 @@ export default function Enemies() {
   const spawnPooledEnemy = useCallback((entry) => {
     const stats = { ...(ENEMY_STATS[entry.type] ?? ENEMY_STATS.E01), ...(entry.statOverride ?? {}) }
     const pos = entry.pos ?? [0, 0, 0]
-    return enemyPool.spawnInto(enemyHandleScratch, {
+    const spawned = enemyPool.spawnInto(enemyHandleScratch, {
       type: entry.type,
       x: pos[0], y: pos[1], z: pos[2], hp: stats.hp, maxHp: stats.hp,
       visualScale: stats.scale * ENEMY_SIZE_MULTIPLIER, runDirX: entry.runCrewDir?.x ?? 1, runDirZ: entry.runCrewDir?.z ?? 0,
     })
+    if (spawned) recordZombieEncounter(entry.type)
+    return spawned
   }, [])
 
   // stage/runtime token이 현재 store와 다르면 drain하지 않는다. stage effect가 큐를 비우기 전의
@@ -1260,10 +1263,12 @@ export default function Enemies() {
         // pooled numeric generation-id와 legacy special body key가 충돌하지 않도록 namespace를 분리한다.
         if (enemiesRef.current.length < MAX_SPECIAL_ENEMIES) {
           enemiesRef.current.push({ ...entry, id: `special-${entry.id}` })
+          recordZombieEncounter(entry.type)
           specialAdded = true
         }
         continue
       }
+
       if (deferPooled) {
         enqueuePooledEnemySpawn(runtimeQueueRef.current.spawnDrain, entry, stageToken)
         continue

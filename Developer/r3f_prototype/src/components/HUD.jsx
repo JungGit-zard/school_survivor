@@ -43,6 +43,7 @@ import compassBladeIconSrc from '../assets/weapon_icon/10_wea_compass.png.webp'
 import umbrellaIconSrc from '../assets/weapon_icon/11_wea_umb.png.webp'
 import eraserIconSrc from '../assets/weapon_icon/12_wea_eraser.png.webp'
 import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
+import hanakoIconSrc from '../assets/weapon_icon/15_wea_hanako.svg'
 import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
 import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.webp'
 import laidManPortraitSrc from '../assets/character/laid_man.webp'
@@ -113,6 +114,7 @@ const UPGRADES = [
   { key: 'lanternDuration', icon: 'lantern', label: '랜턴 지속 +1초', desc: '점등 시간과 타격 횟수 증가' },
   { key: 'lanternCrit', icon: 'lantern', label: '랜턴 치명타 강화', desc: '치명타 확률 +2%, 치명타 피해 배율 +0.75배 (최대 4.5배)' },
   { key: 'acquireChibiko', icon: 'chibiko', label: '치비코 해금', desc: '레벨1 연필 투척 · 보유 무기 능력 10% 강화' },
+  { key: 'acquireHanako', icon: 'hanako', label: '하나코 해금', desc: '치비코를 획득해야 등장; 20초마다 주인공 최대 체력의 5% 회복' },
   { key: 'chibikoCrit', icon: 'chibiko', label: '치비코 치명타 강화', desc: '치명타 확률 +2%, 치명타 피해 배율 +0.75배 (최대 4.5배)' },
   { key: 'acquireSharkMissile', icon: 'sharkMissile', label: '상어미사일 해금', desc: '가장 빽빽한 좀비 무리로 호밍 폭발' },
   { key: 'sharkMissileDamage', icon: 'sharkMissile', labelFn: damageLabel('상어미사일 피해', 'sharkMissile', 'sharkMissileDamage'), desc: '폭발 피해 증가' },
@@ -148,6 +150,7 @@ const WEAPON_UPGRADE_ICON_SRC = {
   umbrella: umbrellaIconSrc,
   eraser: eraserIconSrc,
   chibiko: chibikoIconSrc,
+  hanako: hanakoIconSrc,
   sharkMissile: sharkMissileIconSrc,
   lantern: lanternIconSrc,
 }
@@ -167,6 +170,7 @@ const WEAPON_KEY_TO_ICON = {
   umbrellaGuard: 'umbrella',
   eraserBomb:    'eraser',
   chibiko:       'chibiko',
+  hanako:        'hanako',
   sharkMissile:  'sharkMissile',
   studentLantern: 'lantern',
 }
@@ -2018,7 +2022,7 @@ const styles = {
     fontSize: 16.9,
     gap: 3.9,
   },
-  questPopupNextAction: { display: 'block', fontSize: 12, lineHeight: 1.25, fontWeight: uiType.weightStrong, color: '#5d554e' },
+  questPopupNextAction: { display: 'block', fontSize: 12, lineHeight: 1.25, fontWeight: uiType.weightStrong, color: '#15803d' },
   questItemNextAction: { color: '#15803d', fontSize: 15.6, lineHeight: 1.25 },
   questInventoryPanel: {
     ...schoolPanel('paper'),

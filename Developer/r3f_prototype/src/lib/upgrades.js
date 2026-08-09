@@ -121,6 +121,7 @@ export const UPGRADE_EFFECTS = {
   lanternCrit:         { weapon: 'studentLantern', kind: 'crit',   chanceStep: 0.02, chanceCap: 0.19, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireChibiko:       { weapon: 'chibiko',       kind: 'acquire', minLevel: 8 },
   chibikoCrit:          { weapon: 'chibiko',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.21, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
+  acquireHanako:        { weapon: 'hanako',        kind: 'acquire', requiresActiveWeapon: 'chibiko', skipAccountUnlock: true },
   acquireSharkMissile:  { weapon: 'sharkMissile',  kind: 'acquire', minLevel: 8 },
   sharkMissileDamage:  { weapon: 'sharkMissile',  kind: 'damage', dmg: 10 },
   sharkMissileRadius:  { weapon: 'sharkMissile',  kind: 'stat',   stat: 'radius',    step: 0.2, cap: 2.6 },
@@ -164,8 +165,9 @@ export function isUpgradeAvailable(effect, level, weapons, player = null) {
   const wpn = weapons[effect.weapon]
   if (effect.kind === 'acquire') {
     if (wpn?.active) return false
+    if (effect.requiresActiveWeapon && !weapons[effect.requiresActiveWeapon]?.active) return false
     // 계정 해금 게이트: starter는 isWeaponUnlocked가 항상 true, 그 외는 weaponUnlocks 디스크 상태.
-    if (!isWeaponUnlocked(effect.weapon)) return false
+    if (!effect.skipAccountUnlock && !isWeaponUnlocked(effect.weapon)) return false
     const ownedCount = Object.values(weapons).filter((w) => w.active).length
     return ownedCount < MAX_OWNED_WEAPONS
   }

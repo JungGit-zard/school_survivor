@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "created_for_task": "t_d86b3010",
+  "repository": "D:/JungSil/2.Minigame_project/school_survivor-integration/Developer/agent_room/mandatory_precommand/threemini_mandatory_context",
+  "records": [
+    {
+      "file": "contents/00_current_threemini_SOUL.md",
+      "source_path": "C:/Users/admin/AppData/Local/hermes/profiles/threemini/SOUL.md",
+      "why": "current canonical Three_Mini SOUL before centralization",
+      "sha256_utf8_content": "7c645ea7db7b54b94cd9a685d722e782999abcc8b8e809ce601bc93be64f0982",
+      "bytes_utf8": 2313,
+      "lines": 23
+    },
+    {
+      "file": "contents/01_AGENTS.md",
+      "source_path": "AGENTS.md",
+      "why": "repository agent instructions and routing pointers",
+      "sha256_utf8_content": "1dd0a04c8ed417d5fe5c5f476371fbf6d36399594be98225bb09ce5e87c14029",
+      "bytes_utf8": 23779,
+      "lines": 196
+    },
+    {
+      "file": "contents/02_Bang_Rules.md",
+      "source_path": "Bang_Rules.md",
+      "why": "project hard rules and constraints",
+      "sha256_utf8_content": "5380a8045f094e5d0c8df4f3d557b93a431fa5861349f0095278dcc43b019436",
+      "bytes_utf8": 17636,
+      "lines": 352
+    },
+    {
+      "file": "contents/03_CLAUDE.md",
+      "source_path": "CLAUDE.md",
+      "why": "Claude/Codex-facing project instructions",
+      "sha256_utf8_content": "6a18f1b0104cfeb89b9d8af242a271147af7f0db33421775c25fa565659b7bd7",
+      "bytes_utf8": 7203,
+      "lines": 130
+    },
+    {
+      "file": "contents/04_CONCEPTS.md",
+      "source_path": "CONCEPTS.md",
+      "why": "shared visual/release vocabulary",
+      "sha256_utf8_content": "c4dc94d492f4223f0dd7d2d4552991397ddcda377e1c6a08e85600a021c173bd",
+      "bytes_utf8": 2957,
+      "lines": 50
+    },
+    {
+      "file": "contents/05_codex_session_failure_postmortem_2026-08-08.md",
+      "source_path": "Developer/agent_room/codex_session_failure_postmortem_2026-08-08.md",
+      "why": "asset-first/UI-unverified failure modes",
+      "sha256_utf8_content": "73b146422e19763f08103f40fe62d682a9402ca28358397801f6fa9028049152",
+      "bytes_utf8": 11366,
+      "lines": 212
+    },
+    {
+      "file": "contents/06_escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md",
+      "source_path": "Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md",
+      "why": "mandatory Kanban/subagent routing map",
+      "sha256_utf8_content": "1fe59bd317fa3e60d5da1aeb33182824ed4d9cfb26f31e779bd12f8a86e093d1",
+      "bytes_utf8": 5565,
+      "lines": 99
+    },
+    {
+      "file": "contents/07_manifest.json",
+      "source_path": "Developer/agent_room/mandatory_precommand/manifest.json",
+      "why": "canonical required document manifest as of centralization",
+      "sha256_utf8_content": "d078a82c79f185802cb97cea6de01080f42a78fe038848ea24b2bfdc53a0bc2e",
+      "bytes_utf8": 12101,
+      "lines": 430
+    },
+    {
+      "file": "contents/08_README.md",
+      "source_path": "Developer/agent_room/mandatory_precommand/README.md",
+      "why": "central pre-command index",
+      "sha256_utf8_content": "41cc048cdaa93db6accf1eb367329c8456b7fc834bc80feda2029e70ff92e0aa",
+      "bytes_utf8": 3759,
+      "lines": 60
+    },
+    {
+      "file": "contents/09_graphics_studio_title_state_release_regression.md",
+      "source_path": "docs/solutions/integration-issues/graphics-studio-title-state-release-regression.md",
+      "why": "Graphics Studio/title regression solution",
+      "sha256_utf8_content": "21e32270d05c59f5e0550d1d9f7b7169441050b4197fd9925b9c3dfc235584c4",
+      "bytes_utf8": 5669,
+      "lines": 60
+    },
+    {
+      "file": "contents/10_project_develop_policy.md",
+      "source_path": "project_develop_policy.md",
+      "why": "highest-priority project policy",
+      "sha256_utf8_content": "4b07709e966cd7d5e3dd6ece67c9fc7f4882a0903388df328870ff1d6781ed02",
+      "bytes_utf8": 30107,
+      "lines": 266
+    },
+    {
+      "file": "contents/11_SESSION_CONTINUITY.md",
+      "source_path": "SESSION_CONTINUITY.md",
+      "why": "startup reading and session-memory rule source",
+      "sha256_utf8_content": "c4f007b0031fec4245d2632ee5f50acfdc0f46eb9d2ada4f8939e761e4a1c2d6",
+      "bytes_utf8": 8157,
+      "lines": 142
+    },
+    {
+      "file": "contents/12_SESSION_MEMORY_latest_entry.md",
+      "source_path": "SESSION_MEMORY.md (latest single ## Session entry only)",
+      "why": "latest single session entry only",
+      "sha256_utf8_content": "60a19967782e1619723e10a7e04151fad0c70e452aa0b46e56a313b78b7ca0b9",
+      "bytes_utf8": 2808,
+      "lines": 55
+    },
+    {
+      "file": "contents/13_STUDIO_GAME_TITLE_CHARACTER_ABSOLUTE_LAW.md",
+      "source_path": "STUDIO_GAME_TITLE_CHARACTER_ABSOLUTE_LAW.md",
+      "why": "canonical title/character visual state law",
+      "sha256_utf8_content": "efb102e6dda583da06902d5c29b742ff97e652bb21b3db6d29dab89db7f5f677",
+      "bytes_utf8": 3467,
+      "lines": 56
+    }
+  ]
+}

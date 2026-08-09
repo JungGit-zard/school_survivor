@@ -44,8 +44,8 @@ export default function GameplayScreen({
     const screen = phoneFrameRef?.current
     if (!screen || typeof screen.animate !== 'function') return
     criticalShakeAnimationRef.current?.cancel()
-    const x = strong ? 9 : 6
-    const y = strong ? 5 : 3
+    const x = strong ? 18 : 12
+    const y = strong ? 10 : 6
     criticalShakeAnimationRef.current = screen.animate([
       { transform: 'translate3d(0, 0, 0) scale(1)' },
       { transform: `translate3d(${x}px, 0, 0) scale(1)` },

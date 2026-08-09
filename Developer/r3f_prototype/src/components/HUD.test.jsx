@@ -26,6 +26,7 @@ import { blockFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
 import { MATILDA_DIALOGUE_MS } from '../lib/matildaEntryGrace.js'
 import { getDialogueText } from '../dialogues/dialogueStore.js'
 import { clearPortalTarget, playerPos, publishPortalTarget } from '../lib/refs.js'
+import { setLocale } from '../lib/i18n.js'
 
 const TEST_STUDIO_USER = { uid: 'hud-test-user' }
 const EMPTY_STUDIO_SNAPSHOT = {
@@ -56,6 +57,7 @@ afterEach(() => {
   useGameStore.getState().resetGame()
   resetWeaponUnlocks()
   resetAdminConfig()
+  setLocale('ko')
   setFirebaseStudioUser(null)
   blockFirebaseStudioRuntime()
   clearPortalTarget()
@@ -170,6 +172,22 @@ describe('upgrade choice filtering', () => {
     expect(getUpgradeChoiceDesc({ key: 'acquireBell', desc: '벨 스킬 해금' })).toBe('벨 스킬 획득')
   })
 
+  it('translates Hanako upgrade copy through the locale dictionaries', () => {
+    const option = {
+      key: 'acquireHanako',
+      label: '하나코 해금',
+      desc: '치비코를 획득해야 등장; 20초마다 주인공 최대 체력의 5% 회복',
+    }
+
+    setLocale('en')
+    expect(getUpgradeChoiceLabel(option)).toBe('Acquire Hanako')
+    expect(getUpgradeChoiceDesc(option)).toBe('Appears after Chibiko is acquired; restores 5% of the hero’s max HP every 20 seconds')
+
+    setLocale('ja')
+    expect(getUpgradeChoiceLabel(option)).toBe('ハナコ 獲得')
+    expect(getUpgradeChoiceDesc(option)).toBe('チビコを獲得すると登場。20秒ごとに主人公の最大HPの5%を回復')
+  })
+
   it('limits pencil upgrade options to one card', () => {
     const options = [
       { key: 'pencilDamage' },
@@ -250,6 +268,7 @@ describe('weapon upgrade icon assets', () => {
       'umbrella',
       'eraser',
       'chibiko',
+      'hanako',
       'sharkMissile',
       'lantern',
     ]
