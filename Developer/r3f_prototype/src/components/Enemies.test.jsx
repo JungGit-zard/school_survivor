@@ -143,6 +143,21 @@ describe('boss runtime spawn routes', () => {
     playerPos.z = previous.z
   })
 
+  it('routes the Stage 1 150s E07/E01 reinforcement through runtime pooled spawning only in stage1', () => {
+    const stage1Runtime = getRuntimeBurstEventsForStage('stage1')
+    expect(stage1Runtime).toContainEqual({ sec: 150, type: 'E07', count: 5 })
+    expect(stage1Runtime).toContainEqual({ sec: 150, type: 'E01', count: 5 })
+    for (const stageId of ['stage2', 'stage3', 'stage4']) {
+      const runtime = getRuntimeBurstEventsForStage(stageId)
+      expect(runtime).not.toContainEqual({ sec: 150, type: 'E07', count: 5 })
+      expect(runtime).not.toContainEqual({ sec: 150, type: 'E01', count: 5 })
+    }
+    expect(isPooledEnemyType('E07')).toBe(true)
+    expect(isPooledEnemyType('E01')).toBe(true)
+    expect(ENEMY_STATS.E07).toBeDefined()
+    expect(ENEMY_STATS.E01).toBeDefined()
+  })
+
   it('fires each boss burst once when elapsed time reaches its event second', () => {
     for (const [stageId] of bossStages) {
       const [boss] = getRuntimeBurstEventsForStage(stageId, 173).filter((event) => isBossType(event.type))

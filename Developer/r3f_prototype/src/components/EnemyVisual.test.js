@@ -7,6 +7,7 @@ import {
   EnemyVisual,
   ENEMY_SPAWN_REVEAL_DELAY_MS,
   ENEMY_STATS,
+  MATILDA_CONTACT_KILL_DELAY_MS,
   MATILDA_EDGE_INSET,
   MATILDA_CHARGE_STALL_REVERSE_MS,
   MATILDA_LAUGH_DURATION_MS,
@@ -14,8 +15,10 @@ import {
   SPAWN_SMOKE_START_SCALE,
   SPAWN_SMOKE_DURATION_MS,
   SPAWN_SMOKE_OPAQUE_MS,
-  getSpawnSmokeOpacity,
+  advanceMatildaContactKillCountdown,
   advanceEnemySpawnTimer,
+  createMatildaContactKillCountdown,
+  getSpawnSmokeOpacity,
   getBodyContactDistance,
   getChargeHitDistance,
   getEnemyColliderHalfExtents,
@@ -366,6 +369,50 @@ describe('Matilda dies only on real body-box contact, not the old widest-axis sc
     expect(source).toContain('hitPlayer = dist < getChargeHitDistance(stats, false)')
     expect(source).toContain('const hitDistance = getChargeHitDistance(stats, true)')
     expect(source).toContain('isMatildaChargeBlockedValues(movedAlong, expectedMove, dist, hitDistance)')
+  })
+})
+
+describe('Matilda body contact delayed instant death countdown', () => {
+  it('waits for exactly 1000ms of gameplay delta before returning a one-frame Matilda kill signal', () => {
+    const countdown = createMatildaContactKillCountdown()
+
+    expect(advanceMatildaContactKillCountdown(countdown, true, 999)).toBe(false)
+    expect(countdown.started).toBe(true)
+    expect(countdown.remainingMs).toBe(1)
+
+    expect(advanceMatildaContactKillCountdown(countdown, true, 1)).toBe(true)
+    expect(countdown.fired).toBe(true)
+    expect(advanceMatildaContactKillCountdown(countdown, true, 1000)).toBe(false)
+  })
+
+  it('keeps the first contact countdown running after separation and never restarts it on repeated contact', () => {
+    const countdown = createMatildaContactKillCountdown()
+
+    expect(advanceMatildaContactKillCountdown(countdown, true, 400)).toBe(false)
+    expect(advanceMatildaContactKillCountdown(countdown, false, 300)).toBe(false)
+    expect(countdown.remainingMs).toBe(300)
+
+    expect(advanceMatildaContactKillCountdown(countdown, true, 200)).toBe(false)
+    expect(countdown.remainingMs).toBe(100)
+
+    expect(advanceMatildaContactKillCountdown(countdown, true, 100)).toBe(true)
+    expect(advanceMatildaContactKillCountdown(countdown, true, 1000)).toBe(false)
+  })
+
+  it('wires every Matilda state through the shared body-contact countdown and preserves collider-derived extents', () => {
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+
+    expect(MATILDA_CONTACT_KILL_DELAY_MS).toBe(1000)
+    expect(source).toContain('const matildaContactKillCountdownRef = useRef(createMatildaContactKillCountdown())')
+    expect(source).toContain('contactArgs.halfX = matildaHalfExtents.halfX')
+    expect(source).toContain('contactArgs.halfZ = matildaHalfExtents.halfZ')
+    expect(source).toContain('if (advanceMatildaContactKillCountdown(matildaContactKillCountdownRef.current, matildaBodyContact, delta * 1000)) {')
+    expect(source).toContain("killPlayer('matilda')")
+    expect(source).not.toContain('onKill: () =>')
+    expect(source).not.toContain('advanceMatildaContactKillCountdown(matildaContactKillCountdownRef.current, {')
+    expect(source).toContain("chargeState.current === 'matildaAim'")
+    expect(source).toContain("chargeState.current === 'charge'")
+    expect(source).toContain("chargeState.current === 'matildaLaugh'")
   })
 })
 })

@@ -62,6 +62,7 @@ const _sightBlockedVelocity = { x: 0, z: 0 }
 const MATILDA_DASH_SFX = Object.freeze({ id: 'matildaDash', volume: 0.76 })
 const MATILDA_DASH_REVERSE_SFX = Object.freeze({ id: 'matildaDash', volume: 0.52, rate: 0.88 })
 const MATILDA_LAUGH_SFX = Object.freeze({ id: 'matildaLaugh', volume: 0.82 })
+export const MATILDA_CONTACT_KILL_DELAY_MS = 1000
 const IGNORE_INVULNERABILITY = Object.freeze({ ignoreInvulnerability: true })
 
 // 諛⑺뼢 ?뚯쟾 ?ы띁 ??useFrame ???⑥닔 ?ъ깮??諛⑹?瑜??꾪빐 紐⑤뱢 ?덈꺼
@@ -150,6 +151,24 @@ export function shouldReverseMatildaChargeOnObstacleValues(movedAlong, expectedM
 
 export function advanceEnemySpawnTimer(elapsedMs, deltaSec, phase) {
   return phase === 'playing' ? elapsedMs + deltaSec * 1000 : elapsedMs
+}
+
+export function createMatildaContactKillCountdown(delayMs = MATILDA_CONTACT_KILL_DELAY_MS) {
+  return { started: false, fired: false, remainingMs: delayMs }
+}
+
+export function advanceMatildaContactKillCountdown(countdown, contact, deltaMs) {
+  if (!countdown || countdown.fired) return false
+  if (!countdown.started) {
+    if (!contact) return false
+    countdown.started = true
+  }
+  countdown.remainingMs = Math.max(0, countdown.remainingMs - Math.max(0, deltaMs))
+  if (countdown.remainingMs <= 0 && !countdown.fired) {
+    countdown.fired = true
+    return true
+  }
+  return false
 }
 
 function stableEnemyHash(enemyId) {
@@ -558,6 +577,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const spawnRevealElapsedRef = useRef(0)
   // 프레임마다 재사용하는 스크래치 객체 — 마틸다 박스 접촉 판정 입력용(RULE-0.2: 매 프레임 객체 생성 금지)
   const matildaContactArgsRef = useRef({ enemyX: 0, enemyZ: 0, yaw: 0, playerX: 0, playerZ: 0, halfX: 0, halfZ: 0 })
+  const matildaContactKillCountdownRef = useRef(createMatildaContactKillCountdown())
 
   // E05 / B01 ?뚯쭊 ?곹깭 癒몄떊
   const chargeState  = useRef(isMatilda ? 'matildaAim' : 'chase')
@@ -609,6 +629,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     matildaLaughRemainingRef.current = isMatilda ? MATILDA_LAUGH_DURATION_MS : 0
     matildaLaughCuePendingRef.current = isMatilda
     matildaChargeStallMsRef.current = 0
+    matildaContactKillCountdownRef.current = createMatildaContactKillCountdown()
     matildaPreviousChargePosRef.current.x = spawnPos[0]
     matildaPreviousChargePosRef.current.z = spawnPos[2]
     chefPhaseRef.current = CHEF_PHASE1
@@ -850,6 +871,19 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
       _vel.y = 0
       if (isMatilda) {
+        const contactArgs = matildaContactArgsRef.current
+        contactArgs.enemyX = t.x
+        contactArgs.enemyZ = t.z
+        contactArgs.yaw = groupRef.current ? groupRef.current.rotation.y : 0
+        contactArgs.playerX = playerPos.x
+        contactArgs.playerZ = playerPos.z
+        contactArgs.halfX = matildaHalfExtents.halfX
+        contactArgs.halfZ = matildaHalfExtents.halfZ
+        const matildaBodyContact = isMatildaBodyContact(contactArgs)
+        if (advanceMatildaContactKillCountdown(matildaContactKillCountdownRef.current, matildaBodyContact, delta * 1000)) {
+          killPlayer('matilda')
+        }
+
         if (chargeState.current === 'matildaAim') {
           if (dist > 0.0001) {
             chargeDir.current.copy(_dir).normalize()
@@ -884,22 +918,6 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           _vel.z = cd.z * stats.chargeSpeed
           rb.current.setLinvel(_vel, true)
           _applyRotation(groupRef, cd.x, cd.z, 1)
-
-          const contactArgs = matildaContactArgsRef.current
-          contactArgs.enemyX = t.x
-          contactArgs.enemyZ = t.z
-          contactArgs.yaw = groupRef.current ? groupRef.current.rotation.y : 0
-          contactArgs.playerX = playerPos.x
-          contactArgs.playerZ = playerPos.z
-          contactArgs.halfX = matildaHalfExtents.halfX
-          contactArgs.halfZ = matildaHalfExtents.halfZ
-          // 신 지정 사양 S1: 마틸다 접촉은 플레이어 능력·무적프레임과 무관하게 즉사다.
-          // 접촉 쿨다운(구 500ms)을 두지 않는다 — 첫 접촉에서 런이 끝나 두 번째 접촉이
-          // 없을뿐더러, 쿨다운이 있으면 무적프레임 520ms와 겹쳐 즉사가 통째로 무효화되던
-          // 버그(2026-08-09 감사 #8)가 그대로 재발한다.
-          if (isMatildaBodyContact(contactArgs)) {
-            killPlayer('matilda')
-          }
 
           if (isMatildaChargingOutward(t, cd, stageCombatConfig.bounds)) {
             chargeState.current = 'matildaLaugh'

@@ -18,6 +18,11 @@ export const ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS = [
   { sec: 110, type: 'E02', count: 3 },
 ]
 
+export const STAGE1_150SEC_SMILING_GREEN_REINFORCEMENT_EVENTS = [
+  { sec: 150, type: 'E07', count: 5 },
+  { sec: 150, type: 'E01', count: 5 },
+]
+
 // Stage 2 추가 보강(2026-08-09 사용자 지시): 120초부터 30초마다,
 // 240초 종료 전까지만 15마리씩 일반 좀비를 현재 phase 구성 안에서 섞어 더한다.
 export const STAGE2_MIXED_REINFORCEMENT_EVENTS = [
@@ -38,6 +43,7 @@ export const BURST_EVENTS = [
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
   { sec: 120, type: 'E05', count:  3 },  // 돌진 첫 등장 (E04 탄환형 폐기 — 2026-05-09)
   { sec: 144, type: 'E05', count:  3 },  // 돌진 압박 강화
+  ...STAGE1_150SEC_SMILING_GREEN_REINFORCEMENT_EVENTS,
   { sec: 168, type: 'E06', count:  1 },  // 거대 첫 등장
   { sec: 184, type: 'E01', count:  5 },  // 마지막 러시 (보스 직전) — 과부하 완화
   { sec: 184, type: 'E02', count:  3 },
