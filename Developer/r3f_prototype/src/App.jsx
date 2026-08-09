@@ -45,6 +45,7 @@ export async function handleStudioGameSyncMessage(event) {
     const revision = Number.isInteger(event.data.revision) && event.data.revision > 0
       ? event.data.revision
       : null
+    if (!Number.isInteger(revision) || revision <= 0) return false
     if (applyFirebaseStudioDatasets(event.data.datasets, { revision })) {
       event.source?.postMessage?.({
         type: STUDIO_GAME_SYNC_ACK_MESSAGE,
@@ -70,6 +71,7 @@ if (typeof window !== 'undefined') {
     studioGameChannel.addEventListener('message', ({ data }) => {
       if (data?.type !== STUDIO_GAME_SYNC_MESSAGE || !data.force || !data.datasets) return
       const revision = Number.isInteger(data.revision) && data.revision > 0 ? data.revision : null
+      if (!Number.isInteger(revision) || revision <= 0) return
       applyFirebaseStudioDatasets(data.datasets, { revision })
     })
   }
@@ -289,6 +291,29 @@ export default function App() {
       unsubscribe?.()
     }
   }, [isGraphicsStudioRoute, authStatus, authUser?.uid, studioCloudStatus])
+
+  useEffect(() => {
+    if (isGraphicsStudioRoute || authStatus !== 'signedIn' || !authUser?.uid) return undefined
+
+    let cancelled = false
+    let unsubscribe = null
+    setFirebaseStudioUser(authUser)
+    void (async () => {
+      await hydrateFirebaseStudio({ user: authUser })
+      if (cancelled) return
+      const result = await subscribeFirebaseStudio({ user: authUser })
+      if (cancelled) {
+        result?.unsubscribe?.()
+        return
+      }
+      unsubscribe = result?.unsubscribe ?? null
+    })()
+
+    return () => {
+      cancelled = true
+      unsubscribe?.()
+    }
+  }, [isGraphicsStudioRoute, authStatus, authUser?.uid])
 
   const studioReady = studioCloudStatus === 'remote-applied'
     && isFirebaseStudioRuntimeReady()
