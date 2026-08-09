@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import {
+  createPlayerOcclusionSafeToonMaterial,
   createPlayerCrowdOutlineMaterial,
+  PLAYER_OCCLUSION_SAFE_OUTLINE_RENDER_ORDER,
+  PLAYER_OCCLUSION_SAFE_SURFACE_RENDER_ORDER,
   PLAYER_CROWD_OUTLINE_RENDER_ORDER,
   PLAYER_MESH_LAYOUT,
   PLAYER_STENCIL_REF,
@@ -27,8 +30,8 @@ describe('PlayerMesh layout', () => {
 
     expect(PLAYER_STENCIL_REF).toBe(3)
     expect(source).toContain('material.stencilRef = PLAYER_STENCIL_REF')
-    expect(source).toContain('usePlayerStencilMaterial(() => toonMat')
-    expect(source).toContain('crowdVisible ? createPlayerCrowdOutlineMaterial : () => outlineMat(0.98)')
+    expect(source).toContain('usePlayerStencilMaterial(() => createPlayerOcclusionSafeToonMaterial')
+    expect(source).toContain('crowdVisible ? createPlayerCrowdOutlineMaterial : createPlayerOcclusionSafeOutlineMaterial')
   })
 
   it('places the lantern prop at the right hand tip', () => {
@@ -69,6 +72,33 @@ describe('PlayerMesh layout', () => {
     expect(material.depthWrite).toBe(false)
     expect(material.transparent).toBe(true)
     expect(material.opacity).toBe(0.98)
+
+    material.dispose()
+  })
+
+  it('draws the complete player body above every stage prop instead of leaving only its floor shadow', () => {
+    const source = readFileSync(new URL('./PlayerMesh.jsx', import.meta.url), 'utf8')
+    const originalDocument = globalThis.document
+    globalThis.document = {
+      createElement: () => ({
+        getContext: () => ({ fillStyle: '', fillRect: () => {} }),
+      }),
+    }
+
+    let material
+    try {
+      material = createPlayerOcclusionSafeToonMaterial(0xd42020, 0.2)
+    } finally {
+      if (originalDocument === undefined) Reflect.deleteProperty(globalThis, 'document')
+      else globalThis.document = originalDocument
+    }
+
+    expect(PLAYER_OCCLUSION_SAFE_SURFACE_RENDER_ORDER).toBeGreaterThan(19)
+    expect(PLAYER_OCCLUSION_SAFE_OUTLINE_RENDER_ORDER).toBeGreaterThan(PLAYER_OCCLUSION_SAFE_SURFACE_RENDER_ORDER)
+    expect(material.depthTest).toBe(false)
+    expect(material.depthWrite).toBe(false)
+    expect(source).toContain('renderOrder={PLAYER_OCCLUSION_SAFE_SURFACE_RENDER_ORDER}')
+    expect(source).toContain('renderOrder={PLAYER_OCCLUSION_SAFE_OUTLINE_RENDER_ORDER}')
 
     material.dispose()
   })

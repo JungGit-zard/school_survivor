@@ -26,6 +26,8 @@ const PLAYER_LANTERN_LIGHT_LENGTH = 2.08 / 3 / PLAYER_MESH_SCALE
 const PLAYER_LANTERN_LIGHT_RADIUS = 1.8 / 3 / PLAYER_MESH_SCALE
 const PLAYER_LANTERN_LENS_Y = -0.36
 export const PLAYER_STENCIL_REF = 3
+export const PLAYER_OCCLUSION_SAFE_SURFACE_RENDER_ORDER = 90
+export const PLAYER_OCCLUSION_SAFE_OUTLINE_RENDER_ORDER = PLAYER_OCCLUSION_SAFE_SURFACE_RENDER_ORDER + 1
 // 발바닥(로컬 y≈-1.30 × PLAYER_MESH_SCALE)이 바닥면 y=0에 정확히 닿도록 메시 전체를 올린다.
 // = -RigidBody높이(0.32) + PLAYER_MESH_SCALE(0.2664) × 발바닥깊이(1.30)
 const PLAYER_FLOOR_LIFT = 0.0263
@@ -72,34 +74,45 @@ function usePlayerStencilMaterial(createMaterial, dependencies) {
   }, dependencies)
 }
 
-function Block({ size, position, rotation, color, emissive = 0.14 }) {
-  const mat = usePlayerStencilMaterial(() => toonMat(color, emissive), [color, emissive])
-  const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
-
-  return (
-    <group position={position} rotation={rotation}>
-      <mesh renderOrder={2} geometry={geo} material={mat} />
-    </group>
-  )
+export function createPlayerOcclusionSafeToonMaterial(color, emissive) {
+  const material = toonMat(color, emissive)
+  material.depthTest = false
+  material.depthWrite = false
+  return material
 }
 
-export const PLAYER_CROWD_OUTLINE_RENDER_ORDER = 90
-
-export function createPlayerCrowdOutlineMaterial() {
+function createPlayerOcclusionSafeOutlineMaterial() {
   const material = outlineMat(0.98)
   material.depthTest = false
   material.depthWrite = false
   return material
 }
 
+function Block({ size, position, rotation, color, emissive = 0.14 }) {
+  const mat = usePlayerStencilMaterial(() => createPlayerOcclusionSafeToonMaterial(color, emissive), [color, emissive])
+  const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
+
+  return (
+    <group position={position} rotation={rotation}>
+      <mesh renderOrder={PLAYER_OCCLUSION_SAFE_SURFACE_RENDER_ORDER} geometry={geo} material={mat} />
+    </group>
+  )
+}
+
+export const PLAYER_CROWD_OUTLINE_RENDER_ORDER = PLAYER_OCCLUSION_SAFE_OUTLINE_RENDER_ORDER
+
+export function createPlayerCrowdOutlineMaterial() {
+  return createPlayerOcclusionSafeOutlineMaterial()
+}
+
 function OutlineBlock({ size, position, rotation, scale = 1.08, crowdVisible = false }) {
   const mat = usePlayerStencilMaterial(
-    crowdVisible ? createPlayerCrowdOutlineMaterial : () => outlineMat(0.98),
+    crowdVisible ? createPlayerCrowdOutlineMaterial : createPlayerOcclusionSafeOutlineMaterial,
     [crowdVisible],
   )
   const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
   const s = inflateScale(scale)
-  return <mesh renderOrder={crowdVisible ? PLAYER_CROWD_OUTLINE_RENDER_ORDER : 0} geometry={geo} material={mat} position={position} rotation={rotation} scale={[s, s, s]} />
+  return <mesh renderOrder={PLAYER_OCCLUSION_SAFE_OUTLINE_RENDER_ORDER} geometry={geo} material={mat} position={position} rotation={rotation} scale={[s, s, s]} />
 }
 
 function PlayerLanternLight() {
@@ -168,7 +181,7 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
   const blend = useRef(0)
   const lastHitFlashToken = useRef(hitFlashToken)
   const hitFlashFrames = useRef(0)
-  const hitFlashMat = usePlayerStencilMaterial(() => toonMat(0xffffff, 1.0), [])
+  const hitFlashMat = usePlayerStencilMaterial(() => createPlayerOcclusionSafeToonMaterial(0xffffff, 1.0), [])
   const shadowMat = useMemo(
     () =>
       new THREE.MeshBasicMaterial({
