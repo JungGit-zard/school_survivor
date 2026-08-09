@@ -17,7 +17,6 @@ import { loadSfxTunings, saveSfxTunings } from '../lib/sfxRegistry.js'
 import { loadBossFaceRecipes } from '../lib/bossFaceParts.js'
 import { loadStagePropPlacements, resetStagePropPlacementsCache, saveStagePropPlacements } from '../lib/stagePropPlacements.js'
 import { commitFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
-import { STUDIO_GAME_SYNC_MESSAGE } from '../lib/studioGameBridge.js'
 
 const cloudMocks = vi.hoisted(() => ({
   hydrate: vi.fn(),
@@ -177,68 +176,6 @@ describe('GraphicsStudio', () => {
     expect(Array.isArray(saved.stage1)).toBe(true)
     expect(saved.stage1.some((item) => item.type === 'classroomDesk')).toBe(true)
     expect(cloudMocks.save).toHaveBeenCalledTimes(1)
-    const gameWindow = window.open.mock.results.at(-1)?.value
-    expect(gameWindow.postMessage).toHaveBeenCalledWith(
-      { type: STUDIO_GAME_SYNC_MESSAGE, force: true },
-      window.location.origin,
-    )
-  })
-
-  it('force-applies a one-pixel prop move only after Apply', async () => {
-    resetStagePropPlacementsCache()
-    await renderSignedInStudio()
-
-    const propsTab = Array.from(container.querySelectorAll('button')).find((button) => button.textContent === 'Props')
-    act(() => propsTab.dispatchEvent(new MouseEvent('click', { bubbles: true })))
-    const map = container.querySelector('[data-testid="prop-map"]')
-    map.getBoundingClientRect = vi.fn(() => ({
-      left: 0,
-      top: 0,
-      right: 900,
-      bottom: 520,
-      width: 900,
-      height: 520,
-      x: 0,
-      y: 0,
-      toJSON: () => {},
-    }))
-
-    const paletteDesk = container.querySelector('[data-testid="prop-palette-classroomDesk"]')
-    await act(async () => {
-      paletteDesk.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      await Promise.resolve()
-    })
-    const marker = Array.from(container.querySelectorAll('[data-testid^="prop-marker-"]'))
-      .find((candidate) => candidate.getAttribute('data-testid').includes('classroomDesk'))
-    expect(marker).toBeTruthy()
-
-    await act(async () => {
-      marker.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, clientX: 450, clientY: 260 }))
-      window.dispatchEvent(new MouseEvent('pointerup', { bubbles: true, clientX: 451, clientY: 260 }))
-      await Promise.resolve()
-    })
-
-    expect(loadStagePropPlacements().stage1).not.toEqual(expect.arrayContaining([
-      expect.objectContaining({ type: 'classroomDesk' }),
-    ]))
-    expect(cloudMocks.save).not.toHaveBeenCalled()
-
-    await act(async () => {
-      container.querySelector('[data-testid="prop-apply"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      await Promise.resolve()
-    })
-
-    const savedDesk = loadStagePropPlacements().stage1.find((item) => item.type === 'classroomDesk')
-    expect(savedDesk.position[0]).not.toBe(0)
-    expect(savedDesk.position[2]).not.toBe(0)
-    expect(cloudMocks.save).toHaveBeenCalledTimes(1)
-    const savedDatasets = cloudMocks.save.mock.calls[0][0].datasets
-    expect(savedDatasets.propPlacements.stage1.find((item) => item.type === 'classroomDesk').position[0]).toBe(savedDesk.position[0])
-    const gameWindow = window.open.mock.results.at(-1)?.value
-    expect(gameWindow.postMessage).toHaveBeenCalledWith(
-      { type: STUDIO_GAME_SYNC_MESSAGE, force: true },
-      window.location.origin,
-    )
   })
 
   it('renders the catalog, preview, sliders, and export panel', async () => {

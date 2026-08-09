@@ -491,14 +491,16 @@ export default function GraphicsStudio() {
       return false
     }
 
-    // Apply already wrote Firebase and atomically committed every dataset into
-    // the Studio runtime. Do not gate game sync behind the debounced-save queue:
-    // the game window must receive the force-refresh immediately, even for a
-    // one-pixel/one-dot prop move.
-    const postSync = () => target.postMessage({ type: STUDIO_GAME_SYNC_MESSAGE, force: true }, gameOriginRef.current)
+    const result = await flushFirebaseStudioSave({ user: authUser })
+    if (!['saved', 'no-pending'].includes(result?.status)) {
+      if (mountedRef.current) setFirebaseStatus('offline-error')
+      return false
+    }
+
+    const postSync = () => target.postMessage({ type: STUDIO_GAME_SYNC_MESSAGE }, gameOriginRef.current)
     postSync()
     if (retryAfterLoad) {
-      ;[0, 250, 800].forEach((delay) => {
+      ;[250, 800].forEach((delay) => {
         window.setTimeout(() => {
           if (gameWindowRef.current === target && !target.closed) postSync()
         }, delay)
