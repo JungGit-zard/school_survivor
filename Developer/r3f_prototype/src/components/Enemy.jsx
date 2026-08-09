@@ -13,7 +13,7 @@ import { emitSfx } from '../lib/sfxEvents.js'
 import { emitVfx } from '../lib/vfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
 import { resolveCriticalHit } from '../lib/criticalHits.js'
-import { emitEnemyHitScreenShake } from '../lib/criticalScreenShake.js'
+import { emitCriticalHitScreenShake, emitEnemyHitScreenShake } from '../lib/criticalScreenShake.js'
 import { createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { canE04FireProjectile, getE04IntroSec } from '../lib/stage2ProjectileRules.js'
@@ -256,7 +256,8 @@ export const ENEMY_STATS = {
   // (enemySimulation.parity.test.js가 강제한다).
   E01: { hp: 8,    speed: 0.475, damage: 8,  scale: 1.00, xp: 4,  contactDist: 0.28 },
   E02: { hp: 70,   speed: 0.385, damage: 14, scale: 1.40, xp: 15, contactDist: 0.36 },
-  E03: { hp: 14,   speed: 1.1,  damage: 6,  scale: 0.75, xp: 5,  contactDist: 0.22 },
+  // E03 hp 14 → 10 (2026-08-09): 빠른 러너를 −30% 체력으로 완화. E01(8)보다는 여전히 높다.
+  E03: { hp: 10,   speed: 1.1,  damage: 6,  scale: 0.75, xp: 5,  contactDist: 0.22 },
   E04: { hp: 32,   speed: 0.45, damage: 8,  scale: 0.90, xp: 10, contactDist: 0.26,
          ranged: true, rangedCooldown: 2200, rangedDmg: 8, rangedSpeed: 1.9,
          preferDist: 5.5, minDist: 3.5 },
@@ -637,13 +638,12 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       })
       const finalDamage = criticalHit.damage
       const willKill = hpRef.current <= finalDamage
-      emitEnemyHitScreenShake(
+      const strongCritical = criticalHit.isCritical && ((willKill && isBossType(type)) || (Number.isFinite(stats.hp) && stats.hp > 0 && finalDamage >= stats.hp * 0.25))
+      const screenShake = criticalHit.isCritical ? emitCriticalHitScreenShake : emitEnemyHitScreenShake
+      screenShake(
         hitPos.x - playerPos.x,
         hitPos.z - playerPos.z,
-        {
-          strong: criticalHit.isCritical && ((willKill && isBossType(type)) || (Number.isFinite(stats.hp) && stats.hp > 0 && finalDamage >= stats.hp * 0.25)),
-          strength: criticalHit.isCritical ? 1 : undefined,
-        },
+        criticalHit.isCritical ? { strong: strongCritical } : undefined,
       )
       // 모든 무기가 이 지점(_enemyHit)을 공통으로 지난다 → 여기서 데미지 숫자 1회 emit하면 무기별 누락이 없다.
       emitDamageNumber({

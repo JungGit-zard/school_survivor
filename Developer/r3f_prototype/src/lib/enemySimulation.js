@@ -45,7 +45,7 @@ export const ENEMY_STUCK_RECOVERY_MS = 1200
 export const ENEMY_STUCK_MOVE_EPSILON_SQ = 1e-6
 
 // JSX ENEMY_STATS와 수치를 맞춘 순수 런타임 lookup. 다음 통합 단계에서 Enemy.jsx가 이 정본을 import한다.
-export const ENEMY_RUNTIME_HP = new Float32Array([0, 8, 70, 14, 32, 70, 320, 90, 28, 0, 0, 0, 0, 28, 48])
+export const ENEMY_RUNTIME_HP = new Float32Array([0, 8, 70, 10, 32, 70, 320, 90, 28, 0, 0, 0, 0, 28, 48])
 export const ENEMY_RUNTIME_SPEED = new Float32Array([0, 0.475, 0.385, 1.1, 0.45, 0.5, 0.6, 2.45, 2.18, 0, 0, 0, 0, 1.275, 1.225])
 export const ENEMY_RUNTIME_DAMAGE = new Float32Array([0, 8, 14, 6, 8, 16, 20, 14, 7, 0, 0, 0, 0, 6, 9])
 export const ENEMY_RUNTIME_SCALE = new Float32Array([0, 1, 1.4, 0.75, 0.9, 1.15, 1.6, 1.08, 0.78, 0, 0, 0, 0, 0.88, 0.92])
