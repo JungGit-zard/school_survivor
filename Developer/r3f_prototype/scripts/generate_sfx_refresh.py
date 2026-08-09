@@ -18,7 +18,7 @@ SOUNDS = {
     'weapons/pencilHit': dict(kind='wood_tick', dur=0.105, f=1780, noise=0.18, click=0.85, harmonics=[(1, .75), (2.8, .22)], drive=.55),
     'weapons/rulerHit': dict(kind='slap', dur=0.155, f=520, noise=0.34, click=1.0, harmonics=[(1, .8), (1.5, .35), (2.1, .18)], drive=.7),
     'weapons/boxCutterHit': dict(kind='metal_slice', dur=0.130, f=2650, noise=0.23, click=.62, harmonics=[(1, .6), (1.37, .3), (3.2, .18)], sweep=-900, drive=.52),
-    'weapons/tumblerHit': dict(kind='hollow_donk', dur=0.230, f=260, noise=0.14, click=.58, harmonics=[(1, .8), (2.05, .28), (3.1, .13)], drive=.8),
+    'weapons/tumblerHit': dict(kind='muted_tumbler_donk', dur=0.205, f=185, noise=0.18, click=.46, harmonics=[(1, .86), (1.42, .24), (1.78, .10)], sweep=-42, drive=.82),
     'weapons/bellHit': dict(kind='school_bell', dur=0.360, f=880, noise=0.04, click=.3, harmonics=[(1, .7), (2.01, .45), (3.96, .24)], drive=.48),
     'weapons/flaskHit': dict(kind='glass_pop', dur=0.240, f=1220, noise=0.28, click=.8, harmonics=[(1, .5), (1.72, .3), (2.46, .2)], sweep=520, drive=.56),
     'weapons/onigiriHit': dict(kind='soft_splat', dur=0.190, f=180, noise=0.42, click=.42, harmonics=[(1, .55), (1.9, .15)], drive=.74),

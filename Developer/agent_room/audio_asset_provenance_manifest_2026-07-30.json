@@ -428,13 +428,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/weapons/tumblerHit.ogg",
-          "bytes": 5744,
-          "sha256": "acd1ec3bfcabdd8d52b950ebd036fd0c5a0af589ab1c979ecce1bed6c56bebec"
+          "bytes": 5542,
+          "sha256": "e2a11e078c3a3291779eadf984d9739ef01b1e4202d6a5c68180f14812de6793"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/weapons/tumblerHit.mp3",
-          "bytes": 2919,
-          "sha256": "24232399d103559b14c09b2d9b89bfff2da7a8694fea95c93d38836346f9716a"
+          "bytes": 2657,
+          "sha256": "3aaf93bdab3de7b5d9ac13d9cf21a3770cb77e43eb33609d26cc241ba7fbee17"
         }
       ],
       "provenanceType": "generated",

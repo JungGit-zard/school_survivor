@@ -669,7 +669,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       const finalDamage = criticalHit.damage
       const willKill = hpRef.current <= finalDamage
       const strongCritical = criticalHit.isCritical && ((willKill && isBossType(type)) || (Number.isFinite(stats.hp) && stats.hp > 0 && finalDamage >= stats.hp * 0.25))
-      if (criticalHit.isCritical) emitSfx({ id: 'criticalHit', volume: strongCritical ? 0.9 : 0.76 })
+      if (criticalHit.isCritical) emitSfx({ id: 'criticalHit', volume: strongCritical ? 1.8 : 1.52 })
       const screenShake = criticalHit.isCritical ? emitCriticalHitScreenShake : emitEnemyHitScreenShake
       screenShake(
         hitPos.x - playerPos.x,
