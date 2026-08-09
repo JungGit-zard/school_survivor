@@ -12559,3 +12559,85 @@ git status --short --branch
 - 관련 코드와 문서는 아직 커밋하지 않았다.
 
 ---
+
+## Session 7 · Entry 4 · 2026-08-09 1641 KST
+
+### Git 상태
+
+- 정리 시작 시 브랜치: `zombie_only`, HEAD `bc07b06 Enforce ThreeMini git guard and update game events`.
+- 정리 시작 직전 `zombie_only`와 `origin/zombie_only`는 일치했고 작업 트리는 깨끗했다.
+- 이번 엔트리는 전 세션의 확정 작업만 기록한다. 현재 별도 진행 중인 Kanban 카드 `t_648c02d1`의 오버타임 혼합 좀비 작업은 포함하지 않는다.
+
+### 이번 세션 작업 / 대화
+
+- 하나코를 치비코 획득 뒤 해금되는 두 번째 동료로 구현했다. 하나코는 주인공 뒤를 따라다니며 20초마다 최대 체력의 5%를 회복하고, 연분홍색 단발머리·분홍 기모노·벚꽃 머리핀 외형을 사용한다.
+- 마틸다의 Stage 1~4 실제 물리 스폰을 230초(3분 50초)로 확정했고 225초 경고·대사 유예를 유지했다.
+- Three_Mini가 매 작업 전에 읽는 중앙 필독 저장소를 정리하고, 시작 문서는 중앙 경로만 가리키도록 유지했다.
+- Three_Mini가 `git commit`, `git push`, `git checkout`을 직접 실행하지 못하도록 Hermes `pre_tool_call` 훅을 설치했다. Three_Mini는 Advisor에게 요청하고, Advisor가 diff·소유권·dirty worktree·대상 브랜치·위험을 검수한 뒤 적절할 때만 Advisor가 직접 실행한다.
+- Three_Mini가 금지된 Git 명령을 시도하면 명령을 실행 전에 차단하고 연결된 `escape-zombie-school` Kanban 작업을 차단·보관한다. 공유 저장소 전체 삭제는 수행하지 않는다.
+- 타이틀 3D 장면을 동기 import로 바꾸고 타이틀 플레이어가 `PlayerMesh`를 직접 사용하도록 연결해 앱 시작 시 문구만 보이고 그래픽이 비는 상태를 제거했다.
+- `RZT` 사망 위치에서 급식 아이템을 강제 드롭하는 연결을 추가했다.
+- Stage 1~4 모두 110초에 `E07` 웃는 좀비 3마리와 `E02` 탱커 3마리를 추가하는 공용 버스트를 적용했다.
+
+### 생성 / 수정 파일
+
+- `Developer/agent_room/mandatory_precommand/threemini_mandatory_context/` — Three_Mini 중앙 필독 문서와 Git 금지 정책 추가.
+- `Developer/agent_room/guards/threemini_git_mutation_guard.py` — commit/push/checkout 사전 차단과 위반 작업 차단·보관 훅.
+- `Developer/agent_room/threemini_git_mutation_guard_wiring_2026-08-09.md` — 훅 연결 및 검증 기록.
+- `Developer/r3f_prototype/src/components/TitleSceneCanvas.jsx`, `TitleScene3D.jsx` 및 관련 테스트 — 타이틀 3D 동기 로딩과 PlayerMesh 연결.
+- `Developer/r3f_prototype/src/components/Enemies.jsx`, `LunchItems.jsx` — RZT 급식 아이템 드롭 연결.
+- `Developer/r3f_prototype/src/lib/burstEvents.js`, `burstEvents.test.js`, `Bang_Rules.md` 및 Planner/Developer 기록 — 전 스테이지 110초 보강.
+- Git 외부 라이브 설정 `C:/Users/admin/AppData/Local/hermes/profiles/threemini/config.yaml`과 `C:/Users/admin/AppData/Local/hermes/sub-agent-room/agents/Three_Mini.toml`에도 동일한 훅·승인 정책을 반영했다.
+
+### 커밋 기록
+
+- `e4d52b7 Add Hanako companion and centralize ThreeMini context`
+- `1a4b583 Spawn Matilda at 3:50 in every stage`
+- `734bd4a Update Hanako hair and Matilda timing`
+- `bc07b06 Enforce ThreeMini git guard and update game events`
+
+### 명령 로그
+
+```text
+powershell -NoProfile -ExecutionPolicy Bypass -File Developer/agent_room/mandatory_precommand/check-required-documents.ps1 -Profile <profile> -Domain auto -TaskSummary <safe-summary>
+hermes kanban --board escape-zombie-school create/dispatch/show/log/stats/comment/complete ...
+git status --short --branch
+git diff / git diff --check / git diff --cached --check
+python Developer/agent_room/guards/threemini_git_mutation_guard.py < synthetic pre_tool_call payloads
+HERMES_HOME=<Three_Mini profile> hermes hooks list
+HERMES_HOME=<Three_Mini profile> HERMES_ACCEPT_HOOKS=1 hermes hooks test pre_tool_call --for-tool terminal --payload-file <synthetic payload>
+python -m py_compile Developer/agent_room/guards/threemini_git_mutation_guard.py
+npm test -- src/lib/burstEvents.test.js -t "전 스테이지 1:50 웃는좀비·탱커 보강"
+npm test -- src/components/TitleScene3D.test.jsx src/components/TitleSceneCanvas.test.jsx src/components/deferredModuleIsolation.test.js
+npm test -- src/components/Enemies.test.jsx src/components/TitleScene3D.test.jsx src/components/TitleSceneCanvas.test.jsx src/components/deferredModuleIsolation.test.js src/lib/burstEvents.test.js
+npm run build
+git add -A
+git commit -m "Enforce ThreeMini git guard and update game events"
+git push origin zombie_only
+```
+
+### 검증 결과
+
+- Three_Mini guard 직접 테스트: `git commit`, `git push`, `git checkout`, `git -C ... checkout` 모두 차단; `git status`, `git checkout-index` 허용.
+- Hermes 실제 `pre_tool_call` 훅 테스트에서 block JSON 반환 및 실행 전 차단 확인.
+- 타이틀 관련 테스트: 29개 통과.
+- 110초 보강 집중 테스트: 5개 통과.
+- 프로덕션 Vite 빌드, legacy B02 artifact gate, hosting asset verification 통과.
+- 혼합 `Enemies.test.jsx` 실행에는 이번 guard 작업과 무관한 기존 기대값 불일치 8건이 남아 있으며 성공으로 보고하지 않았다.
+- 최종 커밋 `bc07b06`을 `origin/zombie_only`에 푸시했고 당시 작업 트리는 깨끗했다.
+
+### 확정된 룰 / 정책 변경
+
+- Three_Mini는 `git commit`, `git push`, `git checkout` 실행 권한이 없다.
+- Three_Mini의 요청을 받은 Advisor만 변경 상태를 검수하고 안전할 때 Git 변경 명령을 직접 실행한다.
+- Three_Mini의 금지 명령 시도는 사전 차단하고 해당 Kanban 작업을 차단·보관한다.
+- Stage 1~4의 마틸다 실제 스폰은 230초이며, 모든 스테이지는 110초에 E07 3마리와 E02 3마리를 추가한다.
+
+### 미해결 이슈 + 다음 단계
+
+- 기존 `Enemies.test.jsx` 기대값 불일치 8건은 별도 범위에서 정리해야 한다.
+- Kanban 카드 `t_648c02d1`(전 스테이지 5분 이후 혼합 좀비 반복 스폰·동시 150 상한)은 다음 작업으로 진행 중이며 이 엔트리의 전 세션 완료 범위에는 포함하지 않는다.
+- Git 외부의 Three_Mini 라이브 프로필 설정은 저장소 커밋 대상이 아니므로 시스템 백업 시 별도로 보존해야 한다.
+- 세션 7 종료.
+
+---
