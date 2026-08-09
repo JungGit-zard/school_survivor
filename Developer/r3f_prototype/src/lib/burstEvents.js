@@ -33,7 +33,7 @@ export const BURST_EVENTS = [
 
 // 4분 타임라인. 5분 기준 sec ×0.8.
 export const STAGE2_BURST_EVENTS = [
-  { sec:   5, type: 'E01', count: 10 },  // 첫 웨이브 0→5초(2026-08-09) — 입장 직후 무방비 스폰 제거
+  { sec:   5, type: 'E01', count: 15 },  // 첫 웨이브 0→5초, 물량 ×1.5(2026-08-09)
   { sec:  24, type: 'E03', count:  4 },
   { sec:  48, type: 'E02', count:  3 },
   { sec:  72, type: 'E04', count:  1 },
