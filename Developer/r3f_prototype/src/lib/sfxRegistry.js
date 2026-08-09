@@ -31,6 +31,12 @@ export const SOUND_MAP = {
   sharkFire:      '/sfx/weapons/sharkFire.ogg',
   lanternFire:    '/sfx/weapons/lanternFire.ogg',
 
+  // ── 바이키티 커터칼 (3 ID) ─────────────────────────────────────────────────
+  // 8단 래칫 → 파단 → 날 교체 루프. Fire는 로직이 단수별 rate로 피치를 올린다.
+  bikittyCutterFire:   '/sfx/weapons/bikittyCutterFire.ogg',
+  bikittyCutterSnap:   '/sfx/weapons/bikittyCutterSnap.ogg',
+  bikittyCutterReload: '/sfx/weapons/bikittyCutterReload.ogg',
+
   // ── 무기 타격음 (15 hit ID + 2 tick aliases) ───────────────────────────────
   pencilHit:      '/sfx/weapons/pencilHit.ogg',
   rulerHit:       '/sfx/weapons/rulerHit.ogg',
@@ -199,6 +205,11 @@ export const POLYPHONY_COOLDOWN = Object.freeze({
   eraserHit:        160,
   lanternTick:      120,
   rzlWhistle:       600,
+  // 바이키티 커터칼. 무기 공격 간격이 2400ms라 이 값들은 재생 간격을 제한하는 게 아니라
+  // 같은 프레임 중복 emit만 걸러내는 안전망이다. 8단 딸깍이 하나도 누락되면 안 된다.
+  bikittyCutterFire:   40,
+  bikittyCutterSnap:   220,
+  bikittyCutterReload: 600,
 })
 
 const AUTH_OVERLAY_ALLOWED_SFX = new Set([

@@ -1538,6 +1538,66 @@
       "source": "Owner-mandated canonical inclusion; this manifest makes no rights or source verification claim.",
       "notes": "출처·권리 근거를 이 매니페스트가 확인했다는 주장은 하지 않는다. 2026-07-30 절차 생성 타이틀 교체는 2026-07-31 사용자 명시 지시로 무효화됐다. 권리·출처·품질·최적화·비평 점수는 이 정본을 교체하거나 제외할 사유가 아니다.",
       "inclusionPolicy": "owner-mandated permanent canonical inclusion in every development run, build, and AAB; do not delete, replace, convert, or redirect playback. Only a new explicit user instruction may change it."
+    },
+    {
+      "logicalId": "bikittyCutterFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterFire.ogg",
+          "bytes": 4877,
+          "sha256": "0a30f3acbf3bfb8f32ddb2451b8d99d1aa61dfaa76c3382446941ba800883223"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterFire.mp3",
+          "bytes": 1612,
+          "sha256": "de76ee4cc094ed236a4b2caf2661fc59dd033e6ff13be14495503f90b7f36148"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "bikittyCutterSnap",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterSnap.ogg",
+          "bytes": 10177,
+          "sha256": "8d1b1a38a7bec638a2149d2fb6c76464ec427b2687c490680cb87b65358d7cf2"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterSnap.mp3",
+          "bytes": 8195,
+          "sha256": "d9cce917f7d602f99aa04063437260359c18c5ecfef7d3c400e6218d686013f4"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "bikittyCutterReload",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterReload.ogg",
+          "bytes": 13959,
+          "sha256": "851bae0c9784b6d01abee7ba186af9ecdb587d56d3d77a08ce0a788017cd37ab"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterReload.mp3",
+          "bytes": 12270,
+          "sha256": "689472a12e5141a1f968afd572f2963c9a360efb86d243673b18a5c84324bb92"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
     }
   ]
 }

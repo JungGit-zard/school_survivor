@@ -103,6 +103,34 @@ function synth({
   return samples
 }
 
+// ── 필터 ──────────────────────────────────────────────────────────────────────
+// 1-pole IIR. 이 엔진에는 원래 필터가 없어서 noise 계열 음이 전부 백색(중심주파수
+// 6~11kHz)으로 몰린다. 아래 두 헬퍼는 '색이 있는' 마찰/디텐트 질감을 만들기 위한 것이며,
+// 명시적으로 호출한 사운드에만 적용된다(기존 정의의 출력은 바뀌지 않는다).
+function lowpass(samples, cutoff) {
+  const dt = 1 / SR
+  const alpha = dt / (1 / (PI2 * cutoff) + dt)
+  const out = new Float32Array(samples.length)
+  let prev = 0
+  for (let i = 0; i < samples.length; i++) { prev += alpha * (samples[i] - prev); out[i] = prev }
+  return out
+}
+
+function highpass(samples, cutoff) {
+  const dt = 1 / SR
+  const rc = 1 / (PI2 * cutoff)
+  const alpha = rc / (rc + dt)
+  const out = new Float32Array(samples.length)
+  let prev = 0
+  for (let i = 1; i < samples.length; i++) {
+    prev = alpha * (prev + samples[i] - samples[i - 1])
+    out[i] = prev
+  }
+  return out
+}
+
+const bandpass = (samples, low, high) => highpass(lowpass(samples, high), low)
+
 // 여러 음을 합산
 function mix(...layers) {
   const n = Math.max(...layers.map(l => l.length))
@@ -248,6 +276,116 @@ const sounds = {
       attack:0.002, decay:0.03, sustain:0.15, release:0.05,
     }),
   ),
+  // ── 바이키티 커터칼 (bikittyCutter) 3종 ────────────────────────────────────
+  // 공업용 L형 대형 커터칼. 8단 래칫 → 파단 → 날 교체 루프.
+  // 전부 절차 합성이며 외부 샘플/타 게임 음원을 쓰지 않는다.
+
+  // 1) 딸깍 — 날을 한 칸 밀어내는 래칫 디텐트. 건조하게 끊고, 잔향을 남기지 않는다.
+  //    8연타 대비: 유효 길이 ~0.07초. 로직이 rate 0.8~1.6으로 단수 피치를 올린다.
+  //    의도된 최고 성분이 2.6kHz라 rate 1.6에서도 4.2kHz — 하시(harsh) 영역에 닿지 않는다.
+  'weapons/bikittyCutterFire': () => (() => {
+    const at = (samples, seconds) => {
+      const offset = Math.floor(seconds * SR)
+      const padded = new Float32Array(samples.length + offset)
+      padded.set(samples, offset)
+      return padded
+    }
+    return mix(
+      // "딸" 본체 — triangle 이 주역이다. 노이즈가 주역이면 rate 0.8~1.6 피치 사다리가
+      // 귀에 안 들린다(백색 노이즈는 리샘플해도 음정이 거의 안 잡힌다).
+      at(synth({ wave:'triangle', freq:1500, freqEnd:820, dur:0.05, vol:0.55,
+        attack:0.0005, decay:0.016, sustain:0.0, release:0.024 }), 0),
+      // 디텐트 grit — 3.4kHz 저역통과로 hiss 대신 '플라스틱 톱니' 질감
+      at(lowpass(synth({ wave:'noise', freq:1, dur:0.03, vol:0.30,
+        attack:0.0004, decay:0.010, sustain:0.0, release:0.016 }), 3400), 0),
+      // 금속 에지 반짝임 — 아주 짧게만, 사각파 상위 배음은 잘라서 밝기가 튀지 않게
+      at(lowpass(synth({ wave:'square', freq:2400, freqEnd:1400, dur:0.022, vol:0.14,
+        attack:0.0004, decay:0.008, sustain:0.0, release:0.012 }), 6000), 0),
+      // 플라스틱 하우징 저역 — 폰 스피커에서 hiss로 들리지 않게 하는 몸통
+      at(synth({ wave:'triangle', freq:520, freqEnd:380, dur:0.055, vol:0.22,
+        attack:0.001, decay:0.018, sustain:0.0, release:0.026 }), 0),
+      // "깍" — 디텐트가 다음 톱니로 빠지는 뒤꿈치. 26ms 뒤라 하나의 딸깍으로 붙는다.
+      at(synth({ wave:'triangle', freq:1900, freqEnd:1200, dur:0.035, vol:0.28,
+        attack:0.0004, decay:0.012, sustain:0.0, release:0.018 }), 0.026),
+      at(lowpass(synth({ wave:'noise', freq:1, dur:0.022, vol:0.16,
+        attack:0.0004, decay:0.008, sustain:0.0, release:0.012 }), 3400), 0.026),
+    )
+  })(),
+
+  // 2) 챙 — 8단째 날이 톡 부러지고 조각이 부채꼴로 튀는 파열음. 세 소리 중 최대.
+  //    비정수 배음(2.74, 4.2)으로 '두들긴 금속'을 만든다. 정수배음이면 종/악기처럼 들린다.
+  'weapons/bikittyCutterSnap': () => (() => {
+    const at = (samples, seconds) => {
+      const offset = Math.floor(seconds * SR)
+      const padded = new Float32Array(samples.length + offset)
+      padded.set(samples, offset)
+      return padded
+    }
+    const shard = (freq, delay, vol) => at(synth({
+      wave:'triangle', freq, freqEnd:freq*0.62, dur:0.10, vol,
+      attack:0.0006, decay:0.03, sustain:0.06, release:0.06, noiseAmt:0.10,
+    }), delay)
+    return mix(
+      // 파단 트랜지언트 — 광대역 크랙. mix()가 피크 정규화를 하므로 층이 전부 t=0에
+      // 겹치면 합이 커져 전체가 눌리고 체감 크기(RMS)가 오히려 작아진다.
+      // 그래서 아래 층들을 3~10ms씩 어긋나게 둔다 — 하나의 타격으로 들리는 범위다.
+      at(lowpass(synth({ wave:'noise', freq:1, dur:0.10, vol:0.62,
+        attack:0.0004, decay:0.035, sustain:0.04, release:0.06 }), 7000), 0),
+      // 부러지는 순간의 급강하 — 금속이 '찢어지며' 끊기는 에지
+      at(synth({ wave:'sawtooth', freq:1900, freqEnd:460, dur:0.12, vol:0.34,
+        attack:0.0005, decay:0.04, sustain:0.05, release:0.06, noiseAmt:0.14 }), 0.003),
+      // 저역 무게 — 소형 스피커에서 '크다'고 느끼게 하는 몸통
+      at(synth({ wave:'sine', freq:230, freqEnd:75, dur:0.30, vol:0.55,
+        attack:0.001, decay:0.09, sustain:0.12, release:0.18 }), 0.004),
+      // "챙" 상단 금속 링잉 — 비정수 배음(2.74/4.2)이라 악기음이 아닌 두들긴 금속
+      at(synth({ wave:'sine', freq:1750, dur:0.62, vol:0.90,
+        attack:0.001, decay:0.14, sustain:0.26, release:0.44,
+        overtones:[{ratio:2.74,amp:0.40},{ratio:4.2,amp:0.16}] }), 0.006),
+      // 하단 링잉 — 금속 체급감을 주고 중심주파수를 끌어내려 hiss화를 막는다
+      at(synth({ wave:'sine', freq:980, dur:0.58, vol:0.66,
+        attack:0.001, decay:0.13, sustain:0.24, release:0.40,
+        overtones:[{ratio:2.41,amp:0.32}] }), 0.010),
+      // 부채꼴로 흩어지는 조각 5개 — 시간차 + 음량 감쇠로 확산 방향감
+      shard(3100, 0.06, 0.26),
+      shard(2650, 0.11, 0.22),
+      shard(3450, 0.17, 0.19),
+      shard(2300, 0.24, 0.16),
+      shard(2900, 0.33, 0.13),
+    )
+  })(),
+
+  // 3) 스륵 — 새 날을 밀어 넣는 마찰음. 1.2초 재장전 대비 실측 ~0.93초로
+  //    끝을 남겨 두어 재무장 순간의 첫 딸깍과 겹치지 않는다.
+  //    필터가 없는 엔진이라 noiseAmt로 sine을 착색해 '색이 있는 마찰 노이즈'를 만든다.
+  'weapons/bikittyCutterReload': () => (() => {
+    const at = (samples, seconds) => {
+      const offset = Math.floor(seconds * SR)
+      const padded = new Float32Array(samples.length + offset)
+      padded.set(samples, offset)
+      return padded
+    }
+    return mix(
+      // 마찰 베드 — 700~4200Hz 대역통과. 백색 노이즈 그대로면 '스륵'이 아니라
+      // 라디오 잡음처럼 들린다. 이 대역이 실제 금속 슬라이드 마찰이 사는 곳이다.
+      // 무장해제 구간의 배경 텍스처라 챙보다 확실히 작게 유지한다.
+      at(bandpass(synth({ wave:'sine', freq:380, freqEnd:640, dur:0.95, vol:0.62,
+        attack:0.07, decay:0.20, sustain:0.55, release:0.28,
+        vibRate:11, vibDepth:45, noiseAmt:0.68 }), 700, 4200), 0),
+      // 금속 레일 shimmer — 날 등이 가이드에 긁히는 고역
+      at(lowpass(synth({ wave:'triangle', freq:2600, freqEnd:3300, dur:0.85, vol:0.11,
+        attack:0.09, decay:0.18, sustain:0.5, release:0.26,
+        vibRate:7, vibDepth:90, noiseAmt:0.20 }), 6500), 0),
+      // 레일 저역 rumble — 큰 공업용 커터라는 체급감. 밝기를 눌러 주는 역할도 한다.
+      at(synth({ wave:'triangle', freq:150, freqEnd:110, dur:0.90, vol:0.30,
+        attack:0.08, decay:0.20, sustain:0.45, release:0.30 }), 0),
+      // 안착 "톡" — 재무장 예고 신호. 0.84초 지점이라 1.2초 안에 확실히 끝난다.
+      at(lowpass(synth({ wave:'noise', freq:1, dur:0.09, vol:0.40,
+        attack:0.0005, decay:0.025, sustain:0.0, release:0.04 }), 3800), 0.84),
+      at(synth({ wave:'triangle', freq:1500, freqEnd:900, dur:0.07, vol:0.26,
+        attack:0.0005, decay:0.022, sustain:0.0, release:0.035 }), 0.84),
+    )
+  })(),
+
   'weapons/umbrellaHit': () => synth({
     wave:'noise', freq:1, dur:0.2, vol:0.55,
     attack:0.001, decay:0.07, sustain:0.05, release:0.1,

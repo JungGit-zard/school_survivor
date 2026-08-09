@@ -18,6 +18,7 @@ import chibikoIconUrl from '../assets/weapon_icon/14_wea_chibiko.svg'
 import hanakoIconUrl from '../assets/weapon_icon/15_wea_hanako.svg'
 import sharkMissileIconUrl from '../assets/weapon_icon/14_wea_shark_missile.svg'
 import lanternIconUrl from '../assets/weapon_icon/16_wea_lantern.webp'
+import bikittyCutterIconUrl from '../assets/weapon_icon/17_wea_bikitty_cutter.svg'
 import { ENEMY_DEATH_COLLAPSE_STYLES } from './enemyDeathCollapse.js'
 import {
   getFirebaseStudioRuntimeDataset,
@@ -121,6 +122,7 @@ const weaponVisuals = [
   ['weapon-guided-missile', 'Guided Missile', 'guidedMissile', batteryIconUrl, 'components/Weapons/Missile.jsx', 'weaponModel', 'MissileBody'],
   ['weapon-shark-missile', 'Shark Missile', 'sharkMissile', sharkMissileIconUrl, 'components/Weapons/SharkMissile.jsx', 'weaponModel', 'SharkMissileModel'],
   ['weapon-student-lantern', 'Student Lantern', 'studentLantern', lanternIconUrl, 'components/Weapons/StudentLantern.jsx', 'weaponModel', 'StudentLanternVisual'],
+  ['weapon-bikitty-cutter', 'Bikitty Cutter', 'bikittyCutter', bikittyCutterIconUrl, 'components/Weapons/BikittyCutter.jsx', 'weaponModel', 'BikittyCutterModel'],
 ]
 
 const questVisualKinds = ['book', 'red-book', 'attendance-sheet', 'bandage', 'key', 'whistle', 'fuse', 'list', 'valve']

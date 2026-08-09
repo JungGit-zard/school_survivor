@@ -44,6 +44,7 @@ import umbrellaIconSrc from '../assets/weapon_icon/11_wea_umb.png.webp'
 import eraserIconSrc from '../assets/weapon_icon/12_wea_eraser.png.webp'
 import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
 import hanakoIconSrc from '../assets/weapon_icon/15_wea_hanako.svg'
+import bikittyCutterIconSrc from '../assets/weapon_icon/17_wea_bikitty_cutter.svg'
 import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
 import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.webp'
 import laidManPortraitSrc from '../assets/character/laid_man.webp'
@@ -116,6 +117,10 @@ const UPGRADES = [
   { key: 'acquireChibiko', icon: 'chibiko', label: '치비코 해금', desc: '레벨1 연필 투척 · 보유 무기 능력 10% 강화' },
   { key: 'acquireHanako', icon: 'hanako', label: '하나코 해금', desc: '치비코를 획득해야 등장; 20초마다 주인공 최대 체력의 5% 회복' },
   { key: 'chibikoCrit', icon: 'chibiko', label: '치비코 치명타 강화', desc: '치명타 확률 +2%, 치명타 피해 배율 +0.75배 (최대 4.5배)' },
+  { key: 'acquireBikittyCutter', icon: 'bikittyCutter', label: '바이키티 커터칼 해금', desc: '커터칼을 획득해야 등장; 벨 때마다 날이 길어지고 8단째에 부러지며 전방 산탄' },
+  { key: 'bikittyCutterDamage', icon: 'bikittyCutter', labelFn: damageLabel('바이키티 피해', 'bikittyCutter', 'bikittyCutterDamage'), desc: '단수별 베기 피해 증가' },
+  { key: 'bikittyCutterRange', icon: 'bikittyCutter', label: '바이키티 단수 사거리 +', desc: '날이 한 칸 나올 때마다 늘어나는 사거리 증가' },
+  { key: 'bikittyCutterCrit', icon: 'bikittyCutter', label: '바이키티 치명타 강화', desc: '치명타 확률 +2%, 치명타 피해 배율 +0.75배 (최대 4.5배)' },
   { key: 'acquireSharkMissile', icon: 'sharkMissile', label: '상어미사일 해금', desc: '가장 빽빽한 좀비 무리로 호밍 폭발' },
   { key: 'sharkMissileDamage', icon: 'sharkMissile', labelFn: damageLabel('상어미사일 피해', 'sharkMissile', 'sharkMissileDamage'), desc: '폭발 피해 증가' },
   { key: 'sharkMissileRadius', icon: 'sharkMissile', label: '상어미사일 반경 +', desc: '폭발 반경 증가' },
@@ -153,6 +158,7 @@ const WEAPON_UPGRADE_ICON_SRC = {
   hanako: hanakoIconSrc,
   sharkMissile: sharkMissileIconSrc,
   lantern: lanternIconSrc,
+  bikittyCutter: bikittyCutterIconSrc,
 }
 
 const WEAPON_KEY_TO_ICON = {
@@ -173,6 +179,7 @@ const WEAPON_KEY_TO_ICON = {
   hanako:        'hanako',
   sharkMissile:  'sharkMissile',
   studentLantern: 'lantern',
+  bikittyCutter: 'bikittyCutter',
 }
 
 const WEAPON_ICON_STUDIO_ITEMS = {

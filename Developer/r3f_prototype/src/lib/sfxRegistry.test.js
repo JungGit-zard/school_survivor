@@ -173,6 +173,77 @@ describe('playSfx', () => {
     expect(POLYPHONY_COOLDOWN).toEqual(expect.objectContaining({ rzlWhistle: 600 }))
   })
 
+  it('registers the Bikitty cutter ratchet, snap and reload as dedicated weapon assets', async () => {
+    const { SOUND_MAP, POLYPHONY_COOLDOWN } = await import('./sfxRegistry.js')
+
+    expect(SOUND_MAP).toMatchObject({
+      bikittyCutterFire: '/sfx/weapons/bikittyCutterFire.ogg',
+      bikittyCutterSnap: '/sfx/weapons/bikittyCutterSnap.ogg',
+      bikittyCutterReload: '/sfx/weapons/bikittyCutterReload.ogg',
+    })
+    expect(POLYPHONY_COOLDOWN).toEqual(expect.objectContaining({
+      bikittyCutterFire: 40,
+      bikittyCutterSnap: 220,
+      bikittyCutterReload: 600,
+    }))
+
+    for (const id of ['bikittyCutterFire', 'bikittyCutterSnap', 'bikittyCutterReload']) {
+      // 커터칼 계열 기존 음원의 alias가 아니라 전용 음원이어야 한다.
+      expect(SOUND_MAP[id]).not.toBe(SOUND_MAP.boxCutterFire)
+      expect(SOUND_MAP[id]).not.toBe(SOUND_MAP.boxCutterHit)
+      for (const extension of ['ogg', 'mp3']) {
+        const assetPath = SOUND_MAP[id].replace(/\.ogg$/, `.${extension}`)
+        const assetUrl = new URL(`../../public${assetPath}`, import.meta.url)
+        expect(statSync(assetUrl).size, `${id} ${extension}`).toBeGreaterThan(1000)
+      }
+    }
+  })
+
+  it('passes the whole 0.8-1.6 blade-stage pitch ladder through without clamping', async () => {
+    const now = vi.spyOn(performance, 'now')
+    const { playSfx } = await import('./sfxRegistry.js')
+    // 1단(낮음) → 8단(높음). playSfx의 rate clamp는 0.5~2.0이라 이 범위는 전부 통과해야 한다.
+    const ladder = [0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.45, 1.6]
+
+    ladder.forEach((rate, index) => {
+      now.mockReturnValue(index * 2400)   // 실제 무기 공격 간격
+      playSfx('bikittyCutterFire', 0.5, { rate })
+      howlConfigs[0].onend(7)             // 전투 voice 반납
+    })
+
+    // 8단 딸깍이 하나도 누락되지 않는다 — cooldown 40ms도, voice cap도 이를 막지 않는다.
+    expect(howlPlay).toHaveBeenCalledTimes(ladder.length)
+    expect(howlRate.mock.calls.map(([rate]) => rate)).toEqual(ladder)
+  })
+
+  it('collapses same-frame duplicate Bikitty cues without touching the next attack', async () => {
+    const now = vi.spyOn(performance, 'now')
+    const { playSfx } = await import('./sfxRegistry.js')
+
+    for (const [id, cooldown] of [
+      ['bikittyCutterFire', 40],
+      ['bikittyCutterSnap', 220],
+      ['bikittyCutterReload', 600],
+    ]) {
+      const playsBefore = howlPlay.mock.calls.length
+      const config = () => howlConfigs.find((entry) => entry.src[0] === `/sfx/weapons/${id}.ogg`)
+
+      now.mockReturnValue(0)
+      playSfx(id)
+      expect(howlPlay.mock.calls.length, `${id} initial`).toBe(playsBefore + 1)
+      config().onend(7)
+
+      now.mockReturnValue(cooldown - 1)
+      playSfx(id)
+      expect(howlPlay.mock.calls.length, `${id} same-frame duplicate`).toBe(playsBefore + 1)
+
+      now.mockReturnValue(cooldown)
+      playSfx(id)
+      expect(howlPlay.mock.calls.length, `${id} after cooldown`).toBe(playsBefore + 2)
+      config().onend(7)
+    }
+  })
+
   it('keeps every registered OGG and MP3 fallback path backed by a public asset', async () => {
     const { SOUND_MAP } = await import('./sfxRegistry.js')
 

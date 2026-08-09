@@ -122,6 +122,12 @@ export const UPGRADE_EFFECTS = {
   acquireChibiko:       { weapon: 'chibiko',       kind: 'acquire', minLevel: 8 },
   chibikoCrit:          { weapon: 'chibiko',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.21, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireHanako:        { weapon: 'hanako',        kind: 'acquire', requiresActiveWeapon: 'chibiko', skipAccountUnlock: true },
+  // 바이키티 커터칼 — 커터칼을 런 중 보유해야만 카드가 뜬다(하나코/치비코와 같은 배선).
+  // 계정 해금 게이트(weaponUnlocks)는 쓰지 않으므로 skipAccountUnlock: true.
+  acquireBikittyCutter: { weapon: 'bikittyCutter', kind: 'acquire', minLevel: 6, requiresActiveWeapon: 'boxCutter', skipAccountUnlock: true },
+  bikittyCutterDamage: { weapon: 'bikittyCutter', kind: 'damage', dmg: 4 },
+  bikittyCutterRange:  { weapon: 'bikittyCutter', kind: 'stat',   stat: 'segmentRangeStep', step: 0.02, cap: 0.28 },
+  bikittyCutterCrit:   { weapon: 'bikittyCutter', kind: 'crit',   chanceStep: 0.02, chanceCap: 0.41, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireSharkMissile:  { weapon: 'sharkMissile',  kind: 'acquire', minLevel: 8 },
   sharkMissileDamage:  { weapon: 'sharkMissile',  kind: 'damage', dmg: 10 },
   sharkMissileRadius:  { weapon: 'sharkMissile',  kind: 'stat',   stat: 'radius',    step: 0.2, cap: 2.6 },

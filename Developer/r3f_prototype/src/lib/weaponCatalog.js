@@ -190,6 +190,39 @@ export const WEAPON_CATALOG = {
     ],
     minLevelToAppear: 5,
   },
+
+  // ─── 발전형 1종 (커터칼 발전형) ───
+  // 정본 기획: Planner/game_contents/weapons/slash_evolution_weapon_concepts_2026-08-09.md §1
+  // 「바이키티 커터칼」 — 커터칼(boxCutter)을 런 중 보유해야만 카드가 뜬다(upgrades.js
+  // acquireBikittyCutter.requiresActiveWeapon). 계정 해금 게이트는 쓰지 않으므로
+  // unlockConditions는 하나코와 같은 STARTER 취급이고, 실제 등장 조건은 카드 쪽이 전부다.
+  //
+  // 동작 루프: 벨 때마다 날이 한 칸(segment) 나와 사거리·위력이 오르고, 8단째(segment 7)
+  // 타격에서 날이 부러져 전방 90° 부채꼴 산탄을 한 번 뿌린 뒤 reloadMs 동안 무장해제된다.
+  //
+  // 검산(치명타 제외):
+  //   8타 위력 배수 합 = 8 + 0.12 × (0+1+…+7) = 11.36
+  //   사이클 총 피해   = 18 × 11.36 + 30 = 234.48
+  //   사이클 시간      = 8 × 2400ms + 1200ms = 20400ms
+  //   단일 대상 DPS    = 234.48 / 20.4 ≈ 11.49  (커터칼 7.4의 1.55배, 30cm 자 9.2의 1.25배)
+  bikittyCutter: {
+    id: 'bikittyCutter',
+    label: '바이키티 커터칼',
+    base: {
+      damage: 18, cooldown: 2400, range: 1.0, width: 0.18,
+      knockback: 1.8, critChance: 0.25, critMultiplier: 1.5,
+      segments: 8,             // 부러지기까지 타격 수
+      segmentRangeStep: 0.18,  // 단수당 사거리 + (최대 1.0 + 0.18×7 = 2.26)
+      segmentDamageStep: 0.12, // 단수당 위력 +12% (가산)
+      snapDamage: 30,          // 부러짐 산탄 1회 피해
+      snapPellets: 8,          // 시각 연출용 파편 개수 — 피해 계산에는 쓰지 않는다
+      snapArcDeg: 90,          // 전방 부채꼴 각도
+      snapRange: 3.2,
+      reloadMs: 1200,          // 부러진 뒤 추가 무장해제 시간(쿨다운 위에 가산)
+    },
+    unlockConditions: STARTER,
+    minLevelToAppear: 6,
+  },
 }
 
 // 예전에는 플라스크 틱 데미지와 랜턴 위력을 pencilThrow.base.damage에서 직접 파생시켰다.
