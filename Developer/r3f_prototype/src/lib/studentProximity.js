@@ -6,11 +6,19 @@ import { getInvestigationDialogue } from './investigationDialogue.js'
 // 근처를 지나가는 정도가 아니라 학생 위에 완전히 올라섰을 때만 트리거되도록 작게 잡음.
 export const STUDENT_DIALOGUE_RADIUS = 0.5
 // 조사 물체는 "닿으면" 성립 — 원형 반경이 아니라 콜라이더 박스 표면까지의 거리로 판정한다.
-// 게시판은 플레이어 콜라이더 반폭(0.136)만큼까지, 즉 물리 콜라이더가 실제로 맞닿을 때만 조사한다.
+// 게시판은 회전된 면 법선에 투영된 플레이어 콜라이더 반폭만큼까지, 즉 물리 콜라이더가 실제로 맞닿을 때만 조사한다.
 export const OBJECT_CONTACT_MARGIN = 0.25
 export const PLAYER_INVESTIGATION_HALF_EXTENT = 0.136
-export const BULLETIN_BOARD_CONTACT_MARGIN = PLAYER_INVESTIGATION_HALF_EXTENT
+const CONTACT_DISTANCE_EPSILON = 1e-9
 const STUDENT_TYPES = new Set(['unconsciousStudent', 'classPresidentStudent'])
+
+// Rapier의 플레이어는 월드 축에 정렬된 cuboid다. 회전된 게시판 면에 닿는 중심점 거리는
+// 면 법선으로 투영한 플레이어 반폭이어야 한다. 그래야 실제 충돌 접촉 위치가 조사 범위에 든다.
+export function getBulletinBoardContactMargin(rotationY = 0) {
+  return PLAYER_INVESTIGATION_HALF_EXTENT * (
+    Math.abs(Math.cos(rotationY)) + Math.abs(Math.sin(rotationY))
+  )
+}
 
 function getRotationY(rotation = [0, 0, 0]) {
   return Array.isArray(rotation) ? rotation[1] ?? 0 : rotation ?? 0
@@ -77,7 +85,9 @@ export function getInvestigationTargets(stageId) {
         halfX: footprint.halfX,
         halfZ: footprint.halfZ,
         rotationY: footprint.rotationY,
-        contactMargin: item.type === 'corridorLostFoundBoard' ? BULLETIN_BOARD_CONTACT_MARGIN : OBJECT_CONTACT_MARGIN,
+        contactMargin: item.type === 'corridorLostFoundBoard'
+          ? getBulletinBoardContactMargin(footprint.rotationY)
+          : OBJECT_CONTACT_MARGIN,
       }]
     })
 }
@@ -98,7 +108,7 @@ export function findInvestigationTargetInRange(playerX, playerZ, targets, invest
       const ddx = Math.max(0, Math.abs(localX) - target.halfX)
       const ddz = Math.max(0, Math.abs(localZ) - target.halfZ)
       const contactMargin = target.contactMargin ?? OBJECT_CONTACT_MARGIN
-      if (ddx * ddx + ddz * ddz <= contactMargin * contactMargin + Number.EPSILON) return target
+      if (ddx * ddx + ddz * ddz <= contactMargin * contactMargin + CONTACT_DISTANCE_EPSILON) return target
       continue
     }
     // 학생: 몸 위에 올라섰을 때(원형 반경).

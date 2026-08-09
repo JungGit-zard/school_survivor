@@ -17,11 +17,7 @@ import { playerPos } from '../lib/refs.js'
 import { commitFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
 import { computeDefaultStageObjectPlacements } from './StageObjects/stageObjectPlacements.js'
 import { useGameStore } from '../store/useGameStore.js'
-import {
-  BULLETIN_BOARD_CONTACT_MARGIN,
-  findInvestigationTargetInRange,
-  getInvestigationTargets,
-} from '../lib/studentProximity.js'
+import { findInvestigationTargetInRange, getInvestigationTargets } from '../lib/studentProximity.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 import { STAGE2_PLAYER_INSET_X } from '../lib/playerMovementBounds.js'
 
@@ -114,7 +110,7 @@ describe('Stage 2 bulletin board runtime investigation chain', () => {
     const contactPoint = worldPointFromTargetLocal(
       board,
       0,
-      board.halfZ + BULLETIN_BOARD_CONTACT_MARGIN,
+      board.halfZ + board.contactMargin,
     )
     const { halfX, halfZ } = getStageBounds('stage2')
     expect(Math.abs(contactPoint.x)).toBeLessThanOrEqual(halfX - STAGE2_PLAYER_INSET_X)
@@ -129,7 +125,7 @@ describe('Stage 2 bulletin board runtime investigation chain', () => {
     const beforePhysicalContact = worldPointFromTargetLocal(
       board,
       0,
-      board.halfZ + BULLETIN_BOARD_CONTACT_MARGIN + 0.001,
+      board.halfZ + board.contactMargin + 0.001,
     )
     expect(findInvestigationTargetInRange(
       beforePhysicalContact.x,

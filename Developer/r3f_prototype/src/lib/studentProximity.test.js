@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import {
   STUDENT_DIALOGUE_RADIUS,
   OBJECT_CONTACT_MARGIN,
-  BULLETIN_BOARD_CONTACT_MARGIN,
   PLAYER_INVESTIGATION_HALF_EXTENT,
   getUnconsciousStudents,
   getInvestigationTargets,
@@ -130,9 +129,9 @@ describe('전 스테이지 공용 조사 대상', () => {
     })
     const board = getInvestigationTargets('stage2')[0]
     // Player.jsx의 CuboidCollider args는 [0.136, 0.32, 0.136]이다.
-    expect(BULLETIN_BOARD_CONTACT_MARGIN).toBe(PLAYER_INVESTIGATION_HALF_EXTENT)
-    expect(BULLETIN_BOARD_CONTACT_MARGIN).toBeCloseTo(0.136)
-    expect(board.contactMargin).toBe(BULLETIN_BOARD_CONTACT_MARGIN)
+    // 축정렬 플레이어가 45° 게시판에 닿을 때 법선 방향 투영 반폭은 0.136 * √2다.
+    const physicalContactMargin = PLAYER_INVESTIGATION_HALF_EXTENT * Math.SQRT2
+    expect(board.contactMargin).toBeCloseTo(physicalContactMargin)
     expect(board.rotationY).toBeCloseTo(Math.PI / 4)
     expect(board.halfX).toBeCloseTo(0.67)
     expect(board.halfZ).toBeCloseTo(0.09)
@@ -145,9 +144,9 @@ describe('전 스테이지 공용 조사 대상', () => {
         board.position[2] - localX * sin + localZ * cos,
       ]
     }
-    const touchingFront = toWorld(0, board.halfZ + BULLETIN_BOARD_CONTACT_MARGIN)
-    const beforeTouchingFront = toWorld(0, board.halfZ + BULLETIN_BOARD_CONTACT_MARGIN + 0.001)
-    const emptyAabbCorner = toWorld(board.halfX + BULLETIN_BOARD_CONTACT_MARGIN + 0.01, 0)
+    const touchingFront = toWorld(0, board.halfZ + board.contactMargin)
+    const beforeTouchingFront = toWorld(0, board.halfZ + board.contactMargin + 0.001)
+    const emptyAabbCorner = toWorld(board.halfX + board.contactMargin + 0.01, 0)
     const reachableBoardCorner = toWorld(board.halfX, board.halfZ)
     const stage2MovementBounds = getPlayerMovementBounds('stage2')
 
