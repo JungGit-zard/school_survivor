@@ -771,8 +771,9 @@ export default function GraphicsStudio() {
       bossFaceRecipes: nextBossFaceRecipes,
     }
 
-    applyFirebaseStudioDatasets(nextDatasets)
-    void sendGameSync({ openGame: true, datasets: nextDatasets })
+    const result = await persistDatasetsOnApply(nextDatasets)
+    if (result.status !== 'saved' || !isSavedFirebaseRevision(result.revision)) return result
+
     setConfirmedTunings(nextTunings)
     draftTuningByIdRef.current = {}
     sfxTuningsRef.current = sfxTunings
@@ -784,18 +785,13 @@ export default function GraphicsStudio() {
     setDraftTuningById({})
     setBossFaceRecipes(nextBossFaceRecipes)
     setDraftBossFaceRecipes({})
+    void sendGameSync({
+      openGame: true,
+      datasets: nextDatasets,
+      revision: result.revision,
+    })
     setApplyStatus(successLabel)
-
-    const result = await persistDatasetsOnApply(nextDatasets)
-    if (result.status === 'saved') {
-      void sendGameSync({
-        openGame: true,
-        datasets: nextDatasets,
-        revision: result.revision,
-      })
-      setApplyStatus(successLabel)
-      setFirebaseStatus('saved')
-    }
+    setFirebaseStatus('saved')
     return result
   }
 

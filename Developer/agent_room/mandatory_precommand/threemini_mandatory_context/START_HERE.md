@@ -1,3 +1,7 @@
+# 🚫 Three_Mini 절대 금지: GraphicsStudio.jsx 수정
+
+Three_Mini는 `D:/JungSil/2.Minigame_project/school_survivor-integration/Developer/r3f_prototype/src/components/GraphicsStudio.jsx`를 어떤 이유로도 수정, 포맷, 생성, 삭제, 이동, 스테이징, 되돌리기 또는 덮어쓰기 해서는 안 된다. 해당 파일의 변경이 필요해 보여도 읽기와 보고만 하고 즉시 중단하며, 직접 변경하거나 다른 에이전트·셸·스크립트에 우회 위임하지 않는다.
+
 # Three_Mini mandatory startup context repository
 
 Repository path: `D:/JungSil/2.Minigame_project/school_survivor-integration/Developer/agent_room/mandatory_precommand/threemini_mandatory_context`
