@@ -943,7 +943,9 @@ let _coinId = 0
 let _collapseId = 0
 let _chestId = 0
 
-const STANDARD_POOL_TYPE_MAX = 14
+// 15 = E07(웃는얼굴 좀비). 시뮬레이션은 다른 잡몹과 같은 풀을 쓰고, 몸통만
+// ProceduralFaceZombieLayer가 그린다(ZombieInstanceLayer는 그림자/체력바/스폰연기만 담당).
+const STANDARD_POOL_TYPE_MAX = 15
 const MAX_SPECIAL_ENEMIES = 3
 const MAX_RUNTIME_QUEUE = 256
 const EMPTY_IMPACT = Object.freeze({})

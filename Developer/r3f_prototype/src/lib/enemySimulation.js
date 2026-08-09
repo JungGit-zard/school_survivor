@@ -45,12 +45,13 @@ export const ENEMY_STUCK_RECOVERY_MS = 1200
 export const ENEMY_STUCK_MOVE_EPSILON_SQ = 1e-6
 
 // JSX ENEMY_STATS와 수치를 맞춘 순수 런타임 lookup. 다음 통합 단계에서 Enemy.jsx가 이 정본을 import한다.
-export const ENEMY_RUNTIME_HP = new Float32Array([0, 8, 70, 10, 32, 70, 320, 90, 28, 0, 0, 0, 0, 28, 48])
-export const ENEMY_RUNTIME_SPEED = new Float32Array([0, 0.475, 0.385, 1.1, 0.45, 0.5, 0.6, 2.45, 2.18, 0, 0, 0, 0, 1.275, 1.225])
-export const ENEMY_RUNTIME_DAMAGE = new Float32Array([0, 8, 14, 6, 8, 16, 20, 14, 7, 0, 0, 0, 0, 6, 9])
-export const ENEMY_RUNTIME_SCALE = new Float32Array([0, 1, 1.4, 0.75, 0.9, 1.15, 1.6, 1.08, 0.78, 0, 0, 0, 0, 0.88, 0.92])
-export const ENEMY_RUNTIME_XP = new Float32Array([0, 4, 15, 5, 10, 15, 56, 12, 5, 0, 0, 0, 0, 5, 6])
-export const ENEMY_RUNTIME_CONTACT_DIST = new Float32Array([0, 0.28, 0.36, 0.22, 0.26, 0.32, 0.42, 0.28, 0.22, 0, 0, 0, 0, 0.22, 0.24])
+// 인덱스 = ENEMY_TYPE_CODES. 15 = E07(웃는얼굴 좀비) = E01의 2배 hp/damage/speed.
+export const ENEMY_RUNTIME_HP = new Float32Array([0, 8, 70, 10, 32, 70, 320, 90, 28, 0, 0, 0, 0, 28, 48, 16])
+export const ENEMY_RUNTIME_SPEED = new Float32Array([0, 0.475, 0.385, 1.1, 0.45, 0.5, 0.6, 2.45, 2.18, 0, 0, 0, 0, 1.275, 1.225, 0.95])
+export const ENEMY_RUNTIME_DAMAGE = new Float32Array([0, 8, 14, 6, 8, 16, 20, 14, 7, 0, 0, 0, 0, 6, 9, 16])
+export const ENEMY_RUNTIME_SCALE = new Float32Array([0, 1, 1.4, 0.75, 0.9, 1.15, 1.6, 1.08, 0.78, 0, 0, 0, 0, 0.88, 0.92, 1])
+export const ENEMY_RUNTIME_XP = new Float32Array([0, 4, 15, 5, 10, 15, 56, 12, 5, 0, 0, 0, 0, 5, 6, 8])
+export const ENEMY_RUNTIME_CONTACT_DIST = new Float32Array([0, 0.28, 0.36, 0.22, 0.26, 0.32, 0.42, 0.28, 0.22, 0, 0, 0, 0, 0.22, 0.24, 0.28])
 
 function isFiniteNumber(value) {
   return Number.isFinite(value)
@@ -86,7 +87,7 @@ function ignoresObstacles(type) {
 }
 
 function isMelee(type) {
-  return type === 1 || type === 2 || type === 3 || type === 5 || type === 6 || type === 7 || type === 8 || type === 13 || type === 14
+  return type === 1 || type === 2 || type === 3 || type === 5 || type === 6 || type === 7 || type === 8 || type === 13 || type === 14 || type === 15
 }
 
 function contactDistance(type) {
@@ -513,7 +514,8 @@ export class EnemySimulationRuntime {
 
     for (let index = 0; index <= pool.highestActive; index += 1) {
       if (!pool.active[index]) continue
-      if (pool.type[index] < 1 || pool.type[index] > 8 && pool.type[index] < 13 || pool.type[index] > 14 || !hasFiniteSlot(pool, index)) {
+      // 유효 타입 = 1~8(E01~E06/RZL/RZC), 13~15(RZT/RZG/E07). 9~12는 보스라 이 런타임을 타지 않는다.
+      if (pool.type[index] < 1 || pool.type[index] > 8 && pool.type[index] < 13 || pool.type[index] > 15 || !hasFiniteSlot(pool, index)) {
         this._despawn(pool, index, ENEMY_EVENT_ERROR, 0, null)
         continue
       }

@@ -17,10 +17,14 @@ export const ENEMY_TYPE_CODES = Object.freeze({
   B04: 12,
   RZT: 13,
   RZG: 14,
+  // E07 "웃는얼굴 좀비" — E01의 2배 공격력/체력/이동속도. 몸통 비주얼은
+  // ProceduralFaceTestZombie(셰이더로 얼굴을 직접 그림)이라 박스 InstancedMesh
+  // 파이프라인 대신 ProceduralFaceZombieLayer가 그린다. 시뮬레이션은 동일 풀.
+  E07: 15,
 })
 
 export const ENEMY_TYPE_NAMES = Object.freeze([
-  '', 'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG',
+  '', 'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07',
 ])
 
 const MAX_GENERATION = MAX_ENEMY_GENERATION

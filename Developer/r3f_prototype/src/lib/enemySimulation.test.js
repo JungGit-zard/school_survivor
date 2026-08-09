@@ -230,6 +230,27 @@ describe('enemySimulation 순수 일반 적 런타임', () => {
     expect(ENEMY_CONTACT_COOLDOWN_MS).toBe(500)
   })
 
+  // E07 웃는얼굴 좀비는 몸통만 별도 레이어에서 그리고 시뮬레이션은 이 정본을 그대로 탄다.
+  // isMelee()에 15를 빠뜨리면 "닿아도 아무 일이 없는 좀비"가 되므로 접촉까지 못박는다.
+  it('E07은 E01의 2배 속도로 추격하고 2배 damage로 접촉한다', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    expect(ENEMY_RUNTIME_SPEED[15]).toBe(Math.fround(ENEMY_RUNTIME_SPEED[1] * 2))
+
+    const chaser = spawn(pool, 'E07', 6, 0, { spawnTimer: 300 })
+    runtime.step(pool, context())
+    // 플레이어(0,0)를 향해 -x로 접근한다.
+    expect(pool.posX[chaser.index]).toBeLessThan(6)
+    expect(pool.velX[chaser.index]).toBeCloseTo(-ENEMY_RUNTIME_SPEED[15], 6)
+
+    const contactPool = createEnemyEntityPool()
+    const contactRuntime = createEnemySimulationRuntime()
+    spawn(contactPool, 'E07', 0.1, 0, { spawnTimer: 300 })
+    let damage = 0
+    contactRuntime.step(contactPool, context({ onContact: (_i, _g, _x, _y, _z, value) => { damage += value } }))
+    expect(damage).toBe(16)
+  })
+
   it('E04는 동일 3구간 이동과 intro/age/cap/boss/cooldown 발사 gate를 지킨다', () => {
     const velocity = { x: 0, z: 0 }
     expect(resolveRangedEnemyVelocityRaw(velocity, 1, 0, 3).x).toBe(-0.45)

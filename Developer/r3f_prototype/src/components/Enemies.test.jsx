@@ -116,6 +116,22 @@ describe('boss runtime spawn routes', () => {
     expect(isPooledEnemyType('RZT')).toBe(true)
   })
 
+  // E07 웃는얼굴 좀비: 버스트 표 → 스폰 위치 → 풀 라우팅까지 한 줄이라도 끊기면
+  // '표에는 있는데 게임에는 안 나오는 적'이 된다. 세 링크를 함께 못박는다.
+  it('routes the Stage 2 smiling-face zombie burst into the pooled spawn path', () => {
+    const stage2 = getBurstEventsForStage('stage2')
+    expect(stage2).toContainEqual({ sec: 60, type: 'E07', count: 5 })
+    expect(stage2).toContainEqual({ sec: 82, type: 'E07', count: 10 })
+    expect(isPooledEnemyType('E07')).toBe(true)
+    expect(ENEMY_STATS.E07).toBeDefined()
+    const previous = { x: playerPos.x, z: playerPos.z }
+    playerPos.x = 0
+    playerPos.z = 0
+    expect(randomSpawnPos('E07', getStageBounds('stage2'), [], () => 0.25, getStageObjectSightObstacles('stage2'))).not.toBeNull()
+    playerPos.x = previous.x
+    playerPos.z = previous.z
+  })
+
   it('fires each boss burst once when elapsed time reaches its event second', () => {
     for (const [stageId] of bossStages) {
       const [boss] = getRuntimeBurstEventsForStage(stageId, 173).filter((event) => isBossType(event.type))

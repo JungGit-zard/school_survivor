@@ -67,6 +67,8 @@ export const STAGE2_BURST_EVENTS = [
   { sec:  90, type: 'E02', count:  3 },                       // 1분 30초 탱커 동반(2026-08-09)
   ...STAGE2_MIXED_REINFORCEMENT_EVENTS,
   { sec:  60, type: 'E03', count:  5, formation: 'ring' },    // 러너 포위
+  { sec:  60, type: 'E07', count:  5 },                       // 1분 웃는얼굴 좀비 5마리(E01 2배 스탯, 2026-08-09)
+  { sec:  82, type: 'E07', count: 10 },
   { sec: 132, type: 'E02', count:  6, formation: 'pincer' },  // 탱커 협공 (120–144 위상)
   { sec: 176, type: 'E05', count:  4, formation: 'swarm' },   // 돌진 무리 (168–192 위상)
 ]

@@ -270,6 +270,11 @@ export const ENEMY_STATS = {
   // Stage 2 guard chase: a faster fleeing trench-coat zombie and six guards.
   RZT: { hp: 140,  speed: 1.275, damage: 6,  scale: 1.76, xp: 5, contactDist: 0.22, runCrew: true },
   RZG: { hp: 48,   speed: 1.225, damage: 9,  scale: 0.92, xp: 6, contactDist: 0.24, runCrew: true },
+  // E07 웃는얼굴 좀비 (2026-08-09): E01(녹색좀비)의 정확히 2배 hp/damage/speed.
+  // scale/contactDist는 E01과 동일하게 두어 히트박스 체감은 녹색좀비와 같게 유지한다.
+  // xp 8: hp 16이라 E03(hp 10, xp 5)보다 높고 E04(hp 32, xp 10)보다 낮은 자리.
+  // 이 값을 바꾸면 enemySimulation.js의 ENEMY_RUNTIME_* 15번 슬롯도 같이 바꿔야 한다.
+  E07: { hp: 16,   speed: 0.95, damage: 16, scale: 1.00, xp: 8,  contactDist: 0.28 },
   // B01 1?ㅽ뀒?댁?: 遺梨꾧섦 ?ъ궗泥??⑦꽩 ?쒓굅. 異붽꺽/?뚯쭊留??ъ슜 (Bang_Rules 2026-05-09 遺濡?.
   // contactDist 0.36: regular charge keeps the 1.5x grace distance; Matilda charge uses exact body contact only.
   // ?댁쟾 0.80? ?묒큺 諛섍꼍??~1.6?대씪 蹂몄껜 ?명삎蹂대떎 ?⑥뵮 而ㅼ꽌 "???우븘???쇨꺽"?섎뒗 臾몄젣媛 ?덉뿀??

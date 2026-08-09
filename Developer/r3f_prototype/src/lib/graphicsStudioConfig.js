@@ -39,6 +39,9 @@ function isObsoleteStage2BossItemId(id) {
 export function getStudioZombieItemId(type) {
   if (type === 'B02') return 'stage2-boss-v2'
   if (type === 'B03') return 'zombie-b03-pe-teacher'
+  // E07은 절차형 얼굴 실험용 Studio 아이템을 사용한다.
+  // 런타임 E07 매핑과 분리해 Firebase Studio 튜닝만 연결한다.
+  if (type === 'E07') return 'zombie-procedural-face-test'
   return type === 'B04' ? 'zombie-b04-chef' : `zombie-${String(type).toLowerCase()}`
 }
 

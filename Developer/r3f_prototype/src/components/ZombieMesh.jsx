@@ -8,6 +8,7 @@ import boss02FaceUrl from '../assets/faces/b02_stage2_boss_face.webp'
 import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.webp'
 import boss04FaceUrl from '../assets/faces/b04_chef_boss_face.webp'
 import MatildaMesh from './MatildaMesh.jsx'
+import ProceduralFaceTestZombie from './ProceduralFaceTestZombie.jsx'
 import StudioTunedGroup, { composeStudioPartRotation, composeStudioPartScale } from './StudioTunedGroup.jsx'
 import BossFacePartsOverlay from './BossFacePartsOverlay.jsx'
 
@@ -970,6 +971,16 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     return (
       <StudioTunedGroup itemId={getStudioZombieItemId(type)}>
         <RunZombieMesh role={type === 'RZL' ? 'leader' : 'crew'} hitFlash={hitFlash} reg={reg} />
+      </StudioTunedGroup>
+    )
+  }
+
+  // E07 웃는얼굴 좀비: 셰이더로 얼굴을 직접 그리는 실험 모델을 그대로 실전 투입한다.
+  // 스튜디오 아이템 id도 동일(zombie-procedural-face-test)이라 스튜디오 튜닝이 그대로 먹는다.
+  if (type === 'E07') {
+    return (
+      <StudioTunedGroup itemId={getStudioZombieItemId('E07')}>
+        <ProceduralFaceTestZombie />
       </StudioTunedGroup>
     )
   }
