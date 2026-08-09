@@ -770,7 +770,7 @@ describe('GraphicsStudio', () => {
     expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1.35')
   })
 
-  it('resets graphics changes to the captured current implementation baseline', () => {
+  it('does not expose reset or undo paths for graphics draft changes', () => {
     saveStudioTunings({ player: { scale: 1.4 } })
 
     act(() => {
@@ -783,15 +783,18 @@ describe('GraphicsStudio', () => {
       scale.dispatchEvent(new Event('input', { bubbles: true }))
     })
     expect(loadStudioTunings().player.scale).toBe(1.4)
+    expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1.8')
 
     const resetButton = Array.from(container.querySelectorAll('button'))
       .find((button) => button.textContent.includes('Reset'))
+    expect(resetButton).toBeUndefined()
+
     act(() => {
-      resetButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }))
     })
 
     expect(loadStudioTunings().player.scale).toBe(1.4)
-    expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1.4')
+    expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1.8')
   })
 
   it('applies typed part position values into separate part tuning', async () => {
