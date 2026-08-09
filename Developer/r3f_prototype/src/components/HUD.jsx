@@ -341,61 +341,75 @@ function QuestItemPictureIcon({ visualKind }) {
   const kind = visualKind ?? 'book'
   return (
     <span style={styles.questItemPictureFrame} aria-hidden="true">
-      <svg viewBox="0 0 48 48" width="42" height="42" focusable="false" style={styles.questItemPictureSvg}>
-        <rect x="3" y="3" width="42" height="42" rx="10" fill="#fff8dc" stroke="#2a1709" strokeWidth="3" />
+      <svg viewBox="0 0 64 64" width="54.6" height="54.6" focusable="false" style={styles.questItemPictureSvg}>
+        <rect x="3" y="3" width="58" height="58" rx="13" fill="#fff7d8" stroke="#1d1007" strokeWidth="4" />
         {(kind === 'red-book' || kind === 'book') && (
-          <g transform="rotate(-10 24 24)">
-            <rect x="14" y="11" width="22" height="27" rx="3" fill={kind === 'red-book' ? '#c92f38' : '#e85c9b'} stroke="#38110f" strokeWidth="3" />
-            <path d="M18 14v22" stroke="#ffe7b0" strokeWidth="2.5" />
-            <path d="M23 17h8M23 22h7" stroke="#fff0c8" strokeWidth="2" strokeLinecap="round" />
+          <g transform="rotate(-9 32 32)">
+            <rect x="20" y="13" width="29" height="38" rx="4" fill={kind === 'red-book' ? '#c91f31' : '#e85c9b'} stroke="#250706" strokeWidth="4" />
+            <path d="M25 16v32" stroke="#ffe39f" strokeWidth="4" strokeLinecap="round" />
+            <path d="M31 22h11M31 29h10" stroke="#fff5ca" strokeWidth="3" strokeLinecap="round" />
+            <path d="M45 13v38" stroke="#7e151d" strokeWidth="3" />
           </g>
         )}
         {kind === 'attendance-sheet' && (
-          <g transform="rotate(6 24 24)">
-            <rect x="14" y="9" width="22" height="30" rx="2" fill="#f1e0ae" stroke="#3a2b17" strokeWidth="3" />
-            <path d="M18 17h14M18 23h14M18 29h14" stroke="#725b33" strokeWidth="2" strokeLinecap="round" />
-            <circle cx="20" cy="17" r="2" fill="#e85c5c" />
+          <g transform="rotate(5 32 32)">
+            <rect x="18" y="10" width="31" height="43" rx="3" fill="#fff3c6" stroke="#241606" strokeWidth="4" />
+            <path d="M25 19h18M25 28h18M25 37h18M25 46h13" stroke="#38250f" strokeWidth="3" strokeLinecap="round" />
+            <path d="M18 17h31" stroke="#ef7c28" strokeWidth="4" />
+            <circle cx="22" cy="19" r="3.2" fill="#e02235" stroke="#241606" strokeWidth="2" />
+            <circle cx="22" cy="28" r="3.2" fill="#31a24c" stroke="#241606" strokeWidth="2" />
+            <circle cx="22" cy="37" r="3.2" fill="#e02235" stroke="#241606" strokeWidth="2" />
           </g>
         )}
         {kind === 'bandage' && (
-          <g>
-            <circle cx="24" cy="24" r="13" fill="#f4f0de" stroke="#3a2b17" strokeWidth="3" />
-            <circle cx="24" cy="24" r="6" fill="#fffaf0" stroke="#b49c77" strokeWidth="2" />
-            <path d="M13 18h22M13 30h22" stroke="#d5c6aa" strokeWidth="2" />
+          <g transform="rotate(-14 32 32)">
+            <rect x="9" y="23" width="46" height="18" rx="9" fill="#ffe8bd" stroke="#2d1708" strokeWidth="4" />
+            <rect x="24" y="22" width="16" height="20" rx="4" fill="#fffaf0" stroke="#9c6b46" strokeWidth="3" />
+            <circle cx="29" cy="28" r="1.9" fill="#c98054" />
+            <circle cx="36" cy="28" r="1.9" fill="#c98054" />
+            <circle cx="29" cy="36" r="1.9" fill="#c98054" />
+            <circle cx="36" cy="36" r="1.9" fill="#c98054" />
           </g>
         )}
         {kind === 'key' && (
-          <g transform="rotate(-28 24 24)" fill="#d6af43" stroke="#3a2b17" strokeWidth="3" strokeLinejoin="round">
-            <circle cx="18" cy="21" r="7" fill="none" />
-            <path d="M24 21h16M35 21v6M40 21v4" strokeLinecap="round" />
+          <g transform="rotate(-27 32 32)" fill="#f5c84d" stroke="#2b1705" strokeWidth="4" strokeLinejoin="round">
+            <circle cx="23" cy="30" r="11" fill="none" />
+            <circle cx="23" cy="30" r="4" fill="#fff2a8" strokeWidth="3" />
+            <path d="M34 30h23" strokeLinecap="round" />
+            <path d="M47 30v9M54 30v6" strokeLinecap="round" />
           </g>
         )}
         {kind === 'whistle' && (
-          <g transform="rotate(-12 24 24)">
-            <path d="M13 24c0-7 5-11 13-11h10v19H23c-6 0-10-3-10-8Z" fill="#dd4f56" stroke="#3a1014" strokeWidth="3" />
-            <circle cx="24" cy="23" r="4" fill="#ffd6d8" />
-            <path d="M36 17h5" stroke="#3a1014" strokeWidth="3" strokeLinecap="round" />
+          <g transform="rotate(-10 32 32)">
+            <path d="M12 34c0-11 8-18 22-18h15v28H30c-10 0-18-4-18-10Z" fill="#e02a3a" stroke="#2a090c" strokeWidth="4" strokeLinejoin="round" />
+            <circle cx="31" cy="32" r="7" fill="#ffd4d8" stroke="#2a090c" strokeWidth="3" />
+            <path d="M49 22h7v10h-7" fill="#ffb03d" stroke="#2a090c" strokeWidth="4" strokeLinejoin="round" />
+            <path d="M18 21c6-5 16-7 24-4" stroke="#fff3f3" strokeWidth="3" strokeLinecap="round" />
           </g>
         )}
         {kind === 'fuse' && (
-          <g transform="rotate(-18 24 24)">
-            <rect x="15" y="17" width="18" height="14" rx="5" fill="#ffa83b" stroke="#3a1d05" strokeWidth="3" />
-            <path d="M10 24h5M33 24h5" stroke="#3a1d05" strokeWidth="4" strokeLinecap="round" />
-            <path d="M20 20h8" stroke="#fff0a8" strokeWidth="2" strokeLinecap="round" />
+          <g transform="rotate(-14 32 32)">
+            <path d="M9 32h10M45 32h10" stroke="#241004" strokeWidth="6" strokeLinecap="round" />
+            <rect x="18" y="21" width="28" height="22" rx="7" fill="#ff9f1f" stroke="#241004" strokeWidth="4" />
+            <path d="M25 25h14" stroke="#fff1a6" strokeWidth="3" strokeLinecap="round" />
+            <path d="M17 18l6 6M47 18l-6 6" stroke="#ffdf65" strokeWidth="4" strokeLinecap="round" />
+            <path d="M13 15l-3-5M51 15l3-5" stroke="#ff3e3e" strokeWidth="4" strokeLinecap="round" />
           </g>
         )}
         {kind === 'list' && (
-          <g transform="rotate(-5 24 24)">
-            <rect x="13" y="10" width="24" height="30" rx="3" fill="#85c7d8" stroke="#17343d" strokeWidth="3" />
-            <path d="M18 18h14M18 24h14M18 30h10" stroke="#effcff" strokeWidth="2" strokeLinecap="round" />
-            <path d="M16 15c6 4 12 4 18 0" stroke="#5aaabd" strokeWidth="2" fill="none" />
+          <g transform="rotate(-4 32 32)">
+            <rect x="17" y="10" width="32" height="44" rx="4" fill="#8fd7e8" stroke="#09252d" strokeWidth="4" />
+            <path d="M24 21l4 4 8-9M24 33l4 4 8-9M24 45l4 4 8-9" fill="none" stroke="#0f6d4a" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M38 24h7M38 36h7M38 48h5" stroke="#f4ffff" strokeWidth="3" strokeLinecap="round" />
+            <path d="M23 12c5-5 14-5 19 0" stroke="#eaffff" strokeWidth="3" fill="none" />
           </g>
         )}
         {kind === 'valve' && (
-          <g transform="rotate(18 24 24)" fill="#d94b3f" stroke="#3a100b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="24" cy="24" r="11" fill="none" />
-            <path d="M24 12v24M12 24h24" />
-            <circle cx="24" cy="24" r="4" fill="#ffb199" />
+          <g transform="rotate(18 32 32)" fill="#d92f2b" stroke="#250706" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="32" cy="32" r="16" fill="none" />
+            <path d="M32 14v36M14 32h36M20 20l24 24M44 20 20 44" />
+            <circle cx="32" cy="32" r="7" fill="#ffb59d" />
+            <circle cx="32" cy="32" r="3" fill="#250706" stroke="none" />
           </g>
         )}
       </svg>
@@ -1955,36 +1969,39 @@ const styles = {
   questPopupText: { display: 'grid', gap: 3 },
   questItemToastWide: {
     top: 66,
-    width: 'min(92vw, 420px)',
+    width: 'min(calc(100vw - 24px), 546px)',
     maxWidth: 'calc(100vw - 24px)',
-    minHeight: 58,
+    minHeight: 75.4,
     boxSizing: 'border-box',
     justifyContent: 'flex-start',
     alignItems: 'center',
-    gap: 10,
-    padding: '8px 12px 8px 8px',
+    gap: 13,
+    padding: '10.4px 15.6px 10.4px 10.4px',
+    borderRadius: 10.4,
     textAlign: 'left',
   },
   questItemPictureFrame: {
-    flex: '0 0 48px',
-    width: 48,
-    height: 48,
+    flex: '0 0 62.4px',
+    width: 62.4,
+    height: 62.4,
     display: 'grid',
     placeItems: 'center',
-    borderRadius: 10,
+    borderRadius: 13,
     background: 'linear-gradient(180deg, rgba(255,246,218,0.96), rgba(233,209,153,0.96))',
-    boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.46), 0 2px 0 rgba(42,23,9,0.28)',
+    boxShadow: 'inset 0 0 0 2.6px rgba(255,255,255,0.46), 0 2.6px 0 rgba(42,23,9,0.28)',
   },
   questItemPictureSvg: {
     display: 'block',
-    filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.35))',
+    filter: 'drop-shadow(0 1.3px 1.3px rgba(0,0,0,0.35))',
   },
   questItemToastText: {
     minWidth: 0,
     lineHeight: 1.24,
+    fontSize: 16.9,
+    gap: 3.9,
   },
   questPopupNextAction: { display: 'block', fontSize: 12, lineHeight: 1.25, fontWeight: uiType.weightStrong, color: '#5d554e' },
-  questItemNextAction: { color: '#15803d' },
+  questItemNextAction: { color: '#15803d', fontSize: 15.6, lineHeight: 1.25 },
   questInventoryPanel: {
     ...schoolPanel('paper'),
     position: 'absolute',
