@@ -112,8 +112,8 @@ export default function ReadyGameApp({
         )}
 
         {screen === 'lobby' && (
-          <ErrorBoundary fallback={({ retry, reload }) => <ScreenFailure label="로비" retry={retry} reload={reload} onBack={() => setScreen('title')} />}>
-            <Suspense fallback={<ScreenLoading label="로비" />}>
+          <ErrorBoundary fallback={({ retry, reload }) => <ScreenFailure label={t('loading.game')} retry={retry} reload={reload} onBack={() => setScreen('title')} />}>
+            <Suspense fallback={<ScreenLoading label={t('loading.game')} />}>
               <Lobby
                 onStartStage={startGame}
                 onOpenCoinShop={() => openCoinShopFrom('lobby')}

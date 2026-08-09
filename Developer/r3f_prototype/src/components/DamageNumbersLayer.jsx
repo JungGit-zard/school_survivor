@@ -13,7 +13,8 @@ import {
   computeDamageNumberFrame,
   formatDamageAmount,
   damageNumberJitter,
-  damageNumbersEnabled,
+  shouldRenderDamageNumber,
+  DAMAGE_NUMBER_COLORS,
   DAMAGE_NUMBER_LIFE_MS,
 } from '../lib/damageNumbers.js'
 
@@ -67,7 +68,7 @@ export default function DamageNumbersLayer({ resetKey }) {
       mesh.visible = false
       mesh.renderOrder = 1000
       mesh.frustumCulled = false
-      slots.push({ mesh, canvas, ctx, texture, material, active: false, startMs: 0, life: 0, x: 0, y0: 0, z: 0 })
+      slots.push({ mesh, canvas, ctx, texture, material, active: false, startMs: 0, life: 0, criticalScale: 1, x: 0, y0: 0, z: 0 })
     }
     return { geo, slots }
   }, [])
@@ -88,6 +89,7 @@ export default function DamageNumbersLayer({ resetKey }) {
   useLayoutEffect(() => {
     pool.slots.forEach((s) => {
       s.active = false
+      s.criticalScale = 1
       s.mesh.visible = false
       s.material.opacity = 0
     })
@@ -95,19 +97,20 @@ export default function DamageNumbersLayer({ resetKey }) {
 
   useEffect(() => {
     return subscribeDamageNumber((event) => {
-      if (!damageNumbersEnabled()) return
+      if (!shouldRenderDamageNumber(event)) return
       const text = formatDamageAmount(event.amount)
       if (text === null) return
       const now = performance.now()
       const idx = pickDamageNumberSlot(pool.slots, now)
       const slot = pool.slots[idx]
-      const color = event.colorHex || '#ffffff'
+      const color = event.colorHex || (event.isCritical === true ? DAMAGE_NUMBER_COLORS.critical : '#ffffff')
       drawDamageText(slot.ctx, text, color)
       slot.texture.needsUpdate = true
       const jitter = damageNumberJitter()
       slot.active = true
       slot.startMs = now
       slot.life = event.life ?? DAMAGE_NUMBER_LIFE_MS
+      slot.criticalScale = event.isCritical === true ? 1.45 : 1
       slot.x = (event.x ?? 0) + jitter.x
       slot.y0 = event.y ?? 0.6
       slot.z = (event.z ?? 0) + jitter.z
@@ -126,6 +129,7 @@ export default function DamageNumbersLayer({ resetKey }) {
       const f = computeDamageNumberFrame(slot, now)
       if (f.done) {
         slot.active = false
+        slot.criticalScale = 1
         slot.mesh.visible = false
         slot.material.opacity = 0
         continue

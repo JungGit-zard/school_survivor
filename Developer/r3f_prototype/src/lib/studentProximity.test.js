@@ -14,12 +14,17 @@ import { STAGE_PROP_PALETTE } from './stagePropEditorGeometry.js'
 import { saveStagePropPlacements } from './stagePropPlacements.js'
 import { commitFirebaseStudioRuntime } from './studioRuntimeState.js'
 import { getPlayerMovementBounds } from './playerMovementBounds.js'
+import { getDialogueText } from '../dialogues/dialogueStore.js'
 
 const students = [
   { id: 'a', position: [0, 0, 0] },
   { id: 'b', position: [5, 0, 5] },
   { id: 'c', position: [0, 0, 2] },
 ]
+
+function targetLine(target) {
+  return getDialogueText(target.dialogueId, 'ko')
+}
 
 beforeEach(() => {
   commitFirebaseStudioRuntime({ propPlacements: {} }, { revision: 0 })
@@ -77,7 +82,8 @@ describe('전 스테이지 공용 조사 대상', () => {
     for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
       for (const target of getInvestigationTargets(stageId)) {
         expect(target.subjectName.length).toBeGreaterThan(0)
-        expect(target.line.length).toBeGreaterThan(20)
+        expect(target.dialogueId.length).toBeGreaterThan(0)
+        expect(targetLine(target).length).toBeGreaterThan(20)
         if (target.subjectType === 'student') {
           expect(target.radius).toBe(STUDENT_DIALOGUE_RADIUS)
         } else {
@@ -89,10 +95,10 @@ describe('전 스테이지 공용 조사 대상', () => {
   })
 
   it('스테이지별 조사문은 교실·복도·체육관·급식실의 분위기를 담는다', () => {
-    expect(getInvestigationTargets('stage1').map(({ line }) => line).join(' ')).toMatch(/책상|의자|교복|선생님/)
-    expect(getInvestigationTargets('stage2').map(({ line }) => line).join(' ')).toMatch(/사물함|복도|청소|시간표/)
-    expect(getInvestigationTargets('stage3').map(({ line }) => line).join(' ')).toMatch(/농구|체육|골대|체육관/)
-    expect(getInvestigationTargets('stage4').map(({ line }) => line).join(' ')).toMatch(/급식|조리|주방|쟁반/)
+    expect(getInvestigationTargets('stage1').map(targetLine).join(' ')).toMatch(/책상|의자|교복|선생님/)
+    expect(getInvestigationTargets('stage2').map(targetLine).join(' ')).toMatch(/사물함|복도|청소|시간표/)
+    expect(getInvestigationTargets('stage3').map(targetLine).join(' ')).toMatch(/농구|체육|골대|체육관/)
+    expect(getInvestigationTargets('stage4').map(targetLine).join(' ')).toMatch(/급식|조리|주방|쟁반/)
   })
 
   it('물체는 콜라이더 표면에 닿아야(접촉 margin 이내) 조사되고, 멀리서는 발동하지 않는다', () => {
@@ -173,7 +179,8 @@ describe('전 스테이지 공용 조사 대상', () => {
     expect(targets.map(({ id }) => id)).toEqual(props.map(({ id }) => id))
     for (const target of targets) {
       expect(target.subjectName.length).toBeGreaterThan(0)
-      expect(target.line.length).toBeGreaterThan(15)
+      expect(target.dialogueId.length).toBeGreaterThan(0)
+      expect(targetLine(target).length).toBeGreaterThan(15)
       expect(target.halfX).toBeGreaterThan(0)
       expect(target.halfZ).toBeGreaterThan(0)
     }

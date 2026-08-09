@@ -71,7 +71,8 @@ export function computeDamageNumberFrame(slot, now = performance.now()) {
     : clamp01(1 - (t - DAMAGE_NUMBER_FADE_START) / (1 - DAMAGE_NUMBER_FADE_START))
   // 팝: 처음 아주 잠깐 살짝 커졌다 원래 크기로.
   const pop = 1 + 0.35 * Math.max(0, 1 - t / 0.16)
-  return { t, y, opacity, scale: pop, done }
+  const criticalScale = Number.isFinite(slot.criticalScale) ? slot.criticalScale : 1
+  return { t, y, opacity, scale: pop * criticalScale, done }
 }
 
 // 겹침 완화용 소량 랜덤 오프셋.
@@ -83,4 +84,9 @@ export function damageNumberJitter() {
 export function damageNumbersEnabled() {
   if (typeof document === 'undefined') return true
   return document.documentElement?.dataset?.reducedEffects !== 'true'
+}
+
+// reduced-effects에서는 일반 숫자만 숨기고, 크리티컬은 색상/크기 피드백을 유지한다.
+export function shouldRenderDamageNumber(event) {
+  return damageNumbersEnabled() || event?.isCritical === true
 }

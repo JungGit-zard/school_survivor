@@ -3,7 +3,7 @@ import { useGameStore } from './useGameStore.js'
 import { playerPos, playerFacing, bagSwingState, enemyBodies, joystickDir } from '../lib/refs.js'
 import { advanceRuntimeTime, getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { subscribeSfx } from '../lib/sfxEvents.js'
-import { BOSS_SPAWN_CENTER_SEC, BOSS_SPAWN_JITTER_SEC } from '../lib/stageConfig.js'
+import { getBossSpawnSec } from '../lib/burstEvents.js'
 
 describe('useGameStore XP and reset behavior', () => {
   beforeEach(() => {
@@ -56,12 +56,11 @@ describe('useGameStore XP and reset behavior', () => {
     expect(getRuntimeElapsedMs()).toBe(0)
   })
 
-  it('rolls and stores one stable boss spawn second for each run', () => {
-    const firstRunSecond = useGameStore.getState().bossSpawnSec
-    expect(firstRunSecond).toBeGreaterThanOrEqual(BOSS_SPAWN_CENTER_SEC - BOSS_SPAWN_JITTER_SEC)
-    expect(firstRunSecond).toBeLessThanOrEqual(BOSS_SPAWN_CENTER_SEC + BOSS_SPAWN_JITTER_SEC)
-    expect(Number.isInteger(firstRunSecond)).toBe(true)
-    expect(useGameStore.getState().bossSpawnSec).toBe(firstRunSecond)
+  it('stores the deterministic boss spawn second from the explicit stage burst table', () => {
+    expect(useGameStore.getState().bossSpawnSec).toBe(getBossSpawnSec('stage1'))
+
+    useGameStore.getState().resetGame('stage2')
+    expect(useGameStore.getState().bossSpawnSec).toBe(getBossSpawnSec('stage2'))
   })
 
   it('생존 마일스톤은 한 번만 골드를 지급한다', () => {

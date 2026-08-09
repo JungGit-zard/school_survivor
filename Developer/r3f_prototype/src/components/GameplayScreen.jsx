@@ -1,8 +1,9 @@
-import { Suspense, lazy, useEffect } from 'react'
+import { Suspense, lazy, useEffect, useRef } from 'react'
 import VirtualJoystick from './VirtualJoystick.jsx'
 import { loadGameCanvas } from './gameCanvasLoader.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { t } from '../lib/i18n.js'
+import { subscribeWholeScreenCriticalShake } from '../lib/criticalScreenShake.js'
 
 const GameCanvas = lazy(loadGameCanvas)
 const HUD = lazy(() => import('./HUD.jsx'))
@@ -16,6 +17,7 @@ export default function GameplayScreen({
   onGoToRanking,
   devCheatsVisible,
 }) {
+  const criticalShakeAnimationRef = useRef(null)
   const gameKey = useGameStore((state) => state.gameKey)
   const phase = useGameStore((state) => state.phase)
 
@@ -37,6 +39,24 @@ export default function GameplayScreen({
       window.removeEventListener('blur', pauseIfPlaying)
     }
   }, [])
+
+  useEffect(() => subscribeWholeScreenCriticalShake(({ strong, durationMs }) => {
+    const screen = phoneFrameRef?.current
+    if (!screen || typeof screen.animate !== 'function') return
+    criticalShakeAnimationRef.current?.cancel()
+    const x = strong ? 9 : 6
+    const y = strong ? 5 : 3
+    criticalShakeAnimationRef.current = screen.animate([
+      { transform: 'translate3d(0, 0, 0) scale(1.025)' },
+      { transform: `translate3d(${-x}px, ${y}px, 0) scale(1.025)` },
+      { transform: `translate3d(${x * 0.8}px, ${-y}px, 0) scale(1.025)` },
+      { transform: `translate3d(${-x * 0.5}px, ${y * 0.6}px, 0) scale(1.025)` },
+      { transform: `translate3d(${x * 0.25}px, ${-y * 0.3}px, 0) scale(1.025)` },
+      { transform: 'translate3d(0, 0, 0) scale(1)' },
+    ], { duration: durationMs, easing: 'ease-out' })
+  }), [phoneFrameRef])
+
+  useEffect(() => () => criticalShakeAnimationRef.current?.cancel(), [])
 
   return (
     <>

@@ -24,6 +24,8 @@ let directionX = 1
 let directionZ = 0
 let strength = 0
 let rank = 0
+let lastWholeScreenCriticalAtMs = Number.NEGATIVE_INFINITY
+const wholeScreenCriticalListeners = new Set()
 let reducedMotionQuery = null
 let reducedMotionQueryInitialized = false
 
@@ -80,8 +82,34 @@ function clearActiveState() {
 export function resetCriticalScreenShakeForTest() {
   clearActiveState()
   lastStartedAtMs = Number.NEGATIVE_INFINITY
+  lastWholeScreenCriticalAtMs = Number.NEGATIVE_INFINITY
   reducedMotionQuery = null
   reducedMotionQueryInitialized = false
+}
+
+export function subscribeWholeScreenCriticalShake(listener) {
+  if (typeof listener !== 'function') return () => {}
+  wholeScreenCriticalListeners.add(listener)
+  return () => wholeScreenCriticalListeners.delete(listener)
+}
+
+export function emitCriticalHitScreenShake(impactX = 0, impactZ = 0, { strong = false, nowMs } = {}) {
+  const now = finiteNow(nowMs)
+  const cameraShakeStarted = emitCriticalScreenShake(impactX, impactZ, strong, 1, now)
+  const elapsed = now - lastWholeScreenCriticalAtMs
+  if (Number.isFinite(elapsed) && elapsed >= 0 && elapsed < CRITICAL_SHAKE_COOLDOWN_MS) {
+    return cameraShakeStarted
+  }
+
+  lastWholeScreenCriticalAtMs = now
+  const event = {
+    strong,
+    durationMs: strong ? CRITICAL_SHAKE_STRONG_DURATION_MS : CRITICAL_SHAKE_NORMAL_DURATION_MS,
+  }
+  wholeScreenCriticalListeners.forEach((listener) => {
+    try { listener(event) } catch {}
+  })
+  return cameraShakeStarted || wholeScreenCriticalListeners.size > 0
 }
 
 export function isCriticalScreenShakeReduced() {
