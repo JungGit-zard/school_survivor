@@ -592,7 +592,14 @@ export function UpgradeIcon({ type }) {
   )
 }
 
-export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRanking, devCheatsVisible = false }) {
+export default function HUD({
+  onOpenCoinShop,
+  onGoToTitle,
+  onGoToLobby,
+  onGoToRanking,
+  devCheatsVisible = false,
+  showGameoverResultImmediately = false,
+}) {
   const t = useT()
   const authUser = useAuthStore((state) => state.user)
   const devToolsVisible = DEV_CHEATS_ENABLED && devCheatsVisible
@@ -745,7 +752,11 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
   const lowHp   = player.hp / player.maxHp < 0.3
   const isGameover = phase === 'gameover'
   const isMatildaGameover = isGameover && deathCause === 'matilda'
-  const [gameoverModalReady, setGameoverModalReady] = useState(false)
+  const [gameoverModalReady, setGameoverModalReady] = useState(
+    () => showGameoverResultImmediately && isGameover,
+  )
+  const immediateGameoverConsumedRef = useRef(false)
+  const immediateGameoverMountRef = useRef(showGameoverResultImmediately && isGameover)
   const [isTitleReturnConfirmOpen, setIsTitleReturnConfirmOpen] = useState(false)
   const [weaponCheatOpen, setWeaponCheatOpen] = useState(false)
   const [matildaDialogueVisible, setMatildaDialogueVisible] = useState(false)
@@ -868,8 +879,18 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
   useEffect(() => {
     if (!isGameover) {
       setGameoverModalReady(false)
+      immediateGameoverConsumedRef.current = showGameoverResultImmediately
+      immediateGameoverMountRef.current = false
       return undefined
     }
+
+    if (showGameoverResultImmediately && !immediateGameoverConsumedRef.current) {
+      immediateGameoverConsumedRef.current = true
+      setGameoverModalReady(true)
+      return undefined
+    }
+
+    if (showGameoverResultImmediately && immediateGameoverMountRef.current) return undefined
 
     setGameoverModalReady(false)
     const delayMs = isMatildaGameover
@@ -877,7 +898,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
       : GAMEOVER_TRANSITION_MS
     const timer = setTimeout(() => setGameoverModalReady(true), delayMs)
     return () => clearTimeout(timer)
-  }, [isGameover, isMatildaGameover])
+  }, [isGameover, isMatildaGameover, showGameoverResultImmediately])
 
   useEffect(() => {
     if (phase !== 'paused') setIsTitleReturnConfirmOpen(false)

@@ -3,10 +3,37 @@ import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({ hydrated: false, titleCheat: false }))
+const mocks = vi.hoisted(() => ({
+  hydrated: false,
+  titleCheat: false,
+  gameStore: {
+    gameKey: 0,
+    phase: 'idle',
+    resetGame: vi.fn(),
+    startStage1Intro: vi.fn(),
+  },
+}))
 
 vi.mock('./TitleScreen.jsx', () => ({ default: ({ onEnterLobby }) => <button onClick={onEnterLobby}>enter</button> }))
-vi.mock('./Lobby.jsx', () => ({ default: ({ devAllStagesUnlocked }) => <output data-testid="stage-bypass">{String(devAllStagesUnlocked)}</output> }))
+vi.mock('./Lobby.jsx', () => ({
+  default: ({ devAllStagesUnlocked, onStartStage }) => (
+    <>
+      <output data-testid="stage-bypass">{String(devAllStagesUnlocked)}</output>
+      <button type="button" data-testid="start-stage" onClick={() => onStartStage('stage1')}>start</button>
+    </>
+  ),
+}))
+vi.mock('./GameplayScreen.jsx', () => ({
+  default: (props) => (
+    <section data-testid="gameplay-screen">
+      <output data-testid="instant-result-prop">{String(props.showGameoverResultImmediately)}</output>
+      <button type="button" data-testid="open-result-shop" onClick={props.onOpenCoinShop}>shop</button>
+    </section>
+  ),
+}))
+vi.mock('./CoinShop.jsx', () => ({
+  default: ({ onBack }) => <button type="button" data-testid="coin-shop-back" onClick={onBack}>back</button>,
+}))
 vi.mock('./SfxLayer.jsx', () => ({ default: () => null }))
 vi.mock('./VirtualJoystick.jsx', () => ({ default: () => null }))
 vi.mock('./gameCanvasLoader.js', () => ({ loadGameCanvas: async () => ({ default: () => null }) }))
@@ -20,7 +47,10 @@ vi.mock('../lib/titleSettings.js', () => ({
   applyLanguage: vi.fn(),
 }))
 vi.mock('../store/useGameStore.js', () => ({
-  useGameStore: (selector) => selector({ gameKey: 0, phase: 'idle', resetGame: vi.fn() }),
+  useGameStore: Object.assign(
+    (selector) => selector(mocks.gameStore),
+    { getState: () => mocks.gameStore },
+  ),
 }))
 
 const { default: ReadyGameApp } = await import('./ReadyGameApp.jsx')
@@ -44,7 +74,13 @@ async function renderReady(props) {
 }
 
 describe('ReadyGameApp stage bypass hydration', () => {
-  afterEach(() => { mocks.hydrated = false; mocks.titleCheat = false })
+  afterEach(() => {
+    mocks.hydrated = false
+    mocks.titleCheat = false
+    mocks.gameStore.phase = 'idle'
+    mocks.gameStore.resetGame.mockClear()
+    mocks.gameStore.startStage1Intro.mockClear()
+  })
 
   it('restores the saved bypass only after the signed-in user progress becomes ready', async () => {
     const view = await renderReady({ authUser: { uid: 'first' }, progressStatus: 'loading' })
@@ -69,6 +105,51 @@ describe('ReadyGameApp stage bypass hydration', () => {
     mocks.titleCheat = false
     await view.render({ authUser: { uid: 'second' }, progressStatus: 'ready' })
     expect(view.container.querySelector('[data-testid="stage-bypass"]').textContent).toBe('false')
+    view.unmount()
+  })
+
+  it('marks the next game render for immediate result popup after returning from the game result coin shop', async () => {
+    const view = await renderReady({ authUser: { uid: 'first' }, progressStatus: 'ready' })
+
+    await act(async () => {
+      view.container.querySelector('[data-testid="start-stage"]').click()
+      await vi.dynamicImportSettled()
+    })
+    expect(view.container.querySelector('[data-testid="instant-result-prop"]').textContent).toBe('false')
+
+    mocks.gameStore.phase = 'gameover'
+    await act(async () => {
+      view.container.querySelector('[data-testid="open-result-shop"]').click()
+      await vi.dynamicImportSettled()
+    })
+    await act(async () => {
+      view.container.querySelector('[data-testid="coin-shop-back"]').click()
+      await vi.dynamicImportSettled()
+    })
+
+    expect(view.container.querySelector('[data-testid="instant-result-prop"]').textContent).toBe('true')
+    view.unmount()
+  })
+
+  it('does not mark a normal game return as an already-confirmed game over result', async () => {
+    const view = await renderReady({ authUser: { uid: 'first' }, progressStatus: 'ready' })
+
+    await act(async () => {
+      view.container.querySelector('[data-testid="start-stage"]').click()
+      await vi.dynamicImportSettled()
+    })
+    mocks.gameStore.phase = 'playing'
+
+    await act(async () => {
+      view.container.querySelector('[data-testid="open-result-shop"]').click()
+      await vi.dynamicImportSettled()
+    })
+    await act(async () => {
+      view.container.querySelector('[data-testid="coin-shop-back"]').click()
+      await vi.dynamicImportSettled()
+    })
+
+    expect(view.container.querySelector('[data-testid="instant-result-prop"]').textContent).toBe('false')
     view.unmount()
   })
 })

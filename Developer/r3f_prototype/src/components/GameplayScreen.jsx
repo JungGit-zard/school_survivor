@@ -16,6 +16,7 @@ export default function GameplayScreen({
   onGoToLobby,
   onGoToRanking,
   devCheatsVisible,
+  showGameoverResultImmediately,
 }) {
   const criticalShakeAnimationRef = useRef(null)
   const gameKey = useGameStore((state) => state.gameKey)
@@ -69,6 +70,7 @@ export default function GameplayScreen({
           onGoToLobby={onGoToLobby}
           onGoToRanking={onGoToRanking}
           devCheatsVisible={devCheatsVisible}
+          showGameoverResultImmediately={showGameoverResultImmediately}
         />
       </Suspense>
       {mobileJoystickEnabled && <VirtualJoystick enabled phase={phase} playAreaRef={phoneFrameRef} />}

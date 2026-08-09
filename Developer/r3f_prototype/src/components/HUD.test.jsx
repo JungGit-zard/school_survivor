@@ -389,6 +389,52 @@ describe('gameover presentation', () => {
       })
     }
   })
+
+  it('shows an already-confirmed game over result immediately after the coin-shop return', () => {
+    vi.useFakeTimers()
+    useGameStore.getState().resetGame()
+    useGameStore.setState({
+      phase: 'gameover',
+      elapsedMs: 65_000,
+      goldSession: 7,
+      goldTotal: 19,
+    })
+
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(
+          <React.StrictMode>
+            <HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} showGameoverResultImmediately />
+          </React.StrictMode>,
+        )
+      })
+
+      expect(container.querySelector('[data-testid="gameover-result-overlay"]')).not.toBeNull()
+      expect(container.textContent).toContain('GAME OVER')
+
+      act(() => {
+        useGameStore.setState({ phase: 'playing' })
+      })
+      expect(container.querySelector('[data-testid="gameover-result-overlay"]')).toBeNull()
+
+      act(() => {
+        useGameStore.setState({ phase: 'gameover' })
+      })
+      expect(container.querySelector('[data-testid="gameover-result-overlay"]')).toBeNull()
+
+      act(() => {
+        vi.advanceTimersByTime(1_000)
+      })
+      expect(container.querySelector('[data-testid="gameover-result-overlay"]')).not.toBeNull()
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
 })
 
 describe('level-up upgrade layout', () => {

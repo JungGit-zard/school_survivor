@@ -35,6 +35,7 @@ export default function ReadyGameApp({
   const [mobileJoystickEnabled, setMobileJoystickEnabled] = useState(false)
   const [devCheatsVisible, setDevCheatsVisible] = useState(false)
   const [devAllStagesUnlocked, setDevAllStagesUnlocked] = useState(false)
+  const [showGameoverResultImmediately, setShowGameoverResultImmediately] = useState(false)
   const phoneFrameRef = useRef(null)
 
   useEffect(() => {
@@ -71,6 +72,7 @@ export default function ReadyGameApp({
       const { useGameStore } = await import('../store/useGameStore.js')
       useGameStore.getState().resetGame(stageId)
       if (stageId === 'stage1') useGameStore.getState().startStage1Intro()
+      setShowGameoverResultImmediately(false)
       setScreen('game')
     } catch {
       setScreen('game-load-failed')
@@ -78,6 +80,13 @@ export default function ReadyGameApp({
   }
 
   const openCoinShopFrom = (from) => {
+    if (from === 'game') {
+      void import('../store/useGameStore.js').then(({ useGameStore }) => {
+        setShowGameoverResultImmediately(useGameStore.getState().phase === 'gameover')
+      })
+    } else {
+      setShowGameoverResultImmediately(false)
+    }
     setPrevScreen(from)
     setScreen('coinShop')
   }
@@ -89,7 +98,8 @@ export default function ReadyGameApp({
   }
 
   const returnToPreviousScreen = () => {
-    setScreen(prevScreen === 'game' || prevScreen === 'lobby' ? prevScreen : 'title')
+    const nextScreen = prevScreen === 'game' || prevScreen === 'lobby' ? prevScreen : 'title'
+    setScreen(nextScreen)
   }
 
   return (
@@ -153,6 +163,7 @@ export default function ReadyGameApp({
                 onGoToLobby={() => setScreen('lobby')}
                 onGoToRanking={() => openRankingFrom('game')}
                 devCheatsVisible={devCheatsVisible}
+                showGameoverResultImmediately={showGameoverResultImmediately}
               />
             </Suspense>
           </ErrorBoundary>
