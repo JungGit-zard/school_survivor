@@ -28,7 +28,7 @@ function Get-Port5173Listener {
 
 function Start-HiddenViteServer {
     Start-Process -FilePath $NpmCmd `
-        -ArgumentList @('run', 'dev', '--', '--host', '0.0.0.0', '--port', "$Port", '--strictPort') `
+        -ArgumentList @('exec', '--', 'vite', '--host', '0.0.0.0', '--port', "$Port", '--strictPort') `
         -WorkingDirectory $DevServerDirectory `
         -WindowStyle Hidden `
         -RedirectStandardOutput $ServerLogPath `
