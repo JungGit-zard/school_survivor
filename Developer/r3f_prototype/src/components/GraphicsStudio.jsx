@@ -18,7 +18,7 @@ import {
   serializeStudioSnapshot,
 } from '../lib/graphicsStudioConfig.js'
 import { fileToDecalDataUrl } from '../lib/textureDecal.js'
-import { normalizeStagePropPlacements } from '../lib/stagePropPlacements.js'
+import { loadStagePropPlacements, normalizeStagePropPlacements } from '../lib/stagePropPlacements.js'
 import {
   BOSS_FACE_BOSS_OPTIONS,
   BOSS_FACE_PART_CATEGORIES,
@@ -237,10 +237,6 @@ function getFocusedPartLabel(focusedParts) {
   return `Part Group / ${focusedParts.length} parts`
 }
 
-function isSameTuning(a, b) {
-  return JSON.stringify(a) === JSON.stringify(b)
-}
-
 export default function GraphicsStudio() {
   const groupedCatalog = useMemo(groupCatalogByCategory, [])
   const sfxCatalog = useMemo(getSfxCatalog, [])
@@ -257,6 +253,7 @@ export default function GraphicsStudio() {
   const [selectedFaceBossType, setSelectedFaceBossType] = useState(() => BOSS_FACE_BOSS_OPTIONS[0]?.type ?? 'B01')
   const [bossFaceRecipes, setBossFaceRecipes] = useState(() => loadBossFaceRecipes())
   const [draftBossFaceRecipes, setDraftBossFaceRecipes] = useState(() => ({}))
+  const [draftPropPlacements, setDraftPropPlacements] = useState(() => loadStagePropPlacements())
   // 프리뷰 배경색은 스튜디오 로컬 상태(게임 런타임/저장 데이터셋 미반영)
   const [previewBg, setPreviewBg] = useState(PREVIEW_BG_SWATCHES[0].value)
   const [resetBaseline] = useState(() => ensureStudioResetBaseline(loadStudioTunings()))
@@ -335,6 +332,7 @@ export default function GraphicsStudio() {
     setStageBossPreview(datasets.stageBossPreview)
     setDecalsByItem(datasets.decals)
     setBossFaceRecipes(datasets.bossFaceRecipes)
+    setDraftPropPlacements(datasets.propPlacements)
     draftTuningByIdRef.current = {}
     setDraftTuningById({})
     setDraftBossFaceRecipes({})
@@ -410,33 +408,6 @@ export default function GraphicsStudio() {
     }
   }
 
-  const queueCanonicalMutation = (mutate, label = 'Saved', { syncGame = false, savedTunings = null } = {}) => {
-    saveChainRef.current = saveChainRef.current.catch(() => undefined).then(async () => {
-      const result = await persistDatasetsOnApply(mutate(loadStudioRuntimeDatasets()))
-      if (result?.status === 'saved') {
-        if (savedTunings) {
-          setConfirmedTunings(loadStudioRuntimeDatasets().tunings)
-          setDraftTuningById((current) => {
-            const next = { ...current }
-            Object.entries(savedTunings).forEach(([id, savedTuning]) => {
-              if (isSameTuning(draftTuningByIdRef.current[id], savedTuning)) delete next[id]
-            })
-            draftTuningByIdRef.current = next
-            return next
-          })
-        } else {
-          refreshStudioState()
-        }
-        if (!syncGame || await sendGameSync({ openGame: true, retryAfterLoad: true })) {
-          setApplyStatus(`${label} · revision ${result.revision}`)
-        } else {
-          setApplyStatus('Game sync failed')
-        }
-      }
-      return result
-    })
-    return saveChainRef.current
-  }
 
   useEffect(() => {
     void initializeAuth()
@@ -538,13 +509,16 @@ export default function GraphicsStudio() {
     return true
   }
 
-  const applyPropPlacements = (config) => {
+  const updatePropPlacementDraft = (config) => {
     const saved = normalizeStagePropPlacements(config)
-    void queueCanonicalMutation(
-      (datasets) => ({ ...datasets, propPlacements: saved }),
-      'Props applied',
-      { syncGame: true },
-    )
+    setDraftPropPlacements(saved)
+    setApplyStatus('Props preview')
+    return saved
+  }
+
+  const applyPropPlacements = async (config) => {
+    const saved = updatePropPlacementDraft(config)
+    await persistAllDrafts('Props applied', { propPlacements: saved })
     return saved
   }
 
@@ -686,7 +660,7 @@ export default function GraphicsStudio() {
     updateTuning(baselineTuning)
   }
 
-  const persistAllDrafts = async (successLabel) => {
+  const persistAllDrafts = async (successLabel, overrides = {}) => {
     await saveChainRef.current.catch(() => undefined)
     const datasets = loadStudioRuntimeDatasets()
     const nextTunings = {
@@ -705,6 +679,7 @@ export default function GraphicsStudio() {
       sfxTunings,
       stageBossPreview: normalizeStageBossPreview(stageBossPreview),
       decals: normalizeTextureDecalMap(decalsByItem),
+      propPlacements: overrides.propPlacements ?? draftPropPlacements,
       bossFaceRecipes: nextBossFaceRecipes,
     })
     if (result.status === 'saved') {
@@ -850,7 +825,12 @@ export default function GraphicsStudio() {
             style={styles.propEditorPanel}
             data-testid="studio-prop-editor-shell"
           >
-            <StagePropPlacementEditor key={propEditorVersion} onChange={applyPropPlacements} />
+            <StagePropPlacementEditor
+              key={propEditorVersion}
+              initialPlacements={draftPropPlacements}
+              onDraftChange={updatePropPlacementDraft}
+              onApply={applyPropPlacements}
+            />
           </section>
         ) : (
         <>
