@@ -36,7 +36,7 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.boxCutter.base.range).toBe(1.4) // 사거리 2배 확장 (0.7 → 1.4)
     expect(WEAPON_CATALOG.boxCutter.base.width).toBe(0.18)
     expect(WEAPON_CATALOG.boxCutter.base.knockback).toBe(1.8)
-    expect(WEAPON_CATALOG.boxCutter.base.critChance).toBe(0.1)
+    expect(WEAPON_CATALOG.boxCutter.base.critChance).toBe(0.25)
     expect(WEAPON_CATALOG.boxCutter.base.critMultiplier).toBe(1.5)
     // 업그레이드 없는 기본 쿨다운: 기존 650ms의 정확히 5배
     expect(WEAPON_CATALOG.boxCutter.base.cooldown).toBe(3250)

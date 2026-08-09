@@ -36,7 +36,7 @@ export const WEAPON_CATALOG = {
     label: '커터칼',
     // 공격력 24 = '30cm 자'(12)의 2배. 사거리 1.4 = 초기값(0.7)의 2배로 확장.
     // 기본 초기 쿨다운 650ms의 5배 = 3250ms(3.25초), 2026-07-26
-    base: { damage: 24, cooldown: 3250, range: 1.4, width: 0.18, knockback: 1.8, critChance: 0.1, critMultiplier: 1.5 },
+    base: { damage: 24, cooldown: 3250, range: 1.4, width: 0.18, knockback: 1.8, critChance: 0.25, critMultiplier: 1.5 },
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },

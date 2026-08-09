@@ -74,7 +74,7 @@ export const UPGRADE_EFFECTS = {
   acquireBoxCutter:{ weapon: 'boxCutter',      kind: 'acquire', minLevel: 2 },
   boxCutterDamage:{ weapon: 'boxCutter',      kind: 'damage', dmg: 5 },
   boxCutterRange: { weapon: 'boxCutter',      kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.755 },
-  boxCutterCrit:  { weapon: 'boxCutter',      kind: 'crit',   chanceStep: 0.02, chanceCap: 0.26, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
+  boxCutterCrit:  { weapon: 'boxCutter',      kind: 'crit',   chanceStep: 0.02, chanceCap: 0.41, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireTumbler:  { weapon: 'tumbler',       kind: 'acquire', minLevel: 2 },
   tumblerCount:   { weapon: 'tumbler',       kind: 'stat',   stat: 'count',           step: 1,    cap: 3 },
   tumblerDamage:  { weapon: 'tumbler',       kind: 'damage', dmg: 2 },
