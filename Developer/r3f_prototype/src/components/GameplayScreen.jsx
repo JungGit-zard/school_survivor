@@ -30,13 +30,16 @@ export default function GameplayScreen({
       if (document.hidden || document.visibilityState === 'hidden') pauseIfPlaying()
     }
 
+    // window blur로는 절대 멈추지 않는다. blur는 "탭이 안 보인다"가 아니라 "창이 포커스를
+    // 잃었다"라서, 백그라운드 프로세스가 콘솔 창을 잠깐 띄우거나 OS 알림이 뜨기만 해도
+    // 발생한다. 그때마다 전투 중에 자리비움 오버레이가 떠 버렸다(2026-08-09 신고).
+    // 실제로 플레이어가 자리를 비운 경우는 visibilitychange(탭 숨김·최소화)와
+    // pagehide(이탈)가 전부 잡는다.
     document.addEventListener('visibilitychange', handleVisibility)
     window.addEventListener('pagehide', pauseIfPlaying)
-    window.addEventListener('blur', pauseIfPlaying)
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility)
       window.removeEventListener('pagehide', pauseIfPlaying)
-      window.removeEventListener('blur', pauseIfPlaying)
     }
   }, [])
 
