@@ -68,7 +68,8 @@ describe('PlayerMesh layout', () => {
     const material = createPlayerCrowdOutlineMaterial()
 
     expect(PLAYER_CROWD_OUTLINE_RENDER_ORDER).toBeGreaterThan(20)
-    expect(material.depthTest).toBe(false)
+    expect(material.depthTest).toBe(true)
+    // 아웃라인은 투명 인버티드 헐이라 depthWrite는 outlineMat 기본값(false) 유지가 맞다.
     expect(material.depthWrite).toBe(false)
     expect(material.transparent).toBe(true)
     expect(material.opacity).toBe(0.98)
@@ -95,8 +96,9 @@ describe('PlayerMesh layout', () => {
 
     expect(PLAYER_OCCLUSION_SAFE_SURFACE_RENDER_ORDER).toBeGreaterThan(19)
     expect(PLAYER_OCCLUSION_SAFE_OUTLINE_RENDER_ORDER).toBeGreaterThan(PLAYER_OCCLUSION_SAFE_SURFACE_RENDER_ORDER)
-    expect(material.depthTest).toBe(false)
-    expect(material.depthWrite).toBe(false)
+    // 파트끼리의 앞뒤 가림은 깊이 버퍼가 결정해야 한다 — 끄면 JSX 선언 순서가 가림이 된다.
+    expect(material.depthTest).toBe(true)
+    expect(material.depthWrite).toBe(true)
     expect(source).toContain('renderOrder={PLAYER_OCCLUSION_SAFE_SURFACE_RENDER_ORDER}')
     expect(source).toContain('renderOrder={PLAYER_OCCLUSION_SAFE_OUTLINE_RENDER_ORDER}')
 

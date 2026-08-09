@@ -74,18 +74,17 @@ function usePlayerStencilMaterial(createMaterial, dependencies) {
   }, dependencies)
 }
 
+// 깊이 버퍼는 반드시 켜 둔다. 파트마다 머티리얼 인스턴스가 달라서
+// three의 불투명 정렬(renderOrder → material.id)이 z까지 가지 않는다 →
+// depthTest를 끄면 그리는 순서(=JSX 선언 순서)가 가림을 결정해 버려,
+// 뒤에서 보면 눈이 뒤통수를 뚫고 가방이 팔에 파묻힌다(2026-08-09 회귀).
+// 소품 위로 띄우는 건 renderOrder만으로 처리한다.
 export function createPlayerOcclusionSafeToonMaterial(color, emissive) {
-  const material = toonMat(color, emissive)
-  material.depthTest = false
-  material.depthWrite = false
-  return material
+  return toonMat(color, emissive)
 }
 
 function createPlayerOcclusionSafeOutlineMaterial() {
-  const material = outlineMat(0.98)
-  material.depthTest = false
-  material.depthWrite = false
-  return material
+  return outlineMat(0.98)
 }
 
 function Block({ size, position, rotation, color, emissive = 0.14 }) {
