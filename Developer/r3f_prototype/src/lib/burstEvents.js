@@ -52,6 +52,7 @@ export const STAGE2_BURST_EVENTS = [
   // 유지 루프가 총원을 target과 비교하므로 형태로 채운 만큼 자동으로 덜 스폰된다(의도).
   // E04/보스와 시각 겹치지 않게 배치. 예고 정본은 waveTimelines.STAGE2_SPAWN_TELEGRAPHS.
   { sec:  30, type: 'E01', count:  6, formation: 'swarm' },   // 초반 단조 구간 깨기
+  { sec:  30, type: 'E01', count: 20 },                       // 30초 녹색좀비 추가 러시(2026-08-09)
   { sec:  60, type: 'E03', count:  5, formation: 'ring' },    // 러너 포위
   { sec: 132, type: 'E02', count:  6, formation: 'pincer' },  // 탱커 협공 (120–144 위상)
   { sec: 176, type: 'E05', count:  4, formation: 'swarm' },   // 돌진 무리 (168–192 위상)
