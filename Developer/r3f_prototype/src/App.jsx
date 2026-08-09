@@ -9,7 +9,12 @@ import {
   subscribeFirebaseStudio,
 } from './lib/firebaseStudio.js'
 import { installPlayerStorageFatalGuard } from './lib/firebaseProgress.js'
-import { STUDIO_GAME_SYNC_MESSAGE, isAllowedStudioGameOrigin } from './lib/studioGameBridge.js'
+import {
+  STUDIO_GAME_SYNC_ACK_MESSAGE,
+  STUDIO_GAME_SYNC_MESSAGE,
+  STUDIO_GAME_SYNC_READY_MESSAGE,
+  isAllowedStudioGameOrigin,
+} from './lib/studioGameBridge.js'
 import { useAuthStore } from './store/useAuthStore.js'
 import { isFirebaseStudioRuntimeReady } from './lib/studioRuntimeState.js'
 import { isProjectMaster } from './lib/projectAdmin.js'
@@ -32,10 +37,21 @@ export async function handleStudioGameSyncMessage(event) {
   if (!event.origin || !isAllowedStudioGameOrigin(event.origin)) return false
   if (typeof window !== 'undefined' && window.opener && event.source !== window.opener) return false
   if (event.data.force && event.data.datasets) {
-    const revision = Number.isInteger(event.data.revision) && event.data.revision >= 0
+    // Studio Apply is allowed to force-refresh the game only after Firebase has
+    // accepted the same datasets and returned the canonical revision. Falling
+    // back to the current local revision (or 0) would let an unsaved draft look
+    // committed and can desync every open game window.
+    const revision = Number.isInteger(event.data.revision) && event.data.revision > 0
       ? event.data.revision
       : null
-    if (applyFirebaseStudioDatasets(event.data.datasets, { revision })) return true
+    if (applyFirebaseStudioDatasets(event.data.datasets, { revision })) {
+      event.source?.postMessage?.({
+        type: STUDIO_GAME_SYNC_ACK_MESSAGE,
+        syncId: event.data.syncId ?? null,
+        revision,
+      }, event.origin)
+      return true
+    }
   }
   const result = await hydrateCanonicalTitlePlayer({})
   return result?.status === 'remote-applied'
@@ -44,6 +60,9 @@ export async function handleStudioGameSyncMessage(event) {
 if (typeof window !== 'undefined') {
   window.addEventListener('message', (event) => {
     void handleStudioGameSyncMessage(event)
+  })
+  window.addEventListener('load', () => {
+    window.opener?.postMessage?.({ type: STUDIO_GAME_SYNC_READY_MESSAGE }, window.location.origin)
   })
 }
 

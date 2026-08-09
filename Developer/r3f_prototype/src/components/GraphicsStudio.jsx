@@ -31,7 +31,9 @@ import StagePropPlacementEditor from './StagePropPlacementEditor.jsx'
 import BossFaceGridPreview from './BossFaceGridPreview.jsx'
 import { DEFAULT_SFX_TUNING, getSfxCatalog, loadSfxTunings, normalizeSfxTuning, playSfx } from '../lib/sfxRegistry.js'
 import {
+  STUDIO_GAME_SYNC_ACK_MESSAGE,
   STUDIO_GAME_SYNC_MESSAGE,
+  STUDIO_GAME_SYNC_READY_MESSAGE,
   getDefaultStudioGameUrl,
   parseStudioGameUrl,
 } from '../lib/studioGameBridge.js'
@@ -50,6 +52,12 @@ import {
 
 const categoryLabels = Object.fromEntries(GRAPHICS_STUDIO_CATEGORIES.map((category) => [category.id, category.label]))
 const STUDIO_SECTIONS = new Set(['graphics', 'audio', 'props', 'faces'])
+const STUDIO_UNDO_LIMIT = 50
+
+function cloneStudioUndoSnapshot(value) {
+  if (typeof structuredClone === 'function') return structuredClone(value)
+  return JSON.parse(JSON.stringify(value))
+}
 
 // 프리뷰 배경 스와치(스튜디오 로컬 전용). 첫 항목이 기본값(기존 어두운색).
 const PREVIEW_BG_SWATCHES = [
@@ -271,6 +279,7 @@ export default function GraphicsStudio() {
 
   const gameWindowRef = useRef(null)
   const gameOriginRef = useRef('*')
+  const pendingGameSyncRef = useRef(null)
   const hydratedUidRef = useRef(null)
   const hydratingUidRef = useRef(null)
   const hydratePromiseRef = useRef(null)
@@ -280,6 +289,12 @@ export default function GraphicsStudio() {
   const applyInFlightRef = useRef(false)
   const saveChainRef = useRef(Promise.resolve())
   const draftTuningByIdRef = useRef({})
+  const sfxTuningsRef = useRef(sfxTunings)
+  const stageBossPreviewRef = useRef(stageBossPreview)
+  const decalsByItemRef = useRef(decalsByItem)
+  const draftBossFaceRecipesRef = useRef(draftBossFaceRecipes)
+  const draftPropPlacementsRef = useRef(draftPropPlacements)
+  const undoHistoryRef = useRef([])
   const [gameUrl, setGameUrl] = useState(() => getDefaultStudioGameUrl())
   const activeTuningId = getPartTuningId(selectedItem.id, focusedParts)
   const itemSavedTuning = confirmedTunings[selectedItem.id] ?? DEFAULT_STUDIO_TUNING
@@ -322,8 +337,52 @@ export default function GraphicsStudio() {
     [selectedItem.id, activeTuningId, tuning, confirmedTunings, stageBossPreview, decalsByItem, bossFaceRecipes, draftBossFaceRecipes],
   )
 
+  const captureUndoSnapshot = () => cloneStudioUndoSnapshot({
+    draftTuningById: draftTuningByIdRef.current,
+    sfxTunings: sfxTuningsRef.current,
+    stageBossPreview: stageBossPreviewRef.current,
+    decalsByItem: decalsByItemRef.current,
+    draftBossFaceRecipes: draftBossFaceRecipesRef.current,
+    draftPropPlacements: draftPropPlacementsRef.current,
+  })
+
+  const rememberUndoSnapshot = () => {
+    undoHistoryRef.current = [...undoHistoryRef.current, captureUndoSnapshot()].slice(-STUDIO_UNDO_LIMIT)
+  }
+
+  const restoreUndoSnapshot = () => {
+    const snapshot = undoHistoryRef.current.at(-1)
+    if (!snapshot) return false
+    undoHistoryRef.current = undoHistoryRef.current.slice(0, -1)
+    const restored = cloneStudioUndoSnapshot(snapshot)
+
+    draftTuningByIdRef.current = restored.draftTuningById
+    sfxTuningsRef.current = restored.sfxTunings
+    stageBossPreviewRef.current = restored.stageBossPreview
+    decalsByItemRef.current = restored.decalsByItem
+    draftBossFaceRecipesRef.current = restored.draftBossFaceRecipes
+    draftPropPlacementsRef.current = restored.draftPropPlacements
+
+    setDraftTuningById(restored.draftTuningById)
+    setSfxTunings(restored.sfxTunings)
+    setStageBossPreview(restored.stageBossPreview)
+    setDecalsByItem(restored.decalsByItem)
+    setDraftBossFaceRecipes(restored.draftBossFaceRecipes)
+    setDraftPropPlacements(restored.draftPropPlacements)
+    setPropEditorVersion((version) => version + 1)
+
+    setApplyStatus('Undo')
+    return true
+  }
+
   const refreshStudioState = () => {
     const datasets = loadStudioRuntimeDatasets()
+    sfxTuningsRef.current = datasets.sfxTunings
+    stageBossPreviewRef.current = datasets.stageBossPreview
+    decalsByItemRef.current = datasets.decals
+    draftBossFaceRecipesRef.current = {}
+    draftPropPlacementsRef.current = datasets.propPlacements
+    undoHistoryRef.current = []
     setConfirmedTunings(datasets.tunings)
     setSfxTunings(datasets.sfxTunings)
     setStageBossPreview(datasets.stageBossPreview)
@@ -363,11 +422,13 @@ export default function GraphicsStudio() {
     return false
   }
 
+  const isSavedFirebaseRevision = (revision) => Number.isInteger(revision) && revision > 0
+
   const showFirebaseSaveBlocked = (result) => {
     const status = result?.status ?? 'unavailable'
     setFirebaseStatus(status === 'future-version' ? 'future-version' : 'offline-error')
-    setApplyStatus(`Firebase save blocked: ${status}`)
-    window.alert?.(`Firebase 저장 불가 (${status}). 입력값은 저장되거나 게임·타이틀에 적용되지 않았습니다.`)
+    setApplyStatus(`Apply blocked; Firebase save failed: ${status}`)
+    window.alert?.(`Firebase 저장 불가 (${status}). 저장이 완료되지 않아 현재 세션과 열린 게임에도 적용하지 않았습니다.`)
   }
 
   const persistDatasetsOnApply = async (datasets) => {
@@ -388,6 +449,11 @@ export default function GraphicsStudio() {
       if (result?.status !== 'saved') {
         showFirebaseSaveBlocked(result)
         return result
+      }
+      if (!isSavedFirebaseRevision(result.revision)) {
+        const failed = { status: 'missing-revision' }
+        showFirebaseSaveBlocked(failed)
+        return failed
       }
       if (!applyFirebaseStudioDatasets(datasets, { revision: result.revision })) {
         const failed = { status: 'apply-failed' }
@@ -455,12 +521,39 @@ export default function GraphicsStudio() {
   }, [])
 
   useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'z') return
+      if (!restoreUndoSnapshot()) return
+      event.preventDefault()
+      event.stopPropagation()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  useEffect(() => {
     const refreshRemoteRevision = () => {
       refreshStudioState()
       setFirebaseStatus('synced')
     }
     window.addEventListener(FIREBASE_STUDIO_REVISION_EVENT, refreshRemoteRevision)
     return () => window.removeEventListener(FIREBASE_STUDIO_REVISION_EVENT, refreshRemoteRevision)
+  }, [])
+
+  useEffect(() => {
+    const handleGameBridgeStatus = (event) => {
+      const pending = pendingGameSyncRef.current
+      if (!pending) return
+      if (event.origin !== pending.origin) return
+      if (event.source !== pending.target) return
+      if (event.data?.type === STUDIO_GAME_SYNC_ACK_MESSAGE && event.data?.syncId === pending.syncId) {
+        pendingGameSyncRef.current = null
+        return
+      }
+      if (event.data?.type === STUDIO_GAME_SYNC_READY_MESSAGE) pending.postSync()
+    }
+    window.addEventListener('message', handleGameBridgeStatus)
+    return () => window.removeEventListener('message', handleGameBridgeStatus)
   }, [])
 
   const openOrReuseGameWindow = (url) => {
@@ -473,7 +566,7 @@ export default function GraphicsStudio() {
     return target && !target.closed ? target : null
   }
 
-  const sendGameSync = async ({ openGame = false, retryAfterLoad = false, datasets = null, revision = null } = {}) => {
+  const sendGameSync = async ({ openGame = false, datasets = null, revision = null } = {}) => {
     let target = gameWindowRef.current
     if (openGame) {
       const url = parseStudioGameUrl(gameUrl)
@@ -491,26 +584,32 @@ export default function GraphicsStudio() {
     // Apply already wrote Firebase and atomically committed every dataset into
     // the Studio runtime. Do not gate game sync behind the debounced-save queue:
     // the game window must receive the force-refresh immediately, even for a
-    // one-pixel/one-dot prop move.
+    // one-pixel/one-dot prop move. Keep exactly one newest pending payload for a
+    // cold-loading game; READY resends it, ACK clears it.
+    const syncId = `studio-sync-${Date.now()}-${Math.random().toString(36).slice(2)}`
     const postSync = () => target.postMessage({
       type: STUDIO_GAME_SYNC_MESSAGE,
+      syncId,
       force: true,
       datasets,
       revision,
     }, gameOriginRef.current)
-    postSync()
-    if (retryAfterLoad) {
-      ;[0, 250, 800].forEach((delay) => {
-        window.setTimeout(() => {
-          if (gameWindowRef.current === target && !target.closed) postSync()
-        }, delay)
-      })
+    pendingGameSyncRef.current = {
+      target,
+      origin: gameOriginRef.current,
+      syncId,
+      datasets,
+      revision,
+      postSync,
     }
+    postSync()
     return true
   }
 
   const updatePropPlacementDraft = (config) => {
+    rememberUndoSnapshot()
     const saved = normalizeStagePropPlacements(config)
+    draftPropPlacementsRef.current = saved
     setDraftPropPlacements(saved)
     setApplyStatus('Props preview')
     return saved
@@ -561,6 +660,7 @@ export default function GraphicsStudio() {
   }
 
   const updateTuning = (patch) => {
+    rememberUndoSnapshot()
     const id = activeTuningId
     const nextTuning = normalizeStudioTuning({
       ...(draftTuningByIdRef.current[id] ?? confirmedTunings[id]),
@@ -572,10 +672,12 @@ export default function GraphicsStudio() {
   }
 
   const confirmTextureDecals = (nextItemDecals) => {
+    rememberUndoSnapshot()
     const next = normalizeTextureDecalMap({
-      ...decalsByItem,
+      ...decalsByItemRef.current,
       [selectedItem.id]: nextItemDecals,
     })
+    decalsByItemRef.current = next
     setDecalsByItem(next)
     setApplyStatus('Decal preview')
     return next
@@ -632,13 +734,15 @@ export default function GraphicsStudio() {
   }
 
   const updateStageBossPreview = (patch) => {
-    setStageBossPreview((current) => normalizeStageBossPreview({ ...current, ...patch }))
+    rememberUndoSnapshot()
+    const next = normalizeStageBossPreview({ ...stageBossPreviewRef.current, ...patch })
+    stageBossPreviewRef.current = next
+    setStageBossPreview(next)
     setApplyStatus('Boss preview draft')
   }
 
 
   const persistAllDrafts = async (successLabel, overrides = {}) => {
-    await saveChainRef.current.catch(() => undefined)
     const datasets = loadStudioRuntimeDatasets()
     const nextTunings = {
       ...datasets.tunings,
@@ -659,23 +763,31 @@ export default function GraphicsStudio() {
       propPlacements: overrides.propPlacements ?? draftPropPlacements,
       bossFaceRecipes: nextBossFaceRecipes,
     }
+
+    applyFirebaseStudioDatasets(nextDatasets)
+    void sendGameSync({ openGame: true, datasets: nextDatasets })
+    setConfirmedTunings(nextTunings)
+    draftTuningByIdRef.current = {}
+    sfxTuningsRef.current = sfxTunings
+    stageBossPreviewRef.current = normalizeStageBossPreview(stageBossPreview)
+    decalsByItemRef.current = normalizeTextureDecalMap(decalsByItem)
+    draftBossFaceRecipesRef.current = {}
+    draftPropPlacementsRef.current = overrides.propPlacements ?? draftPropPlacements
+    undoHistoryRef.current = []
+    setDraftTuningById({})
+    setBossFaceRecipes(nextBossFaceRecipes)
+    setDraftBossFaceRecipes({})
+    setApplyStatus(successLabel)
+
     const result = await persistDatasetsOnApply(nextDatasets)
     if (result.status === 'saved') {
-      setConfirmedTunings(nextTunings)
-      draftTuningByIdRef.current = {}
-      setDraftTuningById({})
-      setBossFaceRecipes(nextBossFaceRecipes)
-      setDraftBossFaceRecipes({})
-      if (await sendGameSync({
+      void sendGameSync({
         openGame: true,
-        retryAfterLoad: true,
         datasets: nextDatasets,
         revision: result.revision,
-      })) {
-        setApplyStatus(successLabel)
-      } else {
-        setApplyStatus('Game sync failed')
-      }
+      })
+      setApplyStatus(successLabel)
+      setFirebaseStatus('saved')
     }
     return result
   }
@@ -707,11 +819,14 @@ export default function GraphicsStudio() {
 
   const updateSfxTuning = (patch) => {
     if (!selectedSfx) return
+    rememberUndoSnapshot()
     const soundId = selectedSfx.id
-    setSfxTunings((current) => ({
-      ...current,
-      [soundId]: normalizeSfxTuning({ ...current[soundId], ...patch }),
-    }))
+    const next = {
+      ...sfxTuningsRef.current,
+      [soundId]: normalizeSfxTuning({ ...sfxTuningsRef.current[soundId], ...patch }),
+    }
+    sfxTuningsRef.current = next
+    setSfxTunings(next)
     setApplyStatus('Audio preview')
   }
 
@@ -726,11 +841,14 @@ export default function GraphicsStudio() {
   }
 
   const updateBossFacePart = (categoryKey, partId) => {
+    rememberUndoSnapshot()
     const bossType = selectedFaceBossType
-    setDraftBossFaceRecipes((current) => ({
-      ...current,
+    const next = {
+      ...draftBossFaceRecipesRef.current,
       [bossType]: normalizeBossFaceRecipe({ ...faceRecipe, [categoryKey]: partId }),
-    }))
+    }
+    draftBossFaceRecipesRef.current = next
+    setDraftBossFaceRecipes(next)
     setApplyStatus('Face preview')
   }
 
