@@ -261,6 +261,28 @@ function rangedSpawnPos(bounds, taken = [], random = Math.random, obstacles = []
   return spawnPosOnValidRing('E04', bounds, RANGED_SPAWN_MIN_RADIUS, RANGED_SPAWN_MAX_RADIUS, taken, random, obstacles)
 }
 
+export function spawnPosForBurstType(type, bounds, taken = [], random = Math.random, obstacles = []) {
+  return type === 'E04'
+    ? rangedSpawnPos(bounds, taken, random, obstacles)
+    : randomSpawnPos(type, bounds, taken, random, obstacles)
+}
+
+export function pickMixedReinforcementTypes(types, count, random = Math.random) {
+  const pool = [...new Set((types ?? []).filter((type) => /^E0[1-6]$/.test(type)))]
+  if (pool.length === 0 || count <= 0) return []
+
+  const remaining = [...pool]
+  const result = []
+  while (remaining.length > 0 && result.length < count) {
+    const index = Math.floor(random() * remaining.length) % remaining.length
+    result.push(remaining.splice(index, 1)[0])
+  }
+  while (result.length < count) {
+    result.push(pool[Math.floor(random() * pool.length) % pool.length])
+  }
+  return result
+}
+
 // 형태(formation) 스폰 — 균일 압력(뱀서라이크 지루함)을 깨는 일회성 대형 배치.
 // 좁고 긴 복도(stage2) 기준. 타입은 addEnemies 시점에 정해지므로 y는 대표값(scale=1)으로 통일한다.
 //   'swarm'  : 플레이어에서 먼 Z끝에서 X 균등 일렬 → 복도를 쓸고 내려온다.
@@ -1345,13 +1367,15 @@ export default function Enemies() {
         return
       }
       const count = evt.count ?? 1
+      const mixedTypes = evt.mixedTypes ? pickMixedReinforcementTypes(evt.mixedTypes, count, Math.random) : null
       const positions = evt.formation ? formationSpawnPositions(evt.formation, count, cache.bounds, { x: playerPos.x, z: playerPos.z }, Math.random, cache.obstacles, evt.type) : null
       const batch = []
       for (let spawnIndex = 0; spawnIndex < count; spawnIndex += 1) {
         const taken = batch.map((enemy) => enemy.pos)
-        const pos = positions ? positions[spawnIndex] : (evt.type === 'E04' ? rangedSpawnPos(cache.bounds, taken, Math.random, cache.obstacles) : randomSpawnPos(evt.type, cache.bounds, taken, Math.random, cache.obstacles))
+        const type = mixedTypes ? mixedTypes[spawnIndex] : evt.type
+        const pos = positions ? positions[spawnIndex] : spawnPosForBurstType(type, cache.bounds, taken, Math.random, cache.obstacles)
         if (!pos) continue
-        batch.push({ id: ++_uid, type: evt.type, pos, statOverride: stageHpOverride(evt.type, cache.id) })
+        batch.push({ id: ++_uid, type, pos, statOverride: stageHpOverride(type, cache.id) })
       }
       addEnemies(batch, true, cache.spawnToken)
     }

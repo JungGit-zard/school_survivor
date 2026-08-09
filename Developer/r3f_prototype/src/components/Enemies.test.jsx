@@ -15,6 +15,8 @@ import {
   formationSpawnPositions,
   createRunZombieCrewEntries,
   createStage2GuardChaseEntries,
+  pickMixedReinforcementTypes,
+  spawnPosForBurstType,
   RUN_ZOMBIE_CREW_SIZE,
   RUN_ZOMBIE_CREW_DIR,
   STAGE2_GUARD_CHASE_SIZE,
@@ -60,7 +62,7 @@ import {
 import { CHEST_OPEN_DELAY_MS } from './TreasureChest.jsx'
 import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { STAGE2_SPAWN_TELEGRAPHS, STAGE2_WAVE_PHASES, STAGE3_WAVE_PHASES, STAGE4_WAVE_PHASES } from '../lib/waveTimelines.js'
-import { BOSS_BURST_TYPES, getBurstEventsForStage as burstsForStage, getRuntimeBurstEventsForStage, isBossType } from '../lib/burstEvents.js'
+import { BOSS_BURST_TYPES, STAGE2_MIXED_REINFORCEMENT, getBurstEventsForStage as burstsForStage, getRuntimeBurstEventsForStage, isBossType } from '../lib/burstEvents.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 import { getStageObjectSightObstacles } from './StageObjects/stageObjectColliders.js'
 import { ENEMY_STATS, getActiveE04ProjectileCount, resetActiveE04ProjectileCountForTest } from './Enemy.jsx'
@@ -121,6 +123,32 @@ describe('boss runtime spawn routes', () => {
       expect(shouldScheduleBurst(0, boss.sec, boss.sec)).toBe(true)
       expect(shouldScheduleBurst(1, boss.sec + 300, boss.sec)).toBe(false)
     }
+  })
+})
+
+describe('stage 2 mixed timed reinforcements', () => {
+  it('adds 15 mixed ordinary zombies at 120/150/180/210s and keeps E04 on ranged placement', () => {
+    const reinforcements = getRuntimeBurstEventsForStage('stage2')
+      .filter((event) => event.reinforcement === STAGE2_MIXED_REINFORCEMENT)
+    expect(reinforcements.map((event) => event.sec)).toEqual([120, 150, 180, 210])
+
+    for (const event of reinforcements) {
+      expect(event.count).toBe(15)
+      expect(event.mixedTypes.length).toBeGreaterThan(1)
+      expect(event.mixedTypes.every((type) => /^E0[1-6]$/.test(type))).toBe(true)
+      expect(event.mixedTypes.some((type) => isBossType(type) || type === 'RZT' || type === 'RZG')).toBe(false)
+      const picked = pickMixedReinforcementTypes(event.mixedTypes, event.count, () => 0)
+      expect(picked).toHaveLength(15)
+      expect(new Set(picked).size).toBeGreaterThan(1)
+    }
+
+    playerPos.x = 0
+    playerPos.z = 0
+    const bounds = getStageBounds('stage2')
+    const distanceFromPlayer = (pos) => Math.hypot(pos[0] - playerPos.x, pos[2] - playerPos.z)
+    expect(distanceFromPlayer(spawnPosForBurstType('E04', bounds, [], () => 0, []))).toBeGreaterThan(
+      distanceFromPlayer(spawnPosForBurstType('E01', bounds, [], () => 0, [])),
+    )
   })
 })
 

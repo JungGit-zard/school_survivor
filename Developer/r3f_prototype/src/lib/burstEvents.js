@@ -12,6 +12,16 @@ export const BOSS_BURST_TYPES = ['B01', 'B02', 'B03', 'B04']
 export const isBossType = (type) => BOSS_BURST_TYPES.includes(type)
 export const RUN_ZOMBIE_CREW_FORMATION = 'runZombieCrew'
 export const STAGE2_GUARD_CHASE_FORMATION = 'stage2GuardChase'
+export const STAGE2_MIXED_REINFORCEMENT = 'stage2MixedReinforcement'
+
+// Stage 2 추가 보강(2026-08-09 사용자 지시): 120초부터 30초마다,
+// 240초 종료 전까지만 15마리씩 일반 좀비를 현재 phase 구성 안에서 섞어 더한다.
+export const STAGE2_MIXED_REINFORCEMENT_EVENTS = [
+  { sec: 120, type: 'E01', count: 15, mixedTypes: ['E01', 'E02', 'E03', 'E04', 'E05'], reinforcement: STAGE2_MIXED_REINFORCEMENT },
+  { sec: 150, type: 'E03', count: 15, mixedTypes: ['E02', 'E03', 'E04', 'E05'], reinforcement: STAGE2_MIXED_REINFORCEMENT },
+  { sec: 180, type: 'E02', count: 15, mixedTypes: ['E02', 'E04', 'E06'], reinforcement: STAGE2_MIXED_REINFORCEMENT },
+  { sec: 210, type: 'E02', count: 15, mixedTypes: ['E02', 'E04', 'E05'], reinforcement: STAGE2_MIXED_REINFORCEMENT },
+]
 
 // 4분 타임라인. 5분 기준 sec ×0.8.
 export const BURST_EVENTS = [
@@ -55,6 +65,7 @@ export const STAGE2_BURST_EVENTS = [
   { sec:  30, type: 'E01', count: 20 },                       // 30초 녹색좀비 추가 러시(2026-08-09)
   { sec:  90, type: 'E01', count: 20 },                       // 1분 30초 녹색좀비 러시(2026-08-09)
   { sec:  90, type: 'E02', count:  3 },                       // 1분 30초 탱커 동반(2026-08-09)
+  ...STAGE2_MIXED_REINFORCEMENT_EVENTS,
   { sec:  60, type: 'E03', count:  5, formation: 'ring' },    // 러너 포위
   { sec: 132, type: 'E02', count:  6, formation: 'pincer' },  // 탱커 협공 (120–144 위상)
   { sec: 176, type: 'E05', count:  4, formation: 'swarm' },   // 돌진 무리 (168–192 위상)
