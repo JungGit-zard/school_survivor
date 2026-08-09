@@ -1,6 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import GoogleAccountPanel from './components/GoogleAccountPanel.jsx'
 import {
+  applyFirebaseStudioDatasets,
   hydrateFirebaseStudio,
   initializeFirebaseStudioIfMissing,
   hydrateCanonicalTitlePlayer,
@@ -30,6 +31,12 @@ export async function handleStudioGameSyncMessage(event) {
   if (event?.data?.type !== STUDIO_GAME_SYNC_MESSAGE) return false
   if (!event.origin || !isAllowedStudioGameOrigin(event.origin)) return false
   if (typeof window !== 'undefined' && window.opener && event.source !== window.opener) return false
+  if (event.data.force && event.data.datasets) {
+    const revision = Number.isInteger(event.data.revision) && event.data.revision >= 0
+      ? event.data.revision
+      : null
+    if (applyFirebaseStudioDatasets(event.data.datasets, { revision })) return true
+  }
   const result = await hydrateCanonicalTitlePlayer({})
   return result?.status === 'remote-applied'
 }

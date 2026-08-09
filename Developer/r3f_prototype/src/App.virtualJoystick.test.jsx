@@ -188,7 +188,7 @@ describe('App virtual joystick mounting', () => {
     expect(firebaseStudioMocks.canonicalHydrate).toHaveBeenCalledWith({})
     expect(loadStudioTunings().stale.scale).toBe(1.3)
     expect(loadSfxTunings()).toEqual({})
-    expect(loadStageBossPreview().zoom).not.toBe(133)
+    expect(getFirebaseStudioRuntimeState().datasets.stageBossPreview.zoom).not.toBe(133)
     expect(loadTextureDecals()).toEqual({})
     expect(loadStagePropPlacements().stage1[0].id).toBe('stale-desk')
   })
@@ -218,6 +218,37 @@ describe('App virtual joystick mounting', () => {
     expect(firebaseStudioMocks.canonicalHydrate).toHaveBeenCalledWith({})
     expect(getFirebaseStudioRuntimeState().revision).toBe(42)
     expect(loadStudioTunings().player.scale).toBe(1.71)
+  })
+
+  it('force-applies Studio sync payload immediately without waiting for Firebase re-read', async () => {
+    resetStagePropPlacementsCache()
+    const handled = await handleStudioGameSyncMessage({
+      origin: 'http://localhost:5173',
+      data: {
+        type: 'escape-zombie-school.studioGameSync.v1',
+        force: true,
+        revision: 77,
+        datasets: {
+          tunings: { player: { scale: 1.88 } },
+          sfxTunings: {},
+          stageBossPreview: {},
+          decals: {},
+          propPlacements: {
+            stage1: [{ id: 'forced-desk', type: 'classroomDesk', position: [0.001, 0, -0.001], rotation: [0, 0, 0], scale: 1 }],
+          },
+          bossFaceRecipes: {},
+        },
+      },
+    })
+
+    expect(handled).toBe(true)
+    expect(firebaseStudioMocks.canonicalHydrate).not.toHaveBeenCalled()
+    expect(getFirebaseStudioRuntimeState().revision).toBe(77)
+    expect(loadStudioTunings().player.scale).toBe(1.88)
+    expect(loadStagePropPlacements().stage1[0]).toMatchObject({
+      id: 'forced-desk',
+      position: [0.001, 0, -0.001],
+    })
   })
 
   it('does not consume malformed or arbitrary datasets from a Studio message', async () => {
