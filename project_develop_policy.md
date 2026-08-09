@@ -75,6 +75,7 @@
 
 - 반드시 코드 구현, 기술 검토, 프로토타입 기록은 `Developer/` 폴더에 기록한다.
 - 반드시 AAB를 새로 산출할 때마다 Android `versionCode`를 이전 산출물보다 증가시킨다.
+- 반드시 사용자가 정확히 `개구리`라고 말하면 5분 예약 점검을 기다리지 말고 `localhost:5173` 게임 개발 서버를 즉시 실행/보장한다; 이미 listening이면 유지하고, 아니면 묻지 말고 `Developer/agent_room/operations/keep_port_5173_dev_server.ps1`을 즉시 실행한다. `SchoolSurvivor-Keep-5173` 5분 주기 자동 점검 예약은 이 수동 명령과 별개로 항상 활성화 상태를 유지한다.
 
 ### 절대로 하면 안 되는 사항
 
