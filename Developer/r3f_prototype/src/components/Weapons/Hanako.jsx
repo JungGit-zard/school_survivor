@@ -33,8 +33,8 @@ function Part({ size, position, rotation = [0, 0, 0], material, outlineMaterial,
 export function HanakoModel() {
   const parts = useRef({})
   const outline = useMemo(() => outlineMat(0.97), [])
-  const hairMat = useMemo(() => toonMat(0x100c12, 0.045), [])
-  const hairShadeMat = useMemo(() => toonMat(0x241725, 0.035), [])
+  const hairMat = useMemo(() => toonMat(0xffb6c1, 0.045), [])
+  const hairShadeMat = useMemo(() => toonMat(0xe7a0ac, 0.035), [])
   const skinMat = useMemo(() => toonMat(0xf2ddd2, 0.065), [])
   const kimonoMat = useMemo(() => toonMat(0xf6a9bd, 0.075), [])
   const obiMat = useMemo(() => toonMat(0xdb5a83, 0.11), [])

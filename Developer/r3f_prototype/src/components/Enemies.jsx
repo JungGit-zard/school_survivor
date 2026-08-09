@@ -1280,7 +1280,7 @@ export default function Enemies() {
 
 
   // 마틸다 등장 대사를 읽는 동안에는 실체/AI를 만들지 않는다. 같은 run/stage가
-  // 유지된 경우에만 5초 뒤(정확히 300초) 한 번 스폰하며 cleanup은 reset/stage/unmount stale 스폰을 막는다.
+  // 유지된 경우에만 5초 뒤(정확히 230초) 한 번 스폰하며 cleanup은 reset/stage/unmount stale 스폰을 막는다.
   useEffect(() => {
     if (!matildaSpawned) return
     const { matildaSec, matildaWarningSec } = getStageConfig(currentStageId)

@@ -13,6 +13,17 @@ describe('Hanako companion source contract', () => {
     expect(source).toContain('hairMat')
   })
 
+  it('uses CSS LightPink hair materials on every visible Hanako hair part', () => {
+    const source = readFileSync(new URL('./Hanako.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('const hairMat = useMemo(() => toonMat(0xffb6c1')
+    expect(source).toContain('const hairShadeMat = useMemo(() => toonMat(0xe7a0ac')
+
+    const hairPartMatches = source.match(/<Part\s+[^>]*material=\{hair(?:Shade)?Mat\}/g) ?? []
+    expect(hairPartMatches).toHaveLength(5)
+    expect(source).not.toContain('toonMat(0x100c12')
+    expect(source).not.toContain('toonMat(0x241725')
+  })
+
   it('has the second companion trail and healing gameplay contract wired in source', () => {
     const source = readFileSync(new URL('./Hanako.jsx', import.meta.url), 'utf8')
     expect(source).toContain('HANAKO_TRAIL_FOLLOW_DISTANCE')
