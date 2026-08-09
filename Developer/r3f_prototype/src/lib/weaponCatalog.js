@@ -231,10 +231,12 @@ export const WEAPON_CATALOG = {
     base: {
       damage: 20, cooldown: 4200,
       range: 6.0, width: 0.22,
-      // 관통 상한이 아예 없다는 뜻. 저장(Firebase progress)에는 무기 런타임 스탯이 실리지
-      // 않으므로(진행도는 goldTotal/records/weaponUnlocks/weaponPermanentUpgrades/passiveUpgrades
-      // /encounteredZombieTypes/titleSettings뿐) Infinity가 JSON으로 나가는 경로는 없다.
-      pierce: Infinity, knockback: 0,
+      // 기획 초안의 pierce: Infinity를 999로 낮췄다. 초안값 그대로 두면 gameplaySoak.js:208의
+      // "무기 스탯은 전부 유한수" 불변식이 카드 획득 즉시 터진다(실측: seed 1, frame 225에서
+      // "무기 lineDraw pierce 비유한값"). JSON.stringify도 Infinity를 null로 떨어뜨린다.
+      // 실질 차이는 없다 — 선분 전체를 훑는 판정이라 이 값을 소비하는 코드 자체가 없고,
+      // 한 프레임에 살아있는 적 상한은 MAX_ENEMIES(150)다.
+      pierce: 999, knockback: 0,
       critChance: 0.35, critMultiplier: 2.0,  // 커터칼 0.25/1.5 계승·강화
       lineDurationMs: 2000,      // 그은 자리에 남는 절단선 지속
       lineCrossDamage: 14,       // 절단선을 가로지를 때만 1회

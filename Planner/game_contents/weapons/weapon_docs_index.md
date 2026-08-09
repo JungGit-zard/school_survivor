@@ -18,7 +18,7 @@
 ## 2. schoolBag 30cm 자
 
 - 개별 문서 없음 (스탯은 weaponCatalog.js)
-- 발전형 기획안(미구현): `P/slash_evolution_weapon_concepts_2026-08-09.md` — 「재단선」(자+커터칼 동시 소지 조건)
+- 발전형(구현 완료 2026-08-09): `P/slash_evolution_weapon_concepts_2026-08-09.md` — 「선긋기」`lineDraw`(자+커터칼 동시 소지 조건)
 
 ## 3. boxCutter 커터칼
 
@@ -27,7 +27,7 @@
 - 그래픽: `G/boxcutter_all_angle_stab_slash_effect_proposal_2026-05-27.md`, `G/boxcutter_stab_slash_effect_implementation_2026-05-27.md`, `G/boxcutter_trail_and_umbrella_scale_visual_2026-05-26.md`, `G/boxcutter_triangle_trail_removed_2026-05-27.md`
 - QA: `Q/boxcutter_base_stat_1_5x_validation_2026-05-26.md`, `Q/boxcutter_stab_slash_effect_validation_2026-05-27.md`, `Q/boxcutter_trail_and_umbrella_scale_validation_2026-05-26.md`, `Q/boxcutter_triangle_trail_removed_validation_2026-05-27.md`, `Q/boxcutter_base_cooldown_5x_validation_2026-07-26.md`
 - 최근 변경(코드): 업그레이드 없는 기본 쿨다운 3250ms(3.25초) = 기존 650ms의 5배 (2026-07-26, weaponCatalog.js 주석)
-- 발전형 기획안(미구현): `P/slash_evolution_weapon_concepts_2026-08-09.md` — 「L형 커터칼」(커터칼 소지 조건), 「재단선」(자+커터칼 동시 소지 조건)
+- 발전형(구현 완료 2026-08-09): `P/slash_evolution_weapon_concepts_2026-08-09.md` — 「바이키티 커터칼」`bikittyCutter`(커터칼 소지 조건), 「선긋기」`lineDraw`(자+커터칼 동시 소지 조건)
 
 ## 4. tumbler 텀블러
 
@@ -122,7 +122,7 @@
 
 - 목록/정합성: `P/weapon_list.md`, `P/weapon_docs_runtime_match_audit_2026-06-03.md`
 - 해금/확장 설계: `P/weapon_upgrade_flow_and_unlock_plan_2026-05-14.md`, `P/weapon_expansion_unlock_plan_2026-05-10.md`, `CEO/docs/plans/2026-05-19-001-feat-weapon-meta-progression-expansion-plan.md`
-- 발전형/합성 기획안(미구현): `P/slash_evolution_weapon_concepts_2026-08-09.md` — 베기 계열 2종. **선행 무기 소지 조건은 현재 `evaluateUnlocks`로 표현 불가**(OR 전용·숫자 임계값 전용), 배선 확장이 선행 과제
+- 발전형/합성(구현 완료 2026-08-09): `P/slash_evolution_weapon_concepts_2026-08-09.md` — 베기 계열 2종 `bikittyCutter`·`lineDraw`. 선행 무기 소지 조건은 `upgrades.js`의 `requiresActiveWeapon`(단수) / `requiresActiveWeapons`(복수, 2026-08-09 신설)로 판정한다. `evaluateUnlocks`(계정 해금)는 숫자 임계값 전용 OR 평가기라 무기 ID를 표현할 수 없고, 두 무기 모두 `skipAccountUnlock: true`로 우회하므로 확장하지 않았다
 - 로스터/카드풀: `P/stage1_weapon_roster_card_pool_drift_resolution_2026-06-24.md`
 - 공통 규칙: `P/rules/weapon_slot_limit_8_2026-05-26.md`, `P/rules/weapon_unlock_acquire_upgrade_terms_2026-05-26.md`
 - 전투 피드백: `P/combat_feedback/player_weapon_arm_action_rules_2026-05-30.md`, `G/player_weapon_arm_action_2026-05-30.md`, `Q/player_weapon_arm_action_validation_2026-05-30.md`

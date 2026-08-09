@@ -5,7 +5,7 @@
 `Developer/r3f_prototype/src/lib/weaponCatalog.js`이며, 이 문서의 수치는 초안이다.
 
 - 「바이키티 커터칼」 — **커터칼 소지 시에만** 등장 → **2026-08-09 구현 착수**
-- 「재단선」 — **30cm 자 + 커터칼 둘 다 소지 시에만** 등장 → 미착수
+- 「선긋기」 — **30cm 자 + 커터칼 둘 다 소지 시에만** 등장 → 2026-08-09 구현 (id `lineDraw`)
 
 > **개명 이력**: 「L형 커터칼」 → **「바이키티 커터칼」** (2026-08-09 소유자 확정).
 > 디자인도 함께 확정 — **하얀 고양이 머리 장식이 달린 공업용 커터칼**.
@@ -96,7 +96,7 @@ bikittyCutter: {
 
 ---
 
-## 2. 「재단선」 — 30cm 자 + 커터칼 합성형
+## 2. 「선긋기」 — 30cm 자 + 커터칼 합성형
 
 ### 선행 조건
 
@@ -117,26 +117,46 @@ bikittyCutter: {
 서 있는 적을 지지는 장판이 아니라 **넘어오면 잘리는 선**이다.
 밀려오는 웨이브 앞에 **미리 그어두는 선점형 견제 무기**라,
 반응형인 자·커터칼·L형 전부와 역할이 겹치지 않는다.
-카탈로그 17종 중 **선형 지속 존은 하나도 없다** (플라스크는 원형 웅덩이).
+카탈로그의 다른 무기 중 **선형 지속 존은 하나도 없다** (플라스크는 원형 웅덩이).
 
-### 스탯 초안
+### 스탯 (2026-08-09 구현 확정 — `weaponCatalog.js`의 `lineDraw.base`가 정본)
+
+이름은 소유자가 「선긋기」로 확정했고, 무기 id는 `lineDraw`다.
 
 ```js
-rulerCut: {
-  id: 'rulerCut',
-  label: '재단선',
+lineDraw: {
+  id: 'lineDraw',
+  label: '선긋기',
   base: {
     damage: 20, cooldown: 4200,
     range: 6.0, width: 0.22,
-    pierce: Infinity, knockback: 0,
+    pierce: 999, knockback: 0,      // 초안 Infinity → 999 (아래 구현 메모)
     critChance: 0.35, critMultiplier: 2.0,  // 커터칼 0.25/1.5 계승·강화
     lineDurationMs: 2000,      // 남는 절단선
     lineCrossDamage: 14,       // 가로지를 때만 1회
     lineCrossCooldownMs: 600,  // 같은 적 재절단 간격
   },
+  unlockConditions: STARTER,   // 계정 해금 게이트는 쓰지 않는다(카드 쪽 조건이 전부)
   minLevelToAppear: 8,
 }
 ```
+
+### 구현 메모 (2026-08-09)
+
+- 판정 정본은 `src/lib/lineDraw.js`. 잔류 절단선은 거리 기반이 아니라 **선분-선분 교차**로
+  판정한다: 적의 직전 프레임 위치 → 현재 위치를 잇는 이동 선분이 절단선과 교차할 때만 잘린다.
+  선 위에 서 있으면 이동 선분 길이가 0이라 절대 교차하지 않는다(= 장판이 아니다).
+  선을 따라 나란히 미끄러지는 이동도 공선이라 교차로 치지 않는다.
+- 긋는 순간의 직격(20)과 잔류선 통과 절단(14)은 완전히 별개 판정이다.
+- **선점형이라 사거리 안에 적이 없어도 쿨다운마다 긋는다.** 커터칼처럼 "대상이 있을 때만
+  발사"로 만들면 미리 그어두는 용법 자체가 사라진다.
+- **`pierce: Infinity`(초안) → `999`로 변경.** 초안값을 그대로 쓰면 `gameplaySoak.js:208`의
+  "무기 스탯은 전부 유한수" 불변식이 카드 획득 즉시 터진다(실측: seed 1, frame 225,
+  `무기 lineDraw pierce 비유한값`). `JSON.stringify`도 `Infinity`를 `null`로 떨어뜨린다.
+  실질 차이는 없다 — 선분 전체를 훑는 판정이라 이 값을 소비하는 코드가 아예 없고,
+  한 프레임에 살아있는 적 상한은 `MAX_ENEMIES`(150)다.
+- SFX 3종: `lineDrawSlash`(긋기) / `lineDrawCross`(적이 선을 가로지름) / `lineDrawExpire`(선 소멸).
+  음원 생성과 `audioDiagnostics` 카운트 갱신은 soundmini 소관이다.
 
 ### 밸런스 성격
 
@@ -153,7 +173,7 @@ rulerCut: {
 
 ## 3. 네 무기 역할 대비표
 
-| | 30cm 자 | 커터칼 | 바이키티 커터칼 | 재단선 |
+| | 30cm 자 | 커터칼 | 바이키티 커터칼 | 선긋기 |
 |---|---|---|---|---|
 | 사거리 | 0.633 | 1.4 | 1.0 → 2.26 | 6.0 |
 | 형태 | 짧은 호 스윙 | 고정 직선 | 가변 직선 | 긴 직선 + 잔류선 |
@@ -192,12 +212,12 @@ acquireBikittyCutter: {
 },
 ```
 
-### 재단선(무기 2종 동시 요구)만 남는 제약
+### 선긋기(무기 2종 동시 요구)만 남는 제약
 
-`requiresActiveWeapon`은 **단일 무기 하나만** 받는다. 재단선은
+`requiresActiveWeapon`은 **단일 무기 하나만** 받는다. 선긋기은
 "30cm 자 **그리고** 커터칼"이라 이 필드로 표현할 수 없다.
 → `requiresActiveWeapons: ['schoolBag', 'boxCutter']`(복수형 배열) 신설이
-재단선 착수 시의 **유일한** 선행 작업이다. `evaluateUnlocks`는 건드릴 필요 없다.
+선긋기 착수 시의 **유일한** 선행 작업이다. `evaluateUnlocks`는 건드릴 필요 없다.
 
 ### 참고 — `evaluateUnlocks`(계정 해금)는 별개 계층이고 여기 쓰지 않는다
 
@@ -217,12 +237,12 @@ if (Number.isFinite(v) && v >= Number(cond.value)) { out.add(id); break }
 2. 카탈로그 등록 + 컴포넌트 구현 (levelmini / threemini) — **2026-08-09 착수**
 3. SFX 3종 등록 (soundmini) — `bikittyCutterFire` / `bikittyCutterSnap` / `bikittyCutterReload`
 4. 스테이지별 밸런스 검증 (balanceqa)
-5. 재단선 착수 시에만: `requiresActiveWeapons` 복수형 신설
+5. ~~선긋기 착수 시에만: `requiresActiveWeapons` 복수형 신설~~ — 2026-08-09 신설 완료 (`upgrades.js`, 단수형은 그대로 유지)
 
 ---
 
 ## 5. 미확정 사항
 
-- 「재단선」 이름 소유자 확정 대기 (바이키티 커터칼은 2026-08-09 확정)
+- ~~「선긋기」 이름 소유자 확정 대기~~ — 2026-08-09 「선긋기」로 확정 (초안명 「재단선」에서 개명)
 - 모든 스탯 수치는 초안. balanceqa 검증 전까지 정본 아님
 - 영구 강화(코인샵) 편입 여부 미결
