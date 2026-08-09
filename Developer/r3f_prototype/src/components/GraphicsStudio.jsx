@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import GraphicsStudioPreview from './GraphicsStudioPreview.jsx'
 import {
   DEFAULT_STUDIO_TUNING,
@@ -774,10 +774,12 @@ export default function GraphicsStudio() {
       ...current,
       [soundId]: normalizeSfxTuning({ ...current[soundId], ...patch }),
     }))
-    void queueCanonicalMutation((datasets) => ({
-      ...datasets,
-      sfxTunings: { ...datasets.sfxTunings, [soundId]: normalizeSfxTuning({ ...datasets.sfxTunings[soundId], ...patch }) },
-    }), 'Audio saved')
+    setApplyStatus('Audio preview')
+  }
+
+  const playSelectedSfxPreview = () => {
+    if (!selectedSfx) return
+    playSfx(selectedSfx.id, 1, { tuningOverride: sfxTuning })
   }
 
   const applySfxCurrent = async () => {

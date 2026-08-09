@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="UTF-16"?>
+
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+
+  <RegistrationInfo>
+
+    <Date>2026-08-09T11:21:43</Date>
+
+    <Author>DESKTOP-IVDVO13\admin</Author>
+
+    <URI>\EscapeZombieSchool-Hourly-Subagent-Routing-Monitor</URI>
+
+  </RegistrationInfo>
+
+  <Principals>
+
+    <Principal id="Author">
+
+      <UserId>S-1-5-21-3650792038-4166365964-2206020067-1002</UserId>
+
+      <LogonType>InteractiveToken</LogonType>
+
+    </Principal>
+
+  </Principals>
+
+  <Settings>
+
+    <DisallowStartIfOnBatteries>true</DisallowStartIfOnBatteries>
+
+    <StopIfGoingOnBatteries>true</StopIfGoingOnBatteries>
+
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+
+    <IdleSettings>
+
+      <Duration>PT10M</Duration>
+
+      <WaitTimeout>PT1H</WaitTimeout>
+
+      <StopOnIdleEnd>true</StopOnIdleEnd>
+
+      <RestartOnIdle>false</RestartOnIdle>
+
+    </IdleSettings>
+
+  </Settings>
+
+  <Triggers>
+
+    <TimeTrigger>
+
+      <StartBoundary>2026-08-09T11:21:00</StartBoundary>
+
+      <Repetition>
+
+        <Interval>PT1H</Interval>
+
+      </Repetition>
+
+    </TimeTrigger>
+
+  </Triggers>
+
+  <Actions Context="Author">
+
+    <Exec>
+
+      <Command>powershell.exe</Command>
+
+      <Arguments>-NoProfile -ExecutionPolicy Bypass -File D:\JungSil\2.Minigame_project\school_survivor-integration\Developer\agent_room\operations\jabdareminder_hourly_subagent_routing_monitor.ps1</Arguments>
+
+    </Exec>
+
+  </Actions>
+
+</Task>

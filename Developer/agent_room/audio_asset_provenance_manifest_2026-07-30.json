@@ -1243,6 +1243,26 @@
       "licenseEvidence": "project-generated-procedural"
     },
     {
+      "logicalId": "criticalHit",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/criticalHit.ogg",
+          "bytes": 5455,
+          "sha256": "4bfae122e664920c077df7cca782b0fd7f98cf9e2ed98cb261a485019680e378"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/criticalHit.mp3",
+          "bytes": 2657,
+          "sha256": "770b31139d80c9a7e1bd33bba1dc4abf517b8bddff9ec7f438a86ee359563b18"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
+      "notes": "Original dedicated critical-hit SFX: hard noise transient, short low impact body, and bright confirmation accent; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
       "logicalId": "bossWarning",
       "category": "events",
       "paths": [

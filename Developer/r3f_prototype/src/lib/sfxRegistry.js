@@ -87,6 +87,7 @@ export const SOUND_MAP = {
   gameOver:       '/sfx/ui/gameOver.ogg',
 
   // ── 특수 이벤트 ──────────────────────────────────────────────────────────────
+  criticalHit:        '/sfx/events/criticalHit.ogg',
   bossWarning:        '/sfx/events/bossWarning.ogg',
   bossSpawn:          '/sfx/events/bossSpawn.ogg',
   portalAppear:       '/sfx/events/portalAppear.ogg',
@@ -162,6 +163,7 @@ function releaseCombatVoicesForLogicalId(id) {
 // 한 프레임(~16ms) 안에 같은 ID가 반복 emit돼도 1회만 재생.
 const _lastPlayed = {}
 export const POLYPHONY_COOLDOWN = Object.freeze({
+  criticalHit:     140,
   zombieDeath:      50,
   zombieHeavyDeath: 50,
   dogeDeath:        180,
@@ -254,7 +256,7 @@ export function saveSfxTunings(tunings) {
 export function playSfx(id, volume = 1, options = {}) {
   if (!SOUND_MAP[id] || _failed.has(id)) return
   if (!isSfxAllowedForAuthOverlay(id, options.authOverlayActive)) return
-  const tuning = normalizeSfxTuning(loadOptionalSfxTunings()[id])
+  const tuning = normalizeSfxTuning(options.tuningOverride ?? loadOptionalSfxTunings()[id])
   const tunedVolume = clamp(volume * tuning.volume, 0, 1)
   const tunedRate = clamp((options.rate ?? 1) * tuning.rate, 0.5, 2)
   const protectedSfx = isProtectedSfx(id)

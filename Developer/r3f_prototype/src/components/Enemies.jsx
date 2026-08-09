@@ -1163,6 +1163,7 @@ export default function Enemies() {
     const maxHp = enemyPool.maxHp[index]
     const killed = enemyPool.hp[index] <= critical.damage
     const strongCritical = critical.isCritical && ((killed && isBossType(type)) || (Number.isFinite(maxHp) && maxHp > 0 && critical.damage >= maxHp * 0.25))
+    if (critical.isCritical) emitSfx({ id: 'criticalHit', volume: strongCritical ? 0.9 : 0.76 })
     const screenShake = critical.isCritical ? emitCriticalHitScreenShake : emitEnemyHitScreenShake
     screenShake(
       x - playerPos.x,

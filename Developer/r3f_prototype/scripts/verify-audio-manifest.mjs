@@ -128,5 +128,5 @@ if (failures.length) {
   for (const message of failures) console.error(`audio manifest: ${message}`)
   process.exitCode = 1
 } else {
-  console.log('audio manifest verified: 75 SFX IDs, 150 fallback files, canonical title BGM')
+  console.log('audio manifest verified: 76 SFX IDs, 152 fallback files, canonical title BGM')
 }

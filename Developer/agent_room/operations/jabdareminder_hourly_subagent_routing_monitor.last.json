@@ -1,0 +1,262 @@
+﻿{
+    "result":  "PASS",
+    "started_at":  "2026-08-09T11:27:49.5416690+09:00",
+    "finished_at":  "2026-08-09T11:27:57.2197083+09:00",
+    "project_root":  "D:/JungSil/2.Minigame_project/school_survivor-integration",
+    "board":  "escape-zombie-school",
+    "task_name":  "EscapeZombieSchool-Hourly-Subagent-Routing-Monitor",
+    "script_path":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\operations\\jabdareminder_hourly_subagent_routing_monitor.ps1",
+    "log_path":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\operations\\logs\\jabdareminder_hourly_subagent_routing_monitor.log",
+    "last_status_path":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\operations\\jabdareminder_hourly_subagent_routing_monitor.last.json",
+    "checks":  [
+                   {
+                       "name":  "path:AGENTS.md",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\AGENTS.md"
+                   },
+                   {
+                       "name":  "path:Bang_Rules.md",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Bang_Rules.md"
+                   },
+                   {
+                       "name":  "path:CLAUDE.md",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\CLAUDE.md"
+                   },
+                   {
+                       "name":  "path:project_develop_policy.md",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\project_develop_policy.md"
+                   },
+                   {
+                       "name":  "path:SESSION_CONTINUITY.md",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\SESSION_CONTINUITY.md"
+                   },
+                   {
+                       "name":  "path:SESSION_MEMORY.md",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\SESSION_MEMORY.md"
+                   },
+                   {
+                       "name":  "path:Developer/agent_room/mandatory_precommand/README.md",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\mandatory_precommand\\README.md"
+                   },
+                   {
+                       "name":  "path:Developer/agent_room/mandatory_precommand/manifest.json",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\mandatory_precommand\\manifest.json"
+                   },
+                   {
+                       "name":  "path:Developer/agent_room/mandatory_precommand/check-required-documents.ps1",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\mandatory_precommand\\check-required-documents.ps1"
+                   },
+                   {
+                       "name":  "path:Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md"
+                   },
+                   {
+                       "name":  "path:Developer/agent_room/game_development_kanban_process.md",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\game_development_kanban_process.md"
+                   },
+                   {
+                       "name":  "path:Developer/agent_room/subagent_system_wiring_2026-07-03.md",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\subagent_system_wiring_2026-07-03.md"
+                   },
+                   {
+                       "name":  "path:Developer/agent_room/ide_agent_subagent_autocall_handoff.md",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\ide_agent_subagent_autocall_handoff.md"
+                   },
+                   {
+                       "name":  "path:Developer/agent_room/escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md"
+                   },
+                   {
+                       "name":  "path:Developer/agent_room/antigravity_ide_subagent_handoff.md",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\antigravity_ide_subagent_handoff.md"
+                   },
+                   {
+                       "name":  "path:.claude/settings.json",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.claude\\settings.json"
+                   },
+                   {
+                       "name":  "path:.claude/hooks/require-subagent-routing-for-project.sh",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.claude\\hooks\\require-subagent-routing-for-project.sh"
+                   },
+                   {
+                       "name":  "path:.claude/hooks/require-subagent-routing-for-prompt.sh",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.claude\\hooks\\require-subagent-routing-for-prompt.sh"
+                   },
+                   {
+                       "name":  "hook-config:mandatory-precommand",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  ".claude/settings.json references mandatory_precommand/check-required-documents.ps1"
+                   },
+                   {
+                       "name":  "hook-config:subagent-routing",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  ".claude/settings.json references require-subagent-routing-for-project.sh"
+                   },
+                   {
+                       "name":  "hook-config:user-prompt-submit-routing",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  ".claude/settings.json UserPromptSubmit references require-subagent-routing-for-prompt.sh"
+                   },
+                   {
+                       "name":  "mandatory-precommand-checker",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "{\r\n    \"profile\":  \"jabdareminder\",\r\n    \"domain\":  \"auto\",\r\n    \"task_summary_used\":  true,\r\n    \"repository_root\":  \"school_survivor-integration\",\r\n    \"resolved_domains\":  [\r\n                             \"common\",\r\n                             \"operations\"\r\n                         ],\r\n    \"matched_domains\":  [\r\n                            \"operations\"\r\n                        ],\r\n    \"match_evidence\":  [\r\n                           {\r\n                               \"domain\":  \"operations\",\r\n                               \"keyword\":  \"agent\"\r\n                           }\r\n                       ],\r\n    \"read_required\":  [\r\n                          {\r\n                              \"path\":  \"AGENTS.md\",\r\n                              \"sha256\":  \"7bdcf4e8c40aeba10d7829ff4439b8625ad2911a5b272d4ad4e7f3ff8d3df608\",\r\n                              \"why\":  \"repository agent instructions and routing pointers\",\r\n                              \"domain\":  \"common\"\r\n                          },\r\n                          {\r\n                              \"path\":  \"Bang_Rules.md\",\r\n                              \"sha256\":  \"45f4d6c6f5f6a14374d91337dc8c86132dde8835a15b50d862ad5b9d553b4659\",\r\n                              \"why\":  \"project hard rules and constraints\",\r\n                              \"domain\":  \"common\"\r\n                          },\r\n                          {\r\n                              \"path\":  \"CLAUDE.md\",\r\n                              \"sha256\":  \"6a18f1b0104cfeb89b9d8af242a271147af7f0db33421775c25fa565659b7bd7\",\r\n                              \"why\":  \"Claude/Codex-facing project instructions\",\r\n                              \"domain\":  \"common\"\r\n                          },\r\n                          {\r\n                              \"path\":  \"Developer/agent_room/antigravity_ide_subagent_handoff.md\",\r\n                              \"sha256\":  \"f40db502ee69f26904ad6cd0cce549812f1ce4b0b8231adcaf88f90f929f9e58\",\r\n                              \"why\":  \"Antigravity-specific routing\",\r\n                              \"domain\":  \"operations\"\r\n                          },\r\n                          {\r\n                              \"path\":  \"Developer/agent_room/escape_zombie_school_subagent_autoinput_handoff_2026-07-17.md\",\r\n                              \"sha256\":  \"c7c11388d43ebff6a2fcc2e4186f9d7ed2838bc3abdf97474635b4ee5fca804d\",\r\n                              \"why\":  \"latest auto-involve handoff\",\r\n                              \"domain\":  \"operations\"\r\n                          },\r\n                          {\r\n                              \"path\":  \"Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md\",\r\n                              \"sha256\":  \"14b17c11c536314866f6d904ab54e25ff71f21feed015646ddd0acea2fd44caa\",\r\n                              \"why\":  \"mandatory Kanban/subagent routing map\",\r\n                              \"domain\":  \"common\"\r\n                          },\r\n                          {\r\n                              \"path\":  \"Developer/agent_room/game_development_kanban_process.md\",\r\n                              \"sha256\":  \"8c206821f6426fc165470c5e1c8723d2dfce8754a055421594182a2ff05558b0\",\r\n                              \"why\":  \"Kanban process\",\r\n                              \"domain\":  \"operations\"\r\n                          },\r\n                          {\r\n                              \"path\":  \"Developer/agent_room/ide_agent_subagent_autocall_handoff.md\",\r\n                              \"sha256\":  \"be45a127fc8326bef20eb7263375082c9661ba71337a8be2605f5f358a91bf09\",\r\n                              \"why\":  \"IDE autocall handoff\",\r\n                              \"domain\":  \"operations\"\r\n                          },\r\n                          {\r\n                              \"path\":  \"Developer/agent_room/mandatory_precommand/manifest.json\",\r\n                              \"sha256\":  \"4f52b2a61b18df1027d330ab79ed9c5119e37cb366060142cd5dc73e585c49a9\",\r\n                              \"why\":  \"canonical required document manifest\",\r\n                              \"domain\":  \"common\"\r\n                          },\r\n                          {\r\n                              \"path\":  \"Developer/agent_room/mandatory_precommand/README.md\",\r\n                              \"sha256\":  \"d99a01d377d5ffff5e155506b6f81f5f69a46453dae5167ae36789747dfb3540\",\r\n                              \"why\":  \"central pre-command index\",\r\n                              \"domain\":  \"common\"\r\n                          },\r\n                          {\r\n                              \"path\":  \"Developer/agent_room/subagent_system_wiring_2026-07-03.md\",\r\n                              \"sha256\":  \"c0ff060f48d428823bfa7fa3b900a1b2bb2ae87ec4982fd0910060615812ed83\",\r\n                              \"why\":  \"project-local subagent system wiring\",\r\n                              \"domain\":  \"operations\"\r\n                          },\r\n                          {\r\n                              \"path\":  \"project_develop_policy.md\",\r\n                              \"sha256\":  \"4b07709e966cd7d5e3dd6ece67c9fc7f4882a0903388df328870ff1d6781ed02\",\r\n                              \"why\":  \"highest-priority project policy\",\r\n                              \"domain\":  \"common\"\r\n                          },\r\n                          {\r\n                              \"path\":  \"SESSION_CONTINUITY.md\",\r\n                              \"sha256\":  \"35dd2480f04020dcf478e0367461f9aadda66dad23d9c78bcbc644b07ea9e409\",\r\n                              \"why\":  \"startup reading and session-memory rule source\",\r\n                              \"domain\":  \"common\"\r\n                          },\r\n                          {\r\n                              \"path\":  \"SESSION_MEMORY.md\",\r\n                              \"sha256\":  \"46db9f62158957b565ccde143f714c1fc10a58024549604c4f472754e37cdc51\",\r\n                              \"why\":  \"latest single session entry only\",\r\n                              \"domain\":  \"common\"\r\n                          }\r\n                      ],\r\n    \"combined_receipt_sha256\":  \"9659684d1217483c19b5b5d9e202af5d3b6c3176016244b1a3f7fea780680f3f\"\r\n}"
+                   },
+                   {
+                       "name":  "mandatory-precommand-domain-match",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "matched_domains=operations; match_evidence={\"domain\":\"operations\",\"keyword\":\"agent\"}; combined_receipt_sha256=9659684d1217483c19b5b5d9e202af5d3b6c3176016244b1a3f7fea780680f3f"
+                   },
+                   {
+                       "name":  "hermes-exe",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "C:/Users/admin/AppData/Local/hermes/hermes-agent/venv/Scripts/hermes.exe"
+                   },
+                   {
+                       "name":  "kanban-board:stats",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "By status:\r\n  triage    0\r\n  todo      21\r\n  scheduled  0\r\n  ready     0\r\n  running   2\r\n  blocked   72\r\n  done      155\r\n\r\nBy assignee:\r\n  backendmini           blocked=13, done=13, todo=3\r\n  balanceqa             blocked=15, done=18, todo=12\r\n  bizmini               done=2\r\n  englishgradmini       done=2, todo=1\r\n  jabdareminder         done=6, running=2\r\n  launchmini            blocked=4, done=8\r\n  levelmini             blocked=8, done=24, todo=1\r\n  madangsue             done=20\r\n  soundmini             blocked=3, done=11, todo=1\r\n  threemini             blocked=18, done=27, todo=1\r\n  uimini                blocked=11, done=24, todo=2"
+                   },
+                   {
+                       "name":  "kanban-board:assignees",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "NAME                  ON DISK   COUNTS\r\nbackendmini           yes       blocked=13, done=13, todo=3\r\nbalanceqa             yes       blocked=15, done=18, todo=12\r\nbizmini               yes       done=2\r\ncorpopsmini           yes       (idle)\r\ndefault               yes       (idle)\r\nenglishgradmini       yes       done=2, todo=1\r\njabdareminder         yes       done=6, running=2\r\nlaunchmini            yes       blocked=4, done=8\r\nlevelmini             yes       blocked=8, done=24, todo=1\r\nmadangsue             yes       done=20\r\nsoundmini             yes       blocked=3, done=11, todo=1\r\nthreemini             yes       blocked=18, done=27, todo=1\r\nuimini                yes       blocked=11, done=24, todo=2"
+                   },
+                   {
+                       "name":  "assignee:on-disk:threemini",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "Expected real profile \u0027threemini\u0027 with ON DISK yes in escape-zombie-school assignees."
+                   },
+                   {
+                       "name":  "assignee:on-disk:uimini",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "Expected real profile \u0027uimini\u0027 with ON DISK yes in escape-zombie-school assignees."
+                   },
+                   {
+                       "name":  "assignee:on-disk:levelmini",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "Expected real profile \u0027levelmini\u0027 with ON DISK yes in escape-zombie-school assignees."
+                   },
+                   {
+                       "name":  "assignee:on-disk:balanceqa",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "Expected real profile \u0027balanceqa\u0027 with ON DISK yes in escape-zombie-school assignees."
+                   },
+                   {
+                       "name":  "assignee:on-disk:bizmini",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "Expected real profile \u0027bizmini\u0027 with ON DISK yes in escape-zombie-school assignees."
+                   },
+                   {
+                       "name":  "assignee:on-disk:launchmini",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "Expected real profile \u0027launchmini\u0027 with ON DISK yes in escape-zombie-school assignees."
+                   },
+                   {
+                       "name":  "assignee:on-disk:backendmini",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "Expected real profile \u0027backendmini\u0027 with ON DISK yes in escape-zombie-school assignees."
+                   },
+                   {
+                       "name":  "assignee:on-disk:englishgradmini",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "Expected real profile \u0027englishgradmini\u0027 with ON DISK yes in escape-zombie-school assignees."
+                   },
+                   {
+                       "name":  "assignee:on-disk:madangsue",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "Expected real profile \u0027madangsue\u0027 with ON DISK yes in escape-zombie-school assignees."
+                   },
+                   {
+                       "name":  "assignee:on-disk:jabdareminder",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "Expected real profile \u0027jabdareminder\u0027 with ON DISK yes in escape-zombie-school assignees."
+                   },
+                   {
+                       "name":  "assignee:on-disk:soundmini",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "Expected real profile \u0027soundmini\u0027 with ON DISK yes in escape-zombie-school assignees."
+                   },
+                   {
+                       "name":  "assignee:on-disk:corpopsmini",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "Expected real profile \u0027corpopsmini\u0027 with ON DISK yes in escape-zombie-school assignees."
+                   },
+                   {
+                       "name":  "hermes-status-command",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "?뚢???????????????????????????????????????????????????????????\n??                ??Hermes Agent Status                  ??\n?붴???????????????????????????????????????????????????????????\n\r\n??Environment\r\n  Project:      C:\\Users\\admin\\AppData\\Local\\hermes\\hermes-agent\r\n  Python:       3.11.15\r\n  .env file:    ??exists\r\n  Model:        gpt-5.5\r\n  Provider:     OpenAI Codex\r\n\r\n??API Keys\r\n  OpenRouter    ??\r\n  OpenAI        ??\r\n  Google / Gemini  ??\r\n  DeepSeek      ??\r\n  xAI / Grok    ??\r\n  NVIDIA NIM    ??\r\n  Z.AI / GLM    ??\r\n  Kimi          ??\r\n  StepFun Step Plan  ??\r\n  MiniMax       ??\r\n  MiniMax-CN    ??\r\n  Firecrawl     ??\r\n  Tavily        ??\r\n  Browser Use   ??\r\n  Browserbase   ??\r\n  FAL           ??\r\n  ElevenLabs    ??\r\n  GitHub        ??\r\n  Anthropic     ??\r\n\r\n??Auth Providers\r\n  Nous Portal   ??not logged in (run: hermes auth add nous --type oauth)\r\n  OpenAI Codex  ??logged in\r\n    Auth file:  C:\\Users\\admin\\AppData\\Local\\hermes\\auth.json\r\n    Refreshed:  2026-08-08 18:31:41 ??쒕?援??쒖???\n  Qwen OAuth    ??not logged in (run: qwen auth qwen-oauth)\r\n    Auth file:  C:\\Users\\admin\\.qwen\\oauth_creds.json\r\n    Error:      Qwen CLI credentials not found. Run \u0027qwen auth qwen-oauth\u0027 first.\r\n  MiniMax OAuth  ??not logged in (run: hermes auth add minimax-oauth)\r\n  xAI OAuth     ??not logged in (run: hermes auth add xai-oauth)\r\n    Auth file:  C:\\Users\\admin\\AppData\\Local\\hermes\\auth.json\r\n    Error:      No xAI OAuth credentials stored. Select xAI Grok OAuth (SuperGrok / Premium+) in `hermes model`.\r\n\r\n??API-Key Providers\r\n  Z.AI / GLM       ??not configured (run: hermes model)\r\n  Kimi / Moonshot  ??not configured (run: hermes model)\r\n  StepFun Step Plan ??not configured (run: hermes model)\r\n  MiniMax          ??not configured (run: hermes model)\r\n  MiniMax (China)  ??not configured (run: hermes model)\r\n\r\n??Terminal Backend\r\n  Backend:      local\r\n  Sudo:         ??disabled\r\n\r\n??Messaging Platforms\r\n  Telegram      ??configured (home: 749176318)\r\n  Discord       ??configured (home: 1510679279338258623)\r\n  WhatsApp      ??not configured\r\n  Signal        ??not configured\r\n  Slack         ??not configured\r\n  Email         ??not configured\r\n  SMS           ??not configured\r\n  DingTalk      ??not configured\r\n  Feishu        ??not configured\r\n  WeCom         ??not configured\r\n  WeCom Callback  ??not configured\r\n  Weixin        ??not configured\r\n  BlueBubbles   ??not configured\r\n  QQBot         ??not configured\r\n  Yuanbao       ??not configured\r\n\r\n??Gateway Service\r\n  Status:       ??stopped\r\n  Manager:      manual process\r\n\r\n??Scheduled Jobs\r\n  Jobs:         0\r\n\r\n??Sessions\r\n  Active:       0\r\n\r\n????????????????????????????????????????????????????????????\r\n  Run \u0027hermes doctor\u0027 for detailed diagnostics\r\n  Run \u0027hermes setup\u0027 to configure"
+                   },
+                   {
+                       "name":  "hermes-routing:openai-codex-auth",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "OpenAI Codex OAuth should be logged in for configured provider."
+                   },
+                   {
+                       "name":  "hermes-routing:terminal-backend-local",
+                       "ok":  true,
+                       "severity":  "critical",
+                       "detail":  "Terminal backend should be local for Windows scheduled audit."
+                   }
+               ],
+    "limitations":  [
+                        "Hermes gateway status reported stopped during audit; this monitor does not start gateway or dispatch backlog."
+                    ]
+}

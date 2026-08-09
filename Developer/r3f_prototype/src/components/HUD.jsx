@@ -325,9 +325,9 @@ function WeaponMiniIcon({ src }) {
   )
 }
 
-function QuestBagIcon() {
+function QuestBagIcon({ size = 28 }) {
   return (
-    <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true" focusable="false">
+    <svg viewBox="0 0 32 32" width={size} height={size} aria-hidden="true" focusable="false">
       <path d="M10 10V8.5A6 6 0 0 1 22 8.5V10" fill="none" stroke="#ffb4d2" strokeWidth="2.6" strokeLinecap="round" />
       <path d="M7 11.5h18v15H7z" fill="#ff79b1" stroke="#5f173c" strokeWidth="2" strokeLinejoin="round" />
       <path d="M10 17h12v7H10z" fill="#c83272" stroke="#5f173c" strokeWidth="1.7" strokeLinejoin="round" />
@@ -337,11 +337,22 @@ function QuestBagIcon() {
   )
 }
 
-function QuestItemPictureIcon({ visualKind }) {
+function QuestItemPictureIcon({ visualKind, size = 62.4 }) {
   const kind = visualKind ?? 'book'
+  const svgSize = Number((size * 0.875).toFixed(1))
+  const frameRadius = Number((size * 0.208).toFixed(1))
   return (
-    <span style={styles.questItemPictureFrame} aria-hidden="true">
-      <svg viewBox="0 0 64 64" width="54.6" height="54.6" focusable="false" style={styles.questItemPictureSvg}>
+    <span
+      style={{
+        ...styles.questItemPictureFrame,
+        flex: `0 0 ${size}px`,
+        width: size,
+        height: size,
+        borderRadius: frameRadius,
+      }}
+      aria-hidden="true"
+    >
+      <svg viewBox="0 0 64 64" width={svgSize} height={svgSize} focusable="false" style={styles.questItemPictureSvg}>
         <rect x="3" y="3" width="58" height="58" rx="13" fill="#fff7d8" stroke="#1d1007" strokeWidth="4" />
         {(kind === 'red-book' || kind === 'book') && (
           <g transform="rotate(-9 32 32)">
@@ -1206,8 +1217,10 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         >
           {questItemReceived && questToastQuest?.item
             ? <QuestItemPictureIcon visualKind={questToastQuest.item.visualKind} />
-            : <QuestBagIcon />}
-          <span style={{ ...styles.questPopupText, ...(questItemReceived ? styles.questItemToastText : null) }}>
+            : questCompleted && questToastQuest?.item
+              ? <QuestItemPictureIcon visualKind={questToastQuest.item.visualKind} size={96} />
+              : <QuestBagIcon size={questStarted || questCompleted ? 96 : 28} />}
+          <span style={{ ...styles.questPopupText, ...(questStarted || questCompleted ? styles.questPopupCenterText : null), ...(questItemReceived ? styles.questItemToastText : null) }}>
             <strong>{questToastMessage}</strong>
             {questPopupNextAction && (
               <small style={{ ...styles.questPopupNextAction, ...(questItemReceived ? styles.questItemNextAction : null) }}>
@@ -1955,7 +1968,11 @@ const styles = {
     top: '50%',
     transform: 'translate(-50%, -50%)',
     zIndex: 30,
-    maxWidth: 'min(88vw, 320px)',
+    width: 'min(88vw, 480px)',
+    maxWidth: 'min(88vw, 480px)',
+    boxSizing: 'border-box',
+    justifyContent: 'flex-start',
+    gap: 18,
     padding: '8px 11px',
     borderWidth: 2,
     borderRadius: 8,
@@ -1964,9 +1981,10 @@ const styles = {
     fontSize: 19,
     fontWeight: uiType.weightHeavy,
     lineHeight: 1.15,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   questPopupText: { display: 'grid', gap: 3 },
+  questPopupCenterText: { flex: 1, minWidth: 0, textAlign: 'center' },
   questItemToastWide: {
     top: 66,
     width: 'min(calc(100vw - 24px), 546px)',
