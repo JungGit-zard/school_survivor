@@ -112,8 +112,9 @@ describe('stage object placements', () => {
     expect(halfZ + STAGE1_VISIBLE_PROP_PADDING).toBe(17.4)
     expect(placements.filter(({ type }) => type === 'classroomDesk')).toHaveLength(9)
     expect(placements.filter(({ type }) => type === 'classroomChair')).toHaveLength(6)
-    expect(placements.filter(({ type }) => type === 'unconsciousStudent')).toHaveLength(15)
-    expect(placements.filter(({ type }) => type === 'classPresidentStudent')).toHaveLength(1)
+    expect(placements.filter(({ type }) => type === 'unconsciousStudent')).toHaveLength(14)
+    // 반장 둘 = 비상 출석부 제공자 + 말빨기술책 제공자.
+    expect(placements.filter(({ type }) => type === 'classPresidentStudent')).toHaveLength(2)
     placements.forEach((item, index) => {
       const authored = STAGE_OBJECT_PLACEMENTS.stage1[index]
       expect(item.id).toBe(authored.id)

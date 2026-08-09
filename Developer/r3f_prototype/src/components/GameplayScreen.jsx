@@ -45,12 +45,11 @@ export default function GameplayScreen({
     if (!screen || typeof screen.animate !== 'function') return
     criticalShakeAnimationRef.current?.cancel()
     const x = strong ? 9 : 6
+    const y = strong ? 5 : 3
     criticalShakeAnimationRef.current = screen.animate([
       { transform: 'translate3d(0, 0, 0) scale(1)' },
-      { transform: `translate3d(${-x}px, 0, 0) scale(1)` },
-      { transform: `translate3d(${x * 0.8}px, 0, 0) scale(1)` },
-      { transform: `translate3d(${-x * 0.5}px, 0, 0) scale(1)` },
-      { transform: `translate3d(${x * 0.25}px, 0, 0) scale(1)` },
+      { transform: `translate3d(${x}px, 0, 0) scale(1)` },
+      { transform: `translate3d(0, ${y}px, 0) scale(1)` },
       { transform: 'translate3d(0, 0, 0) scale(1)' },
     ], { duration: durationMs, easing: 'ease-out' })
   }), [phoneFrameRef])

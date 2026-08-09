@@ -22,3 +22,9 @@
 ## Verification boundary
 - No tests, builds, browser runs, QA runs, or `git diff --check` were executed after the user override.
 - Only scoped diff reading was performed to confirm the final affected files.
+
+## 2026-08-09 right-down-return implementation update
+- Kanban task: `t_0bdce653`.
+- `GameplayScreen.jsx` whole-screen critical animation now uses only four WAAPI keyframes: origin, right, down, origin.
+- Added a `y` amplitude constant (`strong ? 5 : 3`) beside existing `x` (`strong ? 9 : 6`), preserving the current `durationMs` contract and `scale(1)` at all keyframes.
+- Scope exclusions: sound, damage, critical chance, title, Firebase, tests, builds, browser checks, commits, and pushes.

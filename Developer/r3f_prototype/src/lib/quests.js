@@ -11,7 +11,9 @@ export const QUEST_DEFINITIONS = Object.freeze([
       description: '표지부터 말이 많은 붉은색 기술책.',
       visualKind: 'red-book',
     },
-    giver: { placementId: 'stage1-student-west-01', name: '말이 막힌 학생' },
+    // 교실에 누워 있는 반장은 둘이다. stage1-student-south-01은 비상 출석부 담당이라
+    // 나머지 반장(스튜디오 배치)이 말빨기술책을 준다 — 반장 둘 다 퀘스트를 갖게 한다.
+    giver: { placementId: 'user-classPresidentStudent-msl7serx-1', name: '말이 막힌 학생' },
     itemTarget: {
       placementId: 'stage1-desk-mid-02',
       type: 'classroomDesk',
@@ -19,7 +21,7 @@ export const QUEST_DEFINITIONS = Object.freeze([
       // local space so Studio placement yaw and scale keep it on the tabletop.
       surface: { localPosition: [0.54, 0.89, 0.24] },
     },
-    completion: { kind: 'return', placementId: 'stage1-student-west-01', name: '말이 막힌 학생' },
+    completion: { kind: 'return', placementId: 'user-classPresidentStudent-msl7serx-1', name: '말이 막힌 학생' },
     completionDialogueId: 'quest.stage1-talk-book.completion',
     rewardGold: 2,
   },

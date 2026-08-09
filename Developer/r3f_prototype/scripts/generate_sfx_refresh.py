@@ -37,7 +37,7 @@ SOUNDS = {
     'events/chestDrop': dict(kind='wood_drop', dur=0.280, f=185, noise=0.18, click=1.0, harmonics=[(1, .72), (1.55, .26)], sweep=-50, drive=.82),
     'events/chestOpen': dict(kind='lock_gold_burst', dur=0.470, f=560, noise=0.16, click=.82, harmonics=[(1, .45), (2, .35), (3.98, .22)], sweep=380, drive=.62),
     'events/textbookLand': dict(kind='paper_flop', dur=0.130, f=360, noise=0.46, click=.34, harmonics=[(1, .24), (1.6, .14)], drive=.44),
-    'events/criticalHit': dict(kind='critical_snap_impact_confirm', dur=0.190, f=96, noise=0.30, click=1.18, harmonics=[(1, .82), (2.35, .28), (7.2, .18), (11.6, .10)], sweep=-38, drive=.98, accent=True),
+    'events/criticalHit': dict(kind='critical_v2_crack_thump_tick', dur=0.145, f=82, noise=0.55, click=1.35, harmonics=[(1, .88), (1.58, .24), (4.6, .13), (16.0, .08)], sweep=-70, drive=1.05, accent=True, accent_start=0.068, accent_dur=0.026, accent_freqs=(3120, 4680), accent_gain=0.22),
     'ui/textbookCollect': dict(kind='xp_chime', dur=0.270, f=980, noise=0.035, click=.32, harmonics=[(1, .55), (1.5, .42), (2, .24)], sweep=260, drive=.42),
     'enemies/dogeDeath': dict(kind='doge_toy_pop', dur=0.360, f=620, noise=0.12, click=.64, harmonics=[(1, .56), (1.25, .34), (1.7, .2)], sweep=720, tremolo=18, drive=.55),
     'enemies/dogeEscape': dict(kind='doge_poof_away', dur=0.420, f=440, noise=0.34, click=.38, harmonics=[(1, .4), (1.7, .25)], sweep=-220, tremolo=11, drive=.5),
@@ -81,14 +81,16 @@ def synth(spec):
         if i < click_len:
             val += spec['click'] * (1 - i / click_len) * random.uniform(-1, 1)
         if spec.get('accent'):
-            accent_start = int(SR * 0.055)
-            accent_len = int(SR * 0.045)
+            accent_start = int(SR * spec.get('accent_start', 0.055))
+            accent_len = int(SR * spec.get('accent_dur', 0.045))
             if accent_start <= i < accent_start + accent_len:
                 accent_t = (i - accent_start) / accent_len
                 accent_env = math.sin(math.pi * accent_t) ** 0.7
-                val += 0.34 * accent_env * (
-                    math.sin(2 * math.pi * 1760 * t)
-                    + 0.45 * math.sin(2 * math.pi * 2349 * t)
+                accent_freqs = spec.get('accent_freqs', (1760, 2349))
+                accent_gain = spec.get('accent_gain', 0.34)
+                val += accent_gain * accent_env * (
+                    math.sin(2 * math.pi * accent_freqs[0] * t)
+                    + 0.45 * math.sin(2 * math.pi * accent_freqs[1] * t)
                 )
         # intentional soft clipping
         val *= e * trem_amp * spec.get('drive', 0.7)

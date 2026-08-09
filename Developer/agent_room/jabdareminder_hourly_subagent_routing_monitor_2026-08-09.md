@@ -45,7 +45,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:/JungSil/2.Minigame_pr
 Actual output:
 
 ```text
-2026-08-09 11:27:57+09:00	PASS	checks=41	failures=0	last_status=D:\JungSil\2.Minigame_project\school_survivor-integration\Developer\agent_room\operations\jabdareminder_hourly_subagent_routing_monitor.last.json
+2026-08-09 11:36:47+09:00	PASS	checks=44	failures=0	last_status=D:\JungSil\2.Minigame_project\school_survivor-integration\Developer\agent_room\operations\jabdareminder_hourly_subagent_routing_monitor.last.json
 ```
 
 ## Checks performed by each audit run
@@ -105,6 +105,13 @@ Actual output:
    - command succeeds
    - configured provider has OpenAI Codex OAuth logged in
    - terminal backend is local
+11. Verifies actual Hermes gateway process evidence via read-only command:
+   - `hermes gateway status`
+12. Requires at least one PID reported by `hermes gateway status` to still exist as a running Windows process:
+   - last verified PID: `9188`
+13. Requires the installed Hermes gateway Scheduled Task to be running:
+   - task name: `Hermes_Gateway`
+   - last verified state: `Running`
 
 ## Observed board snapshot during immediate audit
 
@@ -121,7 +128,7 @@ The monitor does not act on these counts; they are evidence only.
 - The monitor does not dispatch backlog.
 - The monitor does not edit gameplay, graphics, audio, Firebase data, or Kanban task state.
 - The monitor does not run tests, builds, browser automation, commits, pushes, or Google Play/store operations.
-- `hermes status --all` reported Hermes gateway service as stopped during the immediate audit; this is recorded as a limitation in `last.json`, not auto-fixed by this read-only monitor.
+- The stale `hermes status --all` gateway service line is not treated as authoritative gateway-process evidence. The monitor now uses `hermes gateway status` plus a running PID check and `Hermes_Gateway` Scheduled Task state instead.
 - The task runs with Windows Task Scheduler `InteractiveToken`, so it is intended for this local Windows user session context.
 
 ## Files changed for this task
@@ -139,6 +146,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:/JungSil/2.Minigame_pr
 hermes kanban --board escape-zombie-school stats
 hermes kanban --board escape-zombie-school assignees
 hermes status --all
+hermes gateway status
+Get-ScheduledTask -TaskName Hermes_Gateway
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:/JungSil/2.Minigame_project/school_survivor-integration/Developer/agent_room/operations/jabdareminder_hourly_subagent_routing_monitor.ps1
 schtasks.exe /Create /TN EscapeZombieSchool-Hourly-Subagent-Routing-Monitor /SC HOURLY /MO 1 /TR <script action> /F
 schtasks.exe /Query /TN EscapeZombieSchool-Hourly-Subagent-Routing-Monitor /FO LIST /V

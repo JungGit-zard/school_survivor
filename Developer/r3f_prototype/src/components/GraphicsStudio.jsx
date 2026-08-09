@@ -6,7 +6,6 @@ import {
   GRAPHICS_STUDIO_CATALOG,
   GRAPHICS_STUDIO_CATEGORIES,
   STAGE_BOSS_PREVIEW_PAN_Y_RANGE,
-  ensureStudioResetBaseline,
   getStudioItemById,
   loadStageBossPreview,
   loadStudioTunings,
@@ -50,7 +49,6 @@ import {
 } from '../lib/firebaseStudio.js'
 
 const categoryLabels = Object.fromEntries(GRAPHICS_STUDIO_CATEGORIES.map((category) => [category.id, category.label]))
-const UNDO_LIMIT = 10
 const STUDIO_SECTIONS = new Set(['graphics', 'audio', 'props', 'faces'])
 
 // 프리뷰 배경 스와치(스튜디오 로컬 전용). 첫 항목이 기본값(기존 어두운색).
@@ -256,7 +254,6 @@ export default function GraphicsStudio() {
   const [draftPropPlacements, setDraftPropPlacements] = useState(() => loadStagePropPlacements())
   // 프리뷰 배경색은 스튜디오 로컬 상태(게임 런타임/저장 데이터셋 미반영)
   const [previewBg, setPreviewBg] = useState(PREVIEW_BG_SWATCHES[0].value)
-  const [resetBaseline] = useState(() => ensureStudioResetBaseline(loadStudioTunings()))
   const [applyStatus, setApplyStatus] = useState('')
   const [firebaseStatus, setFirebaseStatus] = useState('synced')
   const [propEditorVersion, setPropEditorVersion] = useState(0)
@@ -271,7 +268,7 @@ export default function GraphicsStudio() {
   const [focusedParts, setFocusedParts] = useState([])
   const [focusedFaceAxis, setFocusedFaceAxis] = useState(DEFAULT_TEXTURE_DECAL.faceAxis)
   const [decalsByItem, setDecalsByItem] = useState(() => loadTextureDecals())
-  const [undoStack, setUndoStack] = useState(() => [])
+
   const gameWindowRef = useRef(null)
   const gameOriginRef = useRef('*')
   const hydratedUidRef = useRef(null)
@@ -336,7 +333,7 @@ export default function GraphicsStudio() {
     draftTuningByIdRef.current = {}
     setDraftTuningById({})
     setDraftBossFaceRecipes({})
-    setUndoStack([])
+
     setPropEditorVersion((version) => version + 1)
   }
 
@@ -565,7 +562,6 @@ export default function GraphicsStudio() {
 
   const updateTuning = (patch) => {
     const id = activeTuningId
-    setUndoStack((stack) => [...stack, { id, tuning: confirmedTunings[id] ?? DEFAULT_STUDIO_TUNING }].slice(-UNDO_LIMIT))
     const nextTuning = normalizeStudioTuning({
       ...(draftTuningByIdRef.current[id] ?? confirmedTunings[id]),
       ...patch,
@@ -640,28 +636,6 @@ export default function GraphicsStudio() {
     setApplyStatus('Boss preview draft')
   }
 
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.key.toLowerCase() !== 'z') return
-      event.preventDefault()
-      setUndoStack((stack) => {
-        const entry = stack[stack.length - 1]
-        if (!entry) return stack
-        draftTuningByIdRef.current = { ...draftTuningByIdRef.current, [entry.id]: entry.tuning }
-        setDraftTuningById(draftTuningByIdRef.current)
-        setApplyStatus('Undo draft')
-        return stack.slice(0, -1)
-      })
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
-
-  const resetCurrent = () => {
-    const baselineTuning = resetBaseline[activeTuningId] ?? DEFAULT_STUDIO_TUNING
-    updateTuning(baselineTuning)
-  }
 
   const persistAllDrafts = async (successLabel, overrides = {}) => {
     await saveChainRef.current.catch(() => undefined)
@@ -765,14 +739,6 @@ export default function GraphicsStudio() {
     if (result.status === 'saved') saveBossFaceRecipes(normalizeBossFaceRecipeMap({ ...bossFaceRecipes, ...draftBossFaceRecipes }))
   }
 
-  const resetBossFaceRecipe = () => {
-    const bossType = selectedFaceBossType
-    setDraftBossFaceRecipes((current) => ({
-      ...current,
-      [bossType]: DEFAULT_BOSS_FACE_RECIPE,
-    }))
-    setApplyStatus('Face reset preview')
-  }
 
   return (
     <main style={styles.page}>
@@ -1093,7 +1059,6 @@ export default function GraphicsStudio() {
           </div>
           <div style={styles.actions}>
             <button type="button" onClick={applyCurrent} style={styles.largePrimaryButton}>Apply</button>
-            <button type="button" onClick={resetCurrent} style={styles.secondaryButton}>Reset</button>
             <button type="button" onClick={copyExport} style={styles.secondaryButton}>Copy JSON</button>
           </div>
           <div style={styles.applyStatus} aria-live="polite">{applyStatus}</div>
@@ -1105,9 +1070,6 @@ export default function GraphicsStudio() {
                   <h2 style={styles.panelTitle}>Boss Face Parts</h2>
                   <span style={styles.partFocusLabel}>{selectedFaceBoss?.label}</span>
                 </div>
-                <button type="button" onClick={resetBossFaceRecipe} style={styles.exitPartButton}>
-                  Reset
-                </button>
               </div>
               <div style={styles.controls} data-testid="boss-face-parts-panel">
                 <BossFaceGridPreview bossLabel={selectedFaceBoss?.label} recipe={faceRecipe} />
@@ -1141,7 +1103,6 @@ export default function GraphicsStudio() {
               </div>
               <div style={styles.actions}>
                 <button type="button" onClick={applyBossFaceRecipe} style={styles.largePrimaryButton}>Apply</button>
-                <button type="button" onClick={resetBossFaceRecipe} style={styles.secondaryButton}>Reset</button>
                 <button type="button" onClick={() => navigator.clipboard?.writeText(JSON.stringify({ [selectedFaceBossType]: faceRecipe }, null, 2))} style={styles.secondaryButton}>Copy JSON</button>
               </div>
               <div style={styles.applyStatus} aria-live="polite">{applyStatus}</div>
@@ -1163,7 +1124,6 @@ export default function GraphicsStudio() {
               </div>
               <div style={styles.actions}>
                 <button type="button" onClick={applySfxCurrent} style={styles.largePrimaryButton}>Apply</button>
-                <button type="button" onClick={() => updateSfxTuning(DEFAULT_SFX_TUNING)} style={styles.secondaryButton}>Reset</button>
                 <button type="button" onClick={playSelectedSfxPreview} style={styles.secondaryButton}>Play</button>
                 <button type="button" onClick={() => navigator.clipboard?.writeText(JSON.stringify(sfxTunings, null, 2))} style={styles.secondaryButton}>Copy JSON</button>
               </div>

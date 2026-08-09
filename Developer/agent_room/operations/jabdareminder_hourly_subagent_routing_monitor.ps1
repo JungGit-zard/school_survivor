@@ -145,6 +145,7 @@ $checks.Add((New-CheckResult -Name "hermes-exe" -Ok (Test-Path -LiteralPath $Her
 $kanbanStats = $null
 $kanbanAssignees = $null
 $hermesStatus = $null
+$gatewayStatus = $null
 if (Test-Path -LiteralPath $HermesExe) {
   $kanbanStats = Invoke-Captured -FilePath $HermesExe -ArgumentList @("kanban", "--board", "escape-zombie-school", "stats")
   $checks.Add((New-CheckResult -Name "kanban-board:stats" -Ok ($kanbanStats.exit_code -eq 0) -Detail (($kanbanStats.stdout + $kanbanStats.stderr).Trim())))
@@ -167,9 +168,29 @@ if (Test-Path -LiteralPath $HermesExe) {
     $localBackend = $statusText -match "Backend:\s+local"
     $checks.Add((New-CheckResult -Name "hermes-routing:openai-codex-auth" -Ok $codexReady -Detail "OpenAI Codex OAuth should be logged in for configured provider."))
     $checks.Add((New-CheckResult -Name "hermes-routing:terminal-backend-local" -Ok $localBackend -Detail "Terminal backend should be local for Windows scheduled audit."))
-    if (($statusText -like "*Gateway Service*") -and ($statusText -like "*Status:*stopped*")) {
-      $limitations.Add("Hermes gateway status reported stopped during audit; this monitor does not start gateway or dispatch backlog.")
+  }
+
+  $gatewayStatus = Invoke-Captured -FilePath $HermesExe -ArgumentList @("gateway", "status")
+  $gatewayText = ($gatewayStatus.stdout + $gatewayStatus.stderr)
+  $checks.Add((New-CheckResult -Name "hermes-gateway-status-command" -Ok ($gatewayStatus.exit_code -eq 0) -Detail $gatewayText.Trim()))
+  if ($gatewayStatus.exit_code -eq 0) {
+    $gatewayPidMatches = [regex]::Matches($gatewayText, "PID\s+(\d+)")
+    $gatewayPids = @($gatewayPidMatches | ForEach-Object { [int]$_.Groups[1].Value } | Sort-Object -Unique)
+    $runningGatewayPids = @()
+    foreach ($gatewayPid in $gatewayPids) {
+      $proc = Get-Process -Id $gatewayPid -ErrorAction SilentlyContinue
+      if ($null -ne $proc) { $runningGatewayPids += $gatewayPid }
     }
+    $gatewayPidText = if ($gatewayPids.Count -gt 0) { $gatewayPids -join ", " } else { "<none>" }
+    $runningGatewayPidText = if ($runningGatewayPids.Count -gt 0) { $runningGatewayPids -join ", " } else { "<none>" }
+    $checks.Add((New-CheckResult -Name "hermes-gateway:actual-process-running" -Ok ($runningGatewayPids.Count -gt 0) -Detail ("PIDs reported by 'hermes gateway status': {0}; running PIDs: {1}" -f $gatewayPidText, $runningGatewayPidText)))
+  }
+
+  try {
+    $scheduledGatewayTask = Get-ScheduledTask -TaskName "Hermes_Gateway" -ErrorAction Stop
+    $checks.Add((New-CheckResult -Name "windows-task:Hermes_Gateway-running" -Ok ($scheduledGatewayTask.State -eq "Running") -Detail ("Hermes_Gateway Scheduled Task state={0}" -f $scheduledGatewayTask.State)))
+  } catch {
+    $checks.Add((New-CheckResult -Name "windows-task:Hermes_Gateway-running" -Ok $false -Detail $_.Exception.Message))
   }
 }
 

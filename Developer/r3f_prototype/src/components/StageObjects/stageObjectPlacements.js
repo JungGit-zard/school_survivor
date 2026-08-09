@@ -128,8 +128,12 @@ export const STAGE_OBJECT_PLACEMENTS = {
       props: { variant: 'abandoned' },
     },
     {
-      id: 'stage1-student-west-01',
-      type: 'unconsciousStudent',
+      // 말빨기술책 퀘스트 제공자 = 비상 출석부 반장이 아닌 두 번째 반장.
+      // 스튜디오 배치가 코드 목록을 통째로 대체하므로(getStageObjectPlacements의
+      // override ?? default) 스튜디오와 같은 id를 코드에도 써서, 스튜디오 데이터
+      // 유무와 무관하게 이 반장이 항상 존재하고 퀘스트를 준다.
+      id: 'user-classPresidentStudent-msl7serx-1',
+      type: 'classPresidentStudent',
       position: [-6.2, 0, 0.6],  // |x|>=6
       rotation: [0, -2.02, 0],
       scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,

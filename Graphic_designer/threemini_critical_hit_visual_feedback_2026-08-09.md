@@ -26,3 +26,9 @@
 ## Verification / command boundary
 - Per user override, no further tests, builds, browser checks, QA runs, or `git diff --check` were executed in this run.
 - The scoped diff was read after the change; it shows only the two code files above and no remaining diff for `damageNumbers.test.js`.
+
+## 2026-08-09 right-down-return update
+- Kanban task: `t_0bdce653`.
+- User canonical critical-hit screen motion: exact origin → right → down → origin sequence, scale fixed at `1` at every keyframe.
+- Normal amplitude: right `6px`, down `3px`. Strong amplitude: right `9px`, down `5px`.
+- No sound, damage, critical chance, title, Firebase, build, test, browser, commit, or push work belongs to this visual update.
