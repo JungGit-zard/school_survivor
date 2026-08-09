@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import GraphicsStudio from './GraphicsStudio.jsx'
 import {
+  DEFAULT_STAGE_BOSS_PREVIEW,
   loadStageBossPreview,
   loadStudioTunings,
   loadTextureDecals,
@@ -108,7 +109,7 @@ describe('GraphicsStudio', () => {
     commitFirebaseStudioRuntime({
       tunings: {},
       sfxTunings: {},
-      stageBossPreview: {},
+      stageBossPreview: DEFAULT_STAGE_BOSS_PREVIEW,
       decals: {},
       propPlacements: {},
       bossFaceRecipes: {},
@@ -873,11 +874,65 @@ describe('GraphicsStudio', () => {
       pitchValue.dispatchEvent(new Event('input', { bubbles: true }))
     })
     expect(loadSfxTunings()).not.toHaveProperty('pencilFire')
+    expect(cloudMocks.save).not.toHaveBeenCalled()
+    expect(container.textContent).toContain('Audio preview')
 
     await clickButton('Apply')
 
     expect(loadSfxTunings().pencilFire.rate).toBe(1.37)
     expect(container.textContent).toContain('Audio applied')
+  })
+
+  it('keeps edits across Graphics, Audio, Boss preview, and Faces local until one Apply saves them together', async () => {
+    await renderSignedInStudio()
+
+    const scale = container.querySelector('input[name="scale"]')
+    const zoom = container.querySelector('input[name="stageBossPreviewZoom"]')
+    act(() => {
+      scale.value = '1.45'
+      scale.dispatchEvent(new Event('input', { bubbles: true }))
+      zoom.value = '132'
+      zoom.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    await clickButton('Matilda')
+    const matildaScale = container.querySelector('input[name="scale"]')
+    act(() => {
+      matildaScale.value = '1.22'
+      matildaScale.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    await clickButton('Audio')
+    const pitchValue = container.querySelector('input[name="sfxRateValue"]')
+    act(() => {
+      pitchValue.value = '1.37'
+      pitchValue.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    await clickButton('Faces')
+    await clickButton('화난 사선眉')
+
+    expect(loadStudioTunings()).not.toHaveProperty('player')
+    expect(loadStudioTunings()).not.toHaveProperty('enemy-matilda')
+    expect(loadStageBossPreview()).toMatchObject(DEFAULT_STAGE_BOSS_PREVIEW)
+    expect(loadSfxTunings()).not.toHaveProperty('pencilFire')
+    expect(loadBossFaceRecipes()).not.toHaveProperty('B01')
+    expect(cloudMocks.save).not.toHaveBeenCalled()
+
+    await clickButton('Apply')
+
+    expect(cloudMocks.save).toHaveBeenCalledTimes(1)
+    const savedDatasets = cloudMocks.save.mock.calls[0][0].datasets
+    expect(savedDatasets.tunings.player.scale).toBe(1.45)
+    expect(savedDatasets.tunings['enemy-matilda'].scale).toBe(1.22)
+    expect(savedDatasets.stageBossPreview.zoom).toBe(132)
+    expect(savedDatasets.sfxTunings.pencilFire.rate).toBe(1.37)
+    expect(savedDatasets.bossFaceRecipes.B01.brow).toBe('brow-angry-slash')
+    expect(loadStudioTunings().player.scale).toBe(1.45)
+    expect(loadStudioTunings()['enemy-matilda'].scale).toBe(1.22)
+    expect(loadStageBossPreview().zoom).toBe(132)
+    expect(loadSfxTunings().pencilFire.rate).toBe(1.37)
+    expect(loadBossFaceRecipes().B01.brow).toBe('brow-angry-slash')
   })
 
   it.skip('legacy face draft assertion is replaced by immediate commit', async () => {

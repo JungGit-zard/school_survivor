@@ -286,8 +286,6 @@ export default function GraphicsStudio() {
   const applyInFlightRef = useRef(false)
   const saveChainRef = useRef(Promise.resolve())
   const draftTuningByIdRef = useRef({})
-  const pendingTuningByIdRef = useRef({})
-  const tuningSaveTimerRef = useRef(null)
   const [gameUrl, setGameUrl] = useState(() => getDefaultStudioGameUrl())
   const activeTuningId = getPartTuningId(selectedItem.id, focusedParts)
   const itemSavedTuning = confirmedTunings[selectedItem.id] ?? DEFAULT_STUDIO_TUNING
@@ -440,31 +438,6 @@ export default function GraphicsStudio() {
     return saveChainRef.current
   }
 
-  const flushPendingTuningSave = () => {
-    if (tuningSaveTimerRef.current !== null) {
-      window.clearTimeout(tuningSaveTimerRef.current)
-      tuningSaveTimerRef.current = null
-    }
-    const pendingTunings = pendingTuningByIdRef.current
-    pendingTuningByIdRef.current = {}
-    if (Object.keys(pendingTunings).length === 0) return Promise.resolve({ status: 'no-pending' })
-    return queueCanonicalMutation((datasets) => ({
-      ...datasets,
-      tunings: { ...datasets.tunings, ...pendingTunings },
-    }), 'Graphics saved', { savedTunings: pendingTunings })
-  }
-
-  const scheduleTuningSave = (id, nextTuning) => {
-    pendingTuningByIdRef.current = {
-      ...pendingTuningByIdRef.current,
-      [id]: nextTuning,
-    }
-    if (tuningSaveTimerRef.current !== null) window.clearTimeout(tuningSaveTimerRef.current)
-    tuningSaveTimerRef.current = window.setTimeout(() => {
-      void flushPendingTuningSave()
-    }, 500)
-  }
-
   useEffect(() => {
     void initializeAuth()
   }, [initializeAuth])
@@ -509,7 +482,6 @@ export default function GraphicsStudio() {
     mountedRef.current = true
     return () => {
       mountedRef.current = false
-      void flushPendingTuningSave()
       void flushFirebaseStudioSave()
     }
   }, [])
@@ -623,7 +595,7 @@ export default function GraphicsStudio() {
     })
     draftTuningByIdRef.current = { ...draftTuningByIdRef.current, [id]: nextTuning }
     setDraftTuningById(draftTuningByIdRef.current)
-    scheduleTuningSave(id, nextTuning)
+    setApplyStatus('Draft')
   }
 
   const confirmTextureDecals = (nextItemDecals) => {
@@ -632,10 +604,7 @@ export default function GraphicsStudio() {
       [selectedItem.id]: nextItemDecals,
     })
     setDecalsByItem(next)
-    void queueCanonicalMutation((datasets) => ({
-      ...datasets,
-      decals: normalizeTextureDecalMap({ ...datasets.decals, [selectedItem.id]: nextItemDecals }),
-    }), 'Decal saved')
+    setApplyStatus('Decal preview')
     return next
   }
 
@@ -691,10 +660,7 @@ export default function GraphicsStudio() {
 
   const updateStageBossPreview = (patch) => {
     setStageBossPreview((current) => normalizeStageBossPreview({ ...current, ...patch }))
-    void queueCanonicalMutation((datasets) => ({
-      ...datasets,
-      stageBossPreview: normalizeStageBossPreview({ ...datasets.stageBossPreview, ...patch }),
-    }), 'Boss preview saved')
+    setApplyStatus('Boss preview draft')
   }
 
   useEffect(() => {
@@ -704,10 +670,9 @@ export default function GraphicsStudio() {
       setUndoStack((stack) => {
         const entry = stack[stack.length - 1]
         if (!entry) return stack
-        void queueCanonicalMutation((datasets) => ({
-          ...datasets,
-          tunings: { ...datasets.tunings, [entry.id]: entry.tuning },
-        }), 'Undo saved')
+        draftTuningByIdRef.current = { ...draftTuningByIdRef.current, [entry.id]: entry.tuning }
+        setDraftTuningById(draftTuningByIdRef.current)
+        setApplyStatus('Undo draft')
         return stack.slice(0, -1)
       })
     }
@@ -721,29 +686,44 @@ export default function GraphicsStudio() {
     updateTuning(baselineTuning)
   }
 
-  const applyCurrent = async () => {
-    await flushPendingTuningSave()
+  const persistAllDrafts = async (successLabel) => {
     await saveChainRef.current.catch(() => undefined)
     const datasets = loadStudioRuntimeDatasets()
     const nextTunings = {
       ...datasets.tunings,
+      ...draftTuningByIdRef.current,
       [activeTuningId]: normalizeStudioTuning(tuning),
     }
-    const nextDecals = normalizeTextureDecalMap({
-      ...datasets.decals,
-      [selectedItem.id]: itemDecals,
+    const nextBossFaceRecipes = normalizeBossFaceRecipeMap({
+      ...datasets.bossFaceRecipes,
+      ...bossFaceRecipes,
+      ...draftBossFaceRecipes,
     })
     const result = await persistDatasetsOnApply({
       ...datasets,
       tunings: nextTunings,
+      sfxTunings,
       stageBossPreview: normalizeStageBossPreview(stageBossPreview),
-      decals: nextDecals,
+      decals: normalizeTextureDecalMap(decalsByItem),
+      bossFaceRecipes: nextBossFaceRecipes,
     })
-    if (result.status === 'saved' && await sendGameSync({ openGame: true, retryAfterLoad: true })) {
-      setApplyStatus('Game applied')
-    } else if (result.status === 'saved') {
-      setApplyStatus('Game sync failed')
+    if (result.status === 'saved') {
+      setConfirmedTunings(nextTunings)
+      draftTuningByIdRef.current = {}
+      setDraftTuningById({})
+      setBossFaceRecipes(nextBossFaceRecipes)
+      setDraftBossFaceRecipes({})
+      if (await sendGameSync({ openGame: true, retryAfterLoad: true })) {
+        setApplyStatus(successLabel)
+      } else {
+        setApplyStatus('Game sync failed')
+      }
     }
+    return result
+  }
+
+  const applyCurrent = async () => {
+    await persistAllDrafts('Game applied')
   }
 
   const copyExport = async () => {
@@ -784,20 +764,7 @@ export default function GraphicsStudio() {
 
   const applySfxCurrent = async () => {
     if (!selectedSfx) return
-    await saveChainRef.current.catch(() => undefined)
-    const datasets = loadStudioRuntimeDatasets()
-    const result = await persistDatasetsOnApply({
-      ...datasets,
-      sfxTunings: {
-        ...datasets.sfxTunings,
-        [selectedSfx.id]: sfxTuning,
-      },
-    })
-    if (result.status === 'saved' && await sendGameSync({ openGame: true, retryAfterLoad: true })) {
-      setApplyStatus('Audio applied')
-    } else if (result.status === 'saved') {
-      setApplyStatus('Game sync failed')
-    }
+    await persistAllDrafts('Audio applied')
   }
 
   const updateBossFacePart = (categoryKey, partId) => {
@@ -806,44 +773,21 @@ export default function GraphicsStudio() {
       ...current,
       [bossType]: normalizeBossFaceRecipe({ ...faceRecipe, [categoryKey]: partId }),
     }))
-    void queueCanonicalMutation((datasets) => ({
-      ...datasets,
-      bossFaceRecipes: normalizeBossFaceRecipeMap({
-        ...datasets.bossFaceRecipes,
-        [bossType]: normalizeBossFaceRecipe({ ...datasets.bossFaceRecipes[bossType], [categoryKey]: partId }),
-      }),
-    }), 'Face saved')
+    setApplyStatus('Face preview')
   }
 
   const applyBossFaceRecipe = async () => {
-    await saveChainRef.current.catch(() => undefined)
-    const datasets = loadStudioRuntimeDatasets()
-    const nextRecipes = saveBossFaceRecipes({
-      ...datasets.bossFaceRecipes,
-      [selectedFaceBossType]: faceRecipe,
-    })
-    setBossFaceRecipes(nextRecipes)
-    setDraftBossFaceRecipes((current) => {
-      const { [selectedFaceBossType]: _saved, ...rest } = current
-      return rest
-    })
-    const result = await persistDatasetsOnApply({
-      ...datasets,
-      bossFaceRecipes: nextRecipes,
-    })
-    if (result.status === 'saved' && await sendGameSync({ openGame: true, retryAfterLoad: true })) {
-      setApplyStatus('Face parts applied')
-    } else if (result.status === 'saved') {
-      setApplyStatus('Game sync failed')
-    }
+    const result = await persistAllDrafts('Face parts applied')
+    if (result.status === 'saved') saveBossFaceRecipes(normalizeBossFaceRecipeMap({ ...bossFaceRecipes, ...draftBossFaceRecipes }))
   }
 
   const resetBossFaceRecipe = () => {
     const bossType = selectedFaceBossType
-    void queueCanonicalMutation((datasets) => ({
-      ...datasets,
-      bossFaceRecipes: normalizeBossFaceRecipeMap({ ...datasets.bossFaceRecipes, [bossType]: DEFAULT_BOSS_FACE_RECIPE }),
-    }), 'Face reset saved')
+    setDraftBossFaceRecipes((current) => ({
+      ...current,
+      [bossType]: DEFAULT_BOSS_FACE_RECIPE,
+    }))
+    setApplyStatus('Face reset preview')
   }
 
   return (
@@ -1024,7 +968,7 @@ export default function GraphicsStudio() {
             <div style={styles.audioPreview} data-testid="audio-preview">
               <strong style={styles.audioTitle}>{selectedSfx?.id}</strong>
               <span style={styles.audioPath}>{selectedSfx?.src}</span>
-              <button type="button" onClick={() => selectedSfx && playSfx(selectedSfx.id, 1)} style={styles.primaryButton}>
+              <button type="button" onClick={playSelectedSfxPreview} style={styles.primaryButton}>
                 Play
               </button>
             </div>
@@ -1220,7 +1164,7 @@ export default function GraphicsStudio() {
                   <h2 style={styles.panelTitle}>Audio</h2>
                   <span style={styles.partFocusLabel}>{selectedSfx?.category}</span>
                 </div>
-                <button type="button" onClick={() => selectedSfx && playSfx(selectedSfx.id, 1)} style={styles.exitPartButton}>
+                <button type="button" onClick={playSelectedSfxPreview} style={styles.exitPartButton}>
                   Play
                 </button>
               </div>
@@ -1231,7 +1175,7 @@ export default function GraphicsStudio() {
               <div style={styles.actions}>
                 <button type="button" onClick={applySfxCurrent} style={styles.largePrimaryButton}>Apply</button>
                 <button type="button" onClick={() => updateSfxTuning(DEFAULT_SFX_TUNING)} style={styles.secondaryButton}>Reset</button>
-                <button type="button" onClick={() => selectedSfx && playSfx(selectedSfx.id, 1)} style={styles.secondaryButton}>Play</button>
+                <button type="button" onClick={playSelectedSfxPreview} style={styles.secondaryButton}>Play</button>
                 <button type="button" onClick={() => navigator.clipboard?.writeText(JSON.stringify(sfxTunings, null, 2))} style={styles.secondaryButton}>Copy JSON</button>
               </div>
               <div style={styles.applyStatus} aria-live="polite">{applyStatus}</div>
