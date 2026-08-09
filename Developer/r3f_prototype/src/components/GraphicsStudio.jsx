@@ -767,7 +767,7 @@ export default function GraphicsStudio() {
       sfxTunings,
       stageBossPreview: normalizeStageBossPreview(stageBossPreview),
       decals: normalizeTextureDecalMap(decalsByItem),
-      propPlacements: overrides.propPlacements ?? draftPropPlacements,
+      propPlacements: overrides.propPlacements ?? draftPropPlacementsRef.current,
       bossFaceRecipes: nextBossFaceRecipes,
     }
 
