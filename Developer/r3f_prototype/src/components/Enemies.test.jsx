@@ -57,8 +57,18 @@ import {
   dogeTreasureCoinPositions,
   isPooledEnemyType,
   shouldScheduleBurst,
+  OVERTIME_REINFORCEMENT_START_SEC,
+  OVERTIME_REINFORCEMENT_INTERVAL_SEC,
+  OVERTIME_REINFORCEMENT_COUNT,
+  MAX_CONCURRENT_ZOMBIES,
+  overtimeReinforcementTick,
+  shouldScheduleOvertimeReinforcement,
+  overtimeMixedTypesForStage,
+  buildOvertimeMixedReinforcementEntries,
+  clampZombieSpawnRequest,
   runPooledEnemyRuntimeSoak,
 } from './Enemies.jsx'
+
 import { CHEST_OPEN_DELAY_MS } from './TreasureChest.jsx'
 import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { STAGE2_SPAWN_TELEGRAPHS, STAGE2_WAVE_PHASES, STAGE3_WAVE_PHASES, STAGE4_WAVE_PHASES } from '../lib/waveTimelines.js'
@@ -66,6 +76,7 @@ import { BOSS_BURST_TYPES, STAGE2_MIXED_REINFORCEMENT, getBurstEventsForStage as
 import { getStageBounds } from '../lib/stageConfig.js'
 import { getStageObjectSightObstacles } from './StageObjects/stageObjectColliders.js'
 import { ENEMY_STATS, getActiveE04ProjectileCount, resetActiveE04ProjectileCountForTest } from './Enemy.jsx'
+import { MAX_ENEMIES } from '../lib/enemyEntityPool.js'
 import { playerPos } from '../lib/refs.js'
 import { resolveRangedEnemyVelocity } from './Enemy.jsx'
 
@@ -165,6 +176,72 @@ describe('stage 2 mixed timed reinforcements', () => {
     expect(distanceFromPlayer(spawnPosForBurstType('E04', bounds, [], () => 0, []))).toBeGreaterThan(
       distanceFromPlayer(spawnPosForBurstType('E01', bounds, [], () => 0, [])),
     )
+  })
+})
+
+describe('all-stage overtime mixed ordinary reinforcements', () => {
+  it('starts exactly at 300s and advances one deterministic 30s tick for skipped frames without duplicates', () => {
+    expect(OVERTIME_REINFORCEMENT_START_SEC).toBe(300)
+    expect(OVERTIME_REINFORCEMENT_INTERVAL_SEC).toBe(30)
+    expect(OVERTIME_REINFORCEMENT_COUNT).toBe(30)
+    expect(overtimeReinforcementTick(299.999)).toBeNull()
+    expect(overtimeReinforcementTick(300)).toBe(0)
+    expect(overtimeReinforcementTick(329.999)).toBe(0)
+    expect(overtimeReinforcementTick(330)).toBe(1)
+    expect(overtimeReinforcementTick(360)).toBe(2)
+
+    let lastTick = -1
+    expect(shouldScheduleOvertimeReinforcement(lastTick, 299.999)).toEqual({ shouldSchedule: false, tick: null })
+    let result = shouldScheduleOvertimeReinforcement(lastTick, 360)
+    expect(result).toEqual({ shouldSchedule: true, tick: 2 })
+    lastTick = result.tick
+    expect(shouldScheduleOvertimeReinforcement(lastTick, 360.5)).toEqual({ shouldSchedule: false, tick: 2 })
+    expect(shouldScheduleOvertimeReinforcement(-1, 300)).toEqual({ shouldSchedule: true, tick: 0 })
+  })
+
+  it('uses 30 injected-random ordinary E01-E07 picks and preserves the Stage 1 no-E04 rule', () => {
+    expect(overtimeMixedTypesForStage('stage1')).toEqual(['E01', 'E02', 'E03', 'E05', 'E06', 'E07'])
+    expect(overtimeMixedTypesForStage('stage2')).toEqual(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07'])
+    expect(overtimeMixedTypesForStage('stage3')).toEqual(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07'])
+    expect(overtimeMixedTypesForStage('stage4')).toEqual(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07'])
+
+    const rolls = [0, 0.19, 0.39, 0.5, 0.79, 0.99]
+    let i = 0
+    const stage1Types = buildOvertimeMixedReinforcementEntries('stage1', () => rolls[i++ % rolls.length]).map((entry) => entry.type)
+    expect(stage1Types).toHaveLength(30)
+    expect(stage1Types).toContain('E07')
+    expect(stage1Types).not.toContain('E04')
+    expect(stage1Types.some((type) => isBossType(type) || type === 'RZT' || type === 'RZG' || type === 'B01')).toBe(false)
+
+    i = 0
+    const stage2Types = buildOvertimeMixedReinforcementEntries('stage2', () => rolls[i++ % rolls.length]).map((entry) => entry.type)
+    expect(stage2Types).toHaveLength(30)
+    expect(stage2Types).toContain('E04')
+    expect(stage2Types).toContain('E07')
+  })
+
+  it('caps concurrent pooled plus special plus deferred zombies at exactly 150 without deleting existing zombies', () => {
+    expect(MAX_ENEMIES).toBe(150)
+    expect(MAX_CONCURRENT_ZOMBIES).toBe(150)
+    expect(clampZombieSpawnRequest(30, { pooledActive: 120, specialActive: 0, pooledQueued: 0 })).toBe(30)
+    expect(clampZombieSpawnRequest(30, { pooledActive: 149, specialActive: 0, pooledQueued: 0 })).toBe(1)
+    expect(clampZombieSpawnRequest(30, { pooledActive: 148, specialActive: 1, pooledQueued: 1 })).toBe(0)
+    expect(clampZombieSpawnRequest(30, { pooledActive: 150, specialActive: 0, pooledQueued: 0 })).toBe(0)
+  })
+
+  it('wires overtime through the frame scheduler and pooled drain path', () => {
+    const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('const SCHEDULE_OVERTIME = 7')
+    expect(source).toContain('overtimeTickRef.current = -1')
+    expect(source).toContain('shouldScheduleOvertimeReinforcement(overtimeTickRef.current, sec)')
+    expect(source).toContain('enqueueScheduled(SCHEDULE_OVERTIME)')
+    expect(source).toContain('pooledActive: enemyPool.activeCount')
+    expect(source).toContain('specialActive: enemiesRef.current.length')
+    expect(source).toContain('pooledQueued: runtimeQueueRef.current.spawnDrain.count')
+    expect(source).toContain('const count = clampZombieSpawnRequest(OVERTIME_REINFORCEMENT_COUNT, totalZombieCounts())')
+    expect(source).toContain('buildOvertimeMixedReinforcementEntries(cache.id, Math.random, count)')
+    expect(source).toContain('if (clampZombieSpawnRequest(1, totalZombieCounts()) <= 0) break')
+    expect(source).toContain('addEnemies(batch, true, cache.spawnToken)')
   })
 })
 
@@ -997,7 +1074,7 @@ describe('pooled standard enemy runtime wiring', () => {
     expect(result.ok).toBe(true)
     expect(result.eventDropped).toBe(0)
     expect(result.hitDropped).toBe(0)
-    expect(result.active).toBeLessThanOrEqual(200)
+    expect(result.active).toBeLessThanOrEqual(MAX_ENEMIES)
     expect(result.liveProxy).toBe(result.active)
     expect(result.projectiles).toBeLessThanOrEqual(32)
     expect(result.enemyBodies).toBeLessThanOrEqual(3)

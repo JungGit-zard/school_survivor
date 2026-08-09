@@ -14,7 +14,6 @@ vi.mock('./TitleScene3D.jsx', () => ({
 }))
 
 const { default: TitleSceneCanvas } = await import('./TitleSceneCanvas.jsx')
-const { isFirebaseStudioRuntimeReady } = await import('../lib/studioRuntimeState.js')
 
 describe('TitleSceneCanvas is fully detached from Firebase', () => {
   afterEach(() => {
@@ -35,13 +34,11 @@ describe('TitleSceneCanvas is fully detached from Firebase', () => {
     }
     // 게임 주소에서 Firebase 정본을 읽는 경로가 없어야 한다.
     expect(appSource).not.toContain('hydrateGameCanonicalStudio')
-    expect(canvasSource).toContain('applyFrozenStudioSnapshot()')
+    expect(canvasSource).not.toContain('applyFrozenStudioSnapshot')
+    expect(canvasSource).not.toContain('studioRuntimeState')
     expect(canvasSource).toContain("import TitleScene3D from './TitleScene3D.jsx'")
     expect(canvasSource).not.toContain("lazy(() => import('./TitleScene3D.jsx'))")
     expect(canvasSource).not.toContain('<Suspense fallback={null}>')
-
-    // 동결 스냅샷을 임포트 시점에 적용하므로 로그인·네트워크 없이 런타임이 준비된다.
-    expect(isFirebaseStudioRuntimeReady()).toBe(true)
 
     const container = document.createElement('div')
     document.body.appendChild(container)

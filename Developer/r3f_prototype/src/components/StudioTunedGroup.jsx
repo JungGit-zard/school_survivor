@@ -12,6 +12,7 @@ import {
 import { disposeTextureDecals, syncTextureDecals } from './TextureDecal.jsx'
 
 const StudioPreviewContext = createContext(false)
+const StudioSnapshotContext = createContext(null)
 const STABLE_PART_KEY_PREFIX = 'id:'
 
 export function StudioTuningPreviewProvider({ children }) {
@@ -27,6 +28,18 @@ export function StudioTuningRuntimeProvider({ children }) {
     <StudioPreviewContext.Provider value={false}>
       {children}
     </StudioPreviewContext.Provider>
+  )
+}
+
+export function StudioTuningSnapshotProvider({ datasets, children }) {
+  const snapshot = useMemo(() => ({
+    tunings: datasets?.tunings ?? {},
+    decals: datasets?.decals ?? {},
+  }), [datasets])
+  return (
+    <StudioSnapshotContext.Provider value={snapshot}>
+      {children}
+    </StudioSnapshotContext.Provider>
   )
 }
 
@@ -455,17 +468,33 @@ function loadStudioState(itemId) {
   }
 }
 
-export default function StudioTunedGroup(props) {
-  const previewOnly = useContext(StudioPreviewContext)
-  if (previewOnly) return <>{props.children}</>
-  return <StudioTunedRuntimeGroup {...props} />
+function loadSnapshotStudioState(itemId, snapshot) {
+  const tunings = snapshot.tunings
+  return {
+    tuning: tunings[itemId] ?? DEFAULT_STUDIO_TUNING,
+    tunings,
+    decals: snapshot.decals[itemId] ?? EMPTY_DECALS,
+  }
 }
 
-function StudioTunedRuntimeGroup({ itemId, children, materialTuning = true }) {
+export default function StudioTunedGroup(props) {
+  const previewOnly = useContext(StudioPreviewContext)
+  const snapshot = useContext(StudioSnapshotContext)
+  if (previewOnly) return <>{props.children}</>
+  return <StudioTunedRuntimeGroup {...props} snapshot={snapshot} />
+}
+
+function StudioTunedRuntimeGroup({ itemId, children, materialTuning = true, snapshot = null }) {
   const groupRef = useRef(null)
-  const [studioState, setStudioState] = useState(() => loadStudioState(itemId))
+  const [studioState, setStudioState] = useState(() => (
+    snapshot ? loadSnapshotStudioState(itemId, snapshot) : loadStudioState(itemId)
+  ))
 
   useEffect(() => {
+    if (snapshot) {
+      setStudioState(loadSnapshotStudioState(itemId, snapshot))
+      return undefined
+    }
     if (typeof window === 'undefined') return undefined
     const update = () => setStudioState(loadStudioState(itemId))
     window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
@@ -474,7 +503,7 @@ function StudioTunedRuntimeGroup({ itemId, children, materialTuning = true }) {
       window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT, update)
       window.removeEventListener(TEXTURE_DECALS_EVENT, update)
     }
-  }, [itemId])
+  }, [itemId, snapshot])
 
   const { tuning, tunings, decals } = studioState
   const transform = useMemo(() => getStudioTransformProps(tuning), [tuning])

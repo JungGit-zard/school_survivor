@@ -1,5 +1,5 @@
 // 적 런타임의 정적 슬롯 풀. React/Three/Rapier 및 저장소에 의존하지 않는다.
-export const MAX_ENEMIES = 200
+export const MAX_ENEMIES = 150
 export const MAX_ENEMY_GENERATION = 0xffff
 
 export const ENEMY_TYPE_CODES = Object.freeze({

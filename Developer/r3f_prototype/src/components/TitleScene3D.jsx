@@ -10,6 +10,7 @@ import StudioTunedGroup, {
   getStudioTransformProps,
   StudioTuningPreviewProvider,
   StudioTuningRuntimeProvider,
+  StudioTuningSnapshotProvider,
 } from './StudioTunedGroup.jsx'
 import ClassroomChair from './StageObjects/ClassroomChair.jsx'
 import ClassroomDesk from './StageObjects/ClassroomDesk.jsx'
@@ -18,6 +19,7 @@ import { CompassBladeModel } from './Weapons/CompassBlade.jsx'
 import { ChibikoModel } from './Weapons/Chibiko.jsx'
 import { StarlinkSatelliteModel, ZomlonbiskModel } from './Weapons/StarlinkSatellite.jsx'
 import PlayerMesh from './PlayerMesh.jsx'
+import { FROZEN_STUDIO_SNAPSHOT } from '../title/frozenStudio.js'
 
 const TITLE_CHASE_TARGET = [0.48, 0.08]
 export const TITLE_PLAYER_RUN_BASE_POSITION = [0.48, 0.88, 0.38]
@@ -643,20 +645,27 @@ export default function TitleScene3D({
       <pointLight position={[0, 1.1, -3.7]} intensity={5.5} color={0xffdf9a} distance={11} decay={2} />
 
       {studioMode ? (
-        <StudioTuningPreviewProvider>
-          {sceneRoot}
-        </StudioTuningPreviewProvider>
+        <>
+          <StudioTuningPreviewProvider>
+            {sceneRoot}
+          </StudioTuningPreviewProvider>
+          <group rotation={[0, -0.09, 0]} position={[0, -1.15, 0]}>
+            <StudioTuningRuntimeProvider>
+              <TitlePlayer reducedEffects={reducedEffects} />
+            </StudioTuningRuntimeProvider>
+          </group>
+        </>
       ) : (
-        <StudioTunedGroup itemId="title-scene">
-          {sceneRoot}
-        </StudioTunedGroup>
+        <StudioTuningSnapshotProvider datasets={FROZEN_STUDIO_SNAPSHOT.datasets}>
+          <StudioTunedGroup itemId="title-scene">
+            {sceneRoot}
+          </StudioTunedGroup>
+          <group rotation={[0, -0.09, 0]} position={[0, -1.15, 0]}>
+            <TitlePlayer reducedEffects={reducedEffects} />
+          </group>
+        </StudioTuningSnapshotProvider>
       )}
       {/* 세팅값은 동결 스냅샷(src/title/studioSnapshot.json)에서 온다 — Firebase 대기 없이 항상 렌더. */}
-      <group rotation={[0, -0.09, 0]} position={[0, -1.15, 0]}>
-        <StudioTuningRuntimeProvider>
-          <TitlePlayer reducedEffects={reducedEffects} />
-        </StudioTuningRuntimeProvider>
-      </group>
     </>
   )
 }

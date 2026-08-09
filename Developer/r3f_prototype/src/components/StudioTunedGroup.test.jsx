@@ -13,11 +13,12 @@ import {
   composeStudioPartRotation,
   disposeStudioOwnedMaterials,
   getStudioTransformProps,
+  StudioTuningSnapshotProvider,
 } from './StudioTunedGroup.jsx'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
-import { saveStudioTunings } from '../lib/graphicsStudioConfig.js'
+import { loadStudioTunings, saveStudioTunings } from '../lib/graphicsStudioConfig.js'
 import { applyFirebaseStudioSnapshot } from '../lib/firebaseStudio.js'
-import { commitFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
+import { blockFirebaseStudioRuntime, commitFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
 
 describe('StudioTunedGroup', () => {
   beforeEach(() => {
@@ -86,6 +87,33 @@ describe('StudioTunedGroup', () => {
     expect(bodyMat.color.getHexString()).toBe('223344')
     expect(outlineMat.color.getHexString()).toBe('050209')
     expect(outline.scale.x).toBeCloseTo(1.12)
+  })
+
+  it('uses snapshot provider datasets without reading a blocked Firebase runtime', () => {
+    blockFirebaseStudioRuntime()
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    expect(() => {
+      act(() => {
+        root.render(
+          <StudioTuningSnapshotProvider datasets={{ tunings: { player: { scale: 1.75 } }, decals: {} }}>
+            <StudioTunedGroup itemId="player" materialTuning={false}><mesh /></StudioTunedGroup>
+          </StudioTuningSnapshotProvider>,
+        )
+      })
+    }).not.toThrow()
+    expect(container.querySelector('group').getAttribute('scale')).toBe('1.75,1.75,1.75')
+
+    act(() => root.unmount())
+  })
+
+  it('keeps provider-free groups fail-closed while Firebase runtime is blocked', () => {
+    blockFirebaseStudioRuntime()
+    const source = readFileSync('src/components/StudioTunedGroup.jsx', 'utf8')
+
+    expect(source).toContain('snapshot ? loadSnapshotStudioState(itemId, snapshot) : loadStudioState(itemId)')
+    expect(() => loadStudioTunings()).toThrow(/hydrate is required/i)
   })
 
   it('does not mistake a regular BackSide fill for an outline during Apply', () => {

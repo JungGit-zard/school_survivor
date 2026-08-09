@@ -285,6 +285,39 @@ export function pickMixedReinforcementTypes(types, count, random = Math.random) 
   return result
 }
 
+export function overtimeReinforcementTick(elapsedSec) {
+  if (!Number.isFinite(elapsedSec) || elapsedSec < OVERTIME_REINFORCEMENT_START_SEC) return null
+  return Math.floor((elapsedSec - OVERTIME_REINFORCEMENT_START_SEC) / OVERTIME_REINFORCEMENT_INTERVAL_SEC)
+}
+
+export function shouldScheduleOvertimeReinforcement(lastFiredTick, elapsedSec) {
+  const tick = overtimeReinforcementTick(elapsedSec)
+  return { shouldSchedule: tick !== null && tick > lastFiredTick, tick }
+}
+
+export function overtimeMixedTypesForStage(stageId) {
+  return [...(stageId === 'stage1' ? STAGE1_OVERTIME_MIXED_TYPES : DEFAULT_OVERTIME_MIXED_TYPES)]
+}
+
+export function buildOvertimeMixedReinforcementEntries(stageId, random = Math.random, count = OVERTIME_REINFORCEMENT_COUNT) {
+  const pool = overtimeMixedTypesForStage(stageId)
+  const entries = []
+  const wanted = Math.max(0, Math.floor(count) || 0)
+  while (entries.length < wanted) {
+    const type = pool[Math.floor(random() * pool.length) % pool.length]
+    entries.push({ type })
+  }
+  return entries
+}
+
+export function clampZombieSpawnRequest(requested, counts, max = MAX_CONCURRENT_ZOMBIES) {
+  const wanted = Math.max(0, Math.floor(requested) || 0)
+  const total = Math.max(0, Math.floor(counts?.pooledActive ?? 0) || 0)
+    + Math.max(0, Math.floor(counts?.specialActive ?? 0) || 0)
+    + Math.max(0, Math.floor(counts?.pooledQueued ?? 0) || 0)
+  return Math.min(wanted, Math.max(0, max - total))
+}
+
 // 형태(formation) 스폰 — 균일 압력(뱀서라이크 지루함)을 깨는 일회성 대형 배치.
 // 좁고 긴 복도(stage2) 기준. 타입은 addEnemies 시점에 정해지므로 y는 대표값(scale=1)으로 통일한다.
 //   'swarm'  : 플레이어에서 먼 Z끝에서 X 균등 일렬 → 복도를 쓸고 내려온다.
@@ -948,6 +981,12 @@ let _chestId = 0
 // 15 = E07(웃는얼굴 좀비). 시뮬레이션은 다른 잡몹과 같은 풀을 쓰고, 몸통만
 // ProceduralFaceZombieLayer가 그린다(ZombieInstanceLayer는 그림자/체력바/스폰연기만 담당).
 const STANDARD_POOL_TYPE_MAX = 15
+export const MAX_CONCURRENT_ZOMBIES = MAX_ENEMIES
+export const OVERTIME_REINFORCEMENT_START_SEC = 300
+export const OVERTIME_REINFORCEMENT_INTERVAL_SEC = 30
+export const OVERTIME_REINFORCEMENT_COUNT = 30
+const STAGE1_OVERTIME_MIXED_TYPES = Object.freeze(['E01', 'E02', 'E03', 'E05', 'E06', 'E07'])
+const DEFAULT_OVERTIME_MIXED_TYPES = Object.freeze(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07'])
 const MAX_SPECIAL_ENEMIES = 3
 const MAX_RUNTIME_QUEUE = 256
 const EMPTY_IMPACT = Object.freeze({})
@@ -955,6 +994,7 @@ const SCHEDULE_GOLD = 1
 const SCHEDULE_DOGE = 2
 const SCHEDULE_BURST = 5
 const SCHEDULE_MATILDA = 6
+const SCHEDULE_OVERTIME = 7
 
 export function isPooledEnemyType(type) {
   const code = enemyTypeToCode(type)
@@ -1031,6 +1071,7 @@ export default function Enemies() {
   const firedBurstsRef            = useRef(new Uint8Array(64))
   const goldTimerRef              = useRef(nextGoldInterval())
   const dogeSpawnedRef           = useRef(false)     // 60초 도지 이벤트 1회 스폰 가드
+  const overtimeTickRef          = useRef(-1)
   const stageSpawnTokenRef       = useRef(0)
   const sightGenerationRef       = useRef(new Uint16Array(MAX_ENEMIES))
   const sightTierRef             = useRef(new Uint8Array(MAX_ENEMIES))
@@ -1068,6 +1109,7 @@ export default function Enemies() {
       stageConfig: getStageConfig(currentStageId),
     }
     firedBurstsRef.current.fill(0)
+    overtimeTickRef.current = -1
     sightGenerationRef.current.fill(0)
     sightTierRef.current.fill(0)
     enemySightBlocked.fill(0)
@@ -1257,10 +1299,17 @@ export default function Enemies() {
     return drainPooledEnemySpawnQueue(runtimeQueueRef.current.spawnDrain, cache.spawnToken, spawnPooledEnemy)
   }
 
+  const totalZombieCounts = useCallback(() => ({
+    pooledActive: enemyPool.activeCount,
+    specialActive: enemiesRef.current.length,
+    pooledQueued: runtimeQueueRef.current.spawnDrain.count,
+  }), [])
+
   const addEnemies = useCallback((newList, deferPooled = false, stageToken = stageSpawnTokenRef.current) => {
     let specialAdded = false
     for (let entryIndex = 0; entryIndex < newList.length; entryIndex += 1) {
       const entry = newList[entryIndex]
+      if (clampZombieSpawnRequest(1, totalZombieCounts()) <= 0) break
       if (!isPooledEnemyType(entry.type)) {
         // pooled numeric generation-id와 legacy special body key가 충돌하지 않도록 namespace를 분리한다.
         if (enemiesRef.current.length < MAX_SPECIAL_ENEMIES) {
@@ -1278,7 +1327,7 @@ export default function Enemies() {
       spawnPooledEnemy(entry)
     }
     if (specialAdded) setSpecialEnemies([...enemiesRef.current])
-  }, [spawnPooledEnemy])
+  }, [spawnPooledEnemy, totalZombieCounts])
 
 
   // 마틸다 등장 대사를 읽는 동안에는 실체/AI를 만들지 않는다. 같은 run/stage가
@@ -1326,6 +1375,19 @@ export default function Enemies() {
       dropGoldCoin(pickGoldDropPos(cache.bounds))
     } else if (kind === SCHEDULE_DOGE) {
       spawnDoge()
+    } else if (kind === SCHEDULE_OVERTIME) {
+      const count = clampZombieSpawnRequest(OVERTIME_REINFORCEMENT_COUNT, totalZombieCounts())
+      if (count <= 0) return
+      const entries = buildOvertimeMixedReinforcementEntries(cache.id, Math.random, count)
+      const batch = []
+      for (let spawnIndex = 0; spawnIndex < entries.length; spawnIndex += 1) {
+        const type = entries[spawnIndex].type
+        const taken = batch.map((enemy) => enemy.pos)
+        const pos = spawnPosForBurstType(type, cache.bounds, taken, Math.random, cache.obstacles)
+        if (!pos) continue
+        batch.push({ id: ++_uid, type, pos, statOverride: stageHpOverride(type, cache.id) })
+      }
+      addEnemies(batch, true, cache.spawnToken)
     } else if (kind === SCHEDULE_MATILDA) {
       const entry = queue.matildaEntry
       queue.matildaEntry = null
@@ -1504,6 +1566,12 @@ export default function Enemies() {
     if (shouldSpawnDoge(sec, dogeSpawnedRef.current)) {
       dogeSpawnedRef.current = true
       enqueueScheduled(SCHEDULE_DOGE)
+    }
+
+    const overtime = shouldScheduleOvertimeReinforcement(overtimeTickRef.current, sec)
+    if (overtime.shouldSchedule) {
+      overtimeTickRef.current = overtime.tick
+      enqueueScheduled(SCHEDULE_OVERTIME)
     }
 
     // 버스트 스케줄 발화.

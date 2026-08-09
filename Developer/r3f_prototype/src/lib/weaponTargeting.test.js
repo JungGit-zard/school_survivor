@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { enemyBodies, enemyPool, enemySimulationRuntime, playerPos } from './refs.js'
+import { MAX_ENEMIES } from './enemyEntityPool.js'
 import { applyRadialDamage, createWeaponTargetScratch, findBestSplashTarget, findClosestEnemies, findClosestEnemy, isPlayerWeaponSightBlocked, isInForwardBox, applyForwardBoxDamage, isInForwardCone, applyForwardConeDamage, resolveWeaponTarget, scanClosestEnemiesInto, scanRadiusEnemiesInto, scanSweptCapsuleEnemiesInto } from './weaponTargeting.js'
 
 function fakeEnemy(x, z, { dead = false } = {}) {
@@ -95,8 +96,8 @@ describe('EntityPool weapon scan contract', () => {
     expect(findBestSplashTarget(8, 0.5)?.enemyId).toBe(enemyPool.get(first.handle)._enemyId)
   })
 
-  it('does not perform ordered candidate insertion for 200 reverse-distance grid splash candidates', () => {
-    for (let index = 0; index < 200; index += 1) {
+  it('does not perform ordered candidate insertion for max pooled reverse-distance grid splash candidates', () => {
+    for (let index = 0; index < MAX_ENEMIES; index += 1) {
       spawnPooledEnemy(27 - (index % 20) * 3, 12 - Math.floor(index / 20) * 3)
     }
     enemySimulationRuntime.grid.rebuild(enemyPool, 40, 40)
@@ -106,21 +107,21 @@ describe('EntityPool weapon scan contract', () => {
     expect(enemySimulationRuntime.grid.targetComparisonCount).toBeLessThan(1000)
   })
 
-  it('orders 200 wide-radius grid targets without quadratic insertion work', () => {
-    for (let index = 0; index < 200; index += 1) {
+  it('orders max pooled wide-radius grid targets without quadratic insertion work', () => {
+    for (let index = 0; index < MAX_ENEMIES; index += 1) {
       spawnPooledEnemy(27 - (index % 20) * 3, 12 - Math.floor(index / 20) * 3)
     }
     enemySimulationRuntime.grid.rebuild(enemyPool, 40, 40)
-    const scratch = createWeaponTargetScratch(203)
+    const scratch = createWeaponTargetScratch(MAX_ENEMIES)
 
-    expect(scanRadiusEnemiesInto(scratch, 0, 0, 100)).toBe(200)
+    expect(scanRadiusEnemiesInto(scratch, 0, 0, 100)).toBe(MAX_ENEMIES)
     for (let index = 1; index < scratch.count; index += 1) {
       expect(scratch.distances[index]).toBeGreaterThanOrEqual(scratch.distances[index - 1])
       if (scratch.distances[index] === scratch.distances[index - 1]) {
         expect(scratch.indices[index]).toBeGreaterThan(scratch.indices[index - 1])
       }
     }
-    expect(enemySimulationRuntime.grid.targetOrderingComparisonCount).toBeLessThan(4000)
+    expect(enemySimulationRuntime.grid.targetOrderingComparisonCount).toBeLessThan(MAX_ENEMIES * 20)
   })
 
   it('keeps pooled targets before special Map targets at an equal radius distance', () => {

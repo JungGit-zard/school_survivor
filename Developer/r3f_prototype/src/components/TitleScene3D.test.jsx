@@ -29,7 +29,7 @@ describe('TitleScene3D direction', () => {
     expect(getTitleSceneRootPosition({ position: [0.25, -0.4, 0.6] })).toEqual([0.25, expect.closeTo(-1.55), 0.6])
     expect(source).toContain('const studioMode = studioTuning != null')
     expect(source).toContain('{studioMode ? (')
-    expect(source).toContain(') : (\n        <StudioTunedGroup itemId="title-scene">')
+    expect(source).toContain('<StudioTuningSnapshotProvider datasets={FROZEN_STUDIO_SNAPSHOT.datasets}>')
     expect(source).not.toContain('<StudioTuningPreviewProvider>\n        {sceneRoot}\n      </StudioTuningPreviewProvider>')
     const runtimeRootStart = source.indexOf('<StudioTunedGroup itemId="title-scene">')
     const runtimeRootEnd = source.indexOf('</StudioTunedGroup>', runtimeRootStart)
@@ -253,7 +253,7 @@ describe('TitleScene3D direction', () => {
     const titlePlayerIndex = source.indexOf('<TitlePlayer reducedEffects={reducedEffects} />')
 
     expect(source).toContain("import PlayerMesh from './PlayerMesh.jsx'")
-    expect(source).toContain('StudioTuningRuntimeProvider')
+    expect(source).toContain('StudioTuningSnapshotProvider')
     expect(source).toContain('StudioTuningPreviewProvider')
     expect(source).not.toContain("from './Player.jsx'")
     expect(source).toContain('function TitlePlayer({ reducedEffects })')
@@ -279,11 +279,15 @@ describe('TitleScene3D direction', () => {
     // 세팅값은 동결 스냅샷에서 오므로 runtime(튜닝 적용) 경로로만 그린다.
     const playerIdx = source.indexOf('<TitlePlayer reducedEffects={reducedEffects} />')
     expect(playerIdx).toBeGreaterThan(-1)
-    const playerBlock = source.slice(source.lastIndexOf('<group', playerIdx), playerIdx)
-    expect(playerBlock).toContain('StudioTuningRuntimeProvider')
-    expect(playerBlock).not.toContain('StudioTuningPreviewProvider')
-    // 플레이어 인스턴스는 정확히 1개(중복/폴백 렌더 없음).
-    expect(source.match(/<TitlePlayer reducedEffects=\{reducedEffects\} \/>/g)).toHaveLength(1)
+    expect(source).toContain("import { FROZEN_STUDIO_SNAPSHOT } from '../title/frozenStudio.js'")
+    const snapshotStart = source.indexOf('<StudioTuningSnapshotProvider datasets={FROZEN_STUDIO_SNAPSHOT.datasets}>')
+    const snapshotEnd = source.indexOf('</StudioTuningSnapshotProvider>', snapshotStart)
+    const playerBlock = source.slice(snapshotStart, snapshotEnd)
+    expect(playerBlock).toContain('<StudioTunedGroup itemId="title-scene">')
+    expect(playerBlock).toContain('<TitlePlayer reducedEffects={reducedEffects} />')
+    expect(playerBlock).not.toContain('StudioTuningRuntimeProvider')
+    // 스냅샷 런타임 분기에는 플레이어 인스턴스가 정확히 1개다.
+    expect(playerBlock.match(/<TitlePlayer reducedEffects=\{reducedEffects\} \/>/g)).toHaveLength(1)
   })
 
   it('applies a fleeing up-down hop frame to the existing title player and freezes it in reduced-effects mode', () => {

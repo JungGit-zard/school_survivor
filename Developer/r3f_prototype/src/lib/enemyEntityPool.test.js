@@ -61,7 +61,8 @@ describe('EnemyEntityPool', () => {
     expect(enemyTypeFromCode(99)).toBeNull()
   })
 
-  it('최대 200개만 생성하며 201번째는 활성 슬롯을 덮어쓰지 않고 거절한다', () => {
+  it('최대 150개만 생성하며 151번째는 활성 슬롯을 덮어쓰지 않고 거절한다', () => {
+    expect(MAX_ENEMIES).toBe(150)
     const pool = createEnemyEntityPool()
     const handles = []
     for (let index = 0; index < MAX_ENEMIES; index += 1) handles.push(pool.spawn(spawnData(index)))
@@ -69,7 +70,7 @@ describe('EnemyEntityPool', () => {
     expect(handles.every(Boolean)).toBe(true)
     expect(pool.activeCount).toBe(MAX_ENEMIES)
     expect(pool.highestActive).toBe(MAX_ENEMIES - 1)
-    expect(pool.spawn(spawnData(201))).toBeNull()
+    expect(pool.spawn(spawnData(151))).toBeNull()
     expect(pool.posX[0]).toBe(0)
     expect(pool.posX[MAX_ENEMIES - 1]).toBe(MAX_ENEMIES - 1)
     expect(pool.validateInvariants()).toBe(true)
