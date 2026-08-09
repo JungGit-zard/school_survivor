@@ -476,7 +476,7 @@ export default function GraphicsStudio() {
     return target && !target.closed ? target : null
   }
 
-  const sendGameSync = async ({ openGame = false, retryAfterLoad = false, datasets = null, revision = null } = {}) => {
+  const sendGameSync = async ({ openGame = false, retryAfterLoad = false } = {}) => {
     let target = gameWindowRef.current
     if (openGame) {
       const url = parseStudioGameUrl(gameUrl)
@@ -495,12 +495,7 @@ export default function GraphicsStudio() {
     // the Studio runtime. Do not gate game sync behind the debounced-save queue:
     // the game window must receive the force-refresh immediately, even for a
     // one-pixel/one-dot prop move.
-    const postSync = () => target.postMessage({
-      type: STUDIO_GAME_SYNC_MESSAGE,
-      force: true,
-      datasets,
-      revision,
-    }, gameOriginRef.current)
+    const postSync = () => target.postMessage({ type: STUDIO_GAME_SYNC_MESSAGE, force: true }, gameOriginRef.current)
     postSync()
     if (retryAfterLoad) {
       ;[0, 250, 800].forEach((delay) => {
@@ -676,7 +671,7 @@ export default function GraphicsStudio() {
       ...bossFaceRecipes,
       ...draftBossFaceRecipes,
     })
-    const nextDatasets = {
+    const result = await persistDatasetsOnApply({
       ...datasets,
       tunings: nextTunings,
       sfxTunings,
@@ -684,20 +679,14 @@ export default function GraphicsStudio() {
       decals: normalizeTextureDecalMap(decalsByItem),
       propPlacements: overrides.propPlacements ?? draftPropPlacements,
       bossFaceRecipes: nextBossFaceRecipes,
-    }
-    const result = await persistDatasetsOnApply(nextDatasets)
+    })
     if (result.status === 'saved') {
       setConfirmedTunings(nextTunings)
       draftTuningByIdRef.current = {}
       setDraftTuningById({})
       setBossFaceRecipes(nextBossFaceRecipes)
       setDraftBossFaceRecipes({})
-      if (await sendGameSync({
-        openGame: true,
-        retryAfterLoad: true,
-        datasets: nextDatasets,
-        revision: result.revision,
-      })) {
+      if (await sendGameSync({ openGame: true, retryAfterLoad: true })) {
         setApplyStatus(successLabel)
       } else {
         setApplyStatus('Game sync failed')
