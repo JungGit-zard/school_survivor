@@ -161,6 +161,11 @@ describe('GraphicsStudio', () => {
 
     act(() => paletteDesk.dispatchEvent(new MouseEvent('click', { bubbles: true })))
 
+    expect(loadStagePropPlacements().stage1).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'classroomDesk' }),
+    ]))
+    expect(cloudMocks.save).not.toHaveBeenCalled()
+
     const applyButton = container.querySelector('[data-testid="prop-apply"]')
     await act(async () => {
       applyButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
@@ -170,6 +175,7 @@ describe('GraphicsStudio', () => {
     const saved = loadStagePropPlacements()
     expect(Array.isArray(saved.stage1)).toBe(true)
     expect(saved.stage1.some((item) => item.type === 'classroomDesk')).toBe(true)
+    expect(cloudMocks.save).toHaveBeenCalledTimes(1)
   })
 
   it('renders the catalog, preview, sliders, and export panel', async () => {
@@ -883,7 +889,7 @@ describe('GraphicsStudio', () => {
     expect(container.textContent).toContain('Audio applied')
   })
 
-  it('keeps edits across Graphics, Audio, Boss preview, and Faces local until one Apply saves them together', async () => {
+  it('keeps edits across Graphics, Audio, Props, Boss preview, and Faces local until one Apply saves them together', async () => {
     await renderSignedInStudio()
 
     const scale = container.querySelector('input[name="scale"]')
@@ -909,6 +915,12 @@ describe('GraphicsStudio', () => {
       pitchValue.dispatchEvent(new Event('input', { bubbles: true }))
     })
 
+    await clickButton('Props')
+    const paletteDesk = container.querySelector('[data-testid="prop-palette-classroomDesk"]')
+    act(() => {
+      paletteDesk.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
     await clickButton('Faces')
     await clickButton('화난 사선眉')
 
@@ -916,6 +928,9 @@ describe('GraphicsStudio', () => {
     expect(loadStudioTunings()).not.toHaveProperty('enemy-matilda')
     expect(loadStageBossPreview()).toMatchObject(DEFAULT_STAGE_BOSS_PREVIEW)
     expect(loadSfxTunings()).not.toHaveProperty('pencilFire')
+    expect(loadStagePropPlacements().stage1).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'classroomDesk' }),
+    ]))
     expect(loadBossFaceRecipes()).not.toHaveProperty('B01')
     expect(cloudMocks.save).not.toHaveBeenCalled()
 
@@ -927,11 +942,13 @@ describe('GraphicsStudio', () => {
     expect(savedDatasets.tunings['enemy-matilda'].scale).toBe(1.22)
     expect(savedDatasets.stageBossPreview.zoom).toBe(132)
     expect(savedDatasets.sfxTunings.pencilFire.rate).toBe(1.37)
+    expect(savedDatasets.propPlacements.stage1.some((item) => item.type === 'classroomDesk')).toBe(true)
     expect(savedDatasets.bossFaceRecipes.B01.brow).toBe('brow-angry-slash')
     expect(loadStudioTunings().player.scale).toBe(1.45)
     expect(loadStudioTunings()['enemy-matilda'].scale).toBe(1.22)
     expect(loadStageBossPreview().zoom).toBe(132)
     expect(loadSfxTunings().pencilFire.rate).toBe(1.37)
+    expect(loadStagePropPlacements().stage1.some((item) => item.type === 'classroomDesk')).toBe(true)
     expect(loadBossFaceRecipes().B01.brow).toBe('brow-angry-slash')
   })
 
