@@ -168,6 +168,7 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 - Do not commit unless the user asks for a commit.
 - If the user says `뻐꾸기`, interpret it as the combined workflow: pull, commit, and push, in that order when safe.
 - If the user says `오리`, interpret it as the combined workflow: commit and push, in that order when safe.
+- If the user says exactly `메기`, immediately close every Escape! zombie school game, Graphics Studio, and test-browser window or instance launched by agents, while leaving the port 5173 development server and its keep-alive/watchdog completely untouched and running; do not terminate unrelated user applications.
 - Use clear commit messages, for example:
   - `Add project instructions`
   - `Add player movement`
