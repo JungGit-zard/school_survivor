@@ -744,6 +744,9 @@ describe('result action layout', () => {
       expect(container.querySelector('[data-testid="matilda-dialogue"]')).not.toBeNull()
       expect(container.textContent).toContain('오호호호!!!!! 맛있게 먹을께!!!!')
       expect(container.querySelector('[data-testid="gameover-result-overlay"]')).toBeNull()
+      const grayscale = container.querySelector('[data-testid="gameover-grayscale-transition"]')
+      expect(grayscale.style.animation).toBe('none')
+      expect(grayscale.style.opacity).toBe('1')
 
       act(() => {
         vi.advanceTimersByTime(MATILDA_DIALOGUE_MS + 999)

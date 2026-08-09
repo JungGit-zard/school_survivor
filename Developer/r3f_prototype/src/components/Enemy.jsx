@@ -154,13 +154,17 @@ export function advanceEnemySpawnTimer(elapsedMs, deltaSec, phase) {
 }
 
 export function createMatildaContactKillCountdown(delayMs = MATILDA_CONTACT_KILL_DELAY_MS) {
-  return { started: false, fired: false, remainingMs: delayMs }
+  return { delayMs, started: false, fired: false, remainingMs: delayMs }
 }
 
 export function advanceMatildaContactKillCountdown(countdown, contact, deltaMs) {
   if (!countdown || countdown.fired) return false
+  if (!contact) {
+    countdown.started = false
+    countdown.remainingMs = countdown.delayMs
+    return false
+  }
   if (!countdown.started) {
-    if (!contact) return false
     countdown.started = true
   }
   countdown.remainingMs = Math.max(0, countdown.remainingMs - Math.max(0, deltaMs))

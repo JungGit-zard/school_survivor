@@ -6,8 +6,12 @@ import ZombieInstanceLayer from './ZombieInstanceLayer.jsx'
 import ProceduralFaceZombieLayer from './ProceduralFaceZombieLayer.jsx'
 import PooledEnemyProjectileLayer from './PooledEnemyProjectileLayer.jsx'
 import StageEntryRuntimeDiagnostics from './StageEntryRuntimeDiagnostics.jsx'
+import { useGameStore } from '../store/useGameStore.js'
 
 export default function GameCanvas({ gameKey, phase }) {
+  const deathCause = useGameStore((state) => state.deathCause)
+  const isMatildaContactDeath = phase === 'gameover' && deathCause === 'matilda'
+
   return (
     <Canvas
       // 살짝 원근(perspective) — 좁은 화각(fov)으로 직교에 가깝되,
@@ -17,7 +21,8 @@ export default function GameCanvas({ gameKey, phase }) {
       dpr={[1, 1.5]}
       shadows
       gl={{ stencil: true }}
-      style={{ width: '100%', height: '100%', background: '#c8c4bc', display: 'block' }}
+      frameloop={isMatildaContactDeath ? 'never' : 'always'}
+      style={{ width: '100%', height: '100%', background: '#c8c4bc', display: 'block', filter: isMatildaContactDeath ? 'grayscale(1)' : 'none' }}
     >
       <Physics key={gameKey} gravity={[0, 0, 0]} timeStep={1 / 60} paused={phase !== 'playing'}>
         <Game />

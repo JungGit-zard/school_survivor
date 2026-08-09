@@ -777,8 +777,8 @@ export function stageExpectedBaseJarmobHp(stageId) {
 }
 
 // 런타임에 실제 발화하는 버스트의 잡몹 HP(배율 적용 전).
-// 반드시 getRuntimeBurstEventsForStage를 쓴다 — 정적 getBurstEventsForStage를 쓰면 stage1/stage2의
-// 미발화 형태 버스트까지 세서 base가 또 틀어진다(stage1/2는 보스만 발화).
+// 반드시 getRuntimeBurstEventsForStage를 쓴다 — Enemies 런타임은 stageRuntime.burstEvents를
+// 순회해 SCHEDULE_BURST로 실제 소비하므로 정적/런타임 스케줄이 갈라지면 base와 실스폰이 틀어진다.
 // 버스트 count는 리터럴이라 밀도배율을 받지 않는다 → 실전달에서 √c가 1제곱으로만 곱해진다.
 export function stageBurstJarmobBaseHp(stageId) {
   let total = 0

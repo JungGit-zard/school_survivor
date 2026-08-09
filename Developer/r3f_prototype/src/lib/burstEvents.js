@@ -22,6 +22,11 @@ export const STAGE1_150SEC_SMILING_GREEN_REINFORCEMENT_EVENTS = [
   { sec: 150, type: 'E07', count: 5 },
   { sec: 150, type: 'E01', count: 5 },
 ]
+export const STAGE1_40SEC_GREEN_SMILING_REINFORCEMENT_EVENTS = [
+  { sec: 40, type: 'E01', count: 5 },
+  { sec: 40, type: 'E07', count: 3 },
+]
+
 
 // Stage 2 추가 보강(2026-08-09 사용자 지시): 120초부터 30초마다,
 // 240초 종료 전까지만 15마리씩 일반 좀비를 현재 phase 구성 안에서 섞어 더한다.
@@ -36,6 +41,7 @@ export const STAGE2_MIXED_REINFORCEMENT_EVENTS = [
 export const BURST_EVENTS = [
   { sec:   0, type: 'E01', count: 16 },  // 40초 전 단일 좀비 구간 밀도 2배
   { sec:  24, type: 'E01', count:  8 },  // 첫 phase target(24)을 burst만으로 초과하지 않게 완화
+  ...STAGE1_40SEC_GREEN_SMILING_REINFORCEMENT_EVENTS,
   { sec:  60, type: 'E02', count:  4 },  // 탱커 첫 등장 신호 — wave 첫 E02 phase와 정렬
   { sec:  72, type: 'E03', count:  2 },  // 러너 압박 — 6→2 (E03 전 구간 ×1/3, 2026-07-04)
   { sec: 108, type: 'E01', count:  5 },  // 90–108초 완화 구간 이후 잡몹 러시

@@ -133,7 +133,9 @@ describe('quest inventory HUD', () => {
       expect(popup.textContent).toContain(quest.title)
       expect(popup.style.top).toBe('50%')
       expect(popup.style.transform).toBe('translate(-50%, -50%)')
-      expect(popup.querySelector('small')?.style.color).toBe('rgb(21, 128, 61)')
+      expect(popup.querySelector('small')?.style.color).toBe('rgb(255, 255, 255)')
+      expect(popup.querySelector('small')?.style.fontFamily).toContain('Nanum Myeongjo')
+      expect(popup.querySelector('small')?.style.webkitTextStroke).toBe('1.2px #000')
       expect(popup.style.fontSize).toBe('19px')
       expect(popup.style.pointerEvents).toBe('none')
       expect(popup.getAttribute('aria-live')).toBe('assertive')
@@ -157,7 +159,7 @@ describe('quest inventory HUD', () => {
     }
   })
 
-  it('merges quest NPC dialogue, acquisition or completion notice, and green guidance into one raised panel', () => {
+  it('merges quest NPC dialogue, acquisition or completion notice, and outlined white guidance into one raised panel', () => {
     const [quest] = getStageQuestDefinitions('stage1')
     const { container, root } = renderHud()
 
@@ -176,7 +178,9 @@ describe('quest inventory HUD', () => {
       expect(startPopup.textContent.indexOf(getDialogueText(quest.startDialogueId)))
         .toBeLessThan(startPopup.textContent.indexOf(quest.title))
       expect(startPopup.textContent).toContain(quest.objective)
-      expect(startPopup.querySelector('small')?.style.color).toBe('rgb(21, 128, 61)')
+      expect(startPopup.querySelector('small')?.style.color).toBe('rgb(255, 255, 255)')
+      expect(startPopup.querySelector('small')?.style.fontFamily).toContain('Nanum Myeongjo')
+      expect(startPopup.querySelector('small')?.style.webkitTextStroke).toBe('1.2px #000')
       expect(container.querySelector('[data-testid="student-dialogue-catcher"]').style.alignItems).toBe('center')
 
       act(() => {
@@ -199,7 +203,9 @@ describe('quest inventory HUD', () => {
       expect(completionPopup.textContent.indexOf(getDialogueText(quest.completionDialogueId)))
         .toBeLessThan(completionPopup.textContent.indexOf(quest.title))
       expect(completionPopup.textContent).toContain(`${quest.rewardGold}G`)
-      expect(completionPopup.querySelector('small')?.style.color).toBe('rgb(21, 128, 61)')
+      expect(completionPopup.querySelector('small')?.style.color).toBe('rgb(255, 255, 255)')
+      expect(completionPopup.querySelector('small')?.style.fontFamily).toContain('Nanum Myeongjo')
+      expect(completionPopup.querySelector('small')?.style.webkitTextStroke).toBe('1.2px #000')
     } finally {
       act(() => root.unmount())
     }

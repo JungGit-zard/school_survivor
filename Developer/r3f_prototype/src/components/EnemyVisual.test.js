@@ -385,17 +385,16 @@ describe('Matilda body contact delayed instant death countdown', () => {
     expect(advanceMatildaContactKillCountdown(countdown, true, 1000)).toBe(false)
   })
 
-  it('keeps the first contact countdown running after separation and never restarts it on repeated contact', () => {
+  it('resets the countdown immediately when Matilda passes through and body contact ends', () => {
     const countdown = createMatildaContactKillCountdown()
 
     expect(advanceMatildaContactKillCountdown(countdown, true, 400)).toBe(false)
     expect(advanceMatildaContactKillCountdown(countdown, false, 300)).toBe(false)
-    expect(countdown.remainingMs).toBe(300)
+    expect(countdown.started).toBe(false)
+    expect(countdown.remainingMs).toBe(MATILDA_CONTACT_KILL_DELAY_MS)
 
-    expect(advanceMatildaContactKillCountdown(countdown, true, 200)).toBe(false)
-    expect(countdown.remainingMs).toBe(100)
-
-    expect(advanceMatildaContactKillCountdown(countdown, true, 100)).toBe(true)
+    expect(advanceMatildaContactKillCountdown(countdown, true, 999)).toBe(false)
+    expect(advanceMatildaContactKillCountdown(countdown, true, 1)).toBe(true)
     expect(advanceMatildaContactKillCountdown(countdown, true, 1000)).toBe(false)
   })
 

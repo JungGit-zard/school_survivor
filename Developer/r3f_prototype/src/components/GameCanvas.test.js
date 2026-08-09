@@ -28,6 +28,12 @@ describe('GameCanvas reset ownership', () => {
     expect(source).toContain("paused={phase !== 'playing'}")
   })
 
+  it('freezes the Matilda contact frame and greys it immediately without changing other gameovers', () => {
+    expect(source).toContain("const isMatildaContactDeath = phase === 'gameover' && deathCause === 'matilda'")
+    expect(source).toContain("frameloop={isMatildaContactDeath ? 'never' : 'always'}")
+    expect(source).toContain("filter: isMatildaContactDeath ? 'grayscale(1)' : 'none'")
+  })
+
   it('starts Canvas-local shader warmup in every build and gates only diagnostics to DEV', () => {
     const diagnostics = readFileSync(new URL('./StageEntryRuntimeDiagnostics.jsx', import.meta.url), 'utf8')
     expect(diagnostics).toContain('useLayoutEffect')

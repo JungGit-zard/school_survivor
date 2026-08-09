@@ -56,6 +56,28 @@ describe('Stage 1 2:30 웃는좀비·녹색좀비 보강', () => {
   })
 })
 
+describe('Stage 1 40초 녹색좀비·웃는좀비 추가 스폰', () => {
+  it('stage1에만 정확히 E01 5마리와 E07 3마리를 추가한다', () => {
+    expect(BURST_EVENTS.filter((event) => event.sec === 40 && event.type === 'E01' && event.count === 5)).toHaveLength(1)
+    expect(BURST_EVENTS.filter((event) => event.sec === 40 && event.type === 'E07' && event.count === 3)).toHaveLength(1)
+  })
+
+  it.each([
+    ['stage2', STAGE2_BURST_EVENTS],
+    ['stage3', STAGE3_BURST_EVENTS],
+    ['stage4', STAGE4_BURST_EVENTS],
+  ])('%s에는 이 40초 추가 스폰이 없다', (_stageId, events) => {
+    expect(events.filter((event) => event.sec === 40 && event.type === 'E01' && event.count === 5)).toHaveLength(0)
+    expect(events.filter((event) => event.sec === 40 && event.type === 'E07' && event.count === 3)).toHaveLength(0)
+  })
+
+  it('런타임 스케줄에도 동일하게 포함한다', () => {
+    const runtime = getRuntimeBurstEventsForStage('stage1')
+    expect(runtime).toContainEqual({ sec: 40, type: 'E01', count: 5 })
+    expect(runtime).toContainEqual({ sec: 40, type: 'E07', count: 3 })
+  })
+})
+
 describe('burstEvents 보스 등장 시각 파생', () => {
   it('classifies the randomized boss window without claiming a fixed phase', () => {
     expect(getBossPhaseStatus(169)).toBe('before')

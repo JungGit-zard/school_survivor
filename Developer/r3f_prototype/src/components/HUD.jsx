@@ -1,4 +1,5 @@
 ﻿import { useEffect, useState, useMemo, useRef } from 'react'
+import '../assets/fonts/nanumMyeongjo.css'
 import { useShallow } from 'zustand/react/shallow'
 import { useGameStore, STAGE1_INTRO_IDS } from '../store/useGameStore.js'
 import { useAuthStore } from '../store/useAuthStore.js'
@@ -1201,7 +1202,9 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         <div
           data-testid="gameover-grayscale-transition"
           aria-hidden="true"
-          style={styles.gameoverGrayscaleTransition}
+          style={isMatildaGameover
+            ? { ...styles.gameoverGrayscaleTransition, animation: 'none', opacity: 1 }
+            : styles.gameoverGrayscaleTransition}
         />
       )}
 
@@ -2073,8 +2076,18 @@ const styles = {
     fontSize: 16.9,
     gap: 3.9,
   },
-  questPopupNextAction: { display: 'block', fontSize: 12, lineHeight: 1.25, fontWeight: uiType.weightStrong, color: '#15803d' },
-  questItemNextAction: { color: '#15803d', fontSize: 15.6, lineHeight: 1.25 },
+  questPopupNextAction: {
+    display: 'block',
+    fontSize: 12,
+    lineHeight: 1.25,
+    fontFamily: "'Nanum Myeongjo', serif",
+    fontWeight: 800,
+    color: '#fff',
+    WebkitTextStroke: '1.2px #000',
+    paintOrder: 'stroke fill',
+    textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 2px 0 #000',
+  },
+  questItemNextAction: { fontSize: 15.6, lineHeight: 1.25 },
   questDialogueCatcher: {
     alignItems: 'center',
     paddingBottom: '12vh',

@@ -158,6 +158,31 @@ describe('boss runtime spawn routes', () => {
     expect(ENEMY_STATS.E01).toBeDefined()
   })
 
+  it('routes the Stage 1 40s E01/E07 fixed reinforcement through the actual scheduled burst consumer', () => {
+    const stage1Runtime = getRuntimeBurstEventsForStage('stage1')
+    expect(stage1Runtime).toContainEqual({ sec: 40, type: 'E01', count: 5 })
+    expect(stage1Runtime).toContainEqual({ sec: 40, type: 'E07', count: 3 })
+    for (const stageId of ['stage2', 'stage3', 'stage4']) {
+      const runtime = getRuntimeBurstEventsForStage(stageId)
+      expect(runtime).not.toContainEqual({ sec: 40, type: 'E01', count: 5 })
+      expect(runtime).not.toContainEqual({ sec: 40, type: 'E07', count: 3 })
+    }
+
+    expect(isPooledEnemyType('E01')).toBe(true)
+    expect(isPooledEnemyType('E07')).toBe(true)
+    expect(ENEMY_STATS.E01).toBeDefined()
+    expect(ENEMY_STATS.E07).toBeDefined()
+    expect(shouldScheduleBurst(0, 39.999, 40)).toBe(false)
+    expect(shouldScheduleBurst(0, 40, 40)).toBe(true)
+    expect(shouldScheduleBurst(1, 40.001, 40)).toBe(false)
+
+    const enemySource = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    expect(enemySource).toContain('burstEvents: getRuntimeBurstEventsForStage(currentStageId)')
+    expect(enemySource).toContain('const evt = cache.burstEvents[Math.trunc(a)]')
+    expect(enemySource).toContain('enqueueScheduled(SCHEDULE_BURST, burstIndex, sec)')
+    expect(enemySource).toContain('addEnemies(batch, true, cache.spawnToken)')
+  })
+
   it('fires each boss burst once when elapsed time reaches its event second', () => {
     for (const [stageId] of bossStages) {
       const [boss] = getRuntimeBurstEventsForStage(stageId, 173).filter((event) => isBossType(event.type))
