@@ -102,7 +102,7 @@ describe('Stage 1 talk-book runtime start chain', () => {
 })
 
 describe('Stage 2 bulletin board runtime investigation chain', () => {
-  it('creates a reachable 3-dot contact target and opens dialogue through the mounted trigger', () => {
+  it('creates a reachable physical-contact target and opens dialogue through the mounted trigger', () => {
     useGameStore.getState().resetGame('stage2')
     commitFirebaseStudioRuntime({
       propPlacements: { stage2: [canonicalBoard] },
@@ -126,14 +126,14 @@ describe('Stage 2 bulletin board runtime investigation chain', () => {
       new Set(),
     )).toBe(board)
 
-    const beyondThreeDots = worldPointFromTargetLocal(
+    const beforePhysicalContact = worldPointFromTargetLocal(
       board,
       0,
       board.halfZ + BULLETIN_BOARD_CONTACT_MARGIN + 0.001,
     )
     expect(findInvestigationTargetInRange(
-      beyondThreeDots.x,
-      beyondThreeDots.z,
+      beforePhysicalContact.x,
+      beforePhysicalContact.z,
       [board],
       new Set(),
     )).toBeNull()

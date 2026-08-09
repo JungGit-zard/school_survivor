@@ -2,9 +2,8 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import {
   STUDENT_DIALOGUE_RADIUS,
   OBJECT_CONTACT_MARGIN,
-  BULLETIN_BOARD_CONTACT_DOTS,
   BULLETIN_BOARD_CONTACT_MARGIN,
-  INVESTIGATION_DOT_WORLD_UNITS,
+  PLAYER_INVESTIGATION_HALF_EXTENT,
   getUnconsciousStudents,
   getInvestigationTargets,
   findInvestigationTargetInRange,
@@ -114,7 +113,7 @@ describe('전 스테이지 공용 조사 대상', () => {
     expect(locker.radius).toBeUndefined() // 더 이상 원형 반경 아님
   })
 
-  it('게시판 조사는 회전된 게시판 표면에서 3도트 이하일 때만 가능하다', () => {
+  it('게시판 조사는 회전된 게시판에 플레이어 콜라이더가 실제로 닿을 때만 가능하다', () => {
     saveStagePropPlacements({
       stage2: [{
         id: 'stage2-lost-found-board-left-south',
@@ -124,10 +123,9 @@ describe('전 스테이지 공용 조사 대상', () => {
       }],
     })
     const board = getInvestigationTargets('stage2')[0]
-    expect(BULLETIN_BOARD_CONTACT_DOTS).toBe(3)
-    expect(BULLETIN_BOARD_CONTACT_MARGIN).toBeCloseTo(
-      0.136 + BULLETIN_BOARD_CONTACT_DOTS * INVESTIGATION_DOT_WORLD_UNITS,
-    )
+    // Player.jsx의 CuboidCollider args는 [0.136, 0.32, 0.136]이다.
+    expect(BULLETIN_BOARD_CONTACT_MARGIN).toBe(PLAYER_INVESTIGATION_HALF_EXTENT)
+    expect(BULLETIN_BOARD_CONTACT_MARGIN).toBeCloseTo(0.136)
     expect(board.contactMargin).toBe(BULLETIN_BOARD_CONTACT_MARGIN)
     expect(board.rotationY).toBeCloseTo(Math.PI / 4)
     expect(board.halfX).toBeCloseTo(0.67)
@@ -141,14 +139,14 @@ describe('전 스테이지 공용 조사 대상', () => {
         board.position[2] - localX * sin + localZ * cos,
       ]
     }
-    const insideFront = toWorld(0, board.halfZ + BULLETIN_BOARD_CONTACT_MARGIN)
-    const justOutsideFront = toWorld(0, board.halfZ + BULLETIN_BOARD_CONTACT_MARGIN + 0.001)
+    const touchingFront = toWorld(0, board.halfZ + BULLETIN_BOARD_CONTACT_MARGIN)
+    const beforeTouchingFront = toWorld(0, board.halfZ + BULLETIN_BOARD_CONTACT_MARGIN + 0.001)
     const emptyAabbCorner = toWorld(board.halfX + BULLETIN_BOARD_CONTACT_MARGIN + 0.01, 0)
     const reachableBoardCorner = toWorld(board.halfX, board.halfZ)
     const stage2MovementBounds = getPlayerMovementBounds('stage2')
 
-    expect(findInvestigationTargetInRange(insideFront[0], insideFront[1], [board], new Set())).toBe(board)
-    expect(findInvestigationTargetInRange(justOutsideFront[0], justOutsideFront[1], [board], new Set())).toBeNull()
+    expect(findInvestigationTargetInRange(touchingFront[0], touchingFront[1], [board], new Set())).toBe(board)
+    expect(findInvestigationTargetInRange(beforeTouchingFront[0], beforeTouchingFront[1], [board], new Set())).toBeNull()
     expect(findInvestigationTargetInRange(emptyAabbCorner[0], emptyAabbCorner[1], [board], new Set())).toBeNull()
     expect(findInvestigationTargetInRange(
       stage2MovementBounds.minX,

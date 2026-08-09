@@ -6,13 +6,10 @@ import { getInvestigationDialogue } from './investigationDialogue.js'
 // 근처를 지나가는 정도가 아니라 학생 위에 완전히 올라섰을 때만 트리거되도록 작게 잡음.
 export const STUDENT_DIALOGUE_RADIUS = 0.5
 // 조사 물체는 "닿으면" 성립 — 원형 반경이 아니라 콜라이더 박스 표면까지의 거리로 판정한다.
-// margin = 플레이어 half(콜라이더 0.136) + 프레임 스텝 여유. 표면에서 이 값 안(=사실상 접촉)에서만 발동.
+// 게시판은 플레이어 콜라이더 반폭(0.136)만큼까지, 즉 물리 콜라이더가 실제로 맞닿을 때만 조사한다.
 export const OBJECT_CONTACT_MARGIN = 0.25
-export const INVESTIGATION_DOT_WORLD_UNITS = 0.05
-export const BULLETIN_BOARD_CONTACT_DOTS = 3
 export const PLAYER_INVESTIGATION_HALF_EXTENT = 0.136
 export const BULLETIN_BOARD_CONTACT_MARGIN = PLAYER_INVESTIGATION_HALF_EXTENT
-  + BULLETIN_BOARD_CONTACT_DOTS * INVESTIGATION_DOT_WORLD_UNITS
 const STUDENT_TYPES = new Set(['unconsciousStudent', 'classPresidentStudent'])
 
 function getRotationY(rotation = [0, 0, 0]) {
