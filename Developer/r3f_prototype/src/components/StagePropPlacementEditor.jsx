@@ -88,8 +88,8 @@ function seedList(stageId, override) {
   }))
 }
 
-export default function StagePropPlacementEditor({ initialPlacements, onDraftChange, onApply }) {
-  const [override] = useState(() => initialPlacements ?? loadStagePropPlacements())
+export default function StagePropPlacementEditor({ onChange }) {
+  const [override] = useState(() => loadStagePropPlacements())
   const [stageId, setStageId] = useState('stage1')
   const [lists, setLists] = useState(() => {
     const initial = {}
@@ -124,8 +124,8 @@ export default function StagePropPlacementEditor({ initialPlacements, onDraftCha
     listsRef.current = nextLists
     propPlacementsRef.current = nextConfig
     setLists(nextLists)
-    onDraftChange?.(nextConfig)
-  }, [onDraftChange, stageId])
+    onChange?.(nextConfig)
+  }, [onChange, stageId])
 
   const pointerToWorld = useCallback((clientX, clientY) => {
     const rect = mapRef.current?.getBoundingClientRect()
@@ -249,7 +249,7 @@ export default function StagePropPlacementEditor({ initialPlacements, onDraftCha
   }
 
   const reapplyStage = () => {
-    onApply?.(propPlacementsRef.current)
+    onChange?.(propPlacementsRef.current)
     setStatus(`Applied · ${stageId}`)
   }
 
