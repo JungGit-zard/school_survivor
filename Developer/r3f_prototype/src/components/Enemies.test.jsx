@@ -842,8 +842,8 @@ describe('formation spawns', () => {
     }
   })
 
-  it('keeps Stage 2 guard chase stats at the required half-speed without changing HP, damage, count, or Stage 3 runners', () => {
-    expect(ENEMY_STATS.RZT).toMatchObject({ hp: 28, speed: 1.275, damage: 6 })
+  it('keeps Stage 2 guard chase speed while doubling fugitive scale and raising its HP fivefold', () => {
+    expect(ENEMY_STATS.RZT).toMatchObject({ hp: 140, speed: 1.275, damage: 6, scale: 1.76, contactDist: 0.22 })
     expect(ENEMY_STATS.RZG).toMatchObject({ hp: 48, speed: 1.225, damage: 9 })
     expect(STAGE2_GUARD_CHASE_SIZE).toBe(7)
     expect(ENEMY_STATS.RZL.speed).toBe(2.45)

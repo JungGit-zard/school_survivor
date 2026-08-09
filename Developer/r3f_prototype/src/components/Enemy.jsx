@@ -268,7 +268,7 @@ export const ENEMY_STATS = {
   RZL: { hp: 90,   speed: 2.45, damage: 14, scale: 1.08, xp: 12, contactDist: 0.28, runCrew: true },
   RZC: { hp: 28,   speed: 2.18, damage: 7,  scale: 0.78, xp: 5,  contactDist: 0.22, runCrew: true },
   // Stage 2 guard chase: a faster fleeing trench-coat zombie and six guards.
-  RZT: { hp: 28,   speed: 1.275, damage: 6,  scale: 0.88, xp: 5, contactDist: 0.22, runCrew: true },
+  RZT: { hp: 140,  speed: 1.275, damage: 6,  scale: 1.76, xp: 5, contactDist: 0.22, runCrew: true },
   RZG: { hp: 48,   speed: 1.225, damage: 9,  scale: 0.92, xp: 6, contactDist: 0.24, runCrew: true },
   // B01 1?ㅽ뀒?댁?: 遺梨꾧섦 ?ъ궗泥??⑦꽩 ?쒓굅. 異붽꺽/?뚯쭊留??ъ슜 (Bang_Rules 2026-05-09 遺濡?.
   // contactDist 0.36: regular charge keeps the 1.5x grace distance; Matilda charge uses exact body contact only.
