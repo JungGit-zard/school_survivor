@@ -337,6 +337,72 @@ function QuestBagIcon() {
   )
 }
 
+function QuestItemPictureIcon({ visualKind }) {
+  const kind = visualKind ?? 'book'
+  return (
+    <span style={styles.questItemPictureFrame} aria-hidden="true">
+      <svg viewBox="0 0 48 48" width="42" height="42" focusable="false" style={styles.questItemPictureSvg}>
+        <rect x="3" y="3" width="42" height="42" rx="10" fill="#fff8dc" stroke="#2a1709" strokeWidth="3" />
+        {(kind === 'red-book' || kind === 'book') && (
+          <g transform="rotate(-10 24 24)">
+            <rect x="14" y="11" width="22" height="27" rx="3" fill={kind === 'red-book' ? '#c92f38' : '#e85c9b'} stroke="#38110f" strokeWidth="3" />
+            <path d="M18 14v22" stroke="#ffe7b0" strokeWidth="2.5" />
+            <path d="M23 17h8M23 22h7" stroke="#fff0c8" strokeWidth="2" strokeLinecap="round" />
+          </g>
+        )}
+        {kind === 'attendance-sheet' && (
+          <g transform="rotate(6 24 24)">
+            <rect x="14" y="9" width="22" height="30" rx="2" fill="#f1e0ae" stroke="#3a2b17" strokeWidth="3" />
+            <path d="M18 17h14M18 23h14M18 29h14" stroke="#725b33" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="20" cy="17" r="2" fill="#e85c5c" />
+          </g>
+        )}
+        {kind === 'bandage' && (
+          <g>
+            <circle cx="24" cy="24" r="13" fill="#f4f0de" stroke="#3a2b17" strokeWidth="3" />
+            <circle cx="24" cy="24" r="6" fill="#fffaf0" stroke="#b49c77" strokeWidth="2" />
+            <path d="M13 18h22M13 30h22" stroke="#d5c6aa" strokeWidth="2" />
+          </g>
+        )}
+        {kind === 'key' && (
+          <g transform="rotate(-28 24 24)" fill="#d6af43" stroke="#3a2b17" strokeWidth="3" strokeLinejoin="round">
+            <circle cx="18" cy="21" r="7" fill="none" />
+            <path d="M24 21h16M35 21v6M40 21v4" strokeLinecap="round" />
+          </g>
+        )}
+        {kind === 'whistle' && (
+          <g transform="rotate(-12 24 24)">
+            <path d="M13 24c0-7 5-11 13-11h10v19H23c-6 0-10-3-10-8Z" fill="#dd4f56" stroke="#3a1014" strokeWidth="3" />
+            <circle cx="24" cy="23" r="4" fill="#ffd6d8" />
+            <path d="M36 17h5" stroke="#3a1014" strokeWidth="3" strokeLinecap="round" />
+          </g>
+        )}
+        {kind === 'fuse' && (
+          <g transform="rotate(-18 24 24)">
+            <rect x="15" y="17" width="18" height="14" rx="5" fill="#ffa83b" stroke="#3a1d05" strokeWidth="3" />
+            <path d="M10 24h5M33 24h5" stroke="#3a1d05" strokeWidth="4" strokeLinecap="round" />
+            <path d="M20 20h8" stroke="#fff0a8" strokeWidth="2" strokeLinecap="round" />
+          </g>
+        )}
+        {kind === 'list' && (
+          <g transform="rotate(-5 24 24)">
+            <rect x="13" y="10" width="24" height="30" rx="3" fill="#85c7d8" stroke="#17343d" strokeWidth="3" />
+            <path d="M18 18h14M18 24h14M18 30h10" stroke="#effcff" strokeWidth="2" strokeLinecap="round" />
+            <path d="M16 15c6 4 12 4 18 0" stroke="#5aaabd" strokeWidth="2" fill="none" />
+          </g>
+        )}
+        {kind === 'valve' && (
+          <g transform="rotate(18 24 24)" fill="#d94b3f" stroke="#3a100b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="24" cy="24" r="11" fill="none" />
+            <path d="M24 12v24M12 24h24" />
+            <circle cx="24" cy="24" r="4" fill="#ffb199" />
+          </g>
+        )}
+      </svg>
+    </span>
+  )
+}
+
 export function UpgradeIcon({ type }) {
   const imageSrc = getWeaponUpgradeIconSrc(type)
   const studioItemId = WEAPON_ICON_STUDIO_ITEMS[type]
@@ -578,13 +644,28 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
     return translate('hud.questToastStart', { title })
   }, [questToast])
   const questStarted = typeof questToast === 'object' && questToast?.type === 'started'
+  const questItemReceived = typeof questToast === 'object' && questToast?.type === 'item'
   const questCompleted = typeof questToast === 'object' && questToast?.type === 'completed'
+  const questToastQuest = useMemo(() => {
+    if (typeof questToast !== 'object' || !questToast?.questId) return null
+    return getQuestDefinition(questToast.questId)
+  }, [questToast])
   const questPopupNextAction = useMemo(() => {
-    if (!questStarted || typeof questToast !== 'object') return null
-    const quest = getQuestDefinition(questToast.questId)
-    if (!quest) return null
-    return `다음 행동: ${translate(`quest.${quest.id}.objective`, null, quest.objective)}`
-  }, [questStarted, questToast])
+    if (!questToastQuest) return null
+    if (questStarted) {
+      return translate('hud.questToastNextObjective', {
+        objective: translate(`quest.${questToastQuest.id}.objective`, null, questToastQuest.objective),
+      })
+    }
+    if (!questItemReceived) return null
+    const isInstall = questToastQuest.completion.kind === 'install'
+    const targetKey = isInstall ? 'target' : 'giver'
+    const target = translate(`quest.${questToastQuest.id}.${targetKey}`, null, questToastQuest.completion.name)
+    const actionKey = isInstall
+      ? 'hud.questToastNextInstall'
+      : 'hud.questToastNextReturn'
+    return translate(actionKey, { target })
+  }, [questItemReceived, questStarted, questToastQuest])
   const activeWeapons = useMemo(
     () => Object.entries(weapons).filter(([, w]) => w.active),
     [weapons],
@@ -1103,12 +1184,22 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
           role="status"
           aria-live={questStarted || questCompleted ? 'assertive' : 'polite'}
           data-testid={questStarted ? 'quest-start-popup' : questCompleted ? 'quest-complete-popup' : 'quest-toast'}
-          style={{ ...styles.questToast, ...(questStarted || questCompleted ? styles.questPopupCenter : null) }}
+          style={{
+            ...styles.questToast,
+            ...(questStarted || questCompleted ? styles.questPopupCenter : null),
+            ...(questItemReceived ? styles.questItemToastWide : null),
+          }}
         >
-          <QuestBagIcon />
-          <span style={styles.questPopupText}>
+          {questItemReceived && questToastQuest?.item
+            ? <QuestItemPictureIcon visualKind={questToastQuest.item.visualKind} />
+            : <QuestBagIcon />}
+          <span style={{ ...styles.questPopupText, ...(questItemReceived ? styles.questItemToastText : null) }}>
             <strong>{questToastMessage}</strong>
-            {questPopupNextAction && <small style={styles.questPopupNextAction}>{questPopupNextAction}</small>}
+            {questPopupNextAction && (
+              <small style={{ ...styles.questPopupNextAction, ...(questItemReceived ? styles.questItemNextAction : null) }}>
+                {questPopupNextAction}
+              </small>
+            )}
           </span>
         </div>
       )}
@@ -1862,7 +1953,38 @@ const styles = {
     textAlign: 'center',
   },
   questPopupText: { display: 'grid', gap: 3 },
+  questItemToastWide: {
+    top: 66,
+    width: 'min(92vw, 420px)',
+    maxWidth: 'calc(100vw - 24px)',
+    minHeight: 58,
+    boxSizing: 'border-box',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    gap: 10,
+    padding: '8px 12px 8px 8px',
+    textAlign: 'left',
+  },
+  questItemPictureFrame: {
+    flex: '0 0 48px',
+    width: 48,
+    height: 48,
+    display: 'grid',
+    placeItems: 'center',
+    borderRadius: 10,
+    background: 'linear-gradient(180deg, rgba(255,246,218,0.96), rgba(233,209,153,0.96))',
+    boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.46), 0 2px 0 rgba(42,23,9,0.28)',
+  },
+  questItemPictureSvg: {
+    display: 'block',
+    filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.35))',
+  },
+  questItemToastText: {
+    minWidth: 0,
+    lineHeight: 1.24,
+  },
   questPopupNextAction: { display: 'block', fontSize: 12, lineHeight: 1.25, fontWeight: uiType.weightStrong, color: '#5d554e' },
+  questItemNextAction: { color: '#15803d' },
   questInventoryPanel: {
     ...schoolPanel('paper'),
     position: 'absolute',
