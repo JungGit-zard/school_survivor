@@ -179,7 +179,12 @@ describe('GraphicsStudio', () => {
     expect(cloudMocks.save).toHaveBeenCalledTimes(1)
     const gameWindow = window.open.mock.results.at(-1)?.value
     expect(gameWindow.postMessage).toHaveBeenCalledWith(
-      { type: STUDIO_GAME_SYNC_MESSAGE, force: true },
+      expect.objectContaining({
+        type: STUDIO_GAME_SYNC_MESSAGE,
+        force: true,
+        datasets: expect.objectContaining({ propPlacements: expect.any(Object) }),
+        revision: expect.any(Number),
+      }),
       window.location.origin,
     )
   })
@@ -236,7 +241,12 @@ describe('GraphicsStudio', () => {
     expect(savedDatasets.propPlacements.stage1.find((item) => item.type === 'classroomDesk').position[0]).toBe(savedDesk.position[0])
     const gameWindow = window.open.mock.results.at(-1)?.value
     expect(gameWindow.postMessage).toHaveBeenCalledWith(
-      { type: STUDIO_GAME_SYNC_MESSAGE, force: true },
+      expect.objectContaining({
+        type: STUDIO_GAME_SYNC_MESSAGE,
+        force: true,
+        datasets: expect.objectContaining({ propPlacements: expect.any(Object) }),
+        revision: expect.any(Number),
+      }),
       window.location.origin,
     )
   })
