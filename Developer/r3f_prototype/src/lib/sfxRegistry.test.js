@@ -244,6 +244,70 @@ describe('playSfx', () => {
     }
   })
 
+  it('registers the line-draw slash, cross and expire as dedicated weapon assets', async () => {
+    const { SOUND_MAP, POLYPHONY_COOLDOWN } = await import('./sfxRegistry.js')
+
+    expect(SOUND_MAP).toMatchObject({
+      lineDrawSlash: '/sfx/weapons/lineDrawSlash.ogg',
+      lineDrawCross: '/sfx/weapons/lineDrawCross.ogg',
+      lineDrawExpire: '/sfx/weapons/lineDrawExpire.ogg',
+    })
+
+    for (const id of ['lineDrawSlash', 'lineDrawCross', 'lineDrawExpire']) {
+      // 커터칼 계열 기존 음원의 alias가 아니라 전용 음원이어야 한다.
+      // 선긋기는 30cm자 + 커터칼 합성형이라 양쪽 모두와 구분돼야 한다.
+      expect(SOUND_MAP[id]).not.toBe(SOUND_MAP.boxCutterFire)
+      expect(SOUND_MAP[id]).not.toBe(SOUND_MAP.boxCutterHit)
+      expect(SOUND_MAP[id]).not.toBe(SOUND_MAP.rulerFire)
+      expect(SOUND_MAP[id]).not.toBe(SOUND_MAP.rulerHit)
+      expect(SOUND_MAP[id]).not.toBe(SOUND_MAP.bikittyCutterFire)
+      for (const extension of ['ogg', 'mp3']) {
+        const assetPath = SOUND_MAP[id].replace(/\.ogg$/, `.${extension}`)
+        const assetUrl = new URL(`../../public${assetPath}`, import.meta.url)
+        expect(statSync(assetUrl).size, `${id} ${extension}`).toBeGreaterThan(1000)
+      }
+    }
+
+    expect(POLYPHONY_COOLDOWN).toEqual(expect.objectContaining({
+      lineDrawSlash: 120,
+      lineDrawCross: 34,
+      lineDrawExpire: 260,
+    }))
+    // cross는 동시 다중 절단을 표현해야 하는 유일한 신호다. 프레임(≈16.7ms) 하나보다는
+    // 길어 같은 프레임 중복이 반드시 접히고, slash/expire보다는 확실히 짧아
+    // 웨이브가 선을 뚫는 연속 서걱이 끊기지 않는다.
+    expect(POLYPHONY_COOLDOWN.lineDrawCross).toBeGreaterThan(17)
+    expect(POLYPHONY_COOLDOWN.lineDrawCross).toBeLessThan(POLYPHONY_COOLDOWN.lineDrawSlash)
+    expect(POLYPHONY_COOLDOWN.lineDrawCross).toBeLessThan(POLYPHONY_COOLDOWN.lineDrawExpire)
+  })
+
+  it('lets one frame of simultaneous line crossings collapse into a single cut cue', async () => {
+    const now = vi.spyOn(performance, 'now')
+    const { playSfx } = await import('./sfxRegistry.js')
+
+    // 한 프레임 안에서 좀비 5마리가 절단선을 동시에 가로지른 상황.
+    now.mockReturnValue(1000)
+    for (let crossing = 0; crossing < 5; crossing += 1) playSfx('lineDrawCross')
+    expect(howlPlay).toHaveBeenCalledTimes(1)
+
+    // 다음 무리는 여전히 들려야 한다 — 쿨다운이 신호를 삼켜서는 안 된다.
+    now.mockReturnValue(1034)
+    playSfx('lineDrawCross')
+    expect(howlPlay).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps the expire cue quiet enough to sit under the cut cue it follows', async () => {
+    const { playSfx } = await import('./sfxRegistry.js')
+
+    // 소멸음은 4.2초마다 반복되므로 절단음보다 확실히 작게 깔려야 한다.
+    // 여기서는 호출 볼륨 계약만 검증한다(실제 PCM 레벨은 음원 자체에서 이미 낮다).
+    playSfx('lineDrawCross', 0.9)
+    playSfx('lineDrawExpire', 0.35)
+    const [crossVolume] = howlVolume.mock.calls[0]
+    const [expireVolume] = howlVolume.mock.calls[1]
+    expect(expireVolume).toBeLessThan(crossVolume)
+  })
+
   it('keeps every registered OGG and MP3 fallback path backed by a public asset', async () => {
     const { SOUND_MAP } = await import('./sfxRegistry.js')
 

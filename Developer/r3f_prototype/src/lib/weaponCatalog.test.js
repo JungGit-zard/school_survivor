@@ -11,13 +11,13 @@ import {
 } from './weaponCatalog.js'
 
 describe('weaponCatalog', () => {
-  it('18종 entry 등록 + starter 11종', () => {
+  it('19종 entry 등록 + starter 12종', () => {
     const all = getAllWeaponIds()
-    expect(all.length).toBe(18)
-    // bikittyCutter는 하나코와 같은 방식이다: 계정 해금 게이트를 쓰지 않으므로 STARTER로
-    // 선언하고, 실제 등장 조건은 카드 쪽 requiresActiveWeapon('boxCutter')이 전부 담당한다.
+    expect(all.length).toBe(19)
+    // bikittyCutter·lineDraw는 하나코와 같은 방식이다: 계정 해금 게이트를 쓰지 않으므로 STARTER로
+    // 선언하고, 실제 등장 조건은 카드 쪽 requiresActiveWeapon(s)가 전부 담당한다.
     const starter = getStarterIds()
-    expect(starter).toEqual(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'chibiko', 'hanako', 'bikittyCutter'])
+    expect(starter).toEqual(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'chibiko', 'hanako', 'bikittyCutter', 'lineDraw'])
   })
 
   it('Starter base 스탯이 BASE_WEAPONS 정본 값과 일치한다', () => {
@@ -152,9 +152,9 @@ describe('weaponCatalog', () => {
     })
   })
 
-  it('evaluateUnlocks 빈 records → starter 11종만', () => {
+  it('evaluateUnlocks 빈 records → starter 12종만', () => {
     const u = evaluateUnlocks({})
-    expect(u.size).toBe(11)
+    expect(u.size).toBe(12)
     for (const id of getStarterIds()) expect(u.has(id)).toBe(true)
     expect(u.has('compassBlade')).toBe(false)
   })
@@ -214,7 +214,7 @@ describe('weaponCatalog', () => {
   it('null/undefined records 안전', () => {
     expect(() => evaluateUnlocks(null)).not.toThrow()
     expect(() => evaluateUnlocks(undefined)).not.toThrow()
-    expect(evaluateUnlocks(null).size).toBe(11) // starter only
+    expect(evaluateUnlocks(null).size).toBe(12) // starter only
   })
 
   it('isStarter / isValidWeaponId / STARTER 상수', () => {

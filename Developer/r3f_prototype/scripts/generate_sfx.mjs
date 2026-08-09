@@ -386,6 +386,98 @@ const sounds = {
     )
   })(),
 
+  // ── 선긋기 (lineDraw) 3종 ──────────────────────────────────────────────────
+  // 30cm 자 + 커터칼. 자를 대고 그은 직선이 2초간 남고, 그 선을 '가로지르는' 적만 잘린다.
+  // 반응형 무기가 아니라 길목에 미리 깔아 두는 함정이므로, 소리도 타격감이 아니라
+  // 「긋는다 → 지나가다 잘린다 → 사라진다」는 상태 전이를 들려주는 쪽으로 설계한다.
+  //
+  // 대역 배치(실측 centroid 기준):
+  //   bikittyCutterSnap 3.7k · boxCutterHit 4.7k · bikittyCutterFire 4.9k
+  //   bikittyCutterReload 6.9k · sharkHit 9.2k
+  // 이 사이의 빈 자리에 slash를 아래(2.5k대), cross를 위(7.9k대)로 벌려 배치한다.
+  // 전부 절차 합성이며 외부 샘플/타 게임 음원을 쓰지 않는다.
+
+  // 1) 스으윽 — 자에 붙여 6.0 길이를 쭉 미는 직선 마찰음.
+  //    bikittyCutterFire(0.058초)의 8배 길이로, '거리'가 시간으로 들리게 한다.
+  //    저역통과를 2단으로 걸어 중심주파수를 2.5kHz대까지 끌어내렸다(1단은 6dB/oct라
+  //    노이즈 상단이 새어 centroid가 7kHz로 뜬다 — reload가 그 사례다).
+  //    커터칼 계열이 전부 3.7~4.9kHz에 몰려 있어, 이 무기만 그 아래에서 운다.
+  'weapons/lineDrawSlash': () => (() => {
+    const at = (samples, seconds) => {
+      const offset = Math.floor(seconds * SR)
+      const padded = new Float32Array(samples.length + offset)
+      padded.set(samples, offset)
+      return padded
+    }
+    return mix(
+      // 마찰 베드 — 자 모서리를 따라 날이 미끄러지는 본체.
+      // vib는 아주 얕게: 깊으면 '흔들리는 선'이 되고, 이 무기는 완벽한 직선이어야 한다.
+      at(lowpass(lowpass(bandpass(synth({ wave:'sine', freq:430, freqEnd:760, dur:0.44, vol:0.72,
+        attack:0.045, decay:0.15, sustain:0.62, release:0.17,
+        vibRate:13, vibDepth:26, noiseAmt:0.56 }), 620, 2600), 2600), 2400), 0),
+      // 자에 눌린 톤 스파인 — 상승하는 삼각파. 강체 모서리를 긁을 때 생기는 음정감이고,
+      // 상승이 '앞으로 나아간다'는 방향감을 준다.
+      at(lowpass(synth({ wave:'triangle', freq:880, freqEnd:1480, dur:0.42, vol:0.22,
+        attack:0.05, decay:0.14, sustain:0.55, release:0.16 }), 3400), 0),
+      // 빠져나가는 끝 — 후반부에만 밝은 대역을 얹어 시작보다 끝이 밝아진다.
+      // 날이 재료를 관통해 반대편으로 빠지는 순간의 해방감이고, 이것이 '사거리 6.0을
+      // 끝까지 그었다'는 종료 신호도 겸한다. 앞머리에 얹으면 그냥 치찰음이 된다.
+      at(lowpass(bandpass(synth({ wave:'sine', freq:620, freqEnd:1150, dur:0.20, vol:0.38,
+        attack:0.05, decay:0.05, sustain:0.72, release:0.09, noiseAmt:0.66 }), 2200, 4800), 4800), 0.26),
+      // 바닥에 붙은 자의 저역 — 폰 스피커에서 hiss가 아니라 '긋는 물체'로 들리게 하는 몸통.
+      at(synth({ wave:'triangle', freq:190, freqEnd:150, dur:0.45, vol:0.10,
+        attack:0.04, decay:0.15, sustain:0.5, release:0.18 }), 0),
+      // 시작점 접촉 — 날을 대는 순간의 작은 톡. 여기서 선이 시작된다는 표식.
+      at(lowpass(lowpass(synth({ wave:'noise', freq:1, dur:0.024, vol:0.26,
+        attack:0.0005, decay:0.008, sustain:0.0, release:0.014 }), 2200), 2200), 0),
+    )
+  })(),
+
+  // 2) 서걱 — 절단선을 가로지른 적이 잘리는 순간. 아주 짧고 건조하게 끊는다.
+  //    한 프레임에 여러 마리가 동시에 지날 수 있어 폴리포니가 실제로 겹친다. 그래서
+  //    (a) 7.9kHz대 좁은 대역으로 몰아 boxCutterHit(4.7k)·bikittyCutterFire(4.9k)와
+  //        1.7옥타브 떨어뜨리고,
+  //    (b) 꼬리를 아예 남기지 않아(≈0.046초) 겹쳐도 잔향이 쌓이지 않게 한다.
+  //    저역 몸통은 hiss 방지 최소량만 — 키우면 centroid가 커터칼 대역으로 내려온다.
+  'weapons/lineDrawCross': () => (() => {
+    const at = (samples, seconds) => {
+      const offset = Math.floor(seconds * SR)
+      const padded = new Float32Array(samples.length + offset)
+      padded.set(samples, offset)
+      return padded
+    }
+    return mix(
+      // 절단 트랜지언트 — 4.6~8.6kHz 대역통과 위에 8.6kHz 저역통과를 한 번 더.
+      // 상단을 12dB/oct로 닫아야 sharkHit(9.2k)·flaskTick(9.7k) 위로 새지 않는다.
+      at(lowpass(bandpass(synth({ wave:'noise', freq:1, dur:0.038, vol:0.70,
+        attack:0.0004, decay:0.012, sustain:0.0, release:0.021 }), 5000, 9400), 9400), 0),
+      // 날의 에지 — 고역 삼각파를 짧게. 노이즈만이면 '치익'이 되고 절단면이 안 보인다.
+      at(highpass(synth({ wave:'triangle', freq:4600, freqEnd:3200, dur:0.022, vol:0.24,
+        attack:0.0004, decay:0.007, sustain:0.0, release:0.013 }), 2200), 0.001),
+      // 최소 몸통 — 순수 hiss가 되지 않을 만큼만. 키우면 centroid가 커터칼 대역으로 내려온다.
+      at(lowpass(synth({ wave:'triangle', freq:760, freqEnd:520, dur:0.030, vol:0.055,
+        attack:0.0006, decay:0.010, sustain:0.0, release:0.017 }), 2400), 0.001),
+    )
+  })(),
+
+  // 3) 스륵 — 2초 뒤 절단선이 스스로 지워지는 소멸음. 전투 중 가장 조용해야 한다.
+  //    쿨다운 2.2초 + 지속 2초 = 4.2초마다 반복되므로, 존재를 알리되 주의를 끌면 안 된다.
+  //    피로 회피 3원칙: (a) 어택 없는 하강 — 놀람 반사를 유발하는 트랜지언트가 없다,
+  //    (b) 900Hz 저역통과 — 다른 어떤 무기·적 신호 대역에도 얹히지 않는다,
+  //    (c) 피크를 0.3 미만으로 묶어 mix()의 정규화(peak>1일 때만 동작)에 걸리지 않게 한다.
+  'weapons/lineDrawExpire': () => mix(
+    // 하강하는 숨 — '지워진다'는 방향. 상승이면 무언가 생긴 신호로 오해된다.
+    synth({ wave:'sine', freq:430, freqEnd:245, dur:0.22, vol:0.058,
+      attack:0.022, decay:0.08, sustain:0.34, release:0.11 }),
+    // 흩어지는 가루 — 900Hz 저역통과를 2단(12dB/oct)으로. 1단은 상단이 새어
+    // '치이' 하는 hiss가 남고, 그러면 조용해도 존재감이 생겨 피로해진다.
+    lowpass(lowpass(synth({ wave:'noise', freq:1, dur:0.20, vol:0.11,
+      attack:0.03, decay:0.07, sustain:0.28, release:0.09 }), 900), 900),
+    // 아주 옅은 몸통 — 폰 스피커에서 완전히 사라지지 않을 최소한.
+    lowpass(lowpass(synth({ wave:'triangle', freq:620, freqEnd:380, dur:0.18, vol:0.038,
+      attack:0.025, decay:0.06, sustain:0.3, release:0.09 }), 1100), 1100),
+  ),
+
   'weapons/umbrellaHit': () => synth({
     wave:'noise', freq:1, dur:0.2, vol:0.55,
     attack:0.001, decay:0.07, sustain:0.05, release:0.1,

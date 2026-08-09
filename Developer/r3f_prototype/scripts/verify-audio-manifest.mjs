@@ -20,6 +20,9 @@ const canonicalTitleBgm = {
   canonicalInclusion: 'owner-mandated-permanent',
 }
 const failures = []
+// 성공 로그의 수치는 반드시 실제 검증 대상에서 파생한다. 예전에는 '76 SFX IDs, 152
+// fallback files'가 리터럴로 박혀 있어서, SFX가 늘어도 계속 76이라고 보고했다.
+let verifiedSummary = null
 const nonApprovedLicenseEvidence = new Set([
   'unverified',
   'unknown',
@@ -59,6 +62,10 @@ if (!existsSync(manifestPath)) {
     }
     const expectedLogicalIds = new Set(expectedPathsByLogicalId.keys())
     const expectedPaths = new Set([...expectedPathsByLogicalId.values()].flat())
+    const sfxLogicalIdCount = expectedLogicalIds.size - bgmPathsByLogicalId.size
+    const sfxFallbackFileCount = expectedPaths.size
+      - [...bgmPathsByLogicalId.values()].flat().length
+    verifiedSummary = `${sfxLogicalIdCount} SFX IDs, ${sfxFallbackFileCount} fallback files, canonical title BGM`
 
     if (!Array.isArray(manifest.assets)) {
       fail('manifest assets must be an array')
@@ -128,5 +135,5 @@ if (failures.length) {
   for (const message of failures) console.error(`audio manifest: ${message}`)
   process.exitCode = 1
 } else {
-  console.log('audio manifest verified: 76 SFX IDs, 152 fallback files, canonical title BGM')
+  console.log(`audio manifest verified: ${verifiedSummary ?? 'no manifest inspected'}`)
 }

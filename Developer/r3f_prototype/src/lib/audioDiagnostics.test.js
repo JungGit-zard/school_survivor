@@ -33,6 +33,13 @@ describe('audio diagnostics catalog', () => {
       bgmCount: 1,
     })
   })
+
+  // 카운트 상수만 올리고 실제 음원은 안 들어오는 드리프트를 막는다.
+  // 81 → 84로 올린 근거가 이 세 ID이므로, 카탈로그에 실재하는지 여기서 못박는다.
+  it('carries the line-draw trap cues into the diagnostic catalog that justified the count bump', () => {
+    const ids = getAudioDiagnosticCatalog().map((entry) => entry.logicalId)
+    expect(ids).toEqual(expect.arrayContaining(['lineDrawSlash', 'lineDrawCross', 'lineDrawExpire']))
+  })
 })
 
 describe('measureDecodedAudioBuffer', () => {

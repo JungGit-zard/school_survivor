@@ -45,6 +45,7 @@ import eraserIconSrc from '../assets/weapon_icon/12_wea_eraser.png.webp'
 import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
 import hanakoIconSrc from '../assets/weapon_icon/15_wea_hanako.svg'
 import bikittyCutterIconSrc from '../assets/weapon_icon/17_wea_bikitty_cutter.svg'
+import lineDrawIconSrc from '../assets/weapon_icon/18_wea_line_draw.svg'
 import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
 import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.webp'
 import laidManPortraitSrc from '../assets/character/laid_man.webp'
@@ -121,6 +122,10 @@ const UPGRADES = [
   { key: 'bikittyCutterDamage', icon: 'bikittyCutter', labelFn: damageLabel('바이키티 피해', 'bikittyCutter', 'bikittyCutterDamage'), desc: '단수별 베기 피해 증가' },
   { key: 'bikittyCutterRange', icon: 'bikittyCutter', label: '바이키티 단수 사거리 +', desc: '날이 한 칸 나올 때마다 늘어나는 사거리 증가' },
   { key: 'bikittyCutterCrit', icon: 'bikittyCutter', label: '바이키티 치명타 강화', desc: '치명타 확률 +2%, 치명타 피해 배율 +0.75배 (최대 4.5배)' },
+  { key: 'acquireLineDraw', icon: 'lineDraw', label: '선긋기 해금', desc: '30cm 자와 커터칼을 둘 다 보유해야 등장; 전방 6.0 직선을 긋고 그 자리에 2초간 남는 절단선을 가로지르는 적을 벤다' },
+  { key: 'lineDrawDamage', icon: 'lineDraw', labelFn: damageLabel('선긋기 피해', 'lineDraw', 'lineDrawDamage'), desc: '긋는 순간의 직격 피해 증가' },
+  { key: 'lineDrawDuration', icon: 'lineDraw', label: '선긋기 절단선 지속 +', desc: '그은 절단선이 바닥에 남는 시간 +0.4초 (최대 4초)' },
+  { key: 'lineDrawCrit', icon: 'lineDraw', label: '선긋기 치명타 강화', desc: '치명타 확률 +2%, 치명타 피해 배율 +0.75배 (최대 4.5배)' },
   { key: 'acquireSharkMissile', icon: 'sharkMissile', label: '상어미사일 해금', desc: '가장 빽빽한 좀비 무리로 호밍 폭발' },
   { key: 'sharkMissileDamage', icon: 'sharkMissile', labelFn: damageLabel('상어미사일 피해', 'sharkMissile', 'sharkMissileDamage'), desc: '폭발 피해 증가' },
   { key: 'sharkMissileRadius', icon: 'sharkMissile', label: '상어미사일 반경 +', desc: '폭발 반경 증가' },
@@ -159,6 +164,7 @@ const WEAPON_UPGRADE_ICON_SRC = {
   sharkMissile: sharkMissileIconSrc,
   lantern: lanternIconSrc,
   bikittyCutter: bikittyCutterIconSrc,
+  lineDraw: lineDrawIconSrc,
 }
 
 const WEAPON_KEY_TO_ICON = {
@@ -180,6 +186,7 @@ const WEAPON_KEY_TO_ICON = {
   sharkMissile:  'sharkMissile',
   studentLantern: 'lantern',
   bikittyCutter: 'bikittyCutter',
+  lineDraw:      'lineDraw',
 }
 
 const WEAPON_ICON_STUDIO_ITEMS = {
@@ -693,6 +700,9 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         objective: translate(`quest.${questToastQuest.id}.objective`, null, questToastQuest.objective),
       })
     }
+    if (questCompleted) {
+      return translate('hud.questToastRewardReceived', { gold: questToastQuest.rewardGold })
+    }
     if (!questItemReceived) return null
     const isInstall = questToastQuest.completion.kind === 'install'
     const targetKey = isInstall ? 'target' : 'giver'
@@ -701,7 +711,16 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
       ? 'hud.questToastNextInstall'
       : 'hud.questToastNextReturn'
     return translate(actionKey, { target })
-  }, [questItemReceived, questStarted, questToastQuest])
+  }, [questCompleted, questItemReceived, questStarted, questToastQuest])
+  const questDialoguePopup = Boolean(
+    studentDialogue
+    && studentDialogue.subjectType === 'quest'
+    && questToastQuest
+    && (
+      (questStarted && studentDialogue.dialogueId === questToastQuest.startDialogueId)
+      || (questCompleted && studentDialogue.dialogueId === questToastQuest.completionDialogueId)
+    )
+  )
   const activeWeapons = useMemo(
     () => Object.entries(weapons).filter(([, w]) => w.active),
     [weapons],
@@ -953,10 +972,10 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
   }, [markQuestInventorySeen, questInventoryOpen])
 
   useEffect(() => {
-    if (!questToast) return undefined
+    if (!questToast || questDialoguePopup) return undefined
     const timer = setTimeout(clearQuestToast, 2000)
     return () => clearTimeout(timer)
-  }, [clearQuestToast, questToast])
+  }, [clearQuestToast, questDialoguePopup, questToast])
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -1215,7 +1234,7 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
         </div>
       )}
 
-      {questToastMessage && (
+      {questToastMessage && !questDialoguePopup && (
         <div
           role="status"
           aria-live={questStarted || questCompleted ? 'assertive' : 'polite'}
@@ -1386,33 +1405,58 @@ export default function HUD({ onOpenCoinShop, onGoToTitle, onGoToLobby, onGoToRa
       {studentDialogue && (
         <div
           data-testid="student-dialogue-catcher"
-          style={styles.dialogueCatcher}
-          onPointerDown={() => { emitSfx({ id: 'buttonClick' }); closeStudentDialogue() }}
+          style={questDialoguePopup
+            ? { ...styles.dialogueCatcher, ...styles.questDialogueCatcher }
+            : styles.dialogueCatcher}
+          onPointerDown={() => {
+            emitSfx({ id: 'buttonClick' })
+            if (questDialoguePopup) clearQuestToast()
+            closeStudentDialogue()
+          }}
         >
-          <div style={styles.dialogueBox} role="dialog" aria-label={t('hud.investigateAria', { name: studentDialogue.subjectName ?? t('hud.defaultSubject') })}>
-            {(studentDialogue.subjectType ?? 'student') === 'student' && (
-              <div style={styles.dialoguePortraitFrame}>
-                <img
-                  src={laidManPortraitSrc}
-                  alt={t('hud.laidStudentAlt')}
-                  draggable={false}
-                  style={styles.dialoguePortrait}
-                />
+          {questDialoguePopup ? (
+            <div
+              data-testid="quest-dialogue-popup"
+              style={{ ...styles.questToast, ...styles.questPopupCenter, ...styles.questDialoguePopup }}
+              role="dialog"
+              aria-label={t('hud.investigateAria', { name: studentDialogue.subjectName ?? t('hud.defaultSubject') })}
+            >
+              <QuestBagIcon size={82} />
+              <div style={styles.questDialogueContent}>
+                <div style={styles.questDialogueName}>[{studentDialogue.subjectName ?? t('hud.tiredStudent')}]</div>
+                <div style={styles.questDialogueLine} aria-live="polite">{getDialogueText(studentDialogue.dialogueId)}</div>
+                <div style={styles.questDialogueDivider} />
+                <strong style={styles.questDialogueNotice}>{questToastMessage}</strong>
+                {questPopupNextAction && <small style={styles.questPopupNextAction}>{questPopupNextAction}</small>}
+                <div style={styles.questDialogueHint}>{t('hud.tapToContinue')}</div>
               </div>
-            )}
-            <div style={styles.dialogueTextCol}>
-              <div style={styles.dialogueName}>[{studentDialogue.subjectName ?? t('hud.tiredStudent')}]</div>
-              <div style={styles.dialogueLine} aria-live="polite">{getDialogueText(studentDialogue.dialogueId)}</div>
-              {studentDialogue.reward && (
-                <div style={styles.dialogueReward}>
-                  {studentDialogue.reward.type === 'gold'
-                    ? t('hud.rewardGold', { amount: studentDialogue.reward.amount })
-                    : t('hud.rewardUpgrade')}
+            </div>
+          ) : (
+            <div style={styles.dialogueBox} role="dialog" aria-label={t('hud.investigateAria', { name: studentDialogue.subjectName ?? t('hud.defaultSubject') })}>
+              {(studentDialogue.subjectType ?? 'student') === 'student' && (
+                <div style={styles.dialoguePortraitFrame}>
+                  <img
+                    src={laidManPortraitSrc}
+                    alt={t('hud.laidStudentAlt')}
+                    draggable={false}
+                    style={styles.dialoguePortrait}
+                  />
                 </div>
               )}
-              <div style={styles.dialogueHint}>{t('hud.tapToContinue')}</div>
+              <div style={styles.dialogueTextCol}>
+                <div style={styles.dialogueName}>[{studentDialogue.subjectName ?? t('hud.tiredStudent')}]</div>
+                <div style={styles.dialogueLine} aria-live="polite">{getDialogueText(studentDialogue.dialogueId)}</div>
+                {studentDialogue.reward && (
+                  <div style={styles.dialogueReward}>
+                    {studentDialogue.reward.type === 'gold'
+                      ? t('hud.rewardGold', { amount: studentDialogue.reward.amount })
+                      : t('hud.rewardUpgrade')}
+                  </div>
+                )}
+                <div style={styles.dialogueHint}>{t('hud.tapToContinue')}</div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -2031,6 +2075,51 @@ const styles = {
   },
   questPopupNextAction: { display: 'block', fontSize: 12, lineHeight: 1.25, fontWeight: uiType.weightStrong, color: '#15803d' },
   questItemNextAction: { color: '#15803d', fontSize: 15.6, lineHeight: 1.25 },
+  questDialogueCatcher: {
+    alignItems: 'center',
+    paddingBottom: '12vh',
+  },
+  questDialoguePopup: {
+    alignItems: 'center',
+    pointerEvents: 'none',
+  },
+  questDialogueContent: {
+    flex: 1,
+    minWidth: 0,
+    display: 'grid',
+    gap: 5,
+    textAlign: 'left',
+  },
+  questDialogueName: {
+    color: '#8a4b16',
+    fontSize: 13,
+    fontWeight: uiType.weightHeavy,
+  },
+  questDialogueLine: {
+    color: uiPalette.ink,
+    fontSize: 15,
+    fontWeight: 800,
+    lineHeight: 1.35,
+    wordBreak: 'keep-all',
+    overflowWrap: 'anywhere',
+  },
+  questDialogueDivider: {
+    height: 1,
+    margin: '2px 0',
+    background: 'rgba(5, 2, 9, 0.32)',
+  },
+  questDialogueNotice: {
+    fontSize: 18,
+    lineHeight: 1.2,
+    textAlign: 'center',
+  },
+  questDialogueHint: {
+    color: '#6b6259',
+    fontSize: 10,
+    fontWeight: 700,
+    textAlign: 'center',
+    opacity: 0.85,
+  },
   questInventoryPanel: {
     ...schoolPanel('paper'),
     position: 'absolute',

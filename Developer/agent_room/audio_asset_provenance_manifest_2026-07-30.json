@@ -1598,6 +1598,66 @@
       "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
       "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
       "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "lineDrawSlash",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawSlash.ogg",
+          "bytes": 7966,
+          "sha256": "12d94b53601a36c0f0330f7ec4a678686c087d6af15f3d57e9a3ef23053e891f"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawSlash.mp3",
+          "bytes": 5270,
+          "sha256": "610104faa52043b7c0e952d48f9a46298a42bb174dca4d79183962ef5234dc60"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "lineDrawCross",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawCross.ogg",
+          "bytes": 3933,
+          "sha256": "e93cd210f21af5049a3eb0f1d04e6e178320565589fc383f30ae68e701269353"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawCross.mp3",
+          "bytes": 1090,
+          "sha256": "c074a05b7c169f88101aef837e6945aaadac8f2e31477f79dde0a1ed6f77c9af"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "lineDrawExpire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawExpire.ogg",
+          "bytes": 5484,
+          "sha256": "4a8553129720f265672a00c37557c2748ef0b17137f548e3dbcff992c7a749cd"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawExpire.mp3",
+          "bytes": 2919,
+          "sha256": "973f3bd3dd6e5fe1728929c2b784b042409cc0401d25843cf7cd6fae219510e9"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
     }
   ]
 }

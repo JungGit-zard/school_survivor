@@ -3,6 +3,7 @@ import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { beforeEach, describe, expect, it } from 'vitest'
 import HUD from './HUD.jsx'
+import { getDialogueText } from '../dialogues/dialogueStore.js'
 import { getStageQuestDefinitions } from '../lib/quests.js'
 import { useGameStore } from '../store/useGameStore.js'
 
@@ -133,7 +134,7 @@ describe('quest inventory HUD', () => {
       expect(popup.style.top).toBe('50%')
       expect(popup.style.transform).toBe('translate(-50%, -50%)')
       expect(popup.querySelector('small')?.style.color).toBe('rgb(21, 128, 61)')
-      expect(popup.style.fontSize).toBe('56px')
+      expect(popup.style.fontSize).toBe('19px')
       expect(popup.style.pointerEvents).toBe('none')
       expect(popup.getAttribute('aria-live')).toBe('assertive')
 
@@ -149,8 +150,56 @@ describe('quest inventory HUD', () => {
       act(() => {
         useGameStore.setState({ questToast: { type: 'completed', questId: quest.id } })
       })
-      expect(container.querySelector('[data-testid="quest-toast"]')).not.toBeNull()
+      expect(container.querySelector('[data-testid="quest-complete-popup"]')).not.toBeNull()
       expect(container.querySelector('[data-testid="quest-start-popup"]')).toBeNull()
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+
+  it('merges quest NPC dialogue, acquisition or completion notice, and green guidance into one raised panel', () => {
+    const [quest] = getStageQuestDefinitions('stage1')
+    const { container, root } = renderHud()
+
+    try {
+      act(() => {
+        expect(useGameStore.getState().startQuest(quest.id)).toBe(true)
+        useGameStore.getState().openStudentDialogue(quest.startDialogueId, null, {
+          subjectType: 'quest',
+          subjectName: quest.giver.name,
+        })
+      })
+
+      const startPopup = container.querySelector('[data-testid="quest-dialogue-popup"]')
+      expect(startPopup).not.toBeNull()
+      expect(container.querySelector('[data-testid="quest-start-popup"]')).toBeNull()
+      expect(startPopup.textContent.indexOf(getDialogueText(quest.startDialogueId)))
+        .toBeLessThan(startPopup.textContent.indexOf(quest.title))
+      expect(startPopup.textContent).toContain(quest.objective)
+      expect(startPopup.querySelector('small')?.style.color).toBe('rgb(21, 128, 61)')
+      expect(container.querySelector('[data-testid="student-dialogue-catcher"]').style.alignItems).toBe('center')
+
+      act(() => {
+        container.querySelector('[data-testid="student-dialogue-catcher"]')
+          .dispatchEvent(new Event('pointerdown', { bubbles: true }))
+      })
+      expect(useGameStore.getState().questToast).toBeNull()
+
+      act(() => {
+        useGameStore.setState({ questToast: { type: 'completed', questId: quest.id } })
+        useGameStore.getState().openStudentDialogue(quest.completionDialogueId, null, {
+          subjectType: 'quest',
+          subjectName: quest.completion.name,
+        })
+      })
+
+      const completionPopup = container.querySelector('[data-testid="quest-dialogue-popup"]')
+      expect(completionPopup).not.toBeNull()
+      expect(container.querySelector('[data-testid="quest-complete-popup"]')).toBeNull()
+      expect(completionPopup.textContent.indexOf(getDialogueText(quest.completionDialogueId)))
+        .toBeLessThan(completionPopup.textContent.indexOf(quest.title))
+      expect(completionPopup.textContent).toContain(`${quest.rewardGold}G`)
+      expect(completionPopup.querySelector('small')?.style.color).toBe('rgb(21, 128, 61)')
     } finally {
       act(() => root.unmount())
     }

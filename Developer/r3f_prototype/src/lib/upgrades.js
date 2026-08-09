@@ -128,6 +128,12 @@ export const UPGRADE_EFFECTS = {
   bikittyCutterDamage: { weapon: 'bikittyCutter', kind: 'damage', dmg: 4 },
   bikittyCutterRange:  { weapon: 'bikittyCutter', kind: 'stat',   stat: 'segmentRangeStep', step: 0.02, cap: 0.28 },
   bikittyCutterCrit:   { weapon: 'bikittyCutter', kind: 'crit',   chanceStep: 0.02, chanceCap: 0.41, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
+  // 선긋기 — 30cm 자 + 커터칼을 런 중 둘 다 보유해야만 카드가 뜬다. 단수형으로는 표현할 수
+  // 없어 requiresActiveWeapons(복수형 배열)를 여기서 처음 쓴다. 계정 해금 게이트는 우회한다.
+  acquireLineDraw:   { weapon: 'lineDraw', kind: 'acquire', minLevel: 8, requiresActiveWeapons: ['schoolBag', 'boxCutter'], skipAccountUnlock: true },
+  lineDrawDamage:    { weapon: 'lineDraw', kind: 'damage', dmg: 5 },
+  lineDrawDuration:  { weapon: 'lineDraw', kind: 'stat',   stat: 'lineDurationMs', step: 400, cap: 4000 },
+  lineDrawCrit:      { weapon: 'lineDraw', kind: 'crit',   chanceStep: 0.02, chanceCap: 0.45, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireSharkMissile:  { weapon: 'sharkMissile',  kind: 'acquire', minLevel: 8 },
   sharkMissileDamage:  { weapon: 'sharkMissile',  kind: 'damage', dmg: 10 },
   sharkMissileRadius:  { weapon: 'sharkMissile',  kind: 'stat',   stat: 'radius',    step: 0.2, cap: 2.6 },
@@ -172,6 +178,10 @@ export function isUpgradeAvailable(effect, level, weapons, player = null) {
   if (effect.kind === 'acquire') {
     if (wpn?.active) return false
     if (effect.requiresActiveWeapon && !weapons[effect.requiresActiveWeapon]?.active) return false
+    // 복수형: 나열된 무기를 런 중 "전부" 보유해야 한다. 단수형 requiresActiveWeapon과 독립이며
+    // 둘 다 있으면 둘 다 만족해야 한다. 선긋기(자 + 커터칼)가 첫 사용처다.
+    if (effect.requiresActiveWeapons
+      && !effect.requiresActiveWeapons.every((id) => weapons[id]?.active)) return false
     // 계정 해금 게이트: starter는 isWeaponUnlocked가 항상 true, 그 외는 weaponUnlocks 디스크 상태.
     if (!effect.skipAccountUnlock && !isWeaponUnlocked(effect.weapon)) return false
     const ownedCount = Object.values(weapons).filter((w) => w.active).length

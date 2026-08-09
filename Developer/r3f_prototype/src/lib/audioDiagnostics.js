@@ -3,10 +3,11 @@ import titleBgmUrl from '../assets/audio/title_bgm.m4a'
 
 // SFX를 추가하면 이 두 상수를 의도적으로 올려야 한다. 자동 파생이 아니라 tripwire다.
 // 2026-08-09: 78 → 81 (바이키티 커터칼 fire/snap/reload 3종).
+// 2026-08-09: 81 → 84 (선긋기 slash/cross/expire 3종).
 // 이전 값 75/76은 dogeYelp·stage2GuardWhistle·rzlWhistle 추가 때 갱신되지 않아
 // 이미 실제 등록 수(78)와 어긋나 있었다.
-export const AUDIO_DIAGNOSTIC_SFX_COUNT = 81
-export const AUDIO_DIAGNOSTIC_EXPECTED_COUNT = 82
+export const AUDIO_DIAGNOSTIC_SFX_COUNT = 84
+export const AUDIO_DIAGNOSTIC_EXPECTED_COUNT = 85
 
 // This is intentionally derived from the runtime SFX authority plus the
 // canonical title BGM import. It is not a second audio manifest.

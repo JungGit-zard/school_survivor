@@ -1,4 +1,4 @@
-// 17종 무기의 단일 진실 카탈로그 (10 starter + 복원 2 + 신규 3).
+// 19종 무기의 단일 진실 카탈로그 (12 starter + 복원 2 + 신규 3).
 // starter 10종 base는 buildInitialWeapons(useGameStore.js)가 그대로 사용하는 base 스탯.
 // 복원 2종(guidedMissile, starlink)·신규 3종(compassBlade, umbrellaGuard, eraserBomb)은
 // 컴포넌트·카드 효과 wiring까지 완료된 상태다.
@@ -222,6 +222,26 @@ export const WEAPON_CATALOG = {
     },
     unlockConditions: STARTER,
     minLevelToAppear: 6,
+  },
+  lineDraw: {
+    id: 'lineDraw',
+    label: '선긋기',
+    // 30cm 자 + 커터칼을 런 중 둘 다 보유해야만 획득 카드가 뜬다(upgrades.js requiresActiveWeapons).
+    // 자를 대고 그은 직선이라 밀리지 않는다 → knockback 0, 관통 무제한.
+    base: {
+      damage: 20, cooldown: 4200,
+      range: 6.0, width: 0.22,
+      // 관통 상한이 아예 없다는 뜻. 저장(Firebase progress)에는 무기 런타임 스탯이 실리지
+      // 않으므로(진행도는 goldTotal/records/weaponUnlocks/weaponPermanentUpgrades/passiveUpgrades
+      // /encounteredZombieTypes/titleSettings뿐) Infinity가 JSON으로 나가는 경로는 없다.
+      pierce: Infinity, knockback: 0,
+      critChance: 0.35, critMultiplier: 2.0,  // 커터칼 0.25/1.5 계승·강화
+      lineDurationMs: 2000,      // 그은 자리에 남는 절단선 지속
+      lineCrossDamage: 14,       // 절단선을 가로지를 때만 1회
+      lineCrossCooldownMs: 600,  // 같은 적 재절단 간격
+    },
+    unlockConditions: STARTER,
+    minLevelToAppear: 8,
   },
 }
 

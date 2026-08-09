@@ -37,6 +37,13 @@ export const SOUND_MAP = {
   bikittyCutterSnap:   '/sfx/weapons/bikittyCutterSnap.ogg',
   bikittyCutterReload: '/sfx/weapons/bikittyCutterReload.ogg',
 
+  // ── 선긋기 (3 ID) ──────────────────────────────────────────────────────────
+  // 긋기 → 선을 가로지른 적이 잘림 → 2초 뒤 선 소멸. 반응형이 아니라 선점형 함정이라
+  // 세 소리가 무기 하나의 '상태 전이'를 알린다.
+  lineDrawSlash:  '/sfx/weapons/lineDrawSlash.ogg',
+  lineDrawCross:  '/sfx/weapons/lineDrawCross.ogg',
+  lineDrawExpire: '/sfx/weapons/lineDrawExpire.ogg',
+
   // ── 무기 타격음 (15 hit ID + 2 tick aliases) ───────────────────────────────
   pencilHit:      '/sfx/weapons/pencilHit.ogg',
   rulerHit:       '/sfx/weapons/rulerHit.ogg',
@@ -210,6 +217,18 @@ export const POLYPHONY_COOLDOWN = Object.freeze({
   bikittyCutterFire:   40,
   bikittyCutterSnap:   220,
   bikittyCutterReload: 600,
+  // 선긋기. 세 값 모두 "각 음원 길이보다 길게" 잡았다 — 쿨다운이 음원보다 짧으면
+  // 같은 소리가 자기 자신 위에 겹쳐 쌓이고, 겹친 순간만 음량이 튀어 뭉개진다.
+  // slash 0.48초 음원 / 실제 발사 간격 2.2초 → 120은 같은 프레임 중복만 거른다.
+  lineDrawSlash:  120,
+  // cross는 한 프레임에 여러 마리가 절단선을 동시에 가로지를 수 있는 유일한 신호다.
+  // 34ms는 프레임(≈16.7ms) 두 개분이라 같은 프레임 다중 히트가 확실히 1회로 접히고,
+  // 동시에 음원 길이(35ms)와 거의 같아 연속 재생이 겹치지 않고 이어 붙는다.
+  // 이보다 길게 잡으면 밀려오는 웨이브가 선을 뚫는 '연속 서걱'이 끊겨 들린다.
+  lineDrawCross:  34,
+  // 소멸음은 선이 여러 개일 때 동시 만료가 가능하다. 음원 0.22초보다 긴 260ms로
+  // 겹침을 원천 차단한다 — 가장 조용해야 할 소리가 겹쳐서 커지면 설계가 무너진다.
+  lineDrawExpire: 260,
 })
 
 const AUTH_OVERLAY_ALLOWED_SFX = new Set([
