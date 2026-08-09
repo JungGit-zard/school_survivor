@@ -11,6 +11,7 @@ import {
 import { installPlayerStorageFatalGuard } from './lib/firebaseProgress.js'
 import {
   STUDIO_GAME_SYNC_ACK_MESSAGE,
+  STUDIO_GAME_SYNC_CHANNEL,
   STUDIO_GAME_SYNC_MESSAGE,
   STUDIO_GAME_SYNC_READY_MESSAGE,
   isAllowedStudioGameOrigin,
@@ -64,6 +65,14 @@ if (typeof window !== 'undefined') {
   window.addEventListener('load', () => {
     window.opener?.postMessage?.({ type: STUDIO_GAME_SYNC_READY_MESSAGE }, window.location.origin)
   })
+  if (!window.location.pathname.startsWith('/graphics-studio') && typeof BroadcastChannel !== 'undefined') {
+    const studioGameChannel = new BroadcastChannel(STUDIO_GAME_SYNC_CHANNEL)
+    studioGameChannel.addEventListener('message', ({ data }) => {
+      if (data?.type !== STUDIO_GAME_SYNC_MESSAGE || !data.force || !data.datasets) return
+      const revision = Number.isInteger(data.revision) && data.revision > 0 ? data.revision : null
+      applyFirebaseStudioDatasets(data.datasets, { revision })
+    })
+  }
 }
 
 export default function App() {

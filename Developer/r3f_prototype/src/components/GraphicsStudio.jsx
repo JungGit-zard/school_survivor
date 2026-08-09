@@ -32,6 +32,7 @@ import BossFaceGridPreview from './BossFaceGridPreview.jsx'
 import { DEFAULT_SFX_TUNING, getSfxCatalog, loadSfxTunings, normalizeSfxTuning, playSfx } from '../lib/sfxRegistry.js'
 import {
   STUDIO_GAME_SYNC_ACK_MESSAGE,
+  STUDIO_GAME_SYNC_CHANNEL,
   STUDIO_GAME_SYNC_MESSAGE,
   STUDIO_GAME_SYNC_READY_MESSAGE,
   getDefaultStudioGameUrl,
@@ -587,13 +588,19 @@ export default function GraphicsStudio() {
     // one-pixel/one-dot prop move. Keep exactly one newest pending payload for a
     // cold-loading game; READY resends it, ACK clears it.
     const syncId = `studio-sync-${Date.now()}-${Math.random().toString(36).slice(2)}`
-    const postSync = () => target.postMessage({
+    const payload = {
       type: STUDIO_GAME_SYNC_MESSAGE,
       syncId,
       force: true,
       datasets,
       revision,
-    }, gameOriginRef.current)
+    }
+    if (typeof BroadcastChannel !== 'undefined') {
+      const channel = new BroadcastChannel(STUDIO_GAME_SYNC_CHANNEL)
+      channel.postMessage(payload)
+      channel.close()
+    }
+    const postSync = () => target.postMessage(payload, gameOriginRef.current)
     pendingGameSyncRef.current = {
       target,
       origin: gameOriginRef.current,

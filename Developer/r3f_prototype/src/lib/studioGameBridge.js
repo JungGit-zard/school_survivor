@@ -1,4 +1,7 @@
 export const STUDIO_GAME_SYNC_MESSAGE = 'escape-zombie-school.studioGameSync.v1'
+export const STUDIO_GAME_SYNC_READY_MESSAGE = 'escape-zombie-school.studioGameSync.ready.v1'
+export const STUDIO_GAME_SYNC_ACK_MESSAGE = 'escape-zombie-school.studioGameSync.ack.v1'
+export const STUDIO_GAME_SYNC_CHANNEL = 'escape-zombie-school.studioGameSync.channel.v1'
 
 export function getDefaultStudioGameUrl(location = globalThis.location) {
   if (!location?.href) return ''
