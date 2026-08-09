@@ -167,6 +167,7 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 - Use `git status --short --branch` before and after meaningful work.
 - Do not commit unless the user asks for a commit.
 - If the user says `뻐꾸기`, interpret it as the combined workflow: pull, commit, and push, in that order when safe.
+- If the user says `오리`, interpret it as the combined workflow: commit and push, in that order when safe.
 - Use clear commit messages, for example:
   - `Add project instructions`
   - `Add player movement`
