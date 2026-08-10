@@ -40,10 +40,6 @@
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/.claude/hooks/require-today-resume-summary.ps1\""
-          },
-          {
-            "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/Developer/agent_room/hooks/require-advisor-worker-mode.ps1\""
           }
         ]
