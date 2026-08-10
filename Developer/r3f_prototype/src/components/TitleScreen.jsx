@@ -372,27 +372,39 @@ export default function TitleScreen({
     enterLobbyFromStart()
   }, [authUser?.uid])
 
-  // 게임 시작: 미로그인이면 Google 로그인부터 요구하고, 로그인 성공 즉시 로비로 보낸다.
-  // redirect 로그인처럼 user가 즉시 반환되지 않는 흐름은 pending flag로 돌아온 뒤 자동 진입한다.
+  // 게임 시작은 반드시 로그인 뒤에만 로비로 들어간다.
+  // 미로그인 상태에서 시작을 누르면 Google 로그인을 먼저 띄우고, 성공한 경우에만 이어서 진입한다.
+  // 로그인 실패/취소는 시작 실패로 간주해 로비 진입과 pending redirect를 모두 막는다.
   const handleStartClick = async () => {
     setCheatOpen(false)
     setNicknameOpen(false)
     setConsentOpen(false)
     setConsentUser(null)
-    let user = authUser
-    if (!user?.uid) {
-      markPendingStartAfterLogin()
-      user = await signInWithGoogle()
-      if (!user?.uid) {
-        if (useAuthStore.getState().error) {
-          clearPendingStartAfterLogin()
-          setAuthFailureOpen(true)
-        }
-        return
-      }
+
+    if (authUser?.uid) {
+      enterLobbyFromStart()
+      return
     }
 
-    enterLobbyFromStart()
+    markPendingStartAfterLogin()
+    setAuthFailureOpen(false)
+    try {
+      const signedInUser = await signInWithGoogle()
+      if (signedInUser?.uid) {
+        clearPendingStartAfterLogin()
+        enterLobbyFromStart()
+        return
+      }
+
+      const authState = useAuthStore.getState()
+      if (authState.status === 'error' || authState.status === 'unconfigured' || authState.error) {
+        clearPendingStartAfterLogin()
+        setAuthFailureOpen(true)
+      }
+    } catch {
+      clearPendingStartAfterLogin()
+      setAuthFailureOpen(true)
+    }
   }
 
   const handleConsentConfirmed = () => {

@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1081021544915-6kv46aoellnnmhc48ocgl5ql6t0cqqj7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.jungyoon.zombieschool",
+            "certificate_hash": "6f06ba579d08baa098af26a53c499b540a057651"
+          }
+        },
+        {
           "client_id": "1081021544915-f8c5e8p5ib04tm5in7hc47r4odtl4m1o.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

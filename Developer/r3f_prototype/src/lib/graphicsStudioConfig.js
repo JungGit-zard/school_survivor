@@ -872,7 +872,7 @@ export function loadStageBossPreview(storage) {
   if (storage) throw new TypeError('Graphics Studio storage adapters are forbidden. Firebase runtime only.')
   const framing = getFirebaseStudioRuntimeDataset('stageBossPreview')
   if (!isCompleteStageBossPreview(framing)) {
-    throw new TypeError('Firebase Graphics Studio stage boss preview payload is incomplete.')
+    return DEFAULT_STAGE_BOSS_PREVIEW
   }
   return normalizeStageBossPreview(framing)
 }

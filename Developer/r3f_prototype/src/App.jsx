@@ -21,6 +21,7 @@ import { isFirebaseStudioRuntimeReady } from './lib/studioRuntimeState.js'
 import { isProjectMaster } from './lib/projectAdmin.js'
 import { t } from './lib/i18n.js'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
+
 import {
   getInspectionPhase,
   subscribeInspectionMode,
@@ -292,32 +293,9 @@ export default function App() {
     }
   }, [isGraphicsStudioRoute, authStatus, authUser?.uid, studioCloudStatus])
 
-  useEffect(() => {
-    if (isGraphicsStudioRoute || authStatus !== 'signedIn' || !authUser?.uid) return undefined
-
-    let cancelled = false
-    let unsubscribe = null
-    setFirebaseStudioUser(authUser)
-    void (async () => {
-      await hydrateFirebaseStudio({ user: authUser })
-      if (cancelled) return
-      const result = await subscribeFirebaseStudio({ user: authUser })
-      if (cancelled) {
-        result?.unsubscribe?.()
-        return
-      }
-      unsubscribe = result?.unsubscribe ?? null
-    })()
-
-    return () => {
-      cancelled = true
-      unsubscribe?.()
-    }
-  }, [isGraphicsStudioRoute, authStatus, authUser?.uid])
-
   const studioReady = studioCloudStatus === 'remote-applied'
     && isFirebaseStudioRuntimeReady()
-  // 留덉뒪?곌? ?꾨땶 濡쒓렇??怨꾩젙? ?ш린???앹씠????遺?몄뒪?몃옪?? ?몄쭛湲곕룄 蹂댁뿬二쇱? ?딅뒗??
+  // 留덉뒪?곌? ?꾨땶
   if (isGraphicsStudioRoute
     && authStatus === 'signedIn' && !isProjectMaster(authUser)) {
     return null
@@ -382,8 +360,7 @@ export default function App() {
   }
 
   // ?쇰컲 寃뚯엫 二쇱냼??吏꾩엯 洹쒖튃:
-  // 二쇱냼 ?묒냽 ??ReadyGameApp 利됱떆 ?앹꽦 ??珥덇린 title ?붾㈃ ??TitleSceneCanvas.
-  // Google 濡쒓렇???곹깭?????뚮뜑瑜?留됱? ?딆?留? ??댄???寃뚯엫 ?쒖옉? 誘몃줈洹몄씤 ?ъ슜?먮?
+
   // Google 濡쒓렇?몄쑝濡?蹂대궦?? 濡쒓렇???깃났 ?ㅼ뿉??Firebase 吏꾪뻾??Studio 以鍮??ㅽ뙣媛 ?덉뼱??
   // 濡쒕퉬쨌?ㅽ뀒?댁? 吏꾩엯??議곗슜???뱀? ?딄퀬 怨꾩냽 吏꾪뻾?쒕떎.
   return (

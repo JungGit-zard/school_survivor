@@ -76,7 +76,7 @@ export function acknowledgeFirebaseStudioRuntimeRevision(revision) {
 }
 
 export function getFirebaseStudioRuntimeDataset(key) {
-  assertFirebaseStudioRuntimeReady('read')
+  if (!isFirebaseStudioRuntimeReady()) return {}
   return runtimeState.datasets[key] ?? {}
 }
 
