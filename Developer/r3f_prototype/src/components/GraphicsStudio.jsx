@@ -568,25 +568,15 @@ export default function GraphicsStudio() {
   }
 
   const sendGameSync = async ({ openGame = false, datasets = null, revision = null } = {}) => {
-    let target = gameWindowRef.current
-    if (openGame) {
-      const url = parseStudioGameUrl(gameUrl)
-      if (!url) {
-        setApplyStatus('Invalid Game URL')
-        return false
-      }
-      target = openOrReuseGameWindow(url)
-    }
-    if (!target || target.closed) {
-      if (openGame) setApplyStatus('Unable to open game window')
-      return false
-    }
-
     // Apply already wrote Firebase and atomically committed every dataset into
-    // the Studio runtime. Do not gate game sync behind the debounced-save queue:
-    // the game window must receive the force-refresh immediately, even for a
-    // one-pixel/one-dot prop move. Keep exactly one newest pending payload for a
-    // cold-loading game; READY resends it, ACK clears it.
+    // the Studio runtime. Broadcast FIRST and unconditionally: Apply must reach
+    // the game the instant it succeeds, even for a one-pixel prop move.
+    //
+    // 브로드캐스트는 아래 두 가드보다 반드시 위에 있어야 한다(2026-08-11). 예전에는
+    // 아래에 있어서, 스튜디오가 직접 연 게임 창 핸들이 없거나 Game URL 입력값이
+    // 파싱 불가일 때 Apply가 아무 데도 전달되지 않았다 — 사용자가 게임을 별도 탭에서
+    // 직접 열어둔 경우가 정확히 그 상황이다. BroadcastChannel 은 동일 origin 의 모든
+    // 게임 탭이 구독하므로(App.jsx), 창 핸들 없이도 이 경로 하나로 충분하다.
     const syncId = `studio-sync-${Date.now()}-${Math.random().toString(36).slice(2)}`
     const payload = {
       type: STUDIO_GAME_SYNC_MESSAGE,
@@ -600,6 +590,25 @@ export default function GraphicsStudio() {
       channel.postMessage(payload)
       channel.close()
     }
+
+    // 아래는 스튜디오가 직접 연 게임 창을 위한 보조 경로다. 실패해도 위 브로드캐스트가
+    // 이미 나갔으므로 true 를 돌려준다 — 반환값을 실패로 쓰면 Apply 가 실패로 보인다.
+    let target = gameWindowRef.current
+    if (openGame) {
+      const url = parseStudioGameUrl(gameUrl)
+      if (!url) {
+        setApplyStatus('Invalid Game URL')
+        return true
+      }
+      target = openOrReuseGameWindow(url)
+    }
+    if (!target || target.closed) {
+      if (openGame) setApplyStatus('Unable to open game window')
+      return true
+    }
+
+    // Keep exactly one newest pending payload for a cold-loading game window;
+    // READY resends it, ACK clears it.
     const postSync = () => target.postMessage(payload, gameOriginRef.current)
     pendingGameSyncRef.current = {
       target,
