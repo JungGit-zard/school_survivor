@@ -62,7 +62,9 @@ const _sightBlockedVelocity = { x: 0, z: 0 }
 const MATILDA_DASH_SFX = Object.freeze({ id: 'matildaDash', volume: 0.76 })
 const MATILDA_DASH_REVERSE_SFX = Object.freeze({ id: 'matildaDash', volume: 0.52, rate: 0.88 })
 const MATILDA_LAUGH_SFX = Object.freeze({ id: 'matildaLaugh', volume: 0.82 })
-export const MATILDA_CONTACT_KILL_DELAY_MS = 1000
+// 0 = 몸통에 닿는 그 프레임에 즉사. 유예 없음(2026-08-13 사용자 지시).
+// 예전 1000ms 유지 조건은 스쳐 지나가면 안 죽는 구멍이었다.
+export const MATILDA_CONTACT_KILL_DELAY_MS = 0
 const IGNORE_INVULNERABILITY = Object.freeze({ ignoreInvulnerability: true })
 
 // 諛⑺뼢 ?뚯쟾 ?ы띁 ??useFrame ???⑥닔 ?ъ깮??諛⑹?瑜??꾪빐 紐⑤뱢 ?덈꺼

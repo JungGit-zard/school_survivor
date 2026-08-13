@@ -109,7 +109,7 @@ export default function ReadyGameApp({
       </ErrorBoundary>
       <div ref={phoneFrameRef} style={styles.phoneFrame}>
         {screen === 'title' && (
-          <ErrorBoundary fallback={({ retry, reload }) => <ScreenFailure label={t('loading.game')} retry={retry} reload={reload} />}>
+          <ErrorBoundary fallback={({ error, retry, reload }) => <ScreenFailure label={t('loading.game')} error={error} retry={retry} reload={reload} />}>
             <Suspense fallback={<ScreenLoading label={t('loading.game')} />}>
               <TitleScreen
                 onEnterLobby={() => setScreen('lobby')}
@@ -122,7 +122,7 @@ export default function ReadyGameApp({
         )}
 
         {screen === 'lobby' && (
-          <ErrorBoundary fallback={({ retry, reload }) => <ScreenFailure label={t('loading.game')} retry={retry} reload={reload} onBack={() => setScreen('title')} />}>
+          <ErrorBoundary fallback={({ error, retry, reload }) => <ScreenFailure label={t('loading.game')} error={error} retry={retry} reload={reload} onBack={() => setScreen('title')} />}>
             <Suspense fallback={<ScreenLoading label={t('loading.game')} />}>
               <Lobby
                 onStartStage={startGame}
@@ -153,7 +153,7 @@ export default function ReadyGameApp({
         )}
 
         {screen === 'game' && (
-          <ErrorBoundary fallback={({ retry, reload }) => <ScreenFailure label={t('loading.game')} retry={retry} reload={reload} onBack={() => setScreen('lobby')} />}>
+          <ErrorBoundary fallback={({ error, retry, reload }) => <ScreenFailure label={t('loading.game')} error={error} retry={retry} reload={reload} onBack={() => setScreen('lobby')} />}>
             <Suspense fallback={<ScreenLoading label={t('loading.game')} />}>
               <GameplayScreen
                 mobileJoystickEnabled={mobileJoystickEnabled}
@@ -181,11 +181,16 @@ function ScreenLoading({ label }) {
   return <div style={styles.screenLoading}>{label}</div>
 }
 
-function ScreenFailure({ label, retry = null, reload = () => window.location.reload(), onBack = null }) {
+// error를 화면에 그대로 띄운다. 릴리스 AAB에는 WebView 콘솔이 없어서(webContentsDebugging
+// 비활성) 실기기에서 터지면 원인을 볼 방법이 이 화면밖에 없다 — 2026-08-11 v40에서
+// 로비 설정 버튼이 이 폴백으로 떨어졌는데 메시지가 없어 원인 추적이 막혔다.
+function ScreenFailure({ label, error = null, retry = null, reload = () => window.location.reload(), onBack = null }) {
+  const detail = error ? (error.stack || error.message || String(error)) : ''
   return (
     <main role="alert" data-testid="deferred-screen-failure" style={styles.screenFailure}>
       <h1 style={styles.screenFailureTitle}>{label}</h1>
       <p style={styles.screenFailureMessage}>이 화면을 불러오지 못했습니다.</p>
+      {detail && <pre data-testid="screen-failure-detail" style={styles.screenFailureDetail}>{detail}</pre>}
       <div style={styles.screenFailureActions}>
         {retry && <button type="button" style={styles.screenFailureButton} onClick={retry}>다시 시도</button>}
         {onBack && <button type="button" style={styles.screenFailureButton} onClick={onBack}>이전 화면</button>}
@@ -196,6 +201,11 @@ function ScreenFailure({ label, retry = null, reload = () => window.location.rel
 }
 
 const styles = {
+  screenFailureDetail: {
+    maxWidth: '92vw', maxHeight: '38vh', overflow: 'auto', margin: 0, padding: '10px 12px',
+    background: '#140f24', border: '1px solid #4c3a7a', borderRadius: 8, color: '#ffd0d0',
+    fontSize: 11, lineHeight: 1.45, textAlign: 'left', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+  },
   viewport: {
     width: '100vw',
     height: '100vh',

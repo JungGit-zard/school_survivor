@@ -288,8 +288,12 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
       </nav>
 
       {modal === 'weapon' && <WeaponModal onClose={closeModal} />}
+      {/* onNicknameChange는 넘기지 않는다. 로비 이름은 authUser.displayName로 그리고(위 profileName),
+          닉네임은 saveNicknameForUser가 Firebase 프로필에 직접 쓴다 — 로비가 들고 있을 상태가 없다.
+          예전에 있던 setNickname 상태가 제거됐는데 이 prop만 남아 ReferenceError로 설정 화면이
+          통째로 죽었다(2026-08-11 v40 실기기 재현). */}
       {modal === 'settings' && (
-        <LobbySettingsModal onClose={closeModal} onNicknameChange={setNickname} onLogoutToTitle={onLogoutToTitle} />
+        <LobbySettingsModal onClose={closeModal} onLogoutToTitle={onLogoutToTitle} />
       )}
     </div>
   )
