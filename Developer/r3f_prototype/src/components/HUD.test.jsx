@@ -27,6 +27,8 @@ import { MATILDA_DIALOGUE_MS } from '../lib/matildaEntryGrace.js'
 import { getDialogueText } from '../dialogues/dialogueStore.js'
 import { clearPortalTarget, playerPos, publishPortalTarget } from '../lib/refs.js'
 import { setLocale } from '../lib/i18n.js'
+import { subscribeSfx } from '../lib/sfxEvents.js'
+import { resetCriticalScreenShakeForTest, subscribeWholeScreenCriticalShake } from '../lib/criticalScreenShake.js'
 
 const TEST_STUDIO_USER = { uid: 'hud-test-user' }
 const EMPTY_STUDIO_SNAPSHOT = {
@@ -790,14 +792,21 @@ describe('result action layout', () => {
       expect(container.querySelector('[data-testid="matilda-dialogue"]')).not.toBeNull()
       expect(container.textContent).toContain('오호호호!!!!! 맛있게 먹을께!!!!')
       expect(container.querySelector('[data-testid="gameover-result-overlay"]')).toBeNull()
-      const grayscale = container.querySelector('[data-testid="gameover-grayscale-transition"]')
-      expect(grayscale.style.animation).toBe('none')
-      expect(grayscale.style.opacity).toBe('1')
+      // 부딪힌 프레임을 먼저 보여준다 — 홀드 동안에는 흑백 레이어가 아예 없다.
+      expect(container.querySelector('[data-testid="gameover-grayscale-transition"]')).toBeNull()
 
-      // 결과창은 흑백 페이드 1회분만 기다린다. 예전에는 MATILDA_DIALOGUE_MS(5000)를 더해
-      // 6초를 기다렸고, 즉사인데 화면이 멈춘 것처럼 보였다(2026-08-14 사용자 지시로 제거).
       act(() => {
-        vi.advanceTimersByTime(999)
+        vi.advanceTimersByTime(320)
+      })
+      const grayscale = container.querySelector('[data-testid="gameover-grayscale-transition"]')
+      expect(grayscale).not.toBeNull()
+      expect(grayscale.style.animation).toContain('gameoverGrayscaleFade 480ms')
+
+      // 결과창은 접촉 기준 1000ms에 뜬다(이미 320ms 진행했으므로 679ms 더 = 999ms).
+      // 예전에는 MATILDA_DIALOGUE_MS(5000)를 더해 6초를 기다렸고, 즉사인데 화면이
+      // 멈춘 것처럼 보였다(2026-08-14 사용자 지시로 제거).
+      act(() => {
+        vi.advanceTimersByTime(679)
       })
       expect(container.querySelector('[data-testid="gameover-result-overlay"]')).toBeNull()
       expect(container.querySelector('[data-testid="matilda-dialogue"]')).not.toBeNull()
@@ -813,6 +822,116 @@ describe('result action layout', () => {
       act(() => {
         root.unmount()
       })
+    }
+  })
+})
+
+describe('matilda contact death impact presentation', () => {
+  // 사용자 지시(2026-08-15): "완전히 부딪히는 지점까지 보여준다음 효과음 넣으면서
+  // 화면흔들고 흑백으로 바꿔". 순서가 이 스위트의 전부다.
+  function renderMatildaDeath({ reducedEffects = false } = {}) {
+    const sfxIds = []
+    const shakes = []
+    resetCriticalScreenShakeForTest()
+    if (reducedEffects) document.documentElement.dataset.reducedEffects = 'true'
+    const unsubscribeSfx = subscribeSfx((event) => sfxIds.push(event.id))
+    const unsubscribeShake = subscribeWholeScreenCriticalShake((event) => shakes.push(event))
+
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    const cleanup = () => {
+      act(() => { root.unmount() })
+      unsubscribeSfx()
+      unsubscribeShake()
+      delete document.documentElement.dataset.reducedEffects
+      resetCriticalScreenShakeForTest()
+    }
+    return { container, root, sfxIds, shakes, cleanup }
+  }
+
+  it('holds the collision frame, then fires sfx and shake, then fades to grayscale', () => {
+    vi.useFakeTimers()
+    useGameStore.getState().resetGame('stage3')
+    useGameStore.setState({ phase: 'gameover', deathCause: 'matilda' })
+    const { container, root, sfxIds, shakes, cleanup } = renderMatildaDeath()
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} onGoToRanking={() => {}} />)
+      })
+
+      // 0ms — 부딪힌 그림만 보인다. 아직 효과음도 흔들림도 흑백도 없다.
+      expect(sfxIds).not.toContain('matildaDeath')
+      expect(shakes).toHaveLength(0)
+      expect(container.querySelector('[data-testid="gameover-grayscale-transition"]')).toBeNull()
+
+      act(() => { vi.advanceTimersByTime(199) })
+      expect(sfxIds).not.toContain('matildaDeath')
+      expect(shakes).toHaveLength(0)
+
+      // 200ms — 효과음 + 화면 흔들림. 흑백은 아직.
+      act(() => { vi.advanceTimersByTime(1) })
+      expect(sfxIds).toContain('matildaDeath')
+      expect(shakes).toHaveLength(1)
+      expect(shakes[0].strong).toBe(true)
+      expect(container.querySelector('[data-testid="gameover-grayscale-transition"]')).toBeNull()
+
+      // 320ms — 흑백 페이드 시작.
+      act(() => { vi.advanceTimersByTime(120) })
+      const grayscale = container.querySelector('[data-testid="gameover-grayscale-transition"]')
+      expect(grayscale).not.toBeNull()
+      expect(grayscale.style.animation).toContain('gameoverGrayscaleFade 480ms')
+
+      // 1000ms — 결과창. 접촉부터 1.5초 상한 안이다.
+      act(() => { vi.advanceTimersByTime(680) })
+      expect(container.querySelector('[data-testid="gameover-result-overlay"]')).not.toBeNull()
+    } finally {
+      cleanup()
+    }
+  })
+
+  it('skips the shake when reduced effects are enabled but still plays sfx and grayscale', () => {
+    vi.useFakeTimers()
+    useGameStore.getState().resetGame('stage3')
+    useGameStore.setState({ phase: 'gameover', deathCause: 'matilda' })
+    const { container, root, sfxIds, shakes, cleanup } = renderMatildaDeath({ reducedEffects: true })
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} onGoToRanking={() => {}} />)
+      })
+      act(() => { vi.advanceTimersByTime(320) })
+
+      expect(shakes).toHaveLength(0)
+      expect(sfxIds).toContain('matildaDeath')
+      expect(container.querySelector('[data-testid="gameover-grayscale-transition"]')).not.toBeNull()
+    } finally {
+      cleanup()
+    }
+  })
+
+  it('does not shake or play the matilda sting on an ordinary zombie death', () => {
+    vi.useFakeTimers()
+    useGameStore.getState().resetGame('stage3')
+    useGameStore.setState({ phase: 'gameover', deathCause: 'zombie' })
+    const { container, root, sfxIds, shakes, cleanup } = renderMatildaDeath()
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} onGoToRanking={() => {}} />)
+      })
+
+      // 일반 사망은 기존대로 즉시 흑백 페이드(1000ms)로 들어간다.
+      const grayscale = container.querySelector('[data-testid="gameover-grayscale-transition"]')
+      expect(grayscale).not.toBeNull()
+      expect(grayscale.style.animation).toContain('gameoverGrayscaleFade 1000ms')
+
+      act(() => { vi.advanceTimersByTime(1000) })
+      expect(shakes).toHaveLength(0)
+      expect(sfxIds).not.toContain('matildaDeath')
+      expect(container.querySelector('[data-testid="gameover-result-overlay"]')).not.toBeNull()
+    } finally {
+      cleanup()
     }
   })
 })

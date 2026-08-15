@@ -15,6 +15,7 @@ import { getNextStageId, getStageConfig } from '../lib/stageConfig.js'
 import { STAGE2_SPAWN_TELEGRAPHS, STAGE3_SPAWN_TELEGRAPHS, STAGE4_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import { MATILDA_DIALOGUE_MS } from '../lib/matildaEntryGrace.js'
+import { emitCriticalHitScreenShake, isCriticalScreenShakeReduced } from '../lib/criticalScreenShake.js'
 import { getDialogueText } from '../dialogues/dialogueStore.js'
 import { getQuestDefinition, getStageQuestDefinitions } from '../lib/quests.js'
 import {
@@ -55,6 +56,23 @@ import matildaConversationPortraitSrc from '../assets/character/matilda_conversa
 const GAMEOVER_TRANSITION_MS = 1000
 const MATILDA_COUNTDOWN_SECONDS = 5
 const MATILDA_DIALOGUE_NAME = '마틸다'
+
+// 마틸다 접촉 사망 연출 타임라인 (2026-08-15 사용자 지시: "완전히 부딪히는 지점까지
+// 보여준다음 효과음 넣으면서 화면흔들고 흑백으로 바꿔").
+//   0ms   즉사 판정은 접촉 프레임 그대로(Enemy.jsx → killPlayer). 화면에는 아직
+//         아무 후처리도 걸지 않아 부딪힌 그림이 컬러로 멈춰 보인다.
+// 200ms   임팩트: 효과음 + 화면 흔들림.
+// 320ms   흑백 페이드 시작(480ms) → 800ms에 완전 흑백.
+// 1000ms  결과창(GAMEOVER_TRANSITION_MS, 일반 사망과 동일).
+// 접촉~결과창 총합은 1000ms로 1.5초 상한 안에 있다.
+const MATILDA_DEATH_IMPACT_HOLD_MS = 200
+const MATILDA_DEATH_GRAYSCALE_DELAY_MS = 320
+const MATILDA_DEATH_GRAYSCALE_FADE_MS = 480
+// 새 오디오를 만들지 않는다. matildaDeath는 레지스트리의 마틸다 전용 사망 스팅인데
+// 마틸다가 죽지 않는 적이라(2026-08-13 즉사 추격자 확정) 실제로는 한 번도 울리지 않는
+// 자산이다. 추격 내내 반복되는 matildaDash/matildaLaugh와 달리 이 순간에만 들리므로
+// 충돌 임팩트음으로 겹치지 않는다.
+const MATILDA_DEATH_IMPACT_SFX = Object.freeze({ id: 'matildaDeath', volume: 0.95 })
 const DEV_CHEATS_ENABLED = import.meta.env.DEV
 
 // 한국어 라벨은 그대로 폴백으로 남기고, 번역은 업그레이드 키(up.<key>.label)로 찾는다.
@@ -760,6 +778,8 @@ export default function HUD({
   const [isTitleReturnConfirmOpen, setIsTitleReturnConfirmOpen] = useState(false)
   const [weaponCheatOpen, setWeaponCheatOpen] = useState(false)
   const [matildaDialogueVisible, setMatildaDialogueVisible] = useState(false)
+  // 'idle' → 'impact'(충돌 프레임 노출) → 'shake'(효과음+흔들림) → 'grayscale'(흑백)
+  const [matildaDeathStage, setMatildaDeathStage] = useState('idle')
   const [portalObjective, setPortalObjective] = useState(null)
   const previousMatildaSpawnedRef = useRef(matildaSpawned)
   const weaponCheatItems = useMemo(
@@ -899,6 +919,35 @@ export default function HUD({
     const timer = setTimeout(() => setGameoverModalReady(true), GAMEOVER_TRANSITION_MS)
     return () => clearTimeout(timer)
   }, [isGameover, isMatildaGameover, showGameoverResultImmediately])
+
+  // 마틸다 접촉 사망 연출: 홀드(충돌 노출) → 효과음+흔들림 → 흑백.
+  // 즉사 판정 자체는 접촉 프레임에 이미 끝났고(store가 phase를 gameover로 바꾼 뒤),
+  // 여기서는 그 뒤에 붙는 연출 순서만 잡는다.
+  useEffect(() => {
+    if (!isMatildaGameover) {
+      setMatildaDeathStage('idle')
+      return undefined
+    }
+
+    setMatildaDeathStage('impact')
+    const impactTimer = setTimeout(() => {
+      setMatildaDeathStage('shake')
+      emitSfx(MATILDA_DEATH_IMPACT_SFX)
+      // 흔들림은 마틸다 사망에서만, 그리고 접근성 설정(reducedEffects /
+      // prefers-reduced-motion / 히트 카메라 흔들림 끔)에서는 내보내지 않는다.
+      // 전체화면 흔들림 구독자(GameplayScreen)는 자체 게이트가 없으므로 여기서 막는다.
+      if (!isCriticalScreenShakeReduced()) emitCriticalHitScreenShake(0, 0, { strong: true })
+    }, MATILDA_DEATH_IMPACT_HOLD_MS)
+    const grayscaleTimer = setTimeout(
+      () => setMatildaDeathStage('grayscale'),
+      MATILDA_DEATH_GRAYSCALE_DELAY_MS,
+    )
+
+    return () => {
+      clearTimeout(impactTimer)
+      clearTimeout(grayscaleTimer)
+    }
+  }, [isMatildaGameover])
 
   useEffect(() => {
     if (phase !== 'paused') setIsTitleReturnConfirmOpen(false)
@@ -1219,12 +1268,14 @@ export default function HUD({
         </div>
       )}
 
-      {isGameover && (
+      {/* 마틸다 사망은 홀드 구간 동안 흑백 레이어를 아예 걸지 않는다. 부딪힌 프레임이
+          컬러로 그대로 보여야 하기 때문이다. 'grayscale' 단계에서 페이드로 들어온다. */}
+      {isGameover && (!isMatildaGameover || matildaDeathStage === 'grayscale') && (
         <div
           data-testid="gameover-grayscale-transition"
           aria-hidden="true"
           style={isMatildaGameover
-            ? { ...styles.gameoverGrayscaleTransition, animation: 'none', opacity: 1 }
+            ? styles.matildaGameoverGrayscaleTransition
             : styles.gameoverGrayscaleTransition}
         />
       )}
@@ -1860,6 +1911,16 @@ const styles = {
     backdropFilter: 'grayscale(1)',
     WebkitBackdropFilter: 'grayscale(1)',
     animation: `gameoverGrayscaleFade ${GAMEOVER_TRANSITION_MS}ms ease forwards`,
+    pointerEvents: 'none',
+  },
+  // 마틸다 사망은 홀드 뒤에 늦게 마운트되므로 남은 시간에 맞춰 더 짧게 페이드한다.
+  matildaGameoverGrayscaleTransition: {
+    position: 'absolute',
+    inset: 0,
+    background: 'rgba(8, 8, 10, 0.08)',
+    backdropFilter: 'grayscale(1)',
+    WebkitBackdropFilter: 'grayscale(1)',
+    animation: `gameoverGrayscaleFade ${MATILDA_DEATH_GRAYSCALE_FADE_MS}ms ease forwards`,
     pointerEvents: 'none',
   },
   modal: {
