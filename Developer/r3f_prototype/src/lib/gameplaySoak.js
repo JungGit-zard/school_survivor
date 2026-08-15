@@ -187,6 +187,9 @@ function buildSoakWeapons() {
 
 const UPGRADE_KEYS = Object.keys(UPGRADE_EFFECTS)
 
+// 무기 객체에서 수치가 아닌 게 정상인 필드. 나머지는 전부 유한수여야 한다.
+const NON_NUMERIC_WEAPON_FIELDS = new Set(['label', 'active'])
+
 function churnUpgrade(weapons, level, random, stats) {
   const key = UPGRADE_KEYS[Math.floor(random() * UPGRADE_KEYS.length)]
   const effect = UPGRADE_EFFECTS[key]
@@ -205,7 +208,10 @@ function churnUpgrade(weapons, level, random, stats) {
     if (weapon.critMultiplier > effect.multCap + 1e-9) return `무기 ${effect.weapon} critMultiplier cap 초과: ${weapon.critMultiplier}`
   }
   for (const [field, value] of Object.entries(weapon)) {
-    if (typeof value === 'number' && !Number.isFinite(value)) return `무기 ${effect.weapon} ${field} 비유한값`
+    if (NON_NUMERIC_WEAPON_FIELDS.has(field)) continue
+    // 예전엔 typeof value === 'number'로 먼저 거른 뒤 유한성만 봤다. 그래서 숫자여야 할 스탯이
+    // 문자열로 들어와도(실제 사례: umbrellaGuard.knockback = 'strong') 그물을 그냥 빠져나갔다.
+    if (!Number.isFinite(value)) return `무기 ${effect.weapon} ${field} 비수치값: ${JSON.stringify(value)}`
   }
   return null
 }

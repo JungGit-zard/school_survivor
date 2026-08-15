@@ -297,7 +297,7 @@ export function BikittyCutterWeapon() {
     if (snapped) {
       emitSfx({ id: 'bikittyCutterSnap' })
       // 단순화: 펠릿 개별 시뮬레이션 없이 부채꼴 안의 적 전원이 snapDamage를 1회 받는다.
-      // snapPellets는 시각 연출 파편 수로만 남겨두고 피해 계산에는 쓰지 않는다.
+      // 파편 VFX는 아직 없다 — 부러짐은 SFX와 이 부채꼴 피해로만 표현된다.
       applyBikittySnapDamage({
         origin: playerPos,
         facing,

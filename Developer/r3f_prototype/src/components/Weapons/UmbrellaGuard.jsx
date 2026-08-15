@@ -10,6 +10,8 @@ import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 const OPEN_DURATION_MS = 420
 const DEFAULT_SPIN_DURATION_MS = 1200
+// 카탈로그 umbrellaGuard.base.knockback이 정본. 여기 값은 그 스탯이 없을 때만 쓰는 방어값이다.
+const DEFAULT_KNOCKBACK = 3.0
 const EXPLOSION_DURATION_MS = 420
 const UMBRELLA_COLORS = {
   cottonCandyPink: 0xff8fc4,
@@ -124,7 +126,7 @@ function UmbrellaExplosion({ id, x, z, radius, onDone }) {
   )
 }
 
-function UmbrellaPulse({ id, x, z, damage, radius, spinDurationMs, knockbackMs, onExplode }) {
+function UmbrellaPulse({ id, x, z, damage, radius, spinDurationMs, knockback, knockbackMs, onExplode }) {
   const groupRef = useRef(null)
   const ageRef = useRef(0)
   const explodedRef = useRef(false)
@@ -140,7 +142,7 @@ function UmbrellaPulse({ id, x, z, damage, radius, spinDurationMs, knockbackMs, 
 
     if (ageRef.current >= totalMs) {
       explodedRef.current = true
-      onExplode(id, { x, z, damage, radius, knockbackMs })
+      onExplode(id, { x, z, damage, radius, knockback, knockbackMs })
     }
   })
 
@@ -170,7 +172,7 @@ export function UmbrellaGuardWeapon() {
     emitSfx({ id: 'umbrellaHit', volume: 0.62 })
     applyRadialDamage({
       x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
-      knockback: 3.0, knockbackMs: blast.knockbackMs ?? 220,
+      knockback: blast.knockback ?? DEFAULT_KNOCKBACK, knockbackMs: blast.knockbackMs ?? 220,
       canCrit: false, damageType: 'explosive', attackTags: ['radial', 'explosive', 'guard'],
     })
 
@@ -193,6 +195,7 @@ export function UmbrellaGuardWeapon() {
         radius: w.radius ?? 1.25,
         damage: w.damage ?? 12,
         spinDurationMs: w.spinDurationMs ?? DEFAULT_SPIN_DURATION_MS,
+        knockback: w.knockback ?? DEFAULT_KNOCKBACK,
         knockbackMs: w.knockbackMs ?? 220,
       }
       activePulsesRef.current = [next]

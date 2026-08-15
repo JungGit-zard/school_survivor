@@ -376,6 +376,8 @@ export default {
   'weapon.umbrellaGuard': '傘バリア',
   'weapon.eraserBomb': '消しゴム爆弾',
   'weapon.studentLantern': '学生用ランタン',
+  'weapon.bikittyCutter': 'バイキティカッター',
+  'weapon.lineDraw': '線引き',
 
   // ─── パッシブ名 ───
   'passive.magnet': '回収範囲',

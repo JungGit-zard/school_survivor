@@ -376,6 +376,8 @@ export default {
   'weapon.umbrellaGuard': 'Umbrella Guard',
   'weapon.eraserBomb': 'Eraser Bomb',
   'weapon.studentLantern': 'Student Lantern',
+  'weapon.bikittyCutter': 'Bikitty Cutter',
+  'weapon.lineDraw': 'Line Draw',
 
   // ─── Passive names ───
   'passive.magnet': 'Pickup Radius',

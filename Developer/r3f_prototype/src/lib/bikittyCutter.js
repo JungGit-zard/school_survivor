@@ -81,8 +81,8 @@ export function bikittyCycleDps(weapon) {
 
 // ── 부러짐 산탄(전방 부채꼴) ────────────────────────────────────────────────────
 // 단순화 합의(소유자 확정): 펠릿을 개별 시뮬레이션하지 않는다. 부채꼴 안에 든 적 전원이
-// snapDamage를 1회씩 그대로 받는다. 카탈로그의 snapPellets는 시각 연출 파편 수로만 쓰이고
-// 피해 계산에는 전혀 관여하지 않는다.
+// snapDamage를 1회씩 그대로 받는다. 파편 VFX 자체가 아직 없어서 카탈로그에도 펠릿 수 스탯을
+// 두지 않는다 — 연출을 만들 때 함께 되살린다.
 export function isPointInBikittyFan({ origin, facing, point, range, arcDeg }) {
   if (!origin || !point) return false
   const safeRange = num(range, BASE.snapRange)

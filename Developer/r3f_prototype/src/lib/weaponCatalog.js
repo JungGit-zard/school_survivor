@@ -1,7 +1,11 @@
-// 19종 무기의 단일 진실 카탈로그 (12 starter + 복원 2 + 신규 3).
-// starter 10종 base는 buildInitialWeapons(useGameStore.js)가 그대로 사용하는 base 스탯.
-// 복원 2종(guidedMissile, starlink)·신규 3종(compassBlade, umbrellaGuard, eraserBomb)은
-// 컴포넌트·카드 효과 wiring까지 완료된 상태다.
+// 무기 19종의 단일 진실 카탈로그.
+//   - starter 12종 (unlockConditions === STARTER): 아래 starter 블록 10종 + bikittyCutter + lineDraw.
+//     뒤 둘은 계정 해금이 아니라 런 중 선행 무기 보유로 카드가 뜨는 방식이라 별도 절에 있다.
+//   - 계정 해금 7종: guidedMissile, sharkMissile, starlink, compassBlade, umbrellaGuard,
+//     eraserBomb, studentLantern.
+// 19종 전부 컴포넌트(components/Weapons/index.js)·카드 효과(upgrades.js) wiring이 끝나 있다.
+// base 스탯은 buildInitialWeapons(useGameStore.js)가 그대로 가져다 쓴다 — 여기가 유일한 출처이므로
+// 게임 쪽에 같은 수치를 리터럴로 또 적지 마라(하나코 힐 수치가 그렇게 이중 정본이 됐었다).
 
 // Sentinel for weapons that are always unlocked.
 import { PENCIL_FIRE_RANGE_WORLD_UNITS } from './gameplayUnits.js'
@@ -9,7 +13,7 @@ import { PENCIL_FIRE_RANGE_WORLD_UNITS } from './gameplayUnits.js'
 export const STARTER = 'starter'
 
 export const WEAPON_CATALOG = {
-  // ─── Starter 8종 (Lv.1 base 스탯은 buildInitialWeapons가 그대로 사용한다) ───
+  // ─── Starter 10종 (Lv.1 base 스탯은 buildInitialWeapons가 그대로 사용한다) ───
   pencilThrow: {
     id: 'pencilThrow',
     label: '연필',
@@ -155,7 +159,10 @@ export const WEAPON_CATALOG = {
       cooldown: 3600,
       radius: 1.25,
       spinDurationMs: 1200,
-      knockback: 'strong',
+      // 예전엔 'strong'이라는 문자열이었다. 19종 중 유일한 비숫자 스탯이라 컴포넌트가 읽지 않고
+      // 3.0을 하드코딩해 우회했고, gameplaySoak의 유한수 검사도 문자열은 그냥 통과시켰다.
+      // 지금까지 실제로 적용되던 값 그대로 숫자 3.0으로 고정한다(동작 변화 없음).
+      knockback: 3.0,
       knockbackMs: 220,
     },
     unlockConditions: [
@@ -181,9 +188,11 @@ export const WEAPON_CATALOG = {
     // 전방 빛 상자 안 모든 적이 1초(hitIntervalMs)마다 피해를 받는다.
     // - durationMs 1레벨 3초 → 3타 (점등 즉시 1타 + 이후 1초 간격). 레벨업마다 +1초=+1타.
     // - 빛 범위 1.9×1.9 = E01(녹색좀비) 2마리 깊이 × 2마리 폭 (간격 ~0.8 밀집 기준).
-    // - damage: 연필 레벨1의 1.5배 — 카탈로그 선언 직후 주입.
+    // - damage 0.15 = 연필 상향 직전 수치(1.5)의 1/10. 예전에는 여기 base에 0.6을 써두고
+    //   카탈로그 선언 직후 0.15로 덮어써서, 리터럴 0.6은 아무 데도 안 쓰이는 죽은 값이었다
+    //   (주석도 "1.5배"와 "1/10"로 서로 모순이었다). 실제로 적용되던 0.15만 남긴다.
     // - cooldown 8000은 점등 시작 기준: Lv1 3초 점등/5초 소등 → Lv5 7초 점등/1초 소등.
-    base: { damage: 0.6, cooldown: 8000, lastFired: 0, durationMs: 3000, hitIntervalMs: 300, lightLength: 2.08, lightWidth: 3.6, lightBaseWidth: 0.35, critChance: 0.03, critMultiplier: 1.5 },
+    base: { damage: 0.15, cooldown: 8000, lastFired: 0, durationMs: 3000, hitIntervalMs: 300, lightLength: 2.08, lightWidth: 3.6, lightBaseWidth: 0.35, critChance: 0.03, critMultiplier: 1.5 },
     unlockConditions: [
       { type: 'stage1Clears', value: 1 },
       { type: 'totalRuns', value: 5 },
@@ -215,7 +224,8 @@ export const WEAPON_CATALOG = {
       segmentRangeStep: 0.18,  // 단수당 사거리 + (최대 1.0 + 0.18×7 = 2.26)
       segmentDamageStep: 0.12, // 단수당 위력 +12% (가산)
       snapDamage: 30,          // 부러짐 산탄 1회 피해
-      snapPellets: 8,          // 시각 연출용 파편 개수 — 피해 계산에는 쓰지 않는다
+      // snapPellets는 없다. "시각 연출용 파편 개수"라고 선언돼 있었지만 부러짐 연출은
+      // SFX와 부채꼴 피해뿐이라 파편을 그리는 코드가 아예 없었다. 파편 VFX를 만들 때 되살린다.
       snapArcDeg: 90,          // 전방 부채꼴 각도
       snapRange: 3.2,
       reloadMs: 1200,          // 부러진 뒤 추가 무장해제 시간(쿨다운 위에 가산)
@@ -254,8 +264,8 @@ export const WEAPON_CATALOG = {
 const PENCIL_DERIVED_DAMAGE_BASELINE = 1.5
 // 플라스크 웅덩이 틱 데미지 (구 정본: 연필 레벨1 데미지)
 WEAPON_CATALOG.scienceFlask.base.zoneTickDamage = PENCIL_DERIVED_DAMAGE_BASELINE
-// 학생용 랜턴 위력 (구 정본: 연필 레벨1의 1/10)
-WEAPON_CATALOG.studentLantern.base.damage = PENCIL_DERIVED_DAMAGE_BASELINE * 0.1
+// 랜턴 위력(구 정본: 연필 레벨1의 1/10 = 0.15)은 studentLantern.base.damage에 직접 적어둔다.
+// 여기서 덮어쓰면 base 리터럴이 죽은 값이 되어 카탈로그를 읽는 사람이 틀린 수치를 믿게 된다.
 
 const ALL_IDS = Object.keys(WEAPON_CATALOG)
 const STARTER_IDS = ALL_IDS.filter((id) => WEAPON_CATALOG[id].unlockConditions === STARTER)

@@ -32,7 +32,6 @@ describe('바이키티 커터칼 카탈로그 정본', () => {
       segmentRangeStep: 0.18,
       segmentDamageStep: 0.12,
       snapDamage: 30,
-      snapPellets: 8,
       snapArcDeg: 90,
       snapRange: 3.2,
       reloadMs: 1200,
