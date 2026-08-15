@@ -131,8 +131,8 @@ describe('boss runtime spawn routes', () => {
   // '표에는 있는데 게임에는 안 나오는 적'이 된다. 세 링크를 함께 못박는다.
   it('routes the Stage 2 smiling-face zombie burst into the pooled spawn path', () => {
     const stage2 = getBurstEventsForStage('stage2')
-    expect(stage2).toContainEqual({ sec: 60, type: 'E07', count: 5 })
-    expect(stage2).toContainEqual({ sec: 82, type: 'E07', count: 10 })
+    expect(stage2).toContainEqual({ sec: 60, type: 'E07', count: 6 })
+    expect(stage2).toContainEqual({ sec: 82, type: 'E07', count: 11 })
     expect(isPooledEnemyType('E07')).toBe(true)
     expect(ENEMY_STATS.E07).toBeDefined()
     const previous = { x: playerPos.x, z: playerPos.z }
@@ -145,12 +145,12 @@ describe('boss runtime spawn routes', () => {
 
   it('routes the Stage 1 150s E07/E01 reinforcement through runtime pooled spawning only in stage1', () => {
     const stage1Runtime = getRuntimeBurstEventsForStage('stage1')
-    expect(stage1Runtime).toContainEqual({ sec: 150, type: 'E07', count: 5 })
-    expect(stage1Runtime).toContainEqual({ sec: 150, type: 'E01', count: 5 })
+    expect(stage1Runtime).toContainEqual({ sec: 150, type: 'E07', count: 6 })
+    expect(stage1Runtime).toContainEqual(expect.objectContaining({ sec: 150, type: 'E01', count: 6 }))
     for (const stageId of ['stage2', 'stage3', 'stage4']) {
       const runtime = getRuntimeBurstEventsForStage(stageId)
-      expect(runtime).not.toContainEqual({ sec: 150, type: 'E07', count: 5 })
-      expect(runtime).not.toContainEqual({ sec: 150, type: 'E01', count: 5 })
+      expect(runtime).not.toContainEqual({ sec: 150, type: 'E07', count: 6 })
+      expect(runtime).not.toContainEqual(expect.objectContaining({ sec: 150, type: 'E01', count: 6 }))
     }
     expect(isPooledEnemyType('E07')).toBe(true)
     expect(isPooledEnemyType('E01')).toBe(true)
@@ -160,11 +160,11 @@ describe('boss runtime spawn routes', () => {
 
   it('routes the Stage 1 40s E01/E07 fixed reinforcement through the actual scheduled burst consumer', () => {
     const stage1Runtime = getRuntimeBurstEventsForStage('stage1')
-    expect(stage1Runtime).toContainEqual({ sec: 40, type: 'E01', count: 5 })
+    expect(stage1Runtime).toContainEqual({ sec: 40, type: 'E01', count: 6 })
     expect(stage1Runtime).toContainEqual({ sec: 40, type: 'E07', count: 3 })
     for (const stageId of ['stage2', 'stage3', 'stage4']) {
       const runtime = getRuntimeBurstEventsForStage(stageId)
-      expect(runtime).not.toContainEqual({ sec: 40, type: 'E01', count: 5 })
+      expect(runtime).not.toContainEqual({ sec: 40, type: 'E01', count: 6 })
       expect(runtime).not.toContainEqual({ sec: 40, type: 'E07', count: 3 })
     }
 
@@ -194,18 +194,18 @@ describe('boss runtime spawn routes', () => {
 })
 
 describe('stage 2 mixed timed reinforcements', () => {
-  it('adds 15 mixed ordinary zombies at 120/150/180/210s and keeps E04 on ranged placement', () => {
+  it('adds 17 mixed ordinary zombies at 120/150/180/210s and keeps E04 on ranged placement', () => {
     const reinforcements = getRuntimeBurstEventsForStage('stage2')
       .filter((event) => event.reinforcement === STAGE2_MIXED_REINFORCEMENT)
     expect(reinforcements.map((event) => event.sec)).toEqual([120, 150, 180, 210])
 
     for (const event of reinforcements) {
-      expect(event.count).toBe(15)
+      expect(event.count).toBe(17)
       expect(event.mixedTypes.length).toBeGreaterThan(1)
       expect(event.mixedTypes.every((type) => /^E0[1-6]$/.test(type))).toBe(true)
       expect(event.mixedTypes.some((type) => isBossType(type) || type === 'RZT' || type === 'RZG')).toBe(false)
       const picked = pickMixedReinforcementTypes(event.mixedTypes, event.count, () => 0)
-      expect(picked).toHaveLength(15)
+      expect(picked).toHaveLength(17)
       expect(new Set(picked).size).toBeGreaterThan(1)
     }
 
@@ -338,7 +338,7 @@ describe('late zombie spawn relief', () => {
   })
 
   it('reduces burst zombie counts after 90 seconds without removing boss events', () => {
-    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E01').count).toBe(5)
+    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E01').count).toBe(6)
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
     expect(getBurstEventsForStage('stage2').filter((event) => event.type === 'E04').map((event) => event.sec)).toEqual([72, 216])
     expect(getBurstEventsForStage('stage2').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
@@ -363,7 +363,7 @@ describe('late zombie spawn relief', () => {
   it('aligns stage 1 burst pressure with tutorial and relief windows', () => {
     const stage1Bursts = getBurstEventsForStage('stage1')
 
-    expect(stage1Bursts.filter((event) => event.sec < 40).reduce((sum, event) => sum + event.count, 0)).toBe(24)
+    expect(stage1Bursts.filter((event) => event.sec < 40).reduce((sum, event) => sum + event.count, 0)).toBe(27)
     expect(stage1Bursts.some((event) => event.type === 'E02' && event.sec < 60)).toBe(false)
     expect(stage1Bursts.some((event) => event.sec >= 90 && event.sec < 108)).toBe(false)
   })
@@ -1004,11 +1004,11 @@ describe('formation spawns', () => {
   })
 
   it('keeps Stage 2 guard chase speed while doubling fugitive scale and raising its HP fivefold', () => {
-    expect(ENEMY_STATS.RZT).toMatchObject({ hp: 140, speed: 1.275, damage: 6, scale: 1.76, contactDist: 0.22 })
-    expect(ENEMY_STATS.RZG).toMatchObject({ hp: 48, speed: 1.225, damage: 9 })
+    expect(ENEMY_STATS.RZT).toMatchObject({ hp: 140, speed: 1.4025, damage: 6, scale: 1.76, contactDist: 0.22 })
+    expect(ENEMY_STATS.RZG).toMatchObject({ hp: 48, speed: 1.3475, damage: 9 })
     expect(STAGE2_GUARD_CHASE_SIZE).toBe(7)
-    expect(ENEMY_STATS.RZL.speed).toBe(2.45)
-    expect(ENEMY_STATS.RZC.speed).toBe(2.18)
+    expect(ENEMY_STATS.RZL.speed).toBe(2.695)
+    expect(ENEMY_STATS.RZC.speed).toBe(2.398)
   })
 
   it('blows the coach whistle once per run-zombie crew burst (crew-level, not per entity)', () => {

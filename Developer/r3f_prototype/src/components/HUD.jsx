@@ -892,11 +892,11 @@ export default function HUD({
 
     if (showGameoverResultImmediately && immediateGameoverMountRef.current) return undefined
 
+    // 마틸다 사망도 다른 사망과 같은 대기시간을 쓴다. 예전에는 MATILDA_DIALOGUE_MS(5000)를
+    // 더해 결과창이 6초 뒤에야 떴다 — 즉사인데 화면이 6초간 멈춘 것처럼 보였다.
+    // 마틸다 대사는 흑백 페이드 동안 그대로 나온다(showMatildaDialogue). 2026-08-14 사용자 지시.
     setGameoverModalReady(false)
-    const delayMs = isMatildaGameover
-      ? GAMEOVER_TRANSITION_MS + MATILDA_DIALOGUE_MS
-      : GAMEOVER_TRANSITION_MS
-    const timer = setTimeout(() => setGameoverModalReady(true), delayMs)
+    const timer = setTimeout(() => setGameoverModalReady(true), GAMEOVER_TRANSITION_MS)
     return () => clearTimeout(timer)
   }, [isGameover, isMatildaGameover, showGameoverResultImmediately])
 

@@ -274,46 +274,51 @@ export function isMatildaBodyContact({ enemyX, enemyZ, yaw = 0, playerX, playerZ
 }
 
 // XP 媛믪? 援먭낵??30% ?쒕엻瑜좎쓣 蹂댁젙????3.3諛곕줈 梨낆젙 (Planner/B.寃뚯엫湲고쉷,諛몃윴??援ы쁽/B-1 罹먮┃???깆옣,?λ젰移??낃렇?덉씠??援ъ“ 援ы쁽/Rewards_Drops/dual_drop_system_2026-05-08.md 짠7-2).
+// 이동속도 전 타입 ×1.1 (2026-08-13 사용자 지시 "폰에서 템포가 느리다 / 기본 좀비 이속이 너무 느리다"):
+// 잡몹·러너·원거리·차저·런크루·보스까지 예외 없이 chase speed만 정확히 1.1배로 올린다.
+// 반올림 규칙: 곱한 뒤 반올림하지 않는다 — 기존 값이 전부 소수 3자리 이하라 ×1.1이 소수 4자리에서
+// 딱 떨어진다(예: 0.475→0.5225, 2.18→2.398). 임의 반올림은 E07=E01×2 불변식을 깨므로 금지.
+// 돌진(chargeSpeed)·투사체(rangedSpeed)는 이동속도가 아니라 별도 스킬 파라미터라 대상이 아니다.
 export const ENEMY_STATS = {
   // E01 xp 6 → 4 (2026-08-08): E01(hp 8)이 더 강한 E03(hp 14, speed 1.1, xp 5)보다
   // 보상이 높은 역전 상태였다. 최약체가 최고 효율이면 강적을 잡을 이유가 없다.
   // 이 값을 바꾸면 enemySimulation.js의 ENEMY_RUNTIME_XP도 같이 바꿔야 한다
   // (enemySimulation.parity.test.js가 강제한다).
-  E01: { hp: 8,    speed: 0.475, damage: 8,  scale: 1.00, xp: 4,  contactDist: 0.28 },
-  E02: { hp: 70,   speed: 0.385, damage: 14, scale: 1.40, xp: 15, contactDist: 0.36 },
+  E01: { hp: 8,    speed: 0.5225, damage: 8,  scale: 1.00, xp: 4,  contactDist: 0.28 },
+  E02: { hp: 70,   speed: 0.4235, damage: 14, scale: 1.40, xp: 15, contactDist: 0.36 },
   // E03 hp 14 → 10 (2026-08-09): 빠른 러너를 −30% 체력으로 완화. E01(8)보다는 여전히 높다.
-  E03: { hp: 10,   speed: 1.1,  damage: 6,  scale: 0.75, xp: 5,  contactDist: 0.22 },
-  E04: { hp: 32,   speed: 0.45, damage: 8,  scale: 0.90, xp: 10, contactDist: 0.26,
+  E03: { hp: 10,   speed: 1.21, damage: 6,  scale: 0.75, xp: 5,  contactDist: 0.22 },
+  E04: { hp: 32,   speed: 0.495, damage: 8,  scale: 0.90, xp: 10, contactDist: 0.26,
          ranged: true, rangedCooldown: 2200, rangedDmg: 8, rangedSpeed: 1.9,
          preferDist: 5.5, minDist: 3.5 },
-  E05: { hp: 70,   speed: 0.5,  damage: 16, scale: 1.15, xp: 15, contactDist: 0.32,
+  E05: { hp: 70,   speed: 0.55, damage: 16, scale: 1.15, xp: 15, contactDist: 0.32,
          charger: true, chargeSpeed: 1.7, warnDist: 4.5, warnDuration: 700, stunDuration: 1000, chargeDuration: 1200 },
-  E06: { hp: 320,  speed: 0.6,  damage: 20, scale: 1.60, xp: 56, contactDist: 0.42 },
+  E06: { hp: 320,  speed: 0.66, damage: 20, scale: 1.60, xp: 56, contactDist: 0.42 },
   // Stage 3 Run Zombie crew: screen-crossing melee swarm, not a boss.
-  RZL: { hp: 90,   speed: 2.45, damage: 14, scale: 1.08, xp: 12, contactDist: 0.28, runCrew: true },
-  RZC: { hp: 28,   speed: 2.18, damage: 7,  scale: 0.78, xp: 5,  contactDist: 0.22, runCrew: true },
+  RZL: { hp: 90,   speed: 2.695, damage: 14, scale: 1.08, xp: 12, contactDist: 0.28, runCrew: true },
+  RZC: { hp: 28,   speed: 2.398, damage: 7,  scale: 0.78, xp: 5,  contactDist: 0.22, runCrew: true },
   // Stage 2 guard chase: a faster fleeing trench-coat zombie and six guards.
-  RZT: { hp: 140,  speed: 1.275, damage: 6,  scale: 1.76, xp: 5, contactDist: 0.22, runCrew: true },
-  RZG: { hp: 48,   speed: 1.225, damage: 9,  scale: 0.92, xp: 6, contactDist: 0.24, runCrew: true },
+  RZT: { hp: 140,  speed: 1.4025, damage: 6,  scale: 1.76, xp: 5, contactDist: 0.22, runCrew: true },
+  RZG: { hp: 48,   speed: 1.3475, damage: 9,  scale: 0.92, xp: 6, contactDist: 0.24, runCrew: true },
   // E07 웃는얼굴 좀비 (2026-08-09): E01(녹색좀비)의 정확히 2배 hp/damage/speed.
   // scale/contactDist는 E01과 동일하게 두어 히트박스 체감은 녹색좀비와 같게 유지한다.
   // xp 8: hp 16이라 E03(hp 10, xp 5)보다 높고 E04(hp 32, xp 10)보다 낮은 자리.
   // 이 값을 바꾸면 enemySimulation.js의 ENEMY_RUNTIME_* 15번 슬롯도 같이 바꿔야 한다.
-  E07: { hp: 16,   speed: 0.95, damage: 16, scale: 1.00, xp: 8,  contactDist: 0.28 },
+  E07: { hp: 16,   speed: 1.045, damage: 16, scale: 1.00, xp: 8,  contactDist: 0.28 },
   // B01 1?ㅽ뀒?댁?: 遺梨꾧섦 ?ъ궗泥??⑦꽩 ?쒓굅. 異붽꺽/?뚯쭊留??ъ슜 (Bang_Rules 2026-05-09 遺濡?.
   // contactDist 0.36: regular charge keeps the 1.5x grace distance; Matilda charge uses exact body contact only.
   // ?댁쟾 0.80? ?묒큺 諛섍꼍??~1.6?대씪 蹂몄껜 ?명삎蹂대떎 ?⑥뵮 而ㅼ꽌 "???우븘???쇨꺽"?섎뒗 臾몄젣媛 ?덉뿀??
-  B01: { hp: 1150, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
+  B01: { hp: 1150, speed: 0.5225, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
          charger: true, mathTeacherSpecial: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
-  B02: { hp: 1150, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
+  B02: { hp: 1150, speed: 0.5225, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
-  B03: { hp: 1150, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
+  B03: { hp: 1150, speed: 0.5225, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
   // B04 주방장: 단일 2페이즈 보스. Phase1(HP100~50%)=원거리 포격, Phase2(HP<=50%)=격노 돌진.
   // hp 1500: 더블보스 합(B02+B03=2300)의 절반보다 두툼하게. 페이즈 전환/텔레그래프는 lib/chefBossPhase.js.
   // chefPhase1: E04(cooldown2200/dmg8/speed1.9)보다 느리고 굵은 포격. 맵 halfX 12라 preferDist 5.0.
   // chefPhase2: B02/B03과 동일 차저 계열. mathTeacherSpecial 없음(→ 돌진 후 stun).
-  B04: { hp: 1500, speed: 0.475, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
+  B04: { hp: 1500, speed: 0.5225, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
          chefBoss: true,
          chefPhase1: { ranged: true, rangedCooldown: 2600, rangedDmg: 14, rangedSpeed: 1.6, preferDist: 5.0, minDist: 3.0 },
          chefPhase2: { charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 } },

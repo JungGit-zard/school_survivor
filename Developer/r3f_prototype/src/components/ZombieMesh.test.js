@@ -14,7 +14,7 @@ describe('Stage 1 boss visual reference', () => {
   it('restores B01 as the blocky green suit zombie boss at the current gameplay scale', () => {
     expect(ENEMY_STATS.B01).toMatchObject({
       hp: 1150,
-      speed: 0.475,
+      speed: 0.5225,
       scale: 2,
       charger: true,
     })
@@ -252,8 +252,8 @@ describe('Stage 4 chef zombie boss', () => {
 
 describe('Stage 3 run zombie crew visual reference', () => {
   it('registers leader and crew enemy stats separately from normal runners', () => {
-    expect(ENEMY_STATS.RZL).toMatchObject({ hp: 90, speed: 2.45, scale: 1.08, runCrew: true })
-    expect(ENEMY_STATS.RZC).toMatchObject({ hp: 28, speed: 2.18, scale: 0.78, runCrew: true })
+    expect(ENEMY_STATS.RZL).toMatchObject({ hp: 90, speed: 2.695, scale: 1.08, runCrew: true })
+    expect(ENEMY_STATS.RZC).toMatchObject({ hp: 28, speed: 2.398, scale: 0.78, runCrew: true })
     expect(ENEMY_STATS.RZL.speed).toBeGreaterThan(ENEMY_STATS.E03.speed)
     expect(ENEMY_STATS.RZC.speed).toBeGreaterThan(ENEMY_STATS.E03.speed)
   })
@@ -276,8 +276,8 @@ describe('Stage 3 run zombie crew visual reference', () => {
 
 describe('Stage 2 security guard chase visuals', () => {
   it('registers fully clothed fugitive and guard models through the shared Studio wrapper', () => {
-    expect(ENEMY_STATS.RZT).toMatchObject({ hp: 28, speed: 1.275, damage: 6, scale: 0.88, xp: 5, contactDist: 0.22, runCrew: true })
-    expect(ENEMY_STATS.RZG).toMatchObject({ hp: 48, speed: 1.225, damage: 9, scale: 0.92, xp: 6, contactDist: 0.24, runCrew: true })
+    expect(ENEMY_STATS.RZT).toMatchObject({ hp: 28, speed: 1.4025, damage: 6, scale: 0.88, xp: 5, contactDist: 0.22, runCrew: true })
+    expect(ENEMY_STATS.RZG).toMatchObject({ hp: 48, speed: 1.3475, damage: 9, scale: 0.92, xp: 6, contactDist: 0.24, runCrew: true })
     expect(ZOMBIE_PALETTE.RZT).toMatchObject({ body: 0xa87843 })
     expect(ZOMBIE_PALETTE.RZG).toMatchObject({ body: 0x173a5e })
     expect(STAGE2_GUARD_CHASE_VISUAL.parts).toEqual(expect.arrayContaining(['longTanTrenchCoat', 'navySecurityCap', 'yellowSecurityVest', 'fullClothing']))
@@ -327,7 +327,7 @@ describe('Stage 2 boss visual reference', () => {
   it('defines B02 as a clean low-poly female teacher zombie boss', () => {
     expect(ENEMY_STATS.B02).toMatchObject({
       hp: 1150,
-      speed: 0.475,
+      speed: 0.5225,
       scale: 2,
       charger: true,
     })

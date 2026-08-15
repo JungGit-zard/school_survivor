@@ -18,42 +18,57 @@ export const ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS = [
   { sec: 110, type: 'E02', count: 3 },
 ]
 
+// ── 스테이지1·2 스폰 마릿수 +10% & 종류 랜덤화 (2026-08-13 사용자 지시) ──────────────
+// 규칙 1(마릿수): count → Math.round(count × 1.1). 1~4마리짜리 "첫 등장 신호" 이벤트는
+//   반올림으로 그대로 유지되어 도입 사슬(E02@60·E03@72·E05@120·E06@168)이 깨지지 않는다.
+//   실집계: 스1 90→100(+11.1%), 스2 177→196(+10.7%). 보스·경비추격 크루는 대상 아님
+//   (크루 인원은 evt.count가 아니라 STAGE2_GUARD_CHASE_SIZE가 정한다).
+// 규칙 2(종류 랜덤): 순수 E01 대물량 러시에만 mixedTypes를 달아 매 판 구성이 바뀌게 한다.
+//   pickMixedReinforcementTypes(Enemies.jsx)는 풀의 각 타입을 1마리씩 먼저 보장한 뒤 균등 랜덤으로
+//   채우므로, 풀에 무거운 타입(E02 70hp·E05 70hp·E06 320hp)을 넣으면 "랜덤"이 아니라 확정 난이도
+//   상승이 된다. 그래서 풀은 경량대(E01 8hp·E03 10hp)로만 제한한다 — 템포 개선이 목적이지
+//   난이도 상승이 목적이 아니다. (E07은 저 함수의 /^E0[1-6]$/ 필터에 걸려 풀에 못 들어간다.)
+// 스테이지1 로스터 제약(추격/돌진형만, E04 금지 — Bang_Rules 2026-05-09 부록 / stage1_replan §3-2)은
+//   유지된다: 아래 어떤 mixedTypes에도 E04가 없고, 새 타입을 도입하지도 않는다.
+// ALL_STAGES_110SEC_* 는 스3·스4와 공유하는 배열이라 손대지 않는다(round(3×1.1)=3이라 어차피 불변).
+const LIGHT_MOB_MIX = ['E01', 'E03']
+
 export const STAGE1_150SEC_SMILING_GREEN_REINFORCEMENT_EVENTS = [
-  { sec: 150, type: 'E07', count: 5 },
-  { sec: 150, type: 'E01', count: 5 },
+  { sec: 150, type: 'E07', count: 6 },
+  { sec: 150, type: 'E01', count: 6, mixedTypes: LIGHT_MOB_MIX },
 ]
 
 export const STAGE1_40SEC_GREEN_SMILING_REINFORCEMENT_EVENTS = [
-  { sec: 40, type: 'E01', count: 5 },
+  { sec: 40, type: 'E01', count: 6 },
   { sec: 40, type: 'E07', count: 3 },
 ]
 
 // Stage 2 추가 보강(2026-08-09 사용자 지시): 120초부터 30초마다,
 // 240초 종료 전까지만 15마리씩 일반 좀비를 현재 phase 구성 안에서 섞어 더한다.
 export const STAGE2_MIXED_REINFORCEMENT_EVENTS = [
-  { sec: 120, type: 'E01', count: 15, mixedTypes: ['E01', 'E02', 'E03', 'E04', 'E05'], reinforcement: STAGE2_MIXED_REINFORCEMENT },
-  { sec: 150, type: 'E03', count: 15, mixedTypes: ['E02', 'E03', 'E04', 'E05'], reinforcement: STAGE2_MIXED_REINFORCEMENT },
-  { sec: 180, type: 'E02', count: 15, mixedTypes: ['E02', 'E04', 'E06'], reinforcement: STAGE2_MIXED_REINFORCEMENT },
-  { sec: 210, type: 'E02', count: 15, mixedTypes: ['E02', 'E04', 'E05'], reinforcement: STAGE2_MIXED_REINFORCEMENT },
+  { sec: 120, type: 'E01', count: 17, mixedTypes: ['E01', 'E02', 'E03', 'E04', 'E05'], reinforcement: STAGE2_MIXED_REINFORCEMENT },
+  { sec: 150, type: 'E03', count: 17, mixedTypes: ['E02', 'E03', 'E04', 'E05'], reinforcement: STAGE2_MIXED_REINFORCEMENT },
+  { sec: 180, type: 'E02', count: 17, mixedTypes: ['E02', 'E04', 'E06'], reinforcement: STAGE2_MIXED_REINFORCEMENT },
+  { sec: 210, type: 'E02', count: 17, mixedTypes: ['E02', 'E04', 'E05'], reinforcement: STAGE2_MIXED_REINFORCEMENT },
 ]
 
 // 4분 타임라인. 5분 기준 sec ×0.8.
 export const BURST_EVENTS = [
-  { sec:   0, type: 'E01', count: 16 },  // 40초 전 단일 좀비 구간 밀도 2배
-  { sec:  24, type: 'E01', count:  8 },  // 첫 phase target(24)을 burst만으로 초과하지 않게 완화
+  { sec:   0, type: 'E01', count: 18 },  // 40초 전 단일 좀비 구간 밀도 2배
+  { sec:  24, type: 'E01', count:  9 },  // 첫 phase target(24)을 burst만으로 초과하지 않게 완화
   ...STAGE1_40SEC_GREEN_SMILING_REINFORCEMENT_EVENTS,
-  { sec:  60, type: 'E01', count:  5 },  // 60초 녹색좀비 추가 고정 스폰
-  { sec:  60, type: 'E07', count:  5 },  // 60초 웃는좀비 추가 고정 스폰
+  { sec:  60, type: 'E01', count:  6 },  // 60초 녹색좀비 추가 고정 스폰
+  { sec:  60, type: 'E07', count:  6 },  // 60초 웃는좀비 추가 고정 스폰
   { sec:  60, type: 'E02', count:  2 },  // 탱커 첫 등장 신호 — 60초 총 2마리로 조정
   { sec:  72, type: 'E03', count:  2 },  // 러너 압박 — 6→2 (E03 전 구간 ×1/3, 2026-07-04)
-  { sec: 108, type: 'E01', count:  5 },  // 90–108초 완화 구간 이후 잡몹 러시
+  { sec: 108, type: 'E01', count:  6, mixedTypes: LIGHT_MOB_MIX },  // 90–108초 완화 구간 이후 잡몹 러시 — 경량대 랜덤 구성
   { sec: 108, type: 'E02', count:  3 },
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
   { sec: 120, type: 'E05', count:  3 },  // 돌진 첫 등장 (E04 탄환형 폐기 — 2026-05-09)
   { sec: 144, type: 'E05', count:  3 },  // 돌진 압박 강화
   ...STAGE1_150SEC_SMILING_GREEN_REINFORCEMENT_EVENTS,
   { sec: 168, type: 'E06', count:  1 },  // 거대 첫 등장
-  { sec: 184, type: 'E01', count:  5 },  // 마지막 러시 (보스 직전) — 과부하 완화
+  { sec: 184, type: 'E01', count:  6, mixedTypes: LIGHT_MOB_MIX },  // 마지막 러시 (보스 직전) — 경량대 랜덤 구성
   { sec: 184, type: 'E02', count:  3 },
   { sec: 184, type: 'E05', count:  2 },
   { sec: 192, type: 'B01', count:  1 },  // 보스 등장 (3:12) — 보스 구간 파생 기준
@@ -62,7 +77,7 @@ export const BURST_EVENTS = [
 
 // 4분 타임라인. 5분 기준 sec ×0.8.
 export const STAGE2_BURST_EVENTS = [
-  { sec:   5, type: 'E01', count: 15 },  // 첫 웨이브 0→5초, 물량 ×1.5(2026-08-09)
+  { sec:   5, type: 'E01', count: 17 },  // 첫 웨이브 0→5초, 물량 ×1.5(2026-08-09)
   { sec:  24, type: 'E03', count:  4 },
   { sec:  48, type: 'E02', count:  3 },
   { sec:  72, type: 'E04', count:  1 },
@@ -80,16 +95,16 @@ export const STAGE2_BURST_EVENTS = [
   // ── 형태(formation) 버스트 (2026-07-10) — 균일 압력을 깨는 스파이크→이완 비트.
   // 유지 루프가 총원을 target과 비교하므로 형태로 채운 만큼 자동으로 덜 스폰된다(의도).
   // E04/보스와 시각 겹치지 않게 배치. 예고 정본은 waveTimelines.STAGE2_SPAWN_TELEGRAPHS.
-  { sec:  30, type: 'E01', count:  6, formation: 'swarm' },   // 초반 단조 구간 깨기
-  { sec:  30, type: 'E01', count: 20 },                       // 30초 녹색좀비 추가 러시(2026-08-09)
-  { sec:  90, type: 'E01', count: 20 },                       // 1분 30초 녹색좀비 러시(2026-08-09)
+  { sec:  30, type: 'E01', count:  7, formation: 'swarm' },   // 초반 단조 구간 깨기
+  { sec:  30, type: 'E01', count: 22, mixedTypes: LIGHT_MOB_MIX },  // 30초 녹색좀비 러시 — 경량대 랜덤 구성(E03@24 도입 이후)
+  { sec:  90, type: 'E01', count: 22, mixedTypes: LIGHT_MOB_MIX },  // 1분 30초 러시 — 경량대 랜덤 구성
   { sec:  90, type: 'E02', count:  3 },                       // 1분 30초 탱커 동반(2026-08-09)
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
   ...STAGE2_MIXED_REINFORCEMENT_EVENTS,
-  { sec:  60, type: 'E03', count:  5, formation: 'ring' },    // 러너 포위
-  { sec:  60, type: 'E07', count:  5 },                       // 1분 웃는얼굴 좀비 5마리(E01 2배 스탯, 2026-08-09)
-  { sec:  82, type: 'E07', count: 10 },
-  { sec: 132, type: 'E02', count:  6, formation: 'pincer' },  // 탱커 협공 (120–144 위상)
+  { sec:  60, type: 'E03', count:  6, formation: 'ring' },    // 러너 포위
+  { sec:  60, type: 'E07', count:  6 },                       // 1분 웃는얼굴 좀비(E01 2배 스탯, 2026-08-09)
+  { sec:  82, type: 'E07', count: 11 },
+  { sec: 132, type: 'E02', count:  7, formation: 'pincer' },  // 탱커 협공 (120–144 위상)
   { sec: 176, type: 'E05', count:  4, formation: 'swarm' },   // 돌진 무리 (168–192 위상)
 ]
 

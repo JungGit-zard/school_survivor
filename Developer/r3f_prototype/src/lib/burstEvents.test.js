@@ -30,15 +30,17 @@ describe('전 스테이지 1:50 웃는좀비·탱커 보강', () => {
   })
 
   it('기존 Stage 2 웃는좀비 버스트를 그대로 보존한다', () => {
-    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 60, type: 'E07', count: 5 })
-    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 82, type: 'E07', count: 10 })
+    // 2026-08-13 스폰 +10%: 5→6 / 10→11 (round(count×1.1)).
+    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 60, type: 'E07', count: 6 })
+    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 82, type: 'E07', count: 11 })
   })
 })
 
 describe('Stage 1 2:30 웃는좀비·녹색좀비 보강', () => {
-  it('stage1만 150초에 E07 5마리와 E01 5마리를 정확히 추가한다', () => {
-    expect(BURST_EVENTS.filter((event) => event.sec === 150 && event.type === 'E07' && event.count === 5)).toHaveLength(1)
-    expect(BURST_EVENTS.filter((event) => event.sec === 150 && event.type === 'E01' && event.count === 5)).toHaveLength(1)
+  // 2026-08-13 스폰 +10%: 5→6. E01 쪽은 경량대 랜덤 구성(mixedTypes)이 붙었다.
+  it('stage1만 150초에 E07 6마리와 E01 6마리를 정확히 추가한다', () => {
+    expect(BURST_EVENTS.filter((event) => event.sec === 150 && event.type === 'E07' && event.count === 6)).toHaveLength(1)
+    expect(BURST_EVENTS.filter((event) => event.sec === 150 && event.type === 'E01' && event.count === 6)).toHaveLength(1)
   })
 
   it.each([
@@ -46,8 +48,8 @@ describe('Stage 1 2:30 웃는좀비·녹색좀비 보강', () => {
     ['stage3', STAGE3_BURST_EVENTS],
     ['stage4', STAGE4_BURST_EVENTS],
   ])('%s에는 150초 E07/E01 보강을 넣지 않는다', (_stageId, events) => {
-    expect(events.filter((event) => event.sec === 150 && event.type === 'E07' && event.count === 5)).toHaveLength(0)
-    expect(events.filter((event) => event.sec === 150 && event.type === 'E01' && event.count === 5)).toHaveLength(0)
+    expect(events.filter((event) => event.sec === 150 && event.type === 'E07' && event.count === 6)).toHaveLength(0)
+    expect(events.filter((event) => event.sec === 150 && event.type === 'E01' && event.count === 6)).toHaveLength(0)
   })
 
   it('기존 110초 전 스테이지 E07 3 + E02 3 보강을 보존한다', () => {
@@ -57,8 +59,9 @@ describe('Stage 1 2:30 웃는좀비·녹색좀비 보강', () => {
 })
 
 describe('Stage 1 40초 녹색좀비·웃는좀비 추가 스폰', () => {
-  it('stage1에만 정확히 E01 5마리와 E07 3마리를 추가한다', () => {
-    expect(BURST_EVENTS.filter((event) => event.sec === 40 && event.type === 'E01' && event.count === 5)).toHaveLength(1)
+  // 2026-08-13 스폰 +10%: E01 5→6. E07 3은 round(3×1.1)=3이라 불변.
+  it('stage1에만 정확히 E01 6마리와 E07 3마리를 추가한다', () => {
+    expect(BURST_EVENTS.filter((event) => event.sec === 40 && event.type === 'E01' && event.count === 6)).toHaveLength(1)
     expect(BURST_EVENTS.filter((event) => event.sec === 40 && event.type === 'E07' && event.count === 3)).toHaveLength(1)
   })
 
@@ -67,13 +70,13 @@ describe('Stage 1 40초 녹색좀비·웃는좀비 추가 스폰', () => {
     ['stage3', STAGE3_BURST_EVENTS],
     ['stage4', STAGE4_BURST_EVENTS],
   ])('%s에는 이 40초 추가 스폰이 없다', (_stageId, events) => {
-    expect(events.filter((event) => event.sec === 40 && event.type === 'E01' && event.count === 5)).toHaveLength(0)
+    expect(events.filter((event) => event.sec === 40 && event.type === 'E01' && event.count === 6)).toHaveLength(0)
     expect(events.filter((event) => event.sec === 40 && event.type === 'E07' && event.count === 3)).toHaveLength(0)
   })
 
   it('런타임 스케줄에도 동일하게 포함한다', () => {
     const runtime = getRuntimeBurstEventsForStage('stage1')
-    expect(runtime).toContainEqual({ sec: 40, type: 'E01', count: 5 })
+    expect(runtime).toContainEqual({ sec: 40, type: 'E01', count: 6 })
     expect(runtime).toContainEqual({ sec: 40, type: 'E07', count: 3 })
   })
 })

@@ -171,7 +171,7 @@ describe('enemySimulation 순수 일반 적 런타임', () => {
   it('E01/E02/E03/E06은 기존 수치로 추격하고 contact 거리에서는 멈춘다', () => {
     const pool = createEnemyEntityPool()
     const runtime = createEnemySimulationRuntime()
-    const cases = [['E01', 0.475], ['E02', 0.385], ['E03', 1.1], ['E06', 0.6]]
+    const cases = [['E01', 0.5225], ['E02', 0.4235], ['E03', 1.21], ['E06', 0.66]]
     for (let i = 0; i < cases.length; i += 1) {
       const handle = spawn(pool, cases[i][0], -5, i, { spawnTimer: 300 })
       runtime.step(pool, context({ playerZ: i }))
@@ -253,10 +253,13 @@ describe('enemySimulation 순수 일반 적 런타임', () => {
 
   it('E04는 동일 3구간 이동과 intro/age/cap/boss/cooldown 발사 gate를 지킨다', () => {
     const velocity = { x: 0, z: 0 }
-    expect(resolveRangedEnemyVelocityRaw(velocity, 1, 0, 3).x).toBe(-0.45)
+    expect(resolveRangedEnemyVelocityRaw(velocity, 1, 0, 3).x).toBe(-0.495)
     expect(Math.abs(resolveRangedEnemyVelocityRaw(velocity, 1, 0, 3).z)).toBe(0)
-    expect(resolveRangedEnemyVelocityRaw(velocity, 1, 0, 6)).toMatchObject({ x: 0.45, z: 0 })
-    expect(resolveRangedEnemyVelocityRaw(velocity, 1, 0, 4, -1)).toMatchObject({ x: 0, z: -0.3375 })
+    expect(resolveRangedEnemyVelocityRaw(velocity, 1, 0, 6)).toMatchObject({ x: 0.495, z: 0 })
+    // 스트레이프 = speed × 0.75. 0.495 × 0.75는 배정도에서 0.37124999999999997이라 근사 비교한다.
+    const strafe = resolveRangedEnemyVelocityRaw(velocity, 1, 0, 4, -1)
+    expect(strafe.x).toBe(0)
+    expect(strafe.z).toBeCloseTo(-0.37125, 10)
 
     const pool = createEnemyEntityPool()
     const runtime = createEnemySimulationRuntime()
@@ -308,7 +311,7 @@ describe('enemySimulation 순수 일반 적 런타임', () => {
     const crew = spawn(pool, 'RZC', -4, 0, { spawnTimer: 300, runDirX: 0, runDirZ: -5 })
     runtime.step(pool, context({ halfX: 1, halfZ: 1 }))
     expect(pool.get(leader)).toBeNull()
-    expect(pool.velZ[crew.index]).toBeCloseTo(-2.18, 4)
+    expect(pool.velZ[crew.index]).toBeCloseTo(-2.398, 4)
     const event = {}
     while (runtime.events.drainInto(event) && event.type !== ENEMY_EVENT_DESPAWN) {}
     expect(event.type).toBe(ENEMY_EVENT_DESPAWN)
@@ -597,10 +600,10 @@ describe('enemySimulation 순수 일반 적 런타임', () => {
   })
 
   it('keeps Stage 2 guard chase runtime speeds at the required half-speed values', () => {
-    expect(ENEMY_RUNTIME_SPEED[13]).toBeCloseTo(1.275, 6)
-    expect(ENEMY_RUNTIME_SPEED[14]).toBeCloseTo(1.225, 6)
-    expect(ENEMY_RUNTIME_SPEED[7]).toBeCloseTo(2.45, 6)
-    expect(ENEMY_RUNTIME_SPEED[8]).toBeCloseTo(2.18, 6)
+    expect(ENEMY_RUNTIME_SPEED[13]).toBeCloseTo(1.4025, 6)
+    expect(ENEMY_RUNTIME_SPEED[14]).toBeCloseTo(1.3475, 6)
+    expect(ENEMY_RUNTIME_SPEED[7]).toBeCloseTo(2.695, 6)
+    expect(ENEMY_RUNTIME_SPEED[8]).toBeCloseTo(2.398, 6)
   })
 
   it('lets only Stage 2 chase runners pass straight through props and despawn beyond the opposite boundary', () => {

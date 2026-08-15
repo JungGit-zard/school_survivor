@@ -794,8 +794,10 @@ describe('result action layout', () => {
       expect(grayscale.style.animation).toBe('none')
       expect(grayscale.style.opacity).toBe('1')
 
+      // 결과창은 흑백 페이드 1회분만 기다린다. 예전에는 MATILDA_DIALOGUE_MS(5000)를 더해
+      // 6초를 기다렸고, 즉사인데 화면이 멈춘 것처럼 보였다(2026-08-14 사용자 지시로 제거).
       act(() => {
-        vi.advanceTimersByTime(MATILDA_DIALOGUE_MS + 999)
+        vi.advanceTimersByTime(999)
       })
       expect(container.querySelector('[data-testid="gameover-result-overlay"]')).toBeNull()
       expect(container.querySelector('[data-testid="matilda-dialogue"]')).not.toBeNull()

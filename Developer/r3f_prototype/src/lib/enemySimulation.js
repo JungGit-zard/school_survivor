@@ -11,7 +11,8 @@ export const ENEMY_SIZE_MULTIPLIER = 4 / 3
 export const ENEMY_SPAWN_REVEAL_MS = 300
 export const ENEMY_CONTACT_COOLDOWN_MS = 500
 // E04 이동·쿨다운 정본. 다음 통합에서 Enemy.jsx도 이 값을 import한다.
-export const E04_RUNTIME_SPEED = 0.45
+// E04 원거리 기동은 ENEMY_RUNTIME_SPEED[4]가 아니라 이 상수를 읽는다 — 이동속도 ×1.1 때 반드시 함께 올린다.
+export const E04_RUNTIME_SPEED = 0.495
 export const E04_FIRE_COOLDOWN_MS = 2200
 export const E04_PREFER_DISTANCE = 5.5
 export const E04_FIRST_FIRE_DELAY_MS = STAGE2_E04_FIRST_FIRE_DELAY_MS
@@ -47,7 +48,8 @@ export const ENEMY_STUCK_MOVE_EPSILON_SQ = 1e-6
 // JSX ENEMY_STATS와 수치를 맞춘 순수 런타임 lookup. 다음 통합 단계에서 Enemy.jsx가 이 정본을 import한다.
 // 인덱스 = ENEMY_TYPE_CODES. 15 = E07(웃는얼굴 좀비) = E01의 2배 hp/damage/speed.
 export const ENEMY_RUNTIME_HP = new Float32Array([0, 8, 70, 10, 32, 70, 320, 90, 28, 0, 0, 0, 0, 28, 48, 16])
-export const ENEMY_RUNTIME_SPEED = new Float32Array([0, 0.475, 0.385, 1.1, 0.45, 0.5, 0.6, 2.45, 2.18, 0, 0, 0, 0, 1.275, 1.225, 0.95])
+// speed 전 슬롯 ×1.1 (2026-08-13). ENEMY_STATS와 한 벌이라 한쪽만 고치면 게임과 프로브가 갈라진다.
+export const ENEMY_RUNTIME_SPEED = new Float32Array([0, 0.5225, 0.4235, 1.21, 0.495, 0.55, 0.66, 2.695, 2.398, 0, 0, 0, 0, 1.4025, 1.3475, 1.045])
 export const ENEMY_RUNTIME_DAMAGE = new Float32Array([0, 8, 14, 6, 8, 16, 20, 14, 7, 0, 0, 0, 0, 6, 9, 16])
 export const ENEMY_RUNTIME_SCALE = new Float32Array([0, 1, 1.4, 0.75, 0.9, 1.15, 1.6, 1.08, 0.78, 0, 0, 0, 0, 0.88, 0.92, 1])
 export const ENEMY_RUNTIME_XP = new Float32Array([0, 4, 15, 5, 10, 15, 56, 12, 5, 0, 0, 0, 0, 5, 6, 8])
