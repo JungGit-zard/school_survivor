@@ -1,13 +1,13 @@
 dialogue.unavailable	Dialogue unavailable.
-quest.stage1-talk-book.start	I'm terrible at talking??if only I had the 'Silver Tongue Handbook'!!!
-quest.stage1-talk-book.completion	Good??I can speak now. Everyone, listen to me and walk out calmly!
-quest.stage1-attendance.start	I need to know who got out of the classroom??the emergency roll book should be on a front desk.
-quest.stage1-attendance.completion	Confirmed. Some of them went into the corridor. Let?셳 follow.
-quest.stage2-bandage.start	There is a compression bandage in locker 304. The code is 0304??we gave up on security long ago.
+quest.stage1-talk-book.start	I'm terrible at talking... if only I had the 'Silver Tongue Handbook'!!!
+quest.stage1-talk-book.completion	Good... I can speak now. Everyone, listen to me and walk out calmly!
+quest.stage1-attendance.start	I need to know who got out of the classroom... the emergency roll book should be on a front desk.
+quest.stage1-attendance.completion	Confirmed. Some of them went into the corridor. Let's follow.
+quest.stage2-bandage.start	There is a compression bandage in locker 304. The code is 0304... we gave up on security long ago.
 quest.stage2-bandage.completion	There. I can move on my own now. Thank you.
 quest.stage2-broadcast-key.start	We need an emergency broadcast. I taped the broadcast room master key behind the lost & found board.
 quest.stage2-broadcast-key.completion	Good. I will run the evacuation broadcast to the end of the corridor. Keep going!
-quest.stage3-whistle.start	Everyone is panicking??with my whistle I could gather them to one side.
+quest.stage3-whistle.start	Everyone is panicking... with my whistle I could gather them to one side.
 quest.stage3-whistle.completion	Right, I will get everyone in order. You open the gym exit!
 quest.stage3-scoreboard-fuse.start	If we power the north scoreboard we can display the exit direction. The spare fuse is in the ball cart.
 quest.stage3-scoreboard-fuse.completion	The scoreboard lights up and an arrow toward the exit appears.
@@ -15,7 +15,7 @@ quest.stage4-allergy-list.start	I want to hand out the leftover food, but I have
 quest.stage4-allergy-list.completion	Now I can hand it out safely. I will not make anyone else sick.
 quest.stage4-gas-valve.start	The cook line is leaking gas! The red valve handle rolled toward the sink.
 quest.stage4-gas-valve.completion	The valve is shut. The cook line flames and hissing die down.
-matilda.entry	Ohohoho! Give me a rice cake and I won?셳 eat you!
+matilda.entry	Ohohoho! Give me a rice cake and I won't eat you!
 matilda.death	Ohohoho!!!!! You look delicious!!!!
 matilda.gameover	Matilda took your soul!!
 intro.stage1.001	The hearts of students who hated studying turned them into zombies…
