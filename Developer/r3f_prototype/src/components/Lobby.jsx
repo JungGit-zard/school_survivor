@@ -66,7 +66,7 @@ function formatSeasonCountdown(season, nowMs = Date.now()) {
   return translate('lobby.seasonEndsHours', { hours, minutes })
 }
 
-export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onLogoutToTitle, devAllStagesUnlocked = false }) {
+export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onOpenMissionCenter, onLogoutToTitle, devAllStagesUnlocked = false }) {
   const t = useT()
   const authUser = useAuthStore((s) => s.user)
   const progressStatus = useAuthStore((s) => s.progressStatus)
@@ -285,6 +285,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onL
         <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => !showtimeStageId && setModal('weapon')}>{t('lobby.weapons')}</button>
         <button type="button" className="lobby-press" style={styles.bottomNavButtonAccent} onClick={() => !showtimeStageId && onOpenRanking?.()}>{t('lobby.ranking')}</button>
         <button type="button" className="lobby-press" style={styles.bottomNavButtonReward} onClick={() => !showtimeStageId && onOpenCoinShop?.()}>{t('lobby.shop')}</button>
+        <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => !showtimeStageId && onOpenMissionCenter?.()}>미션</button>
       </nav>
 
       {modal === 'weapon' && <WeaponModal onClose={closeModal} />}

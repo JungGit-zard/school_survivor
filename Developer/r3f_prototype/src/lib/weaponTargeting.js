@@ -126,6 +126,7 @@ const sharedRadialImpact = {
   attackTags: undefined,
   critChance: undefined,
   critMultiplier: undefined,
+  weaponKey: undefined,
 }
 const sharedForwardBoxImpact = { source: { x: 0, z: 0 }, knockback: 0, knockbackMs: 0 }
 const sharedForwardConeImpact = {
@@ -503,6 +504,7 @@ export function applyRadialDamage({
   attackTags,
   critChance,
   critMultiplier,
+  weaponKey,
 }) {
   if (!Number.isFinite(x) || !Number.isFinite(z) || !Number.isFinite(radius) || radius <= 0 || !Number.isFinite(damage)) return 0
 
@@ -527,6 +529,7 @@ export function applyRadialDamage({
     impact.attackTags = attackTags
     impact.critChance = critChance
     impact.critMultiplier = critMultiplier
+    impact.weaponKey = weaponKey
     if (applyEnemyHit(rb, generation, damage, impact)) hits += 1
   }
   return hits

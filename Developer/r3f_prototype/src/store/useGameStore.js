@@ -22,7 +22,23 @@ import { DEFAULT_STAGE_ID, getNextStageId, getStageConfig } from '../lib/stageCo
 import { getBossSpawnSec } from '../lib/burstEvents.js'
 import { getAdminBalanceConfig } from '../lib/adminConfig.js'
 import { vibrateFeedback } from '../lib/titleSettings.js'
-import { isFirebaseProgressHydrated, recordPlayActivity, requestCloudProgressSave, readFirebasePlayerProgress, updateFirebasePlayerProgress } from '../lib/firebaseProgress.js'
+import {
+  claimFirebaseMissionReward,
+  isFirebaseProgressHydrated,
+  readFirebaseMissionProgress,
+  recordPlayActivity,
+  requestCloudProgressSave,
+  saveFirebaseMissionProgress,
+  updateFirebaseMissionProgress,
+  readFirebasePlayerProgress,
+  updateFirebasePlayerProgress,
+} from '../lib/firebaseProgress.js'
+import {
+  createMissionProgressState,
+  reconcileMissionProgress,
+  reduceMissionEvent,
+} from '../lib/missionProgress.js'
+import { getApprovedMissionRewardAllowlist, MISSION_BY_ID } from '../lib/missionCatalog.js'
 import { submitRun } from '../lib/firebaseRanking.js'
 import { isProjectMaster } from '../lib/projectAdmin.js'
 import { useAuthStore } from './useAuthStore.js'
@@ -40,6 +56,8 @@ import {
 import { createStageQuestProgress, getQuestDefinition } from '../lib/quests.js'
 import { XP_TO_NEXT_START, nextXpThreshold } from '../lib/xpCurve.js'
 import { getStageObjectPlacements } from '../components/StageObjects/stageObjectPlacements.js'
+
+const MAX_MISSION_KILL_KEYS = 512
 
 const BASE_PLAYER = {
   hp: 100, maxHp: 100,
@@ -220,6 +238,13 @@ export const useGameStore = create(
     questToast: null,
     newQuestItemIds: [],
     questCollectedSourceIds: [],
+    // 미션은 로그인 여부와 무관하게 런타임 메모리에서만 집계한다. 영구 저장은 Firebase hydrate 뒤
+    // run-end batch에서만 시도하며, 실패해도 이 메모리 상태와 게임 플레이는 유지한다.
+    missionProgress: createMissionProgressState(),
+    missionSyncState: 'memory',
+    missionEventKeys: [],
+    missionKillKeys: [],
+    missionSpecialEnemySpawns: [],
 
     // Public/test compatibility only. Game's frame loop advances the mutable runtime
     // clock directly and the UI snapshot is published at 10Hz from Game's effect.
@@ -345,6 +370,104 @@ export const useGameStore = create(
       incrementPlayerRecord('bossKills', 1)
     },
 
+    hydrateMissionProgress: () => {
+      const result = readFirebaseMissionProgress()
+      if (!result.ok) {
+        set({ missionSyncState: result.reason })
+        return result
+      }
+      const missionProgress = reconcileMissionProgress(result.missions)
+      set({ missionProgress, missionSyncState: 'hydrated' })
+      return { ok: true, missions: missionProgress }
+    },
+
+    recordMissionEvent: (event) => {
+      const missionProgress = reduceMissionEvent(get().missionProgress, event)
+      set({ missionProgress })
+      return missionProgress
+    },
+
+    // 같은 런에서 프레임 경로가 겹쳐도 조사 상호작용은 한 번만 미션에 반영한다.
+    recordMissionEventOnce: (eventKey, event) => {
+      if (typeof eventKey !== 'string' || !eventKey || get().missionEventKeys.includes(eventKey)) return false
+      set((s) => ({ missionEventKeys: [...s.missionEventKeys, eventKey] }))
+      get().recordMissionEvent(event)
+      return true
+    },
+
+    // 풀 재사용/특수 적 제거 경로가 겹쳐도 같은 적의 처치는 런마다 한 번만 집계한다.
+    recordMissionEnemyKill: ({ enemyType, stageId, weaponKey, bossId, gameKey, killKey } = {}) => {
+      const state = get()
+      if (gameKey !== state.gameKey || stageId !== state.currentStageId || typeof killKey !== 'string' || !killKey) return false
+      if (state.missionKillKeys.includes(killKey)) return false
+      set((s) => ({ missionKillKeys: [...s.missionKillKeys, killKey].slice(-MAX_MISSION_KILL_KEYS) }))
+      get().recordMissionEvent({ type: 'enemy_killed', stageId, enemyType, weaponKey })
+      if (bossId) get().recordMissionEvent({ type: 'boss_killed', bossId })
+      return true
+    },
+
+    // 특수 적 생존 미션은 실제 버스트 생성 시각을 런 메모리에만 보관하고, 종료 시 최대 생존시간으로 합산한다.
+    recordMissionSpecialEnemySpawn: ({ enemyType, stageId, gameKey, spawnSec }) => {
+      if (!['E03', 'RZT', 'RZG', 'RZL', 'RZC'].includes(enemyType) || stageId !== get().currentStageId || gameKey !== get().gameKey) return false
+      const second = Math.floor(Number(spawnSec))
+      if (!Number.isFinite(second) || second < 0) return false
+      const spawnKey = `${gameKey}:${stageId}:${enemyType}:${second}`
+      if (get().missionSpecialEnemySpawns.some((spawn) => spawn.key === spawnKey)) return false
+      set((s) => ({
+        missionSpecialEnemySpawns: [...s.missionSpecialEnemySpawns, { key: spawnKey, enemyType, stageId, gameKey, spawnSec: second }],
+      }))
+      return true
+    },
+
+    setPinnedMissionIds: (missionIds) => {
+      const pinnedMissionIds = []
+      for (const missionId of Array.isArray(missionIds) ? missionIds : []) {
+        if (!MISSION_BY_ID[missionId] || pinnedMissionIds.includes(missionId)) continue
+        pinnedMissionIds.push(missionId)
+        if (pinnedMissionIds.length === 2) break
+      }
+      set((s) => ({ missionProgress: { ...s.missionProgress, pinnedMissionIds } }))
+      return pinnedMissionIds
+    },
+
+    togglePinnedMission: (missionId) => {
+      if (!MISSION_BY_ID[missionId]) return false
+      const pinnedMissionIds = get().missionProgress.pinnedMissionIds
+      if (pinnedMissionIds.includes(missionId)) {
+        get().setPinnedMissionIds(pinnedMissionIds.filter((id) => id !== missionId))
+        return true
+      }
+      if (pinnedMissionIds.length >= 2) return false
+      get().setPinnedMissionIds([...pinnedMissionIds, missionId])
+      return true
+    },
+
+    saveMissionProgress: async () => {
+      const user = useAuthStore.getState().user
+      if (!user?.uid) return { ok: false, saved: false, reason: 'unauthenticated' }
+      const missionProgress = get().missionProgress
+      const updated = updateFirebaseMissionProgress(() => missionProgress)
+      if (!updated.ok) {
+        set({ missionSyncState: updated.reason })
+        return { ok: false, saved: false, reason: updated.reason }
+      }
+      const result = await saveFirebaseMissionProgress(user)
+      set({ missionSyncState: result.ok ? 'saved' : result.reason })
+      return result
+    },
+
+    claimMissionReward: async (missionId) => {
+      const user = useAuthStore.getState().user
+      const rewardAllowlist = getApprovedMissionRewardAllowlist()
+      if (Object.keys(rewardAllowlist).length === 0) {
+        return { ok: false, committed: false, reason: 'reward-not-approved' }
+      }
+      const result = await claimFirebaseMissionReward({ user, missionId, rewardAllowlist })
+      if (result.missions) set({ missionProgress: reconcileMissionProgress(result.missions) })
+      set({ missionSyncState: result.ok ? 'claimed' : result.reason })
+      return result
+    },
+
     // 결과창 진입 1회: 본 런 카운터를 평가 → diff → unlock 저장 → store 알림 → cumulative snapshot.
     // 호출 사이트: damagePlayer HP≤0 분기, clearStage.
     // 순서가 정확성을 결정: 평가는 snapshot 전, 합본에 본 런 카운터 포함, snapshot은 평가 후.
@@ -372,6 +495,21 @@ export const useGameStore = create(
         evalInput[stage.clearRecordKey] = (evalInput[stage.clearRecordKey] ?? 0) + 1
       }
 
+      // 미션은 여기서만 run-end batch로 저장한다. component/frame/pickup별 Firebase 쓰기는 없다.
+      get().recordMissionEvent({ type: 'survival_updated', stageId: s.currentStageId, value: runSurvivalSeconds })
+      if (phaseName === 'cleared') get().recordMissionEvent({ type: 'stage_cleared', stageId: s.currentStageId })
+      for (const spawn of s.missionSpecialEnemySpawns) {
+        if (spawn.stageId !== s.currentStageId) continue
+        const survivedAfterSpawnSec = runSurvivalSeconds - spawn.spawnSec
+        if (survivedAfterSpawnSec > 0) {
+          get().recordMissionEvent({
+            type: 'special_enemy_survival',
+            enemyType: spawn.enemyType,
+            value: survivedAfterSpawnSec,
+          })
+        }
+      }
+
       // 2. 평가 → diff (starter 제외, 이미 unlock된 것 제외)
       const nextUnlocked = evaluateUnlocks(evalInput)
       const prevUnlocked = progressReady ? getAllUnlocked() : new Set()
@@ -386,6 +524,7 @@ export const useGameStore = create(
       if (!progressReady) {
         if (phaseName === 'gameover') emitSfx({ id: 'gameOver' })
         set({ newlyUnlockedWeaponIds: Object.freeze(diff) })
+        void get().saveMissionProgress()
         return
       }
 
@@ -411,6 +550,7 @@ export const useGameStore = create(
 
       set({ newlyUnlockedWeaponIds: Object.freeze(diff) })
       saveRuntimeProgress()
+      void get().saveMissionProgress()
 
       // 랭킹 제출 — 로그인 상태 + Firebase 설정 시에만 동작 (실패해도 게임에 영향 없음).
       const cleared = phaseName === 'cleared'
@@ -508,6 +648,7 @@ export const useGameStore = create(
         growthMultiplier: buildGrowthMultiplier(levels),
         passiveVersion: s.passiveVersion + 1,
       }))
+      get().hydrateMissionProgress()
       return true
     },
 
@@ -602,6 +743,7 @@ export const useGameStore = create(
         goldTotal,
         questToast: { type: 'completed', questId },
       })
+      get().recordMissionEvent({ type: 'quest_completed' })
       saveRuntimeProgress()
       return true
     },
@@ -706,6 +848,16 @@ export const useGameStore = create(
     applyUpgrade: (key) => {
       const effect = UPGRADE_EFFECTS[key]
 
+      const recordUpgradeMissionState = () => {
+        const state = get()
+        get().recordMissionEvent({ type: 'upgrade_selected' })
+        get().recordMissionEvent({
+          type: 'weapon_state',
+          weaponLevel: effect?.weapon ? state.weapons[effect.weapon]?.level : 0,
+          activeWeaponCount: Object.values(state.weapons).filter((weapon) => weapon.active).length,
+        })
+      }
+
       if (effect?.kind === 'player') {
         if (key === 'moveSpeed') {
           set((s) => ({
@@ -720,6 +872,7 @@ export const useGameStore = create(
         } else {
           set((s) => finishLevelupState(s))
         }
+        recordUpgradeMissionState()
         return
       }
 
@@ -753,6 +906,7 @@ export const useGameStore = create(
           ...finishLevelupState(s),
         }
       })
+      recordUpgradeMissionState()
     },
 
     cheatAcquireWeapon: (id) => {
@@ -866,7 +1020,11 @@ export const useGameStore = create(
         questToast: null,
         newQuestItemIds: [],
         questCollectedSourceIds: [],
+        missionEventKeys: [],
+        missionKillKeys: [],
+        missionSpecialEnemySpawns: [],
       }))
+      get().recordMissionEvent({ type: 'stage_started', stageId: nextStageId })
       recordRuntimePlayActivity(nextStageId)
       saveRuntimeProgress()
     },

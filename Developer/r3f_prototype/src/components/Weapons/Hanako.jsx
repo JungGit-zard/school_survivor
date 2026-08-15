@@ -122,7 +122,6 @@ export function HanakoWeapon() {
   const startedAtRef = useRef(null)
   const lastHealAtRef = useRef(null)
   const weapons = useGameStore((s) => s.weapons)
-  const maxHp = useGameStore((s) => s.player.maxHp)
   const healPlayer = useGameStore((s) => s.healPlayer)
 
   const active = shouldRenderHanakoCompanion(weapons)
@@ -162,9 +161,15 @@ export function HanakoWeapon() {
     groupRef.current.rotation.y += diff * Math.min(1, delta * 8.5)
 
     if (now - lastHealAtRef.current >= HANAKO_HEAL_INTERVAL_MS) {
-      const healAmount = computeHanakoHealAmount(maxHp)
+      const player = useGameStore.getState().player
+      const healAmount = computeHanakoHealAmount(player.maxHp)
       lastHealAtRef.current = now
-      if (healAmount > 0) healPlayer(healAmount)
+      if (healAmount > 0) {
+        healPlayer(healAmount)
+        if (player.hp < player.maxHp) {
+          useGameStore.getState().recordMissionEvent({ type: 'companion_heal', companionId: 'hanako' })
+        }
+      }
     }
   })
 

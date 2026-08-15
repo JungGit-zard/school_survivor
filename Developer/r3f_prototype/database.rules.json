@@ -31,9 +31,75 @@
           "passiveUpgrades": {
             "$passiveId": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100 && newData.val() % 1 === 0" }
           },
+          "encounteredZombieTypes": {
+            "$zombieType": { ".validate": "newData.val() === 1 && ($zombieType === 'E01' || $zombieType === 'E02' || $zombieType === 'E03' || $zombieType === 'E04' || $zombieType === 'E05' || $zombieType === 'E06' || $zombieType === 'E07' || $zombieType === 'RZL' || $zombieType === 'RZC' || $zombieType === 'RZT' || $zombieType === 'RZG' || $zombieType === 'B01' || $zombieType === 'B02' || $zombieType === 'B03' || $zombieType === 'B04')" }
+          },
+          "missions": {
+            ".validate": "newData.hasChildren(['schemaVersion', 'catalogVersion', 'updatedAt'])",
+            "schemaVersion": { ".validate": "newData.isNumber() && newData.val() === 1" },
+            "catalogVersion": { ".validate": "newData.isString() && newData.val().matches(/^missions_[0-9]{4}_[0-9]{2}_[0-9]{2}_v[0-9]+$/)" },
+            "updatedAt": { ".validate": "newData.val() === '' || (newData.isString() && newData.val().length <= 40)" },
+            "counters": {
+              "$counterKey": { ".validate": "$counterKey.matches(/^[A-Za-z0-9_.-]{1,96}$/) && newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000 && newData.val() % 1 === 0" }
+            },
+            "active": {
+              "$missionId": {
+                ".validate": "$missionId.matches(/^[a-z0-9_]{1,64}$/) && newData.hasChildren(['counter', 'target'])",
+                "counter": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000 && newData.val() % 1 === 0" },
+                "target": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 1000000 && newData.val() % 1 === 0" },
+                "completedAt": { ".validate": "newData.val() == null || (newData.isString() && newData.val().length <= 40)" },
+                "claimedAt": { ".validate": "newData.val() == null || (newData.isString() && newData.val().length <= 40)" },
+                "claimId": { ".validate": "newData.val() == null || (newData.isString() && newData.val().matches(/^[a-z0-9_:-]{1,140}$/))" },
+                "$other": { ".validate": false }
+              }
+            },
+            "completed": {
+              "$missionId": {
+                ".validate": "$missionId.matches(/^[a-z0-9_]{1,64}$/) && newData.hasChildren(['completedAt', 'counter', 'target'])",
+                "completedAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
+                "counter": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000 && newData.val() % 1 === 0" },
+                "target": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 1000000 && newData.val() % 1 === 0" },
+                "$other": { ".validate": false }
+              }
+            },
+            "claimed": {
+              "$missionId": {
+                ".validate": "$missionId.matches(/^[a-z0-9_]{1,64}$/) && newData.hasChildren(['claimedAt', 'claimId', 'catalogVersion', 'reward'])",
+                "claimedAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
+                "claimId": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_:-]{1,140}$/)" },
+                "catalogVersion": { ".validate": "newData.isString() && newData.val().matches(/^missions_[0-9]{4}_[0-9]{2}_[0-9]{2}_v[0-9]+$/)" },
+                "reward": {
+                  ".validate": "newData.hasChildren(['type', 'amount'])",
+                  "type": { ".validate": "newData.isString() && newData.val() === 'gold'" },
+                  "amount": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 1000000 && newData.val() % 1 === 0" },
+                  "$other": { ".validate": false }
+                },
+                "$other": { ".validate": false }
+              }
+            },
+            "pinnedMissionIds": {
+              "$index": { ".validate": "$index.matches(/^[0-1]$/) && newData.isString() && newData.val().matches(/^[a-z0-9_]{1,64}$/)" }
+            },
+            "claimLedger": {
+              "$claimId": {
+                ".validate": "$claimId.matches(/^[a-z0-9_:-]{1,140}$/) && newData.hasChildren(['missionId', 'catalogVersion', 'claimedAt', 'reward'])",
+                "missionId": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_]{1,64}$/)" },
+                "catalogVersion": { ".validate": "newData.isString() && newData.val().matches(/^missions_[0-9]{4}_[0-9]{2}_[0-9]{2}_v[0-9]+$/)" },
+                "claimedAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
+                "reward": {
+                  ".validate": "newData.hasChildren(['type', 'amount'])",
+                  "type": { ".validate": "newData.isString() && newData.val() === 'gold'" },
+                  "amount": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 1000000 && newData.val() % 1 === 0" },
+                  "$other": { ".validate": false }
+                },
+                "$other": { ".validate": false }
+              }
+            },
+            "$other": { ".validate": false }
+          },
           "titleSettings": {
             ".validate": "newData.hasChildren(['vibration', 'reducedEffects', 'unlockAllWeaponsCheat', 'unlockAllStagesCheat'])",
-            "language": { ".validate": "newData.isString() && (newData.val() === 'ko' || newData.val() === 'en' || newData.val() === 'ja')" },
+            "language": { ".validate": "newData.val() == null || (newData.isString() && (newData.val() === 'ko' || newData.val() === 'en' || newData.val() === 'ja'))" },
             "vibration": { ".validate": "newData.isBoolean()" },
             "reducedEffects": { ".validate": "newData.isBoolean()" },
             "hitCameraShake": { ".validate": "newData.isBoolean()" },

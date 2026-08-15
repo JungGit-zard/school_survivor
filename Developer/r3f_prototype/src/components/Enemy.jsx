@@ -745,6 +745,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           visualScale: cs * 0.333,
           intensity,
           styleOverride: impact.deathStyleOverride,
+          weaponKey: impact?.weaponKey,
+          isMatilda,
           facingY: groupRef.current?.rotation.y ?? 0,
         })
       }

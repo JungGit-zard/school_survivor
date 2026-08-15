@@ -110,6 +110,7 @@ export function TumblerOrbit() {
       impact.source.x = playerPos.x; impact.source.z = playerPos.z
       impact.critChance = w.critChance; impact.critMultiplier = w.critMultiplier
       if (!applyEnemyHit(rb, generation, w.damage, impact)) continue
+      useGameStore.getState().recordMissionEvent({ type: 'weapon_hit', weaponKey: 'tumbler' })
       if (special) {
         if (specialSlot >= 0) lastHitRef.current.specialTimes[specialSlot] = nowMs
       } else lastHitRef.current.times[index] = nowMs

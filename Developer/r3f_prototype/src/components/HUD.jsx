@@ -29,6 +29,9 @@ import {
 } from '../lib/studioRuntimeState.js'
 import { isProjectMaster } from '../lib/projectAdmin.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
+import { getMissionStatus } from '../lib/missionProgress.js'
+import { MISSION_BY_ID } from '../lib/missionCatalog.js'
+import MissionTracker from './MissionTracker.jsx'
 import { milestoneLabel, t as translate, useT, weaponLabel } from '../lib/i18n.js'
 import { dispatchStarlinkCheatCrash } from './Weapons/Starlink.jsx'
 import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.webp'
@@ -615,6 +618,7 @@ export default function HUD({
   onGoToTitle,
   onGoToLobby,
   onGoToRanking,
+  onOpenMissionCenter,
   devCheatsVisible = false,
   showGameoverResultImmediately = false,
 }) {
@@ -637,6 +641,7 @@ export default function HUD({
     resetGame, togglePause, resumeGame, quitPausedRun, spawnMatilda,
     closeStudentDialogue, advanceIntro, toggleQuestInventory, closeQuestInventory,
     clearQuestToast, markQuestInventorySeen,
+    missionProgress,
   } = useGameStore(useShallow((s) => ({
     player:               s.player,
     weapons:              s.weapons,
@@ -675,6 +680,7 @@ export default function HUD({
     closeQuestInventory:  s.closeQuestInventory,
     clearQuestToast:      s.clearQuestToast,
     markQuestInventorySeen: s.markQuestInventorySeen,
+    missionProgress: s.missionProgress,
   })))
 
   const mins = String(Math.floor(elapsed / 60000)).padStart(2, '0')
@@ -751,6 +757,12 @@ export default function HUD({
     () => Object.entries(weapons).filter(([, w]) => w.active),
     [weapons],
   )
+  const missionSummary = useMemo(() => {
+    const statuses = Object.values(MISSION_BY_ID).map((mission) => ({ mission, ...getMissionStatus(missionProgress, mission) }))
+    const completed = statuses.filter((entry) => entry.state === 'completed_unclaimed')
+    const progressed = statuses.filter((entry) => entry.counter > 0 && entry.state === 'active')
+    return { completed, progressed }
+  }, [missionProgress])
 
   // phase가 'levelup'으로 바뀌는 순간 한 번만 선택지를 고정한다.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1213,6 +1225,11 @@ export default function HUD({
         </div>
       )}
 
+      <MissionTracker
+        missionProgress={missionProgress}
+        hidden={phase !== 'playing' || bossWarning != null || e04IntroWarning != null || matildaWarning != null || formationWarning != null || questInventoryOpen}
+      />
+
       {devToolsVisible && weaponCheatOpen && (phase === 'playing' || phase === 'paused') && (
         <div data-testid="weapon-cheat-panel" style={styles.weaponCheatPanel}>
           <div style={styles.weaponCheatTitle}>{t('hud.allWeapons')}</div>
@@ -1287,6 +1304,7 @@ export default function HUD({
             {isMatildaGameover && <p data-testid="gameover-death-line" style={styles.gameoverDeathLine}>{getDialogueText('matilda.gameover')}</p>}
             <p style={{ color: '#ccc', marginBottom: 8 }}>{t('hud.survivalTime', { time: `${mins}:${secs}` })}</p>
             <p style={{ color: '#ffd040', marginBottom: (newlyUnlockedWeaponIds?.length > 0) ? 12 : 20 }}>{t('hud.goldEarned', { session: goldSession, total: goldTotal })}</p>
+            <MissionResultSummary summary={missionSummary} onOpenMissionCenter={onOpenMissionCenter} />
             {newlyUnlockedWeaponIds?.length > 0 && (
               <div style={styles.newlyUnlocked}>
                 <span style={styles.newlyUnlockedLabel}>{t('hud.newWeaponUnlocked')}</span>
@@ -1435,6 +1453,7 @@ export default function HUD({
               </p>
             )}
             <p style={{ color: '#ffd040', marginBottom: nextUnlock || (newlyUnlockedWeaponIds?.length > 0) ? 12 : 20 }}>{t('hud.goldEarned', { session: goldSession, total: goldTotal })}</p>
+            <MissionResultSummary summary={missionSummary} onOpenMissionCenter={onOpenMissionCenter} />
             {newlyUnlockedWeaponIds?.length > 0 && (
               <div style={styles.newlyUnlocked}>
                 <span style={styles.newlyUnlockedLabel}>{t('hud.newWeaponUnlocked')}</span>
@@ -1556,11 +1575,31 @@ export default function HUD({
   )
 }
 
+function MissionResultSummary({ summary, onOpenMissionCenter }) {
+  const representative = summary.completed[0] ?? summary.progressed[0]
+  if (!representative && !onOpenMissionCenter) return null
+  return (
+    <section style={styles.missionResultSummary} aria-label="미션 진행 요약">
+      <strong>미션 진행</strong>
+      <span>{representative ? `${representative.mission.title} ${representative.counter}/${representative.target}` : '미션 센터에서 30개 목표를 확인하세요.'}</span>
+      {summary.completed.length > 0 && <span>완료 {summary.completed.length}개 · 보상 확정 대기</span>}
+      {onOpenMissionCenter && <button type="button" style={styles.missionCenterBtn} onClick={onOpenMissionCenter}>미션 센터</button>}
+    </section>
+  )
+}
+
 const styles = {
   root: {
     position: 'fixed', inset: 0, pointerEvents: 'none',
     zIndex: 10,
     fontFamily: uiType.family, userSelect: 'none',
+  },
+  missionResultSummary: {
+    display: 'grid', gap: 4, margin: '0 0 12px', padding: '9px 10px', border: uiBorders.hairline,
+    borderRadius: 8, background: 'rgba(255,248,232,0.12)', color: '#f8f0de', fontSize: 12, lineHeight: 1.3,
+  },
+  missionCenterBtn: {
+    ...schoolButton('paper'), minHeight: 44, marginTop: 3, fontSize: 13,
   },
   topBar: {
     position: 'absolute', top: 'var(--hud-safe-top)', '--hud-safe-top': 'max(14px, env(safe-area-inset-top, 0px))', left: '50%', transform: 'translateX(-50%)',

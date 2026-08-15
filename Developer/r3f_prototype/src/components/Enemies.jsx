@@ -48,6 +48,21 @@ const GOLD_INTERVAL_MIN_MS = 20_000
 const GOLD_INTERVAL_MAX_MS = 28_000
 const GOLD_VISIBLE_RADIUS = 10  // 플레이어 기준 이 거리 내 적에서 드랍 시도
 export const TEXTBOOK_DROP_RATE = 0.30  // 일반 적 사망 시 교과서 드랍 확률
+const MISSION_SPECIAL_SURVIVAL_TYPES = new Set(['E03', 'RZT', 'RZG', 'RZL', 'RZC'])
+
+function recordMissionBurstSpawns(store, entries, stageId, spawnSec) {
+  const seenTypes = new Set()
+  for (const entry of entries) {
+    if (!MISSION_SPECIAL_SURVIVAL_TYPES.has(entry.type) || seenTypes.has(entry.type)) continue
+    seenTypes.add(entry.type)
+    store.recordMissionSpecialEnemySpawn?.({
+      enemyType: entry.type,
+      stageId,
+      gameKey: store.gameKey,
+      spawnSec,
+    })
+  }
+}
 
 // 보스/엘리트 사망 시 추가 보너스 (기획서 §3-3)
 const ELITE_BONUS = {
@@ -1246,7 +1261,16 @@ export default function Enemies() {
     const sx = safeImpact.source?.x ?? playerPos.x; const sz = safeImpact.source?.z ?? playerPos.z
     const dx = x - sx; const dz = z - sz; const length = Math.hypot(dx, dz) || 1
     if (killed) {
-      useGameStore.getState().recordKill(); logKill(type); emitSfx({ id: type === 'E06' || type === 'E02' ? 'zombieHeavyDeath' : 'zombieDeath' })
+      const store = useGameStore.getState()
+      store.recordMissionEnemyKill({
+        enemyType: type,
+        stageId: store.currentStageId,
+        weaponKey: safeImpact.weaponKey,
+        bossId: isBossType(type) ? type : undefined,
+        gameKey: store.gameKey,
+        killKey: `${store.gameKey}:pool:${index}:${generation}`,
+      })
+      store.recordKill(); logKill(type); emitSfx({ id: type === 'E06' || type === 'E02' ? 'zombieHeavyDeath' : 'zombieDeath' })
       enqueuePooledDeath(enemyPool.type[index], x, y, z, stats.xp, enemyPool.visualScale[index] * 0.333, critical.damage, enemyPool.maxHp[index], safeImpact.knockback ?? 0, safeImpact.deathStyleOverride)
     }
     enemySimulationRuntime.applyHitIndex(enemyPool, index, generation, critical.damage, dx / length * knockbackSpeed, dz / length * knockbackSpeed, knockbackMs)
@@ -1424,17 +1448,26 @@ export default function Enemies() {
         const bossBatch = []
         const bossPos = randomSpawnPos(evt.type, cache.bounds, [], Math.random, cache.obstacles)
         if (bossPos) bossBatch.push({ id: ++_uid, type: evt.type, pos: bossPos, statOverride: stageHpOverride(evt.type, cache.id) })
+        if (evt.type === 'B02' && bossBatch.length > 0) {
+          store.recordMissionEvent({ type: 'boss_spawned', bossId: 'B02' })
+        }
         addEnemies(bossBatch, true, cache.spawnToken)
         return
       }
       if (evt.formation === RUN_ZOMBIE_CREW_FORMATION) {
         emitSfx({ id: 'rzlWhistle', volume: 0.5 })
-        addEnemies(createRunZombieCrewEntries(cache.bounds, Math.random, cache.obstacles).map((entry) => ({ id: ++_uid, ...entry, statOverride: stageHpOverride(entry.type, cache.id) })), true, cache.spawnToken)
+        const batch = createRunZombieCrewEntries(cache.bounds, Math.random, cache.obstacles)
+          .map((entry) => ({ id: ++_uid, ...entry, statOverride: stageHpOverride(entry.type, cache.id) }))
+        recordMissionBurstSpawns(store, batch, cache.id, b)
+        addEnemies(batch, true, cache.spawnToken)
         return
       }
       if (evt.formation === STAGE2_GUARD_CHASE_FORMATION) {
         emitSfx({ id: 'stage2GuardWhistle', volume: 0.62 })
-        addEnemies(createStage2GuardChaseEntries(cache.bounds, Math.random, screenBounds).map((entry) => ({ id: ++_uid, ...entry, statOverride: stageHpOverride(entry.type, cache.id) })), true, cache.spawnToken)
+        const batch = createStage2GuardChaseEntries(cache.bounds, Math.random, screenBounds)
+          .map((entry) => ({ id: ++_uid, ...entry, statOverride: stageHpOverride(entry.type, cache.id) }))
+        recordMissionBurstSpawns(store, batch, cache.id, b)
+        addEnemies(batch, true, cache.spawnToken)
         return
       }
       const count = evt.count ?? 1
@@ -1448,6 +1481,7 @@ export default function Enemies() {
         if (!pos) continue
         batch.push({ id: ++_uid, type, pos, statOverride: stageHpOverride(type, cache.id) })
       }
+      recordMissionBurstSpawns(store, batch, cache.id, b)
       addEnemies(batch, true, cache.spawnToken)
     }
   }
@@ -1473,6 +1507,16 @@ export default function Enemies() {
   const onDeath = useCallback((id, dropData) => {
     pushBounded(runtimeQueueRef.current.specialRemovals, id)
     if (!dropData?.pos) return
+
+    const store = useGameStore.getState()
+    store.recordMissionEnemyKill({
+      enemyType: dropData.type,
+      stageId: store.currentStageId,
+      weaponKey: dropData.weaponKey,
+      bossId: isBossType(dropData.type) && !dropData.isMatilda ? dropData.type : undefined,
+      gameKey: store.gameKey,
+      killKey: `${store.gameKey}:special:${id}`,
+    })
 
     pushBounded(runtimeQueueRef.current.collapses, createDeathCollapseEntry(++_collapseId, dropData), 12)
     if (dropData.type === 'RZT') emitRztLunchFoodDrop(dropData.pos)

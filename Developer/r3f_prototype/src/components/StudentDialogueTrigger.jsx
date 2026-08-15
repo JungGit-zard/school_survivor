@@ -132,6 +132,10 @@ export default function StudentDialogueTrigger() {
           subjectType: 'quest',
           subjectName: quest.giver.name,
         })
+        store.recordMissionEventOnce?.(
+          `interaction:${gameKey}:${currentStageId}:quest-giver:${target.id}`,
+          { type: 'interaction_triggered' },
+        )
       }
       return
     }
@@ -144,6 +148,10 @@ export default function StudentDialogueTrigger() {
       getGenericInvestigationDialogueId({ target }),
       rollInvestigationReward(target.subjectType),
       { subjectType: target.subjectType, subjectName: target.subjectName },
+    )
+    store.recordMissionEventOnce?.(
+      `interaction:${gameKey}:${currentStageId}:student:${target.id}`,
+      { type: 'interaction_triggered' },
     )
   })
 

@@ -135,12 +135,13 @@ export function LunchModel({ kind }) {
 
 function LunchItem({ item, onCollect }) {
   const groupRef = useRef(null)
+  const collectedRef = useRef(false)
   const healPlayer = useGameStore((s) => s.healPlayer)
 
   // STUDIO_OUTER_MOTION_ONLY — 이 useFrame은 StudioTunedGroup의 바깥 그룹만 움직인다.
   // 스튜디오 파츠는 건드리지 않으므로 튜닝을 덮어쓰지 않고 부모 변형으로 곱해질 뿐이다.
   useFrame(({ clock }) => {
-    if (!groupRef.current || useGameStore.getState().phase !== 'playing') return
+    if (collectedRef.current || !groupRef.current || useGameStore.getState().phase !== 'playing') return
     const ageMs = clock.elapsedTime * 1000 - item.spawnMs
     groupRef.current.position.y = item.pos[1] + Math.sin(clock.elapsedTime * 3.2 + item.id) * 0.08
     groupRef.current.rotation.y += 0.025
@@ -149,7 +150,11 @@ function LunchItem({ item, onCollect }) {
     const dz = playerPos.z - item.pos[2]
     if (Math.hypot(dx, dz) <= COLLECT_RADIUS) {
       healPlayer(item.heal)
-      onCollect(item.id)
+      const removed = onCollect(item.id)
+      if (removed) {
+        collectedRef.current = true
+        useGameStore.getState().recordMissionEvent({ type: 'pickup_collected', itemType: 'lunch' })
+      }
       return
     }
     if (ageMs > DESPAWN_MS) onCollect(item.id)
@@ -169,8 +174,10 @@ export default function LunchItems() {
   const clockMsRef = useRef(0)
 
   const removeItem = (id) => {
+    const previousLength = itemsRef.current.length
     itemsRef.current = itemsRef.current.filter((item) => item.id !== id)
     setItems([...itemsRef.current])
+    return itemsRef.current.length !== previousLength
   }
 
   useEffect(() => subscribeForcedLunchDrop((pos) => {

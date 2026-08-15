@@ -58,7 +58,7 @@ export function SchoolBagSwing() {
   const hitTargetsRef = useRef({ generations: new Uint16Array(200), special: new Array(3) })
   const nearbyScratchRef = useRef(createWeaponTargetScratch(1))
   const swingScratchRef = useRef(createWeaponTargetScratch())
-  const impactRef = useRef({ source: { x: 0, z: 0 }, knockback: 3.8, knockbackMs: 120, critChance: 0, critMultiplier: 1 })
+  const impactRef = useRef({ source: { x: 0, z: 0 }, knockback: 3.8, knockbackMs: 120, critChance: 0, critMultiplier: 1, weaponKey: 'schoolBag' })
 
   usePlayingFrame(({ clock }) => {
     const w = weapons.schoolBag

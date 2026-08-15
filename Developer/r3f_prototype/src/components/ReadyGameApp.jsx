@@ -14,6 +14,7 @@ const SfxLayer = lazy(() => import('./SfxLayer.jsx'))
 const CoinShop = lazy(() => import('./CoinShop.jsx'))
 const UserRanking = lazy(() => import('./UserRanking.jsx'))
 const StageRanking = lazy(() => import('./StageRanking.jsx'))
+const MissionCenter = lazy(() => import('./MissionCenter.jsx'))
 
 let runtimeUtilitiesInitialized = false
 
@@ -97,6 +98,11 @@ export default function ReadyGameApp({
     setScreen('ranking')
   }
 
+  const openMissionCenterFrom = (from) => {
+    setPrevScreen(from)
+    setScreen('missionCenter')
+  }
+
   const returnToPreviousScreen = () => {
     const nextScreen = prevScreen === 'game' || prevScreen === 'lobby' ? prevScreen : 'title'
     setScreen(nextScreen)
@@ -128,6 +134,7 @@ export default function ReadyGameApp({
                 onStartStage={startGame}
                 onOpenCoinShop={() => openCoinShopFrom('lobby')}
                 onOpenRanking={(stageId) => openRankingFrom('lobby', stageId)}
+                onOpenMissionCenter={() => openMissionCenterFrom('lobby')}
                 onLogoutToTitle={() => setScreen('title')}
                 devAllStagesUnlocked={devAllStagesUnlocked}
               />
@@ -152,6 +159,12 @@ export default function ReadyGameApp({
           </Suspense>
         )}
 
+        {screen === 'missionCenter' && (
+          <Suspense fallback={<ScreenLoading label="미션" />}>
+            <MissionCenter onBack={returnToPreviousScreen} />
+          </Suspense>
+        )}
+
         {screen === 'game' && (
           <ErrorBoundary fallback={({ error, retry, reload }) => <ScreenFailure label={t('loading.game')} error={error} retry={retry} reload={reload} onBack={() => setScreen('lobby')} />}>
             <Suspense fallback={<ScreenLoading label={t('loading.game')} />}>
@@ -162,6 +175,7 @@ export default function ReadyGameApp({
                 onGoToTitle={() => setScreen('title')}
                 onGoToLobby={() => setScreen('lobby')}
                 onGoToRanking={() => openRankingFrom('game')}
+                onOpenMissionCenter={() => openMissionCenterFrom('game')}
                 devCheatsVisible={devCheatsVisible}
                 showGameoverResultImmediately={showGameoverResultImmediately}
               />

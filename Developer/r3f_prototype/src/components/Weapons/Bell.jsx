@@ -209,7 +209,10 @@ export function BellShockwave() {
       knockback: BELL_KNOCKBACK, knockbackMs: 180,
       critChance: w.critChance, critMultiplier: w.critMultiplier,
     })
-    if (hitCount > 0) emitSfx({ id: 'bellHit', volume: 0.45 })
+    if (hitCount > 0) {
+      useGameStore.getState().recordMissionEvent({ type: 'weapon_hit', weaponKey: 'bell', value: hitCount })
+      emitSfx({ id: 'bellHit', volume: 0.45 })
+    }
 
     setPulses((prev) => [...prev, { id: ++_bellPulseId, startMs: nowMs, radius }])
   })

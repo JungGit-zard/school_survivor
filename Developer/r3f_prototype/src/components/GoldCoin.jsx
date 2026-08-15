@@ -155,6 +155,7 @@ export default function GoldCoin({ id, pos, value, onCollect }) {
       collected.current = true
       emitSfx({ id: 'coinCollect' })
       gainGold(value)
+      useGameStore.getState().recordMissionEvent({ type: 'pickup_collected', itemType: 'goldCoin' })
       onCollect(id)
       return
     }

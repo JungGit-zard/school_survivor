@@ -40,6 +40,13 @@ const RECORD_KEYS = [
 
 const SUPPORTED_LANGUAGES = new Set(['ko', 'en', 'ja'])
 const ZOMBIE_ENCOUNTER_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07'])
+const MISSION_PROGRESS_SCHEMA_VERSION = 1
+const DEFAULT_MISSION_CATALOG_VERSION = 'missions_2026_08_15_v1'
+const MISSION_ID_PATTERN = /^[a-z0-9_]{1,64}$/
+const MISSION_CLAIM_ID_PATTERN = /^[a-z0-9_:-]{1,140}$/
+const MISSION_COUNTER_KEY_PATTERN = /^[A-Za-z0-9_.-]{1,96}$/
+const MAX_MISSION_COUNTER_VALUE = 1000000
+const MAX_PINNED_MISSION_IDS = 2
 
 const DEFAULT_TITLE_SETTINGS = Object.freeze({
   // null = 저장된 언어 없음 → 브라우저 언어를 쓴다(lib/i18n.js).
@@ -61,6 +68,7 @@ const VITEST_PROGRESS_CLIENT = Object.freeze({
   load: async () => null,
   save: async () => true,
   remove: async () => true,
+  transaction: async () => ({ committed: false, snapshot: null }),
 })
 
 let runtime = createEmptyRuntime()
@@ -200,6 +208,143 @@ export function readFirebasePlayerProgress() {
   return cloneProgress(runtime.progress)
 }
 
+export function readFirebaseMissionProgress() {
+  if (!runtime.hydrated || !runtime.remoteHydrated || !runtime.uid || !runtime.progress) {
+    return { ok: false, reason: 'progress-not-hydrated', missions: createEmptyMissionProgress() }
+  }
+  return { ok: true, missions: cloneMissionProgress(runtime.progress.missions) }
+}
+
+export function updateFirebaseMissionProgress(mutator) {
+  if (!runtime.hydrated || !runtime.remoteHydrated || !runtime.uid || !runtime.progress) {
+    return { ok: false, reason: 'progress-not-hydrated', missions: createEmptyMissionProgress() }
+  }
+  if (typeof mutator !== 'function') {
+    return { ok: false, reason: 'invalid-mutator', missions: cloneMissionProgress(runtime.progress.missions) }
+  }
+  const next = cloneMissionProgress(runtime.progress.missions)
+  const result = mutator(next)
+  const missions = normalizeMissionProgress(result && typeof result === 'object' ? result : next)
+  runtime = {
+    ...runtime,
+    progress: normalizeProgress({ ...runtime.progress, missions }),
+  }
+  return { ok: true, missions: cloneMissionProgress(runtime.progress.missions) }
+}
+
+export async function saveFirebaseMissionProgress(user = cloudUser) {
+  try {
+    const saved = await requestCloudProgressSave(user)
+    return { ok: saved === true, saved: saved === true, reason: saved === true ? 'saved' : 'not-ready' }
+  } catch (error) {
+    return { ok: false, saved: false, reason: readErrorCode(error, 'save-failed') }
+  }
+}
+
+export async function claimFirebaseMissionReward({
+  user = cloudUser,
+  missionId,
+  catalogVersion,
+  rewardAllowlist,
+} = {}) {
+  const uid = readUserId(user)
+  const safeMissionId = normalizeMissionId(missionId)
+  const safeCatalogVersion = readMissionCatalogVersion(catalogVersion || runtime.progress?.missions?.catalogVersion)
+  const reward = readAllowedMissionReward(rewardAllowlist, safeMissionId)
+  if (!uid) return { ok: false, committed: false, reason: 'unauthenticated' }
+  if (!safeMissionId) return { ok: false, committed: false, reason: 'invalid-mission-id' }
+  if (!reward) return { ok: false, committed: false, reason: 'invalid-reward-allowlist' }
+  if (!isFirebaseProgressHydrated(user)) return { ok: false, committed: false, reason: 'progress-not-hydrated' }
+  if (!isFirebaseProgressConfigured()) return { ok: false, committed: false, reason: 'unconfigured' }
+
+  const claimId = `${safeMissionId}:${safeCatalogVersion}`
+  if (!MISSION_CLAIM_ID_PATTERN.test(claimId)) return { ok: false, committed: false, reason: 'invalid-claim-id' }
+
+  const attempt = writeQueue.catch(() => {}).then(async () => {
+    const client = await getProgressClient()
+    if (typeof client.transaction !== 'function') {
+      return { ok: false, committed: false, reason: 'transaction-unavailable', claimId }
+    }
+
+    let blockedReason = 'transaction-aborted'
+    const transactionResult = await client.transaction(`users/${uid}/progress`, (progress) => {
+      const nextProgress = normalizeProgress(progress && typeof progress === 'object' ? progress : runtime.progress)
+      const missions = cloneMissionProgress(nextProgress.missions)
+      const activeEntry = missions.active[safeMissionId]
+      const completedEntry = missions.completed[safeMissionId]
+      const claimedEntry = missions.claimed[safeMissionId]
+      const ledgerEntry = missions.claimLedger[claimId]
+      const completedAt = readNullableIsoString(activeEntry?.completedAt) || readNullableIsoString(completedEntry?.completedAt)
+
+      if (ledgerEntry || activeEntry?.claimedAt || claimedEntry?.claimedAt) {
+        blockedReason = 'already-claimed'
+        return undefined
+      }
+      if (!activeEntry || !completedAt) {
+        blockedReason = 'not-completed'
+        return undefined
+      }
+
+      const now = new Date().toISOString()
+      const nextActiveEntry = normalizeMissionEntry({
+        ...activeEntry,
+        completedAt,
+        claimedAt: now,
+        claimId,
+      })
+      const claimedRecord = {
+        claimedAt: now,
+        claimId,
+        catalogVersion: safeCatalogVersion,
+        reward,
+      }
+      const ledgerRecord = {
+        missionId: safeMissionId,
+        catalogVersion: safeCatalogVersion,
+        claimedAt: now,
+        reward,
+      }
+
+      missions.active[safeMissionId] = nextActiveEntry
+      missions.completed[safeMissionId] = normalizeMissionCompletedEntry({
+        ...completedEntry,
+        completedAt,
+        counter: nextActiveEntry.counter,
+        target: nextActiveEntry.target,
+      })
+      missions.claimed[safeMissionId] = normalizeMissionClaimedEntry(claimedRecord)
+      missions.claimLedger[claimId] = normalizeMissionClaimLedgerEntry(ledgerRecord, safeMissionId, safeCatalogVersion)
+      missions.updatedAt = now
+      missions.catalogVersion = safeCatalogVersion
+
+      nextProgress.goldTotal = readNonNegativeInt(nextProgress.goldTotal) + reward.amount
+      nextProgress.missions = normalizeMissionProgress(missions)
+      blockedReason = 'claimed'
+      return nextProgress
+    })
+
+    const snapshotValue = readTransactionSnapshotValue(transactionResult?.snapshot)
+    if (snapshotValue && typeof snapshotValue === 'object') {
+      runtime = {
+        ...runtime,
+        progress: normalizeProgress(snapshotValue),
+      }
+    }
+
+    const ok = transactionResult?.committed === true && blockedReason === 'claimed'
+    return {
+      ok,
+      committed: transactionResult?.committed === true,
+      reason: ok ? 'claimed' : blockedReason,
+      claimId,
+      missions: runtime.progress ? cloneMissionProgress(runtime.progress.missions) : createEmptyMissionProgress(),
+      goldTotal: runtime.progress ? runtime.progress.goldTotal : 0,
+    }
+  }).catch((error) => ({ ok: false, committed: false, reason: readErrorCode(error, 'claim-failed'), claimId }))
+  writeQueue = attempt
+  return attempt
+}
+
 // 약관/개인정보 동의 기록은 users/{uid}.consent — profile·progress 안이 아니라 activity와
 // 같은 최상위 형제 노드다. normalizeProfile/normalizeProgress가 화이트리스트 밖 키를 버리기
 // 때문에 그 안에는 애초에 실을 수 없고, 보안 규칙도 노드별로 검증하므로 정체성 성격의
@@ -256,9 +401,9 @@ export async function requestCloudProgressSave(user = cloudUser) {
   if (!isFirebaseProgressConfigured()) return false
   const uidAtRequest = readUserId(user)
   const path = getUserProgressPath(user)
-  const payload = buildRemotePayload()
-  const attempt = writeQueue.then(async () => {
+  const attempt = writeQueue.catch(() => {}).then(async () => {
     if (!isFirebaseProgressHydrated({ uid: uidAtRequest })) return false
+    const payload = buildRemotePayload()
     const client = await getProgressClient()
     await client.save(path, payload)
     return true
@@ -341,6 +486,7 @@ export async function createFirebaseProgressClient(env = getDefaultEnv()) {
   return {
     save: (path, value) => databaseModule.update(databaseModule.ref(database, path), value),
     remove: (path) => databaseModule.remove(databaseModule.ref(database, path)),
+    transaction: async (path, mutator) => databaseModule.runTransaction(databaseModule.ref(database, path), mutator),
     load: async (path) => {
       const target = databaseModule.ref(database, path)
       const snapshot = await databaseModule.get(target)
@@ -403,6 +549,7 @@ function createEmptyProgress() {
     weaponPermanentUpgrades: {},
     passiveUpgrades: {},
     encounteredZombieTypes: {},
+    missions: createEmptyMissionProgress(),
     titleSettings: { ...DEFAULT_TITLE_SETTINGS },
   }
 }
@@ -415,7 +562,135 @@ function normalizeProgress(progress) {
   out.weaponPermanentUpgrades = normalizeNumberMap(progress.weaponPermanentUpgrades)
   out.passiveUpgrades = normalizeNumberMap(progress.passiveUpgrades)
   out.encounteredZombieTypes = normalizeZombieEncounterMap(progress.encounteredZombieTypes)
+  out.missions = normalizeMissionProgress(progress.missions)
   out.titleSettings = normalizeTitleSettings(progress.titleSettings)
+  return out
+}
+
+function createEmptyMissionProgress() {
+  return {
+    schemaVersion: MISSION_PROGRESS_SCHEMA_VERSION,
+    catalogVersion: DEFAULT_MISSION_CATALOG_VERSION,
+    updatedAt: '',
+    counters: {},
+    active: {},
+    completed: {},
+    claimed: {},
+    pinnedMissionIds: [],
+    claimLedger: {},
+  }
+}
+
+function normalizeMissionProgress(value) {
+  const out = createEmptyMissionProgress()
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return out
+  out.schemaVersion = MISSION_PROGRESS_SCHEMA_VERSION
+  out.catalogVersion = readMissionCatalogVersion(value.catalogVersion || value.missionCatalogVersion)
+  out.updatedAt = readNullableIsoString(value.updatedAt) || ''
+  out.counters = normalizeMissionCounters(value.counters)
+  out.active = normalizeMissionEntryMap(value.active, normalizeMissionEntry)
+  out.completed = normalizeMissionEntryMap(value.completed, normalizeMissionCompletedEntry)
+  out.claimed = normalizeMissionEntryMap(value.claimed, normalizeMissionClaimedEntry)
+  out.pinnedMissionIds = normalizePinnedMissionIds(value.pinnedMissionIds || value.pinnedIds)
+  out.claimLedger = normalizeMissionClaimLedger(value.claimLedger)
+  return out
+}
+
+function normalizeMissionCounters(value) {
+  const out = {}
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return out
+  for (const [key, raw] of Object.entries(value)) {
+    if (!MISSION_COUNTER_KEY_PATTERN.test(key)) continue
+    out[key] = Math.min(readNonNegativeInt(raw), MAX_MISSION_COUNTER_VALUE)
+  }
+  return out
+}
+
+function normalizeMissionEntryMap(value, normalizer) {
+  const out = {}
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return out
+  for (const [missionId, raw] of Object.entries(value)) {
+    const safeMissionId = normalizeMissionId(missionId)
+    if (!safeMissionId) continue
+    const entry = normalizer(raw)
+    if (entry) out[safeMissionId] = entry
+  }
+  return out
+}
+
+function normalizeMissionEntry(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const counter = Math.min(readNonNegativeInt(value.counter), MAX_MISSION_COUNTER_VALUE)
+  const target = Math.min(readPositiveInt(value.target, 1), MAX_MISSION_COUNTER_VALUE)
+  return {
+    counter,
+    target,
+    completedAt: readNullableIsoString(value.completedAt),
+    claimedAt: readNullableIsoString(value.claimedAt),
+    claimId: readNullableClaimId(value.claimId),
+  }
+}
+
+function normalizeMissionCompletedEntry(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const completedAt = readNullableIsoString(value.completedAt)
+  if (!completedAt) return null
+  return {
+    completedAt,
+    counter: Math.min(readNonNegativeInt(value.counter), MAX_MISSION_COUNTER_VALUE),
+    target: Math.min(readPositiveInt(value.target, 1), MAX_MISSION_COUNTER_VALUE),
+  }
+}
+
+function normalizeMissionClaimedEntry(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const claimedAt = readNullableIsoString(value.claimedAt)
+  const claimId = readNullableClaimId(value.claimId)
+  const reward = normalizeMissionReward(value.reward)
+  if (!claimedAt || !claimId || !reward) return null
+  return {
+    claimedAt,
+    claimId,
+    catalogVersion: readMissionCatalogVersion(value.catalogVersion),
+    reward,
+  }
+}
+
+function normalizeMissionClaimLedger(value) {
+  const out = {}
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return out
+  for (const [claimId, raw] of Object.entries(value)) {
+    if (!MISSION_CLAIM_ID_PATTERN.test(claimId)) continue
+    const missionId = normalizeMissionId(raw?.missionId || claimId.split(':')[0])
+    const catalogVersion = readMissionCatalogVersion(raw?.catalogVersion || claimId.split(':').slice(1).join(':'))
+    const entry = normalizeMissionClaimLedgerEntry(raw, missionId, catalogVersion)
+    if (entry) out[claimId] = entry
+  }
+  return out
+}
+
+function normalizeMissionClaimLedgerEntry(value, missionId, catalogVersion) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const safeMissionId = normalizeMissionId(missionId)
+  const claimedAt = readNullableIsoString(value.claimedAt)
+  const reward = normalizeMissionReward(value.reward)
+  if (!safeMissionId || !claimedAt || !reward) return null
+  return {
+    missionId: safeMissionId,
+    catalogVersion: readMissionCatalogVersion(catalogVersion || value.catalogVersion),
+    claimedAt,
+    reward,
+  }
+}
+
+function normalizePinnedMissionIds(value) {
+  if (!Array.isArray(value)) return []
+  const out = []
+  for (const raw of value) {
+    const missionId = normalizeMissionId(raw)
+    if (missionId && !out.includes(missionId)) out.push(missionId)
+    if (out.length >= MAX_PINNED_MISSION_IDS) break
+  }
   return out
 }
 
@@ -529,13 +804,85 @@ function cloneProgress(progress) {
     weaponPermanentUpgrades: { ...progress.weaponPermanentUpgrades },
     passiveUpgrades: { ...progress.passiveUpgrades },
     encounteredZombieTypes: { ...progress.encounteredZombieTypes },
+    missions: cloneMissionProgress(progress.missions),
     titleSettings: { ...progress.titleSettings },
+  }
+}
+
+function cloneMissionProgress(missions) {
+  const normalized = normalizeMissionProgress(missions)
+  return {
+    schemaVersion: normalized.schemaVersion,
+    catalogVersion: normalized.catalogVersion,
+    updatedAt: normalized.updatedAt,
+    counters: { ...normalized.counters },
+    active: Object.fromEntries(Object.entries(normalized.active).map(([key, value]) => [key, { ...value }])),
+    completed: Object.fromEntries(Object.entries(normalized.completed).map(([key, value]) => [key, { ...value }])),
+    claimed: Object.fromEntries(Object.entries(normalized.claimed).map(([key, value]) => [key, { ...value, reward: value.reward ? { ...value.reward } : null }])),
+    pinnedMissionIds: [...normalized.pinnedMissionIds],
+    claimLedger: Object.fromEntries(Object.entries(normalized.claimLedger).map(([key, value]) => [key, { ...value, reward: { ...value.reward } }])),
   }
 }
 
 function readNonNegativeInt(value) {
   const number = Number(value)
   return Number.isFinite(number) && number >= 0 ? Math.floor(number) : 0
+}
+
+function readPositiveInt(value, fallback) {
+  const number = Number(value)
+  return Number.isFinite(number) && number > 0 ? Math.floor(number) : fallback
+}
+
+function normalizeMissionId(value) {
+  const missionId = typeof value === 'string' ? value.trim() : ''
+  return MISSION_ID_PATTERN.test(missionId) ? missionId : ''
+}
+
+function readMissionCatalogVersion(value) {
+  const catalogVersion = typeof value === 'string' ? value.trim() : ''
+  return /^missions_[0-9]{4}_[0-9]{2}_[0-9]{2}_v[0-9]+$/.test(catalogVersion)
+    ? catalogVersion
+    : DEFAULT_MISSION_CATALOG_VERSION
+}
+
+function readNullableIsoString(value) {
+  if (value == null) return null
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  if (!trimmed || trimmed.length > 40 || Number.isNaN(Date.parse(trimmed))) return null
+  return trimmed
+}
+
+function readNullableClaimId(value) {
+  if (value == null) return null
+  const claimId = typeof value === 'string' ? value.trim() : ''
+  return MISSION_CLAIM_ID_PATTERN.test(claimId) ? claimId : null
+}
+
+function normalizeMissionReward(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  if (value.type !== 'gold') return null
+  const amount = readPositiveInt(value.amount, 0)
+  if (amount <= 0 || amount > 1000000) return null
+  return { type: 'gold', amount }
+}
+
+function readAllowedMissionReward(rewardAllowlist, missionId) {
+  if (!missionId || !rewardAllowlist || typeof rewardAllowlist !== 'object' || Array.isArray(rewardAllowlist)) return null
+  return normalizeMissionReward(rewardAllowlist[missionId])
+}
+
+function readTransactionSnapshotValue(snapshot) {
+  if (!snapshot) return null
+  if (typeof snapshot.val === 'function') return snapshot.val()
+  if ('value' in snapshot) return snapshot.value
+  return snapshot
+}
+
+function readErrorCode(error, fallback) {
+  if (error instanceof FirebaseProgressError) return error.code
+  return typeof error?.code === 'string' && error.code ? error.code : fallback
 }
 
 function readEnv(env, key) {

@@ -133,7 +133,7 @@ function ChemicalZone({ id, x, z, radius, durationMs, tickDamage, critChance, cr
     tickTimerRef.current += delta * 1000
     if (tickTimerRef.current >= ZONE_TICK_MS) {
       tickTimerRef.current -= ZONE_TICK_MS
-      const hitCount = applyRadialDamage({ x, z, radius, damage: tickDamage, knockback: 0, knockbackMs: 0, critChance, critMultiplier })
+      const hitCount = applyRadialDamage({ x, z, radius, damage: tickDamage, knockback: 0, knockbackMs: 0, critChance, critMultiplier, weaponKey: 'scienceFlask' })
       if (hitCount > 0) emitSfx({ id: 'flaskTick', volume: 0.18 })
     }
 
@@ -215,6 +215,7 @@ export function ScienceFlaskSplash() {
       x: blast.x, z: blast.z, radius: blast.radius, damage: blast.damage,
       knockback: 2.8, knockbackMs: 100,
       canCrit: false, damageType: 'explosive', attackTags: ['radial', 'explosive', 'chemical'],
+      weaponKey: 'scienceFlask',
     })
 
     setExplosions((prev) => [...prev, { id, x: blast.x, z: blast.z, radius: blast.radius }])

@@ -322,11 +322,17 @@ export default function QuestWorldLayer({ stageId }) {
     if (interaction.type === 'collect') {
       const key = `item:${target.sourceId}`
       if (handledRef.current.has(key)) return
-      markQuestActionHandled(
+      const collected = markQuestActionHandled(
         handledRef.current,
         key,
         store.collectQuestItem?.(quest.id, target.sourceId),
       )
+      if (collected) {
+        store.recordMissionEventOnce?.(
+          `interaction:${gameKey}:${stageId}:quest-item:${quest.id}:${target.sourceId}`,
+          { type: 'interaction_triggered' },
+        )
+      }
       return
     }
 
@@ -334,6 +340,10 @@ export default function QuestWorldLayer({ stageId }) {
     if (handledRef.current.has(key)) return
     const completed = store.completeQuest?.(quest.id, target.sourceId)
     if (!markQuestActionHandled(handledRef.current, key, completed)) return
+    store.recordMissionEventOnce?.(
+      `interaction:${gameKey}:${stageId}:quest-complete:${quest.id}:${target.sourceId}`,
+      { type: 'interaction_triggered' },
+    )
     if (useGameStore.getState().questProgress?.[quest.id]?.status === 'completed') {
       store.openStudentDialogue?.(quest.completionDialogueId, null, {
         subjectType: 'quest',

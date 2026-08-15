@@ -67,7 +67,7 @@ function Projectile({ id, position, yaw, damage, speed, pierce, targetIndex, tar
   const hitCountRef = useRef(0)
   const targetRef = useRef({ index: targetIndex, generation: targetGeneration, special: targetSpecial })
   const sweepScratchRef = useRef(createWeaponTargetScratch())
-  const impactRef = useRef({ critChance, critMultiplier })
+  const impactRef = useRef({ critChance, critMultiplier, weaponKey: 'pencilThrow' })
   const ageRef = useRef(0)
   const positionRef = useRef({ x: position[0], y: position[1], z: position[2] })
   const velocityRef = useRef({ x: Math.sin(yaw) * speed, z: Math.cos(yaw) * speed })

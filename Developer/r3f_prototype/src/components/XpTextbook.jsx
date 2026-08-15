@@ -77,6 +77,7 @@ export default function XpTextbook({ id, pos, value, onCollect }) {
       collected.current = true
       emitSfx({ id: 'textbookCollect', volume: 0.64, rate: 0.98 + Math.random() * 0.08 })
       gainXp(value)
+      useGameStore.getState().recordMissionEvent({ type: 'pickup_collected', itemType: 'xpTextbook' })
       logPickup('xp', value)
       onCollect(id)
       return
