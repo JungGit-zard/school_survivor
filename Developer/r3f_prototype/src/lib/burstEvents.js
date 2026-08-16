@@ -54,7 +54,6 @@ export const STAGE2_MIXED_REINFORCEMENT_EVENTS = [
 
 // 4분 타임라인. 5분 기준 sec ×0.8.
 export const BURST_EVENTS = [
-  { sec:   0, type: 'E01', count: 18 },  // 40초 전 단일 좀비 구간 밀도 2배
   { sec:  24, type: 'E01', count:  9 },  // 첫 phase target(24)을 burst만으로 초과하지 않게 완화
   ...STAGE1_40SEC_GREEN_SMILING_REINFORCEMENT_EVENTS,
   { sec:  60, type: 'E01', count:  6 },  // 60초 녹색좀비 추가 고정 스폰

@@ -98,6 +98,15 @@ describe('elite bonus rewards', () => {
 })
 
 describe('boss runtime spawn routes', () => {
+  it('does not schedule Stage 1 runtime zombie bursts before its first wave or an E01 18 event at any time', () => {
+    const firstWaveSec = firstWaveTimeForStage('stage1')
+    const runtimeZombieEvents = getRuntimeBurstEventsForStage('stage1')
+      .filter((event) => !isBossType(event.type))
+
+    expect(runtimeZombieEvents.every((event) => event.sec >= firstWaveSec)).toBe(true)
+    expect(runtimeZombieEvents).not.toContainEqual(expect.objectContaining({ type: 'E01', count: 18 }))
+  })
+
   const bossStages = [
     ['stage1', 'B01'],
     ['stage2', 'B02'],
