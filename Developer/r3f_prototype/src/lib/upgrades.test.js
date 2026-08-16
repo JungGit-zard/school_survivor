@@ -1,6 +1,6 @@
 ﻿import { describe, it, expect } from 'vitest'
 import { applyChibikoAllWeaponBoost, applyUpgradeToWeapon, applyUpgradeWithChibikoBoost, isUpgradeAvailable, UPGRADE_EFFECTS } from './upgrades.js'
-import { WEAPON_CATALOG } from './weaponCatalog.js'
+import { WEAPON_CATALOG, getAllWeaponIds } from './weaponCatalog.js'
 
 // 가상 무기 상태 빌더. weapons 객체의 한 항목 형태와 동일.
 const wpn = (overrides = {}) => ({ active: false, level: 0, damage: 5, ...overrides })
@@ -20,14 +20,18 @@ describe('applyUpgradeToWeapon', () => {
     expect(out.chibikoBoostPercent).toBe(0.1)
   })
 
-  it('연필 피해 강화는 재조정된 절반 수치인 +0.75만 적용한다', () => {
-    const out = applyUpgradeToWeapon(
+  it('연필 데미지 카드 두 장이 각각 +1.2를 올린다 (2026-08-15 레벨 곡선 재조정)', () => {
+    // base 2.4(2026-08-01 Stage 2 밸런스) + 1.2 = 3.6. 예전에는 카드가 pencilDamage 한 장(+0.75)뿐이라
+    // 만렙까지 키워도 위력이 1.42배밖에 안 올랐다. 두 장 합계 +2.4 = base의 100%로 성장폭 2.0배를 만든다.
+    const once = applyUpgradeToWeapon(
       wpn({ active: true, level: 1, damage: WEAPON_CATALOG.pencilThrow.base.damage }),
       UPGRADE_EFFECTS.pencilDamage,
     )
-    // base 2.4(2026-08-01 Stage 2 밸런스) + 카드 증가분 0.75 = 3.15. 증가분 자체는 그대로다.
-    expect(out.damage).toBe(3.15)
-    expect(out.damage - WEAPON_CATALOG.pencilThrow.base.damage).toBeCloseTo(0.75, 10)
+    expect(once.damage).toBeCloseTo(3.6, 10)
+
+    const twice = applyUpgradeToWeapon(once, UPGRADE_EFFECTS.pencilPower)
+    expect(twice.damage).toBeCloseTo(4.8, 10)
+    expect(twice.damage / WEAPON_CATALOG.pencilThrow.base.damage).toBeCloseTo(2, 10)
   })
 
   it('unlock effect: active=true, level=1로 초기화', () => {
@@ -81,7 +85,7 @@ describe('applyUpgradeToWeapon', () => {
     const flask = wpn({ active: true, level: 1, damage: 7.5, zoneDurationMs: 5000, radius: 1.6 })
 
     const afterDamage = applyUpgradeToWeapon(flask, UPGRADE_EFFECTS.flaskDamage)
-    expect(afterDamage.damage).toBe(11.5)          // 7.5 + 4 (착탄 능력 절반)
+    expect(afterDamage.damage).toBeCloseTo(12.1, 10)  // 7.5 + 4.6
     expect(afterDamage.zoneDurationMs).toBe(6000)  // 레벨업 → 존 +1초
 
     const afterRadius = applyUpgradeToWeapon(afterDamage, UPGRADE_EFFECTS.flaskRadius)
@@ -246,7 +250,12 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
     expect(UPGRADE_EFFECTS.sharkMissileDamage).toMatchObject({
       weapon: 'sharkMissile',
       kind: 'damage',
-      dmg: 10,
+      dmg: 10.4,
+    })
+    expect(UPGRADE_EFFECTS.sharkMissilePower).toMatchObject({
+      weapon: 'sharkMissile',
+      kind: 'damage',
+      dmg: 10.4,
     })
     expect(UPGRADE_EFFECTS.sharkMissileRadius).toMatchObject({
       weapon: 'sharkMissile',
@@ -288,12 +297,28 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
     expect(UPGRADE_EFFECTS.eraserCrit).toBeUndefined()
   })
 
-  it('오니기리 공격력 레벨업 증가량은 기존 5의 1.3배다', () => {
-    expect(UPGRADE_EFFECTS.onigiiriDamage).toMatchObject({
-      weapon: 'onigiri',
-      kind: 'damage',
-      dmg: 6.5,
-    })
+  it('오니기리 데미지 카드 두 장이 base 21의 약 85%를 채운다', () => {
+    // 예전에는 "기존 5의 1.3배 = 6.5" 한 장뿐이었다. 2026-08-15 레벨 곡선 재조정에서
+    // 8.9 × 2장 = 17.8 (base 21의 84.8%)로 바꿔 만렙 성장폭 2.0배를 만든다.
+    expect(UPGRADE_EFFECTS.onigiiriDamage).toMatchObject({ weapon: 'onigiri', kind: 'damage', dmg: 8.9 })
+    expect(UPGRADE_EFFECTS.onigiiriPower).toMatchObject({ weapon: 'onigiri', kind: 'damage', dmg: 8.9 })
+  })
+
+  // 회귀 방어(2026-08-15): 예전에는 19종 전부 데미지 카드가 정확히 1장뿐이라, 레벨업 절반이
+  // 단일 대상 기준 체감 0이고 만렙 성장폭이 1.31~1.61배에 그쳤다. 카드가 다시 한 장으로
+  // 줄면 그 곡선으로 되돌아간다.
+  it('피해를 주는 무기는 전부 데미지 카드를 갖고, 하나코만 예외다', () => {
+    const damageCardCount = {}
+    for (const id of getAllWeaponIds()) damageCardCount[id] = 0
+    for (const effect of Object.values(UPGRADE_EFFECTS)) {
+      if (effect.kind === 'damage') damageCardCount[effect.weapon] += 1
+    }
+
+    // 힐 전용 동반자 하나코만 데미지 카드가 없다.
+    expect(Object.keys(damageCardCount).filter((id) => damageCardCount[id] === 0)).toEqual(['hanako'])
+    // 랜턴·치비코는 광역/버프 역할이라 1장, 나머지 주력 16종은 2장이다.
+    expect(Object.keys(damageCardCount).filter((id) => damageCardCount[id] === 1).sort())
+      .toEqual(['chibiko', 'studentLantern'])
   })
 })
 

@@ -17,11 +17,12 @@
 //    strikeCount(스타링크)
 //  - 기대 치명타 배율: 1 + critChance × (critMultiplier - 1)
 //
+//  - damage 필드로 표현되지 않는 2차 피해 (2026-08-15 추가, weaponSecondaryDamagePerSecond):
+//    scienceFlask 웅덩이 존 틱, lineDraw 잔류 절단선 통과 피해, bikittyCutter 사이클.
+//
 // 의도적으로 제외하는 것 (제외 사유가 전부 "단일 대상에는 안 들어간다"):
 //  - pierce(관통), chainCount(전기 체인), bounces(오니기리 바운스):
 //    전부 '다른 적'으로 번지는 능력이라 마틸다 혼자를 때릴 때 DPS를 올리지 않는다.
-//  - scienceFlask 웅덩이 존 지속 피해: 틱 주기가 컴포넌트에 있어 스탯만으로
-//    정확히 못 뽑는다. 착탄 피해만 센다.
 //  - 명중률/사거리/이동으로 인한 가동률 손실: 100% 명중 가정이다. 마틸다는 계속
 //    돌진 이동 중이라 실제 가동률은 이보다 낮다.
 //
@@ -29,8 +30,13 @@
 // 높이는 쪽이다. 순 편향은 무기 구성에 따라 갈리므로 30분은 정확한 보장이 아니라
 // 목표 근사치다. 정밀도가 필요하면 실측 프로브로 교체하면 된다.
 
+import { bikittyCycleDps } from './bikittyCutter.js'
+
 // 신 지정: 30분.
 export const MATILDA_ATTACK_SECONDS = 1800
+
+// 플라스크 웅덩이 틱 주기. 정본은 components/Weapons/Flask.jsx의 ZONE_TICK_MS(1000)다.
+const FLASK_ZONE_TICK_MS = 1000
 
 function positiveNumber(value, fallback) {
   return Number.isFinite(value) && value > 0 ? value : fallback
@@ -81,12 +87,40 @@ export function weaponOnTargetHits(weapon) {
   return 1
 }
 
+// damage 필드 하나로는 표현되지 않는 2차 피해의 "초당 기대 피해"(치명타 적용 전).
+// 예전에는 estimateWeaponDps가 damage만 봐서 아래 두 무기를 통째로 과소계상했다.
+//   - scienceFlask: 착탄 자리에 남는 화학 웅덩이가 1초(FLASK_ZONE_TICK_MS)마다 zoneTickDamage.
+//     한 쿨다운 사이클 안에 들어가는 틱만 센다 — 존이 쿨다운보다 길어도 두 겹으로 세지 않는다.
+//   - lineDraw: 잔류 절단선을 가로지를 때 lineCrossDamage. 단일 대상(마틸다)은 한 사이클에
+//     1회 통과로 본다. lineCrossCooldownMs(600) 덕에 그 이상은 밀집 상황에서만 나온다.
+export function weaponSecondaryDamagePerSecond(weapon) {
+  if (!weapon) return 0
+  const cooldownSec = positiveNumber(weapon.cooldown, 0) / 1000
+  if (cooldownSec <= 0) return 0
+
+  let perCycle = 0
+  const tickDamage = positiveNumber(weapon.zoneTickDamage, 0)
+  if (tickDamage > 0) {
+    const zoneMs = Math.min(positiveNumber(weapon.zoneDurationMs, 0), cooldownSec * 1000)
+    perCycle += tickDamage * Math.floor(zoneMs / FLASK_ZONE_TICK_MS)
+  }
+  perCycle += positiveNumber(weapon.lineCrossDamage, 0)
+  return perCycle / cooldownSec
+}
+
 // 무기 1종의 단일 대상 기대 DPS. 비활성 무기는 0.
 export function estimateWeaponDps(weapon) {
   if (!weapon?.active) return 0
+  // 바이키티 커터칼은 "8단 성장 + 부러짐 산탄"이 한 사이클을 이뤄 damage×발사율로 못 뽑는다.
+  // 정본 사이클 계산(lib/bikittyCutter.js)이 이미 있으므로 그걸 그대로 쓴다(추정 8.44 → 실측 11.49).
+  if (Number.isFinite(weapon.segments) && Number.isFinite(weapon.snapDamage)) {
+    return bikittyCycleDps(weapon) * expectedCritMultiplier(weapon)
+  }
   const damage = Number.isFinite(weapon.damage) ? weapon.damage : 0
-  if (damage <= 0) return 0
-  return damage * weaponOnTargetHits(weapon) * weaponHitsPerSecond(weapon) * expectedCritMultiplier(weapon)
+  const secondary = weaponSecondaryDamagePerSecond(weapon)
+  if (damage <= 0 && secondary <= 0) return 0
+  const primary = damage * weaponOnTargetHits(weapon) * weaponHitsPerSecond(weapon)
+  return (primary + secondary) * expectedCritMultiplier(weapon)
 }
 
 // 장착 무기 전체 합산 DPS. weapons는 useGameStore의 weapons 맵.

@@ -81,7 +81,8 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.compassBlade.label).toBe('오리요강')
     expect(WEAPON_CATALOG.compassBlade.base.damage).toBe(7)
     expect(WEAPON_CATALOG.compassBlade.base.radius).toBe(1.15)
-    expect(WEAPON_CATALOG.compassBlade.base.hitsPerSecond).toBe(2.5)
+    // 2026-08-15 격차 완화: 2.5 → 2.0. damage 7은 그대로 두고 타격 빈도만 내렸다.
+    expect(WEAPON_CATALOG.compassBlade.base.hitsPerSecond).toBe(2.0)
     expect(WEAPON_CATALOG.umbrellaGuard.base.damage).toBe(12)
     expect(WEAPON_CATALOG.umbrellaGuard.base.cooldown).toBe(3600)
     expect(WEAPON_CATALOG.umbrellaGuard.base.radius).toBe(1.25)
@@ -138,7 +139,9 @@ describe('weaponCatalog', () => {
       label: '상어미사일',
       base: {
         damage: battery.damage * 1.3,
-        cooldown: 7000,
+        // 2026-08-15 역전 제거: 7000 → 4200. 쿨다운이 1.75배라 상위 무기인데도 단일 대상
+        // DPS가 보조배터리 미사일보다 낮았다(2.97 < 4.00). 4200이면 4.95로 1.24배가 된다.
+        cooldown: 4200,
         range: 28,
         radius: 1.8,
         speed: 8.5,

@@ -67,7 +67,10 @@ export const WEAPON_CATALOG = {
   bell: {
     id: 'bell',
     label: '벨',
-    base: { damage: 10, cooldown: 4500, lastFired: 0, directions: 8, speed: 10, radius: 1.7, critChance: 0.05, critMultiplier: 1.5 },
+    // 2026-08-15 하위권 상향: cooldown 4500 → 3200. 벨은 단일 대상 DPS 2.28로 주력 무기
+    // 15종 중 최하위였고, 최상위(텀블러 15.30)와의 격차가 6.7배였다. 3200이면 3.20으로
+    // 올라 격차가 4.8배가 된다. damage 10은 유지 — 8방향 충격파 한 발의 위력은 그대로다.
+    base: { damage: 10, cooldown: 3200, lastFired: 0, directions: 8, speed: 10, radius: 1.7, critChance: 0.05, critMultiplier: 1.5 },
     unlockConditions: STARTER,
     minLevelToAppear: 4,
   },
@@ -113,7 +116,11 @@ export const WEAPON_CATALOG = {
     base: {
       // 기획 정본: 레벨1 공격력 = 보조배터리 미사일(guidedMissile 16)의 1.3배
       damage: 20.8,
-      cooldown: 7000,
+      // 2026-08-15 역전 제거: cooldown 7000 → 4200. 상어미사일은 보조배터리 미사일(16/4000)의
+      // 상위 해금인데 쿨다운이 1.75배라 단일 대상 DPS가 2.97 < 4.00으로 뒤집혀 있었다.
+      // 4200이면 20.8/4.2 = 4.95로 기본 미사일의 1.24배 — 카탈로그가 약속한 "1.3배 위력"에
+      // 맞고, 발사 간격은 여전히 더 느려서 '무거운 한 방' 정체성도 남는다.
+      cooldown: 4200,
       lastFired: 0,
       range: 28,
       radius: 1.8,
@@ -143,7 +150,11 @@ export const WEAPON_CATALOG = {
   compassBlade: {
     id: 'compassBlade',
     label: '오리요강',
-    base: { damage: 7, radius: 1.15, hitsPerSecond: 2.5, count: 1, orbitSpeed: 3.4, critChance: 0.05, critMultiplier: 1.5 },
+    // 2026-08-15 격차 완화: hitsPerSecond 2.5 → 2.0. Lv1 단일 대상 DPS 17.94 → 14.35.
+    // damage 7은 그대로 둔다(base damage는 Lv1 무기 간 균형의 기준선이라 손대지 않는다).
+    // 예전에는 해금 무기 Lv1이 나머지 17종의 만렙을 전부 앞섰다 — 이제 30cm 자·커터칼·
+    // 텀블러·스타링크·바이키티·선긋기의 만렙이 이 값을 넘는다.
+    base: { damage: 7, radius: 1.15, hitsPerSecond: 2.0, count: 1, orbitSpeed: 3.4, critChance: 0.05, critMultiplier: 1.5 },
     // 실력 OR 누적.
     unlockConditions: [
       { type: 'runKills', value: 80 },

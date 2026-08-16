@@ -62,81 +62,120 @@ export function applyUpgradeWithChibikoBoost(weapon, effect, boost) {
   )
 }
 
+// ── 레벨 곡선 정본(2026-08-15) ────────────────────────────────────────────────
+// 예전에는 무기마다 데미지 카드가 정확히 1장뿐이라, 어떤 무기를 만렙까지 키워도 단일 대상
+// 위력이 1.31~1.61배밖에 안 올랐다(Lv2 데미지 +30~50% / Lv3 유틸 +0% / Lv4 치명타 +3~8%).
+// 그래서 피해를 주는 17종 전부에 데미지 카드를 한 장씩 더 얹고(`<무기>Power`), 두 데미지
+// 카드의 합이 base damage의 약 (2.0 / 치명타·지속 성장배수 − 1)배가 되도록 스텝을 맞췄다.
+//   목표: Lv1 → 도달 최대 레벨 단일 대상 DPS ≈ 2.0배.
+//   base damage는 건드리지 않는다 — Lv1 시점의 무기 간 균형이 통째로 흔들린다.
+// 선언 순서도 정본이다. 무기마다 데미지 카드가 맨 앞에 오게 해서 첫 레벨업이 반드시
+// 체감되게 했다(예전 텀블러는 첫 카드가 tumblerCount라 Lv1→Lv2가 15.30 → 15.30이었다).
+// hanako(힐 전용)만 데미지 카드가 없고, chibiko는 버프 동반자라 폭을 보수적으로 잡았다(≈1.57배).
 export const UPGRADE_EFFECTS = {
-  pencilDamage:   { weapon: 'pencilThrow',   kind: 'damage', dmg: 0.75 },
+  pencilDamage:   { weapon: 'pencilThrow',   kind: 'damage', dmg: 1.2 },
+  pencilPower:    { weapon: 'pencilThrow',   kind: 'damage', dmg: 1.2 },
   pencilCount:    { weapon: 'pencilThrow',   kind: 'stat',   stat: 'projectileCount', step: 1,    cap: 4 },
   pencilPierce:   { weapon: 'pencilThrow',   kind: 'stat',   stat: 'pierce',          step: 1,    cap: 3 },
   pencilCrit:     { weapon: 'pencilThrow',   kind: 'crit',   chanceStep: 0.02, chanceCap: 0.24, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireBag:      { weapon: 'schoolBag',     kind: 'acquire', minLevel: 2 },
-  bagDamage:      { weapon: 'schoolBag',     kind: 'damage', dmg: 5 },
+  bagDamage:      { weapon: 'schoolBag',     kind: 'damage', dmg: 5.2 },
+  bagPower:       { weapon: 'schoolBag',     kind: 'damage', dmg: 5.2 },
   bagRadius:      { weapon: 'schoolBag',     kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.067 },
   bagCrit:        { weapon: 'schoolBag',     kind: 'crit',   chanceStep: 0.02, chanceCap: 0.23, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireBoxCutter:{ weapon: 'boxCutter',      kind: 'acquire', minLevel: 2 },
-  boxCutterDamage:{ weapon: 'boxCutter',      kind: 'damage', dmg: 5 },
+  boxCutterDamage:{ weapon: 'boxCutter',      kind: 'damage', dmg: 8.2 },
+  boxCutterPower: { weapon: 'boxCutter',      kind: 'damage', dmg: 8.2 },
   boxCutterRange: { weapon: 'boxCutter',      kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.755 },
   boxCutterCrit:  { weapon: 'boxCutter',      kind: 'crit',   chanceStep: 0.02, chanceCap: 0.41, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireTumbler:  { weapon: 'tumbler',       kind: 'acquire', minLevel: 2 },
+  // 데미지 카드를 tumblerCount 앞으로 옮겼다. 예전 순서(count 먼저)에서는 첫 레벨업이
+  // 단일 대상 기준 완전 무증가였다 — 19종 중 유일하게 "Lv1 → Lv2 +0%"인 무기였다.
+  tumblerDamage:  { weapon: 'tumbler',       kind: 'damage', dmg: 2.7 },
+  tumblerPower:   { weapon: 'tumbler',       kind: 'damage', dmg: 2.7 },
   tumblerCount:   { weapon: 'tumbler',       kind: 'stat',   stat: 'count',           step: 1,    cap: 3 },
-  tumblerDamage:  { weapon: 'tumbler',       kind: 'damage', dmg: 2 },
   tumblerCrit:    { weapon: 'tumbler',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.2, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireFlask:    { weapon: 'scienceFlask',  kind: 'acquire', minLevel: 4 },
   // 리워크(2026-07-04): 착탄 데미지 능력 절반(dmg 8→4). 모든 플라스크 레벨업은
   // bonus로 웅덩이 존 지속시간 +1초 (기획: 1레벨 5초, 레벨업마다 +1초).
-  flaskDamage:    { weapon: 'scienceFlask',  kind: 'damage', dmg: 4, bonus: { stat: 'zoneDurationMs', step: 1000 } },
+  flaskDamage:    { weapon: 'scienceFlask',  kind: 'damage', dmg: 4.6, bonus: { stat: 'zoneDurationMs', step: 1000 } },
+  flaskPower:     { weapon: 'scienceFlask',  kind: 'damage', dmg: 4.6, bonus: { stat: 'zoneDurationMs', step: 1000 } },
   flaskRadius:    { weapon: 'scienceFlask',  kind: 'stat',   stat: 'radius',          step: 0.18, cap: 2.4, bonus: { stat: 'zoneDurationMs', step: 1000 } },
   flaskCrit:      { weapon: 'scienceFlask',  kind: 'crit',   chanceStep: 0.02, chanceCap: 0.19, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP, bonus: { stat: 'zoneDurationMs', step: 1000 } },
   acquireBell:     { weapon: 'bell',          kind: 'acquire', minLevel: 4 },
-  bellDamage:     { weapon: 'bell',          kind: 'damage', dmg: 4 },
+  bellDamage:     { weapon: 'bell',          kind: 'damage', dmg: 4.4 },
+  bellPower:      { weapon: 'bell',          kind: 'damage', dmg: 4.4 },
   bellCrit:       { weapon: 'bell',          kind: 'crit',   chanceStep: 0.02, chanceCap: 0.21, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireStun:     { weapon: 'stunGun',       kind: 'acquire', minLevel: 6 },
-  stunDamage:     { weapon: 'stunGun',       kind: 'damage', dmg: 5 },
+  stunDamage:     { weapon: 'stunGun',       kind: 'damage', dmg: 7.9 },
+  stunPower:      { weapon: 'stunGun',       kind: 'damage', dmg: 7.9 },
   stunChain:      { weapon: 'stunGun',       kind: 'stat',   stat: 'chainCount',      step: 1,    cap: 4 },
   stunCrit:       { weapon: 'stunGun',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.22, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireOnigiri:  { weapon: 'onigiri',       kind: 'acquire', minLevel: 6 },
-  onigiiriDamage: { weapon: 'onigiri',       kind: 'damage', dmg: 6.5 },
+  onigiiriDamage: { weapon: 'onigiri',       kind: 'damage', dmg: 8.9 },
+  onigiiriPower:  { weapon: 'onigiri',       kind: 'damage', dmg: 8.9 },
   // 기본 6 + 영구강화 최대 2 = 8에서 시작할 수 있으므로 cap은 8 + 인게임 4레벨 = 12.
   // 스탯 cap이 아니라 MAX_WEAPON_LEVEL이 한계가 되게 해서 바운스 카드가 죽지 않도록 한다.
   onigiiriBounce: { weapon: 'onigiri',       kind: 'stat',   stat: 'bounces',         step: 1,    cap: 12 },
   onigiiriCrit:   { weapon: 'onigiri',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.24, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireMissile:  { weapon: 'guidedMissile', kind: 'acquire', minLevel: 4 },
-  missileDamage:  { weapon: 'guidedMissile', kind: 'damage', dmg: 6 },
+  missileDamage:  { weapon: 'guidedMissile', kind: 'damage', dmg: 8 },
+  missilePower:   { weapon: 'guidedMissile', kind: 'damage', dmg: 8 },
   missileRadius:  { weapon: 'guidedMissile', kind: 'stat',   stat: 'radius',          step: 0.15, cap: 2.2 },
   acquireStarlink: { weapon: 'starlink',      kind: 'acquire', minLevel: 8 },
-  starlinkDamage: { weapon: 'starlink',      kind: 'damage', dmg: 10 },
+  starlinkDamage: { weapon: 'starlink',      kind: 'damage', dmg: 12 },
+  starlinkPower:  { weapon: 'starlink',      kind: 'damage', dmg: 12 },
   starlinkCount:  { weapon: 'starlink',      kind: 'stat',   stat: 'strikeCount',     step: 1,    cap: 3 },
   starlinkCrit:   { weapon: 'starlink',      kind: 'crit',   chanceStep: 0.02, chanceCap: 0.23, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireCompassBlade:  { weapon: 'compassBlade',  kind: 'acquire', minLevel: 3 },
-  compassBladeDamage:  { weapon: 'compassBlade',  kind: 'damage', dmg: 2 },
+  compassBladeDamage:  { weapon: 'compassBlade',  kind: 'damage', dmg: 3.1 },
+  compassBladePower:   { weapon: 'compassBlade',  kind: 'damage', dmg: 3.1 },
   compassBladeCount:   { weapon: 'compassBlade',  kind: 'stat',   stat: 'count',     step: 1,    cap: 3 },
   compassBladeCrit:    { weapon: 'compassBlade',  kind: 'crit',   chanceStep: 0.02, chanceCap: 0.21, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireUmbrellaGuard: { weapon: 'umbrellaGuard', kind: 'acquire', minLevel: 3 },
   umbrellaDamage:      { weapon: 'umbrellaGuard', kind: 'damage', dmg: 6 },
+  umbrellaPower:       { weapon: 'umbrellaGuard', kind: 'damage', dmg: 6 },
   umbrellaRadius:      { weapon: 'umbrellaGuard', kind: 'stat',   stat: 'radius',    step: 0.15, cap: 1.85 },
   acquireEraserBomb:    { weapon: 'eraserBomb',    kind: 'acquire', minLevel: 4 },
-  eraserDamage:        { weapon: 'eraserBomb',    kind: 'damage', dmg: 8 },
+  eraserDamage:        { weapon: 'eraserBomb',    kind: 'damage', dmg: 13 },
+  eraserPower:         { weapon: 'eraserBomb',    kind: 'damage', dmg: 13 },
   eraserRadius:        { weapon: 'eraserBomb',    kind: 'stat',   stat: 'radius',    step: 0.19, cap: 2.1 },
   acquireLantern:       { weapon: 'studentLantern', kind: 'acquire', minLevel: 5 },
   // 기획: 레벨업마다 지속 +1초 = 타격 +3.33회 (hitIntervalMs 300 = 0.3초당 1타).
   // cap 7000 = 무기 Lv5 상한(3+4초). 2026-08-15: "초당 1타"라 적혀 있던 걸 데이터에 맞춰 정정.
+  // 랜턴은 원래 데미지 카드가 아예 없었다(지속 + 치명타뿐). base damage 0.15가 워낙 작아
+  // 스텝도 그 비율(+43%)로 맞춘다 — 광역·유틸 무기라 단일 대상 화력이 낮은 건 정상이고,
+  // 여기서 억지로 올리면 빛 상자 안 전원에게 들어가는 광역 화력이 통째로 튄다.
+  lanternDamage:       { weapon: 'studentLantern', kind: 'damage', dmg: 0.065 },
   lanternDuration:     { weapon: 'studentLantern', kind: 'stat',   stat: 'durationMs', step: 1000, cap: 7000 },
   lanternCrit:         { weapon: 'studentLantern', kind: 'crit',   chanceStep: 0.02, chanceCap: 0.19, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireChibiko:       { weapon: 'chibiko',       kind: 'acquire', minLevel: 8 },
+  // 치비코는 스스로 때리기보다 보유 무기 전체를 10% 올려주는 동반자다. 데미지 카드를 주되
+  // 성장폭 목표는 2.0배가 아니라 ≈1.57배로 낮게 잡는다(전 무기 버프와 이중 계상되기 때문).
+  chibikoDamage:        { weapon: 'chibiko',       kind: 'damage', dmg: 0.6 },
   chibikoCrit:          { weapon: 'chibiko',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.21, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireHanako:        { weapon: 'hanako',        kind: 'acquire', requiresActiveWeapon: 'chibiko', skipAccountUnlock: true },
   // 바이키티 커터칼 — 커터칼을 런 중 보유해야만 카드가 뜬다(하나코/치비코와 같은 배선).
   // 계정 해금 게이트(weaponUnlocks)는 쓰지 않으므로 skipAccountUnlock: true.
   acquireBikittyCutter: { weapon: 'bikittyCutter', kind: 'acquire', minLevel: 6, requiresActiveWeapon: 'boxCutter', skipAccountUnlock: true },
-  bikittyCutterDamage: { weapon: 'bikittyCutter', kind: 'damage', dmg: 4 },
+  // 바이키티는 사이클 피해에 snapDamage(30)가 상수로 섞여 있어, 같은 2.0배를 만들려면
+  // 단수 피해(=damage)를 그만큼 더 올려야 한다. 4 → 7 × 2장.
+  bikittyCutterDamage: { weapon: 'bikittyCutter', kind: 'damage', dmg: 7 },
+  bikittyCutterPower:  { weapon: 'bikittyCutter', kind: 'damage', dmg: 7 },
   bikittyCutterRange:  { weapon: 'bikittyCutter', kind: 'stat',   stat: 'segmentRangeStep', step: 0.02, cap: 0.28 },
   bikittyCutterCrit:   { weapon: 'bikittyCutter', kind: 'crit',   chanceStep: 0.02, chanceCap: 0.41, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   // 선긋기 — 30cm 자 + 커터칼을 런 중 둘 다 보유해야만 카드가 뜬다. 단수형으로는 표현할 수
   // 없어 requiresActiveWeapons(복수형 배열)를 여기서 처음 쓴다. 계정 해금 게이트는 우회한다.
   acquireLineDraw:   { weapon: 'lineDraw', kind: 'acquire', minLevel: 8, requiresActiveWeapons: ['schoolBag', 'boxCutter'], skipAccountUnlock: true },
-  lineDrawDamage:    { weapon: 'lineDraw', kind: 'damage', dmg: 5 },
+  // 선긋기 DPS의 41%는 잔류 절단선(lineCrossDamage 14)이라 직격 피해만 올리면 성장이 막힌다.
+  // 데미지 카드가 절단선 피해도 함께 올리도록 bonus를 붙였다(플라스크 존 지속 +1초와 같은 배선).
+  lineDrawDamage:    { weapon: 'lineDraw', kind: 'damage', dmg: 6.4, bonus: { stat: 'lineCrossDamage', step: 4.5 } },
+  lineDrawPower:     { weapon: 'lineDraw', kind: 'damage', dmg: 6.4, bonus: { stat: 'lineCrossDamage', step: 4.5 } },
   lineDrawDuration:  { weapon: 'lineDraw', kind: 'stat',   stat: 'lineDurationMs', step: 400, cap: 4000 },
   lineDrawCrit:      { weapon: 'lineDraw', kind: 'crit',   chanceStep: 0.02, chanceCap: 0.45, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireSharkMissile:  { weapon: 'sharkMissile',  kind: 'acquire', minLevel: 8 },
-  sharkMissileDamage:  { weapon: 'sharkMissile',  kind: 'damage', dmg: 10 },
+  sharkMissileDamage:  { weapon: 'sharkMissile',  kind: 'damage', dmg: 10.4 },
+  sharkMissilePower:   { weapon: 'sharkMissile',  kind: 'damage', dmg: 10.4 },
   sharkMissileRadius:  { weapon: 'sharkMissile',  kind: 'stat',   stat: 'radius',    step: 0.2, cap: 2.6 },
   moveSpeed:      { kind: 'player', stat: 'speed', capMultiplier: 1.8 },
   maxHealth:      { kind: 'player' },
