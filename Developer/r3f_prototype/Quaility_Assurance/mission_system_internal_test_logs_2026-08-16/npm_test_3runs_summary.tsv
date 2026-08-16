@@ -1,0 +1,4 @@
+run	start	end	exit	log	json
+1	2026-08-16T14:56:15+09:00	2026-08-16T15:06:11+09:00	1	Quaility_Assurance/mission_system_internal_test_logs_2026-08-16/npm_test_run1_quiet.log	Quaility_Assurance/mission_system_internal_test_logs_2026-08-16/npm_test_run1.json
+2	2026-08-16T15:06:11+09:00	2026-08-16T15:15:00+09:00	1	Quaility_Assurance/mission_system_internal_test_logs_2026-08-16/npm_test_run2_quiet.log	Quaility_Assurance/mission_system_internal_test_logs_2026-08-16/npm_test_run2.json
+3	2026-08-16T15:15:00+09:00	2026-08-16T15:22:24+09:00	1	Quaility_Assurance/mission_system_internal_test_logs_2026-08-16/npm_test_run3_quiet.log	Quaility_Assurance/mission_system_internal_test_logs_2026-08-16/npm_test_run3.json

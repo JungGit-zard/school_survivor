@@ -293,6 +293,11 @@ export default function App() {
     }
   }, [isGraphicsStudioRoute, authStatus, authUser?.uid, studioCloudStatus])
 
+  useEffect(() => {
+    if (isGraphicsStudioRoute || isAdminRoute) return
+    void hydrateCanonicalTitlePlayer({}).catch(() => {})
+  }, [isGraphicsStudioRoute, isAdminRoute])
+
   const studioReady = studioCloudStatus === 'remote-applied'
     && isFirebaseStudioRuntimeReady()
   // 留덉뒪?곌? ?꾨땶

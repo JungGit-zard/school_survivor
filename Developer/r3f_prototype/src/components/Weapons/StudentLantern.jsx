@@ -197,7 +197,9 @@ export function StudentLanternWeapon() {
       const hits = applyForwardConeDamage({
         originX: playerPos.x, originZ: playerPos.z,
         dirX: playerFacing.x, dirZ: playerFacing.z,
-        length, width, baseWidth, damage: w.damage ?? 0.6,
+        // 폴백은 카탈로그 base.damage와 같은 값이어야 한다. 0.6은 카탈로그에서 이미 제거된
+        // 죽은 값인데 여기만 남아 있었다(발동 시 실제의 4배).
+        length, width, baseWidth, damage: w.damage ?? 0.15,
         critChance: w.critChance,
         critMultiplier: w.critMultiplier,
       })

@@ -116,7 +116,8 @@ export const UPGRADE_EFFECTS = {
   eraserDamage:        { weapon: 'eraserBomb',    kind: 'damage', dmg: 8 },
   eraserRadius:        { weapon: 'eraserBomb',    kind: 'stat',   stat: 'radius',    step: 0.19, cap: 2.1 },
   acquireLantern:       { weapon: 'studentLantern', kind: 'acquire', minLevel: 5 },
-  // 기획: 레벨업마다 지속 +1초 = 타격 +1회 (초당 1타). cap 7000 = 무기 Lv5 상한(3+4초).
+  // 기획: 레벨업마다 지속 +1초 = 타격 +3.33회 (hitIntervalMs 300 = 0.3초당 1타).
+  // cap 7000 = 무기 Lv5 상한(3+4초). 2026-08-15: "초당 1타"라 적혀 있던 걸 데이터에 맞춰 정정.
   lanternDuration:     { weapon: 'studentLantern', kind: 'stat',   stat: 'durationMs', step: 1000, cap: 7000 },
   lanternCrit:         { weapon: 'studentLantern', kind: 'crit',   chanceStep: 0.02, chanceCap: 0.19, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireChibiko:       { weapon: 'chibiko',       kind: 'acquire', minLevel: 8 },

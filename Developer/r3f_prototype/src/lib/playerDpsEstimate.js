@@ -64,13 +64,21 @@ export function weaponHitsPerSecond(weapon) {
   return 1000 / cooldownMs
 }
 
-// 한 번 발동할 때 단일 대상에게 겹쳐 들어갈 수 있는 타격 수.
-// 서로 다른 무기가 각자 하나씩만 갖는 필드라 곱해도 중복 계산되지 않는다.
+// 한 번 발동할 때 "단일 대상에게" 겹쳐 들어가는 타격 수.
+//
+// 2026-08-15: 여기서 projectileCount·count·strikeCount를 곱하던 것을 걷어냈다. 셋 다 단일 대상에
+// 겹치는 게 아니라 서로 다른 적으로 퍼지는 능력이라, 단일 대상 DPS를 최대 5×4×3배까지 부풀렸다.
+//   - pencilThrow.projectileCount: Pencil.jsx가 서로 다른 적 N명에게 1발씩 던진다.
+//   - tumbler/onigiri.count: weaponTargeting.js의 break와 적별 lastHit 게이트 때문에 궤도체를
+//     늘려도 한 적이 받는 타격률은 hitsPerSecond로 고정된다.
+//   - starlink.strikeCount: pickStrikeTargets가 서로 다른 적 위치를 고른다.
+// 이 값은 마틸다 HP(= 스폰 시점 DPS × 1800초, Enemies.jsx)의 직접 입력이라, 부풀린 만큼
+// 마틸다가 그대로 단단해져 "30분 컷" 설계가 실제로는 훨씬 긴 전투가 돼 있었다.
+//
+// 다단히트 무기가 실제로 생기면(같은 적에게 같은 발동으로 2회 이상) 그 무기의 필드를 여기 더한다.
 export function weaponOnTargetHits(weapon) {
   if (!weapon) return 0
-  return positiveNumber(weapon.projectileCount, 1)
-    * positiveNumber(weapon.count, 1)
-    * positiveNumber(weapon.strikeCount, 1)
+  return 1
 }
 
 // 무기 1종의 단일 대상 기대 DPS. 비활성 무기는 0.

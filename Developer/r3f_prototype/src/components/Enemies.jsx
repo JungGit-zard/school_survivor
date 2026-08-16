@@ -518,7 +518,7 @@ export const WAVE_INTERVAL_SEC = 30        // 평균(중심) 간격 — 참고�
 export const WAVE_INTERVAL_MIN_SEC = 20
 export const WAVE_INTERVAL_MAX_SEC = 40
 const WAVE_SIZE_FACTOR = 0.5
-// stage1 밀도 하향(2026-07-22): 잡몹 총 HP 균등 +10% 곡선의 앵커를 만들기 위해 1.3→1.15로 낮춘다.
+// stage1 밀도 하향(2026-07-22): 기존 스폰 밀도 파생의 앵커를 유지하기 위해 1.3→1.15로 낮춘다.
 export const STAGE1_SPAWN_MULTIPLIER = 1.15
 // Stage 2 spawn-count tuning (2026-08-08): increase delivered zombie count
 // without changing HP normalization or the wave timeline/composition.
@@ -556,8 +556,8 @@ export function rawWaveSizeForStage(phase, stageId, waveTime) {
   return size * (STAGE_FRONTLOAD_WAVES[stageId]?.[waveTime] ?? 1)
 }
 
-// 실제 웨이브 크기 = 구조적 크기 × 스테이지 밀도배율(잡몹 총 HP 균등 +10% 곡선의 밀도 절반 부담).
-// stage1은 밀도배율 없음(앵커) → raw 그대로. stage2~4는 √c 밀도배율이 적용된다.
+// 실제 웨이브 크기 = 구조적 크기 × 기존 스테이지 밀도배율.
+// stage1은 밀도배율 없음(앵커) → raw 그대로. stage2~4는 기존 파생 밀도값을 유지한다.
 export function waveSizeForStageAtTime(phase, stageId, waveTime) {
   const raw = rawWaveSizeForStage(phase, stageId, waveTime)
   const densitySize = Math.max(1, Math.round(raw * (STAGE_DENSITY_MULTIPLIER[stageId] ?? 1)))
@@ -734,12 +734,21 @@ export function bossEscortSize() {
   return 0
 }
 
-// ── 잡몹 총 HP 균등 상승(+10%/스테이지) 블렌드 배율(2026-07-22) ─────────────────
-// 목표: 잡몹 E01~E06의 스테이지별 "기대 총 HP"가 직전 스테이지 정확히 ×1.10.
-// 스테이지마다 웨이브 target·구성·프론트로드가 달라 개별 HP 배율(±)만으로는 총량이 롤러코스터가 되므로,
-// 부담을 HP와 밀도가 각각 √c로 반반 나눠 진다(처치시간·동시압박을 함께 끌어올림).
-// stage1을 앵커로 두고(밀도 하향 1.15 반영) 각 스테이지 기대총량을 √c 배율로 앵커×1.10^i에 맞춘다.
-const JARMOB_HP_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06'])
+// ── 일반 풀 분류 및 기존 스폰 밀도 파생 ───────────────────────────────────────
+// 이 집합은 웨이브·버스트의 밀도 추정에만 쓰인다. 개별 HP는 아래 모든-좀비 누적 곡선이 단일 정본이다.
+// E07은 E01의 정확히 2배(hp/damage/speed)로 고정된 잡몹이다(Enemy.jsx:303). 여기서 빠져 있으면
+// E07만 보스·런크루용 STAGE_HP_MULTIPLIER를 타서 E01과 반대 방향으로 움직이고 2배 불변식이 깨진다
+// — 실제로 stage2에서 E01 5 / E07 18(2배가 아니라 3.6배)이 됐다.
+const JARMOB_HP_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07'])
+
+// 사용자 정본(2026-08-16): 모든 정적 좀비 타입은 Stage 1 기준 누적 1.2배 HP 곡선을 쓴다.
+// 정수 HP 런타임은 기존과 같은 Math.round를 사용하므로, 예를 들어 E07 16 × 1.2 = 19.2는 19 HP다.
+export const STAGE2_SAME_TYPE_HP_MULTIPLIER = 1.2
+
+export function sameTypeZombieHpForStage(baseHp, stageId) {
+  const multiplier = STAGE_HP_MULTIPLIER[stageId]
+  return multiplier ? Math.round(baseHp * multiplier) : baseHp
+}
 
 // 한 phase에서 1스폰당 잡몹 기대 HP = Σ weights[잡몹]×base.hp. 방어적으로 E01~E06만 합산한다.
 function jarmobHpPerSpawn(phase) {
@@ -750,12 +759,13 @@ function jarmobHpPerSpawn(phase) {
   return sum
 }
 
-// 스테이지 상승 HP 곡선 — 보스·런크루·도지 등 비잡몹 전용(2026-07-22 개정): 이전×1.10(+10%).
-// stage1 ×1.0(오버라이드 없음) / stage2 ×1.10 / stage3 ×1.21 / stage4 ×1.331.
-// 잡몹 E01~E06은 아래 STAGE_JARMOB_HP_MULTIPLIER(√c)로 별도 적용해 총 HP를 균등 +10%로 맞춘다.
-// 마틸다(탈출 추격자)는 별도 동적 statOverride를 쓰므로 여기 대상 아님.
-// (블렌드 파생이 런크루 확정 HP를 먼저 빼야 해서 이 표가 블렌드 블록보다 위에 있어야 한다.)
-const STAGE_HP_MULTIPLIER = { stage2: 1.10, stage3: 1.21, stage4: 1.331 }
+// 스테이지 상승 HP 정본: Stage 1 ×1.0 / Stage 2 ×1.2 / Stage 3 ×1.44 / Stage 4 ×1.728.
+// 모든 ENEMY_STATS 좀비와 동적 HP를 쓰는 마틸다가 이 표를 공유한다. 도지는 좀비가 아닌 이벤트 몬스터라
+// 기존 전용 경로를 유지한다. 이 값은 스폰 밀도·총 HP 예산으로 역산하거나 낮추지 않는다.
+const STAGE_HP_MULTIPLIER = { stage2: 1.2, stage3: 1.44, stage4: 1.728 }
+// 스폰 밀도는 사용자 요청 범위 밖이므로, 기존 밀도 파생식이 사용하던 특수 크루 HP 곡선을 별도로
+// 고정한다. 이 값은 실제 크루 HP에는 절대 쓰지 않고, 기존 density 결과만 보존한다.
+const DENSITY_DERIVATION_CREW_HP_MULTIPLIER = { stage2: 1.10, stage3: 1.21, stage4: 1.331 }
 
 // 프론트로드가 아닌 평시 웨이브를 뽑기 위한 대표 시각(어느 스테이지의 프론트로드 표에도 없는 값).
 const NON_FRONTLOAD_WAVE_TIME = 1
@@ -818,6 +828,17 @@ export function stageRunCrewFixedHp(stageId) {
   return total
 }
 
+function stageRunCrewFixedHpForDensity(stageId) {
+  const mult = DENSITY_DERIVATION_CREW_HP_MULTIPLIER[stageId] ?? 1
+  const crewHp = Math.round(ENEMY_STATS.RZL.hp * mult)
+    + Math.round(ENEMY_STATS.RZC.hp * mult) * (RUN_ZOMBIE_CREW_SIZE - 1)
+  let total = 0
+  for (const evt of getRuntimeBurstEventsForStage(stageId)) {
+    if (evt.formation === RUN_ZOMBIE_CREW_FORMATION) total += crewHp
+  }
+  return total
+}
+
 export function stage2GuardChaseFixedHp(stageId) {
   if (stageId !== 'stage2') return 0
   const mult = STAGE_HP_MULTIPLIER[stageId] ?? 1
@@ -828,51 +849,60 @@ export function stage2GuardChaseFixedHp(stageId) {
     .length * crewHp
 }
 
-// 스테이지별 잡몹계 실전달 총 HP 목표(앵커=stage1 총량의 배수). 이 표가 총량의 유일한 결정자다.
-// 블렌드가 실전달 총량을 앵커×factor에 맞추도록 √c를 역산하므로, 타임라인 target·weights를
-// 아무리 흔들어도 총량은 이 표에 고정된다 — 타임라인은 "총량 배분(곡선 모양)"만 바꾼다.
-// 2026-08-07: 단조 +10%/스테이지로 복원했다. 이전에는 stage2·stage3이 둘 다 1.21 동률이었고
-// 그 근거는 "스3는 버스트가 모델 밖에서 그대로 얹히니 실제론 더 어렵다"였는데, 이제 버스트·런크루가
-// 모델 안으로 들어와 실전달 총량에 포함되므로 그 전제 자체가 사라졌다(실측 결과 스3 ×2.50 / 스4 ×1.92
-// 로 스4가 스3보다 쉬운 역전까지 나 있었다).
-const STAGE_JARMOB_TOTAL_HP_FACTOR = {
+function stage2GuardChaseFixedHpForDensity(stageId) {
+  if (stageId !== 'stage2') return 0
+  const mult = DENSITY_DERIVATION_CREW_HP_MULTIPLIER[stageId] ?? 1
+  const crewHp = Math.round(ENEMY_STATS.RZT.hp * mult)
+    + Math.round(ENEMY_STATS.RZG.hp * mult) * (STAGE2_GUARD_CHASE_SIZE - 1)
+  return getRuntimeBurstEventsForStage(stageId)
+    .filter((evt) => evt.formation === STAGE2_GUARD_CHASE_FORMATION)
+    .length * crewHp
+}
+
+// 기존 스폰 밀도 파생에만 남겨 둔 목표 계수다. 절대로 개별 좀비 HP를 결정하거나 낮추지 않는다.
+const STAGE_DENSITY_TARGET_FACTOR = {
   stage1: 1,                  // 앵커
   stage2: Math.pow(1.10, 2),  // 1.21 — 2026-08-06 난이도 +10% 조정 유지
   stage3: Math.pow(1.10, 3),  // 1.331
   stage4: Math.pow(1.10, 4),  // 1.4641
 }
 
-// 블렌드 배율(모듈 로드시 1회 파생). 실전달 총량은 m에 대해 2차식이다:
-//   waveBase×m² + burstJarmobBase×m + crewFixed = 앵커 × factor
-// 웨이브는 HP배율·밀도배율을 둘 다 받아 m², 버스트 잡몹은 count가 리터럴이라 m, 런크루는 별도
-// HP 곡선을 쓰는 상수항이다. 근의 공식으로 정확히 풀어 √c를 구한다(양근만 유효).
-// stage1은 앵커라 배율 없음(undefined → 미적용). rawWaveSizeForStage만 쓰므로 순환하지 않는다.
+// 밀도 배율(모듈 로드시 1회 파생). 이전 스폰 동작을 보존하는 계산값이며 HP 정본과 분리한다.
+// 기존 계산은 waveBase×m² + burstJarmobBase×m + crewFixed = 앵커×factor를 풀어 m을 얻는다.
+// 여기서 m은 오직 스폰량에만 사용한다. stage1은 앵커라 밀도배율이 없다.
 const _STAGE_BLEND_IDS = ['stage1', 'stage2', 'stage3', 'stage4']
-const _jarmobHpAnchor = stageExpectedBaseJarmobHp('stage1')
+// 앵커는 위 주석이 선언한 대로 "stage1 실전달 총량"이어야 한다. stageExpectedBaseJarmobHp는 웨이브
+// base만 돌려주므로 버스트(stage1 기준 2336, 총량의 34.8%)를 더해야 정의와 코드가 일치한다.
+// 누락 상태에서는 앵커가 작아 m이 과도하게 깎였고, "stage1을 강화할수록 stage2가 상대적으로 쉬워지는"
+// 역구조까지 생겼다(stage1 버스트를 늘리면 앵커는 그대로인데 상위 스테이지 목표만 낮게 잡힘).
+const _jarmobHpAnchor = stageExpectedBaseJarmobHp('stage1') + stageBurstJarmobBaseHp('stage1')
 export const STAGE_JARMOB_HP_MULTIPLIER = {}
 export const STAGE_DENSITY_MULTIPLIER = {}
 _STAGE_BLEND_IDS.forEach((stageId) => {
   if (stageId === 'stage1') return  // 앵커: 배율 없음
   // 표에 없는 stageId는 NaN이 조용히 전파되므로 앵커 배수 1로 막는다(구 인덱스 방식은 항상 수치를 냈다).
-  const factor = STAGE_JARMOB_TOTAL_HP_FACTOR[stageId] ?? 1
+  const factor = STAGE_DENSITY_TARGET_FACTOR[stageId] ?? 1
   const a = stageExpectedBaseJarmobHp(stageId)
   const b = stageBurstJarmobBaseHp(stageId)
-  const remaining = _jarmobHpAnchor * factor - stageRunCrewFixedHp(stageId)
+  // 호위 추격조는 런크루와 같이 STAGE_HP_MULTIPLIER를 쓰는 확정 HP다 — √c 대상이 아니므로
+  // 목표 총량에서 먼저 뺀다. 빼지 않으면 그만큼 웨이브·버스트가 과다 계상돼 m이 더 깎인다.
+  const remaining = _jarmobHpAnchor * factor - stageRunCrewFixedHpForDensity(stageId) - stage2GuardChaseFixedHpForDensity(stageId)
   // ⚠ remaining ≤ 0 = 런크루 확정 HP만으로 목표 총량을 넘겨 웨이브를 0으로 깎아도 factor를 못 맞추는
   //   상태다. 그때는 배율을 0으로 붕괴시키는 대신 하한 0.5로 막고 factor 표/크루 횟수를 고쳐야 한다.
-  const m = remaining > 0 ? (-b + Math.sqrt(b * b + 4 * a * remaining)) / (2 * a) : 0.5
-  STAGE_JARMOB_HP_MULTIPLIER[stageId] = m
-  STAGE_DENSITY_MULTIPLIER[stageId] = m
+  const density = remaining > 0 ? (-b + Math.sqrt(b * b + 4 * a * remaining)) / (2 * a) : 0.5
+  STAGE_JARMOB_HP_MULTIPLIER[stageId] = STAGE_HP_MULTIPLIER[stageId]
+  STAGE_DENSITY_MULTIPLIER[stageId] = density
 })
 
-// 잡몹계 실전달 기대 총 HP(배율 적용 후) = 웨이브 base×m² + 버스트 잡몹×m + 런크루 확정 HP.
-// 설계상 앵커×목표배수와 항등이라 factor 회귀만 잡고 타임라인 회귀는 못 잡는다 —
-// 타임라인 방어는 stageExpectedBaseJarmobHp(웨이브 base)와 stageJarmobLoadWindows 단언이 맡는다.
+// 현재 잡몹계 기대 총 HP = 웨이브 base×밀도×HP + 버스트 잡몹 base×HP + 특수 크루 HP.
+// HP는 사용자의 누적 정본, 밀도는 기존 파생값을 각각 적용한다.
 export function stageExpectedJarmobHp(stageId) {
-  const m = STAGE_JARMOB_HP_MULTIPLIER[stageId] ?? 1
-  return stageExpectedBaseJarmobHp(stageId) * m * m
-    + stageBurstJarmobBaseHp(stageId) * m
+  const hpMultiplier = STAGE_JARMOB_HP_MULTIPLIER[stageId] ?? 1
+  const densityMultiplier = STAGE_DENSITY_MULTIPLIER[stageId] ?? 1
+  return stageExpectedBaseJarmobHp(stageId) * densityMultiplier * hpMultiplier
+    + stageBurstJarmobBaseHp(stageId) * hpMultiplier
     + stageRunCrewFixedHp(stageId)
+    + stage2GuardChaseFixedHp(stageId)
 }
 
 // 구간별 잡몹계 부하 곡선(HP/s). 총량이 같아도 배분이 다르면 체감 난이도가 뒤집히므로,
@@ -882,7 +912,8 @@ export function stageJarmobLoadWindows(stageId, windowSec = 20, totalSec = 240) 
   const phases = getDefaultWavePhases(stageId)
   const activeAt = (t) => phases.findLast((p) => p.start <= t) ?? phases[0]
   const hasMidWave = MID_WAVE_STAGES.has(stageId)
-  const m = STAGE_JARMOB_HP_MULTIPLIER[stageId] ?? 1
+  const hpMultiplier = STAGE_JARMOB_HP_MULTIPLIER[stageId] ?? 1
+  const densityMultiplier = STAGE_DENSITY_MULTIPLIER[stageId] ?? 1
   const count = Math.ceil(totalSec / windowSec)
   const buckets = new Array(count).fill(0)
   const bucketAt = (sec) => Math.min(count - 1, Math.max(0, Math.floor(sec / windowSec)))
@@ -891,7 +922,7 @@ export function stageJarmobLoadWindows(stageId, windowSec = 20, totalSec = 240) 
     const perSpawn = jarmobHpPerSpawn(phase)
     let perWave = rawWaveSizeForStage(phase, stageId, NON_FRONTLOAD_WAVE_TIME) * perSpawn
     if (hasMidWave) perWave += rawMidWaveSize(phase, stageId) * perSpawn
-    const hpPerSec = (perWave / WAVE_INTERVAL_SEC) * m * m
+    const hpPerSec = (perWave / WAVE_INTERVAL_SEC) * densityMultiplier * hpMultiplier
     for (let i = 0; i < count; i += 1) {
       const overlap = Math.min((i + 1) * windowSec, phase.end) - Math.max(i * windowSec, phase.start)
       if (overlap > 0) buckets[i] += overlap * hpPerSec
@@ -902,7 +933,7 @@ export function stageJarmobLoadWindows(stageId, windowSec = 20, totalSec = 240) 
     const phase = activeAt(sec)
     const extra = rawWaveSizeForStage(phase, stageId, sec)
       - rawWaveSizeForStage(phase, stageId, NON_FRONTLOAD_WAVE_TIME)
-    buckets[bucketAt(sec)] += extra * jarmobHpPerSpawn(phase) * m * m
+    buckets[bucketAt(sec)] += extra * jarmobHpPerSpawn(phase) * densityMultiplier * hpMultiplier
   }
   for (const evt of getRuntimeBurstEventsForStage(stageId)) {
     if (evt.formation === RUN_ZOMBIE_CREW_FORMATION) {
@@ -914,20 +945,17 @@ export function stageJarmobLoadWindows(stageId, windowSec = 20, totalSec = 240) 
       buckets[bucketAt(evt.sec)] += Math.round(ENEMY_STATS.RZT.hp * mult)
         + Math.round(ENEMY_STATS.RZG.hp * mult) * (STAGE2_GUARD_CHASE_SIZE - 1)
     } else if (JARMOB_HP_TYPES.has(evt.type)) {
-      buckets[bucketAt(evt.sec)] += (evt.count ?? 1) * (ENEMY_STATS[evt.type]?.hp ?? 0) * m
+      buckets[bucketAt(evt.sec)] += (evt.count ?? 1) * (ENEMY_STATS[evt.type]?.hp ?? 0) * hpMultiplier
     }
   }
   return buckets.map((hp) => hp / windowSec)
 }
 
 export function stageHpOverride(type, stageId) {
-  // 잡몹은 √c 총HP-균등 배율, 그 외(보스·런크루)는 기존 개별 +10% 곡선.
-  const table = JARMOB_HP_TYPES.has(type) ? STAGE_JARMOB_HP_MULTIPLIER : STAGE_HP_MULTIPLIER
-  const mult = table[stageId]
-  if (!mult) return undefined
   const base = ENEMY_STATS[type]
   if (!base) return undefined
-  return { hp: Math.round(base.hp * mult) }
+  const hp = sameTypeZombieHpForStage(base.hp, stageId)
+  return hp === base.hp ? undefined : { hp }
 }
 
 // ── 이벤트 몬스터 "춤추는 도지" (2026-07-14) ─────────────────────────────────
@@ -944,13 +972,14 @@ export const DOGE_SCALE = Number(((2 * PLAYER_MESH_WORLD_HEIGHT) / DOGE_RAW_HEIG
 // 이벤트 보너스 몬스터 HP — 60초 시점 DPS로 "몇 초 안에" 잡히는 수준(E06 320보다 낮게 200 기준).
 // 스테이지 상승 곡선(+10%/스테이지)을 잡몹·보스와 동일 철학으로 적용(1.0 / 1.10 / 1.21 / 1.331).
 export const DOGE_BASE_HP = 200
+const DOGE_STAGE_HP_MULTIPLIER = { stage2: 1.10, stage3: 1.21, stage4: 1.331 }
 // 보물상자 코인 잭팟: 일반 처치(코인 1)·보스(코인 5)보다 확실히 많은 12개를 원형 산포한다.
 export const DOGE_COIN_COUNT = 12
 const DOGE_COIN_RING_MIN = 0.3
 const DOGE_COIN_RING_MAX = 1.4
 
 export function dogeHpForStage(stageId) {
-  return Math.round(DOGE_BASE_HP * (STAGE_HP_MULTIPLIER[stageId] ?? 1))
+  return Math.round(DOGE_BASE_HP * (DOGE_STAGE_HP_MULTIPLIER[stageId] ?? 1))
 }
 
 // 도지 도주(황금고블린) 파라미터/순수 로직은 lib/dogeEscape.js 참조 —
@@ -1432,7 +1461,8 @@ export default function Enemies() {
       // 삭제한 speed/warnDist/warnDuration/stunDuration/chargeDuration/contactDist는
       // 마틸다 AI 분기가 한 번도 읽지 않는다(2026-08-09 감사에서 grep 재확인).
       const matildaStats = {
-        hp:          matildaHpFromWeapons(store.weapons),
+        // Stage 1/2 모두 B01 타입으로 등장하는 마틸다는 스폰 시점의 동종 최종 HP 규칙을 따른다.
+        hp:          sameTypeZombieHpForStage(matildaHpFromWeapons(store.weapons), cache.id),
         scale:       ENEMY_STATS.B01.scale,
         charger:     true,
         chargeSpeed: player.speed * 2.8,

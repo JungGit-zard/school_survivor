@@ -27,9 +27,12 @@ import {
   stageExpectedJarmobHp,
   stageBurstJarmobBaseHp,
   stageRunCrewFixedHp,
+  stage2GuardChaseFixedHp,
   stageJarmobLoadWindows,
   STAGE_JARMOB_HP_MULTIPLIER,
   STAGE_DENSITY_MULTIPLIER,
+  STAGE2_SAME_TYPE_HP_MULTIPLIER,
+  sameTypeZombieHpForStage,
   STAGE2_SPAWN_MULTIPLIER,
   STAGE2_OPENING_GREEN_WAVE_MULTIPLIER,
   getWaveSpawnSeconds,
@@ -598,42 +601,35 @@ describe('boss entrance escort wave', () => {
   })
 })
 
-describe('ascending stage HP curve (+10% per stage from stage1)', () => {
-  it('scales stage 2 jarmob HP by the blended sqrt(c) multiplier, boss by the +10% curve', () => {
-    // 잡몹 E01~E06: √c 총HP-균등 배율(STAGE_JARMOB_HP_MULTIPLIER.stage2 ≈ 1.11).
-    expect(stageHpOverride('E02', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E02.hp * STAGE_JARMOB_HP_MULTIPLIER.stage2) })
-    expect(stageHpOverride('E01', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E01.hp * STAGE_JARMOB_HP_MULTIPLIER.stage2) })
-    expect(stageHpOverride('E06', 'stage2')).toEqual({ hp: Math.round(ENEMY_STATS.E06.hp * STAGE_JARMOB_HP_MULTIPLIER.stage2) })
-    // 보스 B02는 기존 개별 +10% 곡선 유지(변경 없음).
-    expect(stageHpOverride('B02', 'stage2')).toEqual({ hp: 1265 })                                   // 1150 -> 1265
+describe('all zombie HP follows the cumulative 1.2x-per-stage curve', () => {
+  it('applies the same cumulative Stage 1 baseline multiplier to every static zombie type', () => {
+    expect(STAGE2_SAME_TYPE_HP_MULTIPLIER).toBe(1.2)
+    expect(Object.keys(ENEMY_STATS)).toEqual(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'E07', 'B01', 'B02', 'B03', 'B04'])
+    const stageMultipliers = { stage1: 1, stage2: 1.2, stage3: 1.44, stage4: 1.728 }
+    for (const [stageId, multiplier] of Object.entries(stageMultipliers)) {
+      for (const [type, stats] of Object.entries(ENEMY_STATS)) {
+        const expectedHp = Math.round(stats.hp * multiplier)
+        expect(sameTypeZombieHpForStage(stats.hp, stageId)).toBe(expectedHp)
+        expect(stageHpOverride(type, stageId)).toEqual(stageId === 'stage1' ? undefined : { hp: expectedHp })
+      }
+    }
   })
 
-  it('scales stage 3 jarmob HP by the blended sqrt(c) multiplier, PE teacher boss by the +10% curve', () => {
-    // 잡몹 E01~E06: √c 배율(STAGE_JARMOB_HP_MULTIPLIER.stage3 ≈ 1.23).
-    expect(stageHpOverride('E02', 'stage3')).toEqual({ hp: Math.round(ENEMY_STATS.E02.hp * STAGE_JARMOB_HP_MULTIPLIER.stage3) })
-    expect(stageHpOverride('E06', 'stage3')).toEqual({ hp: Math.round(ENEMY_STATS.E06.hp * STAGE_JARMOB_HP_MULTIPLIER.stage3) })
-    // 보스 B03는 기존 개별 +10% 곡선 유지(변경 없음).
-    expect(stageHpOverride('B03', 'stage3')).toEqual({ hp: 1392 })                                  // 1150 -> 1392
-  })
-
-  it('leaves stage 1 at base HP and ignores unknown types', () => {
-    expect(stageHpOverride('E02', 'stage1')).toBeUndefined()
-    expect(stageHpOverride('B01', 'stage1')).toBeUndefined()
+  it('applies the same curve to Matilda dynamic HP without changing the non-zombie doge curve', () => {
+    expect(sameTypeZombieHpForStage(12.5, 'stage1')).toBe(12.5)
+    expect(sameTypeZombieHpForStage(12.5, 'stage2')).toBe(15)
+    expect(sameTypeZombieHpForStage(12.5, 'stage3')).toBe(18)
+    expect(sameTypeZombieHpForStage(12.5, 'stage4')).toBe(22)
+    const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('sameTypeZombieHpForStage(matildaHpFromWeapons(store.weapons), cache.id)')
+    expect(dogeHpForStage('stage2')).toBe(220)
+    expect(dogeHpForStage('stage3')).toBe(242)
+    expect(dogeHpForStage('stage4')).toBe(266)
     expect(stageHpOverride('NOPE', 'stage2')).toBeUndefined()
   })
 })
 
-describe('jarmob expected total HP follows the per-stage target factor table', () => {
-  // 2026-08-07 개정: 실전달 총량 = 웨이브 base×m² + 버스트 잡몹×m + 런크루 확정 HP.
-  // 버스트는 count가 리터럴이라 밀도배율을 안 받고(m 1제곱), 런크루는 STAGE_HP_MULTIPLIER를 써서
-  // √c 정규화 대상이 아니다(상수항). 그래서 m은 √c가 아니라 근의 공식으로 푼다.
-  const totalFor = (stageId) => {
-    const m = STAGE_JARMOB_HP_MULTIPLIER[stageId] ?? 1
-    return stageExpectedBaseJarmobHp(stageId) * m * m
-      + stageBurstJarmobBaseHp(stageId) * m
-      + stageRunCrewFixedHp(stageId)
-  }
-
+describe('jarmob expected total keeps density separate from the user HP curve', () => {
   // 앵커 기준값이 4494 → 4597로 바뀐 이유: 30초 격자 8표본 모델을 폐기하고 지속시간 가중 모델로
   // 교체했다(격자는 stage1 240초 중 표본에 안 걸리는 구간을 통째로 빠뜨렸다).
   // stage1은 프론트로드가 없고 런타임 버스트도 보스뿐이라 앵커 = 웨이브+중간보강 지속시간 가중 부하다.
@@ -643,55 +639,15 @@ describe('jarmob expected total HP follows the per-stage target factor table', (
     expect(anchor).toBeLessThanOrEqual(4500)
   })
 
-  // 총량은 STAGE_JARMOB_TOTAL_HP_FACTOR가 단독 결정한다(블렌드 자기정규화).
-  // 2026-08-07: stage2·stage3 동률(1.21/1.21)을 단조 +10% 사다리로 복원했다. 이전 동률의 근거였던
-  // "스3는 버스트가 모델 밖에서 그대로 얹힌다"는 전제는 버스트·크루를 모델에 넣으면서 사라졌다.
-  it('pins each stage total to anchor x its target factor', () => {
-    const anchor = stageExpectedBaseJarmobHp('stage1')
-    const expected = { stage1: 1, stage2: 1.21, stage3: 1.331, stage4: 1.4641 }
-    for (const [stageId, factor] of Object.entries(expected)) {
-      expect(totalFor(stageId) / anchor).toBeCloseTo(factor, 6)
-      expect(stageExpectedJarmobHp(stageId) / anchor).toBeCloseTo(factor, 6)
-    }
-  })
-
-  // 회귀 방어(신규 2026-08-07): 실전달 총량이 스1→스4 단조증가이고 각 단계가 정확히 +10%씩이어야 한다.
-  // 이 단언이 없던 탓에 실측 ×1.000 / ×1.082 / ×2.496 / ×1.924 (스4가 스3보다 쉬운 역전 포함)를
-  // 아무도 못 잡았다. factor 표만 보고는 못 잡는다 — 버스트/크루가 모델 밖에 있었기 때문이다.
-  it('keeps the delivered jarmob total strictly ascending at +10% per stage', () => {
-    const ids = ['stage1', 'stage2', 'stage3', 'stage4']
-    const totals = ids.map((stageId) => stageExpectedJarmobHp(stageId))
-    for (let i = 1; i < totals.length; i += 1) {
-      expect(totals[i]).toBeGreaterThan(totals[i - 1])
-    }
-    // 스1 대비 누적 배율이 factor 표와 ±1% 이내로 일치.
-    const expectedRatio = [1, 1.21, 1.331, 1.4641]
-    totals.forEach((total, i) => {
-      expect(total / totals[0]).toBeGreaterThanOrEqual(expectedRatio[i] * 0.99)
-      expect(total / totals[0]).toBeLessThanOrEqual(expectedRatio[i] * 1.01)
-    })
-  })
-
-  // 총량 정책(factor)의 착지점. 주의: 이 값은 앵커×factor와 항등이라 factor 회귀만 잡고
-  // 타임라인 회귀는 못 잡는다 — 타임라인 방어는 아래 20초 구간 단언이 맡는다.
-  // abb28 10% E02/E03 감소 후 기준 5330 ≈ 새 앵커 4405 × 1.21.
-  it('lands stage2 expected jarmob total HP on the reduced abb28 +10% difficulty target (5330 +-3%)', () => {
-    const stage2Total = stageExpectedJarmobHp('stage2')
-    expect(stage2Total).toBeGreaterThanOrEqual(5330 * 0.97)
-    expect(stage2Total).toBeLessThanOrEqual(5330 * 1.03)
-  })
-
-  // ★ "스2가 스1보다 쉽다"의 직접 회귀 방어(신규 2026-08-07).
-  // 총량이 맞아도 배분이 뒤로 몰리면 체감은 뒤집힌다. 실제로 재교정 전 stage2는 20초 구간 12개 중
-  // 7개가 stage1보다 낮았고(최저 0.69배), 그게 사용자 신고의 실체였다.
-  // 168s 이후는 양쪽 다 보스 창이라 비교 대상에서 제외한다.
-  it('never lets any stage2 20s window fall below 0.85x the stage1 load before the boss window', () => {
-    const windowSec = 20
-    const stage1 = stageJarmobLoadWindows('stage1', windowSec)
-    const stage2 = stageJarmobLoadWindows('stage2', windowSec)
-    const lastComparable = Math.floor(168 / windowSec)   // 0~168s = 앞 8구간
-    for (let i = 0; i < lastComparable; i += 1) {
-      expect(stage2[i] / stage1[i]).toBeGreaterThanOrEqual(0.85)
+  it('uses the current expected-value modifier composition without using total HP to set individual HP', () => {
+    for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
+      const hpMultiplier = STAGE_JARMOB_HP_MULTIPLIER[stageId] ?? 1
+      const densityMultiplier = STAGE_DENSITY_MULTIPLIER[stageId] ?? 1
+      const expected = stageExpectedBaseJarmobHp(stageId) * densityMultiplier * hpMultiplier
+        + stageBurstJarmobBaseHp(stageId) * hpMultiplier
+        + stageRunCrewFixedHp(stageId)
+        + stage2GuardChaseFixedHp(stageId)
+      expect(stageExpectedJarmobHp(stageId)).toBeCloseTo(expected, 10)
     }
   })
 
@@ -705,16 +661,17 @@ describe('jarmob expected total HP follows the per-stage target factor table', (
     expect(waveSizeForPhase(bossPhase) * perSpawn).toBeGreaterThanOrEqual(1572.4)
   })
 
-  // 블렌드는 부담을 HP와 밀도가 똑같이 나눠 진다. 2026-08-07부터 배율이 1 미만이 될 수 있다 —
-  // 웨이브 외 고정 부하(버스트·런크루)가 목표 총량의 상당 부분을 먹으면 웨이브 몫이 줄기 때문이다
-  // (스3는 버스트+크루가 목표의 ~64%). "1보다 크다"가 아니라 "둘이 같다 + 양수다"가 불변식이다.
-  it('uses equal multipliers for HP and density (blend splits the burden in half)', () => {
+  it('keeps the fixed HP curve separate from the existing density calculation', () => {
+    expect(STAGE_JARMOB_HP_MULTIPLIER).toEqual({ stage2: 1.2, stage3: 1.44, stage4: 1.728 })
+    expect(STAGE_DENSITY_MULTIPLIER).toEqual({
+      stage2: 0.646523285323541,
+      stage3: 1.0622978698028458,
+      stage4: 1.323042868187432,
+    })
     for (const stageId of ['stage2', 'stage3', 'stage4']) {
-      expect(STAGE_JARMOB_HP_MULTIPLIER[stageId]).toBe(STAGE_DENSITY_MULTIPLIER[stageId])
-      expect(STAGE_JARMOB_HP_MULTIPLIER[stageId]).toBeGreaterThan(0)
+      expect(STAGE_DENSITY_MULTIPLIER[stageId]).toBeGreaterThan(0)
+      expect(STAGE_DENSITY_MULTIPLIER[stageId]).not.toBe(STAGE_JARMOB_HP_MULTIPLIER[stageId])
     }
-    // stage1은 앵커라 배율이 없다(undefined).
-    expect(STAGE_JARMOB_HP_MULTIPLIER.stage1).toBeUndefined()
     expect(STAGE_DENSITY_MULTIPLIER.stage1).toBeUndefined()
   })
 })
@@ -770,17 +727,17 @@ describe('dancing doge event monster', () => {
     expect(DOGE_BASE_HP).toBeLessThan(ENEMY_STATS.E06.hp)
   })
 
-  it('applies a +10% per-stage enemy HP multiplier (1.0/1.10/1.21/1.331) and keeps stage4 kitchen-specific wave shape', () => {
-    // 개별 HP 배율이 스테이지마다 직전 ×1.10. (보스 B01 base 1150로 반올림 오차 최소화해 검증)
+  it('applies the cumulative 1.2x zombie HP multiplier (1.0/1.2/1.44/1.728) and keeps stage4 kitchen-specific wave shape', () => {
+    // 모든 정적 좀비의 개별 HP는 스테이지마다 직전 ×1.2다(B01 base 1150로 반올림 오차 없이 검증).
     const base = ENEMY_STATS.B01.hp
     const ratio = (s) => (stageHpOverride('B01', s)?.hp ?? base) / base
     expect(ratio('stage1')).toBeCloseTo(1.0, 2)
-    expect(ratio('stage2')).toBeCloseTo(1.10, 2)
-    expect(ratio('stage3')).toBeCloseTo(1.21, 2)
-    expect(ratio('stage4')).toBeCloseTo(1.331, 2)
-    expect(ratio('stage2') / ratio('stage1')).toBeCloseTo(1.10, 2)
-    expect(ratio('stage3') / ratio('stage2')).toBeCloseTo(1.10, 2)
-    expect(ratio('stage4') / ratio('stage3')).toBeCloseTo(1.10, 2)
+    expect(ratio('stage2')).toBeCloseTo(1.2, 2)
+    expect(ratio('stage3')).toBeCloseTo(1.44, 2)
+    expect(ratio('stage4')).toBeCloseTo(1.728, 2)
+    expect(ratio('stage2') / ratio('stage1')).toBeCloseTo(1.2, 2)
+    expect(ratio('stage3') / ratio('stage2')).toBeCloseTo(1.2, 2)
+    expect(ratio('stage4') / ratio('stage3')).toBeCloseTo(1.2, 2)
     // stage4 급식실 특유 형태 유지(조기·고비중 E04, 좁은 맵 저target, B04 단일 보스).
     expect(STAGE4_WAVE_PHASES.some((phase) => (phase.weights.E04 ?? 0) >= 0.2)).toBe(true)
     expect(STAGE4_WAVE_PHASES.some((phase) => phase.target < 20)).toBe(true)

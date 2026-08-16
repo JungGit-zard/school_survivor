@@ -14,320 +14,331 @@ import { getStagePropOverride } from '../../lib/stagePropPlacements.js'
 
 export const STAGE_OBJECT_PLACEMENTS = {
   stage1: [
-    // ── 기존 오브젝트 (X 좌표: mapHalfX 7 내로 조정, 중앙 스폰존 규칙 준수) ──
     {
-      id: 'stage1-desk-nw-01',
-      type: 'classroomDesk',
-      position: [-5.8, 0, -15.8],
-      rotation: [0, 0.42, 0],
-      scale: 0.832,
-      props: { variant: 'upright' },
+      "id": "stage1-chair-nw-01",
+      "type": "classroomChair",
+      "position": [-4.418, 0, -11.61],
+      "rotation": [0, -0.92, 0],
+      "scale": 0.736,
+      "props": {
+        "variant": "tilted"
+      }
     },
     {
-      id: 'stage1-chair-nw-01',
-      type: 'classroomChair',
-      position: [-5.7, 0, -13.2],
-      rotation: [0, -0.92, 0],
-      scale: 0.736,
-      props: { variant: 'tilted' },
+      "id": "stage1-desk-ne-01",
+      "type": "classroomDesk",
+      "position": [-3.567, 0, 8.968],
+      "rotation": [0, -0.72, 0],
+      "scale": 0.784,
+      "props": {
+        "variant": "abandoned"
+      }
     },
     {
-      id: 'stage1-desk-ne-01',
-      type: 'classroomDesk',
-      position: [5.9, 0, -15.2],
-      rotation: [0, -0.72, 0],
-      scale: 0.784,
-      props: { variant: 'abandoned' },
+      "id": "stage1-chair-ne-01",
+      "type": "classroomChair",
+      "position": [7.361, 0, -10.182],
+      "rotation": [0, 1.28, 0],
+      "scale": 0.704,
+      "props": {
+        "variant": "overturned"
+      }
     },
     {
-      id: 'stage1-chair-ne-01',
-      type: 'classroomChair',
-      position: [5.6, 0, -13.6],
-      rotation: [0, 1.28, 0],
-      scale: 0.704,
-      props: { variant: 'overturned' },
+      "id": "stage1-desk-sw-01",
+      "type": "classroomDesk",
+      "position": [-4.558, 0, 12.308],
+      "rotation": [0, 1.35, 0],
+      "scale": 0.816,
+      "props": {
+        "variant": "overturned"
+      }
     },
     {
-      id: 'stage1-desk-sw-01',
-      type: 'classroomDesk',
-      position: [-5.9, 0, 14.6],
-      rotation: [0, 1.35, 0],
-      scale: 0.816,
-      props: { variant: 'overturned' },
+      "id": "stage1-student-sw-02",
+      "type": "unconsciousStudent",
+      "position": [-7.104, 0, 9.732],
+      "rotation": [0, 2.16, 0],
+      "scale": 0.3673,
+      "props": {
+        "variant": "sideRightFlipped"
+      }
     },
     {
-      id: 'stage1-student-sw-01',
-      type: 'unconsciousStudent',
-      position: [-5.6, 0, 15.8],
-      rotation: [0, -0.68, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'faceUp' },
+      "id": "stage1-student-south-01",
+      "type": "classPresidentStudent",
+      "position": [-5.796, 0, -0.031],
+      "rotation": [0, 1.42, 0],
+      "scale": 0.3673,
+      "props": {
+        "variant": "sideLeftFlipped"
+      }
     },
     {
-      id: 'stage1-student-sw-02',
-      type: 'unconsciousStudent',
-      position: [-6.2, 0, 11.8],  // |x|>=6 (wall edge, |z|<12)
-      rotation: [0, 2.16, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideRight' },
+      "id": "stage1-desk-se-01",
+      "type": "classroomDesk",
+      "position": [7.043, 0, 13.123],
+      "rotation": [0, -1.18, 0],
+      "scale": 0.8,
+      "props": {
+        "variant": "abandoned"
+      }
     },
     {
-      id: 'stage1-student-south-01',
-      type: 'classPresidentStudent',
-      position: [-3.7, 0, 17.2],
-      rotation: [0, 1.42, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideLeft' },
+      "id": "stage1-student-se-02",
+      "type": "unconsciousStudent",
+      "position": [7.582, 0, 10.126],
+      "rotation": [0, -2.28, 0],
+      "scale": 0.3673,
+      "props": {
+        "variant": "faceUpFlipped"
+      }
     },
     {
-      id: 'stage1-desk-se-01',
-      type: 'classroomDesk',
-      position: [5.8, 0, 15.4],
-      rotation: [0, -1.18, 0],
-      scale: 0.8,
-      props: { variant: 'abandoned' },
+      "id": "stage1-desk-west-02",
+      "type": "classroomDesk",
+      "position": [-6.526, 0, -4.805],
+      "rotation": [0, 2.55, 0],
+      "scale": 0.768,
+      "props": {
+        "variant": "tilted"
+      }
     },
     {
-      id: 'stage1-student-se-01',
-      type: 'unconsciousStudent',
-      position: [5.7, 0, 14.2],
-      rotation: [0, 0.86, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideLeft' },
+      "id": "stage1-chair-west-02",
+      "type": "classroomChair",
+      "position": [-6.2, 0, 4.8],
+      "rotation": [0, -2.8, 0],
+      "scale": 0.688,
+      "props": {
+        "variant": "abandoned"
+      }
     },
     {
-      id: 'stage1-student-se-02',
-      type: 'unconsciousStudent',
-      position: [6.2, 0, 10.8],  // |x|>=6
-      rotation: [0, -2.28, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'faceUp' },
+      "id": "stage1-student-nw-01",
+      "type": "unconsciousStudent",
+      "position": [-5.715, 0, -2.374],
+      "rotation": [0, 0.52, 0],
+      "scale": 0.3673,
+      "props": {
+        "variant": "sideLeftFlipped"
+      }
     },
     {
-      id: 'stage1-student-south-02',
-      type: 'unconsciousStudent',
-      position: [3.3, 0, 17.0],
-      rotation: [0, -1.68, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideRight' },
+      "id": "stage1-desk-east-02",
+      "type": "classroomDesk",
+      "position": [7.679, 0, 5.01],
+      "rotation": [0, -2.35, 0],
+      "scale": 0.752,
+      "props": {
+        "variant": "abandoned"
+      }
     },
     {
-      id: 'stage1-desk-west-02',
-      type: 'classroomDesk',
-      position: [-6.4, 0, -4.2],  // |x|>=6
-      rotation: [0, 2.55, 0],
-      scale: 0.768,
-      props: { variant: 'tilted' },
+      "id": "stage1-student-east-01",
+      "type": "unconsciousStudent",
+      "position": [7.439, 0, 1.888],
+      "rotation": [0, 1.94, 0],
+      "scale": 0.3673,
+      "props": {
+        "variant": "sideRightFlipped"
+      }
     },
     {
-      id: 'stage1-chair-west-02',
-      type: 'classroomChair',
-      position: [-6.2, 0, 4.8],  // |x|>=6
-      rotation: [0, -2.8, 0],
-      scale: 0.688,
-      props: { variant: 'abandoned' },
+      "id": "stage1-student-ne-01",
+      "type": "unconsciousStudent",
+      "position": [7.202, 0, -7.318],
+      "rotation": [0, -0.48, 0],
+      "scale": 0.3673,
+      "props": {
+        "variant": "faceUpFlipped"
+      }
     },
     {
-      // 말빨기술책 퀘스트 제공자 = 비상 출석부 반장이 아닌 두 번째 반장.
-      // 스튜디오 배치가 코드 목록을 통째로 대체하므로(getStageObjectPlacements의
-      // override ?? default) 스튜디오와 같은 id를 코드에도 써서, 스튜디오 데이터
-      // 유무와 무관하게 이 반장이 항상 존재하고 퀘스트를 준다.
-      id: 'user-classPresidentStudent-msl7serx-1',
-      type: 'classPresidentStudent',
-      position: [-6.2, 0, 0.6],  // |x|>=6
-      rotation: [0, -2.02, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'faceUp' },
+      "id": "stage1-student-mid-02",
+      "type": "unconsciousStudent",
+      "position": [0.933, 0, -12.42],
+      "rotation": [0, -0.52, 0],
+      "scale": 0.3673,
+      "props": {
+        "variant": "faceUp"
+      }
     },
     {
-      id: 'stage1-student-nw-01',
-      type: 'unconsciousStudent',
-      position: [-6.2, 0, -10.4],  // |x|>=6
-      rotation: [0, 0.52, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideLeft' },
+      "id": "stage1-desk-mid-02",
+      "type": "classroomDesk",
+      "position": [6.63, 0, -4.247],
+      "rotation": [0, 2.76, 0],
+      "scale": 0.83,
+      "props": {
+        "variant": "abandoned"
+      }
     },
     {
-      id: 'stage1-desk-east-02',
-      type: 'classroomDesk',
-      position: [6.4, 0, 4.4],  // |x|>=6
-      rotation: [0, -2.35, 0],
-      scale: 0.752,
-      props: { variant: 'abandoned' },
+      "id": "stage1-chair-mid-02",
+      "type": "classroomChair",
+      "position": [7.918, 0, -2.546],
+      "rotation": [0, 0.12, 0],
+      "scale": 0.676,
+      "props": {
+        "variant": "tilted"
+      }
     },
     {
-      id: 'stage1-chair-east-02',
-      type: 'classroomChair',
-      position: [6.2, 0, -4.8],  // |x|>=6
-      rotation: [0, 2.7, 0],
-      scale: 0.672,
-      props: { variant: 'tilted' },
+      "id": "stage1-student-mid-03",
+      "type": "unconsciousStudent",
+      "position": [-6.769, 0, -8.613],
+      "rotation": [0, 2.62, 0],
+      "scale": 0.3673,
+      "props": {
+        "variant": "sideLeftFlipped"
+      }
     },
     {
-      id: 'stage1-student-east-01',
-      type: 'unconsciousStudent',
-      position: [6.2, 0, -0.4],  // |x|>=6
-      rotation: [0, 1.94, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideRight' },
+      "id": "stage1-desk-mid-03",
+      "type": "classroomDesk",
+      "position": [-6.5, 0, 6],
+      "rotation": [0, -0.84, 0],
+      "scale": 0.79,
+      "props": {
+        "variant": "tilted"
+      }
     },
     {
-      id: 'stage1-student-ne-01',
-      type: 'unconsciousStudent',
-      position: [6.2, 0, -10.2],  // |x|>=6
-      rotation: [0, -0.48, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'faceUp' },
-    },
-
-    // 중간 구역 — |z|<12 오브젝트는 반드시 |x|>=6 (벽면 배치)
-    {
-      id: 'stage1-chair-mid-01',
-      type: 'classroomChair',
-      position: [-5.7, 0, -16],
-      rotation: [0, -1.88, 0],
-      scale: 0.70,
-      props: { variant: 'overturned' },
+      "id": "stage1-student-mid-07",
+      "type": "unconsciousStudent",
+      "position": [-7.437, 0, 2.661],
+      "rotation": [0, 1.32, 0],
+      "scale": 0.3673,
+      "props": {
+        "variant": "sideLeftFlipped"
+      }
     },
     {
-      id: 'stage1-student-mid-02',
-      type: 'unconsciousStudent',
-      position: [-2.6, 0, -17],
-      rotation: [0, -0.52, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'faceUp' },
-    },
-    {
-      id: 'stage1-desk-mid-02',
-      type: 'classroomDesk',
-      position: [6.5, 0, -10],  // |z|<12 → |x|>=6
-      rotation: [0, 2.76, 0],
-      scale: 0.83,
-      props: { variant: 'abandoned' },
-    },
-    {
-      id: 'stage1-chair-mid-02',
-      type: 'classroomChair',
-      position: [6.5, 0, -8],  // |z|<12 → |x|>=6
-      rotation: [0, 0.12, 0],
-      scale: 0.676,
-      props: { variant: 'tilted' },
-    },
-    {
-      id: 'stage1-student-mid-03',
-      type: 'unconsciousStudent',
-      position: [-5.4, 0, -12],
-      rotation: [0, 2.62, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideLeft' },
-    },
-    {
-      id: 'stage1-student-mid-04',
-      type: 'unconsciousStudent',
-      position: [6.5, 0, -9],  // |z|<12 → |x|>=6
-      rotation: [0, -1.24, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'faceUp' },
-    },
-    {
-      id: 'stage1-desk-mid-03',
-      type: 'classroomDesk',
-      position: [-6.5, 0, 6],  // |z|<12 → |x|>=6
-      rotation: [0, -0.84, 0],
-      scale: 0.79,
-      props: { variant: 'tilted' },
-    },
-    {
-      id: 'stage1-student-mid-05',
-      type: 'unconsciousStudent',
-      position: [6.5, 0, 4],  // |z|<12 → |x|>=6
-      rotation: [0, 0.68, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideRight' },
-    },
-    {
-      id: 'stage1-student-mid-06',
-      type: 'unconsciousStudent',
-      position: [6.5, 0, 8],  // |z|<12 → |x|>=6
-      rotation: [0, -2.18, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'faceUp' },
-    },
-    {
-      id: 'stage1-student-mid-07',
-      type: 'unconsciousStudent',
-      position: [-6.5, 0, 3],  // |z|<12 → |x|>=6
-      rotation: [0, 1.32, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideLeft' },
-    },
-    {
-      id: 'stage1-desk-mid-04',
-      type: 'classroomDesk',
-      position: [4.9, 0, 14],
-      rotation: [0, -1.62, 0],
-      scale: 0.76,
-      props: { variant: 'overturned' },
-    },
+      "id": "user-classPresidentStudent-msl7serx-1",
+      "type": "classPresidentStudent",
+      "position": [-4.54, 0, -6.587],
+      "rotation": [0, 0, 0],
+      "scale": 0.3673,
+      "props": {
+        "variant": "faceUp"
+      }
+    }
   ],
   stage2: [
     {
-      id: 'stage2-locker-bank-left-north',
-      type: 'corridorLockerBank',
-      position: [-6.25, 0, -14.2],
-      rotation: [0, Math.PI / 2, 0],
+      "id": "stage2-locker-bank-left-north-copy-1",
+      "type": "corridorLockerBank",
+      "position": [-1.539, 0, -14.226],
+      "rotation": [0, -0.1391, 0],
+      "scale": 1.1,
+      "blocking": true
     },
     {
-      id: 'stage2-janitor-cart-right-mid',
-      type: 'corridorJanitorCart',
-      position: [6.25, 0, 2.8],
-      rotation: [0, -Math.PI / 2, 0],
-      scale: 0.82,
+      "id": "stage2-locker-bank-left-north-copy-2",
+      "type": "corridorLockerBank",
+      "position": [5.139, 0, -1.163],
+      "rotation": [0, -0.0101, 0],
+      "scale": 1.1,
+      "blocking": true
     },
     {
-      id: 'stage2-lost-found-board-left-south',
-      type: 'corridorLostFoundBoard',
-      position: [-6.92, 0, 13.4],
-      rotation: [0, Math.PI / 4, 0],
+      "id": "stage2-locker-bank-left-north-copy-3",
+      "type": "corridorLockerBank",
+      "position": [4.933, 0, 10.563],
+      "rotation": [0, 0.1418, 0],
+      "scale": 1.1,
+      "blocking": true
     },
     {
-      id: 'stage2-desk-left-top',
-      type: 'classroomDesk',
-      position: [-5.2, 0, -11],
-      rotation: [0, Math.PI / 2, 0],
-      scale: 0.768,
+      "id": "stage2-janitor-cart-right-mid-copy-1",
+      "type": "corridorJanitorCart",
+      "position": [0.104, 0, 15.191],
+      "rotation": [0, -1.4914, 0],
+      "scale": 0.902,
+      "blocking": true
     },
     {
-      id: 'stage2-desk-right-bottom',
-      type: 'classroomDesk',
-      position: [5.1, 0, 12],
-      rotation: [0, -Math.PI / 2 + 0.06, 0],
-      scale: 0.8,
+      "id": "stage2-janitor-cart-right-mid-copy-2",
+      "type": "corridorJanitorCart",
+      "position": [5.19, 0, -5.792],
+      "rotation": [0, -1.2703, 0],
+      "scale": 0.902,
+      "blocking": true
     },
     {
-      id: 'stage2-student-east-north',
-      type: 'unconsciousStudent',
-      position: [3.2, 0, -9.8],
-      rotation: [0, 0.4, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'faceUp' },
+      "id": "stage2-lost-found-board-left-south-copy-1",
+      "type": "corridorLostFoundBoard",
+      "position": [5.036, 0, 5.626],
+      "rotation": [0, 0.733, 0],
+      "scale": 1.1,
+      "blocking": true
     },
     {
-      id: 'stage2-student-west-mid',
-      type: 'unconsciousStudent',
-      position: [-3.4, 0, 0.8],
-      rotation: [0, -0.85, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideLeft' },
+      "id": "stage2-lost-found-board-left-south-copy-2",
+      "type": "corridorLostFoundBoard",
+      "position": [-3.183, 0, -11.552],
+      "rotation": [0, 0.8004, 0],
+      "scale": 1.1,
+      "blocking": true
     },
     {
-      id: 'stage2-student-south',
-      type: 'unconsciousStudent',
-      position: [0.8, 0, 10.6],
-      rotation: [0, 1.2, 0],
-      scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
-      props: { variant: 'sideRight' },
+      "id": "stage2-lost-found-board-left-south-copy-3",
+      "type": "corridorLostFoundBoard",
+      "position": [-5.033, 0, 0.071],
+      "rotation": [0, 0.7486, 0],
+      "scale": 1.1,
+      "blocking": true
     },
+    {
+      "id": "stage2-desk-left-top-copy-1",
+      "type": "classroomDesk",
+      "position": [-2.361, 0, 6.037],
+      "rotation": [0, 1.1784, 0],
+      "scale": 0.8448,
+      "blocking": true
+    },
+    {
+      "id": "stage2-desk-right-bottom-copy-1",
+      "type": "classroomDesk",
+      "position": [-4.416, 0, -6.1],
+      "rotation": [0, -1.3915, 0],
+      "scale": 0.88,
+      "blocking": true
+    },
+    {
+      "id": "stage2-student-east-north-copy-1",
+      "type": "unconsciousStudent",
+      "position": [3.135, 0, -11.14],
+      "rotation": [0, 0.4107, 0],
+      "scale": 0.404,
+      "blocking": false,
+      "props": {
+        "variant": "faceUpFlipped"
+      }
+    },
+    {
+      "id": "stage2-student-west-mid-copy-1",
+      "type": "unconsciousStudent",
+      "position": [-3.081, 0, 8.917],
+      "rotation": [0, -0.4588, 0],
+      "scale": 0.404,
+      "blocking": false,
+      "props": {
+        "variant": "sideLeft"
+      }
+    },
+    {
+      "id": "stage2-student-south-copy-1",
+      "type": "unconsciousStudent",
+      "position": [-4.827, 0, 11.591],
+      "rotation": [0, 1.5193, 0],
+      "scale": 0.404,
+      "blocking": false,
+      "props": {
+        "variant": "sideRightFlipped"
+      }
+    }
   ],
   stage3: [
     {
@@ -892,27 +903,9 @@ function getStage2Rotation(item, id) {
 // 기본(오버라이드 미적용) 배치 파이프라인. 그래픽 스튜디오 에디터가 pristine 시드로 쓴다.
 export function computeDefaultStageObjectPlacements(stageId = 'stage1') {
   const authored = STAGE_OBJECT_PLACEMENTS[stageId] ?? []
-  // stage1/stage3/stage4 are curated authored layouts. Stage2 alone uses copy/scatter to fill the corridor.
-  if (stageId === 'stage1' || stageId === 'stage3' || stageId === 'stage4') {
-    return authored.map(withMixedUnconsciousStudentFacing)
-  }
-  return authored.flatMap((item, itemIndex) => (
-    Array.from({ length: getInstanceCount(stageId, item) }, (_, copyIndex) => {
-      const id = `${item.id}-copy-${copyIndex + 1}`
-      const isPhysicalBlocker = item.type !== 'unconsciousStudent'
-      const scatterIndex = itemIndex * 5 + copyIndex
-      return withMixedUnconsciousStudentFacing({
-        ...item,
-        id,
-        blocking: isPhysicalBlocker,
-        position: getDistributedPosition(stageId, id, scatterIndex),
-        rotation: stageId === 'stage2'
-          ? getStage2Rotation(item, id)
-          : item.rotation,
-        scale: enlargeScale(item.scale),
-      })
-    })
-  ))
+  // Stage defaults are now the canonical Graphics Studio placements baked into the release.
+  // Do not regenerate/scatter stage2 here: that path re-created the old corridor look in signed-out AABs.
+  return authored.map(withMixedUnconsciousStudentFacing)
 }
 
 // 게임 런타임이 소비하는 배치. 사용자 오버라이드가 있으면 그것을 정본으로,

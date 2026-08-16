@@ -271,6 +271,16 @@ describe('Firebase-only Graphics Studio persistence', () => {
     expect(applyFirebaseStudioSnapshot(snapshot)).toBe(true)
   })
 
+  it('rejects a zero revision Firebase snapshot before it can be applied', () => {
+    const snapshot = buildFirebaseStudioSnapshot(remoteSnapshot().datasets, {
+      revision: 0,
+      now: Date.UTC(2026, 6, 17, 1, 2, 3),
+    })
+
+    expect(normalizeFirebaseStudioSnapshot(snapshot)).toBe(null)
+    expect(applyFirebaseStudioSnapshot(snapshot)).toBe(false)
+  })
+
   it('round-trips dataset keys that Firebase cannot store as object keys', () => {
     const snapshot = buildFirebaseStudioSnapshot({
       ...remoteSnapshot().datasets,
@@ -417,5 +427,21 @@ describe('Canonical studio public node (single route)', () => {
     const client = { load: vi.fn().mockResolvedValue(null) }
     await expect(hydrateCanonicalTitlePlayer({ client })).resolves.toEqual({ status: 'missing-remote' })
     expect(isFirebaseStudioRuntimeReady()).toBe(false)
+  })
+
+  it('never applies a canonical snapshot with revision zero', async () => {
+    const client = {
+      load: vi.fn().mockResolvedValue(remoteSnapshot({
+        revision: 0,
+        datasets: {
+          ...remoteSnapshot().datasets,
+          tunings: { player: { scale: 1.7 } },
+        },
+      })),
+    }
+
+    await expect(hydrateCanonicalTitlePlayer({ client })).resolves.toEqual({ status: 'invalid-remote' })
+    expect(isFirebaseStudioRuntimeReady()).toBe(false)
+    expect(loadStudioTunings().player).toBeUndefined()
   })
 })

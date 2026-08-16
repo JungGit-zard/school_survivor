@@ -94,7 +94,10 @@ function buildInitialWeapons(levels, { applyPermanent = true } = {}) {
       label: entry.label,
       level: entry.startsActive ? 1 : 0,
       active: !!entry.startsActive,
-      damage: Math.round(baseDamage * mightMult * 10) / 10,
+      // 소수 1자리 반올림을 걷어냈다(2026-08-15). 저데미지 무기에서 양자화 오차가 치명적이었다:
+      // studentLantern 0.15는 0.2로 올라붙어 공격력 패시브를 3레벨 다 찍어도(×1.12 → 0.168 → 0.2)
+      // 위력이 0% 오르지 않았고, chibiko 1.25는 1.3이 돼 +12%가 +7.7%로 깎였다.
+      damage: baseDamage * mightMult,
     }
   }
   return out

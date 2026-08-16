@@ -88,7 +88,7 @@ export function buildFirebaseStudioSnapshot(
 
 export function normalizeFirebaseStudioSnapshot(snapshot) {
   if (!isObject(snapshot) || snapshot.schemaVersion !== FIREBASE_STUDIO_SCHEMA_VERSION) return null
-  if (!Number.isInteger(snapshot.revision) || snapshot.revision < 0) return null
+  if (!Number.isInteger(snapshot.revision) || snapshot.revision <= 0) return null
   if (typeof snapshot.updatedAt !== 'string' || Number.isNaN(Date.parse(snapshot.updatedAt))) return null
   if (snapshot.datasets !== undefined && !isObject(snapshot.datasets)) return null
 

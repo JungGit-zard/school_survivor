@@ -14,8 +14,8 @@ import { playDialogueVoice, stopDialogueVoice } from '../lib/dialogueVoice.js'
 import { getNextStageId, getStageConfig } from '../lib/stageConfig.js'
 import { STAGE2_SPAWN_TELEGRAPHS, STAGE3_SPAWN_TELEGRAPHS, STAGE4_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
+import { CRITICAL_SHAKE_NORMAL_DURATION_MS, emitCriticalHitScreenShake, isCriticalScreenShakeReduced } from '../lib/criticalScreenShake.js'
 import { MATILDA_DIALOGUE_MS } from '../lib/matildaEntryGrace.js'
-import { emitCriticalHitScreenShake, isCriticalScreenShakeReduced } from '../lib/criticalScreenShake.js'
 import { getDialogueText } from '../dialogues/dialogueStore.js'
 import { getQuestDefinition, getStageQuestDefinitions } from '../lib/quests.js'
 import {
@@ -60,16 +60,19 @@ const GAMEOVER_TRANSITION_MS = 1000
 const MATILDA_COUNTDOWN_SECONDS = 5
 const MATILDA_DIALOGUE_NAME = '마틸다'
 
-// 마틸다 접촉 사망 연출 타임라인 (2026-08-15 사용자 지시: "완전히 부딪히는 지점까지
-// 보여준다음 효과음 넣으면서 화면흔들고 흑백으로 바꿔").
-//   0ms   즉사 판정은 접촉 프레임 그대로(Enemy.jsx → killPlayer). 화면에는 아직
-//         아무 후처리도 걸지 않아 부딪힌 그림이 컬러로 멈춰 보인다.
-// 200ms   임팩트: 효과음 + 화면 흔들림.
+// 마틸다 접촉 사망 연출 타임라인 (2026-08-16 사용자 지시: "맞닿은 지점에서 화면이
+// 정지 → 효과음과 함께 크리티컬처럼 흔들기 → 그걸 보여주고 흑백 → 게임오버 ui").
+//   0ms   즉사 판정은 접촉 프레임 그대로(Enemy.jsx → killPlayer). phase가 gameover가
+//         되면 <Physics paused>로 월드가 그 자리에 멈춘다(GameCanvas.jsx). 화면에는
+//         아직 아무 후처리도 걸지 않아 부딪힌 그림이 컬러로 정지해 보인다.
+// 200ms   임팩트: 효과음 + 크리티컬 히트와 동일한 화면 흔들림(90ms).
 // 320ms   흑백 페이드 시작(480ms) → 800ms에 완전 흑백.
 // 1000ms  결과창(GAMEOVER_TRANSITION_MS, 일반 사망과 동일).
 // 접촉~결과창 총합은 1000ms로 1.5초 상한 안에 있다.
 const MATILDA_DEATH_IMPACT_HOLD_MS = 200
-const MATILDA_DEATH_GRAYSCALE_DELAY_MS = 320
+// 흑백은 흔들림이 "끝난 뒤에" 시작한다("그걸 보여주고 흑백으로 바꿔"). 홀드에서 파생시켜
+// 두면 홀드를 나중에 튜닝해도 흔들림이 흑백에 잘려 들어가지 않는다. 30ms는 사이 여백.
+const MATILDA_DEATH_GRAYSCALE_DELAY_MS = MATILDA_DEATH_IMPACT_HOLD_MS + CRITICAL_SHAKE_NORMAL_DURATION_MS + 30
 const MATILDA_DEATH_GRAYSCALE_FADE_MS = 480
 // 새 오디오를 만들지 않는다. matildaDeath는 레지스트리의 마틸다 전용 사망 스팅인데
 // 마틸다가 죽지 않는 적이라(2026-08-13 즉사 추격자 확정) 실제로는 한 번도 울리지 않는
@@ -932,7 +935,7 @@ export default function HUD({
     return () => clearTimeout(timer)
   }, [isGameover, isMatildaGameover, showGameoverResultImmediately])
 
-  // 마틸다 접촉 사망 연출: 홀드(충돌 노출) → 효과음+흔들림 → 흑백.
+  // 마틸다 접촉 사망 연출: 정지(충돌 프레임 노출) → 효과음 → 흑백.
   // 즉사 판정 자체는 접촉 프레임에 이미 끝났고(store가 phase를 gameover로 바꾼 뒤),
   // 여기서는 그 뒤에 붙는 연출 순서만 잡는다.
   useEffect(() => {
@@ -943,12 +946,12 @@ export default function HUD({
 
     setMatildaDeathStage('impact')
     const impactTimer = setTimeout(() => {
-      setMatildaDeathStage('shake')
+      setMatildaDeathStage('sting')
       emitSfx(MATILDA_DEATH_IMPACT_SFX)
-      // 흔들림은 마틸다 사망에서만, 그리고 접근성 설정(reducedEffects /
-      // prefers-reduced-motion / 히트 카메라 흔들림 끔)에서는 내보내지 않는다.
-      // 전체화면 흔들림 구독자(GameplayScreen)는 자체 게이트가 없으므로 여기서 막는다.
-      if (!isCriticalScreenShakeReduced()) emitCriticalHitScreenShake(0, 0, { strong: true })
+      // 크리티컬 히트와 똑같은 흔들림(strong 아님 = 90ms, 일반 크리 진폭)을 쓴다.
+      // 접근성 설정(reducedEffects / prefers-reduced-motion / 히트 카메라 흔들림 끔)
+      // 에서는 내보내지 않는다 — 전체화면 구독자(GameplayScreen)는 자체 게이트가 없다.
+      if (!isCriticalScreenShakeReduced()) emitCriticalHitScreenShake(0, 0)
     }, MATILDA_DEATH_IMPACT_HOLD_MS)
     const grayscaleTimer = setTimeout(
       () => setMatildaDeathStage('grayscale'),

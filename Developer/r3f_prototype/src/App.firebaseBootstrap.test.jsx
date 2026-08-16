@@ -142,6 +142,7 @@ describe('App Firebase bootstrap boundary', () => {
     const view = await renderApp()
 
     expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
+    expect(mocks.canonicalHydrate).toHaveBeenCalledWith({})
     view.unmount()
   })
 
@@ -168,7 +169,7 @@ describe('App Firebase bootstrap boundary', () => {
     view.unmount()
   })
 
-  it('never connects an authenticated ordinary game user to Graphics Studio', async () => {
+  it('hydrates the Firebase canonical Studio state for an authenticated ordinary game user without connecting a Studio workspace', async () => {
     const ordinaryUser = {
       uid: 'ordinary-studio-failure-stress',
       email: 'ordinary@example.com',
@@ -184,8 +185,7 @@ describe('App Firebase bootstrap boundary', () => {
     const view = await renderApp()
     expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
 
-    // 타이틀·게임은 동결 스냅샷만 쓴다 — Firebase 정본을 읽지 않는다.
-    expect(mocks.canonicalHydrate).not.toHaveBeenCalled()
+    expect(mocks.canonicalHydrate).toHaveBeenCalledWith({})
     expect(mocks.studioHydrate).not.toHaveBeenCalled()
     expect(mocks.studioSubscribe).not.toHaveBeenCalled()
     expect(mocks.readyGameProps).not.toHaveProperty('ensureStudioCloudReady')
@@ -217,7 +217,7 @@ describe('App Firebase bootstrap boundary', () => {
     view.unmount()
   })
 
-  it('never reads any Firebase studio node for a signed-in game player', async () => {
+  it('hydrates the canonical Studio node for a signed-in game player without switching to a user workspace', async () => {
     mocks.authState.status = 'signedIn'
     mocks.authState.user = { uid: 'new-player' }
     mocks.studioHydrate.mockResolvedValue({ status: 'missing-remote' })
@@ -225,14 +225,14 @@ describe('App Firebase bootstrap boundary', () => {
 
     const view = await renderApp()
 
-    expect(mocks.canonicalHydrate).not.toHaveBeenCalled()
+    expect(mocks.canonicalHydrate).toHaveBeenCalledWith({})
     expect(mocks.readyGameProps).not.toHaveProperty('ensureStudioCloudReady')
     expect(mocks.studioHydrate).not.toHaveBeenCalled()
     expect(mocks.studioSubscribe).not.toHaveBeenCalled()
     view.unmount()
   })
 
-  it('never switches a signed-in game player to an authenticated Studio workspace', async () => {
+  it('does not switch a signed-in game player to an authenticated Studio workspace', async () => {
     mocks.authState.status = 'signedIn'
     mocks.authState.user = { uid: 'studio-user' }
     mocks.studioRuntimeReady = true
@@ -241,7 +241,7 @@ describe('App Firebase bootstrap boundary', () => {
 
     const view = await renderApp()
 
-    expect(mocks.canonicalHydrate).not.toHaveBeenCalled()
+    expect(mocks.canonicalHydrate).toHaveBeenCalledWith({})
     expect(mocks.studioHydrate).not.toHaveBeenCalled()
     expect(mocks.readyGameProps).not.toHaveProperty('ensureStudioCloudReady')
     expect(mocks.studioSubscribe).not.toHaveBeenCalled()

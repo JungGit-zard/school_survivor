@@ -827,8 +827,8 @@ describe('result action layout', () => {
 })
 
 describe('matilda contact death impact presentation', () => {
-  // 사용자 지시(2026-08-15): "완전히 부딪히는 지점까지 보여준다음 효과음 넣으면서
-  // 화면흔들고 흑백으로 바꿔". 순서가 이 스위트의 전부다.
+  // 사용자 지시(2026-08-16): 맞닿은 지점에서 정지 → 효과음과 함께 크리티컬처럼 흔들고
+  // → 그걸 보여주고 흑백 → 게임오버 ui. 순서가 이 스위트의 전부다.
   function renderMatildaDeath({ reducedEffects = false } = {}) {
     const sfxIds = []
     const shakes = []
@@ -849,7 +849,7 @@ describe('matilda contact death impact presentation', () => {
     return { container, root, sfxIds, shakes, cleanup }
   }
 
-  it('holds the collision frame, then fires sfx and shake, then fades to grayscale', () => {
+  it('freezes on the collision frame, then fires sting + crit shake, then fades to grayscale', () => {
     vi.useFakeTimers()
     useGameStore.getState().resetGame('stage3')
     useGameStore.setState({ phase: 'gameover', deathCause: 'matilda' })
@@ -869,15 +869,19 @@ describe('matilda contact death impact presentation', () => {
       expect(sfxIds).not.toContain('matildaDeath')
       expect(shakes).toHaveLength(0)
 
-      // 200ms — 효과음 + 화면 흔들림. 흑백은 아직.
+      // 200ms — 효과음 + 크리티컬 흔들림. 흑백은 아직.
       act(() => { vi.advanceTimersByTime(1) })
       expect(sfxIds).toContain('matildaDeath')
       expect(shakes).toHaveLength(1)
-      expect(shakes[0].strong).toBe(true)
+      expect(shakes[0].strong).toBe(false)
+      expect(container.querySelector('[data-testid="gameover-grayscale-transition"]')).toBeNull()
+
+      // 흔들림(90ms)이 끝난 뒤에야 흑백이 시작한다 — 289ms까지는 아직 컬러다.
+      act(() => { vi.advanceTimersByTime(89) })
       expect(container.querySelector('[data-testid="gameover-grayscale-transition"]')).toBeNull()
 
       // 320ms — 흑백 페이드 시작.
-      act(() => { vi.advanceTimersByTime(120) })
+      act(() => { vi.advanceTimersByTime(31) })
       const grayscale = container.querySelector('[data-testid="gameover-grayscale-transition"]')
       expect(grayscale).not.toBeNull()
       expect(grayscale.style.animation).toContain('gameoverGrayscaleFade 480ms')

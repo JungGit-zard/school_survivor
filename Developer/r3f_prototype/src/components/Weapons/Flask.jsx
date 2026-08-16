@@ -249,7 +249,8 @@ export function ScienceFlaskSplash() {
       damage: w.damage ?? 7.5,
       zoneRadius: w.zoneRadius ?? 1.4,
       zoneDurationMs: w.zoneDurationMs ?? 5000,
-      zoneTickDamage: w.zoneTickDamage ?? 6,
+      // 카탈로그는 PENCIL_DERIVED_DAMAGE_BASELINE(1.5)을 주입한다 — 폴백 6은 그 4배였다.
+      zoneTickDamage: w.zoneTickDamage ?? 1.5,
       critChance: w.critChance,
       critMultiplier: w.critMultiplier,
     }
