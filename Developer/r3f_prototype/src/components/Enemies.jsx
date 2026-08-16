@@ -535,7 +535,7 @@ export function waveSizeForPhase(phase) {
 // 정규화도 자동으로 따라온다. (2026-08-07: 스테이지별 if문을 표로 통일 — 추정기와 단일 소스 공유.)
 // 스테이지별 첫 웨이브 발화 시각. 미등록 스테이지는 0(즉시).
 // stage2는 2026-08-09 사용자 지시로 첫 웨이브를 5초로 미뤘다 — 입장 직후 무방비 스폰을 없앤다.
-export const STAGE_FIRST_WAVE_SEC = { stage2: 5 }
+export const STAGE_FIRST_WAVE_SEC = { stage1: 5, stage2: 5 }
 
 export function firstWaveTimeForStage(stageId) {
   return STAGE_FIRST_WAVE_SEC[stageId] ?? 0

@@ -453,7 +453,7 @@ describe('random-interval discrete wave scheduler', () => {
     const beforeHalf = (raw) => Math.round(dens(raw) * STAGE2_SPAWN_MULTIPLIER)
 
     expect(firstWaveTimeForStage('stage2')).toBe(5)
-    expect(firstWaveTimeForStage('stage1')).toBe(0)
+    expect(firstWaveTimeForStage('stage1')).toBe(5)
     expect(nextWaveTimeForStage(5, 'stage2', () => 0)).toBe(30)
     expect(STAGE2_OPENING_GREEN_WAVE_MULTIPLIER).toBe(0.6)
     expect(rawWaveSizeForStage(opening, 'stage2', 5)).toBe(27)
