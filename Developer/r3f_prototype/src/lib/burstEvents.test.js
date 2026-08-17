@@ -320,11 +320,11 @@ describe('stage4 급식실 대탈출 버스트', () => {
     expect(isBossPhase(139, 'stage4')).toBe(false)
   })
 
-  it('조기 등장 보장 버스트: E04@18·E05@30·E06@74', () => {
+  it('Stage 3 공통 앵커에 맞춘 조기 등장 버스트: E04@24·E05@40·E06@72', () => {
     const at = (sec, type) => STAGE4_BURST_EVENTS.some((e) => e.sec === sec && e.type === type && !e.formation)
-    expect(at(18, 'E04')).toBe(true)
-    expect(at(30, 'E05')).toBe(true)
-    expect(at(74, 'E06')).toBe(true)
+    expect(at(24, 'E04')).toBe(true)
+    expect(at(40, 'E05')).toBe(true)
+    expect(at(72, 'E06')).toBe(true)
   })
 
   it('런타임 버스트: stage4는 stage3처럼 형태 포함 전 버스트를 발화한다', () => {
@@ -346,5 +346,19 @@ describe('stage4 급식실 대탈출 버스트', () => {
     expect(formations).not.toContain(RUN_ZOMBIE_CREW_FORMATION)
     expect(formations.length).toBeGreaterThanOrEqual(3)
     expect(formations.length).toBeLessThanOrEqual(4)
+  })
+
+  it('비보스 이벤트는 Stage 3 앵커 부분집합으로 재배열하면서 payload·마릿수·적용 HP를 보존한다', () => {
+    const ordinary = STAGE4_BURST_EVENTS.filter((event) => !isBossType(event.type))
+    expect(uniqueSeconds(ordinary)).toEqual([5, 24, 40, 60, 72, 108, 110, 120, 184])
+    expect(ordinary.map(payloadWithoutSec)).toEqual([
+      { type: 'E01', count: 10 }, { type: 'E04', count: 1 }, { type: 'E05', count: 2 }, { type: 'E06', count: 1 },
+      { type: 'E03', count: 6, formation: 'ring' }, { type: 'E02', count: 6, formation: 'pincer' },
+      { type: 'E07', count: 3 }, { type: 'E02', count: 3 }, { type: 'E05', count: 4, formation: 'ring' },
+      { type: 'E06', count: 2, formation: 'pincer' },
+    ])
+    expect(ordinary.reduce((sum, event) => sum + event.count, 0)).toBe(38)
+    const appliedHp = ordinary.reduce((sum, event) => sum + ({ E01: 14, E02: 121, E03: 17, E04: 55, E05: 121, E06: 553, E07: 28 }[event.type] ?? 0) * event.count, 0)
+    expect(appliedHp).toBe(3855)
   })
 })

@@ -138,25 +138,27 @@ export const STAGE3_BURST_EVENTS = [
 ]
 
 // 4분 타임라인 — 스테이지4 "급식실 대탈출".
-// 시그니처 = 원거리 E04 "안전지대 소멸"(조기 18s + 상시 고비중, 보스 구간에도 유지).
+// 시그니처 = 원거리 E04 "안전지대 소멸"(24초 스폰, 18초 발사 게이트 + 상시 고비중, 보스 구간에도 유지).
 // 보스 = 단일 B04 주방장. 이 표의 sec 그대로 런타임에 고정 등장한다.
 // 급식실 맵은 12×16으로 스3(18×18)보다 좁아 실효 밀도가 높으므로 물량은 억제하고
 // 난이도는 마릿수가 아니라 원거리 지속 압박·보스에서 온다("마릿수로 어렵게 하지 않음").
 // 형태 버스트는 스3와 동일하게 개방 맵 안티카이팅(ring/pincer)만 사용. RZL은 스3 시그니처라 스4는 미채용.
 // 전 버스트가 런타임에 발화한다(아래 getRuntimeBurstEventsForStage).
+// 2026-08-17: 보스(B04@140)를 제외한 이벤트는 Stage 3 공통 앵커의 시간순 부분집합
+// 5/24/40/60/72/108/110/120/184에 맞췄다. payload/count/formation/order는 보존.
 export const STAGE4_BURST_EVENTS = [
-  { sec:   0, type: 'E01', count: 10 },                        // 온보딩 초기 밀도(작은 맵 — 과밀 회피 위해 스3보다 낮춤)
-  { sec:  18, type: 'E04', count:  1 },                        // 원거리 조기 등장 — "안전지대 소멸" 첫 신호(발사 게이트도 18s)
-  { sec:  30, type: 'E05', count:  2 },                        // 차저 조기 등장 신호
-  { sec:  74, type: 'E06', count:  1 },                        // 거대 조기 등장 보장
+  { sec:   5, type: 'E01', count: 10 },                        // 온보딩 초기 밀도(작은 맵 — 과밀 회피 위해 스3보다 낮춤)
+  { sec:  24, type: 'E04', count:  1 },                        // 원거리 조기 등장 — 스폰만 이동, 발사 게이트는 18초 유지
+  { sec:  40, type: 'E05', count:  2 },                        // 차저 조기 등장 신호
+  { sec:  72, type: 'E06', count:  1 },                        // 거대 조기 등장 보장
   { sec: 140, type: 'B04', count:  1 },                        // 주방장 보스 등장(경고 134) — 보스 구간 파생 기준
   // ── 형태(formation) 버스트 — 개방 맵 안티카이팅(플레이어 상대 ring/pincer만). swarm/gauntlet 배제(스3 선례).
   // 예고 정본 STAGE4_SPAWN_TELEGRAPHS와 sec 1:1 정렬.
-  { sec:  40, type: 'E03', count:  6, formation: 'ring' },     // 첫 완전 포위(러너)
-  { sec:  96, type: 'E02', count:  6, formation: 'pincer' },   // 탱커 앞뒤 협공(피크 예열)
+  { sec:  60, type: 'E03', count:  6, formation: 'ring' },     // 첫 완전 포위(러너)
+  { sec: 108, type: 'E02', count:  6, formation: 'pincer' },   // 탱커 앞뒤 협공(피크 예열)
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
   { sec: 120, type: 'E05', count:  4, formation: 'ring' },     // 차저 포위(피크 정점, 보스 직전)
-  { sec: 178, type: 'E06', count:  2, formation: 'pincer' },   // 보스 구간 거대 앞뒤 벽
+  { sec: 184, type: 'E06', count:  2, formation: 'pincer' },   // 보스 구간 거대 앞뒤 벽
 ]
 
 export function getBurstEventsForStage(stageId) {
