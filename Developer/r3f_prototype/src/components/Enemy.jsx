@@ -483,7 +483,103 @@ export function EnemyVisual({ type = 'E01', animPhase = 'normal', hitFlash = fal
   )
 }
 
-export function SpawnSmokeEffect({ position, visualScale, frozen = false }) {
+// 이 값 이상이면 빌보드 대신 3D 메시 연기를 쓴다(2026-08-17 사용자 지시).
+// visualScale은 호출부에서 stats.scale × ENEMY_SIZE_MULTIPLIER(4/3) × 0.333 = scale × 0.4444로 들어온다.
+//   E03 0.333 · E01 0.444 · E05 0.511 · E02 0.622 │ E06 0.711 · RZT 0.782 · B01~B04 0.889
+// 0.70은 E02(0.622)와 E06(0.711) 사이의 빈 구간이라 경계에서 흔들리는 몬스터가 없다.
+// 타입 목록 대신 크기로 가르는 이유: 새 몬스터가 추가돼도 알아서 맞는 쪽에 붙는다.
+export const BIG_SPAWN_SMOKE_MIN_VISUAL_SCALE = 0.70
+
+export function isBigSpawnSmoke(visualScale) {
+  return (visualScale ?? 0) >= BIG_SPAWN_SMOKE_MIN_VISUAL_SCALE
+}
+
+// 큰 몬스터용 연기 뭉치. 빌보드 한 장을 크게 늘리면 텍스처가 그대로 확대돼 허접해 보이므로
+// 반투명 흰 구 몇 개를 서로 다른 위치·크기로 부풀려 부피감을 낸다.
+// 좌표·반지름은 전부 visualScale 배수라 몬스터 크기에 그대로 따라간다.
+const BIG_SPAWN_PUFFS = Object.freeze([
+  { x: 0.00, y: 0.10, z: 0.00, r: 0.62, grow: 1.55 },
+  { x: 0.78, y: -0.10, z: 0.20, r: 0.46, grow: 1.40 },
+  { x: -0.70, y: -0.04, z: -0.30, r: 0.50, grow: 1.45 },
+  { x: 0.22, y: 0.34, z: -0.74, r: 0.42, grow: 1.35 },
+  { x: -0.26, y: 0.30, z: 0.72, r: 0.44, grow: 1.38 },
+  { x: 0.04, y: 0.66, z: 0.06, r: 0.38, grow: 1.30 },
+])
+
+// 스폰은 자주 일어난다 — 지오메트리는 전 인스턴스가 공유한다(머티리얼만 인스턴스별로 만든다.
+// 불투명도가 시간에 따라 움직이므로 공유하면 동시 스폰끼리 서로의 페이드를 덮어쓴다).
+const BIG_SPAWN_PUFF_GEOMETRY = new THREE.SphereGeometry(1, 10, 8)
+
+export function BigSpawnSmokeEffect({ position, visualScale, frozen = false }) {
+  const groupRef = useRef()
+  const puffRefs = useRef([])
+  const elapsedMsRef = useRef(0)
+  const [done, setDone] = useState(false)
+  const doneRef = useRef(false)
+  const phase = useGameStore((s) => s.phase)
+  const material = useMemo(() => new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 1,
+    depthWrite: false,
+    toneMapped: false,
+  }), [])
+  useEffect(() => () => material.dispose(), [material])
+
+  useFrame((_, delta) => {
+    const group = groupRef.current
+    if (!group) return
+    if (!frozen) elapsedMsRef.current = advanceEnemySpawnTimer(elapsedMsRef.current, delta, phase)
+    const elapsed = elapsedMsRef.current
+    const t = Math.min(1, elapsed / SPAWN_SMOKE_DURATION_MS)
+    const ease = 1 - (1 - t) * (1 - t)
+
+    // 빌보드와 같은 시간축을 탄다 — 앞 300ms 불투명 유지 후 페이드아웃.
+    material.opacity = getSpawnSmokeOpacity(elapsed)
+    group.position.y = position[1] + visualScale * (0.9 + t * 0.5)
+    group.rotation.y = ease * 0.9
+
+    for (let i = 0; i < BIG_SPAWN_PUFFS.length; i += 1) {
+      const puff = puffRefs.current[i]
+      if (!puff) continue
+      const spread = 1 + ease * 0.9
+      puff.position.set(
+        BIG_SPAWN_PUFFS[i].x * visualScale * spread,
+        BIG_SPAWN_PUFFS[i].y * visualScale * spread,
+        BIG_SPAWN_PUFFS[i].z * visualScale * spread,
+      )
+      puff.scale.setScalar(BIG_SPAWN_PUFFS[i].r * visualScale * (1 + ease * BIG_SPAWN_PUFFS[i].grow))
+    }
+
+    if (t >= 1 && !doneRef.current) {
+      doneRef.current = true
+      requestAnimationFrame(() => setDone(true))
+    }
+  })
+
+  if (done) return null
+
+  return (
+    <StudioTunedGroup itemId="vfx-zombie-spawn-puff">
+      <group ref={groupRef} position={[position[0], position[1] + visualScale, position[2]]}>
+        {BIG_SPAWN_PUFFS.map((puff, index) => (
+          <mesh
+            key={index}
+            ref={(node) => { puffRefs.current[index] = node }}
+            geometry={BIG_SPAWN_PUFF_GEOMETRY}
+            material={material}
+            renderOrder={100}
+            position={[puff.x * visualScale, puff.y * visualScale, puff.z * visualScale]}
+            scale={puff.r * visualScale}
+          />
+        ))}
+      </group>
+    </StudioTunedGroup>
+  )
+}
+
+// 작은 좀비용 원본 빌보드. 작을 땐 이쪽이 더 낫다 — 교체하지 않는다.
+function BillboardSpawnSmokeEffect({ position, visualScale, frozen = false }) {
   const billboardRef = useRef()
   const materialRef = useRef()
   const elapsedMsRef = useRef(0)
@@ -541,6 +637,16 @@ export function SpawnSmokeEffect({ position, visualScale, frozen = false }) {
     </Billboard>
     </StudioTunedGroup>
   )
+}
+
+// 호출부 4곳(Enemy 본체, DancingDogeEvent 등장·도주, 그래픽 스튜디오 프리뷰)이 전부 이걸 쓴다.
+// 분기를 여기 두면 호출부는 손댈 필요가 없고, "연기 없는 스폰 경로"가 생길 수도 없다.
+// 두 구현 모두 SPAWN_SMOKE_DURATION_MS·getSpawnSmokeOpacity를 그대로 쓰므로
+// 펑 선행 → 300ms 불투명 → 좀비 리빌 계약은 어느 쪽으로 갈라져도 동일하다.
+export function SpawnSmokeEffect(props) {
+  return isBigSpawnSmoke(props.visualScale)
+    ? <BigSpawnSmokeEffect {...props} />
+    : <BillboardSpawnSmokeEffect {...props} />
 }
 
 export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverride, isMatilda = false, runCrewDir = null }) {
