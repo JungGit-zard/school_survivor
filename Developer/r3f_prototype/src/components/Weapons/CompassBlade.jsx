@@ -5,6 +5,7 @@ import { emitSfx } from '../../lib/sfxEvents.js'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import {
+  getCompassBladeExplosionVisualScale,
   getCompassBladeOrbitPose,
   getCompassBladeRespawnUntilMs,
   resolveCompassBladeHitStack,
@@ -182,7 +183,10 @@ function CompassBladeExplosion({ id, x, z, radius, onDone }) {
     const fastPop = 1 - Math.min(1, t / 0.34)
     const lateFade = Math.max(0, 1 - t)
     if (groupRef.current) {
-      groupRef.current.scale.setScalar(0.24 + radius * 2.9 * t)
+      // 바깥 링의 월드 반경 = 피해 반경. 예전 스케일 식은 완전 확산 시 피해 반경의 5.7배까지
+      // 부풀어 "닿았는데 안 죽는다"를 만들었고, 반경에 비례하지 않는 상수항 때문에 영구
+      // 반경 강화가 비주얼에 반영되지도 않았다.
+      groupRef.current.scale.setScalar(getCompassBladeExplosionVisualScale(radius, t))
       groupRef.current.rotation.y += delta * 4.4
     }
     if (flashRef.current) {
@@ -371,9 +375,25 @@ export function CompassBladeWeapon() {
       hitStackRef.current = stackResult.stack
 
       if (stackResult.exploded) {
+        // 터지는 주체는 맞은 좀비가 아니라 궤도를 도는 요강이다. 스택 카운터가 요강별이 아니라
+        // 전역이라 "어느 요강이 터졌는지"는 이 좀비를 때린 요강, 즉 좀비에게 가장 가까운
+        // 요강으로 확정한다(스캔 반경 hitRadius 안에 최소 하나는 반드시 있다).
+        let blastX = orbitXRef.current[0]
+        let blastZ = orbitZRef.current[0]
+        let bestDistSq = Infinity
+        for (let bladeIndex = 0; bladeIndex < count; bladeIndex += 1) {
+          const dx = t.x - orbitXRef.current[bladeIndex]
+          const dz = t.z - orbitZRef.current[bladeIndex]
+          const distSq = dx * dx + dz * dz
+          if (distSq < bestDistSq) {
+            bestDistSq = distSq
+            blastX = orbitXRef.current[bladeIndex]
+            blastZ = orbitZRef.current[bladeIndex]
+          }
+        }
         explode({
-          x: t.x,
-          z: t.z,
+          x: blastX,
+          z: blastZ,
           damage: stackResult.explosionDamage,
           radius: stackResult.explosionRadius,
         })
