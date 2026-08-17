@@ -103,6 +103,7 @@ describe('boss runtime spawn routes', () => {
     const runtimeZombieEvents = getRuntimeBurstEventsForStage('stage1')
       .filter((event) => !isBossType(event.type))
 
+    expect(runtimeZombieEvents[0]).toEqual({ sec: firstWaveSec, type: 'E01', count: 10 })
     expect(runtimeZombieEvents.every((event) => event.sec >= firstWaveSec)).toBe(true)
     expect(runtimeZombieEvents).not.toContainEqual(expect.objectContaining({ type: 'E01', count: 18 }))
   })

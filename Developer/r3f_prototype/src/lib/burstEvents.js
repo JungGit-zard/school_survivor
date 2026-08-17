@@ -54,6 +54,7 @@ export const STAGE2_MIXED_REINFORCEMENT_EVENTS = [
 
 // 4분 타임라인. 5분 기준 sec ×0.8.
 export const BURST_EVENTS = [
+  { sec:   5, type: 'E01', count: 10 },  // Stage 1 정상 첫 웨이브(5초, 기존 0초 E01×18 대체 아님)
   { sec:  24, type: 'E01', count:  9 },  // 첫 phase target(24)을 burst만으로 초과하지 않게 완화
   ...STAGE1_40SEC_GREEN_SMILING_REINFORCEMENT_EVENTS,
   { sec:  60, type: 'E01', count:  6 },  // 60초 녹색좀비 추가 고정 스폰
