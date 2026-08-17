@@ -145,8 +145,10 @@ describe('boss runtime spawn routes', () => {
   // '표에는 있는데 게임에는 안 나오는 적'이 된다. 세 링크를 함께 못박는다.
   it('routes the Stage 2 smiling-face zombie burst into the pooled spawn path', () => {
     const stage2 = getBurstEventsForStage('stage2')
-    expect(stage2).toContainEqual({ sec: 60, type: 'E07', count: 6 })
-    expect(stage2).toContainEqual({ sec: 108, type: 'E07', count: 11 })
+    // 2026-08-17 1.3배 사다리 재설계로 마릿수는 6/11 → 5/6이 됐다. 여기서 지키려는 것은
+    // 마릿수가 아니라 '표 → 스폰 위치 → 풀 라우팅' 세 링크가 끊기지 않는다는 사실이다.
+    expect(stage2).toContainEqual({ sec: 60, type: 'E07', count: 5 })
+    expect(stage2).toContainEqual({ sec: 108, type: 'E07', count: 6 })
     expect(isPooledEnemyType('E07')).toBe(true)
     expect(ENEMY_STATS.E07).toBeDefined()
     const previous = { x: playerPos.x, z: playerPos.z }
@@ -208,18 +210,21 @@ describe('boss runtime spawn routes', () => {
 })
 
 describe('stage 2 mixed timed reinforcements', () => {
-  it('adds 17 mixed ordinary zombies at 120/150/184/216s and keeps E04 on ranged placement', () => {
+  // 2026-08-17 1.3배 사다리 재설계: 4×17(무거운 혼합 풀) → 150s ×8 / 216s ×10(경량 풀).
+  // 무거운 풀은 pickMixedReinforcementTypes가 각 타입을 1마리씩 먼저 보장하기 때문에
+  // '랜덤 구성'이 아니라 확정 난이도 상승이었다 — 이제 풀은 E01/E03만이다.
+  it('adds light-pool mixed ordinary zombies at 150/216s and keeps E04 off the random pool', () => {
     const reinforcements = getRuntimeBurstEventsForStage('stage2')
       .filter((event) => event.reinforcement === STAGE2_MIXED_REINFORCEMENT)
-    expect(reinforcements.map((event) => event.sec)).toEqual([120, 150, 184, 216])
+    expect(reinforcements.map((event) => event.sec)).toEqual([150, 216])
+    expect(reinforcements.map((event) => event.count)).toEqual([8, 10])
 
     for (const event of reinforcements) {
-      expect(event.count).toBe(17)
       expect(event.mixedTypes.length).toBeGreaterThan(1)
-      expect(event.mixedTypes.every((type) => /^E0[1-6]$/.test(type))).toBe(true)
+      expect(event.mixedTypes.every((type) => /^E0[13]$/.test(type))).toBe(true)
       expect(event.mixedTypes.some((type) => isBossType(type) || type === 'RZT' || type === 'RZG')).toBe(false)
       const picked = pickMixedReinforcementTypes(event.mixedTypes, event.count, () => 0)
-      expect(picked).toHaveLength(17)
+      expect(picked).toHaveLength(event.count)
       expect(new Set(picked).size).toBeGreaterThan(1)
     }
 
@@ -354,7 +359,8 @@ describe('late zombie spawn relief', () => {
   it('reduces burst zombie counts after 90 seconds without removing boss events', () => {
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 108 && event.type === 'E01').count).toBe(6)
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
-    expect(getBurstEventsForStage('stage2').filter((event) => event.type === 'E04').map((event) => event.sec)).toEqual([72, 216])
+    // 2026-08-17: 스2 E04는 발사 게이트와 같은 72초 1건만 남았다(216초 1마리는 예산 감축으로 제거).
+    expect(getBurstEventsForStage('stage2').filter((event) => event.type === 'E04').map((event) => event.sec)).toEqual([72])
     expect(getBurstEventsForStage('stage2').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 150 && event.type === 'B01').count).toBe(1)
     expect(getBurstEventsForStage('stage2').find((event) => event.sec === 120 && event.type === 'B02').count).toBe(1)
@@ -677,10 +683,17 @@ describe('jarmob expected total keeps density separate from the user HP curve', 
 
   it('keeps the fixed HP curve separate from the existing density calculation', () => {
     expect(STAGE_JARMOB_HP_MULTIPLIER).toEqual({ stage2: 1.2, stage3: 1.44, stage4: 1.728 })
+    // 2026-08-17 1.3배 사다리 재설계로 이 파생값이 움직였다. 원인은 명확하다:
+    // 밀도 솔버는 (웨이브 base × m² + 버스트 잡몹 base × m + 크루 확정 HP = 앵커 × factor)를 풀어 m을 낸다.
+    // 스2 버스트 잡몹 base가 크게 줄자 같은 factor를 맞추려고 웨이브 몫 m이 커졌고(0.64 → 0.92),
+    // 스4는 버스트가 늘어 반대로 줄었다(1.32 → 1.22).
+    // ⚠ 이 값은 게임플레이에 영향이 없다 — 랜덤 웨이브는 런타임에 발화하지 않고(SCHEDULE_WAVE 부재),
+    //   실제 스폰은 전부 버스트 표 / 마틸다 / 오버타임 3경로에서만 나온다. 여기서는 파생식이
+    //   조용히 NaN이 되거나 0으로 붕괴하지 않는다는 것만 못박는다.
     expect(STAGE_DENSITY_MULTIPLIER).toEqual({
-      stage2: 0.6411514350841779,
-      stage3: 1.055398399084263,
-      stage4: 1.3159664118579182,
+      stage2: 0.921432893596188,
+      stage3: 1.109827898020439,
+      stage4: 1.2207060897622144,
     })
     for (const stageId of ['stage2', 'stage3', 'stage4']) {
       expect(STAGE_DENSITY_MULTIPLIER[stageId]).toBeGreaterThan(0)

@@ -41,13 +41,13 @@ export const STAGE1_40SEC_GREEN_SMILING_REINFORCEMENT_EVENTS = [
   { sec: 40, type: 'E07', count: 3 },
 ]
 
-// Stage 2 추가 보강(2026-08-09 사용자 지시): 120초부터 30초마다,
-// 240초 종료 전까지만 15마리씩 일반 좀비를 현재 phase 구성 안에서 섞어 더한다.
+// Stage 2 추가 보강. 2026-08-17 총체력 사다리 재설계로 4×17(무거운 혼합 풀) → 2×경량 혼합으로 줄였다.
+// 옛 풀은 E02/E04/E05/E06가 섞여 있어 pickMixedReinforcementTypes의 "각 타입 1마리 선보장" 때문에
+// 랜덤이 아니라 확정 난이도 상승이었고, 스2 잡몹 예산 9,202 중 2,700 이상을 혼자 먹었다.
+// 이제 목적은 "후반 템포 유지"뿐이므로 경량대(E01 8hp·E03 10hp)만 남긴다.
 export const STAGE2_MIXED_REINFORCEMENT_EVENTS = [
-  { sec: 120, type: 'E01', count: 17, mixedTypes: ['E01', 'E02', 'E03', 'E04', 'E05'], reinforcement: STAGE2_MIXED_REINFORCEMENT },
-  { sec: 150, type: 'E03', count: 17, mixedTypes: ['E02', 'E03', 'E04', 'E05'], reinforcement: STAGE2_MIXED_REINFORCEMENT },
-  { sec: 184, type: 'E02', count: 17, mixedTypes: ['E02', 'E04', 'E06'], reinforcement: STAGE2_MIXED_REINFORCEMENT },
-  { sec: 216, type: 'E02', count: 17, mixedTypes: ['E02', 'E04', 'E05'], reinforcement: STAGE2_MIXED_REINFORCEMENT },
+  { sec: 150, type: 'E01', count:  8, mixedTypes: LIGHT_MOB_MIX, reinforcement: STAGE2_MIXED_REINFORCEMENT },
+  { sec: 216, type: 'E01', count: 10, mixedTypes: LIGHT_MOB_MIX, reinforcement: STAGE2_MIXED_REINFORCEMENT },
 ]
 
 // 4분 타임라인. 5분 기준 sec ×0.8.
@@ -73,91 +73,100 @@ export const BURST_EVENTS = [
   { sec: 216, type: 'E05', count:  3 },
 ]
 
-// 4분 타임라인. 5분 기준 sec ×0.8.
+// 4분 타임라인 — 스테이지2 "복도 돌파". 5분 기준 sec ×0.8.
+// 2026-08-17 총체력 사다리(스1 ×1.3^n) 재설계: 잡몹 예산 9,202 → 3,458(목표 3,443, +0.4%).
+//   보스 B02 1,380을 더한 총 HP는 4,838 = 스1 3,710 × 1.304.
+// 시각은 스1 공통 앵커 13개(5/24/40/60/72/108/110/120/144/150/168/184/216)만 쓴다. 보스 120은 불변.
+// 편성 판단: (a) 시그니처 경비추격은 크루 1기당 516 HP(RZT 168 + RZG 58×6)로 예산의 15%다.
+//   4회(2,064 = 새 예산의 60%)면 나머지 12개 앵커가 굶으므로 2회(도입 40 + 보스구간 재현 144)로 줄였다.
+//   (b) 4×17 혼합 보강은 경량 2회로 축소(위 STAGE2_MIXED_REINFORCEMENT_EVENTS 주석 참조).
+//   (c) 대신 마릿수는 95마리로 스1(92)과 나란히 두어 "복도가 텅 빈다"는 체감을 막았다.
 export const STAGE2_BURST_EVENTS = [
-  { sec:   5, type: 'E01', count: 17 },  // 첫 웨이브 0→5초, 물량 ×1.5(2026-08-09)
-  { sec:  24, type: 'E03', count:  4 },
-  { sec:  60, type: 'E02', count:  3 },
-  { sec:  72, type: 'E04', count:  1 },
-  { sec: 120, type: 'E05', count:  2 },
-  { sec: 150, type: 'E05', count:  2 },
-  { sec: 168, type: 'E06', count:  1 },
-  { sec: 120, type: 'B02', count:  1 },  // 보스 등장 (2:00) — 보스 구간 파생 기준
-  { sec: 216, type: 'E05', count:  3 },
-  { sec: 216, type: 'E04', count:  1 },
-  // Stage 2 only: fleeing trench-coat zombie followed by six security guards.
+  { sec:   5, type: 'E01', count: 12 },                       // 오프닝 밀도
+  { sec:  24, type: 'E03', count:  6 },                       // 러너 첫 등장 — 이동 압박 시작
+  { sec:  60, type: 'E07', count:  5 },                       // 웃는좀비(E01 2배 스탯) 합류
+  { sec:  72, type: 'E04', count:  2 },                       // 원거리 첫 등장 — 발사 게이트(e04IntroSec 72)와 동시
+  { sec: 108, type: 'E07', count:  6 },                       // 웃는좀비 러시
+  { sec: 120, type: 'E05', count:  3 },                       // 차저 첫 등장 (보스 등장과 동시각)
+  { sec: 168, type: 'E06', count:  1 },                       // 거대 첫 등장
+  { sec: 184, type: 'E05', count:  3 },                       // 보스 처치 후 차저 재압박
+  { sec: 216, type: 'E05', count:  3 },                       // 마틸다 직전 차저 러시(스1·스3 공통 관용구)
+  { sec: 120, type: 'B02', count:  1 },                       // 보스 등장 (2:00) — 보스 구간 파생 기준
+  // Stage 2 only: 도망치는 트렌치코트 좀비 + 경비 6명. 스테이지2 시그니처.
+  // 2026-08-17: 4회(40/108/144/216) → 2회. 도입 1회 + 보스 구간 재현 1회로 리듬은 남기고 예산을 뺀다.
   { sec:  40, type: 'RZT', count:  7, formation: STAGE2_GUARD_CHASE_FORMATION },
-  { sec: 108, type: 'RZT', count:  7, formation: STAGE2_GUARD_CHASE_FORMATION },
   { sec: 144, type: 'RZT', count:  7, formation: STAGE2_GUARD_CHASE_FORMATION },
-  { sec: 216, type: 'RZT', count:  7, formation: STAGE2_GUARD_CHASE_FORMATION },
-  // ── 형태(formation) 버스트 (2026-07-10) — 균일 압력을 깨는 스파이크→이완 비트.
-  // 유지 루프가 총원을 target과 비교하므로 형태로 채운 만큼 자동으로 덜 스폰된다(의도).
-  // E04/보스와 시각 겹치지 않게 배치. 예고 정본은 waveTimelines.STAGE2_SPAWN_TELEGRAPHS.
-  { sec:  40, type: 'E01', count:  7, formation: 'swarm' },   // 초반 단조 구간 깨기
-  { sec:  40, type: 'E01', count: 22, mixedTypes: LIGHT_MOB_MIX },  // 30초 녹색좀비 러시 — 경량대 랜덤 구성(E03@24 도입 이후)
-  { sec: 110, type: 'E01', count: 22, mixedTypes: LIGHT_MOB_MIX },  // 1분 30초 러시 — 경량대 랜덤 구성
-  { sec: 110, type: 'E02', count:  3 },                       // 1분 30초 탱커 동반(2026-08-09)
+  // ── 형태(formation) 버스트 — 균일 압력을 깨는 스파이크→이완 비트. E04/보스와 시각이 겹치지 않게 배치.
+  { sec:  40, type: 'E01', count:  8, formation: 'swarm' },    // 초반 단조 구간 깨기 — 경비추격과 동시각 스파이크
+  { sec:  60, type: 'E03', count:  6, formation: 'ring' },     // 러너 포위
+  { sec: 150, type: 'E02', count:  2, formation: 'pincer' },   // 탱커 협공(보스 구간)
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
   ...STAGE2_MIXED_REINFORCEMENT_EVENTS,
-  { sec:  60, type: 'E03', count:  6, formation: 'ring' },    // 러너 포위
-  { sec:  60, type: 'E07', count:  6 },                       // 1분 웃는얼굴 좀비(E01 2배 스탯, 2026-08-09)
-  { sec: 108, type: 'E07', count: 11 },
-  { sec: 144, type: 'E02', count:  7, formation: 'pincer' },  // 탱커 협공 (120–144 위상)
-  { sec: 184, type: 'E05', count:  4, formation: 'swarm' },   // 돌진 무리 (168–192 위상)
 ]
 
 // 4분 타임라인 — 스테이지3 "총력전/혼돈".
 // 보스 = 체육교사 B03 단일(135). 로비 카드 광고(체육교사)와 실제 전투를 일치시킨다.
-// (이전 더블 보스 B02/B01은 로비의 체육교사 광고와 불일치라 폐기 — 2026-07-21 사용자 지시.)
 // 보스와 형태/그룹 버스트는 모두 이 표의 sec 그대로 런타임에 발화한다.
-// 설계 정본: Developer/agent_room/levelmini_stage3_wave_balance_design_2026-07-11.md §4-1.
-// 2026-08-17: 보스(B03@135)를 제외한 런타임 좀비 이벤트의 고유 초를 Stage 1 공통 앵커
-// 5/24/40/60/72/108/110/120/144/150/168/184/216에 맞췄다. payload/count/formation/order는 보존.
+// 2026-08-17 총체력 사다리(스1 ×1.3^n) 재설계: 잡몹 예산 5,541 → 4,652(목표 4,614, +0.8%).
+//   보스 B03 1,656을 더한 총 HP는 6,308 = 스2 4,838 × 1.304.
+// 시각은 스1 공통 앵커 13개를 전부 쓴다(보스 135만 예외).
+// 편성 판단: 시그니처 RZL 크루 4회(370×4 = 1,480 = 예산의 32%)는 예산 감소폭이 16%뿐이라 전부 유지했다.
+//   감축은 무거운 덩어리에서만 뺐다 — 150초 E06×1(461) 삭제, 110초 E02 협공 6→3(-303),
+//   120초 차저 포위 4→3(-101), 5초 오프닝 12→10(-24). 크루·거대 벽(184)·216 차저 러시는 불변.
+// 형태 버스트는 개방 아레나 안티카이팅용 ring/pincer만 쓴다(swarm/gauntlet 배제 — 넓은 사공간서 자명하게 카이팅됨).
+// 예고 정본 STAGE3_SPAWN_TELEGRAPHS와 배열 순서까지 1:1 정렬(waveTimelines.test.js가 검사).
 export const STAGE3_BURST_EVENTS = [
-  { sec:   5, type: 'E01', count: 12 },                         // 온보딩 초기 밀도
+  { sec:   5, type: 'E01', count: 10 },                         // 온보딩 초기 밀도
   { sec:  24, type: 'E03', count:  4 },                         // 러너 조기 압박
-  { sec:  40, type: 'E04', count:  1 },                         // 원거리 조기 등장 신호
+  { sec:  40, type: 'E04', count:  1 },                         // 원거리 조기 등장 신호(e04IntroSec 34 이후)
   { sec:  72, type: 'E05', count:  2 },                         // 차저 조기 등장 신호
-  { sec:  40, type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 1차: 리더 1 + 러닝크루 6, 대각선 화면 횡단
-  { sec: 108, type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 2차: 이완 창 내부 대각선 압박
-  { sec: 144, type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 3차: 2분 압박 체크포인트
-  { sec: 168, type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, // 런좀비 크루 4차: 보스 직후 재압박
   { sec: 110, type: 'E06', count:  1 },                         // 거대 조기 등장 보장
+  { sec: 216, type: 'E05', count:  3 },                         // 마틸다 직전 차저 러시
+  // ── 런좀비 크루: 리더 1 + 러닝크루 6, 대각선 화면 횡단. 스3 시그니처 — 4회 전부 유지.
+  { sec:  40, type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, // 1차: 도입
+  { sec: 108, type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, // 2차: 이완 창 내부 대각선 압박
+  { sec: 144, type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, // 3차: 보스 직후 재압박
+  { sec: 168, type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, // 4차: 2:48 압박 체크포인트
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
-  { sec: 150, type: 'E06', count:  1 },                         // 피크 거대 1기 추가(미조우 방어)
   // ── 보스: 체육교사 B03 단일 등장(135). 로비 카드(체육교사)와 실제 전투 일치. ──
   { sec: 135, type: 'B03', count:  1 },
-  { sec: 216, type: 'E05', count:  3 },                         // 마틸다 직전 차저 러시
-  // ── 형태(formation) 버스트 — 개방 아레나에선 플레이어 상대 포위(ring/pincer)만 사용해 카이팅을 끊는다.
-  // swarm(한 방향 스윕)·gauntlet(양벽)은 넓은 사공간서 자명하게 카이팅되므로 스3 스케줄서 배제(구현체는 스2가 계속 사용).
-  // 예고 정본 STAGE3_SPAWN_TELEGRAPHS. 재설계: Planner/stage3_zombie_wave_redesign_2026-07-18.md §3.
+  // ── 형태(formation) 버스트 — 배열 순서 = STAGE3_SPAWN_TELEGRAPHS 순서(60 → 120 → 150 → 184).
   { sec:  60, type: 'E03', count:  6, formation: 'ring' },      // 첫 완전 포위
-  { sec: 110, type: 'E02', count:  6, formation: 'pincer' },    // 탱커 호흡 구간 앞뒤 협공
-  { sec: 120, type: 'E05', count:  4, formation: 'ring' },      // 3축 창 차저 포위(120s 예열 후 RZL@144가 주역)
-  { sec: 184, type: 'E06', count:  2, formation: 'pincer' },    // 보스 구간 거대 앞뒤 벽(개편: gauntlet→pincer)
+  { sec: 120, type: 'E05', count:  3, formation: 'ring' },      // 차저 포위(RZL@144 예열)
+  { sec: 150, type: 'E02', count:  3, formation: 'pincer' },    // 탱커 앞뒤 협공(보스 구간) — 110초에서 이동
+  { sec: 184, type: 'E06', count:  2, formation: 'pincer' },    // 보스 구간 거대 앞뒤 벽
 ]
 
 // 4분 타임라인 — 스테이지4 "급식실 대탈출".
 // 시그니처 = 원거리 E04 "안전지대 소멸"(24초 스폰, 18초 발사 게이트 + 상시 고비중, 보스 구간에도 유지).
-// 보스 = 단일 B04 주방장. 이 표의 sec 그대로 런타임에 고정 등장한다.
-// 급식실 맵은 12×16으로 스3(18×18)보다 좁아 실효 밀도가 높으므로 물량은 억제하고
-// 난이도는 마릿수가 아니라 원거리 지속 압박·보스에서 온다("마릿수로 어렵게 하지 않음").
-// 형태 버스트는 스3와 동일하게 개방 맵 안티카이팅(ring/pincer)만 사용. RZL은 스3 시그니처라 스4는 미채용.
-// 전 버스트가 런타임에 발화한다(아래 getRuntimeBurstEventsForStage).
-// 2026-08-17: 보스(B04@140)를 제외한 이벤트는 Stage 3 공통 앵커의 시간순 부분집합
-// 5/24/40/60/72/108/110/120/184에 맞췄다. payload/count/formation/order는 보존.
+// 보스 = 단일 B04 주방장(140). 이 표의 sec 그대로 런타임에 고정 등장한다.
+// 2026-08-17 총체력 사다리(스1 ×1.3^n) 재설계: 잡몹 예산 3,855 → 5,574(목표 5,559, +0.3%).
+//   보스 B04 2,592를 더한 총 HP는 8,166 = 스3 6,308 × 1.295.
+// 두 가지 구멍을 함께 메운다:
+//   (a) 빈 앵커 144/150/168/216 — 특히 2:00~3:04의 64초 보스 단독 공백이 최대 문제였다.
+//   (b) 시그니처 E04가 스테이지 전체에 1마리뿐이었다. 예산이 +45% 늘었으므로 그 증분을 전부 E04에 넣어
+//       E04 1 → 26마리(전체 71마리의 37%)로 올렸다. 마릿수 인플레가 아니라 원거리 비중 전환이다.
+//       동시 발사는 getE04Cap(stage4: 60s 전 2기·이후 3기)과 STAGE2_E04_MAX_PROJECTILES 6이 하드캡하므로
+//       26마리가 곧 26발이 아니다 — 늘어나는 것은 "사선이 항상 살아 있다"는 지속 압박이다.
+//       또 stage4는 bossPressure 예외라 보스전에도 E04가 계속 쏜다 = 안전지대 소멸이 보스 구간까지 유지된다.
+// 형태 버스트는 개방 맵 안티카이팅(ring/pincer)만. RZL은 스3 전용이라 미채용.
+// 예고 정본 STAGE4_SPAWN_TELEGRAPHS와 배열 순서까지 1:1 정렬(60 → 108 → 120 → 168 → 184).
 export const STAGE4_BURST_EVENTS = [
-  { sec:   5, type: 'E01', count: 10 },                        // 온보딩 초기 밀도(작은 맵 — 과밀 회피 위해 스3보다 낮춤)
-  { sec:  24, type: 'E04', count:  1 },                        // 원거리 조기 등장 — 스폰만 이동, 발사 게이트는 18초 유지
+  { sec:   5, type: 'E01', count: 10 },                        // 온보딩 초기 밀도
+  { sec:  24, type: 'E04', count:  3 },                        // 원거리 조기 등장(발사 게이트 18s 이후) — 시그니처 개시
   { sec:  40, type: 'E05', count:  2 },                        // 차저 조기 등장 신호
   { sec:  72, type: 'E06', count:  1 },                        // 거대 조기 등장 보장
+  { sec: 144, type: 'E04', count:  8 },                        // 보스 구간 원거리 벽 1 — 옛 빈 앵커
+  { sec: 150, type: 'E04', count:  6 },                        // 보스 구간 원거리 벽 2 — 옛 빈 앵커
+  { sec: 150, type: 'E03', count:  6 },                        // 러너로 카이팅 차단(원거리 사선 유지용 몰이)
+  { sec: 216, type: 'E05', count:  4 },                        // 마틸다 직전 차저 러시 — 옛 빈 앵커
   { sec: 140, type: 'B04', count:  1 },                        // 주방장 보스 등장(경고 134) — 보스 구간 파생 기준
-  // ── 형태(formation) 버스트 — 개방 맵 안티카이팅(플레이어 상대 ring/pincer만). swarm/gauntlet 배제(스3 선례).
-  // 예고 정본 STAGE4_SPAWN_TELEGRAPHS와 sec 1:1 정렬.
-  { sec:  60, type: 'E03', count:  6, formation: 'ring' },     // 첫 완전 포위(러너)
-  { sec: 108, type: 'E02', count:  6, formation: 'pincer' },   // 탱커 앞뒤 협공(피크 예열)
   ...ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS,
+  // ── 형태(formation) 버스트 — 배열 순서 = STAGE4_SPAWN_TELEGRAPHS 순서(60 → 108 → 120 → 168 → 184).
+  { sec:  60, type: 'E03', count:  6, formation: 'ring' },     // 첫 완전 포위(러너)
+  { sec: 108, type: 'E02', count:  4, formation: 'pincer' },   // 탱커 앞뒤 협공(피크 예열)
   { sec: 120, type: 'E05', count:  4, formation: 'ring' },     // 차저 포위(피크 정점, 보스 직전)
+  { sec: 168, type: 'E04', count:  9, formation: 'ring' },     // 원거리 포위 = "안전지대 소멸" 문자 그대로 — 옛 빈 앵커
   { sec: 184, type: 'E06', count:  2, formation: 'pincer' },   // 보스 구간 거대 앞뒤 벽
 ]
 

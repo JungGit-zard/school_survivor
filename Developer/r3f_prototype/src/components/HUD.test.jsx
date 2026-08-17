@@ -20,6 +20,7 @@ import { resetAdminConfig, saveAdminConfig } from '../lib/adminConfig.js'
 import { DEFAULT_STAGE_BOSS_PREVIEW, saveStudioTunings } from '../lib/graphicsStudioConfig.js'
 import { getStageConfig } from '../lib/stageConfig.js'
 import { STAGE4_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
+import { STAGE4_BURST_EVENTS } from '../lib/burstEvents.js'
 import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { hydrateFirebaseStudio, setFirebaseStudioUser } from '../lib/firebaseStudio.js'
 import { blockFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
@@ -1133,7 +1134,9 @@ describe('stage4 HUD telegraphs', () => {
         act(() => { root.unmount() })
       }
     }
-    expect(STAGE4_SPAWN_TELEGRAPHS.length).toBe(4)
+    // 예고 개수는 리터럴이 아니라 형태 버스트 개수에서 파생한다 — 예고 없는 형태 버스트가
+    // 생기면 즉시 깨지게 하는 것이 목적이다(2026-08-17 1.3배 사다리로 4 → 5가 됐다).
+    expect(STAGE4_SPAWN_TELEGRAPHS.length).toBe(STAGE4_BURST_EVENTS.filter((event) => event.formation).length)
   })
 
   it('shows the boss warning 3s before the run-scoped randomized spawn second', () => {

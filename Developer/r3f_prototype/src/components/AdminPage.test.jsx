@@ -7,6 +7,7 @@ import AdminPage from './AdminPage.jsx'
 import { loadAdminConfig, resetAdminConfig, saveAdminConfig } from '../lib/adminConfig.js'
 import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { getStageConfig } from '../lib/stageConfig.js'
+import { STAGE2_BURST_EVENTS } from '../lib/burstEvents.js'
 import { useGameStore } from '../store/useGameStore.js'
 
 const inspectionMocks = vi.hoisted(() => ({
@@ -121,7 +122,9 @@ describe('AdminPage', () => {
     expect(container.textContent).toContain('게임 코드에서 자동 반영')
 
     const rows = Array.from(container.querySelectorAll('[data-testid="burst-row"]'))
-    expect(rows).toHaveLength(29)
+    // 스폰 표가 정본이므로 행 수는 리터럴이 아니라 표 길이에서 파생한다
+    // (2026-08-17 1.3배 사다리 재설계로 29 → 19가 됐고, 앞으로도 표가 정본이다).
+    expect(rows).toHaveLength(STAGE2_BURST_EVENTS.length)
 
     // 시각 오름차순 정렬 검증
     const secs = rows.map((row) => Number(row.getAttribute('data-sec')))

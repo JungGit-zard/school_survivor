@@ -237,18 +237,23 @@ export const STAGE2_SPAWN_TELEGRAPHS = []
 // 스테이지3 형태 버스트 예고 배너 정본. stage2와 달리 stage3는 형태 버스트가 런타임에
 // 실제로 발화하므로(getRuntimeBurstEventsForStage에서 되살림) 이 예고는 허위 배너가 아니다.
 // sec/label은 STAGE3_BURST_EVENTS의 formation 항목과 정렬. HUD stage3 배선은 uimini 후속.
+// 2026-08-17: 총체력 사다리 재설계로 탱커 협공(pincer)이 110 → 150초로 옮겨갔다.
+// 배열 순서까지 STAGE3_BURST_EVENTS의 formation 항목 순서와 일치해야 한다(waveTimelines.test.js).
 export const STAGE3_SPAWN_TELEGRAPHS = [
-  { sec:  60, leadSec: 2.5, label: '사방에서 포위된다' },      // ring
-  { sec: 110, leadSec: 2.5, label: '양쪽에서 조여온다' },      // pincer
-  { sec: 120, leadSec: 2.5, label: '돌진 무리가 에워싼다' },   // ring (RZL@144 직전 예열)
-  { sec: 184, leadSec: 2.5, label: '거대들이 앞뒤를 막는다' }, // pincer (개편: gauntlet→pincer 개방 맵 대응)
+  { sec:  60, leadSec: 2.5, label: '사방에서 포위된다' },      // ring   E03×6
+  { sec: 120, leadSec: 2.5, label: '돌진 무리가 에워싼다' },   // ring   E05×3 (RZL@144 직전 예열)
+  { sec: 150, leadSec: 2.5, label: '양쪽에서 조여온다' },      // pincer E02×3 (보스 구간)
+  { sec: 184, leadSec: 2.5, label: '거대들이 앞뒤를 막는다' }, // pincer E06×2
 ]
 
 // 스테이지4 형태 버스트 예고 배너 정본. stage3처럼 형태 버스트가 런타임에 실제 발화하므로 허위 배너가 아니다.
 // sec/label은 STAGE4_BURST_EVENTS의 formation 항목과 1:1 정렬. 급식실 테마 라벨. HUD 배선은 WP3(uimini).
+// 2026-08-17: 빈 앵커 168초에 원거리 포위(ring E04×9)를 새로 넣었다 — 스4 시그니처
+// "안전지대 소멸"을 형태 버스트로 문자 그대로 구현한 것이라 예고가 특히 중요하다.
 export const STAGE4_SPAWN_TELEGRAPHS = [
-  { sec:  60, leadSec: 2.5, label: '배식 줄이 사방을 에워싼다' },   // ring E03
-  { sec: 108, leadSec: 2.5, label: '양쪽 배식구에서 조여온다' },   // pincer E02
-  { sec: 120, leadSec: 2.5, label: '돌진 무리가 식탁을 넘는다' },   // ring E05 (피크 정점)
-  { sec: 184, leadSec: 2.5, label: '거대들이 배식대를 막는다' },   // pincer E06 (보스 구간)
+  { sec:  60, leadSec: 2.5, label: '배식 줄이 사방을 에워싼다' },   // ring   E03×6
+  { sec: 108, leadSec: 2.5, label: '양쪽 배식구에서 조여온다' },   // pincer E02×4
+  { sec: 120, leadSec: 2.5, label: '돌진 무리가 식탁을 넘는다' },   // ring   E05×4 (피크 정점)
+  { sec: 168, leadSec: 2.5, label: '사방에서 급식판이 날아온다' }, // ring   E04×9 (원거리 포위 = 안전지대 소멸)
+  { sec: 184, leadSec: 2.5, label: '거대들이 배식대를 막는다' },   // pincer E06×2 (보스 구간)
 ]
