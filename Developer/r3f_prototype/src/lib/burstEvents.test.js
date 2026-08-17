@@ -23,6 +23,27 @@ const allStageBurstTables = [
 ]
 
 const STAGE1_FIRST_WAVE_SEC = 5
+const ORDINARY_ZOMBIE_TYPE_RE = /^E0[1-7]$/
+const STAGE2_BASE_HP = { E01: 8, E02: 70, E03: 10, E04: 32, E05: 70, E06: 320, E07: 16, RZT: 140, RZG: 48 }
+const STAGE2_HP_MULTIPLIER = 1.2
+
+const ordinaryZombieEvents = (events) => events.filter((event) => ORDINARY_ZOMBIE_TYPE_RE.test(event.type))
+const stageZombieEvents = (events) => events.filter((event) => !isBossType(event.type))
+const uniqueSeconds = (events) => [...new Set(events.map((event) => event.sec))].sort((a, b) => a - b)
+const payloadWithoutSec = (event) => Object.fromEntries(Object.entries(event).filter(([key]) => key !== 'sec'))
+const declaredCountByType = (events) => events.reduce((acc, event) => {
+  acc[event.type] = (acc[event.type] ?? 0) + (event.count ?? 1)
+  return acc
+}, {})
+const stage2HpMultipliedBurstHp = (events) => events.reduce((sum, event) => {
+  if (event.formation === STAGE2_GUARD_CHASE_FORMATION) {
+    return sum
+      + Math.round(STAGE2_BASE_HP.RZT * STAGE2_HP_MULTIPLIER)
+      + 6 * Math.round(STAGE2_BASE_HP.RZG * STAGE2_HP_MULTIPLIER)
+  }
+  const baseHp = STAGE2_BASE_HP[event.type]
+  return sum + (event.count ?? 1) * Math.round(baseHp * STAGE2_HP_MULTIPLIER)
+}, 0)
 
 describe('Stage 1 첫 웨이브 5초 게이트', () => {
   it('런타임 좀비 버스트는 첫 웨이브 전(sec < 5)에 나오지 않고 E01 18마리 버스트를 예약하지 않는다', () => {
@@ -56,16 +77,62 @@ describe('Stage 1 첫 웨이브 5초 게이트', () => {
   })
 })
 
+describe('Stage 2 좀비 시간표 Stage 1 앵커 재배열', () => {
+  it('Stage 2의 경비 추격을 포함한 모든 비보스 좀비 고유 초 배열은 Stage 1 일반 좀비 앵커와 정확히 일치하고 B02는 120초에 남는다', () => {
+    expect(uniqueSeconds(stageZombieEvents(STAGE2_BURST_EVENTS))).toEqual(uniqueSeconds(ordinaryZombieEvents(BURST_EVENTS)))
+    expect(STAGE2_BURST_EVENTS.filter((event) => isBossType(event.type))).toEqual([{ sec: 120, type: 'B02', count: 1 }])
+  })
+
+  it('Stage 2 모든 비보스 좀비 payload·마릿수·선언 HP 예산은 초만 바뀌고 그대로 보존된다', () => {
+    const ordinary = stageZombieEvents(STAGE2_BURST_EVENTS)
+
+    expect(ordinary.map(payloadWithoutSec)).toEqual([
+      { type: 'E01', count: 17 },
+      { type: 'E03', count: 4 },
+      { type: 'E02', count: 3 },
+      { type: 'E04', count: 1 },
+      { type: 'E05', count: 2 },
+      { type: 'E05', count: 2 },
+      { type: 'E06', count: 1 },
+      { type: 'E05', count: 3 },
+      { type: 'E04', count: 1 },
+      { type: 'RZT', count: 7, formation: STAGE2_GUARD_CHASE_FORMATION },
+      { type: 'RZT', count: 7, formation: STAGE2_GUARD_CHASE_FORMATION },
+      { type: 'RZT', count: 7, formation: STAGE2_GUARD_CHASE_FORMATION },
+      { type: 'RZT', count: 7, formation: STAGE2_GUARD_CHASE_FORMATION },
+      { type: 'E01', count: 7, formation: 'swarm' },
+      { type: 'E01', count: 22, mixedTypes: ['E01', 'E03'] },
+      { type: 'E01', count: 22, mixedTypes: ['E01', 'E03'] },
+      { type: 'E02', count: 3 },
+      { type: 'E07', count: 3 },
+      { type: 'E02', count: 3 },
+      { type: 'E01', count: 17, mixedTypes: ['E01', 'E02', 'E03', 'E04', 'E05'], reinforcement: 'stage2MixedReinforcement' },
+      { type: 'E03', count: 17, mixedTypes: ['E02', 'E03', 'E04', 'E05'], reinforcement: 'stage2MixedReinforcement' },
+      { type: 'E02', count: 17, mixedTypes: ['E02', 'E04', 'E06'], reinforcement: 'stage2MixedReinforcement' },
+      { type: 'E02', count: 17, mixedTypes: ['E02', 'E04', 'E05'], reinforcement: 'stage2MixedReinforcement' },
+      { type: 'E03', count: 6, formation: 'ring' },
+      { type: 'E07', count: 6 },
+      { type: 'E07', count: 11 },
+      { type: 'E02', count: 7, formation: 'pincer' },
+      { type: 'E05', count: 4, formation: 'swarm' },
+    ])
+    expect(ordinary.reduce((sum, event) => sum + (event.count ?? 1), 0)).toBe(224)
+    expect(declaredCountByType(ordinary)).toEqual({ E01: 85, E03: 27, E02: 50, E04: 2, E05: 11, E06: 1, E07: 20, RZT: 28 })
+    expect(stage2HpMultipliedBurstHp(ordinary)).toBe(9202)
+  })
+})
+
 describe('전 스테이지 1:50 웃는좀비·탱커 보강', () => {
   it.each(allStageBurstTables)('%s는 110초 E07 3마리와 E02 3마리를 정확히 1개씩 추가한다', (_stageId, events) => {
     expect(events.filter((event) => event.sec === 110 && event.type === 'E07' && event.count === 3)).toHaveLength(1)
-    expect(events.filter((event) => event.sec === 110 && event.type === 'E02' && event.count === 3)).toHaveLength(1)
+    // Stage 2는 기존 90초 E02×3 동반 이벤트도 Stage 1의 110초 앵커로 함께 이동한다.
+    expect(events.filter((event) => event.sec === 110 && event.type === 'E02' && event.count === 3)).toHaveLength(_stageId === 'stage2' ? 2 : 1)
   })
 
   it('기존 Stage 2 웃는좀비 버스트를 그대로 보존한다', () => {
     // 2026-08-13 스폰 +10%: 5→6 / 10→11 (round(count×1.1)).
     expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 60, type: 'E07', count: 6 })
-    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 82, type: 'E07', count: 11 })
+    expect(STAGE2_BURST_EVENTS).toContainEqual({ sec: 108, type: 'E07', count: 11 })
   })
 })
 
@@ -137,7 +204,7 @@ describe('burstEvents 보스 등장 시각 파생', () => {
     const stage2 = getRuntimeBurstEventsForStage('stage2')
     expect(stage2).toBe(STAGE2_BURST_EVENTS)
     expect(stage2.filter((event) => isBossType(event.type))).toEqual([{ sec: 120, type: 'B02', count: 1 }])
-    expect(stage2.filter((event) => event.formation === STAGE2_GUARD_CHASE_FORMATION).map((event) => event.sec)).toEqual([42, 88, 136, 216])
+    expect(stage2.filter((event) => event.formation === STAGE2_GUARD_CHASE_FORMATION).map((event) => event.sec)).toEqual([40, 108, 144, 216])
   })
 
   it('runtime schedule preserves each stage canonical boss second', () => {
@@ -195,7 +262,7 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
 
   it('stage3는 런좀비 크루 대각선 횡단 버스트를 네 번 포함한다', () => {
     const crews = STAGE3_BURST_EVENTS.filter((e) => e.formation === RUN_ZOMBIE_CREW_FORMATION)
-    expect(crews.map((e) => e.sec)).toEqual([35, 80, 120, 150])
+    expect(crews.map((e) => e.sec)).toEqual([40, 108, 144, 168])
     expect(crews.every((event) => event.type === 'RZL' && event.count === 7)).toBe(true)
   })
 
@@ -205,9 +272,25 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
     expect(new Set(formations)).toEqual(new Set(['ring', 'pincer', RUN_ZOMBIE_CREW_FORMATION]))
     expect(formations).not.toContain('swarm')
     expect(formations).not.toContain('gauntlet')
-    // 112s는 차저 포위(ring), 176s는 거대 앞뒤 벽(pincer)으로 교체됨.
-    expect(STAGE3_BURST_EVENTS.find((e) => e.sec === 112)?.formation).toBe('ring')
-    expect(STAGE3_BURST_EVENTS.find((e) => e.sec === 176)?.formation).toBe('pincer')
+    // 120s는 차저 포위(ring), 184s는 거대 앞뒤 벽(pincer)으로 교체됨.
+    expect(STAGE3_BURST_EVENTS.find((e) => e.sec === 120)?.formation).toBe('ring')
+    expect(STAGE3_BURST_EVENTS.find((e) => e.sec === 184)?.formation).toBe('pincer')
+  })
+
+  it('모든 비보스 이벤트는 공통 13개 앵커만 쓰며 payload·마릿수·실제 HP 예산을 보존한다', () => {
+    const ordinary = STAGE3_BURST_EVENTS.filter((event) => !isBossType(event.type))
+    expect(uniqueSeconds(ordinary)).toEqual([5, 24, 40, 60, 72, 108, 110, 120, 144, 150, 168, 184, 216])
+    expect(ordinary.map(payloadWithoutSec)).toEqual([
+      { type: 'E01', count: 12 }, { type: 'E03', count: 4 }, { type: 'E04', count: 1 }, { type: 'E05', count: 2 },
+      { type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, { type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION },
+      { type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, { type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION },
+      { type: 'E06', count: 1 }, { type: 'E07', count: 3 }, { type: 'E02', count: 3 }, { type: 'E06', count: 1 },
+      { type: 'E05', count: 3 }, { type: 'E03', count: 6, formation: 'ring' }, { type: 'E02', count: 6, formation: 'pincer' },
+      { type: 'E05', count: 4, formation: 'ring' }, { type: 'E06', count: 2, formation: 'pincer' },
+    ])
+    expect(ordinary.reduce((sum, event) => sum + event.count, 0)).toBe(76)
+    const nonCrewHp = ordinary.reduce((sum, event) => sum + ({ E01: 12, E02: 101, E03: 14, E04: 46, E05: 101, E06: 461, E07: 23 }[event.type] ?? 0) * event.count, 0)
+    expect(nonCrewHp + 4 * Math.round(90 * 1.44) + 24 * Math.round(28 * 1.44)).toBe(5541)
   })
 })
 

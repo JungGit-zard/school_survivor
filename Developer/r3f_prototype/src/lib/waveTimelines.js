@@ -142,7 +142,8 @@ const BASE_STAGE2_WAVE_PHASES = [
 // 설계 정본: Developer/agent_room/levelmini_stage3_wave_balance_design_2026-07-11.md §2.
 // 재설계(2026-07-18): 발견 C(밀도 절반) 대응 = 오프닝 프론트로드(t=0 ×2, Enemies.jsx) +
 // 카이팅 차단 형태(ring/pincer) + ×1.44 실효 HP 전제 곡선. RZL@35/80/120/150 반복 스파이크로 대각 압박 리듬 강화.
-// 조기 도입 사슬(E04@34·E05@52·E06@108) 유지. 설계 정본: Planner/stage3_zombie_wave_redesign_2026-07-18.md.
+// 조기 도입 사슬은 버스트 시간표 재배열 후 E04@40·E05@72·E06@110으로 맞춘다.
+// 설계 정본: Planner/stage3_zombie_wave_redesign_2026-07-18.md + 2026-08-17 Stage 1 앵커 재배열 기록.
 const BASE_STAGE3_WAVE_PHASES = [
   // 0:00–0:16 도입 — 온보딩 16s 압축. t=0 프론트로드 ×2로 오프닝 밀도 확립. 러너 비중↑ 이동 압박 즉시.
   { start:   0, end:  16, target: 20, weights: { E01: 0.80, E03: 0.20 } },
@@ -237,10 +238,10 @@ export const STAGE2_SPAWN_TELEGRAPHS = []
 // 실제로 발화하므로(getRuntimeBurstEventsForStage에서 되살림) 이 예고는 허위 배너가 아니다.
 // sec/label은 STAGE3_BURST_EVENTS의 formation 항목과 정렬. HUD stage3 배선은 uimini 후속.
 export const STAGE3_SPAWN_TELEGRAPHS = [
-  { sec:  44, leadSec: 2.5, label: '사방에서 포위된다' },      // ring
-  { sec:  92, leadSec: 2.5, label: '양쪽에서 조여온다' },      // pincer
-  { sec: 112, leadSec: 2.5, label: '돌진 무리가 에워싼다' },   // ring (RZL@120 직전 예열)
-  { sec: 176, leadSec: 2.5, label: '거대들이 앞뒤를 막는다' }, // pincer (개편: gauntlet→pincer 개방 맵 대응)
+  { sec:  60, leadSec: 2.5, label: '사방에서 포위된다' },      // ring
+  { sec: 110, leadSec: 2.5, label: '양쪽에서 조여온다' },      // pincer
+  { sec: 120, leadSec: 2.5, label: '돌진 무리가 에워싼다' },   // ring (RZL@144 직전 예열)
+  { sec: 184, leadSec: 2.5, label: '거대들이 앞뒤를 막는다' }, // pincer (개편: gauntlet→pincer 개방 맵 대응)
 ]
 
 // 스테이지4 형태 버스트 예고 배너 정본. stage3처럼 형태 버스트가 런타임에 실제 발화하므로 허위 배너가 아니다.

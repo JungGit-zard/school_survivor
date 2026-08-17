@@ -146,7 +146,7 @@ describe('boss runtime spawn routes', () => {
   it('routes the Stage 2 smiling-face zombie burst into the pooled spawn path', () => {
     const stage2 = getBurstEventsForStage('stage2')
     expect(stage2).toContainEqual({ sec: 60, type: 'E07', count: 6 })
-    expect(stage2).toContainEqual({ sec: 82, type: 'E07', count: 11 })
+    expect(stage2).toContainEqual({ sec: 108, type: 'E07', count: 11 })
     expect(isPooledEnemyType('E07')).toBe(true)
     expect(ENEMY_STATS.E07).toBeDefined()
     const previous = { x: playerPos.x, z: playerPos.z }
@@ -208,10 +208,10 @@ describe('boss runtime spawn routes', () => {
 })
 
 describe('stage 2 mixed timed reinforcements', () => {
-  it('adds 17 mixed ordinary zombies at 120/150/180/210s and keeps E04 on ranged placement', () => {
+  it('adds 17 mixed ordinary zombies at 120/150/184/216s and keeps E04 on ranged placement', () => {
     const reinforcements = getRuntimeBurstEventsForStage('stage2')
       .filter((event) => event.reinforcement === STAGE2_MIXED_REINFORCEMENT)
-    expect(reinforcements.map((event) => event.sec)).toEqual([120, 150, 180, 210])
+    expect(reinforcements.map((event) => event.sec)).toEqual([120, 150, 184, 216])
 
     for (const event of reinforcements) {
       expect(event.count).toBe(17)

@@ -4,10 +4,11 @@ import {
   STAGE2_WAVE_PHASES,
   STAGE3_WAVE_PHASES,
   STAGE4_WAVE_PHASES,
+  STAGE3_SPAWN_TELEGRAPHS,
   STAGE4_SPAWN_TELEGRAPHS,
   getDefaultWavePhases,
 } from './waveTimelines.js'
-import { isBossPhase, getBossSpawnSec, STAGE4_BURST_EVENTS } from './burstEvents.js'
+import { isBossPhase, getBossSpawnSec, STAGE3_BURST_EVENTS, STAGE4_BURST_EVENTS } from './burstEvents.js'
 
 describe('waveTimelines 기본 타임라인', () => {
   it('getDefaultWavePhases: stage2는 STAGE2, 그 외 stage1', () => {
@@ -25,9 +26,9 @@ describe('waveTimelines 기본 타임라인', () => {
   it('보스 구간은 보스 등장 시각(2:00) 기준으로 파생된다', () => {
     // 2:00(120s) 이후 시작 phase만 보스 구간
     const stage2Boss = STAGE2_WAVE_PHASES.filter((p) => isBossPhase(p.start, 'stage2'))
-    expect(stage2Boss.every((p) => p.start >= 180)).toBe(true)
+    expect(stage2Boss.every((p) => p.start >= 120)).toBe(true)
     // 120s 미만 phase는 보스 구간 아님
-    const stage2Pre = STAGE2_WAVE_PHASES.filter((p) => p.start < 180)
+    const stage2Pre = STAGE2_WAVE_PHASES.filter((p) => p.start < 120)
     expect(stage2Pre.every((p) => !isBossPhase(p.start, 'stage2'))).toBe(true)
   })
 
@@ -71,8 +72,11 @@ describe('stage3 총력전 타임라인', () => {
     }
   })
 
-  it('조기 도입 사슬: E04 34s·E05 52s·E06 108s (스2 대비 앞당김)', () => {
+  it('조기 도입 사슬: E04 40s·E05 72s·E06 110s (Stage 1 공통 앵커 재배열)', () => {
     const firstOf = (type) => STAGE3_WAVE_PHASES.find((p) => p.weights[type])?.start
+    expect(STAGE3_BURST_EVENTS.find((e) => e.type === 'E04' && !e.formation)?.sec).toBe(40)
+    expect(STAGE3_BURST_EVENTS.find((e) => e.type === 'E05' && !e.formation)?.sec).toBe(72)
+    expect(STAGE3_BURST_EVENTS.find((e) => e.type === 'E06' && !e.formation)?.sec).toBe(110)
     expect(firstOf('E04')).toBe(34)
     expect(firstOf('E05')).toBe(52)
     expect(firstOf('E06')).toBe(108)
@@ -84,6 +88,13 @@ describe('stage3 총력전 타임라인', () => {
     const prevPhase = STAGE3_WAVE_PHASES.find((p) => p.end === 72)
     expect(rzlPhase.weights.E05).toBeUndefined()   // 차저 제거
     expect(rzlPhase.target).toBeLessThan(prevPhase.target)  // 앰비언트 이완
+  })
+
+  it('예고는 formation 버스트와 sec 1:1 정렬', () => {
+    const formationSecs = STAGE3_BURST_EVENTS.filter((e) => e.formation && e.formation !== 'runZombieCrew').map((e) => e.sec)
+    const telegraphSecs = STAGE3_SPAWN_TELEGRAPHS.map((t) => t.sec)
+    expect(telegraphSecs).toEqual(formationSecs)
+    expect(STAGE3_SPAWN_TELEGRAPHS.every((t) => typeof t.label === 'string' && t.label.length > 0)).toBe(true)
   })
 })
 
@@ -122,11 +133,11 @@ describe('stage4 급식실 대탈출 타임라인', () => {
 
   it('보스@140 이후 잡몹 target 급감(보스 스포트라이트) — 피크(≥140 직전) 대비 낮다', () => {
     const bossSec = getBossSpawnSec('stage4')
-    expect(bossSec).toBe(180)
+    expect(bossSec).toBe(140)
     const peak = Math.max(...STAGE4_WAVE_PHASES.filter((p) => p.start < bossSec).map((p) => p.target))
     const bossPhases = STAGE4_WAVE_PHASES.filter((p) => isBossPhase(p.start, 'stage4'))
     // 첫 보스 구간 phase는 잡몹이 급감(16~20)
-    expect(bossPhases[0].start).toBeGreaterThanOrEqual(180)
+    expect(bossPhases[0].start).toBeGreaterThanOrEqual(140)
     expect(bossPhases[0].target).toBeLessThanOrEqual(20)
     expect(bossPhases[0].target).toBeLessThan(peak)
   })
