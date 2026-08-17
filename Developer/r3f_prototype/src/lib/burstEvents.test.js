@@ -4,10 +4,10 @@ import {
   STAGE2_BURST_EVENTS,
   STAGE3_BURST_EVENTS,
   STAGE4_BURST_EVENTS,
-  STAGE3_QUARTER_SECOND_GREEN_SMILING_REINFORCEMENT_EVENTS,
-  STAGE3_QUARTER_SECOND_REINFORCEMENT_START_SEC,
-  STAGE3_QUARTER_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC,
-  STAGE3_QUARTER_SECOND_REINFORCEMENT_INTERVAL_SEC,
+  STAGE3_25_SECOND_GREEN_SMILING_REINFORCEMENT_EVENTS,
+  STAGE3_25_SECOND_REINFORCEMENT_START_SEC,
+  STAGE3_25_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC,
+  STAGE3_25_SECOND_REINFORCEMENT_INTERVAL_SEC,
   isRepeatingBurstEvent,
   repeatingBurstTickAt,
   repeatingBurstTickCount,
@@ -37,7 +37,7 @@ const STAGE2_HP_MULTIPLIER = 1.2
 
 const ordinaryZombieEvents = (events) => events.filter((event) => ORDINARY_ZOMBIE_TYPE_RE.test(event.type))
 const stageZombieEvents = (events) => events.filter((event) => !isBossType(event.type))
-const stage3BaseEvents = (events) => events.filter((event) => event.reinforcement !== 'stage3QuarterSecondE01E07')
+const stage3BaseEvents = (events) => events.filter((event) => event.reinforcement !== 'stage3TwentyFiveSecondE01E07')
 const uniqueSeconds = (events) => [...new Set(events.map((event) => event.sec))].sort((a, b) => a - b)
 const payloadWithoutSec = (event) => Object.fromEntries(Object.entries(event).filter(([key]) => key !== 'sec'))
 const declaredCountByType = (events) => events.reduce((acc, event) => {
@@ -279,27 +279,27 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
     expect(crews.every((event) => event.type === 'RZL' && event.count === 7)).toBe(true)
   })
 
-  it('0.25초부터 149.75초까지 0.25초마다 E01×3+E07×3 런타임 보강을 추가한다', () => {
-    const reinforcement = STAGE3_BURST_EVENTS.filter((event) => event.reinforcement === 'stage3QuarterSecondE01E07')
-    expect(reinforcement).toEqual(STAGE3_QUARTER_SECOND_GREEN_SMILING_REINFORCEMENT_EVENTS)
+  it('25초부터 125초까지 25초마다 E01×3+E07×3 런타임 보강을 추가한다', () => {
+    const reinforcement = STAGE3_BURST_EVENTS.filter((event) => event.reinforcement === 'stage3TwentyFiveSecondE01E07')
+    expect(reinforcement).toEqual(STAGE3_25_SECOND_GREEN_SMILING_REINFORCEMENT_EVENTS)
     expect(reinforcement).toHaveLength(2)
     expect(reinforcement).toEqual([
-      { sec: STAGE3_QUARTER_SECOND_REINFORCEMENT_START_SEC, type: 'E01', count: 3, repeatIntervalSec: STAGE3_QUARTER_SECOND_REINFORCEMENT_INTERVAL_SEC, endExclusiveSec: STAGE3_QUARTER_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC, reinforcement: 'stage3QuarterSecondE01E07' },
-      { sec: STAGE3_QUARTER_SECOND_REINFORCEMENT_START_SEC, type: 'E07', count: 3, repeatIntervalSec: STAGE3_QUARTER_SECOND_REINFORCEMENT_INTERVAL_SEC, endExclusiveSec: STAGE3_QUARTER_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC, reinforcement: 'stage3QuarterSecondE01E07' },
+      { sec: STAGE3_25_SECOND_REINFORCEMENT_START_SEC, type: 'E01', count: 3, repeatIntervalSec: STAGE3_25_SECOND_REINFORCEMENT_INTERVAL_SEC, endExclusiveSec: STAGE3_25_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC, reinforcement: 'stage3TwentyFiveSecondE01E07' },
+      { sec: STAGE3_25_SECOND_REINFORCEMENT_START_SEC, type: 'E07', count: 3, repeatIntervalSec: STAGE3_25_SECOND_REINFORCEMENT_INTERVAL_SEC, endExclusiveSec: STAGE3_25_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC, reinforcement: 'stage3TwentyFiveSecondE01E07' },
     ])
     expect(reinforcement.every(isRepeatingBurstEvent)).toBe(true)
-    expect(reinforcement.map(repeatingBurstTickCount)).toEqual([599, 599])
-    expect(reinforcement.map((event) => repeatingBurstSecAtTick(event, 0))).toEqual([0.25, 0.25])
-    expect(reinforcement.map((event) => repeatingBurstSecAtTick(event, 598))).toEqual([149.75, 149.75])
-    expect(reinforcement.map((event) => repeatingBurstSecAtTick(event, 599))).toEqual([null, null])
-    expect(reinforcement.map((event) => repeatingBurstTickAt(event, 0.249))).toEqual([null, null])
-    expect(reinforcement.map((event) => repeatingBurstTickAt(event, 150))).toEqual([598, 598])
-    expect(reinforcement.filter((event) => event.type === 'E01').reduce((sum, event) => sum + event.count * repeatingBurstTickCount(event), 0)).toBe(1797)
-    expect(reinforcement.filter((event) => event.type === 'E07').reduce((sum, event) => sum + event.count * repeatingBurstTickCount(event), 0)).toBe(1797)
-    expect(reinforcement.reduce((sum, event) => sum + event.count * repeatingBurstTickCount(event), 0)).toBe(3594)
+    expect(reinforcement.map(repeatingBurstTickCount)).toEqual([5, 5])
+    expect(reinforcement.map((event) => repeatingBurstSecAtTick(event, 0))).toEqual([25, 25])
+    expect(reinforcement.map((event) => repeatingBurstSecAtTick(event, 4))).toEqual([125, 125])
+    expect(reinforcement.map((event) => repeatingBurstSecAtTick(event, 5))).toEqual([null, null])
+    expect(reinforcement.map((event) => repeatingBurstTickAt(event, 24.999))).toEqual([null, null])
+    expect(reinforcement.map((event) => repeatingBurstTickAt(event, 150))).toEqual([4, 4])
+    expect(reinforcement.filter((event) => event.type === 'E01').reduce((sum, event) => sum + event.count * repeatingBurstTickCount(event), 0)).toBe(15)
+    expect(reinforcement.filter((event) => event.type === 'E07').reduce((sum, event) => sum + event.count * repeatingBurstTickCount(event), 0)).toBe(15)
+    expect(reinforcement.reduce((sum, event) => sum + event.count * repeatingBurstTickCount(event), 0)).toBe(30)
     expect(getRuntimeBurstEventsForStage('stage3')).toBe(STAGE3_BURST_EVENTS)
     for (const stageId of ['stage1', 'stage2', 'stage4']) {
-      expect(getRuntimeBurstEventsForStage(stageId).some((event) => event.reinforcement === 'stage3QuarterSecondE01E07')).toBe(false)
+      expect(getRuntimeBurstEventsForStage(stageId).some((event) => event.reinforcement === 'stage3TwentyFiveSecondE01E07')).toBe(false)
     }
   })
 
@@ -447,7 +447,7 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     return appliedHp(event.type, stageId) * (event.count ?? 1)
   }
   const stageTotalHp = (stageId) => getRuntimeBurstEventsForStage(stageId)
-    .filter((event) => stageId !== 'stage3' || event.reinforcement !== 'stage3QuarterSecondE01E07')
+    .filter((event) => stageId !== 'stage3' || event.reinforcement !== 'stage3TwentyFiveSecondE01E07')
     .reduce((sum, event) => sum + eventHp(event, stageId), 0)
 
   it.each(allStageBurstTables)('%s 총 HP(보스 포함)는 1.3배 사다리 목표의 ±2% 안이다', (stageId) => {
