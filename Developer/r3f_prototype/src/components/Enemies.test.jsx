@@ -302,6 +302,17 @@ describe('all-stage overtime mixed ordinary reinforcements', () => {
     expect(source).toContain('if (clampZombieSpawnRequest(1, totalZombieCounts()) <= 0) break')
     expect(source).toContain('addEnemies(batch, true, cache.spawnToken)')
   })
+
+  it('consumes Stage 3 repeating burst descriptors through the existing RAF queue without using one-shot fired slots', () => {
+    const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('isRepeatingBurstEvent(evt)')
+    expect(source).toContain('repeatingBurstTickAt(evt, sec)')
+    expect(source).toContain('enqueueScheduled(SCHEDULE_BURST, burstIndex, tick)')
+    expect(source).toContain('scheduledRepeatBurstTicksRef.current[burstIndex] = tick')
+    expect(source).toContain('const firstTick = consumedRepeatBurstTicksRef.current[eventIndex] + 1')
+    expect(source).toContain('const spawnSec = repeatingBurstSecAtTick(evt, tick)')
+    expect(source).toContain('addEnemies(batch, true, cache.spawnToken)')
+  })
 })
 
 describe('stage 1 E06 spawn pressure', () => {

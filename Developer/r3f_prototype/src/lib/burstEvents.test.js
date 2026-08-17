@@ -4,6 +4,14 @@ import {
   STAGE2_BURST_EVENTS,
   STAGE3_BURST_EVENTS,
   STAGE4_BURST_EVENTS,
+  STAGE3_QUARTER_SECOND_GREEN_SMILING_REINFORCEMENT_EVENTS,
+  STAGE3_QUARTER_SECOND_REINFORCEMENT_START_SEC,
+  STAGE3_QUARTER_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC,
+  STAGE3_QUARTER_SECOND_REINFORCEMENT_INTERVAL_SEC,
+  isRepeatingBurstEvent,
+  repeatingBurstTickAt,
+  repeatingBurstTickCount,
+  repeatingBurstSecAtTick,
   RUN_ZOMBIE_CREW_FORMATION,
   STAGE2_GUARD_CHASE_FORMATION,
   BOSS_BURST_TYPES,
@@ -29,6 +37,7 @@ const STAGE2_HP_MULTIPLIER = 1.2
 
 const ordinaryZombieEvents = (events) => events.filter((event) => ORDINARY_ZOMBIE_TYPE_RE.test(event.type))
 const stageZombieEvents = (events) => events.filter((event) => !isBossType(event.type))
+const stage3BaseEvents = (events) => events.filter((event) => event.reinforcement !== 'stage3QuarterSecondE01E07')
 const uniqueSeconds = (events) => [...new Set(events.map((event) => event.sec))].sort((a, b) => a - b)
 const payloadWithoutSec = (event) => Object.fromEntries(Object.entries(event).filter(([key]) => key !== 'sec'))
 const declaredCountByType = (events) => events.reduce((acc, event) => {
@@ -126,10 +135,11 @@ describe('Stage 2 좀비 시간표 Stage 1 앵커 재배열', () => {
 
 describe('전 스테이지 1:50 웃는좀비·탱커 보강', () => {
   it.each(allStageBurstTables)('%s는 110초 E07 3마리와 E02 3마리를 정확히 1개씩 추가한다', (_stageId, events) => {
-    expect(events.filter((event) => event.sec === 110 && event.type === 'E07' && event.count === 3)).toHaveLength(1)
+    const baseEvents = stage3BaseEvents(events)
+    expect(baseEvents.filter((event) => event.sec === 110 && event.type === 'E07' && event.count === 3)).toHaveLength(1)
     // 2026-08-17: 스2가 따로 얹고 있던 110초 E02×3 중복분은 예산 감축으로 제거됐다.
     // 이제 네 스테이지 모두 공유 배열 1건씩만 갖는다 = 배열 분리 없이 공유를 유지할 수 있는 상태다.
-    expect(events.filter((event) => event.sec === 110 && event.type === 'E02' && event.count === 3)).toHaveLength(1)
+    expect(baseEvents.filter((event) => event.sec === 110 && event.type === 'E02' && event.count === 3)).toHaveLength(1)
   })
 
   it('Stage 2 웃는좀비 버스트는 사다리 예산에 맞춰 60초 5마리·108초 6마리로 재편성된다', () => {
@@ -172,8 +182,9 @@ describe('Stage 1 40초 녹색좀비·웃는좀비 추가 스폰', () => {
     ['stage3', STAGE3_BURST_EVENTS],
     ['stage4', STAGE4_BURST_EVENTS],
   ])('%s에는 이 40초 추가 스폰이 없다', (_stageId, events) => {
-    expect(events.filter((event) => event.sec === 40 && event.type === 'E01' && event.count === 6)).toHaveLength(0)
-    expect(events.filter((event) => event.sec === 40 && event.type === 'E07' && event.count === 3)).toHaveLength(0)
+    const baseEvents = stage3BaseEvents(events)
+    expect(baseEvents.filter((event) => event.sec === 40 && event.type === 'E01' && event.count === 6)).toHaveLength(0)
+    expect(baseEvents.filter((event) => event.sec === 40 && event.type === 'E07' && event.count === 3)).toHaveLength(0)
   })
 
   it('런타임 스케줄에도 동일하게 포함한다', () => {
@@ -268,6 +279,30 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
     expect(crews.every((event) => event.type === 'RZL' && event.count === 7)).toBe(true)
   })
 
+  it('0.25초부터 149.75초까지 0.25초마다 E01×3+E07×3 런타임 보강을 추가한다', () => {
+    const reinforcement = STAGE3_BURST_EVENTS.filter((event) => event.reinforcement === 'stage3QuarterSecondE01E07')
+    expect(reinforcement).toEqual(STAGE3_QUARTER_SECOND_GREEN_SMILING_REINFORCEMENT_EVENTS)
+    expect(reinforcement).toHaveLength(2)
+    expect(reinforcement).toEqual([
+      { sec: STAGE3_QUARTER_SECOND_REINFORCEMENT_START_SEC, type: 'E01', count: 3, repeatIntervalSec: STAGE3_QUARTER_SECOND_REINFORCEMENT_INTERVAL_SEC, endExclusiveSec: STAGE3_QUARTER_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC, reinforcement: 'stage3QuarterSecondE01E07' },
+      { sec: STAGE3_QUARTER_SECOND_REINFORCEMENT_START_SEC, type: 'E07', count: 3, repeatIntervalSec: STAGE3_QUARTER_SECOND_REINFORCEMENT_INTERVAL_SEC, endExclusiveSec: STAGE3_QUARTER_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC, reinforcement: 'stage3QuarterSecondE01E07' },
+    ])
+    expect(reinforcement.every(isRepeatingBurstEvent)).toBe(true)
+    expect(reinforcement.map(repeatingBurstTickCount)).toEqual([599, 599])
+    expect(reinforcement.map((event) => repeatingBurstSecAtTick(event, 0))).toEqual([0.25, 0.25])
+    expect(reinforcement.map((event) => repeatingBurstSecAtTick(event, 598))).toEqual([149.75, 149.75])
+    expect(reinforcement.map((event) => repeatingBurstSecAtTick(event, 599))).toEqual([null, null])
+    expect(reinforcement.map((event) => repeatingBurstTickAt(event, 0.249))).toEqual([null, null])
+    expect(reinforcement.map((event) => repeatingBurstTickAt(event, 150))).toEqual([598, 598])
+    expect(reinforcement.filter((event) => event.type === 'E01').reduce((sum, event) => sum + event.count * repeatingBurstTickCount(event), 0)).toBe(1797)
+    expect(reinforcement.filter((event) => event.type === 'E07').reduce((sum, event) => sum + event.count * repeatingBurstTickCount(event), 0)).toBe(1797)
+    expect(reinforcement.reduce((sum, event) => sum + event.count * repeatingBurstTickCount(event), 0)).toBe(3594)
+    expect(getRuntimeBurstEventsForStage('stage3')).toBe(STAGE3_BURST_EVENTS)
+    for (const stageId of ['stage1', 'stage2', 'stage4']) {
+      expect(getRuntimeBurstEventsForStage(stageId).some((event) => event.reinforcement === 'stage3QuarterSecondE01E07')).toBe(false)
+    }
+  })
+
   it('형태 버스트 중 stage3는 플레이어 상대 포위(ring/pincer) + runZombieCrew만 쓴다 (개방 맵 안티카이팅)', () => {
     // 재설계(2026-07-18): swarm(한 방향)·gauntlet(양벽)은 개방 아레나서 카이팅되므로 배제.
     const formations = STAGE3_BURST_EVENTS.filter((e) => e.formation).map((e) => e.formation)
@@ -282,8 +317,8 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
 
   // 2026-08-17 총체력 사다리: 잡몹 예산 5,541 → 4,652. 시그니처 RZL 크루 4회는 전부 유지하고
   // 무거운 덩어리에서만 뺐다(150초 E06 삭제, 110초 협공 6→3, 120초 포위 4→3, 오프닝 12→10).
-  it('모든 비보스 이벤트는 공통 13개 앵커만 쓰며 1.3배 사다리 예산에 맞는 payload·마릿수·실제 HP를 갖는다', () => {
-    const ordinary = STAGE3_BURST_EVENTS.filter((event) => !isBossType(event.type))
+  it('모든 기존 비보스 이벤트는 공통 13개 앵커만 쓰며 1.3배 사다리 예산에 맞는 payload·마릿수·실제 HP를 갖는다', () => {
+    const ordinary = stage3BaseEvents(STAGE3_BURST_EVENTS).filter((event) => !isBossType(event.type))
     expect(uniqueSeconds(ordinary)).toEqual([5, 24, 40, 60, 72, 108, 110, 120, 144, 150, 168, 184, 216])
     expect(ordinary.map(payloadWithoutSec)).toEqual([
       { type: 'E01', count: 10 }, { type: 'E03', count: 4 }, { type: 'E04', count: 1 }, { type: 'E05', count: 2 },
@@ -412,6 +447,7 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     return appliedHp(event.type, stageId) * (event.count ?? 1)
   }
   const stageTotalHp = (stageId) => getRuntimeBurstEventsForStage(stageId)
+    .filter((event) => stageId !== 'stage3' || event.reinforcement !== 'stage3QuarterSecondE01E07')
     .reduce((sum, event) => sum + eventHp(event, stageId), 0)
 
   it.each(allStageBurstTables)('%s 총 HP(보스 포함)는 1.3배 사다리 목표의 ±2% 안이다', (stageId) => {
@@ -431,14 +467,14 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     }
   })
 
-  it.each(allStageBurstTables)('%s 보스를 제외한 모든 이벤트 sec은 공통 13개 앵커의 부분집합이다', (_stageId, events) => {
-    const secs = uniqueSeconds(stageZombieEvents(events))
+  it.each(allStageBurstTables)('%s 보스를 제외한 기존 이벤트 sec은 공통 13개 앵커의 부분집합이다', (_stageId, events) => {
+    const secs = uniqueSeconds(stageZombieEvents(stage3BaseEvents(events)))
     expect(secs.filter((sec) => !SPAWN_ANCHORS.includes(sec))).toEqual([])
   })
 
   it('네 스테이지 모두 13개 앵커를 빠짐없이 쓴다 (긴 스폰 공백 금지)', () => {
     for (const [, events] of allStageBurstTables) {
-      expect(uniqueSeconds(stageZombieEvents(events))).toEqual(SPAWN_ANCHORS)
+      expect(uniqueSeconds(stageZombieEvents(stage3BaseEvents(events)))).toEqual(SPAWN_ANCHORS)
     }
   })
 

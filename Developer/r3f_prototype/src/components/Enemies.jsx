@@ -15,7 +15,7 @@ import { getE04IntroSec } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { dogeEscapeDirection } from '../lib/dogeEscape.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
-import { RUN_ZOMBIE_CREW_FORMATION, STAGE2_GUARD_CHASE_FORMATION, getBurstEventsForStage, getRuntimeBurstEventsForStage, isBossType } from '../lib/burstEvents.js'
+import { RUN_ZOMBIE_CREW_FORMATION, STAGE2_GUARD_CHASE_FORMATION, getBurstEventsForStage, getRuntimeBurstEventsForStage, isBossType, isRepeatingBurstEvent, repeatingBurstSecAtTick, repeatingBurstTickAt } from '../lib/burstEvents.js'
 import { buildWavePhasesFromEntries } from '../lib/waveControl.js'
 import { getAdminWaveControlConfig } from '../lib/adminConfig.js'
 import { enemyTypeToCode, enemyTypeFromCode, createEnemyEntityPool, MAX_ENEMIES } from '../lib/enemyEntityPool.js'
@@ -808,6 +808,9 @@ export function stageExpectedBaseJarmobHp(stageId) {
 export function stageBurstJarmobBaseHp(stageId) {
   let total = 0
   for (const evt of getRuntimeBurstEventsForStage(stageId)) {
+    // User-directed repeating reinforcement is additional runtime pressure, not a
+    // replacement for the established density curve.
+    if (isRepeatingBurstEvent(evt)) continue
     if (!JARMOB_HP_TYPES.has(evt.type)) continue
     total += (evt.count ?? 1) * (ENEMY_STATS[evt.type]?.hp ?? 0)
   }
@@ -1112,7 +1115,9 @@ export default function Enemies() {
   const runtimeContextRef         = useRef({ delta: 0, playerX: 0, playerZ: 0, halfX: 1, halfZ: 1, elapsedSec: 0, activeProjectileCount: 0, stageId: 'stage1', e04IntroSec: 72, bossPressure: false, obstacles: null, obstacleCount: 0, sightBlocked: enemySightBlocked })
   const stageRuntimeCacheRef      = useRef(null)
   const projectileHitRef          = useRef(null)
-  const firedBurstsRef            = useRef(new Uint8Array(64))
+  const firedBurstsRef            = useRef(new Uint8Array(2048))
+  const scheduledRepeatBurstTicksRef = useRef(new Int16Array(2048))
+  const consumedRepeatBurstTicksRef = useRef(new Int16Array(2048))
   const goldTimerRef              = useRef(nextGoldInterval())
   const dogeSpawnedRef           = useRef(false)     // 60초 도지 이벤트 1회 스폰 가드
   const overtimeTickRef          = useRef(-1)
@@ -1153,6 +1158,8 @@ export default function Enemies() {
       stageConfig: getStageConfig(currentStageId),
     }
     firedBurstsRef.current.fill(0)
+    scheduledRepeatBurstTicksRef.current.fill(-1)
+    consumedRepeatBurstTicksRef.current.fill(-1)
     overtimeTickRef.current = -1
     sightGenerationRef.current.fill(0)
     sightTierRef.current.fill(0)
@@ -1473,6 +1480,28 @@ export default function Enemies() {
     } else if (kind === SCHEDULE_BURST) {
       const evt = cache.burstEvents[Math.trunc(a)]
       if (!evt) return
+      if (isRepeatingBurstEvent(evt)) {
+        const eventIndex = Math.trunc(a)
+        const firstTick = consumedRepeatBurstTicksRef.current[eventIndex] + 1
+        const lastTick = Math.trunc(b)
+        if (lastTick < firstTick) return
+        for (let tick = firstTick; tick <= lastTick; tick += 1) {
+          const spawnSec = repeatingBurstSecAtTick(evt, tick)
+          if (spawnSec === null) continue
+          const batch = []
+          const count = evt.count ?? 1
+          for (let spawnIndex = 0; spawnIndex < count; spawnIndex += 1) {
+            const taken = batch.map((enemy) => enemy.pos)
+            const pos = spawnPosForBurstType(evt.type, cache.bounds, taken, Math.random, cache.obstacles)
+            if (!pos) continue
+            batch.push({ id: ++_uid, type: evt.type, pos, statOverride: stageHpOverride(evt.type, cache.id) })
+          }
+          recordMissionBurstSpawns(store, batch, cache.id, spawnSec)
+          addEnemies(batch, true, cache.spawnToken)
+        }
+        consumedRepeatBurstTicksRef.current[eventIndex] = lastTick
+        return
+      }
       if (isBossType(evt.type)) {
         spawnBoss()
         const bossBatch = []
@@ -1654,6 +1683,12 @@ export default function Enemies() {
     const burstEvents = stageRuntime.burstEvents
     for (let burstIndex = 0; burstIndex < burstEvents.length; burstIndex += 1) {
       const evt = burstEvents[burstIndex]
+      if (isRepeatingBurstEvent(evt)) {
+        const tick = repeatingBurstTickAt(evt, sec)
+        if (tick === null || tick <= scheduledRepeatBurstTicksRef.current[burstIndex]) continue
+        if (enqueueScheduled(SCHEDULE_BURST, burstIndex, tick)) scheduledRepeatBurstTicksRef.current[burstIndex] = tick
+        continue
+      }
       if (!shouldScheduleBurst(firedBurstsRef.current[burstIndex], sec, evt.sec)) continue
       firedBurstsRef.current[burstIndex] = 1
       enqueueScheduled(SCHEDULE_BURST, burstIndex, sec)

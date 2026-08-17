@@ -11,6 +11,37 @@ export const isBossType = (type) => BOSS_BURST_TYPES.includes(type)
 export const RUN_ZOMBIE_CREW_FORMATION = 'runZombieCrew'
 export const STAGE2_GUARD_CHASE_FORMATION = 'stage2GuardChase'
 export const STAGE2_MIXED_REINFORCEMENT = 'stage2MixedReinforcement'
+export const STAGE3_QUARTER_SECOND_REINFORCEMENT = 'stage3QuarterSecondE01E07'
+export const STAGE3_QUARTER_SECOND_REINFORCEMENT_START_SEC = 0.25
+export const STAGE3_QUARTER_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC = 150
+export const STAGE3_QUARTER_SECOND_REINFORCEMENT_INTERVAL_SEC = 0.25
+
+// The runtime table holds two repeat descriptors instead of 1,198 entries.
+export const STAGE3_QUARTER_SECOND_GREEN_SMILING_REINFORCEMENT_EVENTS = [
+  { sec: STAGE3_QUARTER_SECOND_REINFORCEMENT_START_SEC, type: 'E01', count: 3, repeatIntervalSec: STAGE3_QUARTER_SECOND_REINFORCEMENT_INTERVAL_SEC, endExclusiveSec: STAGE3_QUARTER_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC, reinforcement: STAGE3_QUARTER_SECOND_REINFORCEMENT },
+  { sec: STAGE3_QUARTER_SECOND_REINFORCEMENT_START_SEC, type: 'E07', count: 3, repeatIntervalSec: STAGE3_QUARTER_SECOND_REINFORCEMENT_INTERVAL_SEC, endExclusiveSec: STAGE3_QUARTER_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC, reinforcement: STAGE3_QUARTER_SECOND_REINFORCEMENT },
+]
+
+export function isRepeatingBurstEvent(event) {
+  return Number.isFinite(event?.repeatIntervalSec) && event.repeatIntervalSec > 0 && Number.isFinite(event?.endExclusiveSec) && event.endExclusiveSec > event.sec
+}
+
+export function repeatingBurstTickCount(event) {
+  if (!isRepeatingBurstEvent(event)) return 0
+  return Math.ceil((event.endExclusiveSec - event.sec) / event.repeatIntervalSec)
+}
+
+export function repeatingBurstTickAt(event, elapsedSec) {
+  if (!isRepeatingBurstEvent(event) || !Number.isFinite(elapsedSec) || elapsedSec < event.sec) return null
+  if (elapsedSec >= event.endExclusiveSec) return repeatingBurstTickCount(event) - 1
+  return Math.floor((elapsedSec - event.sec) / event.repeatIntervalSec)
+}
+
+export function repeatingBurstSecAtTick(event, tick) {
+  const safeTick = Math.floor(tick)
+  if (!isRepeatingBurstEvent(event) || safeTick < 0 || safeTick >= repeatingBurstTickCount(event)) return null
+  return event.sec + safeTick * event.repeatIntervalSec
+}
 export const ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS = [
   { sec: 110, type: 'E07', count: 3 },
   { sec: 110, type: 'E02', count: 3 },
@@ -116,6 +147,7 @@ export const STAGE2_BURST_EVENTS = [
 // 형태 버스트는 개방 아레나 안티카이팅용 ring/pincer만 쓴다(swarm/gauntlet 배제 — 넓은 사공간서 자명하게 카이팅됨).
 // 예고 정본 STAGE3_SPAWN_TELEGRAPHS와 배열 순서까지 1:1 정렬(waveTimelines.test.js가 검사).
 export const STAGE3_BURST_EVENTS = [
+  ...STAGE3_QUARTER_SECOND_GREEN_SMILING_REINFORCEMENT_EVENTS,
   { sec:   5, type: 'E01', count: 10 },                         // 온보딩 초기 밀도
   { sec:  24, type: 'E03', count:  4 },                         // 러너 조기 압박
   { sec:  40, type: 'E04', count:  1 },                         // 원거리 조기 등장 신호(e04IntroSec 34 이후)
