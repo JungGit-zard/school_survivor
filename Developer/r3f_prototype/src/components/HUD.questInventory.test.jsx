@@ -26,6 +26,7 @@ function clickQuestBag(container) {
 
 beforeEach(() => {
   useGameStore.getState().resetGame('stage1')
+  useGameStore.setState({ bossPassiveUnlocks: {} })
 })
 
 describe('quest inventory HUD', () => {
@@ -61,6 +62,20 @@ describe('quest inventory HUD', () => {
       clickQuestBag(container)
       expect(container.textContent).toContain('아직 받은 퀘스트가 없어요.')
       expect(container.textContent).toContain('도움이 필요한 학생을 조사해 보세요.')
+      expect(container.textContent).toContain('보스 패시브 아이템')
+      expect(container.querySelectorAll('[aria-label="빈 보스 패시브 슬롯"]')).toHaveLength(8)
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+
+  it('fills the first boss passive slot with the set square after B01 is defeated', () => {
+    useGameStore.setState({ bossPassiveUnlocks: { b01SetSquare: true } })
+    const { container, root } = renderHud()
+    try {
+      clickQuestBag(container)
+      expect(container.querySelector('[aria-label="삼각자 — 커터칼·30cm 자·바이키티 공격력 +5%"]')).not.toBeNull()
+      expect(container.querySelectorAll('[aria-label="빈 보스 패시브 슬롯"]')).toHaveLength(7)
     } finally {
       act(() => root.unmount())
     }

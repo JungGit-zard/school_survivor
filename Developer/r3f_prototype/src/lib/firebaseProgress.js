@@ -1,4 +1,5 @@
 import { getFirebaseConfig, isFirebaseAuthConfigured } from './firebaseAuth.js'
+import { normalizeBossPassiveUnlocks } from './bossPassiveItems.js'
 
 const DATABASE_URL_KEY = 'VITE_FIREBASE_DATABASE_URL'
 const SCHEMA_VERSION = 1
@@ -9,6 +10,7 @@ export const PLAYER_DURABLE_STORAGE_KEYS = Object.freeze([
   'school_survivor:weaponUnlocks',
   'school_survivor:weaponPermanentUpgrades',
   'school_survivor:passiveUpgrades',
+  'school_survivor:bossPassiveUnlocks',
   'school_survivor:zombieEncounters',
   'school_survivor:userNicknames',
   'school_survivor:titleSettings',
@@ -548,6 +550,7 @@ function createEmptyProgress() {
     weaponUnlocks: {},
     weaponPermanentUpgrades: {},
     passiveUpgrades: {},
+    bossPassiveUnlocks: {},
     encounteredZombieTypes: {},
     missions: createEmptyMissionProgress(),
     titleSettings: { ...DEFAULT_TITLE_SETTINGS },
@@ -561,6 +564,7 @@ function normalizeProgress(progress) {
   out.weaponUnlocks = normalizeFlagMap(progress.weaponUnlocks)
   out.weaponPermanentUpgrades = normalizeNumberMap(progress.weaponPermanentUpgrades)
   out.passiveUpgrades = normalizeNumberMap(progress.passiveUpgrades)
+  out.bossPassiveUnlocks = normalizeBossPassiveUnlocks(progress.bossPassiveUnlocks)
   out.encounteredZombieTypes = normalizeZombieEncounterMap(progress.encounteredZombieTypes)
   out.missions = normalizeMissionProgress(progress.missions)
   out.titleSettings = normalizeTitleSettings(progress.titleSettings)
@@ -803,6 +807,7 @@ function cloneProgress(progress) {
     weaponUnlocks: { ...progress.weaponUnlocks },
     weaponPermanentUpgrades: { ...progress.weaponPermanentUpgrades },
     passiveUpgrades: { ...progress.passiveUpgrades },
+    bossPassiveUnlocks: { ...progress.bossPassiveUnlocks },
     encounteredZombieTypes: { ...progress.encounteredZombieTypes },
     missions: cloneMissionProgress(progress.missions),
     titleSettings: { ...progress.titleSettings },

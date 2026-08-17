@@ -57,6 +57,18 @@ describe('Realtime Database rules', () => {
     expect(progressValidation).not.toContain("'weaponUnlocks'")
     expect(progressValidation).not.toContain("'weaponPermanentUpgrades'")
     expect(progressValidation).not.toContain("'passiveUpgrades'")
+    expect(progressValidation).not.toContain("'bossPassiveUnlocks'")
+  })
+
+  it('allows only the B01 boss passive unlock flag', () => {
+    const unlocks = rules.users.$uid.progress.bossPassiveUnlocks
+
+    expect(unlocks.b01SetSquare['.validate']).toContain('newData.isBoolean()')
+    expect(unlocks.b01SetSquare['.validate']).toContain('newData.val() === true')
+    expect(unlocks.$other['.validate']).toBe(false)
+    expect(evalRule(unlocks.b01SetSquare['.validate'], { newData: ruleData(true) })).toBe(true)
+    expect(evalRule(unlocks.b01SetSquare['.validate'], { newData: ruleData(false) })).toBe(false)
+    expect(evalRule(unlocks.$other['.validate'], { newData: ruleData(true) })).toBe(false)
   })
 
   it('keeps only one canonical Studio route and restricts Studio writes to GOD account', () => {

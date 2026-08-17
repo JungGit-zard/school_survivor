@@ -68,6 +68,7 @@ function remoteSnapshot(overrides = {}) {
       weaponUnlocks: { guidedMissile: 1 },
       weaponPermanentUpgrades: { pencilThrow: 2 },
       passiveUpgrades: { magnet: 2 },
+      bossPassiveUnlocks: { b01SetSquare: true },
       titleSettings: { vibration: false, reducedEffects: true, unlockAllWeaponsCheat: false },
       ...progressOverrides,
     },
@@ -124,7 +125,20 @@ describe('firebase-only player progress runtime', () => {
     expect(save).not.toHaveBeenCalled()
     expect(isFirebaseProgressHydrated(USER)).toBe(true)
     expect(getFirebaseProgressRuntimeSnapshot().progress.goldTotal).toBe(42)
+    expect(getFirebaseProgressRuntimeSnapshot().progress.bossPassiveUnlocks).toEqual({ b01SetSquare: true })
     expect(buildCloudUserProfile(USER)).toEqual({ uid: 'uid-1', displayName: 'Tester', nickname: '생존왕' })
+  })
+
+  it('keeps only the implemented B01 boss passive flag through Firebase progress snapshots', () => {
+    applyCloudProgressSnapshot(remoteSnapshot({
+      progress: { bossPassiveUnlocks: { b01SetSquare: true, b02Unimplemented: true } },
+    }), USER)
+
+    const runtime = getFirebaseProgressRuntimeSnapshot()
+    const snapshot = buildCloudProgressSnapshot()
+
+    expect(runtime.progress.bossPassiveUnlocks).toEqual({ b01SetSquare: true })
+    expect(snapshot.progress.bossPassiveUnlocks).toEqual({ b01SetSquare: true })
   })
 
   it('fails closed when the authenticated account has no remote snapshot and never uploads defaults', async () => {
@@ -279,6 +293,7 @@ describe('firebase-only player progress runtime', () => {
       weaponUnlocks: expect.objectContaining({ guidedMissile: 1, sharkMissile: 1 }),
       weaponPermanentUpgrades: expect.objectContaining({ pencilThrow: 2 }),
       passiveUpgrades: expect.objectContaining({ magnet: 2, maxHp: 1 }),
+      bossPassiveUnlocks: { b01SetSquare: true },
       titleSettings: expect.objectContaining({ vibration: false, reducedEffects: true }),
     }))
     expect(snapshot.profile.nickname).toBe('Firebase왕')
@@ -340,6 +355,7 @@ describe('firebase-only player progress runtime', () => {
     expect(() => localStorage.setItem('school_survivor:goldTotal', '1')).toThrow(/Firebase-only player data/)
     expect(() => sessionStorage.setItem('school_survivor:playerRecords', '{}')).toThrow(/Firebase-only player data/)
     expect(() => localStorage.getItem('school_survivor:passiveUpgrades')).toThrow(/Firebase-only player data/)
+    expect(() => localStorage.setItem('school_survivor:bossPassiveUnlocks', '{}')).toThrow(/Firebase-only player data/)
     expect(() => localStorage.setItem('school_survivor:adminConfig', '{}')).not.toThrow()
   })
 })

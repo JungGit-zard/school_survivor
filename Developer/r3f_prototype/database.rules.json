@@ -31,6 +31,10 @@
           "passiveUpgrades": {
             "$passiveId": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100 && newData.val() % 1 === 0" }
           },
+          "bossPassiveUnlocks": {
+            "b01SetSquare": { ".validate": "newData.isBoolean() && newData.val() === true" },
+            "$other": { ".validate": false }
+          },
           "encounteredZombieTypes": {
             "$zombieType": { ".validate": "newData.val() === 1 && ($zombieType === 'E01' || $zombieType === 'E02' || $zombieType === 'E03' || $zombieType === 'E04' || $zombieType === 'E05' || $zombieType === 'E06' || $zombieType === 'E07' || $zombieType === 'RZL' || $zombieType === 'RZC' || $zombieType === 'RZT' || $zombieType === 'RZG' || $zombieType === 'B01' || $zombieType === 'B02' || $zombieType === 'B03' || $zombieType === 'B04')" }
           },

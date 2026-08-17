@@ -9,6 +9,11 @@ import {
   getChibikoAllWeaponBoost,
   purchaseWeaponPermanentUpgrade as purchaseWeaponPermanentUpgradeStorage,
 } from '../lib/weaponPermanentUpgrades.js'
+import {
+  applyBossPassiveDamageToBaseWeapon,
+  normalizeBossPassiveUnlocks,
+  unlockBossPassiveItem,
+} from '../lib/bossPassiveItems.js'
 import { setMagnetMultiplier } from '../lib/pickup.js'
 import {
   incrementRecord as incrementPlayerRecord,
@@ -83,14 +88,15 @@ function buildInitialPlayer(levels) {
 // WEAPON_CATALOG가 무기 base 스탯의 단일 진실이다. starter 무기는 startsActive:true로 시작,
 // 나머지는 unlock 카드가 fire될 때 비로소 weapons[key].active = true로 활성화.
 // might passive multiplier는 모든 무기에 동일 적용.
-function buildInitialWeapons(levels, { applyPermanent = true } = {}) {
+function buildInitialWeapons(levels, { applyPermanent = true, bossPassiveUnlocks = {} } = {}) {
   const mightMult = 1 + 0.04 * (levels.might ?? 0)
   const out = {}
   for (const [key, entry] of Object.entries(WEAPON_CATALOG)) {
     const permanentBase = applyPermanent ? applyWeaponPermanentUpgradesToBaseWeapon(key, entry.base) : entry.base
-    const baseDamage = permanentBase?.damage ?? 0
+    const passiveBase = applyBossPassiveDamageToBaseWeapon(key, permanentBase, bossPassiveUnlocks)
+    const baseDamage = passiveBase?.damage ?? 0
     out[key] = {
-      ...permanentBase,
+      ...passiveBase,
       label: entry.label,
       level: entry.startsActive ? 1 : 0,
       active: !!entry.startsActive,
@@ -101,6 +107,14 @@ function buildInitialWeapons(levels, { applyPermanent = true } = {}) {
     }
   }
   return out
+}
+
+function applyBossPassiveDamageToRuntimeWeapons(weapons, bossPassiveUnlocks) {
+  const nextWeapons = { ...weapons }
+  for (const key of Object.keys(nextWeapons)) {
+    nextWeapons[key] = applyBossPassiveDamageToBaseWeapon(key, nextWeapons[key], bossPassiveUnlocks)
+  }
+  return nextWeapons
 }
 
 function buildGrowthMultiplier(levels) {
@@ -148,6 +162,11 @@ function syncStoredWeaponUnlocksFromRecords() {
 
 function loadRuntimePassiveLevels() {
   return isFirebaseProgressHydrated() ? getAllLevels() : EMPTY_PASSIVE_LEVELS
+}
+
+function loadBossPassiveUnlocks() {
+  if (!isFirebaseProgressHydrated()) return {}
+  return normalizeBossPassiveUnlocks(readFirebasePlayerProgress().bossPassiveUnlocks)
 }
 
 function saveRuntimeProgress() {
@@ -203,6 +222,7 @@ export const useGameStore = create(
   subscribeWithSelector((set, get) => ({
     player:      buildInitialPlayer(EMPTY_PASSIVE_LEVELS),
     weapons:     buildInitialWeapons(EMPTY_PASSIVE_LEVELS, { applyPermanent: false }),
+    bossPassiveUnlocks: {},
     growthMultiplier: buildGrowthMultiplier(EMPTY_PASSIVE_LEVELS),
     passiveVersion: 0,
     phase:       'playing',   // 'playing' | 'paused' | 'levelup' | 'gameover' | 'cleared'
@@ -367,10 +387,31 @@ export const useGameStore = create(
     // 본 런 처치 카운터 +1. 인자 없는 단순 signature — per-type 카운터가 필요해지면 그때 분기 추가.
     recordKill: () => set((s) => ({ runKills: s.runKills + 1 })),
 
-    // 보스 처치는 mid-run에 즉시 cumulative에 누적. B01은 한 런에 1회 이하이므로 안전.
-    recordBossKill: () => {
+    // 보스 처치는 mid-run에 즉시 cumulative에 누적한다. B01 삼각자는 Firebase 준비 전에도
+    // 현재 메모리 런에서 즉시 해금·적용되며, 저장 실패가 플레이를 막지 않는다.
+    recordBossKill: (bossId) => {
+      const state = get()
+      const isB01 = bossId === 'B01'
+      const nextBossPassiveUnlocks = isB01
+        ? unlockBossPassiveItem(state.bossPassiveUnlocks, 'b01SetSquare')
+        : state.bossPassiveUnlocks
+      const unlockedNow = isB01 && nextBossPassiveUnlocks.b01SetSquare !== state.bossPassiveUnlocks.b01SetSquare
+
+      if (unlockedNow) {
+        set({
+          bossPassiveUnlocks: nextBossPassiveUnlocks,
+          weapons: applyBossPassiveDamageToRuntimeWeapons(state.weapons, nextBossPassiveUnlocks),
+        })
+      }
       if (!isFirebaseProgressHydrated()) return
       incrementPlayerRecord('bossKills', 1)
+      if (unlockedNow) {
+        updateFirebasePlayerProgress((progress) => {
+          progress.bossPassiveUnlocks = nextBossPassiveUnlocks
+          return progress
+        })
+        void requestCloudProgressSave()
+      }
     },
 
     hydrateMissionProgress: () => {
@@ -615,7 +656,7 @@ export const useGameStore = create(
       const levels = getAllLevels()
       set((s) => ({
         goldTotal: result.nextGold,
-        weapons: buildInitialWeapons(levels),
+        weapons: buildInitialWeapons(levels, { bossPassiveUnlocks: s.bossPassiveUnlocks }),
         passiveVersion: s.passiveVersion + 1,
         levelUpChoiceSerial: s.levelUpChoiceSerial + 1,
       }))
@@ -630,7 +671,7 @@ export const useGameStore = create(
       applyMagnetPassive(levels)
       set((s) => ({
         player: buildInitialPlayer(levels),
-        weapons: buildInitialWeapons(levels),
+        weapons: buildInitialWeapons(levels, { bossPassiveUnlocks: s.bossPassiveUnlocks }),
         growthMultiplier: buildGrowthMultiplier(levels),
         passiveVersion: s.passiveVersion + 1,
         levelUpChoiceSerial: s.levelUpChoiceSerial + 1,
@@ -642,12 +683,14 @@ export const useGameStore = create(
     reloadPersistentProgress: () => {
       if (!isFirebaseProgressHydrated()) return false
       const levels = getAllLevels()
+      const bossPassiveUnlocks = loadBossPassiveUnlocks()
       applyMagnetPassive(levels)
       syncStoredWeaponUnlocksFromRecords()
       set((s) => ({
         goldTotal: loadGoldTotal(),
         player: buildInitialPlayer(levels),
-        weapons: buildInitialWeapons(levels),
+        weapons: buildInitialWeapons(levels, { bossPassiveUnlocks }),
+        bossPassiveUnlocks,
         growthMultiplier: buildGrowthMultiplier(levels),
         passiveVersion: s.passiveVersion + 1,
       }))
@@ -986,12 +1029,14 @@ export const useGameStore = create(
       resetRuntimeRefs()
       const progressReady = isFirebaseProgressHydrated()
       const levels = loadRuntimePassiveLevels()
+      const bossPassiveUnlocks = progressReady ? loadBossPassiveUnlocks() : get().bossPassiveUnlocks
       const nextStageId = getStageConfig(stageId).id
       applyMagnetPassive(levels)
       syncStoredWeaponUnlocksFromRecords()
       set((s) => ({
         player:      buildInitialPlayer(levels),
-        weapons:     buildInitialWeapons(levels, { applyPermanent: progressReady }),
+        weapons:     buildInitialWeapons(levels, { applyPermanent: progressReady, bossPassiveUnlocks }),
+        bossPassiveUnlocks,
         growthMultiplier: buildGrowthMultiplier(levels),
         phase:       'playing',
         pauseSource: null,

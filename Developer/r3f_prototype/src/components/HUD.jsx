@@ -18,6 +18,7 @@ import { CRITICAL_SHAKE_NORMAL_DURATION_MS, emitCriticalHitScreenShake, isCritic
 import { MATILDA_DIALOGUE_MS } from '../lib/matildaEntryGrace.js'
 import { getDialogueText } from '../dialogues/dialogueStore.js'
 import { getQuestDefinition, getStageQuestDefinitions } from '../lib/quests.js'
+import { BOSS_PASSIVE_ITEM_UI_CAPACITY, BOSS_PASSIVE_ITEMS, isBossPassiveItemUnlocked } from '../lib/bossPassiveItems.js'
 import {
   DEFAULT_STUDIO_TUNING,
   GRAPHICS_STUDIO_TUNING_EVENT,
@@ -53,6 +54,7 @@ import bikittyCutterIconSrc from '../assets/weapon_icon/17_wea_bikitty_cutter.sv
 import lineDrawIconSrc from '../assets/weapon_icon/18_wea_line_draw.svg'
 import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
 import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.webp'
+
 import laidManPortraitSrc from '../assets/character/laid_man.webp'
 import matildaConversationPortraitSrc from '../assets/character/matilda_conversation.png'
 
@@ -657,7 +659,7 @@ export default function HUD({
     newlyUnlockedWeaponIds, levelUpChoiceSerial,
     escapePortalActive, matildaSpawned, deathCause, bossBonus,
     studentDialogue, introDialogue,
-    questProgress, questToast, newQuestItemIds,
+    questProgress, questToast, newQuestItemIds, bossPassiveUnlocks,
     clearMilestone, applyUpgrade, cheatAcquireWeapon, resumeFromLevelup,
     resetGame, togglePause, resumeGame, quitPausedRun, spawnMatilda,
     closeStudentDialogue, advanceIntro, toggleQuestInventory, closeQuestInventory,
@@ -686,6 +688,7 @@ export default function HUD({
     questProgress:        s.questProgress,
     questToast:           s.questToast,
     newQuestItemIds:      s.newQuestItemIds,
+    bossPassiveUnlocks:   s.bossPassiveUnlocks,
     clearMilestone:       s.clearMilestone,
     applyUpgrade:         s.applyUpgrade,
     cheatAcquireWeapon:   s.cheatAcquireWeapon,
@@ -711,6 +714,14 @@ export default function HUD({
   const showResultDevTools = devToolsVisible && getAdminOperationsConfig().cheatMenuButtonVisible && (phase === 'gameover' || phase === 'cleared')
   const questInventoryOpen = phase === 'paused' && pauseSource === 'quest'
   const stageQuests = useMemo(() => getStageQuestDefinitions(currentStageId), [currentStageId])
+  const bossPassiveSlots = useMemo(() => {
+    const setSquare = BOSS_PASSIVE_ITEMS.b01SetSquare
+    return Array.from({ length: BOSS_PASSIVE_ITEM_UI_CAPACITY }, (_, index) => (
+      index === 0 && isBossPassiveItemUnlocked(bossPassiveUnlocks, setSquare.id)
+        ? { ...setSquare, icon: '📐' }
+        : null
+    ))
+  }, [bossPassiveUnlocks])
   const visibleQuests = useMemo(
     () => stageQuests.filter((quest) => ['active', 'item-acquired', 'completed'].includes(questProgress?.[quest.id]?.status)).slice(0, 2),
     [questProgress, stageQuests],
@@ -1417,6 +1428,27 @@ export default function HUD({
               ))}
             </section>
           )}
+          <section aria-label="보스 패시브 아이템" style={styles.bossPassiveSection}>
+            <h3 style={styles.questItemHeading}>보스 패시브 아이템</h3>
+            <div role="list" style={styles.bossPassiveGrid}>
+              {bossPassiveSlots.map((item, index) => (
+                <div
+                  key={item?.id ?? `empty-boss-passive-slot-${index}`}
+                  role="listitem"
+                  aria-label={item ? `${item.name} — ${item.description}` : '빈 보스 패시브 슬롯'}
+                  style={{ ...styles.bossPassiveSlot, ...(item ? styles.bossPassiveSlotUnlocked : null) }}
+                >
+                  {item ? (
+                    <>
+                      <span aria-hidden="true" style={styles.bossPassiveIcon}>{item.icon}</span>
+                      <strong style={styles.bossPassiveName}>{item.name}</strong>
+                      <small style={styles.bossPassiveDescription}>{item.description}</small>
+                    </>
+                  ) : <span aria-hidden="true" style={styles.bossPassiveEmptyMark}>+</span>}
+                </div>
+              ))}
+            </div>
+          </section>
         </aside>
       )}
 
@@ -2315,6 +2347,28 @@ const styles = {
   questItemSection: { marginTop: 14, paddingTop: 11, borderTop: uiBorders.hairline },
   questItemHeading: { margin: '0 0 8px', fontSize: 15, fontWeight: uiType.weightHeavy },
   questItem: { display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0' },
+  bossPassiveSection: { marginTop: 14, paddingTop: 11, borderTop: uiBorders.hairline },
+  bossPassiveGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 7 },
+  bossPassiveSlot: {
+    minHeight: 76,
+    boxSizing: 'border-box',
+    border: '2px dashed #b8afa3',
+    borderRadius: 8,
+    background: '#eee9df',
+    color: '#8b8378',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    padding: '5px 3px',
+    textAlign: 'center',
+  },
+  bossPassiveSlotUnlocked: { border: '2px solid #b88419', background: '#fff3c4', color: '#412d06', boxShadow: 'inset 0 0 0 1px #fffbe6' },
+  bossPassiveIcon: { fontSize: 24, lineHeight: 1 },
+  bossPassiveName: { fontSize: 12, lineHeight: 1.1 },
+  bossPassiveDescription: { fontSize: 9, lineHeight: 1.25, fontWeight: uiType.weightStrong },
+  bossPassiveEmptyMark: { fontSize: 20, lineHeight: 1, opacity: 0.65 },
   quickRestartButton: {
     width: 40,
     height: 40,
