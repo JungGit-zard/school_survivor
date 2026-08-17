@@ -14,7 +14,6 @@ import {
   getBossPhaseStatus,
   isBossPhase,
 } from './burstEvents.js'
-import { BOSS_SPAWN_CENTER_SEC } from './stageConfig.js'
 
 const allStageBurstTables = [
   ['stage1', BURST_EVENTS],
@@ -22,6 +21,40 @@ const allStageBurstTables = [
   ['stage3', STAGE3_BURST_EVENTS],
   ['stage4', STAGE4_BURST_EVENTS],
 ]
+
+const STAGE1_FIRST_WAVE_SEC = 5
+
+describe('Stage 1 첫 웨이브 5초 게이트', () => {
+  it('런타임 좀비 버스트는 첫 웨이브 전(sec < 5)에 나오지 않고 E01 18마리 버스트를 예약하지 않는다', () => {
+    const stage1Runtime = getRuntimeBurstEventsForStage('stage1')
+    const zombieEventsBeforeFirstWave = stage1Runtime.filter((event) => /^E\d+/.test(event.type) && event.sec < STAGE1_FIRST_WAVE_SEC)
+
+    expect(zombieEventsBeforeFirstWave).toEqual([])
+    expect(stage1Runtime).not.toContainEqual(expect.objectContaining({ type: 'E01', count: 18 }))
+    expect(stage1Runtime[0]).toEqual({ sec: STAGE1_FIRST_WAVE_SEC, type: 'E01', count: 10 })
+  })
+
+  it('일반 좀비 고정 시간표가 승인된 Stage 1 스폰 순서와 1:1로 일치한다', () => {
+    const schedule = getRuntimeBurstEventsForStage('stage1')
+      .filter((event) => !isBossType(event.type))
+      .map(({ sec, type, count }) => ({ sec, type, count }))
+
+    expect(schedule).toEqual([
+      { sec: 5, type: 'E01', count: 10 },
+      { sec: 24, type: 'E01', count: 9 },
+      { sec: 40, type: 'E01', count: 6 }, { sec: 40, type: 'E07', count: 3 },
+      { sec: 60, type: 'E01', count: 6 }, { sec: 60, type: 'E07', count: 6 }, { sec: 60, type: 'E02', count: 2 },
+      { sec: 72, type: 'E03', count: 2 },
+      { sec: 108, type: 'E01', count: 6 }, { sec: 108, type: 'E02', count: 3 },
+      { sec: 110, type: 'E07', count: 3 }, { sec: 110, type: 'E02', count: 3 },
+      { sec: 120, type: 'E05', count: 3 }, { sec: 144, type: 'E05', count: 3 },
+      { sec: 150, type: 'E07', count: 6 }, { sec: 150, type: 'E01', count: 6 },
+      { sec: 168, type: 'E06', count: 1 },
+      { sec: 184, type: 'E01', count: 6 }, { sec: 184, type: 'E02', count: 3 }, { sec: 184, type: 'E05', count: 2 },
+      { sec: 216, type: 'E05', count: 3 },
+    ])
+  })
+})
 
 describe('전 스테이지 1:50 웃는좀비·탱커 보강', () => {
   it.each(allStageBurstTables)('%s는 110초 E07 3마리와 E02 3마리를 정확히 1개씩 추가한다', (_stageId, events) => {
@@ -82,11 +115,11 @@ describe('Stage 1 40초 녹색좀비·웃는좀비 추가 스폰', () => {
 })
 
 describe('burstEvents 보스 등장 시각 파생', () => {
-  it('classifies the randomized boss window without claiming a fixed phase', () => {
-    expect(getBossPhaseStatus(169)).toBe('before')
-    expect(getBossPhaseStatus(170)).toBe('variable')
-    expect(getBossPhaseStatus(189)).toBe('variable')
-    expect(getBossPhaseStatus(190)).toBe('after')
+  it('classifies the fixed boss center threshold without claiming a variable phase', () => {
+    expect(getBossPhaseStatus(149)).toBe('before')
+    expect(getBossPhaseStatus(150)).toBe('after')
+    expect(getBossPhaseStatus(119, 'stage2')).toBe('before')
+    expect(getBossPhaseStatus(120, 'stage2')).toBe('after')
   })
   it('getBurstEventsForStage: stage2는 STAGE2, 그 외 stage1 기본', () => {
     expect(getBurstEventsForStage('stage2')).toBe(STAGE2_BURST_EVENTS)
@@ -94,29 +127,24 @@ describe('burstEvents 보스 등장 시각 파생', () => {
     expect(getBurstEventsForStage(undefined)).toBe(BURST_EVENTS)
   })
 
-  it('보스 등장 시각 = 보스 버스트(B01/B02) sec 단일 소스', () => {
-    // stage1 B01은 3:12(192s), stage2 B02는 2:00(120s)에 정의됨
-    expect(getBossSpawnSec('stage1')).toBe(BOSS_SPAWN_CENTER_SEC)
-    expect(getBossSpawnSec('stage2')).toBe(BOSS_SPAWN_CENTER_SEC)
+  it('보스 등장 시각 = 보스 버스트 sec 단일 소스', () => {
+    expect(getBossSpawnSec('stage1')).toBe(150)
+    expect(getBossSpawnSec('stage2')).toBe(120)
   })
 
-  it('런타임 버스트는 웨이브와 중복되지 않는 보스 등장만 반환한다', () => {
-    expect(getRuntimeBurstEventsForStage('stage1')).toEqual([
-      { sec: 192, type: 'B01', count: 1 },
-    ])
+  it('런타임 버스트는 명시 이벤트 표 전체를 반환한다', () => {
+    expect(getRuntimeBurstEventsForStage('stage1')).toBe(BURST_EVENTS)
     const stage2 = getRuntimeBurstEventsForStage('stage2')
+    expect(stage2).toBe(STAGE2_BURST_EVENTS)
     expect(stage2.filter((event) => isBossType(event.type))).toEqual([{ sec: 120, type: 'B02', count: 1 }])
     expect(stage2.filter((event) => event.formation === STAGE2_GUARD_CHASE_FORMATION).map((event) => event.sec)).toEqual([42, 88, 136, 216])
-    expect(stage2.every((event) => isBossType(event.type) || event.formation === STAGE2_GUARD_CHASE_FORMATION)).toBe(true)
   })
 
-  it('applies the run-scoped randomized boss second to every stage runtime schedule', () => {
-    for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
-      const runtime = getRuntimeBurstEventsForStage(stageId, 173)
-      const bosses = runtime.filter((event) => isBossType(event.type))
-      expect(bosses).toHaveLength(1)
-      expect(bosses[0].sec).toBe(173)
-    }
+  it('runtime schedule preserves each stage canonical boss second', () => {
+    expect(getRuntimeBurstEventsForStage('stage1').filter((event) => isBossType(event.type))).toEqual([{ sec: 150, type: 'B01', count: 1 }])
+    expect(getRuntimeBurstEventsForStage('stage2').filter((event) => isBossType(event.type))).toEqual([{ sec: 120, type: 'B02', count: 1 }])
+    expect(getRuntimeBurstEventsForStage('stage3').filter((event) => isBossType(event.type))).toEqual([{ sec: 135, type: 'B03', count: 1 }])
+    expect(getRuntimeBurstEventsForStage('stage4').filter((event) => isBossType(event.type))).toEqual([{ sec: 140, type: 'B04', count: 1 }])
   })
 
   it('보스 버스트가 없는 스테이지는 Infinity (보스 구간 없음)', () => {
@@ -127,10 +155,10 @@ describe('burstEvents 보스 등장 시각 파생', () => {
   })
 
   it('isBossPhase: 시작 시각이 보스 등장 이후면 true (경계 포함)', () => {
-    expect(isBossPhase(180, 'stage2')).toBe(true)
-    expect(isBossPhase(179, 'stage2')).toBe(false)
-    expect(isBossPhase(180, 'stage1')).toBe(true)
-    expect(isBossPhase(179, 'stage1')).toBe(false)
+    expect(isBossPhase(120, 'stage2')).toBe(true)
+    expect(isBossPhase(119, 'stage2')).toBe(false)
+    expect(isBossPhase(150, 'stage1')).toBe(true)
+    expect(isBossPhase(149, 'stage1')).toBe(false)
   })
 })
 
@@ -144,13 +172,12 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
     expect(bosses).toEqual([
       { sec: 135, type: 'B03', count: 1 },
     ])
-    expect(getBossSpawnSec('stage3')).toBe(BOSS_SPAWN_CENTER_SEC)
+    expect(getBossSpawnSec('stage3')).toBe(135)
   })
 
   it('isBossPhase(stage3): 135 이후 시작 phase만 보스 구간', () => {
-    expect(isBossPhase(180, 'stage3')).toBe(true)
-    expect(isBossPhase(179, 'stage3')).toBe(false)
-    expect(isBossPhase(150, 'stage3')).toBe(false)
+    expect(isBossPhase(135, 'stage3')).toBe(true)
+    expect(isBossPhase(134, 'stage3')).toBe(false)
   })
 
   it('런타임 버스트: stage3는 보스 외 형태/그룹까지 모두 발화 대상(stage1/2는 보스만 불변)', () => {
@@ -160,15 +187,16 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
     expect(runtime.some((e) => e.formation)).toBe(true)
     expect(runtime.filter((e) => e.type === 'B03')).toHaveLength(1)
     expect(runtime.filter((e) => e.type === 'B01' || e.type === 'B02')).toHaveLength(0)
-    // 회귀 방지: stage1/stage2는 여전히 보스만 런타임 발화한다.
-    expect(getRuntimeBurstEventsForStage('stage1')).toEqual([{ sec: 192, type: 'B01', count: 1 }])
+    // 회귀 방지: stage1/stage2도 명시 이벤트 표 전체를 런타임 발화한다.
+    expect(getRuntimeBurstEventsForStage('stage1')).toBe(BURST_EVENTS)
+    expect(getRuntimeBurstEventsForStage('stage2')).toBe(STAGE2_BURST_EVENTS)
     expect(getRuntimeBurstEventsForStage('stage2').filter((event) => event.formation === STAGE2_GUARD_CHASE_FORMATION)).toHaveLength(4)
   })
 
   it('stage3는 런좀비 크루 대각선 횡단 버스트를 네 번 포함한다', () => {
     const crews = STAGE3_BURST_EVENTS.filter((e) => e.formation === RUN_ZOMBIE_CREW_FORMATION)
     expect(crews.map((e) => e.sec)).toEqual([35, 80, 120, 150])
-    expect(crews.every((event) => event.type === 'RZL' && event.count === 13)).toBe(true)
+    expect(crews.every((event) => event.type === 'RZL' && event.count === 7)).toBe(true)
   })
 
   it('형태 버스트 중 stage3는 플레이어 상대 포위(ring/pincer) + runZombieCrew만 쓴다 (개방 맵 안티카이팅)', () => {
@@ -201,13 +229,12 @@ describe('stage4 급식실 대탈출 버스트', () => {
   it('보스 B04@140 count 1 — 보스 등장 시각은 140', () => {
     const bosses = STAGE4_BURST_EVENTS.filter((e) => isBossType(e.type))
     expect(bosses).toEqual([{ sec: 140, type: 'B04', count: 1 }])
-    expect(getBossSpawnSec('stage4')).toBe(BOSS_SPAWN_CENTER_SEC)
+    expect(getBossSpawnSec('stage4')).toBe(140)
   })
 
   it('isBossPhase(stage4): 140 이후 시작 phase만 보스 구간(경계 포함)', () => {
-    expect(isBossPhase(180, 'stage4')).toBe(true)
-    expect(isBossPhase(179, 'stage4')).toBe(false)
-    expect(isBossPhase(178, 'stage4')).toBe(false)
+    expect(isBossPhase(140, 'stage4')).toBe(true)
+    expect(isBossPhase(139, 'stage4')).toBe(false)
   })
 
   it('조기 등장 보장 버스트: E04@18·E05@30·E06@74', () => {
@@ -222,8 +249,9 @@ describe('stage4 급식실 대탈출 버스트', () => {
     expect(runtime).toBe(STAGE4_BURST_EVENTS)
     expect(runtime.some((e) => e.formation)).toBe(true)
     expect(runtime.filter((e) => e.type === 'B04')).toHaveLength(1)
-    // 회귀 방지: stage1/stage2는 여전히 보스만 런타임 발화.
-    expect(getRuntimeBurstEventsForStage('stage1')).toEqual([{ sec: 192, type: 'B01', count: 1 }])
+    // 회귀 방지: stage1/stage2도 명시 이벤트 표 전체를 런타임 발화.
+    expect(getRuntimeBurstEventsForStage('stage1')).toBe(BURST_EVENTS)
+    expect(getRuntimeBurstEventsForStage('stage2')).toBe(STAGE2_BURST_EVENTS)
     expect(getRuntimeBurstEventsForStage('stage2').filter((event) => event.formation === STAGE2_GUARD_CHASE_FORMATION)).toHaveLength(4)
   })
 

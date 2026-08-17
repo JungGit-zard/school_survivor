@@ -377,7 +377,7 @@ describe('late zombie spawn relief', () => {
   it('aligns stage 1 burst pressure with tutorial and relief windows', () => {
     const stage1Bursts = getBurstEventsForStage('stage1')
 
-    expect(stage1Bursts.filter((event) => event.sec < 40).reduce((sum, event) => sum + event.count, 0)).toBe(27)
+    expect(stage1Bursts.filter((event) => event.sec < 40).reduce((sum, event) => sum + event.count, 0)).toBe(19)
     expect(stage1Bursts.some((event) => event.type === 'E02' && event.sec < 60)).toBe(false)
     expect(stage1Bursts.some((event) => event.sec >= 90 && event.sec < 108)).toBe(false)
   })
@@ -404,15 +404,15 @@ describe('random-interval discrete wave scheduler', () => {
     expect(nextWaveInterval(() => 0.5)).toBe(30)
   })
 
-  it('fires the first wave at t=0 then accumulates random 20-40s gaps below the last phase end', () => {
+  it('fires the first wave at t=5 then accumulates random 20-40s gaps below the last phase end', () => {
     const lastEnd = WAVE_PHASES[WAVE_PHASES.length - 1].end
-    // 결정적 random 시퀀스로 스케줄을 재현 — 첫 웨이브는 반드시 0.
+    // 결정적 random 시퀀스로 스케줄을 재현 — 첫 웨이브는 반드시 5초.
     const rolls = [0, 0.5, 1, 0.25, 0.75, 0, 1, 0.5, 0.5, 0.5, 0.5, 0.5]
     let i = 0
     const random = () => rolls[i++ % rolls.length]
     const secs = getWaveSpawnSeconds(WAVE_PHASES, random)
 
-    expect(secs[0]).toBe(0)
+    expect(secs[0]).toBe(5)
     expect(Math.max(...secs)).toBeLessThan(lastEnd)
     // 인접 발화 간격은 항상 20~40초 범위 안.
     for (let k = 1; k < secs.length; k++) {
@@ -560,9 +560,9 @@ describe('midpoint reinforcement spawns (stage1 + stage2)', () => {
   })
 
   it('derives stage1 midpoints strictly interleaved with the wave schedule', () => {
-    // random 0.5 → 항상 30초 간격. 웨이브 0,30,…,210 → 보강은 정확히 그 사이 15,45,…,225.
+    // random 0.5 → 항상 30초 간격. 웨이브 5,35,…,215 → 보강은 정확히 그 사이 20,50,…,230.
     expect(getMidpointSpawnSeconds(WAVE_PHASES, 'stage1', () => 0.5))
-      .toEqual([15, 45, 75, 105, 135, 165, 195, 225])
+      .toEqual([20, 50, 80, 110, 140, 170, 200, 230])
 
     // 임의(변동) 간격에서도 각 보강 시점은 인접 웨이브 사이에 정확히 놓인다.
     const rolls = [0, 0.5, 1, 0.25, 0.75, 0.4, 0.9, 0.1]
@@ -573,7 +573,7 @@ describe('midpoint reinforcement spawns (stage1 + stage2)', () => {
     const mids = getMidpointSpawnSeconds(WAVE_PHASES, 'stage1', random)
     mids.forEach((mid, k) => {
       expect(mid).toBeGreaterThan(waves[k])
-      expect(mid).toBeLessThan(waves[k + 1])
+      expect(mid).toBeLessThan(waves[k + 1] ?? WAVE_PHASES.at(-1).end)
     })
   })
 
@@ -606,12 +606,12 @@ describe('boss entrance escort wave', () => {
 
   it('wires the boss escort and midpoint reinforcement into the spawn frame loop', () => {
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
-    expect(source).toContain('getRuntimeBurstEventsForStage(currentStageId, bossSpawnSec)')
-    // 보스 브랜치가 호위 물량을 buildWaveBatch로 함께 스폰한다.
-    expect(source).toContain('bossEscortSize(cache.id, cache.wavePhases, evt.sec)')
-    // 웨이브 예약 시 중간 보강 시각을 함께 예약하고, 도달 시 발화한다.
-    expect(source).toContain('nextMidTimeRef.current = midWaveTimeForStage(waveTime, nextTime, currentStageId)')
-    expect(source).toContain('midWaveSizeForStage(phase, cache.id)')
+    expect(source).toContain('getRuntimeBurstEventsForStage(currentStageId)')
+    // 보스와 일반 보강은 모두 명시 버스트 표에서만 발화한다.
+    expect(source).not.toContain('bossEscortSize(cache.id, cache.wavePhases, evt.sec)')
+    // 중간 보강도 자동 웨이브도 아닌 명시 버스트만 런타임에서 발화한다.
+    expect(source).not.toContain('nextMidTimeRef.current = midWaveTimeForStage(waveTime, nextTime, currentStageId)')
+    expect(source).not.toContain('midWaveSizeForStage(phase, cache.id)')
   })
 })
 
@@ -678,9 +678,9 @@ describe('jarmob expected total keeps density separate from the user HP curve', 
   it('keeps the fixed HP curve separate from the existing density calculation', () => {
     expect(STAGE_JARMOB_HP_MULTIPLIER).toEqual({ stage2: 1.2, stage3: 1.44, stage4: 1.728 })
     expect(STAGE_DENSITY_MULTIPLIER).toEqual({
-      stage2: 0.646523285323541,
-      stage3: 1.0622978698028458,
-      stage4: 1.323042868187432,
+      stage2: 0.6411514350841779,
+      stage3: 1.055398399084263,
+      stage4: 1.3159664118579182,
     })
     for (const stageId of ['stage2', 'stage3', 'stage4']) {
       expect(STAGE_DENSITY_MULTIPLIER[stageId]).toBeGreaterThan(0)
@@ -1118,14 +1118,16 @@ describe('pooled standard enemy runtime wiring', () => {
     expect(frameSource).not.toContain('dropGoldCoin(')
   })
 
-  it('queues regular wave entries and drains at most three per RAF with stage-reset protection', () => {
+  it('queues explicit burst regular entries and drains at most three per RAF with stage-reset protection', () => {
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
     expect(source).toContain('createPooledEnemySpawnDrainQueue()')
     expect(source).toContain('drainPooledEnemySpawnQueue(runtimeQueueRef.current.spawnDrain, cache.spawnToken, spawnPooledEnemy)')
     expect(source).toContain('resetPooledEnemySpawnDrainQueue(queue.spawnDrain)')
     expect(source).toContain("cache.gameKey !== store.gameKey")
     expect(source).toContain("useGameStore.getState().phase !== 'playing'")
-    expect(source).toContain('addEnemies(buildWaveBatch(phase, size, b, cache.bounds, cache.obstacles), true, cache.spawnToken)')
+    expect(source).toContain('const evt = cache.burstEvents[Math.trunc(a)]')
+    expect(source).toContain('addEnemies(batch, true, cache.spawnToken)')
+    expect(source).not.toContain('addEnemies(buildWaveBatch(phase, size, b, cache.bounds, cache.obstacles), true, cache.spawnToken)')
   })
 
   it('keeps the special Enemy frame state setters deferred and uses the fixed projectile pool', () => {
