@@ -108,6 +108,19 @@ export function weaponSecondaryDamagePerSecond(weapon) {
   return perCycle / cooldownSec
 }
 
+// damage 필드가 매 타격 그대로 들어가지 않는 무기의 "지속 화력 보정"(2026-08-17 추가).
+// 정본은 각 무기의 weaponCatalog base.sustainedDamageMultiplier다. 없으면 1(보정 없음).
+//
+// 현재 유일한 사용처는 텀블러다. 연속 타격 감쇠(lib/tumblerFalloff.js)로 5타 주기 배율이
+// 1.0/0.9/0.8/0.7/0.6이라 주기 평균이 0.80인데, 이 추정기는 damage × 발사율만 보므로
+// 감쇠를 모르면 텀블러 기여분을 25% 과대계상한다. 마틸다는 단일 대상이고 오래 버티므로
+// 감쇠를 정통으로 맞는데(= 평균 배율에 수렴), 그 HP가 이 추정값에서 그대로 파생되기
+// 때문에(Enemies.jsx: DPS × 1800초) 보정 없이는 마틸다만 부당하게 단단해진다.
+function sustainedDamageMultiplier(weapon) {
+  const value = weapon?.sustainedDamageMultiplier
+  return Number.isFinite(value) && value > 0 ? value : 1
+}
+
 // 무기 1종의 단일 대상 기대 DPS. 비활성 무기는 0.
 export function estimateWeaponDps(weapon) {
   if (!weapon?.active) return 0
@@ -119,7 +132,7 @@ export function estimateWeaponDps(weapon) {
   const damage = Number.isFinite(weapon.damage) ? weapon.damage : 0
   const secondary = weaponSecondaryDamagePerSecond(weapon)
   if (damage <= 0 && secondary <= 0) return 0
-  const primary = damage * weaponOnTargetHits(weapon) * weaponHitsPerSecond(weapon)
+  const primary = damage * weaponOnTargetHits(weapon) * weaponHitsPerSecond(weapon) * sustainedDamageMultiplier(weapon)
   return (primary + secondary) * expectedCritMultiplier(weapon)
 }
 

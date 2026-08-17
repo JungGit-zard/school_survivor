@@ -6,6 +6,7 @@ import { useGameStore } from '../../store/useGameStore.js'
 import { outlineMat, toonMat, inflateScale } from '../../lib/toon.js'
 import { applyEnemyHit, isEnemyHitLive } from '../../lib/weaponCollision.js'
 import { createWeaponTargetScratch, resolveWeaponTarget, scanOrbitEnemiesInto } from '../../lib/weaponTargeting.js'
+import { tumblerHitMultiplier } from '../../lib/tumblerFalloff.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 export function TumblerModel() {
@@ -50,6 +51,9 @@ export function TumblerOrbit() {
   const visualRefs = useRef([])
   const lastHitRef = useRef({ times: new Float64Array(200), generations: new Uint16Array(200), special: new Array(3), specialTimes: new Float64Array(3) })
   const targetScratchRef = useRef(createWeaponTargetScratch())
+  // 텀블러 전역 타격 순번. 적별이 아니라 "때린 순서"라서 ref 하나면 된다.
+  // 실제로 피해가 들어간 타격만 센다(applyEnemyHit이 true를 준 경우).
+  const hitSeqRef = useRef(0)
   const impactRef = useRef({ knockback: 3, knockbackMs: 220, source: { x: 0, z: 0 }, critChance: 0, critMultiplier: 1 })
   const orbitXRef = useRef(new Float32Array(3))
   const orbitZRef = useRef(new Float32Array(3))
@@ -109,7 +113,10 @@ export function TumblerOrbit() {
       const impact = impactRef.current
       impact.source.x = playerPos.x; impact.source.z = playerPos.z
       impact.critChance = w.critChance; impact.critMultiplier = w.critMultiplier
-      if (!applyEnemyHit(rb, generation, w.damage, impact)) continue
+      // 연속 타격 감쇠: 5타 주기로 1.00 → 0.60 → 다시 1.00 (lib/tumblerFalloff.js).
+      const falloffDamage = w.damage * tumblerHitMultiplier(hitSeqRef.current)
+      if (!applyEnemyHit(rb, generation, falloffDamage, impact)) continue
+      hitSeqRef.current += 1
       useGameStore.getState().recordMissionEvent({ type: 'weapon_hit', weaponKey: 'tumbler' })
       if (special) {
         if (specialSlot >= 0) lastHitRef.current.specialTimes[specialSlot] = nowMs

@@ -9,6 +9,7 @@
 
 // Sentinel for weapons that are always unlocked.
 import { PENCIL_FIRE_RANGE_WORLD_UNITS } from './gameplayUnits.js'
+import { TUMBLER_SUSTAINED_MULTIPLIER } from './tumblerFalloff.js'
 
 export const STARTER = 'starter'
 
@@ -48,7 +49,11 @@ export const WEAPON_CATALOG = {
     id: 'tumbler',
     label: '텀블러',
     // 기본 위력 1.5배(4→6). 레벨업 가중치(tumblerDamage +2/레벨)는 가산식이라 이 6 위에 더해진다(6→8→10…).
-    base: { damage: 6, radius: 1.0, hitsPerSecond: 2.5, orbitSpeed: 2.8, count: 1, critChance: 0.04, critMultiplier: 1.5 },
+    // sustainedDamageMultiplier: 연속 타격 감쇠(2026-08-17, lib/tumblerFalloff.js)의 주기 평균 0.80.
+    // damage 자체는 깎지 않는다 — 첫 타는 100%다. 이 필드는 "오래 버티는 단일 대상에게
+    // 실제로 꽂히는 지속 화력"을 DPS 추정기(playerDpsEstimate.js)에 알려주기 위한 것으로,
+    // 없으면 마틸다 HP(= 스폰 시점 플레이어 DPS × 1800초)가 텀블러 몫만큼 부당하게 부푼다.
+    base: { damage: 6, radius: 1.0, hitsPerSecond: 2.5, orbitSpeed: 2.8, count: 1, critChance: 0.04, critMultiplier: 1.5, sustainedDamageMultiplier: TUMBLER_SUSTAINED_MULTIPLIER },
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },
