@@ -87,9 +87,9 @@ describe('Stage 1 첫 웨이브 5초 게이트', () => {
 })
 
 describe('Stage 2 좀비 시간표 Stage 1 앵커 재배열', () => {
-  it('Stage 2의 경비 추격을 포함한 모든 비보스 좀비 고유 초 배열은 Stage 1 일반 좀비 앵커와 정확히 일치하고 B02는 120초에 남는다', () => {
+  it('Stage 2의 경비 추격을 포함한 모든 비보스 좀비 고유 초 배열은 Stage 1 일반 좀비 앵커와 정확히 일치하고 B02는 150초에 등장한다', () => {
     expect(uniqueSeconds(stageZombieEvents(STAGE2_BURST_EVENTS))).toEqual(uniqueSeconds(ordinaryZombieEvents(BURST_EVENTS)))
-    expect(STAGE2_BURST_EVENTS.filter((event) => isBossType(event.type))).toEqual([{ sec: 120, type: 'B02', count: 1 }])
+    expect(STAGE2_BURST_EVENTS.filter((event) => isBossType(event.type))).toEqual([{ sec: 150, type: 'B02', count: 1 }])
   })
 
   // 2026-08-17 총체력 사다리(스1 ×1.3^n): 잡몹 예산 9,202 → 3,458. 경비추격 4→2회,
@@ -198,8 +198,8 @@ describe('burstEvents 보스 등장 시각 파생', () => {
   it('classifies the fixed boss center threshold without claiming a variable phase', () => {
     expect(getBossPhaseStatus(149)).toBe('before')
     expect(getBossPhaseStatus(150)).toBe('after')
-    expect(getBossPhaseStatus(119, 'stage2')).toBe('before')
-    expect(getBossPhaseStatus(120, 'stage2')).toBe('after')
+    expect(getBossPhaseStatus(149, 'stage2')).toBe('before')
+    expect(getBossPhaseStatus(150, 'stage2')).toBe('after')
   })
   it('getBurstEventsForStage: stage2는 STAGE2, 그 외 stage1 기본', () => {
     expect(getBurstEventsForStage('stage2')).toBe(STAGE2_BURST_EVENTS)
@@ -209,22 +209,22 @@ describe('burstEvents 보스 등장 시각 파생', () => {
 
   it('보스 등장 시각 = 보스 버스트 sec 단일 소스', () => {
     expect(getBossSpawnSec('stage1')).toBe(150)
-    expect(getBossSpawnSec('stage2')).toBe(120)
+    expect(getBossSpawnSec('stage2')).toBe(150)
   })
 
   it('런타임 버스트는 명시 이벤트 표 전체를 반환한다', () => {
     expect(getRuntimeBurstEventsForStage('stage1')).toBe(BURST_EVENTS)
     const stage2 = getRuntimeBurstEventsForStage('stage2')
     expect(stage2).toBe(STAGE2_BURST_EVENTS)
-    expect(stage2.filter((event) => isBossType(event.type))).toEqual([{ sec: 120, type: 'B02', count: 1 }])
+    expect(stage2.filter((event) => isBossType(event.type))).toEqual([{ sec: 150, type: 'B02', count: 1 }])
     expect(stage2.filter((event) => event.formation === STAGE2_GUARD_CHASE_FORMATION).map((event) => event.sec)).toEqual([40, 144])
   })
 
-  it('runtime schedule preserves each stage canonical boss second', () => {
+  it('runtime schedule emits every stage boss at the user-specified 150 seconds', () => {
     expect(getRuntimeBurstEventsForStage('stage1').filter((event) => isBossType(event.type))).toEqual([{ sec: 150, type: 'B01', count: 1 }])
-    expect(getRuntimeBurstEventsForStage('stage2').filter((event) => isBossType(event.type))).toEqual([{ sec: 120, type: 'B02', count: 1 }])
-    expect(getRuntimeBurstEventsForStage('stage3').filter((event) => isBossType(event.type))).toEqual([{ sec: 135, type: 'B03', count: 1 }])
-    expect(getRuntimeBurstEventsForStage('stage4').filter((event) => isBossType(event.type))).toEqual([{ sec: 140, type: 'B04', count: 1 }])
+    expect(getRuntimeBurstEventsForStage('stage2').filter((event) => isBossType(event.type))).toEqual([{ sec: 150, type: 'B02', count: 1 }])
+    expect(getRuntimeBurstEventsForStage('stage3').filter((event) => isBossType(event.type))).toEqual([{ sec: 150, type: 'B03', count: 1 }])
+    expect(getRuntimeBurstEventsForStage('stage4').filter((event) => isBossType(event.type))).toEqual([{ sec: 150, type: 'B04', count: 1 }])
   })
 
   it('보스 버스트가 없는 스테이지는 Infinity (보스 구간 없음)', () => {
@@ -235,8 +235,8 @@ describe('burstEvents 보스 등장 시각 파생', () => {
   })
 
   it('isBossPhase: 시작 시각이 보스 등장 이후면 true (경계 포함)', () => {
-    expect(isBossPhase(120, 'stage2')).toBe(true)
-    expect(isBossPhase(119, 'stage2')).toBe(false)
+    expect(isBossPhase(150, 'stage2')).toBe(true)
+    expect(isBossPhase(149, 'stage2')).toBe(false)
     expect(isBossPhase(150, 'stage1')).toBe(true)
     expect(isBossPhase(149, 'stage1')).toBe(false)
   })
@@ -247,17 +247,17 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
     expect(getBurstEventsForStage('stage3')).toBe(STAGE3_BURST_EVENTS)
   })
 
-  it('체육교사 B03 단일 보스(135) — 스1/스2 보스는 스3 전투에 등장하지 않는다', () => {
+  it('체육교사 B03 단일 보스(150) — 스1/스2 보스는 스3 전투에 등장하지 않는다', () => {
     const bosses = STAGE3_BURST_EVENTS.filter((e) => e.type === 'B01' || e.type === 'B02' || e.type === 'B03')
     expect(bosses).toEqual([
-      { sec: 135, type: 'B03', count: 1 },
+      { sec: 150, type: 'B03', count: 1 },
     ])
-    expect(getBossSpawnSec('stage3')).toBe(135)
+    expect(getBossSpawnSec('stage3')).toBe(150)
   })
 
-  it('isBossPhase(stage3): 135 이후 시작 phase만 보스 구간', () => {
-    expect(isBossPhase(135, 'stage3')).toBe(true)
-    expect(isBossPhase(134, 'stage3')).toBe(false)
+  it('isBossPhase(stage3): 150 이후 시작 phase만 보스 구간', () => {
+    expect(isBossPhase(150, 'stage3')).toBe(true)
+    expect(isBossPhase(149, 'stage3')).toBe(false)
   })
 
   it('런타임 버스트: stage3는 보스 외 형태/그룹까지 모두 발화 대상(stage1/2는 보스만 불변)', () => {
@@ -311,7 +311,7 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
     expect(formations).not.toContain('gauntlet')
     // 120s는 차저 포위(ring), 150s는 탱커 협공(pincer, 110→150 이동), 184s는 거대 앞뒤 벽(pincer).
     expect(STAGE3_BURST_EVENTS.find((e) => e.sec === 120 && e.formation)?.formation).toBe('ring')
-    expect(STAGE3_BURST_EVENTS.find((e) => e.sec === 150)?.formation).toBe('pincer')
+    expect(STAGE3_BURST_EVENTS.find((e) => e.sec === 150 && e.formation)?.formation).toBe('pincer')
     expect(STAGE3_BURST_EVENTS.find((e) => e.sec === 184)?.formation).toBe('pincer')
   })
 
@@ -350,15 +350,15 @@ describe('stage4 급식실 대탈출 버스트', () => {
     expect(getBurstEventsForStage('stage4')).toBe(STAGE4_BURST_EVENTS)
   })
 
-  it('보스 B04@140 count 1 — 보스 등장 시각은 140', () => {
+  it('보스 B04@150 count 1 — 보스 등장 시각은 150', () => {
     const bosses = STAGE4_BURST_EVENTS.filter((e) => isBossType(e.type))
-    expect(bosses).toEqual([{ sec: 140, type: 'B04', count: 1 }])
-    expect(getBossSpawnSec('stage4')).toBe(140)
+    expect(bosses).toEqual([{ sec: 150, type: 'B04', count: 1 }])
+    expect(getBossSpawnSec('stage4')).toBe(150)
   })
 
-  it('isBossPhase(stage4): 140 이후 시작 phase만 보스 구간(경계 포함)', () => {
-    expect(isBossPhase(140, 'stage4')).toBe(true)
-    expect(isBossPhase(139, 'stage4')).toBe(false)
+  it('isBossPhase(stage4): 150 이후 시작 phase만 보스 구간(경계 포함)', () => {
+    expect(isBossPhase(150, 'stage4')).toBe(true)
+    expect(isBossPhase(149, 'stage4')).toBe(false)
   })
 
   it('Stage 3 공통 앵커에 맞춘 조기 등장 버스트: E04@24·E05@40·E06@72', () => {
@@ -478,11 +478,11 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     }
   })
 
-  it('보스 시각은 스테이지별 정본에서 벗어나지 않는다 (사용자 범위 밖)', () => {
+  it('보스 시각은 네 스테이지 모두 사용자 지정 150초다', () => {
     expect(getBossSpawnSec('stage1')).toBe(150)
-    expect(getBossSpawnSec('stage2')).toBe(120)
-    expect(getBossSpawnSec('stage3')).toBe(135)
-    expect(getBossSpawnSec('stage4')).toBe(140)
+    expect(getBossSpawnSec('stage2')).toBe(150)
+    expect(getBossSpawnSec('stage3')).toBe(150)
+    expect(getBossSpawnSec('stage4')).toBe(150)
   })
 
   it('한 앵커에 몰린 스폰도 동시 상한 150을 넘지 않는다', () => {

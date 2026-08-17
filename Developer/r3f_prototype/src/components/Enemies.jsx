@@ -300,13 +300,20 @@ export function pickMixedReinforcementTypes(types, count, random = Math.random) 
   return result
 }
 
-export function overtimeReinforcementTick(elapsedSec) {
-  if (!Number.isFinite(elapsedSec) || elapsedSec < OVERTIME_REINFORCEMENT_START_SEC) return null
-  return Math.floor((elapsedSec - OVERTIME_REINFORCEMENT_START_SEC) / OVERTIME_REINFORCEMENT_INTERVAL_SEC)
+export const STAGE3_OVERTIME_REINFORCEMENT_START_SEC = 225
+
+export function getOvertimeReinforcementStartSec(stageId) {
+  return stageId === 'stage3' ? STAGE3_OVERTIME_REINFORCEMENT_START_SEC : OVERTIME_REINFORCEMENT_START_SEC
 }
 
-export function shouldScheduleOvertimeReinforcement(lastFiredTick, elapsedSec) {
-  const tick = overtimeReinforcementTick(elapsedSec)
+export function overtimeReinforcementTick(elapsedSec, stageId = 'stage1') {
+  const startSec = getOvertimeReinforcementStartSec(stageId)
+  if (!Number.isFinite(elapsedSec) || elapsedSec < startSec) return null
+  return Math.floor((elapsedSec - startSec) / OVERTIME_REINFORCEMENT_INTERVAL_SEC)
+}
+
+export function shouldScheduleOvertimeReinforcement(lastFiredTick, elapsedSec, stageId = 'stage1') {
+  const tick = overtimeReinforcementTick(elapsedSec, stageId)
   return { shouldSchedule: tick !== null && tick > lastFiredTick, tick }
 }
 
@@ -1391,7 +1398,7 @@ export default function Enemies() {
 
 
   // 마틸다 등장 대사를 읽는 동안에는 실체/AI를 만들지 않는다. 같은 run/stage가
-  // 유지된 경우에만 5초 뒤(정확히 230초) 한 번 스폰하며 cleanup은 reset/stage/unmount stale 스폰을 막는다.
+  // 유지된 경우에만 5초 뒤(정확히 210초) 한 번 스폰하며 cleanup은 reset/stage/unmount stale 스폰을 막는다.
   useEffect(() => {
     if (!matildaSpawned) return
     const { matildaSec, matildaWarningSec } = getStageConfig(currentStageId)
@@ -1671,7 +1678,7 @@ export default function Enemies() {
       enqueueScheduled(SCHEDULE_DOGE)
     }
 
-    const overtime = shouldScheduleOvertimeReinforcement(overtimeTickRef.current, sec)
+    const overtime = shouldScheduleOvertimeReinforcement(overtimeTickRef.current, sec, stageRuntime.id)
     if (overtime.shouldSchedule) {
       overtimeTickRef.current = overtime.tick
       enqueueScheduled(SCHEDULE_OVERTIME)

@@ -131,11 +131,11 @@ describe('AdminPage', () => {
     const sortedSecs = [...secs].sort((a, b) => a - b)
     expect(secs).toEqual(sortedSecs)
 
-    // stage2 보스(B02)는 sec 120(2:00)에 '보스 등장'으로 강조 표기
+    // stage2 보스(B02)는 sec 150(2:30)에 '보스 등장'으로 강조 표기
     const bossRow = rows.find((row) => row.textContent.includes('보스 등장'))
     expect(bossRow).toBeTruthy()
-    expect(bossRow.getAttribute('data-sec')).toBe('120')
-    expect(bossRow.textContent).toContain('2:00')
+    expect(bossRow.getAttribute('data-sec')).toBe('150')
+    expect(bossRow.textContent).toContain('2:30')
     expect(bossRow.textContent).toContain('보스')
   })
 

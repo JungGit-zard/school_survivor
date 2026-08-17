@@ -23,12 +23,12 @@ describe('waveTimelines 기본 타임라인', () => {
     }
   })
 
-  it('보스 구간은 보스 등장 시각(2:00) 기준으로 파생된다', () => {
-    // 2:00(120s) 이후 시작 phase만 보스 구간
+  it('보스 구간은 보스 등장 시각(2:30) 기준으로 파생된다', () => {
+    // 2:30(150s) 이후 시작 phase만 보스 구간
     const stage2Boss = STAGE2_WAVE_PHASES.filter((p) => isBossPhase(p.start, 'stage2'))
-    expect(stage2Boss.every((p) => p.start >= 120)).toBe(true)
-    // 120s 미만 phase는 보스 구간 아님
-    const stage2Pre = STAGE2_WAVE_PHASES.filter((p) => p.start < 120)
+    expect(stage2Boss.every((p) => p.start >= 150)).toBe(true)
+    // 150s 미만 phase는 보스 구간 아님
+    const stage2Pre = STAGE2_WAVE_PHASES.filter((p) => p.start < 150)
     expect(stage2Pre.every((p) => !isBossPhase(p.start, 'stage2'))).toBe(true)
   })
 
@@ -131,13 +131,13 @@ describe('stage4 급식실 대탈출 타임라인', () => {
     }
   })
 
-  it('보스@140 이후 잡몹 target 급감(보스 스포트라이트) — 피크(≥140 직전) 대비 낮다', () => {
+  it('보스@150 이후 잡몹 target 급감(보스 스포트라이트) — 피크(≥150 직전) 대비 낮다', () => {
     const bossSec = getBossSpawnSec('stage4')
-    expect(bossSec).toBe(140)
+    expect(bossSec).toBe(150)
     const peak = Math.max(...STAGE4_WAVE_PHASES.filter((p) => p.start < bossSec).map((p) => p.target))
     const bossPhases = STAGE4_WAVE_PHASES.filter((p) => isBossPhase(p.start, 'stage4'))
     // 첫 보스 구간 phase는 잡몹이 급감(16~20)
-    expect(bossPhases[0].start).toBeGreaterThanOrEqual(140)
+    expect(bossPhases[0].start).toBeGreaterThanOrEqual(150)
     expect(bossPhases[0].target).toBeLessThanOrEqual(20)
     expect(bossPhases[0].target).toBeLessThan(peak)
   })

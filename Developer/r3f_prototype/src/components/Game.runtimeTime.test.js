@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
+import { getStageConfig } from '../lib/stageConfig.js'
 
 describe('runtime elapsed clock wiring', () => {
   it('keeps simulation time exact and HUD publication outside the frame callback', () => {
@@ -21,6 +22,12 @@ describe('runtime elapsed clock wiring', () => {
     expect(frameSource).toContain('checkSurvivalMilestone(elapsedMs)')
     expect(frameSource).toContain('elapsedMs >= stageConfig.matildaWarningSec * 1000')
     expect(frameSource).not.toContain('elapsedMs >= stageConfig.matildaSec * 1000')
+    for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
+      const stage = getStageConfig(stageId)
+      expect(stage.matildaWarningSec).toBe(205)
+      expect(stage.matildaSec - stage.matildaWarningSec).toBe(5)
+      expect(stage.matildaSec).toBe(210)
+    }
     expect(enemiesSource).toContain('getRuntimeElapsedMs(useGameStore.getState().elapsedMs) / 1000')
     expect(enemySource).toContain('getRuntimeElapsedMs(useGameStore.getState().elapsedMs)')
   })

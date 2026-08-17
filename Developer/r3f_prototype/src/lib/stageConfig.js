@@ -4,15 +4,14 @@ import { getAdminBalanceConfig } from './adminConfig.js'
 export const DEFAULT_STAGE_ID = 'stage1'
 
 export const STAGE_DURATION_SEC = 240
-export const BOSS_SPAWN_CENTER_SEC = 180
+export const BOSS_SPAWN_CENTER_SEC = 150
 export const BOSS_SPAWN_JITTER_SEC = 0
 export const ESCAPE_PORTAL_OPEN_SEC = 210
 export const STAGE1_BOSS_SPAWN_SEC = 150
-export const STAGE1_MATILDA_SPAWN_SEC = 180
-export const STAGE1_MATILDA_WARNING_SEC = STAGE1_MATILDA_SPAWN_SEC - 5
-// Stage 2~4 마틸다는 기존 3:50 정본을 유지한다.
-export const MATILDA_SPAWN_SEC = 230
+export const MATILDA_SPAWN_SEC = 210
 export const MATILDA_WARNING_SEC = MATILDA_SPAWN_SEC - 5
+export const STAGE1_MATILDA_SPAWN_SEC = MATILDA_SPAWN_SEC
+export const STAGE1_MATILDA_WARNING_SEC = MATILDA_WARNING_SEC
 
 export function rollBossSpawnSec() {
   return BOSS_SPAWN_CENTER_SEC

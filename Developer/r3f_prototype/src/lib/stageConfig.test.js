@@ -43,20 +43,11 @@ describe('stage configuration registry', () => {
     expect(getStageBossType('stage2')).toBe('B02')
   })
 
-  it('spawns Stage 1 B01 at 2:30 and Matilda at 3:00 after its five-second warning grace', () => {
-    expect(getStageConfig('stage1')).toMatchObject({
-      bossWarningSec: 150,
-      matildaWarningSec: 175,
-      matildaSec: 180,
-    })
-  })
-
-  it('keeps Stage 2~4 exits at 3:30 and Matilda at 3:50', () => {
-    for (const stageId of ['stage2', 'stage3', 'stage4']) {
+  it('spawns Matilda in every stage at 3:30 after the shared five-second warning grace', () => {
+    for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
       expect(getStageConfig(stageId)).toMatchObject({
-        escapePortalSec: 210,
-        matildaWarningSec: 225,
-        matildaSec: 230,
+        matildaWarningSec: 205,
+        matildaSec: 210,
       })
     }
   })
@@ -68,12 +59,15 @@ describe('stage configuration registry', () => {
     expect(isStageUnlocked('stage2', { stage1Survival180Runs: 2 })).toBe(false)
   })
 
-  it('spawns every boss at exactly 3:00 with no jitter', () => {
-    expect(BOSS_SPAWN_CENTER_SEC).toBe(180)
+  it('spawns every boss at exactly 2:30 with no jitter', () => {
+    expect(BOSS_SPAWN_CENTER_SEC).toBe(150)
     expect(BOSS_SPAWN_JITTER_SEC).toBe(0)
-    expect(rollBossSpawnSec(() => 0)).toBe(180)
-    expect(rollBossSpawnSec(() => 0.5)).toBe(180)
-    expect(rollBossSpawnSec(() => 0.999999)).toBe(180)
+    expect(rollBossSpawnSec(() => 0)).toBe(150)
+    expect(rollBossSpawnSec(() => 0.5)).toBe(150)
+    expect(rollBossSpawnSec(() => 0.999999)).toBe(150)
+    for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
+      expect(getStageConfig(stageId).bossWarningSec).toBe(150)
+    }
   })
 
   it('defines stage 3 as a 240 second gymnasium stage with the PE teacher (B03) boss', () => {
@@ -85,8 +79,8 @@ describe('stage configuration registry', () => {
       bestRecordKey: 'stage3BestSurvivalSec',
       e04IntroSec: 34,
       escapePortalSec: 210,
-      matildaWarningSec: 225,
-      matildaSec: 230,
+      matildaWarningSec: 205,
+      matildaSec: 210,
       bossType: 'B03',
     })
     // 로비 카드와 실제 전투가 일치하므로 lobbyBossType 분리는 제거됨.
@@ -140,8 +134,8 @@ describe('stage configuration registry', () => {
       bossType: 'B04',
       e04IntroSec: 18,
       escapePortalSec: 210,
-      matildaWarningSec: 225,
-      matildaSec: 230,
+      matildaWarningSec: 205,
+      matildaSec: 210,
     })
     // 급식실 맵 경계 12×16(스3 18×18보다 좁음 — 밀도 억제 근거).
     expect(getStageBounds('stage4')).toMatchObject({ halfX: 14.4, halfZ: 16 })

@@ -61,9 +61,11 @@ import {
   isPooledEnemyType,
   shouldScheduleBurst,
   OVERTIME_REINFORCEMENT_START_SEC,
+  STAGE3_OVERTIME_REINFORCEMENT_START_SEC,
   OVERTIME_REINFORCEMENT_INTERVAL_SEC,
   OVERTIME_REINFORCEMENT_COUNT,
   MAX_CONCURRENT_ZOMBIES,
+  getOvertimeReinforcementStartSec,
   overtimeReinforcementTick,
   shouldScheduleOvertimeReinforcement,
   overtimeMixedTypesForStage,
@@ -126,7 +128,7 @@ describe('boss runtime spawn routes', () => {
     const previousPlayerPosition = { x: playerPos.x, z: playerPos.z }
     playerPos.x = 0
     playerPos.z = 0
-    const bossSeconds = { stage1: 150, stage2: 120, stage3: 135, stage4: 140 }
+    const bossSeconds = { stage1: 150, stage2: 150, stage3: 150, stage4: 150 }
     for (const [stageId, type] of bossStages) {
       const bosses = getRuntimeBurstEventsForStage(stageId)
         .filter((event) => isBossType(event.type))
@@ -239,8 +241,13 @@ describe('stage 2 mixed timed reinforcements', () => {
 })
 
 describe('all-stage overtime mixed ordinary reinforcements', () => {
-  it('starts exactly at 300s and advances one deterministic 30s tick for skipped frames without duplicates', () => {
+  it('starts Stage 3 exactly at 225s while other stages stay at 300s, with deterministic 30s ticks', () => {
     expect(OVERTIME_REINFORCEMENT_START_SEC).toBe(300)
+    expect(STAGE3_OVERTIME_REINFORCEMENT_START_SEC).toBe(225)
+    expect(getOvertimeReinforcementStartSec('stage1')).toBe(300)
+    expect(getOvertimeReinforcementStartSec('stage2')).toBe(300)
+    expect(getOvertimeReinforcementStartSec('stage3')).toBe(225)
+    expect(getOvertimeReinforcementStartSec('stage4')).toBe(300)
     expect(OVERTIME_REINFORCEMENT_INTERVAL_SEC).toBe(30)
     expect(OVERTIME_REINFORCEMENT_COUNT).toBe(30)
     expect(overtimeReinforcementTick(299.999)).toBeNull()
@@ -248,6 +255,11 @@ describe('all-stage overtime mixed ordinary reinforcements', () => {
     expect(overtimeReinforcementTick(329.999)).toBe(0)
     expect(overtimeReinforcementTick(330)).toBe(1)
     expect(overtimeReinforcementTick(360)).toBe(2)
+    expect(overtimeReinforcementTick(224.999, 'stage3')).toBeNull()
+    expect(overtimeReinforcementTick(225, 'stage3')).toBe(0)
+    expect(overtimeReinforcementTick(254.999, 'stage3')).toBe(0)
+    expect(overtimeReinforcementTick(255, 'stage3')).toBe(1)
+    expect(overtimeReinforcementTick(225, 'stage1')).toBeNull()
 
     let lastTick = -1
     expect(shouldScheduleOvertimeReinforcement(lastTick, 299.999)).toEqual({ shouldSchedule: false, tick: null })
@@ -256,6 +268,9 @@ describe('all-stage overtime mixed ordinary reinforcements', () => {
     lastTick = result.tick
     expect(shouldScheduleOvertimeReinforcement(lastTick, 360.5)).toEqual({ shouldSchedule: false, tick: 2 })
     expect(shouldScheduleOvertimeReinforcement(-1, 300)).toEqual({ shouldSchedule: true, tick: 0 })
+    expect(shouldScheduleOvertimeReinforcement(-1, 224.999, 'stage3')).toEqual({ shouldSchedule: false, tick: null })
+    expect(shouldScheduleOvertimeReinforcement(-1, 225, 'stage3')).toEqual({ shouldSchedule: true, tick: 0 })
+    expect(shouldScheduleOvertimeReinforcement(0, 225.5, 'stage3')).toEqual({ shouldSchedule: false, tick: 0 })
   })
 
   it('uses 30 injected-random ordinary E01-E07 picks and preserves the Stage 1 no-E04 rule', () => {
@@ -290,9 +305,11 @@ describe('all-stage overtime mixed ordinary reinforcements', () => {
 
   it('wires overtime through the frame scheduler and pooled drain path', () => {
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    const playingFrameBody = source.match(/usePlayingFrame\(\(_, delta\) => \{([\s\S]*?)\n  \}\)/)?.[1] ?? ''
     expect(source).toContain('const SCHEDULE_OVERTIME = 7')
     expect(source).toContain('overtimeTickRef.current = -1')
-    expect(source).toContain('shouldScheduleOvertimeReinforcement(overtimeTickRef.current, sec)')
+    expect(playingFrameBody).toContain('shouldScheduleOvertimeReinforcement(overtimeTickRef.current, sec, stageRuntime.id)')
+    expect(playingFrameBody).not.toContain('cache.id')
     expect(source).toContain('enqueueScheduled(SCHEDULE_OVERTIME)')
     expect(source).toContain('pooledActive: enemyPool.activeCount')
     expect(source).toContain('specialActive: enemiesRef.current.length')
@@ -374,8 +391,8 @@ describe('late zombie spawn relief', () => {
     expect(getBurstEventsForStage('stage2').filter((event) => event.type === 'E04').map((event) => event.sec)).toEqual([72])
     expect(getBurstEventsForStage('stage2').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 150 && event.type === 'B01').count).toBe(1)
-    expect(getBurstEventsForStage('stage2').find((event) => event.sec === 120 && event.type === 'B02').count).toBe(1)
-    expect(getBurstEventsForStage('stage2').some((event) => event.sec === 120 && event.type === 'B01')).toBe(false)
+    expect(getBurstEventsForStage('stage2').find((event) => event.sec === 150 && event.type === 'B02').count).toBe(1)
+    expect(getBurstEventsForStage('stage2').some((event) => event.sec === 150 && event.type === 'B01')).toBe(false)
   })
 
   it('halves stage 2 E04 wave pressure while keeping total spawn targets stable', () => {
@@ -384,7 +401,7 @@ describe('late zombie spawn relief', () => {
     expect(phases.find((phase) => phase.start === 72).weights.E04).toBeCloseTo(0.075)
     expect(phases.find((phase) => phase.start === 96).weights.E04).toBeCloseTo(0.15)
     expect(phases.find((phase) => phase.start === 144).weights.E04).toBeCloseTo(0.14)
-    expect(phases.find((phase) => phase.start === 168).weights.E04).toBeCloseTo(0.16)
+    expect(phases.find((phase) => phase.start === 150).weights.E04).toBeCloseTo(0.16)
     expect(phases.find((phase) => phase.start === 224).weights.E04).toBeCloseTo(0.12)
     phases.forEach((phase) => {
       expect(Object.values(phase.weights).reduce((sum, weight) => sum + weight, 0)).toBeCloseTo(1)
@@ -616,8 +633,8 @@ describe('boss entrance escort wave', () => {
   })
 
   it('adds no escort on stage2/stage3 bosses (their boss phases are separately tuned)', () => {
-    expect(bossEscortSize('stage2', STAGE2_WAVE_PHASES, 120)).toBe(0)
-    expect(bossEscortSize('stage3', STAGE3_WAVE_PHASES, 135)).toBe(0)
+    expect(bossEscortSize('stage2', STAGE2_WAVE_PHASES, 150)).toBe(0)
+    expect(bossEscortSize('stage3', STAGE3_WAVE_PHASES, 150)).toBe(0)
     expect(bossEscortSize('stage3', STAGE3_WAVE_PHASES, 147)).toBe(0)
   })
 
@@ -682,10 +699,10 @@ describe('jarmob expected total keeps density separate from the user HP curve', 
     }
   })
 
-  // 보스 창(rollBossSpawnSec = 180 +- 10 -> 170~190s)은 168~192 phase가 통째로 덮는다.
+  // 보스 창(150s)은 150~192 phase가 통째로 덮는다.
   // 이 구간은 bossPressure로 E04 발사까지 막히므로 잡몹 부하를 깎으면 보스전이 가장 헐거워진다.
   it('never lets the stage2 boss window phase fall below its pre-rebalance load', () => {
-    const bossPhase = getWavePhasesForStage('stage2').find((phase) => phase.start === 168)
+    const bossPhase = getWavePhasesForStage('stage2').find((phase) => phase.start === 150)
     const perSpawn = Object.entries(bossPhase.weights)
       .reduce((sum, [type, weight]) => sum + weight * ENEMY_STATS[type].hp, 0)
     // abb28 10% E02 감소 적용 후: target 29(웨이브 15마리) x 104.83 = 1572.4
@@ -697,14 +714,14 @@ describe('jarmob expected total keeps density separate from the user HP curve', 
     // 2026-08-17 1.3배 사다리 재설계로 이 파생값이 움직였다. 원인은 명확하다:
     // 밀도 솔버는 (웨이브 base × m² + 버스트 잡몹 base × m + 크루 확정 HP = 앵커 × factor)를 풀어 m을 낸다.
     // 스2 버스트 잡몹 base가 크게 줄자 같은 factor를 맞추려고 웨이브 몫 m이 커졌고(0.64 → 0.92),
-    // 스4는 버스트가 늘어 반대로 줄었다(1.32 → 1.22).
+    // 스4는 버스트가 늘어 반대로 줄었다.
     // ⚠ 이 값은 게임플레이에 영향이 없다 — 랜덤 웨이브는 런타임에 발화하지 않고(SCHEDULE_WAVE 부재),
     //   실제 스폰은 전부 버스트 표 / 마틸다 / 오버타임 3경로에서만 나온다. 여기서는 파생식이
     //   조용히 NaN이 되거나 0으로 붕괴하지 않는다는 것만 못박는다.
     expect(STAGE_DENSITY_MULTIPLIER).toEqual({
-      stage2: 0.921432893596188,
+      stage2: 0.8766327815877557,
       stage3: 1.109827898020439,
-      stage4: 1.2207060897622144,
+      stage4: 1.1937908938238697,
     })
     for (const stageId of ['stage2', 'stage3', 'stage4']) {
       expect(STAGE_DENSITY_MULTIPLIER[stageId]).toBeGreaterThan(0)
@@ -727,9 +744,9 @@ describe('stage 3 total-war wiring', () => {
     const runtime = getBurstEventsForStage('stage3')
     // 형태 버스트가 데이터에 존재하고 런타임 목록에도 남는다(스폰 엔진이 formation 분기 처리).
     expect(runtime.some((e) => e.formation)).toBe(true)
-    // 체육교사 B03 단일 보스(135). 스1/스2 보스는 등장하지 않는다.
+    // 체육교사 B03 단일 보스(150). 스1/스2 보스는 등장하지 않는다.
     const bosses = runtime.filter((e) => e.type === 'B01' || e.type === 'B02' || e.type === 'B03')
-    expect(bosses).toEqual([{ sec: 135, type: 'B03', count: 1 }])
+    expect(bosses).toEqual([{ sec: 150, type: 'B03', count: 1 }])
   })
 })
 
