@@ -6,8 +6,6 @@
 
 // 보스 버스트 타입. 등장 시각 파생의 기준 + 보스 판별 단일 소스.
 // (하드코딩 나열이 여러 파일로 번지지 않도록 isBossType 헬퍼로 통일 — Enemy/Enemies/AdminPage가 재사용한다.)
-import { BOSS_SPAWN_CENTER_SEC } from './stageConfig.js'
-
 export const BOSS_BURST_TYPES = ['B01', 'B02', 'B03', 'B04']
 export const isBossType = (type) => BOSS_BURST_TYPES.includes(type)
 export const RUN_ZOMBIE_CREW_FORMATION = 'runZombieCrew'
@@ -71,7 +69,7 @@ export const BURST_EVENTS = [
   { sec: 184, type: 'E01', count:  6, mixedTypes: LIGHT_MOB_MIX },  // 마지막 러시 (보스 직전) — 경량대 랜덤 구성
   { sec: 184, type: 'E02', count:  3 },
   { sec: 184, type: 'E05', count:  2 },
-  { sec: 192, type: 'B01', count:  1 },  // 보스 등장 (3:12) — 보스 구간 파생 기준
+  { sec: 150, type: 'B01', count:  1 },  // 보스 등장 (2:30) — 보스 구간 파생 기준
   { sec: 216, type: 'E05', count:  3 },
 ]
 
@@ -180,8 +178,8 @@ export function getBossSpawnSec(stageId) {
   return bossSecs.length > 0 ? Math.min(...bossSecs) : Infinity
 }
 
-export function getBossPhaseStatus(startSec) {
-  if (startSec < BOSS_SPAWN_CENTER_SEC) return 'before'
+export function getBossPhaseStatus(startSec, stageId) {
+  if (startSec < getBossSpawnSec(stageId)) return 'before'
   return 'after'
 }
 

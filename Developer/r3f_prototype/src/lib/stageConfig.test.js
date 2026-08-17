@@ -43,8 +43,16 @@ describe('stage configuration registry', () => {
     expect(getStageBossType('stage2')).toBe('B02')
   })
 
-  it('opens every exit at 3:30 and spawns every Matilda at 3:50', () => {
-    for (const stageId of Object.keys(STAGE_CONFIGS)) {
+  it('spawns Stage 1 B01 at 2:30 and Matilda at 3:00 after its five-second warning grace', () => {
+    expect(getStageConfig('stage1')).toMatchObject({
+      bossWarningSec: 150,
+      matildaWarningSec: 175,
+      matildaSec: 180,
+    })
+  })
+
+  it('keeps Stage 2~4 exits at 3:30 and Matilda at 3:50', () => {
+    for (const stageId of ['stage2', 'stage3', 'stage4']) {
       expect(getStageConfig(stageId)).toMatchObject({
         escapePortalSec: 210,
         matildaWarningSec: 225,

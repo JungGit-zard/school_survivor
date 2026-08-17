@@ -126,10 +126,11 @@ describe('boss runtime spawn routes', () => {
     const previousPlayerPosition = { x: playerPos.x, z: playerPos.z }
     playerPos.x = 0
     playerPos.z = 0
+    const bossSeconds = { stage1: 150, stage2: 120, stage3: 135, stage4: 140 }
     for (const [stageId, type] of bossStages) {
-      const bosses = getRuntimeBurstEventsForStage(stageId, 173)
+      const bosses = getRuntimeBurstEventsForStage(stageId)
         .filter((event) => isBossType(event.type))
-      expect(bosses).toEqual([{ sec: 173, type, count: 1 }])
+      expect(bosses).toEqual([{ sec: bossSeconds[stageId], type, count: 1 }])
       expect(isPooledEnemyType(type)).toBe(false)
       expect(zombieMeshSource).toContain(`if (type === '${type}')`)
       expect(randomSpawnPos(type, getStageBounds(stageId), [], () => 0.25, getStageObjectSightObstacles(stageId))).not.toBeNull()
@@ -355,7 +356,7 @@ describe('late zombie spawn relief', () => {
     expect(getBurstEventsForStage('stage1').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
     expect(getBurstEventsForStage('stage2').filter((event) => event.type === 'E04').map((event) => event.sec)).toEqual([72, 216])
     expect(getBurstEventsForStage('stage2').find((event) => event.sec === 216 && event.type === 'E05').count).toBe(3)
-    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 192 && event.type === 'B01').count).toBe(1)
+    expect(getBurstEventsForStage('stage1').find((event) => event.sec === 150 && event.type === 'B01').count).toBe(1)
     expect(getBurstEventsForStage('stage2').find((event) => event.sec === 120 && event.type === 'B02').count).toBe(1)
     expect(getBurstEventsForStage('stage2').some((event) => event.sec === 120 && event.type === 'B01')).toBe(false)
   })
@@ -589,9 +590,12 @@ describe('midpoint reinforcement spawns (stage1 + stage2)', () => {
 })
 
 describe('boss entrance escort wave', () => {
-  it('spawns one full stage1 wave alongside the B01 boss at 192s', () => {
-    // 192s 활성 phase(start 192, target 11) → 6마리 ×1.15(하향) = 7마리.
-    expect(bossEscortSize('stage1', WAVE_PHASES, 192)).toBe(7)
+  it('keeps the 2:30 B01 burst independent from the fixed general-zombie reinforcement', () => {
+    const stage1At150 = getBurstEventsForStage('stage1').filter((event) => event.sec === 150)
+    expect(stage1At150).toContainEqual({ sec: 150, type: 'B01', count: 1 })
+    expect(stage1At150).toContainEqual({ sec: 150, type: 'E07', count: 6 })
+    expect(stage1At150).toContainEqual({ sec: 150, type: 'E01', count: 6, mixedTypes: ['E01', 'E03'] })
+    expect(bossEscortSize('stage1', WAVE_PHASES, 150)).toBe(0)
   })
 
   it('adds no escort on stage2/stage3 bosses (their boss phases are separately tuned)', () => {
@@ -1159,7 +1163,7 @@ describe('pooled standard enemy runtime wiring', () => {
     const schedulerEnd = enemiesSource.indexOf('\n\n  // 도지 처치', schedulerStart)
     const schedulerSource = enemiesSource.slice(schedulerStart, schedulerEnd)
     const matildaBranchStart = schedulerSource.indexOf('kind === SCHEDULE_MATILDA')
-    const matildaBranchEnd = schedulerSource.indexOf('} else if (kind === SCHEDULE_WAVE', matildaBranchStart)
+    const matildaBranchEnd = schedulerSource.indexOf('} else if (kind === SCHEDULE_BURST', matildaBranchStart)
     const matildaBranch = schedulerSource.slice(matildaBranchStart, matildaBranchEnd)
 
     expect(enemiesSource).toContain("import { advanceMatildaEntryGrace, canSpawnMatildaEntry, cancelMatildaEntryGrace, createMatildaEntryGrace } from '../lib/matildaEntryGrace.js'")

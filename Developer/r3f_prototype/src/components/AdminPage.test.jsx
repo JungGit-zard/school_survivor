@@ -121,7 +121,7 @@ describe('AdminPage', () => {
     expect(container.textContent).toContain('게임 코드에서 자동 반영')
 
     const rows = Array.from(container.querySelectorAll('[data-testid="burst-row"]'))
-    expect(rows).toHaveLength(5)
+    expect(rows).toHaveLength(29)
 
     // 시각 오름차순 정렬 검증
     const secs = rows.map((row) => Number(row.getAttribute('data-sec')))
@@ -131,12 +131,12 @@ describe('AdminPage', () => {
     // stage2 보스(B02)는 sec 120(2:00)에 '보스 등장'으로 강조 표기
     const bossRow = rows.find((row) => row.textContent.includes('보스 등장'))
     expect(bossRow).toBeTruthy()
-    expect(bossRow.getAttribute('data-sec')).toBe('180')
-    expect(bossRow.textContent).toContain('2:50~3:10')
+    expect(bossRow.getAttribute('data-sec')).toBe('120')
+    expect(bossRow.textContent).toContain('2:00')
     expect(bossRow.textContent).toContain('보스')
   })
 
-  it('marks the randomized boss window as mixed instead of checked', () => {
+  it('marks a Stage 1 wave after the fixed B01 spawn as a boss phase', () => {
     saveAdminConfig({
       waveControl: {
         stage1: [{ start: 180, end: 200, counts: { E01: 10 } }],
@@ -148,11 +148,11 @@ describe('AdminPage', () => {
     const wavesTab = container.querySelectorAll('nav button')[2]
     act(() => wavesTab.click())
 
-    const variable = container.querySelector('[data-boss-phase="variable"]')
-    expect(variable).not.toBeNull()
-    expect(variable.checked).toBe(false)
-    expect(variable.getAttribute('aria-checked')).toBe('mixed')
-    expect(variable.dataset.bossPhase).toBe('variable')
+    const bossPhase = container.querySelector('[data-boss-phase="after"]')
+    expect(bossPhase).not.toBeNull()
+    expect(bossPhase.checked).toBe(true)
+    expect(bossPhase.getAttribute('aria-checked')).toBe('true')
+    expect(bossPhase.dataset.bossPhase).toBe('after')
   })
 
   it('applies saved admin balance inputs to game stage and player startup config', () => {

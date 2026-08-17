@@ -7,8 +7,7 @@ import {
   saveAdminConfig,
 } from '../lib/adminConfig.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
-import { getBossPhaseStatus, getRuntimeBurstEventsForStage, isBossType } from '../lib/burstEvents.js'
-import { BOSS_SPAWN_CENTER_SEC, BOSS_SPAWN_JITTER_SEC } from '../lib/stageConfig.js'
+import { getBossPhaseStatus, getBossSpawnSec, getRuntimeBurstEventsForStage, isBossType } from '../lib/burstEvents.js'
 import {
   WAVE_ZOMBIE_TYPES,
   phaseToEditorEntry,
@@ -441,7 +440,7 @@ function WaveControls({ draft, ensureWaveEntries, updateWaveEntry, updateWaveCou
 // 그대로 읽어 시각순 렌더. 복제/수기 입력 없음 — 코드가 바뀌면 여기 자동 반영.
 function BurstSpawnSection({ stageId }) {
   const events = useMemo(
-    () => [...getRuntimeBurstEventsForStage(stageId, BOSS_SPAWN_CENTER_SEC)].sort((a, b) => a.sec - b.sec),
+    () => [...getRuntimeBurstEventsForStage(stageId)].sort((a, b) => a.sec - b.sec),
     [stageId],
   )
 
@@ -461,7 +460,7 @@ function BurstSpawnSection({ stageId }) {
               data-sec={event.sec}
               style={styles.burstRow(boss)}
             >
-              <span style={styles.burstTime}>{boss ? `${formatMinSec(BOSS_SPAWN_CENTER_SEC - BOSS_SPAWN_JITTER_SEC)}~${formatMinSec(BOSS_SPAWN_CENTER_SEC + BOSS_SPAWN_JITTER_SEC)}` : formatMinSec(event.sec)}</span>
+              <span style={styles.burstTime}>{formatMinSec(event.sec)}</span>
               <span style={styles.burstType}>{burstTypeLabel(event.type)}</span>
               <span style={styles.burstCount}>×{event.count}</span>
               {boss && <span style={styles.burstBossBadge}>보스 등장</span>}
@@ -494,7 +493,7 @@ function WaveTimeInput({ label, sec, onChange }) {
 function WaveRow({ entry, index, stageId, onTime, onCount, onRemove }) {
   const total = WAVE_ZOMBIE_TYPES.reduce((sum, t) => sum + (entry.counts[t] ?? 0), 0)
   // 보스 구간은 편집 대상이 아니라 파생 표시 — 시작 시각이 보스 등장 이후면 자동 체크.
-  const bossPhaseStatus = getBossPhaseStatus(entry.start)
+  const bossPhaseStatus = getBossPhaseStatus(entry.start, stageId)
   const bossPhase = bossPhaseStatus === 'after'
   const bossPhaseVariable = bossPhaseStatus === 'variable'
   return (
