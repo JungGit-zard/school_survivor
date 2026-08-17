@@ -81,6 +81,7 @@ function compileTumblerFrame(deps) {
 // 프레임마다 "이번에 텀블러 범위에 잡힌 적"을 대본대로 돌려주는 하네스.
 function createTumblerHarness({ weapon, hitSucceeds = () => true } = {}) {
   const applied = []
+  const emitted = []
   let plan = []
   const bodies = new Map()
   const bodyFor = (index) => {
@@ -128,10 +129,10 @@ function createTumblerHarness({ weapon, hitSucceeds = () => true } = {}) {
     },
     tumblerHitMultiplier,
     useGameStore: { getState: () => ({ recordMissionEvent: () => {} }) },
-    emitSfx: () => {},
+    emitSfx: (event) => emitted.push(event),
   })
 
-  return { runFrame, applied }
+  return { runFrame, applied, emitted }
 }
 
 describe('텀블러 연속 타격 감쇠 (프로덕션 프레임 루프 실행)', () => {
@@ -192,6 +193,26 @@ describe('텀블러 연속 타격 감쇠 (프로덕션 프레임 루프 실행)'
     runFrame(2.0, [A])
     // 앞의 두 번이 카운터를 올렸다면 0.8이 됐을 자리다. 첫 유효타이므로 100%여야 한다.
     expect(applied.map((hit) => hit.damage)).toEqual([DAMAGE * 1.0])
+  })
+
+  it('실제 피해가 성공한 적중에만 둔탁한 tumblerHit을 1회 emit하고, 빗나감에는 emit하지 않는다', () => {
+    let allow = false
+    const { runFrame, emitted } = createTumblerHarness({
+      weapon,
+      hitSucceeds: () => allow,
+    })
+
+    runFrame(1.0, [A])
+    expect(emitted).toEqual([])
+
+    allow = true
+    runFrame(1.5, [A])
+    expect(emitted).toHaveLength(1)
+    expect(emitted[0]).toMatchObject({ id: 'tumblerHit' })
+    expect(emitted[0].volume).toBeGreaterThanOrEqual(0.35)
+    expect(emitted[0].volume).toBeLessThanOrEqual(0.45)
+    expect(emitted[0].rate).toBeGreaterThanOrEqual(0.9)
+    expect(emitted[0].rate).toBeLessThanOrEqual(1.05)
   })
 
   it('시간이 아무리 흘러도 회복하지 않는다 — 순수 순환이다', () => {
