@@ -718,10 +718,13 @@ describe('jarmob expected total keeps density separate from the user HP curve', 
     // ⚠ 이 값은 게임플레이에 영향이 없다 — 랜덤 웨이브는 런타임에 발화하지 않고(SCHEDULE_WAVE 부재),
     //   실제 스폰은 전부 버스트 표 / 마틸다 / 오버타임 3경로에서만 나온다. 여기서는 파생식이
     //   조용히 NaN이 되거나 0으로 붕괴하지 않는다는 것만 못박는다.
+    // 2026-08-19 개정: 스3에서 버스트 잡몹 base 562(110초 E06×1 + 72초 차저 1)를 빼 25초 반복 보강을
+    // 상쇄했더니 스3 m이 1.1098 → 1.1460으로 올랐다. 스4는 E04 26→12 회수분을 근접 편성으로 되돌려
+    // base 총량이 거의 그대로라 m도 거의 안 움직였다(1.19379 → 1.19396).
     expect(STAGE_DENSITY_MULTIPLIER).toEqual({
       stage2: 0.8766327815877557,
-      stage3: 1.109827898020439,
-      stage4: 1.1937908938238697,
+      stage3: 1.1460114286647949,
+      stage4: 1.1939640195114065,
     })
     for (const stageId of ['stage2', 'stage3', 'stage4']) {
       expect(STAGE_DENSITY_MULTIPLIER[stageId]).toBeGreaterThan(0)

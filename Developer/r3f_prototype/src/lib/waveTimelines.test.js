@@ -72,11 +72,14 @@ describe('stage3 총력전 타임라인', () => {
     }
   })
 
-  it('조기 도입 사슬: E04 40s·E05 72s·E06 110s (Stage 1 공통 앵커 재배열)', () => {
+  // 2026-08-19: E06의 버스트 조기 도입(110s ×1)은 총체력 사다리 상쇄로 삭제됐다. 25초 반복 보강이
+  // 25/50/75/100/125에 경량 6마리씩을 넣어 그 창의 "빈 느낌"을 이미 메우고, ×1로는 184초 pincer가
+  // 성립하지 않기 때문이다. 거대는 이제 184초 앞뒤 벽 한 곳뿐이고, 웨이브 weights 쪽 도입(108s)은 그대로다.
+  it('조기 도입 사슬: 버스트 E04 40s·E05 72s / 웨이브 weights E04 34s·E05 52s·E06 108s', () => {
     const firstOf = (type) => STAGE3_WAVE_PHASES.find((p) => p.weights[type])?.start
     expect(STAGE3_BURST_EVENTS.find((e) => e.type === 'E04' && !e.formation)?.sec).toBe(40)
     expect(STAGE3_BURST_EVENTS.find((e) => e.type === 'E05' && !e.formation)?.sec).toBe(72)
-    expect(STAGE3_BURST_EVENTS.find((e) => e.type === 'E06' && !e.formation)?.sec).toBe(110)
+    expect(STAGE3_BURST_EVENTS.filter((e) => e.type === 'E06').map((e) => e.sec)).toEqual([184])
     expect(firstOf('E04')).toBe(34)
     expect(firstOf('E05')).toBe(52)
     expect(firstOf('E06')).toBe(108)

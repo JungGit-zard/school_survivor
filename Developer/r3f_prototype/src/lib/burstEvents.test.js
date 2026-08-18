@@ -37,7 +37,10 @@ const STAGE2_HP_MULTIPLIER = 1.2
 
 const ordinaryZombieEvents = (events) => events.filter((event) => ORDINARY_ZOMBIE_TYPE_RE.test(event.type))
 const stageZombieEvents = (events) => events.filter((event) => !isBossType(event.type))
-const stage3BaseEvents = (events) => events.filter((event) => event.reinforcement !== 'stage3TwentyFiveSecondE01E07')
+// 앵커 불변식 전용 필터. 반복 보강(repeatIntervalSec)은 정의상 앵커 밖에서도 발화하는 명시적 예외라
+// 여기서만 제외하고, 그 대신 "반복 보강 규칙" describe가 따로 단언한다.
+// 총 HP 단언에서는 절대 쓰지 않는다 — 총량은 반복 전개까지 포함한 전체를 세야 한다.
+const singleShotEvents = (events) => events.filter((event) => !isRepeatingBurstEvent(event))
 const uniqueSeconds = (events) => [...new Set(events.map((event) => event.sec))].sort((a, b) => a - b)
 const payloadWithoutSec = (event) => Object.fromEntries(Object.entries(event).filter(([key]) => key !== 'sec'))
 const declaredCountByType = (events) => events.reduce((acc, event) => {
@@ -135,7 +138,7 @@ describe('Stage 2 좀비 시간표 Stage 1 앵커 재배열', () => {
 
 describe('전 스테이지 1:50 웃는좀비·탱커 보강', () => {
   it.each(allStageBurstTables)('%s는 110초 E07 3마리와 E02 3마리를 정확히 1개씩 추가한다', (_stageId, events) => {
-    const baseEvents = stage3BaseEvents(events)
+    const baseEvents = singleShotEvents(events)
     expect(baseEvents.filter((event) => event.sec === 110 && event.type === 'E07' && event.count === 3)).toHaveLength(1)
     // 2026-08-17: 스2가 따로 얹고 있던 110초 E02×3 중복분은 예산 감축으로 제거됐다.
     // 이제 네 스테이지 모두 공유 배열 1건씩만 갖는다 = 배열 분리 없이 공유를 유지할 수 있는 상태다.
@@ -182,7 +185,7 @@ describe('Stage 1 40초 녹색좀비·웃는좀비 추가 스폰', () => {
     ['stage3', STAGE3_BURST_EVENTS],
     ['stage4', STAGE4_BURST_EVENTS],
   ])('%s에는 이 40초 추가 스폰이 없다', (_stageId, events) => {
-    const baseEvents = stage3BaseEvents(events)
+    const baseEvents = singleShotEvents(events)
     expect(baseEvents.filter((event) => event.sec === 40 && event.type === 'E01' && event.count === 6)).toHaveLength(0)
     expect(baseEvents.filter((event) => event.sec === 40 && event.type === 'E07' && event.count === 3)).toHaveLength(0)
   })
@@ -317,21 +320,27 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
 
   // 2026-08-17 총체력 사다리: 잡몹 예산 5,541 → 4,652. 시그니처 RZL 크루 4회는 전부 유지하고
   // 무거운 덩어리에서만 뺐다(150초 E06 삭제, 110초 협공 6→3, 120초 포위 4→3, 오프닝 12→10).
-  it('모든 기존 비보스 이벤트는 공통 13개 앵커만 쓰며 1.3배 사다리 예산에 맞는 payload·마릿수·실제 HP를 갖는다', () => {
-    const ordinary = stage3BaseEvents(STAGE3_BURST_EVENTS).filter((event) => !isBossType(event.type))
+  // 2026-08-19 25초 반복 상쇄: 반복 보강이 25~125초 창에 525 HP를 새로 넣어 스3 총합이 목표 대비 +8.98%로
+  // 뚫려 있었다. 같은 창에서만 562를 빼 되돌린다 — 110초 E06×1(461) 삭제 + 72초 차저 2→1(-101).
+  // 단발 예산 4,652 → 4,090이고, 반복 525를 더한 잡몹 실측이 4,615(목표 4,614)다.
+  it('단발 비보스 이벤트는 공통 13개 앵커만 쓰며 1.3배 사다리 예산에 맞는 payload·마릿수·실제 HP를 갖는다', () => {
+    const ordinary = singleShotEvents(STAGE3_BURST_EVENTS).filter((event) => !isBossType(event.type))
     expect(uniqueSeconds(ordinary)).toEqual([5, 24, 40, 60, 72, 108, 110, 120, 144, 150, 168, 184, 216])
     expect(ordinary.map(payloadWithoutSec)).toEqual([
-      { type: 'E01', count: 10 }, { type: 'E03', count: 4 }, { type: 'E04', count: 1 }, { type: 'E05', count: 2 },
-      { type: 'E06', count: 1 }, { type: 'E05', count: 3 },
+      { type: 'E01', count: 10 }, { type: 'E03', count: 4 }, { type: 'E04', count: 1 }, { type: 'E05', count: 1 },
+      { type: 'E05', count: 3 },
       { type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, { type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION },
       { type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, { type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION },
       { type: 'E07', count: 3 }, { type: 'E02', count: 3 },
       { type: 'E03', count: 6, formation: 'ring' }, { type: 'E05', count: 3, formation: 'ring' },
       { type: 'E02', count: 3, formation: 'pincer' }, { type: 'E06', count: 2, formation: 'pincer' },
     ])
-    expect(ordinary.reduce((sum, event) => sum + event.count, 0)).toBe(69)
+    expect(ordinary.reduce((sum, event) => sum + event.count, 0)).toBe(67)
     const nonCrewHp = ordinary.reduce((sum, event) => sum + ({ E01: 12, E02: 101, E03: 14, E04: 46, E05: 101, E06: 461, E07: 23 }[event.type] ?? 0) * event.count, 0)
-    expect(nonCrewHp + 4 * Math.round(90 * 1.44) + 24 * Math.round(28 * 1.44)).toBe(4652)
+    expect(nonCrewHp + 4 * Math.round(90 * 1.44) + 24 * Math.round(28 * 1.44)).toBe(4090)
+    // 거대는 184초 앞뒤 벽 한 곳으로 모았다 — pincer는 ×2라야 성립하므로 ×1짜리 110초 건을 뺐다.
+    expect(ordinary.filter((event) => event.type === 'E06').map(payloadWithoutSec))
+      .toEqual([{ type: 'E06', count: 2, formation: 'pincer' }])
   })
 })
 
@@ -389,26 +398,64 @@ describe('stage4 급식실 대탈출 버스트', () => {
     expect(formations.length).toBe(5)
   })
 
-  // 2026-08-17 총체력 사다리: 잡몹 예산 3,855 → 5,574(+45%). 증분은 전부 시그니처 E04로 넣었고
-  // (1 → 26마리) 빈 앵커 144/150/168/216을 메워 2:00~3:04의 64초 보스 단독 공백을 없앴다.
-  it('비보스 이벤트는 공통 13개 앵커를 모두 쓰며 E04 시그니처 비중과 사다리 예산을 만족한다', () => {
+  // 2026-08-17 총체력 사다리: 잡몹 예산 3,855 → 5,574(+45%). 빈 앵커 144/150/168/216을 메워
+  // 2:00~3:04의 64초 보스 단독 공백을 없앴다. 다만 증분을 전부 E04로 넣어 26마리가 됐던 건
+  // 2026-08-19에 12마리로 되돌렸다(아래 포화 테스트 참조). 잡몹 예산은 5,577로 유지된다.
+  it('비보스 이벤트는 공통 13개 앵커를 모두 쓰며 사다리 예산을 만족한다', () => {
     const ordinary = STAGE4_BURST_EVENTS.filter((event) => !isBossType(event.type))
     expect(uniqueSeconds(ordinary)).toEqual([5, 24, 40, 60, 72, 108, 110, 120, 144, 150, 168, 184, 216])
     expect(ordinary.map(payloadWithoutSec)).toEqual([
-      { type: 'E01', count: 10 }, { type: 'E04', count: 3 }, { type: 'E05', count: 2 }, { type: 'E06', count: 1 },
-      { type: 'E04', count: 8 }, { type: 'E04', count: 6 }, { type: 'E03', count: 6 }, { type: 'E05', count: 4 },
+      { type: 'E01', count: 10 }, { type: 'E04', count: 4 }, { type: 'E05', count: 2 }, { type: 'E06', count: 1 },
+      { type: 'E07', count: 2 }, { type: 'E04', count: 4 }, { type: 'E02', count: 2 }, { type: 'E05', count: 3 },
+      { type: 'E03', count: 6 }, { type: 'E07', count: 4 }, { type: 'E05', count: 4 },
       { type: 'E07', count: 3 }, { type: 'E02', count: 3 },
       { type: 'E03', count: 6, formation: 'ring' }, { type: 'E02', count: 4, formation: 'pincer' },
-      { type: 'E05', count: 4, formation: 'ring' }, { type: 'E04', count: 9, formation: 'ring' },
+      { type: 'E05', count: 4, formation: 'ring' }, { type: 'E04', count: 4, formation: 'ring' },
       { type: 'E06', count: 2, formation: 'pincer' },
     ])
-    expect(ordinary.reduce((sum, event) => sum + event.count, 0)).toBe(71)
-    // 시그니처 실현 판정: E04가 단일 최다 타입이고 전체 마릿수의 3분의 1을 넘는다.
-    const e04 = ordinary.filter((e) => e.type === 'E04').reduce((sum, e) => sum + e.count, 0)
-    expect(e04).toBe(26)
-    expect(e04 / 71).toBeGreaterThan(1 / 3)
+    expect(ordinary.reduce((sum, event) => sum + event.count, 0)).toBe(68)
     const appliedHp = ordinary.reduce((sum, event) => sum + ({ E01: 14, E02: 121, E03: 17, E04: 55, E05: 121, E06: 553, E07: 28 }[event.type] ?? 0) * event.count, 0)
-    expect(appliedHp).toBe(5574)
+    expect(appliedHp).toBe(5577)
+  })
+
+  // ── E04 포화 상한 감시(2026-08-19) ────────────────────────────────────────────
+  // 옛 26마리 편성의 근거였던 getE04Cap은 런타임 호출자가 없는 죽은 코드다. 실제로 발사를 막는 건
+  // enemySimulation.js isE04FireAllowed의 `projectileCount < E04_MAX_PROJECTILES(6)` 하나뿐이고,
+  // 투사체는 명중하거나 수명 3,200ms가 다 차야 슬롯을 반납한다(경계 despawn 없음).
+  //   처리량 천장  = 6발 / 3.2s          = 1.875발/초
+  //   사수 1기     = 1 / 2,200ms(쿨다운) = 0.4545발/초
+  //   포화 사수 수 = 1.875 / 0.4545      = 4.13기
+  // 4기면 이미 천장의 97%이고 5기째부터는 슬롯 대기만 길어진다. E04는 preferDist 5.5에서
+  // 스트레이핑만 하므로 초과분은 접촉 위협도 못 준다 = 순수 HP 낭비. 그래서 등장당 4마리로 못 박는다.
+  const E04_MAX_PROJECTILES = 6
+  const E04_PROJECTILE_LIFETIME_MS = 3200
+  const E04_COOLDOWN_MS = 2200
+  const E04_SATURATION_SHOOTERS = (E04_MAX_PROJECTILES / E04_PROJECTILE_LIFETIME_MS) * E04_COOLDOWN_MS
+
+  it('E04 편성은 투사체 슬롯 포화점을 넘지 않는다 (등장당 4마리 · 총 12마리)', () => {
+    expect(E04_SATURATION_SHOOTERS).toBeCloseTo(4.125, 3)
+    const perBurst = Math.floor(E04_SATURATION_SHOOTERS)
+    const e04Events = STAGE4_BURST_EVENTS.filter((event) => event.type === 'E04')
+
+    expect(e04Events.map((event) => event.sec)).toEqual([24, 144, 168])
+    for (const event of e04Events) expect(event.count).toBe(perBurst)
+
+    const e04Total = e04Events.reduce((sum, event) => sum + event.count, 0)
+    expect(e04Total).toBe(12)
+    // 어느 단일 앵커도 포화점을 넘지 않는다 = 발사 기회를 못 얻는 사수가 생기지 않는다.
+    expect(Math.max(...e04Events.map((event) => event.count))).toBeLessThanOrEqual(perBurst)
+    // 시그니처는 마릿수가 아니라 "보스 구간까지 사선이 유지된다"로 유지한다(stage4만 bossPressure 예외).
+    // 보스 등장(150)을 앞뒤로 한 벽씩 감싼다: 144 직전 · 168 보스 구간 내부.
+    const bossSec = getBossSpawnSec('stage4')
+    expect(e04Events.some((event) => event.sec < bossSec && event.sec >= bossSec - 10)).toBe(true)
+    expect(e04Events.some((event) => event.sec > bossSec)).toBe(true)
+    // 다른 스테이지로 이 물량이 번지지 않는지도 함께 본다.
+    for (const stageId of ['stage1', 'stage2', 'stage3']) {
+      const other = getRuntimeBurstEventsForStage(stageId)
+        .filter((event) => event.type === 'E04')
+        .reduce((sum, event) => sum + (event.count ?? 1), 0)
+      expect(other).toBeLessThanOrEqual(perBurst)
+    }
   })
 })
 
@@ -446,9 +493,13 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     }
     return appliedHp(event.type, stageId) * (event.count ?? 1)
   }
+  // 2026-08-19: 여기 있던 stage3 25초 보강 면제 필터를 제거했다. 사다리를 지키라고 만든 단언이
+  // 위반 항목만 골라 빼고 통과하던 상태였다(스3 실측 6,833 = 목표 +8.98%인데 테스트는 초록).
+  // 이제 반복 이벤트를 tick 수만큼 전개해 런타임이 실제로 스폰하는 전량을 센다.
+  const eventTotalHp = (event, stageId) => eventHp(event, stageId)
+    * (isRepeatingBurstEvent(event) ? repeatingBurstTickCount(event) : 1)
   const stageTotalHp = (stageId) => getRuntimeBurstEventsForStage(stageId)
-    .filter((event) => stageId !== 'stage3' || event.reinforcement !== 'stage3TwentyFiveSecondE01E07')
-    .reduce((sum, event) => sum + eventHp(event, stageId), 0)
+    .reduce((sum, event) => sum + eventTotalHp(event, stageId), 0)
 
   it.each(allStageBurstTables)('%s 총 HP(보스 포함)는 1.3배 사다리 목표의 ±2% 안이다', (stageId) => {
     const total = stageTotalHp(stageId)
@@ -460,22 +511,59 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     const totals = ['stage1', 'stage2', 'stage3', 'stage4'].map(stageTotalHp)
     // 스1은 사용자 정본이라 절대 변하지 않는다 — 이 단언이 앵커를 지킨다.
     expect(totals[0]).toBe(STAGE1_TOTAL_HP)
-    expect(totals).toEqual([3710, 4838, 6308, 8166])
+    expect(totals).toEqual([3710, 4838, 6271, 8169])
     for (let i = 1; i < totals.length; i += 1) {
       expect(totals[i] / totals[i - 1]).toBeGreaterThanOrEqual(1.27)
       expect(totals[i] / totals[i - 1]).toBeLessThanOrEqual(1.33)
     }
   })
 
-  it.each(allStageBurstTables)('%s 보스를 제외한 기존 이벤트 sec은 공통 13개 앵커의 부분집합이다', (_stageId, events) => {
-    const secs = uniqueSeconds(stageZombieEvents(stage3BaseEvents(events)))
+  it.each(allStageBurstTables)('%s 단발 이벤트 sec은 보스를 빼면 공통 13개 앵커의 부분집합이다', (_stageId, events) => {
+    const secs = uniqueSeconds(stageZombieEvents(singleShotEvents(events)))
     expect(secs.filter((sec) => !SPAWN_ANCHORS.includes(sec))).toEqual([])
   })
 
-  it('네 스테이지 모두 13개 앵커를 빠짐없이 쓴다 (긴 스폰 공백 금지)', () => {
+  it('네 스테이지 모두 단발 이벤트로 13개 앵커를 빠짐없이 쓴다 (긴 스폰 공백 금지)', () => {
     for (const [, events] of allStageBurstTables) {
-      expect(uniqueSeconds(stageZombieEvents(stage3BaseEvents(events)))).toEqual(SPAWN_ANCHORS)
+      expect(uniqueSeconds(stageZombieEvents(singleShotEvents(events)))).toEqual(SPAWN_ANCHORS)
     }
+  })
+
+  // 앵커 불변식의 유일한 예외를 "면제"가 아니라 "별도 규칙"으로 명시 검증한다.
+  // 반복 보강은 정의상 고정 간격으로 발화하므로 13개 앵커에 맞출 수 없다. 대신 아래를 강제한다:
+  //   (1) 반복 이벤트가 존재하는 스테이지는 stage3 하나뿐이다(무단 확산 방지),
+  //   (2) 전개된 발화 시각이 [start, endExclusive) 안의 균일 간격이고,
+  //   (3) 마지막 tick이 보스 등장(150)보다 앞선다 = 보스 구간을 반복 스폰이 침범하지 않는다.
+  // 총 HP 단언은 이 예외를 봐주지 않는다 — stageTotalHp는 tick 전개분을 전부 센다.
+  it('반복 보강은 stage3 전용 명시 예외이며 균일 간격·보스 이전 종료 규칙을 지킨다', () => {
+    for (const [stageId, events] of allStageBurstTables) {
+      const repeating = events.filter(isRepeatingBurstEvent)
+      if (stageId !== 'stage3') {
+        expect(repeating).toEqual([])
+        continue
+      }
+      expect(repeating.length).toBeGreaterThan(0)
+      for (const event of repeating) {
+        const ticks = repeatingBurstTickCount(event)
+        const secs = Array.from({ length: ticks }, (_, tick) => repeatingBurstSecAtTick(event, tick))
+        expect(secs).toEqual([25, 50, 75, 100, 125])
+        expect(secs.every((sec) => sec >= event.sec && sec < event.endExclusiveSec)).toBe(true)
+        expect(Math.max(...secs)).toBeLessThan(getBossSpawnSec(stageId))
+        // 반복 보강 풀은 경량대(E01 8hp·E07 16hp)로 제한한다 — 5회 확정 발화라 무거운 타입은 사다리를 뚫는다.
+        expect(['E01', 'E07']).toContain(event.type)
+      }
+    }
+  })
+
+  // 회귀 방어: stage3 반복 보강의 전개 총량이 사다리 예산 안에서 차지하는 몫을 못 박는다.
+  // 이 값이 오르면 위 총 HP 단언이 같이 깨지도록 두 단언을 함께 둔다.
+  it('stage3 25초 반복 보강의 전개 총량은 30마리·525 HP다', () => {
+    const repeating = STAGE3_BURST_EVENTS.filter(isRepeatingBurstEvent)
+    const bodies = repeating.reduce((sum, event) => sum + event.count * repeatingBurstTickCount(event), 0)
+    const hp = repeating.reduce((sum, event) => sum + eventTotalHp(event, 'stage3'), 0)
+    expect(bodies).toBe(30)
+    expect(hp).toBe(525)
+    expect(stageTotalHp('stage3')).toBe(6271)
   })
 
   it('보스 시각은 네 스테이지 모두 사용자 지정 150초다', () => {
