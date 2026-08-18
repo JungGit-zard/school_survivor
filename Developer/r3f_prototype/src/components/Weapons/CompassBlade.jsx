@@ -259,16 +259,27 @@ export function CompassBladeWeapon() {
   const impactRef = useRef({ critChance: 0, critMultiplier: 1 })
   const orbitXRef = useRef(new Float32Array(3))
   const orbitZRef = useRef(new Float32Array(3))
-  const hitStackRef = useRef(0)
-  const respawnUntilRef = useRef(0)
+  // 살아 있는(리스폰 중이 아닌) 요강만 압축해 담는다. scanOrbitEnemiesInto는 궤도체 배열을
+  // 통째로 훑으므로, 터져서 사라진 요강 자리로도 좀비가 걸려들지 않게 여기서 걸러 넘긴다.
+  const liveXRef = useRef(new Float32Array(3))
+  const liveZRef = useRef(new Float32Array(3))
+  // 스택·리스폰은 요강별이다(2026-08-19 사용자 지시: "요강별로 해줘, 그게 더 실감나").
+  // 전역이었을 땐 하나가 터지면 셋이 동시에 사라져 무기가 통째로 점멸했다.
+  const hitStacksRef = useRef(new Uint8Array(3))
+  const respawnUntilRef = useRef(new Float64Array(3))
   const wasActiveRef = useRef(false)
   const [explosions, explosionsRef, requestExplosions, removeExplosion] = useDeferredProjectileState()
-  const isRespawningRef = useRef(false)
   const weapons = useGameStore((s) => s.weapons)
   const compassActive = !!weapons.compassBlade?.active
 
   useEffect(() => {
-    if (compassActive && !wasActiveRef.current) emitSfx({ id: 'compassFire' })
+    if (compassActive && !wasActiveRef.current) {
+      emitSfx({ id: 'compassFire' })
+      // ref는 런이 바뀌어도 살아남는다. 이전 런의 스택을 들고 시작하면 해금 직후 첫 타에
+      // 폭발하는 일이 생긴다.
+      hitStacksRef.current.fill(0)
+      respawnUntilRef.current.fill(0)
+    }
     wasActiveRef.current = compassActive
   }, [compassActive])
 
@@ -298,22 +309,9 @@ export function CompassBladeWeapon() {
     const orbitSpeed = w.orbitSpeed ?? 3.4
     const nowMs = nowSec * 1000
 
-    if (respawnUntilRef.current > nowMs) {
-      for (let i = 0; i < count; i += 1) {
-        if (visualRefs.current[i]) visualRefs.current[i].visible = false
-      }
-      return
-    }
-
-    if (isRespawningRef.current) {
-      respawnUntilRef.current = 0
-      isRespawningRef.current = false
-      lastHitRef.current.times.fill(0)
-      lastHitRef.current.generations.fill(0)
-      lastHitRef.current.special.fill(undefined)
-      lastHitRef.current.specialTimes.fill(0)
-    }
-
+    // 죽은 요강도 궤도 좌표는 계속 갱신한다 — 리스폰 시 제자리가 아니라 그 사이 돌았어야 할
+    // 위치에서 돌아와야 다른 요강과 간격이 유지된다.
+    let liveCount = 0
     for (let i = 0; i < count; i += 1) {
       const pose = getCompassBladeOrbitPose({
         elapsedSec: nowSec,
@@ -326,25 +324,47 @@ export function CompassBladeWeapon() {
 
       orbitXRef.current[i] = pose.position.x
       orbitZRef.current[i] = pose.position.z
+
+      const alive = respawnUntilRef.current[i] <= nowMs
+      if (alive) {
+        liveXRef.current[liveCount] = pose.position.x
+        liveZRef.current[liveCount] = pose.position.z
+        liveCount += 1
+      }
       if (visualRefs.current[i]) {
-        visualRefs.current[i].visible = true
+        visualRefs.current[i].visible = alive
         visualRefs.current[i].position.set(pose.position.x, pose.position.y, pose.position.z)
         visualRefs.current[i].rotation.set(pose.rotation.x, pose.rotation.y, pose.rotation.z)
       }
     }
+    if (liveCount === 0) return
 
     const interval = 1000 / (w.hitsPerSecond ?? 2.5)
     const hitRadius = w.hitRadius ?? 0.46
-    let exploded = false
     const scratch = targetScratchRef.current
-    const targetCount = scanOrbitEnemiesInto(scratch, orbitXRef.current, orbitZRef.current, count, hitRadius)
-    for (let targetIndex = 0; targetIndex < targetCount && !exploded; targetIndex += 1) {
+    const targetCount = scanOrbitEnemiesInto(scratch, liveXRef.current, liveZRef.current, liveCount, hitRadius)
+    for (let targetIndex = 0; targetIndex < targetCount; targetIndex += 1) {
       const special = scratch.special[targetIndex]
       const index = scratch.indices[targetIndex]
       const generation = special ? (scratch.generations[targetIndex] || null) : scratch.generations[targetIndex]
       const rb = special ?? resolveWeaponTarget(index, generation, null)
       if (!isEnemyHitLive(rb, generation)) continue
       const t = rb.translation()
+
+      // 이 좀비를 때린 요강 = 가장 가까운 살아 있는 요강. 스택도 폭발 지점도 그 요강 것이다.
+      // 이번 프레임에 이미 터진 요강은 respawnUntil이 갱신돼 여기서 자연히 빠진다 —
+      // 그래서 판정보다 먼저 고르고, 고를 요강이 없으면 타격 자체가 없다.
+      let blade = -1
+      let bestDistSq = Infinity
+      for (let i = 0; i < count; i += 1) {
+        if (respawnUntilRef.current[i] > nowMs) continue
+        const dx = t.x - orbitXRef.current[i]
+        const dz = t.z - orbitZRef.current[i]
+        const distSq = dx * dx + dz * dz
+        if (distSq < bestDistSq) { bestDistSq = distSq; blade = i }
+      }
+      if (blade < 0) break
+
       let lastHit = 0
       let specialSlot = -1
       if (special) {
@@ -373,45 +393,25 @@ export function CompassBladeWeapon() {
       emitSfx({ id: 'compassQuack', volume: 0.5 })
 
       const stackResult = resolveCompassBladeHitStack({
-        currentStack: hitStackRef.current,
+        currentStack: hitStacksRef.current[blade],
         hitDamage: w.damage,
         explosionRadiusMultiplier: w.permanentExplosionRadiusMultiplier ?? 1,
       })
-      hitStackRef.current = stackResult.stack
+      hitStacksRef.current[blade] = stackResult.stack
 
       if (stackResult.exploded) {
-        // 터지는 주체는 맞은 좀비가 아니라 궤도를 도는 요강이다. 스택 카운터가 요강별이 아니라
-        // 전역이라 "어느 요강이 터졌는지"는 이 좀비를 때린 요강, 즉 좀비에게 가장 가까운
-        // 요강으로 확정한다(스캔 반경 hitRadius 안에 최소 하나는 반드시 있다).
-        let blastX = orbitXRef.current[0]
-        let blastZ = orbitZRef.current[0]
-        let bestDistSq = Infinity
-        for (let bladeIndex = 0; bladeIndex < count; bladeIndex += 1) {
-          const dx = t.x - orbitXRef.current[bladeIndex]
-          const dz = t.z - orbitZRef.current[bladeIndex]
-          const distSq = dx * dx + dz * dz
-          if (distSq < bestDistSq) {
-            bestDistSq = distSq
-            blastX = orbitXRef.current[bladeIndex]
-            blastZ = orbitZRef.current[bladeIndex]
-          }
-        }
+        // 터지는 주체는 맞은 좀비가 아니라 그 좀비를 때린 요강이다. 그 요강만 사라지고,
+        // 나머지는 자기 스택을 들고 계속 돈다.
         explode({
-          x: blastX,
-          z: blastZ,
+          x: orbitXRef.current[blade],
+          z: orbitZRef.current[blade],
           damage: stackResult.explosionDamage,
           radius: stackResult.explosionRadius,
         })
-        respawnUntilRef.current = getCompassBladeRespawnUntilMs({
+        respawnUntilRef.current[blade] = getCompassBladeRespawnUntilMs({
           exploded: true,
           nowMs,
         })
-        exploded = true
-        isRespawningRef.current = true
-        lastHitRef.current.times.fill(0)
-        lastHitRef.current.generations.fill(0)
-        lastHitRef.current.special.fill(undefined)
-        lastHitRef.current.specialTimes.fill(0)
       }
     }
   })

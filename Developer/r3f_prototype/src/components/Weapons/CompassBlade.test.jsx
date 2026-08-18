@@ -175,13 +175,43 @@ describe('CompassBladeWeapon orbit pose', () => {
   it('detonates at the orbiting potty that landed the hit, not at the enemy body', () => {
     const source = readFileSync(new URL('./CompassBlade.jsx', import.meta.url), 'utf8')
 
-    expect(source).toContain('let blastX = orbitXRef.current[0]')
-    expect(source).toContain('blastX = orbitXRef.current[bladeIndex]')
-    expect(source).toContain('blastZ = orbitZRef.current[bladeIndex]')
-    expect(source).toContain('x: blastX,')
-    expect(source).toContain('z: blastZ,')
+    expect(source).toContain('x: orbitXRef.current[blade],')
+    expect(source).toContain('z: orbitZRef.current[blade],')
     // 좀비 몸 좌표를 폭심으로 쓰던 회귀를 막는다.
-    expect(source).not.toContain('x: t.x,\n          z: t.z,')
+    expect(source).not.toContain('x: t.x,')
+  })
+
+  // 2026-08-19 사용자 지시: "요강별로 해줘, 그게 더 실감나".
+  // 전역 스택일 땐 하나가 터지면 셋이 동시에 사라져 무기가 통째로 점멸했다.
+  it('keeps the stack and the respawn timer per potty, not shared across the set', () => {
+    const source = readFileSync(new URL('./CompassBlade.jsx', import.meta.url), 'utf8')
+
+    // 요강 3개분 배열. 스칼라로 되돌리면 전역 스택 회귀다.
+    expect(source).toContain('const hitStacksRef = useRef(new Uint8Array(3))')
+    expect(source).toContain('const respawnUntilRef = useRef(new Float64Array(3))')
+    expect(source).toContain('currentStack: hitStacksRef.current[blade],')
+    expect(source).toContain('hitStacksRef.current[blade] = stackResult.stack')
+    expect(source).toContain('respawnUntilRef.current[blade] = getCompassBladeRespawnUntilMs(')
+
+    // 터진 요강만 숨긴다 — 전체 조기 return으로 돌아가면 셋이 같이 사라진다.
+    expect(source).toContain('const alive = respawnUntilRef.current[i] <= nowMs')
+    expect(source).toContain('visualRefs.current[i].visible = alive')
+
+    // 스캔에는 살아 있는 요강만 넘긴다. 죽은 요강 자리로 좀비가 걸려들면 안 된다.
+    expect(source).toContain('scanOrbitEnemiesInto(scratch, liveXRef.current, liveZRef.current, liveCount, hitRadius)')
+    // 이번 프레임에 이미 터진 요강은 다음 좀비의 타격자로 뽑히면 안 된다.
+    expect(source).toContain('if (respawnUntilRef.current[i] > nowMs) continue')
+
+    // 한 요강이 터져도 루프가 끊기면 나머지 요강의 타격이 그 프레임에 통째로 사라진다.
+    expect(source).not.toContain('&& !exploded')
+  })
+
+  it('resets every potty stack when the weapon is re-acquired', () => {
+    const source = readFileSync(new URL('./CompassBlade.jsx', import.meta.url), 'utf8')
+
+    // ref는 런을 넘어 살아남는다 — 이전 런 스택을 들고 시작하면 첫 타에 터진다.
+    expect(source).toContain('hitStacksRef.current.fill(0)')
+    expect(source).toContain('respawnUntilRef.current.fill(0)')
   })
 
   it('sets a three-second respawn window after an explosion', () => {
