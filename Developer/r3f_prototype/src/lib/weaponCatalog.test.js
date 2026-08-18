@@ -79,9 +79,10 @@ describe('weaponCatalog', () => {
 
   it('신규 3종(R7) Lv.1 스탯 정확히 일치', () => {
     expect(WEAPON_CATALOG.compassBlade.label).toBe('오리요강')
-    expect(WEAPON_CATALOG.compassBlade.base.damage).toBe(7)
+    // 2026-08-18 사용자 확정: 7 → 5. 타격은 텀블러(6)보다 약하고, 값어치는 폭발에 있다.
+    expect(WEAPON_CATALOG.compassBlade.base.damage).toBe(5)
     expect(WEAPON_CATALOG.compassBlade.base.radius).toBe(1.15)
-    // 2026-08-15 격차 완화: 2.5 → 2.0. damage 7은 그대로 두고 타격 빈도만 내렸다.
+    // 2026-08-15 격차 완화: 2.5 → 2.0. 타격 빈도만 내렸다.
     expect(WEAPON_CATALOG.compassBlade.base.hitsPerSecond).toBe(2.0)
     expect(WEAPON_CATALOG.umbrellaGuard.base.damage).toBe(12)
     expect(WEAPON_CATALOG.umbrellaGuard.base.cooldown).toBe(3600)

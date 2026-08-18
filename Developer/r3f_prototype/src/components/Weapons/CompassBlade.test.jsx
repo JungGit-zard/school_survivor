@@ -2,10 +2,12 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   COMPASS_BLADE_EXPLOSION_DAMAGE,
+  COMPASS_BLADE_EXPLOSION_DURATION_SEC,
   COMPASS_BLADE_EXPLOSION_EDGE_LOCAL_RADIUS,
   COMPASS_BLADE_EXPLOSION_RADIUS,
   COMPASS_BLADE_RESPAWN_MS,
   COMPASS_BLADE_STACKS_TO_EXPLODE,
+  getCompassBladeExplosionExpansion,
   getCompassBladeExplosionVisualScale,
   getCompassBladeRespawnUntilMs,
   getCompassBladeOrbitPose,
@@ -13,6 +15,8 @@ import {
   shouldRenderCompassBladeHitBodies,
 } from '../../lib/compassBlade.js'
 import { ZOMBIE_METER_WORLD_UNITS } from '../../lib/gameplayUnits.js'
+import { WEAPON_CATALOG } from '../../lib/weaponCatalog.js'
+import { TUMBLER_SUSTAINED_MULTIPLIER } from '../../lib/tumblerFalloff.js'
 
 describe('CompassBladeWeapon orbit pose', () => {
   it('computes one shared world pose for the collider and visual blade', () => {
@@ -46,26 +50,28 @@ describe('CompassBladeWeapon orbit pose', () => {
 
   it('builds one stack on each rotating contact hit before the explosion threshold', () => {
     const result = resolveCompassBladeHitStack({
-      currentStack: 3,
+      currentStack: COMPASS_BLADE_STACKS_TO_EXPLODE - 2,
       hitDamage: 8,
     })
 
     expect(result).toEqual({
-      stack: 4,
+      stack: COMPASS_BLADE_STACKS_TO_EXPLODE - 1,
       exploded: false,
       explosionDamage: 0,
       explosionRadius: COMPASS_BLADE_EXPLOSION_RADIUS,
     })
   })
 
-  it('explodes on the fifth contact hit for fixed 30 damage in a one-tile radius', () => {
+  it('explodes on the third contact hit for fixed 30 damage in a one-tile radius', () => {
     const hitDamage = 8
     const result = resolveCompassBladeHitStack({
       currentStack: COMPASS_BLADE_STACKS_TO_EXPLODE - 1,
       hitDamage,
     })
 
-    expect(COMPASS_BLADE_STACKS_TO_EXPLODE).toBe(5)
+    // 5 → 3 (2026-08-18). 적별 500ms 게이트라 5스택은 붙잡고 있어도 2.5초, 궤도 이탈까지
+    // 감안하면 수 초가 걸려 "터질 때쯤 플레이어는 딴 데"가 됐다.
+    expect(COMPASS_BLADE_STACKS_TO_EXPLODE).toBe(3)
     expect(result).toEqual({
       stack: 0,
       exploded: true,
@@ -123,9 +129,47 @@ describe('CompassBladeWeapon orbit pose', () => {
 
     // COMPASS_BLADE_EXPLOSION_EDGE_LOCAL_RADIUS = 0.72 × (0.95 + 1.4)의 두 입력.
     expect(source).toContain('<ringGeometry args={[0.48, 0.72, 64]} />')
-    expect(source).toContain('outerRingRef.current.scale.setScalar(0.95 + t * 1.4)')
-    expect(source).toContain('getCompassBladeExplosionVisualScale(radius, t)')
+    expect(source).toContain('outerRingRef.current.scale.setScalar(0.95 + e * 1.4)')
+    expect(source).toContain('getCompassBladeExplosionVisualScale(radius, e)')
     expect(source).not.toContain('0.24 + radius * 2.9 * t')
+  })
+
+  it('drives every expansion off the eased progress, never raw lifetime', () => {
+    const source = readFileSync(new URL('./CompassBlade.jsx', import.meta.url), 'utf8')
+
+    // 크기를 t로 되돌리는 회귀 방지. 하나라도 t로 돌아가면 그 요소만 뒤늦게 벌어져
+    // 폭발이 다시 "천천히 부푸는" 연출이 된다. 불투명도(fastPop·lateFade)는 t가 맞다.
+    expect(source).toContain('const e = getCompassBladeExplosionExpansion(t)')
+    expect(source).toContain('ageRef.current / COMPASS_BLADE_EXPLOSION_DURATION_SEC')
+    for (const scaleExpr of [
+      'flashRef.current.scale.setScalar(0.65 + e * 0.7)',
+      'innerRingRef.current.scale.setScalar(0.72 + e * 0.9)',
+      'burstRef.current.scale.set(1.2 + e * 0.8, 1.3 + e * 1.8, 1.2 + e * 0.8)',
+    ]) {
+      expect(source).toContain(scaleExpr)
+    }
+  })
+
+  it('reaches the damage radius while still visible, and clears before the player outruns it', () => {
+    // 사용자 신고: "폭발반응이 느려서 캐릭터가 많이 이동한 뒤 엉뚱한 곳에서 터지는 느낌".
+    // 원인은 확산이 선형이라 링이 실제 피해 반경에 닿는 순간 이미 투명했다는 것이다.
+    // 보이는 링의 월드 반경 = 그룹 스케일 × 바깥 링 자체 스케일 × ringGeometry 바깥 반경.
+    const visibleRadiusAt = (t) => {
+      const e = getCompassBladeExplosionExpansion(t)
+      return getCompassBladeExplosionVisualScale(COMPASS_BLADE_EXPLOSION_RADIUS, e)
+        * 0.72 * (0.95 + e * 1.4)
+    }
+
+    expect(getCompassBladeExplosionExpansion(0)).toBe(0)
+    expect(getCompassBladeExplosionExpansion(1)).toBe(1)
+    // 수명 30% 지점(≈100ms)에서 이미 피해 반경의 80% 이상이고, 링 불투명도는 아직 0.7이다.
+    expect(visibleRadiusAt(0.3)).toBeGreaterThan(COMPASS_BLADE_EXPLOSION_RADIUS * 0.8)
+    // 끝에서는 정확히 피해 반경 — 비주얼이 판정보다 커져 "닿았는데 안 죽는다"가 되면 안 된다.
+    expect(visibleRadiusAt(1)).toBeCloseTo(COMPASS_BLADE_EXPLOSION_RADIUS, 10)
+
+    // 폭심은 월드 고정이라 수명이 길수록 달리는 플레이어 등 뒤에 남는다. 궤도 반경(1.15)
+    // 안에 머물러야 "요강이 터졌다"로 읽힌다 — 플레이어 이동속도는 대략 3.5 wu/s.
+    expect(COMPASS_BLADE_EXPLOSION_DURATION_SEC * 3.5).toBeLessThan(WEAPON_CATALOG.compassBlade.base.radius + 0.1)
   })
 
   it('detonates at the orbiting potty that landed the hit, not at the enemy body', () => {
@@ -140,10 +184,38 @@ describe('CompassBladeWeapon orbit pose', () => {
     expect(source).not.toContain('x: t.x,\n          z: t.z,')
   })
 
-  it('sets a five-second respawn window after an explosion', () => {
-    expect(COMPASS_BLADE_RESPAWN_MS).toBe(5000)
-    expect(getCompassBladeRespawnUntilMs({ exploded: true, nowMs: 1200 })).toBe(6200)
+  it('sets a three-second respawn window after an explosion', () => {
+    expect(COMPASS_BLADE_RESPAWN_MS).toBe(3000)
+    expect(getCompassBladeRespawnUntilMs({ exploded: true, nowMs: 1200 })).toBe(4200)
     expect(getCompassBladeRespawnUntilMs({ exploded: false, nowMs: 1200 })).toBe(0)
+  })
+
+  // 스택과 리스폰을 같이 줄인 이유. 스택만 5→3으로 줄이면 폭발은 빨라지지만 5초 공백이
+  // 더 자주 와서 요강이 사라져 있는 시간 비율이 67% → 77%로 늘어난다.
+  it('keeps the potties on screen for the same share of the cycle as before', () => {
+    const { hitsPerSecond } = WEAPON_CATALOG.compassBlade.base
+    const chargeSec = COMPASS_BLADE_STACKS_TO_EXPLODE / hitsPerSecond
+    const downtimeShare = (COMPASS_BLADE_RESPAWN_MS / 1000) / (chargeSec + COMPASS_BLADE_RESPAWN_MS / 1000)
+
+    expect(chargeSec).toBeCloseTo(1.5, 10)
+    expect(downtimeShare).toBeCloseTo(5 / 7.5, 10)
+  })
+
+  it('stays weaker than the tumbler, explosion included', () => {
+    // 사용자 확정 사양(2026-08-18): "오리요강은 텀블러보다 낮은 공격력으로 유지하다가
+    // 폭발이 가미된 것". 폭발까지 더한 사이클 실화력으로 비교해야 의미가 있다.
+    const crit = (w) => 1 + w.critChance * (w.critMultiplier - 1)
+    const potty = WEAPON_CATALOG.compassBlade.base
+    const tumbler = WEAPON_CATALOG.tumbler.base
+
+    const cycleSec = COMPASS_BLADE_STACKS_TO_EXPLODE / potty.hitsPerSecond + COMPASS_BLADE_RESPAWN_MS / 1000
+    // 폭발은 canCrit:false(CompassBlade.jsx explode)라 치명타 배율을 곱하지 않는다.
+    const pottyDps = (COMPASS_BLADE_STACKS_TO_EXPLODE * potty.damage * crit(potty) + COMPASS_BLADE_EXPLOSION_DAMAGE) / cycleSec
+    const tumblerDps = tumbler.damage * tumbler.hitsPerSecond * TUMBLER_SUSTAINED_MULTIPLIER * crit(tumbler)
+
+    expect(potty.damage).toBeLessThan(tumbler.damage)
+    expect(potty.damage * potty.hitsPerSecond).toBeLessThan(tumbler.damage * tumbler.hitsPerSecond * TUMBLER_SUSTAINED_MULTIPLIER)
+    expect(pottyDps).toBeLessThan(tumblerDps)
   })
 
   it('keeps the pure orbit loop eligible during the respawn window', () => {

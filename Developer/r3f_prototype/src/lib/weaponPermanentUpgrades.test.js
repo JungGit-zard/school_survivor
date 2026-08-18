@@ -194,7 +194,7 @@ describe('weaponPermanentUpgrades storage layer', () => {
     expect(upgraded('guidedMissile')).toMatchObject({ damage: 18.6, radius: 1.76, homingStrength: 1.1 })
     expect(upgraded('sharkMissile')).toMatchObject({ damage: 24.1, speed: 9.18, retargetIntervalMs: 270, permanentHomingStartMultiplier: 0.9, radius: 2.016 })
     expect(upgraded('starlink')).toMatchObject({ damage: 30.2, strikeRadius: 1.32, permanentBonusStrikeChance: 0.1, critChance: 0.15 })
-    expect(upgraded('compassBlade')).toMatchObject({ damage: 7.6, orbitSpeed: 3.74, permanentExplosionRadiusMultiplier: 1.1, critChance: 0.13 })
+    expect(upgraded('compassBlade')).toMatchObject({ damage: 5.4, orbitSpeed: 3.74, permanentExplosionRadiusMultiplier: 1.1, critChance: 0.13 })
     expect(upgraded('umbrellaGuard')).toMatchObject({ cooldown: 3240, radius: 1.375, knockbackMs: 273 })
     expect(upgraded('eraserBomb')).toMatchObject({ damage: 28.6, radius: 1.566, permanentSlowDust: true })
     expect(upgraded('studentLantern')).toMatchObject({ damage: 0.2, lightLength: 2.246, lightWidth: 3.888, permanentSlowChance: 0.1, critChance: 0.11 })

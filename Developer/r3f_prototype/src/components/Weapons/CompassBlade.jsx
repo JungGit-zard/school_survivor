@@ -5,6 +5,8 @@ import { emitSfx } from '../../lib/sfxEvents.js'
 import { playerPos } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import {
+  COMPASS_BLADE_EXPLOSION_DURATION_SEC,
+  getCompassBladeExplosionExpansion,
   getCompassBladeExplosionVisualScale,
   getCompassBladeOrbitPose,
   getCompassBladeRespawnUntilMs,
@@ -179,30 +181,33 @@ function CompassBladeExplosion({ id, x, z, radius, onDone }) {
 
   usePlayingFrame((_, delta) => {
     ageRef.current += delta
-    const t = Math.min(1, ageRef.current / 0.48)
+    const t = Math.min(1, ageRef.current / COMPASS_BLADE_EXPLOSION_DURATION_SEC)
+    // 크기는 e(앞으로 몰린 확산), 불투명도는 t(선형 수명). 예전엔 둘 다 t라 링이 실제
+    // 피해 반경에 닿는 순간 opacity가 0이었다 — 보이는 내내 실제보다 작은 폭발이었다.
+    const e = getCompassBladeExplosionExpansion(t)
     const fastPop = 1 - Math.min(1, t / 0.34)
     const lateFade = Math.max(0, 1 - t)
     if (groupRef.current) {
       // 바깥 링의 월드 반경 = 피해 반경. 예전 스케일 식은 완전 확산 시 피해 반경의 5.7배까지
       // 부풀어 "닿았는데 안 죽는다"를 만들었고, 반경에 비례하지 않는 상수항 때문에 영구
       // 반경 강화가 비주얼에 반영되지도 않았다.
-      groupRef.current.scale.setScalar(getCompassBladeExplosionVisualScale(radius, t))
+      groupRef.current.scale.setScalar(getCompassBladeExplosionVisualScale(radius, e))
       groupRef.current.rotation.y += delta * 4.4
     }
     if (flashRef.current) {
-      flashRef.current.scale.setScalar(0.65 + t * 0.7)
+      flashRef.current.scale.setScalar(0.65 + e * 0.7)
       flashRef.current.material.opacity = 0.92 * fastPop
     }
     if (innerRingRef.current) {
-      innerRingRef.current.scale.setScalar(0.72 + t * 0.9)
+      innerRingRef.current.scale.setScalar(0.72 + e * 0.9)
       innerRingRef.current.material.opacity = 0.84 * lateFade
     }
     if (outerRingRef.current) {
-      outerRingRef.current.scale.setScalar(0.95 + t * 1.4)
+      outerRingRef.current.scale.setScalar(0.95 + e * 1.4)
       outerRingRef.current.material.opacity = 0.72 * lateFade
     }
     if (burstRef.current) {
-      burstRef.current.scale.set(1.2 + t * 0.8, 1.3 + t * 1.8, 1.2 + t * 0.8)
+      burstRef.current.scale.set(1.2 + e * 0.8, 1.3 + e * 1.8, 1.2 + e * 0.8)
       burstRef.current.material.opacity = 0.62 * fastPop
     }
     mats.spark.opacity = 0.9 * lateFade

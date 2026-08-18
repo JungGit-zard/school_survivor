@@ -156,10 +156,17 @@ export const WEAPON_CATALOG = {
     id: 'compassBlade',
     label: '오리요강',
     // 2026-08-15 격차 완화: hitsPerSecond 2.5 → 2.0. Lv1 단일 대상 DPS 17.94 → 14.35.
-    // damage 7은 그대로 둔다(base damage는 Lv1 무기 간 균형의 기준선이라 손대지 않는다).
     // 예전에는 해금 무기 Lv1이 나머지 17종의 만렙을 전부 앞섰다 — 이제 30cm 자·커터칼·
     // 텀블러·스타링크·바이키티·선긋기의 만렙이 이 값을 넘는다.
-    base: { damage: 7, radius: 1.15, hitsPerSecond: 2.0, count: 1, orbitSpeed: 3.4, critChance: 0.05, critMultiplier: 1.5 },
+    //
+    // 2026-08-18 사용자 확정 사양: "오리요강은 텀블러보다 낮은 공격력으로 유지하다가 폭발이
+    // 가미된 것". damage 7 → 5. 두 해석 모두에서 텀블러 아래로 내려간다:
+    //   타격당  5   < 텀블러 6
+    //   타격 화력  5 × 2.0 = 10.0/s < 텀블러 6 × 2.5 × 0.8(감쇠) = 12.0/s
+    // 요강의 값어치는 단일 대상 화력이 아니라 3스택마다 터지는 9타일 폭발(30, 치명타 없음)이다.
+    // 그 폭발까지 포함한 사이클 실화력은 (3×5×1.025 + 30) / 4.5초 = 10.08/s로 여전히
+    // 텀블러 12.24 아래다 — 폭발을 더해도 역전되지 않는다(lib/compassBlade.js 사이클 상수).
+    base: { damage: 5, radius: 1.15, hitsPerSecond: 2.0, count: 1, orbitSpeed: 3.4, critChance: 0.05, critMultiplier: 1.5 },
     // 실력 OR 누적.
     unlockConditions: [
       { type: 'runKills', value: 80 },
