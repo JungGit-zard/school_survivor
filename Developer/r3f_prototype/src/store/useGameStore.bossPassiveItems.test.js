@@ -61,9 +61,9 @@ describe('B01 삼각자 보스 패시브 런타임', () => {
     for (const id of B02_TARGET_WEAPON_IDS) expect(state.weapons[id].damage).toBeCloseTo(before[id] * 1.05, 12)
   })
 
-  it('B02~B04 또는 B01 재호출은 해금하지 않거나 damage를 중첩하지 않는다', () => {
+  it('B03/B04는 해금하지 않으며 B01/B02 재호출은 damage를 중첩하지 않는다', () => {
     const before = damageSnapshot(useGameStore.getState().weapons)
-    for (const bossId of ['B02', 'B03', 'B04']) useGameStore.getState().recordBossKill(bossId)
+    for (const bossId of ['B03', 'B04']) useGameStore.getState().recordBossKill(bossId)
     expect(useGameStore.getState().bossPassiveUnlocks).toEqual({})
     expect(damageSnapshot(useGameStore.getState().weapons)).toEqual(before)
 
@@ -71,6 +71,11 @@ describe('B01 삼각자 보스 패시브 런타임', () => {
     const once = damageSnapshot(useGameStore.getState().weapons)
     useGameStore.getState().recordBossKill('B01')
     expect(damageSnapshot(useGameStore.getState().weapons)).toEqual(once)
+
+    useGameStore.getState().recordBossKill('B02')
+    const b02Once = damageSnapshot(useGameStore.getState().weapons)
+    useGameStore.getState().recordBossKill('B02')
+    expect(damageSnapshot(useGameStore.getState().weapons)).toEqual(b02Once)
   })
 
   it('Firebase 정본에서 새 런과 reloadPersistentProgress로 다시 빌드해도 삼각자를 유지한다', () => {

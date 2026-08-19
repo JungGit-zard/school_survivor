@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { beforeEach, describe, expect, it } from 'vitest'
 import HUD from './HUD.jsx'
 import { getDialogueText } from '../dialogues/dialogueStore.js'
+import { BOSS_PASSIVE_ITEMS } from '../lib/bossPassiveItems.js'
 import { getStageQuestDefinitions } from '../lib/quests.js'
 import { useGameStore } from '../store/useGameStore.js'
 
@@ -76,6 +77,18 @@ describe('quest inventory HUD', () => {
       clickQuestBag(container)
       expect(container.querySelector('[aria-label="삼각자 — 커터칼·30cm 자·바이키티 공격력 +5%"]')).not.toBeNull()
       expect(container.querySelectorAll('[aria-label="빈 보스 패시브 슬롯"]')).toHaveLength(7)
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+
+  it('fills the second boss passive slot with the corridor pass after B02 is defeated', () => {
+    useGameStore.setState({ bossPassiveUnlocks: { b01SetSquare: true, b02CorridorPass: true } })
+    const { container, root } = renderHud()
+    try {
+      clickQuestBag(container)
+      const corridorPass = BOSS_PASSIVE_ITEMS.b02CorridorPass
+      expect(container.querySelector(`[aria-label="${corridorPass.name} — ${corridorPass.description}"]`)).not.toBeNull()
     } finally {
       act(() => root.unmount())
     }

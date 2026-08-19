@@ -88,6 +88,9 @@ describe('LobbySettingsModal', () => {
   })
 
   it('blocks duplicate delete clicks while a deletion is already in flight', async () => {
+    // 삭제를 in-flight로 붙잡아 둬야 중복 클릭 차단을 관찰할 수 있다.
+    let resolveDelete
+    deleteAccountAndData.mockImplementation(() => new Promise((resolve) => { resolveDelete = resolve }))
     useAuthStore.setState({
       status: 'signedIn',
       user: { uid: 'del-user' },

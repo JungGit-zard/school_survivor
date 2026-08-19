@@ -82,7 +82,8 @@ describe('Lobby', () => {
       stageBossPreview: {},
       decals: {},
       propPlacements: {},
-    })
+      // 스튜디오 런타임은 정수 revision까지 있어야 ready로 인정된다(fail-closed write gate).
+    }, { revision: 0 })
     vi.clearAllMocks()
     useAuthStore.setState({
       status: 'signedIn',
@@ -117,13 +118,17 @@ describe('Lobby', () => {
     view.unmount()
   })
 
-  it('renders the three-button mobile bottom navigator without the duplicate ability entry', () => {
+  it('renders the four-button mobile bottom navigator without the duplicate ability entry', () => {
     const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
     const nav = view.container.querySelector('[aria-label="로비 메뉴"]')
     const labels = Array.from(nav.querySelectorAll('button')).map((button) => button.textContent)
 
-    expect(labels).toEqual(['무기', '랭킹', '상점'])
+    expect(labels).toEqual(['무기', '랭킹', '상점', '미션'])
     expect(labels).not.toContain('능력치')
+    // 4버튼으로 늘어난 뒤에도 하단 네비 터치 타깃 최소 44px를 지켜야 한다(320px 폭에서 69.75x48 실측).
+    Array.from(nav.querySelectorAll('button')).forEach((button) => {
+      expect(Number.parseFloat(button.style.minHeight)).toBeGreaterThanOrEqual(44)
+    })
 
     view.unmount()
   })
@@ -459,6 +464,14 @@ describe('Lobby', () => {
   })
 
   it('uses the saved studio stage boss preview framing', () => {
+    commitFirebaseStudioRuntime({
+      tunings: {},
+      sfxTunings: {},
+      stageBossPreview: {},
+      decals: {},
+      propPlacements: {},
+      bossFaceRecipes: {},
+    }, { revision: 1 })
     saveStageBossPreview({ zoom: 137, panX: 0.5, panY: -0.25 })
 
     const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })

@@ -6,6 +6,7 @@ import {
   createB02CorridorBlockadeState,
   getB02CorridorBlockadeTrigger,
   advanceB02CorridorBlockade,
+  consumeB02CorridorBlockadeHit,
   isPlayerInsideB02BlockadeLine,
   getB02CorridorBlockadeLineZs,
 } from './b02CorridorBlockade.js'
@@ -38,6 +39,15 @@ describe('B02 복도 봉쇄선', () => {
     expect(B02_BLOCKADE_DAMAGE).toBe(18)
     expect(isPlayerInsideB02BlockadeLine({ playerZ: 0.5, lineZ: 0, lineWidth: 1.2 })).toBe(true)
     expect(isPlayerInsideB02BlockadeLine({ playerZ: 0.61, lineZ: 0, lineWidth: 1.2 })).toBe(false)
+
+    const active = {
+      ...createB02CorridorBlockadeState({ phase: 'active', lineZs: [0, 3.6, 7.2] }),
+      activeLineIndex: 0,
+    }
+    const firstHit = consumeB02CorridorBlockadeHit(active, 0)
+    expect(firstHit.damage).toBe(18)
+    expect(firstHit.state.damagedPlayer).toBe(true)
+    expect(consumeB02CorridorBlockadeHit(firstHit.state, 0).damage).toBe(0)
   })
 
   it('보스가 복도 양 끝에 있어도 세 통제선은 서로 겹치지 않고 안전 간격을 유지한다', () => {

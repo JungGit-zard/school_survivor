@@ -29,13 +29,12 @@ import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { isBossType } from '../lib/burstEvents.js'
 import {
-  B02_BLOCKADE_DAMAGE,
   B02_BLOCKADE_LINE_WIDTH,
   advanceB02CorridorBlockade,
+  consumeB02CorridorBlockadeHit,
   createB02CorridorBlockadeState,
   getB02CorridorBlockadeLineZs,
   getB02CorridorBlockadeTrigger,
-  isPlayerInsideB02BlockadeLine,
   startB02CorridorBlockade,
 } from '../lib/b02CorridorBlockade.js'
 import { getStageObjectSightObstacles, isStageObjectEnemyTrackingBlocked } from './StageObjects/stageObjectColliders.js'
@@ -970,13 +969,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       const previous = b02BlockadeRef.current
       if (previous.phase !== 'idle') {
         let next = advanceB02CorridorBlockade(previous, delta * 1000)
-        if (next.phase === 'active' && !next.damagedPlayer) {
-          const lineZ = next.lineZs[next.activeLineIndex]
-          if (isPlayerInsideB02BlockadeLine({ playerZ: playerPos.z, lineZ })) {
-            damagePlayer(B02_BLOCKADE_DAMAGE)
-            next = { ...next, damagedPlayer: true }
-          }
-        }
+        const hit = consumeB02CorridorBlockadeHit(next, playerPos.z)
+        next = hit.state
+        if (hit.damage > 0) damagePlayer(hit.damage)
         b02BlockadeRef.current = next
         syncB02BlockadeVisual(next)
         _vel.x = 0; _vel.y = 0; _vel.z = 0

@@ -777,7 +777,7 @@ describe('GraphicsStudio', () => {
       root.render(<GraphicsStudio />)
     })
 
-    const scale = container.querySelector('input[name="scale"]')
+    const scale = container.querySelector('input[name="scaleValue"]')
     act(() => {
       scale.value = '1.8'
       scale.dispatchEvent(new Event('input', { bubbles: true }))

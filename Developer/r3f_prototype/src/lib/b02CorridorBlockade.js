@@ -66,6 +66,15 @@ export function isPlayerInsideB02BlockadeLine({ playerZ = 0, lineZ = 0, lineWidt
   return Math.abs(playerZ - lineZ) < lineWidth / 2
 }
 
+export function consumeB02CorridorBlockadeHit(state, playerZ) {
+  const lineZ = state?.lineZs?.[state.activeLineIndex]
+  if (state?.phase !== 'active' || state.damagedPlayer || !Number.isFinite(lineZ)
+    || !isPlayerInsideB02BlockadeLine({ playerZ, lineZ })) {
+    return { state, damage: 0 }
+  }
+  return { state: { ...state, damagedPlayer: true }, damage: B02_BLOCKADE_DAMAGE }
+}
+
 export function getB02CorridorBlockadeLineZs({ bossZ = 0, playerZ = 0, halfZ = 19.2 } = {}) {
   const direction = playerZ >= bossZ ? 1 : -1
   const inset = B02_BLOCKADE_LINE_WIDTH / 2 + 0.4

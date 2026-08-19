@@ -28,6 +28,11 @@ import {
   FIREBASE_STUDIO_RUNTIME_EVENT,
   isFirebaseStudioRuntimeReady,
 } from '../lib/studioRuntimeState.js'
+
+const BOSS_PASSIVE_ITEM_ICONS = Object.freeze({
+  b01SetSquare: '📐',
+  b02CorridorPass: '🎫',
+})
 import { isProjectMaster } from '../lib/projectAdmin.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { getMissionStatus } from '../lib/missionProgress.js'
@@ -715,12 +720,13 @@ export default function HUD({
   const questInventoryOpen = phase === 'paused' && pauseSource === 'quest'
   const stageQuests = useMemo(() => getStageQuestDefinitions(currentStageId), [currentStageId])
   const bossPassiveSlots = useMemo(() => {
-    const setSquare = BOSS_PASSIVE_ITEMS.b01SetSquare
-    return Array.from({ length: BOSS_PASSIVE_ITEM_UI_CAPACITY }, (_, index) => (
-      index === 0 && isBossPassiveItemUnlocked(bossPassiveUnlocks, setSquare.id)
-        ? { ...setSquare, icon: '📐' }
+    const passiveItems = Object.values(BOSS_PASSIVE_ITEMS)
+    return Array.from({ length: BOSS_PASSIVE_ITEM_UI_CAPACITY }, (_, index) => {
+      const item = passiveItems[index]
+      return item && isBossPassiveItemUnlocked(bossPassiveUnlocks, item.id)
+        ? { ...item, icon: BOSS_PASSIVE_ITEM_ICONS[item.id] ?? '◆' }
         : null
-    ))
+    })
   }, [bossPassiveUnlocks])
   const visibleQuests = useMemo(
     () => stageQuests.filter((quest) => ['active', 'item-acquired', 'completed'].includes(questProgress?.[quest.id]?.status)).slice(0, 2),
