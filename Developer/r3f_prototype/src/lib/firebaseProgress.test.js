@@ -129,16 +129,16 @@ describe('firebase-only player progress runtime', () => {
     expect(buildCloudUserProfile(USER)).toEqual({ uid: 'uid-1', displayName: 'Tester', nickname: '생존왕' })
   })
 
-  it('keeps only the implemented B01 boss passive flag through Firebase progress snapshots', () => {
+  it('preserves implemented B01 and B02 boss passive flags through Firebase progress snapshots', () => {
     applyCloudProgressSnapshot(remoteSnapshot({
-      progress: { bossPassiveUnlocks: { b01SetSquare: true, b02Unimplemented: true } },
+      progress: { bossPassiveUnlocks: { b01SetSquare: true, b02CorridorPass: true, b02Unimplemented: true } },
     }), USER)
 
     const runtime = getFirebaseProgressRuntimeSnapshot()
     const snapshot = buildCloudProgressSnapshot()
 
-    expect(runtime.progress.bossPassiveUnlocks).toEqual({ b01SetSquare: true })
-    expect(snapshot.progress.bossPassiveUnlocks).toEqual({ b01SetSquare: true })
+    expect(runtime.progress.bossPassiveUnlocks).toEqual({ b01SetSquare: true, b02CorridorPass: true })
+    expect(snapshot.progress.bossPassiveUnlocks).toEqual({ b01SetSquare: true, b02CorridorPass: true })
   })
 
   it('fails closed when the authenticated account has no remote snapshot and never uploads defaults', async () => {
@@ -300,15 +300,24 @@ describe('firebase-only player progress runtime', () => {
     expect(snapshot.activity).toEqual({ lastStageId: 'stage2', lastStartedAt: '2026-07-18T01:02:03.000Z' })
   })
 
-  it('serializes debounced writes and uses the latest runtime values without lost updates', async () => {
+  // requestCloudProgressSave는 요청 시점이 아니라 writeQueue에서 실제로 flush될 때 payload를
+  // 만든다. claimFirebaseMissionReward가 서버 트랜잭션으로 goldTotal과 claimLedger를 바꾼 뒤
+  // runtime.progress를 갱신하므로, 요청 시점에 굳어버린 payload가 나중에 날아가면 청구 결과를
+  // 통째로 덮어써 보상 골드가 사라지고 중복 청구가 열린다. 그래서 flush 시점 최신값이 정답이다.
+  it('serializes writes and builds each payload at flush time so no stale snapshot overwrites', async () => {
     const saved = []
+    let inFlight = 0
+    let maxInFlight = 0
     let releaseFirst
     const firstSave = new Promise((resolve) => { releaseFirst = resolve })
     _setFirebaseProgressClientForTests({
       load: vi.fn(async () => remoteSnapshot()),
       save: vi.fn(async (_path, value) => {
+        inFlight += 1
+        maxInFlight = Math.max(maxInFlight, inFlight)
         saved.push(value.progress.goldTotal)
         if (saved.length === 1) await firstSave
+        inFlight -= 1
       }),
     })
     await hydrateCloudProgress(USER)
@@ -319,7 +328,8 @@ describe('firebase-only player progress runtime', () => {
     releaseFirst()
     await Promise.all([p1, p2])
 
-    expect(saved).toEqual([42, 99])
+    expect(maxInFlight).toBe(1)
+    expect(saved).toEqual([99, 99])
   })
 
   // 회귀: 저장 큐가 rejected 상태로 남으면 이후 .then 핸들러가 실행되지 않아 그 세션의

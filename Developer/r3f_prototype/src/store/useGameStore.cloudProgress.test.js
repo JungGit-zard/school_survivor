@@ -14,7 +14,15 @@ function createMockProgress() {
   }
 }
 
+// 스토어의 모든 클라우드 저장 호출은 isFirebaseProgressHydrated() 게이트 뒤에 있다
+// (useGameStore.js saveRuntimeProgress / recordRuntimePlayActivity). 하이드레이트된
+// 실계정 상태를 흉내내야 저장 배선이 실제로 도는지 검증할 수 있으므로 true로 고정한다.
 vi.mock('../lib/firebaseProgress.js', () => ({
+  isFirebaseProgressHydrated: vi.fn(() => true),
+  readFirebaseMissionProgress: vi.fn(() => ({ ok: false, reason: 'progress-not-hydrated' })),
+  updateFirebaseMissionProgress: vi.fn(() => ({ ok: false, reason: 'progress-not-hydrated' })),
+  saveFirebaseMissionProgress: vi.fn(async () => ({ ok: false, saved: false, reason: 'progress-not-hydrated' })),
+  claimFirebaseMissionReward: vi.fn(async () => ({ ok: false, committed: false, reason: 'transaction-unavailable' })),
   readFirebasePlayerProgress: vi.fn(() => mockProgress),
   updateFirebasePlayerProgress: vi.fn((mutator) => {
     const next = structuredClone(mockProgress)

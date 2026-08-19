@@ -63,13 +63,18 @@ describe('Firebase-only Graphics Studio persistence', () => {
     blockFirebaseStudioRuntime()
   })
 
-  it('fails closed before Firebase hydrate instead of returning seed or defaults', () => {
+  // AGENTS.md(2026-08-08 최상단): 그래픽은 Firebase 준비 여부·로그인 여부와 무관하게 앱을 켜면
+  // 무조건 표시한다. hydrate 전 읽기를 fail-closed로 막아 장면을 숨기는 코드는 치명적 버그다.
+  // 그래서 fail-closed는 저장 경로에만 남는다 — Firebase에 못 붙으면 입력값을 저장하지 않는다.
+  it('keeps reads open before hydrate and fails closed only on Studio writes', () => {
     expect(isFirebaseStudioRuntimeReady()).toBe(false)
-    expect(() => loadStudioTunings()).toThrowError(/hydrate is required/i)
-    expect(() => loadSfxTunings()).toThrowError(/hydrate is required/i)
-    expect(() => loadStageBossPreview()).toThrowError(/hydrate is required/i)
-    expect(() => loadTextureDecals()).toThrowError(/hydrate is required/i)
-    expect(() => loadStagePropPlacements()).toThrowError(/hydrate is required/i)
+    expect(loadStudioTunings()).toEqual({})
+    expect(loadSfxTunings()).toEqual({})
+    expect(loadStageBossPreview()).toEqual(DEFAULT_STAGE_BOSS_PREVIEW)
+    expect(loadTextureDecals()).toEqual({})
+    expect(() => loadStagePropPlacements()).not.toThrow()
+
+    expect(() => saveStudioTunings({ player: { scale: 2 } })).toThrowError(/hydrate is required/i)
   })
 
   it('hydrates all five datasets only from a supported Firebase snapshot', async () => {
@@ -159,7 +164,14 @@ describe('Firebase-only Graphics Studio persistence', () => {
       .resolves.toEqual({ status: 'missing-remote' })
     expect(client.transaction).not.toHaveBeenCalled()
     expect(isFirebaseStudioRuntimeReady()).toBe(false)
-    expect(() => loadStudioRuntimeDatasets()).toThrowError(/hydrate is required/i)
+    // 원격이 비어 있어도 읽기는 열려 있고 빈 데이터셋을 준다(AGENTS.md 그래픽 무조건 표시).
+    expect(loadStudioRuntimeDatasets()).toEqual(expect.objectContaining({
+      tunings: {},
+      sfxTunings: {},
+      decals: {},
+    }))
+    // 저장만 막힌다: Firebase 미연결 상태의 입력값은 절대 어디에도 쓰지 않는다.
+    expect(() => saveStudioTunings({ player: { scale: 2 } })).toThrowError(/hydrate is required/i)
   })
 
   it('rejects future and malformed remote snapshots without opening the runtime gate', async () => {
