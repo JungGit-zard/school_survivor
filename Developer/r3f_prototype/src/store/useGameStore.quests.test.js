@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createStageQuestProgress } from '../lib/quests.js'
+import { createStageQuestProgress, getStageQuestDefinitions } from '../lib/quests.js'
 import { saveStagePropPlacements } from '../lib/stagePropPlacements.js'
 import { commitFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
 import { useGameStore } from './useGameStore.js'
+
+// 말빨기술책 퀘스트의 반납 대상은 커밋 6c600ba에서 stage1-student-west-01 →
+// 스튜디오 배치 반장(user-classPresidentStudent-...)으로 바뀌었다. 배치 id는 스튜디오 저장이
+// 정본이라 또 바뀔 수 있으므로 리터럴 대신 퀘스트 정의에서 꺼내 쓴다.
+const TALK_BOOK_GIVER_ID = getStageQuestDefinitions('stage1')
+  .find(({ id }) => id === 'stage1-talk-book').completion.placementId
 
 describe('quest game state', () => {
   beforeEach(() => {
@@ -50,7 +56,7 @@ describe('quest game state', () => {
         'stage1-talk-book': { status: 'item-acquired', itemHeld: true },
       },
     })
-    expect(useGameStore.getState().completeQuest('stage1-talk-book', 'stage1-student-west-01')).toBe(false)
+    expect(useGameStore.getState().completeQuest('stage1-talk-book', TALK_BOOK_GIVER_ID)).toBe(false)
   })
 
   it('collects and returns an active quest item once, awarding exactly two gold', () => {
@@ -65,7 +71,7 @@ describe('quest game state', () => {
     expect(useGameStore.getState().newQuestItemIds).toEqual(['talk-book'])
     expect(useGameStore.getState().collectQuestItem('stage1-talk-book', 'stage1-desk-ne-01')).toBe(false)
     expect(useGameStore.getState().completeQuest('stage1-talk-book', 'stage1-student-south-01')).toBe(false)
-    expect(useGameStore.getState().completeQuest('stage1-talk-book', 'stage1-student-west-01')).toBe(true)
+    expect(useGameStore.getState().completeQuest('stage1-talk-book', TALK_BOOK_GIVER_ID)).toBe(true)
     expect(useGameStore.getState().questProgress['stage1-talk-book']).toEqual({
       status: 'completed',
       itemHeld: false,
@@ -74,7 +80,7 @@ describe('quest game state', () => {
     expect(useGameStore.getState().goldSession).toBe(2)
     expect(useGameStore.getState().questJourneyCompletedIds).toEqual(['stage1-talk-book'])
     expect(useGameStore.getState().newQuestItemIds).toEqual([])
-    expect(useGameStore.getState().completeQuest('stage1-talk-book', 'stage1-student-west-01')).toBe(false)
+    expect(useGameStore.getState().completeQuest('stage1-talk-book', TALK_BOOK_GIVER_ID)).toBe(false)
     expect(useGameStore.getState().goldTotal).toBe(12)
   })
 

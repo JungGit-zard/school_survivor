@@ -25,8 +25,13 @@ describe('StudentDialogueTrigger', () => {
 
   it('routes every generic Stage 1 fallen student to the shared ID pool', () => {
     const targets = getInvestigationTargets('stage1')
-    const unconsciousStudent = targets.find(({ id }) => id === 'stage1-student-sw-01')
-    const classPresidentStudent = targets.find(({ id }) => id === 'stage1-student-south-01')
+    // 배치 id는 스튜디오 저장이 정본이라 리터럴로 박으면 배치를 옮길 때마다 썩는다
+    // (stage1-student-sw-01은 커밋 875ebfe 스튜디오 저장에서 사라졌다).
+    // 검증하려는 건 "두 학생 모델 종류 다 공용 풀로 간다"이므로 모델 타입으로 찾는다.
+    const placements = getStageObjectPlacements('stage1')
+    const findByType = (type) => targets.find(({ id }) => id === placements.find((p) => p.type === type)?.id)
+    const unconsciousStudent = findByType('unconsciousStudent')
+    const classPresidentStudent = findByType('classPresidentStudent')
 
     for (const target of [unconsciousStudent, classPresidentStudent]) {
       expect(target).toBeTruthy()
@@ -66,7 +71,9 @@ describe('StudentDialogueTrigger', () => {
       new Set(),
     )
 
-    expect(genericTarget?.id).toBe('stage1-student-ne-01')
+    // 겹치는 일반 조사 대상은 이제 책이 놓인 그 책상 자신이다. 커밋 f85c84b이 소품 조사문을
+    // 전 스테이지로 넓히기 전엔 스테이지1 조사 대상이 학생뿐이라 옆 학생이 잡혔다.
+    expect(genericTarget?.id).toBe(quest.itemTarget.placementId)
     expect(shouldDeferGenericInvestigation({
       playerX: itemTarget.position[0],
       playerZ: itemTarget.position[2],

@@ -37,8 +37,9 @@ describe('useGameStore 패시브 런 시작 적용', () => {
     useGameStore.getState().resetGame()
     const { weapons } = useGameStore.getState()
     // base 2.4(2026-08-01 Stage 2 밸런스) 기준.
-    // Math.round(2.4 * 1.08 * 10) / 10 = Math.round(25.92) / 10 = 2.6
-    expect(weapons.pencilThrow.damage).toBe(2.6)
+    // 소수 1자리 반올림(→2.6)은 커밋 875ebfe에서 걷어냈다. 저데미지 무기의 양자화 오차가
+    // 공격력 패시브를 통째로 삼켰기 때문이다. 이제 곱만 남으므로 2.592가 정본이다.
+    expect(weapons.pencilThrow.damage).toBeCloseTo(2.592, 10)
   })
 
   it('growth Lv.3 저장 시 gainXp가 1.15배로 적용된다', () => {

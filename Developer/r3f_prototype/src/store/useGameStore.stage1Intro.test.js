@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
-import { useGameStore, STAGE1_INTRO_LINES } from './useGameStore.js'
+// 인트로 대사는 i18n 이관(953398e)으로 리터럴 배열 STAGE1_INTRO_LINES에서
+// 대사 ID 배열 STAGE1_INTRO_IDS로 바뀌었다. 3줄 탭 진행 동작 자체는 그대로다.
+import { useGameStore, STAGE1_INTRO_IDS } from './useGameStore.js'
 
 describe('스테이지1 스토리 인트로 상태 (useGameStore)', () => {
   beforeEach(() => {
@@ -18,7 +20,7 @@ describe('스테이지1 스토리 인트로 상태 (useGameStore)', () => {
 
   it('advanceIntro는 3줄을 순서대로 진행하고 마지막 탭에 플레이를 시작한다', () => {
     useGameStore.getState().startStage1Intro()
-    expect(STAGE1_INTRO_LINES).toHaveLength(3)
+    expect(STAGE1_INTRO_IDS).toHaveLength(3)
 
     // 1번째 → 2번째
     useGameStore.getState().advanceIntro()

@@ -13,7 +13,7 @@ import { STAGE_PROP_PALETTE } from './stagePropEditorGeometry.js'
 import { saveStagePropPlacements } from './stagePropPlacements.js'
 import { commitFirebaseStudioRuntime } from './studioRuntimeState.js'
 import { getPlayerMovementBounds } from './playerMovementBounds.js'
-import { getDialogueText } from '../dialogues/dialogueStore.js'
+import { getDialogueText, getPoolIds } from '../dialogues/dialogueStore.js'
 
 const students = [
   { id: 'a', position: [0, 0, 0] },
@@ -23,6 +23,22 @@ const students = [
 
 function targetLine(target) {
   return getDialogueText(target.dialogueId, 'ko')
+}
+
+// target.dialogueId는 pickDialogueId가 풀에서 매번 무작위로 뽑은 한 줄이다. 그 한 줄만 재면
+// 같은 코드가 실행마다 합격/불합격이 갈린다(실제로 이 파일이 그렇게 깜빡였다).
+// 대사 품질은 뽑힌 한 줄이 아니라 풀 전체가 만족해야 하는 성질이므로 풀 단위로 검사한다.
+function poolIdOf(target) {
+  return target.dialogueId.replace(/\.\d+$/, '')
+}
+
+function poolLines(target) {
+  return getPoolIds(poolIdOf(target), 'ko').map((id) => getDialogueText(id, 'ko'))
+}
+
+function stagePoolLines(stageId) {
+  const pools = new Set(getInvestigationTargets(stageId).map(poolIdOf))
+  return [...pools].flatMap((poolId) => getPoolIds(poolId, 'ko').map((id) => getDialogueText(id, 'ko')))
 }
 
 beforeEach(() => {
@@ -82,7 +98,14 @@ describe('전 스테이지 공용 조사 대상', () => {
       for (const target of getInvestigationTargets(stageId)) {
         expect(target.subjectName.length).toBeGreaterThan(0)
         expect(target.dialogueId.length).toBeGreaterThan(0)
-        expect(targetLine(target).length).toBeGreaterThan(20)
+        expect(targetLine(target).length).toBeGreaterThan(0)
+        // i18n 이관 후 한 줄짜리 짧은 대사가 대량 들어왔다(최단 12자). 무작위 한 줄에 20자를
+        // 요구하면 깜빡이므로, 풀 전체가 넘는 하한으로 낮추는 대신 전 줄을 검사한다.
+        const lines = poolLines(target)
+        expect(lines.length).toBeGreaterThan(0)
+        for (const line of lines) {
+          expect(line.length, `${poolIdOf(target)} 짧은 대사`).toBeGreaterThan(10)
+        }
         if (target.subjectType === 'student') {
           expect(target.radius).toBe(STUDENT_DIALOGUE_RADIUS)
         } else {
@@ -94,10 +117,12 @@ describe('전 스테이지 공용 조사 대상', () => {
   })
 
   it('스테이지별 조사문은 교실·복도·체육관·급식실의 분위기를 담는다', () => {
-    expect(getInvestigationTargets('stage1').map(targetLine).join(' ')).toMatch(/책상|의자|교복|선생님/)
-    expect(getInvestigationTargets('stage2').map(targetLine).join(' ')).toMatch(/사물함|복도|청소|시간표/)
-    expect(getInvestigationTargets('stage3').map(targetLine).join(' ')).toMatch(/농구|체육|골대|체육관/)
-    expect(getInvestigationTargets('stage4').map(targetLine).join(' ')).toMatch(/급식|조리|주방|쟁반/)
+    // 뽑힌 한 줄이 아니라 그 스테이지가 쓰는 대사 풀 전체를 본다. 무작위 픽 기준으로 재면
+    // 분위기 단어가 안 뽑힌 실행에서만 터지는 깜빡임 테스트가 된다.
+    expect(stagePoolLines('stage1').join(' ')).toMatch(/책상|의자|교복|선생님/)
+    expect(stagePoolLines('stage2').join(' ')).toMatch(/사물함|복도|청소|시간표/)
+    expect(stagePoolLines('stage3').join(' ')).toMatch(/농구|체육|골대|체육관/)
+    expect(stagePoolLines('stage4').join(' ')).toMatch(/급식|조리|주방|쟁반/)
   })
 
   it('물체는 콜라이더 표면에 닿아야(접촉 margin 이내) 조사되고, 멀리서는 발동하지 않는다', () => {
@@ -212,6 +237,11 @@ describe('getUnconsciousStudents', () => {
   it('includes the dedicated class-president model as a fallen student', () => {
     const classPresident = getUnconsciousStudents('stage1').find(({ id }) => id === 'stage1-student-south-01')
 
-    expect(classPresident).toEqual({ id: 'stage1-student-south-01', position: [-3.7, 0, 17.2] })
+    // 좌표는 스튜디오 저장이 정본이라 리터럴로 박아두면 배치를 옮길 때마다 썩는다
+    // (커밋 875ebfe 스튜디오 저장에서 [-3.7,0,17.2] → [-5.796,0,-0.031]로 이동했다).
+    // 검증 의도는 "반장 전용 모델도 쓰러진 학생 목록에 들어간다"이므로 배치에서 좌표를 가져온다.
+    const placement = getStageObjectPlacements('stage1').find(({ id }) => id === 'stage1-student-south-01')
+    expect(placement.type).toBe('classPresidentStudent')
+    expect(classPresident).toEqual({ id: 'stage1-student-south-01', position: placement.position })
   })
 })

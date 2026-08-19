@@ -47,11 +47,16 @@ export const ENEMY_STUCK_MOVE_EPSILON_SQ = 1e-6
 
 // JSX ENEMY_STATS와 수치를 맞춘 순수 런타임 lookup. 다음 통합 단계에서 Enemy.jsx가 이 정본을 import한다.
 // 인덱스 = ENEMY_TYPE_CODES. 15 = E07(웃는얼굴 좀비) = E01의 2배 hp/damage/speed.
-export const ENEMY_RUNTIME_HP = new Float32Array([0, 8, 70, 10, 32, 70, 320, 90, 28, 0, 0, 0, 0, 28, 48, 16])
+// RZT(코드 13) hp 28→140 (2026-08-16): ENEMY_STATS는 커밋 10240ef "Double Stage 2 trench zombie
+// size and raise HP"에서 이미 140/1.76으로 올랐는데 이 복사본만 옛 28/0.88로 남아 있었다.
+// 프로브가 경비추격 탱커 리더를 1/5 체력으로 계산해 "고쳤는데 프로브는 옛 값으로 합격"이 나던 자리다.
+export const ENEMY_RUNTIME_HP = new Float32Array([0, 8, 70, 10, 32, 70, 320, 90, 28, 0, 0, 0, 0, 140, 48, 16])
 // speed 전 슬롯 ×1.1 (2026-08-13). ENEMY_STATS와 한 벌이라 한쪽만 고치면 게임과 프로브가 갈라진다.
 export const ENEMY_RUNTIME_SPEED = new Float32Array([0, 0.5225, 0.4235, 1.21, 0.495, 0.55, 0.66, 2.695, 2.398, 0, 0, 0, 0, 1.4025, 1.3475, 1.045])
 export const ENEMY_RUNTIME_DAMAGE = new Float32Array([0, 8, 14, 6, 8, 16, 20, 14, 7, 0, 0, 0, 0, 6, 9, 16])
-export const ENEMY_RUNTIME_SCALE = new Float32Array([0, 1, 1.4, 0.75, 0.9, 1.15, 1.6, 1.08, 0.78, 0, 0, 0, 0, 0.88, 0.92, 1])
+// RZT(코드 13) scale 0.88→1.76 — 위 hp와 같은 커밋에서 두 배가 됐다. 이 값은 히트박스 반경
+// (enemyContactRadius)까지 좌우해서, 어긋난 채로 두면 프로브가 절반 크기 판정으로 돌아간다.
+export const ENEMY_RUNTIME_SCALE = new Float32Array([0, 1, 1.4, 0.75, 0.9, 1.15, 1.6, 1.08, 0.78, 0, 0, 0, 0, 1.76, 0.92, 1])
 export const ENEMY_RUNTIME_XP = new Float32Array([0, 4, 15, 5, 10, 15, 56, 12, 5, 0, 0, 0, 0, 5, 6, 8])
 export const ENEMY_RUNTIME_CONTACT_DIST = new Float32Array([0, 0.28, 0.36, 0.22, 0.26, 0.32, 0.42, 0.28, 0.22, 0, 0, 0, 0, 0.22, 0.24, 0.28])
 
