@@ -279,7 +279,7 @@ function StudioVfxPreview({ type }) {
   const [replay, setReplay] = useState(0)
   useEffect(() => {
     if (type !== 'spawnSmoke') return undefined
-    const timer = setInterval(() => setReplay((n) => n + 1), SPAWN_SMOKE_DURATION_MS + 400)
+    const timer = setInterval(() => setReplay((n) => n + 1), SPAWN_SMOKE_DURATION_MS + 120)
     return () => clearInterval(timer)
   }, [type])
 
