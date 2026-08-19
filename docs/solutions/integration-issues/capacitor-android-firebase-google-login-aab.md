@@ -19,7 +19,10 @@ tags: [google-login, firebase-auth, capacitor, android-aab, play-app-signing, go
 
 ## Problem
 
-Google login in the Play-distributed Android AAB can fail if the app uses Firebase Web SDK popup/redirect auth inside a Capacitor WebView. The user sees a blank browser page, localhost connection failure, or Firebase redirect state errors instead of returning to the game.
+Google login in the Play-distributed Android AAB can fail for two repeating reasons:
+
+1. The app uses Firebase Web SDK popup/redirect auth inside a Capacitor WebView. The user sees a blank browser page, localhost connection failure, or Firebase redirect state errors instead of returning to the game.
+2. The release worktree builds without `.env`, so the Vite bundle embedded in the AAB is missing `VITE_FIREBASE_*` values. In that case the app is built as `Firebase auth is not configured`, even if Android `google-services.json` and signing SHA are correct.
 
 ## Symptoms
 
@@ -107,6 +110,15 @@ The refreshed `google-services.json` matters because Android Google sign-in read
 
 ## Prevention
 
+- **Before every AAB/APK release build, run the env gate first:**
+
+```sh
+cd D:/JungSil/2.Minigame_project/school_survivor-integration/Developer/r3f_prototype
+node scripts/assert-firebase-release-env.mjs
+```
+
+- This gate is also wired into `npm run build` through `package.json` `prebuild`, so a missing `.env` or missing/wrong `VITE_FIREBASE_*` must block the build before Capacitor sync or Gradle packaging.
+- Mandatory build-agent document: `Developer/구현기록/빌드배포/aab_firebase_env_mandatory_build_gate_2026-08-18.md`.
 - For any future "Google login fails in AAB/mobile" report, check this solution first before trying popup/redirect changes.
 - Verify the Firebase Android app exists and uses package `com.jungyoon.zombieschool`.
 - Verify Play App Signing SHA-1 and SHA-256 are registered in Firebase.

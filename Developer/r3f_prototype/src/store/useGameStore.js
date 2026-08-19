@@ -387,15 +387,20 @@ export const useGameStore = create(
     // 본 런 처치 카운터 +1. 인자 없는 단순 signature — per-type 카운터가 필요해지면 그때 분기 추가.
     recordKill: () => set((s) => ({ runKills: s.runKills + 1 })),
 
-    // 보스 처치는 mid-run에 즉시 cumulative에 누적한다. B01 삼각자는 Firebase 준비 전에도
+    // 보스 처치는 mid-run에 즉시 cumulative에 누적한다. B01/B02 패시브는 Firebase 준비 전에도
     // 현재 메모리 런에서 즉시 해금·적용되며, 저장 실패가 플레이를 막지 않는다.
     recordBossKill: (bossId) => {
       const state = get()
-      const isB01 = bossId === 'B01'
-      const nextBossPassiveUnlocks = isB01
-        ? unlockBossPassiveItem(state.bossPassiveUnlocks, 'b01SetSquare')
+      const bossPassiveItemId = bossId === 'B01'
+        ? 'b01SetSquare'
+        : bossId === 'B02'
+          ? 'b02CorridorPass'
+          : null
+      const nextBossPassiveUnlocks = bossPassiveItemId
+        ? unlockBossPassiveItem(state.bossPassiveUnlocks, bossPassiveItemId)
         : state.bossPassiveUnlocks
-      const unlockedNow = isB01 && nextBossPassiveUnlocks.b01SetSquare !== state.bossPassiveUnlocks.b01SetSquare
+      const unlockedNow = bossPassiveItemId != null
+        && nextBossPassiveUnlocks[bossPassiveItemId] !== state.bossPassiveUnlocks[bossPassiveItemId]
 
       if (unlockedNow) {
         set({

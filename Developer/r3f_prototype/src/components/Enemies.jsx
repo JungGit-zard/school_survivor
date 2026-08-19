@@ -300,10 +300,10 @@ export function pickMixedReinforcementTypes(types, count, random = Math.random) 
   return result
 }
 
-export const STAGE3_OVERTIME_REINFORCEMENT_START_SEC = 225
+export const STAGE3_OVERTIME_REINFORCEMENT_START_SEC = 240
 
 export function getOvertimeReinforcementStartSec(stageId) {
-  return stageId === 'stage3' ? STAGE3_OVERTIME_REINFORCEMENT_START_SEC : OVERTIME_REINFORCEMENT_START_SEC
+  return OVERTIME_REINFORCEMENT_START_SEC
 }
 
 export function overtimeReinforcementTick(elapsedSec, stageId = 'stage1') {
@@ -1036,7 +1036,7 @@ let _chestId = 0
 // ProceduralFaceZombieLayer가 그린다(ZombieInstanceLayer는 그림자/체력바/스폰연기만 담당).
 const STANDARD_POOL_TYPE_MAX = 15
 export const MAX_CONCURRENT_ZOMBIES = MAX_ENEMIES
-export const OVERTIME_REINFORCEMENT_START_SEC = 300
+export const OVERTIME_REINFORCEMENT_START_SEC = 240
 export const OVERTIME_REINFORCEMENT_INTERVAL_SEC = 30
 export const OVERTIME_REINFORCEMENT_COUNT = 30
 const STAGE1_OVERTIME_MIXED_TYPES = Object.freeze(['E01', 'E02', 'E03', 'E05', 'E06', 'E07'])

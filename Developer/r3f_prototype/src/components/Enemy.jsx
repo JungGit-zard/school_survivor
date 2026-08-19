@@ -28,6 +28,16 @@ import {
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { isBossType } from '../lib/burstEvents.js'
+import {
+  B02_BLOCKADE_DAMAGE,
+  B02_BLOCKADE_LINE_WIDTH,
+  advanceB02CorridorBlockade,
+  createB02CorridorBlockadeState,
+  getB02CorridorBlockadeLineZs,
+  getB02CorridorBlockadeTrigger,
+  isPlayerInsideB02BlockadeLine,
+  startB02CorridorBlockade,
+} from '../lib/b02CorridorBlockade.js'
 import { getStageObjectSightObstacles, isStageObjectEnemyTrackingBlocked } from './StageObjects/stageObjectColliders.js'
 import { isPlayerWeaponSightBlocked } from '../lib/weaponTargeting.js'
 import ZombieMesh from './ZombieMesh.jsx'
@@ -494,6 +504,30 @@ export function isBigSpawnSmoke(visualScale) {
   return (visualScale ?? 0) >= BIG_SPAWN_SMOKE_MIN_VISUAL_SCALE
 }
 
+// 퍼프 좌표·반지름 전체에 걸리는 배율. 스튜디오에서 빌보드와 나란히 띄워 보고 잡은 값이다
+// (2026-08-20). 이게 없을 때(=1.0) 구름의 최대 반경이 visualScale의 3.06배까지 부풀어
+// 빌보드(1.55배)의 2배가 됐다 — 보스가 자기 등장 연기에 완전히 파묻혔다.
+//   최대 반경 = 최대 오프셋(0.78) × spread(1.9) + 최대 반지름(0.62) × (1 + grow 1.55)
+// 0.55를 곱하면 1.68배로, 빌보드보다 아주 조금 크다. 부피감은 남고 몬스터는 가려지지 않는다.
+export const BIG_SPAWN_SMOKE_SIZE = 0.55
+
+function B02CorridorBlockadeVisual({ phase, lineZs, activeLineIndex, halfX }) {
+  if (phase === 'idle' || lineZs.length === 0) return null
+  return (
+    <group aria-label="B02 복도 봉쇄선">
+      {lineZs.map((z, index) => {
+        const active = phase === 'active' && index === activeLineIndex
+        return (
+          <mesh key={`${index}:${z}`} position={[0, 0.035, z]}>
+            <boxGeometry args={[halfX * 2, 0.035, B02_BLOCKADE_LINE_WIDTH]} />
+            <meshBasicMaterial color={active ? '#e84532' : '#f4ad32'} transparent opacity={active ? 0.82 : 0.42} depthWrite={false} />
+          </mesh>
+        )
+      })}
+    </group>
+  )
+}
+
 // 큰 몬스터용 연기 뭉치. 빌보드 한 장을 크게 늘리면 텍스처가 그대로 확대돼 허접해 보이므로
 // 반투명 흰 구 몇 개를 서로 다른 위치·크기로 부풀려 부피감을 낸다.
 // 좌표·반지름은 전부 visualScale 배수라 몬스터 크기에 그대로 따라간다.
@@ -517,6 +551,10 @@ export function BigSpawnSmokeEffect({ position, visualScale, frozen = false }) {
   const [done, setDone] = useState(false)
   const doneRef = useRef(false)
   const phase = useGameStore((s) => s.phase)
+  // 흰 구 6개만 겹치면 하나의 납작한 흰 덩어리로 뭉개진다 — 스튜디오에서 빌보드와 나란히
+  // 놓고 확인했다(2026-08-20). 형태는 구마다 두르는 외곽선으로 낸다. MeshToonMaterial도
+  // 시도했지만 라이팅에 의존해 조명이 약한 씬(스튜디오 프리뷰)에서 시커멓게 죽는다 —
+  // 연기는 어디서 재생되든 밝아야 하므로 라이팅과 무관한 Basic + 외곽선으로 간다.
   const material = useMemo(() => new THREE.MeshBasicMaterial({
     color: 0xffffff,
     transparent: true,
@@ -524,7 +562,18 @@ export function BigSpawnSmokeEffect({ position, visualScale, frozen = false }) {
     depthWrite: false,
     toneMapped: false,
   }), [])
-  useEffect(() => () => material.dispose(), [material])
+  // outlineMat이 아니라 평범한 BackSide 헐이다. outlineMat은 스텐실로 부품 사이 seam을
+  // 지워 바깥 실루엣만 남기는데, 구름은 그 반대가 필요하다 — 구마다 자기 외곽선이 보여야
+  // 뭉게뭉게한 덩어리로 읽힌다. 스텐실을 켜면 6개가 다시 매끈한 흰 덩어리 하나가 된다.
+  const outline = useMemo(() => new THREE.MeshBasicMaterial({
+    color: 0x2a2320,
+    side: THREE.BackSide,
+    transparent: true,
+    opacity: 1,
+    depthWrite: false,
+    toneMapped: false,
+  }), [])
+  useEffect(() => () => { material.dispose(); outline.dispose() }, [material, outline])
 
   useFrame((_, delta) => {
     const group = groupRef.current
@@ -533,10 +582,15 @@ export function BigSpawnSmokeEffect({ position, visualScale, frozen = false }) {
     const elapsed = elapsedMsRef.current
     const t = Math.min(1, elapsed / SPAWN_SMOKE_DURATION_MS)
     const ease = 1 - (1 - t) * (1 - t)
+    // 퍼프 크기·간격·띄움을 한 배율로 묶는다. 따로 놀면 구름만 작아지고 띄움은 그대로라
+    // 몬스터 머리 위에 붕 뜬다.
+    const size = visualScale * BIG_SPAWN_SMOKE_SIZE
 
     // 빌보드와 같은 시간축을 탄다 — 앞 300ms 불투명 유지 후 페이드아웃.
-    material.opacity = getSpawnSmokeOpacity(elapsed)
-    group.position.y = position[1] + visualScale * (0.9 + t * 0.5)
+    const opacity = getSpawnSmokeOpacity(elapsed)
+    material.opacity = opacity
+    outline.opacity = opacity
+    group.position.y = position[1] + size * (0.9 + t * 0.5)
     group.rotation.y = ease * 0.9
 
     for (let i = 0; i < BIG_SPAWN_PUFFS.length; i += 1) {
@@ -544,11 +598,11 @@ export function BigSpawnSmokeEffect({ position, visualScale, frozen = false }) {
       if (!puff) continue
       const spread = 1 + ease * 0.9
       puff.position.set(
-        BIG_SPAWN_PUFFS[i].x * visualScale * spread,
-        BIG_SPAWN_PUFFS[i].y * visualScale * spread,
-        BIG_SPAWN_PUFFS[i].z * visualScale * spread,
+        BIG_SPAWN_PUFFS[i].x * size * spread,
+        BIG_SPAWN_PUFFS[i].y * size * spread,
+        BIG_SPAWN_PUFFS[i].z * size * spread,
       )
-      puff.scale.setScalar(BIG_SPAWN_PUFFS[i].r * visualScale * (1 + ease * BIG_SPAWN_PUFFS[i].grow))
+      puff.scale.setScalar(BIG_SPAWN_PUFFS[i].r * size * (1 + ease * BIG_SPAWN_PUFFS[i].grow))
     }
 
     if (t >= 1 && !doneRef.current) {
@@ -563,15 +617,21 @@ export function BigSpawnSmokeEffect({ position, visualScale, frozen = false }) {
     <StudioTunedGroup itemId="vfx-zombie-spawn-puff">
       <group ref={groupRef} position={[position[0], position[1] + visualScale, position[2]]}>
         {BIG_SPAWN_PUFFS.map((puff, index) => (
-          <mesh
+          <group
             key={index}
             ref={(node) => { puffRefs.current[index] = node }}
-            geometry={BIG_SPAWN_PUFF_GEOMETRY}
-            material={material}
-            renderOrder={100}
             position={[puff.x * visualScale, puff.y * visualScale, puff.z * visualScale]}
             scale={puff.r * visualScale}
-          />
+          >
+            <mesh
+              geometry={BIG_SPAWN_PUFF_GEOMETRY}
+              material={outline}
+              renderOrder={99}
+              scale={inflateScale(1.06)}
+              userData={{ studioRenderOutline: true }}
+            />
+            <mesh geometry={BIG_SPAWN_PUFF_GEOMETRY} material={material} renderOrder={100} />
+          </group>
         ))}
       </group>
     </StudioTunedGroup>
@@ -667,6 +727,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const [spawnRevealed, setSpawnRevealed] = useState(false)
   const [animPhase, setAnimPhase] = useState('normal') // normal|warn|charge|special|stun|retreat
   const [isChefPhase2, setIsChefPhase2] = useState(false)
+  const [b02BlockadeVisual, setB02BlockadeVisual] = useState(() => createB02CorridorBlockadeState())
   const visualFlushRef       = useRef({ scheduled: false, hp: stats.hp, hitFlash: false, spawnRevealed: false, animPhase: 'normal' })
   const spawnRevealedRef     = useRef(false)
   const queueVisualState = useCallback((key, value) => {
@@ -699,6 +760,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   // E05 / B01 ?뚯쭊 ?곹깭 癒몄떊
   const chargeState  = useRef(isMatilda ? 'matildaAim' : 'chase')
   const stateTimer   = useRef(0)
+  const b02BlockadeRef = useRef(createB02CorridorBlockadeState())
   const matildaLaughRemainingRef = useRef(0)
   const matildaLaughCuePendingRef = useRef(false)
   const matildaChargeStallMsRef = useRef(0)
@@ -734,6 +796,15 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       bounds: getStageBounds(currentStageId),
     }
   }, [bossSpawnSec, currentStageId])
+  const syncB02BlockadeVisual = useCallback((state) => {
+    setB02BlockadeVisual((previous) => (
+      previous.phase === state.phase
+        && previous.activeLineIndex === state.activeLineIndex
+        && previous.lineZs.join(',') === state.lineZs.join(',')
+        ? previous
+        : { ...state }
+    ))
+  }, [])
   const sightBlockedRef = useRef(false)
   const nextSightCheckRef = useRef(0)
 
@@ -754,9 +825,11 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     chefTelegraphStartRef.current = 0
     sightBlockedRef.current = false
     nextSightCheckRef.current = getRuntimeElapsedMs(useGameStore.getState().elapsedMs) + (stableEnemyHash(id) % 90)
+    b02BlockadeRef.current = createB02CorridorBlockadeState()
+    syncB02BlockadeVisual(b02BlockadeRef.current)
     queueVisualState('animPhase', isMatilda ? 'stun' : 'normal')
     emitEnemySpawnSfx(type, isMatilda)
-  }, [id, type, isMatilda])
+  }, [id, type, isMatilda, syncB02BlockadeVisual])
 
   useEffect(() => {
     if (!spawnRevealed) return
@@ -893,6 +966,51 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     }
 
     const elapsedMs = getRuntimeElapsedMs(useGameStore.getState().elapsedMs)
+    if (type === 'B02' && currentStageId === 'stage2') {
+      const previous = b02BlockadeRef.current
+      if (previous.phase !== 'idle') {
+        let next = advanceB02CorridorBlockade(previous, delta * 1000)
+        if (next.phase === 'active' && !next.damagedPlayer) {
+          const lineZ = next.lineZs[next.activeLineIndex]
+          if (isPlayerInsideB02BlockadeLine({ playerZ: playerPos.z, lineZ })) {
+            damagePlayer(B02_BLOCKADE_DAMAGE)
+            next = { ...next, damagedPlayer: true }
+          }
+        }
+        b02BlockadeRef.current = next
+        syncB02BlockadeVisual(next)
+        _vel.x = 0; _vel.y = 0; _vel.z = 0
+        rb.current.setLinvel(_vel, true)
+        if (dist > 0.0001) _applyRotation(groupRef, _dir.x / dist, _dir.z / dist, 0.22)
+        if (next.phase === 'idle') {
+          chargeState.current = 'chase'
+          queueVisualState('animPhase', 'normal')
+        } else {
+          queueVisualState('animPhase', next.phase === 'telegraph' ? 'warn' : 'stun')
+        }
+        return
+      }
+      const trigger = getB02CorridorBlockadeTrigger({
+        hpRatio: hpRef.current / stats.hp,
+        elapsedMs,
+        chargeState: chargeState.current,
+        state: previous,
+      })
+      if (trigger) {
+        const lineZs = getB02CorridorBlockadeLineZs({
+          bossZ: t.z,
+          playerZ: playerPos.z,
+          halfZ: stageCombatConfig.bounds.halfZ,
+        })
+        const next = startB02CorridorBlockade(previous, trigger, lineZs)
+        b02BlockadeRef.current = next
+        syncB02BlockadeVisual(next)
+        _vel.x = 0; _vel.y = 0; _vel.z = 0
+        rb.current.setLinvel(_vel, true)
+        queueVisualState('animPhase', 'warn')
+        return
+      }
+    }
     // 시야 차단 배회는 이 early return보다 뒤에 있는 chefBoss 페이즈 로직과
     // 원거리 발사를 통째로 건너뛴다. B04를 여기 태우면 플레이어가 stage4 중앙
     // 조리대 뒤에 서는 순간 보스가 사격·돌진·페이즈 전환을 전부 멈추고, 플레이어
@@ -1218,6 +1336,14 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           <CuboidCollider args={colArgs} />
           <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} isMatilda={isMatilda} scale={stats.scale} isChefPhase2={isChefPhase2} />
         </RigidBody>
+      )}
+      {type === 'B02' && currentStageId === 'stage2' && (
+        <B02CorridorBlockadeVisual
+          phase={b02BlockadeVisual.phase}
+          lineZs={b02BlockadeVisual.lineZs}
+          activeLineIndex={b02BlockadeVisual.activeLineIndex}
+          halfX={stageCombatConfig.bounds.halfX}
+        />
       )}
 
     </>

@@ -8,7 +8,7 @@
     "branch:run": "python scripts/single_branch_guard.py run --",
     "dev": "python scripts/single_branch_guard.py run -- npm.cmd exec -- vite",
     "dev:keepalive": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/keep-dev-server-alive.ps1 -Port 5173",
-    "prebuild": "npm run branch:check && node scripts/assert-no-legacy-b02.mjs && node scripts/assert-dialogue-store.mjs && npm run verify:studio-game-sync",
+    "prebuild": "npm run branch:check && node scripts/assert-firebase-release-env.mjs && node scripts/assert-no-legacy-b02.mjs && node scripts/assert-dialogue-store.mjs && npm run verify:studio-game-sync",
     "build": "python scripts/single_branch_guard.py run -- npm.cmd exec -- vite build",
     "postbuild": "node scripts/assert-no-legacy-b02.mjs --artifacts=dist && node scripts/verify-hosting-assets.mjs --dir dist",
     "audit:b02-artifacts": "node scripts/assert-no-legacy-b02.mjs --artifacts=all",

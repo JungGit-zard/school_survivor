@@ -78,6 +78,6 @@ describe('useGameStore weapon permanent upgrades', () => {
     useGameStore.getState().applyUpgrade('acquireChibiko')
     useGameStore.getState().applyUpgrade('pencilDamage')
 
-    expect(useGameStore.getState().weapons.pencilThrow.damage).toBe(3.465) // (2.4 + 0.75) * 1.10
+    expect(useGameStore.getState().weapons.pencilThrow.damage).toBe(3.96) // (2.4 + 1.2) * 1.10
   })
 })

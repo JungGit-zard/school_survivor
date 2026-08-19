@@ -120,6 +120,7 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 - `docs/solutions/` — documented solutions to past problems (bugs, best practices, architecture/design patterns, conventions), organized by category with YAML frontmatter (`module`, `tags`, `problem_type`). Relevant when implementing or debugging in documented areas.
 - `CONCEPTS.md` — shared project vocabulary for canonical visual state, release gates, and other project-specific terms.
 - For Google login failures in Android AAB / Play internal testing, check `docs/solutions/integration-issues/capacitor-android-firebase-google-login-aab.md` first.
+- Before any AAB/APK release build, every build/release agent must read `Developer/구현기록/빌드배포/aab_firebase_env_mandatory_build_gate_2026-08-18.md` and run `node scripts/assert-firebase-release-env.mjs` from `Developer/r3f_prototype`. Missing `.env` or missing `VITE_FIREBASE_*` is a BLOCKER; do not build, sync, upload, or call the artifact a candidate.
 - For Graphics Studio Apply-state loss, old title models, missing title outlines, or AAB visual parity, check `docs/solutions/integration-issues/graphics-studio-title-state-release-regression.md` before changing defaults or packaging a release.
 - For any Stage 2 boss/B02 model, part, scale, placement, Studio-state, or persistence change, check `docs/solutions/integration-issues/stage2-boss-v2-no-legacy-gate.md` first. Stop immediately if the task would recover, reference, or transform an obsolete implementation.
 - For UI work, consider layout, readability, keyboard/mouse interaction, and mobile or desktop fit.

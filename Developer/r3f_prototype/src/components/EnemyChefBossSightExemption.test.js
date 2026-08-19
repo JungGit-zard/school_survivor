@@ -24,7 +24,7 @@ describe('B04 chef boss sight-block exemption', () => {
 
   it('keeps the sight-block detour active for every other enemy', () => {
     // 면제는 마틸다/주방장 한정이다. 일반 적의 시야 차단 우회까지 지우면 안 된다.
-    expect(enemySource).toContain('sightBlockedRef.current = isStageObjectSightBlocked(t, playerPos, sightObstacles)')
+    expect(enemySource).toContain('sightBlockedRef.current = isStageObjectEnemyTrackingBlocked(t, playerPos, sightObstacles)')
     expect(enemySource).toContain('writeSightBlockedEnemyVelocity(')
   })
 

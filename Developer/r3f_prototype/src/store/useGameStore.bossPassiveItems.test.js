@@ -8,6 +8,7 @@ import {
 } from '../lib/firebaseProgress.js'
 
 const TARGET_WEAPON_IDS = ['boxCutter', 'schoolBag', 'bikittyCutter']
+const B02_TARGET_WEAPON_IDS = ['pencilThrow', 'bell', 'onigiri']
 
 function damageSnapshot(weapons) {
   return Object.fromEntries(Object.entries(weapons).map(([id, weapon]) => [id, weapon.damage]))
@@ -37,6 +38,27 @@ describe('B01 삼각자 보스 패시브 런타임', () => {
   it('실제 Enemy 보스 사망 경로는 boss type을 store로 전달한다', () => {
     const enemySource = readFileSync(new URL('../components/Enemy.jsx', import.meta.url), 'utf8')
     expect(enemySource).toContain('store.recordBossKill(type)')
+  })
+
+  it('B02 첫 처치는 복도 출입증을 해금하고 현재 런과 다음 런의 세 대상 damage만 정확히 1.05배 한다', () => {
+    const before = damageSnapshot(useGameStore.getState().weapons)
+
+    useGameStore.getState().recordBossKill('B02')
+
+    let state = useGameStore.getState()
+    expect(state.bossPassiveUnlocks).toEqual({ b02CorridorPass: true })
+    for (const id of B02_TARGET_WEAPON_IDS) expect(state.weapons[id].damage).toBeCloseTo(before[id] * 1.05, 12)
+    for (const [id, weapon] of Object.entries(state.weapons)) {
+      if (!B02_TARGET_WEAPON_IDS.includes(id)) expect(weapon.damage).toBe(before[id])
+    }
+
+    const once = damageSnapshot(state.weapons)
+    useGameStore.getState().recordBossKill('B02')
+    expect(damageSnapshot(useGameStore.getState().weapons)).toEqual(once)
+
+    useGameStore.getState().resetGame('stage2')
+    state = useGameStore.getState()
+    for (const id of B02_TARGET_WEAPON_IDS) expect(state.weapons[id].damage).toBeCloseTo(before[id] * 1.05, 12)
   })
 
   it('B02~B04 또는 B01 재호출은 해금하지 않거나 damage를 중첩하지 않는다', () => {

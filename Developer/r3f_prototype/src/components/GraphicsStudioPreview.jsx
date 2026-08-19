@@ -3,7 +3,7 @@ import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import { Html, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import { PlayerVisual } from './Player.jsx'
-import { ENEMY_STATS, EnemyVisual, SpawnSmokeEffect } from './Enemy.jsx'
+import { ENEMY_STATS, EnemyVisual, SPAWN_SMOKE_DURATION_MS, SpawnSmokeEffect } from './Enemy.jsx'
 import { FloorVisual } from './Floor.jsx'
 import {
   BallCart,
@@ -274,6 +274,15 @@ function ImagePlane({ src }) {
 }
 
 function StudioVfxPreview({ type }) {
+  // 스폰 연기는 800ms 일회성이라 선택 직후 한 번 피고 끝난다 — 튜닝할 수가 없다.
+  // 다른 VFX가 life 120000으로 살려두는 것과 같은 이유로, 여기서는 주기적으로 리마운트한다.
+  const [replay, setReplay] = useState(0)
+  useEffect(() => {
+    if (type !== 'spawnSmoke') return undefined
+    const timer = setInterval(() => setReplay((n) => n + 1), SPAWN_SMOKE_DURATION_MS + 400)
+    return () => clearInterval(timer)
+  }, [type])
+
   const event = useMemo(() => {
     const startMs = performance.now()
     if (type === 'chargeWarning') {
@@ -287,7 +296,16 @@ function StudioVfxPreview({ type }) {
 
   const onDone = () => {}
 
-  if (type === 'spawnSmoke') return <SpawnSmokeEffect position={[0, 0, 0]} visualScale={0.65} />
+  // 스폰 연기는 크기에 따라 구현이 갈린다(Enemy.jsx의 isBigSpawnSmoke). 0.65 하나만 띄우면
+  // 빌보드 쪽만 보여서 큰 몬스터용 3D 연기는 스튜디오에서 영영 확인할 수 없다. 둘 다 띄운다.
+  if (type === 'spawnSmoke') {
+    return (
+      <>
+        <SpawnSmokeEffect key={`billboard-${replay}`} position={[-0.9, 0, 0]} visualScale={0.65} />
+        <SpawnSmokeEffect key={`big-${replay}`} position={[1.1, 0, 0]} visualScale={0.889} />
+      </>
+    )
+  }
   if (type === 'chargeWarning') return <ChargeWarningLine event={event} onDone={onDone} />
   if (type === 'pickupPop') return <PickupPop event={event} onDone={onDone} />
   return <HitSpark event={event} onDone={onDone} />

@@ -9,13 +9,25 @@ export const BOSS_PASSIVE_ITEMS = Object.freeze({
     weaponIds: Object.freeze(['boxCutter', 'schoolBag', 'bikittyCutter']),
     damageMultiplier: 1.05,
   }),
+  b02CorridorPass: Object.freeze({
+    id: 'b02CorridorPass',
+    bossId: 'B02',
+    name: '복도 출입증',
+    description: '연필·벨·오니기리 공격력 +5%',
+    weaponIds: Object.freeze(['pencilThrow', 'bell', 'onigiri']),
+    damageMultiplier: 1.05,
+  }),
 })
 
 const B01_SET_SQUARE_ID = 'b01SetSquare'
+const B02_CORRIDOR_PASS_ID = 'b02CorridorPass'
 
 export function normalizeBossPassiveUnlocks(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
-  return value[B01_SET_SQUARE_ID] === true ? { [B01_SET_SQUARE_ID]: true } : {}
+  const out = {}
+  if (value[B01_SET_SQUARE_ID] === true) out[B01_SET_SQUARE_ID] = true
+  if (value[B02_CORRIDOR_PASS_ID] === true) out[B02_CORRIDOR_PASS_ID] = true
+  return out
 }
 
 export function isBossPassiveItemUnlocked(unlocks, itemId) {
@@ -23,15 +35,15 @@ export function isBossPassiveItemUnlocked(unlocks, itemId) {
 }
 
 export function unlockBossPassiveItem(unlocks, itemId) {
-  if (itemId !== B01_SET_SQUARE_ID) return normalizeBossPassiveUnlocks(unlocks)
-  return { ...normalizeBossPassiveUnlocks(unlocks), [B01_SET_SQUARE_ID]: true }
+  if (itemId !== B01_SET_SQUARE_ID && itemId !== B02_CORRIDOR_PASS_ID) return normalizeBossPassiveUnlocks(unlocks)
+  return { ...normalizeBossPassiveUnlocks(unlocks), [itemId]: true }
 }
 
 export function getBossPassiveDamageMultiplier(weaponId, unlocks) {
-  const setSquare = BOSS_PASSIVE_ITEMS[B01_SET_SQUARE_ID]
-  return isBossPassiveItemUnlocked(unlocks, setSquare.id) && setSquare.weaponIds.includes(weaponId)
-    ? setSquare.damageMultiplier
-    : 1
+  for (const item of Object.values(BOSS_PASSIVE_ITEMS)) {
+    if (isBossPassiveItemUnlocked(unlocks, item.id) && item.weaponIds.includes(weaponId)) return item.damageMultiplier
+  }
+  return 1
 }
 
 // 이 함수는 카탈로그의 원본 base weapon에 한 번만 적용한다. 반환값에는 적용 배수를 남겨

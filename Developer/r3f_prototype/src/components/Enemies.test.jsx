@@ -241,36 +241,35 @@ describe('stage 2 mixed timed reinforcements', () => {
 })
 
 describe('all-stage overtime mixed ordinary reinforcements', () => {
-  it('starts Stage 3 exactly at 225s while other stages stay at 300s, with deterministic 30s ticks', () => {
-    expect(OVERTIME_REINFORCEMENT_START_SEC).toBe(300)
-    expect(STAGE3_OVERTIME_REINFORCEMENT_START_SEC).toBe(225)
-    expect(getOvertimeReinforcementStartSec('stage1')).toBe(300)
-    expect(getOvertimeReinforcementStartSec('stage2')).toBe(300)
-    expect(getOvertimeReinforcementStartSec('stage3')).toBe(225)
-    expect(getOvertimeReinforcementStartSec('stage4')).toBe(300)
+  it('starts overtime at 240s / 4 minutes on every stage, with deterministic 30s ticks', () => {
+    expect(OVERTIME_REINFORCEMENT_START_SEC).toBe(240)
+    expect(STAGE3_OVERTIME_REINFORCEMENT_START_SEC).toBe(240)
+    expect(getOvertimeReinforcementStartSec('stage1')).toBe(240)
+    expect(getOvertimeReinforcementStartSec('stage2')).toBe(240)
+    expect(getOvertimeReinforcementStartSec('stage3')).toBe(240)
+    expect(getOvertimeReinforcementStartSec('stage4')).toBe(240)
     expect(OVERTIME_REINFORCEMENT_INTERVAL_SEC).toBe(30)
     expect(OVERTIME_REINFORCEMENT_COUNT).toBe(30)
-    expect(overtimeReinforcementTick(299.999)).toBeNull()
-    expect(overtimeReinforcementTick(300)).toBe(0)
-    expect(overtimeReinforcementTick(329.999)).toBe(0)
-    expect(overtimeReinforcementTick(330)).toBe(1)
-    expect(overtimeReinforcementTick(360)).toBe(2)
-    expect(overtimeReinforcementTick(224.999, 'stage3')).toBeNull()
-    expect(overtimeReinforcementTick(225, 'stage3')).toBe(0)
-    expect(overtimeReinforcementTick(254.999, 'stage3')).toBe(0)
-    expect(overtimeReinforcementTick(255, 'stage3')).toBe(1)
-    expect(overtimeReinforcementTick(225, 'stage1')).toBeNull()
+    expect(overtimeReinforcementTick(239.999)).toBeNull()
+    expect(overtimeReinforcementTick(240)).toBe(0)
+    expect(overtimeReinforcementTick(269.999)).toBe(0)
+    expect(overtimeReinforcementTick(270)).toBe(1)
+    expect(overtimeReinforcementTick(300)).toBe(2)
+    expect(overtimeReinforcementTick(239.999, 'stage3')).toBeNull()
+    expect(overtimeReinforcementTick(240, 'stage3')).toBe(0)
+    expect(overtimeReinforcementTick(269.999, 'stage3')).toBe(0)
+    expect(overtimeReinforcementTick(270, 'stage3')).toBe(1)
 
     let lastTick = -1
-    expect(shouldScheduleOvertimeReinforcement(lastTick, 299.999)).toEqual({ shouldSchedule: false, tick: null })
-    let result = shouldScheduleOvertimeReinforcement(lastTick, 360)
+    expect(shouldScheduleOvertimeReinforcement(lastTick, 239.999)).toEqual({ shouldSchedule: false, tick: null })
+    let result = shouldScheduleOvertimeReinforcement(lastTick, 300)
     expect(result).toEqual({ shouldSchedule: true, tick: 2 })
     lastTick = result.tick
-    expect(shouldScheduleOvertimeReinforcement(lastTick, 360.5)).toEqual({ shouldSchedule: false, tick: 2 })
-    expect(shouldScheduleOvertimeReinforcement(-1, 300)).toEqual({ shouldSchedule: true, tick: 0 })
-    expect(shouldScheduleOvertimeReinforcement(-1, 224.999, 'stage3')).toEqual({ shouldSchedule: false, tick: null })
-    expect(shouldScheduleOvertimeReinforcement(-1, 225, 'stage3')).toEqual({ shouldSchedule: true, tick: 0 })
-    expect(shouldScheduleOvertimeReinforcement(0, 225.5, 'stage3')).toEqual({ shouldSchedule: false, tick: 0 })
+    expect(shouldScheduleOvertimeReinforcement(lastTick, 300.5)).toEqual({ shouldSchedule: false, tick: 2 })
+    expect(shouldScheduleOvertimeReinforcement(-1, 240)).toEqual({ shouldSchedule: true, tick: 0 })
+    expect(shouldScheduleOvertimeReinforcement(-1, 239.999, 'stage3')).toEqual({ shouldSchedule: false, tick: null })
+    expect(shouldScheduleOvertimeReinforcement(-1, 240, 'stage3')).toEqual({ shouldSchedule: true, tick: 0 })
+    expect(shouldScheduleOvertimeReinforcement(0, 240.5, 'stage3')).toEqual({ shouldSchedule: false, tick: 0 })
   })
 
   it('uses 30 injected-random ordinary E01-E07 picks and preserves the Stage 1 no-E04 rule', () => {
@@ -898,20 +897,24 @@ describe('enemy spawn placement', () => {
     expect(pos[0]).not.toBeCloseTo(0)
   })
 
-  it('큰 배치에서도 형태선 검사가 산출을 상한시키지 않는다 (36 요청 → 34+ 전달)', () => {
+  it('큰 배치에서도 형태선 검사가 산출을 상한시키지 않는다 (36/45 요청 대부분 전달)', () => {
     // 회귀 방지: formsSpawnLine이 taken 전체를 검사하던 시절 이 루프는 배치 크기와 무관하게
     // ~14마리에서 포화했다(스2 프론트로드 36/45마리가 통째로 폐기됨).
     playerPos.x = 0
     playerPos.z = 0
-    let seed = 1
-    const random = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648
-    const taken = []
-    for (let i = 0; i < 36; i += 1) {
-      const pos = randomSpawnPos('E01', { halfX: 7.5, halfZ: 19.2 }, taken, random)  // stage2 복도
-      if (pos) taken.push(pos)
+    const deliverCount = (requested) => {
+      let seed = 1
+      const random = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648
+      const taken = []
+      for (let i = 0; i < requested; i += 1) {
+        const pos = randomSpawnPos('E01', { halfX: 7.5, halfZ: 19.2 }, taken, random)  // stage2 복도
+        if (pos) taken.push(pos)
+      }
+      return taken.length
     }
 
-    expect(taken.length).toBeGreaterThanOrEqual(34)
+    expect(deliverCount(36)).toBeGreaterThanOrEqual(34)
+    expect(deliverCount(45)).toBeGreaterThanOrEqual(43)
   })
 
   it('type별 반경으로 obstacle 스폰을 거절하고 안전 후보가 없으면 null을 반환한다', () => {

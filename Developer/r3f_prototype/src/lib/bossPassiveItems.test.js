@@ -40,6 +40,22 @@ describe('B01 boss passive item catalog', () => {
     expect(applyBossPassiveDamageToBaseWeapon('tumbler', { damage: 6 }, unlocks)).toEqual({ damage: 6 })
   })
 
+  it('defines B02 복도 출입증 for pencil, bell, and onigiri only', () => {
+    const unlocks = { b02CorridorPass: true }
+    expect(BOSS_PASSIVE_ITEMS.b02CorridorPass).toMatchObject({
+      id: 'b02CorridorPass',
+      bossId: 'B02',
+      name: '복도 출입증',
+      weaponIds: ['pencilThrow', 'bell', 'onigiri'],
+      damageMultiplier: 1.05,
+    })
+    expect(normalizeBossPassiveUnlocks({ b02CorridorPass: true, futureBossItem: true })).toEqual({ b02CorridorPass: true })
+    expect(getBossPassiveDamageMultiplier('pencilThrow', unlocks)).toBe(1.05)
+    expect(getBossPassiveDamageMultiplier('bell', unlocks)).toBe(1.05)
+    expect(getBossPassiveDamageMultiplier('onigiri', unlocks)).toBe(1.05)
+    expect(getBossPassiveDamageMultiplier('boxCutter', unlocks)).toBe(1)
+  })
+
   it('does not multiply the same runtime weapon twice', () => {
     const once = applyBossPassiveDamageToBaseWeapon('schoolBag', { damage: 12 }, { b01SetSquare: true })
     const twice = applyBossPassiveDamageToBaseWeapon('schoolBag', once, { b01SetSquare: true })
