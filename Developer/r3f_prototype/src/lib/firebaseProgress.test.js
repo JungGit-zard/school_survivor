@@ -131,14 +131,14 @@ describe('firebase-only player progress runtime', () => {
 
   it('preserves implemented B01 and B02 boss passive flags through Firebase progress snapshots', () => {
     applyCloudProgressSnapshot(remoteSnapshot({
-      progress: { bossPassiveUnlocks: { b01SetSquare: true, b02CorridorPass: true, b02Unimplemented: true } },
+      progress: { bossPassiveUnlocks: { b01SetSquare: true, b02CorridorPass: true, b03GymWhistle: true, b04ServingLadle: true, b02Unimplemented: true } },
     }), USER)
 
     const runtime = getFirebaseProgressRuntimeSnapshot()
     const snapshot = buildCloudProgressSnapshot()
 
-    expect(runtime.progress.bossPassiveUnlocks).toEqual({ b01SetSquare: true, b02CorridorPass: true })
-    expect(snapshot.progress.bossPassiveUnlocks).toEqual({ b01SetSquare: true, b02CorridorPass: true })
+    expect(runtime.progress.bossPassiveUnlocks).toEqual({ b01SetSquare: true, b02CorridorPass: true, b03GymWhistle: true, b04ServingLadle: true })
+    expect(snapshot.progress.bossPassiveUnlocks).toEqual({ b01SetSquare: true, b02CorridorPass: true, b03GymWhistle: true, b04ServingLadle: true })
   })
 
   it('fails closed when the authenticated account has no remote snapshot and never uploads defaults', async () => {

@@ -770,7 +770,11 @@ describe('GraphicsStudio', () => {
     expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1.35')
   })
 
-  it('does not expose reset or undo paths for graphics draft changes', () => {
+  // Reset(로컬 베이스라인 복귀)는 여전히 없어야 한다. Ctrl+Z 되돌리기는 1521b3b에서 의도적으로
+  // 추가된 편집 기능이며, 저장 안 된 draft만 되감고 Firebase 확정값은 건드리지 않는다.
+  // 슬라이더(type=range)는 .value 대입 후 input 이벤트를 쏴도 React 핸들러까지 도달하지 않아
+  // 같은 값을 커밋하는 숫자 입력(name="scaleValue")으로 draft를 만든다.
+  it('keeps draft edits out of Firebase and offers no reset-to-baseline path', () => {
     saveStudioTunings({ player: { scale: 1.4 } })
 
     act(() => {
@@ -794,7 +798,7 @@ describe('GraphicsStudio', () => {
     })
 
     expect(loadStudioTunings().player.scale).toBe(1.4)
-    expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1.8')
+    expect(container.querySelector('[data-testid="graphics-preview"]').textContent).toContain('player:1.4')
   })
 
   it('applies typed part position values into separate part tuning', async () => {

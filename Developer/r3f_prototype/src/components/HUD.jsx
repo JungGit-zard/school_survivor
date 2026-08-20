@@ -32,6 +32,8 @@ import {
 const BOSS_PASSIVE_ITEM_ICONS = Object.freeze({
   b01SetSquare: '📐',
   b02CorridorPass: '🎫',
+  b03GymWhistle: '📣',
+  b04ServingLadle: '🥄',
 })
 import { isProjectMaster } from '../lib/projectAdmin.js'
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'

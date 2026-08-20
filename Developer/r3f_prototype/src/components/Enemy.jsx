@@ -37,6 +37,24 @@ import {
   getB02CorridorBlockadeTrigger,
   startB02CorridorBlockade,
 } from '../lib/b02CorridorBlockade.js'
+import {
+  B03_SHUTTLE_LANE_WIDTH,
+  advanceB03ShuttleRun,
+  consumeB03ShuttleRunPassHit,
+  createB03ShuttleRunState,
+  getB03ShuttleRunTrigger,
+  getB03ShuttleRunLaneZ,
+  getB03ShuttleRunX,
+  startB03ShuttleRun,
+} from '../lib/b03ShuttleRun.js'
+import {
+  advanceB04SoupBlast,
+  consumeB04SoupBlastHit,
+  createB04SoupBlastState,
+  getB04SoupBlastCircles,
+  getB04SoupBlastTrigger,
+  startB04SoupBlast,
+} from '../lib/b04SoupBlast.js'
 import { getStageObjectSightObstacles, isStageObjectEnemyTrackingBlocked } from './StageObjects/stageObjectColliders.js'
 import { isPlayerWeaponSightBlocked } from '../lib/weaponTargeting.js'
 import ZombieMesh from './ZombieMesh.jsx'
@@ -510,19 +528,106 @@ export function isBigSpawnSmoke(visualScale) {
 // 0.55를 곱하면 1.68배로, 빌보드보다 아주 조금 크다. 부피감은 남고 몬스터는 가려지지 않는다.
 export const BIG_SPAWN_SMOKE_SIZE = 0.55
 
-function B02CorridorBlockadeVisual({ phase, lineZs, activeLineIndex, halfX }) {
+export const B02_CORRIDOR_BLOCKADE_VISUALS = Object.freeze({
+  telegraph: Object.freeze({ surface: '#22cbd2', surfaceOpacity: 0.48, outline: '#063b46', outlineOpacity: 0.82, shadow: '#021c24', shadowOpacity: 0.34 }),
+  active: Object.freeze({ surface: '#24edf0', surfaceOpacity: 0.9, outline: '#052f39', outlineOpacity: 0.96, shadow: '#021923', shadowOpacity: 0.46 }),
+  completed: Object.freeze({ surface: '#0d6570', surfaceOpacity: 0.22, outline: '#063b46', outlineOpacity: 0.5, shadow: '#021923', shadowOpacity: 0.18 }),
+  future: Object.freeze({ surface: '#168895', surfaceOpacity: 0.38, outline: '#063b46', outlineOpacity: 0.7, shadow: '#021923', shadowOpacity: 0.26 }),
+})
+
+export function getB02CorridorBlockadeLineVisualState({ phase, index, activeLineIndex }) {
+  if (phase === 'telegraph') return 'telegraph'
+  if (phase !== 'active') return 'completed'
+  if (index < activeLineIndex) return 'completed'
+  return index === activeLineIndex ? 'active' : 'future'
+}
+
+export function B02CorridorBlockadeVisual({ phase, lineZs, activeLineIndex, halfX }) {
   if (phase === 'idle' || lineZs.length === 0) return null
   return (
     <group aria-label="B02 복도 봉쇄선">
       {lineZs.map((z, index) => {
-        const active = phase === 'active' && index === activeLineIndex
+        const visualState = getB02CorridorBlockadeLineVisualState({ phase, index, activeLineIndex })
+        const visual = B02_CORRIDOR_BLOCKADE_VISUALS[visualState]
         return (
-          <mesh key={`${index}:${z}`} position={[0, 0.035, z]}>
-            <boxGeometry args={[halfX * 2, 0.035, B02_BLOCKADE_LINE_WIDTH]} />
-            <meshBasicMaterial color={active ? '#e84532' : '#f4ad32'} transparent opacity={active ? 0.82 : 0.42} depthWrite={false} />
-          </mesh>
+          <group key={`${index}:${z}`} userData={{ blockadeLineState: visualState }}>
+            <mesh position={[0, 0.012, z]}>
+              <boxGeometry args={[halfX * 2, 0.016, B02_BLOCKADE_LINE_WIDTH + 0.42]} />
+              <meshBasicMaterial color={visual.shadow} transparent opacity={visual.shadowOpacity} depthWrite={false} toneMapped={false} />
+            </mesh>
+            <mesh position={[0, 0.026, z]}>
+              <boxGeometry args={[halfX * 2, 0.028, B02_BLOCKADE_LINE_WIDTH + 0.16]} />
+              <meshBasicMaterial color={visual.outline} transparent opacity={visual.outlineOpacity} depthWrite={false} toneMapped={false} />
+            </mesh>
+            <mesh position={[0, 0.047, z]}>
+              <boxGeometry args={[halfX * 2, 0.024, B02_BLOCKADE_LINE_WIDTH]} />
+              <meshBasicMaterial color={visual.surface} transparent opacity={visual.surfaceOpacity} depthWrite={false} toneMapped={false} />
+            </mesh>
+          </group>
         )
       })}
+    </group>
+  )
+}
+
+export const B03_SHUTTLE_RUN_VISUALS = Object.freeze({
+  telegraph: Object.freeze({ surface: '#f5b83d', surfaceOpacity: 0.44, outline: '#6b4308', outlineOpacity: 0.82 }),
+  outbound: Object.freeze({ surface: '#f05423', surfaceOpacity: 0.82, outline: '#641909', outlineOpacity: 0.96 }),
+  returning: Object.freeze({ surface: '#ff7a28', surfaceOpacity: 0.86, outline: '#721d08', outlineOpacity: 0.98 }),
+  stun: Object.freeze({ surface: '#c99a43', surfaceOpacity: 0.2, outline: '#5d451d', outlineOpacity: 0.42 }),
+})
+
+export const B04_SOUP_BLAST_VISUALS = Object.freeze({
+  telegraph: Object.freeze({ surface: '#f4ad32', surfaceOpacity: 0.46, outline: '#663507', outlineOpacity: 0.86 }),
+  explode: Object.freeze({ surface: '#ff6b1f', surfaceOpacity: 0.92, outline: '#751a05', outlineOpacity: 1 }),
+})
+
+export function getB04SoupBlastVisualState(phase) {
+  return phase === 'explode' ? 'explode' : 'telegraph'
+}
+
+export function B04SoupBlastVisual({ phase, circles }) {
+  if ((phase !== 'telegraph' && phase !== 'explode') || circles.length === 0) return null
+  const visualState = getB04SoupBlastVisualState(phase)
+  const visual = B04_SOUP_BLAST_VISUALS[visualState]
+  return (
+    <group aria-label="B04 국물 대폭발 원형 표식" userData={{ soupBlastState: visualState }}>
+      {circles.map((circle, index) => (
+        <group key={`${index}:${circle.x}:${circle.z}`} position={[circle.x, 0, circle.z]}>
+          <mesh position={[0, 0.022, 0]}>
+            <cylinderGeometry args={[circle.radius + 0.18, circle.radius + 0.18, 0.028, 32]} />
+            <meshBasicMaterial color={visual.outline} transparent opacity={visual.outlineOpacity} depthWrite={false} toneMapped={false} />
+          </mesh>
+          <mesh position={[0, 0.047, 0]}>
+            <cylinderGeometry args={[circle.radius, circle.radius, 0.024, 32]} />
+            <meshBasicMaterial color={visual.surface} transparent opacity={visual.surfaceOpacity} depthWrite={false} toneMapped={false} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  )
+}
+
+export function getB03ShuttleRunVisualState({ phase, passIndex }) {
+  if (phase === 'telegraph') return 'telegraph'
+  if (phase === 'active') return passIndex === 1 ? 'returning' : 'outbound'
+  return 'stun'
+}
+
+function B03ShuttleRunVisual({ phase, passIndex, laneZ, halfX }) {
+  if (phase === 'idle') return null
+  const visualState = getB03ShuttleRunVisualState({ phase, passIndex })
+  const visual = B03_SHUTTLE_RUN_VISUALS[visualState]
+  return (
+    <group aria-label="B03 왕복 오래달리기 레인" userData={{ shuttleRunState: visualState }}>
+      <mesh position={[0, 0.024, laneZ]}>
+        <boxGeometry args={[halfX * 2, 0.028, B03_SHUTTLE_LANE_WIDTH + 0.18]} />
+        <meshBasicMaterial color={visual.outline} transparent opacity={visual.outlineOpacity} depthWrite={false} toneMapped={false} />
+      </mesh>
+      <mesh position={[0, 0.047, laneZ]}>
+        <boxGeometry args={[halfX * 2, 0.024, B03_SHUTTLE_LANE_WIDTH]} />
+        <meshBasicMaterial color={visual.surface} transparent opacity={visual.surfaceOpacity} depthWrite={false} toneMapped={false} />
+      </mesh>
     </group>
   )
 }
@@ -727,6 +832,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const [animPhase, setAnimPhase] = useState('normal') // normal|warn|charge|special|stun|retreat
   const [isChefPhase2, setIsChefPhase2] = useState(false)
   const [b02BlockadeVisual, setB02BlockadeVisual] = useState(() => createB02CorridorBlockadeState())
+  const [b03ShuttleVisual, setB03ShuttleVisual] = useState(() => createB03ShuttleRunState())
+  const [b04SoupBlastVisual, setB04SoupBlastVisual] = useState(() => createB04SoupBlastState())
   const visualFlushRef       = useRef({ scheduled: false, hp: stats.hp, hitFlash: false, spawnRevealed: false, animPhase: 'normal' })
   const spawnRevealedRef     = useRef(false)
   const queueVisualState = useCallback((key, value) => {
@@ -760,6 +867,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const chargeState  = useRef(isMatilda ? 'matildaAim' : 'chase')
   const stateTimer   = useRef(0)
   const b02BlockadeRef = useRef(createB02CorridorBlockadeState())
+  const b03ShuttleRef = useRef(createB03ShuttleRunState())
+  const b04SoupBlastRef = useRef(createB04SoupBlastState())
   const matildaLaughRemainingRef = useRef(0)
   const matildaLaughCuePendingRef = useRef(false)
   const matildaChargeStallMsRef = useRef(0)
@@ -804,6 +913,19 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         : { ...state }
     ))
   }, [])
+  const syncB03ShuttleVisual = useCallback((state) => {
+    setB03ShuttleVisual((previous) => (
+      previous.phase === state.phase && previous.laneZ === state.laneZ ? previous : { ...state }
+    ))
+  }, [])
+  const syncB04SoupBlastVisual = useCallback((state) => {
+    setB04SoupBlastVisual((previous) => (
+      previous.phase === state.phase
+        && previous.circles.map((circle) => `${circle.x}:${circle.z}:${circle.radius}`).join(',') === state.circles.map((circle) => `${circle.x}:${circle.z}:${circle.radius}`).join(',')
+        ? previous
+        : { ...state }
+    ))
+  }, [])
   const sightBlockedRef = useRef(false)
   const nextSightCheckRef = useRef(0)
 
@@ -826,9 +948,17 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     nextSightCheckRef.current = getRuntimeElapsedMs(useGameStore.getState().elapsedMs) + (stableEnemyHash(id) % 90)
     b02BlockadeRef.current = createB02CorridorBlockadeState()
     syncB02BlockadeVisual(b02BlockadeRef.current)
+    b03ShuttleRef.current = createB03ShuttleRunState()
+    syncB03ShuttleVisual(b03ShuttleRef.current)
+    b04SoupBlastRef.current = createB04SoupBlastState()
+    syncB04SoupBlastVisual(b04SoupBlastRef.current)
     queueVisualState('animPhase', isMatilda ? 'stun' : 'normal')
     emitEnemySpawnSfx(type, isMatilda)
-  }, [id, type, isMatilda, syncB02BlockadeVisual])
+  }, [id, type, isMatilda, syncB02BlockadeVisual, syncB03ShuttleVisual, syncB04SoupBlastVisual])
+
+  useEffect(() => () => {
+    b04SoupBlastRef.current = createB04SoupBlastState()
+  }, [])
 
   useEffect(() => {
     if (!spawnRevealed) return
@@ -895,6 +1025,10 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       queueVisualState('hp', hpRef.current)
       if (hpRef.current <= 0) {
         dead.current = true
+        if (type === 'B04') {
+          b04SoupBlastRef.current = createB04SoupBlastState()
+          syncB04SoupBlastVisual(b04SoupBlastRef.current)
+        }
         rb.current._enemyDead = true
         rb.current._enemyHit = null
         enemyBodies.delete(id)
@@ -1011,6 +1145,46 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     // 조리대 뒤에 서는 순간 보스가 사격·돌진·페이즈 전환을 전부 멈추고, 플레이어
     // 무기도 같은 장애물에 막혀(weaponTargeting.js) 상호 무피해 교착이 된다.
     // 승리 조건이 240초 생존이라 그 교착은 곧 플레이어 승 — 마틸다와 같은 이유로 면제한다.
+    if (type === 'B03' && currentStageId === 'stage3') {
+      const previous = b03ShuttleRef.current
+      if (previous.phase !== 'idle') {
+        let next = advanceB03ShuttleRun(previous, delta * 1000)
+        const shuttleX = getB03ShuttleRunX(next)
+        const hit = consumeB03ShuttleRunPassHit(next, playerPos.z, playerPos.x, shuttleX)
+        next = hit.state
+        if (hit.damage > 0) damagePlayer(hit.damage)
+        b03ShuttleRef.current = next
+        syncB03ShuttleVisual(next)
+        _vel.x = next.phase === 'active' ? (shuttleX - t.x) / Math.max(delta, 0.001) : 0
+        _vel.y = 0; _vel.z = 0
+        rb.current.setLinvel(_vel, true)
+        if (next.phase === 'idle') {
+          chargeState.current = 'chase'
+          queueVisualState('animPhase', 'normal')
+        } else {
+          queueVisualState('animPhase', next.phase === 'telegraph' ? 'warn' : 'stun')
+        }
+        return
+      }
+      const trigger = getB03ShuttleRunTrigger({
+        hpRatio: hpRef.current / stats.hp, elapsedMs, chargeState: chargeState.current, state: previous,
+      })
+      if (trigger) {
+        const halfX = stageCombatConfig.bounds.halfX
+        const laneZ = getB03ShuttleRunLaneZ(playerPos.z, stageCombatConfig.bounds.halfZ)
+        const edgeInset = 0.9
+        const startX = t.x <= 0 ? -halfX + edgeInset : halfX - edgeInset
+        const endX = -startX
+        const next = startB03ShuttleRun(previous, trigger, { laneZ, startX, endX })
+        b03ShuttleRef.current = next
+        syncB03ShuttleVisual(next)
+        _vel.x = 0; _vel.y = 0; _vel.z = 0
+        rb.current.setLinvel(_vel, true)
+        queueVisualState('animPhase', 'warn')
+        return
+      }
+    }
+
     if (!isMatilda && !stats.chefBoss && elapsedMs >= nextSightCheckRef.current) {
       sightBlockedRef.current = isStageObjectEnemyTrackingBlocked(t, playerPos, sightObstacles)
       nextSightCheckRef.current = elapsedMs + 90 + (stableEnemyHash(id) % 31)
@@ -1022,6 +1196,43 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       rb.current.setLinvel(_vel, true)
       _applyRotation(groupRef, _vel.x, _vel.z)
       return
+    }
+
+    if (type === 'B04' && currentStageId === 'stage4' && stats.chefBoss) {
+      const soup = b04SoupBlastRef.current
+      if (soup.phase !== 'idle' && soup.phase !== 'done') {
+        let next = advanceB04SoupBlast(soup, delta * 1000)
+        const hit = consumeB04SoupBlastHit(next, playerPos)
+        next = hit.state
+        if (hit.damage > 0) damagePlayer(hit.damage)
+        b04SoupBlastRef.current = next
+        syncB04SoupBlastVisual(next)
+        _vel.x = 0; _vel.y = 0; _vel.z = 0
+        rb.current.setLinvel(_vel, true)
+        queueVisualState('animPhase', 'warn')
+        return
+      }
+      if (chefPhaseRef.current === CHEF_PHASE1 && hpRef.current / stats.hp <= 0.5) {
+        if (getB04SoupBlastTrigger({ hpRatio: hpRef.current / stats.hp, elapsedMs, state: soup })) {
+          const circles = getB04SoupBlastCircles({ player: playerPos, halfX: stageCombatConfig.bounds.halfX, halfZ: stageCombatConfig.bounds.halfZ, obstacles: sightObstacles })
+          b04SoupBlastRef.current = startB04SoupBlast(soup, circles)
+          syncB04SoupBlastVisual(b04SoupBlastRef.current)
+          _vel.x = 0; _vel.y = 0; _vel.z = 0
+          rb.current.setLinvel(_vel, true)
+          queueVisualState('animPhase', 'warn')
+          return
+        }
+        if (elapsedMs >= 200_000) {
+          chefPhaseRef.current = CHEF_PHASE2
+          setIsChefPhase2(true)
+          queueVisualState('animPhase', 'normal')
+        }
+      }
+      if (soup.phase === 'done') {
+        chefPhaseRef.current = CHEF_PHASE2
+        setIsChefPhase2(true)
+        queueVisualState('animPhase', 'normal')
+      }
     }
 
     // B04 주방장 2페이즈: HP>50% 포격(phase1) → 텔레그래프 → HP<=50% 격노 돌진(phase2).
@@ -1338,6 +1549,20 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           lineZs={b02BlockadeVisual.lineZs}
           activeLineIndex={b02BlockadeVisual.activeLineIndex}
           halfX={stageCombatConfig.bounds.halfX}
+        />
+      )}
+      {type === 'B03' && currentStageId === 'stage3' && (
+        <B03ShuttleRunVisual
+          phase={b03ShuttleVisual.phase}
+          passIndex={b03ShuttleVisual.passIndex}
+          laneZ={b03ShuttleVisual.laneZ}
+          halfX={stageCombatConfig.bounds.halfX}
+        />
+      )}
+      {type === 'B04' && currentStageId === 'stage4' && (
+        <B04SoupBlastVisual
+          phase={b04SoupBlastVisual.phase}
+          circles={b04SoupBlastVisual.circles}
         />
       )}
 

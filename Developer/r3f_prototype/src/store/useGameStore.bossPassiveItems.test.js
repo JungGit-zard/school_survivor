@@ -61,10 +61,10 @@ describe('B01 삼각자 보스 패시브 런타임', () => {
     for (const id of B02_TARGET_WEAPON_IDS) expect(state.weapons[id].damage).toBeCloseTo(before[id] * 1.05, 12)
   })
 
-  it('B03/B04는 해금하지 않으며 B01/B02 재호출은 damage를 중첩하지 않는다', () => {
+  it('B04는 해금하지 않으며 B01/B02 재호출은 damage를 중첩하지 않는다', () => {
     const before = damageSnapshot(useGameStore.getState().weapons)
-    for (const bossId of ['B03', 'B04']) useGameStore.getState().recordBossKill(bossId)
-    expect(useGameStore.getState().bossPassiveUnlocks).toEqual({})
+    useGameStore.getState().recordBossKill('B04')
+    expect(useGameStore.getState().bossPassiveUnlocks).toEqual({ b04ServingLadle: true })
     expect(damageSnapshot(useGameStore.getState().weapons)).toEqual(before)
 
     useGameStore.getState().recordBossKill('B01')
@@ -76,6 +76,26 @@ describe('B01 삼각자 보스 패시브 런타임', () => {
     const b02Once = damageSnapshot(useGameStore.getState().weapons)
     useGameStore.getState().recordBossKill('B02')
     expect(damageSnapshot(useGameStore.getState().weapons)).toEqual(b02Once)
+  })
+
+  it('applies B04 max HP once while preserving the current HP ratio', () => {
+    useGameStore.setState((state) => ({ player: { ...state.player, hp: 45, maxHp: 90 } }))
+    useGameStore.getState().recordBossKill('B04')
+    const once = useGameStore.getState().player
+    expect(once).toMatchObject({ maxHp: 94.5, hp: 47.25, bossPassiveMaxHpMultiplier: 1.05 })
+    useGameStore.getState().recordBossKill('B04')
+    expect(useGameStore.getState().player).toEqual(once)
+  })
+
+  it('B03 첫 처치는 현재와 다음 런 이동속도를 5% 올리되 기존 cap을 넘지 않는다', () => {
+    const before = useGameStore.getState().player.speed
+    useGameStore.getState().recordBossKill('B03')
+    expect(useGameStore.getState().bossPassiveUnlocks).toEqual({ b03GymWhistle: true })
+    expect(useGameStore.getState().player.speed).toBeCloseTo(before * 1.05, 12)
+    useGameStore.getState().recordBossKill('B03')
+    expect(useGameStore.getState().player.speed).toBeCloseTo(before * 1.05, 12)
+    useGameStore.getState().resetGame('stage3')
+    expect(useGameStore.getState().player.speed).toBeCloseTo(before * 1.05, 12)
   })
 
   it('Firebase 정본에서 새 런과 reloadPersistentProgress로 다시 빌드해도 삼각자를 유지한다', () => {

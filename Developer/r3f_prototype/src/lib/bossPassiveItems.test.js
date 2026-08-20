@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   BOSS_PASSIVE_ITEMS,
   BOSS_PASSIVE_ITEM_UI_CAPACITY,
+  applyBossPassiveMovementSpeed,
   applyBossPassiveDamageToBaseWeapon,
   getBossPassiveDamageMultiplier,
   isBossPassiveItemUnlocked,
@@ -63,5 +64,17 @@ describe('B01 boss passive item catalog', () => {
     expect(once.damage).toBe(12.6)
     expect(twice).toBe(once)
     expect(twice.damage).toBe(12.6)
+  })
+
+  it('applies the B03 whistle speed boost once and preserves the existing cap', () => {
+    const unlocks = { b03GymWhistle: true }
+    const once = applyBossPassiveMovementSpeed({ speed: 3, baseSpeed: 3 }, unlocks)
+    const twice = applyBossPassiveMovementSpeed(once, unlocks)
+    const capped = applyBossPassiveMovementSpeed({ speed: 5.39, baseSpeed: 3 }, unlocks)
+
+    expect(once).toMatchObject({ speed: 3.15, baseSpeed: 3, bossPassiveMovementSpeedMultiplier: 1.05 })
+    expect(twice).toBe(once)
+    expect(twice.speed).toBe(3.15)
+    expect(capped.speed).toBe(5.4)
   })
 })

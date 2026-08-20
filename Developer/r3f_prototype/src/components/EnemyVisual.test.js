@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest'
 import {
   CHARGE_CUE_LABEL,
   CHARGE_CUE_LAYOUT,
+  B02_CORRIDOR_BLOCKADE_VISUALS,
+  B03_SHUTTLE_RUN_VISUALS,
+  B04_SOUP_BLAST_VISUALS,
   ENEMY_SIZE_MULTIPLIER,
   EnemyVisual,
   ENEMY_SPAWN_REVEAL_DELAY_MS,
@@ -22,6 +25,9 @@ import {
   getBodyContactDistance,
   getChargeHitDistance,
   getEnemyColliderHalfExtents,
+  getB02CorridorBlockadeLineVisualState,
+  getB03ShuttleRunVisualState,
+  getB04SoupBlastVisualState,
   getEnemySpawnSfx,
   getMatildaBodyHalfExtents,
   hasMatildaReachedStageEdge,
@@ -31,6 +37,70 @@ import {
   resolveSightBlockedEnemyVelocity,
   shouldReverseMatildaChargeOnObstacle,
 } from './Enemy.jsx'
+
+describe('B02 corridor blockade visual states', () => {
+  it('uses cyan surfaces and dark outlines for the telegraph, active, completed, and future lines', () => {
+    expect(getB02CorridorBlockadeLineVisualState({ phase: 'telegraph', index: 2, activeLineIndex: -1 })).toBe('telegraph')
+    expect(getB02CorridorBlockadeLineVisualState({ phase: 'active', index: 0, activeLineIndex: 1 })).toBe('completed')
+    expect(getB02CorridorBlockadeLineVisualState({ phase: 'active', index: 1, activeLineIndex: 1 })).toBe('active')
+    expect(getB02CorridorBlockadeLineVisualState({ phase: 'active', index: 2, activeLineIndex: 1 })).toBe('future')
+
+    for (const visual of Object.values(B02_CORRIDOR_BLOCKADE_VISUALS)) {
+      expect(visual.surface).toMatch(/^#(0|1|2)[0-9a-f]{5}$/i)
+      expect(visual.outline).toMatch(/^#0[0-9a-f]{5}$/i)
+      expect(visual.shadow).toMatch(/^#0[0-9a-f]{5}$/i)
+      expect(visual.surfaceOpacity).toBeGreaterThan(0)
+      expect(visual.outlineOpacity).toBeGreaterThan(0)
+      expect(visual.shadowOpacity).toBeGreaterThan(0)
+      expect(visual.shadowOpacity).toBeLessThan(visual.outlineOpacity)
+    }
+
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('userData={{ blockadeLineState: visualState }}')
+    expect(source).toContain('color={visual.shadow}')
+    expect(source).toContain('B02_BLOCKADE_LINE_WIDTH + 0.42')
+  })
+})
+
+describe('B03 shuttle run visual states', () => {
+  it('keeps a single yellow warning lane and distinguishes the two dangerous passes', () => {
+    expect(getB03ShuttleRunVisualState({ phase: 'telegraph', passIndex: -1 })).toBe('telegraph')
+    expect(getB03ShuttleRunVisualState({ phase: 'active', passIndex: 0 })).toBe('outbound')
+    expect(getB03ShuttleRunVisualState({ phase: 'active', passIndex: 1 })).toBe('returning')
+    expect(getB03ShuttleRunVisualState({ phase: 'stun', passIndex: -1 })).toBe('stun')
+
+    expect(B03_SHUTTLE_RUN_VISUALS.telegraph.surface).toMatch(/^#f/i)
+    expect(B03_SHUTTLE_RUN_VISUALS.outbound.surface).not.toBe(B03_SHUTTLE_RUN_VISUALS.returning.surface)
+    for (const visual of Object.values(B03_SHUTTLE_RUN_VISUALS)) {
+      expect(visual.outline).toMatch(/^#[0-9a-f]{6}$/i)
+      expect(visual.surfaceOpacity).toBeGreaterThan(0)
+      expect(visual.outlineOpacity).toBeGreaterThan(0)
+    }
+
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('userData={{ shuttleRunState: visualState }}')
+    expect(source).toContain('B03_SHUTTLE_LANE_WIDTH + 0.18')
+  })
+})
+
+describe('B04 soup blast visual states', () => {
+  it('uses three outlined orange circles for the warning and concurrent blast', () => {
+    expect(getB04SoupBlastVisualState('telegraph')).toBe('telegraph')
+    expect(getB04SoupBlastVisualState('explode')).toBe('explode')
+    expect(B04_SOUP_BLAST_VISUALS.explode.surfaceOpacity).toBeGreaterThan(B04_SOUP_BLAST_VISUALS.telegraph.surfaceOpacity)
+    for (const visual of Object.values(B04_SOUP_BLAST_VISUALS)) {
+      expect(visual.surface).toMatch(/^#[0-9a-f]{6}$/i)
+      expect(visual.outline).toMatch(/^#[0-9a-f]{6}$/i)
+    }
+
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('userData={{ soupBlastState: visualState }}')
+    expect(source).toContain('aria-label="B04 국물 대폭발 원형 표식"')
+    expect(source).not.toContain('aria-label="B04 급식 국자 원형 표식"')
+    expect(source).toContain('circle.radius + 0.18')
+    expect(source).toContain('<B04SoupBlastVisual')
+  })
+})
 
 describe('Enemy charge warning cue', () => {
   it('wanders deterministically without approaching while sight is blocked, then releases control when clear', () => {

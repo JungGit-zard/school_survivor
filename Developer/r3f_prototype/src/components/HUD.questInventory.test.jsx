@@ -94,6 +94,26 @@ describe('quest inventory HUD', () => {
     }
   })
 
+  it('keeps B01 through B04 boss passives in the first four slots after B04 is defeated', () => {
+    useGameStore.setState({ bossPassiveUnlocks: { b01SetSquare: true, b02CorridorPass: true, b03GymWhistle: true, b04ServingLadle: true } })
+    const { container, root } = renderHud()
+    try {
+      clickQuestBag(container)
+      const slots = [...container.querySelectorAll('[role="listitem"]')]
+      expect(slots).toHaveLength(8)
+      expect(slots.slice(0, 4).map((slot) => slot.getAttribute('aria-label'))).toEqual([
+        '삼각자 — 커터칼·30cm 자·바이키티 공격력 +5%',
+        '복도 출입증 — 연필·벨·오니기리 공격력 +5%',
+        '체육관 호루라기 — 이동속도 +5%',
+        '급식 국자 — 최대 체력 +5%',
+      ])
+      expect(slots.slice(4).every((slot) => slot.getAttribute('aria-label') === '빈 보스 패시브 슬롯')).toBe(true)
+      expect(container.querySelectorAll('[aria-label="빈 보스 패시브 슬롯"]')).toHaveLength(4)
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+
   it('shows active quest and held item details, including the new-item badge', () => {
     const [firstQuest] = getStageQuestDefinitions('stage1')
     useGameStore.setState({

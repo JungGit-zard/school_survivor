@@ -10,6 +10,8 @@ import {
   purchaseWeaponPermanentUpgrade as purchaseWeaponPermanentUpgradeStorage,
 } from '../lib/weaponPermanentUpgrades.js'
 import {
+  applyBossPassiveMovementSpeed,
+  applyBossPassiveMaxHp,
   applyBossPassiveDamageToBaseWeapon,
   normalizeBossPassiveUnlocks,
   unlockBossPassiveItem,
@@ -72,17 +74,17 @@ const BASE_PLAYER = {
   hitFlashToken: 0,
 }
 
-function buildInitialPlayer(levels) {
+function buildInitialPlayer(levels, bossPassiveUnlocks = {}) {
   const adminBalance = getAdminBalanceConfig()
   const maxHp = BASE_PLAYER.maxHp + 6 * (levels.maxHp ?? 0) + adminBalance.player.maxHpBonus
   const speed = BASE_PLAYER.speed * (1 + 0.03 * (levels.moveSpeed ?? 0)) * adminBalance.player.speedMultiplier
-  return {
+  return applyBossPassiveMaxHp(applyBossPassiveMovementSpeed({
     ...BASE_PLAYER,
     hp: maxHp,
     maxHp,
     speed,
     baseSpeed: speed,
-  }
+  }, bossPassiveUnlocks), bossPassiveUnlocks)
 }
 
 // WEAPON_CATALOG가 무기 base 스탯의 단일 진실이다. starter 무기는 startsActive:true로 시작,
@@ -395,6 +397,10 @@ export const useGameStore = create(
         ? 'b01SetSquare'
         : bossId === 'B02'
           ? 'b02CorridorPass'
+          : bossId === 'B03'
+            ? 'b03GymWhistle'
+            : bossId === 'B04'
+              ? 'b04ServingLadle'
           : null
       const nextBossPassiveUnlocks = bossPassiveItemId
         ? unlockBossPassiveItem(state.bossPassiveUnlocks, bossPassiveItemId)
@@ -406,6 +412,7 @@ export const useGameStore = create(
         set({
           bossPassiveUnlocks: nextBossPassiveUnlocks,
           weapons: applyBossPassiveDamageToRuntimeWeapons(state.weapons, nextBossPassiveUnlocks),
+          player: applyBossPassiveMaxHp(applyBossPassiveMovementSpeed(state.player, nextBossPassiveUnlocks), nextBossPassiveUnlocks),
         })
       }
       if (!isFirebaseProgressHydrated()) return
@@ -675,7 +682,7 @@ export const useGameStore = create(
       const levels = getAllLevels()
       applyMagnetPassive(levels)
       set((s) => ({
-        player: buildInitialPlayer(levels),
+        player: buildInitialPlayer(levels, s.bossPassiveUnlocks),
         weapons: buildInitialWeapons(levels, { bossPassiveUnlocks: s.bossPassiveUnlocks }),
         growthMultiplier: buildGrowthMultiplier(levels),
         passiveVersion: s.passiveVersion + 1,
@@ -693,7 +700,7 @@ export const useGameStore = create(
       syncStoredWeaponUnlocksFromRecords()
       set((s) => ({
         goldTotal: loadGoldTotal(),
-        player: buildInitialPlayer(levels),
+        player: buildInitialPlayer(levels, bossPassiveUnlocks),
         weapons: buildInitialWeapons(levels, { bossPassiveUnlocks }),
         bossPassiveUnlocks,
         growthMultiplier: buildGrowthMultiplier(levels),
@@ -1039,7 +1046,7 @@ export const useGameStore = create(
       applyMagnetPassive(levels)
       syncStoredWeaponUnlocksFromRecords()
       set((s) => ({
-        player:      buildInitialPlayer(levels),
+        player:      buildInitialPlayer(levels, bossPassiveUnlocks),
         weapons:     buildInitialWeapons(levels, { applyPermanent: progressReady, bossPassiveUnlocks }),
         bossPassiveUnlocks,
         growthMultiplier: buildGrowthMultiplier(levels),
