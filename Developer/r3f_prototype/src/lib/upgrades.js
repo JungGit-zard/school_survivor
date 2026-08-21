@@ -186,7 +186,7 @@ export const UPGRADE_EFFECTS = {
 }
 
 // Current game rule: max owned weapons per run is 8.
-const MAX_OWNED_WEAPONS = 8
+export const MAX_OWNED_WEAPONS = 8
 const MAX_WEAPON_LEVEL = 5
 
 const bumpLevel = (wpn) => Math.min(MAX_WEAPON_LEVEL, (wpn.level ?? 1) + 1)

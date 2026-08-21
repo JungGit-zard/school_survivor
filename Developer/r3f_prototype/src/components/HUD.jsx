@@ -5,7 +5,7 @@ import { useGameStore, STAGE1_INTRO_IDS } from '../store/useGameStore.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { joystickDir, playerPos, portalTarget } from '../lib/refs.js'
 import { getPortalObjective } from '../lib/portalObjective.js'
-import { UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
+import { MAX_OWNED_WEAPONS, UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
 import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { buildPlaytestSummary } from '../lib/playtestLogger.js'
@@ -372,11 +372,20 @@ export function getUpgradeChoiceDesc(option) {
   return desc?.replaceAll(unlockWord, acquireWord) ?? ''
 }
 
-function pickThree(level, weapons, player) {
+function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = []) {
   const available = UPGRADES.filter((u) => isUpgradeAvailable(UPGRADE_EFFECTS[u.key], level, weapons, player))
   const limited = limitDuplicateWeaponUpgradeOptions(available)
-  const shuffled = [...limited].sort(() => Math.random() - 0.5)
-  return shuffled.slice(0, 3)
+  const guaranteed = limited.filter((u) => pendingGuaranteedUpgradeChoiceKeys.includes(u.key))
+  const shuffled = limited.filter((u) => !pendingGuaranteedUpgradeChoiceKeys.includes(u.key))
+    .sort(() => Math.random() - 0.5)
+  return [...guaranteed, ...shuffled].slice(0, 4)
+}
+
+function isGuaranteedFollowupPermanentlyUnavailable(key, weapons) {
+  const effect = UPGRADE_EFFECTS[key]
+  return !effect?.weapon
+    || weapons[effect.weapon]?.active
+    || Object.values(weapons).filter((weapon) => weapon.active).length >= MAX_OWNED_WEAPONS
 }
 
 export function getNextUnlockPreview(phase, weapons) {
@@ -670,11 +679,12 @@ export default function HUD({
     player, weapons, phase, pauseSource,
     elapsed, currentStageId, bossSpawned, bossSpawnSec,
     goldSession, goldTotal, recentMilestone,
-    newlyUnlockedWeaponIds, levelUpChoiceSerial,
+    newlyUnlockedWeaponIds, levelUpChoiceSerial, pendingGuaranteedUpgradeChoiceKeys,
     escapePortalActive, matildaSpawned, deathCause, bossBonus,
     studentDialogue, introDialogue,
     questProgress, questToast, newQuestItemIds, bossPassiveUnlocks,
-    clearMilestone, applyUpgrade, cheatAcquireWeapon, resumeFromLevelup,
+    clearMilestone, applyUpgrade, consumeGuaranteedUpgradeChoices, discardUnavailableGuaranteedUpgradeChoices,
+    cheatAcquireWeapon, resumeFromLevelup,
     resetGame, togglePause, resumeGame, quitPausedRun, spawnMatilda,
     closeStudentDialogue, advanceIntro, toggleQuestInventory, closeQuestInventory,
     clearQuestToast, markQuestInventorySeen,
@@ -693,6 +703,7 @@ export default function HUD({
     recentMilestone:      s.recentMilestone,
     newlyUnlockedWeaponIds: s.newlyUnlockedWeaponIds,
     levelUpChoiceSerial:  s.levelUpChoiceSerial,
+    pendingGuaranteedUpgradeChoiceKeys: s.pendingGuaranteedUpgradeChoiceKeys,
     escapePortalActive:   s.escapePortalActive,
     matildaSpawned:       s.matildaSpawned,
     deathCause:           s.deathCause,
@@ -705,6 +716,8 @@ export default function HUD({
     bossPassiveUnlocks:   s.bossPassiveUnlocks,
     clearMilestone:       s.clearMilestone,
     applyUpgrade:         s.applyUpgrade,
+    consumeGuaranteedUpgradeChoices: s.consumeGuaranteedUpgradeChoices,
+    discardUnavailableGuaranteedUpgradeChoices: s.discardUnavailableGuaranteedUpgradeChoices,
     cheatAcquireWeapon:   s.cheatAcquireWeapon,
     resumeFromLevelup:    s.resumeFromLevelup,
     resetGame:            s.resetGame,
@@ -812,11 +825,35 @@ export default function HUD({
   }, [missionProgress])
 
   // phase가 'levelup'으로 바뀌는 순간 한 번만 선택지를 고정한다.
+  // 보장 키는 표시 직후 effect에서 소진하므로, 같은 화면의 카드가 바뀌지 않게 의존성에서 제외한다.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const choices = useMemo(
-    () => phase === 'levelup' ? pickThree(player.level, weapons, player) : [],
+    () => phase === 'levelup' ? pickFour(player.level, weapons, player, pendingGuaranteedUpgradeChoiceKeys) : [],
     [phase, player.level, weapons, levelUpChoiceSerial],
   )
+  useEffect(() => {
+    if (phase !== 'levelup') return
+    const displayed = choices
+      .map((choice) => choice.key)
+      .filter((key) => pendingGuaranteedUpgradeChoiceKeys.includes(key))
+    if (displayed.length > 0) {
+      consumeGuaranteedUpgradeChoices(displayed, levelUpChoiceSerial)
+      return
+    }
+    const permanentlyUnavailable = pendingGuaranteedUpgradeChoiceKeys
+      .filter((key) => isGuaranteedFollowupPermanentlyUnavailable(key, weapons))
+    if (permanentlyUnavailable.length > 0) {
+      discardUnavailableGuaranteedUpgradeChoices(permanentlyUnavailable, levelUpChoiceSerial)
+    }
+  }, [
+    choices,
+    consumeGuaranteedUpgradeChoices,
+    discardUnavailableGuaranteedUpgradeChoices,
+    levelUpChoiceSerial,
+    pendingGuaranteedUpgradeChoiceKeys,
+    phase,
+    weapons,
+  ])
   const [levelupChoicesReadySerial, setLevelupChoicesReadySerial] = useState(null)
   const levelupChoicesReady = phase === 'levelup' && levelupChoicesReadySerial === levelUpChoiceSerial
   const handleLevelupChoiceAnimationEnd = (event, index) => {
@@ -2108,7 +2145,7 @@ const styles = {
   },
   levelupChoices: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
     gap: 8,
     alignItems: 'stretch',
   },

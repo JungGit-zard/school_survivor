@@ -64,6 +64,11 @@ import { createStageQuestProgress, getQuestDefinition } from '../lib/quests.js'
 import { XP_TO_NEXT_START, nextXpThreshold } from '../lib/xpCurve.js'
 import { getStageObjectPlacements } from '../components/StageObjects/stageObjectPlacements.js'
 
+const FOLLOWUP_GUARANTEED_UPGRADE_BY_PREREQUISITE = Object.freeze({
+  chibiko: 'acquireHanako',
+  boxCutter: 'acquireBikittyCutter',
+})
+
 const MAX_MISSION_KILL_KEYS = 512
 
 const BASE_PLAYER = {
@@ -258,6 +263,7 @@ export const useGameStore = create(
     recentMilestone: null,
     pendingLevelUps: 0,
     levelUpChoiceSerial: 0,
+    pendingGuaranteedUpgradeChoiceKeys: [],
     questProgress: createStageQuestProgress(DEFAULT_STAGE_ID),
     questJourneyCompletedIds: [],
     questToast: null,
@@ -903,6 +909,24 @@ export const useGameStore = create(
       return {}
     }),
 
+    consumeGuaranteedUpgradeChoices: (keys, choiceSerial) => set((s) => {
+      if (s.phase !== 'levelup' || s.levelUpChoiceSerial !== choiceSerial || !Array.isArray(keys)) return {}
+      const displayed = new Set(keys)
+      const remaining = s.pendingGuaranteedUpgradeChoiceKeys.filter((key) => !displayed.has(key))
+      return remaining.length === s.pendingGuaranteedUpgradeChoiceKeys.length
+        ? {}
+        : { pendingGuaranteedUpgradeChoiceKeys: remaining }
+    }),
+
+    discardUnavailableGuaranteedUpgradeChoices: (keys, choiceSerial) => set((s) => {
+      if (s.phase !== 'levelup' || s.levelUpChoiceSerial !== choiceSerial || !Array.isArray(keys)) return {}
+      const unavailable = new Set(keys)
+      const remaining = s.pendingGuaranteedUpgradeChoiceKeys.filter((key) => !unavailable.has(key))
+      return remaining.length === s.pendingGuaranteedUpgradeChoiceKeys.length
+        ? {}
+        : { pendingGuaranteedUpgradeChoiceKeys: remaining }
+    }),
+
     applyUpgrade: (key) => {
       const effect = UPGRADE_EFFECTS[key]
 
@@ -945,6 +969,13 @@ export const useGameStore = create(
       set((s) => {
         const chibikoWasActive = s.weapons.chibiko?.active === true
         const acquiringChibiko = effect.kind === 'acquire' && effect.weapon === 'chibiko'
+        const guaranteedFollowupKey = effect.kind === 'acquire' && !s.weapons[effect.weapon]?.active
+          ? FOLLOWUP_GUARANTEED_UPGRADE_BY_PREREQUISITE[effect.weapon]
+          : null
+        const pendingGuaranteedUpgradeChoiceKeys = guaranteedFollowupKey
+          && !s.pendingGuaranteedUpgradeChoiceKeys.includes(guaranteedFollowupKey)
+          ? [...s.pendingGuaranteedUpgradeChoiceKeys, guaranteedFollowupKey]
+          : s.pendingGuaranteedUpgradeChoiceKeys
         const boost = getChibikoAllWeaponBoost(s.weapons.chibiko?.permanentUpgradeLevel ?? 0)
         const passiveMultiplier = effect.kind === 'damage' ? (wpn.bossPassiveDamageMultiplier ?? 1) : 1
         const upgraded = applyUpgradeWithChibikoBoost(
@@ -959,6 +990,7 @@ export const useGameStore = create(
               id,
               id === 'chibiko' || !weapon.active ? weapon : applyChibikoAllWeaponBoost(weapon, boost),
             ])),
+            pendingGuaranteedUpgradeChoiceKeys,
             ...finishLevelupState(s),
           }
         }
@@ -970,6 +1002,7 @@ export const useGameStore = create(
               ? applyChibikoAllWeaponBoost(upgraded, boost)
               : upgraded,
           },
+          pendingGuaranteedUpgradeChoiceKeys,
           ...finishLevelupState(s),
         }
       })
@@ -1084,6 +1117,7 @@ export const useGameStore = create(
         recentMilestone: null,
         pendingLevelUps: 0,
         levelUpChoiceSerial: s.levelUpChoiceSerial + 1,
+        pendingGuaranteedUpgradeChoiceKeys: [],
         questProgress: createStageQuestProgress(nextStageId),
         questJourneyCompletedIds: preserveQuestJourney ? s.questJourneyCompletedIds : [],
         questToast: null,

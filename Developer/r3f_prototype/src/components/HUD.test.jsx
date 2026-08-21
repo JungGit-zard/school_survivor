@@ -209,7 +209,7 @@ describe('upgrade choice filtering', () => {
     expect(filtered.map((option) => option.key)).toContain('maxHealth')
   })
 
-  it('limits every weapon to one card in the three upgrade choices', () => {
+  it('limits every weapon to one card in the four upgrade choices', () => {
     const options = [
       { key: 'umbrellaDamage' },
       { key: 'umbrellaRadius' },
@@ -441,7 +441,7 @@ describe('gameover presentation', () => {
 })
 
 describe('level-up upgrade layout', () => {
-  it('shows three upgrade choices side by side without a full-screen overlay', () => {
+  it('shows four upgrade choices side by side without a full-screen overlay', () => {
     useGameStore.getState().resetGame('stage1')
     useGameStore.setState((state) => ({
       phase: 'levelup',
@@ -462,8 +462,8 @@ describe('level-up upgrade layout', () => {
       expect(overlay).not.toBeNull()
       expect(overlay.style.inset).toBe('')
       expect(choices).not.toBeNull()
-      expect(choices.style.gridTemplateColumns).toBe('repeat(3, minmax(0, 1fr))')
-      expect(choiceButtons).toHaveLength(3)
+      expect(choices.style.gridTemplateColumns).toBe('repeat(4, minmax(0, 1fr))')
+      expect(choiceButtons).toHaveLength(4)
       expect([...choiceButtons].every((choice) => choice.getAttribute('aria-label')?.includes(': '))).toBe(true)
       expect([...choiceButtons].every((choice) => choice.classList.contains('levelup-upgrade-choice'))).toBe(true)
 
@@ -501,7 +501,7 @@ describe('level-up upgrade layout', () => {
       })
 
       let buttons = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
-      expect(buttons).toHaveLength(3)
+      expect(buttons).toHaveLength(4)
       expect(buttons.every((button) => button.disabled)).toBe(true)
 
       act(() => buttons[0].click())
@@ -510,10 +510,10 @@ describe('level-up upgrade layout', () => {
       act(() => buttons[1].dispatchEvent(animationEnd('levelupCardPop')))
       expect(buttons.every((button) => button.disabled)).toBe(true)
 
-      act(() => buttons[2].dispatchEvent(animationEnd('otherAnimation')))
+      act(() => buttons[3].dispatchEvent(animationEnd('otherAnimation')))
       expect(buttons.every((button) => button.disabled)).toBe(true)
 
-      act(() => buttons[2].dispatchEvent(animationEnd('levelupCardPop')))
+      act(() => buttons[3].dispatchEvent(animationEnd('levelupCardPop')))
       buttons = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
       expect(buttons.every((button) => button.disabled)).toBe(false)
 
@@ -529,6 +529,110 @@ describe('level-up upgrade layout', () => {
       })
       expect([...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
         .every((button) => button.disabled)).toBe(true)
+    } finally {
+      act(() => root.unmount())
+      container.remove()
+    }
+  })
+
+  it('guarantees eligible follow-up cards once on the next level-up screen', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.getState().applyUpgrade('acquireChibiko')
+    useGameStore.getState().applyUpgrade('acquireBoxCutter')
+    useGameStore.setState((state) => ({
+      phase: 'levelup',
+      pendingLevelUps: 1,
+      player: { ...state.player, level: 6 },
+      levelUpChoiceSerial: state.levelUpChoiceSerial + 1,
+    }))
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const choices = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
+      expect(choices).toHaveLength(4)
+      expect(choices.some((choice) => choice.textContent.includes('하나코 획득'))).toBe(true)
+      expect(choices.some((choice) => choice.textContent.includes('바이키티 커터칼 획득'))).toBe(true)
+      expect(useGameStore.getState().pendingGuaranteedUpgradeChoiceKeys).toEqual([])
+    } finally {
+      act(() => root.unmount())
+      container.remove()
+    }
+  })
+
+  it('does not display or consume unavailable follow-up cards', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState((state) => ({
+      phase: 'levelup',
+      pendingLevelUps: 1,
+      player: { ...state.player, level: 5 },
+      levelUpChoiceSerial: state.levelUpChoiceSerial + 1,
+      pendingGuaranteedUpgradeChoiceKeys: ['acquireHanako', 'acquireBikittyCutter'],
+      weapons: {
+        ...state.weapons,
+        chibiko: { ...state.weapons.chibiko, active: true },
+        hanako: { ...state.weapons.hanako, active: true },
+        boxCutter: { ...state.weapons.boxCutter, active: true },
+      },
+    }))
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const choices = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
+      expect(choices.some((choice) => choice.textContent.includes('하나코 획득'))).toBe(false)
+      expect(choices.some((choice) => choice.textContent.includes('바이키티 커터칼 획득'))).toBe(false)
+      expect(useGameStore.getState().pendingGuaranteedUpgradeChoiceKeys)
+        .toEqual(['acquireBikittyCutter'])
+
+      act(() => {
+        useGameStore.setState((state) => ({
+          player: { ...state.player, level: 6 },
+          levelUpChoiceSerial: state.levelUpChoiceSerial + 1,
+        }))
+      })
+      const eligibleChoices = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
+      expect(eligibleChoices.some((choice) => choice.textContent.includes('바이키티 커터칼 획득'))).toBe(true)
+      expect(useGameStore.getState().pendingGuaranteedUpgradeChoiceKeys).toEqual([])
+    } finally {
+      act(() => root.unmount())
+      container.remove()
+    }
+  })
+
+  it('clears a follow-up guarantee when all eight weapon slots are full', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState((state) => {
+      const activeWeaponIds = new Set(Object.keys(state.weapons).slice(0, 8))
+      return {
+        phase: 'levelup',
+        pendingLevelUps: 1,
+        player: { ...state.player, level: 6 },
+        levelUpChoiceSerial: state.levelUpChoiceSerial + 1,
+        pendingGuaranteedUpgradeChoiceKeys: ['acquireHanako'],
+        weapons: Object.fromEntries(Object.entries(state.weapons).map(([id, weapon]) => [
+          id,
+          activeWeaponIds.has(id) ? { ...weapon, active: true } : weapon,
+        ])),
+      }
+    })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      expect(useGameStore.getState().pendingGuaranteedUpgradeChoiceKeys).toEqual([])
     } finally {
       act(() => root.unmount())
       container.remove()

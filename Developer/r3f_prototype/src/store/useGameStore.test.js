@@ -63,6 +63,26 @@ describe('useGameStore XP and reset behavior', () => {
     expect(useGameStore.getState().bossSpawnSec).toBe(getBossSpawnSec('stage2'))
   })
 
+  it('queues prerequisite follow-up cards for this run only and consumes only the displayed keys', () => {
+    useGameStore.getState().applyUpgrade('acquireChibiko')
+    useGameStore.getState().applyUpgrade('acquireBoxCutter')
+
+    expect(useGameStore.getState().pendingGuaranteedUpgradeChoiceKeys)
+      .toEqual(['acquireHanako', 'acquireBikittyCutter'])
+
+    useGameStore.setState({ phase: 'levelup', levelUpChoiceSerial: 8 })
+    useGameStore.getState().consumeGuaranteedUpgradeChoices(['acquireHanako'], 8)
+    expect(useGameStore.getState().pendingGuaranteedUpgradeChoiceKeys)
+      .toEqual(['acquireBikittyCutter'])
+
+    useGameStore.getState().consumeGuaranteedUpgradeChoices(['acquireBikittyCutter'], 7)
+    expect(useGameStore.getState().pendingGuaranteedUpgradeChoiceKeys)
+      .toEqual(['acquireBikittyCutter'])
+
+    useGameStore.getState().resetGame()
+    expect(useGameStore.getState().pendingGuaranteedUpgradeChoiceKeys).toEqual([])
+  })
+
   it('생존 마일스톤은 한 번만 골드를 지급한다', () => {
     useGameStore.getState().tickTime(60_000)
     useGameStore.getState().checkSurvivalMilestone()
