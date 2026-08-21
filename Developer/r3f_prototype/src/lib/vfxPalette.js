@@ -12,5 +12,8 @@ export const VFX_COLORS = {
   specialPurple:  0x693054,
   electricCyan:   0x96a5bc,
   stunYellow:     0xffe840,
+  criticalGold:   0xffb000,
+  criticalOrange: 0xff6a2a,
+  criticalCream:  0xffffc8,
   coinPink:       0xcea19d,
 }

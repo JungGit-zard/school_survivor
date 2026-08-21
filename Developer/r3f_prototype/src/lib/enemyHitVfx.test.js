@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   COMMON_ENEMY_HIT_KNOCKBACK,
+  COMMON_ENEMY_CRITICAL_HIT_BURST,
   COMMON_ENEMY_HIT_SPARK,
+  createEnemyCriticalHitBurstEvent,
   createEnemyHitSparkEvent,
   resolveEnemyHitKnockback,
 } from './enemyHitVfx.js'
@@ -24,6 +26,25 @@ describe('common enemy hit VFX', () => {
       z: -2,
       baseScale: 0.16,
       growScale: 0.22,
+    })
+  })
+
+  it('keeps critical hit burst twice as fast and one third of the original visual size', () => {
+    expect(COMMON_ENEMY_CRITICAL_HIT_BURST).toMatchObject({
+      type: 'criticalHitBurst',
+      life: 180,
+      baseScale: 0.113,
+      growScale: 0.207,
+    })
+    expect(createEnemyCriticalHitBurstEvent({ x: 1, y: 0.7, z: 2, strong: true })).toMatchObject({
+      type: 'criticalHitBurst',
+      x: 1,
+      y: 0.7,
+      z: 2,
+      strong: true,
+      life: 180,
+      baseScale: 0.113,
+      growScale: 0.207,
     })
   })
 

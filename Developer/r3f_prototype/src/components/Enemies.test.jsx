@@ -1111,6 +1111,8 @@ describe('pooled standard enemy runtime wiring', () => {
     // 풀 적도 특수 Enemy와 같은 높이 계약을 지킨다: spark=몸통(0.42), 숫자=머리 위(0.95).
     expect(hitHandler).toMatch(/enqueuePooledHit\(\s*x,\s*0\.42\s*\*\s*enemyPool\.visualScale\[index\],\s*0\.95\s*\*\s*enemyPool\.visualScale\[index\]/)
     // flush 단계에서는 두 높이 채널을 각각 소비해야 하며, 예전 단일 hit.y 재사용은 금지한다.
+    expect(hitFlush).toContain('hit.critical')
+    expect(hitFlush).toMatch(/createEnemyCriticalHitBurstEvent\(\{\s*x:\s*hit\.x,\s*y:\s*Math\.max\(0\.46,\s*hit\.(?:sparkY|bodyY)\s*\+\s*0\.1\),\s*z:\s*hit\.z\s*\}\)/)
     expect(hitFlush).toMatch(/createEnemyHitSparkEvent\(\{\s*x:\s*hit\.x,\s*y:\s*Math\.max\(0\.34,\s*hit\.(?:sparkY|bodyY)\),\s*z:\s*hit\.z\s*\}\)/)
     expect(hitFlush).toMatch(/emitDamageNumber\(\{\s*x:\s*hit\.x,\s*y:\s*Math\.max\(0\.8,\s*hit\.(?:damageNumberY|numberY)\)/)
   })

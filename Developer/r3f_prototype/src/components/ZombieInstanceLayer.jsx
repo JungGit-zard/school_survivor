@@ -4,7 +4,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.png'
+import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.webp'
 import { enemyPool, playerPos, screenBounds } from '../lib/refs.js'
 import { getFirebaseStudioRuntimeState } from '../lib/studioRuntimeState.js'
 import { GRAPHICS_STUDIO_TUNING_EVENT, getStudioZombieItemId, loadStudioTunings } from '../lib/graphicsStudioConfig.js'

@@ -7,14 +7,23 @@ const gameSource = readFileSync(new URL('./Game.jsx', import.meta.url), 'utf8').
 
 describe('critical screen shake wiring', () => {
   it('pooled/special 적은 모든 좀비 피격에서 hit shake emitter를 한 번 호출한다', () => {
-    expect(enemiesSource).toContain("import { emitEnemyHitScreenShake } from '../lib/criticalScreenShake.js'")
-    expect(enemiesSource).toContain('emitEnemyHitScreenShake(\n      x - playerPos.x,')
-    expect(enemiesSource).toContain('strength: critical.isCritical ? 1 : undefined')
+    expect(enemiesSource).toContain("import { emitCriticalHitScreenShake, emitEnemyHitScreenShake } from '../lib/criticalScreenShake.js'")
+    expect(enemiesSource).toContain('const screenShake = critical.isCritical ? emitCriticalHitScreenShake : emitEnemyHitScreenShake')
+    expect(enemiesSource).toContain('x - playerPos.x,')
+    expect(enemiesSource).toContain('critical.isCritical ? { strong: strongCritical } : undefined')
     expect(enemiesSource).not.toContain('emitCriticalScreenShake(\n        x - playerPos.x,')
-    expect(enemySource).toContain("import { emitEnemyHitScreenShake } from '../lib/criticalScreenShake.js'")
-    expect(enemySource).toContain('emitEnemyHitScreenShake(\n        hitPos.x - playerPos.x,')
-    expect(enemySource).toContain('strength: criticalHit.isCritical ? 1 : undefined')
+    expect(enemySource).toContain("import { emitCriticalHitScreenShake, emitEnemyHitScreenShake } from '../lib/criticalScreenShake.js'")
+    expect(enemySource).toContain('const screenShake = criticalHit.isCritical ? emitCriticalHitScreenShake : emitEnemyHitScreenShake')
+    expect(enemySource).toContain('hitPos.x - playerPos.x,')
+    expect(enemySource).toContain('criticalHit.isCritical ? { strong: strongCritical } : undefined')
     expect(enemySource).not.toContain('emitCriticalScreenShake(\n          hitPos.x - playerPos.x,')
+  })
+
+  it('치명타는 일반 hitSpark 대신 전용 criticalHitBurst VFX를 사용한다', () => {
+    expect(enemiesSource).toContain('createEnemyCriticalHitBurstEvent')
+    expect(enemiesSource).toContain('hit.critical')
+    expect(enemySource).toContain('createEnemyCriticalHitBurstEvent')
+    expect(enemySource).toContain('criticalHit.isCritical')
   })
 
   it('카메라는 lookAt으로 기준 pose를 만든 뒤 위치 offset만 더한다', () => {

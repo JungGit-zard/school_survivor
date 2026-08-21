@@ -6,6 +6,13 @@ export const COMMON_ENEMY_HIT_SPARK = {
   growScale: 0.22,
 }
 
+export const COMMON_ENEMY_CRITICAL_HIT_BURST = {
+  type: 'criticalHitBurst',
+  life: 180,
+  baseScale: 0.113,
+  growScale: 0.207,
+}
+
 export const COMMON_ENEMY_HIT_KNOCKBACK = {
   speed: 0.85,
   durationMs: 70,
@@ -17,6 +24,16 @@ export function createEnemyHitSparkEvent({ x, z, y = 0.46 }) {
     x,
     y,
     z,
+  }
+}
+
+export function createEnemyCriticalHitBurstEvent({ x, z, y = 0.58, strong = false }) {
+  return {
+    ...COMMON_ENEMY_CRITICAL_HIT_BURST,
+    x,
+    y,
+    z,
+    strong,
   }
 }
 

@@ -249,9 +249,9 @@ describe('Enemy charge warning cue', () => {
 
   it('shows the supplied smoke asset as an unobstructed camera-facing billboard before reveal', () => {
     const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
-    const asset = readFileSync(new URL('../assets/effects/spawn_smoke_puff.png', import.meta.url))
+    const asset = readFileSync(new URL('../assets/effects/spawn_smoke_puff.webp', import.meta.url))
 
-    expect(source).toContain("import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.png'")
+    expect(source).toContain("import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.webp'")
     expect(source).toContain('function SpawnSmokeEffect')
     expect(source).toContain('<Billboard')
     expect(source).toContain('<planeGeometry args={[1, 1]} />')
@@ -266,7 +266,8 @@ describe('Enemy charge warning cue', () => {
     expect(SPAWN_SMOKE_END_SCALE).toBeGreaterThanOrEqual(2.4)
     expect(source).toContain('depthTest={false}')
     expect(source).toContain('depthWrite={false}')
-    expect(asset.subarray(1, 4).toString('ascii')).toBe('PNG')
+    expect(asset.subarray(0, 4).toString('ascii')).toBe('RIFF')
+    expect(asset.subarray(8, 12).toString('ascii')).toBe('WEBP')
   })
 
   it('shows the puff first, holds it fully opaque for the 300ms reveal window, then fades', () => {

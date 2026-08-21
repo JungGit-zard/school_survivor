@@ -64,6 +64,82 @@ export function HitSpark({ event, onDone }) {
   )
 }
 
+// ── 효과 1b: CriticalHitBurst — 치명타 전용 별폭발 + 충격 링 ───────────────────
+export function CriticalHitBurst({ event, onDone }) {
+  const ref = useRef()
+  const ringRef = useRef()
+  const coreMatRef = useRef()
+  const ringMatRef = useRef()
+  const shardMatRefs = useRef([])
+  const LIFE = event.life ?? 180
+  const shardAngles = useMemo(() => Array.from({ length: 8 }, (_, i) => (i / 8) * Math.PI * 2), [])
+  const strongScale = event.strong ? 1.28 : 1
+
+  useFrame(() => {
+    if (!ref.current) return
+    const age = performance.now() - event.startMs
+    if (age >= LIFE) { onDone(event.id); return }
+    const t = age / LIFE
+    const pop = Math.sin(t * Math.PI)
+    const scale = ((event.baseScale ?? 0.113) + t * (event.growScale ?? 0.207)) * strongScale
+    ref.current.scale.setScalar(scale)
+    ref.current.rotation.y += 0.42
+    if (ringRef.current) ringRef.current.scale.setScalar(1 + t * 1.7)
+    const opacity = Math.max(0, 1 - t * t) * (0.72 + pop * 0.28)
+    if (coreMatRef.current) coreMatRef.current.opacity = opacity
+    if (ringMatRef.current) ringMatRef.current.opacity = Math.max(0, 0.78 * (1 - t))
+    const shardOpacity = Math.max(0, 0.92 * (1 - t * 0.85))
+    shardMatRefs.current.forEach((mat) => { if (mat) mat.opacity = shardOpacity })
+  })
+
+  return (
+    <StudioTunedGroup itemId="vfx-critical-hit-burst">
+      <group ref={ref} position={[event.x, event.y ?? 0.58, event.z]}>
+        <mesh>
+          <octahedronGeometry args={[1.05, 0]} />
+          <meshBasicMaterial
+            ref={coreMatRef}
+            color={VFX_COLORS.criticalGold}
+            transparent
+            opacity={1}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </mesh>
+        <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.9, 1.14, 24]} />
+          <meshBasicMaterial
+            ref={ringMatRef}
+            color={VFX_COLORS.criticalOrange}
+            transparent
+            opacity={0.78}
+            depthWrite={false}
+            side={THREE.DoubleSide}
+            toneMapped={false}
+          />
+        </mesh>
+        {shardAngles.map((angle, index) => (
+          <mesh
+            key={angle}
+            position={[Math.sin(angle) * 1.18, index % 2 === 0 ? 0.05 : -0.02, Math.cos(angle) * 1.18]}
+            rotation={[0, angle, index % 2 === 0 ? 0.25 : -0.25]}
+          >
+            <boxGeometry args={[0.22, 0.08, 0.88]} />
+            <meshBasicMaterial
+              ref={(mat) => { if (mat) shardMatRefs.current[index] = mat }}
+              color={index % 2 === 0 ? VFX_COLORS.criticalCream : VFX_COLORS.criticalOrange}
+              transparent
+              opacity={0.92}
+              depthWrite={false}
+              toneMapped={false}
+            />
+          </mesh>
+        ))}
+      </group>
+    </StudioTunedGroup>
+  )
+}
+
 // ── 효과 2: ChargeWarningLine — E05/B01 돌진 예고 라인 ────────────────────────
 export function ChargeWarningLine({ event, onDone }) {
   const meshRef = useRef()
@@ -156,6 +232,7 @@ export function PickupPop({ event, onDone }) {
 // type 별 렌더러 매핑. 새 효과 타입 추가는 여기에 한 줄 등록.
 const RENDERERS = {
   hitSpark:           HitSpark,
+  criticalHitBurst:   CriticalHitBurst,
   chargeWarningLine:  ChargeWarningLine,
   pickupPop:          PickupPop,
 }

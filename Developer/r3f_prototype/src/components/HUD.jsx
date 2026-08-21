@@ -64,7 +64,7 @@ import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
 import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.webp'
 
 import laidManPortraitSrc from '../assets/character/laid_man.webp'
-import matildaConversationPortraitSrc from '../assets/character/matilda_conversation.png'
+import matildaConversationPortraitSrc from '../assets/character/matilda_conversation.webp'
 
 const GAMEOVER_TRANSITION_MS = 1000
 const MATILDA_COUNTDOWN_SECONDS = 5
@@ -665,6 +665,7 @@ export default function HUD({
   onGoToLobby,
   onGoToRanking,
   onOpenMissionCenter,
+  onOpenWeaponEncyclopedia,
   devCheatsVisible = false,
   showGameoverResultImmediately = false,
 }) {
@@ -1398,6 +1399,11 @@ export default function HUD({
                   </div>
                 ))}
                 <div style={styles.newlyUnlockedHint}>{t('hud.newWeaponHint')}</div>
+                {onOpenWeaponEncyclopedia && (
+                  <button type="button" style={styles.weaponEncyclopediaBtn} onClick={() => onOpenWeaponEncyclopedia(newlyUnlockedWeaponIds[0])}>
+                    {t('hud.weaponEncyclopedia', null, '무기 도감 보기')}
+                  </button>
+                )}
               </div>
             )}
             <div data-testid="result-primary-actions" style={styles.resultButtons}>
@@ -1568,6 +1574,11 @@ export default function HUD({
                   </div>
                 ))}
                 <div style={styles.newlyUnlockedHint}>{t('hud.newWeaponHint')}</div>
+                {onOpenWeaponEncyclopedia && (
+                  <button type="button" style={styles.weaponEncyclopediaBtn} onClick={() => onOpenWeaponEncyclopedia(newlyUnlockedWeaponIds[0])}>
+                    {t('hud.weaponEncyclopedia', null, '무기 도감 보기')}
+                  </button>
+                )}
               </div>
             )}
             {nextUnlock && (
@@ -2679,6 +2690,13 @@ const styles = {
     color: uiPalette.mutedChalk,
     fontSize: 11,
     marginTop: 6,
+  },
+  weaponEncyclopediaBtn: {
+    ...schoolButton('paper'),
+    minHeight: 34,
+    marginTop: 8,
+    padding: '6px 10px',
+    fontSize: 12,
   },
   // ── eraser icon (지우개 폭탄) ──
   eraserIcon: { position: 'relative', width: 36, height: 36 },

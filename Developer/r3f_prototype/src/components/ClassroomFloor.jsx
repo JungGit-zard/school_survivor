@@ -129,6 +129,9 @@ function buildRepeatingTexture(tile) {
   tex.repeat.set(tile.userData.floorRepeatX, tile.userData.floorRepeatZ)
   tex.anisotropy = 8
   tex.colorSpace = THREE.SRGBColorSpace
+  tex.generateMipmaps = true
+  tex.minFilter = THREE.LinearMipmapLinearFilter
+  tex.magFilter = THREE.LinearFilter
   return tex
 }
 

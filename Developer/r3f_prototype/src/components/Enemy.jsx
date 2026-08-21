@@ -4,7 +4,7 @@ import { Billboard } from '@react-three/drei'
 import StudioTunedGroup from './StudioTunedGroup.jsx'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import * as THREE from 'three'
-import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.png'
+import spawnSmokeUrl from '../assets/effects/spawn_smoke_puff.webp'
 import { enemyBodies, playerPos, enemyProjectilePool, enemyHandleScratch } from '../lib/refs.js'
 import { getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat, inflateScale, outlineMat, toonMat } from '../lib/toon.js'
 import { useGameStore } from '../store/useGameStore.js'
@@ -14,7 +14,7 @@ import { emitVfx } from '../lib/vfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
 import { resolveCriticalHit } from '../lib/criticalHits.js'
 import { emitCriticalHitScreenShake, emitEnemyHitScreenShake } from '../lib/criticalScreenShake.js'
-import { createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
+import { createEnemyCriticalHitBurstEvent, createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { canE04FireProjectile, getE04IntroSec } from '../lib/stage2ProjectileRules.js'
 import {
@@ -978,11 +978,6 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       if (dead.current) return
       const hitPos = rb.current.translation()
       if (!impact.ignoreSightBlock && isPlayerWeaponSightBlocked(hitPos, useGameStore.getState().currentStageId)) return
-      emitVfx(createEnemyHitSparkEvent({
-        x: hitPos.x,
-        y: Math.max(0.34, 0.42 * cs),
-        z: hitPos.z,
-      }))
       const criticalHit = resolveCriticalHit({
         baseDamage: dmg,
         canCrit: impact.canCrit,
@@ -994,6 +989,9 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       const finalDamage = criticalHit.damage
       const willKill = hpRef.current <= finalDamage
       const strongCritical = criticalHit.isCritical && ((willKill && isBossType(type)) || (Number.isFinite(stats.hp) && stats.hp > 0 && finalDamage >= stats.hp * 0.25))
+      emitVfx(criticalHit.isCritical
+        ? createEnemyCriticalHitBurstEvent({ x: hitPos.x, y: Math.max(0.46, 0.52 * cs), z: hitPos.z, strong: strongCritical })
+        : createEnemyHitSparkEvent({ x: hitPos.x, y: Math.max(0.34, 0.42 * cs), z: hitPos.z }))
       if (criticalHit.isCritical) emitSfx({ id: 'criticalHit', volume: strongCritical ? 1.8 : 1.52 })
       const screenShake = criticalHit.isCritical ? emitCriticalHitScreenShake : emitEnemyHitScreenShake
       screenShake(

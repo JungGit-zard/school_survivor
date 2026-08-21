@@ -25,7 +25,7 @@ import { emitVfx } from '../lib/vfxEvents.js'
 import { emitDamageNumber, DAMAGE_NUMBER_COLORS } from '../lib/damageNumbers.js'
 import { resolveCriticalHitInto } from '../lib/criticalHits.js'
 import { emitCriticalHitScreenShake, emitEnemyHitScreenShake } from '../lib/criticalScreenShake.js'
-import { createEnemyHitSparkEvent, COMMON_ENEMY_HIT_KNOCKBACK } from '../lib/enemyHitVfx.js'
+import { createEnemyCriticalHitBurstEvent, createEnemyHitSparkEvent, COMMON_ENEMY_HIT_KNOCKBACK } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { isPlayerWeaponSightBlocked } from '../lib/weaponTargeting.js'
 import { logKill } from '../lib/playtestLogger.js'
@@ -1202,7 +1202,9 @@ export default function Enemies() {
       queue.drainPooled?.()
       while (queue.hitQueue.drainInto(queue.hitScratch)) {
         const hit = queue.hitScratch
-        emitVfx(createEnemyHitSparkEvent({ x: hit.x, y: Math.max(0.34, hit.sparkY), z: hit.z }))
+        emitVfx(hit.critical
+          ? createEnemyCriticalHitBurstEvent({ x: hit.x, y: Math.max(0.46, hit.sparkY + 0.1), z: hit.z })
+          : createEnemyHitSparkEvent({ x: hit.x, y: Math.max(0.34, hit.sparkY), z: hit.z }))
         emitDamageNumber({ x: hit.x, y: Math.max(0.8, hit.numberY), z: hit.z, amount: hit.amount, colorHex: hit.critical ? DAMAGE_NUMBER_COLORS.critical : DAMAGE_NUMBER_COLORS.enemy, isCritical: hit.critical })
       }
       while (queue.deathCount > 0) {
