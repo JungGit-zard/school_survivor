@@ -267,7 +267,9 @@ export function ChibikoWeapon() {
     const special = targetScratch.special[0]
     const targetIndex = targetScratch.indices[0]
     const targetGeneration = targetScratch.generations[0]
-    const targetRb = special ?? resolveWeaponTarget(targetIndex, targetGeneration, null)
+    // Same freed-handle hazard as Pencil: `special ?? …` bypassed the resolver's
+    // liveness guard for boss/special bodies. Route both branches through it.
+    const targetRb = resolveWeaponTarget(targetIndex, targetGeneration, special)
     if (!targetRb) return
     const targetPos = targetRb.translation()
     const yaw = Math.atan2(targetPos.x - posRef.current.x, targetPos.z - posRef.current.z)

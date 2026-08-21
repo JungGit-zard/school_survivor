@@ -1,3 +1,5 @@
+import { isEnemyHitLive } from './weaponCollision.js'
+
 export const MATH_TEACHER_PLAYER_DAMAGE_RATIO = 0.3
 // B01 삼각자 공격 판정 반경: 기존 1.05 world units의 정확히 1.5배.
 // 플레이어 피해와 주변 좀비 밀치기가 이 단일 반경을 공유한다.
@@ -20,7 +22,7 @@ export function applyMathTeacherSwing({
   let pushed = 0
 
   bodies.forEach((body, enemyId) => {
-    if (enemyId === bossId || body?._enemyDead) return
+    if (enemyId === bossId || !isEnemyHitLive(body)) return
     if (typeof body?.translation !== 'function' || typeof body?._enemyHit !== 'function') return
 
     const position = body.translation()

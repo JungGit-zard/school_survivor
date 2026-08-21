@@ -101,6 +101,11 @@ function pickGoldDropPos(bounds) {
   const rSq = GOLD_VISIBLE_RADIUS * GOLD_VISIBLE_RADIUS
   for (const rb of enemyBodies.values()) {
     if (!rb || rb._enemyDead) continue
+    // Deliberately NOT isEnemyHitLive: that also demands _enemyHit, which would
+    // narrow the gold-drop candidate set and change reward pacing. Only the
+    // freed-handle case needs blocking here — touching one panics wasm and
+    // poisons the physics world for the rest of the run.
+    if (typeof rb.isValid === 'function' && !rb.isValid()) continue
     const t = rb.translation()
     const dx = t.x - playerPos.x
     const dz = t.z - playerPos.z

@@ -199,7 +199,11 @@ export function PencilThrow() {
       const special = targetScratch.special[targetIndex]
       const poolIndex = targetScratch.indices[targetIndex]
       const generation = targetScratch.generations[targetIndex]
-      const targetRb = special ?? resolveWeaponTarget(poolIndex, generation, null)
+      // `special ?? …` used to skip resolveWeaponTarget entirely for boss/special
+      // bodies, so a freed Rapier handle reached translation() and panicked the
+      // physics world. Passing `special` through keeps both branches on the one
+      // guarded resolver.
+      const targetRb = resolveWeaponTarget(poolIndex, generation, special)
       if (!targetRb) continue
       const targetPos = targetRb.translation()
       const facingAngle = Math.atan2(targetPos.x - playerPos.x, targetPos.z - playerPos.z)

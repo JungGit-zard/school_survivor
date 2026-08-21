@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import { enemyBodies, enemyPool, playerPos, screenBounds } from '../../lib/refs.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { applyRadialDamage } from '../../lib/weaponTargeting.js'
+import { isEnemyHitLive } from '../../lib/weaponCollision.js'
 import { applyEraserBombImpact } from '../../lib/eraserBombImpact.js'
 import { scaleEffectVisual } from '../../lib/effectVisualScale.js'
 import { advanceCrashCounter, selectCrashLandingPoint } from '../../lib/starlinkCrash.js'
@@ -93,7 +94,7 @@ export function pickStrikeTargets(strikeCenter, strikeCount) {
   }
   enemyBodies.forEach((rb) => {
     if (isPoolProxy(rb)) return // 풀 프록시가 Map에 중복 등록되어도 위 루프에서 이미 처리했다.
-    if (!rb?._enemyHit || rb._enemyDead) return
+    if (!isEnemyHitLive(rb)) return
     const t = rb.translation()
     const dx = t.x - playerPos.x
     const dz = t.z - playerPos.z

@@ -1,5 +1,5 @@
 import { enemyBodies as globalEnemyBodies, enemyPool } from './refs.js'
-import { captureEnemyGeneration } from './weaponCollision.js'
+import { captureEnemyGeneration, isEnemyHitLive } from './weaponCollision.js'
 
 function isPoolProxy(rb) {
   return Number.isInteger(rb?.index) && rb.index >= 0 && rb.index < enemyPool.proxies.length
@@ -28,7 +28,7 @@ export function pickNextOnigiriTarget({ enemyBodies = globalEnemyBodies, from, h
 
   enemyBodies.forEach((rb, enemyId) => {
     if (isPoolProxy(rb)) return // 풀 프록시가 Map에 중복 등록되어도 위 루프에서 이미 처리했다.
-    if (hitSet.has(enemyId) || !rb?._enemyHit || rb._enemyDead) return
+    if (hitSet.has(enemyId) || !isEnemyHitLive(rb)) return
     const et = rb.translation()
     const dx = et.x - from.x
     const dz = et.z - from.z

@@ -1,5 +1,5 @@
 import { isPlayerWeaponSightBlocked } from './weaponTargeting.js'
-import { captureEnemyGeneration } from './weaponCollision.js'
+import { captureEnemyGeneration, isEnemyHitLive } from './weaponCollision.js'
 import { enemyBodies as globalEnemyBodies, enemyPool } from './refs.js'
 
 export function normalizePlanarFacing(facing = { x: 0, z: 1 }) {
@@ -73,7 +73,7 @@ export function pickBoxCutterTargets({
   if (enemies?.forEach) {
     enemies.forEach((rb, enemyId) => {
       if (isPoolProxy(rb)) return // 풀 프록시가 Map에 중복 등록되어도 위 루프에서 이미 처리했다.
-      if (!rb?._enemyHit || rb._enemyDead || !rb.translation) return
+      if (!isEnemyHitLive(rb) || !rb.translation) return
       const t = rb.translation()
       if (!isPointInBoxCutterStrike({ origin, facing, point: t, range, width, pad: ENEMY_HIT_PAD })) return
       if (sightBlocker(t)) return

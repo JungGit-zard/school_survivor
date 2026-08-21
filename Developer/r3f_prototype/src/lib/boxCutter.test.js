@@ -127,6 +127,34 @@ describe('box cutter strike targeting', () => {
 
     expect(targets).toHaveLength(1)
   })
+
+  // A special enemy's <RigidBody> can unmount without running the death path that
+  // nulls _enemyHit, leaving a freed Rapier handle in enemyBodies. Any accessor on
+  // one panics inside wasm and leaks the borrow guard on RawRigidBodySet, after
+  // which every world.step() throws "recursive use of an object ... unsafe
+  // aliasing in rust" for the rest of the run. Scans must never reach translation().
+  it('skips a freed Rapier body left in enemyBodies instead of calling translation() on it', () => {
+    const freedTranslation = vi.fn(() => { throw new Error('unreachable') })
+    enemyBodies.set('freed-special', {
+      _enemyHit: vi.fn(),
+      _enemyDead: false,
+      isValid: () => false,
+      translation: freedTranslation,
+    })
+    const liveTranslation = vi.fn(() => ({ x: 0, y: 0, z: 0.5 }))
+    enemyBodies.set('live-special', {
+      _enemyHit: vi.fn(),
+      _enemyDead: false,
+      isValid: () => true,
+      translation: liveTranslation,
+    })
+
+    const targets = pickBoxCutterTargets({ origin, facing, range: 1.4, width: 0.6, sightBlocker: () => false })
+
+    expect(freedTranslation).not.toHaveBeenCalled()
+    expect(liveTranslation).toHaveBeenCalled()
+    expect(targets.map((t) => t.enemyId)).toEqual(['live-special'])
+  })
 })
 
 describe('box cutter permanent Lv10 extra slash', () => {
