@@ -65,6 +65,7 @@ import {
   MATH_TEACHER_SWING_WINDUP_MS,
   applyMathTeacherSwing,
   getMathTeacherPlayerDamage,
+  isInMathTeacherSwingArc,
 } from '../lib/mathTeacherSpecial.js'
 
 // "효과 없이는 스폰 없음" — 첫 스폰에서 텍스처 로딩 지연으로 연기가 스킵되지 않도록
@@ -892,7 +893,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   // 보스 프레임의 헬퍼 입력·로그 payload는 모두 재사용한다.
   const chefPhaseArgsRef = useRef({ hpRatio: 1, telegraphElapsedMs: 0 })
   const e04FireArgsRef = useRef({ elapsedSec: 0, ageMs: 0, activeProjectileCount: 0, distanceToPlayer: 0, lastFireElapsedMs: 0, nowMs: 0, cooldownMs: 2200, introSec: 72, bossPressure: false })
-  const mathSwingArgsRef = useRef({ bodies: enemyBodies, bossId: '', origin: { x: 0, z: 0 } })
+  const mathSwingArgsRef = useRef({ bodies: enemyBodies, bossId: '', origin: { x: 0, z: 0 }, yaw: 0 })
+  const mathSwingArcArgsRef = useRef({ yaw: 0, originX: 0, originZ: 0, targetX: 0, targetZ: 0, radius: MATH_TEACHER_SWING_RADIUS })
   const mathStartLogRef = useRef({ bossId: '', trigger: '' })
   const mathImpactLogRef = useRef({ bossId: '', pushedZombies: 0, playerHit: false, playerDamage: 0, playerHpAfter: 0 })
   const mathEndLogRef = useRef({ bossId: '' })
@@ -1465,15 +1467,29 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       } else if (chargeState.current === 'mathSwingWindup') {
         _vel.x = 0; _vel.z = 0
         rb.current.setLinvel(_vel, true)
-        if (dist > 0.0001) _applyRotation(groupRef, _dir.x / dist, _dir.z / dist, 0.30)
+        // 돌진했던 전방(chargeDir)을 그대로 바라본 채 휘두른다. 플레이어 재조준 금지 —
+        // 등 뒤로 돌아 들어온 플레이어를 따라 돌면 부채꼴 안전지대가 사라진다.
+        _applyRotation(groupRef, chargeDir.current.x, chargeDir.current.z, 1)
         if (now - stateTimer.current >= MATH_TEACHER_SWING_WINDUP_MS) {
+          // 히트박스는 실제 렌더 yaw를 쓴다(비주얼과 어긋나면 안 된다). 그룹이 아직 없으면 돌진 방향으로 폴백.
+          const swingYaw = groupRef.current
+            ? groupRef.current.rotation.y
+            : Math.atan2(chargeDir.current.x, chargeDir.current.z)
           const swingArgs = mathSwingArgsRef.current
           swingArgs.bossId = id
           swingArgs.origin.x = t.x
           swingArgs.origin.z = t.z
+          swingArgs.yaw = swingYaw
           const pushedZombies = applyMathTeacherSwing(swingArgs)
           let playerDamage = 0
-          if (dist <= MATH_TEACHER_SWING_RADIUS) {
+          const arcArgs = mathSwingArcArgsRef.current
+          arcArgs.yaw = swingYaw
+          arcArgs.originX = t.x
+          arcArgs.originZ = t.z
+          arcArgs.targetX = playerPos.x
+          arcArgs.targetZ = playerPos.z
+          arcArgs.radius = MATH_TEACHER_SWING_RADIUS
+          if (isInMathTeacherSwingArc(arcArgs)) {
             const store = useGameStore.getState()
             playerDamage = getMathTeacherPlayerDamage(store.player.hp)
             store.damagePlayer(playerDamage, IGNORE_INVULNERABILITY)
