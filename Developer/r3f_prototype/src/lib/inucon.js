@@ -16,11 +16,14 @@ export function computeInuconHealAmount(maxHp, healPercent = INUCON_BASE.healPer
   return maxHp * safePercent
 }
 
-export function createInuconPushConfig(weapon = {}) {
+export function createInuconBiteDragConfig(weapon = {}) {
   return {
+    damage: Number.isFinite(weapon.damage) ? weapon.damage : INUCON_BASE.damage,
     radius: Number.isFinite(weapon.pushRadius) ? weapon.pushRadius : INUCON_BASE.pushRadius,
     knockback: Number.isFinite(weapon.knockback) ? weapon.knockback : INUCON_BASE.knockback,
     knockbackMs: Number.isFinite(weapon.knockbackMs) ? weapon.knockbackMs : INUCON_BASE.knockbackMs,
     pulseIntervalMs: Number.isFinite(weapon.contactPulseIntervalMs) ? weapon.contactPulseIntervalMs : INUCON_BASE.contactPulseIntervalMs,
   }
 }
+
+export const createInuconPushConfig = createInuconBiteDragConfig

@@ -13,7 +13,7 @@ import {
   INUCON_HEAL_INTERVAL_MS,
   INUCON_TRAIL_FOLLOW_DISTANCE,
   computeInuconHealAmount,
-  createInuconPushConfig,
+  createInuconBiteDragConfig,
   shouldRenderInuconCompanion,
 } from '../../lib/inucon.js'
 
@@ -29,11 +29,27 @@ function Part({ size, position, rotation = [0, 0, 0], material, outlineMaterial,
   )
 }
 
-function BlobPart({ size, position, rotation = [0, 0, 0], material, outlineMaterial, outlineScale = 1.065 }) {
-  const geometry = useMemo(() => new THREE.SphereGeometry(0.5, 18, 14), [])
+function BlobPart({ size, position, rotation = [0, 0, 0], material, outlineMaterial, outlineScale = 1.065, cornerRatio = 0.18 }) {
+  const geometry = useMemo(() => {
+    const [w, h, d] = size
+    const c = Math.min(w, h) * cornerRatio
+    const shape = new THREE.Shape()
+    shape.moveTo(-w / 2 + c, -h / 2)
+    shape.lineTo(w / 2 - c, -h / 2)
+    shape.lineTo(w / 2, -h / 2 + c)
+    shape.lineTo(w / 2, h / 2 - c)
+    shape.lineTo(w / 2 - c, h / 2)
+    shape.lineTo(-w / 2 + c, h / 2)
+    shape.lineTo(-w / 2, h / 2 - c)
+    shape.lineTo(-w / 2, -h / 2 + c)
+    shape.closePath()
+    const g = new THREE.ExtrudeGeometry(shape, { depth: d, bevelEnabled: false })
+    g.center()
+    return g
+  }, [size.join(','), cornerRatio])
   const s = inflateScale(outlineScale)
   return (
-    <group position={position} rotation={rotation} scale={size}>
+    <group position={position} rotation={rotation}>
       {outlineMaterial && <mesh renderOrder={0} geometry={geometry} material={outlineMaterial} scale={[s, s, s]} userData={{ studioRenderOutline: true }} />}
       <mesh renderOrder={2} geometry={geometry} material={material} />
     </group>
@@ -41,7 +57,7 @@ function BlobPart({ size, position, rotation = [0, 0, 0], material, outlineMater
 }
 
 function CapsulePart({ radius = 0.08, length = 0.5, position, rotation = [0, 0, 0], scale = [1, 1, 1], material, outlineMaterial, outlineScale = 1.065 }) {
-  const geometry = useMemo(() => new THREE.CapsuleGeometry(radius, length, 6, 14), [radius, length])
+  const geometry = useMemo(() => new THREE.CapsuleGeometry(radius, length, 1, 8), [radius, length])
   const s = inflateScale(outlineScale)
   return (
     <group position={position} rotation={rotation} scale={scale}>
@@ -93,14 +109,14 @@ const INUCON_FACE_FRAGMENT_SHADER = `
     vec2 point = vUv - 0.5;
     // 원본 레퍼런스처럼 색을 거의 쓰지 않고, 검은 선/점만 얼굴 앞면에 얹는다.
     float blinkAmount = pow(max(0.0, sin(uTime * 0.62)), 28.0);
-    float eyeHeight = mix(0.052, 0.009, blinkAmount);
-    float leftEye = softCircle(point, vec2(-0.155, 0.115), vec2(0.050, eyeHeight));
-    float rightEye = softCircle(point, vec2(0.155, 0.105), vec2(0.050, eyeHeight));
-    float nose = softCircle(point, vec2(0.0, -0.025), vec2(0.068, 0.045));
-    float mouth = softLine(point, vec2(0.0, -0.063), vec2(-0.075, -0.13), 0.017)
-      + softLine(point, vec2(0.0, -0.063), vec2(0.075, -0.13), 0.017)
-      + softLine(point, vec2(-0.075, -0.13), vec2(-0.135, -0.103), 0.016)
-      + softLine(point, vec2(0.075, -0.13), vec2(0.135, -0.103), 0.016);
+    float eyeHeight = mix(0.062, 0.011, blinkAmount);
+    float leftEye = softCircle(point, vec2(-0.175, 0.135), vec2(0.060, eyeHeight));
+    float rightEye = softCircle(point, vec2(0.175, 0.125), vec2(0.060, eyeHeight));
+    float nose = softCircle(point, vec2(0.0, -0.02), vec2(0.082, 0.055));
+    float mouth = softLine(point, vec2(0.0, -0.065), vec2(-0.09, -0.15), 0.021)
+      + softLine(point, vec2(0.0, -0.065), vec2(0.09, -0.15), 0.021)
+      + softLine(point, vec2(-0.09, -0.15), vec2(-0.16, -0.118), 0.019)
+      + softLine(point, vec2(0.09, -0.15), vec2(0.16, -0.118), 0.019);
     float darkMask = clamp(leftEye + rightEye + nose + mouth, 0.0, 1.0);
     gl_FragColor = vec4(vec3(0.025, 0.018, 0.015), darkMask);
   }
@@ -116,11 +132,11 @@ function InuconProceduralFace() {
 
   return (
     <mesh
-      position={[0, 1.255, 0.515]}
+      position={[0, 1.265, 0.525]}
       renderOrder={4}
       userData={{ studioNonFocusable: true, studioNonTunable: true }}
     >
-      <planeGeometry args={[0.62, 0.5]} />
+      <planeGeometry args={[0.74, 0.58]} />
       <shaderMaterial
         ref={materialRef}
         uniforms={uniforms}
@@ -147,7 +163,7 @@ export function InuconModel() {
     const t = clock.elapsedTime
     const bob = Math.sin(t * 4.4) * 0.035
     const wag = Math.sin(t * 8.5) * 0.34
-    const wave = Math.sin(t * 4.8) * 0.16
+    const wave = Math.sin(t * 4.8) * 0.055
     if (parts.current.root) {
       parts.current.root.position.y = composeStudioPartPosition(parts.current.root, 'y', 0, bob)
       parts.current.root.rotation.z = composeStudioPartRotation(parts.current.root, 'z', 0, Math.sin(t * 3.1) * 0.045)
@@ -168,11 +184,11 @@ export function InuconModel() {
         <BlobPart size={[0.42, 1.5, 0.36]} position={[-0.02, 0.43, 0]} material={dogMat} outlineMaterial={outline} outlineScale={1.095} />
         <CapsulePart radius={0.075} length={0.92} position={[-0.33, 0.77, 0.02]} rotation={[0, 0, -0.02]} scale={[1, 1, 0.82]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.065} />
         <CapsulePart radius={0.06} length={0.4} position={[-0.1, 0.94, -0.01]} rotation={[0, 0, Math.PI / 2]} scale={[1, 1.05, 1.7]} material={scarfMat} outlineMaterial={outline} outlineScale={1.035} />
-        <group ref={reg('armR')} position={[0.36, 0.92, 0.02]} rotation={[0, 0, -0.72]}>
-          <CapsulePart radius={0.07} length={0.92} position={[0.23, 0.42, 0]} rotation={[0, 0, -0.18]} scale={[1, 1, 0.88]} material={dogMat} outlineMaterial={outline} outlineScale={1.07} />
+        <group ref={reg('armR')} position={[0.24, 0.88, 0.04]} rotation={[0, 0, -0.42]}>
+          <CapsulePart radius={0.065} length={0.34} position={[0.1, 0.1, 0]} rotation={[0, 0, -0.08]} scale={[1, 1, 0.82]} material={dogMat} outlineMaterial={outline} outlineScale={1.06} />
         </group>
-        <group ref={reg('armL')} position={[-0.31, 0.75, 0]}>
-          <CapsulePart radius={0.055} length={0.56} position={[0, -0.02, 0]} rotation={[0, 0, 0.08]} scale={[1, 1, 0.86]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.055} />
+        <group ref={reg('armL')} position={[-0.28, 0.78, 0.04]} rotation={[0, 0, 0.18]}>
+          <CapsulePart radius={0.055} length={0.28} position={[-0.06, -0.03, 0]} rotation={[0, 0, 0.04]} scale={[1, 1, 0.82]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.055} />
         </group>
         <CapsulePart radius={0.06} length={0.22} position={[-0.14, -0.34, 0]} rotation={[0, 0, -0.12]} scale={[1, 1, 0.82]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.055} />
         <CapsulePart radius={0.06} length={0.22} position={[0.09, -0.34, 0]} rotation={[0, 0, 0.12]} scale={[1, 1, 0.82]} material={dogMat} outlineMaterial={outline} outlineScale={1.055} />
@@ -219,14 +235,14 @@ export function InuconWeapon() {
     while (diff < -Math.PI) diff += Math.PI * 2
     groupRef.current.rotation.y += diff * Math.min(1, delta * 9)
 
-    const push = createInuconPushConfig(w)
-    if (now - lastPushAtRef.current >= push.pulseIntervalMs) {
+    const biteDrag = createInuconBiteDragConfig(w)
+    if (now - lastPushAtRef.current >= biteDrag.pulseIntervalMs) {
       const hits = applyRadialDamage({
-        x: playerPos.x, z: playerPos.z, radius: push.radius, damage: 0,
-        knockback: push.knockback, knockbackMs: push.knockbackMs, ignoreSightBlock: true, weaponKey: 'inucon',
+        x: playerPos.x, z: playerPos.z, radius: biteDrag.radius, damage: biteDrag.damage,
+        knockback: biteDrag.knockback, knockbackMs: biteDrag.knockbackMs, ignoreSightBlock: true, weaponKey: 'inucon',
       })
       if (hits > 0) lastPushAtRef.current = now
-      else lastPushAtRef.current = now - push.pulseIntervalMs + 100
+      else lastPushAtRef.current = now - biteDrag.pulseIntervalMs + 100
     }
 
     const healIntervalMs = Number.isFinite(w.healIntervalMs) ? w.healIntervalMs : INUCON_HEAL_INTERVAL_MS
@@ -252,5 +268,5 @@ export function InuconWeapon() {
     return null
   }
 
-  return <group ref={groupRef} scale={[0.265, 0.265, 0.265]}><InuconModel /></group>
+  return <group ref={groupRef} scale={[0.18, 0.18, 0.18]}><InuconModel /></group>
 }

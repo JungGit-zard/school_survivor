@@ -68,6 +68,7 @@ describe('weaponCatalog', () => {
       id: 'inucon',
       label: '이누콘',
       base: {
+        damage: 0,
         healIntervalMs: 10000,
         healPercent: 0.10,
         followDistance: 1.08,

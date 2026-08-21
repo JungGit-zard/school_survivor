@@ -108,9 +108,9 @@ export const WEAPON_CATALOG = {
   inucon: {
     id: 'inucon',
     label: '이누콘',
-    // 치비코/하나코 계열 동반자. 장착 즉시 주인공 뒤를 따라다니며 붙은 좀비를 주기적으로 밀어내고,
-    // 10초마다 최대 HP의 10%를 회복한다. 데미지 0 유틸 무기라 레벨업은 밀쳐내기/회복 수치만 키운다.
-    base: { healIntervalMs: 10000, healPercent: 0.10, followDistance: 1.08, pushRadius: 0.85, knockback: 2.8, knockbackMs: 180, contactPulseIntervalMs: 250 },
+    // 치비코/하나코 계열 동반자. 장착 즉시 주인공 뒤를 따라다니며 붙은 좀비를 물고 끌어내고,
+    // 10초마다 최대 HP의 10%를 회복한다. damage 0 유틸 무기라 레벨업은 끌어내기/회복 수치만 키운다.
+    base: { damage: 0, healIntervalMs: 10000, healPercent: 0.10, followDistance: 1.08, pushRadius: 0.85, knockback: 2.8, knockbackMs: 180, contactPulseIntervalMs: 250 },
     unlockConditions: STARTER,
     minLevelToAppear: 8,
   },

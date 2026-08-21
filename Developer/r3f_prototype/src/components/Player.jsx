@@ -14,6 +14,13 @@ const INV_DURATION = 520
 const TURN_SPEED = 14
 const PLAYER_HIT_KNOCKBACK_SPEED = 4
 const PLAYER_HIT_KNOCKBACK_MS = 160
+const HEAL_EFFECT_DURATION_MS = 760
+
+function setHealEffectOpacity(object, opacity) {
+  if (!object) return
+  if (object.material) object.material.opacity = opacity
+  for (const child of object.children ?? []) setHealEffectOpacity(child, opacity)
+}
 
 export function resolvePlayerHitKnockback(facing, speed = PLAYER_HIT_KNOCKBACK_SPEED) {
   const len = Math.hypot(facing?.x ?? 0, facing?.z ?? 0)
@@ -29,10 +36,79 @@ function shortestAngleDiff(target, current) {
   return diff
 }
 
-export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 0, showHealthBar = true, previewArmAction = null }) {
+function PlayerHealEffect({ token = 0 }) {
+  const groupRef = useRef(null)
+  const ringRef = useRef(null)
+  const lastTokenRef = useRef(token)
+  const elapsedMsRef = useRef(HEAL_EFFECT_DURATION_MS)
+
+  useFrame((_, delta) => {
+    if (token !== lastTokenRef.current) {
+      lastTokenRef.current = token
+      elapsedMsRef.current = 0
+      if (groupRef.current) groupRef.current.visible = true
+    }
+
+    const group = groupRef.current
+    if (!group) return
+    elapsedMsRef.current += delta * 1000
+    const t = Math.min(1, elapsedMsRef.current / HEAL_EFFECT_DURATION_MS)
+    if (t >= 1) {
+      group.visible = false
+      return
+    }
+
+    const rise = t * 0.36
+    const pulse = Math.sin(t * Math.PI)
+    const opacity = Math.max(0, 1 - t)
+    group.position.y = 0.16 + rise
+    group.scale.setScalar(0.82 + pulse * 0.28)
+    setHealEffectOpacity(group, opacity)
+    if (ringRef.current) {
+      ringRef.current.rotation.z += delta * 2.2
+      ringRef.current.scale.setScalar(0.75 + t * 0.55)
+    }
+  })
+
+  return (
+    <group ref={groupRef} visible={false} position={[0, 0.16, 0]}>
+      <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]}>
+        <torusGeometry args={[0.32, 0.018, 8, 32]} />
+        <meshBasicMaterial color="#7dff9d" transparent opacity={0} depthWrite={false} />
+      </mesh>
+      {[[0, 0.52, 0], [0.21, 0.43, 0.14], [-0.21, 0.43, -0.14]].map(([x, y, z], i) => (
+        <group key={i} position={[x, y, z]} rotation={[0, i * 0.55, 0]} scale={i === 0 ? 1 : 0.78}>
+          <mesh position={[-0.035, 0.02, 0]}>
+            <sphereGeometry args={[0.045, 8, 8]} />
+            <meshBasicMaterial color="#8cffae" transparent opacity={0} depthWrite={false} />
+          </mesh>
+          <mesh position={[0.035, 0.02, 0]}>
+            <sphereGeometry args={[0.045, 8, 8]} />
+            <meshBasicMaterial color="#8cffae" transparent opacity={0} depthWrite={false} />
+          </mesh>
+          <mesh position={[0, -0.03, 0]} rotation={[0, 0, Math.PI / 4]}>
+            <boxGeometry args={[0.075, 0.075, 0.018]} />
+            <meshBasicMaterial color="#8cffae" transparent opacity={0} depthWrite={false} />
+          </mesh>
+        </group>
+      ))}
+      <mesh position={[0, 0.36, 0]}>
+        <boxGeometry args={[0.045, 0.18, 0.018]} />
+        <meshBasicMaterial color="#f0fff4" transparent opacity={0} depthWrite={false} />
+      </mesh>
+      <mesh position={[0, 0.36, 0]}>
+        <boxGeometry args={[0.18, 0.045, 0.018]} />
+        <meshBasicMaterial color="#f0fff4" transparent opacity={0} depthWrite={false} />
+      </mesh>
+    </group>
+  )
+}
+
+export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 0, healFlashToken = 0, showHealthBar = true, previewArmAction = null }) {
   return (
     <>
       <PlayerMesh groupRef={meshGroup} movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />
+      <PlayerHealEffect token={healFlashToken} />
       {showHealthBar && <MiniHealthBar current={hp} max={maxHp} width={0.38} height={0.052} y={0.75} />}
     </>
   )
@@ -53,6 +129,7 @@ export default function Player() {
   const hp              = useGameStore((s) => s.player.hp)
   const maxHp           = useGameStore((s) => s.player.maxHp)
   const hitFlashToken   = useGameStore((s) => s.player.hitFlashToken)
+  const healFlashToken  = useGameStore((s) => s.player.healFlashToken)
   const lastKnockbackHitToken = useRef(hitFlashToken)
   const endInvulnerable = useGameStore((s) => s.endInvulnerable)
   const damagePlayer    = useGameStore((s) => s.damagePlayer)
@@ -165,7 +242,7 @@ export default function Player() {
       colliders={false}
     >
       <CuboidCollider args={[0.136, 0.32, 0.136]} />
-      <PlayerVisual meshGroup={meshGroup} movingRef={movingRef} hp={hp} maxHp={maxHp} hitFlashToken={hitFlashToken} />
+      <PlayerVisual meshGroup={meshGroup} movingRef={movingRef} hp={hp} maxHp={maxHp} hitFlashToken={hitFlashToken} healFlashToken={healFlashToken} />
     </RigidBody>
   )
 }

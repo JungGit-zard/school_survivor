@@ -77,6 +77,7 @@ const BASE_PLAYER = {
   level: 1, xp: 0, xpToNext: XP_TO_NEXT_START,
   invulnerable: false,
   hitFlashToken: 0,
+  healFlashToken: 0,
 }
 
 function buildInitialPlayer(levels, bossPassiveUnlocks = {}) {
@@ -363,9 +364,18 @@ export const useGameStore = create(
       return true
     },
 
-    healPlayer: (amount) => set((s) => ({
-      player: { ...s.player, hp: Math.min(s.player.maxHp, s.player.hp + amount) },
-    })),
+    healPlayer: (amount) => set((s) => {
+      if (!Number.isFinite(amount) || amount <= 0) return s
+      const hp = Math.min(s.player.maxHp, s.player.hp + amount)
+      const healed = hp > s.player.hp
+      return {
+        player: {
+          ...s.player,
+          hp,
+          healFlashToken: healed ? (s.player.healFlashToken ?? 0) + 1 : (s.player.healFlashToken ?? 0),
+        },
+      }
+    }),
 
     // 경험치와 레벨업
     gainXp: (amount) => {

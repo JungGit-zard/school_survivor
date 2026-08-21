@@ -94,6 +94,20 @@ describe('useGameStore XP and reset behavior', () => {
     expect(state.recentMilestone.label).toBe('초반 생존 보너스')
   })
 
+  it('healPlayer는 실제 HP가 회복될 때만 힐 이펙트 토큰을 올린다', () => {
+    const player = useGameStore.getState().player
+    useGameStore.setState({ player: { ...player, hp: 60, maxHp: 100, healFlashToken: 0 } })
+
+    useGameStore.getState().healPlayer(15)
+    expect(useGameStore.getState().player).toMatchObject({ hp: 75, healFlashToken: 1 })
+
+    useGameStore.getState().healPlayer(99)
+    expect(useGameStore.getState().player).toMatchObject({ hp: 100, healFlashToken: 2 })
+
+    useGameStore.getState().healPlayer(5)
+    expect(useGameStore.getState().player).toMatchObject({ hp: 100, healFlashToken: 2 })
+  })
+
   it('자동 일시정지는 출처를 기록하고 이어하기에서 해제한다', () => {
     useGameStore.getState().pauseGame('auto')
 

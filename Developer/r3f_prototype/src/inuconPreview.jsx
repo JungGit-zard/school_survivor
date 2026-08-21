@@ -18,10 +18,26 @@ function Part({ size, position, rotation = [0, 0, 0], material, outlineMaterial,
   )
 }
 
-function BlobPart({ size, position, rotation = [0, 0, 0], material, outlineMaterial, outlineScale = 1.065 }) {
-  const geometry = useMemo(() => new THREE.SphereGeometry(0.5, 18, 14), [])
+function BlobPart({ size, position, rotation = [0, 0, 0], material, outlineMaterial, outlineScale = 1.065, cornerRatio = 0.18 }) {
+  const geometry = useMemo(() => {
+    const [w, h, d] = size
+    const c = Math.min(w, h) * cornerRatio
+    const shape = new THREE.Shape()
+    shape.moveTo(-w / 2 + c, -h / 2)
+    shape.lineTo(w / 2 - c, -h / 2)
+    shape.lineTo(w / 2, -h / 2 + c)
+    shape.lineTo(w / 2, h / 2 - c)
+    shape.lineTo(w / 2 - c, h / 2)
+    shape.lineTo(-w / 2 + c, h / 2)
+    shape.lineTo(-w / 2, h / 2 - c)
+    shape.lineTo(-w / 2, -h / 2 + c)
+    shape.closePath()
+    const g = new THREE.ExtrudeGeometry(shape, { depth: d, bevelEnabled: false })
+    g.center()
+    return g
+  }, [size.join(','), cornerRatio])
   return (
-    <group position={position} rotation={rotation} scale={size}>
+    <group position={position} rotation={rotation}>
       <mesh renderOrder={0} geometry={geometry} material={outlineMaterial} scale={[outlineScale, outlineScale, outlineScale]} />
       <mesh renderOrder={2} geometry={geometry} material={material} />
     </group>
@@ -29,7 +45,7 @@ function BlobPart({ size, position, rotation = [0, 0, 0], material, outlineMater
 }
 
 function CapsulePart({ radius = 0.08, length = 0.5, position, rotation = [0, 0, 0], scale = [1, 1, 1], material, outlineMaterial, outlineScale = 1.065 }) {
-  const geometry = useMemo(() => new THREE.CapsuleGeometry(radius, length, 6, 14), [radius, length])
+  const geometry = useMemo(() => new THREE.CapsuleGeometry(radius, length, 1, 8), [radius, length])
   return (
     <group position={position} rotation={rotation} scale={scale}>
       <mesh renderOrder={0} geometry={geometry} material={outlineMaterial} scale={[outlineScale, outlineScale, outlineScale]} />
@@ -75,14 +91,14 @@ const FACE_FRAGMENT_SHADER = `
   void main() {
     vec2 point = vUv - 0.5;
     float blinkAmount = pow(max(0.0, sin(uTime * 0.62)), 28.0);
-    float eyeHeight = mix(0.052, 0.009, blinkAmount);
-    float leftEye = softCircle(point, vec2(-0.155, 0.115), vec2(0.050, eyeHeight));
-    float rightEye = softCircle(point, vec2(0.155, 0.105), vec2(0.050, eyeHeight));
-    float nose = softCircle(point, vec2(0.0, -0.025), vec2(0.068, 0.045));
-    float mouth = softLine(point, vec2(0.0, -0.063), vec2(-0.075, -0.13), 0.017)
-      + softLine(point, vec2(0.0, -0.063), vec2(0.075, -0.13), 0.017)
-      + softLine(point, vec2(-0.075, -0.13), vec2(-0.135, -0.103), 0.016)
-      + softLine(point, vec2(0.075, -0.13), vec2(0.135, -0.103), 0.016);
+    float eyeHeight = mix(0.062, 0.011, blinkAmount);
+    float leftEye = softCircle(point, vec2(-0.175, 0.135), vec2(0.060, eyeHeight));
+    float rightEye = softCircle(point, vec2(0.175, 0.125), vec2(0.060, eyeHeight));
+    float nose = softCircle(point, vec2(0.0, -0.02), vec2(0.082, 0.055));
+    float mouth = softLine(point, vec2(0.0, -0.065), vec2(-0.09, -0.15), 0.021)
+      + softLine(point, vec2(0.0, -0.065), vec2(0.09, -0.15), 0.021)
+      + softLine(point, vec2(-0.09, -0.15), vec2(-0.16, -0.118), 0.019)
+      + softLine(point, vec2(0.09, -0.15), vec2(0.16, -0.118), 0.019);
     float darkMask = clamp(leftEye + rightEye + nose + mouth, 0.0, 1.0);
     gl_FragColor = vec4(vec3(0.025, 0.018, 0.015), darkMask);
   }
@@ -95,8 +111,8 @@ function InuconFace() {
     if (materialRef.current) materialRef.current.uniforms.uTime.value = clock.elapsedTime
   })
   return (
-    <mesh position={[0, 1.255, 0.515]} renderOrder={5}>
-      <planeGeometry args={[0.62, 0.5]} />
+    <mesh position={[0, 1.265, 0.525]} renderOrder={5}>
+      <planeGeometry args={[0.74, 0.58]} />
       <shaderMaterial ref={materialRef} uniforms={uniforms} vertexShader={FACE_VERTEX_SHADER} fragmentShader={FACE_FRAGMENT_SHADER} transparent depthWrite={false} toneMapped={false} />
     </mesh>
   )
@@ -114,7 +130,7 @@ function InuconLikeReference() {
       parts.current.root.position.y = Math.sin(t * 4.4) * 0.025
       parts.current.root.rotation.z = Math.sin(t * 3.1) * 0.035
     }
-    if (parts.current.armR) parts.current.armR.rotation.z = -0.72 + Math.sin(t * 4.8) * 0.12
+    if (parts.current.armR) parts.current.armR.rotation.z = -0.42 + Math.sin(t * 4.8) * 0.055
     if (parts.current.tail) parts.current.tail.rotation.z = Math.sin(t * 8.5) * 0.25
   })
   return (
@@ -126,11 +142,11 @@ function InuconLikeReference() {
       <BlobPart size={[0.42, 1.5, 0.36]} position={[-0.02, 0.43, 0]} material={dogMat} outlineMaterial={outline} outlineScale={1.095} />
       <CapsulePart radius={0.075} length={0.92} position={[-0.33, 0.77, 0.02]} rotation={[0, 0, -0.02]} scale={[1, 1, 0.82]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.065} />
       <CapsulePart radius={0.06} length={0.4} position={[-0.1, 0.94, -0.01]} rotation={[0, 0, Math.PI / 2]} scale={[1, 1.05, 1.7]} material={scarfMat} outlineMaterial={outline} outlineScale={1.035} />
-      <group ref={(el) => { parts.current.armR = el }} position={[0.36, 0.92, 0.02]} rotation={[0, 0, -0.72]}>
-        <CapsulePart radius={0.07} length={0.92} position={[0.23, 0.42, 0]} rotation={[0, 0, -0.18]} scale={[1, 1, 0.88]} material={dogMat} outlineMaterial={outline} outlineScale={1.07} />
+      <group ref={(el) => { parts.current.armR = el }} position={[0.24, 0.88, 0.04]} rotation={[0, 0, -0.42]}>
+        <CapsulePart radius={0.065} length={0.34} position={[0.1, 0.1, 0]} rotation={[0, 0, -0.08]} scale={[1, 1, 0.82]} material={dogMat} outlineMaterial={outline} outlineScale={1.06} />
       </group>
-      <group position={[-0.31, 0.75, 0]}>
-        <CapsulePart radius={0.055} length={0.56} position={[0, -0.02, 0]} rotation={[0, 0, 0.08]} scale={[1, 1, 0.86]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.055} />
+      <group position={[-0.28, 0.78, 0.04]} rotation={[0, 0, 0.18]}>
+        <CapsulePart radius={0.055} length={0.28} position={[-0.06, -0.03, 0]} rotation={[0, 0, 0.04]} scale={[1, 1, 0.82]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.055} />
       </group>
       <CapsulePart radius={0.06} length={0.22} position={[-0.14, -0.34, 0]} rotation={[0, 0, -0.12]} scale={[1, 1, 0.82]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.055} />
       <CapsulePart radius={0.06} length={0.22} position={[0.09, -0.34, 0]} rotation={[0, 0, 0.12]} scale={[1, 1, 0.82]} material={dogMat} outlineMaterial={outline} outlineScale={1.055} />

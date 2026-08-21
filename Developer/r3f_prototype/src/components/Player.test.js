@@ -16,4 +16,12 @@ describe('player hit knockback', () => {
     expect(source).toContain('Math.min(1, dt * TURN_SPEED)')
     expect(source).toContain('invTimer.current += dt * 1000')
   })
+
+  it('renders a token-driven green heal pulse above the player visual', () => {
+    const source = readFileSync(new URL('./Player.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('function PlayerHealEffect')
+    expect(source).toContain('<PlayerHealEffect token={healFlashToken} />')
+    expect(source).toContain('<torusGeometry args={[0.32, 0.018, 8, 32]} />')
+    expect(source).toContain('color="#8cffae"')
+  })
 })
