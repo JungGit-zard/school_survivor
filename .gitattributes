@@ -1,0 +1,28 @@
+# 2026-08-21. 커밋된 blob 512/1824개에 CR이 섞여 있었다. 에이전트마다 core.autocrlf이
+# 다르면 같은 파일이 CRLF로도 LF로도 커밋돼, 한 줄만 고쳐도 diff가 파일 전체로 부푼다.
+# 여기서 못을 박는다 — 작업 트리도 blob도 LF 하나로만 간다. 로컬 설정과 무관하다.
+* text=auto eol=lf
+
+# 바이너리는 손대지 않는다.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.mp3 binary
+*.m4a binary
+*.ogg binary
+*.wav binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.glb binary
+*.gltf binary
+*.keystore binary
+*.jks binary
+*.aab binary
+*.apk binary
+*.jar binary
+*.zip binary
