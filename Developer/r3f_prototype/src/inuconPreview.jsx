@@ -119,23 +119,23 @@ function InuconLikeReference() {
   })
   return (
     <group ref={(el) => { parts.current.root = el }}>
-      <Part size={[0.58, 0.56, 0.42]} position={[0, 1.28, 0]} material={dogMat} outlineMaterial={outline} outlineScale={1.095} />
-      <TriEar position={[-0.2, 1.64, 0.02]} rotation={[0, 0, -0.22]} material={dogMat} outlineMaterial={outline} outlineScale={1.095} />
-      <TriEar position={[0.23, 1.63, 0.02]} rotation={[0, 0, 0.26]} material={dogMat} outlineMaterial={outline} outlineScale={1.095} />
+      <BlobPart size={[0.62, 0.58, 0.46]} position={[0, 1.28, 0]} material={dogMat} outlineMaterial={outline} outlineScale={1.085} />
+      <TriEar position={[-0.2, 1.64, 0.02]} rotation={[0, 0, -0.22]} material={dogMat} outlineMaterial={outline} outlineScale={1.085} />
+      <TriEar position={[0.23, 1.63, 0.02]} rotation={[0, 0, 0.26]} material={dogMat} outlineMaterial={outline} outlineScale={1.085} />
       <InuconFace />
-      <Part size={[0.4, 1.42, 0.34]} position={[-0.02, 0.43, 0]} material={dogMat} outlineMaterial={outline} outlineScale={1.105} />
-      <Part size={[0.18, 1.05, 0.14]} position={[-0.33, 0.77, 0.02]} rotation={[0, 0, -0.02]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.075} />
-      <Part size={[0.5, 0.12, 0.37]} position={[-0.1, 0.94, -0.01]} material={scarfMat} outlineMaterial={outline} outlineScale={1.035} />
+      <BlobPart size={[0.42, 1.5, 0.36]} position={[-0.02, 0.43, 0]} material={dogMat} outlineMaterial={outline} outlineScale={1.095} />
+      <CapsulePart radius={0.075} length={0.92} position={[-0.33, 0.77, 0.02]} rotation={[0, 0, -0.02]} scale={[1, 1, 0.82]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.065} />
+      <CapsulePart radius={0.06} length={0.4} position={[-0.1, 0.94, -0.01]} rotation={[0, 0, Math.PI / 2]} scale={[1, 1.05, 1.7]} material={scarfMat} outlineMaterial={outline} outlineScale={1.035} />
       <group ref={(el) => { parts.current.armR = el }} position={[0.36, 0.92, 0.02]} rotation={[0, 0, -0.72]}>
-        <Part size={[0.15, 1.08, 0.14]} position={[0.23, 0.42, 0]} rotation={[0, 0, -0.18]} material={dogMat} outlineMaterial={outline} outlineScale={1.08} />
+        <CapsulePart radius={0.07} length={0.92} position={[0.23, 0.42, 0]} rotation={[0, 0, -0.18]} scale={[1, 1, 0.88]} material={dogMat} outlineMaterial={outline} outlineScale={1.07} />
       </group>
       <group position={[-0.31, 0.75, 0]}>
-        <Part size={[0.12, 0.72, 0.13]} position={[0, -0.02, 0]} rotation={[0, 0, 0.08]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.06} />
+        <CapsulePart radius={0.055} length={0.56} position={[0, -0.02, 0]} rotation={[0, 0, 0.08]} scale={[1, 1, 0.86]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.055} />
       </group>
-      <Part size={[0.12, 0.32, 0.13]} position={[-0.14, -0.34, 0]} rotation={[0, 0, -0.12]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.06} />
-      <Part size={[0.12, 0.32, 0.13]} position={[0.09, -0.34, 0]} rotation={[0, 0, 0.12]} material={dogMat} outlineMaterial={outline} outlineScale={1.06} />
+      <CapsulePart radius={0.06} length={0.22} position={[-0.14, -0.34, 0]} rotation={[0, 0, -0.12]} scale={[1, 1, 0.82]} material={dogShadeMat} outlineMaterial={outline} outlineScale={1.055} />
+      <CapsulePart radius={0.06} length={0.22} position={[0.09, -0.34, 0]} rotation={[0, 0, 0.12]} scale={[1, 1, 0.82]} material={dogMat} outlineMaterial={outline} outlineScale={1.055} />
       <group ref={(el) => { parts.current.tail = el }} position={[-0.23, 0.96, -0.04]}>
-        <Part size={[0.38, 0.12, 0.12]} position={[-0.24, 0.02, 0]} rotation={[0, 0, 0.45]} material={dogMat} outlineMaterial={outline} outlineScale={1.06} />
+        <CapsulePart radius={0.055} length={0.26} position={[-0.24, 0.02, 0]} rotation={[0, 0, 0.45 + Math.PI / 2]} scale={[1, 1, 0.86]} material={dogMat} outlineMaterial={outline} outlineScale={1.055} />
       </group>
     </group>
   )
