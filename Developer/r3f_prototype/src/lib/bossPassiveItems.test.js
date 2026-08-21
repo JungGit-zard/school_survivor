@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   BOSS_PASSIVE_ITEMS,
   BOSS_PASSIVE_ITEM_UI_CAPACITY,
+  applyBossPassiveMaxHp,
   applyBossPassiveMovementSpeed,
   applyBossPassiveDamageToBaseWeapon,
   getBossPassiveDamageMultiplier,
@@ -76,5 +77,13 @@ describe('B01 boss passive item catalog', () => {
     expect(twice).toBe(once)
     expect(twice.speed).toBe(3.15)
     expect(capped.speed).toBe(5.4)
+  })
+
+  it('applies the B04 ladle max HP boost once while preserving the current HP ratio', () => {
+    const once = applyBossPassiveMaxHp({ hp: 45, maxHp: 90 }, { b04ServingLadle: true })
+    const twice = applyBossPassiveMaxHp(once, { b04ServingLadle: true })
+
+    expect(once).toMatchObject({ maxHp: 94.5, hp: 47.25, bossPassiveMaxHpMultiplier: 1.05 })
+    expect(twice).toBe(once)
   })
 })

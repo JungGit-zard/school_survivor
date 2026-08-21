@@ -924,7 +924,11 @@ export const useGameStore = create(
           }))
         } else if (key === 'maxHealth') {
           set((s) => ({
-            player: { ...s.player, maxHp: s.player.maxHp + 20, hp: s.player.hp + 20 },
+            player: {
+              ...s.player,
+              maxHp: s.player.maxHp + 20 * (s.player.bossPassiveMaxHpMultiplier ?? 1),
+              hp: s.player.hp + 20 * (s.player.bossPassiveMaxHpMultiplier ?? 1),
+            },
             ...finishLevelupState(s),
           }))
         } else {
@@ -942,7 +946,12 @@ export const useGameStore = create(
         const chibikoWasActive = s.weapons.chibiko?.active === true
         const acquiringChibiko = effect.kind === 'acquire' && effect.weapon === 'chibiko'
         const boost = getChibikoAllWeaponBoost(s.weapons.chibiko?.permanentUpgradeLevel ?? 0)
-        const upgraded = applyUpgradeWithChibikoBoost(wpn, effect, boost)
+        const passiveMultiplier = effect.kind === 'damage' ? (wpn.bossPassiveDamageMultiplier ?? 1) : 1
+        const upgraded = applyUpgradeWithChibikoBoost(
+          wpn,
+          passiveMultiplier === 1 ? effect : { ...effect, dmg: effect.dmg * passiveMultiplier },
+          boost,
+        )
 
         if (acquiringChibiko) {
           return {
