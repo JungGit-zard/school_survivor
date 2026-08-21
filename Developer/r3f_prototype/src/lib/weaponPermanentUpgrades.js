@@ -63,6 +63,7 @@ export const WEAPON_PERMANENT_UPGRADE_PLANS = {
       10: { summary: '치비코 투척체 +1' },
     },
   },
+  inucon: makePlan('inucon', '넉백', '회복량 +2%', '밀어내기 범위 +10%', ['+3%', '+6%', '+9%', '+12%', '+15%', '+18%', '+21%', '+24%'], '회복량', ['+2%', '+4%', '+6%', '+8%']),
   guidedMissile: makePlan('guidedMissile', '폭발 피해', '유도 회전력 +10%', '폭발 범위 +10%'),
   sharkMissile: makePlan('sharkMissile', '귀소 속도', '귀소 전환 시간 -10%', '폭발 범위 +12%', RANGE_LEVELS, '폭발 피해', ['+4%', '+8%', '+12%', '+16%']),
   starlink: makePlan('starlink', '타격 피해', '타격 반경 +10%', '추가 소형 낙하 타격 확률 +10%', DAMAGE_LEVELS, '치명타 확률', CRIT_CHANCE_LEVELS),
@@ -216,7 +217,10 @@ function applySafeNumericPermanentEffects(id, level, out) {
   }
 
   const knockbackPercent = getBestPercentForSummary(id, level, (summary) => summary.includes('넉백'))
-  if (knockbackPercent > 0) scaleExistingProps(out, ['knockbackMs'], 1 + knockbackPercent, 0)
+  if (knockbackPercent > 0) {
+    scaleExistingProps(out, ['knockback'], 1 + knockbackPercent, 2)
+    scaleExistingProps(out, ['knockbackMs'], 1 + knockbackPercent, 0)
+  }
 }
 
 export function applyWeaponPermanentUpgradesToBaseWeapon(id, weapon) {
@@ -248,6 +252,15 @@ export function applyWeaponPermanentUpgradesToBaseWeapon(id, weapon) {
   if (id === 'compassBlade' && level >= 10) out.permanentExplosionRadiusMultiplier = 1.1
   if (id === 'eraserBomb' && level >= 10) out.permanentSlowDust = true
   if (id === 'studentLantern' && level >= 10) out.permanentSlowChance = 0.1
+  if (id === 'inucon') {
+    const healPercent = getBestPercentForSummary(id, level, (summary) => summary.includes('회복량'))
+    if (healPercent > 0 && typeof weapon.healPercent === 'number') {
+      out.healPercent = scaleNumber(weapon.healPercent, 1 + healPercent, 3)
+    }
+    if (level >= 10 && typeof weapon.pushRadius === 'number') {
+      out.pushRadius = scaleNumber(weapon.pushRadius, 1.1, 3)
+    }
+  }
 
   // These milestone perks stack additively with an earlier bonus that targets
   // the same runtime field. Recalculate from the unmodified base so rounding

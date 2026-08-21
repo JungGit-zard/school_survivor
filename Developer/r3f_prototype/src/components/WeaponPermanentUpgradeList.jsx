@@ -22,6 +22,7 @@ import compassBladeIconSrc from '../assets/weapon_icon/10_wea_compass.png.webp'
 import umbrellaIconSrc from '../assets/weapon_icon/11_wea_umb.png.webp'
 import eraserIconSrc from '../assets/weapon_icon/12_wea_eraser.png.webp'
 import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
+import inuconIconSrc from '../assets/weapon_icon/19_wea_inucon.svg'
 import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
 import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.webp'
 
@@ -40,6 +41,7 @@ const WEAPON_PERMANENT_ICON_SRC = {
   umbrellaGuard: umbrellaIconSrc,
   eraserBomb: eraserIconSrc,
   chibiko: chibikoIconSrc,
+  inucon: inuconIconSrc,
   sharkMissile: sharkMissileIconSrc,
   studentLantern: lanternIconSrc,
 }

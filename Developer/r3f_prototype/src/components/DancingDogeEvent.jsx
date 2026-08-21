@@ -220,23 +220,34 @@ export default function DancingDogeEvent({
             position={[0, 0.75 * scale, 0]}
             sensor
             onIntersectionEnter={({ other }) => {
-              const playerBody = other.rigidBody
-              const dogePos = rb.current?.translation()
-              const knockback = resolveDogeContactKnockback({
-                phase,
-                revealed,
-                alive: !dead.current && !dying,
-                finished,
-                escaping,
-                lastKnockbackAt: lastKnockbackAtRef.current,
-                now: Date.now(),
-                dogePos: dogePos ? [dogePos.x, dogePos.y, dogePos.z] : null,
-                playerBody,
-              })
-              if (!knockback) return
-              playerBody._applyKnockback(knockback.vx, knockback.vz, knockback.durationMs)
-              emitSfx({ id: 'dogeYelp', volume: 0.7, rate: 0.96 + Math.random() * 0.08 })
-              lastKnockbackAtRef.current = knockback.appliedAt
+              // ponytail: try/catch only here, because this is the one place our code
+              // runs inside a Rapier wasm callback. An exception that crosses that
+              // boundary leaks the wasm-bindgen borrow guard and kills the physics
+              // world permanently ("recursive use of an object ... unsafe aliasing").
+              // Never swallow it — log the original so the next incident is findable.
+              try {
+                const playerBody = other.rigidBody
+                const dogeBody = rb.current
+                const dogeAlive = dogeBody && (typeof dogeBody.isValid !== 'function' || dogeBody.isValid())
+                const dogePos = dogeAlive ? dogeBody.translation() : null
+                const knockback = resolveDogeContactKnockback({
+                  phase,
+                  revealed,
+                  alive: !dead.current && !dying,
+                  finished,
+                  escaping,
+                  lastKnockbackAt: lastKnockbackAtRef.current,
+                  now: Date.now(),
+                  dogePos: dogePos ? [dogePos.x, dogePos.y, dogePos.z] : null,
+                  playerBody,
+                })
+                if (!knockback) return
+                playerBody._applyKnockback(knockback.vx, knockback.vz, knockback.durationMs)
+                emitSfx({ id: 'dogeYelp', volume: 0.7, rate: 0.96 + Math.random() * 0.08 })
+                lastKnockbackAtRef.current = knockback.appliedAt
+              } catch (err) {
+                console.error('[DancingDoge] onIntersectionEnter failed inside the Rapier callback', err)
+              }
             }}
           />
           <group ref={waddleRef}>

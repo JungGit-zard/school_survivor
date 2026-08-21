@@ -57,6 +57,7 @@ import umbrellaIconSrc from '../assets/weapon_icon/11_wea_umb.png.webp'
 import eraserIconSrc from '../assets/weapon_icon/12_wea_eraser.png.webp'
 import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
 import hanakoIconSrc from '../assets/weapon_icon/15_wea_hanako.svg'
+import inuconIconSrc from '../assets/weapon_icon/19_wea_inucon.svg'
 import bikittyCutterIconSrc from '../assets/weapon_icon/17_wea_bikitty_cutter.svg'
 import lineDrawIconSrc from '../assets/weapon_icon/18_wea_line_draw.svg'
 import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
@@ -165,6 +166,10 @@ const UPGRADES = [
   { key: 'lanternCrit', icon: 'lantern', label: '랜턴 치명타 강화', desc: '치명타 확률 +2%, 치명타 피해 배율 +0.75배 (최대 4.5배)' },
   { key: 'acquireChibiko', icon: 'chibiko', label: '치비코 해금', desc: '레벨1 연필 투척 · 보유 무기 능력 10% 강화' },
   { key: 'acquireHanako', icon: 'hanako', label: '하나코 해금', desc: '치비코를 획득해야 등장; 20초마다 주인공 최대 체력의 5% 회복' },
+  { key: 'acquireInucon', icon: 'inucon', label: '이누콘 해금', desc: '주인공 뒤를 따라다니며 붙은 좀비를 밀어내고 10초마다 최대 HP 10% 회복' },
+  { key: 'inuconHeal', icon: 'inucon', label: '이누콘 회복 +2%', desc: '10초마다 회복하는 최대 HP 비율 증가' },
+  { key: 'inuconPushRadius', icon: 'inucon', label: '이누콘 밀어내기 반경 +', desc: '붙은 좀비를 밀어내는 판정 반경 증가' },
+  { key: 'inuconKnockback', icon: 'inucon', label: '이누콘 밀치기 강화', desc: '좀비를 더 멀리, 더 오래 밀어냄' },
   { key: 'chibikoDamage', icon: 'chibiko', labelFn: damageLabel('치비코 위력', 'chibiko', 'chibikoDamage'), desc: '치비코가 던지는 연필의 위력 증가' },
   { key: 'chibikoCrit', icon: 'chibiko', label: '치비코 치명타 강화', desc: '치명타 확률 +2%, 치명타 피해 배율 +0.75배 (최대 4.5배)' },
   { key: 'acquireBikittyCutter', icon: 'bikittyCutter', label: '바이키티 커터칼 해금', desc: '커터칼을 획득해야 등장; 벨 때마다 날이 길어지고 8단째에 부러지며 전방 산탄' },
@@ -213,6 +218,7 @@ const WEAPON_UPGRADE_ICON_SRC = {
   eraser: eraserIconSrc,
   chibiko: chibikoIconSrc,
   hanako: hanakoIconSrc,
+  inucon: inuconIconSrc,
   sharkMissile: sharkMissileIconSrc,
   lantern: lanternIconSrc,
   bikittyCutter: bikittyCutterIconSrc,
@@ -235,6 +241,7 @@ const WEAPON_KEY_TO_ICON = {
   eraserBomb:    'eraser',
   chibiko:       'chibiko',
   hanako:        'hanako',
+  inucon:        'inucon',
   sharkMissile:  'sharkMissile',
   studentLantern: 'lantern',
   bikittyCutter: 'bikittyCutter',

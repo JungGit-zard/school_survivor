@@ -11,13 +11,13 @@ import {
 } from './weaponCatalog.js'
 
 describe('weaponCatalog', () => {
-  it('19종 entry 등록 + starter 12종', () => {
+  it('20종 entry 등록 + starter 13종', () => {
     const all = getAllWeaponIds()
-    expect(all.length).toBe(19)
+    expect(all.length).toBe(20)
     // bikittyCutter·lineDraw는 하나코와 같은 방식이다: 계정 해금 게이트를 쓰지 않으므로 STARTER로
     // 선언하고, 실제 등장 조건은 카드 쪽 requiresActiveWeapon(s)가 전부 담당한다.
     const starter = getStarterIds()
-    expect(starter).toEqual(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'chibiko', 'hanako', 'bikittyCutter', 'lineDraw'])
+    expect(starter).toEqual(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'chibiko', 'hanako', 'inucon', 'bikittyCutter', 'lineDraw'])
   })
 
   it('Starter base 스탯이 BASE_WEAPONS 정본 값과 일치한다', () => {
@@ -64,6 +64,21 @@ describe('weaponCatalog', () => {
       unlockConditions: STARTER,
     })
     expect(WEAPON_CATALOG.hanako.minLevelToAppear).toBeUndefined()
+    expect(WEAPON_CATALOG.inucon).toMatchObject({
+      id: 'inucon',
+      label: '이누콘',
+      base: {
+        healIntervalMs: 10000,
+        healPercent: 0.10,
+        followDistance: 1.08,
+        pushRadius: 0.85,
+        knockback: 2.8,
+        knockbackMs: 180,
+        contactPulseIntervalMs: 250,
+      },
+      unlockConditions: STARTER,
+      minLevelToAppear: 8,
+    })
   })
 
   it('복원 2종(R6) Lv.1 스탯 정확히 일치', () => {
@@ -156,9 +171,9 @@ describe('weaponCatalog', () => {
     })
   })
 
-  it('evaluateUnlocks 빈 records → starter 12종만', () => {
+  it('evaluateUnlocks 빈 records → starter 13종만', () => {
     const u = evaluateUnlocks({})
-    expect(u.size).toBe(12)
+    expect(u.size).toBe(13)
     for (const id of getStarterIds()) expect(u.has(id)).toBe(true)
     expect(u.has('compassBlade')).toBe(false)
   })
@@ -218,7 +233,7 @@ describe('weaponCatalog', () => {
   it('null/undefined records 안전', () => {
     expect(() => evaluateUnlocks(null)).not.toThrow()
     expect(() => evaluateUnlocks(undefined)).not.toThrow()
-    expect(evaluateUnlocks(null).size).toBe(12) // starter only
+    expect(evaluateUnlocks(null).size).toBe(13) // starter only
   })
 
   it('isStarter / isValidWeaponId / STARTER 상수', () => {

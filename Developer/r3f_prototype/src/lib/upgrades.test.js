@@ -306,16 +306,16 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
 
   // 회귀 방어(2026-08-15): 예전에는 19종 전부 데미지 카드가 정확히 1장뿐이라, 레벨업 절반이
   // 단일 대상 기준 체감 0이고 만렙 성장폭이 1.31~1.61배에 그쳤다. 카드가 다시 한 장으로
-  // 줄면 그 곡선으로 되돌아간다.
-  it('피해를 주는 무기는 전부 데미지 카드를 갖고, 하나코만 예외다', () => {
+  // 줄면 그 곡선으로 되돌아간다. 이누콘은 2026-08-21 추가된 생존 보조 동반자라 데미지 카드가 없다.
+  it('피해를 주는 무기는 전부 데미지 카드를 갖고, 힐/유틸 동반자만 예외다', () => {
     const damageCardCount = {}
     for (const id of getAllWeaponIds()) damageCardCount[id] = 0
     for (const effect of Object.values(UPGRADE_EFFECTS)) {
       if (effect.kind === 'damage') damageCardCount[effect.weapon] += 1
     }
 
-    // 힐 전용 동반자 하나코만 데미지 카드가 없다.
-    expect(Object.keys(damageCardCount).filter((id) => damageCardCount[id] === 0)).toEqual(['hanako'])
+    // 힐/유틸 전용 동반자 하나코·이누콘만 데미지 카드가 없다.
+    expect(Object.keys(damageCardCount).filter((id) => damageCardCount[id] === 0).sort()).toEqual(['hanako', 'inucon'])
     // 랜턴·치비코는 광역/버프 역할이라 1장, 나머지 주력 16종은 2장이다.
     expect(Object.keys(damageCardCount).filter((id) => damageCardCount[id] === 1).sort())
       .toEqual(['chibiko', 'studentLantern'])

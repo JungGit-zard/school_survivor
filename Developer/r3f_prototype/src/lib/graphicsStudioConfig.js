@@ -16,6 +16,7 @@ import eraserIconUrl from '../assets/weapon_icon/12_wea_eraser.png.webp'
 import boxCutterIconUrl from '../assets/weapon_icon/13_wea_boxcutter.svg'
 import chibikoIconUrl from '../assets/weapon_icon/14_wea_chibiko.svg'
 import hanakoIconUrl from '../assets/weapon_icon/15_wea_hanako.svg'
+import inuconIconUrl from '../assets/weapon_icon/19_wea_inucon.svg'
 import sharkMissileIconUrl from '../assets/weapon_icon/14_wea_shark_missile.svg'
 import lanternIconUrl from '../assets/weapon_icon/16_wea_lantern.webp'
 import bikittyCutterIconUrl from '../assets/weapon_icon/17_wea_bikitty_cutter.svg'
@@ -120,6 +121,7 @@ const weaponVisuals = [
   ['weapon-box-cutter', 'Box Cutter', 'boxCutter', boxCutterIconUrl, 'components/Weapons/BoxCutter.jsx', 'weaponModel', 'BoxCutterModel'],
   ['weapon-chibiko', 'Chibiko', 'chibiko', chibikoIconUrl, 'components/Weapons/Chibiko.jsx', 'weaponModel', 'ChibikoModel'],
   ['weapon-hanako', 'Hanako', 'hanako', hanakoIconUrl, 'components/Weapons/Hanako.jsx', 'weaponModel', 'HanakoModel'],
+  ['weapon-inucon', 'Inucon', 'inucon', inuconIconUrl, 'components/Weapons/Inucon.jsx', 'weaponModel', 'InuconModel'],
   ['weapon-guided-missile', 'Guided Missile', 'guidedMissile', batteryIconUrl, 'components/Weapons/Missile.jsx', 'weaponModel', 'MissileBody'],
   ['weapon-shark-missile', 'Shark Missile', 'sharkMissile', sharkMissileIconUrl, 'components/Weapons/SharkMissile.jsx', 'weaponModel', 'SharkMissileModel'],
   ['weapon-student-lantern', 'Student Lantern', 'studentLantern', lanternIconUrl, 'components/Weapons/StudentLantern.jsx', 'weaponModel', 'StudentLanternVisual'],

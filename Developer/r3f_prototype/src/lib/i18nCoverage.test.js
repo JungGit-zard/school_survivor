@@ -51,7 +51,7 @@ function untranslatedDialogue(ids) {
 }
 
 describe('로케일 사전이 게임 데이터를 전부 덮는가', () => {
-  it('무기 19종 이름이 en·ja에 있다', () => {
+  it('무기 20종 이름이 en·ja에 있다', () => {
     // 이 검사가 못 돌던 동안 최신 무기 2종(bikittyCutter, lineDraw)의 이름 키가 빠져 있었다.
     expect(missingKeys(getAllWeaponIds().map((id) => `weapon.${id}`))).toEqual([])
   })

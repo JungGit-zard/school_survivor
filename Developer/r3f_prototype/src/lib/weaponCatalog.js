@@ -1,9 +1,8 @@
-// 무기 19종의 단일 진실 카탈로그.
-//   - starter 12종 (unlockConditions === STARTER): 아래 starter 블록 10종 + bikittyCutter + lineDraw.
-//     뒤 둘은 계정 해금이 아니라 런 중 선행 무기 보유로 카드가 뜨는 방식이라 별도 절에 있다.
+// 무기 20종의 단일 진실 카탈로그.
+//   - starter 13종 (unlockConditions === STARTER): 아래 starter 블록 11종 + bikittyCutter + lineDraw.
 //   - 계정 해금 7종: guidedMissile, sharkMissile, starlink, compassBlade, umbrellaGuard,
 //     eraserBomb, studentLantern.
-// 19종 전부 컴포넌트(components/Weapons/index.js)·카드 효과(upgrades.js) wiring이 끝나 있다.
+// 20종 전부 컴포넌트(components/Weapons/index.js)·카드 효과(upgrades.js) wiring이 끝나 있다.
 // base 스탯은 buildInitialWeapons(useGameStore.js)가 그대로 가져다 쓴다 — 여기가 유일한 출처이므로
 // 게임 쪽에 같은 수치를 리터럴로 또 적지 마라(하나코 힐 수치가 그렇게 이중 정본이 됐었다).
 
@@ -105,6 +104,15 @@ export const WEAPON_CATALOG = {
     label: '하나코',
     base: { healIntervalMs: 20000, healPercent: 0.05, followDistance: 1.44 },
     unlockConditions: STARTER,
+  },
+  inucon: {
+    id: 'inucon',
+    label: '이누콘',
+    // 치비코/하나코 계열 동반자. 장착 즉시 주인공 뒤를 따라다니며 붙은 좀비를 주기적으로 밀어내고,
+    // 10초마다 최대 HP의 10%를 회복한다. 데미지 0 유틸 무기라 레벨업은 밀쳐내기/회복 수치만 키운다.
+    base: { healIntervalMs: 10000, healPercent: 0.10, followDistance: 1.08, pushRadius: 0.85, knockback: 2.8, knockbackMs: 180, contactPulseIntervalMs: 250 },
+    unlockConditions: STARTER,
+    minLevelToAppear: 8,
   },
   // ─── 복원 2종 (1차 9종 정본에 포함, 코드 일시 제거 상태 — U5/U6에서 컴포넌트 추가) ───
   guidedMissile: {

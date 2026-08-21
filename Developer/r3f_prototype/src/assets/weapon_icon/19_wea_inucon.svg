@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Inucon weapon icon">
+  <rect width="128" height="128" rx="24" fill="#70d66a"/>
+  <path d="M18 76c0-24 17-44 43-44 27 0 48 20 48 45 0 22-18 39-44 39-27 0-47-17-47-40z" fill="#f0a542" stroke="#120d14" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M37 32l-5-17 19 9M85 31l13-16 2 24" fill="#f0a542" stroke="#120d14" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M22 84c-13 5-15 19-5 25 9 5 23-1 31-13" fill="none" stroke="#120d14" stroke-width="8" stroke-linecap="round"/>
+  <path d="M41 52h.1M79 52h.1" stroke="#120d14" stroke-width="10" stroke-linecap="round"/>
+  <path d="M55 70c6 7 18 7 24 0" fill="none" stroke="#120d14" stroke-width="6" stroke-linecap="round"/>
+  <path d="M64 62l6 2-6 5-6-5z" fill="#120d14"/>
+  <path d="M24 44c11-17 30-25 52-22" fill="none" stroke="#c58cff" stroke-width="11" stroke-linecap="round" opacity=".92"/>
+</svg>

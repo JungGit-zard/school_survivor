@@ -16,7 +16,7 @@ import { emitSfx } from '../lib/sfxEvents.js'
 import { createCriticalScreenShakeFrame, sampleCriticalScreenShake } from '../lib/criticalScreenShake.js'
 import { PUBLISH_INTERVAL_MS, advanceRuntimeTime } from '../lib/gameRuntimeTime.js'
 import { clampGameplayFrameDelta, createGameplayFixedStepClock, runGameplayFixedSteps } from '../lib/gameplayFrameTime.js'
-import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon, ChibikoWeapon, HanakoWeapon, SharkMissileWeapon, StudentLanternWeapon, BikittyCutterWeapon, LineDrawWeapon } from './Weapons/index.js'
+import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon, ChibikoWeapon, HanakoWeapon, InuconWeapon, SharkMissileWeapon, StudentLanternWeapon, BikittyCutterWeapon, LineDrawWeapon } from './Weapons/index.js'
 
 const _camTarget = new THREE.Vector3()
 const _cameraRight = new THREE.Vector3()
@@ -183,6 +183,7 @@ export default function Game() {
       <EraserBombWeapon />
       <ChibikoWeapon />
       <HanakoWeapon />
+      <InuconWeapon />
       <SharkMissileWeapon />
       <StudentLanternWeapon />
 

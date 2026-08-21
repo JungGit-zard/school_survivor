@@ -28,6 +28,7 @@ import {
   getB02CorridorBlockadeLineVisualState,
   getB03ShuttleRunVisualState,
   getB04SoupBlastVisualState,
+  hasB03ShuttleRunVisualChanged,
   getEnemySpawnSfx,
   getMatildaBodyHalfExtents,
   hasMatildaReachedStageEdge,
@@ -36,6 +37,7 @@ import {
   isMatildaChargingOutward,
   resolveSightBlockedEnemyVelocity,
   shouldReverseMatildaChargeOnObstacle,
+  shouldRenderB02CorridorBlockadeVisual,
 } from './Enemy.jsx'
 
 describe('B02 corridor blockade visual states', () => {
@@ -44,6 +46,10 @@ describe('B02 corridor blockade visual states', () => {
     expect(getB02CorridorBlockadeLineVisualState({ phase: 'active', index: 0, activeLineIndex: 1 })).toBe('completed')
     expect(getB02CorridorBlockadeLineVisualState({ phase: 'active', index: 1, activeLineIndex: 1 })).toBe('active')
     expect(getB02CorridorBlockadeLineVisualState({ phase: 'active', index: 2, activeLineIndex: 1 })).toBe('future')
+    expect(shouldRenderB02CorridorBlockadeVisual({ phase: 'telegraph', lineZs: [1, 2, 3] })).toBe(true)
+    expect(shouldRenderB02CorridorBlockadeVisual({ phase: 'active', lineZs: [1, 2, 3] })).toBe(true)
+    expect(shouldRenderB02CorridorBlockadeVisual({ phase: 'stun', lineZs: [1, 2, 3] })).toBe(false)
+    expect(shouldRenderB02CorridorBlockadeVisual({ phase: 'idle', lineZs: [1, 2, 3] })).toBe(false)
 
     for (const visual of Object.values(B02_CORRIDOR_BLOCKADE_VISUALS)) {
       expect(visual.surface).toMatch(/^#(0|1|2)[0-9a-f]{5}$/i)
@@ -59,6 +65,7 @@ describe('B02 corridor blockade visual states', () => {
     expect(source).toContain('userData={{ blockadeLineState: visualState }}')
     expect(source).toContain('color={visual.shadow}')
     expect(source).toContain('B02_BLOCKADE_LINE_WIDTH + 0.42')
+    expect(source).toContain("if (!shouldRenderB02CorridorBlockadeVisual({ phase, lineZs })) return null")
   })
 })
 
@@ -69,8 +76,19 @@ describe('B03 shuttle run visual states', () => {
     expect(getB03ShuttleRunVisualState({ phase: 'active', passIndex: 1 })).toBe('returning')
     expect(getB03ShuttleRunVisualState({ phase: 'stun', passIndex: -1 })).toBe('stun')
 
-    expect(B03_SHUTTLE_RUN_VISUALS.telegraph.surface).toMatch(/^#f/i)
-    expect(B03_SHUTTLE_RUN_VISUALS.outbound.surface).not.toBe(B03_SHUTTLE_RUN_VISUALS.returning.surface)
+    expect(B03_SHUTTLE_RUN_VISUALS.telegraph.surface).toBe('#f5b83d')
+    expect(B03_SHUTTLE_RUN_VISUALS.outbound.surface).toBe('#ffd34e')
+    expect(B03_SHUTTLE_RUN_VISUALS.returning.surface).toBe('#e6a81f')
+    expect(B03_SHUTTLE_RUN_VISUALS.outbound.surface).not.toBe(B04_SOUP_BLAST_VISUALS.explode.surface)
+    expect(B03_SHUTTLE_RUN_VISUALS.returning.surface).not.toBe(B04_SOUP_BLAST_VISUALS.explode.surface)
+    expect(hasB03ShuttleRunVisualChanged(
+      { phase: 'active', laneZ: 4, passIndex: 0 },
+      { phase: 'active', laneZ: 4, passIndex: 1 },
+    )).toBe(true)
+    expect(hasB03ShuttleRunVisualChanged(
+      { phase: 'active', laneZ: 4, passIndex: 1 },
+      { phase: 'active', laneZ: 4, passIndex: 1 },
+    )).toBe(false)
     for (const visual of Object.values(B03_SHUTTLE_RUN_VISUALS)) {
       expect(visual.outline).toMatch(/^#[0-9a-f]{6}$/i)
       expect(visual.surfaceOpacity).toBeGreaterThan(0)
@@ -80,6 +98,7 @@ describe('B03 shuttle run visual states', () => {
     const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
     expect(source).toContain('userData={{ shuttleRunState: visualState }}')
     expect(source).toContain('B03_SHUTTLE_LANE_WIDTH + 0.18')
+    expect(source).toContain('hasB03ShuttleRunVisualChanged(previous, state) ? { ...state } : previous')
   })
 })
 

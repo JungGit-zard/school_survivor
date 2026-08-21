@@ -4,8 +4,17 @@ export function captureEnemyGeneration(rb) {
   return Number.isInteger(rb?.index) && Number.isInteger(rb.generation) ? rb.generation : null
 }
 
+// A special enemy's <RigidBody> can unmount without passing through the death
+// path that nulls _enemyHit, which leaves weapons holding a freed Rapier handle.
+// Touching one panics inside wasm, and the panic leaks the wasm-bindgen borrow
+// guard on RawRigidBodySet, so every later world.step() throws "recursive use of
+// an object detected which would lead to unsafe aliasing in rust" forever.
+// isValid() is the only accessor that answers safely on a freed handle; pooled
+// proxies have no isValid at all, hence the typeof check (same idiom as
+// starlinkCrash.js).
 export function isEnemyHitLive(rb, generation = captureEnemyGeneration(rb)) {
   if (!rb?._enemyHit || rb._enemyDead) return false
+  if (typeof rb.isValid === 'function' && !rb.isValid()) return false
   return generation === null || rb.generation === generation
 }
 

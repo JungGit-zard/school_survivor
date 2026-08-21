@@ -542,8 +542,12 @@ export function getB02CorridorBlockadeLineVisualState({ phase, index, activeLine
   return index === activeLineIndex ? 'active' : 'future'
 }
 
+export function shouldRenderB02CorridorBlockadeVisual({ phase, lineZs }) {
+  return (phase === 'telegraph' || phase === 'active') && lineZs.length > 0
+}
+
 export function B02CorridorBlockadeVisual({ phase, lineZs, activeLineIndex, halfX }) {
-  if (phase === 'idle' || lineZs.length === 0) return null
+  if (!shouldRenderB02CorridorBlockadeVisual({ phase, lineZs })) return null
   return (
     <group aria-label="B02 복도 봉쇄선">
       {lineZs.map((z, index) => {
@@ -572,8 +576,8 @@ export function B02CorridorBlockadeVisual({ phase, lineZs, activeLineIndex, half
 
 export const B03_SHUTTLE_RUN_VISUALS = Object.freeze({
   telegraph: Object.freeze({ surface: '#f5b83d', surfaceOpacity: 0.44, outline: '#6b4308', outlineOpacity: 0.82 }),
-  outbound: Object.freeze({ surface: '#f05423', surfaceOpacity: 0.82, outline: '#641909', outlineOpacity: 0.96 }),
-  returning: Object.freeze({ surface: '#ff7a28', surfaceOpacity: 0.86, outline: '#721d08', outlineOpacity: 0.98 }),
+  outbound: Object.freeze({ surface: '#ffd34e', surfaceOpacity: 0.82, outline: '#6b4308', outlineOpacity: 0.96 }),
+  returning: Object.freeze({ surface: '#e6a81f', surfaceOpacity: 0.86, outline: '#5d3906', outlineOpacity: 0.98 }),
   stun: Object.freeze({ surface: '#c99a43', surfaceOpacity: 0.2, outline: '#5d451d', outlineOpacity: 0.42 }),
 })
 
@@ -612,6 +616,10 @@ export function getB03ShuttleRunVisualState({ phase, passIndex }) {
   if (phase === 'telegraph') return 'telegraph'
   if (phase === 'active') return passIndex === 1 ? 'returning' : 'outbound'
   return 'stun'
+}
+
+export function hasB03ShuttleRunVisualChanged(previous, state) {
+  return previous.phase !== state.phase || previous.laneZ !== state.laneZ || previous.passIndex !== state.passIndex
 }
 
 function B03ShuttleRunVisual({ phase, passIndex, laneZ, halfX }) {
@@ -915,7 +923,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   }, [])
   const syncB03ShuttleVisual = useCallback((state) => {
     setB03ShuttleVisual((previous) => (
-      previous.phase === state.phase && previous.laneZ === state.laneZ ? previous : { ...state }
+      hasB03ShuttleRunVisualChanged(previous, state) ? { ...state } : previous
     ))
   }, [])
   const syncB04SoupBlastVisual = useCallback((state) => {

@@ -27,7 +27,7 @@ describe('weaponPermanentUpgrades storage layer', () => {
 
     expect(levels.pencilThrow).toBe(0)
     expect(levels.studentLantern).toBe(0)
-    expect(Object.keys(levels).length).toBe(19)
+    expect(Object.keys(levels).length).toBe(20)
   })
 
   it('starter 무기는 해금 저장값 없이도 구매되고 코인을 차감한다', () => {
@@ -198,5 +198,6 @@ describe('weaponPermanentUpgrades storage layer', () => {
     expect(upgraded('umbrellaGuard')).toMatchObject({ cooldown: 3240, radius: 1.375, knockbackMs: 273 })
     expect(upgraded('eraserBomb')).toMatchObject({ damage: 28.6, radius: 1.566, permanentSlowDust: true })
     expect(upgraded('studentLantern')).toMatchObject({ damage: 0.2, lightLength: 2.246, lightWidth: 3.888, permanentSlowChance: 0.1, critChance: 0.11 })
+    expect(upgraded('inucon')).toMatchObject({ healPercent: 0.108, pushRadius: 0.935, knockback: 3.14 })
   })
 })
