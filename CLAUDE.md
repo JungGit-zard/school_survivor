@@ -86,18 +86,29 @@ Using gstack skills: After install, skills like /qa, /ship, /review, /investigat
 and /browse are available. Use /browse for all web browsing.
 Use ~/.claude/skills/gstack/... for gstack file paths (the global path).
 
-## Git Workflow — 에이전트별 워크트리 + 단일 트렁크 (2026-07-16 개편)
+## Git Workflow — 에이전트별 워크트리 + 단일 트렁크 (2026-08-21 갱신)
 
-**에이전트마다 전용 워크트리에서 작업하고, 커밋은 전부 같은 원격 트렁크 브랜치에 쌓는다.** 단기 task 브랜치를 만들지 않는다. 현재 트렁크: `feature/stage2-corridor-floor-graphics`.
+**에이전트마다 전용 워크트리에서 작업하고, 커밋은 전부 같은 원격 트렁크 브랜치에 쌓는다.** 단기 task 브랜치를 만들지 않는다. 현재 트렁크: `zombie_only`.
 
 ### 워크트리 배정 (정본)
 
 | 디렉터리 | 담당 | 로컬 브랜치 | push 대상 |
 |---|---|---|---|
-| `zombie_claude/` | **Claude 전용** | `claude-dev` | `origin/feature/stage2-corridor-floor-graphics` (upstream 설정됨) |
-| `school_survivor-integration/` | **codex 전용** | `feature/stage2-corridor-floor-graphics` | `origin/feature/stage2-corridor-floor-graphics` |
+| `zombie_claude/` | **Claude 전용** | `claude-dev` | `origin/zombie_only` (upstream 설정됨) |
+| `school_survivor-integration/` | **codex 전용** | `zombie_only` | `origin/zombie_only` |
 
 서로의 워크트리 파일은 절대 수정하지 않는다. 같은 트렁크를 공유하므로 커밋 히스토리는 하나다.
+
+`zombie_claude/`는 2026-08-21에 재생성했다. 그전까지 두 에이전트가 `school_survivor-integration/`
+하나를 공유했고, 그래서 `e2975e8`이 Claude의 작업중 `Enemy.jsx`를 통째로 삼키는 사고가 났다.
+전용 워크트리는 인덱스와 작업 트리가 따로라 남의 커밋이 내 파일을 쓸어 담을 수 없다.
+
+`node_modules`는 공유 트리 쪽으로 junction을 걸어 쓴다(디스크 절약). 의존성이 바뀌면 공유 트리에서
+`npm install`을 돌리면 양쪽에 같이 반영된다.
+
+```powershell
+New-Item -ItemType Junction -Path "D:/JungSil/2.Minigame_project/zombie_claude/Developer/r3f_prototype/node_modules" -Target "D:/JungSil/2.Minigame_project/school_survivor-integration/Developer/r3f_prototype/node_modules"
+```
 
 ### Claude 워크플로우 (zombie_claude/에서)
 
@@ -105,21 +116,29 @@ Use ~/.claude/skills/gstack/... for gstack file paths (the global path).
 cd d:/JungSil/2.Minigame_project/zombie_claude
 
 # 작업 전 최신 트렁크 동기화
-git fetch origin && git reset --hard origin/feature/stage2-corridor-floor-graphics
+git fetch origin && git reset --hard origin/zombie_only
 
-# 작업 후 커밋 → 트렁크로 push (upstream 설정돼 있어 push만 하면 됨)
+# 작업 후 커밋 → 트렁크로 순차 push
 git add <files>
 git commit -m "feat/fix/chore: ..."
-git push
+git fetch origin && git rebase origin/zombie_only   # 남이 먼저 올렸으면 그 위로 쌓는다
+git push                                            # push.default=upstream → claude-dev:zombie_only
 ```
 
 ### 규칙
 
 - `claude/<task>` 단기 브랜치 **절대 만들지 않는다**.
 - 작업 시작 전 반드시 `git fetch && git reset --hard origin/<트렁크>`로 최신화 — 전용 워크트리라 pathspec 없는 일반 커밋 가능.
-- 충돌 시 `git pull --rebase` 후 재push.
-- 트렁크 브랜치가 바뀌면(예: main 복귀) 이 표와 branch.claude-dev.merge 설정을 함께 갱신한다.
+- push는 항상 **fetch → rebase → push** 순서다. 트렁크 하나에 순차로만 쌓고 force push는 하지 않는다.
+- 남의 워크트리에서 `git pull`이 "commit your changes" 로 막히면 **그대로 둔다**. 그쪽 작업중 파일이다.
+- 트렁크 브랜치가 바뀌면(예: main 복귀) 이 표와 `branch.claude-dev.merge` 설정을 함께 갱신한다.
 - 서브에이전트는 `project_subagents/`에서 먼저 찾는다. 새로 만들지 않는다.
+
+### 줄바꿈 (2026-08-21)
+
+`.gitattributes`가 `* text=auto eol=lf`로 작업 트리와 blob을 전부 LF에 고정한다. 그전에는 추적 텍스트
+1824개 중 **512개** blob에 CR이 섞여 있어서, 한 줄만 고쳐도 diff가 파일 전체로 부풀었다. 이 파일을
+지우거나 `core.autocrlf`로 우회하지 마라 — 문제가 그대로 돌아온다.
 
 ## Documented Solutions
 
