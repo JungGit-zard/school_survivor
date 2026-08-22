@@ -33,6 +33,9 @@ const FFMPEG = process.env.FFMPEG_BINARY || 'ffmpeg'
 
 const SR = 22050 // 음성은 8kHz 위에 정보가 거의 없다. 파일 용량 절반.
 const PI2 = Math.PI * 2
+// 2026-08-22 Terry 피드백: 기존 사망 발성이 너무 저음이라 "아저씨"처럼 들렸다.
+// 전체 F0를 약 +5반음 올려 좀비/괴물 질감은 유지하되 둔탁한 남성 저음을 줄인다.
+export const ZOMBIE_DEATH_PITCH_SCALE = 1.33
 
 // ── 모음 포먼트 표 ────────────────────────────────────────────────────────────
 // [F1, F2, F3, BW1, BW2, BW3, A1, A2, A3]
@@ -144,7 +147,7 @@ export function synthVoice(spec) {
     const p = i / n
 
     const fr = sampleFrames(spec.frames, p)
-    let f0 = sampleContour(spec.f0, p)
+    let f0 = sampleContour(spec.f0, p) * (spec.pitchScale ?? 1)
 
     // 비브라토 + 지터(피치 흔들림) — 기계음을 유기적으로 만든다
     if (spec.vib) f0 *= 1 + spec.vib.depth * Math.sin(PI2 * spec.vib.rate * t)
@@ -445,7 +448,7 @@ if (process.argv[1] && process.argv[1].endsWith('generate_zombie_death_voices.mj
   for (const [id, spec] of Object.entries(VOICES)) {
     if (filter && !id.includes(filter)) continue
     const wav = join(TMP, `${id}.wav`)
-    writeWav(wav, synthVoice(spec))
+    writeWav(wav, synthVoice({ ...spec, pitchScale: spec.pitchScale ?? ZOMBIE_DEATH_PITCH_SCALE }))
     const ogg = join(OUT, `${id}.ogg`)
     const mp3 = join(OUT, `${id}.mp3`)
     execFileSync(FFMPEG, ['-y', '-loglevel', 'error', '-i', wav, '-c:a', 'libvorbis', '-q:a', '2', '-ar', String(SR), ogg])

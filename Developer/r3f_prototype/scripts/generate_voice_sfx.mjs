@@ -16,6 +16,9 @@ const TMP = join(ROOT, 'tmp_voice_sfx')
 const FFMPEG = process.env.FFMPEG_BINARY || 'ffmpeg'
 const SR = 22050
 const PI2 = Math.PI * 2
+// 2026-08-22 Terry 피드백: 음성형 SFX 전반이 너무 저음/아저씨톤.
+// 휘파람을 제외한 캐릭터/생물 목소리의 기본 F0를 약 +4반음 올린다.
+export const VOICE_PITCH_SCALE = 1.26
 
 function writeWav(filepath, samples) {
   const len = samples.length
@@ -95,7 +98,7 @@ function synthWhistle({ dur = 0.46, seed = 1, f0 = [[0, 1200], [1, 2200]], vibRa
 }
 
 function voice(spec) {
-  return synthVoice(spec)
+  return synthVoice({ ...spec, pitchScale: spec.pitchScale ?? VOICE_PITCH_SCALE })
 }
 
 const VOICE_SFX = {
