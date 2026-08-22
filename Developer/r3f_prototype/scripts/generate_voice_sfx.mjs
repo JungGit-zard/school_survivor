@@ -19,6 +19,8 @@ const PI2 = Math.PI * 2
 // 2026-08-22 Terry 피드백: 음성형 SFX 전반이 너무 저음/아저씨톤.
 // 휘파람을 제외한 캐릭터/생물 목소리의 기본 F0를 약 +4반음 올린다.
 export const VOICE_PITCH_SCALE = 1.26
+// 주인공/마틸다는 괴물톤이 아니라 귀여운 여성 음성으로 들려야 해서 별도 고음 스케일을 쓴다.
+export const CUTE_FEMALE_VOICE_PITCH_SCALE = 1.8
 
 function writeWav(filepath, samples) {
   const len = samples.length
@@ -134,27 +136,27 @@ const VOICE_SFX = {
   ] }) },
 
   // 마틸다
-  matildaSpawn: { dir: 'enemies', synth: () => voice({ dur: 0.62, targetLoudness: 0.18, seed: 0x6301, hold: 1, bits: 8, drive: 1.35, f0: [[0, 230], [0.32, 255], [1, 190]], vib: { rate: 6.5, depth: 0.035 }, jitter: 0.012, frames: [
+  matildaSpawn: { dir: 'enemies', synth: () => voice({ dur: 0.62, targetLoudness: 0.18, seed: 0x6301, hold: 1, bits: 8, drive: 1.35, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 230], [0.32, 255], [1, 190]], vib: { rate: 6.5, depth: 0.035 }, jitter: 0.012, frames: [
     { t: 0, v: 'aa', amp: 0, voice: 1, noise: 0.12 }, { t: 0.08, v: 'aa', amp: 0.7, voice: 1, noise: 0.08 }, { t: 0.38, v: 'ee', amp: 0.78, voice: 1, noise: 0.06 }, { t: 0.7, v: 'aa', amp: 0.55, voice: 1, noise: 0.1 }, { t: 1, v: 'ng', amp: 0, voice: 1, noise: 0.14 },
   ] }) },
-  matildaLaugh: { dir: 'enemies', synth: () => voice({ dur: 0.7, targetLoudness: 0.18, seed: 0x6302, hold: 1, bits: 8, drive: 1.45, f0: [[0, 260], [0.25, 315], [0.5, 245], [0.72, 310], [1, 230]], vib: { rate: 8.5, depth: 0.055 }, jitter: 0.018, frames: [
+  matildaLaugh: { dir: 'enemies', synth: () => voice({ dur: 0.7, targetLoudness: 0.18, seed: 0x6302, hold: 1, bits: 8, drive: 1.45, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 260], [0.25, 315], [0.5, 245], [0.72, 310], [1, 230]], vib: { rate: 8.5, depth: 0.055 }, jitter: 0.018, frames: [
     { t: 0, v: 'aa', amp: 0, voice: 0, noise: 0.5 }, { t: 0.04, v: 'aa', amp: 0.8, voice: 1, noise: 0.12 }, { t: 0.22, v: 'aa', amp: 0.15, voice: 1, noise: 0.12 }, { t: 0.3, v: 'ee', amp: 0.78, voice: 1, noise: 0.1 }, { t: 0.48, v: 'ee', amp: 0.12, voice: 1, noise: 0.12 }, { t: 0.58, v: 'aa', amp: 0.74, voice: 1, noise: 0.12 }, { t: 1, v: 'aa', amp: 0, voice: 1, noise: 0.18 },
   ] }) },
-  matildaDash: { dir: 'enemies', synth: () => voice({ dur: 0.22, targetLoudness: 0.18, seed: 0x6303, hold: 1, bits: 8, drive: 1.55, f0: [[0, 310], [0.3, 360], [1, 250]], jitter: 0.014, frames: [
+  matildaDash: { dir: 'enemies', synth: () => voice({ dur: 0.22, targetLoudness: 0.18, seed: 0x6303, hold: 1, bits: 8, drive: 1.55, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 310], [0.3, 360], [1, 250]], jitter: 0.014, frames: [
     { t: 0, v: 'aa', amp: 0, voice: 0, noise: 0.8 }, { t: 0.05, v: 'aa', amp: 0.9, voice: 1, noise: 0.22 }, { t: 0.42, v: 'ee', amp: 0.75, voice: 1, noise: 0.15 }, { t: 1, v: 'ee', amp: 0, voice: 1, noise: 0.18 },
   ] }) },
-  matildaDeath: { dir: 'enemies', synth: () => voice({ dur: 0.5, targetLoudness: 0.2, seed: 0x6304, hold: 1, bits: 8, drive: 1.65, f0: [[0, 250], [0.24, 330], [1, 170]], vib: { rate: 9, depth: 0.05 }, ring: { rate: 38, depth: 0.16 }, jitter: 0.02, frames: [
+  matildaDeath: { dir: 'enemies', synth: () => voice({ dur: 0.5, targetLoudness: 0.2, seed: 0x6304, hold: 1, bits: 8, drive: 1.65, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 250], [0.24, 330], [1, 170]], vib: { rate: 9, depth: 0.05 }, ring: { rate: 38, depth: 0.16 }, jitter: 0.02, frames: [
     { t: 0, v: 'ee', amp: 0, voice: 0, noise: 0.7 }, { t: 0.04, v: 'ee', amp: 0.85, voice: 1, noise: 0.12 }, { t: 0.24, v: 'aa', amp: 1, voice: 1, noise: 0.1 }, { t: 0.58, v: 'aw', amp: 0.45, voice: 1, noise: 0.18 }, { t: 1, v: 'ng', amp: 0, voice: 1, noise: 0.22 },
   ] }) },
 
   // 주인공
-  playerHit: { dir: 'player', synth: () => voice({ dur: 0.2, targetLoudness: 0.18, seed: 0x6401, hold: 1, bits: 8, drive: 1.25, f0: [[0, 265], [0.18, 330], [1, 210]], jitter: 0.01, frames: [
+  playerHit: { dir: 'player', synth: () => voice({ dur: 0.2, targetLoudness: 0.18, seed: 0x6401, hold: 1, bits: 8, drive: 1.25, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 265], [0.18, 330], [1, 210]], jitter: 0.01, frames: [
     { t: 0, v: 'aa', amp: 0, voice: 0, noise: 0.35 }, { t: 0.04, v: 'aa', amp: 0.95, voice: 1, noise: 0.1 }, { t: 0.45, v: 'uh', amp: 0.65, voice: 1, noise: 0.1 }, { t: 1, v: 'uh', amp: 0, voice: 1, noise: 0.12 },
   ] }) },
-  playerDeath: { dir: 'player', synth: () => voice({ dur: 0.58, targetLoudness: 0.18, seed: 0x6402, hold: 1, bits: 8, drive: 1.3, f0: [[0, 245], [0.28, 285], [1, 135]], vib: { rate: 5.4, depth: 0.035 }, jitter: 0.012, frames: [
+  playerDeath: { dir: 'player', synth: () => voice({ dur: 0.58, targetLoudness: 0.18, seed: 0x6402, hold: 1, bits: 8, drive: 1.3, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 245], [0.28, 285], [1, 135]], vib: { rate: 5.4, depth: 0.035 }, jitter: 0.012, frames: [
     { t: 0, v: 'aa', amp: 0, voice: 1, noise: 0.18 }, { t: 0.06, v: 'aa', amp: 0.9, voice: 1, noise: 0.1 }, { t: 0.34, v: 'aw', amp: 0.78, voice: 1, noise: 0.12 }, { t: 0.75, v: 'uh', amp: 0.35, voice: 1, noise: 0.18 }, { t: 1, v: 'uh', amp: 0, voice: 1, noise: 0.24 },
   ] }) },
-  playerHeal: { dir: 'player', synth: () => voice({ dur: 0.36, targetLoudness: 0.14, seed: 0x6403, hold: 1, bits: 8, drive: 1.05, f0: [[0, 220], [1, 175]], vib: { rate: 4.2, depth: 0.018 }, jitter: 0.006, frames: [
+  playerHeal: { dir: 'player', synth: () => voice({ dur: 0.36, targetLoudness: 0.14, seed: 0x6403, hold: 1, bits: 8, drive: 1.05, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 220], [1, 175]], vib: { rate: 4.2, depth: 0.018 }, jitter: 0.006, frames: [
     { t: 0, v: 'oo', amp: 0, voice: 1, noise: 0.18 }, { t: 0.1, v: 'oo', amp: 0.52, voice: 1, noise: 0.08 }, { t: 0.6, v: 'aw', amp: 0.46, voice: 1, noise: 0.08 }, { t: 1, v: 'aw', amp: 0, voice: 1, noise: 0.1 },
   ] }) },
 
@@ -178,7 +180,7 @@ const VOICE_SFX = {
   // 휘파람/호출 계열
   rzlWhistle: { dir: 'events', synth: () => synthWhistle({ seed: 0x6601, dur: 0.42, f0: [[0, 1300], [0.32, 2250], [0.6, 1850], [1, 2500]], vibRate: 8, vibDepth: 30, noise: 0.012 }) },
   stage2GuardWhistle: { dir: 'events', synth: () => synthWhistle({ seed: 0x6602, dur: 0.5, f0: [[0, 1700], [0.18, 2600], [0.5, 2600], [0.68, 1900], [1, 2350]], vibRate: 11, vibDepth: 24, noise: 0.01, chirp: true }) },
-  matildaCountdownEnd: { dir: 'events', synth: () => voice({ dur: 0.42, targetLoudness: 0.17, seed: 0x6603, hold: 1, bits: 8, drive: 1.45, f0: [[0, 280], [0.22, 360], [1, 190]], vib: { rate: 10, depth: 0.05 }, ring: { rate: 42, depth: 0.14 }, jitter: 0.018, frames: [
+  matildaCountdownEnd: { dir: 'events', synth: () => voice({ dur: 0.42, targetLoudness: 0.17, seed: 0x6603, hold: 1, bits: 8, drive: 1.45, pitchScale: CUTE_FEMALE_VOICE_PITCH_SCALE, f0: [[0, 280], [0.22, 360], [1, 190]], vib: { rate: 10, depth: 0.05 }, ring: { rate: 42, depth: 0.14 }, jitter: 0.018, frames: [
     { t: 0, v: 'ee', amp: 0, voice: 0, noise: 0.7 }, { t: 0.05, v: 'ee', amp: 0.72, voice: 1, noise: 0.15 }, { t: 0.3, v: 'aa', amp: 0.8, voice: 1, noise: 0.12 }, { t: 0.78, v: 'ng', amp: 0.28, voice: 1, noise: 0.18 }, { t: 1, v: 'ng', amp: 0, voice: 1, noise: 0.2 },
   ] }) },
 }
