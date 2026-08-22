@@ -381,7 +381,7 @@ const COLUMN_WIDTH_RATIO = 0.6
 // gauntlet 두 줄을 벽에서 이만큼 안쪽에 둔다(벽에 완전히 붙으면 place가 경계로 clamp).
 const GAUNTLET_WALL_INSET = 0.8
 
-export const RUN_ZOMBIE_CREW_SIZE = 13
+export const RUN_ZOMBIE_CREW_SIZE = 9
 export const RUN_ZOMBIE_CREW_DIR = Object.freeze({ x: 1, z: 1 })
 export const STAGE2_GUARD_CHASE_SIZE = 7
 
@@ -461,27 +461,48 @@ export function formationSpawnPositions(formation, count, bounds, player, random
   return positions
 }
 
-export function createRunZombieCrewEntries(bounds, random = Math.random, obstacles = []) {
+export function createRunZombieCrewEntries(bounds, random = Math.random, obstacles = [], player = { x: 0, z: 0 }) {
   const limX = bounds.halfX - SPAWN_INSET
   const limZ = bounds.halfZ - SPAWN_INSET
-  const dirLen = Math.hypot(RUN_ZOMBIE_CREW_DIR.x, RUN_ZOMBIE_CREW_DIR.z) || 1
-  const nx = RUN_ZOMBIE_CREW_DIR.x / dirLen
-  const nz = RUN_ZOMBIE_CREW_DIR.z / dirLen
+  const playerX = Number.isFinite(player?.x) ? player.x : 0
+  const playerZ = Number.isFinite(player?.z) ? player.z : 0
+  const startCandidates = [
+    [-limX - 1.8, -limZ - 1.8],
+    [ limX + 1.8, -limZ - 1.8],
+    [-limX - 1.8,  limZ + 1.8],
+    [ limX + 1.8,  limZ + 1.8],
+  ]
+  let startX = startCandidates[0][0]
+  let startZ = startCandidates[0][1]
+  let bestDistSq = -Infinity
+  for (const [candidateX, candidateZ] of startCandidates) {
+    const dx = playerX - candidateX
+    const dz = playerZ - candidateZ
+    const distSq = dx * dx + dz * dz
+    if (distSq > bestDistSq) {
+      bestDistSq = distSq
+      startX = candidateX
+      startZ = candidateZ
+    }
+  }
+  const dirX = playerX - startX
+  const dirZ = playerZ - startZ
+  const dirLen = Math.hypot(dirX, dirZ) || Math.hypot(RUN_ZOMBIE_CREW_DIR.x, RUN_ZOMBIE_CREW_DIR.z) || 1
+  const runCrewDir = Object.freeze({ x: dirX / dirLen, z: dirZ / dirLen })
+  const nx = runCrewDir.x
+  const nz = runCrewDir.z
   const px = -nz
   const pz = nx
-  const startX = -limX - 1.8
-  const startZ = -limZ - 1.8
 
   const entries = []
   for (let i = 0; i < RUN_ZOMBIE_CREW_SIZE; i += 1) {
     const isLeader = i === 0
     const followerIndex = Math.max(0, i - 1)
-    const row = Math.floor(followerIndex / 4)
-    const col = followerIndex % 4
-    // 맨 처음 런좀비 크루 구현처럼 살짝 흔들린 대각선 무리로 보이게 한다.
-    // 일반 좀비 formation이 아니라 RUN_ZOMBIE_CREW 전용 레이어/전용 엔트리다.
-    const sideOffset = isLeader ? 0 : (col - 1.5) * 0.72 + (random() - 0.5) * 0.16
-    const trail = isLeader ? 0 : 1.15 + row * 1.05 + (col % 2) * 0.38
+    const row = Math.floor(followerIndex / 2)
+    const col = followerIndex % 2
+    // 리더 뒤에 2열 × 4행 = 팔로워 8마리. 호루라기 후 현재 주인공 방향으로 달린다.
+    const sideOffset = isLeader ? 0 : (col - 0.5) * 0.82 + (random() - 0.5) * 0.12
+    const trail = isLeader ? 0 : 1.15 + row * 0.95
     const x = startX - nx * trail + px * sideOffset
     const z = startZ - nz * trail + pz * sideOffset
     const type = isLeader ? 'RZL' : 'RZC'
@@ -515,7 +536,7 @@ export function createRunZombieCrewEntries(bounds, random = Math.random, obstacl
     entries.push({
       type,
       pos: safe,
-      runCrewDir: RUN_ZOMBIE_CREW_DIR,
+      runCrewDir,
       runCrewRole: isLeader ? 'leader' : 'crew',
     })
   }
@@ -1579,7 +1600,7 @@ export default function Enemies() {
       }
       if (evt.formation === RUN_ZOMBIE_CREW_FORMATION) {
         emitSfx({ id: 'rzlWhistle', volume: 0.5 })
-        const batch = createRunZombieCrewEntries(cache.bounds, Math.random, cache.obstacles)
+        const batch = createRunZombieCrewEntries(cache.bounds, Math.random, cache.obstacles, { x: playerPos.x, z: playerPos.z })
           .map((entry) => ({ id: ++_uid, ...entry, statOverride: stageHpOverride(entry.type, cache.id) }))
         recordMissionBurstSpawns(store, batch, cache.id, b)
         addEnemies(batch, true, cache.spawnToken)

@@ -743,7 +743,7 @@ describe('jarmob expected total keeps density separate from the user HP curve', 
     // base 총량이 거의 그대로라 m도 거의 안 움직였다(1.19379 → 1.19396).
     expect(STAGE_DENSITY_MULTIPLIER).toEqual({
       stage2: 0.8766327815877557,
-      stage3: 1.205324260259222,
+      stage3: 1.216027006060753,
       stage4: 1.1939640195114065,
     })
     for (const stageId of ['stage2', 'stage3', 'stage4']) {
@@ -999,22 +999,26 @@ describe('formation spawns', () => {
     expect(burstsForStage('stage2').some((evt) => evt.formation)).toBe(true)
   })
 
-  it('creates the stage3 run zombie crew followers in the restored thirteen-member staggered diagonal formation', () => {
+  it('creates the stage3 run zombie crew as a leader followed by eight runners in two columns and four rows', () => {
     const stage3Arena = { halfX: 18, halfZ: 18 }
-    const entries = createRunZombieCrewEntries(stage3Arena, () => 0.5)
+    const player = { x: 0, z: 0 }
+    const entries = createRunZombieCrewEntries(stage3Arena, () => 0.5, [], player)
     const leader = entries[0]
-    const dirLength = Math.hypot(RUN_ZOMBIE_CREW_DIR.x, RUN_ZOMBIE_CREW_DIR.z)
-    const forward = { x: RUN_ZOMBIE_CREW_DIR.x / dirLength, z: RUN_ZOMBIE_CREW_DIR.z / dirLength }
-    const right = { x: -forward.z, z: forward.x }
+    const dir = leader.runCrewDir
+    const right = { x: -dir.z, z: dir.x }
 
-    expect(entries).toHaveLength(RUN_ZOMBIE_CREW_SIZE)
-    expect(entries[0]).toMatchObject({ type: 'RZL', runCrewRole: 'leader', runCrewDir: RUN_ZOMBIE_CREW_DIR })
+    expect(RUN_ZOMBIE_CREW_SIZE).toBe(9)
+    expect(entries).toHaveLength(9)
+    expect(entries[0]).toMatchObject({ type: 'RZL', runCrewRole: 'leader' })
+    expect(Math.hypot(dir.x, dir.z)).toBeCloseTo(1, 6)
     expect(entries.slice(1).every((entry) => entry.type === 'RZC' && entry.runCrewRole === 'crew')).toBe(true)
+    expect(entries.every((entry) => entry.runCrewDir === dir)).toBe(true)
+
     const localFollowers = entries.slice(1).map((entry) => {
       const dx = entry.pos[0] - leader.pos[0]
       const dz = entry.pos[2] - leader.pos[2]
       return {
-        behind: -(dx * forward.x + dz * forward.z),
+        behind: -(dx * dir.x + dz * dir.z),
         side: dx * right.x + dz * right.z,
       }
     })
@@ -1023,25 +1027,31 @@ describe('formation spawns', () => {
     )
 
     expect(localFollowers.every(({ behind }) => behind > 0)).toBe(true)
-    expect(rows).toHaveLength(6)
+    expect(rows).toHaveLength(4)
     expect(rows.every((row) => row.length === 2)).toBe(true)
-    expect(localFollowers.map(({ behind, side }) => `${behind.toFixed(6)}:${side.toFixed(6)}`)).toHaveLength(new Set(localFollowers.map(({ behind, side }) => `${behind.toFixed(6)}:${side.toFixed(6)}`)).size)
     const sides = localFollowers.map(({ side }) => side).sort((a, b) => a - b)
-    const expectedSides = [-1.08, -1.08, -1.08, -0.36, -0.36, -0.36, 0.36, 0.36, 0.36, 1.08, 1.08, 1.08]
+    const expectedSides = [-0.41, -0.41, -0.41, -0.41, 0.41, 0.41, 0.41, 0.41]
     expect(sides).toHaveLength(expectedSides.length)
     sides.forEach((side, index) => expect(side).toBeCloseTo(expectedSides[index], 6))
   })
 
-  it('keeps the run zombie crew as a diagonal screen-crossing swarm, not a ring/pincer clone', () => {
-    const entries = createRunZombieCrewEntries({ halfX: 18, halfZ: 18 }, () => 0.5)
+  it('aims the run zombie crew at the current player position after the whistle', () => {
+    const player = { x: 9, z: -3 }
+    const entries = createRunZombieCrewEntries({ halfX: 18, halfZ: 18 }, () => 0.5, [], player)
     const leader = entries[0]
-    const last = entries[entries.length - 1]
+    const dir = leader.runCrewDir
+    const toPlayer = { x: player.x - leader.pos[0], z: player.z - leader.pos[2] }
+    const len = Math.hypot(toPlayer.x, toPlayer.z)
 
-    expect(RUN_ZOMBIE_CREW_DIR).toEqual({ x: 1, z: 1 })
-    expect(leader.pos[0]).toBeLessThan(-15)
-    expect(leader.pos[2]).toBeLessThan(-15)
-    expect(last.pos[0]).toBeLessThan(leader.pos[0])
-    expect(last.pos[2]).toBeLessThan(leader.pos[2])
+    expect(Math.hypot(dir.x, dir.z)).toBeCloseTo(1, 6)
+    expect(dir.x).toBeCloseTo(toPlayer.x / len, 6)
+    expect(dir.z).toBeCloseTo(toPlayer.z / len, 6)
+    for (const follower of entries.slice(1)) {
+      const dx = follower.pos[0] - leader.pos[0]
+      const dz = follower.pos[2] - leader.pos[2]
+      const behind = -(dx * dir.x + dz * dir.z)
+      expect(behind).toBeGreaterThan(0)
+    }
   })
 
   it('creates the Stage 2 guard chase as one fugitive ahead of six guards for every map edge', () => {
@@ -1081,7 +1091,7 @@ describe('formation spawns', () => {
   it('keeps the run zombie crew on its dedicated spawn layer before general formation spawning', () => {
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
     const runCrewBranch = source.indexOf('evt.formation === RUN_ZOMBIE_CREW_FORMATION')
-    const runCrewFactory = source.indexOf('createRunZombieCrewEntries(cache.bounds, Math.random, cache.obstacles)')
+    const runCrewFactory = source.indexOf('createRunZombieCrewEntries(cache.bounds, Math.random, cache.obstacles, { x: playerPos.x, z: playerPos.z })')
     const runCrewReturn = source.indexOf('return', runCrewFactory)
     const generalFormation = source.indexOf('formationSpawnPositions(evt.formation', runCrewReturn)
     expect(runCrewBranch).toBeGreaterThan(-1)
@@ -1197,12 +1207,12 @@ describe('pooled standard enemy runtime wiring', () => {
     expect(result.dynamicSpecial).toBeLessThanOrEqual(3)
   })
 
-  it('formation과 13 RZ crew는 동일 obstacle AABB와 겹치지 않는 후보만 만든다', () => {
+  it('formation과 9 RZ crew는 동일 obstacle AABB와 겹치지 않는 후보만 만든다', () => {
     const obstacles = [{ x: 0, z: 0, halfX: 1.2, halfZ: 1.2 }]
     const positions = formationSpawnPositions('ring', 8, { halfX: 12, halfZ: 12 }, { x: 0, z: 0 }, () => 0.5, obstacles, 'E02')
     expect(positions).toHaveLength(8)
     positions.forEach((pos) => expect(spawnOverlapsObstacle(pos[0], pos[2], 'E02', obstacles)).toBe(false))
-    const crew = createRunZombieCrewEntries({ halfX: 18, halfZ: 18 }, () => 0.5, [{ x: -17.3, z: -17.3, halfX: 1.2, halfZ: 1.2 }])
+    const crew = createRunZombieCrewEntries({ halfX: 18, halfZ: 18 }, () => 0.5, [{ x: -17.3, z: -17.3, halfX: 1.2, halfZ: 1.2 }], { x: 0, z: 0 })
     expect(crew).toHaveLength(RUN_ZOMBIE_CREW_SIZE)
     crew.forEach((entry) => expect(spawnOverlapsObstacle(entry.pos[0], entry.pos[2], entry.type, [{ x: -17.3, z: -17.3, halfX: 1.2, halfZ: 1.2 }])).toBe(false))
   })
