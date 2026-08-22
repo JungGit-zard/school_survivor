@@ -16,6 +16,7 @@ import { STAGE2_SPAWN_TELEGRAPHS, STAGE3_SPAWN_TELEGRAPHS, STAGE4_SPAWN_TELEGRAP
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
 import { CRITICAL_SHAKE_NORMAL_DURATION_MS, emitCriticalHitScreenShake, isCriticalScreenShakeReduced } from '../lib/criticalScreenShake.js'
 import { MATILDA_DIALOGUE_MS } from '../lib/matildaEntryGrace.js'
+import { getSpawnCatchUpOffsetSec } from '../lib/spawnCatchUp.js'
 import { getDialogueText } from '../dialogues/dialogueStore.js'
 import { getQuestDefinition, getStageQuestDefinitions } from '../lib/quests.js'
 import { BOSS_PASSIVE_ITEM_UI_CAPACITY, BOSS_PASSIVE_ITEMS, isBossPassiveItemUnlocked } from '../lib/bossPassiveItems.js'
@@ -926,7 +927,10 @@ export default function HUD({
   const bossWarning = useMemo(() => {
     if (bossSpawned || phase !== 'playing') return null
     const elapsedSec = elapsed / 1000
-    const warningSec = bossSpawnSec ?? stageConfig.bossWarningSec ?? 180
+    // 보스 등장은 스폰 시계(캐치업 오프셋만큼 앞당겨진 시각)에서 발화한다.
+    // 경고도 같은 만큼 당겨야 "3초 전 카운트다운"이 실제 등장과 어긋나지 않는다.
+    const tableWarningSec = bossSpawnSec ?? stageConfig.bossWarningSec ?? 180
+    const warningSec = tableWarningSec - getSpawnCatchUpOffsetSec()
     if (elapsedSec < warningSec - 3 || elapsedSec >= warningSec) return null
     return Math.max(1, Math.ceil(warningSec - elapsedSec))
   }, [bossSpawnSec, bossSpawned, elapsed, phase, stageConfig.bossWarningSec])

@@ -43,6 +43,7 @@ import {
   resetPooledEnemySpawnDrainQueue,
 } from '../lib/pooledEnemySpawnDrain.js'
 import { recordZombieEncounter } from '../lib/zombieEncyclopedia.js'
+import { advanceSpawnCatchUp, createSpawnCatchUpState, publishSpawnCatchUpOffsetSec, resetSpawnCatchUpState } from '../lib/spawnCatchUp.js'
 
 // 황금 코인 시계 드랍: 4분에 약 10개 → 20–28s 무작위 간격 (5분 기준 ×0.8)
 const GOLD_INTERVAL_MIN_MS = 20_000
@@ -1081,6 +1082,33 @@ export function shouldScheduleBurst(fired, elapsedSec, eventSec) {
   return !fired && elapsedSec >= eventSec
 }
 
+// 스폰 시계(spawnSec) 기준으로 "아직 안 터진 다음 스폰"이 언제인지 — 캐치업 점프 폭의 단일 소스.
+// 후보는 런타임에 실제로 발화하는 세 경로뿐이다: 단발 버스트 · 반복 버스트 · 오버타임 보강.
+// (20~40초 랜덤 웨이브·중간 보강·보스 호위는 런타임에서 발화하지 않으므로 후보가 아니다.)
+// 아무 후보도 없으면 null — 호출자는 오프셋을 올리지 않는다.
+export function nextPendingSpawnSec(burstEvents, firedFlags, scheduledRepeatTicks, spawnSec, stageId = 'stage1', overtimeTick = -1) {
+  if (!Number.isFinite(spawnSec)) return null
+  let best = Infinity
+  const events = burstEvents ?? []
+  for (let index = 0; index < events.length; index += 1) {
+    const evt = events[index]
+    if (!evt) continue
+    if (isRepeatingBurstEvent(evt)) {
+      const scheduled = scheduledRepeatTicks?.[index] ?? -1
+      const tickSec = repeatingBurstSecAtTick(evt, scheduled + 1)
+      if (Number.isFinite(tickSec) && tickSec > spawnSec && tickSec < best) best = tickSec
+      continue
+    }
+    if (firedFlags?.[index]) continue
+    if (Number.isFinite(evt.sec) && evt.sec > spawnSec && evt.sec < best) best = evt.sec
+  }
+  // 오버타임 보강은 무한 반복이라 표가 소진된 뒤에도 항상 후보가 남는다.
+  const nextOvertimeSec = getOvertimeReinforcementStartSec(stageId)
+    + (Math.floor(overtimeTick ?? -1) + 1) * OVERTIME_REINFORCEMENT_INTERVAL_SEC
+  if (Number.isFinite(nextOvertimeSec) && nextOvertimeSec > spawnSec && nextOvertimeSec < best) best = nextOvertimeSec
+  return Number.isFinite(best) ? best : null
+}
+
 function countPooledType(type) {
   const code = enemyTypeToCode(type)
   let count = 0
@@ -1148,6 +1176,7 @@ export default function Enemies() {
   const goldTimerRef              = useRef(nextGoldInterval())
   const dogeSpawnedRef           = useRef(false)     // 60초 도지 이벤트 1회 스폰 가드
   const overtimeTickRef          = useRef(-1)
+  const spawnCatchUpRef          = useRef(createSpawnCatchUpState())
   const stageSpawnTokenRef       = useRef(0)
   const sightGenerationRef       = useRef(new Uint16Array(MAX_ENEMIES))
   const sightTierRef             = useRef(new Uint8Array(MAX_ENEMIES))
@@ -1188,6 +1217,8 @@ export default function Enemies() {
     scheduledRepeatBurstTicksRef.current.fill(-1)
     consumedRepeatBurstTicksRef.current.fill(-1)
     overtimeTickRef.current = -1
+    resetSpawnCatchUpState(spawnCatchUpRef.current)
+    publishSpawnCatchUpOffsetSec(0)
     sightGenerationRef.current.fill(0)
     sightTierRef.current.fill(0)
     enemySightBlocked.fill(0)
@@ -1646,6 +1677,37 @@ export default function Enemies() {
     const sec = getRuntimeElapsedMs(useGameStore.getState().elapsedMs) / 1000
     const stageRuntime = stageRuntimeCacheRef.current
     if (!stageRuntime || stageRuntime.id !== currentStageId) return
+
+    // ── 스폰 시계 캐치업 ───────────────────────────────────────────────────────────
+    // 화면이 완전히 비면(살아있는 적 0 + 스폰 대기열 0) 남은 스폰 스케줄 전체를 상대 간격 그대로
+    // 앞으로 당겨서 빈 화면이 2초를 넘지 않게 한다. 스폰 게이트만 spawnSec을 읽고,
+    // HUD 타이머·탈출 포탈·마틸다·적 AI(context.elapsedSec)는 실시간 sec 그대로다.
+    const catchUpQueue = runtimeQueueRef.current
+    const liveEnemyCount = enemyPool.activeCount
+      + enemiesRef.current.length
+      + catchUpQueue.spawnDrain.count
+      + catchUpQueue.scheduleCount
+    const catchUp = spawnCatchUpRef.current
+    const pendingSpawnSec = sec + catchUp.offsetSec
+    advanceSpawnCatchUp(catchUp, {
+      deltaSec: delta,
+      liveEnemyCount,
+      spawnSec: pendingSpawnSec,
+      // 비어 있을 때만 계산한다 — 적이 있으면 캐치업이 이 값을 읽지 않는다.
+      nextPendingSpawnSec: liveEnemyCount === 0
+        ? nextPendingSpawnSec(
+            stageRuntime.burstEvents,
+            firedBurstsRef.current,
+            scheduledRepeatBurstTicksRef.current,
+            pendingSpawnSec,
+            stageRuntime.id,
+            overtimeTickRef.current,
+          )
+        : null,
+    })
+    publishSpawnCatchUpOffsetSec(catchUp.offsetSec)
+    const spawnSec = sec + catchUp.offsetSec
+
     const bounds = stageRuntime.bounds
     // 표준 적은 React/Rapier가 아닌 하나의 풀 step만 수행한다. 시야/장애물 배열은 stage 캐시를 그대로 쓴다.
     const obstacles = stageRuntime.obstacles
@@ -1673,7 +1735,9 @@ export default function Enemies() {
     context.activeProjectileCount = enemyProjectilePool.activeCount
     context.stageId = currentStageId
     context.e04IntroSec = getE04IntroSec(currentStageId)
-    context.bossPressure = currentStageId !== 'stage4' && sec >= bossSpawnSec && sec < (stageConfig.escapePortalSec ?? 210)
+    // 보스 등장은 버스트 표(= 스폰 시계)에서 당겨질 수 있으므로 하한도 spawnSec으로 본다.
+    // 상한(탈출 포탈)은 실시간 이벤트라 sec 그대로 — 런 길이는 캐치업의 영향을 받지 않는다.
+    context.bossPressure = currentStageId !== 'stage4' && spawnSec >= bossSpawnSec && sec < (stageConfig.escapePortalSec ?? 210)
     context.obstacles = obstacles
     context.obstacleCount = obstacles.length
     enemySimulationRuntime.step(enemyPool, context)
@@ -1696,12 +1760,12 @@ export default function Enemies() {
     }
 
     // 춤추는 도지 이벤트 — 모든 스테이지 60초 시점에 중앙에서 1회 스폰(스폰 펑 연출 경유).
-    if (shouldSpawnDoge(sec, dogeSpawnedRef.current)) {
+    if (shouldSpawnDoge(spawnSec, dogeSpawnedRef.current)) {
       dogeSpawnedRef.current = true
       enqueueScheduled(SCHEDULE_DOGE)
     }
 
-    const overtime = shouldScheduleOvertimeReinforcement(overtimeTickRef.current, sec, stageRuntime.id)
+    const overtime = shouldScheduleOvertimeReinforcement(overtimeTickRef.current, spawnSec, stageRuntime.id)
     if (overtime.shouldSchedule) {
       overtimeTickRef.current = overtime.tick
       enqueueScheduled(SCHEDULE_OVERTIME)
@@ -1714,13 +1778,15 @@ export default function Enemies() {
     for (let burstIndex = 0; burstIndex < burstEvents.length; burstIndex += 1) {
       const evt = burstEvents[burstIndex]
       if (isRepeatingBurstEvent(evt)) {
-        const tick = repeatingBurstTickAt(evt, sec)
+        const tick = repeatingBurstTickAt(evt, spawnSec)
         if (tick === null || tick <= scheduledRepeatBurstTicksRef.current[burstIndex]) continue
         if (enqueueScheduled(SCHEDULE_BURST, burstIndex, tick)) scheduledRepeatBurstTicksRef.current[burstIndex] = tick
         continue
       }
-      if (!shouldScheduleBurst(firedBurstsRef.current[burstIndex], sec, evt.sec)) continue
+      if (!shouldScheduleBurst(firedBurstsRef.current[burstIndex], spawnSec, evt.sec)) continue
       firedBurstsRef.current[burstIndex] = 1
+      // 세 번째 인자는 미션 생존 집계용 스폰 실시각이다(runSurvivalSeconds와 뺄셈한다).
+      // 스폰 게이트만 당겨진 시계를 쓰고, 여기 기록은 실시간 sec을 유지해야 한다.
       enqueueScheduled(SCHEDULE_BURST, burstIndex, sec)
     }
 

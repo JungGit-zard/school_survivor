@@ -75,6 +75,7 @@ import {
   overtimeMixedTypesForStage,
   buildOvertimeMixedReinforcementEntries,
   clampZombieSpawnRequest,
+  nextPendingSpawnSec,
   runPooledEnemyRuntimeSoak,
 } from './Enemies.jsx'
 
@@ -325,7 +326,8 @@ describe('all-stage overtime mixed ordinary reinforcements', () => {
     const playingFrameBody = source.match(/usePlayingFrame\(\(_, delta\) => \{([\s\S]*?)\n  \}\)/)?.[1] ?? ''
     expect(source).toContain('const SCHEDULE_OVERTIME = 7')
     expect(source).toContain('overtimeTickRef.current = -1')
-    expect(playingFrameBody).toContain('shouldScheduleOvertimeReinforcement(overtimeTickRef.current, sec, stageRuntime.id)')
+    // 스폰 게이트는 실시간 sec이 아니라 캐치업이 당긴 spawnSec을 읽는다(빈 화면 2초 상한).
+    expect(playingFrameBody).toContain('shouldScheduleOvertimeReinforcement(overtimeTickRef.current, spawnSec, stageRuntime.id)')
     expect(playingFrameBody).not.toContain('cache.id')
     expect(source).toContain('enqueueScheduled(SCHEDULE_OVERTIME)')
     expect(source).toContain('pooledActive: enemyPool.activeCount')
@@ -341,7 +343,7 @@ describe('all-stage overtime mixed ordinary reinforcements', () => {
   it('consumes Stage 3 repeating burst descriptors through the existing RAF queue without using one-shot fired slots', () => {
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
     expect(source).toContain('isRepeatingBurstEvent(evt)')
-    expect(source).toContain('repeatingBurstTickAt(evt, sec)')
+    expect(source).toContain('repeatingBurstTickAt(evt, spawnSec)')
     expect(source).toContain('enqueueScheduled(SCHEDULE_BURST, burstIndex, tick)')
     expect(source).toContain('scheduledRepeatBurstTicksRef.current[burstIndex] = tick')
     expect(source).toContain('const firstTick = consumedRepeatBurstTicksRef.current[eventIndex] + 1')
@@ -858,7 +860,7 @@ describe('dancing doge event monster', () => {
   it('wires the doge event, chest drop, and coin jackpot into the spawn frame loop', () => {
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
     // 60초 스폰 게이트가 프레임 루프에 배선돼 있다.
-    expect(source).toContain('shouldSpawnDoge(sec, dogeSpawnedRef.current)')
+    expect(source).toContain('shouldSpawnDoge(spawnSec, dogeSpawnedRef.current)')
     expect(source).toContain('spawnDoge()')
     // 처치 → 상자, 상자 오픈 → 코인 산포 체인.
     expect(source).toContain("emitSfx({ id: 'chestDrop'")
@@ -1287,5 +1289,125 @@ describe('ranged enemy movement', () => {
     // 스4는 원거리 "안전지대 소멸" 시그니처라 보스 구간에도 발사(bossPressure 미적용).
     expect(source).toContain("currentStageId === 'stage4'")
     expect(source).toContain('fireArgs.introSec = stageCombatConfig.e04IntroSec')
+  })
+})
+
+describe('nextPendingSpawnSec — 스폰 캐치업 점프 폭', () => {
+  const flagsFor = (events, firedIndices = []) => {
+    const flags = new Uint8Array(events.length)
+    for (const index of firedIndices) flags[index] = 1
+    return flags
+  }
+  const repeatTicksFor = (events, ticks = {}) => {
+    const scheduled = new Int16Array(events.length).fill(-1)
+    for (const [index, tick] of Object.entries(ticks)) scheduled[Number(index)] = tick
+    return scheduled
+  }
+
+  it('아직 안 터진 단발 이벤트 중 가장 이른 시각을 고른다', () => {
+    const events = [{ sec: 5 }, { sec: 24 }, { sec: 40 }, { sec: 60 }]
+    expect(nextPendingSpawnSec(events, flagsFor(events), repeatTicksFor(events), 10)).toBe(24)
+  })
+
+  it('이미 발화한 이벤트는 후보에서 빠진다', () => {
+    const events = [{ sec: 5 }, { sec: 24 }, { sec: 40 }, { sec: 60 }]
+    const flags = flagsFor(events, [0, 1, 2])
+    expect(nextPendingSpawnSec(events, flags, repeatTicksFor(events), 10)).toBe(60)
+  })
+
+  it('현재 spawnSec과 같은 시각은 후보가 아니다 — 이번 프레임에 이미 터진다', () => {
+    const events = [{ sec: 40 }, { sec: 60 }]
+    expect(nextPendingSpawnSec(events, flagsFor(events), repeatTicksFor(events), 40)).toBe(60)
+  })
+
+  it('반복 이벤트는 마지막으로 예약된 tick의 다음 tick 시각을 후보로 낸다', () => {
+    const events = [
+      { sec: 25, repeatIntervalSec: 25, endExclusiveSec: 150 },
+      { sec: 200 },
+    ]
+    // tick 1(=50초)까지 예약됐다 → 다음 후보는 tick 2 = 75초.
+    expect(nextPendingSpawnSec(events, flagsFor(events), repeatTicksFor(events, { 0: 1 }), 55)).toBe(75)
+  })
+
+  it('반복 이벤트가 소진되면 그 이벤트는 후보를 내지 않는다', () => {
+    const events = [
+      { sec: 25, repeatIntervalSec: 25, endExclusiveSec: 150 },
+      { sec: 200 },
+    ]
+    // tickCount = ceil((150-25)/25) = 5 → 마지막 tick 4. 그 다음 tick 5는 null.
+    expect(nextPendingSpawnSec(events, flagsFor(events), repeatTicksFor(events, { 0: 4 }), 130)).toBe(200)
+  })
+
+  it('표가 소진되면 무한 반복인 오버타임 보강이 후보가 된다', () => {
+    const events = [{ sec: 5 }, { sec: 216 }]
+    const flags = flagsFor(events, [0, 1])
+    expect(nextPendingSpawnSec(events, flags, repeatTicksFor(events), 220, 'stage1', -1))
+      .toBe(getOvertimeReinforcementStartSec('stage1'))
+  })
+
+  it('오버타임 진입 후에는 다음 tick 시각을 낸다', () => {
+    const events = []
+    const start = getOvertimeReinforcementStartSec('stage1')
+    expect(nextPendingSpawnSec(events, new Uint8Array(0), new Int16Array(0), start + 5, 'stage1', 0))
+      .toBe(start + OVERTIME_REINFORCEMENT_INTERVAL_SEC)
+  })
+
+  it('단발·반복·오버타임 세 후보 중 최솟값을 고른다', () => {
+    const events = [
+      { sec: 25, repeatIntervalSec: 25, endExclusiveSec: 150 },  // 다음 tick 100
+      { sec: 216 },                                              // 단발
+    ]
+    const start = getOvertimeReinforcementStartSec('stage1')
+    expect(start).toBeGreaterThan(216)
+    expect(nextPendingSpawnSec(events, flagsFor(events), repeatTicksFor(events, { 0: 2 }), 80, 'stage1', -1)).toBe(100)
+  })
+
+  it('남은 후보가 하나도 없으면 null이다 — 없는 스폰을 만들지 않는다', () => {
+    const events = [{ sec: 5 }, { sec: 216 }]
+    const flags = flagsFor(events, [0, 1])
+    const start = getOvertimeReinforcementStartSec('stage1')
+    // 오버타임 tick 0(=start)까지 이미 발화했고 spawnSec이 그 다음 tick도 넘었다고 가정.
+    const spawnSec = start + OVERTIME_REINFORCEMENT_INTERVAL_SEC + 1
+    expect(nextPendingSpawnSec(events, flags, repeatTicksFor(events), spawnSec, 'stage1', 0)).toBeNull()
+  })
+
+  it('스테이지1 실표에서 첫 프레임 후보는 5초 오프닝이다', () => {
+    const events = getBurstEventsForStage('stage1')
+    expect(nextPendingSpawnSec(events, flagsFor(events), repeatTicksFor(events), 0, 'stage1', -1)).toBe(5)
+  })
+})
+
+describe('스폰 캐치업 배선 — 빈 화면 2초 상한', () => {
+  const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+  const playingFrameBody = source.match(/usePlayingFrame\(\(_, delta\) => \{([\s\S]*?)\n  \}\)/)?.[1] ?? ''
+
+  it('프레임 루프가 실시간 sec에서 spawnSec을 파생한다', () => {
+    expect(playingFrameBody).toContain('const spawnSec = sec + catchUp.offsetSec')
+    expect(playingFrameBody).toContain('advanceSpawnCatchUp(catchUp, {')
+    expect(playingFrameBody).toContain('publishSpawnCatchUpOffsetSec(catchUp.offsetSec)')
+  })
+
+  it('빈 화면 판정에 살아있는 적과 스폰 대기열을 모두 센다', () => {
+    expect(playingFrameBody).toContain('const liveEnemyCount = enemyPool.activeCount')
+    expect(playingFrameBody).toContain('+ enemiesRef.current.length')
+    expect(playingFrameBody).toContain('+ catchUpQueue.spawnDrain.count')
+    expect(playingFrameBody).toContain('+ catchUpQueue.scheduleCount')
+  })
+
+  it('스테이지 리셋에서 오프셋이 0으로 돌아간다', () => {
+    expect(source).toContain('resetSpawnCatchUpState(spawnCatchUpRef.current)')
+    expect(source).toContain('publishSpawnCatchUpOffsetSec(0)')
+  })
+
+  it('적 AI 시뮬레이션 입력과 미션 스폰 기록은 실시간 sec을 유지한다 — 런 길이 불변', () => {
+    expect(playingFrameBody).toContain('context.elapsedSec = sec')
+    expect(playingFrameBody).toContain('enqueueScheduled(SCHEDULE_BURST, burstIndex, sec)')
+    // 보스 압박 하한은 spawnSec, 상한(탈출 포탈)은 실시간 sec.
+    expect(playingFrameBody).toContain("spawnSec >= bossSpawnSec && sec < (stageConfig.escapePortalSec ?? 210)")
+  })
+
+  it('HUD 보스 경고가 같은 오프셋만큼 앞당겨진다', () => {
+    const hud = readFileSync(new URL('./HUD.jsx', import.meta.url), 'utf8')
+    expect(hud).toContain('const warningSec = tableWarningSec - getSpawnCatchUpOffsetSec()')
   })
 })
