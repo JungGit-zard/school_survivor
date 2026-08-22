@@ -25,6 +25,7 @@ const AUDITED_WEAPON_COOLDOWNS = {
   lanternTick: 120,
 }
 
+const howlerMasterVolume = vi.fn()
 const howlPlay = vi.fn(() => 7)
 const howlRate = vi.fn()
 const howlVolume = vi.fn()
@@ -32,6 +33,7 @@ const howlConfigs = []
 let studioSfxTunings = {}
 
 vi.mock('howler', () => ({
+  Howler: { volume: howlerMasterVolume },
   Howl: vi.fn(function HowlMock(config) {
     howlConfigs.push(config)
     return {
@@ -53,6 +55,7 @@ vi.mock('./studioRuntimeState.js', () => ({
 describe('playSfx', () => {
   beforeEach(() => {
     howlPlay.mockClear()
+    howlerMasterVolume.mockClear()
     howlRate.mockClear()
     howlVolume.mockClear()
     howlConfigs.length = 0
@@ -110,7 +113,7 @@ describe('playSfx', () => {
   it('mutes gameplay SFX while an auth overlay is active', async () => {
     const { playSfx } = await import('./sfxRegistry.js')
 
-    playSfx('zombieDeath', 1, { authOverlayActive: true })
+    playSfx('zombieDeathGrunt', 1, { authOverlayActive: true })
 
     expect(howlConfigs).toHaveLength(0)
     expect(howlPlay).not.toHaveBeenCalled()
@@ -372,56 +375,118 @@ describe('playSfx', () => {
   })
 
   it('drops low-priority combat voices at the global cap and releases a voice only once', async () => {
-    const { COMBAT_VOICE_CAP, playSfx } = await import('./sfxRegistry.js')
-    howlPlay.mockImplementationOnce(() => 1)
-      .mockImplementationOnce(() => 2)
-      .mockImplementationOnce(() => 3)
-      .mockImplementationOnce(() => 4)
-      .mockImplementationOnce(() => 5)
-      .mockImplementationOnce(() => 6)
-
-    for (let index = 0; index < COMBAT_VOICE_CAP; index++) playSfx(`pencilFire`)
-    playSfx('rulerFire')
-    expect(howlPlay).toHaveBeenCalledTimes(COMBAT_VOICE_CAP)
-
-    howlConfigs[0].onend(1)
-    howlConfigs[0].onstop(1)
-    playSfx('rulerFire')
-    expect(howlPlay).toHaveBeenCalledTimes(COMBAT_VOICE_CAP + 1)
-
-    howlConfigs[1].onplayerror(7)
-    howlConfigs[1].onend(7)
-    playSfx('boxCutterFire')
-    expect(howlPlay).toHaveBeenCalledTimes(COMBAT_VOICE_CAP + 2)
-  })
-
-  it('releases every voice token for a logical ID after a load error', async () => {
-    const { COMBAT_VOICE_CAP, playSfx } = await import('./sfxRegistry.js')
+    const { combatVoiceCapFor, playSfx } = await import('./sfxRegistry.js')
+    // pencilFire는 사망 발성이 아니라 예약분을 뺀 실효 캡이 걸린다.
+    const weaponCap = combatVoiceCapFor('pencilFire')
     howlPlay.mockImplementation((() => {
       let id = 0
       return () => ++id
     })())
 
-    for (let index = 0; index < COMBAT_VOICE_CAP; index++) playSfx('pencilFire')
+    for (let index = 0; index < weaponCap; index++) playSfx(`pencilFire`)
     playSfx('rulerFire')
-    expect(howlPlay).toHaveBeenCalledTimes(COMBAT_VOICE_CAP)
+    expect(howlPlay).toHaveBeenCalledTimes(weaponCap)
+
+    howlConfigs[0].onend(1)
+    howlConfigs[0].onstop(1)
+    playSfx('rulerFire')
+    expect(howlPlay).toHaveBeenCalledTimes(weaponCap + 1)
+
+    // 방금 재생된 rulerFire의 실제 soundId를 써야 한다 — 상수로 박으면
+    // 캡이 바뀔 때 엉뚱한 보이스를 반납하고 테스트가 조용히 무의미해진다.
+    const rulerVoiceId = howlPlay.mock.results.at(-1).value
+    howlConfigs[1].onplayerror(rulerVoiceId)
+    howlConfigs[1].onend(rulerVoiceId)
+    playSfx('boxCutterFire')
+    expect(howlPlay).toHaveBeenCalledTimes(weaponCap + 2)
+  })
+
+  it('releases every voice token for a logical ID after a load error', async () => {
+    const { combatVoiceCapFor, playSfx } = await import('./sfxRegistry.js')
+    const weaponCap = combatVoiceCapFor('pencilFire')
+    howlPlay.mockImplementation((() => {
+      let id = 0
+      return () => ++id
+    })())
+
+    for (let index = 0; index < weaponCap; index++) playSfx('pencilFire')
+    playSfx('rulerFire')
+    expect(howlPlay).toHaveBeenCalledTimes(weaponCap)
 
     howlConfigs[0].onloaderror(null, 'mock load error')
     howlConfigs[0].onloaderror(null, 'duplicate mock load error')
     playSfx('rulerFire')
 
-    expect(howlPlay).toHaveBeenCalledTimes(COMBAT_VOICE_CAP + 1)
+    expect(howlPlay).toHaveBeenCalledTimes(weaponCap + 1)
     expect(howlConfigs.at(-1).src).toEqual(['/sfx/weapons/rulerFire.ogg', '/sfx/weapons/rulerFire.mp3'])
   })
 
-  it('always plays protected danger cues even when combat voices reach the cap', async () => {
-    const { COMBAT_VOICE_CAP, isProtectedSfx, playSfx } = await import('./sfxRegistry.js')
+  it('holds the master bus below full scale so overlapping cues cannot clip', async () => {
+    // 개별 음원 87개 중 18개가 피크 1.000, 26개가 0.90 이상이다.
+    // 마스터가 1.0이면 두 개만 겹쳐도 24% 확률로 destination에서 클리핑한다(실측).
+    // 이 값이 지워지면 그 상태로 되돌아간다.
+    const { SFX_MASTER_VOLUME, applySfxMasterVolume } = await import('./sfxRegistry.js')
+
+    expect(SFX_MASTER_VOLUME).toBe(0.5)
+    expect(SFX_MASTER_VOLUME).toBeLessThan(1)
+
+    applySfxMasterVolume()
+    expect(howlerMasterVolume).toHaveBeenCalledWith(0.5)
+  })
+
+  it('clamps an explicit master volume into range', async () => {
+    const { applySfxMasterVolume } = await import('./sfxRegistry.js')
+
+    applySfxMasterVolume(2.5)
+    expect(howlerMasterVolume).toHaveBeenLastCalledWith(1)
+    applySfxMasterVolume(-1)
+    expect(howlerMasterVolume).toHaveBeenLastCalledWith(0)
+    applySfxMasterVolume(Number.NaN)
+    expect(howlerMasterVolume).toHaveBeenLastCalledWith(0.5)
+  })
+
+  it('reserves voice slots so weapon hits cannot starve the death voices', async () => {
+    // 실측: starlinkHit(0.42s/90ms)+stunGunHit(0.30s/55ms) 둘만으로 8.15 slots >= 캡 6.
+    // 예약분이 없으면 난전에서 사망 발성이 통째로 안 들린다.
+    const { COMBAT_VOICE_CAP, DEATH_VOICE_RESERVED_SLOTS, combatVoiceCapFor, playSfx } =
+      await import('./sfxRegistry.js')
     howlPlay.mockImplementation((() => {
       let id = 0
       return () => ++id
     })())
 
-    for (let index = 0; index < COMBAT_VOICE_CAP; index++) playSfx(`pencilFire`)
+    expect(DEATH_VOICE_RESERVED_SLOTS).toBeGreaterThan(0)
+    expect(combatVoiceCapFor('starlinkHit')).toBe(COMBAT_VOICE_CAP - DEATH_VOICE_RESERVED_SLOTS)
+    expect(combatVoiceCapFor('zombieDeathGrunt')).toBe(COMBAT_VOICE_CAP)
+
+    // 무기 타격음으로 실효 캡을 꽉 채운다
+    const weaponCap = combatVoiceCapFor('starlinkHit')
+    for (let index = 0; index < weaponCap; index++) playSfx('pencilFire')
+    expect(howlPlay).toHaveBeenCalledTimes(weaponCap)
+
+    // 또 다른 무기음은 막힌다
+    playSfx('rulerFire')
+    expect(howlPlay).toHaveBeenCalledTimes(weaponCap)
+
+    // 그래도 사망 발성은 예약분 덕에 들어간다
+    playSfx('zombieDeathGrunt')
+    playSfx('zombieDeathBellow')
+    expect(howlPlay).toHaveBeenCalledTimes(weaponCap + DEATH_VOICE_RESERVED_SLOTS)
+
+    // 사망 발성도 전체 캡을 넘지는 못한다
+    playSfx('zombieDeathShriek')
+    expect(howlPlay).toHaveBeenCalledTimes(COMBAT_VOICE_CAP)
+  })
+
+  it('always plays protected danger cues even when combat voices reach the cap', async () => {
+    const { combatVoiceCapFor, isProtectedSfx, playSfx } = await import('./sfxRegistry.js')
+    const weaponCap = combatVoiceCapFor('pencilFire')
+    howlPlay.mockImplementation((() => {
+      let id = 0
+      return () => ++id
+    })())
+
+    for (let index = 0; index < weaponCap; index++) playSfx(`pencilFire`)
     playSfx('bossWarning')
     playSfx('playerHit')
     playSfx('matildaCountdownEnd')
@@ -433,6 +498,6 @@ describe('playSfx', () => {
     expect(isProtectedSfx('matildaCountdownEnd')).toBe(true)
     expect(isProtectedSfx('bossRoar')).toBe(true)
     expect(isProtectedSfx('matildaDash')).toBe(true)
-    expect(howlPlay).toHaveBeenCalledTimes(COMBAT_VOICE_CAP + 5)
+    expect(howlPlay).toHaveBeenCalledTimes(weaponCap + 5)
   })
 })

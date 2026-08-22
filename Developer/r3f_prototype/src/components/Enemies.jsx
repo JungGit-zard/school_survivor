@@ -16,6 +16,7 @@ import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { dogeEscapeDirection } from '../lib/dogeEscape.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
 import { RUN_ZOMBIE_CREW_FORMATION, STAGE2_GUARD_CHASE_FORMATION, getBurstEventsForStage, getRuntimeBurstEventsForStage, isBossType, isRepeatingBurstEvent, repeatingBurstSecAtTick, repeatingBurstTickAt } from '../lib/burstEvents.js'
+import { deathSfxId } from '../lib/enemyDeathSfx.js'
 import { buildWavePhasesFromEntries } from '../lib/waveControl.js'
 import { getAdminWaveControlConfig } from '../lib/adminConfig.js'
 import { enemyTypeToCode, enemyTypeFromCode, createEnemyEntityPool, MAX_ENEMIES } from '../lib/enemyEntityPool.js'
@@ -1320,7 +1321,7 @@ export default function Enemies() {
         gameKey: store.gameKey,
         killKey: `${store.gameKey}:pool:${index}:${generation}`,
       })
-      store.recordKill(); logKill(type); emitSfx({ id: type === 'E06' || type === 'E02' ? 'zombieHeavyDeath' : 'zombieDeath' })
+      store.recordKill(); logKill(type); emitSfx({ id: deathSfxId(type) })
       enqueuePooledDeath(enemyPool.type[index], x, y, z, stats.xp, enemyPool.visualScale[index] * 0.333, critical.damage, enemyPool.maxHp[index], safeImpact.knockback ?? 0, safeImpact.deathStyleOverride)
     }
     enemySimulationRuntime.applyHitIndex(enemyPool, index, generation, critical.damage, dx / length * knockbackSpeed, dz / length * knockbackSpeed, knockbackMs)

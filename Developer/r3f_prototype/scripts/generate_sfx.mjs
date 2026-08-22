@@ -571,14 +571,8 @@ const sounds = {
   })(),
 
   // ── 적 사망음 ────────────────────────────────────────────────────────────────
-  'enemies/zombieDeath': () => mix(
-    synth({ wave:'noise', freq:1, dur:0.3, vol:0.6, attack:0.001, decay:0.1, sustain:0.05, release:0.18 }),
-    synth({ wave:'sawtooth', freq:180, freqEnd:60, dur:0.28, vol:0.3, attack:0.001, decay:0.08, sustain:0.05, release:0.18 }),
-  ),
-  'enemies/zombieHeavyDeath': () => mix(
-    synth({ wave:'noise', freq:1, dur:0.5, vol:0.75, attack:0.001, decay:0.15, sustain:0.1, release:0.3 }),
-    synth({ wave:'sine', freq:120, freqEnd:40, dur:0.5, vol:0.5, attack:0.001, decay:0.12, sustain:0.08, release:0.3 }),
-  ),
+  // 좀비 사망음은 여기서 빠졌다 — 노이즈+톱니 버스트라 "음성"이 아니었다.
+  // 포먼트가 들리는 발성 5종으로 대체 → scripts/generate_zombie_death_voices.mjs
   'enemies/bossDeath': () => mix(
     synth({ wave:'noise', freq:1, dur:1.0, vol:0.9, attack:0.001, decay:0.3, sustain:0.2, release:0.5 }),
     synth({ wave:'sine', freq:80, freqEnd:20, dur:1.1, vol:0.7, attack:0.001, decay:0.25, sustain:0.15, release:0.65 }),

@@ -1003,43 +1003,103 @@
       "licenseEvidence": "project-generated-procedural"
     },
     {
-      "logicalId": "zombieDeath",
+      "logicalId": "zombieDeathGrunt",
       "category": "enemies",
       "paths": [
         {
-          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeath.ogg",
-          "bytes": 7402,
-          "sha256": "d687fc7d06a5ab0c1c4ea87f1059f35b52fba6ae959274c62a4ae964cf5864d9"
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathGrunt.ogg",
+          "bytes": 5339,
+          "sha256": "63ac9cf61957cbf1396ef8c68d4e1a40109341f4cad33ba7c3f580be8eec10a1"
         },
         {
-          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeath.mp3",
-          "bytes": 3273,
-          "sha256": "778a37d0cd33c05d58a4dc177e655ce546fc789fc8c966b28747c59aab35a9be"
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathGrunt.mp3",
+          "bytes": 3596,
+          "sha256": "0c18c860d129c0442669971cd9e10299cc164e8a4a8580562152a41d99f946a2"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs (procedural formant speech synthesis: seeded glottal pulse + LFSR noise excitation through a 3-formant resonator bank; deterministic, regenerates byte-identical)",
+      "notes": "\"으윽\" grunt — E01/E07/RZG. F0 136->92Hz, 0.34s, 7-bit / hold x2. Project-synthesised pseudo-voice. No third-party sample, no recording of a real person, and no reproduction of any existing game audio: 8-bit era techniques (TI TMS5220 LPC, SAM 3-formant, NES DPCM degradation) are referenced as method only.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
-      "logicalId": "zombieHeavyDeath",
+      "logicalId": "zombieDeathHeavy",
       "category": "enemies",
       "paths": [
         {
-          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieHeavyDeath.ogg",
-          "bytes": 9478,
-          "sha256": "8f88aeca2c2986fdf3fde12223166580d50e5a19ca99c1cc59b582c3c38d5f2c"
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathHeavy.ogg",
+          "bytes": 6719,
+          "sha256": "259d56dc11702a9977f4f0078c7e964193a2b970ae6804691807a607ef9b3f4f"
         },
         {
-          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieHeavyDeath.mp3",
-          "bytes": 4885,
-          "sha256": "7408e85deb7a0384d644283050f6bba93385770ccc9126c697263a2b176d2011"
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathHeavy.mp3",
+          "bytes": 5477,
+          "sha256": "bb2eec8ccb1859948514198061166b0d098c8d1a50f4405098d216e4cdf35ad2"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs (procedural formant speech synthesis: seeded glottal pulse + LFSR noise excitation through a 3-formant resonator bank; deterministic, regenerates byte-identical)",
+      "notes": "\"우어억\" heavy wobble — E02/E05/RZT. F0 92->56Hz, 0.60s, 6-bit / hold x3. Project-synthesised pseudo-voice. No third-party sample, no recording of a real person, and no reproduction of any existing game audio: 8-bit era techniques (TI TMS5220 LPC, SAM 3-formant, NES DPCM degradation) are referenced as method only.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "zombieDeathShriek",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathShriek.ogg",
+          "bytes": 4883,
+          "sha256": "f1bb0bcedcd658c0719ea3a8d4f31b1fbbb48314b035c260db47e7dc79b63441"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathShriek.mp3",
+          "bytes": 3178,
+          "sha256": "d0fff356081762c4f4c7d141021183c745b167f3697f99e99ced8b5010040cba"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_zombie_death_voices.mjs (procedural formant speech synthesis: seeded glottal pulse + LFSR noise excitation through a 3-formant resonator bank; deterministic, regenerates byte-identical)",
+      "notes": "\"끼야악\" shriek — E03/RZL/RZC. F0 300->238Hz, 0.30s, 8-bit / hold x1. Project-synthesised pseudo-voice. No third-party sample, no recording of a real person, and no reproduction of any existing game audio: 8-bit era techniques (TI TMS5220 LPC, SAM 3-formant, NES DPCM degradation) are referenced as method only.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "zombieDeathGurgle",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathGurgle.ogg",
+          "bytes": 6118,
+          "sha256": "5fc0974481ca8844bf4ecd59e8e33f7bf6c8b80b30667a1250568637e9c3dba6"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathGurgle.mp3",
+          "bytes": 4641,
+          "sha256": "2c1b033d728bef39c459c9fd89915270f6582dab74da828b60cc3f455ebf0217"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_zombie_death_voices.mjs (procedural formant speech synthesis: seeded glottal pulse + LFSR noise excitation through a 3-formant resonator bank; deterministic, regenerates byte-identical)",
+      "notes": "\"커르륵\" gurgle — E04. F0 152->100Hz + 26Hz trill, 0.48s, 6-bit / hold x2. Project-synthesised pseudo-voice. No third-party sample, no recording of a real person, and no reproduction of any existing game audio: 8-bit era techniques (TI TMS5220 LPC, SAM 3-formant, NES DPCM degradation) are referenced as method only.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "zombieDeathBellow",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathBellow.ogg",
+          "bytes": 7691,
+          "sha256": "8e3d30b5ae10246b1554e1aa0753a6e929db9873e0cb54d58e2e90c4f89c19e7"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathBellow.mp3",
+          "bytes": 7358,
+          "sha256": "4c7e8628fe4d63ba0f2ce59426de9d59c84b7ff44dfbeb1d35098ec4e0737260"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_zombie_death_voices.mjs (procedural formant speech synthesis: seeded glottal pulse + LFSR noise excitation through a 3-formant resonator bank; deterministic, regenerates byte-identical)",
+      "notes": "\"끄아아앙\" bellow — E06. F0 74->45Hz + 31Hz ring mod, 0.82s, 6-bit / hold x3. Project-synthesised pseudo-voice. No third-party sample, no recording of a real person, and no reproduction of any existing game audio: 8-bit era techniques (TI TMS5220 LPC, SAM 3-formant, NES DPCM degradation) are referenced as method only.",
       "licenseEvidence": "project-generated-procedural"
     },
     {

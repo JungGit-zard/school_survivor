@@ -2,11 +2,12 @@
 // 파일이 없으면 onloaderror에서 _failed에 등록 → 이후 호출 무시 (무음 실패).
 // 에셋 준비 전에도 코드는 정상 동작한다.
 
-import { Howl } from 'howler'
+import { Howl, Howler } from 'howler'
 import {
   getFirebaseStudioRuntimeDataset,
   setFirebaseStudioRuntimeDataset,
 } from './studioRuntimeState.js'
+import { ZOMBIE_DEATH_SFX_IDS } from './enemyDeathSfx.js'
 
 // ── 사운드 맵 ────────────────────────────────────────────────────────────────
 // 파일 위치: public/sfx/<category>/<id>.mp3
@@ -83,8 +84,15 @@ export const SOUND_MAP = {
   matildaLaugh:       '/sfx/enemies/matildaLaugh.ogg',
 
   // ── 적 사망음 ────────────────────────────────────────────────────────────────
-  zombieDeath:        '/sfx/enemies/zombieDeath.ogg',
-  zombieHeavyDeath:   '/sfx/enemies/zombieHeavyDeath.ogg',
+  // 좀비 사망 발성 5종. 노이즈 버스트가 아니라 포먼트가 들리는 "음성"이다.
+  // 8비트 음성 합성 기법(TMS5220 LPC / SAM 3포먼트 / NES DPCM 열화)으로 절차 합성했고
+  // 생성기는 scripts/generate_zombie_death_voices.mjs 하나뿐이다(시드 고정 = 재현 가능).
+  // 타입 배분 정본은 lib/enemyDeathSfx.js — 여기서 ID만 등록한다.
+  zombieDeathGrunt:   '/sfx/enemies/zombieDeathGrunt.ogg',   // "으윽"     E01/E07/RZG
+  zombieDeathHeavy:   '/sfx/enemies/zombieDeathHeavy.ogg',   // "우어억"   E02/E05/RZT
+  zombieDeathShriek:  '/sfx/enemies/zombieDeathShriek.ogg',  // "끼야악"   E03/RZL/RZC
+  zombieDeathGurgle:  '/sfx/enemies/zombieDeathGurgle.ogg',  // "커르륵"   E04
+  zombieDeathBellow:  '/sfx/enemies/zombieDeathBellow.ogg',  // "끄아아앙" E06
   bossDeath:          '/sfx/enemies/bossDeath.ogg',
   matildaDeath:       '/sfx/enemies/matildaDeath.ogg',
   dogeDeath:          '/sfx/enemies/dogeDeath.ogg',
@@ -157,6 +165,49 @@ export function isProtectedSfx(id) {
   return SFX_VOICE_CLASS[id] === 'protected'
 }
 
+// ── 마스터 헤드룸 ────────────────────────────────────────────────────────────
+// 지금까지 Howler 마스터 게인을 아무도 건드리지 않아 기본값 1.0이었다.
+// 개별 음원이 거의 풀스케일로 정규화돼 있어서(87개 중 18개가 피크 1.000,
+// 26개가 0.90 이상) 두 개만 겹쳐도 합이 1.0을 넘어 destination에서 하드 클리핑한다.
+//
+// 값 근거 — 실측 음원 87개로 몬테카를로(300ms 창 안에 N개 임의 시점 재생, 2000회):
+//   게인 1.0: N=2에서 24.3%, N=6에서 91.3% 확률로 합이 풀스케일을 넘는다
+//   게인 0.8: N=2 6.0%,  N=4 36.4%, N=6 67.0%   ← 문서에 있던 권고치, 부족하다
+//   게인 0.5: N=2 0.0%,  N=4  0.3%, N=6  2.7%   ← 채택
+//   게인 0.4: N=6 0.2% — 더 안전하지만 -8dB는 게임이 너무 작아진다
+// 0.5(-6dB)는 실제로 흔한 2~4중첩에서 클리핑을 사실상 없애고, 캡(6)이 꽉 찬
+// 최악에서도 2.7%로 억제한다. 게임 SFX 버스에서 -6dB는 통상 범위다.
+//
+// 주의: 이건 스튜디오 사운드 튜닝(sfxTunings)과 다른 층이다.
+// 스튜디오 값은 ID별 volume/rate로 playSfx 안에서 Howl 인스턴스에 적용되고,
+// 이 값은 그 위의 전역 게인이다. 곱해질 뿐 이중 적용이 아니다.
+export const SFX_MASTER_VOLUME = 0.5
+
+export function applySfxMasterVolume(volume = SFX_MASTER_VOLUME) {
+  Howler.volume(clamp(Number.isFinite(volume) ? volume : SFX_MASTER_VOLUME, 0, 1))
+}
+
+// ── 사망 발성 예약 슬롯 ──────────────────────────────────────────────────────
+// 사망 발성은 /enemies/ 경로라 'combat' 클래스다 = 캡이 차면 조용히 버려진다.
+// 그런데 타격음이 캡을 통째로 먹는다. 실측(음원 길이 / 쿨다운 = 최대 점유 슬롯):
+//   starlinkHit 0.42s/90ms = 4.67 slots, stunGunHit 0.30s/55ms = 3.48 slots
+//   → 이 둘만으로 8.15 slots 로 캡 6을 초과한다. 타격/틱 17종 합은 43.9 slots.
+// 즉 난전에서 사망 발성이 밀려서 안 들리는 일이 실제로 일어난다.
+//
+// 해법으로 캡을 올리지 않았다 — 동시 재생 보이스는 모바일 CPU 비용이고,
+// 클리핑 위험도 같이 커진다. 대신 총량은 그대로 두고 예약분만 뒀다:
+// 사망 발성이 아닌 combat 사운드는 CAP - 2 까지만 쓰고, 두 슬롯은 항상 비워둔다.
+export const DEATH_VOICE_RESERVED_SLOTS = 2
+const _deathVoiceSfx = new Set(ZOMBIE_DEATH_SFX_IDS)
+
+export function isDeathVoiceSfx(id) {
+  return _deathVoiceSfx.has(id)
+}
+
+export function combatVoiceCapFor(id) {
+  return isDeathVoiceSfx(id) ? COMBAT_VOICE_CAP : COMBAT_VOICE_CAP - DEATH_VOICE_RESERVED_SLOTS
+}
+
 function combatVoiceKey(id, soundId) {
   return `${id}:${soundId}`
 }
@@ -177,8 +228,15 @@ function releaseCombatVoicesForLogicalId(id) {
 const _lastPlayed = {}
 export const POLYPHONY_COOLDOWN = Object.freeze({
   criticalHit:     140,
-  zombieDeath:      50,
-  zombieHeavyDeath: 50,
+  // 사망 발성 쿨다운은 "같은 프레임 중복 emit 제거"가 목적이지 연사 제한이 아니다.
+  // 웨이브가 한꺼번에 녹을 때 같은 발성이 자기 위에 겹쳐 쌓이면 음량만 튀고 뭉개진다.
+  // 값은 각 음원 길이보다 짧게(연속 처치가 끊겨 들리지 않게), 한 프레임(16.7ms)보다는
+  // 충분히 길게 잡았다. bellow만 예외로 길다 — E06은 드물고 0.82초로 가장 길다.
+  zombieDeathGrunt:  50,   // 음원 0.34s
+  zombieDeathHeavy:  70,   // 음원 0.60s
+  zombieDeathShriek: 45,   // 음원 0.30s, 런크루가 떼로 죽으므로 가장 짧게
+  zombieDeathGurgle: 90,   // 음원 0.48s, E04는 동시 사망이 드물다
+  zombieDeathBellow: 200,  // 음원 0.82s, 겹치면 가장 지저분해진다
   dogeDeath:        180,
   dogeEscape:       240,
   playerHit:        80,
@@ -291,7 +349,7 @@ export function playSfx(id, volume = 1, options = {}) {
   const tunedRate = clamp((options.rate ?? 1) * tuning.rate, 0.5, 2)
   const protectedSfx = isProtectedSfx(id)
 
-  if (!protectedSfx && _activeCombatVoices.size >= COMBAT_VOICE_CAP) return
+  if (!protectedSfx && _activeCombatVoices.size >= combatVoiceCapFor(id)) return
 
   const cooldown = POLYPHONY_COOLDOWN[id] ?? 0
   if (cooldown > 0) {
@@ -326,11 +384,6 @@ export function playSfx(id, volume = 1, options = {}) {
     // value even when it is 1 so an admin reset takes effect on the next play.
     _cache[id].rate?.(tunedRate, soundId)
   }
-}
-
-// 볼륨 조절 (뮤트/글로벌 볼륨 슬라이더 연동용)
-export function setSfxVolume(volume) {
-  Object.values(_cache).forEach((h) => h.volume(volume))
 }
 
 function clamp(value, min, max) {

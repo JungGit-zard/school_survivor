@@ -28,6 +28,7 @@ import {
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { isBossType } from '../lib/burstEvents.js'
+import { deathSfxId } from '../lib/enemyDeathSfx.js'
 import {
   B02_BLOCKADE_LINE_WIDTH,
   advanceB02CorridorBlockade,
@@ -361,13 +362,6 @@ export function resolveRangedEnemyVelocity({ dirX, dirZ, dist, minDist, preferDi
   if (dist > preferDist) return { x: nx * speed, z: nz * speed }
   const side = strafeSign >= 0 ? 1 : -1
   return { x: -nz * speed * 0.75 * side, z: nx * speed * 0.75 * side }
-}
-
-function deathSfxId(type, isMatilda) {
-  if (isMatilda) return 'matildaDeath'
-  if (isBossType(type)) return 'bossDeath'
-  if (type === 'E06' || type === 'E02') return 'zombieHeavyDeath'
-  return 'zombieDeath'
 }
 
 export const CHARGE_CUE_LABEL = 'GO!'
