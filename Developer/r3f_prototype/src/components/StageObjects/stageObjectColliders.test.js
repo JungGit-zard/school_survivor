@@ -276,15 +276,21 @@ describe('stage object blocking colliders', () => {
     expect(getStageObjectColliderParts({ type: 'kitchenCookLine', scale: 1 })[0].args[1]).toBeLessThan(1.0)
 
     const cauldronParts = getStageObjectColliderParts({ type: 'pressureCauldron', scale: 1 })
-    expect(cauldronParts).toHaveLength(2)
+    expect(cauldronParts).toHaveLength(5)
     expect(cauldronParts.map(({ key }) => key).sort()).toEqual([
-      'pressure-cauldron-front-step',
+      'pressure-cauldron-front-twin-steps',
+      'pressure-cauldron-handwheel',
+      'pressure-cauldron-left-cabinet',
+      'pressure-cauldron-right-auxiliary',
       'pressure-cauldron-vessel',
     ])
     expect(cauldronParts.every(({ args }) => args.every((value) => value > 0))).toBe(true)
     expect(cauldronParts.map(({ key, position, args }) => ({ key, position, args }))).toEqual([
-      { key: 'pressure-cauldron-vessel', position: [0, 0.34, 0], args: [0.572, 0.34, 0.572] },
-      { key: 'pressure-cauldron-front-step', position: [0, 0.054, 0.646], args: [0.22, 0.054, 0.072] },
+      { key: 'pressure-cauldron-vessel', position: [0, 0.36, 0], args: [0.688, 0.296, 0.688] },
+      { key: 'pressure-cauldron-front-twin-steps', position: [0, 0.056, 0.676], args: [0.296, 0.056, 0.084] },
+      { key: 'pressure-cauldron-left-cabinet', position: [-0.692, 0.29, 0.036], args: [0.086, 0.218, 0.126] },
+      { key: 'pressure-cauldron-right-auxiliary', position: [0.676, 0.184, -0.032], args: [0.124, 0.138, 0.158] },
+      { key: 'pressure-cauldron-handwheel', position: [0.636, 0.236, 0.408], args: [0.084, 0.118, 0.092] },
     ])
   })
 

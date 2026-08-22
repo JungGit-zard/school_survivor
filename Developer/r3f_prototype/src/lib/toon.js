@@ -94,6 +94,14 @@ export function getCachedBoxGeo(w, h, d) {
   return g
 }
 
+const _cylinderGeoCache = new Map()
+export function getCachedCylinderGeo(...args) {
+  const key = args.join(',')
+  let g = _cylinderGeoCache.get(key)
+  if (!g) { g = new THREE.CylinderGeometry(...args); _cylinderGeoCache.set(key, g) }
+  return g
+}
+
 // toonMat: 동일 색상+발광 조합의 머티리얼 공유
 const _toonMatCache = new Map()
 export function getCachedToonMat(color, emissive = 0.08, side = THREE.FrontSide, depthWrite = true) {
@@ -143,6 +151,8 @@ if (import.meta.hot) {
     _flashMat?.dispose(); _flashMat = null
     _geoCache.forEach((g) => g.dispose())
     _geoCache.clear()
+    _cylinderGeoCache.forEach((g) => g.dispose())
+    _cylinderGeoCache.clear()
     _gradient?.dispose(); _gradient = null
   })
 }

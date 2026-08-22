@@ -6,6 +6,7 @@ import {
   STAGE_PROP_SURFACE_RENDERING,
   STAGE_PROP_UNIT_BOX_GEOMETRY,
 } from './propRendering.js'
+import { getCachedCylinderGeo } from '../../lib/toon.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 const OUTLINE_SCALE = 1.035
@@ -28,16 +29,45 @@ function Box({ position = [0, 0, 0], rotation = [0, 0, 0], scale, material, outl
   )
 }
 
-function Cylinder({ position = [0, 0, 0], rotation = [0, 0, 0], args, material }) {
+function Cylinder({ position = [0, 0, 0], rotation = [0, 0, 0], args, material, outlined = false }) {
+  const geometry = getCachedCylinderGeo(...args)
+  const outline = outlined ? getStagePropOutlineMaterial(0.96, 0x050209) : null
   return (
-    <mesh {...STAGE_PROP_SURFACE_RENDERING} position={position} rotation={rotation} material={material}>
-      <cylinderGeometry args={args} />
+    <mesh {...STAGE_PROP_SURFACE_RENDERING} position={position} rotation={rotation} geometry={geometry} material={material}>
+      {outline && (
+        <mesh {...STAGE_PROP_OUTLINE_RENDERING} userData={getStagePropOutlineUserData()} geometry={geometry} material={outline} scale={[OUTLINE_SCALE, OUTLINE_SCALE, OUTLINE_SCALE]} />
+      )}
     </mesh>
   )
 }
 
-// The runtime and Studio preview both render this exact component.  Keep the
-// outer StudioTunedGroup as the only transform authority for this landmark.
+function GaugeTicks({ dark }) {
+  return [0, 1, 2, 3, 4, 5].map((index) => {
+    const angle = -0.9 + index * 0.36
+    return (
+      <Box
+        key={index}
+        position={[Math.sin(angle) * 0.22, Math.cos(angle) * 0.22, 0.13]}
+        rotation={[0, 0, -angle]}
+        scale={[0.035, 0.11, 0.02]}
+        material={dark}
+      />
+    )
+  })
+}
+
+function Latch({ position, dark, yellow, rotation = [0, 0, 0] }) {
+  return (
+    <group position={position} rotation={rotation}>
+      <Box scale={[0.46, 0.34, 0.26]} material={dark} />
+      <Box position={[0, 0.01, 0.15]} scale={[0.24, 0.14, 0.08]} material={yellow} />
+    </group>
+  )
+}
+
+// The runtime and Studio preview both render this exact component. Keep this
+// shared base-scale seam inside the model, while placement and Studio/Firebase
+// tuning stay on their existing canonical paths.
 export default function PressureCauldron({ scale, ...props }) {
   const white = getStagePropDepthWritingToonMaterial(0xf3f4ef, 0.04)
   const whiteShade = getStagePropDepthWritingToonMaterial(0xd7dcd8, 0.04)
@@ -46,53 +76,93 @@ export default function PressureCauldron({ scale, ...props }) {
   const yellow = getStagePropDepthWritingToonMaterial(0xf0c432, 0.12)
   const red = getStagePropDepthWritingToonMaterial(0xc8382d, 0.12)
   const gauge = getStagePropDepthWritingToonMaterial(0xf7f7ef, 0.02)
+  const gray = getStagePropDepthWritingToonMaterial(0x697078, 0.04)
 
   return (
     <group {...props} name="pressure-cauldron" scale={scaleToBaseScale(scale)}>
-      <StudioTunedGroup itemId="stage-object-pressure-cauldron">
+      {/* Only this fixed 0.2 model uses parent-base inverse position compensation. */}
+      <StudioTunedGroup itemId="stage-object-pressure-cauldron" transformPositionMultiplier={1 / PRESSURE_CAULDRON_BASE_SCALE}>
         <group name="pressure-cauldron-dark-industrial-base">
-          <Cylinder position={[0, 0.22, 0]} args={[3.05, 3.28, 0.44, 10]} material={dark} />
-          <Cylinder position={[0, 0.47, 0]} args={[2.90, 3.04, 0.14, 10]} material={darkEdge} />
-          {[-2.15, 2.15].map((x) => <Box key={x} position={[x, 0.26, 0]} scale={[0.45, 0.36, 1.35]} material={dark} outlined />)}
+          <Cylinder position={[0, 0.24, 0]} args={[3.34, 3.48, 0.48, 10]} material={dark} outlined />
+          <Cylinder position={[0, 0.52, 0]} args={[3.16, 3.30, 0.16, 10]} material={darkEdge} outlined />
+          <Box position={[-2.50, 0.28, 0]} scale={[0.44, 0.38, 1.40]} material={dark} />
+          <Box position={[2.50, 0.28, 0]} scale={[0.44, 0.38, 1.40]} material={dark} />
         </group>
 
         <group name="pressure-cauldron-faceted-white-vessel">
-          <Cylinder position={[0, 1.78, 0]} args={[2.95, 2.58, 2.72, 10]} material={white} />
-          <Cylinder position={[0, 2.93, 0]} args={[2.98, 2.95, 0.20, 10]} material={whiteShade} />
-          <Cylinder position={[0, 3.18, 0]} args={[2.74, 2.94, 0.34, 10]} material={white} />
-          <Cylinder position={[0, 3.39, 0]} args={[2.35, 2.58, 0.14, 10]} material={dark} />
+          <Cylinder position={[0, 1.64, 0]} args={[3.18, 2.86, 2.34, 10]} material={white} outlined />
+          <Cylinder position={[0, 2.88, 0]} args={[3.22, 3.18, 0.18, 10]} material={whiteShade} outlined />
+          <Cylinder position={[0, 3.06, 0]} args={[3.18, 2.78, 0.26, 10]} material={white} outlined />
+          <Cylinder position={[0, 3.25, 0]} args={[2.76, 2.42, 0.16, 10]} material={white} outlined />
+          <Cylinder position={[0, 3.33, 0]} args={[2.46, 2.40, 0.09, 10]} material={dark} outlined />
+          <group name="pressure-cauldron-white-safety-valve" position={[-0.88, 3.52, 0.08]}>
+            <Cylinder args={[0.13, 0.13, 0.20, 8]} material={dark} />
+            <Cylinder position={[0, 0.18, 0]} args={[0.27, 0.27, 0.18, 10]} material={white} outlined />
+            <Cylinder position={[0, 0.31, 0]} args={[0.07, 0.07, 0.09, 8]} material={red} />
+          </group>
+          <group name="pressure-cauldron-lid-latches-and-hinges">
+            <Latch position={[-1.55, 2.77, 2.48]} dark={dark} yellow={yellow} rotation={[0, -0.28, 0]} />
+            <Latch position={[0, 2.77, 2.64]} dark={dark} yellow={yellow} />
+            <Latch position={[1.55, 2.77, 2.48]} dark={dark} yellow={yellow} rotation={[0, 0.28, 0]} />
+            <Latch position={[-2.95, 2.74, 0.52]} dark={dark} yellow={yellow} rotation={[0, Math.PI / 2, 0]} />
+            <Latch position={[2.95, 2.74, 0.52]} dark={dark} yellow={yellow} rotation={[0, Math.PI / 2, 0]} />
+            {[-1.30, 1.30].map((x) => <Box key={x} position={[x, 2.78, -2.52]} scale={[0.48, 0.36, 0.30]} material={dark} />)}
+          </group>
         </group>
 
         <group name="pressure-cauldron-yellow-top-handle">
-          <Box position={[0, 3.72, 0]} scale={[1.55, 0.25, 0.38]} material={yellow} outlined />
-          <Box position={[-0.62, 3.53, 0]} rotation={[0, 0, -0.34]} scale={[0.27, 0.52, 0.38]} material={yellow} outlined />
-          <Box position={[0.62, 3.53, 0]} rotation={[0, 0, 0.34]} scale={[0.27, 0.52, 0.38]} material={yellow} outlined />
+          <Box position={[0, 3.67, -0.04]} scale={[1.72, 0.28, 0.42]} material={yellow} outlined />
+          <Box position={[-0.74, 3.47, -0.04]} rotation={[0, 0, -0.40]} scale={[0.28, 0.58, 0.42]} material={yellow} outlined />
+          <Box position={[0.74, 3.47, -0.04]} rotation={[0, 0, 0.40]} scale={[0.28, 0.58, 0.42]} material={yellow} outlined />
+          {[-0.74, 0.74].map((x) => <Box key={x} position={[x, 3.23, -0.04]} scale={[0.44, 0.18, 0.52]} material={dark} />)}
         </group>
 
-        <group name="pressure-cauldron-gauge-and-red-indicator" position={[0, 3.58, 1.88]}>
-          <Cylinder rotation={[Math.PI / 2, 0, 0]} args={[0.38, 0.38, 0.16, 10]} material={dark} />
-          <Cylinder position={[0, 0, 0.09]} rotation={[Math.PI / 2, 0, 0]} args={[0.29, 0.29, 0.03, 10]} material={gauge} />
-          <Box position={[0, 0.06, 0.125]} rotation={[0, 0, -0.58]} scale={[0.035, 0.20, 0.03]} material={red} />
+        <group name="pressure-cauldron-gauge-and-red-indicator" position={[1.16, 3.46, 0.28]}>
+          <Cylinder rotation={[Math.PI / 2, 0, 0]} args={[0.43, 0.43, 0.18, 10]} material={dark} outlined />
+          <Cylinder position={[0, 0, 0.105]} rotation={[Math.PI / 2, 0, 0]} args={[0.33, 0.33, 0.035, 10]} material={gauge} outlined />
+          <Box position={[0.02, 0.08, 0.155]} rotation={[0, 0, -0.58]} scale={[0.045, 0.23, 0.035]} material={red} />
           <Cylinder position={[0.76, -0.02, 0.07]} rotation={[Math.PI / 2, 0, 0]} args={[0.17, 0.17, 0.14, 8]} material={red} />
+          <group name="pressure-cauldron-gauge-ticks-and-needle">
+            <GaugeTicks dark={dark} />
+            <Cylinder position={[0, 0, 0.16]} rotation={[Math.PI / 2, 0, 0]} args={[0.06, 0.06, 0.035, 8]} material={dark} />
+          </group>
         </group>
 
-        <group name="pressure-cauldron-red-side-handwheel" position={[3.02, 1.86, 0]} rotation={[0, 0, Math.PI / 2]}>
-          <Cylinder args={[0.66, 0.66, 0.18, 10]} material={red} />
-          <Cylinder position={[0, 0.14, 0]} args={[0.18, 0.18, 0.36, 8]} material={dark} />
-          <Box position={[0, 0.27, 0]} scale={[1.38, 0.10, 0.10]} material={red} />
-          <Box position={[0, 0.27, 0]} rotation={[0, Math.PI / 2, 0]} scale={[1.38, 0.10, 0.10]} material={red} />
+        <group name="pressure-cauldron-red-side-handwheel" position={[3.18, 1.18, 2.04]} rotation={[0, 0, Math.PI / 2]}>
+          <Cylinder args={[0.68, 0.68, 0.20, 10]} material={red} outlined />
+          <Cylinder position={[0, 0.11, 0]} args={[0.20, 0.20, 0.26, 8]} material={dark} />
+          <Box position={[0, 0.18, 0]} scale={[1.30, 0.09, 0.09]} material={red} />
+          <Box position={[0, 0.18, 0]} rotation={[0, Math.PI / 2, 0]} scale={[1.30, 0.09, 0.09]} material={red} />
+          <group name="pressure-cauldron-right-front-red-handwheel">
+            <Cylinder position={[0, -0.34, 0]} args={[0.16, 0.16, 0.42, 8]} material={dark} />
+          </group>
         </group>
 
         <group name="pressure-cauldron-front-step-and-pipe">
-          <Box position={[0, 0.27, 3.23]} scale={[2.20, 0.32, 0.72]} material={dark} outlined />
-          <Box position={[0, 0.57, 2.84]} scale={[1.62, 0.20, 0.26]} material={whiteShade} />
-          <Cylinder position={[-1.10, 0.62, 3.05]} rotation={[0, Math.PI / 2, 0]} args={[0.14, 0.14, 0.74, 8]} material={dark} />
+          <Box position={[-0.76, 0.28, 3.38]} scale={[1.10, 0.34, 0.76]} material={dark} outlined />
+          <Box position={[-0.76, 0.51, 3.79]} scale={[1.10, 0.12, 0.10]} material={yellow} />
+          <Cylinder position={[-1.26, 0.62, 3.08]} rotation={[0, Math.PI / 2, 0]} args={[0.14, 0.14, 0.82, 8]} material={dark} />
+          <group name="pressure-cauldron-front-twin-steps-and-pipes">
+            <Box position={[0.76, 0.28, 3.38]} scale={[1.10, 0.34, 0.76]} material={dark} outlined />
+            <Box position={[0.76, 0.51, 3.79]} scale={[1.10, 0.12, 0.10]} material={yellow} />
+            <Cylinder position={[1.26, 0.62, 3.08]} rotation={[0, Math.PI / 2, 0]} args={[0.14, 0.14, 0.82, 8]} material={dark} />
+          </group>
         </group>
 
         <group name="pressure-cauldron-side-control-housings">
-          <Box position={[-2.92, 1.40, 0.24]} scale={[0.38, 0.72, 0.72]} material={dark} outlined />
-          <Box position={[-3.18, 1.68, 0.24]} scale={[0.12, 0.24, 0.40]} material={yellow} />
-          <Box position={[2.80, 1.18, -1.34]} scale={[0.44, 0.58, 0.62]} material={dark} outlined />
+          <Box position={[-3.46, 1.45, 0.18]} scale={[0.78, 2.18, 1.18]} material={gray} outlined />
+          <Box position={[-2.98, 1.07, 0.84]} scale={[0.16, 0.32, 0.06]} material={yellow} />
+          <Box position={[3.38, 0.92, -0.16]} scale={[1.24, 1.38, 1.58]} material={white} outlined />
+          <group name="pressure-cauldron-left-gray-control-cabinet">
+            <Box position={[-3.46, 2.63, 0.18]} scale={[0.86, 0.18, 1.26]} material={dark} />
+            <Box position={[-3.06, 1.55, 0.80]} scale={[0.52, 0.62, 0.05]} material={dark} />
+            {[1.78, 1.56, 1.34].map((y) => <Box key={y} position={[-3.02, y, 0.84]} scale={[0.44, 0.07, 0.04]} material={whiteShade} />)}
+            {[[ -3.24, 1.17 ], [ -2.88, 1.17 ], [ -3.24, 1.93 ], [ -2.88, 1.93 ]].map(([x, y]) => <Box key={`${x}-${y}`} position={[x, y, 0.85]} scale={[0.10, 0.10, 0.04]} material={darkEdge} />)}
+          </group>
+          <group name="pressure-cauldron-right-white-auxiliary-housing">
+            <Box position={[3.38, 1.68, -0.16]} scale={[0.96, 0.16, 1.08]} material={dark} />
+            {[-0.35, 0.35].map((z) => <Cylinder key={z} position={[2.75, 1.02, z]} rotation={[0, 0, Math.PI / 2]} args={[0.16, 0.16, 0.18, 8]} material={dark} />)}
+          </group>
         </group>
       </StudioTunedGroup>
     </group>

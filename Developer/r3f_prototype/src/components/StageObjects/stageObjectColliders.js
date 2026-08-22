@@ -174,8 +174,11 @@ const KITCHEN_CRATE_STACK_COLLIDER_PARTS = [
 ]
 
 const PRESSURE_CAULDRON_COLLIDER_PARTS = [
-  { key: 'pressure-cauldron-vessel', position: [0, 0.34, 0], size: [1.144, 0.68, 1.144] },
-  { key: 'pressure-cauldron-front-step', position: [0, 0.054, 0.646], size: [0.44, 0.108, 0.144] },
+  { key: 'pressure-cauldron-vessel', position: [0, 0.36, 0], size: [1.376, 0.592, 1.376] },
+  { key: 'pressure-cauldron-front-twin-steps', position: [0, 0.056, 0.676], size: [0.592, 0.112, 0.168] },
+  { key: 'pressure-cauldron-left-cabinet', position: [-0.692, 0.29, 0.036], size: [0.172, 0.436, 0.252] },
+  { key: 'pressure-cauldron-right-auxiliary', position: [0.676, 0.184, -0.032], size: [0.248, 0.276, 0.316] },
+  { key: 'pressure-cauldron-handwheel', position: [0.636, 0.236, 0.408], size: [0.168, 0.236, 0.184] },
 ]
 
 const COLLIDER_DEFS = {

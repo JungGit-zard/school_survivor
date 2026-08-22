@@ -484,7 +484,9 @@ export default function StudioTunedGroup(props) {
   return <StudioTunedRuntimeGroup {...props} snapshot={snapshot} />
 }
 
-function StudioTunedRuntimeGroup({ itemId, children, materialTuning = true, snapshot = null }) {
+function StudioTunedRuntimeGroup({ itemId, children, materialTuning = true, snapshot = null, transformPositionMultiplier = 1 }) {
+  // A non-1 value is reserved for a fixed parent base scale: compensate only
+  // the parent-scaled Studio position so runtime and preview stay world-equal.
   const groupRef = useRef(null)
   const [studioState, setStudioState] = useState(() => (
     snapshot ? loadSnapshotStudioState(itemId, snapshot) : loadStudioState(itemId)
@@ -507,6 +509,9 @@ function StudioTunedRuntimeGroup({ itemId, children, materialTuning = true, snap
 
   const { tuning, tunings, decals } = studioState
   const transform = useMemo(() => getStudioTransformProps(tuning), [tuning])
+  const runtimePosition = useMemo(() => (
+    transform.position.map((value) => value * transformPositionMultiplier)
+  ), [transform.position, transformPositionMultiplier])
 
   // 첫 useFrame(애니메이션)이 돌기 전에 rest 포즈를 base로 확정한다.
   // useLayoutEffect는 R3F의 rAF 루프보다 먼저 실행되므로 경합이 없다.
@@ -520,7 +525,7 @@ function StudioTunedRuntimeGroup({ itemId, children, materialTuning = true, snap
     applySavedStudioPartTunings(groupRef.current, itemId, tunings, { materialTuning })
     syncTextureDecals(groupRef.current, decals)
     invalidate()
-  }, [itemId, materialTuning, tuning, tunings, decals])
+  }, [itemId, materialTuning, tuning, tunings, decals, transformPositionMultiplier])
 
   useEffect(() => {
     const group = groupRef.current
@@ -530,5 +535,5 @@ function StudioTunedRuntimeGroup({ itemId, children, materialTuning = true, snap
     }
   }, [])
 
-  return <group ref={groupRef} scale={transform.scale} position={transform.position} rotation={transform.rotation}>{children}</group>
+  return <group ref={groupRef} scale={transform.scale} position={runtimePosition} rotation={transform.rotation}>{children}</group>
 }
