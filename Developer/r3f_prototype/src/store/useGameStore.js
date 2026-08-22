@@ -384,6 +384,7 @@ export const useGameStore = create(
       if (!Number.isFinite(amount) || amount <= 0) return s
       const hp = Math.min(s.player.maxHp, s.player.hp + amount)
       const healed = hp > s.player.hp
+      if (healed) emitSfx({ id: 'playerHeal', volume: 0.34 })
       return {
         player: {
           ...s.player,

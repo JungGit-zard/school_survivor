@@ -68,6 +68,7 @@ export const SOUND_MAP = {
   // ── 플레이어 ─────────────────────────────────────────────────────────────────
   playerHit:      '/sfx/player/playerHit.ogg',
   playerDeath:    '/sfx/player/playerDeath.ogg',
+  playerHeal:     '/sfx/player/playerHeal.ogg',
   playerStep:     '/sfx/player/playerStep.ogg',
 
   // ── 적 등장/공격 그로울 ───────────────────────────────────────────────────────
@@ -97,7 +98,9 @@ export const SOUND_MAP = {
   matildaDeath:       '/sfx/enemies/matildaDeath.ogg',
   dogeDeath:          '/sfx/enemies/dogeDeath.ogg',
   dogeEscape:         '/sfx/enemies/dogeEscape.ogg',
-  dogeYelp:           '/sfx/enemies/dogeYelp.wav',
+  dogeYelp:           '/sfx/enemies/dogeYelp.ogg',
+  inuconBite:         '/sfx/enemies/inuconBite.ogg',
+  inuconHeal:         '/sfx/enemies/inuconHeal.ogg',
 
   // ── UI ───────────────────────────────────────────────────────────────────────
   buttonClick:    '/sfx/ui/buttonClick.ogg',
@@ -122,7 +125,7 @@ export const SOUND_MAP = {
   chestOpen:          '/sfx/events/chestOpen.ogg',
   textbookLand:       '/sfx/events/textbookLand.ogg',
   rzlWhistle:         '/sfx/events/rzlWhistle.ogg',
-  stage2GuardWhistle: '/sfx/events/stage2GuardWhistle.wav',
+  stage2GuardWhistle: '/sfx/events/stage2GuardWhistle.ogg',
 }
 
 export const DEFAULT_SFX_TUNING = {
@@ -239,7 +242,10 @@ export const POLYPHONY_COOLDOWN = Object.freeze({
   zombieDeathBellow: 200,  // 음원 0.82s, 겹치면 가장 지저분해진다
   dogeDeath:        180,
   dogeEscape:       240,
+  inuconBite:       180,
+  inuconHeal:       500,
   playerHit:        80,
+  playerHeal:       220,
   zombieSpawn:      110,
   matildaDash:      400,
   matildaLaugh:     700,

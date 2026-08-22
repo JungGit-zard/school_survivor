@@ -243,8 +243,10 @@ export function InuconWeapon() {
         x: playerPos.x, z: playerPos.z, radius: biteDrag.radius, damage: biteDrag.damage,
         knockback: biteDrag.knockback, knockbackMs: biteDrag.knockbackMs, ignoreSightBlock: true, weaponKey: 'inucon',
       })
-      if (hits > 0) lastPushAtRef.current = now
-      else lastPushAtRef.current = now - biteDrag.pulseIntervalMs + 100
+      if (hits > 0) {
+        lastPushAtRef.current = now
+        emitSfx({ id: 'inuconBite', volume: 0.52, rate: 0.96 + Math.random() * 0.08 })
+      } else lastPushAtRef.current = now - biteDrag.pulseIntervalMs + 100
     }
 
     const healIntervalMs = Number.isFinite(w.healIntervalMs) ? w.healIntervalMs : INUCON_HEAL_INTERVAL_MS
@@ -255,7 +257,7 @@ export function InuconWeapon() {
       if (healAmount > 0) {
         healPlayer(healAmount)
         if (player.hp < player.maxHp) {
-          emitSfx({ id: 'pickupHeal', volume: 0.42 })
+          emitSfx({ id: 'inuconHeal', volume: 0.44, rate: 0.98 + Math.random() * 0.06 })
           useGameStore.getState().recordMissionEvent({ type: 'companion_heal', companionId: 'inucon' })
         }
       }

@@ -363,6 +363,126 @@
       "licenseEvidence": "project-generated-procedural"
     },
     {
+      "logicalId": "bikittyCutterFire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterFire.ogg",
+          "bytes": 4877,
+          "sha256": "0a30f3acbf3bfb8f32ddb2451b8d99d1aa61dfaa76c3382446941ba800883223"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterFire.mp3",
+          "bytes": 1612,
+          "sha256": "de76ee4cc094ed236a4b2caf2661fc59dd033e6ff13be14495503f90b7f36148"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "bikittyCutterSnap",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterSnap.ogg",
+          "bytes": 10177,
+          "sha256": "8d1b1a38a7bec638a2149d2fb6c76464ec427b2687c490680cb87b65358d7cf2"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterSnap.mp3",
+          "bytes": 8195,
+          "sha256": "d9cce917f7d602f99aa04063437260359c18c5ecfef7d3c400e6218d686013f4"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "bikittyCutterReload",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterReload.ogg",
+          "bytes": 13959,
+          "sha256": "851bae0c9784b6d01abee7ba186af9ecdb587d56d3d77a08ce0a788017cd37ab"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterReload.mp3",
+          "bytes": 12270,
+          "sha256": "689472a12e5141a1f968afd572f2963c9a360efb86d243673b18a5c84324bb92"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "lineDrawSlash",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawSlash.ogg",
+          "bytes": 7966,
+          "sha256": "12d94b53601a36c0f0330f7ec4a678686c087d6af15f3d57e9a3ef23053e891f"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawSlash.mp3",
+          "bytes": 5270,
+          "sha256": "610104faa52043b7c0e952d48f9a46298a42bb174dca4d79183962ef5234dc60"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "lineDrawCross",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawCross.ogg",
+          "bytes": 3933,
+          "sha256": "e93cd210f21af5049a3eb0f1d04e6e178320565589fc383f30ae68e701269353"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawCross.mp3",
+          "bytes": 1090,
+          "sha256": "c074a05b7c169f88101aef837e6945aaadac8f2e31477f79dde0a1ed6f77c9af"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "lineDrawExpire",
+      "category": "weapons",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawExpire.ogg",
+          "bytes": 5484,
+          "sha256": "4a8553129720f265672a00c37557c2748ef0b17137f548e3dbcff992c7a749cd"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawExpire.mp3",
+          "bytes": 2919,
+          "sha256": "973f3bd3dd6e5fe1728929c2b784b042409cc0401d25843cf7cd6fae219510e9"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
+      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
       "logicalId": "pencilHit",
       "category": "weapons",
       "paths": [
@@ -728,18 +848,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/player/playerHit.ogg",
-          "bytes": 4646,
-          "sha256": "6c72229d4422cda55a6f65099ec437b7d50b5fc3d10189f9585a8cc0cda510cf"
+          "bytes": 4491,
+          "sha256": "dc0aa75a2ca44a336a045beb1fb159ec3485994f9a9b3d3ade78b6566f0f1fc3"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/player/playerHit.mp3",
-          "bytes": 1895,
-          "sha256": "ca88afa3d15592329977e935da439e34b53ee5bdbd130e87b50f681ac53eb8b9"
+          "bytes": 2342,
+          "sha256": "171ad10408ec0a1dce19f51bbe172d9ed201185ce1b77e6d66d863e3dac8ae6e"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -748,18 +868,38 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/player/playerDeath.ogg",
-          "bytes": 11242,
-          "sha256": "6f307254d09bb9660f8f14a19e92e41a055146fd1fe12b572d781e29253bcc6d"
+          "bytes": 6085,
+          "sha256": "834e172a7963463ca12a8dedd5c7d83825136f7e6388f239bb149f1f8dd7920d"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/player/playerDeath.mp3",
-          "bytes": 5951,
-          "sha256": "324d1c6e23a73252d1e2a63b31596744378902f5277388218db126655e6b6915"
+          "bytes": 5477,
+          "sha256": "e55e3d8ba670e949d146154267b4cff49ba51c84a77332e5e4b9cdee0e0cf0a2"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "playerHeal",
+      "category": "player",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/player/playerHeal.ogg",
+          "bytes": 5160,
+          "sha256": "90c306a85d408c8111f4d1ab1ea0b588841f6224b18fb56e938a388143e6f3f2"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/player/playerHeal.mp3",
+          "bytes": 3596,
+          "sha256": "eafd30617e26c73f30f6899dc6e584e7e6e122d87d720d3f2b35b9743e7c6dce"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -788,18 +928,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieGroan.ogg",
-          "bytes": 8706,
-          "sha256": "7309e0bbe0344449ddd76bdba0bd279c66e7fffe6092490f54113c5abba8c6cc"
+          "bytes": 6532,
+          "sha256": "67fe5be20dd92459ae114428c3f9cec087815a90e10261e2a76a7abe5679cc2a"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieGroan.mp3",
-          "bytes": 4105,
-          "sha256": "502b11c6c16960b4b368fb02bf1413e39786d67167c19f5b30df276fc8b0d46b"
+          "bytes": 5477,
+          "sha256": "46abe937929c2081927446a7d33cef8235e4238fe33bd8350887f41f1fb19c08"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -808,18 +948,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieSpawn.ogg",
-          "bytes": 7587,
-          "sha256": "7ad22ec8e1a5f34c38396bd75672490669af43b7fac5c9f6746711d06313d34f"
+          "bytes": 5185,
+          "sha256": "201e4238d41960f73ed84bd63e6f27ad39dbadea8c291da0b1741a17e9821632"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieSpawn.mp3",
-          "bytes": 3980,
-          "sha256": "ac6ba81fa0891688247d50992d5db0b250a27d0ef4b5fab7133de96efdb12697"
+          "bytes": 3596,
+          "sha256": "2eca64d99232772f594954c665ea088b0f500e4844d97bd2cd2112440097ce81"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -828,18 +968,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieTankGroan.ogg",
-          "bytes": 9381,
-          "sha256": "d88394fecf33c70e8306068b62b69af65d5c1397bbb532f1bba5d1f3c14ddb9a"
+          "bytes": 7256,
+          "sha256": "468292b3babfa4fb4c89109c09fa39f98939d2ca6e024232e8173083fe5730e5"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieTankGroan.mp3",
-          "bytes": 4911,
-          "sha256": "505b7fb9ceb1545ee8d656ef6a7f054548748e13b409fb8b9fed5f1a0428ecb0"
+          "bytes": 6940,
+          "sha256": "2b4cffa308b26ad1bf4dea9b38e3ddfacc44b33f71fc1e95d1115fe4e7c6be36"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -848,18 +988,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieRunnerScreech.ogg",
-          "bytes": 7572,
-          "sha256": "79a0e91ebe25148fb32b048b9b2d19461cc1b1cc0b84036670e33f88a110ee26"
+          "bytes": 5114,
+          "sha256": "c566df370f8e2e8b0b812d0687dbedbc024649df9d5cc319d9e7a8e855c06509"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieRunnerScreech.mp3",
-          "bytes": 3614,
-          "sha256": "a773165d11ecab375efde1ca4557296a137b11146e10abcb3b95cf108b65ea1d"
+          "bytes": 3387,
+          "sha256": "b7391a6871d0fe3eabf9aef5a7012c81ff322c58a38af76d65df3427f040371a"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -868,18 +1008,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieRangedShoot.ogg",
-          "bytes": 6727,
-          "sha256": "6869a30ad8a636d94c8ffa2cefd2f57f98876ee561574811d65fa3ac0bff8372"
+          "bytes": 4944,
+          "sha256": "bfc7fbb6bb711e2f0c0674e9716061c4fa9e54ae20372832d7fe47597b69ea81"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieRangedShoot.mp3",
-          "bytes": 2987,
-          "sha256": "64630182b83b2136da27d6c877b5781fa8221899149576d7cf50ef07f024ba62"
+          "bytes": 2760,
+          "sha256": "1a8867afac3a801c29c43827ea13c36f3c14dc6607d80b7f969c8f1e7f19de2f"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -888,18 +1028,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieChargeRoar.ogg",
-          "bytes": 9496,
-          "sha256": "c775b5d67be30cbc212860b2a0ecb948968953980eb19a93f12176b0724d2bc6"
+          "bytes": 5983,
+          "sha256": "2b9b7be6b1ad9ef6ffacc1572790c286621c83964147b5ed6c30759945e695ed"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieChargeRoar.mp3",
-          "bytes": 4885,
-          "sha256": "6df2f939c1cc986110291f3acdebc2bbfec0601b48b141557d818f0dee5f8336"
+          "bytes": 4850,
+          "sha256": "d4f3f65676508724b6636d4120beacb5590a1cbc7fc87011e54f955d6da4ce94"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -928,18 +1068,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/bossRoar.ogg",
-          "bytes": 12619,
-          "sha256": "425a5663e02c2793572780566980ad65589f26bc0054d9ea2d4315e6b0c10145"
+          "bytes": 7873,
+          "sha256": "da2d4b9411c8673fe5978eea9494ed878f1f36ecdc290cc0a7eef52749475ee8"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/bossRoar.mp3",
-          "bytes": 7173,
-          "sha256": "df48cf81af0f41dbb2051d084e3d4d404ef5382138a196f3ceb6d5295e7ead8a"
+          "bytes": 7567,
+          "sha256": "398423f18f97f57e16c6f2d6811b626ca73425b0ba231fb4a0cb3339013599e5"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -948,18 +1088,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.ogg",
-          "bytes": 14937,
-          "sha256": "e2b654f2e89716db75c4d5f5cf9d11c7b244e7d23b3e70081106c73f49e3d68d"
+          "bytes": 6354,
+          "sha256": "88d085c9b1812f873b4f9e7f0c49f161b899465ae2b8d93713a5008bcf90645c"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.mp3",
-          "bytes": 14778,
-          "sha256": "3ce7d136d192e9710cddc06c9acfa9c72d7abc9d0787ea1ac6af71def0a1fc61"
+          "bytes": 5686,
+          "sha256": "50e56ccae5702f71fb25176363ea01e019b0943308975426ea7173a672c874b4"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -968,18 +1108,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDash.ogg",
-          "bytes": 9265,
-          "sha256": "9b9a3a35471f92691d0664e92f8ad6dd5ac3f960fe365e7c91b19cbdeafa769d"
+          "bytes": 4590,
+          "sha256": "8a2ecbedc02e9fa8cb9e3c5052aa045237aefdee2e608d8b944bfaba0d3a7035"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDash.mp3",
-          "bytes": 5492,
-          "sha256": "bc5b3297041df431702e950557c5c10a7b4f650872db11781261cc142bea9dfc"
+          "bytes": 2551,
+          "sha256": "c6b5466dae00a83ff9728de3d7da7e6fb98ca813436ebe289d8beccc4f1432a5"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -988,18 +1128,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.ogg",
-          "bytes": 13114,
-          "sha256": "a1ecee752613d68b6af9c2cd27bf3da2f1377d9b2d6d01401a9f27cd400d9131"
+          "bytes": 6591,
+          "sha256": "4d54885847612f463b148974543a20e5bf63e8575ff478bd01fefae5dddc58ff"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.mp3",
-          "bytes": 9904,
-          "sha256": "1b1800e2cd3b75d5998e5bb4182654ddc97530e9fc263e9bf8b6c888481fb994"
+          "bytes": 6313,
+          "sha256": "b3190f9b9c3fd9be98be9eee871c74634566bad6dd35297eaffb3b944f5e3501"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1009,17 +1149,17 @@
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathGrunt.ogg",
           "bytes": 5339,
-          "sha256": "63ac9cf61957cbf1396ef8c68d4e1a40109341f4cad33ba7c3f580be8eec10a1"
+          "sha256": "9669e9e1452308d1b8d6c05329c05ed867fb58f27a4deb253a4449926caa4a33"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathGrunt.mp3",
           "bytes": 3596,
-          "sha256": "0c18c860d129c0442669971cd9e10299cc164e8a4a8580562152a41d99f946a2"
+          "sha256": "85526618859a91455298f2838268665677c3f31a31a41eddcb57252b0907963c"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_zombie_death_voices.mjs (procedural formant speech synthesis: seeded glottal pulse + LFSR noise excitation through a 3-formant resonator bank; deterministic, regenerates byte-identical)",
-      "notes": "\"으윽\" grunt — E01/E07/RZG. F0 136->92Hz, 0.34s, 7-bit / hold x2. Project-synthesised pseudo-voice. No third-party sample, no recording of a real person, and no reproduction of any existing game audio: 8-bit era techniques (TI TMS5220 LPC, SAM 3-formant, NES DPCM degradation) are referenced as method only.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1029,17 +1169,17 @@
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathHeavy.ogg",
           "bytes": 6719,
-          "sha256": "259d56dc11702a9977f4f0078c7e964193a2b970ae6804691807a607ef9b3f4f"
+          "sha256": "ff5a116dbd01f9c5db3699b314edc50cbc3a35393c3f4154d7f65ec58a9caaba"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathHeavy.mp3",
           "bytes": 5477,
-          "sha256": "bb2eec8ccb1859948514198061166b0d098c8d1a50f4405098d216e4cdf35ad2"
+          "sha256": "e5feb7231bf89b101020236f1e1da379ec429c73cd327551a13f205be26712ea"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_zombie_death_voices.mjs (procedural formant speech synthesis: seeded glottal pulse + LFSR noise excitation through a 3-formant resonator bank; deterministic, regenerates byte-identical)",
-      "notes": "\"우어억\" heavy wobble — E02/E05/RZT. F0 92->56Hz, 0.60s, 6-bit / hold x3. Project-synthesised pseudo-voice. No third-party sample, no recording of a real person, and no reproduction of any existing game audio: 8-bit era techniques (TI TMS5220 LPC, SAM 3-formant, NES DPCM degradation) are referenced as method only.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1049,17 +1189,17 @@
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathShriek.ogg",
           "bytes": 4883,
-          "sha256": "f1bb0bcedcd658c0719ea3a8d4f31b1fbbb48314b035c260db47e7dc79b63441"
+          "sha256": "f79299cbc710c847da288c23e42da9e95b0912c32b6ede6fd1dfeec8f7886efa"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathShriek.mp3",
           "bytes": 3178,
-          "sha256": "d0fff356081762c4f4c7d141021183c745b167f3697f99e99ced8b5010040cba"
+          "sha256": "8788900fa0e09ab52077019f4b3fbcbf920bd22c64a51368b8fd746108b71ef3"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_zombie_death_voices.mjs (procedural formant speech synthesis: seeded glottal pulse + LFSR noise excitation through a 3-formant resonator bank; deterministic, regenerates byte-identical)",
-      "notes": "\"끼야악\" shriek — E03/RZL/RZC. F0 300->238Hz, 0.30s, 8-bit / hold x1. Project-synthesised pseudo-voice. No third-party sample, no recording of a real person, and no reproduction of any existing game audio: 8-bit era techniques (TI TMS5220 LPC, SAM 3-formant, NES DPCM degradation) are referenced as method only.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1069,17 +1209,17 @@
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathGurgle.ogg",
           "bytes": 6118,
-          "sha256": "5fc0974481ca8844bf4ecd59e8e33f7bf6c8b80b30667a1250568637e9c3dba6"
+          "sha256": "eefb215a0d11fc8543cccd2b6504f6c0304c1ce1fbedeceb4e3b40efc574e57e"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathGurgle.mp3",
           "bytes": 4641,
-          "sha256": "2c1b033d728bef39c459c9fd89915270f6582dab74da828b60cc3f455ebf0217"
+          "sha256": "e44a8942ffbd49af09335c2e4c216d7e14df9e3ab2fd801707eacd50d0198a1f"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_zombie_death_voices.mjs (procedural formant speech synthesis: seeded glottal pulse + LFSR noise excitation through a 3-formant resonator bank; deterministic, regenerates byte-identical)",
-      "notes": "\"커르륵\" gurgle — E04. F0 152->100Hz + 26Hz trill, 0.48s, 6-bit / hold x2. Project-synthesised pseudo-voice. No third-party sample, no recording of a real person, and no reproduction of any existing game audio: 8-bit era techniques (TI TMS5220 LPC, SAM 3-formant, NES DPCM degradation) are referenced as method only.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1088,18 +1228,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathBellow.ogg",
-          "bytes": 7691,
-          "sha256": "8e3d30b5ae10246b1554e1aa0753a6e929db9873e0cb54d58e2e90c4f89c19e7"
+          "bytes": 7687,
+          "sha256": "3ce87298f5b42d512dc154ab9b84eb6463557682b1b66dd4d35b039d7fa482ba"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathBellow.mp3",
           "bytes": 7358,
-          "sha256": "4c7e8628fe4d63ba0f2ce59426de9d59c84b7ff44dfbeb1d35098ec4e0737260"
+          "sha256": "53f4f18def7e35d849faba348c8d6a6077e378ff6699ca5581977fe04c7a709c"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_zombie_death_voices.mjs (procedural formant speech synthesis: seeded glottal pulse + LFSR noise excitation through a 3-formant resonator bank; deterministic, regenerates byte-identical)",
-      "notes": "\"끄아아앙\" bellow — E06. F0 74->45Hz + 31Hz ring mod, 0.82s, 6-bit / hold x3. Project-synthesised pseudo-voice. No third-party sample, no recording of a real person, and no reproduction of any existing game audio: 8-bit era techniques (TI TMS5220 LPC, SAM 3-formant, NES DPCM degradation) are referenced as method only.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1108,18 +1248,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/bossDeath.ogg",
-          "bytes": 15612,
-          "sha256": "8751e3023cecd9858b54d65e08479e279c7504d91e95f382739a4ab4814067c4"
+          "bytes": 8330,
+          "sha256": "353d16eb0fc0107476180dd5ae98de48e2765d1078820879971ff7b3e568a844"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/bossDeath.mp3",
-          "bytes": 9097,
-          "sha256": "6f2811562c604d0110c2ee9492a9be2d2c6d549afa96210a22b33a054f6d1a7a"
+          "bytes": 8403,
+          "sha256": "c5c6bd67bc4b54454a154060e5fa44bdf02d42d658a8f242f5cec87823dd67ae"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1128,18 +1268,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDeath.ogg",
-          "bytes": 13164,
-          "sha256": "79cbbedfd1fc8f83212ec1799fb11d09d90d6e63813f9ab0084b1cdf49331817"
+          "bytes": 5706,
+          "sha256": "b1f3cbbf812d8ae29f1657cf7dcad72039b64c5c931d08ddf4fbd136fc01c4ae"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDeath.mp3",
-          "bytes": 7777,
-          "sha256": "d81e19ad8cf7c15549d9e952e0a7c541bb52ff52ed6bdf4a47e75dad0652dd28"
+          "bytes": 4850,
+          "sha256": "c24f41a84d89e6706160b70175f73c0e174afbf49ab10290f8aa45049e833148"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1148,18 +1288,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/dogeDeath.ogg",
-          "bytes": 6890,
-          "sha256": "b36da71d2e3de4e59600e9b36aa8540731d9fa45049106d325fa64a06a4d6a34"
+          "bytes": 4916,
+          "sha256": "d435c2eb08fcc3c481a44506bfb87539a90c86c0d2a56f7347d58187b912824b"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/dogeDeath.mp3",
-          "bytes": 4225,
-          "sha256": "f75a89fb09f50c80a57501e1a3737b46d28d218808f67f690865c02cbb7fbf2d"
+          "bytes": 3178,
+          "sha256": "148acb7548053d98032b6614e1ddc0da0be4568da527a500e7e5ee42e676c690"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1168,18 +1308,78 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/dogeEscape.ogg",
-          "bytes": 7307,
-          "sha256": "337dd3112b9c237d06401aed1732337de67fc5f1ae2a3f89596ba785a4ab7a14"
+          "bytes": 4556,
+          "sha256": "31eb01d71573e08e4818d6cfb5a13258897b800b9995e46b6f25394912a5d0f9"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/dogeEscape.mp3",
-          "bytes": 5008,
-          "sha256": "e3cfb4f74fdc165db4a2689c35b8359976e18c18d1251d3494f1130e57c7cdf2"
+          "bytes": 2551,
+          "sha256": "4876e102624c209354b5dc02bb1828a437f95e585ae6fa95df86043a6493a2f0"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx_refresh.py (procedural synthesis + ffmpeg OGG/MP3 conversion)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "dogeYelp",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/dogeYelp.ogg",
+          "bytes": 4442,
+          "sha256": "7c60c488d0fc72c66a7dcefb546cbc026f92598097439d55e77fbb6fc73bee0c"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/dogeYelp.mp3",
+          "bytes": 2133,
+          "sha256": "ec464215b7ae1d6755070da79a5ff6da420fddeaf60666ea56dfc3ad4b5654fa"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "inuconBite",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/inuconBite.ogg",
+          "bytes": 4661,
+          "sha256": "33204cbba1aa6616756b1d72531528aca73c343d5dd7f1b4be69e2e8e38ba079"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/inuconBite.mp3",
+          "bytes": 2342,
+          "sha256": "64f5cdd078d75aab465c8cc7e9a47f64a49cbc9d1cafb1c01f6f4492df736507"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "inuconHeal",
+      "category": "enemies",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/inuconHeal.ogg",
+          "bytes": 4954,
+          "sha256": "af39cb8169efd0ed3aec4acea2d95281b8c5e70742fa17a7b99f7b163deb2e2c"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/enemies/inuconHeal.mp3",
+          "bytes": 3387,
+          "sha256": "856366430a716bdaed0e7a3a4ea16acc914bb372e822cbef7efe3fa1b0362005"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1348,18 +1548,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/events/bossSpawn.ogg",
-          "bytes": 12651,
-          "sha256": "23fe44c4d7ab17c27cbb37bb00dfc3b3f00392456e77b28ca012c9ae9b6d1551"
+          "bytes": 7098,
+          "sha256": "97e50b4aa75d44e09275a1609385770657903982de7db358e6296ad5085d10db"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/events/bossSpawn.mp3",
-          "bytes": 7043,
-          "sha256": "66f56d74b03519d0533cd93d655e8d2e0fb2e19541aeef2620b76d6307e129e6"
+          "bytes": 6522,
+          "sha256": "7d66452467b9d6295e7a1b866becb0703106ba8791075e3675be188017977d03"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1428,18 +1628,18 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/events/matildaCountdownEnd.ogg",
-          "bytes": 10765,
-          "sha256": "f108ad130804b6a915613519caa2f8c753aa0d410530ccba5309fa463e3ea141"
+          "bytes": 5417,
+          "sha256": "dcb131a50852b4dd44ce22616896a9331bd34bab3c507f534e22e1a6c4519a17"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/events/matildaCountdownEnd.mp3",
-          "bytes": 7057,
-          "sha256": "4f251cf8167e29998e61ebf96d9294fbfdc90a2d734b88105f58effbb4fd353f"
+          "bytes": 4223,
+          "sha256": "c92ba6dfc14208dbe5abb22374aa7471cee5de949a21b5e647869e57aa754000"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1568,18 +1768,38 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/events/rzlWhistle.ogg",
-          "bytes": 11471,
-          "sha256": "730873cc86cd14b0012b2cc1858872e009d25db9931cebb42f19689165e23800"
+          "bytes": 5296,
+          "sha256": "1755c383681e6336980e3ac9cb165e44cac93cf514e378d45b06287057aaa3c2"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/events/rzlWhistle.mp3",
-          "bytes": 9710,
-          "sha256": "80abca70073f79beff299bf59a90cecbc478e1157e13955f064474f237d074f6"
+          "bytes": 4223,
+          "sha256": "46984926e37ed00857c073dd53fda75c66bd9461c6d9d6bc0458b55319f45b59"
         }
       ],
       "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
+      "licenseEvidence": "project-generated-procedural"
+    },
+    {
+      "logicalId": "stage2GuardWhistle",
+      "category": "events",
+      "paths": [
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage2GuardWhistle.ogg",
+          "bytes": 5382,
+          "sha256": "f792e9371f796ed69da357b129b75886069f055ef9ccc1e537b81d61d2c1c090"
+        },
+        {
+          "path": "Developer/r3f_prototype/public/sfx/events/stage2GuardWhistle.mp3",
+          "bytes": 4850,
+          "sha256": "ce6d27b13b583b5cff0dcc186ce92f236b902693c84bbbe398a6ab4cd503c956"
+        }
+      ],
+      "provenanceType": "generated",
+      "source": "scripts/generate_zombie_death_voices.mjs / scripts/generate_voice_sfx.mjs (project procedural source-filter voice synthesis; OGG/MP3 conversion via @ffmpeg-installer/ffmpeg)",
+      "notes": "Project-generated voice-like procedural SFX; no external samples or third-party audio assets used.",
       "licenseEvidence": "project-generated-procedural"
     },
     {
@@ -1598,126 +1818,6 @@
       "source": "Owner-mandated canonical inclusion; this manifest makes no rights or source verification claim.",
       "notes": "출처·권리 근거를 이 매니페스트가 확인했다는 주장은 하지 않는다. 2026-07-30 절차 생성 타이틀 교체는 2026-07-31 사용자 명시 지시로 무효화됐다. 권리·출처·품질·최적화·비평 점수는 이 정본을 교체하거나 제외할 사유가 아니다.",
       "inclusionPolicy": "owner-mandated permanent canonical inclusion in every development run, build, and AAB; do not delete, replace, convert, or redirect playback. Only a new explicit user instruction may change it."
-    },
-    {
-      "logicalId": "bikittyCutterFire",
-      "category": "weapons",
-      "paths": [
-        {
-          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterFire.ogg",
-          "bytes": 4877,
-          "sha256": "0a30f3acbf3bfb8f32ddb2451b8d99d1aa61dfaa76c3382446941ba800883223"
-        },
-        {
-          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterFire.mp3",
-          "bytes": 1612,
-          "sha256": "de76ee4cc094ed236a4b2caf2661fc59dd033e6ff13be14495503f90b7f36148"
-        }
-      ],
-      "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
-      "licenseEvidence": "project-generated-procedural"
-    },
-    {
-      "logicalId": "bikittyCutterSnap",
-      "category": "weapons",
-      "paths": [
-        {
-          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterSnap.ogg",
-          "bytes": 10177,
-          "sha256": "8d1b1a38a7bec638a2149d2fb6c76464ec427b2687c490680cb87b65358d7cf2"
-        },
-        {
-          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterSnap.mp3",
-          "bytes": 8195,
-          "sha256": "d9cce917f7d602f99aa04063437260359c18c5ecfef7d3c400e6218d686013f4"
-        }
-      ],
-      "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
-      "licenseEvidence": "project-generated-procedural"
-    },
-    {
-      "logicalId": "bikittyCutterReload",
-      "category": "weapons",
-      "paths": [
-        {
-          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterReload.ogg",
-          "bytes": 13959,
-          "sha256": "851bae0c9784b6d01abee7ba186af9ecdb587d56d3d77a08ce0a788017cd37ab"
-        },
-        {
-          "path": "Developer/r3f_prototype/public/sfx/weapons/bikittyCutterReload.mp3",
-          "bytes": 12270,
-          "sha256": "689472a12e5141a1f968afd572f2963c9a360efb86d243673b18a5c84324bb92"
-        }
-      ],
-      "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
-      "licenseEvidence": "project-generated-procedural"
-    },
-    {
-      "logicalId": "lineDrawSlash",
-      "category": "weapons",
-      "paths": [
-        {
-          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawSlash.ogg",
-          "bytes": 7966,
-          "sha256": "12d94b53601a36c0f0330f7ec4a678686c087d6af15f3d57e9a3ef23053e891f"
-        },
-        {
-          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawSlash.mp3",
-          "bytes": 5270,
-          "sha256": "610104faa52043b7c0e952d48f9a46298a42bb174dca4d79183962ef5234dc60"
-        }
-      ],
-      "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
-      "licenseEvidence": "project-generated-procedural"
-    },
-    {
-      "logicalId": "lineDrawCross",
-      "category": "weapons",
-      "paths": [
-        {
-          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawCross.ogg",
-          "bytes": 3933,
-          "sha256": "e93cd210f21af5049a3eb0f1d04e6e178320565589fc383f30ae68e701269353"
-        },
-        {
-          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawCross.mp3",
-          "bytes": 1090,
-          "sha256": "c074a05b7c169f88101aef837e6945aaadac8f2e31477f79dde0a1ed6f77c9af"
-        }
-      ],
-      "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
-      "licenseEvidence": "project-generated-procedural"
-    },
-    {
-      "logicalId": "lineDrawExpire",
-      "category": "weapons",
-      "paths": [
-        {
-          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawExpire.ogg",
-          "bytes": 5484,
-          "sha256": "4a8553129720f265672a00c37557c2748ef0b17137f548e3dbcff992c7a749cd"
-        },
-        {
-          "path": "Developer/r3f_prototype/public/sfx/weapons/lineDrawExpire.mp3",
-          "bytes": 2919,
-          "sha256": "973f3bd3dd6e5fe1728929c2b784b042409cc0401d25843cf7cd6fae219510e9"
-        }
-      ],
-      "provenanceType": "generated",
-      "source": "scripts/generate_sfx.mjs (procedural WAV synthesis; OGG/MP3 conversion required for deployment pair)",
-      "notes": "Project procedural SFX asset; no third-party sample provenance asserted.",
-      "licenseEvidence": "project-generated-procedural"
     }
   ]
 }

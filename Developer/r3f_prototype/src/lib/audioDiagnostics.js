@@ -7,8 +7,9 @@ import titleBgmUrl from '../assets/audio/title_bgm.m4a'
 // 이전 값 75/76은 dogeYelp·stage2GuardWhistle·rzlWhistle 추가 때 갱신되지 않아
 // 이미 실제 등록 수(78)와 어긋나 있었다.
 // 2026-08-22: 84 → 87 (좀비 사망 발성 5종 추가, 구 zombieDeath/zombieHeavyDeath 2종 폐기).
-export const AUDIO_DIAGNOSTIC_SFX_COUNT = 87
-export const AUDIO_DIAGNOSTIC_EXPECTED_COUNT = 88
+// 2026-08-22: 87 → 90 (playerHeal/inuconBite/inuconHeal 음성형 SFX 추가).
+export const AUDIO_DIAGNOSTIC_SFX_COUNT = 90
+export const AUDIO_DIAGNOSTIC_EXPECTED_COUNT = 91
 
 // This is intentionally derived from the runtime SFX authority plus the
 // canonical title BGM import. It is not a second audio manifest.

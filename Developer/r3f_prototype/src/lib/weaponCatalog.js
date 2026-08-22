@@ -119,7 +119,8 @@ export const WEAPON_CATALOG = {
   guidedMissile: {
     id: 'guidedMissile',
     label: '보조배터리 미사일',
-    base: { damage: 16, cooldown: 4000, lastFired: 0, range: 7.34, radius: 1.6 },
+    // 2026-08-22 사용자 요청: 재사용대기시간을 기존 4000ms의 1.5배로 증가.
+    base: { damage: 16, cooldown: 6000, lastFired: 0, range: 7.34, radius: 1.6 },
     unlockConditions: [{ type: 'bossKills', value: 1 }],
     minLevelToAppear: 4,
   },
