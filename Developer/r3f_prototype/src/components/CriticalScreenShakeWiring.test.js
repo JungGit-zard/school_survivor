@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 const enemiesSource = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8').replace(/\r\n/g, '\n')
 const enemySource = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8').replace(/\r\n/g, '\n')
 const gameSource = readFileSync(new URL('./Game.jsx', import.meta.url), 'utf8').replace(/\r\n/g, '\n')
+const vfxLayerSource = readFileSync(new URL('./VFXLayer.jsx', import.meta.url), 'utf8').replace(/\r\n/g, '\n')
 
 describe('critical screen shake wiring', () => {
   it('pooled/special 적은 모든 좀비 피격에서 hit shake emitter를 한 번 호출한다', () => {
@@ -24,6 +25,13 @@ describe('critical screen shake wiring', () => {
     expect(enemiesSource).toContain('hit.critical')
     expect(enemySource).toContain('createEnemyCriticalHitBurstEvent')
     expect(enemySource).toContain('criticalHit.isCritical')
+  })
+
+  it('criticalHitBurst는 작아진 크기 안에서도 초반 흰 번쩍임을 낸다', () => {
+    expect(vfxLayerSource).toContain('criticalFlashMatRef')
+    expect(vfxLayerSource).toContain('Math.max(0, 1 - age / 60)')
+    expect(vfxLayerSource).toContain('color={0xffffff}')
+    expect(vfxLayerSource).toContain('blending={THREE.AdditiveBlending}')
   })
 
   it('카메라는 lookAt으로 기준 pose를 만든 뒤 위치 offset만 더한다', () => {

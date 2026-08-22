@@ -69,6 +69,7 @@ export function CriticalHitBurst({ event, onDone }) {
   const ref = useRef()
   const ringRef = useRef()
   const coreMatRef = useRef()
+  const criticalFlashMatRef = useRef()
   const ringMatRef = useRef()
   const shardMatRefs = useRef([])
   const LIFE = event.life ?? 180
@@ -87,6 +88,7 @@ export function CriticalHitBurst({ event, onDone }) {
     if (ringRef.current) ringRef.current.scale.setScalar(1 + t * 1.7)
     const opacity = Math.max(0, 1 - t * t) * (0.72 + pop * 0.28)
     if (coreMatRef.current) coreMatRef.current.opacity = opacity
+    if (criticalFlashMatRef.current) criticalFlashMatRef.current.opacity = Math.max(0, 1 - age / 60)
     if (ringMatRef.current) ringMatRef.current.opacity = Math.max(0, 0.78 * (1 - t))
     const shardOpacity = Math.max(0, 0.92 * (1 - t * 0.85))
     shardMatRefs.current.forEach((mat) => { if (mat) mat.opacity = shardOpacity })
@@ -103,6 +105,18 @@ export function CriticalHitBurst({ event, onDone }) {
             transparent
             opacity={1}
             depthWrite={false}
+            toneMapped={false}
+          />
+        </mesh>
+        <mesh scale={[1.45, 1.45, 1.45]}>
+          <octahedronGeometry args={[1.02, 0]} />
+          <meshBasicMaterial
+            ref={criticalFlashMatRef}
+            color={0xffffff}
+            transparent
+            opacity={1}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
             toneMapped={false}
           />
         </mesh>
