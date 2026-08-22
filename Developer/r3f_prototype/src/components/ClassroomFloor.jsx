@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import stage1TileUrl from '../assets/background_floor/tile_stage01.webp'
 import stage2TileUrl from '../assets/background_floor/tile_stage02_corridor.webp'
 import stage2EndWallUrl from '../assets/background_floor/stage02_corridor_end_wall.webp'
-import stage4TileUrl from '../assets/background_floor/tile_stage04_cafeteria.webp'
+import stage4TileUrl from '../assets/background_floor/tile_stage04_white_ceramic.webp'
 import { getStage2CorridorWallDisplay } from '../lib/stage2CorridorWall.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 import Stage2CorridorDecor from './Stage2CorridorDecor.jsx'
@@ -13,21 +13,21 @@ const FLOOR_SIZE = 200
 const STAGE1_TILE_WORLD_SIZE = 6.9
 const STAGE2_TILE_WORLD_SIZE = 30
 const STAGE2_TILE_DENSITY_MULTIPLIER = 10
-// 급식실 타일 이미지는 체커 8칸이 한 장이다. 원화(st4_concept.png) 기준 한 칸이
-// 약 2.06 유닛이라 한 장 = 16.5 유닛. stage1 값(6.9)을 쓰면 한 칸 0.86 유닛이 되어
-// 주방 바닥이 아니라 욕실 모자이크로 읽힌다.
-const STAGE4_TILE_WORLD_SIZE = 16.5
-// Stage 4 keeps one floor mesh and one cached cafeteria-tile source.  Only its
-// UV repetition changes: 2x on both axes makes each visible tile 1/2 by 1/2,
-// or exactly 1/4 of its prior area, without new geometry, material, draw calls,
-// or texture allocations.
+// Stage 4 uses one white-ceramic tile source directly.  Its 24-column UV repeat
+// keeps the 1.2-unit square tile contract; the Z repeat derives from depth so
+// the rectangular arena never stretches a square source tile.
 export const STAGE4_TILE_LINEAR_SCALE = 0.5
 export const STAGE4_TILE_AREA_SCALE = 0.25
-export const STAGE4_TILE_FREQUENCY_MULTIPLIER = 2
-export const STAGE4_BASE_REPEAT = Math.round(FLOOR_SIZE / STAGE4_TILE_WORLD_SIZE)
 const STAGE1_BOUNDS = getStageBounds('stage1')
+const STAGE4_BOUNDS = getStageBounds('stage4')
 export const STAGE1_FLOOR_WIDTH = STAGE1_BOUNDS.halfX * 2
 export const STAGE1_FLOOR_DEPTH = STAGE1_BOUNDS.halfZ * 2
+export const STAGE4_FLOOR_WIDTH = STAGE4_BOUNDS.halfX * 2
+export const STAGE4_FLOOR_DEPTH = STAGE4_BOUNDS.halfZ * 2
+export const STAGE4_BASE_TILE_WORLD_SIZE = 2.4
+export const STAGE4_TILE_WORLD_SIZE = STAGE4_BASE_TILE_WORLD_SIZE * STAGE4_TILE_LINEAR_SCALE
+export const STAGE4_TILE_REPEAT_X = STAGE4_FLOOR_WIDTH / STAGE4_TILE_WORLD_SIZE
+export const STAGE4_TILE_REPEAT_Z = STAGE4_FLOOR_DEPTH / STAGE4_TILE_WORLD_SIZE
 
 export const FLOOR_TILE = {
   src: stage1TileUrl,
@@ -48,8 +48,10 @@ export const STAGE_FLOOR_TILES = {
   },
   stage4: {
     src: stage4TileUrl,
-    repeat: STAGE4_BASE_REPEAT * STAGE4_TILE_FREQUENCY_MULTIPLIER,
-    floorSize: FLOOR_SIZE,
+    repeatX: STAGE4_TILE_REPEAT_X,
+    repeatZ: STAGE4_TILE_REPEAT_Z,
+    floorWidth: STAGE4_FLOOR_WIDTH,
+    floorDepth: STAGE4_FLOOR_DEPTH,
   },
 }
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import {
   FLOOR_TILE,
   STAGE1_FLOOR_DEPTH,
@@ -9,8 +10,10 @@ import {
   STAGE2_CORRIDOR_LANES,
   STAGE3_ARENA,
   STAGE4_TILE_AREA_SCALE,
-  STAGE4_TILE_FREQUENCY_MULTIPLIER,
   STAGE4_TILE_LINEAR_SCALE,
+  STAGE4_TILE_REPEAT_X,
+  STAGE4_TILE_REPEAT_Z,
+  STAGE4_TILE_WORLD_SIZE,
 } from './ClassroomFloor.jsx'
 import { getStageBounds } from '../lib/stageConfig.js'
 
@@ -34,19 +37,31 @@ describe('ClassroomFloor tiling', () => {
     expect(STAGE2_CORRIDOR_END.bottomZ).toBeLessThan(-getStageBounds('stage2').halfZ)
   })
 
-  it('maps Stage 4 to its dedicated cafeteria tile at exactly one-quarter of the previous visible tile area', () => {
-    expect(STAGE_FLOOR_TILES.stage4.src).toMatch(/tile_stage04_cafeteria/)
-    // 체커 8칸/장 × 2.06 유닛 = 한 장 16.5 유닛 (원화 st4_concept.png 기준).
-    // stage1 값(6.9 → repeat 29)을 쓰면 타일이 잘아 욕실 모자이크로 읽힌다.
+  it('uses one single-tile white ceramic source across the exact Stage 4 combat bounds', () => {
+    const { halfX, halfZ } = getStageBounds('stage4')
+
+    expect(STAGE_FLOOR_TILES.stage4.src).toMatch(/tile_stage04_white_ceramic\.webp/)
+    expect(STAGE_FLOOR_TILES.stage4.src).not.toMatch(/tile_stage04_cafeteria/)
+    expect(STAGE_FLOOR_TILES.stage4.floorWidth).toBe(halfX * 2)
+    expect(STAGE_FLOOR_TILES.stage4.floorDepth).toBe(halfZ * 2)
+    expect(STAGE_FLOOR_TILES.stage4.floorWidth).toBe(28.8)
+    expect(STAGE_FLOOR_TILES.stage4.floorDepth).toBe(32)
     expect(STAGE4_TILE_LINEAR_SCALE).toBe(0.5)
     expect(STAGE4_TILE_AREA_SCALE).toBe(0.25)
-    expect(STAGE4_TILE_FREQUENCY_MULTIPLIER).toBe(2)
-    expect(STAGE_FLOOR_TILES.stage4.repeat).toBe(24)
-
-    const previousRepeat = 12
-    const previousTileArea = (STAGE_FLOOR_TILES.stage4.floorSize / previousRepeat) ** 2
-    const currentTileArea = (STAGE_FLOOR_TILES.stage4.floorSize / STAGE_FLOOR_TILES.stage4.repeat) ** 2
-    expect(currentTileArea / previousTileArea).toBeCloseTo(0.25)
+    expect(STAGE4_TILE_WORLD_SIZE).toBe(1.2)
+    expect(STAGE4_TILE_REPEAT_X).toBe(24)
+    expect(STAGE4_TILE_REPEAT_Z).toBeCloseTo(26.6666666667)
+    expect(STAGE_FLOOR_TILES.stage4.repeatX).toBe(STAGE4_TILE_REPEAT_X)
+    expect(STAGE_FLOOR_TILES.stage4.repeatZ).toBeCloseTo(STAGE4_TILE_REPEAT_Z)
+    expect(STAGE_FLOOR_TILES.stage4.floorWidth / STAGE_FLOOR_TILES.stage4.repeatX)
+      .toBeCloseTo(STAGE4_TILE_WORLD_SIZE)
+    expect(STAGE_FLOOR_TILES.stage4.floorDepth / STAGE_FLOOR_TILES.stage4.repeatZ)
+      .toBeCloseTo(STAGE4_TILE_WORLD_SIZE)
+    expect(STAGE_FLOOR_TILES.stage4.floorWidth / STAGE_FLOOR_TILES.stage4.repeatX)
+      .toBeCloseTo(STAGE_FLOOR_TILES.stage4.floorDepth / STAGE_FLOOR_TILES.stage4.repeatZ)
+    expect(STAGE4_TILE_WORLD_SIZE ** 2)
+      .toBeCloseTo((2.4 ** 2) * STAGE4_TILE_AREA_SCALE)
+    expect(STAGE_FLOOR_TILES.stage4.repeat).toBeUndefined()
   })
 
   it('keeps Stages 1 to 3 floor dimensions and tile frequencies unchanged', () => {
@@ -69,9 +84,9 @@ describe('ClassroomFloor tiling', () => {
     expect(FLOOR_TILE.floorDepth / FLOOR_TILE.repeatZ).toBeCloseTo(6.9)
   })
 
-  it('keeps the existing 200 by 200 floor contract for other textured stages', () => {
+  it('keeps the existing 200 by 200 floor contract for Stage 2 only', () => {
     expect(STAGE_FLOOR_TILES.stage2.floorSize).toBe(200)
-    expect(STAGE_FLOOR_TILES.stage4.floorSize).toBe(200)
+    expect(STAGE_FLOOR_TILES.stage4.floorSize).toBeUndefined()
   })
 
   it('does not draw blue Stage 2 lane divider lines', () => {
@@ -81,11 +96,27 @@ describe('ClassroomFloor tiling', () => {
   it('uses one cached tile source on one floor mesh and changes only UV repeat, not draw or memory cost', () => {
     const source = readFileSync(new URL('./ClassroomFloor.jsx', import.meta.url), 'utf8')
     expect(source).toContain('useLoader(THREE.TextureLoader, floorTile.src)')
+    expect(source).toContain("import stage4TileUrl from '../assets/background_floor/tile_stage04_white_ceramic.webp'")
     expect(source).toContain('tex.repeat.set(tile.userData.floorRepeatX, tile.userData.floorRepeatZ)')
+    expect(source).toContain('tex.anisotropy = 8')
+    expect(source).toContain('tex.generateMipmaps = true')
+    expect(source).toContain('tex.minFilter = THREE.LinearMipmapLinearFilter')
+    expect(source).toContain('tex.magFilter = THREE.LinearFilter')
     expect(source).toContain('useMemo(() => buildRepeatingTexture(texture), [texture])')
+    expect(source).toContain('new THREE.MeshLambertMaterial({ map: floorTex })')
+    expect(source).toContain('useEffect(() => () => floorMat.dispose(), [floorMat])')
     expect(source).toContain('<FloorPlane\n      material={floorMat}')
     expect(source).toContain('useLoader(THREE.TextureLoader, STAGE2_CORRIDOR_END.src)')
     expect(source).not.toContain('new THREE.TextureLoader()')
     expect(source).not.toContain('Array.from({ length: floorTile.repeat')
+  })
+
+  it('keeps the optimized Stage 4 ceramic source as WebP only in the project asset tree', () => {
+    const webp = join(process.cwd(), 'src/assets/background_floor/tile_stage04_white_ceramic.webp')
+    const png = join(process.cwd(), 'src/assets/background_floor/tile_stage04_white_ceramic.png')
+
+    expect(existsSync(webp)).toBe(true)
+    expect(existsSync(png)).toBe(false)
+    expect(STAGE_FLOOR_TILES.stage4.src).toMatch(/tile_stage04_white_ceramic\.webp/)
   })
 })
