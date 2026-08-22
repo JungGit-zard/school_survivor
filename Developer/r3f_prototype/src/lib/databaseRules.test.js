@@ -50,6 +50,7 @@ describe('Realtime Database rules', () => {
 
   it('allows RTDB to omit empty optional upgrade maps during first-account creation', () => {
     const progressValidation = rules.users.$uid.progress['.validate']
+    const weaponUnlockSchemaVersion = rules.users.$uid.progress.weaponUnlockSchemaVersion
 
     expect(progressValidation).toContain("'goldTotal'")
     expect(progressValidation).toContain("'records'")
@@ -58,16 +59,19 @@ describe('Realtime Database rules', () => {
     expect(progressValidation).not.toContain("'weaponPermanentUpgrades'")
     expect(progressValidation).not.toContain("'passiveUpgrades'")
     expect(progressValidation).not.toContain("'bossPassiveUnlocks'")
+    expect(weaponUnlockSchemaVersion['.validate']).toContain('newData.val() === 2')
   })
 
-  it('allows only the B01 boss passive unlock flag', () => {
+  it('allows every implemented boss passive unlock flag and rejects unknown flags', () => {
     const unlocks = rules.users.$uid.progress.bossPassiveUnlocks
 
-    expect(unlocks.b01SetSquare['.validate']).toContain('newData.isBoolean()')
-    expect(unlocks.b01SetSquare['.validate']).toContain('newData.val() === true')
+    for (const id of ['b01SetSquare', 'b02CorridorPass', 'b03GymWhistle', 'b04ServingLadle']) {
+      expect(unlocks[id]['.validate']).toContain('newData.isBoolean()')
+      expect(unlocks[id]['.validate']).toContain('newData.val() === true')
+      expect(evalRule(unlocks[id]['.validate'], { newData: ruleData(true) })).toBe(true)
+      expect(evalRule(unlocks[id]['.validate'], { newData: ruleData(false) })).toBe(false)
+    }
     expect(unlocks.$other['.validate']).toBe(false)
-    expect(evalRule(unlocks.b01SetSquare['.validate'], { newData: ruleData(true) })).toBe(true)
-    expect(evalRule(unlocks.b01SetSquare['.validate'], { newData: ruleData(false) })).toBe(false)
     expect(evalRule(unlocks.$other['.validate'], { newData: ruleData(true) })).toBe(false)
   })
 

@@ -16,6 +16,7 @@ export default function GameplayScreen({
   onGoToLobby,
   onGoToRanking,
   onOpenMissionCenter,
+  onOpenWeaponEncyclopedia,
   devCheatsVisible,
   showGameoverResultImmediately,
 }) {
@@ -71,6 +72,7 @@ export default function GameplayScreen({
           onGoToLobby={onGoToLobby}
           onGoToRanking={onGoToRanking}
           onOpenMissionCenter={onOpenMissionCenter}
+          onOpenWeaponEncyclopedia={onOpenWeaponEncyclopedia}
           devCheatsVisible={devCheatsVisible}
           showGameoverResultImmediately={showGameoverResultImmediately}
         />

@@ -16,9 +16,10 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('./TitleScreen.jsx', () => ({ default: ({ onEnterLobby }) => <button onClick={onEnterLobby}>enter</button> }))
 vi.mock('./Lobby.jsx', () => ({
-  default: ({ devAllStagesUnlocked, onStartStage }) => (
+  default: ({ devAllStagesUnlocked, onStartStage, weaponEncyclopediaRequest }) => (
     <>
       <output data-testid="stage-bypass">{String(devAllStagesUnlocked)}</output>
+      <output data-testid="weapon-encyclopedia-request">{weaponEncyclopediaRequest?.weaponId ?? ''}</output>
       <button type="button" data-testid="start-stage" onClick={() => onStartStage('stage1')}>start</button>
     </>
   ),
@@ -28,6 +29,7 @@ vi.mock('./GameplayScreen.jsx', () => ({
     <section data-testid="gameplay-screen">
       <output data-testid="instant-result-prop">{String(props.showGameoverResultImmediately)}</output>
       <button type="button" data-testid="open-result-shop" onClick={props.onOpenCoinShop}>shop</button>
+      <button type="button" data-testid="open-weapon-encyclopedia" onClick={() => props.onOpenWeaponEncyclopedia('guidedMissile')}>weapons</button>
     </section>
   ),
 }))
@@ -152,4 +154,21 @@ describe('ReadyGameApp stage bypass hydration', () => {
     expect(view.container.querySelector('[data-testid="instant-result-prop"]').textContent).toBe('false')
     view.unmount()
   })
+
+  it('routes a result weapon encyclopedia request to the lobby with its selected weapon', async () => {
+    const view = await renderReady({ authUser: { uid: 'first' }, progressStatus: 'ready' })
+
+    await act(async () => {
+      view.container.querySelector('[data-testid="start-stage"]').click()
+      await vi.dynamicImportSettled()
+    })
+    await act(async () => {
+      view.container.querySelector('[data-testid="open-weapon-encyclopedia"]').click()
+      await vi.dynamicImportSettled()
+    })
+
+    expect(view.container.querySelector('[data-testid="weapon-encyclopedia-request"]').textContent).toBe('guidedMissile')
+    view.unmount()
+  })
+
 })

@@ -28,23 +28,23 @@ describe('sharkMissile unlock and card access', () => {
     })
   })
 
-  it('unlocks after the first Stage 1 clear', () => {
+  it('unlocks after the first Stage 2 clear', () => {
+    useGameStore.getState().resetGame('stage2')
     useGameStore.getState().clearStage()
 
     expect(useGameStore.getState().newlyUnlockedWeaponIds).toContain('sharkMissile')
     expect(getAllUnlocked()).toContain('sharkMissile')
   })
 
-  it('unlocks after the 8th completed run as a fallback path', () => {
+  it('syncs existing Stage 2 clear records into weapon unlock storage on reset', () => {
     _seedHydratedFirebaseProgressForTests({ uid: 'shark-run-user' }, {
       schemaVersion: 1,
       profile: { uid: 'shark-run-user', displayName: '', nickname: '' },
-      progress: { records: { totalRuns: 7 } },
+      progress: { records: { stage2Clears: 1 } },
     })
 
-    useGameStore.getState()._onRunEnd('gameover')
+    useGameStore.getState().resetGame()
 
-    expect(useGameStore.getState().newlyUnlockedWeaponIds).toContain('sharkMissile')
     expect(getAllUnlocked()).toContain('sharkMissile')
   })
 

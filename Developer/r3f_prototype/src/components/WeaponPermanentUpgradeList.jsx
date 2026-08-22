@@ -46,7 +46,7 @@ const WEAPON_PERMANENT_ICON_SRC = {
   studentLantern: lanternIconSrc,
 }
 
-export default function WeaponPermanentUpgradeList({ style }) {
+export default function WeaponPermanentUpgradeList({ style, onOpenUnlockDetails }) {
   const t = useT()
   const goldTotal = useGameStore((s) => s.goldTotal)
   const passiveVersion = useGameStore((s) => s.passiveVersion)
@@ -82,6 +82,7 @@ export default function WeaponPermanentUpgradeList({ style }) {
             price={price}
             canAfford={canAfford}
             onBuy={() => purchaseWeaponPermanentUpgrade(id)}
+            onOpenUnlockDetails={onOpenUnlockDetails}
           />
         )
       })}
@@ -89,7 +90,7 @@ export default function WeaponPermanentUpgradeList({ style }) {
   )
 }
 
-function WeaponPermanentCard({ plan, unlocked, currentLevel, isMax, price, canAfford, onBuy }) {
+function WeaponPermanentCard({ plan, unlocked, currentLevel, isMax, price, canAfford, onBuy, onOpenUnlockDetails }) {
   const next = plan.levels[Math.min(currentLevel + 1, plan.maxLevel)]
   const current = currentLevel > 0 ? plan.levels[currentLevel] : null
   const iconSrc = WEAPON_PERMANENT_ICON_SRC[plan.id]
@@ -97,9 +98,9 @@ function WeaponPermanentCard({ plan, unlocked, currentLevel, isMax, price, canAf
   let disabled = false
   let buttonStyle = styles.buyButton
   if (!unlocked) {
-    buttonLabel = translate('common.locked')
-    disabled = true
-    buttonStyle = styles.lockedButton
+    buttonLabel = translate('shop.viewUnlockCondition', null, '해금 조건 보기')
+    disabled = !onOpenUnlockDetails
+    buttonStyle = onOpenUnlockDetails ? styles.unlockDetailButton : styles.lockedButton
   } else if (isMax) {
     buttonLabel = translate('common.max')
     disabled = true
@@ -150,7 +151,13 @@ function WeaponPermanentCard({ plan, unlocked, currentLevel, isMax, price, canAf
       </div>
       <div style={styles.priceCol}>
         <div style={styles.price}>{isMax ? translate('common.done') : unlocked ? translate('common.coinPrice', { price }) : translate('common.locked')}</div>
-        <button type="button" style={buttonStyle} onClick={onBuy} disabled={disabled}>
+        <button
+          type="button"
+          data-weapon-unlock-details={!unlocked ? plan.id : undefined}
+          style={buttonStyle}
+          onClick={() => (unlocked ? onBuy() : onOpenUnlockDetails?.(plan.id))}
+          disabled={disabled}
+        >
           {buttonLabel}
         </button>
       </div>
@@ -295,8 +302,9 @@ const styles = {
     fontWeight: uiType.weightHeavy,
     textAlign: 'center',
   },
-  buyButton: { ...schoolButton('cta'), minHeight: 32, padding: '6px 8px', fontSize: 13 },
-  insufficientButton: { ...schoolButton('paper'), minHeight: 32, padding: '6px 8px', fontSize: 12, opacity: 0.72 },
-  lockedButton: { ...schoolButton('paper'), minHeight: 32, padding: '6px 8px', fontSize: 13, opacity: 0.66 },
-  maxButton: { ...schoolButton('chalk'), minHeight: 32, padding: '6px 8px', fontSize: 13 },
+  buyButton: { ...schoolButton('cta'), minHeight: 44, padding: '6px 8px', fontSize: 13 },
+  insufficientButton: { ...schoolButton('paper'), minHeight: 44, padding: '6px 8px', fontSize: 12, opacity: 0.72 },
+  lockedButton: { ...schoolButton('paper'), minHeight: 44, padding: '6px 8px', fontSize: 13, opacity: 0.66 },
+  unlockDetailButton: { ...schoolButton('primary'), minHeight: 44, padding: '6px 5px', fontSize: 11 },
+  maxButton: { ...schoolButton('chalk'), minHeight: 44, padding: '6px 8px', fontSize: 13 },
 }

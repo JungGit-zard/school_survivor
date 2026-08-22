@@ -1,6 +1,7 @@
 ﻿import { describe, it, expect } from 'vitest'
 import { applyChibikoAllWeaponBoost, applyUpgradeToWeapon, applyUpgradeWithChibikoBoost, isUpgradeAvailable, UPGRADE_EFFECTS } from './upgrades.js'
 import { WEAPON_CATALOG, getAllWeaponIds } from './weaponCatalog.js'
+import { setUnlocked } from './weaponUnlocks.js'
 
 // 가상 무기 상태 빌더. weapons 객체의 한 항목 형태와 동일.
 const wpn = (overrides = {}) => ({ active: false, level: 0, damage: 5, ...overrides })
@@ -115,10 +116,12 @@ describe('isUpgradeAvailable', () => {
   })
 
   it('minLevel 도달: true', () => {
+    setUnlocked('bell')
     expect(isUpgradeAvailable({ weapon: 'bell', kind: 'acquire', minLevel: 4 }, 4, { bell: wpn() })).toBe(true)
   })
 
   it('치비코 획득은 Lv.8 최고 레벨 카드로만 가능', () => {
+    setUnlocked('chibiko')
     const weapons = { chibiko: wpn({ active: false }) }
     expect(UPGRADE_EFFECTS.acquireChibiko).toMatchObject({ weapon: 'chibiko', kind: 'acquire', minLevel: 8 })
     expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireChibiko, 7, weapons)).toBe(false)
@@ -159,13 +162,14 @@ describe('isUpgradeAvailable', () => {
     )).toBe(false)
   })
 
-  // 'bell'은 starter (weaponCatalog) → isWeaponUnlocked 항상 true. 가상 candidate 무기는 unlock 게이트에 막힘.
+  // bell은 Stage 1 클리어 계정 해금 무기다. 가상 candidate 무기는 unlock 게이트에 막힘.
   it('unlock: 4종 보유 상한 도달 시 false', () => {
     const weapons = { ...ownedWeapons(8), bell: wpn({ active: false }) }
     expect(isUpgradeAvailable({ weapon: 'bell', kind: 'acquire' }, 10, weapons)).toBe(false)
   })
 
   it('unlock: 3종 보유면 가능', () => {
+    setUnlocked('bell')
     const weapons = { ...ownedWeapons(7), bell: wpn({ active: false }) }
     expect(isUpgradeAvailable({ weapon: 'bell', kind: 'acquire' }, 10, weapons)).toBe(true)
   })

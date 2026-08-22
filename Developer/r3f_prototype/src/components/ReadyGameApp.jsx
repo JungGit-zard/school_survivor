@@ -5,7 +5,7 @@ import { initPlaytestLogger } from '../lib/playtestLogger.js'
 import { isMobileJoystickEnvironment } from '../lib/mobileInput.js'
 import { initKeyboardInput } from '../lib/keyboardInput.js'
 import { applyLanguage, loadTitleSettings } from '../lib/titleSettings.js'
-import { t, useT } from '../lib/i18n.js'
+import { t } from '../lib/i18n.js'
 
 const TitleScreen = lazy(() => import('./TitleScreen.jsx'))
 const Lobby = lazy(() => import('./Lobby.jsx'))
@@ -29,7 +29,6 @@ export default function ReadyGameApp({
   authUser,
   progressStatus,
 }) {
-  useT()
   const [screen, setScreen] = useState('title')
   const [prevScreen, setPrevScreen] = useState('title')
   const [rankingStageId, setRankingStageId] = useState(null)
@@ -37,6 +36,7 @@ export default function ReadyGameApp({
   const [devCheatsVisible, setDevCheatsVisible] = useState(false)
   const [devAllStagesUnlocked, setDevAllStagesUnlocked] = useState(false)
   const [showGameoverResultImmediately, setShowGameoverResultImmediately] = useState(false)
+  const [weaponEncyclopediaRequest, setWeaponEncyclopediaRequest] = useState(null)
   const phoneFrameRef = useRef(null)
 
   useEffect(() => {
@@ -103,6 +103,11 @@ export default function ReadyGameApp({
     setScreen('missionCenter')
   }
 
+  const openWeaponEncyclopedia = (weaponId = null) => {
+    setWeaponEncyclopediaRequest({ weaponId })
+    setScreen('lobby')
+  }
+
   const returnToPreviousScreen = () => {
     const nextScreen = prevScreen === 'game' || prevScreen === 'lobby' ? prevScreen : 'title'
     setScreen(nextScreen)
@@ -137,6 +142,8 @@ export default function ReadyGameApp({
                 onOpenMissionCenter={() => openMissionCenterFrom('lobby')}
                 onLogoutToTitle={() => setScreen('title')}
                 devAllStagesUnlocked={devAllStagesUnlocked}
+                weaponEncyclopediaRequest={weaponEncyclopediaRequest}
+                onWeaponEncyclopediaRequestHandled={() => setWeaponEncyclopediaRequest(null)}
               />
             </Suspense>
           </ErrorBoundary>
@@ -147,6 +154,7 @@ export default function ReadyGameApp({
             <CoinShop
               onBack={returnToPreviousScreen}
               backLabel={prevScreen === 'game' ? t('back.toResult') : prevScreen === 'lobby' ? t('back.toLobby') : t('back.toTitle')}
+              onOpenWeaponDetails={openWeaponEncyclopedia}
             />
           </Suspense>
         )}
@@ -176,6 +184,7 @@ export default function ReadyGameApp({
                 onGoToLobby={() => setScreen('lobby')}
                 onGoToRanking={() => openRankingFrom('game')}
                 onOpenMissionCenter={() => openMissionCenterFrom('game')}
+                onOpenWeaponEncyclopedia={openWeaponEncyclopedia}
                 devCheatsVisible={devCheatsVisible}
                 showGameoverResultImmediately={showGameoverResultImmediately}
               />
@@ -186,6 +195,7 @@ export default function ReadyGameApp({
         {screen === 'game-load-failed' && (
           <ScreenFailure label={t('loading.game')} onBack={() => setScreen('lobby')} />
         )}
+
       </div>
     </div>
   )

@@ -11,7 +11,7 @@ import {
 } from '../lib/weaponUnlocks.js'
 import { _seedHydratedFirebaseProgressForTests, _setFirebaseProgressClientForTests } from '../lib/firebaseProgress.js'
 
-describe('guidedMissile run-count unlock', () => {
+describe('guidedMissile boss-kill unlock', () => {
   beforeEach(() => {
     _setFirebaseProgressClientForTests({ save: async () => {}, load: async () => null })
     _seedHydratedFirebaseProgressForTests()
@@ -27,12 +27,8 @@ describe('guidedMissile run-count unlock', () => {
     })
   })
 
-  it('unlocks after the 5th completed run, including the just-ended run', () => {
-    _seedHydratedFirebaseProgressForTests({ uid: 'guided-run-user' }, {
-      schemaVersion: 1,
-      profile: { uid: 'guided-run-user', displayName: '', nickname: '' },
-      progress: { records: { totalRuns: 4 } },
-    })
+  it('unlocks after the first recorded boss defeat', () => {
+    useGameStore.getState().recordBossKill('B01')
 
     useGameStore.getState()._onRunEnd('gameover')
 
@@ -49,11 +45,11 @@ describe('guidedMissile run-count unlock', () => {
     expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireMissile, 4, weapons, useGameStore.getState().player)).toBe(true)
   })
 
-  it('syncs existing totalRuns records into weapon unlock storage on reset', () => {
+  it('syncs existing bossKills records into weapon unlock storage on reset', () => {
     _seedHydratedFirebaseProgressForTests({ uid: 'guided-sync-user' }, {
       schemaVersion: 1,
       profile: { uid: 'guided-sync-user', displayName: '', nickname: '' },
-      progress: { records: { totalRuns: 5 } },
+      progress: { records: { bossKills: 1 } },
     })
 
     useGameStore.getState().resetGame()

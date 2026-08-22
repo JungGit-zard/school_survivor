@@ -5,7 +5,7 @@ import WeaponPermanentUpgradeList from './WeaponPermanentUpgradeList.jsx'
 import { schoolButton, schoolPanel, uiPalette, uiType, warningSticker } from '../lib/uiStyle.js'
 import { useT } from '../lib/i18n.js'
 
-export default function CoinShop({ onBack, backLabel }) {
+export default function CoinShop({ onBack, backLabel, onOpenWeaponDetails }) {
   const t = useT()
   const goldTotal = useGameStore((s) => s.goldTotal)
   const [activeTab, setActiveTab] = useState('passive')
@@ -42,7 +42,7 @@ export default function CoinShop({ onBack, backLabel }) {
 
       {activeTab === 'passive'
         ? <PassiveUpgradeList style={styles.list} />
-        : <WeaponPermanentUpgradeList style={styles.list} />}
+        : <WeaponPermanentUpgradeList style={styles.list} onOpenUnlockDetails={onOpenWeaponDetails} />}
 
       <button type="button" style={styles.backButton} onClick={onBack}>
         {backLabel ?? t('back.toResult')}
@@ -131,14 +131,14 @@ const styles = {
   },
   tabButton: {
     ...schoolButton('paper'),
-    minHeight: 38,
+    minHeight: 44,
     padding: '7px 8px',
     fontSize: 14,
     lineHeight: 1,
   },
   tabActive: {
     ...schoolButton('cta'),
-    minHeight: 38,
+    minHeight: 44,
     padding: '7px 8px',
     fontSize: 14,
     lineHeight: 1,

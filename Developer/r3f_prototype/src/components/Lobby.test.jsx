@@ -133,6 +133,25 @@ describe('Lobby', () => {
     view.unmount()
   })
 
+  it('clears the weapon NEW badge when the opened encyclopedia closes', () => {
+    useGameStore.setState({ newlyUnlockedWeaponIds: Object.freeze(['guidedMissile']) })
+    const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+    const nav = view.container.querySelector('[aria-label="로비 메뉴"]')
+
+    expect(view.container.querySelector('[data-testid="weapon-nav-new-badge"]')).not.toBeNull()
+    act(() => {
+      nav.querySelector('button').dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+    act(() => {
+      view.container.querySelector('[role="dialog"]').previousElementSibling
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(useGameStore.getState().newlyUnlockedWeaponIds).toEqual([])
+    expect(view.container.querySelector('[data-testid="weapon-nav-new-badge"]')).toBeNull()
+    view.unmount()
+  })
+
   it('uses the authenticated Google account name when no Firebase nickname is set', () => {
     const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
 

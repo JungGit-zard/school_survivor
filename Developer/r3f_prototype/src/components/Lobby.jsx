@@ -66,13 +66,16 @@ function formatSeasonCountdown(season, nowMs = Date.now()) {
   return translate('lobby.seasonEndsHours', { hours, minutes })
 }
 
-export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onOpenMissionCenter, onLogoutToTitle, devAllStagesUnlocked = false }) {
+export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onOpenMissionCenter, onLogoutToTitle, devAllStagesUnlocked = false, weaponEncyclopediaRequest = null, onWeaponEncyclopediaRequestHandled }) {
   const t = useT()
   const authUser = useAuthStore((s) => s.user)
   const progressStatus = useAuthStore((s) => s.progressStatus)
   const goldTotal = useGameStore((s) => s.goldTotal)
   const [recordsRefreshVersion, setRecordsRefreshVersion] = useState(0)
-  const [modal, setModal] = useState(null) // 'weapon' | 'settings' | null
+  const [modal, setModal] = useState(() => weaponEncyclopediaRequest ? 'weapon' : null) // 'weapon' | 'settings' | null
+  const [weaponModalInitialId, setWeaponModalInitialId] = useState(() => weaponEncyclopediaRequest?.weaponId ?? null)
+  const newlyUnlockedWeaponIds = useGameStore((s) => s.newlyUnlockedWeaponIds)
+  const acknowledgeNewWeaponUnlocks = useGameStore((s) => s.acknowledgeNewWeaponUnlocks)
   const [stageBossPreview, setStageBossPreview] = useState(() => loadStageBossPreview())
   const [showtimeStageId, setShowtimeStageId] = useState(null)
   const showtimeStageRef = useRef(null)
@@ -91,6 +94,13 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
     window.addEventListener(STAGE_BOSS_PREVIEW_EVENT, update)
     return () => window.removeEventListener(STAGE_BOSS_PREVIEW_EVENT, update)
   }, [])
+
+  useEffect(() => {
+    if (!weaponEncyclopediaRequest) return
+    setWeaponModalInitialId(weaponEncyclopediaRequest.weaponId ?? null)
+    setModal('weapon')
+    onWeaponEncyclopediaRequestHandled?.()
+  }, [weaponEncyclopediaRequest, onWeaponEncyclopediaRequestHandled])
 
   const records = useMemo(() => {
     if (progressStatus !== 'ready' || !isFirebaseProgressHydrated(authUser)) return null
@@ -198,7 +208,13 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
 
   const closeModal = () => {
     setModal(null)
+    setWeaponModalInitialId(null)
     refreshRecords()
+  }
+
+  const closeWeaponModal = () => {
+    acknowledgeNewWeaponUnlocks()
+    closeModal()
   }
 
   const beginStageShowtime = (stageId) => {
@@ -282,13 +298,16 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
       </div>
 
       <nav aria-label={t('lobby.menuAria')} style={styles.bottomNav}>
-        <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => !showtimeStageId && setModal('weapon')}>{t('lobby.weapons')}</button>
+        <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => { if (!showtimeStageId) { setWeaponModalInitialId(null); setModal('weapon') } }}>
+          {t('lobby.weapons')}
+          {newlyUnlockedWeaponIds?.length > 0 && <span data-testid="weapon-nav-new-badge" style={styles.weaponNewBadge}>NEW</span>}
+        </button>
         <button type="button" className="lobby-press" style={styles.bottomNavButtonAccent} onClick={() => !showtimeStageId && onOpenRanking?.()}>{t('lobby.ranking')}</button>
         <button type="button" className="lobby-press" style={styles.bottomNavButtonReward} onClick={() => !showtimeStageId && onOpenCoinShop?.()}>{t('lobby.shop')}</button>
         <button type="button" className="lobby-press" style={styles.bottomNavButton} onClick={() => !showtimeStageId && onOpenMissionCenter?.()}>미션</button>
       </nav>
 
-      {modal === 'weapon' && <WeaponModal onClose={closeModal} />}
+      {modal === 'weapon' && <WeaponModal onClose={closeWeaponModal} initialWeaponId={weaponModalInitialId} newlyUnlockedWeaponIds={newlyUnlockedWeaponIds} playerRecords={records ?? {}} />}
       {/* onNicknameChange는 넘기지 않는다. 로비 이름은 authUser.displayName로 그리고(위 profileName),
           닉네임은 saveNicknameForUser가 Firebase 프로필에 직접 쓴다 — 로비가 들고 있을 상태가 없다.
           예전에 있던 setNickname 상태가 제거됐는데 이 prop만 남아 ReferenceError로 설정 화면이
@@ -662,6 +681,7 @@ const styles = {
   },
   bottomNavButton: {
     ...schoolButton('paper'),
+    position: 'relative',
     minWidth: 0,
     minHeight: 48,
     padding: '0 4px',
@@ -686,6 +706,19 @@ const styles = {
     fontSize: 13,
     lineHeight: 1,
     boxShadow: uiShadows.pressSmall,
+  },
+  weaponNewBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -4,
+    padding: '2px 4px',
+    border: uiBorders.hairline,
+    borderRadius: 999,
+    background: uiPalette.reward,
+    color: uiPalette.ink,
+    fontSize: 8,
+    lineHeight: 1,
+    fontWeight: uiType.weightHeavy,
   },
   card: {
     ...schoolPanel('paper'),

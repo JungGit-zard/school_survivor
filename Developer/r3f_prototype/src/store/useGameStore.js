@@ -31,6 +31,9 @@ import { getAdminBalanceConfig } from '../lib/adminConfig.js'
 import { vibrateFeedback } from '../lib/titleSettings.js'
 import {
   claimFirebaseMissionReward,
+  consumeFirebaseProgressSaveWarning,
+  getFirebaseProgressRuntimeSnapshot,
+  isFirebaseProgressConfigured,
   isFirebaseProgressHydrated,
   readFirebaseMissionProgress,
   recordPlayActivity,
@@ -178,7 +181,17 @@ function loadBossPassiveUnlocks() {
 }
 
 function saveRuntimeProgress() {
-  if (isFirebaseProgressHydrated()) void requestCloudProgressSave()
+  const uidAtRequest = getFirebaseProgressRuntimeSnapshot().uid
+  if (!uidAtRequest || !isFirebaseProgressConfigured() || !isFirebaseProgressHydrated({ uid: uidAtRequest })) return
+  const markCurrentAccountWarning = () => {
+    if (isFirebaseProgressHydrated({ uid: uidAtRequest })) {
+      useGameStore.setState({ progressSaveWarning: 'save-failed' })
+    }
+  }
+  void requestCloudProgressSave().then((saved) => {
+    if (saved) return
+    if (consumeFirebaseProgressSaveWarning() === 'save-failed') markCurrentAccountWarning()
+  }).catch(markCurrentAccountWarning)
 }
 
 function recordRuntimePlayActivity(stageId) {
@@ -260,6 +273,7 @@ export const useGameStore = create(
     runKills:    0,
     runLevelUps: 0,
     newlyUnlockedWeaponIds: [],
+    progressSaveWarning: null,
     survivalMilestonesHit: [],
     recentMilestone: null,
     pendingLevelUps: 0,
@@ -644,6 +658,12 @@ export const useGameStore = create(
       }
     },
 
+    acknowledgeNewWeaponUnlocks: () => {
+      set({ newlyUnlockedWeaponIds: Object.freeze([]) })
+    },
+
+    dismissProgressSaveWarning: () => set({ progressSaveWarning: null }),
+
     gainGold: (amount) => {
       if (!amount) return
       const { goldSession, goldTotal } = get()
@@ -721,6 +741,7 @@ export const useGameStore = create(
         bossPassiveUnlocks,
         growthMultiplier: buildGrowthMultiplier(levels),
         passiveVersion: s.passiveVersion + 1,
+        progressSaveWarning: consumeFirebaseProgressSaveWarning(),
       }))
       get().hydrateMissionProgress()
       return true

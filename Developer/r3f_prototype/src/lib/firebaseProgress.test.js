@@ -26,6 +26,7 @@ import {
   applyCloudProgressSnapshot,
   buildCloudProgressSnapshot,
   buildCloudUserProfile,
+  consumeFirebaseProgressSaveWarning,
   createFirebaseProgressClient,
   getFirebaseProgressRuntimeSnapshot,
   getUserProgressPath,
@@ -65,6 +66,7 @@ function remoteSnapshot(overrides = {}) {
     progress: {
       goldTotal: 42,
       records: Object.fromEntries(RECORD_KEYS.map((key) => [key, key === 'totalRuns' ? 3 : 0])),
+      weaponUnlockSchemaVersion: 2,
       weaponUnlocks: { guidedMissile: 1 },
       weaponPermanentUpgrades: { pencilThrow: 2 },
       passiveUpgrades: { magnet: 2 },
@@ -127,6 +129,86 @@ describe('firebase-only player progress runtime', () => {
     expect(getFirebaseProgressRuntimeSnapshot().progress.goldTotal).toBe(42)
     expect(getFirebaseProgressRuntimeSnapshot().progress.bossPassiveUnlocks).toEqual({ b01SetSquare: true })
     expect(buildCloudUserProfile(USER)).toEqual({ uid: 'uid-1', displayName: 'Tester', nickname: '생존왕' })
+  })
+
+  it('migrates a legacy account weapon entitlement once and persists unlock schema v2', async () => {
+    const legacy = remoteSnapshot({
+      progress: { weaponUnlockSchemaVersion: 1, weaponUnlocks: { guidedMissile: 1 } },
+    })
+    let stored = structuredClone(legacy)
+    const save = vi.fn(async (_path, payload) => {
+      stored = structuredClone(payload)
+    })
+    _setFirebaseProgressClientForTests({ load: vi.fn(async () => structuredClone(stored)), save })
+
+    await expect(hydrateCloudProgress(USER)).resolves.toBe(true)
+
+    const progress = getFirebaseProgressRuntimeSnapshot().progress
+    expect(progress.weaponUnlockSchemaVersion).toBe(2)
+    expect(progress.weaponUnlocks).toMatchObject({
+      guidedMissile: 1,
+      scienceFlask: 1,
+      bell: 1,
+      stunGun: 1,
+      onigiri: 1,
+      chibiko: 1,
+      inucon: 1,
+    })
+    expect(save).toHaveBeenCalledTimes(1)
+
+    await expect(hydrateCloudProgress(USER)).resolves.toBe(true)
+    expect(save).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not grant legacy entitlements to an already-v2 account', async () => {
+    const current = remoteSnapshot({
+      progress: { weaponUnlockSchemaVersion: 2, weaponUnlocks: { guidedMissile: 1 } },
+    })
+    const save = vi.fn(async () => {})
+    _setFirebaseProgressClientForTests({ load: vi.fn(async () => current), save })
+
+    await expect(hydrateCloudProgress(USER)).resolves.toBe(true)
+
+    const progress = getFirebaseProgressRuntimeSnapshot().progress
+    expect(progress.weaponUnlockSchemaVersion).toBe(2)
+    expect(progress.weaponUnlocks).toEqual({ guidedMissile: 1 })
+    expect(save).not.toHaveBeenCalled()
+  })
+
+  it('keeps an in-memory legacy migration usable when its schema save fails', async () => {
+    vi.stubEnv('VITE_FIREBASE_API_KEY', COMPLETE_ENV.VITE_FIREBASE_API_KEY)
+    vi.stubEnv('VITE_FIREBASE_AUTH_DOMAIN', COMPLETE_ENV.VITE_FIREBASE_AUTH_DOMAIN)
+    vi.stubEnv('VITE_FIREBASE_DATABASE_URL', COMPLETE_ENV.VITE_FIREBASE_DATABASE_URL)
+    vi.stubEnv('VITE_FIREBASE_PROJECT_ID', COMPLETE_ENV.VITE_FIREBASE_PROJECT_ID)
+    vi.stubEnv('VITE_FIREBASE_APP_ID', COMPLETE_ENV.VITE_FIREBASE_APP_ID)
+    const legacy = remoteSnapshot({ progress: { weaponUnlockSchemaVersion: 1 } })
+    const save = vi.fn(async () => { throw new Error('offline') })
+    _setFirebaseProgressClientForTests({ load: vi.fn(async () => legacy), save })
+
+    await expect(hydrateCloudProgress(USER)).resolves.toBe(true)
+
+    const progress = getFirebaseProgressRuntimeSnapshot().progress
+    expect(progress.weaponUnlockSchemaVersion).toBe(2)
+    expect(progress.weaponUnlocks.scienceFlask).toBe(1)
+    expect(save).toHaveBeenCalledTimes(1)
+    expect(consumeFirebaseProgressSaveWarning()).toBe('save-failed')
+    expect(consumeFirebaseProgressSaveWarning()).toBeNull()
+  })
+
+  it('does not expose a warning when an unhydrated save request cannot start', async () => {
+    setCloudProgressUser(USER)
+    await expect(requestCloudProgressSave(USER)).resolves.toBe(false)
+
+    expect(consumeFirebaseProgressSaveWarning()).toBeNull()
+  })
+
+  it('does not expose a warning when Firebase is not configured', async () => {
+    vi.stubEnv('VITE_FIREBASE_API_KEY', '')
+    vi.stubEnv('VITE_FIREBASE_DATABASE_URL', '')
+    applyCloudProgressSnapshot(remoteSnapshot(), USER)
+    await expect(requestCloudProgressSave(USER)).resolves.toBe(false)
+
+    expect(consumeFirebaseProgressSaveWarning()).toBeNull()
   })
 
   it('preserves implemented B01 and B02 boss passive flags through Firebase progress snapshots', () => {
@@ -260,6 +342,53 @@ describe('firebase-only player progress runtime', () => {
     await expect(pendingA).resolves.toBe(false)
 
     expect(getFirebaseProgressRuntimeSnapshot()).toMatchObject({ uid: b.uid, hydrated: true, progress: { goldTotal: 22 } })
+  })
+
+  it('does not expose account A save failure after switching the current Firebase user to B', async () => {
+    vi.stubEnv('VITE_FIREBASE_API_KEY', COMPLETE_ENV.VITE_FIREBASE_API_KEY)
+    vi.stubEnv('VITE_FIREBASE_AUTH_DOMAIN', COMPLETE_ENV.VITE_FIREBASE_AUTH_DOMAIN)
+    vi.stubEnv('VITE_FIREBASE_DATABASE_URL', COMPLETE_ENV.VITE_FIREBASE_DATABASE_URL)
+    vi.stubEnv('VITE_FIREBASE_PROJECT_ID', COMPLETE_ENV.VITE_FIREBASE_PROJECT_ID)
+    vi.stubEnv('VITE_FIREBASE_APP_ID', COMPLETE_ENV.VITE_FIREBASE_APP_ID)
+    const a = { uid: 'uid-a', displayName: 'A' }
+    const b = { uid: 'uid-b', displayName: 'B' }
+    let rejectSave
+    _setFirebaseProgressClientForTests({
+      save: vi.fn(() => new Promise((_, reject) => { rejectSave = reject })),
+    })
+    applyCloudProgressSnapshot(remoteSnapshot({ profile: { uid: a.uid, displayName: 'A' } }), a)
+
+    const pendingSave = requestCloudProgressSave(a)
+    await vi.waitFor(() => expect(rejectSave).toBeTypeOf('function'))
+    setCloudProgressUser(b)
+    rejectSave(new Error('offline'))
+
+    await expect(pendingSave).resolves.toBe(false)
+    expect(consumeFirebaseProgressSaveWarning()).toBeNull()
+  })
+
+  it('does not expose a warning when a queued same-uid save becomes an unhydrated no-op before flush', async () => {
+    vi.stubEnv('VITE_FIREBASE_API_KEY', COMPLETE_ENV.VITE_FIREBASE_API_KEY)
+    vi.stubEnv('VITE_FIREBASE_AUTH_DOMAIN', COMPLETE_ENV.VITE_FIREBASE_AUTH_DOMAIN)
+    vi.stubEnv('VITE_FIREBASE_DATABASE_URL', COMPLETE_ENV.VITE_FIREBASE_DATABASE_URL)
+    vi.stubEnv('VITE_FIREBASE_PROJECT_ID', COMPLETE_ENV.VITE_FIREBASE_PROJECT_ID)
+    vi.stubEnv('VITE_FIREBASE_APP_ID', COMPLETE_ENV.VITE_FIREBASE_APP_ID)
+    let releaseFirstSave
+    const save = vi.fn(() => new Promise((resolve) => { releaseFirstSave = resolve }))
+    _setFirebaseProgressClientForTests({ save })
+    applyCloudProgressSnapshot(remoteSnapshot(), USER)
+
+    const firstSave = requestCloudProgressSave(USER)
+    await vi.waitFor(() => expect(releaseFirstSave).toBeTypeOf('function'))
+    const queuedSave = requestCloudProgressSave(USER)
+    _resetFirebaseProgressForTests()
+    setCloudProgressUser(USER)
+    releaseFirstSave()
+
+    await expect(firstSave).resolves.toBe(true)
+    await expect(queuedSave).resolves.toBe(false)
+    expect(consumeFirebaseProgressSaveWarning()).toBeNull()
+    expect(save).toHaveBeenCalledTimes(1)
   })
 
   it('keeps the E2E memory runtime hydrated without registering a Firebase write user', async () => {

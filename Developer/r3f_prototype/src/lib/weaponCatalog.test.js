@@ -4,20 +4,56 @@ import {
   WEAPON_CATALOG,
   STARTER,
   getAllWeaponIds,
+  getAccountUnlockableWeaponIds,
   getStarterIds,
+  isAccountUnlockable,
+  isRuntimeCombinationWeapon,
   isStarter,
   isValidWeaponId,
   evaluateUnlocks,
 } from './weaponCatalog.js'
 
 describe('weaponCatalog', () => {
-  it('20종 entry 등록 + starter 13종', () => {
+  it('20종 entry 등록 + 기본군 starter 4종', () => {
     const all = getAllWeaponIds()
     expect(all.length).toBe(20)
-    // bikittyCutter·lineDraw는 하나코와 같은 방식이다: 계정 해금 게이트를 쓰지 않으므로 STARTER로
-    // 선언하고, 실제 등장 조건은 카드 쪽 requiresActiveWeapon(s)가 전부 담당한다.
     const starter = getStarterIds()
-    expect(starter).toEqual(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'chibiko', 'hanako', 'inucon', 'bikittyCutter', 'lineDraw'])
+    expect(starter).toEqual(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler'])
+    expect(getAccountUnlockableWeaponIds()).toHaveLength(17)
+    expect(['hanako', 'bikittyCutter', 'lineDraw'].every(isRuntimeCombinationWeapon)).toBe(true)
+    expect(['hanako', 'bikittyCutter', 'lineDraw'].every(isAccountUnlockable)).toBe(false)
+  })
+
+  it('승인된 20종 해금표가 ID별로 정확히 고정된다', () => {
+    const conditionById = Object.fromEntries(getAllWeaponIds().map((id) => [id, WEAPON_CATALOG[id].unlockConditions]))
+    expect(conditionById).toEqual({
+      pencilThrow: STARTER,
+      schoolBag: STARTER,
+      boxCutter: STARTER,
+      tumbler: STARTER,
+      scienceFlask: [{ type: 'totalRuns', value: 2 }],
+      bell: [{ type: 'stage1Clears', value: 1 }],
+      stunGun: [{ type: 'stage2Clears', value: 1 }],
+      onigiri: [{ type: 'totalKills', value: 700 }],
+      chibiko: [{ type: 'totalRuns', value: 3 }],
+      hanako: null,
+      inucon: [{ type: 'bossKills', value: 3 }],
+      guidedMissile: [{ type: 'bossKills', value: 1 }],
+      sharkMissile: [{ type: 'stage2Clears', value: 1 }],
+      starlink: [{ type: 'totalKills', value: 2500 }],
+      compassBlade: [{ type: 'totalKills', value: 200 }],
+      umbrellaGuard: [{ type: 'totalSurvivalSeconds', value: 300 }],
+      eraserBomb: [{ type: 'totalGold', value: 160 }],
+      studentLantern: [{ type: 'stage3Clears', value: 1 }],
+      bikittyCutter: null,
+      lineDraw: null,
+    })
+    expect(Object.fromEntries(getAllWeaponIds().map((id) => [id, WEAPON_CATALOG[id].minLevelToAppear ?? null]))).toEqual({
+      pencilThrow: 1, schoolBag: 2, boxCutter: 2, tumbler: 2, scienceFlask: 4,
+      bell: 4, stunGun: 6, onigiri: 6, chibiko: 8, hanako: null, inucon: 8,
+      guidedMissile: 4, sharkMissile: 8, starlink: 8, compassBlade: 3,
+      umbrellaGuard: 3, eraserBomb: 4, studentLantern: 5, bikittyCutter: 6, lineDraw: 8,
+    })
   })
 
   it('Starter base 스탯이 BASE_WEAPONS 정본 값과 일치한다', () => {
@@ -61,7 +97,7 @@ describe('weaponCatalog', () => {
         healPercent: 0.05,
         followDistance: 1.44,
       },
-      unlockConditions: STARTER,
+      unlockConditions: null,
     })
     expect(WEAPON_CATALOG.hanako.minLevelToAppear).toBeUndefined()
     expect(WEAPON_CATALOG.inucon).toMatchObject({
@@ -77,7 +113,7 @@ describe('weaponCatalog', () => {
         knockbackMs: 180,
         contactPulseIntervalMs: 250,
       },
-      unlockConditions: STARTER,
+      unlockConditions: [{ type: 'bossKills', value: 3 }],
       minLevelToAppear: 8,
     })
   })
@@ -143,8 +179,8 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.studentLantern.minLevelToAppear).toBe(5)
   })
 
-  it('evaluateUnlocks(stage1Clears:1) unlocks studentLantern', () => {
-    const u = evaluateUnlocks({ stage1Clears: 1 })
+  it('evaluateUnlocks(stage3Clears:1) unlocks studentLantern', () => {
+    const u = evaluateUnlocks({ stage3Clears: 1 })
     expect(u.has('studentLantern')).toBe(true)
   })
 
@@ -164,69 +200,65 @@ describe('weaponCatalog', () => {
         speed: 8.5,
         retargetIntervalMs: 300,
       },
-      unlockConditions: [
-        { type: 'stage1Clears', value: 1 },
-        { type: 'totalRuns', value: 8 },
-      ],
+      unlockConditions: [{ type: 'stage2Clears', value: 1 }],
       minLevelToAppear: 8,
     })
   })
 
-  it('evaluateUnlocks 빈 records → starter 13종만', () => {
+  it('evaluateUnlocks 빈 records → 기본군 4종만', () => {
     const u = evaluateUnlocks({})
-    expect(u.size).toBe(13)
+    expect(u.size).toBe(4)
     for (const id of getStarterIds()) expect(u.has(id)).toBe(true)
     expect(u.has('compassBlade')).toBe(false)
   })
 
-  it('evaluateUnlocks(runKills:80) → compassBlade unlock (OR 첫 분기)', () => {
-    const u = evaluateUnlocks({ runKills: 80 })
-    expect(u.has('compassBlade')).toBe(true)
-  })
-
-  it('evaluateUnlocks(totalKills:200) → compassBlade unlock (OR 두 번째 분기)', () => {
+  it('evaluateUnlocks(totalKills:200) → compassBlade unlock', () => {
     const u = evaluateUnlocks({ totalKills: 200 })
     expect(u.has('compassBlade')).toBe(true)
   })
 
-  it('evaluateUnlocks(runSurvivalSeconds:90) → umbrellaGuard unlock', () => {
-    const u = evaluateUnlocks({ runSurvivalSeconds: 90 })
+  it('evaluateUnlocks(totalSurvivalSeconds:300) → umbrellaGuard unlock', () => {
+    const u = evaluateUnlocks({ totalSurvivalSeconds: 300 })
     expect(u.has('umbrellaGuard')).toBe(true)
   })
 
-  it('evaluateUnlocks(runGold:80) → eraserBomb unlock', () => {
-    const u = evaluateUnlocks({ runGold: 80 })
+  it('evaluateUnlocks(totalGold:160) → eraserBomb unlock', () => {
+    const u = evaluateUnlocks({ totalGold: 160 })
     expect(u.has('eraserBomb')).toBe(true)
   })
 
-  it('evaluateUnlocks(totalRuns:5) → guidedMissile unlock', () => {
-    const u = evaluateUnlocks({ totalRuns: 5 })
-    expect(u.has('guidedMissile')).toBe(true)
-    expect(u.has('starlink')).toBe(false)
+  it('evaluateUnlocks(totalRuns:2/3) → scienceFlask와 chibiko unlock', () => {
+    expect(evaluateUnlocks({ totalRuns: 2 }).has('scienceFlask')).toBe(true)
+    expect(evaluateUnlocks({ totalRuns: 2 }).has('chibiko')).toBe(false)
+    expect(evaluateUnlocks({ totalRuns: 3 }).has('chibiko')).toBe(true)
   })
 
-  it('evaluateUnlocks(totalRuns:10) → starlink unlock', () => {
-    const u = evaluateUnlocks({ totalRuns: 10 })
+  it('evaluateUnlocks(totalKills:2500) → starlink unlock', () => {
+    const u = evaluateUnlocks({ totalKills: 2500 })
     expect(u.has('starlink')).toBe(true)
   })
 
-  it('evaluateUnlocks(totalKills:5000) → starlink unlock (OR 두 번째 분기)', () => {
-    const u = evaluateUnlocks({ totalKills: 5000 })
-    expect(u.has('starlink')).toBe(true)
+  it('stage와 보스 조건은 지정된 무기만 해금한다', () => {
+    const stage1 = evaluateUnlocks({ stage1Clears: 1 })
+    expect(stage1.has('bell')).toBe(true)
+    expect(stage1.has('sharkMissile')).toBe(false)
+    const stage2 = evaluateUnlocks({ stage2Clears: 1 })
+    expect(stage2.has('sharkMissile')).toBe(true)
+    expect(stage2.has('stunGun')).toBe(true)
+    const firstBoss = evaluateUnlocks({ bossKills: 1 })
+    expect(firstBoss.has('guidedMissile')).toBe(true)
+    expect(firstBoss.has('inucon')).toBe(false)
+    expect(evaluateUnlocks({ bossKills: 3 }).has('inucon')).toBe(true)
   })
 
-  it('evaluateUnlocks(stage1Clears:1) unlocks sharkMissile', () => {
-    const u = evaluateUnlocks({ stage1Clears: 1 })
-    expect(u.has('sharkMissile')).toBe(true)
+  it('조합 3종은 어떤 계정 기록으로도 evaluateUnlocks에 들어가지 않는다', () => {
+    const u = evaluateUnlocks({ totalRuns: 999, totalKills: 99999, totalGold: 99999, totalSurvivalSeconds: 99999, stage1Clears: 9, stage2Clears: 9, stage3Clears: 9, bossKills: 9 })
+    expect(u.has('hanako')).toBe(false)
+    expect(u.has('bikittyCutter')).toBe(false)
+    expect(u.has('lineDraw')).toBe(false)
   })
 
-  it('evaluateUnlocks(totalRuns:8) unlocks sharkMissile fallback path', () => {
-    const u = evaluateUnlocks({ totalRuns: 8 })
-    expect(u.has('sharkMissile')).toBe(true)
-  })
-
-  it('미지정 type은 false 처리 + 다른 OR 분기 계속 평가', () => {
-    // bogus type + totalKills 200 → compassBlade 여전히 해금
+  it('미지정 type은 false 처리 + 다른 조건 평가는 계속한다', () => {
     const u = evaluateUnlocks({ bogusType: 9999, totalKills: 200 })
     expect(u.has('compassBlade')).toBe(true)
   })
@@ -234,13 +266,13 @@ describe('weaponCatalog', () => {
   it('null/undefined records 안전', () => {
     expect(() => evaluateUnlocks(null)).not.toThrow()
     expect(() => evaluateUnlocks(undefined)).not.toThrow()
-    expect(evaluateUnlocks(null).size).toBe(13) // starter only
+    expect(evaluateUnlocks(null).size).toBe(4) // starter only
   })
 
   it('isStarter / isValidWeaponId / STARTER 상수', () => {
     expect(STARTER).toBe('starter')
     expect(isStarter('pencilThrow')).toBe(true)
-    expect(isStarter('compassBlade')).toBe(false)
+    expect(isStarter('scienceFlask')).toBe(false)
     expect(isValidWeaponId('guidedMissile')).toBe(true)
     expect(isValidWeaponId('sharkMissile')).toBe(true)
     expect(isValidWeaponId('bogus')).toBe(false)

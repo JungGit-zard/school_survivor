@@ -21,8 +21,8 @@ describe('useGameStore run-end unlock evaluator', () => {
     })
   })
 
-  it('runKills 80 후 _onRunEnd("gameover") → compassBlade 해금 + newlyUnlockedWeaponIds', () => {
-    useGameStore.setState({ runKills: 80 })
+  it('누적 200처치를 넘긴 런 종료 → compassBlade 해금 + newlyUnlockedWeaponIds', () => {
+    useGameStore.setState({ runKills: 200 })
     useGameStore.getState()._onRunEnd('gameover')
     const s = useGameStore.getState()
     expect(s.newlyUnlockedWeaponIds).toContain('compassBlade')
@@ -134,12 +134,11 @@ describe('useGameStore run-end unlock evaluator', () => {
   })
 
   it('snapshot은 평가 후에 적용된다 (더블카운트 방지)', () => {
-    // runKills=80 으로 1차 평가 → compassBlade 해금 (runKills 분기로)
-    // 평가 후 snapshot에서 totalKills=80 누적
-    useGameStore.setState({ runKills: 80, goldSession: 30, runLevelUps: 5, elapsedMs: 240_000 })
+    // 누적 200처치를 만드는 런은 평가 시점에 한 번만 반영한다.
+    useGameStore.setState({ runKills: 200, goldSession: 30, runLevelUps: 5, elapsedMs: 240_000 })
     useGameStore.getState()._onRunEnd('gameover')
     const records = loadPlayerRecords()
-    expect(records.totalKills).toBe(80)
+    expect(records.totalKills).toBe(200)
     expect(records.totalGold).toBe(30)
     expect(records.totalLevelUps).toBe(5)
     expect(records.totalSurvivalSeconds).toBe(240)
@@ -147,20 +146,20 @@ describe('useGameStore run-end unlock evaluator', () => {
     expect(records.bestSurvivalSeconds).toBe(240)
   })
 
-  it('umbrellaGuard: runSurvivalSeconds:90 → 해금', () => {
-    useGameStore.setState({ elapsedMs: 90_000 })
+  it('umbrellaGuard: totalSurvivalSeconds:300 → 해금', () => {
+    useGameStore.setState({ elapsedMs: 300_000 })
     useGameStore.getState()._onRunEnd('gameover')
     expect(useGameStore.getState().newlyUnlockedWeaponIds).toContain('umbrellaGuard')
   })
 
-  it('eraserBomb: goldSession:80 → 해금', () => {
-    useGameStore.setState({ goldSession: 80 })
+  it('eraserBomb: totalGold:160 → 해금', () => {
+    useGameStore.setState({ goldSession: 160 })
     useGameStore.getState()._onRunEnd('gameover')
     expect(useGameStore.getState().newlyUnlockedWeaponIds).toContain('eraserBomb')
   })
 
   it('두 무기 동시 해금', () => {
-    useGameStore.setState({ runKills: 80, goldSession: 80 })
+    useGameStore.setState({ runKills: 200, goldSession: 160 })
     useGameStore.getState()._onRunEnd('gameover')
     const ids = useGameStore.getState().newlyUnlockedWeaponIds
     expect(ids).toContain('compassBlade')
@@ -182,32 +181,28 @@ describe('useGameStore run-end unlock evaluator', () => {
     expect(useGameStore.getState().runKills).toBe(0)
   })
 
-  // Phase 3 리뷰가 잡은 false-witness 정정: ordering 회귀를 실제로 잡는 테스트.
-  // cumulative-only 분기를 가진 starlink가 임계 직전 pre-seed 상태에서 본 런만으로
-  // 임계를 넘기는 시나리오. snapshot이 평가보다 먼저 일어나면 starlink가 잘못 unlock된다.
-  it('평가→snapshot 순서 회귀: pre-seed totalKills:4920 + runKills:80 → starlink는 unlock 안 됨', () => {
-    // Firebase hydrate 스냅샷에 totalKills 4920 pre-seed
+  it('평가→snapshot 순서: pre-seed totalKills:2400 + runKills:100 → starlink를 한 번 해금', () => {
+    // Firebase hydrate 스냅샷에 totalKills 2400 pre-seed
     _seedHydratedFirebaseProgressForTests({ uid: 'unlock-order-user' }, {
       schemaVersion: 1,
       profile: { uid: 'unlock-order-user', displayName: '', nickname: '' },
-      progress: { records: { totalKills: 4920 } },
+      progress: { records: { totalKills: 2400 } },
     })
-    useGameStore.setState({ runKills: 80 })
+    useGameStore.setState({ runKills: 100 })
     useGameStore.getState()._onRunEnd('gameover')
 
     const ids = useGameStore.getState().newlyUnlockedWeaponIds
-    // 정답 순서면: 평가 시 totalKills는 아직 4920 → starlink(5000 필요) 미달.
+    // 이번 런 포함 평가에서 정확히 2500에 도달해 starlink를 해금한다.
     expect(ids).toContain('starlink')
-    // compassBlade는 runKills:80 분기로 unlock.
     expect(ids).toContain('compassBlade')
 
-    // 그리고 snapshot은 평가 후 실행되어 totalKills를 5000으로 올렸어야 한다.
+    // snapshot은 평가 후 실행되어 totalKills를 2500으로 올린다.
     const records = loadPlayerRecords()
-    expect(records.totalKills).toBe(5000)
+    expect(records.totalKills).toBe(2500)
   })
 
   it('newlyUnlockedWeaponIds는 frozen 배열이라 외부에서 mutate 불가', () => {
-    useGameStore.setState({ runKills: 80 })
+    useGameStore.setState({ runKills: 200 })
     useGameStore.getState()._onRunEnd('gameover')
     const ids = useGameStore.getState().newlyUnlockedWeaponIds
     expect(Object.isFrozen(ids)).toBe(true)
@@ -225,14 +220,14 @@ describe('useGameStore run-end unlock evaluator', () => {
   })
 
   it('damagePlayer HP≤0 분기는 _onRunEnd를 호출한다', () => {
-    useGameStore.setState({ runKills: 80 })
+    useGameStore.setState({ runKills: 200 })
     useGameStore.getState().damagePlayer(99999)
     expect(useGameStore.getState().phase).toBe('gameover')
     expect(useGameStore.getState().newlyUnlockedWeaponIds).toContain('compassBlade')
   })
 
   it('clearStage는 _onRunEnd를 호출한다', () => {
-    useGameStore.setState({ runKills: 80 })
+    useGameStore.setState({ runKills: 200 })
     useGameStore.getState().clearStage()
     expect(useGameStore.getState().phase).toBe('cleared')
     expect(useGameStore.getState().newlyUnlockedWeaponIds).toContain('compassBlade')
@@ -293,13 +288,25 @@ describe('보스 격퇴 보너스와 포탈 클리어 분리', () => {
   })
 })
 
+describe('useGameStore weapon unlock acknowledgement', () => {
+  it('clears only the pending new-unlock notice without changing entitlement', () => {
+    useGameStore.setState({ newlyUnlockedWeaponIds: Object.freeze(['compassBlade']) })
+
+    useGameStore.getState().acknowledgeNewWeaponUnlocks()
+
+    const ids = useGameStore.getState().newlyUnlockedWeaponIds
+    expect(ids).toEqual([])
+    expect(Object.isFrozen(ids)).toBe(true)
+  })
+})
+
 describe('useGameStore unavailable Firebase progress', () => {
   it('continues reset and run-end in memory without hydrated-only getters', async () => {
     const { _resetFirebaseProgressForTests } = await import('../lib/firebaseProgress.js')
     _resetFirebaseProgressForTests()
 
     expect(() => useGameStore.getState().resetGame('stage1')).not.toThrow()
-    useGameStore.setState({ runKills: 80, elapsedMs: 180_000 })
+    useGameStore.setState({ runKills: 200, elapsedMs: 180_000 })
     expect(() => useGameStore.getState()._onRunEnd('gameover')).not.toThrow()
     expect(useGameStore.getState().newlyUnlockedWeaponIds).toContain('compassBlade')
   })

@@ -106,4 +106,30 @@ describe('CoinShop', () => {
     })
     container.remove()
   })
+
+  it('opens a locked weapon condition detail instead of purchasing it', () => {
+    const onOpenWeaponDetails = vi.fn()
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+
+    act(() => {
+      root.render(<CoinShop onBack={() => {}} onOpenWeaponDetails={onOpenWeaponDetails} />)
+    })
+    act(() => {
+      Array.from(container.querySelectorAll('button'))
+        .find((button) => button.textContent === '무기 강화')
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+    act(() => {
+      Array.from(container.querySelectorAll('button'))
+        .find((button) => button.dataset.weaponUnlockDetails === 'sharkMissile')
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(onOpenWeaponDetails).toHaveBeenCalledWith('sharkMissile')
+
+    act(() => root.unmount())
+    container.remove()
+  })
 })

@@ -22,6 +22,7 @@
           "records": {
             "$recordKey": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000000" }
           },
+          "weaponUnlockSchemaVersion": { ".validate": "newData.isNumber() && newData.val() === 2" },
           "weaponUnlocks": {
             "$weaponId": { ".validate": "newData.val() === 1" }
           },
@@ -33,6 +34,9 @@
           },
           "bossPassiveUnlocks": {
             "b01SetSquare": { ".validate": "newData.isBoolean() && newData.val() === true" },
+            "b02CorridorPass": { ".validate": "newData.isBoolean() && newData.val() === true" },
+            "b03GymWhistle": { ".validate": "newData.isBoolean() && newData.val() === true" },
+            "b04ServingLadle": { ".validate": "newData.isBoolean() && newData.val() === true" },
             "$other": { ".validate": false }
           },
           "encounteredZombieTypes": {

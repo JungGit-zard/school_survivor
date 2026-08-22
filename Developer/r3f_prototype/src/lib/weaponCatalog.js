@@ -1,7 +1,7 @@
 // 무기 20종의 단일 진실 카탈로그.
-//   - starter 13종 (unlockConditions === STARTER): 아래 starter 블록 11종 + bikittyCutter + lineDraw.
-//   - 계정 해금 7종: guidedMissile, sharkMissile, starlink, compassBlade, umbrellaGuard,
-//     eraserBomb, studentLantern.
+//   - 기본 계정 해금 4종: pencilThrow, schoolBag, boxCutter, tumbler.
+//   - 기록 조건 계정 해금 13종.
+//   - 런 중 조합 발견 3종: hanako, bikittyCutter, lineDraw (계정 플래그 대상 아님).
 // 20종 전부 컴포넌트(components/Weapons/index.js)·카드 효과(upgrades.js) wiring이 끝나 있다.
 // base 스탯은 buildInitialWeapons(useGameStore.js)가 그대로 가져다 쓴다 — 여기가 유일한 출처이므로
 // 게임 쪽에 같은 수치를 리터럴로 또 적지 마라(하나코 힐 수치가 그렇게 이중 정본이 됐었다).
@@ -13,7 +13,7 @@ import { TUMBLER_SUSTAINED_MULTIPLIER } from './tumblerFalloff.js'
 export const STARTER = 'starter'
 
 export const WEAPON_CATALOG = {
-  // ─── Starter 10종 (Lv.1 base 스탯은 buildInitialWeapons가 그대로 사용한다) ───
+  // ─── 기본군 4종 (Lv.1 base 스탯은 buildInitialWeapons가 그대로 사용한다) ───
   pencilThrow: {
     id: 'pencilThrow',
     label: '연필',
@@ -65,7 +65,7 @@ export const WEAPON_CATALOG = {
     // zoneDurationMs: 1레벨 5초, 레벨업마다 +1초 (upgrades.js flask 효과의 bonus).
     // zoneTickDamage: 연필 레벨1 데미지 — 카탈로그 선언 직후 pencilThrow.base.damage 주입.
     base: { damage: 7.5, cooldown: 8400, radius: 1.6, range: 2, zoneRadius: 1.4, zoneDurationMs: 5000, critChance: 0.03, critMultiplier: 1.5 },
-    unlockConditions: STARTER,
+    unlockConditions: [{ type: 'totalRuns', value: 2 }],
     minLevelToAppear: 4,
   },
   bell: {
@@ -75,35 +75,36 @@ export const WEAPON_CATALOG = {
     // 15종 중 최하위였고, 최상위(텀블러 15.30)와의 격차가 6.7배였다. 3200이면 3.20으로
     // 올라 격차가 4.8배가 된다. damage 10은 유지 — 8방향 충격파 한 발의 위력은 그대로다.
     base: { damage: 10, cooldown: 3200, lastFired: 0, directions: 8, speed: 10, radius: 1.7, critChance: 0.05, critMultiplier: 1.5 },
-    unlockConditions: STARTER,
+    unlockConditions: [{ type: 'stage1Clears', value: 1 }],
     minLevelToAppear: 4,
   },
   stunGun: {
     id: 'stunGun',
     label: '전기',
     base: { damage: 18, cooldown: 3000, lastFired: 0, chainCount: 2, critChance: 0.06, critMultiplier: 1.5 },
-    unlockConditions: STARTER,
+    unlockConditions: [{ type: 'stage2Clears', value: 1 }],
     minLevelToAppear: 6,
   },
   onigiri: {
     id: 'onigiri',
     label: '오니기리',
     base: { damage: 21, cooldown: 5000, bounces: 6, bounceRange: 4.5, range: 18, critChance: 0.08, critMultiplier: 1.5 },
-    unlockConditions: STARTER,
-    minLevelToAppear: 8,
+    unlockConditions: [{ type: 'totalKills', value: 700 }],
+    minLevelToAppear: 6,
   },
   chibiko: {
     id: 'chibiko',
     label: '치비코',
     base: { damage: 1.25, cooldown: 1100, lastFired: 0, range: 22, speed: 12, followDistance: 0.72, sideOffset: -0.28, critChance: 0.05, critMultiplier: 1.5 },
-    unlockConditions: STARTER,
+    unlockConditions: [{ type: 'totalRuns', value: 3 }],
     minLevelToAppear: 8,
   },
   hanako: {
     id: 'hanako',
     label: '하나코',
     base: { healIntervalMs: 20000, healPercent: 0.05, followDistance: 1.44 },
-    unlockConditions: STARTER,
+    // 하나코는 치비코 보유 중에만 발견하는 런 중 조합 카드다.
+    unlockConditions: null,
   },
   inucon: {
     id: 'inucon',
@@ -111,7 +112,7 @@ export const WEAPON_CATALOG = {
     // 치비코/하나코 계열 동반자. 장착 즉시 주인공 뒤를 따라다니며 붙은 좀비를 물고 끌어내고,
     // 10초마다 최대 HP의 10%를 회복한다. damage 0 유틸 무기라 레벨업은 끌어내기/회복 수치만 키운다.
     base: { damage: 0, healIntervalMs: 10000, healPercent: 0.10, followDistance: 1.08, pushRadius: 0.85, knockback: 2.8, knockbackMs: 180, contactPulseIntervalMs: 250 },
-    unlockConditions: STARTER,
+    unlockConditions: [{ type: 'bossKills', value: 3 }],
     minLevelToAppear: 8,
   },
   // ─── 복원 2종 (1차 9종 정본에 포함, 코드 일시 제거 상태 — U5/U6에서 컴포넌트 추가) ───
@@ -119,8 +120,7 @@ export const WEAPON_CATALOG = {
     id: 'guidedMissile',
     label: '보조배터리 미사일',
     base: { damage: 16, cooldown: 4000, lastFired: 0, range: 7.34, radius: 1.6 },
-    // 1차안 (메타프로그레션 정본 도입 시 확정).
-    unlockConditions: [{ type: 'totalRuns', value: 5 }],
+    unlockConditions: [{ type: 'bossKills', value: 1 }],
     minLevelToAppear: 4,
   },
   sharkMissile: {
@@ -140,21 +140,14 @@ export const WEAPON_CATALOG = {
       speed: 8.5,
       retargetIntervalMs: 300,
     },
-    unlockConditions: [
-      { type: 'stage1Clears', value: 1 },
-      { type: 'totalRuns', value: 8 },
-    ],
+    unlockConditions: [{ type: 'stage2Clears', value: 1 }],
     minLevelToAppear: 8,
   },
   starlink: {
     id: 'starlink',
     label: '고장난 스타링크',
     base: { damage: 28, cooldown: 3800, lastFired: 0, strikeCenter: 5, strikeRadius: 1.2, strikeCount: 1, critChance: 0.07, critMultiplier: 1.5 },
-    // 1차안.
-    unlockConditions: [
-      { type: 'totalRuns', value: 10 },
-      { type: 'totalKills', value: 5000 },
-    ],
+    unlockConditions: [{ type: 'totalKills', value: 2500 }],
     minLevelToAppear: 8,
   },
 
@@ -175,11 +168,7 @@ export const WEAPON_CATALOG = {
     // 그 폭발까지 포함한 사이클 실화력은 (3×5×1.025 + 30) / 4.5초 = 10.08/s로 여전히
     // 텀블러 12.24 아래다 — 폭발을 더해도 역전되지 않는다(lib/compassBlade.js 사이클 상수).
     base: { damage: 5, radius: 1.15, hitsPerSecond: 2.0, count: 1, orbitSpeed: 3.4, critChance: 0.05, critMultiplier: 1.5 },
-    // 실력 OR 누적.
-    unlockConditions: [
-      { type: 'runKills', value: 80 },
-      { type: 'totalKills', value: 200 },
-    ],
+    unlockConditions: [{ type: 'totalKills', value: 200 }],
     minLevelToAppear: 3,
   },
   umbrellaGuard: {
@@ -196,20 +185,14 @@ export const WEAPON_CATALOG = {
       knockback: 3.0,
       knockbackMs: 220,
     },
-    unlockConditions: [
-      { type: 'runSurvivalSeconds', value: 90 },
-      { type: 'totalSurvivalSeconds', value: 300 },
-    ],
+    unlockConditions: [{ type: 'totalSurvivalSeconds', value: 300 }],
     minLevelToAppear: 3,
   },
   eraserBomb: {
     id: 'eraserBomb',
     label: '지우개 폭탄',
     base: { damage: 26, cooldown: 6000, lastFired: 0, radius: 1.35, range: 12 },
-    unlockConditions: [
-      { type: 'runGold', value: 80 },
-      { type: 'totalGold', value: 200 },
-    ],
+    unlockConditions: [{ type: 'totalGold', value: 160 }],
     minLevelToAppear: 4,
   },
   studentLantern: {
@@ -226,10 +209,7 @@ export const WEAPON_CATALOG = {
     //   (주석도 "1.5배"와 "1/10"로 서로 모순이었다). 실제로 적용되던 0.15만 남긴다.
     // - cooldown 8000은 점등 시작 기준: Lv1 3초 점등/5초 소등 → Lv5 7초 점등/1초 소등.
     base: { damage: 0.15, cooldown: 8000, lastFired: 0, durationMs: 3000, hitIntervalMs: 300, lightLength: 2.08, lightWidth: 3.6, lightBaseWidth: 0.35, critChance: 0.03, critMultiplier: 1.5 },
-    unlockConditions: [
-      { type: 'stage1Clears', value: 1 },
-      { type: 'totalRuns', value: 5 },
-    ],
+    unlockConditions: [{ type: 'stage3Clears', value: 1 }],
     minLevelToAppear: 5,
   },
 
@@ -237,7 +217,7 @@ export const WEAPON_CATALOG = {
   // 정본 기획: Planner/game_contents/weapons/slash_evolution_weapon_concepts_2026-08-09.md §1
   // 「바이키티 커터칼」 — 커터칼(boxCutter)을 런 중 보유해야만 카드가 뜬다(upgrades.js
   // acquireBikittyCutter.requiresActiveWeapon). 계정 해금 게이트는 쓰지 않으므로
-  // unlockConditions는 하나코와 같은 STARTER 취급이고, 실제 등장 조건은 카드 쪽이 전부다.
+  // 계정 해금 없이 커터칼 보유 중에만 발견하는 런 중 조합 카드다.
   //
   // 동작 루프: 벨 때마다 날이 한 칸(segment) 나와 사거리·위력이 오르고, 8단째(segment 7)
   // 타격에서 날이 부러져 전방 90° 부채꼴 산탄을 한 번 뿌린 뒤 reloadMs 동안 무장해제된다.
@@ -263,7 +243,7 @@ export const WEAPON_CATALOG = {
       snapRange: 3.2,
       reloadMs: 1200,          // 부러진 뒤 추가 무장해제 시간(쿨다운 위에 가산)
     },
-    unlockConditions: STARTER,
+    unlockConditions: null,
     minLevelToAppear: 6,
   },
   lineDraw: {
@@ -285,7 +265,7 @@ export const WEAPON_CATALOG = {
       lineCrossDamage: 14,       // 절단선을 가로지를 때만 1회
       lineCrossCooldownMs: 600,  // 같은 적 재절단 간격
     },
-    unlockConditions: STARTER,
+    unlockConditions: null,
     minLevelToAppear: 8,
   },
 }
@@ -303,6 +283,9 @@ WEAPON_CATALOG.scienceFlask.base.zoneTickDamage = PENCIL_DERIVED_DAMAGE_BASELINE
 const ALL_IDS = Object.keys(WEAPON_CATALOG)
 const STARTER_IDS = ALL_IDS.filter((id) => WEAPON_CATALOG[id].unlockConditions === STARTER)
 const STARTER_SET = new Set(STARTER_IDS)
+export const RUNTIME_COMBINATION_WEAPON_IDS = Object.freeze(['hanako', 'bikittyCutter', 'lineDraw'])
+const RUNTIME_COMBINATION_SET = new Set(RUNTIME_COMBINATION_WEAPON_IDS)
+const ACCOUNT_UNLOCKABLE_IDS = ALL_IDS.filter((id) => !RUNTIME_COMBINATION_SET.has(id))
 
 export function getAllWeaponIds() {
   return [...ALL_IDS]
@@ -312,8 +295,22 @@ export function getStarterIds() {
   return [...STARTER_IDS]
 }
 
+// Firebase weaponUnlocks에 영구 권리로 저장할 수 있는 무기 목록이다.
+// 하나코·바이키티 커터칼·선긋기는 이번 런의 조합 조건으로만 나타난다.
+export function getAccountUnlockableWeaponIds() {
+  return [...ACCOUNT_UNLOCKABLE_IDS]
+}
+
 export function isStarter(id) {
   return STARTER_SET.has(id)
+}
+
+export function isRuntimeCombinationWeapon(id) {
+  return RUNTIME_COMBINATION_SET.has(id)
+}
+
+export function isAccountUnlockable(id) {
+  return Object.prototype.hasOwnProperty.call(WEAPON_CATALOG, id) && !isRuntimeCombinationWeapon(id)
 }
 
 export function isValidWeaponId(id) {
@@ -321,12 +318,13 @@ export function isValidWeaponId(id) {
 }
 
 // evalInput: cumulative + per-run records 합본. e.g. {totalKills, totalRuns, runKills, runSurvivalSeconds, ...}.
-// 반환: 해금된 무기 ID Set (starter 포함).
+// 반환: 계정 해금된 무기 ID Set (기본군 포함, 런 중 조합 3종 제외).
 export function evaluateUnlocks(evalInput) {
   const out = new Set(STARTER_IDS)
   const records = evalInput && typeof evalInput === 'object' ? evalInput : {}
   for (const id of ALL_IDS) {
     if (out.has(id)) continue
+    if (!isAccountUnlockable(id)) continue
     const entry = WEAPON_CATALOG[id]
     const conds = entry.unlockConditions
     if (conds === STARTER) {

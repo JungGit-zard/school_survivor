@@ -1,7 +1,13 @@
 // Firebase runtime memory weapon unlock layer.
 // Starter 무기는 저장하지 않는다 — weaponCatalog.evaluateUnlocks가 항상 unlock으로 반환.
-import { isValidWeaponId, isStarter } from './weaponCatalog.js'
+import { isAccountUnlockable, isValidWeaponId, isStarter } from './weaponCatalog.js'
 import { _seedHydratedFirebaseProgressForTests, readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
+export {
+  LEGACY_ACCOUNT_ENTITLEMENT_IDS,
+  WEAPON_UNLOCK_SCHEMA_VERSION,
+  getLegacyAccountEntitlementIds,
+  mergeLegacyAccountEntitlements,
+} from './weaponUnlockMigration.js'
 
 export const STORAGE_KEY = 'school_survivor:weaponUnlocks'
 
@@ -21,12 +27,14 @@ function updateRaw(mutator) {
 export function isUnlocked(id) {
   if (!isValidWeaponId(id)) return false
   if (isStarter(id)) return true
+  if (!isAccountUnlockable(id)) return false
   return readRaw()[id] === 1
 }
 
 export function setUnlocked(id) {
   if (!isValidWeaponId(id)) return
   if (isStarter(id)) return
+  if (!isAccountUnlockable(id)) return
   updateRaw((raw) => {
     raw[id] = 1
   })
@@ -36,7 +44,7 @@ export function getAllUnlocked() {
   const raw = readRaw()
   const out = new Set()
   for (const [id, v] of Object.entries(raw)) {
-    if (isValidWeaponId(id) && !isStarter(id) && v === 1) out.add(id)
+    if (isAccountUnlockable(id) && !isStarter(id) && v === 1) out.add(id)
   }
   return out
 }

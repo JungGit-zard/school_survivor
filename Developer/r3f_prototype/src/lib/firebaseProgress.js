@@ -1,5 +1,9 @@
 import { getFirebaseConfig, isFirebaseAuthConfigured } from './firebaseAuth.js'
 import { normalizeBossPassiveUnlocks } from './bossPassiveItems.js'
+import {
+  WEAPON_UNLOCK_SCHEMA_VERSION,
+  mergeLegacyAccountEntitlements,
+} from './weaponUnlockMigration.js'
 
 const DATABASE_URL_KEY = 'VITE_FIREBASE_DATABASE_URL'
 const SCHEMA_VERSION = 1
@@ -65,6 +69,7 @@ let progressClientPromise = null
 let testProgressClient = null
 let writeQueue = Promise.resolve()
 let storageGuardInstalled = false
+let pendingProgressSaveWarning = null
 
 const VITEST_PROGRESS_CLIENT = Object.freeze({
   load: async () => null,
@@ -97,6 +102,7 @@ export function setCloudProgressUser(user) {
   const currentUid = readUserId(cloudUser)
   cloudUser = user ?? null
   if (!nextUid || nextUid !== currentUid) {
+    pendingProgressSaveWarning = null
     runtime = createEmptyRuntime(nextUid)
   }
 }
@@ -144,6 +150,10 @@ export async function hydrateCloudProgress(user = cloudUser) {
     if (!applyCloudProgressSnapshot(snapshot, user)) {
       runtime = createEmptyRuntime(requestedUid)
       throw new FirebaseProgressError(`Remote Firebase user snapshot is invalid at ${path}.`, 'invalid-remote')
+    }
+    if (migrateLegacyWeaponUnlockEntitlements()) {
+      // 이전 저장 실패는 플레이와 현재 세션의 권리 적용을 막지 않는다. 다음 정상 저장 때 다시 시도된다.
+      await requestCloudProgressSave(user)
     }
     return true
   } catch (error) {
@@ -399,19 +409,35 @@ export function recordPlayActivity(stageId, now = Date.now()) {
 // 실패한 순간부터 그 세션의 모든 코인·업그레이드 저장이 조용히 건너뛰어진다(오프라인 한 번에
 // 이후 진행도 전부 유실). 실패는 큐에서 흡수하고 호출자에게는 false로 알린다.
 export async function requestCloudProgressSave(user = cloudUser) {
-  if (!isFirebaseProgressHydrated(user)) return false
-  if (!isFirebaseProgressConfigured()) return false
   const uidAtRequest = readUserId(user)
+  if (!isFirebaseProgressHydrated(user) || !isFirebaseProgressConfigured()) {
+    return false
+  }
   const path = getUserProgressPath(user)
   const attempt = writeQueue.catch(() => {}).then(async () => {
-    if (!isFirebaseProgressHydrated({ uid: uidAtRequest })) return false
+    if (!isFirebaseProgressHydrated({ uid: uidAtRequest })) {
+      return { saved: false, shouldWarn: false }
+    }
     const payload = buildRemotePayload()
     const client = await getProgressClient()
     await client.save(path, payload)
-    return true
-  }).catch(() => false)
-  writeQueue = attempt
-  return attempt
+    return { saved: true, shouldWarn: false }
+  }).catch(() => ({ saved: false, shouldWarn: true }))
+  writeQueue = attempt.then(({ saved }) => saved)
+  const { saved, shouldWarn } = await attempt
+  if (shouldWarn) markProgressSaveWarning(uidAtRequest)
+  return saved
+}
+
+export function consumeFirebaseProgressSaveWarning() {
+  const warning = pendingProgressSaveWarning
+  pendingProgressSaveWarning = null
+  return warning
+}
+
+function markProgressSaveWarning(uidAtRequest) {
+  if (!uidAtRequest || uidAtRequest !== readUserId(cloudUser)) return
+  pendingProgressSaveWarning = 'save-failed'
 }
 
 export function installPlayerStorageFatalGuard() {
@@ -458,6 +484,7 @@ export function _resetFirebaseProgressForTests() {
   // Tests that need transport behavior replace this with their explicit fake.
   testProgressClient = VITEST_PROGRESS_CLIENT
   writeQueue = Promise.resolve()
+  pendingProgressSaveWarning = null
   runtime = createEmptyRuntime()
 }
 
@@ -547,6 +574,7 @@ function createEmptyProgress() {
   return {
     goldTotal: 0,
     records: Object.fromEntries(RECORD_KEYS.map((key) => [key, 0])),
+    weaponUnlockSchemaVersion: WEAPON_UNLOCK_SCHEMA_VERSION,
     weaponUnlocks: {},
     weaponPermanentUpgrades: {},
     passiveUpgrades: {},
@@ -561,6 +589,7 @@ function normalizeProgress(progress) {
   const out = createEmptyProgress()
   out.goldTotal = readNonNegativeInt(progress.goldTotal)
   out.records = normalizeNumberMap(progress.records, RECORD_KEYS)
+  out.weaponUnlockSchemaVersion = normalizeWeaponUnlockSchemaVersion(progress.weaponUnlockSchemaVersion)
   out.weaponUnlocks = normalizeFlagMap(progress.weaponUnlocks)
   out.weaponPermanentUpgrades = normalizeNumberMap(progress.weaponPermanentUpgrades)
   out.passiveUpgrades = normalizeNumberMap(progress.passiveUpgrades)
@@ -725,6 +754,24 @@ function normalizeFlagMap(value) {
   return out
 }
 
+function normalizeWeaponUnlockSchemaVersion(value) {
+  const version = readNonNegativeInt(value)
+  return version >= WEAPON_UNLOCK_SCHEMA_VERSION ? version : 1
+}
+
+function migrateLegacyWeaponUnlockEntitlements() {
+  if (!runtime.progress || runtime.progress.weaponUnlockSchemaVersion >= WEAPON_UNLOCK_SCHEMA_VERSION) return false
+  runtime = {
+    ...runtime,
+    progress: {
+      ...runtime.progress,
+      weaponUnlockSchemaVersion: WEAPON_UNLOCK_SCHEMA_VERSION,
+      weaponUnlocks: mergeLegacyAccountEntitlements(runtime.progress.weaponUnlocks),
+    },
+  }
+  return true
+}
+
 function normalizeZombieEncounterMap(value) {
   const out = {}
   if (!value || typeof value !== 'object' || Array.isArray(value)) return out
@@ -804,6 +851,7 @@ function cloneProgress(progress) {
   return {
     goldTotal: progress.goldTotal,
     records: { ...progress.records },
+    weaponUnlockSchemaVersion: progress.weaponUnlockSchemaVersion,
     weaponUnlocks: { ...progress.weaponUnlocks },
     weaponPermanentUpgrades: { ...progress.weaponPermanentUpgrades },
     passiveUpgrades: { ...progress.passiveUpgrades },
