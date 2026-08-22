@@ -1,10 +1,72 @@
 ﻿import { describe, it, expect } from 'vitest'
-import { applyChibikoAllWeaponBoost, applyUpgradeToWeapon, applyUpgradeWithChibikoBoost, isUpgradeAvailable, UPGRADE_EFFECTS } from './upgrades.js'
+import { applyChibikoAllWeaponBoost, applyUpgradeToWeapon, applyUpgradeWithChibikoBoost, isUpgradeAvailable, selectSequentialLevelupChoices, UPGRADE_EFFECTS } from './upgrades.js'
 import { WEAPON_CATALOG, getAllWeaponIds } from './weaponCatalog.js'
 import { setUnlocked } from './weaponUnlocks.js'
 
 // 가상 무기 상태 빌더. weapons 객체의 한 항목 형태와 동일.
 const wpn = (overrides = {}) => ({ active: false, level: 0, damage: 5, ...overrides })
+
+describe('sequential rotating level-up choices', () => {
+  it('synthetic 20 eligible acquire items appear exactly once across the first five four-card screens', () => {
+    const orderedKeys = Array.from({ length: 20 }, (_, index) => `acquire-${index + 1}`)
+    let exposedAcquireKeys = []
+    const displayed = []
+
+    for (let screen = 0; screen < 5; screen += 1) {
+      const result = selectSequentialLevelupChoices({
+        orderedKeys,
+        availableKeys: orderedKeys,
+        exposedAcquireKeys,
+        isAcquireKey: () => true,
+      })
+      displayed.push(...result.choiceKeys)
+      exposedAcquireKeys = result.nextExposedAcquireKeys
+    }
+
+    expect(displayed).toEqual(orderedKeys)
+    expect(new Set(displayed)).toHaveLength(20)
+    expect(selectSequentialLevelupChoices({
+      orderedKeys,
+      availableKeys: orderedKeys,
+      exposedAcquireKeys,
+      isAcquireKey: () => true,
+    })).toMatchObject({ choiceKeys: orderedKeys.slice(0, 4), cycleWrapped: true })
+  })
+
+  it('active/locked removal does not skip later unexposed acquire items', () => {
+    const orderedKeys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+    const first = selectSequentialLevelupChoices({ orderedKeys, availableKeys: orderedKeys, isAcquireKey: () => true })
+    const second = selectSequentialLevelupChoices({
+      orderedKeys,
+      availableKeys: ['B', 'C', 'D', 'E', 'F', 'G', 'H'],
+      exposedAcquireKeys: first.nextExposedAcquireKeys,
+      isAcquireKey: () => true,
+    })
+    expect(first.choiceKeys).toEqual(['A', 'B', 'C', 'D'])
+    expect(second.choiceKeys).toEqual(['E', 'F', 'G', 'H'])
+  })
+
+  it('pending guarantees are first, consume no duplicate slot, and normal upgrades fill only remaining slots', () => {
+    const result = selectSequentialLevelupChoices({
+      orderedKeys: ['g1', 'a1', 'a2', 'general1', 'general2'],
+      availableKeys: ['g1', 'a1', 'a2', 'general1', 'general2'],
+      pendingGuaranteedKeys: ['g1', 'a2'],
+      isAcquireKey: (key) => ['g1', 'a1', 'a2'].includes(key),
+      getChoiceGroupKey: (key) => (key === 'a1' || key === 'a2' ? 'weapon:shared' : key),
+    })
+    expect(result.choiceKeys).toEqual(['g1', 'a2', 'general1', 'general2'])
+    expect(result.displayedGuaranteedKeys).toEqual(['g1', 'a2'])
+    expect(result.nextExposedAcquireKeys).toEqual(['g1', 'a2'])
+  })
+
+  it('keeps stable general-upgrade order when fewer than four acquire candidates are eligible', () => {
+    expect(selectSequentialLevelupChoices({
+      orderedKeys: ['acquire1', 'general1', 'general2', 'general3'],
+      availableKeys: ['acquire1', 'general1', 'general2', 'general3'],
+      isAcquireKey: (key) => key === 'acquire1',
+    }).choiceKeys).toEqual(['acquire1', 'general1', 'general2', 'general3'])
+  })
+})
 
 describe('applyUpgradeToWeapon', () => {
   it('치비코는 연속형 무기 능력을 10% 강화하고 쿨타임은 10% 줄인다', () => {

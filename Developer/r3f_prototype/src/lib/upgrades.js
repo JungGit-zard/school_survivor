@@ -188,6 +188,71 @@ export const UPGRADE_EFFECTS = {
 // Current game rule: max owned weapons per run is 8.
 export const MAX_OWNED_WEAPONS = 8
 const MAX_WEAPON_LEVEL = 5
+export const LEVELUP_CHOICE_COUNT = 4
+
+function getDefaultChoiceGroupKey(key) {
+  const effect = UPGRADE_EFFECTS[key]
+  return effect?.weapon ? `weapon:${effect.weapon}` : `nonWeapon:${key}`
+}
+
+function uniqueKeys(keys) {
+  return [...new Set(Array.isArray(keys) ? keys.filter((key) => typeof key === 'string') : [])]
+}
+
+// 런 단위 획득 카드 공정 노출기.
+// exposedAcquireKeys는 이번 cycle에서 이미 화면에 표시된 획득 카드의 ledger다.
+// 선택되어 active가 된 카드는 ledger에 남으므로 다음 화면이 아직 미노출인 획득 카드를 건너뛰지 않는다.
+export function selectSequentialLevelupChoices({
+  orderedKeys,
+  availableKeys,
+  pendingGuaranteedKeys = [],
+  exposedAcquireKeys = [],
+  choiceCount = LEVELUP_CHOICE_COUNT,
+  isAcquireKey = (key) => UPGRADE_EFFECTS[key]?.kind === 'acquire',
+  getChoiceGroupKey = getDefaultChoiceGroupKey,
+} = {}) {
+  const ordered = uniqueKeys(orderedKeys)
+  const availableSet = new Set(uniqueKeys(availableKeys).filter((key) => ordered.includes(key)))
+  const limit = Number.isInteger(choiceCount) && choiceCount > 0 ? choiceCount : LEVELUP_CHOICE_COUNT
+  const eligibleAcquireKeys = ordered.filter((key) => availableSet.has(key) && isAcquireKey(key))
+  const priorExposed = uniqueKeys(exposedAcquireKeys)
+  const unseenAcquireKeys = eligibleAcquireKeys.filter((key) => !priorExposed.includes(key))
+  const cycleWrapped = eligibleAcquireKeys.length > 0 && priorExposed.length > 0 && unseenAcquireKeys.length === 0
+  const cycleExposed = cycleWrapped ? [] : priorExposed
+  const eligibleUnseenAcquireKeys = eligibleAcquireKeys.filter((key) => !cycleExposed.includes(key))
+  const pending = uniqueKeys(pendingGuaranteedKeys)
+  const pendingSet = new Set(pending)
+  const choiceKeys = []
+  const displayedGuaranteedKeys = []
+  const usedGroups = new Set()
+
+  const tryAdd = (key, guaranteed = false) => {
+    if (choiceKeys.length >= limit || !availableSet.has(key) || choiceKeys.includes(key)) return false
+    const groupKey = getChoiceGroupKey(key)
+    if (usedGroups.has(groupKey)) return false
+    usedGroups.add(groupKey)
+    choiceKeys.push(key)
+    if (guaranteed) displayedGuaranteedKeys.push(key)
+    return true
+  }
+
+  for (const key of pending) tryAdd(key, true)
+  for (const key of eligibleUnseenAcquireKeys) {
+    if (pendingSet.has(key)) continue
+    tryAdd(key)
+  }
+
+  // 획득 후보가 4개 미만일 때만 안정된 선언 순서의 일반 강화로 빈 칸을 채운다.
+  for (const key of ordered) {
+    if (choiceKeys.length >= limit) break
+    if (!availableSet.has(key) || isAcquireKey(key) || pendingSet.has(key)) continue
+    tryAdd(key)
+  }
+
+  const selectedAcquireKeys = choiceKeys.filter((key) => isAcquireKey(key))
+  const nextExposedAcquireKeys = uniqueKeys([...cycleExposed, ...selectedAcquireKeys])
+  return { choiceKeys, nextExposedAcquireKeys, displayedGuaranteedKeys, cycleWrapped }
+}
 
 const bumpLevel = (wpn) => Math.min(MAX_WEAPON_LEVEL, (wpn.level ?? 1) + 1)
 

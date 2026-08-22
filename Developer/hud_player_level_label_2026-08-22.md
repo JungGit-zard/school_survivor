@@ -16,3 +16,10 @@
 - RED: 레벨 라벨 부재로 `persistent player level label` HUD 테스트 실패.
 - GREEN: 집중 테스트에서 `player.level` 7→8 변경이 즉시 `Lv.7`→`Lv.8`로 반영되고, 일시정지→재개 aria 및 동작이 유지됨을 확인.
 - 레벨업 선택지·XP 계산·게임플레이 상태는 수정하지 않았다.
+
+## 순차 획득 카드 노출 연결
+
+- Kanban: `t_a31b27f1` (`uimini`)
+- `HUD.jsx`는 고정된 `UPGRADES` 순서와 현재 사용 가능·중복 제한·보장 대기·기존 노출 ledger를 `selectSequentialLevelupChoices`에 전달한다.
+- 반환된 `choiceKeys`만 원래 `UPGRADES` 객체로 복원한다. 같은 `levelUpChoiceSerial` 동안 카드는 고정되고, 표시 후 노출 ledger와 보장 소비는 한 번만 기록한다.
+- 검증: HUD 43개, helper/store 64개 테스트 통과. HUD 소스의 `Math.random` 참조는 0개다.

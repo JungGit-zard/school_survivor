@@ -278,6 +278,8 @@ export const useGameStore = create(
     recentMilestone: null,
     pendingLevelUps: 0,
     levelUpChoiceSerial: 0,
+    levelUpAcquireExposureKeys: [],
+    levelUpAcquireExposureSerial: -1,
     pendingGuaranteedUpgradeChoiceKeys: [],
     questProgress: createStageQuestProgress(DEFAULT_STAGE_ID),
     questJourneyCompletedIds: [],
@@ -958,6 +960,16 @@ export const useGameStore = create(
         : { pendingGuaranteedUpgradeChoiceKeys: remaining }
     }),
 
+    // HUD가 helper가 계산한 노출 ledger를 화면당 한 번만 기록한다.
+    // 같은 levelUpChoiceSerial에서는 이미 고정된 choices를 다시 계산하지 않는다.
+    recordLevelupAcquireExposure: (keys, choiceSerial) => set((s) => {
+      if (s.phase !== 'levelup' || s.levelUpChoiceSerial !== choiceSerial || s.levelUpAcquireExposureSerial === choiceSerial || !Array.isArray(keys)) return {}
+      return {
+        levelUpAcquireExposureKeys: [...new Set(keys.filter((key) => typeof key === 'string'))],
+        levelUpAcquireExposureSerial: choiceSerial,
+      }
+    }),
+
     applyUpgrade: (key) => {
       const effect = UPGRADE_EFFECTS[key]
 
@@ -1148,6 +1160,8 @@ export const useGameStore = create(
         recentMilestone: null,
         pendingLevelUps: 0,
         levelUpChoiceSerial: s.levelUpChoiceSerial + 1,
+        levelUpAcquireExposureKeys: [],
+        levelUpAcquireExposureSerial: -1,
         pendingGuaranteedUpgradeChoiceKeys: [],
         questProgress: createStageQuestProgress(nextStageId),
         questJourneyCompletedIds: preserveQuestJourney ? s.questJourneyCompletedIds : [],

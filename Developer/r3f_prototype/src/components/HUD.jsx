@@ -5,7 +5,7 @@ import { useGameStore, STAGE1_INTRO_IDS } from '../store/useGameStore.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { joystickDir, playerPos, portalTarget } from '../lib/refs.js'
 import { getPortalObjective } from '../lib/portalObjective.js'
-import { MAX_OWNED_WEAPONS, UPGRADE_EFFECTS, isUpgradeAvailable } from '../lib/upgrades.js'
+import { MAX_OWNED_WEAPONS, UPGRADE_EFFECTS, isUpgradeAvailable, selectSequentialLevelupChoices } from '../lib/upgrades.js'
 import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { buildPlaytestSummary } from '../lib/playtestLogger.js'
@@ -313,7 +313,7 @@ function getDomStudioTuningStyle(tuning) {
   }
 }
 
-export function limitPencilUpgradeOptions(options, random = Math.random) {
+export function limitPencilUpgradeOptions(options, random = () => 0) {
   const pencilOptions = options.filter((option) => PENCIL_UPGRADE_KEYS.has(option.key))
   if (pencilOptions.length <= 1) return options
 
@@ -330,7 +330,7 @@ function getUpgradeChoiceGroupKey(option) {
   return `nonWeapon:${option.key}`
 }
 
-export function limitDuplicateWeaponUpgradeOptions(options, random = Math.random) {
+export function limitDuplicateWeaponUpgradeOptions(options, random = () => 0) {
   const groups = new Map()
   for (const option of options) {
     const groupKey = getUpgradeChoiceGroupKey(option)
@@ -372,13 +372,22 @@ export function getUpgradeChoiceDesc(option) {
   return desc?.replaceAll(unlockWord, acquireWord) ?? ''
 }
 
-function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = []) {
+function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [], exposedAcquireKeys = []) {
   const available = UPGRADES.filter((u) => isUpgradeAvailable(UPGRADE_EFFECTS[u.key], level, weapons, player))
   const limited = limitDuplicateWeaponUpgradeOptions(available)
-  const guaranteed = limited.filter((u) => pendingGuaranteedUpgradeChoiceKeys.includes(u.key))
-  const shuffled = limited.filter((u) => !pendingGuaranteedUpgradeChoiceKeys.includes(u.key))
-    .sort(() => Math.random() - 0.5)
-  return [...guaranteed, ...shuffled].slice(0, 4)
+  const selection = selectSequentialLevelupChoices({
+    orderedKeys: UPGRADES.map((upgrade) => upgrade.key),
+    availableKeys: limited.map((upgrade) => upgrade.key),
+    pendingGuaranteedKeys: pendingGuaranteedUpgradeChoiceKeys,
+    exposedAcquireKeys,
+    choiceCount: 4,
+    isAcquireKey: (key) => UPGRADE_EFFECTS[key]?.kind === 'acquire',
+    getChoiceGroupKey: (key) => getUpgradeChoiceGroupKey({ key }),
+  })
+  return {
+    ...selection,
+    choices: selection.choiceKeys.map((key) => UPGRADES.find((upgrade) => upgrade.key === key)).filter(Boolean),
+  }
 }
 
 function isGuaranteedFollowupPermanentlyUnavailable(key, weapons) {
@@ -680,11 +689,11 @@ export default function HUD({
     player, weapons, phase, pauseSource,
     elapsed, currentStageId, bossSpawned, bossSpawnSec,
     goldSession, goldTotal, recentMilestone,
-    newlyUnlockedWeaponIds, levelUpChoiceSerial, pendingGuaranteedUpgradeChoiceKeys,
+    newlyUnlockedWeaponIds, levelUpChoiceSerial, levelUpAcquireExposureKeys, pendingGuaranteedUpgradeChoiceKeys,
     escapePortalActive, matildaSpawned, deathCause, bossBonus,
     studentDialogue, introDialogue,
     questProgress, questToast, newQuestItemIds, bossPassiveUnlocks,
-    clearMilestone, applyUpgrade, consumeGuaranteedUpgradeChoices, discardUnavailableGuaranteedUpgradeChoices,
+    clearMilestone, applyUpgrade, recordLevelupAcquireExposure, consumeGuaranteedUpgradeChoices, discardUnavailableGuaranteedUpgradeChoices,
     cheatAcquireWeapon, resumeFromLevelup,
     resetGame, togglePause, resumeGame, quitPausedRun, spawnMatilda,
     closeStudentDialogue, advanceIntro, toggleQuestInventory, closeQuestInventory,
@@ -704,6 +713,7 @@ export default function HUD({
     recentMilestone:      s.recentMilestone,
     newlyUnlockedWeaponIds: s.newlyUnlockedWeaponIds,
     levelUpChoiceSerial:  s.levelUpChoiceSerial,
+    levelUpAcquireExposureKeys: s.levelUpAcquireExposureKeys,
     pendingGuaranteedUpgradeChoiceKeys: s.pendingGuaranteedUpgradeChoiceKeys,
     escapePortalActive:   s.escapePortalActive,
     matildaSpawned:       s.matildaSpawned,
@@ -717,6 +727,7 @@ export default function HUD({
     bossPassiveUnlocks:   s.bossPassiveUnlocks,
     clearMilestone:       s.clearMilestone,
     applyUpgrade:         s.applyUpgrade,
+    recordLevelupAcquireExposure: s.recordLevelupAcquireExposure,
     consumeGuaranteedUpgradeChoices: s.consumeGuaranteedUpgradeChoices,
     discardUnavailableGuaranteedUpgradeChoices: s.discardUnavailableGuaranteedUpgradeChoices,
     cheatAcquireWeapon:   s.cheatAcquireWeapon,
@@ -826,19 +837,20 @@ export default function HUD({
   }, [missionProgress])
 
   // phase가 'levelup'으로 바뀌는 순간 한 번만 선택지를 고정한다.
-  // 보장 키는 표시 직후 effect에서 소진하므로, 같은 화면의 카드가 바뀌지 않게 의존성에서 제외한다.
+  // 보장/노출 ledger는 표시 직후 effect에서 바뀌므로, 같은 화면의 카드가 바뀌지 않게 의존성에서 제외한다.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const choices = useMemo(
-    () => phase === 'levelup' ? pickFour(player.level, weapons, player, pendingGuaranteedUpgradeChoiceKeys) : [],
+  const levelupSelection = useMemo(
+    () => phase === 'levelup'
+      ? pickFour(player.level, weapons, player, pendingGuaranteedUpgradeChoiceKeys, levelUpAcquireExposureKeys)
+      : { choices: [], nextExposedAcquireKeys: [], displayedGuaranteedKeys: [] },
     [phase, player.level, weapons, levelUpChoiceSerial],
   )
+  const { choices, nextExposedAcquireKeys, displayedGuaranteedKeys } = levelupSelection
   useEffect(() => {
     if (phase !== 'levelup') return
-    const displayed = choices
-      .map((choice) => choice.key)
-      .filter((key) => pendingGuaranteedUpgradeChoiceKeys.includes(key))
-    if (displayed.length > 0) {
-      consumeGuaranteedUpgradeChoices(displayed, levelUpChoiceSerial)
+    recordLevelupAcquireExposure(nextExposedAcquireKeys, levelUpChoiceSerial)
+    if (displayedGuaranteedKeys.length > 0) {
+      consumeGuaranteedUpgradeChoices(displayedGuaranteedKeys, levelUpChoiceSerial)
       return
     }
     const permanentlyUnavailable = pendingGuaranteedUpgradeChoiceKeys
@@ -850,9 +862,12 @@ export default function HUD({
     choices,
     consumeGuaranteedUpgradeChoices,
     discardUnavailableGuaranteedUpgradeChoices,
+    displayedGuaranteedKeys,
     levelUpChoiceSerial,
+    nextExposedAcquireKeys,
     pendingGuaranteedUpgradeChoiceKeys,
     phase,
+    recordLevelupAcquireExposure,
     weapons,
   ])
   const [levelupChoicesReadySerial, setLevelupChoicesReadySerial] = useState(null)

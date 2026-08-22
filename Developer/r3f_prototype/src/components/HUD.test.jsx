@@ -501,6 +501,56 @@ describe('gameover presentation', () => {
 })
 
 describe('level-up upgrade layout', () => {
+  it('exposes four unseen acquisition cards per serial without skipping after a selection', () => {
+    useGameStore.getState().resetGame('stage1')
+    for (const weaponId of ['scienceFlask', 'bell', 'stunGun', 'onigiri', 'guidedMissile']) setUnlocked(weaponId)
+    useGameStore.setState((state) => ({
+      phase: 'levelup',
+      pendingLevelUps: 1,
+      player: { ...state.player, level: 8 },
+      levelUpChoiceSerial: 100,
+    }))
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    const random = vi.spyOn(Math, 'random')
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const firstLabels = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
+        .map((button) => button.getAttribute('aria-label').split(':')[0])
+      expect(firstLabels).toEqual(['커터칼 획득', '30cm 자 획득', '텀블러 획득', '과학 플라스크 획득'])
+      expect(useGameStore.getState().levelUpAcquireExposureKeys).toEqual([
+        'acquireBoxCutter', 'acquireBag', 'acquireTumbler', 'acquireFlask',
+      ])
+      expect(random).not.toHaveBeenCalled()
+
+      act(() => {
+        useGameStore.getState().applyUpgrade('acquireBoxCutter')
+        useGameStore.setState((state) => ({
+          phase: 'levelup',
+          pendingLevelUps: 1,
+          player: { ...state.player, level: 8 },
+          levelUpChoiceSerial: state.levelUpChoiceSerial + 1,
+        }))
+      })
+
+      const secondLabels = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
+        .map((button) => button.getAttribute('aria-label').split(':')[0])
+      expect(secondLabels).toEqual(['바이키티 커터칼 획득', '벨 획득', '전기 획득', '오니기리 획득'])
+      expect(secondLabels).toEqual(expect.not.arrayContaining(firstLabels))
+      expect(useGameStore.getState().levelUpAcquireExposureKeys).toEqual([
+        'acquireBoxCutter', 'acquireBag', 'acquireTumbler', 'acquireFlask',
+        'acquireBikittyCutter', 'acquireBell', 'acquireStun', 'acquireOnigiri',
+      ])
+    } finally {
+      random.mockRestore()
+      act(() => root.unmount())
+    }
+  })
+
   it('shows four upgrade choices side by side without a full-screen overlay', () => {
     useGameStore.getState().resetGame('stage1')
     useGameStore.setState((state) => ({
