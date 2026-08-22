@@ -381,7 +381,7 @@ const COLUMN_WIDTH_RATIO = 0.6
 // gauntlet 두 줄을 벽에서 이만큼 안쪽에 둔다(벽에 완전히 붙으면 place가 경계로 clamp).
 const GAUNTLET_WALL_INSET = 0.8
 
-export const RUN_ZOMBIE_CREW_SIZE = 7
+export const RUN_ZOMBIE_CREW_SIZE = 13
 export const RUN_ZOMBIE_CREW_DIR = Object.freeze({ x: 1, z: 1 })
 export const STAGE2_GUARD_CHASE_SIZE = 7
 
@@ -476,12 +476,12 @@ export function createRunZombieCrewEntries(bounds, random = Math.random, obstacl
   for (let i = 0; i < RUN_ZOMBIE_CREW_SIZE; i += 1) {
     const isLeader = i === 0
     const followerIndex = Math.max(0, i - 1)
-    const row = Math.floor(followerIndex / 3)
-    const col = followerIndex % 3
-    // 기존 난수 소비량은 유지하되, 크루 행렬 자체는 리더 기준 정확한 3명×2열로 고정한다.
+    const row = Math.floor(followerIndex / 4)
+    const col = followerIndex % 4
+    // 기존 난수 소비량은 유지하되, 크루 행렬 자체는 리더 기준 정확한 4명×3열로 고정한다.
     if (!isLeader) random()
-    const sideOffset = isLeader ? 0 : (col - 1) * 0.72
-    const trail = isLeader ? 0 : 1.15 + row * 1.05
+    const sideOffset = isLeader ? 0 : (col - 1.5) * 0.72
+    const trail = isLeader ? 0 : 1.15 + row * 1.05 + (col % 2) * 0.38
     const x = startX - nx * trail + px * sideOffset
     const z = startZ - nz * trail + pz * sideOffset
     const type = isLeader ? 'RZL' : 'RZC'

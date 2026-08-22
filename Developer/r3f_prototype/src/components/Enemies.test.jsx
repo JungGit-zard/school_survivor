@@ -743,7 +743,7 @@ describe('jarmob expected total keeps density separate from the user HP curve', 
     // base 총량이 거의 그대로라 m도 거의 안 움직였다(1.19379 → 1.19396).
     expect(STAGE_DENSITY_MULTIPLIER).toEqual({
       stage2: 0.8766327815877557,
-      stage3: 1.1460114286647949,
+      stage3: 1.205324260259222,
       stage4: 1.1939640195114065,
     })
     for (const stageId of ['stage2', 'stage3', 'stage4']) {
@@ -999,7 +999,7 @@ describe('formation spawns', () => {
     expect(burstsForStage('stage2').some((evt) => evt.formation)).toBe(true)
   })
 
-  it('creates the stage3 run zombie crew followers in exactly two symmetric three-person rows behind the leader', () => {
+  it('creates the stage3 run zombie crew followers in the restored thirteen-member staggered diagonal formation', () => {
     const stage3Arena = { halfX: 18, halfZ: 18 }
     const entries = createRunZombieCrewEntries(stage3Arena, () => 0.5)
     const leader = entries[0]
@@ -1023,14 +1023,13 @@ describe('formation spawns', () => {
     )
 
     expect(localFollowers.every(({ behind }) => behind > 0)).toBe(true)
-    expect(rows).toHaveLength(2)
-    expect(rows.every((row) => row.length === 3)).toBe(true)
+    expect(rows).toHaveLength(6)
+    expect(rows.every((row) => row.length === 2)).toBe(true)
     expect(localFollowers.map(({ behind, side }) => `${behind.toFixed(6)}:${side.toFixed(6)}`)).toHaveLength(new Set(localFollowers.map(({ behind, side }) => `${behind.toFixed(6)}:${side.toFixed(6)}`)).size)
-    for (const row of rows) {
-      const sides = row.map(({ side }) => side).sort((a, b) => a - b)
-      expect(sides[0]).toBeCloseTo(-sides[2], 6)
-      expect(sides[1]).toBeCloseTo(0, 6)
-    }
+    const sides = localFollowers.map(({ side }) => side).sort((a, b) => a - b)
+    const expectedSides = [-1.08, -1.08, -1.08, -0.36, -0.36, -0.36, 0.36, 0.36, 0.36, 1.08, 1.08, 1.08]
+    expect(sides).toHaveLength(expectedSides.length)
+    sides.forEach((side, index) => expect(side).toBeCloseTo(expectedSides[index], 6))
   })
 
   it('keeps the run zombie crew as a diagonal screen-crossing swarm, not a ring/pincer clone', () => {

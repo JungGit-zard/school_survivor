@@ -276,10 +276,9 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
     expect(getRuntimeBurstEventsForStage('stage2').filter((event) => event.formation === STAGE2_GUARD_CHASE_FORMATION)).toHaveLength(2)
   })
 
-  it('stage3는 런좀비 크루 대각선 횡단 버스트를 네 번 포함한다', () => {
+  it('stage3는 이전 단일 런좀비 크루 대각선 횡단 버스트를 포함한다', () => {
     const crews = STAGE3_BURST_EVENTS.filter((e) => e.formation === RUN_ZOMBIE_CREW_FORMATION)
-    expect(crews.map((e) => e.sec)).toEqual([40, 108, 144, 168])
-    expect(crews.every((event) => event.type === 'RZL' && event.count === 7)).toBe(true)
+    expect(crews).toEqual([{ sec: 72, type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION }])
   })
 
   it('25초부터 125초까지 25초마다 E01×3+E07×3 런타임 보강을 추가한다', () => {
@@ -322,22 +321,22 @@ describe('stage3 체육교사 B03 단일 보스 + 형태 버스트 런타임 복
   // 무거운 덩어리에서만 뺐다(150초 E06 삭제, 110초 협공 6→3, 120초 포위 4→3, 오프닝 12→10).
   // 2026-08-19 25초 반복 상쇄: 반복 보강이 25~125초 창에 525 HP를 새로 넣어 스3 총합이 목표 대비 +8.98%로
   // 뚫려 있었다. 같은 창에서만 562를 빼 되돌린다 — 110초 E06×1(461) 삭제 + 72초 차저 2→1(-101).
-  // 단발 예산 4,652 → 4,090이고, 반복 525를 더한 잡몹 실측이 4,615(목표 4,614)다.
+  // 2026-08-22: 런좀비 크루만 이전 단일 RZL@72×13으로 복원한다.
+  // 단발 예산은 4,090 → 3,220이고, 반복 525를 더한 잡몹 실측은 3,745다.
   it('단발 비보스 이벤트는 공통 13개 앵커만 쓰며 1.3배 사다리 예산에 맞는 payload·마릿수·실제 HP를 갖는다', () => {
     const ordinary = singleShotEvents(STAGE3_BURST_EVENTS).filter((event) => !isBossType(event.type))
-    expect(uniqueSeconds(ordinary)).toEqual([5, 24, 40, 60, 72, 108, 110, 120, 144, 150, 168, 184, 216])
+    expect(uniqueSeconds(ordinary)).toEqual([5, 24, 40, 60, 72, 110, 120, 150, 184, 216])
     expect(ordinary.map(payloadWithoutSec)).toEqual([
       { type: 'E01', count: 10 }, { type: 'E03', count: 4 }, { type: 'E04', count: 1 }, { type: 'E05', count: 1 },
       { type: 'E05', count: 3 },
-      { type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, { type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION },
-      { type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION }, { type: 'RZL', count: 7, formation: RUN_ZOMBIE_CREW_FORMATION },
+      { type: 'RZL', count: 13, formation: RUN_ZOMBIE_CREW_FORMATION },
       { type: 'E07', count: 3 }, { type: 'E02', count: 3 },
       { type: 'E03', count: 6, formation: 'ring' }, { type: 'E05', count: 3, formation: 'ring' },
       { type: 'E02', count: 3, formation: 'pincer' }, { type: 'E06', count: 2, formation: 'pincer' },
     ])
-    expect(ordinary.reduce((sum, event) => sum + event.count, 0)).toBe(67)
+    expect(ordinary.reduce((sum, event) => sum + event.count, 0)).toBe(52)
     const nonCrewHp = ordinary.reduce((sum, event) => sum + ({ E01: 12, E02: 101, E03: 14, E04: 46, E05: 101, E06: 461, E07: 23 }[event.type] ?? 0) * event.count, 0)
-    expect(nonCrewHp + 4 * Math.round(90 * 1.44) + 24 * Math.round(28 * 1.44)).toBe(4090)
+    expect(nonCrewHp + Math.round(90 * 1.44) + 12 * Math.round(28 * 1.44)).toBe(3220)
     // 거대는 184초 앞뒤 벽 한 곳으로 모았다 — pincer는 ×2라야 성립하므로 ×1짜리 110초 건을 뺐다.
     expect(ordinary.filter((event) => event.type === 'E06').map(payloadWithoutSec))
       .toEqual([{ type: 'E06', count: 2, formation: 'pincer' }])
@@ -471,15 +470,17 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     RZL: 90, RZC: 28, RZT: 140, RZG: 48,
     B01: 1150, B02: 1150, B03: 1150, B04: 1500,
   }
-  // 크루 인원은 evt.count가 아니라 Enemies.jsx의 상수 7이 정한다(리더 1 + 수하 6).
-  const CREW_SIZE = 7
+  // 런좀비 크루 인원은 evt.count가 아니라 Enemies.jsx의 RUN_ZOMBIE_CREW_SIZE가 정한다(리더 1 + 수하 12).
+  const CREW_SIZE = 13
+  const GUARD_CHASE_SIZE = 7
   const SPAWN_ANCHORS = [5, 24, 40, 60, 72, 108, 110, 120, 144, 150, 168, 184, 216]
-  // 스1 3,710(사용자가 실플레이로 맞춘 정본) 기준 ×1.3^n.
+  // 스1 3,710(사용자가 실플레이로 맞춘 정본) 기준 ×1.3^n. stage3는 이전 단일 런좀비 복원 총량이 정본이다.
   const STAGE1_TOTAL_HP = 3710
+  const STAGE3_RESTORED_RUN_CREW_TOTAL_HP = 5401
   const TARGETS = {
     stage1: STAGE1_TOTAL_HP,
     stage2: Math.round(STAGE1_TOTAL_HP * 1.3),
-    stage3: Math.round(STAGE1_TOTAL_HP * 1.3 ** 2),
+    stage3: STAGE3_RESTORED_RUN_CREW_TOTAL_HP,
     stage4: Math.round(STAGE1_TOTAL_HP * 1.3 ** 3),
   }
 
@@ -489,7 +490,7 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
       return appliedHp('RZL', stageId) + appliedHp('RZC', stageId) * (CREW_SIZE - 1)
     }
     if (event.formation === STAGE2_GUARD_CHASE_FORMATION) {
-      return appliedHp('RZT', stageId) + appliedHp('RZG', stageId) * (CREW_SIZE - 1)
+      return appliedHp('RZT', stageId) + appliedHp('RZG', stageId) * (GUARD_CHASE_SIZE - 1)
     }
     return appliedHp(event.type, stageId) * (event.count ?? 1)
   }
@@ -501,21 +502,19 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
   const stageTotalHp = (stageId) => getRuntimeBurstEventsForStage(stageId)
     .reduce((sum, event) => sum + eventTotalHp(event, stageId), 0)
 
-  it.each(allStageBurstTables)('%s 총 HP(보스 포함)는 1.3배 사다리 목표의 ±2% 안이다', (stageId) => {
+  it.each(allStageBurstTables)('%s 총 HP(보스 포함)는 현재 정본 목표의 ±2% 안이다', (stageId) => {
     const total = stageTotalHp(stageId)
     const target = TARGETS[stageId]
     expect(Math.abs(total / target - 1)).toBeLessThanOrEqual(0.02)
   })
 
-  it('실측 총 HP는 스1 고정 + 단계마다 약 1.3배다', () => {
+  it('실측 총 HP는 스1 고정, 스3는 이전 런좀비 복원 총량을 따른다', () => {
     const totals = ['stage1', 'stage2', 'stage3', 'stage4'].map(stageTotalHp)
     // 스1은 사용자 정본이라 절대 변하지 않는다 — 이 단언이 앵커를 지킨다.
     expect(totals[0]).toBe(STAGE1_TOTAL_HP)
-    expect(totals).toEqual([3710, 4838, 6271, 8169])
-    for (let i = 1; i < totals.length; i += 1) {
-      expect(totals[i] / totals[i - 1]).toBeGreaterThanOrEqual(1.27)
-      expect(totals[i] / totals[i - 1]).toBeLessThanOrEqual(1.33)
-    }
+    expect(totals).toEqual([3710, 4838, STAGE3_RESTORED_RUN_CREW_TOTAL_HP, 8169])
+    expect(totals[1] / totals[0]).toBeGreaterThanOrEqual(1.27)
+    expect(totals[1] / totals[0]).toBeLessThanOrEqual(1.33)
   })
 
   it.each(allStageBurstTables)('%s 단발 이벤트 sec은 보스를 빼면 공통 13개 앵커의 부분집합이다', (_stageId, events) => {
@@ -523,9 +522,11 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     expect(secs.filter((sec) => !SPAWN_ANCHORS.includes(sec))).toEqual([])
   })
 
-  it('네 스테이지 모두 단발 이벤트로 13개 앵커를 빠짐없이 쓴다 (긴 스폰 공백 금지)', () => {
-    for (const [, events] of allStageBurstTables) {
-      expect(uniqueSeconds(stageZombieEvents(singleShotEvents(events)))).toEqual(SPAWN_ANCHORS)
+  it('stage3 이전 런좀비 복원 예외 외에는 단발 이벤트로 13개 앵커를 빠짐없이 쓴다', () => {
+    const stage3RestoredRunCrewAnchors = [5, 24, 40, 60, 72, 110, 120, 150, 184, 216]
+    for (const [stageId, events] of allStageBurstTables) {
+      const secs = uniqueSeconds(stageZombieEvents(singleShotEvents(events)))
+      expect(secs).toEqual(stageId === 'stage3' ? stage3RestoredRunCrewAnchors : SPAWN_ANCHORS)
     }
   })
 
@@ -563,7 +564,7 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
     const hp = repeating.reduce((sum, event) => sum + eventTotalHp(event, 'stage3'), 0)
     expect(bodies).toBe(30)
     expect(hp).toBe(525)
-    expect(stageTotalHp('stage3')).toBe(6271)
+    expect(stageTotalHp('stage3')).toBe(STAGE3_RESTORED_RUN_CREW_TOTAL_HP)
   })
 
   it('보스 시각은 네 스테이지 모두 사용자 지정 150초다', () => {
