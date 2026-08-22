@@ -171,7 +171,7 @@ describe('runtime elapsed time publication', () => {
     }
   })
 
-  it('applies the boss-clear bonus only for the 240s portal-clear path, never for boss-kill gameover', () => {
+  it('applies the 15 percent escape bonus only for the portal-clear path, never for boss-kill gameover', () => {
     useGameStore.setState({ elapsedMs: 192_000, bossAliveCount: 1, phase: 'playing' })
     advanceRuntimeTime(192_000)
     useGameStore.getState().recordBossDefeat()
@@ -187,6 +187,6 @@ describe('runtime elapsed time publication', () => {
     advanceRuntimeTime(48_000)
     useGameStore.getState().clearStage()
 
-    expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', bossDefeated: true, bossBonus: 54 })
+    expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', bossDefeated: true, bossBonus: 40 })
   })
 })

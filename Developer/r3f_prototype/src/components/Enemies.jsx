@@ -323,6 +323,17 @@ export function shouldScheduleOvertimeReinforcement(lastFiredTick, elapsedSec, s
   return { shouldSchedule: tick !== null && tick > lastFiredTick, tick }
 }
 
+export function overtimeReinforcementCountForTick(tick, stageId = 'stage1', baseCount = OVERTIME_REINFORCEMENT_COUNT) {
+  const safeBase = Math.max(0, Math.floor(baseCount) || 0)
+  const safeTick = Math.floor(tick)
+  if (!Number.isFinite(safeTick)) return safeBase
+  const escalationStartTick = overtimeReinforcementTick(OVERTIME_ESCALATION_START_SEC, stageId)
+  if (escalationStartTick === null || safeTick < escalationStartTick) return safeBase
+  const spawnsSinceEscalationStart = safeTick - escalationStartTick
+  const steps = Math.floor(spawnsSinceEscalationStart / OVERTIME_ESCALATION_SPAWNS_PER_STEP)
+  return Math.max(1, Math.round(safeBase * (1 + steps * OVERTIME_ESCALATION_RATE)))
+}
+
 export function overtimeMixedTypesForStage(stageId) {
   return [...(stageId === 'stage1' ? STAGE1_OVERTIME_MIXED_TYPES : DEFAULT_OVERTIME_MIXED_TYPES)]
 }
@@ -1045,6 +1056,9 @@ export const MAX_CONCURRENT_ZOMBIES = MAX_ENEMIES
 export const OVERTIME_REINFORCEMENT_START_SEC = 240
 export const OVERTIME_REINFORCEMENT_INTERVAL_SEC = 30
 export const OVERTIME_REINFORCEMENT_COUNT = 30
+export const OVERTIME_ESCALATION_START_SEC = 300
+export const OVERTIME_ESCALATION_SPAWNS_PER_STEP = 3
+export const OVERTIME_ESCALATION_RATE = 0.1
 const STAGE1_OVERTIME_MIXED_TYPES = Object.freeze(['E01', 'E02', 'E03', 'E05', 'E06', 'E07'])
 const DEFAULT_OVERTIME_MIXED_TYPES = Object.freeze(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07'])
 const MAX_SPECIAL_ENEMIES = 3
@@ -1451,7 +1465,8 @@ export default function Enemies() {
     } else if (kind === SCHEDULE_DOGE) {
       spawnDoge()
     } else if (kind === SCHEDULE_OVERTIME) {
-      const count = clampZombieSpawnRequest(OVERTIME_REINFORCEMENT_COUNT, totalZombieCounts())
+      const requested = overtimeReinforcementCountForTick(overtimeTickRef.current, cache.id)
+      const count = clampZombieSpawnRequest(requested, totalZombieCounts())
       if (count <= 0) return
       const entries = buildOvertimeMixedReinforcementEntries(cache.id, Math.random, count)
       const batch = []

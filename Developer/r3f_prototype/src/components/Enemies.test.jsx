@@ -64,10 +64,14 @@ import {
   STAGE3_OVERTIME_REINFORCEMENT_START_SEC,
   OVERTIME_REINFORCEMENT_INTERVAL_SEC,
   OVERTIME_REINFORCEMENT_COUNT,
+  OVERTIME_ESCALATION_START_SEC,
+  OVERTIME_ESCALATION_SPAWNS_PER_STEP,
+  OVERTIME_ESCALATION_RATE,
   MAX_CONCURRENT_ZOMBIES,
   getOvertimeReinforcementStartSec,
   overtimeReinforcementTick,
   shouldScheduleOvertimeReinforcement,
+  overtimeReinforcementCountForTick,
   overtimeMixedTypesForStage,
   buildOvertimeMixedReinforcementEntries,
   clampZombieSpawnRequest,
@@ -302,6 +306,20 @@ describe('all-stage overtime mixed ordinary reinforcements', () => {
     expect(clampZombieSpawnRequest(30, { pooledActive: 150, specialActive: 0, pooledQueued: 0 })).toBe(0)
   })
 
+  it('increases overtime spawn pressure by 10 percent after every three zombie spawns from five minutes onward', () => {
+    expect(OVERTIME_REINFORCEMENT_START_SEC).toBe(240)
+    expect(OVERTIME_ESCALATION_START_SEC).toBe(300)
+    expect(OVERTIME_ESCALATION_SPAWNS_PER_STEP).toBe(3)
+    expect(OVERTIME_ESCALATION_RATE).toBe(0.1)
+    expect(overtimeReinforcementTick(240, 'stage1')).toBe(0)
+    expect(overtimeReinforcementTick(300, 'stage1')).toBe(2)
+    expect(overtimeReinforcementCountForTick(1, 'stage1')).toBe(30)
+    expect(overtimeReinforcementCountForTick(2, 'stage1')).toBe(30)
+    expect(overtimeReinforcementCountForTick(4, 'stage1')).toBe(30)
+    expect(overtimeReinforcementCountForTick(5, 'stage1')).toBe(33)
+    expect(overtimeReinforcementCountForTick(8, 'stage1')).toBe(36)
+  })
+
   it('wires overtime through the frame scheduler and pooled drain path', () => {
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
     const playingFrameBody = source.match(/usePlayingFrame\(\(_, delta\) => \{([\s\S]*?)\n  \}\)/)?.[1] ?? ''
@@ -313,7 +331,8 @@ describe('all-stage overtime mixed ordinary reinforcements', () => {
     expect(source).toContain('pooledActive: enemyPool.activeCount')
     expect(source).toContain('specialActive: enemiesRef.current.length')
     expect(source).toContain('pooledQueued: runtimeQueueRef.current.spawnDrain.count')
-    expect(source).toContain('const count = clampZombieSpawnRequest(OVERTIME_REINFORCEMENT_COUNT, totalZombieCounts())')
+    expect(source).toContain('const requested = overtimeReinforcementCountForTick(overtimeTickRef.current, cache.id)')
+    expect(source).toContain('const count = clampZombieSpawnRequest(requested, totalZombieCounts())')
     expect(source).toContain('buildOvertimeMixedReinforcementEntries(cache.id, Math.random, count)')
     expect(source).toContain('if (clampZombieSpawnRequest(1, totalZombieCounts()) <= 0) break')
     expect(source).toContain('addEnemies(batch, true, cache.spawnToken)')

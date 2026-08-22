@@ -6,21 +6,21 @@ export const MAX_RUN_TIME_MS = 300_000
 export const KST_OFFSET_MS = 9 * 60 * 60 * 1000
 
 // 서버측 점수 재검증(안티치트) 상수. 단일 출처는 클라이언트 src/lib/rankingScorePolicy.js —
-// 값 변경 시 두 곳을 반드시 동기화한다(스테이지 보너스 선형 +60, clear 30, 보스 보너스 = 기본점의 20%).
+// 값 변경 시 두 곳을 반드시 동기화한다(스테이지 보너스 선형 +60, clear 30, 탈출 보너스 = 기본점의 15%).
 export const SERVER_STAGE_BONUS = { stage1: 0, stage2: 60, stage3: 120, stage4: 180 }
 export const SERVER_CLEAR_BONUS = 30
-export const BOSS_BONUS_RATE = 0.2
+export const ESCAPE_SCORE_BONUS_RATE = 0.15
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const RUN_ID_PATTERN = /^[A-Za-z0-9_-]{12,80}$/
 
-// 주어진 런의 정직한 최대 점수. getRankingScore(클라)와 clearStageWithBossBonus의
-// 합산식과 동일: survival + stageBonus + (clear ? clearBonus : 0) + (clear ? floor(base*0.2) : 0).
+// 주어진 런의 정직한 최대 점수. getRankingScore(클라)와 clearStageWithEscapeBonus의
+// 합산식과 동일: survival + stageBonus + (clear ? clearBonus : 0) + (clear ? floor(base*0.15) : 0).
 // 정직한 런의 점수는 항상 정확히 이 상한과 같고, 하한은 보너스 없는 survival이다.
 export function maxLegitScore(stageId, timeMs, cleared) {
   const survivalSec = Math.floor(readNonNegInt(timeMs) / 1000)
   const base = survivalSec + (SERVER_STAGE_BONUS[stageId] ?? 0) + (cleared ? SERVER_CLEAR_BONUS : 0)
-  return base + (cleared ? Math.floor(base * BOSS_BONUS_RATE) : 0)
+  return base + (cleared ? Math.floor(base * ESCAPE_SCORE_BONUS_RATE) : 0)
 }
 
 export function normalizeRun(value) {

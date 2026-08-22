@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   CLEAR_BONUS,
+  ESCAPE_SCORE_BONUS_RATE,
   STAGE_BONUS,
   compareRankingEntries,
   getBossClearBonus,
@@ -36,18 +37,19 @@ describe('ranking score policy', () => {
     expect(getStagePriority('stage4')).toBe(4)
   })
 
-  it('includes the boss-clear bonus only after a portal clear', () => {
+  it('includes a 15 percent escape bonus only after a portal clear', () => {
     const prePortalBonus = getBossClearBonus({
       stageId: 'stage1', survivalSeconds: 192, cleared: false, bossDefeated: true,
     })
     const portalBonus = getBossClearBonus({
-      stageId: 'stage1', survivalSeconds: 240, cleared: true, bossDefeated: true,
+      stageId: 'stage1', survivalSeconds: 240, cleared: true, bossDefeated: false,
     })
 
+    expect(ESCAPE_SCORE_BONUS_RATE).toBe(0.15)
     expect(prePortalBonus).toBe(0)
-    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 192, cleared: false, bossBonus: 44 })).toBe(192)
-    expect(portalBonus).toBe(54)
-    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 240, cleared: true, bossBonus: portalBonus })).toBe(324)
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 192, cleared: false, bossBonus: 40 })).toBe(192)
+    expect(portalBonus).toBe(40)
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 240, cleared: true, bossBonus: portalBonus })).toBe(310)
   })
 
   it('breaks equal score/clear/survival ties by higher stage priority (stage4 > stage1)', () => {
