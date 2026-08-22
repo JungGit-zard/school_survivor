@@ -35,6 +35,7 @@ import {
   ClassPresidentStudent,
 } from './index.js'
 import { BLOCKING_STAGE_OBJECT_TYPES } from './stageObjectColliders.js'
+import { STAGE_OBJECT_PLACEMENTS } from './stageObjectPlacements.js'
 import { STAGE_OBJECT_TYPES } from './StageObjectLayer.jsx'
 import { STAGE_PROP_TYPES } from '../../lib/stagePropPlacements.js'
 import { GRAPHICS_STUDIO_CATALOG } from '../../lib/graphicsStudioConfig.js'
@@ -385,6 +386,21 @@ describe('stage object asset catalog', () => {
     expect(source).not.toContain('castShadow')
     expect(source).not.toContain('receiveShadow')
     expect(source).not.toContain('material={outline}')
+  })
+
+  it('keeps all 35 Stage 4 kitchen surfaces in the opaque depth-writing pass while preserving transparent outlines', () => {
+    const source = readFileSync(new URL('./KitchenProps.jsx', import.meta.url), 'utf8')
+    const renderingSource = readFileSync(new URL('./propRendering.js', import.meta.url), 'utf8')
+    const stage4Placements = STAGE_OBJECT_PLACEMENTS.stage4
+    const kitchenPlacements = stage4Placements.filter(({ type }) => type.startsWith('kitchen'))
+
+    expect(stage4Placements).toHaveLength(37)
+    expect(kitchenPlacements).toHaveLength(35)
+    expect(source).toContain('getStagePropDepthWritingToonMaterial(')
+    expect(source).not.toContain('getStagePropToonMaterial(')
+    expect(renderingSource).toContain('getCachedToonMat(color, emissiveIntensity, STAGE_PROP_SURFACE_SIDE, true)')
+    expect(renderingSource).toContain('material.depthWrite = false')
+    expect(source).toContain('STAGE_PROP_OUTLINE_RENDERING')
   })
 
   // 2026-07-25 사용자 결정: 중앙 조리대를 원화 위치로 되돌리고 콜라이더를 붙인다.

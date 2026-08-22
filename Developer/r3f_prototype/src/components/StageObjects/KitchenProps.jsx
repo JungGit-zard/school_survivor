@@ -17,7 +17,7 @@ import {
   getPropOutlineScale,
   getStagePropOutlineUserData,
   getStagePropOutlineMaterial,
-  getStagePropToonMaterial,
+  getStagePropDepthWritingToonMaterial,
   STAGE_PROP_OUTLINE_RENDERING,
   STAGE_PROP_SURFACE_RENDERING,
   STAGE_PROP_SHARED_OUTLINE_RENDERING,
@@ -34,15 +34,15 @@ function pickVariant(variant, validVariants, fallback) {
   return validVariants.includes(variant) ? variant : fallback
 }
 
-// 4톤 스테인리스 팔레트. 컴포넌트 호출마다 getStagePropToonMaterial(캐시됨)을 다시
+// 4톤 스테인리스 팔레트. 컴포넌트 호출마다 getStagePropDepthWritingToonMaterial(캐시됨)을 다시
 // 불러오는 함수 형태로 둬서, 모듈 최상단 상수로 한 번만 만들지 않는다 — HMR 때
 // toon.js의 캐시가 비워져도(재조립) 다음 렌더에서 항상 최신 캐시를 다시 받아온다.
 function stainlessPalette() {
   return {
-    top: getStagePropToonMaterial(0xf2f5f7, 0.05),
-    panel: getStagePropToonMaterial(0xd7dde1, 0.04),
-    frame: getStagePropToonMaterial(0xa9afb3, 0.04),
-    dark: getStagePropToonMaterial(0x34383b, 0.02),
+    top: getStagePropDepthWritingToonMaterial(0xf2f5f7, 0.05),
+    panel: getStagePropDepthWritingToonMaterial(0xd7dde1, 0.04),
+    frame: getStagePropDepthWritingToonMaterial(0xa9afb3, 0.04),
+    dark: getStagePropDepthWritingToonMaterial(0x34383b, 0.02),
   }
 }
 
@@ -165,17 +165,17 @@ export function KitchenPrepTable({ variant = 'bare', ...props }) {
   const v = pickVariant(variant, KITCHEN_PREP_TABLE_VARIANTS, 'bare')
   const stainless = stainlessPalette()
   const outlineMat = stageOutline()
-  const lime = getStagePropToonMaterial(0x8fd13f, 0.1)
-  const orange = getStagePropToonMaterial(0xe8862c, 0.1)
-  const yellow = getStagePropToonMaterial(0xe0b93a, 0.1)
-  const blue = getStagePropToonMaterial(0x3f7fc1, 0.1)
-  const wood = getStagePropToonMaterial(0xc9a06a, 0.06)
-  const blade = getStagePropToonMaterial(0xcfd4d6, 0.04)
-  const handle = getStagePropToonMaterial(0x232527, 0.0)
-  const darkWindow = getStagePropToonMaterial(0x23262a, 0.02)
-  const red = getStagePropToonMaterial(0xc0392b, 0.12)
-  const white = getStagePropToonMaterial(0xf4f1e8, 0.06)
-  const green = getStagePropToonMaterial(0x4f9d4a, 0.1)
+  const lime = getStagePropDepthWritingToonMaterial(0x8fd13f, 0.1)
+  const orange = getStagePropDepthWritingToonMaterial(0xe8862c, 0.1)
+  const yellow = getStagePropDepthWritingToonMaterial(0xe0b93a, 0.1)
+  const blue = getStagePropDepthWritingToonMaterial(0x3f7fc1, 0.1)
+  const wood = getStagePropDepthWritingToonMaterial(0xc9a06a, 0.06)
+  const blade = getStagePropDepthWritingToonMaterial(0xcfd4d6, 0.04)
+  const handle = getStagePropDepthWritingToonMaterial(0x232527, 0.0)
+  const darkWindow = getStagePropDepthWritingToonMaterial(0x23262a, 0.02)
+  const red = getStagePropDepthWritingToonMaterial(0xc0392b, 0.12)
+  const white = getStagePropDepthWritingToonMaterial(0xf4f1e8, 0.06)
+  const green = getStagePropDepthWritingToonMaterial(0x4f9d4a, 0.1)
 
   const legPositions = [
     [-0.98, 0.47, -0.41],
@@ -287,9 +287,9 @@ export function KitchenPrepTable({ variant = 'bare', ...props }) {
 export function KitchenCookLine({ ...props }) {
   const stainless = stainlessPalette()
   const outlineMat = stageOutline()
-  const red = getStagePropToonMaterial(0xc0392b, 0.14)
-  const darkWindow = getStagePropToonMaterial(0x23262a, 0.02)
-  const green = getStagePropToonMaterial(0x4f9d4a, 0.1)
+  const red = getStagePropDepthWritingToonMaterial(0xc0392b, 0.14)
+  const darkWindow = getStagePropDepthWritingToonMaterial(0x23262a, 0.02)
+  const green = getStagePropDepthWritingToonMaterial(0x4f9d4a, 0.1)
 
   const doorXs = [-0.85, 0, 0.85]
   const knobXs = [-1.0, -0.7, -0.15, 0.15, 0.7, 1.0]
@@ -350,9 +350,9 @@ export function KitchenCookLine({ ...props }) {
 export function KitchenSinkCounter({ ...props }) {
   const stainless = stainlessPalette()
   const outlineMat = stageOutline()
-  const orange = getStagePropToonMaterial(0xe8862c, 0.1)
-  const green = getStagePropToonMaterial(0x8fd13f, 0.1)
-  const wood = getStagePropToonMaterial(0xc9a06a, 0.06)
+  const orange = getStagePropDepthWritingToonMaterial(0xe8862c, 0.1)
+  const green = getStagePropDepthWritingToonMaterial(0x8fd13f, 0.1)
+  const wood = getStagePropDepthWritingToonMaterial(0xc9a06a, 0.06)
 
   const legPositions = [
     [-1.03, 0.36, -0.37],
@@ -418,9 +418,9 @@ export function KitchenSinkCounter({ ...props }) {
 export function KitchenRefrigerator({ open = false, ...props }) {
   const stainless = stainlessPalette()
   const outlineMat = stageOutline()
-  const green = getStagePropToonMaterial(0x8fd13f, 0.15)
-  const red = getStagePropToonMaterial(0xc0392b, 0.15)
-  const white = getStagePropToonMaterial(0xf4f1e8, 0.06)
+  const green = getStagePropDepthWritingToonMaterial(0x8fd13f, 0.15)
+  const red = getStagePropDepthWritingToonMaterial(0xc0392b, 0.15)
+  const white = getStagePropDepthWritingToonMaterial(0xf4f1e8, 0.06)
 
   return (
     <group {...props} name="kitchen-refrigerator">
@@ -470,10 +470,10 @@ export function KitchenRefrigerator({ open = false, ...props }) {
 export function KitchenTrayRack({ ...props }) {
   const stainless = stainlessPalette()
   const outlineMat = stageOutline()
-  const red = getStagePropToonMaterial(0xc0392b, 0.1)
-  const green = getStagePropToonMaterial(0x4f9d4a, 0.1)
-  const orange = getStagePropToonMaterial(0xe8862c, 0.1)
-  const yellow = getStagePropToonMaterial(0xe0b93a, 0.1)
+  const red = getStagePropDepthWritingToonMaterial(0xc0392b, 0.1)
+  const green = getStagePropDepthWritingToonMaterial(0x4f9d4a, 0.1)
+  const orange = getStagePropDepthWritingToonMaterial(0xe8862c, 0.1)
+  const yellow = getStagePropDepthWritingToonMaterial(0xe0b93a, 0.1)
 
   const postXs = [-0.325, 0.325]
   const postZs = [-0.335, 0.335]
@@ -510,11 +510,11 @@ export function KitchenTrayRack({ ...props }) {
 export function KitchenShelfCart({ ...props }) {
   const stainless = stainlessPalette()
   const outlineMat = stageOutline()
-  const red = getStagePropToonMaterial(0xc0392b, 0.1)
-  const blue = getStagePropToonMaterial(0x3f7fc1, 0.1)
-  const green = getStagePropToonMaterial(0x4f9d4a, 0.1)
-  const cardboard = getStagePropToonMaterial(0xb98a55, 0.05)
-  const wood = getStagePropToonMaterial(0xc9a06a, 0.06)
+  const red = getStagePropDepthWritingToonMaterial(0xc0392b, 0.1)
+  const blue = getStagePropDepthWritingToonMaterial(0x3f7fc1, 0.1)
+  const green = getStagePropDepthWritingToonMaterial(0x4f9d4a, 0.1)
+  const cardboard = getStagePropDepthWritingToonMaterial(0xb98a55, 0.05)
+  const wood = getStagePropDepthWritingToonMaterial(0xc9a06a, 0.06)
 
   const shelfYs = [0.10, 0.60, 1.10]
   const postXs = [-0.48, 0.48]
@@ -564,8 +564,8 @@ export function KitchenTrashBins({ variant = 'wheelie', ...props }) {
   const v = pickVariant(variant, KITCHEN_TRASH_BIN_VARIANTS, 'wheelie')
   const stainless = stainlessPalette()
   const outlineMat = stageOutline()
-  const green = getStagePropToonMaterial(0x5cad3f, 0.12)
-  const white = getStagePropToonMaterial(0xf4f1e8, 0.08)
+  const green = getStagePropDepthWritingToonMaterial(0x5cad3f, 0.12)
+  const white = getStagePropDepthWritingToonMaterial(0xf4f1e8, 0.08)
 
   return (
     <group {...props} name="kitchen-trash-bins">
@@ -604,10 +604,10 @@ export function KitchenCrateStack({ count = 3, ...props }) {
   const layers = Math.min(6, Math.max(1, Math.round(count)))
   const stainless = stainlessPalette()
   const outlineMat = stageOutline()
-  const lime = getStagePropToonMaterial(0x8fd13f, 0.1)
-  const wood = getStagePropToonMaterial(0xc9a06a, 0.06)
-  const cardboard = getStagePropToonMaterial(0xb98a55, 0.05)
-  const label = getStagePropToonMaterial(0xf4f1e8, 0.06)
+  const lime = getStagePropDepthWritingToonMaterial(0x8fd13f, 0.1)
+  const wood = getStagePropDepthWritingToonMaterial(0xc9a06a, 0.06)
+  const cardboard = getStagePropDepthWritingToonMaterial(0xb98a55, 0.05)
+  const label = getStagePropDepthWritingToonMaterial(0xf4f1e8, 0.06)
 
   const layerHeight = 0.98 / 3
   const bodyHeight = layerHeight * 0.92
@@ -659,14 +659,14 @@ export function KitchenCrateStack({ count = 3, ...props }) {
 export function KitchenClutter({ variant = 'pots', ...props }) {
   const v = pickVariant(variant, KITCHEN_CLUTTER_VARIANTS, 'pots')
   const stainless = stainlessPalette()
-  const green = getStagePropToonMaterial(0x4f9d4a, 0.1)
-  const yellow = getStagePropToonMaterial(0xe0b93a, 0.1)
-  const black = getStagePropToonMaterial(0x1c1e20, 0.0)
-  const red = getStagePropToonMaterial(0xc0392b, 0.12)
-  const orange = getStagePropToonMaterial(0xe8862c, 0.1)
-  const blue = getStagePropToonMaterial(0x3f7fc1, 0.1)
-  const white = getStagePropToonMaterial(0xf4f1e8, 0.06)
-  const amber = getStagePropToonMaterial(0x8a5a24, 0.08)
+  const green = getStagePropDepthWritingToonMaterial(0x4f9d4a, 0.1)
+  const yellow = getStagePropDepthWritingToonMaterial(0xe0b93a, 0.1)
+  const black = getStagePropDepthWritingToonMaterial(0x1c1e20, 0.0)
+  const red = getStagePropDepthWritingToonMaterial(0xc0392b, 0.12)
+  const orange = getStagePropDepthWritingToonMaterial(0xe8862c, 0.1)
+  const blue = getStagePropDepthWritingToonMaterial(0x3f7fc1, 0.1)
+  const white = getStagePropDepthWritingToonMaterial(0xf4f1e8, 0.06)
+  const amber = getStagePropDepthWritingToonMaterial(0x8a5a24, 0.08)
 
   return (
     <group {...props} name="kitchen-clutter">
