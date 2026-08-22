@@ -17,6 +17,14 @@ const STAGE2_TILE_DENSITY_MULTIPLIER = 10
 // 약 2.06 유닛이라 한 장 = 16.5 유닛. stage1 값(6.9)을 쓰면 한 칸 0.86 유닛이 되어
 // 주방 바닥이 아니라 욕실 모자이크로 읽힌다.
 const STAGE4_TILE_WORLD_SIZE = 16.5
+// Stage 4 keeps one floor mesh and one cached cafeteria-tile source.  Only its
+// UV repetition changes: 2x on both axes makes each visible tile 1/2 by 1/2,
+// or exactly 1/4 of its prior area, without new geometry, material, draw calls,
+// or texture allocations.
+export const STAGE4_TILE_LINEAR_SCALE = 0.5
+export const STAGE4_TILE_AREA_SCALE = 0.25
+export const STAGE4_TILE_FREQUENCY_MULTIPLIER = 2
+export const STAGE4_BASE_REPEAT = Math.round(FLOOR_SIZE / STAGE4_TILE_WORLD_SIZE)
 const STAGE1_BOUNDS = getStageBounds('stage1')
 export const STAGE1_FLOOR_WIDTH = STAGE1_BOUNDS.halfX * 2
 export const STAGE1_FLOOR_DEPTH = STAGE1_BOUNDS.halfZ * 2
@@ -40,7 +48,7 @@ export const STAGE_FLOOR_TILES = {
   },
   stage4: {
     src: stage4TileUrl,
-    repeat: Math.round(FLOOR_SIZE / STAGE4_TILE_WORLD_SIZE),
+    repeat: STAGE4_BASE_REPEAT * STAGE4_TILE_FREQUENCY_MULTIPLIER,
     floorSize: FLOOR_SIZE,
   },
 }
