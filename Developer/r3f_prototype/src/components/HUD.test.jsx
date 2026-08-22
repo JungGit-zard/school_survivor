@@ -498,6 +498,48 @@ describe('gameover presentation', () => {
       })
     }
   })
+
+  it('returns a confirmed Matilda game over directly to its result popup without replaying the death presentation', () => {
+    vi.useFakeTimers()
+    useGameStore.getState().resetGame('stage3')
+    useGameStore.setState({
+      phase: 'gameover',
+      deathCause: 'matilda',
+      elapsedMs: 65_000,
+      goldSession: 7,
+      goldTotal: 19,
+    })
+
+    const sfxIds = []
+    const shakes = []
+    const unsubscribeSfx = subscribeSfx((event) => sfxIds.push(event.id))
+    const unsubscribeShake = subscribeWholeScreenCriticalShake((event) => shakes.push(event))
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} showGameoverResultImmediately />)
+      })
+
+      expect(container.querySelector('[data-testid="gameover-result-overlay"]')).not.toBeNull()
+      expect(container.querySelector('[data-testid="matilda-dialogue"]')).toBeNull()
+
+      act(() => {
+        vi.advanceTimersByTime(1_000)
+      })
+
+      expect(sfxIds).not.toContain('matildaDeath')
+      expect(shakes).toHaveLength(0)
+      expect(container.querySelector('[data-testid="gameover-grayscale-transition"]')).toBeNull()
+    } finally {
+      act(() => {
+        root.unmount()
+      })
+      unsubscribeSfx()
+      unsubscribeShake()
+    }
+  })
 })
 
 describe('level-up upgrade layout', () => {

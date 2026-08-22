@@ -29,12 +29,20 @@ vi.mock('./GameplayScreen.jsx', () => ({
     <section data-testid="gameplay-screen">
       <output data-testid="instant-result-prop">{String(props.showGameoverResultImmediately)}</output>
       <button type="button" data-testid="open-result-shop" onClick={props.onOpenCoinShop}>shop</button>
+      <button type="button" data-testid="open-result-ranking" onClick={props.onGoToRanking}>ranking</button>
+      <button type="button" data-testid="open-result-mission" onClick={props.onOpenMissionCenter}>mission</button>
       <button type="button" data-testid="open-weapon-encyclopedia" onClick={() => props.onOpenWeaponEncyclopedia('guidedMissile')}>weapons</button>
     </section>
   ),
 }))
 vi.mock('./CoinShop.jsx', () => ({
   default: ({ onBack }) => <button type="button" data-testid="coin-shop-back" onClick={onBack}>back</button>,
+}))
+vi.mock('./UserRanking.jsx', () => ({
+  default: ({ onBack }) => <button type="button" data-testid="ranking-back" onClick={onBack}>back</button>,
+}))
+vi.mock('./MissionCenter.jsx', () => ({
+  default: ({ onBack }) => <button type="button" data-testid="mission-center-back" onClick={onBack}>back</button>,
 }))
 vi.mock('./SfxLayer.jsx', () => ({ default: () => null }))
 vi.mock('./VirtualJoystick.jsx', () => ({ default: () => null }))
@@ -126,6 +134,50 @@ describe('ReadyGameApp stage bypass hydration', () => {
     })
     await act(async () => {
       view.container.querySelector('[data-testid="coin-shop-back"]').click()
+      await vi.dynamicImportSettled()
+    })
+
+    expect(view.container.querySelector('[data-testid="instant-result-prop"]').textContent).toBe('true')
+    view.unmount()
+  })
+
+  it('marks the next game render for immediate result popup after returning from game-over ranking', async () => {
+    const view = await renderReady({ authUser: { uid: 'first' }, progressStatus: 'ready' })
+
+    await act(async () => {
+      view.container.querySelector('[data-testid="start-stage"]').click()
+      await vi.dynamicImportSettled()
+    })
+    mocks.gameStore.phase = 'gameover'
+
+    await act(async () => {
+      view.container.querySelector('[data-testid="open-result-ranking"]').click()
+      await vi.dynamicImportSettled()
+    })
+    await act(async () => {
+      view.container.querySelector('[data-testid="ranking-back"]').click()
+      await vi.dynamicImportSettled()
+    })
+
+    expect(view.container.querySelector('[data-testid="instant-result-prop"]').textContent).toBe('true')
+    view.unmount()
+  })
+
+  it('marks the next game render for immediate result popup after returning from game-over mission center', async () => {
+    const view = await renderReady({ authUser: { uid: 'first' }, progressStatus: 'ready' })
+
+    await act(async () => {
+      view.container.querySelector('[data-testid="start-stage"]').click()
+      await vi.dynamicImportSettled()
+    })
+    mocks.gameStore.phase = 'gameover'
+
+    await act(async () => {
+      view.container.querySelector('[data-testid="open-result-mission"]').click()
+      await vi.dynamicImportSettled()
+    })
+    await act(async () => {
+      view.container.querySelector('[data-testid="mission-center-back"]').click()
       await vi.dynamicImportSettled()
     })
 

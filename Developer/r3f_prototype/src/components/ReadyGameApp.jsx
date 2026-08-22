@@ -80,7 +80,7 @@ export default function ReadyGameApp({
     }
   }
 
-  const openCoinShopFrom = (from) => {
+  const setImmediateGameoverResultForGameReturn = (from) => {
     if (from === 'game') {
       void import('../store/useGameStore.js').then(({ useGameStore }) => {
         setShowGameoverResultImmediately(useGameStore.getState().phase === 'gameover')
@@ -88,17 +88,23 @@ export default function ReadyGameApp({
     } else {
       setShowGameoverResultImmediately(false)
     }
+  }
+
+  const openCoinShopFrom = (from) => {
+    setImmediateGameoverResultForGameReturn(from)
     setPrevScreen(from)
     setScreen('coinShop')
   }
 
   const openRankingFrom = (from, stageId = null) => {
+    setImmediateGameoverResultForGameReturn(from)
     setPrevScreen(from)
     setRankingStageId(stageId)
     setScreen('ranking')
   }
 
   const openMissionCenterFrom = (from) => {
+    setImmediateGameoverResultForGameReturn(from)
     setPrevScreen(from)
     setScreen('missionCenter')
   }

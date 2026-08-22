@@ -1040,7 +1040,7 @@ export default function HUD({
   // 즉사 판정 자체는 접촉 프레임에 이미 끝났고(store가 phase를 gameover로 바꾼 뒤),
   // 여기서는 그 뒤에 붙는 연출 순서만 잡는다.
   useEffect(() => {
-    if (!isMatildaGameover) {
+    if (!isMatildaGameover || showGameoverResultImmediately) {
       setMatildaDeathStage('idle')
       return undefined
     }
@@ -1063,7 +1063,7 @@ export default function HUD({
       clearTimeout(impactTimer)
       clearTimeout(grayscaleTimer)
     }
-  }, [isMatildaGameover])
+  }, [isMatildaGameover, showGameoverResultImmediately])
 
   useEffect(() => {
     if (phase !== 'paused') setIsTitleReturnConfirmOpen(false)
