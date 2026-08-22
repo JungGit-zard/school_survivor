@@ -29,12 +29,12 @@ describe('common enemy hit VFX', () => {
     })
   })
 
-  it('keeps critical hit burst twice as fast and one third of the original visual size', () => {
+  it('keeps critical hit burst twice as fast and twice the tuned compact visual size', () => {
     expect(COMMON_ENEMY_CRITICAL_HIT_BURST).toMatchObject({
       type: 'criticalHitBurst',
       life: 180,
-      baseScale: 0.113,
-      growScale: 0.207,
+      baseScale: 0.226,
+      growScale: 0.414,
     })
     expect(createEnemyCriticalHitBurstEvent({ x: 1, y: 0.7, z: 2, strong: true })).toMatchObject({
       type: 'criticalHitBurst',
@@ -43,8 +43,8 @@ describe('common enemy hit VFX', () => {
       z: 2,
       strong: true,
       life: 180,
-      baseScale: 0.113,
-      growScale: 0.207,
+      baseScale: 0.226,
+      growScale: 0.414,
     })
   })
 

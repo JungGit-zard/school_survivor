@@ -9,8 +9,8 @@ export const COMMON_ENEMY_HIT_SPARK = {
 export const COMMON_ENEMY_CRITICAL_HIT_BURST = {
   type: 'criticalHitBurst',
   life: 180,
-  baseScale: 0.113,
-  growScale: 0.207,
+  baseScale: 0.226,
+  growScale: 0.414,
 }
 
 export const COMMON_ENEMY_HIT_KNOCKBACK = {
