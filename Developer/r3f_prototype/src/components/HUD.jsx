@@ -1253,9 +1253,10 @@ export default function HUD({
       </div>
 
       {/* XP bar — 화면 최상단 전체 폭 얇은 스트립 */}
-      <div style={styles.xpRow}>
+      <div data-testid="player-xp-bar" style={styles.xpRow}>
         <div style={{ ...styles.xpFill, width: `${(player.xp / player.xpToNext) * 100}%` }} />
       </div>
+      <span data-testid="player-level-label" aria-label={`Lv.${player.level}`} style={styles.playerLevelLabel}>Lv.{player.level}</span>
 
       {/* Active weapon icons — HP바 위 가로 나열 */}
       <div style={styles.weaponIconBar}>
@@ -2023,6 +2024,13 @@ const styles = {
     background: 'linear-gradient(180deg, #8af07e 0%, #4cc44c 100%)',
     boxShadow: '0 0 6px rgba(96,224,96,0.8)',
     transition: 'width 0.15s',
+  },
+  playerLevelLabel: {
+    position: 'absolute', top: 42, left: '50%', transform: 'translateX(-50%)', zIndex: 6,
+    minWidth: 42, padding: '3px 8px', border: `1.5px solid ${uiPalette.ink}`, borderRadius: 999,
+    background: 'rgba(18, 49, 28, 0.94)', color: '#dfffdc', fontFamily: uiType.numeric,
+    fontSize: 14, fontWeight: uiType.weightHeavy, lineHeight: 1.1, textAlign: 'center', whiteSpace: 'nowrap',
+    textShadow: '0 1px 2px rgba(0,0,0,0.85)', pointerEvents: 'none',
   },
   barBg: {
     flex: 1,

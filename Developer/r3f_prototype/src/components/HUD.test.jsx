@@ -102,6 +102,36 @@ describe('portal direction objective', () => {
   })
 })
 
+describe('persistent player level label', () => {
+  it('shows the current level below the top XP strip and updates immediately', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState((state) => ({ player: { ...state.player, level: 7 } }))
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const levelLabel = container.querySelector('[data-testid="player-level-label"]')
+      const xpBar = container.querySelector('[data-testid="player-xp-bar"]')
+      expect(levelLabel?.textContent).toBe('Lv.7')
+      expect(levelLabel?.style.top).toBe('42px')
+      expect(levelLabel?.style.left).toBe('50%')
+      expect(xpBar?.style.top).toBe('0px')
+      expect(xpBar?.style.height).toBe('9px')
+
+      act(() => {
+        useGameStore.setState((state) => ({ player: { ...state.player, level: 8 } }))
+      })
+      expect(container.querySelector('[data-testid="player-level-label"]')?.textContent).toBe('Lv.8')
+    } finally {
+      act(() => { root.unmount() })
+    }
+  })
+})
+
 describe('student dialogue IDs', () => {
   it('renders the resolved known text and never renders an unknown raw ID', () => {
     const container = document.createElement('div')
