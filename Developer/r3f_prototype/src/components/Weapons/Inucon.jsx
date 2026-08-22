@@ -200,6 +200,8 @@ export function InuconModel() {
   )
 }
 
+export const INUCON_COMPANION_SCALE = 0.36
+
 export function InuconWeapon() {
   const groupRef = useRef()
   const posRef = useRef(new THREE.Vector3())
@@ -268,5 +270,5 @@ export function InuconWeapon() {
     return null
   }
 
-  return <group ref={groupRef} scale={[0.18, 0.18, 0.18]}><InuconModel /></group>
+  return <group ref={groupRef} scale={[INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE]}><InuconModel /></group>
 }
