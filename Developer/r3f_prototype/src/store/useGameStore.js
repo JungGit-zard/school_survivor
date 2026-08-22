@@ -2,6 +2,7 @@
 import { subscribeWithSelector } from 'zustand/middleware'
 import { UPGRADE_EFFECTS, applyChibikoAllWeaponBoost, applyUpgradeWithChibikoBoost } from '../lib/upgrades.js'
 import { resetRuntimeRefs, playerPos } from '../lib/refs.js'
+import { getPlayerStartPosition } from '../lib/playerStartPosition.js'
 import { t } from '../lib/i18n.js'
 import { getAllLevels, purchase as purchasePassiveStorage, resetAllLevels as resetPassiveStorage } from '../lib/passiveUpgrades.js'
 import {
@@ -1124,11 +1125,11 @@ export const useGameStore = create(
 
     // 게임 리셋. gameKey를 올려 Physics 트리를 새로 마운트한다.
     resetGame: (stageId = DEFAULT_STAGE_ID, { preserveQuestJourney = false } = {}) => {
-      resetRuntimeRefs()
+      const nextStageId = getStageConfig(stageId).id
+      resetRuntimeRefs(getPlayerStartPosition(nextStageId))
       const progressReady = isFirebaseProgressHydrated()
       const levels = loadRuntimePassiveLevels()
       const bossPassiveUnlocks = progressReady ? loadBossPassiveUnlocks() : get().bossPassiveUnlocks
-      const nextStageId = getStageConfig(stageId).id
       applyMagnetPassive(levels)
       syncStoredWeaponUnlocksFromRecords()
       set((s) => ({

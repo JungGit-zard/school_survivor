@@ -63,6 +63,13 @@ describe('useGameStore XP and reset behavior', () => {
     expect(useGameStore.getState().bossSpawnSec).toBe(getBossSpawnSec('stage2'))
   })
 
+  it('normalizes an invalid reset stage before selecting the runtime start position', () => {
+    useGameStore.getState().resetGame('not-a-stage')
+
+    expect(useGameStore.getState().currentStageId).toBe('stage1')
+    expect(playerPos.toArray()).toEqual([0, 0, 0])
+  })
+
   it('queues prerequisite follow-up cards for this run only and consumes only the displayed keys', () => {
     useGameStore.getState().applyUpgrade('acquireChibiko')
     useGameStore.getState().applyUpgrade('acquireBoxCutter')

@@ -3,6 +3,7 @@ import ClassroomDesk from './ClassroomDesk.jsx'
 import ClassroomChair from './ClassroomChair.jsx'
 import UnconsciousStudent from './UnconsciousStudent.jsx'
 import ClassPresidentStudent from './ClassPresidentStudent.jsx'
+import PressureCauldron from './PressureCauldron.jsx'
 import { CorridorJanitorCart, CorridorLockerBank, CorridorLostFoundBoard } from './CorridorProps.jsx'
 import {
   BallCart,
@@ -35,6 +36,7 @@ const STAGE_OBJECT_COMPONENTS = {
   classroomDesk: ClassroomDesk,
   unconsciousStudent: UnconsciousStudent,
   classPresidentStudent: ClassPresidentStudent,
+  pressureCauldron: PressureCauldron,
   corridorLockerBank: CorridorLockerBank,
   corridorJanitorCart: CorridorJanitorCart,
   corridorLostFoundBoard: CorridorLostFoundBoard,

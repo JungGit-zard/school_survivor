@@ -43,6 +43,7 @@ export const STAGE_PROP_TYPES = Object.freeze([
   'kitchenTrashBins',
   'kitchenCrateStack',
   'kitchenClutter',
+  'pressureCauldron',
 ])
 
 const STAGE_PROP_TYPE_SET = new Set(STAGE_PROP_TYPES)

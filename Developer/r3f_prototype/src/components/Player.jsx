@@ -5,6 +5,7 @@ import { useGameStore } from '../store/useGameStore.js'
 import { playerFacing, playerPos, joystickDir } from '../lib/refs.js'
 import { moveKeys } from '../lib/keyboardInput.js'
 import { clampPlayerPosition } from '../lib/playerMovementBounds.js'
+import { getPlayerStartPosition } from '../lib/playerStartPosition.js'
 import { createGameplayFixedStepClock, runGameplayFixedSteps } from '../lib/gameplayFrameTime.js'
 import PlayerMesh from './PlayerMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
@@ -133,6 +134,7 @@ export default function Player() {
   const lastKnockbackHitToken = useRef(hitFlashToken)
   const endInvulnerable = useGameStore((s) => s.endInvulnerable)
   const damagePlayer    = useGameStore((s) => s.damagePlayer)
+  const currentStageId  = useGameStore((s) => s.currentStageId)
   if (gameplayClockRef.current === null) gameplayClockRef.current = createGameplayFixedStepClock()
 
   // 적 투사체가 플레이어를 감지할 수 있도록 RigidBody ref에 핸들러 등록
@@ -236,9 +238,12 @@ export default function Player() {
     <RigidBody
       ref={rb}
       type="dynamic"
-      position={[0, 0.32, 0]}   // 콜라이더 반높이(0.32) 만큼 올려 발이 바닥에 닿게
       lockRotations
       linearDamping={10}
+      position={(() => {
+        const [x, y, z] = getPlayerStartPosition(currentStageId)
+        return [x, y + 0.32, z]
+      })()}
       colliders={false}
     >
       <CuboidCollider args={[0.136, 0.32, 0.136]} />

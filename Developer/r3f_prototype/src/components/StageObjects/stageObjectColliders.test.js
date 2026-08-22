@@ -219,6 +219,7 @@ describe('stage object blocking colliders', () => {
       'kitchenShelfCart',
       'kitchenTrashBins',
       'kitchenCrateStack',
+      'pressureCauldron',
     ])
     const solidProps = stage4Props.filter(({ type }) => solidTypes.has(type))
     const clutterProps = stage4Props.filter(({ type }) => type === 'kitchenClutter')
@@ -273,6 +274,14 @@ describe('stage object blocking colliders', () => {
 
     // 쿡라인 후드(실측 전체 높이 2.23)는 머리 위라 콜라이더에서 제외한다.
     expect(getStageObjectColliderParts({ type: 'kitchenCookLine', scale: 1 })[0].args[1]).toBeLessThan(1.0)
+
+    const cauldronParts = getStageObjectColliderParts({ type: 'pressureCauldron', scale: 1 })
+    expect(cauldronParts).toHaveLength(2)
+    expect(cauldronParts.map(({ key }) => key).sort()).toEqual([
+      'pressure-cauldron-front-step',
+      'pressure-cauldron-vessel',
+    ])
+    expect(cauldronParts.every(({ args }) => args.every((value) => value > 0))).toBe(true)
   })
 
   it('keeps Stage 4 kitchen colliders inside the cafeteria walls without overlapping each other', () => {

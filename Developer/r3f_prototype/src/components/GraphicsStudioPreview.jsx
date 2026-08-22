@@ -32,6 +32,7 @@ import {
   KitchenSinkCounter,
   KitchenTrashBins,
   KitchenTrayRack,
+  PressureCauldron,
 } from './StageObjects/index.js'
 import GoldCoin from './GoldCoin.jsx'
 import XpTextbook from './XpTextbook.jsx'
@@ -579,6 +580,7 @@ function RenderPreviewItem({ item }) {
   if (item.previewKind === 'stageObject' && item.objectType === 'kitchenTrashBins') return <KitchenTrashBins variant={item.variant} />
   if (item.previewKind === 'stageObject' && item.objectType === 'kitchenCrateStack') return <KitchenCrateStack />
   if (item.previewKind === 'stageObject' && item.objectType === 'kitchenClutter') return <KitchenClutter variant={item.variant} />
+  if (item.previewKind === 'stageObject' && item.objectType === 'pressureCauldron') return <PressureCauldron />
   if (item.previewKind === 'pickup') {
     return <PickupPreview type={item.pickupType} />
   }

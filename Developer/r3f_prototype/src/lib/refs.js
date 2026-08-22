@@ -49,9 +49,9 @@ export const enemyHandleScratch = { index: -1, generation: 0 }
 
 export const joystickDir = { x: 0, z: 0, active: false }
 
-export function resetRuntimeRefs() {
+export function resetRuntimeRefs(startPosition = [0, 0, 0]) {
   resetRuntimeTime()
-  playerPos.set(0, 0, 0)
+  playerPos.set(...startPosition)
   clearPortalTarget()
   playerFacing.set(0, 0, 1)
   bagSwingState.active = false

@@ -594,6 +594,15 @@ export const GRAPHICS_STUDIO_CATALOG = Object.freeze([
     applyTargets: ['components/StageObjects/KitchenProps.jsx', 'components/StageObjects/stageObjectPlacements.js', 'lib/toon.js'],
   },
   {
+    id: 'stage-object-pressure-cauldron',
+    category: 'stageObject',
+    label: 'Stage 4 Pressure Cauldron',
+    source: 'components/StageObjects/PressureCauldron.jsx',
+    previewKind: 'stageObject',
+    objectType: 'pressureCauldron',
+    applyTargets: ['components/StageObjects/PressureCauldron.jsx', 'components/StageObjects/stageObjectPlacements.js', 'lib/toon.js'],
+  },
+  {
     id: 'vfx-zombie-spawn-puff',
     category: 'vfx',
     label: 'Zombie Spawn Puff',

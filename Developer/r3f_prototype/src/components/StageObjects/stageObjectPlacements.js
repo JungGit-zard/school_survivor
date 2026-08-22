@@ -8,8 +8,8 @@ import { getStagePropOverride } from '../../lib/stagePropPlacements.js'
 // Rule: stage4(급식실/주방, mapHalfX=14.4 / mapHalfZ=16)는 모든 프랍이 |x| <= 13.8,
 // |z| <= 15.5 안에 있어야 한다. 벽면 프랍의 rotation Y 기준 — 북 0 / 남 Math.PI /
 // 서 +Math.PI/2 / 동 -Math.PI/2.
-// 중앙에는 원화(st4_concept.png)의 조리대 열 4기만 들어간다(2026-07-25 사용자 결정).
-// 대형 가구 8종은 콜라이더가 붙으므로 관통이 없고, 나머지 타입은 중앙 진입 금지.
+// 중앙에는 사용자 정본인 압력 가마솥 1기만 정확히 [0, 0, 0]에 들어간다.
+// 대형 가구와 중앙 가마솥은 콜라이더가 붙으므로 관통이 없고, 나머지 타입은 중앙 진입 금지.
 // kitchenClutter만 콜라이더 없이 통과 가능(BLOCKING_STAGE_OBJECT_TYPES에서 타입 제외).
 
 export const STAGE_OBJECT_PLACEMENTS = {
@@ -710,41 +710,15 @@ export const STAGE_OBJECT_PLACEMENTS = {
       rotation: [0, Math.PI - 0.12, 0],
       scale: 1.05,
     },
-    // ── 중앙 조리대 4기(원화 정본 위치) ──
-    // st4_concept.png의 중앙 세로 조리대 열: 상단 1기 · 중단 좌우 2기 · 하단 1기.
-    // 콜라이더가 붙는 solid 가구라 관통 클리핑이 없고, 중앙 전투 공간의 엄폐/동선 분할을 만든다.
-    // 플레이어 시작점(0,0)에서 최근접 5.5 유닛 이상 — 시작 즉시 끼는 일이 없다.
+    // Canonical Stage 4 center landmark: one pressure cauldron exactly at [0, 0, 0].
+    // The Stage 4 player uses the safe southern start [0, 0, 7].
     {
-      id: 'stage4-preptable-center-north',
-      type: 'kitchenPrepTable',
-      position: [-0.3, 0, -5.5],
+      id: 'stage4-pressure-cauldron-center',
+      type: 'pressureCauldron',
+      position: [0, 0, 0],
       rotation: [0, 0, 0],
-      scale: 1.12,
-      props: { variant: 'cutting' },
-    },
-    {
-      id: 'stage4-preptable-center-mid-west',
-      type: 'kitchenPrepTable',
-      position: [-5.9, 0, 1.1],
-      rotation: [0, Math.PI / 2, 0],
-      scale: 1.12,
-      props: { variant: 'pans' },
-    },
-    {
-      id: 'stage4-preptable-center-mid-east',
-      type: 'kitchenPrepTable',
-      position: [5.6, 0, 0.7],
-      rotation: [0, Math.PI / 2, 0],
-      scale: 1.12,
-      props: { variant: 'bare' },
-    },
-    {
-      id: 'stage4-preptable-center-south',
-      type: 'kitchenPrepTable',
-      position: [0.0, 0, 7.4],
-      rotation: [0, 0, 0],
-      scale: 1.12,
-      props: { variant: 'pans' },
+      scale: 1,
+      blocking: true,
     },
     {
       id: 'stage4-student-serving-south',
@@ -763,6 +737,32 @@ export const STAGE_OBJECT_PLACEMENTS = {
       props: { variant: 'sideLeft' },
     },
   ],
+}
+
+const STAGE4_LEGACY_CENTER_PREP_TABLE_IDS = new Set([
+  'stage4-preptable-center-north',
+  'stage4-preptable-center-mid-west',
+  'stage4-preptable-center-mid-east',
+  'stage4-preptable-center-south',
+])
+
+export const STAGE4_PRESSURE_CAULDRON_PLACEMENT = Object.freeze({
+  id: 'stage4-pressure-cauldron-center',
+  type: 'pressureCauldron',
+  position: Object.freeze([0, 0, 0]),
+  rotation: Object.freeze([0, 0, 0]),
+  scale: 1,
+  blocking: true,
+})
+
+function withStage4PressureCauldron(placements) {
+  return [
+    ...placements.filter(({ id }) => (
+      id !== STAGE4_PRESSURE_CAULDRON_PLACEMENT.id
+      && !STAGE4_LEGACY_CENTER_PREP_TABLE_IDS.has(id)
+    )),
+    STAGE4_PRESSURE_CAULDRON_PLACEMENT,
+  ]
 }
 
 const FLIPPED_UNCONSCIOUS_STUDENT_VARIANTS = {
@@ -914,9 +914,12 @@ export function computeDefaultStageObjectPlacements(stageId = 'stage1') {
 export function getStageObjectPlacements(stageId = 'stage1') {
   const override = getStagePropOverride(stageId)
   const placements = override ?? computeDefaultStageObjectPlacements(stageId)
-  const visiblePlacements = stageId === 'stage1'
-    ? placements.filter(isStage1VisiblePropPlacement)
+  const canonicalPlacements = stageId === 'stage4'
+    ? withStage4PressureCauldron(placements)
     : placements
+  const visiblePlacements = stageId === 'stage1'
+    ? canonicalPlacements.filter(isStage1VisiblePropPlacement)
+    : canonicalPlacements
   return visiblePlacements
     .map(withDedicatedClassPresidentModel)
     .map(withMixedUnconsciousStudentFacing)

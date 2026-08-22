@@ -16,6 +16,11 @@ import {
   UNCONSCIOUS_STUDENT_RAW_LENGTH,
 } from '../../lib/characterVisualScale.js'
 import { getStageBounds } from '../../lib/stageConfig.js'
+import {
+  blockFirebaseStudioRuntime,
+  commitFirebaseStudioRuntime,
+  getFirebaseStudioRuntimeDataset,
+} from '../../lib/studioRuntimeState.js'
 
 describe('stage object placements', () => {
   it('provides supported stage object props for both playable stages', () => {
@@ -344,11 +349,10 @@ describe('stage 4 cafeteria kitchen placements', () => {
     'kitchenTrashBins',
     'kitchenCrateStack',
     'kitchenClutter',
+    'pressureCauldron',
   ]
   const MAX_ABS_X = 13.8
   const MAX_ABS_Z = 15.5
-  const CENTER_CLEAR_HALF_X = 6
-  const CENTER_CLEAR_HALF_Z = 8
 
   it('returns stage4 authored placements as-is (never the stage2 copy/scatter pipeline)', () => {
     const authored = STAGE_OBJECT_PLACEMENTS.stage4
@@ -372,31 +376,84 @@ describe('stage 4 cafeteria kitchen placements', () => {
     expect(positions.every(([x, z]) => Math.abs(x) <= MAX_ABS_X && Math.abs(z) <= MAX_ABS_Z)).toBe(true)
   })
 
-  // 2026-07-25 사용자 결정: 원화(st4_concept.png)의 중앙 조리대 열을 되돌리고 콜라이더를 붙인다.
-  // 중앙에 들어갈 수 있는 것은 조리대 4기뿐이고, 나머지 타입은 여전히 중앙 진입 금지다.
-  it('puts exactly the four concept prep tables in the stage4 center and nothing else', () => {
+  it('uses the pressure cauldron as the only center landmark', () => {
     const center = computeDefaultStageObjectPlacements('stage4').filter(
-      ({ position: [x, , z] }) => Math.abs(x) <= CENTER_CLEAR_HALF_X && Math.abs(z) <= CENTER_CLEAR_HALF_Z
+      ({ position: [x, , z] }) => Math.abs(x) <= 3 && Math.abs(z) <= 4
     )
 
-    expect(center).toHaveLength(4)
-    expect(center.every(({ type }) => type === 'kitchenPrepTable')).toBe(true)
-    expect(center.map(({ id }) => id)).toEqual([
-      'stage4-preptable-center-north',
-      'stage4-preptable-center-mid-west',
-      'stage4-preptable-center-mid-east',
-      'stage4-preptable-center-south',
-    ])
+    expect(center).toHaveLength(1)
+    expect(center[0].id).toBe('stage4-pressure-cauldron-center')
   })
 
-  it('keeps the stage4 center prep tables clear of the player start point', () => {
-    // 플레이어는 (0, 0)에서 시작한다. 콜라이더가 붙은 뒤로는 시작 즉시 끼면 게임이 멈춘다.
+  it('puts the definitive pressure cauldron landmark at the exact Stage 4 center', () => {
+    const cauldron = computeDefaultStageObjectPlacements('stage4').find(
+      ({ id }) => id === 'stage4-pressure-cauldron-center'
+    )
+
+    expect(cauldron).toMatchObject({
+      type: 'pressureCauldron',
+      position: [0, 0, 0],
+      rotation: [0, 0, 0],
+      scale: 1,
+      blocking: true,
+    })
+  })
+
+  it('keeps exactly one canonical cauldron on the default Stage 4 runtime path', () => {
+    const cauldrons = getStageObjectPlacements('stage4').filter(
+      ({ id }) => id === 'stage4-pressure-cauldron-center'
+    )
+
+    expect(cauldrons).toEqual([{
+      id: 'stage4-pressure-cauldron-center',
+      type: 'pressureCauldron',
+      position: [0, 0, 0],
+      rotation: [0, 0, 0],
+      scale: 1,
+      blocking: true,
+    }])
+  })
+
+  it('replaces legacy Stage 4 center prep tables in Firebase runtime overrides without writing a migration', () => {
+    commitFirebaseStudioRuntime({
+      propPlacements: {
+        stage4: [
+          { id: 'stage4-preptable-center-north', type: 'kitchenPrepTable', position: [-0.3, 0, -5.5], rotation: [0, 0, 0], scale: 1.12 },
+          { id: 'stage4-preptable-center-mid-west', type: 'kitchenPrepTable', position: [-5.9, 0, 1.1], rotation: [0, Math.PI / 2, 0], scale: 1.12 },
+          { id: 'stage4-preptable-center-mid-east', type: 'kitchenPrepTable', position: [5.6, 0, 0.7], rotation: [0, Math.PI / 2, 0], scale: 1.12 },
+          { id: 'stage4-preptable-center-south', type: 'kitchenPrepTable', position: [0, 0, 7.4], rotation: [0, 0, 0], scale: 1.12 },
+        ],
+      },
+    }, { revision: 1 })
+
+    try {
+      const placements = getStageObjectPlacements('stage4')
+      expect(placements.map(({ id }) => id)).not.toEqual(expect.arrayContaining([
+        'stage4-preptable-center-north',
+        'stage4-preptable-center-mid-west',
+        'stage4-preptable-center-mid-east',
+        'stage4-preptable-center-south',
+      ]))
+      expect(placements.filter(({ id }) => id === 'stage4-pressure-cauldron-center')).toHaveLength(1)
+      expect(placements.at(-1)).toMatchObject({
+        id: 'stage4-pressure-cauldron-center',
+        position: [0, 0, 0],
+        scale: 1,
+        blocking: true,
+      })
+      expect(getFirebaseStudioRuntimeDataset('propPlacements').stage4).toHaveLength(4)
+    } finally {
+      blockFirebaseStudioRuntime()
+    }
+  })
+
+  it('removes the former four center prep tables for the single landmark', () => {
+    // Stage 4 starts south of the center landmark at [0, 0, 7].
     const centerTables = computeDefaultStageObjectPlacements('stage4').filter(
       ({ id }) => id.startsWith('stage4-preptable-center-')
     )
 
-    expect(centerTables).toHaveLength(4)
-    expect(centerTables.every(({ position: [x, , z] }) => Math.hypot(x, z) >= 5)).toBe(true)
+    expect(centerTables).toHaveLength(0)
   })
 
   it('marks every solid stage4 furniture placement as blocking and leaves only floor clutter passable', () => {

@@ -31,6 +31,7 @@ export const BLOCKING_STAGE_OBJECT_TYPES = new Set([
   'kitchenShelfCart',
   'kitchenTrashBins',
   'kitchenCrateStack',
+  'pressureCauldron',
 ])
 
 const DESK_COLLIDER_PARTS = [
@@ -172,6 +173,11 @@ const KITCHEN_CRATE_STACK_COLLIDER_PARTS = [
   { key: 'kitchen-crate-stack-footprint', position: [0, 0.49, 0], size: [0.72, 0.98, 0.60] },
 ]
 
+const PRESSURE_CAULDRON_COLLIDER_PARTS = [
+  { key: 'pressure-cauldron-vessel', position: [0, 1.70, 0], size: [5.72, 3.40, 5.72] },
+  { key: 'pressure-cauldron-front-step', position: [0, 0.27, 3.23], size: [2.20, 0.54, 0.72] },
+]
+
 const COLLIDER_DEFS = {
   classroomChair: {
     variants: CLASSROOM_CHAIR_VARIANTS,
@@ -202,6 +208,7 @@ const COLLIDER_DEFS = {
   kitchenShelfCart: { parts: KITCHEN_SHELF_CART_COLLIDER_PARTS },
   kitchenTrashBins: { parts: KITCHEN_TRASH_BINS_COLLIDER_PARTS },
   kitchenCrateStack: { parts: KITCHEN_CRATE_STACK_COLLIDER_PARTS },
+  pressureCauldron: { parts: PRESSURE_CAULDRON_COLLIDER_PARTS },
 }
 
 const MIN_BLOCKING_HALF_HEIGHT = 0.44

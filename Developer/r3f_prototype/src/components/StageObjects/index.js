@@ -4,6 +4,7 @@ export { default as StageObjectColliderLayer } from './StageObjectColliderLayer.
 export { default as StageObjectLayer } from './StageObjectLayer.jsx'
 export { default as UnconsciousStudent, UNCONSCIOUS_STUDENT_VARIANTS } from './UnconsciousStudent.jsx'
 export { default as ClassPresidentStudent, CLASS_PRESIDENT_UNIFORM_COLOR } from './ClassPresidentStudent.jsx'
+export { default as PressureCauldron } from './PressureCauldron.jsx'
 export { CorridorJanitorCart, CorridorLockerBank, CorridorLostFoundBoard } from './CorridorProps.jsx'
 export {
   BallCart,
