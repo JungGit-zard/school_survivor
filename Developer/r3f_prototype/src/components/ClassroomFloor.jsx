@@ -13,11 +13,11 @@ const FLOOR_SIZE = 200
 const STAGE1_TILE_WORLD_SIZE = 6.9
 const STAGE2_TILE_WORLD_SIZE = 30
 const STAGE2_TILE_DENSITY_MULTIPLIER = 10
-// Stage 4 uses one white-ceramic tile source directly.  Its 24-column UV repeat
-// keeps the 1.2-unit square tile contract; the Z repeat derives from depth so
-// the rectangular arena never stretches a square source tile.
-export const STAGE4_TILE_LINEAR_SCALE = 0.5
-export const STAGE4_TILE_AREA_SCALE = 0.25
+// Stage 4 uses one cool-gray reflective ceramic tile source directly.  Its
+// 36-column UV repeat keeps the 0.8-unit square tile contract; the Z repeat
+// derives from depth so the rectangular arena never stretches a square source tile.
+export const STAGE4_TILE_LINEAR_SCALE = 1 / 3
+export const STAGE4_TILE_AREA_SCALE = 1 / 9
 const STAGE1_BOUNDS = getStageBounds('stage1')
 const STAGE4_BOUNDS = getStageBounds('stage4')
 export const STAGE1_FLOOR_WIDTH = STAGE1_BOUNDS.halfX * 2
@@ -25,7 +25,9 @@ export const STAGE1_FLOOR_DEPTH = STAGE1_BOUNDS.halfZ * 2
 export const STAGE4_FLOOR_WIDTH = STAGE4_BOUNDS.halfX * 2
 export const STAGE4_FLOOR_DEPTH = STAGE4_BOUNDS.halfZ * 2
 export const STAGE4_BASE_TILE_WORLD_SIZE = 2.4
-export const STAGE4_TILE_WORLD_SIZE = STAGE4_BASE_TILE_WORLD_SIZE * STAGE4_TILE_LINEAR_SCALE
+// Keep the requested final world size as an exact literal so repeatX/repeatZ
+// evaluate to the exact 36/40 contract instead of a 1/3 floating-point artifact.
+export const STAGE4_TILE_WORLD_SIZE = 0.8
 export const STAGE4_TILE_REPEAT_X = STAGE4_FLOOR_WIDTH / STAGE4_TILE_WORLD_SIZE
 export const STAGE4_TILE_REPEAT_Z = STAGE4_FLOOR_DEPTH / STAGE4_TILE_WORLD_SIZE
 
