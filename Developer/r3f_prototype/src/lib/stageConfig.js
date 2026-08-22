@@ -110,11 +110,11 @@ export const STAGE_CONFIGS = {
     matildaSec: MATILDA_SPAWN_SEC,
     // 급식실 맵 경계(월드 유닛, 중심 0).
     // 프롭 정책(2026-07-25): 대형 가구 8종(조리대·쿡라인·싱크대·냉장고·배식랙·선반카트·
-    // 쓰레기통·크레이트)은 콜라이더가 있는 solid 장애물이고, 중앙 조리대 4기도 여기 포함된다.
+    // 쓰레기통·크레이트)은 콜라이더가 있는 solid 장애물이고, 중앙에는 압력 가마솟 1기만 있다.
     // 바닥 잡동사니(kitchenClutter)만 통과 가능 — E04 원거리 시야를 끊지 않도록 타입 자체를
     // BLOCKING_STAGE_OBJECT_TYPES에서 제외했다(stageObjectColliders.js).
-    // 가로(X)를 이전 12에서 약 +20%(→14.4)로 확장(2026-07-22 사용자 지시).
-    mapHalfX: 14.4,
+    // 2026-08-23 사용자 지시: 가로(X)만 14.4에서 정확히 절반으로 축소.
+    mapHalfX: 7.2,
     mapHalfZ: 16,
     survivalMilestones: [
       { atMs: 48_000, gold: 4, label: '배식 개시 보너스' },

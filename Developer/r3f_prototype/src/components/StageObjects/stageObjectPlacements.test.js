@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { createHash } from 'node:crypto'
 import { CLASSROOM_CHAIR_VARIANTS } from './ClassroomChair.jsx'
 import { CLASSROOM_DESK_VARIANTS } from './ClassroomDesk.jsx'
 import { UNCONSCIOUS_STUDENT_VARIANTS } from './UnconsciousStudent.jsx'
@@ -339,6 +340,79 @@ describe('stage object placements', () => {
 // 대형 가구는 콜라이더가 붙는 solid 장애물이라 중앙에는 원화의 조리대 4기만 두고,
 // 나머지 프랍은 벽면에 밀착시킨다.
 describe('stage 4 cafeteria kitchen placements', () => {
+  const PRE_HALF_WIDTH_X_BY_ID = new Map([
+    ['stage4-cookline-north-center', -0.6],
+    ['stage4-refrigerator-north-west-closed', -12.6],
+    ['stage4-refrigerator-north-west-open', -9.6],
+    ['stage4-crates-north-west-corner', -13.05],
+    ['stage4-clutter-north-cookline-spill', 3.6],
+    ['stage4-sink-north-east', 7.4],
+    ['stage4-crates-north-east-corner', 10.8],
+    ['stage4-trayrack-north-east-inner', 9.2],
+    ['stage4-shelfcart-east-north', 12.6],
+    ['stage4-shelfcart-east-upper', 12.9],
+    ['stage4-preptable-east-side-counter', 12.5],
+    ['stage4-trash-east-wheelie', 13.1],
+    ['stage4-trayrack-east-mid', 12.7],
+    ['stage4-crates-east-mid', 13.05],
+    ['stage4-clutter-east-trays', 12.2],
+    ['stage4-preptable-east-south-counter', 12.8],
+    ['stage4-shelfcart-west-north', -12.7],
+    ['stage4-clutter-west-pots', -13.2],
+    ['stage4-trash-west-wheelie', -13.1],
+    ['stage4-sink-west-mid', -13.65],
+    ['stage4-trash-west-round', -13],
+    ['stage4-clutter-west-bags', -12.4],
+    ['stage4-shelfcart-west-south', -12.9],
+    ['stage4-crates-south-west-corner', -13.05],
+    ['stage4-preptable-south-serving-left', -3.4],
+    ['stage4-preptable-south-serving-right', 1.8],
+    ['stage4-crates-south-west-stack', -10.8],
+    ['stage4-crates-south-center-stack', -7.2],
+    ['stage4-clutter-south-trays', 5.8],
+    ['stage4-trash-south-round', 8.6],
+    ['stage4-trayrack-south-east', 11.6],
+    ['stage4-pressure-cauldron-center', 0],
+    ['stage4-student-serving-south', 4.2],
+    ['stage4-student-kitchen-northeast', 9.1],
+  ])
+  const PRE_HALF_WIDTH_STAGE4_SHA256 = '914914beaef6048d97e75d55f39e7de87c52419a2163d598f46da2fe0173d34c'
+  const FINAL_STAGE4_X_BY_ID = new Map([
+    ['stage4-cookline-north-center', -0.3],
+    ['stage4-refrigerator-north-west-closed', -6.3],
+    ['stage4-refrigerator-north-west-open', -4.8],
+    ['stage4-crates-north-west-corner', -6.525],
+    ['stage4-clutter-north-cookline-spill', 1.8],
+    ['stage4-sink-north-east', 3.7],
+    ['stage4-crates-north-east-corner', 5.4],
+    ['stage4-trayrack-north-east-inner', 4.6],
+    ['stage4-shelfcart-east-north', 6.647],
+    ['stage4-shelfcart-east-upper', 6.68],
+    ['stage4-preptable-east-side-counter', 6.348],
+    ['stage4-trash-east-wheelie', 6.55],
+    ['stage4-trayrack-east-mid', 6.498],
+    ['stage4-crates-east-mid', 6.525],
+    ['stage4-clutter-east-trays', 6.1],
+    ['stage4-preptable-east-south-counter', 6.4],
+    ['stage4-shelfcart-west-north', -6.63],
+    ['stage4-clutter-west-pots', -6.6],
+    ['stage4-trash-west-wheelie', -6.55],
+    ['stage4-sink-west-mid', -6.575],
+    ['stage4-trash-west-round', -6.587],
+    ['stage4-clutter-west-bags', -6.2],
+    ['stage4-shelfcart-west-south', -6.625],
+    ['stage4-crates-south-west-corner', -6.525],
+    ['stage4-preptable-south-serving-left', -1.7],
+    ['stage4-preptable-south-serving-right', 0.9],
+    ['stage4-crates-south-west-stack', -5.4],
+    ['stage4-crates-south-center-stack', -3.6],
+    ['stage4-clutter-south-trays', 2.9],
+    ['stage4-trash-south-round', 4.1],
+    ['stage4-trayrack-south-east', 5.8],
+    ['stage4-pressure-cauldron-center', 0],
+    ['stage4-student-serving-south', 2.1],
+    ['stage4-student-kitchen-northeast', 4.55],
+  ])
   const STAGE4_KITCHEN_TYPES = [
     'kitchenPrepTable',
     'kitchenCookLine',
@@ -351,7 +425,7 @@ describe('stage 4 cafeteria kitchen placements', () => {
     'kitchenClutter',
     'pressureCauldron',
   ]
-  const MAX_ABS_X = 13.8
+  const MAX_ABS_X = 7.2
   const MAX_ABS_Z = 15.5
 
   it('returns stage4 authored placements as-is (never the stage2 copy/scatter pipeline)', () => {
@@ -367,6 +441,23 @@ describe('stage 4 cafeteria kitchen placements', () => {
       expect(item.position).toEqual(authored[index].position)
       expect(item.scale).toEqual(authored[index].scale)
     })
+  })
+
+  it('uses the final safe X map for all 34 Stage 4 placements and changes no other authored field', () => {
+    const authored = STAGE_OBJECT_PLACEMENTS.stage4
+    expect(authored).toHaveLength(34)
+    expect(PRE_HALF_WIDTH_X_BY_ID.size).toBe(34)
+    expect(FINAL_STAGE4_X_BY_ID.size).toBe(34)
+    authored.forEach((placement) => {
+      expect(placement.position[0], placement.id).toBe(FINAL_STAGE4_X_BY_ID.get(placement.id))
+    })
+
+    const restoredOldSnapshot = authored.map((placement) => ({
+      ...placement,
+      position: [PRE_HALF_WIDTH_X_BY_ID.get(placement.id), placement.position[1], placement.position[2]],
+    }))
+    const restoredHash = createHash('sha256').update(JSON.stringify(restoredOldSnapshot)).digest('hex')
+    expect(restoredHash).toBe(PRE_HALF_WIDTH_STAGE4_SHA256)
   })
 
   it('keeps every stage4 prop inside the kitchen bounds', () => {
@@ -442,6 +533,42 @@ describe('stage 4 cafeteria kitchen placements', () => {
         blocking: true,
       })
       expect(getFirebaseStudioRuntimeDataset('propPlacements').stage4).toHaveLength(4)
+    } finally {
+      blockFirebaseStudioRuntime()
+    }
+  })
+
+  it('interprets a full-width Stage 4 Firebase override once in memory and leaves Firebase unchanged', () => {
+    const remoteStage4 = [
+      { id: 'legacy-east', type: 'kitchenPrepTable', position: [10, 0, -4], rotation: [0, 0.4, 0], scale: 1.1 },
+      { id: 'legacy-inner', type: 'kitchenClutter', position: [2, 0, 5], rotation: [0, -0.2, 0], scale: 0.9, blocking: false },
+      { id: 'legacy-west', type: 'kitchenSinkCounter', position: [-6, 0, 1], rotation: [0, 1.2, 0], scale: 1 },
+    ]
+    commitFirebaseStudioRuntime({ propPlacements: { stage4: remoteStage4 } }, { revision: 12 })
+    const remoteBefore = structuredClone(getFirebaseStudioRuntimeDataset('propPlacements'))
+
+    try {
+      const runtime = getStageObjectPlacements('stage4').filter(({ id }) => id !== 'stage4-pressure-cauldron-center')
+      expect(runtime.map(({ position: [x] }) => x)).toEqual([5, 1, -3])
+      expect(getStageObjectPlacements('stage4').filter(({ id }) => id === 'stage4-pressure-cauldron-center')).toHaveLength(1)
+      expect(getFirebaseStudioRuntimeDataset('propPlacements')).toEqual(remoteBefore)
+    } finally {
+      blockFirebaseStudioRuntime()
+    }
+  })
+
+  it('does not re-scale an already half-width Stage 4 Firebase override', () => {
+    const remoteStage4 = [
+      { id: 'new-east', type: 'kitchenPrepTable', position: [6.8, 0, -4], rotation: [0, 0.4, 0], scale: 1.1 },
+      { id: 'new-west', type: 'kitchenSinkCounter', position: [-6.825, 0, 1], rotation: [0, 1.2, 0], scale: 1 },
+    ]
+    commitFirebaseStudioRuntime({ propPlacements: { stage4: remoteStage4 } }, { revision: 13 })
+    const remoteBefore = structuredClone(getFirebaseStudioRuntimeDataset('propPlacements'))
+
+    try {
+      const runtime = getStageObjectPlacements('stage4').filter(({ id }) => id !== 'stage4-pressure-cauldron-center')
+      expect(runtime.map(({ position: [x] }) => x)).toEqual([6.8, -6.825])
+      expect(getFirebaseStudioRuntimeDataset('propPlacements')).toEqual(remoteBefore)
     } finally {
       blockFirebaseStudioRuntime()
     }

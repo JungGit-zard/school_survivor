@@ -20,9 +20,9 @@ describe('B04 국물 대폭발', () => {
   })
 
   it('세 원은 경계·장애물을 피하고 서로 겹치지 않으며 중심 안전 경로를 남긴다', () => {
-    const circles = getB04SoupBlastCircles({ player: { x: 0, z: 0 }, halfX: 14.4, halfZ: 16, obstacles: [{ x: 3.2, z: 0, halfX: 1, halfZ: 1 }] })
+    const circles = getB04SoupBlastCircles({ player: { x: 0, z: 0 }, halfX: 7.2, halfZ: 16, obstacles: [{ x: 3.2, z: 0, halfX: 1, halfZ: 1 }] })
     expect(circles).toHaveLength(3)
-    expect(circles.every((circle) => Math.abs(circle.x) < 14.4 && Math.abs(circle.z) < 16)).toBe(true)
+    expect(circles.every((circle) => Math.abs(circle.x) < 7.2 && Math.abs(circle.z) < 16)).toBe(true)
     for (let i = 0; i < circles.length; i += 1) for (let j = i + 1; j < circles.length; j += 1) {
       expect(Math.hypot(circles[i].x - circles[j].x, circles[i].z - circles[j].z)).toBeGreaterThan(circles[i].radius * 2)
     }
