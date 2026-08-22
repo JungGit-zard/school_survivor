@@ -3,9 +3,9 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
   DEFAULT_ZOMBIE_DEATH_SFX,
-  ENEMY_DEATH_SFX_BY_TYPE,
   ZOMBIE_DEATH_SFX_IDS,
   deathSfxId,
+  randomZombieDeathSfxId,
 } from './enemyDeathSfx.js'
 
 // sfxRegistry는 Howler를 끌어온다. 여기서는 SOUND_MAP/쿨다운 데이터만 보면 되므로 막아둔다.
@@ -61,56 +61,42 @@ describe('zombie death voices', () => {
     }
   })
 
-  it('routes each zombie type to the voice that matches its build', () => {
-    // 배분 축은 덩치와 속도다. 이 표가 바뀌면 소리만 듣고 무엇이 죽었는지 못 가린다.
-    expect(deathSfxId('E01')).toBe('zombieDeathGrunt')
-    expect(deathSfxId('E07')).toBe('zombieDeathGrunt')
-    expect(deathSfxId('RZG')).toBe('zombieDeathGrunt')
+  it('chooses normal zombie death voices from one shared action-point pool, not enemy type mapping', () => {
+    const rngValues = [0, 0.2, 0.4, 0.6, 0.8]
+    expect(rngValues.map((value) => randomZombieDeathSfxId(() => value))).toEqual(ZOMBIE_DEATH_SFX_IDS)
 
-    expect(deathSfxId('E02')).toBe('zombieDeathHeavy')
-    expect(deathSfxId('E05')).toBe('zombieDeathHeavy')
-    expect(deathSfxId('RZT')).toBe('zombieDeathHeavy')
-
-    expect(deathSfxId('E03')).toBe('zombieDeathShriek')
-    expect(deathSfxId('RZL')).toBe('zombieDeathShriek')
-    expect(deathSfxId('RZC')).toBe('zombieDeathShriek')
-
-    expect(deathSfxId('E04')).toBe('zombieDeathGurgle')
-
-    // 거대 좀비 단독. 다른 타입이 이 소리를 같이 쓰면 "가장 큰 놈" 신호가 희석된다.
-    expect(deathSfxId('E06')).toBe('zombieDeathBellow')
-    const bellowTypes = Object.entries(ENEMY_DEATH_SFX_BY_TYPE)
-      .filter(([, id]) => id === 'zombieDeathBellow')
-      .map(([type]) => type)
-    expect(bellowTypes).toEqual(['E06'])
+    const normalZombieTypes = ['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07', 'RZG', 'RZT', 'RZL', 'RZC']
+    for (const type of normalZombieTypes) {
+      expect(deathSfxId(type, false, () => 0)).toBe('zombieDeathGrunt')
+      expect(deathSfxId(type, false, () => 0.2)).toBe('zombieDeathHeavy')
+      expect(deathSfxId(type, false, () => 0.4)).toBe('zombieDeathShriek')
+      expect(deathSfxId(type, false, () => 0.6)).toBe('zombieDeathGurgle')
+      expect(deathSfxId(type, false, () => 0.8)).toBe('zombieDeathBellow')
+    }
   })
 
-  it('actually splits the roster five ways instead of collapsing into one cue', () => {
-    const used = new Set(Object.values(ENEMY_DEATH_SFX_BY_TYPE))
-    expect([...used].sort()).toEqual([...ZOMBIE_DEATH_SFX_IDS].sort())
+  it('keeps every generated death voice reachable for any ordinary zombie', () => {
+    const ordinaryType = 'E01'
+    const reachable = new Set([0, 0.2, 0.4, 0.6, 0.8].map((value) => deathSfxId(ordinaryType, false, () => value)))
+    expect([...reachable].sort()).toEqual([...ZOMBIE_DEATH_SFX_IDS].sort())
   })
 
-  it('keeps Matilda and boss deaths ahead of the zombie voices', () => {
-    expect(deathSfxId('E06', true)).toBe('matildaDeath')
-    expect(deathSfxId('B01')).toBe('bossDeath')
-    expect(deathSfxId('B04')).toBe('bossDeath')
+  it('keeps Matilda and boss deaths ahead of the normal zombie random pool', () => {
+    expect(deathSfxId('E06', true, () => 0.8)).toBe('matildaDeath')
+    expect(deathSfxId('B01', false, () => 0.8)).toBe('bossDeath')
+    expect(deathSfxId('B04', false, () => 0.8)).toBe('bossDeath')
   })
 
-  it('falls back to the plain grunt for an unmapped type', () => {
-    expect(deathSfxId('E99')).toBe(DEFAULT_ZOMBIE_DEATH_SFX)
-    expect(deathSfxId(undefined)).toBe(DEFAULT_ZOMBIE_DEATH_SFX)
+  it('falls back to the shared pool even for an unknown non-boss type', () => {
+    expect(deathSfxId('E99', false, () => 0)).toBe(DEFAULT_ZOMBIE_DEATH_SFX)
+    expect(deathSfxId(undefined, false, () => 0.8)).toBe('zombieDeathBellow')
   })
 
-  it('maps every non-boss enemy type in ENEMY_STATS, so a new zombie cannot slip in silently', () => {
-    const source = readSource('../components/Enemy.jsx')
-    const block = source.slice(source.indexOf('export const ENEMY_STATS = {'))
-    const declared = [...block.matchAll(/^ {2}([A-Z][A-Z0-9]{2}): \{/gm)].map(([, type]) => type)
-
-    expect(declared.length).toBeGreaterThan(10)
-    const unmapped = declared
-      .filter((type) => !type.startsWith('B'))
-      .filter((type) => !ENEMY_DEATH_SFX_BY_TYPE[type])
-    expect(unmapped, `unmapped enemy types: ${unmapped.join(', ')}`).toEqual([])
+  it('does not keep a normal-zombie type-to-death-sound assignment table', () => {
+    const source = readSource('./enemyDeathSfx.js')
+    expect(source).not.toContain('ENEMY_DEATH_SFX_BY_TYPE')
+    expect(source).not.toContain("E01: 'zombieDeathGrunt'")
+    expect(source).not.toContain("E06: 'zombieDeathBellow'")
   })
 
   it('routes both death call sites through the shared dispatch', () => {

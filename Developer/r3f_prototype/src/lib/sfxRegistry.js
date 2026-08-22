@@ -87,12 +87,12 @@ export const SOUND_MAP = {
   // 좀비 사망 발성 5종. 노이즈 버스트가 아니라 포먼트가 들리는 "음성"이다.
   // 8비트 음성 합성 기법(TMS5220 LPC / SAM 3포먼트 / NES DPCM 열화)으로 절차 합성했고
   // 생성기는 scripts/generate_zombie_death_voices.mjs 하나뿐이다(시드 고정 = 재현 가능).
-  // 타입 배분 정본은 lib/enemyDeathSfx.js — 여기서 ID만 등록한다.
-  zombieDeathGrunt:   '/sfx/enemies/zombieDeathGrunt.ogg',   // "으윽"     E01/E07/RZG
-  zombieDeathHeavy:   '/sfx/enemies/zombieDeathHeavy.ogg',   // "우어억"   E02/E05/RZT
-  zombieDeathShriek:  '/sfx/enemies/zombieDeathShriek.ogg',  // "끼야악"   E03/RZL/RZC
-  zombieDeathGurgle:  '/sfx/enemies/zombieDeathGurgle.ogg',  // "커르륵"   E04
-  zombieDeathBellow:  '/sfx/enemies/zombieDeathBellow.ogg',  // "끄아아앙" E06
+  // Terry correction: 타입별 고정 배정 금지. 일반 좀비 죽음 행동 포인트에서 5종을 랜덤 풀로 섞는다.
+  zombieDeathGrunt:   '/sfx/enemies/zombieDeathGrunt.ogg',   // "으윽"
+  zombieDeathHeavy:   '/sfx/enemies/zombieDeathHeavy.ogg',   // "우어억"
+  zombieDeathShriek:  '/sfx/enemies/zombieDeathShriek.ogg',  // "끼야악"
+  zombieDeathGurgle:  '/sfx/enemies/zombieDeathGurgle.ogg',  // "커르륵"
+  zombieDeathBellow:  '/sfx/enemies/zombieDeathBellow.ogg',  // "끄아아앙"
   bossDeath:          '/sfx/enemies/bossDeath.ogg',
   matildaDeath:       '/sfx/enemies/matildaDeath.ogg',
   dogeDeath:          '/sfx/enemies/dogeDeath.ogg',
