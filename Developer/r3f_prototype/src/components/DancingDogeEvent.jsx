@@ -243,6 +243,8 @@ export default function DancingDogeEvent({
                 })
                 if (!knockback) return
                 playerBody._applyKnockback(knockback.vx, knockback.vz, knockback.durationMs)
+                // 충돌 밀려남은 이전 공통 피격감(playerHit) + 도지 전용 yelp를 같은 순간에 겹쳐 낸다.
+                emitSfx({ id: 'playerHit', volume: 0.34, rate: 0.9 + Math.random() * 0.08 })
                 emitSfx({ id: 'dogeYelp', volume: 0.7, rate: 0.96 + Math.random() * 0.08 })
                 lastKnockbackAtRef.current = knockback.appliedAt
               } catch (err) {

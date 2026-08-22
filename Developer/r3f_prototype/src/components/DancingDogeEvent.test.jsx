@@ -39,6 +39,12 @@ describe('DancingDogeEvent 소스 계약', () => {
     expect(source).toContain('playerBody._applyKnockback(knockback.vx, knockback.vz, knockback.durationMs)')
   })
 
+  it('plays both the previous contact hit sound and the Doge yelp on knockback contact', () => {
+    expect(source).toContain("emitSfx({ id: 'playerHit', volume: 0.34")
+    expect(source).toContain("emitSfx({ id: 'dogeYelp', volume: 0.7")
+    expect(source.indexOf("emitSfx({ id: 'playerHit'")).toBeLessThan(source.indexOf("emitSfx({ id: 'dogeYelp'"))
+  })
+
   it('briefly squashes only the in-game Doge visual on each weapon hit, then restores scale', () => {
     expect(source).toContain('const DOGE_HIT_SQUASH_MS = 120')
     expect(source).toContain('const hitVisualRef = useRef()')

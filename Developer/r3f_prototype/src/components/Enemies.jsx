@@ -478,9 +478,9 @@ export function createRunZombieCrewEntries(bounds, random = Math.random, obstacl
     const followerIndex = Math.max(0, i - 1)
     const row = Math.floor(followerIndex / 4)
     const col = followerIndex % 4
-    // 기존 난수 소비량은 유지하되, 크루 행렬 자체는 리더 기준 정확한 4명×3열로 고정한다.
-    if (!isLeader) random()
-    const sideOffset = isLeader ? 0 : (col - 1.5) * 0.72
+    // 맨 처음 런좀비 크루 구현처럼 살짝 흔들린 대각선 무리로 보이게 한다.
+    // 일반 좀비 formation이 아니라 RUN_ZOMBIE_CREW 전용 레이어/전용 엔트리다.
+    const sideOffset = isLeader ? 0 : (col - 1.5) * 0.72 + (random() - 0.5) * 0.16
     const trail = isLeader ? 0 : 1.15 + row * 1.05 + (col % 2) * 0.38
     const x = startX - nx * trail + px * sideOffset
     const z = startZ - nz * trail + pz * sideOffset

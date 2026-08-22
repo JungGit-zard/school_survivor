@@ -1077,6 +1077,18 @@ describe('formation spawns', () => {
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
     expect(source).toMatch(/RUN_ZOMBIE_CREW_FORMATION\)\s*\{\s*emitSfx\(\{ id: 'rzlWhistle', volume: 0\.5 \}\)/)
   })
+
+  it('keeps the run zombie crew on its dedicated spawn layer before general formation spawning', () => {
+    const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    const runCrewBranch = source.indexOf('evt.formation === RUN_ZOMBIE_CREW_FORMATION')
+    const runCrewFactory = source.indexOf('createRunZombieCrewEntries(cache.bounds, Math.random, cache.obstacles)')
+    const runCrewReturn = source.indexOf('return', runCrewFactory)
+    const generalFormation = source.indexOf('formationSpawnPositions(evt.formation', runCrewReturn)
+    expect(runCrewBranch).toBeGreaterThan(-1)
+    expect(runCrewFactory).toBeGreaterThan(runCrewBranch)
+    expect(runCrewReturn).toBeGreaterThan(runCrewFactory)
+    expect(generalFormation).toBeGreaterThan(runCrewReturn)
+  })
 })
 
 describe('XP textbook drops', () => {
