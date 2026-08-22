@@ -1256,7 +1256,6 @@ export default function HUD({
       <div data-testid="player-xp-bar" style={styles.xpRow}>
         <div style={{ ...styles.xpFill, width: `${(player.xp / player.xpToNext) * 100}%` }} />
       </div>
-      <span data-testid="player-level-label" aria-label={`Lv.${player.level}`} style={styles.playerLevelLabel}>Lv.{player.level}</span>
 
       {/* Active weapon icons — HP바 위 가로 나열 */}
       <div style={styles.weaponIconBar}>
@@ -1268,47 +1267,50 @@ export default function HUD({
       </div>
 
       {/* Modals */}
-      <div style={styles.goldChip}>
+      <div data-testid="gold-chip" style={styles.goldChip}>
         <span style={styles.goldDot} />
-        <span style={styles.goldNum}>{goldSession}</span>
+        <span data-testid="player-level-label" aria-label={`Lv.${player.level}`} style={styles.playerLevelLabel}>Lv.{player.level}</span>
+        <span data-testid="gold-amount" style={styles.goldNum}>{goldSession}</span>
       </div>
 
       {(phase === 'playing' || (phase === 'paused' && pauseSource !== 'dialogue' && pauseSource !== 'intro')) && (
-        <div style={styles.topLeftControls}>
-          {phase === 'playing' && showMasterRoleBadge && <span style={styles.masterRoleBadge}>{t('account.master')}</span>}
-          <button type="button" className="hud-pause-button" aria-label={phase === 'paused' ? t('hud.resumeAria') : t('hud.pauseAria')} style={styles.pauseButton} onClick={() => { emitSfx({ id: 'buttonClick' }); togglePause() }}>
-          {phase === 'paused' ? '▶' : 'Ⅱ'}
+        <>
+          <div data-testid="top-left-controls" style={styles.topLeftControls}>
+            {phase === 'playing' && showMasterRoleBadge && <span style={styles.masterRoleBadge}>{t('account.master')}</span>}
+            <button
+              type="button"
+              className="hud-quest-bag-button"
+              aria-label={questInventoryOpen ? t('hud.questBagCloseAria') : t('hud.questBagOpenAria')}
+              aria-expanded={questInventoryOpen}
+              aria-controls="quest-inventory-panel"
+              ref={questBagButtonRef}
+              style={styles.questBagButton}
+              onClick={() => { emitSfx({ id: 'buttonClick' }); toggleQuestInventory() }}
+            >
+              <QuestBagIcon />
+              {newQuestItemIds?.length > 0 && <span aria-label={t('hud.newQuestItemAria')} style={styles.questNewBadge}>!</span>}
+            </button>
+            {devToolsVisible && (
+              <>
+                <button type="button" style={styles.quickRestartButton} onClick={() => resetGame(currentStageId)} aria-label="Restart" title="Restart">
+                  R
+                </button>
+                <button type="button" style={styles.matildaBtn} onClick={() => { joystickDir.x = 0; joystickDir.z = 0; joystickDir.active = false; spawnMatilda() }} title={t('hud.summonMatilda')}>
+                  M
+                </button>
+                <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => setWeaponCheatOpen((open) => !open)} aria-label={t('hud.weaponCheat')} title={t('hud.weaponCheat')}>
+                  W
+                </button>
+                <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => { emitSfx({ id: 'buttonClick' }); dispatchStarlinkCheatCrash() }} aria-label={t('hud.starlinkCheatAria')} title={t('hud.starlinkCheatTitle')}>
+                  S
+                </button>
+              </>
+            )}
+          </div>
+          <button data-testid="bottom-right-pause" type="button" className="hud-pause-button" aria-label={phase === 'paused' ? t('hud.resumeAria') : t('hud.pauseAria')} style={styles.pauseButton} onClick={() => { emitSfx({ id: 'buttonClick' }); togglePause() }}>
+            {phase === 'paused' ? '▶' : 'Ⅱ'}
           </button>
-          <button
-            type="button"
-            className="hud-quest-bag-button"
-            aria-label={questInventoryOpen ? t('hud.questBagCloseAria') : t('hud.questBagOpenAria')}
-            aria-expanded={questInventoryOpen}
-            aria-controls="quest-inventory-panel"
-            ref={questBagButtonRef}
-            style={styles.questBagButton}
-            onClick={() => { emitSfx({ id: 'buttonClick' }); toggleQuestInventory() }}
-          >
-            <QuestBagIcon />
-            {newQuestItemIds?.length > 0 && <span aria-label={t('hud.newQuestItemAria')} style={styles.questNewBadge}>!</span>}
-          </button>
-          {devToolsVisible && (
-            <>
-              <button type="button" style={styles.quickRestartButton} onClick={() => resetGame(currentStageId)} aria-label="Restart" title="Restart">
-                R
-              </button>
-              <button type="button" style={styles.matildaBtn} onClick={() => { joystickDir.x = 0; joystickDir.z = 0; joystickDir.active = false; spawnMatilda() }} title={t('hud.summonMatilda')}>
-                M
-              </button>
-              <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => setWeaponCheatOpen((open) => !open)} aria-label={t('hud.weaponCheat')} title={t('hud.weaponCheat')}>
-                W
-              </button>
-              <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => { emitSfx({ id: 'buttonClick' }); dispatchStarlinkCheatCrash() }} aria-label={t('hud.starlinkCheatAria')} title={t('hud.starlinkCheatTitle')}>
-                S
-              </button>
-            </>
-          )}
-        </div>
+        </>
       )}
 
       <MissionTracker
@@ -2026,8 +2028,7 @@ const styles = {
     transition: 'width 0.15s',
   },
   playerLevelLabel: {
-    position: 'absolute', top: 42, left: '50%', transform: 'translateX(-50%)', zIndex: 6,
-    minWidth: 42, padding: '3px 8px', border: `1.5px solid ${uiPalette.ink}`, borderRadius: 999,
+    minWidth: 42, padding: '3px 6px', border: `1.5px solid ${uiPalette.ink}`, borderRadius: 999,
     background: 'rgba(18, 49, 28, 0.94)', color: '#dfffdc', fontFamily: uiType.numeric,
     fontSize: 14, fontWeight: uiType.weightHeavy, lineHeight: 1.1, textAlign: 'center', whiteSpace: 'nowrap',
     textShadow: '0 1px 2px rgba(0,0,0,0.85)', pointerEvents: 'none',
@@ -2208,6 +2209,8 @@ const styles = {
     whiteSpace: 'nowrap',
   },
   pauseButton: {
+    position: 'absolute', right: 'var(--hud-safe-right)', '--hud-safe-right': 'max(14px, env(safe-area-inset-right, 0px))',
+    bottom: 'var(--hud-pause-bottom)', '--hud-pause-bottom': 'calc(100px + env(safe-area-inset-bottom, 0px))',
     width: 44,
     height: 44,
     borderRadius: 8,

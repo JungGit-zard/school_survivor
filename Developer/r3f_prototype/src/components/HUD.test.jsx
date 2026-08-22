@@ -103,7 +103,7 @@ describe('portal direction objective', () => {
 })
 
 describe('persistent player level label', () => {
-  it('shows the current level below the top XP strip and updates immediately', () => {
+  it('keeps the current level immediately left of the gold amount and updates immediately', () => {
     useGameStore.getState().resetGame('stage1')
     useGameStore.setState((state) => ({ player: { ...state.player, level: 7 } }))
     const container = document.createElement('div')
@@ -115,17 +115,47 @@ describe('persistent player level label', () => {
       })
 
       const levelLabel = container.querySelector('[data-testid="player-level-label"]')
-      const xpBar = container.querySelector('[data-testid="player-xp-bar"]')
+      const goldChip = container.querySelector('[data-testid="gold-chip"]')
+      const goldAmount = container.querySelector('[data-testid="gold-amount"]')
       expect(levelLabel?.textContent).toBe('Lv.7')
-      expect(levelLabel?.style.top).toBe('42px')
-      expect(levelLabel?.style.left).toBe('50%')
-      expect(xpBar?.style.top).toBe('0px')
-      expect(xpBar?.style.height).toBe('9px')
+      expect(levelLabel?.parentElement).toBe(goldChip)
+      expect(levelLabel?.nextElementSibling).toBe(goldAmount)
+      expect(levelLabel?.style.position).toBe('')
 
       act(() => {
         useGameStore.setState((state) => ({ player: { ...state.player, level: 8 } }))
       })
       expect(container.querySelector('[data-testid="player-level-label"]')?.textContent).toBe('Lv.8')
+    } finally {
+      act(() => { root.unmount() })
+    }
+  })
+})
+
+describe('bottom-right pause control', () => {
+  it('moves only pause to the safe bottom-right while keeping the quest bag in the top-left controls', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({ phase: 'playing' })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const pause = container.querySelector('[data-testid="bottom-right-pause"]')
+      const topLeftControls = container.querySelector('[data-testid="top-left-controls"]')
+      expect(pause?.style.right).toBe('var(--hud-safe-right)')
+      expect(pause?.style.bottom).toBe('var(--hud-pause-bottom)')
+      expect(pause?.style.getPropertyValue('--hud-safe-right')).toBe('max(14px, env(safe-area-inset-right, 0px))')
+      expect(pause?.style.getPropertyValue('--hud-pause-bottom')).toBe('calc(100px + env(safe-area-inset-bottom, 0px))')
+      expect(topLeftControls?.contains(pause)).toBe(false)
+      expect(topLeftControls?.querySelector('.hud-quest-bag-button')).not.toBeNull()
+
+      act(() => pause.click())
+      expect(useGameStore.getState().phase).toBe('paused')
+      expect(pause.getAttribute('aria-label')).toBe('게임 재개')
     } finally {
       act(() => { root.unmount() })
     }
@@ -703,7 +733,7 @@ describe('HUD mobile accessibility', () => {
     }
   })
 
-  it('keeps the release pause control touch-safe and below the top safe area', () => {
+  it('keeps the release pause control touch-safe in the bottom-right safe area', () => {
     useGameStore.getState().resetGame('stage1')
     useGameStore.setState({ phase: 'playing' })
     const container = document.createElement('div')
@@ -719,7 +749,8 @@ describe('HUD mobile accessibility', () => {
       expect(pauseButton.getAttribute('aria-label')).toBe('게임 일시정지')
       expect(pauseButton.style.width).toBe('44px')
       expect(pauseButton.style.height).toBe('44px')
-      expect(pauseButton.parentElement.style.getPropertyValue('--hud-safe-top')).toContain('safe-area-inset-top')
+      expect(pauseButton.style.getPropertyValue('--hud-safe-right')).toContain('safe-area-inset-right')
+      expect(pauseButton.style.getPropertyValue('--hud-pause-bottom')).toContain('safe-area-inset-bottom')
 
       const accessibilityCss = document.getElementById('hud-keyframes')?.textContent ?? ''
       expect(accessibilityCss).toContain('.hud-pause-button:focus-visible')
