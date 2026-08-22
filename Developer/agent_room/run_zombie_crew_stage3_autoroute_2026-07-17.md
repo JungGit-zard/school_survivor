@@ -30,3 +30,14 @@ Minimum gate:
 - Unit tests for Stage 3 burst data and run-crew formation geometry.
 - Enemy visual/source tests for leader/crew stats and mesh parts.
 - `npm run build` or equivalent production build if the repo state allows.
+
+## 2026-08-22 Formation correction
+- Stage 3 crew remains one RZL leader plus six RZC followers; its event timing, HP, types, random stream consumption, and diagonal runtime direction stay unchanged.
+- `createRunZombieCrewEntries` now places followers in the leader-local coordinates below. `behind` is positive opposite `RUN_ZOMBIE_CREW_DIR`; `side` is positive to its perpendicular right.
+
+| Row | Followers | behind | side |
+| --- | --- | ---: | --- |
+| 1 | 3 | 1.15 | -0.72, 0, +0.72 |
+| 2 | 3 | 2.20 | -0.72, 0, +0.72 |
+
+- `Enemies.test.jsx` verifies every follower is behind the leader, rows are exactly 3+3, sides are symmetric, and no local coordinate is duplicated.

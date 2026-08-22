@@ -475,10 +475,13 @@ export function createRunZombieCrewEntries(bounds, random = Math.random, obstacl
   const entries = []
   for (let i = 0; i < RUN_ZOMBIE_CREW_SIZE; i += 1) {
     const isLeader = i === 0
-    const row = Math.floor(Math.max(0, i - 1) / 4)
-    const col = Math.max(0, i - 1) % 4
-    const sideOffset = isLeader ? 0 : (col - 1.5) * 0.72 + (random() - 0.5) * 0.16
-    const trail = isLeader ? 0 : 1.15 + row * 1.05 + (col % 2) * 0.38
+    const followerIndex = Math.max(0, i - 1)
+    const row = Math.floor(followerIndex / 3)
+    const col = followerIndex % 3
+    // 기존 난수 소비량은 유지하되, 크루 행렬 자체는 리더 기준 정확한 3명×2열로 고정한다.
+    if (!isLeader) random()
+    const sideOffset = isLeader ? 0 : (col - 1) * 0.72
+    const trail = isLeader ? 0 : 1.15 + row * 1.05
     const x = startX - nx * trail + px * sideOffset
     const z = startZ - nz * trail + pz * sideOffset
     const type = isLeader ? 'RZL' : 'RZC'

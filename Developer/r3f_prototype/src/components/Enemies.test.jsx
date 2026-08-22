@@ -999,14 +999,38 @@ describe('formation spawns', () => {
     expect(burstsForStage('stage2').some((evt) => evt.formation)).toBe(true)
   })
 
-  it('creates a stage3 run zombie crew with one leader and twelve followers behind the diagonal path', () => {
+  it('creates the stage3 run zombie crew followers in exactly two symmetric three-person rows behind the leader', () => {
     const stage3Arena = { halfX: 18, halfZ: 18 }
     const entries = createRunZombieCrewEntries(stage3Arena, () => 0.5)
+    const leader = entries[0]
+    const dirLength = Math.hypot(RUN_ZOMBIE_CREW_DIR.x, RUN_ZOMBIE_CREW_DIR.z)
+    const forward = { x: RUN_ZOMBIE_CREW_DIR.x / dirLength, z: RUN_ZOMBIE_CREW_DIR.z / dirLength }
+    const right = { x: -forward.z, z: forward.x }
 
     expect(entries).toHaveLength(RUN_ZOMBIE_CREW_SIZE)
     expect(entries[0]).toMatchObject({ type: 'RZL', runCrewRole: 'leader', runCrewDir: RUN_ZOMBIE_CREW_DIR })
     expect(entries.slice(1).every((entry) => entry.type === 'RZC' && entry.runCrewRole === 'crew')).toBe(true)
-    expect(entries.slice(1).every((entry) => entry.pos[0] <= entries[0].pos[0] && entry.pos[2] <= entries[0].pos[2])).toBe(true)
+    const localFollowers = entries.slice(1).map((entry) => {
+      const dx = entry.pos[0] - leader.pos[0]
+      const dz = entry.pos[2] - leader.pos[2]
+      return {
+        behind: -(dx * forward.x + dz * forward.z),
+        side: dx * right.x + dz * right.z,
+      }
+    })
+    const rows = [...new Set(localFollowers.map(({ behind }) => behind.toFixed(6)))].map((behind) =>
+      localFollowers.filter((follower) => follower.behind.toFixed(6) === behind),
+    )
+
+    expect(localFollowers.every(({ behind }) => behind > 0)).toBe(true)
+    expect(rows).toHaveLength(2)
+    expect(rows.every((row) => row.length === 3)).toBe(true)
+    expect(localFollowers.map(({ behind, side }) => `${behind.toFixed(6)}:${side.toFixed(6)}`)).toHaveLength(new Set(localFollowers.map(({ behind, side }) => `${behind.toFixed(6)}:${side.toFixed(6)}`)).size)
+    for (const row of rows) {
+      const sides = row.map(({ side }) => side).sort((a, b) => a - b)
+      expect(sides[0]).toBeCloseTo(-sides[2], 6)
+      expect(sides[1]).toBeCloseTo(0, 6)
+    }
   })
 
   it('keeps the run zombie crew as a diagonal screen-crossing swarm, not a ring/pincer clone', () => {
