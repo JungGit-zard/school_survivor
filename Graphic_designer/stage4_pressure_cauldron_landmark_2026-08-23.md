@@ -6,4 +6,4 @@ Faceted white pressure vessel with a thick lid; yellow top handle; front pressur
 
 ## Rendering contract
 
-The game and Studio preview use the same `PressureCauldron.jsx` tree. Surface materials write depth; only the outline pass does not, preserving an opaque large landmark.
+The game and Studio preview use the same `PressureCauldron.jsx` tree. Surface materials write depth; only the outline pass does not, preserving an opaque large landmark. The shared visual root applies the exact user-mandated `0.2` base scale, while placement remains centered at `[0, 0, 0]` with scale `1` so Studio/Firebase identity and runtime placement stay canonical.

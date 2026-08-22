@@ -9,6 +9,12 @@ import {
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 const OUTLINE_SCALE = 1.035
+export const PRESSURE_CAULDRON_BASE_SCALE = 0.2
+
+function scaleToBaseScale(scale) {
+  const source = Array.isArray(scale) ? scale : [scale ?? 1, scale ?? 1, scale ?? 1]
+  return source.map((value) => value * PRESSURE_CAULDRON_BASE_SCALE)
+}
 
 function Box({ position = [0, 0, 0], rotation = [0, 0, 0], scale, material, outlined = false }) {
   const outline = outlined ? getStagePropOutlineMaterial(0.96, 0x050209) : null
@@ -32,7 +38,7 @@ function Cylinder({ position = [0, 0, 0], rotation = [0, 0, 0], args, material }
 
 // The runtime and Studio preview both render this exact component.  Keep the
 // outer StudioTunedGroup as the only transform authority for this landmark.
-export default function PressureCauldron({ ...props }) {
+export default function PressureCauldron({ scale, ...props }) {
   const white = getStagePropDepthWritingToonMaterial(0xf3f4ef, 0.04)
   const whiteShade = getStagePropDepthWritingToonMaterial(0xd7dcd8, 0.04)
   const dark = getStagePropDepthWritingToonMaterial(0x262b30, 0.02)
@@ -42,7 +48,7 @@ export default function PressureCauldron({ ...props }) {
   const gauge = getStagePropDepthWritingToonMaterial(0xf7f7ef, 0.02)
 
   return (
-    <group {...props} name="pressure-cauldron">
+    <group {...props} name="pressure-cauldron" scale={scaleToBaseScale(scale)}>
       <StudioTunedGroup itemId="stage-object-pressure-cauldron">
         <group name="pressure-cauldron-dark-industrial-base">
           <Cylinder position={[0, 0.22, 0]} args={[3.05, 3.28, 0.44, 10]} material={dark} />

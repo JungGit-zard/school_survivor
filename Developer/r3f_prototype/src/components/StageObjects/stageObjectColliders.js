@@ -174,8 +174,8 @@ const KITCHEN_CRATE_STACK_COLLIDER_PARTS = [
 ]
 
 const PRESSURE_CAULDRON_COLLIDER_PARTS = [
-  { key: 'pressure-cauldron-vessel', position: [0, 1.70, 0], size: [5.72, 3.40, 5.72] },
-  { key: 'pressure-cauldron-front-step', position: [0, 0.27, 3.23], size: [2.20, 0.54, 0.72] },
+  { key: 'pressure-cauldron-vessel', position: [0, 0.34, 0], size: [1.144, 0.68, 1.144] },
+  { key: 'pressure-cauldron-front-step', position: [0, 0.054, 0.646], size: [0.44, 0.108, 0.144] },
 ]
 
 const COLLIDER_DEFS = {
@@ -303,10 +303,12 @@ function multiplyPosition(position, scale) {
   return position.map((value, index) => value * scale[index])
 }
 
-function multiplyHalfExtents(size, scale) {
+function multiplyHalfExtents(size, scale, type) {
   return size.map((value, index) => {
     const halfExtent = (value * scale[index]) / 2
-    return index === 1 ? Math.max(MIN_BLOCKING_HALF_HEIGHT, halfExtent) : halfExtent
+    return index === 1 && type !== 'pressureCauldron'
+      ? Math.max(MIN_BLOCKING_HALF_HEIGHT, halfExtent)
+      : halfExtent
   })
 }
 
@@ -338,7 +340,7 @@ export function getStageObjectColliderParts(placement = {}) {
 
     return {
       key,
-      args: multiplyHalfExtents(size, placementScale),
+      args: multiplyHalfExtents(size, placementScale, placement.type),
       position: multiplyPosition(
         transformLocalPosition(position, modelPosition, modelRotation),
         placementScale

@@ -282,6 +282,10 @@ describe('stage object blocking colliders', () => {
       'pressure-cauldron-vessel',
     ])
     expect(cauldronParts.every(({ args }) => args.every((value) => value > 0))).toBe(true)
+    expect(cauldronParts.map(({ key, position, args }) => ({ key, position, args }))).toEqual([
+      { key: 'pressure-cauldron-vessel', position: [0, 0.34, 0], args: [0.572, 0.34, 0.572] },
+      { key: 'pressure-cauldron-front-step', position: [0, 0.054, 0.646], args: [0.22, 0.054, 0.072] },
+    ])
   })
 
   it('keeps Stage 4 kitchen colliders inside the cafeteria walls without overlapping each other', () => {

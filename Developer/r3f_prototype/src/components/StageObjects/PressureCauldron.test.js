@@ -26,6 +26,14 @@ describe('pressure cauldron landmark', () => {
     ].forEach((part) => expect(source).toContain(part))
   })
 
+  it('uses the exact 0.2 base scale seam for the shared runtime and Studio component', () => {
+    const source = fs.readFileSync(new URL('./PressureCauldron.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('export const PRESSURE_CAULDRON_BASE_SCALE = 0.2')
+    expect(source).toContain('scale={scaleToBaseScale(scale)}')
+    expect(source).toContain('value * PRESSURE_CAULDRON_BASE_SCALE')
+  })
+
   it('keeps game and Studio on the same canonical cauldron component and item id', () => {
     const modelSource = fs.readFileSync(new URL('./PressureCauldron.jsx', import.meta.url), 'utf8')
     const previewSource = fs.readFileSync(new URL('../GraphicsStudioPreview.jsx', import.meta.url), 'utf8')
