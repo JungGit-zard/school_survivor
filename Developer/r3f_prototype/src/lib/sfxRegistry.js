@@ -364,7 +364,10 @@ export function playSfx(id, volume = 1, options = {}) {
     _lastPlayed[id] = now
   }
 
-  const playbackVoiceCount = id === 'criticalHit' ? 2 : 1
+  // Howler는 보이스별 volume을 1 이상으로 올릴 수 없다. 텀블러의 직전
+  // 0.70–0.90 타격음을 다시 정확히 2배로 만들기 위해 같은 샘플을 두 보이스로
+  // 동시에 재생한다. 각 보이스는 clamp 아래에 남고 합산 gain은 1.40–1.80이다.
+  const playbackVoiceCount = id === 'criticalHit' || id === 'tumblerHit' ? 2 : 1
 
   if (!_cache[id]) {
     const ogg = SOUND_MAP[id]

@@ -98,6 +98,22 @@ describe('playSfx', () => {
     expect(howlPlay).toHaveBeenCalledOnce()
   })
 
+  it.each([
+    [0.7, 1.4],
+    [0.9, 1.8],
+  ])('doubles tumbler hit output from %s to exact combined gain %s', async (priorGain, expectedGain) => {
+    const { playSfx } = await import('./sfxRegistry.js')
+
+    // Howler voice volume is capped at 1, so sending 1.40–1.80 would clamp.
+    // Two simultaneous 0.70–0.90 voices keep each voice valid while their
+    // combined gain is exactly 1.40–1.80 (before the unchanged 0.5 master bus).
+    playSfx('tumblerHit', priorGain)
+
+    expect(howlPlay).toHaveBeenCalledTimes(2)
+    expect(howlVolume.mock.calls.map(([volume]) => volume)).toEqual([priorGain, priorGain])
+    expect(howlVolume.mock.calls.reduce((sum, [volume]) => sum + volume, 0)).toBe(expectedGain)
+  })
+
   it('registers dedicated Matilda dash and ho-ho laugh sounds', async () => {
     const { playSfx } = await import('./sfxRegistry.js')
 
@@ -337,18 +353,19 @@ describe('playSfx', () => {
 
     for (const [id, duration] of Object.entries(AUDITED_WEAPON_COOLDOWNS)) {
       const playsBefore = howlPlay.mock.calls.length
+      const voicesPerHit = id === 'tumblerHit' ? 2 : 1
       now.mockReturnValue(0)
       playSfx(id)
-      expect(howlPlay.mock.calls.length, `${id} initial`).toBe(playsBefore + 1)
+      expect(howlPlay.mock.calls.length, `${id} initial`).toBe(playsBefore + voicesPerHit)
       howlConfigs.find((config) => config.src[0] === `/sfx/weapons/${id}.ogg`)?.onend(7)
 
       now.mockReturnValue(duration - 1)
       playSfx(id)
-      expect(howlPlay.mock.calls.length, `${id} duration - 1`).toBe(playsBefore + 1)
+      expect(howlPlay.mock.calls.length, `${id} duration - 1`).toBe(playsBefore + voicesPerHit)
 
       now.mockReturnValue(duration)
       playSfx(id)
-      expect(howlPlay.mock.calls.length, `${id} duration`).toBe(playsBefore + 2)
+      expect(howlPlay.mock.calls.length, `${id} duration`).toBe(playsBefore + voicesPerHit * 2)
       howlConfigs.find((config) => config.src[0] === `/sfx/weapons/${id}.ogg`)?.onend(7)
     }
   })

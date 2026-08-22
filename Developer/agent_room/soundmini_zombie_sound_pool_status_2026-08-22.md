@@ -141,3 +141,13 @@ User-specified adjustment (2026-08-22): only the successful `tumblerHit` event v
 - Current event gain: `0.70 + Math.random() * 0.20` (0.70–0.90)
 - Runtime path remains: successful `applyEnemyHit` → `emitSfx(tumblerHit)` → `SfxLayer` → `playSfx` → Howler voice gain.
 - The dedicated dull `tumblerHit.ogg/.mp3` asset, its 90ms cooldown, critical SFX, and the one-playback-per-successful-hit contract are unchanged.
+
+## 8. Tumbler successful-hit volume — second exact doubling
+
+User-specified adjustment (2026-08-22): double the prior `0.70–0.90` tumbler-hit output again, without sending an invalid `1.40–1.80` volume to a single Howler voice.
+
+- `playSfx('tumblerHit', volume)` now starts two simultaneous voices of the unchanged sample; each receives the original event gain `0.70–0.90`.
+- The combined pre-master gain is exactly `1.40–1.80`. The unchanged `SFX_MASTER_VOLUME = 0.5` therefore produces destination gain `0.70–0.90`, exactly double the prior `0.35–0.45` destination gain.
+- A single Howler voice still clamps volume to `1`, so raw `1.40–1.80` was intentionally not emitted.
+- The successful-hit event remains one emission; the asset, 90ms cooldown, critical SFX, Studio tuning behavior, master bus, and every non-tumbler SFX are unchanged.
+- RED: the new two-voice gain test failed against the former one-voice implementation (`expected 2 calls, got 1`). GREEN: focused SFX and weapon-hit tests pass with min/max combined-gain assertions (`0.70 × 2 = 1.40`, `0.90 × 2 = 1.80`).
