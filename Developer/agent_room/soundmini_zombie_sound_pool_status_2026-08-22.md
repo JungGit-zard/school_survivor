@@ -132,3 +132,12 @@ Before any Android/AAB claim, run build/sync and verify that the new 5 death IDs
 `Developer/r3f_prototype/android/app/src/main/assets/public/sfx/enemies/`
 
 Do not claim Android/AAB readiness while only `public`/`dist` have the new sounds.
+
+## 7. Tumbler successful-hit volume
+
+User-specified adjustment (2026-08-22): only the successful `tumblerHit` event volume is doubled.
+
+- Previous event gain: `0.35 + Math.random() * 0.10` (0.35–0.45)
+- Current event gain: `0.70 + Math.random() * 0.20` (0.70–0.90)
+- Runtime path remains: successful `applyEnemyHit` → `emitSfx(tumblerHit)` → `SfxLayer` → `playSfx` → Howler voice gain.
+- The dedicated dull `tumblerHit.ogg/.mp3` asset, its 90ms cooldown, critical SFX, and the one-playback-per-successful-hit contract are unchanged.

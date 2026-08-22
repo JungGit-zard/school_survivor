@@ -8,7 +8,7 @@ describe('direct weapon hit sound contracts', () => {
     ['Pencil', "id: 'pencilHit'", 'volume: 0.48 + Math.random() * 0.12', 'rate: 0.94 + Math.random() * 0.14'],
     ['SchoolBag', "id: 'rulerHit'", 'volume: 0.58', null],
     ['BoxCutter', "id: 'boxCutterHit'", 'volume: 0.52', 'rate: 1.00 + Math.random() * 0.10'],
-    ['Tumbler', "id: 'tumblerHit'", 'volume: 0.35 + Math.random() * 0.10', 'rate: 0.90 + Math.random() * 0.15'],
+    ['Tumbler', "id: 'tumblerHit'", 'volume: 0.70 + Math.random() * 0.20', 'rate: 0.90 + Math.random() * 0.15'],
     ['Chibiko', "id: 'chibikoHit'", 'volume: 0.42', null],
   ])('%s emits its audited sound from a successful hit path', (name, id, volume, rate) => {
     const source = sourceOf(name)

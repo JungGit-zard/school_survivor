@@ -125,7 +125,7 @@ export function TumblerOrbit() {
       // 우산 폭발과 동일한 세기(knockback 3.0, knockbackMs 220)로 뒤로 밀어낸다.
       emitSfx({
         id: 'tumblerHit',
-        volume: 0.35 + Math.random() * 0.10,
+        volume: 0.70 + Math.random() * 0.20,
         rate: 0.90 + Math.random() * 0.15,
       })
     }
