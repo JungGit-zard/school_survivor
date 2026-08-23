@@ -14,6 +14,8 @@ import { applyChefIngredientSpin } from '../lib/chefIngredientSpin.js'
 import { getToonGradient } from '../lib/toon.js'
 import { getPooledEnemyRenderTier } from './PooledEnemyVisuals.js'
 
+const CHEF_INGREDIENT_VISUAL_SCALE = 3
+const OUTLINE_SCALE_MULTIPLIER = 1.22
 const zero = new THREE.Matrix4().makeScale(0, 0, 0)
 const matrix = new THREE.Matrix4(); const position = new THREE.Vector3(); const quaternion = new THREE.Quaternion(); const scale = new THREE.Vector3(1, 1, 1)
 
@@ -71,9 +73,13 @@ export default function PooledEnemyProjectileLayer({ resetKey }) {
       if (kind === 0) quaternion.identity()
       else applyChefIngredientSpin(quaternion, i, enemyProjectilePool.ageMs[i])
       const slot = counts[kind]
+      scale.setScalar(kind === 0 ? 1 : CHEF_INGREDIENT_VISUAL_SCALE)
       matrix.compose(position, quaternion, scale)
       bodies[kind].setMatrixAt(slot, matrix)
-      scale.setScalar(1.22); matrix.compose(position, quaternion, scale); outlines[kind].setMatrixAt(slot, matrix); scale.set(1, 1, 1)
+      scale.setScalar((kind === 0 ? 1 : CHEF_INGREDIENT_VISUAL_SCALE) * OUTLINE_SCALE_MULTIPLIER)
+      matrix.compose(position, quaternion, scale)
+      outlines[kind].setMatrixAt(slot, matrix)
+      scale.set(1, 1, 1)
       counts[kind] = slot + 1
     }
     for (let kind = 0; kind < bodies.length; kind += 1) {

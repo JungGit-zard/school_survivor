@@ -28,6 +28,14 @@ describe('PooledEnemyProjectileLayer GPU compaction', () => {
     expect(source).toContain('vertexColors: true')
     expect(source).toContain('side: THREE.BackSide')
   })
+
+  it('scales only B04 chef ingredient projectile visuals to exact 3x while preserving the 1.22 outline ratio', () => {
+    expect(source).toContain('const CHEF_INGREDIENT_VISUAL_SCALE = 3')
+    expect(source).toContain('const OUTLINE_SCALE_MULTIPLIER = 1.22')
+    expect(source).toContain('scale.setScalar(kind === 0 ? 1 : CHEF_INGREDIENT_VISUAL_SCALE)')
+    expect(source).toContain('scale.setScalar((kind === 0 ? 1 : CHEF_INGREDIENT_VISUAL_SCALE) * OUTLINE_SCALE_MULTIPLIER)')
+    expect(source).toContain('new THREE.SphereGeometry(.09, 8, 8)')
+  })
 })
 
 describe('applyChefIngredientSpin', () => {
