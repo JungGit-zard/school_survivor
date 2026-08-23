@@ -28,6 +28,13 @@
 
 export const EMPTY_ARENA_MAX_SEC = 2
 
+// 보스 앵커 앞에서 점프를 끊는 폭. HUD 보스 경고가 도는 시간을 확보한다.
+// 오프셋은 불연속으로 뛰므로, 점프 한 번이 보스 시각을 그냥 넘기면 같은 프레임에 경고가 사라지고
+// 보스가 튀어나온다(실측 노출 0.02초). 보스 3초 전에 착지시키면 카운트다운이 실제로 돈다.
+// 이후 아레나가 계속 비어 있으면 2초 뒤 남은 1초를 마저 당기므로 경고는 최소 2초 노출된다.
+// HUD의 카운트다운 창(warningSec - LEAD)과 반드시 같은 값을 써야 한다.
+export const BOSS_TELEGRAPH_LEAD_SEC = 3
+
 export function createSpawnCatchUpState() {
   return { offsetSec: 0, emptyForSec: 0 }
 }

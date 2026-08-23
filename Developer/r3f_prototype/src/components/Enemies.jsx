@@ -43,7 +43,7 @@ import {
   resetPooledEnemySpawnDrainQueue,
 } from '../lib/pooledEnemySpawnDrain.js'
 import { recordZombieEncounter } from '../lib/zombieEncyclopedia.js'
-import { advanceSpawnCatchUp, createSpawnCatchUpState, publishSpawnCatchUpOffsetSec, resetSpawnCatchUpState } from '../lib/spawnCatchUp.js'
+import { BOSS_TELEGRAPH_LEAD_SEC, advanceSpawnCatchUp, createSpawnCatchUpState, publishSpawnCatchUpOffsetSec, resetSpawnCatchUpState } from '../lib/spawnCatchUp.js'
 
 // 황금 코인 시계 드랍: 4분에 약 10개 → 20–28s 무작위 간격 (5분 기준 ×0.8)
 const GOLD_INTERVAL_MIN_MS = 20_000
@@ -1106,6 +1106,21 @@ export function shouldScheduleBurst(fired, elapsedSec, eventSec) {
   return !fired && elapsedSec >= eventSec
 }
 
+// "아레나가 비었나" 판정용 대기열 집계. 스케줄 링버퍼에는 좀비와 무관한 SCHEDULE_GOLD도 섞여 있어서,
+// 통짜 scheduleCount를 쓰면 골드가 예약된 20~28초마다 "안 비었다"로 오판해 캐치업이 지연된다
+// (실측 최대 공백 2.03초 → 4.03초, 명세의 2배). 좀비를 만들어내는 종류만 센다.
+export function countPendingZombieSchedules(queue) {
+  if (!queue?.scheduleKind) return 0
+  const capacity = queue.scheduleKind.length
+  const pending = Math.min(queue.scheduleCount ?? 0, capacity)
+  let count = 0
+  for (let offset = 0; offset < pending; offset += 1) {
+    const kind = queue.scheduleKind[(queue.scheduleRead + offset) % capacity]
+    if (kind === SCHEDULE_BURST || kind === SCHEDULE_OVERTIME || kind === SCHEDULE_MATILDA || kind === SCHEDULE_DOGE) count += 1
+  }
+  return count
+}
+
 // 스폰 시계(spawnSec) 기준으로 "아직 안 터진 다음 스폰"이 언제인지 — 캐치업 점프 폭의 단일 소스.
 // 후보는 런타임에 실제로 발화하는 세 경로뿐이다: 단발 버스트 · 반복 버스트 · 오버타임 보강.
 // (20~40초 랜덤 웨이브·중간 보강·보스 호위는 런타임에서 발화하지 않으므로 후보가 아니다.)
@@ -1113,6 +1128,7 @@ export function shouldScheduleBurst(fired, elapsedSec, eventSec) {
 export function nextPendingSpawnSec(burstEvents, firedFlags, scheduledRepeatTicks, spawnSec, stageId = 'stage1', overtimeTick = -1) {
   if (!Number.isFinite(spawnSec)) return null
   let best = Infinity
+  let bestIsBoss = false
   const events = burstEvents ?? []
   for (let index = 0; index < events.length; index += 1) {
     const evt = events[index]
@@ -1124,13 +1140,26 @@ export function nextPendingSpawnSec(burstEvents, firedFlags, scheduledRepeatTick
       continue
     }
     if (firedFlags?.[index]) continue
-    if (Number.isFinite(evt.sec) && evt.sec > spawnSec && evt.sec < best) best = evt.sec
+    if (Number.isFinite(evt.sec) && evt.sec > spawnSec && evt.sec < best) {
+      best = evt.sec
+      bestIsBoss = isBossType(evt.type)
+    }
   }
   // 오버타임 보강은 무한 반복이라 표가 소진된 뒤에도 항상 후보가 남는다.
   const nextOvertimeSec = getOvertimeReinforcementStartSec(stageId)
     + (Math.floor(overtimeTick ?? -1) + 1) * OVERTIME_REINFORCEMENT_INTERVAL_SEC
-  if (Number.isFinite(nextOvertimeSec) && nextOvertimeSec > spawnSec && nextOvertimeSec < best) best = nextOvertimeSec
-  return Number.isFinite(best) ? best : null
+  if (Number.isFinite(nextOvertimeSec) && nextOvertimeSec > spawnSec && nextOvertimeSec < best) {
+    best = nextOvertimeSec
+    bestIsBoss = false
+  }
+  if (!Number.isFinite(best)) return null
+  // 보스 앵커는 그대로 밟지 않고 3초 앞에 착지시킨다 — HUD 경고 카운트다운이 돌 시간을 준다.
+  // 그 지점이 이미 지났으면(lead <= spawnSec) 되감지 않고 보스 시각을 그대로 낸다.
+  if (bestIsBoss) {
+    const lead = best - BOSS_TELEGRAPH_LEAD_SEC
+    if (lead > spawnSec) return lead
+  }
+  return best
 }
 
 function countPooledType(type) {
@@ -1191,7 +1220,7 @@ export default function Enemies() {
   const enemiesRef                = useRef([])
   const runtimeQueueRef           = useRef({ specialRemovals: [], textbooks: [], gold: [], collapses: [], doges: [], chests: [], flushScheduled: false, raf: 0, scheduleKind: new Uint8Array(64), scheduleA: new Float32Array(64), scheduleB: new Float32Array(64), scheduleRead: 0, scheduleWrite: 0, scheduleCount: 0, processScheduled: null, matildaEntry: null, spawnDrain: createPooledEnemySpawnDrainQueue(), drainPooled: null, deathType: new Uint8Array(MAX_RUNTIME_QUEUE), deathX: new Float32Array(MAX_RUNTIME_QUEUE), deathY: new Float32Array(MAX_RUNTIME_QUEUE), deathZ: new Float32Array(MAX_RUNTIME_QUEUE), deathXp: new Float32Array(MAX_RUNTIME_QUEUE), deathScale: new Float32Array(MAX_RUNTIME_QUEUE), deathDamage: new Float32Array(MAX_RUNTIME_QUEUE), deathMaxHp: new Float32Array(MAX_RUNTIME_QUEUE), deathKnockback: new Float32Array(MAX_RUNTIME_QUEUE), deathStyle: new Uint8Array(MAX_RUNTIME_QUEUE), deathRead: 0, deathWrite: 0, deathCount: 0, hitQueue: createEnemyHitEventQueue(), hitScratch: {} })
   const runtimeEventScratchRef    = useRef({})
-  const runtimeContextRef         = useRef({ delta: 0, playerX: 0, playerZ: 0, halfX: 1, halfZ: 1, elapsedSec: 0, activeProjectileCount: 0, stageId: 'stage1', e04IntroSec: 72, bossPressure: false, obstacles: null, obstacleCount: 0, sightBlocked: enemySightBlocked })
+  const runtimeContextRef         = useRef({ delta: 0, playerX: 0, playerZ: 0, halfX: 1, halfZ: 1, elapsedSec: 0, spawnSec: 0, activeProjectileCount: 0, stageId: 'stage1', e04IntroSec: 72, bossPressure: false, obstacles: null, obstacleCount: 0, sightBlocked: enemySightBlocked })
   const stageRuntimeCacheRef      = useRef(null)
   const projectileHitRef          = useRef(null)
   const firedBurstsRef            = useRef(new Uint8Array(2048))
@@ -1201,6 +1230,7 @@ export default function Enemies() {
   const dogeSpawnedRef           = useRef(false)     // 60초 도지 이벤트 1회 스폰 가드
   const overtimeTickRef          = useRef(-1)
   const spawnCatchUpRef          = useRef(createSpawnCatchUpState())
+  const liveDogeCountRef         = useRef(0)   // 빈 화면 판정용 — 도지도 HP를 가진 적이다
   const stageSpawnTokenRef       = useRef(0)
   const sightGenerationRef       = useRef(new Uint16Array(MAX_ENEMIES))
   const sightTierRef             = useRef(new Uint8Array(MAX_ENEMIES))
@@ -1241,6 +1271,7 @@ export default function Enemies() {
     scheduledRepeatBurstTicksRef.current.fill(-1)
     consumedRepeatBurstTicksRef.current.fill(-1)
     overtimeTickRef.current = -1
+    liveDogeCountRef.current = 0
     resetSpawnCatchUpState(spawnCatchUpRef.current)
     publishSpawnCatchUpOffsetSec(0)
     sightGenerationRef.current.fill(0)
@@ -1307,7 +1338,10 @@ export default function Enemies() {
       if (queue.collapses.length) {
         setCollapses((prev) => [...prev, ...queue.collapses.splice(0, queue.collapses.length)].slice(-12))
       }
-      if (queue.doges.length) setDoges((prev) => [...prev, ...queue.doges.splice(0, queue.doges.length)])
+      if (queue.doges.length) {
+        liveDogeCountRef.current += queue.doges.length
+        setDoges((prev) => [...prev, ...queue.doges.splice(0, queue.doges.length)])
+      }
       if (queue.chests.length) setChests((prev) => [...prev, ...queue.chests.splice(0, queue.chests.length)])
       if (queue.scheduleCount > 0 || queue.spawnDrain.count > 0) scheduleRuntimeFlush()
     })
@@ -1570,9 +1604,13 @@ export default function Enemies() {
         const firstTick = consumedRepeatBurstTicksRef.current[eventIndex] + 1
         const lastTick = Math.trunc(b)
         if (lastTick < firstTick) return
+        // 미션 생존 집계는 runSurvivalSeconds와 뺄셈하므로 실시간이 정본이다.
+        // 표 시각(repeatingBurstSecAtTick)은 tick 존재 확인에만 쓰고 기록에는 넘기지 않는다 —
+        // 단발 버스트도 같은 규약으로 실시간을 넘긴다.
+        const missionSpawnSec = getRuntimeElapsedMs(useGameStore.getState().elapsedMs) / 1000
         for (let tick = firstTick; tick <= lastTick; tick += 1) {
-          const spawnSec = repeatingBurstSecAtTick(evt, tick)
-          if (spawnSec === null) continue
+          const tickTableSec = repeatingBurstSecAtTick(evt, tick)
+          if (tickTableSec === null) continue
           const batch = []
           const count = evt.count ?? 1
           for (let spawnIndex = 0; spawnIndex < count; spawnIndex += 1) {
@@ -1581,7 +1619,7 @@ export default function Enemies() {
             if (!pos) continue
             batch.push({ id: ++_uid, type: evt.type, pos, statOverride: stageHpOverride(evt.type, cache.id) })
           }
-          recordMissionBurstSpawns(store, batch, cache.id, spawnSec)
+          recordMissionBurstSpawns(store, batch, cache.id, missionSpawnSec)
           addEnemies(batch, true, cache.spawnToken)
         }
         consumedRepeatBurstTicksRef.current[eventIndex] = lastTick
@@ -1632,6 +1670,7 @@ export default function Enemies() {
 
   // 도지 처치 → 그 자리에 보물상자 드랍.
   const onDogeDeath = useCallback((dogeId, pos) => {
+    liveDogeCountRef.current = Math.max(0, liveDogeCountRef.current - 1)
     setDoges((prev) => prev.filter((d) => d.id !== dogeId))
     emitSfx({ id: 'chestDrop', volume: 0.66, rate: 0.94 + Math.random() * 0.1 })
     setChests((prev) => [...prev, { id: ++_chestId, pos }])
@@ -1639,6 +1678,7 @@ export default function Enemies() {
 
   // 도지 도주 성공(경계 이탈) → 보상 없이 제거.
   const onDogeEscape = useCallback((dogeId) => {
+    liveDogeCountRef.current = Math.max(0, liveDogeCountRef.current - 1)
     setDoges((prev) => prev.filter((d) => d.id !== dogeId))
   }, [])
 
@@ -1707,10 +1747,12 @@ export default function Enemies() {
     // 앞으로 당겨서 빈 화면이 2초를 넘지 않게 한다. 스폰 게이트만 spawnSec을 읽고,
     // HUD 타이머·탈출 포탈·마틸다·적 AI(context.elapsedSec)는 실시간 sec 그대로다.
     const catchUpQueue = runtimeQueueRef.current
+    // 살아 있는 도지도 센다 — HP를 가진 이벤트 적이라 춤추는 동안 화면은 비어 있지 않다.
     const liveEnemyCount = enemyPool.activeCount
       + enemiesRef.current.length
+      + liveDogeCountRef.current
       + catchUpQueue.spawnDrain.count
-      + catchUpQueue.scheduleCount
+      + countPendingZombieSchedules(catchUpQueue)
     const catchUp = spawnCatchUpRef.current
     const pendingSpawnSec = sec + catchUp.offsetSec
     advanceSpawnCatchUp(catchUp, {
@@ -1756,6 +1798,9 @@ export default function Enemies() {
     context.halfX = bounds.halfX
     context.halfZ = bounds.halfZ
     context.elapsedSec = sec
+    // E04 발사 인트로 게이트는 bossPressure와 같은 시계를 봐야 한다(둘 다 스폰 시계).
+    // elapsedSec 자체는 실시간 그대로 — 적 AI 전반은 캐치업의 영향을 받지 않는다.
+    context.spawnSec = spawnSec
     context.activeProjectileCount = enemyProjectilePool.activeCount
     context.stageId = currentStageId
     context.e04IntroSec = getE04IntroSec(currentStageId)

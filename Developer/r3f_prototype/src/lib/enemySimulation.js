@@ -294,7 +294,13 @@ export function resolveRangedEnemyVelocityRaw(out, dirX, dirZ, distance, strafeS
 function isE04FireAllowed(context, ageMs, cooldownMs, distance, projectileCount) {
   const stageId = context.stageId === undefined ? 'stage2' : context.stageId
   const introSec = context.e04IntroSec === undefined ? (stageId === 'stage4' ? STAGE4_E04_INTRO_SEC : STAGE2_E04_INTRO_SEC) : context.e04IntroSec
-  return context.elapsedSec >= introSec
+  // 발사 하한(introSec)과 억제 조건(bossPressure)은 반드시 같은 시계를 봐야 한다.
+  // bossPressure는 스폰 시계(캐치업으로 앞당겨진 시각)를 쓰므로 인트로 게이트도 spawnSec을 본다.
+  // 둘이 갈리면 보스가 당겨졌을 때 발사 창 [introSec, bossSec)이 공집합이 되어 E04가 한 발도
+  // 못 쏜다 — E04는 접근하지 않으므로 발사를 잃으면 위협도 0인 과녁이 된다.
+  // spawnSec을 안 넘기는 호출자(테스트 하네스 등)는 실시간 elapsedSec으로 폴백한다.
+  const gateSec = isFiniteNumber(context.spawnSec) ? context.spawnSec : context.elapsedSec
+  return gateSec >= introSec
     && ageMs >= E04_FIRST_FIRE_DELAY_MS
     && projectileCount < E04_MAX_PROJECTILES
     && distance >= E04_MIN_FIRE_DISTANCE

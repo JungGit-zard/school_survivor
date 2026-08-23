@@ -347,7 +347,9 @@ describe('all-stage overtime mixed ordinary reinforcements', () => {
     expect(source).toContain('enqueueScheduled(SCHEDULE_BURST, burstIndex, tick)')
     expect(source).toContain('scheduledRepeatBurstTicksRef.current[burstIndex] = tick')
     expect(source).toContain('const firstTick = consumedRepeatBurstTicksRef.current[eventIndex] + 1')
-    expect(source).toContain('const spawnSec = repeatingBurstSecAtTick(evt, tick)')
+    expect(source).toContain('const tickTableSec = repeatingBurstSecAtTick(evt, tick)')
+    // 미션 생존 집계는 실시간이 정본이다 — 반복 버스트도 표 시각이 아니라 실시간을 기록한다.
+    expect(source).toContain('recordMissionBurstSpawns(store, batch, cache.id, missionSpawnSec)')
     expect(source).toContain('addEnemies(batch, true, cache.spawnToken)')
   })
 })
@@ -1330,7 +1332,11 @@ describe('ranged enemy movement', () => {
     expect(source).toContain('stageCombatConfig.bossPressureStartSec')
     expect(source).toContain('stageCombatConfig.bossPressureEndSec')
     // 스2/스3는 보스 구간(bossWarning~escapePortal) E04 발사 억제를 유지한다.
-    expect(source).toContain('elapsedSec >= stageCombatConfig.bossPressureStartSec && elapsedSec < stageCombatConfig.bossPressureEndSec')
+    // 발사 하한과 bossPressure 하한은 같은 스폰 시계(e04GateSec)를 본다 — 갈리면 발사 창이
+    // 공집합이 되어 E04가 한 발도 못 쏜다. 상한(탈출 포탈)만 실시간 elapsedSec이다.
+    expect(source).toContain('const e04GateSec = elapsedSec + getSpawnCatchUpOffsetSec()')
+    expect(source).toContain('e04GateSec >= stageCombatConfig.bossPressureStartSec && elapsedSec < stageCombatConfig.bossPressureEndSec')
+    expect(source).toContain('fireArgs.elapsedSec = e04GateSec')
     // 스4는 원거리 "안전지대 소멸" 시그니처라 보스 구간에도 발사(bossPressure 미적용).
     expect(source).toContain("currentStageId === 'stage4'")
     expect(source).toContain('fireArgs.introSec = stageCombatConfig.e04IntroSec')
@@ -1436,7 +1442,11 @@ describe('스폰 캐치업 배선 — 빈 화면 2초 상한', () => {
     expect(playingFrameBody).toContain('const liveEnemyCount = enemyPool.activeCount')
     expect(playingFrameBody).toContain('+ enemiesRef.current.length')
     expect(playingFrameBody).toContain('+ catchUpQueue.spawnDrain.count')
-    expect(playingFrameBody).toContain('+ catchUpQueue.scheduleCount')
+    // 골드 스케줄은 좀비가 아니다 — 통짜 scheduleCount를 세면 빈 화면이 4초까지 늘어난다.
+    expect(playingFrameBody).toContain('+ countPendingZombieSchedules(catchUpQueue)')
+    expect(playingFrameBody).not.toContain('+ catchUpQueue.scheduleCount')
+    // 도지도 HP를 가진 적이라 춤추는 동안 화면은 비어 있지 않다.
+    expect(playingFrameBody).toContain('+ liveDogeCountRef.current')
   })
 
   it('스테이지 리셋에서 오프셋이 0으로 돌아간다', () => {

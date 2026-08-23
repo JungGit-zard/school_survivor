@@ -27,6 +27,7 @@ import {
 } from '../lib/chefBossPhase.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
+import { getSpawnCatchUpOffsetSec } from '../lib/spawnCatchUp.js'
 import { isBossType } from '../lib/burstEvents.js'
 import { deathSfxId } from '../lib/enemyDeathSfx.js'
 import {
@@ -1285,10 +1286,14 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       if (_dir.length() > 0) _applyRotation(groupRef, _dir.x / _dir.length(), _dir.z / _dir.length())
 
       const elapsedSec = getRuntimeElapsedMs(useGameStore.getState().elapsedMs) / 1000
+      // 발사 하한과 bossPressure는 같은 시계여야 한다 — 풀 경로(enemySimulation.isE04FireAllowed)와
+      // 동일한 규약으로 둘 다 스폰 시계를 본다. 캐치업이 보스를 앞당겼을 때 두 게이트가 갈리면
+      // 발사 창 [introSec, bossSec)이 공집합이 되어 E04가 한 발도 못 쏜다.
+      const e04GateSec = elapsedSec + getSpawnCatchUpOffsetSec()
       // stage4는 원거리 "안전지대 소멸"이 시그니처라 보스 구간에도 E04 발사를 유지한다(bossPressure 미적용).
       // 스2/스3의 보스 구간 발사 차단은 그대로.
       const fireArgs = e04FireArgsRef.current
-      fireArgs.elapsedSec = elapsedSec
+      fireArgs.elapsedSec = e04GateSec
       fireArgs.ageMs = now - spawnedAtRef.current
       fireArgs.activeProjectileCount = enemyProjectilePool.activeCount
       fireArgs.distanceToPlayer = dist
@@ -1296,7 +1301,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       fireArgs.nowMs = now
       fireArgs.cooldownMs = active.rangedCooldown
       fireArgs.introSec = stageCombatConfig.e04IntroSec
-      fireArgs.bossPressure = currentStageId === 'stage4' ? false : (elapsedSec >= stageCombatConfig.bossPressureStartSec && elapsedSec < stageCombatConfig.bossPressureEndSec)
+      fireArgs.bossPressure = currentStageId === 'stage4' ? false : (e04GateSec >= stageCombatConfig.bossPressureStartSec && elapsedSec < stageCombatConfig.bossPressureEndSec)
       const canFire = (currentStageId === 'stage2' || currentStageId === 'stage3' || currentStageId === 'stage4') && canE04FireProjectile(fireArgs)
 
       // ?ъ궗泥?諛쒖궗
