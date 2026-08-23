@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 import { ENEMY_STATS } from './Enemy.jsx'
 import { B01_BOSS_FACE, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH_SET_SQUARE_LAYOUT, B02_STAGE2_BOSS_FACE, B02_STAGE2_BOSS_PALETTE, B02_STAGE2_BOSS_PARTS, B03_PE_TEACHER_FACE, B03_PE_TEACHER_FACE_LAYOUT, B03_PE_TEACHER_PALETTE, B03_PE_TEACHER_PARTS, B04_CHEF_FACE, B04_CHEF_PALETTE, B04_CHEF_PARTS, RUN_ZOMBIE_VISUAL, STAGE2_GUARD_CHASE_VISUAL, ZOMBIE_PALETTE } from './ZombieMesh.jsx'
 import { GRAPHICS_STUDIO_CATALOG, getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
+import { getCachedFacetedGeo } from '../lib/toon.js'
 
 const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
 const graphicsStudioConfigSource = readFileSync(new URL('../lib/graphicsStudioConfig.js', import.meta.url), 'utf8')
@@ -385,5 +386,19 @@ describe('Stage 2 boss visual reference', () => {
     expect(zombieMeshSource).toMatch(
       /<mesh(?=[^>]*renderOrder=\{1\})(?=[^>]*studioRenderOutline: true)(?=[^>]*raycast=\{disableRaycast\})[^>]*\/>/,
     )
+  })
+})
+
+describe('Faceted player and stage-boss geometry contract', () => {
+  it('keeps every selected boss on cached flat-normal geometry without changing B02 v2 identity', () => {
+    const geometry = getCachedFacetedGeo('lowCylinder', 0.23, 0.5, 0.22)
+
+    expect(geometry).toBe(getCachedFacetedGeo('lowCylinder', 0.23, 0.5, 0.22))
+    expect(geometry.index).toBeNull()
+    expect(geometry.getAttribute('position').count / 3).toBeLessThanOrEqual(160)
+    expect(zombieMeshSource).toContain('geometryKind="dodeca"')
+    expect(zombieMeshSource).toContain('geometryKind="lowCone"')
+    expect(zombieMeshSource).toContain('geometryKind="flatDisc"')
+    expect(getStudioZombieItemId('B02')).toBe('stage2-boss-v2')
   })
 })
