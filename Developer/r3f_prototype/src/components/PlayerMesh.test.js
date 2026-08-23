@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { getCachedFacetedGeo, getFacetedToonGradient } from '../lib/toon.js'
-import * as THREE from 'three'
 import {
   createPlayerOcclusionSafeToonMaterial,
   createPlayerCrowdOutlineMaterial,
@@ -202,32 +200,5 @@ describe('PlayerMesh layout', () => {
     expect(source).toContain('captureStudioPartBaseTransform(el)')
     expect(source).not.toContain('parts.head.position.y = baseY + bob')
     expect(source).not.toContain('parts.legL.rotation.x = sw')
-  })
-
-  it('uses cached flat-normal faceted geometry for the player silhouette without moving Studio rigs', () => {
-    const source = readFileSync(new URL('./PlayerMesh.jsx', import.meta.url), 'utf8')
-    const head = getCachedFacetedGeo('dodeca', ...PLAYER_MESH_LAYOUT.head.size)
-
-    expect(head).toBe(getCachedFacetedGeo('dodeca', ...PLAYER_MESH_LAYOUT.head.size))
-    expect(head.index).toBeNull()
-    expect(head.getAttribute('normal').count).toBe(head.getAttribute('position').count)
-    expect(head.getAttribute('position').count / 3).toBeLessThanOrEqual(300)
-    expect(source).toContain('geometryKind="dodeca"')
-    expect(source).toContain('geometryKind="wedge"')
-    expect(source).toContain('geometryKind="lowCylinder"')
-  })
-
-  it('keeps the new three-step faceted toon ramp isolated from the legacy ramp', () => {
-    const originalDocument = globalThis.document
-    globalThis.document = {
-      createElement: () => ({ getContext: () => ({ fillStyle: '', fillRect: () => {} }) }),
-    }
-    try {
-      expect(getFacetedToonGradient().image.width).toBe(3)
-      expect(getFacetedToonGradient().colorSpace).toBe(THREE.NoColorSpace)
-    } finally {
-      if (originalDocument === undefined) Reflect.deleteProperty(globalThis, 'document')
-      else globalThis.document = originalDocument
-    }
   })
 })

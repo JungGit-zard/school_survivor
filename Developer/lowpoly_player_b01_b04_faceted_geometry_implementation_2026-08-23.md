@@ -1,25 +1,21 @@
-# 주인공·B01~B04 파셋 저폴리 지오메트리 구현 기록
+# 주인공·B01~B04 그래픽 롤백 경험 기록
 
-- 날짜: 2026-08-23
-- Kanban: `escape-zombie-school` / `t_2189c2b6` (`threemini`)
-- 범위: `PlayerMesh.jsx`, `ZombieMesh.jsx`, `toon.js`의 캐릭터 외형 지오메트리만 변경
+- 기록일: 2026-08-23
+- 롤백 대상: `a66a70d`의 주인공·B01~B04 파셋 그래픽 변경
+- 기준 상태: `c40c5b21a43628c314df66a946ad62ea44ca980d`
 
-## 구현
+## 롤백 사실
 
-- `getCachedFacetedGeo(kind, w, h, d)`를 추가했다. `dodeca`, `octa`, `lowCylinder`, `lowCone`, `wedge`, `flatDisc` 지오메트리를 크기별로 캐시하고, 인덱스를 분리해 면 단위 노멀을 계산한다. 대상 전용 3단 toon gradient(55/78/100%, `NoColorSpace`)와 재질 cache도 추가했다.
-- 주인공은 머리·머리카락·재킷·가방·팔을 파셋 형태로 바꿨다.
-- B01은 머리·머리카락·재킷·팔·다리와 특수공격 삼각자를, B02는 현행 `stage2-boss-v2`의 머리·머리카락·번·블레이저·출입 배지·사지, B03은 머리·머리띠·어깨·상체·팔, B04는 요리모·머리·조리복·팔·앞치마를 파셋 형태로 바꿨다.
-- 새 그룹, 새 Studio 키, 저장 경로, 물리·카메라·공격·스폰·Firebase 변경은 없다. 기존 `ZBlock`/`Block`의 지오메트리만 선택 교체해 Studio 숫자 child path와 피벗을 보존한다.
+- 대상 커밋의 Player/B01~B04 파셋 지오메트리와 관련 테스트 변경을 기준 상태로 되돌렸다.
+- 이 방향을 위해 추가한 콘셉트 이미지, 구현 brief, QA 문서와 캡처도 제거했다.
+- Firebase 데이터와 저장 경로, 기존 Title·Studio·게임의 다른 소스는 변경하거나 재적용하지 않았다.
 
-## 검증
+## 경험과 경계
 
-- `npx vitest run src/components/PlayerMesh.test.js`: 15개 통과.
-- `npx vitest run src/components/PlayerMesh.test.js src/components/ZombieMesh.test.js`: 41개 중 40개 통과. 실패 1개는 기존 `RZT` hp/scale 기대값(28/.88)과 현재 코드(140/1.76)의 불일치이며 이번 그래픽 변경과 무관하다.
-- `npx vite build`: 통과.
-- 외부 QA 정적 검수: Player/B01/B02/B03/B04 reg 순서·pivot, B01/B02/B03/B04 `ZBlock` 수, B02 legacy gate 통과.
-
-## 최종 시각 검증
-
-- 공유 `PlayerMesh`/`ZombieMesh`를 실제 R3F 프리뷰에서 Player와 B01~B04 각각 정면·측면·후면으로 확인했다.
-- 전신 프레이밍, 큰 파셋 면, 외곽선, 발 접지를 확인했으며 임시 프리뷰 파일은 삭제했다.
-- 상세 증거와 15개 캡처는 `Quaility_Assurance/faceted_player_boss_visual_performance_qa_2026-08-23.md`에 기록했다.
+- 이전 파셋 그래픽은 현재 승인된 구현이나 QA PASS가 아니다. 이 기록은 성공 구현·재적용·배포의 근거로 사용할 수 없다.
+- `geometryKind` 치환은 기존 숫자 Studio child path를 보존하는 데에는 유효했지만, 그 구조 안전성이 시각 승인과 동일한 것은 아니다.
+- 기존 얼굴 데칼과 조립형 파츠 위의 부분 치환만으로는 새 원화가 요구하는 전체 실루엣을 충분히 재현하기 어렵다.
+- 기존 파셋의 재사용·보정·재적용은 사용자 의도에 맞는 작업이 아니므로 하지 않는다.
+- 사용자가 새 원화를 직접 제공할 때만 그 원화를 정본으로 새 모델링 작업을 시작한다.
+- 새 원화가 제공되기 전에는 모델링, 그래픽 적용, Graphics Studio 파라미터 변경을 하지 않는다.
+- 새 작업은 사용자 제공 새 원화 → 캐릭터 1종 vertical slice → 실제 game·Studio·title 비교 승인 → 나머지 확대 순서로 진행한다.

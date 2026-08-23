@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { bagSwingState, playerArmActionState } from '../lib/refs.js'
 import { getActivePlayerArmAction, getPlayerArmPose } from '../lib/playerArmAction.js'
-import { facetedToonMat, getCachedFacetedGeo, outlineMat, toonMat, inflateScale } from '../lib/toon.js'
+import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
 import { PLAYER_MESH_SCALE } from '../lib/characterVisualScale.js'
 import StudioTunedGroup, {
   captureStudioPartBaseTransform,
@@ -79,18 +79,17 @@ function usePlayerStencilMaterial(createMaterial, dependencies) {
 // depthTest를 끄면 그리는 순서(=JSX 선언 순서)가 가림을 결정해 버려,
 // 뒤에서 보면 눈이 뒤통수를 뚫고 가방이 팔에 파묻힌다(2026-08-09 회귀).
 // 소품 위로 띄우는 건 renderOrder만으로 처리한다.
-export function createPlayerOcclusionSafeToonMaterial(color, emissive, faceted = false) {
-  return faceted ? facetedToonMat(color, emissive) : toonMat(color, emissive)
+export function createPlayerOcclusionSafeToonMaterial(color, emissive) {
+  return toonMat(color, emissive)
 }
 
 function createPlayerOcclusionSafeOutlineMaterial() {
   return outlineMat(0.98)
 }
 
-function Block({ size, position, rotation, color, emissive = 0.14, geometryKind = 'box' }) {
-  const faceted = geometryKind !== 'box'
-  const mat = usePlayerStencilMaterial(() => createPlayerOcclusionSafeToonMaterial(color, faceted ? 0 : emissive, faceted), [color, emissive, faceted])
-  const geo = useMemo(() => getCachedFacetedGeo(geometryKind, ...size), [geometryKind, size.join(',')])
+function Block({ size, position, rotation, color, emissive = 0.14 }) {
+  const mat = usePlayerStencilMaterial(() => createPlayerOcclusionSafeToonMaterial(color, emissive), [color, emissive])
+  const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
 
   return (
     <group position={position} rotation={rotation}>
@@ -105,12 +104,12 @@ export function createPlayerCrowdOutlineMaterial() {
   return createPlayerOcclusionSafeOutlineMaterial()
 }
 
-function OutlineBlock({ size, position, rotation, scale = 1.08, crowdVisible = false, geometryKind = 'box' }) {
+function OutlineBlock({ size, position, rotation, scale = 1.08, crowdVisible = false }) {
   const mat = usePlayerStencilMaterial(
     crowdVisible ? createPlayerCrowdOutlineMaterial : createPlayerOcclusionSafeOutlineMaterial,
     [crowdVisible],
   )
-  const geo = useMemo(() => getCachedFacetedGeo(geometryKind, ...size), [geometryKind, size.join(',')])
+  const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
   const s = inflateScale(scale)
   return <mesh renderOrder={PLAYER_OCCLUSION_SAFE_OUTLINE_RENDER_ORDER} geometry={geo} material={mat} position={position} rotation={rotation} scale={[s, s, s]} />
 }
@@ -134,11 +133,11 @@ function PlayerLanternLight() {
 function PlayerOuterOutline() {
   return (
     <group>
-      <OutlineBlock size={[0.98, 0.9, 0.58]} position={[0, 0.33, 0]} crowdVisible geometryKind="wedge" />
-      <OutlineBlock size={PLAYER_MESH_LAYOUT.head.size} position={[0, PLAYER_MESH_LAYOUT.head.baseY + 0.06, 0]} scale={1.3} crowdVisible geometryKind="dodeca" />
-      <OutlineBlock size={[0.24, 1.05, 0.30]} position={[-0.68, 0.32, 0]} scale={1.07} crowdVisible geometryKind="lowCylinder" />
-      <OutlineBlock size={[0.24, 1.05, 0.30]} position={[0.68, 0.32, 0]} scale={1.07} crowdVisible geometryKind="lowCylinder" />
-      <OutlineBlock size={[0.56, 0.78, 0.36]} position={[-0.54, 0.46, -0.22]} scale={1.07} crowdVisible geometryKind="wedge" />
+      <OutlineBlock size={[0.98, 0.9, 0.58]} position={[0, 0.33, 0]} crowdVisible />
+      <OutlineBlock size={PLAYER_MESH_LAYOUT.head.size} position={[0, PLAYER_MESH_LAYOUT.head.baseY + 0.06, 0]} scale={1.3} crowdVisible />
+      <OutlineBlock size={[0.24, 1.05, 0.30]} position={[-0.68, 0.32, 0]} scale={1.07} crowdVisible />
+      <OutlineBlock size={[0.24, 1.05, 0.30]} position={[0.68, 0.32, 0]} scale={1.07} crowdVisible />
+      <OutlineBlock size={[0.56, 0.78, 0.36]} position={[-0.54, 0.46, -0.22]} scale={1.07} crowdVisible />
     </group>
   )
 }
@@ -146,8 +145,8 @@ function PlayerOuterOutline() {
 function PlayerLanternModel() {
   return (
     <group rotation={[0, 0, -0.05]}>
-      <OutlineBlock size={PLAYER_MESH_LAYOUT.lantern.bodySize} position={[0, -0.02, 0]} scale={1.05} geometryKind="lowCylinder" />
-      <Block size={PLAYER_MESH_LAYOUT.lantern.bodySize} position={[0, -0.02, 0]} color={0x1f63c9} emissive={0.18} geometryKind="lowCylinder" />
+      <OutlineBlock size={PLAYER_MESH_LAYOUT.lantern.bodySize} position={[0, -0.02, 0]} scale={1.05} />
+      <Block size={PLAYER_MESH_LAYOUT.lantern.bodySize} position={[0, -0.02, 0]} color={0x1f63c9} emissive={0.18} />
       <Block size={[0.22, 0.08, 0.1]} position={[0, 0.09, 0.03]} color={0x17498f} emissive={0.12} />
       <Block size={PLAYER_MESH_LAYOUT.lantern.handleSize} position={[0, 0.15, 0.04]} color={0x123f82} emissive={0.1} />
       <Block size={[0.12, 0.05, 0.08]} position={[0, 0.21, 0.06]} color={0xffd33d} emissive={0.45} />
@@ -297,30 +296,30 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
 
       <PlayerOuterOutline />
 
-      <Block size={PLAYER_MESH_LAYOUT.body.size} position={PLAYER_MESH_LAYOUT.body.position} color={0xd42020} emissive={0.2} geometryKind="wedge" />
+      <Block size={PLAYER_MESH_LAYOUT.body.size} position={PLAYER_MESH_LAYOUT.body.position} color={0xd42020} emissive={0.2} />
       <Block size={[0.38, 0.18, 0.12]} position={[0, 0.82, 0.32]} color={0xf4f4f4} emissive={0.08} />
       <Block size={[0.8, 0.13, 0.5]} position={[0, 0.1, 0]} color={0xffd100} emissive={0.26} />
 
       <Block size={[0.94, 0.36, 0.56]} position={[0, -0.16, 0]} color={0x2d8cff} emissive={0.2} />
 
       <group ref={reg('head')} position={[0, PLAYER_MESH_LAYOUT.head.baseY, 0]}>
-        <Block size={PLAYER_MESH_LAYOUT.head.size} position={[0, 0, 0]} color={0xffc39b} emissive={0.1} geometryKind="dodeca" />
+        <Block size={PLAYER_MESH_LAYOUT.head.size} position={[0, 0, 0]} color={0xffc39b} emissive={0.1} />
       </group>
 
       <group ref={reg('hairTop')} position={[0, PLAYER_MESH_LAYOUT.head.baseY + 0.48, 0]}>
-        <Block size={[0.98, 0.34, 0.82]} position={[0, 0, 0]} color={0xff8fb0} emissive={0.18} geometryKind="wedge" />
+        <Block size={[0.98, 0.34, 0.82]} position={[0, 0, 0]} color={0xff8fb0} emissive={0.18} />
       </group>
       <group ref={reg('hairFr')} position={[0, PLAYER_MESH_LAYOUT.head.baseY + 0.22, 0.32]}>
-        <Block size={[0.84, 0.28, 0.22]} position={[0, 0, 0]} color={0xff8fb0} emissive={0.18} geometryKind="wedge" />
+        <Block size={[0.84, 0.28, 0.22]} position={[0, 0, 0]} color={0xff8fb0} emissive={0.18} />
       </group>
       <group ref={reg('hairSL')} position={[-0.46, PLAYER_MESH_LAYOUT.head.baseY + 0.05, 0]}>
-        <Block size={[0.22, 0.6, 0.5]} position={[0, 0, 0]} color={0xd94070} emissive={0.14} geometryKind="lowCone" />
+        <Block size={[0.22, 0.6, 0.5]} position={[0, 0, 0]} color={0xd94070} emissive={0.14} />
       </group>
       <group ref={reg('hairSR')} position={[0.46, PLAYER_MESH_LAYOUT.head.baseY + 0.08, 0]}>
-        <Block size={[0.22, 0.5, 0.46]} position={[0, 0, 0]} color={0xd94070} emissive={0.14} geometryKind="lowCone" />
+        <Block size={[0.22, 0.5, 0.46]} position={[0, 0, 0]} color={0xd94070} emissive={0.14} />
       </group>
       <group ref={reg('hairTail')} position={[-0.5, PLAYER_MESH_LAYOUT.head.baseY - 0.38, -0.06]}>
-        <Block size={[0.22, 0.52, 0.2]} position={[0, 0, 0]} color={0xd94070} emissive={0.14} geometryKind="wedge" />
+        <Block size={[0.22, 0.52, 0.2]} position={[0, 0, 0]} color={0xd94070} emissive={0.14} />
       </group>
       <group ref={reg('hairClip')} position={[0.34, PLAYER_MESH_LAYOUT.head.baseY + 0.6, 0.28]}>
         <Block size={[0.25, 0.16, 0.2]} position={[0, 0, 0]} color={0xf4f4f4} emissive={0.08} />
@@ -334,20 +333,20 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
       </group>
 
       <group ref={reg('bag')} position={[-0.52, 0.46, -0.22]}>
-        <Block size={[0.48, 0.68, 0.3]} position={[0, 0, 0]} color={0x38c8f0} emissive={0.2} geometryKind="wedge" />
+        <Block size={[0.48, 0.68, 0.3]} position={[0, 0, 0]} color={0x38c8f0} emissive={0.2} />
         <Block size={[0.32, 0.22, 0.1]} position={[0, 0.24, 0.22]} color={0x1668a0} emissive={0.12} />
       </group>
       <Block size={[0.1, 0.62, 0.1]} position={[-0.22, 0.46, 0.3]} color={0x005cff} emissive={0.18} />
       <Block size={[0.1, 0.62, 0.1]} position={[0.22, 0.46, 0.3]} color={0x005cff} emissive={0.18} />
 
       <group ref={reg('slvL')} position={[-0.6, 0.72, 0]}>
-        <Block size={[0.36, 0.66, 0.36]} position={[0, -0.33, 0]} color={0xd42020} emissive={0.2} geometryKind="lowCylinder" />
-        <Block size={[0.26, 0.26, 0.26]} position={[0, -0.76, 0]} color={0xffc39b} emissive={0.1} geometryKind="octa" />
+        <Block size={[0.36, 0.66, 0.36]} position={[0, -0.33, 0]} color={0xd42020} emissive={0.2} />
+        <Block size={[0.26, 0.26, 0.26]} position={[0, -0.76, 0]} color={0xffc39b} emissive={0.1} />
       </group>
 
       <group ref={reg('slvR')} position={[0.6, 0.72, 0]}>
-        <Block size={[0.36, 0.66, 0.36]} position={[0, -0.33, 0]} color={0xd42020} emissive={0.2} geometryKind="lowCylinder" />
-        <Block size={[0.26, 0.26, 0.26]} position={[0, -0.76, 0]} color={0xffc39b} emissive={0.1} geometryKind="octa" />
+        <Block size={[0.36, 0.66, 0.36]} position={[0, -0.33, 0]} color={0xd42020} emissive={0.2} />
+        <Block size={[0.26, 0.26, 0.26]} position={[0, -0.76, 0]} color={0xffc39b} emissive={0.1} />
         <group ref={reg('lantern')} position={PLAYER_MESH_LAYOUT.lantern.position} visible={false}>
           <PlayerLanternModel />
         </group>

@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 
 let _gradient = null
-let _facetedGradient = null
 
 export function getToonGradient() {
   if (_gradient) return _gradient
@@ -17,22 +16,6 @@ export function getToonGradient() {
   _gradient.generateMipmaps = false
   _gradient.colorSpace = THREE.SRGBColorSpace
   return _gradient
-}
-
-export function getFacetedToonGradient() {
-  if (_facetedGradient) return _facetedGradient
-  const c = document.createElement('canvas')
-  c.width = 3; c.height = 1
-  const ctx = c.getContext('2d')
-  ;['#8c8c8c', '#c7c7c7', '#ffffff'].forEach((col, i) => {
-    ctx.fillStyle = col
-    ctx.fillRect(i, 0, 1, 1)
-  })
-  _facetedGradient = new THREE.CanvasTexture(c)
-  _facetedGradient.minFilter = _facetedGradient.magFilter = THREE.NearestFilter
-  _facetedGradient.generateMipmaps = false
-  _facetedGradient.colorSpace = THREE.NoColorSpace
-  return _facetedGradient
 }
 
 // 외곽선 굵기 글로벌 곱수. 모든 인버티드 헐 메쉬의 인플레이션 오프셋 (s - 1)에 곱한다.
@@ -65,21 +48,6 @@ export function toonMat(hex, emissiveIntensity = 0.08, side = THREE.FrontSide) {
   m.stencilFunc  = THREE.AlwaysStencilFunc
   m.stencilZPass = THREE.ReplaceStencilOp
   return m
-}
-
-export function facetedToonMat(hex, emissiveIntensity = 0, side = THREE.FrontSide) {
-  const material = new THREE.MeshToonMaterial({
-    color: hex,
-    gradientMap: getFacetedToonGradient(),
-    emissive: hex,
-    emissiveIntensity,
-    side,
-  })
-  material.stencilWrite = true
-  material.stencilRef = OUTLINE_STENCIL_REF
-  material.stencilFunc = THREE.AlwaysStencilFunc
-  material.stencilZPass = THREE.ReplaceStencilOp
-  return material
 }
 
 // 외곽선 위계 프리셋 — opacity·color 두 축을 prose가 아닌 코드에서 페어링.
@@ -126,43 +94,6 @@ export function getCachedBoxGeo(w, h, d) {
   return g
 }
 
-// Character rigs keep their existing child tree and pivots.  Only this cached
-// geometry choice changes the silhouette, so numeric Studio part paths remain
-// stable across the game, Studio, and title scenes.
-const _facetedGeoCache = new Map()
-export function getCachedFacetedGeo(kind, w, h, d) {
-  if (!kind || kind === 'box') return getCachedBoxGeo(w, h, d)
-  const key = `${kind}:${w},${h},${d}`
-  let geometry = _facetedGeoCache.get(key)
-  if (geometry) return geometry
-
-  switch (kind) {
-    case 'tetra': geometry = new THREE.TetrahedronGeometry(0.5, 0); break
-    case 'octa': geometry = new THREE.OctahedronGeometry(0.5, 0); break
-    case 'dodeca': geometry = new THREE.DodecahedronGeometry(0.5, 0); break
-    case 'lowCylinder': geometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 6, 1); break
-    case 'lowCone': geometry = new THREE.ConeGeometry(0.5, 1, 6, 1); break
-    case 'flatDisc': geometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 6, 1); break
-    case 'wedge': geometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 4, 1); break
-    default: return getCachedBoxGeo(w, h, d)
-  }
-
-  if (kind === 'flatDisc') geometry.rotateX(Math.PI / 2)
-  // Separate vertices keep each polygon's normal discontinuous.  This gives
-  // the selected character parts faceted light steps without mutating the
-  // shared legacy toon materials used by ordinary zombies and props.
-  if (geometry.index) geometry = geometry.toNonIndexed()
-  geometry.computeBoundingBox()
-  const box = geometry.boundingBox
-  const width = box.max.x - box.min.x
-  const height = box.max.y - box.min.y
-  const depth = box.max.z - box.min.z
-  geometry.scale(w / width, h / height, d / depth)
-  geometry.computeVertexNormals()
-  _facetedGeoCache.set(key, geometry)
-  return geometry
-}
-
 const _cylinderGeoCache = new Map()
 export function getCachedCylinderGeo(...args) {
   const key = args.join(',')
@@ -182,18 +113,6 @@ export function getCachedToonMat(color, emissive = 0.08, side = THREE.FrontSide,
     _toonMatCache.set(key, m)
   }
   return m
-}
-
-const _facetedToonMatCache = new Map()
-export function getCachedFacetedToonMat(color, emissive = 0, side = THREE.FrontSide, depthWrite = true) {
-  const key = `${color},${emissive},${side},${depthWrite}`
-  let material = _facetedToonMatCache.get(key)
-  if (!material) {
-    material = facetedToonMat(color, emissive, side)
-    material.depthWrite = depthWrite
-    _facetedToonMatCache.set(key, material)
-  }
-  return material
 }
 
 // outlineMat도 프랍마다 새로 만들면 Stage 1 진입 시 같은 GPU 프로그램/재질이 대량으로
@@ -226,19 +145,14 @@ if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     _toonMatCache.forEach((m) => m.dispose())
     _toonMatCache.clear()
-    _facetedToonMatCache.forEach((m) => m.dispose())
-    _facetedToonMatCache.clear()
     _outlineMatCache.forEach((m) => m.dispose())
     _outlineMatCache.clear()
     _sharedOutlineMat?.dispose(); _sharedOutlineMat = null
     _flashMat?.dispose(); _flashMat = null
     _geoCache.forEach((g) => g.dispose())
     _geoCache.clear()
-    _facetedGeoCache.forEach((g) => g.dispose())
-    _facetedGeoCache.clear()
     _cylinderGeoCache.forEach((g) => g.dispose())
     _cylinderGeoCache.clear()
     _gradient?.dispose(); _gradient = null
-    _facetedGradient?.dispose(); _facetedGradient = null
   })
 }
