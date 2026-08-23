@@ -15,8 +15,9 @@ export function createB03ShuttleRunState({
   }
 }
 
-export function getB03ShuttleRunTrigger({ hpRatio = 1, elapsedMs = 0, chargeState = 'idle', state } = {}) {
-  if (!state || state.phase !== 'idle' || chargeState !== 'chase' || elapsedMs >= 200_000) return null
+// HP 임계에 닿으면 경과 시간과 무관하게 반드시 발현한다(2026-08-23 사용자 지시).
+export function getB03ShuttleRunTrigger({ hpRatio = 1, chargeState = 'idle', state } = {}) {
+  if (!state || state.phase !== 'idle' || chargeState !== 'chase') return null
   if (hpRatio <= 0.65 && !state.triggeredSixtyFive) return 'sixtyFive'
   if (hpRatio <= 0.30 && !state.triggeredThirty) return 'thirty'
   return null

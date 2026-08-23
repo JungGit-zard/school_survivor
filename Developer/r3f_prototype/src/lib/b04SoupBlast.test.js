@@ -12,10 +12,10 @@ import {
 } from './b04SoupBlast.js'
 
 describe('B04 국물 대폭발', () => {
-  it('50% 전환은 200초 전 한 번만 발동하고 200초부터는 기존 P2로 우회한다', () => {
+  it('50% 전환은 경과 시간과 무관하게 런당 한 번 반드시 발동한다', () => {
     const state = createB04SoupBlastState()
-    expect(getB04SoupBlastTrigger({ hpRatio: 0.5, elapsedMs: 199_999, state })).toBe(true)
-    expect(getB04SoupBlastTrigger({ hpRatio: 0.5, elapsedMs: 200_000, state })).toBe(false)
+    expect(getB04SoupBlastTrigger({ hpRatio: 0.5, state })).toBe(true)
+    expect(getB04SoupBlastTrigger({ hpRatio: 0.5, elapsedMs: 600_000, state })).toBe(true)
     expect(getB04SoupBlastTrigger({ hpRatio: 0.5, elapsedMs: 100, state: startB04SoupBlast(state, []) })).toBe(false)
   })
 

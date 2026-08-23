@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { createEnemyProjectilePool, E04_PROJECTILE_LIFETIME_MS, MAX_ENEMY_PROJECTILES } from './enemyProjectilePool.js'
+import {
+  CHEF_INGREDIENT_KINDS,
+  ENEMY_PROJECTILE_KIND_COUNT,
+  ENEMY_PROJECTILE_KIND_SPHERE,
+  E04_PROJECTILE_LIFETIME_MS,
+  E04_PROJECTILE_RADIUS,
+  MAX_ENEMY_PROJECTILES,
+  chefIngredientKindAt,
+  createEnemyProjectilePool,
+} from './enemyProjectilePool.js'
 
 describe('EnemyProjectilePool', () => {
   it('고정 capacity, stale generation, Float32 안전 입력을 지킨다', () => {
@@ -64,5 +73,49 @@ describe('EnemyProjectilePool', () => {
     expect(after.index).toBe(before.index)
     expect(after.generation).toBeGreaterThan(before.generation)
     expect(pool.despawn(before.index, before.generation)).toBe(false)
+  })
+
+  it('kind는 비주얼 전용 채널이고 해제 시 기본 구체로 되돌아간다', () => {
+    const pool = createEnemyProjectilePool()
+    const carrot = {}
+    expect(pool.spawnInto(carrot, 0, 0, 0, 1, 0, 14, 1.6, CHEF_INGREDIENT_KINDS[0])).toBe(true)
+    expect(pool.kind[carrot.index]).toBe(CHEF_INGREDIENT_KINDS[0])
+    // kind는 데미지·속도·수명·판정 반경 어디에도 개입하지 않는다.
+    expect(pool.damage[carrot.index]).toBe(14)
+    expect(pool.velX[carrot.index]).toBeCloseTo(1.6, 6)
+    expect(E04_PROJECTILE_RADIUS).toBe(0.09)
+
+    expect(pool.despawn(carrot.index, carrot.generation)).toBe(true)
+    expect(pool.kind[carrot.index]).toBe(ENEMY_PROJECTILE_KIND_SPHERE)
+
+    const knife = {}
+    expect(pool.spawnInto(knife, 0, 0, 0, 1, 0, 14, 1.6, CHEF_INGREDIENT_KINDS[3])).toBe(true)
+    pool.reset()
+    expect(pool.kind[knife.index]).toBe(ENEMY_PROJECTILE_KIND_SPHERE)
+  })
+
+  it('E04 경로처럼 kind를 넘기지 않으면 기본 구체를 유지하고, 잘못된 kind도 구체로 접는다', () => {
+    const pool = createEnemyProjectilePool()
+    const e04 = {}
+    expect(pool.spawnInto(e04, 0, 0, 0, 1, 0)).toBe(true)
+    expect(pool.kind[e04.index]).toBe(ENEMY_PROJECTILE_KIND_SPHERE)
+
+    const withStats = {}
+    expect(pool.spawnInto(withStats, 0, 0, 0, 1, 0, 8, 1.9)).toBe(true)
+    expect(pool.kind[withStats.index]).toBe(ENEMY_PROJECTILE_KIND_SPHERE)
+
+    for (const bad of [ENEMY_PROJECTILE_KIND_COUNT, -1, 1.5, Number.NaN, 'carrot', null, undefined]) {
+      const handle = {}
+      expect(pool.spawnInto(handle, 0, 0, 0, 1, 0, 8, 1.9, bad)).toBe(true)
+      expect(pool.kind[handle.index]).toBe(ENEMY_PROJECTILE_KIND_SPHERE)
+    }
+  })
+
+  it('chefIngredientKindAt은 재료 4종을 결정론적으로 순환시킨다', () => {
+    expect(CHEF_INGREDIENT_KINDS).toEqual([1, 2, 3, 4])
+    expect(ENEMY_PROJECTILE_KIND_COUNT).toBe(5)
+    expect([0, 1, 2, 3, 4, 5, 6, 7].map(chefIngredientKindAt)).toEqual([1, 2, 3, 4, 1, 2, 3, 4])
+    expect(chefIngredientKindAt(Number.NaN)).toBe(CHEF_INGREDIENT_KINDS[0])
+    expect(CHEF_INGREDIENT_KINDS).not.toContain(ENEMY_PROJECTILE_KIND_SPHERE)
   })
 })

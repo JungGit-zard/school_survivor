@@ -41,15 +41,15 @@ import {
 } from './Enemy.jsx'
 
 describe('B02 corridor blockade visual states', () => {
-  it('uses cyan surfaces and dark outlines for the telegraph, active, completed, and future lines', () => {
-    expect(getB02CorridorBlockadeLineVisualState({ phase: 'telegraph', index: 2, activeLineIndex: -1 })).toBe('telegraph')
-    expect(getB02CorridorBlockadeLineVisualState({ phase: 'active', index: 0, activeLineIndex: 1 })).toBe('completed')
-    expect(getB02CorridorBlockadeLineVisualState({ phase: 'active', index: 1, activeLineIndex: 1 })).toBe('active')
-    expect(getB02CorridorBlockadeLineVisualState({ phase: 'active', index: 2, activeLineIndex: 1 })).toBe('future')
-    expect(shouldRenderB02CorridorBlockadeVisual({ phase: 'telegraph', lineZs: [1, 2, 3] })).toBe(true)
-    expect(shouldRenderB02CorridorBlockadeVisual({ phase: 'active', lineZs: [1, 2, 3] })).toBe(true)
-    expect(shouldRenderB02CorridorBlockadeVisual({ phase: 'stun', lineZs: [1, 2, 3] })).toBe(false)
-    expect(shouldRenderB02CorridorBlockadeVisual({ phase: 'idle', lineZs: [1, 2, 3] })).toBe(false)
+  it('uses cyan surfaces and dark outlines, and lights every boss-ring line at once', () => {
+    // 순차 점등을 없앴다 — 보스를 두르는 선은 활성 구간 내내 전부 같은 상태로 켜져 있다.
+    expect(getB02CorridorBlockadeLineVisualState({ phase: 'telegraph' })).toBe('telegraph')
+    expect(getB02CorridorBlockadeLineVisualState({ phase: 'active' })).toBe('active')
+    expect(getB02CorridorBlockadeLineVisualState({ phase: 'stun' })).toBe('completed')
+    expect(shouldRenderB02CorridorBlockadeVisual({ phase: 'telegraph', lineZs: [-3, 3] })).toBe(true)
+    expect(shouldRenderB02CorridorBlockadeVisual({ phase: 'active', lineZs: [-3, 3] })).toBe(true)
+    expect(shouldRenderB02CorridorBlockadeVisual({ phase: 'stun', lineZs: [-3, 3] })).toBe(false)
+    expect(shouldRenderB02CorridorBlockadeVisual({ phase: 'idle', lineZs: [-3, 3] })).toBe(false)
 
     for (const visual of Object.values(B02_CORRIDOR_BLOCKADE_VISUALS)) {
       expect(visual.surface).toMatch(/^#(0|1|2)[0-9a-f]{5}$/i)

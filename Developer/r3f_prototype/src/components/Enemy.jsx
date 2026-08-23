@@ -17,6 +17,7 @@ import { emitCriticalHitScreenShake, emitEnemyHitScreenShake } from '../lib/crit
 import { createEnemyCriticalHitBurstEvent, createEnemyHitSparkEvent, resolveEnemyHitKnockback } from '../lib/enemyHitVfx.js'
 import { resolveCollapseIntensity } from '../lib/enemyDeathCollapse.js'
 import { canE04FireProjectile, getE04IntroSec } from '../lib/stage2ProjectileRules.js'
+import { ENEMY_PROJECTILE_KIND_SPHERE, chefIngredientKindAt } from '../lib/enemyProjectilePool.js'
 import {
   CHEF_PHASE1,
   CHEF_TELEGRAPH,
@@ -528,26 +529,24 @@ export const B02_CORRIDOR_BLOCKADE_VISUALS = Object.freeze({
   telegraph: Object.freeze({ surface: '#22cbd2', surfaceOpacity: 0.48, outline: '#063b46', outlineOpacity: 0.82, shadow: '#021c24', shadowOpacity: 0.34 }),
   active: Object.freeze({ surface: '#24edf0', surfaceOpacity: 0.9, outline: '#052f39', outlineOpacity: 0.96, shadow: '#021923', shadowOpacity: 0.46 }),
   completed: Object.freeze({ surface: '#0d6570', surfaceOpacity: 0.22, outline: '#063b46', outlineOpacity: 0.5, shadow: '#021923', shadowOpacity: 0.18 }),
-  future: Object.freeze({ surface: '#168895', surfaceOpacity: 0.38, outline: '#063b46', outlineOpacity: 0.7, shadow: '#021923', shadowOpacity: 0.26 }),
 })
 
-export function getB02CorridorBlockadeLineVisualState({ phase, index, activeLineIndex }) {
+// 선은 이제 보스를 두르는 고정 경계라 순차 점등이 없다 — 활성 중에는 전부 같은 상태다.
+export function getB02CorridorBlockadeLineVisualState({ phase }) {
   if (phase === 'telegraph') return 'telegraph'
-  if (phase !== 'active') return 'completed'
-  if (index < activeLineIndex) return 'completed'
-  return index === activeLineIndex ? 'active' : 'future'
+  return phase === 'active' ? 'active' : 'completed'
 }
 
 export function shouldRenderB02CorridorBlockadeVisual({ phase, lineZs }) {
   return (phase === 'telegraph' || phase === 'active') && lineZs.length > 0
 }
 
-export function B02CorridorBlockadeVisual({ phase, lineZs, activeLineIndex, halfX }) {
+export function B02CorridorBlockadeVisual({ phase, lineZs, halfX }) {
   if (!shouldRenderB02CorridorBlockadeVisual({ phase, lineZs })) return null
   return (
     <group aria-label="B02 복도 봉쇄선">
       {lineZs.map((z, index) => {
-        const visualState = getB02CorridorBlockadeLineVisualState({ phase, index, activeLineIndex })
+        const visualState = getB02CorridorBlockadeLineVisualState({ phase })
         const visual = B02_CORRIDOR_BLOCKADE_VISUALS[visualState]
         return (
           <group key={`${index}:${z}`} userData={{ blockadeLineState: visualState }}>
@@ -862,6 +861,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
 
   // E04/B04 projectile state is the shared fixed projectile pool; no React array is mounted.
   const lastFireRef = useRef(0)
+  // B04만 쓰는 재료 투사체 순환 카운터. 비주얼 전용이라 데미지·속도·쿨다운과 무관하다.
+  const chefProjectileKindRef = useRef(0)
   // 보스 프레임의 헬퍼 입력·로그 payload는 모두 재사용한다.
   const chefPhaseArgsRef = useRef({ hpRatio: 1, telegraphElapsedMs: 0 })
   const e04FireArgsRef = useRef({ elapsedSec: 0, ageMs: 0, activeProjectileCount: 0, distanceToPlayer: 0, lastFireElapsedMs: 0, nowMs: 0, cooldownMs: 2200, introSec: 72, bossPressure: false })
@@ -889,7 +890,6 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   const syncB02BlockadeVisual = useCallback((state) => {
     setB02BlockadeVisual((previous) => (
       previous.phase === state.phase
-        && previous.activeLineIndex === state.activeLineIndex
         && previous.lineZs.join(',') === state.lineZs.join(',')
         ? previous
         : { ...state }
@@ -926,6 +926,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     chefPhaseRef.current = CHEF_PHASE1
     setIsChefPhase2(false)
     chefTelegraphStartRef.current = 0
+    chefProjectileKindRef.current = 0
     sightBlockedRef.current = false
     nextSightCheckRef.current = getRuntimeElapsedMs(useGameStore.getState().elapsedMs) + (stableEnemyHash(id) % 90)
     b02BlockadeRef.current = createB02CorridorBlockadeState()
@@ -1101,14 +1102,12 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       }
       const trigger = getB02CorridorBlockadeTrigger({
         hpRatio: hpRef.current / stats.hp,
-        elapsedMs,
         chargeState: chargeState.current,
         state: previous,
       })
       if (trigger) {
         const lineZs = getB02CorridorBlockadeLineZs({
           bossZ: t.z,
-          playerZ: playerPos.z,
           halfZ: stageCombatConfig.bounds.halfZ,
         })
         const next = startB02CorridorBlockade(previous, trigger, lineZs)
@@ -1148,7 +1147,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         return
       }
       const trigger = getB03ShuttleRunTrigger({
-        hpRatio: hpRef.current / stats.hp, elapsedMs, chargeState: chargeState.current, state: previous,
+        hpRatio: hpRef.current / stats.hp, chargeState: chargeState.current, state: previous,
       })
       if (trigger) {
         const halfX = stageCombatConfig.bounds.halfX
@@ -1195,7 +1194,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         return
       }
       if (chefPhaseRef.current === CHEF_PHASE1 && hpRef.current / stats.hp <= 0.5) {
-        if (getB04SoupBlastTrigger({ hpRatio: hpRef.current / stats.hp, elapsedMs, state: soup })) {
+        if (getB04SoupBlastTrigger({ hpRatio: hpRef.current / stats.hp, state: soup })) {
           const circles = getB04SoupBlastCircles({ player: playerPos, halfX: stageCombatConfig.bounds.halfX, halfZ: stageCombatConfig.bounds.halfZ, obstacles: sightObstacles })
           logPlaytestEvent('b04-soup-blast-start', { circles: circles.length, hpRatio: hpRef.current / stats.hp, elapsedSec: Math.round(elapsedMs / 100) / 10 })
           b04SoupBlastRef.current = startB04SoupBlast(soup, circles)
@@ -1204,11 +1203,6 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           rb.current.setLinvel(_vel, true)
           queueVisualState('animPhase', 'warn')
           return
-        }
-        if (elapsedMs >= 200_000) {
-          chefPhaseRef.current = CHEF_PHASE2
-          setIsChefPhase2(true)
-          queueVisualState('animPhase', 'normal')
         }
       }
       if (soup.phase === 'done') {
@@ -1289,8 +1283,13 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         lastFireRef.current = now
         _fireDir.copy(_dir).normalize()
         // B04도 E04와 같은 fixed pool을 사용한다. 속도만 실효 스탯으로 전달한다.
+        // kind는 비주얼 채널이다. B04만 당근·양파·감자·식칼을 순환시키고,
+        // E04는 기본 구체(ENEMY_PROJECTILE_KIND_SPHERE)를 그대로 유지한다.
+        const projectileKind = stats.chefBoss
+          ? chefIngredientKindAt(chefProjectileKindRef.current++)
+          : ENEMY_PROJECTILE_KIND_SPHERE
         enemyProjectilePool.spawnInto(enemyHandleScratch, _pos.x, _pos.y, _pos.z,
-          _fireDir.x, _fireDir.z, active.rangedDmg, active.rangedSpeed)
+          _fireDir.x, _fireDir.z, active.rangedDmg, active.rangedSpeed, projectileKind)
       }
       return
     }
@@ -1548,7 +1547,6 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         <B02CorridorBlockadeVisual
           phase={b02BlockadeVisual.phase}
           lineZs={b02BlockadeVisual.lineZs}
-          activeLineIndex={b02BlockadeVisual.activeLineIndex}
           halfX={stageCombatConfig.bounds.halfX}
         />
       )}

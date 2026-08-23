@@ -19,8 +19,10 @@ export function createB04SoupBlastState() {
   return { phase: 'idle', elapsedMs: 0, circles: [], damagedPlayer: false, triggered: false }
 }
 
-export function getB04SoupBlastTrigger({ hpRatio = 1, elapsedMs = 0, state } = {}) {
-  return !!state && state.phase === 'idle' && !state.triggered && hpRatio <= 0.5 && elapsedMs < 200_000
+// HP 50%에 닿으면 경과 시간과 무관하게 반드시 발현한다(2026-08-23 사용자 지시).
+// 시간 초과로 폭발을 건너뛰고 P2로 직행하던 경로는 없앴다 — 격노 전환은 항상 폭발 뒤에 온다.
+export function getB04SoupBlastTrigger({ hpRatio = 1, state } = {}) {
+  return !!state && state.phase === 'idle' && !state.triggered && hpRatio <= 0.5
 }
 
 function overlapsObstacle(circle, obstacle) {

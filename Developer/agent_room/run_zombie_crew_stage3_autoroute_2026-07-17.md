@@ -41,3 +41,4 @@ Minimum gate:
 | 2 | 3 | 2.20 | -0.72, 0, +0.72 |
 
 - `Enemies.test.jsx` verifies every follower is behind the leader, rows are exactly 3+3, sides are symmetric, and no local coordinate is duplicated.
+- Verification commands run from `Developer/r3f_prototype`: `npm run test -- src/components/Enemies.test.jsx -t "stage3 run zombie crew"`, `npm run test -- src/components/Enemies.test.jsx -t "formation spawns"`, and `npm run test -- src/components/Enemies.test.jsx`; final result was 109/109 tests passed, with branch guard, legacy B02 gate, dialogue store gate, and Studio-game sync contract passing in pretest.

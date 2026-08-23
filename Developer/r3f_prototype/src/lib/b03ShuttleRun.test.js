@@ -12,11 +12,11 @@ import {
 } from './b03ShuttleRun.js'
 
 describe('B03 왕복 오래달리기', () => {
-  it('HP 65%와 30%에서 chase 중 각 한 번만 시작하고 200초에는 시작하지 않는다', () => {
+  it('HP 65%와 30%에서 chase 중 각 한 번만 시작하고, 경과 시간은 막지 않는다', () => {
     const empty = createB03ShuttleRunState()
-    expect(getB03ShuttleRunTrigger({ hpRatio: 0.65, elapsedMs: 199_999, chargeState: 'chase', state: empty })).toBe('sixtyFive')
-    expect(getB03ShuttleRunTrigger({ hpRatio: 0.65, elapsedMs: 200_000, chargeState: 'chase', state: empty })).toBeNull()
-    expect(getB03ShuttleRunTrigger({ hpRatio: 0.65, elapsedMs: 199_999, chargeState: 'warn', state: empty })).toBeNull()
+    expect(getB03ShuttleRunTrigger({ hpRatio: 0.65, chargeState: 'chase', state: empty })).toBe('sixtyFive')
+    expect(getB03ShuttleRunTrigger({ hpRatio: 0.65, elapsedMs: 600_000, chargeState: 'chase', state: empty })).toBe('sixtyFive')
+    expect(getB03ShuttleRunTrigger({ hpRatio: 0.65, chargeState: 'warn', state: empty })).toBeNull()
     const first = startB03ShuttleRun(empty, 'sixtyFive', { laneZ: 2, startX: -6.6, endX: 6.6 })
     expect(getB03ShuttleRunTrigger({ hpRatio: 0.30, elapsedMs: 199_999, chargeState: 'chase', state: first })).toBeNull()
     const afterFirst = { ...empty, triggeredSixtyFive: true }

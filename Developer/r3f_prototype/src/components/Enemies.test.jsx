@@ -1279,6 +1279,23 @@ describe('pooled standard enemy runtime wiring', () => {
     expect(source).not.toContain('_activeE04ProjectileIds')
   })
 
+  it('B04만 주방 재료 kind를 순환시키고 E04는 기본 구체를 유지한다', () => {
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    // B04 전용 순환 카운터. 프레임 난수가 아니라 발사 순서로만 재료가 바뀐다.
+    expect(source).toContain('const chefProjectileKindRef = useRef(0)')
+    expect(source).toContain('chefProjectileKindRef.current = 0')
+    expect(source).toContain('chefIngredientKindAt(chefProjectileKindRef.current++)')
+    // 같은 발사 지점에서 chefBoss가 아니면 kind 0(기본 청록 구체)을 그대로 넘긴다.
+    expect(source).toContain(': ENEMY_PROJECTILE_KIND_SPHERE')
+    expect(source).toContain('_fireDir.x, _fireDir.z, active.rangedDmg, active.rangedSpeed, projectileKind)')
+    // 비주얼 전용 변경이다 — 데미지/속도/쿨다운 정본은 그대로여야 한다.
+    expect(source).toContain('chefPhase1: { ranged: true, rangedCooldown: 2600, rangedDmg: 14, rangedSpeed: 1.6, preferDist: 5.0, minDist: 3.0 }')
+
+    // 풀 경로(E04 전용)는 kind 인자를 붙이지 않아 기본값 0을 유지한다.
+    const enemiesSource = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    expect(enemiesSource).toContain('enemyProjectilePool.spawnInto(enemyHandleScratch, runtimeEvent.x, runtimeEvent.y, runtimeEvent.z, runtimeEvent.value, runtimeEvent.aux)')
+  })
+
   it('keeps Matilda out of the world until the shared gameplay-time dialogue grace expires', () => {
     const enemiesSource = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
     const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
