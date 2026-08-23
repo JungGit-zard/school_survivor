@@ -73,6 +73,10 @@ import {
   overtimeReinforcementTick,
   shouldScheduleOvertimeReinforcement,
   overtimeReinforcementCountForTick,
+  overtimeEscalationSteps,
+  overtimeHpMultiplierForTick,
+  overtimeHpStatOverride,
+  OVERTIME_HP_ESCALATION_RATE,
   overtimeMixedTypesForStage,
   buildOvertimeMixedReinforcementEntries,
   clampZombieSpawnRequest,
@@ -87,6 +91,7 @@ import { BOSS_BURST_TYPES, STAGE2_MIXED_REINFORCEMENT, getBurstEventsForStage as
 import { getStageBounds } from '../lib/stageConfig.js'
 import { getStageObjectSightObstacles } from './StageObjects/stageObjectColliders.js'
 import { ENEMY_STATS, getActiveE04ProjectileCount, resetActiveE04ProjectileCountForTest } from './Enemy.jsx'
+import { createEnemyEntityPool } from '../lib/enemyEntityPool.js'
 import { MAX_ENEMIES } from '../lib/enemyEntityPool.js'
 import { playerPos } from '../lib/refs.js'
 import { resolveRangedEnemyVelocity } from './Enemy.jsx'
@@ -332,6 +337,83 @@ describe('all-stage overtime mixed ordinary reinforcements', () => {
     expect(overtimeReinforcementCountForTick(8, 'stage1')).toBe(36)
   })
 
+  // 마릿수 램프는 MAX_ENEMIES(150) 천장에서 포화한다. 그 위로 압박을 잇는 축은 개체 HP뿐이다.
+  it('leaves overtime zombie HP untouched before the five-minute escalation start', () => {
+    expect(OVERTIME_HP_ESCALATION_RATE).toBe(0.1)
+    // 240~299초 = tick 0·1 — 보강은 이미 돌지만 강화는 아직 시작하지 않는다.
+    for (const sec of [240, 269, 270, 299]) {
+      const tick = overtimeReinforcementTick(sec, 'stage1')
+      expect(overtimeEscalationSteps(tick, 'stage1')).toBe(0)
+      expect(overtimeHpMultiplierForTick(tick, 'stage1')).toBe(1)
+      // stage1은 스테이지 사다리도 1.0이라 override 자체가 없어야 한다(기존 경로와 완전 동일).
+      expect(overtimeHpStatOverride('E01', 'stage1', tick)).toBeUndefined()
+      // stage2~4는 스테이지 HP 사다리만 그대로 통과한다.
+      for (const stageId of ['stage2', 'stage3', 'stage4']) {
+        expect(overtimeHpStatOverride('E02', stageId, tick)).toEqual(stageHpOverride('E02', stageId))
+      }
+    }
+    // 300초 계단 진입 tick(2)도 steps 0 — 배수는 정확히 1이다.
+    expect(overtimeReinforcementTick(300, 'stage1')).toBe(2)
+    expect(overtimeHpMultiplierForTick(2, 'stage1')).toBe(1)
+    expect(overtimeHpStatOverride('E06', 'stage1', 2)).toBeUndefined()
+  })
+
+  it('steps overtime zombie HP every three reinforcement ticks on the same ladder as the count ramp', () => {
+    // 계단 산출은 단일 소스여야 한다 — 마릿수와 HP가 서로 다른 계단을 밟으면 여기서 깨진다.
+    const expectedSteps = { 2: 0, 3: 0, 4: 0, 5: 1, 6: 1, 7: 1, 8: 2, 10: 2, 11: 3, 14: 4, 20: 6, 44: 14 }
+    for (const [tick, steps] of Object.entries(expectedSteps)) {
+      expect(overtimeEscalationSteps(Number(tick), 'stage1')).toBe(steps)
+      expect(overtimeHpMultiplierForTick(Number(tick), 'stage1')).toBeCloseTo(1 + steps * 0.1, 10)
+      expect(overtimeReinforcementCountForTick(Number(tick), 'stage1'))
+        .toBe(Math.max(1, Math.round(30 * (1 + steps * OVERTIME_ESCALATION_RATE))))
+    }
+    // 초 단위 손익분기 지표 — 계단은 300초부터 90초마다 하나씩 오른다.
+    const multAtSec = (sec) => overtimeHpMultiplierForTick(overtimeReinforcementTick(sec, 'stage1'), 'stage1')
+    expect(multAtSec(390)).toBeCloseTo(1.1, 10)
+    expect(multAtSec(600)).toBeCloseTo(1.3, 10)
+    expect(multAtSec(900)).toBeCloseTo(1.6, 10)
+    expect(multAtSec(1800)).toBeCloseTo(2.6, 10)
+    expect(multAtSec(3600)).toBeCloseTo(4.6, 10)
+    // 상한이 없다 — 마릿수와 달리 개체 강화는 150 천장에 막히지 않는다.
+    expect(multAtSec(7200)).toBeGreaterThan(multAtSec(3600))
+  })
+
+  it('never applies the overtime HP multiplier to bosses', () => {
+    // 구조적 배제: 오버타임 혼합 풀에는 보스가 없다.
+    for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
+      expect(overtimeMixedTypesForStage(stageId).some((type) => isBossType(type))).toBe(false)
+    }
+    // 방어적 배제: 풀에 섞여 들어와도 시간 배수를 타지 않고 스테이지 사다리만 탄다.
+    for (const bossType of ['B01', 'B02', 'B03', 'B04']) {
+      for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
+        for (const tick of [2, 11, 44, 112]) {
+          expect(overtimeHpStatOverride(bossType, stageId, tick)).toEqual(stageHpOverride(bossType, stageId))
+        }
+      }
+    }
+  })
+
+  it('raises overtime hp and maxHp together so the health bar never overflows', () => {
+    // spawnPooledEnemy는 hp/maxHp를 모두 stats.hp에서 쓴다 — statOverride.hp 하나가 둘을 같이 올린다.
+    const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('hp: stats.hp, maxHp: stats.hp')
+
+    const pool = createEnemyEntityPool()
+    for (const tick of [2, 5, 11, 44]) {
+      for (const type of overtimeMixedTypesForStage('stage1')) {
+        const stats = { ...ENEMY_STATS[type], ...(overtimeHpStatOverride(type, 'stage1', tick) ?? {}) }
+        const expectedHp = Math.max(1, Math.round(ENEMY_STATS[type].hp * overtimeHpMultiplierForTick(tick, 'stage1')))
+        expect(stats.hp).toBe(expectedHp)
+        const handle = pool.spawn({ type, x: 0, y: 0, z: 0, hp: stats.hp, maxHp: stats.hp, visualScale: 1 })
+        expect(handle).not.toBeNull()
+        expect(pool.hp[handle.index]).toBe(pool.maxHp[handle.index])
+        expect(pool.hp[handle.index]).toBe(expectedHp)
+        pool.despawn(handle)
+      }
+    }
+    expect(pool.validateInvariants()).toBe(true)
+  })
+
   it('wires overtime through the frame scheduler and pooled drain path', () => {
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
     const playingFrameBody = source.match(/usePlayingFrame\(\(_, delta\) => \{([\s\S]*?)\n  \}\)/)?.[1] ?? ''
@@ -344,7 +426,10 @@ describe('all-stage overtime mixed ordinary reinforcements', () => {
     expect(source).toContain('pooledActive: enemyPool.activeCount')
     expect(source).toContain('specialActive: enemiesRef.current.length')
     expect(source).toContain('pooledQueued: runtimeQueueRef.current.spawnDrain.count')
-    expect(source).toContain('const requested = overtimeReinforcementCountForTick(overtimeTickRef.current, cache.id)')
+    expect(source).toContain('const overtimeTick = overtimeTickRef.current')
+    expect(source).toContain('const requested = overtimeReinforcementCountForTick(overtimeTick, cache.id)')
+    // 마릿수와 개체 HP는 같은 tick(=같은 계단)을 밟아야 한다. 여기서 갈리면 두 램프가 어긋난다.
+    expect(source).toContain('statOverride: overtimeHpStatOverride(type, cache.id, overtimeTick)')
     expect(source).toContain('const count = clampZombieSpawnRequest(requested, totalZombieCounts())')
     expect(source).toContain('buildOvertimeMixedReinforcementEntries(cache.id, Math.random, count)')
     expect(source).toContain('if (clampZombieSpawnRequest(1, totalZombieCounts()) <= 0) break')

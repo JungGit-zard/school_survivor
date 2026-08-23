@@ -327,15 +327,41 @@ export function shouldScheduleOvertimeReinforcement(lastFiredTick, elapsedSec, s
   return { shouldSchedule: tick !== null && tick > lastFiredTick, tick }
 }
 
+// 오버타임 보강 계단 — 마릿수 램프와 개체 강화가 같은 계단을 밟게 하는 단일 소스.
+// 계단 s는 OVERTIME_ESCALATION_START_SEC(300초)부터 OVERTIME_ESCALATION_SPAWNS_PER_STEP(3틱)마다
+// 하나씩 올라간다. 보강 간격이 30초이므로 s = floor((t - 300) / 90).
+export function overtimeEscalationSteps(tick, stageId = 'stage1') {
+  const safeTick = Math.floor(tick)
+  if (!Number.isFinite(safeTick)) return 0
+  const escalationStartTick = overtimeReinforcementTick(OVERTIME_ESCALATION_START_SEC, stageId)
+  if (escalationStartTick === null || safeTick < escalationStartTick) return 0
+  return Math.floor((safeTick - escalationStartTick) / OVERTIME_ESCALATION_SPAWNS_PER_STEP)
+}
+
 export function overtimeReinforcementCountForTick(tick, stageId = 'stage1', baseCount = OVERTIME_REINFORCEMENT_COUNT) {
   const safeBase = Math.max(0, Math.floor(baseCount) || 0)
-  const safeTick = Math.floor(tick)
-  if (!Number.isFinite(safeTick)) return safeBase
-  const escalationStartTick = overtimeReinforcementTick(OVERTIME_ESCALATION_START_SEC, stageId)
-  if (escalationStartTick === null || safeTick < escalationStartTick) return safeBase
-  const spawnsSinceEscalationStart = safeTick - escalationStartTick
-  const steps = Math.floor(spawnsSinceEscalationStart / OVERTIME_ESCALATION_SPAWNS_PER_STEP)
+  if (!Number.isFinite(Math.floor(tick))) return safeBase
+  const steps = overtimeEscalationSteps(tick, stageId)
+  if (steps <= 0) return safeBase
   return Math.max(1, Math.round(safeBase * (1 + steps * OVERTIME_ESCALATION_RATE)))
+}
+
+export function overtimeHpMultiplierForTick(tick, stageId = 'stage1') {
+  return 1 + overtimeEscalationSteps(tick, stageId) * OVERTIME_HP_ESCALATION_RATE
+}
+
+// 오버타임 경로 전용 statOverride. 스테이지 HP 사다리(stageHpOverride)를 그대로 타고 그 위에
+// 시간 배수를 곱한다. spawnPooledEnemy가 `hp: stats.hp, maxHp: stats.hp`로 쓰므로 hp와 maxHp가
+// 함께 올라간다(체력바가 넘치지 않는다).
+export function overtimeHpStatOverride(type, stageId, tick) {
+  const stageOverride = stageHpOverride(type, stageId)
+  const base = ENEMY_STATS[type]
+  // 보스는 오버타임 풀에 없다(STAGE1/DEFAULT_OVERTIME_MIXED_TYPES). 나중에 섞이더라도
+  // 시간 배수를 타지 않도록 구조적으로 막는다.
+  if (!base || isBossType(type)) return stageOverride
+  const multiplier = overtimeHpMultiplierForTick(tick, stageId)
+  if (!(multiplier > 1)) return stageOverride
+  return { ...stageOverride, hp: Math.max(1, Math.round((stageOverride?.hp ?? base.hp) * multiplier)) }
 }
 
 export function overtimeMixedTypesForStage(stageId) {
@@ -1066,6 +1092,20 @@ export const OVERTIME_REINFORCEMENT_COUNT = 30
 export const OVERTIME_ESCALATION_START_SEC = 300
 export const OVERTIME_ESCALATION_SPAWNS_PER_STEP = 3
 export const OVERTIME_ESCALATION_RATE = 0.1
+// 마릿수 램프는 MAX_ENEMIES(150) 천장에서 멈춘다 — clampZombieSpawnRequest가 `150 - alive`로
+// 잘라내므로 요청을 아무리 키워도 필드는 150에서 포화한다. 그런데 플레이어 레벨업에는 상한이
+// 없어서(xpCurve 무한 기하급수) 포화 이후로는 플레이어만 계속 강해지고, "고득점 vs 탈출"의
+// 손익분기가 사라진다. 마릿수 대신 개체 HP를 같은 계단으로 올려 천장 위에서도 압박이 자라게 한다.
+//
+// HP만 올리고 damage/speed는 건드리지 않는다:
+//  - 구조: ENEMY_RUNTIME_DAMAGE/SPEED는 타입 인덱스 lookup(enemySimulation.js)이고 풀에는
+//    개체별 damage/speed 칼럼이 없다. hp/maxHp만이 개체별로 저장되는 스탯이다.
+//  - 설계: 접촉 피해는 개체마다 ENEMY_CONTACT_COOLDOWN_MS(500ms) 쿨다운을 따로 갖는다.
+//    즉 "동시에 몸에 닿아 있는 마릿수"가 곧 피격 DPS다. HP를 올리면 플레이어가 군중을 깎아
+//    숨 쉴 틈을 만들지 못하게 되고, 그 결과 접촉 개체 수가 늘어 피격 DPS가 따라 오른다.
+//    damage를 직접 올리면 어느 시점부터 한 번 스치면 즉사하는 절벽이 생겨 "조금만 더 버틴다"는
+//    저울질 자체가 사라지고, speed를 올리면 카이팅이 불가능해져 곡선이 아니라 벽이 된다.
+export const OVERTIME_HP_ESCALATION_RATE = 0.1
 const STAGE1_OVERTIME_MIXED_TYPES = Object.freeze(['E01', 'E02', 'E03', 'E05', 'E06', 'E07'])
 const DEFAULT_OVERTIME_MIXED_TYPES = Object.freeze(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07'])
 const MAX_SPECIAL_ENEMIES = 3
@@ -1536,7 +1576,9 @@ export default function Enemies() {
     } else if (kind === SCHEDULE_DOGE) {
       spawnDoge()
     } else if (kind === SCHEDULE_OVERTIME) {
-      const requested = overtimeReinforcementCountForTick(overtimeTickRef.current, cache.id)
+      // 마릿수와 개체 강화가 같은 계단을 밟도록 tick을 한 번만 읽어 둘 다에 쓴다.
+      const overtimeTick = overtimeTickRef.current
+      const requested = overtimeReinforcementCountForTick(overtimeTick, cache.id)
       const count = clampZombieSpawnRequest(requested, totalZombieCounts())
       if (count <= 0) return
       const entries = buildOvertimeMixedReinforcementEntries(cache.id, Math.random, count)
@@ -1546,7 +1588,7 @@ export default function Enemies() {
         const taken = batch.map((enemy) => enemy.pos)
         const pos = spawnPosForBurstType(type, cache.bounds, taken, Math.random, cache.obstacles)
         if (!pos) continue
-        batch.push({ id: ++_uid, type, pos, statOverride: stageHpOverride(type, cache.id) })
+        batch.push({ id: ++_uid, type, pos, statOverride: overtimeHpStatOverride(type, cache.id, overtimeTick) })
       }
       addEnemies(batch, true, cache.spawnToken)
     } else if (kind === SCHEDULE_MATILDA) {
