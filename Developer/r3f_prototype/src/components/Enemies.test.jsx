@@ -11,6 +11,8 @@ import {
   shouldDropTextbook,
   createDeathCollapseEntry,
   TEXTBOOK_DROP_RATE,
+  TEXTBOOK_EARLY_BOOST_UNTIL_SEC,
+  getTextbookDropRate,
   WAVE_PHASES,
   pickTypeByWeightExcluding,
   formationSpawnPositions,
@@ -788,6 +790,10 @@ describe('all zombie HP follows the cumulative 1.2x-per-stage curve', () => {
     expect(sameTypeZombieHpForStage(12.5, 'stage4')).toBe(22)
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
     expect(source).toContain('sameTypeZombieHpForStage(matildaHpFromWeapons(store.weapons), cache.id)')
+    // 2026-08-24 사용자 지시로 돌진 속도를 절반으로 낮췄다(2.8 → 1.4).
+    // 소스 문자열 단언이라 "값이 이 자리에 있다"까지만 보증한다 — 실제 이동은 프레임 검증이 아니다.
+    expect(source).toContain('chargeSpeed: player.speed * 1.4,')
+    expect(source).not.toContain('chargeSpeed: player.speed * 2.8,')
     expect(dogeHpForStage('stage2')).toBe(220)
     expect(dogeHpForStage('stage3')).toBe(242)
     expect(dogeHpForStage('stage4')).toBe(266)
@@ -1201,6 +1207,33 @@ describe('XP textbook drops', () => {
 
   it('does not drop random textbooks for zero-XP enemies', () => {
     expect(shouldDropTextbook({ xp: 0, type: 'B01' }, 0)).toBe(false)
+  })
+
+  // 2026-08-24 사용자 지시: 초반 2분은 교과서 드랍이 2배다.
+  it('doubles the rate before the two minute mark and restores it after', () => {
+    expect(TEXTBOOK_EARLY_BOOST_UNTIL_SEC).toBe(120)
+    expect(getTextbookDropRate(0)).toBeCloseTo(0.6)
+    expect(getTextbookDropRate(119.9)).toBeCloseTo(0.6)
+    // 경계는 배타적이다 — 정확히 120초부터 평소 확률로 돌아온다.
+    expect(getTextbookDropRate(120)).toBeCloseTo(0.3)
+    expect(getTextbookDropRate(240)).toBeCloseTo(0.3)
+  })
+
+  it('lets a roll that misses the base rate still drop inside the boost window', () => {
+    // 0.45는 평소라면 빗나가는 값인데, 부스트 구간에서는 맞는다. 이 한 줄이 부스트의 전부다.
+    expect(shouldDropTextbook({ xp: 6, type: 'E01' }, 0.45, 60)).toBe(true)
+    expect(shouldDropTextbook({ xp: 6, type: 'E01' }, 0.45, 180)).toBe(false)
+  })
+
+  it('keeps the boost from ever exceeding a certain drop', () => {
+    // 배수를 올리다 1.0을 넘겨도 확률이 1을 넘지 않아야 roll 비교가 깨지지 않는다.
+    expect(getTextbookDropRate(0)).toBeLessThanOrEqual(1)
+  })
+
+  it('falls back to the base rate when no elapsed time is supplied', () => {
+    // 호출부가 시간을 안 넘기면 부스트가 조용히 켜지면 안 된다 — 기본은 평소 확률이다.
+    expect(getTextbookDropRate()).toBeCloseTo(0.3)
+    expect(shouldDropTextbook({ xp: 6, type: 'E01' }, 0.45)).toBe(false)
   })
 })
 

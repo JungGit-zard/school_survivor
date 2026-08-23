@@ -50,6 +50,16 @@ const GOLD_INTERVAL_MIN_MS = 20_000
 const GOLD_INTERVAL_MAX_MS = 28_000
 const GOLD_VISIBLE_RADIUS = 10  // 플레이어 기준 이 거리 내 적에서 드랍 시도
 export const TEXTBOOK_DROP_RATE = 0.30  // 일반 적 사망 시 교과서 드랍 확률
+// 초반 2분은 교과서 드랍 확률이 2배다(2026-08-24 사용자 지시). 첫 레벨업까지의 공백을
+// 좁히는 것이 목적이라, 부스트가 끝나는 시각은 XP 곡선이 아니라 이 상수 하나가 정한다.
+export const TEXTBOOK_EARLY_BOOST_UNTIL_SEC = 120
+export const TEXTBOOK_EARLY_BOOST_MULTIPLIER = 2
+
+// 경과 시간에 따른 실효 드랍 확률. 부스트 구간이라도 1.0을 넘지 않게 잘라낸다.
+export function getTextbookDropRate(elapsedSec = Infinity) {
+  const boosted = Number.isFinite(elapsedSec) && elapsedSec < TEXTBOOK_EARLY_BOOST_UNTIL_SEC
+  return Math.min(1, TEXTBOOK_DROP_RATE * (boosted ? TEXTBOOK_EARLY_BOOST_MULTIPLIER : 1))
+}
 const MISSION_SPECIAL_SURVIVAL_TYPES = new Set(['E03', 'RZT', 'RZG', 'RZL', 'RZC'])
 
 function recordMissionBurstSpawns(store, entries, stageId, spawnSec) {
@@ -83,8 +93,8 @@ export function getEliteBonusTextbookXp(type, fallbackXp) {
   return bonus.textbookXp ?? fallbackXp
 }
 
-export function shouldDropTextbook(dropData, roll = Math.random()) {
-  return (dropData?.xp ?? 0) > 0 && roll < TEXTBOOK_DROP_RATE
+export function shouldDropTextbook(dropData, roll = Math.random(), elapsedSec = Infinity) {
+  return (dropData?.xp ?? 0) > 0 && roll < getTextbookDropRate(elapsedSec)
 }
 
 export function createDeathCollapseEntry(id, dropData) {
@@ -1330,6 +1340,11 @@ export default function Enemies() {
           : createEnemyHitSparkEvent({ x: hit.x, y: Math.max(0.34, hit.sparkY), z: hit.z }))
         emitDamageNumber({ x: hit.x, y: Math.max(0.8, hit.numberY), z: hit.z, amount: hit.amount, colorHex: hit.critical ? DAMAGE_NUMBER_COLORS.critical : DAMAGE_NUMBER_COLORS.enemy, isCritical: hit.critical })
       }
+      // 교과서 부스트 판정용 경과 초. 시체 하나마다 스토어를 읽지 않도록 루프 밖에서 한 번만 읽는다.
+      // 스폰 캐치업 시계가 아니라 실시간이어야 한다 — 부스트는 "플레이어가 체감하는 초반 2분"이다.
+      const dropElapsedSec = queue.deathCount > 0
+        ? getRuntimeElapsedMs(useGameStore.getState().elapsedMs) / 1000
+        : Infinity
       while (queue.deathCount > 0) {
         const slot = queue.deathRead
         const type = enemyTypeFromCode(queue.deathType[slot])
@@ -1346,7 +1361,7 @@ export default function Enemies() {
           const textbookXp = getEliteBonusTextbookXp(type, dropData.xp)
           for (let rewardIndex = 0; rewardIndex < bonus.textbook; rewardIndex += 1) pushBounded(queue.textbooks, { id: ++_textbookId, pos, value: textbookXp })
           for (let rewardIndex = 0; rewardIndex < bonus.gold; rewardIndex += 1) pushBounded(queue.gold, { id: ++_coinId, pos, value: 1 })
-        } else if (shouldDropTextbook(dropData)) pushBounded(queue.textbooks, { id: ++_textbookId, pos, value: dropData.xp })
+        } else if (shouldDropTextbook(dropData, Math.random(), dropElapsedSec)) pushBounded(queue.textbooks, { id: ++_textbookId, pos, value: dropData.xp })
         queue.deathRead = (slot + 1) % MAX_RUNTIME_QUEUE
         queue.deathCount -= 1
       }
@@ -1615,7 +1630,10 @@ export default function Enemies() {
         hp:          sameTypeZombieHpForStage(matildaHpFromWeapons(store.weapons), cache.id),
         scale:       ENEMY_STATS.B01.scale,
         charger:     true,
-        chargeSpeed: player.speed * 2.8,
+        // 2026-08-24 사용자 지시로 돌진 속도를 절반(2.8 → 1.4배)으로 낮췄다.
+        // 여전히 플레이어보다 빠르므로 직선으로 도망치는 것으로는 못 뿌리치고,
+        // 마틸다가 벽에서 반전하는 사이 옆으로 빠지는 회피는 성립한다.
+        chargeSpeed: player.speed * 1.4,
         xp: 0,
       }
       const spawnPos = randomSpawnPos('B01', cache.bounds, [], Math.random, cache.obstacles, matildaStats.scale)
