@@ -67,11 +67,14 @@ function recordMissionBurstSpawns(store, entries, stageId, spawnSec) {
 }
 
 // 보스/엘리트 사망 시 추가 보너스 (기획서 §3-3)
-const ELITE_BONUS = {
+export const ELITE_BONUS = {
   E06: { textbook: 1, gold: 1 },
   B01: { textbook: 3, textbookXp: 40, gold: 5 },
   B02: { textbook: 3, textbookXp: 40, gold: 5 },
   B03: { textbook: 3, textbookXp: 40, gold: 5 },
+  // B04는 최종 보스인데도 이 표에서 빠져 있어 처치 보상이 0이었다.
+  // 정본: Planner/permanent_upgrade_expansion_design_2026-07-26.md §5-1 — B01~B03과 동일 수치.
+  B04: { textbook: 3, textbookXp: 40, gold: 5 },
 }
 
 export function getEliteBonusTextbookXp(type, fallbackXp) {

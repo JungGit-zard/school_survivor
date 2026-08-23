@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import {
+  ELITE_BONUS,
   getEliteBonusTextbookXp,
   getWavePhasesForStage,
   getBurstEventsForStage,
@@ -101,6 +102,16 @@ describe('elite bonus rewards', () => {
 
   it('E06 bonus textbooks keep the existing enemy XP value', () => {
     expect(getEliteBonusTextbookXp('E06', 40)).toBe(40)
+  })
+
+  // 최종 보스 B04가 이 표에서 빠져 처치 보상이 0이었다. 네 보스가 같은 보상 버킷을 쓴다.
+  it('B04 final boss drops the same reward bucket as B01~B03', () => {
+    expect(ELITE_BONUS.B04).toEqual({ textbook: 3, textbookXp: 40, gold: 5 })
+    expect(getEliteBonusTextbookXp('B04', 0)).toBe(40)
+  })
+
+  it('every boss type has an elite bonus entry', () => {
+    for (const bossType of ['B01', 'B02', 'B03', 'B04']) expect(ELITE_BONUS[bossType]).toBeDefined()
   })
 })
 
