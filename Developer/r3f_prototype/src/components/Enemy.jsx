@@ -1135,6 +1135,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           halfZ: stageCombatConfig.bounds.halfZ,
         })
         const next = startB02CorridorBlockade(previous, trigger, lineZs)
+        logPlaytestEvent('b02-blockade-start', { trigger, hpRatio: hpRef.current / stats.hp, elapsedSec: Math.round(elapsedMs / 100) / 10 })
         b02BlockadeRef.current = next
         syncB02BlockadeVisual(next)
         _vel.x = 0; _vel.y = 0; _vel.z = 0
@@ -1179,6 +1180,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         const startX = t.x <= 0 ? -halfX + edgeInset : halfX - edgeInset
         const endX = -startX
         const next = startB03ShuttleRun(previous, trigger, { laneZ, startX, endX })
+        logPlaytestEvent('b03-shuttle-start', { trigger, hpRatio: hpRef.current / stats.hp, elapsedSec: Math.round(elapsedMs / 100) / 10 })
         b03ShuttleRef.current = next
         syncB03ShuttleVisual(next)
         _vel.x = 0; _vel.y = 0; _vel.z = 0
@@ -1218,6 +1220,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       if (chefPhaseRef.current === CHEF_PHASE1 && hpRef.current / stats.hp <= 0.5) {
         if (getB04SoupBlastTrigger({ hpRatio: hpRef.current / stats.hp, elapsedMs, state: soup })) {
           const circles = getB04SoupBlastCircles({ player: playerPos, halfX: stageCombatConfig.bounds.halfX, halfZ: stageCombatConfig.bounds.halfZ, obstacles: sightObstacles })
+          logPlaytestEvent('b04-soup-blast-start', { circles: circles.length, hpRatio: hpRef.current / stats.hp, elapsedSec: Math.round(elapsedMs / 100) / 10 })
           b04SoupBlastRef.current = startB04SoupBlast(soup, circles)
           syncB04SoupBlastVisual(b04SoupBlastRef.current)
           _vel.x = 0; _vel.y = 0; _vel.z = 0
