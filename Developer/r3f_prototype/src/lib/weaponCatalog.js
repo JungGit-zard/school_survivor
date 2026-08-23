@@ -120,7 +120,8 @@ export const WEAPON_CATALOG = {
     id: 'guidedMissile',
     label: '보조배터리 미사일',
     // 2026-08-22 사용자 요청: 재사용대기시간을 기존 4000ms의 1.5배로 증가.
-    base: { damage: 16, cooldown: 6000, lastFired: 0, range: 7.34, radius: 1.6 },
+    // 2026-08-23 사용자 요청: 위력을 현재의 절반으로 조정(16→8).
+    base: { damage: 8, cooldown: 6000, lastFired: 0, range: 7.34, radius: 1.6 },
     unlockConditions: [{ type: 'bossKills', value: 1 }],
     minLevelToAppear: 4,
   },
@@ -128,9 +129,9 @@ export const WEAPON_CATALOG = {
     id: 'sharkMissile',
     label: '상어미사일',
     base: {
-      // 기획 정본: 레벨1 공격력 = 보조배터리 미사일(guidedMissile 16)의 1.3배
+      // 기획 정본: 레벨1 공격력은 기존 보조배터리 미사일 16의 1.3배였던 20.8을 유지
       damage: 20.8,
-      // 2026-08-15 역전 제거: cooldown 7000 → 4200. 상어미사일은 보조배터리 미사일(16/4000)의
+      // 2026-08-15 역전 제거: cooldown 7000 → 4200. 상어미사일은 기존 보조배터리 미사일(16/4000)의
       // 상위 해금인데 쿨다운이 1.75배라 단일 대상 DPS가 2.97 < 4.00으로 뒤집혀 있었다.
       // 4200이면 20.8/4.2 = 4.95로 기본 미사일의 1.24배 — 카탈로그가 약속한 "1.3배 위력"에
       // 맞고, 발사 간격은 여전히 더 느려서 '무거운 한 방' 정체성도 남는다.

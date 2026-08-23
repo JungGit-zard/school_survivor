@@ -191,7 +191,7 @@ describe('weaponPermanentUpgrades storage layer', () => {
     // Lv.10 "일정 확률로 추가 절단 1회" — 라벨만 있고 런타임 효과가 없던 구멍을 막는다.
     expect(upgraded('boxCutter')).toMatchObject({ permanentExtraSlashChance: 0.1 })
     expect(upgraded('boxCutter', 9).permanentExtraSlashChance).toBeUndefined()
-    expect(upgraded('guidedMissile')).toMatchObject({ damage: 18.6, radius: 1.76, homingStrength: 1.1 })
+    expect(upgraded('guidedMissile')).toMatchObject({ damage: 9.3, radius: 1.76, homingStrength: 1.1 })
     expect(upgraded('sharkMissile')).toMatchObject({ damage: 24.1, speed: 9.18, retargetIntervalMs: 270, permanentHomingStartMultiplier: 0.9, radius: 2.016 })
     expect(upgraded('starlink')).toMatchObject({ damage: 30.2, strikeRadius: 1.32, permanentBonusStrikeChance: 0.1, critChance: 0.15 })
     expect(upgraded('compassBlade')).toMatchObject({ damage: 5.4, orbitSpeed: 3.74, permanentExplosionRadiusMultiplier: 1.1, critChance: 0.13 })

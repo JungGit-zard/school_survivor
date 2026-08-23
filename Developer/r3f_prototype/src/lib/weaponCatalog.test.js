@@ -119,7 +119,7 @@ describe('weaponCatalog', () => {
   })
 
   it('복원 2종(R6) Lv.1 스탯 정확히 일치', () => {
-    expect(WEAPON_CATALOG.guidedMissile.base.damage).toBe(16)
+    expect(WEAPON_CATALOG.guidedMissile.base.damage).toBe(8)
     expect(WEAPON_CATALOG.guidedMissile.base.cooldown).toBe(6000)
     expect(WEAPON_CATALOG.guidedMissile.base.cooldown).toBe(4000 * 1.5)
     expect(WEAPON_CATALOG.guidedMissile.base.range).toBe(7.34)
@@ -185,16 +185,16 @@ describe('weaponCatalog', () => {
     expect(u.has('studentLantern')).toBe(true)
   })
 
-  it('defines sharkMissile at 1.3x guidedMissile damage (기획 정본)', () => {
+  it('keeps sharkMissile damage at its established heavy-missile value', () => {
     const battery = WEAPON_CATALOG.guidedMissile.base
 
     expect(WEAPON_CATALOG.sharkMissile).toMatchObject({
       id: 'sharkMissile',
       label: '상어미사일',
       base: {
-        damage: battery.damage * 1.3,
+        damage: 20.8,
         // 2026-08-15 역전 제거: 7000 → 4200. 쿨다운이 1.75배라 상위 무기인데도 단일 대상
-        // DPS가 보조배터리 미사일보다 낮았다(2.97 < 4.00). 4200이면 4.95로 1.24배가 된다.
+        // 보조배터리 하향과 별개로 상어미사일 기존 한 방 정체성은 유지한다.
         cooldown: 4200,
         range: 28,
         radius: 1.8,
