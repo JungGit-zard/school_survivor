@@ -456,16 +456,16 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-cookline-north-center',
       type: 'kitchenCookLine',
-      // 벽 밀착(밀폐): 벽 틈 0.750 → 0.200. 플레이어 전폭 0.272보다 좁아 뒤로 못 돈다.
-      position: [-0.39, 0, -15.15],
+      // 북벽에서 한 타일 이상 떨어진 시각 안전 여백.
+      position: [-0.39, 0, -14.5],
       rotation: [0, 0, 0],
       scale: 1.16,
     },
     {
       id: 'stage4-refrigerator-north-west-closed',
       type: 'kitchenRefrigerator',
-      // 벽 밀착(밀폐): 옆 냉장고와 전면을 맞춘다. 벽 틈 1.030 → 0.229.
-      position: [-8.46, 0, -15.2],
+      // 북·서벽에서 한 타일 이상 떨어진 시각 안전 여백.
+      position: [-7.807, 0, -14.579],
       rotation: [0, 0.12, 0],
       scale: 1.08,
       props: { open: false },
@@ -473,8 +473,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-refrigerator-north-west-open',
       type: 'kitchenRefrigerator',
-      // 벽 밀착(밀폐): 벽 틈 0.812 → 0.212.
-      position: [-6.196, 0, -15.2],
+      // 북벽에서 한 타일 이상 떨어진 시각 안전 여백.
+      position: [-6.196, 0, -14.562],
       rotation: [0, -0.18, 0],
       scale: 1.05,
       props: { open: true },
@@ -482,8 +482,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-crates-north-west-corner',
       type: 'kitchenCrateStack',
-      // 안쪽으로 당김(개방): 벽 틈 0.749 → 0.899. B04 직경 0.747도 통과한다.
-      position: [-8.685, 0, -11.6],
+      // 서벽에서 한 타일 이상 떨어진 시각 안전 여백.
+      position: [-8.059, 0, -11.6],
       rotation: [0, 0.36, 0],
       scale: 1.02,
       props: { count: 3 },
@@ -523,21 +523,21 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-shelfcart-east-north',
       type: 'kitchenShelfCart',
-      position: [8.807, 0, -10.4],
+      position: [8.157, 0, -10.4],
       rotation: [0, -Math.PI / 2 + 0.16, 0],
       scale: 1.04,
     },
     {
       id: 'stage4-shelfcart-east-upper',
       type: 'kitchenShelfCart',
-      position: [8.84, 0, -7.2],
+      position: [8.19, 0, -7.2],
       rotation: [0, -Math.PI / 2 - 0.12, 0],
       scale: 1.0,
     },
     {
       id: 'stage4-preptable-east-side-counter',
       type: 'kitchenPrepTable',
-      position: [8.508, 0, -4.0],
+      position: [7.858, 0, -4.0],
       rotation: [0, -Math.PI / 2 + 0.1, 0],
       scale: 1.06,
       props: { variant: 'side' },
@@ -545,8 +545,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-trash-east-wheelie',
       type: 'kitchenTrashBins',
-      // 안쪽으로 당김(개방): 벽 틈 0.686 → 0.886.
-      position: [8.71, 0, -0.8],
+      // 동벽에서 한 타일 이상 떨어진 시각 안전 여백.
+      position: [8.096, 0, -0.8],
       rotation: [0, -Math.PI / 2 - 0.22, 0],
       scale: 1.02,
       props: { variant: 'wheelie' },
@@ -554,15 +554,15 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-trayrack-east-mid',
       type: 'kitchenTrayRack',
-      position: [8.658, 0, 2.6],
+      position: [8.008, 0, 2.6],
       rotation: [0, -Math.PI / 2 + 0.24, 0],
       scale: 1.08,
     },
     {
       id: 'stage4-crates-east-mid',
       type: 'kitchenCrateStack',
-      // 안쪽으로 당김(개방): 벽 틈 0.750 → 0.900.
-      position: [8.685, 0, 5.8],
+      // 동벽에서 한 타일 이상 떨어진 시각 안전 여백.
+      position: [8.06, 0, 5.8],
       rotation: [0, -0.28, 0],
       scale: 1.05,
       props: { count: 4 },
@@ -570,7 +570,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-clutter-east-trays',
       type: 'kitchenClutter',
-      position: [7.93, 0, 8.8],
+      position: [7.7, 0, 8.8],
       rotation: [0, -0.52, 0],
       scale: 0.98,
       props: { variant: 'trays' },
@@ -579,7 +579,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-preptable-east-south-counter',
       type: 'kitchenPrepTable',
-      position: [8.56, 0, 11.6],
+      position: [7.828, 0, 11.6],
       rotation: [0, -Math.PI / 2 - 0.14, 0],
       scale: 1.04,
       props: { variant: 'side' },
@@ -588,14 +588,14 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-shelfcart-west-north',
       type: 'kitchenShelfCart',
-      position: [-8.79, 0, -8.8],
+      position: [-8.14, 0, -8.8],
       rotation: [0, Math.PI / 2 - 0.18, 0],
       scale: 1.06,
     },
     {
       id: 'stage4-clutter-west-pots',
       type: 'kitchenClutter',
-      position: [-8.58, 0, -5.6],
+      position: [-7.93, 0, -5.6],
       rotation: [0, 0.44, 0],
       scale: 1.0,
       props: { variant: 'pots' },
@@ -604,8 +604,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-trash-west-wheelie',
       type: 'kitchenTrashBins',
-      // 안쪽으로 당김(개방): 벽 틈 0.599 → 0.899.
-      position: [-8.71, 0, -3.2],
+      // 서벽에서 한 타일 이상 떨어진 시각 안전 여백.
+      position: [-8.109, 0, -3.2],
       rotation: [0, Math.PI / 2 + 0.2, 0],
       scale: 1.0,
       props: { variant: 'wheelie' },
@@ -613,15 +613,15 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-sink-west-mid',
       type: 'kitchenSinkCounter',
-      // 벽 밀착(밀폐): 벽 틈 0.409 → 0.159. 싱크대는 벽에 붙는 게 원화에도 맞다.
-      position: [-8.5475, 0, 1.0],
+      // 서벽에서 한 타일 이상 떨어진 시각 안전 여백.
+      position: [-7.919, 0, 1.0],
       rotation: [0, Math.PI / 2 + 0.06, 0],
       scale: 1.1,
     },
     {
       id: 'stage4-trash-west-round',
       type: 'kitchenTrashBins',
-      position: [-8.747, 0, 4.8],
+      position: [-8.097, 0, 4.8],
       rotation: [0, 0.32, 0],
       scale: 0.96,
       props: { variant: 'round' },
@@ -629,7 +629,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-clutter-west-bags',
       type: 'kitchenClutter',
-      position: [-8.06, 0, 7.4],
+      position: [-7.96, 0, 7.4],
       rotation: [0, 0.66, 0],
       scale: 1.02,
       props: { variant: 'bags' },
@@ -638,15 +638,15 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-shelfcart-west-south',
       type: 'kitchenShelfCart',
-      position: [-8.785, 0, 10.6],
+      position: [-8.135, 0, 10.6],
       rotation: [0, Math.PI / 2 + 0.22, 0],
       scale: 1.02,
     },
     {
       id: 'stage4-crates-south-west-corner',
       type: 'kitchenCrateStack',
-      // 안쪽으로 당김(개방): 서벽 틈 0.740 → 0.890.
-      position: [-8.685, 0, 13.2],
+      // 서벽에서 한 타일 이상 떨어진 시각 안전 여백.
+      position: [-8.05, 0, 13.2],
       rotation: [0, 0.5, 0],
       scale: 1.0,
       props: { count: 3 },
@@ -655,8 +655,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-preptable-south-serving-left',
       type: 'kitchenPrepTable',
-      // 벽 밀착(밀폐): 벽 틈 0.346 → 0.196. 오른쪽 배식대(0.223)와 전면을 맞춘다.
-      position: [-2.18, 0, 15.15],
+      // 남벽에서 한 타일 이상 떨어진 시각 안전 여백.
+      position: [-2.18, 0, 14.496],
       rotation: [0, Math.PI + 0.08, 0],
       scale: 1.1,
       props: { variant: 'side' },
@@ -664,7 +664,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-preptable-south-serving-right',
       type: 'kitchenPrepTable',
-      position: [1.17, 0, 15.1],
+      position: [1.17, 0, 14.473],
       rotation: [0, Math.PI - 0.1, 0],
       scale: 1.1,
       props: { variant: 'side' },
@@ -689,7 +689,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-clutter-south-trays',
       type: 'kitchenClutter',
-      position: [3.77, 0, 14.9],
+      position: [3.77, 0, 14.52],
       rotation: [0, Math.PI - 0.42, 0],
       scale: 1.0,
       props: { variant: 'trays' },

@@ -270,6 +270,23 @@ export function getEnemyColliderHalfExtents(stats) {
   return [BASE_COL[0] * cs, BASE_COL[1] * cs, BASE_COL[2] * cs]
 }
 
+// Stage 4의 보스/마틸다는 React/Rapier 경로를 사용한다. 풀 적의 enemySimulation
+// clamp와 같은 map bound를 실제 콜라이더 반폭까지 포함해 적용한다.
+export function writeSpecialEnemyVelocityWithinStageBounds(out, position, velocity, bounds, halfExtents, delta) {
+  if (!out || !position || !velocity || !bounds || !halfExtents || !Number.isFinite(delta) || delta <= 0) return false
+  out.x = velocity.x
+  out.z = velocity.z
+  const minX = -bounds.halfX + halfExtents[0]
+  const maxX = bounds.halfX - halfExtents[0]
+  const minZ = -bounds.halfZ + halfExtents[2]
+  const maxZ = bounds.halfZ - halfExtents[2]
+  if (out.x > 0 && position.x + out.x * delta > maxX) out.x = Math.max(0, (maxX - position.x) / delta)
+  else if (out.x < 0 && position.x + out.x * delta < minX) out.x = Math.min(0, (minX - position.x) / delta)
+  if (out.z > 0 && position.z + out.z * delta > maxZ) out.z = Math.max(0, (maxZ - position.z) / delta)
+  else if (out.z < 0 && position.z + out.z * delta < minZ) out.z = Math.min(0, (minZ - position.z) / delta)
+  return out
+}
+
 export function getBodyContactDistance(stats) {
   const enemyHalfExtent = Math.max(BASE_COL[0], BASE_COL[2]) * getEnemyColliderScale(stats)
   return enemyHalfExtent + PLAYER_CONTACT_HALF_EXTENT
@@ -832,6 +849,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
   }, [])
   const hitFlashRef           = useRef(false)  // ref mirror for instanced renderer
   const hpRef                 = useRef(stats.hp)
+  const stage4BoundedVelocityRef = useRef({ x: 0, z: 0 })
   const dead                  = useRef(false)
   const knockbackUntilRef     = useRef(0)
   const knockbackDir          = useRef(new THREE.Vector3())
@@ -996,11 +1014,6 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         knockbackDir.current.set(dx / len, 0, dz / len)
         knockbackSpeedRef.current = knockback.speed
         knockbackUntilRef.current = performance.now() + knockback.durationMs
-        rb.current.setLinvel({
-          x: knockbackDir.current.x * knockback.speed,
-          y: 0,
-          z: knockbackDir.current.z * knockback.speed,
-        }, true)
       }
       hpRef.current -= finalDamage
       queueVisualState('hp', hpRef.current)
@@ -1063,6 +1076,24 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
     if (!rb.current || dead.current || phase !== 'playing') return
 
     const t = rb.current.translation()
+    if (currentStageId === 'stage4') {
+      const { halfX, halfZ } = stageCombatConfig.bounds
+      const boundedX = Math.min(halfX - colArgs[0], Math.max(-halfX + colArgs[0], t.x))
+      const boundedZ = Math.min(halfZ - colArgs[2], Math.max(-halfZ + colArgs[2], t.z))
+      if (boundedX !== t.x || boundedZ !== t.z) {
+        rb.current.setTranslation({ x: boundedX, y: t.y, z: boundedZ }, true)
+        t.x = boundedX
+        t.z = boundedZ
+      }
+    }
+    const applySpecialEnemyVelocity = () => {
+      if (currentStageId === 'stage4') {
+        writeSpecialEnemyVelocityWithinStageBounds(stage4BoundedVelocityRef.current, t, _vel, stageCombatConfig.bounds, colArgs, delta)
+        _vel.x = stage4BoundedVelocityRef.current.x
+        _vel.z = stage4BoundedVelocityRef.current.z
+      }
+      rb.current.setLinvel(_vel, true)
+    }
     _pos.set(t.x, t.y, t.z)
     _dir.copy(playerPos).sub(_pos)
     _dir.y = 0
@@ -1075,7 +1106,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       _vel.x = knockbackDir.current.x * knockbackSpeedRef.current
       _vel.y = 0
       _vel.z = knockbackDir.current.z * knockbackSpeedRef.current
-      rb.current.setLinvel(_vel, true)
+      applySpecialEnemyVelocity()
       return
     }
 
@@ -1256,7 +1287,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       // ?먰븯??嫄곕━ ?좎?: ?덈Т 媛源뚯슦硫??꾪눜, ?덈Т 硫硫??꾩쭊
       _vel.y = 0
       writeRangedEnemyVelocity(_vel, _dir.x, _dir.z, dist, active.minDist, active.preferDist, active.speed, Number(id) % 2 === 0 ? 1 : -1)
-      rb.current.setLinvel(_vel, true)
+      applySpecialEnemyVelocity()
       if (_dir.length() > 0) _applyRotation(groupRef, _dir.x / _dir.length(), _dir.z / _dir.length())
 
       const elapsedSec = getRuntimeElapsedMs(useGameStore.getState().elapsedMs) / 1000
@@ -1345,7 +1376,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           previous.z = t.z
           _vel.x = cd.x * stats.chargeSpeed
           _vel.z = cd.z * stats.chargeSpeed
-          rb.current.setLinvel(_vel, true)
+          applySpecialEnemyVelocity()
           _applyRotation(groupRef, cd.x, cd.z, 1)
 
           if (isMatildaChargingOutward(t, cd, stageCombatConfig.bounds)) {
@@ -1379,7 +1410,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         // ?쇰컲 異붽꺽
         _dir.normalize()
         _vel.x = _dir.x * stats.speed; _vel.z = _dir.z * stats.speed
-        rb.current.setLinvel(_vel, true)
+        applySpecialEnemyVelocity()
         _applyRotation(groupRef, _dir.x, _dir.z)
 
         if (dist < active.warnDist) {
@@ -1405,7 +1436,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
       } else if (chargeState.current === 'charge') {
         const cd = chargeDir.current
         _vel.x = cd.x * active.chargeSpeed; _vel.z = cd.z * active.chargeSpeed
-        rb.current.setLinvel(_vel, true)
+        applySpecialEnemyVelocity()
         _applyRotation(groupRef, cd.x, cd.z, 1)
 
         // isMatilda는 이 지점에 도달할 때 항상 false다(위 isMatilda 분기가 851행에서 return하므로) —
