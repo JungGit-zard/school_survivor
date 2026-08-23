@@ -544,7 +544,7 @@ export function shouldRenderB02CorridorBlockadeVisual({ phase, lineZs }) {
 export function B02CorridorBlockadeVisual({ phase, lineZs, halfX }) {
   if (!shouldRenderB02CorridorBlockadeVisual({ phase, lineZs })) return null
   return (
-    <group aria-label="B02 복도 봉쇄선">
+    <group name="B02 복도 봉쇄선">
       {lineZs.map((z, index) => {
         const visualState = getB02CorridorBlockadeLineVisualState({ phase })
         const visual = B02_CORRIDOR_BLOCKADE_VISUALS[visualState]
@@ -590,7 +590,7 @@ export function B04SoupBlastVisual({ phase, circles }) {
   const visualState = getB04SoupBlastVisualState(phase)
   const visual = B04_SOUP_BLAST_VISUALS[visualState]
   return (
-    <group aria-label="B04 국물 대폭발 원형 표식" userData={{ soupBlastState: visualState }}>
+    <group name="B04 국물 대폭발 원형 표식" userData={{ soupBlastState: visualState }}>
       {circles.map((circle, index) => (
         <group key={`${index}:${circle.x}:${circle.z}`} position={[circle.x, 0, circle.z]}>
           <mesh position={[0, 0.022, 0]}>
@@ -622,7 +622,7 @@ function B03ShuttleRunVisual({ phase, passIndex, laneZ, halfX }) {
   const visualState = getB03ShuttleRunVisualState({ phase, passIndex })
   const visual = B03_SHUTTLE_RUN_VISUALS[visualState]
   return (
-    <group aria-label="B03 왕복 오래달리기 레인" userData={{ shuttleRunState: visualState }}>
+    <group name="B03 왕복 오래달리기 레인" userData={{ shuttleRunState: visualState }}>
       <mesh position={[0, 0.024, laneZ]}>
         <boxGeometry args={[halfX * 2, 0.028, B03_SHUTTLE_LANE_WIDTH + 0.18]} />
         <meshBasicMaterial color={visual.outline} transparent opacity={visual.outlineOpacity} depthWrite={false} toneMapped={false} />

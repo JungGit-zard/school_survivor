@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import * as THREE from 'three'
+import { applyProps } from '@react-three/fiber'
 import {
   CHARGE_CUE_LABEL,
   CHARGE_CUE_LAYOUT,
@@ -114,10 +116,29 @@ describe('B04 soup blast visual states', () => {
 
     const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
     expect(source).toContain('userData={{ soupBlastState: visualState }}')
-    expect(source).toContain('aria-label="B04 국물 대폭발 원형 표식"')
-    expect(source).not.toContain('aria-label="B04 급식 국자 원형 표식"')
+    expect(source).toContain('name="B04 국물 대폭발 원형 표식"')
+    expect(source).not.toContain('name="B04 급식 국자 원형 표식"')
     expect(source).toContain('circle.radius + 0.18')
     expect(source).toContain('<B04SoupBlastVisual')
+  })
+})
+
+describe('R3F boss ultimate group props', () => {
+  it('never sends DOM aria-label props into a Three group', () => {
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    const labels = [
+      'B02 복도 봉쇄선',
+      'B03 왕복 오래달리기 레인',
+      'B04 국물 대폭발 원형 표식',
+    ]
+
+    for (const label of labels) {
+      expect(source).toContain(`name="${label}"`)
+      expect(source).not.toContain(`aria-label="${label}"`)
+      expect(() => applyProps(new THREE.Group(), { name: label })).not.toThrow()
+      expect(() => applyProps(new THREE.Group(), { 'aria-label': label })).toThrow(/reading 'label'/)
+    }
+    expect(source).not.toMatch(/<group[^>]*aria-label=/)
   })
 })
 
