@@ -28,6 +28,8 @@ import { MATILDA_DIALOGUE_MS } from '../lib/matildaEntryGrace.js'
 import { getDialogueText } from '../dialogues/dialogueStore.js'
 import { clearPortalTarget, playerPos, publishPortalTarget } from '../lib/refs.js'
 import { setLocale } from '../lib/i18n.js'
+import { setScientificNotation } from '../lib/numberFormat.js'
+import { getRankingScore } from '../lib/rankingScorePolicy.js'
 import { subscribeSfx } from '../lib/sfxEvents.js'
 import { resetCriticalScreenShakeForTest, subscribeWholeScreenCriticalShake } from '../lib/criticalScreenShake.js'
 
@@ -1420,3 +1422,54 @@ function clickButtonByText(container, label) {
     button.dispatchEvent(new MouseEvent('click', { bubbles: true }))
   })
 }
+
+describe('live score readout', () => {
+  // 무한 모드의 저울질("더 버틸까 / 지금 나갈까")은 지금 점수가 보여야 성립한다.
+  const renderPlaying = ({ elapsedMs, stageId = 'stage1' }) => {
+    useGameStore.getState().resetGame()
+    useGameStore.setState({ phase: 'playing', elapsedMs, currentStageId: stageId })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    act(() => {
+      root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+    })
+    return { container, root }
+  }
+
+  afterEach(() => {
+    setScientificNotation(false)
+    setLocale('ko')
+  })
+
+  it('shows the same score the ranking would award for the run so far', () => {
+    const { container, root } = renderPlaying({ elapsedMs: 210_000, stageId: 'stage2' })
+    try {
+      // 210초 + stage2 보너스 60 = 270. 런 중에는 아직 미클리어라 탈출 보너스가 붙지 않는다.
+      expect(getRankingScore({ stageId: 'stage2', survivalSeconds: 210, cleared: false })).toBe(270)
+      expect(container.textContent).toContain('270')
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+
+  it('keeps the clock readable past an hour instead of overflowing minutes', () => {
+    const { container, root } = renderPlaying({ elapsedMs: 360_000 * 1000 })
+    try {
+      expect(container.textContent).toContain('100:00:00')
+      expect(container.textContent).not.toContain('6000:00:')
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+
+  it('switches the score to scientific notation when the setting is on', () => {
+    setScientificNotation(true)
+    const { container, root } = renderPlaying({ elapsedMs: 360_000 * 1000 })
+    try {
+      expect(container.textContent).toContain('3.6e5')
+      expect(container.textContent).not.toContain('360,000')
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+})

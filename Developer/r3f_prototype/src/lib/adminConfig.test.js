@@ -38,7 +38,7 @@ describe('admin operations config', () => {
       rankingSeason: {
         seasonId: '',
         status: 'unknown',
-        scorePolicy: { stageBonus: { stage2: -20 }, clearBonus: 999 },
+        scorePolicy: { stageBonus: { stage2: -20 }, clearBonus: 999 },  // clearBonus는 폐지된 키 - 무시되어야 한다
         rewardTiers: [{ rankTo: 0, gold: -5, badge: '' }],
       },
     })
@@ -55,7 +55,9 @@ describe('admin operations config', () => {
     // stage3/stage4 bonuses fall back to defaults when omitted (admin must not silently zero them).
     expect(config.rankingSeason.scorePolicy.stageBonus.stage3).toBe(120)
     expect(config.rankingSeason.scorePolicy.stageBonus.stage4).toBe(180)
-    expect(config.rankingSeason.scorePolicy.clearBonus).toBe(200)
+    // 탈출 보너스가 총점의 15%로 바뀌면서 고정 클리어 보너스 노브는 사라졌다.
+    // 옛 설정에 남아 있어도 정책에 실려선 안 된다.
+    expect(config.rankingSeason.scorePolicy.clearBonus).toBeUndefined()
     expect(config.rankingSeason.rewardTiers[0].rankTo).toBe(1)
   })
 

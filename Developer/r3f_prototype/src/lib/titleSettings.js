@@ -2,6 +2,7 @@
 // Durable player settings live only in Firebase users/{uid}. Admin/dev config remains separate.
 import { readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
 import { detectInitialLocale, isSupportedLocale, setLocale } from './i18n.js'
+import { setScientificNotation } from './numberFormat.js'
 
 export const SETTINGS_STORAGE_KEY = 'school_survivor:titleSettings'
 
@@ -9,6 +10,8 @@ export const DEFAULT_SETTINGS = {
   vibration: true,
   reducedEffects: false,
   hitCameraShake: true,
+  // 무한 모드에서 점수가 끝없이 자란다. 켜면 3.6e5처럼 짧게 적는다.
+  scientificNotation: false,
   // 계정에 저장된 언어가 없으면 브라우저 언어를 그대로 쓴다.
   language: null,
   unlockAllWeaponsCheat: false,
@@ -62,6 +65,10 @@ export function applyHitCameraShake(hitCameraShake) {
   } else {
     document.documentElement.removeAttribute('data-hit-camera-shake')
   }
+}
+
+export function applyScientificNotation(scientific) {
+  setScientificNotation(scientific === true)
 }
 
 export function vibrateFeedback(pattern = 18) {

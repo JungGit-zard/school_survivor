@@ -178,7 +178,7 @@ describe('runtime elapsed time publication', () => {
     }
   })
 
-  it('applies the 15 percent escape bonus only for the portal-clear path, never for boss-kill gameover', () => {
+  it('pays the boss bonus only on a portal clear, never on a boss-kill gameover', () => {
     useGameStore.setState({ elapsedMs: 192_000, bossAliveCount: 1, phase: 'playing' })
     advanceRuntimeTime(192_000)
     useGameStore.getState().recordBossDefeat()
@@ -194,6 +194,7 @@ describe('runtime elapsed time publication', () => {
     advanceRuntimeTime(48_000)
     useGameStore.getState().clearStage()
 
-    expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', bossDefeated: true, bossBonus: 40 })
+    // base 240 + 탈출 보너스 15%(36) = 276, 보스 보너스는 그 20% = 55.
+    expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', bossDefeated: true, bossBonus: 55 })
   })
 })

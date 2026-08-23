@@ -18,7 +18,8 @@ describe('user ranking helpers', () => {
     ])
 
     expect(rows).toHaveLength(RANKING_LIMIT)
-    expect(rows[0]).toMatchObject({ rank: 1, displayName: '하린', score: 270, stageId: 'stage1', empty: false })
+    // 240초 stage1 탈출: 240 + 탈출 보너스 15%(36) = 276
+    expect(rows[0]).toMatchObject({ rank: 1, displayName: '하린', score: 276, stageId: 'stage1', empty: false })
     expect(rows[1]).toMatchObject({ rank: 2, displayName: '지안', score: 240, stageId: 'stage2', empty: false })
     expect(rows[2]).toMatchObject({ rank: 3, displayName: '민수', score: 220, stageId: 'stage1', empty: false })
     expect(rows[29]).toMatchObject({ rank: 30, displayName: '', score: 0, survivalSeconds: 0, empty: true })
@@ -79,9 +80,9 @@ describe('user ranking helpers', () => {
       stage3Clears: 1,
     }, { displayName: 'Player Three' })
 
-    // stage3 clear 240: 240 + 120 + 30 = 390.
+    // stage3 탈출 240: base 240 + 120 = 360, 탈출 보너스 15%(54) = 414.
     expect(entry).toMatchObject({
-      score: 390,
+      score: 414,
       stageId: 'stage3',
       stageLabel: 'Stage 3',
       cleared: true,

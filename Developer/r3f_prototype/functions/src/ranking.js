@@ -1,26 +1,28 @@
 import { createHash } from 'node:crypto'
 
 export const ALLOWED_STAGE_IDS = new Set(['stage1', 'stage2', 'stage3', 'stage4'])
-export const MAX_RUN_SCORE = 100_000
-export const MAX_RUN_TIME_MS = 300_000
 export const KST_OFFSET_MS = 9 * 60 * 60 * 1000
 
-// 서버측 점수 재검증(안티치트) 상수. 단일 출처는 클라이언트 src/lib/rankingScorePolicy.js —
-// 값 변경 시 두 곳을 반드시 동기화한다(스테이지 보너스 선형 +60, clear 30, 탈출 보너스 = 기본점의 15%).
+// 점수 구성 상수. 단일 출처는 클라이언트 src/lib/rankingScorePolicy.js — 값 변경 시 함께 갱신한다.
+// 런 길이에도 점수에도 상한을 두지 않는다: 무한모드 경합이 이 게임의 핵심 컨텐츠라
+// 100시간을 버티든 3년을 버티든 버틴 그대로 기록되어야 한다. 예전에 여기 있던
+// MAX_RUN_SCORE / MAX_RUN_TIME_MS와 maxLegitScore 재검증은 그 요구와 정면으로 충돌해 걷어냈다.
 export const SERVER_STAGE_BONUS = { stage1: 0, stage2: 60, stage3: 120, stage4: 180 }
-export const SERVER_CLEAR_BONUS = 30
-export const ESCAPE_SCORE_BONUS_RATE = 0.15
+export const SERVER_ESCAPE_BONUS_RATE = 0.15
+export const BOSS_BONUS_RATE = 0.2
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const RUN_ID_PATTERN = /^[A-Za-z0-9_-]{12,80}$/
 
-// 주어진 런의 정직한 최대 점수. getRankingScore(클라)와 clearStageWithEscapeBonus의
-// 합산식과 동일: survival + stageBonus + (clear ? clearBonus : 0) + (clear ? floor(base*0.15) : 0).
-// 정직한 런의 점수는 항상 정확히 이 상한과 같고, 하한은 보너스 없는 survival이다.
-export function maxLegitScore(stageId, timeMs, cleared) {
+// 클라이언트 getRankingScore와 같은 합산식.
+// base = survival + stageBonus, 탈출하면 base의 15%, 보스까지 잡으면 (base + 탈출보너스)의 20%.
+// 검증용이 아니라 서버가 같은 모델을 알고 있게 하기 위한 참조 구현이다.
+export function expectedScore(stageId, timeMs, cleared, bossDefeated = false) {
   const survivalSec = Math.floor(readNonNegInt(timeMs) / 1000)
-  const base = survivalSec + (SERVER_STAGE_BONUS[stageId] ?? 0) + (cleared ? SERVER_CLEAR_BONUS : 0)
-  return base + (cleared ? Math.floor(base * ESCAPE_SCORE_BONUS_RATE) : 0)
+  const base = survivalSec + (SERVER_STAGE_BONUS[stageId] ?? 0)
+  const escape = cleared ? Math.floor(base * SERVER_ESCAPE_BONUS_RATE) : 0
+  const boss = cleared && bossDefeated ? Math.floor((base + escape) * BOSS_BONUS_RATE) : 0
+  return base + escape + boss
 }
 
 export function normalizeRun(value) {
@@ -31,17 +33,13 @@ export function normalizeRun(value) {
 
   if (!RUN_ID_PATTERN.test(runId)) throw new Error('runId must be a 12-80 character opaque ID')
   if (!ALLOWED_STAGE_IDS.has(stageId)) throw new Error('Unknown stageId')
-  if (!Number.isSafeInteger(score) || score < 1 || score > MAX_RUN_SCORE) throw new Error('score is out of range')
-  if (!Number.isSafeInteger(timeMs) || timeMs < 0 || timeMs > MAX_RUN_TIME_MS) throw new Error('timeMs is out of range')
+  // 상한은 없다. 남는 검증은 "숫자인가, 음수가 아닌가, 정밀도가 살아 있는가"뿐이다.
+  // isSafeInteger는 천장이 아니라 정밀도 경계다 — 그 위로는 정수 연산이 값을 잃는다.
+  if (!Number.isSafeInteger(score) || score < 0) throw new Error('score must be a non-negative integer')
+  if (!Number.isSafeInteger(timeMs) || timeMs < 0) throw new Error('timeMs must be a non-negative integer')
   if (value?.cleared !== undefined && typeof value.cleared !== 'boolean') throw new Error('cleared must be boolean')
 
   const cleared = value?.cleared === true
-  // 상한/하한 정합 검증(M5): 클라가 변조한 score 주입을 서버에서 차단.
-  const survivalSec = Math.floor(timeMs / 1000)
-  if (score < survivalSec || score > maxLegitScore(stageId, timeMs, cleared)) {
-    throw new Error('score fails server revalidation')
-  }
-
   return { runId, stageId, score, timeMs, cleared }
 }
 

@@ -1,11 +1,12 @@
 import { getAdminRankingSeasonConfig } from './adminConfig.js'
 
 export const SCORE_TYPE = 'survival_v1'
-export const CLEAR_BONUS = 30
-export const ESCAPE_SCORE_BONUS_RATE = 0.15
-// 스테이지 보너스는 난이도 단조증가에 맞춰 선형 +60. 이 값은 안티치트 점수 상한의 단일 출처다 —
-// database.rules.json의 랭킹 entries `.validate` 상한 삼항(stage1:0/stage2:60/stage3:120/stage4:180,
-// clear 30, escape 15%)과 반드시 일치. 변경 시 두 곳(+미배포 functions/src/ranking.js)을 함께 갱신한다.
+// 탈출구로 탈출하면 기본 점수(생존 초 + 스테이지 보너스)의 15%를 보너스로 받는다.
+export const ESCAPE_BONUS_RATE = 0.15
+// 보스 처치 보너스는 탈출 보너스까지 합산된 점수의 20%다(탈출 보너스와 순차 적용).
+export const BOSS_BONUS_RATE = 0.2
+// 스테이지 보너스는 난이도 단조증가에 맞춰 선형 +60.
+// 런 길이에도 점수에도 상한이 없다 — 버틴 만큼 무한히 기록되는 것이 무한모드 경합의 전제다.
 export const STAGE_BONUS = {
   stage1: 0,
   stage2: 60,
@@ -20,23 +21,30 @@ const STAGE_PRIORITY = {
   stage4: 4,
 }
 
+// 기본 점수 = 생존 초 + 스테이지 보너스. 탈출/보스 보너스는 전부 이 값에서 파생된다.
+export function getRankingBaseScore({ stageId = 'stage1', survivalSeconds = 0 } = {}, policy = getRankingScorePolicy()) {
+  return readNonNegativeInt(survivalSeconds) + readNonNegativeInt(policy.stageBonus?.[stageId])
+}
+
+// 탈출구 탈출 보너스 = 기본 점수의 15%.
+export function getEscapeBonus({ stageId = 'stage1', survivalSeconds = 0, cleared = false } = {}, policy = getRankingScorePolicy()) {
+  if (cleared !== true) return 0
+  return Math.floor(getRankingBaseScore({ stageId, survivalSeconds }, policy) * ESCAPE_BONUS_RATE)
+}
+
 export function getRankingScore({ stageId = 'stage1', survivalSeconds = 0, cleared = false, bossBonus = 0 } = {}, policy = getRankingScorePolicy()) {
-  return readNonNegativeInt(survivalSeconds)
-    + readNonNegativeInt(policy.stageBonus?.[stageId])
-    + (cleared ? readNonNegativeInt(policy.clearBonus) : 0)
-    // 보스 처치는 포탈 탈출을 대체하지 않는다. 이 마지막 방어선은 호출자가
-    // 중간 처치 보너스를 넘겨도 미클리어 RTDB payload가 규칙 상한을 넘지 않게 한다.
+  return getRankingBaseScore({ stageId, survivalSeconds }, policy)
+    + getEscapeBonus({ stageId, survivalSeconds, cleared }, policy)
+    // 보스 처치는 포탈 탈출을 대체하지 않는다. 미클리어 런에는 호출자가 보너스를 넘겨도 붙지 않는다.
     + (cleared ? readNonNegativeInt(bossBonus) : 0)
 }
 
-// 탈출구로 나가 클리어한 런은 그동안 얻은 기본 총점(생존+스테이지+클리어)의 15%를
-// 탈출 보너스로 랭킹 점수에 반영한다. 보스 처치 여부와 무관하게 포탈 탈출만 조건이다.
-export function getBossClearBonus({ stageId = 'stage1', survivalSeconds = 0, cleared = false } = {}, policy = getRankingScorePolicy()) {
-  if (cleared !== true) return 0
-  const baseScore = readNonNegativeInt(survivalSeconds)
-    + readNonNegativeInt(policy.stageBonus?.[stageId])
-    + readNonNegativeInt(policy.clearBonus)
-  return Math.floor(baseScore * ESCAPE_SCORE_BONUS_RATE)
+// 마지막 보스를 처치했다는 사실은 런 중에 기록한다. 다만 보너스 점수는 포탈
+// 클리어 시점의 기본 점수 + 탈출 보너스를 기준으로 단 한 번 확정한다.
+export function getBossClearBonus({ stageId = 'stage1', survivalSeconds = 0, cleared = false, bossDefeated = false } = {}, policy = getRankingScorePolicy()) {
+  if (cleared !== true || bossDefeated !== true) return 0
+  const base = getRankingBaseScore({ stageId, survivalSeconds }, policy)
+  return Math.floor((base + getEscapeBonus({ stageId, survivalSeconds, cleared }, policy)) * BOSS_BONUS_RATE)
 }
 
 export function getRankingScorePolicy(seasonConfig = getAdminRankingSeasonConfig()) {
@@ -48,7 +56,6 @@ export function getRankingScorePolicy(seasonConfig = getAdminRankingSeasonConfig
       stage3: readNonNegativeInt(scorePolicy.stageBonus?.stage3 ?? STAGE_BONUS.stage3),
       stage4: readNonNegativeInt(scorePolicy.stageBonus?.stage4 ?? STAGE_BONUS.stage4),
     },
-    clearBonus: readNonNegativeInt(scorePolicy.clearBonus ?? CLEAR_BONUS),
   }
 }
 

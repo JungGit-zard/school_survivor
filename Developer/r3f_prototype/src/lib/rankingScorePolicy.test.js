@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  CLEAR_BONUS,
-  ESCAPE_SCORE_BONUS_RATE,
+  ESCAPE_BONUS_RATE,
   STAGE_BONUS,
   compareRankingEntries,
   getBossClearBonus,
@@ -11,23 +10,34 @@ import {
 } from './rankingScorePolicy.js'
 
 describe('ranking score policy', () => {
-  it('scores survival seconds with stage and clear bonuses', () => {
+  it('scores survival seconds with stage and escape bonuses', () => {
     expect(STAGE_BONUS.stage1).toBe(0)
     expect(STAGE_BONUS.stage2).toBe(60)
     expect(STAGE_BONUS.stage3).toBe(120)
     expect(STAGE_BONUS.stage4).toBe(180)
-    expect(CLEAR_BONUS).toBe(30)
+    expect(ESCAPE_BONUS_RATE).toBe(0.15)
 
+    // 탈출 보너스는 고정 점수가 아니라 (생존 초 + 스테이지 보너스)의 15%다.
+    // 오래 버틸수록 탈출의 가치도 같이 커져야 "더 버틸까 / 지금 나갈까"가 저울질이 된다.
     expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 180, cleared: false })).toBe(180)
-    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 240, cleared: true })).toBe(270)
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 240, cleared: true })).toBe(276) // 240 + 36
     expect(getRankingScore({ stageId: 'stage2', survivalSeconds: 180, cleared: false })).toBe(240)
-    expect(getRankingScore({ stageId: 'stage2', survivalSeconds: 240, cleared: true })).toBe(330)
-    // stage3: survival + 120 (+30 clear)
+    expect(getRankingScore({ stageId: 'stage2', survivalSeconds: 240, cleared: true })).toBe(345) // 300 + 45
     expect(getRankingScore({ stageId: 'stage3', survivalSeconds: 180, cleared: false })).toBe(300)
-    expect(getRankingScore({ stageId: 'stage3', survivalSeconds: 240, cleared: true })).toBe(390)
-    // stage4: survival + 180 (+30 clear)
+    expect(getRankingScore({ stageId: 'stage3', survivalSeconds: 240, cleared: true })).toBe(414) // 360 + 54
     expect(getRankingScore({ stageId: 'stage4', survivalSeconds: 180, cleared: false })).toBe(360)
-    expect(getRankingScore({ stageId: 'stage4', survivalSeconds: 240, cleared: true })).toBe(450)
+    expect(getRankingScore({ stageId: 'stage4', survivalSeconds: 240, cleared: true })).toBe(483) // 420 + 63
+  })
+
+  it('records arbitrarily long runs without any ceiling', () => {
+    // 무한모드 경합이 핵심 컨텐츠다. 100시간이든 3년이든 버틴 그대로 점수가 나와야 한다.
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 360_000, cleared: false })).toBe(360_000)
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 360_000, cleared: true })).toBe(414_000)
+    const threeYearsSec = 94_608_000
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: threeYearsSec, cleared: false })).toBe(threeYearsSec)
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: threeYearsSec, cleared: true })).toBe(108_799_200)
+    // 정수 정밀도가 살아 있어야 한다 - 여기서 깨지면 기록이 소리 없이 틀어진다.
+    expect(Number.isSafeInteger(getRankingScore({ stageId: 'stage4', survivalSeconds: threeYearsSec, cleared: true }))).toBe(true)
   })
 
   it('exposes monotonically increasing stage priority through stage4', () => {
@@ -37,19 +47,19 @@ describe('ranking score policy', () => {
     expect(getStagePriority('stage4')).toBe(4)
   })
 
-  it('includes a 15 percent escape bonus only after a portal clear', () => {
+  it('includes the boss-clear bonus only after a portal clear', () => {
     const prePortalBonus = getBossClearBonus({
       stageId: 'stage1', survivalSeconds: 192, cleared: false, bossDefeated: true,
     })
     const portalBonus = getBossClearBonus({
-      stageId: 'stage1', survivalSeconds: 240, cleared: true, bossDefeated: false,
+      stageId: 'stage1', survivalSeconds: 240, cleared: true, bossDefeated: true,
     })
 
-    expect(ESCAPE_SCORE_BONUS_RATE).toBe(0.15)
     expect(prePortalBonus).toBe(0)
-    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 192, cleared: false, bossBonus: 40 })).toBe(192)
-    expect(portalBonus).toBe(40)
-    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 240, cleared: true, bossBonus: portalBonus })).toBe(310)
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 192, cleared: false, bossBonus: 44 })).toBe(192)
+    // base 240 + 탈출 15%(36) = 276, 그 20% = 55. 두 보너스는 순차 적용된다.
+    expect(portalBonus).toBe(55)
+    expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 240, cleared: true, bossBonus: portalBonus })).toBe(331)
   })
 
   it('breaks equal score/clear/survival ties by higher stage priority (stage4 > stage1)', () => {
@@ -75,12 +85,11 @@ describe('ranking score policy', () => {
     const policy = getRankingScorePolicy({
       scorePolicy: {
         stageBonus: { stage1: 0, stage2: 90 },
-        clearBonus: 45,
       },
     })
 
     expect(policy.stageBonus.stage2).toBe(90)
-    expect(policy.clearBonus).toBe(45)
-    expect(getRankingScore({ stageId: 'stage2', survivalSeconds: 240, cleared: true }, policy)).toBe(375)
+    // 240 + 90 = 330, 탈출 보너스 15% = 49
+    expect(getRankingScore({ stageId: 'stage2', survivalSeconds: 240, cleared: true }, policy)).toBe(379)
   })
 })

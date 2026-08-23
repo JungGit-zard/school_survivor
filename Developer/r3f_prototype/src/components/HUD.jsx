@@ -14,6 +14,8 @@ import { playDialogueVoice, stopDialogueVoice } from '../lib/dialogueVoice.js'
 import { getNextStageId, getStageConfig } from '../lib/stageConfig.js'
 import { STAGE2_SPAWN_TELEGRAPHS, STAGE3_SPAWN_TELEGRAPHS, STAGE4_SPAWN_TELEGRAPHS } from '../lib/waveTimelines.js'
 import { getAdminOperationsConfig } from '../lib/adminConfig.js'
+import { getRankingScore } from '../lib/rankingScorePolicy.js'
+import { formatRunClock, useGameNumber } from '../lib/numberFormat.js'
 import { CRITICAL_SHAKE_NORMAL_DURATION_MS, emitCriticalHitScreenShake, isCriticalScreenShakeReduced } from '../lib/criticalScreenShake.js'
 import { MATILDA_DIALOGUE_MS } from '../lib/matildaEntryGrace.js'
 import { BOSS_TELEGRAPH_LEAD_SEC, getSpawnCatchUpOffsetSec } from '../lib/spawnCatchUp.js'
@@ -680,6 +682,8 @@ export default function HUD({
   showGameoverResultImmediately = false,
 }) {
   const t = useT()
+  // 과학적 기수법 설정을 구독한다 - 토글하면 즉시 표기가 바뀐다.
+  const gameNumber = useGameNumber()
   const authUser = useAuthStore((state) => state.user)
   const devToolsVisible = DEV_CHEATS_ENABLED && devCheatsVisible
   const showMasterRoleBadge = isProjectMaster(authUser)
@@ -747,8 +751,16 @@ export default function HUD({
     missionProgress: s.missionProgress,
   })))
 
-  const mins = String(Math.floor(elapsed / 60000)).padStart(2, '0')
-  const secs = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, '0')
+  // 무한 모드는 런 길이에 상한이 없다. mm:ss 고정 표기는 100시간을 '6000:00'으로 뭉개
+  // 몇 시간째인지 못 읽게 만든다 - 한 시간을 넘기면 h:mm:ss로 자란다.
+  const runClock = formatRunClock(elapsed)
+  // 실시간 점수. 탈출구가 열린 뒤 "더 버틸까 / 지금 나갈까"를 저울질하려면 지금 점수가 보여야 한다.
+  // 점수식은 복제하지 않고 랭킹과 같은 getRankingScore를 쓴다. 런 중에는 아직 미클리어다.
+  const liveScore = getRankingScore({
+    stageId: currentStageId,
+    survivalSeconds: Math.floor(elapsed / 1000),
+    cleared: false,
+  })
   const stageConfig = getStageConfig(currentStageId)
   const nextStageId = getNextStageId(currentStageId)
   const showResultDevTools = devToolsVisible && getAdminOperationsConfig().cheatMenuButtonVisible && (phase === 'gameover' || phase === 'cleared')
@@ -1254,7 +1266,13 @@ export default function HUD({
       {/* Top bar — 스테이지 번호 + 시간만 한 줄 */}
       <div style={styles.topBar}>
         <span style={styles.stageChip}>{stageConfig.label}</span>
-        <span style={styles.timer}>{mins}:{secs}</span>
+        <span style={styles.timer}>{runClock}</span>
+      </div>
+
+      {/* 좌하단 실시간 점수 */}
+      <div style={styles.liveScore} aria-label={t('hud.scoreAria', { score: liveScore })} role="status">
+        <span style={styles.liveScoreLabel}>{t('hud.score')}</span>
+        <span style={styles.liveScoreValue}>{gameNumber(liveScore)}</span>
       </div>
 
       {/* HP bar */}
@@ -1409,7 +1427,7 @@ export default function HUD({
           <div style={styles.modal}>
             <h2 style={{ ...styles.modalTitle, color: '#ff4060' }}>GAME OVER</h2>
             {isMatildaGameover && <p data-testid="gameover-death-line" style={styles.gameoverDeathLine}>{getDialogueText('matilda.gameover')}</p>}
-            <p style={{ color: '#ccc', marginBottom: 8 }}>{t('hud.survivalTime', { time: `${mins}:${secs}` })}</p>
+            <p style={{ color: '#ccc', marginBottom: 8 }}>{t('hud.survivalTime', { time: runClock })}</p>
             <p style={{ color: '#ffd040', marginBottom: (newlyUnlockedWeaponIds?.length > 0) ? 12 : 20 }}>{t('hud.goldEarned', { session: goldSession, total: goldTotal })}</p>
             <MissionResultSummary summary={missionSummary} onOpenMissionCenter={onOpenMissionCenter} />
             {newlyUnlockedWeaponIds?.length > 0 && (
@@ -1579,7 +1597,7 @@ export default function HUD({
         <div style={styles.overlay}>
           <div style={styles.modal}>
             <h2 style={{ ...styles.modalTitle, color: '#ffd040' }}>{currentStageId === 'stage2' ? 'STAGE 2 CLEAR!' : 'STAGE CLEAR!'}</h2>
-            <p style={{ color: '#ccc', marginBottom: 8 }}>{t('hud.clearTime', { time: `${mins}:${secs}` })}</p>
+            <p style={{ color: '#ccc', marginBottom: 8 }}>{t('hud.clearTime', { time: runClock })}</p>
             {bossBonus > 0 && (
               <p style={{ color: '#ff88ff', marginBottom: 6, fontSize: 14 }}>
                 {t('hud.bossBonus')}<strong>{t('hud.bossBonusPoints', { points: bossBonus })}</strong>
@@ -1994,6 +2012,41 @@ const styles = {
     fontWeight: uiType.weightHeavy,
     lineHeight: 1,
     whiteSpace: 'nowrap',
+    textShadow: '0 1px 3px rgba(0,0,0,0.85)',
+  },
+  // 좌하단. 모바일 조이스틱은 화면 하단을 터치로 쓰므로 pointerEvents를 끄고 얹는다 -
+  // 점수판이 조이스틱 입력을 삼키면 이동이 막힌다.
+  liveScore: {
+    position: 'absolute',
+    left: 'max(14px, env(safe-area-inset-left, 0px))',
+    bottom: 'max(14px, env(safe-area-inset-bottom, 0px))',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 1,
+    pointerEvents: 'none',
+    userSelect: 'none',
+  },
+  liveScoreLabel: {
+    color: uiPalette.paperLight,
+    fontFamily: uiType.numeric,
+    fontSize: 10,
+    fontWeight: uiType.weightHeavy,
+    letterSpacing: 1,
+    opacity: 0.78,
+    textShadow: '0 1px 3px rgba(0,0,0,0.85)',
+  },
+  liveScoreValue: {
+    color: uiPalette.paperLight,
+    fontFamily: uiType.numeric,
+    fontSize: 20,
+    fontWeight: uiType.weightHeavy,
+    lineHeight: 1,
+    // 자릿수가 늘어나도 줄바꿈으로 무너지지 않게 한 줄로 두고, 화면 밖으로 나가지 않게 자른다.
+    whiteSpace: 'nowrap',
+    maxWidth: 'calc(100vw - 32px)',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
     textShadow: '0 1px 3px rgba(0,0,0,0.85)',
   },
   timer: {

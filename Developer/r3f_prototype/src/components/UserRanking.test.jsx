@@ -41,7 +41,7 @@ describe('UserRanking', () => {
     expect(html).not.toContain('31위')
     expect(html.match(/<li/g)).toHaveLength(30)
     expect(html).toContain('지안')
-    expect(html).toContain('330점')
+    expect(html).toContain('345점')
     expect(html).toContain('4:00')
     expect(html).toContain('기록 없음')
   })

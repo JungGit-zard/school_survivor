@@ -7,6 +7,7 @@ import {
   saveAdminConfig,
 } from '../lib/adminConfig.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
+import { getRankingScore } from '../lib/rankingScorePolicy.js'
 import { getBossPhaseStatus, getBossSpawnSec, getRuntimeBurstEventsForStage, isBossType } from '../lib/burstEvents.js'
 import {
   WAVE_ZOMBIE_TYPES,
@@ -661,16 +662,6 @@ function RankingControls({ draft, updateSeason, updateScorePolicy, updateStageBo
           value={rankingSeason.scorePolicy.stageBonus.stage2}
           onChange={(value) => updateStageBonus('stage2', value)}
         />
-        <NumberField
-          name="clearBonus"
-          label="클리어 보너스 점수"
-          min={0}
-          max={200}
-          step={5}
-          suffix="점"
-          value={rankingSeason.scorePolicy.clearBonus}
-          onChange={(value) => updateScorePolicy('clearBonus', value)}
-        />
       </div>
 
       <h2 style={styles.tableTitle}>순위 보상</h2>
@@ -845,7 +836,9 @@ function buildPreview(config) {
   const stage1Duration = config.balance.stageDurationSec.stage1
   const stage2Duration = config.balance.stageDurationSec.stage2
   const stage2Bonus = config.rankingSeason.scorePolicy.stageBonus.stage2
-  const clearBonus = config.rankingSeason.scorePolicy.clearBonus
+  // 탈출 보너스는 고정 점수가 아니라 기본 점수의 15%다. 어드민이 편집 중인(아직 저장 전)
+  // 스테이지 보너스를 그대로 반영하려고 정책 객체를 직접 넘긴다.
+  const previewPolicy = { stageBonus: config.rankingSeason.scorePolicy.stageBonus }
   const hp = 100 + config.balance.player.maxHpBonus
   const speed = Math.round(3 * config.balance.player.speedMultiplier * 100) / 100
   const rewards = config.rankingSeason.rewardTiers
@@ -853,8 +846,8 @@ function buildPreview(config) {
     .join(' / ')
 
   return {
-    stage1Clear: `${stage1Duration + clearBonus}점`,
-    stage2Clear: `${stage2Duration + stage2Bonus + clearBonus}점`,
+    stage1Clear: `${getRankingScore({ stageId: 'stage1', survivalSeconds: stage1Duration, cleared: true }, previewPolicy)}점`,
+    stage2Clear: `${getRankingScore({ stageId: 'stage2', survivalSeconds: stage2Duration, cleared: true }, previewPolicy)}점`,
     hp: `${hp}`,
     speed: `${speed}`,
     rewards,

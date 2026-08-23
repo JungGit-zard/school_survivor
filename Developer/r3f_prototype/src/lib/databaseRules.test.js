@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { STAGE_BONUS, CLEAR_BONUS, getBossClearBonus, getRankingScore } from './rankingScorePolicy.js'
+import { getBossClearBonus, getRankingScore } from './rankingScorePolicy.js'
 import { DEFAULT_SETTINGS } from './titleSettings.js'
 import { FIREBASE_STUDIO_DATASET_KEYS } from './firebaseStudio.js'
 
@@ -178,8 +178,7 @@ function fullyAccepts(entryRule, { entry, existing, auth, $uid, $window, $stageI
 
 function honestEntry({ uid = 'me', stageId = 'stage2', timeMs = 50000, cleared = true, displayName = 'Neo' } = {}) {
   const survivalSeconds = Math.floor(timeMs / 1000)
-  const base = survivalSeconds + STAGE_BONUS[stageId] + (cleared ? CLEAR_BONUS : 0)
-  const bossBonus = cleared ? Math.floor(base * 0.2) : 0
+  const bossBonus = getBossClearBonus({ stageId, survivalSeconds, cleared, bossDefeated: cleared })
   const score = getRankingScore({ stageId, survivalSeconds, cleared, bossBonus })
   return { uid, displayName, score, timeMs, cleared, stageId, submittedAt: Date.now() }
 }
@@ -201,7 +200,7 @@ describe('ranking entry write rules (evaluated against the real rule strings)', 
     }
   })
 
-  it('keeps a Stage 1 boss-kill gameover under the uncleared cap and accepts the portal-clear bonus only on clear', () => {
+  it('drops the boss bonus on a gameover and keeps it on a portal clear', () => {
     const gameover = honestEntry({ stageId: 'stage1', timeMs: 192_000, cleared: false })
     gameover.score = getRankingScore({ stageId: 'stage1', survivalSeconds: 192, cleared: false, bossBonus: 44 })
     expect(gameover.score).toBe(192)
@@ -212,7 +211,7 @@ describe('ranking entry write rules (evaluated against the real rule strings)', 
       ...honestEntry({ stageId: 'stage1', timeMs: 240_000, cleared: true }),
       score: getRankingScore({ stageId: 'stage1', survivalSeconds: 240, cleared: true, bossBonus }),
     }
-    expect(cleared.score).toBe(324)
+    expect(cleared.score).toBe(331)
     expect(fullyAccepts(stageRule, { ...base, $stageId: 'stage1', entry: cleared })).toBe(true)
   })
 
@@ -222,17 +221,6 @@ describe('ranking entry write rules (evaluated against the real rule strings)', 
 
   it("rejects writing to another user's uid node", () => {
     expect(fullyAccepts(stageRule, { ...base, auth: { uid: 'intruder' }, entry: honestEntry() })).toBe(false)
-  })
-
-  it('rejects a score above the anti-cheat cap (timeMs 60s but score 50000)', () => {
-    const tampered = { ...honestEntry({ stageId: 'stage4', timeMs: 60000 }), score: 50000 }
-    expect(fullyAccepts(stageRule, { ...base, $stageId: 'stage4', entry: tampered })).toBe(false)
-  })
-
-  it('rejects an honest score inflated by even one point (cap is exact for honest runs)', () => {
-    const honest = honestEntry({ stageId: 'stage2', timeMs: 50000, cleared: true })
-    expect(fullyAccepts(stageRule, { ...base, entry: honest })).toBe(true)
-    expect(fullyAccepts(stageRule, { ...base, entry: { ...honest, score: honest.score + 1 } })).toBe(false)
   })
 
   it('rejects a new score lower than the existing entry (best-only)', () => {
@@ -254,10 +242,17 @@ describe('ranking entry write rules (evaluated against the real rule strings)', 
     expect(fullyAccepts(stageRule, { ...base, entry: { ...honestEntry(), uid: 'someone-else' } })).toBe(false)
   })
 
-  it('caps timeMs so an inflated survival time cannot raise the score ceiling', () => {
-    // timeMs 상한(300,000ms = 실런 최대 240s + 여유)이 없으면 timeMs를 부풀려 score 상한을 무한정 끌어올릴 수 있다.
-    const inflated = { ...honestEntry({ stageId: 'stage1', cleared: false }), timeMs: 100000000, score: 90000 }
-    expect(fullyAccepts(stageRule, { ...base, $stageId: 'stage1', entry: inflated })).toBe(false)
+  it('accepts runs of any length - there is no time or score ceiling', () => {
+    // 예전에는 timeMs <= 300,000과 점수 상한식이 여기 있었다. 무한모드 경합이 핵심 컨텐츠라
+    // 5분을 넘긴 런이 제출 자체를 거부당했다 - 정확히 이 게임이 노리는 플레이가 막혀 있었다.
+    // 그 대가로 랭킹 점수는 클라이언트 신뢰 기반이 된다(의도된 선택).
+    for (const timeMs of [360_000_000, 94_608_000_000]) {
+      for (const cleared of [true, false]) {
+        const entry = honestEntry({ stageId: 'stage1', timeMs, cleared })
+        expect(Number.isSafeInteger(entry.score)).toBe(true)
+        expect(fullyAccepts(stageRule, { ...base, $stageId: 'stage1', entry })).toBe(true)
+      }
+    }
   })
 
   it('rejects a stage-bucket write whose stageId does not match the bucket path', () => {

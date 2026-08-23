@@ -41,7 +41,6 @@ export const DEFAULT_ADMIN_CONFIG = Object.freeze({
         stage3: 120,
         stage4: 180,
       },
-      clearBonus: 30,
     },
     rewardTiers: [
       { rankTo: 1, label: '1위', gold: 100, badge: '교장실 탈출왕' },
@@ -135,7 +134,6 @@ export function normalizeAdminConfig(input = {}) {
           stage3: clampInt(stageBonus.stage3, DEFAULT_ADMIN_CONFIG.rankingSeason.scorePolicy.stageBonus.stage3, 0, 200),
           stage4: clampInt(stageBonus.stage4, DEFAULT_ADMIN_CONFIG.rankingSeason.scorePolicy.stageBonus.stage4, 0, 200),
         },
-        clearBonus: clampInt(scorePolicy.clearBonus, DEFAULT_ADMIN_CONFIG.rankingSeason.scorePolicy.clearBonus, 0, 200),
       },
       rewardTiers: normalizeRewardTiers(season.rewardTiers),
     },

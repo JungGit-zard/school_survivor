@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
-import { applyHitCameraShake, applyLanguage, applyReducedEffects, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
+import { applyHitCameraShake, applyLanguage, applyReducedEffects, applyScientificNotation, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
 import { schoolPanel, schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { LOCALE_OPTIONS, useLocale, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
@@ -37,6 +37,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
     saveTitleSettings(settings)
     applyReducedEffects(settings.reducedEffects)
     applyHitCameraShake(settings.hitCameraShake)
+    applyScientificNotation(settings.scientificNotation)
     applyLanguage(settings.language)
   }, [settings])
 
@@ -272,6 +273,21 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               </span>
               <span style={styles.toggleTrack(settings.hitCameraShake)}>
                 <span style={styles.toggleKnob(settings.hitCameraShake)} />
+              </span>
+            </button>
+
+            <button
+              type="button"
+              aria-label={settings.scientificNotation ? t('settings.scientificOff') : t('settings.scientificOn')}
+              style={styles.settingRow}
+              onClick={() => toggleSetting('scientificNotation')}
+            >
+              <span style={styles.rowText}>
+                <strong style={styles.rowTitle}>{t('settings.scientific')}</strong>
+                <span style={styles.rowDescription}>{t('settings.scientificDesc')}</span>
+              </span>
+              <span style={styles.toggleTrack(settings.scientificNotation)}>
+                <span style={styles.toggleKnob(settings.scientificNotation)} />
               </span>
             </button>
 
