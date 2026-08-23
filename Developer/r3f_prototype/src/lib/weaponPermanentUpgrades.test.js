@@ -119,7 +119,7 @@ describe('weaponPermanentUpgrades storage layer', () => {
   it('assigns base critical chance only to non-explosive critical-capable weapon damage profiles', () => {
     expect(WEAPON_CATALOG.pencilThrow.base.critChance).toBe(0.08)
     expect(WEAPON_CATALOG.schoolBag.base.critChance).toBe(0.07)
-    expect(WEAPON_CATALOG.boxCutter.base.critChance).toBe(0.25)
+    expect(WEAPON_CATALOG.boxCutter.base.critChance).toBe(0.33)
     expect(WEAPON_CATALOG.tumbler.base.critChance).toBe(0.04)
     expect(WEAPON_CATALOG.scienceFlask.base.critChance).toBe(0.03)
     expect(WEAPON_CATALOG.bell.base.critChance).toBe(0.05)
@@ -161,7 +161,7 @@ describe('weaponPermanentUpgrades storage layer', () => {
     setLevel('guidedMissile', 9)
 
     expect(applyWeaponPermanentUpgradesToBaseWeapon('pencilThrow', WEAPON_CATALOG.pencilThrow.base).critChance).toBe(0.16)
-    expect(applyWeaponPermanentUpgradesToBaseWeapon('boxCutter', WEAPON_CATALOG.boxCutter.base).critChance).toBe(0.33)
+    expect(applyWeaponPermanentUpgradesToBaseWeapon('boxCutter', WEAPON_CATALOG.boxCutter.base).critChance).toBe(0.41)
     expect(applyWeaponPermanentUpgradesToBaseWeapon('studentLantern', WEAPON_CATALOG.studentLantern.base).critChance).toBe(0.11)
     expect(applyWeaponPermanentUpgradesToBaseWeapon('guidedMissile', WEAPON_CATALOG.guidedMissile.base).critChance).toBeUndefined()
   })

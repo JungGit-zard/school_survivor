@@ -351,7 +351,7 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
     for (const id of critCardIds) {
       expect(UPGRADE_EFFECTS[id], `${id} missing`).toMatchObject({
         kind: 'crit',
-        chanceStep: 0.02,
+        chanceStep: id === 'boxCutterCrit' ? 0.04 : 0.02,
         multStep: 0.75,
         multCap: 4.5,
       })
@@ -422,7 +422,7 @@ describe('GAP-1: 크리 카드 배율 성장 축 통합', () => {
       expect(isUpgradeAvailable(effect, 10, { [weapon]: w })).toBe(false)
     })
 
-    it(`${weapon}: 영구 강화 없이 런 크리 4픽만 → critChance=base+0.08, critMultiplier=4.5`, () => {
+    it(`${weapon}: 영구 강화 없이 런 크리 4픽만 → critChance=base+(chanceStep×4), critMultiplier=4.5`, () => {
       const effect = UPGRADE_EFFECTS[key]
       const base = WEAPON_CATALOG[weapon].base
       let w = wpn({ active: true, level: 1, critChance: base.critChance, critMultiplier: base.critMultiplier })
@@ -431,7 +431,7 @@ describe('GAP-1: 크리 카드 배율 성장 축 통합', () => {
         w = applyUpgradeToWeapon(w, effect)
       }
 
-      expect(w.critChance).toBeCloseTo(base.critChance + 0.08, 5)
+      expect(w.critChance).toBeCloseTo(base.critChance + effect.chanceStep * 4, 5)
       expect(w.critMultiplier).toBeCloseTo(4.5, 5)
     })
   }

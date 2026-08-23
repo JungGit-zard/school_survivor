@@ -106,7 +106,7 @@ const UPGRADES = [
   { key: 'boxCutterDamage', icon: 'boxCutter', labelFn: damageLabel('커터칼 피해', 'boxCutter', 'boxCutterDamage'), desc: '찌르기 피해 증가' },
   { key: 'boxCutterPower', icon: 'boxCutter', labelFn: damageLabel('커터칼 위력', 'boxCutter', 'boxCutterPower'), desc: '날을 갈아 베기 위력 증가' },
   { key: 'boxCutterRange', icon: 'boxCutter', label: '커터칼 사거리 +', desc: '전방 찌르기 사거리 증가' },
-  { key: 'boxCutterCrit', icon: 'boxCutter', label: '커터칼 치명타 강화', desc: '치명타 확률 +2%, 치명타 피해 배율 +0.75배 (최대 4.5배)' },
+  { key: 'boxCutterCrit', icon: 'boxCutter', label: '커터칼 치명타 강화', desc: '치명타 확률 +4%, 치명타 피해 배율 +0.75배 (최대 4.5배)' },
   { key: 'pencilDamage', icon: 'pencil', labelFn: damageLabel('연필 데미지', 'pencilThrow', 'pencilDamage'), desc: '투척 연필의 공격력 증가' },
   { key: 'pencilPower', icon: 'pencil', labelFn: damageLabel('연필 위력', 'pencilThrow', 'pencilPower'), desc: '심을 뾰족하게 깎아 위력 증가' },
   { key: 'pencilCount', icon: 'pencil', label: '연필 발사 수 +1', desc: '동시에 날리는 연필 수 증가 (최대 4)' },

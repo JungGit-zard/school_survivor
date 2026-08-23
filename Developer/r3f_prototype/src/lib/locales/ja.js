@@ -474,7 +474,7 @@ export default {
   'up.boxCutterRange.label': 'カッター射程 +',
   'up.boxCutterRange.desc': '前方の突き射程が増加',
   'up.boxCutterCrit.label': 'カッター クリティカル強化',
-  'up.boxCutterCrit.desc': 'クリティカル率 +2%、クリティカル倍率 +0.75倍（最大4.5倍）',
+  'up.boxCutterCrit.desc': 'クリティカル率 +4%、クリティカル倍率 +0.75倍（最大4.5倍）',
   'up.pencilDamage.label': '鉛筆ダメージ +{amount} (Lv{level})',
   'up.pencilDamage.desc': '投擲鉛筆の攻撃力が増加',
   'up.pencilCount.label': '鉛筆の発射数 +1',

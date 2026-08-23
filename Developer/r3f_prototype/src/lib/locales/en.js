@@ -474,7 +474,7 @@ export default {
   'up.boxCutterRange.label': 'Box Cutter range +',
   'up.boxCutterRange.desc': 'Increases forward stab range',
   'up.boxCutterCrit.label': 'Box Cutter crit up',
-  'up.boxCutterCrit.desc': 'Crit chance +2%, crit damage x+0.75 (max x4.5)',
+  'up.boxCutterCrit.desc': 'Crit chance +4%, crit damage x+0.75 (max x4.5)',
   'up.pencilDamage.label': 'Pencil damage +{amount} (Lv{level})',
   'up.pencilDamage.desc': 'Increases thrown pencil attack power',
   'up.pencilCount.label': 'Pencil count +1',

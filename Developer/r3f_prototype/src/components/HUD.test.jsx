@@ -253,6 +253,20 @@ describe('upgrade choice filtering', () => {
     expect(getUpgradeChoiceDesc(option)).toBe('チビコを獲得すると登場。20秒ごとに主人公の最大HPの5%を回復')
   })
 
+  it('shows the box cutter crit card as +4% in every shipped locale', () => {
+    const option = {
+      key: 'boxCutterCrit',
+      label: '커터칼 치명타 강화',
+      desc: '치명타 확률 +4%, 치명타 피해 배율 +0.75배 (최대 4.5배)',
+    }
+
+    expect(getUpgradeChoiceDesc(option)).toBe('치명타 확률 +4%, 치명타 피해 배율 +0.75배 (최대 4.5배)')
+    setLocale('en')
+    expect(getUpgradeChoiceDesc(option)).toBe('Crit chance +4%, crit damage x+0.75 (max x4.5)')
+    setLocale('ja')
+    expect(getUpgradeChoiceDesc(option)).toBe('クリティカル率 +4%、クリティカル倍率 +0.75倍（最大4.5倍）')
+  })
+
   it('limits pencil upgrade options to one card', () => {
     const options = [
       { key: 'pencilDamage' },

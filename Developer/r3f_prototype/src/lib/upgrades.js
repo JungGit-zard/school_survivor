@@ -87,7 +87,7 @@ export const UPGRADE_EFFECTS = {
   boxCutterDamage:{ weapon: 'boxCutter',      kind: 'damage', dmg: 8.2 },
   boxCutterPower: { weapon: 'boxCutter',      kind: 'damage', dmg: 8.2 },
   boxCutterRange: { weapon: 'boxCutter',      kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.755 },
-  boxCutterCrit:  { weapon: 'boxCutter',      kind: 'crit',   chanceStep: 0.02, chanceCap: 0.41, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
+  boxCutterCrit:  { weapon: 'boxCutter',      kind: 'crit',   chanceStep: 0.04, chanceCap: 0.57, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireTumbler:  { weapon: 'tumbler',       kind: 'acquire', minLevel: 2 },
   // 데미지 카드를 tumblerCount 앞으로 옮겼다. 예전 순서(count 먼저)에서는 첫 레벨업이
   // 단일 대상 기준 완전 무증가였다 — 19종 중 유일하게 "Lv1 → Lv2 +0%"인 무기였다.
