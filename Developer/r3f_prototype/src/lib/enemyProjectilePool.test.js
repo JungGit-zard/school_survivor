@@ -5,6 +5,7 @@ import {
   ENEMY_PROJECTILE_KIND_SPHERE,
   E04_PROJECTILE_LIFETIME_MS,
   E04_PROJECTILE_RADIUS,
+  E04_PROJECTILE_VISUAL_EXIT_RADIUS,
   MAX_ENEMY_PROJECTILES,
   chefIngredientKindAt,
   createEnemyProjectilePool,
@@ -43,6 +44,54 @@ describe('EnemyProjectilePool', () => {
     expect(E04_PROJECTILE_LIFETIME_MS).toBe(3200)
   })
 
+  it('기본 구체는 화면에 한 번 보인 뒤에는 수명 대신 완전 화면 이탈에서만 제거한다', () => {
+    const pool = createEnemyProjectilePool()
+    const sphere = {}
+    const bounds = { minX: -100, maxX: 100, minZ: -1, maxZ: 1 }
+    expect(pool.spawnInto(sphere, 0, 0, 0, 1, 0)).toBe(true)
+
+    for (let i = 0; i < 100; i += 1) pool.step(1 / 30, -1000, -1000, null, bounds)
+    expect(pool.ageMs[sphere.index]).toBeGreaterThan(E04_PROJECTILE_LIFETIME_MS)
+    expect(pool.active[sphere.index]).toBe(1)
+
+    bounds.maxX = pool.posX[sphere.index] + pool.velX[sphere.index] / 30 - E04_PROJECTILE_VISUAL_EXIT_RADIUS + 0.001
+    pool.step(1 / 30, -1000, -1000, null, bounds)
+    expect(pool.active[sphere.index]).toBe(1)
+    for (let i = 0; i < 10; i += 1) pool.step(1 / 30, -1000, -1000, null, bounds)
+    expect(pool.active[sphere.index]).toBe(0)
+  })
+
+  it('화면 밖에서 시작한 기본 구체는 화면에 들어온 뒤 이탈할 때 제거하고, 재료는 기존 수명을 유지한다', () => {
+    const pool = createEnemyProjectilePool()
+    const sphere = {}
+    const ingredient = {}
+    const bounds = { minX: -1, maxX: 1, minZ: -1, maxZ: 1 }
+    expect(pool.spawnInto(sphere, 2, 0, 0, -1, 0)).toBe(true)
+    expect(pool.spawnInto(ingredient, 0, 0, 0, 1, 0, 14, 1.6, CHEF_INGREDIENT_KINDS[0])).toBe(true)
+
+    pool.step(1 / 30, -1000, -1000, null, bounds)
+    expect(pool.active[sphere.index]).toBe(1)
+    for (let i = 0; i < 20; i += 1) pool.step(1 / 30, -1000, -1000, null, bounds)
+    expect(pool.seenOnScreen[sphere.index]).toBe(1)
+    expect(pool.active[sphere.index]).toBe(1)
+    for (let i = 0; i < 40; i += 1) pool.step(1 / 30, -1000, -1000, null, bounds)
+    expect(pool.active[sphere.index]).toBe(0)
+    for (let i = 0; i < 100; i += 1) pool.step(1 / 30, -1000, -1000, null, bounds)
+    expect(pool.active[ingredient.index]).toBe(0)
+  })
+
+  it('화면에 들어오지 않고 멀어지는 기본 구체는 기존 3,200ms 안전 수명으로 회수한다', () => {
+    const pool = createEnemyProjectilePool()
+    const sphere = {}
+    const bounds = { minX: -1, maxX: 1, minZ: -1, maxZ: 1 }
+    expect(pool.spawnInto(sphere, 2, 0, 0, 1, 0)).toBe(true)
+    for (let i = 0; i < 96; i += 1) pool.step(1 / 30, -1000, -1000, null, bounds)
+    expect(pool.seenOnScreen[sphere.index]).toBe(0)
+    expect(pool.active[sphere.index]).toBe(1)
+    pool.step(1 / 30, -1000, -1000, null, bounds)
+    expect(pool.active[sphere.index]).toBe(0)
+  })
+
   it('special boss는 fixed pool에서 별도 속도만 사용하고 generation 계약은 동일하다', () => {
     const pool = createEnemyProjectilePool()
     const handle = {}
@@ -67,7 +116,10 @@ describe('EnemyProjectilePool', () => {
     const pool = createEnemyProjectilePool()
     const before = {}
     expect(pool.spawnInto(before, 0, 0, 0, 1, 0)).toBe(true)
+    pool.step(1 / 30, 100, 100, null, { minX: -1, maxX: 1, minZ: -1, maxZ: 1 })
+    expect(pool.seenOnScreen[before.index]).toBe(1)
     pool.reset()
+    expect(pool.seenOnScreen[before.index]).toBe(0)
     const after = {}
     expect(pool.spawnInto(after, 0, 0, 0, 1, 0)).toBe(true)
     expect(after.index).toBe(before.index)

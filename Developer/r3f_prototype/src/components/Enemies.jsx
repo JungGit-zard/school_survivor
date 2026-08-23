@@ -1802,7 +1802,7 @@ export default function Enemies() {
         // death 보상은 generation-보호 hit handler에서 despawn 전에 확정한다. 탈주/오류는 보상 없음.
       }
     }
-    enemyProjectilePool.step(delta, playerPos.x, playerPos.z, projectileHitRef.current)
+    enemyProjectilePool.step(delta, playerPos.x, playerPos.z, projectileHitRef.current, screenBounds)
 
     goldTimerRef.current -= delta * 1000
     if (goldTimerRef.current <= 0) {

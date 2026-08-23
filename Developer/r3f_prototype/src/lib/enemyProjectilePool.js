@@ -4,9 +4,11 @@ export const E04_PROJECTILE_LIFETIME_MS = 3200
 export const E04_PROJECTILE_SPEED = 1.9
 export const E04_PROJECTILE_DAMAGE = 8
 export const E04_PROJECTILE_RADIUS = 0.09
+export const E04_PROJECTILE_VISUAL_EXIT_RADIUS = E04_PROJECTILE_RADIUS * 1.22
 export const PLAYER_CONTACT_HALF_EXTENT = 0.136
 
-// 투사체 kind는 순수 비주얼 채널이다. 데미지·속도·수명·판정 반경은 kind와 무관하다.
+// kind는 비주얼 종류다. 데미지·속도·판정 반경은 kind와 무관하며,
+// 기본 구체(kind 0)만 화면을 본 뒤 화면 이탈로 회수한다.
 // 0 = E04 기본 청록 구체(정본, 변경 금지). 1..4 = B04 주방장 보스가 던지는 주방 재료.
 export const ENEMY_PROJECTILE_KIND_SPHERE = 0
 export const ENEMY_PROJECTILE_KIND_CARROT = 1
@@ -51,6 +53,7 @@ export class EnemyProjectilePool {
     this.ageMs = new Float32Array(MAX_ENEMY_PROJECTILES)
     this.damage = new Float32Array(MAX_ENEMY_PROJECTILES)
     this.kind = new Uint8Array(MAX_ENEMY_PROJECTILES)
+    this.seenOnScreen = new Uint8Array(MAX_ENEMY_PROJECTILES)
     this._freeNext = new Int8Array(MAX_ENEMY_PROJECTILES)
     this._freeHead = 0
     this._activeCount = 0
@@ -79,6 +82,7 @@ export class EnemyProjectilePool {
     this.ageMs[index] = 0
     this.damage[index] = damage
     this.kind[index] = storableKind(kind)
+    this.seenOnScreen[index] = 0
     out.index = index
     out.generation = this.generation[index]
     this._activeCount += 1
@@ -101,6 +105,7 @@ export class EnemyProjectilePool {
     this.ageMs[index] = 0
     this.damage[index] = 0
     this.kind[index] = ENEMY_PROJECTILE_KIND_SPHERE
+    this.seenOnScreen[index] = 0
     this._activeCount -= 1
     if (this.generation[index] === 0xffff) return true
     this.generation[index] += 1
@@ -109,7 +114,7 @@ export class EnemyProjectilePool {
     return true
   }
 
-  step(delta, playerX, playerZ, onHit) {
+  step(delta, playerX, playerZ, onHit, bounds = null) {
     if (!storable(delta) || delta < 0 || !storable(playerX) || !storable(playerZ)) return false
     const dt = Math.min(delta, 1 / 30)
     const hitDistanceSq = (E04_PROJECTILE_RADIUS + PLAYER_CONTACT_HALF_EXTENT) ** 2
@@ -124,13 +129,29 @@ export class EnemyProjectilePool {
       this.posX[index] = nextX
       this.posZ[index] = nextZ
       this.ageMs[index] += dt * 1000
+      const isSphere = this.kind[index] === ENEMY_PROJECTILE_KIND_SPHERE
+      const hasScreenBounds = bounds
+        && storable(bounds.minX) && storable(bounds.maxX) && storable(bounds.minZ) && storable(bounds.maxZ)
+        && bounds.minX <= bounds.maxX && bounds.minZ <= bounds.maxZ
+      if (isSphere && hasScreenBounds
+        && nextX + E04_PROJECTILE_VISUAL_EXIT_RADIUS >= bounds.minX
+        && nextX - E04_PROJECTILE_VISUAL_EXIT_RADIUS <= bounds.maxX
+        && nextZ + E04_PROJECTILE_VISUAL_EXIT_RADIUS >= bounds.minZ
+        && nextZ - E04_PROJECTILE_VISUAL_EXIT_RADIUS <= bounds.maxZ) this.seenOnScreen[index] = 1
       const dx = nextX - playerX
       const dz = nextZ - playerZ
       const generation = this.generation[index]
       if (dx * dx + dz * dz <= hitDistanceSq) {
         if (onHit) onHit(index, generation, this.damage[index])
         this.despawn(index, generation)
-      } else if (this.ageMs[index] >= E04_PROJECTILE_LIFETIME_MS) {
+      } else if (isSphere && this.seenOnScreen[index] && hasScreenBounds
+        && (nextX + E04_PROJECTILE_VISUAL_EXIT_RADIUS < bounds.minX
+          || nextX - E04_PROJECTILE_VISUAL_EXIT_RADIUS > bounds.maxX
+          || nextZ + E04_PROJECTILE_VISUAL_EXIT_RADIUS < bounds.minZ
+          || nextZ - E04_PROJECTILE_VISUAL_EXIT_RADIUS > bounds.maxZ)) {
+        this.despawn(index, generation)
+      } else if ((!isSphere || !this.seenOnScreen[index] || !hasScreenBounds)
+        && this.ageMs[index] >= E04_PROJECTILE_LIFETIME_MS) {
         this.despawn(index, generation)
       }
     }
@@ -150,6 +171,7 @@ export class EnemyProjectilePool {
       this.ageMs[index] = 0
       this.damage[index] = 0
       this.kind[index] = ENEMY_PROJECTILE_KIND_SPHERE
+      this.seenOnScreen[index] = 0
       if (this.generation[index] === 0xffff) {
         this._freeNext[index] = -1
       } else {
