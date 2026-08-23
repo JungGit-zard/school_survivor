@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import {
   getStagePropDepthWritingToonMaterial,
@@ -12,11 +12,13 @@ import { getCachedCylinderGeo } from '../../lib/toon.js'
 import { getRuntimeElapsedMs } from '../../lib/gameRuntimeTime.js'
 import {
   PRESSURE_CAULDRON_BOIL_LEAD_MS,
+  PRESSURE_CAULDRON_BURST_DURATION_MS,
   PRESSURE_CAULDRON_DAMAGE_RADIUS,
   PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS,
   getPressureCauldronHazardVisual,
 } from '../../lib/stage4PressureCauldronHazard.js'
 import { useGameStore } from '../../store/useGameStore.js'
+import { SpawnSmokeEffect } from '../Enemy.jsx'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 const OUTLINE_SCALE = 1.035
@@ -27,6 +29,14 @@ const BOILING_SMOKE_PUFFS = [
   [-0.70, 3.95, 0.36],
   [0.66, 4.22, -0.30],
 ]
+const BURST_DEBRIS = Object.freeze([
+  { angle: 0.08, lift: 1.10, size: [0.30, 0.17, 0.24] },
+  { angle: 1.12, lift: 0.84, size: [0.24, 0.28, 0.18] },
+  { angle: 2.20, lift: 1.34, size: [0.28, 0.16, 0.30] },
+  { angle: 3.26, lift: 0.96, size: [0.20, 0.30, 0.20] },
+  { angle: 4.30, lift: 1.22, size: [0.32, 0.18, 0.22] },
+  { angle: 5.42, lift: 0.76, size: [0.22, 0.24, 0.28] },
+])
 
 function scaleToBaseScale(scale) {
   const source = Array.isArray(scale) ? scale : [scale ?? 1, scale ?? 1, scale ?? 1]
@@ -81,10 +91,13 @@ function Latch({ position, dark, yellow, rotation = [0, 0, 0] }) {
   )
 }
 
-function PressureCauldronHazardVisual({ basePosition = [0, 0, 0], cauldronRootRef, steam, warning, flash }) {
+function PressureCauldronHazardVisual({ basePosition = [0, 0, 0], cauldronRootRef, steam, warning, flash, dark }) {
   const bubblesRef = useRef(null)
   const burstRef = useRef(null)
   const smokeRefs = useRef([])
+  const debrisRefs = useRef([])
+  const wasBurstingRef = useRef(false)
+  const [burstSmokeId, setBurstSmokeId] = useState(0)
   const bubbleGeometry = getCachedCylinderGeo(0.24, 0.19, 0.36, 8)
 
   useFrame((_, delta) => {
@@ -116,10 +129,36 @@ function PressureCauldronHazardVisual({ basePosition = [0, 0, 0], cauldronRootRe
       }
     }
     if (burstRef.current) burstRef.current.visible = visual.bursting
+    if (visual.bursting && !wasBurstingRef.current) {
+      setBurstSmokeId((current) => current + 1)
+    }
+    wasBurstingRef.current = visual.bursting
+    if (visual.bursting) {
+      const burstProgress = Math.min(
+        1,
+        (elapsedMs % PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS) / PRESSURE_CAULDRON_BURST_DURATION_MS,
+      )
+      debrisRefs.current.forEach((debris, index) => {
+        if (!debris) return
+        const spec = BURST_DEBRIS[index]
+        const distance = 0.32 + burstProgress * (3.90 + index * 0.14)
+        debris.position.set(
+          Math.cos(spec.angle) * distance,
+          3.28 + spec.lift * burstProgress - burstProgress * burstProgress * 0.58,
+          Math.sin(spec.angle) * distance,
+        )
+        debris.rotation.set(
+          burstProgress * (3.2 + index * 0.3),
+          spec.angle + burstProgress * (2.4 + index * 0.2),
+          burstProgress * (2.8 + index * 0.25),
+        )
+      })
+    }
   })
 
   return (
-    <group name="pressure-cauldron-hazard-visual" userData={{ studioRenderOutline: false }}>
+    <>
+      <group name="pressure-cauldron-hazard-visual" userData={{ studioRenderOutline: false }}>
       <group ref={bubblesRef} visible={false} name="pressure-cauldron-boiling-steam">
         {BOILING_SMOKE_PUFFS.map((position, index) => (
           <mesh ref={(node) => { smokeRefs.current[index] = node }} key={index} {...STAGE_PROP_SURFACE_RENDERING} position={position} geometry={bubbleGeometry} material={steam} />
@@ -138,8 +177,23 @@ function PressureCauldronHazardVisual({ basePosition = [0, 0, 0], cauldronRootRe
             />
           )
         })}
+        <group name="pressure-cauldron-burst-debris">
+          {BURST_DEBRIS.map((debris, index) => (
+            <group ref={(node) => { debrisRefs.current[index] = node }} key={index}>
+              <Box
+                rotation={[debris.angle, debris.angle * 0.6, 0]}
+                scale={debris.size}
+                material={index % 2 === 0 ? dark : warning}
+              />
+            </group>
+          ))}
+        </group>
       </group>
-    </group>
+      </group>
+      {burstSmokeId > 0 && (
+        <SpawnSmokeEffect key={burstSmokeId} position={[0, 1.8, 0]} visualScale={2.2} />
+      )}
+    </>
   )
 }
 
@@ -242,7 +296,7 @@ export function PressureCauldronModel({ scale, position = [0, 0, 0], cauldronRoo
             {[-0.35, 0.35].map((z) => <Cylinder key={z} position={[2.75, 1.02, z]} rotation={[0, 0, Math.PI / 2]} args={[0.16, 0.16, 0.18, 8]} material={dark} />)}
           </group>
         </group>
-        <PressureCauldronHazardVisual basePosition={position} cauldronRootRef={cauldronRootRef} steam={whiteShade} warning={yellow} flash={red} />
+        <PressureCauldronHazardVisual basePosition={position} cauldronRootRef={cauldronRootRef} steam={whiteShade} warning={yellow} flash={red} dark={dark} />
       </StudioTunedGroup>
     </group>
   )

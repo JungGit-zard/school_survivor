@@ -7,6 +7,20 @@ import { GRAPHICS_STUDIO_CATALOG, normalizeStudioTuning } from '../../lib/graphi
 import { getStudioTransformProps } from '../StudioTunedGroup.jsx'
 import { STAGE_PROP_TYPES } from '../../lib/stagePropPlacements.js'
 
+describe('pressure cauldron burst VFX contract', () => {
+  it('reuses Doge big spawn smoke directly and keeps a fixed visual-only debris burst in the 250ms window', () => {
+    const source = fs.readFileSync(new URL('./PressureCauldron.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain("import { SpawnSmokeEffect } from '../Enemy.jsx'")
+    expect(source).toContain('const BURST_DEBRIS = Object.freeze([')
+    expect(source.match(/angle:/g)).toHaveLength(6)
+    expect(source).toContain('if (visual.bursting && !wasBurstingRef.current)')
+    expect(source).toContain('burstRef.current.visible = visual.bursting')
+    expect(source).toContain('<SpawnSmokeEffect key={burstSmokeId}')
+    expect(source).toContain('name="pressure-cauldron-burst-debris"')
+  })
+})
+
 function elementTypeName(element) {
   if (typeof element?.type === 'string') return element.type
   return element?.type?.name ?? null

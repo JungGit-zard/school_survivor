@@ -659,10 +659,6 @@ export function BigSpawnSmokeEffect({ position, visualScale, frozen = false }) {
   const [done, setDone] = useState(false)
   const doneRef = useRef(false)
   const phase = useGameStore((s) => s.phase)
-  // 흰 구 6개만 겹치면 하나의 납작한 흰 덩어리로 뭉개진다 — 스튜디오에서 빌보드와 나란히
-  // 놓고 확인했다(2026-08-20). 형태는 구마다 두르는 외곽선으로 낸다. MeshToonMaterial도
-  // 시도했지만 라이팅에 의존해 조명이 약한 씬(스튜디오 프리뷰)에서 시커멓게 죽는다 —
-  // 연기는 어디서 재생되든 밝아야 하므로 라이팅과 무관한 Basic + 외곽선으로 간다.
   const material = useMemo(() => new THREE.MeshBasicMaterial({
     color: 0xffffff,
     transparent: true,
@@ -670,18 +666,7 @@ export function BigSpawnSmokeEffect({ position, visualScale, frozen = false }) {
     depthWrite: false,
     toneMapped: false,
   }), [])
-  // outlineMat이 아니라 평범한 BackSide 헐이다. outlineMat은 스텐실로 부품 사이 seam을
-  // 지워 바깥 실루엣만 남기는데, 구름은 그 반대가 필요하다 — 구마다 자기 외곽선이 보여야
-  // 뭉게뭉게한 덩어리로 읽힌다. 스텐실을 켜면 6개가 다시 매끈한 흰 덩어리 하나가 된다.
-  const outline = useMemo(() => new THREE.MeshBasicMaterial({
-    color: 0x2a2320,
-    side: THREE.BackSide,
-    transparent: true,
-    opacity: 1,
-    depthWrite: false,
-    toneMapped: false,
-  }), [])
-  useEffect(() => () => { material.dispose(); outline.dispose() }, [material, outline])
+  useEffect(() => () => { material.dispose() }, [material])
 
   useFrame((_, delta) => {
     const group = groupRef.current
@@ -697,7 +682,6 @@ export function BigSpawnSmokeEffect({ position, visualScale, frozen = false }) {
     // 빌보드와 같은 시간축을 탄다 — 앞 300ms 불투명 유지 후 페이드아웃.
     const opacity = getSpawnSmokeOpacity(elapsed)
     material.opacity = opacity
-    outline.opacity = opacity
     group.position.y = position[1] + size * (0.9 + t * 0.5)
     group.rotation.y = ease * 0.9
 
@@ -731,13 +715,6 @@ export function BigSpawnSmokeEffect({ position, visualScale, frozen = false }) {
             position={[puff.x * visualScale, puff.y * visualScale, puff.z * visualScale]}
             scale={puff.r * visualScale}
           >
-            <mesh
-              geometry={BIG_SPAWN_PUFF_GEOMETRY}
-              material={outline}
-              renderOrder={99}
-              scale={inflateScale(1.06)}
-              userData={{ studioRenderOutline: true }}
-            />
             <mesh geometry={BIG_SPAWN_PUFF_GEOMETRY} material={material} renderOrder={100} />
           </group>
         ))}

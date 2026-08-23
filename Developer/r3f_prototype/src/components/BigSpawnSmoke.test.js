@@ -14,6 +14,20 @@ import {
   getSpawnSmokeOpacity,
   isBigSpawnSmoke,
 } from './Enemy.jsx'
+import { readFileSync } from 'node:fs'
+
+describe('big spawn smoke outline contract', () => {
+  it('does not render an outline mesh for Doge-class spawn smoke', () => {
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    const start = source.indexOf('export function BigSpawnSmokeEffect')
+    const end = source.indexOf('function BillboardSpawnSmokeEffect', start)
+    const bigSmokeSource = source.slice(start, end)
+
+    expect(bigSmokeSource).not.toContain('const outline =')
+    expect(bigSmokeSource).not.toContain('material={outline}')
+    expect(bigSmokeSource).not.toContain('studioRenderOutline: true')
+  })
+})
 
 // Enemy.jsx 호출부: <SpawnSmokeEffect visualScale={cs * 0.333} />, cs = scale * ENEMY_SIZE_MULTIPLIER
 const visualScaleOf = (type) => ENEMY_STATS[type].scale * ENEMY_SIZE_MULTIPLIER * 0.333
