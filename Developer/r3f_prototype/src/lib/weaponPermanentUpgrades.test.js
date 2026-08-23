@@ -186,7 +186,7 @@ describe('weaponPermanentUpgrades storage layer', () => {
     expect(upgraded('scienceFlask')).toMatchObject({ damage: 7.5, zoneRadius: 1.54, zoneDurationMs: 6100, zoneTickDamage: 1.5, critChance: 0.11 })
     expect(upgraded('bell')).toMatchObject({ damage: 10.8, radius: 2.04, critChance: 0.13 })
     expect(upgraded('stunGun')).toMatchObject({ damage: 19.4, cooldown: 3000, chainCount: 3, permanentStunChance: 0.08, critChance: 0.14 })
-    expect(upgraded('onigiri')).toMatchObject({ damage: 21, bounces: 8, critChance: 0.16 })
+    expect(upgraded('onigiri')).toMatchObject({ damage: 52.5, bounces: 8, critChance: 0.16 })
     expect(upgraded('chibiko')).toMatchObject({ damage: 1.4, cooldown: 1012, projectileCount: 2, critChance: 0.09 })
     // Lv.10 "일정 확률로 추가 절단 1회" — 라벨만 있고 런타임 효과가 없던 구멍을 막는다.
     expect(upgraded('boxCutter')).toMatchObject({ permanentExtraSlashChance: 0.1 })

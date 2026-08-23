@@ -88,7 +88,8 @@ export const WEAPON_CATALOG = {
   onigiri: {
     id: 'onigiri',
     label: '오니기리',
-    base: { damage: 21, cooldown: 5000, bounces: 6, bounceRange: 4.5, range: 18, critChance: 0.08, critMultiplier: 1.5 },
+    // 2026-08-23 사용자 요청: 위력을 현재의 2.5배로 조정(21→52.5).
+    base: { damage: 52.5, cooldown: 5000, bounces: 6, bounceRange: 4.5, range: 18, critChance: 0.08, critMultiplier: 1.5 },
     unlockConditions: [{ type: 'totalKills', value: 700 }],
     minLevelToAppear: 6,
   },

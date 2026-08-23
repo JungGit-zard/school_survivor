@@ -83,7 +83,7 @@ describe('weaponCatalog', () => {
     expect(WEAPON_CATALOG.scienceFlask.base.damage).toBe(7.5) // 리워크: 착탄 데미지 절반, 웅덩이 존 추가
     expect(WEAPON_CATALOG.bell.base.directions).toBe(8)
     expect(WEAPON_CATALOG.stunGun.base.chainCount).toBe(2)
-    expect(WEAPON_CATALOG.onigiri.base.damage).toBe(21)
+    expect(WEAPON_CATALOG.onigiri.base.damage).toBe(52.5)
     expect(WEAPON_CATALOG.onigiri.base.cooldown).toBe(5000)
     expect(WEAPON_CATALOG.onigiri.base.bounces).toBe(6)
     expect(WEAPON_CATALOG.chibiko.base.damage).toBe(1.25)

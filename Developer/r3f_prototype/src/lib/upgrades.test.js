@@ -363,11 +363,11 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
     expect(UPGRADE_EFFECTS.eraserCrit).toBeUndefined()
   })
 
-  it('오니기리 데미지 카드 두 장이 base 21의 약 85%를 채운다', () => {
+  it('오니기리 데미지 카드 두 장이 base 52.5의 약 85%를 채운다', () => {
     // 예전에는 "기존 5의 1.3배 = 6.5" 한 장뿐이었다. 2026-08-15 레벨 곡선 재조정에서
     // 8.9 × 2장 = 17.8 (base 21의 84.8%)로 바꿔 만렙 성장폭 2.0배를 만든다.
-    expect(UPGRADE_EFFECTS.onigiiriDamage).toMatchObject({ weapon: 'onigiri', kind: 'damage', dmg: 8.9 })
-    expect(UPGRADE_EFFECTS.onigiiriPower).toMatchObject({ weapon: 'onigiri', kind: 'damage', dmg: 8.9 })
+    expect(UPGRADE_EFFECTS.onigiiriDamage).toMatchObject({ weapon: 'onigiri', kind: 'damage', dmg: 22.25 })
+    expect(UPGRADE_EFFECTS.onigiiriPower).toMatchObject({ weapon: 'onigiri', kind: 'damage', dmg: 22.25 })
   })
 
   // 회귀 방어(2026-08-15): 예전에는 19종 전부 데미지 카드가 정확히 1장뿐이라, 레벨업 절반이

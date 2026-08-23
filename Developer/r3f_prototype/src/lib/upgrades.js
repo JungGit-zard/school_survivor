@@ -112,8 +112,8 @@ export const UPGRADE_EFFECTS = {
   stunChain:      { weapon: 'stunGun',       kind: 'stat',   stat: 'chainCount',      step: 1,    cap: 4 },
   stunCrit:       { weapon: 'stunGun',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.22, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireOnigiri:  { weapon: 'onigiri',       kind: 'acquire', minLevel: 6 },
-  onigiiriDamage: { weapon: 'onigiri',       kind: 'damage', dmg: 8.9 },
-  onigiiriPower:  { weapon: 'onigiri',       kind: 'damage', dmg: 8.9 },
+  onigiiriDamage: { weapon: 'onigiri',       kind: 'damage', dmg: 22.25 },
+  onigiiriPower:  { weapon: 'onigiri',       kind: 'damage', dmg: 22.25 },
   // 기본 6 + 영구강화 최대 2 = 8에서 시작할 수 있으므로 cap은 8 + 인게임 4레벨 = 12.
   // 스탯 cap이 아니라 MAX_WEAPON_LEVEL이 한계가 되게 해서 바운스 카드가 죽지 않도록 한다.
   onigiiriBounce: { weapon: 'onigiri',       kind: 'stat',   stat: 'bounces',         step: 1,    cap: 12 },
