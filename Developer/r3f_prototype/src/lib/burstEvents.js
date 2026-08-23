@@ -15,11 +15,25 @@ export const STAGE3_25_SECOND_REINFORCEMENT = 'stage3TwentyFiveSecondE01E07'
 export const STAGE3_25_SECOND_REINFORCEMENT_START_SEC = 25
 export const STAGE3_25_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC = 150
 export const STAGE3_25_SECOND_REINFORCEMENT_INTERVAL_SEC = 25
+// 2026-08-24 사용자 지시: "스테이지 3에서 보스가 출현한 뒤부터 5분 이전까지 무조건 10초에 한번씩
+// 기본녹색좀비 10마리, 웃는좀비 3마리씩 자동 추가 스폰".
+// 시작 150 = 보스 B03 등장 시각, 종료 300 exclusive = 5분 이전. tick = ceil((300-150)/10) = 15회.
+// 25초 보강(위)과 창이 겹치지 않는다 — 그쪽은 150에서 끝나고 이쪽이 150에서 시작한다.
+export const STAGE3_BOSS_PHASE_REINFORCEMENT = 'stage3BossPhaseE01E07'
+export const STAGE3_BOSS_PHASE_REINFORCEMENT_START_SEC = 150
+export const STAGE3_BOSS_PHASE_REINFORCEMENT_END_EXCLUSIVE_SEC = 300
+export const STAGE3_BOSS_PHASE_REINFORCEMENT_INTERVAL_SEC = 10
 
 // The runtime table holds two repeat descriptors instead of duplicating tick entries.
 export const STAGE3_25_SECOND_GREEN_SMILING_REINFORCEMENT_EVENTS = [
   { sec: STAGE3_25_SECOND_REINFORCEMENT_START_SEC, type: 'E01', count: 3, repeatIntervalSec: STAGE3_25_SECOND_REINFORCEMENT_INTERVAL_SEC, endExclusiveSec: STAGE3_25_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC, reinforcement: STAGE3_25_SECOND_REINFORCEMENT },
   { sec: STAGE3_25_SECOND_REINFORCEMENT_START_SEC, type: 'E07', count: 3, repeatIntervalSec: STAGE3_25_SECOND_REINFORCEMENT_INTERVAL_SEC, endExclusiveSec: STAGE3_25_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC, reinforcement: STAGE3_25_SECOND_REINFORCEMENT },
+]
+
+// 보스 구간 10초 반복 증원. 25초 보강과 같은 반복 기구(repeatIntervalSec/endExclusiveSec)를 쓴다.
+export const STAGE3_BOSS_PHASE_GREEN_SMILING_REINFORCEMENT_EVENTS = [
+  { sec: STAGE3_BOSS_PHASE_REINFORCEMENT_START_SEC, type: 'E01', count: 10, repeatIntervalSec: STAGE3_BOSS_PHASE_REINFORCEMENT_INTERVAL_SEC, endExclusiveSec: STAGE3_BOSS_PHASE_REINFORCEMENT_END_EXCLUSIVE_SEC, reinforcement: STAGE3_BOSS_PHASE_REINFORCEMENT },
+  { sec: STAGE3_BOSS_PHASE_REINFORCEMENT_START_SEC, type: 'E07', count: 3, repeatIntervalSec: STAGE3_BOSS_PHASE_REINFORCEMENT_INTERVAL_SEC, endExclusiveSec: STAGE3_BOSS_PHASE_REINFORCEMENT_END_EXCLUSIVE_SEC, reinforcement: STAGE3_BOSS_PHASE_REINFORCEMENT },
 ]
 
 export function isRepeatingBurstEvent(event) {
@@ -140,7 +154,14 @@ export const STAGE2_BURST_EVENTS = [
 // 보스와 형태/그룹 버스트는 모두 이 표의 sec 그대로 런타임에 발화한다.
 // 2026-08-17 총체력 사다리(스1 ×1.3^n) 재설계 → 2026-08-19 25초 반복 상쇄 개정.
 //   단발 편성 4,090 + 25초 반복 보강 525 = 잡몹 4,615(목표 4,614, +0.02%).
-//   보스 B03 1,656을 더한 총 HP는 6,271 = 스2 4,838 × 1.296.
+//   2026-08-24 사용자 지시("스3 보스 hp를 스2 보스보다 1.3배로")로 B03 base가 1150 → 1246이 되어
+//   실효 보스 HP는 1,656 → 1,794(= 스2 보스 실효 1,380 × 1.3)다.
+//   같은 날 두 번째 지시로 보스 구간 10초 반복 증원(150~300 exclusive, E01×10 + E07×3, 15 tick)이
+//   추가됐다. 이 증원분만 2,835 HP·195마리다.
+//   실측 총 HP는 8,214(= 잡몹 3,585 + 보스 1,794 + 보스구간 증원 2,835)다.
+//   (직전 주석의 "6,271"은 2026-08-19 런좀비 크루 복원 이후 이미 stale이었다. 실측 5,241 → 8,214.)
+//   1.3 사다리에서 의도적으로 이탈했다 — 2026-08-24 사용자 판정: E01 증원은 XP 공급도 함께
+//   늘리므로 총 HP 사다리로 stage3 난이도를 재지 않는다.
 // 시각은 단발 이벤트가 스1 공통 앵커 13개를 전부 쓴다. 25초 반복 보강만 앵커 밖(25/50/75/100/125)에서
 //   발화하는 명시적 예외이며, burstEvents.test.js가 "반복 보강" 규칙으로 따로 단언한다(면제가 아니다).
 // 편성 판단: 시그니처 RZL 크루는 이전 단일 대형 크루(RZL@72×13)로 복원했다.
@@ -155,6 +176,7 @@ export const STAGE2_BURST_EVENTS = [
 // 예고 정본 STAGE3_SPAWN_TELEGRAPHS와 배열 순서까지 1:1 정렬(waveTimelines.test.js가 검사).
 export const STAGE3_BURST_EVENTS = [
   ...STAGE3_25_SECOND_GREEN_SMILING_REINFORCEMENT_EVENTS,
+  ...STAGE3_BOSS_PHASE_GREEN_SMILING_REINFORCEMENT_EVENTS,
   { sec:   5, type: 'E01', count: 10 },                         // 온보딩 초기 밀도
   { sec:  24, type: 'E03', count:  4 },                         // 러너 조기 압박
   { sec:  40, type: 'E04', count:  1 },                         // 원거리 조기 등장 신호(e04IntroSec 34 이후)
@@ -176,7 +198,9 @@ export const STAGE3_BURST_EVENTS = [
 // 시그니처 = 원거리 E04 "안전지대 소멸"(24초 스폰, 18초 발사 게이트 + 상시 고비중, 보스 구간에도 유지).
 // 보스 = 단일 B04 주방장(150). 이 표의 sec 그대로 런타임에 고정 등장한다.
 // 2026-08-17 총체력 사다리(스1 ×1.3^n) 재설계 → 2026-08-19 E04 포화 개정.
-//   잡몹 예산 5,577(목표 5,559, +0.3%). 보스 B04 2,592를 더한 총 HP는 8,169 = 스3 6,271 × 1.303.
+//   잡몹 예산 5,577(목표 5,559, +0.3%). 보스 B04 2,592를 더한 총 HP는 8,169.
+//   (사다리 기준은 스1 3,710 × 1.3^3 = 8,149. 스3 실측 5,379 대비 실제 비율은 1.519다 —
+//    스3 총량이 런좀비 크루 복원 이후 사다리 아래에 있기 때문이며 스4 자체는 목표를 지킨다.)
 // 2026-08-17에 메운 구멍은 유지된다: 빈 앵커 144/150/168/216, 특히 2:00~3:04의 64초 보스 단독 공백.
 //
 // ── E04 포화점(2026-08-19 실측 계산) ─────────────────────────────────────────────

@@ -47,6 +47,7 @@ import {
   createB03ShuttleRunState,
   getB03ShuttleRunTrigger,
   getB03ShuttleRunLaneZ,
+  getB03ShuttleRunPlayerDamage,
   getB03ShuttleRunX,
   startB03ShuttleRun,
 } from '../lib/b03ShuttleRun.js'
@@ -360,7 +361,13 @@ export const ENEMY_STATS = {
          charger: true, mathTeacherSpecial: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
   B02: { hp: 1150, speed: 0.5225, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
-  B03: { hp: 1150, speed: 0.5225, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
+  // B03 체육교사 base 1246은 임의값이 아니라 역산값이다(2026-08-24 사용자 지시:
+  // "스테이지 3 보스 hp를 2스테이지 보스보다 1.3배로 맞춰").
+  //   목표 stage3 실효 HP = 스2 보스 실효 1,380(= round(1150 × 1.2)) × 1.3 = 1,794.
+  //   실효 HP는 sameTypeZombieHpForStage(Enemies.jsx)가 round(base × STAGE_HP_MULTIPLIER)로 내므로
+  //   stage3 배수 1.44로 역산 → base 1246, round(1246 × 1.44) = round(1794.24) = 1,794.
+  // STAGE_HP_MULTIPLIER.stage3가 바뀌면 이 base도 같은 목표값에서 다시 역산해야 한다.
+  B03: { hp: 1246, speed: 0.5225, damage: 22, scale: 2.00, xp: 0,  contactDist: 0.36,
          charger: true, chargeSpeed: 1.4, warnDist: 6.0, warnDuration: 800, stunDuration: 1200, chargeDuration: 2200 },
   // B04 주방장: 단일 2페이즈 보스. Phase1(HP100~50%)=원거리 포격, Phase2(HP<=50%)=격노 돌진.
   // hp 1500: 더블보스 합(B02+B03=2300)의 절반보다 두툼하게. 페이즈 전환/텔레그래프는 lib/chefBossPhase.js.
@@ -1163,7 +1170,13 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         const shuttleX = getB03ShuttleRunX(next)
         const hit = consumeB03ShuttleRunPassHit(next, playerPos.z, playerPos.x, shuttleX)
         next = hit.state
-        if (hit.damage > 0) damagePlayer(hit.damage)
+        if (hit.hit) {
+          // 비율 피해라 "그 순간" HP를 읽어야 한다. B01 삼각자와 달리 IGNORE_INVULNERABILITY를
+          // 쓰지 않고 무적시간을 존중한다 — 왕복 2패스가 연속으로 꽂히면 30%×2 = 51% 손실이라
+          // i-frame이 2연타를 걸러주는 쪽이 안전하다.
+          const store = useGameStore.getState()
+          store.damagePlayer(getB03ShuttleRunPlayerDamage(store.player.hp))
+        }
         b03ShuttleRef.current = next
         syncB03ShuttleVisual(next)
         _vel.x = next.phase === 'active' ? (shuttleX - t.x) / Math.max(delta, 0.001) : 0
@@ -1172,8 +1185,12 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         if (next.phase === 'idle') {
           chargeState.current = 'chase'
           queueVisualState('animPhase', 'normal')
+        } else if (next.phase === 'telegraph') {
+          queueVisualState('animPhase', 'warn')
         } else {
-          queueVisualState('animPhase', next.phase === 'telegraph' ? 'warn' : 'stun')
+          // 활성 왕복 중에는 달리기 포즈다. 이전에는 여기서도 'stun'을 내보내 보스가
+          // 기절 포즈로 미끄러졌다(2026-08-23 수정). 실제 'run' 포즈는 ZombieMesh 소관.
+          queueVisualState('animPhase', next.phase === 'active' ? 'run' : 'stun')
         }
         return
       }
@@ -1186,7 +1203,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         const edgeInset = 0.9
         const startX = t.x <= 0 ? -halfX + edgeInset : halfX - edgeInset
         const endX = -startX
-        const next = startB03ShuttleRun(previous, trigger, { laneZ, startX, endX })
+        // baseSpeed를 넘겨야 패스 소요시간이 "평소 이동속도 ×10"으로 역산된다(고정 duration 금지).
+        const next = startB03ShuttleRun(previous, trigger, { laneZ, startX, endX, baseSpeed: stats.speed })
         logPlaytestEvent('b03-shuttle-start', { trigger, hpRatio: hpRef.current / stats.hp, elapsedSec: Math.round(elapsedMs / 100) / 10 })
         b03ShuttleRef.current = next
         syncB03ShuttleVisual(next)

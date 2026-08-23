@@ -83,7 +83,10 @@ describe('Stage 1 boss visual reference', () => {
 
 describe('B03 muscular PE teacher boss', () => {
   it('registers independent boss stats and the sportswear palette', () => {
-    expect(ENEMY_STATS.B03).toMatchObject({ hp: 1150, scale: 2, charger: true })
+    // 2026-08-24 사용자 지시: 스3 보스 실효 HP = 스2 보스(1,380) × 1.3 = 1,794.
+    // stage3 배수 1.44로 역산한 base가 1246이다(round(1246 × 1.44) = 1794).
+    expect(ENEMY_STATS.B03).toMatchObject({ hp: 1246, scale: 2, charger: true })
+    expect(Math.round(ENEMY_STATS.B03.hp * 1.44)).toBe(Math.round(Math.round(ENEMY_STATS.B02.hp * 1.2) * 1.3))
     expect(B03_PE_TEACHER_PALETTE).toMatchObject({
       skin: 0x91ad68,
       jersey: 0x18324a,

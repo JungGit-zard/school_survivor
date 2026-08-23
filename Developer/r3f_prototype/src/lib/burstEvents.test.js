@@ -468,7 +468,9 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
   const BASE_HP = {
     E01: 8, E02: 70, E03: 10, E04: 32, E05: 70, E06: 320, E07: 16,
     RZL: 90, RZC: 28, RZT: 140, RZG: 48,
-    B01: 1150, B02: 1150, B03: 1150, B04: 1500,
+    // B03만 1246 — 2026-08-24 사용자 지시("스3 보스 = 스2 보스 × 1.3")를 stage3 배수 1.44로
+    // 역산한 base다. 실효 HP는 round(1246 × 1.44) = 1,794 = round(1150 × 1.2) × 1.3.
+    B01: 1150, B02: 1150, B03: 1246, B04: 1500,
   }
   // 런좀비 크루 인원은 evt.count가 아니라 Enemies.jsx의 RUN_ZOMBIE_CREW_SIZE가 정한다(리더 1 + 수하 8).
   const CREW_SIZE = 9
@@ -476,7 +478,9 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
   const SPAWN_ANCHORS = [5, 24, 40, 60, 72, 108, 110, 120, 144, 150, 168, 184, 216]
   // 스1 3,710(사용자가 실플레이로 맞춘 정본) 기준 ×1.3^n. stage3는 이전 단일 런좀비 복원 총량이 정본이다.
   const STAGE1_TOTAL_HP = 3710
-  const STAGE3_RESTORED_RUN_CREW_TOTAL_HP = 5241
+  // 2026-08-24 사용자 지시로 B03 실효 HP가 1,656 → 1,794(= 스2 보스 1,380 × 1.3)로 +138.
+  // 잡몹 편성은 손대지 않았으므로 스3 총량도 정확히 +138 = 5,241 → 5,379다.
+  const STAGE3_RESTORED_RUN_CREW_TOTAL_HP = 5379
   const TARGETS = {
     stage1: STAGE1_TOTAL_HP,
     stage2: Math.round(STAGE1_TOTAL_HP * 1.3),

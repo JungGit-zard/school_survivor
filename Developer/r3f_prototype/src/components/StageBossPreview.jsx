@@ -157,7 +157,10 @@ function ReactiveBoss({ framing, bossType, enabled, staticPose, burstRef, parall
       rotation={[BASE_ROT_X, BASE_ROT_Y, 0]}
       position={[framing.panX, baseY + framing.panY, 0]}
     >
-      <EnemyVisual type={bossType} animPhase="normal" hp={1150} showHealthBar={false} staticPose={staticPose} />
+      {/* showHealthBar={false}라 hp는 렌더에 쓰이지 않는다. 하드코딩 1150은 보스별 실제 HP와
+          어긋난 채(B03은 1246, B04는 1500) 죽어 있던 값이라 제거했다 — 필요해지면
+          ENEMY_STATS[bossType].hp가 정본이다. */}
+      <EnemyVisual type={bossType} animPhase="normal" showHealthBar={false} staticPose={staticPose} />
     </group>
   )
 }
