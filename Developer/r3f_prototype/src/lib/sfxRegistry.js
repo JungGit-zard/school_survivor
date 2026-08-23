@@ -246,6 +246,9 @@ export const POLYPHONY_COOLDOWN = Object.freeze({
   inuconHeal:       500,
   playerHit:        80,
   playerHeal:       220,
+  // 조이스틱을 톡톡 끊어 치면 출발 첫 발이 매번 즉시 울린다. 정상 보행 간격(기본 500ms,
+  // 이동속도 최대 강화에도 ~385ms)보다 충분히 짧게 잡아 정상 걸음은 건드리지 않고 연타만 막는다.
+  playerStep:       140,
   zombieSpawn:      110,
   matildaDash:      400,
   matildaLaugh:     700,

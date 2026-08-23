@@ -7,6 +7,7 @@ import { moveKeys } from '../lib/keyboardInput.js'
 import { clampPlayerPosition } from '../lib/playerMovementBounds.js'
 import { getPlayerStartPosition } from '../lib/playerStartPosition.js'
 import { createGameplayFixedStepClock, runGameplayFixedSteps } from '../lib/gameplayFrameTime.js'
+import { emitSfx } from '../lib/sfxEvents.js'
 import PlayerMesh from './PlayerMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 
@@ -16,6 +17,28 @@ const TURN_SPEED = 14
 const PLAYER_HIT_KNOCKBACK_SPEED = 4
 const PLAYER_HIT_KNOCKBACK_MS = 160
 const HEAL_EFFECT_DURATION_MS = 760
+
+// 발소리는 '시간'이 아니라 '이동 거리'로 센다. 보폭(1.5 유닛)을 한 번 지날 때마다 한 발이다.
+// 기본 이동 속도 3 u/s에서 정확히 초당 2보 — 사람 걸음 속도다. 이동속도 업그레이드를
+// 받으면 보폭은 그대로고 걸음만 빨라지므로, 고정 ms 간격보다 다리 움직임과 잘 맞는다.
+const PLAYER_STEP_STRIDE = 1.5
+// 발소리는 이벤트가 아니라 배경이다. 코드베이스 최저 emit(0.18)보다도 낮게 깔아
+// 피격·힐·무기 소리를 절대 덮지 않게 한다.
+const PLAYER_STEP_VOLUME = 0.15
+
+// 이동 중이면 보폭을 채울 때마다 true를 돌려준다. 정지·넉백 중에는 울리지 않는다.
+// stepState는 useFrame 핫루프에서 매 프레임 새 객체를 만들지 않으려고 ref 객체를 직접 고친다.
+export function advancePlayerStep(stepState, moving, speed, dt) {
+  if (!moving || !(speed > 0) || !(dt > 0)) {
+    // 멈춘 동안 보폭을 채워 둬야 다시 걷는 첫 프레임에 곧바로 한 발이 울린다.
+    stepState.distance = PLAYER_STEP_STRIDE
+    return false
+  }
+  stepState.distance += speed * dt
+  if (stepState.distance < PLAYER_STEP_STRIDE) return false
+  stepState.distance -= PLAYER_STEP_STRIDE
+  return true
+}
 
 function setHealEffectOpacity(object, opacity) {
   if (!object) return
@@ -125,6 +148,7 @@ export default function Player() {
   const hitFlashVisibleFrames = useRef(0)
   const knockbackRemainingMs = useRef(0)
   const knockbackVel = useRef(null) // 외부 주입 넉백 속도({x,z}); null이면 facing 기준 피격 넉백
+  const stepState = useRef({ distance: PLAYER_STEP_STRIDE })
   const speed           = useGameStore((s) => s.player.speed)
   const phase           = useGameStore((s) => s.phase)
   const hp              = useGameStore((s) => s.player.hp)
@@ -193,6 +217,12 @@ export default function Player() {
     }
 
     rb.current.setLinvel({ x: _v.x, y: 0, z: _v.z }, true)
+
+    // 발소리. movingRef는 넉백 중 false로 강제되므로 밀려나는 동안에는 울리지 않는다.
+    // 같은 샘플이 정확히 반복되면 기계음으로 들려서 rate를 ±8% 흔든다(좌/우 발 느낌).
+    if (advancePlayerStep(stepState.current, movingRef.current, speed, dt)) {
+      emitSfx({ id: 'playerStep', volume: PLAYER_STEP_VOLUME, rate: 0.92 + Math.random() * 0.16 })
+    }
 
     // 화면 밖으로 못 나가게 스테이지 맵 경계에서 안쪽 inset만큼 축별로 클램프.
     const stageId = useGameStore.getState().currentStageId

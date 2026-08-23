@@ -848,13 +848,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/player/playerHit.ogg",
-          "bytes": 4491,
-          "sha256": "dc0aa75a2ca44a336a045beb1fb159ec3485994f9a9b3d3ade78b6566f0f1fc3"
+          "bytes": 4518,
+          "sha256": "e8f920a5d5908e2c18b41150a26478ab0bcee2c28a8d7ceab724be98a981cce4"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/player/playerHit.mp3",
           "bytes": 2342,
-          "sha256": "171ad10408ec0a1dce19f51bbe172d9ed201185ce1b77e6d66d863e3dac8ae6e"
+          "sha256": "081cc12660ed64a687c4da546560126b9bd5395532bd96c245ab2b76fa137245"
         }
       ],
       "provenanceType": "generated",
@@ -868,13 +868,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/player/playerDeath.ogg",
-          "bytes": 6085,
-          "sha256": "834e172a7963463ca12a8dedd5c7d83825136f7e6388f239bb149f1f8dd7920d"
+          "bytes": 6016,
+          "sha256": "eefd5cb17aeab25897a795d2e87f38e529c495d9a0b4666905f409784bc592f4"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/player/playerDeath.mp3",
           "bytes": 5477,
-          "sha256": "e55e3d8ba670e949d146154267b4cff49ba51c84a77332e5e4b9cdee0e0cf0a2"
+          "sha256": "9c04c112398f689e81e9f637100a0dbca7b16360edbf136cd3939cbaac7e8b9a"
         }
       ],
       "provenanceType": "generated",
@@ -888,13 +888,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/player/playerHeal.ogg",
-          "bytes": 5160,
-          "sha256": "90c306a85d408c8111f4d1ab1ea0b588841f6224b18fb56e938a388143e6f3f2"
+          "bytes": 5039,
+          "sha256": "e605b2e02f6c90695fed8bee54e21d004221df38c668e22d8693e5fc33f6282b"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/player/playerHeal.mp3",
           "bytes": 3596,
-          "sha256": "eafd30617e26c73f30f6899dc6e584e7e6e122d87d720d3f2b35b9743e7c6dce"
+          "sha256": "cd622b51c5fa6d75d187a619b6411defb150b8e8b6da707a052ce51f5c1af433"
         }
       ],
       "provenanceType": "generated",
@@ -928,13 +928,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieGroan.ogg",
-          "bytes": 6532,
-          "sha256": "67fe5be20dd92459ae114428c3f9cec087815a90e10261e2a76a7abe5679cc2a"
+          "bytes": 6486,
+          "sha256": "fae714d45f32ed5b6dc350937f74db24887ef70b2eae3b464fc67eb8808189e1"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieGroan.mp3",
           "bytes": 5477,
-          "sha256": "46abe937929c2081927446a7d33cef8235e4238fe33bd8350887f41f1fb19c08"
+          "sha256": "4e7836e7e6e5a41b10679a743a67c11f630d5a9ad646af78c5b57a0625e9a5d1"
         }
       ],
       "provenanceType": "generated",
@@ -948,13 +948,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieSpawn.ogg",
-          "bytes": 5185,
-          "sha256": "201e4238d41960f73ed84bd63e6f27ad39dbadea8c291da0b1741a17e9821632"
+          "bytes": 5174,
+          "sha256": "c2732183dcf9e747d454028e5a0c4e955dcd8761fee02370747e7ca71e93f55c"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieSpawn.mp3",
           "bytes": 3596,
-          "sha256": "2eca64d99232772f594954c665ea088b0f500e4844d97bd2cd2112440097ce81"
+          "sha256": "70b817202ff9757d2d46404e8a13d4112dede471bb7a29b564f94af47183d1db"
         }
       ],
       "provenanceType": "generated",
@@ -968,13 +968,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieTankGroan.ogg",
-          "bytes": 7256,
-          "sha256": "468292b3babfa4fb4c89109c09fa39f98939d2ca6e024232e8173083fe5730e5"
+          "bytes": 7269,
+          "sha256": "6ad3fdebd0750bcf65a555823c81c5149cc1fb9904ab421fe5aa1a8d621c4e7e"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieTankGroan.mp3",
           "bytes": 6940,
-          "sha256": "2b4cffa308b26ad1bf4dea9b38e3ddfacc44b33f71fc1e95d1115fe4e7c6be36"
+          "sha256": "352b4a297b4ca427e12e964efbb251e9d06fb2b575f4d508c889d007c05dff73"
         }
       ],
       "provenanceType": "generated",
@@ -988,13 +988,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieRunnerScreech.ogg",
-          "bytes": 5114,
-          "sha256": "c566df370f8e2e8b0b812d0687dbedbc024649df9d5cc319d9e7a8e855c06509"
+          "bytes": 5186,
+          "sha256": "930724d0cae6dca412052fc674a2b49198bd2e4ea1a0029629f84ab093a52e04"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieRunnerScreech.mp3",
           "bytes": 3387,
-          "sha256": "b7391a6871d0fe3eabf9aef5a7012c81ff322c58a38af76d65df3427f040371a"
+          "sha256": "d9af808b565ea89aee6aaeed73dcccbc320c3df8b32ed6e14d9b7697c14a82bc"
         }
       ],
       "provenanceType": "generated",
@@ -1008,13 +1008,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieRangedShoot.ogg",
-          "bytes": 4944,
-          "sha256": "bfc7fbb6bb711e2f0c0674e9716061c4fa9e54ae20372832d7fe47597b69ea81"
+          "bytes": 4948,
+          "sha256": "422ff392f3b0ff5887c8c131c9a788d4db7ea171eba75d828ee9b77213e895b1"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieRangedShoot.mp3",
           "bytes": 2760,
-          "sha256": "1a8867afac3a801c29c43827ea13c36f3c14dc6607d80b7f969c8f1e7f19de2f"
+          "sha256": "931fd69d9220cb284e01601228460f16cfe9edac2039308745051e1c60cda57e"
         }
       ],
       "provenanceType": "generated",
@@ -1028,13 +1028,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieChargeRoar.ogg",
-          "bytes": 5983,
-          "sha256": "2b9b7be6b1ad9ef6ffacc1572790c286621c83964147b5ed6c30759945e695ed"
+          "bytes": 5921,
+          "sha256": "e1f24e9e7d25b05e93d85fa50bf522d4edb7d49e87c525489e99ac876fa3d5a1"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieChargeRoar.mp3",
           "bytes": 4850,
-          "sha256": "d4f3f65676508724b6636d4120beacb5590a1cbc7fc87011e54f955d6da4ce94"
+          "sha256": "431ae3938f6a7080e7e3d37709621e2b8275718294d09c32dd5bd5028304c595"
         }
       ],
       "provenanceType": "generated",
@@ -1068,13 +1068,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/bossRoar.ogg",
-          "bytes": 7873,
-          "sha256": "da2d4b9411c8673fe5978eea9494ed878f1f36ecdc290cc0a7eef52749475ee8"
+          "bytes": 7829,
+          "sha256": "b1d0c350c007c61ed3847f653874cbb902615c786cbf0cbf9e4425529b260b5e"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/bossRoar.mp3",
           "bytes": 7567,
-          "sha256": "398423f18f97f57e16c6f2d6811b626ca73425b0ba231fb4a0cb3339013599e5"
+          "sha256": "120819bcde7f6e7c0721c30b5f726efe9b057c175da46fc52cd84f0ce3a355e9"
         }
       ],
       "provenanceType": "generated",
@@ -1088,13 +1088,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.ogg",
-          "bytes": 6354,
-          "sha256": "88d085c9b1812f873b4f9e7f0c49f161b899465ae2b8d93713a5008bcf90645c"
+          "bytes": 6302,
+          "sha256": "0d95bd2df87706f5a835932998005d65df2d398dd6dbee2c9693724da68e88a8"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.mp3",
           "bytes": 5686,
-          "sha256": "50e56ccae5702f71fb25176363ea01e019b0943308975426ea7173a672c874b4"
+          "sha256": "c1c97931a929fc8e1779fdddefa674ebf17be06d0b76047806ec2ee706040888"
         }
       ],
       "provenanceType": "generated",
@@ -1108,13 +1108,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDash.ogg",
-          "bytes": 4590,
-          "sha256": "8a2ecbedc02e9fa8cb9e3c5052aa045237aefdee2e608d8b944bfaba0d3a7035"
+          "bytes": 4703,
+          "sha256": "e4cd5d9fb7115afe9080b172f35e05731f994abea801fe2823519522daef9ee1"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDash.mp3",
           "bytes": 2551,
-          "sha256": "c6b5466dae00a83ff9728de3d7da7e6fb98ca813436ebe289d8beccc4f1432a5"
+          "sha256": "e99929eb8bb1d9833e108e8c7f946d0b91936b62618c5f96eeeaac19f3567abb"
         }
       ],
       "provenanceType": "generated",
@@ -1128,13 +1128,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.ogg",
-          "bytes": 6591,
-          "sha256": "4d54885847612f463b148974543a20e5bf63e8575ff478bd01fefae5dddc58ff"
+          "bytes": 6909,
+          "sha256": "a1741cf6537d37e45bcf231c950823bb6c9b0786316b1861a721577c4059020d"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.mp3",
           "bytes": 6313,
-          "sha256": "b3190f9b9c3fd9be98be9eee871c74634566bad6dd35297eaffb3b944f5e3501"
+          "sha256": "129ad10629364be6203c7598b59b1384db80ddd11f07145140b4a982cf33eccc"
         }
       ],
       "provenanceType": "generated",
@@ -1148,13 +1148,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathGrunt.ogg",
-          "bytes": 5339,
-          "sha256": "9669e9e1452308d1b8d6c05329c05ed867fb58f27a4deb253a4449926caa4a33"
+          "bytes": 5294,
+          "sha256": "daf7774abb13470aa077de22234d25b6a7164ad1d680a284356e51d112456cfb"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathGrunt.mp3",
           "bytes": 3596,
-          "sha256": "85526618859a91455298f2838268665677c3f31a31a41eddcb57252b0907963c"
+          "sha256": "cc69b56f0c46b8096a4ce7ec224bb1b04d7ff195e1687a5554c8111515bc98ef"
         }
       ],
       "provenanceType": "generated",
@@ -1168,13 +1168,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathHeavy.ogg",
-          "bytes": 6719,
-          "sha256": "ff5a116dbd01f9c5db3699b314edc50cbc3a35393c3f4154d7f65ec58a9caaba"
+          "bytes": 6693,
+          "sha256": "4b106352cb38a8d4f57bd5283abb12764178c2963bcdf845f9f6ed873bbf0456"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathHeavy.mp3",
           "bytes": 5477,
-          "sha256": "e5feb7231bf89b101020236f1e1da379ec429c73cd327551a13f205be26712ea"
+          "sha256": "ee35af3835402919748094756fbb08f8c0164e201af9651521e434d682e72d50"
         }
       ],
       "provenanceType": "generated",
@@ -1188,13 +1188,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathShriek.ogg",
-          "bytes": 4883,
-          "sha256": "f79299cbc710c847da288c23e42da9e95b0912c32b6ede6fd1dfeec8f7886efa"
+          "bytes": 4923,
+          "sha256": "95ada8f33b0536d7e6c7a6f31eedaff51aec811f9f42611b5ed695163a174267"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathShriek.mp3",
           "bytes": 3178,
-          "sha256": "8788900fa0e09ab52077019f4b3fbcbf920bd22c64a51368b8fd746108b71ef3"
+          "sha256": "c71cb961648f950ef18613ebc19735e625ee21722295e5e70c0471a00a595fb7"
         }
       ],
       "provenanceType": "generated",
@@ -1208,13 +1208,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathGurgle.ogg",
-          "bytes": 6118,
-          "sha256": "eefb215a0d11fc8543cccd2b6504f6c0304c1ce1fbedeceb4e3b40efc574e57e"
+          "bytes": 6029,
+          "sha256": "6ed5836158258197787718713ba293395c492084b6b1436d8c2415ad54fd4d93"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathGurgle.mp3",
           "bytes": 4641,
-          "sha256": "e44a8942ffbd49af09335c2e4c216d7e14df9e3ab2fd801707eacd50d0198a1f"
+          "sha256": "9545fe6e7ed13b64399f9b13cf7038ea5e5addb80a79bc3d27873e9567e807c9"
         }
       ],
       "provenanceType": "generated",
@@ -1228,13 +1228,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathBellow.ogg",
-          "bytes": 7687,
-          "sha256": "3ce87298f5b42d512dc154ab9b84eb6463557682b1b66dd4d35b039d7fa482ba"
+          "bytes": 7716,
+          "sha256": "84f0120f0c3f2ac110cd0c84e69df6f8f41ae86a2a4d66be04da5388665d5c52"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/zombieDeathBellow.mp3",
           "bytes": 7358,
-          "sha256": "53f4f18def7e35d849faba348c8d6a6077e378ff6699ca5581977fe04c7a709c"
+          "sha256": "768db5588145df6d1695def87cf3bbc219551f43aeaa86a9fbb952131c0e3b4f"
         }
       ],
       "provenanceType": "generated",
@@ -1248,13 +1248,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/bossDeath.ogg",
-          "bytes": 8330,
-          "sha256": "353d16eb0fc0107476180dd5ae98de48e2765d1078820879971ff7b3e568a844"
+          "bytes": 8315,
+          "sha256": "274bb88bfd479a7a72940ff1232a731ab25e70af640422edef6fc40156daec46"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/bossDeath.mp3",
           "bytes": 8403,
-          "sha256": "c5c6bd67bc4b54454a154060e5fa44bdf02d42d658a8f242f5cec87823dd67ae"
+          "sha256": "78bc10b08eb89a0f413ec174bc72c3a0b680b918c6fa8b9c4515631028013cc3"
         }
       ],
       "provenanceType": "generated",
@@ -1268,13 +1268,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDeath.ogg",
-          "bytes": 5706,
-          "sha256": "b1f3cbbf812d8ae29f1657cf7dcad72039b64c5c931d08ddf4fbd136fc01c4ae"
+          "bytes": 5766,
+          "sha256": "4d4c14861632444c75a96b9e8b05a3a3a0010a477276621b87c21e0459361d0b"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/matildaDeath.mp3",
           "bytes": 4850,
-          "sha256": "c24f41a84d89e6706160b70175f73c0e174afbf49ab10290f8aa45049e833148"
+          "sha256": "d366672c86aa0f5411a993a1b814607f0fa0cac928edb0558e10bd20c6f9b169"
         }
       ],
       "provenanceType": "generated",
@@ -1288,13 +1288,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/dogeDeath.ogg",
-          "bytes": 4916,
-          "sha256": "d435c2eb08fcc3c481a44506bfb87539a90c86c0d2a56f7347d58187b912824b"
+          "bytes": 4927,
+          "sha256": "e9525b5c300cefa8b12bafe21f670cf3b407907e5583c9dda9378ed96df4a6e6"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/dogeDeath.mp3",
           "bytes": 3178,
-          "sha256": "148acb7548053d98032b6614e1ddc0da0be4568da527a500e7e5ee42e676c690"
+          "sha256": "4e823fbaf0424f7e07b69fcbf8c5891c5dcbaa18fccdb9c2551b0623bb4f541a"
         }
       ],
       "provenanceType": "generated",
@@ -1308,13 +1308,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/dogeEscape.ogg",
-          "bytes": 4556,
-          "sha256": "31eb01d71573e08e4818d6cfb5a13258897b800b9995e46b6f25394912a5d0f9"
+          "bytes": 4609,
+          "sha256": "ffc15a8cfa620abc168eb85cef26e4a592543cbe5318c5d33b1474bf4ce99cd7"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/dogeEscape.mp3",
           "bytes": 2551,
-          "sha256": "4876e102624c209354b5dc02bb1828a437f95e585ae6fa95df86043a6493a2f0"
+          "sha256": "04bd254579edb6d559a99daed89427f80c447bbd95cbba70b9257a82f1516145"
         }
       ],
       "provenanceType": "generated",
@@ -1328,13 +1328,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/dogeYelp.ogg",
-          "bytes": 4442,
-          "sha256": "7c60c488d0fc72c66a7dcefb546cbc026f92598097439d55e77fbb6fc73bee0c"
+          "bytes": 4494,
+          "sha256": "ab969ebcbc721f276eecde99e78e84cd6d58c4eac0869d1b786f716078bd2893"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/dogeYelp.mp3",
           "bytes": 2133,
-          "sha256": "ec464215b7ae1d6755070da79a5ff6da420fddeaf60666ea56dfc3ad4b5654fa"
+          "sha256": "6c96090b96f9031c603e6ed7b803309da955b2631232b4bd6ab08e50b9c84977"
         }
       ],
       "provenanceType": "generated",
@@ -1348,13 +1348,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/inuconBite.ogg",
-          "bytes": 4661,
-          "sha256": "33204cbba1aa6616756b1d72531528aca73c343d5dd7f1b4be69e2e8e38ba079"
+          "bytes": 4545,
+          "sha256": "89d22b09ddd691ec437859bcb7ea55a2714fc86ec93e29dadbdfaa30216a5cf5"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/inuconBite.mp3",
           "bytes": 2342,
-          "sha256": "64f5cdd078d75aab465c8cc7e9a47f64a49cbc9d1cafb1c01f6f4492df736507"
+          "sha256": "4a1428aecb41d99378dd76163aa49f220e2db96dc9b985e6255adea7dff1a058"
         }
       ],
       "provenanceType": "generated",
@@ -1368,13 +1368,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/inuconHeal.ogg",
-          "bytes": 4954,
-          "sha256": "af39cb8169efd0ed3aec4acea2d95281b8c5e70742fa17a7b99f7b163deb2e2c"
+          "bytes": 4944,
+          "sha256": "839b25bb757243631a27c971a5fbcafef351fe41c23ea4356d3805ac9e37bb2c"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/enemies/inuconHeal.mp3",
           "bytes": 3387,
-          "sha256": "856366430a716bdaed0e7a3a4ea16acc914bb372e822cbef7efe3fa1b0362005"
+          "sha256": "109ddb7749f7a07f1bc0bea01c948ba3faf32e6e2849b6acd6c49351c088afdb"
         }
       ],
       "provenanceType": "generated",
@@ -1548,13 +1548,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/events/bossSpawn.ogg",
-          "bytes": 7098,
-          "sha256": "97e50b4aa75d44e09275a1609385770657903982de7db358e6296ad5085d10db"
+          "bytes": 7212,
+          "sha256": "d8c0e25bbb74999e89bb9bf63b6c1d0e17d844ab4b53b9329a43dc4ef368f6a0"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/events/bossSpawn.mp3",
           "bytes": 6522,
-          "sha256": "7d66452467b9d6295e7a1b866becb0703106ba8791075e3675be188017977d03"
+          "sha256": "457b2bdbe6a02a2d14a4f1af0ad0a63e3d91bc018867969d9b80a670f4d4af02"
         }
       ],
       "provenanceType": "generated",
@@ -1628,13 +1628,13 @@
       "paths": [
         {
           "path": "Developer/r3f_prototype/public/sfx/events/matildaCountdownEnd.ogg",
-          "bytes": 5417,
-          "sha256": "dcb131a50852b4dd44ce22616896a9331bd34bab3c507f534e22e1a6c4519a17"
+          "bytes": 5481,
+          "sha256": "2c767032a348e86a661bc99fedd0c40a48ba90ce70fd41eeaabf96d0aa964dda"
         },
         {
           "path": "Developer/r3f_prototype/public/sfx/events/matildaCountdownEnd.mp3",
           "bytes": 4223,
-          "sha256": "c92ba6dfc14208dbe5abb22374aa7471cee5de949a21b5e647869e57aa754000"
+          "sha256": "76988921fc0224b1cd7d6d5839c64870438f43ddeba0083132dacab061b0ffa8"
         }
       ],
       "provenanceType": "generated",
