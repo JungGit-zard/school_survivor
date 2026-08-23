@@ -8,6 +8,8 @@ import {
   STAGE3_25_SECOND_REINFORCEMENT_START_SEC,
   STAGE3_25_SECOND_REINFORCEMENT_END_EXCLUSIVE_SEC,
   STAGE3_25_SECOND_REINFORCEMENT_INTERVAL_SEC,
+  STAGE3_25_SECOND_REINFORCEMENT,
+  STAGE3_BOSS_PHASE_REINFORCEMENT,
   isRepeatingBurstEvent,
   repeatingBurstTickAt,
   repeatingBurstTickCount,
@@ -476,17 +478,24 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
   const CREW_SIZE = 9
   const GUARD_CHASE_SIZE = 7
   const SPAWN_ANCHORS = [5, 24, 40, 60, 72, 108, 110, 120, 144, 150, 168, 184, 216]
-  // 스1 3,710(사용자가 실플레이로 맞춘 정본) 기준 ×1.3^n. stage3는 이전 단일 런좀비 복원 총량이 정본이다.
+  // 스1 3,710(사용자가 실플레이로 맞춘 정본) 기준 ×1.3^n.
   const STAGE1_TOTAL_HP = 3710
-  // 2026-08-24 사용자 지시로 B03 실효 HP가 1,656 → 1,794(= 스2 보스 1,380 × 1.3)로 +138.
-  // 잡몹 편성은 손대지 않았으므로 스3 총량도 정확히 +138 = 5,241 → 5,379다.
-  const STAGE3_RESTORED_RUN_CREW_TOTAL_HP = 5379
+  // stage3 실측 정본. 2026-08-24 두 건의 사용자 지시가 누적된 값이다.
+  //   (1) B03 실효 HP 1,656 → 1,794(= 스2 보스 1,380 × 1.3) : +138
+  //   (2) 보스 구간 10초 반복 증원(150~300 exclusive, E01×10 + E07×3, 15 tick) : +2,835
+  //   5,241 + 138 + 2,835 = 8,214. 스4 8,169를 앞선다.
+  // 2026-08-24 사용자 판정 — E01 증원은 XP 공급도 함께 늘리므로 총 HP 사다리로 stage3 난이도를
+  // 재지 않는다. 1.3 사다리에서의 이탈은 의도된 것이며 되돌리지 않는다.
+  const STAGE3_MEASURED_TOTAL_HP = 8214
   const TARGETS = {
     stage1: STAGE1_TOTAL_HP,
     stage2: Math.round(STAGE1_TOTAL_HP * 1.3),
-    stage3: STAGE3_RESTORED_RUN_CREW_TOTAL_HP,
     stage4: Math.round(STAGE1_TOTAL_HP * 1.3 ** 3),
   }
+  // 사다리 단언 대상. stage3는 위 판정으로 사다리를 적용하지 않으므로 명시적으로 제외한다
+  // — 위반 항목을 필터로 걸러 초록을 만드는 2026-08-19식 사고를 반복하지 않기 위해,
+  // "제외"를 여기 한 줄로 못박고 stage3 총량은 아래 실측 단언이 따로 고정한다.
+  const LADDER_STAGES = ['stage1', 'stage2', 'stage4']
 
   const appliedHp = (type, stageId) => Math.round(BASE_HP[type] * STAGE_HP_MULTIPLIER[stageId])
   const eventHp = (event, stageId) => {
@@ -506,17 +515,25 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
   const stageTotalHp = (stageId) => getRuntimeBurstEventsForStage(stageId)
     .reduce((sum, event) => sum + eventTotalHp(event, stageId), 0)
 
-  it.each(allStageBurstTables)('%s 총 HP(보스 포함)는 현재 정본 목표의 ±2% 안이다', (stageId) => {
+  it.each(LADDER_STAGES)('%s 총 HP(보스 포함)는 현재 정본 목표의 ±2% 안이다', (stageId) => {
     const total = stageTotalHp(stageId)
     const target = TARGETS[stageId]
     expect(Math.abs(total / target - 1)).toBeLessThanOrEqual(0.02)
   })
 
-  it('실측 총 HP는 스1 고정, 스3는 이전 런좀비 복원 총량을 따른다', () => {
+  // stage3는 사다리 밖이다(위 LADDER_STAGES 주석 참조). 대신 실측 총량을 정확히 못박아
+  // "모르는 사이에 흘러가는" 일이 없게 한다 — 예외는 검증 면제가 아니라 다른 규칙이다.
+  it('stage3 총 HP는 사다리 대신 실측 정본으로 고정된다', () => {
+    expect(stageTotalHp('stage3')).toBe(STAGE3_MEASURED_TOTAL_HP)
+    // 스4를 앞서는 것이 현재 정상 상태다. 이 관계가 뒤집히면 누가 편성을 되돌린 것이다.
+    expect(stageTotalHp('stage3')).toBeGreaterThan(stageTotalHp('stage4'))
+  })
+
+  it('실측 총 HP는 스1 고정, 스2는 스1의 1.3배 사다리를 지킨다', () => {
     const totals = ['stage1', 'stage2', 'stage3', 'stage4'].map(stageTotalHp)
     // 스1은 사용자 정본이라 절대 변하지 않는다 — 이 단언이 앵커를 지킨다.
     expect(totals[0]).toBe(STAGE1_TOTAL_HP)
-    expect(totals).toEqual([3710, 4838, STAGE3_RESTORED_RUN_CREW_TOTAL_HP, 8169])
+    expect(totals).toEqual([3710, 4838, STAGE3_MEASURED_TOTAL_HP, 8169])
     expect(totals[1] / totals[0]).toBeGreaterThanOrEqual(1.27)
     expect(totals[1] / totals[0]).toBeLessThanOrEqual(1.33)
   })
@@ -538,37 +555,75 @@ describe('스테이지 총체력 1.3배 사다리 (스1 앵커 고정)', () => {
   // 반복 보강은 정의상 고정 간격으로 발화하므로 13개 앵커에 맞출 수 없다. 대신 아래를 강제한다:
   //   (1) 반복 이벤트가 존재하는 스테이지는 stage3 하나뿐이다(무단 확산 방지),
   //   (2) 전개된 발화 시각이 [start, endExclusive) 안의 균일 간격이고,
-  //   (3) 마지막 tick이 보스 등장(150)보다 앞선다 = 보스 구간을 반복 스폰이 침범하지 않는다.
+  //   (3) 각 계열이 자기 창 [start, endExclusive) 안에서만 발화한다.
   // 총 HP 단언은 이 예외를 봐주지 않는다 — stageTotalHp는 tick 전개분을 전부 센다.
-  it('반복 보강은 stage3 전용 명시 예외이며 균일 간격·보스 이전 종료 규칙을 지킨다', () => {
+  //
+  // 2026-08-24: 반복 계열이 하나에서 둘로 늘었다. 사용자 지시로 보스 구간(150~300 exclusive)
+  // 10초 증원이 추가되면서 "마지막 tick이 보스 등장보다 앞선다"는 옛 규칙 (3)은 폐기됐다.
+  // 두 계열은 reinforcement 태그로 구분하며 창이 겹치지 않는다(25초 계열은 150에서 끝난다).
+  const REPEATING_FAMILIES = {
+    [STAGE3_25_SECOND_REINFORCEMENT]: { secs: [25, 50, 75, 100, 125], counts: { E01: 3, E07: 3 } },
+    [STAGE3_BOSS_PHASE_REINFORCEMENT]: {
+      secs: [150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290],
+      counts: { E01: 10, E07: 3 },
+    },
+  }
+
+  it('반복 보강은 stage3 전용 명시 예외이며 계열별 균일 간격 규칙을 지킨다', () => {
     for (const [stageId, events] of allStageBurstTables) {
       const repeating = events.filter(isRepeatingBurstEvent)
       if (stageId !== 'stage3') {
         expect(repeating).toEqual([])
         continue
       }
-      expect(repeating.length).toBeGreaterThan(0)
+      // 두 계열 × 두 타입(E01·E07) = 4건. 태그 없는 반복 이벤트가 끼어들면 여기서 걸린다.
+      expect(repeating).toHaveLength(4)
       for (const event of repeating) {
+        const family = REPEATING_FAMILIES[event.reinforcement]
+        expect(family).toBeDefined()
         const ticks = repeatingBurstTickCount(event)
         const secs = Array.from({ length: ticks }, (_, tick) => repeatingBurstSecAtTick(event, tick))
-        expect(secs).toEqual([25, 50, 75, 100, 125])
+        expect(secs).toEqual(family.secs)
         expect(secs.every((sec) => sec >= event.sec && sec < event.endExclusiveSec)).toBe(true)
-        expect(Math.max(...secs)).toBeLessThan(getBossSpawnSec(stageId))
-        // 반복 보강 풀은 경량대(E01 8hp·E07 16hp)로 제한한다 — 5회 확정 발화라 무거운 타입은 사다리를 뚫는다.
+        // 반복 보강 풀은 경량대(E01 8hp·E07 16hp)로 제한한다 — 확정 발화라 무거운 타입은 예산을 뚫는다.
         expect(['E01', 'E07']).toContain(event.type)
+        expect(event.count).toBe(family.counts[event.type])
       }
     }
   })
 
-  // 회귀 방어: stage3 반복 보강의 전개 총량이 사다리 예산 안에서 차지하는 몫을 못 박는다.
-  // 이 값이 오르면 위 총 HP 단언이 같이 깨지도록 두 단언을 함께 둔다.
+  // 2026-08-24 사용자 지시 전용 단언: "보스 출현(150) 뒤부터 5분 이전까지 10초에 한 번씩
+  // 기본녹색좀비 10마리 + 웃는좀비 3마리". 지시의 네 숫자를 그대로 고정한다.
+  it('stage3 보스 구간 증원은 150초 시작·10초 주기·300초 미만 종료로 15회 발화한다', () => {
+    const bossPhase = STAGE3_BURST_EVENTS.filter((e) => e.reinforcement === STAGE3_BOSS_PHASE_REINFORCEMENT)
+    expect(bossPhase.map((e) => e.type)).toEqual(['E01', 'E07'])
+    expect(bossPhase.map((e) => e.count)).toEqual([10, 3])
+    for (const event of bossPhase) {
+      expect(event.sec).toBe(getBossSpawnSec('stage3'))   // 보스 출현 시각과 같은 150초
+      expect(event.sec).toBe(150)
+      expect(event.repeatIntervalSec).toBe(10)
+      expect(event.endExclusiveSec).toBe(300)
+      expect(repeatingBurstTickCount(event)).toBe(15)
+      expect(repeatingBurstSecAtTick(event, 0)).toBe(150)
+      expect(repeatingBurstSecAtTick(event, 14)).toBe(290)  // 마지막 발화 < 300
+      expect(repeatingBurstSecAtTick(event, 15)).toBeNull()
+    }
+    // 전개 총량: (10 + 3) × 15 = 195마리, HP는 (10×12 + 3×23) × 15 = 2,835.
+    const bodies = bossPhase.reduce((sum, e) => sum + e.count * repeatingBurstTickCount(e), 0)
+    const hp = bossPhase.reduce((sum, e) => sum + eventTotalHp(e, 'stage3'), 0)
+    expect(bodies).toBe(195)
+    expect(hp).toBe(2835)
+  })
+
+  // 회귀 방어: 반복 보강 두 계열의 전개 총량을 계열별로 못 박는다.
+  // 이 값이 움직이면 위 stage3 총 HP 단언이 같이 깨지도록 함께 둔다.
   it('stage3 25초 반복 보강의 전개 총량은 30마리·525 HP다', () => {
-    const repeating = STAGE3_BURST_EVENTS.filter(isRepeatingBurstEvent)
+    const repeating = STAGE3_BURST_EVENTS.filter((e) => e.reinforcement === STAGE3_25_SECOND_REINFORCEMENT)
     const bodies = repeating.reduce((sum, event) => sum + event.count * repeatingBurstTickCount(event), 0)
     const hp = repeating.reduce((sum, event) => sum + eventTotalHp(event, 'stage3'), 0)
     expect(bodies).toBe(30)
     expect(hp).toBe(525)
-    expect(stageTotalHp('stage3')).toBe(STAGE3_RESTORED_RUN_CREW_TOTAL_HP)
+    expect(stageTotalHp('stage3')).toBe(STAGE3_MEASURED_TOTAL_HP)
   })
 
   it('보스 시각은 네 스테이지 모두 사용자 지정 150초다', () => {
