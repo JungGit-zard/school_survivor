@@ -337,47 +337,10 @@ describe('stage object placements', () => {
 })
 
 // stage4(급식실/주방)는 원화 st4_concept.png 기반 수제 배치 정본이다.
-// 대형 가구는 콜라이더가 붙는 solid 장애물이라 중앙에는 원화의 조리대 4기만 두고,
+// 대형 가구는 콜라이더가 붙는 solid 장애물이고, 중앙에는 압력 가마솥 1기만 두고,
 // 나머지 프랍은 벽면에 밀착시킨다.
 describe('stage 4 cafeteria kitchen placements', () => {
-  const PRE_HALF_WIDTH_X_BY_ID = new Map([
-    ['stage4-cookline-north-center', -0.6],
-    ['stage4-refrigerator-north-west-closed', -12.6],
-    ['stage4-refrigerator-north-west-open', -9.6],
-    ['stage4-crates-north-west-corner', -13.05],
-    ['stage4-clutter-north-cookline-spill', 3.6],
-    ['stage4-sink-north-east', 7.4],
-    ['stage4-crates-north-east-corner', 10.8],
-    ['stage4-trayrack-north-east-inner', 9.2],
-    ['stage4-shelfcart-east-north', 12.6],
-    ['stage4-shelfcart-east-upper', 12.9],
-    ['stage4-preptable-east-side-counter', 12.5],
-    ['stage4-trash-east-wheelie', 13.1],
-    ['stage4-trayrack-east-mid', 12.7],
-    ['stage4-crates-east-mid', 13.05],
-    ['stage4-clutter-east-trays', 12.2],
-    ['stage4-preptable-east-south-counter', 12.8],
-    ['stage4-shelfcart-west-north', -12.7],
-    ['stage4-clutter-west-pots', -13.2],
-    ['stage4-trash-west-wheelie', -13.1],
-    ['stage4-sink-west-mid', -13.65],
-    ['stage4-trash-west-round', -13],
-    ['stage4-clutter-west-bags', -12.4],
-    ['stage4-shelfcart-west-south', -12.9],
-    ['stage4-crates-south-west-corner', -13.05],
-    ['stage4-preptable-south-serving-left', -3.4],
-    ['stage4-preptable-south-serving-right', 1.8],
-    ['stage4-crates-south-west-stack', -10.8],
-    ['stage4-crates-south-center-stack', -7.2],
-    ['stage4-clutter-south-trays', 5.8],
-    ['stage4-trash-south-round', 8.6],
-    ['stage4-trayrack-south-east', 11.6],
-    ['stage4-pressure-cauldron-center', 0],
-    ['stage4-student-serving-south', 4.2],
-    ['stage4-student-kitchen-northeast', 9.1],
-  ])
-  const PRE_HALF_WIDTH_STAGE4_SHA256 = '914914beaef6048d97e75d55f39e7de87c52419a2163d598f46da2fe0173d34c'
-  const FINAL_STAGE4_X_BY_ID = new Map([
+  const PRE_EXPANSION_STAGE4_X_BY_ID = new Map([
     ['stage4-cookline-north-center', -0.3],
     ['stage4-refrigerator-north-west-closed', -6.3],
     ['stage4-refrigerator-north-west-open', -4.8],
@@ -413,6 +376,61 @@ describe('stage 4 cafeteria kitchen placements', () => {
     ['stage4-student-serving-south', 2.1],
     ['stage4-student-kitchen-northeast', 4.55],
   ])
+  const PRE_EXPANSION_STAGE4_SHA256 = 'c00b8cecab51e63d2d5ba9fc42c8ff04d53e38329c8b19edcdcf72e8e8781bb2'
+  const FINAL_SAFE_STAGE4_X_BY_ID = new Map([
+    ['stage4-cookline-north-center', -0.39],
+    ['stage4-refrigerator-north-west-closed', -8.46],
+    ['stage4-refrigerator-north-west-open', -6.196],
+    ['stage4-crates-north-west-corner', -8.685],
+    ['stage4-clutter-north-cookline-spill', 2.34],
+    ['stage4-sink-north-east', 4.81],
+    ['stage4-crates-north-east-corner', 7.02],
+    ['stage4-trayrack-north-east-inner', 5.98],
+    ['stage4-shelfcart-east-north', 8.807],
+    ['stage4-shelfcart-east-upper', 8.84],
+    ['stage4-preptable-east-side-counter', 8.508],
+    ['stage4-trash-east-wheelie', 8.71],
+    ['stage4-trayrack-east-mid', 8.658],
+    ['stage4-crates-east-mid', 8.685],
+    ['stage4-clutter-east-trays', 7.93],
+    ['stage4-preptable-east-south-counter', 8.56],
+    ['stage4-shelfcart-west-north', -8.79],
+    ['stage4-clutter-west-pots', -8.58],
+    ['stage4-trash-west-wheelie', -8.71],
+    ['stage4-sink-west-mid', -8.5475],
+    ['stage4-trash-west-round', -8.747],
+    ['stage4-clutter-west-bags', -8.06],
+    ['stage4-shelfcart-west-south', -8.785],
+    ['stage4-crates-south-west-corner', -8.685],
+    ['stage4-preptable-south-serving-left', -2.18],
+    ['stage4-preptable-south-serving-right', 1.17],
+    ['stage4-crates-south-west-stack', -7.02],
+    ['stage4-crates-south-center-stack', -4.68],
+    ['stage4-clutter-south-trays', 3.77],
+    ['stage4-trash-south-round', 5.33],
+    ['stage4-trayrack-south-east', 7.54],
+    ['stage4-pressure-cauldron-center', 0],
+    ['stage4-student-serving-south', 2.73],
+    ['stage4-student-kitchen-northeast', 5.915],
+  ])
+  const SAFETY_NUDGED_STAGE4_IDS = [
+    'stage4-refrigerator-north-west-closed',
+    'stage4-refrigerator-north-west-open',
+    'stage4-crates-north-west-corner',
+    'stage4-shelfcart-east-north',
+    'stage4-shelfcart-east-upper',
+    'stage4-preptable-east-side-counter',
+    'stage4-trash-east-wheelie',
+    'stage4-trayrack-east-mid',
+    'stage4-crates-east-mid',
+    'stage4-preptable-east-south-counter',
+    'stage4-shelfcart-west-north',
+    'stage4-trash-west-wheelie',
+    'stage4-trash-west-round',
+    'stage4-shelfcart-west-south',
+    'stage4-crates-south-west-corner',
+    'stage4-preptable-south-serving-left',
+  ]
   const STAGE4_KITCHEN_TYPES = [
     'kitchenPrepTable',
     'kitchenCookLine',
@@ -425,7 +443,7 @@ describe('stage 4 cafeteria kitchen placements', () => {
     'kitchenClutter',
     'pressureCauldron',
   ]
-  const MAX_ABS_X = 7.2
+  const MAX_ABS_X = 9.36
   const MAX_ABS_Z = 15.5
 
   it('returns stage4 authored placements as-is (never the stage2 copy/scatter pipeline)', () => {
@@ -443,21 +461,27 @@ describe('stage 4 cafeteria kitchen placements', () => {
     })
   })
 
-  it('uses the final safe X map for all 34 Stage 4 placements and changes no other authored field', () => {
+  it('starts from a 30-percent X expansion, applies only the fixed safety nudges, and changes no other authored field', () => {
     const authored = STAGE_OBJECT_PLACEMENTS.stage4
     expect(authored).toHaveLength(34)
-    expect(PRE_HALF_WIDTH_X_BY_ID.size).toBe(34)
-    expect(FINAL_STAGE4_X_BY_ID.size).toBe(34)
+    expect(PRE_EXPANSION_STAGE4_X_BY_ID.size).toBe(34)
+    expect(FINAL_SAFE_STAGE4_X_BY_ID.size).toBe(34)
     authored.forEach((placement) => {
-      expect(placement.position[0], placement.id).toBe(FINAL_STAGE4_X_BY_ID.get(placement.id))
+      expect(placement.position[0], placement.id).toBe(FINAL_SAFE_STAGE4_X_BY_ID.get(placement.id))
     })
+    const actualNudgedIds = authored
+      .filter((placement) => Math.abs(
+        placement.position[0] - PRE_EXPANSION_STAGE4_X_BY_ID.get(placement.id) * 1.3
+      ) > 1e-12)
+      .map(({ id }) => id)
+    expect(actualNudgedIds).toEqual(SAFETY_NUDGED_STAGE4_IDS)
 
     const restoredOldSnapshot = authored.map((placement) => ({
       ...placement,
-      position: [PRE_HALF_WIDTH_X_BY_ID.get(placement.id), placement.position[1], placement.position[2]],
+      position: [PRE_EXPANSION_STAGE4_X_BY_ID.get(placement.id), placement.position[1], placement.position[2]],
     }))
     const restoredHash = createHash('sha256').update(JSON.stringify(restoredOldSnapshot)).digest('hex')
-    expect(restoredHash).toBe(PRE_HALF_WIDTH_STAGE4_SHA256)
+    expect(restoredHash).toBe(PRE_EXPANSION_STAGE4_SHA256)
   })
 
   it('keeps every stage4 prop inside the kitchen bounds', () => {
@@ -549,7 +573,10 @@ describe('stage 4 cafeteria kitchen placements', () => {
 
     try {
       const runtime = getStageObjectPlacements('stage4').filter(({ id }) => id !== 'stage4-pressure-cauldron-center')
-      expect(runtime.map(({ position: [x] }) => x)).toEqual([5, 1, -3])
+      const runtimeX = runtime.map(({ position: [x] }) => x)
+      expect(runtimeX[0]).toBeCloseTo(6.5, 12)
+      expect(runtimeX[1]).toBeCloseTo(1.3, 12)
+      expect(runtimeX[2]).toBeCloseTo(-3.9, 12)
       expect(getStageObjectPlacements('stage4').filter(({ id }) => id === 'stage4-pressure-cauldron-center')).toHaveLength(1)
       expect(getFirebaseStudioRuntimeDataset('propPlacements')).toEqual(remoteBefore)
     } finally {
@@ -557,17 +584,17 @@ describe('stage 4 cafeteria kitchen placements', () => {
     }
   })
 
-  it('does not re-scale an already half-width Stage 4 Firebase override', () => {
+  it('does not re-scale an already current-width Stage 4 Firebase override', () => {
     const remoteStage4 = [
-      { id: 'new-east', type: 'kitchenPrepTable', position: [6.8, 0, -4], rotation: [0, 0.4, 0], scale: 1.1 },
-      { id: 'new-west', type: 'kitchenSinkCounter', position: [-6.825, 0, 1], rotation: [0, 1.2, 0], scale: 1 },
+      { id: 'new-east', type: 'kitchenPrepTable', position: [8.8, 0, -4], rotation: [0, 0.4, 0], scale: 1.1 },
+      { id: 'new-west', type: 'kitchenSinkCounter', position: [-9.2, 0, 1], rotation: [0, 1.2, 0], scale: 1 },
     ]
     commitFirebaseStudioRuntime({ propPlacements: { stage4: remoteStage4 } }, { revision: 13 })
     const remoteBefore = structuredClone(getFirebaseStudioRuntimeDataset('propPlacements'))
 
     try {
       const runtime = getStageObjectPlacements('stage4').filter(({ id }) => id !== 'stage4-pressure-cauldron-center')
-      expect(runtime.map(({ position: [x] }) => x)).toEqual([6.8, -6.825])
+      expect(runtime.map(({ position: [x] }) => x)).toEqual([8.8, -9.2])
       expect(getFirebaseStudioRuntimeDataset('propPlacements')).toEqual(remoteBefore)
     } finally {
       blockFirebaseStudioRuntime()

@@ -1,3 +1,5 @@
+import { useRef } from 'react'
+import { useFrame } from '@react-three/fiber'
 import {
   getStagePropDepthWritingToonMaterial,
   getStagePropOutlineMaterial,
@@ -7,10 +9,24 @@ import {
   STAGE_PROP_UNIT_BOX_GEOMETRY,
 } from './propRendering.js'
 import { getCachedCylinderGeo } from '../../lib/toon.js'
+import { getRuntimeElapsedMs } from '../../lib/gameRuntimeTime.js'
+import {
+  PRESSURE_CAULDRON_BOIL_LEAD_MS,
+  PRESSURE_CAULDRON_DAMAGE_RADIUS,
+  PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS,
+  getPressureCauldronHazardVisual,
+} from '../../lib/stage4PressureCauldronHazard.js'
+import { useGameStore } from '../../store/useGameStore.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 const OUTLINE_SCALE = 1.035
-export const PRESSURE_CAULDRON_BASE_SCALE = 0.2
+export const PRESSURE_CAULDRON_BASE_SCALE = 0.4
+const BURST_RING_RAW_RADIUS = PRESSURE_CAULDRON_DAMAGE_RADIUS / PRESSURE_CAULDRON_BASE_SCALE
+const BOILING_SMOKE_PUFFS = [
+  [0, 4.10, 0],
+  [-0.70, 3.95, 0.36],
+  [0.66, 4.22, -0.30],
+]
 
 function scaleToBaseScale(scale) {
   const source = Array.isArray(scale) ? scale : [scale ?? 1, scale ?? 1, scale ?? 1]
@@ -65,10 +81,72 @@ function Latch({ position, dark, yellow, rotation = [0, 0, 0] }) {
   )
 }
 
+function PressureCauldronHazardVisual({ basePosition = [0, 0, 0], cauldronRootRef, steam, warning, flash }) {
+  const bubblesRef = useRef(null)
+  const burstRef = useRef(null)
+  const smokeRefs = useRef([])
+  const bubbleGeometry = getCachedCylinderGeo(0.24, 0.19, 0.36, 8)
+
+  useFrame((_, delta) => {
+    const state = useGameStore.getState()
+    const elapsedMs = getRuntimeElapsedMs(state.elapsedMs)
+    const visual = getPressureCauldronHazardVisual(
+      elapsedMs,
+      state.currentStageId,
+      state.phase,
+    )
+    if (cauldronRootRef.current) {
+      // Root position is world-space, so keep the visible shiver at ±0.04.
+      const shiver = visual.boiling ? Math.sin(elapsedMs * 0.052) * 0.04 : 0
+      cauldronRootRef.current.position.set(basePosition[0] + shiver, basePosition[1], basePosition[2] - shiver * 0.45)
+    }
+    if (bubblesRef.current) {
+      bubblesRef.current.visible = visual.boiling
+      if (visual.boiling) {
+        const cycleProgress = (
+          elapsedMs % PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS
+          - (PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS - PRESSURE_CAULDRON_BOIL_LEAD_MS)
+        ) / PRESSURE_CAULDRON_BOIL_LEAD_MS
+        smokeRefs.current.forEach((smoke, index) => {
+          if (!smoke) return
+          const [, baseY] = BOILING_SMOKE_PUFFS[index]
+          smoke.position.y = baseY + cycleProgress * (0.70 + index * 0.16)
+          smoke.scale.setScalar(0.82 + cycleProgress * 0.62 + Math.min(delta, 1 / 30) * 0.05)
+        })
+      }
+    }
+    if (burstRef.current) burstRef.current.visible = visual.bursting
+  })
+
+  return (
+    <group name="pressure-cauldron-hazard-visual" userData={{ studioRenderOutline: false }}>
+      <group ref={bubblesRef} visible={false} name="pressure-cauldron-boiling-steam">
+        {BOILING_SMOKE_PUFFS.map((position, index) => (
+          <mesh ref={(node) => { smokeRefs.current[index] = node }} key={index} {...STAGE_PROP_SURFACE_RENDERING} position={position} geometry={bubbleGeometry} material={steam} />
+        ))}
+      </group>
+      <group ref={burstRef} visible={false} name="pressure-cauldron-burst-ring">
+        {Array.from({ length: 8 }, (_, index) => {
+          const angle = (Math.PI * 2 * index) / 8
+          return (
+            <Box
+              key={index}
+              position={[Math.sin(angle) * BURST_RING_RAW_RADIUS, 0.42, Math.cos(angle) * BURST_RING_RAW_RADIUS]}
+              rotation={[0, -angle, 0]}
+              scale={[1.65, 0.10, 0.16]}
+              material={index % 2 === 0 ? flash : warning}
+            />
+          )
+        })}
+      </group>
+    </group>
+  )
+}
+
 // The runtime and Studio preview both render this exact component. Keep this
 // shared base-scale seam inside the model, while placement and Studio/Firebase
 // tuning stay on their existing canonical paths.
-export default function PressureCauldron({ scale, ...props }) {
+export function PressureCauldronModel({ scale, position = [0, 0, 0], cauldronRootRef, ...props }) {
   const white = getStagePropDepthWritingToonMaterial(0xf3f4ef, 0.04)
   const whiteShade = getStagePropDepthWritingToonMaterial(0xd7dcd8, 0.04)
   const dark = getStagePropDepthWritingToonMaterial(0x262b30, 0.02)
@@ -79,8 +157,8 @@ export default function PressureCauldron({ scale, ...props }) {
   const gray = getStagePropDepthWritingToonMaterial(0x697078, 0.04)
 
   return (
-    <group {...props} name="pressure-cauldron" scale={scaleToBaseScale(scale)}>
-      {/* Only this fixed 0.2 model uses parent-base inverse position compensation. */}
+    <group {...props} ref={cauldronRootRef} name="pressure-cauldron" position={position} scale={scaleToBaseScale(scale)}>
+      {/* Only this fixed 0.4 model uses parent-base inverse position compensation. */}
       <StudioTunedGroup itemId="stage-object-pressure-cauldron" transformPositionMultiplier={1 / PRESSURE_CAULDRON_BASE_SCALE}>
         <group name="pressure-cauldron-dark-industrial-base">
           <Cylinder position={[0, 0.24, 0]} args={[3.34, 3.48, 0.48, 10]} material={dark} outlined />
@@ -164,7 +242,13 @@ export default function PressureCauldron({ scale, ...props }) {
             {[-0.35, 0.35].map((z) => <Cylinder key={z} position={[2.75, 1.02, z]} rotation={[0, 0, Math.PI / 2]} args={[0.16, 0.16, 0.18, 8]} material={dark} />)}
           </group>
         </group>
+        <PressureCauldronHazardVisual basePosition={position} cauldronRootRef={cauldronRootRef} steam={whiteShade} warning={yellow} flash={red} />
       </StudioTunedGroup>
     </group>
   )
+}
+
+export default function PressureCauldron(props) {
+  const cauldronRootRef = useRef(null)
+  return <PressureCauldronModel {...props} cauldronRootRef={cauldronRootRef} />
 }

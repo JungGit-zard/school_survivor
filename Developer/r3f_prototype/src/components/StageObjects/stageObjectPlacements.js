@@ -5,7 +5,7 @@ import { getStagePropOverride } from '../../lib/stagePropPlacements.js'
 // Rule: every stage1 object must satisfy Math.abs(x) >= 6 OR Math.abs(z) >= 12
 // (keeps the central spawn/play zone clear).
 // mapHalfX=10, so |x| 6-6.9 is valid near-wall placement for the center Z band.
-// Rule: stage4(급식실/주방, mapHalfX=7.2 / mapHalfZ=16)는 프랍 X를 새 가로 경계에 맞게 재배치하고,
+// Rule: stage4(급식실/주방, mapHalfX=9.36 / mapHalfZ=16)는 프랍 X를 새 가로 경계에 맞게 재배치하고,
 // |z| <= 15.5 안에 있어야 한다. 벽면 프랍의 rotation Y 기준 — 북 0 / 남 Math.PI /
 // 서 +Math.PI/2 / 동 -Math.PI/2.
 // 중앙에는 사용자 정본인 압력 가마솥 1기만 정확히 [0, 0, 0]에 들어간다.
@@ -449,7 +449,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       props: { variant: 'sideLeft' },
     },
   ],
-  // stage4: 급식실/주방(mapHalfX 7.2 · mapHalfZ 16). 원화 st4_concept.png 매핑.
+  // stage4: 급식실/주방(mapHalfX 9.36 · mapHalfZ 16). 원화 st4_concept.png 매핑.
   // 프랍은 전부 시각 전용(blocking: false) — 충돌체가 없으므로 중앙 전투 공간은 완전히 비운다.
   stage4: [
     // ── 북벽: 쿡라인 + 후드(최대 랜드마크), 북서 냉장고 열, 북동 싱크대 ──
@@ -457,7 +457,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-cookline-north-center',
       type: 'kitchenCookLine',
       // 벽 밀착(밀폐): 벽 틈 0.750 → 0.200. 플레이어 전폭 0.272보다 좁아 뒤로 못 돈다.
-      position: [-0.3, 0, -15.15],
+      position: [-0.39, 0, -15.15],
       rotation: [0, 0, 0],
       scale: 1.16,
     },
@@ -465,7 +465,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-refrigerator-north-west-closed',
       type: 'kitchenRefrigerator',
       // 벽 밀착(밀폐): 옆 냉장고와 전면을 맞춘다. 벽 틈 1.030 → 0.229.
-      position: [-6.3, 0, -15.2],
+      position: [-8.46, 0, -15.2],
       rotation: [0, 0.12, 0],
       scale: 1.08,
       props: { open: false },
@@ -474,7 +474,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-refrigerator-north-west-open',
       type: 'kitchenRefrigerator',
       // 벽 밀착(밀폐): 벽 틈 0.812 → 0.212.
-      position: [-4.8, 0, -15.2],
+      position: [-6.196, 0, -15.2],
       rotation: [0, -0.18, 0],
       scale: 1.05,
       props: { open: true },
@@ -483,7 +483,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-crates-north-west-corner',
       type: 'kitchenCrateStack',
       // 안쪽으로 당김(개방): 벽 틈 0.749 → 0.899. B04 직경 0.747도 통과한다.
-      position: [-6.525, 0, -11.6],
+      position: [-8.685, 0, -11.6],
       rotation: [0, 0.36, 0],
       scale: 1.02,
       props: { count: 3 },
@@ -491,7 +491,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-clutter-north-cookline-spill',
       type: 'kitchenClutter',
-      position: [1.8, 0, -14.2],
+      position: [2.34, 0, -14.2],
       rotation: [0, -0.24, 0],
       scale: 1.0,
       props: { variant: 'pots' },
@@ -500,14 +500,14 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-sink-north-east',
       type: 'kitchenSinkCounter',
-      position: [3.7, 0, -14.5],
+      position: [4.81, 0, -14.5],
       rotation: [0, 0.08, 0],
       scale: 1.12,
     },
     {
       id: 'stage4-crates-north-east-corner',
       type: 'kitchenCrateStack',
-      position: [5.4, 0, -12.6],
+      position: [7.02, 0, -12.6],
       rotation: [0, -0.42, 0],
       scale: 0.96,
       props: { count: 2 },
@@ -515,7 +515,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-trayrack-north-east-inner',
       type: 'kitchenTrayRack',
-      position: [4.6, 0, -9.4],
+      position: [5.98, 0, -9.4],
       rotation: [0, -0.62, 0],
       scale: 1.06,
     },
@@ -523,21 +523,21 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-shelfcart-east-north',
       type: 'kitchenShelfCart',
-      position: [6.647, 0, -10.4],
+      position: [8.807, 0, -10.4],
       rotation: [0, -Math.PI / 2 + 0.16, 0],
       scale: 1.04,
     },
     {
       id: 'stage4-shelfcart-east-upper',
       type: 'kitchenShelfCart',
-      position: [6.68, 0, -7.2],
+      position: [8.84, 0, -7.2],
       rotation: [0, -Math.PI / 2 - 0.12, 0],
       scale: 1.0,
     },
     {
       id: 'stage4-preptable-east-side-counter',
       type: 'kitchenPrepTable',
-      position: [6.348, 0, -4.0],
+      position: [8.508, 0, -4.0],
       rotation: [0, -Math.PI / 2 + 0.1, 0],
       scale: 1.06,
       props: { variant: 'side' },
@@ -546,7 +546,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-trash-east-wheelie',
       type: 'kitchenTrashBins',
       // 안쪽으로 당김(개방): 벽 틈 0.686 → 0.886.
-      position: [6.55, 0, -0.8],
+      position: [8.71, 0, -0.8],
       rotation: [0, -Math.PI / 2 - 0.22, 0],
       scale: 1.02,
       props: { variant: 'wheelie' },
@@ -554,7 +554,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-trayrack-east-mid',
       type: 'kitchenTrayRack',
-      position: [6.498, 0, 2.6],
+      position: [8.658, 0, 2.6],
       rotation: [0, -Math.PI / 2 + 0.24, 0],
       scale: 1.08,
     },
@@ -562,7 +562,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-crates-east-mid',
       type: 'kitchenCrateStack',
       // 안쪽으로 당김(개방): 벽 틈 0.750 → 0.900.
-      position: [6.525, 0, 5.8],
+      position: [8.685, 0, 5.8],
       rotation: [0, -0.28, 0],
       scale: 1.05,
       props: { count: 4 },
@@ -570,7 +570,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-clutter-east-trays',
       type: 'kitchenClutter',
-      position: [6.1, 0, 8.8],
+      position: [7.93, 0, 8.8],
       rotation: [0, -0.52, 0],
       scale: 0.98,
       props: { variant: 'trays' },
@@ -579,7 +579,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-preptable-east-south-counter',
       type: 'kitchenPrepTable',
-      position: [6.4, 0, 11.6],
+      position: [8.56, 0, 11.6],
       rotation: [0, -Math.PI / 2 - 0.14, 0],
       scale: 1.04,
       props: { variant: 'side' },
@@ -588,14 +588,14 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-shelfcart-west-north',
       type: 'kitchenShelfCart',
-      position: [-6.63, 0, -8.8],
+      position: [-8.79, 0, -8.8],
       rotation: [0, Math.PI / 2 - 0.18, 0],
       scale: 1.06,
     },
     {
       id: 'stage4-clutter-west-pots',
       type: 'kitchenClutter',
-      position: [-6.6, 0, -5.6],
+      position: [-8.58, 0, -5.6],
       rotation: [0, 0.44, 0],
       scale: 1.0,
       props: { variant: 'pots' },
@@ -605,7 +605,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-trash-west-wheelie',
       type: 'kitchenTrashBins',
       // 안쪽으로 당김(개방): 벽 틈 0.599 → 0.899.
-      position: [-6.55, 0, -3.2],
+      position: [-8.71, 0, -3.2],
       rotation: [0, Math.PI / 2 + 0.2, 0],
       scale: 1.0,
       props: { variant: 'wheelie' },
@@ -614,14 +614,14 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-sink-west-mid',
       type: 'kitchenSinkCounter',
       // 벽 밀착(밀폐): 벽 틈 0.409 → 0.159. 싱크대는 벽에 붙는 게 원화에도 맞다.
-      position: [-6.575, 0, 1.0],
+      position: [-8.5475, 0, 1.0],
       rotation: [0, Math.PI / 2 + 0.06, 0],
       scale: 1.1,
     },
     {
       id: 'stage4-trash-west-round',
       type: 'kitchenTrashBins',
-      position: [-6.587, 0, 4.8],
+      position: [-8.747, 0, 4.8],
       rotation: [0, 0.32, 0],
       scale: 0.96,
       props: { variant: 'round' },
@@ -629,7 +629,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-clutter-west-bags',
       type: 'kitchenClutter',
-      position: [-6.2, 0, 7.4],
+      position: [-8.06, 0, 7.4],
       rotation: [0, 0.66, 0],
       scale: 1.02,
       props: { variant: 'bags' },
@@ -638,7 +638,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-shelfcart-west-south',
       type: 'kitchenShelfCart',
-      position: [-6.625, 0, 10.6],
+      position: [-8.785, 0, 10.6],
       rotation: [0, Math.PI / 2 + 0.22, 0],
       scale: 1.02,
     },
@@ -646,7 +646,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-crates-south-west-corner',
       type: 'kitchenCrateStack',
       // 안쪽으로 당김(개방): 서벽 틈 0.740 → 0.890.
-      position: [-6.525, 0, 13.2],
+      position: [-8.685, 0, 13.2],
       rotation: [0, 0.5, 0],
       scale: 1.0,
       props: { count: 3 },
@@ -656,7 +656,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-preptable-south-serving-left',
       type: 'kitchenPrepTable',
       // 벽 밀착(밀폐): 벽 틈 0.346 → 0.196. 오른쪽 배식대(0.223)와 전면을 맞춘다.
-      position: [-1.7, 0, 15.15],
+      position: [-2.18, 0, 15.15],
       rotation: [0, Math.PI + 0.08, 0],
       scale: 1.1,
       props: { variant: 'side' },
@@ -664,7 +664,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-preptable-south-serving-right',
       type: 'kitchenPrepTable',
-      position: [0.9, 0, 15.1],
+      position: [1.17, 0, 15.1],
       rotation: [0, Math.PI - 0.1, 0],
       scale: 1.1,
       props: { variant: 'side' },
@@ -672,7 +672,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-crates-south-west-stack',
       type: 'kitchenCrateStack',
-      position: [-5.4, 0, 14.6],
+      position: [-7.02, 0, 14.6],
       rotation: [0, Math.PI - 0.34, 0],
       scale: 1.04,
       props: { count: 3 },
@@ -681,7 +681,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-crates-south-center-stack',
       type: 'kitchenCrateStack',
       // 안쪽으로 당김(개방): 벽 틈 0.525 → 0.905.
-      position: [-3.6, 0, 14.72],
+      position: [-4.68, 0, 14.72],
       rotation: [0, Math.PI + 0.26, 0],
       scale: 0.98,
       props: { count: 2 },
@@ -689,7 +689,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-clutter-south-trays',
       type: 'kitchenClutter',
-      position: [2.9, 0, 14.9],
+      position: [3.77, 0, 14.9],
       rotation: [0, Math.PI - 0.42, 0],
       scale: 1.0,
       props: { variant: 'trays' },
@@ -698,7 +698,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-trash-south-round',
       type: 'kitchenTrashBins',
-      position: [4.1, 0, 14.6],
+      position: [5.33, 0, 14.6],
       rotation: [0, Math.PI + 0.18, 0],
       scale: 0.98,
       props: { variant: 'round' },
@@ -706,7 +706,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-trayrack-south-east',
       type: 'kitchenTrayRack',
-      position: [5.8, 0, 14.4],
+      position: [7.54, 0, 14.4],
       rotation: [0, Math.PI - 0.12, 0],
       scale: 1.05,
     },
@@ -723,7 +723,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-student-serving-south',
       type: 'unconsciousStudent',
-      position: [2.1, 0, 12.5],
+      position: [2.73, 0, 12.5],
       rotation: [0, Math.PI, 0],
       scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
       props: { variant: 'faceUp' },
@@ -731,7 +731,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-student-kitchen-northeast',
       type: 'unconsciousStudent',
-      position: [4.55, 0, -6.4],
+      position: [5.915, 0, -6.4],
       rotation: [0, -2.5, 0],
       scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
       props: { variant: 'sideLeft' },
@@ -765,12 +765,15 @@ function withStage4PressureCauldron(placements) {
   ]
 }
 
-function withStage4HalfWidthOverrideCoordinates(placements) {
+const STAGE4_LEGACY_FULL_WIDTH_HALF_X = 14.4
+
+function withStage4CurrentWidthOverrideCoordinates(placements) {
   const { halfX } = getStageBounds('stage4')
   if (!placements.some(({ position: [x] }) => Math.abs(x) > halfX)) return placements
+  const legacyToCurrentXScale = halfX / STAGE4_LEGACY_FULL_WIDTH_HALF_X
   return placements.map((placement) => ({
     ...placement,
-    position: [placement.position[0] * 0.5, placement.position[1], placement.position[2]],
+    position: [placement.position[0] * legacyToCurrentXScale, placement.position[1], placement.position[2]],
   }))
 }
 
@@ -923,7 +926,7 @@ export function computeDefaultStageObjectPlacements(stageId = 'stage1') {
 export function getStageObjectPlacements(stageId = 'stage1') {
   const override = getStagePropOverride(stageId)
   const placements = override
-    ? (stageId === 'stage4' ? withStage4HalfWidthOverrideCoordinates(override) : override)
+    ? (stageId === 'stage4' ? withStage4CurrentWidthOverrideCoordinates(override) : override)
     : computeDefaultStageObjectPlacements(stageId)
   const canonicalPlacements = stageId === 'stage4'
     ? withStage4PressureCauldron(placements)

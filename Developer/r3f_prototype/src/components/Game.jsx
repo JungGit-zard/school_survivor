@@ -14,8 +14,13 @@ import StudentDialogueTrigger from './StudentDialogueTrigger.jsx'
 import QuestWorldLayer from './QuestWorldLayer.jsx'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { createCriticalScreenShakeFrame, sampleCriticalScreenShake } from '../lib/criticalScreenShake.js'
-import { PUBLISH_INTERVAL_MS, advanceRuntimeTime } from '../lib/gameRuntimeTime.js'
+import { PUBLISH_INTERVAL_MS, advanceRuntimeTime, getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { clampGameplayFrameDelta, createGameplayFixedStepClock, runGameplayFixedSteps } from '../lib/gameplayFrameTime.js'
+import {
+  PRESSURE_CAULDRON_DAMAGE_RATIO,
+  getPressureCauldronExplosionTimes,
+  isInsidePressureCauldronBlastRadius,
+} from '../lib/stage4PressureCauldronHazard.js'
 import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon, ChibikoWeapon, HanakoWeapon, InuconWeapon, SharkMissileWeapon, StudentLanternWeapon, BikittyCutterWeapon, LineDrawWeapon } from './Weapons/index.js'
 
 const _camTarget = new THREE.Vector3()
@@ -88,10 +93,25 @@ export default function Game() {
     const cameraDt = clampGameplayFrameDelta(delta)
     if (useGameStore.getState().phase === 'playing') {
       runGameplayFixedSteps(gameplayClockRef.current, delta, (fixedDelta) => {
+        const previousElapsedMs = getRuntimeElapsedMs()
         const elapsedMs = advanceRuntimeTime(fixedDelta * 1000)
         checkSurvivalMilestone(elapsedMs)
         // getState()로 최신 값 읽기 — React 클로저 stale 방지
         const gs = useGameStore.getState()
+        const cauldronExplosions = getPressureCauldronExplosionTimes(
+          previousElapsedMs,
+          elapsedMs,
+          gs.currentStageId,
+          gs.phase,
+        )
+        cauldronExplosions.forEach(() => {
+          const live = useGameStore.getState()
+          if (live.phase !== 'playing' || !isInsidePressureCauldronBlastRadius(playerPos.x, playerPos.z)) return
+          live.damagePlayer(live.player.maxHp * PRESSURE_CAULDRON_DAMAGE_RATIO, {
+            ignoreInvulnerability: true,
+            source: 'stage4PressureCauldron',
+          })
+        })
         const stageConfig = getStageConfig(currentStageId)
         // 스테이지 설정 시간에 자동 클리어 대신 탈출구 등장
         if (!gs.escapePortalActive && elapsedMs >= stageConfig.escapePortalSec * 1000) {

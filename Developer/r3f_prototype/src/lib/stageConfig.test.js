@@ -137,8 +137,8 @@ describe('stage configuration registry', () => {
       matildaWarningSec: 205,
       matildaSec: 210,
     })
-    // 급식실은 가로만 절반으로 줄이고 세로는 기존 길이를 유지한다.
-    expect(getStageBounds('stage4')).toMatchObject({ halfX: 7.2, halfZ: 16 })
+    // 급식실은 직전 가로폭에서 30% 확장하고 세로는 기존 길이를 유지한다.
+    expect(getStageBounds('stage4')).toMatchObject({ halfX: 9.36, halfZ: 16 })
     // 마일스톤 골드 4/6/9/18, atMs 48k/144k/192k/240k, 급식실 테마 라벨.
     const milestones = getStageConfig('stage4').survivalMilestones
     expect(milestones.map((m) => m.gold)).toEqual([4, 6, 9, 18])

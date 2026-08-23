@@ -286,11 +286,11 @@ describe('stage object blocking colliders', () => {
     ])
     expect(cauldronParts.every(({ args }) => args.every((value) => value > 0))).toBe(true)
     expect(cauldronParts.map(({ key, position, args }) => ({ key, position, args }))).toEqual([
-      { key: 'pressure-cauldron-vessel', position: [0, 0.36, 0], args: [0.688, 0.296, 0.688] },
-      { key: 'pressure-cauldron-front-twin-steps', position: [0, 0.056, 0.676], args: [0.296, 0.056, 0.084] },
-      { key: 'pressure-cauldron-left-cabinet', position: [-0.692, 0.29, 0.036], args: [0.086, 0.218, 0.126] },
-      { key: 'pressure-cauldron-right-auxiliary', position: [0.676, 0.184, -0.032], args: [0.124, 0.138, 0.158] },
-      { key: 'pressure-cauldron-handwheel', position: [0.636, 0.236, 0.408], args: [0.084, 0.118, 0.092] },
+      { key: 'pressure-cauldron-vessel', position: [0, 0.72, 0], args: [1.376, 0.592, 1.376] },
+      { key: 'pressure-cauldron-front-twin-steps', position: [0, 0.112, 1.352], args: [0.592, 0.112, 0.168] },
+      { key: 'pressure-cauldron-left-cabinet', position: [-1.384, 0.58, 0.072], args: [0.172, 0.436, 0.252] },
+      { key: 'pressure-cauldron-right-auxiliary', position: [1.352, 0.368, -0.064], args: [0.248, 0.276, 0.316] },
+      { key: 'pressure-cauldron-handwheel', position: [1.272, 0.472, 0.816], args: [0.168, 0.236, 0.184] },
     ])
   })
 

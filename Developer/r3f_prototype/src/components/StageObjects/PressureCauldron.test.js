@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import React from 'react'
 import { describe, expect, it } from 'vitest'
 import * as THREE from 'three'
-import PressureCauldron from './PressureCauldron.jsx'
+import { PressureCauldronModel } from './PressureCauldron.jsx'
 import { GRAPHICS_STUDIO_CATALOG, normalizeStudioTuning } from '../../lib/graphicsStudioConfig.js'
 import { getStudioTransformProps } from '../StudioTunedGroup.jsx'
 import { STAGE_PROP_TYPES } from '../../lib/stagePropPlacements.js'
@@ -61,7 +61,7 @@ function getDirectChildComponentTypesFromModel(groupName) {
     }
   }
   try {
-    const root = PressureCauldron({})
+    const root = PressureCauldronModel({})
     const group = findElementByName(root, groupName)
     return getElementChildren(group)
       .map(elementTypeName)
@@ -110,14 +110,17 @@ describe('pressure cauldron landmark', () => {
     ].forEach((part) => expect(source).toContain(part))
   })
 
-  it('uses the exact 0.2 base scale seam for the shared runtime and Studio component', () => {
+  it('uses the exact 0.4 base scale seam for the shared runtime and Studio component', () => {
     const source = fs.readFileSync(new URL('./PressureCauldron.jsx', import.meta.url), 'utf8')
     const studioSource = fs.readFileSync(new URL('../StudioTunedGroup.jsx', import.meta.url), 'utf8')
 
-    expect(source).toContain('export const PRESSURE_CAULDRON_BASE_SCALE = 0.2')
+    expect(source).toContain('export const PRESSURE_CAULDRON_BASE_SCALE = 0.4')
     expect(source).toContain('scale={scaleToBaseScale(scale)}')
     expect(source).toContain('value * PRESSURE_CAULDRON_BASE_SCALE')
     expect(source).toContain('transformPositionMultiplier={1 / PRESSURE_CAULDRON_BASE_SCALE}')
+    expect(source).toContain('const BURST_RING_RAW_RADIUS = PRESSURE_CAULDRON_DAMAGE_RADIUS / PRESSURE_CAULDRON_BASE_SCALE')
+    expect(source).toContain('Math.sin(angle) * BURST_RING_RAW_RADIUS')
+    expect(source).toContain('PRESSURE_CAULDRON_EXPLOSION_INTERVAL_MS - PRESSURE_CAULDRON_BOIL_LEAD_MS')
     expect(studioSource).toContain('transform.position.map((value) => value * transformPositionMultiplier)')
   })
 
@@ -143,9 +146,9 @@ describe('pressure cauldron landmark', () => {
     }
 
     const runtimeRoot = new THREE.Group()
-    runtimeRoot.scale.setScalar(0.2)
+    runtimeRoot.scale.setScalar(0.4)
     const runtimeStudio = new THREE.Group()
-    runtimeStudio.position.fromArray(transform.position.map((value) => value / 0.2))
+    runtimeStudio.position.fromArray(transform.position.map((value) => value / 0.4))
     runtimeStudio.rotation.fromArray(transform.rotation)
     runtimeStudio.scale.fromArray(transform.scale)
     const runtimePart = makePart()
@@ -157,7 +160,7 @@ describe('pressure cauldron landmark', () => {
     previewStudio.rotation.fromArray(transform.rotation)
     previewStudio.scale.fromArray(transform.scale)
     const previewBase = new THREE.Group()
-    previewBase.scale.setScalar(0.2)
+    previewBase.scale.setScalar(0.4)
     const previewPart = makePart()
     previewBase.add(previewPart)
     previewStudio.add(previewBase)
