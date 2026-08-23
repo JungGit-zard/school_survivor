@@ -295,6 +295,7 @@ export default {
   'hud.score': 'スコア',
   'hud.scoreAria': '現在のスコア {score}点',
   'hud.survivalTime': '生存時間: {time}',
+  'hud.finalScore': '最終スコア {score}',
   'hud.clearTime': 'クリア時間: {time}',
   'hud.goldEarned': '獲得ゴールド: {session}（累計 {total}）',
   'hud.newWeaponUnlocked': '🎉 新しい武器を解放！',

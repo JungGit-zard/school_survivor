@@ -1437,6 +1437,70 @@ function clickButtonByText(container, label) {
   })
 }
 
+describe('gameover final score', () => {
+  // 결과창 점수와 랭킹 제출 점수가 갈리면, 사용자가 결과창에서 본 숫자를 랭킹보드에서 못 찾는다.
+  // 그래서 useGameStore가 제출에 쓰는 인자(stageId / floor(elapsedMs/1000) / cleared:false)로
+  // getRankingScore를 직접 불러 나온 값과 화면 텍스트를 맞춘다.
+  const renderGameover = ({ elapsedMs, stageId }) => {
+    vi.useFakeTimers()
+    useGameStore.getState().resetGame()
+    useGameStore.setState({ phase: 'gameover', elapsedMs, currentStageId: stageId, goldSession: 5, goldTotal: 11 })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    act(() => {
+      root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+    })
+    act(() => {
+      vi.advanceTimersByTime(1000)
+    })
+    return { container, root }
+  }
+
+  it('shows the score the ranking submit would send, between the survival time and the gold line', () => {
+    const { container, root } = renderGameover({ elapsedMs: 210_000, stageId: 'stage2' })
+    try {
+      const overlay = container.querySelector('[data-testid="gameover-result-overlay"]')
+      expect(overlay).not.toBeNull()
+      const finalScore = overlay.querySelector('[data-testid="gameover-final-score"]')
+      expect(finalScore).not.toBeNull()
+
+      // 게임오버는 미클리어라 탈출/보스 보너스가 붙지 않는다 — 제출부와 같은 cleared:false.
+      const submittedScore = getRankingScore({ stageId: 'stage2', survivalSeconds: 210, cleared: false })
+      expect(submittedScore).toBe(270)
+      expect(finalScore.textContent).toContain(String(submittedScore))
+
+      const lines = [...overlay.querySelectorAll('p')].map((line) => line.textContent)
+      const survivalIndex = lines.findIndex((text) => text.includes('생존 시간'))
+      const scoreIndex = lines.findIndex((text) => text.includes('최종 점수'))
+      const goldIndex = lines.findIndex((text) => text.includes('획득 골드'))
+      expect(survivalIndex).toBeGreaterThanOrEqual(0)
+      expect(scoreIndex).toBe(survivalIndex + 1)
+      expect(goldIndex).toBe(scoreIndex + 1)
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+
+  it('folds the stage bonus in, so the same survival time scores higher on a later stage', () => {
+    const stage3 = renderGameover({ elapsedMs: 200_000, stageId: 'stage3' })
+    try {
+      // 200초 + stage3 보너스 120 = 320.
+      expect(getRankingScore({ stageId: 'stage3', survivalSeconds: 200, cleared: false })).toBe(320)
+      expect(stage3.container.querySelector('[data-testid="gameover-final-score"]').textContent).toContain('320')
+    } finally {
+      act(() => stage3.root.unmount())
+    }
+
+    const stage1 = renderGameover({ elapsedMs: 200_000, stageId: 'stage1' })
+    try {
+      expect(getRankingScore({ stageId: 'stage1', survivalSeconds: 200, cleared: false })).toBe(200)
+      expect(stage1.container.querySelector('[data-testid="gameover-final-score"]').textContent).toContain('200')
+    } finally {
+      act(() => stage1.root.unmount())
+    }
+  })
+})
+
 describe('live score readout', () => {
   // 무한 모드의 저울질("더 버틸까 / 지금 나갈까")은 지금 점수가 보여야 성립한다.
   const renderPlaying = ({ elapsedMs, stageId = 'stage1' }) => {

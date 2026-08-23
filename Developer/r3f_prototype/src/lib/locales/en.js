@@ -295,6 +295,7 @@ export default {
   'hud.score': 'SCORE',
   'hud.scoreAria': 'Current score {score}',
   'hud.survivalTime': 'Survival time: {time}',
+  'hud.finalScore': 'Final score {score}',
   'hud.clearTime': 'Clear time: {time}',
   'hud.goldEarned': 'Gold earned: {session} (total {total})',
   'hud.newWeaponUnlocked': '🎉 New weapon unlocked!',

@@ -285,6 +285,7 @@ export default {
   'hud.score': '점수',
   'hud.scoreAria': '현재 점수 {score}점',
   'hud.survivalTime': '생존 시간: {time}',
+  'hud.finalScore': '최종 점수 {score}',
   'hud.clearTime': '클리어 시간: {time}',
   'hud.goldEarned': '획득 골드: {session} (누적 {total})',
   'hud.newWeaponUnlocked': '🎉 새 무기 해금!',

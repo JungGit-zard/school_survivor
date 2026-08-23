@@ -1425,9 +1425,15 @@ export default function HUD({
       {isGameover && gameoverModalReady && (
         <div data-testid="gameover-result-overlay" style={styles.overlay}>
           <div style={styles.modal}>
-            <h2 style={{ ...styles.modalTitle, color: '#ff4060' }}>GAME OVER</h2>
+            {/* 최종 점수 한 줄이 늘어난 만큼 제목 아래 여백을 줄여, 세로로 이미 긴 모달이
+                작은 뷰포트에서 더 밀려나지 않게 한다(사망 대사 여백도 같이 맞춰 간격 유지). */}
+            <h2 style={{ ...styles.modalTitle, color: '#ff4060', marginBottom: 14 }}>GAME OVER</h2>
             {isMatildaGameover && <p data-testid="gameover-death-line" style={styles.gameoverDeathLine}>{getDialogueText('matilda.gameover')}</p>}
-            <p style={{ color: '#ccc', marginBottom: 8 }}>{t('hud.survivalTime', { time: runClock })}</p>
+            <p style={{ color: '#ccc', marginBottom: 2 }}>{t('hud.survivalTime', { time: runClock })}</p>
+            {/* 결과창 점수는 랭킹에 실제로 올라가는 점수와 같아야 한다. 게임오버는 미클리어라
+                랭킹 제출과 인자가 동일(stageId / floor(elapsedMs/1000) / cleared:false)한
+                liveScore가 곧 최종 점수다 — 여기서 점수식을 다시 만들지 않는다. */}
+            <p data-testid="gameover-final-score" style={styles.gameoverFinalScore}>{t('hud.finalScore', { score: gameNumber(liveScore) })}</p>
             <p style={{ color: '#ffd040', marginBottom: (newlyUnlockedWeaponIds?.length > 0) ? 12 : 20 }}>{t('hud.goldEarned', { session: goldSession, total: goldTotal })}</p>
             <MissionResultSummary summary={missionSummary} onOpenMissionCenter={onOpenMissionCenter} />
             {newlyUnlockedWeaponIds?.length > 0 && (
@@ -2173,11 +2179,25 @@ const styles = {
   },
   gameoverDeathLine: {
     color: '#ffe9f3',
-    margin: '-12px 0 12px',
+    // 제목 아래 여백을 24 -> 14로 줄였으므로 당김값도 -12 -> -2로 맞춰 실제 간격 12px를 유지한다.
+    margin: '-2px 0 12px',
     fontSize: 14,
     fontWeight: uiType.weightHeavy,
     lineHeight: 1.35,
     wordBreak: 'keep-all',
+  },
+  // "크고 굵게" — 생존 시간/획득 골드(본문 크기)보다 확실히 크되 GAME OVER 제목(26)보다는
+  // 작게 둬서 제목과 경쟁하지 않게 한다. 자릿수가 폭발해도 잘라내지 않고 줄바꿈으로 흘린다.
+  gameoverFinalScore: {
+    color: uiPalette.paperLight,
+    fontFamily: uiType.numeric,
+    margin: '0 0 8px',
+    fontSize: 22,
+    fontWeight: uiType.weightHeavy,
+    lineHeight: 1.15,
+    letterSpacing: 0.5,
+    wordBreak: 'keep-all',
+    textShadow: `0 2px 0 ${uiPalette.ink}`,
   },
   pausePanel: {
     ...schoolPanel('dark'),
