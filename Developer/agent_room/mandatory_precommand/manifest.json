@@ -151,6 +151,10 @@
         {
           "path": "Developer/agent_room/codex_session_failure_postmortem_2026-08-08.md",
           "why": "asset-first/UI-unverified failure modes"
+        },
+        {
+          "path": "Developer/lowpoly_player_b01_b04_faceted_geometry_implementation_2026-08-23.md",
+          "why": "canonical faceted Player/B01-B04 rollback lessons; new user-provided original-art gate"
         }
       ]
     },
@@ -424,6 +428,10 @@
       {
         "path": "Developer/agent_room/mandatory_precommand/threemini_mandatory_context/START_HERE.md",
         "why": "centralized Three_Mini mandatory startup context; START_HERE requires reading all copied common+graphics policy bodies and current SOUL content under this repository"
+      },
+      {
+        "path": "Developer/lowpoly_player_b01_b04_faceted_geometry_implementation_2026-08-23.md",
+        "why": "canonical faceted Player/B01-B04 rollback lessons; do not reapply without new user-provided original art"
       }
     ]
   }

@@ -10,6 +10,8 @@ Repository path: `D:/JungSil/2.Minigame_project/school_survivor-integration/Deve
 
 Before any Escape! zombie school work, Three_Mini must read this `START_HERE.md` and then read every file listed in `SOURCE_MANIFEST.json` under `contents/` completely before any other task command.
 
+Three_Mini must also read every additional `READ_REQUIRED` path emitted with this file by the mandatory pre-command checker; this central content list is not exhaustive.
+
 Stop immediately if this repository, `START_HERE.md`, `SOURCE_MANIFEST.json`, or any listed content file is missing, unavailable, or unreadable.
 
 This repository is self-contained for the current Three_Mini mandatory startup context. The policy bodies below are copied into `contents/`; they are not external-link placeholders.
