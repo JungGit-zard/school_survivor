@@ -6,6 +6,7 @@ import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { playerPos, screenBounds } from '../lib/refs.js'
 import Player from './Player.jsx'
 import Floor from './Floor.jsx'
+import StageLighting from './StageLighting.jsx'
 import Enemies from './Enemies.jsx'
 import LunchItems from './LunchItems.jsx'
 import VFXLayer from './VFXLayer.jsx'
@@ -178,9 +179,10 @@ export default function Game() {
         position={[-10, 22, 12]}
         intensity={3.2}
       />
-      <directionalLight position={[10, 12, -10]} intensity={0.85} color={0xffe2b0} />
+       <directionalLight position={[10, 12, -10]} intensity={0.85} color={0xffe2b0} />
+       <StageLighting stageId={currentStageId} />
 
-      {/* ── World ── */}
+       {/* ── World ── */}
       <Floor stageId={currentStageId} />
       <LunchItems />
 
