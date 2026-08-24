@@ -17,7 +17,7 @@
 
 - 성능 상한은 **공용 3 + Stage local 최대 2 = 동시에 최대 5광원**이다.
 - local light는 모두 `castShadow={false}`다. 기존 씬의 그림자 map을 늘리지 않으며, 보스 추적등·캐릭터 부착등·발사체별 real light는 추가하지 않는다.
-- Spot은 target 오브젝트를 만들지 않고 고정 좌표를 향한다. Point는 고정 landmark에만 둔다. 즉 카메라·보스·발사체를 따라 움직이지 않는다.
+- Spot은 승인 좌표를 향하기 위해 active Spot마다 정적·비가시 `Object3D` target 1개를 허용한다. 이는 helper mesh나 draw call이 아니며, `useFrame`·추적·프레임별 allocation 없이 Stage 전환 시 mount/unmount된다. Point는 고정 landmark에만 둔다. 즉 카메라·보스·발사체를 따라 움직이지 않는다.
 - fog, 전체 bloom, 실시간 반사(SSR), environment-map 갱신은 기본값 `off`다. 위험 표시는 이미 있는 meshBasicMaterial 바닥 텔레그래프와 HUD/VFX가 담당한다.
 - 밝기 우선순위는 언제나 **즉사/피해 경고 > 플레이어·무기 > 보스 > 지형 장식 > 먼 배경**이다. 연출 조명은 이 순서를 뒤집지 않는다.
 

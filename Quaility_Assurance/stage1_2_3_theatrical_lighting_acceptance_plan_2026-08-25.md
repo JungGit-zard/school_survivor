@@ -1,8 +1,8 @@
 # Stage 1~3 무대 조명·분위기 모바일 수용 QA 계획
 
-작성일: 2026-08-25  
-담당: `balanceqa` 독립 시각/성능 QA  
-Kanban: `escape-zombie-school` / `t_c12fc47d`  
+작성일: 2026-08-25
+담당: `balanceqa` 독립 시각/성능 QA
+Kanban: `escape-zombie-school` / `t_c12fc47d`
 범위: Stage 1~3의 실제 게임 화면 조명, 바닥·소품·적·보스·HUD·무기/발사체·필살기 VFX의 모바일 가독성 수용 기준. 이 문서는 구현 변경이나 화면 PASS 증거가 아니다.
 
 ## 1. 현재 구현 기준선과 QA 범위
@@ -91,7 +91,7 @@ Kanban: `escape-zombie-school` / `t_c12fc47d`
 | --- | --- | --- |
 | Stage 1 → 2 → 3 밝기 흐름 | Stage 1의 중명도 교실, Stage 2의 어두운 복도, Stage 3의 밝은 목재 코트라는 차이는 유지하되, 어느 스테이지도 공통 `Y모서리 ≥0.12`/실루엣 3:1 아래로 떨어지지 않는다 | Stage 2 분위기를 만들기 위해 실루엣이 붕괴하거나 Stage 3 바닥을 밝게 해 공격 신호가 사라짐 |
 | 공용 광원 회귀 | Stage별 조명 추가 뒤에도 공용 3광원의 수치와 광원 수는 명시적으로 비교한다. 변경이 필요하면 변경 사유·Stage별 스크린샷·성능 결과를 같은 카드에 기록한다 | 한 스테이지 보정이 다른 스테이지의 바닥/보스/HUD 대비를 무검증으로 변경 |
-| Stage 4 불변 | Stage 4의 냉청색 조리대 spot, 가마솥 point 및 12~15초/폭발 연출은 `stage4_theatrical_lighting_acceptance_plan_2026-08-23.md`의 별도 범위를 유지한다 | Stage 1~3 조명 작업으로 Stage 4 광원·가마솥·발사체·QA 수치를 변경 |
+| Stage 4 불변 | Stage 4 조명은 `stage4_theatrical_lighting_acceptance_plan_2026-08-23.md`의 별도 계획이다. 이번 `StageLighting` profile은 `stage4`에서 frozen 빈 배열을 반환하므로, Stage 4는 현재 공용 3광원 결과와 기존 가마솥 12~15초/폭발 hazard를 그대로 유지한다 | Stage 1~3 조명 작업으로 Stage 4 광원·가마솥·발사체·QA 수치를 변경 |
 | Title 불변 | `TitleScene3D`의 fog, 3 directional light, point light, 타이틀 모델/카메라/오디오는 변경하지 않고, 타이틀 시각값을 Stage 조명 기본값으로 재사용하지 않는다 | Stage 조명 작업이 title runtime source 또는 타이틀 프레젠테이션을 수정 |
 
 ## 6. 위험 우선순위와 판정

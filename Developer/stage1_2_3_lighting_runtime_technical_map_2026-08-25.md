@@ -2,10 +2,10 @@
 
 ## 범위
 
-- 목적: Stage 1 교실, Stage 2 복도, Stage 3 체육관의 분위기 조명을 **나중에 구현할 수 있는 가장 작은 R3F 경계**를 기록한다.
-- 이 문서는 구현 사양이 아니다. 미확정 조명 색·세기·좌표는 그래픽 기획 승인 뒤에만 profile에 넣는다.
-- 제품 source, Firebase, Graphics Studio, 브라우저, 테스트는 변경하지 않았다. Stage 4 계획과 타이틀은 변경 대상이 아니다.
-- Kanban: `escape-zombie-school` / `t_b6549eb8` (`levelmini`, running) — Developer 기술 조사 카드.
+- 목적: Stage 1 교실, Stage 2 복도, Stage 3 체육관의 분위기 조명을 위한 가장 작은 R3F 경계와 그 구현 결과를 기록한다.
+- 2026-08-25 구현은 그래픽 master plan의 승인값을 `stageLightingProfile`과 정적 `StageLighting`으로 적용했다. Stage 4 계획과 타이틀은 변경 대상이 아니다.
+- 제품 코드 변경 범위는 `src/lib/stageLightingProfile.js`, `src/components/StageLighting.jsx`, `src/components/Game.jsx`의 단일 mount와 focused tests뿐이다. Firebase, Graphics Studio, floor, Enemy/VFX/gameplay는 변경하지 않았다.
+- Kanban: 기술 조사 `escape-zombie-school` / `t_b6549eb8` (`levelmini`), 구현 `t_1768f94e` (`threemini`).
 
 ## 1. 공용 정본: 먼저 보존할 것
 
@@ -59,13 +59,13 @@
 
 기술적으로 허용되는 분위기 방향은 **경기 종료 뒤 소등 직전의 체육관**이다. 중성 상단 fill 하나와 차가운 측면 rim 하나 이하로 wood floor와 선수 실루엣을 분리하며, yellow/orange/red를 새 light 색으로 쓰지 않는다.
 
-## 3. 최소 구현 seam (아직 구현하지 않음)
+## 3. 구현된 최소 seam
 
-가장 작은 구현은 `src/lib/stageLightingProfile.js`와 `src/components/Game.jsx` 한 곳이다.
+구현은 `src/lib/stageLightingProfile.js`, `src/components/StageLighting.jsx`, `src/components/Game.jsx`의 세 경계로 끝냈다.
 
-1. `stageLightingProfile.js`는 `stage1`, `stage2`, `stage3`에 대한 **불변 plain-data profile**만 export한다. 항목은 `kind`, `position`, `color`, `intensity`와 Spot을 채택한 경우의 `distance`, `angle`, `penumbra`까지만 가진다. `getStageLightingProfile(stageId)`는 모르는 ID와 `stage4`에서 빈 frozen 배열을 반환한다.
-2. `Game.jsx:181-184` 사이에 한 번만 `<StageLighting stageId={currentStageId} />`를 mount한다. 컴포넌트는 profile을 순회해 light JSX만 render한다. `useFrame`, `setState`, mutable per-frame intensity, random, material/geometry 생성은 넣지 않는다.
-3. profile은 Stage별 **실제 real light 최대 2개**, 모두 `castShadow={false}`다. `target` object, light helper mesh, visible cone, fog, bloom, environment map, post-processing, extra floor mesh는 만들지 않는다.
+1. `stageLightingProfile.js`는 `stage1`, `stage2`, `stage3`의 승인된 **불변 plain-data profile**만 export한다. 각 stage는 Spot 1개와 Point 1개이며, unknown과 `stage4`는 같은 frozen 빈 배열을 반환한다.
+2. `StageLighting.jsx`는 profile을 순회해 static JSX만 render하고, `Game.jsx`에서 공용 3광원 뒤·`Floor` 앞에 `<StageLighting stageId={currentStageId} />`를 한 번 mount한다. `useFrame`, `setState`, mutable per-frame intensity, random, material/geometry 생성은 없다.
+3. profile은 Stage별 **실제 real light 최대 2개**, 모두 `castShadow={false}`다. Spot이 승인된 target 좌표를 실제로 향하도록 active Spot당 static `Object3D` target 하나만 연결한다. 이는 visible helper/draw가 아니며 per-frame allocation도 아니다. fog, bloom, environment map, post-processing, extra floor mesh는 만들지 않는다.
 
 이 seam은 Stage 4의 기존 계획과 충돌하지 않는다. Stage 4는 빈 배열이라 현재 공용 3등 결과가 완전히 보존되고, Stage 4 전용 cue는 계속 별도 `Game.jsx` 조건 subtree로만 향후 검토할 수 있다.
 
@@ -77,33 +77,25 @@
 - `StageObjectLayer.jsx`, prop component, StudioTunedGroup, Firebase adapter: placement/material transform 혹은 저장 연결 금지.
 - title scene 및 preview Canvas: 사용자 명시가 없으므로 수정 금지.
 
-## 4. 제안 테스트 seam
+## 4. 구현 테스트와 결과
 
-후속 구현 카드에서 다음만 추가한다. 현 문서는 테스트를 추가하지 않았다.
+TDD는 profile/component/Game mount 부재를 확인하는 RED 뒤에 시행했다.
 
 | 테스트 | 검증 내용 |
 | --- | --- |
-| `src/lib/stageLightingProfile.test.js` | Stage 1~3이 승인된 profile만 반환하고, stage4/unknown은 빈 배열임; 각 profile은 2개 이하; `castShadow`가 false; permissive dynamic key나 function을 포함하지 않음. |
-| `src/components/Game.stageLighting.test.jsx` | `Game.jsx`가 공용 3광원 값(`0.38`, `3.2`, `0.85`)을 그대로 보존하고, Stage-light subtree가 공용 light 뒤와 `Floor` 앞에 한 번만 존재함; Stage 4 조건 분기나 cauldron logic을 포함하지 않음. |
+| `src/lib/stageLightingProfile.test.js` | Stage 1~3 승인 profile의 정확한 값, 2개 상한, `castShadow=false`, immutable nested array 및 stage4/unknown의 동일 frozen 빈 배열을 검증한다. |
+| `src/components/StageLighting.test.js` | static Spot target `Object3D` 연결과 `useFrame`/`setState`/visible helper/per-frame allocation 부재를 source contract로 검증한다. |
+| `src/components/Game.stageLighting.test.js` | `Game.jsx`가 공용 3광원 값(`0.38`, `3.2`, `0.85`)을 그대로 보존하고, Stage-light subtree가 공용 light 뒤와 `Floor` 앞에 한 번만 존재함을 검증한다. |
 | 기존 focused regression | `ClassroomFloor.test.jsx`, `EnemyVisual.test.js`, `EnemyMathTeacherSpecial.test.js`, `Game.stage4PressureCauldron.test.js`, `stageConfig.test.js`를 함께 실행해 floor 계약·B01/B02/B03/B04 표식·Stage 4 hazard가 바뀌지 않았음을 확인한다. |
 
-추가 조명은 정적 JSX이므로 per-frame allocation 검사는 source guard로 충분하다. `StageLighting` 내부에 `useFrame`, `new THREE.`, `new Vector3`, `setState`가 들어가면 실패로 처리한다. 구현 완료 뒤에만 동일한 Stage 재현 화면에서 renderer info의 calls/triangles/textures/programs와 frame time을 전후 비교한다. 이 조사에서는 런타임 계측을 하지 않았으므로 현재 절대 수치를 주장하지 않는다.
+RED는 새 profile/component/Game mount 부재로 3 suite가 실패했다. GREEN focused suite는 3 files / 8 tests PASS, 기존 회귀를 포함한 focused run은 7 files / 63 tests PASS, production build도 PASS했다. 추가 조명은 정적 JSX이므로 per-frame allocation 검사는 source guard로 충분하다. renderer info와 frame time의 전후 계측은 수행하지 않았으므로 현재 절대 수치를 주장하지 않는다.
 
-## 5. 후속 브라우저 검증 경로
+## 5. 브라우저 시각 검증 상태
 
-브라우저 검증은 코드 구현이 끝난 뒤, 기존 허용된 개발 실행 경로에서 Stage 선택 UI로 `stage1 → stage2 → stage3`을 각각 시작해 수행한다. 새 URL query, localStorage seed, Firebase 쓰기, Admin 튜닝, Studio Apply는 만들거나 사용하지 않는다.
-
-각 Stage에서는 최소 360~430 CSS px 세로 화면과 일반 데스크톱 화면에서 다음을 확인한다.
-
-1. **Stage 1**: B01 800ms `GO!` warn과 320ms 스윙 windup 때 교실 바닥·보스 외곽선·플레이어 이동 공간이 동시에 읽힌다.
-2. **Stage 2**: E04 진입 방향과 B02 cyan blockade telegraph/active line이 어두운 floor/프롭과 분리되며, 새 조명이 cyan line 의미를 바꾸지 않는다.
-3. **Stage 3**: white court line/red key paint와 B03 yellow shuttle telegraph/outbound/return lane이 혼동되지 않고, 농구공·콘·B03·플레이어 실루엣이 분리된다.
-4. **공통**: light 수가 활성 stage별 2개 이하, shadow map이 추가되지 않으며, 적/프롭/발사체를 따라다니는 light가 없다.
-
-브라우저를 열기 전 프로젝트 browser reservation 규칙을 따르고, 검증 결과·캡처·renderer/frame-time 원본은 QA 카드에서만 PASS/FAIL로 판정한다.
+사용자 지시로 브라우저 시각 검증은 중단했고 재실행하지 않는다. 임시 R3F harness와 그 캡처는 삭제했으며, Stage 1~3의 실제 화면·모바일·renderer/frame-time PASS는 **주장하지 않는다**. 후속 QA는 별도 사용자 지시와 QA 카드가 있을 때만 진행한다.
 
 ## 6. 이번 조사 검증
 
 - 필수 precommand: `check-required-documents.ps1 -Profile levelmini -Domain auto -TaskSummary 'stage1 stage2 stage3 lighting runtime technical map'` 성공. receipt SHA-256: `f334bea3a521c7e009d09678b448c8ca03aff780243ec67f7806fdd4267695ca`.
 - Stage 4 technical map/master plan/QA plan, `Game.jsx`, `GameCanvas.jsx`, `ClassroomFloor.jsx`, `stageConfig.js`, Stage prop layers, boss/VFX source, existing regression tests를 정적으로 조사했다.
-- 제품 코드·Firebase·Graphics Studio·브라우저 실행 없음. 작성 후 이 문서만 포함한 diff check를 실행한다.
+- 구현 후 RED/GREEN, focused 8 tests, regression 63 tests, production build를 확인했다. 브라우저 시각 검증은 사용자 지시로 중단·삭제되어 결과를 주장하지 않는다.
