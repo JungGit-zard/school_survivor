@@ -143,4 +143,49 @@ describe('Hanako heal runtime', () => {
     runFrames(60, { startSeconds: elapsed })
     expect(useGameStore.getState().player.hp).toBe(maxHp - 50)
   })
+
+  // 사용자 사양(2026-08-25): "하나코는 무조건 정해진 시간마다 힐을 넣는다."
+  // 한 번 터지고 마는 게 아니라, 런이 이어지는 동안 주기마다 계속 들어와야 한다.
+  it('중단 없이 플레이하면 주기마다 빠짐없이 힐이 들어온다', () => {
+    const maxHp = useGameStore.getState().player.maxHp
+    useGameStore.setState((s) => ({ player: { ...s.player, hp: 1 } }))
+    mountHanako()
+
+    const framesPerInterval = Math.round((HANAKO_HEAL_INTERVAL_MS / 1000) * 60)
+    // 주기의 기준점은 0초가 아니라 하나코가 처음 프레임을 받은 시각이다(startedAtRef 초기화).
+    // 그래서 워밍업 1프레임을 먼저 돌려 기준점을 잡고, 이후 주기를 센다.
+    let elapsed = runFrames(1)
+    // 5주기를 연속으로 돌린다. 주기가 끝날 때마다 회복 횟수가 정확히 하나씩 늘어야 한다.
+    // 주기당 1프레임씩 여유를 두는 것은 부동소수 누적 오차 때문이며, 2회분(20초)에는 한참 못 미친다.
+    for (let interval = 1; interval <= 5; interval += 1) {
+      elapsed = runFrames(framesPerInterval + 1, { startSeconds: elapsed })
+      const heals = vi.mocked(emitSfx).mock.calls.filter(([e]) => e?.id === 'playerHeal')
+      expect(heals).toHaveLength(interval)
+      expect(useGameStore.getState().player.hp).toBeCloseTo(1 + maxHp * HANAKO_HEAL_RATIO * interval, 5)
+    }
+  })
+
+  // 힐이 "무조건" 들어오려면 주기 사이에 무슨 일이 있었든 상관없어야 한다.
+  // 피해를 계속 맞는 중이어도 주기가 되면 회복이 들어온다.
+  it('맞는 중에도 주기가 되면 힐이 들어온다', () => {
+    const maxHp = useGameStore.getState().player.maxHp
+    // maxHp 위로 올려두면 healPlayer의 클램프에 걸려 회복이 통째로 사라진다 — 반드시 그 아래에서 시작한다.
+    useGameStore.setState((s) => ({ player: { ...s.player, hp: Math.max(1, s.player.maxHp - 40) } }))
+    mountHanako()
+
+    const intervalSec = HANAKO_HEAL_INTERVAL_MS / 1000
+    // 주기의 절반이 조금 넘는 동안 매 초 1씩 깎는다. 힐 타이머는 피해와 무관해야 한다.
+    const damageSeconds = Math.floor(intervalSec) - 5
+    let elapsed = runFrames(1)
+    for (let second = 0; second < damageSeconds; second += 1) {
+      elapsed = runFrames(60, { startSeconds: elapsed })
+      useGameStore.setState((s) => ({ player: { ...s.player, hp: s.player.hp - 1 } }))
+    }
+    const beforeHp = useGameStore.getState().player.hp
+    expect(vi.mocked(emitSfx).mock.calls.filter(([e]) => e?.id === 'playerHeal')).toHaveLength(0)
+
+    // 남은 5초를 채우면(+여유 2프레임) 맞는 중이었든 아니든 회복이 들어온다.
+    runFrames(5 * 60 + 2, { startSeconds: elapsed })
+    expect(useGameStore.getState().player.hp).toBeCloseTo(beforeHp + maxHp * HANAKO_HEAL_RATIO, 5)
+  })
 })
