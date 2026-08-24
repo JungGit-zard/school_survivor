@@ -77,7 +77,19 @@
 - `StageObjectLayer.jsx`, prop component, StudioTunedGroup, Firebase adapter: placement/material transform 혹은 저장 연결 금지.
 - title scene 및 preview Canvas: 사용자 명시가 없으므로 수정 금지.
 
-## 4. 구현 테스트와 결과
+## 4. 가시성 보정 승인값
+
+2026-08-25 그래픽 전문가 확정 1안에 따라, 위치·색·target·광원 수를 유지하고 가시성을 보장하는 exact intensity/distance/Spot angle/penumbra로 교체했다. Stage별 Spot 1 + Point 1, `castShadow=false`, 정적 target, Stage 4/unknown frozen 빈 배열은 불변이다.
+
+| Stage | 차가운/중성 Spot | 따뜻한/보조 Point |
+| --- | --- | --- |
+| 1 교실 | `#D7EAFF`, intensity `32`, distance `15`, angle `0.55`, penumbra `0.42` | `#FFE0AD`, intensity `12`, distance `9`, decay `2` |
+| 2 복도 | `#C7F3F5`, intensity `28`, distance `14`, angle `0.50`, penumbra `0.48` | `#D8E5EA`, intensity `8`, distance `7.5`, decay `2` |
+| 3 체육관 | `#E6F1FF`, intensity `35`, distance `16`, angle `0.68`, penumbra `0.55` | `#FFE1B8`, intensity `10`, distance `8.5`, decay `2` |
+
+이는 Stage 1의 창가 차가운 키와 따뜻한 교실 보조, Stage 2의 청록 복도 키와 회색 보조, Stage 3의 밝은 체육관 키와 따뜻한 측면 보조를 공용 3광원 위에서도 분명하게 남기기 위한 최소 조정이다. fog, bloom, shadow, per-enemy/per-prop light, per-frame 변경은 추가하지 않았다.
+
+## 5. 구현 테스트와 결과
 
 TDD는 profile/component/Game mount 부재를 확인하는 RED 뒤에 시행했다.
 
@@ -90,12 +102,12 @@ TDD는 profile/component/Game mount 부재를 확인하는 RED 뒤에 시행했�
 
 RED는 새 profile/component/Game mount 부재로 3 suite가 실패했다. GREEN focused suite는 3 files / 8 tests PASS, 기존 회귀를 포함한 focused run은 7 files / 63 tests PASS, production build도 PASS했다. 추가 조명은 정적 JSX이므로 per-frame allocation 검사는 source guard로 충분하다. renderer info와 frame time의 전후 계측은 수행하지 않았으므로 현재 절대 수치를 주장하지 않는다.
 
-## 5. 브라우저 시각 검증 상태
+## 6. 브라우저 시각 검증 상태
 
 사용자 지시로 브라우저 시각 검증은 중단했고 재실행하지 않는다. 임시 R3F harness와 그 캡처는 삭제했으며, Stage 1~3의 실제 화면·모바일·renderer/frame-time PASS는 **주장하지 않는다**. 후속 QA는 별도 사용자 지시와 QA 카드가 있을 때만 진행한다.
 
-## 6. 이번 조사 검증
+## 7. 이번 조사 검증
 
 - 필수 precommand: `check-required-documents.ps1 -Profile levelmini -Domain auto -TaskSummary 'stage1 stage2 stage3 lighting runtime technical map'` 성공. receipt SHA-256: `f334bea3a521c7e009d09678b448c8ca03aff780243ec67f7806fdd4267695ca`.
 - Stage 4 technical map/master plan/QA plan, `Game.jsx`, `GameCanvas.jsx`, `ClassroomFloor.jsx`, `stageConfig.js`, Stage prop layers, boss/VFX source, existing regression tests를 정적으로 조사했다.
-- 구현 후 RED/GREEN, focused 8 tests, regression 63 tests, production build를 확인했다. 브라우저 시각 검증은 사용자 지시로 중단·삭제되어 결과를 주장하지 않는다.
+- 초기 구현 후 RED/GREEN, focused 8 tests, regression 63 tests, production build를 확인했다. 이번 가시성 보정은 새 exact-profile 계약으로 RED를 확인했으며 GREEN focused/build 결과는 아래 실행 결과로 갱신한다. 브라우저 시각 검증은 사용자 지시로 중단·삭제되어 결과를 주장하지 않는다.

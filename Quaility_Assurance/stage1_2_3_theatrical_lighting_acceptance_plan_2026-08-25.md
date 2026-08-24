@@ -3,6 +3,18 @@
 작성일: 2026-08-25
 담당: `balanceqa` 독립 시각/성능 QA
 Kanban: `escape-zombie-school` / `t_c12fc47d`
+
+## 1A. 가시성 보정 local profile
+
+각 플레이 가능 Stage에는 Spot 1개와 Point 1개만 두며, 모두 `castShadow=false`다. 위치·target·색은 고정한다.
+
+| Stage | Spot | Point |
+| --- | --- | --- |
+| 1 | `#D7EAFF`, intensity `32`, distance `15`, angle `0.55`, penumbra `0.42` | `#FFE0AD`, intensity `12`, distance `9`, decay `2` |
+| 2 | `#C7F3F5`, intensity `28`, distance `14`, angle `0.50`, penumbra `0.48` | `#D8E5EA`, intensity `8`, distance `7.5`, decay `2` |
+| 3 | `#E6F1FF`, intensity `35`, distance `16`, angle `0.68`, penumbra `0.55` | `#FFE1B8`, intensity `10`, distance `8.5`, decay `2` |
+
+Stage 4는 frozen 빈 profile을 받고 공용 3광원과 기존 가마솥 hazard는 불변이다.
 범위: Stage 1~3의 실제 게임 화면 조명, 바닥·소품·적·보스·HUD·무기/발사체·필살기 VFX의 모바일 가독성 수용 기준. 이 문서는 구현 변경이나 화면 PASS 증거가 아니다.
 
 ## 1. 현재 구현 기준선과 QA 범위
