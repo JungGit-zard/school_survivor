@@ -11,16 +11,19 @@ const freezeProfile = (lights) => Object.freeze(lights.map(freezeLight))
 
 export const STAGE_LIGHTING_PROFILES = Object.freeze({
   stage1: freezeProfile([
-    { kind: 'spot', position: [-6.8, 5.4, -10.8], target: [0, 0, -2.4], color: '#D7EAFF', intensity: 32, distance: 15, angle: 0.55, penumbra: 0.42 },
-    { kind: 'point', position: [1.8, 4.3, 7.6], color: '#FFE0AD', intensity: 12, distance: 9, decay: 2 },
+    { kind: 'spot', position: [-1, 7, -12.5], target: [0, 0, -9], color: '#3CCBFF', intensity: 92, distance: 15, angle: 0.85, penumbra: 0.32 },
+    { kind: 'spot', position: [-7, 6, 0], target: [0, 0, 0], color: '#B96CFF', intensity: 84, distance: 14, angle: 0.72, penumbra: 0.36 },
+    { kind: 'spot', position: [1, 7, 12.5], target: [0, 0, 9], color: '#FFD166', intensity: 92, distance: 15, angle: 0.85, penumbra: 0.32 },
   ]),
   stage2: freezeProfile([
-    { kind: 'spot', position: [0, 5.2, -17.2], target: [0, 0, -9.8], color: '#C7F3F5', intensity: 28, distance: 14, angle: 0.50, penumbra: 0.48 },
-    { kind: 'point', position: [-5.7, 3.2, 2], color: '#D8E5EA', intensity: 8, distance: 7.5, decay: 2 },
+    { kind: 'spot', position: [0, 7, -18], target: [0, 0, -12], color: '#D85CFF', intensity: 95, distance: 16, angle: 0.72, penumbra: 0.34 },
+    { kind: 'spot', position: [-6, 6, 0], target: [0, 0, 0], color: '#FFB45B', intensity: 82, distance: 15, angle: 0.78, penumbra: 0.38 },
+    { kind: 'spot', position: [2, 7, 17], target: [0, 0, 12], color: '#5E86FF', intensity: 90, distance: 16, angle: 0.70, penumbra: 0.34 },
   ]),
   stage3: freezeProfile([
-    { kind: 'spot', position: [-0.8, 7, -1.2], target: [0, 0, 0], color: '#E6F1FF', intensity: 35, distance: 16, angle: 0.68, penumbra: 0.55 },
-    { kind: 'point', position: [5.8, 3.7, 10.8], color: '#FFE1B8', intensity: 10, distance: 8.5, decay: 2 },
+    { kind: 'spot', position: [-1, 8, -17], target: [0, 0, -11], color: '#54C7FF', intensity: 105, distance: 17, angle: 0.72, penumbra: 0.34 },
+    { kind: 'spot', position: [-7, 7, 0], target: [0, 0, 0], color: '#A77BFF', intensity: 92, distance: 16, angle: 0.70, penumbra: 0.38 },
+    { kind: 'spot', position: [1, 8, 17], target: [0, 0, 11], color: '#F08CFF', intensity: 105, distance: 17, angle: 0.72, penumbra: 0.34 },
   ]),
 })
 

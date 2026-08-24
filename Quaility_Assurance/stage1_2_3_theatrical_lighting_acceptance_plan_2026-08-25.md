@@ -6,13 +6,13 @@ Kanban: `escape-zombie-school` / `t_c12fc47d`
 
 ## 1A. 가시성 보정 local profile
 
-각 플레이 가능 Stage에는 Spot 1개와 Point 1개만 두며, 모두 `castShadow=false`다. 위치·target·색은 고정한다.
+각 플레이 가능 Stage에는 정적 Spot 3개만 두며, 모두 `castShadow=false`다. 위치·target·색은 고정한다.
 
-| Stage | Spot | Point |
-| --- | --- | --- |
-| 1 | `#D7EAFF`, intensity `32`, distance `15`, angle `0.55`, penumbra `0.42` | `#FFE0AD`, intensity `12`, distance `9`, decay `2` |
-| 2 | `#C7F3F5`, intensity `28`, distance `14`, angle `0.50`, penumbra `0.48` | `#D8E5EA`, intensity `8`, distance `7.5`, decay `2` |
-| 3 | `#E6F1FF`, intensity `35`, distance `16`, angle `0.68`, penumbra `0.55` | `#FFE1B8`, intensity `10`, distance `8.5`, decay `2` |
+| Stage | 북측 Spot | 서측 Spot | 남측 Spot |
+| --- | --- | --- | --- |
+| 1 | `[-1,7,-12.5]`→`[0,0,-9]`, `#3CCBFF`, `92/15/.85/.32` | `[-7,6,0]`→`[0,0,0]`, `#B96CFF`, `84/14/.72/.36` | `[1,7,12.5]`→`[0,0,9]`, `#FFD166`, `92/15/.85/.32` |
+| 2 | `[0,7,-18]`→`[0,0,-12]`, `#D85CFF`, `95/16/.72/.34` | `[-6,6,0]`→`[0,0,0]`, `#FFB45B`, `82/15/.78/.38` | `[2,7,17]`→`[0,0,12]`, `#5E86FF`, `90/16/.70/.34` |
+| 3 | `[-1,8,-17]`→`[0,0,-11]`, `#54C7FF`, `105/17/.72/.34` | `[-7,7,0]`→`[0,0,0]`, `#A77BFF`, `92/16/.70/.38` | `[1,8,17]`→`[0,0,11]`, `#F08CFF`, `105/17/.72/.34` |
 
 Stage 4는 frozen 빈 profile을 받고 공용 3광원과 기존 가마솥 hazard는 불변이다.
 범위: Stage 1~3의 실제 게임 화면 조명, 바닥·소품·적·보스·HUD·무기/발사체·필살기 VFX의 모바일 가독성 수용 기준. 이 문서는 구현 변경이나 화면 PASS 증거가 아니다.

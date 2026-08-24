@@ -8,11 +8,13 @@ describe('StageLighting static R3F contract', () => {
     expect(source).toContain("import { useLayoutEffect, useRef } from 'react'")
     expect(source).toContain("import { getStageLightingProfile } from '../lib/stageLightingProfile.js'")
     expect(source).toContain('<spotLight')
-    expect(source).toContain('<pointLight')
     expect(source).toContain('<object3D ref={targetRef} position={light.target} />')
     expect(source).toContain('lightRef.current.target = targetRef.current')
     expect(source).toContain('targetRef.current.updateMatrixWorld()')
     expect(source).toContain('castShadow={false}')
+    expect(source).toContain('lights.map((light, index) =>')
+    expect(source).toContain('key={`${stageId}:spot:${index}`}')
+    expect(source).not.toContain('<pointLight')
   })
 
   it('has no frame-driven, visible-helper, or allocation-based lighting path', () => {

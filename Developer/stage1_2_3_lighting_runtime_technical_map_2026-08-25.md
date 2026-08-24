@@ -63,9 +63,9 @@
 
 구현은 `src/lib/stageLightingProfile.js`, `src/components/StageLighting.jsx`, `src/components/Game.jsx`의 세 경계로 끝냈다.
 
-1. `stageLightingProfile.js`는 `stage1`, `stage2`, `stage3`의 승인된 **불변 plain-data profile**만 export한다. 각 stage는 Spot 1개와 Point 1개이며, unknown과 `stage4`는 같은 frozen 빈 배열을 반환한다.
+1. `stageLightingProfile.js`는 `stage1`, `stage2`, `stage3`의 승인된 **불변 plain-data profile**만 export한다. 각 stage는 정적 Spot 3개이며, unknown과 `stage4`는 같은 frozen 빈 배열을 반환한다.
 2. `StageLighting.jsx`는 profile을 순회해 static JSX만 render하고, `Game.jsx`에서 공용 3광원 뒤·`Floor` 앞에 `<StageLighting stageId={currentStageId} />`를 한 번 mount한다. `useFrame`, `setState`, mutable per-frame intensity, random, material/geometry 생성은 없다.
-3. profile은 Stage별 **실제 real light 최대 2개**, 모두 `castShadow={false}`다. Spot이 승인된 target 좌표를 실제로 향하도록 active Spot당 static `Object3D` target 하나만 연결한다. 이는 visible helper/draw가 아니며 per-frame allocation도 아니다. fog, bloom, environment map, post-processing, extra floor mesh는 만들지 않는다.
+3. profile은 Stage별 **실제 정적 Spot 3개**, 모두 `castShadow={false}`다. Spot이 승인된 target 좌표를 실제로 향하도록 active Spot당 static `Object3D` target 하나만 연결한다. 이는 visible helper/draw가 아니며 per-frame allocation도 아니다. fog, bloom, environment map, post-processing, extra floor mesh는 만들지 않는다.
 
 이 seam은 Stage 4의 기존 계획과 충돌하지 않는다. Stage 4는 빈 배열이라 현재 공용 3등 결과가 완전히 보존되고, Stage 4 전용 cue는 계속 별도 `Game.jsx` 조건 subtree로만 향후 검토할 수 있다.
 
@@ -79,13 +79,13 @@
 
 ## 4. 가시성 보정 승인값
 
-2026-08-25 그래픽 전문가 확정 1안에 따라, 위치·색·target·광원 수를 유지하고 가시성을 보장하는 exact intensity/distance/Spot angle/penumbra로 교체했다. Stage별 Spot 1 + Point 1, `castShadow=false`, 정적 target, Stage 4/unknown frozen 빈 배열은 불변이다.
+2026-08-25 그래픽 전문가 확정 색-zone안에 따라 각 Stage의 기존 local 2등을 정적 Spot 3개로 교체했다. 각 Spot은 exact position/target/color/intensity/distance/angle/penumbra를 가지며 `castShadow=false`다. Stage 4/unknown frozen 빈 배열과 공용 3광원은 불변이다.
 
-| Stage | 차가운/중성 Spot | 따뜻한/보조 Point |
-| --- | --- | --- |
-| 1 교실 | `#D7EAFF`, intensity `32`, distance `15`, angle `0.55`, penumbra `0.42` | `#FFE0AD`, intensity `12`, distance `9`, decay `2` |
-| 2 복도 | `#C7F3F5`, intensity `28`, distance `14`, angle `0.50`, penumbra `0.48` | `#D8E5EA`, intensity `8`, distance `7.5`, decay `2` |
-| 3 체육관 | `#E6F1FF`, intensity `35`, distance `16`, angle `0.68`, penumbra `0.55` | `#FFE1B8`, intensity `10`, distance `8.5`, decay `2` |
+| Stage | 북측 Spot | 서측 Spot | 남측 Spot |
+| --- | --- | --- | --- |
+| 1 교실 | `[-1,7,-12.5]`→`[0,0,-9]`, `#3CCBFF`, `92/15/.85/.32` | `[-7,6,0]`→`[0,0,0]`, `#B96CFF`, `84/14/.72/.36` | `[1,7,12.5]`→`[0,0,9]`, `#FFD166`, `92/15/.85/.32` |
+| 2 복도 | `[0,7,-18]`→`[0,0,-12]`, `#D85CFF`, `95/16/.72/.34` | `[-6,6,0]`→`[0,0,0]`, `#FFB45B`, `82/15/.78/.38` | `[2,7,17]`→`[0,0,12]`, `#5E86FF`, `90/16/.70/.34` |
+| 3 체육관 | `[-1,8,-17]`→`[0,0,-11]`, `#54C7FF`, `105/17/.72/.34` | `[-7,7,0]`→`[0,0,0]`, `#A77BFF`, `92/16/.70/.38` | `[1,8,17]`→`[0,0,11]`, `#F08CFF`, `105/17/.72/.34` |
 
 이는 Stage 1의 창가 차가운 키와 따뜻한 교실 보조, Stage 2의 청록 복도 키와 회색 보조, Stage 3의 밝은 체육관 키와 따뜻한 측면 보조를 공용 3광원 위에서도 분명하게 남기기 위한 최소 조정이다. fog, bloom, shadow, per-enemy/per-prop light, per-frame 변경은 추가하지 않았다.
 

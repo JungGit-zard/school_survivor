@@ -15,9 +15,9 @@
 | Directional key | position `[-10, 22, 12]`, intensity `3.2` | 카메라 쪽(+Z)에서 플레이 공간과 캐릭터 전면을 읽게 하는 주광 |
 | Directional rim | position `[10, 12, -10]`, `#FFE2B0`, intensity `0.85` | 북쪽 배경과 보스 외곽을 약하게 분리하는 역광 |
 
-- 성능 상한은 **공용 3 + Stage local 최대 2 = 동시에 최대 5광원**이다.
+- 성능 상한은 **공용 3 + Stage local 정적 Spot 3 = 동시에 최대 6광원**이다.
 - local light는 모두 `castShadow={false}`다. 기존 씬의 그림자 map을 늘리지 않으며, 보스 추적등·캐릭터 부착등·발사체별 real light는 추가하지 않는다.
-- Spot은 승인 좌표를 향하기 위해 active Spot마다 정적·비가시 `Object3D` target 1개를 허용한다. 이는 helper mesh나 draw call이 아니며, `useFrame`·추적·프레임별 allocation 없이 Stage 전환 시 mount/unmount된다. Point는 고정 landmark에만 둔다. 즉 카메라·보스·발사체를 따라 움직이지 않는다.
+- Spot은 승인 좌표를 향하기 위해 active Spot마다 정적·비가시 `Object3D` target 1개를 허용한다. 이는 helper mesh나 draw call이 아니며, `useFrame`·추적·프레임별 allocation 없이 Stage 전환 시 mount/unmount된다. 카메라·보스·발사체를 따라 움직이는 light는 없다.
 - fog, 전체 bloom, 실시간 반사(SSR), environment-map 갱신은 기본값 `off`다. 위험 표시는 이미 있는 meshBasicMaterial 바닥 텔레그래프와 HUD/VFX가 담당한다.
 - 밝기 우선순위는 언제나 **즉사/피해 경고 > 플레이어·무기 > 보스 > 지형 장식 > 먼 배경**이다. 연출 조명은 이 순서를 뒤집지 않는다.
 
@@ -35,13 +35,14 @@
 
 | local 광원 | 배치 / 조준 | 값 | 역할 |
 | --- | --- | --- | --- |
-| 창가 Spot | position `[-6.8, 5.4, -10.8]` → target `[0, 0, -2.4]` | color `#D7EAFF`, intensity `32`, distance `15`, angle `0.55 rad`, penumbra `0.42`, `castShadow=false` | 북쪽 쓰러진 학생·책상 윤곽을 공용 주광 위에서도 읽게 하는 차가운 창빛 |
-| 교실등 Point | position `[1.8, 4.3, 7.6]` | color `#FFE0AD`, intensity `12`, distance `9.0`, decay `2`, `castShadow=false` | 플레이어 시작 방향, 연필 투척 궤적, 남동쪽 책상 근처를 분명하게 분리 |
+| 북측 청록 Spot | position `[-1, 7, -12.5]` → target `[0, 0, -9]` | color `#3CCBFF`, intensity `92`, distance `15`, angle `0.85 rad`, penumbra `0.32`, `castShadow=false` | 북측 교실과 출입 방향을 읽는 강한 청록 zone |
+| 서측 보라 Spot | position `[-7, 6, 0]` → target `[0, 0, 0]` | color `#B96CFF`, intensity `84`, distance `14`, angle `0.72 rad`, penumbra `0.36`, `castShadow=false` | 서측 책상·학생 프롭을 분리하는 보라 zone |
+| 남측 금색 Spot | position `[1, 7, 12.5]` → target `[0, 0, 9]` | color `#FFD166`, intensity `92`, distance `15`, angle `0.85 rad`, penumbra `0.32`, `castShadow=false` | 플레이어 시작 방향을 읽는 금색 zone |
 
 ### 보스·위험 cue 충돌 방지
 
 - B01은 Stage 1에서 추격/돌진 압박만 사용한다. 보스 등장과 돌진에는 새 real light를 만들지 않는다.
-- B01 스폰 `150초`, 탈출 포털 `210초`에는 현재 bossSpawn/portal VFX 및 HUD만 사용한다. 창가 Spot·교실등 Point의 색·세기는 고정한다.
+- B01 스폰 `150초`, 탈출 포털 `210초`에는 현재 bossSpawn/portal VFX 및 HUD만 사용한다. Stage 1의 세 Spot 색·세기는 고정한다.
 - 적이 빽빽한 초반에는 추가 조명을 펄스하지 않는다. 적 실루엣·연필·XP 색의 대비가 우선이다.
 
 ### 모바일 shot list
@@ -65,14 +66,15 @@
 
 | local 광원 | 배치 / 조준 | 값 | 역할 |
 | --- | --- | --- | --- |
-| 북단 Spot | position `[0, 5.2, -17.2]` → target `[0, 0, -9.8]` | color `#C7F3F5`, intensity `28`, distance `14`, angle `0.50 rad`, penumbra `0.48`, `castShadow=false` | 북쪽 끝문과 길이감을 공용 주광 위에서도 주되 E04 탄·B02 봉쇄선 청록보다 채도가 낮은 배경 practical |
-| 서측 사물함 Point | position `[-5.7, 3.2, 2.0]` | color `#D8E5EA`, intensity `8`, distance `7.5`, decay `2`, `castShadow=false` | 중간 사물함과 분실물 보드의 형태를 분명히 살리는 회색 보조광 |
+| 북측 마젠타 Spot | position `[0, 7, -18]` → target `[0, 0, -12]` | color `#D85CFF`, intensity `95`, distance `16`, angle `0.72 rad`, penumbra `0.34`, `castShadow=false` | 북쪽 끝문과 복도 길이를 여는 마젠타 zone |
+| 서측 주황 Spot | position `[-6, 6, 0]` → target `[0, 0, 0]` | color `#FFB45B`, intensity `82`, distance `15`, angle `0.78 rad`, penumbra `0.38`, `castShadow=false` | 사물함·중앙 장애물에 깊이를 주는 주황 zone |
+| 남측 파랑 Spot | position `[2, 7, 17]` → target `[0, 0, 12]` | color `#5E86FF`, intensity `90`, distance `16`, angle `0.70 rad`, penumbra `0.34`, `castShadow=false` | 남측 진행로를 분리하는 파랑 zone |
 
 ### 보스·위험 cue 충돌 방지
 
 - B02는 `150초`에 등장하며 HP `70%`, `35%`에서 2개 봉쇄선을 만든다. 텔레그래프 `1200ms`와 active `1500ms`의 정본 색 `#22CBD2`/`#24EDF0`이 Stage local light보다 항상 더 밝고 채도 높게 남아야 한다.
-- B02 봉쇄선이 활성화되어도 local Spot/Point는 색·세기·위치를 변경하지 않는다. 보스 주위 halo 또는 이동 조명은 0개다.
-- Stage 2 E04의 원거리 탄은 청록 배경과 섞일 수 있으므로 북단 Spot은 정본 `#C7F3F5`, intensity `28`을 고정하고 발사체/피해 VFX의 tone-mapped false 기존 표시를 우선한다.
+- B02 봉쇄선이 활성화되어도 local Spot 3개는 색·세기·위치를 변경하지 않는다. 보스 주위 halo 또는 이동 조명은 0개다.
+- Stage 2 E04의 원거리 탄은 색-zone과 섞일 수 있으므로 세 Spot은 정본 값으로 고정하고 발사체/피해 VFX의 tone-mapped false 기존 표시를 우선한다.
 
 ### 모바일 shot list
 
@@ -89,19 +91,20 @@
 
 - 실제 전투 경계는 X `±7.5`, Z `±19.2`다. 나무 마루·흰 코트 라인·파란 벽 stripe·북남 골대가 이미 강한 공간 단서이므로, 광량보다 좌우 대비를 조절한다.
 - 센터 서클과 플레이어 전투 구역은 `1.0`, 양측 벤치·매트는 `0.68~0.75`, 북남 골대·점수판은 `0.78`, 천장/상단 벽은 `0.40~0.50`을 목표로 한다.
-- 색온도는 경기장 상부광 `5200K` 중성 백색과 남동쪽 벤치 쪽 `3500K`의 아주 약한 따뜻한 rim만 사용한다. 코트 라인 `#F4F1E8`, 페인트 존 `#C1533B`, B03 레인 경고의 황색을 조명으로 재현하지 않는다.
+- 북측 하늘색·서측 보라·남측 핑크의 3개 정적 zone을 사용한다. 코트 라인 `#F4F1E8`, 페인트 존 `#C1533B`, B03 레인 경고의 황색을 조명으로 재현하거나 펄스하지 않는다.
 
 ### 구현 확정 조명
 
 | local 광원 | 배치 / 조준 | 값 | 역할 |
 | --- | --- | --- | --- |
-| 센터코트 Spot | position `[-0.8, 7.0, -1.2]` → target `[0, 0, 0]` | color `#E6F1FF`, intensity `35`, distance `16`, angle `0.68 rad`, penumbra `0.55`, `castShadow=false` | 센터 서클·플레이어·나무 마루의 대비를 공용 주광 위에서도 분명히 정리 |
-| 남동쪽 벤치 Point | position `[5.8, 3.7, 10.8]` | color `#FFE1B8`, intensity `10`, distance `8.5`, decay `2`, `castShadow=false` | 쓰러진 벤치·장비 spill과 남쪽 골대 방향을 구분하는 따뜻한 측면 practical |
+| 북측 하늘 Spot | position `[-1, 8, -17]` → target `[0, 0, -11]` | color `#54C7FF`, intensity `105`, distance `17`, angle `0.72 rad`, penumbra `0.34`, `castShadow=false` | 북측 골대·점수판을 분리하는 하늘 zone |
+| 서측 보라 Spot | position `[-7, 7, 0]` → target `[0, 0, 0]` | color `#A77BFF`, intensity `92`, distance `16`, angle `0.70 rad`, penumbra `0.38`, `castShadow=false` | 서측 벤치와 센터코트를 가르는 보라 zone |
+| 남측 핑크 Spot | position `[1, 8, 17]` → target `[0, 0, 11]` | color `#F08CFF`, intensity `105`, distance `17`, angle `0.72 rad`, penumbra `0.34`, `castShadow=false` | 남측 골대·장비 구역을 가르는 핑크 zone |
 
 ### 보스·위험 cue 충돌 방지
 
-- B03는 `150초`에 등장하고 HP `65%`, `30%`에서 왕복 오래달리기를 쓴다. 레인 텔레그래프 `1250ms`는 `#F5B83D`, 왕복 active는 `#FFD34E`/`#E6A81F`이므로 센터 Spot은 `#E6F1FF`·`35`에서 절대 펄스하지 않는다.
-- 레인 폭은 `1.2`, 플레이어 현재 Z에 맞춰 X 전체를 가른다. 따라서 레인·보스·플레이어보다 밝은 무대 조명이나 노란 Point는 0개다.
+- B03는 `150초`에 등장하고 HP `65%`, `30%`에서 왕복 오래달리기를 쓴다. 레인 텔레그래프 `1250ms`는 `#F5B83D`, 왕복 active는 `#FFD34E`/`#E6A81F`이며 세 Spot은 펄스하지 않는다.
+- 레인 폭은 `1.2`, 플레이어 현재 Z에 맞춰 X 전체를 가른다. 따라서 레인·보스·플레이어 추적 조명은 0개다.
 - B03 왕복 이후 stun `1200ms`에도 광량을 올리지 않는다. 플레이어의 반격 시간은 보스 상태와 레인의 낮은 opacity로 전달한다.
 
 ### 모바일 shot list

@@ -33,20 +33,8 @@ export default function StageLighting({ stageId }) {
 
   return (
     <group name={`stage-lighting-${stageId}`}>
-      {lights.map((light) => (
-        light.kind === 'spot'
-          ? <StaticSpotLight key={`${stageId}:${light.kind}`} light={light} />
-          : (
-            <pointLight
-              key={`${stageId}:${light.kind}`}
-              position={light.position}
-              color={light.color}
-              intensity={light.intensity}
-              distance={light.distance}
-              decay={light.decay}
-              castShadow={false}
-            />
-          )
+      {lights.map((light, index) => (
+        <StaticSpotLight key={`${stageId}:spot:${index}`} light={light} />
       ))}
     </group>
   )
