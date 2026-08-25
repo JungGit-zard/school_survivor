@@ -35,9 +35,9 @@
 
 | local 광원 | 배치 / 조준 | 값 | 역할 |
 | --- | --- | --- | --- |
-| 북측 청록 Spot | position `[-1, 7, -12.5]` → target `[0, 0, -9]` | color `#3CCBFF`, intensity `92`, distance `15`, angle `0.85 rad`, penumbra `0.32`, `castShadow=false` | 북측 교실과 출입 방향을 읽는 강한 청록 zone |
-| 서측 보라 Spot | position `[-7, 6, 0]` → target `[0, 0, 0]` | color `#B96CFF`, intensity `84`, distance `14`, angle `0.72 rad`, penumbra `0.36`, `castShadow=false` | 서측 책상·학생 프롭을 분리하는 보라 zone |
-| 남측 금색 Spot | position `[1, 7, 12.5]` → target `[0, 0, 9]` | color `#FFD166`, intensity `92`, distance `15`, angle `0.85 rad`, penumbra `0.32`, `castShadow=false` | 플레이어 시작 방향을 읽는 금색 zone |
+| 북측 청록 Spot | position `[-1, 7, -12.5]` → target `[0, 0, -9]` | color `#3CCBFF`, intensity `184`, distance `15`, angle `0.85 rad`, penumbra `0.32`, `castShadow=false` | 북측 교실과 출입 방향을 읽는 강한 청록 zone |
+| 서측 보라 Spot | position `[-7, 6, 0]` → target `[0, 0, 0]` | color `#B96CFF`, intensity `168`, distance `14`, angle `0.72 rad`, penumbra `0.36`, `castShadow=false` | 서측 책상·학생 프롭을 분리하는 보라 zone |
+| 남측 금색 Spot | position `[1, 7, 12.5]` → target `[0, 0, 9]` | color `#FFD166`, intensity `184`, distance `15`, angle `0.85 rad`, penumbra `0.32`, `castShadow=false` | 플레이어 시작 방향을 읽는 금색 zone |
 
 ### 보스·위험 cue 충돌 방지
 
@@ -66,9 +66,9 @@
 
 | local 광원 | 배치 / 조준 | 값 | 역할 |
 | --- | --- | --- | --- |
-| 북측 마젠타 Spot | position `[0, 7, -18]` → target `[0, 0, -12]` | color `#D85CFF`, intensity `95`, distance `16`, angle `0.72 rad`, penumbra `0.34`, `castShadow=false` | 북쪽 끝문과 복도 길이를 여는 마젠타 zone |
-| 서측 주황 Spot | position `[-6, 6, 0]` → target `[0, 0, 0]` | color `#FFB45B`, intensity `82`, distance `15`, angle `0.78 rad`, penumbra `0.38`, `castShadow=false` | 사물함·중앙 장애물에 깊이를 주는 주황 zone |
-| 남측 파랑 Spot | position `[2, 7, 17]` → target `[0, 0, 12]` | color `#5E86FF`, intensity `90`, distance `16`, angle `0.70 rad`, penumbra `0.34`, `castShadow=false` | 남측 진행로를 분리하는 파랑 zone |
+| 북측 마젠타 Spot | position `[0, 7, -18]` → target `[0, 0, -12]` | color `#D85CFF`, intensity `190`, distance `16`, angle `0.72 rad`, penumbra `0.34`, `castShadow=false` | 북쪽 끝문과 복도 길이를 여는 마젠타 zone |
+| 서측 주황 Spot | position `[-6, 6, 0]` → target `[0, 0, 0]` | color `#FFB45B`, intensity `164`, distance `15`, angle `0.78 rad`, penumbra `0.38`, `castShadow=false` | 사물함·중앙 장애물에 깊이를 주는 주황 zone |
+| 남측 파랑 Spot | position `[2, 7, 17]` → target `[0, 0, 12]` | color `#5E86FF`, intensity `180`, distance `16`, angle `0.70 rad`, penumbra `0.34`, `castShadow=false` | 남측 진행로를 분리하는 파랑 zone |
 
 ### 보스·위험 cue 충돌 방지
 
@@ -97,9 +97,9 @@
 
 | local 광원 | 배치 / 조준 | 값 | 역할 |
 | --- | --- | --- | --- |
-| 북측 하늘 Spot | position `[-1, 8, -17]` → target `[0, 0, -11]` | color `#54C7FF`, intensity `105`, distance `17`, angle `0.72 rad`, penumbra `0.34`, `castShadow=false` | 북측 골대·점수판을 분리하는 하늘 zone |
-| 서측 보라 Spot | position `[-7, 7, 0]` → target `[0, 0, 0]` | color `#A77BFF`, intensity `92`, distance `16`, angle `0.70 rad`, penumbra `0.38`, `castShadow=false` | 서측 벤치와 센터코트를 가르는 보라 zone |
-| 남측 핑크 Spot | position `[1, 8, 17]` → target `[0, 0, 11]` | color `#F08CFF`, intensity `105`, distance `17`, angle `0.72 rad`, penumbra `0.34`, `castShadow=false` | 남측 골대·장비 구역을 가르는 핑크 zone |
+| 북측 하늘 Spot | position `[-1, 8, -17]` → target `[0, 0, -11]` | color `#54C7FF`, intensity `210`, distance `17`, angle `0.72 rad`, penumbra `0.34`, `castShadow=false` | 북측 골대·점수판을 분리하는 하늘 zone |
+| 서측 보라 Spot | position `[-7, 7, 0]` → target `[0, 0, 0]` | color `#A77BFF`, intensity `184`, distance `16`, angle `0.70 rad`, penumbra `0.38`, `castShadow=false` | 서측 벤치와 센터코트를 가르는 보라 zone |
+| 남측 핑크 Spot | position `[1, 8, 17]` → target `[0, 0, 11]` | color `#F08CFF`, intensity `210`, distance `17`, angle `0.72 rad`, penumbra `0.34`, `castShadow=false` | 남측 골대·장비 구역을 가르는 핑크 zone |
 
 ### 보스·위험 cue 충돌 방지
 
