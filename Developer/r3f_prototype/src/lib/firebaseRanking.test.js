@@ -79,6 +79,51 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
     expect(mod.set).toHaveBeenCalledTimes(4)
   })
 
+  // 2026-08-25 랭킹 감사에서 나온 결함: 배포된 규칙이 클라 점수식보다 낡아 제출이 통째로
+  // 거부돼도 submitRun이 빈 catch로 전부 삼켜서 "최고점 유실"과 "정상 best-only 스킵"이
+  // 구분되지 않았다. 거부는 failed로, 낮은 점수는 skipped로 갈라져 나와야 한다.
+  it('reports a rules rejection as failed — not as a silent best-only skip', async () => {
+    const { client, mod } = makeFakeClient()
+    mod.set = vi.fn(async () => { throw new Error('PERMISSION_DENIED') })
+    _setFirebaseRankingClientForTests(client)
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    const outcome = await submitRun({ uid: 'me' }, { stageId: 'stage2', score: 4968, timeMs: 3600000, cleared: true })
+
+    expect(outcome.failed).toHaveLength(4)
+    expect(outcome.written).toHaveLength(0)
+    expect(outcome.skipped).toHaveLength(0)
+    expect(warn).toHaveBeenCalled()
+  })
+
+  it('reports an existing higher score as skipped, and never as failed', async () => {
+    const { client } = makeFakeClient({ existingScore: 500 })
+    _setFirebaseRankingClientForTests(client)
+
+    const outcome = await submitRun({ uid: 'me' }, { stageId: 'stage1', score: 100, timeMs: 60000, cleared: false })
+
+    expect(outcome.skipped).toHaveLength(4)
+    expect(outcome.failed).toHaveLength(0)
+    expect(outcome.written).toHaveLength(0)
+  })
+
+  it('keeps the buckets that succeeded when another bucket is rejected', async () => {
+    const { client, mod } = makeFakeClient()
+    const original = mod.set
+    mod.set = vi.fn(async (ref, value) => {
+      if (ref.path.includes('/weekly/')) throw new Error('PERMISSION_DENIED')
+      return original(ref, value)
+    })
+    _setFirebaseRankingClientForTests(client)
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    const outcome = await submitRun({ uid: 'me' }, { stageId: 'stage3', score: 400, timeMs: 280000, cleared: false })
+
+    expect(outcome.written).toHaveLength(2)
+    expect(outcome.written.every((path) => path.includes('/daily/'))).toBe(true)
+    expect(outcome.failed).toHaveLength(2)
+  })
+
   it('skips submission without a signed-in uid', async () => {
     const { client, mod } = makeFakeClient()
     _setFirebaseRankingClientForTests(client)

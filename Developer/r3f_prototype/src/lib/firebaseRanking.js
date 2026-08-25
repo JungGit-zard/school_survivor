@@ -82,15 +82,19 @@ function globalEntriesPath(seasonId, window, key) {
 }
 
 // Spark 무료 플랜: Cloud Function 없이 클라가 RTDB에 직접 자기 엔트리를 쓴다.
-// 신뢰 경계는 database.rules.json(본인 uid만·점수 상한·최고점만)이 전담한다.
+// 신뢰 경계는 database.rules.json(본인 uid만·최고점만·스테이지 화이트리스트)이 전담한다.
+// 점수 상한은 f955342에서 제거됐다 — 무한모드라 상한을 두면 긴 런이 기록되지 않는다.
 // 활성 시즌의 stage(daily+weekly) + global(daily+weekly) = 4버킷에 auth.uid를 키로 멀티패스 기록.
 // E2E 우회/미설정/시즌 밖이면 skip. 최고점(max) 모델 — 기존보다 낮은 점수는 규칙이 거른다.
+// 반환: { written[], skipped[], failed[], reason? }. skipped는 정상(기존 최고점이 더 높음),
+// failed는 최고점 유실(권한 거부·규칙 불일치·네트워크)이라 절대 같이 묶으면 안 된다.
 export async function submitRun(user, { stageId, score, timeMs, cleared } = {}) {
-  if (!user?.uid || !isFirebaseRankingConfigured()) return
+  if (!user?.uid) return notSubmitted('signedOut')
+  if (!isFirebaseRankingConfigured()) return notSubmitted('unconfigured')
   // E2E 우회 유저 점수는 실랭킹에 오염되지 않게 차단
   const now = Date.now()
   const season = getActiveSeason(now)
-  if (!season.active) return // seasonOff: 제출 skip
+  if (!season.active) return notSubmitted('seasonOff')
 
   // 엔트리 키 = auth.uid (해시키 아님). 규칙이 "$uid === auth.uid"로 본인 쓰기만 강제하려면
   // 키가 opaque uid여야 검증 가능하기 때문. Firebase uid는 이메일이 아닌 불투명 식별자라
@@ -122,16 +126,38 @@ export async function submitRun(user, { stageId, score, timeMs, cleared } = {}) 
   // 이번 점수가 주간 최고보다 낮아도 새 일일 버킷에는 최고일 수 있다. atomic이면
   // 주간 경로의 best-only 거부가 전체 쓰기를 롤백해 일일 기록까지 유실된다.
   // 버킷별로 기존 최고점을 읽어 더 높을 때만 쓰고, 규칙이 best-only의 최종 방어선이다.
-  await Promise.all(paths.map(async (path) => {
+  const results = await Promise.all(paths.map(async (path) => {
     const entryRef = mod.ref(db, `${path}/${uid}`)
     try {
       const snap = await mod.get(entryRef)
-      if (snap?.exists?.() && readNonNegInt(snap.child('score').val()) >= entry.score) return
+      if (snap?.exists?.() && readNonNegInt(snap.child('score').val()) >= entry.score) return { path, status: 'skipped' }
       await mod.set(entryRef, entry)
-    } catch {
-      // 읽기/쓰기 실패(권한·best-only 거부 등)는 해당 버킷만 skip — 다른 버킷에 영향 없음.
+      return { path, status: 'written' }
+    } catch (error) {
+      // 실패한 버킷만 failed로 남긴다 — 다른 버킷은 계속 진행한다.
+      return { path, status: 'failed', error }
     }
   }))
+
+  // skipped(기존 최고점이 더 높음)와 failed(권한 거부·규칙 불일치·네트워크)는 전혀 다른 사건이다.
+  // 예전에는 둘 다 같은 빈 catch로 삼켜서, 배포된 규칙이 클라 점수식보다 낡아 제출이 통째로
+  // 거부돼도 아무도 몰랐다. failed는 "최고점이 유실됐다"는 뜻이므로 반드시 드러나야 한다.
+  const outcome = summarize(results)
+  if (outcome.failed.length > 0 && typeof console !== 'undefined') {
+    console.warn('[ranking] submission rejected — this score was NOT recorded.', {
+      stageId: sid, score: entry.score, timeMs: entry.timeMs, cleared: entry.cleared, failed: outcome.failed,
+    })
+  }
+  return outcome
+}
+
+function summarize(results) {
+  const pick = (status) => results.filter((result) => result.status === status).map((result) => result.path)
+  return { written: pick('written'), skipped: pick('skipped'), failed: pick('failed') }
+}
+
+function notSubmitted(reason) {
+  return { written: [], skipped: [], failed: [], reason }
 }
 
 // 계정 삭제 시 지울 수 있는 랭킹 버킷의 스테이지 목록(규칙의 $stageId 화이트리스트와 일치).
