@@ -6,7 +6,6 @@ import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { playerPos, screenBounds } from '../lib/refs.js'
 import Player from './Player.jsx'
 import Floor from './Floor.jsx'
-import StageLighting from './StageLighting.jsx'
 import Enemies from './Enemies.jsx'
 import LunchItems from './LunchItems.jsx'
 import VFXLayer from './VFXLayer.jsx'
@@ -180,7 +179,10 @@ export default function Game() {
         intensity={3.2}
       />
       <directionalLight position={[10, 12, -10]} intensity={0.85} color={0xffe2b0} />
-      <StageLighting stageId={currentStageId} />
+      {/* 스테이지 색 구역은 런타임 광원이 아니라 바닥 lightMap으로 굽는다
+          (ClassroomFloor → stageFloorLightBake.js). 실시간 SpotLight 3개는
+          픽셀마다 감쇠·콘 연산과 툰 gradientMap 종속 페치를 추가해 모바일에서
+          풀스크린 필레이트를 잡아먹었다. 여기에 광원을 다시 추가하지 마라. */}
 
       {/* ── World ── */}
       <Floor stageId={currentStageId} />

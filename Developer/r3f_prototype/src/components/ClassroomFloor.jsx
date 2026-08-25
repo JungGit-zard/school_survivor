@@ -7,6 +7,7 @@ import stage2EndWallUrl from '../assets/background_floor/stage02_corridor_end_wa
 import stage4TileUrl from '../assets/background_floor/tile_stage04_white_ceramic.webp'
 import { getStage2CorridorWallDisplay } from '../lib/stage2CorridorWall.js'
 import { getStageBounds } from '../lib/stageConfig.js'
+import { buildStageFloorLightMap, stageFloorLightMapProps } from '../lib/stageFloorLightBake.js'
 import Stage2CorridorDecor from './Stage2CorridorDecor.jsx'
 
 const FLOOR_SIZE = 200
@@ -55,6 +56,17 @@ export const STAGE_FLOOR_TILES = {
     floorWidth: STAGE4_FLOOR_WIDTH,
     floorDepth: STAGE4_FLOOR_DEPTH,
   },
+}
+
+// FloorPlane이 실제로 그리는 평면 크기. 색 구역 lightMap의 UV 변환이 이 크기에 걸려 있다.
+export function getFloorPlaneSize(stageId) {
+  // Stage 3는 절차적 나무마루라 STAGE_FLOOR_TILES 항목이 없고 FloorPlane 기본값을 쓴다.
+  if (stageId === 'stage3') return { width: FLOOR_SIZE, depth: FLOOR_SIZE }
+  const tile = STAGE_FLOOR_TILES[stageId] ?? STAGE_FLOOR_TILES.stage1
+  return {
+    width: tile.floorWidth ?? tile.floorSize,
+    depth: tile.floorDepth ?? tile.floorSize,
+  }
 }
 
 export const STAGE2_CORRIDOR_END = {
@@ -154,14 +166,17 @@ function buildEndWallTexture(config) {
   return tex
 }
 
-function TexturedFloor({ floorTile }) {
+function TexturedFloor({ floorTile, lightBake }) {
   const texture = useLoader(THREE.TextureLoader, floorTile.src)
   // The R3F loader cache owns the image/texture.  Repeating parameters are
   // stage-specific and are set once when the stage floor mounts.
   texture.userData.floorRepeatX = floorTile.repeatX ?? floorTile.repeat
   texture.userData.floorRepeatZ = floorTile.repeatZ ?? floorTile.repeat
   const floorTex = useMemo(() => buildRepeatingTexture(texture), [texture])
-  const floorMat = useMemo(() => new THREE.MeshLambertMaterial({ map: floorTex }), [floorTex])
+  const floorMat = useMemo(
+    () => new THREE.MeshLambertMaterial({ map: floorTex, ...stageFloorLightMapProps(lightBake) }),
+    [floorTex, lightBake],
+  )
   useEffect(() => () => floorMat.dispose(), [floorMat])
 
   return (
@@ -224,10 +239,20 @@ export default function ClassroomFloor({ stageId = 'stage1' }) {
   // 실제 의존이 stageId에 걸리게 된다. floorTile을 dep으로 쓰면 항상 같은
   // 참조라 memo가 재실행되지 않아 stageId 전환 시 텍스처가 갱신되지 않는다.
   const floorTile = STAGE_FLOOR_TILES[stageId] ?? STAGE_FLOOR_TILES.stage1
+  // 스테이지 색 구역은 실시간 SpotLight가 아니라 바닥 lightMap 한 장으로 굽는다.
+  // 광원을 추가하지 않으므로 씬의 NUM_SPOT_LIGHTS는 0으로 유지된다.
+  const { width: floorPlaneWidth, depth: floorPlaneDepth } = getFloorPlaneSize(stageId)
+  const lightBake = useMemo(
+    () => buildStageFloorLightMap(stageId, { width: floorPlaneWidth, depth: floorPlaneDepth }),
+    [stageId, floorPlaneWidth, floorPlaneDepth],
+  )
+  useEffect(() => () => lightBake?.texture.dispose(), [lightBake])
   const stage3Texture = useMemo(() => (stageId === 'stage3' ? buildStage3WoodTexture() : null), [stageId])
   const stage3Material = useMemo(
-    () => (stage3Texture ? new THREE.MeshLambertMaterial({ map: stage3Texture }) : null),
-    [stage3Texture],
+    () => (stage3Texture
+      ? new THREE.MeshLambertMaterial({ map: stage3Texture, ...stageFloorLightMapProps(lightBake) })
+      : null),
+    [stage3Texture, lightBake],
   )
   useEffect(() => () => {
     // Stage 3 owns this procedural CanvasTexture.  Do not dispose R3F loader
@@ -240,7 +265,7 @@ export default function ClassroomFloor({ stageId = 'stage1' }) {
     <group>
       {stageId === 'stage3'
         ? <FloorPlane material={stage3Material} />
-        : <TexturedFloor floorTile={floorTile} />}
+        : <TexturedFloor floorTile={floorTile} lightBake={lightBake} />}
 
       {stageId === 'stage2' && (
         <Stage2EndWall />

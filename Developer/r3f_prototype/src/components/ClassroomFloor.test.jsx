@@ -103,7 +103,8 @@ describe('ClassroomFloor tiling', () => {
     expect(source).toContain('tex.minFilter = THREE.LinearMipmapLinearFilter')
     expect(source).toContain('tex.magFilter = THREE.LinearFilter')
     expect(source).toContain('useMemo(() => buildRepeatingTexture(texture), [texture])')
-    expect(source).toContain('new THREE.MeshLambertMaterial({ map: floorTex })')
+    // 색 구역 lightMap은 텍스처 슬롯 하나만 더 쓰고 런타임 광원은 늘리지 않는다.
+    expect(source).toContain('new THREE.MeshLambertMaterial({ map: floorTex, ...stageFloorLightMapProps(lightBake) })')
     expect(source).toContain('useEffect(() => () => floorMat.dispose(), [floorMat])')
     expect(source).toContain('<FloorPlane\n      material={floorMat}')
     expect(source).toContain('useLoader(THREE.TextureLoader, STAGE2_CORRIDOR_END.src)')
