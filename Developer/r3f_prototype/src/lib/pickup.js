@@ -1,15 +1,15 @@
 import { playerPos } from './refs.js'
 
-// BASE: 자석 Lv.1 이상일 때 곱해지는 기준 반경. 업그레이드 없으면 반경 0.
-const BASE_PULL_RADIUS = 0.75
+// 수집 시작/흡입 반경 0.22 → 0.38 → 1.2 (2026-08-01).
+// 0.38은 E01 접촉 판정 0.373(CONTACT_DIST 0.28 × ENEMY_SIZE_MULTIPLIER 4/3)과 거의 같아서,
+// 경험치를 주우려면 피격 거리까지 들어가야 했다. 초반 성장 루프가 성립하도록
+// 1.2 반경에 닿으면 즉시 삭제하지 않고 부드럽게 플레이어 쪽으로 흡입을 시작한다.
+const BASE_PULL_RADIUS = 1.2
+const FINAL_COLLECT_RADIUS = 0.22
 let _pullRadius = 0
 let _pullRadiusSq = 0
 
-// 수집 판정 반경 0.22 → 0.38 → 1.2 (2026-08-01).
-// 0.38은 E01 접촉 판정 0.373(CONTACT_DIST 0.28 × ENEMY_SIZE_MULTIPLIER 4/3)과 거의 같아서,
-// 경험치를 주우려면 피격 거리까지 들어가야 했다. 자석 패시브가 없으면 흡입 반경은 0이라
-// 초반에는 이 반경이 유일한 회수 수단이다. 성장 루프가 성립하도록 접촉 판정 밖으로 넓힌다.
-export const COLLECT_RADIUS_SQ = 1.2 * 1.2
+export const COLLECT_RADIUS_SQ = BASE_PULL_RADIUS * BASE_PULL_RADIUS
 
 export function setMagnetMultiplier(mult) {
   const m = Number.isFinite(mult) && mult >= 0 ? mult : 1
@@ -31,13 +31,17 @@ export function stepMagnetPull(pRef, delta) {
   const dx = playerPos.x - p.x
   const dz = playerPos.z - p.z
   const distSq = dx * dx + dz * dz
+  const finalCollectRadiusSq = FINAL_COLLECT_RADIUS * FINAL_COLLECT_RADIUS
+  const attractRadiusSq = Math.max(COLLECT_RADIUS_SQ, _pullRadiusSq)
 
-  if (distSq < COLLECT_RADIUS_SQ) return 'collected'
-  if (distSq >= _pullRadiusSq)    return 'idle'
+  if (distSq < finalCollectRadiusSq) return 'collected'
+  if (distSq >= attractRadiusSq) return 'idle'
 
   const dist = Math.sqrt(distSq)
-  const pullSpeed = 3.0 + (1 - dist / _pullRadius) * 15.0
-  p.x += (dx / dist) * pullSpeed * delta
-  p.z += (dz / dist) * pullSpeed * delta
+  const attractRadius = Math.sqrt(attractRadiusSq)
+  const pullSpeed = 3.0 + (1 - dist / attractRadius) * 15.0
+  const step = Math.min(dist - FINAL_COLLECT_RADIUS * 0.65, pullSpeed * delta)
+  p.x += (dx / dist) * step
+  p.z += (dz / dist) * step
   return 'pulled'
 }

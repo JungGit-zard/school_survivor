@@ -148,6 +148,13 @@ describe('stage object asset catalog', () => {
     expect(Object.isExtensible(outlineUserDataA)).toBe(true)
   })
 
+  it('uses a rounded torus rim for the playful Stage 3 basketball hoop so it is not just box segments', () => {
+    const source = readFileSync(new URL('./GymProps.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('<torusGeometry')
+    expect(source).toContain("playful ? 'gym-basketball-hoop-playful'")
+  })
+
   it('keeps every stage prop toon surface visible from both sides while outlines stay inverted hulls', () => {
     const originalDocument = globalThis.document
     globalThis.document = {
@@ -329,7 +336,8 @@ describe('stage object asset catalog', () => {
     expect(source).toContain('<cylinderGeometry')
     expect(source).toContain('<icosahedronGeometry')
     expect(source).not.toContain('sphereGeometry')
-    expect(source).not.toContain('torusGeometry')
+    // Playful south hoop is allowed one torus rim for a rounded, phone-readable basketball silhouette.
+    expect(source.match(/torusGeometry/g)?.length).toBe(1)
   })
 
   it('exports the nine Stage 4 kitchen prop models', () => {
@@ -382,7 +390,8 @@ describe('stage object asset catalog', () => {
     expect(source).toContain('<cylinderGeometry')
     expect(source).toContain('<icosahedronGeometry')
     expect(source).not.toContain('sphereGeometry')
-    expect(source).not.toContain('torusGeometry')
+    // Playful south hoop is allowed one torus rim for a rounded, phone-readable basketball silhouette.
+    expect(source.match(/torusGeometry/g)?.length).toBe(1)
     expect(source).not.toContain('castShadow')
     expect(source).not.toContain('receiveShadow')
     expect(source).not.toContain('material={outline}')

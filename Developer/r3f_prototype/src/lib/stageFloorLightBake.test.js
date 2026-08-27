@@ -11,7 +11,7 @@ import {
 } from './stageFloorLightBake.js'
 import { getStageLightingProfile, STAGE_LIGHTING_PROFILES } from './stageLightingProfile.js'
 
-const PLAYABLE_STAGE_IDS = ['stage1', 'stage2', 'stage3']
+const PLAYABLE_STAGE_IDS = ['stage1', 'stage2', 'stage3', 'stage4']
 
 const luminance = ([r, g, b]) => r + g + b
 
@@ -99,13 +99,14 @@ describe('바닥 색 구역 굽기 — stageLightingProfile 정본에서 유도'
         expect(half).toBeGreaterThanOrEqual(Math.abs(lx) + light.distance)
         expect(half).toBeGreaterThanOrEqual(Math.abs(lz) + light.distance)
       }
-      expect(stageId).toMatch(/^stage[123]$/)
+      expect(stageId).toMatch(/^stage[1-4]$/)
     }
   })
 
-  it('Stage 4와 미지 스테이지는 굽지 않는다', () => {
-    expect(getStageFloorLightHalfExtent(getStageLightingProfile('stage4'))).toBe(0)
-    expect(prepareStageFloorLights(getStageLightingProfile('stage4'))).toEqual([])
+  it('Stage 4는 새 급식실 lightMap 프로필을 가지며 미지 스테이지만 굽지 않는다', () => {
+    expect(getStageFloorLightHalfExtent(getStageLightingProfile('stage4'))).toBeGreaterThan(0)
+    expect(prepareStageFloorLights(getStageLightingProfile('stage4'))).toHaveLength(3)
+    // document가 없는 테스트 환경에서는 캔버스 생성만 생략된다. 프로필 자체는 Stage 4까지 존재한다.
     expect(buildStageFloorLightMap('stage4', { width: 18.72, depth: 32 })).toBeNull()
     expect(buildStageFloorLightMap('unknown-stage', { width: 200, depth: 200 })).toBeNull()
     expect(stageFloorLightMapProps(null)).toEqual({})

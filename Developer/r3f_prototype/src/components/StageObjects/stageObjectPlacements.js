@@ -349,12 +349,12 @@ export const STAGE_OBJECT_PLACEMENTS = {
       scale: 1.18,
     },
     {
-      id: 'stage3-hoop-south-damaged',
+      id: 'stage3-hoop-south-playful',
       type: 'basketballHoop',
-      position: [0, 0, 17.0],
+      position: [0, 0, 16.0],
       rotation: [0, Math.PI, 0],
       scale: 1.18,
-      props: { damaged: true },
+      props: { playful: true },
     },
     {
       id: 'stage3-ball-cart-nw',
@@ -457,7 +457,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-cookline-north-center',
       type: 'kitchenCookLine',
       // 북벽에서 한 타일 이상 떨어진 시각 안전 여백.
-      position: [-0.39, 0, -14.5],
+      position: [-0.39, 0, -13.75],
       rotation: [0, 0, 0],
       scale: 1.16,
     },
@@ -465,7 +465,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-refrigerator-north-west-closed',
       type: 'kitchenRefrigerator',
       // 북·서벽에서 한 타일 이상 떨어진 시각 안전 여백.
-      position: [-7.807, 0, -14.579],
+      position: [-7.35, 0, -13.72],
       rotation: [0, 0.12, 0],
       scale: 1.08,
       props: { open: false },
@@ -474,7 +474,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-refrigerator-north-west-open',
       type: 'kitchenRefrigerator',
       // 북벽에서 한 타일 이상 떨어진 시각 안전 여백.
-      position: [-6.196, 0, -14.562],
+      position: [-5.85, 0, -13.72],
       rotation: [0, -0.18, 0],
       scale: 1.05,
       props: { open: true },
@@ -483,7 +483,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-crates-north-west-corner',
       type: 'kitchenCrateStack',
       // 서벽에서 한 타일 이상 떨어진 시각 안전 여백.
-      position: [-8.059, 0, -11.6],
+      position: [-7.12, 0, -11.45],
       rotation: [0, 0.36, 0],
       scale: 1.02,
       props: { count: 3 },
@@ -491,7 +491,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-clutter-north-cookline-spill',
       type: 'kitchenClutter',
-      position: [2.34, 0, -14.2],
+      position: [2.15, 0, -13.42],
       rotation: [0, -0.24, 0],
       scale: 1.0,
       props: { variant: 'pots' },
@@ -500,14 +500,14 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-sink-north-east',
       type: 'kitchenSinkCounter',
-      position: [4.81, 0, -14.5],
+      position: [4.45, 0, -13.72],
       rotation: [0, 0.08, 0],
       scale: 1.12,
     },
     {
       id: 'stage4-crates-north-east-corner',
       type: 'kitchenCrateStack',
-      position: [7.02, 0, -12.6],
+      position: [6.45, 0, -12.25],
       rotation: [0, -0.42, 0],
       scale: 0.96,
       props: { count: 2 },
@@ -515,7 +515,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-trayrack-north-east-inner',
       type: 'kitchenTrayRack',
-      position: [5.98, 0, -9.4],
+      position: [5.55, 0, -9.2],
       rotation: [0, -0.62, 0],
       scale: 1.06,
     },
@@ -523,21 +523,21 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-shelfcart-east-north',
       type: 'kitchenShelfCart',
-      position: [8.157, 0, -10.4],
+      position: [7.08, 0, -10.15],
       rotation: [0, -Math.PI / 2 + 0.16, 0],
       scale: 1.04,
     },
     {
       id: 'stage4-shelfcart-east-upper',
       type: 'kitchenShelfCart',
-      position: [8.19, 0, -7.2],
+      position: [7.08, 0, -7.0],
       rotation: [0, -Math.PI / 2 - 0.12, 0],
       scale: 1.0,
     },
     {
       id: 'stage4-preptable-east-side-counter',
       type: 'kitchenPrepTable',
-      position: [7.858, 0, -4.0],
+      position: [6.96, 0, -3.9],
       rotation: [0, -Math.PI / 2 + 0.1, 0],
       scale: 1.06,
       props: { variant: 'side' },
@@ -546,7 +546,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-trash-east-wheelie',
       type: 'kitchenTrashBins',
       // 동벽에서 한 타일 이상 떨어진 시각 안전 여백.
-      position: [8.096, 0, -0.8],
+      position: [7.04, 0, -0.72],
       rotation: [0, -Math.PI / 2 - 0.22, 0],
       scale: 1.02,
       props: { variant: 'wheelie' },
@@ -554,7 +554,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-trayrack-east-mid',
       type: 'kitchenTrayRack',
-      position: [8.008, 0, 2.6],
+      position: [7.02, 0, 2.52],
       rotation: [0, -Math.PI / 2 + 0.24, 0],
       scale: 1.08,
     },
@@ -562,7 +562,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-crates-east-mid',
       type: 'kitchenCrateStack',
       // 동벽에서 한 타일 이상 떨어진 시각 안전 여백.
-      position: [8.06, 0, 5.8],
+      position: [7.06, 0, 5.62],
       rotation: [0, -0.28, 0],
       scale: 1.05,
       props: { count: 4 },
@@ -570,7 +570,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-clutter-east-trays',
       type: 'kitchenClutter',
-      position: [7.7, 0, 8.8],
+      position: [6.86, 0, 8.52],
       rotation: [0, -0.52, 0],
       scale: 0.98,
       props: { variant: 'trays' },
@@ -579,7 +579,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-preptable-east-south-counter',
       type: 'kitchenPrepTable',
-      position: [7.828, 0, 11.6],
+      position: [6.94, 0, 11.25],
       rotation: [0, -Math.PI / 2 - 0.14, 0],
       scale: 1.04,
       props: { variant: 'side' },
@@ -588,14 +588,14 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-shelfcart-west-north',
       type: 'kitchenShelfCart',
-      position: [-8.14, 0, -8.8],
+      position: [-7.08, 0, -8.58],
       rotation: [0, Math.PI / 2 - 0.18, 0],
       scale: 1.06,
     },
     {
       id: 'stage4-clutter-west-pots',
       type: 'kitchenClutter',
-      position: [-7.93, 0, -5.6],
+      position: [-6.92, 0, -5.45],
       rotation: [0, 0.44, 0],
       scale: 1.0,
       props: { variant: 'pots' },
@@ -605,7 +605,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-trash-west-wheelie',
       type: 'kitchenTrashBins',
       // 서벽에서 한 타일 이상 떨어진 시각 안전 여백.
-      position: [-8.109, 0, -3.2],
+      position: [-7.05, 0, -3.08],
       rotation: [0, Math.PI / 2 + 0.2, 0],
       scale: 1.0,
       props: { variant: 'wheelie' },
@@ -614,14 +614,14 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-sink-west-mid',
       type: 'kitchenSinkCounter',
       // 서벽에서 한 타일 이상 떨어진 시각 안전 여백.
-      position: [-7.919, 0, 1.0],
+      position: [-6.98, 0, 0.95],
       rotation: [0, Math.PI / 2 + 0.06, 0],
       scale: 1.1,
     },
     {
       id: 'stage4-trash-west-round',
       type: 'kitchenTrashBins',
-      position: [-8.097, 0, 4.8],
+      position: [-7.04, 0, 4.62],
       rotation: [0, 0.32, 0],
       scale: 0.96,
       props: { variant: 'round' },
@@ -629,7 +629,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-clutter-west-bags',
       type: 'kitchenClutter',
-      position: [-7.96, 0, 7.4],
+      position: [-6.92, 0, 7.18],
       rotation: [0, 0.66, 0],
       scale: 1.02,
       props: { variant: 'bags' },
@@ -638,7 +638,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-shelfcart-west-south',
       type: 'kitchenShelfCart',
-      position: [-8.135, 0, 10.6],
+      position: [-7.08, 0, 10.25],
       rotation: [0, Math.PI / 2 + 0.22, 0],
       scale: 1.02,
     },
@@ -646,7 +646,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-crates-south-west-corner',
       type: 'kitchenCrateStack',
       // 서벽에서 한 타일 이상 떨어진 시각 안전 여백.
-      position: [-8.05, 0, 13.2],
+      position: [-7.10, 0, 12.85],
       rotation: [0, 0.5, 0],
       scale: 1.0,
       props: { count: 3 },
@@ -656,7 +656,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-preptable-south-serving-left',
       type: 'kitchenPrepTable',
       // 남벽에서 한 타일 이상 떨어진 시각 안전 여백.
-      position: [-2.18, 0, 14.496],
+      position: [-2.02, 0, 13.72],
       rotation: [0, Math.PI + 0.08, 0],
       scale: 1.1,
       props: { variant: 'side' },
@@ -664,7 +664,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-preptable-south-serving-right',
       type: 'kitchenPrepTable',
-      position: [1.17, 0, 14.473],
+      position: [1.08, 0, 13.72],
       rotation: [0, Math.PI - 0.1, 0],
       scale: 1.1,
       props: { variant: 'side' },
@@ -672,7 +672,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-crates-south-west-stack',
       type: 'kitchenCrateStack',
-      position: [-7.02, 0, 14.6],
+      position: [-6.45, 0, 13.78],
       rotation: [0, Math.PI - 0.34, 0],
       scale: 1.04,
       props: { count: 3 },
@@ -681,7 +681,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-crates-south-center-stack',
       type: 'kitchenCrateStack',
       // 안쪽으로 당김(개방): 벽 틈 0.525 → 0.905.
-      position: [-4.68, 0, 14.72],
+      position: [-4.35, 0, 13.82],
       rotation: [0, Math.PI + 0.26, 0],
       scale: 0.98,
       props: { count: 2 },
@@ -689,7 +689,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-clutter-south-trays',
       type: 'kitchenClutter',
-      position: [3.77, 0, 14.52],
+      position: [3.42, 0, 13.68],
       rotation: [0, Math.PI - 0.42, 0],
       scale: 1.0,
       props: { variant: 'trays' },
@@ -698,7 +698,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-trash-south-round',
       type: 'kitchenTrashBins',
-      position: [5.33, 0, 14.6],
+      position: [4.92, 0, 13.78],
       rotation: [0, Math.PI + 0.18, 0],
       scale: 0.98,
       props: { variant: 'round' },
@@ -706,7 +706,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-trayrack-south-east',
       type: 'kitchenTrayRack',
-      position: [7.54, 0, 14.4],
+      position: [6.72, 0, 13.7],
       rotation: [0, Math.PI - 0.12, 0],
       scale: 1.05,
     },
@@ -723,7 +723,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-student-serving-south',
       type: 'unconsciousStudent',
-      position: [2.73, 0, 12.5],
+      position: [2.28, 0, 11.65],
       rotation: [0, Math.PI, 0],
       scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
       props: { variant: 'faceUp' },
@@ -731,7 +731,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-student-kitchen-northeast',
       type: 'unconsciousStudent',
-      position: [5.915, 0, -6.4],
+      position: [4.95, 0, -6.2],
       rotation: [0, -2.5, 0],
       scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
       props: { variant: 'sideLeft' },

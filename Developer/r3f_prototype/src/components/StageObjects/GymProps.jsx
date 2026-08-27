@@ -33,46 +33,58 @@ function LowPolyBall({ position = [0, 0, 0], radius = 0.18, material, seamMateri
   )
 }
 
-function HoopRim({ position = [0, 0, 0], damaged = false, red, net }) {
+function HoopRim({ position = [0, 0, 0], damaged = false, orange, net }) {
   const rimSegments = [
-    { key: 'front', position: [0, 0, 0.22], size: [0.82, 0.07, 0.08] },
-    { key: 'back', position: [0, 0, -0.22], size: [0.82, 0.07, 0.08] },
-    { key: 'left', position: [-0.4, 0, 0], size: [0.08, 0.07, 0.46] },
-    { key: 'right', position: [0.4, 0, 0], size: [0.08, 0.07, 0.46] },
+    { key: 'front', position: [0, 0, 0.24], size: [0.74, 0.08, 0.08] },
+    { key: 'back', position: [0, 0, -0.24], size: [0.74, 0.08, 0.08] },
+    { key: 'left', position: [-0.38, 0, 0], size: [0.08, 0.08, 0.48] },
+    { key: 'right', position: [0.38, 0, 0], size: [0.08, 0.08, 0.48] },
+    { key: 'front-left', position: [-0.28, 0, 0.17], rotation: [0, -0.7, 0], size: [0.28, 0.08, 0.07] },
+    { key: 'front-right', position: [0.28, 0, 0.17], rotation: [0, 0.7, 0], size: [0.28, 0.08, 0.07] },
+    { key: 'back-left', position: [-0.28, 0, -0.17], rotation: [0, 0.7, 0], size: [0.28, 0.08, 0.07] },
+    { key: 'back-right', position: [0.28, 0, -0.17], rotation: [0, -0.7, 0], size: [0.28, 0.08, 0.07] },
   ]
 
   return (
     <group position={position} rotation={damaged ? [0.12, 0, -0.22] : [0, 0, 0]}>
-      {rimSegments.map((part) => <PropBox key={part.key} {...part} material={red} />)}
-      {[-0.28, -0.1, 0.1, 0.28].map((x) => (
-        <PropBox key={x} position={[x, -0.23, 0.23]} rotation={[0.16, 0, x * 0.28]} size={[0.045, 0.44, 0.045]} material={net} />
+      {damaged ? rimSegments.map((part) => <PropBox key={part.key} {...part} material={orange} />) : (
+        <mesh {...STAGE_PROP_SURFACE_RENDERING} material={orange} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.38, 0.045, 6, 18]} />
+        </mesh>
+      )}
+      {[-0.3, -0.18, -0.06, 0.06, 0.18, 0.3].map((x) => (
+        <PropBox key={x} position={[x, -0.25, 0.19]} rotation={[0.16, 0, x * 0.34]} size={[0.04, 0.48, 0.04]} material={net} />
       ))}
     </group>
   )
 }
 
-export function BasketballHoop({ damaged = false, ...props }) {
-  const blue = getStagePropToonMaterial(0x2457a6, 0.08)
-  const red = getStagePropToonMaterial(0xb53625, 0.1)
-  const metal = getStagePropToonMaterial(0x44484d, 0.04)
-  const white = getStagePropToonMaterial(0xf2eee4, 0.04)
-  const glass = getStagePropToonMaterial(0xdfe7ec, 0.02)
+export function BasketballHoop({ damaged = false, playful = false, ...props }) {
+  const blue = getStagePropToonMaterial(playful ? 0x2f6eb9 : 0x2457a6, playful ? 0.12 : 0.08)
+  const orange = getStagePropToonMaterial(playful ? 0xf27a1a : 0xb53625, playful ? 0.16 : 0.1)
+  const redPad = getStagePropToonMaterial(0xef5142, 0.12)
+  const metal = getStagePropToonMaterial(playful ? 0x426a86 : 0x44484d, 0.04)
+  const white = getStagePropToonMaterial(0xf7f0df, 0.06)
+  const glass = getStagePropToonMaterial(playful ? 0xfff7df : 0xdfe7ec, 0.04)
   const crack = getStagePropToonMaterial(0x1e2428, 0)
-  const net = getStagePropToonMaterial(0xe8ded0, 0.03)
-  const wood = getStagePropToonMaterial(0xb9834a, 0.06)
+  const net = getStagePropToonMaterial(0xf3ead8, 0.05)
+  const wood = getStagePropToonMaterial(0xd59b4c, 0.08)
+  const seam = getStagePropToonMaterial(0x2b2119, 0)
 
   return (
-    <group {...props} name={damaged ? 'gym-basketball-hoop-damaged' : 'gym-basketball-hoop'}>
+    <group {...props} name={playful ? 'gym-basketball-hoop-playful' : damaged ? 'gym-basketball-hoop-damaged' : 'gym-basketball-hoop'}>
       <StudioTunedGroup itemId="stage-object-gym-basketball-hoop">
-        <PropBox position={[0, 0.06, 0]} size={[1.72, 0.12, 1.02]} material={wood} />
-        <PropBox position={[0, 0.38, 0]} size={[0.72, 0.62, 0.52]} material={blue} />
-        <PropBox position={[0, 0.74, 0.29]} size={[0.46, 0.08, 0.08]} material={white} />
-        <PropBox position={[0, 1.26, -0.18]} rotation={damaged ? [0, 0, -0.18] : [0, 0, 0]} size={[0.16, 1.28, 0.16]} material={metal} />
-        <PropBox position={[0, 1.86, 0.04]} rotation={damaged ? [0.1, 0, -0.24] : [0, 0, 0]} size={[0.92, 0.12, 0.14]} material={metal} />
+        <PropBox position={[0, 0.06, 0]} size={[1.82, 0.12, 1.08]} material={wood} />
+        <PropBox position={[0, 0.36, 0]} size={[0.86, 0.6, 0.62]} material={playful ? redPad : blue} />
+        <PropBox position={[0, 0.72, 0.32]} size={[0.56, 0.08, 0.08]} material={white} />
+        <PropBox position={[0, 1.2, -0.18]} rotation={damaged ? [0, 0, -0.18] : [0, 0, 0]} size={[0.18, 1.28, 0.18]} material={playful ? blue : metal} />
+        <PropBox position={[0, 1.74, 0.15]} rotation={damaged ? [0.1, 0, -0.24] : [-0.22, 0, 0]} size={[0.18, 0.98, 0.16]} material={playful ? blue : metal} />
+        <PropBox position={[0, 1.86, 0.04]} rotation={damaged ? [0.1, 0, -0.24] : [0, 0, 0]} size={[0.96, 0.12, 0.14]} material={playful ? blue : metal} />
         <group position={[0, 2.32, 0.40]} rotation={damaged ? [0.04, 0, 0.08] : [0, 0, 0]}>
-          <PropBox size={[1.72, 1.08, 0.08]} material={glass} />
-          <PropBox position={[0, 0, 0.055]} size={[1.44, 0.76, 0.035]} material={white} />
-          <PropBox position={[0, -0.1, 0.08]} size={[0.54, 0.36, 0.04]} material={red} />
+          <PropBox size={[1.82, 1.12, 0.08]} material={playful ? blue : glass} />
+          <PropBox position={[0, 0, 0.055]} size={[1.5, 0.8, 0.035]} material={playful ? glass : white} />
+          <PropBox position={[0, -0.12, 0.08]} size={[0.56, 0.38, 0.04]} material={playful ? blue : orange} />
+          <PropBox position={[0, -0.12, 0.115]} size={[0.42, 0.24, 0.04]} material={white} />
           {damaged && (
             <>
               <PropBox position={[-0.33, 0.24, 0.12]} rotation={[0, 0, 0.55]} size={[0.52, 0.035, 0.035]} material={crack} />
@@ -81,7 +93,13 @@ export function BasketballHoop({ damaged = false, ...props }) {
             </>
           )}
         </group>
-        <HoopRim position={[0, 1.94, 0.98]} damaged={damaged} red={red} net={net} />
+        <HoopRim position={[0, 1.94, 0.98]} damaged={damaged} orange={orange} net={net} />
+        {playful && (
+          <>
+            <LowPolyBall position={[-0.48, 0.22, 0.68]} radius={0.22} material={orange} seamMaterial={seam} />
+            <LowPolyBall position={[0.42, 0.2, 0.86]} radius={0.2} material={orange} seamMaterial={seam} />
+          </>
+        )}
         {damaged && [-0.46, -0.24, 0.34].map((x, index) => (
           <PropBox key={x} position={[x, 0.14, 0.72 + index * 0.12]} rotation={[0, index * 0.2, 0]} size={[0.22, 0.16, 0.18]} material={metal} />
         ))}

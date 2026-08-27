@@ -329,7 +329,12 @@ describe('stage object placements', () => {
     const byId = new Map(getStageObjectPlacements('stage3').map((placement) => [placement.id, placement]))
 
     expect(byId.get('stage3-hoop-north-normal').rotation).toEqual([0, 0, 0])
-    expect(byId.get('stage3-hoop-south-damaged').rotation).toEqual([0, Math.PI, 0])
+    expect(byId.get('stage3-hoop-south-playful')).toMatchObject({
+      position: [0, 0, 16.0],
+      rotation: [0, Math.PI, 0],
+      props: { playful: true },
+    })
+    expect(byId.get('stage3-hoop-south-playful')?.props?.damaged).toBeUndefined()
     expect(byId.get('stage3-scoreboard-north-wall').rotation).toEqual([0, 0.08, 0])
     expect(byId.get('stage3-banner-south-wall').rotation).toEqual([0, Math.PI + 0.08, 0])
     expect(byId.get('stage3-exit-door-east-wall').rotation).toEqual([0, -Math.PI / 2, 0])
@@ -415,69 +420,75 @@ describe('stage 4 cafeteria kitchen placements', () => {
   const PRE_EXPANSION_STAGE4_SHA256 = 'c00b8cecab51e63d2d5ba9fc42c8ff04d53e38329c8b19edcdcf72e8e8781bb2'
   const FINAL_SAFE_STAGE4_X_BY_ID = new Map([
     ['stage4-cookline-north-center', -0.39],
-    ['stage4-refrigerator-north-west-closed', -7.807],
-    ['stage4-refrigerator-north-west-open', -6.196],
-    ['stage4-crates-north-west-corner', -8.059],
-    ['stage4-clutter-north-cookline-spill', 2.34],
-    ['stage4-sink-north-east', 4.81],
-    ['stage4-crates-north-east-corner', 7.02],
-    ['stage4-trayrack-north-east-inner', 5.98],
-    ['stage4-shelfcart-east-north', 8.157],
-    ['stage4-shelfcart-east-upper', 8.19],
-    ['stage4-preptable-east-side-counter', 7.858],
-    ['stage4-trash-east-wheelie', 8.096],
-    ['stage4-trayrack-east-mid', 8.008],
-    ['stage4-crates-east-mid', 8.06],
-    ['stage4-clutter-east-trays', 7.7],
-    ['stage4-preptable-east-south-counter', 7.828],
-    ['stage4-shelfcart-west-north', -8.14],
-    ['stage4-clutter-west-pots', -7.93],
-    ['stage4-trash-west-wheelie', -8.109],
-    ['stage4-sink-west-mid', -7.919],
-    ['stage4-trash-west-round', -8.097],
-    ['stage4-clutter-west-bags', -7.96],
-    ['stage4-shelfcart-west-south', -8.135],
-    ['stage4-crates-south-west-corner', -8.05],
-    ['stage4-preptable-south-serving-left', -2.18],
-    ['stage4-preptable-south-serving-right', 1.17],
-    ['stage4-crates-south-west-stack', -7.02],
-    ['stage4-crates-south-center-stack', -4.68],
-    ['stage4-clutter-south-trays', 3.77],
-    ['stage4-trash-south-round', 5.33],
-    ['stage4-trayrack-south-east', 7.54],
+    ['stage4-refrigerator-north-west-closed', -7.35],
+    ['stage4-refrigerator-north-west-open', -5.85],
+    ['stage4-crates-north-west-corner', -7.12],
+    ['stage4-clutter-north-cookline-spill', 2.15],
+    ['stage4-sink-north-east', 4.45],
+    ['stage4-crates-north-east-corner', 6.45],
+    ['stage4-trayrack-north-east-inner', 5.55],
+    ['stage4-shelfcart-east-north', 7.08],
+    ['stage4-shelfcart-east-upper', 7.08],
+    ['stage4-preptable-east-side-counter', 6.96],
+    ['stage4-trash-east-wheelie', 7.04],
+    ['stage4-trayrack-east-mid', 7.02],
+    ['stage4-crates-east-mid', 7.06],
+    ['stage4-clutter-east-trays', 6.86],
+    ['stage4-preptable-east-south-counter', 6.94],
+    ['stage4-shelfcart-west-north', -7.08],
+    ['stage4-clutter-west-pots', -6.92],
+    ['stage4-trash-west-wheelie', -7.05],
+    ['stage4-sink-west-mid', -6.98],
+    ['stage4-trash-west-round', -7.04],
+    ['stage4-clutter-west-bags', -6.92],
+    ['stage4-shelfcart-west-south', -7.08],
+    ['stage4-crates-south-west-corner', -7.10],
+    ['stage4-preptable-south-serving-left', -2.02],
+    ['stage4-preptable-south-serving-right', 1.08],
+    ['stage4-crates-south-west-stack', -6.45],
+    ['stage4-crates-south-center-stack', -4.35],
+    ['stage4-clutter-south-trays', 3.42],
+    ['stage4-trash-south-round', 4.92],
+    ['stage4-trayrack-south-east', 6.72],
     ['stage4-pressure-cauldron-center', 0],
-    ['stage4-student-serving-south', 2.73],
-    ['stage4-student-kitchen-northeast', 5.915],
+    ['stage4-student-serving-south', 2.28],
+    ['stage4-student-kitchen-northeast', 4.95],
   ])
-  const SAFETY_NUDGED_STAGE4_IDS = [
-    'stage4-refrigerator-north-west-closed',
-    'stage4-refrigerator-north-west-open',
-    'stage4-crates-north-west-corner',
-    'stage4-shelfcart-east-north',
-    'stage4-shelfcart-east-upper',
-    'stage4-preptable-east-side-counter',
-    'stage4-trash-east-wheelie',
-    'stage4-trayrack-east-mid',
-    'stage4-crates-east-mid',
-    'stage4-clutter-east-trays',
-    'stage4-preptable-east-south-counter',
-    'stage4-shelfcart-west-north',
-    'stage4-clutter-west-pots',
-    'stage4-trash-west-wheelie',
-    'stage4-sink-west-mid',
-    'stage4-trash-west-round',
-    'stage4-clutter-west-bags',
-    'stage4-shelfcart-west-south',
-    'stage4-crates-south-west-corner',
-    'stage4-preptable-south-serving-left',
-  ]
   const SAFE_NUDGED_STAGE4_Z_BY_ID = new Map([
-    ['stage4-cookline-north-center', -14.5],
-    ['stage4-refrigerator-north-west-closed', -14.579],
-    ['stage4-refrigerator-north-west-open', -14.562],
-    ['stage4-preptable-south-serving-left', 14.496],
-    ['stage4-preptable-south-serving-right', 14.473],
-    ['stage4-clutter-south-trays', 14.52],
+    ['stage4-cookline-north-center', -13.75],
+    ['stage4-refrigerator-north-west-closed', -13.72],
+    ['stage4-refrigerator-north-west-open', -13.72],
+    ['stage4-crates-north-west-corner', -11.45],
+    ['stage4-clutter-north-cookline-spill', -13.42],
+    ['stage4-sink-north-east', -13.72],
+    ['stage4-crates-north-east-corner', -12.25],
+    ['stage4-trayrack-north-east-inner', -9.2],
+    ['stage4-shelfcart-east-north', -10.15],
+    ['stage4-shelfcart-east-upper', -7.0],
+    ['stage4-preptable-east-side-counter', -3.9],
+    ['stage4-trash-east-wheelie', -0.72],
+    ['stage4-trayrack-east-mid', 2.52],
+    ['stage4-crates-east-mid', 5.62],
+    ['stage4-clutter-east-trays', 8.52],
+    ['stage4-preptable-east-south-counter', 11.25],
+    ['stage4-shelfcart-west-north', -8.58],
+    ['stage4-clutter-west-pots', -5.45],
+    ['stage4-trash-west-wheelie', -3.08],
+    ['stage4-sink-west-mid', 0.95],
+    ['stage4-trash-west-round', 4.62],
+    ['stage4-clutter-west-bags', 7.18],
+    ['stage4-shelfcart-west-south', 10.25],
+    ['stage4-crates-south-west-corner', 12.85],
+    ['stage4-preptable-south-serving-left', 13.72],
+    ['stage4-preptable-south-serving-right', 13.72],
+    ['stage4-crates-south-west-stack', 13.78],
+    ['stage4-crates-south-center-stack', 13.82],
+    ['stage4-clutter-south-trays', 13.68],
+    ['stage4-trash-south-round', 13.78],
+    ['stage4-trayrack-south-east', 13.7],
+    ['stage4-pressure-cauldron-center', 0],
+    ['stage4-student-serving-south', 11.65],
+    ['stage4-student-kitchen-northeast', -6.2],
   ])
   const STAGE4_KITCHEN_TYPES = [
     'kitchenPrepTable',
@@ -509,27 +520,18 @@ describe('stage 4 cafeteria kitchen placements', () => {
     })
   })
 
-  it('keeps the 30-percent X layout while applying only the exact one-tile safety nudges', () => {
+  it('keeps the mobile-safe Stage 4 layout pulled inward from phone screen edges', () => {
     const authored = STAGE_OBJECT_PLACEMENTS.stage4
     expect(authored).toHaveLength(34)
     expect(PRE_EXPANSION_STAGE4_X_BY_ID.size).toBe(34)
+    expect(PRE_EXPANSION_STAGE4_Z_BY_ID.size).toBe(34)
     expect(FINAL_SAFE_STAGE4_X_BY_ID.size).toBe(34)
+    expect(SAFE_NUDGED_STAGE4_Z_BY_ID.size).toBe(34)
+
     authored.forEach((placement) => {
       expect(placement.position[0], placement.id).toBe(FINAL_SAFE_STAGE4_X_BY_ID.get(placement.id))
+      expect(placement.position[2], placement.id).toBe(SAFE_NUDGED_STAGE4_Z_BY_ID.get(placement.id))
     })
-    const actualNudgedIds = authored
-      .filter((placement) => Math.abs(
-        placement.position[0] - PRE_EXPANSION_STAGE4_X_BY_ID.get(placement.id) * 1.3
-      ) > 1e-12)
-      .map(({ id }) => id)
-    expect(actualNudgedIds).toEqual(SAFETY_NUDGED_STAGE4_IDS)
-
-    authored
-      .filter(({ id }) => SAFE_NUDGED_STAGE4_Z_BY_ID.has(id))
-      .forEach(({ id, position: [, , z] }) => {
-        expect(z, id).toBe(SAFE_NUDGED_STAGE4_Z_BY_ID.get(id))
-      })
-    expect(SAFE_NUDGED_STAGE4_Z_BY_ID.size).toBe(6)
 
     const restoredPreExpansionSnapshot = authored.map((placement) => ({
       ...placement,
@@ -539,7 +541,6 @@ describe('stage 4 cafeteria kitchen placements', () => {
         PRE_EXPANSION_STAGE4_Z_BY_ID.get(placement.id),
       ],
     }))
-    expect(PRE_EXPANSION_STAGE4_Z_BY_ID.size).toBe(34)
     const restoredHash = createHash('sha256').update(JSON.stringify(restoredPreExpansionSnapshot)).digest('hex')
     expect(restoredHash).toBe(PRE_EXPANSION_STAGE4_SHA256)
   })
