@@ -68,7 +68,7 @@ describe('B03 왕복 오래달리기', () => {
   })
 
   it('첫 액티브 프레임의 이동량이 한 프레임 분량(속도×delta)을 넘지 않는다 — 순간이동 없음', () => {
-    // 한 프레임 최대 이동 = 기본속도 × 10 × delta. 옛 구현은 여기서 5유닛 이상 튀었다.
+    // 한 프레임 최대 이동 = 기본속도 × 3 × delta. 옛 구현은 여기서 5유닛 이상 튀었다.
     const maxFrameTravel = B03_SHUTTLE_BASE_SPEED * B03_SHUTTLE_SPEED_MULTIPLIER * (FRAME_MS / 1000)
     for (const bossX of [-6.4, -3.1, -0.2, 0, 0.2, 2.7, 6.4]) {
       const { laneZ, startX, endX } = getB03ShuttleRunLaneFromBoss(bossX, 3.5, STAGE3_HALF_X, STAGE3_HALF_Z)
@@ -83,7 +83,7 @@ describe('B03 왕복 오래달리기', () => {
       // Enemy.jsx는 이 X와 보스의 실제 t.x 차이를 delta로 나눠 속도로 넣는다.
       const stepped = advanceB03ShuttleRun(state, FRAME_MS)
       expect(Math.abs(getB03ShuttleRunX(stepped) - bossX)).toBeLessThanOrEqual(maxFrameTravel + 1e-9)
-      // 그 속도 자체도 "평소 이동속도 ×10"을 넘지 않아야 한다.
+      // 그 속도 자체도 "평소 이동속도 ×3"을 넘지 않아야 한다.
       const impliedSpeed = Math.abs(getB03ShuttleRunX(stepped) - bossX) / (FRAME_MS / 1000)
       expect(impliedSpeed).toBeLessThanOrEqual(B03_SHUTTLE_BASE_SPEED * B03_SHUTTLE_SPEED_MULTIPLIER + 1e-6)
     }
@@ -139,7 +139,7 @@ describe('B03 왕복 오래달리기', () => {
     }
   })
 
-  it('1.25초 예고 뒤 두 번 왕복하고 1.2초 경직으로 끝난다', () => {
+  it('1.25초 예고 뒤 2패스(왕복 1회)를 돌고 1.2초 경직으로 끝난다', () => {
     let state = startB03ShuttleRun(createB03ShuttleRunState(), 'sixtyFive', {
       laneZ: 0, startX: STAGE3_START_X, endX: STAGE3_END_X, baseSpeed: B03_SHUTTLE_BASE_SPEED,
     })
@@ -152,26 +152,28 @@ describe('B03 왕복 오래달리기', () => {
     expect(state.phase).toBe('idle')
   })
 
-  // 2026-08-23 사용자 지시 최종본: "평소 이동속도의 10배로 왕복 달리기".
+  // 2026-08-29 사용자 지시 최종본: "평소 이동하는 애니메이션 그대로, 속도만 3배로
+  // 그 직선 위를 걷는다. 1번 왕복한다."
   // 고정 duration 상수로는 이 사양을 지킬 수 없다 — 레인 길이에서 역산해야 한다.
-  it('편도 소요시간은 레인 길이 ÷ (기본속도 × 10)으로 역산된다', () => {
-    expect(B03_SHUTTLE_SPEED_MULTIPLIER).toBe(10)
+  it('편도 소요시간은 레인 길이 ÷ (기본속도 × 3)으로 역산된다', () => {
+    expect(B03_SHUTTLE_SPEED_MULTIPLIER).toBe(3)
     const distance = Math.abs(STAGE3_END_X - STAGE3_START_X)
     const expectedMs = (distance / (B03_SHUTTLE_BASE_SPEED * B03_SHUTTLE_SPEED_MULTIPLIER)) * 1000
     const state = startB03ShuttleRun(createB03ShuttleRunState(), 'sixtyFive', {
       laneZ: 0, startX: STAGE3_START_X, endX: STAGE3_END_X, baseSpeed: B03_SHUTTLE_BASE_SPEED,
     })
     expect(state.passDurationMs).toBeCloseTo(expectedMs, 6)
-    // stage3 실측: 13.2 / 5.225 ≈ 2.526초 편도 → 왕복 ≈ 5.05초.
-    expect(state.passDurationMs).toBeCloseTo(2526.32, 1)
-    // 실효 이동속도가 정확히 기본속도의 10배인지 X 보간으로 직접 확인한다.
+    // stage3 최장 레인 실측: 13.2 / 1.5675 ≈ 8.42초 편도 → 왕복 ≈ 16.8초.
+    // 보스가 중앙에서 발동하면 편도 6.6이라 왕복 ≈ 8.4초다(출발점 = 보스 현재 X).
+    expect(state.passDurationMs).toBeCloseTo(8421.05, 1)
+    // 실효 이동속도가 정확히 기본속도의 3배인지 X 보간으로 직접 확인한다.
     const active = advanceB03ShuttleRun(state, B03_SHUTTLE_TELEGRAPH_MS)
     const oneSecondIn = advanceB03ShuttleRun(active, 1000)
     const travelled = getB03ShuttleRunX(oneSecondIn) - STAGE3_START_X
-    expect(travelled).toBeCloseTo(B03_SHUTTLE_BASE_SPEED * 10, 6)
+    expect(travelled).toBeCloseTo(B03_SHUTTLE_BASE_SPEED * 3, 6)
   })
 
-  it('레인이 길어져도 달리기 속도는 10배로 고정된다(길이에 비례해 시간만 늘어난다)', () => {
+  it('레인이 길어져도 이동속도는 3배로 고정된다(길이에 비례해 시간만 늘어난다)', () => {
     const short = getB03ShuttleRunPassDurationMs(-6.6, 6.6, B03_SHUTTLE_BASE_SPEED)
     const long = getB03ShuttleRunPassDurationMs(-13.2, 13.2, B03_SHUTTLE_BASE_SPEED)
     expect(long / short).toBeCloseTo(2, 10)

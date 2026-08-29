@@ -1,10 +1,13 @@
 // 2026-08-23 사용자 지시로 필살기를 전면 개정했다.
-//   (1) 왕복 달리기 속도 = 평소 이동속도의 정확히 10배,
+//   (1) 왕복 달리기 속도 = 평소 이동속도의 정확히 3배,
 //   (2) 접촉 피해 = 플레이어가 "그 순간 가진" 체력의 30%(고정 수치 아님).
 // 속도는 상수 duration으로 못박지 않는다 — 레인 길이 ÷ (기본속도 × 10)로 역산해야
 // 맵 halfX가 바뀌어도 화면상 달리는 속도가 사양 그대로 유지된다.
-// 배수 10은 같은 날 추가 지시("왕복이 너무 길다")로 확정된 최종 사양이다.
-export const B03_SHUTTLE_SPEED_MULTIPLIER = 10
+// 배수 3은 2026-08-29 사용자 재지시로 확정된 최종 사양이다. 그 전의 10배는 출발점이
+// 아레나 가장자리로 고정이던 시절, 왕복이 너무 길다는 이유로 올린 값이었다. 지금은
+// 출발점이 보스의 현재 위치라 평균 편도가 짧아졌고, 사양도 "달리기"가 아니라
+// "평소 걷는 애니메이션 그대로 3배 속도로 그 직선 위를 걷는다"로 바뀌었다.
+export const B03_SHUTTLE_SPEED_MULTIPLIER = 3
 // ENEMY_STATS를 여기서 import하면 Enemy.jsx ↔ 이 모듈이 순환 참조가 된다.
 // 호출부(Enemy.jsx)가 stats.speed를 넘기는 것이 정본이고, 이 값은 그때의 폴백일 뿐이다.
 export const B03_SHUTTLE_BASE_SPEED = 0.5225
@@ -23,7 +26,7 @@ export function getB03ShuttleRunPlayerDamage(currentHp) {
   return Math.max(0, currentHp) * B03_SHUTTLE_PLAYER_DAMAGE_RATIO
 }
 
-// 편도 1회 소요시간(ms) = 레인 길이 / (기본 이동속도 × 10).
+// 편도 1회 소요시간(ms) = 레인 길이 / (기본 이동속도 × 3).
 // 길이 0(미시전 idle 상태의 기본값)일 때 advance의 나눗셈이 터지지 않도록 하한 1ms를 둔다.
 export function getB03ShuttleRunPassDurationMs(startX, endX, baseSpeed = B03_SHUTTLE_BASE_SPEED) {
   const distance = Math.abs(endX - startX)
@@ -97,7 +100,7 @@ export function getB03ShuttleRunLaneZ(laneZ, halfZ) {
 // 출발점은 반드시 보스가 "지금 서 있는" X다. 예전에는 가까운 쪽 벽 좌표를 출발점으로 잡아서,
 // 텔레그래프가 끝나는 첫 액티브 프레임에 보스가 최대 6.6유닛을 한 프레임에 순간이동했다
 // (2026-08-29 사용자 보고: "완전히 엉뚱한 곳으로 보스가 날아가서"). 도착점만 반대편 끝이다.
-// 편도 거리가 짧아지면 소요시간도 같이 줄지만 그게 정상이다 — 사양은 duration이 아니라 속도(×10)다.
+// 편도 거리가 짧아지면 소요시간도 같이 줄지만 그게 정상이다 — 사양은 duration이 아니라 속도(×3)다.
 export function getB03ShuttleRunLaneX(bossX, halfX, edgeInset = B03_SHUTTLE_LANE_EDGE_INSET) {
   const limit = Math.max(0, halfX - edgeInset)
   const safeBossX = Number.isFinite(bossX) ? bossX : 0

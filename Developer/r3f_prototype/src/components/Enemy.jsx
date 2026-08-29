@@ -1234,7 +1234,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         const { laneZ, startX, endX } = getB03ShuttleRunLaneFromBoss(
           t.x, t.z, stageCombatConfig.bounds.halfX, stageCombatConfig.bounds.halfZ,
         )
-        // baseSpeed를 넘겨야 패스 소요시간이 "평소 이동속도 ×10"으로 역산된다(고정 duration 금지).
+        // baseSpeed를 넘겨야 패스 소요시간이 "평소 이동속도 ×3"으로 역산된다(고정 duration 금지).
         const next = startB03ShuttleRun(previous, trigger, { laneZ, startX, endX, baseSpeed: stats.speed })
         logPlaytestEvent('b03-shuttle-start', { trigger, hpRatio: hpRef.current / stats.hp, elapsedSec: Math.round(elapsedMs / 100) / 10 })
         b03ShuttleRef.current = next
