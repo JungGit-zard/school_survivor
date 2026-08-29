@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { useFrame, useLoader } from '@react-three/fiber'
 import * as THREE from 'three'
-import { inflateScale, getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat } from '../lib/toon.js'
+import { inflateScale, getCachedBoxGeo, getCachedChamferedBoxGeo, getCachedToonMat, getSharedOutlineMat, getFlashMat } from '../lib/toon.js'
 import { getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
 import boss01FaceUrl from '../assets/faces/b01_math_teacher_face.webp'
 import boss02FaceUrl from '../assets/faces/b02_stage2_boss_face.webp'
@@ -350,8 +350,8 @@ export const B02_STAGE2_BOSS_FACE = {
   offset: [0, 0],
 }
 
-function ZBlock({ name, studioPartId, size, position, rotation, color, emissive = 0.12, outlineScale = 1.08, flash = false, children = null }) {
-  const geo    = getCachedBoxGeo(...size)
+function ZBlock({ name, studioPartId, size, position, rotation, color, emissive = 0.12, outlineScale = 1.08, flash = false, chamferSteps = 0, children = null }) {
+  const geo    = chamferSteps > 0 ? getCachedChamferedBoxGeo(...size, chamferSteps) : getCachedBoxGeo(...size)
   const outMat = getSharedOutlineMat()
   const mat    = flash ? getFlashMat() : getCachedToonMat(color, emissive)
   const os     = inflateScale(outlineScale)
@@ -711,31 +711,31 @@ function CoinJingleZombieMesh({ hitFlash, reg }) {
   return (
     <group name="coinJingleZombie">
       <group ref={reg('head')} position={[0, 0.82, 0]}>
-        <ZBlock name="coinJingleHead" size={[0.52, 0.48, 0.46]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash} />
-        <ZBlock name="coinJingleEyeL" size={[0.10, 0.09, 0.06]} position={[-0.12, 0.04, 0.24]} color={pal.eye} emissive={0.95} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock name="coinJingleEyeR" size={[0.10, 0.09, 0.06]} position={[0.12, 0.04, 0.24]} color={pal.eye} emissive={0.95} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock name="coinJingleForeheadCoin" size={[0.20, 0.06, 0.20]} position={[0, 0.26, 0.04]} rotation={[Math.PI / 2, 0, 0]} color={pal.coin} emissive={0.28} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock name="coinJingleHead" size={[0.52, 0.48, 0.46]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash} chamferSteps={2} />
+        <ZBlock name="coinJingleEyeL" size={[0.10, 0.09, 0.06]} position={[-0.12, 0.04, 0.24]} color={pal.eye} emissive={0.95} outlineScale={1.0} flash={hitFlash} chamferSteps={2} />
+        <ZBlock name="coinJingleEyeR" size={[0.10, 0.09, 0.06]} position={[0.12, 0.04, 0.24]} color={pal.eye} emissive={0.95} outlineScale={1.0} flash={hitFlash} chamferSteps={2} />
+        <ZBlock name="coinJingleForeheadCoin" size={[0.20, 0.06, 0.20]} position={[0, 0.26, 0.04]} rotation={[Math.PI / 2, 0, 0]} color={pal.coin} emissive={0.28} outlineScale={1.03} flash={hitFlash} chamferSteps={2} />
       </group>
       <group ref={reg('body')} position={[0, 0.28, 0]}>
-        <ZBlock name="coinJingleBody" size={[0.56, 0.58, 0.40]} position={[0, 0, 0]} color={pal.body} emissive={0.12} outlineScale={1.09} flash={hitFlash} />
-        <ZBlock name="coinJingleCoinBag" size={[0.26, 0.30, 0.13]} position={[0.20, -0.04, 0.28]} color={pal.coinBag} emissive={0.10} outlineScale={1.05} flash={hitFlash} />
-        <ZBlock name="coinJingleBagCoin" size={[0.15, 0.035, 0.15]} position={[0.20, 0.05, 0.36]} rotation={[Math.PI / 2, 0, 0]} color={pal.coin} emissive={0.30} outlineScale={1.02} flash={hitFlash} />
+        <ZBlock name="coinJingleBody" size={[0.56, 0.58, 0.40]} position={[0, 0, 0]} color={pal.body} emissive={0.12} outlineScale={1.09} flash={hitFlash} chamferSteps={2} />
+        <ZBlock name="coinJingleCoinBag" size={[0.26, 0.30, 0.13]} position={[0.20, -0.04, 0.28]} color={pal.coinBag} emissive={0.10} outlineScale={1.05} flash={hitFlash} chamferSteps={2} />
+        <ZBlock name="coinJingleBagCoin" size={[0.15, 0.035, 0.15]} position={[0.20, 0.05, 0.36]} rotation={[Math.PI / 2, 0, 0]} color={pal.coin} emissive={0.30} outlineScale={1.02} flash={hitFlash} chamferSteps={2} />
       </group>
       <group ref={reg('armL')} position={[-0.40, 0.52, 0]} rotation={[-1.15, 0, 0.12]}>
-        <ZBlock name="coinJingleArmL" size={[0.20, 0.50, 0.20]} position={[0, -0.25, 0]} color={pal.body} emissive={0.10} outlineScale={1.05} flash={hitFlash} />
-        <ZBlock name="coinJingleCoinL" size={[0.16, 0.035, 0.16]} position={[0, -0.58, 0.08]} rotation={[Math.PI / 2, 0, 0]} color={pal.coin} emissive={0.32} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock name="coinJingleArmL" size={[0.20, 0.50, 0.20]} position={[0, -0.25, 0]} color={pal.body} emissive={0.10} outlineScale={1.05} flash={hitFlash} chamferSteps={2} />
+        <ZBlock name="coinJingleCoinL" size={[0.16, 0.035, 0.16]} position={[0, -0.58, 0.08]} rotation={[Math.PI / 2, 0, 0]} color={pal.coin} emissive={0.32} outlineScale={1.03} flash={hitFlash} chamferSteps={2} />
       </group>
       <group ref={reg('armR')} position={[0.40, 0.52, 0]} rotation={[-1.15, 0, -0.12]}>
-        <ZBlock name="coinJingleArmR" size={[0.20, 0.50, 0.20]} position={[0, -0.25, 0]} color={pal.body} emissive={0.10} outlineScale={1.05} flash={hitFlash} />
-        <ZBlock name="coinJingleCoinR" size={[0.16, 0.035, 0.16]} position={[0, -0.58, 0.08]} rotation={[Math.PI / 2, 0, 0]} color={pal.coin} emissive={0.32} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock name="coinJingleArmR" size={[0.20, 0.50, 0.20]} position={[0, -0.25, 0]} color={pal.body} emissive={0.10} outlineScale={1.05} flash={hitFlash} chamferSteps={2} />
+        <ZBlock name="coinJingleCoinR" size={[0.16, 0.035, 0.16]} position={[0, -0.58, 0.08]} rotation={[Math.PI / 2, 0, 0]} color={pal.coin} emissive={0.32} outlineScale={1.03} flash={hitFlash} chamferSteps={2} />
       </group>
       <group ref={reg('legL')} position={[-0.15, 0.00, 0]}>
-        <ZBlock name="coinJingleLegL" size={[0.22, 0.52, 0.26]} position={[0, -0.26, 0]} color={pal.body} emissive={0.09} outlineScale={1.06} flash={hitFlash} />
-        <ZBlock name="coinJingleFootL" size={[0.24, 0.12, 0.34]} position={[0, -0.57, 0.05]} color={0x1a1a1a} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock name="coinJingleLegL" size={[0.22, 0.52, 0.26]} position={[0, -0.26, 0]} color={pal.body} emissive={0.09} outlineScale={1.06} flash={hitFlash} chamferSteps={2} />
+        <ZBlock name="coinJingleFootL" size={[0.24, 0.12, 0.34]} position={[0, -0.57, 0.05]} color={0x1a1a1a} emissive={0.05} outlineScale={1.03} flash={hitFlash} chamferSteps={2} />
       </group>
       <group ref={reg('legR')} position={[0.15, 0.00, 0]}>
-        <ZBlock name="coinJingleLegR" size={[0.22, 0.52, 0.26]} position={[0, -0.26, 0]} color={pal.body} emissive={0.09} outlineScale={1.06} flash={hitFlash} />
-        <ZBlock name="coinJingleFootR" size={[0.24, 0.12, 0.34]} position={[0, -0.57, 0.05]} color={0x1a1a1a} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
+        <ZBlock name="coinJingleLegR" size={[0.22, 0.52, 0.26]} position={[0, -0.26, 0]} color={pal.body} emissive={0.09} outlineScale={1.06} flash={hitFlash} chamferSteps={2} />
+        <ZBlock name="coinJingleFootR" size={[0.24, 0.12, 0.34]} position={[0, -0.57, 0.05]} color={0x1a1a1a} emissive={0.05} outlineScale={1.03} flash={hitFlash} chamferSteps={2} />
       </group>
     </group>
   )

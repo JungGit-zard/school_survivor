@@ -9,7 +9,7 @@ import { enemyPool, playerPos, screenBounds } from '../lib/refs.js'
 import { getFirebaseStudioRuntimeState } from '../lib/studioRuntimeState.js'
 import { GRAPHICS_STUDIO_TUNING_EVENT, getStudioZombieItemId, loadStudioTunings } from '../lib/graphicsStudioConfig.js'
 import { composeStudioPartMultiplier, composeStudioPartOffset, composeStudioPartTransformCache, getStudioTransformProps } from './StudioTunedGroup.jsx'
-import { getToonGradient } from '../lib/toon.js'
+import { getCachedChamferedBoxGeo, getToonGradient } from '../lib/toon.js'
 import { ZOMBIE_PALETTE } from './ZombieMesh.jsx'
 import { ENEMY_RENDER_FAR, POOLED_CHARGE_CUE_PARTS, POOLED_ENEMY_CAPACITY, SPAWN_REVEAL_MS, SPAWN_SMOKE_MS, applyPooledZombieStudioPartTunings, fillEnemyHealthBarLayout, fillVisibleChargeCueSlots, getPooledChargeCueY, getPooledEnemyAnimationTime, getPooledEnemyRenderTier, getSpawnSmokeOpacity, setSlotOpacity, shouldRenderPooledEnemyPart, updateHealthVisualState } from './PooledEnemyVisuals.js'
 
@@ -58,10 +58,10 @@ const RZG = [
   ['legL','pants',[.22,.50,.26],[-.15,0,0],[0,-.25,0],1.05], ['shoeL','shoe',[.26,.12,.36],[-.15,0,0],[0,-.55,.06],1.03], ['legR','pants',[.22,.50,.26],[.15,0,0],[0,-.25,0],1.05], ['shoeR','shoe',[.26,.12,.36],[.15,0,0],[0,-.55,.06],1.03],
 ]
 const COIN_JINGLE = [
-  ['head','skin',[.52,.48,.46],[0,.82,0],[0,0,0],1.08], ['eyeL','eye',[.10,.09,.06],[0,.82,0],[-.12,.04,.24],1], ['eyeR','eye',[.10,.09,.06],[0,.82,0],[.12,.04,.24],1], ['foreheadCoin','coin',[.20,.06,.20],[0,.82,0],[0,.26,.04],1.03],
-  ['body','body',[.56,.58,.40],[0,.28,0],[0,0,0],1.09], ['coinBag','coinBag',[.26,.30,.13],[0,.28,0],[.20,-.04,.28],1.05], ['bagCoin','coin',[.15,.035,.15],[0,.28,0],[.20,.05,.36],1.02],
-  ['armL','body',[.20,.50,.20],[-.40,.52,0],[0,-.25,0],1.05], ['handCoinL','coin',[.16,.035,.16],[-.40,.52,0],[0,-.58,.08],1.03], ['armR','body',[.20,.50,.20],[.40,.52,0],[0,-.25,0],1.05], ['handCoinR','coin',[.16,.035,.16],[.40,.52,0],[0,-.58,.08],1.03],
-  ['legL','body',[.22,.52,.26],[-.15,0,0],[0,-.26,0],1.06], ['footL','foot',[.24,.12,.34],[-.15,0,0],[0,-.57,.05],1.03], ['legR','body',[.22,.52,.26],[.15,0,0],[0,-.26,0],1.06], ['footR','foot',[.24,.12,.34],[.15,0,0],[0,-.57,.05],1.03],
+  ['head','skin',[.52,.48,.46],[0,.82,0],[0,0,0],1.08,'chamfer2'], ['eyeL','eye',[.10,.09,.06],[0,.82,0],[-.12,.04,.24],1,'chamfer2'], ['eyeR','eye',[.10,.09,.06],[0,.82,0],[.12,.04,.24],1,'chamfer2'], ['foreheadCoin','coin',[.20,.06,.20],[0,.82,0],[0,.26,.04],1.03,'chamfer2'],
+  ['body','body',[.56,.58,.40],[0,.28,0],[0,0,0],1.09,'chamfer2'], ['coinBag','coinBag',[.26,.30,.13],[0,.28,0],[.20,-.04,.28],1.05,'chamfer2'], ['bagCoin','coin',[.15,.035,.15],[0,.28,0],[.20,.05,.36],1.02,'chamfer2'],
+  ['armL','body',[.20,.50,.20],[-.40,.52,0],[0,-.25,0],1.05,'chamfer2'], ['handCoinL','coin',[.16,.035,.16],[-.40,.52,0],[0,-.58,.08],1.03,'chamfer2'], ['armR','body',[.20,.50,.20],[.40,.52,0],[0,-.25,0],1.05,'chamfer2'], ['handCoinR','coin',[.16,.035,.16],[.40,.52,0],[0,-.58,.08],1.03,'chamfer2'],
+  ['legL','body',[.22,.52,.26],[-.15,0,0],[0,-.26,0],1.06,'chamfer2'], ['footL','foot',[.24,.12,.34],[-.15,0,0],[0,-.57,.05],1.03,'chamfer2'], ['legR','body',[.22,.52,.26],[.15,0,0],[0,-.26,0],1.06,'chamfer2'], ['footR','foot',[.24,.12,.34],[.15,0,0],[0,-.57,.05],1.03,'chamfer2'],
 ]
 const RZT_OFFSET = STANDARD.length + RUN.length
 const RZG_OFFSET = RZT_OFFSET + RZT.length
@@ -111,7 +111,7 @@ function setPartRotation(dst, key, time, type, state) {
 function makeMat(eye = false) { const x = new THREE.MeshToonMaterial({ color: 0xffffff, gradientMap: getToonGradient(), emissive: 0, emissiveIntensity: eye ? .9 : .12 }); x.stencilWrite = true; x.stencilRef = OUTLINE; x.stencilFunc = THREE.AlwaysStencilFunc; x.stencilZPass = THREE.ReplaceStencilOp; return x }
 function makeOutline() { const x = new THREE.MeshBasicMaterial({ color: 0x050209, side: THREE.BackSide, transparent: true, opacity: .96, depthWrite: false }); x.stencilWrite = true; x.stencilRef = OUTLINE; x.stencilFunc = THREE.NotEqualStencilFunc; return x }
 function makeCueMat() { const x = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false, toneMapped: false }); return x }
-function im(part, material) { const x = new THREE.InstancedMesh(new THREE.BoxGeometry(...part[2]), material, POOLED_ENEMY_CAPACITY); x.frustumCulled = false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for (let i=0;i<POOLED_ENEMY_CAPACITY;i++) x.setMatrixAt(i,ZERO); x.count=0; return x }
+function im(part, material) { const geometry = part[6] === 'chamfer2' ? getCachedChamferedBoxGeo(...part[2], 2) : new THREE.BoxGeometry(...part[2]); const x = new THREE.InstancedMesh(geometry, material, POOLED_ENEMY_CAPACITY); x.frustumCulled = false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for (let i=0;i<POOLED_ENEMY_CAPACITY;i++) x.setMatrixAt(i,ZERO); x.count=0; return x }
 export function installInstanceAlpha(geometry, material, count) { const alpha = new THREE.InstancedBufferAttribute(new Float32Array(count).fill(1), 1); geometry.setAttribute('instanceAlpha', alpha); material.onBeforeCompile = (shader) => { shader.vertexShader = `attribute float instanceAlpha; varying float pooledInstanceAlpha;\n${shader.vertexShader}`.replace('#include <begin_vertex>', '#include <begin_vertex>\npooledInstanceAlpha = instanceAlpha;'); shader.fragmentShader = `varying float pooledInstanceAlpha;\n${shader.fragmentShader}`.replace('#include <output_fragment>', '#include <output_fragment>\ngl_FragColor.a *= pooledInstanceAlpha;') }; material.customProgramCacheKey = () => 'pooled-instance-alpha-v1'; return alpha }
 function plane(material) { const geometry=new THREE.PlaneGeometry(1,1); const x = new THREE.InstancedMesh(geometry,material,POOLED_ENEMY_CAPACITY); x.frustumCulled=false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); x.userData.instanceAlpha=installInstanceAlpha(geometry,material,POOLED_ENEMY_CAPACITY); for(let i=0;i<POOLED_ENEMY_CAPACITY;i++) x.setMatrixAt(i,ZERO); x.count=0; return x }
 function cueIM(def, material) { const geometry=def.radius?new THREE.SphereGeometry(def.radius,12,8):new THREE.BoxGeometry(...def.size); const x = new THREE.InstancedMesh(geometry, material, 16); x.frustumCulled=false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for(let i=0;i<16;i++)x.setMatrixAt(i,ZERO); x.count=0; return x }

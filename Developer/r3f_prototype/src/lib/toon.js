@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 
 let _gradient = null
 
@@ -94,6 +95,21 @@ export function getCachedBoxGeo(w, h, d) {
   return g
 }
 
+const _chamferedBoxGeoCache = new Map()
+export function getCachedChamferedBoxGeo(w, h, d, steps = 2, radiusRatio = 0.14) {
+  const minAxis = Math.max(0.001, Math.min(w, h, d))
+  const radius = Math.min(minAxis * radiusRatio, minAxis * 0.45)
+  const segments = Math.max(1, Math.floor(steps))
+  const key = `${w},${h},${d},${segments},${radiusRatio}`
+  let g = _chamferedBoxGeoCache.get(key)
+  if (!g) {
+    // 2 segments = Terry가 말한 "두 번 깎은" 정도. 반경은 작게 제한해 육면체 실루엣을 유지한다.
+    g = new RoundedBoxGeometry(w, h, d, segments, radius)
+    _chamferedBoxGeoCache.set(key, g)
+  }
+  return g
+}
+
 const _cylinderGeoCache = new Map()
 export function getCachedCylinderGeo(...args) {
   const key = args.join(',')
@@ -151,6 +167,8 @@ if (import.meta.hot) {
     _flashMat?.dispose(); _flashMat = null
     _geoCache.forEach((g) => g.dispose())
     _geoCache.clear()
+    _chamferedBoxGeoCache.forEach((g) => g.dispose())
+    _chamferedBoxGeoCache.clear()
     _cylinderGeoCache.forEach((g) => g.dispose())
     _cylinderGeoCache.clear()
     _gradient?.dispose(); _gradient = null

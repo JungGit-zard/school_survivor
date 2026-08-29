@@ -392,11 +392,20 @@ describe('Stage 2 boss visual reference', () => {
 })
 
 describe('coin jingle zombie visual concept', () => {
-  it('registers E08 as a coin-attract zombie with gold visual roles', () => {
+  it('registers E08 as a coin-attract zombie with gold visual roles and 2-step chamfer blocks', () => {
     const source = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
+    const instanceSource = readFileSync(new URL('./ZombieInstanceLayer.jsx', import.meta.url), 'utf8')
+    const toonSource = readFileSync(new URL('../lib/toon.js', import.meta.url), 'utf8')
     expect(source).toContain('E08')
     expect(source).toContain('coin:')
     expect(source).toContain('coinBag:')
+    expect(source).toContain('CoinJingleZombieMesh')
+    expect(source).toContain('getCachedChamferedBoxGeo')
+    expect(source).toContain('chamferSteps={2}')
+    expect(instanceSource).toContain("'chamfer2'")
+    expect(instanceSource).toContain('getCachedChamferedBoxGeo(...part[2], 2)')
+    expect(toonSource).toContain('RoundedBoxGeometry')
+    expect(toonSource).toContain('getCachedChamferedBoxGeo')
   })
 })
 
