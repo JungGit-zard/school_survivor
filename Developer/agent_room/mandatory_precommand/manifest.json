@@ -393,6 +393,10 @@
       ],
       "required": [
         {
+          "path": "Developer/agent_room/persistent_subagent_lounge_routing_2026-08-29.md",
+          "why": "persistent expert reuse and reference-lounge safety boundary"
+        },
+        {
           "path": "Developer/agent_room/game_development_kanban_process.md",
           "why": "Kanban process"
         },
@@ -425,6 +429,10 @@
   },
   "profileCentralizedRequired": {
     "threemini": [
+      {
+        "path": "Developer/agent_room/persistent_subagent_lounge_routing_2026-08-29.md",
+        "why": "persistent expert reuse, learning preflight, and reference-lounge safety boundary"
+      },
       {
         "path": "Developer/agent_room/mandatory_precommand/threemini_mandatory_context/START_HERE.md",
         "why": "centralized Three_Mini mandatory startup context; START_HERE requires reading all copied common+graphics policy bodies and current SOUL content under this repository"

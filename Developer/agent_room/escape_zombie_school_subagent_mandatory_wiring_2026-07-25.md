@@ -40,6 +40,12 @@ corpopsmini
 
 Do not use placeholder assignees such as `planner`, `reviewer`, `game-developer`, `graphic_designer`, `balance_qa`, `tax`, or `accountant`. Map to the profiles above.
 
+## Existing expert reuse decision
+
+Before creating a new role or assigning a task, first inspect the local Hermes registry and `hermes kanban --board escape-zombie-school assignees`, then reuse the matching real profile. The Phase 0 rules and the pinned reference-only GitHub Lounge boundary are in `Developer/agent_room/persistent_subagent_lounge_routing_2026-08-29.md`.
+
+Every new Kanban card body must state `Reuse decision: <existing profile and reason>` or `Reuse decision: no registered profile fits because <exact capability gap>`. Reference-catalog names are not assignees unless they are registered local Hermes profiles.
+
 ## Mandatory role routing map
 
 - Graphics / Three.js / R3F / toon shading / visual implementation / asset pipeline -> `threemini`.

@@ -210,3 +210,6 @@ Claude Code(이 프로젝트 루트에서 실행되는 세션)는 `.claude/agent
 
 For Escape! zombie school, `Developer/agent_room/escape_zombie_school_subagent_mandatory_wiring_2026-07-25.md` is the current mandatory overlay. It requires a routing check for every non-empty project request and adds real profile `corpopsmini` for separately managed corporate operations/tax/VAT/settlement/accountant-handoff work.
 
+## 2026-08-29 persistent lounge Phase 0
+
+Before considering a new specialist, perform the existing-expert reuse decision in `Developer/agent_room/persistent_subagent_lounge_routing_2026-08-29.md`. Local Hermes profiles remain the executable source of truth; the pinned GitHub Lounge is a reference catalog only.
