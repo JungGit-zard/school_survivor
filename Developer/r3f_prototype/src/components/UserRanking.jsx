@@ -12,11 +12,7 @@ import { isFirebaseRankingConfigured, subscribeGlobalRanking } from '../lib/fire
 import { getAdminRankingSeasonConfig } from '../lib/adminConfig.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { t as translate, useT } from '../lib/i18n.js'
-
-const WINDOWS = [
-  { id: 'daily', labelKey: 'ranking.tab.daily', noteKey: 'ranking.tab.dailyNote' },
-  { id: 'weekly', labelKey: 'ranking.tab.weekly', noteKey: 'ranking.tab.weeklyNote' },
-]
+import RankingWindowTabs, { RANKING_WINDOWS } from './RankingWindowTabs.jsx'
 
 export default function UserRanking({ onBack, entries }) {
   const t = useT()
@@ -52,7 +48,7 @@ export default function UserRanking({ onBack, entries }) {
 
   const rows = useMemo(() => createRankingRows(rankingEntries), [rankingEntries])
   const season = useMemo(() => getAdminRankingSeasonConfig(), [])
-  const activeCopy = WINDOWS.find((window) => window.id === activeWindow) ?? WINDOWS[0]
+  const activeCopy = RANKING_WINDOWS.find((window) => window.id === activeWindow) ?? RANKING_WINDOWS[0]
   const rewardSummary = useMemo(() => (
     season.rewardTiers.map((tier) => `${tier.label} ${tier.gold}G`).join(' · ')
   ), [season.rewardTiers])
@@ -70,18 +66,11 @@ export default function UserRanking({ onBack, entries }) {
         </div>
       </header>
 
-      <nav style={styles.tabs} aria-label={t('ranking.tabsAria')}>
-        {WINDOWS.map((window) => (
-          <button
-            key={window.id}
-            type="button"
-            style={window.id === activeWindow ? styles.tabActive : styles.tab}
-            onClick={() => setActiveWindow(window.id)}
-          >
-            {t(window.labelKey)}
-          </button>
-        ))}
-      </nav>
+      <RankingWindowTabs
+        ariaLabel={t('ranking.tabsAria')}
+        value={activeWindow}
+        onChange={setActiveWindow}
+      />
 
       <p style={styles.windowNote}>{t(activeCopy.noteKey)}</p>
 
@@ -189,29 +178,6 @@ const styles = {
     fontSize: 11,
     lineHeight: 1,
     fontWeight: 900,
-  },
-  tabs: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 },
-  tab: {
-    minHeight: 42,
-    border: '2px solid #050209',
-    borderRadius: 8,
-    background: '#f6ead0',
-    color: '#050209',
-    fontSize: 14,
-    fontWeight: 1000,
-    boxShadow: '0 3px 0 #050209',
-    cursor: 'pointer',
-  },
-  tabActive: {
-    minHeight: 42,
-    border: '2px solid #050209',
-    borderRadius: 8,
-    background: '#f7d17e',
-    color: '#050209',
-    fontSize: 14,
-    fontWeight: 1000,
-    boxShadow: '0 3px 0 #050209',
-    cursor: 'pointer',
   },
   windowNote: {
     margin: 0,

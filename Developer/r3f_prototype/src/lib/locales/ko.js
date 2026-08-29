@@ -181,8 +181,12 @@ export default {
   // ─── 랭킹 ───
   'ranking.stageTitle': '스테이지 랭킹',
   'ranking.todayFirst': '오늘 1위',
-  'ranking.dailyWindow': '한국시간 당일 00:00:01 - 23:59:59 실시간 반영',
+  'ranking.weekFirst': '이번 주 1위',
+  'ranking.dailyWindow': '한국시간 당일 00:00:01 - 23:59:59 최고점 · 매일 자정 초기화',
+  'ranking.weeklyWindow': '한국시간 월요일 00:00:01 - 일요일 23:59:59 최고점 · 매주 월요일 초기화',
   'ranking.dailyBoardAria': '{stage} 일일랭킹',
+  'ranking.weeklyBoardAria': '{stage} 주간랭킹',
+  'ranking.stageTabsAria': '스테이지 랭킹 기간 선택',
   'ranking.waiting': '기록 대기 중',
   'ranking.anonymous': '익명',
   'ranking.rankSuffix': '{rank}위',

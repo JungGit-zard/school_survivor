@@ -186,8 +186,12 @@ export default {
   // ─── Ranking ───
   'ranking.stageTitle': 'Stage Ranking',
   'ranking.todayFirst': "Today's #1",
-  'ranking.dailyWindow': 'KST 00:00:01 - 23:59:59 today, updated live',
+  'ranking.weekFirst': "This week's #1",
+  'ranking.dailyWindow': 'Best score KST 00:00:01 - 23:59:59 today · resets at midnight',
+  'ranking.weeklyWindow': 'Best score KST Mon 00:00:01 - Sun 23:59:59 · resets every Monday',
   'ranking.dailyBoardAria': '{stage} daily ranking',
+  'ranking.weeklyBoardAria': '{stage} weekly ranking',
+  'ranking.stageTabsAria': 'Stage ranking period',
   'ranking.waiting': 'Waiting for records',
   'ranking.anonymous': 'Anonymous',
   'ranking.anonymousSurvivor': 'Anonymous Survivor',

@@ -186,8 +186,12 @@ export default {
   // ─── ランキング ───
   'ranking.stageTitle': 'ステージランキング',
   'ranking.todayFirst': '本日1位',
-  'ranking.dailyWindow': '韓国時間 当日 00:00:01 - 23:59:59 リアルタイム反映',
+  'ranking.weekFirst': '今週1位',
+  'ranking.dailyWindow': '韓国時間 当日 00:00:01 - 23:59:59 の最高点 · 毎日0時リセット',
+  'ranking.weeklyWindow': '韓国時間 月曜 00:00:01 - 日曜 23:59:59 の最高点 · 毎週月曜リセット',
   'ranking.dailyBoardAria': '{stage} デイリーランキング',
+  'ranking.weeklyBoardAria': '{stage} ウィークリーランキング',
+  'ranking.stageTabsAria': 'ステージランキング期間',
   'ranking.waiting': '記録待ち',
   'ranking.anonymous': '匿名',
   'ranking.anonymousSurvivor': '匿名の生存者',
