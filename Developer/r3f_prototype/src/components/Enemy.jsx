@@ -48,6 +48,7 @@ import {
   getB03ShuttleRunTrigger,
   getB03ShuttleRunFacingX,
   getB03ShuttleRunLaneFromBoss,
+  getB03ShuttleRunLaneGeometry,
   getB03ShuttleRunPlayerDamage,
   getB03ShuttleRunX,
   getB03ShuttleTelegraphBlinkFactor,
@@ -641,11 +642,13 @@ export function getB03ShuttleRunVisualState({ phase, passIndex }) {
   return 'stun'
 }
 
+// startX/endX 비교가 빠지면 두 번째 시전(HP 30%)에서 첫 시전 때 그린 선이 그대로 남는다.
 export function hasB03ShuttleRunVisualChanged(previous, state) {
   return previous.phase !== state.phase || previous.laneZ !== state.laneZ || previous.passIndex !== state.passIndex
+    || previous.startX !== state.startX || previous.endX !== state.endX
 }
 
-function B03ShuttleRunVisual({ phase, passIndex, laneZ, halfX }) {
+function B03ShuttleRunVisual({ phase, passIndex, laneZ, startX, endX }) {
   const outlineMatRef = useRef()
   const surfaceMatRef = useRef()
   const telegraphMsRef = useRef(0)
@@ -670,14 +673,16 @@ function B03ShuttleRunVisual({ phase, passIndex, laneZ, halfX }) {
     surfaceMaterial.opacity = visual.surfaceOpacity * blink
   })
   if (phase === 'idle') return null
+  // 아레나 전폭이 아니라 실제 왕복 코스 [startX, endX]만 덮는다.
+  const { centerX, length } = getB03ShuttleRunLaneGeometry(startX, endX)
   return (
     <group name="B03 왕복 오래달리기 레인" userData={{ shuttleRunState: visualState }}>
-      <mesh position={[0, 0.024, laneZ]}>
-        <boxGeometry args={[halfX * 2, 0.028, B03_SHUTTLE_LANE_WIDTH + 0.18]} />
+      <mesh position={[centerX, 0.024, laneZ]}>
+        <boxGeometry args={[length + 0.18, 0.028, B03_SHUTTLE_LANE_WIDTH + 0.18]} />
         <meshBasicMaterial ref={outlineMatRef} color={visual.outline} transparent opacity={visual.outlineOpacity} depthWrite={false} toneMapped={false} />
       </mesh>
-      <mesh position={[0, 0.047, laneZ]}>
-        <boxGeometry args={[halfX * 2, 0.024, B03_SHUTTLE_LANE_WIDTH]} />
+      <mesh position={[centerX, 0.047, laneZ]}>
+        <boxGeometry args={[length, 0.024, B03_SHUTTLE_LANE_WIDTH]} />
         <meshBasicMaterial ref={surfaceMatRef} color={visual.surface} transparent opacity={visual.surfaceOpacity} depthWrite={false} toneMapped={false} />
       </mesh>
     </group>
@@ -1635,7 +1640,8 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           phase={b03ShuttleVisual.phase}
           passIndex={b03ShuttleVisual.passIndex}
           laneZ={b03ShuttleVisual.laneZ}
-          halfX={stageCombatConfig.bounds.halfX}
+          startX={b03ShuttleVisual.startX}
+          endX={b03ShuttleVisual.endX}
         />
       )}
       {type === 'B04' && currentStageId === 'stage4' && (

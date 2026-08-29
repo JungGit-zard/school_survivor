@@ -1,7 +1,7 @@
 // 2026-08-23 사용자 지시로 필살기를 전면 개정했다.
 //   (1) 왕복 달리기 속도 = 평소 이동속도의 정확히 3배,
 //   (2) 접촉 피해 = 플레이어가 "그 순간 가진" 체력의 30%(고정 수치 아님).
-// 속도는 상수 duration으로 못박지 않는다 — 레인 길이 ÷ (기본속도 × 10)로 역산해야
+// 속도는 상수 duration으로 못박지 않는다 — 레인 길이 ÷ (기본속도 × 3)으로 역산해야
 // 맵 halfX가 바뀌어도 화면상 달리는 속도가 사양 그대로 유지된다.
 // 배수 3은 2026-08-29 사용자 재지시로 확정된 최종 사양이다. 그 전의 10배는 출발점이
 // 아레나 가장자리로 고정이던 시절, 왕복이 너무 길다는 이유로 올린 값이었다. 지금은
@@ -114,6 +114,21 @@ export function getB03ShuttleRunLaneX(bossX, halfX, edgeInset = B03_SHUTTLE_LANE
 export function getB03ShuttleRunLaneFromBoss(bossX, bossZ, halfX, halfZ) {
   const { startX, endX } = getB03ShuttleRunLaneX(bossX, halfX)
   return { laneZ: getB03ShuttleRunLaneZ(bossZ, halfZ), startX, endX }
+}
+
+// 예고선은 "자기가 왕복해서 달릴 코스"만 덮어야 한다. 예전에는 x=0 중심에 폭 halfX*2로
+// 아레나 전폭을 칠해서, 보스가 중앙에서 발동하면(코스 0 → +6.6 → 0) 왼쪽 절반이 통째로
+// 거짓 경고였다. 폭·중심은 실제 [startX, endX] 구간에서만 나온다.
+// startX === endX(레인 길이 0)면 boxGeometry 폭이 0이 되므로 하한을 둔다.
+export const B03_SHUTTLE_LANE_MIN_LENGTH = 0.1
+
+export function getB03ShuttleRunLaneGeometry(startX, endX) {
+  const safeStartX = Number.isFinite(startX) ? startX : 0
+  const safeEndX = Number.isFinite(endX) ? endX : 0
+  return {
+    centerX: (safeStartX + safeEndX) / 2,
+    length: Math.max(B03_SHUTTLE_LANE_MIN_LENGTH, Math.abs(safeEndX - safeStartX)),
+  }
 }
 
 // 보스가 바라봐야 할 X 방향(+/-). 이걸 회전에 반영하지 않으면 걷기 애니메이션이 돌아도

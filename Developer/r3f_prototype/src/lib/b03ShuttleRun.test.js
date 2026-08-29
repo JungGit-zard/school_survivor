@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   B03_SHUTTLE_BASE_SPEED,
   B03_SHUTTLE_LANE_EDGE_INSET,
+  B03_SHUTTLE_LANE_MIN_LENGTH,
   B03_SHUTTLE_PLAYER_DAMAGE_RATIO,
   B03_SHUTTLE_SPEED_MULTIPLIER,
   B03_SHUTTLE_TELEGRAPH_BLINKS,
@@ -13,6 +14,7 @@ import {
   createB03ShuttleRunState,
   getB03ShuttleRunFacingX,
   getB03ShuttleRunLaneFromBoss,
+  getB03ShuttleRunLaneGeometry,
   getB03ShuttleRunLaneX,
   getB03ShuttleRunPassDurationMs,
   getB03ShuttleRunPlayerDamage,
@@ -205,5 +207,65 @@ describe('B03 왕복 오래달리기', () => {
     // Enemy.jsx는 IGNORE_INVULNERABILITY 없이 damagePlayer를 호출해 i-frame이 걸러내게 둔다.
     const afterFirst = 100 - getB03ShuttleRunPlayerDamage(100)
     expect(100 - (afterFirst - getB03ShuttleRunPlayerDamage(afterFirst))).toBeCloseTo(51, 10)
+  })
+
+  // 2026-08-30 사용자 재확인: "자기가 왕복해서 달릴 코스를 굵은 직선으로 깜빡인다."
+  // 옛 예고선은 x=0 중심에 폭 halfX*2(=15)로 아레나 전폭을 칠했다. 보스가 중앙에서
+  // 발동하면 실제 코스는 0 → +6.6 → 0인데 선은 -7.5~+7.5라, 왼쪽 절반이 통째로 거짓 경고였다.
+  it('예고선 구간은 실제 왕복 코스와 일치하고, 아레나 왼쪽 절반을 덮지 않는다', () => {
+    const lane = getB03ShuttleRunLaneFromBoss(0, 3, STAGE3_HALF_X, STAGE3_HALF_Z)
+    expect(lane.startX).toBe(0)
+    expect(lane.endX).toBeCloseTo(STAGE3_LANE_LIMIT, 10)
+
+    const { centerX, length } = getB03ShuttleRunLaneGeometry(lane.startX, lane.endX)
+    expect(centerX).toBeCloseTo(STAGE3_LANE_LIMIT / 2, 10)
+    expect(length).toBeCloseTo(STAGE3_LANE_LIMIT, 10)
+
+    const left = centerX - length / 2
+    const right = centerX + length / 2
+    expect(left).toBeCloseTo(0, 10)
+    expect(right).toBeCloseTo(STAGE3_LANE_LIMIT, 10)
+    // 옛 구현이라면 left = -7.5, length = 15였다. 둘 다 값으로 막는다.
+    expect(left).toBeGreaterThanOrEqual(-1e-9)
+    expect(length).toBeLessThan(STAGE3_HALF_X * 2)
+
+    // 실제 주행 X를 왕복 전 구간에서 샘플링해 선 안에 전부 들어오는지 값으로 확인한다.
+    let state = startB03ShuttleRun(createB03ShuttleRunState(), 'sixtyFive', {
+      laneZ: lane.laneZ, startX: lane.startX, endX: lane.endX, baseSpeed: B03_SHUTTLE_BASE_SPEED,
+    })
+    state = advanceB03ShuttleRun(state, B03_SHUTTLE_TELEGRAPH_MS)
+    let minX = Infinity
+    let maxX = -Infinity
+    while (state.phase === 'active') {
+      const x = getB03ShuttleRunX(state)
+      minX = Math.min(minX, x)
+      maxX = Math.max(maxX, x)
+      state = advanceB03ShuttleRun(state, FRAME_MS)
+    }
+    expect(minX).toBeGreaterThanOrEqual(left - 1e-9)
+    expect(maxX).toBeLessThanOrEqual(right + 1e-9)
+    // 선이 코스보다 과하게 넓지도 않다 — 한 프레임 이동분(≈0.026 units) 이내로 붙는다.
+    expect(minX - left).toBeLessThan(0.05)
+    expect(right - maxX).toBeLessThan(0.05)
+  })
+
+  it('발동 위치가 다르면 예고선 중심·길이가 따라 움직이고, 길이 0에도 하한이 남는다', () => {
+    const lane = getB03ShuttleRunLaneFromBoss(4.2, 0, STAGE3_HALF_X, STAGE3_HALF_Z)
+    expect(lane.startX).toBeCloseTo(4.2, 10)
+    expect(lane.endX).toBeCloseTo(-STAGE3_LANE_LIMIT, 10)
+
+    const { centerX, length } = getB03ShuttleRunLaneGeometry(lane.startX, lane.endX)
+    expect(centerX).toBeCloseTo((4.2 - STAGE3_LANE_LIMIT) / 2, 10)
+    expect(length).toBeCloseTo(4.2 + STAGE3_LANE_LIMIT, 10)
+    // 중앙 발동본과 값이 달라야 한다 — 같으면 두 번째 시전의 선 갱신 누락을 잡을 수 없다.
+    const centered = getB03ShuttleRunLaneGeometry(0, STAGE3_LANE_LIMIT)
+    expect(centerX).not.toBeCloseTo(centered.centerX, 6)
+    expect(length).not.toBeCloseTo(centered.length, 6)
+
+    // boxGeometry 폭 0 방지 하한.
+    const degenerate = getB03ShuttleRunLaneGeometry(2, 2)
+    expect(degenerate.centerX).toBe(2)
+    expect(degenerate.length).toBe(B03_SHUTTLE_LANE_MIN_LENGTH)
+    expect(degenerate.length).toBeGreaterThan(0)
   })
 })

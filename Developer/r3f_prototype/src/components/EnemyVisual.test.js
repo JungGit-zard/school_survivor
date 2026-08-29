@@ -84,12 +84,12 @@ describe('B03 shuttle run visual states', () => {
     expect(B03_SHUTTLE_RUN_VISUALS.outbound.surface).not.toBe(B04_SOUP_BLAST_VISUALS.explode.surface)
     expect(B03_SHUTTLE_RUN_VISUALS.returning.surface).not.toBe(B04_SOUP_BLAST_VISUALS.explode.surface)
     expect(hasB03ShuttleRunVisualChanged(
-      { phase: 'active', laneZ: 4, passIndex: 0 },
-      { phase: 'active', laneZ: 4, passIndex: 1 },
+      { phase: 'active', laneZ: 4, passIndex: 0, startX: 0, endX: 6.6 },
+      { phase: 'active', laneZ: 4, passIndex: 1, startX: 0, endX: 6.6 },
     )).toBe(true)
     expect(hasB03ShuttleRunVisualChanged(
-      { phase: 'active', laneZ: 4, passIndex: 1 },
-      { phase: 'active', laneZ: 4, passIndex: 1 },
+      { phase: 'active', laneZ: 4, passIndex: 1, startX: 0, endX: 6.6 },
+      { phase: 'active', laneZ: 4, passIndex: 1, startX: 0, endX: 6.6 },
     )).toBe(false)
     for (const visual of Object.values(B03_SHUTTLE_RUN_VISUALS)) {
       expect(visual.outline).toMatch(/^#[0-9a-f]{6}$/i)
@@ -101,6 +101,25 @@ describe('B03 shuttle run visual states', () => {
     expect(source).toContain('userData={{ shuttleRunState: visualState }}')
     expect(source).toContain('B03_SHUTTLE_LANE_WIDTH + 0.18')
     expect(source).toContain('hasB03ShuttleRunVisualChanged(previous, state) ? { ...state } : previous')
+  })
+
+  // 예고선은 시전마다 다른 구간을 그린다(출발점 = 그때의 보스 X). startX/endX 비교가 빠지면
+  // 두 번째 시전(HP 30%)에서 첫 시전의 선이 그대로 남는다 — 값으로 판정한다.
+  it('시전마다 달라지는 왕복 코스 구간을 리렌더 판정에 반영한다', () => {
+    // HP 65% 시전: 보스가 x=0 → 코스 [0, 6.6].
+    const first = { phase: 'telegraph', laneZ: 4, passIndex: -1, startX: 0, endX: 6.6 }
+    // HP 30% 시전: 보스가 x=4.2 → 코스 [4.2, -6.6]. phase/laneZ/passIndex는 전부 같다.
+    const second = { phase: 'telegraph', laneZ: 4, passIndex: -1, startX: 4.2, endX: -6.6 }
+    expect(hasB03ShuttleRunVisualChanged(first, second)).toBe(true)
+    expect(hasB03ShuttleRunVisualChanged(first, { ...first, startX: 1.5 })).toBe(true)
+    expect(hasB03ShuttleRunVisualChanged(first, { ...first, endX: -6.6 })).toBe(true)
+    expect(hasB03ShuttleRunVisualChanged(first, { ...first })).toBe(false)
+
+    // 컴포넌트가 실제 코스 구간을 쓰는지: 옛 아레나 전폭 지오메트리가 돌아오면 실패한다.
+    const source = readFileSync(new URL('./Enemy.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('getB03ShuttleRunLaneGeometry(startX, endX)')
+    expect(source).toContain('args={[length, 0.024, B03_SHUTTLE_LANE_WIDTH]}')
+    expect(source).not.toContain('args={[halfX * 2, 0.024, B03_SHUTTLE_LANE_WIDTH]}')
   })
 })
 
