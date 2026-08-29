@@ -215,6 +215,17 @@ export default {
   'ranking.tab.dailyNote': '韓国時間 当日 00:00:01 - 23:59:59 の最高点',
   'ranking.tab.weekly': 'ウィークリー',
   'ranking.tab.weeklyNote': '韓国時間 月曜 00:00:01 - 日曜 23:59:59 の最高点',
+  'ranking.submit.pending': '今回の記録をランキングに送信中…',
+  'ranking.submit.recorded': '今回の自己ベストがランキングに反映されました。',
+  'ranking.submit.notBest': '今回は自己ベストより低いため順位は変わりません。記録は正常に処理されました。',
+  'ranking.submit.failedRejected': 'サーバーが今回の記録を拒否しました。このスコアはランキングに反映されていません。',
+  'ranking.submit.failedNetwork': '通信エラーで今回の記録を送信できませんでした。このスコアはランキングに反映されていません。',
+  'ranking.submit.signedOut': 'ログインしていないため、今回の記録はランキングに登録されませんでした。',
+  'ranking.submit.unconfigured': 'ランキングサーバーに接続できないため、今回の記録は保存されませんでした。',
+  'ranking.submit.seasonOff': '現在はシーズン期間外のため、今回の記録は集計されませんでした。',
+  'ranking.submit.progressUnavailable': '進行データを読み込めなかったため、今回の記録はランキングに登録されませんでした。',
+  'ranking.submit.retry': '再送信',
+  'ranking.submit.noticeAria': 'ランキング送信状況',
 
   // ─── ショップ / 武器 / 能力 ───
   'shop.eyebrow': '生存強化 申請書',

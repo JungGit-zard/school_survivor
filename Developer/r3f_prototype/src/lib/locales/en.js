@@ -215,6 +215,17 @@ export default {
   'ranking.tab.dailyNote': 'Best score, KST 00:00:01 - 23:59:59 today',
   'ranking.tab.weekly': 'Weekly',
   'ranking.tab.weeklyNote': 'Best score, KST Mon 00:00:01 - Sun 23:59:59',
+  'ranking.submit.pending': 'Uploading this run to the leaderboard…',
+  'ranking.submit.recorded': 'Your new best from this run is on the leaderboard.',
+  'ranking.submit.notBest': 'This run scored below your best, so your rank is unchanged. Nothing was lost.',
+  'ranking.submit.failedRejected': 'The server rejected this run. This score is NOT on the leaderboard.',
+  'ranking.submit.failedNetwork': 'A network problem stopped the upload. This score is NOT on the leaderboard.',
+  'ranking.submit.signedOut': 'You are signed out, so this run was not added to the leaderboard.',
+  'ranking.submit.unconfigured': 'The leaderboard server is not connected, so this run was not saved.',
+  'ranking.submit.seasonOff': 'No season is running right now, so this run was not counted.',
+  'ranking.submit.progressUnavailable': 'Your progress could not be loaded, so this run was not added to the leaderboard.',
+  'ranking.submit.retry': 'Upload again',
+  'ranking.submit.noticeAria': 'Leaderboard upload status',
 
   // ─── Shop / weapons / abilities ───
   'shop.eyebrow': 'SURVIVAL UPGRADE FORM',
