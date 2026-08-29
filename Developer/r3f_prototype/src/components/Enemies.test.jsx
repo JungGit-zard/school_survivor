@@ -772,7 +772,7 @@ describe('boss entrance escort wave', () => {
 describe('all zombie HP follows the cumulative 1.2x-per-stage curve', () => {
   it('applies the same cumulative Stage 1 baseline multiplier to every static zombie type', () => {
     expect(STAGE2_SAME_TYPE_HP_MULTIPLIER).toBe(1.2)
-    expect(Object.keys(ENEMY_STATS)).toEqual(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'E07', 'B01', 'B02', 'B03', 'B04'])
+    expect(Object.keys(ENEMY_STATS)).toEqual(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'E07', 'E08', 'B01', 'B02', 'B03', 'B04'])
     const stageMultipliers = { stage1: 1, stage2: 1.2, stage3: 1.44, stage4: 1.728 }
     for (const [stageId, multiplier] of Object.entries(stageMultipliers)) {
       for (const [type, stats] of Object.entries(ENEMY_STATS)) {

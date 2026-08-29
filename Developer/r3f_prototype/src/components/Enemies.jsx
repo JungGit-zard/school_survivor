@@ -1,4 +1,4 @@
-﻿import { useRef, useCallback, useState, useEffect } from 'react'
+import { useRef, useCallback, useState, useEffect } from 'react'
 import { useGameStore } from '../store/useGameStore.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { usePlayingFrame } from '../lib/usePlayingFrame.js'
@@ -44,6 +44,7 @@ import {
 } from '../lib/pooledEnemySpawnDrain.js'
 import { recordZombieEncounter } from '../lib/zombieEncyclopedia.js'
 import { BOSS_TELEGRAPH_LEAD_SEC, advanceSpawnCatchUp, createSpawnCatchUpState, publishSpawnCatchUpOffsetSec, resetSpawnCatchUpState } from '../lib/spawnCatchUp.js'
+import { createDominanceSwarmSpawnPlan, createDominanceSwarmState, evaluateDominanceSwarm, recordDominanceSwarmSpawn, recordEmptyField, recordEnemyKill, recordPlayerDamage, resetDominanceSwarmState } from '../lib/dominanceSwarmRespawn.js'
 
 // 황금 코인 시계 드랍: 4분에 약 10개 → 20–28s 무작위 간격 (5분 기준 ×0.8)
 const GOLD_INTERVAL_MIN_MS = 20_000
@@ -1126,6 +1127,7 @@ const SCHEDULE_DOGE = 2
 const SCHEDULE_BURST = 5
 const SCHEDULE_MATILDA = 6
 const SCHEDULE_OVERTIME = 7
+const SCHEDULE_DOMINANCE_SWARM = 8
 
 export function isPooledEnemyType(type) {
   const code = enemyTypeToCode(type)
@@ -1262,6 +1264,7 @@ export default function Enemies() {
   const dogeSpawnedRef           = useRef(false)     // 60초 도지 이벤트 1회 스폰 가드
   const overtimeTickRef          = useRef(-1)
   const spawnCatchUpRef          = useRef(createSpawnCatchUpState())
+  const dominanceSwarmRef        = useRef(createDominanceSwarmState())
   const liveDogeCountRef         = useRef(0)   // 빈 화면 판정용 — 도지도 HP를 가진 적이다
   const stageSpawnTokenRef       = useRef(0)
   const sightGenerationRef       = useRef(new Uint16Array(MAX_ENEMIES))
@@ -1276,7 +1279,9 @@ export default function Enemies() {
   const gameKey = useGameStore((s) => s.gameKey)
   const gamePhase = useGameStore((s) => s.phase)
   projectileHitRef.current = (_index, _generation, damage) => {
-    useGameStore.getState().damagePlayer(damage)
+    const store = useGameStore.getState()
+    store.damagePlayer(damage)
+    recordPlayerDamage(dominanceSwarmRef.current, damage, getRuntimeElapsedMs(store.elapsedMs))
   }
 
   // 스테이지 정적 데이터는 stage 전환시에만 해석한다. 프레임 경로는 이 캐시만 읽는다.
@@ -1305,6 +1310,7 @@ export default function Enemies() {
     overtimeTickRef.current = -1
     liveDogeCountRef.current = 0
     resetSpawnCatchUpState(spawnCatchUpRef.current)
+    resetDominanceSwarmState(dominanceSwarmRef.current)
     publishSpawnCatchUpOffsetSec(0)
     sightGenerationRef.current.fill(0)
     sightTierRef.current.fill(0)
@@ -1461,7 +1467,7 @@ export default function Enemies() {
         gameKey: store.gameKey,
         killKey: `${store.gameKey}:pool:${index}:${generation}`,
       })
-      store.recordKill(); logKill(type); emitSfx({ id: deathSfxId(type) })
+      store.recordKill(); logKill(type); recordEnemyKill(dominanceSwarmRef.current, getRuntimeElapsedMs(store.elapsedMs)); emitSfx({ id: deathSfxId(type) })
       enqueuePooledDeath(enemyPool.type[index], x, y, z, stats.xp, enemyPool.visualScale[index] * 0.333, critical.damage, enemyPool.maxHp[index], safeImpact.knockback ?? 0, safeImpact.deathStyleOverride)
     }
     enemySimulationRuntime.applyHitIndex(enemyPool, index, generation, critical.damage, dx / length * knockbackSpeed, dz / length * knockbackSpeed, knockbackMs)
@@ -1590,6 +1596,20 @@ export default function Enemies() {
       dropGoldCoin(pickGoldDropPos(cache.bounds))
     } else if (kind === SCHEDULE_DOGE) {
       spawnDoge()
+    } else if (kind === SCHEDULE_DOMINANCE_SWARM) {
+      const requested = Math.max(0, Math.floor(a) || 0)
+      const count = clampZombieSpawnRequest(requested, totalZombieCounts())
+      if (count <= 0) return
+      const entries = createDominanceSwarmSpawnPlan({ spawnCount: count }, { stageId: cache.id }, Math.random)
+      const batch = []
+      for (let spawnIndex = 0; spawnIndex < entries.length; spawnIndex += 1) {
+        const type = entries[spawnIndex].type
+        const taken = batch.map((enemy) => enemy.pos)
+        const pos = spawnPosForBurstType(type, cache.bounds, taken, Math.random, cache.obstacles)
+        if (!pos) continue
+        batch.push({ id: ++_uid, type, pos, statOverride: stageHpOverride(type, cache.id) })
+      }
+      addEnemies(batch, true, cache.spawnToken)
     } else if (kind === SCHEDULE_OVERTIME) {
       // 마릿수와 개체 강화가 같은 계단을 밟도록 tick을 한 번만 읽어 둘 다에 쓴다.
       const overtimeTick = overtimeTickRef.current
@@ -1735,6 +1755,7 @@ export default function Enemies() {
     if (!dropData?.pos) return
 
     const store = useGameStore.getState()
+    recordEnemyKill(dominanceSwarmRef.current, getRuntimeElapsedMs(store.elapsedMs))
     store.recordMissionEnemyKill({
       enemyType: dropData.type,
       stageId: store.currentStageId,
@@ -1796,6 +1817,7 @@ export default function Enemies() {
       + catchUpQueue.spawnDrain.count
       + countPendingZombieSchedules(catchUpQueue)
     const catchUp = spawnCatchUpRef.current
+    if (liveEnemyCount === 0) recordEmptyField(dominanceSwarmRef.current, sec * 1000)
     const pendingSpawnSec = sec + catchUp.offsetSec
     advanceSpawnCatchUp(catchUp, {
       deltaSec: delta,
@@ -1849,13 +1871,29 @@ export default function Enemies() {
     // 보스 등장은 버스트 표(= 스폰 시계)에서 당겨질 수 있으므로 하한도 spawnSec으로 본다.
     // 상한(탈출 포탈)은 실시간 이벤트라 sec 그대로 — 런 길이는 캐치업의 영향을 받지 않는다.
     context.bossPressure = currentStageId !== 'stage4' && spawnSec >= bossSpawnSec && sec < (stageConfig.escapePortalSec ?? 210)
+    const player = useGameStore.getState().player
+    const dominance = evaluateDominanceSwarm(dominanceSwarmRef.current, {
+      nowMs: sec * 1000,
+      currentHp: player.hp,
+      maxHp: player.maxHp,
+      activeEnemyCount: enemyPool.activeCount + enemiesRef.current.length + liveDogeCountRef.current,
+      queuedEnemyCount: catchUpQueue.spawnDrain.count + countPendingZombieSchedules(catchUpQueue),
+      stageId: currentStageId,
+      isBossActive: context.bossPressure,
+      isSpecialPatternActive: matildaSpawned || liveDogeCountRef.current > 0,
+    })
+    if (dominance.shouldSpawn && enqueueScheduled(SCHEDULE_DOMINANCE_SWARM, dominance.spawnCount, dominance.dominanceScore)) {
+      recordDominanceSwarmSpawn(dominanceSwarmRef.current, sec * 1000)
+    }
     context.obstacles = obstacles
     context.obstacleCount = obstacles.length
     enemySimulationRuntime.step(enemyPool, context)
     const runtimeEvent = runtimeEventScratchRef.current
     while (enemySimulationRuntime.events.drainInto(runtimeEvent)) {
       if (runtimeEvent.type === ENEMY_EVENT_CONTACT) {
-        useGameStore.getState().damagePlayer(runtimeEvent.value)
+        const store = useGameStore.getState()
+        store.damagePlayer(runtimeEvent.value)
+        recordPlayerDamage(dominanceSwarmRef.current, runtimeEvent.value, getRuntimeElapsedMs(store.elapsedMs))
       } else if (runtimeEvent.type === ENEMY_EVENT_RANGED_FIRE) {
         enemyProjectilePool.spawnInto(enemyHandleScratch, runtimeEvent.x, runtimeEvent.y, runtimeEvent.z, runtimeEvent.value, runtimeEvent.aux)
       } else if (runtimeEvent.type === ENEMY_EVENT_DEATH || runtimeEvent.type === ENEMY_EVENT_DESPAWN || runtimeEvent.type === ENEMY_EVENT_ERROR) {
