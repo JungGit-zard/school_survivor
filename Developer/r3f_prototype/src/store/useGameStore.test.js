@@ -1,5 +1,16 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
+// 랭킹 제출만 가짜로 바꾼다. describeSubmission은 실제 구현을 그대로 써야 스토어가 결과를
+// 올바르게 접는지 검증된다(둘 다 가짜면 매핑이 틀려도 테스트가 통과한다).
+const ranking = vi.hoisted(() => ({ submitRun: vi.fn() }))
+vi.mock('../lib/firebaseRanking.js', async (importOriginal) => ({
+  ...(await importOriginal()),
+  submitRun: ranking.submitRun,
+}))
+
 import { useGameStore } from './useGameStore.js'
+import { useAuthStore } from './useAuthStore.js'
+import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { playerPos, playerFacing, bagSwingState, enemyBodies, joystickDir } from '../lib/refs.js'
 import { advanceRuntimeTime, getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { subscribeSfx } from '../lib/sfxEvents.js'
@@ -196,5 +207,115 @@ describe('runtime elapsed time publication', () => {
 
     // base 240 + 탈출 보너스 15%(36) = 276, 보스 보너스는 그 20% = 55.
     expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', bossDefeated: true, bossBonus: 55 })
+  })
+})
+
+// 2026-08-29: "최고기록을 갱신했는데 랭킹 보드가 비어 있다"의 절반은 스토어가 제출 결과를
+// 통째로 버리고 있었기 때문이다(submitRun(...).catch(() => {})). 결과를 상태로 남기지 않으면
+// 실패는 console.warn에서 끝나고 플레이어는 원인을 알 방법이 없다.
+describe('랭킹 제출 결과가 스토어 상태로 남는다', () => {
+  beforeEach(() => {
+    ranking.submitRun.mockReset()
+    useGameStore.setState({ rankingSubmission: null })
+  })
+
+  const run = { stageId: 'stage2', score: 415, timeMs: 295_499, cleared: false }
+
+  it('제출 중에는 pending, 새 최고점이 기록되면 recorded로 바뀐다', async () => {
+    let resolveSubmit
+    ranking.submitRun.mockReturnValue(new Promise((resolve) => { resolveSubmit = resolve }))
+
+    const done = useGameStore.getState().submitRunToRanking({ uid: 'me' }, run)
+    // 보드가 열려 있는 동안 제출이 아직 왕복 중일 수 있다. 이때 "기록 없음"만 보이면
+    // 플레이어는 기록이 유실된 줄 안다 — pending이 그 구간을 메운다.
+    expect(useGameStore.getState().rankingSubmission).toMatchObject({ status: 'pending', ...run })
+
+    resolveSubmit({ written: ['stage/stage2/daily'], skipped: [], failed: [] })
+    await done
+
+    expect(useGameStore.getState().rankingSubmission).toMatchObject({ status: 'recorded', score: 415 })
+  })
+
+  it('전부 스킵(기존 최고점이 더 높음)은 실패가 아니라 notBest로 남는다', async () => {
+    ranking.submitRun.mockResolvedValue({ written: [], skipped: ['a', 'b'], failed: [] })
+
+    await useGameStore.getState().submitRunToRanking({ uid: 'me' }, run)
+
+    expect(useGameStore.getState().rankingSubmission.status).toBe('notBest')
+  })
+
+  it('규칙 거부는 failed/rejected로 남아 화면이 읽을 수 있다', async () => {
+    ranking.submitRun.mockResolvedValue({ written: [], skipped: [], failed: ['a'], failureKind: 'rejected' })
+
+    await useGameStore.getState().submitRunToRanking({ uid: 'me' }, run)
+
+    expect(useGameStore.getState().rankingSubmission).toMatchObject({ status: 'failed', reason: 'rejected' })
+  })
+
+  it('시즌 밖 제출은 failed가 아니라 notSubmitted/seasonOff로 구분된다', async () => {
+    ranking.submitRun.mockResolvedValue({ written: [], skipped: [], failed: [], reason: 'seasonOff' })
+
+    await useGameStore.getState().submitRunToRanking({ uid: 'me' }, run)
+
+    expect(useGameStore.getState().rankingSubmission).toMatchObject({ status: 'notSubmitted', reason: 'seasonOff' })
+  })
+
+  it('submitRun이 통째로 throw해도 게임은 멈추지 않고 network 실패로만 남는다', async () => {
+    ranking.submitRun.mockRejectedValue(new Error('boom'))
+
+    await expect(useGameStore.getState().submitRunToRanking({ uid: 'me' }, run)).resolves.toBeUndefined()
+
+    expect(useGameStore.getState().rankingSubmission).toMatchObject({ status: 'failed', reason: 'network' })
+  })
+
+  it('재시도는 실패한 제출에만 동작하고, 성공/스킵은 다시 쏘지 않는다', async () => {
+    ranking.submitRun.mockResolvedValue({ written: [], skipped: [], failed: ['a'], failureKind: 'network' })
+    await useGameStore.getState().submitRunToRanking({ uid: 'me' }, run)
+    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
+
+    // 재시도할 유저가 없으면 signedOut으로 갈아끼우고 서버를 두드리지 않는다.
+    expect(await useGameStore.getState().retryRankingSubmission()).toBe(false)
+    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
+    expect(useGameStore.getState().rankingSubmission).toMatchObject({ status: 'notSubmitted', reason: 'signedOut' })
+
+    // 성공 상태에서는 재시도 자체가 no-op이다.
+    useGameStore.setState({ rankingSubmission: { ...run, status: 'recorded' } })
+    expect(await useGameStore.getState().retryRankingSubmission()).toBe(false)
+    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
+  })
+
+  it('재시도는 원래 런의 점수와 스테이지를 그대로 다시 보낸다', async () => {
+    ranking.submitRun.mockResolvedValue({ written: [], skipped: [], failed: ['a'], failureKind: 'network' })
+    await useGameStore.getState().submitRunToRanking({ uid: 'me' }, run)
+
+    useAuthStore.setState({ user: { uid: 'me' } })
+    ranking.submitRun.mockResolvedValue({ written: ['a'], skipped: [], failed: [] })
+    expect(await useGameStore.getState().retryRankingSubmission()).toBe(true)
+
+    expect(ranking.submitRun).toHaveBeenLastCalledWith({ uid: 'me' }, run)
+    expect(useGameStore.getState().rankingSubmission.status).toBe('recorded')
+    useAuthStore.setState({ user: null })
+  })
+
+  // 진행도가 하이드레이트되지 않은 런은 랭킹 제출을 통째로 건너뛴다. 예전에는 그 사실이
+  // 어디에도 남지 않아 "기록을 세웠는데 보드가 비었다"의 원인 후보로 떠오르지도 못했다.
+  it('진행도 미하이드레이트 런은 progressUnavailable로 남는다 — 침묵하지 않는다', () => {
+    // 로그인은 시켜둔다. 그래야 signedOut이 아니라 progressUnavailable에 걸리는 걸 확인할 수 있다 —
+    // 둘 다 아니면 어느 쪽 사유로 멈췄는지 이 테스트가 구분하지 못한다.
+    useAuthStore.setState({ user: { uid: 'me' } })
+    _resetFirebaseProgressForTests()
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({ elapsedMs: 60_000, phase: 'playing' })
+    advanceRuntimeTime(60_000)
+
+    useGameStore.getState()._onRunEnd('gameover')
+
+    expect(ranking.submitRun).not.toHaveBeenCalled()
+    expect(useGameStore.getState().rankingSubmission).toMatchObject({
+      status: 'notSubmitted',
+      reason: 'progressUnavailable',
+    })
+    useAuthStore.setState({ user: null })
+    _seedHydratedFirebaseProgressForTests()
   })
 })

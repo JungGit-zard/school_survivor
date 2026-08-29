@@ -153,11 +153,40 @@ export async function submitRun(user, { stageId, score, timeMs, cleared } = {}) 
 
 function summarize(results) {
   const pick = (status) => results.filter((result) => result.status === status).map((result) => result.path)
-  return { written: pick('written'), skipped: pick('skipped'), failed: pick('failed') }
+  const failures = results.filter((result) => result.status === 'failed')
+  const outcome = { written: pick('written'), skipped: pick('skipped'), failed: pick('failed') }
+  if (failures.length > 0) outcome.failureKind = classifyFailure(failures.map((result) => result.error))
+  return outcome
+}
+
+// 규칙 거부와 네트워크/오프라인은 플레이어에게 전혀 다른 안내가 필요하다.
+// 거부는 "이 점수는 이 규칙으로는 절대 안 올라간다"(재시도 무의미에 가깝다),
+// 네트워크는 "지금만 실패했다"(재시도로 복구된다).
+function classifyFailure(errors) {
+  const text = errors
+    .map((error) => `${error?.code ?? ''} ${error?.message ?? ''}`)
+    .join(' ')
+    .toLowerCase()
+  return /permission[_ -]?denied/.test(text) ? 'rejected' : 'network'
 }
 
 function notSubmitted(reason) {
   return { written: [], skipped: [], failed: [], reason }
+}
+
+// submitRun 결과 → 화면이 그대로 소비할 단일 상태. 여기서 갈라두지 않으면 UI가
+// written/skipped/failed 배열을 매번 재해석해야 하고, 그 과정에서 "정상 스킵"과
+// "최고점 유실"이 또 뭉개진다. 사용자가 화낸 지점이 정확히 그 뭉갬이다.
+//   recorded     : 최소 한 버킷에 새 최고점이 실제로 기록됐다
+//   notBest      : 기존 최고점이 더 높아 정상 스킵 — 보드의 내 기록은 그대로다
+//   failed       : 최고점 유실. reason = 'rejected' | 'network'
+//   notSubmitted : 시도조차 안 했다. reason = 'signedOut' | 'unconfigured' | 'seasonOff' 등
+export function describeSubmission(outcome) {
+  if (!outcome) return { status: 'failed', reason: 'network' }
+  if (outcome.reason) return { status: 'notSubmitted', reason: outcome.reason }
+  if (outcome.failed?.length > 0) return { status: 'failed', reason: outcome.failureKind ?? 'network' }
+  if (outcome.written?.length > 0) return { status: 'recorded' }
+  return { status: 'notBest' }
 }
 
 // 계정 삭제 시 지울 수 있는 랭킹 버킷의 스테이지 목록(규칙의 $stageId 화이트리스트와 일치).

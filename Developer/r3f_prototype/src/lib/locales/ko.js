@@ -181,8 +181,12 @@ export default {
   // ─── 랭킹 ───
   'ranking.stageTitle': '스테이지 랭킹',
   'ranking.todayFirst': '오늘 1위',
-  'ranking.dailyWindow': '한국시간 당일 00:00:01 - 23:59:59 실시간 반영',
+  'ranking.weekFirst': '이번 주 1위',
+  'ranking.dailyWindow': '한국시간 당일 00:00:01 - 23:59:59 최고점 · 매일 자정 초기화',
+  'ranking.weeklyWindow': '한국시간 월요일 00:00:01 - 일요일 23:59:59 최고점 · 매주 월요일 초기화',
   'ranking.dailyBoardAria': '{stage} 일일랭킹',
+  'ranking.weeklyBoardAria': '{stage} 주간랭킹',
+  'ranking.stageTabsAria': '스테이지 랭킹 기간 선택',
   'ranking.waiting': '기록 대기 중',
   'ranking.anonymous': '익명',
   'ranking.rankSuffix': '{rank}위',
@@ -202,6 +206,18 @@ export default {
   'ranking.tab.dailyNote': '한국시간 당일 00:00:01 - 23:59:59 실시간 최고점',
   'ranking.tab.weekly': '주간랭킹',
   'ranking.tab.weeklyNote': '한국시간 월요일 00:00:01 - 일요일 23:59:59 최고점',
+  // 랭킹 제출 결과 안내. "보드에 기록이 없다"와 "내 기록이 안 올라갔다"는 완전히 다른 사건이다.
+  'ranking.submit.pending': '이번 판 기록을 랭킹에 올리는 중…',
+  'ranking.submit.recorded': '이번 판 최고기록이 랭킹에 반영됐습니다.',
+  'ranking.submit.notBest': '이번 판은 내 최고기록보다 낮아 순위가 그대로입니다. 기록은 정상 처리됐습니다.',
+  'ranking.submit.failedRejected': '서버가 이번 기록을 거부했습니다. 이 점수는 랭킹에 올라가지 않았습니다.',
+  'ranking.submit.failedNetwork': '네트워크 문제로 이번 기록을 올리지 못했습니다. 이 점수는 랭킹에 올라가지 않았습니다.',
+  'ranking.submit.signedOut': '로그인하지 않아 이번 기록이 랭킹에 올라가지 않았습니다.',
+  'ranking.submit.unconfigured': '랭킹 서버가 연결되지 않아 이번 기록이 저장되지 않았습니다.',
+  'ranking.submit.seasonOff': '지금은 시즌 기간이 아니라 이번 기록이 집계되지 않았습니다.',
+  'ranking.submit.progressUnavailable': '진행도를 불러오지 못해 이번 기록이 랭킹에 올라가지 않았습니다.',
+  'ranking.submit.retry': '다시 올리기',
+  'ranking.submit.noticeAria': '랭킹 제출 상태',
 
   // ─── 코인상점 / 무기 / 능력치 ───
   'shop.eyebrow': '생존 강화 신청서',

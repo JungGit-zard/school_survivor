@@ -5,7 +5,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const gates = vi.hoisted(() => ({ seasonConfig: {} }))
 vi.mock('./adminConfig.js', () => ({ getAdminRankingSeasonConfig: () => gates.seasonConfig }))
 
-import { submitRun, _setFirebaseRankingClientForTests } from './firebaseRanking.js'
+import {
+  submitRun,
+  describeSubmission,
+  subscribeStageRanking,
+  _setFirebaseRankingClientForTests,
+} from './firebaseRanking.js'
 
 function makeFakeClient({ existingScore = null } = {}) {
   const writes = {}
@@ -180,5 +185,133 @@ describe('firebaseRanking client contract', () => {
     expect(source).toContain('mod.onValue(')
     expect(source).toContain('msUntilNextWindow')
     expect(source).toContain('kstWeeklyKey(now)')
+  })
+})
+
+// 2026-08-29: "최고기록을 세웠는데 랭킹 보드가 비어 있다"는 신고의 핵심은 화면이 제출 결과를
+// 전혀 모른다는 것이었다. submitRun은 written/skipped/failed 배열만 돌려주고 호출부는 그걸
+// 버렸다. describeSubmission은 그 배열을 화면이 그대로 쓸 단일 상태로 접는다 —
+// 여기서 갈라지지 않으면 "정상 스킵"과 "최고점 유실"이 또 같은 침묵으로 뭉개진다.
+describe('describeSubmission — 제출 결과를 화면이 읽을 단일 상태로 접는다', () => {
+  it('새 최고점이 한 버킷이라도 기록되면 recorded', () => {
+    expect(describeSubmission({ written: ['a'], skipped: ['b', 'c'], failed: [] })).toEqual({ status: 'recorded' })
+  })
+
+  it('전부 스킵이면 notBest — 유실이 아니라 정상이다', () => {
+    expect(describeSubmission({ written: [], skipped: ['a', 'b'], failed: [] })).toEqual({ status: 'notBest' })
+  })
+
+  it('일부라도 실패하면 failed — 같은 요청에 written이 섞여 있어도 실패가 이긴다', () => {
+    expect(describeSubmission({ written: ['a'], skipped: [], failed: ['b'], failureKind: 'rejected' }))
+      .toEqual({ status: 'failed', reason: 'rejected' })
+  })
+
+  it('규칙 거부와 네트워크 실패를 다른 reason으로 구분한다', () => {
+    expect(describeSubmission({ written: [], skipped: [], failed: ['a'], failureKind: 'network' }))
+      .toEqual({ status: 'failed', reason: 'network' })
+  })
+
+  it('시도조차 못 한 사유(seasonOff·signedOut·unconfigured)를 notSubmitted로 보존한다', () => {
+    for (const reason of ['seasonOff', 'signedOut', 'unconfigured']) {
+      expect(describeSubmission({ written: [], skipped: [], failed: [], reason }))
+        .toEqual({ status: 'notSubmitted', reason })
+    }
+  })
+})
+
+describe('submitRun failureKind — 재시도가 의미 있는 실패인지 구분한다', () => {
+  beforeEach(() => {
+    gates.seasonConfig = {}
+    vi.stubEnv('VITE_FIREBASE_DATABASE_URL', 'https://x-default-rtdb.firebaseio.com')
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+  })
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    _setFirebaseRankingClientForTests(null)
+    vi.restoreAllMocks()
+  })
+
+  it('PERMISSION_DENIED는 rejected — 같은 페이로드를 다시 쏴도 또 거부된다', async () => {
+    const { client, mod } = makeFakeClient()
+    mod.set = vi.fn(async () => { throw new Error('PERMISSION_DENIED: permission_denied at /rankingService') })
+    _setFirebaseRankingClientForTests(client)
+
+    const outcome = await submitRun({ uid: 'me' }, { stageId: 'stage1', score: 500, timeMs: 400000, cleared: true })
+
+    expect(outcome.failureKind).toBe('rejected')
+    expect(describeSubmission(outcome)).toEqual({ status: 'failed', reason: 'rejected' })
+  })
+
+  it('오프라인·타임아웃은 network — 재시도로 복구될 수 있다', async () => {
+    const { client, mod } = makeFakeClient()
+    mod.set = vi.fn(async () => { throw new Error('Failed to fetch') })
+    _setFirebaseRankingClientForTests(client)
+
+    const outcome = await submitRun({ uid: 'me' }, { stageId: 'stage1', score: 500, timeMs: 400000, cleared: true })
+
+    expect(outcome.failureKind).toBe('network')
+    expect(describeSubmission(outcome)).toEqual({ status: 'failed', reason: 'network' })
+  })
+
+  it('시즌 밖 제출은 failed가 아니라 seasonOff로 구분돼 나온다', async () => {
+    gates.seasonConfig = { endsAt: '2000-01-01' }
+    const { client } = makeFakeClient()
+    _setFirebaseRankingClientForTests(client)
+
+    const outcome = await submitRun({ uid: 'me' }, { stageId: 'stage1', score: 500, timeMs: 400000, cleared: true })
+
+    expect(describeSubmission(outcome)).toEqual({ status: 'notSubmitted', reason: 'seasonOff' })
+  })
+})
+
+// "즉각 보인다"의 구조적 전제. 1회성 get()이면 제출이 성공해도 이미 열려 있는 보드는
+// 절대 갱신되지 않는다. onValue 구독이어야 서버 쓰기가 곧 화면 갱신이 된다.
+describe('subscribeStageRanking — 1회성 조회가 아니라 실시간 구독이다', () => {
+  beforeEach(() => {
+    gates.seasonConfig = {}
+    vi.stubEnv('VITE_FIREBASE_DATABASE_URL', 'https://x-default-rtdb.firebaseio.com')
+  })
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    _setFirebaseRankingClientForTests(null)
+    vi.restoreAllMocks()
+  })
+
+  function makeSnapshot(entries) {
+    return {
+      exists: () => entries.length > 0,
+      forEach: (fn) => { entries.forEach((entry) => fn({ key: entry.uid, val: () => entry })) },
+    }
+  }
+
+  it('서버가 새 최고점을 밀어줄 때마다 onEntries를 다시 부른다', async () => {
+    const listeners = []
+    const mod = {
+      ref: (_db, path) => ({ path }),
+      query: (ref) => ref,
+      orderByChild: () => 'orderByChild',
+      limitToLast: () => 'limitToLast',
+      get: vi.fn(),
+      onValue: vi.fn((_q, onNext) => { listeners.push(onNext); return vi.fn() }),
+    }
+    _setFirebaseRankingClientForTests({ db: {}, mod })
+
+    const seen = []
+    const unsubscribe = subscribeStageRanking('stage1', 'daily', (rows) => seen.push(rows), { limit: 30 })
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(mod.onValue).toHaveBeenCalledTimes(1)
+    expect(mod.get).not.toHaveBeenCalled() // 1회성 조회로 끝내지 않는다
+
+    // 서버 push 1: 아직 아무 기록도 없다.
+    listeners[0](makeSnapshot([]))
+    // 서버 push 2: 방금 제출된 최고기록이 도착한다 — 재조회 없이 그대로 화면에 흘러야 한다.
+    listeners[0](makeSnapshot([{ uid: 'me', displayName: '정실장', score: 415, timeMs: 295499, cleared: false }]))
+
+    expect(seen).toHaveLength(2)
+    expect(seen[0]).toEqual([])
+    expect(seen[1][0]).toMatchObject({ uid: 'me', score: 415 })
+    unsubscribe()
   })
 })

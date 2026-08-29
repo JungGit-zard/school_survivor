@@ -50,7 +50,7 @@ import {
   reduceMissionEvent,
 } from '../lib/missionProgress.js'
 import { getApprovedMissionRewardAllowlist, MISSION_BY_ID } from '../lib/missionCatalog.js'
-import { submitRun } from '../lib/firebaseRanking.js'
+import { submitRun, describeSubmission } from '../lib/firebaseRanking.js'
 import { isProjectMaster } from '../lib/projectAdmin.js'
 import { useAuthStore } from './useAuthStore.js'
 import { getBossClearBonus, getRankingScore, getRankingScorePolicy } from '../lib/rankingScorePolicy.js'
@@ -272,6 +272,12 @@ export const useGameStore = create(
     runLevelUps: 0,
     newlyUnlockedWeaponIds: [],
     progressSaveWarning: null,
+    // 최근 런의 랭킹 제출 상태. null = 이번 세션에 제출을 시도한 적 없음.
+    // { status, reason?, stageId, score, timeMs, cleared } — 랭킹 화면이 이걸 읽어
+    // "보드가 비었다"와 "내 기록이 안 올라갔다"를 갈라 보여준다.
+    // resetGame에서 지우지 않는다: advanceStage가 _onRunEnd 직후 resetGame을 부르므로
+    // 지우면 클리어 런의 제출 결과가 화면에 뜨기도 전에 증발한다.
+    rankingSubmission: null,
     survivalMilestonesHit: [],
     recentMilestone: null,
     pendingLevelUps: 0,
@@ -610,7 +616,12 @@ export const useGameStore = create(
 
       if (!progressReady) {
         if (phaseName === 'gameover') emitSfx({ id: 'gameOver' })
-        set({ newlyUnlockedWeaponIds: Object.freeze(diff) })
+        // 이 경로는 랭킹 제출까지 통째로 건너뛴다. 예전에는 그 사실이 어디에도 남지 않아
+        // "기록을 세웠는데 보드가 비었다"의 원인 후보로 떠오르지도 못했다.
+        set({
+          newlyUnlockedWeaponIds: Object.freeze(diff),
+          rankingSubmission: { stageId: s.currentStageId, score: 0, timeMs: elapsedMs, cleared: phaseName === 'cleared', status: 'notSubmitted', reason: 'progressUnavailable' },
+        })
         void get().saveMissionProgress()
         return
       }
@@ -650,14 +661,38 @@ export const useGameStore = create(
       }, policy)
       if (s.bossBonus !== bossBonus) set({ bossBonus })
       const user = useAuthStore.getState().user
-      if (user) {
-        const score = getRankingScore({ stageId: s.currentStageId, survivalSeconds: runSurvivalSeconds, cleared, bossBonus }, policy)
-        // 같은 런의 종료가 2회 발화해도 안전하다: 랭킹은 최고점(best-only) 모델이라 두 번째
-        // 제출은 "기존 점수 >= 새 점수"로 스킵된다(합산이 아니다).
-        // 여기서 만들던 runId는 미배포 Cloud Function 전용이었고 submitRun은 인자로 받지도
-        // 않는다 — 존재하지 않는 서버 dedup을 약속하던 주석이라 함께 걷어냈다.
-        submitRun(user, { stageId: s.currentStageId, score, timeMs: elapsedMs, cleared }).catch(() => {})
+      const score = getRankingScore({ stageId: s.currentStageId, survivalSeconds: runSurvivalSeconds, cleared, bossBonus }, policy)
+      const run = { stageId: s.currentStageId, score, timeMs: elapsedMs, cleared }
+      // 같은 런의 종료가 2회 발화해도 안전하다: 랭킹은 최고점(best-only) 모델이라 두 번째
+      // 제출은 "기존 점수 >= 새 점수"로 스킵된다(합산이 아니다).
+      // 여기서 만들던 runId는 미배포 Cloud Function 전용이었고 submitRun은 인자로 받지도
+      // 않는다 — 존재하지 않는 서버 dedup을 약속하던 주석이라 함께 걷어냈다.
+      // 미로그인도 "조용히 아무 일 없음"이 아니라 하나의 결과로 남긴다. 예전에는 이 분기가
+      // 통째로 무음이라, 플레이어는 최고기록을 세우고도 빈 보드만 보고 이유를 알 수 없었다.
+      if (user) void get().submitRunToRanking(user, run)
+      else set({ rankingSubmission: { ...run, status: 'notSubmitted', reason: 'signedOut' } })
+    },
+
+    // 제출을 상태로 만든다. 결과를 버리면 실패가 console.warn에서 끝나 플레이어에게 안 보인다.
+    // 게임 흐름은 절대 막지 않는다 — 이 함수는 await되지 않고 던지지도 않는다.
+    submitRunToRanking: (user, run) => {
+      set({ rankingSubmission: { ...run, status: 'pending' } })
+      return submitRun(user, run)
+        .then((outcome) => { set({ rankingSubmission: { ...run, ...describeSubmission(outcome) } }) })
+        .catch(() => { set({ rankingSubmission: { ...run, status: 'failed', reason: 'network' } }) })
+    },
+
+    // 실패한 제출만 다시 시도한다. 성공/스킵을 다시 쏘면 서버 왕복만 늘고 얻는 게 없다.
+    retryRankingSubmission: () => {
+      const pending = get().rankingSubmission
+      if (!pending || pending.status !== 'failed') return Promise.resolve(false)
+      const user = useAuthStore.getState().user
+      const { stageId, score, timeMs, cleared } = pending
+      if (!user) {
+        set({ rankingSubmission: { ...pending, status: 'notSubmitted', reason: 'signedOut' } })
+        return Promise.resolve(false)
       }
+      return get().submitRunToRanking(user, { stageId, score, timeMs, cleared }).then(() => true)
     },
 
     acknowledgeNewWeaponUnlocks: () => {
