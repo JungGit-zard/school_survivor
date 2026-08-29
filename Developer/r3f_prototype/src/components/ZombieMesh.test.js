@@ -391,6 +391,17 @@ describe('Stage 2 boss visual reference', () => {
   })
 })
 
+describe('general zombie chamfered block polish', () => {
+  it('uses 1-step chamfer by default for zombie blocks while E08 keeps the 2-step inspection target', () => {
+    const source = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
+    const instanceSource = readFileSync(new URL('./ZombieInstanceLayer.jsx', import.meta.url), 'utf8')
+    expect(source).toContain('ZOMBIE_CHARACTER_CHAMFER_STEPS = 1')
+    expect(source).toContain('chamferSteps = ZOMBIE_CHARACTER_CHAMFER_STEPS')
+    expect(instanceSource).toContain("part[6] === 'chamfer2' ? 2 : 1")
+    expect(instanceSource).toContain('getCachedChamferedBoxGeo(...part[2], chamferSteps)')
+  })
+})
+
 describe('coin jingle zombie visual concept', () => {
   it('registers E08 as a coin-attract zombie with gold visual roles and 2-step chamfer blocks', () => {
     const source = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
@@ -403,7 +414,8 @@ describe('coin jingle zombie visual concept', () => {
     expect(source).toContain('getCachedChamferedBoxGeo')
     expect(source).toContain('chamferSteps={2}')
     expect(instanceSource).toContain("'chamfer2'")
-    expect(instanceSource).toContain('getCachedChamferedBoxGeo(...part[2], 2)')
+    expect(instanceSource).toContain('const chamferSteps = part[6] === \'chamfer2\' ? 2 : 1')
+    expect(instanceSource).toContain('getCachedChamferedBoxGeo(...part[2], chamferSteps)')
     expect(toonSource).toContain('RoundedBoxGeometry')
     expect(toonSource).toContain('getCachedChamferedBoxGeo')
   })

@@ -1,0 +1,2700 @@
+{
+  "meta": {
+    "format_version": "5.0",
+    "model_format": "free",
+    "box_uv": false
+  },
+  "name": "player-image2-2026-08-29",
+  "geometry_name": "player_image2_2026_08_29",
+  "visible_box": [
+    1,
+    1,
+    0
+  ],
+  "elements": [
+    {
+      "name": "head",
+      "type": "cube",
+      "uuid": "player-image2-cube-head",
+      "from": [
+        -40,
+        90,
+        -30
+      ],
+      "to": [
+        40,
+        160,
+        30
+      ],
+      "origin": [
+        0,
+        125,
+        0
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "hair_top",
+      "type": "cube",
+      "uuid": "player-image2-cube-hair_top",
+      "from": [
+        -46,
+        142,
+        -38
+      ],
+      "to": [
+        46,
+        178,
+        38
+      ],
+      "origin": [
+        0,
+        145,
+        0
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "hair_front",
+      "type": "cube",
+      "uuid": "player-image2-cube-hair_front",
+      "from": [
+        -38,
+        122,
+        28
+      ],
+      "to": [
+        38,
+        150,
+        48
+      ],
+      "origin": [
+        0,
+        128,
+        31
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "hair_side_l",
+      "type": "cube",
+      "uuid": "player-image2-cube-hair_side_l",
+      "from": [
+        -52,
+        88,
+        -28
+      ],
+      "to": [
+        -30,
+        140,
+        28
+      ],
+      "origin": [
+        -42,
+        112,
+        0
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "hair_side_r",
+      "type": "cube",
+      "uuid": "player-image2-cube-hair_side_r",
+      "from": [
+        30,
+        94,
+        -26
+      ],
+      "to": [
+        52,
+        142,
+        26
+      ],
+      "origin": [
+        42,
+        114,
+        0
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "hair_tail_l",
+      "type": "cube",
+      "uuid": "player-image2-cube-hair_tail_l",
+      "from": [
+        -58,
+        45,
+        -18
+      ],
+      "to": [
+        -35,
+        100,
+        8
+      ],
+      "origin": [
+        -48,
+        78,
+        -8
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "hair_clip_r",
+      "type": "cube",
+      "uuid": "player-image2-cube-hair_clip_r",
+      "from": [
+        20,
+        146,
+        30
+      ],
+      "to": [
+        44,
+        162,
+        42
+      ],
+      "origin": [
+        30,
+        154,
+        32
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "eye_l",
+      "type": "cube",
+      "uuid": "player-image2-cube-eye_l",
+      "from": [
+        -24,
+        108,
+        30
+      ],
+      "to": [
+        -12,
+        124,
+        38
+      ],
+      "origin": [
+        -18,
+        116,
+        32
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "eye_r",
+      "type": "cube",
+      "uuid": "player-image2-cube-eye_r",
+      "from": [
+        12,
+        108,
+        30
+      ],
+      "to": [
+        24,
+        124,
+        38
+      ],
+      "origin": [
+        18,
+        116,
+        32
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "torso_jacket",
+      "type": "cube",
+      "uuid": "player-image2-cube-torso_jacket",
+      "from": [
+        -36,
+        24,
+        -25
+      ],
+      "to": [
+        36,
+        92,
+        25
+      ],
+      "origin": [
+        0,
+        57,
+        0
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "shirt_panel",
+      "type": "cube",
+      "uuid": "player-image2-cube-shirt_panel",
+      "from": [
+        -17,
+        39,
+        25
+      ],
+      "to": [
+        17,
+        85,
+        33
+      ],
+      "origin": [
+        0,
+        64,
+        27
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "tie_yellow",
+      "type": "cube",
+      "uuid": "player-image2-cube-tie_yellow",
+      "from": [
+        -10,
+        35,
+        31
+      ],
+      "to": [
+        10,
+        74,
+        39
+      ],
+      "origin": [
+        0,
+        56,
+        35
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "lower_uniform_blue",
+      "type": "cube",
+      "uuid": "player-image2-cube-lower_uniform_blue",
+      "from": [
+        -44,
+        3,
+        -29
+      ],
+      "to": [
+        44,
+        32,
+        29
+      ],
+      "origin": [
+        0,
+        20,
+        0
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "backpack",
+      "type": "cube",
+      "uuid": "player-image2-cube-backpack",
+      "from": [
+        -42,
+        34,
+        -58
+      ],
+      "to": [
+        42,
+        96,
+        -31
+      ],
+      "origin": [
+        0,
+        65,
+        -31
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "backpack_flap",
+      "type": "cube",
+      "uuid": "player-image2-cube-backpack_flap",
+      "from": [
+        -23,
+        46,
+        -64
+      ],
+      "to": [
+        23,
+        69,
+        -56
+      ],
+      "origin": [
+        0,
+        58,
+        -60
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "strap_l",
+      "type": "cube",
+      "uuid": "player-image2-cube-strap_l",
+      "from": [
+        -30,
+        32,
+        21
+      ],
+      "to": [
+        -20,
+        88,
+        31
+      ],
+      "origin": [
+        -25,
+        61,
+        25
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "strap_r",
+      "type": "cube",
+      "uuid": "player-image2-cube-strap_r",
+      "from": [
+        20,
+        32,
+        21
+      ],
+      "to": [
+        30,
+        88,
+        31
+      ],
+      "origin": [
+        25,
+        61,
+        25
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "arm_l",
+      "type": "cube",
+      "uuid": "player-image2-cube-arm_l",
+      "from": [
+        -68,
+        24,
+        -18
+      ],
+      "to": [
+        -42,
+        82,
+        18
+      ],
+      "origin": [
+        -55,
+        62,
+        0
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "hand_l",
+      "type": "cube",
+      "uuid": "player-image2-cube-hand_l",
+      "from": [
+        -68,
+        4,
+        -16
+      ],
+      "to": [
+        -42,
+        28,
+        18
+      ],
+      "origin": [
+        -55,
+        16,
+        1
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "arm_r",
+      "type": "cube",
+      "uuid": "player-image2-cube-arm_r",
+      "from": [
+        42,
+        24,
+        -18
+      ],
+      "to": [
+        68,
+        82,
+        18
+      ],
+      "origin": [
+        55,
+        62,
+        0
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "hand_r",
+      "type": "cube",
+      "uuid": "player-image2-cube-hand_r",
+      "from": [
+        42,
+        4,
+        -16
+      ],
+      "to": [
+        68,
+        28,
+        18
+      ],
+      "origin": [
+        55,
+        16,
+        1
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "leg_l",
+      "type": "cube",
+      "uuid": "player-image2-cube-leg_l",
+      "from": [
+        -35,
+        -58,
+        -16
+      ],
+      "to": [
+        -9,
+        3,
+        16
+      ],
+      "origin": [
+        -22,
+        -20,
+        0
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "shoe_l",
+      "type": "cube",
+      "uuid": "player-image2-cube-shoe_l",
+      "from": [
+        -43,
+        -79,
+        -24
+      ],
+      "to": [
+        -1,
+        -58,
+        29
+      ],
+      "origin": [
+        -22,
+        -67,
+        9
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "leg_r",
+      "type": "cube",
+      "uuid": "player-image2-cube-leg_r",
+      "from": [
+        9,
+        -58,
+        -16
+      ],
+      "to": [
+        35,
+        3,
+        16
+      ],
+      "origin": [
+        22,
+        -20,
+        0
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "shoe_r",
+      "type": "cube",
+      "uuid": "player-image2-cube-shoe_r",
+      "from": [
+        1,
+        -79,
+        -24
+      ],
+      "to": [
+        43,
+        -58,
+        29
+      ],
+      "origin": [
+        22,
+        -67,
+        9
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "lantern_body",
+      "type": "cube",
+      "uuid": "player-image2-cube-lantern_body",
+      "from": [
+        39,
+        -20,
+        18
+      ],
+      "to": [
+        71,
+        0,
+        42
+      ],
+      "origin": [
+        55,
+        -7,
+        30
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "lantern_lens",
+      "type": "cube",
+      "uuid": "player-image2-cube-lantern_lens",
+      "from": [
+        44,
+        -19,
+        40
+      ],
+      "to": [
+        66,
+        3,
+        54
+      ],
+      "origin": [
+        55,
+        -7,
+        44
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "lantern_button",
+      "type": "cube",
+      "uuid": "player-image2-cube-lantern_button",
+      "from": [
+        49,
+        0,
+        28
+      ],
+      "to": [
+        61,
+        8,
+        37
+      ],
+      "origin": [
+        55,
+        3,
+        31
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    },
+    {
+      "name": "lantern_loop",
+      "type": "cube",
+      "uuid": "player-image2-cube-lantern_loop",
+      "from": [
+        43,
+        8,
+        18
+      ],
+      "to": [
+        67,
+        18,
+        28
+      ],
+      "origin": [
+        55,
+        12,
+        26
+      ],
+      "autouv": 0,
+      "color": 0,
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "texture": null
+        }
+      }
+    }
+  ],
+  "outliner": [
+    {
+      "name": "player_root",
+      "origin": [
+        0,
+        -79,
+        0
+      ],
+      "color": 0,
+      "uuid": "player-image2-group-player_root",
+      "children": [
+        {
+          "name": "head",
+          "origin": [
+            0,
+            125,
+            0
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-head",
+          "children": [
+            "player-image2-cube-head"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "hair_top",
+          "origin": [
+            0,
+            145,
+            0
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-hair_top",
+          "children": [
+            "player-image2-cube-hair_top"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "hair_front",
+          "origin": [
+            0,
+            128,
+            31
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-hair_front",
+          "children": [
+            "player-image2-cube-hair_front"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "hair_side_l",
+          "origin": [
+            -42,
+            112,
+            0
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-hair_side_l",
+          "children": [
+            "player-image2-cube-hair_side_l"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "hair_side_r",
+          "origin": [
+            42,
+            114,
+            0
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-hair_side_r",
+          "children": [
+            "player-image2-cube-hair_side_r"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "hair_tail_l",
+          "origin": [
+            -48,
+            78,
+            -8
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-hair_tail_l",
+          "children": [
+            "player-image2-cube-hair_tail_l"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "hair_clip_r",
+          "origin": [
+            30,
+            154,
+            32
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-hair_clip_r",
+          "children": [
+            "player-image2-cube-hair_clip_r"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "eye_l",
+          "origin": [
+            -18,
+            116,
+            32
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-eye_l",
+          "children": [
+            "player-image2-cube-eye_l"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "eye_r",
+          "origin": [
+            18,
+            116,
+            32
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-eye_r",
+          "children": [
+            "player-image2-cube-eye_r"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "torso_jacket",
+          "origin": [
+            0,
+            57,
+            0
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-torso_jacket",
+          "children": [
+            "player-image2-cube-torso_jacket"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "shirt_panel",
+          "origin": [
+            0,
+            64,
+            27
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-shirt_panel",
+          "children": [
+            "player-image2-cube-shirt_panel"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "tie_yellow",
+          "origin": [
+            0,
+            56,
+            35
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-tie_yellow",
+          "children": [
+            "player-image2-cube-tie_yellow"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "lower_uniform_blue",
+          "origin": [
+            0,
+            20,
+            0
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-lower_uniform_blue",
+          "children": [
+            "player-image2-cube-lower_uniform_blue"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "backpack",
+          "origin": [
+            0,
+            65,
+            -31
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-backpack",
+          "children": [
+            "player-image2-cube-backpack"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "backpack_flap",
+          "origin": [
+            0,
+            58,
+            -60
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-backpack_flap",
+          "children": [
+            "player-image2-cube-backpack_flap"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "strap_l",
+          "origin": [
+            -25,
+            61,
+            25
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-strap_l",
+          "children": [
+            "player-image2-cube-strap_l"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "strap_r",
+          "origin": [
+            25,
+            61,
+            25
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-strap_r",
+          "children": [
+            "player-image2-cube-strap_r"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "arm_l",
+          "origin": [
+            -55,
+            62,
+            0
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-arm_l",
+          "children": [
+            "player-image2-cube-arm_l"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "hand_l",
+          "origin": [
+            -55,
+            16,
+            1
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-hand_l",
+          "children": [
+            "player-image2-cube-hand_l"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "arm_r",
+          "origin": [
+            55,
+            62,
+            0
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-arm_r",
+          "children": [
+            "player-image2-cube-arm_r"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "hand_r",
+          "origin": [
+            55,
+            16,
+            1
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-hand_r",
+          "children": [
+            "player-image2-cube-hand_r"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "leg_l",
+          "origin": [
+            -22,
+            -20,
+            0
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-leg_l",
+          "children": [
+            "player-image2-cube-leg_l"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "shoe_l",
+          "origin": [
+            -22,
+            -67,
+            9
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-shoe_l",
+          "children": [
+            "player-image2-cube-shoe_l"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "leg_r",
+          "origin": [
+            22,
+            -20,
+            0
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-leg_r",
+          "children": [
+            "player-image2-cube-leg_r"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "shoe_r",
+          "origin": [
+            22,
+            -67,
+            9
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-shoe_r",
+          "children": [
+            "player-image2-cube-shoe_r"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "lantern_body",
+          "origin": [
+            55,
+            -7,
+            30
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-lantern_body",
+          "children": [
+            "player-image2-cube-lantern_body"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "lantern_lens",
+          "origin": [
+            55,
+            -7,
+            44
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-lantern_lens",
+          "children": [
+            "player-image2-cube-lantern_lens"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "lantern_button",
+          "origin": [
+            55,
+            3,
+            31
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-lantern_button",
+          "children": [
+            "player-image2-cube-lantern_button"
+          ],
+          "isOpen": true
+        },
+        {
+          "name": "lantern_loop",
+          "origin": [
+            55,
+            12,
+            26
+          ],
+          "color": 0,
+          "uuid": "player-image2-group-lantern_loop",
+          "children": [
+            "player-image2-cube-lantern_loop"
+          ],
+          "isOpen": true
+        }
+      ],
+      "isOpen": true
+    }
+  ],
+  "textures": []
+}

@@ -13,6 +13,7 @@ import StudioTunedGroup, { composeStudioPartRotation, composeStudioPartScale } f
 import BossFacePartsOverlay from './BossFacePartsOverlay.jsx'
 
 const disableRaycast = () => null
+export const ZOMBIE_CHARACTER_CHAMFER_STEPS = 1
 
 // 타입별 색상 팔레트
 export const ZOMBIE_PALETTE = {
@@ -350,7 +351,7 @@ export const B02_STAGE2_BOSS_FACE = {
   offset: [0, 0],
 }
 
-function ZBlock({ name, studioPartId, size, position, rotation, color, emissive = 0.12, outlineScale = 1.08, flash = false, chamferSteps = 0, children = null }) {
+function ZBlock({ name, studioPartId, size, position, rotation, color, emissive = 0.12, outlineScale = 1.08, flash = false, chamferSteps = ZOMBIE_CHARACTER_CHAMFER_STEPS, children = null }) {
   const geo    = chamferSteps > 0 ? getCachedChamferedBoxGeo(...size, chamferSteps) : getCachedBoxGeo(...size)
   const outMat = getSharedOutlineMat()
   const mat    = flash ? getFlashMat() : getCachedToonMat(color, emissive)
@@ -742,7 +743,7 @@ function CoinJingleZombieMesh({ hitFlash, reg }) {
 }
 
 function OutlineBlock({ size, position, rotation, scale = 1.08 }) {
-  const geo = getCachedBoxGeo(...size)
+  const geo = getCachedChamferedBoxGeo(...size, ZOMBIE_CHARACTER_CHAMFER_STEPS)
   const mat = getSharedOutlineMat()
   const s   = inflateScale(scale)
   return <mesh renderOrder={0} geometry={geo} material={mat} position={position} rotation={rotation} scale={[s, s, s]} />

@@ -131,7 +131,7 @@ function PlayerHealEffect({ token = 0 }) {
 export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 0, healFlashToken = 0, showHealthBar = true, previewArmAction = null }) {
   return (
     <>
-      <PlayerMesh groupRef={meshGroup} movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />
+      <PlayerMesh modelVariant="image2" groupRef={meshGroup} movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />
       <PlayerHealEffect token={healFlashToken} />
       {showHealthBar && <MiniHealthBar current={hp} max={maxHp} width={0.38} height={0.052} y={0.75} />}
     </>

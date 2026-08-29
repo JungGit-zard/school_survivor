@@ -144,7 +144,7 @@ describe('PlayerMesh layout', () => {
     const source = readFileSync(new URL('./PlayerMesh.jsx', import.meta.url), 'utf8')
     const registeredParts = Array.from(source.matchAll(/reg\('([^']+)'\)/g), (match) => match[1])
 
-    expect(registeredParts).toEqual([
+    const canonicalOrder = [
       'head',
       'hairTop',
       'hairFr',
@@ -160,7 +160,11 @@ describe('PlayerMesh layout', () => {
       'lantern',
       'legL',
       'legR',
-    ])
+    ]
+
+    // Both the title-locked legacy variant and the gameplay/Studio GLB adapter
+    // must register the same existing Studio keys in the same order.
+    expect(registeredParts).toEqual([...canonicalOrder, ...canonicalOrder])
   })
 
   it('composes Studio part offsets into every animated player transform channel', () => {
