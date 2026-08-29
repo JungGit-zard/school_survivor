@@ -46,9 +46,11 @@ import {
   consumeB03ShuttleRunPassHit,
   createB03ShuttleRunState,
   getB03ShuttleRunTrigger,
-  getB03ShuttleRunLaneZ,
+  getB03ShuttleRunFacingX,
+  getB03ShuttleRunLaneFromBoss,
   getB03ShuttleRunPlayerDamage,
   getB03ShuttleRunX,
+  getB03ShuttleTelegraphBlinkFactor,
   startB03ShuttleRun,
 } from '../lib/b03ShuttleRun.js'
 import {
@@ -644,18 +646,39 @@ export function hasB03ShuttleRunVisualChanged(previous, state) {
 }
 
 function B03ShuttleRunVisual({ phase, passIndex, laneZ, halfX }) {
-  if (phase === 'idle') return null
+  const outlineMatRef = useRef()
+  const surfaceMatRef = useRef()
+  const telegraphMsRef = useRef(0)
   const visualState = getB03ShuttleRunVisualState({ phase, passIndex })
   const visual = B03_SHUTTLE_RUN_VISUALS[visualState]
+  useEffect(() => { telegraphMsRef.current = 0 }, [phase])
+  // 깜빡임을 리액트 state로 돌리면 텔레그래프 내내 프레임마다 리렌더가 난다.
+  // 머티리얼 opacity만 useFrame에서 직접 흔들고, 리렌더는 phase 전환에서만 일어나게 둔다.
+  useFrame((_, delta) => {
+    const outlineMaterial = outlineMatRef.current
+    const surfaceMaterial = surfaceMatRef.current
+    if (!outlineMaterial || !surfaceMaterial) return
+    if (phase !== 'telegraph') {
+      telegraphMsRef.current = 0
+      outlineMaterial.opacity = visual.outlineOpacity
+      surfaceMaterial.opacity = visual.surfaceOpacity
+      return
+    }
+    telegraphMsRef.current += delta * 1000
+    const blink = getB03ShuttleTelegraphBlinkFactor(telegraphMsRef.current)
+    outlineMaterial.opacity = visual.outlineOpacity * blink
+    surfaceMaterial.opacity = visual.surfaceOpacity * blink
+  })
+  if (phase === 'idle') return null
   return (
     <group name="B03 왕복 오래달리기 레인" userData={{ shuttleRunState: visualState }}>
       <mesh position={[0, 0.024, laneZ]}>
         <boxGeometry args={[halfX * 2, 0.028, B03_SHUTTLE_LANE_WIDTH + 0.18]} />
-        <meshBasicMaterial color={visual.outline} transparent opacity={visual.outlineOpacity} depthWrite={false} toneMapped={false} />
+        <meshBasicMaterial ref={outlineMatRef} color={visual.outline} transparent opacity={visual.outlineOpacity} depthWrite={false} toneMapped={false} />
       </mesh>
       <mesh position={[0, 0.047, laneZ]}>
         <boxGeometry args={[halfX * 2, 0.024, B03_SHUTTLE_LANE_WIDTH]} />
-        <meshBasicMaterial color={visual.surface} transparent opacity={visual.surfaceOpacity} depthWrite={false} toneMapped={false} />
+        <meshBasicMaterial ref={surfaceMatRef} color={visual.surface} transparent opacity={visual.surfaceOpacity} depthWrite={false} toneMapped={false} />
       </mesh>
     </group>
   )
@@ -1184,15 +1207,20 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         _vel.x = next.phase === 'active' ? (shuttleX - t.x) / Math.max(delta, 0.001) : 0
         _vel.y = 0; _vel.z = 0
         rb.current.setLinvel(_vel, true)
+        // 왕복 방향을 실제로 바라보게 돌린다. 이 회전이 없으면 걷기 사이클이 돌아도
+        // 보스는 정면을 유지한 채 옆으로 미끄러져 "달리는 느낌이 전혀 나지 않는"
+        // 이동이 된다(2026-08-29 사용자 보고). 텔레그래프 1.25초 동안 미리 돌아선다.
+        _applyRotation(groupRef, getB03ShuttleRunFacingX(next), 0, 0.25)
         if (next.phase === 'idle') {
           chargeState.current = 'chase'
           queueVisualState('animPhase', 'normal')
         } else if (next.phase === 'telegraph') {
           queueVisualState('animPhase', 'warn')
         } else {
-          // 활성 왕복 중에는 달리기 포즈다. 이전에는 여기서도 'stun'을 내보내 보스가
-          // 기절 포즈로 미끄러졌다(2026-08-23 수정). 실제 'run' 포즈는 ZombieMesh 소관.
-          queueVisualState('animPhase', next.phase === 'active' ? 'run' : 'stun')
+          // 활성 왕복 중에는 평소 이동 애니메이션을 그대로 쓴다(2026-08-29 사용자 지시:
+          // "원래 이동하는 애니메이션을 그냥 써라"). 과거의 'run'은 ZombieMesh가 모르는
+          // 값이라 전용 포즈를 만들지 못했고, 신규 포즈 추가는 지시 범위 밖이다.
+          queueVisualState('animPhase', next.phase === 'active' ? 'normal' : 'stun')
         }
         return
       }
@@ -1200,11 +1228,12 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
         hpRatio: hpRef.current / stats.hp, chargeState: chargeState.current, state: previous,
       })
       if (trigger) {
-        const halfX = stageCombatConfig.bounds.halfX
-        const laneZ = getB03ShuttleRunLaneZ(playerPos.z, stageCombatConfig.bounds.halfZ)
-        const edgeInset = 0.9
-        const startX = t.x <= 0 ? -halfX + edgeInset : halfX - edgeInset
-        const endX = -startX
+        // 레인 Z는 플레이어가 아니라 "보스의 현재 Z"다. 보스는 _vel.z = 0으로 자기 Z를
+        // 그대로 달리므로, 플레이어 Z에 선을 그리면 경고선과 실제 주행선이 어긋난다
+        // (피격 판정도 레인 Z와 보스 X를 섞어 쓰기 때문에 같이 어긋났다).
+        const { laneZ, startX, endX } = getB03ShuttleRunLaneFromBoss(
+          t.x, t.z, stageCombatConfig.bounds.halfX, stageCombatConfig.bounds.halfZ,
+        )
         // baseSpeed를 넘겨야 패스 소요시간이 "평소 이동속도 ×10"으로 역산된다(고정 duration 금지).
         const next = startB03ShuttleRun(previous, trigger, { laneZ, startX, endX, baseSpeed: stats.speed })
         logPlaytestEvent('b03-shuttle-start', { trigger, hpRatio: hpRef.current / stats.hp, elapsedSec: Math.round(elapsedMs / 100) / 10 })

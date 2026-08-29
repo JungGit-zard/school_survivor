@@ -13,6 +13,11 @@ export const B03_SHUTTLE_PLAYER_DAMAGE_RATIO = 0.3
 export const B03_SHUTTLE_TELEGRAPH_MS = 1_250
 export const B03_SHUTTLE_STUN_MS = 1_200
 export const B03_SHUTTLE_LANE_WIDTH = 1.2
+// 반환 지점을 벽에 딱 붙이지 않기 위한 여유. 레인 끝을 halfX에서 이만큼 안쪽으로 당긴다.
+export const B03_SHUTTLE_LANE_EDGE_INSET = 0.9
+// 예고선 깜빡임: 텔레그래프 1.25초 동안 밝기가 3번 오르내린다("바닥에 예상루트가 깜빡인후").
+export const B03_SHUTTLE_TELEGRAPH_BLINKS = 3
+export const B03_SHUTTLE_TELEGRAPH_BLINK_MIN = 0.25
 
 export function getB03ShuttleRunPlayerDamage(currentHp) {
   return Math.max(0, currentHp) * B03_SHUTTLE_PLAYER_DAMAGE_RATIO
@@ -84,9 +89,45 @@ export function getB03ShuttleRunX(state) {
     : state.endX + (state.startX - state.endX) * localProgress
 }
 
-export function getB03ShuttleRunLaneZ(playerZ, halfZ) {
+export function getB03ShuttleRunLaneZ(laneZ, halfZ) {
   const inset = B03_SHUTTLE_LANE_WIDTH / 2 + 0.4
-  return Math.max(-halfZ + inset, Math.min(halfZ - inset, playerZ))
+  return Math.max(-halfZ + inset, Math.min(halfZ - inset, laneZ))
+}
+
+// 출발점은 반드시 보스가 "지금 서 있는" X다. 예전에는 가까운 쪽 벽 좌표를 출발점으로 잡아서,
+// 텔레그래프가 끝나는 첫 액티브 프레임에 보스가 최대 6.6유닛을 한 프레임에 순간이동했다
+// (2026-08-29 사용자 보고: "완전히 엉뚱한 곳으로 보스가 날아가서"). 도착점만 반대편 끝이다.
+// 편도 거리가 짧아지면 소요시간도 같이 줄지만 그게 정상이다 — 사양은 duration이 아니라 속도(×10)다.
+export function getB03ShuttleRunLaneX(bossX, halfX, edgeInset = B03_SHUTTLE_LANE_EDGE_INSET) {
+  const limit = Math.max(0, halfX - edgeInset)
+  const safeBossX = Number.isFinite(bossX) ? bossX : 0
+  const startX = Math.max(-limit, Math.min(limit, safeBossX))
+  return { startX, endX: startX <= 0 ? limit : -limit }
+}
+
+// 필살기 발동 시 레인 전체를 보스 좌표 하나로 확정한다. 레인 Z를 플레이어 Z로 잡던
+// 옛 호출부는 바닥 경고선과 실제 주행선이 어긋났다 — 보스는 _vel.z = 0으로 자기 Z를
+// 달리는데 선만 플레이어 쪽에 그려졌고, 피격 판정은 레인 Z와 보스 X를 섞어 썼다.
+export function getB03ShuttleRunLaneFromBoss(bossX, bossZ, halfX, halfZ) {
+  const { startX, endX } = getB03ShuttleRunLaneX(bossX, halfX)
+  return { laneZ: getB03ShuttleRunLaneZ(bossZ, halfZ), startX, endX }
+}
+
+// 보스가 바라봐야 할 X 방향(+/-). 이걸 회전에 반영하지 않으면 걷기 애니메이션이 돌아도
+// 몸은 정면을 유지한 채 옆으로 미끄러져 "달리는 느낌이 전혀 나지 않는" 이동이 된다.
+export function getB03ShuttleRunFacingX(state) {
+  if (!state || state.phase === 'idle' || state.phase === 'stun') return 0
+  const outbound = state.endX - state.startX
+  return state.phase === 'active' && state.passIndex === 1 ? -outbound : outbound
+}
+
+// 텔레그래프 경과 시간 → 예고선 불투명도 배수(1 = 원래 밝기, 0.25 = 가장 어두울 때).
+// 리액트 state를 매 프레임 갱신하면 리렌더가 폭주하므로, 호출부(useFrame)가 이 값을
+// 머티리얼 opacity에 직접 곱해 쓴다.
+export function getB03ShuttleTelegraphBlinkFactor(elapsedMs) {
+  const cycles = B03_SHUTTLE_TELEGRAPH_BLINKS * (Math.max(0, elapsedMs) / B03_SHUTTLE_TELEGRAPH_MS)
+  const pulse = 0.5 + 0.5 * Math.cos(cycles * Math.PI * 2)
+  return B03_SHUTTLE_TELEGRAPH_BLINK_MIN + (1 - B03_SHUTTLE_TELEGRAPH_BLINK_MIN) * pulse
 }
 
 export function consumeB03ShuttleRunPassHit(state, playerZ, playerX, bossX) {
