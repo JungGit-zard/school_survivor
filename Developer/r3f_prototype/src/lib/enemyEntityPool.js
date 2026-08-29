@@ -21,10 +21,12 @@ export const ENEMY_TYPE_CODES = Object.freeze({
   // ProceduralFaceTestZombie(셰이더로 얼굴을 직접 그림)이라 박스 InstancedMesh
   // 파이프라인 대신 ProceduralFaceZombieLayer가 그린다. 시뮬레이션은 동일 풀.
   E07: 15,
+  // E08 "동전 짤랑 좀비" — 아직 스폰 스케줄에는 넣지 않고 치트 소환/시각 검수 전용으로 등록한다.
+  E08: 16,
 })
 
 export const ENEMY_TYPE_NAMES = Object.freeze([
-  '', 'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07',
+  '', 'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07', 'E08',
 ])
 
 const MAX_GENERATION = MAX_ENEMY_GENERATION

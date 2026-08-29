@@ -1094,7 +1094,7 @@ let _chestId = 0
 
 // 15 = E07(웃는얼굴 좀비). 시뮬레이션은 다른 잡몹과 같은 풀을 쓰고, 몸통만
 // ProceduralFaceZombieLayer가 그린다(ZombieInstanceLayer는 그림자/체력바/스폰연기만 담당).
-const STANDARD_POOL_TYPE_MAX = 15
+const STANDARD_POOL_TYPE_MAX = 16
 export const MAX_CONCURRENT_ZOMBIES = MAX_ENEMIES
 export const OVERTIME_REINFORCEMENT_START_SEC = 240
 export const OVERTIME_REINFORCEMENT_INTERVAL_SEC = 30

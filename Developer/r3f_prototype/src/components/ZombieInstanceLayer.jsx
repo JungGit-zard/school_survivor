@@ -20,8 +20,9 @@ const translate = new THREE.Matrix4(); const rotate = new THREE.Matrix4(); const
 const IDENTITY = new THREE.Matrix4()
 const OUTLINE = 1
 const RUN_TYPES = new Set([7, 8])
+const COIN_JINGLE_TYPE = 16
 const SCREEN_RUNNER_TYPES = new Set([7, 8, 13, 14])
-const TYPE_NAMES = ['', 'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', '', '', '', '', 'RZT', 'RZG']
+const TYPE_NAMES = ['', 'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', '', '', '', '', 'RZT', 'RZG', 'E07', 'E08']
 // E07(type 15, 웃는얼굴 좀비)의 몸통은 셰이더 얼굴이라 이 박스 인스턴스 파이프라인에
 // 들어오지 않는다 — ProceduralFaceZombieLayer가 그린다. 여기서는 파트를 0개만 찍어
 // 다른 잡몹과 동일한 그림자·체력바·스폰 연기만 붙인다.
@@ -56,15 +57,22 @@ const RZG = [
   ['armL','uniform',[.20,.50,.20],[-.40,.52,0],[0,-.25,0],1.05], ['handL','skin',[.18,.16,.18],[-.40,.52,0],[0,-.55,0],1.03], ['armR','uniform',[.20,.50,.20],[.40,.52,0],[0,-.25,0],1.05], ['handR','skin',[.18,.16,.18],[.40,.52,0],[0,-.55,0],1.03],
   ['legL','pants',[.22,.50,.26],[-.15,0,0],[0,-.25,0],1.05], ['shoeL','shoe',[.26,.12,.36],[-.15,0,0],[0,-.55,.06],1.03], ['legR','pants',[.22,.50,.26],[.15,0,0],[0,-.25,0],1.05], ['shoeR','shoe',[.26,.12,.36],[.15,0,0],[0,-.55,.06],1.03],
 ]
+const COIN_JINGLE = [
+  ['head','skin',[.52,.48,.46],[0,.82,0],[0,0,0],1.08], ['eyeL','eye',[.10,.09,.06],[0,.82,0],[-.12,.04,.24],1], ['eyeR','eye',[.10,.09,.06],[0,.82,0],[.12,.04,.24],1], ['foreheadCoin','coin',[.20,.06,.20],[0,.82,0],[0,.26,.04],1.03],
+  ['body','body',[.56,.58,.40],[0,.28,0],[0,0,0],1.09], ['coinBag','coinBag',[.26,.30,.13],[0,.28,0],[.20,-.04,.28],1.05], ['bagCoin','coin',[.15,.035,.15],[0,.28,0],[.20,.05,.36],1.02],
+  ['armL','body',[.20,.50,.20],[-.40,.52,0],[0,-.25,0],1.05], ['handCoinL','coin',[.16,.035,.16],[-.40,.52,0],[0,-.58,.08],1.03], ['armR','body',[.20,.50,.20],[.40,.52,0],[0,-.25,0],1.05], ['handCoinR','coin',[.16,.035,.16],[.40,.52,0],[0,-.58,.08],1.03],
+  ['legL','body',[.22,.52,.26],[-.15,0,0],[0,-.26,0],1.06], ['footL','foot',[.24,.12,.34],[-.15,0,0],[0,-.57,.05],1.03], ['legR','body',[.22,.52,.26],[.15,0,0],[0,-.26,0],1.06], ['footR','foot',[.24,.12,.34],[.15,0,0],[0,-.57,.05],1.03],
+]
 const RZT_OFFSET = STANDARD.length + RUN.length
 const RZG_OFFSET = RZT_OFFSET + RZT.length
-const ALL_PARTS = STANDARD.concat(RUN, RZT, RZG)
+const COIN_JINGLE_OFFSET = RZG_OFFSET + RZG.length
+const ALL_PARTS = STANDARD.concat(RUN, RZT, RZG, COIN_JINGLE)
 const PART_STRIDE = 9
 const PART_COUNT = ALL_PARTS.length
 const partSlotScratch = new Int16Array(12)
 function createDefaultStudioPartTransforms() {
-  const transforms = new Float32Array(15 * PART_COUNT * PART_STRIDE)
-  for (let type = 0; type < 15; type += 1) {
+  const transforms = new Float32Array(TYPE_NAMES.length * PART_COUNT * PART_STRIDE)
+  for (let type = 0; type < TYPE_NAMES.length; type += 1) {
     for (let part = 0; part < PART_COUNT; part += 1) {
       const scaleOffset = (type * PART_COUNT + part) * PART_STRIDE + 6
       transforms[scaleOffset] = 1
@@ -112,7 +120,7 @@ function markOne(x) { x.instanceMatrix.needsUpdate=true; if(x.instanceColor)x.in
 
 export default function ZombieInstanceLayer({ resetKey }) {
   const { camera } = useThree(); const smokeTexture = useLoader(THREE.TextureLoader, spawnSmokeUrl)
-  const studio = useRef({ revision: null, rootMatrices: [], rootScaleX: new Float32Array(15), rootScaleZ: new Float32Array(15), supported: new Uint8Array(15), partTransforms: createDefaultStudioPartTransforms() }); const cueOverflowRef = useRef(0); const cueIndicesRef = useRef(new Int16Array(16))
+  const studio = useRef({ revision: null, rootMatrices: [], rootScaleX: new Float32Array(TYPE_NAMES.length), rootScaleZ: new Float32Array(TYPE_NAMES.length), supported: new Uint8Array(TYPE_NAMES.length), partTransforms: createDefaultStudioPartTransforms() }); const cueOverflowRef = useRef(0); const cueIndicesRef = useRef(new Int16Array(16))
   const renderTiers = useRef(new Uint8Array(POOLED_ENEMY_CAPACITY))
   const partCounts = useRef(new Int16Array(PART_COUNT))
   const health = useRef({ generation:new Uint16Array(200), lastRatio:new Float32Array(200), trailRatio:new Float32Array(200), flash:new Float32Array(200), ratio:new Float32Array(200), visibleTrailRatio:new Float32Array(200) })
@@ -178,8 +186,8 @@ export default function ZombieInstanceLayer({ resetKey }) {
       const active=i<=max&&pool.active[i]===1; if(!active){tiers[i]=0;continue}
       const timer=pool.spawnTimer[i]; const type=pool.type[i]; const tier=getPooledEnemyRenderTier(screenBounds,pool.posX[i],pool.posZ[i],playerPos.x,playerPos.z,tiers[i]); tiers[i]=tier
       if(!tier)continue
-      const bodyVisible=timer>=SPAWN_REVEAL_MS&&((type>=1&&type<=8)||type===13||type===14||type===15); const smokeVisible=timer>=0&&timer<SPAWN_SMOKE_MS
-      if(bodyVisible){const renderSlot=bodyCount++;const rootMatrix=studio.current.rootMatrices[type]||IDENTITY;const scale=(pool.visualScale[i]||1)*.333;const state=phase(pool,i);const time=getPooledEnemyAnimationTime(timer,tier);const pal=TYPE_PALETTES[type];const parts=type===13?RZT:type===14?RZG:RUN_TYPES.has(type)?RUN:STANDARD;const offset=type===13?RZT_OFFSET:type===14?RZG_OFFSET:RUN_TYPES.has(type)?STANDARD.length:0;const partCount=type===15?NO_INSTANCED_PART_COUNT:parts.length
+      const bodyVisible=timer>=SPAWN_REVEAL_MS&&((type>=1&&type<=8)||type===13||type===14||type===15||type===COIN_JINGLE_TYPE); const smokeVisible=timer>=0&&timer<SPAWN_SMOKE_MS
+      if(bodyVisible){const renderSlot=bodyCount++;const rootMatrix=studio.current.rootMatrices[type]||IDENTITY;const scale=(pool.visualScale[i]||1)*.333;const state=phase(pool,i);const time=getPooledEnemyAnimationTime(timer,tier);const pal=TYPE_PALETTES[type];const parts=type===13?RZT:type===14?RZG:type===COIN_JINGLE_TYPE?COIN_JINGLE:RUN_TYPES.has(type)?RUN:STANDARD;const offset=type===13?RZT_OFFSET:type===14?RZG_OFFSET:type===COIN_JINGLE_TYPE?COIN_JINGLE_OFFSET:RUN_TYPES.has(type)?STANDARD.length:0;const partCount=type===15?NO_INSTANCED_PART_COUNT:parts.length
         const screenRunnerLift=type===13||type===14?scale*.45:0;p.set(pool.posX[i],pool.posY[i]+screenRunnerLift,pool.posZ[i]);e.set(0,pool.yaw[i],0);q.setFromEuler(e);s.set(scale,scale,scale);m.compose(p,q,s);m.multiply(rootMatrix)
         p.set(pool.posX[i],.018,pool.posZ[i]);s.set(Math.max(.05,scale*(studio.current.rootScaleX[type]||1)*.62),Math.max(.05,scale*(studio.current.rootScaleZ[type]||1)*.34),1);q.setFromEuler(shadowRotation);a.compose(p,q,s);all.shadow.setMatrixAt(renderSlot,a)
         for(let j=0;j<partCount;j++){const part=parts[j];const slot=offset+j;if(!shouldRenderPooledEnemyPart(type,slot,tier)||(part[6]==='leader'&&type!==7))continue;const partRenderSlot=counts[slot]++;const partBase=type*PART_COUNT*PART_STRIDE+slot*PART_STRIDE;a.copy(m);translate.makeTranslation(composeStudioPartOffset(part[3][0],studio.current.partTransforms[partBase]),composeStudioPartOffset(part[3][1],studio.current.partTransforms[partBase+1]),composeStudioPartOffset(part[3][2],studio.current.partTransforms[partBase+2]));a.multiply(translate);setPartRotation(e,part[0],time,type,state);e.set(composeStudioPartOffset(e.x,studio.current.partTransforms[partBase+3]),composeStudioPartOffset(e.y,studio.current.partTransforms[partBase+4]),composeStudioPartOffset(e.z,studio.current.partTransforms[partBase+5]));rotate.makeRotationFromEuler(e);a.multiply(rotate);inflate.makeScale(composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+6]),composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+7]),composeStudioPartMultiplier(1,studio.current.partTransforms[partBase+8]));a.multiply(inflate);translate.makeTranslation(part[4][0],part[4][1],part[4][2]);a.multiply(translate);all.body[slot].setMatrixAt(partRenderSlot,a);const role=part[1];const run=type===7;const fugitive=type===13;const guard=type===14;const hex=pool.hitFlashTimer[i]>0?0xffffff:role==='skin'?pal.skin:role==='eye'?pal.eye:role==='foot'?0x1a1a1a:role==='hair'?0x35251c:role==='coat'?0xb48755:role==='scarf'?0xd8b057:role==='coatShadow'?0x76502d:role==='cap'?0x102c4a:role==='uniform'?0x173a5e:role==='vest'?0xe3bf3f:role==='badge'?0xf3d46b:role==='pants'?(fugitive?0x382d29:0x13263b):role==='trim'?(run?0x7d3fc6:0x1880bd):role==='stripe'?0xffffff:role==='jersey'?(run?0x5a2484:0xf0eee4):role==='shorts'?(run?0x22152f:0x1974aa):role==='shoe'?(fugitive?0x171717:guard?0x111317:run?0x6e35b8:0x1771a6):role==='sole'?0xf5f1e8:role==='bib'?0xb48755:role==='digit'?0x151515:role==='mouth'?(fugitive?0x381510:guard?0x35100f:0x151515):role==='medal'?0xf0b62d:pal.body;color.setHex(hex);all.body[slot].setColorAt(partRenderSlot,color);const outlineScale=1+(part[5]-1)*2;inflate.makeScale(outlineScale,outlineScale,outlineScale);a.multiply(inflate);all.out[slot].setMatrixAt(partRenderSlot,a)}

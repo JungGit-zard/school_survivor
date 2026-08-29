@@ -29,6 +29,7 @@ export const ZOMBIE_PALETTE = {
   RZC: { body: 0x1671a6, skin: 0x8fa85e, eye: 0x101010 },
   RZT: { body: 0xa87843, skin: 0x8fa85e, eye: 0xffd45c },
   RZG: { body: 0x173a5e, skin: 0x88a75f, eye: 0xff573d },
+  E08: { body: 0x5a3b16, skin: 0x9bb66a, eye: 0xffd23a, coin: 0xf6c844, coinDark: 0xb97316, coinBag: 0x8a5a24 },
 }
 
 export const B01_BOSS_VISUAL_PALETTE = {
@@ -704,6 +705,42 @@ function B02Stage2BossMesh({ hitFlash, reg, bossFaceRecipe }) {
   )
 }
 
+
+function CoinJingleZombieMesh({ hitFlash, reg }) {
+  const pal = ZOMBIE_PALETTE.E08
+  return (
+    <group name="coinJingleZombie">
+      <group ref={reg('head')} position={[0, 0.82, 0]}>
+        <ZBlock name="coinJingleHead" size={[0.52, 0.48, 0.46]} position={[0, 0, 0]} color={pal.skin} emissive={0.08} outlineScale={1.08} flash={hitFlash} />
+        <ZBlock name="coinJingleEyeL" size={[0.10, 0.09, 0.06]} position={[-0.12, 0.04, 0.24]} color={pal.eye} emissive={0.95} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="coinJingleEyeR" size={[0.10, 0.09, 0.06]} position={[0.12, 0.04, 0.24]} color={pal.eye} emissive={0.95} outlineScale={1.0} flash={hitFlash} />
+        <ZBlock name="coinJingleForeheadCoin" size={[0.20, 0.06, 0.20]} position={[0, 0.26, 0.04]} rotation={[Math.PI / 2, 0, 0]} color={pal.coin} emissive={0.28} outlineScale={1.03} flash={hitFlash} />
+      </group>
+      <group ref={reg('body')} position={[0, 0.28, 0]}>
+        <ZBlock name="coinJingleBody" size={[0.56, 0.58, 0.40]} position={[0, 0, 0]} color={pal.body} emissive={0.12} outlineScale={1.09} flash={hitFlash} />
+        <ZBlock name="coinJingleCoinBag" size={[0.26, 0.30, 0.13]} position={[0.20, -0.04, 0.28]} color={pal.coinBag} emissive={0.10} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock name="coinJingleBagCoin" size={[0.15, 0.035, 0.15]} position={[0.20, 0.05, 0.36]} rotation={[Math.PI / 2, 0, 0]} color={pal.coin} emissive={0.30} outlineScale={1.02} flash={hitFlash} />
+      </group>
+      <group ref={reg('armL')} position={[-0.40, 0.52, 0]} rotation={[-1.15, 0, 0.12]}>
+        <ZBlock name="coinJingleArmL" size={[0.20, 0.50, 0.20]} position={[0, -0.25, 0]} color={pal.body} emissive={0.10} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock name="coinJingleCoinL" size={[0.16, 0.035, 0.16]} position={[0, -0.58, 0.08]} rotation={[Math.PI / 2, 0, 0]} color={pal.coin} emissive={0.32} outlineScale={1.03} flash={hitFlash} />
+      </group>
+      <group ref={reg('armR')} position={[0.40, 0.52, 0]} rotation={[-1.15, 0, -0.12]}>
+        <ZBlock name="coinJingleArmR" size={[0.20, 0.50, 0.20]} position={[0, -0.25, 0]} color={pal.body} emissive={0.10} outlineScale={1.05} flash={hitFlash} />
+        <ZBlock name="coinJingleCoinR" size={[0.16, 0.035, 0.16]} position={[0, -0.58, 0.08]} rotation={[Math.PI / 2, 0, 0]} color={pal.coin} emissive={0.32} outlineScale={1.03} flash={hitFlash} />
+      </group>
+      <group ref={reg('legL')} position={[-0.15, 0.00, 0]}>
+        <ZBlock name="coinJingleLegL" size={[0.22, 0.52, 0.26]} position={[0, -0.26, 0]} color={pal.body} emissive={0.09} outlineScale={1.06} flash={hitFlash} />
+        <ZBlock name="coinJingleFootL" size={[0.24, 0.12, 0.34]} position={[0, -0.57, 0.05]} color={0x1a1a1a} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
+      </group>
+      <group ref={reg('legR')} position={[0.15, 0.00, 0]}>
+        <ZBlock name="coinJingleLegR" size={[0.22, 0.52, 0.26]} position={[0, -0.26, 0]} color={pal.body} emissive={0.09} outlineScale={1.06} flash={hitFlash} />
+        <ZBlock name="coinJingleFootR" size={[0.24, 0.12, 0.34]} position={[0, -0.57, 0.05]} color={0x1a1a1a} emissive={0.05} outlineScale={1.03} flash={hitFlash} />
+      </group>
+    </group>
+  )
+}
+
 function OutlineBlock({ size, position, rotation, scale = 1.08 }) {
   const geo = getCachedBoxGeo(...size)
   const mat = getSharedOutlineMat()
@@ -981,6 +1018,14 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     return (
       <StudioTunedGroup itemId={getStudioZombieItemId('E07')}>
         <ProceduralFaceTestZombie />
+      </StudioTunedGroup>
+    )
+  }
+
+  if (type === 'E08') {
+    return (
+      <StudioTunedGroup itemId={getStudioZombieItemId('E08')}>
+        <CoinJingleZombieMesh hitFlash={hitFlash} reg={reg} />
       </StudioTunedGroup>
     )
   }

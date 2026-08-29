@@ -3,7 +3,8 @@ import '../assets/fonts/nanumMyeongjo.css'
 import { useShallow } from 'zustand/react/shallow'
 import { useGameStore, STAGE1_INTRO_IDS } from '../store/useGameStore.js'
 import { useAuthStore } from '../store/useAuthStore.js'
-import { joystickDir, playerPos, portalTarget } from '../lib/refs.js'
+import { enemyHandleScratch, enemyPool, joystickDir, playerPos, portalTarget } from '../lib/refs.js'
+import { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import { getPortalObjective } from '../lib/portalObjective.js'
 import { MAX_OWNED_WEAPONS, UPGRADE_EFFECTS, isUpgradeAvailable, selectSequentialLevelupChoices } from '../lib/upgrades.js'
 import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
@@ -93,6 +94,29 @@ const MATILDA_DEATH_GRAYSCALE_FADE_MS = 480
 // 충돌 임팩트음으로 겹치지 않는다.
 const MATILDA_DEATH_IMPACT_SFX = Object.freeze({ id: 'matildaDeath', volume: 0.95 })
 const DEV_CHEATS_ENABLED = import.meta.env.DEV
+
+
+function summonCoinJingleZombieCheat() {
+  const stats = ENEMY_STATS.E08
+  const dirX = joystickDir.active ? joystickDir.x : 0
+  const dirZ = joystickDir.active ? joystickDir.z : 1
+  const len = Math.hypot(dirX, dirZ) || 1
+  const nx = dirX / len
+  const nz = dirZ / len
+  const spawned = enemyPool.spawnInto(enemyHandleScratch, {
+    type: 'E08',
+    x: playerPos.x + nx * 2.2,
+    y: 0.42 * stats.scale * ENEMY_SIZE_MULTIPLIER,
+    z: playerPos.z + nz * 2.2,
+    hp: stats.hp,
+    maxHp: stats.hp,
+    visualScale: stats.scale * ENEMY_SIZE_MULTIPLIER,
+    yaw: Math.atan2(nx, nz) + Math.PI,
+  })
+  if (spawned) emitSfx({ id: 'buttonClick' })
+  return spawned
+}
+
 
 // 한국어 라벨은 그대로 폴백으로 남기고, 번역은 업그레이드 키(up.<key>.label)로 찾는다.
 const damageLabel = (name, weaponKey, upgradeKey) => (w) => {
@@ -1340,6 +1364,9 @@ export default function HUD({
                 </button>
                 <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => { emitSfx({ id: 'buttonClick' }); dispatchStarlinkCheatCrash() }} aria-label={t('hud.starlinkCheatAria')} title={t('hud.starlinkCheatTitle')}>
                   S
+                </button>
+                <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => { summonCoinJingleZombieCheat() }} aria-label="동전 짤랑 좀비 소환" title="동전 짤랑 좀비 소환">
+                  C
                 </button>
               </>
             )}
