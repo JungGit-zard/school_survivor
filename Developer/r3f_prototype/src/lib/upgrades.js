@@ -317,14 +317,13 @@ export function isUpgradeAvailable(effect, level, weapons, player = null) {
     if (effect.requiresActiveWeapons
       && !effect.requiresActiveWeapons.every((id) => weapons[id]?.active)) return false
     // 계정 해금 게이트: starter는 isWeaponUnlocked가 항상 true, 그 외는 weaponUnlocks 디스크 상태.
-    const accountUnlockedAcquire = !effect.skipAccountUnlock && isWeaponUnlocked(effect.weapon)
-    if (!effect.skipAccountUnlock && !accountUnlockedAcquire) return false
-    // 사용자가 계정에서 해금한 무기는 레벨업 화면 순환의 정본 멤버다. 아직 보유하지 않은 경우
-    // 최소 레벨·보유 슬롯 상한보다 먼저 유효한 획득 카드로 유지한다.
-    if (accountUnlockedAcquire) return true
+    // 계정 해금과 최소 레벨을 만족한 획득 카드는 8칸에서도 교체 후보로 표시한다.
+    // 실제 활성 무기 수는 교체 확정 시 기존 무기 하나를 제거해 8개로 유지한다.
+    const accountUnlockedAcquire = effect.skipAccountUnlock || isWeaponUnlocked(effect.weapon)
+    if (!accountUnlockedAcquire) return false
     if (effect.minLevel != null && level < effect.minLevel) return false
     const ownedCount = Object.values(weapons).filter((w) => w.active).length
-    return ownedCount < MAX_OWNED_WEAPONS
+    return ownedCount <= MAX_OWNED_WEAPONS
   }
   if (effect.minLevel != null && level < effect.minLevel) return false
   if (!wpn?.active) return false

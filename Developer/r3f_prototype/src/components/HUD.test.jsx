@@ -559,6 +559,70 @@ describe('gameover presentation', () => {
 })
 
 describe('level-up upgrade layout', () => {
+  it('fullEightReplacement shows an acquire card at eight weapons, cancels unchanged, then replaces the chosen weapon', () => {
+    useGameStore.getState().resetGame('stage1')
+    setUnlocked('scienceFlask')
+    const activeWeaponIds = new Set(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'bell', 'stunGun', 'onigiri', 'guidedMissile'])
+    let originalPencil
+    useGameStore.setState((state) => {
+      originalPencil = state.weapons.pencilThrow
+      return {
+        phase: 'levelup',
+        pendingLevelUps: 1,
+        player: { ...state.player, level: 8 },
+        levelUpChoiceSerial: state.levelUpChoiceSerial + 1,
+        weapons: Object.fromEntries(Object.entries(state.weapons).map(([id, weapon]) => [
+          id,
+          activeWeaponIds.has(id)
+            ? { ...weapon, active: true, level: id === 'pencilThrow' ? 5 : 1, damage: id === 'pencilThrow' ? 999 : weapon.damage }
+            : weapon,
+        ])),
+      }
+    })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const flaskChoice = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
+        .find((choice) => choice.getAttribute('aria-label').includes('과학 플라스크 획득'))
+      expect(flaskChoice).toBeTruthy()
+
+      act(() => {
+        useGameStore.getState().applyUpgrade('acquireFlask')
+      })
+
+      expect(container.querySelector('[data-testid="weapon-replacement-dialog"]')).not.toBeNull()
+      expect(useGameStore.getState().weapons.scienceFlask.active).toBe(false)
+      expect(useGameStore.getState().pendingLevelUps).toBe(1)
+
+      act(() => {
+        container.querySelector('[data-testid="weapon-replacement-cancel"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      })
+      expect(container.querySelector('[data-testid="weapon-replacement-dialog"]')).toBeNull()
+      expect(useGameStore.getState().weapons.pencilThrow).toMatchObject({ active: true, level: 5, damage: 999 })
+      expect(useGameStore.getState().pendingLevelUps).toBe(1)
+
+      act(() => {
+        useGameStore.getState().applyUpgrade('acquireFlask')
+      })
+      act(() => {
+        container.querySelector('[data-testid="weapon-replacement-discard-pencilThrow"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      })
+
+      const state = useGameStore.getState()
+      expect(state.weapons.pencilThrow).toEqual({ ...originalPencil, active: false, level: 0 })
+      expect(state.weapons.scienceFlask).toMatchObject({ active: true, level: 1 })
+      expect(Object.values(state.weapons).filter((weapon) => weapon.active)).toHaveLength(8)
+    } finally {
+      act(() => root.unmount())
+      container.remove()
+    }
+  })
+
   it('chibikoCrit shows the critical card at Chibiko level 2 instead of always selecting damage', () => {
     useGameStore.getState().resetGame('stage1')
     useGameStore.setState((state) => ({
@@ -737,6 +801,7 @@ describe('level-up upgrade layout', () => {
 
   it('guarantees eligible follow-up cards once on the next level-up screen', () => {
     useGameStore.getState().resetGame('stage1')
+    setUnlocked('chibiko')
     useGameStore.getState().applyUpgrade('acquireChibiko')
     useGameStore.getState().applyUpgrade('acquireBoxCutter')
     useGameStore.setState((state) => ({
@@ -808,10 +873,10 @@ describe('level-up upgrade layout', () => {
     }
   })
 
-  it('clears a follow-up guarantee when all eight weapon slots are full', () => {
+  it('keeps a follow-up acquisition guarantee visible as an 8-slot replacement candidate', () => {
     useGameStore.getState().resetGame('stage1')
     useGameStore.setState((state) => {
-      const activeWeaponIds = new Set(Object.keys(state.weapons).slice(0, 8))
+      const activeWeaponIds = new Set(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'chibiko'])
       return {
         phase: 'levelup',
         pendingLevelUps: 1,
@@ -820,7 +885,7 @@ describe('level-up upgrade layout', () => {
         pendingGuaranteedUpgradeChoiceKeys: ['acquireHanako'],
         weapons: Object.fromEntries(Object.entries(state.weapons).map(([id, weapon]) => [
           id,
-          activeWeaponIds.has(id) ? { ...weapon, active: true } : weapon,
+          activeWeaponIds.has(id) ? { ...weapon, active: true, level: Math.max(1, weapon.level ?? 0) } : weapon,
         ])),
       }
     })
@@ -832,7 +897,81 @@ describe('level-up upgrade layout', () => {
         root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
       })
 
+      const choices = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
+      expect(choices.some((choice) => choice.textContent.includes('하나코 획득'))).toBe(true)
       expect(useGameStore.getState().pendingGuaranteedUpgradeChoiceKeys).toEqual([])
+    } finally {
+      act(() => root.unmount())
+      container.remove()
+    }
+  })
+
+  it('opens an 8-slot weapon replacement prompt and supports cancel, discard, and replacement actions', () => {
+    useGameStore.getState().resetGame('stage1')
+    setUnlocked('starlink')
+    const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri']
+    useGameStore.setState((state) => ({
+      phase: 'levelup',
+      pendingLevelUps: 1,
+      player: { ...state.player, level: 8 },
+      weapons: Object.fromEntries(Object.entries(state.weapons).map(([id, weapon]) => [
+        id,
+        { ...weapon, active: activeAtCap.includes(id), level: activeAtCap.includes(id) ? 5 : weapon.level },
+      ])),
+      levelUpChoiceSerial: state.levelUpChoiceSerial + 1,
+    }))
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    const animationEnd = (name) => {
+      const event = new window.Event('webkitAnimationEnd', { bubbles: true })
+      Object.defineProperty(event, 'animationName', { value: name })
+      return event
+    }
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      let choices = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
+      const starlinkChoice = choices.find((choice) => choice.textContent.includes('고장난 스타링크 획득'))
+      expect(starlinkChoice).not.toBeUndefined()
+      act(() => choices[choices.length - 1].dispatchEvent(animationEnd('levelupCardPop')))
+      act(() => starlinkChoice.click())
+
+      let prompt = container.querySelector('[data-testid="weapon-replacement-prompt"]')
+      expect(prompt).not.toBeNull()
+      expect(prompt.textContent).toContain('무기 8/8')
+      expect(prompt.textContent).toContain('고장난 스타링크')
+      expect(prompt.querySelectorAll('[data-replacement-choice="true"]')).toHaveLength(8)
+
+      clickButtonByText(prompt, '취소')
+      expect(container.querySelector('[data-testid="weapon-replacement-prompt"]')).toBeNull()
+      expect(useGameStore.getState().weapons.starlink.active).toBe(false)
+      expect(useGameStore.getState().phase).toBe('levelup')
+
+      choices = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
+      act(() => choices.find((choice) => choice.textContent.includes('고장난 스타링크 획득')).click())
+      prompt = container.querySelector('[data-testid="weapon-replacement-prompt"]')
+      clickButtonByText(prompt, '새 무기 버리기')
+      expect(useGameStore.getState().weapons.starlink.active).toBe(false)
+      expect(useGameStore.getState().phase).toBe('playing')
+
+      useGameStore.setState((state) => ({
+        phase: 'levelup',
+        pendingLevelUps: 1,
+        levelUpAcquireExposureKeys: [],
+        levelUpWeaponCycleIds: [],
+        levelUpChoiceSerial: state.levelUpChoiceSerial + 1,
+      }))
+      choices = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
+      act(() => choices[choices.length - 1].dispatchEvent(animationEnd('levelupCardPop')))
+      act(() => choices.find((choice) => choice.textContent.includes('고장난 스타링크 획득')).click())
+      prompt = container.querySelector('[data-testid="weapon-replacement-prompt"]')
+      clickButtonByText(prompt, '30cm 자')
+      expect(useGameStore.getState().weapons.schoolBag.active).toBe(false)
+      expect(useGameStore.getState().weapons.starlink).toMatchObject({ active: true, level: 1 })
+      expect(useGameStore.getState().phase).toBe('playing')
     } finally {
       act(() => root.unmount())
       container.remove()

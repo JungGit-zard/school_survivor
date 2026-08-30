@@ -15,9 +15,11 @@ import { playerPos, playerFacing, bagSwingState, enemyBodies, joystickDir } from
 import { advanceRuntimeTime, getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { subscribeSfx } from '../lib/sfxEvents.js'
 import { getBossSpawnSec } from '../lib/burstEvents.js'
+import { _resetForTests as resetWeaponUnlocksForTests, setUnlocked } from '../lib/weaponUnlocks.js'
 
 describe('useGameStore XP and reset behavior', () => {
   beforeEach(() => {
+    resetWeaponUnlocksForTests()
     useGameStore.getState().resetGame()
   })
 
@@ -82,6 +84,9 @@ describe('useGameStore XP and reset behavior', () => {
   })
 
   it('queues prerequisite follow-up cards for this run only and consumes only the displayed keys', () => {
+    setUnlocked('chibiko')
+    useGameStore.setState((state) => ({ player: { ...state.player, level: 8 } }))
+
     useGameStore.getState().applyUpgrade('acquireChibiko')
     useGameStore.getState().applyUpgrade('acquireBoxCutter')
 
@@ -99,6 +104,123 @@ describe('useGameStore XP and reset behavior', () => {
 
     useGameStore.getState().resetGame()
     expect(useGameStore.getState().pendingGuaranteedUpgradeChoiceKeys).toEqual([])
+  })
+
+  it('applyUpgrade는 8개 보유 상한에서 새 계정 해금 무기를 즉시 활성화하지 않고 교체 대기를 연다', () => {
+    setUnlocked('starlink')
+    const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri']
+    useGameStore.setState((state) => ({
+      player: { ...state.player, level: 8 },
+      phase: 'levelup',
+      pendingLevelUps: 1,
+      weapons: Object.fromEntries(Object.entries(state.weapons).map(([id, weapon]) => [
+        id,
+        {
+          ...weapon,
+          active: activeAtCap.includes(id),
+          level: activeAtCap.includes(id) ? 1 : weapon.level,
+        },
+      ])),
+    }))
+
+    useGameStore.getState().applyUpgrade('acquireStarlink')
+    expect(useGameStore.getState().weapons.starlink.active).toBe(false)
+    expect(useGameStore.getState().pendingWeaponReplacement).toEqual({
+      upgradeKey: 'acquireStarlink',
+      weaponId: 'starlink',
+    })
+    expect(useGameStore.getState().phase).toBe('levelup')
+
+    const beforeDamage = useGameStore.getState().weapons.pencilThrow.damage
+    useGameStore.getState().cancelWeaponReplacement()
+    useGameStore.getState().applyUpgrade('pencilDamage')
+    expect(useGameStore.getState().weapons.pencilThrow.damage).toBeCloseTo(beforeDamage + 1.2, 10)
+  })
+
+  it('무기 교체 확정은 선택한 기존 무기를 초기화하고 신규 무기를 Lv.1로 넣은 뒤 레벨업을 소비한다', () => {
+    setUnlocked('starlink')
+    const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri']
+    useGameStore.setState((state) => ({
+      player: { ...state.player, level: 8 },
+      phase: 'levelup',
+      pendingLevelUps: 1,
+      weapons: Object.fromEntries(Object.entries(state.weapons).map(([id, weapon]) => [
+        id,
+        id === 'schoolBag'
+          ? { ...weapon, active: true, level: 4, damage: 99, range: 2 }
+          : { ...weapon, active: activeAtCap.includes(id), level: activeAtCap.includes(id) ? 1 : weapon.level },
+      ])),
+    }))
+
+    useGameStore.getState().applyUpgrade('acquireStarlink')
+    expect(useGameStore.getState().confirmWeaponReplacement('schoolBag')).toBe(true)
+
+    const state = useGameStore.getState()
+    expect(state.weapons.schoolBag).toMatchObject({ active: false, level: 0 })
+    expect(state.weapons.schoolBag.damage).not.toBe(99)
+    expect(state.weapons.schoolBag.range).not.toBe(2)
+    expect(state.weapons.starlink).toMatchObject({ active: true, level: 1 })
+    expect(Object.values(state.weapons).filter((weapon) => weapon.active)).toHaveLength(8)
+    expect(state.pendingWeaponReplacement).toBeNull()
+    expect(state.pendingLevelUps).toBe(0)
+    expect(state.phase).toBe('playing')
+  })
+
+  it('무기 교체 취소는 기존 8개를 유지하고 레벨업 선택 상태로 돌아간다', () => {
+    setUnlocked('starlink')
+    const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri']
+    useGameStore.setState((state) => ({
+      player: { ...state.player, level: 8 },
+      phase: 'levelup',
+      pendingLevelUps: 1,
+      weapons: Object.fromEntries(Object.entries(state.weapons).map(([id, weapon]) => [
+        id,
+        { ...weapon, active: activeAtCap.includes(id), level: activeAtCap.includes(id) ? 1 : weapon.level },
+      ])),
+    }))
+    const beforeWeapons = useGameStore.getState().weapons
+
+    useGameStore.getState().applyUpgrade('acquireStarlink')
+    expect(useGameStore.getState().cancelWeaponReplacement()).toBe(true)
+
+    expect(useGameStore.getState().weapons).toEqual(beforeWeapons)
+    expect(useGameStore.getState().pendingWeaponReplacement).toBeNull()
+    expect(useGameStore.getState().pendingLevelUps).toBe(1)
+    expect(useGameStore.getState().phase).toBe('levelup')
+  })
+
+  it('신규 무기 폐기는 기존 8개를 유지하고 레벨업을 소비한다', () => {
+    setUnlocked('starlink')
+    const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri']
+    useGameStore.setState((state) => ({
+      player: { ...state.player, level: 8 },
+      phase: 'levelup',
+      pendingLevelUps: 1,
+      weapons: Object.fromEntries(Object.entries(state.weapons).map(([id, weapon]) => [
+        id,
+        { ...weapon, active: activeAtCap.includes(id), level: activeAtCap.includes(id) ? 1 : weapon.level },
+      ])),
+    }))
+    const beforeWeapons = useGameStore.getState().weapons
+
+    useGameStore.getState().applyUpgrade('acquireStarlink')
+    expect(useGameStore.getState().discardPendingWeapon()).toBe(true)
+
+    expect(useGameStore.getState().weapons).toEqual(beforeWeapons)
+    expect(useGameStore.getState().pendingWeaponReplacement).toBeNull()
+    expect(useGameStore.getState().pendingLevelUps).toBe(0)
+    expect(useGameStore.getState().phase).toBe('playing')
+  })
+
+  it('applyUpgrade는 최소 레벨과 계정 해금을 재확인해 새 무기 획득 우회를 막는다', () => {
+    setUnlocked('starlink')
+    useGameStore.setState((state) => ({ player: { ...state.player, level: 2 } }))
+    useGameStore.getState().applyUpgrade('acquireStarlink')
+    expect(useGameStore.getState().weapons.starlink.active).toBe(false)
+
+    useGameStore.setState((state) => ({ player: { ...state.player, level: 8 } }))
+    useGameStore.getState().applyUpgrade('acquireCompassBlade')
+    expect(useGameStore.getState().weapons.compassBlade.active).toBe(false)
   })
 
   it('생존 마일스톤은 한 번만 골드를 지급한다', () => {

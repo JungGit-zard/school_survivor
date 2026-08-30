@@ -1,7 +1,7 @@
-﻿import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect, beforeEach } from 'vitest'
 import { applyChibikoAllWeaponBoost, applyUpgradeToWeapon, applyUpgradeWithChibikoBoost, isUpgradeAvailable, selectSequentialLevelupChoices, UPGRADE_EFFECTS } from './upgrades.js'
 import { WEAPON_CATALOG, getAccountUnlockableWeaponIds, getAllWeaponIds } from './weaponCatalog.js'
-import { setUnlocked } from './weaponUnlocks.js'
+import { _resetForTests as resetWeaponUnlocksForTests, setUnlocked } from './weaponUnlocks.js'
 
 // 가상 무기 상태 빌더. weapons 객체의 한 항목 형태와 동일.
 const wpn = (overrides = {}) => ({ active: false, level: 0, damage: 5, ...overrides })
@@ -224,6 +224,10 @@ describe('applyUpgradeToWeapon', () => {
 })
 
 describe('isUpgradeAvailable', () => {
+  beforeEach(() => {
+    resetWeaponUnlocksForTests()
+  })
+
   const ownedWeapons = (n) => {
     const w = {}
     for (let i = 0; i < n; i++) w[`weapon${i}`] = wpn({ active: true, level: 1 })
@@ -243,11 +247,16 @@ describe('isUpgradeAvailable', () => {
     expect(isUpgradeAvailable({ weapon: 'bell', kind: 'acquire', minLevel: 4 }, 4, { bell: wpn() })).toBe(true)
   })
 
-  it('계정 해금 무기 획득은 Lv.2와 보유 상한에서도 가능하지만 잠김·조합 게이트는 유지한다', () => {
+  it('계정 해금 무기 획득은 최소 레벨을 우회하지 못하지만 8개 보유 시 교체 후보로는 남는다', () => {
     setUnlocked('starlink')
     const weaponsAtCap = { ...ownedWeapons(8), starlink: wpn({ active: false }) }
 
-    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireStarlink, 2, weaponsAtCap)).toBe(true)
+    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireStarlink, 2, { starlink: wpn({ active: false }) })).toBe(false)
+    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireStarlink, 8, weaponsAtCap)).toBe(true)
+    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireStarlink, 8, {
+      ...ownedWeapons(7),
+      starlink: wpn({ active: false }),
+    })).toBe(true)
     expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireCompassBlade, 2, {
       compassBlade: wpn({ active: false }),
     })).toBe(false)
@@ -257,11 +266,11 @@ describe('isUpgradeAvailable', () => {
     })).toBe(false)
   })
 
-  it('계정 해금된 치비코 획득은 Lv.2에서도 가능', () => {
+  it('계정 해금된 치비코 획득도 Lv.8 전에는 불가하고 Lv.8부터 가능하다', () => {
     setUnlocked('chibiko')
     const weapons = { chibiko: wpn({ active: false }) }
     expect(UPGRADE_EFFECTS.acquireChibiko).toMatchObject({ weapon: 'chibiko', kind: 'acquire', minLevel: 8 })
-    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireChibiko, 2, weapons)).toBe(true)
+    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireChibiko, 2, weapons)).toBe(false)
     expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireChibiko, 8, weapons)).toBe(true)
   })
 
@@ -299,10 +308,11 @@ describe('isUpgradeAvailable', () => {
     )).toBe(false)
   })
 
-  // bell은 Stage 1 클리어 계정 해금 무기다. 가상 candidate 무기는 unlock 게이트에 막힘.
-  it('unlock: 4종 보유 상한 도달 시 false', () => {
+  // bell은 Stage 1 클리어 계정 해금 무기다. 8종 보유 상한에 도달해도 교체 프롬프트 후보로는 남아야 한다.
+  it('unlock: 8종 보유 상한 도달 시 true', () => {
+    setUnlocked('bell')
     const weapons = { ...ownedWeapons(8), bell: wpn({ active: false }) }
-    expect(isUpgradeAvailable({ weapon: 'bell', kind: 'acquire' }, 10, weapons)).toBe(false)
+    expect(isUpgradeAvailable({ weapon: 'bell', kind: 'acquire' }, 10, weapons)).toBe(true)
   })
 
   it('unlock: 3종 보유면 가능', () => {

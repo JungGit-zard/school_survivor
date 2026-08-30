@@ -1,6 +1,6 @@
 ﻿import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
-import { UPGRADE_EFFECTS, applyChibikoAllWeaponBoost, applyUpgradeWithChibikoBoost } from '../lib/upgrades.js'
+import { MAX_OWNED_WEAPONS, UPGRADE_EFFECTS, applyChibikoAllWeaponBoost, applyUpgradeWithChibikoBoost, isUpgradeAvailable } from '../lib/upgrades.js'
 import { resetRuntimeRefs, playerPos } from '../lib/refs.js'
 import { getPlayerStartPosition } from '../lib/playerStartPosition.js'
 import { t } from '../lib/i18n.js'
@@ -287,6 +287,7 @@ export const useGameStore = create(
     levelUpWeaponCycleIds: [],
     levelUpWeaponCycleSerial: -1,
     pendingGuaranteedUpgradeChoiceKeys: [],
+    pendingWeaponReplacement: null,
     questProgress: createStageQuestProgress(DEFAULT_STAGE_ID),
     questJourneyCompletedIds: [],
     questToast: null,
@@ -1018,6 +1019,8 @@ export const useGameStore = create(
     applyUpgrade: (key) => {
       const effect = UPGRADE_EFFECTS[key]
 
+      if (get().pendingWeaponReplacement) return
+
       const recordUpgradeMissionState = () => {
         const state = get()
         get().recordMissionEvent({ type: 'upgrade_selected' })
@@ -1052,7 +1055,15 @@ export const useGameStore = create(
 
       if (!effect) { set((s) => finishLevelupState(s)); return }
 
-      const { weapons } = get()
+      const { player, weapons } = get()
+      if (!isUpgradeAvailable(effect, player.level, weapons, player)) {
+        set((s) => finishLevelupState(s))
+        return
+      }
+      if (effect.kind === 'acquire' && Object.values(weapons).filter((weapon) => weapon.active).length === MAX_OWNED_WEAPONS) {
+        set({ pendingWeaponReplacement: { upgradeKey: key, weaponId: effect.weapon } })
+        return
+      }
       const wpn = weapons[effect.weapon]
       set((s) => {
         const chibikoWasActive = s.weapons.chibiko?.active === true
@@ -1095,6 +1106,43 @@ export const useGameStore = create(
         }
       })
       recordUpgradeMissionState()
+    },
+
+    cancelWeaponReplacement: () => {
+      if (!get().pendingWeaponReplacement) return false
+      set({ pendingWeaponReplacement: null })
+      return true
+    },
+
+    confirmWeaponReplacement: (discardWeaponId) => {
+      const { pendingWeaponReplacement, player, weapons, bossPassiveUnlocks } = get()
+      const effect = UPGRADE_EFFECTS[pendingWeaponReplacement?.upgradeKey]
+      const activeCount = Object.values(weapons).filter((weapon) => weapon.active).length
+      if (effect?.kind !== 'acquire'
+        || !weapons[discardWeaponId]?.active
+        || activeCount !== MAX_OWNED_WEAPONS
+        || !isUpgradeAvailable(effect, player.level, weapons, player)) return false
+
+      const levels = loadRuntimePassiveLevels()
+      const resetWeapon = buildInitialWeapons(levels, {
+        applyPermanent: isFirebaseProgressHydrated(),
+        bossPassiveUnlocks,
+      })[discardWeaponId]
+      set((s) => ({
+        weapons: {
+          ...s.weapons,
+          [discardWeaponId]: { ...resetWeapon, active: false, level: 0 },
+        },
+        pendingWeaponReplacement: null,
+      }))
+      get().applyUpgrade(pendingWeaponReplacement.upgradeKey)
+      return true
+    },
+
+    discardPendingWeapon: () => {
+      if (!get().pendingWeaponReplacement) return false
+      set((s) => ({ pendingWeaponReplacement: null, ...finishLevelupState(s) }))
+      return true
     },
 
     cheatAcquireWeapon: (id) => {
@@ -1209,6 +1257,7 @@ export const useGameStore = create(
         levelUpWeaponCycleIds: [],
         levelUpWeaponCycleSerial: -1,
         pendingGuaranteedUpgradeChoiceKeys: [],
+        pendingWeaponReplacement: null,
         questProgress: createStageQuestProgress(nextStageId),
         questJourneyCompletedIds: preserveQuestJourney ? s.questJourneyCompletedIds : [],
         questToast: null,

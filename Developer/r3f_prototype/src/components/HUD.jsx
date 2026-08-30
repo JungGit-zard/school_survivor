@@ -6,7 +6,7 @@ import { useAuthStore } from '../store/useAuthStore.js'
 import { enemyHandleScratch, enemyPool, joystickDir, playerPos, portalTarget } from '../lib/refs.js'
 import { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import { getPortalObjective } from '../lib/portalObjective.js'
-import { MAX_OWNED_WEAPONS, UPGRADE_EFFECTS, isUpgradeAvailable, selectSequentialLevelupChoices } from '../lib/upgrades.js'
+import { UPGRADE_EFFECTS, isUpgradeAvailable, selectSequentialLevelupChoices } from '../lib/upgrades.js'
 import { getAccountUnlockableWeaponIds, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { buildPlaytestSummary } from '../lib/playtestLogger.js'
@@ -427,7 +427,6 @@ function isGuaranteedFollowupPermanentlyUnavailable(key, weapons) {
   const effect = UPGRADE_EFFECTS[key]
   return !effect?.weapon
     || weapons[effect.weapon]?.active
-    || Object.values(weapons).filter((weapon) => weapon.active).length >= MAX_OWNED_WEAPONS
 }
 
 export function getNextUnlockPreview(phase, weapons) {
@@ -724,11 +723,12 @@ export default function HUD({
     player, weapons, phase, pauseSource,
     elapsed, currentStageId, bossSpawned, bossSpawnSec,
     goldSession, goldTotal, recentMilestone,
-    newlyUnlockedWeaponIds, levelUpChoiceSerial, levelUpAcquireExposureKeys, levelUpWeaponCycleIds, pendingGuaranteedUpgradeChoiceKeys,
+    newlyUnlockedWeaponIds, levelUpChoiceSerial, levelUpAcquireExposureKeys, levelUpWeaponCycleIds, pendingGuaranteedUpgradeChoiceKeys, pendingWeaponReplacement,
     escapePortalActive, matildaSpawned, deathCause, bossBonus,
     studentDialogue, introDialogue,
     questProgress, questToast, newQuestItemIds, bossPassiveUnlocks,
     clearMilestone, applyUpgrade, recordLevelupAcquireExposure, recordLevelupWeaponCycle, consumeGuaranteedUpgradeChoices, discardUnavailableGuaranteedUpgradeChoices,
+    confirmWeaponReplacement, cancelWeaponReplacement, discardPendingWeapon,
     cheatAcquireWeapon, resumeFromLevelup,
     resetGame, togglePause, resumeGame, quitPausedRun, spawnMatilda,
     closeStudentDialogue, advanceIntro, toggleQuestInventory, closeQuestInventory,
@@ -751,6 +751,7 @@ export default function HUD({
     levelUpAcquireExposureKeys: s.levelUpAcquireExposureKeys,
     levelUpWeaponCycleIds: s.levelUpWeaponCycleIds,
     pendingGuaranteedUpgradeChoiceKeys: s.pendingGuaranteedUpgradeChoiceKeys,
+    pendingWeaponReplacement: s.pendingWeaponReplacement,
     escapePortalActive:   s.escapePortalActive,
     matildaSpawned:       s.matildaSpawned,
     deathCause:           s.deathCause,
@@ -767,6 +768,9 @@ export default function HUD({
     recordLevelupWeaponCycle: s.recordLevelupWeaponCycle,
     consumeGuaranteedUpgradeChoices: s.consumeGuaranteedUpgradeChoices,
     discardUnavailableGuaranteedUpgradeChoices: s.discardUnavailableGuaranteedUpgradeChoices,
+    confirmWeaponReplacement: s.confirmWeaponReplacement,
+    cancelWeaponReplacement: s.cancelWeaponReplacement,
+    discardPendingWeapon: s.discardPendingWeapon,
     cheatAcquireWeapon:   s.cheatAcquireWeapon,
     resumeFromLevelup:    s.resumeFromLevelup,
     resetGame:            s.resetGame,
@@ -1444,7 +1448,7 @@ export default function HUD({
                     if (levelupChoicesReady) applyUpgrade(c.key)
                   }}
                   onAnimationEnd={(event) => handleLevelupChoiceAnimationEnd(event, i)}
-                  disabled={!levelupChoicesReady}
+                  disabled={!levelupChoicesReady || !!pendingWeaponReplacement}
                 >
                   <UpgradeIcon type={c.icon} />
                   <div className="levelup-choice-label" style={styles.choiceLabel}>{getUpgradeChoiceLabel(c, weapons)}</div>
@@ -1452,6 +1456,36 @@ export default function HUD({
                 </button>
               ))}
             </div>
+            {pendingWeaponReplacement && (
+              <div data-testid="weapon-replacement-prompt">
+              <div data-testid="weapon-replacement-dialog" role="dialog" aria-modal="true" style={styles.levelupReplacementDialog}>
+                <p style={styles.levelupReplacementTitle}>
+                  무기 {activeWeapons.length}/{MAX_OWNED_WEAPONS} — {weaponLabel(
+                    pendingWeaponReplacement.weaponId,
+                    WEAPON_CATALOG[pendingWeaponReplacement.weaponId]?.label
+                      ?? weapons[pendingWeaponReplacement.weaponId]?.label
+                      ?? pendingWeaponReplacement.weaponId,
+                  )}을(를) 얻으려면 현재 무기 하나를 교체해야 합니다.
+                </p>
+                <div style={styles.levelupReplacementOptions}>
+                  {activeWeapons.map(([id, weapon]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      data-testid={`weapon-replacement-discard-${id}`}
+                      data-replacement-choice="true"
+                      style={styles.levelupReplacementOption}
+                      onClick={() => confirmWeaponReplacement(id)}
+                    >
+                      {weaponLabel(id, weapon.label ?? id)} 버리고 교체
+                    </button>
+                  ))}
+                </div>
+                <button type="button" data-testid="weapon-replacement-discard-new" style={styles.levelupReplacementCancel} onClick={discardPendingWeapon}>새 무기 버리기</button>
+                <button type="button" data-testid="weapon-replacement-cancel" style={styles.levelupReplacementCancel} onClick={cancelWeaponReplacement}>취소</button>
+              </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -2322,6 +2356,33 @@ const styles = {
     textAlign: 'center',
     overflow: 'hidden',
     transition: 'background 0.15s, transform 0.15s',
+  },
+  levelupReplacementDialog: {
+    ...schoolPanel('paper'),
+    marginTop: 12,
+    padding: 12,
+    color: uiPalette.ink,
+  },
+  levelupReplacementTitle: {
+    margin: '0 0 8px',
+    fontWeight: uiType.weightHeavy,
+  },
+  levelupReplacementOptions: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: 6,
+  },
+  levelupReplacementOption: {
+    ...schoolButton('paper'),
+    color: uiPalette.ink,
+    padding: '7px 8px',
+    fontSize: 12,
+  },
+  levelupReplacementCancel: {
+    ...schoolButton('danger'),
+    marginTop: 8,
+    padding: '7px 18px',
+    fontSize: 12,
   },
   topLeftControls: {
     position: 'absolute',
