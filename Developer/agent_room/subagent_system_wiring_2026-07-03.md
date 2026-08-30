@@ -23,7 +23,7 @@ Durable board: `escape-zombie-school`
    - Workspaces: `C:/Users/admin/AppData/Local/hermes/sub-agent-room/global-agent-room/`
 3. **실행 가능한 Hermes/Kanban 런타임**
    - Board: `escape-zombie-school`
-   - Real spawnable profiles: `threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`
+   - Real spawnable profiles: `threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`, `corpopsmini`, `koreanvoicecontext`
 
 따라서 IDE/Codex/Antigravity/Hermes가 이 프로젝트 루트에서 작업할 때는 프로젝트 내부 문서를 통해 Agent Room을 발견하고, 실제 자동 투입은 Hermes Kanban 보드와 spawnable profile을 통해 수행한다.
 
@@ -65,6 +65,7 @@ Durable board: `escape-zombie-school`
 - Firebase/Auth/DB/API/개인정보/계정삭제/anti-cheat boundary → `backendmini`
 - 영문 카피/스토어 문구/현지화 → `englishgradmini`
 - 무료 게임 사운드/효과음/BGM/음성/8-bit/chiptune/WebAudio/저용량 오디오/라이선스 검토 → `soundmini`
+- 음성/STT 프롬프트 해석/Windows 마이크 오인식/personal pronunciation ledger/voice hook context → `koreanvoicecontext`
 - 운영 장부/agent-room hygiene/스모크 테스트/환경 정리 → `madangsue`
 - 리마인더/예약/알림 위생 → `jabdareminder`
 
@@ -137,7 +138,7 @@ R3F/Rapier 안정성:
 2026-07-03 10:13 KST 기준 확인, 2026-07-04 10:04 KST `soundmini` 추가 확인:
 
 - Hermes profiles 존재:
-  - `threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`
+  - `threemini`, `levelmini`, `uimini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`, `corpopsmini`, `koreanvoicecontext`
 - 각 profile `SOUL.md` 존재 확인.
 - Board `escape-zombie-school` 존재 확인.
 - Board 현재 상태:
@@ -202,7 +203,7 @@ Claude Code(이 프로젝트 루트에서 실행되는 세션)는 `.claude/agent
 
 - Escape! zombie school 요청은 먼저 직접 처리 가능한 작은 1단계 작업인지 분류한다.
 - 작은 1단계 작업이 아니거나, 역할이 둘 이상이거나, 명시적으로 서브에이전트/자동투입/Kanban/검수/릴리즈/마일스톤을 말하면 `escape-zombie-school` 보드로 라우팅한다.
-- 실제 assignee는 `threemini`, `uimini`, `levelmini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`만 사용한다.
+- 실제 assignee는 `threemini`, `uimini`, `levelmini`, `balanceqa`, `bizmini`, `launchmini`, `backendmini`, `englishgradmini`, `madangsue`, `jabdareminder`, `soundmini`, `corpopsmini`, `koreanvoicecontext`만 사용한다.
 - 사운드/효과음/BGM/음성/Animalese/WebAudio/Howler/SOUND_MAP/public/sfx/오디오 라이선스는 작은 작업이어도 `soundmini`가 반드시 관여한다.
 - 다른 에이전트에게 전달할 때는 위 핸드오프 파일을 먼저 읽게 한다.
 

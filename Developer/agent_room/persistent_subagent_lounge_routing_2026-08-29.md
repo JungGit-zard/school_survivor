@@ -15,11 +15,12 @@ C:/Users/admin/AppData/Local/hermes/sub-agent-room/global-agent-room/<agent-id>/
 C:/Users/admin/AppData/Local/hermes/profiles/<profile>/
 ```
 
-Only these 12 registered Hermes profiles may receive an `escape-zombie-school` Kanban assignment:
+Only these 13 registered Hermes profiles may receive an `escape-zombie-school` Kanban assignment:
 
 ```text
 threemini uimini levelmini balanceqa bizmini launchmini
 backendmini englishgradmini madangsue jabdareminder soundmini corpopsmini
+koreanvoicecontext
 ```
 
 Workers remain Terra-only. Advisor work does not change that worker assignment rule.
@@ -43,10 +44,11 @@ Remote names such as `jeong_samdi`, `jeong_motion`, and `ko_jaejil` are not Herm
 Before every non-empty Escape! zombie school task:
 
 1. Inspect the local registry and `hermes kanban --board escape-zombie-school assignees`.
-2. For the selected local profile, read its TOML `[paths]` and `[learning]`, the configured knowledge base, and the latest relevant redacted iteration.
-3. Match the task to an existing real profile and reuse it when its domain covers the work.
-4. Only if there is no matching local profile, search the pinned GitHub catalog for a role specification as well as the local catalog.
-5. If both catalogs show a real capability gap, record the evidence on the Kanban card. The user's standing authorization is to create and reuse a **durable** role with an explicit name, role, authority, and learning path instead of a one-off agent; do not ask for separate per-gap approval. This does not authorize Hermes registration, installation, or execution in this task. Do not create duplicate or placeholder roles.
+2. If the gap is specifically Korean Windows microphone/STT prompt interpretation or safe personal pronunciation-ledger stewardship, route to the registered local Hermes profile `koreanvoicecontext` instead of creating another role.
+3. For the selected local profile, read its TOML `[paths]` and `[learning]`, the configured knowledge base, and the latest relevant redacted iteration.
+4. Match the task to an existing real profile and reuse it when its domain covers the work.
+5. Only if there is no matching local profile, search the pinned GitHub catalog for a role specification as well as the local catalog.
+6. If both catalogs show a real capability gap, record the evidence on the Kanban card. The user's standing authorization is to create and reuse a **durable** role with an explicit name, role, authority, and learning path instead of a one-off agent; do not ask for separate per-gap approval. This does not authorize Hermes registration, installation, or execution in this task. Do not create duplicate or placeholder roles.
 
 Every Kanban card body must include a `Reuse decision` line: the selected existing profile and why it fits, or the exact missing capability and why no registered profile fits.
 
