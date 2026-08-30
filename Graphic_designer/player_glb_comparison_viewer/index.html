@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>플레이어 GLB 비교 뷰어</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three.module.js",
+        "three/addons/": "./vendor/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="viewer-shell" data-viewer-state="loading">
+    <main id="viewer-canvas" class="viewer-canvas" aria-label="플레이어 GLB 3D 모델 표시 영역" tabindex="0">
+      <div class="canvas-placeholder" aria-hidden="true">
+        <span class="placeholder-mark">GLB</span>
+        <span class="placeholder-copy">모델을 불러오는 중</span>
+      </div>
+    </main>
+
+    <section class="viewer-panel" aria-labelledby="viewer-title">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">독립 비교 뷰어</p>
+          <h1 id="viewer-title">플레이어 GLB 확인</h1>
+        </div>
+        <button id="reset-view" class="reset-button" type="button" aria-label="카메라 보기 초기화">
+          보기 초기화
+        </button>
+      </div>
+
+      <div id="viewer-status" class="status-region" role="status" aria-live="polite">
+        모델을 불러오는 중입니다.
+      </div>
+
+      <div id="viewer-error" class="error-region" role="alert" aria-live="assertive" hidden>
+        모델을 불러오지 못했습니다. 파일 경로와 GLB 로더 연결을 확인해 주세요.
+      </div>
+
+      <div class="control-guide" aria-labelledby="control-guide-title">
+        <h2 id="control-guide-title">조작 안내</h2>
+        <ul>
+          <li><strong>마우스 왼쪽 드래그</strong><span>모델을 중심으로 세로·가로 각도를 자유 회전</span></li>
+          <li><strong>휠 스크롤</strong><span>확대 / 축소</span></li>
+          <li><strong>마우스 오른쪽 드래그</strong><span>화면 이동 / 팬</span></li>
+          <li><strong>한 손가락 드래그</strong><span>터치 회전</span></li>
+          <li><strong>두 손가락 핀치·드래그</strong><span>터치 확대·축소와 화면 이동</span></li>
+          <li><strong>R 또는 보기 초기화</strong><span>카메라를 처음 위치로 되돌림</span></li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="./viewer.js"></script>
+</body>
+</html>
