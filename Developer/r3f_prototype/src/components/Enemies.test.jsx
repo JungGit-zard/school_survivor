@@ -1597,6 +1597,25 @@ describe('스폰 캐치업 배선 — 빈 화면 2초 상한', () => {
     expect(playingFrameBody).toContain("spawnSec >= bossSpawnSec && sec < (stageConfig.escapePortalSec ?? 210)")
   })
 
+  it('빈 화면 캐치업으로 스케줄을 당긴 직후 플레이어가 우세하면 약한 애들을 추가로 얹는다', () => {
+    const recordEmptyIndex = playingFrameBody.indexOf('if (liveEnemyCount === 0) recordEmptyField(dominanceSwarmRef.current, sec * 1000)')
+    const catchUpIndex = playingFrameBody.indexOf('advanceSpawnCatchUp(catchUp, {')
+    const spawnSecIndex = playingFrameBody.indexOf('const spawnSec = sec + catchUp.offsetSec')
+    const dominanceIndex = playingFrameBody.indexOf('const dominance = evaluateDominanceSwarm(dominanceSwarmRef.current, {')
+    const dominanceEnqueueIndex = playingFrameBody.indexOf('enqueueScheduled(SCHEDULE_DOMINANCE_SWARM, dominance.spawnCount, dominance.dominanceScore)')
+    const burstLoopIndex = playingFrameBody.indexOf('for (let burstIndex = 0; burstIndex < burstEvents.length; burstIndex += 1)')
+
+    expect(recordEmptyIndex).toBeGreaterThanOrEqual(0)
+    expect(catchUpIndex).toBeGreaterThan(recordEmptyIndex)
+    expect(spawnSecIndex).toBeGreaterThan(catchUpIndex)
+    expect(dominanceIndex).toBeGreaterThan(spawnSecIndex)
+    expect(dominanceEnqueueIndex).toBeGreaterThan(dominanceIndex)
+    // 보너스 약몹은 일반 스케줄을 대체하지 않고, 같은 프레임의 버스트 발화 전에 추가 큐로 얹힌다.
+    expect(burstLoopIndex).toBeGreaterThan(dominanceEnqueueIndex)
+    expect(source).toContain('const SCHEDULE_DOMINANCE_SWARM = 8')
+    expect(source).toContain('createDominanceSwarmSpawnPlan({ spawnCount: count }, { stageId: cache.id }, Math.random)')
+  })
+
   it('HUD 보스 경고가 같은 오프셋만큼 앞당겨진다', () => {
     const hud = readFileSync(new URL('./HUD.jsx', import.meta.url), 'utf8')
     expect(hud).toContain('const warningSec = tableWarningSec - getSpawnCatchUpOffsetSec()')

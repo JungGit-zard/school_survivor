@@ -31,6 +31,27 @@ describe('Dominance Swarm Respawn', () => {
     expect(result.dominanceScore).toBeGreaterThanOrEqual(2.2)
   })
 
+
+  it('adds weak bonus enemies even when domination is expressed by an empty screen, not only kill count', () => {
+    const state = createDominanceSwarmState()
+    recordEmptyField(state, 20_000)
+    recordEmptyField(state, 22_000)
+
+    const result = evaluateDominanceSwarm(state, {
+      nowMs: 24_000,
+      currentHp: 100,
+      maxHp: 100,
+      activeEnemyCount: 0,
+      queuedEnemyCount: 0,
+      stageId: 'stage1',
+    })
+
+    expect(result.shouldSpawn).toBe(true)
+    expect(result.reason).toBe('dominant-player')
+    expect(result.spawnCount).toBe(6)
+    expect(result.recentEmptyFieldCount).toBe(2)
+  })
+
   it('does not punish weak or recently damaged players', () => {
     const state = createDominanceSwarmState()
     for (let i = 0; i < 10; i += 1) recordEnemyKill(state, 16_000 + i * 400)
