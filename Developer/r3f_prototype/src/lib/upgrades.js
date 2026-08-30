@@ -84,8 +84,8 @@ export const UPGRADE_EFFECTS = {
   bagRadius:      { weapon: 'schoolBag',     kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.067 },
   bagCrit:        { weapon: 'schoolBag',     kind: 'crit',   chanceStep: 0.02, chanceCap: 0.23, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireBoxCutter:{ weapon: 'boxCutter',      kind: 'acquire', minLevel: 2 },
-  boxCutterDamage:{ weapon: 'boxCutter',      kind: 'damage', dmg: 8.2 },
-  boxCutterPower: { weapon: 'boxCutter',      kind: 'damage', dmg: 8.2 },
+  boxCutterDamage:{ weapon: 'boxCutter',      kind: 'damage', dmg: 16.4 },
+  boxCutterPower: { weapon: 'boxCutter',      kind: 'damage', dmg: 16.4 },
   boxCutterRange: { weapon: 'boxCutter',      kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.755 },
   boxCutterCrit:  { weapon: 'boxCutter',      kind: 'crit',   chanceStep: 0.04, chanceCap: 0.57, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireTumbler:  { weapon: 'tumbler',       kind: 'acquire', minLevel: 2 },
@@ -162,10 +162,9 @@ export const UPGRADE_EFFECTS = {
   // 바이키티 커터칼 — 커터칼을 런 중 보유해야만 카드가 뜬다(하나코/치비코와 같은 배선).
   // 계정 해금 게이트(weaponUnlocks)는 쓰지 않으므로 skipAccountUnlock: true.
   acquireBikittyCutter: { weapon: 'bikittyCutter', kind: 'acquire', minLevel: 6, requiresActiveWeapon: 'boxCutter', skipAccountUnlock: true },
-  // 바이키티는 사이클 피해에 snapDamage(30)가 상수로 섞여 있어, 같은 2.0배를 만들려면
-  // 단수 피해(=damage)를 그만큼 더 올려야 한다. 4 → 7 × 2장.
-  bikittyCutterDamage: { weapon: 'bikittyCutter', kind: 'damage', dmg: 7 },
-  bikittyCutterPower:  { weapon: 'bikittyCutter', kind: 'damage', dmg: 7 },
+  // 기본 피해와 snapDamage가 모두 정확히 2배가 되었으므로 강화 피해도 기존 7의 정확히 2배다.
+  bikittyCutterDamage: { weapon: 'bikittyCutter', kind: 'damage', dmg: 14 },
+  bikittyCutterPower:  { weapon: 'bikittyCutter', kind: 'damage', dmg: 14 },
   bikittyCutterRange:  { weapon: 'bikittyCutter', kind: 'stat',   stat: 'segmentRangeStep', step: 0.02, cap: 0.28 },
   bikittyCutterCrit:   { weapon: 'bikittyCutter', kind: 'crit',   chanceStep: 0.02, chanceCap: 0.41, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   // 선긋기 — 30cm 자 + 커터칼을 런 중 둘 다 보유해야만 카드가 뜬다. 단수형으로는 표현할 수

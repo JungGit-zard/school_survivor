@@ -112,6 +112,13 @@ describe('applyUpgradeToWeapon', () => {
   it('damage effect: level 5에서 더 안 올라감 (cap)', () => {
     const out = applyUpgradeToWeapon(wpn({ active: true, level: 5, damage: 20 }), { kind: 'damage', dmg: 3 })
     expect(out.damage).toBe(23)
+  it('커터칼과 바이키티 커터칼 피해 강화는 기존 수치의 정확히 2배다', () => {
+    expect(UPGRADE_EFFECTS.boxCutterDamage.dmg).toBe(16.4)
+    expect(UPGRADE_EFFECTS.boxCutterPower.dmg).toBe(16.4)
+    expect(UPGRADE_EFFECTS.bikittyCutterDamage.dmg).toBe(14)
+    expect(UPGRADE_EFFECTS.bikittyCutterPower.dmg).toBe(14)
+  })
+
     expect(out.level).toBe(5)
   })
 

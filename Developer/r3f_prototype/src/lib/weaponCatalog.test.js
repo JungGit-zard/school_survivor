@@ -70,7 +70,7 @@ describe('weaponCatalog', () => {
     expect(source).toContain("import { PENCIL_FIRE_RANGE_WORLD_UNITS } from './gameplayUnits.js'")
     expect(source).toContain('range: PENCIL_FIRE_RANGE_WORLD_UNITS')
     expect(WEAPON_CATALOG.schoolBag.base.damage).toBe(12)
-    expect(WEAPON_CATALOG.boxCutter.base.damage).toBe(24) // '30cm 자'(12)의 2배
+    expect(WEAPON_CATALOG.boxCutter.base.damage).toBe(48) // 기존 24의 정확히 2배
     expect(WEAPON_CATALOG.boxCutter.base.range).toBe(1.4) // 사거리 2배 확장 (0.7 → 1.4)
     expect(WEAPON_CATALOG.boxCutter.base.width).toBe(0.18)
     expect(WEAPON_CATALOG.boxCutter.base.knockback).toBe(1.8)

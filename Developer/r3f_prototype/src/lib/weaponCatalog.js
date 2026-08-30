@@ -38,9 +38,9 @@ export const WEAPON_CATALOG = {
   boxCutter: {
     id: 'boxCutter',
     label: '커터칼',
-    // 공격력 24 = '30cm 자'(12)의 2배. 사거리 1.4 = 초기값(0.7)의 2배로 확장.
+    // 공격력 48 = 기존 공격력 24의 정확히 2배. 사거리 1.4 = 초기값(0.7)의 2배로 확장.
     // 기본 초기 쿨다운 650ms의 5배 = 3250ms(3.25초), 2026-07-26
-    base: { damage: 24, cooldown: 3250, range: 1.4, width: 0.18, knockback: 1.8, critChance: 0.33, critMultiplier: 1.5 },
+    base: { damage: 48, cooldown: 3250, range: 1.4, width: 0.18, knockback: 1.8, critChance: 0.33, critMultiplier: 1.5 },
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },
@@ -227,19 +227,19 @@ export const WEAPON_CATALOG = {
   //
   // 검산(치명타 제외):
   //   8타 위력 배수 합 = 8 + 0.12 × (0+1+…+7) = 11.36
-  //   사이클 총 피해   = 18 × 11.36 + 30 = 234.48
+  //   사이클 총 피해   = 36 × 11.36 + 60 = 468.96
   //   사이클 시간      = 8 × 2400ms + 1200ms = 20400ms
-  //   단일 대상 DPS    = 234.48 / 20.4 ≈ 11.49  (커터칼 7.4의 1.55배, 30cm 자 9.2의 1.25배)
+  //   단일 대상 DPS    = 468.96 / 20.4 ≈ 22.99
   bikittyCutter: {
     id: 'bikittyCutter',
     label: '바이키티 커터칼',
     base: {
-      damage: 18, cooldown: 2400, range: 1.0, width: 0.18,
+      damage: 36, cooldown: 2400, range: 1.0, width: 0.18,
       knockback: 1.8, critChance: 0.25, critMultiplier: 1.5,
       segments: 8,             // 부러지기까지 타격 수
       segmentRangeStep: 0.18,  // 단수당 사거리 + (최대 1.0 + 0.18×7 = 2.26)
       segmentDamageStep: 0.12, // 단수당 위력 +12% (가산)
-      snapDamage: 30,          // 부러짐 산탄 1회 피해
+      snapDamage: 60,          // 기존 30의 정확히 2배인 부러짐 산탄 1회 피해
       // snapPellets는 없다. "시각 연출용 파편 개수"라고 선언돼 있었지만 부러짐 연출은
       // SFX와 부채꼴 피해뿐이라 파편을 그리는 코드가 아예 없었다. 파편 VFX를 만들 때 되살린다.
       snapArcDeg: 90,          // 전방 부채꼴 각도
