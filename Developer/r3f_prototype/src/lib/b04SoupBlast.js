@@ -25,9 +25,20 @@ export function getB04SoupBlastTrigger({ hpRatio = 1, state } = {}) {
   return !!state && state.phase === 'idle' && !state.triggered && hpRatio <= 0.5
 }
 
+// 장애물은 회전 OBB(halfX/halfZ는 로컬 반치수)라 로컬 공간에서 비교한다.
 function overlapsObstacle(circle, obstacle) {
-  return Math.abs(circle.x - obstacle.x) < circle.radius + obstacle.halfX
-    && Math.abs(circle.z - obstacle.z) < circle.radius + obstacle.halfZ
+  const deltaX = circle.x - obstacle.x
+  const deltaZ = circle.z - obstacle.z
+  const sin = obstacle.sinY !== undefined
+    ? obstacle.sinY
+    : (obstacle.rotationY ? Math.sin(obstacle.rotationY) : 0)
+  if (sin === 0) {
+    return Math.abs(deltaX) < circle.radius + obstacle.halfX
+      && Math.abs(deltaZ) < circle.radius + obstacle.halfZ
+  }
+  const cos = obstacle.cosY !== undefined ? obstacle.cosY : Math.cos(obstacle.rotationY)
+  return Math.abs(deltaX * cos - deltaZ * sin) < circle.radius + obstacle.halfX
+    && Math.abs(deltaX * sin + deltaZ * cos) < circle.radius + obstacle.halfZ
 }
 
 export function getB04SoupBlastCircles({ player, halfX, halfZ, obstacles = [] }) {

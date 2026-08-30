@@ -97,9 +97,11 @@ function isMelee(type) {
   return type === 1 || type === 2 || type === 3 || type === 5 || type === 6 || type === 7 || type === 8 || type === 13 || type === 14 || type === 15 || type === 16
 }
 
-function contactDistance(type) {
+export function enemyContactDistance(type) {
   return ENEMY_RUNTIME_CONTACT_DIST[type] * ENEMY_SIZE_MULTIPLIER
 }
+
+const contactDistance = enemyContactDistance
 
 function clamp(value, min, max) {
   return value < min ? min : (value > max ? max : value)
@@ -312,13 +314,39 @@ export function enemyCollisionRadius(type) {
   return ENEMY_RUNTIME_SCALE[type] ? 0.28 * ENEMY_RUNTIME_SCALE[type] * ENEMY_SIZE_MULTIPLIER : 0
 }
 
+// 장애물은 회전 OBB다(getStageObjectSightObstacles). 월드 AABB로 접으면 플레이어 쪽
+// Rapier 회전 콜라이더보다 커져서, 회전 프랍마다 "플레이어만 들어가는" 모서리 지대가
+// 생긴다. cosY/sinY는 장애물 생성 시 얼려 둔 값이라 여기서는 읽기만 한다.
+// rotationY 폴백은 손으로 만든 장애물 리터럴(테스트·프로브) 전용 — 실런타임에서는 안 탄다.
+function obstacleSin(obstacle) {
+  if (obstacle.sinY !== undefined) return obstacle.sinY
+  return obstacle.rotationY ? Math.sin(obstacle.rotationY) : 0
+}
+
+function obstacleCos(obstacle) {
+  if (obstacle.cosY !== undefined) return obstacle.cosY
+  return obstacle.rotationY ? Math.cos(obstacle.rotationY) : 1
+}
+
 export function collidesEnemyObstacle(x, z, radius, obstacles, obstacleCount) {
   for (let obstacleIndex = 0; obstacleIndex < obstacleCount; obstacleIndex += 1) {
     const obstacle = obstacles[obstacleIndex]
     if (!obstacle || !isFiniteNumber(obstacle.x) || !isFiniteNumber(obstacle.z)
       || !isFiniteNumber(obstacle.halfX) || !isFiniteNumber(obstacle.halfZ)) continue
-    if (x >= obstacle.x - obstacle.halfX - radius && x <= obstacle.x + obstacle.halfX + radius
-      && z >= obstacle.z - obstacle.halfZ - radius && z <= obstacle.z + obstacle.halfZ + radius) return true
+    const deltaX = x - obstacle.x
+    const deltaZ = z - obstacle.z
+    const sin = obstacleSin(obstacle)
+    // 대부분의 프랍은 회전이 없다 — 축정렬 빠른 경로를 남긴다.
+    if (sin === 0) {
+      if (deltaX >= -obstacle.halfX - radius && deltaX <= obstacle.halfX + radius
+        && deltaZ >= -obstacle.halfZ - radius && deltaZ <= obstacle.halfZ + radius) return true
+      continue
+    }
+    const cos = obstacleCos(obstacle)
+    const localX = deltaX * cos - deltaZ * sin
+    const localZ = deltaX * sin + deltaZ * cos
+    if (localX >= -obstacle.halfX - radius && localX <= obstacle.halfX + radius
+      && localZ >= -obstacle.halfZ - radius && localZ <= obstacle.halfZ + radius) return true
   }
   return false
 }
@@ -349,20 +377,30 @@ export function resolveEnemyObstaclePenetrationInto(out, x, z, radius, obstacles
       const obstacle = obstacles[obstacleIndex]
       if (!obstacle || !isFiniteNumber(obstacle.x) || !isFiniteNumber(obstacle.z)
         || !isFiniteNumber(obstacle.halfX) || !isFiniteNumber(obstacle.halfZ)) continue
-      const minX = obstacle.x - obstacle.halfX - radius
-      const maxX = obstacle.x + obstacle.halfX + radius
-      const minZ = obstacle.z - obstacle.halfZ - radius
-      const maxZ = obstacle.z + obstacle.halfZ + radius
-      if (resolvedX < minX || resolvedX > maxX || resolvedZ < minZ || resolvedZ > maxZ) continue
+      // 밀어내기도 장애물 로컬 공간에서 해야 회전 OBB의 실제 최근접 면으로 나간다.
+      const sin = obstacleSin(obstacle)
+      const cos = sin === 0 ? 1 : obstacleCos(obstacle)
+      const deltaX = resolvedX - obstacle.x
+      const deltaZ = resolvedZ - obstacle.z
+      const localX = sin === 0 ? deltaX : deltaX * cos - deltaZ * sin
+      const localZ = sin === 0 ? deltaZ : deltaX * sin + deltaZ * cos
+      const minX = -obstacle.halfX - radius
+      const maxX = obstacle.halfX + radius
+      const minZ = -obstacle.halfZ - radius
+      const maxZ = obstacle.halfZ + radius
+      if (localX < minX || localX > maxX || localZ < minZ || localZ > maxZ) continue
       // 경계에 obstacle이 붙어도 clamp-back이 같은 overlap을 만들지 않게 네 exit를
       // bounds 적용 후 다시 전체 obstacle에 검증한다. tie 순서도 고정이다.
       for (let exit = 0; exit < 4; exit += 1) {
-        let candidateX = resolvedX
-        let candidateZ = resolvedZ
-        if (exit === 0) candidateX = minX - ENEMY_OBSTACLE_EPSILON
-        else if (exit === 1) candidateX = maxX + ENEMY_OBSTACLE_EPSILON
-        else if (exit === 2) candidateZ = minZ - ENEMY_OBSTACLE_EPSILON
-        else candidateZ = maxZ + ENEMY_OBSTACLE_EPSILON
+        let exitX = localX
+        let exitZ = localZ
+        if (exit === 0) exitX = minX - ENEMY_OBSTACLE_EPSILON
+        else if (exit === 1) exitX = maxX + ENEMY_OBSTACLE_EPSILON
+        else if (exit === 2) exitZ = minZ - ENEMY_OBSTACLE_EPSILON
+        else exitZ = maxZ + ENEMY_OBSTACLE_EPSILON
+        // 로컬 → 월드: dx = lx*cos + lz*sin, dz = -lx*sin + lz*cos
+        const candidateX = sin === 0 ? obstacle.x + exitX : obstacle.x + exitX * cos + exitZ * sin
+        const candidateZ = sin === 0 ? obstacle.z + exitZ : obstacle.z - exitX * sin + exitZ * cos
         clampEnemyPosition(candidateX, candidateZ, radius, halfX, halfZ, allowOuterBounds, out)
         if (collidesEnemyObstacle(out.x, out.z, radius, obstacles, obstacleCount)) continue
         const dx = out.x - resolvedX

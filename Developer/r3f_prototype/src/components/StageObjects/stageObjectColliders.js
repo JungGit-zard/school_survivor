@@ -242,11 +242,26 @@ function segmentIntersectsAxisAlignedBox(fromX, fromZ, toX, toZ, halfX, halfZ) {
   return true
 }
 
+// 월드 델타를 장애물 로컬 프레임으로 되돌리는 계수. Three.js의 yaw θ는 로컬 +X를
+// 월드 (cosθ, 0, -sinθ)로 보내므로 역변환은
+//   localX =  dx*cosY - dz*sinY
+//   localZ =  dx*sinY + dz*cosY
+// 이다. cosY/sinY는 장애물 생성 시 한 번만 계산해 얼려 두고(getStageObjectSightObstacles),
+// 여기서는 읽기만 한다. 직접 만든 장애물 리터럴을 위해 rotationY 폴백을 남긴다.
+export function obstacleCosY(obstacle) {
+  if (obstacle.cosY !== undefined) return obstacle.cosY
+  return obstacle.rotationY ? Math.cos(obstacle.rotationY) : 1
+}
+
+export function obstacleSinY(obstacle) {
+  if (obstacle.sinY !== undefined) return obstacle.sinY
+  return obstacle.rotationY ? Math.sin(obstacle.rotationY) : 0
+}
+
 export function isStageObjectSightBlocked(from, to, obstacles, padding = SIGHT_BLOCK_PADDING) {
   for (const obstacle of obstacles) {
-    const angle = -(obstacle.rotationY ?? 0)
-    const cos = angle === 0 ? 1 : Math.cos(angle)
-    const sin = angle === 0 ? 0 : Math.sin(angle)
+    const cos = obstacleCosY(obstacle)
+    const sin = obstacleSinY(obstacle)
     const fromDx = from.x - obstacle.x
     const fromDz = from.z - obstacle.z
     const toDx = to.x - obstacle.x
@@ -274,21 +289,26 @@ export function isStageObjectEnemyTrackingBlocked(from, to, obstacles, padding =
     // props still block physics/projectiles, but do not make zombies give up
     // tracking merely because the player brushes against their front face.
     if (obstacle.type !== 'corridorLostFoundBoard') continue
-    const fromBeyondZ = from.z < obstacle.z - obstacle.halfZ - padding
-      || from.z > obstacle.z + obstacle.halfZ + padding
-    const toBeyondZ = to.z < obstacle.z - obstacle.halfZ - padding
-      || to.z > obstacle.z + obstacle.halfZ + padding
-    const oppositeZ = (from.z - obstacle.z) * (to.z - obstacle.z) < 0
-    const crossesBoardWidth = Math.abs(from.x - obstacle.x) <= obstacle.halfX + padding
-      || Math.abs(to.x - obstacle.x) <= obstacle.halfX + padding
-      || segmentIntersectsAxisAlignedBox(
-        from.x - obstacle.x,
-        from.z - obstacle.z,
-        to.x - obstacle.x,
-        to.z - obstacle.z,
-        obstacle.halfX + padding,
-        obstacle.halfZ + padding,
-      )
+    // 게시판은 얇은 판이고 실제로 yaw가 걸려 있다(스2 분실물 게시판 ≈ 45°).
+    // "판의 앞/뒤"는 월드 Z가 아니라 판 로컬 Z이므로 로컬 좌표에서 판정한다.
+    const cos = obstacleCosY(obstacle)
+    const sin = obstacleSinY(obstacle)
+    const fromDx = from.x - obstacle.x
+    const fromDz = from.z - obstacle.z
+    const toDx = to.x - obstacle.x
+    const toDz = to.z - obstacle.z
+    const fromX = fromDx * cos - fromDz * sin
+    const fromZ = fromDx * sin + fromDz * cos
+    const toX = toDx * cos - toDz * sin
+    const toZ = toDx * sin + toDz * cos
+    const limitZ = obstacle.halfZ + padding
+    const limitX = obstacle.halfX + padding
+    const fromBeyondZ = fromZ < -limitZ || fromZ > limitZ
+    const toBeyondZ = toZ < -limitZ || toZ > limitZ
+    const oppositeZ = fromZ * toZ < 0
+    const crossesBoardWidth = Math.abs(fromX) <= limitX
+      || Math.abs(toX) <= limitX
+      || segmentIntersectsAxisAlignedBox(fromX, fromZ, toX, toZ, limitX, limitZ)
     if (fromBeyondZ && toBeyondZ && oppositeZ && crossesBoardWidth) return true
   }
   return false
@@ -401,6 +421,39 @@ export function getStageObjectColliders(stageId = 'stage1') {
     }))
 }
 
+const YAW_EPSILON = 1e-6
+
+// 회전 프랍을 월드 AABB로 접으면 좀비는 플레이어보다 큰 상자에 막힌다.
+// 플레이어 쪽 Rapier 콜라이더(StageObjectColliderLayer.jsx)는 part.rotation을 그대로
+// 넘긴 진짜 회전 OBB이므로, AABB−OBB 차이인 네 모서리가 "플레이어만 들어가고 좀비는
+// 원리적으로 못 오는" 무적 지대가 된다. 45° 회전에서 최대이고 좌표를 옮겨도 사라지지
+// 않는다. 그래서 시야·이동 장애물도 같은 OBB(yaw + 로컬 반치수)로 내보낸다.
+function horizontalObb(matrix, halfX, halfY, halfZ) {
+  // 로컬 X/Z 축의 수평 성분 중 긴 쪽에서 yaw를 뽑는다. 파트가 Z축으로 90° 누운 경우
+  // (gym-equipment-cooler)는 로컬 X가 수직이라 X만 보면 yaw가 통째로 틀어진다.
+  const axisXHorizontalSq = matrix[0] * matrix[0] + matrix[2] * matrix[2]
+  const axisZHorizontalSq = matrix[8] * matrix[8] + matrix[10] * matrix[10]
+  let rotationY = axisZHorizontalSq >= axisXHorizontalSq
+    ? Math.atan2(matrix[8], matrix[10])
+    : Math.atan2(-matrix[2], matrix[0])
+  if (Math.abs(rotationY) < YAW_EPSILON) rotationY = 0
+  const cos = rotationY === 0 ? 1 : Math.cos(rotationY)
+  const sin = rotationY === 0 ? 0 : Math.sin(rotationY)
+  // yaw 프레임 축의 월드 방향: X' = (cos, 0, -sin), Z' = (sin, 0, cos).
+  // 박스의 support = Σ half_i * |axis_i · 방향|. 순수 yaw면 정확히 (halfX, halfZ)로 돌아온다.
+  return {
+    rotationY,
+    cos,
+    sin,
+    halfX: Math.abs(matrix[0] * cos - matrix[2] * sin) * halfX
+      + Math.abs(matrix[4] * cos - matrix[6] * sin) * halfY
+      + Math.abs(matrix[8] * cos - matrix[10] * sin) * halfZ,
+    halfZ: Math.abs(matrix[0] * sin + matrix[2] * cos) * halfX
+      + Math.abs(matrix[4] * sin + matrix[6] * cos) * halfY
+      + Math.abs(matrix[8] * sin + matrix[10] * cos) * halfZ,
+  }
+}
+
 const sightObstacleCache = new Map()
 
 // 스튜디오 프랍 배치 오버라이드가 바뀌면 시야 장애물 캐시를 무효화한다.
@@ -424,14 +477,19 @@ export function getStageObjectSightObstacles(stageId = 'stage1') {
       )
       const matrix = new THREE.Matrix4().makeRotationFromQuaternion(rotation).elements
       const [halfX, halfY, halfZ] = part.args
+      const obb = horizontalObb(matrix, halfX, halfY, halfZ)
       return Object.freeze({
         id: placement.id,
         type: placement.type,
         x: center.x,
         z: center.z,
-        halfX: Math.abs(matrix[0]) * halfX + Math.abs(matrix[4]) * halfY + Math.abs(matrix[8]) * halfZ,
-        halfZ: Math.abs(matrix[2]) * halfX + Math.abs(matrix[6]) * halfY + Math.abs(matrix[10]) * halfZ,
-        rotationY: 0,
+        halfX: obb.halfX,
+        halfZ: obb.halfZ,
+        rotationY: obb.rotationY,
+        // 핫 패스(collidesEnemyObstacle: 매 프레임 적 수백 × 장애물 수십)에서
+        // Math.cos/Math.sin을 부르지 않도록 여기서 한 번만 계산해 얼린다.
+        cosY: obb.cos,
+        sinY: obb.sin,
       })
       })
     })
