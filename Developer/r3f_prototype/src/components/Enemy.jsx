@@ -1624,7 +1624,7 @@ export default function Enemy({ id, type = 'E01', spawnPos, onDeath, statOverrid
           linearDamping={8}
           colliders={false}
         >
-          <CuboidCollider args={colArgs} />
+          <CuboidCollider args={colArgs} sensor={isMatilda} />
           <EnemyVisual groupRef={groupRef} type={type} animPhase={animPhase} hitFlash={hitFlash} hp={hp} isMatilda={isMatilda} scale={stats.scale} isChefPhase2={isChefPhase2} />
         </RigidBody>
       )}
