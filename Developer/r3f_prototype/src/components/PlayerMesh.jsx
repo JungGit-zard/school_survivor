@@ -1,17 +1,15 @@
-import { useLayoutEffect, useMemo, useRef } from 'react'
+import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { bagSwingState, playerArmActionState } from '../lib/refs.js'
 import { getActivePlayerArmAction, getPlayerArmPose } from '../lib/playerArmAction.js'
-import { outlineMat, toonMat, inflateScale, getCachedChamferedBoxGeo } from '../lib/toon.js'
+import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
 import { PLAYER_MESH_SCALE } from '../lib/characterVisualScale.js'
 import StudioTunedGroup, {
   captureStudioPartBaseTransform,
   composeStudioPartPosition,
   composeStudioPartRotation,
 } from './StudioTunedGroup.jsx'
-import playerImage2GlbUrl from '../assets/models/player/player-image2-2026-08-29.glb?url'
 
 const PLAYER_BODY_SIZE = [0.68, 0.7, 0.46]
 const PLAYER_BODY_POSITION = [0, 0.44, 0]
@@ -33,7 +31,6 @@ export const PLAYER_OCCLUSION_SAFE_OUTLINE_RENDER_ORDER = PLAYER_OCCLUSION_SAFE_
 // 발바닥(로컬 y≈-1.30 × PLAYER_MESH_SCALE)이 바닥면 y=0에 정확히 닿도록 메시 전체를 올린다.
 // = -RigidBody높이(0.32) + PLAYER_MESH_SCALE(0.2664) × 발바닥깊이(1.30)
 const PLAYER_FLOOR_LIFT = 0.0263
-export const PLAYER_CHARACTER_CHAMFER_STEPS = 1
 
 export const PLAYER_MESH_LAYOUT = {
   floorLift: PLAYER_FLOOR_LIFT,
@@ -92,7 +89,7 @@ function createPlayerOcclusionSafeOutlineMaterial() {
 
 function Block({ size, position, rotation, color, emissive = 0.14 }) {
   const mat = usePlayerStencilMaterial(() => createPlayerOcclusionSafeToonMaterial(color, emissive), [color, emissive])
-  const geo = getCachedChamferedBoxGeo(...size, PLAYER_CHARACTER_CHAMFER_STEPS)
+  const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
 
   return (
     <group position={position} rotation={rotation}>
@@ -112,7 +109,7 @@ function OutlineBlock({ size, position, rotation, scale = 1.08, crowdVisible = f
     crowdVisible ? createPlayerCrowdOutlineMaterial : createPlayerOcclusionSafeOutlineMaterial,
     [crowdVisible],
   )
-  const geo = getCachedChamferedBoxGeo(...size, PLAYER_CHARACTER_CHAMFER_STEPS)
+  const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
   const s = inflateScale(scale)
   return <mesh renderOrder={PLAYER_OCCLUSION_SAFE_OUTLINE_RENDER_ORDER} geometry={geo} material={mat} position={position} rotation={rotation} scale={[s, s, s]} />
 }
@@ -177,7 +174,7 @@ function setPlayerBodyFlash(root, flashMat, active) {
   })
 }
 
-function LegacyPlayerMesh({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null }) {
+export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null }) {
   const rootRef = useRef()
   const p = useRef({})
   const blend = useRef(0)
@@ -380,329 +377,4 @@ function LegacyPlayerMesh({ groupRef, movingRef, hitFlashToken = 0, previewArmAc
       </StudioTunedGroup>
     </group>
   )
-}
-
-export const PLAYER_IMAGE2_GLB_PARTS = Object.freeze({
-  torso: 'player__torso-jacket',
-  shirt: 'player__shirt-panel',
-  tie: 'player__tie-yellow',
-  lower: 'player__lower-uniform-blue',
-  head: 'player__head',
-  hairTop: 'player__hair-top',
-  hairFr: 'player__hair-front',
-  hairSL: 'player__hair-side-l',
-  hairSR: 'player__hair-side-r',
-  hairTail: 'player__hair-tail-l',
-  hairClip: 'player__hair-clip-r',
-  eyeL: 'player__eye-l',
-  eyeR: 'player__eye-r',
-  bag: 'player__backpack',
-  bagFlap: 'player__backpack-flap',
-  strapL: 'player__strap-l',
-  strapR: 'player__strap-r',
-  slvL: 'player__arm-l',
-  handL: 'player__hand-l',
-  slvR: 'player__arm-r',
-  handR: 'player__hand-r',
-  lantern: 'player__lantern',
-  lanternBody: 'player__lantern-body',
-  lanternLens: 'player__lantern-lens',
-  lanternButton: 'player__lantern-button',
-  lanternLoop: 'player__lantern-loop',
-  legL: 'player__leg-l',
-  shoeL: 'player__shoe-l',
-  legR: 'player__leg-r',
-  shoeR: 'player__shoe-r',
-})
-
-function createPlayerImage2PartAssets(scene) {
-  const ownedMaterials = []
-  const parts = {}
-  for (const [key, groupName] of Object.entries(PLAYER_IMAGE2_GLB_PARTS)) {
-    const group = scene.getObjectByName(groupName)
-    const meshes = []
-    for (const object of group?.children ?? []) {
-      if (!object.isMesh) continue
-      const source = Array.isArray(object.material) ? object.material[0] : object.material
-      const material = createPlayerOcclusionSafeToonMaterial(source?.color?.getHex?.() ?? 0xffffff, 0.14)
-      material.stencilRef = PLAYER_STENCIL_REF
-      ownedMaterials.push(material)
-      meshes.push({ geometry: object.geometry, material, outline: false })
-    }
-    const surface = meshes.find((mesh) => !mesh.outline)
-    if (surface) {
-      const outlineMaterial = createPlayerOcclusionSafeOutlineMaterial()
-      outlineMaterial.stencilRef = PLAYER_STENCIL_REF
-      ownedMaterials.push(outlineMaterial)
-      // The final GLB deliberately contains semantic surface meshes only.
-      // Runtime derives this BackSide outline from the same source geometry
-      // inside the pre-existing OutlineBlock slot, preserving Studio paths.
-      meshes.push({ geometry: surface.geometry, material: outlineMaterial, outline: true })
-    }
-    parts[key] = meshes
-  }
-  return { parts, ownedMaterials }
-}
-
-function getPlayerImage2Mesh(parts, part, outline) {
-  return (parts[part] ?? []).find((mesh) => mesh.outline === outline) ?? null
-}
-
-function PlayerImage2Block({ parts, part, position, rotation }) {
-  const source = getPlayerImage2Mesh(parts, part, false)
-  return (
-    <group position={position} rotation={rotation}>
-      {source && <mesh renderOrder={PLAYER_OCCLUSION_SAFE_SURFACE_RENDER_ORDER} geometry={source.geometry} material={source.material} />}
-    </group>
-  )
-}
-
-function PlayerImage2OutlineBlock({ parts, part, position, rotation, scale = 1.08, crowdVisible = false }) {
-  const source = getPlayerImage2Mesh(parts, part, true)
-  const s = inflateScale(scale)
-  return source && (
-    <mesh
-      renderOrder={crowdVisible ? PLAYER_CROWD_OUTLINE_RENDER_ORDER : PLAYER_OCCLUSION_SAFE_OUTLINE_RENDER_ORDER}
-      geometry={source.geometry}
-      material={source.material}
-      position={position}
-      rotation={rotation}
-      scale={[s, s, s]}
-    />
-  )
-}
-
-function PlayerImage2OutlineSlot({ parts }) {
-  // The legacy outer-outline group remains a direct child so existing Studio
-  // child-path ordering is unchanged. The imported GLB already supplies its
-  // own per-part outline meshes inside the matching structural groups below.
-  return (
-    <group>
-      <PlayerImage2OutlineBlock parts={parts} part="torso" position={[0, 0.33, 0]} scale={1.08} crowdVisible />
-      <PlayerImage2OutlineBlock parts={parts} part="head" position={[0, PLAYER_MESH_LAYOUT.head.baseY + 0.06, 0]} scale={1.3} crowdVisible />
-      <PlayerImage2OutlineBlock parts={parts} part="slvL" position={[-0.68, 0.32, 0]} scale={1.07} crowdVisible />
-      <PlayerImage2OutlineBlock parts={parts} part="slvR" position={[0.68, 0.32, 0]} scale={1.07} crowdVisible />
-      <PlayerImage2OutlineBlock parts={parts} part="bag" position={[-0.54, 0.46, -0.22]} scale={1.07} crowdVisible />
-    </group>
-  )
-}
-
-function PlayerImage2Lantern({ parts }) {
-  return (
-    <group rotation={[0, 0, -0.05]}>
-      <PlayerImage2OutlineBlock parts={parts} part="lanternBody" position={[0, -0.02, 0]} scale={1.05} />
-      <PlayerImage2Block parts={parts} part="lanternBody" position={[0, -0.02, 0]} />
-      <PlayerImage2Block parts={parts} part="lanternBody" position={[0, 0.09, 0.03]} />
-      <PlayerImage2Block parts={parts} part="lanternLoop" position={[0, 0.15, 0.04]} />
-      <PlayerImage2Block parts={parts} part="lanternButton" position={[0, 0.21, 0.06]} />
-      <PlayerImage2OutlineBlock parts={parts} part="lanternLens" position={[0, -0.24, 0.02]} scale={1.05} />
-      <PlayerImage2Block parts={parts} part="lanternLens" position={[0, -0.24, 0.02]} />
-      <PlayerImage2Block parts={parts} part="lanternLens" position={[0, -0.36, 0.02]} />
-      <PlayerLanternLight />
-      <PlayerImage2Block parts={parts} part="lanternLoop" position={[0, 0.27, -0.02]} />
-    </group>
-  )
-}
-
-function PlayerImage2Mesh({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null }) {
-  const { scene } = useGLTF(playerImage2GlbUrl)
-  const assets = useMemo(() => createPlayerImage2PartAssets(scene), [scene])
-  const rootRef = useRef()
-  const p = useRef({})
-  const blend = useRef(0)
-  const lastHitFlashToken = useRef(hitFlashToken)
-  const hitFlashFrames = useRef(0)
-  const ownedMaterials = useRef([])
-  const hitFlashMat = usePlayerStencilMaterial(() => createPlayerOcclusionSafeToonMaterial(0xffffff, 1.0), [])
-  const shadowMat = useMemo(
-    () => new THREE.MeshBasicMaterial({
-      color: 0x000000,
-      transparent: true,
-      opacity: PLAYER_MESH_LAYOUT.floorShadow.opacity,
-      depthTest: true,
-      depthWrite: false,
-      polygonOffset: true,
-      polygonOffsetFactor: -1,
-      polygonOffsetUnits: -1,
-    }),
-    [],
-  )
-
-  const setRoot = (element) => {
-    rootRef.current = element
-    if (groupRef) groupRef.current = element
-  }
-
-  useLayoutEffect(() => {
-    ownedMaterials.current = assets.ownedMaterials
-    return () => {
-      ownedMaterials.current.forEach((material) => material.dispose())
-      ownedMaterials.current = []
-    }
-  }, [assets])
-
-  const reg = (key) => (element) => {
-    if (!element) return
-    captureStudioPartBaseTransform(element)
-    p.current[key] = element
-  }
-
-  useFrame(({ clock }, delta) => {
-    const parts = p.current
-    if (!parts.legL || !parts.legR || !parts.slvL || !parts.slvR || !parts.bag) return
-    if (hitFlashToken !== lastHitFlashToken.current) {
-      lastHitFlashToken.current = hitFlashToken
-      hitFlashFrames.current = 1
-    }
-    if (rootRef.current) {
-      setPlayerBodyFlash(rootRef.current, hitFlashMat, hitFlashFrames.current > 0)
-      if (hitFlashFrames.current > 0) hitFlashFrames.current -= 1
-    }
-
-    const isMoving = movingRef?.current ?? false
-    blend.current += ((isMoving ? 1 : 0) - blend.current) * Math.min(1, delta * 10)
-    const movingBlend = blend.current
-    const time = performance.now() * 0.001
-    const walkSwing = Math.sin(time * 8.0) * 0.45 * movingBlend
-    const breathe = Math.sin(time * 1.8) * PLAYER_MESH_LAYOUT.motion.idleBreatheY * (1 - movingBlend)
-    const walkBob = Math.abs(Math.sin(time * 8.0)) * PLAYER_MESH_LAYOUT.motion.walkBobY * movingBlend
-    const bob = breathe + walkBob
-
-    parts.legL.rotation.x = composeStudioPartRotation(parts.legL, 'x', 0, walkSwing)
-    parts.legR.rotation.x = composeStudioPartRotation(parts.legR, 'x', 0, -walkSwing)
-    const armAction = previewArmAction
-      ? { type: previewArmAction, progress: 0.5 }
-      : getActivePlayerArmAction(playerArmActionState, clock.elapsedTime * 1000)
-    const armPose = getPlayerArmPose({ action: armAction, walkSwing })
-    if (parts.lantern) parts.lantern.visible = armAction?.type === 'lanternAim' || armAction?.type === 'lanternFlashlight'
-    parts.slvL.rotation.x = composeStudioPartRotation(parts.slvL, 'x', 0, armPose.slvL.x)
-    parts.slvL.rotation.y = composeStudioPartRotation(parts.slvL, 'y', 0, armPose.slvL.y)
-    const breatheArm = Math.sin(time * 1.8) * 0.03 * (1 - movingBlend)
-    parts.slvL.rotation.z = composeStudioPartRotation(parts.slvL, 'z', 0, armPose.slvL.z + breatheArm)
-    parts.slvR.rotation.x = composeStudioPartRotation(parts.slvR, 'x', 0, armPose.slvR.x)
-    parts.slvR.rotation.y = composeStudioPartRotation(parts.slvR, 'y', 0, armPose.slvR.y)
-    parts.slvR.rotation.z = composeStudioPartRotation(parts.slvR, 'z', 0, armPose.slvR.z - breatheArm)
-    if (bagSwingState.active) {
-      const swingPower = Math.sin(bagSwingState.progress * Math.PI)
-      const sweep = -1.25 + bagSwingState.progress * 2.5
-      parts.slvR.rotation.x = composeStudioPartRotation(parts.slvR, 'x', 0, -1.55 * swingPower)
-      parts.slvR.rotation.y = composeStudioPartRotation(parts.slvR, 'y', 0, -0.35 * swingPower)
-      parts.slvR.rotation.z = composeStudioPartRotation(parts.slvR, 'z', 0, -0.25 - sweep * 0.78)
-      parts.slvL.rotation.x = composeStudioPartRotation(parts.slvL, 'x', 0, -0.35 * swingPower)
-      parts.slvL.rotation.z = composeStudioPartRotation(parts.slvL, 'z', 0, 0.24 * swingPower)
-    } else {
-      parts.bag.rotation.x = composeStudioPartRotation(parts.bag, 'x', 0)
-      parts.bag.rotation.z = composeStudioPartRotation(parts.bag, 'z', 0, -0.05 + Math.sin(time * 5.5) * 0.03 * movingBlend)
-    }
-    if (parts.head) {
-      const baseY = PLAYER_MESH_LAYOUT.head.baseY
-      parts.head.position.y = composeStudioPartPosition(parts.head, 'y', baseY, bob)
-      parts.hairTop.position.y = composeStudioPartPosition(parts.hairTop, 'y', baseY + 0.48, bob)
-      parts.hairFr.position.y = composeStudioPartPosition(parts.hairFr, 'y', baseY + 0.22, bob)
-      parts.hairSL.position.y = composeStudioPartPosition(parts.hairSL, 'y', baseY + 0.05, bob)
-      parts.hairSR.position.y = composeStudioPartPosition(parts.hairSR, 'y', baseY + 0.08, bob)
-      parts.hairTail.position.y = composeStudioPartPosition(parts.hairTail, 'y', baseY - 0.38, bob)
-      parts.hairClip.position.y = composeStudioPartPosition(parts.hairClip, 'y', baseY + 0.6, bob)
-      parts.eyeL.position.y = composeStudioPartPosition(parts.eyeL, 'y', baseY - 0.08, bob)
-      parts.eyeR.position.y = composeStudioPartPosition(parts.eyeR, 'y', baseY - 0.08, bob)
-    }
-  })
-
-  return (
-    <group ref={setRoot}>
-      <StudioTunedGroup itemId="player">
-        <group position={[0, PLAYER_FLOOR_LIFT, 0]} scale={[PLAYER_MESH_SCALE, PLAYER_MESH_SCALE, PLAYER_MESH_SCALE]}>
-          <mesh
-            rotation={[-Math.PI / 2, 0, 0]}
-            position={PLAYER_MESH_LAYOUT.floorShadow.position}
-            scale={PLAYER_MESH_LAYOUT.floorShadow.scale}
-            renderOrder={1}
-            material={shadowMat}
-          >
-            <circleGeometry args={[1, 36]} />
-          </mesh>
-
-          <PlayerImage2OutlineSlot parts={assets.parts} />
-          <PlayerImage2Block parts={assets.parts} part="torso" position={PLAYER_MESH_LAYOUT.body.position} />
-          <PlayerImage2Block parts={assets.parts} part="shirt" position={[0, 0.82, 0.32]} />
-          <PlayerImage2Block parts={assets.parts} part="tie" position={[0, 0.1, 0]} />
-          <PlayerImage2Block parts={assets.parts} part="lower" position={[0, -0.16, 0]} />
-
-          <group ref={reg('head')} position={[0, PLAYER_MESH_LAYOUT.head.baseY, 0]}>
-            <PlayerImage2Block parts={assets.parts} part="head" position={[0, 0, 0]} />
-          </group>
-          <group ref={reg('hairTop')} position={[0, PLAYER_MESH_LAYOUT.head.baseY + 0.48, 0]}>
-            <PlayerImage2Block parts={assets.parts} part="hairTop" position={[0, 0, 0]} />
-          </group>
-          <group ref={reg('hairFr')} position={[0, PLAYER_MESH_LAYOUT.head.baseY + 0.22, 0.32]}>
-            <PlayerImage2Block parts={assets.parts} part="hairFr" position={[0, 0, 0]} />
-          </group>
-          <group ref={reg('hairSL')} position={[-0.46, PLAYER_MESH_LAYOUT.head.baseY + 0.05, 0]}>
-            <PlayerImage2Block parts={assets.parts} part="hairSL" position={[0, 0, 0]} />
-          </group>
-          <group ref={reg('hairSR')} position={[0.46, PLAYER_MESH_LAYOUT.head.baseY + 0.08, 0]}>
-            <PlayerImage2Block parts={assets.parts} part="hairSR" position={[0, 0, 0]} />
-          </group>
-          <group ref={reg('hairTail')} position={[-0.5, PLAYER_MESH_LAYOUT.head.baseY - 0.38, -0.06]}>
-            <PlayerImage2Block parts={assets.parts} part="hairTail" position={[0, 0, 0]} />
-          </group>
-          <group ref={reg('hairClip')} position={[0.34, PLAYER_MESH_LAYOUT.head.baseY + 0.6, 0.28]}>
-            <PlayerImage2Block parts={assets.parts} part="hairClip" position={[0, 0, 0]} />
-          </group>
-          <group ref={reg('eyeL')} position={[-0.18, PLAYER_MESH_LAYOUT.head.baseY - 0.08, 0.28]}>
-            <PlayerImage2Block parts={assets.parts} part="eyeL" position={[0, 0, 0]} />
-          </group>
-          <group ref={reg('eyeR')} position={[0.18, PLAYER_MESH_LAYOUT.head.baseY - 0.08, 0.28]}>
-            <PlayerImage2Block parts={assets.parts} part="eyeR" position={[0, 0, 0]} />
-          </group>
-
-          <group ref={reg('bag')} position={[-0.52, 0.46, -0.22]}>
-            <PlayerImage2Block parts={assets.parts} part="bag" position={[0, 0, 0]} />
-            <PlayerImage2Block parts={assets.parts} part="bagFlap" position={[0, 0.24, 0.22]} />
-          </group>
-          <PlayerImage2Block parts={assets.parts} part="strapL" position={[-0.22, 0.46, 0.3]} />
-          <PlayerImage2Block parts={assets.parts} part="strapR" position={[0.22, 0.46, 0.3]} />
-
-          <group ref={reg('slvL')} position={[-0.6, 0.72, 0]}>
-            <PlayerImage2Block parts={assets.parts} part="slvL" position={[0, -0.33, 0]} />
-            <PlayerImage2Block parts={assets.parts} part="handL" position={[0, -0.76, 0]} />
-          </group>
-          <group ref={reg('slvR')} position={[0.6, 0.72, 0]}>
-            <PlayerImage2Block parts={assets.parts} part="slvR" position={[0, -0.33, 0]} />
-            <PlayerImage2Block parts={assets.parts} part="handR" position={[0, -0.76, 0]} />
-            <group ref={reg('lantern')} position={PLAYER_MESH_LAYOUT.lantern.position} visible={false}>
-              <PlayerImage2Lantern parts={assets.parts} />
-            </group>
-          </group>
-
-          <group ref={reg('legL')} position={[-0.22, -0.34, 0]}>
-            <PlayerImage2OutlineBlock parts={assets.parts} part="legL" position={[0, -0.35, 0]} scale={1.16} />
-            <PlayerImage2Block parts={assets.parts} part="legL" position={[0, -0.35, 0]} />
-            <group position={[0, -0.76, 0.06]}>
-              <PlayerImage2OutlineBlock parts={assets.parts} part="shoeL" position={[0, 0, 0]} scale={1.14} />
-              <PlayerImage2Block parts={assets.parts} part="shoeL" position={[0, 0, 0]} />
-              <PlayerImage2OutlineBlock parts={assets.parts} part="shoeL" position={[0, -0.15, 0]} scale={1.14} />
-              <PlayerImage2Block parts={assets.parts} part="shoeL" position={[0, -0.15, 0]} />
-            </group>
-          </group>
-          <group ref={reg('legR')} position={[0.22, -0.34, 0]}>
-            <PlayerImage2OutlineBlock parts={assets.parts} part="legR" position={[0, -0.35, 0]} scale={1.16} />
-            <PlayerImage2Block parts={assets.parts} part="legR" position={[0, -0.35, 0]} />
-            <group position={[0, -0.76, 0.06]}>
-              <PlayerImage2OutlineBlock parts={assets.parts} part="shoeR" position={[0, 0, 0]} scale={1.14} />
-              <PlayerImage2Block parts={assets.parts} part="shoeR" position={[0, 0, 0]} />
-              <PlayerImage2OutlineBlock parts={assets.parts} part="shoeR" position={[0, -0.15, 0]} scale={1.14} />
-              <PlayerImage2Block parts={assets.parts} part="shoeR" position={[0, -0.15, 0]} />
-            </group>
-          </group>
-        </group>
-      </StudioTunedGroup>
-    </group>
-  )
-}
-
-export default function PlayerMesh({ modelVariant = 'legacy', ...props }) {
-  return modelVariant === 'image2'
-    ? <PlayerImage2Mesh {...props} />
-    : <LegacyPlayerMesh {...props} />
 }

@@ -162,9 +162,8 @@ describe('PlayerMesh layout', () => {
       'legR',
     ]
 
-    // Both the title-locked legacy variant and the gameplay/Studio GLB adapter
-    // must register the same existing Studio keys in the same order.
-    expect(registeredParts).toEqual([...canonicalOrder, ...canonicalOrder])
+    // The rollback leaves only the shared source-controlled block PlayerMesh path.
+    expect(registeredParts).toEqual(canonicalOrder)
   })
 
   it('composes Studio part offsets into every animated player transform channel', () => {
