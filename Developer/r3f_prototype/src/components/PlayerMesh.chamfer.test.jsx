@@ -1,13 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-describe('PlayerMesh restored block character implementation', () => {
-  it('uses plain shared box geometry for player surface and outline blocks', () => {
+describe('PlayerMesh restored chamfered block character implementation', () => {
+  it('uses one-step cached chamfered geometry for player surface and outline blocks', () => {
     const source = readFileSync(new URL('./PlayerMesh.jsx', import.meta.url), 'utf8')
 
-    expect(source).toContain('new THREE.BoxGeometry(...size)')
-    expect(source).not.toContain('getCachedChamferedBoxGeo')
-    expect(source).not.toContain('chamfer')
+    expect(source).toContain('PLAYER_CHARACTER_CHAMFER_STEPS = 1')
+    expect(source).toContain('getCachedChamferedBoxGeo(...size, PLAYER_CHARACTER_CHAMFER_STEPS)')
+    expect(source).not.toContain('new THREE.BoxGeometry(...size)')
   })
 
   it('does not load or branch to the Image2 GLB runtime mesh', () => {

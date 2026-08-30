@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { bagSwingState, playerArmActionState } from '../lib/refs.js'
 import { getActivePlayerArmAction, getPlayerArmPose } from '../lib/playerArmAction.js'
-import { outlineMat, toonMat, inflateScale } from '../lib/toon.js'
+import { outlineMat, toonMat, inflateScale, getCachedChamferedBoxGeo } from '../lib/toon.js'
 import { PLAYER_MESH_SCALE } from '../lib/characterVisualScale.js'
 import StudioTunedGroup, {
   captureStudioPartBaseTransform,
@@ -31,6 +31,7 @@ export const PLAYER_OCCLUSION_SAFE_OUTLINE_RENDER_ORDER = PLAYER_OCCLUSION_SAFE_
 // 발바닥(로컬 y≈-1.30 × PLAYER_MESH_SCALE)이 바닥면 y=0에 정확히 닿도록 메시 전체를 올린다.
 // = -RigidBody높이(0.32) + PLAYER_MESH_SCALE(0.2664) × 발바닥깊이(1.30)
 const PLAYER_FLOOR_LIFT = 0.0263
+export const PLAYER_CHARACTER_CHAMFER_STEPS = 1
 
 export const PLAYER_MESH_LAYOUT = {
   floorLift: PLAYER_FLOOR_LIFT,
@@ -89,7 +90,7 @@ function createPlayerOcclusionSafeOutlineMaterial() {
 
 function Block({ size, position, rotation, color, emissive = 0.14 }) {
   const mat = usePlayerStencilMaterial(() => createPlayerOcclusionSafeToonMaterial(color, emissive), [color, emissive])
-  const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
+  const geo = getCachedChamferedBoxGeo(...size, PLAYER_CHARACTER_CHAMFER_STEPS)
 
   return (
     <group position={position} rotation={rotation}>
@@ -109,7 +110,7 @@ function OutlineBlock({ size, position, rotation, scale = 1.08, crowdVisible = f
     crowdVisible ? createPlayerCrowdOutlineMaterial : createPlayerOcclusionSafeOutlineMaterial,
     [crowdVisible],
   )
-  const geo = useMemo(() => new THREE.BoxGeometry(...size), [size.join(',')])
+  const geo = getCachedChamferedBoxGeo(...size, PLAYER_CHARACTER_CHAMFER_STEPS)
   const s = inflateScale(scale)
   return <mesh renderOrder={PLAYER_OCCLUSION_SAFE_OUTLINE_RENDER_ORDER} geometry={geo} material={mat} position={position} rotation={rotation} scale={[s, s, s]} />
 }
