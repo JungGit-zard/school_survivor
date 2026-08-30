@@ -17,6 +17,11 @@ import { isPlayerWeaponSightBlocked } from './weaponTargeting.js'
 
 const BASE = WEAPON_CATALOG.lineDraw.base
 
+export function rotateLineDrawFacing90(facing) {
+  const dir = normalizePlanarFacing(facing)
+  return { x: dir.z, z: -dir.x }
+}
+
 function num(value, fallback) {
   const n = Number(value)
   return Number.isFinite(n) ? n : fallback

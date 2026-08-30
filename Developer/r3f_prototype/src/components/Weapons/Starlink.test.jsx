@@ -6,6 +6,7 @@ import { applyRadialDamage } from '../../lib/weaponTargeting.js'
 import {
   applyStarlinkCrashImpact,
   createStarlinkCrash,
+  createStarlinkStrikeQueue,
   enqueueStarlinkCrashImpact,
   flushStarlinkCrashImpactQueue,
   pickStrikeTargets,
@@ -24,6 +25,25 @@ function spawnPooledEnemy(x, z, hit = vi.fn()) {
 }
 
 describe('StarlinkWeapon pool targeting', () => {
+  it('spaces consecutive strikes instead of launching a multi-count burst all at once', () => {
+    const weapon = { damage: 28, strikeRadius: 1.2, critChance: 0.07, critMultiplier: 1.5, strikeSpacingMs: 450 }
+    const strikes = createStarlinkStrikeQueue([
+      { x: 1, z: 0 },
+      { x: 2, z: 0 },
+      { x: 3, z: 0 },
+    ], weapon)
+
+    expect(strikes.map((strike) => strike.delayMs)).toEqual([0, 450, 900])
+    expect(strikes).toEqual(strikes.map((strike, index) => expect.objectContaining({
+      x: index + 1,
+      z: 0,
+      damage: 28,
+      radius: 1.2,
+      critChance: 0.07,
+      critMultiplier: 1.5,
+    })))
+  })
+
   it('scans the standard-enemy pool for strike candidates, not just the boss/special enemyBodies Map', () => {
     const source = readFileSync(new URL('./Starlink.jsx', import.meta.url), 'utf8')
 

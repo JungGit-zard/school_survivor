@@ -9,6 +9,7 @@ import {
   createLineDrawRuntime,
   doesMovementCrossLine,
   pruneExpiredCutLines,
+  rotateLineDrawFacing90,
   segmentsIntersect,
   spawnCutLine,
   updateCutLineCrossings,
@@ -84,6 +85,17 @@ describe('선긋기 카탈로그 정본', () => {
 })
 
 describe('절단선 선분 구성과 수명', () => {
+  it('런타임 선긋기 방향은 플레이어 진행 방향에서 정확히 시계방향 90도로 회전한다', () => {
+    expect(rotateLineDrawFacing90({ x: 0, z: 1 })).toEqual({ x: 1, z: -0 })
+    expect(rotateLineDrawFacing90({ x: 1, z: 0 })).toEqual({ x: 0, z: -1 })
+
+    const line = buildCutLine({ origin: { x: 2, z: 1 }, facing: rotateLineDrawFacing90({ x: 0, z: 3 }), range: 6, nowMs: 100, durationMs: 2000 })
+    expect(line.ax).toBe(2)
+    expect(line.az).toBe(1)
+    expect(line.bx).toBeCloseTo(8, 10)
+    expect(line.bz).toBeCloseTo(1, 10)
+  })
+
   it('플레이어 발밑에서 전방으로 range만큼 뻗는다', () => {
     const line = buildCutLine({ origin: { x: 2, z: 1 }, facing: { x: 0, z: 3 }, range: 6, nowMs: 100, durationMs: 2000 })
     expect(line.ax).toBe(2)

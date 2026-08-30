@@ -12,6 +12,7 @@ import {
   applyLineDrawStrike,
   createLineDrawRuntime,
   pruneExpiredCutLines,
+  rotateLineDrawFacing90,
   spawnCutLine,
   updateCutLineCrossings,
 } from '../../lib/lineDraw.js'
@@ -447,7 +448,7 @@ export function LineDrawWeapon() {
     if (now - lastFireRef.current < (w.cooldown ?? 4200)) return
     lastFireRef.current = now
 
-    const facing = normalizePlanarFacing(playerFacing)
+    const facing = rotateLineDrawFacing90(playerFacing)
     const range = w.range ?? 6.0
     const durationMs = w.lineDurationMs ?? 2000
     const line = spawnCutLine(runtime, { origin: playerPos, facing, range, nowMs: now, durationMs })

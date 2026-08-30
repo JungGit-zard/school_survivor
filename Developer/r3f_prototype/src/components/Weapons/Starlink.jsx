@@ -15,7 +15,7 @@ import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 // starlink / 고장난 스타링크
 // 역할: 플레이어 주변 strikeCenter 안에서 적이 있는 지점에 무작위 낙뢰.
-// strikeCount만큼 번개를 동시에 떨어뜨려 strikeRadius 안 모든 적에 데미지.
+// strikeCount만큼 번개를 strikeSpacingMs 간격으로 순차 낙하시켜 strikeRadius 안 모든 적에 데미지.
 
 let _strikeId = 0
 let _crashId = 0
@@ -111,6 +111,18 @@ export function pickStrikeTargets(strikeCenter, strikeCount) {
   return candidates.slice(0, Math.max(1, Math.floor(strikeCount)))
 }
 
+export function createStarlinkStrikeQueue(targets, weapon) {
+  const spacingMs = Math.max(0, Number(weapon?.strikeSpacingMs ?? 450))
+  return targets.map((target, index) => ({
+    ...target,
+    damage: weapon?.damage,
+    radius: weapon?.strikeRadius ?? 1.2,
+    critChance: weapon?.critChance,
+    critMultiplier: weapon?.critMultiplier,
+    delayMs: index * spacingMs,
+  }))
+}
+
 export function StrikeVisual({ x, z, age }) {
   // 0..1 진행도. 처음 55%는 번개 줄기, 나머지는 ground flash.
   const t = Math.min(1, age / STRIKE_DURATION_MS)
@@ -180,20 +192,25 @@ export function StrikeVisual({ x, z, age }) {
   )
 }
 
-function StrikeWrapper({ id, x, z, damage, radius, critChance, critMultiplier, onDone }) {
+function StrikeWrapper({ id, x, z, damage, radius, critChance, critMultiplier, delayMs = 0, onDone }) {
   const ageRef = useRef(0)
   const damageDealtRef = useRef(false)
   const [, force] = useState(0)
 
   usePlayingFrame((_, delta) => {
     ageRef.current += delta * 1000
-    if (ageRef.current > STRIKE_DURATION_MS) {
+    if (ageRef.current < delayMs) {
+      force((n) => n + 1)
+      return
+    }
+    const strikeAge = ageRef.current - delayMs
+    if (strikeAge > STRIKE_DURATION_MS) {
       onDone(id)
       return
     }
 
     // strike가 떨어진 직후(t≈0.3-0.5 구간)에 1회 데미지 적용.
-    if (!damageDealtRef.current && ageRef.current >= STRIKE_DURATION_MS * 0.3) {
+    if (!damageDealtRef.current && strikeAge >= STRIKE_DURATION_MS * 0.3) {
       damageDealtRef.current = true
       const hitCount = applyRadialDamage({ x, z, radius, damage, knockback: 1.4, knockbackMs: 80, critChance, critMultiplier })
       if (hitCount > 0) emitSfx({ id: 'starlinkHit' })
@@ -202,7 +219,8 @@ function StrikeWrapper({ id, x, z, damage, radius, critChance, critMultiplier, o
     force((n) => n + 1)
   })
 
-  return <StrikeVisual x={x} z={z} age={ageRef.current} />
+  if (ageRef.current < delayMs) return null
+  return <StrikeVisual x={x} z={z} age={ageRef.current - delayMs} />
 }
 
 export function StarlinkWeapon() {
@@ -277,14 +295,9 @@ export function StarlinkWeapon() {
 
     lastFireRef.current = now
     emitSfx({ id: 'starlinkFire' })
-    const nextStrikes = targets.map((t) => ({
+    const nextStrikes = createStarlinkStrikeQueue(targets, w).map((strike) => ({
       id: ++_strikeId,
-      x: t.x,
-      z: t.z,
-      damage: w.damage,
-      radius: w.strikeRadius ?? 1.2,
-      critChance: w.critChance,
-      critMultiplier: w.critMultiplier,
+      ...strike,
     }))
     activeStrikesRef.current = [...activeStrikesRef.current, ...nextStrikes]
     setStrikes([...activeStrikesRef.current])
