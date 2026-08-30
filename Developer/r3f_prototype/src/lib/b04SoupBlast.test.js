@@ -38,7 +38,17 @@ describe('B04 국물 대폭발', () => {
       for (const circle of circles) {
         expect(Math.abs(circle.x)).toBeLessThanOrEqual(bounds.halfX - circle.radius)
         expect(Math.abs(circle.z)).toBeLessThanOrEqual(bounds.halfZ - circle.radius)
-        expect(obstacles.some((obstacle) => Math.abs(circle.x - obstacle.x) < circle.radius + obstacle.halfX && Math.abs(circle.z - obstacle.z) < circle.radius + obstacle.halfZ)).toBe(false)
+        // obstacle.halfX/halfZ are local (pre-rotation) half-extents now, so the
+        // overlap check must rotate the circle into the obstacle's local frame
+        // (same convention as b04SoupBlast.js's overlapsObstacle) instead of
+        // treating halfX/halfZ as an axis-aligned world box.
+        expect(obstacles.some((obstacle) => {
+          const deltaX = circle.x - obstacle.x
+          const deltaZ = circle.z - obstacle.z
+          const localX = deltaX * obstacle.cosY - deltaZ * obstacle.sinY
+          const localZ = deltaX * obstacle.sinY + deltaZ * obstacle.cosY
+          return Math.abs(localX) < circle.radius + obstacle.halfX && Math.abs(localZ) < circle.radius + obstacle.halfZ
+        })).toBe(false)
       }
       for (let i = 0; i < circles.length; i += 1) for (let j = i + 1; j < circles.length; j += 1) {
         expect(Math.hypot(circles[i].x - circles[j].x, circles[i].z - circles[j].z)).toBeGreaterThan(circles[i].radius * 2)

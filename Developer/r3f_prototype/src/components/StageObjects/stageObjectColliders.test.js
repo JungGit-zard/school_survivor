@@ -178,17 +178,27 @@ describe('stage object blocking colliders', () => {
     const obstacles = getStageObjectSightObstacles('stage3')
 
     expect(obstacles.length).toBeGreaterThan(0)
-    obstacles.forEach(({ x, z, halfX: obstacleHalfX, halfZ: obstacleHalfZ }) => {
-      expect(x - obstacleHalfX).toBeGreaterThanOrEqual(-halfX + wallInset)
-      expect(x + obstacleHalfX).toBeLessThanOrEqual(halfX - wallInset)
-      expect(z - obstacleHalfZ).toBeGreaterThanOrEqual(-halfZ + wallInset)
-      expect(z + obstacleHalfZ).toBeLessThanOrEqual(halfZ - wallInset)
+    // halfX/halfZ on each obstacle are local (pre-rotation) half-extents, not a
+    // world AABB — getStageObjectSightObstacles() now carries the real rotated
+    // OBB (rotationY/cosY/sinY) instead of collapsing it. Project the local
+    // half-extents through the obstacle's own yaw to get the world AABB this
+    // wall/core check actually needs.
+    obstacles.forEach(({ x, z, halfX: obstacleHalfX, halfZ: obstacleHalfZ, cosY, sinY }) => {
+      const absCos = Math.abs(cosY)
+      const absSin = Math.abs(sinY)
+      const worldHalfX = absCos * obstacleHalfX + absSin * obstacleHalfZ
+      const worldHalfZ = absSin * obstacleHalfX + absCos * obstacleHalfZ
+
+      expect(x - worldHalfX).toBeGreaterThanOrEqual(-halfX + wallInset)
+      expect(x + worldHalfX).toBeLessThanOrEqual(halfX - wallInset)
+      expect(z - worldHalfZ).toBeGreaterThanOrEqual(-halfZ + wallInset)
+      expect(z + worldHalfZ).toBeLessThanOrEqual(halfZ - wallInset)
 
       const overlapsCore = (
-        x - obstacleHalfX < coreHalfX &&
-        x + obstacleHalfX > -coreHalfX &&
-        z - obstacleHalfZ < coreHalfZ &&
-        z + obstacleHalfZ > -coreHalfZ
+        x - worldHalfX < coreHalfX &&
+        x + worldHalfX > -coreHalfX &&
+        z - worldHalfZ < coreHalfZ &&
+        z + worldHalfZ > -coreHalfZ
       )
       expect(overlapsCore).toBe(false)
     })
