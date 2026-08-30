@@ -595,14 +595,14 @@ describe('level-up upgrade layout', () => {
         useGameStore.getState().applyUpgrade('acquireFlask')
       })
 
-      expect(container.querySelector('[data-testid="weapon-replacement-dialog"]')).not.toBeNull()
+      expect(container.querySelector('[data-testid="weapon-replacement-prompt"]')).not.toBeNull()
       expect(useGameStore.getState().weapons.scienceFlask.active).toBe(false)
       expect(useGameStore.getState().pendingLevelUps).toBe(1)
 
       act(() => {
         container.querySelector('[data-testid="weapon-replacement-cancel"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
       })
-      expect(container.querySelector('[data-testid="weapon-replacement-dialog"]')).toBeNull()
+      expect(container.querySelector('[data-testid="weapon-replacement-prompt"]')).toBeNull()
       expect(useGameStore.getState().weapons.pencilThrow).toMatchObject({ active: true, level: 5, damage: 999 })
       expect(useGameStore.getState().pendingLevelUps).toBe(1)
 
@@ -610,7 +610,7 @@ describe('level-up upgrade layout', () => {
         useGameStore.getState().applyUpgrade('acquireFlask')
       })
       act(() => {
-        container.querySelector('[data-testid="weapon-replacement-discard-pencilThrow"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
+        container.querySelector('[data-replacement-weapon="pencilThrow"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
       })
 
       const state = useGameStore.getState()
@@ -679,6 +679,10 @@ describe('level-up upgrade layout', () => {
       expect(useGameStore.getState().levelUpAcquireExposureKeys).toEqual([
         'acquireBoxCutter', 'acquireBag', 'acquireTumbler', 'acquireFlask',
       ])
+      // strict weapon rotation must advance by every displayed weapon group, not only the picked one.
+      expect(useGameStore.getState().levelUpWeaponCycleIds).toEqual([
+        'boxCutter', 'schoolBag', 'tumbler', 'scienceFlask',
+      ])
       expect(random).not.toHaveBeenCalled()
 
       act(() => {
@@ -698,6 +702,10 @@ describe('level-up upgrade layout', () => {
       expect(useGameStore.getState().levelUpAcquireExposureKeys).toEqual([
         'acquireBoxCutter', 'acquireBag', 'acquireTumbler', 'acquireFlask',
         'acquireBikittyCutter', 'acquireBell', 'acquireStun', 'acquireOnigiri',
+      ])
+      expect(useGameStore.getState().levelUpWeaponCycleIds).toEqual([
+        'boxCutter', 'schoolBag', 'tumbler', 'scienceFlask',
+        'bikittyCutter', 'bell', 'stunGun', 'onigiri',
       ])
     } finally {
       random.mockRestore()
@@ -802,6 +810,7 @@ describe('level-up upgrade layout', () => {
   it('guarantees eligible follow-up cards once on the next level-up screen', () => {
     useGameStore.getState().resetGame('stage1')
     setUnlocked('chibiko')
+    useGameStore.setState((state) => ({ player: { ...state.player, level: 8 } }))
     useGameStore.getState().applyUpgrade('acquireChibiko')
     useGameStore.getState().applyUpgrade('acquireBoxCutter')
     useGameStore.setState((state) => ({
@@ -957,13 +966,15 @@ describe('level-up upgrade layout', () => {
       expect(useGameStore.getState().weapons.starlink.active).toBe(false)
       expect(useGameStore.getState().phase).toBe('playing')
 
-      useGameStore.setState((state) => ({
-        phase: 'levelup',
-        pendingLevelUps: 1,
-        levelUpAcquireExposureKeys: [],
-        levelUpWeaponCycleIds: [],
-        levelUpChoiceSerial: state.levelUpChoiceSerial + 1,
-      }))
+      act(() => {
+        useGameStore.setState((state) => ({
+          phase: 'levelup',
+          pendingLevelUps: 1,
+          levelUpAcquireExposureKeys: [],
+          levelUpWeaponCycleIds: [],
+          levelUpChoiceSerial: state.levelUpChoiceSerial + 1,
+        }))
+      })
       choices = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
       act(() => choices[choices.length - 1].dispatchEvent(animationEnd('levelupCardPop')))
       act(() => choices.find((choice) => choice.textContent.includes('고장난 스타링크 획득')).click())

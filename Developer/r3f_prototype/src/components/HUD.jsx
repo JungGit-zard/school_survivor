@@ -6,7 +6,7 @@ import { useAuthStore } from '../store/useAuthStore.js'
 import { enemyHandleScratch, enemyPool, joystickDir, playerPos, portalTarget } from '../lib/refs.js'
 import { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import { getPortalObjective } from '../lib/portalObjective.js'
-import { UPGRADE_EFFECTS, isUpgradeAvailable, selectSequentialLevelupChoices } from '../lib/upgrades.js'
+import { MAX_OWNED_WEAPONS, UPGRADE_EFFECTS, isUpgradeAvailable, selectSequentialLevelupChoices } from '../lib/upgrades.js'
 import { getAccountUnlockableWeaponIds, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { buildPlaytestSummary } from '../lib/playtestLogger.js'
@@ -1457,9 +1457,8 @@ export default function HUD({
               ))}
             </div>
             {pendingWeaponReplacement && (
-              <div data-testid="weapon-replacement-prompt">
-              <div data-testid="weapon-replacement-dialog" role="dialog" aria-modal="true" style={styles.levelupReplacementDialog}>
-                <p style={styles.levelupReplacementTitle}>
+              <div data-testid="weapon-replacement-prompt" role="dialog" aria-modal="true" aria-labelledby="weapon-replacement-title" style={styles.levelupReplacementDialog}>
+                <p id="weapon-replacement-title" style={styles.levelupReplacementTitle}>
                   무기 {activeWeapons.length}/{MAX_OWNED_WEAPONS} — {weaponLabel(
                     pendingWeaponReplacement.weaponId,
                     WEAPON_CATALOG[pendingWeaponReplacement.weaponId]?.label
@@ -1472,18 +1471,18 @@ export default function HUD({
                     <button
                       key={id}
                       type="button"
-                      data-testid={`weapon-replacement-discard-${id}`}
+                      data-testid="weapon-replacement-choice"
+                      data-replacement-weapon={id}
                       data-replacement-choice="true"
                       style={styles.levelupReplacementOption}
                       onClick={() => confirmWeaponReplacement(id)}
                     >
-                      {weaponLabel(id, weapon.label ?? id)} 버리고 교체
+                      {weaponLabel(id, weapon.label ?? id)}
                     </button>
                   ))}
                 </div>
                 <button type="button" data-testid="weapon-replacement-discard-new" style={styles.levelupReplacementCancel} onClick={discardPendingWeapon}>새 무기 버리기</button>
                 <button type="button" data-testid="weapon-replacement-cancel" style={styles.levelupReplacementCancel} onClick={cancelWeaponReplacement}>취소</button>
-              </div>
               </div>
             )}
           </div>
@@ -2362,6 +2361,10 @@ const styles = {
     marginTop: 12,
     padding: 12,
     color: uiPalette.ink,
+    maxHeight: 'min(48vh, 360px)',
+    overflowY: 'auto',
+    overscrollBehavior: 'contain',
+    WebkitOverflowScrolling: 'touch',
   },
   levelupReplacementTitle: {
     margin: '0 0 8px',
@@ -2375,14 +2378,16 @@ const styles = {
   levelupReplacementOption: {
     ...schoolButton('paper'),
     color: uiPalette.ink,
-    padding: '7px 8px',
-    fontSize: 12,
+    minHeight: 44,
+    padding: '8px',
+    fontSize: 13,
   },
   levelupReplacementCancel: {
     ...schoolButton('danger'),
     marginTop: 8,
-    padding: '7px 18px',
-    fontSize: 12,
+    minHeight: 44,
+    padding: '8px 18px',
+    fontSize: 13,
   },
   topLeftControls: {
     position: 'absolute',
