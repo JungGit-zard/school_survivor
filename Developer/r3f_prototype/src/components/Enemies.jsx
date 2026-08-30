@@ -1162,7 +1162,6 @@ export function countPendingZombieSchedules(queue) {
 export function nextPendingSpawnSec(burstEvents, firedFlags, scheduledRepeatTicks, spawnSec, stageId = 'stage1', overtimeTick = -1) {
   if (!Number.isFinite(spawnSec)) return null
   let best = Infinity
-  let bestIsBoss = false
   const events = burstEvents ?? []
   for (let index = 0; index < events.length; index += 1) {
     const evt = events[index]
@@ -1176,7 +1175,6 @@ export function nextPendingSpawnSec(burstEvents, firedFlags, scheduledRepeatTick
     if (firedFlags?.[index]) continue
     if (Number.isFinite(evt.sec) && evt.sec > spawnSec && evt.sec < best) {
       best = evt.sec
-      bestIsBoss = isBossType(evt.type)
     }
   }
   // 오버타임 보강은 무한 반복이라 표가 소진된 뒤에도 항상 후보가 남는다.
@@ -1184,15 +1182,11 @@ export function nextPendingSpawnSec(burstEvents, firedFlags, scheduledRepeatTick
     + (Math.floor(overtimeTick ?? -1) + 1) * OVERTIME_REINFORCEMENT_INTERVAL_SEC
   if (Number.isFinite(nextOvertimeSec) && nextOvertimeSec > spawnSec && nextOvertimeSec < best) {
     best = nextOvertimeSec
-    bestIsBoss = false
   }
   if (!Number.isFinite(best)) return null
-  // 보스 앵커는 그대로 밟지 않고 3초 앞에 착지시킨다 — HUD 경고 카운트다운이 돌 시간을 준다.
-  // 그 지점이 이미 지났으면(lead <= spawnSec) 되감지 않고 보스 시각을 그대로 낸다.
-  if (bestIsBoss) {
-    const lead = best - BOSS_TELEGRAPH_LEAD_SEC
-    if (lead > spawnSec) return lead
-  }
+  // 빈 화면 캐치업은 실제 다음 스폰 시각까지 당긴다. 보스 경고 3초 리드는 HUD용으로만 유지하고,
+  // 여기서 3초 앞에 멈추면 오빠가 지적한 것처럼 Stage 3 보스 전후에 화면이 몇 초 더 비게 된다.
+  // 빈 화면 상한(2초)이 보스 예고 노출보다 우선이다.
   return best
 }
 

@@ -1562,6 +1562,23 @@ describe('nextPendingSpawnSec — 스폰 캐치업 점프 폭', () => {
     const events = getBurstEventsForStage('stage1')
     expect(nextPendingSpawnSec(events, flagsFor(events), repeatTicksFor(events), 0, 'stage1', -1)).toBe(5)
   })
+  it('스테이지3 실표에서도 첫 빈 화면 후보는 5초 오프닝이다', () => {
+    const events = getBurstEventsForStage('stage3')
+    expect(nextPendingSpawnSec(events, flagsFor(events), repeatTicksFor(events), 0, 'stage3', -1)).toBe(5)
+  })
+
+  it('스테이지3에서 5초 오프닝을 지운 뒤 빈 화면이면 24/25초 후속 스케줄을 후보로 잡는다', () => {
+    const events = getBurstEventsForStage('stage3')
+    const flags = flagsFor(events)
+    flags[events.findIndex((event) => event.sec === 5 && event.type === 'E01')] = 1
+    expect(nextPendingSpawnSec(events, flags, repeatTicksFor(events), 7, 'stage3', -1)).toBe(24)
+  })
+
+  it('빈 화면 캐치업은 보스 예고 3초 앞에서 멈추지 않고 실제 보스/보강 시각까지 당긴다', () => {
+    const events = [{ sec: 150, type: 'B03', count: 1 }]
+    expect(nextPendingSpawnSec(events, flagsFor(events), repeatTicksFor(events), 145, 'stage3', -1)).toBe(150)
+  })
+
 })
 
 describe('스폰 캐치업 배선 — 빈 화면 2초 상한', () => {
