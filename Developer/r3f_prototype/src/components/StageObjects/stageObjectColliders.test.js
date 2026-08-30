@@ -316,12 +316,13 @@ describe('stage object blocking colliders', () => {
     }
   })
 
-  // ── stage4 벽면 비대칭 포켓 회귀(balanceqa R4, 2026-07-26) ───────────────────
+  // ── 벽면 비대칭 포켓 회귀(balanceqa R4, 2026-07-26) ─────────────────────────
   // 플레이어 전폭(0.272, Player.jsx:162)보다 넓고 최소 좀비 E01 직경(0.747,
   // enemySimulation.js:10,51 — B04 반경도 0.747)보다 좁은 틈은 플레이어만 숨을 수 있는
   // 비대칭 포켓이 된다. 근접 좀비는 진입 못 하고 플레이어 무기는 프랍에 시야가 막혀
   // 반격도 안 되는 무적 지대라 어느 쪽이든 금지다.
   // 허용은 둘 중 하나뿐 — 밀폐(플레이어도 못 들어감) 또는 개방(B04까지 들어옴).
+  // 2026-08-30: stage4 전용이던 이 검사를 stage1~stage4 전 스테이지로 확대했다.
   const PLAYER_PASSABLE_WIDTH = 0.272
   const SMALLEST_ZOMBIE_DIAMETER = 0.747
   const OPEN_GAP_MIN = SMALLEST_ZOMBIE_DIAMETER + 0.1 // 0.847 → 0.85로 올려 잡는다
@@ -331,12 +332,14 @@ describe('stage object blocking colliders', () => {
     return gap >= SEALED_GAP_MAX && gap < OPEN_GAP_MIN
   }
 
-  // 좌표를 하드코딩하지 않는다. stage4 solid 프랍이 늘거나 움직이면 자동으로 걸린다.
-  it('leaves no player-only pocket between Stage 4 props and the cafeteria walls', () => {
-    const { halfX, halfZ } = getStageBounds('stage4')
+  // 좌표를 하드코딩하지 않는다. 어느 스테이지든 solid 프랍이 늘거나 움직이면 자동으로 걸린다.
+  const POCKET_CHECKED_STAGE_IDS = ['stage1', 'stage2', 'stage3', 'stage4']
+
+  it.each(POCKET_CHECKED_STAGE_IDS)('leaves no player-only pocket between %s props and the stage walls', (stageId) => {
+    const { halfX, halfZ } = getStageBounds(stageId)
     const violations = []
 
-    getStageObjectColliders('stage4').forEach((collider) => {
+    getStageObjectColliders(stageId).forEach((collider) => {
       const { minX, maxX, minZ, maxZ } = getWorldAabb(collider)
       const gaps = {
         '-X': minX - -halfX,
@@ -355,8 +358,8 @@ describe('stage object blocking colliders', () => {
     expect(violations.join('\n')).toBe('')
   })
 
-  it('leaves no player-only pocket between neighbouring Stage 4 props', () => {
-    const boxes = getStageObjectColliders('stage4').map((collider) => ({
+  it.each(POCKET_CHECKED_STAGE_IDS)('leaves no player-only pocket between neighbouring %s props', (stageId) => {
+    const boxes = getStageObjectColliders(stageId).map((collider) => ({
       id: collider.id,
       ...getWorldAabb(collider),
     }))
@@ -369,8 +372,12 @@ describe('stage object blocking colliders', () => {
         const gapX = Math.max(a.minX - b.maxX, b.minX - a.maxX)
         const gapZ = Math.max(a.minZ - b.maxZ, b.minZ - a.maxZ)
 
-        // 두 축 모두 겹치면 프랍끼리 관통이다(별도 non-overlap 테스트가 잡는다).
-        if (gapX < 0 && gapZ < 0) continue
+        // 두 축 모두 겹치면 프랍끼리 관통이다. stage4 밖에는 non-overlap 테스트가 없어서
+        // 관통을 풀다가 새 포켓을 만드는 사고가 실제로 났다 — 여기서 함께 잡는다.
+        if (gapX < 0 && gapZ < 0) {
+          violations.push(`${a.id} | ${b.id} overlap`)
+          continue
+        }
 
         // 분리축의 틈이 실제 통로 폭이다. 다른 축이 전혀 겹치지 않으면 대각선으로
         // 비켜 갈 수 있으므로 통로로 치지 않는다.

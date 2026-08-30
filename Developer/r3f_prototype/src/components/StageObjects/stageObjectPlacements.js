@@ -77,7 +77,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       "id": "stage1-desk-se-01",
       "type": "classroomDesk",
-      "position": [7.043, 0, 13.123],
+      // 안쪽으로 당김(개방): 남벽 +Z 틈 0.391 → 0.914 (좀비 직경 0.747 통과).
+      "position": [7.043, 0, 12.6],
       "rotation": [0, -1.18, 0],
       "scale": 0.8,
       "props": {
@@ -107,7 +108,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       "id": "stage1-chair-west-02",
       "type": "classroomChair",
-      "position": [-6.2, 0, 4.8],
+      // 관통 해소 + 개방: stage1-desk-mid-03와 0.067 겹침 → Z 틈 0.873.
+      "position": [-6.2, 0, 3.86],
       "rotation": [0, -2.8, 0],
       "scale": 0.688,
       "props": {
@@ -177,7 +179,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       "id": "stage1-chair-mid-02",
       "type": "classroomChair",
-      "position": [7.918, 0, -2.546],
+      // 개방 유지: stage1-desk-mid-02와의 Z 틈 0.671 → 0.897.
+      "position": [7.918, 0, -2.32],
       "rotation": [0, 0.12, 0],
       "scale": 0.676,
       "props": {
@@ -420,7 +423,11 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage3-exit-door-east-wall',
       type: 'gymExitDoor',
-      position: [6.8, 0, -8.7],
+      // 안쪽으로 당김(개방): 동벽 +X 틈 0.590 → 0.890. 문 뒤에 플레이어만 숨는
+      // 무적포켓이었다. 벽 밀착(밀폐)은 불가 — stage3 시야 장애물은 벽에서 0.4 이상
+      // 안쪽이어야 하고(0.4는 포켓 구간 안), 그래서 개방만이 유일한 해다.
+      // 조사 접촉면은 문 기준 상대 위치라 조사 트리거는 영향받지 않는다.
+      position: [6.5, 0, -8.7],
       rotation: [0, -Math.PI / 2, 0],
       scale: 1.0,
     },
@@ -515,7 +522,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-trayrack-north-east-inner',
       type: 'kitchenTrayRack',
-      position: [5.55, 0, -9.2],
+      // 개방 유지: 동쪽 선반카트와의 X 틈 0.626 → 0.876 (좀비 직경 0.747 통과).
+      position: [5.3, 0, -9.2],
       rotation: [0, -0.62, 0],
       scale: 1.06,
     },
@@ -579,7 +587,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-preptable-east-south-counter',
       type: 'kitchenPrepTable',
-      position: [6.94, 0, 11.25],
+      // 개방 유지: 남동 배식랙과의 Z 틈 0.812 → 0.862.
+      position: [6.94, 0, 11.2],
       rotation: [0, -Math.PI / 2 - 0.14, 0],
       scale: 1.04,
       props: { variant: 'side' },
@@ -664,7 +673,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage4-preptable-south-serving-right',
       type: 'kitchenPrepTable',
-      position: [1.08, 0, 13.72],
+      // 개방 유지: 좌측 배식대와의 X 틈 0.633 → 0.853.
+      position: [1.3, 0, 13.72],
       rotation: [0, Math.PI - 0.1, 0],
       scale: 1.1,
       props: { variant: 'side' },
@@ -681,7 +691,8 @@ export const STAGE_OBJECT_PLACEMENTS = {
       id: 'stage4-crates-south-center-stack',
       type: 'kitchenCrateStack',
       // 안쪽으로 당김(개방): 벽 틈 0.525 → 0.905.
-      position: [-4.35, 0, 13.82],
+      // 개방 유지: 좌측 배식대와의 X 틈 0.684 → 0.854.
+      position: [-4.52, 0, 13.82],
       rotation: [0, Math.PI + 0.26, 0],
       scale: 0.98,
       props: { count: 2 },
