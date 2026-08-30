@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useGameStore } from '../../store/useGameStore.js'
 import { playerPos } from '../../lib/refs.js'
@@ -201,6 +201,70 @@ export function InuconModel() {
 }
 
 export const INUCON_COMPANION_SCALE = 0.36
+export const INUCON_PUSH_VFX_DURATION_MS = 420
+export const INUCON_PUSH_VFX_RING_RADIUS_MULTIPLIER = 1
+
+function setInuconPushEffectOpacity(object, opacity) {
+  if (!object) return
+  if (object.material) object.material.opacity = opacity
+  for (const child of object.children ?? []) setInuconPushEffectOpacity(child, opacity)
+}
+
+function InuconPushEffect({ token = 0, radius = 0 }) {
+  const groupRef = useRef(null)
+  const ringRef = useRef(null)
+  const flashRef = useRef(null)
+  const lastTokenRef = useRef(token)
+  const elapsedMsRef = useRef(INUCON_PUSH_VFX_DURATION_MS)
+
+  usePlayingFrame((_, delta) => {
+    if (token !== lastTokenRef.current) {
+      lastTokenRef.current = token
+      elapsedMsRef.current = 0
+      if (groupRef.current) groupRef.current.visible = true
+    }
+
+    const group = groupRef.current
+    if (!group) return
+    elapsedMsRef.current += delta * 1000
+    const t = Math.min(1, elapsedMsRef.current / INUCON_PUSH_VFX_DURATION_MS)
+    if (t >= 1) {
+      group.visible = false
+      return
+    }
+
+    group.position.set(playerPos.x, 0.17, playerPos.z)
+    const pulse = Math.sin(t * Math.PI)
+    const opacity = Math.max(0, 1 - t) * 0.82
+    setInuconPushEffectOpacity(group, opacity)
+    if (ringRef.current) {
+      const ringScale = INUCON_PUSH_VFX_RING_RADIUS_MULTIPLIER * (0.22 + t * 0.78)
+      ringRef.current.scale.setScalar(Math.max(0.01, radius * ringScale))
+    }
+    if (flashRef.current) {
+      flashRef.current.scale.setScalar(Math.max(0.01, radius * (0.16 + pulse * 0.18)))
+    }
+  })
+
+  return (
+    <group ref={groupRef} visible={false} position={[0, 0.17, 0]} userData={{ studioNonFocusable: true, studioNonTunable: true }}>
+      <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[1, 0.035, 10, 64]} />
+        <meshBasicMaterial color="#fff4a8" transparent opacity={0} depthWrite={false} toneMapped={false} />
+      </mesh>
+      <mesh ref={flashRef} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.58, 1, 48]} />
+        <meshBasicMaterial color="#ffcf5a" transparent opacity={0} depthWrite={false} toneMapped={false} />
+      </mesh>
+      {[0, Math.PI / 2, Math.PI, Math.PI * 1.5].map((angle) => (
+        <mesh key={angle} position={[Math.sin(angle) * radius, 0.02, Math.cos(angle) * radius]} rotation={[0, angle, 0]}>
+          <coneGeometry args={[0.085, 0.28, 4]} />
+          <meshBasicMaterial color="#ffffff" transparent opacity={0} depthWrite={false} toneMapped={false} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
 
 export function InuconWeapon() {
   const groupRef = useRef()
@@ -210,6 +274,7 @@ export function InuconWeapon() {
   const initializedRef = useRef(false)
   const lastHealAtRef = useRef(null)
   const lastPushAtRef = useRef(null)
+  const [pushVfx, setPushVfx] = useState({ token: 0, radius: 0 })
   const weapons = useGameStore((s) => s.weapons)
   const healPlayer = useGameStore((s) => s.healPlayer)
   const active = shouldRenderInuconCompanion(weapons)
@@ -244,6 +309,10 @@ export function InuconWeapon() {
         knockback: biteDrag.knockback, knockbackMs: biteDrag.knockbackMs, ignoreSightBlock: true, weaponKey: 'inucon',
       })
       if (hits > 0) {
+        const triggerInuconPushVfx = (radius) => {
+          setPushVfx((current) => ({ token: current.token + 1, radius }))
+        }
+        triggerInuconPushVfx(biteDrag.radius)
         lastPushAtRef.current = now
         emitSfx({ id: 'inuconBite', volume: 0.52, rate: 0.96 + Math.random() * 0.08 })
       } else lastPushAtRef.current = now - biteDrag.pulseIntervalMs + 100
@@ -272,5 +341,10 @@ export function InuconWeapon() {
     return null
   }
 
-  return <group ref={groupRef} scale={[INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE]}><InuconModel /></group>
+  return (
+    <>
+      <group ref={groupRef} scale={[INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE, INUCON_COMPANION_SCALE]}><InuconModel /></group>
+      <InuconPushEffect token={pushVfx.token} radius={pushVfx.radius} />
+    </>
+  )
 }

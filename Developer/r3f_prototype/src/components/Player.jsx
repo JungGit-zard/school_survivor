@@ -17,6 +17,10 @@ const TURN_SPEED = 14
 const PLAYER_HIT_KNOCKBACK_SPEED = 4
 const PLAYER_HIT_KNOCKBACK_MS = 160
 const HEAL_EFFECT_DURATION_MS = 760
+export const HEAL_EFFECT_RING_RADIUS = 0.6
+export const HEAL_EFFECT_RING_TUBE_RADIUS = 0.038
+export const HEAL_EFFECT_SPARK_RADIUS = 0.08
+export const HEAL_EFFECT_CORE_SCALE = 1.24
 
 // 발소리는 '시간'이 아니라 '이동 거리'로 센다. 보폭(1.5 유닛)을 한 번 지날 때마다 한 발이다.
 // 기본 이동 속도 3 u/s에서 정확히 초당 2보 — 사람 걸음 속도다. 이동속도 업그레이드를
@@ -82,47 +86,51 @@ function PlayerHealEffect({ token = 0 }) {
       return
     }
 
-    const rise = t * 0.36
+    const rise = t * 0.52
     const pulse = Math.sin(t * Math.PI)
     const opacity = Math.max(0, 1 - t)
-    group.position.y = 0.16 + rise
-    group.scale.setScalar(0.82 + pulse * 0.28)
+    group.position.y = 0.2 + rise
+    group.scale.setScalar(HEAL_EFFECT_CORE_SCALE + pulse * 0.46)
     setHealEffectOpacity(group, opacity)
     if (ringRef.current) {
-      ringRef.current.rotation.z += delta * 2.2
-      ringRef.current.scale.setScalar(0.75 + t * 0.55)
+      ringRef.current.rotation.z += delta * 3.8
+      ringRef.current.scale.setScalar(0.92 + t * 0.72)
     }
   })
 
   return (
-    <group ref={groupRef} visible={false} position={[0, 0.16, 0]}>
+    <group ref={groupRef} visible={false} position={[0, 0.2, 0]}>
       <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]}>
-        <torusGeometry args={[0.32, 0.018, 8, 32]} />
-        <meshBasicMaterial color="#7dff9d" transparent opacity={0} depthWrite={false} />
+        <torusGeometry args={[HEAL_EFFECT_RING_RADIUS, HEAL_EFFECT_RING_TUBE_RADIUS, 10, 48]} />
+        <meshBasicMaterial color="#bdffcf" transparent opacity={0} depthWrite={false} toneMapped={false} />
       </mesh>
-      {[[0, 0.52, 0], [0.21, 0.43, 0.14], [-0.21, 0.43, -0.14]].map(([x, y, z], i) => (
-        <group key={i} position={[x, y, z]} rotation={[0, i * 0.55, 0]} scale={i === 0 ? 1 : 0.78}>
-          <mesh position={[-0.035, 0.02, 0]}>
-            <sphereGeometry args={[0.045, 8, 8]} />
-            <meshBasicMaterial color="#8cffae" transparent opacity={0} depthWrite={false} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.055, 0]}>
+        <ringGeometry args={[0.28, 0.82, 48]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0} depthWrite={false} toneMapped={false} />
+      </mesh>
+      {[[0, 0.66, 0], [0.34, 0.52, 0.2], [-0.34, 0.52, -0.2], [0.22, 0.38, -0.3], [-0.22, 0.38, 0.3]].map(([x, y, z], i) => (
+        <group key={i} position={[x, y, z]} rotation={[0, i * 0.55, 0]} scale={i === 0 ? 1.12 : 0.88}>
+          <mesh position={[-0.055, 0.025, 0]}>
+            <sphereGeometry args={[HEAL_EFFECT_SPARK_RADIUS, 10, 10]} />
+            <meshBasicMaterial color="#bdffcf" transparent opacity={0} depthWrite={false} toneMapped={false} />
           </mesh>
-          <mesh position={[0.035, 0.02, 0]}>
-            <sphereGeometry args={[0.045, 8, 8]} />
-            <meshBasicMaterial color="#8cffae" transparent opacity={0} depthWrite={false} />
+          <mesh position={[0.055, 0.025, 0]}>
+            <sphereGeometry args={[HEAL_EFFECT_SPARK_RADIUS, 10, 10]} />
+            <meshBasicMaterial color="#bdffcf" transparent opacity={0} depthWrite={false} toneMapped={false} />
           </mesh>
-          <mesh position={[0, -0.03, 0]} rotation={[0, 0, Math.PI / 4]}>
-            <boxGeometry args={[0.075, 0.075, 0.018]} />
-            <meshBasicMaterial color="#8cffae" transparent opacity={0} depthWrite={false} />
+          <mesh position={[0, -0.045, 0]} rotation={[0, 0, Math.PI / 4]}>
+            <boxGeometry args={[0.13, 0.13, 0.026]} />
+            <meshBasicMaterial color="#bdffcf" transparent opacity={0} depthWrite={false} toneMapped={false} />
           </mesh>
         </group>
       ))}
-      <mesh position={[0, 0.36, 0]}>
-        <boxGeometry args={[0.045, 0.18, 0.018]} />
-        <meshBasicMaterial color="#f0fff4" transparent opacity={0} depthWrite={false} />
+      <mesh position={[0, 0.43, 0]}>
+        <boxGeometry args={[0.07, 0.32, 0.026]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0} depthWrite={false} toneMapped={false} />
       </mesh>
-      <mesh position={[0, 0.36, 0]}>
-        <boxGeometry args={[0.18, 0.045, 0.018]} />
-        <meshBasicMaterial color="#f0fff4" transparent opacity={0} depthWrite={false} />
+      <mesh position={[0, 0.43, 0]}>
+        <boxGeometry args={[0.32, 0.07, 0.026]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0} depthWrite={false} toneMapped={false} />
       </mesh>
     </group>
   )

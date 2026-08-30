@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { advancePlayerStep, resolvePlayerHitKnockback } from './Player.jsx'
+import {
+  HEAL_EFFECT_CORE_SCALE,
+  HEAL_EFFECT_RING_RADIUS,
+  HEAL_EFFECT_RING_TUBE_RADIUS,
+  HEAL_EFFECT_SPARK_RADIUS,
+  advancePlayerStep,
+  resolvePlayerHitKnockback,
+} from './Player.jsx'
 
 describe('player hit knockback', () => {
   it('pushes the player backward from the last facing direction at a stable speed', () => {
@@ -17,12 +24,16 @@ describe('player hit knockback', () => {
     expect(source).toContain('invTimer.current += dt * 1000')
   })
 
-  it('renders a token-driven green heal pulse above the player visual', () => {
+  it('renders a token-driven unmistakable green heal pulse above the player visual', () => {
     const source = readFileSync(new URL('./Player.jsx', import.meta.url), 'utf8')
     expect(source).toContain('function PlayerHealEffect')
     expect(source).toContain('<PlayerHealEffect token={healFlashToken} />')
-    expect(source).toContain('<torusGeometry args={[0.32, 0.018, 8, 32]} />')
-    expect(source).toContain('color="#8cffae"')
+    expect(HEAL_EFFECT_RING_RADIUS).toBeGreaterThanOrEqual(0.58)
+    expect(HEAL_EFFECT_RING_TUBE_RADIUS).toBeGreaterThanOrEqual(0.035)
+    expect(HEAL_EFFECT_SPARK_RADIUS).toBeGreaterThanOrEqual(0.075)
+    expect(HEAL_EFFECT_CORE_SCALE).toBeGreaterThanOrEqual(1.22)
+    expect(source).toContain('color="#bdffcf"')
+    expect(source).toContain('color="#ffffff"')
   })
 })
 
