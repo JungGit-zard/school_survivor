@@ -559,6 +559,38 @@ describe('gameover presentation', () => {
 })
 
 describe('level-up upgrade layout', () => {
+  it('chibikoCrit shows the critical card at Chibiko level 2 instead of always selecting damage', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState((state) => ({
+      phase: 'levelup',
+      pendingLevelUps: 1,
+      player: { ...state.player, level: 2 },
+      weapons: {
+        ...Object.fromEntries(Object.entries(state.weapons).map(([id, weapon]) => [
+          id,
+          { ...weapon, active: true, level: 5 },
+        ])),
+        chibiko: { ...state.weapons.chibiko, active: true, level: 2 },
+      },
+      levelUpChoiceSerial: state.levelUpChoiceSerial + 1,
+    }))
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const labels = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
+        .map((choice) => choice.getAttribute('aria-label'))
+      expect(labels.some((label) => label.includes('치비코 치명타 강화'))).toBe(true)
+      expect(labels.some((label) => label.includes('치비코 위력'))).toBe(false)
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+
   it('exposes four unseen acquisition cards per serial without skipping after a selection', () => {
     useGameStore.getState().resetGame('stage1')
     for (const weaponId of ['scienceFlask', 'bell', 'stunGun', 'onigiri', 'guidedMissile']) setUnlocked(weaponId)

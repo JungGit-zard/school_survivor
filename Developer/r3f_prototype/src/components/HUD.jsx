@@ -402,6 +402,10 @@ export function getUpgradeChoiceDesc(option) {
 function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [], exposedAcquireKeys = [], weaponCycleIds = [], rotationWeaponIds = []) {
   const available = UPGRADES.filter((u) => isUpgradeAvailable(UPGRADE_EFFECTS[u.key], level, weapons, player))
   const limited = limitDuplicateWeaponUpgradeOptions(available)
+  const chibikoKey = (weapons.chibiko?.level ?? 1) % 2 === 0 ? 'chibikoCrit' : 'chibikoDamage'
+  const chibikoOption = available.find((option) => option.key === chibikoKey)
+  const chibikoIndex = limited.findIndex((option) => UPGRADE_EFFECTS[option.key]?.weapon === 'chibiko')
+  if (chibikoOption && chibikoIndex >= 0) limited[chibikoIndex] = chibikoOption
   const selection = selectSequentialLevelupChoices({
     orderedKeys: UPGRADES.map((upgrade) => upgrade.key),
     availableKeys: limited.map((upgrade) => upgrade.key),
