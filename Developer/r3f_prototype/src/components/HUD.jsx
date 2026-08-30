@@ -7,7 +7,7 @@ import { enemyHandleScratch, enemyPool, joystickDir, playerPos, portalTarget } f
 import { ENEMY_SIZE_MULTIPLIER, ENEMY_STATS } from './Enemy.jsx'
 import { getPortalObjective } from '../lib/portalObjective.js'
 import { MAX_OWNED_WEAPONS, UPGRADE_EFFECTS, isUpgradeAvailable, selectSequentialLevelupChoices } from '../lib/upgrades.js'
-import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
+import { getAccountUnlockableWeaponIds, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { buildPlaytestSummary } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
@@ -399,7 +399,7 @@ export function getUpgradeChoiceDesc(option) {
   return desc?.replaceAll(unlockWord, acquireWord) ?? ''
 }
 
-function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [], exposedAcquireKeys = []) {
+function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [], exposedAcquireKeys = [], weaponCycleIds = [], rotationWeaponIds = []) {
   const available = UPGRADES.filter((u) => isUpgradeAvailable(UPGRADE_EFFECTS[u.key], level, weapons, player))
   const limited = limitDuplicateWeaponUpgradeOptions(available)
   const selection = selectSequentialLevelupChoices({
@@ -407,6 +407,8 @@ function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [
     availableKeys: limited.map((upgrade) => upgrade.key),
     pendingGuaranteedKeys: pendingGuaranteedUpgradeChoiceKeys,
     exposedAcquireKeys,
+    weaponCycleIds,
+    rotationWeaponIds,
     choiceCount: 4,
     isAcquireKey: (key) => UPGRADE_EFFECTS[key]?.kind === 'acquire',
     getChoiceGroupKey: (key) => getUpgradeChoiceGroupKey({ key }),
@@ -718,11 +720,11 @@ export default function HUD({
     player, weapons, phase, pauseSource,
     elapsed, currentStageId, bossSpawned, bossSpawnSec,
     goldSession, goldTotal, recentMilestone,
-    newlyUnlockedWeaponIds, levelUpChoiceSerial, levelUpAcquireExposureKeys, pendingGuaranteedUpgradeChoiceKeys,
+    newlyUnlockedWeaponIds, levelUpChoiceSerial, levelUpAcquireExposureKeys, levelUpWeaponCycleIds, pendingGuaranteedUpgradeChoiceKeys,
     escapePortalActive, matildaSpawned, deathCause, bossBonus,
     studentDialogue, introDialogue,
     questProgress, questToast, newQuestItemIds, bossPassiveUnlocks,
-    clearMilestone, applyUpgrade, recordLevelupAcquireExposure, consumeGuaranteedUpgradeChoices, discardUnavailableGuaranteedUpgradeChoices,
+    clearMilestone, applyUpgrade, recordLevelupAcquireExposure, recordLevelupWeaponCycle, consumeGuaranteedUpgradeChoices, discardUnavailableGuaranteedUpgradeChoices,
     cheatAcquireWeapon, resumeFromLevelup,
     resetGame, togglePause, resumeGame, quitPausedRun, spawnMatilda,
     closeStudentDialogue, advanceIntro, toggleQuestInventory, closeQuestInventory,
@@ -743,6 +745,7 @@ export default function HUD({
     newlyUnlockedWeaponIds: s.newlyUnlockedWeaponIds,
     levelUpChoiceSerial:  s.levelUpChoiceSerial,
     levelUpAcquireExposureKeys: s.levelUpAcquireExposureKeys,
+    levelUpWeaponCycleIds: s.levelUpWeaponCycleIds,
     pendingGuaranteedUpgradeChoiceKeys: s.pendingGuaranteedUpgradeChoiceKeys,
     escapePortalActive:   s.escapePortalActive,
     matildaSpawned:       s.matildaSpawned,
@@ -757,6 +760,7 @@ export default function HUD({
     clearMilestone:       s.clearMilestone,
     applyUpgrade:         s.applyUpgrade,
     recordLevelupAcquireExposure: s.recordLevelupAcquireExposure,
+    recordLevelupWeaponCycle: s.recordLevelupWeaponCycle,
     consumeGuaranteedUpgradeChoices: s.consumeGuaranteedUpgradeChoices,
     discardUnavailableGuaranteedUpgradeChoices: s.discardUnavailableGuaranteedUpgradeChoices,
     cheatAcquireWeapon:   s.cheatAcquireWeapon,
@@ -878,14 +882,23 @@ export default function HUD({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const levelupSelection = useMemo(
     () => phase === 'levelup'
-      ? pickFour(player.level, weapons, player, pendingGuaranteedUpgradeChoiceKeys, levelUpAcquireExposureKeys)
-      : { choices: [], nextExposedAcquireKeys: [], displayedGuaranteedKeys: [] },
+      ? pickFour(
+        player.level,
+        weapons,
+        player,
+        pendingGuaranteedUpgradeChoiceKeys,
+        levelUpAcquireExposureKeys,
+        levelUpWeaponCycleIds,
+        getAccountUnlockableWeaponIds().filter((weaponId) => isWeaponUnlocked(weaponId)),
+      )
+      : { choices: [], nextExposedAcquireKeys: [], nextWeaponCycleIds: [], displayedGuaranteedKeys: [] },
     [phase, player.level, weapons, levelUpChoiceSerial],
   )
-  const { choices, nextExposedAcquireKeys, displayedGuaranteedKeys } = levelupSelection
+  const { choices, nextExposedAcquireKeys, nextWeaponCycleIds, displayedGuaranteedKeys } = levelupSelection
   useEffect(() => {
     if (phase !== 'levelup') return
     recordLevelupAcquireExposure(nextExposedAcquireKeys, levelUpChoiceSerial)
+    recordLevelupWeaponCycle(nextWeaponCycleIds, levelUpChoiceSerial)
     if (displayedGuaranteedKeys.length > 0) {
       consumeGuaranteedUpgradeChoices(displayedGuaranteedKeys, levelUpChoiceSerial)
       return
@@ -902,9 +915,11 @@ export default function HUD({
     displayedGuaranteedKeys,
     levelUpChoiceSerial,
     nextExposedAcquireKeys,
+    nextWeaponCycleIds,
     pendingGuaranteedUpgradeChoiceKeys,
     phase,
     recordLevelupAcquireExposure,
+    recordLevelupWeaponCycle,
     weapons,
   ])
   const [levelupChoicesReadySerial, setLevelupChoicesReadySerial] = useState(null)

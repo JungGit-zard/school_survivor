@@ -244,7 +244,7 @@ const styles = {
   filterButton: { ...schoolButton('paper'), minHeight: 44, padding: '5px 2px', fontSize: 11, lineHeight: 1 },
   filterActive: { ...schoolButton('cta'), minHeight: 44, padding: '5px 2px', fontSize: 11, lineHeight: 1 },
   list: { flex: 1, minHeight: 0, margin: 0, padding: '2px 2px 4px', display: 'flex', flexDirection: 'column', gap: 7, overflowY: 'auto', listStyle: 'none', scrollbarWidth: 'thin' },
-  row: { border: uiBorders.strong, borderRadius: 8, boxShadow: uiShadows.pressSmall, boxSizing: 'border-box', overflow: 'hidden' },
+  row: { flexShrink: 0, border: uiBorders.strong, borderRadius: 8, boxShadow: uiShadows.pressSmall, boxSizing: 'border-box', overflow: 'hidden' },
   rowUnlocked: { background: uiPalette.paperLight, color: uiPalette.ink },
   rowLocked: { background: '#2a2433', color: uiPalette.paperLight },
   rowButton: { width: '100%', minHeight: 72, display: 'flex', alignItems: 'center', gap: 9, padding: '8px 9px', border: 0, background: 'transparent', color: 'inherit', font: 'inherit', textAlign: 'left', cursor: 'pointer', boxSizing: 'border-box' },

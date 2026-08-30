@@ -27,4 +27,26 @@ describe('level-up acquire exposure ledger', () => {
       levelUpAcquireExposureSerial: -1,
     })
   })
+
+  it('records the displayed weapon groups once per level-up serial', () => {
+    useGameStore.getState().recordLevelupWeaponCycle(['pencilThrow', 'schoolBag', 'pencilThrow'], 41)
+    useGameStore.getState().recordLevelupWeaponCycle(['tumbler'], 41)
+
+    expect(useGameStore.getState()).toMatchObject({
+      levelUpWeaponCycleIds: ['pencilThrow', 'schoolBag'],
+      levelUpWeaponCycleSerial: 41,
+    })
+  })
+
+  it('clears the displayed-weapon cycle for every new run or stage', () => {
+    useGameStore.getState().recordLevelupWeaponCycle(['pencilThrow'], 41)
+
+    useGameStore.getState().resetGame()
+    expect(useGameStore.getState()).toMatchObject({ levelUpWeaponCycleIds: [], levelUpWeaponCycleSerial: -1 })
+
+    useGameStore.setState({ phase: 'levelup', levelUpChoiceSerial: 42 })
+    useGameStore.getState().recordLevelupWeaponCycle(['pencilThrow'], 42)
+    useGameStore.getState().resetGame('stage2')
+    expect(useGameStore.getState()).toMatchObject({ levelUpWeaponCycleIds: [], levelUpWeaponCycleSerial: -1 })
+  })
 })

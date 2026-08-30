@@ -206,9 +206,12 @@ export function selectSequentialLevelupChoices({
   availableKeys,
   pendingGuaranteedKeys = [],
   exposedAcquireKeys = [],
+  weaponCycleIds = [],
+  rotationWeaponIds = [],
   choiceCount = LEVELUP_CHOICE_COUNT,
   isAcquireKey = (key) => UPGRADE_EFFECTS[key]?.kind === 'acquire',
   getChoiceGroupKey = getDefaultChoiceGroupKey,
+  getWeaponCycleId = (key) => UPGRADE_EFFECTS[key]?.weapon ?? null,
 } = {}) {
   const ordered = uniqueKeys(orderedKeys)
   const availableSet = new Set(uniqueKeys(availableKeys).filter((key) => ordered.includes(key)))
@@ -221,6 +224,18 @@ export function selectSequentialLevelupChoices({
   const eligibleUnseenAcquireKeys = eligibleAcquireKeys.filter((key) => !cycleExposed.includes(key))
   const pending = uniqueKeys(pendingGuaranteedKeys)
   const pendingSet = new Set(pending)
+  const availableWeaponCycleIds = uniqueKeys(ordered
+    .filter((key) => availableSet.has(key))
+    .map((key) => getWeaponCycleId(key)))
+  const eligibleWeaponCycleIds = uniqueKeys(rotationWeaponIds).length > 0
+    ? uniqueKeys(rotationWeaponIds)
+    : availableWeaponCycleIds
+  const priorWeaponCycleIds = uniqueKeys(weaponCycleIds)
+    .filter((weaponId) => eligibleWeaponCycleIds.includes(weaponId))
+  const weaponCycleWrapped = eligibleWeaponCycleIds.length > 0
+    && priorWeaponCycleIds.length === eligibleWeaponCycleIds.length
+  const activeWeaponCycleIds = weaponCycleWrapped ? [] : priorWeaponCycleIds
+  const activeWeaponCycleSet = new Set(activeWeaponCycleIds)
   const choiceKeys = []
   const displayedGuaranteedKeys = []
   const usedGroups = new Set()
@@ -229,6 +244,8 @@ export function selectSequentialLevelupChoices({
     if (choiceKeys.length >= limit || !availableSet.has(key) || choiceKeys.includes(key)) return false
     const groupKey = getChoiceGroupKey(key)
     if (usedGroups.has(groupKey)) return false
+    const weaponCycleId = getWeaponCycleId(key)
+    if (weaponCycleId && activeWeaponCycleSet.has(weaponCycleId)) return false
     usedGroups.add(groupKey)
     choiceKeys.push(key)
     if (guaranteed) displayedGuaranteedKeys.push(key)
@@ -250,7 +267,18 @@ export function selectSequentialLevelupChoices({
 
   const selectedAcquireKeys = choiceKeys.filter((key) => isAcquireKey(key))
   const nextExposedAcquireKeys = uniqueKeys([...cycleExposed, ...selectedAcquireKeys])
-  return { choiceKeys, nextExposedAcquireKeys, displayedGuaranteedKeys, cycleWrapped }
+  const nextWeaponCycleIds = uniqueKeys([
+    ...activeWeaponCycleIds,
+    ...choiceKeys.map((key) => getWeaponCycleId(key)),
+  ])
+  return {
+    choiceKeys,
+    nextExposedAcquireKeys,
+    displayedGuaranteedKeys,
+    cycleWrapped,
+    weaponCycleWrapped,
+    nextWeaponCycleIds,
+  }
 }
 
 const bumpLevel = (wpn) => Math.min(MAX_WEAPON_LEVEL, (wpn.level ?? 1) + 1)
@@ -280,8 +308,6 @@ export function isUpgradeAvailable(effect, level, weapons, player = null) {
     }
     return true
   }
-  if (effect.minLevel != null && level < effect.minLevel) return false
-
   const wpn = weapons[effect.weapon]
   if (effect.kind === 'acquire') {
     if (wpn?.active) return false
@@ -291,10 +317,16 @@ export function isUpgradeAvailable(effect, level, weapons, player = null) {
     if (effect.requiresActiveWeapons
       && !effect.requiresActiveWeapons.every((id) => weapons[id]?.active)) return false
     // 계정 해금 게이트: starter는 isWeaponUnlocked가 항상 true, 그 외는 weaponUnlocks 디스크 상태.
-    if (!effect.skipAccountUnlock && !isWeaponUnlocked(effect.weapon)) return false
+    const accountUnlockedAcquire = !effect.skipAccountUnlock && isWeaponUnlocked(effect.weapon)
+    if (!effect.skipAccountUnlock && !accountUnlockedAcquire) return false
+    // 사용자가 계정에서 해금한 무기는 레벨업 화면 순환의 정본 멤버다. 아직 보유하지 않은 경우
+    // 최소 레벨·보유 슬롯 상한보다 먼저 유효한 획득 카드로 유지한다.
+    if (accountUnlockedAcquire) return true
+    if (effect.minLevel != null && level < effect.minLevel) return false
     const ownedCount = Object.values(weapons).filter((w) => w.active).length
     return ownedCount < MAX_OWNED_WEAPONS
   }
+  if (effect.minLevel != null && level < effect.minLevel) return false
   if (!wpn?.active) return false
   if ((wpn.level ?? 0) >= MAX_WEAPON_LEVEL) return false
   if (effect.kind === 'stat') return (wpn[effect.stat] ?? 0) < effect.cap

@@ -1,6 +1,6 @@
 ﻿import { describe, it, expect } from 'vitest'
 import { applyChibikoAllWeaponBoost, applyUpgradeToWeapon, applyUpgradeWithChibikoBoost, isUpgradeAvailable, selectSequentialLevelupChoices, UPGRADE_EFFECTS } from './upgrades.js'
-import { WEAPON_CATALOG, getAllWeaponIds } from './weaponCatalog.js'
+import { WEAPON_CATALOG, getAccountUnlockableWeaponIds, getAllWeaponIds } from './weaponCatalog.js'
 import { setUnlocked } from './weaponUnlocks.js'
 
 // 가상 무기 상태 빌더. weapons 객체의 한 항목 형태와 동일.
@@ -66,9 +66,70 @@ describe('sequential rotating level-up choices', () => {
       isAcquireKey: (key) => key === 'acquire1',
     }).choiceKeys).toEqual(['acquire1', 'general1', 'general2', 'general3'])
   })
+
+  it('records every displayed account-unlocked weapon before any group repeats', () => {
+    const weaponKeys = getAccountUnlockableWeaponIds()
+    expect(weaponKeys).toHaveLength(17)
+    expect(weaponKeys.every((weaponId) => Object.values(UPGRADE_EFFECTS).some((effect) => effect.weapon === weaponId))).toBe(true)
+    let weaponCycleIds = []
+    const displayed = []
+
+    for (let screen = 0; screen < 5; screen += 1) {
+      const result = selectSequentialLevelupChoices({
+        orderedKeys: [...weaponKeys, 'health'],
+        availableKeys: [...weaponKeys, 'health'],
+        weaponCycleIds,
+        rotationWeaponIds: weaponKeys,
+        getWeaponCycleId: (key) => weaponKeys.includes(key) ? key : null,
+      })
+      displayed.push(...result.choiceKeys.filter((key) => weaponKeys.includes(key)))
+      weaponCycleIds = result.nextWeaponCycleIds
+    }
+
+    expect(displayed).toEqual(weaponKeys)
+    expect(new Set(displayed)).toHaveLength(17)
+  })
+
+  it('uses displayed groups, excludes locked IDs, and wraps only after the account-unlocked list completes', () => {
+    const groupFor = (key) => ({ a: 'A', b: 'B', c: 'C' })[key] ?? null
+    const first = selectSequentialLevelupChoices({
+      orderedKeys: ['a', 'b', 'c', 'health'],
+      availableKeys: ['a', 'b', 'c', 'health'],
+      weaponCycleIds: ['A', 'locked'],
+      rotationWeaponIds: ['A', 'B', 'C'],
+      getWeaponCycleId: groupFor,
+    })
+    expect(first.choiceKeys).toEqual(['b', 'c', 'health'])
+    expect(first.nextWeaponCycleIds).toEqual(['A', 'B', 'C'])
+    expect(selectSequentialLevelupChoices({
+      orderedKeys: ['a', 'b', 'c', 'health'],
+      availableKeys: ['a', 'b', 'c', 'health'],
+      weaponCycleIds: first.nextWeaponCycleIds,
+      rotationWeaponIds: ['A', 'B', 'C'],
+      getWeaponCycleId: groupFor,
+    }).choiceKeys).toEqual(['a', 'b', 'c', 'health'])
+  })
+
+  it('does not let a pending guarantee bypass the displayed-weapon rotation', () => {
+    expect(selectSequentialLevelupChoices({
+      orderedKeys: ['a', 'b', 'health'],
+      availableKeys: ['a', 'b', 'health'],
+      pendingGuaranteedKeys: ['a'],
+      weaponCycleIds: ['A'],
+      rotationWeaponIds: ['A', 'B'],
+      getWeaponCycleId: (key) => ({ a: 'A', b: 'B' })[key] ?? null,
+    })).toMatchObject({ choiceKeys: ['b', 'health'], displayedGuaranteedKeys: [] })
+  })
 })
 
 describe('applyUpgradeToWeapon', () => {
+  it('커터칼과 바이키티 커터칼 피해 강화는 기존 수치의 정확히 2배다', () => {
+    expect(UPGRADE_EFFECTS.boxCutterDamage.dmg).toBe(16.4)
+    expect(UPGRADE_EFFECTS.boxCutterPower.dmg).toBe(16.4)
+    expect(UPGRADE_EFFECTS.bikittyCutterDamage.dmg).toBe(14)
+    expect(UPGRADE_EFFECTS.bikittyCutterPower.dmg).toBe(14)
+  })
+
   it('치비코는 연속형 무기 능력을 10% 강화하고 쿨타임은 10% 줄인다', () => {
     const out = applyChibikoAllWeaponBoost({ damage: 10, range: 2, cooldown: 1000, projectileCount: 1 })
 
@@ -112,13 +173,6 @@ describe('applyUpgradeToWeapon', () => {
   it('damage effect: level 5에서 더 안 올라감 (cap)', () => {
     const out = applyUpgradeToWeapon(wpn({ active: true, level: 5, damage: 20 }), { kind: 'damage', dmg: 3 })
     expect(out.damage).toBe(23)
-  it('커터칼과 바이키티 커터칼 피해 강화는 기존 수치의 정확히 2배다', () => {
-    expect(UPGRADE_EFFECTS.boxCutterDamage.dmg).toBe(16.4)
-    expect(UPGRADE_EFFECTS.boxCutterPower.dmg).toBe(16.4)
-    expect(UPGRADE_EFFECTS.bikittyCutterDamage.dmg).toBe(14)
-    expect(UPGRADE_EFFECTS.bikittyCutterPower.dmg).toBe(14)
-  })
-
     expect(out.level).toBe(5)
   })
 
@@ -189,11 +243,25 @@ describe('isUpgradeAvailable', () => {
     expect(isUpgradeAvailable({ weapon: 'bell', kind: 'acquire', minLevel: 4 }, 4, { bell: wpn() })).toBe(true)
   })
 
-  it('치비코 획득은 Lv.8 최고 레벨 카드로만 가능', () => {
+  it('계정 해금 무기 획득은 Lv.2와 보유 상한에서도 가능하지만 잠김·조합 게이트는 유지한다', () => {
+    setUnlocked('starlink')
+    const weaponsAtCap = { ...ownedWeapons(8), starlink: wpn({ active: false }) }
+
+    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireStarlink, 2, weaponsAtCap)).toBe(true)
+    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireCompassBlade, 2, {
+      compassBlade: wpn({ active: false }),
+    })).toBe(false)
+    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireBikittyCutter, 2, {
+      boxCutter: wpn({ active: true }),
+      bikittyCutter: wpn({ active: false }),
+    })).toBe(false)
+  })
+
+  it('계정 해금된 치비코 획득은 Lv.2에서도 가능', () => {
     setUnlocked('chibiko')
     const weapons = { chibiko: wpn({ active: false }) }
     expect(UPGRADE_EFFECTS.acquireChibiko).toMatchObject({ weapon: 'chibiko', kind: 'acquire', minLevel: 8 })
-    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireChibiko, 7, weapons)).toBe(false)
+    expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireChibiko, 2, weapons)).toBe(true)
     expect(isUpgradeAvailable(UPGRADE_EFFECTS.acquireChibiko, 8, weapons)).toBe(true)
   })
 

@@ -284,6 +284,8 @@ export const useGameStore = create(
     levelUpChoiceSerial: 0,
     levelUpAcquireExposureKeys: [],
     levelUpAcquireExposureSerial: -1,
+    levelUpWeaponCycleIds: [],
+    levelUpWeaponCycleSerial: -1,
     pendingGuaranteedUpgradeChoiceKeys: [],
     questProgress: createStageQuestProgress(DEFAULT_STAGE_ID),
     questJourneyCompletedIds: [],
@@ -1005,6 +1007,14 @@ export const useGameStore = create(
       }
     }),
 
+    recordLevelupWeaponCycle: (ids, choiceSerial) => set((s) => {
+      if (s.phase !== 'levelup' || s.levelUpChoiceSerial !== choiceSerial || s.levelUpWeaponCycleSerial === choiceSerial || !Array.isArray(ids)) return {}
+      return {
+        levelUpWeaponCycleIds: [...new Set(ids.filter((id) => typeof id === 'string'))],
+        levelUpWeaponCycleSerial: choiceSerial,
+      }
+    }),
+
     applyUpgrade: (key) => {
       const effect = UPGRADE_EFFECTS[key]
 
@@ -1196,6 +1206,8 @@ export const useGameStore = create(
         levelUpChoiceSerial: s.levelUpChoiceSerial + 1,
         levelUpAcquireExposureKeys: [],
         levelUpAcquireExposureSerial: -1,
+        levelUpWeaponCycleIds: [],
+        levelUpWeaponCycleSerial: -1,
         pendingGuaranteedUpgradeChoiceKeys: [],
         questProgress: createStageQuestProgress(nextStageId),
         questJourneyCompletedIds: preserveQuestJourney ? s.questJourneyCompletedIds : [],
