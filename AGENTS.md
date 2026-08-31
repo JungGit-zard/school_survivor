@@ -127,6 +127,20 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 - For gameplay work, consider player controls, feedback, state changes, difficulty, and failure cases.
 - For R3F/Rapier vampire-survivor-like stability work, performance regression, monster disappearance, or physics anomalies, treat `Developer/agent_room/r3f_rapier_vampire_survivor_stability_rules.md` as the mandatory Agent-Ready checklist and run its §6 diagnostic protocol before proposing fixes.
 
+
+## Hana Mandatory Execution Split for Escape Zombie School
+
+- For Terry's Escape Zombie School implementation/commit/push/AAB requests, use the fixed canonical repo first: `D:/JungSil/2.Minigame_project/school_survivor-integration`.
+- Do not reverse-trace from AAB artifacts unless Terry explicitly asks for an artifact audit.
+- Do not pause implementation to explain location confusion; split the work and start concrete action immediately.
+- Hana/main model handles orchestration, judgment, decomposition, and final reporting only.
+- Terra handles straightforward worker implementation, repetitive code edits, and test-failure repair loops.
+- Spark handles simpler repetitive checks, evidence gathering, smoke checks, and checklist/report scaffolding.
+- Default task split is Implementer / QA / Recorder, plus Release-Build worker when version, AAB, push, or upload is requested.
+- Preserve the external voice prompt normalizer and hook: `C:/Users/admin/AppData/Local/hermes/voice_input/prompt_normalizer.py`, `C:/Users/admin/AppData/Local/hermes/voice_input/escape_zombie_school_voice_lexicon.json`, and `.claude/hooks/normalize-voice-prompt.sh` must not be removed or unregistered as part of routing/AAB/Git-hygiene work. The normalizer is a developer/agent input tool, not a game runtime asset.
+- Commit/stage hygiene: only explicit task paths may be staged or committed. Do not use `git add .`, `git add -A`, broad directory staging, or include unrelated dirty files.
+- See `Developer/agent_room/hana_execution_split_mandatory_routing_2026-08-31.md` for the durable routing rule.
+
 ## Subagent Usage
 
 - Use subagents when the user explicitly asks for subagents, names a specific subagent, asks for autonomous agent deployment, or requests milestone-level multi-role game development work.
@@ -195,9 +209,9 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 - 비평가 점수, 품질 개선, 최적화, 접근성, 라이선스·권리, 리팩터링, 테스트 편의는 변경 권한이 아니다. 타이틀 프레젠테이션을 바꾸려는 목적으로 공유 gameplay 모델·코드를 변경하는 일도 금지한다.
 - `Developer/r3f_prototype/src/assets/audio/title_bgm.m4a`는 bytes `998122`, SHA-256 `991bf9871fe70b55852920390b3b1434892cfc50da79d3e8fd900062b191cffe`의 영구 정본이며, 모든 개발 실행·빌드·AAB에 반드시 포함한다. 삭제·교체·변환·재생 경로 변경·대체 생성은 금지한다.
 - 권리·출처·품질·최적화·비평 점수는 이 정본을 교체하거나 제외할 사유가 아니며, 사용자 새 명시 지시만 변경을 허용한다. 권리·출처 검토는 별도 기록일 뿐 정본 교체·제외 권한이 아니다.
-
 ## 음성·받아쓰기 프롬프트 정규화
 
-- 모든 비어 있지 않은 Escape! zombie school 프롬프트는 해석 전에 `Developer/voice_input/prompt_normalizer.py`의 정본 어휘로 고신뢰 용어만 정규화해 참고한다. 정규화 결과는 해석 보조이며 원문이 항상 source of truth다.
-- 마이크·받아쓰기·깨진 Escape! zombie school 프롬프트도 같은 정본 어휘로 고신뢰 용어만 정규화한다.
+- 음성정규화는 게임 기능/런타임 자원이 아니라 Terry의 AI 작업용 마이크 입력 보정 레이어다. 게임 번들·AAB·유저 리소스에 포함하지 않는다.
+- 정본 위치는 게임 repo 밖의 `C:/Users/admin/AppData/Local/hermes/voice_input/`이다. 이 repo에는 복사본을 두지 말고 `.claude/hooks/normalize-voice-prompt.sh`가 외부 정본을 호출한다.
+- 모든 비어 있지 않은 마이크·받아쓰기·깨진 작업 프롬프트는 해석 전에 외부 정본 normalizer의 고신뢰 용어만 참고한다. 정규화 결과는 해석 보조이며 원문이 항상 source of truth다.
 - 원문과 숫자·경로·URL·ID·인용값 등 정확한 리터럴은 그대로 보존한다. 파괴적 명령 또는 모호성이 남으면 추측하지 말고 그 경우에만 확인한다.
