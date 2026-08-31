@@ -65,7 +65,7 @@ describe('zombie death voices', () => {
     const rngValues = [0, 0.2, 0.4, 0.6, 0.8]
     expect(rngValues.map((value) => randomZombieDeathSfxId(() => value))).toEqual(ZOMBIE_DEATH_SFX_IDS)
 
-    const normalZombieTypes = ['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07', 'RZG', 'RZT', 'RZL', 'RZC']
+    const normalZombieTypes = ['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07', 'E08', 'RZG', 'RZT', 'RZL', 'RZC']
     for (const type of normalZombieTypes) {
       expect(deathSfxId(type, false, () => 0)).toBe('zombieDeathGrunt')
       expect(deathSfxId(type, false, () => 0.2)).toBe('zombieDeathHeavy')

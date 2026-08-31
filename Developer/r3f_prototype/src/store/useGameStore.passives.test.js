@@ -16,33 +16,33 @@ describe('useGameStore 패시브 런 시작 적용', () => {
     useGameStore.getState().resetGame()
   })
 
-  it('maxHp Lv.2 저장 시 resetGame이 maxHp/hp 112로 시작한다', () => {
+  it('maxHp Lv.2 저장 시 resetGame이 maxHp/hp 104로 시작한다', () => {
     setSavedPassives({ maxHp: 2 })
     useGameStore.getState().resetGame()
     const { player } = useGameStore.getState()
-    expect(player.maxHp).toBe(112)
-    expect(player.hp).toBe(112)
+    expect(player.maxHp).toBe(104)
+    expect(player.hp).toBe(104)
   })
 
-  it('moveSpeed Lv.3 저장 시 speed=baseSpeed=3*(1+0.09)=3.27', () => {
+  it('moveSpeed Lv.3 저장 시 speed=baseSpeed=3*(1+0.03)=3.09', () => {
     setSavedPassives({ moveSpeed: 3 })
     useGameStore.getState().resetGame()
     const { player } = useGameStore.getState()
-    expect(player.speed).toBeCloseTo(3.27, 5)
-    expect(player.baseSpeed).toBeCloseTo(3.27, 5)
+    expect(player.speed).toBeCloseTo(3.09, 5)
+    expect(player.baseSpeed).toBeCloseTo(3.09, 5)
   })
 
-  it('might Lv.2 저장 시 pencilThrow 데미지가 2.4*1.08=2.592로 적용된다', () => {
+  it('might Lv.2 저장 시 pencilThrow 데미지가 2.4*(1+0.08/3)로 적용된다', () => {
     setSavedPassives({ might: 2 })
     useGameStore.getState().resetGame()
     const { weapons } = useGameStore.getState()
     // base 2.4(2026-08-01 Stage 2 밸런스) 기준.
     // 소수 1자리 반올림(→2.6)은 커밋 875ebfe에서 걷어냈다. 저데미지 무기의 양자화 오차가
     // 공격력 패시브를 통째로 삼켰기 때문이다. 이제 곱만 남으므로 2.592가 정본이다.
-    expect(weapons.pencilThrow.damage).toBeCloseTo(2.592, 10)
+    expect(weapons.pencilThrow.damage).toBeCloseTo(2.4 * (1 + 0.08 / 3), 10)
   })
 
-  it('growth Lv.3 저장 시 gainXp가 1.15배로 적용된다', () => {
+  it('growth Lv.3 저장 시 gainXp가 1.05배로 적용된다', () => {
     setSavedPassives({ growth: 3 })
     useGameStore.getState().resetGame()
     // 레벨업을 피하기 위해 xpToNext(=4)보다 작게 들어가도록 amount=2 사용.
@@ -50,7 +50,7 @@ describe('useGameStore 패시브 런 시작 적용', () => {
     // 더 강한 검증을 위해 player.xpToNext를 크게 만들어 두고 큰 입력을 쓴다.
     useGameStore.setState((s) => ({ player: { ...s.player, xpToNext: 1000 } }))
     useGameStore.getState().gainXp(20)
-    expect(useGameStore.getState().player.xp).toBe(Math.floor(20 * 1.15))
+    expect(useGameStore.getState().player.xp).toBe(Math.floor(20 * 1.05))
   })
 
   it('패시브 저장이 비어 있으면 기본 수치 그대로다', () => {

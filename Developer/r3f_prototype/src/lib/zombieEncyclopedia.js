@@ -17,6 +17,7 @@ const ZOMBIE_TYPE_LABELS = Object.freeze({
   RZT: '트렌치코트 좀비',
   RZG: '경비 좀비',
   E07: '웃는얼굴 좀비',
+  E08: '코인 몬스터',
   B01: '수학 선생님 좀비',
   B02: '보스 좀비 B02',
   B03: '보스 좀비 B03',

@@ -6,6 +6,7 @@ import {
   getChibikoTrailTarget,
   recordChibikoTrailPoint,
 } from './chibiko.js'
+import { WEAPON_CATALOG } from './weaponCatalog.js'
 
 describe('chibiko companion helpers', () => {
   it('follows a delayed point from the exact player movement trail, not an offset around the player', () => {
@@ -38,6 +39,10 @@ describe('chibiko companion helpers', () => {
 
   it('passes the permanent projectile-count perk into Chibiko attack config', () => {
     expect(createChibikoAttackConfig({ projectileCount: 2 }).projectileCount).toBe(2)
+  })
+
+  it('marks Chibiko projectiles as same-target DPS contributors for the estimator', () => {
+    expect(WEAPON_CATALOG.chibiko.base.singleTargetProjectiles).toBe(true)
   })
 
   it('uses the level 1 pencil throw as Chibiko attack config', () => {

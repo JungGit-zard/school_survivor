@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { applyChibikoAllWeaponBoost, applyUpgradeToWeapon, applyUpgradeWithChibikoBoost, isUpgradeAvailable, selectSequentialLevelupChoices, UPGRADE_EFFECTS } from './upgrades.js'
 import { WEAPON_CATALOG, getAccountUnlockableWeaponIds, getAllWeaponIds } from './weaponCatalog.js'
 import { _resetForTests as resetWeaponUnlocksForTests, setUnlocked } from './weaponUnlocks.js'
@@ -108,6 +108,19 @@ describe('sequential rotating level-up choices', () => {
       rotationWeaponIds: ['A', 'B', 'C'],
       getWeaponCycleId: groupFor,
     }).choiceKeys).toEqual(['a', 'b', 'c', 'health'])
+  })
+
+
+  it('can fill all four cards by relaxing weapon rotation only as an endless-mode fallback', () => {
+    const result = selectSequentialLevelupChoices({
+      orderedKeys: ['a', 'b', 'c', 'd', 'health'],
+      availableKeys: ['a', 'b', 'c', 'd', 'health'],
+      weaponCycleIds: ['A', 'B', 'C', 'D'],
+      rotationWeaponIds: ['A', 'B', 'C', 'D'],
+      getWeaponCycleId: (key) => ({ a: 'A', b: 'B', c: 'C', d: 'D' })[key] ?? null,
+      allowWeaponCycleRepeatFallback: true,
+    })
+    expect(result.choiceKeys).toEqual(['a', 'b', 'c', 'd'])
   })
 
   it('does not let a pending guarantee bypass the displayed-weapon rotation', () => {

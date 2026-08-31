@@ -12,7 +12,7 @@ export const PASSIVE_CATALOG = {
     id: 'magnet',
     label: '회수 반경',
     unit: '%',
-    perLevel: 8,
+    perLevel: 2.7,
     priceMultiplier: 1.0,
     maxLevel: 3,
     enabled: true,
@@ -21,7 +21,7 @@ export const PASSIVE_CATALOG = {
     id: 'moveSpeed',
     label: '이동속도',
     unit: '%',
-    perLevel: 3,
+    perLevel: 1,
     priceMultiplier: 1.1,
     maxLevel: 3,
     enabled: true,
@@ -30,7 +30,7 @@ export const PASSIVE_CATALOG = {
     id: 'maxHp',
     label: '체력',
     unit: '',
-    perLevel: 6,
+    perLevel: 2,
     priceMultiplier: 1.0,
     maxLevel: 3,
     enabled: true,
@@ -39,7 +39,7 @@ export const PASSIVE_CATALOG = {
     id: 'might',
     label: '공격력',
     unit: '%',
-    perLevel: 4,
+    perLevel: 1.3,
     priceMultiplier: 1.25,
     maxLevel: 3,
     enabled: true,
@@ -48,7 +48,7 @@ export const PASSIVE_CATALOG = {
     id: 'growth',
     label: '학습력',
     unit: '%',
-    perLevel: 5,
+    perLevel: 1.7,
     priceMultiplier: 1.1,
     maxLevel: 3,
     enabled: true,
@@ -82,11 +82,13 @@ export function formatEffectLabel(id, currentLevel) {
   const entry = PASSIVE_CATALOG[id]
   if (!entry) return ''
   const label = passiveLabel(id, entry.label)
-  const currentEffect = entry.perLevel * currentLevel
+  // 2.7 * 3 같은 부동소수점 노이즈(8.100000000000001)가 카드 UI에 노출되지 않게 한다.
+  const displayEffect = (value) => Number(value.toFixed(1))
+  const currentEffect = displayEffect(entry.perLevel * currentLevel)
   if (currentLevel >= entry.maxLevel) {
     return `${label} +${currentEffect}${entry.unit}`
   }
-  const nextEffect = entry.perLevel * (currentLevel + 1)
+  const nextEffect = displayEffect(entry.perLevel * (currentLevel + 1))
   if (currentLevel === 0) {
     return `${label} +${nextEffect}${entry.unit}`
   }

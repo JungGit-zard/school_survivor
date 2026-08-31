@@ -89,7 +89,7 @@ import {
 import { CHEST_OPEN_DELAY_MS } from './TreasureChest.jsx'
 import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { STAGE2_SPAWN_TELEGRAPHS, STAGE2_WAVE_PHASES, STAGE3_WAVE_PHASES, STAGE4_WAVE_PHASES } from '../lib/waveTimelines.js'
-import { BOSS_BURST_TYPES, STAGE2_MIXED_REINFORCEMENT, getBurstEventsForStage as burstsForStage, getRuntimeBurstEventsForStage, isBossType } from '../lib/burstEvents.js'
+import { BOSS_BURST_TYPES, STAGE2_MIXED_REINFORCEMENT, getBurstEventsForStage as burstsForStage, getRuntimeBurstEventsForStage, getRuntimeSpawnEventsForStage, isBossType } from '../lib/burstEvents.js'
 import { getStageBounds } from '../lib/stageConfig.js'
 import { getStageObjectSightObstacles } from './StageObjects/stageObjectColliders.js'
 import { ENEMY_STATS, getActiveE04ProjectileCount, resetActiveE04ProjectileCountForTest } from './Enemy.jsx'
@@ -97,6 +97,20 @@ import { createEnemyEntityPool } from '../lib/enemyEntityPool.js'
 import { MAX_ENEMIES } from '../lib/enemyEntityPool.js'
 import { playerPos } from '../lib/refs.js'
 import { resolveRangedEnemyVelocity } from './Enemy.jsx'
+
+describe('coin monster reward contract', () => {
+  it('routes E08 through the pooled runtime and guarantees ten gold coins on death', () => {
+    expect(isPooledEnemyType('E08')).toBe(true)
+    expect(ENEMY_STATS.E08).toBeDefined()
+    expect(ELITE_BONUS.E08).toEqual({ textbook: 0, gold: 10 })
+    for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
+      expect(getRuntimeSpawnEventsForStage(stageId).filter((event) => event.type === 'E08')).toEqual([
+        { sec: 90, type: 'E08', count: 1, rewardEvent: 'coinMonster' },
+        { sec: 180, type: 'E08', count: 1, rewardEvent: 'coinMonster' },
+      ])
+    }
+  })
+})
 
 describe('elite bonus rewards', () => {
   it('B01 bonus textbooks use explicit XP instead of B01 base XP 0', () => {
@@ -218,7 +232,7 @@ describe('boss runtime spawn routes', () => {
     expect(shouldScheduleBurst(1, 40.001, 40)).toBe(false)
 
     const enemySource = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
-    expect(enemySource).toContain('burstEvents: getRuntimeBurstEventsForStage(currentStageId)')
+    expect(enemySource).toContain('burstEvents: getRuntimeSpawnEventsForStage(currentStageId)')
     expect(enemySource).toContain('const evt = cache.burstEvents[Math.trunc(a)]')
     expect(enemySource).toContain('enqueueScheduled(SCHEDULE_BURST, burstIndex, sec)')
     expect(enemySource).toContain('addEnemies(batch, true, cache.spawnToken)')
@@ -760,7 +774,7 @@ describe('boss entrance escort wave', () => {
 
   it('wires the boss escort and midpoint reinforcement into the spawn frame loop', () => {
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
-    expect(source).toContain('getRuntimeBurstEventsForStage(currentStageId)')
+    expect(source).toContain('getRuntimeSpawnEventsForStage(currentStageId)')
     // 보스와 일반 보강은 모두 명시 버스트 표에서만 발화한다.
     expect(source).not.toContain('bossEscortSize(cache.id, cache.wavePhases, evt.sec)')
     // 중간 보강도 자동 웨이브도 아닌 명시 버스트만 런타임에서 발화한다.

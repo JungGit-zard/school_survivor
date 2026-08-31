@@ -5,6 +5,9 @@ import {
   HEAL_EFFECT_RING_RADIUS,
   HEAL_EFFECT_RING_TUBE_RADIUS,
   HEAL_EFFECT_SPARK_RADIUS,
+  MATILDA_FAINTED_POSE_ROTATION_Z,
+  MATILDA_FAINTED_POSE_Y_OFFSET,
+  getPlayerVisualPoseTransform,
   advancePlayerStep,
   resolvePlayerHitKnockback,
 } from './Player.jsx'
@@ -34,6 +37,32 @@ describe('player hit knockback', () => {
     expect(HEAL_EFFECT_CORE_SCALE).toBeGreaterThanOrEqual(1.22)
     expect(source).toContain('color="#bdffcf"')
     expect(source).toContain('color="#ffffff"')
+  })
+  it('uses a Matilda-only fainted floor pose after gameover while keeping ordinary play upright', () => {
+    expect(getPlayerVisualPoseTransform({ phase: 'playing', deathCause: null })).toEqual({
+      rotation: [0, 0, 0],
+      position: [0, 0, 0],
+    })
+    expect(getPlayerVisualPoseTransform({ phase: 'gameover', deathCause: 'enemy' })).toEqual({
+      rotation: [0, 0, 0],
+      position: [0, 0, 0],
+    })
+
+    const matildaPose = getPlayerVisualPoseTransform({ phase: 'gameover', deathCause: 'matilda' })
+    expect(matildaPose.rotation).toEqual([0, 0, MATILDA_FAINTED_POSE_ROTATION_Z])
+    expect(matildaPose.position).toEqual([0, MATILDA_FAINTED_POSE_Y_OFFSET, 0])
+    expect(Math.abs(MATILDA_FAINTED_POSE_ROTATION_Z)).toBeCloseTo(Math.PI / 2, 6)
+    expect(MATILDA_FAINTED_POSE_Y_OFFSET).toBeGreaterThan(0)
+    expect(MATILDA_FAINTED_POSE_Y_OFFSET).toBeLessThan(0.4)
+  })
+
+  it('wires the Matilda fainted pose to the rendered player body and clears movement on gameover', () => {
+    const source = readFileSync(new URL('./Player.jsx', import.meta.url), 'utf8')
+
+    expect(source).toContain('const deathCause = useGameStore((s) => s.deathCause)')
+    expect(source).toContain('const visualPose = getPlayerVisualPoseTransform({ phase, deathCause })')
+    expect(source).toContain('<group position={visualPose.position} rotation={visualPose.rotation}>')
+    expect(source).toContain('movingRef.current = false')
   })
 })
 

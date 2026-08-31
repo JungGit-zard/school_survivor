@@ -84,7 +84,18 @@ export function weaponHitsPerSecond(weapon) {
 // 다단히트 무기가 실제로 생기면(같은 적에게 같은 발동으로 2회 이상) 그 무기의 필드를 여기 더한다.
 export function weaponOnTargetHits(weapon) {
   if (!weapon) return 0
+  if (weapon.singleTargetProjectiles === true) {
+    return Math.max(1, Math.floor(positiveNumber(weapon.projectileCount, 1)))
+  }
   return 1
+}
+
+function flaskRuntimeTickCount(zoneDurationMs) {
+  const durationMs = positiveNumber(zoneDurationMs, 0)
+  if (durationMs <= 0) return 0
+  // ChemicalZone checks ageMs >= durationMs before accumulating the next tick.
+  // Therefore a 5000ms zone ticks at 1/2/3/4s and expires before the 5s tick.
+  return Math.max(0, Math.ceil(durationMs / FLASK_ZONE_TICK_MS) - 1)
 }
 
 // damage 필드 하나로는 표현되지 않는 2차 피해의 "초당 기대 피해"(치명타 적용 전).
@@ -102,7 +113,7 @@ export function weaponSecondaryDamagePerSecond(weapon) {
   const tickDamage = positiveNumber(weapon.zoneTickDamage, 0)
   if (tickDamage > 0) {
     const zoneMs = Math.min(positiveNumber(weapon.zoneDurationMs, 0), cooldownSec * 1000)
-    perCycle += tickDamage * Math.floor(zoneMs / FLASK_ZONE_TICK_MS)
+    perCycle += tickDamage * flaskRuntimeTickCount(zoneMs)
   }
   perCycle += positiveNumber(weapon.lineCrossDamage, 0)
   return perCycle / cooldownSec
@@ -133,7 +144,11 @@ export function estimateWeaponDps(weapon) {
   const secondary = weaponSecondaryDamagePerSecond(weapon)
   if (damage <= 0 && secondary <= 0) return 0
   const primary = damage * weaponOnTargetHits(weapon) * weaponHitsPerSecond(weapon) * sustainedDamageMultiplier(weapon)
-  return (primary + secondary) * expectedCritMultiplier(weapon)
+  const critMultiplier = expectedCritMultiplier(weapon)
+  // Science Flask runtime marks the landing blast as canCrit:false, but forwards
+  // critChance/critMultiplier to ChemicalZone ticks. Keep that parity here.
+  const primaryCritMultiplier = positiveNumber(weapon.zoneTickDamage, 0) > 0 ? 1 : critMultiplier
+  return primary * primaryCritMultiplier + secondary * critMultiplier
 }
 
 // 장착 무기 전체 합산 DPS. weapons는 useGameStore의 weapons 맵.

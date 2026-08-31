@@ -1,4 +1,4 @@
-﻿// 모든 레벨업 카드의 기계적 효과를 한 곳에서 관리한다.
+// 모든 레벨업 카드의 기계적 효과를 한 곳에서 관리한다.
 // useGameStore.applyUpgrade 와 HUD.pickThree 가 함께 참조하므로
 // 카드 추가/수정 시 이 파일만 고치면 양쪽이 동기화된다.
 
@@ -184,8 +184,8 @@ export const UPGRADE_EFFECTS = {
   maxHealth:      { kind: 'player' },
 }
 
-// Current game rule: max owned weapons per run is 8.
-export const MAX_OWNED_WEAPONS = 8
+// Endless-mode hack-and-slash rule: carry up to 10 small/fun weapons per run.
+export const MAX_OWNED_WEAPONS = 10
 const MAX_WEAPON_LEVEL = 5
 export const LEVELUP_CHOICE_COUNT = 4
 
@@ -212,6 +212,7 @@ export function selectSequentialLevelupChoices({
   isAcquireKey = (key) => UPGRADE_EFFECTS[key]?.kind === 'acquire',
   getChoiceGroupKey = getDefaultChoiceGroupKey,
   getWeaponCycleId = (key) => UPGRADE_EFFECTS[key]?.weapon ?? null,
+  allowWeaponCycleRepeatFallback = false,
 } = {}) {
   const ordered = uniqueKeys(orderedKeys)
   const availableSet = new Set(uniqueKeys(availableKeys).filter((key) => ordered.includes(key)))
@@ -240,12 +241,12 @@ export function selectSequentialLevelupChoices({
   const displayedGuaranteedKeys = []
   const usedGroups = new Set()
 
-  const tryAdd = (key, guaranteed = false) => {
+  const tryAdd = (key, guaranteed = false, { ignoreWeaponCycle = false } = {}) => {
     if (choiceKeys.length >= limit || !availableSet.has(key) || choiceKeys.includes(key)) return false
     const groupKey = getChoiceGroupKey(key)
     if (usedGroups.has(groupKey)) return false
     const weaponCycleId = getWeaponCycleId(key)
-    if (weaponCycleId && activeWeaponCycleSet.has(weaponCycleId)) return false
+    if (!ignoreWeaponCycle && weaponCycleId && activeWeaponCycleSet.has(weaponCycleId)) return false
     usedGroups.add(groupKey)
     choiceKeys.push(key)
     if (guaranteed) displayedGuaranteedKeys.push(key)
@@ -263,6 +264,16 @@ export function selectSequentialLevelupChoices({
     if (choiceKeys.length >= limit) break
     if (!availableSet.has(key) || isAcquireKey(key) || pendingSet.has(key)) continue
     tryAdd(key)
+  }
+
+  // If the fair weapon-rotation ledger filters too many groups, fill the card row anyway.
+  // Endless mode values a full 4-card level-up screen more than a perfectly strict cycle.
+  if (allowWeaponCycleRepeatFallback && choiceKeys.length < limit) {
+    for (const key of ordered) {
+      if (choiceKeys.length >= limit) break
+      if (!availableSet.has(key) || pendingSet.has(key)) continue
+      tryAdd(key, false, { ignoreWeaponCycle: true })
+    }
   }
 
   const selectedAcquireKeys = choiceKeys.filter((key) => isAcquireKey(key))
@@ -317,8 +328,8 @@ export function isUpgradeAvailable(effect, level, weapons, player = null) {
     if (effect.requiresActiveWeapons
       && !effect.requiresActiveWeapons.every((id) => weapons[id]?.active)) return false
     // 계정 해금 게이트: starter는 isWeaponUnlocked가 항상 true, 그 외는 weaponUnlocks 디스크 상태.
-    // 계정 해금과 최소 레벨을 만족한 획득 카드는 8칸에서도 교체 후보로 표시한다.
-    // 실제 활성 무기 수는 교체 확정 시 기존 무기 하나를 제거해 8개로 유지한다.
+    // 계정 해금과 최소 레벨을 만족한 획득 카드는 full-cap에서도 교체 후보로 표시한다.
+    // 실제 활성 무기 수는 교체 확정 시 기존 무기 하나를 제거해 MAX_OWNED_WEAPONS로 유지한다.
     const accountUnlockedAcquire = effect.skipAccountUnlock || isWeaponUnlocked(effect.weapon)
     if (!accountUnlockedAcquire) return false
     if (effect.minLevel != null && level < effect.minLevel) return false

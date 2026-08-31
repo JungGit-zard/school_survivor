@@ -93,6 +93,7 @@ describe('weaponPermanentUpgrades storage layer', () => {
 
   it('applies permanent cooldown, range, and duration bonuses to base weapon stats', () => {
     let gold = 999_999
+    setUnlocked('scienceFlask')
     for (let level = 1; level <= 4; level += 1) {
       gold = purchaseWeaponPermanentUpgrade('boxCutter', gold).nextGold
       gold = purchaseWeaponPermanentUpgrade('schoolBag', gold).nextGold

@@ -41,7 +41,7 @@ describe('useGameStore XP and reset behavior', () => {
     useGameStore.getState().applyUpgrade('maxHealth')
     const state = useGameStore.getState()
 
-    expect(state.player.maxHp).toBe(120)
+    expect(state.player.maxHp).toBe(107)
     expect(state.pendingLevelUps).toBe(2)
     expect(state.phase).toBe('levelup')
   })
@@ -106,9 +106,9 @@ describe('useGameStore XP and reset behavior', () => {
     expect(useGameStore.getState().pendingGuaranteedUpgradeChoiceKeys).toEqual([])
   })
 
-  it('applyUpgrade는 8개 보유 상한에서 새 계정 해금 무기를 즉시 활성화하지 않고 교체 대기를 연다', () => {
+  it('applyUpgrade는 10개 보유 상한에서 새 계정 해금 무기를 즉시 활성화하지 않고 교체 대기를 연다', () => {
     setUnlocked('starlink')
-    const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri']
+    const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'guidedMissile', 'compassBlade']
     useGameStore.setState((state) => ({
       player: { ...state.player, level: 8 },
       phase: 'levelup',
@@ -139,7 +139,7 @@ describe('useGameStore XP and reset behavior', () => {
 
   it('무기 교체 확정은 선택한 기존 무기를 초기화하고 신규 무기를 Lv.1로 넣은 뒤 레벨업을 소비한다', () => {
     setUnlocked('starlink')
-    const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri']
+    const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'guidedMissile', 'compassBlade']
     useGameStore.setState((state) => ({
       player: { ...state.player, level: 8 },
       phase: 'levelup',
@@ -160,15 +160,15 @@ describe('useGameStore XP and reset behavior', () => {
     expect(state.weapons.schoolBag.damage).not.toBe(99)
     expect(state.weapons.schoolBag.range).not.toBe(2)
     expect(state.weapons.starlink).toMatchObject({ active: true, level: 1 })
-    expect(Object.values(state.weapons).filter((weapon) => weapon.active)).toHaveLength(8)
+    expect(Object.values(state.weapons).filter((weapon) => weapon.active)).toHaveLength(10)
     expect(state.pendingWeaponReplacement).toBeNull()
     expect(state.pendingLevelUps).toBe(0)
     expect(state.phase).toBe('playing')
   })
 
-  it('무기 교체 취소는 기존 8개를 유지하고 레벨업 선택 상태로 돌아간다', () => {
+  it('무기 교체 취소는 기존 10개를 유지하고 레벨업 선택 상태로 돌아간다', () => {
     setUnlocked('starlink')
-    const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri']
+    const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'guidedMissile', 'compassBlade']
     useGameStore.setState((state) => ({
       player: { ...state.player, level: 8 },
       phase: 'levelup',
@@ -189,9 +189,9 @@ describe('useGameStore XP and reset behavior', () => {
     expect(useGameStore.getState().phase).toBe('levelup')
   })
 
-  it('신규 무기 폐기는 기존 8개를 유지하고 레벨업을 소비한다', () => {
+  it('신규 무기 폐기는 기존 10개를 유지하고 레벨업을 소비한다', () => {
     setUnlocked('starlink')
-    const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri']
+    const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'guidedMissile', 'compassBlade']
     useGameStore.setState((state) => ({
       player: { ...state.player, level: 8 },
       phase: 'levelup',

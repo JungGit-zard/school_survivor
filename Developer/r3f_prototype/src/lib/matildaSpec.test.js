@@ -89,6 +89,27 @@ describe('마틸다 S2 체력 = DPS × 1800초', () => {
     expect(estimatePlayerDps({ w: spread })).toBe(estimatePlayerDps({ w: plain }))
   })
 
+  it('과학 플라스크는 착탄 폭발은 치명타 없이, 웅덩이 4틱은 치명타 기대값으로 계산한다', () => {
+    const flask = { ...WEAPON_CATALOG.scienceFlask.base, active: true }
+
+    // Runtime source: Flask.jsx landing blast passes canCrit:false, while ChemicalZone
+    // ticks forward critChance/critMultiplier and the 5000ms zone expires before a 5th tick.
+    const landingBlastDps = 7.5 / 8.4
+    const fourZoneTicksDps = (1.5 * 4 * (1 + 0.03 * 0.5)) / 8.4
+
+    expect(estimatePlayerDps({ scienceFlask: flask })).toBeCloseTo(landingBlastDps + fourZoneTicksDps, 10)
+  })
+
+  it('치비코 Lv.10 투척체 +1은 같은 대상에 2발을 던지므로 단일 대상 DPS에 반영한다', () => {
+    const chibiko = {
+      ...WEAPON_CATALOG.chibiko.base,
+      active: true,
+      projectileCount: 2,
+    }
+
+    expect(estimatePlayerDps({ chibiko })).toBeCloseTo((1.25 * 2 / 1.1) * (1 + 0.05 * 0.5), 10)
+  })
+
   it('실제 런 시작 무기 구성에서도 유한한 양수 HP가 나온다', () => {
     _setFirebaseProgressClientForTests({ save: async () => {}, load: async () => null })
     _seedHydratedFirebaseProgressForTests()

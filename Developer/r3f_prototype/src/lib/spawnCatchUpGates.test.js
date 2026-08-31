@@ -67,16 +67,16 @@ describe('P1 — E04 발사 게이트는 bossPressure와 같은 시계를 본다
   })
 })
 
-describe('P2 — 보스 앵커 앞에서 점프를 끊어 HUD 경고 시간을 확보한다', () => {
+describe('P2 — 빈 화면 캐치업은 실제 보스 스폰 시각까지 당긴다', () => {
   const bossTable = [
     { sec: 40, type: 'E01', count: 6 },
     { sec: 150, type: 'B01', count: 1 },
   ]
   const flags = () => new Uint8Array(bossTable.length)
 
-  it('다음 후보가 보스면 보스 시각 3초 전을 낸다', () => {
+  it('다음 후보가 보스여도 실제 보스 시각을 낸다', () => {
     const at = nextPendingSpawnSec(bossTable, Uint8Array.from([1, 0]), new Int16Array(2).fill(-1), 50, 'stage1', -1)
-    expect(at).toBe(150 - BOSS_TELEGRAPH_LEAD_SEC)
+    expect(at).toBe(150)
     expect(BOSS_TELEGRAPH_LEAD_SEC).toBe(3)
   })
 

@@ -13,6 +13,8 @@ import {
   ENEMY_SPAWN_REVEAL_DELAY_MS,
   ENEMY_STATS,
   MATILDA_CONTACT_KILL_DELAY_MS,
+  MATILDA_CONTACT_PLAYER_OVERLAP_THRESHOLD,
+  PLAYER_CONTACT_HALF_EXTENT,
   MATILDA_EDGE_INSET,
   MATILDA_CHARGE_STALL_REVERSE_MS,
   MATILDA_LAUGH_DURATION_MS,
@@ -440,30 +442,30 @@ describe('Matilda dies only on real body-box contact, not the old widest-axis sc
 
   it('kills on z-axis (front/back) contact once truly within the depth half-extent', () => {
     const contact = isMatildaBodyContact({
-      enemyX: 0, enemyZ: 0.40, yaw: 0, playerX: 0, playerZ: 0, halfX, halfZ,
+      enemyX: 0, enemyZ: 0.33, yaw: 0, playerX: 0, playerZ: 0, halfX, halfZ,
     })
     expect(contact).toBe(true)
   })
 
-  it('keeps x-axis (side) contact behavior unchanged at the original 0.5093 distance', () => {
+  it('requires deeper x-axis body overlap instead of the old 0.5093 distance', () => {
     expect(isMatildaBodyContact({
-      enemyX: 0.50, enemyZ: 0, yaw: 0, playerX: 0, playerZ: 0, halfX, halfZ,
+      enemyX: 0.44, enemyZ: 0, yaw: 0, playerX: 0, playerZ: 0, halfX, halfZ,
     })).toBe(true)
     expect(isMatildaBodyContact({
-      enemyX: 0.52, enemyZ: 0, yaw: 0, playerX: 0, playerZ: 0, halfX, halfZ,
+      enemyX: 0.45, enemyZ: 0, yaw: 0, playerX: 0, playerZ: 0, halfX, halfZ,
     })).toBe(false)
   })
 
   it("rotates the contact box with Matilda's facing yaw (groupRef.rotation.y), so a world-axis check alone cannot fit her charge orientation", () => {
-    // At yaw=0, a 0.45 offset along world x is Matilda's local width axis -> contact.
+    // At yaw=0, a 0.42 offset along world x is Matilda's local width axis -> contact.
     expect(isMatildaBodyContact({
-      enemyX: 0, enemyZ: 0, yaw: 0, playerX: 0.45, playerZ: 0, halfX, halfZ,
+      enemyX: 0, enemyZ: 0, yaw: 0, playerX: 0.42, playerZ: 0, halfX, halfZ,
     })).toBe(true)
 
     // Rotate Matilda 90 degrees: world +x now maps onto her local depth (z) axis,
-    // where 0.45 exceeds halfZ + 0.136 (0.4027...) -> no longer a contact.
+    // where 0.42 exceeds halfZ + the deeper-overlap allowance -> no contact.
     expect(isMatildaBodyContact({
-      enemyX: 0, enemyZ: 0, yaw: Math.PI / 2, playerX: 0.45, playerZ: 0, halfX, halfZ,
+      enemyX: 0, enemyZ: 0, yaw: Math.PI / 2, playerX: 0.42, playerZ: 0, halfX, halfZ,
     })).toBe(false)
   })
 
@@ -507,7 +509,24 @@ describe('Matilda dies only on real body-box contact, not the old widest-axis sc
 // 밀려나는 동안 접촉이 한 프레임만 끊겨도 카운트다운이 전액 리셋돼(아래 리셋 테스트) 영원히
 // 1000ms를 못 채웠다. 이제 닿는 프레임에 바로 죽인다.
 describe('Matilda body contact instant death', () => {
-  it('kills on the very first frame of body contact with no grace period', () => {
+  it('requires about half the player half-width of real body overlap before contact becomes lethal', () => {
+    const halfX = 0.5
+    const halfZ = 0.2
+
+    expect(isMatildaBodyContact({ enemyX: 0, enemyZ: 0, yaw: 0, playerX: halfX + PLAYER_CONTACT_HALF_EXTENT, playerZ: 0, halfX, halfZ })).toBe(false)
+    expect(isMatildaBodyContact({ enemyX: 0, enemyZ: 0, yaw: 0, playerX: halfX + MATILDA_CONTACT_PLAYER_OVERLAP_THRESHOLD, playerZ: 0, halfX, halfZ })).toBe(true)
+  })
+
+  it('keeps the rotated OBB shape while using the same deeper-overlap threshold', () => {
+    const halfX = 0.5
+    const halfZ = 0.2
+    const yaw = Math.PI / 2
+
+    expect(isMatildaBodyContact({ enemyX: 0, enemyZ: 0, yaw, playerX: 0, playerZ: -(halfX + PLAYER_CONTACT_HALF_EXTENT), halfX, halfZ })).toBe(false)
+    expect(isMatildaBodyContact({ enemyX: 0, enemyZ: 0, yaw, playerX: 0, playerZ: -(halfX + MATILDA_CONTACT_PLAYER_OVERLAP_THRESHOLD), halfX, halfZ })).toBe(true)
+  })
+
+  it('kills on the very first deeper body-contact frame with no grace period', () => {
     const countdown = createMatildaContactKillCountdown()
 
     expect(advanceMatildaContactKillCountdown(countdown, true, 0)).toBe(true)

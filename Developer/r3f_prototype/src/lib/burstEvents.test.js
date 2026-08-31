@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   BURST_EVENTS,
+  COIN_MONSTER_RUNTIME_EVENTS,
   STAGE2_BURST_EVENTS,
   STAGE3_BURST_EVENTS,
   STAGE4_BURST_EVENTS,
@@ -20,6 +21,7 @@ import {
   isBossType,
   getBurstEventsForStage,
   getRuntimeBurstEventsForStage,
+  getRuntimeSpawnEventsForStage,
   getBossSpawnSec,
   getBossPhaseStatus,
   isBossPhase,
@@ -58,6 +60,19 @@ const stage2HpMultipliedBurstHp = (events) => events.reduce((sum, event) => {
   const baseHp = STAGE2_BASE_HP[event.type]
   return sum + (event.count ?? 1) * Math.round(baseHp * STAGE2_HP_MULTIPLIER)
 }, 0)
+
+describe('coin monster runtime reward events', () => {
+  it('spawns exactly one E08 at 90s and 180s in every stage without mutating static wave budgets', () => {
+    expect(COIN_MONSTER_RUNTIME_EVENTS).toEqual([
+      { sec: 90, type: 'E08', count: 1, rewardEvent: 'coinMonster' },
+      { sec: 180, type: 'E08', count: 1, rewardEvent: 'coinMonster' },
+    ])
+    for (const stageId of ['stage1', 'stage2', 'stage3', 'stage4']) {
+      expect(getRuntimeSpawnEventsForStage(stageId).filter((event) => event.type === 'E08')).toEqual(COIN_MONSTER_RUNTIME_EVENTS)
+      expect(getBurstEventsForStage(stageId).some((event) => event.type === 'E08')).toBe(false)
+    }
+  })
+})
 
 describe('Stage 1 첫 웨이브 5초 게이트', () => {
   it('런타임 좀비 버스트는 첫 웨이브 전(sec < 5)에 나오지 않고 E01 18마리 버스트를 예약하지 않는다', () => {

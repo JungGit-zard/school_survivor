@@ -45,7 +45,7 @@ const RECORD_KEYS = [
 ]
 
 const SUPPORTED_LANGUAGES = new Set(['ko', 'en', 'ja'])
-const ZOMBIE_ENCOUNTER_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07'])
+const ZOMBIE_ENCOUNTER_TYPES = new Set(['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'B01', 'B02', 'B03', 'B04', 'RZT', 'RZG', 'E07', 'E08'])
 const MISSION_PROGRESS_SCHEMA_VERSION = 1
 const DEFAULT_MISSION_CATALOG_VERSION = 'missions_2026_08_15_v1'
 const MISSION_ID_PATTERN = /^[a-z0-9_]{1,64}$/

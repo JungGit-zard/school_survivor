@@ -10,12 +10,13 @@ describe('HUD dev cheat buttons', () => {
     expect(source).toContain("title={t('hud.starlinkCheatTitle')}")
   })
 
-  it('shows a C button that summons the coin jingle zombie without adding it to spawn schedules', () => {
+  it('shows a large 코인 몬스터 button that summons the coin jingle zombie without adding it to spawn schedules', () => {
     const hudSource = readFileSync(new URL('./HUD.jsx', import.meta.url), 'utf8')
     const enemiesSource = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
 
     expect(hudSource).toContain('summonCoinJingleZombieCheat')
-    expect(hudSource).toContain('동전 짤랑 좀비 소환')
+    expect(hudSource).toContain('코인 몬스터')
+    expect(hudSource).toContain('coinJingleCheatBtn')
     expect(enemiesSource).toContain('const STANDARD_POOL_TYPE_MAX = 16')
   })
 

@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand'
+import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { MAX_OWNED_WEAPONS, UPGRADE_EFFECTS, applyChibikoAllWeaponBoost, applyUpgradeWithChibikoBoost, isUpgradeAvailable } from '../lib/upgrades.js'
 import { resetRuntimeRefs, playerPos } from '../lib/refs.js'
@@ -86,8 +86,8 @@ const BASE_PLAYER = {
 
 function buildInitialPlayer(levels, bossPassiveUnlocks = {}) {
   const adminBalance = getAdminBalanceConfig()
-  const maxHp = BASE_PLAYER.maxHp + 6 * (levels.maxHp ?? 0) + adminBalance.player.maxHpBonus
-  const speed = BASE_PLAYER.speed * (1 + 0.03 * (levels.moveSpeed ?? 0)) * adminBalance.player.speedMultiplier
+  const maxHp = BASE_PLAYER.maxHp + 2 * (levels.maxHp ?? 0) + adminBalance.player.maxHpBonus
+  const speed = BASE_PLAYER.speed * (1 + 0.01 * (levels.moveSpeed ?? 0)) * adminBalance.player.speedMultiplier
   return applyBossPassiveMaxHp(applyBossPassiveMovementSpeed({
     ...BASE_PLAYER,
     hp: maxHp,
@@ -101,7 +101,7 @@ function buildInitialPlayer(levels, bossPassiveUnlocks = {}) {
 // 나머지는 unlock 카드가 fire될 때 비로소 weapons[key].active = true로 활성화.
 // might passive multiplier는 모든 무기에 동일 적용.
 function buildInitialWeapons(levels, { applyPermanent = true, bossPassiveUnlocks = {} } = {}) {
-  const mightMult = 1 + 0.04 * (levels.might ?? 0)
+  const mightMult = 1 + (0.04 / 3) * (levels.might ?? 0)
   const out = {}
   for (const [key, entry] of Object.entries(WEAPON_CATALOG)) {
     const permanentBase = applyPermanent ? applyWeaponPermanentUpgradesToBaseWeapon(key, entry.base) : entry.base
@@ -130,12 +130,12 @@ function applyBossPassiveDamageToRuntimeWeapons(weapons, bossPassiveUnlocks) {
 }
 
 function buildGrowthMultiplier(levels) {
-  return 1 + 0.05 * (levels.growth ?? 0)
+  return 1 + (0.05 / 3) * (levels.growth ?? 0)
 }
 
 function applyMagnetPassive(levels) {
   const lvl = levels.magnet ?? 0
-  setMagnetMultiplier(lvl === 0 ? 0 : 1 + 0.08 * lvl)
+  setMagnetMultiplier(lvl === 0 ? 0 : 1 + (0.08 / 3) * lvl)
 }
 
 const GOLD_STORAGE_KEY = 'school_survivor:goldTotal'
@@ -1034,15 +1034,15 @@ export const useGameStore = create(
       if (effect?.kind === 'player') {
         if (key === 'moveSpeed') {
           set((s) => ({
-            player: { ...s.player, speed: Math.min(s.player.baseSpeed * 1.8, s.player.speed * 1.1) },
+            player: { ...s.player, speed: Math.min(s.player.baseSpeed * 1.8, s.player.speed * (1 + 0.10 / 3)) },
             ...finishLevelupState(s),
           }))
         } else if (key === 'maxHealth') {
           set((s) => ({
             player: {
               ...s.player,
-              maxHp: s.player.maxHp + 20 * (s.player.bossPassiveMaxHpMultiplier ?? 1),
-              hp: s.player.hp + 20 * (s.player.bossPassiveMaxHpMultiplier ?? 1),
+              maxHp: s.player.maxHp + 7 * (s.player.bossPassiveMaxHpMultiplier ?? 1),
+              hp: s.player.hp + 7 * (s.player.bossPassiveMaxHpMultiplier ?? 1),
             },
             ...finishLevelupState(s),
           }))

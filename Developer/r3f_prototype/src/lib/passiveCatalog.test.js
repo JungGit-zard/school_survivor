@@ -52,8 +52,8 @@ describe('passiveCatalog', () => {
   })
 
   it('formatEffectLabel: Lv.0이면 다음 효과만, 중간이면 현재→다음, 최대면 현재만', () => {
-    expect(formatEffectLabel('magnet', 0)).toBe('회수 반경 +8%')
-    expect(formatEffectLabel('magnet', 1)).toBe('회수 반경 +8% → +16%')
-    expect(formatEffectLabel('magnet', 3)).toBe('회수 반경 +24%')
+    expect(formatEffectLabel('magnet', 0)).toBe('회수 반경 +2.7%')
+    expect(formatEffectLabel('magnet', 1)).toBe('회수 반경 +2.7% → +5.4%')
+    expect(formatEffectLabel('magnet', 3)).toBe('회수 반경 +8.1%')
   })
 })

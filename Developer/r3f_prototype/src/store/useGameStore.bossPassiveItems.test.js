@@ -97,6 +97,7 @@ describe('B01 삼각자 보스 패시브 런타임', () => {
     ['B02', 'onigiri', 'onigiiriDamage'],
   ])('B01/B02 대상 무기 %s의 damage 카드는 최종 증가분에도 5%%를 적용한다', (bossId, weaponId, upgradeKey) => {
     useGameStore.getState().recordBossKill(bossId)
+    useGameStore.getState().cheatAcquireWeapon(weaponId)
     const before = useGameStore.getState().weapons[weaponId].damage
 
     useGameStore.getState().applyUpgrade(upgradeKey)
@@ -118,18 +119,18 @@ describe('B01 삼각자 보스 패시브 런타임', () => {
     expect(useGameStore.getState().weapons.boxCutter.chibikoBoostApplied).toBe(true)
   })
 
-  it('B04 최대 체력 패시브 뒤 maxHealth 카드는 maxHp와 회복량을 21 올리고, 미해금이면 20만 올린다', () => {
+  it('B04 최대 체력 패시브 뒤 maxHealth 카드는 1/3 조정 후 maxHp와 회복량을 7.35 올리고, 미해금이면 7만 올린다', () => {
     const noPassiveBefore = useGameStore.getState().player
     useGameStore.getState().applyUpgrade('maxHealth')
-    expect(useGameStore.getState().player.maxHp).toBe(noPassiveBefore.maxHp + 20)
-    expect(useGameStore.getState().player.hp).toBe(noPassiveBefore.hp + 20)
+    expect(useGameStore.getState().player.maxHp).toBe(noPassiveBefore.maxHp + 7)
+    expect(useGameStore.getState().player.hp).toBe(noPassiveBefore.hp + 7)
 
     useGameStore.getState().resetGame('stage4')
     useGameStore.getState().recordBossKill('B04')
     const passiveBefore = useGameStore.getState().player
     useGameStore.getState().applyUpgrade('maxHealth')
-    expect(useGameStore.getState().player.maxHp).toBeCloseTo(passiveBefore.maxHp + 21, 12)
-    expect(useGameStore.getState().player.hp).toBeCloseTo(passiveBefore.hp + 21, 12)
+    expect(useGameStore.getState().player.maxHp).toBeCloseTo(passiveBefore.maxHp + 7.35, 12)
+    expect(useGameStore.getState().player.hp).toBeCloseTo(passiveBefore.hp + 7.35, 12)
   })
 
   it('B03 첫 처치는 현재와 다음 런 이동속도를 5% 올리되 기존 cap을 넘지 않는다', () => {

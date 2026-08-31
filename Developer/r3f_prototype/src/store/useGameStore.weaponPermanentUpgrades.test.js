@@ -58,6 +58,9 @@ describe('useGameStore weapon permanent upgrades', () => {
   })
 
   it('치비코 획득 시 현재 무기와 이후 획득 무기에 전체 능력 보너스를 적용한다', () => {
+    setUnlocked('chibiko')
+    useGameStore.setState((state) => ({ player: { ...state.player, level: 8 } }))
+
     useGameStore.getState().applyUpgrade('acquireChibiko')
 
     expect(useGameStore.getState().weapons.pencilThrow).toMatchObject({
@@ -75,6 +78,9 @@ describe('useGameStore weapon permanent upgrades', () => {
   })
 
   it('치비코가 있는 동안 무기 레벨업 증가분에도 10% 보너스를 유지한다', () => {
+    setUnlocked('chibiko')
+    useGameStore.setState((state) => ({ player: { ...state.player, level: 8 } }))
+
     useGameStore.getState().applyUpgrade('acquireChibiko')
     useGameStore.getState().applyUpgrade('pencilDamage')
 

@@ -115,7 +115,10 @@ function _applyRotation(groupRef, dx, dz, turnRate = 0.12) {
 
 export const ENEMY_SIZE_MULTIPLIER = 4 / 3
 const BASE_COL = [0.14, 0.26, 0.10]
-const PLAYER_CONTACT_HALF_EXTENT = 0.136
+export const PLAYER_CONTACT_HALF_EXTENT = 0.136
+// 마틸다는 표면이 스치는 순간이 아니라 플레이어 반폭의 약 절반만큼 실제로 겹친 뒤 즉사한다.
+// "닿자마자" 판정처럼 보였던 가장자리 접촉 억제값이다.
+export const MATILDA_CONTACT_PLAYER_OVERLAP_THRESHOLD = PLAYER_CONTACT_HALF_EXTENT * 0.5
 // 최우선 연출 스펙(정본): 좀비 스폰 요청 시 "펑 연기가 먼저" 300ms 동안 완벽하게
 // 보인 뒤 좀비가 등장한다. 연기는 앞 300ms 불투명(opacity 1.0) 유지 후 페이드아웃.
 export const ENEMY_SPAWN_REVEAL_DELAY_MS = 300
@@ -321,8 +324,10 @@ export function isMatildaBodyContact({ enemyX, enemyZ, yaw = 0, playerX, playerZ
   // _applyRotation의 world = R(yaw) * local 관계의 역변환.
   const localX = wx * cosY - wz * sinY
   const localZ = wx * sinY + wz * cosY
-  return Math.abs(localX) <= halfX + PLAYER_CONTACT_HALF_EXTENT
-    && Math.abs(localZ) <= halfZ + PLAYER_CONTACT_HALF_EXTENT
+  const lethalHalfX = Math.max(0, halfX + MATILDA_CONTACT_PLAYER_OVERLAP_THRESHOLD)
+  const lethalHalfZ = Math.max(0, halfZ + MATILDA_CONTACT_PLAYER_OVERLAP_THRESHOLD)
+  return Math.abs(localX) <= lethalHalfX
+    && Math.abs(localZ) <= lethalHalfZ
 }
 
 // XP 媛믪? 援먭낵??30% ?쒕엻瑜좎쓣 蹂댁젙????3.3諛곕줈 梨낆젙 (Planner/B.寃뚯엫湲고쉷,諛몃윴??援ы쁽/B-1 罹먮┃???깆옣,?λ젰移??낃렇?덉씠??援ъ“ 援ы쁽/Rewards_Drops/dual_drop_system_2026-05-08.md 짠7-2).

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import '../assets/fonts/nanumMyeongjo.css'
 import { useShallow } from 'zustand/react/shallow'
 import { useGameStore, STAGE1_INTRO_IDS } from '../store/useGameStore.js'
@@ -213,8 +213,8 @@ const UPGRADES = [
   { key: 'sharkMissileDamage', icon: 'sharkMissile', labelFn: damageLabel('상어미사일 피해', 'sharkMissile', 'sharkMissileDamage'), desc: '폭발 피해 증가' },
   { key: 'sharkMissilePower', icon: 'sharkMissile', labelFn: damageLabel('상어미사일 위력', 'sharkMissile', 'sharkMissilePower'), desc: '탄두를 키워 폭발 위력 증가' },
   { key: 'sharkMissileRadius', icon: 'sharkMissile', label: '상어미사일 반경 +', desc: '폭발 반경 증가' },
-  { key: 'moveSpeed', icon: 'speed', label: '이동속도 +10%', desc: '플레이어 이동속도 증가' },
-  { key: 'maxHealth', icon: 'health', label: '최대 체력 +20', desc: '최대 HP 및 현재 HP 증가' },
+  { key: 'moveSpeed', icon: 'speed', label: '이동속도 +3%', desc: '플레이어 이동속도 소폭 증가' },
+  { key: 'maxHealth', icon: 'health', label: '최대 체력 +7', desc: '최대 HP 및 현재 HP 소폭 증가' },
 ]
 
 const UMBRELLA_UPGRADE_COPY = {
@@ -399,6 +399,19 @@ export function getUpgradeChoiceDesc(option) {
   return desc?.replaceAll(unlockWord, acquireWord) ?? ''
 }
 
+function isRunPassiveUpgradeKey(key) {
+  return UPGRADE_EFFECTS[key]?.kind === 'player'
+}
+
+function enforceRunPassiveChoice(choiceKeys, availableKeys) {
+  if (choiceKeys.some(isRunPassiveUpgradeKey)) return choiceKeys
+  const passiveKey = availableKeys.find(isRunPassiveUpgradeKey)
+  if (!passiveKey || choiceKeys.includes(passiveKey)) return choiceKeys
+  if (choiceKeys.length < 4) return [...choiceKeys, passiveKey]
+  const replaceIndex = Math.max(0, choiceKeys.findLastIndex((key) => UPGRADE_EFFECTS[key]?.kind === 'acquire'))
+  return choiceKeys.map((key, index) => (index === replaceIndex ? passiveKey : key))
+}
+
 function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [], exposedAcquireKeys = [], weaponCycleIds = [], rotationWeaponIds = []) {
   const available = UPGRADES.filter((u) => isUpgradeAvailable(UPGRADE_EFFECTS[u.key], level, weapons, player))
   const limited = limitDuplicateWeaponUpgradeOptions(available)
@@ -416,10 +429,24 @@ function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [
     choiceCount: 4,
     isAcquireKey: (key) => UPGRADE_EFFECTS[key]?.kind === 'acquire',
     getChoiceGroupKey: (key) => getUpgradeChoiceGroupKey({ key }),
+    allowWeaponCycleRepeatFallback: true,
   })
+  const choiceKeys = enforceRunPassiveChoice(selection.choiceKeys, limited.map((upgrade) => upgrade.key))
+  const selectedAcquireKeys = choiceKeys.filter((key) => UPGRADE_EFFECTS[key]?.kind === 'acquire')
+  const nextExposedAcquireKeys = [...new Set([
+    ...exposedAcquireKeys.filter((key) => selectedAcquireKeys.includes(key)),
+    ...selectedAcquireKeys,
+  ])]
+  const nextWeaponCycleIds = [...new Set([
+    ...weaponCycleIds,
+    ...choiceKeys.map((key) => UPGRADE_EFFECTS[key]?.weapon).filter(Boolean),
+  ])]
   return {
     ...selection,
-    choices: selection.choiceKeys.map((key) => UPGRADES.find((upgrade) => upgrade.key === key)).filter(Boolean),
+    choiceKeys,
+    nextExposedAcquireKeys,
+    nextWeaponCycleIds,
+    choices: choiceKeys.map((key) => UPGRADES.find((upgrade) => upgrade.key === key)).filter(Boolean),
   }
 }
 
@@ -1388,8 +1415,8 @@ export default function HUD({
                 <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => { emitSfx({ id: 'buttonClick' }); dispatchStarlinkCheatCrash() }} aria-label={t('hud.starlinkCheatAria')} title={t('hud.starlinkCheatTitle')}>
                   S
                 </button>
-                <button type="button" style={styles.weaponCheatToggleBtn} onClick={() => { summonCoinJingleZombieCheat() }} aria-label="동전 짤랑 좀비 소환" title="동전 짤랑 좀비 소환">
-                  C
+                <button type="button" style={styles.coinJingleCheatBtn} onClick={() => { summonCoinJingleZombieCheat() }} aria-label="코인 몬스터 소환" title="코인 몬스터 소환">
+                  코인 몬스터
                 </button>
               </>
             )}
@@ -2978,6 +3005,23 @@ const styles = {
     pointerEvents: 'auto',
     cursor: 'pointer',
     boxShadow: uiShadows.pressSmall,
+  },
+  coinJingleCheatBtn: {
+    minWidth: 92,
+    height: 40,
+    padding: '0 12px',
+    borderRadius: 8,
+    border: uiBorders.strong,
+    background: `linear-gradient(180deg, #ffe066 0%, ${uiPalette.reward} 100%)`,
+    color: uiPalette.ink,
+    fontSize: 14,
+    fontWeight: uiType.weightHeavy,
+    lineHeight: '36px',
+    textAlign: 'center',
+    pointerEvents: 'auto',
+    cursor: 'pointer',
+    boxShadow: uiShadows.pressSmall,
+    whiteSpace: 'nowrap',
   },
   weaponCheatPanel: {
     position: 'absolute',

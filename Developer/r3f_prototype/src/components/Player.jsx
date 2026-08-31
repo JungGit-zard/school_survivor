@@ -21,6 +21,19 @@ export const HEAL_EFFECT_RING_RADIUS = 0.6
 export const HEAL_EFFECT_RING_TUBE_RADIUS = 0.038
 export const HEAL_EFFECT_SPARK_RADIUS = 0.08
 export const HEAL_EFFECT_CORE_SCALE = 1.24
+export const MATILDA_FAINTED_POSE_ROTATION_Z = -Math.PI / 2
+export const MATILDA_FAINTED_POSE_Y_OFFSET = 0.18
+const PLAYER_UPRIGHT_POSE = Object.freeze({ rotation: Object.freeze([0, 0, 0]), position: Object.freeze([0, 0, 0]) })
+const PLAYER_MATILDA_FAINTED_POSE = Object.freeze({
+  rotation: Object.freeze([0, 0, MATILDA_FAINTED_POSE_ROTATION_Z]),
+  position: Object.freeze([0, MATILDA_FAINTED_POSE_Y_OFFSET, 0]),
+})
+
+export function getPlayerVisualPoseTransform({ phase, deathCause }) {
+  return phase === 'gameover' && deathCause === 'matilda'
+    ? PLAYER_MATILDA_FAINTED_POSE
+    : PLAYER_UPRIGHT_POSE
+}
 
 // 발소리는 '시간'이 아니라 '이동 거리'로 센다. 보폭(1.5 유닛)을 한 번 지날 때마다 한 발이다.
 // 기본 이동 속도 3 u/s에서 정확히 초당 2보 — 사람 걸음 속도다. 이동속도 업그레이드를
@@ -136,10 +149,12 @@ function PlayerHealEffect({ token = 0 }) {
   )
 }
 
-export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 0, healFlashToken = 0, showHealthBar = true, previewArmAction = null }) {
+export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 0, healFlashToken = 0, showHealthBar = true, previewArmAction = null, visualPose = PLAYER_UPRIGHT_POSE }) {
   return (
     <>
-      <PlayerMesh groupRef={meshGroup} movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />
+      <group position={visualPose.position} rotation={visualPose.rotation}>
+        <PlayerMesh groupRef={meshGroup} movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />
+      </group>
       <PlayerHealEffect token={healFlashToken} />
       {showHealthBar && <MiniHealthBar current={hp} max={maxHp} width={0.38} height={0.052} y={0.75} />}
     </>
@@ -159,6 +174,7 @@ export default function Player() {
   const stepState = useRef({ distance: PLAYER_STEP_STRIDE })
   const speed           = useGameStore((s) => s.player.speed)
   const phase           = useGameStore((s) => s.phase)
+  const deathCause = useGameStore((s) => s.deathCause)
   const hp              = useGameStore((s) => s.player.hp)
   const maxHp           = useGameStore((s) => s.player.maxHp)
   const hitFlashToken   = useGameStore((s) => s.player.hitFlashToken)
@@ -167,6 +183,7 @@ export default function Player() {
   const endInvulnerable = useGameStore((s) => s.endInvulnerable)
   const damagePlayer    = useGameStore((s) => s.damagePlayer)
   const currentStageId  = useGameStore((s) => s.currentStageId)
+  const visualPose = getPlayerVisualPoseTransform({ phase, deathCause })
   if (gameplayClockRef.current === null) gameplayClockRef.current = createGameplayFixedStepClock()
 
   // 적 투사체가 플레이어를 감지할 수 있도록 RigidBody ref에 핸들러 등록
@@ -182,7 +199,7 @@ export default function Player() {
 
   useFrame((_, delta) => {
     if (!rb.current) return
-    if (phase !== 'playing') { rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true); return }
+    if (phase !== 'playing') { movingRef.current = false; rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true); return }
     runGameplayFixedSteps(gameplayClockRef.current, delta, (dt) => {
 
     if (hitFlashToken !== lastKnockbackHitToken.current) {
@@ -285,7 +302,7 @@ export default function Player() {
       colliders={false}
     >
       <CuboidCollider args={[0.136, 0.32, 0.136]} />
-      <PlayerVisual meshGroup={meshGroup} movingRef={movingRef} hp={hp} maxHp={maxHp} hitFlashToken={hitFlashToken} healFlashToken={healFlashToken} />
+      <PlayerVisual meshGroup={meshGroup} movingRef={movingRef} hp={hp} maxHp={maxHp} hitFlashToken={hitFlashToken} healFlashToken={healFlashToken} visualPose={visualPose} />
     </RigidBody>
   )
 }

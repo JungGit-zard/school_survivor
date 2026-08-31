@@ -61,6 +61,13 @@ export const ALL_STAGES_110SEC_SMILING_TANKER_REINFORCEMENT_EVENTS = [
   { sec: 110, type: 'E02', count: 3 },
 ]
 
+// 코인 몬스터(E08)는 일반 웨이브 예산/랜덤 풀과 분리된 확정 보너스 이벤트다.
+// 매 스테이지 90초와 180초에 각 1마리만 등장해 희소성을 유지하고, 런마다 놓치지 않게 한다.
+export const COIN_MONSTER_RUNTIME_EVENTS = Object.freeze([
+  Object.freeze({ sec: 90, type: 'E08', count: 1, rewardEvent: 'coinMonster' }),
+  Object.freeze({ sec: 180, type: 'E08', count: 1, rewardEvent: 'coinMonster' }),
+])
+
 // ── 스테이지1·2 스폰 마릿수 +10% & 종류 랜덤화 (2026-08-13 사용자 지시) ──────────────
 // 규칙 1(마릿수): count → Math.round(count × 1.1). 1~4마리짜리 "첫 등장 신호" 이벤트는
 //   반올림으로 그대로 유지되어 도입 사슬(E02@60·E03@72·E05@120·E06@168)이 깨지지 않는다.
@@ -256,6 +263,12 @@ export function getBurstEventsForStage(stageId) {
 // 랜덤 웨이브나 런 시작 시각 난수로 이벤트를 추가·치환하지 않는다.
 export function getRuntimeBurstEventsForStage(stageId) {
   return getBurstEventsForStage(stageId)
+}
+
+// 실제 런타임 스폰 캐시만 코인 보너스 이벤트를 합친다. 기존 버스트 API의 배열 identity와
+// 웨이브 HP 예산/앵커 계산 계약은 그대로 보존한다.
+export function getRuntimeSpawnEventsForStage(stageId) {
+  return [...getRuntimeBurstEventsForStage(stageId), ...COIN_MONSTER_RUNTIME_EVENTS]
 }
 
 // 보스(B01/B02) 등장 시각 — 없으면 Infinity. 보스 구간 파생의 단일 소스.

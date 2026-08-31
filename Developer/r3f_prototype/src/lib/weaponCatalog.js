@@ -96,7 +96,7 @@ export const WEAPON_CATALOG = {
   chibiko: {
     id: 'chibiko',
     label: '치비코',
-    base: { damage: 1.25, cooldown: 1100, lastFired: 0, range: 22, speed: 12, followDistance: 0.72, sideOffset: -0.28, critChance: 0.05, critMultiplier: 1.5 },
+    base: { damage: 1.25, cooldown: 1100, lastFired: 0, range: 22, speed: 12, followDistance: 0.72, sideOffset: -0.28, critChance: 0.05, critMultiplier: 1.5, singleTargetProjectiles: true },
     unlockConditions: [{ type: 'totalRuns', value: 3 }],
     minLevelToAppear: 8,
   },

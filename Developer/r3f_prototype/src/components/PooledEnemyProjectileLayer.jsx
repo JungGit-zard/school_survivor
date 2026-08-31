@@ -13,6 +13,7 @@ import { createChefIngredientGeometries } from '../lib/chefIngredientGeometry.js
 import { applyChefIngredientSpin } from '../lib/chefIngredientSpin.js'
 import { getToonGradient } from '../lib/toon.js'
 import { getPooledEnemyRenderTier } from './PooledEnemyVisuals.js'
+import { markInstancedMeshFullUpdate, markInstancedMeshPrefixUpdate } from './ZombieInstanceLayer.jsx'
 
 const CHEF_INGREDIENT_VISUAL_SCALE = 3
 const OUTLINE_SCALE_MULTIPLIER = 1.22
@@ -53,8 +54,8 @@ export default function PooledEnemyProjectileLayer({ resetKey }) {
         bodies[kind].setMatrixAt(i, zero)
         outlines[kind].setMatrixAt(i, zero)
       }
-      bodies[kind].instanceMatrix.needsUpdate = true
-      outlines[kind].instanceMatrix.needsUpdate = true
+      markInstancedMeshFullUpdate(bodies[kind], { matrix: true })
+      markInstancedMeshFullUpdate(outlines[kind], { matrix: true })
       bodies[kind].count = 0
       outlines[kind].count = 0
     }
@@ -85,8 +86,8 @@ export default function PooledEnemyProjectileLayer({ resetKey }) {
     for (let kind = 0; kind < bodies.length; kind += 1) {
       bodies[kind].count = counts[kind]
       outlines[kind].count = counts[kind]
-      bodies[kind].instanceMatrix.needsUpdate = true
-      outlines[kind].instanceMatrix.needsUpdate = true
+      markInstancedMeshPrefixUpdate(bodies[kind], counts[kind], { matrix: true })
+      markInstancedMeshPrefixUpdate(outlines[kind], counts[kind], { matrix: true })
     }
   })
   return (

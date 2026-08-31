@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
+import * as THREE from 'three'
+import { markInstancedMeshPrefixUpdate } from './ZombieInstanceLayer.jsx'
 
 const source = readFileSync(new URL('./PooledEnemyProjectileLayer.jsx', import.meta.url), 'utf8')
 
@@ -35,6 +37,20 @@ describe('PooledEnemyProjectileLayer GPU compaction', () => {
     expect(source).toContain('scale.setScalar(kind === 0 ? 1 : CHEF_INGREDIENT_VISUAL_SCALE)')
     expect(source).toContain('scale.setScalar((kind === 0 ? 1 : CHEF_INGREDIENT_VISUAL_SCALE) * OUTLINE_SCALE_MULTIPLIER)')
     expect(source).toContain('new THREE.SphereGeometry(.09, 8, 8)')
+  })
+
+  it('marks only active projectile kind prefixes and leaves zero-count kinds unuploaded', () => {
+    const geometry = new THREE.BoxGeometry(1, 1, 1)
+    const material = new THREE.MeshBasicMaterial()
+    const inactive = new THREE.InstancedMesh(geometry, material, 4)
+    const active = new THREE.InstancedMesh(geometry, material, 4)
+
+    markInstancedMeshPrefixUpdate(inactive, 0, { matrix: true })
+    markInstancedMeshPrefixUpdate(active, 3, { matrix: true })
+
+    expect(inactive.instanceMatrix.updateRanges).toEqual([])
+    expect(active.instanceMatrix.updateRanges).toEqual([{ start: 0, count: 48 }])
+    geometry.dispose(); material.dispose()
   })
 })
 

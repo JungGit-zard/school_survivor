@@ -15,7 +15,7 @@ import { getE04IntroSec } from '../lib/stage2ProjectileRules.js'
 import { getStageBounds, getStageConfig } from '../lib/stageConfig.js'
 import { dogeEscapeDirection } from '../lib/dogeEscape.js'
 import { getDefaultWavePhases } from '../lib/waveTimelines.js'
-import { RUN_ZOMBIE_CREW_FORMATION, STAGE2_GUARD_CHASE_FORMATION, getBurstEventsForStage, getRuntimeBurstEventsForStage, isBossType, isRepeatingBurstEvent, repeatingBurstSecAtTick, repeatingBurstTickAt } from '../lib/burstEvents.js'
+import { RUN_ZOMBIE_CREW_FORMATION, STAGE2_GUARD_CHASE_FORMATION, getBurstEventsForStage, getRuntimeBurstEventsForStage, getRuntimeSpawnEventsForStage, isBossType, isRepeatingBurstEvent, repeatingBurstSecAtTick, repeatingBurstTickAt } from '../lib/burstEvents.js'
 import { deathSfxId } from '../lib/enemyDeathSfx.js'
 import { buildWavePhasesFromEntries } from '../lib/waveControl.js'
 import { getAdminWaveControlConfig } from '../lib/adminConfig.js'
@@ -80,6 +80,8 @@ function recordMissionBurstSpawns(store, entries, stageId, spawnSec) {
 // 보스/엘리트 사망 시 추가 보너스 (기획서 §3-3)
 export const ELITE_BONUS = {
   E06: { textbook: 1, gold: 1 },
+  // E08 코인 몬스터는 일반 확률 드롭 대신 코인 10개를 확정 산포한다.
+  E08: { textbook: 0, gold: 10 },
   B01: { textbook: 3, textbookXp: 40, gold: 5 },
   B02: { textbook: 3, textbookXp: 40, gold: 5 },
   B03: { textbook: 3, textbookXp: 40, gold: 5 },
@@ -1294,7 +1296,7 @@ export default function Enemies() {
       gameKey,
       spawnToken: stageSpawnTokenRef.current,
       bounds,
-      burstEvents: getRuntimeBurstEventsForStage(currentStageId),
+      burstEvents: getRuntimeSpawnEventsForStage(currentStageId),
       obstacles: getStageObjectSightObstacles(currentStageId),
       stageConfig: getStageConfig(currentStageId),
     }
