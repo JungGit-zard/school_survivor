@@ -1,0 +1,56 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.6 [39m[90mD:/JungSil/2.Minigame_project/aabv50_35ef77c3_clean/Developer/r3f_prototype[39m
+
+ [32m✓[39m src/components/Game.stageLighting.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 277[2mms[22m[39m
+ [32m✓[39m src/components/Enemies.test.jsx [2m([22m[2m125 tests[22m[2m)[22m[32m 226[2mms[22m[39m
+ [32m✓[39m src/store/useAuthStore.cloudProgress.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 151[2mms[22m[39m
+[90mstderr[2m | src/components/Weapons/Hanako.runtime.test.jsx[2m > [22m[2mHanako heal runtime[2m > [22m[2m20초 분량의 실제 프레임을 돌리면 최대 HP의 5%가 회복된다
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+Warning: The tag <group> is unrecognized in this browser. If you meant to render a React component, start its name with an uppercase letter.
+    at group
+    at HanakoWeapon (D:/JungSil/2.Minigame_project/aabv50_35ef77c3_clean/Developer/r3f_prototype/src/components/Weapons/Hanako.jsx:614:51)
+
+[90mstderr[2m | src/components/Weapons/Hanako.runtime.test.jsx[2m > [22m[2mHanako heal runtime[2m > [22m[2m20초 분량의 실제 프레임을 돌리면 최대 HP의 5%가 회복된다
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | src/components/Weapons/Hanako.runtime.test.jsx[2m > [22m[2mHanako heal runtime[2m > [22m[2m치비코가 없으면 하나코는 힐하지 않는다
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | src/components/Weapons/Hanako.runtime.test.jsx[2m > [22m[2mHanako heal runtime[2m > [22m[2m치비코가 없으면 하나코는 힐하지 않는다
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | src/components/Weapons/Hanako.runtime.test.jsx[2m > [22m[2mHanako heal runtime[2m > [22m[2m일시정지 동안 흐른 시간이 힐 주기에 그대로 적립된다(현재 동작 기록)
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | src/components/Weapons/Hanako.runtime.test.jsx[2m > [22m[2mHanako heal runtime[2m > [22m[2m일시정지 동안 흐른 시간이 힐 주기에 그대로 적립된다(현재 동작 기록)
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | src/components/Weapons/Hanako.runtime.test.jsx[2m > [22m[2mHanako heal runtime[2m > [22m[2m최대 HP에서는 회복이 낭비되지 않고 쿨다운만 소모된다(현재 동작 기록)
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | src/components/Weapons/Hanako.runtime.test.jsx[2m > [22m[2mHanako heal runtime[2m > [22m[2m최대 HP에서는 회복이 낭비되지 않고 쿨다운만 소모된다(현재 동작 기록)
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | src/components/Weapons/Hanako.runtime.test.jsx[2m > [22m[2mHanako heal runtime[2m > [22m[2m중단 없이 플레이하면 주기마다 빠짐없이 힐이 들어온다
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | src/components/Weapons/Hanako.runtime.test.jsx[2m > [22m[2mHanako heal runtime[2m > [22m[2m중단 없이 플레이하면 주기마다 빠짐없이 힐이 들어온다
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | src/components/Weapons/Hanako.runtime.test.jsx[2m > [22m[2mHanako heal runtime[2m > [22m[2m맞는 중에도 주기가 되면 힐이 들어온다
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+
+[90mstderr[2m | src/components/Weapons/Hanako.runtime.test.jsx[2m > [22m[2mHanako heal runtime[2m > [22m[2m맞는 중에도 주기가 되면 힐이 들어온다
+[22m[39mWarning: The current testing environment is not configured to support act(...)
+
+ [32m✓[39m src/components/Weapons/Hanako.runtime.test.jsx [2m([22m[2m6 tests[22m[2m)[22m[32m 281[2mms[22m[39m
+ [32m✓[39m src/lib/stageLightingProfile.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m src/lib/firebaseAuth.test.js [2m([22m[2m13 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m src/lib/stageFloorLightBake.test.js [2m([22m[2m20 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m src/components/ClassroomFloor.test.jsx [2m([22m[2m9 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m      Tests [22m [1m[32m190 passed[39m[22m[90m (190)[39m
+[2m   Start at [22m 00:17:50
+[2m   Duration [22m 11.00s[2m (transform 2.36s, setup 1.03s, import 3.82s, tests 1.01s, environment 3.31s)[22m
+

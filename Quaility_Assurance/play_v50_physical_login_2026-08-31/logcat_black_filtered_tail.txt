@@ -1,0 +1,200 @@
+08-31 00:12:59.157 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:12:59.157 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:12:59.163 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:12:59.170 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:12:59.293 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:12:59.299 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:12:59.304 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:12:59.440 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:12:59.446 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:12:59.548 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:12:59.554 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:12:59.667 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:12:59.673 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:12:59.802 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:12:59.807 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:12:59.919 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:12:59.920 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:12:59.926 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:12:59.932 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:00.028 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:00.034 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:00.139 E/FilePhenotypeFlags(32618): Config package com.google.android.gms.clearcut_client#com.jungyoon.zombieschool cannot use FILE backing without declarative registration. See go/phenotype-android-integration#phenotype for more information. This will lead to stale flags.
+08-31 00:13:00.157 E/FilePhenotypeFlags(32618): Config package com.google.android.gms.clearcut_client#com.jungyoon.zombieschool cannot use FILE backing without declarative registration. See go/phenotype-android-integration#phenotype for more information. This will lead to stale flags.
+08-31 00:13:00.180 W/ProcessStats( 1830): Tracking association SourceState{fd23345 com.jungyoon.zombieschool/10375 Top #15561} whose proc state 1 is better than process ProcessState{b43bca com.google.android.gms.persistent/10245 pkg=com.google.android.gms} proc state 4 (26 skipped)
+08-31 00:13:00.235 E/FilePhenotypeFlags(32618): Config package com.google.android.gms.clearcut_client#com.jungyoon.zombieschool cannot use FILE backing without declarative registration. See go/phenotype-android-integration#phenotype for more information. This will lead to stale flags.
+08-31 00:13:00.235 E/FilePhenotypeFlags(32618): Config package com.google.android.gms.clearcut_client#com.jungyoon.zombieschool cannot use FILE backing without declarative registration. See go/phenotype-android-integration#phenotype for more information. This will lead to stale flags.
+08-31 00:13:00.376 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:00.381 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:00.387 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:00.937 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:00.943 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:00.950 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:01.115 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:01.121 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:01.127 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:01.223 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:01.224 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:01.230 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:01.236 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:01.386 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:01.392 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:01.584 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:01.585 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:01.591 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:01.741 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:01.746 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:01.955 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:01.955 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:01.961 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:02.197 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:02.203 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:02.401 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:02.407 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:02.931 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:02.938 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:02.943 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:03.440 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:03.445 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:03.451 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:03.665 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:03.672 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:03.880 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:03.886 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:03.892 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:03.967 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:03.968 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:03.974 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:04.064 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:04.070 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:04.177 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:04.183 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:04.189 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:04.323 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:04.323 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:04.330 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:04.336 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:04.513 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:04.519 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:04.524 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:04.648 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:04.653 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:04.659 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:04.739 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:04.746 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:04.752 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:04.875 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:04.881 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:04.887 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:05.095 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:05.101 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:05.315 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:05.321 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:05.988 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:05.995 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:06.107 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:06.107 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:06.113 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:06.571 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:06.577 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:06.582 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:06.663 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:06.669 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:06.840 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:06.846 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:06.975 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:06.981 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:06.987 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:07.147 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:07.153 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:07.329 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:07.335 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:07.549 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:07.550 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:07.556 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:07.562 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:07.738 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:07.739 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:07.745 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:07.751 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:07.949 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:07.949 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:07.956 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:08.085 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:08.091 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:08.230 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:08.236 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:08.241 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:08.386 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:08.386 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:08.392 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:08.399 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:08.533 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:08.540 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:08.546 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:08.840 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:08.846 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:08.980 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:08.986 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:08.992 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:09.169 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:09.169 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:09.176 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:09.181 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:09.289 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:09.294 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:09.300 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:09.445 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:09.445 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:09.452 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:10.156 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:10.162 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:10.498 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:10.499 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:10.505 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:10.853 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:10.858 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:10.865 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:10.988 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:10.994 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:11.000 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:11.123 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:11.129 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:11.135 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:11.285 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:11.291 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:11.383 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:11.383 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:11.389 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:11.395 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:11.487 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:11.492 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:11.626 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:11.632 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:11.841 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:11.847 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:11.976 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:11.983 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:12.127 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:12.134 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:12.241 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:12.241 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:12.247 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:12.365 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:12.366 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:12.372 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:12.549 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:12.555 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:12.562 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:12.766 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:12.771 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:12.777 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:12.874 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:12.880 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:12.886 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:13.008 I/adbd    (23452): adbd service requested 'shell,v2,TERM=xterm-256color,raw:pidof com.jungyoon.zombieschool'
+08-31 00:13:13.074 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:13.074 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -1, pcm_get_error 
+08-31 00:13:13.080 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 
+08-31 00:13:13.188 E/AudioALSAPlaybackHandlerNormal( 1174): write(), pcm_write() error, retval = -32
+08-31 00:13:13.194 E/AudioALSAPlaybackHandlerBase( 1174): getQueuedFramesInfo(), pcm_get_htimestamp or trylock fail, ret -110, pcm_get_error 

@@ -1,0 +1,4 @@
+        mInputRestricted=true
+  mCurrentFocus=Window{c0fd48d u0 NotificationShade}
+  mFocusedApp=ActivityRecord{132406175 u0 com.jungyoon.zombieschool/.MainActivity t276}
+    mShowingDream=false mDreamingLockscreen=true

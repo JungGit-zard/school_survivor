@@ -1,0 +1,8280 @@
+Package 'com.jungyoon.zombieschool':
+0x7f010000 - anim/abc_fade_in
+	(default)
+0x7f010001 - anim/abc_fade_out
+	(default)
+0x7f010002 - anim/abc_grow_fade_in_from_bottom
+	(default)
+0x7f010003 - anim/abc_popup_enter
+	(default)
+0x7f010004 - anim/abc_popup_exit
+	(default)
+0x7f010005 - anim/abc_shrink_fade_out_from_bottom
+	(default)
+0x7f010006 - anim/abc_slide_in_bottom
+	(default)
+0x7f010007 - anim/abc_slide_in_top
+	(default)
+0x7f010008 - anim/abc_slide_out_bottom
+	(default)
+0x7f010009 - anim/abc_slide_out_top
+	(default)
+0x7f01000a - anim/abc_tooltip_enter
+	(default)
+0x7f01000b - anim/abc_tooltip_exit
+	(default)
+0x7f01000c - anim/btn_checkbox_to_checked_box_inner_merged_animation
+	(default)
+0x7f01000d - anim/btn_checkbox_to_checked_box_outer_merged_animation
+	(default)
+0x7f01000e - anim/btn_checkbox_to_checked_icon_null_animation
+	(default)
+0x7f01000f - anim/btn_checkbox_to_unchecked_box_inner_merged_animation
+	(default)
+0x7f010010 - anim/btn_checkbox_to_unchecked_check_path_merged_animation
+	(default)
+0x7f010011 - anim/btn_checkbox_to_unchecked_icon_null_animation
+	(default)
+0x7f010012 - anim/btn_radio_to_off_mtrl_dot_group_animation
+	(default)
+0x7f010013 - anim/btn_radio_to_off_mtrl_ring_outer_animation
+	(default)
+0x7f010014 - anim/btn_radio_to_off_mtrl_ring_outer_path_animation
+	(default)
+0x7f010015 - anim/btn_radio_to_on_mtrl_dot_group_animation
+	(default)
+0x7f010016 - anim/btn_radio_to_on_mtrl_ring_outer_animation
+	(default)
+0x7f010017 - anim/btn_radio_to_on_mtrl_ring_outer_path_animation
+	(default)
+0x7f010018 - anim/fragment_fast_out_extra_slow_in
+	(default)
+0x7f020000 - animator/fragment_close_enter
+	(default)
+0x7f020001 - animator/fragment_close_exit
+	(default)
+0x7f020002 - animator/fragment_fade_enter
+	(default)
+0x7f020003 - animator/fragment_fade_exit
+	(default)
+0x7f020004 - animator/fragment_open_enter
+	(default)
+0x7f020005 - animator/fragment_open_exit
+	(default)
+0x7f030000 - attr/actionBarDivider
+	(default)
+0x7f030001 - attr/actionBarItemBackground
+	(default)
+0x7f030002 - attr/actionBarPopupTheme
+	(default)
+0x7f030003 - attr/actionBarSize
+	(default)
+0x7f030004 - attr/actionBarSplitStyle
+	(default)
+0x7f030005 - attr/actionBarStyle
+	(default)
+0x7f030006 - attr/actionBarTabBarStyle
+	(default)
+0x7f030007 - attr/actionBarTabStyle
+	(default)
+0x7f030008 - attr/actionBarTabTextStyle
+	(default)
+0x7f030009 - attr/actionBarTheme
+	(default)
+0x7f03000a - attr/actionBarWidgetTheme
+	(default)
+0x7f03000b - attr/actionButtonStyle
+	(default)
+0x7f03000c - attr/actionDropDownStyle
+	(default)
+0x7f03000d - attr/actionLayout
+	(default)
+0x7f03000e - attr/actionMenuTextAppearance
+	(default)
+0x7f03000f - attr/actionMenuTextColor
+	(default)
+0x7f030010 - attr/actionModeBackground
+	(default)
+0x7f030011 - attr/actionModeCloseButtonStyle
+	(default)
+0x7f030012 - attr/actionModeCloseContentDescription
+	(default)
+0x7f030013 - attr/actionModeCloseDrawable
+	(default)
+0x7f030014 - attr/actionModeCopyDrawable
+	(default)
+0x7f030015 - attr/actionModeCutDrawable
+	(default)
+0x7f030016 - attr/actionModeFindDrawable
+	(default)
+0x7f030017 - attr/actionModePasteDrawable
+	(default)
+0x7f030018 - attr/actionModePopupWindowStyle
+	(default)
+0x7f030019 - attr/actionModeSelectAllDrawable
+	(default)
+0x7f03001a - attr/actionModeShareDrawable
+	(default)
+0x7f03001b - attr/actionModeSplitBackground
+	(default)
+0x7f03001c - attr/actionModeStyle
+	(default)
+0x7f03001d - attr/actionModeTheme
+	(default)
+0x7f03001e - attr/actionModeWebSearchDrawable
+	(default)
+0x7f03001f - attr/actionOverflowButtonStyle
+	(default)
+0x7f030020 - attr/actionOverflowMenuStyle
+	(default)
+0x7f030021 - attr/actionProviderClass
+	(default)
+0x7f030022 - attr/actionViewClass
+	(default)
+0x7f030023 - attr/activityChooserViewStyle
+	(default)
+0x7f030024 - attr/alertDialogButtonGroupStyle
+	(default)
+0x7f030025 - attr/alertDialogCenterButtons
+	(default)
+0x7f030026 - attr/alertDialogStyle
+	(default)
+0x7f030027 - attr/alertDialogTheme
+	(default)
+0x7f030028 - attr/allowStacking
+	(default)
+0x7f030029 - attr/alpha
+	(default)
+0x7f03002a - attr/alphabeticModifiers
+	(default)
+0x7f03002b - attr/arrowHeadLength
+	(default)
+0x7f03002c - attr/arrowShaftLength
+	(default)
+0x7f03002d - attr/autoCompleteTextViewStyle
+	(default)
+0x7f03002e - attr/autoSizeMaxTextSize
+	(default)
+0x7f03002f - attr/autoSizeMinTextSize
+	(default)
+0x7f030030 - attr/autoSizePresetSizes
+	(default)
+0x7f030031 - attr/autoSizeStepGranularity
+	(default)
+0x7f030032 - attr/autoSizeTextType
+	(default)
+0x7f030033 - attr/background
+	(default)
+0x7f030034 - attr/backgroundSplit
+	(default)
+0x7f030035 - attr/backgroundStacked
+	(default)
+0x7f030036 - attr/backgroundTint
+	(default)
+0x7f030037 - attr/backgroundTintMode
+	(default)
+0x7f030038 - attr/barLength
+	(default)
+0x7f030039 - attr/borderlessButtonStyle
+	(default)
+0x7f03003a - attr/buttonBarButtonStyle
+	(default)
+0x7f03003b - attr/buttonBarNegativeButtonStyle
+	(default)
+0x7f03003c - attr/buttonBarNeutralButtonStyle
+	(default)
+0x7f03003d - attr/buttonBarPositiveButtonStyle
+	(default)
+0x7f03003e - attr/buttonBarStyle
+	(default)
+0x7f03003f - attr/buttonCompat
+	(default)
+0x7f030040 - attr/buttonGravity
+	(default)
+0x7f030041 - attr/buttonIconDimen
+	(default)
+0x7f030042 - attr/buttonPanelSideLayout
+	(default)
+0x7f030043 - attr/buttonSize
+	(default)
+0x7f030044 - attr/buttonStyle
+	(default)
+0x7f030045 - attr/buttonStyleSmall
+	(default)
+0x7f030046 - attr/buttonTint
+	(default)
+0x7f030047 - attr/buttonTintMode
+	(default)
+0x7f030048 - attr/checkMarkCompat
+	(default)
+0x7f030049 - attr/checkMarkTint
+	(default)
+0x7f03004a - attr/checkMarkTintMode
+	(default)
+0x7f03004b - attr/checkboxStyle
+	(default)
+0x7f03004c - attr/checkedTextViewStyle
+	(default)
+0x7f03004d - attr/circleCrop
+	(default)
+0x7f03004e - attr/closeIcon
+	(default)
+0x7f03004f - attr/closeItemLayout
+	(default)
+0x7f030050 - attr/collapseContentDescription
+	(default)
+0x7f030051 - attr/collapseIcon
+	(default)
+0x7f030052 - attr/color
+	(default)
+0x7f030053 - attr/colorAccent
+	(default)
+0x7f030054 - attr/colorBackgroundFloating
+	(default)
+0x7f030055 - attr/colorButtonNormal
+	(default)
+0x7f030056 - attr/colorControlActivated
+	(default)
+0x7f030057 - attr/colorControlHighlight
+	(default)
+0x7f030058 - attr/colorControlNormal
+	(default)
+0x7f030059 - attr/colorError
+	(default)
+0x7f03005a - attr/colorPrimary
+	(default)
+0x7f03005b - attr/colorPrimaryDark
+	(default)
+0x7f03005c - attr/colorScheme
+	(default)
+0x7f03005d - attr/colorSwitchThumbNormal
+	(default)
+0x7f03005e - attr/commitIcon
+	(default)
+0x7f03005f - attr/contentDescription
+	(default)
+0x7f030060 - attr/contentInsetEnd
+	(default)
+0x7f030061 - attr/contentInsetEndWithActions
+	(default)
+0x7f030062 - attr/contentInsetLeft
+	(default)
+0x7f030063 - attr/contentInsetRight
+	(default)
+0x7f030064 - attr/contentInsetStart
+	(default)
+0x7f030065 - attr/contentInsetStartWithNavigation
+	(default)
+0x7f030066 - attr/controlBackground
+	(default)
+0x7f030067 - attr/coordinatorLayoutStyle
+	(default)
+0x7f030068 - attr/customNavigationLayout
+	(default)
+0x7f030069 - attr/defaultQueryHint
+	(default)
+0x7f03006a - attr/dialogCornerRadius
+	(default)
+0x7f03006b - attr/dialogPreferredPadding
+	(default)
+0x7f03006c - attr/dialogTheme
+	(default)
+0x7f03006d - attr/displayOptions
+	(default)
+0x7f03006e - attr/divider
+	(default)
+0x7f03006f - attr/dividerHorizontal
+	(default)
+0x7f030070 - attr/dividerPadding
+	(default)
+0x7f030071 - attr/dividerVertical
+	(default)
+0x7f030072 - attr/drawableBottomCompat
+	(default)
+0x7f030073 - attr/drawableEndCompat
+	(default)
+0x7f030074 - attr/drawableLeftCompat
+	(default)
+0x7f030075 - attr/drawableRightCompat
+	(default)
+0x7f030076 - attr/drawableSize
+	(default)
+0x7f030077 - attr/drawableStartCompat
+	(default)
+0x7f030078 - attr/drawableTint
+	(default)
+0x7f030079 - attr/drawableTintMode
+	(default)
+0x7f03007a - attr/drawableTopCompat
+	(default)
+0x7f03007b - attr/drawerArrowStyle
+	(default)
+0x7f03007c - attr/dropDownListViewStyle
+	(default)
+0x7f03007d - attr/dropdownListPreferredItemHeight
+	(default)
+0x7f03007e - attr/editTextBackground
+	(default)
+0x7f03007f - attr/editTextColor
+	(default)
+0x7f030080 - attr/editTextStyle
+	(default)
+0x7f030081 - attr/elevation
+	(default)
+0x7f030082 - attr/emojiCompatEnabled
+	(default)
+0x7f030083 - attr/expandActivityOverflowButtonDrawable
+	(default)
+0x7f030084 - attr/firstBaselineToTopHeight
+	(default)
+0x7f030085 - attr/font
+	(default)
+0x7f030086 - attr/fontFamily
+	(default)
+0x7f030087 - attr/fontProviderAuthority
+	(default)
+0x7f030088 - attr/fontProviderCerts
+	(default)
+0x7f030089 - attr/fontProviderFallbackQuery
+	(default)
+0x7f03008a - attr/fontProviderFetchStrategy
+	(default)
+0x7f03008b - attr/fontProviderFetchTimeout
+	(default)
+0x7f03008c - attr/fontProviderPackage
+	(default)
+0x7f03008d - attr/fontProviderQuery
+	(default)
+0x7f03008e - attr/fontProviderSystemFontFamily
+	(default)
+0x7f03008f - attr/fontStyle
+	(default)
+0x7f030090 - attr/fontVariationSettings
+	(default)
+0x7f030091 - attr/fontWeight
+	(default)
+0x7f030092 - attr/gapBetweenBars
+	(default)
+0x7f030093 - attr/goIcon
+	(default)
+0x7f030094 - attr/height
+	(default)
+0x7f030095 - attr/hideOnContentScroll
+	(default)
+0x7f030096 - attr/homeAsUpIndicator
+	(default)
+0x7f030097 - attr/homeLayout
+	(default)
+0x7f030098 - attr/icon
+	(default)
+0x7f030099 - attr/iconTint
+	(default)
+0x7f03009a - attr/iconTintMode
+	(default)
+0x7f03009b - attr/iconifiedByDefault
+	(default)
+0x7f03009c - attr/imageAspectRatio
+	(default)
+0x7f03009d - attr/imageAspectRatioAdjust
+	(default)
+0x7f03009e - attr/imageButtonStyle
+	(default)
+0x7f03009f - attr/indeterminateProgressStyle
+	(default)
+0x7f0300a0 - attr/initialActivityCount
+	(default)
+0x7f0300a1 - attr/isLightTheme
+	(default)
+0x7f0300a2 - attr/itemPadding
+	(default)
+0x7f0300a3 - attr/keylines
+	(default)
+0x7f0300a4 - attr/lStar
+	(default)
+0x7f0300a5 - attr/lastBaselineToBottomHeight
+	(default)
+0x7f0300a6 - attr/layout
+	(default)
+0x7f0300a7 - attr/layout_anchor
+	(default)
+0x7f0300a8 - attr/layout_anchorGravity
+	(default)
+0x7f0300a9 - attr/layout_behavior
+	(default)
+0x7f0300aa - attr/layout_dodgeInsetEdges
+	(default)
+0x7f0300ab - attr/layout_insetEdge
+	(default)
+0x7f0300ac - attr/layout_keyline
+	(default)
+0x7f0300ad - attr/lineHeight
+	(default)
+0x7f0300ae - attr/listChoiceBackgroundIndicator
+	(default)
+0x7f0300af - attr/listChoiceIndicatorMultipleAnimated
+	(default)
+0x7f0300b0 - attr/listChoiceIndicatorSingleAnimated
+	(default)
+0x7f0300b1 - attr/listDividerAlertDialog
+	(default)
+0x7f0300b2 - attr/listItemLayout
+	(default)
+0x7f0300b3 - attr/listLayout
+	(default)
+0x7f0300b4 - attr/listMenuViewStyle
+	(default)
+0x7f0300b5 - attr/listPopupWindowStyle
+	(default)
+0x7f0300b6 - attr/listPreferredItemHeight
+	(default)
+0x7f0300b7 - attr/listPreferredItemHeightLarge
+	(default)
+0x7f0300b8 - attr/listPreferredItemHeightSmall
+	(default)
+0x7f0300b9 - attr/listPreferredItemPaddingEnd
+	(default)
+0x7f0300ba - attr/listPreferredItemPaddingLeft
+	(default)
+0x7f0300bb - attr/listPreferredItemPaddingRight
+	(default)
+0x7f0300bc - attr/listPreferredItemPaddingStart
+	(default)
+0x7f0300bd - attr/logo
+	(default)
+0x7f0300be - attr/logoDescription
+	(default)
+0x7f0300bf - attr/maxButtonHeight
+	(default)
+0x7f0300c0 - attr/measureWithLargestChild
+	(default)
+0x7f0300c1 - attr/menu
+	(default)
+0x7f0300c2 - attr/multiChoiceItemLayout
+	(default)
+0x7f0300c3 - attr/navigationContentDescription
+	(default)
+0x7f0300c4 - attr/navigationIcon
+	(default)
+0x7f0300c5 - attr/navigationMode
+	(default)
+0x7f0300c6 - attr/nestedScrollViewStyle
+	(default)
+0x7f0300c7 - attr/numericModifiers
+	(default)
+0x7f0300c8 - attr/overlapAnchor
+	(default)
+0x7f0300c9 - attr/paddingBottomNoButtons
+	(default)
+0x7f0300ca - attr/paddingEnd
+	(default)
+0x7f0300cb - attr/paddingStart
+	(default)
+0x7f0300cc - attr/paddingTopNoTitle
+	(default)
+0x7f0300cd - attr/panelBackground
+	(default)
+0x7f0300ce - attr/panelMenuListTheme
+	(default)
+0x7f0300cf - attr/panelMenuListWidth
+	(default)
+0x7f0300d0 - attr/popupMenuStyle
+	(default)
+0x7f0300d1 - attr/popupTheme
+	(default)
+0x7f0300d2 - attr/popupWindowStyle
+	(default)
+0x7f0300d3 - attr/postSplashScreenTheme
+	(default)
+0x7f0300d4 - attr/preserveIconSpacing
+	(default)
+0x7f0300d5 - attr/progressBarPadding
+	(default)
+0x7f0300d6 - attr/progressBarStyle
+	(default)
+0x7f0300d7 - attr/queryBackground
+	(default)
+0x7f0300d8 - attr/queryHint
+	(default)
+0x7f0300d9 - attr/queryPatterns
+	(default)
+0x7f0300da - attr/radioButtonStyle
+	(default)
+0x7f0300db - attr/ratingBarStyle
+	(default)
+0x7f0300dc - attr/ratingBarStyleIndicator
+	(default)
+0x7f0300dd - attr/ratingBarStyleSmall
+	(default)
+0x7f0300de - attr/scopeUris
+	(default)
+0x7f0300df - attr/searchHintIcon
+	(default)
+0x7f0300e0 - attr/searchIcon
+	(default)
+0x7f0300e1 - attr/searchViewStyle
+	(default)
+0x7f0300e2 - attr/seekBarStyle
+	(default)
+0x7f0300e3 - attr/selectableItemBackground
+	(default)
+0x7f0300e4 - attr/selectableItemBackgroundBorderless
+	(default)
+0x7f0300e5 - attr/shortcutMatchRequired
+	(default)
+0x7f0300e6 - attr/showAsAction
+	(default)
+0x7f0300e7 - attr/showDividers
+	(default)
+0x7f0300e8 - attr/showText
+	(default)
+0x7f0300e9 - attr/showTitle
+	(default)
+0x7f0300ea - attr/singleChoiceItemLayout
+	(default)
+0x7f0300eb - attr/spinBars
+	(default)
+0x7f0300ec - attr/spinnerDropDownItemStyle
+	(default)
+0x7f0300ed - attr/spinnerStyle
+	(default)
+0x7f0300ee - attr/splashScreenIconSize
+	(default)
+0x7f0300ef - attr/splitTrack
+	(default)
+0x7f0300f0 - attr/srcCompat
+	(default)
+0x7f0300f1 - attr/state_above_anchor
+	(default)
+0x7f0300f2 - attr/statusBarBackground
+	(default)
+0x7f0300f3 - attr/subMenuArrow
+	(default)
+0x7f0300f4 - attr/submitBackground
+	(default)
+0x7f0300f5 - attr/subtitle
+	(default)
+0x7f0300f6 - attr/subtitleTextAppearance
+	(default)
+0x7f0300f7 - attr/subtitleTextColor
+	(default)
+0x7f0300f8 - attr/subtitleTextStyle
+	(default)
+0x7f0300f9 - attr/suggestionRowLayout
+	(default)
+0x7f0300fa - attr/switchMinWidth
+	(default)
+0x7f0300fb - attr/switchPadding
+	(default)
+0x7f0300fc - attr/switchStyle
+	(default)
+0x7f0300fd - attr/switchTextAppearance
+	(default)
+0x7f0300fe - attr/textAllCaps
+	(default)
+0x7f0300ff - attr/textAppearanceLargePopupMenu
+	(default)
+0x7f030100 - attr/textAppearanceListItem
+	(default)
+0x7f030101 - attr/textAppearanceListItemSecondary
+	(default)
+0x7f030102 - attr/textAppearanceListItemSmall
+	(default)
+0x7f030103 - attr/textAppearancePopupMenuHeader
+	(default)
+0x7f030104 - attr/textAppearanceSearchResultSubtitle
+	(default)
+0x7f030105 - attr/textAppearanceSearchResultTitle
+	(default)
+0x7f030106 - attr/textAppearanceSmallPopupMenu
+	(default)
+0x7f030107 - attr/textColorAlertDialogListItem
+	(default)
+0x7f030108 - attr/textColorSearchUrl
+	(default)
+0x7f030109 - attr/textLocale
+	(default)
+0x7f03010a - attr/theme
+	(default)
+0x7f03010b - attr/thickness
+	(default)
+0x7f03010c - attr/thumbTextPadding
+	(default)
+0x7f03010d - attr/thumbTint
+	(default)
+0x7f03010e - attr/thumbTintMode
+	(default)
+0x7f03010f - attr/tickMark
+	(default)
+0x7f030110 - attr/tickMarkTint
+	(default)
+0x7f030111 - attr/tickMarkTintMode
+	(default)
+0x7f030112 - attr/tint
+	(default)
+0x7f030113 - attr/tintMode
+	(default)
+0x7f030114 - attr/title
+	(default)
+0x7f030115 - attr/titleMargin
+	(default)
+0x7f030116 - attr/titleMarginBottom
+	(default)
+0x7f030117 - attr/titleMarginEnd
+	(default)
+0x7f030118 - attr/titleMarginStart
+	(default)
+0x7f030119 - attr/titleMarginTop
+	(default)
+0x7f03011a - attr/titleMargins
+	(default)
+0x7f03011b - attr/titleTextAppearance
+	(default)
+0x7f03011c - attr/titleTextColor
+	(default)
+0x7f03011d - attr/titleTextStyle
+	(default)
+0x7f03011e - attr/toolbarNavigationButtonStyle
+	(default)
+0x7f03011f - attr/toolbarStyle
+	(default)
+0x7f030120 - attr/tooltipForegroundColor
+	(default)
+0x7f030121 - attr/tooltipFrameBackground
+	(default)
+0x7f030122 - attr/tooltipText
+	(default)
+0x7f030123 - attr/track
+	(default)
+0x7f030124 - attr/trackTint
+	(default)
+0x7f030125 - attr/trackTintMode
+	(default)
+0x7f030126 - attr/ttcIndex
+	(default)
+0x7f030127 - attr/viewInflaterClass
+	(default)
+0x7f030128 - attr/voiceIcon
+	(default)
+0x7f030129 - attr/windowActionBar
+	(default)
+0x7f03012a - attr/windowActionBarOverlay
+	(default)
+0x7f03012b - attr/windowActionModeOverlay
+	(default)
+0x7f03012c - attr/windowFixedHeightMajor
+	(default)
+0x7f03012d - attr/windowFixedHeightMinor
+	(default)
+0x7f03012e - attr/windowFixedWidthMajor
+	(default)
+0x7f03012f - attr/windowFixedWidthMinor
+	(default)
+0x7f030130 - attr/windowMinWidthMajor
+	(default)
+0x7f030131 - attr/windowMinWidthMinor
+	(default)
+0x7f030132 - attr/windowNoTitle
+	(default)
+0x7f030133 - attr/windowSplashScreenAnimatedIcon
+	(default)
+0x7f030134 - attr/windowSplashScreenAnimationDuration
+	(default)
+0x7f030135 - attr/windowSplashScreenBackground
+	(default)
+0x7f030136 - attr/windowSplashScreenIconBackgroundColor
+	(default)
+0x7f040000 - bool/abc_action_bar_embed_tabs
+	(default)
+	orientation: ORIENTATION_PORT
+0x7f040001 - bool/abc_config_actionMenuItemAllCaps
+	(default)
+0x7f050000 - color/abc_background_cache_hint_selector_material_dark
+	(default)
+0x7f050001 - color/abc_background_cache_hint_selector_material_light
+	(default)
+0x7f050002 - color/abc_btn_colored_borderless_text_material
+	(default)
+0x7f050003 - color/abc_btn_colored_text_material
+	(default)
+0x7f050004 - color/abc_color_highlight_material
+	(default)
+0x7f050005 - color/abc_decor_view_status_guard
+	(default)
+0x7f050006 - color/abc_decor_view_status_guard_light
+	(default)
+0x7f050007 - color/abc_hint_foreground_material_dark
+	(default)
+0x7f050008 - color/abc_hint_foreground_material_light
+	(default)
+0x7f050009 - color/abc_primary_text_disable_only_material_dark
+	(default)
+0x7f05000a - color/abc_primary_text_disable_only_material_light
+	(default)
+0x7f05000b - color/abc_primary_text_material_dark
+	(default)
+0x7f05000c - color/abc_primary_text_material_light
+	(default)
+0x7f05000d - color/abc_search_url_text
+	(default)
+0x7f05000e - color/abc_search_url_text_normal
+	(default)
+0x7f05000f - color/abc_search_url_text_pressed
+	(default)
+0x7f050010 - color/abc_search_url_text_selected
+	(default)
+0x7f050011 - color/abc_secondary_text_material_dark
+	(default)
+0x7f050012 - color/abc_secondary_text_material_light
+	(default)
+0x7f050013 - color/abc_tint_btn_checkable
+	(default)
+0x7f050014 - color/abc_tint_default
+	(default)
+0x7f050015 - color/abc_tint_edittext
+	(default)
+0x7f050016 - color/abc_tint_seek_thumb
+	(default)
+0x7f050017 - color/abc_tint_spinner
+	(default)
+0x7f050018 - color/abc_tint_switch_track
+	(default)
+0x7f050019 - color/accent_material_dark
+	(default)
+0x7f05001a - color/accent_material_light
+	(default)
+0x7f05001b - color/androidx_core_ripple_material_light
+	(default)
+0x7f05001c - color/androidx_core_secondary_text_default_material_light
+	(default)
+0x7f05001d - color/background_floating_material_dark
+	(default)
+0x7f05001e - color/background_floating_material_light
+	(default)
+0x7f05001f - color/background_material_dark
+	(default)
+0x7f050020 - color/background_material_light
+	(default)
+0x7f050021 - color/bright_foreground_disabled_material_dark
+	(default)
+0x7f050022 - color/bright_foreground_disabled_material_light
+	(default)
+0x7f050023 - color/bright_foreground_inverse_material_dark
+	(default)
+0x7f050024 - color/bright_foreground_inverse_material_light
+	(default)
+0x7f050025 - color/bright_foreground_material_dark
+	(default)
+0x7f050026 - color/bright_foreground_material_light
+	(default)
+0x7f050027 - color/browser_actions_bg_grey
+	(default)
+0x7f050028 - color/browser_actions_divider_color
+	(default)
+0x7f050029 - color/browser_actions_text_color
+	(default)
+0x7f05002a - color/browser_actions_title_color
+	(default)
+0x7f05002b - color/button_material_dark
+	(default)
+0x7f05002c - color/button_material_light
+	(default)
+0x7f05002d - color/call_notification_answer_color
+	(default)
+0x7f05002e - color/call_notification_decline_color
+	(default)
+0x7f05002f - color/colorAccent
+	(default)
+0x7f050030 - color/colorPrimary
+	(default)
+0x7f050031 - color/colorPrimaryDark
+	(default)
+0x7f050032 - color/common_google_signin_btn_text_dark
+	(default)
+0x7f050033 - color/common_google_signin_btn_text_dark_default
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f050034 - color/common_google_signin_btn_text_dark_disabled
+	(default)
+0x7f050035 - color/common_google_signin_btn_text_dark_focused
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f050036 - color/common_google_signin_btn_text_dark_pressed
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f050037 - color/common_google_signin_btn_text_light
+	(default)
+0x7f050038 - color/common_google_signin_btn_text_light_default
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f050039 - color/common_google_signin_btn_text_light_disabled
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f05003a - color/common_google_signin_btn_text_light_focused
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f05003b - color/common_google_signin_btn_text_light_pressed
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f05003c - color/common_google_signin_btn_tint
+	(default)
+0x7f05003d - color/dim_foreground_disabled_material_dark
+	(default)
+0x7f05003e - color/dim_foreground_disabled_material_light
+	(default)
+0x7f05003f - color/dim_foreground_material_dark
+	(default)
+0x7f050040 - color/dim_foreground_material_light
+	(default)
+0x7f050041 - color/error_color_material_dark
+	(default)
+0x7f050042 - color/error_color_material_light
+	(default)
+0x7f050043 - color/foreground_material_dark
+	(default)
+0x7f050044 - color/foreground_material_light
+	(default)
+0x7f050045 - color/highlighted_text_material_dark
+	(default)
+0x7f050046 - color/highlighted_text_material_light
+	(default)
+0x7f050047 - color/ic_launcher_background
+	(default)
+0x7f050048 - color/material_blue_grey_800
+	(default)
+0x7f050049 - color/material_blue_grey_900
+	(default)
+0x7f05004a - color/material_blue_grey_950
+	(default)
+0x7f05004b - color/material_deep_teal_200
+	(default)
+0x7f05004c - color/material_deep_teal_500
+	(default)
+0x7f05004d - color/material_grey_100
+	(default)
+0x7f05004e - color/material_grey_300
+	(default)
+0x7f05004f - color/material_grey_50
+	(default)
+0x7f050050 - color/material_grey_600
+	(default)
+0x7f050051 - color/material_grey_800
+	(default)
+0x7f050052 - color/material_grey_850
+	(default)
+0x7f050053 - color/material_grey_900
+	(default)
+0x7f050054 - color/notification_action_color_filter
+	(default)
+0x7f050055 - color/notification_icon_bg_color
+	(default)
+0x7f050056 - color/primary_dark_material_dark
+	(default)
+0x7f050057 - color/primary_dark_material_light
+	(default)
+0x7f050058 - color/primary_material_dark
+	(default)
+0x7f050059 - color/primary_material_light
+	(default)
+0x7f05005a - color/primary_text_default_material_dark
+	(default)
+0x7f05005b - color/primary_text_default_material_light
+	(default)
+0x7f05005c - color/primary_text_disabled_material_dark
+	(default)
+0x7f05005d - color/primary_text_disabled_material_light
+	(default)
+0x7f05005e - color/ripple_material_dark
+	(default)
+0x7f05005f - color/ripple_material_light
+	(default)
+0x7f050060 - color/secondary_text_default_material_dark
+	(default)
+0x7f050061 - color/secondary_text_default_material_light
+	(default)
+0x7f050062 - color/secondary_text_disabled_material_dark
+	(default)
+0x7f050063 - color/secondary_text_disabled_material_light
+	(default)
+0x7f050064 - color/splash_background
+	(default)
+0x7f050065 - color/switch_thumb_disabled_material_dark
+	(default)
+0x7f050066 - color/switch_thumb_disabled_material_light
+	(default)
+0x7f050067 - color/switch_thumb_material_dark
+	(default)
+0x7f050068 - color/switch_thumb_material_light
+	(default)
+0x7f050069 - color/switch_thumb_normal_material_dark
+	(default)
+0x7f05006a - color/switch_thumb_normal_material_light
+	(default)
+0x7f05006b - color/tooltip_background_dark
+	(default)
+0x7f05006c - color/tooltip_background_light
+	(default)
+0x7f060000 - dimen/abc_action_bar_content_inset_material
+	(default)
+	smallest_screen_width_dp: 600
+0x7f060001 - dimen/abc_action_bar_content_inset_with_nav
+	(default)
+	smallest_screen_width_dp: 600
+0x7f060002 - dimen/abc_action_bar_default_height_material
+	(default)
+	smallest_screen_width_dp: 600
+	orientation: ORIENTATION_LAND
+0x7f060003 - dimen/abc_action_bar_default_padding_end_material
+	(default)
+	smallest_screen_width_dp: 600
+0x7f060004 - dimen/abc_action_bar_default_padding_start_material
+	(default)
+	smallest_screen_width_dp: 600
+0x7f060005 - dimen/abc_action_bar_elevation_material
+	(default)
+0x7f060006 - dimen/abc_action_bar_icon_vertical_padding_material
+	(default)
+0x7f060007 - dimen/abc_action_bar_overflow_padding_end_material
+	(default)
+0x7f060008 - dimen/abc_action_bar_overflow_padding_start_material
+	(default)
+0x7f060009 - dimen/abc_action_bar_stacked_max_height
+	(default)
+0x7f06000a - dimen/abc_action_bar_stacked_tab_max_width
+	(default)
+0x7f06000b - dimen/abc_action_bar_subtitle_bottom_margin_material
+	(default)
+0x7f06000c - dimen/abc_action_bar_subtitle_top_margin_material
+	(default)
+0x7f06000d - dimen/abc_action_button_min_height_material
+	(default)
+0x7f06000e - dimen/abc_action_button_min_width_material
+	(default)
+0x7f06000f - dimen/abc_action_button_min_width_overflow_material
+	(default)
+0x7f060010 - dimen/abc_alert_dialog_button_bar_height
+	(default)
+	screen_height_dp: 720
+0x7f060011 - dimen/abc_alert_dialog_button_dimen
+	(default)
+0x7f060012 - dimen/abc_button_inset_horizontal_material
+	(default)
+0x7f060013 - dimen/abc_button_inset_vertical_material
+	(default)
+0x7f060014 - dimen/abc_button_padding_horizontal_material
+	(default)
+0x7f060015 - dimen/abc_button_padding_vertical_material
+	(default)
+0x7f060016 - dimen/abc_cascading_menus_min_smallest_width
+	(default)
+0x7f060017 - dimen/abc_config_prefDialogWidth
+	(default)
+	smallest_screen_width_dp: 600
+	screen_layout_size: SCREEN_LAYOUT_SIZE_LARGE
+0x7f060018 - dimen/abc_control_corner_material
+	(default)
+0x7f060019 - dimen/abc_control_inset_material
+	(default)
+0x7f06001a - dimen/abc_control_padding_material
+	(default)
+0x7f06001b - dimen/abc_dialog_corner_radius_material
+	(default)
+0x7f06001c - dimen/abc_dialog_fixed_height_major
+	(default)
+	screen_layout_size: SCREEN_LAYOUT_SIZE_LARGE
+0x7f06001d - dimen/abc_dialog_fixed_height_minor
+	(default)
+	screen_layout_size: SCREEN_LAYOUT_SIZE_LARGE
+0x7f06001e - dimen/abc_dialog_fixed_width_major
+	(default)
+	screen_layout_size: SCREEN_LAYOUT_SIZE_LARGE
+	screen_layout_size: SCREEN_LAYOUT_SIZE_XLARGE
+0x7f06001f - dimen/abc_dialog_fixed_width_minor
+	(default)
+	screen_layout_size: SCREEN_LAYOUT_SIZE_LARGE
+	screen_layout_size: SCREEN_LAYOUT_SIZE_XLARGE
+0x7f060020 - dimen/abc_dialog_list_padding_bottom_no_buttons
+	(default)
+0x7f060021 - dimen/abc_dialog_list_padding_top_no_title
+	(default)
+0x7f060022 - dimen/abc_dialog_min_width_major
+	(default)
+	screen_layout_size: SCREEN_LAYOUT_SIZE_LARGE
+	screen_layout_size: SCREEN_LAYOUT_SIZE_XLARGE
+0x7f060023 - dimen/abc_dialog_min_width_minor
+	(default)
+	screen_layout_size: SCREEN_LAYOUT_SIZE_LARGE
+	screen_layout_size: SCREEN_LAYOUT_SIZE_XLARGE
+0x7f060024 - dimen/abc_dialog_padding_material
+	(default)
+0x7f060025 - dimen/abc_dialog_padding_top_material
+	(default)
+0x7f060026 - dimen/abc_dialog_title_divider_material
+	(default)
+0x7f060027 - dimen/abc_disabled_alpha_material_dark
+	(default)
+0x7f060028 - dimen/abc_disabled_alpha_material_light
+	(default)
+0x7f060029 - dimen/abc_dropdownitem_icon_width
+	(default)
+0x7f06002a - dimen/abc_dropdownitem_text_padding_left
+	(default)
+0x7f06002b - dimen/abc_dropdownitem_text_padding_right
+	(default)
+0x7f06002c - dimen/abc_edit_text_inset_bottom_material
+	(default)
+0x7f06002d - dimen/abc_edit_text_inset_horizontal_material
+	(default)
+0x7f06002e - dimen/abc_edit_text_inset_top_material
+	(default)
+0x7f06002f - dimen/abc_floating_window_z
+	(default)
+0x7f060030 - dimen/abc_list_item_height_large_material
+	(default)
+0x7f060031 - dimen/abc_list_item_height_material
+	(default)
+0x7f060032 - dimen/abc_list_item_height_small_material
+	(default)
+0x7f060033 - dimen/abc_list_item_padding_horizontal_material
+	(default)
+0x7f060034 - dimen/abc_panel_menu_list_width
+	(default)
+0x7f060035 - dimen/abc_progress_bar_height_material
+	(default)
+0x7f060036 - dimen/abc_search_view_preferred_height
+	(default)
+0x7f060037 - dimen/abc_search_view_preferred_width
+	(default)
+0x7f060038 - dimen/abc_seekbar_track_background_height_material
+	(default)
+0x7f060039 - dimen/abc_seekbar_track_progress_height_material
+	(default)
+0x7f06003a - dimen/abc_select_dialog_padding_start_material
+	(default)
+0x7f06003b - dimen/abc_star_big
+	(default)
+0x7f06003c - dimen/abc_star_medium
+	(default)
+0x7f06003d - dimen/abc_star_small
+	(default)
+0x7f06003e - dimen/abc_switch_padding
+	(default)
+0x7f06003f - dimen/abc_text_size_body_1_material
+	(default)
+0x7f060040 - dimen/abc_text_size_body_2_material
+	(default)
+0x7f060041 - dimen/abc_text_size_button_material
+	(default)
+0x7f060042 - dimen/abc_text_size_caption_material
+	(default)
+0x7f060043 - dimen/abc_text_size_display_1_material
+	(default)
+0x7f060044 - dimen/abc_text_size_display_2_material
+	(default)
+0x7f060045 - dimen/abc_text_size_display_3_material
+	(default)
+0x7f060046 - dimen/abc_text_size_display_4_material
+	(default)
+0x7f060047 - dimen/abc_text_size_headline_material
+	(default)
+0x7f060048 - dimen/abc_text_size_large_material
+	(default)
+0x7f060049 - dimen/abc_text_size_medium_material
+	(default)
+0x7f06004a - dimen/abc_text_size_menu_header_material
+	(default)
+0x7f06004b - dimen/abc_text_size_menu_material
+	(default)
+0x7f06004c - dimen/abc_text_size_small_material
+	(default)
+0x7f06004d - dimen/abc_text_size_subhead_material
+	(default)
+0x7f06004e - dimen/abc_text_size_subtitle_material_toolbar
+	(default)
+	smallest_screen_width_dp: 600
+	orientation: ORIENTATION_LAND
+0x7f06004f - dimen/abc_text_size_title_material
+	(default)
+0x7f060050 - dimen/abc_text_size_title_material_toolbar
+	(default)
+	smallest_screen_width_dp: 600
+	orientation: ORIENTATION_LAND
+0x7f060051 - dimen/browser_actions_context_menu_max_width
+	(default)
+0x7f060052 - dimen/browser_actions_context_menu_min_padding
+	(default)
+0x7f060053 - dimen/compat_button_inset_horizontal_material
+	(default)
+0x7f060054 - dimen/compat_button_inset_vertical_material
+	(default)
+0x7f060055 - dimen/compat_button_padding_horizontal_material
+	(default)
+0x7f060056 - dimen/compat_button_padding_vertical_material
+	(default)
+0x7f060057 - dimen/compat_control_corner_material
+	(default)
+0x7f060058 - dimen/compat_notification_large_icon_max_height
+	(default)
+0x7f060059 - dimen/compat_notification_large_icon_max_width
+	(default)
+0x7f06005a - dimen/disabled_alpha_material_dark
+	(default)
+0x7f06005b - dimen/disabled_alpha_material_light
+	(default)
+0x7f06005c - dimen/highlight_alpha_material_colored
+	(default)
+0x7f06005d - dimen/highlight_alpha_material_dark
+	(default)
+0x7f06005e - dimen/highlight_alpha_material_light
+	(default)
+0x7f06005f - dimen/hint_alpha_material_dark
+	(default)
+0x7f060060 - dimen/hint_alpha_material_light
+	(default)
+0x7f060061 - dimen/hint_pressed_alpha_material_dark
+	(default)
+0x7f060062 - dimen/hint_pressed_alpha_material_light
+	(default)
+0x7f060063 - dimen/notification_action_icon_size
+	(default)
+0x7f060064 - dimen/notification_action_text_size
+	(default)
+0x7f060065 - dimen/notification_big_circle_margin
+	(default)
+0x7f060066 - dimen/notification_content_margin_start
+	(default)
+0x7f060067 - dimen/notification_large_icon_height
+	(default)
+0x7f060068 - dimen/notification_large_icon_width
+	(default)
+0x7f060069 - dimen/notification_main_column_padding_top
+	(default)
+0x7f06006a - dimen/notification_media_narrow_margin
+	(default)
+0x7f06006b - dimen/notification_right_icon_size
+	(default)
+0x7f06006c - dimen/notification_right_side_padding_top
+	(default)
+0x7f06006d - dimen/notification_small_icon_background_padding
+	(default)
+0x7f06006e - dimen/notification_small_icon_size_as_large
+	(default)
+0x7f06006f - dimen/notification_subtext_size
+	(default)
+0x7f060070 - dimen/notification_top_pad
+	(default)
+0x7f060071 - dimen/notification_top_pad_large_text
+	(default)
+0x7f060072 - dimen/splashscreen_icon_mask_size_no_background
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f060073 - dimen/splashscreen_icon_mask_size_with_background
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f060074 - dimen/splashscreen_icon_mask_stroke_no_background
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f060075 - dimen/splashscreen_icon_mask_stroke_with_background
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f060076 - dimen/splashscreen_icon_size
+	(default)
+0x7f060077 - dimen/splashscreen_icon_size_no_background
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f060078 - dimen/splashscreen_icon_size_with_background
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f060079 - dimen/tooltip_corner_radius
+	(default)
+0x7f06007a - dimen/tooltip_horizontal_padding
+	(default)
+0x7f06007b - dimen/tooltip_margin
+	(default)
+0x7f06007c - dimen/tooltip_precise_anchor_extra_offset
+	(default)
+0x7f06007d - dimen/tooltip_precise_anchor_threshold
+	(default)
+0x7f06007e - dimen/tooltip_vertical_padding
+	(default)
+0x7f06007f - dimen/tooltip_y_offset_non_touch
+	(default)
+0x7f060080 - dimen/tooltip_y_offset_touch
+	(default)
+0x7f070000 - drawable/$ic_launcher_foreground__0
+	(default)
+0x7f070001 - drawable/abc_ab_share_pack_mtrl_alpha
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f070002 - drawable/abc_action_bar_item_background_material
+	(default)
+0x7f070003 - drawable/abc_btn_borderless_material
+	(default)
+0x7f070004 - drawable/abc_btn_check_material
+	(default)
+0x7f070005 - drawable/abc_btn_check_material_anim
+	(default)
+0x7f070006 - drawable/abc_btn_check_to_on_mtrl_000
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+0x7f070007 - drawable/abc_btn_check_to_on_mtrl_015
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+0x7f070008 - drawable/abc_btn_colored_material
+	(default)
+0x7f070009 - drawable/abc_btn_default_mtrl_shape
+	(default)
+0x7f07000a - drawable/abc_btn_radio_material
+	(default)
+0x7f07000b - drawable/abc_btn_radio_material_anim
+	(default)
+0x7f07000c - drawable/abc_btn_radio_to_on_mtrl_000
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+0x7f07000d - drawable/abc_btn_radio_to_on_mtrl_015
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+0x7f07000e - drawable/abc_btn_switch_to_on_mtrl_00001
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+0x7f07000f - drawable/abc_btn_switch_to_on_mtrl_00012
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+0x7f070010 - drawable/abc_cab_background_internal_bg
+	(default)
+0x7f070011 - drawable/abc_cab_background_top_material
+	(default)
+0x7f070012 - drawable/abc_cab_background_top_mtrl_alpha
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f070013 - drawable/abc_control_background_material
+	(default)
+0x7f070014 - drawable/abc_dialog_material_background
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f070015 - drawable/abc_edit_text_material
+	(default)
+0x7f070016 - drawable/abc_ic_ab_back_material
+	(default)
+0x7f070017 - drawable/abc_ic_arrow_drop_right_black_24dp
+	(default)
+0x7f070018 - drawable/abc_ic_clear_material
+	(default)
+0x7f070019 - drawable/abc_ic_commit_search_api_mtrl_alpha
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f07001a - drawable/abc_ic_go_search_api_material
+	(default)
+0x7f07001b - drawable/abc_ic_menu_copy_mtrl_am_alpha
+	(default)
+0x7f07001c - drawable/abc_ic_menu_cut_mtrl_alpha
+	(default)
+0x7f07001d - drawable/abc_ic_menu_overflow_material
+	(default)
+0x7f07001e - drawable/abc_ic_menu_paste_mtrl_am_alpha
+	(default)
+0x7f07001f - drawable/abc_ic_menu_selectall_mtrl_alpha
+	(default)
+0x7f070020 - drawable/abc_ic_menu_share_mtrl_alpha
+	(default)
+0x7f070021 - drawable/abc_ic_search_api_material
+	(default)
+0x7f070022 - drawable/abc_ic_voice_search_api_material
+	(default)
+0x7f070023 - drawable/abc_item_background_holo_dark
+	(default)
+0x7f070024 - drawable/abc_item_background_holo_light
+	(default)
+0x7f070025 - drawable/abc_list_divider_material
+	(default)
+0x7f070026 - drawable/abc_list_divider_mtrl_alpha
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f070027 - drawable/abc_list_focused_holo
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f070028 - drawable/abc_list_longpressed_holo
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f070029 - drawable/abc_list_pressed_holo_dark
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f07002a - drawable/abc_list_pressed_holo_light
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f07002b - drawable/abc_list_selector_background_transition_holo_dark
+	(default)
+0x7f07002c - drawable/abc_list_selector_background_transition_holo_light
+	(default)
+0x7f07002d - drawable/abc_list_selector_disabled_holo_dark
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f07002e - drawable/abc_list_selector_disabled_holo_light
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f07002f - drawable/abc_list_selector_holo_dark
+	(default)
+0x7f070030 - drawable/abc_list_selector_holo_light
+	(default)
+0x7f070031 - drawable/abc_menu_hardkey_panel_mtrl_mult
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f070032 - drawable/abc_popup_background_mtrl_mult
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f070033 - drawable/abc_ratingbar_indicator_material
+	(default)
+0x7f070034 - drawable/abc_ratingbar_material
+	(default)
+0x7f070035 - drawable/abc_ratingbar_small_material
+	(default)
+0x7f070036 - drawable/abc_scrubber_control_off_mtrl_alpha
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f070037 - drawable/abc_scrubber_control_to_pressed_mtrl_000
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+0x7f070038 - drawable/abc_scrubber_control_to_pressed_mtrl_005
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+0x7f070039 - drawable/abc_scrubber_primary_mtrl_alpha
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f07003a - drawable/abc_scrubber_track_mtrl_alpha
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f07003b - drawable/abc_seekbar_thumb_material
+	(default)
+0x7f07003c - drawable/abc_seekbar_tick_mark_material
+	(default)
+0x7f07003d - drawable/abc_seekbar_track_material
+	(default)
+0x7f07003e - drawable/abc_spinner_mtrl_am_alpha
+	density: 160
+	layout_direction: LAYOUT_DIRECTION_RTL
+density: 160
+	density: 240
+	layout_direction: LAYOUT_DIRECTION_RTL
+density: 240
+	density: 320
+	layout_direction: LAYOUT_DIRECTION_RTL
+density: 320
+	density: 480
+	layout_direction: LAYOUT_DIRECTION_RTL
+density: 480
+	density: 640
+	layout_direction: LAYOUT_DIRECTION_RTL
+density: 640
+0x7f07003f - drawable/abc_spinner_textfield_background_material
+	(default)
+0x7f070040 - drawable/abc_star_black_48dp
+	(default)
+0x7f070041 - drawable/abc_star_half_black_48dp
+	(default)
+0x7f070042 - drawable/abc_switch_thumb_material
+	(default)
+0x7f070043 - drawable/abc_switch_track_mtrl_alpha
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+0x7f070044 - drawable/abc_tab_indicator_material
+	(default)
+0x7f070045 - drawable/abc_tab_indicator_mtrl_alpha
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+0x7f070046 - drawable/abc_text_cursor_material
+	(default)
+0x7f070047 - drawable/abc_text_select_handle_left_mtrl
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+0x7f070048 - drawable/abc_text_select_handle_middle_mtrl
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f070049 - drawable/abc_text_select_handle_right_mtrl
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+0x7f07004a - drawable/abc_textfield_activated_mtrl_alpha
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f07004b - drawable/abc_textfield_default_mtrl_alpha
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f07004c - drawable/abc_textfield_search_activated_mtrl_alpha
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f07004d - drawable/abc_textfield_search_default_mtrl_alpha
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f07004e - drawable/abc_textfield_search_material
+	(default)
+0x7f07004f - drawable/abc_vector_test
+	(default)
+0x7f070050 - drawable/btn_checkbox_checked_mtrl
+	(default)
+0x7f070051 - drawable/btn_checkbox_checked_to_unchecked_mtrl_animation
+	(default)
+0x7f070052 - drawable/btn_checkbox_unchecked_mtrl
+	(default)
+0x7f070053 - drawable/btn_checkbox_unchecked_to_checked_mtrl_animation
+	(default)
+0x7f070054 - drawable/btn_radio_off_mtrl
+	(default)
+0x7f070055 - drawable/btn_radio_off_to_on_mtrl_animation
+	(default)
+0x7f070056 - drawable/btn_radio_on_mtrl
+	(default)
+0x7f070057 - drawable/btn_radio_on_to_off_mtrl_animation
+	(default)
+0x7f070058 - drawable/common_full_open_on_phone
+	density: 240
+	density: 320
+0x7f070059 - drawable/common_google_signin_btn_icon_dark
+	(default)
+0x7f07005a - drawable/common_google_signin_btn_icon_dark_focused
+	(default)
+0x7f07005b - drawable/common_google_signin_btn_icon_dark_normal
+	(default)
+0x7f07005c - drawable/common_google_signin_btn_icon_dark_normal_background
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f07005d - drawable/common_google_signin_btn_icon_disabled
+	(default)
+0x7f07005e - drawable/common_google_signin_btn_icon_light
+	(default)
+0x7f07005f - drawable/common_google_signin_btn_icon_light_focused
+	(default)
+0x7f070060 - drawable/common_google_signin_btn_icon_light_normal
+	(default)
+0x7f070061 - drawable/common_google_signin_btn_icon_light_normal_background
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f070062 - drawable/common_google_signin_btn_text_dark
+	(default)
+0x7f070063 - drawable/common_google_signin_btn_text_dark_focused
+	(default)
+0x7f070064 - drawable/common_google_signin_btn_text_dark_normal
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f070065 - drawable/common_google_signin_btn_text_dark_normal_background
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f070066 - drawable/common_google_signin_btn_text_disabled
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f070067 - drawable/common_google_signin_btn_text_light
+	(default)
+0x7f070068 - drawable/common_google_signin_btn_text_light_focused
+	(default)
+0x7f070069 - drawable/common_google_signin_btn_text_light_normal
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f07006a - drawable/common_google_signin_btn_text_light_normal_background
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f07006b - drawable/compat_splash_screen
+	(default)
+0x7f07006c - drawable/compat_splash_screen_no_icon_background
+	(default)
+0x7f07006d - drawable/googleg_disabled_color_18
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f07006e - drawable/googleg_standard_color_18
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+0x7f07006f - drawable/ic_call_answer
+	(default)
+0x7f070070 - drawable/ic_call_answer_low
+	(default)
+0x7f070071 - drawable/ic_call_answer_video
+	(default)
+0x7f070072 - drawable/ic_call_answer_video_low
+	(default)
+0x7f070073 - drawable/ic_call_decline
+	(default)
+0x7f070074 - drawable/ic_call_decline_low
+	(default)
+0x7f070075 - drawable/ic_launcher_background
+	(default)
+0x7f070076 - drawable/ic_launcher_foreground
+	(default)
+0x7f070077 - drawable/ic_other_sign_in
+	density: 120
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+	density: 65534
+0x7f070078 - drawable/ic_passkey
+	density: 120
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+	density: 65534
+0x7f070079 - drawable/ic_password
+	density: 120
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+	density: 65534
+0x7f07007a - drawable/icon_background
+	(default)
+0x7f07007b - drawable/notification_action_background
+	(default)
+0x7f07007c - drawable/notification_bg
+	(default)
+0x7f07007d - drawable/notification_bg_low
+	(default)
+0x7f07007e - drawable/notification_bg_low_normal
+	density: 160
+	density: 240
+	density: 320
+0x7f07007f - drawable/notification_bg_low_pressed
+	density: 160
+	density: 240
+	density: 320
+0x7f070080 - drawable/notification_bg_normal
+	density: 160
+	density: 240
+	density: 320
+0x7f070081 - drawable/notification_bg_normal_pressed
+	density: 160
+	density: 240
+	density: 320
+0x7f070082 - drawable/notification_icon_background
+	(default)
+0x7f070083 - drawable/notification_oversize_large_icon_bg
+	density: 240
+0x7f070084 - drawable/notification_template_icon_bg
+	(default)
+0x7f070085 - drawable/notification_template_icon_low_bg
+	(default)
+0x7f070086 - drawable/notification_tile_bg
+	(default)
+0x7f070087 - drawable/notify_panel_notification_icon_bg
+	density: 160
+	density: 240
+	density: 320
+0x7f070088 - drawable/splash
+	(default)
+	orientation: ORIENTATION_PORT
+density: 160
+	orientation: ORIENTATION_LAND
+density: 160
+	orientation: ORIENTATION_PORT
+density: 240
+	orientation: ORIENTATION_LAND
+density: 240
+	orientation: ORIENTATION_PORT
+density: 320
+	orientation: ORIENTATION_LAND
+density: 320
+	orientation: ORIENTATION_PORT
+density: 480
+	orientation: ORIENTATION_LAND
+density: 480
+	orientation: ORIENTATION_PORT
+density: 640
+	orientation: ORIENTATION_LAND
+density: 640
+0x7f070089 - drawable/splash_icon
+	(default)
+0x7f07008a - drawable/test_level_drawable
+	(default)
+0x7f07008b - drawable/tooltip_frame_dark
+	(default)
+0x7f07008c - drawable/tooltip_frame_light
+	(default)
+0x7f080000 - id/ALT
+	(default)
+0x7f080001 - id/CTRL
+	(default)
+0x7f080002 - id/FUNCTION
+	(default)
+0x7f080003 - id/META
+	(default)
+0x7f080004 - id/SHIFT
+	(default)
+0x7f080005 - id/SYM
+	(default)
+0x7f080006 - id/accessibility_action_clickable_span
+	(default)
+0x7f080007 - id/accessibility_custom_action_0
+	(default)
+0x7f080008 - id/accessibility_custom_action_1
+	(default)
+0x7f080009 - id/accessibility_custom_action_10
+	(default)
+0x7f08000a - id/accessibility_custom_action_11
+	(default)
+0x7f08000b - id/accessibility_custom_action_12
+	(default)
+0x7f08000c - id/accessibility_custom_action_13
+	(default)
+0x7f08000d - id/accessibility_custom_action_14
+	(default)
+0x7f08000e - id/accessibility_custom_action_15
+	(default)
+0x7f08000f - id/accessibility_custom_action_16
+	(default)
+0x7f080010 - id/accessibility_custom_action_17
+	(default)
+0x7f080011 - id/accessibility_custom_action_18
+	(default)
+0x7f080012 - id/accessibility_custom_action_19
+	(default)
+0x7f080013 - id/accessibility_custom_action_2
+	(default)
+0x7f080014 - id/accessibility_custom_action_20
+	(default)
+0x7f080015 - id/accessibility_custom_action_21
+	(default)
+0x7f080016 - id/accessibility_custom_action_22
+	(default)
+0x7f080017 - id/accessibility_custom_action_23
+	(default)
+0x7f080018 - id/accessibility_custom_action_24
+	(default)
+0x7f080019 - id/accessibility_custom_action_25
+	(default)
+0x7f08001a - id/accessibility_custom_action_26
+	(default)
+0x7f08001b - id/accessibility_custom_action_27
+	(default)
+0x7f08001c - id/accessibility_custom_action_28
+	(default)
+0x7f08001d - id/accessibility_custom_action_29
+	(default)
+0x7f08001e - id/accessibility_custom_action_3
+	(default)
+0x7f08001f - id/accessibility_custom_action_30
+	(default)
+0x7f080020 - id/accessibility_custom_action_31
+	(default)
+0x7f080021 - id/accessibility_custom_action_4
+	(default)
+0x7f080022 - id/accessibility_custom_action_5
+	(default)
+0x7f080023 - id/accessibility_custom_action_6
+	(default)
+0x7f080024 - id/accessibility_custom_action_7
+	(default)
+0x7f080025 - id/accessibility_custom_action_8
+	(default)
+0x7f080026 - id/accessibility_custom_action_9
+	(default)
+0x7f080027 - id/action_bar
+	(default)
+0x7f080028 - id/action_bar_activity_content
+	(default)
+0x7f080029 - id/action_bar_container
+	(default)
+0x7f08002a - id/action_bar_root
+	(default)
+0x7f08002b - id/action_bar_spinner
+	(default)
+0x7f08002c - id/action_bar_subtitle
+	(default)
+0x7f08002d - id/action_bar_title
+	(default)
+0x7f08002e - id/action_container
+	(default)
+0x7f08002f - id/action_context_bar
+	(default)
+0x7f080030 - id/action_divider
+	(default)
+0x7f080031 - id/action_image
+	(default)
+0x7f080032 - id/action_menu_divider
+	(default)
+0x7f080033 - id/action_menu_presenter
+	(default)
+0x7f080034 - id/action_mode_bar
+	(default)
+0x7f080035 - id/action_mode_bar_stub
+	(default)
+0x7f080036 - id/action_mode_close_button
+	(default)
+0x7f080037 - id/action_text
+	(default)
+0x7f080038 - id/actions
+	(default)
+0x7f080039 - id/activity_chooser_view_content
+	(default)
+0x7f08003a - id/add
+	(default)
+0x7f08003b - id/adjust_height
+	(default)
+0x7f08003c - id/adjust_width
+	(default)
+0x7f08003d - id/alertTitle
+	(default)
+0x7f08003e - id/all
+	(default)
+0x7f08003f - id/always
+	(default)
+0x7f080040 - id/async
+	(default)
+0x7f080041 - id/auto
+	(default)
+0x7f080042 - id/beginning
+	(default)
+0x7f080043 - id/blocking
+	(default)
+0x7f080044 - id/bottom
+	(default)
+0x7f080045 - id/browser_actions_header_text
+	(default)
+0x7f080046 - id/browser_actions_menu_item_icon
+	(default)
+0x7f080047 - id/browser_actions_menu_item_text
+	(default)
+0x7f080048 - id/browser_actions_menu_items
+	(default)
+0x7f080049 - id/browser_actions_menu_view
+	(default)
+0x7f08004a - id/buttonPanel
+	(default)
+0x7f08004b - id/center
+	(default)
+0x7f08004c - id/center_horizontal
+	(default)
+0x7f08004d - id/center_vertical
+	(default)
+0x7f08004e - id/checkbox
+	(default)
+0x7f08004f - id/checked
+	(default)
+0x7f080050 - id/chronometer
+	(default)
+0x7f080051 - id/clip_horizontal
+	(default)
+0x7f080052 - id/clip_vertical
+	(default)
+0x7f080053 - id/collapseActionView
+	(default)
+0x7f080054 - id/content
+	(default)
+0x7f080055 - id/contentPanel
+	(default)
+0x7f080056 - id/custom
+	(default)
+0x7f080057 - id/customPanel
+	(default)
+0x7f080058 - id/dark
+	(default)
+0x7f080059 - id/decor_content_parent
+	(default)
+0x7f08005a - id/default_activity_button
+	(default)
+0x7f08005b - id/dialog_button
+	(default)
+0x7f08005c - id/disableHome
+	(default)
+0x7f08005d - id/edit_query
+	(default)
+0x7f08005e - id/edit_text_id
+	(default)
+0x7f08005f - id/end
+	(default)
+0x7f080060 - id/expand_activities_button
+	(default)
+0x7f080061 - id/expanded_menu
+	(default)
+0x7f080062 - id/fill
+	(default)
+0x7f080063 - id/fill_horizontal
+	(default)
+0x7f080064 - id/fill_vertical
+	(default)
+0x7f080065 - id/forever
+	(default)
+0x7f080066 - id/fragment_container_view_tag
+	(default)
+0x7f080067 - id/group_divider
+	(default)
+0x7f080068 - id/hide_ime_id
+	(default)
+0x7f080069 - id/home
+	(default)
+0x7f08006a - id/homeAsUp
+	(default)
+0x7f08006b - id/icon
+	(default)
+0x7f08006c - id/icon_group
+	(default)
+0x7f08006d - id/icon_only
+	(default)
+0x7f08006e - id/ifRoom
+	(default)
+0x7f08006f - id/image
+	(default)
+0x7f080070 - id/info
+	(default)
+0x7f080071 - id/italic
+	(default)
+0x7f080072 - id/left
+	(default)
+0x7f080073 - id/light
+	(default)
+0x7f080074 - id/line1
+	(default)
+0x7f080075 - id/line3
+	(default)
+0x7f080076 - id/listMode
+	(default)
+0x7f080077 - id/list_item
+	(default)
+0x7f080078 - id/message
+	(default)
+0x7f080079 - id/middle
+	(default)
+0x7f08007a - id/multiply
+	(default)
+0x7f08007b - id/never
+	(default)
+0x7f08007c - id/none
+	(default)
+0x7f08007d - id/normal
+	(default)
+0x7f08007e - id/notification_background
+	(default)
+0x7f08007f - id/notification_main_column
+	(default)
+0x7f080080 - id/notification_main_column_container
+	(default)
+0x7f080081 - id/off
+	(default)
+0x7f080082 - id/on
+	(default)
+0x7f080083 - id/parentPanel
+	(default)
+0x7f080084 - id/progress_circular
+	(default)
+0x7f080085 - id/progress_horizontal
+	(default)
+0x7f080086 - id/radio
+	(default)
+0x7f080087 - id/report_drawn
+	(default)
+0x7f080088 - id/right
+	(default)
+0x7f080089 - id/right_icon
+	(default)
+0x7f08008a - id/right_side
+	(default)
+0x7f08008b - id/screen
+	(default)
+0x7f08008c - id/scrollIndicatorDown
+	(default)
+0x7f08008d - id/scrollIndicatorUp
+	(default)
+0x7f08008e - id/scrollView
+	(default)
+0x7f08008f - id/search_badge
+	(default)
+0x7f080090 - id/search_bar
+	(default)
+0x7f080091 - id/search_button
+	(default)
+0x7f080092 - id/search_close_btn
+	(default)
+0x7f080093 - id/search_edit_frame
+	(default)
+0x7f080094 - id/search_go_btn
+	(default)
+0x7f080095 - id/search_mag_icon
+	(default)
+0x7f080096 - id/search_plate
+	(default)
+0x7f080097 - id/search_src_text
+	(default)
+0x7f080098 - id/search_voice_btn
+	(default)
+0x7f080099 - id/select_dialog_listview
+	(default)
+0x7f08009a - id/shortcut
+	(default)
+0x7f08009b - id/showCustom
+	(default)
+0x7f08009c - id/showHome
+	(default)
+0x7f08009d - id/showTitle
+	(default)
+0x7f08009e - id/spacer
+	(default)
+0x7f08009f - id/special_effects_controller_view_tag
+	(default)
+0x7f0800a0 - id/splashscreen_icon_view
+	(default)
+0x7f0800a1 - id/split_action_bar
+	(default)
+0x7f0800a2 - id/src_atop
+	(default)
+0x7f0800a3 - id/src_in
+	(default)
+0x7f0800a4 - id/src_over
+	(default)
+0x7f0800a5 - id/standard
+	(default)
+0x7f0800a6 - id/start
+	(default)
+0x7f0800a7 - id/submenuarrow
+	(default)
+0x7f0800a8 - id/submit_area
+	(default)
+0x7f0800a9 - id/tabMode
+	(default)
+0x7f0800aa - id/tag_accessibility_actions
+	(default)
+0x7f0800ab - id/tag_accessibility_clickable_spans
+	(default)
+0x7f0800ac - id/tag_accessibility_heading
+	(default)
+0x7f0800ad - id/tag_accessibility_pane_title
+	(default)
+0x7f0800ae - id/tag_compat_insets_dispatch
+	(default)
+0x7f0800af - id/tag_on_apply_window_listener
+	(default)
+0x7f0800b0 - id/tag_on_receive_content_listener
+	(default)
+0x7f0800b1 - id/tag_on_receive_content_mime_types
+	(default)
+0x7f0800b2 - id/tag_screen_reader_focusable
+	(default)
+0x7f0800b3 - id/tag_state_description
+	(default)
+0x7f0800b4 - id/tag_system_bar_state_monitor
+	(default)
+0x7f0800b5 - id/tag_transition_group
+	(default)
+0x7f0800b6 - id/tag_unhandled_key_event_manager
+	(default)
+0x7f0800b7 - id/tag_unhandled_key_listeners
+	(default)
+0x7f0800b8 - id/tag_window_insets_animation_callback
+	(default)
+0x7f0800b9 - id/text
+	(default)
+0x7f0800ba - id/text2
+	(default)
+0x7f0800bb - id/textSpacerNoButtons
+	(default)
+0x7f0800bc - id/textSpacerNoTitle
+	(default)
+0x7f0800bd - id/textView
+	(default)
+0x7f0800be - id/time
+	(default)
+0x7f0800bf - id/title
+	(default)
+0x7f0800c0 - id/titleDividerNoCustom
+	(default)
+0x7f0800c1 - id/title_template
+	(default)
+0x7f0800c2 - id/top
+	(default)
+0x7f0800c3 - id/topPanel
+	(default)
+0x7f0800c4 - id/unchecked
+	(default)
+0x7f0800c5 - id/uniform
+	(default)
+0x7f0800c6 - id/up
+	(default)
+0x7f0800c7 - id/useLogo
+	(default)
+0x7f0800c8 - id/view_tree_disjoint_parent
+	(default)
+0x7f0800c9 - id/view_tree_lifecycle_owner
+	(default)
+0x7f0800ca - id/view_tree_on_back_pressed_dispatcher_owner
+	(default)
+0x7f0800cb - id/view_tree_saved_state_registry_owner
+	(default)
+0x7f0800cc - id/view_tree_view_model_store_owner
+	(default)
+0x7f0800cd - id/visible_removing_fragment_view_tag
+	(default)
+0x7f0800ce - id/webview
+	(default)
+0x7f0800cf - id/wide
+	(default)
+0x7f0800d0 - id/withText
+	(default)
+0x7f0800d1 - id/wrap_content
+	(default)
+0x7f090000 - integer/abc_config_activityDefaultDur
+	(default)
+0x7f090001 - integer/abc_config_activityShortDur
+	(default)
+0x7f090002 - integer/cancel_button_image_alpha
+	(default)
+0x7f090003 - integer/config_tooltipAnimTime
+	(default)
+0x7f090004 - integer/default_icon_animation_duration
+	(default)
+0x7f090005 - integer/google_play_services_version
+	(default)
+0x7f090006 - integer/status_bar_notification_info_maxnum
+	(default)
+0x7f0a0000 - interpolator/btn_checkbox_checked_mtrl_animation_interpolator_0
+	(default)
+0x7f0a0001 - interpolator/btn_checkbox_checked_mtrl_animation_interpolator_1
+	(default)
+0x7f0a0002 - interpolator/btn_checkbox_unchecked_mtrl_animation_interpolator_0
+	(default)
+0x7f0a0003 - interpolator/btn_checkbox_unchecked_mtrl_animation_interpolator_1
+	(default)
+0x7f0a0004 - interpolator/btn_radio_to_off_mtrl_animation_interpolator_0
+	(default)
+0x7f0a0005 - interpolator/btn_radio_to_on_mtrl_animation_interpolator_0
+	(default)
+0x7f0a0006 - interpolator/fast_out_slow_in
+	(default)
+0x7f0b0000 - layout/abc_action_bar_title_item
+	(default)
+0x7f0b0001 - layout/abc_action_bar_up_container
+	(default)
+0x7f0b0002 - layout/abc_action_menu_item_layout
+	(default)
+0x7f0b0003 - layout/abc_action_menu_layout
+	(default)
+0x7f0b0004 - layout/abc_action_mode_bar
+	(default)
+0x7f0b0005 - layout/abc_action_mode_close_item_material
+	(default)
+0x7f0b0006 - layout/abc_activity_chooser_view
+	(default)
+0x7f0b0007 - layout/abc_activity_chooser_view_list_item
+	(default)
+0x7f0b0008 - layout/abc_alert_dialog_button_bar_material
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f0b0009 - layout/abc_alert_dialog_material
+	(default)
+0x7f0b000a - layout/abc_alert_dialog_title_material
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f0b000b - layout/abc_cascading_menu_item_layout
+	(default)
+0x7f0b000c - layout/abc_dialog_title_material
+	(default)
+0x7f0b000d - layout/abc_expanded_menu_layout
+	(default)
+0x7f0b000e - layout/abc_list_menu_item_checkbox
+	(default)
+0x7f0b000f - layout/abc_list_menu_item_icon
+	(default)
+0x7f0b0010 - layout/abc_list_menu_item_layout
+	(default)
+0x7f0b0011 - layout/abc_list_menu_item_radio
+	(default)
+0x7f0b0012 - layout/abc_popup_menu_header_item_layout
+	(default)
+0x7f0b0013 - layout/abc_popup_menu_item_layout
+	(default)
+0x7f0b0014 - layout/abc_screen_content_include
+	(default)
+0x7f0b0015 - layout/abc_screen_simple
+	(default)
+0x7f0b0016 - layout/abc_screen_simple_overlay_action_mode
+	(default)
+0x7f0b0017 - layout/abc_screen_toolbar
+	(default)
+	sdk_version: 26
+0x7f0b0018 - layout/abc_search_dropdown_item_icons_2line
+	(default)
+0x7f0b0019 - layout/abc_search_view
+	(default)
+0x7f0b001a - layout/abc_select_dialog_material
+	(default)
+0x7f0b001b - layout/abc_tooltip
+	(default)
+0x7f0b001c - layout/activity_main
+	(default)
+0x7f0b001d - layout/browser_actions_context_menu_page
+	(default)
+0x7f0b001e - layout/browser_actions_context_menu_row
+	(default)
+0x7f0b001f - layout/capacitor_bridge_layout_main
+	(default)
+0x7f0b0020 - layout/custom_dialog
+	(default)
+0x7f0b0021 - layout/ime_base_split_test_activity
+	(default)
+0x7f0b0022 - layout/ime_secondary_split_test_activity
+	(default)
+0x7f0b0023 - layout/no_webview
+	(default)
+0x7f0b0024 - layout/notification_action
+	(default)
+0x7f0b0025 - layout/notification_action_tombstone
+	(default)
+0x7f0b0026 - layout/notification_template_custom_big
+	(default)
+0x7f0b0027 - layout/notification_template_icon_group
+	(default)
+0x7f0b0028 - layout/notification_template_part_chronometer
+	(default)
+0x7f0b0029 - layout/notification_template_part_time
+	(default)
+0x7f0b002a - layout/select_dialog_item_material
+	(default)
+0x7f0b002b - layout/select_dialog_multichoice_material
+	(default)
+0x7f0b002c - layout/select_dialog_singlechoice_material
+	(default)
+0x7f0b002d - layout/splash_screen_view
+	(default)
+0x7f0b002e - layout/support_simple_spinner_dropdown_item
+	(default)
+0x7f0c0000 - mipmap/ic_launcher
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+	density: 65534
+sdk_version: 26
+0x7f0c0001 - mipmap/ic_launcher_foreground
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+0x7f0c0002 - mipmap/ic_launcher_round
+	density: 160
+	density: 240
+	density: 320
+	density: 480
+	density: 640
+	density: 65534
+sdk_version: 26
+0x7f0d0000 - raw/firebase_common_keep
+	(default)
+0x7f0e0000 - string/abc_action_bar_home_description
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0001 - string/abc_action_bar_up_description
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0002 - string/abc_action_menu_overflow_description
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0003 - string/abc_action_mode_done
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0004 - string/abc_activity_chooser_view_see_all
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0005 - string/abc_activitychooserview_choose_application
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0006 - string/abc_capital_off
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0007 - string/abc_capital_on
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0008 - string/abc_menu_alt_shortcut_label
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0009 - string/abc_menu_ctrl_shortcut_label
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e000a - string/abc_menu_delete_shortcut_label
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e000b - string/abc_menu_enter_shortcut_label
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e000c - string/abc_menu_function_shortcut_label
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e000d - string/abc_menu_meta_shortcut_label
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e000e - string/abc_menu_shift_shortcut_label
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e000f - string/abc_menu_space_shortcut_label
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0010 - string/abc_menu_sym_shortcut_label
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0011 - string/abc_prepend_shortcut_label
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0012 - string/abc_search_hint
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0013 - string/abc_searchview_description_clear
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0014 - string/abc_searchview_description_query
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0015 - string/abc_searchview_description_search
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0016 - string/abc_searchview_description_submit
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0017 - string/abc_searchview_description_voice
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0018 - string/abc_shareactionprovider_share_with
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0019 - string/abc_shareactionprovider_share_with_application
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e001a - string/abc_toolbar_collapse_description
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e001b - string/android.credentials.TYPE_PASSWORD_CREDENTIAL
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e001c - string/androidx.credentials.TYPE_PUBLIC_KEY_CREDENTIAL
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e001d - string/androidx_startup
+	(default)
+0x7f0e001e - string/app_name
+	(default)
+0x7f0e001f - string/call_notification_answer_action
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0020 - string/call_notification_answer_video_action
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0021 - string/call_notification_decline_action
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0022 - string/call_notification_hang_up_action
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0023 - string/call_notification_incoming_text
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0024 - string/call_notification_ongoing_text
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0025 - string/call_notification_screening_text
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0026 - string/common_google_play_services_enable_button
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e0027 - string/common_google_play_services_enable_text
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e0028 - string/common_google_play_services_enable_title
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e0029 - string/common_google_play_services_install_button
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e002a - string/common_google_play_services_install_text
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e002b - string/common_google_play_services_install_title
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e002c - string/common_google_play_services_notification_channel_name
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e002d - string/common_google_play_services_notification_ticker
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e002e - string/common_google_play_services_unknown_issue
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e002f - string/common_google_play_services_unsupported_text
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e0030 - string/common_google_play_services_update_button
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e0031 - string/common_google_play_services_update_text
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e0032 - string/common_google_play_services_update_title
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e0033 - string/common_google_play_services_updating_text
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e0034 - string/common_google_play_services_wear_update_text
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e0035 - string/common_open_on_phone
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e0036 - string/common_signin_button_text
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e0037 - string/common_signin_button_text_long
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "zh-TW"
+0x7f0e0038 - string/copy_toast_msg
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0039 - string/custom_url_scheme
+	(default)
+0x7f0e003a - string/default_web_client_id
+	(default)
+0x7f0e003b - string/fallback_menu_item_copy_link
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e003c - string/fallback_menu_item_open_in_browser
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e003d - string/fallback_menu_item_share_link
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e003e - string/firebase_database_url
+	(default)
+0x7f0e003f - string/gcm_defaultSenderId
+	(default)
+0x7f0e0040 - string/google_api_key
+	(default)
+0x7f0e0041 - string/google_app_id
+	(default)
+0x7f0e0042 - string/google_crash_reporting_api_key
+	(default)
+0x7f0e0043 - string/google_storage_bucket
+	(default)
+0x7f0e0044 - string/no_webview_text
+	(default)
+0x7f0e0045 - string/package_name
+	(default)
+0x7f0e0046 - string/project_id
+	(default)
+0x7f0e0047 - string/search_menu_title
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0048 - string/status_bar_notification_info_overflow
+	(default)
+	locale: "ca"
+	locale: "da"
+	locale: "fa"
+	locale: "ja"
+	locale: "ka"
+	locale: "pa"
+	locale: "ta"
+	locale: "nb"
+	locale: "be"
+	locale: "de"
+	locale: "ne"
+	locale: "te"
+	locale: "af"
+	locale: "bg"
+	locale: "th"
+	locale: "fi"
+	locale: "hi"
+	locale: "si"
+	locale: "vi"
+	locale: "kk"
+	locale: "mk"
+	locale: "sk"
+	locale: "uk"
+	locale: "el"
+	locale: "gl"
+	locale: "ml"
+	locale: "nl"
+	locale: "pl"
+	locale: "sl"
+	locale: "tl"
+	locale: "am"
+	locale: "km"
+	locale: "bn"
+	locale: "in"
+	locale: "kn"
+	locale: "mn"
+	locale: "ko"
+	locale: "lo"
+	locale: "ro"
+	locale: "sq"
+	locale: "ar"
+	locale: "fr"
+	locale: "hr"
+	locale: "mr"
+	locale: "or"
+	locale: "sr"
+	locale: "sr-Latn"
+	locale: "tr"
+	locale: "ur"
+	locale: "as"
+	locale: "bs"
+	locale: "cs"
+	locale: "es"
+	locale: "is"
+	locale: "ms"
+	locale: "et"
+	locale: "it"
+	locale: "lt"
+	locale: "pt"
+	locale: "eu"
+	locale: "gu"
+	locale: "hu"
+	locale: "ru"
+	locale: "zu"
+	locale: "lv"
+	locale: "sv"
+	locale: "iw"
+	locale: "sw"
+	locale: "hy"
+	locale: "ky"
+	locale: "my"
+	locale: "az"
+	locale: "uz"
+	locale: "en-CA"
+	locale: "fr-CA"
+	locale: "en-GB"
+	locale: "en-XC"
+	locale: "zh-HK"
+	locale: "zh-CN"
+	locale: "en-IN"
+	locale: "pt-BR"
+	locale: "es-US"
+	locale: "pt-PT"
+	locale: "en-AU"
+	locale: "zh-TW"
+0x7f0e0049 - string/title_activity_main
+	(default)
+0x7f0f0000 - style/AlertDialog.AppCompat
+	(default)
+0x7f0f0001 - style/AlertDialog.AppCompat.Light
+	(default)
+0x7f0f0002 - style/Animation.AppCompat.Dialog
+	(default)
+0x7f0f0003 - style/Animation.AppCompat.DropDownUp
+	(default)
+0x7f0f0004 - style/Animation.AppCompat.Tooltip
+	(default)
+0x7f0f0005 - style/AppTheme
+	(default)
+0x7f0f0006 - style/AppTheme.NoActionBar
+	(default)
+0x7f0f0007 - style/AppTheme.NoActionBarLaunch
+	(default)
+0x7f0f0008 - style/Base.AlertDialog.AppCompat
+	(default)
+0x7f0f0009 - style/Base.AlertDialog.AppCompat.Light
+	(default)
+0x7f0f000a - style/Base.Animation.AppCompat.Dialog
+	(default)
+0x7f0f000b - style/Base.Animation.AppCompat.DropDownUp
+	(default)
+0x7f0f000c - style/Base.Animation.AppCompat.Tooltip
+	(default)
+0x7f0f000d - style/Base.DialogWindowTitle.AppCompat
+	(default)
+0x7f0f000e - style/Base.DialogWindowTitleBackground.AppCompat
+	(default)
+0x7f0f000f - style/Base.TextAppearance.AppCompat
+	(default)
+0x7f0f0010 - style/Base.TextAppearance.AppCompat.Body1
+	(default)
+0x7f0f0011 - style/Base.TextAppearance.AppCompat.Body2
+	(default)
+0x7f0f0012 - style/Base.TextAppearance.AppCompat.Button
+	(default)
+0x7f0f0013 - style/Base.TextAppearance.AppCompat.Caption
+	(default)
+0x7f0f0014 - style/Base.TextAppearance.AppCompat.Display1
+	(default)
+0x7f0f0015 - style/Base.TextAppearance.AppCompat.Display2
+	(default)
+0x7f0f0016 - style/Base.TextAppearance.AppCompat.Display3
+	(default)
+0x7f0f0017 - style/Base.TextAppearance.AppCompat.Display4
+	(default)
+0x7f0f0018 - style/Base.TextAppearance.AppCompat.Headline
+	(default)
+0x7f0f0019 - style/Base.TextAppearance.AppCompat.Inverse
+	(default)
+0x7f0f001a - style/Base.TextAppearance.AppCompat.Large
+	(default)
+0x7f0f001b - style/Base.TextAppearance.AppCompat.Large.Inverse
+	(default)
+0x7f0f001c - style/Base.TextAppearance.AppCompat.Light.Widget.PopupMenu.Large
+	(default)
+0x7f0f001d - style/Base.TextAppearance.AppCompat.Light.Widget.PopupMenu.Small
+	(default)
+0x7f0f001e - style/Base.TextAppearance.AppCompat.Medium
+	(default)
+0x7f0f001f - style/Base.TextAppearance.AppCompat.Medium.Inverse
+	(default)
+0x7f0f0020 - style/Base.TextAppearance.AppCompat.Menu
+	(default)
+0x7f0f0021 - style/Base.TextAppearance.AppCompat.SearchResult
+	(default)
+0x7f0f0022 - style/Base.TextAppearance.AppCompat.SearchResult.Subtitle
+	(default)
+0x7f0f0023 - style/Base.TextAppearance.AppCompat.SearchResult.Title
+	(default)
+0x7f0f0024 - style/Base.TextAppearance.AppCompat.Small
+	(default)
+0x7f0f0025 - style/Base.TextAppearance.AppCompat.Small.Inverse
+	(default)
+0x7f0f0026 - style/Base.TextAppearance.AppCompat.Subhead
+	(default)
+0x7f0f0027 - style/Base.TextAppearance.AppCompat.Subhead.Inverse
+	(default)
+0x7f0f0028 - style/Base.TextAppearance.AppCompat.Title
+	(default)
+0x7f0f0029 - style/Base.TextAppearance.AppCompat.Title.Inverse
+	(default)
+0x7f0f002a - style/Base.TextAppearance.AppCompat.Tooltip
+	(default)
+0x7f0f002b - style/Base.TextAppearance.AppCompat.Widget.ActionBar.Menu
+	(default)
+0x7f0f002c - style/Base.TextAppearance.AppCompat.Widget.ActionBar.Subtitle
+	(default)
+0x7f0f002d - style/Base.TextAppearance.AppCompat.Widget.ActionBar.Subtitle.Inverse
+	(default)
+0x7f0f002e - style/Base.TextAppearance.AppCompat.Widget.ActionBar.Title
+	(default)
+0x7f0f002f - style/Base.TextAppearance.AppCompat.Widget.ActionBar.Title.Inverse
+	(default)
+0x7f0f0030 - style/Base.TextAppearance.AppCompat.Widget.ActionMode.Subtitle
+	(default)
+0x7f0f0031 - style/Base.TextAppearance.AppCompat.Widget.ActionMode.Title
+	(default)
+0x7f0f0032 - style/Base.TextAppearance.AppCompat.Widget.Button
+	(default)
+0x7f0f0033 - style/Base.TextAppearance.AppCompat.Widget.Button.Borderless.Colored
+	(default)
+0x7f0f0034 - style/Base.TextAppearance.AppCompat.Widget.Button.Colored
+	(default)
+0x7f0f0035 - style/Base.TextAppearance.AppCompat.Widget.Button.Inverse
+	(default)
+0x7f0f0036 - style/Base.TextAppearance.AppCompat.Widget.DropDownItem
+	(default)
+0x7f0f0037 - style/Base.TextAppearance.AppCompat.Widget.PopupMenu.Header
+	(default)
+0x7f0f0038 - style/Base.TextAppearance.AppCompat.Widget.PopupMenu.Large
+	(default)
+0x7f0f0039 - style/Base.TextAppearance.AppCompat.Widget.PopupMenu.Small
+	(default)
+0x7f0f003a - style/Base.TextAppearance.AppCompat.Widget.Switch
+	(default)
+0x7f0f003b - style/Base.TextAppearance.AppCompat.Widget.TextView.SpinnerItem
+	(default)
+0x7f0f003c - style/Base.TextAppearance.Widget.AppCompat.ExpandedMenu.Item
+	(default)
+0x7f0f003d - style/Base.TextAppearance.Widget.AppCompat.Toolbar.Subtitle
+	(default)
+0x7f0f003e - style/Base.TextAppearance.Widget.AppCompat.Toolbar.Title
+	(default)
+0x7f0f003f - style/Base.Theme.AppCompat
+	(default)
+	sdk_version: 26
+	sdk_version: 28
+0x7f0f0040 - style/Base.Theme.AppCompat.CompactMenu
+	(default)
+0x7f0f0041 - style/Base.Theme.AppCompat.Dialog
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f0f0042 - style/Base.Theme.AppCompat.Dialog.Alert
+	(default)
+0x7f0f0043 - style/Base.Theme.AppCompat.Dialog.FixedSize
+	(default)
+0x7f0f0044 - style/Base.Theme.AppCompat.Dialog.MinWidth
+	(default)
+0x7f0f0045 - style/Base.Theme.AppCompat.DialogWhenLarge
+	(default)
+	screen_layout_size: SCREEN_LAYOUT_SIZE_LARGE
+0x7f0f0046 - style/Base.Theme.AppCompat.Light
+	(default)
+	sdk_version: 26
+	sdk_version: 28
+0x7f0f0047 - style/Base.Theme.AppCompat.Light.DarkActionBar
+	(default)
+0x7f0f0048 - style/Base.Theme.AppCompat.Light.Dialog
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f0f0049 - style/Base.Theme.AppCompat.Light.Dialog.Alert
+	(default)
+0x7f0f004a - style/Base.Theme.AppCompat.Light.Dialog.FixedSize
+	(default)
+0x7f0f004b - style/Base.Theme.AppCompat.Light.Dialog.MinWidth
+	(default)
+0x7f0f004c - style/Base.Theme.AppCompat.Light.DialogWhenLarge
+	(default)
+	screen_layout_size: SCREEN_LAYOUT_SIZE_LARGE
+0x7f0f004d - style/Base.Theme.SplashScreen
+	(default)
+	sdk_version: 27
+	sdk_version: 29
+	sdk_version: 30
+	sdk_version: 31
+0x7f0f004e - style/Base.Theme.SplashScreen.DayNight
+	(default)
+	ui_mode_night: UI_MODE_NIGHT_NIGHT
+	sdk_version: 33
+	ui_mode_night: UI_MODE_NIGHT_NIGHT
+sdk_version: 33
+0x7f0f004f - style/Base.Theme.SplashScreen.Light
+	(default)
+	sdk_version: 27
+	sdk_version: 29
+0x7f0f0050 - style/Base.ThemeOverlay.AppCompat
+	(default)
+0x7f0f0051 - style/Base.ThemeOverlay.AppCompat.ActionBar
+	(default)
+0x7f0f0052 - style/Base.ThemeOverlay.AppCompat.Dark
+	(default)
+0x7f0f0053 - style/Base.ThemeOverlay.AppCompat.Dark.ActionBar
+	(default)
+0x7f0f0054 - style/Base.ThemeOverlay.AppCompat.Dialog
+	(default)
+	ui_mode_type: UI_MODE_TYPE_WATCH
+0x7f0f0055 - style/Base.ThemeOverlay.AppCompat.Dialog.Alert
+	(default)
+0x7f0f0056 - style/Base.ThemeOverlay.AppCompat.Light
+	(default)
+0x7f0f0057 - style/Base.V21.Theme.AppCompat
+	(default)
+0x7f0f0058 - style/Base.V21.Theme.AppCompat.Dialog
+	(default)
+0x7f0f0059 - style/Base.V21.Theme.AppCompat.Light
+	(default)
+0x7f0f005a - style/Base.V21.Theme.AppCompat.Light.Dialog
+	(default)
+0x7f0f005b - style/Base.V21.ThemeOverlay.AppCompat.Dialog
+	(default)
+0x7f0f005c - style/Base.V22.Theme.AppCompat
+	(default)
+0x7f0f005d - style/Base.V22.Theme.AppCompat.Light
+	(default)
+0x7f0f005e - style/Base.V23.Theme.AppCompat
+	(default)
+0x7f0f005f - style/Base.V23.Theme.AppCompat.Light
+	(default)
+0x7f0f0060 - style/Base.V26.Theme.AppCompat
+	sdk_version: 26
+0x7f0f0061 - style/Base.V26.Theme.AppCompat.Light
+	sdk_version: 26
+0x7f0f0062 - style/Base.V26.Widget.AppCompat.Toolbar
+	sdk_version: 26
+0x7f0f0063 - style/Base.V28.Theme.AppCompat
+	sdk_version: 28
+0x7f0f0064 - style/Base.V28.Theme.AppCompat.Light
+	sdk_version: 28
+0x7f0f0065 - style/Base.V7.Theme.AppCompat
+	(default)
+0x7f0f0066 - style/Base.V7.Theme.AppCompat.Dialog
+	(default)
+0x7f0f0067 - style/Base.V7.Theme.AppCompat.Light
+	(default)
+0x7f0f0068 - style/Base.V7.Theme.AppCompat.Light.Dialog
+	(default)
+0x7f0f0069 - style/Base.V7.ThemeOverlay.AppCompat.Dialog
+	(default)
+0x7f0f006a - style/Base.V7.Widget.AppCompat.AutoCompleteTextView
+	(default)
+0x7f0f006b - style/Base.V7.Widget.AppCompat.EditText
+	(default)
+0x7f0f006c - style/Base.V7.Widget.AppCompat.Toolbar
+	(default)
+0x7f0f006d - style/Base.Widget.AppCompat.ActionBar
+	(default)
+0x7f0f006e - style/Base.Widget.AppCompat.ActionBar.Solid
+	(default)
+0x7f0f006f - style/Base.Widget.AppCompat.ActionBar.TabBar
+	(default)
+0x7f0f0070 - style/Base.Widget.AppCompat.ActionBar.TabText
+	(default)
+0x7f0f0071 - style/Base.Widget.AppCompat.ActionBar.TabView
+	(default)
+0x7f0f0072 - style/Base.Widget.AppCompat.ActionButton
+	(default)
+0x7f0f0073 - style/Base.Widget.AppCompat.ActionButton.CloseMode
+	(default)
+0x7f0f0074 - style/Base.Widget.AppCompat.ActionButton.Overflow
+	(default)
+0x7f0f0075 - style/Base.Widget.AppCompat.ActionMode
+	(default)
+0x7f0f0076 - style/Base.Widget.AppCompat.ActivityChooserView
+	(default)
+0x7f0f0077 - style/Base.Widget.AppCompat.AutoCompleteTextView
+	(default)
+0x7f0f0078 - style/Base.Widget.AppCompat.Button
+	(default)
+0x7f0f0079 - style/Base.Widget.AppCompat.Button.Borderless
+	(default)
+0x7f0f007a - style/Base.Widget.AppCompat.Button.Borderless.Colored
+	(default)
+0x7f0f007b - style/Base.Widget.AppCompat.Button.ButtonBar.AlertDialog
+	(default)
+0x7f0f007c - style/Base.Widget.AppCompat.Button.Colored
+	(default)
+0x7f0f007d - style/Base.Widget.AppCompat.Button.Small
+	(default)
+0x7f0f007e - style/Base.Widget.AppCompat.ButtonBar
+	(default)
+0x7f0f007f - style/Base.Widget.AppCompat.ButtonBar.AlertDialog
+	(default)
+0x7f0f0080 - style/Base.Widget.AppCompat.CompoundButton.CheckBox
+	(default)
+0x7f0f0081 - style/Base.Widget.AppCompat.CompoundButton.RadioButton
+	(default)
+0x7f0f0082 - style/Base.Widget.AppCompat.CompoundButton.Switch
+	(default)
+0x7f0f0083 - style/Base.Widget.AppCompat.DrawerArrowToggle
+	(default)
+	density: 240
+0x7f0f0084 - style/Base.Widget.AppCompat.DrawerArrowToggle.Common
+	(default)
+0x7f0f0085 - style/Base.Widget.AppCompat.DropDownItem.Spinner
+	(default)
+0x7f0f0086 - style/Base.Widget.AppCompat.EditText
+	(default)
+0x7f0f0087 - style/Base.Widget.AppCompat.ImageButton
+	(default)
+0x7f0f0088 - style/Base.Widget.AppCompat.Light.ActionBar
+	(default)
+0x7f0f0089 - style/Base.Widget.AppCompat.Light.ActionBar.Solid
+	(default)
+0x7f0f008a - style/Base.Widget.AppCompat.Light.ActionBar.TabBar
+	(default)
+0x7f0f008b - style/Base.Widget.AppCompat.Light.ActionBar.TabText
+	(default)
+0x7f0f008c - style/Base.Widget.AppCompat.Light.ActionBar.TabText.Inverse
+	(default)
+0x7f0f008d - style/Base.Widget.AppCompat.Light.ActionBar.TabView
+	(default)
+0x7f0f008e - style/Base.Widget.AppCompat.Light.PopupMenu
+	(default)
+0x7f0f008f - style/Base.Widget.AppCompat.Light.PopupMenu.Overflow
+	(default)
+0x7f0f0090 - style/Base.Widget.AppCompat.ListMenuView
+	(default)
+0x7f0f0091 - style/Base.Widget.AppCompat.ListPopupWindow
+	(default)
+0x7f0f0092 - style/Base.Widget.AppCompat.ListView
+	(default)
+0x7f0f0093 - style/Base.Widget.AppCompat.ListView.DropDown
+	(default)
+0x7f0f0094 - style/Base.Widget.AppCompat.ListView.Menu
+	(default)
+0x7f0f0095 - style/Base.Widget.AppCompat.PopupMenu
+	(default)
+0x7f0f0096 - style/Base.Widget.AppCompat.PopupMenu.Overflow
+	(default)
+0x7f0f0097 - style/Base.Widget.AppCompat.PopupWindow
+	(default)
+0x7f0f0098 - style/Base.Widget.AppCompat.ProgressBar
+	(default)
+0x7f0f0099 - style/Base.Widget.AppCompat.ProgressBar.Horizontal
+	(default)
+0x7f0f009a - style/Base.Widget.AppCompat.RatingBar
+	(default)
+0x7f0f009b - style/Base.Widget.AppCompat.RatingBar.Indicator
+	(default)
+0x7f0f009c - style/Base.Widget.AppCompat.RatingBar.Small
+	(default)
+0x7f0f009d - style/Base.Widget.AppCompat.SearchView
+	(default)
+0x7f0f009e - style/Base.Widget.AppCompat.SearchView.ActionBar
+	(default)
+0x7f0f009f - style/Base.Widget.AppCompat.SeekBar
+	(default)
+0x7f0f00a0 - style/Base.Widget.AppCompat.SeekBar.Discrete
+	(default)
+0x7f0f00a1 - style/Base.Widget.AppCompat.Spinner
+	(default)
+0x7f0f00a2 - style/Base.Widget.AppCompat.Spinner.Underlined
+	(default)
+0x7f0f00a3 - style/Base.Widget.AppCompat.TextView
+	(default)
+0x7f0f00a4 - style/Base.Widget.AppCompat.TextView.SpinnerItem
+	(default)
+0x7f0f00a5 - style/Base.Widget.AppCompat.Toolbar
+	(default)
+	sdk_version: 26
+0x7f0f00a6 - style/Base.Widget.AppCompat.Toolbar.Button.Navigation
+	(default)
+0x7f0f00a7 - style/Base.v21.Theme.SplashScreen
+	(default)
+0x7f0f00a8 - style/Base.v21.Theme.SplashScreen.Light
+	(default)
+0x7f0f00a9 - style/Base.v27.Theme.SplashScreen
+	sdk_version: 27
+0x7f0f00aa - style/Base.v27.Theme.SplashScreen.Light
+	sdk_version: 27
+0x7f0f00ab - style/Platform.AppCompat
+	(default)
+	sdk_version: 25
+0x7f0f00ac - style/Platform.AppCompat.Light
+	(default)
+	sdk_version: 25
+0x7f0f00ad - style/Platform.ThemeOverlay.AppCompat
+	(default)
+0x7f0f00ae - style/Platform.ThemeOverlay.AppCompat.Dark
+	(default)
+0x7f0f00af - style/Platform.ThemeOverlay.AppCompat.Light
+	(default)
+0x7f0f00b0 - style/Platform.V21.AppCompat
+	(default)
+0x7f0f00b1 - style/Platform.V21.AppCompat.Light
+	(default)
+0x7f0f00b2 - style/Platform.V25.AppCompat
+	sdk_version: 25
+0x7f0f00b3 - style/Platform.V25.AppCompat.Light
+	sdk_version: 25
+0x7f0f00b4 - style/Platform.Widget.AppCompat.Spinner
+	(default)
+0x7f0f00b5 - style/RtlOverlay.DialogWindowTitle.AppCompat
+	(default)
+0x7f0f00b6 - style/RtlOverlay.Widget.AppCompat.ActionBar.TitleItem
+	(default)
+0x7f0f00b7 - style/RtlOverlay.Widget.AppCompat.DialogTitle.Icon
+	(default)
+0x7f0f00b8 - style/RtlOverlay.Widget.AppCompat.PopupMenuItem
+	(default)
+0x7f0f00b9 - style/RtlOverlay.Widget.AppCompat.PopupMenuItem.InternalGroup
+	(default)
+0x7f0f00ba - style/RtlOverlay.Widget.AppCompat.PopupMenuItem.Shortcut
+	(default)
+0x7f0f00bb - style/RtlOverlay.Widget.AppCompat.PopupMenuItem.SubmenuArrow
+	(default)
+0x7f0f00bc - style/RtlOverlay.Widget.AppCompat.PopupMenuItem.Text
+	(default)
+0x7f0f00bd - style/RtlOverlay.Widget.AppCompat.PopupMenuItem.Title
+	(default)
+0x7f0f00be - style/RtlOverlay.Widget.AppCompat.Search.DropDown
+	(default)
+0x7f0f00bf - style/RtlOverlay.Widget.AppCompat.Search.DropDown.Icon1
+	(default)
+0x7f0f00c0 - style/RtlOverlay.Widget.AppCompat.Search.DropDown.Icon2
+	(default)
+0x7f0f00c1 - style/RtlOverlay.Widget.AppCompat.Search.DropDown.Query
+	(default)
+0x7f0f00c2 - style/RtlOverlay.Widget.AppCompat.Search.DropDown.Text
+	(default)
+0x7f0f00c3 - style/RtlOverlay.Widget.AppCompat.SearchView.MagIcon
+	(default)
+0x7f0f00c4 - style/RtlUnderlay.Widget.AppCompat.ActionButton
+	(default)
+0x7f0f00c5 - style/RtlUnderlay.Widget.AppCompat.ActionButton.Overflow
+	(default)
+0x7f0f00c6 - style/TextAppearance.AppCompat
+	(default)
+0x7f0f00c7 - style/TextAppearance.AppCompat.Body1
+	(default)
+0x7f0f00c8 - style/TextAppearance.AppCompat.Body2
+	(default)
+0x7f0f00c9 - style/TextAppearance.AppCompat.Button
+	(default)
+0x7f0f00ca - style/TextAppearance.AppCompat.Caption
+	(default)
+0x7f0f00cb - style/TextAppearance.AppCompat.Display1
+	(default)
+0x7f0f00cc - style/TextAppearance.AppCompat.Display2
+	(default)
+0x7f0f00cd - style/TextAppearance.AppCompat.Display3
+	(default)
+0x7f0f00ce - style/TextAppearance.AppCompat.Display4
+	(default)
+0x7f0f00cf - style/TextAppearance.AppCompat.Headline
+	(default)
+0x7f0f00d0 - style/TextAppearance.AppCompat.Inverse
+	(default)
+0x7f0f00d1 - style/TextAppearance.AppCompat.Large
+	(default)
+0x7f0f00d2 - style/TextAppearance.AppCompat.Large.Inverse
+	(default)
+0x7f0f00d3 - style/TextAppearance.AppCompat.Light.SearchResult.Subtitle
+	(default)
+0x7f0f00d4 - style/TextAppearance.AppCompat.Light.SearchResult.Title
+	(default)
+0x7f0f00d5 - style/TextAppearance.AppCompat.Light.Widget.PopupMenu.Large
+	(default)
+0x7f0f00d6 - style/TextAppearance.AppCompat.Light.Widget.PopupMenu.Small
+	(default)
+0x7f0f00d7 - style/TextAppearance.AppCompat.Medium
+	(default)
+0x7f0f00d8 - style/TextAppearance.AppCompat.Medium.Inverse
+	(default)
+0x7f0f00d9 - style/TextAppearance.AppCompat.Menu
+	(default)
+0x7f0f00da - style/TextAppearance.AppCompat.SearchResult.Subtitle
+	(default)
+0x7f0f00db - style/TextAppearance.AppCompat.SearchResult.Title
+	(default)
+0x7f0f00dc - style/TextAppearance.AppCompat.Small
+	(default)
+0x7f0f00dd - style/TextAppearance.AppCompat.Small.Inverse
+	(default)
+0x7f0f00de - style/TextAppearance.AppCompat.Subhead
+	(default)
+0x7f0f00df - style/TextAppearance.AppCompat.Subhead.Inverse
+	(default)
+0x7f0f00e0 - style/TextAppearance.AppCompat.Title
+	(default)
+0x7f0f00e1 - style/TextAppearance.AppCompat.Title.Inverse
+	(default)
+0x7f0f00e2 - style/TextAppearance.AppCompat.Tooltip
+	(default)
+0x7f0f00e3 - style/TextAppearance.AppCompat.Widget.ActionBar.Menu
+	(default)
+0x7f0f00e4 - style/TextAppearance.AppCompat.Widget.ActionBar.Subtitle
+	(default)
+0x7f0f00e5 - style/TextAppearance.AppCompat.Widget.ActionBar.Subtitle.Inverse
+	(default)
+0x7f0f00e6 - style/TextAppearance.AppCompat.Widget.ActionBar.Title
+	(default)
+0x7f0f00e7 - style/TextAppearance.AppCompat.Widget.ActionBar.Title.Inverse
+	(default)
+0x7f0f00e8 - style/TextAppearance.AppCompat.Widget.ActionMode.Subtitle
+	(default)
+0x7f0f00e9 - style/TextAppearance.AppCompat.Widget.ActionMode.Subtitle.Inverse
+	(default)
+0x7f0f00ea - style/TextAppearance.AppCompat.Widget.ActionMode.Title
+	(default)
+0x7f0f00eb - style/TextAppearance.AppCompat.Widget.ActionMode.Title.Inverse
+	(default)
+0x7f0f00ec - style/TextAppearance.AppCompat.Widget.Button
+	(default)
+0x7f0f00ed - style/TextAppearance.AppCompat.Widget.Button.Borderless.Colored
+	(default)
+0x7f0f00ee - style/TextAppearance.AppCompat.Widget.Button.Colored
+	(default)
+0x7f0f00ef - style/TextAppearance.AppCompat.Widget.Button.Inverse
+	(default)
+0x7f0f00f0 - style/TextAppearance.AppCompat.Widget.DropDownItem
+	(default)
+0x7f0f00f1 - style/TextAppearance.AppCompat.Widget.PopupMenu.Header
+	(default)
+0x7f0f00f2 - style/TextAppearance.AppCompat.Widget.PopupMenu.Large
+	(default)
+0x7f0f00f3 - style/TextAppearance.AppCompat.Widget.PopupMenu.Small
+	(default)
+0x7f0f00f4 - style/TextAppearance.AppCompat.Widget.Switch
+	(default)
+0x7f0f00f5 - style/TextAppearance.AppCompat.Widget.TextView.SpinnerItem
+	(default)
+0x7f0f00f6 - style/TextAppearance.Compat.Notification
+	(default)
+0x7f0f00f7 - style/TextAppearance.Compat.Notification.Info
+	(default)
+0x7f0f00f8 - style/TextAppearance.Compat.Notification.Line2
+	(default)
+0x7f0f00f9 - style/TextAppearance.Compat.Notification.Time
+	(default)
+0x7f0f00fa - style/TextAppearance.Compat.Notification.Title
+	(default)
+0x7f0f00fb - style/TextAppearance.Widget.AppCompat.ExpandedMenu.Item
+	(default)
+0x7f0f00fc - style/TextAppearance.Widget.AppCompat.Toolbar.Subtitle
+	(default)
+0x7f0f00fd - style/TextAppearance.Widget.AppCompat.Toolbar.Title
+	(default)
+0x7f0f00fe - style/Theme.AppCompat
+	(default)
+0x7f0f00ff - style/Theme.AppCompat.CompactMenu
+	(default)
+0x7f0f0100 - style/Theme.AppCompat.DayNight
+	(default)
+	ui_mode_night: UI_MODE_NIGHT_NIGHT
+0x7f0f0101 - style/Theme.AppCompat.DayNight.DarkActionBar
+	(default)
+	ui_mode_night: UI_MODE_NIGHT_NIGHT
+0x7f0f0102 - style/Theme.AppCompat.DayNight.Dialog
+	(default)
+	ui_mode_night: UI_MODE_NIGHT_NIGHT
+0x7f0f0103 - style/Theme.AppCompat.DayNight.Dialog.Alert
+	(default)
+	ui_mode_night: UI_MODE_NIGHT_NIGHT
+0x7f0f0104 - style/Theme.AppCompat.DayNight.Dialog.MinWidth
+	(default)
+	ui_mode_night: UI_MODE_NIGHT_NIGHT
+0x7f0f0105 - style/Theme.AppCompat.DayNight.DialogWhenLarge
+	(default)
+	ui_mode_night: UI_MODE_NIGHT_NIGHT
+0x7f0f0106 - style/Theme.AppCompat.DayNight.NoActionBar
+	(default)
+	ui_mode_night: UI_MODE_NIGHT_NIGHT
+0x7f0f0107 - style/Theme.AppCompat.Dialog
+	(default)
+0x7f0f0108 - style/Theme.AppCompat.Dialog.Alert
+	(default)
+0x7f0f0109 - style/Theme.AppCompat.Dialog.MinWidth
+	(default)
+0x7f0f010a - style/Theme.AppCompat.DialogWhenLarge
+	(default)
+0x7f0f010b - style/Theme.AppCompat.Empty
+	(default)
+0x7f0f010c - style/Theme.AppCompat.Light
+	(default)
+0x7f0f010d - style/Theme.AppCompat.Light.DarkActionBar
+	(default)
+0x7f0f010e - style/Theme.AppCompat.Light.Dialog
+	(default)
+0x7f0f010f - style/Theme.AppCompat.Light.Dialog.Alert
+	(default)
+0x7f0f0110 - style/Theme.AppCompat.Light.Dialog.MinWidth
+	(default)
+0x7f0f0111 - style/Theme.AppCompat.Light.DialogWhenLarge
+	(default)
+0x7f0f0112 - style/Theme.AppCompat.Light.NoActionBar
+	(default)
+0x7f0f0113 - style/Theme.AppCompat.NoActionBar
+	(default)
+0x7f0f0114 - style/Theme.Hidden
+	(default)
+0x7f0f0115 - style/Theme.PlayCore.Transparent
+	(default)
+0x7f0f0116 - style/Theme.SplashScreen
+	(default)
+	sdk_version: 31
+0x7f0f0117 - style/Theme.SplashScreen.Common
+	(default)
+0x7f0f0118 - style/Theme.SplashScreen.IconBackground
+	(default)
+	sdk_version: 31
+0x7f0f0119 - style/ThemeOverlay.AppCompat
+	(default)
+0x7f0f011a - style/ThemeOverlay.AppCompat.ActionBar
+	(default)
+0x7f0f011b - style/ThemeOverlay.AppCompat.Dark
+	(default)
+0x7f0f011c - style/ThemeOverlay.AppCompat.Dark.ActionBar
+	(default)
+0x7f0f011d - style/ThemeOverlay.AppCompat.DayNight
+	(default)
+	ui_mode_night: UI_MODE_NIGHT_NIGHT
+0x7f0f011e - style/ThemeOverlay.AppCompat.DayNight.ActionBar
+	(default)
+0x7f0f011f - style/ThemeOverlay.AppCompat.Dialog
+	(default)
+0x7f0f0120 - style/ThemeOverlay.AppCompat.Dialog.Alert
+	(default)
+0x7f0f0121 - style/ThemeOverlay.AppCompat.Light
+	(default)
+0x7f0f0122 - style/Widget.AppCompat.ActionBar
+	(default)
+0x7f0f0123 - style/Widget.AppCompat.ActionBar.Solid
+	(default)
+0x7f0f0124 - style/Widget.AppCompat.ActionBar.TabBar
+	(default)
+0x7f0f0125 - style/Widget.AppCompat.ActionBar.TabText
+	(default)
+0x7f0f0126 - style/Widget.AppCompat.ActionBar.TabView
+	(default)
+0x7f0f0127 - style/Widget.AppCompat.ActionButton
+	(default)
+0x7f0f0128 - style/Widget.AppCompat.ActionButton.CloseMode
+	(default)
+0x7f0f0129 - style/Widget.AppCompat.ActionButton.Overflow
+	(default)
+0x7f0f012a - style/Widget.AppCompat.ActionMode
+	(default)
+0x7f0f012b - style/Widget.AppCompat.ActivityChooserView
+	(default)
+0x7f0f012c - style/Widget.AppCompat.AutoCompleteTextView
+	(default)
+0x7f0f012d - style/Widget.AppCompat.Button
+	(default)
+0x7f0f012e - style/Widget.AppCompat.Button.Borderless
+	(default)
+0x7f0f012f - style/Widget.AppCompat.Button.Borderless.Colored
+	(default)
+0x7f0f0130 - style/Widget.AppCompat.Button.ButtonBar.AlertDialog
+	(default)
+0x7f0f0131 - style/Widget.AppCompat.Button.Colored
+	(default)
+0x7f0f0132 - style/Widget.AppCompat.Button.Small
+	(default)
+0x7f0f0133 - style/Widget.AppCompat.ButtonBar
+	(default)
+0x7f0f0134 - style/Widget.AppCompat.ButtonBar.AlertDialog
+	(default)
+0x7f0f0135 - style/Widget.AppCompat.CompoundButton.CheckBox
+	(default)
+0x7f0f0136 - style/Widget.AppCompat.CompoundButton.RadioButton
+	(default)
+0x7f0f0137 - style/Widget.AppCompat.CompoundButton.Switch
+	(default)
+0x7f0f0138 - style/Widget.AppCompat.DrawerArrowToggle
+	(default)
+0x7f0f0139 - style/Widget.AppCompat.DropDownItem.Spinner
+	(default)
+0x7f0f013a - style/Widget.AppCompat.EditText
+	(default)
+0x7f0f013b - style/Widget.AppCompat.ImageButton
+	(default)
+0x7f0f013c - style/Widget.AppCompat.Light.ActionBar
+	(default)
+0x7f0f013d - style/Widget.AppCompat.Light.ActionBar.Solid
+	(default)
+0x7f0f013e - style/Widget.AppCompat.Light.ActionBar.Solid.Inverse
+	(default)
+0x7f0f013f - style/Widget.AppCompat.Light.ActionBar.TabBar
+	(default)
+0x7f0f0140 - style/Widget.AppCompat.Light.ActionBar.TabBar.Inverse
+	(default)
+0x7f0f0141 - style/Widget.AppCompat.Light.ActionBar.TabText
+	(default)
+0x7f0f0142 - style/Widget.AppCompat.Light.ActionBar.TabText.Inverse
+	(default)
+0x7f0f0143 - style/Widget.AppCompat.Light.ActionBar.TabView
+	(default)
+0x7f0f0144 - style/Widget.AppCompat.Light.ActionBar.TabView.Inverse
+	(default)
+0x7f0f0145 - style/Widget.AppCompat.Light.ActionButton
+	(default)
+0x7f0f0146 - style/Widget.AppCompat.Light.ActionButton.CloseMode
+	(default)
+0x7f0f0147 - style/Widget.AppCompat.Light.ActionButton.Overflow
+	(default)
+0x7f0f0148 - style/Widget.AppCompat.Light.ActionMode.Inverse
+	(default)
+0x7f0f0149 - style/Widget.AppCompat.Light.ActivityChooserView
+	(default)
+0x7f0f014a - style/Widget.AppCompat.Light.AutoCompleteTextView
+	(default)
+0x7f0f014b - style/Widget.AppCompat.Light.DropDownItem.Spinner
+	(default)
+0x7f0f014c - style/Widget.AppCompat.Light.ListPopupWindow
+	(default)
+0x7f0f014d - style/Widget.AppCompat.Light.ListView.DropDown
+	(default)
+0x7f0f014e - style/Widget.AppCompat.Light.PopupMenu
+	(default)
+0x7f0f014f - style/Widget.AppCompat.Light.PopupMenu.Overflow
+	(default)
+0x7f0f0150 - style/Widget.AppCompat.Light.SearchView
+	(default)
+0x7f0f0151 - style/Widget.AppCompat.Light.Spinner.DropDown.ActionBar
+	(default)
+0x7f0f0152 - style/Widget.AppCompat.ListMenuView
+	(default)
+0x7f0f0153 - style/Widget.AppCompat.ListPopupWindow
+	(default)
+0x7f0f0154 - style/Widget.AppCompat.ListView
+	(default)
+0x7f0f0155 - style/Widget.AppCompat.ListView.DropDown
+	(default)
+0x7f0f0156 - style/Widget.AppCompat.ListView.Menu
+	(default)
+0x7f0f0157 - style/Widget.AppCompat.PopupMenu
+	(default)
+0x7f0f0158 - style/Widget.AppCompat.PopupMenu.Overflow
+	(default)
+0x7f0f0159 - style/Widget.AppCompat.PopupWindow
+	(default)
+0x7f0f015a - style/Widget.AppCompat.ProgressBar
+	(default)
+0x7f0f015b - style/Widget.AppCompat.ProgressBar.Horizontal
+	(default)
+0x7f0f015c - style/Widget.AppCompat.RatingBar
+	(default)
+0x7f0f015d - style/Widget.AppCompat.RatingBar.Indicator
+	(default)
+0x7f0f015e - style/Widget.AppCompat.RatingBar.Small
+	(default)
+0x7f0f015f - style/Widget.AppCompat.SearchView
+	(default)
+0x7f0f0160 - style/Widget.AppCompat.SearchView.ActionBar
+	(default)
+0x7f0f0161 - style/Widget.AppCompat.SeekBar
+	(default)
+0x7f0f0162 - style/Widget.AppCompat.SeekBar.Discrete
+	(default)
+0x7f0f0163 - style/Widget.AppCompat.Spinner
+	(default)
+0x7f0f0164 - style/Widget.AppCompat.Spinner.DropDown
+	(default)
+0x7f0f0165 - style/Widget.AppCompat.Spinner.DropDown.ActionBar
+	(default)
+0x7f0f0166 - style/Widget.AppCompat.Spinner.Underlined
+	(default)
+0x7f0f0167 - style/Widget.AppCompat.TextView
+	(default)
+0x7f0f0168 - style/Widget.AppCompat.TextView.SpinnerItem
+	(default)
+0x7f0f0169 - style/Widget.AppCompat.Toolbar
+	(default)
+0x7f0f016a - style/Widget.AppCompat.Toolbar.Button.Navigation
+	(default)
+0x7f0f016b - style/Widget.Compat.NotificationActionContainer
+	(default)
+0x7f0f016c - style/Widget.Compat.NotificationActionText
+	(default)
+0x7f0f016d - style/Widget.Support.CoordinatorLayout
+	(default)
+0x7f100000 - styleable/ActionBar
+	(default)
+0x7f100001 - styleable/ActionBarLayout
+	(default)
+0x7f100002 - styleable/ActionMenuItemView
+	(default)
+0x7f100003 - styleable/ActionMenuView
+	(default)
+0x7f100004 - styleable/ActionMode
+	(default)
+0x7f100005 - styleable/ActivityChooserView
+	(default)
+0x7f100006 - styleable/AlertDialog
+	(default)
+0x7f100007 - styleable/AnimatedStateListDrawableCompat
+	(default)
+0x7f100008 - styleable/AnimatedStateListDrawableItem
+	(default)
+0x7f100009 - styleable/AnimatedStateListDrawableTransition
+	(default)
+0x7f10000a - styleable/AppCompatEmojiHelper
+	(default)
+0x7f10000b - styleable/AppCompatImageView
+	(default)
+0x7f10000c - styleable/AppCompatSeekBar
+	(default)
+0x7f10000d - styleable/AppCompatTextHelper
+	(default)
+0x7f10000e - styleable/AppCompatTextView
+	(default)
+0x7f10000f - styleable/AppCompatTheme
+	(default)
+0x7f100010 - styleable/ButtonBarLayout
+	(default)
+0x7f100011 - styleable/Capability
+	(default)
+0x7f100012 - styleable/CheckedTextView
+	(default)
+0x7f100013 - styleable/ColorStateListItem
+	(default)
+0x7f100014 - styleable/CompoundButton
+	(default)
+0x7f100015 - styleable/CoordinatorLayout
+	(default)
+0x7f100016 - styleable/CoordinatorLayout_Layout
+	(default)
+0x7f100017 - styleable/DrawerArrowToggle
+	(default)
+0x7f100018 - styleable/FontFamily
+	(default)
+0x7f100019 - styleable/FontFamilyFont
+	(default)
+0x7f10001a - styleable/FontFamilyProviderFallback
+	(default)
+0x7f10001b - styleable/Fragment
+	(default)
+0x7f10001c - styleable/FragmentContainerView
+	(default)
+0x7f10001d - styleable/GradientColor
+	(default)
+0x7f10001e - styleable/GradientColorItem
+	(default)
+0x7f10001f - styleable/LinearLayoutCompat
+	(default)
+0x7f100020 - styleable/LinearLayoutCompat_Layout
+	(default)
+0x7f100021 - styleable/ListPopupWindow
+	(default)
+0x7f100022 - styleable/LoadingImageView
+	(default)
+0x7f100023 - styleable/MenuGroup
+	(default)
+0x7f100024 - styleable/MenuItem
+	(default)
+0x7f100025 - styleable/MenuView
+	(default)
+0x7f100026 - styleable/PopupWindow
+	(default)
+0x7f100027 - styleable/PopupWindowBackgroundState
+	(default)
+0x7f100028 - styleable/RecycleListView
+	(default)
+0x7f100029 - styleable/SearchView
+	(default)
+0x7f10002a - styleable/SignInButton
+	(default)
+0x7f10002b - styleable/Spinner
+	(default)
+0x7f10002c - styleable/StateListDrawable
+	(default)
+0x7f10002d - styleable/StateListDrawableItem
+	(default)
+0x7f10002e - styleable/SwitchCompat
+	(default)
+0x7f10002f - styleable/TextAppearance
+	(default)
+0x7f100030 - styleable/Toolbar
+	(default)
+0x7f100031 - styleable/View
+	(default)
+0x7f100032 - styleable/ViewBackgroundHelper
+	(default)
+0x7f100033 - styleable/ViewStubCompat
+	(default)
+0x7f110000 - xml/config
+	(default)
+0x7f110001 - xml/file_paths
+	(default)
+0x7f110002 - xml/image_share_filepaths
+	(default)
+

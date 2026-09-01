@@ -1,0 +1,36 @@
+== prebuild provenance ==
+2026-08-31 00:14:26    
+## zombie_only...origin/zombie_only
+ M Developer/r3f_prototype/android/app/build.gradle
+?? Developer/agent_room/aab_v51_35ef77c3_evidence_2026-08-31/
+zombie_only
+35ef77c38748f19c8542746e6c806b55bee6e76a
+tracked diff names:
+Developer/r3f_prototype/android/app/build.gradle
+build.gradle diff:
+diff --git a/Developer/r3f_prototype/android/app/build.gradle b/Developer/r3f_prototype/android/app/build.gradle
+index bdf74b8b..4deadefa 100644
+--- a/Developer/r3f_prototype/android/app/build.gradle
++++ b/Developer/r3f_prototype/android/app/build.gradle
+@@ -13,7 +13,7 @@ android {
+         applicationId "com.jungyoon.zombieschool"
+         minSdkVersion rootProject.ext.minSdkVersion
+         targetSdkVersion rootProject.ext.targetSdkVersion
+-        versionCode 49
++        versionCode 51
+         versionName "1.0.26"
+         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+         aaptOptions {
+build.gradle version:
+13:        applicationId "com.jungyoon.zombieschool"
+16:        versionCode 51
+17:        versionName "1.0.26"
+PRE mutable AAB if exists:
+Developer/r3f_prototype/android/app/build/outputs/bundle/release/app-release.aab|15615486|2026-08-30 23:21:56.140020600 +0900
+a6f9d14a827a9bc509b117da66b7909f00ca5e484023a6982e542092834f0dcb *Developer/r3f_prototype/android/app/build/outputs/bundle/release/app-release.aab
+tool versions:
+v24.15.0
+11.12.1
+openjdk version "21.0.10" 2026-01-20
+OpenJDK Runtime Environment (build 21.0.10+-14961533-b1163.108)
+OpenJDK 64-Bit Server VM (build 21.0.10+-14961533-b1163.108, mixed mode)

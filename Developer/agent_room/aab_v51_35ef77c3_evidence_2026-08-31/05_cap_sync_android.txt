@@ -1,0 +1,8 @@
+√ Copying web assets from dist to android\app\src\main\assets\public in 201.62ms
+√ Creating capacitor.config.json in android\app\src\main\assets in 4.93ms
+√ copy android in 301.53ms
+√ Updating Android plugins in 6.11ms
+[info] Found 1 Capacitor plugin for android:
+       @capacitor-firebase/authentication@8.3.0
+√ update android in 140.98ms
+[info] Sync finished in 0.559s

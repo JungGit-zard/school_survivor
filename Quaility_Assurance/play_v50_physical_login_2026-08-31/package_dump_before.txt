@@ -1,0 +1,278 @@
+Activity Resolver Table:
+  Schemes:
+      genericidp:
+        b888a3 com.jungyoon.zombieschool/com.google.firebase.auth.internal.GenericIdpActivity filter 94607a0
+          Action: "android.intent.action.VIEW"
+          Category: "android.intent.category.DEFAULT"
+          Category: "android.intent.category.BROWSABLE"
+          Scheme: "genericidp"
+          Authority: "firebase.auth": -1
+          Path: "PatternMatcher{LITERAL: /}"
+      recaptcha:
+        ee42f59 com.jungyoon.zombieschool/com.google.firebase.auth.internal.RecaptchaActivity filter 56b771e
+          Action: "android.intent.action.VIEW"
+          Category: "android.intent.category.DEFAULT"
+          Category: "android.intent.category.BROWSABLE"
+          Scheme: "recaptcha"
+          Authority: "firebase.auth": -1
+          Path: "PatternMatcher{LITERAL: /}"
+
+  Non-Data Actions:
+      android.intent.action.MAIN:
+        8e84a5d com.jungyoon.zombieschool/.MainActivity filter 27e2fd2
+          Action: "android.intent.action.MAIN"
+          Category: "android.intent.category.LAUNCHER"
+
+Receiver Resolver Table:
+  Non-Data Actions:
+      androidx.profileinstaller.action.SAVE_PROFILE:
+        c410bff com.jungyoon.zombieschool/androidx.profileinstaller.ProfileInstallReceiver filter 153e72a
+          Action: "androidx.profileinstaller.action.SAVE_PROFILE"
+      androidx.profileinstaller.action.INSTALL_PROFILE:
+        c410bff com.jungyoon.zombieschool/androidx.profileinstaller.ProfileInstallReceiver filter f93fdcc
+          Action: "androidx.profileinstaller.action.INSTALL_PROFILE"
+      androidx.profileinstaller.action.SKIP_FILE:
+        c410bff com.jungyoon.zombieschool/androidx.profileinstaller.ProfileInstallReceiver filter 11f6815
+          Action: "androidx.profileinstaller.action.SKIP_FILE"
+      androidx.profileinstaller.action.BENCHMARK_OPERATION:
+        c410bff com.jungyoon.zombieschool/androidx.profileinstaller.ProfileInstallReceiver filter 5a4691b
+          Action: "androidx.profileinstaller.action.BENCHMARK_OPERATION"
+
+Domain verification status:
+
+Permissions:
+  Permission [com.jungyoon.zombieschool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION] (cf1cad3):
+    sourcePackage=com.jungyoon.zombieschool
+    uid=10375 gids=[] type=0 prot=signature
+    perm=PermissionInfo{1af35d com.jungyoon.zombieschool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION}
+    flags=0x0
+
+Registered ContentProviders:
+  com.jungyoon.zombieschool/androidx.core.content.FileProvider:
+    Provider{88e24d2 com.jungyoon.zombieschool/androidx.core.content.FileProvider}
+  com.jungyoon.zombieschool/com.google.firebase.provider.FirebaseInitProvider:
+    Provider{29d9a3 com.jungyoon.zombieschool/com.google.firebase.provider.FirebaseInitProvider}
+  com.jungyoon.zombieschool/androidx.startup.InitializationProvider:
+    Provider{93384a0 com.jungyoon.zombieschool/androidx.startup.InitializationProvider}
+
+ContentProvider Authorities:
+  [com.jungyoon.zombieschool.firebaseinitprovider]:
+    Provider{29d9a3 com.jungyoon.zombieschool/com.google.firebase.provider.FirebaseInitProvider}
+      applicationInfo=ApplicationInfo{f1d610 com.jungyoon.zombieschool}
+  [com.jungyoon.zombieschool.fileprovider]:
+    Provider{88e24d2 com.jungyoon.zombieschool/androidx.core.content.FileProvider}
+      applicationInfo=ApplicationInfo{6913509 com.jungyoon.zombieschool}
+  [com.jungyoon.zombieschool.androidx-startup]:
+    Provider{93384a0 com.jungyoon.zombieschool/androidx.startup.InitializationProvider}
+      applicationInfo=ApplicationInfo{7f2830e com.jungyoon.zombieschool}
+
+Key Set Manager:
+  [com.jungyoon.zombieschool]
+      Signing KeySets: 111
+
+Packages:
+  Package [com.jungyoon.zombieschool] (104412f):
+    appId=10375
+    pkg=Package{4de3115 com.jungyoon.zombieschool}
+    codePath=/data/app/~~yjz7NNYx_X8YdmJmocPybw==/com.jungyoon.zombieschool-SWLa81IbMJD3bFWrs5vc4w==
+    resourcePath=/data/app/~~yjz7NNYx_X8YdmJmocPybw==/com.jungyoon.zombieschool-SWLa81IbMJD3bFWrs5vc4w==
+    legacyNativeLibraryDir=/data/app/~~yjz7NNYx_X8YdmJmocPybw==/com.jungyoon.zombieschool-SWLa81IbMJD3bFWrs5vc4w==/lib
+    extractNativeLibs=false
+    primaryCpuAbi=null
+    secondaryCpuAbi=null
+    cpuAbiOverride=null
+    versionCode=50 minSdk=24 targetSdk=36
+    minExtensionVersions=[]
+    versionName=1.0.26
+    hiddenApiEnforcementPolicy=2
+    usesNonSdkApi=false
+    splits=[base, config.ko, config.xxhdpi]
+    apkSigningVersion=3
+    flags=[ HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP KILL_AFTER_RESTORE ]
+    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE PARTIALLY_DIRECT_BOOT_AWARE PRIVATE_FLAG_ALLOW_NATIVE_HEAP_POINTER_TAGGING ]
+    forceQueryable=false
+    pageSizeCompat=0
+    scannedAsStoppedSystemApp=false
+    supportsScreens=[small, medium, large, xlarge, resizeable, anyDensity]
+    timeStamp=2026-08-31 00:08:04
+    lastUpdateTime=2026-08-31 00:08:11
+    installerPackageName=com.android.vending
+    installerPackageUid=10244
+    initiatingPackageName=com.android.vending
+    originatingPackageName=null
+    updateOwnerPackageName=com.android.vending
+    category=manifest: 0, override: 0, by user: -1
+    packageSource=0
+    appMetadataFilePath=/data/app/~~yjz7NNYx_X8YdmJmocPybw==/com.jungyoon.zombieschool-SWLa81IbMJD3bFWrs5vc4w==/app.metadata
+    appMetadataSource=2
+    signatures=PackageSignatures{18101ef version:3, signatures:[25d5b83a], past signatures:[]}
+    installPermissionsFixed=false
+    pkgFlags=[ HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP KILL_AFTER_RESTORE ]
+    privatePkgFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE PARTIALLY_DIRECT_BOOT_AWARE PRIVATE_FLAG_ALLOW_NATIVE_HEAP_POINTER_TAGGING ]
+    apexModuleName=null
+    componentsDeclared=15
+    declared permissions:
+      com.jungyoon.zombieschool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION: prot=signature
+    requested permissions:
+      com.google.android.providers.gsf.permission.READ_GSERVICES
+      com.jungyoon.zombieschool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+      android.permission.INTERNET
+      com.android.vending.CHECK_LICENSE
+      android.permission.ACCESS_NETWORK_STATE
+    install permissions:
+      com.google.android.providers.gsf.permission.READ_GSERVICES: granted=true
+      com.jungyoon.zombieschool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION: granted=true
+      android.permission.INTERNET: granted=true
+      com.android.vending.CHECK_LICENSE: granted=true
+      android.permission.ACCESS_NETWORK_STATE: granted=true
+    User 0: ceDataInode=27206 deDataInode=27170 installed=true hidden=false suspended=false distractionFlags=0 stopped=false notLaunched=false enabled=0 instant=false virtual=false quarantined=false
+      installReason=4
+      dataDir=/data/user/0/com.jungyoon.zombieschool
+      firstInstallTime=2026-08-18 21:39:51
+      uninstallReason=0
+      overlay paths:
+        /product/overlay/NotesRoleEnabled/NotesRoleEnabledOverlay.apk
+      legacy overlay paths:
+        /product/overlay/NotesRoleEnabled/NotesRoleEnabledOverlay.apk
+      lastDisabledCaller: com.android.vending
+      gids=[3003]
+      runtime permissions:
+
+Queries:
+  system apps queryable: false
+  queries via forceQueryable:
+  queries via package name:
+  queries via component:
+    com.lguplus.lgugpsnwps:
+      com.jungyoon.zombieschool
+    com.skt.skaf.OA00018282:
+      com.jungyoon.zombieschool
+    com.skt.skaf.A000Z00040:
+      com.jungyoon.zombieschool
+    com.android.settings.intelligence:
+      com.jungyoon.zombieschool
+    com.skt.prod.dialer:
+      com.jungyoon.zombieschool
+    com.tms:
+      com.jungyoon.zombieschool
+    com.google.android.apps.accessibility.voiceaccess:
+      com.jungyoon.zombieschool
+    com.google.android.as:
+      com.jungyoon.zombieschool
+    com.google.android.as.oss:
+      com.jungyoon.zombieschool
+    com.skt.tmap.ku:
+      com.jungyoon.zombieschool
+    com.skt.skaf.OA00026910:
+      com.jungyoon.zombieschool
+    com.towneers.www:
+      com.jungyoon.zombieschool
+    com.microsoft.office.outlook:
+      com.jungyoon.zombieschool
+  queryable via interaction:
+    User 0:
+      [android,com.sec.android.smartfpsadjuster,com.samsung.android.app.dressroom,com.samsung.android.brightnessbackupservice,com.ims.dm,com.sec.android.sdhms,com.sec.android.CcInfo,com.samsung.android.provider.filterprovider,com.sec.usbsettings,com.sec.facatfunction,com.sec.android.emergencylauncher,com.sec.android.soagent,com.samsung.android.biometrics.app.setting,com.sec.android.app.quicktool,com.samsung.android.forest,com.sec.modem.settings,com.sec.mhs.smarttethering,com.sec.android.app.SecSetupWizard,com.android.localtransport,com.samsung.android.knox.attestation,com.samsung.aasaservice,com.android.settings,com.samsung.sec.android.teegris.tui_service,com.samsung.android.vtcamerasettings,com.sec.android.iaft,com.sec.android.app.RilPhoneNumberService,com.samsung.android.app.omcagent,com.samsung.android.dqagent,com.sec.android.diagmonagent,com.samsung.android.knox.pushmanager,com.android.keychain,com.sec.automation,com.sec.sve,com.samsung.android.wifi.ai,com.samsung.android.hdmapp,com.samsung.android.aircommandmanager,com.sec.android.app.factorykeystring,com.sec.imsservice,com.sec.android.app.parser,com.samsung.android.stickercenter,com.samsung.android.globalpostprocmgr,com.android.server.telecom,com.samsung.android.emergency,com.sec.android.app.wlantest,com.samsung.android.da.daagent,com.samsung.SMT,com.android.dynsystem,com.samsung.oda.service,com.samsung.android.lool,com.sec.app.RilErrorNotifier,com.samsung.android.svcagent,com.samsung.gpuwatchapp,com.sec.android.app.hwmoduletest,com.samsung.android.knox.zt.framework,com.sec.factory.camera,com.samsung.android.fmm,com.android.providers.settings,com.sec.imslogger,com.android.location.fused,com.samsung.sait.sohservice,com.skms.android.agent,com.android.inputdevices,com.samsung.android.bbc.bbcagent,com.samsung.android.mdecservice,com.samsung.android.smartswitchassistant,com.samsung.android.knox.mpos,com.wssyncmldm,com.sec.android.app.servicemodeapp,com.sec.bcservice,com.samsung.accessibility,com.samsung.android.providers.factory,com.sec.epdg,com.samsung.android.messageguardsync,com.samsung.android.smartface,com.samsung.android.themecenter]:
+        com.jungyoon.zombieschool
+      com.samsung.android.honeyboard:
+        com.jungyoon.zombieschool
+      com.android.vending:
+        com.jungyoon.zombieschool
+      [com.google.android.gsf,com.google.android.gms]:
+        com.jungyoon.zombieschool
+      com.google.android.webview:
+        com.jungyoon.zombieschool
+      com.jungyoon.zombieschool:
+        com.google.android.webview
+  queryable via uses-library:
+
+Dexopt state:
+  [com.jungyoon.zombieschool]
+    path: /data/app/~~yjz7NNYx_X8YdmJmocPybw==/com.jungyoon.zombieschool-SWLa81IbMJD3bFWrs5vc4w==/base.apk
+      arm64: [status=speed-profile] [reason=install-dm] [primary-abi]
+        [location is /data/app/~~yjz7NNYx_X8YdmJmocPybw==/com.jungyoon.zombieschool-SWLa81IbMJD3bFWrs5vc4w==/oat/arm64/base.odex]
+
+SPEG state:
+  Event #0: 14-08-2026 06:54:24.057 Success com.jungyoon.zombieschool took 2414 ms
+
+Profile utilization state:
+  Current state:
+    Version: 2.1.2
+    Start reason: boot-no-update
+    Start time: not started
+    Finish time: not finished
+    PU_StatusWatcher:
+      Initial thermal status: 0
+      Thermal status: 0
+      Screen off: false
+      Low battery: true
+    PU_DexoptTrigger:
+      Dexopt concurrency: 4
+      Dexopting: false
+    PU_Storage:
+      Stored apps:
+        com.sec.android.app.clockpackage 44
+        com.skt.skaf.A000Z00040 45
+        com.android.settings 51
+        com.sec.android.app.camera 54
+        com.samsung.android.messaging 59
+        com.samsung.android.calendar 68
+        com.google.android.googlequicksearchbox 69
+        com.android.vending 72
+        com.samsung.android.app.watchmanager 72
+        com.samsung.android.app.contacts 76
+        com.tms 79
+        com.skt.prod.dialer 81
+        com.sktelecom.minit 81
+        com.google.android.apps.tachyon 83
+        com.samsung.android.dialer 84
+        com.sec.android.easyMover 85
+    Stored PU state:
+      Service:
+        Version: 2.1.2
+        Start reason: boot-after-ota
+        Start time: Thu Aug 06 22:00:36 GMT+09:00 2026 ts=1786021236136
+        Finish time: Thu Aug 06 22:22:52 GMT+09:00 2026 ts=1786022572706
+        Took time 1336sec
+      Watcher:
+        Initial thermal status: 0
+        Thermal status: 0
+        Screen off: true
+        Low battery: false
+      Metrics:
+        Predicted and launched apps: 3
+        Predicted apps: 11
+        Launched apps: 3
+        Best f1Score: 0.6666667, prefixCount: 3, precision: 0.6666667, recall: 0.6666667
+      Trigger:
+        Dexopt concurrency: 4
+        Dexopting: false
+        Hot apps list:
+          com.sec.android.app.clockpackage, w=44, s=OPTIMIZED, optTimeMs=1786021296759, cancelCount=0, dexopt=PERFORMED, [primaryDex=true, reason=profile-utilization, dex2oatTimeMs=3705, filter=speed-profile]
+          com.skt.skaf.A000Z00040, w=45, s=OPTIMIZED, optTimeMs=1786021747049, cancelCount=1, dexopt=PERFORMED, [primaryDex=true, reason=profile-utilization, dex2oatTimeMs=34959, filter=speed-profile]
+          com.android.settings, w=51, s=OPTIMIZED, optTimeMs=1786021249725, cancelCount=0, dexopt=SKIPPED, [primaryDex=true, reason=boot-after-ota, dex2oatTimeMs=0, filter=verify]
+          com.sec.android.app.camera, w=54, s=OPTIMIZED, optTimeMs=1786021249725, cancelCount=0, dexopt=SKIPPED, [primaryDex=true, reason=boot-after-ota, dex2oatTimeMs=0, filter=speed-profile]
+          com.samsung.android.messaging, w=59, s=OPTIMIZED, optTimeMs=1786021249816, cancelCount=0, dexopt=SKIPPED, [primaryDex=true, reason=boot-after-ota, dex2oatTimeMs=0, filter=speed-profile]
+          com.samsung.android.calendar, w=68, s=OPTIMIZED, optTimeMs=1786021694708, cancelCount=1, dexopt=PERFORMED, [primaryDex=true, reason=profile-utilization, dex2oatTimeMs=19109, filter=speed-profile]
+          com.google.android.googlequicksearchbox, w=69, s=OPTIMIZED, optTimeMs=1786022570232, cancelCount=3, dexopt=PERFORMED, [primaryDex=true, reason=profile-utilization, dex2oatTimeMs=63656, filter=speed-profile]
+          com.android.vending, w=72, s=OPTIMIZED, optTimeMs=1786022572705, cancelCount=3, dexopt=PERFORMED, [primaryDex=true, reason=profile-utilization, dex2oatTimeMs=65609, filter=speed-profile], [primaryDex=false, reason=vdex, dex2oatTimeMs=0, filter=verify], [primaryDex=false, reason=profile-utilization, dex2oatTimeMs=206, filter=verify], [primaryDex=false, reason=vdex, dex2oatTimeMs=0, filter=verify]
+          com.samsung.android.app.watchmanager, w=72, s=OPTIMIZED, optTimeMs=1786021699793, cancelCount=0, dexopt=PERFORMED, [primaryDex=true, reason=profile-utilization, dex2oatTimeMs=4844, filter=speed-profile]
+          com.samsung.android.app.contacts, w=76, s=OPTIMIZED, optTimeMs=1786021869374, cancelCount=0, dexopt=PERFORMED, [primaryDex=true, reason=profile-utilization, dex2oatTimeMs=24975, filter=speed-profile]
+          com.tms, w=79, s=OPTIMIZED, optTimeMs=1786021867367, cancelCount=0, dexopt=PERFORMED, [primaryDex=true, reason=profile-utilization, dex2oatTimeMs=12455, filter=speed-profile]
+    Stored SCPM state:
+      packages-9a07:
+        [                                            ]
+      disable-2bb4:
+        [                                            ]
+
+HeimdAllFS state:
+  [com.jungyoon.zombieschool]
+    path: /data/app/~~yjz7NNYx_X8YdmJmocPybw==/com.jungyoon.zombieschool-SWLa81IbMJD3bFWrs5vc4w==/base.apk
+    Compressed? False
+    path: /data/app/~~yjz7NNYx_X8YdmJmocPybw==/com.jungyoon.zombieschool-SWLa81IbMJD3bFWrs5vc4w==/split_config.ko.apk
+    Compressed? False
+    path: /data/app/~~yjz7NNYx_X8YdmJmocPybw==/com.jungyoon.zombieschool-SWLa81IbMJD3bFWrs5vc4w==/split_config.xxhdpi.apk
+    Compressed? False
+  [ Summary ]
+    # of packages: 1 / # of packages in DATA: 1 (3)
+    Compressed apks info - sum of orig size: 2848 / sum of compr size : 2848
+  [Lfo status]

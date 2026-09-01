@@ -1,0 +1,5 @@
+== dist/android freshness ==
+dist index: index-BT4ef6KM.js 1698
+android copied index: index-BT4ef6KM.js 1698
+87b8e2deb95ead8b4dc361fcc4bafd1ba96074faac2cbee2cb17896e3994abd3 *dist/index.html
+87b8e2deb95ead8b4dc361fcc4bafd1ba96074faac2cbee2cb17896e3994abd3 *android/app/src/main/assets/public/index.html

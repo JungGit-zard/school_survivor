@@ -1,0 +1,3 @@
+List of devices attached
+R59X20044EX            device product:a24ks model:SM_A245N device:a24 transport_id:1
+

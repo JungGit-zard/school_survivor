@@ -1,0 +1,46 @@
+{
+  "aab": "D:\\JungSil\\2.Minigame_project\\aabv50_35ef77c3_clean\\Developer\\r3f_prototype\\android\\app\\build\\outputs\\bundle\\release\\app-release.aab",
+  "aab_size": 15615490,
+  "aab_sha256": "cb28f09aed939d64f6dfb2de1445f08ce6271efb6f85f7c7bd6963c9db63b2af",
+  "firebase_js_entries": [
+    "base/assets/public/assets/firebaseAuth-BwXnVWBo.js"
+  ],
+  "index_js_entries": [
+    "base/assets/public/assets/index-BT4ef6KM.js"
+  ],
+  "title_bgm_entries": [
+    {
+      "entry": "base/assets/public/assets/title_bgm-BMjuXxkY.m4a",
+      "size": 998122,
+      "sha256": "991bf9871fe70b55852920390b3b1434892cfc50da79d3e8fd900062b191cffe"
+    }
+  ],
+  "upload_cert_sha_lines": [
+    "SHA1: 6F:06:BA:57:9D:08:BA:A0:98:AF:26:A5:3C:49:9B:54:0A:05:76:51",
+    "SHA256: FE:18:FA:0E:BD:5C:E7:0F:30:04:6F:25:D3:07:5A:65:8A:2C:33:EA:DD:6F:5E:30:0C:85:FB:6E:E5:54:0F:3B"
+  ],
+  "checks": {
+    "bundletool_validate_exit0": true,
+    "manifest_package": true,
+    "manifest_versionCode_51": true,
+    "manifest_versionName_1_0_26": true,
+    "manifest_minSdk_24": true,
+    "manifest_targetSdk_36": true,
+    "resources_default_web_client_id_present": true,
+    "resources_google_app_id_present": true,
+    "resources_project_id_present": true,
+    "jarsigner_verified": true,
+    "zip_test_ok": true,
+    "firebase_project_marker": true,
+    "firebase_auth_domain_marker": true,
+    "firebase_rtdb_marker": true,
+    "api_key_present_redacted": true,
+    "GoogleAuthProvider_present": true,
+    "signInWithGoogle_present": true,
+    "signInWithCredential_present": true,
+    "FirebaseAuthentication_present": true,
+    "skipNativeAuth_true": true,
+    "google_provider_present": true,
+    "title_bgm_exact": true
+  }
+}

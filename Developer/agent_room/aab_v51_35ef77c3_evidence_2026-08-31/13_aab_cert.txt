@@ -1,0 +1,25 @@
+서명자 #1:
+
+Certificate #1:
+소유자: CN=Escape Zombie School, OU=Private Testing, O=JungSil, L=Seoul, ST=Seoul, C=KR
+발행자: CN=Escape Zombie School, OU=Private Testing, O=JungSil, L=Seoul, ST=Seoul, C=KR
+일련 번호: 7af18755309b8510
+적합한 시작 날짜: Sun Jun 21 22:47:54 KST 2026 종료 날짜: Thu Nov 06 22:47:54 KST 2053
+인증서 지문:
+	 SHA1: 6F:06:BA:57:9D:08:BA:A0:98:AF:26:A5:3C:49:9B:54:0A:05:76:51
+	 SHA256: FE:18:FA:0E:BD:5C:E7:0F:30:04:6F:25:D3:07:5A:65:8A:2C:33:EA:DD:6F:5E:30:0C:85:FB:6E:E5:54:0F:3B
+서명 알고리즘 이름: SHA384withRSA
+주체 공용 키 알고리즘: 2048비트 RSA 키
+버전: 3
+
+확장: 
+
+#1: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 80 4B 5B 96 8E 21 8C FE   25 70 EE F3 BD BD C1 9B  .K[..!..%p......
+0010: 97 4A 41 FD                                        .JA.
+]
+]
+
+

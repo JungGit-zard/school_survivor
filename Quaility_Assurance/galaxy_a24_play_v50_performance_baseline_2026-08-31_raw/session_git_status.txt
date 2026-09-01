@@ -1,0 +1,141 @@
+timestamp_utc=2026-08-30T15:54:03Z
+timestamp_local=2026-08-31T00:54:03+0900
+pwd=/d/JungSil/2.Minigame_project/school_survivor-integration
+## zombie_only...origin/zombie_only
+ M .claude/settings.json
+ M AGENTS.md
+ M Developer/agent_room/persistent_subagent_lounge_routing_2026-08-29.md
+ M Developer/agent_room/subagent_system_wiring_2026-07-03.md
+ D Developer/blockbench_blender_glb_pipeline_2026-08-29.md
+ D Developer/blockbench_install_audit_2026-08-29.md
+ D Developer/installed_3d_ai_toolchain_audit_2026-08-29.md
+ D Developer/player_image2_glb_vertical_slice_2026-08-29.md
+ D Developer/r3f_prototype/scripts/blockbench_blender_glb/README.md
+ D Developer/r3f_prototype/scripts/blockbench_blender_glb/input/README.md
+ D Developer/r3f_prototype/scripts/blockbench_blender_glb/make_lowpoly_fixture.py
+ D Developer/r3f_prototype/scripts/blockbench_blender_glb/normalize_export.py
+ D Developer/r3f_prototype/scripts/blockbench_blender_glb/pipeline_contract.py
+ D Developer/r3f_prototype/scripts/blockbench_blender_glb/run_pipeline.ps1
+ D Developer/r3f_prototype/scripts/blockbench_blender_glb/test_pipeline_contract.py
+ D Developer/r3f_prototype/scripts/blockbench_blender_glb/validate_glb.py
+ D Developer/r3f_prototype/scripts/player_image2/build_player_image2_raw_glb.py
+ D Developer/r3f_prototype/scripts/player_image2/generate_player_image2_bbmodel.mjs
+ D Developer/r3f_prototype/src/assets/models/player/intermediate/player-image2-authored-raw.glb
+ D Developer/r3f_prototype/src/assets/models/player/source/player-image2-2026-08-29.bbmodel
+ M Developer/r3f_prototype/src/components/Enemy.jsx
+ M Developer/r3f_prototype/src/components/EnemyVisual.test.js
+ M Developer/r3f_prototype/src/components/HUD.devCheats.test.jsx
+ M Developer/r3f_prototype/src/components/HUD.jsx
+ M Developer/r3f_prototype/src/components/Player.jsx
+ M Developer/r3f_prototype/src/components/Player.test.js
+ M Developer/r3f_prototype/src/lib/chibiko.test.js
+ M Developer/r3f_prototype/src/lib/matildaSpec.test.js
+ M Developer/r3f_prototype/src/lib/playerDpsEstimate.js
+ M Developer/r3f_prototype/src/lib/weaponPermanentUpgrades.test.js
+ M Developer/r3f_prototype/src/store/useGameStore.weaponPermanentUpgrades.test.js
+ D Graphic_designer/blockbench_blender_glb_pipeline_role_record_2026-08-29.md
+ D Graphic_designer/player_glb_comparison_viewer/assets/player-image2-2_5head-new-comparison.glb
+ D Graphic_designer/player_glb_comparison_viewer/index.html
+ D Graphic_designer/player_glb_comparison_viewer/start-viewer.ps1
+ D Graphic_designer/player_glb_comparison_viewer/styles.css
+ D Graphic_designer/player_glb_comparison_viewer/vendor/LICENSE
+ D Graphic_designer/player_glb_comparison_viewer/vendor/controls/OrbitControls.js
+ D Graphic_designer/player_glb_comparison_viewer/vendor/loaders/GLTFLoader.js
+ D Graphic_designer/player_glb_comparison_viewer/vendor/three.module.js
+ D Graphic_designer/player_glb_comparison_viewer/vendor/utils/BufferGeometryUtils.js
+ D Graphic_designer/player_glb_comparison_viewer/viewer.js
+ D Graphic_designer/player_glb_comparison_viewer/viewer.test.mjs
+ D Graphic_designer/player_glb_comparison_viewer/visual_record_2026-08-30.md
+ D Graphic_designer/player_image2_glb_modeling_record_2026-08-29.md
+ D Graphic_designer/player_image2_turnaround_2026-08-29.png
+ D Graphic_designer/zombie_school_ai_3d_modeling_pipeline_2026-08-29.md
+ D Planner/open_source_ai_3d_engine_landscape_2026-08-29.md
+ D Quaility_Assurance/blockbench_blender_glb_pipeline_acceptance_2026-08-29.md
+ D Quaility_Assurance/blockbench_ui_export_smoke_2026-08-29.md
+ D Quaility_Assurance/player_image2_glb_vertical_slice_acceptance_2026-08-29.md
+ D Quaility_Assurance/player_image2_glb_visual_qa_2026-08-29.md
+ D Quaility_Assurance/player_image2_glb_visual_qa_2026-08-29/player-image2-back-orthographic.png
+ D Quaility_Assurance/player_image2_glb_visual_qa_2026-08-29/player-image2-front-orthographic.png
+ D Quaility_Assurance/player_image2_glb_visual_qa_2026-08-29/player-image2-geometry-audit.txt
+ D Quaility_Assurance/player_image2_glb_visual_qa_2026-08-29/player-image2-right-orthographic.png
+ M SESSION_MEMORY.md
+?? .claude/hooks/normalize-voice-prompt.sh
+?? Developer/agent_room/aab_v51_35ef77c3_evidence_2026-08-31/
+?? Developer/agent_room/korean_voice_context_lounge_resident_2026-08-30.toh
+?? Developer/agent_room/korean_voice_context_windows_mic_learning_registration_2026-08-30.md
+?? Developer/agent_room/launchmini_aab_v49_real_device_build_2026-08-30.md
+?? Developer/agent_room/launchmini_aab_v50_35ef77c3_build_2026-08-30.md
+?? Developer/agent_room/launchmini_aab_v51_35ef77c3_build_2026-08-31.md
+?? Developer/agent_room/launchmini_aab_v51_35ef77c3_ready_report_2026-08-31.md
+?? Developer/agent_room/levelmini_weapon_analysis_fragment_2026-08-30.md
+?? Developer/agent_room/levelmini_weapon_balance_proposal_html_2026-08-30.md
+?? Developer/agent_room/levelmini_weapon_cap_fix_2026-08-30.md
+?? Developer/agent_room/levelmini_weapon_cap_html_status_update_2026-08-30.md
+?? Developer/agent_room/levelmini_weapon_flask_dps_fix_2026-08-30.md
+?? Developer/agent_room/levelmini_weapon_spawn_passive_final_html_2026-08-30.md
+?? Developer/agent_room/levelmini_weapon_upgrade_choice_rotation_2026-08-30.md
+?? Developer/agent_room/madangsue_korean_voice_context_lounge_2026-08-30.md
+?? Developer/agent_room/madangsue_subagent_lounge_weapon_item_balance_push_2026-08-30.md
+?? Developer/agent_room/madangsue_voice_prompt_normalizer_2026-08-30.md
+?? Developer/agent_room/madangsue_voice_prompt_normalizer_spaced_path_fix_2026-08-30.md
+?? Developer/agent_room/soundmini_korean_voice_context_lounge_review_2026-08-30.md
+?? Developer/agent_room/soundmini_korean_voice_context_windows_mic_learning_review_2026-08-30.md
+?? Developer/agent_room/soundmini_voice_input_normalizer_review_2026-08-30.md
+?? Developer/agent_room/x_after_minimize_2026-08-30.png
+?? Developer/agent_room/x_alt_tab_2026-08-30.png
+?? Developer/agent_room/x_daily_zombie_school_posting_automation_handoff_2026-08-30.md
+?? Developer/agent_room/x_daily_zombie_school_posting_image_pool_config_update_2026-08-30.md
+?? Developer/agent_room/x_daily_zombie_school_posting_project_wrapper_handoff_2026-08-30.md
+?? Developer/agent_room/x_jungsilx_after_open_2026-08-30.png
+?? Developer/agent_room/x_jungsilx_profile_screenshot_2026-08-30.png
+?? Developer/agent_room/x_jungsilx_profile_screenshot_2026-08-30_retry.png
+?? Developer/agent_room/x_post_photo_1_2026-08-30.png
+?? Developer/agent_room/x_post_photo_2_2026-08-30.png
+?? Developer/agent_room/x_posting_desktop_current_2026-08-30.png
+?? Developer/agent_room/x_posting_desktop_screenshot_2026-08-30.png
+?? Developer/agent_room/x_repost_after_altf4.png
+?? Developer/agent_room/x_repost_after_bring_realchrome.png
+?? Developer/agent_room/x_repost_after_focus_xwindow.png
+?? Developer/agent_room/x_repost_after_minimize_orca.png
+?? Developer/agent_room/x_repost_after_security_esc.png
+?? Developer/agent_room/x_repost_after_select_xtab.png
+?? Developer/agent_room/x_repost_after_try_compose.png
+?? Developer/agent_room/x_repost_current_desktop.png
+?? Developer/agent_room/x_repost_desktop_probe.png
+?? Developer/agent_room/x_repost_en_compose_open.png
+?? Developer/agent_room/x_repost_en_compose_open_live.png
+?? Developer/agent_room/x_repost_focus_live_chrome_profile.png
+?? Developer/agent_room/x_repost_ja_after_attach.png
+?? Developer/agent_room/x_repost_ja_after_post.png
+?? Developer/agent_room/x_repost_ja_composer_before_attach.png
+?? Developer/agent_room/x_repost_ja_file_dialog.png
+?? Developer/agent_room/x_repost_ja_profile_verify.png
+?? Developer/agent_room/x_repost_ja_profile_verify2.png
+?? Developer/agent_room/x_repost_ja_search_verify.png
+?? Developer/agent_room/x_repost_ja_status_page.png
+?? Developer/agent_room/x_repost_printwindow_handle.png
+?? Developer/agent_room/x_repost_profile_before_envi.png
+?? Developer/agent_room/x_repost_profile_before_envi2.png
+?? Developer/agent_room/x_repost_profile_refresh_after_ja.png
+?? Developer/agent_room/x_tab_clicked_2026-08-30.png
+?? Developer/agent_room/x_underlying_after_minimize_2026-08-30.png
+?? Developer/agent_room/x_window_after_click_2026-08-30.png
+?? Developer/voice_input/
+?? Graphic_designer/x_marketing_escape_zombie_school_2026-08-30.png
+?? Graphic_designer/x_marketing_image2_localized_visual_review_2026-08-30.md
+?? Planner/analysis_fragments/
+?? Planner/escape_zombie_school_weapon_spawn_passive_difficulty_analysis_2026-08-30.html
+?? Planner/levelup_displayed_weapon_strict_rotation_handoff_2026-08-30.md
+?? Planner/stage_spawn_respawn_fragment_audit_2026-08-30.md
+?? Planner/stage_spawn_respawn_fragment_balanceqa_handoff_2026-08-30.md
+?? Quaility_Assurance/final_weapon_stage_passive_html_content_acceptance_2026-08-30.md
+?? Quaility_Assurance/galaxy_a24_mobile_performance_root_orchestration_2026-08-31.md
+?? Quaility_Assurance/galaxy_a24_play_v50_performance_baseline_2026-08-31_raw/
+?? Quaility_Assurance/passive_upgrade_difficulty_fragment_acceptance_2026-08-30.md
+?? Quaility_Assurance/passive_upgrade_difficulty_fragment_lounge_backup_2026-08-30.md
+?? Quaility_Assurance/play_v50_physical_login_2026-08-31/
+?? Quaility_Assurance/vite_post_restart_game_load_acceptance_2026-08-30.md
+?? Quaility_Assurance/weapon_cap_flask_dps_acceptance_2026-08-30.md
+?? Quaility_Assurance/weapon_replacement_prompt_hud_review_2026-08-30.md
+?? Quaility_Assurance/weapon_spawn_passive_final_html_ui_accessibility_acceptance_2026-08-30.md
+?? marketing/x_daily_zombie_school_posting/

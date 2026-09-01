@@ -1,0 +1,58 @@
+ .claude/settings.json                              |     4 +
+ AGENTS.md                                          |     6 +
+ ...ersistent_subagent_lounge_routing_2026-08-29.md |    12 +-
+ .../subagent_system_wiring_2026-07-03.md           |     7 +-
+ .../blockbench_blender_glb_pipeline_2026-08-29.md  |    46 -
+ Developer/blockbench_install_audit_2026-08-29.md   |    46 -
+ .../installed_3d_ai_toolchain_audit_2026-08-29.md  |    35 -
+ .../player_image2_glb_vertical_slice_2026-08-29.md |    24 -
+ .../scripts/blockbench_blender_glb/README.md       |    26 -
+ .../scripts/blockbench_blender_glb/input/README.md |    13 -
+ .../blockbench_blender_glb/make_lowpoly_fixture.py |    52 -
+ .../blockbench_blender_glb/normalize_export.py     |   164 -
+ .../blockbench_blender_glb/pipeline_contract.py    |    26 -
+ .../blockbench_blender_glb/run_pipeline.ps1        |    31 -
+ .../test_pipeline_contract.py                      |    36 -
+ .../scripts/blockbench_blender_glb/validate_glb.py |    90 -
+ .../player_image2/build_player_image2_raw_glb.py   |   170 -
+ .../generate_player_image2_bbmodel.mjs             |    86 -
+ .../intermediate/player-image2-authored-raw.glb    |   Bin 115720 -> 0 bytes
+ .../player/source/player-image2-2026-08-29.bbmodel |  2700 -
+ Developer/r3f_prototype/src/components/Enemy.jsx   |    11 +-
+ .../src/components/EnemyVisual.test.js             |    21 +-
+ .../src/components/HUD.devCheats.test.jsx          |     5 +-
+ Developer/r3f_prototype/src/components/HUD.jsx     |    21 +-
+ Developer/r3f_prototype/src/components/Player.jsx  |    19 +-
+ .../r3f_prototype/src/components/Player.test.js    |    29 +
+ Developer/r3f_prototype/src/lib/chibiko.test.js    |     5 +
+ .../r3f_prototype/src/lib/matildaSpec.test.js      |    21 +
+ .../r3f_prototype/src/lib/playerDpsEstimate.js     |    19 +-
+ .../src/lib/weaponPermanentUpgrades.test.js        |     1 +
+ .../useGameStore.weaponPermanentUpgrades.test.js   |     6 +
+ ..._blender_glb_pipeline_role_record_2026-08-29.md |    13 -
+ .../player-image2-2_5head-new-comparison.glb       |   Bin 174040 -> 0 bytes
+ .../player_glb_comparison_viewer/index.html        |    62 -
+ .../player_glb_comparison_viewer/start-viewer.ps1  |    13 -
+ .../player_glb_comparison_viewer/styles.css        |   312 -
+ .../player_glb_comparison_viewer/vendor/LICENSE    |    21 -
+ .../vendor/controls/OrbitControls.js               |  1532 -
+ .../vendor/loaders/GLTFLoader.js                   |  4722 --
+ .../vendor/three.module.js                         | 53032 -------------------
+ .../vendor/utils/BufferGeometryUtils.js            |  1371 -
+ .../player_glb_comparison_viewer/viewer.js         |   168 -
+ .../player_glb_comparison_viewer/viewer.test.mjs   |    70 -
+ .../visual_record_2026-08-30.md                    |    50 -
+ ...player_image2_glb_modeling_record_2026-08-29.md |    11 -
+ .../player_image2_turnaround_2026-08-29.png        |   Bin 1445967 -> 0 bytes
+ ...ie_school_ai_3d_modeling_pipeline_2026-08-29.md |   124 -
+ ...pen_source_ai_3d_engine_landscape_2026-08-29.md |   105 -
+ ...h_blender_glb_pipeline_acceptance_2026-08-29.md |   347 -
+ .../blockbench_ui_export_smoke_2026-08-29.md       |     6 -
+ ...ge2_glb_vertical_slice_acceptance_2026-08-29.md |   118 -
+ .../player_image2_glb_visual_qa_2026-08-29.md      |    11 -
+ .../player-image2-back-orthographic.png            |   Bin 830530 -> 0 bytes
+ .../player-image2-front-orthographic.png           |   Bin 851177 -> 0 bytes
+ .../player-image2-geometry-audit.txt               |    33 -
+ .../player-image2-right-orthographic.png           |   Bin 827221 -> 0 bytes
+ SESSION_MEMORY.md                                  |    51 +
+ 57 files changed, 218 insertions(+), 65686 deletions(-)

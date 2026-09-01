@@ -1,0 +1,28 @@
+== final pre-upload revalidation ==
+2026-08-31 00:24:07    
+source worktree status:
+## zombie_only...origin/zombie_only
+ M Developer/r3f_prototype/android/app/build.gradle
+?? Developer/agent_room/aab_v51_35ef77c3_evidence_2026-08-31/
+Developer/r3f_prototype/android/app/build.gradle
+diff --git a/Developer/r3f_prototype/android/app/build.gradle b/Developer/r3f_prototype/android/app/build.gradle
+index bdf74b8b..4deadefa 100644
+--- a/Developer/r3f_prototype/android/app/build.gradle
++++ b/Developer/r3f_prototype/android/app/build.gradle
+@@ -13,7 +13,7 @@ android {
+         applicationId "com.jungyoon.zombieschool"
+         minSdkVersion rootProject.ext.minSdkVersion
+         targetSdkVersion rootProject.ext.targetSdkVersion
+-        versionCode 49
++        versionCode 51
+         versionName "1.0.26"
+         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+         aaptOptions {
+13:        applicationId "com.jungyoon.zombieschool"
+16:        versionCode 51
+17:        versionName "1.0.26"
+main workspace destination status:
+## zombie_only...origin/zombie_only
+dest identity:
+/d/JungSil/2.Minigame_project/school_survivor-integration/Developer/r3f_prototype/android/app/build/outputs/bundle/release/app-release-v51-20260831_0023-35ef77c38748.aab|15615490|2026-08-31 00:23:50.667240600 +0900
+cb28f09aed939d64f6dfb2de1445f08ce6271efb6f85f7c7bd6963c9db63b2af */d/JungSil/2.Minigame_project/school_survivor-integration/Developer/r3f_prototype/android/app/build/outputs/bundle/release/app-release-v51-20260831_0023-35ef77c38748.aab

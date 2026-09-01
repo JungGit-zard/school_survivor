@@ -1,0 +1,5 @@
+    versionCode=50 minSdk=24 targetSdk=36
+    versionName=1.0.26
+    lastUpdateTime=2026-08-31 00:08:11
+    installerPackageName=com.android.vending
+      firstInstallTime=2026-08-18 21:39:51

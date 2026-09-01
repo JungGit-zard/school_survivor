@@ -1,0 +1,1 @@
+  ResumedActivity: ActivityRecord{132406175 u0 com.jungyoon.zombieschool/.MainActivity t276}

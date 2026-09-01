@@ -1,0 +1,4 @@
+[FIREBASE_RELEASE_ENV_GATE] PASS
+env: .env required keys present (4), fingerprint=782388023ce7
+firebase: escape-zombie-school, escape-zombie-school.firebaseapp.com
+android: com.jungyoon.zombieschool, release SHA-1 registered
