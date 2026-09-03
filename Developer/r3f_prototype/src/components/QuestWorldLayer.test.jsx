@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   getQuestFallbackPosition,
+  getQuestNoticeMarkerPosition,
+  getQuestNoticeMarkers,
   getQuestSurfacePosition,
   getQuestTargetPosition,
   getQuestWorldInteraction,
@@ -77,6 +79,32 @@ describe('quest world placement resolution', () => {
 
   it('uses the layered red-book visual specification for the speech book', () => {
     expect(QUEST_ITEM_STYLE['red-book']).toEqual({ color: 0xc92f38, shape: 'red-book' })
+  })
+
+
+  it('places quest notice markers directly above the giver or completion target', () => {
+    const [quest] = getStageQuestDefinitions('stage1')
+    const placements = getStageObjectPlacements('stage1')
+    const giver = placements.find(({ id }) => id === quest.giver.placementId)
+    const marker = getQuestNoticeMarkerPosition('stage1', quest.id, quest.giver, placements)
+
+    expect(marker.sourceId).toBe(giver.id)
+    expect(marker.position[0]).toBe(giver.position[0])
+    expect(marker.position[2]).toBe(giver.position[2])
+    expect(marker.position[1]).toBeGreaterThan(giver.position[1] + 1)
+  })
+
+  it('emits blinking notice marker states for available starts and return/install targets', () => {
+    const [firstQuest, secondQuest] = getStageQuestDefinitions('stage1')
+    const markers = getQuestNoticeMarkers('stage1', [firstQuest, secondQuest], {
+      [firstQuest.id]: { status: 'undiscovered' },
+      [secondQuest.id]: { status: 'item-acquired', itemHeld: true },
+    }, getStageObjectPlacements('stage1'))
+
+    expect(markers).toHaveLength(2)
+    expect(markers[0]).toMatchObject({ kind: 'available', symbol: '!' })
+    expect(markers[1]).toMatchObject({ kind: 'return', symbol: '?' })
+    expect(markers.every(({ target }) => target.position[1] > 1)).toBe(true)
   })
 
   it('uses type and fallback types when an exact Firebase placement is absent', () => {

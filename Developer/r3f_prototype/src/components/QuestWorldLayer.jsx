@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { Billboard, Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { useGameStore } from '../store/useGameStore.js'
 import { getStageBounds } from '../lib/stageConfig.js'
@@ -130,6 +131,46 @@ export function getQuestTargetPosition(stageId, questId, target, placements = []
   }
 }
 
+
+export function getQuestNoticeMarkerPosition(stageId, questId, target, placements = []) {
+  const placement = resolveQuestTargetPlacement(target, placements)
+  if (!placement) {
+    const fallback = getQuestFallbackPosition(stageId, `${questId}:notice`)
+    return { position: [fallback[0], fallback[1] + 1.35, fallback[2]], sourceId: `${questId}:notice-fallback`, placement: null }
+  }
+  const [x, y = 0, z] = placement.position
+  return {
+    position: [x, y + 1.55, z],
+    sourceId: placement.id,
+    placement,
+  }
+}
+
+export function getQuestNoticeMarkers(stageId, quests = [], questProgress = {}, placements = []) {
+  const markers = []
+  for (const quest of quests) {
+    const status = questProgress?.[quest.id]?.status
+    if (status === 'undiscovered') {
+      markers.push({
+        quest,
+        kind: 'available',
+        symbol: '!',
+        color: 0xffd84a,
+        target: getQuestNoticeMarkerPosition(stageId, quest.id, quest.giver, placements),
+      })
+    } else if (status === 'item-acquired') {
+      markers.push({
+        quest,
+        kind: quest.completion.kind === 'install' ? 'install' : 'return',
+        symbol: '?',
+        color: 0x66d9ff,
+        target: getQuestNoticeMarkerPosition(stageId, quest.id, quest.completion, placements),
+      })
+    }
+  }
+  return markers
+}
+
 export function isQuestInteractionInRange(playerX, playerZ, position, radius = QUEST_ITEM_INTERACTION_RADIUS) {
   const dx = playerX - position[0]
   const dz = playerZ - position[2]
@@ -162,6 +203,48 @@ export function markQuestActionHandled(handledIds, key, actionResult) {
   if (actionResult !== true) return false
   handledIds.add(key)
   return true
+}
+
+
+export function QuestNoticeMarker({ position, symbol = '!', color = 0xffd84a }) {
+  const groupRef = useRef(null)
+  const baseY = position[1]
+
+  useFrame(({ clock }, delta) => {
+    if (!groupRef.current) return
+    const elapsed = clock.getElapsedTime()
+    groupRef.current.position.y = baseY + Math.sin(elapsed * 3.2) * 0.08
+    groupRef.current.rotation.y += delta * 0.36
+    groupRef.current.visible = Math.sin(elapsed * 5.6) > -0.48
+    const scale = 1 + Math.max(0, Math.sin(elapsed * 5.6)) * 0.08
+    groupRef.current.scale.setScalar(scale)
+  })
+
+  return (
+    <group ref={groupRef} position={position}>
+      <Billboard follow lockX={false} lockY={false} lockZ={false}>
+        <mesh position={[0, -0.22, -0.02]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.24, 0.31, 20]} />
+          <meshBasicMaterial color={color} side={THREE.DoubleSide} transparent opacity={0.76} />
+        </mesh>
+        <mesh position={[0, 0, -0.018]}>
+          <circleGeometry args={[0.28, 28]} />
+          <meshBasicMaterial color={0x17121f} transparent opacity={0.82} side={THREE.DoubleSide} />
+        </mesh>
+        <Text
+          position={[0, -0.015, 0]}
+          fontSize={0.52}
+          anchorX="center"
+          anchorY="middle"
+          outlineWidth={0.035}
+          outlineColor="#21162e"
+          color={`#${color.toString(16).padStart(6, '0')}`}
+        >
+          {symbol}
+        </Text>
+      </Billboard>
+    </group>
+  )
 }
 
 function QuestItemModel({ visualKind }) {
@@ -305,6 +388,10 @@ export default function QuestWorldLayer({ stageId }) {
       quest,
       target: getQuestTargetPosition(stageId, quest.id, quest.completion, placements),
     })), [placements, quests, stageId])
+  const noticeMarkers = useMemo(
+    () => getQuestNoticeMarkers(stageId, quests, questProgress, placements),
+    [placements, questProgress, quests, stageId],
+  )
 
   usePlayingFrame(() => {
     const store = useGameStore.getState()
@@ -354,6 +441,14 @@ export default function QuestWorldLayer({ stageId }) {
 
   return (
     <group name={`quest-world-layer-${stageId}`}>
+      {noticeMarkers.map(({ quest, kind, symbol, color, target }) => (
+        <QuestNoticeMarker
+          key={`${quest.id}:${kind}:${target.sourceId}`}
+          position={target.position}
+          symbol={symbol}
+          color={color}
+        />
+      ))}
       {itemTargets.map(({ quest, target }) => {
         const progress = questProgress?.[quest.id]
         if (progress?.status !== 'active') return null
