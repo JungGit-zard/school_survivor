@@ -67,7 +67,7 @@ describe('Firebase runtime Graphics Studio config', () => {
     expect(getStudioItemById('player').previewKind).toBe('player')
     expect(getStudioItemById('zombie-procedural-face-test')).toMatchObject({
       category: 'enemy',
-      label: '실험 · 직접 그린 얼굴 좀비',
+      label: '실험 · SDF 절차적 얼굴 좀비',
       source: 'components/ProceduralFaceTestZombie.jsx',
       previewKind: 'proceduralFaceZombie',
     })

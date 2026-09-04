@@ -1,7 +1,10 @@
-import { useRef, useMemo } from 'react'
+import { createContext, useContext, useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
+import playerNendoroid2HeadGlbUrl from '../assets/models/player/player-nendoroid-2head-2026-09-01.glb?url'
 import { bagSwingState, playerArmActionState } from '../lib/refs.js'
+
 import { getActivePlayerArmAction, getPlayerArmPose } from '../lib/playerArmAction.js'
 import { outlineMat, toonMat, inflateScale, getCachedChamferedBoxGeo } from '../lib/toon.js'
 import { PLAYER_MESH_SCALE } from '../lib/characterVisualScale.js'
@@ -11,10 +14,53 @@ import StudioTunedGroup, {
   composeStudioPartRotation,
 } from './StudioTunedGroup.jsx'
 
-const PLAYER_BODY_SIZE = [0.68, 0.7, 0.46]
-const PLAYER_BODY_POSITION = [0, 0.44, 0]
-const PLAYER_HEAD_SIZE = [0.8, 0.68, 0.58]
-const PLAYER_HEAD_BASE_Y = 1.1
+export const PLAYER_NENDEROID_2HEAD_GLB_URL = playerNendoroid2HeadGlbUrl
+export const PLAYER_NENDEROID_2HEAD_GLB_PARTS = Object.freeze([
+  'player__head_face',
+  'player__hair_top',
+  'player__hair_front_bangs',
+  'player__hair_left_side',
+  'player__hair_right_side',
+  'player__hair_back_tail',
+  'player__hair_clip',
+  'player__eye_left',
+  'player__eye_right',
+  'player__body_blazer',
+  'player__shirt_front',
+  'player__tie',
+  'player__skirt',
+  'player__backpack',
+  'player__backpack_pocket',
+  'player__strap_left',
+  'player__strap_right',
+  'player__sleeve_left',
+  'player__hand_left',
+  'player__sleeve_right',
+  'player__hand_right',
+  'player__leg_left',
+  'player__shoe_left_top',
+  'player__shoe_left_sole',
+  'player__leg_right',
+  'player__shoe_right_top',
+  'player__shoe_right_sole',
+  'player__lantern_body',
+  'player__lantern_head',
+  'player__lantern_button',
+])
+export const PLAYER_NENDEROID_2HEAD_PROPORTIONS = Object.freeze({
+  headHeight: 1.3,
+  bodyHeight: 1.3,
+  visualHeadCount: 2,
+  topY: 1.3,
+  chinY: 0,
+  footBottomY: -1.3,
+})
+
+const PlayerNendoroidGeometryContext = createContext(null)
+const PLAYER_BODY_SIZE = [0.82, 0.58, 0.42]
+const PLAYER_BODY_POSITION = [0, -0.24, 0]
+const PLAYER_HEAD_SIZE = [0.86, 0.82, 0.56]
+const PLAYER_HEAD_BASE_Y = 0.38
 const PLAYER_IDLE_BREATHE_Y = 0.028
 const PLAYER_WALK_BOB_Y = 0.022
 const PLAYER_MAX_HEAD_BOB_Y = Math.max(PLAYER_IDLE_BREATHE_Y, PLAYER_WALK_BOB_Y)
@@ -88,9 +134,21 @@ function createPlayerOcclusionSafeOutlineMaterial() {
   return outlineMat(0.98)
 }
 
-function Block({ size, position, rotation, color, emissive = 0.14 }) {
+function usePlayerNendoroidGeometry(partName, size) {
+  const nodes = useContext(PlayerNendoroidGeometryContext)
+  if (partName) {
+    const geometry = nodes?.[partName]?.geometry
+    if (!geometry) {
+      throw new Error(`Player Nendoroid GLB missing required semantic part geometry: ${partName}`)
+    }
+    return geometry
+  }
+  return getCachedChamferedBoxGeo(...size, PLAYER_CHARACTER_CHAMFER_STEPS)
+}
+
+function Block({ size, position, rotation, color, emissive = 0.14, partName = null }) {
   const mat = usePlayerStencilMaterial(() => createPlayerOcclusionSafeToonMaterial(color, emissive), [color, emissive])
-  const geo = getCachedChamferedBoxGeo(...size, PLAYER_CHARACTER_CHAMFER_STEPS)
+  const geo = usePlayerNendoroidGeometry(partName, size)
 
   return (
     <group position={position} rotation={rotation}>
@@ -105,12 +163,12 @@ export function createPlayerCrowdOutlineMaterial() {
   return createPlayerOcclusionSafeOutlineMaterial()
 }
 
-function OutlineBlock({ size, position, rotation, scale = 1.08, crowdVisible = false }) {
+function OutlineBlock({ size, position, rotation, scale = 1.08, crowdVisible = false, partName = null }) {
   const mat = usePlayerStencilMaterial(
     crowdVisible ? createPlayerCrowdOutlineMaterial : createPlayerOcclusionSafeOutlineMaterial,
     [crowdVisible],
   )
-  const geo = getCachedChamferedBoxGeo(...size, PLAYER_CHARACTER_CHAMFER_STEPS)
+  const geo = usePlayerNendoroidGeometry(partName, size)
   const s = inflateScale(scale)
   return <mesh renderOrder={PLAYER_OCCLUSION_SAFE_OUTLINE_RENDER_ORDER} geometry={geo} material={mat} position={position} rotation={rotation} scale={[s, s, s]} />
 }
@@ -134,11 +192,11 @@ function PlayerLanternLight() {
 function PlayerOuterOutline() {
   return (
     <group>
-      <OutlineBlock size={[0.98, 0.9, 0.58]} position={[0, 0.33, 0]} crowdVisible />
-      <OutlineBlock size={PLAYER_MESH_LAYOUT.head.size} position={[0, PLAYER_MESH_LAYOUT.head.baseY + 0.06, 0]} scale={1.3} crowdVisible />
-      <OutlineBlock size={[0.24, 1.05, 0.30]} position={[-0.68, 0.32, 0]} scale={1.07} crowdVisible />
-      <OutlineBlock size={[0.24, 1.05, 0.30]} position={[0.68, 0.32, 0]} scale={1.07} crowdVisible />
-      <OutlineBlock size={[0.56, 0.78, 0.36]} position={[-0.54, 0.46, -0.22]} scale={1.07} crowdVisible />
+      <OutlineBlock partName="player__body_blazer" size={[0.9, 0.66, 0.48]} position={[0, -0.24, 0]} crowdVisible />
+      <OutlineBlock partName="player__hair_top" size={[1.08, 0.58, 0.76]} position={[0, 1.01, 0]} scale={1.3} crowdVisible />
+      <OutlineBlock partName="player__hair_left_side" size={[0.25, 0.92, 0.52]} position={[-0.56, 0.46, 0.02]} scale={1.07} crowdVisible />
+      <OutlineBlock partName="player__hair_right_side" size={[0.25, 0.86, 0.52]} position={[0.56, 0.49, 0.02]} scale={1.07} crowdVisible />
+      <OutlineBlock partName="player__backpack" size={[0.54, 0.72, 0.22]} position={[0, -0.24, -0.39]} scale={1.07} crowdVisible />
     </group>
   )
 }
@@ -196,6 +254,7 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
       }),
     []
   )
+  const { nodes: nendoroidNodes } = useGLTF(PLAYER_NENDEROID_2HEAD_GLB_URL)
 
   const setRoot = (el) => {
     rootRef.current = el
@@ -270,18 +329,19 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
     if (parts.head) {
       const baseY = PLAYER_MESH_LAYOUT.head.baseY
       parts.head.position.y = composeStudioPartPosition(parts.head, 'y', baseY, bob)
-      parts.hairTop.position.y = composeStudioPartPosition(parts.hairTop, 'y', baseY + 0.48, bob)
-      parts.hairFr.position.y = composeStudioPartPosition(parts.hairFr, 'y', baseY + 0.22, bob)
-      parts.hairSL.position.y = composeStudioPartPosition(parts.hairSL, 'y', baseY + 0.05, bob)
-      parts.hairSR.position.y = composeStudioPartPosition(parts.hairSR, 'y', baseY + 0.08, bob)
-      parts.hairTail.position.y = composeStudioPartPosition(parts.hairTail, 'y', baseY - 0.38, bob)
-      parts.hairClip.position.y = composeStudioPartPosition(parts.hairClip, 'y', baseY + 0.6, bob)
-      parts.eyeL.position.y = composeStudioPartPosition(parts.eyeL, 'y', baseY - 0.08, bob)
-      parts.eyeR.position.y = composeStudioPartPosition(parts.eyeR, 'y', baseY - 0.08, bob)
+      parts.hairTop.position.y = composeStudioPartPosition(parts.hairTop, 'y', 1.01, bob)
+      parts.hairFr.position.y = composeStudioPartPosition(parts.hairFr, 'y', 0.69, bob)
+      parts.hairSL.position.y = composeStudioPartPosition(parts.hairSL, 'y', 0.46, bob)
+      parts.hairSR.position.y = composeStudioPartPosition(parts.hairSR, 'y', 0.49, bob)
+      parts.hairTail.position.y = composeStudioPartPosition(parts.hairTail, 'y', 0.1, bob)
+      parts.hairClip.position.y = composeStudioPartPosition(parts.hairClip, 'y', 0.87, bob)
+      parts.eyeL.position.y = composeStudioPartPosition(parts.eyeL, 'y', 0.38, bob)
+      parts.eyeR.position.y = composeStudioPartPosition(parts.eyeR, 'y', 0.38, bob)
     }
   })
 
   return (
+    <PlayerNendoroidGeometryContext.Provider value={nendoroidNodes}>
     <group ref={setRoot}>
       <StudioTunedGroup itemId="player">
         <group position={[0, PLAYER_FLOOR_LIFT, 0]} scale={[PLAYER_MESH_SCALE, PLAYER_MESH_SCALE, PLAYER_MESH_SCALE]}>
@@ -297,85 +357,88 @@ export default function PlayerMesh({ groupRef, movingRef, hitFlashToken = 0, pre
 
       <PlayerOuterOutline />
 
-      <Block size={PLAYER_MESH_LAYOUT.body.size} position={PLAYER_MESH_LAYOUT.body.position} color={0xd42020} emissive={0.2} />
-      <Block size={[0.38, 0.18, 0.12]} position={[0, 0.82, 0.32]} color={0xf4f4f4} emissive={0.08} />
-      <Block size={[0.8, 0.13, 0.5]} position={[0, 0.1, 0]} color={0xffd100} emissive={0.26} />
+      <Block partName="player__body_blazer" size={PLAYER_MESH_LAYOUT.body.size} position={PLAYER_MESH_LAYOUT.body.position} color={0xd42020} emissive={0.2} />
+      <Block partName="player__shirt_front" size={[0.36, 0.36, 0.06]} position={[0, -0.2, 0.245]} color={0xf4f4f4} emissive={0.08} />
+      <Block partName="player__tie" size={[0.14, 0.38, 0.07]} position={[0, -0.3, 0.29]} color={0xffd100} emissive={0.26} />
 
-      <Block size={[0.94, 0.36, 0.56]} position={[0, -0.16, 0]} color={0x2d8cff} emissive={0.2} />
+      <Block partName="player__skirt" size={[0.92, 0.28, 0.48]} position={[0, -0.61, 0]} color={0x123a9f} emissive={0.2} />
 
-      <group ref={reg('head')} position={[0, PLAYER_MESH_LAYOUT.head.baseY, 0]}>
-        <Block size={PLAYER_MESH_LAYOUT.head.size} position={[0, 0, 0]} color={0xffc39b} emissive={0.1} />
-      </group>
-
-      <group ref={reg('hairTop')} position={[0, PLAYER_MESH_LAYOUT.head.baseY + 0.48, 0]}>
-        <Block size={[0.98, 0.34, 0.82]} position={[0, 0, 0]} color={0xff8fb0} emissive={0.18} />
-      </group>
-      <group ref={reg('hairFr')} position={[0, PLAYER_MESH_LAYOUT.head.baseY + 0.22, 0.32]}>
-        <Block size={[0.84, 0.28, 0.22]} position={[0, 0, 0]} color={0xff8fb0} emissive={0.18} />
-      </group>
-      <group ref={reg('hairSL')} position={[-0.46, PLAYER_MESH_LAYOUT.head.baseY + 0.05, 0]}>
-        <Block size={[0.22, 0.6, 0.5]} position={[0, 0, 0]} color={0xd94070} emissive={0.14} />
-      </group>
-      <group ref={reg('hairSR')} position={[0.46, PLAYER_MESH_LAYOUT.head.baseY + 0.08, 0]}>
-        <Block size={[0.22, 0.5, 0.46]} position={[0, 0, 0]} color={0xd94070} emissive={0.14} />
-      </group>
-      <group ref={reg('hairTail')} position={[-0.5, PLAYER_MESH_LAYOUT.head.baseY - 0.38, -0.06]}>
-        <Block size={[0.22, 0.52, 0.2]} position={[0, 0, 0]} color={0xd94070} emissive={0.14} />
-      </group>
-      <group ref={reg('hairClip')} position={[0.34, PLAYER_MESH_LAYOUT.head.baseY + 0.6, 0.28]}>
-        <Block size={[0.25, 0.16, 0.2]} position={[0, 0, 0]} color={0xf4f4f4} emissive={0.08} />
+      <group ref={reg('head')} position={[0, PLAYER_MESH_LAYOUT.head.baseY, 0.03]}>
+        <Block partName="player__head_face" size={PLAYER_MESH_LAYOUT.head.size} position={[0, 0, 0]} color={0xffc39b} emissive={0.1} />
       </group>
 
-      <group ref={reg('eyeL')} position={[-0.18, PLAYER_MESH_LAYOUT.head.baseY - 0.08, 0.28]}>
-        <Block size={[0.12, 0.13, 0.08]} position={[0, 0, 0]} color={0xcf2f77} emissive={0.12} />
+      <group ref={reg('hairTop')} position={[0, 1.01, 0]}>
+        <Block partName="player__hair_top" size={[1.08, 0.58, 0.76]} position={[0, 0, 0]} color={0xff8fb0} emissive={0.18} />
       </group>
-      <group ref={reg('eyeR')} position={[0.18, PLAYER_MESH_LAYOUT.head.baseY - 0.08, 0.28]}>
-        <Block size={[0.12, 0.13, 0.08]} position={[0, 0, 0]} color={0xcf2f77} emissive={0.12} />
+      <group ref={reg('hairFr')} position={[0, 0.69, 0.35]}>
+        <Block partName="player__hair_front_bangs" size={[0.92, 0.28, 0.18]} position={[0, 0, 0]} color={0xff8fb0} emissive={0.18} />
+      </group>
+      <group ref={reg('hairSL')} position={[-0.56, 0.46, 0.02]}>
+        <Block partName="player__hair_left_side" size={[0.25, 0.92, 0.52]} position={[0, 0, 0]} color={0xd94070} emissive={0.14} />
+      </group>
+      <group ref={reg('hairSR')} position={[0.56, 0.49, 0.02]}>
+        <Block partName="player__hair_right_side" size={[0.25, 0.86, 0.52]} position={[0, 0, 0]} color={0xd94070} emissive={0.14} />
+      </group>
+      <group ref={reg('hairTail')} position={[-0.5, 0.1, -0.34]}>
+        <Block partName="player__hair_back_tail" size={[0.24, 0.68, 0.2]} position={[0, 0, 0]} color={0xd94070} emissive={0.14} />
+      </group>
+      <group ref={reg('hairClip')} position={[0.35, 0.87, 0.43]}>
+        <Block partName="player__hair_clip" size={[0.28, 0.12, 0.08]} position={[0, 0, 0]} color={0xf4f4f4} emissive={0.08} />
       </group>
 
-      <group ref={reg('bag')} position={[-0.52, 0.46, -0.22]}>
-        <Block size={[0.48, 0.68, 0.3]} position={[0, 0, 0]} color={0x38c8f0} emissive={0.2} />
-        <Block size={[0.32, 0.22, 0.1]} position={[0, 0.24, 0.22]} color={0x1668a0} emissive={0.12} />
+      <group ref={reg('eyeL')} position={[-0.2, 0.38, 0.325]}>
+        <Block partName="player__eye_left" size={[0.13, 0.2, 0.035]} position={[0, 0, 0]} color={0xcf2f77} emissive={0.12} />
       </group>
-      <Block size={[0.1, 0.62, 0.1]} position={[-0.22, 0.46, 0.3]} color={0x005cff} emissive={0.18} />
-      <Block size={[0.1, 0.62, 0.1]} position={[0.22, 0.46, 0.3]} color={0x005cff} emissive={0.18} />
-
-      <group ref={reg('slvL')} position={[-0.6, 0.72, 0]}>
-        <Block size={[0.36, 0.66, 0.36]} position={[0, -0.33, 0]} color={0xd42020} emissive={0.2} />
-        <Block size={[0.26, 0.26, 0.26]} position={[0, -0.76, 0]} color={0xffc39b} emissive={0.1} />
+      <group ref={reg('eyeR')} position={[0.2, 0.38, 0.325]}>
+        <Block partName="player__eye_right" size={[0.13, 0.2, 0.035]} position={[0, 0, 0]} color={0xcf2f77} emissive={0.12} />
       </group>
 
-      <group ref={reg('slvR')} position={[0.6, 0.72, 0]}>
-        <Block size={[0.36, 0.66, 0.36]} position={[0, -0.33, 0]} color={0xd42020} emissive={0.2} />
-        <Block size={[0.26, 0.26, 0.26]} position={[0, -0.76, 0]} color={0xffc39b} emissive={0.1} />
+      <group ref={reg('bag')} position={[0, -0.24, -0.39]}>
+        <Block partName="player__backpack" size={[0.54, 0.72, 0.22]} position={[0, 0, 0]} color={0x38c8f0} emissive={0.2} />
+        <Block partName="player__backpack_pocket" size={[0.34, 0.2, 0.07]} position={[0, 0.12, -0.135]} color={0x1668a0} emissive={0.12} />
+      </group>
+      <Block partName="player__strap_left" size={[0.1, 0.68, 0.08]} position={[-0.26, -0.24, 0.27]} color={0x005cff} emissive={0.18} />
+      <Block partName="player__strap_right" size={[0.1, 0.68, 0.08]} position={[0.26, -0.24, 0.27]} color={0x005cff} emissive={0.18} />
+
+      <group ref={reg('slvL')} position={[-0.6, -0.25, 0]}>
+        <Block partName="player__sleeve_left" size={[0.25, 0.58, 0.3]} position={[0, 0, 0]} color={0xd42020} emissive={0.2} />
+        <Block partName="player__hand_left" size={[0.24, 0.24, 0.24]} position={[0, -0.41, 0]} color={0xffc39b} emissive={0.1} />
+      </group>
+
+      <group ref={reg('slvR')} position={[0.6, -0.25, 0]}>
+        <Block partName="player__sleeve_right" size={[0.25, 0.58, 0.3]} position={[0, 0, 0]} color={0xd42020} emissive={0.2} />
+        <Block partName="player__hand_right" size={[0.24, 0.24, 0.24]} position={[0, -0.41, 0]} color={0xffc39b} emissive={0.1} />
         <group ref={reg('lantern')} position={PLAYER_MESH_LAYOUT.lantern.position} visible={false}>
           <PlayerLanternModel />
         </group>
       </group>
 
-      <group ref={reg('legL')} position={[-0.22, -0.34, 0]}>
-        <OutlineBlock size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} scale={1.16} />
-        <Block size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} color={0xebebf2} emissive={0.06} />
-        <group position={[0, -0.76, 0.06]}>
-          <OutlineBlock size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} scale={1.14} />
-          <Block size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} color={0x8090a8} emissive={0.12} />
-          <OutlineBlock size={[0.4, 0.1, 0.46]} position={[0, -0.15, 0]} scale={1.14} />
-          <Block size={[0.4, 0.1, 0.46]} position={[0, -0.15, 0]} color={0x4a5566} emissive={0.08} />
+      <group ref={reg('legL')} position={[-0.22, -0.9, 0]}>
+        <OutlineBlock partName="player__leg_left" size={[0.23, 0.5, 0.24]} position={[0, 0, 0]} scale={1.16} />
+        <Block partName="player__leg_left" size={[0.23, 0.5, 0.24]} position={[0, 0, 0]} color={0xebebf2} emissive={0.06} />
+        <group position={[0, -0.29, 0.08]}>
+          <OutlineBlock partName="player__shoe_left_top" size={[0.4, 0.18, 0.45]} position={[0, 0, 0]} scale={1.14} />
+          <Block partName="player__shoe_left_top" size={[0.4, 0.18, 0.45]} position={[0, 0, 0]} color={0x8090a8} emissive={0.12} />
+          <OutlineBlock partName="player__shoe_left_sole" size={[0.42, 0.08, 0.48]} position={[0, -0.07, 0]} scale={1.14} />
+          <Block partName="player__shoe_left_sole" size={[0.42, 0.08, 0.48]} position={[0, -0.07, 0]} color={0x4a5566} emissive={0.08} />
         </group>
       </group>
 
-      <group ref={reg('legR')} position={[0.22, -0.34, 0]}>
-        <OutlineBlock size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} scale={1.16} />
-        <Block size={[0.26, 0.7, 0.3]} position={[0, -0.35, 0]} color={0xebebf2} emissive={0.06} />
-        <group position={[0, -0.76, 0.06]}>
-          <OutlineBlock size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} scale={1.14} />
-          <Block size={[0.38, 0.2, 0.44]} position={[0, 0, 0]} color={0x8090a8} emissive={0.12} />
-          <OutlineBlock size={[0.4, 0.1, 0.46]} position={[0, -0.15, 0]} scale={1.14} />
-          <Block size={[0.4, 0.1, 0.46]} position={[0, -0.15, 0]} color={0x4a5566} emissive={0.08} />
+      <group ref={reg('legR')} position={[0.22, -0.9, 0]}>
+        <OutlineBlock partName="player__leg_right" size={[0.23, 0.5, 0.24]} position={[0, 0, 0]} scale={1.16} />
+        <Block partName="player__leg_right" size={[0.23, 0.5, 0.24]} position={[0, 0, 0]} color={0xebebf2} emissive={0.06} />
+        <group position={[0, -0.29, 0.08]}>
+          <OutlineBlock partName="player__shoe_right_top" size={[0.4, 0.18, 0.45]} position={[0, 0, 0]} scale={1.14} />
+          <Block partName="player__shoe_right_top" size={[0.4, 0.18, 0.45]} position={[0, 0, 0]} color={0x8090a8} emissive={0.12} />
+          <OutlineBlock partName="player__shoe_right_sole" size={[0.42, 0.08, 0.48]} position={[0, -0.07, 0]} scale={1.14} />
+          <Block partName="player__shoe_right_sole" size={[0.42, 0.08, 0.48]} position={[0, -0.07, 0]} color={0x4a5566} emissive={0.08} />
         </group>
       </group>
         </group>
       </StudioTunedGroup>
     </group>
+    </PlayerNendoroidGeometryContext.Provider>
   )
 }
+
+useGLTF.preload(PLAYER_NENDEROID_2HEAD_GLB_URL)

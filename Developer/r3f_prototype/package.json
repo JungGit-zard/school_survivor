@@ -23,7 +23,8 @@
     "verify:studio-game-sync": "node scripts/assert-studio-game-sync-contract.mjs && vitest run src/App.firebaseBootstrap.test.jsx src/App.studioGameSync.test.jsx src/components/GraphicsStudio.immediate.test.jsx src/lib/studioGameBridge.test.js",
     "verify:dialogue-targets": "node scripts/assert-dialogue-store.mjs --require-targets",
     "test": "vitest run",
-    "test:watch": "python scripts/single_branch_guard.py run -- npm.cmd exec -- vitest"
+    "test:watch": "python scripts/single_branch_guard.py run -- npm.cmd exec -- vitest",
+    "benchmark:stage2-mellow": "playwright test e2e/stage2_mellow_benchmark.spec.js"
   },
   "dependencies": {
     "@capacitor-firebase/authentication": "^8.3.0",

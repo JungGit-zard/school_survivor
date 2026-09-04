@@ -1,0 +1,187 @@
+{
+  "armature_count": 0,
+  "bounds_x": [
+    -0.725,
+    0.725
+  ],
+  "bounds_y": [
+    -0.47,
+    0.56
+  ],
+  "bounds_z": [
+    -1.3,
+    1.3
+  ],
+  "errors": [],
+  "expected_triangle_count": 1320,
+  "extra_meshes": [],
+  "front_axis": "+Z",
+  "max_generated_triangle_count": 3000,
+  "mesh_count": 30,
+  "missing_parts": [],
+  "part_center_ordering": {
+    "head_hair_above_shoe_foot": true,
+    "head_or_hair_z": 1.01,
+    "shoe_or_foot_z": -1.26
+  },
+  "part_centers": {
+    "player__backpack": {
+      "x": 0.0,
+      "y": 0.39,
+      "z": -0.24
+    },
+    "player__backpack_pocket": {
+      "x": 0.0,
+      "y": 0.525,
+      "z": -0.12
+    },
+    "player__body_blazer": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": -0.24
+    },
+    "player__eye_left": {
+      "x": -0.2,
+      "y": -0.325,
+      "z": 0.38
+    },
+    "player__eye_right": {
+      "x": 0.2,
+      "y": -0.325,
+      "z": 0.38
+    },
+    "player__hair_back_tail": {
+      "x": -0.5,
+      "y": 0.34,
+      "z": 0.1
+    },
+    "player__hair_clip": {
+      "x": 0.35,
+      "y": -0.43,
+      "z": 0.87
+    },
+    "player__hair_front_bangs": {
+      "x": 0.0,
+      "y": -0.35,
+      "z": 0.69
+    },
+    "player__hair_left_side": {
+      "x": -0.56,
+      "y": -0.02,
+      "z": 0.46
+    },
+    "player__hair_right_side": {
+      "x": 0.56,
+      "y": -0.02,
+      "z": 0.49
+    },
+    "player__hair_top": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 1.01
+    },
+    "player__hand_left": {
+      "x": -0.6,
+      "y": 0.0,
+      "z": -0.66
+    },
+    "player__hand_right": {
+      "x": 0.6,
+      "y": 0.0,
+      "z": -0.66
+    },
+    "player__head_face": {
+      "x": 0.0,
+      "y": -0.03,
+      "z": 0.38
+    },
+    "player__lantern_body": {
+      "x": 0.0,
+      "y": -0.2,
+      "z": -0.58
+    },
+    "player__lantern_button": {
+      "x": 0.0,
+      "y": -0.28,
+      "z": -0.44
+    },
+    "player__lantern_head": {
+      "x": 0.0,
+      "y": -0.22,
+      "z": -0.8
+    },
+    "player__leg_left": {
+      "x": -0.22,
+      "y": 0.0,
+      "z": -0.9
+    },
+    "player__leg_right": {
+      "x": 0.22,
+      "y": 0.0,
+      "z": -0.9
+    },
+    "player__shirt_front": {
+      "x": 0.0,
+      "y": -0.245,
+      "z": -0.2
+    },
+    "player__shoe_left_sole": {
+      "x": -0.22,
+      "y": -0.08,
+      "z": -1.26
+    },
+    "player__shoe_left_top": {
+      "x": -0.22,
+      "y": -0.08,
+      "z": -1.19
+    },
+    "player__shoe_right_sole": {
+      "x": 0.22,
+      "y": -0.08,
+      "z": -1.26
+    },
+    "player__shoe_right_top": {
+      "x": 0.22,
+      "y": -0.08,
+      "z": -1.19
+    },
+    "player__skirt": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": -0.61
+    },
+    "player__sleeve_left": {
+      "x": -0.6,
+      "y": 0.0,
+      "z": -0.25
+    },
+    "player__sleeve_right": {
+      "x": 0.6,
+      "y": 0.0,
+      "z": -0.25
+    },
+    "player__strap_left": {
+      "x": -0.26,
+      "y": -0.27,
+      "z": -0.24
+    },
+    "player__strap_right": {
+      "x": 0.26,
+      "y": -0.27,
+      "z": -0.24
+    },
+    "player__tie": {
+      "x": 0.0,
+      "y": -0.29,
+      "z": -0.3
+    }
+  },
+  "required_semantic_mesh_count": 30,
+  "span_x": 1.45,
+  "span_y": 1.03,
+  "span_z": 2.6,
+  "status": "pass",
+  "triangle_count": 1320,
+  "up_axis": "+Y",
+  "visual_head_count": 2.0
+}

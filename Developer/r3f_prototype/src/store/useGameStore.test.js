@@ -419,6 +419,63 @@ describe('랭킹 제출 결과가 스토어 상태로 남는다', () => {
     useAuthStore.setState({ user: null })
   })
 
+  it('첫 처치가 나는 즉시 1점짜리 라이브 체크포인트를 랭킹에 올린다', async () => {
+    ranking.submitRun.mockResolvedValue({ written: ['daily'], skipped: [], failed: [] })
+    _seedHydratedFirebaseProgressForTests()
+    useAuthStore.setState({ user: { uid: 'me' } })
+    useGameStore.getState().resetGame('stage1')
+
+    useGameStore.getState().recordKill()
+
+    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
+    expect(ranking.submitRun).toHaveBeenLastCalledWith({ uid: 'me' }, {
+      stageId: 'stage1',
+      score: 1,
+      timeMs: 0,
+      cleared: false,
+    })
+    await Promise.resolve()
+    await Promise.resolve()
+    useAuthStore.setState({ user: null })
+  })
+
+  it('생존 점수가 1점 이상이면 게임오버 전에도 주기 체크포인트를 랭킹에 올린다', () => {
+    ranking.submitRun.mockResolvedValue({ written: ['daily'], skipped: [], failed: [] })
+    _seedHydratedFirebaseProgressForTests()
+    useAuthStore.setState({ user: { uid: 'me' } })
+    useGameStore.getState().resetGame('stage1')
+
+    advanceRuntimeTime(1_000)
+    expect(useGameStore.getState().publishRuntimeElapsedMs()).toBe(true)
+
+    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
+    expect(ranking.submitRun).toHaveBeenLastCalledWith({ uid: 'me' }, {
+      stageId: 'stage1',
+      score: 1,
+      timeMs: 1_000,
+      cleared: false,
+    })
+    useAuthStore.setState({ user: null })
+  })
+
+  it('pagehide/앱 종료용 lifecycle 체크포인트는 10초 스로틀을 우회한다', () => {
+    ranking.submitRun.mockResolvedValue({ written: ['daily'], skipped: [], failed: [] })
+    _seedHydratedFirebaseProgressForTests()
+    useAuthStore.setState({ user: { uid: 'me' } })
+    useGameStore.getState().resetGame('stage1')
+    advanceRuntimeTime(1_000)
+    useGameStore.getState().publishRuntimeElapsedMs()
+    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
+
+    expect(useGameStore.getState().flushRankingCheckpoint('interval')).toBe(false)
+    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
+
+    expect(useGameStore.getState().flushRankingCheckpoint('lifecycle')).toBe(true)
+    expect(ranking.submitRun).toHaveBeenCalledTimes(2)
+    expect(ranking.submitRun).toHaveBeenLastCalledWith({ uid: 'me' }, expect.objectContaining({ score: 1, cleared: false }))
+    useAuthStore.setState({ user: null })
+  })
+
   // 진행도가 하이드레이트되지 않은 런은 랭킹 제출을 통째로 건너뛴다. 예전에는 그 사실이
   // 어디에도 남지 않아 "기록을 세웠는데 보드가 비었다"의 원인 후보로 떠오르지도 못했다.
   it('진행도 미하이드레이트 런은 progressUnavailable로 남는다 — 침묵하지 않는다', () => {

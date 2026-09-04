@@ -5,6 +5,8 @@ const source = readFileSync(new URL('./ProceduralFaceTestZombie.jsx', import.met
 
 describe('ProceduralFaceTestZombie contracts', () => {
   it('draws the complete face with one shader plane and no image-backed path', () => {
+    expect(source).toContain('Signed Distance Field procedural face rendering')
+    expect(source).toContain('texture image 없이 UV 좌표의 거리장')
     expect(source).toContain('<shaderMaterial')
     expect(source).toContain('fragmentShader={FACE_FRAGMENT_SHADER}')
     expect(source).toContain('<planeGeometry args={[0.54, 0.48]} />')
@@ -62,8 +64,8 @@ describe('ProceduralFaceTestZombie contracts', () => {
   })
 
   it('keeps the numeric-path fill mesh as the parent of its outline and face children', () => {
-    const zombiePartSource = source.match(/function ZombiePart[\s\S]*?\n}\n\nfunction ProceduralFace/)
-    const fillMeshHierarchy = zombiePartSource?.[0].match(/<mesh renderOrder=\{2\}[\s\S]*?<\/mesh>/)
+    const zombiePartSource = source.match(/function ZombiePart[\s\S]*?\r?\n}\r?\n\r?\nfunction ProceduralFace/)
+    const fillMeshHierarchy = zombiePartSource?.[0].match(/<mesh[^>]*renderOrder=\{2\}[\s\S]*?<\/mesh>/)
 
     expect(fillMeshHierarchy).not.toBeNull()
     expect(fillMeshHierarchy?.[0]).toContain('studioRenderOutline')

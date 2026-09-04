@@ -17,6 +17,7 @@ import {
   isAllowedStudioGameOrigin,
 } from './lib/studioGameBridge.js'
 import { useAuthStore } from './store/useAuthStore.js'
+import { useGameStore } from './store/useGameStore.js'
 import { isFirebaseStudioRuntimeReady } from './lib/studioRuntimeState.js'
 import { isProjectMaster } from './lib/projectAdmin.js'
 import { t } from './lib/i18n.js'
@@ -31,8 +32,7 @@ const AdminPage = lazy(() => import('./components/AdminPage.jsx'))
 const GraphicsStudio = lazy(() => import('./components/GraphicsStudio.jsx'))
 const ReadyGameApp = lazy(() => import('./components/ReadyGameApp.jsx'))
 const InspectionModeScreen = lazy(() => import('./components/InspectionModeScreen.jsx'))
-
-installPlayerStorageFatalGuard()
+const PlayerModelViewer = lazy(() => import('./components/PlayerModelViewer.jsx'))
 
 export async function handleStudioGameSyncMessage(event) {
   if (event?.data?.type !== STUDIO_GAME_SYNC_MESSAGE) return false
@@ -79,6 +79,23 @@ if (typeof window !== 'undefined') {
 }
 
 export default function App() {
+  const isPlayerModelViewerRoute = typeof window !== 'undefined'
+    && window.location.pathname.startsWith('/player-model-viewer')
+  if (isPlayerModelViewerRoute) {
+    return (
+      <ErrorBoundary fallback={({ retry, reload }) => <RouteLoadFailure label="Player model viewer" retry={retry} reload={reload} />}>
+        <Suspense fallback={<div style={styles.routeLoading}>Player model viewer loading...</div>}>
+          <PlayerModelViewer />
+        </Suspense>
+      </ErrorBoundary>
+    )
+  }
+
+  installPlayerStorageFatalGuard()
+  return <GameApplication />
+}
+
+export function GameApplication() {
   const authStatus = useAuthStore((state) => state.status)
   const authUser = useAuthStore((state) => state.user)
   const progressStatus = useAuthStore((state) => state.progressStatus)
@@ -99,6 +116,24 @@ export default function App() {
   useEffect(() => {
     void initializeAuth()
   }, [initializeAuth])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return undefined
+    const flushLiveRanking = () => {
+      useGameStore.getState().flushRankingCheckpoint?.('lifecycle')
+    }
+    const flushWhenHidden = () => {
+      if (document.visibilityState === 'hidden') flushLiveRanking()
+    }
+    window.addEventListener('pagehide', flushLiveRanking)
+    window.addEventListener('beforeunload', flushLiveRanking)
+    document.addEventListener('visibilitychange', flushWhenHidden)
+    return () => {
+      window.removeEventListener('pagehide', flushLiveRanking)
+      window.removeEventListener('beforeunload', flushLiveRanking)
+      document.removeEventListener('visibilitychange', flushWhenHidden)
+    }
+  }, [])
 
   useEffect(() => {
     let unsubscribe = null

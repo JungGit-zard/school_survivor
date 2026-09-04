@@ -74,6 +74,39 @@ const FOLLOWUP_GUARANTEED_UPGRADE_BY_PREREQUISITE = Object.freeze({
 })
 
 const MAX_MISSION_KILL_KEYS = 512
+const RANKING_CHECKPOINT_INTERVAL_MS = 10_000
+
+function floorNonNegativeMs(value) {
+  const ms = Number(value)
+  return Number.isFinite(ms) && ms > 0 ? Math.floor(ms) : 0
+}
+
+function buildRankingRunSnapshot(state, elapsedMs, phaseName = 'playing') {
+  const survivalSeconds = Math.floor(floorNonNegativeMs(elapsedMs) / 1000)
+  const cleared = phaseName === 'cleared'
+  const policy = getRankingScorePolicy()
+  const bossBonus = getBossClearBonus({
+    stageId: state.currentStageId,
+    survivalSeconds,
+    cleared,
+    bossDefeated: state.bossDefeated,
+  }, policy)
+  const rawScore = getRankingScore({
+    stageId: state.currentStageId,
+    survivalSeconds,
+    cleared,
+    bossBonus,
+  }, policy)
+  // Marketing-critical rule: a player who actually achieved anything in a run must be visible.
+  // Stage 1 can still have 0 survival score during the first second, so one kill promotes the
+  // ranking checkpoint to score 1 instead of disappearing on back/force-close.
+  const score = Math.max(rawScore, state.runKills > 0 ? 1 : 0)
+  return {
+    run: { stageId: state.currentStageId, score, timeMs: floorNonNegativeMs(elapsedMs), cleared },
+    survivalSeconds,
+    bossBonus,
+  }
+}
 
 const BASE_PLAYER = {
   hp: 100, maxHp: 100,
@@ -278,6 +311,9 @@ export const useGameStore = create(
     // resetGame에서 지우지 않는다: advanceStage가 _onRunEnd 직후 resetGame을 부르므로
     // 지우면 클리어 런의 제출 결과가 화면에 뜨기도 전에 증발한다.
     rankingSubmission: null,
+    // Best-effort live ranking checkpoint. This is how a 1+ score run survives browser/app close:
+    // the score is already written while the game is running, not only after Game Over.
+    rankingCheckpoint: null,
     survivalMilestonesHit: [],
     recentMilestone: null,
     pendingLevelUps: 0,
@@ -318,6 +354,7 @@ export const useGameStore = create(
       const elapsedMs = getRuntimeElapsedMs(storeElapsedMs)
       markRuntimeTimePublished(elapsedMs)
       set({ elapsedMs })
+      get().flushRankingCheckpoint?.('interval')
       return true
     },
 
@@ -427,7 +464,10 @@ export const useGameStore = create(
     },
 
     // 본 런 처치 카운터 +1. 인자 없는 단순 signature — per-type 카운터가 필요해지면 그때 분기 추가.
-    recordKill: () => set((s) => ({ runKills: s.runKills + 1 })),
+    recordKill: () => {
+      set((s) => ({ runKills: s.runKills + 1 }))
+      get().flushRankingCheckpoint?.('kill')
+    },
 
     // 보스 처치는 mid-run에 즉시 cumulative에 누적한다. B01/B02 패시브는 Firebase 준비 전에도
     // 현재 메모리 런에서 즉시 해금·적용되며, 저장 실패가 플레이를 막지 않는다.
@@ -654,18 +694,9 @@ export const useGameStore = create(
       void get().saveMissionProgress()
 
       // 랭킹 제출 — 로그인 상태 + Firebase 설정 시에만 동작 (실패해도 게임에 영향 없음).
-      const cleared = phaseName === 'cleared'
-      const policy = getRankingScorePolicy()
-      const bossBonus = getBossClearBonus({
-        stageId: s.currentStageId,
-        survivalSeconds: runSurvivalSeconds,
-        cleared,
-        bossDefeated: s.bossDefeated,
-      }, policy)
+      const { run, bossBonus } = buildRankingRunSnapshot(s, elapsedMs, phaseName)
       if (s.bossBonus !== bossBonus) set({ bossBonus })
       const user = useAuthStore.getState().user
-      const score = getRankingScore({ stageId: s.currentStageId, survivalSeconds: runSurvivalSeconds, cleared, bossBonus }, policy)
-      const run = { stageId: s.currentStageId, score, timeMs: elapsedMs, cleared }
       // 같은 런의 종료가 2회 발화해도 안전하다: 랭킹은 최고점(best-only) 모델이라 두 번째
       // 제출은 "기존 점수 >= 새 점수"로 스킵된다(합산이 아니다).
       // 여기서 만들던 runId는 미배포 Cloud Function 전용이었고 submitRun은 인자로 받지도
@@ -683,6 +714,30 @@ export const useGameStore = create(
       return submitRun(user, run)
         .then((outcome) => { set({ rankingSubmission: { ...run, ...describeSubmission(outcome) } }) })
         .catch(() => { set({ rankingSubmission: { ...run, status: 'failed', reason: 'network' } }) })
+    },
+
+    // 살아 있는 런도 주기적으로 최고점 체크포인트를 랭킹에 올린다.
+    // pagehide/beforeunload 시점의 비동기 저장은 브라우저/모바일 OS가 끊을 수 있으므로,
+    // 전통적인 게임 서버 방식처럼 “플레이 중 이미 기록”해 강제종료 유실을 줄인다.
+    flushRankingCheckpoint: (reason = 'interval') => {
+      const s = get()
+      if (!['playing', 'paused', 'levelup'].includes(s.phase)) return false
+      const elapsedMs = getRuntimeElapsedMs(s.elapsedMs)
+      const { run } = buildRankingRunSnapshot(s, elapsedMs, 'checkpoint')
+      if (run.score < 1) return false
+
+      const previous = s.rankingCheckpoint
+      const forced = reason === 'lifecycle' || reason === 'kill'
+      if (!forced
+        && previous?.gameKey === s.gameKey
+        && previous.score >= run.score
+        && elapsedMs - previous.elapsedMs < RANKING_CHECKPOINT_INTERVAL_MS) return false
+
+      set({ rankingCheckpoint: { gameKey: s.gameKey, score: run.score, elapsedMs, reason } })
+      const user = useAuthStore.getState().user
+      if (user) void get().submitRunToRanking(user, run)
+      else set({ rankingSubmission: { ...run, status: 'notSubmitted', reason: 'signedOut' } })
+      return true
     },
 
     // 실패한 제출만 다시 시도한다. 성공/스킵을 다시 쏘면 서버 왕복만 늘고 얻는 게 없다.
@@ -1248,6 +1303,7 @@ export const useGameStore = create(
         runKills:    0,
         runLevelUps: 0,
         newlyUnlockedWeaponIds: [],
+        rankingCheckpoint: null,
         survivalMilestonesHit: [],
         recentMilestone: null,
         pendingLevelUps: 0,

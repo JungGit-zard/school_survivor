@@ -518,12 +518,14 @@ export function createRunZombieCrewEntries(bounds, random = Math.random, obstacl
   for (let i = 0; i < RUN_ZOMBIE_CREW_SIZE; i += 1) {
     const isLeader = i === 0
     const followerIndex = Math.max(0, i - 1)
-    const row = Math.floor(followerIndex / 4)
-    const col = followerIndex % 4
-    // 기존 난수 소비량은 유지하되, 크루 행렬 자체는 리더 기준 정확한 4명×3열로 고정한다.
+    const row = Math.floor(followerIndex / 2)
+    const col = followerIndex % 2
+    // 기존 난수 소비량은 유지하되, 크루 행렬 자체는 리더 뒤 2열 종대로 고정한다.
+    // 넓은 4열 횡대는 리더 옆으로 붙어 보였으므로, 좌우 폭은 한 몸통 안쪽으로 줄이고
+    // 행 간격을 벌려 '리더 1명 + 뒤따르는 러닝크루' 실루엣을 만든다.
     if (!isLeader) random()
-    const sideOffset = isLeader ? 0 : (col - 1.5) * 0.72
-    const trail = isLeader ? 0 : 1.15 + row * 1.05 + (col % 2) * 0.38
+    const sideOffset = isLeader ? 0 : (col === 0 ? -0.42 : 0.42)
+    const trail = isLeader ? 0 : 1.28 + row * 0.92
     const x = startX - nx * trail + px * sideOffset
     const z = startZ - nz * trail + pz * sideOffset
     const type = isLeader ? 'RZL' : 'RZC'

@@ -4,6 +4,9 @@ import { getCachedBoxGeo, getCachedToonMat, getSharedOutlineMat, inflateScale } 
 
 const disableRaycast = () => null
 
+// Signed Distance Field procedural face rendering:
+// texture image 없이 UV 좌표의 거리장(sdf/soft distance) 계산만으로 눈·눈썹·코·웃는 입을 그린다.
+
 const FACE_VERTEX_SHADER = `
   varying vec2 vUv;
 

@@ -1117,7 +1117,7 @@ describe('formation spawns', () => {
     expect(burstsForStage('stage2').some((evt) => evt.formation)).toBe(true)
   })
 
-  it('creates the stage3 run zombie crew followers in the restored thirteen-member staggered diagonal formation', () => {
+  it('creates the stage3 run zombie crew followers as a narrow two-lane trailing formation behind one leader', () => {
     const stage3Arena = { halfX: 18, halfZ: 18 }
     const entries = createRunZombieCrewEntries(stage3Arena, () => 0.5)
     const leader = entries[0]
@@ -1140,14 +1140,18 @@ describe('formation spawns', () => {
       localFollowers.filter((follower) => follower.behind.toFixed(6) === behind),
     )
 
-    expect(localFollowers.every(({ behind }) => behind > 0)).toBe(true)
+    expect(localFollowers.every(({ behind }) => behind >= 1.2)).toBe(true)
     expect(rows).toHaveLength(6)
     expect(rows.every((row) => row.length === 2)).toBe(true)
     expect(localFollowers.map(({ behind, side }) => `${behind.toFixed(6)}:${side.toFixed(6)}`)).toHaveLength(new Set(localFollowers.map(({ behind, side }) => `${behind.toFixed(6)}:${side.toFixed(6)}`)).size)
     const sides = localFollowers.map(({ side }) => side).sort((a, b) => a - b)
-    const expectedSides = [-1.08, -1.08, -1.08, -0.36, -0.36, -0.36, 0.36, 0.36, 0.36, 1.08, 1.08, 1.08]
+    const expectedSides = [-0.42, -0.42, -0.42, -0.42, -0.42, -0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42]
     expect(sides).toHaveLength(expectedSides.length)
     sides.forEach((side, index) => expect(side).toBeCloseTo(expectedSides[index], 6))
+    expect(Math.max(...sides.map(Math.abs))).toBeLessThan(0.5)
+    for (let rowIndex = 1; rowIndex < rows.length; rowIndex += 1) {
+      expect(rows[rowIndex][0].behind - rows[rowIndex - 1][0].behind).toBeCloseTo(0.92, 6)
+    }
   })
 
   it('keeps the run zombie crew as a diagonal screen-crossing swarm, not a ring/pincer clone', () => {
