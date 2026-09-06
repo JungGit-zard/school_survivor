@@ -94,17 +94,21 @@ describe('quest world placement resolution', () => {
     expect(marker.position[1]).toBeGreaterThan(giver.position[1] + 1)
   })
 
-  it('emits blinking notice marker states for available starts and return/install targets', () => {
+  it('emits blinking notice marker states for starts, current objectives, and return/install targets', () => {
     const [firstQuest, secondQuest] = getStageQuestDefinitions('stage1')
     const markers = getQuestNoticeMarkers('stage1', [firstQuest, secondQuest], {
       [firstQuest.id]: { status: 'undiscovered' },
+      [secondQuest.id]: { status: 'active' },
+    }, getStageObjectPlacements('stage1'))
+    const completionMarkers = getQuestNoticeMarkers('stage1', [secondQuest], {
       [secondQuest.id]: { status: 'item-acquired', itemHeld: true },
     }, getStageObjectPlacements('stage1'))
 
     expect(markers).toHaveLength(2)
     expect(markers[0]).toMatchObject({ kind: 'available', symbol: '!' })
-    expect(markers[1]).toMatchObject({ kind: 'return', symbol: '?' })
-    expect(markers.every(({ target }) => target.position[1] > 1)).toBe(true)
+    expect(markers[1]).toMatchObject({ kind: 'objective', symbol: '➜' })
+    expect(completionMarkers[0]).toMatchObject({ kind: 'return', symbol: '?' })
+    expect([...markers, ...completionMarkers].every(({ target }) => target.position[1] > 1)).toBe(true)
   })
 
   it('uses type and fallback types when an exact Firebase placement is absent', () => {

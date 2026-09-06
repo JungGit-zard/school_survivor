@@ -38,9 +38,9 @@ export const WEAPON_CATALOG = {
   boxCutter: {
     id: 'boxCutter',
     label: '커터칼',
-    // 공격력 48 = 기존 공격력 24의 정확히 2배. 사거리 1.4 = 초기값(0.7)의 2배로 확장.
-    // 기본 초기 쿨다운 650ms의 5배 = 3250ms(3.25초), 2026-07-26
-    base: { damage: 48, cooldown: 3250, range: 1.4, width: 0.18, knockback: 1.8, critChance: 0.33, critMultiplier: 1.5 },
+    // 2026-09-06 사용자 확정: 위력 1.5배, 재사용 대기시간 절반.
+    // damage 48→72, cooldown 3250→1625ms. 사거리/치명타 정체성은 유지한다.
+    base: { damage: 72, cooldown: 1625, range: 1.4, width: 0.18, knockback: 1.8, critChance: 0.33, critMultiplier: 1.5 },
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },
@@ -111,8 +111,9 @@ export const WEAPON_CATALOG = {
     id: 'inucon',
     label: '이누콘',
     // 치비코/하나코 계열 동반자. 장착 즉시 주인공 뒤를 따라다니며 붙은 좀비를 물고 끌어내고,
-    // 10초마다 최대 HP의 10%를 회복한다. damage 0 유틸 무기라 레벨업은 끌어내기/회복 수치만 키운다.
-    base: { damage: 0, healIntervalMs: 10000, healPercent: 0.10, followDistance: 1.08, pushRadius: 0.85, knockback: 2.8, knockbackMs: 180, contactPulseIntervalMs: 250 },
+    // 2026-09-06 체감 개선: 총 회복량은 유지하되 10초/10% → 2초/2%로 쪼개 자주 보이게 한다.
+    // damage 0 유틸 무기라 레벨업은 끌어내기/회복 수치만 키운다.
+    base: { damage: 0, healIntervalMs: 2000, healPercent: 0.02, followDistance: 1.08, pushRadius: 0.85, knockback: 2.8, knockbackMs: 180, contactPulseIntervalMs: 250 },
     unlockConditions: [{ type: 'bossKills', value: 3 }],
     minLevelToAppear: 8,
   },
@@ -202,7 +203,7 @@ export const WEAPON_CATALOG = {
     id: 'studentLantern',
     label: '학생용 랜턴',
     // 신무기(2026-07-04): 전방을 빛으로 비추는 지속 무기. 빛이 켜진 durationMs 동안
-    // 전방 빛 상자 안 모든 적이 0.3초(hitIntervalMs)마다 피해를 받는다.
+    // 전방 빛 상자 안 모든 적이 0.15초(hitIntervalMs)마다 피해를 받는다.
     // - durationMs 1레벨 3초 → 10타. 레벨업마다 +1초 = +3.33타.
     //   (2026-08-15 정정: 주석은 "1초 간격 3타"라고 적혀 있었지만 데이터는 hitIntervalMs 300이고
     //    구현·DPS 추정기 모두 300을 따른다. 실제로 돌아가는 값인 데이터 쪽으로 문서를 맞춘다.)
@@ -211,7 +212,7 @@ export const WEAPON_CATALOG = {
     //   카탈로그 선언 직후 0.15로 덮어써서, 리터럴 0.6은 아무 데도 안 쓰이는 죽은 값이었다
     //   (주석도 "1.5배"와 "1/10"로 서로 모순이었다). 실제로 적용되던 0.15만 남긴다.
     // - cooldown 8000은 점등 시작 기준: Lv1 3초 점등/5초 소등 → Lv5 7초 점등/1초 소등.
-    base: { damage: 0.15, cooldown: 8000, lastFired: 0, durationMs: 3000, hitIntervalMs: 300, lightLength: 2.08, lightWidth: 3.6, lightBaseWidth: 0.35, critChance: 0.03, critMultiplier: 1.5 },
+    base: { damage: 0.075, cooldown: 8000, lastFired: 0, durationMs: 3000, hitIntervalMs: 150, lightLength: 2.08, lightWidth: 3.6, lightBaseWidth: 0.35, healPercentOnHit: 0.0008, critChance: 0.03, critMultiplier: 1.5 },
     unlockConditions: [{ type: 'stage3Clears', value: 1 }],
     minLevelToAppear: 5,
   },
@@ -227,19 +228,18 @@ export const WEAPON_CATALOG = {
   //
   // 검산(치명타 제외):
   //   8타 위력 배수 합 = 8 + 0.12 × (0+1+…+7) = 11.36
-  //   사이클 총 피해   = 36 × 11.36 + 60 = 468.96
-  //   사이클 시간      = 8 × 2400ms + 1200ms = 20400ms
-  //   단일 대상 DPS    = 468.96 / 20.4 ≈ 22.99
+  //   2026-09-06 사용자 확정: 위력 1.5배, 재사용 대기시간 절반.
+  //   damage 36→54, snapDamage 60→90, cooldown 2400→1200ms.
   bikittyCutter: {
     id: 'bikittyCutter',
     label: '바이키티 커터칼',
     base: {
-      damage: 36, cooldown: 2400, range: 1.0, width: 0.18,
+      damage: 54, cooldown: 1200, range: 1.0, width: 0.18,
       knockback: 1.8, critChance: 0.25, critMultiplier: 1.5,
       segments: 8,             // 부러지기까지 타격 수
       segmentRangeStep: 0.18,  // 단수당 사거리 + (최대 1.0 + 0.18×7 = 2.26)
       segmentDamageStep: 0.12, // 단수당 위력 +12% (가산)
-      snapDamage: 60,          // 기존 30의 정확히 2배인 부러짐 산탄 1회 피해
+      snapDamage: 90,          // 2026-09-06: 위력 1.5배 적용(60→90)
       // snapPellets는 없다. "시각 연출용 파편 개수"라고 선언돼 있었지만 부러짐 연출은
       // SFX와 부채꼴 피해뿐이라 파편을 그리는 코드가 아예 없었다. 파편 VFX를 만들 때 되살린다.
       snapArcDeg: 90,          // 전방 부채꼴 각도

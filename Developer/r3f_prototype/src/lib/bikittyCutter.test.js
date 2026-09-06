@@ -21,8 +21,8 @@ describe('바이키티 커터칼 카탈로그 정본', () => {
   it('기획 확정 스탯을 그대로 담는다', () => {
     const b = WEAPON_CATALOG.bikittyCutter.base
     expect(b).toMatchObject({
-      damage: 36,
-      cooldown: 2400,
+      damage: 54,
+      cooldown: 1200,
       range: 1.0,
       width: 0.18,
       knockback: 1.8,
@@ -31,7 +31,7 @@ describe('바이키티 커터칼 카탈로그 정본', () => {
       segments: 8,
       segmentRangeStep: 0.18,
       segmentDamageStep: 0.12,
-      snapDamage: 60,
+      snapDamage: 90,
       snapArcDeg: 90,
       snapRange: 3.2,
       reloadMs: 1200,
@@ -53,15 +53,15 @@ describe('단(segment)별 유효 사거리·유효 위력', () => {
     }
   })
 
-  it('단 0→7에서 위력이 기존의 정확히 2배인 36 → 36×1.84로 자란다', () => {
+  it('단 0→7에서 위력이 54 → 54×1.84로 자란다', () => {
     const w = base()
-    expect(bikittySegmentDamage(w, 0)).toBeCloseTo(36, 10)
-    expect(bikittySegmentDamage(w, 7)).toBeCloseTo(36 * 1.84, 10)
-    expect(bikittySegmentDamage(w, 7)).toBeCloseTo(66.24, 10)
+    expect(bikittySegmentDamage(w, 0)).toBeCloseTo(54, 10)
+    expect(bikittySegmentDamage(w, 7)).toBeCloseTo(54 * 1.84, 10)
+    expect(bikittySegmentDamage(w, 7)).toBeCloseTo(99.36, 10)
 
     // 가산 배율이므로 단당 증가폭은 항상 base damage × 0.12로 일정하다.
     for (let s = 1; s <= 7; s += 1) {
-      expect(bikittySegmentDamage(w, s) - bikittySegmentDamage(w, s - 1)).toBeCloseTo(36 * 0.12, 10)
+      expect(bikittySegmentDamage(w, s) - bikittySegmentDamage(w, s - 1)).toBeCloseTo(54 * 0.12, 10)
     }
   })
 
@@ -70,7 +70,7 @@ describe('단(segment)별 유효 사거리·유효 위력', () => {
     expect(clampBikittySegment(-3, w)).toBe(0)
     expect(clampBikittySegment(99, w)).toBe(7)
     expect(bikittySegmentRange(w, 99)).toBeCloseTo(2.26, 10)
-    expect(bikittySegmentDamage(w, -1)).toBeCloseTo(36, 10)
+    expect(bikittySegmentDamage(w, -1)).toBeCloseTo(54, 10)
   })
 
   it('8단째(segment 7)에서만 부러지고 그 다음 단은 1단(0)으로 리셋된다', () => {
@@ -90,7 +90,7 @@ describe('단(segment)별 유효 사거리·유효 위력', () => {
 })
 
 describe('사이클 검산 (기획서 §1 위력 계산)', () => {
-  it('기존 피해의 정확히 2배인 사이클 총 피해 468.96 / 사이클 시간 20.4s / 단일 대상 DPS ≈ 23.0', () => {
+  it('2026-09-06 상향 후 사이클 총 피해 703.44 / 사이클 시간 10.8s / 단일 대상 DPS ≈ 65.13', () => {
     const w = base()
 
     // 8타 위력 배수 합 = 8 + 0.12 × (0+1+…+7) = 11.36
@@ -98,14 +98,14 @@ describe('사이클 검산 (기획서 §1 위력 계산)', () => {
     expect(multiplierSum).toBeCloseTo(11.36, 10)
 
     // 사이클 총 피해 = 36 × 11.36 + snap 60 = 468.96 (기존 234.48의 정확히 2배)
-    expect(bikittyCycleDamage(w)).toBeCloseTo(36 * 11.36 + 60, 6)
-    expect(bikittyCycleDamage(w)).toBeCloseTo(468.96, 6)
+    expect(bikittyCycleDamage(w)).toBeCloseTo(54 * 11.36 + 90, 6)
+    expect(bikittyCycleDamage(w)).toBeCloseTo(703.44, 6)
 
     // 사이클 시간 = 8 × 2400ms + reload 1200ms = 20400ms
-    expect(bikittyCycleMs(w)).toBe(20400)
+    expect(bikittyCycleMs(w)).toBe(10800)
 
     // 단일 대상 DPS ≈ 23.0
-    expect(bikittyCycleDps(w)).toBeCloseTo(22.99, 2)
+    expect(bikittyCycleDps(w)).toBeCloseTo(65.13, 2)
   })
 
   it('커터칼 7.4 대비 1.55배, 30cm 자 9.2 대비 1.25배 구간에 든다', () => {
@@ -113,13 +113,13 @@ describe('사이클 검산 (기획서 §1 위력 계산)', () => {
     const boxCutterDps = WEAPON_CATALOG.boxCutter.base.damage / (WEAPON_CATALOG.boxCutter.base.cooldown / 1000)
     const rulerDps = WEAPON_CATALOG.schoolBag.base.damage / (WEAPON_CATALOG.schoolBag.base.cooldown / 1000)
 
-    expect(boxCutterDps).toBeCloseTo(14.77, 2)
+    expect(boxCutterDps).toBeCloseTo(44.31, 2)
     expect(rulerDps).toBeCloseTo(9.23, 2)
-    // 기획서 목표 배수 1.55배 / 1.25배 — 반올림 오차 ±0.01 안에 든다.
-    expect(dps / boxCutterDps).toBeGreaterThan(1.54)
-    expect(dps / boxCutterDps).toBeLessThan(1.56)
-    expect(dps / rulerDps).toBeGreaterThan(2.48)
-    expect(dps / rulerDps).toBeLessThan(2.50)
+    // 2026-09-06 상향 뒤에도 바이키티는 커터칼보다 빠른 발전형 DPS다.
+    expect(dps / boxCutterDps).toBeGreaterThan(1.46)
+    expect(dps / boxCutterDps).toBeLessThan(1.48)
+    expect(dps / rulerDps).toBeGreaterThan(7.05)
+    expect(dps / rulerDps).toBeLessThan(7.07)
   })
 })
 

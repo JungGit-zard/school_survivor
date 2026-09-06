@@ -136,11 +136,11 @@ export function getQuestNoticeMarkerPosition(stageId, questId, target, placement
   const placement = resolveQuestTargetPlacement(target, placements)
   if (!placement) {
     const fallback = getQuestFallbackPosition(stageId, `${questId}:notice`)
-    return { position: [fallback[0], fallback[1] + 1.35, fallback[2]], sourceId: `${questId}:notice-fallback`, placement: null }
+    return { position: [fallback[0], fallback[1] + 2.05, fallback[2]], sourceId: `${questId}:notice-fallback`, placement: null }
   }
   const [x, y = 0, z] = placement.position
   return {
-    position: [x, y + 1.55, z],
+    position: [x, y + 2.15, z],
     sourceId: placement.id,
     placement,
   }
@@ -157,6 +157,14 @@ export function getQuestNoticeMarkers(stageId, quests = [], questProgress = {}, 
         symbol: '!',
         color: 0xffd84a,
         target: getQuestNoticeMarkerPosition(stageId, quest.id, quest.giver, placements),
+      })
+    } else if (status === 'active') {
+      markers.push({
+        quest,
+        kind: 'objective',
+        symbol: '➜',
+        color: 0x7cff7a,
+        target: getQuestNoticeMarkerPosition(stageId, quest.id, quest.itemTarget, placements),
       })
     } else if (status === 'item-acquired') {
       markers.push({
@@ -213,10 +221,10 @@ export function QuestNoticeMarker({ position, symbol = '!', color = 0xffd84a }) 
   useFrame(({ clock }, delta) => {
     if (!groupRef.current) return
     const elapsed = clock.getElapsedTime()
-    groupRef.current.position.y = baseY + Math.sin(elapsed * 3.2) * 0.08
+    groupRef.current.position.y = baseY + Math.sin(elapsed * 3.2) * 0.14
     groupRef.current.rotation.y += delta * 0.36
     groupRef.current.visible = Math.sin(elapsed * 5.6) > -0.48
-    const scale = 1 + Math.max(0, Math.sin(elapsed * 5.6)) * 0.08
+    const scale = 1 + Math.max(0, Math.sin(elapsed * 5.6)) * 0.14
     groupRef.current.scale.setScalar(scale)
   })
 
@@ -224,19 +232,19 @@ export function QuestNoticeMarker({ position, symbol = '!', color = 0xffd84a }) 
     <group ref={groupRef} position={position}>
       <Billboard follow lockX={false} lockY={false} lockZ={false}>
         <mesh position={[0, -0.22, -0.02]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.24, 0.31, 20]} />
+          <ringGeometry args={[0.46, 0.62, 28]} />
           <meshBasicMaterial color={color} side={THREE.DoubleSide} transparent opacity={0.76} />
         </mesh>
         <mesh position={[0, 0, -0.018]}>
-          <circleGeometry args={[0.28, 28]} />
+          <circleGeometry args={[0.58, 36]} />
           <meshBasicMaterial color={0x17121f} transparent opacity={0.82} side={THREE.DoubleSide} />
         </mesh>
         <Text
           position={[0, -0.015, 0]}
-          fontSize={0.52}
+          fontSize={1.04}
           anchorX="center"
           anchorY="middle"
-          outlineWidth={0.035}
+          outlineWidth={0.07}
           outlineColor="#21162e"
           color={`#${color.toString(16).padStart(6, '0')}`}
         >

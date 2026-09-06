@@ -20,8 +20,8 @@ describe('direct weapon hit sound contracts', () => {
   it('stun gun emits depth-pitched hit sounds and never ghost-fires without a target', () => {
     const source = sourceOf('StunGun')
     expect(source).toContain("id: 'stunGunHit'")
-    expect(source).toContain('volume: 0.55')
-    expect(source).toContain('rate: 1 + Math.min(chainDepth, 2) * 0.06')
+    expect(source).toContain('volume: 0.385')
+    expect(source).toContain('rate: 0.8 * (1 + Math.min(chainDepth, 2) * 0.06)')
     expect(source.indexOf('if (!nearestId) return')).toBeLessThan(source.indexOf("emitSfx({ id: 'stunGunFire' })"))
   })
 

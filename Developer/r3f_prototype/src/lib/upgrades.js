@@ -84,8 +84,8 @@ export const UPGRADE_EFFECTS = {
   bagRadius:      { weapon: 'schoolBag',     kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.067 },
   bagCrit:        { weapon: 'schoolBag',     kind: 'crit',   chanceStep: 0.02, chanceCap: 0.23, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireBoxCutter:{ weapon: 'boxCutter',      kind: 'acquire', minLevel: 2 },
-  boxCutterDamage:{ weapon: 'boxCutter',      kind: 'damage', dmg: 16.4 },
-  boxCutterPower: { weapon: 'boxCutter',      kind: 'damage', dmg: 16.4 },
+  boxCutterDamage:{ weapon: 'boxCutter',      kind: 'damage', dmg: 24.6 },
+  boxCutterPower: { weapon: 'boxCutter',      kind: 'damage', dmg: 24.6 },
   boxCutterRange: { weapon: 'boxCutter',      kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.755 },
   boxCutterCrit:  { weapon: 'boxCutter',      kind: 'crit',   chanceStep: 0.04, chanceCap: 0.57, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireTumbler:  { weapon: 'tumbler',       kind: 'acquire', minLevel: 2 },
@@ -141,12 +141,9 @@ export const UPGRADE_EFFECTS = {
   eraserPower:         { weapon: 'eraserBomb',    kind: 'damage', dmg: 13 },
   eraserRadius:        { weapon: 'eraserBomb',    kind: 'stat',   stat: 'radius',    step: 0.19, cap: 2.1 },
   acquireLantern:       { weapon: 'studentLantern', kind: 'acquire', minLevel: 5 },
-  // 기획: 레벨업마다 지속 +1초 = 타격 +3.33회 (hitIntervalMs 300 = 0.3초당 1타).
-  // cap 7000 = 무기 Lv5 상한(3+4초). 2026-08-15: "초당 1타"라 적혀 있던 걸 데이터에 맞춰 정정.
-  // 랜턴은 원래 데미지 카드가 아예 없었다(지속 + 치명타뿐). base damage 0.15가 워낙 작아
-  // 스텝도 그 비율(+43%)로 맞춘다 — 광역·유틸 무기라 단일 대상 화력이 낮은 건 정상이고,
-  // 여기서 억지로 올리면 빛 상자 안 전원에게 들어가는 광역 화력이 통째로 튄다.
-  lanternDamage:       { weapon: 'studentLantern', kind: 'damage', dmg: 0.065 },
+  // 2026-09-06 연출 개선: 0.15초마다 0.075 피해라 기존 초당 피해량은 유지.
+  // 데미지 카드도 기존 0.065의 절반(0.0325)으로 낮춰 강화 후 총 피해량만 동일하게 맞춘다.
+  lanternDamage:       { weapon: 'studentLantern', kind: 'damage', dmg: 0.0325 },
   lanternDuration:     { weapon: 'studentLantern', kind: 'stat',   stat: 'durationMs', step: 1000, cap: 7000 },
   lanternCrit:         { weapon: 'studentLantern', kind: 'crit',   chanceStep: 0.02, chanceCap: 0.19, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireChibiko:       { weapon: 'chibiko',       kind: 'acquire', minLevel: 8 },
@@ -156,15 +153,15 @@ export const UPGRADE_EFFECTS = {
   chibikoCrit:          { weapon: 'chibiko',       kind: 'crit',   chanceStep: 0.02, chanceCap: 0.21, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireHanako:        { weapon: 'hanako',        kind: 'acquire', requiresActiveWeapon: 'chibiko', skipAccountUnlock: true },
   acquireInucon:        { weapon: 'inucon',        kind: 'acquire', minLevel: 8 },
-  inuconHeal:           { weapon: 'inucon',        kind: 'stat',   stat: 'healPercent', step: 0.02, cap: 0.18 },
+  inuconHeal:           { weapon: 'inucon',        kind: 'stat',   stat: 'healPercent', step: 0.004, cap: 0.036 },
   inuconPushRadius:     { weapon: 'inucon',        kind: 'stat',   stat: 'pushRadius',  step: 0.1,  cap: 1.25 },
   inuconKnockback:      { weapon: 'inucon',        kind: 'stat',   stat: 'knockback',   step: 0.4,  cap: 4.4, bonus: { stat: 'knockbackMs', step: 20 } },
   // 바이키티 커터칼 — 커터칼을 런 중 보유해야만 카드가 뜬다(하나코/치비코와 같은 배선).
   // 계정 해금 게이트(weaponUnlocks)는 쓰지 않으므로 skipAccountUnlock: true.
   acquireBikittyCutter: { weapon: 'bikittyCutter', kind: 'acquire', minLevel: 6, requiresActiveWeapon: 'boxCutter', skipAccountUnlock: true },
-  // 기본 피해와 snapDamage가 모두 정확히 2배가 되었으므로 강화 피해도 기존 7의 정확히 2배다.
-  bikittyCutterDamage: { weapon: 'bikittyCutter', kind: 'damage', dmg: 14 },
-  bikittyCutterPower:  { weapon: 'bikittyCutter', kind: 'damage', dmg: 14 },
+  // 2026-09-06 사용자 확정: 기본 피해 1.5배에 맞춰 강화 피해도 14→21.
+  bikittyCutterDamage: { weapon: 'bikittyCutter', kind: 'damage', dmg: 21 },
+  bikittyCutterPower:  { weapon: 'bikittyCutter', kind: 'damage', dmg: 21 },
   bikittyCutterRange:  { weapon: 'bikittyCutter', kind: 'stat',   stat: 'segmentRangeStep', step: 0.02, cap: 0.28 },
   bikittyCutterCrit:   { weapon: 'bikittyCutter', kind: 'crit',   chanceStep: 0.02, chanceCap: 0.41, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   // 선긋기 — 30cm 자 + 커터칼을 런 중 둘 다 보유해야만 카드가 뜬다. 단수형으로는 표현할 수

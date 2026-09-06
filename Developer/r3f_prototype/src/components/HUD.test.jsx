@@ -1,4 +1,4 @@
-﻿// @vitest-environment jsdom
+// @vitest-environment jsdom
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -8,6 +8,8 @@ import HUD, {
   getUpgradeChoiceDesc,
   getUpgradeChoiceLabel,
   getWeaponUpgradeIconSrc,
+  enforceSafeLevelupChoice,
+  isSafeLevelupChoiceKey,
   limitDuplicateWeaponUpgradeOptions,
   limitPencilUpgradeOptions,
 } from './HUD.jsx'
@@ -303,6 +305,24 @@ describe('upgrade choice filtering', () => {
     expect(filtered.map((option) => option.key)).toContain('maxHealth')
   })
 
+
+  it('guarantees at least one safe level-up choice once eight weapons are owned', () => {
+    const weapons = buildWeaponsWithStarterWeaponsOwned()
+    for (const id of ['scienceFlask', 'bell', 'stunGun', 'onigiri']) {
+      weapons[id] = { ...weapons[id], active: true, level: 1 }
+    }
+    for (const id of ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler']) {
+      weapons[id] = { ...weapons[id], active: true, level: id === 'pencilThrow' ? 5 : 1 }
+    }
+
+    const choiceKeys = ['acquireMissile', 'acquireStarlink', 'acquireUmbrella', 'acquireEraserBomb']
+    const safe = enforceSafeLevelupChoice(choiceKeys, [...choiceKeys, 'boxCutterDamage', 'maxHealth'], weapons)
+
+    expect(safe).toHaveLength(4)
+    expect(safe.some((key) => isSafeLevelupChoiceKey(key, weapons))).toBe(true)
+    expect(safe).toEqual(expect.arrayContaining(['boxCutterDamage']))
+  })
+
   it('does not preview account-locked weapons as next run cards', () => {
     const weapons = buildWeaponsWithStarterWeaponsOwned()
 
@@ -559,10 +579,10 @@ describe('gameover presentation', () => {
 })
 
 describe('level-up upgrade layout', () => {
-  it('fullEightReplacement shows an acquire card at eight weapons, cancels unchanged, then replaces the chosen weapon', () => {
+  it('fullCapReplacement shows an acquire card at ten weapons, cancels unchanged, then replaces the chosen weapon', () => {
     useGameStore.getState().resetGame('stage1')
     setUnlocked('scienceFlask')
-    const activeWeaponIds = new Set(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'bell', 'stunGun', 'onigiri', 'guidedMissile'])
+    const activeWeaponIds = new Set(['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'bell', 'stunGun', 'onigiri', 'guidedMissile', 'sharkMissile', 'chibiko'])
     let originalPencil
     useGameStore.setState((state) => {
       originalPencil = state.weapons.pencilThrow
@@ -616,7 +636,7 @@ describe('level-up upgrade layout', () => {
       const state = useGameStore.getState()
       expect(state.weapons.pencilThrow).toEqual({ ...originalPencil, active: false, level: 0 })
       expect(state.weapons.scienceFlask).toMatchObject({ active: true, level: 1 })
-      expect(Object.values(state.weapons).filter((weapon) => weapon.active)).toHaveLength(8)
+      expect(Object.values(state.weapons).filter((weapon) => weapon.active)).toHaveLength(10)
     } finally {
       act(() => root.unmount())
       container.remove()
@@ -700,7 +720,6 @@ describe('level-up upgrade layout', () => {
       expect(secondLabels).toEqual(['바이키티 커터칼 획득', '벨 획득', '전기 획득', '오니기리 획득'])
       expect(secondLabels).toEqual(expect.not.arrayContaining(firstLabels))
       expect(useGameStore.getState().levelUpAcquireExposureKeys).toEqual([
-        'acquireBoxCutter', 'acquireBag', 'acquireTumbler', 'acquireFlask',
         'acquireBikittyCutter', 'acquireBell', 'acquireStun', 'acquireOnigiri',
       ])
       expect(useGameStore.getState().levelUpWeaponCycleIds).toEqual([
@@ -915,10 +934,10 @@ describe('level-up upgrade layout', () => {
     }
   })
 
-  it('opens an 8-slot weapon replacement prompt and supports cancel, discard, and replacement actions', () => {
+  it('opens a 10-slot weapon replacement prompt and supports cancel, discard, and replacement actions', () => {
     useGameStore.getState().resetGame('stage1')
     setUnlocked('starlink')
-    const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri']
+    const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'guidedMissile', 'sharkMissile']
     useGameStore.setState((state) => ({
       phase: 'levelup',
       pendingLevelUps: 1,
@@ -950,9 +969,9 @@ describe('level-up upgrade layout', () => {
 
       let prompt = container.querySelector('[data-testid="weapon-replacement-prompt"]')
       expect(prompt).not.toBeNull()
-      expect(prompt.textContent).toContain('무기 8/8')
+      expect(prompt.textContent).toContain('무기 10/10')
       expect(prompt.textContent).toContain('고장난 스타링크')
-      expect(prompt.querySelectorAll('[data-replacement-choice="true"]')).toHaveLength(8)
+      expect(prompt.querySelectorAll('[data-replacement-choice="true"]')).toHaveLength(10)
 
       clickButtonByText(prompt, '취소')
       expect(container.querySelector('[data-testid="weapon-replacement-prompt"]')).toBeNull()
@@ -1728,6 +1747,34 @@ describe('live score readout', () => {
     try {
       expect(container.textContent).toContain('3.6e5')
       expect(container.textContent).not.toContain('360,000')
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+})
+
+describe('HUD runtime subscription budget', () => {
+  it('does not commit for a burst of kill-only store updates', () => {
+    useGameStore.getState().resetGame('stage1')
+    const container = document.createElement('div')
+    const root = createRoot(container)
+    let commits = 0
+
+    try {
+      act(() => {
+        root.render(
+          <React.Profiler id="hud" onRender={() => { commits += 1 }}>
+            <HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />
+          </React.Profiler>,
+        )
+      })
+      const initialCommits = commits
+
+      act(() => {
+        for (let index = 0; index < 150; index += 1) useGameStore.getState().recordKill()
+      })
+
+      expect(commits).toBe(initialCommits)
     } finally {
       act(() => root.unmount())
     }

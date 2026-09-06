@@ -77,15 +77,15 @@ describe('weaponCatalog', () => {
     expect(source).toContain("import { PENCIL_FIRE_RANGE_WORLD_UNITS } from './gameplayUnits.js'")
     expect(source).toContain('range: PENCIL_FIRE_RANGE_WORLD_UNITS')
     expect(WEAPON_CATALOG.schoolBag.base.damage).toBe(12)
-    expect(WEAPON_CATALOG.boxCutter.base.damage).toBe(48) // 기존 24의 정확히 2배
+    expect(WEAPON_CATALOG.boxCutter.base.damage).toBe(72) // 2026-09-06: 48의 1.5배
     expect(WEAPON_CATALOG.boxCutter.base.range).toBe(1.4) // 사거리 2배 확장 (0.7 → 1.4)
     expect(WEAPON_CATALOG.boxCutter.base.width).toBe(0.18)
     expect(WEAPON_CATALOG.boxCutter.base.knockback).toBe(1.8)
     expect(WEAPON_CATALOG.boxCutter.base.critChance).toBe(0.33)
     expect(WEAPON_CATALOG.boxCutter.base.critMultiplier).toBe(1.5)
     // 업그레이드 없는 기본 쿨다운: 기존 650ms의 정확히 5배
-    expect(WEAPON_CATALOG.boxCutter.base.cooldown).toBe(3250)
-    expect(WEAPON_CATALOG.boxCutter.base.cooldown).toBe(650 * 5)
+    expect(WEAPON_CATALOG.boxCutter.base.cooldown).toBe(1625)
+    expect(WEAPON_CATALOG.boxCutter.base.cooldown).toBe(3250 / 2)
     expect(WEAPON_CATALOG.tumbler.base.hitsPerSecond).toBe(2.5)
     expect(WEAPON_CATALOG.scienceFlask.base.damage).toBe(7.5) // 리워크: 착탄 데미지 절반, 웅덩이 존 추가
     expect(WEAPON_CATALOG.bell.base.directions).toBe(8)
@@ -112,8 +112,8 @@ describe('weaponCatalog', () => {
       label: '이누콘',
       base: {
         damage: 0,
-        healIntervalMs: 10000,
-        healPercent: 0.10,
+        healIntervalMs: 2000,
+        healPercent: 0.02,
         followDistance: 1.08,
         pushRadius: 0.85,
         knockback: 2.8,
@@ -176,11 +176,12 @@ describe('weaponCatalog', () => {
 
   it('studentLantern 스펙 (신무기 기획 정본)', () => {
     const lantern = WEAPON_CATALOG.studentLantern.base
-    // 위와 같은 이유로 연필 파생에서 분리해 0.15(구 연필 1.5의 1/10)에 고정했다.
-    expect(lantern.damage).toBeCloseTo(0.15, 10)
+    // 2026-09-06: 0.15초마다 0.075 피해로 바꿔 총 피해량은 유지하고 다다다닥 체감을 낸다.
+    expect(lantern.damage).toBeCloseTo(0.075, 10)
     expect(lantern.damage).not.toBe(WEAPON_CATALOG.pencilThrow.base.damage * 0.1)
-    expect(lantern.durationMs).toBe(3000)      // 1레벨 3초 점등 → 3타
-    expect(lantern.hitIntervalMs).toBe(300)
+    expect(lantern.durationMs).toBe(3000)      // 1레벨 3초 점등 → 약 20타
+    expect(lantern.hitIntervalMs).toBe(150)
+    expect(lantern.healPercentOnHit).toBe(0.0008)
     expect(lantern.lightLength).toBe(2.08)
     expect(lantern.lightWidth).toBe(3.6)
     expect(lantern.lightBaseWidth).toBe(0.35)

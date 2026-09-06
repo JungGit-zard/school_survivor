@@ -93,7 +93,7 @@ const MATILDA_DEATH_GRAYSCALE_FADE_MS = 480
 // 자산이다. 추격 내내 반복되는 matildaDash/matildaLaugh와 달리 이 순간에만 들리므로
 // 충돌 임팩트음으로 겹치지 않는다.
 const MATILDA_DEATH_IMPACT_SFX = Object.freeze({ id: 'matildaDeath', volume: 0.95 })
-const DEV_CHEATS_ENABLED = import.meta.env.DEV
+const DEV_CHEATS_ENABLED = true
 
 
 function summonCoinJingleZombieCheat() {
@@ -403,13 +403,24 @@ function isRunPassiveUpgradeKey(key) {
   return UPGRADE_EFFECTS[key]?.kind === 'player'
 }
 
-function enforceRunPassiveChoice(choiceKeys, availableKeys) {
-  if (choiceKeys.some(isRunPassiveUpgradeKey)) return choiceKeys
-  const passiveKey = availableKeys.find(isRunPassiveUpgradeKey)
-  if (!passiveKey || choiceKeys.includes(passiveKey)) return choiceKeys
-  if (choiceKeys.length < 4) return [...choiceKeys, passiveKey]
+function isOwnedWeaponUpgradeKey(key, weapons = {}) {
+  const effect = UPGRADE_EFFECTS[key]
+  return Boolean(effect?.weapon && effect.kind !== 'acquire' && weapons[effect.weapon]?.active)
+}
+
+export function isSafeLevelupChoiceKey(key, weapons = {}) {
+  return isRunPassiveUpgradeKey(key) || isOwnedWeaponUpgradeKey(key, weapons)
+}
+
+export function enforceSafeLevelupChoice(choiceKeys, availableKeys, weapons = {}, safeThreshold = 8) {
+  const ownedWeaponCount = Object.values(weapons).filter((weapon) => weapon?.active).length
+  if (ownedWeaponCount < safeThreshold) return choiceKeys
+  if (choiceKeys.some((key) => isSafeLevelupChoiceKey(key, weapons))) return choiceKeys
+  const safeKey = availableKeys.find((key) => isSafeLevelupChoiceKey(key, weapons))
+  if (!safeKey || choiceKeys.includes(safeKey)) return choiceKeys
+  if (choiceKeys.length < 4) return [...choiceKeys, safeKey]
   const replaceIndex = Math.max(0, choiceKeys.findLastIndex((key) => UPGRADE_EFFECTS[key]?.kind === 'acquire'))
-  return choiceKeys.map((key, index) => (index === replaceIndex ? passiveKey : key))
+  return choiceKeys.map((key, index) => (index === replaceIndex ? safeKey : key))
 }
 
 function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [], exposedAcquireKeys = [], weaponCycleIds = [], rotationWeaponIds = []) {
@@ -431,7 +442,7 @@ function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [
     getChoiceGroupKey: (key) => getUpgradeChoiceGroupKey({ key }),
     allowWeaponCycleRepeatFallback: true,
   })
-  const choiceKeys = enforceRunPassiveChoice(selection.choiceKeys, limited.map((upgrade) => upgrade.key))
+  const choiceKeys = enforceSafeLevelupChoice(selection.choiceKeys, limited.map((upgrade) => upgrade.key), weapons)
   const selectedAcquireKeys = choiceKeys.filter((key) => UPGRADE_EFFECTS[key]?.kind === 'acquire')
   const nextExposedAcquireKeys = [...new Set([
     ...exposedAcquireKeys.filter((key) => selectedAcquireKeys.includes(key)),
@@ -2505,16 +2516,16 @@ const styles = {
     top: '50%',
     transform: 'translate(-50%, -50%)',
     zIndex: 30,
-    width: 'min(88vw, 480px)',
-    maxWidth: 'min(88vw, 480px)',
+    width: 'min(92vw, 560px)',
+    maxWidth: 'min(92vw, 560px)',
     boxSizing: 'border-box',
     justifyContent: 'flex-start',
-    gap: 18,
-    padding: '8px 11px',
+    gap: 16,
+    padding: '14px 16px',
     borderWidth: 2,
-    borderRadius: 8,
-    background: uiPalette.paper,
-    boxShadow: '0 4px 0 rgba(22, 19, 16, 0.36), 0 0 0 3px rgba(255, 232, 135, 0.32)',
+    borderRadius: 12,
+    background: 'linear-gradient(180deg, #fff7df 0%, #f4e4bd 100%)',
+    boxShadow: '0 6px 0 rgba(22, 19, 16, 0.36), 0 0 0 4px rgba(255, 232, 135, 0.36)',
     fontSize: 19,
     fontWeight: uiType.weightHeavy,
     lineHeight: 1.15,
@@ -2557,8 +2568,8 @@ const styles = {
   },
   questPopupNextAction: {
     display: 'block',
-    fontSize: 12,
-    lineHeight: 1.25,
+    fontSize: 15,
+    lineHeight: 1.32,
     fontFamily: "'Nanum Myeongjo', serif",
     fontWeight: 800,
     color: '#fff',
@@ -2579,31 +2590,41 @@ const styles = {
     flex: 1,
     minWidth: 0,
     display: 'grid',
-    gap: 5,
+    gap: 8,
     textAlign: 'left',
   },
   questDialogueName: {
     color: '#8a4b16',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: uiType.weightHeavy,
+    letterSpacing: '-0.01em',
   },
   questDialogueLine: {
     color: uiPalette.ink,
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: 800,
-    lineHeight: 1.35,
+    lineHeight: 1.42,
     wordBreak: 'keep-all',
     overflowWrap: 'anywhere',
+    padding: '8px 10px',
+    borderRadius: 8,
+    background: 'rgba(255,255,255,0.58)',
   },
   questDialogueDivider: {
-    height: 1,
-    margin: '2px 0',
+    height: 2,
+    margin: '3px 0',
     background: 'rgba(5, 2, 9, 0.32)',
   },
   questDialogueNotice: {
-    fontSize: 18,
-    lineHeight: 1.2,
+    display: 'block',
+    fontSize: 20,
+    lineHeight: 1.22,
     textAlign: 'center',
+    color: '#1f2f16',
+    padding: '8px 10px',
+    borderRadius: 10,
+    background: 'rgba(124,255,122,0.22)',
+    boxShadow: 'inset 0 0 0 2px rgba(44, 111, 43, 0.20)',
   },
   questDialogueHint: {
     color: '#6b6259',

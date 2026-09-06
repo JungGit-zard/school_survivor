@@ -136,11 +136,11 @@ describe('sequential rotating level-up choices', () => {
 })
 
 describe('applyUpgradeToWeapon', () => {
-  it('커터칼과 바이키티 커터칼 피해 강화는 기존 수치의 정확히 2배다', () => {
-    expect(UPGRADE_EFFECTS.boxCutterDamage.dmg).toBe(16.4)
-    expect(UPGRADE_EFFECTS.boxCutterPower.dmg).toBe(16.4)
-    expect(UPGRADE_EFFECTS.bikittyCutterDamage.dmg).toBe(14)
-    expect(UPGRADE_EFFECTS.bikittyCutterPower.dmg).toBe(14)
+  it('커터칼과 바이키티 커터칼 피해 강화는 2026-09-06 상향 수치를 따른다', () => {
+    expect(UPGRADE_EFFECTS.boxCutterDamage.dmg).toBe(24.6)
+    expect(UPGRADE_EFFECTS.boxCutterPower.dmg).toBe(24.6)
+    expect(UPGRADE_EFFECTS.bikittyCutterDamage.dmg).toBe(21)
+    expect(UPGRADE_EFFECTS.bikittyCutterPower.dmg).toBe(21)
   })
 
   it('치비코는 연속형 무기 능력을 10% 강화하고 쿨타임은 10% 줄인다', () => {

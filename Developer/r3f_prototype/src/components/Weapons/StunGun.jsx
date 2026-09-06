@@ -169,8 +169,8 @@ function StunBoltProjectile({ id, startX, startZ, sourceEndpoint, targetRb, targ
       if (hit) {
         emitSfx({
           id: 'stunGunHit',
-          volume: 0.55,
-          rate: 1 + Math.min(chainDepth, 2) * 0.06,
+          volume: 0.385, // 2026-09-06: 기존 0.55의 70%
+          rate: 0.8 * (1 + Math.min(chainDepth, 2) * 0.06),
         })
       }
       onHit(id, tt.x, tt.z, targetRb, targetGeneration, sourceEndpoint, hitSet, chainsLeft, chainDepth)

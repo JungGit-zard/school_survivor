@@ -424,11 +424,11 @@ export const useGameStore = create(
       return true
     },
 
-    healPlayer: (amount) => set((s) => {
+    healPlayer: (amount, options = {}) => set((s) => {
       if (!Number.isFinite(amount) || amount <= 0) return s
       const hp = Math.min(s.player.maxHp, s.player.hp + amount)
       const healed = hp > s.player.hp
-      if (healed) emitSfx({ id: 'playerHeal', volume: 0.34 })
+      if (healed && options.silent !== true) emitSfx({ id: 'playerHeal', volume: 0.34 })
       return {
         player: {
           ...s.player,
@@ -727,7 +727,7 @@ export const useGameStore = create(
       if (run.score < 1) return false
 
       const previous = s.rankingCheckpoint
-      const forced = reason === 'lifecycle' || reason === 'kill'
+      const forced = reason === 'lifecycle'
       if (!forced
         && previous?.gameKey === s.gameKey
         && previous.score >= run.score

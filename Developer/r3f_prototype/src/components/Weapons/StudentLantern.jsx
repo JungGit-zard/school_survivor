@@ -204,6 +204,12 @@ export function StudentLanternWeapon() {
         critMultiplier: w.critMultiplier,
       })
       if (hits > 0) {
+        const store = useGameStore.getState()
+        const healPercent = Number.isFinite(w.healPercentOnHit) ? w.healPercentOnHit : 0.0008
+        const healAmount = Math.max(0, store.player.maxHp * healPercent)
+        if (healAmount > 0 && store.player.hp < store.player.maxHp) {
+          store.healPlayer(healAmount, { silent: true })
+        }
         emitSfx({
           id: 'lanternTick',
           volume: 0.20 + Math.random() * 0.05,
