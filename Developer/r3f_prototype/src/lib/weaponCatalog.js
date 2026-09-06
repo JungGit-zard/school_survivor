@@ -31,7 +31,7 @@ export const WEAPON_CATALOG = {
   schoolBag: {
     id: 'schoolBag',
     label: '30cm 자',
-    base: { damage: 12, cooldown: 1300, range: 0.633, triggerRange: 1.0, swingMs: 260, critChance: 0.07, critMultiplier: 1.5 },
+    base: { damage: 12, cooldown: 1300, range: 0.633, triggerRange: 1.0, swingMs: 260, critChance: 0.20, critMultiplier: 1.5 },
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },
@@ -235,7 +235,7 @@ export const WEAPON_CATALOG = {
     label: '바이키티 커터칼',
     base: {
       damage: 54, cooldown: 1200, range: 1.0, width: 0.18,
-      knockback: 1.8, critChance: 0.25, critMultiplier: 1.5,
+      knockback: 1.8, critChance: 0.35, critMultiplier: 1.5,
       segments: 8,             // 부러지기까지 타격 수
       segmentRangeStep: 0.18,  // 단수당 사거리 + (최대 1.0 + 0.18×7 = 2.26)
       segmentDamageStep: 0.12, // 단수당 위력 +12% (가산)

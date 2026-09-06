@@ -104,7 +104,7 @@ describe('weaponPermanentUpgrades storage layer', () => {
     const ruler = applyWeaponPermanentUpgradesToBaseWeapon('schoolBag', WEAPON_CATALOG.schoolBag.base)
     const flask = applyWeaponPermanentUpgradesToBaseWeapon('scienceFlask', WEAPON_CATALOG.scienceFlask.base)
 
-    expect(cutter.cooldown).toBeCloseTo(3120, 1)
+    expect(cutter.cooldown).toBeCloseTo(1560, 1)
     expect(ruler.range).toBeCloseTo(0.684, 3)
     expect(flask.zoneDurationMs).toBe(5600)
   })
@@ -119,7 +119,7 @@ describe('weaponPermanentUpgrades storage layer', () => {
 
   it('assigns base critical chance only to non-explosive critical-capable weapon damage profiles', () => {
     expect(WEAPON_CATALOG.pencilThrow.base.critChance).toBe(0.08)
-    expect(WEAPON_CATALOG.schoolBag.base.critChance).toBe(0.07)
+    expect(WEAPON_CATALOG.schoolBag.base.critChance).toBe(0.20)
     expect(WEAPON_CATALOG.boxCutter.base.critChance).toBe(0.33)
     expect(WEAPON_CATALOG.tumbler.base.critChance).toBe(0.04)
     expect(WEAPON_CATALOG.scienceFlask.base.critChance).toBe(0.03)
@@ -182,7 +182,7 @@ describe('weaponPermanentUpgrades storage layer', () => {
       return applyWeaponPermanentUpgradesToBaseWeapon(id, WEAPON_CATALOG[id].base)
     }
 
-    expect(upgraded('schoolBag')).toMatchObject({ damage: 13, range: 0.684, swingMs: 286, critChance: 0.15 })
+    expect(upgraded('schoolBag')).toMatchObject({ damage: 13, range: 0.684, swingMs: 286, critChance: 0.28 })
     expect(upgraded('tumbler')).toMatchObject({ damage: 6.5, orbitSpeed: 3.08, count: 2, critChance: 0.12 })
     expect(upgraded('scienceFlask')).toMatchObject({ damage: 7.5, zoneRadius: 1.54, zoneDurationMs: 6100, zoneTickDamage: 1.5, critChance: 0.11 })
     expect(upgraded('bell')).toMatchObject({ damage: 10.8, radius: 2.04, critChance: 0.13 })
@@ -198,7 +198,7 @@ describe('weaponPermanentUpgrades storage layer', () => {
     expect(upgraded('compassBlade')).toMatchObject({ damage: 5.4, orbitSpeed: 3.74, permanentExplosionRadiusMultiplier: 1.1, critChance: 0.13 })
     expect(upgraded('umbrellaGuard')).toMatchObject({ cooldown: 3240, radius: 1.375, knockbackMs: 273 })
     expect(upgraded('eraserBomb')).toMatchObject({ damage: 28.6, radius: 1.566, permanentSlowDust: true })
-    expect(upgraded('studentLantern')).toMatchObject({ damage: 0.2, lightLength: 2.246, lightWidth: 3.888, permanentSlowChance: 0.1, critChance: 0.11 })
-    expect(upgraded('inucon')).toMatchObject({ damage: 0, healPercent: 0.108, pushRadius: 0.935, knockback: 3.14 })
+    expect(upgraded('studentLantern')).toMatchObject({ damage: 0.1, lightLength: 2.246, lightWidth: 3.888, permanentSlowChance: 0.1, critChance: 0.11 })
+    expect(upgraded('inucon')).toMatchObject({ damage: 0, healPercent: 0.022, pushRadius: 0.935, knockback: 3.14 })
   })
 })

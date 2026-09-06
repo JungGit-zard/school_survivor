@@ -71,7 +71,7 @@ export function LightningBoltModel() {
 
   return (
     <StudioTunedGroup itemId="weapon-stun-gun">
-      <group scale={[scaleEffectVisual(0.38), scaleEffectVisual(0.38), scaleEffectVisual(0.38)]}>
+      <group scale={[scaleEffectVisual(0.19), scaleEffectVisual(0.19), scaleEffectVisual(0.19)]}>
       <mesh renderOrder={2} geometry={geo} material={boltMat} />
       <mesh renderOrder={3} geometry={geo} material={coreMat} scale={[0.52, 0.52, 0.52]} position={[0, 0, 0.03]} />
       </group>
@@ -81,14 +81,14 @@ export function LightningBoltModel() {
 
 function ChainArcVisual({ id, from, to, startMs, onDone }) {
   const SEG_N       = 5
-  const ARC_SECS    = 0.22
+  const ARC_SECS    = 0.11
   const fromPointRef = useRef({ x: from?.fallbackX ?? 0, z: from?.fallbackZ ?? 0 })
   const toPointRef = useRef({ x: to?.fallbackX ?? 0, z: to?.fallbackZ ?? 0 })
   const segmentRefs = useRef([])
   const doneRef = useRef(false)
 
   const mats = useMemo(() => Array.from({ length: SEG_N }, () => {
-    const m = toonMat(0xffe840, 0.7)
+    const m = toonMat(0xffe840, 0.35)
     m.transparent = true
     m.depthWrite  = false
     return m
@@ -116,8 +116,8 @@ function ChainArcVisual({ id, from, to, startMs, onDone }) {
       const next = i + 1
       const aT = i / SEG_N
       const bT = next / SEG_N
-      const aJitter = i > 0 ? Math.sin(i * 7.3 + (fromPoint.x + fromPoint.z) * 5.1) * scaleEffectVisual(0.40) : 0
-      const bJitter = next < SEG_N ? Math.sin(next * 7.3 + (fromPoint.x + fromPoint.z) * 5.1) * scaleEffectVisual(0.40) : 0
+      const aJitter = i > 0 ? Math.sin(i * 7.3 + (fromPoint.x + fromPoint.z) * 5.1) * scaleEffectVisual(0.20) : 0
+      const bJitter = next < SEG_N ? Math.sin(next * 7.3 + (fromPoint.x + fromPoint.z) * 5.1) * scaleEffectVisual(0.20) : 0
       const ax = fromPoint.x + dx * aT + px * aJitter
       const az = fromPoint.z + dz * aT + pz * aJitter
       const bx = fromPoint.x + dx * bT + px * bJitter
@@ -136,7 +136,7 @@ function ChainArcVisual({ id, from, to, startMs, onDone }) {
       {CHAIN_ARC_SEGMENT_INDICES.map((i) => (
         <group key={i} ref={(node) => { segmentRefs.current[i] = node }} visible={false}>
           <mesh renderOrder={2} material={mats[i]}>
-            <boxGeometry args={[scaleEffectVisual(0.05), scaleEffectVisual(0.05), 1]} />
+            <boxGeometry args={[scaleEffectVisual(0.025), scaleEffectVisual(0.025), 1]} />
           </mesh>
         </group>
       ))}
@@ -169,8 +169,8 @@ function StunBoltProjectile({ id, startX, startZ, sourceEndpoint, targetRb, targ
       if (hit) {
         emitSfx({
           id: 'stunGunHit',
-          volume: 0.385, // 2026-09-06: 기존 0.55의 70%
-          rate: 0.8 * (1 + Math.min(chainDepth, 2) * 0.06),
+          volume: 0.1925, // 2026-09-06: 기존 0.385의 50%
+          rate: 0.64 * (1 + Math.min(chainDepth, 2) * 0.06),
         })
       }
       onHit(id, tt.x, tt.z, targetRb, targetGeneration, sourceEndpoint, hitSet, chainsLeft, chainDepth)

@@ -82,7 +82,7 @@ export const UPGRADE_EFFECTS = {
   bagDamage:      { weapon: 'schoolBag',     kind: 'damage', dmg: 5.2 },
   bagPower:       { weapon: 'schoolBag',     kind: 'damage', dmg: 5.2 },
   bagRadius:      { weapon: 'schoolBag',     kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.067 },
-  bagCrit:        { weapon: 'schoolBag',     kind: 'crit',   chanceStep: 0.02, chanceCap: 0.23, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
+  bagCrit:        { weapon: 'schoolBag',     kind: 'crit',   chanceStep: 0.02, chanceCap: 0.30, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   acquireBoxCutter:{ weapon: 'boxCutter',      kind: 'acquire', minLevel: 2 },
   boxCutterDamage:{ weapon: 'boxCutter',      kind: 'damage', dmg: 24.6 },
   boxCutterPower: { weapon: 'boxCutter',      kind: 'damage', dmg: 24.6 },
@@ -163,7 +163,7 @@ export const UPGRADE_EFFECTS = {
   bikittyCutterDamage: { weapon: 'bikittyCutter', kind: 'damage', dmg: 21 },
   bikittyCutterPower:  { weapon: 'bikittyCutter', kind: 'damage', dmg: 21 },
   bikittyCutterRange:  { weapon: 'bikittyCutter', kind: 'stat',   stat: 'segmentRangeStep', step: 0.02, cap: 0.28 },
-  bikittyCutterCrit:   { weapon: 'bikittyCutter', kind: 'crit',   chanceStep: 0.02, chanceCap: 0.41, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
+  bikittyCutterCrit:   { weapon: 'bikittyCutter', kind: 'crit',   chanceStep: 0.02, chanceCap: 0.50, multStep: CRIT_MULT_STEP, multCap: CRIT_MULT_CAP },
   // 선긋기 — 30cm 자 + 커터칼을 런 중 둘 다 보유해야만 카드가 뜬다. 단수형으로는 표현할 수
   // 없어 requiresActiveWeapons(복수형 배열)를 여기서 처음 쓴다. 계정 해금 게이트는 우회한다.
   acquireLineDraw:   { weapon: 'lineDraw', kind: 'acquire', minLevel: 8, requiresActiveWeapons: ['schoolBag', 'boxCutter'], skipAccountUnlock: true },
