@@ -1,0 +1,8 @@
+v60 internal-computation review
+Board reference: escape-zombie-school / t_dec2a7be; balanceqa review path.
+No new production card: prevents duplicate automatic dispatch for this v60 audit.
+Advisor: Astra (main). QA worker: Terra (actual Codex worker).
+Implementation: separate render worker; QA did not edit production source.
+Scope: enemySimulation.js and enemySimulation.test.js only.
+Evidence: AAB/public/dist identity; spatial invalidation; protected-source hashes.
+No build, install, device action, title, graphics, or auth change.

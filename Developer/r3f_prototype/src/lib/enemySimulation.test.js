@@ -23,6 +23,7 @@ import {
   collidesEnemyObstacle,
   createEnemySimulationRuntime,
   enemyCollisionRadius,
+  moveEnemyWithObstacleSlideInto,
   resetDefaultEnemySimulationRuntime,
   resolveRangedEnemyVelocityRaw,
   stepEnemySimulation,
@@ -61,11 +62,221 @@ describe('EnemySimulation spatial revision', () => {
     expect(pool.spatialRevision).toBe(beforeStepRevision + 1)
     expect(runtime.grid.isCurrentFor(pool)).toBe(true)
   })
+
+  it('rebuilds when the grid belongs to another pool or another bounds size', () => {
+    const firstPool = createEnemyEntityPool()
+    const secondPool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    spawn(firstPool, 'E01', 5, 0, { spawnTimer: 300 })
+    spawn(secondPool, 'E01', 5, 0, { spawnTimer: 300 })
+
+    runtime.grid.rebuild(firstPool, 18, 18)
+    expect(runtime.grid.isCurrentFor(firstPool, 18, 18)).toBe(true)
+    expect(runtime.grid.isCurrentFor(firstPool, 20, 18)).toBe(false)
+    expect(runtime.grid.isCurrentFor(secondPool, 18, 18)).toBe(false)
+  })
 })
 
 function context(overrides = {}) {
   return { delta: 1 / 60, playerX: 0, playerZ: 0, halfX: 12, halfZ: 12, elapsedSec: 100, ...overrides }
 }
+
+const POOL_TYPED_ARRAY_KEYS = [
+  'active', 'generation', 'type', 'posX', 'posY', 'posZ', 'velX', 'velZ', 'hp', 'maxHp', 'yaw', 'visualScale',
+  'phase', 'state', 'spawnTimer', 'stateTimer', 'attackCooldown', 'hitCooldown', 'lifetime', 'knockbackX',
+  'knockbackY', 'knockbackZ', 'knockbackTimer', 'hitFlashTimer', 'runDirX', 'runDirZ', 'lastContactX',
+  'lastContactY', 'lastContactZ', 'lastContactTime', 'stuckMs', 'detourMs', 'detourSign', 'lastSafeX', 'lastSafeZ',
+]
+
+function snapshotPoolTypedArrays(pool) {
+  return Object.fromEntries(POOL_TYPED_ARRAY_KEYS.map((key) => [key, Array.from(pool[key])]))
+}
+
+function snapshotGrid(grid) {
+  return {
+    head: Array.from(grid.head),
+    next: Array.from(grid.next),
+    overflowNext: Array.from(grid.overflowNext),
+    cellX: Array.from(grid.cellX),
+    cellZ: Array.from(grid.cellZ),
+    overflow: Array.from(grid.overflow),
+    cellsX: grid.cellsX,
+    cellsZ: grid.cellsZ,
+    halfX: grid.halfX,
+    halfZ: grid.halfZ,
+    activeCount: grid.activeCount,
+    highestActive: grid.highestActive,
+    poolSpatialRevision: grid.poolSpatialRevision,
+    comparisonCount: grid.comparisonCount,
+    targetComparisonCount: grid.targetComparisonCount,
+    targetOrderingComparisonCount: grid.targetOrderingComparisonCount,
+  }
+}
+
+function drainEventSnapshots(runtime) {
+  const event = {}
+  const events = []
+  while (runtime.events.drainInto(event)) events.push({ ...event })
+  return events
+}
+
+function countGridRebuilds(runtime) {
+  const rebuild = runtime.grid.rebuild.bind(runtime.grid)
+  let count = 0
+  runtime.grid.rebuild = (...args) => {
+    count += 1
+    return rebuild(...args)
+  }
+  return () => count
+}
+
+describe('EnemySimulation cached start grid rebuild', () => {
+  it('keeps the former twice-per-step simulation state across external spatial changes', () => {
+    const optimizedPool = createEnemyEntityPool()
+    const referencePool = createEnemyEntityPool()
+    const optimized = createEnemySimulationRuntime()
+    const reference = createEnemySimulationRuntime()
+    const optimizedRebuilds = countGridRebuilds(optimized)
+    const referenceRebuilds = countGridRebuilds(reference)
+    const types = ['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'E07']
+    const optimizedHandles = []
+    const referenceHandles = []
+    for (let index = 0; index < 150; index += 1) {
+      const type = types[index % types.length]
+      const x = -10 + (index % 25) * 0.8
+      const z = -6 + Math.floor(index / 25) * 2
+      const overrides = { spawnTimer: type === 'E04' ? 900 : 300, runDirX: 1, runDirZ: index & 1 ? 0.5 : -0.5 }
+      optimizedHandles.push(spawn(optimizedPool, type, x, z, overrides))
+      referenceHandles.push(spawn(referencePool, type, x, z, overrides))
+    }
+
+    for (let frame = 0; frame < 8; frame += 1) {
+      const stepContext = context({
+        elapsedSec: 100 + frame / 60,
+        halfX: frame < 6 ? 12 : 9,
+        halfZ: frame < 6 ? 12 : 10,
+        activeProjectileCount: frame === 0 ? 0 : 2,
+      })
+      // Clearing only the cached owner makes the reference execute the pre-change
+      // unconditional start rebuild, while preserving the same pool input.
+      reference.grid.pool = null
+      expect(optimized.step(optimizedPool, stepContext)).toBe(true)
+      expect(reference.step(referencePool, stepContext)).toBe(true)
+      expect(snapshotPoolTypedArrays(optimizedPool)).toEqual(snapshotPoolTypedArrays(referencePool))
+      expect(snapshotGrid(optimized.grid)).toEqual(snapshotGrid(reference.grid))
+      expect(drainEventSnapshots(optimized)).toEqual(drainEventSnapshots(reference))
+
+      if (frame === 1) {
+        expect(optimizedPool.setPosition(optimizedHandles[0], 4.5, 0, -0.5)).toBe(true)
+        expect(referencePool.setPosition(referenceHandles[0], 4.5, 0, -0.5)).toBe(true)
+      }
+      if (frame === 3) {
+        expect(optimizedPool.despawn(optimizedHandles[0])).toBe(true)
+        expect(referencePool.despawn(referenceHandles[0])).toBe(true)
+      }
+      if (frame === 4) {
+        expect(spawn(optimizedPool, 'E06', 4, -2, { spawnTimer: 300 })).not.toBeNull()
+        expect(spawn(referencePool, 'E06', 4, -2, { spawnTimer: 300 })).not.toBeNull()
+      }
+    }
+
+    // Initial build, three external spatial revisions, and one bounds change
+    // require four extra start rebuilds; every other step reuses its final grid.
+    expect(optimizedRebuilds()).toBe(13)
+    expect(referenceRebuilds()).toBe(16)
+  })
+
+  it('uses N + 1 rebuilds for N unchanged fixed steps instead of 2N', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const rebuilds = countGridRebuilds(runtime)
+    spawn(pool, 'E01', 5, 0, { spawnTimer: 300 })
+
+    for (let frame = 0; frame < 8; frame += 1) runtime.step(pool, context({ elapsedSec: 100 + frame / 60 }))
+
+    expect(rebuilds()).toBe(9)
+  })
+
+  it('resets query counters at the same step boundary without rebuilding a current grid', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const rebuilds = countGridRebuilds(runtime)
+    spawn(pool, 'E01', 5, 0, { spawnTimer: 300 })
+    runtime.step(pool, context())
+    runtime.grid.comparisonCount = 17
+    runtime.grid.targetComparisonCount = 19
+    runtime.grid.targetOrderingComparisonCount = 23
+
+    runtime.step(pool, context())
+
+    expect(rebuilds()).toBe(3)
+    expect(runtime.grid.targetComparisonCount).toBe(0)
+    expect(runtime.grid.targetOrderingComparisonCount).toBe(0)
+  })
+
+  it('rebuilds at the next step when the runtime receives a replacement pool', () => {
+    const firstPool = createEnemyEntityPool()
+    const replacementPool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const rebuilds = countGridRebuilds(runtime)
+    spawn(firstPool, 'E01', 5, 0, { spawnTimer: 300 })
+    spawn(replacementPool, 'E01', 5, 0, { spawnTimer: 300 })
+
+    runtime.step(firstPool, context())
+    runtime.step(replacementPool, context())
+
+    expect(rebuilds()).toBe(4)
+    expect(runtime.grid.isCurrentFor(replacementPool, 18, 18)).toBe(true)
+  })
+})
+
+describe('EnemySimulation obstacle slide reuse', () => {
+  it('reduces clear-path obstacle x reads from 7 to 6', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    let obstacleXReads = 0
+    const obstacle = { z: -5, halfX: 0.5, halfZ: 0.5 }
+    Object.defineProperty(obstacle, 'x', {
+      enumerable: true,
+      get: () => {
+        obstacleXReads += 1
+        return -5
+      },
+    })
+    spawn(pool, 'E01', 5, 0, { spawnTimer: 300 })
+
+    expect(runtime.step(pool, context({ obstacles: [obstacle], obstacleCount: 1 }))).toBe(true)
+
+    // Four bounded placement-local checks, one placement-final check, and one
+    // successful movement check remain. The old caller made a seventh read.
+    expect(obstacleXReads).toBe(6)
+    expect(collidesEnemyObstacle(pool.posX[0], pool.posZ[0], enemyCollisionRadius(1), [obstacle], 1)).toBe(false)
+  })
+
+  it('retains clear, blocked, slide, and initially-embedded movement outcomes', () => {
+    const clear = { x: 0, z: 0, blocked: 0 }
+    expect(moveEnemyWithObstacleSlideInto(clear, -2, 0, 1, 0, 1 / 60, 0.2, [{ x: 4, z: 4, halfX: 0.5, halfZ: 0.5 }], 1, 6, 6)).toBe(true)
+    expect(clear.blocked).toBe(0)
+
+    const blocked = { x: 0, z: 0, blocked: 0 }
+    const enclosure = [{ x: 0, z: 0, halfX: 10, halfZ: 10 }]
+    expect(moveEnemyWithObstacleSlideInto(blocked, 0, 0, 1, 0, 1 / 60, 0.2, enclosure, 1, 20, 20)).toBe(false)
+    expect(blocked).toEqual({ x: 0, z: 0, blocked: 1 })
+
+    const slide = { x: 0, z: 0, blocked: 0 }
+    const wall = [{ x: 0, z: 0, halfX: 0.2, halfZ: 2 }]
+    expect(moveEnemyWithObstacleSlideInto(slide, -0.6, -1, 1, 1, 1, 0.2, wall, 1, 2, 2)).toBe(true)
+    expect(slide.blocked).toBe(1)
+    expect(collidesEnemyObstacle(slide.x, slide.z, 0.2, wall, 1)).toBe(false)
+
+    const embeddedPool = createEnemyEntityPool()
+    const embeddedRuntime = createEnemySimulationRuntime()
+    const embeddedObstacle = [{ x: 0, z: 0, halfX: 0.5, halfZ: 0.5 }]
+    const embedded = spawn(embeddedPool, 'E01', 0, 0, { spawnTimer: 300 })
+    expect(embeddedRuntime.step(embeddedPool, context({ obstacles: embeddedObstacle, obstacleCount: 1 }))).toBe(true)
+    expect(collidesEnemyObstacle(embeddedPool.posX[embedded.index], embeddedPool.posZ[embedded.index], enemyCollisionRadius(1), embeddedObstacle, 1)).toBe(false)
+  })
+})
 
 function simulateChaseAtHz(hz, seconds = 6) {
   const pool = createEnemyEntityPool()

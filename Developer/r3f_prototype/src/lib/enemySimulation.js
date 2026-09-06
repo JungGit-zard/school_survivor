@@ -122,6 +122,7 @@ export class EnemySpatialGrid {
     this.cellsZ = 0
     this.halfX = 0
     this.halfZ = 0
+    this.pool = null
     this.overflowHead = -1
     this.activeCount = 0
     this.highestActive = -1
@@ -144,6 +145,7 @@ export class EnemySpatialGrid {
     this.targetOrderingComparisonCount = 0
     this.halfX = halfX
     this.halfZ = halfZ
+    this.pool = pool
     this.overflowHead = -1
     this.activeCount = pool.activeCount
     this.highestActive = pool.highestActive
@@ -168,8 +170,9 @@ export class EnemySpatialGrid {
     }
   }
 
-  isCurrentFor(pool) {
+  isCurrentFor(pool, halfX = this.halfX, halfZ = this.halfZ) {
     return this.cellsX > 0 && this.cellsZ > 0
+      && this.pool === pool && this.halfX === halfX && this.halfZ === halfZ
       && this.activeCount === pool.activeCount && this.highestActive === pool.highestActive
       && Number.isSafeInteger(pool.spatialRevision) && pool.spatialRevision >= 0
       && this.poolSpatialRevision === pool.spatialRevision
@@ -195,6 +198,7 @@ export class EnemySpatialGrid {
     this.cellsZ = 0
     this.halfX = 0
     this.halfZ = 0
+    this.pool = null
     this.overflowHead = -1
     this.activeCount = 0
     this.highestActive = -1
@@ -561,7 +565,17 @@ export class EnemySimulationRuntime {
     const sightBlocked = context.sightBlocked
     let stepProjectileCount = initialProjectileCount
     let spatialChanged = false
-    this.grid.rebuild(pool, halfX + 6, halfZ + 6)
+    const gridHalfX = halfX + 6
+    const gridHalfZ = halfZ + 6
+    if (!this.grid.isCurrentFor(pool, gridHalfX, gridHalfZ)) {
+      this.grid.rebuild(pool, gridHalfX, gridHalfZ)
+    } else {
+      // The final rebuild from the previous step already represents this pool and bounds.
+      // Keep the old per-step counter boundary without repeating that rebuild.
+      this.grid.comparisonCount = 0
+      this.grid.targetComparisonCount = 0
+      this.grid.targetOrderingComparisonCount = 0
+    }
 
     for (let index = 0; index <= pool.highestActive; index += 1) {
       if (!pool.active[index]) continue
@@ -752,9 +766,10 @@ export class EnemySimulationRuntime {
       pool.velZ[index] = velocityZ
       let nextX = posX
       let nextZ = posZ
+      let moveClear = false
       if (!ignoreObstacles && obstacleCount > 0 && obstacles) {
         const tangentSign = pool.detourSign[index] || (((index + generation) & 1) === 0 ? 1 : -1)
-        moveEnemyWithObstacleSlideInto(this._positionScratch, posX, posZ, velocityX, velocityZ, delta, radius,
+        moveClear = moveEnemyWithObstacleSlideInto(this._positionScratch, posX, posZ, velocityX, velocityZ, delta, radius,
           obstacles, obstacleCount, halfX, halfZ, allowOuterBounds, tangentSign)
         nextX = this._positionScratch.x
         nextZ = this._positionScratch.z
@@ -766,7 +781,7 @@ export class EnemySimulationRuntime {
       const movedX = nextX - posX
       const movedZ = nextZ - posZ
       const overlapAfterMove = !ignoreObstacles && obstacleCount > 0 && obstacles
-        && collidesEnemyObstacle(nextX, nextZ, radius, obstacles, obstacleCount)
+        && !moveClear && collidesEnemyObstacle(nextX, nextZ, radius, obstacles, obstacleCount)
       if (moving && (velocityX !== 0 || velocityZ !== 0) && (movedX * movedX + movedZ * movedZ < ENEMY_STUCK_MOVE_EPSILON_SQ || overlapAfterMove)) {
         pool.stuckMs[index] += deltaMs
         if (pool.stuckMs[index] >= ENEMY_STUCK_DETOUR_MS) {
@@ -805,7 +820,7 @@ export class EnemySimulationRuntime {
     }
     if (spatialChanged) pool.markSpatialChanged()
     const comparisonCount = this.grid.comparisonCount
-    this.grid.rebuild(pool, halfX + 6, halfZ + 6)
+    this.grid.rebuild(pool, gridHalfX, gridHalfZ)
     this.grid.comparisonCount = comparisonCount
     return true
   }
