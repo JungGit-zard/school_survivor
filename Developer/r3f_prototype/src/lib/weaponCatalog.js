@@ -263,7 +263,7 @@ export const WEAPON_CATALOG = {
       // 실질 차이는 없다 — 선분 전체를 훑는 판정이라 이 값을 소비하는 코드 자체가 없고,
       // 한 프레임에 살아있는 적 상한은 MAX_ENEMIES(150)다.
       pierce: 999, knockback: 0,
-      critChance: 0.35, critMultiplier: 2.0,  // 커터칼 0.25/1.5 계승·강화
+      critChance: 0.35, critMultiplier: 1.5,  // 전역 크리티컬 피해는 원래 데미지의 150%로 고정
       lineDurationMs: 2000,      // 그은 자리에 남는 절단선 지속
       lineCrossDamage: 14,       // 절단선을 가로지를 때만 1회
       lineCrossCooldownMs: 600,  // 같은 적 재절단 간격

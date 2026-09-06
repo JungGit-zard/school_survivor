@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Billboard, Text } from '@react-three/drei'
+import { Billboard } from '@react-three/drei'
 import * as THREE from 'three'
 import { useGameStore } from '../store/useGameStore.js'
 import { getStageBounds } from '../lib/stageConfig.js'
@@ -162,8 +162,8 @@ export function getQuestNoticeMarkers(stageId, quests = [], questProgress = {}, 
       markers.push({
         quest,
         kind: 'objective',
-        symbol: '➜',
-        color: 0x7cff7a,
+        symbol: '?',
+        color: 0x66d9ff,
         target: getQuestNoticeMarkerPosition(stageId, quest.id, quest.itemTarget, placements),
       })
     } else if (status === 'item-acquired') {
@@ -214,42 +214,100 @@ export function markQuestActionHandled(handledIds, key, actionResult) {
 }
 
 
+function QuestNoticeSymbolMaterial({ color }) {
+  return (
+    <meshStandardMaterial
+      color={color}
+      emissive={color}
+      emissiveIntensity={1.55}
+      roughness={0.28}
+      metalness={0.08}
+      toneMapped={false}
+    />
+  )
+}
+
+function QuestNoticeGlow({ color }) {
+  return (
+    <group name="quest-notice-symbol-glow">
+      <pointLight color={color} intensity={1.25} distance={2.4} decay={2} />
+      <mesh position={[0, 0.02, -0.035]}>
+        <sphereGeometry args={[0.72, 16, 10]} />
+        <meshBasicMaterial color={color} transparent opacity={0.16} depthWrite={false} blending={THREE.AdditiveBlending} />
+      </mesh>
+    </group>
+  )
+}
+
+function QuestExclamationSymbol({ color }) {
+  return (
+    <group name="quest-exclamation-symbol-3d">
+      <mesh position={[0, 0.14, 0]} rotation={[0, 0, 0]}>
+        <capsuleGeometry args={[0.09, 0.62, 4, 10]} />
+        <QuestNoticeSymbolMaterial color={color} />
+      </mesh>
+      <mesh position={[0, -0.42, 0]}>
+        <sphereGeometry args={[0.12, 14, 10]} />
+        <QuestNoticeSymbolMaterial color={color} />
+      </mesh>
+    </group>
+  )
+}
+
+function QuestQuestionSymbol({ color }) {
+  return (
+    <group name="quest-question-symbol-3d">
+      <mesh position={[-0.03, 0.34, 0]}>
+        <torusGeometry args={[0.25, 0.075, 8, 24, Math.PI * 1.55]} />
+        <QuestNoticeSymbolMaterial color={color} />
+      </mesh>
+      <mesh position={[0.17, 0.08, 0]} rotation={[0, 0, 0.72]}>
+        <capsuleGeometry args={[0.074, 0.28, 4, 8]} />
+        <QuestNoticeSymbolMaterial color={color} />
+      </mesh>
+      <mesh position={[0.03, -0.16, 0]} rotation={[0, 0, -0.18]}>
+        <capsuleGeometry args={[0.074, 0.22, 4, 8]} />
+        <QuestNoticeSymbolMaterial color={color} />
+      </mesh>
+      <mesh position={[0, -0.48, 0]}>
+        <sphereGeometry args={[0.115, 14, 10]} />
+        <QuestNoticeSymbolMaterial color={color} />
+      </mesh>
+    </group>
+  )
+}
+
+function QuestNoticeSymbol3D({ symbol, color }) {
+  return symbol === '!'
+    ? <QuestExclamationSymbol color={color} />
+    : <QuestQuestionSymbol color={color} />
+}
+
 export function QuestNoticeMarker({ position, symbol = '!', color = 0xffd84a }) {
   const groupRef = useRef(null)
+  const symbolRef = useRef(null)
   const baseY = position[1]
 
   useFrame(({ clock }, delta) => {
     if (!groupRef.current) return
     const elapsed = clock.getElapsedTime()
-    groupRef.current.position.y = baseY + Math.sin(elapsed * 3.2) * 0.14
-    groupRef.current.rotation.y += delta * 0.36
-    groupRef.current.visible = Math.sin(elapsed * 5.6) > -0.48
-    const scale = 1 + Math.max(0, Math.sin(elapsed * 5.6)) * 0.14
+    groupRef.current.position.y = baseY + Math.sin(elapsed * 2.8) * 0.18
+    groupRef.current.visible = true
+    const scale = 1 + Math.max(0, Math.sin(elapsed * 4.8)) * 0.08
     groupRef.current.scale.setScalar(scale)
+    if (symbolRef.current) {
+      symbolRef.current.rotation.y += delta * 0.42
+      symbolRef.current.rotation.z = Math.sin(elapsed * 2.1) * 0.045
+    }
   })
 
   return (
-    <group ref={groupRef} position={position}>
+    <group ref={groupRef} position={position} name={`quest-notice-marker-${symbol === '!' ? 'start' : 'question'}`}>
       <Billboard follow lockX={false} lockY={false} lockZ={false}>
-        <mesh position={[0, -0.22, -0.02]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.46, 0.62, 28]} />
-          <meshBasicMaterial color={color} side={THREE.DoubleSide} transparent opacity={0.76} />
-        </mesh>
-        <mesh position={[0, 0, -0.018]}>
-          <circleGeometry args={[0.58, 36]} />
-          <meshBasicMaterial color={0x17121f} transparent opacity={0.82} side={THREE.DoubleSide} />
-        </mesh>
-        <Text
-          position={[0, -0.015, 0]}
-          fontSize={1.04}
-          anchorX="center"
-          anchorY="middle"
-          outlineWidth={0.07}
-          outlineColor="#21162e"
-          color={`#${color.toString(16).padStart(6, '0')}`}
-        >
-          {symbol}
-        </Text>
+        <QuestNoticeGlow color={color} />
+        <group ref={symbolRef}>
+          <QuestNoticeSymbol3D symbol={symbol} color={color} />
+        </group>
       </Billboard>
     </group>
   )

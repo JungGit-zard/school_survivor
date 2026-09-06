@@ -211,10 +211,10 @@ describe('applyUpgradeToWeapon', () => {
     expect(out.pierce).toBe(1)
   })
 
-  it('crit effect: 치명타 확률과 배율을 함께 올리고 무기 레벨도 증가', () => {
+  it('crit effect: 치명타 확률만 올리고 피해 배율은 150% 고정으로 유지', () => {
     const out = applyUpgradeToWeapon(wpn({ active: true, level: 1, critChance: 0.08, critMultiplier: 1.5 }), UPGRADE_EFFECTS.pencilCrit)
     expect(out.critChance).toBe(0.1)
-    expect(out.critMultiplier).toBeCloseTo(2.25)
+    expect(out.critMultiplier).toBeCloseTo(1.5)
     expect(out.level).toBe(2)
   })
 
@@ -394,13 +394,13 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
     }
   })
 
-  it('crit 항목은 chanceStep / chanceCap / multStep / multCap 모두 보유', () => {
+  it('crit 항목은 chanceStep / chanceCap을 보유하고 피해 배율 성장값은 갖지 않는다', () => {
     for (const [id, eff] of Object.entries(UPGRADE_EFFECTS)) {
       if (eff.kind === 'crit') {
         expect(eff.chanceStep, `${id} missing chanceStep`).toBeDefined()
         expect(eff.chanceCap, `${id} missing chanceCap`).toBeDefined()
-        expect(eff.multStep, `${id} missing multStep`).toBeDefined()
-        expect(eff.multCap, `${id} missing multCap`).toBeDefined()
+        expect(eff.multStep, `${id} should not grow critical damage multiplier`).toBeUndefined()
+        expect(eff.multCap, `${id} should not cap critical damage multiplier`).toBeUndefined()
       }
     }
   })
@@ -450,9 +450,7 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
       expect(UPGRADE_EFFECTS[id], `${id} missing`).toMatchObject({
         kind: 'crit',
         chanceStep: id === 'boxCutterCrit' ? 0.04 : 0.02,
-        multStep: 0.75,
-        multCap: 4.5,
-      })
+        })
     }
 
     expect(UPGRADE_EFFECTS.missileCrit).toBeUndefined()
@@ -486,7 +484,7 @@ describe('UPGRADE_EFFECTS 테이블 무결성', () => {
   })
 })
 
-describe('GAP-1: 크리 카드 배율 성장 축 통합', () => {
+describe('GAP-1: 크리 카드 확률 성장과 150% 고정 피해 정책', () => {
   const CRIT_CARDS = [
     { key: 'pencilCrit', weapon: 'pencilThrow' },
     { key: 'bagCrit', weapon: 'schoolBag' },
@@ -503,24 +501,27 @@ describe('GAP-1: 크리 카드 배율 성장 축 통합', () => {
   ]
 
   for (const { key, weapon } of CRIT_CARDS) {
-    it(`${weapon}: 영구 max 모사(critChance +0.08) + 런 크리 4픽 → chanceCap·multCap(4.5) 도달, 5픽째 불가`, () => {
+    it(`${weapon}: 영구 max 모사(critChance +0.08) + 런 크리 4픽 → chanceCap 도달, 5픽째 불가`, () => {
       const effect = UPGRADE_EFFECTS[key]
       const base = WEAPON_CATALOG[weapon].base
 
       // 영구 강화 max 모사: weaponPermanentUpgrades 미경유, critChance +0.08만 pre-bake로 흉내낸다.
       let w = wpn({ active: true, level: 1, critChance: base.critChance + 0.08, critMultiplier: base.critMultiplier })
 
-      for (let i = 0; i < 4; i++) {
-        expect(isUpgradeAvailable(effect, 10, { [weapon]: w }), `${weapon} pick ${i + 1} should be available`).toBe(true)
+      let picks = 0
+      while (isUpgradeAvailable(effect, 10, { [weapon]: w })) {
+        expect(picks, `${weapon} should cap within four crit picks`).toBeLessThan(4)
         w = applyUpgradeToWeapon(w, effect)
+        picks += 1
       }
 
+      expect(picks, `${weapon} should have at least one available crit pick`).toBeGreaterThan(0)
       expect(w.critChance).toBeCloseTo(effect.chanceCap, 5)
-      expect(w.critMultiplier).toBeCloseTo(4.5, 5)
+      expect(w.critMultiplier).toBeCloseTo(base.critMultiplier, 5)
       expect(isUpgradeAvailable(effect, 10, { [weapon]: w })).toBe(false)
     })
 
-    it(`${weapon}: 영구 강화 없이 런 크리 4픽만 → critChance=base+(chanceStep×4), critMultiplier=4.5`, () => {
+    it(`${weapon}: 영구 강화 없이 런 크리 4픽만 → critChance=base+(chanceStep×4), critMultiplier=base fixed`, () => {
       const effect = UPGRADE_EFFECTS[key]
       const base = WEAPON_CATALOG[weapon].base
       let w = wpn({ active: true, level: 1, critChance: base.critChance, critMultiplier: base.critMultiplier })
@@ -530,7 +531,7 @@ describe('GAP-1: 크리 카드 배율 성장 축 통합', () => {
       }
 
       expect(w.critChance).toBeCloseTo(base.critChance + effect.chanceStep * 4, 5)
-      expect(w.critMultiplier).toBeCloseTo(4.5, 5)
+      expect(w.critMultiplier).toBeCloseTo(base.critMultiplier, 5)
     })
   }
 })

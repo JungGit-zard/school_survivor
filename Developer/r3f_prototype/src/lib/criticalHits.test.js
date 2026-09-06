@@ -5,7 +5,7 @@ describe('resolveCriticalHit', () => {
   it('reuses caller-owned out object on the hot path', () => {
     const out = { damage: -1, isCritical: true }
     expect(resolveCriticalHitInto(out, 10, true, undefined, undefined, 1, 2, () => 0)).toBe(out)
-    expect(out).toEqual({ damage: 20, isCritical: true })
+    expect(out).toEqual({ damage: 15, isCritical: true })
     expect(resolveCriticalHitInto(out, 10, false, undefined, undefined, 1, 2, () => 0)).toBe(out)
     expect(out).toEqual({ damage: 10, isCritical: false })
   })
@@ -65,16 +65,13 @@ describe('resolveCriticalHit', () => {
     })
   })
 
-  it('clamps critMultiplier to MAX_CRIT_MULTIPLIER(5): multiplier 99 → damage 50 (baseDamage 10 상한 5 클램프)', () => {
+  it('ignores weapon/card critMultiplier values because every critical hit is fixed at 150% damage', () => {
     expect(resolveCriticalHit({ baseDamage: 10, critMultiplier: 99, rng: () => 0, critChance: 1 })).toEqual({
-      damage: 50,
+      damage: 15,
       isCritical: true,
     })
-  })
-
-  it('critMultiplier 4.5 (크리 카드 성장 축 상한)은 클램프 없이 그대로 적용: baseDamage 10 → damage 45', () => {
     expect(resolveCriticalHit({ baseDamage: 10, critMultiplier: 4.5, rng: () => 0, critChance: 1 })).toEqual({
-      damage: 45,
+      damage: 15,
       isCritical: true,
     })
   })

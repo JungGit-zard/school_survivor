@@ -15,7 +15,7 @@
 //  - 발사 주기: cooldown(ms) → 초당 발동 횟수, 또는 궤도형의 hitsPerSecond
 //  - 단일 대상에 겹쳐 들어가는 다중 타격: projectileCount(연필), count(궤도 무기),
 //    strikeCount(스타링크)
-//  - 기대 치명타 배율: 1 + critChance × (critMultiplier - 1)
+//  - 기대 치명타 배율: 1 + critChance × 0.5 (모든 크리티컬은 원래 데미지의 150%)
 //
 //  - damage 필드로 표현되지 않는 2차 피해 (2026-08-15 추가, weaponSecondaryDamagePerSecond):
 //    scienceFlask 웅덩이 존 틱, lineDraw 잔류 절단선 통과 피해, bikittyCutter 사이클.
@@ -42,7 +42,7 @@ function positiveNumber(value, fallback) {
   return Number.isFinite(value) && value > 0 ? value : fallback
 }
 
-// 기대 치명타 배율. critChance 0이면 1.0.
+// 기대 치명타 배율. 모든 크리티컬 피해는 원래 데미지의 150%로 고정된다.
 export function expectedCritMultiplier(weapon) {
   const chance = Number.isFinite(weapon?.critChance) ? weapon.critChance : 0
   const multiplier = Number.isFinite(weapon?.critMultiplier) ? weapon.critMultiplier : 1

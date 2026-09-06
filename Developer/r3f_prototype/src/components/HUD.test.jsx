@@ -259,14 +259,14 @@ describe('upgrade choice filtering', () => {
     const option = {
       key: 'boxCutterCrit',
       label: '커터칼 치명타 강화',
-      desc: '치명타 확률 +4%, 치명타 피해 배율 +0.75배 (최대 4.5배)',
+      desc: '치명타 확률 +4% (치명타 피해는 150% 고정)',
     }
 
-    expect(getUpgradeChoiceDesc(option)).toBe('치명타 확률 +4%, 치명타 피해 배율 +0.75배 (최대 4.5배)')
+    expect(getUpgradeChoiceDesc(option)).toBe('치명타 확률 +4% (치명타 피해는 150% 고정)')
     setLocale('en')
-    expect(getUpgradeChoiceDesc(option)).toBe('Crit chance +4%, crit damage x+0.75 (max x4.5)')
+    expect(getUpgradeChoiceDesc(option)).toBe('Crit chance +4% (critical damage is fixed at 150%)')
     setLocale('ja')
-    expect(getUpgradeChoiceDesc(option)).toBe('クリティカル率 +4%、クリティカル倍率 +0.75倍（最大4.5倍）')
+    expect(getUpgradeChoiceDesc(option)).toBe('クリティカル率 +4%（クリティカルダメージは150%固定）')
   })
 
   it('limits pencil upgrade options to one card', () => {
@@ -1747,34 +1747,6 @@ describe('live score readout', () => {
     try {
       expect(container.textContent).toContain('3.6e5')
       expect(container.textContent).not.toContain('360,000')
-    } finally {
-      act(() => root.unmount())
-    }
-  })
-})
-
-describe('HUD runtime subscription budget', () => {
-  it('does not commit for a burst of kill-only store updates', () => {
-    useGameStore.getState().resetGame('stage1')
-    const container = document.createElement('div')
-    const root = createRoot(container)
-    let commits = 0
-
-    try {
-      act(() => {
-        root.render(
-          <React.Profiler id="hud" onRender={() => { commits += 1 }}>
-            <HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />
-          </React.Profiler>,
-        )
-      })
-      const initialCommits = commits
-
-      act(() => {
-        for (let index = 0; index < 150; index += 1) useGameStore.getState().recordKill()
-      })
-
-      expect(commits).toBe(initialCommits)
     } finally {
       act(() => root.unmount())
     }

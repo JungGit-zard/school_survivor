@@ -1,3 +1,4 @@
+import { readFileSync } from 'fs'
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   getQuestFallbackPosition,
@@ -94,6 +95,27 @@ describe('quest world placement resolution', () => {
     expect(marker.position[1]).toBeGreaterThan(giver.position[1] + 1)
   })
 
+
+
+  it('renders quest notice markers as glowing simple 3D punctuation without the old black backing disc', () => {
+    const source = readFileSync(new URL('./QuestWorldLayer.jsx', import.meta.url), 'utf8')
+    const noticeSection = source.slice(
+      source.indexOf('function QuestNoticeSymbolMaterial'),
+      source.indexOf('function QuestItemModel'),
+    )
+
+    expect(noticeSection).toContain('QuestNoticeSymbol3D')
+    expect(noticeSection).toContain('quest-exclamation-symbol-3d')
+    expect(noticeSection).toContain('quest-question-symbol-3d')
+    expect(noticeSection).toContain('<pointLight color={color}')
+    expect(noticeSection).toContain('emissiveIntensity={1.55}')
+    expect(noticeSection).toContain('position.y = baseY + Math.sin(elapsed * 2.8) * 0.18')
+    expect(noticeSection).not.toContain('circleGeometry')
+    expect(noticeSection).not.toContain('ringGeometry')
+    expect(noticeSection).not.toContain('color={0x17121f}')
+    expect(noticeSection).not.toContain('<Text')
+  })
+
   it('emits blinking notice marker states for starts, current objectives, and return/install targets', () => {
     const [firstQuest, secondQuest] = getStageQuestDefinitions('stage1')
     const markers = getQuestNoticeMarkers('stage1', [firstQuest, secondQuest], {
@@ -106,7 +128,7 @@ describe('quest world placement resolution', () => {
 
     expect(markers).toHaveLength(2)
     expect(markers[0]).toMatchObject({ kind: 'available', symbol: '!' })
-    expect(markers[1]).toMatchObject({ kind: 'objective', symbol: '➜' })
+    expect(markers[1]).toMatchObject({ kind: 'objective', symbol: '?' })
     expect(completionMarkers[0]).toMatchObject({ kind: 'return', symbol: '?' })
     expect([...markers, ...completionMarkers].every(({ target }) => target.position[1] > 1)).toBe(true)
   })

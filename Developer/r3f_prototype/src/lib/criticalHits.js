@@ -1,6 +1,5 @@
 export const DEFAULT_CRIT_CHANCE = 0
 export const DEFAULT_CRIT_MULTIPLIER = 1.5
-export const MAX_CRIT_MULTIPLIER = 5
 
 const NON_CRIT_DAMAGE_TYPES = new Set(['explosive'])
 
@@ -15,10 +14,10 @@ function sanitizeChance(value) {
   return Math.min(1, Math.max(0, chance))
 }
 
-function sanitizeMultiplier(value) {
-  const multiplier = Number(value)
-  if (!Number.isFinite(multiplier) || multiplier < 1) return DEFAULT_CRIT_MULTIPLIER
-  return Math.min(MAX_CRIT_MULTIPLIER, multiplier)
+function fixedCriticalMultiplier() {
+  // Terry rule: every critical hit deals exactly 150% of original damage.
+  // Weapon/card-provided critMultiplier values are intentionally ignored at hit resolution.
+  return DEFAULT_CRIT_MULTIPLIER
 }
 
 export function canDamageCrit({ canCrit = true, damageType, attackTags } = {}) {
@@ -61,7 +60,7 @@ export function resolveCriticalHitInto(out, baseDamage, canCrit = true, damageTy
   const roll = typeof rng === 'function' ? Number(rng()) : 1
   if (!Number.isFinite(roll) || roll < 0 || roll >= chance) { out.damage = damage; return out }
 
-  out.damage = damage * sanitizeMultiplier(critMultiplier)
+  out.damage = damage * fixedCriticalMultiplier()
   out.isCritical = true
   return out
 }

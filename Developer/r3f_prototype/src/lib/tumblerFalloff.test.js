@@ -33,21 +33,21 @@ describe('마틸다 HP 파생 입력(estimateWeaponDps)에 감쇠가 반영된�
   // 텀블러 몫이 25% 부풀고 마틸다만 부당하게 단단해진다.
   const lv1 = () => ({ ...WEAPON_CATALOG.tumbler.base, active: true, level: 1 })
   // 도달 최대: MAX_WEAPON_LEVEL 5 = acquire 이후 카드 4장(tumblerDamage/Power/Count/Crit)
-  // → damage 6+2.7+2.7, count 1→2, critChance 0.04+0.02, critMultiplier 1.5+0.75.
-  const lvMax = () => ({ ...lv1(), level: 5, damage: 11.4, count: 2, critChance: 0.06, critMultiplier: 2.25 })
+  // → damage 6+2.7+2.7, count 1→2, critChance 0.04+0.02, critMultiplier 1.5 fixed.
+  const lvMax = () => ({ ...lv1(), level: 5, damage: 11.4, count: 2, critChance: 0.06, critMultiplier: 1.5 })
 
-  it('감쇠 반영 지속 DPS는 Lv1 12.24, 최대 레벨 24.51이다', () => {
+  it('감쇠 반영 지속 DPS는 Lv1 12.24, 최대 레벨 23.48이다', () => {
     expect(estimateWeaponDps(lv1())).toBeCloseTo(12.24, 2)
-    expect(estimateWeaponDps(lvMax())).toBeCloseTo(24.51, 2)
+    expect(estimateWeaponDps(lvMax())).toBeCloseTo(23.48, 2)
   })
 
-  it('감쇠 전 대비 정확히 0.80배다 (15.30 → 12.24, 30.64 → 24.51)', () => {
+  it('감쇠 전 대비 정확히 0.80배다 (15.30 → 12.24, 29.36 → 23.48)', () => {
     const noFalloff = (weapon) => {
       const { sustainedDamageMultiplier, ...rest } = weapon
       return estimateWeaponDps(rest)
     }
     expect(noFalloff(lv1())).toBeCloseTo(15.30, 2)
-    expect(noFalloff(lvMax())).toBeCloseTo(30.64, 2)
+    expect(noFalloff(lvMax())).toBeCloseTo(29.36, 2)
     expect(estimateWeaponDps(lv1()) / noFalloff(lv1())).toBeCloseTo(0.8, 10)
     expect(estimateWeaponDps(lvMax()) / noFalloff(lvMax())).toBeCloseTo(0.8, 10)
   })

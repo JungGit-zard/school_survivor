@@ -188,7 +188,7 @@ function buildSoakWeapons() {
 const UPGRADE_KEYS = Object.keys(UPGRADE_EFFECTS)
 
 // 무기 객체에서 수치가 아닌 게 정상인 필드. 나머지는 전부 유한수여야 한다.
-const NON_NUMERIC_WEAPON_FIELDS = new Set(['label', 'active'])
+const NON_NUMERIC_WEAPON_FIELDS = new Set(['label', 'active', 'singleTargetProjectiles'])
 
 function churnUpgrade(weapons, level, random, stats) {
   const key = UPGRADE_KEYS[Math.floor(random() * UPGRADE_KEYS.length)]
@@ -205,7 +205,6 @@ function churnUpgrade(weapons, level, random, stats) {
   }
   if (effect.kind === 'crit') {
     if (weapon.critChance > effect.chanceCap + 1e-9) return `무기 ${effect.weapon} critChance cap 초과: ${weapon.critChance}`
-    if (weapon.critMultiplier > effect.multCap + 1e-9) return `무기 ${effect.weapon} critMultiplier cap 초과: ${weapon.critMultiplier}`
   }
   for (const [field, value] of Object.entries(weapon)) {
     if (NON_NUMERIC_WEAPON_FIELDS.has(field)) continue
