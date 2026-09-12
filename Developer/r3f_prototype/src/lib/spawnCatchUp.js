@@ -5,8 +5,8 @@
 //
 //   spawnSec = realElapsedSec + offsetSec
 //
-// 스폰 게이트(버스트 표·도지·오버타임 보강·보스 압박)만 이 spawnSec을 읽는다.
-// HUD 경과 타이머·탈출 포탈·마틸다·스테이지 종료는 실시간(realElapsedSec) 그대로다 — 런 길이는 안 바뀐다.
+// 일반 좀비 스폰 게이트(버스트 표·도지·오버타임 보강)만 이 spawnSec을 읽는다.
+// 보스·HUD 경과 타이머·탈출 포탈·마틸다·스테이지 종료는 실시간(realElapsedSec) 그대로다 — 런 길이는 안 바뀐다.
 //
 // 규칙:
 //   - 적이 한 마리라도 살아 있으면(또는 스폰 대기 중이면) 아무 일도 없다. 빈 시간 누적만 0으로 리셋한다.
@@ -28,11 +28,7 @@
 
 export const EMPTY_ARENA_MAX_SEC = 2
 
-// 보스 앵커 앞에서 점프를 끊는 폭. HUD 보스 경고가 도는 시간을 확보한다.
-// 오프셋은 불연속으로 뛰므로, 점프 한 번이 보스 시각을 그냥 넘기면 같은 프레임에 경고가 사라지고
-// 보스가 튀어나온다(실측 노출 0.02초). 보스 3초 전에 착지시키면 카운트다운이 실제로 돈다.
-// 이후 아레나가 계속 비어 있으면 2초 뒤 남은 1초를 마저 당기므로 경고는 최소 2초 노출된다.
-// HUD의 카운트다운 창(warningSec - LEAD)과 반드시 같은 값을 써야 한다.
+// 보스 HUD가 쓰는 고정 예고 시간이다. 보스는 캐치업 후보가 아니며 실제 game clock에서만 등장한다.
 export const BOSS_TELEGRAPH_LEAD_SEC = 3
 
 export function createSpawnCatchUpState() {
@@ -58,7 +54,9 @@ export function advanceSpawnCatchUp(state, options = {}) {
 
   const step = Number.isFinite(deltaSec) && deltaSec > 0 ? deltaSec : 0
   state.emptyForSec += step
-  if (state.emptyForSec < EMPTY_ARENA_MAX_SEC) return 0
+  // Repeated 1/60-second frames can land infinitesimally below 2 because of
+  // floating-point representation. Fire on the intended 120th frame.
+  if (state.emptyForSec < EMPTY_ARENA_MAX_SEC - 1e-9) return 0
 
   if (!Number.isFinite(nextPendingSpawnSec) || !Number.isFinite(spawnSec) || nextPendingSpawnSec <= spawnSec) {
     // 당길 스폰이 없다. 빈 시간 누적은 유지해서, 스케줄이 생기는 즉시 다음 프레임에 당기게 둔다.

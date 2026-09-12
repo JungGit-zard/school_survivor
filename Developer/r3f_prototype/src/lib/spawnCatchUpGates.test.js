@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createEnemyEntityPool } from './enemyEntityPool.js'
 import { createEnemySimulationRuntime } from './enemySimulation.js'
 import { BOSS_TELEGRAPH_LEAD_SEC, EMPTY_ARENA_MAX_SEC } from './spawnCatchUp.js'
-import { countPendingZombieSchedules, nextPendingSpawnSec } from '../components/Enemies.jsx'
+import { countPendingZombieSchedules, countVisibleEnemyBodies, countVisiblePooledEnemies, nextPendingSpawnSec } from '../components/Enemies.jsx'
 
 // balanceqa 판정(2026-08-22, Developer/agent_room/balanceqa_spawn_catchup_2026-08-22.md)이 낸
 // 결함 3건의 회귀 테스트다. 전부 스폰 캐치업이 시각 게이트를 앞당기면서 생긴 부작용이다.
@@ -15,7 +15,7 @@ function ctx(overrides = {}) {
   return { delta: 1 / 60, playerX: 0, playerZ: 0, halfX: 12, halfZ: 12, elapsedSec: 100, ...overrides }
 }
 
-describe('P1 — E04 발사 게이트는 bossPressure와 같은 시계를 본다', () => {
+describe('P1 — E04 인트로는 스폰 시계, 보스 압박은 실제 시계를 쓴다', () => {
   // 결함: 발사 하한 introSec은 실시간, 억제 조건 bossPressure는 스폰 시계였다.
   // 캐치업이 보스를 실시간 24초로 당기면 발사 창 [72, 24)가 공집합이 되어 한 발도 못 쏜다.
   it('spawnSec이 introSec을 넘으면 실시간이 아직 이르러도 발사한다', () => {
@@ -67,22 +67,51 @@ describe('P1 — E04 발사 게이트는 bossPressure와 같은 시계를 본다
   })
 })
 
-describe('P2 — 빈 화면 캐치업은 실제 보스 스폰 시각까지 당긴다', () => {
+describe('screen-visible ordinary enemies', () => {
+  it('does not let pooled enemies outside the renderer camera bounds keep the arena non-empty', () => {
+    const pool = {
+      highestActive: 1,
+      active: Uint8Array.from([1, 1]),
+      posX: Float32Array.from([10.5, 0]),
+      posZ: Float32Array.from([0, 0]),
+    }
+    const bounds = { minX: -10, maxX: 10, minZ: -10, maxZ: 10 }
+
+    expect(countVisiblePooledEnemies(pool, bounds, 0, 0)).toBe(1)
+    pool.posX[1] = 10.5
+    expect(countVisiblePooledEnemies(pool, bounds, 0, 0)).toBe(0)
+    pool.posX[1] = Number.NaN
+    expect(countVisiblePooledEnemies(pool, bounds, 0, 0)).toBe(0)
+  })
+
+  it('does not let margin-only or invalid special-body coordinates keep the arena non-empty', () => {
+    const bounds = { minX: -10, maxX: 10, minZ: -10, maxZ: 10 }
+    const bodies = new Map([
+      ['margin-only', { translation: () => ({ x: 10.5, z: 0 }) }],
+      ['invalid', { translation: () => ({ x: Number.NaN, z: 0 }) }],
+      ['freed', { isValid: () => false, translation: () => { throw new Error('freed body must not be read') } }],
+    ])
+
+    expect(countVisibleEnemyBodies(bodies, bounds, 0, 0)).toBe(0)
+  })
+})
+
+describe('P2 — 빈 화면 캐치업은 보스를 건너뛰고 일반 후보로 향한다', () => {
   const bossTable = [
     { sec: 40, type: 'E01', count: 6 },
     { sec: 150, type: 'B01', count: 1 },
   ]
   const flags = () => new Uint8Array(bossTable.length)
 
-  it('다음 후보가 보스여도 실제 보스 시각을 낸다', () => {
+  it('다음 보스를 건너뛰고 다음 일반 overtime 후보를 낸다', () => {
     const at = nextPendingSpawnSec(bossTable, Uint8Array.from([1, 0]), new Int16Array(2).fill(-1), 50, 'stage1', -1)
-    expect(at).toBe(150)
+    expect(at).toBe(240)
     expect(BOSS_TELEGRAPH_LEAD_SEC).toBe(3)
   })
 
-  it('이미 3초 전 지점을 지났으면 되감지 않고 보스 시각을 낸다', () => {
+  it('보스 직전에도 일반 overtime 후보만 낸다', () => {
     const at = nextPendingSpawnSec(bossTable, Uint8Array.from([1, 0]), new Int16Array(2).fill(-1), 148, 'stage1', -1)
-    expect(at).toBe(150)
+    expect(at).toBe(240)
   })
 
   it('보스가 아닌 후보는 그대로 낸다 — 일반 버스트에 lead를 적용하지 않는다', () => {

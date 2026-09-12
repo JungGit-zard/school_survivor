@@ -16,6 +16,7 @@ import { advanceRuntimeTime, getRuntimeElapsedMs } from '../lib/gameRuntimeTime.
 import { subscribeSfx } from '../lib/sfxEvents.js'
 import { getBossSpawnSec } from '../lib/burstEvents.js'
 import { _resetForTests as resetWeaponUnlocksForTests, setUnlocked } from '../lib/weaponUnlocks.js'
+import { applyChibikoAllWeaponBoost } from '../lib/upgrades.js'
 
 describe('useGameStore XP and reset behavior', () => {
   beforeEach(() => {
@@ -44,6 +45,28 @@ describe('useGameStore XP and reset behavior', () => {
     expect(state.player.maxHp).toBe(107)
     expect(state.pendingLevelUps).toBe(2)
     expect(state.phase).toBe('levelup')
+  })
+
+  it('B01과 치비코가 적용된 커터칼도 스토어에서 매 피해 카드마다 현재 피해의 15%를 올린다', () => {
+    useGameStore.getState().recordBossKill('B01')
+    useGameStore.setState((state) => ({
+      phase: 'levelup',
+      pendingLevelUps: 4,
+      player: { ...state.player, level: 8 },
+      weapons: {
+        ...state.weapons,
+        chibiko: { ...state.weapons.chibiko, active: true, permanentUpgradeLevel: 0 },
+        boxCutter: applyChibikoAllWeaponBoost({ ...state.weapons.boxCutter, active: true, level: 1 }, 0.1),
+      },
+    }))
+
+    for (const upgradeKey of ['boxCutterDamage', 'boxCutterPower', 'boxCutterDamage', 'boxCutterPower']) {
+      const beforeDamage = useGameStore.getState().weapons.boxCutter.damage
+      useGameStore.getState().applyUpgrade(upgradeKey)
+      const after = useGameStore.getState().weapons.boxCutter
+      expect(after.damage).toBeCloseTo(beforeDamage * 1.15, 10)
+      expect(Number.isNaN(after.damage)).toBe(false)
+    }
   })
 
   it('resetGame은 store와 런타임 refs를 함께 초기화한다', () => {

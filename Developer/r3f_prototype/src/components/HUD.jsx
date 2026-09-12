@@ -19,7 +19,7 @@ import { getRankingScore } from '../lib/rankingScorePolicy.js'
 import { formatRunClock, useGameNumber } from '../lib/numberFormat.js'
 import { CRITICAL_SHAKE_NORMAL_DURATION_MS, emitCriticalHitScreenShake, isCriticalScreenShakeReduced } from '../lib/criticalScreenShake.js'
 import { MATILDA_DIALOGUE_MS } from '../lib/matildaEntryGrace.js'
-import { BOSS_TELEGRAPH_LEAD_SEC, getSpawnCatchUpOffsetSec } from '../lib/spawnCatchUp.js'
+import { BOSS_TELEGRAPH_LEAD_SEC } from '../lib/spawnCatchUp.js'
 import { getDialogueText } from '../dialogues/dialogueStore.js'
 import { getQuestDefinition, getStageQuestDefinitions } from '../lib/quests.js'
 import { BOSS_PASSIVE_ITEM_UI_CAPACITY, BOSS_PASSIVE_ITEMS, isBossPassiveItemUnlocked } from '../lib/bossPassiveItems.js'
@@ -120,12 +120,17 @@ function summonCoinJingleZombieCheat() {
 
 // 한국어 라벨은 그대로 폴백으로 남기고, 번역은 업그레이드 키(up.<key>.label)로 찾는다.
 const damageLabel = (name, weaponKey, upgradeKey) => (w) => {
-  const amount = UPGRADE_EFFECTS[upgradeKey].dmg
+  const effect = UPGRADE_EFFECTS[upgradeKey]
   const level = (w[weaponKey].level ?? 1) + 1
+  if (Number.isFinite(effect.damageMultiplier)) {
+    const percent = Math.round((effect.damageMultiplier - 1) * 100)
+    return translate(`up.${upgradeKey}.label`, { percent, level }, `${name} +${percent}% (Lv${level})`)
+  }
+  const amount = effect.dmg
   return translate(`up.${upgradeKey}.label`, { amount, level }, `${name} +${amount} (Lv${level})`)
 }
 
-const UPGRADES = [
+export const UPGRADES = [
   { key: 'acquireBoxCutter', icon: 'boxCutter', label: '커터칼 해금', desc: '전방 좁은 범위를 찌르고 옆으로 베어냄' },
   { key: 'boxCutterDamage', icon: 'boxCutter', labelFn: damageLabel('커터칼 피해', 'boxCutter', 'boxCutterDamage'), desc: '찌르기 피해 증가' },
   { key: 'boxCutterPower', icon: 'boxCutter', labelFn: damageLabel('커터칼 위력', 'boxCutter', 'boxCutterPower'), desc: '날을 갈아 베기 위력 증가' },
@@ -423,7 +428,7 @@ export function enforceSafeLevelupChoice(choiceKeys, availableKeys, weapons = {}
   return choiceKeys.map((key, index) => (index === replaceIndex ? safeKey : key))
 }
 
-function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [], exposedAcquireKeys = [], weaponCycleIds = [], rotationWeaponIds = []) {
+function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [], exposedAcquireKeys = [], weaponCycleIds = [], ownedWeaponCycleIds = [], rotationWeaponIds = []) {
   const available = UPGRADES.filter((u) => isUpgradeAvailable(UPGRADE_EFFECTS[u.key], level, weapons, player))
   const limited = limitDuplicateWeaponUpgradeOptions(available)
   const chibikoKey = (weapons.chibiko?.level ?? 1) % 2 === 0 ? 'chibikoCrit' : 'chibikoDamage'
@@ -437,6 +442,12 @@ function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [
     exposedAcquireKeys,
     weaponCycleIds,
     rotationWeaponIds,
+    ownedWeaponCycleIds,
+    ownedRotationWeaponIds: UPGRADES
+      .map((upgrade) => UPGRADE_EFFECTS[upgrade.key])
+      .filter((effect) => effect?.weapon && effect.kind !== 'acquire' && weapons[effect.weapon]?.active)
+      .map((effect) => effect.weapon)
+      .filter((weaponId, index, ids) => ids.indexOf(weaponId) === index),
     choiceCount: 4,
     isAcquireKey: (key) => UPGRADE_EFFECTS[key]?.kind === 'acquire',
     getChoiceGroupKey: (key) => getUpgradeChoiceGroupKey({ key }),
@@ -448,15 +459,10 @@ function pickFour(level, weapons, player, pendingGuaranteedUpgradeChoiceKeys = [
     ...exposedAcquireKeys.filter((key) => selectedAcquireKeys.includes(key)),
     ...selectedAcquireKeys,
   ])]
-  const nextWeaponCycleIds = [...new Set([
-    ...weaponCycleIds,
-    ...choiceKeys.map((key) => UPGRADE_EFFECTS[key]?.weapon).filter(Boolean),
-  ])]
   return {
     ...selection,
     choiceKeys,
     nextExposedAcquireKeys,
-    nextWeaponCycleIds,
     choices: choiceKeys.map((key) => UPGRADES.find((upgrade) => upgrade.key === key)).filter(Boolean),
   }
 }
@@ -761,11 +767,11 @@ export default function HUD({
     player, weapons, phase, pauseSource,
     elapsed, currentStageId, bossSpawned, bossSpawnSec,
     goldSession, goldTotal, recentMilestone,
-    newlyUnlockedWeaponIds, levelUpChoiceSerial, levelUpAcquireExposureKeys, levelUpWeaponCycleIds, pendingGuaranteedUpgradeChoiceKeys, pendingWeaponReplacement,
+    newlyUnlockedWeaponIds, levelUpChoiceSerial, levelUpAcquireExposureKeys, levelUpWeaponCycleIds, levelUpOwnedWeaponCycleIds, pendingGuaranteedUpgradeChoiceKeys, pendingWeaponReplacement,
     escapePortalActive, matildaSpawned, deathCause, bossBonus,
     studentDialogue, introDialogue,
     questProgress, questToast, newQuestItemIds, bossPassiveUnlocks,
-    clearMilestone, applyUpgrade, recordLevelupAcquireExposure, recordLevelupWeaponCycle, consumeGuaranteedUpgradeChoices, discardUnavailableGuaranteedUpgradeChoices,
+    clearMilestone, applyUpgrade, recordLevelupAcquireExposure, recordLevelupWeaponCycle, recordLevelupOwnedWeaponCycle, consumeGuaranteedUpgradeChoices, discardUnavailableGuaranteedUpgradeChoices,
     confirmWeaponReplacement, cancelWeaponReplacement, discardPendingWeapon,
     cheatAcquireWeapon, resumeFromLevelup,
     resetGame, togglePause, resumeGame, quitPausedRun, spawnMatilda,
@@ -788,6 +794,7 @@ export default function HUD({
     levelUpChoiceSerial:  s.levelUpChoiceSerial,
     levelUpAcquireExposureKeys: s.levelUpAcquireExposureKeys,
     levelUpWeaponCycleIds: s.levelUpWeaponCycleIds,
+    levelUpOwnedWeaponCycleIds: s.levelUpOwnedWeaponCycleIds,
     pendingGuaranteedUpgradeChoiceKeys: s.pendingGuaranteedUpgradeChoiceKeys,
     pendingWeaponReplacement: s.pendingWeaponReplacement,
     escapePortalActive:   s.escapePortalActive,
@@ -804,6 +811,7 @@ export default function HUD({
     applyUpgrade:         s.applyUpgrade,
     recordLevelupAcquireExposure: s.recordLevelupAcquireExposure,
     recordLevelupWeaponCycle: s.recordLevelupWeaponCycle,
+    recordLevelupOwnedWeaponCycle: s.recordLevelupOwnedWeaponCycle,
     consumeGuaranteedUpgradeChoices: s.consumeGuaranteedUpgradeChoices,
     discardUnavailableGuaranteedUpgradeChoices: s.discardUnavailableGuaranteedUpgradeChoices,
     confirmWeaponReplacement: s.confirmWeaponReplacement,
@@ -935,16 +943,18 @@ export default function HUD({
         pendingGuaranteedUpgradeChoiceKeys,
         levelUpAcquireExposureKeys,
         levelUpWeaponCycleIds,
+        levelUpOwnedWeaponCycleIds,
         getAccountUnlockableWeaponIds().filter((weaponId) => isWeaponUnlocked(weaponId)),
       )
-      : { choices: [], nextExposedAcquireKeys: [], nextWeaponCycleIds: [], displayedGuaranteedKeys: [] },
+      : { choices: [], nextExposedAcquireKeys: [], nextWeaponCycleIds: [], nextOwnedWeaponCycleIds: [], displayedGuaranteedKeys: [] },
     [phase, player.level, weapons, levelUpChoiceSerial],
   )
-  const { choices, nextExposedAcquireKeys, nextWeaponCycleIds, displayedGuaranteedKeys } = levelupSelection
+  const { choices, nextExposedAcquireKeys, nextWeaponCycleIds, nextOwnedWeaponCycleIds, displayedGuaranteedKeys } = levelupSelection
   useEffect(() => {
     if (phase !== 'levelup') return
     recordLevelupAcquireExposure(nextExposedAcquireKeys, levelUpChoiceSerial)
     recordLevelupWeaponCycle(nextWeaponCycleIds, levelUpChoiceSerial)
+    recordLevelupOwnedWeaponCycle(nextOwnedWeaponCycleIds, levelUpChoiceSerial)
     if (displayedGuaranteedKeys.length > 0) {
       consumeGuaranteedUpgradeChoices(displayedGuaranteedKeys, levelUpChoiceSerial)
       return
@@ -962,10 +972,12 @@ export default function HUD({
     levelUpChoiceSerial,
     nextExposedAcquireKeys,
     nextWeaponCycleIds,
+    nextOwnedWeaponCycleIds,
     pendingGuaranteedUpgradeChoiceKeys,
     phase,
     recordLevelupAcquireExposure,
     recordLevelupWeaponCycle,
+    recordLevelupOwnedWeaponCycle,
     weapons,
   ])
   const [levelupChoicesReadySerial, setLevelupChoicesReadySerial] = useState(null)
@@ -1027,7 +1039,7 @@ export default function HUD({
     // 보스 등장은 스폰 시계(캐치업 오프셋만큼 앞당겨진 시각)에서 발화한다.
     // 경고도 같은 만큼 당겨야 "3초 전 카운트다운"이 실제 등장과 어긋나지 않는다.
     const tableWarningSec = bossSpawnSec ?? stageConfig.bossWarningSec ?? 180
-    const warningSec = tableWarningSec - getSpawnCatchUpOffsetSec()
+    const warningSec = tableWarningSec
     if (elapsedSec < warningSec - BOSS_TELEGRAPH_LEAD_SEC || elapsedSec >= warningSec) return null
     return Math.max(1, Math.ceil(warningSec - elapsedSec))
   }, [bossSpawnSec, bossSpawned, elapsed, phase, stageConfig.bossWarningSec])

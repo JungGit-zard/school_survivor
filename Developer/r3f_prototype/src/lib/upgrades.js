@@ -51,6 +51,8 @@ export function removeChibikoAllWeaponBoost(weapon) {
 
 export function applyUpgradeWithChibikoBoost(weapon, effect, boost) {
   if (!weapon?.chibikoBoostApplied) return applyUpgradeToWeapon(weapon, effect)
+  // 피해 비율 카드는 치비코가 적용된 현재 피해를 기준으로 강화해야 한다.
+  if (Number.isFinite(effect.damageMultiplier)) return applyUpgradeToWeapon(weapon, effect)
   return applyChibikoAllWeaponBoost(
     applyUpgradeToWeapon(removeChibikoAllWeaponBoost(weapon), effect),
     boost ?? weapon.chibikoBoostPercent,
@@ -79,8 +81,8 @@ export const UPGRADE_EFFECTS = {
   bagRadius:      { weapon: 'schoolBag',     kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.067 },
   bagCrit:        { weapon: 'schoolBag',     kind: 'crit',   chanceStep: 0.02, chanceCap: 0.30 },
   acquireBoxCutter:{ weapon: 'boxCutter',      kind: 'acquire', minLevel: 2 },
-  boxCutterDamage:{ weapon: 'boxCutter',      kind: 'damage', dmg: 24.6 },
-  boxCutterPower: { weapon: 'boxCutter',      kind: 'damage', dmg: 24.6 },
+  boxCutterDamage:{ weapon: 'boxCutter',      kind: 'damage', damageMultiplier: 1.15 },
+  boxCutterPower: { weapon: 'boxCutter',      kind: 'damage', damageMultiplier: 1.15 },
   boxCutterRange: { weapon: 'boxCutter',      kind: 'stat',   stat: 'range',           step: 0.08, cap: 1.755 },
   boxCutterCrit:  { weapon: 'boxCutter',      kind: 'crit',   chanceStep: 0.04, chanceCap: 0.57 },
   acquireTumbler:  { weapon: 'tumbler',       kind: 'acquire', minLevel: 2 },
@@ -154,9 +156,9 @@ export const UPGRADE_EFFECTS = {
   // 바이키티 커터칼 — 커터칼을 런 중 보유해야만 카드가 뜬다(하나코/치비코와 같은 배선).
   // 계정 해금 게이트(weaponUnlocks)는 쓰지 않으므로 skipAccountUnlock: true.
   acquireBikittyCutter: { weapon: 'bikittyCutter', kind: 'acquire', minLevel: 6, requiresActiveWeapon: 'boxCutter', skipAccountUnlock: true },
-  // 2026-09-06 사용자 확정: 기본 피해 1.5배에 맞춰 강화 피해도 14→21.
-  bikittyCutterDamage: { weapon: 'bikittyCutter', kind: 'damage', dmg: 21 },
-  bikittyCutterPower:  { weapon: 'bikittyCutter', kind: 'damage', dmg: 21 },
+  // 사용자 확정: 각 피해 카드가 현재 피해의 15%를 적용한다.
+  bikittyCutterDamage: { weapon: 'bikittyCutter', kind: 'damage', damageMultiplier: 1.15 },
+  bikittyCutterPower:  { weapon: 'bikittyCutter', kind: 'damage', damageMultiplier: 1.15 },
   bikittyCutterRange:  { weapon: 'bikittyCutter', kind: 'stat',   stat: 'segmentRangeStep', step: 0.02, cap: 0.28 },
   bikittyCutterCrit:   { weapon: 'bikittyCutter', kind: 'crit',   chanceStep: 0.02, chanceCap: 0.50 },
   // 선긋기 — 30cm 자 + 커터칼을 런 중 둘 다 보유해야만 카드가 뜬다. 단수형으로는 표현할 수
@@ -200,6 +202,8 @@ export function selectSequentialLevelupChoices({
   exposedAcquireKeys = [],
   weaponCycleIds = [],
   rotationWeaponIds = [],
+  ownedWeaponCycleIds = [],
+  ownedRotationWeaponIds = [],
   choiceCount = LEVELUP_CHOICE_COUNT,
   isAcquireKey = (key) => UPGRADE_EFFECTS[key]?.kind === 'acquire',
   getChoiceGroupKey = getDefaultChoiceGroupKey,
@@ -229,6 +233,17 @@ export function selectSequentialLevelupChoices({
     && priorWeaponCycleIds.length === eligibleWeaponCycleIds.length
   const activeWeaponCycleIds = weaponCycleWrapped ? [] : priorWeaponCycleIds
   const activeWeaponCycleSet = new Set(activeWeaponCycleIds)
+  const availableOwnedWeaponIds = uniqueKeys(ordered
+    .filter((key) => availableSet.has(key) && !isAcquireKey(key))
+    .map((key) => getWeaponCycleId(key)))
+  const eligibleOwnedWeaponIds = uniqueKeys(ownedRotationWeaponIds)
+    .filter((weaponId) => availableOwnedWeaponIds.includes(weaponId))
+  const priorOwnedWeaponCycleIds = uniqueKeys(ownedWeaponCycleIds)
+    .filter((weaponId) => eligibleOwnedWeaponIds.includes(weaponId))
+  const ownedCycleWrapped = eligibleOwnedWeaponIds.length > 0
+    && priorOwnedWeaponCycleIds.length === eligibleOwnedWeaponIds.length
+  const activeOwnedWeaponCycleIds = ownedCycleWrapped ? [] : priorOwnedWeaponCycleIds
+  const activeOwnedWeaponCycleSet = new Set(activeOwnedWeaponCycleIds)
   const choiceKeys = []
   const displayedGuaranteedKeys = []
   const usedGroups = new Set()
@@ -245,7 +260,21 @@ export function selectSequentialLevelupChoices({
     return true
   }
 
+  // One available owned-weapon upgrade is reserved before acquisition and general cards.
+  // This ledger is deliberately independent from the other three displayed cards.
+  const ownedGuaranteeWeaponId = eligibleOwnedWeaponIds.find((weaponId) => !activeOwnedWeaponCycleSet.has(weaponId))
+  const ownedGuaranteeKey = ownedGuaranteeWeaponId == null ? null : ordered.find((key) => (
+    availableSet.has(key)
+    && !isAcquireKey(key)
+    && getWeaponCycleId(key) === ownedGuaranteeWeaponId
+  ))
+  const displayedOwnedWeaponCycleIds = []
+  if (ownedGuaranteeKey && tryAdd(ownedGuaranteeKey, pendingSet.has(ownedGuaranteeKey), { ignoreWeaponCycle: true })) {
+    displayedOwnedWeaponCycleIds.push(ownedGuaranteeWeaponId)
+  }
+
   for (const key of pending) tryAdd(key, true)
+
   for (const key of eligibleUnseenAcquireKeys) {
     if (pendingSet.has(key)) continue
     tryAdd(key)
@@ -274,6 +303,10 @@ export function selectSequentialLevelupChoices({
     ...activeWeaponCycleIds,
     ...choiceKeys.map((key) => getWeaponCycleId(key)),
   ])
+  const nextOwnedWeaponCycleIds = uniqueKeys([
+    ...activeOwnedWeaponCycleIds,
+    ...displayedOwnedWeaponCycleIds,
+  ])
   return {
     choiceKeys,
     nextExposedAcquireKeys,
@@ -281,6 +314,7 @@ export function selectSequentialLevelupChoices({
     cycleWrapped,
     weaponCycleWrapped,
     nextWeaponCycleIds,
+    nextOwnedWeaponCycleIds,
   }
 }
 
@@ -292,7 +326,11 @@ export function applyUpgradeToWeapon(wpn, effect) {
   const withBonus = (w) => effect.bonus
     ? { ...w, [effect.bonus.stat]: (w[effect.bonus.stat] ?? 0) + effect.bonus.step }
     : w
-  if (effect.kind === 'damage') return withBonus({ ...wpn, damage: wpn.damage + effect.dmg, level: bumpLevel(wpn) })
+  if (effect.kind === 'damage') return withBonus({
+    ...wpn,
+    damage: Number.isFinite(effect.damageMultiplier) ? wpn.damage * effect.damageMultiplier : wpn.damage + effect.dmg,
+    level: bumpLevel(wpn),
+  })
   if (effect.kind === 'stat')   return withBonus({ ...wpn, [effect.stat]: Math.min(effect.cap, (wpn[effect.stat] ?? 0) + effect.step), level: bumpLevel(wpn) })
   if (effect.kind === 'crit') return withBonus({
     ...wpn,

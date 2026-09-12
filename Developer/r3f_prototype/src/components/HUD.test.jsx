@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import HUD, {
   UpgradeIcon,
+  UPGRADES,
   getNextUnlockPreview,
   getUpgradeChoiceDesc,
   getUpgradeChoiceLabel,
@@ -34,6 +35,8 @@ import { setScientificNotation } from '../lib/numberFormat.js'
 import { getRankingScore } from '../lib/rankingScorePolicy.js'
 import { subscribeSfx } from '../lib/sfxEvents.js'
 import { resetCriticalScreenShakeForTest, subscribeWholeScreenCriticalShake } from '../lib/criticalScreenShake.js'
+import { getSpawnCatchUpOffsetSec, publishSpawnCatchUpOffsetSec } from '../lib/spawnCatchUp.js'
+import { UPGRADE_EFFECTS } from '../lib/upgrades.js'
 
 const TEST_STUDIO_USER = { uid: 'hud-test-user' }
 const EMPTY_STUDIO_SNAPSHOT = {
@@ -229,6 +232,19 @@ describe('active weapon HUD icons', () => {
 })
 
 describe('upgrade choice filtering', () => {
+  it('커터칼 피해 카드는 고정 수치 대신 현재 피해의 15% 증가로 표시한다', () => {
+    const weapons = { boxCutter: { level: 1, damage: 72 } }
+    const damageCard = UPGRADES.find((option) => option.key === 'boxCutterDamage')
+    const powerCard = UPGRADES.find((option) => option.key === 'boxCutterPower')
+    const bikittyDamageCard = UPGRADES.find((option) => option.key === 'bikittyCutterDamage')
+    const bikittyPowerCard = UPGRADES.find((option) => option.key === 'bikittyCutterPower')
+
+    expect(getUpgradeChoiceLabel(damageCard, weapons)).toBe('커터칼 피해 +15% (Lv2)')
+    expect(getUpgradeChoiceLabel(powerCard, weapons)).toBe('커터칼 위력 +15% (Lv2)')
+    expect(getUpgradeChoiceLabel(bikittyDamageCard, { bikittyCutter: { level: 1, damage: 54 } })).toBe('바이키티 피해 +15% (Lv2)')
+    expect(getUpgradeChoiceLabel(bikittyPowerCard, { bikittyCutter: { level: 1, damage: 54 } })).toBe('바이키티 위력 +15% (Lv2)')
+  })
+
   it('labels run weapon acquisition as 획득, not account 해금', () => {
     expect(getUpgradeChoiceLabel({ key: 'acquireBag' })).toContain('획득')
     expect(getUpgradeChoiceLabel({ key: 'acquireChibiko' })).toBe('치비코 획득')
@@ -675,7 +691,7 @@ describe('level-up upgrade layout', () => {
     }
   })
 
-  it('exposes four unseen acquisition cards per serial without skipping after a selection', () => {
+  it('reserves one owned-weapon upgrade while exposing unseen acquisition cards in order', () => {
     useGameStore.getState().resetGame('stage1')
     for (const weaponId of ['scienceFlask', 'bell', 'stunGun', 'onigiri', 'guidedMissile']) setUnlocked(weaponId)
     useGameStore.setState((state) => ({
@@ -695,14 +711,15 @@ describe('level-up upgrade layout', () => {
 
       const firstLabels = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
         .map((button) => button.getAttribute('aria-label').split(':')[0])
-      expect(firstLabels).toEqual(['커터칼 획득', '30cm 자 획득', '텀블러 획득', '과학 플라스크 획득'])
+      expect(firstLabels).toEqual(['연필 데미지 +1.2 (Lv2)', '커터칼 획득', '30cm 자 획득', '텀블러 획득'])
       expect(useGameStore.getState().levelUpAcquireExposureKeys).toEqual([
-        'acquireBoxCutter', 'acquireBag', 'acquireTumbler', 'acquireFlask',
+        'acquireBoxCutter', 'acquireBag', 'acquireTumbler',
       ])
       // strict weapon rotation must advance by every displayed weapon group, not only the picked one.
       expect(useGameStore.getState().levelUpWeaponCycleIds).toEqual([
-        'boxCutter', 'schoolBag', 'tumbler', 'scienceFlask',
+        'pencilThrow', 'boxCutter', 'schoolBag', 'tumbler',
       ])
+      expect(useGameStore.getState().levelUpOwnedWeaponCycleIds).toEqual(['pencilThrow'])
       expect(random).not.toHaveBeenCalled()
 
       act(() => {
@@ -717,15 +734,16 @@ describe('level-up upgrade layout', () => {
 
       const secondLabels = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
         .map((button) => button.getAttribute('aria-label').split(':')[0])
-      expect(secondLabels).toEqual(['바이키티 커터칼 획득', '벨 획득', '전기 획득', '오니기리 획득'])
+      expect(secondLabels).toEqual(['커터칼 피해 +15% (Lv2)', '바이키티 커터칼 획득', '과학 플라스크 획득', '벨 획득'])
       expect(secondLabels).toEqual(expect.not.arrayContaining(firstLabels))
       expect(useGameStore.getState().levelUpAcquireExposureKeys).toEqual([
-        'acquireBikittyCutter', 'acquireBell', 'acquireStun', 'acquireOnigiri',
+        'acquireBikittyCutter', 'acquireFlask', 'acquireBell',
       ])
       expect(useGameStore.getState().levelUpWeaponCycleIds).toEqual([
-        'boxCutter', 'schoolBag', 'tumbler', 'scienceFlask',
-        'bikittyCutter', 'bell', 'stunGun', 'onigiri',
+        'pencilThrow', 'boxCutter', 'schoolBag', 'tumbler',
+        'bikittyCutter', 'scienceFlask', 'bell',
       ])
+      expect(useGameStore.getState().levelUpOwnedWeaponCycleIds).toEqual(['pencilThrow', 'boxCutter'])
     } finally {
       random.mockRestore()
       act(() => root.unmount())
@@ -1624,6 +1642,88 @@ describe('stage4 HUD telegraphs', () => {
       })
       expect(container.textContent).not.toContain('보스 출현')
     } finally {
+      act(() => { root.unmount() })
+    }
+  })
+
+  it('rotates one upgrade through ten owned weapons, wraps, and ignores same-serial rerenders', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState((state) => {
+      const ownedIds = [...new Set(UPGRADES
+        .map((upgrade) => UPGRADE_EFFECTS[upgrade.key])
+        .filter((effect) => effect?.weapon && effect.kind !== 'acquire')
+        .map((effect) => effect.weapon))]
+        .filter((id) => state.weapons[id])
+        .slice(0, 10)
+      return {
+        phase: 'levelup',
+        pendingLevelUps: 1,
+        player: { ...state.player, level: 20 },
+        weapons: Object.fromEntries(Object.entries(state.weapons).map(([id, weapon]) => [
+          id,
+          ownedIds.includes(id) ? { ...weapon, active: true, level: 1 } : weapon,
+        ])),
+        levelUpChoiceSerial: 300,
+      }
+    })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />))
+      const expectVisibleOwnedUpgrade = () => {
+        const weaponId = useGameStore.getState().levelUpOwnedWeaponCycleIds.at(-1)
+        const expectedLabels = UPGRADES
+          .filter((upgrade) => UPGRADE_EFFECTS[upgrade.key]?.weapon === weaponId && UPGRADE_EFFECTS[upgrade.key]?.kind !== 'acquire')
+          .map((upgrade) => getUpgradeChoiceLabel(upgrade, useGameStore.getState().weapons))
+        expect([...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
+          .some((button) => expectedLabels.includes(button.getAttribute('aria-label').split(':')[0]))).toBe(true)
+      }
+      const firstCycleId = useGameStore.getState().levelUpOwnedWeaponCycleIds[0]
+      expect(firstCycleId).toEqual(expect.any(String))
+      expectVisibleOwnedUpgrade()
+      for (let serial = 301; serial <= 309; serial += 1) {
+        act(() => useGameStore.setState({ levelUpChoiceSerial: serial }))
+        expect(useGameStore.getState().levelUpOwnedWeaponCycleIds).toHaveLength(serial - 299)
+        expectVisibleOwnedUpgrade()
+      }
+      const completedCycle = useGameStore.getState().levelUpOwnedWeaponCycleIds
+      expect(new Set(completedCycle)).toHaveLength(10)
+
+      act(() => useGameStore.setState({ levelUpChoiceSerial: 310 }))
+      expect(useGameStore.getState().levelUpOwnedWeaponCycleIds).toEqual([firstCycleId])
+      expectVisibleOwnedUpgrade()
+
+      act(() => root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />))
+      expect(useGameStore.getState().levelUpOwnedWeaponCycleIds).toEqual([firstCycleId])
+
+      act(() => useGameStore.getState().resetGame('stage1'))
+      expect(useGameStore.getState().levelUpOwnedWeaponCycleIds).toEqual([])
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+
+  it('anchors the boss warning to the real clock even after a 120-second spawn catch-up', () => {
+    const previousOffset = getSpawnCatchUpOffsetSec()
+    const bossSpawnSec = 173
+    const { container, root } = renderPlayingStage('stage4', 51_000, { bossSpawnSec })
+    publishSpawnCatchUpOffsetSec(120)
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+      expect(container.textContent).not.toContain('보스 출현')
+      act(() => {
+        useGameStore.setState({ elapsedMs: 171_000 })
+      })
+      expect(container.textContent).toContain('보스 출현')
+      act(() => {
+        useGameStore.setState({ elapsedMs: 173_000 })
+      })
+      expect(container.textContent).not.toContain('보스 출현')
+    } finally {
+      publishSpawnCatchUpOffsetSec(previousOffset)
       act(() => { root.unmount() })
     }
   })

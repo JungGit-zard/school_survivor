@@ -1163,6 +1163,38 @@ export function countPendingZombieSchedules(queue) {
 // 후보는 런타임에 실제로 발화하는 세 경로뿐이다: 단발 버스트 · 반복 버스트 · 오버타임 보강.
 // (20~40초 랜덤 웨이브·중간 보강·보스 호위는 런타임에서 발화하지 않으므로 후보가 아니다.)
 // 아무 후보도 없으면 null — 호출자는 오프셋을 올리지 않는다.
+// Empty-field catch-up uses the actual camera rectangle. The renderer's
+// culling margin is intentionally excluded because it can be offscreen.
+export function isInsideScreenBounds(bounds, x, z) {
+  return Number.isFinite(x) && Number.isFinite(z)
+    && Number.isFinite(bounds?.minX) && Number.isFinite(bounds?.maxX)
+    && Number.isFinite(bounds?.minZ) && Number.isFinite(bounds?.maxZ)
+    && x >= bounds.minX && x <= bounds.maxX && z >= bounds.minZ && z <= bounds.maxZ
+}
+
+export function countVisiblePooledEnemies(pool, bounds, playerX, playerZ) {
+  if (!pool || !bounds) return 0
+  const highest = Number.isInteger(pool.highestActive) ? pool.highestActive : -1
+  let count = 0
+  for (let index = 0; index <= highest; index += 1) {
+    if (pool.active[index] !== 1) continue
+    if (isInsideScreenBounds(bounds, pool.posX[index], pool.posZ[index])) count += 1
+  }
+  return count
+}
+
+export function countVisibleEnemyBodies(bodies, bounds, playerX, playerZ) {
+  if (!bodies || !bounds) return 0
+  let count = 0
+  for (const body of bodies.values()) {
+    if (body?._enemyDead) continue
+    if (typeof body?.isValid === 'function' && !body.isValid()) continue
+    const position = body?.translation?.()
+    if (isInsideScreenBounds(bounds, position?.x, position?.z)) count += 1
+  }
+  return count
+}
+
 export function nextPendingSpawnSec(burstEvents, firedFlags, scheduledRepeatTicks, spawnSec, stageId = 'stage1', overtimeTick = -1) {
   if (!Number.isFinite(spawnSec)) return null
   let best = Infinity
@@ -1170,6 +1202,7 @@ export function nextPendingSpawnSec(burstEvents, firedFlags, scheduledRepeatTick
   for (let index = 0; index < events.length; index += 1) {
     const evt = events[index]
     if (!evt) continue
+    if (isBossType(evt.type)) continue
     if (isRepeatingBurstEvent(evt)) {
       const scheduled = scheduledRepeatTicks?.[index] ?? -1
       const tickSec = repeatingBurstSecAtTick(evt, scheduled + 1)
@@ -1809,20 +1842,17 @@ export default function Enemies() {
     // HUD 타이머·탈출 포탈·마틸다·적 AI(context.elapsedSec)는 실시간 sec 그대로다.
     const catchUpQueue = runtimeQueueRef.current
     // 살아 있는 도지도 센다 — HP를 가진 이벤트 적이라 춤추는 동안 화면은 비어 있지 않다.
-    const liveEnemyCount = enemyPool.activeCount
-      + enemiesRef.current.length
-      + liveDogeCountRef.current
-      + catchUpQueue.spawnDrain.count
-      + countPendingZombieSchedules(catchUpQueue)
+    const visibleEnemyCount = countVisiblePooledEnemies(enemyPool, screenBounds, playerPos.x, playerPos.z)
+      + countVisibleEnemyBodies(enemyBodies, screenBounds, playerPos.x, playerPos.z)
     const catchUp = spawnCatchUpRef.current
-    if (liveEnemyCount === 0) recordEmptyField(dominanceSwarmRef.current, sec * 1000)
+    if (visibleEnemyCount === 0) recordEmptyField(dominanceSwarmRef.current, sec * 1000)
     const pendingSpawnSec = sec + catchUp.offsetSec
     advanceSpawnCatchUp(catchUp, {
       deltaSec: delta,
-      liveEnemyCount,
+      liveEnemyCount: visibleEnemyCount,
       spawnSec: pendingSpawnSec,
       // 비어 있을 때만 계산한다 — 적이 있으면 캐치업이 이 값을 읽지 않는다.
-      nextPendingSpawnSec: liveEnemyCount === 0
+      nextPendingSpawnSec: visibleEnemyCount === 0
         ? nextPendingSpawnSec(
             stageRuntime.burstEvents,
             firedBurstsRef.current,
@@ -1868,7 +1898,7 @@ export default function Enemies() {
     context.e04IntroSec = getE04IntroSec(currentStageId)
     // 보스 등장은 버스트 표(= 스폰 시계)에서 당겨질 수 있으므로 하한도 spawnSec으로 본다.
     // 상한(탈출 포탈)은 실시간 이벤트라 sec 그대로 — 런 길이는 캐치업의 영향을 받지 않는다.
-    context.bossPressure = currentStageId !== 'stage4' && spawnSec >= bossSpawnSec && sec < (stageConfig.escapePortalSec ?? 210)
+    context.bossPressure = currentStageId !== 'stage4' && sec >= bossSpawnSec && sec < (stageConfig.escapePortalSec ?? 210)
     const player = useGameStore.getState().player
     const dominance = evaluateDominanceSwarm(dominanceSwarmRef.current, {
       nowMs: sec * 1000,
@@ -1924,13 +1954,14 @@ export default function Enemies() {
     const burstEvents = stageRuntime.burstEvents
     for (let burstIndex = 0; burstIndex < burstEvents.length; burstIndex += 1) {
       const evt = burstEvents[burstIndex]
+      const eventSpawnSec = isBossType(evt.type) ? sec : spawnSec
       if (isRepeatingBurstEvent(evt)) {
-        const tick = repeatingBurstTickAt(evt, spawnSec)
+        const tick = repeatingBurstTickAt(evt, eventSpawnSec)
         if (tick === null || tick <= scheduledRepeatBurstTicksRef.current[burstIndex]) continue
         if (enqueueScheduled(SCHEDULE_BURST, burstIndex, tick)) scheduledRepeatBurstTicksRef.current[burstIndex] = tick
         continue
       }
-      if (!shouldScheduleBurst(firedBurstsRef.current[burstIndex], spawnSec, evt.sec)) continue
+      if (!shouldScheduleBurst(firedBurstsRef.current[burstIndex], eventSpawnSec, evt.sec)) continue
       firedBurstsRef.current[burstIndex] = 1
       // 세 번째 인자는 미션 생존 집계용 스폰 실시각이다(runSurvivalSeconds와 뺄셈한다).
       // 스폰 게이트만 당겨진 시계를 쓰고, 여기 기록은 실시간 sec을 유지해야 한다.

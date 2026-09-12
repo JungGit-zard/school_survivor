@@ -49,4 +49,19 @@ describe('level-up acquire exposure ledger', () => {
     useGameStore.getState().resetGame('stage2')
     expect(useGameStore.getState()).toMatchObject({ levelUpWeaponCycleIds: [], levelUpWeaponCycleSerial: -1 })
   })
+
+  it('records the owned-weapon guarantee once per serial and clears it on reset', () => {
+    useGameStore.getState().recordLevelupOwnedWeaponCycle(['pencilThrow'], 41)
+    useGameStore.getState().recordLevelupOwnedWeaponCycle(['schoolBag'], 41)
+    expect(useGameStore.getState()).toMatchObject({
+      levelUpOwnedWeaponCycleIds: ['pencilThrow'],
+      levelUpOwnedWeaponCycleSerial: 41,
+    })
+
+    useGameStore.getState().resetGame()
+    expect(useGameStore.getState()).toMatchObject({
+      levelUpOwnedWeaponCycleIds: [],
+      levelUpOwnedWeaponCycleSerial: -1,
+    })
+  })
 })

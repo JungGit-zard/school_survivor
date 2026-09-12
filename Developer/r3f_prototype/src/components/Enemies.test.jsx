@@ -455,7 +455,7 @@ describe('all-stage overtime mixed ordinary reinforcements', () => {
   it('consumes Stage 3 repeating burst descriptors through the existing RAF queue without using one-shot fired slots', () => {
     const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
     expect(source).toContain('isRepeatingBurstEvent(evt)')
-    expect(source).toContain('repeatingBurstTickAt(evt, spawnSec)')
+    expect(source).toContain('repeatingBurstTickAt(evt, eventSpawnSec)')
     expect(source).toContain('enqueueScheduled(SCHEDULE_BURST, burstIndex, tick)')
     expect(source).toContain('scheduledRepeatBurstTicksRef.current[burstIndex] = tick')
     expect(source).toContain('const firstTick = consumedRepeatBurstTicksRef.current[eventIndex] + 1')
@@ -1489,7 +1489,7 @@ describe('ranged enemy movement', () => {
     // 발사 하한과 bossPressure 하한은 같은 스폰 시계(e04GateSec)를 본다 — 갈리면 발사 창이
     // 공집합이 되어 E04가 한 발도 못 쏜다. 상한(탈출 포탈)만 실시간 elapsedSec이다.
     expect(source).toContain('const e04GateSec = elapsedSec + getSpawnCatchUpOffsetSec()')
-    expect(source).toContain('e04GateSec >= stageCombatConfig.bossPressureStartSec && elapsedSec < stageCombatConfig.bossPressureEndSec')
+    expect(source).toContain('elapsedSec >= stageCombatConfig.bossPressureStartSec && elapsedSec < stageCombatConfig.bossPressureEndSec')
     expect(source).toContain('fireArgs.elapsedSec = e04GateSec')
     // 스4는 원거리 "안전지대 소멸" 시그니처라 보스 구간에도 발사(bossPressure 미적용).
     expect(source).toContain("currentStageId === 'stage4'")
@@ -1594,7 +1594,7 @@ describe('nextPendingSpawnSec — 스폰 캐치업 점프 폭', () => {
 
   it('빈 화면 캐치업은 보스 예고 3초 앞에서 멈추지 않고 실제 보스/보강 시각까지 당긴다', () => {
     const events = [{ sec: 150, type: 'B03', count: 1 }]
-    expect(nextPendingSpawnSec(events, flagsFor(events), repeatTicksFor(events), 145, 'stage3', -1)).toBe(150)
+    expect(nextPendingSpawnSec(events, flagsFor(events), repeatTicksFor(events), 145, 'stage3', -1)).toBe(240)
   })
 
 })
@@ -1610,14 +1610,12 @@ describe('스폰 캐치업 배선 — 빈 화면 2초 상한', () => {
   })
 
   it('빈 화면 판정에 살아있는 적과 스폰 대기열을 모두 센다', () => {
-    expect(playingFrameBody).toContain('const liveEnemyCount = enemyPool.activeCount')
-    expect(playingFrameBody).toContain('+ enemiesRef.current.length')
-    expect(playingFrameBody).toContain('+ catchUpQueue.spawnDrain.count')
+    expect(playingFrameBody).toContain('const visibleEnemyCount = countVisiblePooledEnemies(enemyPool, screenBounds, playerPos.x, playerPos.z)')
+    expect(playingFrameBody).toContain('+ countVisibleEnemyBodies(enemyBodies, screenBounds, playerPos.x, playerPos.z)')
     // 골드 스케줄은 좀비가 아니다 — 통짜 scheduleCount를 세면 빈 화면이 4초까지 늘어난다.
-    expect(playingFrameBody).toContain('+ countPendingZombieSchedules(catchUpQueue)')
-    expect(playingFrameBody).not.toContain('+ catchUpQueue.scheduleCount')
+    expect(playingFrameBody).not.toContain('+ catchUpQueue.spawnDrain.count')
     // 도지도 HP를 가진 적이라 춤추는 동안 화면은 비어 있지 않다.
-    expect(playingFrameBody).toContain('+ liveDogeCountRef.current')
+    expect(playingFrameBody).toContain('liveEnemyCount: visibleEnemyCount')
   })
 
   it('스테이지 리셋에서 오프셋이 0으로 돌아간다', () => {
@@ -1629,11 +1627,11 @@ describe('스폰 캐치업 배선 — 빈 화면 2초 상한', () => {
     expect(playingFrameBody).toContain('context.elapsedSec = sec')
     expect(playingFrameBody).toContain('enqueueScheduled(SCHEDULE_BURST, burstIndex, sec)')
     // 보스 압박 하한은 spawnSec, 상한(탈출 포탈)은 실시간 sec.
-    expect(playingFrameBody).toContain("spawnSec >= bossSpawnSec && sec < (stageConfig.escapePortalSec ?? 210)")
+    expect(playingFrameBody).toContain("sec >= bossSpawnSec && sec < (stageConfig.escapePortalSec ?? 210)")
   })
 
   it('빈 화면 캐치업으로 스케줄을 당긴 직후 플레이어가 우세하면 약한 애들을 추가로 얹는다', () => {
-    const recordEmptyIndex = playingFrameBody.indexOf('if (liveEnemyCount === 0) recordEmptyField(dominanceSwarmRef.current, sec * 1000)')
+    const recordEmptyIndex = playingFrameBody.indexOf('if (visibleEnemyCount === 0) recordEmptyField(dominanceSwarmRef.current, sec * 1000)')
     const catchUpIndex = playingFrameBody.indexOf('advanceSpawnCatchUp(catchUp, {')
     const spawnSecIndex = playingFrameBody.indexOf('const spawnSec = sec + catchUp.offsetSec')
     const dominanceIndex = playingFrameBody.indexOf('const dominance = evaluateDominanceSwarm(dominanceSwarmRef.current, {')
@@ -1653,6 +1651,6 @@ describe('스폰 캐치업 배선 — 빈 화면 2초 상한', () => {
 
   it('HUD 보스 경고가 같은 오프셋만큼 앞당겨진다', () => {
     const hud = readFileSync(new URL('./HUD.jsx', import.meta.url), 'utf8')
-    expect(hud).toContain('const warningSec = tableWarningSec - getSpawnCatchUpOffsetSec()')
+    expect(hud).toContain('const warningSec = tableWarningSec')
   })
 })

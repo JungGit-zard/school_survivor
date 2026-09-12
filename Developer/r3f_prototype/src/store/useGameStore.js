@@ -322,6 +322,8 @@ export const useGameStore = create(
     levelUpAcquireExposureSerial: -1,
     levelUpWeaponCycleIds: [],
     levelUpWeaponCycleSerial: -1,
+    levelUpOwnedWeaponCycleIds: [],
+    levelUpOwnedWeaponCycleSerial: -1,
     pendingGuaranteedUpgradeChoiceKeys: [],
     pendingWeaponReplacement: null,
     questProgress: createStageQuestProgress(DEFAULT_STAGE_ID),
@@ -1071,6 +1073,14 @@ export const useGameStore = create(
       }
     }),
 
+    recordLevelupOwnedWeaponCycle: (ids, choiceSerial) => set((s) => {
+      if (s.phase !== 'levelup' || s.levelUpChoiceSerial !== choiceSerial || s.levelUpOwnedWeaponCycleSerial === choiceSerial || !Array.isArray(ids)) return {}
+      return {
+        levelUpOwnedWeaponCycleIds: [...new Set(ids.filter((id) => typeof id === 'string'))],
+        levelUpOwnedWeaponCycleSerial: choiceSerial,
+      }
+    }),
+
     applyUpgrade: (key) => {
       const effect = UPGRADE_EFFECTS[key]
 
@@ -1134,7 +1144,7 @@ export const useGameStore = create(
         const passiveMultiplier = effect.kind === 'damage' ? (wpn.bossPassiveDamageMultiplier ?? 1) : 1
         const upgraded = applyUpgradeWithChibikoBoost(
           wpn,
-          passiveMultiplier === 1 ? effect : { ...effect, dmg: effect.dmg * passiveMultiplier },
+          passiveMultiplier === 1 || Number.isFinite(effect.damageMultiplier) ? effect : { ...effect, dmg: effect.dmg * passiveMultiplier },
           boost,
         )
 
@@ -1312,6 +1322,8 @@ export const useGameStore = create(
         levelUpAcquireExposureSerial: -1,
         levelUpWeaponCycleIds: [],
         levelUpWeaponCycleSerial: -1,
+        levelUpOwnedWeaponCycleIds: [],
+        levelUpOwnedWeaponCycleSerial: -1,
         pendingGuaranteedUpgradeChoiceKeys: [],
         pendingWeaponReplacement: null,
         questProgress: createStageQuestProgress(nextStageId),

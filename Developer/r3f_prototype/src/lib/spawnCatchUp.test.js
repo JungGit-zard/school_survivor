@@ -13,6 +13,21 @@ describe('spawnCatchUp', () => {
     publishSpawnCatchUpOffsetSec(0)
   })
 
+  it('fires on the exact 120th 60Hz empty frame', () => {
+    const state = createSpawnCatchUpState()
+    let jump = 0
+    for (let frame = 0; frame < 120; frame += 1) {
+      jump = advanceSpawnCatchUp(state, {
+        deltaSec: 1 / 60,
+        liveEnemyCount: 0,
+        spawnSec: 10,
+        nextPendingSpawnSec: 30,
+      })
+      if (frame < 119) expect(jump).toBe(0)
+    }
+    expect(jump).toBeCloseTo(20)
+  })
+
   it('빈 화면 상한은 2초다', () => {
     expect(EMPTY_ARENA_MAX_SEC).toBe(2)
   })
