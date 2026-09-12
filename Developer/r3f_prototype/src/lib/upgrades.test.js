@@ -4,6 +4,8 @@ import { WEAPON_CATALOG, getAccountUnlockableWeaponIds, getAllWeaponIds } from '
 import { _resetForTests as resetWeaponUnlocksForTests, setUnlocked } from './weaponUnlocks.js'
 import { applyBossPassiveDamageToBaseWeapon } from './bossPassiveItems.js'
 import { resolveCriticalHit } from './criticalHits.js'
+import { bikittySegmentDamage } from './bikittyCutter.js'
+import { formatDamageAmount } from './damageNumbers.js'
 
 // 가상 무기 상태 빌더. weapons 객체의 한 항목 형태와 동일.
 const wpn = (overrides = {}) => ({ active: false, level: 0, damage: 5, ...overrides })
@@ -164,6 +166,37 @@ describe('applyUpgradeToWeapon', () => {
     const bikittyTwice = applyUpgradeToWeapon(bikittyOnce, UPGRADE_EFFECTS.bikittyCutterPower)
     expect(bikittyOnce.damage).toBeCloseTo(54 * 1.15, 10)
     expect(bikittyTwice.damage).toBeCloseTo(54 * 1.15 ** 2, 10)
+  })
+
+  it('카탈로그 기본값에서 강화·치명타와 바이키티 8단/snap 표시가 변경 전의 10%로 이어진다', () => {
+    const applyFourDamageCards = (weapon, cardKeys) => cardKeys.reduce(
+      (current, key) => applyUpgradeToWeapon(current, UPGRADE_EFFECTS[key]),
+      { ...weapon, active: true, level: 1 },
+    )
+    const criticalDamage = (weapon, baseDamage) => resolveCriticalHit({
+      baseDamage,
+      critChance: 1,
+      critMultiplier: weapon.critMultiplier,
+      rng: () => 0,
+    }).damage
+
+    const cutter = applyFourDamageCards(WEAPON_CATALOG.boxCutter.base, [
+      'boxCutterDamage', 'boxCutterPower', 'boxCutterDamage', 'boxCutterPower',
+    ])
+    expect(cutter.damage).toBeCloseTo(7.2 * 1.15 ** 4, 10)
+    expect(criticalDamage(cutter, cutter.damage)).toBeCloseTo(7.2 * 1.15 ** 4 * 1.5, 10)
+    expect(formatDamageAmount(criticalDamage(cutter, cutter.damage))).toBe('19')
+
+    const bikitty = applyFourDamageCards(WEAPON_CATALOG.bikittyCutter.base, [
+      'bikittyCutterDamage', 'bikittyCutterPower', 'bikittyCutterDamage', 'bikittyCutterPower',
+    ])
+    const eighthSegment = bikittySegmentDamage(bikitty, 7)
+    expect(eighthSegment).toBeCloseTo(5.4 * 1.15 ** 4 * 1.84, 10)
+    expect(criticalDamage(bikitty, eighthSegment)).toBeCloseTo(5.4 * 1.15 ** 4 * 1.84 * 1.5, 10)
+    expect(formatDamageAmount(criticalDamage(bikitty, eighthSegment))).toBe('26')
+    expect(bikitty.snapDamage).toBe(9)
+    expect(criticalDamage(bikitty, bikitty.snapDamage)).toBeCloseTo(13.5, 10)
+    expect(formatDamageAmount(criticalDamage(bikitty, bikitty.snapDamage))).toBe('14')
   })
 
   it('치비코와 B01 피해 패시브 뒤에도 커터칼 15%는 현재 피해에 한 번만 적용한다', () => {

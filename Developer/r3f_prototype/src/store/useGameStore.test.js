@@ -9,6 +9,7 @@ vi.mock('../lib/firebaseRanking.js', async (importOriginal) => ({
 }))
 
 import { useGameStore } from './useGameStore.js'
+import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { useAuthStore } from './useAuthStore.js'
 import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { playerPos, playerFacing, bagSwingState, enemyBodies, joystickDir } from '../lib/refs.js'
@@ -17,11 +18,24 @@ import { subscribeSfx } from '../lib/sfxEvents.js'
 import { getBossSpawnSec } from '../lib/burstEvents.js'
 import { _resetForTests as resetWeaponUnlocksForTests, setUnlocked } from '../lib/weaponUnlocks.js'
 import { applyChibikoAllWeaponBoost } from '../lib/upgrades.js'
+import { resolveCriticalHit } from '../lib/criticalHits.js'
+import { formatDamageAmount } from '../lib/damageNumbers.js'
 
 describe('useGameStore XP and reset behavior', () => {
   beforeEach(() => {
     resetWeaponUnlocksForTests()
     useGameStore.getState().resetGame()
+  })
+
+  it('새 런 무기 상태는 카탈로그의 커터칼·바이키티 기본 피해를 그대로 사용한다', () => {
+    const { weapons } = useGameStore.getState()
+
+    expect(weapons.boxCutter.damage).toBe(WEAPON_CATALOG.boxCutter.base.damage)
+    expect(weapons.boxCutter.damage).toBe(7.2)
+    expect(weapons.bikittyCutter.damage).toBe(WEAPON_CATALOG.bikittyCutter.base.damage)
+    expect(weapons.bikittyCutter.damage).toBe(5.4)
+    expect(weapons.bikittyCutter.snapDamage).toBe(WEAPON_CATALOG.bikittyCutter.base.snapDamage)
+    expect(weapons.bikittyCutter.snapDamage).toBe(9)
   })
 
   // 곡선 정본이 start 4 / growth 1.24에서 start 9 / growth 1.12로 바뀌었다(초반 XP 스노볼 제거).
@@ -67,6 +81,17 @@ describe('useGameStore XP and reset behavior', () => {
       expect(after.damage).toBeCloseTo(beforeDamage * 1.15, 10)
       expect(Number.isNaN(after.damage)).toBe(false)
     }
+
+    const upgraded = useGameStore.getState().weapons.boxCutter
+    const displayedCritical = resolveCriticalHit({
+      baseDamage: upgraded.damage,
+      critChance: 1,
+      critMultiplier: upgraded.critMultiplier,
+      rng: () => 0,
+    }).damage
+    expect(upgraded.damage).toBeCloseTo(7.2 * 1.05 * 1.1 * 1.15 ** 4, 10)
+    expect(displayedCritical).toBeCloseTo(7.2 * 1.05 * 1.1 * 1.15 ** 4 * 1.5, 10)
+    expect(formatDamageAmount(displayedCritical)).toBe('22')
   })
 
   it('resetGame은 store와 런타임 refs를 함께 초기화한다', () => {

@@ -38,9 +38,8 @@ export const WEAPON_CATALOG = {
   boxCutter: {
     id: 'boxCutter',
     label: '커터칼',
-    // 2026-09-06 사용자 확정: 위력 1.5배, 재사용 대기시간 절반.
-    // damage 48→72, cooldown 3250→1625ms. 사거리/치명타 정체성은 유지한다.
-    base: { damage: 72, cooldown: 1625, range: 1.4, width: 0.18, knockback: 1.8, critChance: 0.33, critMultiplier: 1.5 },
+    // 2026-09-12 과도한 피해 재조정: 변경 전 72의 10%인 7.2. cooldown 1625ms와 사거리/치명타 정체성은 유지한다.
+    base: { damage: 7.2, cooldown: 1625, range: 1.4, width: 0.18, knockback: 1.8, critChance: 0.33, critMultiplier: 1.5 },
     unlockConditions: STARTER,
     minLevelToAppear: 2,
   },
@@ -228,18 +227,18 @@ export const WEAPON_CATALOG = {
   //
   // 검산(치명타 제외):
   //   8타 위력 배수 합 = 8 + 0.12 × (0+1+…+7) = 11.36
-  //   2026-09-06 사용자 확정: 위력 1.5배, 재사용 대기시간 절반.
-  //   damage 36→54, snapDamage 60→90, cooldown 2400→1200ms.
+  //   2026-09-12 과도한 피해 재조정: 변경 전 54/90의 10%인 5.4/9.
+  //   cooldown 1200ms와 8단 성장/부러짐 규칙은 유지한다.
   bikittyCutter: {
     id: 'bikittyCutter',
     label: '바이키티 커터칼',
     base: {
-      damage: 54, cooldown: 1200, range: 1.0, width: 0.18,
+      damage: 5.4, cooldown: 1200, range: 1.0, width: 0.18,
       knockback: 1.8, critChance: 0.35, critMultiplier: 1.5,
       segments: 8,             // 부러지기까지 타격 수
       segmentRangeStep: 0.18,  // 단수당 사거리 + (최대 1.0 + 0.18×7 = 2.26)
       segmentDamageStep: 0.12, // 단수당 위력 +12% (가산)
-      snapDamage: 90,          // 2026-09-06: 위력 1.5배 적용(60→90)
+      snapDamage: 9,
       // snapPellets는 없다. "시각 연출용 파편 개수"라고 선언돼 있었지만 부러짐 연출은
       // SFX와 부채꼴 피해뿐이라 파편을 그리는 코드가 아예 없었다. 파편 VFX를 만들 때 되살린다.
       snapArcDeg: 90,          // 전방 부채꼴 각도

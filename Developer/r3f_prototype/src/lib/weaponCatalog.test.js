@@ -78,7 +78,7 @@ describe('weaponCatalog', () => {
     expect(source).toContain('range: PENCIL_FIRE_RANGE_WORLD_UNITS')
     expect(WEAPON_CATALOG.schoolBag.base.damage).toBe(12)
     expect(WEAPON_CATALOG.schoolBag.base.critChance).toBe(0.20)
-    expect(WEAPON_CATALOG.boxCutter.base.damage).toBe(72) // 2026-09-06: 48의 1.5배
+    expect(WEAPON_CATALOG.boxCutter.base.damage).toBe(7.2) // 2026-09-12 변경 전 72의 10%
     expect(WEAPON_CATALOG.boxCutter.base.range).toBe(1.4) // 사거리 2배 확장 (0.7 → 1.4)
     expect(WEAPON_CATALOG.boxCutter.base.width).toBe(0.18)
     expect(WEAPON_CATALOG.boxCutter.base.knockback).toBe(1.8)
