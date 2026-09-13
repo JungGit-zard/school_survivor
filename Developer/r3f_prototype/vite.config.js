@@ -80,7 +80,7 @@ function runtimePlaytestLogPlugin() {
     configureServer(server) {
       server.config.logger.info(`[playtest-log] ${logPath}`)
       server.middlewares.use('/__playtest-log', (request, response, next) => {
-        if (request.method !== 'POST') {
+        if (request.method !== 'POST' || (request.url !== '/' && !request.url?.startsWith('/?'))) {
           next()
           return
         }
