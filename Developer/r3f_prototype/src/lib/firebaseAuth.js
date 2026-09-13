@@ -122,9 +122,9 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
   const auth = authModule.getAuth(app)
   const isStudioRoute = isGraphicsStudioLocation(globalScope?.location)
   const useNativeGoogle = shouldUseNativeGoogleSignIn(globalScope)
-  // Game login must survive browser/app restarts until the user explicitly logs out.
-  // Use Firebase Auth's own browser-local persistence; do not copy credentials elsewhere.
-  await setFirebaseAuthBrowserLocalPersistence(authModule, auth)
+  // Firebase Authentication is the sole auth source, and its session stays in memory only.
+  // Do not copy credentials or persist browser login state anywhere else.
+  await setFirebaseAuthInMemoryPersistence(authModule, auth)
   // A Capacitor shell must never consume a web redirect result: Android/iOS
   // sign-in is bridged exclusively through the native Google credential.
   if (!isStudioRoute && !useNativeGoogle) {
@@ -181,11 +181,11 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
   }
 }
 
-export async function setFirebaseAuthBrowserLocalPersistence(authModule, auth) {
-  if (typeof authModule?.setPersistence !== 'function' || !authModule.browserLocalPersistence) {
-    throw new Error('Firebase Auth browser-local persistence is unavailable.')
+export async function setFirebaseAuthInMemoryPersistence(authModule, auth) {
+  if (typeof authModule?.setPersistence !== 'function' || !authModule.inMemoryPersistence) {
+    throw new Error('Firebase Auth memory-only persistence is unavailable.')
   }
-  await authModule.setPersistence(auth, authModule.browserLocalPersistence)
+  await authModule.setPersistence(auth, authModule.inMemoryPersistence)
 }
 
 async function consumePendingRedirectResult(authModule, auth) {

@@ -4,7 +4,7 @@ import {
   getLocalFirebaseAuthRedirect,
   GRAPHICS_STUDIO_FIREBASE_APP_NAME,
   resolveFirebaseAppForRoute,
-  setFirebaseAuthBrowserLocalPersistence,
+  setFirebaseAuthInMemoryPersistence,
   isFirebaseAuthConfigured,
   shouldUseNativeGoogleSignIn,
   toAuthUser,
@@ -17,7 +17,7 @@ const firebaseAuthMock = vi.hoisted(() => ({
   auth: {
     getAuth: vi.fn(() => ({ currentUser: null })),
     setPersistence: vi.fn(async () => {}),
-    browserLocalPersistence: { type: 'LOCAL' },
+    inMemoryPersistence: { type: 'NONE' },
     getRedirectResult: vi.fn(async () => null),
     onAuthStateChanged: vi.fn(() => vi.fn()),
     signInWithPopup: vi.fn(),
@@ -43,7 +43,7 @@ vi.mock('firebase/app', () => ({
 vi.mock('firebase/auth', () => ({
   GoogleAuthProvider: firebaseAuthMock.auth.GoogleAuthProvider,
   getAuth: (...args) => firebaseAuthMock.auth.getAuth(...args),
-  browserLocalPersistence: firebaseAuthMock.auth.browserLocalPersistence,
+  inMemoryPersistence: firebaseAuthMock.auth.inMemoryPersistence,
   setPersistence: (...args) => firebaseAuthMock.auth.setPersistence(...args),
   getRedirectResult: (...args) => firebaseAuthMock.auth.getRedirectResult(...args),
   onAuthStateChanged: (...args) => firebaseAuthMock.auth.onAuthStateChanged(...args),
@@ -158,24 +158,26 @@ describe('firebase auth configuration', () => {
     expect(getLocalFirebaseAuthRedirect({ href: 'http://127.0.0.1:5175/graphics-studio' }, true)).toBeNull()
   })
 
-  it('keeps Firebase Auth in browser-local persistence until explicit logout', async () => {
+  it('keeps Firebase Auth in memory only', async () => {
     const auth = { name: 'test-auth' }
-    const browserLocalPersistence = { type: 'LOCAL' }
+    const inMemoryPersistence = { type: 'NONE' }
     const calls = []
 
-    await setFirebaseAuthBrowserLocalPersistence({
-      browserLocalPersistence,
+    await setFirebaseAuthInMemoryPersistence({
+      inMemoryPersistence,
       setPersistence: async (...args) => {
         calls.push(args)
       },
     }, auth)
 
-    expect(calls).toEqual([[auth, browserLocalPersistence]])
+    expect(calls).toEqual([[auth, inMemoryPersistence]])
   })
 
-  it('fails closed when browser-local persistence is unavailable', async () => {
-    await expect(setFirebaseAuthBrowserLocalPersistence({}, { name: 'test-auth' }))
-      .rejects.toThrow('browser-local persistence is unavailable')
+  it('rejects browser-local persistence when memory-only persistence is unavailable', async () => {
+    await expect(setFirebaseAuthInMemoryPersistence({
+      browserLocalPersistence: { type: 'LOCAL' },
+      setPersistence: vi.fn(),
+    }, { name: 'test-auth' })).rejects.toThrow('memory-only persistence is unavailable')
   })
 
   it('uses an isolated named Firebase app for Studio and the default app for the game', () => {
@@ -221,7 +223,7 @@ describe('firebase auth configuration', () => {
     expect(firebaseAuthMock.auth.getRedirectResult).not.toHaveBeenCalled()
     expect(firebaseAuthMock.auth.setPersistence).toHaveBeenLastCalledWith(
       expect.anything(),
-      firebaseAuthMock.auth.browserLocalPersistence,
+      firebaseAuthMock.auth.inMemoryPersistence,
     )
   })
 
@@ -255,7 +257,7 @@ describe('firebase auth configuration', () => {
     expect(firebaseAuthMock.auth.signInWithRedirect).toHaveBeenCalled()
     expect(firebaseAuthMock.auth.setPersistence).toHaveBeenLastCalledWith(
       expect.anything(),
-      firebaseAuthMock.auth.browserLocalPersistence,
+      firebaseAuthMock.auth.inMemoryPersistence,
     )
   })
 
@@ -287,7 +289,7 @@ describe('firebase auth configuration', () => {
     expect(firebaseAuthMock.auth.getRedirectResult).not.toHaveBeenCalled()
     expect(firebaseAuthMock.auth.setPersistence).toHaveBeenLastCalledWith(
       expect.anything(),
-      firebaseAuthMock.auth.browserLocalPersistence,
+      firebaseAuthMock.auth.inMemoryPersistence,
     )
   })
 })
