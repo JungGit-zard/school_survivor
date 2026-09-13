@@ -364,6 +364,8 @@ export default {
   'hud.starlinkCheatAria': '스타링크 추락 치트',
   'hud.starlinkCheatTitle': '스타링크 즉시 추락',
   'hud.copyLog': '개발 로그 복사',
-  'hud.copyLogDone': '개발 로그 복사됨',
-  'hud.copyLogFail': '개발 로그 복사 실패',
+  'hud.sendLog': '개발 로그 전송',
+  'hud.sendLogDone': '개발 로그 전송됨',
+  'hud.copyLogDone': '전송 실패 — 로그 복사됨',
+  'hud.copyLogFail': '개발 로그 전송/복사 실패',
 }

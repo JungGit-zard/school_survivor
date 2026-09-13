@@ -373,8 +373,10 @@ export default {
   'hud.starlinkCheatAria': 'スターリンク墜落チート',
   'hud.starlinkCheatTitle': 'スターリンクを即墜落',
   'hud.copyLog': '開発ログをコピー',
-  'hud.copyLogDone': '開発ログをコピーしました',
-  'hud.copyLogFail': '開発ログのコピーに失敗',
+  'hud.sendLog': '開発ログを送信',
+  'hud.sendLogDone': '開発ログを送信しました',
+  'hud.copyLogDone': '送信失敗 — 開発ログをコピーしました',
+  'hud.copyLogFail': '開発ログの送信/コピーに失敗',
 
   // ─── ステージ1 ストーリー ───
 

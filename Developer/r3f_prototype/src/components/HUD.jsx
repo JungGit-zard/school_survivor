@@ -9,7 +9,7 @@ import { getPortalObjective } from '../lib/portalObjective.js'
 import { MAX_OWNED_WEAPONS, UPGRADE_EFFECTS, isUpgradeAvailable, selectSequentialLevelupChoices } from '../lib/upgrades.js'
 import { getAccountUnlockableWeaponIds, WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
-import { buildPlaytestSummary } from '../lib/playtestLogger.js'
+import { buildPlaytestSummary, sendPlaytestSummaryToAssistant } from '../lib/playtestLogger.js'
 import { emitSfx } from '../lib/sfxEvents.js'
 import { playDialogueVoice, stopDialogueVoice } from '../lib/dialogueVoice.js'
 import { getNextStageId, getStageConfig } from '../lib/stageConfig.js'
@@ -1012,23 +1012,35 @@ export default function HUD({
   // 종료 화면 "다음 해금 가능 무기" 미리보기 — minLevel이 가장 낮은 미해금 무기 1개.
   const nextUnlock = useMemo(() => getNextUnlockPreview(phase, weapons), [phase, weapons])
 
-  // 플레이테스트 로그 복사는 개발용 치트 도구다. 결과 CTA와 섞지 않는다.
+  // 플레이테스트 로그 전송은 개발용 치트 도구다. 결과 CTA와 섞지 않는다.
   const [copyStatus, setCopyStatus] = useState('idle')
+  const resetCopyStatusSoon = () => setTimeout(() => setCopyStatus('idle'), 2000)
   const copyPlaytestLog = async () => {
+    const summary = buildPlaytestSummary()
     try {
-      const summary = buildPlaytestSummary()
-      await navigator.clipboard.writeText(JSON.stringify(summary, null, 2))
-      setCopyStatus('copied')
-      setTimeout(() => setCopyStatus('idle'), 2000)
+      await sendPlaytestSummaryToAssistant({ summary })
+      setCopyStatus('sent')
+      resetCopyStatusSoon()
     } catch {
-      setCopyStatus('error')
-      setTimeout(() => setCopyStatus('idle'), 2000)
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(summary, null, 2))
+        setCopyStatus('copied')
+      } catch {
+        setCopyStatus('error')
+      }
+      resetCopyStatusSoon()
     }
   }
   const resultDevTools = showResultDevTools ? (
     <div data-testid="result-dev-tools" style={styles.resultDevTools}>
       <button type="button" style={styles.devCopyBtn} onClick={copyPlaytestLog}>
-        {copyStatus === 'copied' ? translate('hud.copyLogDone') : copyStatus === 'error' ? translate('hud.copyLogFail') : translate('hud.copyLog')}
+        {copyStatus === 'sent'
+          ? translate('hud.sendLogDone', null, '전송 완료')
+          : copyStatus === 'copied'
+            ? translate('hud.copyLogDone')
+            : copyStatus === 'error'
+              ? translate('hud.copyLogFail')
+              : translate('hud.sendLog', null, '📨 로그 전송')}
       </button>
     </div>
   ) : null

@@ -62,7 +62,7 @@ describe('선긋기 카탈로그 정본', () => {
       width: 0.22,
       knockback: 0,
       critChance: 0.35,
-      critMultiplier: 2.0,
+      critMultiplier: 1.5,
       lineDurationMs: 2000,
       lineCrossDamage: 14,
       lineCrossCooldownMs: 600,

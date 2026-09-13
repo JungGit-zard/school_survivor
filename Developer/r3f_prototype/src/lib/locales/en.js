@@ -373,8 +373,10 @@ export default {
   'hud.starlinkCheatAria': 'Starlink crash cheat',
   'hud.starlinkCheatTitle': 'Crash Starlink now',
   'hud.copyLog': 'Copy dev log',
-  'hud.copyLogDone': 'Dev log copied',
-  'hud.copyLogFail': 'Dev log copy failed',
+  'hud.sendLog': 'Send dev log',
+  'hud.sendLogDone': 'Dev log sent',
+  'hud.copyLogDone': 'Send failed — dev log copied',
+  'hud.copyLogFail': 'Dev log send/copy failed',
 
   // ─── Stage 1 story intro ───
 

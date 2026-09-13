@@ -1513,7 +1513,7 @@ describe('stage clear presentation', () => {
     }
   })
 
-  it('keeps playtest log copy out of the primary result actions', () => {
+  it('keeps playtest log send out of the primary result actions', () => {
     useGameStore.getState().resetGame('stage1')
     useGameStore.setState({
       phase: 'cleared',
@@ -1533,9 +1533,9 @@ describe('stage clear presentation', () => {
       const devTools = container.querySelector('[data-testid="result-dev-tools"]')
 
       expect(primaryActions).not.toBeNull()
-      expect(primaryActions.textContent).not.toContain('로그 복사')
+      expect(primaryActions.textContent).not.toContain('로그 전송')
       expect(devTools).not.toBeNull()
-      expect(devTools.textContent).toContain('개발 로그 복사')
+      expect(devTools.textContent).toContain('개발 로그 전송')
     } finally {
       act(() => {
         root.unmount()
@@ -1543,7 +1543,46 @@ describe('stage clear presentation', () => {
     }
   })
 
-  it('hides the development log copy tool when cheat UI is hidden by admin operations', () => {
+  it('sends the full playtest log to the assistant from the dev result tool', async () => {
+    useGameStore.getState().resetGame('stage4')
+    useGameStore.setState({
+      phase: 'cleared',
+      elapsedMs: 987_000,
+      goldSession: 77,
+      goldTotal: 123,
+    })
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({ ok: true, chunks: 1 }),
+    })
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = fetchSpy
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} devCheatsVisible />)
+      })
+
+      await act(async () => {
+        container.querySelector('[data-testid="result-dev-tools"] button').click()
+      })
+
+      expect(fetchSpy).toHaveBeenCalledWith('/__playtest-log/send-to-hana', expect.objectContaining({ method: 'POST' }))
+      const body = JSON.parse(fetchSpy.mock.calls[0][1].body)
+      expect(body.summary).toMatchObject({ stageId: 'stage4', result: 'cleared', goldSession: 77 })
+      expect(body.message).toContain('stage: stage4')
+      expect(container.querySelector('[data-testid="result-dev-tools"]').textContent).toContain('개발 로그 전송됨')
+    } finally {
+      globalThis.fetch = originalFetch
+      act(() => {
+        root.unmount()
+      })
+    }
+  })
+
+  it('hides the development log send tool when cheat UI is hidden by admin operations', () => {
     saveAdminConfig({
       operations: { cheatMenuButtonVisible: false },
     })
@@ -1563,7 +1602,7 @@ describe('stage clear presentation', () => {
       })
 
       expect(container.querySelector('[data-testid="result-dev-tools"]')).toBeNull()
-      expect(container.textContent).not.toContain('로그 복사')
+      expect(container.textContent).not.toContain('로그 전송')
     } finally {
       act(() => {
         root.unmount()

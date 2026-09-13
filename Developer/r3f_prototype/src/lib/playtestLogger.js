@@ -17,6 +17,8 @@ const runtimeLogEnabled = import.meta.env.DEV
 const clientSessionId = globalThis.crypto?.randomUUID?.()
   ?? `session-${Date.now()}`
 const CONSOLE_LEVELS = ['debug', 'info', 'log', 'warn', 'error']
+const PLAYTEST_LOG_SUBMIT_ENDPOINT = '/__playtest-log/send-to-hana'
+
 
 function reset() {
   events.length = 0
@@ -204,6 +206,44 @@ export function logPlaytestEvent(type, payload) {
   record(type, payload)
 }
 
+
+export function formatPlaytestSubmissionMessage(summary = buildPlaytestSummary()) {
+  return [
+    '[Escape Zombie School 플레이테스트 로그]',
+    `runId: ${summary.runId ?? 'unknown'}`,
+    `stage: ${summary.stageId ?? 'unknown'}`,
+    `result: ${summary.result ?? 'unknown'}`,
+    `duration: ${summary.duration ?? '00:00'} (${summary.durationMs ?? 0}ms)`,
+    `level: ${summary.finalLevel ?? 0}, kills: ${summary.stats?.totalKills ?? 0}, gold: ${summary.goldSession ?? 0}`,
+    '',
+    '```json',
+    JSON.stringify(summary, null, 2),
+    '```',
+  ].join('\n')
+}
+
+export async function sendPlaytestSummaryToAssistant({
+  summary = buildPlaytestSummary(),
+  fetchImpl = globalThis.fetch,
+} = {}) {
+  if (typeof fetchImpl !== 'function') {
+    throw new Error('fetch_unavailable')
+  }
+  const response = await fetchImpl(PLAYTEST_LOG_SUBMIT_ENDPOINT, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      summary,
+      message: formatPlaytestSubmissionMessage(summary),
+    }),
+    keepalive: true,
+  })
+  if (!response?.ok) {
+    throw new Error(`send_failed:${response?.status ?? 'unknown'}`)
+  }
+  return response.json?.().catch(() => ({ ok: true })) ?? { ok: true }
+}
+
 function formatMs(ms) {
   const sec = Math.floor(ms / 1000)
   const m = String(Math.floor(sec / 60)).padStart(2, '0')
@@ -225,6 +265,7 @@ export function buildPlaytestSummary() {
     finalLevel: state.player.level,
     finalXp: state.player.xp,
     xpToNext: state.player.xpToNext,
+    stageId: state.currentStageId,
     result: state.phase, // 'gameover' | 'cleared' | 기타
     weapons: activeWeapons,
     goldSession: state.goldSession,

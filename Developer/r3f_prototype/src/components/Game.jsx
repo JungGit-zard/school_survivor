@@ -16,6 +16,8 @@ import { emitSfx } from '../lib/sfxEvents.js'
 import { createCriticalScreenShakeFrame, sampleCriticalScreenShake } from '../lib/criticalScreenShake.js'
 import { PUBLISH_INTERVAL_MS, advanceRuntimeTime, getRuntimeElapsedMs } from '../lib/gameRuntimeTime.js'
 import { clampGameplayFrameDelta, createGameplayFixedStepClock, runGameplayFixedSteps } from '../lib/gameplayFrameTime.js'
+import { PLAYER_MESH_WORLD_HALF_WIDTH, PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
+import { GAME_CAMERA_BACK, GAME_CAMERA_EDGE_INSET_FRACTION, GAME_CAMERA_HEIGHT, clampGameplayCameraFocus, getGameplayGroundReach, keepPlayerInsideCameraX } from '../lib/gameCameraFraming.js'
 import {
   PRESSURE_CAULDRON_DAMAGE_RATIO,
   getPressureCauldronExplosionTimes,
@@ -24,6 +26,8 @@ import {
 import { PencilThrow, SchoolBagSwing, BoxCutterWeapon, TumblerOrbit, BellShockwave, ScienceFlaskSplash, OnigiiriWeapon, StunGunWeapon, GuidedMissile, StarlinkWeapon, CompassBladeWeapon, UmbrellaGuardWeapon, EraserBombWeapon, ChibikoWeapon, HanakoWeapon, InuconWeapon, SharkMissileWeapon, StudentLanternWeapon, BikittyCutterWeapon, LineDrawWeapon } from './Weapons/index.js'
 
 const _camTarget = new THREE.Vector3()
+const _cameraPlayerVisualLeft = new THREE.Vector3()
+const _cameraPlayerVisualRight = new THREE.Vector3()
 const _cameraRight = new THREE.Vector3()
 const _cameraUp = new THREE.Vector3()
 const _cameraShakeOffset = new THREE.Vector3()
@@ -32,32 +36,6 @@ const _criticalScreenShakeFrame = createCriticalScreenShakeFrame()
 // 카메라 경계 클램프 설정.
 // 카메라가 focus 기준 (0, +17, +17) 오프셋 → 45° 내려다봄.
 // 맵 경계(halfX/halfZ)는 스테이지별로 다르므로 clampFocus에 half를 인자로 넘긴다.
-const CAM_HEIGHT = 17
-const CAM_BACK = 17
-
-// 카메라가 지면(y=0)에서 focus 기준 얼마나 멀리 보는지(반경)를 fov·aspect로 계산.
-// reachUp: 화면 위(-z) 방향, reachDown: 화면 아래(+z), reachSide: 좌우(x).
-function groundReach(camera) {
-  const vfov = THREE.MathUtils.degToRad(camera.fov ?? 30)
-  const pitch = Math.atan2(CAM_HEIGHT, CAM_BACK) // 45°
-  const zTop = CAM_BACK - CAM_HEIGHT / Math.tan(pitch - vfov / 2) // 먼 쪽(음수)
-  const zBot = CAM_BACK - CAM_HEIGHT / Math.tan(pitch + vfov / 2) // 가까운 쪽(양수)
-  const rFar = Math.hypot(CAM_BACK - zTop, CAM_HEIGHT)
-  return {
-    reachUp: -zTop,
-    reachDown: zBot,
-    reachSide: rFar * Math.tan(vfov / 2) * (camera.aspect ?? 1),
-  }
-}
-
-// 시야가 맵을 넘지 않도록 카메라 focus를 맵 안으로 클램프. 맵이 시야보다 좁은 축은 중앙 정렬.
-function clampFocus(value, reachNeg, reachPos, half) {
-  const lo = -half + reachNeg
-  const hi = half - reachPos
-  if (lo > hi) return (lo + hi) / 2
-  return Math.min(hi, Math.max(lo, value))
-}
-
 export default function Game() {
   const { camera } = useThree()
   const previousCameraShakeOffsetRef = useRef(null)
@@ -128,30 +106,53 @@ export default function Game() {
     // smooth camera follow + 경계 클램프.
     // 플레이어를 따라가되, 카메라 시야가 맵(±48)을 넘으면 focus를 맵 안으로 고정한다.
     // → 가장자리에서 스크롤이 멈추고 캐릭터는 화면 끝(벽)까지만, 빈/잘린 바닥이 안 보인다.
-    const base = groundReach(camera)
+    const base = getGameplayGroundReach(camera.fov, camera.aspect)
     const { halfX, halfZ } = getStageBounds(currentStageId)
     // 가로 시야가 맵보다 넓으면(좌우 빈 바닥이 보이고 캐릭터가 화면 가로 끝에 못 닿는 상태 —
     // 예: iPhone SE 등 넓은 비율) 맵 폭에 맞춰 카메라를 zoom-in 한다. → 좌우 벽이 화면 가로 끝에
     // 오고 캐릭터가 화면 가로 끝까지 이동 가능. 맵이 시야보다 넓으면 zoom=1(기존 거동 불변).
     // 세로로 긴 스테이지는 이때 세로로 스크롤된다(vfov도 같은 비율로 줄어 세로 빈 바닥은 안 생김).
-    const fitZoom = base.reachSide > halfX ? base.reachSide / halfX : 1
+    const fitZoom = base.reachSideNear > halfX ? base.reachSideNear / halfX : 1
     if (Math.abs((camera.zoom ?? 1) - fitZoom) > 1e-3) {
       camera.zoom = fitZoom
       camera.updateProjectionMatrix()
     }
-    const reachSide = base.reachSide / fitZoom
+    const reachSide = base.reachSideFar / fitZoom
     const reachUp = base.reachUp / fitZoom
     const reachDown = base.reachDown / fitZoom
-    const fx = clampFocus(playerPos.x, reachSide, reachSide, halfX)
-    const fz = clampFocus(playerPos.z, reachUp, reachDown, halfZ)
+    const fz = clampGameplayCameraFocus(playerPos.z, reachUp, reachDown, halfZ)
+    const mapFocusX = clampGameplayCameraFocus(playerPos.x, reachSide, reachSide, halfX)
+    // 몸통보다 좁아지는 원근 가까운 행에서도 머리까지 화면 안에 둔다.
+    const fx = keepPlayerInsideCameraX({
+      focusX: mapFocusX,
+      focusZ: fz,
+      playerX: playerPos.x,
+      playerY: playerPos.y + PLAYER_MESH_WORLD_HEIGHT,
+      playerZ: playerPos.z,
+      playerHalfWidth: PLAYER_MESH_WORLD_HALF_WIDTH,
+      fov: camera.fov,
+      aspect: camera.aspect,
+      zoom: fitZoom,
+    })
     screenBounds.minX = fx - reachSide
     screenBounds.maxX = fx + reachSide
     screenBounds.minZ = fz - reachUp
     screenBounds.maxZ = fz + reachDown
-    _camTarget.set(fx, CAM_HEIGHT, fz + CAM_BACK)
+    _camTarget.set(fx, GAME_CAMERA_HEIGHT, fz + GAME_CAMERA_BACK)
     const followAlpha = 1 - Math.pow(0.92, cameraDt * 60)
     camera.position.lerp(_camTarget, followAlpha)
     camera.lookAt(fx, 0, fz)
+    camera.updateMatrixWorld()
+    // The calculated target is safe, but a lerped pose can still use a prior
+    // viewing angle for this frame. Project the real PlayerVisual outer edges
+    // and correct only if the actual frame crosses the screen-safe area.
+    _cameraPlayerVisualLeft.set(playerPos.x - PLAYER_MESH_WORLD_HALF_WIDTH, playerPos.y + PLAYER_MESH_WORLD_HEIGHT, playerPos.z).project(camera)
+    _cameraPlayerVisualRight.set(playerPos.x + PLAYER_MESH_WORLD_HALF_WIDTH, playerPos.y + PLAYER_MESH_WORLD_HEIGHT, playerPos.z).project(camera)
+    if (Math.max(Math.abs(_cameraPlayerVisualLeft.x), Math.abs(_cameraPlayerVisualRight.x)) > 1 - GAME_CAMERA_EDGE_INSET_FRACTION * 2) {
+      camera.position.copy(_camTarget)
+      camera.lookAt(fx, 0, fz)
+      camera.updateMatrixWorld()
+    }
 
     // Keep the normal follow/lookAt pose as the source of truth, then add one
     // transient screen-local offset. The next frame recomputes the base pose, so
