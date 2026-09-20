@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
 import ErrorBoundary from './ErrorBoundary.jsx'
 import TitleScene3D from './TitleScene3D.jsx'
@@ -13,7 +14,9 @@ export default function TitleSceneCanvas({ className, style }) {
       style={style}
     >
       <ErrorBoundary fallback={null}>
-        <TitleScene3D reducedEffects={false} />
+        <Suspense fallback={null}>
+          <TitleScene3D reducedEffects={false} />
+        </Suspense>
       </ErrorBoundary>
     </Canvas>
   )
