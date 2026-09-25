@@ -1618,10 +1618,28 @@ export default function HUD({
           style={{
             ...styles.questToast,
             ...(questStarted || questCompleted ? styles.questPopupCenter : null),
+            ...(questStarted ? styles.questStartPopup : null),
             ...(questItemReceived ? styles.questItemToastWide : null),
           }}
         >
-          {questItemReceived && questToastQuest?.item
+          {questStarted ? (
+            <>
+              <img
+                data-testid="quest-giver-profile"
+                src={laidManPortraitSrc}
+                alt={t('hud.laidStudentAlt')}
+                draggable={false}
+                style={styles.questGiverProfile}
+              />
+              <span style={styles.questStartContent}>
+                <span style={styles.questStartHeader}>
+                  <strong style={styles.questStartTitle}>{questToastMessage}</strong>
+                  <strong data-testid="quest-reward" style={styles.questReward}>보상 · {questToastQuest?.rewardGold ?? 0} 골드</strong>
+                </span>
+                {questPopupNextAction && <small style={styles.questStartAction}>{questPopupNextAction}</small>}
+              </span>
+            </>
+          ) : questItemReceived && questToastQuest?.item
             ? <QuestItemPictureIcon visualKind={questToastQuest.item.visualKind} />
             : questCompleted && questToastQuest?.item
               ? <QuestItemPictureIcon visualKind={questToastQuest.item.visualKind} size={96} />
@@ -2566,6 +2584,45 @@ const styles = {
   },
   questPopupText: { display: 'grid', gap: 3 },
   questPopupCenterText: { flex: 1, minWidth: 0, textAlign: 'center' },
+  questStartPopup: {
+    gap: 12,
+    border: '2px solid #c9b98d',
+    background: 'linear-gradient(180deg, #2f3440 0%, #181d28 100%)',
+    color: '#fff3d6',
+    boxShadow: '0 6px 0 rgba(4, 6, 10, 0.7), 0 0 0 4px rgba(255, 243, 214, 0.14)',
+  },
+  questGiverProfile: {
+    flex: '0 0 76px',
+    width: 76,
+    height: 76,
+    objectFit: 'cover',
+    borderRadius: 10,
+    border: '2px solid #fff3d6',
+    background: '#10141d',
+  },
+  questStartContent: { flex: 1, minWidth: 0, display: 'grid', gap: 12 },
+  questStartHeader: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 },
+  questStartTitle: { color: '#fff3d6', fontSize: 18, lineHeight: 1.25 },
+  questReward: {
+    flex: '0 0 auto',
+    padding: '5px 8px',
+    borderRadius: 6,
+    background: '#4b3d1c',
+    color: '#fff3d6',
+    fontSize: 13,
+    lineHeight: 1.2,
+    whiteSpace: 'nowrap',
+  },
+  questStartAction: {
+    display: 'block',
+    padding: '9px 10px',
+    borderLeft: '3px solid #e7c66d',
+    background: 'rgba(255, 243, 214, 0.1)',
+    color: '#fff3d6',
+    fontSize: 15,
+    fontWeight: 800,
+    lineHeight: 1.35,
+  },
   questItemToastWide: {
     top: 66,
     width: 'min(calc(100vw - 24px), 546px)',

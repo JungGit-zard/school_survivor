@@ -263,6 +263,28 @@ describe('student dialogue IDs', () => {
       act(() => { root.unmount() })
     }
   })
+
+  it('shows a started quest with the giver profile, reward, and direct action in an ivory-on-dark popup', () => {
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        useGameStore.setState({ phase: 'playing', questToast: { type: 'started', questId: 'stage1-talk-book' } })
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const popup = container.querySelector('[data-testid="quest-start-popup"]')
+      expect(popup).not.toBeNull()
+      expect(popup.querySelector('[data-testid="quest-giver-profile"]')?.getAttribute('src')).toContain('laid_man')
+      expect(popup.querySelector('[data-testid="quest-reward"]')?.textContent).toContain('보상 · 2 골드')
+      expect(popup.textContent).toContain('다음 행동')
+      expect(popup.style.background).toContain('rgb(47, 52, 64)')
+      expect(popup.style.color).toBe('rgb(255, 243, 214)')
+    } finally {
+      act(() => { root.unmount() })
+    }
+  })
 })
 
 describe('active weapon HUD icons', () => {
