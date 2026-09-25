@@ -1,4 +1,4 @@
-import { getStagePropToonMaterial, STAGE_PROP_SURFACE_RENDERING } from './propRendering.js'
+import { getStagePropDepthWritingToonMaterial, getStagePropToonMaterial, STAGE_PROP_SURFACE_RENDERING } from './propRendering.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 function PropBox({ position = [0, 0, 0], rotation = [0, 0, 0], size = [1, 1, 1], material }) {
@@ -119,16 +119,16 @@ function HoopRim({ position = [0, 0, 0], damaged = false, orange, net }) {
 }
 
 export function BasketballHoop({ damaged = false, playful = false, ...props }) {
-  const blue = getStagePropToonMaterial(playful ? 0x2f6eb9 : 0x2457a6, playful ? 0.12 : 0.08)
-  const orange = getStagePropToonMaterial(playful ? 0xf27a1a : 0xb53625, playful ? 0.16 : 0.1)
-  const redPad = getStagePropToonMaterial(0xef5142, 0.12)
-  const metal = getStagePropToonMaterial(playful ? 0x426a86 : 0x44484d, 0.04)
-  const white = getStagePropToonMaterial(0xf7f0df, 0.06)
-  const glass = getStagePropToonMaterial(playful ? 0xfff7df : 0xdfe7ec, 0.04)
-  const crack = getStagePropToonMaterial(0x1e2428, 0)
-  const net = getStagePropToonMaterial(0xf3ead8, 0.05)
-  const wood = getStagePropToonMaterial(0xd59b4c, 0.08)
-  const seam = getStagePropToonMaterial(0x2b2119, 0)
+  const blue = getStagePropDepthWritingToonMaterial(playful ? 0x2f6eb9 : 0x2457a6, playful ? 0.12 : 0.08)
+  const orange = getStagePropDepthWritingToonMaterial(playful ? 0xf27a1a : 0xb53625, playful ? 0.16 : 0.1)
+  const redPad = getStagePropDepthWritingToonMaterial(0xef5142, 0.12)
+  const metal = getStagePropDepthWritingToonMaterial(playful ? 0x426a86 : 0x44484d, 0.04)
+  const white = getStagePropDepthWritingToonMaterial(0xf7f0df, 0.06)
+  const glass = getStagePropDepthWritingToonMaterial(playful ? 0xfff7df : 0xdfe7ec, 0.04)
+  const crack = getStagePropDepthWritingToonMaterial(0x1e2428, 0)
+  const net = getStagePropDepthWritingToonMaterial(0xf3ead8, 0.05)
+  const wood = getStagePropDepthWritingToonMaterial(0xd59b4c, 0.08)
+  const seam = getStagePropDepthWritingToonMaterial(0x2b2119, 0)
 
   return (
     <group {...props} name={playful ? 'gym-basketball-hoop-playful' : damaged ? 'gym-basketball-hoop-damaged' : 'gym-basketball-hoop'}>

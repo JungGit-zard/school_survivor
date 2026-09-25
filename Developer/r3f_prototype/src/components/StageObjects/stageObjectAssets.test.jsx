@@ -308,6 +308,27 @@ describe('stage object asset catalog', () => {
     expect(nonOccludingPropMaterial.depthWrite).toBe(false)
   })
 
+  it('uses depth-writing opaque materials for the Stage 3 basketball hoop so it occludes the player behind it', () => {
+    const source = readFileSync(new URL('./GymProps.jsx', import.meta.url), 'utf8')
+    const hoopSource = source.slice(source.indexOf('export function BasketballHoop'), source.indexOf('export function BallCart'))
+
+    expect(hoopSource).toContain('getStagePropDepthWritingToonMaterial(')
+    expect(hoopSource).not.toContain('getStagePropToonMaterial(')
+
+    const originalDocument = globalThis.document
+    globalThis.document = {
+      createElement: () => ({ getContext: () => ({ fillStyle: '', fillRect: () => {} }) }),
+    }
+    try {
+      const hoopMaterial = getStagePropDepthWritingToonMaterial(0x2457a6, 0.08)
+      expect(hoopMaterial.depthTest).toBe(true)
+      expect(hoopMaterial.depthWrite).toBe(true)
+    } finally {
+      if (originalDocument === undefined) Reflect.deleteProperty(globalThis, 'document')
+      else globalThis.document = originalDocument
+    }
+  })
+
   it('exports Stage 3 voxel gym prop models and the matching concept sheet', () => {
     const gymProps = [
       BasketballHoop,
@@ -340,27 +361,6 @@ describe('stage object asset catalog', () => {
     expect(source.match(/torusGeometry/g)?.length).toBe(1)
   })
 
-  it('exports the nine Stage 4 kitchen prop models', () => {
-    const kitchenProps = [
-      KitchenPrepTable,
-      KitchenCookLine,
-      KitchenSinkCounter,
-      KitchenRefrigerator,
-      KitchenTrayRack,
-      KitchenShelfCart,
-      KitchenTrashBins,
-      KitchenCrateStack,
-      KitchenClutter,
-    ]
-
-    for (const Component of kitchenProps) {
-      expect(Component).toBeTypeOf('function')
-    }
-  })
-
-  it('declares the Stage 4 kitchen prop variant key sets', () => {
-    expect([...KITCHEN_PREP_TABLE_VARIANTS].sort()).toEqual(['bare', 'cutting', 'pans', 'side'])
-    expect([...KITCHEN_TRASH_BIN_VARIANTS].sort()).toEqual(['round', 'wheelie'])
   it('makes the Stage 3 scoreboard immediately readable with voxel seven-segment values', () => {
     const source = readFileSync(new URL('./GymProps.jsx', import.meta.url), 'utf8')
     const scoreboardSource = source.slice(source.indexOf('export function GymScoreboard'), source.indexOf('export function GymBanner'))
@@ -396,6 +396,27 @@ describe('stage object asset catalog', () => {
     expect(spillSource).not.toContain('cord')
   })
 
+  it('exports the nine Stage 4 kitchen prop models', () => {
+    const kitchenProps = [
+      KitchenPrepTable,
+      KitchenCookLine,
+      KitchenSinkCounter,
+      KitchenRefrigerator,
+      KitchenTrayRack,
+      KitchenShelfCart,
+      KitchenTrashBins,
+      KitchenCrateStack,
+      KitchenClutter,
+    ]
+
+    for (const Component of kitchenProps) {
+      expect(Component).toBeTypeOf('function')
+    }
+  })
+
+  it('declares the Stage 4 kitchen prop variant key sets', () => {
+    expect([...KITCHEN_PREP_TABLE_VARIANTS].sort()).toEqual(['bare', 'cutting', 'pans', 'side'])
+    expect([...KITCHEN_TRASH_BIN_VARIANTS].sort()).toEqual(['round', 'wheelie'])
     expect([...KITCHEN_CLUTTER_VARIANTS].sort()).toEqual(['bags', 'pots', 'trays'])
   })
 
