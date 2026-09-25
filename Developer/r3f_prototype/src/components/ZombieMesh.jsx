@@ -9,7 +9,7 @@ import boss03FaceUrl from '../assets/faces/b03_pe_teacher_face.webp'
 import boss04FaceUrl from '../assets/faces/b04_chef_boss_face.webp'
 import MatildaMesh from './MatildaMesh.jsx'
 import ProceduralFaceTestZombie from './ProceduralFaceTestZombie.jsx'
-import StudioTunedGroup, { composeStudioPartRotation, composeStudioPartScale } from './StudioTunedGroup.jsx'
+import StudioTunedGroup, { composeStudioPartPosition, composeStudioPartRotation, composeStudioPartScale } from './StudioTunedGroup.jsx'
 import BossFacePartsOverlay from './BossFacePartsOverlay.jsx'
 
 const disableRaycast = () => null
@@ -784,7 +784,7 @@ function setZombieScale(object, multiplier) {
 
 // animPhase: 'normal' | 'warn' | 'charge' | 'stun' | 'retreat'
 // staticPose: 로비 보스 카드처럼 상호작용 없는 프리뷰에서 내부 파트 애니메이션 계산을 완전히 건너뛰는 정적 포즈 게이트.
-export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false, staticPose = false, bossFaceRecipe }) {
+export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlash = false, isMatilda = false, staticPose = false, titleRunPose = false, bossFaceRecipe }) {
   const p    = useRef({})
   const pal  = ZOMBIE_PALETTE[type] ?? ZOMBIE_PALETTE.E01
   const specialAgeRef = useRef(0)
@@ -834,6 +834,11 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     const t = state.clock.elapsedTime
     specialAgeRef.current = specialActive ? specialAgeRef.current + delta : 0
     const a = anim.current
+    const bodyTiltX = animPhase === 'charge' ? 0.45 : 0
+    const b03ChargeTorsoLift = titleRunPose && type === 'B03' && animPhase === 'charge'
+      ? Math.sin(bodyTiltX) * 0.23
+      : 0
+    if (pt.body) pt.body.position.y = composeStudioPartPosition(pt.body, 'y', 0.28, b03ChargeTorsoLift)
 
     if (specialActive) {
       const progress = Math.min(1, specialAgeRef.current / 0.75)
@@ -917,7 +922,6 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     if (pt.body) setZombieScale(pt.body, 1)
 
     // charge: 앞으로 기울임 / 그 외: retreat에서 남은 팔·머리 리셋
-    const bodyTiltX = animPhase === 'charge' ? 0.45 : 0
     if (pt.body) {
       a.bodyRotX += (bodyTiltX - a.bodyRotX) * Math.min(1, delta * 12)
       pt.body.rotation.x = composeZombieRotation(pt.body, 'x', a.bodyRotX)
@@ -976,7 +980,9 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
 
     // 걷기 사이클 (타입별 속도 차이)
     const freq = type === 'B02' ? 6.2 : type === 'E02' ? 9.0 : type === 'E03' ? 5.0 : 7.0
-    const amp  = type === 'B02' ? (animPhase === 'charge' ? 0.46 : 0.30) : (animPhase === 'charge' ? 0.55 : 0.38)
+    const amp  = type === 'B02'
+      ? (animPhase === 'charge' ? 0.46 : 0.30)
+      : (titleRunPose && type === 'B03' && animPhase === 'charge' ? 0.38 : (animPhase === 'charge' ? 0.55 : 0.38))
     const sw   = Math.sin(t * freq) * amp
     a.legLRotX = sw
     pt.legL.rotation.x = composeZombieRotation(pt.legL, 'x', a.legLRotX)

@@ -6,6 +6,7 @@ import { B01_BOSS_FACE, B01_BOSS_VISUAL_PALETTE, B01_BOSS_VISUAL_PARTS, B01_MATH
 import { GRAPHICS_STUDIO_CATALOG, getStudioZombieItemId } from '../lib/graphicsStudioConfig.js'
 
 const zombieMeshSource = readFileSync(new URL('./ZombieMesh.jsx', import.meta.url), 'utf8')
+const titleSceneSource = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 const graphicsStudioConfigSource = readFileSync(new URL('../lib/graphicsStudioConfig.js', import.meta.url), 'utf8')
 const b04ChefFaceTexture = readFileSync(new URL('../assets/faces/b04_chef_boss_face.webp', import.meta.url))
 const legacyB02ItemId = ['zombie', 'b02', 'teacher'].join('-')
@@ -107,6 +108,36 @@ describe('B03 muscular PE teacher boss', () => {
     expect(b03Source).toBeDefined()
     expect(b03Source).not.toContain('studioPartId=')
     expect(b03Source.match(/<ZBlock/g)).toHaveLength(27)
+  })
+
+  it('keeps the charging torso clear of the shorts and legs through the Studio position composition path', () => {
+    expect(zombieMeshSource).toContain('composeStudioPartPosition')
+    expect(zombieMeshSource).toMatch(
+      /const b03ChargeTorsoLift = titleRunPose && type === 'B03' && animPhase === 'charge'\s*\?[\s\S]*?Math\.sin\(bodyTiltX\) \* 0\.23\s*:\s*0/,
+    )
+    expect(zombieMeshSource).toMatch(
+      /pt\.body\.position\.y = composeStudioPartPosition\(pt\.body, 'y', 0\.28, b03ChargeTorsoLift\)/,
+    )
+    const frameStart = zombieMeshSource.indexOf('useFrame((state, delta) => {')
+    const positionComposition = zombieMeshSource.indexOf('pt.body.position.y = composeStudioPartPosition', frameStart)
+    const firstAnimationBranch = zombieMeshSource.indexOf('if (specialActive)', frameStart)
+    expect(positionComposition).toBeGreaterThan(frameStart)
+    expect(positionComposition).toBeLessThan(firstAnimationBranch)
+  })
+
+  it('scopes torso lift and reduced stride to the B03 title charge pose', () => {
+    const b03Source = zombieMeshSource.match(
+      /function B03PhysicalEducationBossMesh[\s\S]*?function B02Stage2BossFaceTexture/,
+    )?.[0]
+
+    expect(b03Source).toContain("name=\"b01PeTeacherLegLRig\" ref={reg('legL')} position={[-0.19, 0.00, 0]}")
+    expect(b03Source).toContain("name=\"b01PeTeacherLegRRig\" ref={reg('legR')} position={[0.19, 0.00, 0]}")
+    expect(zombieMeshSource).toContain('titleRunPose = false')
+    expect(zombieMeshSource).toContain("titleRunPose && type === 'B03' && animPhase === 'charge' ? 0.38")
+    expect(zombieMeshSource).toContain("(animPhase === 'charge' ? 0.55 : 0.38)")
+    expect(titleSceneSource).toMatch(
+      /type === 'B03'[\s\S]*?<ZombieMesh type=\{type\} animPhase="charge" titleRunPose \/>[\s\S]*?<ZombieMesh type=\{type\} animPhase="charge" \/>/,
+    )
   })
 
   it('replaces the modeled PE-teacher face/whistle with the supplied face texture decal', () => {

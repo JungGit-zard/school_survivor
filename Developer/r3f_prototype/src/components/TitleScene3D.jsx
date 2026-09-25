@@ -348,7 +348,9 @@ function TitleBossZombie({ type = 'B01', position, scale = 1.25, delay = 0 }) {
 
   return (
     <group ref={ref} position={liftedPosition} rotation={[0, yaw, 0]} scale={scale}>
-      <ZombieMesh type={type} animPhase="charge" />
+      {type === 'B03'
+        ? <ZombieMesh type={type} animPhase="charge" titleRunPose />
+        : <ZombieMesh type={type} animPhase="charge" />}
     </group>
   )
 }
