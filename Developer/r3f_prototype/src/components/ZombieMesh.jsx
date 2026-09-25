@@ -351,13 +351,13 @@ export const B02_STAGE2_BOSS_FACE = {
   offset: [0, 0],
 }
 
-function ZBlock({ name, studioPartId, size, position, rotation, color, emissive = 0.12, outlineScale = 1.08, flash = false, chamferSteps = ZOMBIE_CHARACTER_CHAMFER_STEPS, children = null }) {
+function ZBlock({ name, studioPartId, size, position, rotation, color, emissive = 0.12, outlineScale = 1.08, flash = false, chamferSteps = ZOMBIE_CHARACTER_CHAMFER_STEPS, groupRef = null, children = null }) {
   const geo    = chamferSteps > 0 ? getCachedChamferedBoxGeo(...size, chamferSteps) : getCachedBoxGeo(...size)
   const outMat = getSharedOutlineMat()
   const mat    = flash ? getFlashMat() : getCachedToonMat(color, emissive)
   const os     = inflateScale(outlineScale)
   return (
-    <group name={studioPartId ?? name} userData={studioPartId ? { studioPartId } : undefined} position={position} rotation={rotation}>
+    <group ref={groupRef} name={studioPartId ?? name} userData={studioPartId ? { studioPartId } : undefined} position={position} rotation={rotation}>
       <mesh renderOrder={1} geometry={geo} material={outMat} scale={[os, os, os]} userData={{ studioRenderOutline: true }} raycast={disableRaycast} />
       <mesh renderOrder={2} geometry={geo} material={mat} />
       {children}
@@ -498,7 +498,7 @@ function B03PhysicalEducationBossMesh({ hitFlash, reg, bossFaceRecipe }) {
         {/* 목의 빨간 끈+호루라기는 얼굴 텍스처에 포함되어 중복되므로 3D 호루라기 파츠 제거 */}
       </group>
 
-      <ZBlock name="b01Shorts" size={[0.68, 0.28, 0.44]} position={[0, -0.17, 0]} color={pal.shorts} emissive={0.05} outlineScale={1.07} flash={hitFlash} />
+      <ZBlock name="b01Shorts" groupRef={reg('shorts')} size={[0.68, 0.28, 0.44]} position={[0, -0.17, 0]} color={pal.shorts} emissive={0.05} outlineScale={1.07} flash={hitFlash} />
 
       <group name="b01PeTeacherArmLRig" ref={reg('armL')} position={[-0.55, 0.57, 0]} rotation={[-1.14, 0, 0.15]}>
         <ZBlock name="b01BicepL" size={[0.34, 0.38, 0.34]} position={[0, -0.19, 0]} color={pal.skin} emissive={0.07} outlineScale={1.07} flash={hitFlash} />
@@ -835,10 +835,23 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     specialAgeRef.current = specialActive ? specialAgeRef.current + delta : 0
     const a = anim.current
     const bodyTiltX = animPhase === 'charge' ? 0.45 : 0
-    const b03ChargeTorsoLift = titleRunPose && type === 'B03' && animPhase === 'charge'
+    const titleB03Charge = titleRunPose && type === 'B03' && animPhase === 'charge'
+    const b03ChargeTorsoLift = titleB03Charge
       ? Math.sin(bodyTiltX) * 0.23
       : 0
+    const b03TitleShortsLift = titleB03Charge ? 0.44 : 0
+    const b03TitleLegLift = titleB03Charge ? 0.12 : 0
+    const b03TitleLegSpread = titleB03Charge ? 0.10 : 0
     if (pt.body) pt.body.position.y = composeStudioPartPosition(pt.body, 'y', 0.28, b03ChargeTorsoLift)
+    if (pt.shorts) pt.shorts.position.y = composeStudioPartPosition(pt.shorts, 'y', -0.17, b03TitleShortsLift)
+    if (pt.legL) {
+      pt.legL.position.y = composeStudioPartPosition(pt.legL, 'y', 0, b03TitleLegLift)
+      pt.legL.position.x = composeStudioPartPosition(pt.legL, 'x', -0.19, -b03TitleLegSpread)
+    }
+    if (pt.legR) {
+      pt.legR.position.y = composeStudioPartPosition(pt.legR, 'y', 0, b03TitleLegLift)
+      pt.legR.position.x = composeStudioPartPosition(pt.legR, 'x', 0.19, b03TitleLegSpread)
+    }
 
     if (specialActive) {
       const progress = Math.min(1, specialAgeRef.current / 0.75)

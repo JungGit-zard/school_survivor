@@ -113,7 +113,7 @@ describe('B03 muscular PE teacher boss', () => {
   it('keeps the charging torso clear of the shorts and legs through the Studio position composition path', () => {
     expect(zombieMeshSource).toContain('composeStudioPartPosition')
     expect(zombieMeshSource).toMatch(
-      /const b03ChargeTorsoLift = titleRunPose && type === 'B03' && animPhase === 'charge'\s*\?[\s\S]*?Math\.sin\(bodyTiltX\) \* 0\.23\s*:\s*0/,
+      /const titleB03Charge = titleRunPose && type === 'B03' && animPhase === 'charge'[\s\S]*?const b03ChargeTorsoLift = titleB03Charge\s*\?[\s\S]*?Math\.sin\(bodyTiltX\) \* 0\.23\s*:\s*0/,
     )
     expect(zombieMeshSource).toMatch(
       /pt\.body\.position\.y = composeStudioPartPosition\(pt\.body, 'y', 0\.28, b03ChargeTorsoLift\)/,
@@ -138,6 +138,25 @@ describe('B03 muscular PE teacher boss', () => {
     expect(titleSceneSource).toMatch(
       /type === 'B03'[\s\S]*?<ZombieMesh type=\{type\} animPhase="charge" titleRunPose \/>[\s\S]*?<ZombieMesh type=\{type\} animPhase="charge" \/>/,
     )
+  })
+
+  it('raises and separates only the B03 title pelvis and legs through Studio position composition', () => {
+    expect(zombieMeshSource).toContain("groupRef={reg('shorts')}")
+    expect(zombieMeshSource).toContain("const b03TitleShortsLift = titleB03Charge ? 0.44 : 0")
+    expect(zombieMeshSource).toContain("const b03TitleLegLift = titleB03Charge ? 0.12 : 0")
+    expect(zombieMeshSource).toContain("const b03TitleLegSpread = titleB03Charge ? 0.10 : 0")
+    expect(zombieMeshSource).toContain("composeStudioPartPosition(pt.shorts, 'y', -0.17, b03TitleShortsLift)")
+    expect(zombieMeshSource).toContain("composeStudioPartPosition(pt.legL, 'y', 0, b03TitleLegLift)")
+    expect(zombieMeshSource).toContain("composeStudioPartPosition(pt.legR, 'y', 0, b03TitleLegLift)")
+    expect(zombieMeshSource).toContain("composeStudioPartPosition(pt.legL, 'x', -0.19, -b03TitleLegSpread)")
+    expect(zombieMeshSource).toContain("composeStudioPartPosition(pt.legR, 'x', 0.19, b03TitleLegSpread)")
+    expect(zombieMeshSource).toContain("const titleB03Charge = titleRunPose && type === 'B03' && animPhase === 'charge'")
+    expect(zombieMeshSource).toContain("(animPhase === 'charge' ? 0.55 : 0.38)")
+    const legLift = 0.12
+    const thighTop = 0.05 + legLift
+    const shortsBottom = -0.17 + 0.44 - 0.14
+    const overlap = Math.max(0, thighTop - shortsBottom)
+    expect(Number(overlap.toFixed(2))).toBeLessThanOrEqual(0.04)
   })
 
   it('replaces the modeled PE-teacher face/whistle with the supplied face texture decal', () => {
