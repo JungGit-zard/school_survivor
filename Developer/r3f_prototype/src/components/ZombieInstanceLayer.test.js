@@ -4,6 +4,8 @@ import { getPooledEnemyVisibility, setSlotOpacity } from './PooledEnemyVisuals.j
 import * as THREE from 'three'
 import { installInstanceAlpha } from './ZombieInstanceLayer.jsx'
 
+const source = readFileSync(new URL('./ZombieInstanceLayer.jsx', import.meta.url), 'utf8')
+
 describe('ZombieInstanceLayer pooled visibility', () => {
   it('never exposes a revealed body for inactive slots', () => {
     expect(getPooledEnemyVisibility(0, 1000)).toEqual({ smoke: false, body: false, health: false, cue: false })
@@ -11,7 +13,6 @@ describe('ZombieInstanceLayer pooled visibility', () => {
   })
 
   it('does not allocate Three objects, spread arrays, or Object.keys in its frame loop', () => {
-    const source = readFileSync(new URL('./ZombieInstanceLayer.jsx', import.meta.url), 'utf8')
     const frame = source.slice(source.indexOf('useFrame((_,delta)'), source.indexOf('\n  return <>'))
     expect(frame).not.toContain('new THREE.')
     expect(frame).not.toContain('...')
@@ -40,7 +41,6 @@ describe('ZombieInstanceLayer pooled visibility', () => {
   })
 
   it('keeps cluster culling disabled but compacts every visible zombie mesh to contiguous GPU slots', () => {
-    const source = readFileSync(new URL('./ZombieInstanceLayer.jsx', import.meta.url), 'utf8')
     expect(source).toContain('x.frustumCulled = false')
     expect(source).toContain('const partRenderSlot=counts[slot]++')
     expect(source).toContain('all.body[slot].setMatrixAt(partRenderSlot,a)')
@@ -50,5 +50,40 @@ describe('ZombieInstanceLayer pooled visibility', () => {
     expect(source).toContain('all.shadow.count=bodyCount')
     expect(source).toContain('all.bars[i].count=healthCount')
     expect(source).toContain('all.smoke.count=smokeCount')
+  })
+})
+
+describe('ZombieInstanceLayer GPU prefix uploads', () => {
+  it('marks only active meshes, uploads each required active prefix, and keeps static attributes untouched', () => {
+    expect(source).toContain('function markMatrix(mesh, count, reset = false)')
+    expect(source).toContain('function markMatrixAndColor(mesh, count, reset = false)')
+    expect(source).toContain('function markMatrixAndAlpha(mesh, count, reset = false)')
+    expect(source).toContain('mesh.visible = count > 0')
+    expect(source).toContain('matrix.addUpdateRange(0, reset ? matrix.array.length : count * 16)')
+    expect(source).toContain('color.addUpdateRange(0, reset ? color.array.length : count * 3)')
+    expect(source).toContain('alpha.addUpdateRange(0, reset ? alpha.array.length : count)')
+    expect(source).toMatch(/markMatrixAndColor\(all\.body\[i\],\s*counts\[i\]\)/)
+    expect(source).toMatch(/markMatrix\(all\.out\[i\],\s*counts\[i\]\)/)
+    expect(source).toContain('markMatrix(all.shadow,bodyCount)')
+    expect(source).toMatch(/markMatrix\(all\.bars\[0\],\s*healthCount\)/)
+    expect(source).toMatch(/markMatrix\(all\.bars\[1\],\s*healthCount\)/)
+    expect(source).toMatch(/markMatrixAndAlpha\(all\.bars\[2\],\s*healthCount\)/)
+    expect(source).toMatch(/markMatrix\(all\.bars\[3\],\s*healthCount\)/)
+    expect(source).toMatch(/markMatrixAndAlpha\(all\.smoke,\s*smokeCount\)/)
+    expect(source).toMatch(/markMatrixAndColor\(all\.cue\[i\],\s*cueCount\)/)
+    expect(source).not.toContain('function mark(meshes)')
+    expect(source).not.toContain('function markOne(x)')
+  })
+
+  it('fully uploads cleared buffers while hiding every pooled primitive during a reset', () => {
+    expect(source).toContain('markMatrixAndColor(all.body[i], 0, true)')
+    expect(source).toContain('markMatrix(all.out[i], 0, true)')
+    expect(source).toContain('markMatrix(all.bars[0], 0, true)')
+    expect(source).toContain('markMatrix(all.bars[1], 0, true)')
+    expect(source).toContain('markMatrixAndAlpha(all.bars[2], 0, true)')
+    expect(source).toContain('markMatrix(all.bars[3], 0, true)')
+    expect(source).toContain('markMatrixAndColor(all.cue[i], 0, true)')
+    expect(source).toContain('markMatrix(all.shadow, 0, true)')
+    expect(source).toContain('markMatrixAndAlpha(all.smoke, 0, true)')
   })
 })

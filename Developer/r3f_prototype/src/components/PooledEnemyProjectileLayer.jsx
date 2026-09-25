@@ -25,7 +25,17 @@ function mesh(geometry, material) {
   result.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
   for (let i = 0; i < MAX_ENEMY_PROJECTILES; i += 1) result.setMatrixAt(i, zero)
   result.count = 0
+  result.visible = false
   return result
+}
+
+function markMatrix(mesh, count, reset = false) {
+  mesh.visible = count > 0
+  if (!count && !reset) return
+  const matrix = mesh.instanceMatrix
+  matrix.clearUpdateRanges()
+  matrix.addUpdateRange(0, reset ? MAX_ENEMY_PROJECTILES * 16 : count * 16)
+  matrix.needsUpdate = true
 }
 
 export default function PooledEnemyProjectileLayer({ resetKey }) {
@@ -53,10 +63,10 @@ export default function PooledEnemyProjectileLayer({ resetKey }) {
         bodies[kind].setMatrixAt(i, zero)
         outlines[kind].setMatrixAt(i, zero)
       }
-      bodies[kind].instanceMatrix.needsUpdate = true
-      outlines[kind].instanceMatrix.needsUpdate = true
       bodies[kind].count = 0
       outlines[kind].count = 0
+      markMatrix(bodies[kind], 0, true)
+      markMatrix(outlines[kind], 0, true)
     }
     tiers.fill(0)
     counts.fill(0)
@@ -85,8 +95,8 @@ export default function PooledEnemyProjectileLayer({ resetKey }) {
     for (let kind = 0; kind < bodies.length; kind += 1) {
       bodies[kind].count = counts[kind]
       outlines[kind].count = counts[kind]
-      bodies[kind].instanceMatrix.needsUpdate = true
-      outlines[kind].instanceMatrix.needsUpdate = true
+      markMatrix(bodies[kind], counts[kind])
+      markMatrix(outlines[kind], counts[kind])
     }
   })
   return (

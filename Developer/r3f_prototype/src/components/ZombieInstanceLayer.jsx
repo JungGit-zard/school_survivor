@@ -111,12 +111,13 @@ function setPartRotation(dst, key, time, type, state) {
 function makeMat(eye = false) { const x = new THREE.MeshToonMaterial({ color: 0xffffff, gradientMap: getToonGradient(), emissive: 0, emissiveIntensity: eye ? .9 : .12 }); x.stencilWrite = true; x.stencilRef = OUTLINE; x.stencilFunc = THREE.AlwaysStencilFunc; x.stencilZPass = THREE.ReplaceStencilOp; return x }
 function makeOutline() { const x = new THREE.MeshBasicMaterial({ color: 0x050209, side: THREE.BackSide, transparent: true, opacity: .96, depthWrite: false }); x.stencilWrite = true; x.stencilRef = OUTLINE; x.stencilFunc = THREE.NotEqualStencilFunc; return x }
 function makeCueMat() { const x = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false, toneMapped: false }); return x }
-function im(part, material) { const chamferSteps = part[6] === 'chamfer2' ? 2 : 1; const geometry = getCachedChamferedBoxGeo(...part[2], chamferSteps); const x = new THREE.InstancedMesh(geometry, material, POOLED_ENEMY_CAPACITY); x.frustumCulled = false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for (let i=0;i<POOLED_ENEMY_CAPACITY;i++) x.setMatrixAt(i,ZERO); x.count=0; return x }
+function im(part, material) { const chamferSteps = part[6] === 'chamfer2' ? 2 : 1; const geometry = getCachedChamferedBoxGeo(...part[2], chamferSteps); const x = new THREE.InstancedMesh(geometry, material, POOLED_ENEMY_CAPACITY); x.frustumCulled = false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for (let i=0;i<POOLED_ENEMY_CAPACITY;i++) x.setMatrixAt(i,ZERO); x.count=0; x.visible=false; return x }
 export function installInstanceAlpha(geometry, material, count) { const alpha = new THREE.InstancedBufferAttribute(new Float32Array(count).fill(1), 1); geometry.setAttribute('instanceAlpha', alpha); material.onBeforeCompile = (shader) => { shader.vertexShader = `attribute float instanceAlpha; varying float pooledInstanceAlpha;\n${shader.vertexShader}`.replace('#include <begin_vertex>', '#include <begin_vertex>\npooledInstanceAlpha = instanceAlpha;'); shader.fragmentShader = `varying float pooledInstanceAlpha;\n${shader.fragmentShader}`.replace('#include <output_fragment>', '#include <output_fragment>\ngl_FragColor.a *= pooledInstanceAlpha;') }; material.customProgramCacheKey = () => 'pooled-instance-alpha-v1'; return alpha }
-function plane(material) { const geometry=new THREE.PlaneGeometry(1,1); const x = new THREE.InstancedMesh(geometry,material,POOLED_ENEMY_CAPACITY); x.frustumCulled=false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); x.userData.instanceAlpha=installInstanceAlpha(geometry,material,POOLED_ENEMY_CAPACITY); for(let i=0;i<POOLED_ENEMY_CAPACITY;i++) x.setMatrixAt(i,ZERO); x.count=0; return x }
-function cueIM(def, material) { const geometry=def.radius?new THREE.SphereGeometry(def.radius,12,8):new THREE.BoxGeometry(...def.size); const x = new THREE.InstancedMesh(geometry, material, 16); x.frustumCulled=false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for(let i=0;i<16;i++)x.setMatrixAt(i,ZERO); x.count=0; return x }
-function mark(meshes) { for (let i=0;i<meshes.length;i++) { const x=meshes[i]; x.instanceMatrix.needsUpdate = true; if (x.instanceColor) x.instanceColor.needsUpdate = true; if (x.userData.instanceAlpha) x.userData.instanceAlpha.needsUpdate=true } }
-function markOne(x) { x.instanceMatrix.needsUpdate=true; if(x.instanceColor)x.instanceColor.needsUpdate=true; if(x.userData.instanceAlpha)x.userData.instanceAlpha.needsUpdate=true }
+function plane(material) { const geometry=new THREE.PlaneGeometry(1,1); const x = new THREE.InstancedMesh(geometry,material,POOLED_ENEMY_CAPACITY); x.frustumCulled=false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); x.userData.instanceAlpha=installInstanceAlpha(geometry,material,POOLED_ENEMY_CAPACITY); for(let i=0;i<POOLED_ENEMY_CAPACITY;i++) x.setMatrixAt(i,ZERO); x.count=0; x.visible=false; return x }
+function cueIM(def, material) { const geometry=def.radius?new THREE.SphereGeometry(def.radius,12,8):new THREE.BoxGeometry(...def.size); const x = new THREE.InstancedMesh(geometry, material, 16); x.frustumCulled=false; x.instanceMatrix.setUsage(THREE.DynamicDrawUsage); for(let i=0;i<16;i++)x.setMatrixAt(i,ZERO); x.count=0; x.visible=false; return x }
+function markMatrix(mesh, count, reset = false) { mesh.visible = count > 0; if (!count && !reset) return; const matrix = mesh.instanceMatrix; matrix.clearUpdateRanges(); matrix.addUpdateRange(0, reset ? matrix.array.length : count * 16); matrix.needsUpdate = true }
+function markMatrixAndColor(mesh, count, reset = false) { markMatrix(mesh, count, reset); if ((!count && !reset) || !mesh.instanceColor) return; const color = mesh.instanceColor; color.clearUpdateRanges(); color.addUpdateRange(0, reset ? color.array.length : count * 3); color.needsUpdate = true }
+function markMatrixAndAlpha(mesh, count, reset = false) { markMatrix(mesh, count, reset); if (!count && !reset) return; const alpha = mesh.userData.instanceAlpha; alpha.clearUpdateRanges(); alpha.addUpdateRange(0, reset ? alpha.array.length : count); alpha.needsUpdate = true }
 
 export default function ZombieInstanceLayer({ resetKey }) {
   const { camera } = useThree(); const smokeTexture = useLoader(THREE.TextureLoader, spawnSmokeUrl)
@@ -150,6 +151,8 @@ export default function ZombieInstanceLayer({ resetKey }) {
     for (let i = 0; i < all.bars.length; i += 1) for (let slot = 0; slot < POOLED_ENEMY_CAPACITY; slot += 1) all.bars[i].setMatrixAt(slot, ZERO)
     for (let i = 0; i < all.cue.length; i += 1) for (let slot = 0; slot < 16; slot += 1) all.cue[i].setMatrixAt(slot, ZERO)
     for (let slot = 0; slot < POOLED_ENEMY_CAPACITY; slot += 1) { all.shadow.setMatrixAt(slot, ZERO); all.smoke.setMatrixAt(slot, ZERO) }
+    for (let i = 0; i < all.body.length; i += 1) all.body[i].instanceColor?.array.fill(0)
+    for (let i = 0; i < all.cue.length; i += 1) all.cue[i].instanceColor?.array.fill(0)
     // Matrix zeroing alone hides the old run, but stale alpha/health trail
     // state can bleed into a recycled slot before its next full visual update.
     health.current.generation.fill(0)
@@ -165,7 +168,6 @@ export default function ZombieInstanceLayer({ resetKey }) {
     all.bars[1].userData.instanceAlpha.array.fill(1)
     all.bars[2].userData.instanceAlpha.array.fill(0)
     all.bars[3].userData.instanceAlpha.array.fill(1)
-    all.shadow.userData.instanceAlpha.array.fill(1)
     all.smoke.userData.instanceAlpha.array.fill(0)
     renderTiers.current.fill(0)
     partCounts.current.fill(0)
@@ -175,7 +177,15 @@ export default function ZombieInstanceLayer({ resetKey }) {
     for (let i = 0; i < all.cue.length; i += 1) all.cue[i].count = 0
     all.shadow.count = 0
     all.smoke.count = 0
-    mark(all.body); mark(all.out); mark(all.bars); mark(all.cue); markOne(all.shadow); markOne(all.smoke)
+    for (let i = 0; i < all.body.length; i += 1) markMatrixAndColor(all.body[i], 0, true)
+    for (let i = 0; i < all.out.length; i += 1) markMatrix(all.out[i], 0, true)
+    markMatrix(all.bars[0], 0, true)
+    markMatrix(all.bars[1], 0, true)
+    markMatrixAndAlpha(all.bars[2], 0, true)
+    markMatrix(all.bars[3], 0, true)
+    for (let i = 0; i < all.cue.length; i += 1) markMatrixAndColor(all.cue[i], 0, true)
+    markMatrix(all.shadow, 0, true)
+    markMatrixAndAlpha(all.smoke, 0, true)
   }, [all, resetKey])
   useEffect(() => { const refresh=()=>{ const state=getFirebaseStudioRuntimeState(); if (!state?.datasets || !Number.isInteger(state.revision)) return; const tunings=loadStudioTunings(); const rootMatrices=[]; const rootScaleX=new Float32Array(15);const rootScaleZ=new Float32Array(15); const supported=new Uint8Array(15); const partTransforms=new Float32Array(15 * PART_COUNT * PART_STRIDE); for(const t of [1,2,3,4,5,6,7,8,13,14]){const id=TYPE_ITEM_IDS[t];const transform=getStudioTransformProps(tunings[id]);const root=new THREE.Matrix4();p.set(transform.position[0],transform.position[1],transform.position[2]);e.set(transform.rotation[0],transform.rotation[1],transform.rotation[2]);q.setFromEuler(e);s.set(transform.scale[0],transform.scale[1],transform.scale[2]);root.compose(p,q,s);rootMatrices[t]=root;rootScaleX[t]=transform.scale[0];rootScaleZ[t]=transform.scale[2];supported[t]=1;const base=t*PART_COUNT*PART_STRIDE;for(let part=0;part<PART_COUNT;part+=1){partTransforms[base+part*PART_STRIDE+6]=1;partTransforms[base+part*PART_STRIDE+7]=1;partTransforms[base+part*PART_STRIDE+8]=1}applyPooledZombieStudioPartTunings(partTransforms,t,PART_COUNT,id,tunings,getStudioTransformProps,composeStudioPartTransformCache,partSlotScratch)}
     studio.current={revision:state.revision,rootMatrices,rootScaleX,rootScaleZ,supported,partTransforms} }; refresh(); window.addEventListener(GRAPHICS_STUDIO_TUNING_EVENT,refresh); return()=>window.removeEventListener(GRAPHICS_STUDIO_TUNING_EVENT,refresh) },[])
@@ -198,7 +208,7 @@ export default function ZombieInstanceLayer({ resetKey }) {
     const cueIndices=cueIndicesRef.current;cueOverflowRef.current=fillVisibleChargeCueSlots(pool,tiers,cueIndices);let cueCount=0
     for(let ci=0;ci<16;ci++){const enemyIndex=cueIndices[ci];if(enemyIndex<0)continue;const cueSlot=cueCount++;const pulse=1+Math.sin(pool.spawnTimer[enemyIndex]*.012)*.08;p.set(pool.posX[enemyIndex],getPooledChargeCueY(pool.posY[enemyIndex],pool.visualScale[enemyIndex]),pool.posZ[enemyIndex]);q.copy(camera.quaternion);s.set(pulse,pulse,pulse);m.compose(p,q,s);for(let part=0;part<CUE.length;part++){a.copy(m);const cuePart=CUE[part];translate.makeTranslation(cuePart.position[0],cuePart.position[1],cuePart.position[2]);a.multiply(translate);if(cuePart.rotation){e.set(cuePart.rotation[0],cuePart.rotation[1],cuePart.rotation[2]);rotate.makeRotationFromEuler(e);a.multiply(rotate)}all.cue[part].setMatrixAt(cueSlot,a);color.setHex(cuePart.color);all.cue[part].setColorAt(cueSlot,color)}}
     for(let i=0;i<all.body.length;i++){all.body[i].count=counts[i];all.out[i].count=counts[i]}for(let i=0;i<all.bars.length;i++)all.bars[i].count=healthCount;for(let i=0;i<all.cue.length;i++)all.cue[i].count=cueCount;all.shadow.count=bodyCount;all.smoke.count=smokeCount
-    mark(all.body);mark(all.out);markOne(all.shadow);mark(all.bars);markOne(all.smoke);mark(all.cue)
+    for(let i=0;i<all.body.length;i++)markMatrixAndColor(all.body[i],counts[i]);for(let i=0;i<all.out.length;i++)markMatrix(all.out[i],counts[i]);markMatrix(all.shadow,bodyCount);markMatrix(all.bars[0],healthCount);markMatrix(all.bars[1],healthCount);markMatrixAndAlpha(all.bars[2],healthCount);markMatrix(all.bars[3],healthCount);markMatrixAndAlpha(all.smoke,smokeCount);for(let i=0;i<all.cue.length;i++)markMatrixAndColor(all.cue[i],cueCount)
   })
   return <>{<primitive object={all.shadow} renderOrder={1}/>} {ALL_PARTS.map((x,i)=><primitive key={`b${i}`} object={all.body[i]} renderOrder={2}/>)} {ALL_PARTS.map((x,i)=><primitive key={`o${i}`} object={all.out[i]} renderOrder={1}/>)} {all.bars.map((x,i)=><primitive key={`h${i}`} object={all.bars[i]} renderOrder={20+i}/>)} {all.cue.map((x,i)=><primitive key={`cue${i}`} object={all.cue[i]} renderOrder={30}/>)} <primitive object={all.smoke} renderOrder={100}/></>
 }

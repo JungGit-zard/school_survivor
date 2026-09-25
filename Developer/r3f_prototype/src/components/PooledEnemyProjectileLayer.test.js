@@ -4,6 +4,19 @@ import { readFileSync } from 'node:fs'
 const source = readFileSync(new URL('./PooledEnemyProjectileLayer.jsx', import.meta.url), 'utf8')
 
 describe('PooledEnemyProjectileLayer GPU compaction', () => {
+  it('uploads only active matrix prefixes, skips zero-count scene traversal, and restores cleared buffers on reset', () => {
+    expect(source).toContain('function markMatrix(mesh, count, reset = false)')
+    expect(source).toContain('mesh.visible = count > 0')
+    expect(source).toContain('matrix.clearUpdateRanges()')
+    expect(source).toContain('matrix.addUpdateRange(0, reset ? MAX_ENEMY_PROJECTILES * 16 : count * 16)')
+    expect(source).toContain('markMatrix(bodies[kind], counts[kind])')
+    expect(source).toContain('markMatrix(outlines[kind], counts[kind])')
+    expect(source).toContain('markMatrix(bodies[kind], 0, true)')
+    expect(source).toContain('markMatrix(outlines[kind], 0, true)')
+    expect(source).not.toContain('bodies[kind].instanceMatrix.needsUpdate = true')
+    expect(source).not.toContain('outlines[kind].instanceMatrix.needsUpdate = true')
+  })
+
   it('retains native-cluster safety while drawing only contiguous visible projectile slots', () => {
     expect(source).toContain('result.frustumCulled = false')
     // kind별로 count를 따로 세되, 각 kind 안에서는 여전히 앞에서부터 촘촘히 채운다.
