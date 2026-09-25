@@ -26,6 +26,7 @@ function mesh(geometry, material) {
   result.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
   for (let i = 0; i < MAX_ENEMY_PROJECTILES; i += 1) result.setMatrixAt(i, zero)
   result.count = 0
+  result.visible = false
   return result
 }
 
@@ -54,10 +55,10 @@ export default function PooledEnemyProjectileLayer({ resetKey }) {
         bodies[kind].setMatrixAt(i, zero)
         outlines[kind].setMatrixAt(i, zero)
       }
-      markInstancedMeshFullUpdate(bodies[kind], { matrix: true })
-      markInstancedMeshFullUpdate(outlines[kind], { matrix: true })
       bodies[kind].count = 0
       outlines[kind].count = 0
+      markInstancedMeshFullUpdate(bodies[kind], { matrix: true })
+      markInstancedMeshFullUpdate(outlines[kind], { matrix: true })
     }
     tiers.fill(0)
     counts.fill(0)

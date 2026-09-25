@@ -6,6 +6,16 @@ import { markInstancedMeshPrefixUpdate } from './ZombieInstanceLayer.jsx'
 const source = readFileSync(new URL('./PooledEnemyProjectileLayer.jsx', import.meta.url), 'utf8')
 
 describe('PooledEnemyProjectileLayer GPU compaction', () => {
+  it('uploads only active matrix prefixes, skips zero-count scene traversal, and restores cleared buffers on reset', () => {
+    expect(source).toContain('result.visible = false')
+    expect(source).toContain('markInstancedMeshFullUpdate(bodies[kind], { matrix: true })')
+    expect(source).toContain('markInstancedMeshFullUpdate(outlines[kind], { matrix: true })')
+    expect(source).toContain('markInstancedMeshPrefixUpdate(bodies[kind], counts[kind], { matrix: true })')
+    expect(source).toContain('markInstancedMeshPrefixUpdate(outlines[kind], counts[kind], { matrix: true })')
+    expect(source).not.toContain('bodies[kind].instanceMatrix.needsUpdate = true')
+    expect(source).not.toContain('outlines[kind].instanceMatrix.needsUpdate = true')
+  })
+
   it('retains native-cluster safety while drawing only contiguous visible projectile slots', () => {
     expect(source).toContain('result.frustumCulled = false')
     // kind별로 count를 따로 세되, 각 kind 안에서는 여전히 앞에서부터 촘촘히 채운다.
@@ -48,6 +58,8 @@ describe('PooledEnemyProjectileLayer GPU compaction', () => {
     markInstancedMeshPrefixUpdate(inactive, 0, { matrix: true })
     markInstancedMeshPrefixUpdate(active, 3, { matrix: true })
 
+    expect(inactive.visible).toBe(false)
+    expect(active.visible).toBe(true)
     expect(inactive.instanceMatrix.updateRanges).toEqual([])
     expect(active.instanceMatrix.updateRanges).toEqual([{ start: 0, count: 48 }])
     geometry.dispose(); material.dispose()

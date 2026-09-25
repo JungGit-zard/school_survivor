@@ -4,6 +4,8 @@ import { getPooledEnemyVisibility, setSlotOpacity } from './PooledEnemyVisuals.j
 import * as THREE from 'three'
 import { installInstanceAlpha, markInstanceAttributePrefix, markInstancedMeshFullUpdate, markInstancedMeshPrefixUpdate } from './ZombieInstanceLayer.jsx'
 
+const source = readFileSync(new URL('./ZombieInstanceLayer.jsx', import.meta.url), 'utf8')
+
 describe('ZombieInstanceLayer pooled visibility', () => {
   it('never exposes a revealed body for inactive slots', () => {
     expect(getPooledEnemyVisibility(0, 1000)).toEqual({ smoke: false, body: false, health: false, cue: false })
@@ -11,7 +13,6 @@ describe('ZombieInstanceLayer pooled visibility', () => {
   })
 
   it('does not allocate Three objects, spread arrays, or Object.keys in its frame loop', () => {
-    const source = readFileSync(new URL('./ZombieInstanceLayer.jsx', import.meta.url), 'utf8')
     const frame = source.slice(source.indexOf('useFrame((_,delta)'), source.indexOf('\n  return <>'))
     expect(frame).not.toContain('new THREE.')
     expect(frame).not.toContain('...')
@@ -40,7 +41,6 @@ describe('ZombieInstanceLayer pooled visibility', () => {
   })
 
   it('keeps cluster culling disabled but compacts every visible zombie mesh to contiguous GPU slots', () => {
-    const source = readFileSync(new URL('./ZombieInstanceLayer.jsx', import.meta.url), 'utf8')
     expect(source).toContain('x.frustumCulled = false')
     expect(source).toContain('const partRenderSlot=counts[slot]++')
     expect(source).toContain('all.body[slot].setMatrixAt(partRenderSlot,a)')
@@ -60,11 +60,13 @@ describe('ZombieInstanceLayer pooled visibility', () => {
     mesh.userData.instanceAlpha = new THREE.InstancedBufferAttribute(new Float32Array(4), 1)
 
     expect(markInstancedMeshPrefixUpdate(mesh, 0, { matrix: true, color: true, alpha: true })).toEqual({ matrix: false, color: false, alpha: false })
+    expect(mesh.visible).toBe(false)
     expect(mesh.instanceMatrix.updateRanges).toEqual([])
     expect(mesh.instanceColor.updateRanges).toEqual([])
     expect(mesh.userData.instanceAlpha.updateRanges).toEqual([])
 
     expect(markInstancedMeshPrefixUpdate(mesh, 2, { matrix: true, color: true, alpha: true })).toEqual({ matrix: true, color: true, alpha: true })
+    expect(mesh.visible).toBe(true)
     expect(mesh.instanceMatrix.updateRanges).toEqual([{ start: 0, count: 32 }])
     expect(mesh.instanceColor.updateRanges).toEqual([{ start: 0, count: 6 }])
     expect(mesh.userData.instanceAlpha.updateRanges).toEqual([{ start: 0, count: 2 }])
@@ -102,5 +104,29 @@ describe('ZombieInstanceLayer pooled visibility', () => {
     expect(mesh.instanceColor.updateRanges).toEqual([{ start: 0, count: 12 }])
     expect(mesh.userData.instanceAlpha.updateRanges).toEqual([{ start: 0, count: 4 }])
     geometry.dispose(); material.dispose()
+  })
+})
+
+describe('ZombieInstanceLayer GPU prefix uploads', () => {
+  it('marks only active meshes, uploads each required active prefix, and keeps static attributes untouched', () => {
+    expect(source).toContain('x.visible=false')
+    expect(source).toContain('x.visible = count > 0')
+    expect(source).toContain('markFrameMeshes(all.body, counts, { matrix: true, color: true })')
+    expect(source).toContain('markFrameMeshes(all.out, counts, { matrix: true })')
+    expect(source).toContain('markInstancedMeshPrefixUpdate(all.shadow, bodyCount, { matrix: true })')
+    expect(source).toContain('markInstancedMeshPrefixUpdate(all.bars[2], healthCount, { matrix: true, alpha: true })')
+    expect(source).toContain('markInstancedMeshPrefixUpdate(all.smoke, smokeCount, { matrix: true, alpha: true })')
+    expect(source).toContain('markFrameMeshesUniform(all.cue, cueCount, { matrix: true, color: true })')
+    expect(source).not.toContain('function mark(meshes)')
+    expect(source).not.toContain('function markOne(x)')
+  })
+
+  it('fully uploads cleared buffers while hiding every pooled primitive during a reset', () => {
+    expect(source).toContain('markResetMeshes(all.body, { matrix: true, color: true })')
+    expect(source).toContain('markResetMeshes(all.out, { matrix: true })')
+    expect(source).toContain('markResetMeshes(all.bars, { matrix: true, alpha: true })')
+    expect(source).toContain('markResetMeshes(all.cue, { matrix: true, color: true })')
+    expect(source).toContain('markInstancedMeshFullUpdate(all.shadow, { matrix: true, alpha: true })')
+    expect(source).toContain('markInstancedMeshFullUpdate(all.smoke, { matrix: true, alpha: true })')
   })
 })
