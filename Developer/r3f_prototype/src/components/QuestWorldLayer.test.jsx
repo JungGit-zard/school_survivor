@@ -10,6 +10,10 @@ import {
   isQuestInteractionInRange,
   markQuestActionHandled,
   QUEST_ITEM_STYLE,
+  QUEST_QUESTION_MARK_CURVE_POINTS,
+  QUEST_QUESTION_MARK_DOT_POSITION,
+  QUEST_QUESTION_MARK_DOT_RADIUS,
+  QUEST_QUESTION_MARK_TUBE_RADIUS,
   resolveQuestTargetPlacement,
 } from './QuestWorldLayer.jsx'
 import {
@@ -132,6 +136,39 @@ describe('quest world placement resolution', () => {
     expect(completionMarkers[0]).toMatchObject({ kind: 'return', symbol: '?' })
     expect([...markers, ...completionMarkers].every(({ target }) => target.position[1] > 1)).toBe(true)
   })
+  it('builds the quest question marker as one continuous curve, connected stem, and separated dot', () => {
+    const source = readFileSync(new URL('./QuestWorldLayer.jsx', import.meta.url), 'utf8')
+    const questionSection = source.slice(
+      source.indexOf('function QuestQuestionSymbol'),
+      source.indexOf('function QuestNoticeSymbol3D'),
+    )
+    const points = QUEST_QUESTION_MARK_CURVE_POINTS
+    const [dotX, dotY, dotZ] = QUEST_QUESTION_MARK_DOT_POSITION
+    const segmentLengths = points.slice(1).map(([x, y, z], index) => {
+      const [prevX, prevY, prevZ] = points[index]
+      return Math.hypot(x - prevX, y - prevY, z - prevZ)
+    })
+    const stemStart = points[points.length - 3]
+    const stemEnd = points[points.length - 1]
+    const lastCurvePoint = points[points.length - 1]
+    const dotGap = Math.hypot(dotX - lastCurvePoint[0], dotY - lastCurvePoint[1], dotZ - lastCurvePoint[2])
+
+    expect(questionSection).toContain('quest-question-continuous-curve-connected-stem')
+    expect(questionSection).toContain('<tubeGeometry args={[QUEST_QUESTION_MARK_CURVE, 48, QUEST_QUESTION_MARK_TUBE_RADIUS, 10, false]} />')
+    expect(questionSection).toContain('quest-question-separated-dot')
+    expect(questionSection).not.toContain('torusGeometry')
+    expect(questionSection).not.toContain('capsuleGeometry')
+    expect(points).toHaveLength(8)
+    expect(Math.min(...points.map(([x]) => x))).toBeLessThan(-0.25)
+    expect(Math.max(...points.map(([x]) => x))).toBeGreaterThan(0.15)
+    expect(Math.max(...points.map(([, y]) => y))).toBeGreaterThan(0.55)
+    expect(stemEnd[1]).toBeLessThan(stemStart[1])
+    expect(stemEnd[0]).toBeCloseTo(0.02, 2)
+    expect(Math.max(...segmentLengths)).toBeLessThanOrEqual(0.27)
+    expect(dotGap).toBeGreaterThan(QUEST_QUESTION_MARK_DOT_RADIUS + QUEST_QUESTION_MARK_TUBE_RADIUS + 0.04)
+    expect(dotGap).toBeLessThan(0.32)
+  })
+
 
   it('uses type and fallback types when an exact Firebase placement is absent', () => {
     const placements = [

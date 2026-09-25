@@ -254,11 +254,33 @@ function QuestExclamationSymbol({ color }) {
   )
 }
 
+export const QUEST_QUESTION_MARK_CURVE_POINTS = Object.freeze([
+  Object.freeze([0.18, 0.48, 0]),
+  Object.freeze([0.02, 0.58, 0]),
+  Object.freeze([-0.22, 0.5, 0]),
+  Object.freeze([-0.3, 0.28, 0]),
+  Object.freeze([-0.2, 0.08, 0]),
+  Object.freeze([0.04, -0.04, 0]),
+  Object.freeze([0.08, -0.2, 0]),
+  Object.freeze([0.02, -0.34, 0]),
+])
+
+export const QUEST_QUESTION_MARK_DOT_POSITION = Object.freeze([0, -0.58, 0])
+export const QUEST_QUESTION_MARK_DOT_RADIUS = 0.115
+export const QUEST_QUESTION_MARK_TUBE_RADIUS = 0.075
+
+const QUEST_QUESTION_MARK_CURVE = new THREE.CatmullRomCurve3(
+  QUEST_QUESTION_MARK_CURVE_POINTS.map((point) => new THREE.Vector3(...point)),
+  false,
+  'centripetal',
+  0.55,
+)
+
 function QuestQuestionSymbol({ color }) {
   return (
     <group name="quest-question-symbol-3d">
-      <mesh position={[-0.03, 0.34, 0]}>
-        <torusGeometry args={[0.25, 0.075, 8, 24, Math.PI * 1.55]} />
+      <mesh name="quest-question-continuous-curve-connected-stem">
+        <tubeGeometry args={[QUEST_QUESTION_MARK_CURVE, 48, QUEST_QUESTION_MARK_TUBE_RADIUS, 10, false]} />
         <QuestNoticeSymbolMaterial color={color} />
       </mesh>
       <mesh position={[0.17, 0.08, 0]} rotation={[0, 0, 0.72]}>
