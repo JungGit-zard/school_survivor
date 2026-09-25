@@ -87,6 +87,15 @@ const GOOGLE_ACCOUNT_ACCESSIBILITY_CSS = `
       white-space: normal !important;
     }
   }
+  @media (max-width: 360px) and (max-height: 600px) {
+    .google-account-panel {
+      top: auto !important;
+      bottom: max(98px, calc(env(safe-area-inset-bottom, 0px) + 88px)) !important;
+      left: 50% !important;
+      transform: translateX(-50%) rotate(-1deg) !important;
+      width: min(236px, calc(100% - 28px)) !important;
+    }
+  }
 `
 
 function getPanelLabel(status, signingIn) {

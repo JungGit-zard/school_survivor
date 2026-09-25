@@ -1258,6 +1258,12 @@ export default function HUD({
         .levelup-upgrade-choice .levelup-choice-label { font-size:12px !important; line-height:1.12 !important; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
         .levelup-upgrade-choice .levelup-choice-desc { font-size:11px !important; line-height:1.2 !important; }
       }
+      @media (max-width:520px) {
+        .levelup-upgrade-choices { grid-template-columns:repeat(2, minmax(0, 1fr)) !important; }
+        .levelup-upgrade-choice { min-height:142px !important; }
+        .levelup-upgrade-choice .levelup-choice-label { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
+        .levelup-upgrade-choice .levelup-choice-desc { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
+      }
       @media (max-width:600px) {
         .quest-inventory-panel { top:auto !important; bottom:12px; left:12px !important; width:calc(100% - 24px) !important; max-height:72dvh !important; }
       }
@@ -1379,13 +1385,13 @@ export default function HUD({
       </div>
 
       {/* 좌하단 실시간 점수 */}
-      <div style={styles.liveScore} aria-label={t('hud.scoreAria', { score: liveScore })} role="status">
+      <div data-testid="live-score" style={styles.liveScore} aria-label={t('hud.scoreAria', { score: liveScore })} role="status">
         <span style={styles.liveScoreLabel}>{t('hud.score')}</span>
         <span style={styles.liveScoreValue}>{gameNumber(liveScore)}</span>
       </div>
 
       {/* HP bar */}
-      <div style={styles.hpRow}>
+      <div data-testid="hud-hp-row" style={styles.hpRow}>
         <span style={styles.hpLabel}>HP</span>
         <div style={styles.barBg}>
           <div style={{
@@ -1404,7 +1410,7 @@ export default function HUD({
       </div>
 
       {/* Active weapon icons — HP바 위 가로 나열 */}
-      <div style={styles.weaponIconBar}>
+      <div data-testid="weapon-icon-bar" style={styles.weaponIconBar}>
         {activeWeapons.map(([k]) => {
           const src = getWeaponUpgradeIconSrc(WEAPON_KEY_TO_ICON[k])
           if (!src) return null
@@ -1494,7 +1500,7 @@ export default function HUD({
         <div data-testid="levelup-upgrade-overlay" style={styles.levelupOverlay}>
           <div data-testid="levelup-upgrade-panel" style={styles.levelupPanel}>
             <h2 style={styles.levelupTitle}>{t('hud.levelUp', { level: player.level })}</h2>
-            <div data-testid="levelup-upgrade-choices" style={styles.levelupChoices}>
+            <div data-testid="levelup-upgrade-choices" className="levelup-upgrade-choices" style={styles.levelupChoices}>
               {choices.map((c, i) => (
                 <button
                   key={`${levelUpChoiceSerial}-${c.key}`}
@@ -2166,11 +2172,14 @@ const styles = {
   liveScore: {
     position: 'absolute',
     left: 'max(14px, env(safe-area-inset-left, 0px))',
-    bottom: 'max(14px, env(safe-area-inset-bottom, 0px))',
+    top: 'var(--hud-live-score-top)',
+    '--hud-safe-top': 'max(14px, env(safe-area-inset-top, 0px))',
+    '--hud-live-score-top': 'calc(var(--hud-safe-top) + 50px)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'flex-start',
     gap: 1,
+    maxWidth: 'min(34vw, 116px)',
     pointerEvents: 'none',
     userSelect: 'none',
   },
@@ -2224,7 +2233,7 @@ const styles = {
     textShadow: '0 1px 3px rgba(0,0,0,0.85)',
   },
   hpRow: {
-    position: 'absolute', bottom: 30, left: '50%', transform: 'translateX(-50%)',
+    position: 'absolute', bottom: 'var(--hud-hp-bottom)', '--hud-hp-bottom': 'calc(16px + env(safe-area-inset-bottom, 0px))', left: '50%', transform: 'translateX(-50%)',
     display: 'flex', alignItems: 'center', gap: 8,
     width: 'calc(100% - 48px)', maxWidth: 320,
     boxSizing: 'border-box',
@@ -2263,7 +2272,7 @@ const styles = {
   },
   barFill: { height: '100%', borderRadius: 5, transition: 'width 0.15s' },
   weaponIconBar: {
-    position: 'absolute', bottom: 64, left: '50%', transform: 'translateX(-50%)',
+    position: 'absolute', bottom: 'var(--hud-weapon-bottom)', '--hud-weapon-bottom': 'calc(50px + env(safe-area-inset-bottom, 0px))', left: '50%', transform: 'translateX(-50%)',
     display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center',
     pointerEvents: 'auto',
   },

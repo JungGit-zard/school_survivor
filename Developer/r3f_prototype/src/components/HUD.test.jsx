@@ -140,8 +140,62 @@ describe('persistent player level label', () => {
 })
 
 describe('bottom-right pause control', () => {
-  it('moves only pause to the safe bottom-right while keeping the quest bag in the top-left controls', () => {
+  it('keeps mobile bottom HUD lanes separated by safe-area variables', () => {
     useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({ phase: 'playing' })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const score = container.querySelector('[data-testid="live-score"]')
+      const hp = container.querySelector('[data-testid="hud-hp-row"]')
+      const weaponBar = container.querySelector('[data-testid="weapon-icon-bar"]')
+
+      expect(score?.style.top).toBe('var(--hud-live-score-top)')
+      expect(score?.style.bottom).toBe('')
+      expect(score?.style.getPropertyValue('--hud-live-score-top')).toBe('calc(var(--hud-safe-top) + 50px)')
+      expect(score?.style.getPropertyValue('--hud-safe-top')).toBe('max(14px, env(safe-area-inset-top, 0px))')
+      expect(score?.style.maxWidth).toBe('min(34vw, 116px)')
+      expect(hp?.style.bottom).toBe('var(--hud-hp-bottom)')
+      expect(hp?.style.getPropertyValue('--hud-hp-bottom')).toBe('calc(16px + env(safe-area-inset-bottom, 0px))')
+      expect(weaponBar?.style.bottom).toBe('var(--hud-weapon-bottom)')
+      expect(weaponBar?.style.getPropertyValue('--hud-weapon-bottom')).toBe('calc(50px + env(safe-area-inset-bottom, 0px))')
+    } finally {
+      act(() => { root.unmount() })
+    }
+  })
+
+  it('switches the level-up choices to a 2x2 mobile grid with clamped Korean copy', () => {
+    useGameStore.getState().resetGame('stage1')
+    useGameStore.setState({ phase: 'levelup' })
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const choiceGrid = container.querySelector('[data-testid="levelup-upgrade-choices"]')
+      const injectedCss = document.getElementById('hud-keyframes')?.textContent ?? ''
+
+      expect(choiceGrid?.className).toBe('levelup-upgrade-choices')
+      expect(choiceGrid?.style.gridTemplateColumns).toBe('repeat(4, minmax(0, 1fr))')
+      expect(injectedCss).toContain('@media (max-width:520px)')
+      expect(injectedCss).toContain('.levelup-upgrade-choices { grid-template-columns:repeat(2, minmax(0, 1fr)) !important; }')
+      expect(injectedCss).toContain('-webkit-line-clamp:2')
+      expect(injectedCss).toContain('-webkit-line-clamp:3')
+    } finally {
+      act(() => { root.unmount() })
+    }
+  })
+
+  it('moves only pause to the safe bottom-right while keeping the quest bag in the top-left controls', () => {
+
     useGameStore.setState({ phase: 'playing' })
     const container = document.createElement('div')
     const root = createRoot(container)

@@ -652,6 +652,8 @@ const styles = {
     zIndex: 1,
     flex: 1,
     minHeight: 0,
+    width: 'min(100%, 1080px)',
+    alignSelf: 'center',
     display: 'flex',
     flexDirection: 'column',
     gap: 12,

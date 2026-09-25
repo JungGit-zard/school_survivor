@@ -4,6 +4,64 @@ import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { schoolPanel, schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { t as translate, useT, weaponLabel } from '../lib/i18n.js'
+import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.webp'
+import rulerIconSrc from '../assets/weapon_icon/02_wea_30ruller.png.webp'
+import boxCutterIconSrc from '../assets/weapon_icon/13_wea_boxcutter.svg'
+import tumblerIconSrc from '../assets/weapon_icon/03_wea_tumbler.png.webp'
+import flaskIconSrc from '../assets/weapon_icon/04_wea_science.png.webp'
+import bellIconSrc from '../assets/weapon_icon/05_wea_bell.png.webp'
+import stunIconSrc from '../assets/weapon_icon/06_wea_stungun.png.webp'
+import onigiriIconSrc from '../assets/weapon_icon/07_wea_onigiri.png.webp'
+import missileIconSrc from '../assets/weapon_icon/08_wea_extrabattery.png.webp'
+import starlinkIconSrc from '../assets/weapon_icon/09_wea_starlink.png.webp'
+import compassBladeIconSrc from '../assets/weapon_icon/10_wea_compass.png.webp'
+import umbrellaIconSrc from '../assets/weapon_icon/11_wea_umb.png.webp'
+import eraserIconSrc from '../assets/weapon_icon/12_wea_eraser.png.webp'
+import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
+import hanakoIconSrc from '../assets/weapon_icon/15_wea_hanako.svg'
+import bikittyCutterIconSrc from '../assets/weapon_icon/17_wea_bikitty_cutter.svg'
+import lineDrawIconSrc from '../assets/weapon_icon/18_wea_line_draw.svg'
+import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
+import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.webp'
+
+const WEAPON_ROW_ICON_SRC = {
+  pencilThrow: pencilIconSrc,
+  schoolBag: rulerIconSrc,
+  boxCutter: boxCutterIconSrc,
+  tumbler: tumblerIconSrc,
+  scienceFlask: flaskIconSrc,
+  bell: bellIconSrc,
+  stunGun: stunIconSrc,
+  onigiri: onigiriIconSrc,
+  guidedMissile: missileIconSrc,
+  starlink: starlinkIconSrc,
+  compassBlade: compassBladeIconSrc,
+  umbrella: umbrellaIconSrc,
+  eraserBomb: eraserIconSrc,
+  chibiko: chibikoIconSrc,
+  hanako: hanakoIconSrc,
+  bikittyCutter: bikittyCutterIconSrc,
+  lineDraw: lineDrawIconSrc,
+  sharkMissile: sharkMissileIconSrc,
+  lantern: lanternIconSrc,
+}
+
+function WeaponIconFrame({ entry, visible, style = null, imageStyle = null }) {
+  const src = visible ? WEAPON_ROW_ICON_SRC[entry.id] : null
+  return (
+    <span style={{ ...styles.silhouette, ...style }} aria-hidden="true">
+      {src ? (
+        <img
+          data-testid={`weapon-icon-${entry.id}`}
+          src={src}
+          alt=""
+          draggable={false}
+          style={{ ...styles.weaponIconImage, ...imageStyle }}
+        />
+      ) : '?'}
+    </span>
+  )
+}
 
 const CONDITION_META = {
   totalRuns: { label: '누적 플레이', unitKey: 'cond.unit.times', unit: '회', cumulative: true },
@@ -145,7 +203,7 @@ function WeaponRow({ entry, unlocked, combination, records, isNew, onOpen }) {
   return (
     <li data-testid={`weapon-row-${entry.id}`} style={{ ...styles.row, ...(combination || unlocked ? styles.rowUnlocked : styles.rowLocked) }}>
       <button type="button" style={styles.rowButton} onClick={onOpen} aria-label={translate('weaponModal.openDetail', { name: weaponLabel(entry.id, entry.label) }, `${weaponLabel(entry.id, entry.label)} 상세 보기`)}>
-        <span style={{ ...styles.silhouette, ...(!unlocked && !combination ? styles.silhouetteLocked : null) }} aria-hidden="true">?</span>
+        <WeaponIconFrame entry={entry} visible={unlocked || combination} style={!unlocked && !combination ? styles.silhouetteLocked : null} />
         <span style={styles.rowCopy}>
           <span style={styles.rowTop}>
             <span style={styles.weaponName}>{weaponLabel(entry.id, entry.label)}</span>
@@ -183,7 +241,7 @@ function WeaponDetail({ entry, unlocked, combination, records, isNew, onBack }) 
   return (
     <div data-testid={`weapon-detail-${entry.id}`} style={styles.detail}>
       <div style={styles.detailHero}>
-        <span style={{ ...styles.detailSilhouette, ...(!unlocked && !combination ? styles.silhouetteLocked : null) }} aria-hidden="true">?</span>
+        <WeaponIconFrame entry={entry} visible={unlocked || combination} style={{ ...styles.detailSilhouette, ...(!unlocked && !combination ? styles.silhouetteLocked : null) }} imageStyle={styles.detailWeaponIconImage} />
         <div style={styles.detailTitleWrap}>
           <div style={styles.detailName}>{weaponLabel(entry.id, entry.label)}</div>
           <span style={combination ? styles.tagCombination : unlocked ? styles.tagUnlocked : styles.tagLocked}>
@@ -250,6 +308,7 @@ const styles = {
   rowButton: { width: '100%', minHeight: 72, display: 'flex', alignItems: 'center', gap: 9, padding: '8px 9px', border: 0, background: 'transparent', color: 'inherit', font: 'inherit', textAlign: 'left', cursor: 'pointer', boxSizing: 'border-box' },
   silhouette: { flex: '0 0 48px', width: 48, height: 48, display: 'grid', placeItems: 'center', border: uiBorders.strong, borderRadius: 9, background: 'rgba(89,199,255,0.34)', color: uiPalette.paperLight, fontSize: 22, fontWeight: uiType.weightHeavy },
   silhouetteLocked: { background: 'rgba(0,0,0,0.34)', color: 'rgba(255,255,255,0.58)' },
+  weaponIconImage: { width: 38, height: 38, objectFit: 'contain', display: 'block', filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.45))' },
   rowCopy: { minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 4 },
   rowTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   weaponName: { minWidth: 0, overflow: 'hidden', fontSize: 15, lineHeight: 1.15, fontWeight: uiType.weightHeavy, textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
@@ -267,7 +326,8 @@ const styles = {
   empty: { minHeight: 92, display: 'grid', placeItems: 'center', color: uiPalette.mutedChalk, fontWeight: uiType.weightStrong, textAlign: 'center' },
   detail: { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 9, overflowY: 'auto', padding: '2px 2px 4px' },
   detailHero: { display: 'flex', alignItems: 'center', gap: 10, padding: '8px 9px', border: uiBorders.strong, borderRadius: 8, background: uiPalette.paperLight, color: uiPalette.ink },
-  detailSilhouette: { width: 58, height: 58, display: 'grid', placeItems: 'center', border: uiBorders.strong, borderRadius: 10, background: 'rgba(89,199,255,0.34)', fontSize: 28, fontWeight: uiType.weightHeavy },
+  detailSilhouette: { flex: '0 0 58px', width: 58, height: 58, display: 'grid', placeItems: 'center', border: uiBorders.strong, borderRadius: 10, background: 'rgba(89,199,255,0.34)', fontSize: 28, fontWeight: uiType.weightHeavy },
+  detailWeaponIconImage: { width: 46, height: 46 },
   detailTitleWrap: { minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 5 },
   detailName: { fontSize: 18, lineHeight: 1.1, fontWeight: uiType.weightHeavy },
   detailSection: { padding: '10px 11px', border: uiBorders.strong, borderRadius: 8, background: '#2a2433', color: uiPalette.paperLight, display: 'flex', flexDirection: 'column', gap: 7 },

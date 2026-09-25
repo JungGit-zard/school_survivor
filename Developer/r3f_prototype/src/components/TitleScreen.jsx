@@ -153,6 +153,7 @@ export default function TitleScreen({
   const [consentUser, setConsentUser] = useState(null)
   const authUser = useAuthStore((s) => s.user)
   const authError = useAuthStore((s) => s.error)
+  const authSigningIn = useAuthStore((s) => s.signingIn)
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle)
   const [authFailureOpen, setAuthFailureOpen] = useState(false)
   const [settings] = useState(() => (
@@ -170,6 +171,10 @@ export default function TitleScreen({
   const cheatMenuButtonVisible = DEV_CHEATS_ENABLED && devCheatsVisible && adminOperations.cheatMenuButtonVisible
   const titleWords = getTitleWords(locale, t)
   const titleLetterTotal = titleWords.accent.length + titleWords.school.length
+  const mainActionBusy = !authUser?.uid && authSigningIn
+  const mainActionStyle = mainActionBusy
+    ? { ...styles.primaryButton, ...styles.mainActionButton, ...styles.mainActionButtonBusy }
+    : { ...styles.primaryButton, ...styles.mainActionButton }
 
   // 타이틀 연출은 항상 재생하고, 화면을 벗어날 때 저장된 전역 설정을 복원한다.
   useEffect(() => {
@@ -376,6 +381,7 @@ export default function TitleScreen({
   // 미로그인 상태에서 시작을 누르면 Google 로그인을 먼저 띄우고, 성공한 경우에만 이어서 진입한다.
   // 로그인 실패/취소는 시작 실패로 간주해 로비 진입과 pending redirect를 모두 막는다.
   const handleStartClick = async () => {
+    if (mainActionBusy) return
     setCheatOpen(false)
     setNicknameOpen(false)
     setConsentOpen(false)
@@ -499,8 +505,15 @@ export default function TitleScreen({
 
         <div style={styles.actions}>
         <div style={styles.mainActionStack}>
-          <button type="button" className="title-main-action" style={{ ...styles.primaryButton, ...styles.mainActionButton }} onClick={handleStartClick}>
-            {t('title.start')}
+          <button
+            type="button"
+            className="title-main-action"
+            style={mainActionStyle}
+            disabled={mainActionBusy}
+            aria-busy={mainActionBusy ? 'true' : undefined}
+            onClick={handleStartClick}
+          >
+            {mainActionBusy ? t('account.signingIn') : t('title.start')}
           </button>
         </div>
       </div>
@@ -787,6 +800,11 @@ const styles = {
     minWidth: 180,
     maxWidth: 230,
     transform: 'rotate(0.8deg)',
+  },
+  mainActionButtonBusy: {
+    cursor: 'wait',
+    opacity: 0.76,
+    filter: 'saturate(0.78)',
   },
   primaryButton: {
     ...schoolButton('primary'),

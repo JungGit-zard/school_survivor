@@ -240,6 +240,17 @@ describe('Lobby', () => {
     }
   }, 600_000)
 
+  it('caps the desktop stage list width so cards do not stretch across wide monitors', () => {
+    const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+    const stageList = view.container.querySelector('[aria-label="스테이지 목록"]')
+
+    expect(stageList).not.toBeNull()
+    expect(stageList.style.width).toBe('min(100%, 1080px)')
+    expect(stageList.style.alignSelf).toBe('center')
+
+    view.unmount()
+  })
+
   it('keeps the settings control at the 44px touch-target minimum', () => {
     const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
     const settingsButton = view.container.querySelector('[aria-label="설정 열기"]')

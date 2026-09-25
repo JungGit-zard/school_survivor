@@ -37,6 +37,18 @@ describe('GoogleAccountPanelView', () => {
     expect(html).toContain(':focus-visible')
   })
 
+  it('moves below the title art on short 320px-wide screens instead of covering the hero copy', () => {
+    const html = renderToStaticMarkup(
+      <GoogleAccountPanelView status="signedOut" signingIn={false} onSignIn={() => {}} onSignOut={() => {}} />,
+    )
+
+    expect(html).toContain('@media (max-width: 360px) and (max-height: 600px)')
+    expect(html).toContain('top: auto !important')
+    expect(html).toContain('bottom: max(98px, calc(env(safe-area-inset-bottom, 0px) + 88px)) !important')
+    expect(html).toContain('left: 50% !important')
+    expect(html).toContain('transform: translateX(-50%) rotate(-1deg) !important')
+  })
+
   it('shows account identity and sign out when signed in', () => {
     const html = renderToStaticMarkup(
       <GoogleAccountPanelView

@@ -254,6 +254,26 @@ describe('TitleScreen lobby entry', () => {
     cleanup()
   })
 
+  it('marks the main start action busy and disabled while Google login is in progress', () => {
+    useAuthStore.setState({
+      status: 'signedOut',
+      user: null,
+      initialized: true,
+      signingIn: true,
+      signInWithGoogle: vi.fn(),
+    })
+    const { container, cleanup } = renderTitleScreen(() => {}, true, () => {})
+
+    const start = container.querySelector('.title-main-action')
+    expect(start.textContent).toBe('로그인 중...')
+    expect(start.disabled).toBe(true)
+    expect(start.getAttribute('aria-busy')).toBe('true')
+    expect(start.style.cursor).toBe('wait')
+    expect(start.style.opacity).toBe('0.76')
+
+    cleanup()
+  })
+
   it('requires Google login before entering the lobby when the start button is pressed while signed out', async () => {
     const googleUser = { uid: 'uid-start-login', displayName: 'Start Login', email: 'start@example.com', photoURL: '' }
     const signInWithGoogle = vi.fn(async () => googleUser)
