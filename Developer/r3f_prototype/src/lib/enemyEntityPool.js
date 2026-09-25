@@ -104,6 +104,9 @@ export class EnemyEntityPool {
     this.detourSign = new Int8Array(MAX_ENEMIES)
     this.lastSafeX = new Float32Array(MAX_ENEMIES)
     this.lastSafeZ = new Float32Array(MAX_ENEMIES)
+    // 스폰 기준 행동권. E08 코인 몬스터처럼 자기 영역을 도는 반응형 적이 쓴다.
+    this.homeX = new Float32Array(MAX_ENEMIES)
+    this.homeZ = new Float32Array(MAX_ENEMIES)
 
     this._freeNext = new Int16Array(MAX_ENEMIES)
     this._retired = new Uint8Array(MAX_ENEMIES)
@@ -227,16 +230,20 @@ export class EnemyEntityPool {
     const lastContactY = readFinite(source, 'lastContactY', 0)
     const lastContactZ = readFinite(source, 'lastContactZ', 0)
     const lastContactTime = readFinite(source, 'lastContactTime', 0)
+    const homeX = readFinite(source, 'homeX', x)
+    const homeZ = readFinite(source, 'homeZ', z)
     if (!typeCode || x === null || y === null || z === null || velX === null || velZ === null || hp === null || maxHp === null
       || yaw === null || visualScale === null || phase === null || state === null || spawnTimer === null || stateTimer === null
       || attackCooldown === null || hitCooldown === null || lifetime === null || knockbackX === null || knockbackY === null
       || knockbackZ === null || knockbackTimer === null || lastContactX === null || lastContactY === null || lastContactZ === null
-      || lastContactTime === null || hitFlashTimer === null || runDirX === null || runDirZ === null || !isStorableFloat(x) || !isStorableFloat(y) || !isStorableFloat(z)
+      || lastContactTime === null || hitFlashTimer === null || runDirX === null || runDirZ === null || homeX === null || homeZ === null
+      || !isStorableFloat(x) || !isStorableFloat(y) || !isStorableFloat(z)
       || !isStorableFloat(velX) || !isStorableFloat(velZ) || !isStorableFloat(hp) || !isStorableFloat(maxHp) || !isStorableFloat(yaw)
       || !isStorableFloat(visualScale) || !isStorableFloat(spawnTimer) || !isStorableFloat(stateTimer) || !isStorableFloat(attackCooldown)
       || !isStorableFloat(hitCooldown) || !isStorableFloat(lifetime) || !isStorableFloat(knockbackX) || !isStorableFloat(knockbackY)
       || !isStorableFloat(knockbackZ) || !isStorableFloat(knockbackTimer) || !isStorableFloat(lastContactX) || !isStorableFloat(lastContactY)
       || !isStorableFloat(lastContactZ) || !isStorableFloat(lastContactTime) || !isStorableFloat(hitFlashTimer) || !isStorableFloat(runDirX) || !isStorableFloat(runDirZ)
+      || !isStorableFloat(homeX) || !isStorableFloat(homeZ)
       || !Number.isInteger(phase) || phase < 0 || phase > 255 || !Number.isInteger(state) || state < 0 || state > 255
       || hp < 0 || maxHp <= 0 || hp > maxHp || visualScale < 0) return false
     const runLength = Math.hypot(runDirX, runDirZ)
@@ -280,6 +287,8 @@ export class EnemyEntityPool {
     this.detourSign[index] = 0
     this.lastSafeX[index] = x
     this.lastSafeZ[index] = z
+    this.homeX[index] = homeX
+    this.homeZ[index] = homeZ
     this._activeCount += 1
     this._liveProxyCount += 1
     if (index > this._highestActive) this._highestActive = index
@@ -412,6 +421,8 @@ export class EnemyEntityPool {
     this.detourSign[index] = 0
     this.lastSafeX[index] = 0
     this.lastSafeZ[index] = 0
+    this.homeX[index] = 0
+    this.homeZ[index] = 0
   }
 
   _findHighestActive() {
@@ -513,6 +524,7 @@ export class EnemyEntityPool {
           || !isFiniteValue(this.runDirX[index]) || !isFiniteValue(this.runDirZ[index])
           || !isFiniteValue(this.hitFlashTimer[index]) || !isFiniteValue(this.stuckMs[index])
           || !isFiniteValue(this.detourMs[index]) || !isFiniteValue(this.lastSafeX[index]) || !isFiniteValue(this.lastSafeZ[index])
+          || !isFiniteValue(this.homeX[index]) || !isFiniteValue(this.homeZ[index])
           || this.stuckMs[index] < 0 || this.detourMs[index] < 0 || this.detourSign[index] < -1 || this.detourSign[index] > 1) return false
         if (this.hp[index] < 0 || this.maxHp[index] <= 0 || this.hp[index] > this.maxHp[index] || this.visualScale[index] < 0) return false
         if (this.posX[index] < minX || this.posX[index] > maxX || this.posZ[index] < minZ || this.posZ[index] > maxZ) return false

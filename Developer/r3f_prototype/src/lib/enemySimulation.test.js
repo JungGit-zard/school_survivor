@@ -17,6 +17,8 @@ import {
   ENEMY_STUCK_RECOVERY_MS,
   ENEMY_STATE_CHARGE,
   ENEMY_STATE_CHASE,
+  ENEMY_STATE_COIN_FLEE,
+  ENEMY_STATE_COIN_LURE,
   ENEMY_STATE_STUN,
   ENEMY_STATE_WARN,
   EnemyEventQueue,
@@ -85,7 +87,7 @@ const POOL_TYPED_ARRAY_KEYS = [
   'active', 'generation', 'type', 'posX', 'posY', 'posZ', 'velX', 'velZ', 'hp', 'maxHp', 'yaw', 'visualScale',
   'phase', 'state', 'spawnTimer', 'stateTimer', 'attackCooldown', 'hitCooldown', 'lifetime', 'knockbackX',
   'knockbackY', 'knockbackZ', 'knockbackTimer', 'hitFlashTimer', 'runDirX', 'runDirZ', 'lastContactX',
-  'lastContactY', 'lastContactZ', 'lastContactTime', 'stuckMs', 'detourMs', 'detourSign', 'lastSafeX', 'lastSafeZ',
+  'lastContactY', 'lastContactZ', 'lastContactTime', 'stuckMs', 'detourMs', 'detourSign', 'lastSafeX', 'lastSafeZ', 'homeX', 'homeZ',
 ]
 
 function snapshotPoolTypedArrays(pool) {
@@ -460,6 +462,33 @@ describe('enemySimulation 순수 일반 적 런타임', () => {
     let damage = 0
     contactRuntime.step(contactPool, context({ onContact: (_i, _g, _x, _y, _z, value) => { damage += value } }))
     expect(damage).toBe(16)
+  })
+
+  it('E08 코인 몬스터는 원거리에서 홈 영역을 배회하고 기본 추격으로 붙지 않는다', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const coin = spawn(pool, 'E08', 6, 0, { spawnTimer: 300 })
+    for (let frame = 0; frame < 120; frame += 1) runtime.step(pool, context({ playerX: 0, playerZ: 0, elapsedSec: 100 + frame / 60 }))
+    expect(pool.state[coin.index]).toBe(ENEMY_STATE_COIN_LURE)
+    expect(pool.posX[coin.index]).toBeGreaterThan(4.4)
+    expect(Math.hypot(pool.posX[coin.index] - 6, pool.posZ[coin.index])).toBeLessThanOrEqual(1.9)
+  })
+
+  it('E08 코인 몬스터는 감지되면 플레이어에게서 도망치며 접촉 피해를 주지 않는다', () => {
+    const pool = createEnemyEntityPool()
+    const runtime = createEnemySimulationRuntime()
+    const coin = spawn(pool, 'E08', 2, 0, { spawnTimer: 300 })
+    let damage = 0
+    runtime.step(pool, context({ playerX: 0, playerZ: 0, elapsedSec: 100, onContact: (_i, _g, _x, _y, _z, value) => { damage += value } }))
+    expect(pool.state[coin.index]).toBe(ENEMY_STATE_COIN_FLEE)
+    expect(pool.velX[coin.index]).toBeGreaterThan(0)
+    expect(pool.posX[coin.index]).toBeGreaterThan(2)
+
+    const contactPool = createEnemyEntityPool()
+    const contactRuntime = createEnemySimulationRuntime()
+    spawn(contactPool, 'E08', 0.1, 0, { spawnTimer: 300 })
+    contactRuntime.step(contactPool, context({ onContact: (_i, _g, _x, _y, _z, value) => { damage += value } }))
+    expect(damage).toBe(0)
   })
 
   it('E04는 동일 3구간 이동과 intro/age/cap/boss/cooldown 발사 gate를 지킨다', () => {

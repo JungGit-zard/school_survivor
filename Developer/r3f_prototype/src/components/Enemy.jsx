@@ -362,8 +362,8 @@ export const ENEMY_STATS = {
   // xp 8: hp 16이라 E03(hp 10, xp 5)보다 높고 E04(hp 32, xp 10)보다 낮은 자리.
   // 이 값을 바꾸면 enemySimulation.js의 ENEMY_RUNTIME_* 15번 슬롯도 같이 바꿔야 한다.
   E07: { hp: 16,   speed: 1.045, damage: 16, scale: 1.00, xp: 8,  contactDist: 0.28 },
-  // E08 동전 짤랑 좀비: 치트 소환으로 먼저 비주얼/감정선을 검수한다. 스폰 스케줄 편입은 별도 결정 후 진행.
-  E08: { hp: 12,   speed: 0.88,  damage: 6,  scale: 0.92, xp: 6,  contactDist: 0.26 },
+  // E08 코인 몬스터: 자기 영역을 배회하다가 감지되면 지그재그로 도망치는 보상형 반응 몬스터.
+  E08: { hp: 12,   speed: 0.88,  damage: 0,  scale: 0.92, xp: 6,  contactDist: 0.26 },
   // B01 1?ㅽ뀒?댁?: 遺梨꾧섦 ?ъ궗泥??⑦꽩 ?쒓굅. 異붽꺽/?뚯쭊留??ъ슜 (Bang_Rules 2026-05-09 遺濡?.
   // contactDist 0.36: regular charge keeps the 1.5x grace distance; Matilda charge uses exact body contact only.
   // ?댁쟾 0.80? ?묒큺 諛섍꼍??~1.6?대씪 蹂몄껜 ?명삎蹂대떎 ?⑥뵮 而ㅼ꽌 "???우븘???쇨꺽"?섎뒗 臾몄젣媛 ?덉뿀??

@@ -14,7 +14,7 @@ import { ENEMY_STATS } from '../components/Enemy.jsx'
 // 같은 수치의 복사본 두 벌이다. 한쪽만 고치면 게임과 밸런스 프로브가 서로 다른 값으로 돌아
 // "고쳤는데 프로브는 옛 값으로 합격"이 나온다. 실제로 E01 xp를 6→4로 내릴 때 이 함정을 밟을 뻔했다.
 // 보스(B01~B04)는 런타임 테이블에서 의도적으로 0으로 비워둔 슬롯이라 제외한다.
-const RUNTIME_TABLE_TYPES = ['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'E07']
+const RUNTIME_TABLE_TYPES = ['E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'RZL', 'RZC', 'RZT', 'RZG', 'E07', 'E08']
 
 const FIELDS = [
   ['hp', ENEMY_RUNTIME_HP],

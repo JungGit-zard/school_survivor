@@ -29,6 +29,15 @@ export const ENEMY_STATE_CHASE = 1
 export const ENEMY_STATE_WARN = 2
 export const ENEMY_STATE_CHARGE = 3
 export const ENEMY_STATE_STUN = 4
+export const ENEMY_STATE_COIN_LURE = 5
+export const ENEMY_STATE_COIN_FLEE = 6
+
+export const E08_COIN_DETECT_DISTANCE = 4.5
+export const E08_COIN_LOSE_DISTANCE = 6.25
+export const E08_COIN_WANDER_RADIUS = 1.2
+export const E08_COIN_HOME_RETURN_RADIUS = 1.85
+export const E08_COIN_WANDER_SPEED = 0.34
+export const E08_COIN_FLEE_SPEED_MULTIPLIER = 1.35
 
 export const ENEMY_EVENT_CONTACT = 1
 export const ENEMY_EVENT_RANGED_FIRE = 2
@@ -53,7 +62,7 @@ export const ENEMY_STUCK_MOVE_EPSILON_SQ = 1e-6
 export const ENEMY_RUNTIME_HP = new Float32Array([0, 8, 70, 10, 32, 70, 320, 90, 28, 0, 0, 0, 0, 140, 48, 16, 12])
 // speed 전 슬롯 ×1.1 (2026-08-13). ENEMY_STATS와 한 벌이라 한쪽만 고치면 게임과 프로브가 갈라진다.
 export const ENEMY_RUNTIME_SPEED = new Float32Array([0, 0.5225, 0.4235, 1.21, 0.495, 0.55, 0.66, 2.695, 2.398, 0, 0, 0, 0, 1.4025, 1.3475, 1.045, 0.88])
-export const ENEMY_RUNTIME_DAMAGE = new Float32Array([0, 8, 14, 6, 8, 16, 20, 14, 7, 0, 0, 0, 0, 6, 9, 16, 6])
+export const ENEMY_RUNTIME_DAMAGE = new Float32Array([0, 8, 14, 6, 8, 16, 20, 14, 7, 0, 0, 0, 0, 6, 9, 16, 0])
 // RZT(코드 13) scale 0.88→1.76 — 위 hp와 같은 커밋에서 두 배가 됐다. 이 값은 히트박스 반경
 // (enemyContactRadius)까지 좌우해서, 어긋난 채로 두면 프로브가 절반 크기 판정으로 돌아간다.
 export const ENEMY_RUNTIME_SCALE = new Float32Array([0, 1, 1.4, 0.75, 0.9, 1.15, 1.6, 1.08, 0.78, 0, 0, 0, 0, 1.76, 0.92, 1, 0.92])
@@ -79,6 +88,7 @@ function hasFiniteSlot(pool, index) {
     && isStorableFloat(pool.lastContactX[index]) && isStorableFloat(pool.lastContactY[index]) && isStorableFloat(pool.lastContactZ[index])
     && isStorableFloat(pool.lastContactTime[index]) && isStorableFloat(pool.stuckMs[index])
     && isStorableFloat(pool.detourMs[index]) && isStorableFloat(pool.lastSafeX[index]) && isStorableFloat(pool.lastSafeZ[index])
+    && isStorableFloat(pool.homeX[index]) && isStorableFloat(pool.homeZ[index])
 }
 
 function isRunCrew(type) {
@@ -94,7 +104,7 @@ function ignoresObstacles(type) {
 }
 
 function isMelee(type) {
-  return type === 1 || type === 2 || type === 3 || type === 5 || type === 6 || type === 7 || type === 8 || type === 13 || type === 14 || type === 15 || type === 16
+  return type === 1 || type === 2 || type === 3 || type === 5 || type === 6 || type === 7 || type === 8 || type === 13 || type === 14 || type === 15
 }
 
 export function enemyContactDistance(type) {
@@ -322,6 +332,63 @@ export function enemyCollisionRadius(type) {
 // Rapier 회전 콜라이더보다 커져서, 회전 프랍마다 "플레이어만 들어가는" 모서리 지대가
 // 생긴다. cosY/sinY는 장애물 생성 시 얼려 둔 값이라 여기서는 읽기만 한다.
 // rotationY 폴백은 손으로 만든 장애물 리터럴(테스트·프로브) 전용 — 실런타임에서는 안 탄다.
+
+function resolveCoinMonsterVelocityInto(out, pool, index, posX, posZ, playerX, playerZ, distance, nx, nz, halfX, halfZ, elapsedSec) {
+  let state = pool.state[index]
+  if (state !== ENEMY_STATE_COIN_LURE && state !== ENEMY_STATE_COIN_FLEE) {
+    state = ENEMY_STATE_COIN_LURE
+    pool.state[index] = state
+  }
+  if (state === ENEMY_STATE_COIN_LURE && distance <= E08_COIN_DETECT_DISTANCE) {
+    state = ENEMY_STATE_COIN_FLEE
+    pool.state[index] = state
+  } else if (state === ENEMY_STATE_COIN_FLEE && distance >= E08_COIN_LOSE_DISTANCE) {
+    state = ENEMY_STATE_COIN_LURE
+    pool.state[index] = state
+  }
+
+  if (state === ENEMY_STATE_COIN_FLEE) {
+    const awayX = distance > 1e-8 ? -nx : ((((index + pool.generation[index]) & 1) === 0) ? 1 : -1)
+    const awayZ = distance > 1e-8 ? -nz : 0
+    const wobble = Math.sin(elapsedSec * 6.2 + index * 1.7 + pool.generation[index] * 0.11) * 0.62
+    let vx = awayX + (-nz * wobble)
+    let vz = awayZ + (nx * wobble)
+    const margin = 1.1
+    if ((posX > halfX - margin && vx > 0) || (posX < -halfX + margin && vx < 0)) vx *= -0.65
+    if ((posZ > halfZ - margin && vz > 0) || (posZ < -halfZ + margin && vz < 0)) vz *= -0.65
+    const length = Math.hypot(vx, vz) || 1
+    const speed = ENEMY_RUNTIME_SPEED[16] * E08_COIN_FLEE_SPEED_MULTIPLIER
+    out.x = vx / length * speed
+    out.z = vz / length * speed
+    return out
+  }
+
+  const homeX = pool.homeX[index]
+  const homeZ = pool.homeZ[index]
+  const homeDx = homeX - posX
+  const homeDz = homeZ - posZ
+  const homeDistance = Math.hypot(homeDx, homeDz)
+  if (homeDistance > E08_COIN_HOME_RETURN_RADIUS) {
+    out.x = homeDx / (homeDistance || 1) * ENEMY_RUNTIME_SPEED[16] * 0.72
+    out.z = homeDz / (homeDistance || 1) * ENEMY_RUNTIME_SPEED[16] * 0.72
+    return out
+  }
+  const angle = elapsedSec * 1.35 + index * 1.618 + pool.generation[index] * 0.21
+  const targetX = homeX + Math.cos(angle) * E08_COIN_WANDER_RADIUS
+  const targetZ = homeZ + Math.sin(angle) * E08_COIN_WANDER_RADIUS
+  const targetDx = targetX - posX
+  const targetDz = targetZ - posZ
+  const targetDistance = Math.hypot(targetDx, targetDz)
+  if (targetDistance <= 0.08) {
+    out.x = 0
+    out.z = 0
+    return out
+  }
+  out.x = targetDx / targetDistance * E08_COIN_WANDER_SPEED
+  out.z = targetDz / targetDistance * E08_COIN_WANDER_SPEED
+  return out
+}
+
 function obstacleSin(obstacle) {
   if (obstacle.sinY !== undefined) return obstacle.sinY
   return obstacle.rotationY ? Math.sin(obstacle.rotationY) : 0
@@ -667,6 +734,11 @@ export class EnemySimulationRuntime {
             if (context.onRangedFire) context.onRangedFire(index, generation, posX, pool.posY[index], posZ, nx, nz)
           }
         }
+      } else if (type === 16) {
+        resolveCoinMonsterVelocityInto(this._velocityScratch, pool, index, posX, posZ, playerX, playerZ, distance, nx, nz, halfX, halfZ, elapsedSec)
+        velocityX = this._velocityScratch.x
+        velocityZ = this._velocityScratch.z
+        moving = velocityX !== 0 || velocityZ !== 0
       } else if (type === 5) {
         let state = pool.state[index] || ENEMY_STATE_CHASE
         if (state === ENEMY_STATE_CHASE && distance < E05_WARN_DISTANCE) {
