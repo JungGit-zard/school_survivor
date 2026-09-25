@@ -145,6 +145,61 @@ function GnPan({ position = [0, 0, 0], rotation = [0, 0, 0], size = [0.5, 0.06, 
   )
 }
 
+function IngredientSack({ position = [0, 0, 0], bodyMaterial, tieMaterial, labelMaterial }) {
+  return (
+    <group position={position} name="kitchen-ingredient-sack">
+      <PropCylinder position={[0, 0.14, 0]} args={[0.13, 0.17, 0.24, 6]} material={bodyMaterial} />
+      <PropCylinder position={[0, 0.30, 0]} args={[0.055, 0.065, 0.08, 6]} material={tieMaterial} />
+      <PropBox position={[0, 0.14, 0.17]} scale={[0.11, 0.07, 0.01]} material={labelMaterial} />
+    </group>
+  )
+}
+
+function CafeteriaTrayStack({ position = [0, 0, 0], trayMaterial }) {
+  const width = 0.48
+  const depth = 0.32
+  const rimY = 0.07
+  return (
+    <group position={position} name="kitchen-cafeteria-tray-stack">
+      {[0, 1, 2].map((i) => (
+        <group key={i} position={[0, i * 0.045, 0]}>
+          <PropBox position={[0, 0.03, 0]} scale={[width, 0.04, depth]} material={trayMaterial} />
+          {i === 2 && (
+            <>
+              <PropBox position={[0, rimY, -depth * 0.46]} scale={[width, 0.04, 0.035]} material={trayMaterial} />
+              <PropBox position={[0, rimY, depth * 0.46]} scale={[width, 0.04, 0.035]} material={trayMaterial} />
+              <PropBox position={[-width * 0.46, rimY, 0]} scale={[0.035, 0.04, depth * 0.90]} material={trayMaterial} />
+              <PropBox position={[width * 0.46, rimY, 0]} scale={[0.035, 0.04, depth * 0.90]} material={trayMaterial} />
+            </>
+          )}
+        </group>
+      ))}
+    </group>
+  )
+}
+
+function CafeteriaFoodTray({ position = [0, 0, 0], trayMaterial, compartmentMaterials = [] }) {
+  const width = 0.58
+  const depth = 0.36
+  const compartmentY = 0.085
+  return (
+    <group position={position} name="kitchen-cafeteria-food-tray">
+      <GnPan size={[width, 0.05, depth]} trayMaterial={trayMaterial} />
+      <PropBox position={[-0.095, 0.075, 0]} scale={[0.028, 0.05, depth * 0.78]} material={trayMaterial} />
+      <PropBox position={[0.095, 0.075, 0]} scale={[0.028, 0.05, depth * 0.78]} material={trayMaterial} />
+      {compartmentMaterials.slice(0, 3).map((material, i) => (
+        <PropBox
+          key={i}
+          name={`kitchen-food-compartment-${i + 1}`}
+          position={[-0.19 + i * 0.19, compartmentY, 0]}
+          scale={[0.15, 0.035, 0.20]}
+          material={material}
+        />
+      ))}
+    </group>
+  )
+}
+
 // 자석/메모/버튼 같은 단발성 표면 디테일 전용 박스 — 유일하게 리터럴 boxGeometry를
 // 직접 쓴다(공유 유닛박스를 쓸 만큼 반복되지 않는 1~3회성 소품이라 굳이 캐시를 태우지 않음).
 function MagnetTag({ position = [0, 0, 0], rotation = [0, 0, 0], scale = [0.05, 0.05, 0.01], material }) {
@@ -666,7 +721,6 @@ export function KitchenClutter({ variant = 'pots', ...props }) {
   const orange = getStagePropDepthWritingToonMaterial(0xe8862c, 0.1)
   const blue = getStagePropDepthWritingToonMaterial(0x3f7fc1, 0.1)
   const white = getStagePropDepthWritingToonMaterial(0xf4f1e8, 0.06)
-  const amber = getStagePropDepthWritingToonMaterial(0x8a5a24, 0.08)
 
   return (
     <group {...props} name="kitchen-clutter">
@@ -688,12 +742,8 @@ export function KitchenClutter({ variant = 'pots', ...props }) {
 
         {v === 'bags' && (
           <>
-            <PropBlob position={[-0.25, 0.16, 0]} radius={0.18} squashY={1.1} material={black} />
-            <PropBlob position={[0.05, 0.13, 0.1]} radius={0.15} squashY={0.95} material={black} />
-            <group position={[0.35, 0.08, -0.1]}>
-              <PropCylinder args={[0.06, 0.06, 0.11, 6]} material={red} />
-              <PropBox position={[0, 0.07, 0]} scale={[0.09, 0.02, 0.02]} material={white} />
-            </group>
+            <IngredientSack position={[-0.25, 0, 0.02]} bodyMaterial={white} tieMaterial={red} labelMaterial={yellow} />
+            <IngredientSack position={[0.06, 0, 0.07]} bodyMaterial={white} tieMaterial={orange} labelMaterial={blue} />
             <Vessel position={[0.5, 0.10, 0.15]} args={[0.045, 0.045, 0.18, 6]} material={orange} capMaterial={stainless.dark} />
             <Vessel position={[-0.5, 0.11, -0.2]} args={[0.05, 0.05, 0.20, 6]} material={red} capMaterial={red} />
           </>
@@ -701,18 +751,8 @@ export function KitchenClutter({ variant = 'pots', ...props }) {
 
         {v === 'trays' && (
           <>
-            <GnPan position={[-0.4, 0.03, 0]} size={[0.5, 0.06, 0.32]} trayMaterial={stainless.panel} fillMaterial={green} />
-            <GnPan position={[0.15, 0.03, 0.1]} size={[0.5, 0.06, 0.32]} trayMaterial={stainless.panel} fillMaterial={orange} />
-            <GnPan position={[0.55, 0.03, -0.2]} size={[0.5, 0.06, 0.32]} trayMaterial={stainless.panel} />
-            {[0, 1, 2].map((i) => (
-              <PropBox key={i} position={[-0.75, 0.02 + i * 0.025, 0.25]} scale={[0.22, 0.02, 0.22]} material={white} />
-            ))}
-            <group position={[-0.7, 0.08, -0.15]}>
-              <PropCylinder args={[0.06, 0.06, 0.09, 6]} material={blue} />
-              <PropBox position={[0.07, 0, 0]} scale={[0.02, 0.05, 0.05]} material={blue} />
-            </group>
-            <PropBox position={[0.1, 0.06, -0.3]} scale={[0.16, 0.12, 0.10]} material={white} />
-            <PropBox position={[0.1, 0.115, -0.3]} scale={[0.13, 0.03, 0.09]} material={amber} />
+            <CafeteriaTrayStack position={[-0.58, 0.03, 0.08]} trayMaterial={stainless.panel} />
+            <CafeteriaFoodTray position={[0.16, 0.03, 0.05]} trayMaterial={stainless.panel} compartmentMaterials={[green, orange, blue]} />
           </>
         )}
       </StudioTunedGroup>

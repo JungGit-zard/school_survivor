@@ -33,6 +33,65 @@ function LowPolyBall({ position = [0, 0, 0], radius = 0.18, material, seamMateri
   )
 }
 
+const SEGMENT_PATTERNS = {
+  0: 'abcedf',
+  1: 'bc',
+  2: 'abged',
+  3: 'abgcd',
+  4: 'fgbc',
+  5: 'afgcd',
+  6: 'afgecd',
+  7: 'abc',
+  8: 'abcdefg',
+  9: 'abfgcd',
+}
+
+const SEGMENT_LAYOUT = {
+  a: [0, 0.105, false],
+  b: [0.06, 0.052, true],
+  c: [0.06, -0.052, true],
+  d: [0, -0.105, false],
+  e: [-0.06, -0.052, true],
+  f: [-0.06, 0.052, true],
+  g: [0, 0, false],
+}
+
+function SevenSegmentDigit({ digit, position = [0, 0, 0], material, scale = 1 }) {
+  const activeSegments = SEGMENT_PATTERNS[digit] ?? ''
+
+  return (
+    <group position={position} scale={scale} name={`gym-scoreboard-digit-${digit}`}>
+      {activeSegments.split('').map((segment) => {
+        const [x, y, vertical] = SEGMENT_LAYOUT[segment]
+        return <PropBox key={segment} position={[x, y, 0]} size={vertical ? [0.028, 0.095, 0.035] : [0.14, 0.028, 0.035]} material={material} />
+      })}
+    </group>
+  )
+}
+
+function SevenSegmentDisplay({ value, position = [0, 0, 0], material, scale = 1 }) {
+  const characters = String(value).split('')
+  const step = 0.18
+  const start = ((characters.length - 1) * step) / -2
+
+  return (
+    <group position={position} scale={scale}>
+      {characters.map((character, index) => {
+        const x = start + index * step
+        if (character === ':') {
+          return (
+            <group key={`colon-${index}`} position={[x, 0, 0]} name="gym-scoreboard-separator">
+              <PropBox position={[0, 0.045, 0]} size={[0.028, 0.028, 0.035]} material={material} />
+              <PropBox position={[0, -0.045, 0]} size={[0.028, 0.028, 0.035]} material={material} />
+            </group>
+          )
+        }
+        return <SevenSegmentDigit key={`${character}-${index}`} digit={character} position={[x, 0, 0]} material={material} />
+      })}
+    </group>
+  )
+}
+
 function HoopRim({ position = [0, 0, 0], damaged = false, orange, net }) {
   const rimSegments = [
     { key: 'front', position: [0, 0, 0.24], size: [0.74, 0.08, 0.08] },
@@ -229,19 +288,27 @@ export function GymScoreboard({ ...props }) {
   const green = getStagePropToonMaterial(0x72e05d, 0.4)
   const red = getStagePropToonMaterial(0xff503e, 0.35)
   const yellow = getStagePropToonMaterial(0xffc846, 0.4)
-  const label = getStagePropToonMaterial(0xf0efe9, 0.08)
 
   return (
     <group {...props} name="gym-scoreboard">
       <StudioTunedGroup itemId="stage-object-gym-scoreboard">
         <PropBox position={[0, 1.15, 0]} size={[2.55, 1.2, 0.16]} material={body} />
         <PropBox position={[0, 1.15, 0.09]} size={[2.72, 1.34, 0.06]} material={trim} />
-        <PropBox position={[-0.82, 1.33, 0.14]} size={[0.48, 0.22, 0.04]} material={label} />
-        <PropBox position={[0.82, 1.33, 0.14]} size={[0.56, 0.22, 0.04]} material={label} />
         <PropBox position={[-0.82, 0.93, 0.14]} size={[0.48, 0.34, 0.04]} material={green} />
         <PropBox position={[0.82, 0.93, 0.14]} size={[0.48, 0.34, 0.04]} material={red} />
         <PropBox position={[0, 1.2, 0.14]} size={[0.52, 0.24, 0.04]} material={yellow} />
         <PropBox position={[0, 0.62, 0.14]} size={[0.82, 0.20, 0.04]} material={red} />
+        <group name="gym-scoreboard-home-12">
+          <SevenSegmentDisplay value="12" position={[-0.82, 0.93, 0.18]} material={green} scale={0.76} />
+        </group>
+        <group name="gym-scoreboard-away-09">
+          <SevenSegmentDisplay value="09" position={[0.82, 0.93, 0.18]} material={red} scale={0.76} />
+        </group>
+        <group name="gym-scoreboard-clock" position={[0, 1.2, 0.18]}>
+          <PropBox position={[0, 0.01, 0]} size={[0.035, 0.15, 0.035]} material={yellow} />
+          <PropBox position={[0.045, 0.04, 0]} size={[0.12, 0.035, 0.035]} material={yellow} />
+          <PropBox position={[0, 0, 0.02]} size={[0.045, 0.045, 0.04]} material={yellow} />
+        </group>
       </StudioTunedGroup>
     </group>
   )
@@ -251,18 +318,29 @@ export function GymBanner({ ...props }) {
   const cloth = getStagePropToonMaterial(0xf1dfbd, 0.06)
   const red = getStagePropToonMaterial(0xc84035, 0.12)
   const blue = getStagePropToonMaterial(0x2f6eb9, 0.1)
-  const green = getStagePropToonMaterial(0x4d9a5d, 0.1)
+  const gold = getStagePropToonMaterial(0xf0b52b, 0.22)
   const rope = getStagePropToonMaterial(0x7b5b39, 0.04)
 
   return (
     <group {...props} name="gym-sports-day-banner">
       <StudioTunedGroup itemId="stage-object-gym-banner">
         <PropBox position={[0, 1.12, 0]} size={[2.45, 0.64, 0.06]} material={cloth} />
-        <PropBox position={[-0.62, 1.16, 0.05]} size={[0.34, 0.2, 0.04]} material={blue} />
-        <PropBox position={[-0.16, 1.16, 0.05]} size={[0.42, 0.2, 0.04]} material={red} />
-        <PropBox position={[0.36, 1.16, 0.05]} size={[0.52, 0.2, 0.04]} material={red} />
-        <PropBox position={[0.92, 1.16, 0.05]} size={[0.24, 0.24, 0.04]} material={blue} />
-        <PropBox position={[-1.0, 1.18, 0.055]} size={[0.18, 0.24, 0.04]} material={green} />
+        <group name="gym-sports-day-trophy" position={[0, 1.16, 0.08]}>
+          <PropCylinder position={[0, 0.16, 0]} args={[0.24, 0.30, 0.34, 6]} material={gold} />
+          <PropBox position={[0, 0.34, 0]} size={[0.56, 0.06, 0.16]} material={gold} />
+          <PropBox position={[-0.31, 0.22, 0]} rotation={[0, 0, 0.5]} size={[0.20, 0.06, 0.06]} material={gold} />
+          <PropBox position={[0.31, 0.22, 0]} rotation={[0, 0, -0.5]} size={[0.20, 0.06, 0.06]} material={gold} />
+          <PropBox position={[0, -0.08, 0]} size={[0.12, 0.28, 0.12]} material={gold} />
+          <PropBox position={[0, -0.24, 0]} size={[0.54, 0.10, 0.22]} material={gold} />
+        </group>
+        <group name="gym-sports-day-pennant-red" position={[-0.88, 1.22, 0.08]}>
+          <PropBox position={[0, 0.10, 0]} size={[0.06, 0.34, 0.04]} material={rope} />
+          <PropBox position={[0.17, 0.03, 0]} rotation={[0, 0, -0.18]} size={[0.34, 0.24, 0.04]} material={red} />
+        </group>
+        <group name="gym-sports-day-pennant-blue" position={[0.88, 1.22, 0.08]}>
+          <PropBox position={[0, 0.10, 0]} size={[0.06, 0.34, 0.04]} material={rope} />
+          <PropBox position={[-0.17, 0.03, 0]} rotation={[0, 0, 0.18]} size={[0.34, 0.24, 0.04]} material={blue} />
+        </group>
         <PropBox position={[0, 1.52, 0]} size={[2.64, 0.05, 0.05]} material={rope} />
         {[-1.18, 1.18].map((x) => <PropCylinder key={x} position={[x, 1.52, 0]} args={[0.08, 0.08, 0.05, 6]} material={rope} />)}
       </StudioTunedGroup>
@@ -291,28 +369,35 @@ export function GymExitDoor({ ...props }) {
 }
 
 export function GymEquipmentSpill({ ...props }) {
-  const cooler = getStagePropToonMaterial(0xe8e1d0, 0.04)
-  const blue = getStagePropToonMaterial(0x80b6d4, 0.08)
-  const water = getStagePropToonMaterial(0x7fcbe6, 0.18)
-  const box = getStagePropToonMaterial(0x68a85d, 0.08)
+  const crate = getStagePropToonMaterial(0x68a85d, 0.08)
+  const crateRim = getStagePropToonMaterial(0x3f7046, 0.08)
   const orange = getStagePropToonMaterial(0xe07a22, 0.12)
-  const whistle = getStagePropToonMaterial(0xaeb6bb, 0.05)
-  const cord = getStagePropToonMaterial(0xc73f32, 0.06)
+  const seam = getStagePropToonMaterial(0x2b2119, 0)
+  const white = getStagePropToonMaterial(0xf2eee4, 0.04)
 
   return (
     <group {...props} name="gym-equipment-spill">
       <StudioTunedGroup itemId="stage-object-gym-equipment-spill">
-        <group rotation={[0, 0, Math.PI / 2]} position={[-0.58, 0.26, 0]}>
-          <PropBox size={[0.62, 0.74, 0.52]} material={cooler} />
-          <PropCylinder position={[0.36, 0, 0]} rotation={[0, 0, Math.PI / 2]} args={[0.26, 0.26, 0.3, 6]} material={blue} />
+        <group name="gym-equipment-crate" position={[-0.58, 0.3, 0]}>
+          <PropBox size={[0.92, 0.58, 0.74]} material={crate} />
+          <PropBox position={[0, 0.32, 0]} size={[1.02, 0.08, 0.82]} material={crateRim} />
         </group>
-        <PropBox position={[-0.02, 0.03, 0.32]} size={[0.82, 0.035, 0.46]} material={water} />
-        <PropBox position={[0.84, 0.24, -0.1]} size={[0.64, 0.42, 0.52]} material={box} />
-        {[-0.2, 0.05, 0.28].map((x, index) => (
-          <PropCylinder key={x} position={[0.72 + x, 0.58, -0.1 + index * 0.12]} args={[0.07, 0.08, 0.34, 6]} material={orange} />
+        <group name="gym-equipment-basketball" position={[-0.58, 0.68, 0.10]}>
+          <LowPolyBall radius={0.18} material={orange} seamMaterial={seam} />
+        </group>
+        <group name="gym-equipment-basketball" position={[0.20, 0.18, 0.30]}>
+          <LowPolyBall radius={0.18} material={orange} seamMaterial={seam} />
+        </group>
+        {[
+          [0.68, 0, -0.20],
+          [0.94, 0, 0.08],
+        ].map(([x, y, z], index) => (
+          <group key={`${x}-${z}`} name="gym-equipment-cone" position={[x, y, z]}>
+            <PropBox position={[0, 0.04, 0]} size={[0.30, 0.08, 0.30]} material={orange} />
+            <PropCylinder position={[0, 0.22, 0]} args={[0.07, 0.15, 0.34, 4]} material={orange} />
+            <PropBox position={[0, 0.25, 0]} size={[0.19, 0.04, 0.19]} material={white} />
+          </group>
         ))}
-        <PropBox position={[-1.28, 0.08, -0.38]} rotation={[0, 0.25, 0]} size={[0.32, 0.12, 0.18]} material={whistle} />
-        <PropBox position={[-1.02, 0.08, -0.26]} rotation={[0, -0.45, 0]} size={[0.52, 0.045, 0.045]} material={cord} />
       </StudioTunedGroup>
     </group>
   )

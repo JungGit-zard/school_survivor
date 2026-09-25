@@ -361,6 +361,41 @@ describe('stage object asset catalog', () => {
   it('declares the Stage 4 kitchen prop variant key sets', () => {
     expect([...KITCHEN_PREP_TABLE_VARIANTS].sort()).toEqual(['bare', 'cutting', 'pans', 'side'])
     expect([...KITCHEN_TRASH_BIN_VARIANTS].sort()).toEqual(['round', 'wheelie'])
+  it('makes the Stage 3 scoreboard immediately readable with voxel seven-segment values', () => {
+    const source = readFileSync(new URL('./GymProps.jsx', import.meta.url), 'utf8')
+    const scoreboardSource = source.slice(source.indexOf('export function GymScoreboard'), source.indexOf('export function GymBanner'))
+
+    expect(source).toContain('function SevenSegmentDisplay')
+    expect(scoreboardSource).toContain('name="gym-scoreboard-home-12"')
+    expect(scoreboardSource).toContain('name="gym-scoreboard-away-09"')
+    expect(scoreboardSource).toContain('name="gym-scoreboard-clock"')
+    expect(scoreboardSource).toContain('value="12"')
+    expect(scoreboardSource).toContain('value="09"')
+    expect(scoreboardSource).not.toContain('value="05:00"')
+    expect(scoreboardSource).toContain('size={[0.035, 0.15, 0.035]}')
+    expect(scoreboardSource).toContain('size={[0.12, 0.035, 0.035]}')
+    expect(scoreboardSource).toContain('size={[0.045, 0.045, 0.04]}')
+  })
+
+  it('replaces ambiguous Stage 3 banner and equipment spill shapes with semantic sports props', () => {
+    const source = readFileSync(new URL('./GymProps.jsx', import.meta.url), 'utf8')
+    const bannerSource = source.slice(source.indexOf('export function GymBanner'), source.indexOf('export function GymExitDoor'))
+    const spillSource = source.slice(source.indexOf('export function GymEquipmentSpill'))
+
+    expect(bannerSource).toContain('name="gym-sports-day-trophy"')
+    expect(bannerSource).toContain('name="gym-sports-day-pennant-red"')
+    expect(bannerSource).toContain('name="gym-sports-day-pennant-blue"')
+    expect(bannerSource).not.toContain('green')
+    expect(spillSource).toContain('name="gym-equipment-crate"')
+    expect(spillSource).toContain('name="gym-equipment-basketball"')
+    expect(spillSource).toContain('name="gym-equipment-cone"')
+    expect(spillSource).not.toContain('position={[0, 0.36, 0]}')
+    expect(spillSource).not.toContain('water')
+    expect(spillSource).not.toContain('cooler')
+    expect(spillSource).not.toContain('whistle')
+    expect(spillSource).not.toContain('cord')
+  })
+
     expect([...KITCHEN_CLUTTER_VARIANTS].sort()).toEqual(['bags', 'pots', 'trays'])
   })
 

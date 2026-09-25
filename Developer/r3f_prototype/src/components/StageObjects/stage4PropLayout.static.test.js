@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
 import { getStageObjectFootprint } from './stageObjectColliders.js'
 import { computeDefaultStageObjectPlacements } from './stageObjectPlacements.js'
 import { getStageBounds } from '../../lib/stageConfig.js'
 
+const KITCHEN_PROPS_SOURCE = readFileSync(new URL('./KitchenProps.jsx', import.meta.url), 'utf8')
+
 const STAGE4_EDGE_SAFETY = 0.8
 const PLAYER_HALF_EXTENT = 0.136
 // Measured from KitchenClutter JSX local geometry: PropCylinder radii,
-// PropBlob radii, and PropBox half-scales. KitchenClutter has no outline mesh.
+// PropBox half-scales, and named tray/sack helper extents. KitchenClutter has no outline mesh.
 const KITCHEN_CLUTTER_VISUAL_LOCAL_BOUNDS = Object.freeze({
   pots: Object.freeze({ minX: -0.5, maxX: 0.47, minZ: -0.41, maxZ: 0.2 }),
   bags: Object.freeze({ minX: -0.55, maxX: 0.545, minZ: -0.25, maxZ: 0.25 }),
@@ -63,6 +66,38 @@ function describeStage4Layout() {
 }
 
 describe('Stage 4 prop layout static safety', () => {
+  it('uses readable named kitchen clutter props instead of ambiguous blobs', () => {
+    const bagsStart = KITCHEN_PROPS_SOURCE.indexOf("{v === 'bags'")
+    const traysStart = KITCHEN_PROPS_SOURCE.indexOf("{v === 'trays'")
+    const bagsBranch = KITCHEN_PROPS_SOURCE.slice(bagsStart, traysStart)
+    const traysBranch = KITCHEN_PROPS_SOURCE.slice(traysStart)
+
+    expect(bagsStart).toBeGreaterThan(-1)
+    expect(KITCHEN_PROPS_SOURCE).toContain('name="kitchen-ingredient-sack"')
+    expect(bagsBranch).toContain('<IngredientSack')
+    expect(bagsBranch).not.toContain('<PropBlob')
+    expect(bagsBranch).not.toContain('material={black}')
+
+    expect(traysBranch).toContain('<CafeteriaTrayStack')
+    expect(traysBranch).toContain('<CafeteriaFoodTray')
+    expect(traysBranch).toContain('compartment')
+    expect(traysBranch).not.toContain('position={[-0.7, 0.08, -0.15]}')
+    expect(KITCHEN_PROPS_SOURCE).toContain('name="kitchen-cafeteria-tray-stack"')
+    expect(KITCHEN_PROPS_SOURCE).toContain('name="kitchen-cafeteria-food-tray"')
+
+    const stackStart = KITCHEN_PROPS_SOURCE.indexOf('function CafeteriaTrayStack')
+    const foodTrayStart = KITCHEN_PROPS_SOURCE.indexOf('function CafeteriaFoodTray')
+    const magnetStart = KITCHEN_PROPS_SOURCE.indexOf('function MagnetTag')
+    const stackSource = KITCHEN_PROPS_SOURCE.slice(stackStart, foodTrayStart)
+    const foodTraySource = KITCHEN_PROPS_SOURCE.slice(foodTrayStart, magnetStart)
+    expect((stackSource.match(/<PropBox/g) || []).length).toBe(5)
+    expect(stackSource).toContain('i === 2')
+    expect((foodTraySource.match(/<PropBox/g) || []).length).toBe(3)
+    expect(foodTraySource).toContain('compartmentMaterials.slice(0, 3)')
+    expect(foodTraySource).not.toContain('depth * 0.46')
+    expect(foodTraySource).not.toContain('width * 0.46')
+  })
+
   it('keeps every authored Stage 4 prop position inside the canonical map', () => {
     const { halfX, halfZ } = getStageBounds('stage4')
     const failures = describeStage4Layout()
