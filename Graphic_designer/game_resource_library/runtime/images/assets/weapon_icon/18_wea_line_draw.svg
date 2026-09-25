@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" role="img" aria-label="Line draw icon">
+  <rect width="96" height="96" rx="18" fill="none"/>
+  <!-- 그어진 절단선 (붉은 직선) -->
+  <g transform="rotate(-24 48 48)">
+    <path d="M20 22h74v5H20z" fill="#ff2f42" opacity="0.95"/>
+    <path d="M20 23h74v2H20z" fill="#fff0f0"/>
+  </g>
+  <!-- 30cm 자 + 테이프로 붙인 커터칼 날 -->
+  <g transform="rotate(-24 48 48)">
+    <!-- 커터칼 날 -->
+    <path d="M46 34h44v12H46z" fill="#111"/>
+    <path d="M48 36h40v8H48z" fill="#dce6ee"/>
+    <path d="M49 37h38v2.5H49z" fill="#fff"/>
+    <!-- 자 본체 -->
+    <path d="M14 46h76c3 0 5 2 5 5v9c0 3-2 5-5 5H14c-3 0-5-2-5-5v-9c0-3 2-5 5-5Z" fill="#111"/>
+    <path d="M15 49h74c2 0 3 1 3 3v7c0 2-1 3-3 3H15c-2 0-3-1-3-3v-7c0-2 1-3 3-3Z" fill="#63d9d2"/>
+    <path d="M15 49h74c2 0 3 1 3 3v2H12v-2c0-2 1-3 3-3Z" fill="#bdf3ef"/>
+    <!-- 눈금 -->
+    <g fill="#123f4a">
+      <path d="M34 55h2.5v9H34zM48 55h2.5v9H48zM62 55h2.5v9H62zM76 55h2.5v9H76z"/>
+    </g>
+    <!-- 테이프 -->
+    <path d="M52 32h11v36H52z" fill="#111"/>
+    <path d="M53.5 33h8v34h-8z" fill="#f2e0ab"/>
+    <path d="M76 32h11v36H76z" fill="#111"/>
+    <path d="M77.5 33h8v34h-8z" fill="#f2e0ab"/>
+  </g>
+  <!-- 손잡이 끝 장식: 화난 소녀 얼굴 (아이콘의 주역) -->
+  <g stroke="#241a2e" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round">
+    <!-- 뻗친 양갈래 머리 -->
+    <path d="M11 46l3 17 12-8z" fill="#3b2a48"/>
+    <path d="M59 46l-3 17-12-8z" fill="#3b2a48"/>
+    <!-- 얼굴 -->
+    <circle cx="35" cy="59" r="24" fill="#ffd9bf"/>
+    <!-- 앞머리 -->
+    <path d="M12 55c2-14 12-21 23-21s21 7 23 21c-6-5-11-6-15-3-4-6-10-7-14-3-4-3-11-1-17 6Z" fill="#3b2a48"/>
+  </g>
+  <!-- 치켜올라간 눈썹 -->
+  <g stroke="#241a2e" stroke-width="4.2" stroke-linecap="round">
+    <path d="M20 55l10 5M50 55l-10 5"/>
+  </g>
+  <!-- 찌푸린 눈 -->
+  <g fill="#1a1420">
+    <path d="M21.5 62.5l9 3.2-1.6 4.4-9-3.2z"/>
+    <path d="M48.5 62.5l-9 3.2 1.6 4.4 9-3.2z"/>
+  </g>
+  <!-- 볼 홍조 -->
+  <g fill="#ff9db4" opacity="0.85">
+    <ellipse cx="17.5" cy="70" rx="4.6" ry="3"/>
+    <ellipse cx="52.5" cy="70" rx="4.6" ry="3"/>
+  </g>
+  <!-- 앙다문 입 -->
+  <path d="M27 76h16" stroke="#7d2440" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <!-- 화난 표시 (십자 핏대) -->
+  <g stroke="#ff3355" stroke-width="3.4" stroke-linecap="round">
+    <path d="M54 40l8 8M62 40l-8 8"/>
+  </g>
+</svg>

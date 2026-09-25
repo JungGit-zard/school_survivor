@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Chibiko">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#000" flood-opacity=".45"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <path d="M19 23c0-11 6-17 14-17s13 6 13 18v18c0 8-7 13-14 13s-13-5-13-13Z" fill="#050209"/>
+    <path d="M23 25c0-8 4-13 10-13s9 5 9 13v10c0 7-5 10-10 10s-9-3-9-10Z" fill="#120d14"/>
+    <path d="M25 30h14v8c0 4-3 7-7 7s-7-3-7-7Z" fill="#efe6e2"/>
+    <path d="M21 23c3-9 9-14 18-9 5 3 7 10 6 18-6-2-11-3-24-1Z" fill="#2a1c28"/>
+    <path d="M24 33h17l4 16c-4 5-20 5-25 0Z" fill="#f3f3f1" stroke="#050209" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M31 37l-5-4 3-3 4 4 4-4 3 3-5 4 2 9h-8Z" fill="#b81f2d"/>
+    <rect x="20" y="49" width="11" height="7" rx="2" fill="#1a151c"/>
+    <rect x="35" y="49" width="11" height="7" rx="2" fill="#1a151c"/>
+    <g transform="translate(42 21) rotate(-28)">
+      <path d="M2 8h20l5 4-5 4H2z" fill="#ffcf24" stroke="#050209" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M22 8l6 4-6 4z" fill="#d89646" stroke="#050209" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M28 12l4 2-4 2z" fill="#1c1c22"/>
+      <rect x="-4" y="8" width="6" height="8" fill="#f05a78" stroke="#050209" stroke-width="2"/>
+    </g>
+  </g>
+</svg>

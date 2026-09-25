@@ -1,0 +1,313 @@
+﻿category,original_path,library_path,usage_status
+runtime/audio,Developer/r3f_prototype/src/assets/audio/title_bgm.m4a,Graphic_designer/game_resource_library/runtime/audio/assets/audio/title_bgm.m4a,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/background_floor/stage02_corridor_end_wall.webp,Graphic_designer/game_resource_library/runtime/images/assets/background_floor/stage02_corridor_end_wall.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/background_floor/tile_stage01.webp,Graphic_designer/game_resource_library/runtime/images/assets/background_floor/tile_stage01.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/background_floor/tile_stage02_corridor.webp,Graphic_designer/game_resource_library/runtime/images/assets/background_floor/tile_stage02_corridor.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/background_floor/tile_stage04_cafeteria.webp,Graphic_designer/game_resource_library/runtime/images/assets/background_floor/tile_stage04_cafeteria.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/background_floor/tile_stage04_white_ceramic.webp,Graphic_designer/game_resource_library/runtime/images/assets/background_floor/tile_stage04_white_ceramic.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/character/laid_man.webp,Graphic_designer/game_resource_library/runtime/images/assets/character/laid_man.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/character/matilda_conversation.webp,Graphic_designer/game_resource_library/runtime/images/assets/character/matilda_conversation.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/character/matilda_face_texture.webp,Graphic_designer/game_resource_library/runtime/images/assets/character/matilda_face_texture.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/concept/stage2_corridor_props_concept.png,Graphic_designer/game_resource_library/runtime/images/assets/concept/stage2_corridor_props_concept.png,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/concept/stage3_basketball_court_voxel_lowpoly_props.png,Graphic_designer/game_resource_library/runtime/images/assets/concept/stage3_basketball_court_voxel_lowpoly_props.png,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/effects/spawn_smoke_puff.svg,Graphic_designer/game_resource_library/runtime/images/assets/effects/spawn_smoke_puff.svg,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/effects/spawn_smoke_puff.webp,Graphic_designer/game_resource_library/runtime/images/assets/effects/spawn_smoke_puff.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/faces/b01_math_teacher_face.webp,Graphic_designer/game_resource_library/runtime/images/assets/faces/b01_math_teacher_face.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/faces/b02_stage2_boss_face.webp,Graphic_designer/game_resource_library/runtime/images/assets/faces/b02_stage2_boss_face.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/faces/b03_pe_teacher_face.webp,Graphic_designer/game_resource_library/runtime/images/assets/faces/b03_pe_teacher_face.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/faces/b04_chef_boss_face.webp,Graphic_designer/game_resource_library/runtime/images/assets/faces/b04_chef_boss_face.webp,사용 미확인
+runtime/fonts,Developer/r3f_prototype/src/assets/fonts/NanumMyeongjo-ExtraBold.ttf,Graphic_designer/game_resource_library/runtime/fonts/assets/fonts/NanumMyeongjo-ExtraBold.ttf,사용 미확인
+runtime/misc,Developer/r3f_prototype/src/assets/fonts/nanumMyeongjo.css,Graphic_designer/game_resource_library/runtime/misc/assets/fonts/nanumMyeongjo.css,사용 미확인
+runtime/misc,Developer/r3f_prototype/src/assets/fonts/OFL.txt,Graphic_designer/game_resource_library/runtime/misc/assets/fonts/OFL.txt,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/passive_icon/passive_growth.webp,Graphic_designer/game_resource_library/runtime/images/assets/passive_icon/passive_growth.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/passive_icon/passive_magnet.webp,Graphic_designer/game_resource_library/runtime/images/assets/passive_icon/passive_magnet.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/passive_icon/passive_maxHp.webp,Graphic_designer/game_resource_library/runtime/images/assets/passive_icon/passive_maxHp.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/passive_icon/passive_might.webp,Graphic_designer/game_resource_library/runtime/images/assets/passive_icon/passive_might.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/passive_icon/passive_moveSpeed.webp,Graphic_designer/game_resource_library/runtime/images/assets/passive_icon/passive_moveSpeed.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/01_wea_pencil.png.webp,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/01_wea_pencil.png.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/02_wea_30ruller.png.webp,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/02_wea_30ruller.png.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/03_wea_tumbler.png.webp,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/03_wea_tumbler.png.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/04_wea_science.png.webp,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/04_wea_science.png.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/05_wea_bell.png.webp,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/05_wea_bell.png.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/06_wea_stungun.png.webp,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/06_wea_stungun.png.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/07_wea_onigiri.png.webp,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/07_wea_onigiri.png.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/08_wea_extrabattery.png.webp,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/08_wea_extrabattery.png.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/09_wea_starlink.png.webp,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/09_wea_starlink.png.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/10_wea_compass.png.webp,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/10_wea_compass.png.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/11_wea_umb.png.webp,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/11_wea_umb.png.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/12_wea_eraser.png.webp,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/12_wea_eraser.png.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/13_wea_boxcutter.svg,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/13_wea_boxcutter.svg,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/14_wea_chibiko.svg,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/14_wea_chibiko.svg,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/14_wea_shark_missile.svg,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/14_wea_shark_missile.svg,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/15_wea_hanako.svg,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/15_wea_hanako.svg,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/16_wea_lantern.svg,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/16_wea_lantern.svg,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/16_wea_lantern.webp,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/16_wea_lantern.webp,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/17_wea_bikitty_cutter.svg,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/17_wea_bikitty_cutter.svg,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/18_wea_line_draw.svg,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/18_wea_line_draw.svg,사용 미확인
+runtime/images,Developer/r3f_prototype/src/assets/weapon_icon/19_wea_inucon.svg,Graphic_designer/game_resource_library/runtime/images/assets/weapon_icon/19_wea_inucon.svg,사용 미확인
+runtime/images,Developer/r3f_prototype/public/favicon-game.svg,Graphic_designer/game_resource_library/runtime/images/public/favicon-game.svg,사용 미확인
+runtime/images,Developer/r3f_prototype/public/favicon.svg,Graphic_designer/game_resource_library/runtime/images/public/favicon.svg,사용 미확인
+runtime/misc,Developer/r3f_prototype/public/__inucon_preview.html,Graphic_designer/game_resource_library/runtime/misc/public/__inucon_preview.html,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/bossDeath.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/bossDeath.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/bossDeath.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/bossDeath.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/bossRoar.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/bossRoar.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/bossRoar.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/bossRoar.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/dogeDeath.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/dogeDeath.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/dogeDeath.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/dogeDeath.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/dogeEscape.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/dogeEscape.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/dogeEscape.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/dogeEscape.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/dogeYelp.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/dogeYelp.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/dogeYelp.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/dogeYelp.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/dogeYelp.wav,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/dogeYelp.wav,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/inuconBite.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/inuconBite.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/inuconBite.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/inuconBite.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/inuconHeal.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/inuconHeal.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/inuconHeal.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/inuconHeal.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/matildaDash.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/matildaDash.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/matildaDash.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/matildaDash.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/matildaDeath.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/matildaDeath.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/matildaDeath.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/matildaDeath.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/matildaLaugh.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/matildaLaugh.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/matildaLaugh.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/matildaSpawn.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/matildaSpawn.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/matildaSpawn.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieChargeRoar.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieChargeRoar.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieChargeRoar.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieChargeRoar.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieDeathBellow.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieDeathBellow.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieDeathBellow.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieDeathBellow.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieDeathGrunt.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieDeathGrunt.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieDeathGrunt.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieDeathGrunt.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieDeathGurgle.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieDeathGurgle.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieDeathGurgle.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieDeathGurgle.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieDeathHeavy.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieDeathHeavy.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieDeathHeavy.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieDeathHeavy.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieDeathShriek.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieDeathShriek.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieDeathShriek.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieDeathShriek.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieGiantThud.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieGiantThud.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieGiantThud.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieGiantThud.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieGroan.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieGroan.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieGroan.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieGroan.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieRangedShoot.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieRangedShoot.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieRangedShoot.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieRangedShoot.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieRunnerScreech.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieRunnerScreech.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieRunnerScreech.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieRunnerScreech.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieSpawn.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieSpawn.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieSpawn.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieSpawn.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieTankGroan.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieTankGroan.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/enemies/zombieTankGroan.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/enemies/zombieTankGroan.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/bossClearJingle.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/bossClearJingle.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/bossClearJingle.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/bossClearJingle.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/bossSpawn.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/bossSpawn.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/bossSpawn.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/bossSpawn.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/bossWarning.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/bossWarning.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/bossWarning.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/bossWarning.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/chestDrop.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/chestDrop.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/chestDrop.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/chestDrop.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/chestOpen.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/chestOpen.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/chestOpen.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/chestOpen.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/criticalHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/criticalHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/criticalHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/criticalHit.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/escapePortalClear.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/escapePortalClear.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/escapePortalClear.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/escapePortalClear.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/matildaCountdownEnd.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/matildaCountdownEnd.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/matildaCountdownEnd.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/matildaCountdownEnd.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/matildaWarningTick.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/matildaWarningTick.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/matildaWarningTick.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/matildaWarningTick.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/milestoneGold.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/milestoneGold.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/milestoneGold.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/milestoneGold.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/portalAppear.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/portalAppear.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/portalAppear.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/portalAppear.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/portalSuction.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/portalSuction.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/portalSuction.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/portalSuction.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/rzlWhistle.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/rzlWhistle.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/rzlWhistle.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/rzlWhistle.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/stage2GuardWhistle.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/stage2GuardWhistle.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/stage2GuardWhistle.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/stage2GuardWhistle.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/stage2GuardWhistle.wav,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/stage2GuardWhistle.wav,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/textbookLand.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/textbookLand.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/events/textbookLand.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/events/textbookLand.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/player/playerDeath.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/player/playerDeath.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/player/playerDeath.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/player/playerDeath.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/player/playerHeal.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/player/playerHeal.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/player/playerHeal.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/player/playerHeal.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/player/playerHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/player/playerHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/player/playerHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/player/playerHit.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/player/playerStep.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/player/playerStep.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/player/playerStep.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/player/playerStep.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/ui/buttonClick.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/ui/buttonClick.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/ui/buttonClick.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/ui/buttonClick.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/ui/coinCollect.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/ui/coinCollect.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/ui/coinCollect.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/ui/coinCollect.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/ui/gameOver.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/ui/gameOver.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/ui/gameOver.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/ui/gameOver.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/ui/levelUp.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/ui/levelUp.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/ui/levelUp.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/ui/levelUp.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/ui/stageClear.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/ui/stageClear.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/ui/stageClear.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/ui/stageClear.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/ui/textbookCollect.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/ui/textbookCollect.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/ui/textbookCollect.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/ui/textbookCollect.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/bellFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/bellFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/bellFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/bellFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/bellHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/bellHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/bellHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/bellHit.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/bikittyCutterFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/bikittyCutterFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/bikittyCutterFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/bikittyCutterFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/bikittyCutterReload.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/bikittyCutterReload.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/bikittyCutterReload.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/bikittyCutterReload.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/bikittyCutterSnap.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/bikittyCutterSnap.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/bikittyCutterSnap.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/bikittyCutterSnap.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/boxCutterFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/boxCutterFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/boxCutterFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/boxCutterFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/boxCutterHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/boxCutterHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/boxCutterHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/boxCutterHit.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/chibikoFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/chibikoFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/chibikoFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/chibikoFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/chibikoHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/chibikoHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/chibikoHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/chibikoHit.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/compassFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/compassFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/compassFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/compassFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/compassHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/compassHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/compassHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/compassHit.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/compassQuack.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/compassQuack.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/compassQuack.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/compassQuack.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/eraserFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/eraserFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/eraserFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/eraserFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/eraserHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/eraserHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/eraserHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/eraserHit.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/flaskFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/flaskFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/flaskFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/flaskFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/flaskHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/flaskHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/flaskHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/flaskHit.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/flaskTick.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/flaskTick.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/flaskTick.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/flaskTick.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/lanternFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/lanternFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/lanternFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/lanternFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/lanternTick.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/lanternTick.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/lanternTick.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/lanternTick.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/lineDrawCross.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/lineDrawCross.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/lineDrawCross.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/lineDrawCross.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/lineDrawExpire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/lineDrawExpire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/lineDrawExpire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/lineDrawExpire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/lineDrawSlash.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/lineDrawSlash.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/lineDrawSlash.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/lineDrawSlash.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/missileFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/missileFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/missileFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/missileFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/missileHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/missileHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/missileHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/missileHit.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/onigiriFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/onigiriFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/onigiriFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/onigiriFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/onigiriHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/onigiriHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/onigiriHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/onigiriHit.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/pencilFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/pencilFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/pencilFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/pencilFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/pencilHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/pencilHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/pencilHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/pencilHit.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/rulerFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/rulerFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/rulerFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/rulerFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/rulerHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/rulerHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/rulerHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/rulerHit.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/sharkFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/sharkFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/sharkFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/sharkFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/sharkHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/sharkHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/sharkHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/sharkHit.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/starlinkExplosion.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/starlinkExplosion.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/starlinkExplosion.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/starlinkExplosion.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/starlinkFall.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/starlinkFall.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/starlinkFall.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/starlinkFall.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/starlinkFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/starlinkFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/starlinkFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/starlinkFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/starlinkHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/starlinkHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/starlinkHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/starlinkHit.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/stunGunFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/stunGunFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/stunGunFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/stunGunFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/stunGunHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/stunGunHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/stunGunHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/stunGunHit.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/tumblerFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/tumblerFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/tumblerFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/tumblerFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/tumblerHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/tumblerHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/tumblerHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/tumblerHit.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/umbrellaFire.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/umbrellaFire.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/umbrellaFire.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/umbrellaFire.ogg,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/umbrellaHit.mp3,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/umbrellaHit.mp3,사용 미확인
+runtime/audio,Developer/r3f_prototype/public/sfx/weapons/umbrellaHit.ogg,Graphic_designer/game_resource_library/runtime/audio/public/sfx/weapons/umbrellaHit.ogg,사용 미확인
+source-art/graphic_asset,Graphic_designer/graphic_asset/game_icon_512.png,Graphic_designer/game_resource_library/source-art/graphic_asset/game_icon_512.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/background_floor/stage01_concept.png.png,Graphic_designer/game_resource_library/source-art/graphic_asset/background_floor/stage01_concept.png.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/background_floor/stage02_corridor_end_wall.png,Graphic_designer/game_resource_library/source-art/graphic_asset/background_floor/stage02_corridor_end_wall.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/background_floor/stage02_resource.png.png,Graphic_designer/game_resource_library/source-art/graphic_asset/background_floor/stage02_resource.png.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/background_floor/tile_stage01.png.png,Graphic_designer/game_resource_library/source-art/graphic_asset/background_floor/tile_stage01.png.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/background_floor/tile_stage02_corridor.png,Graphic_designer/game_resource_library/source-art/graphic_asset/background_floor/tile_stage02_corridor.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/boss_etc/boss2_512.png,Graphic_designer/game_resource_library/source-art/graphic_asset/boss_etc/boss2_512.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/boss_etc/ChatGPT Image 2026년 7월 18일 오후 10_18_04.png,Graphic_designer/game_resource_library/source-art/graphic_asset/boss_etc/ChatGPT Image 2026년 7월 18일 오후 10_18_04.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/boss_etc/matilda_authentic.jpg,Graphic_designer/game_resource_library/source-art/graphic_asset/boss_etc/matilda_authentic.jpg,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/boss_etc/matilda_conversation.png,Graphic_designer/game_resource_library/source-art/graphic_asset/boss_etc/matilda_conversation.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/boss_etc/texture_boss01.png,Graphic_designer/game_resource_library/source-art/graphic_asset/boss_etc/texture_boss01.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/boss_etc/texture_boss02.png,Graphic_designer/game_resource_library/source-art/graphic_asset/boss_etc/texture_boss02.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/boss_etc/texture_boss04.png,Graphic_designer/game_resource_library/source-art/graphic_asset/boss_etc/texture_boss04.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/boss_etc/스테이지2_보스_원화_2026-07-17_1452.webp,Graphic_designer/game_resource_library/source-art/graphic_asset/boss_etc/스테이지2_보스_원화_2026-07-17_1452.webp,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/coin_upgrade_icon/Mask group (1).png,Graphic_designer/game_resource_library/source-art/graphic_asset/coin_upgrade_icon/Mask group (1).png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/coin_upgrade_icon/Mask group (2).png,Graphic_designer/game_resource_library/source-art/graphic_asset/coin_upgrade_icon/Mask group (2).png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/coin_upgrade_icon/Mask group (3).png,Graphic_designer/game_resource_library/source-art/graphic_asset/coin_upgrade_icon/Mask group (3).png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/coin_upgrade_icon/Mask group (4).png,Graphic_designer/game_resource_library/source-art/graphic_asset/coin_upgrade_icon/Mask group (4).png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/coin_upgrade_icon/Mask group.png,Graphic_designer/game_resource_library/source-art/graphic_asset/coin_upgrade_icon/Mask group.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/game_illustration/ChatGPT Image 2026년 5월 17일 오후 05_56_49.png,Graphic_designer/game_resource_library/source-art/graphic_asset/game_illustration/ChatGPT Image 2026년 5월 17일 오후 05_56_49.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/game_illustration/ChatGPT Image 2026년 5월 17일 오후 06_00_53.png,Graphic_designer/game_resource_library/source-art/graphic_asset/game_illustration/ChatGPT Image 2026년 5월 17일 오후 06_00_53.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/game_illustration/ChatGPT Image 2026년 5월 17일 오후 06_06_38.png,Graphic_designer/game_resource_library/source-art/graphic_asset/game_illustration/ChatGPT Image 2026년 5월 17일 오후 06_06_38.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/game_illustration/google_regist_1024500_en.png,Graphic_designer/game_resource_library/source-art/graphic_asset/game_illustration/google_regist_1024500_en.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/game_illustration/horizon_jllust_google_regist.png,Graphic_designer/game_resource_library/source-art/graphic_asset/game_illustration/horizon_jllust_google_regist.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/game_illustration/스크린샷 2026-05-16 002236.png,Graphic_designer/game_resource_library/source-art/graphic_asset/game_illustration/스크린샷 2026-05-16 002236.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/game_illustration/스크린샷 2026-05-17 175628.png,Graphic_designer/game_resource_library/source-art/graphic_asset/game_illustration/스크린샷 2026-05-17 175628.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/game_logo/Game_logo_en.png,Graphic_designer/game_resource_library/source-art/graphic_asset/game_logo/Game_logo_en.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/game_logo/logo.png,Graphic_designer/game_resource_library/source-art/graphic_asset/game_logo/logo.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/texture/Mask group (5).png,Graphic_designer/game_resource_library/source-art/graphic_asset/texture/Mask group (5).png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/tile_assets/tile_school_interior_floor.svg,Graphic_designer/game_resource_library/source-art/graphic_asset/tile_assets/tile_school_interior_floor.svg,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_icon/01_wea_pencil.png.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_icon/01_wea_pencil.png.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_icon/02_wea_30ruller.png.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_icon/02_wea_30ruller.png.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_icon/03_wea_tumbler.png.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_icon/03_wea_tumbler.png.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_icon/04_wea_science.png.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_icon/04_wea_science.png.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_icon/05_wea_bell.png.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_icon/05_wea_bell.png.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_icon/06_wea_stungun.png.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_icon/06_wea_stungun.png.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_icon/07_wea_onigiri.png.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_icon/07_wea_onigiri.png.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_icon/08_wea_extrabattery.png.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_icon/08_wea_extrabattery.png.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_icon/09_wea_starlink.png.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_icon/09_wea_starlink.png.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_icon/10_wea_compass.png.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_icon/10_wea_compass.png.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_icon/11_wea_umb.png.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_icon/11_wea_umb.png.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_icon/12_wea_eraser.png.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_icon/12_wea_eraser.png.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_graphics/01_pencilThrow/original_icon.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_graphics/01_pencilThrow/original_icon.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_graphics/02_schoolBag/original_icon.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_graphics/02_schoolBag/original_icon.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_graphics/03_tumbler/original_icon.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_graphics/03_tumbler/original_icon.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_graphics/04_scienceFlask/original_icon.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_graphics/04_scienceFlask/original_icon.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_graphics/05_bell/original_icon.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_graphics/05_bell/original_icon.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_graphics/06_stunGun/original_icon.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_graphics/06_stunGun/original_icon.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_graphics/07_onigiri/original_icon.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_graphics/07_onigiri/original_icon.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_graphics/08_extraBattery/original_icon.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_graphics/08_extraBattery/original_icon.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_graphics/09_starlink/original_icon.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_graphics/09_starlink/original_icon.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_graphics/10_compassBlade/original_icon.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_graphics/10_compassBlade/original_icon.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_graphics/11_umbrellaGuard/original_icon.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_graphics/11_umbrellaGuard/original_icon.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_graphics/12_eraserBomb/original_icon.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_graphics/12_eraserBomb/original_icon.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_graphics/14_shark_missile/original_icon.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_graphics/14_shark_missile/original_icon.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_graphics/14_shark_missile/concept/shark_missile_concept_2026-06-09.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_graphics/14_shark_missile/concept/shark_missile_concept_2026-06-09.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_graphics/14_shark_missile/concept/shark_missile_extreme_lowpoly_concept_2026-06-09.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_graphics/14_shark_missile/concept/shark_missile_extreme_lowpoly_concept_2026-06-09.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/weapon_graphics/14_shark_missile/concept/shark_missile_lowpoly_concept_2026-06-09.png,Graphic_designer/game_resource_library/source-art/graphic_asset/weapon_graphics/14_shark_missile/concept/shark_missile_lowpoly_concept_2026-06-09.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/background_floor/4stage/ChatGPT Image 2026년 7월 26일 오후 02_03_56.png,Graphic_designer/game_resource_library/source-art/graphic_asset/background_floor/4stage/ChatGPT Image 2026년 7월 26일 오후 02_03_56.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/background_floor/4stage/stage4_prop.png,Graphic_designer/game_resource_library/source-art/graphic_asset/background_floor/4stage/stage4_prop.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/graphic_asset,Graphic_designer/graphic_asset/background_floor/4stage/stage_4_tile.png,Graphic_designer/game_resource_library/source-art/graphic_asset/background_floor/4stage/stage_4_tile.png,"원화/참고 자료, 런타임 사용 미확인"
+source-art/stage-comic-backdrops,Graphic_designer/stage_comic_mobile_backgrounds_2026-09-12/01_stage1_classroom.png,Graphic_designer/game_resource_library/source-art/stage_comic_mobile_backgrounds/01_stage1_classroom.png,"기존 배경 참고 자료, 런타임 사용 미확인"
+source-art/stage-comic-backdrops,Graphic_designer/stage_comic_mobile_backgrounds_2026-09-12/01_stage1_classroom.webp,Graphic_designer/game_resource_library/source-art/stage_comic_mobile_backgrounds/01_stage1_classroom.webp,"기존 배경 참고 자료, 런타임 사용 미확인"
+source-art/stage-comic-backdrops,Graphic_designer/stage_comic_mobile_backgrounds_2026-09-12/02_stage2_corridor.png,Graphic_designer/game_resource_library/source-art/stage_comic_mobile_backgrounds/02_stage2_corridor.png,"기존 배경 참고 자료, 런타임 사용 미확인"
+source-art/stage-comic-backdrops,Graphic_designer/stage_comic_mobile_backgrounds_2026-09-12/02_stage2_corridor.webp,Graphic_designer/game_resource_library/source-art/stage_comic_mobile_backgrounds/02_stage2_corridor.webp,"기존 배경 참고 자료, 런타임 사용 미확인"
+source-art/stage-comic-backdrops,Graphic_designer/stage_comic_mobile_backgrounds_2026-09-12/03_stage3_gym.png,Graphic_designer/game_resource_library/source-art/stage_comic_mobile_backgrounds/03_stage3_gym.png,"기존 배경 참고 자료, 런타임 사용 미확인"
+source-art/stage-comic-backdrops,Graphic_designer/stage_comic_mobile_backgrounds_2026-09-12/03_stage3_gym.webp,Graphic_designer/game_resource_library/source-art/stage_comic_mobile_backgrounds/03_stage3_gym.webp,"기존 배경 참고 자료, 런타임 사용 미확인"
+source-art/stage-comic-backdrops,Graphic_designer/stage_comic_mobile_backgrounds_2026-09-12/04_stage4_cafeteria.png,Graphic_designer/game_resource_library/source-art/stage_comic_mobile_backgrounds/04_stage4_cafeteria.png,"기존 배경 참고 자료, 런타임 사용 미확인"
+source-art/stage-comic-backdrops,Graphic_designer/stage_comic_mobile_backgrounds_2026-09-12/04_stage4_cafeteria.webp,Graphic_designer/game_resource_library/source-art/stage_comic_mobile_backgrounds/04_stage4_cafeteria.webp,"기존 배경 참고 자료, 런타임 사용 미확인"
+source-art/stage-comic-backdrops,Graphic_designer/stage_comic_mobile_backgrounds_2026-09-12/05_school_exit_finale.png,Graphic_designer/game_resource_library/source-art/stage_comic_mobile_backgrounds/05_school_exit_finale.png,"기존 배경 참고 자료, 런타임 사용 미확인"
+source-art/stage-comic-backdrops,Graphic_designer/stage_comic_mobile_backgrounds_2026-09-12/05_school_exit_finale.webp,Graphic_designer/game_resource_library/source-art/stage_comic_mobile_backgrounds/05_school_exit_finale.webp,"기존 배경 참고 자료, 런타임 사용 미확인"
+reference/style-variants,marketing/x_daily_zombie_school_posting/image_pool/en-moe-v2.png,Graphic_designer/game_resource_library/references/style_variants/en-moe-v2.png,"기존 스타일 후보, 선택 미결정; 게임 런타임 사용 미확인"
+reference/style-variants,marketing/x_daily_zombie_school_posting/image_pool/en-x-1.91.png,Graphic_designer/game_resource_library/references/style_variants/en-x-1.91.png,"기존 스타일 후보, 선택 미결정; 게임 런타임 사용 미확인"
+reference/style-variants,marketing/x_daily_zombie_school_posting/image_pool/en.png,Graphic_designer/game_resource_library/references/style_variants/en.png,"기존 스타일 후보, 선택 미결정; 게임 런타임 사용 미확인"
+reference/style-variants,marketing/x_daily_zombie_school_posting/image_pool/ja-moe-v2.png,Graphic_designer/game_resource_library/references/style_variants/ja-moe-v2.png,"기존 스타일 후보, 선택 미결정; 게임 런타임 사용 미확인"
+reference/style-variants,marketing/x_daily_zombie_school_posting/image_pool/ja-x-1.91.png,Graphic_designer/game_resource_library/references/style_variants/ja-x-1.91.png,"기존 스타일 후보, 선택 미결정; 게임 런타임 사용 미확인"
+reference/style-variants,marketing/x_daily_zombie_school_posting/image_pool/ja.png,Graphic_designer/game_resource_library/references/style_variants/ja.png,"기존 스타일 후보, 선택 미결정; 게임 런타임 사용 미확인"
+reference/style-variants,marketing/x_daily_zombie_school_posting/image_pool/vi-x-1.91.png,Graphic_designer/game_resource_library/references/style_variants/vi-x-1.91.png,"기존 스타일 후보, 선택 미결정; 게임 런타임 사용 미확인"
+reference/style-variants,marketing/x_daily_zombie_school_posting/image_pool/vi.png,Graphic_designer/game_resource_library/references/style_variants/vi.png,"기존 스타일 후보, 선택 미결정; 게임 런타임 사용 미확인"
+source-audio/stage-bgm-drafts,Developer/stage_bgm_drafts_2026-08-06/masters/stage1_classroom_toy_rescue_loop_draft.wav,Graphic_designer/game_resource_library/source-audio/stage-bgm-drafts/stage1_classroom_toy_rescue_loop_draft.wav,"초안 원본, 런타임 사용 아님"
+source-audio/stage-bgm-drafts,Developer/stage_bgm_drafts_2026-08-06/masters/stage2_corridor_sports_arcade_loop_draft.wav,Graphic_designer/game_resource_library/source-audio/stage-bgm-drafts/stage2_corridor_sports_arcade_loop_draft.wav,"초안 원본, 런타임 사용 아님"
