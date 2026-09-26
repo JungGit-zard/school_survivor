@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import ErrorBoundary from './ErrorBoundary.jsx'
+import TapFeedbackBurst from './TapFeedbackBurst.jsx'
 import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { initPlaytestLogger } from '../lib/playtestLogger.js'
 import { isMobileJoystickEnvironment } from '../lib/mobileInput.js'
@@ -122,6 +123,7 @@ export default function ReadyGameApp({
   return (
     <div style={styles.viewport}>
       <ErrorBoundary fallback={null}>
+        <TapFeedbackBurst />
         <Suspense fallback={null}><SfxLayer /></Suspense>
       </ErrorBoundary>
       <div ref={phoneFrameRef} style={styles.phoneFrame}>
