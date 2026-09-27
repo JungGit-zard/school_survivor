@@ -230,7 +230,7 @@ function QuestNoticeSymbolMaterial({ color }) {
 function QuestNoticeGlow({ color }) {
   return (
     <group name="quest-notice-symbol-glow">
-      <pointLight color={color} intensity={1.25} distance={2.4} decay={2} />
+      <pointLight color={color} intensity={1.25} distance={1.2} decay={2} />
       <mesh position={[0, 0.02, -0.035]}>
         <sphereGeometry args={[0.72, 16, 10]} />
         <meshBasicMaterial color={color} transparent opacity={0.16} depthWrite={false} blending={THREE.AdditiveBlending} />
@@ -283,16 +283,8 @@ function QuestQuestionSymbol({ color }) {
         <tubeGeometry args={[QUEST_QUESTION_MARK_CURVE, 48, QUEST_QUESTION_MARK_TUBE_RADIUS, 10, false]} />
         <QuestNoticeSymbolMaterial color={color} />
       </mesh>
-      <mesh position={[0.17, 0.08, 0]} rotation={[0, 0, 0.72]}>
-        <capsuleGeometry args={[0.074, 0.28, 4, 8]} />
-        <QuestNoticeSymbolMaterial color={color} />
-      </mesh>
-      <mesh position={[0.03, -0.16, 0]} rotation={[0, 0, -0.18]}>
-        <capsuleGeometry args={[0.074, 0.22, 4, 8]} />
-        <QuestNoticeSymbolMaterial color={color} />
-      </mesh>
-      <mesh position={[0, -0.48, 0]}>
-        <sphereGeometry args={[0.115, 14, 10]} />
+      <mesh name="quest-question-separated-dot" position={QUEST_QUESTION_MARK_DOT_POSITION}>
+        <sphereGeometry args={[QUEST_QUESTION_MARK_DOT_RADIUS, 14, 10]} />
         <QuestNoticeSymbolMaterial color={color} />
       </mesh>
     </group>
@@ -313,13 +305,12 @@ export function QuestNoticeMarker({ position, symbol = '!', color = 0xffd84a }) 
   useFrame(({ clock }, delta) => {
     if (!groupRef.current) return
     const elapsed = clock.getElapsedTime()
-    groupRef.current.position.y = baseY + Math.sin(elapsed * 2.8) * 0.18
+    groupRef.current.position.y = baseY + Math.sin(elapsed * 1.4) * 0.09
     groupRef.current.visible = true
-    const scale = 1 + Math.max(0, Math.sin(elapsed * 4.8)) * 0.08
-    groupRef.current.scale.setScalar(scale)
+    groupRef.current.scale.setScalar(0.5 + Math.max(0, Math.sin(elapsed * 2.4)) * 0.04)
     if (symbolRef.current) {
-      symbolRef.current.rotation.y += delta * 0.42
-      symbolRef.current.rotation.z = Math.sin(elapsed * 2.1) * 0.045
+      symbolRef.current.rotation.y += delta * 0.21
+      symbolRef.current.rotation.z = Math.sin(elapsed * 1.05) * 0.0225
     }
   })
 

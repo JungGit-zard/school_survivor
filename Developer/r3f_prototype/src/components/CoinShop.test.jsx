@@ -37,6 +37,27 @@ describe('CoinShop', () => {
     expect(html).toContain('타이틀로 돌아가기')
   })
 
+
+
+  it('marks shop filter tabs with semantic selected state and glyph cues', () => {
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+
+    act(() => {
+      root.render(<CoinShop onBack={() => {}} />)
+    })
+
+    const tabs = Array.from(container.querySelectorAll('[role="group"] button'))
+    expect(tabs.map((button) => button.getAttribute('aria-pressed'))).toEqual(['true', 'false'])
+    expect(tabs[0].getAttribute('data-panel-state')).toBe('selected')
+    expect(tabs[0].textContent).toContain('●')
+    expect(tabs[1].textContent).toContain('○')
+
+    act(() => root.unmount())
+    container.remove()
+  })
+
   it('keeps the passive purchase flow working from the redesigned button', () => {
     const onBack = vi.fn()
     const container = document.createElement('div')
@@ -81,7 +102,7 @@ describe('CoinShop', () => {
     })
     act(() => {
       Array.from(container.querySelectorAll('button'))
-        .find((button) => button.textContent === '무기 강화')
+        .find((button) => button.textContent.includes('무기 강화'))
         .dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
 
@@ -118,7 +139,7 @@ describe('CoinShop', () => {
     })
     act(() => {
       Array.from(container.querySelectorAll('button'))
-        .find((button) => button.textContent === '무기 강화')
+        .find((button) => button.textContent.includes('무기 강화'))
         .dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
     act(() => {

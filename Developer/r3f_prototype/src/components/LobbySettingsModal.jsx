@@ -10,6 +10,14 @@ import { useAuthStore } from '../store/useAuthStore.js'
 import { deleteAccountAndData, reauthenticateForDeletion } from '../lib/accountDeletion.js'
 import { TERMS_TITLE, TERMS_TEXT, PRIVACY_TITLE, PRIVACY_TEXT } from '../lib/legalDocuments.js'
 
+const panelTone = {
+  navy: '#18372f',
+  sky: uiPalette.cta,
+  amber: uiPalette.reward,
+  green: uiPalette.infection,
+  violet: '#b996ff',
+}
+
 const DELETE_ERROR_KEYS = new Set([
   'reauthRequired', 'unauthenticated', 'network', 'progressDeleteFailed', 'unknown',
 ])
@@ -241,7 +249,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
                 <strong style={styles.rowTitle}>{t('settings.vibration')}</strong>
                 <span style={styles.rowDescription}>{t('settings.vibrationDesc')}</span>
               </span>
-              <span style={styles.toggleTrack(settings.vibration)}>
+              <span data-panel-state={settings.vibration ? 'enabled' : 'disabled'} style={styles.toggleTrack(settings.vibration)}>
                 <span style={styles.toggleKnob(settings.vibration)} />
               </span>
             </button>
@@ -256,7 +264,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
                 <strong style={styles.rowTitle}>{t('settings.reducedEffects')}</strong>
                 <span style={styles.rowDescription}>{t('settings.reducedEffectsDesc')}</span>
               </span>
-              <span style={styles.toggleTrack(settings.reducedEffects)}>
+              <span data-panel-state={settings.reducedEffects ? 'enabled' : 'disabled'} style={styles.toggleTrack(settings.reducedEffects)}>
                 <span style={styles.toggleKnob(settings.reducedEffects)} />
               </span>
             </button>
@@ -271,7 +279,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
                 <strong style={styles.rowTitle}>{t('settings.hitShake')}</strong>
                 <span style={styles.rowDescription}>{t('settings.hitShakeDesc')}</span>
               </span>
-              <span style={styles.toggleTrack(settings.hitCameraShake)}>
+              <span data-panel-state={settings.hitCameraShake ? 'enabled' : 'disabled'} style={styles.toggleTrack(settings.hitCameraShake)}>
                 <span style={styles.toggleKnob(settings.hitCameraShake)} />
               </span>
             </button>
@@ -286,7 +294,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
                 <strong style={styles.rowTitle}>{t('settings.scientific')}</strong>
                 <span style={styles.rowDescription}>{t('settings.scientificDesc')}</span>
               </span>
-              <span style={styles.toggleTrack(settings.scientificNotation)}>
+              <span data-panel-state={settings.scientificNotation ? 'enabled' : 'disabled'} style={styles.toggleTrack(settings.scientificNotation)}>
                 <span style={styles.toggleKnob(settings.scientificNotation)} />
               </span>
             </button>
@@ -380,9 +388,10 @@ const styles = {
     ...schoolPanel('dark'),
     position: 'relative',
     width: 'min(100% - 28px, 420px)',
-    maxHeight: 'min(84%, 600px)',
+    maxHeight: 'min(calc(100dvh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)), 620px)',
     overflowY: 'auto',
     padding: 14,
+    borderTop: `6px solid ${panelTone.sky}`,
     boxSizing: 'border-box',
   },
   modalHeader: {
@@ -394,13 +403,13 @@ const styles = {
   },
   modalTitle: {
     margin: 0,
-    fontSize: 18,
+    fontSize: 20,
     lineHeight: 1,
     fontWeight: uiType.weightHeavy,
   },
   closeButton: {
-    width: 34,
-    height: 34,
+    width: 44,
+    height: 44,
     display: 'grid',
     placeItems: 'center',
     border: uiBorders.strong,
@@ -413,7 +422,7 @@ const styles = {
   },
   sectionLabel: {
     margin: '11px 0 7px',
-    color: uiPalette.reward,
+    color: panelTone.amber,
     fontSize: 12,
     fontWeight: uiType.weightStrong,
   },
@@ -428,7 +437,7 @@ const styles = {
     marginBottom: 7,
     border: uiBorders.strong,
     borderRadius: 8,
-    background: uiPalette.chalkboard,
+    background: `linear-gradient(180deg, ${panelTone.navy}, ${uiPalette.chalkboardDeep})`,
     color: uiPalette.paperLight,
     textAlign: 'left',
     cursor: 'pointer',
@@ -460,7 +469,7 @@ const styles = {
     padding: '0 7px',
     border: uiBorders.strong,
     borderRadius: 8,
-    background: active ? uiPalette.cta : uiPalette.paperLight,
+    background: active ? panelTone.sky : uiPalette.paperLight,
     color: uiPalette.ink,
     fontSize: 11,
     lineHeight: 1.1,
@@ -540,7 +549,7 @@ const styles = {
     padding: 3,
     border: uiBorders.strong,
     borderRadius: 999,
-    background: enabled ? uiPalette.cta : '#5d5668',
+    background: enabled ? panelTone.green : panelTone.violet,
     boxSizing: 'border-box',
   }),
   toggleKnob: (enabled) => ({

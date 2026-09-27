@@ -74,6 +74,15 @@ describe('TitleScene3D direction', () => {
     })
   })
 
+  it('puts standing students behind the title weapons and zombie layers', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+    const studentBlock = source.match(/const TITLE_STANDING_STUDENTS = \[[\s\S]*?\n\]/)?.[0]
+    const studentZs = [...studentBlock.matchAll(/position: \[[^,]+, [^,]+, (-?\d+(?:\.\d+)?)\]/g)].map((match) => Number(match[1]))
+
+    expect(studentZs).toEqual([-8.8, -9.1, -8.6])
+    expect(studentZs.every((z) => z < -8.0)).toBe(true)
+  })
+
   it('keeps the blue and purple light beams while removing fixtures and lens squares', () => {
     const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
 
@@ -162,10 +171,40 @@ describe('TitleScene3D direction', () => {
 
     expect(source).toContain("import { CompassBladeModel } from './Weapons/CompassBlade.jsx'")
     expect(source).toContain("import { ChibikoModel } from './Weapons/Chibiko.jsx'")
+    expect(source).toContain('duckRef.current.scale.set(1.05, 1.05 * (1 + breath), 1.05)')
+    expect(source).toContain('Math.sin(clock.elapsedTime * 1.7) * 0.014')
+    expect(source).toContain('ref={duckRef} position={[-0.22, 0.2, 0.82]}')
     expect(source).toContain('position={[-0.22, 0.2, 0.82]}')
     expect(source).toContain('<CompassBladeModel />')
     expect(source).toContain('<ChibikoModel attackPhaseRef={chibikoAttackPhaseRef} />')
     expect(source).toContain('<TitleCompanions />')
+  })
+
+  it('poses three shared student models upright across the visible foreground floor', () => {
+    const source = readFileSync(new URL('./TitleScene3D.jsx', import.meta.url), 'utf8')
+    const students = [...source.matchAll(/\{ position: \[([^\]]+)\], rotationY: ([^ }]+) \}/g)]
+
+    expect(students).toHaveLength(3)
+    expect(source).toContain('rotation={[0, rotationY, 0]}')
+    expect(source).toContain('<group rotation={[-Math.PI / 2, 0, 0]}>')
+    expect(source).toContain('<UnconsciousStudent variant="faceUp" />')
+    expect(source).not.toContain('<UnconsciousStudent variant="sideLeft" />')
+    expect(source).toContain('scale={0.4}')
+
+    students.forEach(([, positionText, rotationYText]) => {
+      const [, y] = positionText.split(',').map(Number)
+      const heading = Number(rotationYText)
+      const composedRotation = new THREE.Matrix4()
+        .makeRotationFromEuler(new THREE.Euler(0, heading, 0))
+        .multiply(new THREE.Matrix4().makeRotationX(-Math.PI / 2))
+        .multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2))
+      const up = new THREE.Vector3(0, 1, 0).applyMatrix4(composedRotation)
+
+      expect(up.x).toBeCloseTo(0)
+      expect(up.y).toBeCloseTo(1)
+      expect(up.z).toBeCloseTo(0)
+      expect(y - (0.9 * 0.4)).toBeCloseTo(0.01)
+    })
   })
 
   it('restores the far-background models below the blue and purple lights', () => {

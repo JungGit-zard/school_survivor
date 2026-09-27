@@ -493,8 +493,8 @@ function B03PhysicalEducationBossMesh({ hitFlash, reg, bossFaceRecipe }) {
         <ZBlock name="b01Body" size={[0.76, 0.64, 0.46]} position={[0, 0, 0]} color={pal.jersey} emissive={0.06} outlineScale={1.08} flash={hitFlash} />
         <ZBlock name="b01ChestL" size={[0.30, 0.22, 0.09]} position={[-0.18, 0.15, 0.27]} color={pal.jerseyShadow} emissive={0.04} outlineScale={1.02} flash={hitFlash} />
         <ZBlock name="b01ChestR" size={[0.30, 0.22, 0.09]} position={[0.18, 0.15, 0.27]} color={pal.jerseyShadow} emissive={0.04} outlineScale={1.02} flash={hitFlash} />
-        <ZBlock name="b01JerseyVLeft" size={[0.07, 0.46, 0.05]} position={[-0.13, 0.02, 0.275]} rotation={[0, 0, 0.36]} color={pal.jerseyStripe} emissive={0.06} outlineScale={1.0} flash={hitFlash} />
-        <ZBlock name="b01JerseyVRight" size={[0.07, 0.46, 0.05]} position={[0.13, 0.02, 0.275]} rotation={[0, 0, -0.36]} color={pal.jerseyStripe} emissive={0.06} outlineScale={1.0} flash={hitFlash} />
+        <group name="b01JerseyVLeft" />
+        <group name="b01JerseyVRight" />
         {/* 목의 빨간 끈+호루라기는 얼굴 텍스처에 포함되어 중복되므로 3D 호루라기 파츠 제거 */}
       </group>
 
@@ -839,9 +839,9 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     const b03ChargeTorsoLift = titleB03Charge
       ? Math.sin(bodyTiltX) * 0.23
       : 0
-    const b03TitleShortsLift = titleB03Charge ? 0.44 : 0
+    const b03TitleShortsLift = titleB03Charge ? 0.50 : 0
     const b03TitleLegLift = titleB03Charge ? 0.12 : 0
-    const b03TitleLegSpread = titleB03Charge ? 0.10 : 0
+    const b03TitleLegSpread = titleB03Charge ? 0.04 : 0
     if (pt.body) pt.body.position.y = composeStudioPartPosition(pt.body, 'y', 0.28, b03ChargeTorsoLift)
     if (pt.shorts) pt.shorts.position.y = composeStudioPartPosition(pt.shorts, 'y', -0.17, b03TitleShortsLift)
     if (pt.legL) {
@@ -995,7 +995,7 @@ export default function ZombieMesh({ type = 'E01', animPhase = 'normal', hitFlas
     const freq = type === 'B02' ? 6.2 : type === 'E02' ? 9.0 : type === 'E03' ? 5.0 : 7.0
     const amp  = type === 'B02'
       ? (animPhase === 'charge' ? 0.46 : 0.30)
-      : (titleRunPose && type === 'B03' && animPhase === 'charge' ? 0.38 : (animPhase === 'charge' ? 0.55 : 0.38))
+      : (titleRunPose && type === 'B03' && animPhase === 'charge' ? 0.30 : (animPhase === 'charge' ? 0.55 : 0.38))
     const sw   = Math.sin(t * freq) * amp
     a.legLRotX = sw
     pt.legL.rotation.x = composeZombieRotation(pt.legL, 'x', a.legLRotX)

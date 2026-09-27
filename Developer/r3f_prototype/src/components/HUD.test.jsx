@@ -285,6 +285,34 @@ describe('student dialogue IDs', () => {
       act(() => { root.unmount() })
     }
   })
+
+  it('shows a quest item acquisition popup once, then opens the quest inventory', () => {
+    vi.useFakeTimers()
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        useGameStore.setState({ phase: 'playing', questToast: { type: 'item', questId: 'stage1-talk-book' } })
+        root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
+      })
+
+      const popup = container.querySelector('[data-testid="quest-item-popup"]')
+      expect(popup).not.toBeNull()
+      expect(popup.textContent).toContain('말빨기술책을 얻었습니다.')
+      expect(popup.querySelector('svg')).not.toBeNull()
+
+      act(() => {
+        vi.advanceTimersByTime(2000)
+      })
+
+      expect(container.querySelector('[data-testid="quest-item-popup"]')).toBeNull()
+      expect(useGameStore.getState()).toMatchObject({ phase: 'paused', pauseSource: 'quest' })
+      expect(container.querySelector('#quest-inventory-panel')).not.toBeNull()
+    } finally {
+      act(() => { root.unmount() })
+    }
+  })
 })
 
 describe('active weapon HUD icons', () => {

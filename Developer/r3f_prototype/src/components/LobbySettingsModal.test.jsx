@@ -178,6 +178,23 @@ describe('LobbySettingsModal', () => {
     view.unmount()
   })
 
+
+
+  it('pairs toggle color with semantic enabled and disabled states', async () => {
+    useAuthStore.setState({
+      status: 'signedIn',
+      user: { uid: 'toggle-state-user' },
+      signOutOfGoogle: vi.fn(async () => {}),
+    })
+    const view = renderSettings()
+
+    expect(view.container.querySelector('[data-panel-state="enabled"]')).not.toBeNull()
+    await clickButtonByLabel(view.container, '진동 끄기')
+    expect(view.container.querySelector('[data-panel-state="disabled"]')).not.toBeNull()
+
+    view.unmount()
+  })
+
   it('closes from the close control', async () => {
     useAuthStore.setState({
       status: 'signedIn',

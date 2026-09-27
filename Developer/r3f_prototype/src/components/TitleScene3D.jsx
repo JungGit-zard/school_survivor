@@ -32,6 +32,11 @@ export const TITLE_ZOMBIE_GROUND_LIFT_Y = 0.16
 export const TITLE_SCENE_BASE_POSITION = [0, -1.15, 0]
 const TITLE_CHARACTER_STENCIL_REF = 2
 const TITLE_OUTLINE_SCALE_BOOST = 1.02
+const TITLE_STANDING_STUDENTS = [
+  { position: [-0.9, 0.37, -8.8], rotationY: 0.08 },
+  { position: [-0.35, 0.37, -9.1], rotationY: -0.16 },
+  { position: [1, 0.37, -8.6], rotationY: 0.18 },
+]
 
 export function getTitleSceneRootPosition({ position = [0, 0, 0] } = {}) {
   return [
@@ -241,10 +246,18 @@ function TitlePlayer({ reducedEffects }) {
 
 function TitleCompanions() {
   const chibikoAttackPhaseRef = useRef(0)
+  const duckRef = useRef()
+
+  // STUDIO_OUTER_MOTION_ONLY — 오리요강의 타이틀 바깥 그룹에만 아주 약한 호흡 스케일을 적용한다.
+  useFrame(({ clock }) => {
+    if (!duckRef.current) return
+    const breath = Math.sin(clock.elapsedTime * 1.7) * 0.014
+    duckRef.current.scale.set(1.05, 1.05 * (1 + breath), 1.05)
+  })
 
   return (
     <>
-      <group position={[-0.22, 0.2, 0.82]} rotation={[0, 0.28, -0.03]} scale={1.05}>
+      <group ref={duckRef} position={[-0.22, 0.2, 0.82]} rotation={[0, 0.28, -0.03]} scale={1.05}>
         <CompassBladeModel />
       </group>
       <group position={[1.36, 0.27, 0.76]} rotation={[0, -0.38, 0.02]} scale={0.42}>
@@ -378,9 +391,18 @@ function TitleClassroomProps() {
       <group position={[2.62, 0.05, -1.08]} rotation={[0, -0.78, 0]} scale={0.84}>
         <ClassroomDesk variant="abandoned" />
       </group>
-      <group position={[-2.35, 0.02, -1.22]} rotation={[0, 0.58, 0]} scale={0.34}>
-        <UnconsciousStudent variant="sideLeft" />
-      </group>
+      {TITLE_STANDING_STUDENTS.map(({ position, rotationY }, index) => (
+        <group
+          key={`title-standing-student-${index}`}
+          position={position}
+          rotation={[0, rotationY, 0]}
+          scale={0.4}
+        >
+          <group rotation={[-Math.PI / 2, 0, 0]}>
+            <UnconsciousStudent variant="faceUp" />
+          </group>
+        </group>
+      ))}
     </group>
   )
 }

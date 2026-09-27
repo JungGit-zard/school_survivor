@@ -5,6 +5,16 @@ import { formatRankScore, formatSurvivalTime } from '../lib/userRanking.js'
 import { stageTitle, t as translate, useT } from '../lib/i18n.js'
 import RankingWindowTabs from './RankingWindowTabs.jsx'
 
+const panelTone = {
+  navy: '#18372f',
+  sky: '#59c7ff',
+  amber: '#f7d17e',
+  green: '#7ee4c8',
+  violet: '#b996ff',
+  ink: '#050209',
+  paper: '#fff8e8',
+}
+
 // 창마다 다른 문구. 일일과 주간은 리셋 주기가 달라서, 어느 보드를 보고 있는지와
 // 언제 초기화되는지를 같이 읽히게 해야 "내 기록이 왜 사라졌지"가 안 생긴다.
 const WINDOW_COPY = {
@@ -53,7 +63,7 @@ export default function StageRanking({ stageId = 'stage1', onBack }) {
         {rows.length > 0 ? rows.map((entry, index) => (
           <StageRankingRow key={entry.uid ?? `${activeWindow}-${index}`} entry={entry} rank={index + 1} />
         )) : (
-          <li style={styles.empty}>{t('ranking.waiting')}</li>
+          <li data-panel-state="empty" style={styles.empty}>{t('ranking.waiting')}</li>
         )}
       </ol>
     </div>
@@ -62,7 +72,7 @@ export default function StageRanking({ stageId = 'stage1', onBack }) {
 
 function TopWinner({ label, entry }) {
   return (
-    <div style={styles.winnerCard}>
+    <div data-panel-state={entry ? 'winner' : 'empty'} style={styles.winnerCard}>
       <span style={styles.winnerLabel}>{label}</span>
       <strong style={styles.winnerName}>{entry?.displayName || translate('ranking.waiting')}</strong>
       <span style={styles.winnerScore}>{entry ? formatRankScore(entry.score) : '-'}</span>
@@ -73,7 +83,7 @@ function TopWinner({ label, entry }) {
 function StageRankingRow({ entry, rank }) {
   const seconds = Math.floor((entry.timeMs ?? 0) / 1000)
   return (
-    <li style={styles.row}>
+    <li data-panel-state={rank <= 3 ? 'top-rank' : 'rank'} style={rank <= 3 ? { ...styles.row, ...styles.topRow } : styles.row}>
       <span style={styles.rank}>{translate('ranking.rankSuffix', { rank })}</span>
       <span style={styles.name}>{entry.displayName || translate('ranking.anonymous')}</span>
       <span style={styles.score}>{formatRankScore(entry.score)}</span>
@@ -91,7 +101,7 @@ const styles = {
     gap: 10,
     padding: '18px 14px 14px',
     boxSizing: 'border-box',
-    background: 'linear-gradient(180deg, #211c2b 0%, #131018 100%)',
+    background: `linear-gradient(180deg, ${panelTone.navy} 0%, #211c2b 54%, #131018 100%)`,
     color: '#f8f7f2',
     fontFamily: "'Segoe UI', sans-serif",
   },
@@ -101,13 +111,13 @@ const styles = {
     justifyContent: 'space-between',
     gap: 12,
     padding: '4px 2px 8px',
-    borderBottom: '2px solid rgba(247,209,126,0.42)',
+    borderBottom: `4px solid ${panelTone.sky}`,
   },
   heroText: { minWidth: 0, flex: '1 1 auto' },
   eyebrow: {
     minWidth: 0,
     overflow: 'hidden',
-    color: '#f7d17e',
+    color: panelTone.amber,
     fontSize: 12,
     lineHeight: 1,
     fontWeight: 1000,
@@ -140,7 +150,7 @@ const styles = {
     padding: '8px 9px',
     border: '2px solid #050209',
     borderRadius: 8,
-    background: '#59c7ff',
+    background: panelTone.sky,
     color: '#050209',
     boxShadow: '0 3px 0 #050209',
   },
@@ -169,7 +179,7 @@ const styles = {
     listStyle: 'none',
   },
   row: {
-    minHeight: 45,
+    minHeight: 48,
     display: 'grid',
     gridTemplateColumns: '48px minmax(0, 1fr) 72px',
     gridTemplateRows: '1fr auto',
@@ -183,6 +193,7 @@ const styles = {
     boxShadow: '0 3px 0 #050209',
     boxSizing: 'border-box',
   },
+  topRow: { borderLeft: `6px solid ${panelTone.amber}`, background: panelTone.paper },
   rank: { gridRow: '1 / span 2', fontSize: 14, lineHeight: 1, fontWeight: 1000 },
   name: {
     // rank/score가 gridRow를 명시해 먼저 배치되므로, name도 칸을 못박지 않으면

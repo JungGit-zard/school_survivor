@@ -94,6 +94,30 @@ describe('UserRanking', () => {
     expect(html).toContain('env(safe-area-inset-bottom, 0px)')
   })
 
+
+
+  it('exposes colorful panel semantic states for season and local-player chips', () => {
+    _seedHydratedFirebaseProgressForTests({ uid: 'local-user' }, {
+      schemaVersion: 1,
+      profile: { uid: 'local-user', displayName: 'Local Player', nickname: '' },
+      progress: { records: { bestSurvivalSeconds: 321 } },
+    })
+    useAuthStore.setState({ user: { uid: 'local-user', displayName: 'Local Player' } })
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+
+    act(() => {
+      root.render(<UserRanking onBack={() => {}} entries={[{ uid: 'local-user', displayName: 'Local Player', score: 321, survivalSeconds: 321, stageId: 'stage1', local: true }]} />)
+    })
+
+    expect(container.querySelector('[data-panel-state="special"]')).not.toBeNull()
+    expect(container.querySelector('[data-panel-state="local"]')?.textContent).toBe('ME')
+
+    act(() => root.unmount())
+    container.remove()
+  })
+
   it('returns to the title screen from the back button', () => {
     const onBack = vi.fn()
     const container = document.createElement('div')

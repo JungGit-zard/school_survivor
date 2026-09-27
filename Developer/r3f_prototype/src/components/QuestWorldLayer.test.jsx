@@ -113,29 +113,15 @@ describe('quest world placement resolution', () => {
     expect(noticeSection).toContain('quest-question-symbol-3d')
     expect(noticeSection).toContain('<pointLight color={color}')
     expect(noticeSection).toContain('emissiveIntensity={1.55}')
-    expect(noticeSection).toContain('position.y = baseY + Math.sin(elapsed * 2.8) * 0.18')
+    expect(noticeSection).toContain('distance={1.2}')
+    expect(noticeSection).toContain('position.y = baseY + Math.sin(elapsed * 1.4) * 0.09')
+    expect(noticeSection).toContain('groupRef.current.scale.setScalar(0.5 + Math.max(0, Math.sin(elapsed * 2.4)) * 0.04)')
     expect(noticeSection).not.toContain('circleGeometry')
     expect(noticeSection).not.toContain('ringGeometry')
     expect(noticeSection).not.toContain('color={0x17121f}')
     expect(noticeSection).not.toContain('<Text')
   })
 
-  it('emits blinking notice marker states for starts, current objectives, and return/install targets', () => {
-    const [firstQuest, secondQuest] = getStageQuestDefinitions('stage1')
-    const markers = getQuestNoticeMarkers('stage1', [firstQuest, secondQuest], {
-      [firstQuest.id]: { status: 'undiscovered' },
-      [secondQuest.id]: { status: 'active' },
-    }, getStageObjectPlacements('stage1'))
-    const completionMarkers = getQuestNoticeMarkers('stage1', [secondQuest], {
-      [secondQuest.id]: { status: 'item-acquired', itemHeld: true },
-    }, getStageObjectPlacements('stage1'))
-
-    expect(markers).toHaveLength(2)
-    expect(markers[0]).toMatchObject({ kind: 'available', symbol: '!' })
-    expect(markers[1]).toMatchObject({ kind: 'objective', symbol: '?' })
-    expect(completionMarkers[0]).toMatchObject({ kind: 'return', symbol: '?' })
-    expect([...markers, ...completionMarkers].every(({ target }) => target.position[1] > 1)).toBe(true)
-  })
   it('builds the quest question marker as one continuous curve, connected stem, and separated dot', () => {
     const source = readFileSync(new URL('./QuestWorldLayer.jsx', import.meta.url), 'utf8')
     const questionSection = source.slice(
@@ -169,6 +155,22 @@ describe('quest world placement resolution', () => {
     expect(dotGap).toBeLessThan(0.32)
   })
 
+  it('emits blinking notice marker states for starts, current objectives, and return/install targets', () => {
+    const [firstQuest, secondQuest] = getStageQuestDefinitions('stage1')
+    const markers = getQuestNoticeMarkers('stage1', [firstQuest, secondQuest], {
+      [firstQuest.id]: { status: 'undiscovered' },
+      [secondQuest.id]: { status: 'active' },
+    }, getStageObjectPlacements('stage1'))
+    const completionMarkers = getQuestNoticeMarkers('stage1', [secondQuest], {
+      [secondQuest.id]: { status: 'item-acquired', itemHeld: true },
+    }, getStageObjectPlacements('stage1'))
+
+    expect(markers).toHaveLength(2)
+    expect(markers[0]).toMatchObject({ kind: 'available', symbol: '!' })
+    expect(markers[1]).toMatchObject({ kind: 'objective', symbol: '?' })
+    expect(completionMarkers[0]).toMatchObject({ kind: 'return', symbol: '?' })
+    expect([...markers, ...completionMarkers].every(({ target }) => target.position[1] > 1)).toBe(true)
+  })
 
   it('uses type and fallback types when an exact Firebase placement is absent', () => {
     const placements = [

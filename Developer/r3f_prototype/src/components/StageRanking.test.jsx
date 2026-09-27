@@ -92,6 +92,17 @@ describe('StageRanking', () => {
     view.unmount()
   })
 
+
+
+  it('exposes semantic panel states for winner and top rank rows', async () => {
+    const view = await renderStageRanking()
+
+    expect(view.container.querySelector('[data-panel-state="winner"]')).not.toBeNull()
+    expect(view.container.querySelector('[data-panel-state="top-rank"]')).not.toBeNull()
+
+    view.unmount()
+  })
+
   it('marks the selected period without relying on colour alone', async () => {
     const view = await renderStageRanking()
 

@@ -36,8 +36,9 @@ describe('quest inventory HUD', () => {
     try {
       const pauseButton = container.querySelector('.hud-pause-button')
       const questButton = container.querySelector('[aria-controls="quest-inventory-panel"]')
+      expect(pauseButton).not.toBeNull()
       expect(questButton).not.toBeNull()
-      expect(pauseButton.nextElementSibling).toBe(questButton)
+      expect(container.querySelector('[data-testid="top-left-controls"]')?.contains(questButton)).toBe(true)
       expect(questButton.getAttribute('aria-label')).toBe('퀘스트 가방 열기')
 
       clickQuestBag(container)
@@ -167,7 +168,7 @@ describe('quest inventory HUD', () => {
     }
   })
 
-  it('shows a dominant centered popup only when a quest starts, while item and completion toasts stay compact', () => {
+  it('orders quest item acquisition as a centered popup before the inventory panel opens', () => {
     const [quest] = getStageQuestDefinitions('stage1')
     const { container, root } = renderHud()
 
@@ -181,21 +182,25 @@ describe('quest inventory HUD', () => {
       expect(popup.textContent).toContain(quest.title)
       expect(popup.style.top).toBe('50%')
       expect(popup.style.transform).toBe('translate(-50%, -50%)')
-      expect(popup.querySelector('small')?.style.color).toBe('rgb(255, 255, 255)')
+      expect(popup.querySelector('small')?.style.color).toBe('rgb(255, 243, 214)')
       expect(popup.querySelector('small')?.style.fontFamily).toContain('Nanum Myeongjo')
-      expect(popup.querySelector('small')?.style.webkitTextStroke).toBe('1.2px #000')
+      expect(popup.querySelector('small')?.style.webkitTextStroke).toBe('')
+      expect(popup.querySelector('small')?.style.textShadow).toBe('')
       expect(popup.style.fontSize).toBe('19px')
       expect(popup.style.pointerEvents).toBe('none')
       expect(popup.getAttribute('aria-live')).toBe('assertive')
 
       act(() => {
-        useGameStore.setState({ questToast: { type: 'item', questId: quest.id } })
+        useGameStore.setState({ phase: 'playing', pauseSource: null, questToast: { type: 'item', questId: quest.id } })
       })
-      const itemToast = container.querySelector('[data-testid="quest-toast"]')
-      expect(itemToast).not.toBeNull()
+      const itemPopup = container.querySelector('[data-testid="quest-item-popup"]')
+      expect(itemPopup).not.toBeNull()
       expect(container.querySelector('[data-testid="quest-start-popup"]')).toBeNull()
-      expect(itemToast.style.top).toBe('66px')
-      expect(itemToast.getAttribute('aria-live')).toBe('polite')
+      expect(container.querySelector('#quest-inventory-panel')).toBeNull()
+      expect(itemPopup.style.top).toBe('50%')
+      expect(itemPopup.style.transform).toBe('translate(-50%, -50%)')
+      expect(itemPopup.style.zIndex).toBe('30')
+      expect(itemPopup.getAttribute('aria-live')).toBe('polite')
 
       act(() => {
         useGameStore.setState({ questToast: { type: 'completed', questId: quest.id } })
@@ -207,7 +212,7 @@ describe('quest inventory HUD', () => {
     }
   })
 
-  it('merges quest NPC dialogue, acquisition or completion notice, and outlined white guidance into one raised panel', () => {
+  it('shows quest dialogue in a dark ivory-text window with the giver profile on the left', () => {
     const [quest] = getStageQuestDefinitions('stage1')
     const { container, root } = renderHud()
 
@@ -226,9 +231,24 @@ describe('quest inventory HUD', () => {
       expect(startPopup.textContent.indexOf(getDialogueText(quest.startDialogueId)))
         .toBeLessThan(startPopup.textContent.indexOf(quest.title))
       expect(startPopup.textContent).toContain(quest.objective)
-      expect(startPopup.querySelector('small')?.style.color).toBe('rgb(255, 255, 255)')
+      expect(startPopup.style.background).toContain('rgb(47, 52, 64)')
+      expect(startPopup.style.color).toBe('rgb(255, 243, 214)')
+      const startProfile = startPopup.querySelector('[data-testid="quest-dialogue-giver-profile"]')
+      const startContent = startProfile?.nextElementSibling
+      expect(startProfile).not.toBeNull()
+      expect(startContent?.style.textAlign).toBe('left')
+      expect(startPopup.style.flexDirection).toBe('row')
+      expect(startProfile.compareDocumentPosition(startContent) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+      expect(startPopup.querySelector('div[aria-live="polite"]')?.style.color).toBe('rgb(255, 243, 214)')
+      expect(startPopup.querySelector('div[aria-live="polite"]')?.style.webkitTextStroke).toBe('0 transparent')
+      expect(startPopup.querySelector('div[aria-live="polite"]')?.style.textShadow).toBe('none')
+      expect(startPopup.querySelector('strong')?.style.color).toBe('rgb(255, 243, 214)')
+      expect(startPopup.querySelector('strong')?.style.webkitTextStroke).toBe('0 transparent')
+      expect(startPopup.querySelector('strong')?.style.textShadow).toBe('none')
+      expect(startPopup.querySelector('small')?.style.color).toBe('rgb(255, 243, 214)')
       expect(startPopup.querySelector('small')?.style.fontFamily).toContain('Nanum Myeongjo')
-      expect(startPopup.querySelector('small')?.style.webkitTextStroke).toBe('1.2px #000')
+      expect(startPopup.querySelector('small')?.style.webkitTextStroke).toBe('0 transparent')
+      expect(startPopup.querySelector('small')?.style.textShadow).toBe('none')
       expect(container.querySelector('[data-testid="student-dialogue-catcher"]').style.alignItems).toBe('center')
 
       act(() => {
@@ -251,9 +271,9 @@ describe('quest inventory HUD', () => {
       expect(completionPopup.textContent.indexOf(getDialogueText(quest.completionDialogueId)))
         .toBeLessThan(completionPopup.textContent.indexOf(quest.title))
       expect(completionPopup.textContent).toContain(`${quest.rewardGold}G`)
-      expect(completionPopup.querySelector('small')?.style.color).toBe('rgb(255, 255, 255)')
+      expect(completionPopup.querySelector('small')?.style.color).toBe('rgb(255, 243, 214)')
       expect(completionPopup.querySelector('small')?.style.fontFamily).toContain('Nanum Myeongjo')
-      expect(completionPopup.querySelector('small')?.style.webkitTextStroke).toBe('1.2px #000')
+      expect(completionPopup.querySelector('small')?.style.webkitTextStroke).toBe('0 transparent')
     } finally {
       act(() => root.unmount())
     }

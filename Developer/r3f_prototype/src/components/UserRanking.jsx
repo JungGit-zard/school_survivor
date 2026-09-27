@@ -15,6 +15,16 @@ import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { t as translate, useT } from '../lib/i18n.js'
 import RankingWindowTabs, { RANKING_WINDOWS } from './RankingWindowTabs.jsx'
 
+const panelTone = {
+  navy: '#18372f',
+  sky: '#59c7ff',
+  amber: '#f7d17e',
+  green: '#7ee4c8',
+  violet: '#b996ff',
+  ink: '#050209',
+  paper: '#fff8e8',
+}
+
 export default function UserRanking({ onBack, entries }) {
   const t = useT()
   const user = useAuthStore((s) => s.user)
@@ -99,7 +109,7 @@ export default function UserRanking({ onBack, entries }) {
         <span>{t('ranking.colScore')}</span>
       </div>
 
-      <section style={styles.seasonPanel}>
+      <section data-panel-state="special" style={styles.seasonPanel}>
         <span style={styles.seasonLabel}>{t('lobby.season')}</span>
         <strong style={styles.seasonName}>{season.seasonName}</strong>
         <span style={styles.seasonReward}>{rewardSummary}</span>
@@ -154,7 +164,7 @@ function RankingRow({ row }) {
       <span style={styles.rank}>{translate('ranking.rankSuffix', { rank: row.rank })}</span>
       <span style={styles.name}>
         {row.empty ? translate('ranking.noRecord') : row.displayName}
-        {!row.empty && row.local && <span style={styles.localBadge}>ME</span>}
+        {!row.empty && row.local && <span data-panel-state="local" style={styles.localBadge}>ME</span>}
       </span>
       <span style={styles.score}>{row.empty ? '-' : formatRankScore(row.score)}</span>
       <span style={styles.stage}>{row.empty ? '' : `${row.stageLabel} · ${formatSurvivalTime(row.survivalSeconds)}${row.cleared ? translate('ranking.clearedSuffix') : ''}`}</span>
@@ -171,7 +181,7 @@ const styles = {
     gap: 10,
     padding: '18px 14px calc(14px + env(safe-area-inset-bottom, 0px))',
     boxSizing: 'border-box',
-    background: 'linear-gradient(180deg, #211c2b 0%, #131018 100%)',
+    background: `linear-gradient(180deg, ${panelTone.navy} 0%, #211c2b 54%, #131018 100%)`,
     color: '#f8f7f2',
     fontFamily: "'Segoe UI', sans-serif",
   },
@@ -181,10 +191,10 @@ const styles = {
     justifyContent: 'space-between',
     gap: 12,
     padding: '4px 2px 8px',
-    borderBottom: '2px solid rgba(247,209,126,0.42)',
+    borderBottom: `4px solid ${panelTone.sky}`,
   },
   eyebrow: {
-    color: '#f7d17e',
+    color: panelTone.amber,
     fontSize: 12,
     lineHeight: 1,
     fontWeight: 1000,
@@ -210,7 +220,7 @@ const styles = {
     padding: '6px 8px',
     border: '2px solid #050209',
     borderRadius: 8,
-    background: '#f7d17e',
+    background: panelTone.amber,
     color: '#050209',
     boxShadow: '0 2px 0 #050209',
     fontSize: 11,
@@ -259,7 +269,7 @@ const styles = {
     padding: '0 10px',
     border: '2px solid #050209',
     borderRadius: 8,
-    background: '#f7d17e',
+    background: panelTone.amber,
     color: '#050209',
     fontSize: 11,
     lineHeight: 1,
@@ -274,7 +284,7 @@ const styles = {
     padding: '8px 10px',
     border: '2px solid #050209',
     borderRadius: 8,
-    background: '#59c7ff',
+    background: panelTone.sky,
     color: '#050209',
     boxShadow: '0 3px 0 #050209',
   },
@@ -316,7 +326,7 @@ const styles = {
     listStyle: 'none',
   },
   row: (empty, local) => ({
-    minHeight: 45,
+    minHeight: 48,
     display: 'grid',
     gridTemplateColumns: '52px minmax(0, 1fr) 72px',
     gridTemplateRows: '1fr auto',
@@ -356,7 +366,7 @@ const styles = {
     padding: '2px 5px',
     border: '1.5px solid #050209',
     borderRadius: 6,
-    background: '#59c7ff',
+    background: panelTone.sky,
     color: '#050209',
     fontSize: 9,
     lineHeight: 1,
@@ -386,7 +396,7 @@ const styles = {
     minHeight: 48,
     border: '2px solid #050209',
     borderRadius: 8,
-    background: '#59c7ff',
+    background: panelTone.sky,
     color: '#050209',
     fontSize: 17,
     lineHeight: 1,

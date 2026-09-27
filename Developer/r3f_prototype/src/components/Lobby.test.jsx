@@ -245,7 +245,8 @@ describe('Lobby', () => {
     const stageList = view.container.querySelector('[aria-label="스테이지 목록"]')
 
     expect(stageList).not.toBeNull()
-    expect(stageList.style.width).toBe('min(100%, 1080px)')
+    expect(stageList.style.width).toBe('100%')
+    expect(stageList.style.maxWidth).toBe('1080px')
     expect(stageList.style.alignSelf).toBe('center')
 
     view.unmount()

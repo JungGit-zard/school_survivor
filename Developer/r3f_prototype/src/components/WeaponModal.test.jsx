@@ -53,4 +53,27 @@ describe('WeaponModal encyclopedia', () => {
       act(() => root.unmount())
     }
   })
+
+  it('shows real weapon icon assets for unlocked starter weapons instead of question marks', () => {
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      act(() => {
+        root.render(<WeaponModal onClose={() => {}} />)
+      })
+
+      const starterRow = container.querySelector('[data-testid="weapon-row-pencilThrow"]')
+      const starterIcon = starterRow.querySelector('[data-testid="weapon-icon-pencilThrow"]')
+      expect(starterIcon).not.toBeNull()
+      expect(starterIcon.getAttribute('src')).toContain('01_wea_pencil.png.webp')
+      expect(starterRow.textContent).not.toMatch(/^\?/)
+
+      const lockedRow = container.querySelector('[data-testid="weapon-row-guidedMissile"]')
+      expect(lockedRow.querySelector('[data-testid="weapon-icon-guidedMissile"]')).toBeNull()
+      expect(lockedRow.textContent).toContain('?')
+    } finally {
+      act(() => root.unmount())
+    }
+  })
 })
