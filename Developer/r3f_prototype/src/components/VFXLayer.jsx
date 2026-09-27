@@ -64,17 +64,27 @@ export function HitSpark({ event, onDone }) {
   )
 }
 
-// ── 효과 1b: CriticalHitBurst — 치명타 전용 별폭발 + 충격 링 ───────────────────
+// ── 효과 1b: CriticalHitBurst — 치명타 전용 큰 별 1개 팝 ───────────────────
 export function CriticalHitBurst({ event, onDone }) {
   const ref = useRef()
-  const ringRef = useRef()
-  const coreMatRef = useRef()
-  const criticalFlashMatRef = useRef()
-  const ringMatRef = useRef()
-  const shardMatRefs = useRef([])
+  const starMatRef = useRef()
   const LIFE = event.life ?? 180
-  const shardAngles = useMemo(() => Array.from({ length: 8 }, (_, i) => (i / 8) * Math.PI * 2), [])
-  const strongScale = event.strong ? 1.28 : 1
+  const strongScale = event.strong ? 1.18 : 1
+  const starShape = useMemo(() => {
+    const shape = new THREE.Shape()
+    const outer = 1
+    const inner = 0.45
+    for (let i = 0; i < 10; i += 1) {
+      const radius = i % 2 === 0 ? outer : inner
+      const angle = -Math.PI / 2 + i * Math.PI / 5
+      const x = Math.cos(angle) * radius
+      const y = Math.sin(angle) * radius
+      if (i === 0) shape.moveTo(x, y)
+      else shape.lineTo(x, y)
+    }
+    shape.closePath()
+    return shape
+  }, [])
 
   useFrame(() => {
     if (!ref.current) return
@@ -82,73 +92,30 @@ export function CriticalHitBurst({ event, onDone }) {
     if (age >= LIFE) { onDone(event.id); return }
     const t = age / LIFE
     const pop = Math.sin(t * Math.PI)
-    const scale = ((event.baseScale ?? 0.113) + t * (event.growScale ?? 0.207)) * strongScale
+    const scale = ((event.baseScale ?? 0.34) + pop * (event.growScale ?? 0.30)) * strongScale
     ref.current.scale.setScalar(scale)
-    ref.current.rotation.y += 0.42
-    if (ringRef.current) ringRef.current.scale.setScalar(1 + t * 1.7)
-    const opacity = Math.max(0, 1 - t * t) * (0.72 + pop * 0.28)
-    if (coreMatRef.current) coreMatRef.current.opacity = opacity
-    if (criticalFlashMatRef.current) criticalFlashMatRef.current.opacity = Math.max(0, 1 - age / 60)
-    if (ringMatRef.current) ringMatRef.current.opacity = Math.max(0, 0.78 * (1 - t))
-    const shardOpacity = Math.max(0, 0.92 * (1 - t * 0.85))
-    shardMatRefs.current.forEach((mat) => { if (mat) mat.opacity = shardOpacity })
+    ref.current.rotation.z += 0.045
+    if (starMatRef.current) {
+      starMatRef.current.opacity = Math.max(0, 1 - t * t) * (0.72 + pop * 0.28)
+    }
   })
 
   return (
     <StudioTunedGroup itemId="vfx-critical-hit-burst">
-      <group ref={ref} position={[event.x, event.y ?? 0.58, event.z]}>
+      <group ref={ref} position={[event.x, event.y ?? 0.72, event.z]} rotation={[-0.35, 0, 0]}>
         <mesh>
-          <octahedronGeometry args={[1.05, 0]} />
+          <shapeGeometry args={[starShape]} />
           <meshBasicMaterial
-            ref={coreMatRef}
+            ref={starMatRef}
             color={VFX_COLORS.criticalGold}
             transparent
             opacity={1}
             depthWrite={false}
-            toneMapped={false}
-          />
-        </mesh>
-        <mesh scale={[1.45, 1.45, 1.45]}>
-          <octahedronGeometry args={[1.02, 0]} />
-          <meshBasicMaterial
-            ref={criticalFlashMatRef}
-            color={0xffffff}
-            transparent
-            opacity={1}
-            depthWrite={false}
             blending={THREE.AdditiveBlending}
-            toneMapped={false}
-          />
-        </mesh>
-        <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.9, 1.14, 24]} />
-          <meshBasicMaterial
-            ref={ringMatRef}
-            color={VFX_COLORS.criticalOrange}
-            transparent
-            opacity={0.78}
-            depthWrite={false}
             side={THREE.DoubleSide}
             toneMapped={false}
           />
         </mesh>
-        {shardAngles.map((angle, index) => (
-          <mesh
-            key={angle}
-            position={[Math.sin(angle) * 1.18, index % 2 === 0 ? 0.05 : -0.02, Math.cos(angle) * 1.18]}
-            rotation={[0, angle, index % 2 === 0 ? 0.25 : -0.25]}
-          >
-            <boxGeometry args={[0.22, 0.08, 0.88]} />
-            <meshBasicMaterial
-              ref={(mat) => { if (mat) shardMatRefs.current[index] = mat }}
-              color={index % 2 === 0 ? VFX_COLORS.criticalCream : VFX_COLORS.criticalOrange}
-              transparent
-              opacity={0.92}
-              depthWrite={false}
-              toneMapped={false}
-            />
-          </mesh>
-        ))}
       </group>
     </StudioTunedGroup>
   )
