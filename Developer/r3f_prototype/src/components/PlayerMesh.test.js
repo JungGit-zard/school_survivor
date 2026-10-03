@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import {
   createPlayerOcclusionSafeToonMaterial,
   createPlayerCrowdOutlineMaterial,
@@ -130,14 +130,24 @@ describe('PlayerMesh layout', () => {
   it('encodes the pink block survivor reference palette and compact proportions', () => {
     const source = readFileSync(new URL('./PlayerMesh.jsx', import.meta.url), 'utf8')
 
-    expect(PLAYER_MESH_LAYOUT.body.size).toEqual([0.82, 0.58, 0.42])
-    expect(PLAYER_MESH_LAYOUT.head.size).toEqual([0.86, 0.82, 0.56])
+    expect(PLAYER_MESH_LAYOUT.body.size).toEqual([0.68, 0.7, 0.46])
+    expect(PLAYER_MESH_LAYOUT.head.size).toEqual([0.8, 0.68, 0.58])
     expect(source).toContain('color={0xff8fb0} emissive={0.18}')
     expect(source).toContain('color={0xd94070} emissive={0.14}')
     expect(source).toContain('color={0xcf2f77} emissive={0.12}')
     expect(source).toContain('color={0x005cff} emissive={0.18}')
     expect(source).toContain('color={0x38c8f0} emissive={0.2}')
     expect(source).toContain('color={0xffd100} emissive={0.26}')
+  })
+
+  it('keeps rejected generated artwork out of the live PlayerMesh runtime', () => {
+    const source = readFileSync(new URL('./PlayerMesh.jsx', import.meta.url), 'utf8')
+    const rejectedRuntimeArtifact = new URL('../assets/models/playerArtworkRefined.generated.js', import.meta.url)
+
+    expect(source).not.toContain('playerArtworkRefined')
+    expect(source).not.toContain('createPlayerArtworkGeometry')
+    expect(source).not.toContain('ArtworkBlock')
+    expect(existsSync(rejectedRuntimeArtifact)).toBe(false)
   })
 
   it('preserves the source-controlled player Studio part key registration order', () => {
