@@ -1,7 +1,7 @@
 // Firebase runtime memory weapon unlock layer.
 // Starter 무기는 저장하지 않는다 — weaponCatalog.evaluateUnlocks가 항상 unlock으로 반환.
 import { isAccountUnlockable, isValidWeaponId, isStarter } from './weaponCatalog.js'
-import { _seedHydratedFirebaseProgressForTests, readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
+import { _seedHydratedFirebaseProgressForTests, getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated, readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
 export {
   LEGACY_ACCOUNT_ENTITLEMENT_IDS,
   WEAPON_UNLOCK_SCHEMA_VERSION,
@@ -28,6 +28,9 @@ export function isUnlocked(id) {
   if (!isValidWeaponId(id)) return false
   if (isStarter(id)) return true
   if (!isAccountUnlockable(id)) return false
+  // Guests have starter weapons, but no account-owned unlocks to query.
+  // A signed-in account still requires its real remote snapshot below.
+  if (!isFirebaseProgressHydrated() && !getFirebaseProgressRuntimeSnapshot().uid) return false
   return readRaw()[id] === 1
 }
 

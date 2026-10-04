@@ -8,10 +8,11 @@ const read = (file) => readFileSync(new URL(file, import.meta.url), 'utf8')
 const runtimeImage2Glb = 'player-image2-2026-08-29.glb'
 
 describe('Player graphics rollback with comparison-only Image2 GLB', () => {
-  it('keeps PlayerVisual on the default shared PlayerMesh path without the Image2 model variant', () => {
+  it('moves gameplay and Studio PlayerVisual to the authorized v9 model without the Image2 variant', () => {
     const player = read('./Player.jsx')
 
-    expect(player).toContain('<PlayerMesh groupRef={meshGroup} movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />')
+    expect(player).toContain("import PlayerV9Model from './PlayerV9Model.jsx'")
+    expect(player).toContain('<PlayerV9Model movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />')
     expect(player).not.toContain('modelVariant="image2"')
   })
 

@@ -3,6 +3,7 @@ import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import { Html, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import { PlayerVisual } from './Player.jsx'
+import PlayerMesh from './PlayerMesh.jsx'
 import { ENEMY_STATS, EnemyVisual, SPAWN_SMOKE_DURATION_MS, SpawnSmokeEffect } from './Enemy.jsx'
 import { FloorVisual } from './Floor.jsx'
 import {
@@ -525,6 +526,7 @@ function RenderPreviewItem({ item }) {
   }, [item.previewKind])
 
   if (item.previewKind === 'player') {
+    if (item.id === 'player') return <PlayerMesh groupRef={playerRef} movingRef={movingRef} previewArmAction={PLAYER_STUDIO_ARM_ACTIONS[item.animation] ?? null} />
     return <PlayerVisual meshGroup={playerRef} movingRef={movingRef} hp={100} maxHp={100} previewArmAction={PLAYER_STUDIO_ARM_ACTIONS[item.animation] ?? null} />
   }
   if (item.previewKind === 'zombie') {

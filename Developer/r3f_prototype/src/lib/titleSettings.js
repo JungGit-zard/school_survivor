@@ -1,6 +1,6 @@
 // Player title/settings runtime layer.
 // Durable player settings live only in Firebase users/{uid}. Admin/dev config remains separate.
-import { readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
+import { getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated, readFirebasePlayerProgress, updateFirebasePlayerProgress } from './firebaseProgress.js'
 import { detectInitialLocale, isSupportedLocale, setLocale } from './i18n.js'
 import { setScientificNotation } from './numberFormat.js'
 
@@ -73,6 +73,8 @@ export function applyScientificNotation(scientific) {
 
 export function vibrateFeedback(pattern = 18) {
   if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return
+  // Guest clicks have no account vibration preference to read.
+  if (!isFirebaseProgressHydrated() && !getFirebaseProgressRuntimeSnapshot().uid) return
   if (!loadTitleSettings().vibration) return
   navigator.vibrate(pattern)
 }

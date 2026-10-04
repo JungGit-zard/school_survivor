@@ -1,5 +1,6 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { Html } from '@react-three/drei'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { useGameStore } from '../store/useGameStore.js'
 import { playerFacing, playerPos, joystickDir } from '../lib/refs.js'
@@ -8,6 +9,7 @@ import { clampPlayerPosition } from '../lib/playerMovementBounds.js'
 import { getPlayerStartPosition } from '../lib/playerStartPosition.js'
 import { createGameplayFixedStepClock, runGameplayFixedSteps } from '../lib/gameplayFrameTime.js'
 import { emitSfx } from '../lib/sfxEvents.js'
+import PlayerV9Model from './PlayerV9Model.jsx'
 import PlayerMesh from './PlayerMesh.jsx'
 import MiniHealthBar from './MiniHealthBar.jsx'
 
@@ -149,11 +151,15 @@ function PlayerHealEffect({ token = 0 }) {
   )
 }
 
-export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 0, healFlashToken = 0, showHealthBar = true, previewArmAction = null, visualPose = PLAYER_UPRIGHT_POSE }) {
+export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 0, healFlashToken = 0, showHealthBar = true, previewArmAction = null, visualPose = PLAYER_UPRIGHT_POSE, comparisonModel = null }) {
   return (
     <>
       <group position={visualPose.position} rotation={visualPose.rotation}>
-        <PlayerMesh groupRef={meshGroup} movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />
+        <group ref={meshGroup}>
+          {import.meta.env.DEV && comparisonModel === 'legacy'
+            ? <PlayerMesh movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />
+            : <PlayerV9Model movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />}
+        </group>
       </group>
       <PlayerHealEffect token={healFlashToken} />
       {showHealthBar && <MiniHealthBar current={hp} max={maxHp} width={0.38} height={0.052} y={0.75} />}
@@ -166,6 +172,7 @@ export default function Player() {
   const gameplayClockRef = useRef(null)
   const meshGroup = useRef()
   const movingRef = useRef(false)
+  const [comparisonModel, setComparisonModel] = useState(null)
   const invTimer  = useRef(0)
   const lastVisibleHitFlashToken = useRef(0)
   const hitFlashVisibleFrames = useRef(0)
@@ -185,6 +192,18 @@ export default function Player() {
   const currentStageId  = useGameStore((s) => s.currentStageId)
   const visualPose = getPlayerVisualPoseTransform({ phase, deathCause })
   if (gameplayClockRef.current === null) gameplayClockRef.current = createGameplayFixedStepClock()
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return undefined
+    const onKeyDown = (event) => {
+      if (event.code !== 'F8' || event.repeat || event.ctrlKey || event.altKey || event.metaKey) return
+      if (event.target?.closest?.('input, textarea, select, [contenteditable="true"]')) return
+      event.preventDefault()
+      setComparisonModel((current) => current === 'legacy' ? 'v9' : 'legacy')
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   // 적 투사체가 플레이어를 감지할 수 있도록 RigidBody ref에 핸들러 등록
   useEffect(() => {
@@ -302,7 +321,12 @@ export default function Player() {
       colliders={false}
     >
       <CuboidCollider args={[0.136, 0.32, 0.136]} />
-      <PlayerVisual meshGroup={meshGroup} movingRef={movingRef} hp={hp} maxHp={maxHp} hitFlashToken={hitFlashToken} healFlashToken={healFlashToken} visualPose={visualPose} />
+      <PlayerVisual meshGroup={meshGroup} movingRef={movingRef} hp={hp} maxHp={maxHp} hitFlashToken={hitFlashToken} healFlashToken={healFlashToken} visualPose={visualPose} comparisonModel={comparisonModel} />
+      {import.meta.env.DEV && comparisonModel && (
+        <Html position={[0, 1.12, 0]} center style={{ pointerEvents: 'none', whiteSpace: 'nowrap', fontSize: 12, color: '#fff', background: '#111c', padding: '3px 6px', borderRadius: 4 }}>
+          F8 · {comparisonModel === 'legacy' ? '이전 모델' : '이번 V9'}
+        </Html>
+      )}
     </RigidBody>
   )
 }

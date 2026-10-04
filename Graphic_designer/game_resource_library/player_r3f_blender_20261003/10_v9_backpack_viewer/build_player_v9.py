@@ -36,10 +36,13 @@ def material(name, color):
 
 gray = material('GATE2_SINGLE_GRAY_MATERIAL', '#a8a8a8')
 palette = {key: material(key, color) for key, color in {
-    'pink_hair': '#ee80aa', 'face_skin': '#fff1df', 'hand_skin': '#ffebd4',
-    'jacket_red': '#dc4655', 'shirt_white': '#fff8ed', 'skirt_blue': '#26558b',
-    'pack_blue': '#235389', 'socks_white': '#f7e8e6', 'shoes_blue': '#809aba',
-    'shoe_sole_blue': '#6e89a9',
+    # Original PlayerMesh.jsx colors, applied to the accepted V9 shapes.
+    'pink_hair': '#ff8fb0',
+    'face_skin': '#fff1df', 'hand_skin': '#ffebd4',
+    'jacket_red': '#d42020', 'shirt_white': '#fff8ed', 'skirt_blue': '#2d8cff',
+    'pack_blue': '#38c8f0', 'pack_pocket_blue': '#1668a0',
+    'socks_white': '#f7e8e6', 'shoes_blue': '#8090a8',
+    'shoe_sole_blue': '#4a5566',
 }.items()}
 
 def finish(obj, group, mat_name):
@@ -278,7 +281,7 @@ for sign,label in [(-1,'L'),(1,'R')]:
 # oval lump: tall main block, raised lid band, lower pocket, and side rails.
 rounded_box('Backpack_main_rectangular',(0,.245,1.54),(.76,.40,.82),.075,'pack','pack_blue')
 rounded_box('Backpack_top_lid_band',(0,.475,1.80),(.68,.055,.18),.025,'pack','pack_blue')
-rounded_box('Backpack_front_pocket',(0,.487,1.36),(.58,.060,.285),.026,'pack','pack_blue')
+rounded_box('Backpack_front_pocket',(0,.487,1.36),(.58,.060,.285),.026,'pack','pack_pocket_blue')
 for sign,label in [(-1,'L'),(1,'R')]:
     rounded_box('Backpack_side_rail_'+label,(sign*.415,.445,1.54),(.055,.070,.64),.020,'pack','pack_blue')
 

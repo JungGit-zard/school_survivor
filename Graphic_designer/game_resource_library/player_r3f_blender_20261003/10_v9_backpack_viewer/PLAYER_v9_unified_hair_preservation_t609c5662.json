@@ -1,0 +1,22 @@
+{
+  "time": "2026-10-04T18:09:29.266+00:00",
+  "before_glb_sha256": "2d1b426efbe88d26820959b54f7656e886e95dacba9ec6c33a8334dfea9511d9",
+  "after_glb_sha256": "d881ff3e5eee500ea75c853c63d8cba73bc92afb3d362b284cecb493b136f337",
+  "changed_material_meshes": [
+    "Hair_bob_side_L_mesh",
+    "Hair_bob_side_R_mesh"
+  ],
+  "shared_hair_material": "pink_hair #ff8fb0",
+  "all_hair_material_index": 4,
+  "all_other_materials_identical": true,
+  "images_identical": {
+    "PLAYER_v9_torso_front": "ec8b6d9eaebbb50694ded609253da10b8f07f8faea6992835d8df23f6fb13808",
+    "PLAYER_v9_face_surface_uv": "3c2815f6dd62e8590a29c996d23bda433c641a2fbfd5cd01709bc5b0a2bdbfb2",
+    "PLAYER_v9_skirt_pleats": "b2e07f0f0c24401907852af87168d6c98861b1425ec72f9314515b615bf0ad1e",
+    "PLAYER_v9_pack_back": "0720796fc0b16c8ec11944e0cae6ad6bbc1729e9b0eae6c8b62b0a2f81406a53"
+  },
+  "nodes_identical": 49,
+  "geometry_accessors_identical": 141,
+  "runtime_copy_identical": true,
+  "firebase_writes": false
+}

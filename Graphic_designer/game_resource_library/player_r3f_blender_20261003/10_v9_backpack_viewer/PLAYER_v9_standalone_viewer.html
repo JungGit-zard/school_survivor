@@ -40,21 +40,23 @@
   </div>
   <div id="status">불러오는 중...</div>
 <script type="importmap">
-{"imports":{"three":"../../../../Developer/r3f_prototype/node_modules/three/build/three.module.js","three/addons/":"../../../../Developer/r3f_prototype/node_modules/three/examples/jsm/"}}
+{"imports":{"three":"../../../../Developer/r3f_prototype/node_modules/three/build/three.module.js","three/":"../../../../Developer/r3f_prototype/node_modules/three/","three/addons/":"../../../../Developer/r3f_prototype/node_modules/three/examples/jsm/"}}
 </script>
 <script type="module">
 import * as THREE from '../../../../Developer/r3f_prototype/node_modules/three/build/three.module.js';
 import {OrbitControls} from '../../../../Developer/r3f_prototype/node_modules/three/examples/jsm/controls/OrbitControls.js';
 import {GLTFLoader} from '../../../../Developer/r3f_prototype/node_modules/three/examples/jsm/loaders/GLTFLoader.js';
+import {addPlayerV9Outlines} from '../../../../Developer/r3f_prototype/src/lib/playerV9Outline.js';
 
 const status=document.getElementById('status');
 const scene=new THREE.Scene(); scene.background=new THREE.Color(0x15161b);
 const camera=new THREE.PerspectiveCamera(35,innerWidth/innerHeight,.01,100); camera.up.set(0,1,0); camera.position.set(3.8,2.6,4.6);
-const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(innerWidth,innerHeight); renderer.outputColorSpace=THREE.SRGBColorSpace; document.body.appendChild(renderer.domElement);
+const renderer=new THREE.WebGLRenderer({antialias:true,stencil:true,preserveDrawingBuffer:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(innerWidth,innerHeight); renderer.outputColorSpace=THREE.SRGBColorSpace; document.body.appendChild(renderer.domElement);
 const controls=new OrbitControls(camera,renderer.domElement); controls.target.set(0,1.45,0); controls.enableDamping=true; controls.dampingFactor=.08;
 scene.add(new THREE.HemisphereLight(0xffffff,0x303040,2.0)); const key=new THREE.DirectionalLight(0xffffff,2.2); key.position.set(4,-5,7); scene.add(key); const rim=new THREE.DirectionalLight(0x9ecbff,1.0); rim.position.set(-5,4,5); scene.add(rim);
 const grid=new THREE.GridHelper(4,16,0x3d4354,0x272b36); grid.position.y=0; scene.add(grid);
 const loader=new GLTFLoader(); let root=null, clock=new THREE.Clock(), groups={}, wireHelpers=[], base={}, baseMaterials=new Map(), pencilObj=null, healObj=null, autoYaw=0, snapDistance=6.6, flashMat=new THREE.MeshBasicMaterial({color:0xffffff});
+flashMat.stencilWrite=true; flashMat.stencilRef=3; flashMat.stencilFunc=THREE.AlwaysStencilFunc; flashMat.stencilZPass=THREE.ReplaceStencilOp;
 const active={type:null,start:0,duration:0,loop:false};
 const ACTIONS={boxCutter:460,guidedMissileThrow:360,lanternAim:320,lanternFlashlight:320,schoolBag:260,hit:520,heal:760,death:999999,pencil:900,walk:999999};
 const q=new URLSearchParams(location.search); if(q.get('model')) document.getElementById('model').value=q.get('model');
@@ -68,7 +70,7 @@ function loadModel(path){
   if(root){scene.remove(root); root.traverse(o=>{if(o.geometry)o.geometry.dispose?.();}); root=null;} wireHelpers.forEach(o=>scene.remove(o)); wireHelpers=[]; groups={}; base={}; clearEffects();
   setStatus('모델 로딩 중: '+path+' ...');
   loader.load(path,(gltf)=>{
-    root=gltf.scene; scene.add(root); root.traverse(o=>{ if(o.name){groups[o.name]=o; saveBase(o);} if(o.isMesh){o.frustumCulled=false; o.castShadow=false; o.receiveShadow=false; baseMaterials.set(o,o.material);}});
+    root=gltf.scene; addPlayerV9Outlines(root); scene.add(root); root.traverse(o=>{ if(o.name){groups[o.name]=o; saveBase(o);} if(o.isMesh){o.frustumCulled=false; o.castShadow=false; o.receiveShadow=false; baseMaterials.set(o,o.material);}});
     frameObject(root); resetPose(); updateBag(); updateWire();
     setStatus('로드 완료: '+path+'\n좌표계: Three/GLB Y-up 그대로 표시, 정면은 +Z, 후면/가방은 -Z입니다.\n액션: 실제 게임 타이밍을 뷰어 전용 피벗으로 재현합니다. 거대한 노드명 오버레이는 표시하지 않습니다.','ok');
   },undefined,(err)=>setStatus('로드 실패: '+err.message+'\n저장소 루트에서 로컬 웹서버를 실행해야 상대경로 Three.js와 GLB가 로드됩니다.','warn'));
@@ -132,7 +134,7 @@ window.__PLAYER_V9_VIEWER_QA__={
   }
 };
 loadModel(document.getElementById('model').value);
-function animate(){requestAnimationFrame(animate); const dt=clock.getDelta(), now=performance.now(), t=now*.001; if(root){resetPose(); applyManual(); if(active.type){let p=(now-active.start)/active.duration; if(!active.loop&&p>=1){ if(active.type!=='lanternAim') active.type=null; p=1;} p=clamp01(p); if(active.type==='walk')applyWalk(t,1); if(['boxCutter','guidedMissileThrow','lanternAim','lanternFlashlight'].includes(active.type))applyArmAction(active.type,p,0); if(active.type==='schoolBag')applyArmAction('schoolBag',p,0); if(active.type==='pencil')updateProjectile(p); if(active.type==='hit'){ root.position.z=-Math.sin(Math.PI*p)*.11; const flashing=Math.floor((now-active.start)/80)%2===0; root.traverse(o=>{if(o.isMesh)o.material=flashing?flashMat:baseMaterials.get(o);}); } if(active.type==='heal'&&healObj){healObj.scale.setScalar(1+p*.8); healObj.material.opacity=.55*(1-p); healObj.rotation.y+=dt*3.5;} if(active.type==='death'){root.rotation.z=-Math.PI/2; root.position.y=.18;} } if(document.getElementById('auto').checked)autoYaw += parseFloat(document.getElementById('speed').value)*dt; root.rotation.y += autoYaw; } controls.update(); renderer.render(scene,camera);} animate();
+function animate(){requestAnimationFrame(animate); const dt=clock.getDelta(), now=performance.now(), t=now*.001; if(root){resetPose(); applyManual(); if(active.type){let p=(now-active.start)/active.duration; if(!active.loop&&p>=1){ if(active.type!=='lanternAim') active.type=null; p=1;} p=clamp01(p); if(active.type==='walk')applyWalk(t,1); if(['boxCutter','guidedMissileThrow','lanternAim','lanternFlashlight'].includes(active.type))applyArmAction(active.type,p,0); if(active.type==='schoolBag')applyArmAction('schoolBag',p,0); if(active.type==='pencil')updateProjectile(p); if(active.type==='hit'){ root.position.z=-Math.sin(Math.PI*p)*.11; const flashing=Math.floor((now-active.start)/80)%2===0; root.traverse(o=>{if(o.isMesh&&!o.userData.studioRenderOutline)o.material=flashing?flashMat:baseMaterials.get(o);}); } if(active.type==='heal'&&healObj){healObj.scale.setScalar(1+p*.8); healObj.material.opacity=.55*(1-p); healObj.rotation.y+=dt*3.5;} if(active.type==='death'){root.rotation.z=-Math.PI/2; root.position.y=.18;} } if(document.getElementById('auto').checked)autoYaw += parseFloat(document.getElementById('speed').value)*dt; root.rotation.y += autoYaw; } controls.update(); renderer.render(scene,camera);} animate();
 </script>
 </body>
 </html>
