@@ -103,6 +103,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
   }, [weaponEncyclopediaRequest, onWeaponEncyclopediaRequestHandled])
 
   const records = useMemo(() => {
+    if (!authUser?.uid) return {}
     if (progressStatus !== 'ready' || !isFirebaseProgressHydrated(authUser)) return null
     return loadPlayerRecords()
   }, [authUser?.uid, progressStatus, recordsRefreshVersion])

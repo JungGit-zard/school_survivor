@@ -134,8 +134,8 @@ function TitleLetter({ config, total }) {
   )
 }
 
-// 타이틀 화면은 "게임 시작" 하나만 남긴다(인지적 시작 행위). 로그인/닉네임 게이트를 통과하면
-// 스테이지가 아니라 로비(onEnterLobby)로 진입한다. 스테이지 선택·상점·랭킹·설정은 로비로 이관.
+// 기존 "게임 시작"은 유지하고, 별도 버튼으로 로그인 없이 로비(onEnterLobby)에 진입한다.
+// 스테이지 선택·상점·랭킹·설정은 로비에서 처리한다.
 // 코나미식 치트 시퀀스 + devCheatsVisible 치트 메뉴 노출 경로는 그대로 보존한다.
 export default function TitleScreen({
   onEnterLobby,
@@ -514,6 +514,14 @@ export default function TitleScreen({
             onClick={handleStartClick}
           >
             {mainActionBusy ? t('account.signingIn') : t('title.start')}
+          </button>
+          <button
+            type="button"
+            className="title-main-action"
+            style={{ ...styles.primaryButton, ...styles.mainActionButton }}
+            onClick={() => onEnterLobby?.()}
+          >
+            로그인 없이 들어가기
           </button>
         </div>
       </div>
