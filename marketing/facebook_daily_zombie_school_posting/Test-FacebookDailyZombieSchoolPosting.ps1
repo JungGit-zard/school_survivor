@@ -49,11 +49,15 @@ try {
   $invokeSource=Get-Content -LiteralPath $invoke -Raw -Encoding UTF8
   Assert-True ($invokeSource -match "'RecoverStorageWarning'" -and $invokeSource -match 'Close-FacebookChromeStorageWarningIfPresent \$w') 'storage-warning recovery is exposed only through the Facebook wrapper action'
   Assert-True ($invokeSource -match "'ProfileReadinessDiagnostics'" -and $invokeSource -match 'Get-FacebookProfileReadinessDiagnostics \$w' -and $invokeSource -match "'ProfileReadinessDiagnostics'" ) 'read-only wrapper diagnostics expose the exact profile-ready predicate inputs'
+  Assert-True ($nativeSource -match 'exactFacebookTabCount' -and $nativeSource -match 'Test-FacebookTabName' -and $nativeSource -match 'Get-FacebookVisibleTabSnapshot \$Window') 'read-only profile diagnostics expose the exact Facebook tab count for approved wrapper fallback decisions'
   Assert-True ($nativeSource -match 'function Set-FacebookStableWindowBounds' -and $nativeSource -match 'IsZoomed' -and $nativeSource -match 'ShowWindow\(\$target,9\)' -and $nativeSource -match 'for\(\$attempt=0;\$attempt -lt 2;\$attempt\+\+\)' -and $nativeSource -match 'SetWindowPos' -and $nativeSource -match 'GetWindowRect' -and $nativeSource -match 'after one restore retry' -and $nativeSource -match '\$script:FacebookWindowWidth=1280' -and $nativeSource -match '\$script:FacebookWindowHeight=900') 'every native Facebook action restores a maximized exact HWND once, then fixes and verifies the stable 1280x900 posting window bounds'
   Assert-True ($nativeSource -match 'function Resolve-FacebookCoordinateCacheEntry' -and $nativeSource -match 'Get-FacebookUiParentWindowName' -and $nativeSource -match 'SetCursorPos' -and $nativeSource -match 'mouse_event') 'coordinate clicks use the process-independent native cache adapter'
   Assert-True ($nativeSource -match 'composerCoordinate=\$click' -and $nativeSource -match 'photoCoordinate.*\$photoCoordinate' -and $nativeSource -match 'windowBounds=\(Set-FacebookStableWindowBounds \$w\)') 'the fixed-window composer and photo steps return their freshly verified PID/HWND viewport coordinates'
   Assert-True ($clickSource -match '\$layout=Set-FacebookStableWindowBounds \$Window' -and $clickSource.IndexOf('Set-FacebookStableWindowBounds') -lt $clickSource.IndexOf('BoundingRectangle')) 'each coordinate is taken only after the fixed 0,0 1280x900 viewport is rechecked'
   Assert-True ($nativeSource -match 'function Select-FacebookProfileTab' -and $nativeSource -match 'SelectionItemPattern' -and $nativeSource -match '\$selection\.Select\(\)' -and $nativeSource -notmatch 'Invoke-FacebookUiClick \$tabs\[0\] \$Window -AllowMissingAccountMarker' -and $nativeSource -match 'function Navigate-FacebookProfileInSelectedTab' -and $nativeSource -match 'Assert-FacebookProfileAddress \$w' -and $nativeSource -match 'Assert-FacebookAccountMarker \$w') 'exact Facebook tab uses semantic UIA selection and same-tab profile navigation before account verification'
+  Assert-True ($invokeSource -match "'OpenProfileNewTab'" -and $invokeSource -match 'Open-FacebookProfileNewTabNative \$WindowId') 'wrapper exposes a bounded native new-tab profile opener for an exact existing Chrome HWND'
+  Assert-True ($nativeSource -match 'function Open-FacebookProfileNewTabNative' -and $nativeSource -match "SendWait\('\^t'\)" -and $nativeSource -match 'SetText\(\$script:FacebookProfileUrl\)' -and $nativeSource -match "SendWait\('\^v'\).*SendWait\('\{ENTER\}'\)" -and $nativeSource -match 'selectedTabBefore' -and $nativeSource -match 'Wait-FacebookProfileReady \$w') 'new-tab profile opener uses only native UI keystrokes in the exact Chrome HWND and then proves the fixed profile/account marker'
+  Assert-True ($nativeSource -notmatch 'Start-Process -FilePath ''chrome\.exe''' -and $nativeSource -notmatch 'chrome\.exe.*--remote-debugging-port' -and $nativeSource -notmatch 'DevToolsActivePort') 'new-tab profile opener does not spawn Chrome, use CDP, or inspect browser internals'
   $cacheKey='profile=https://www.facebook.com/hyunuk.jung.56/|bounds=0,0,1280,900|control=ControlType.Button|name=Post';$cacheState='account=Hyun Uk Jung|dialog=Create post'
   Assert-True ($script:FacebookProfileUrl -ceq 'https://www.facebook.com/hyunuk.jung.56/') 'coordinate cache uses the exact nonempty canonical Facebook profile key'
   $firstCache=Resolve-FacebookCoordinateCacheEntry @() $cacheKey $cacheState 640 700
@@ -83,16 +87,17 @@ try {
     function New-FacebookFeedTestItem($ControlType,[string]$Name,[string]$Value=''){[pscustomobject]@{Current=[pscustomobject]@{ControlType=$ControlType;Name=$Name};value=$Value}}
     $viPublishedIntent=Get-FacebookPair $config vi 'boss-b02-v2'
     $viLines=@($viPublishedIntent.text -split "`r?`n")
-    $shortPost=[pscustomobject]@{items=@(
+    $shortItems=@(
       (New-FacebookFeedTestItem ([Windows.Automation.ControlType]::Hyperlink) 'Hyun Uk Jung' 'https://www.facebook.com/hyunuk.jung.56/'),
       (New-FacebookFeedTestItem ([Windows.Automation.ControlType]::Text) 'Shared with Your friends'),
-      (New-FacebookFeedTestItem ([Windows.Automation.ControlType]::Image) 'Friends'),
-      (New-FacebookFeedTestItem ([Windows.Automation.ControlType]::Text) $viLines[0]),
-      (New-FacebookFeedTestItem ([Windows.Automation.ControlType]::Hyperlink) $viLines[1] $viLines[1]),
-      (New-FacebookFeedTestItem ([Windows.Automation.ControlType]::Hyperlink) $viLines[2] $viLines[2]),
-      (New-FacebookFeedTestItem ([Windows.Automation.ControlType]::Text) $viLines[3]),
-      (New-FacebookFeedTestItem ([Windows.Automation.ControlType]::Hyperlink) 'photo' 'https://www.facebook.com/photo/?fbid=4592468914306905')
-    )}
+      (New-FacebookFeedTestItem ([Windows.Automation.ControlType]::Image) 'Friends')
+    )
+    foreach($line in $viLines){
+      if($line -match '^https?://') { $shortItems += (New-FacebookFeedTestItem ([Windows.Automation.ControlType]::Hyperlink) $line $line) }
+      else { $shortItems += (New-FacebookFeedTestItem ([Windows.Automation.ControlType]::Text) $line) }
+    }
+    $shortItems += (New-FacebookFeedTestItem ([Windows.Automation.ControlType]::Hyperlink) 'photo' 'https://www.facebook.com/photo/?fbid=4592468914306905')
+    $shortPost=[pscustomobject]@{items=$shortItems}
     Assert-True (Test-FacebookFeedPostVisibleShortScope $shortPost $viPublishedIntent.text) 'visible published B02 Vietnamese copy with Friends, full ordered links, and one photo does not require See more'
     Assert-True (-not (Test-FacebookFeedPostPrefixScope $shortPost $viPublishedIntent.text)) 'visible published B02 Vietnamese copy is not misclassified as collapsed See more copy'
   } finally { Set-Item -Path Function:Get-FacebookUiAll -Value $savedUiAll;Set-Item -Path Function:Get-FacebookValue -Value $savedValue;Remove-Item -Path Function:New-FacebookFeedTestItem -ErrorAction SilentlyContinue }
