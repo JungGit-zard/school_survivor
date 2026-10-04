@@ -46,7 +46,7 @@ function Invoke-XPostingCycleRecovery {
     [int]$MaxAttempts = 16,
     [int]$RetryDelaySeconds = 300,
     [int]$MaxRunMinutes = 75,
-    [string[]]$ScheduleTimes = @('09:00','12:00','18:00'),
+    [string[]]$ScheduleTimes = @('02:00','06:00','11:00','17:00','21:00'),
     [Parameter(Mandatory)][scriptblock]$RunCycle,
     [scriptblock]$TestComplete = { param($id) $true },
     [scriptblock]$Sleep = { param($seconds) Start-Sleep -Seconds $seconds }

@@ -139,6 +139,9 @@ function Navigate-X([string]$Url) {
 }
 function Navigate-XProfile {
   Navigate-X 'https://x.com/jungsilx'
+  # Account identity must be asserted on the profile before compose:
+  # X hides the Account menu inside the composer, so composer-time identity
+  # probing is intentionally forbidden and retry safety depends on this gate.
   Wait-XCondition { Assert-XAccount; return $true } 'X account profile'
   Wait-XCondition { @(Get-XStatusUrls).Count -gt 0 } 'profile timeline status links' 30
 }
@@ -152,7 +155,6 @@ function Get-XStatusUrls {
 }
 function Get-XAttachmentCount { return @((Get-XElements) | Where-Object { $_.Current.Name -ceq 'Remove media' -and -not $_.Current.IsOffscreen }).Count }
 function Assert-XComposer([string]$Text) {
-  Assert-XAccount
   $editor = Find-XControl 'Post text' 'Edit'
   if ((Normalize-PostText (Get-XValue $editor)) -cne (Normalize-PostText $Text)) { throw 'Editor text does not match exact campaign copy' }
   if ((Get-XAttachmentCount) -ne 1) { throw 'Expected exactly one attached campaign image' }
@@ -162,7 +164,6 @@ function Assert-XComposer([string]$Text) {
 function Prepare-XPost([string]$Text, [string]$ImagePath) {
   Navigate-X 'https://x.com/compose/post'
   Wait-XCondition { $null = Find-XControl 'Post text' 'Edit'; return $true } 'empty composer'
-  Assert-XAccount
   $editor = Find-XControl 'Post text' 'Edit'
   if (-not [string]::IsNullOrWhiteSpace((Get-XValue $editor)) -or (Get-XAttachmentCount) -ne 0) { throw 'Composer has an existing draft; preserving it' }
   Click-XElement $editor

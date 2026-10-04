@@ -2,7 +2,18 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 function Assert-True($Value,[string]$Name){if(-not $Value){throw "FAILED: $Name"};"PASS $Name"}
 $wrapper=Join-Path $PSScriptRoot 'Invoke-ZombieSchoolSocialPosting.ps1'
+$postingFolderName=[string]::Concat([char]0xD3EC,[char]0xC2A4,[char]0xD305)
+$postingFolder=Join-Path (Split-Path -Parent $PSScriptRoot) $postingFolderName
+$operatorWrapper=Join-Path $postingFolder 'Invoke-ZombieSchoolSocialPosting.ps1'
+$operatorReadme=Join-Path $postingFolder 'README.md'
 Assert-True (Test-Path -LiteralPath $wrapper -PathType Leaf) 'top-level social wrapper exists'
+Assert-True (Test-Path -LiteralPath $operatorWrapper -PathType Leaf) 'operator posting folder wrapper exists'
+Assert-True (Test-Path -LiteralPath $operatorReadme -PathType Leaf) 'operator posting folder README exists'
+$operatorSource=Get-Content -LiteralPath $operatorWrapper -Raw -Encoding UTF8
+$operatorReadmeSource=Get-Content -LiteralPath $operatorReadme -Raw -Encoding UTF8
+Assert-True ($operatorSource -match 'marketing\\Invoke-ZombieSchoolSocialPosting\.ps1' -and $operatorSource -match '& powershell .* -File \$canonical @args') 'operator wrapper thin-forwards to canonical marketing wrapper'
+Assert-True ($operatorSource -notmatch 'WindowsXPosting\.ps1' -and $operatorSource -notmatch 'FindAll\(' -and $operatorSource -notmatch 'Add-Type') 'operator wrapper does not duplicate posting logic or native UIA code'
+Assert-True ($operatorReadmeSource -match 'Language vi' -and $operatorReadmeSource -match '2026-10-05-0257-vi-once01' -and $operatorReadmeSource -match '2106809115905507587') 'operator README documents verified Vietnamese X command and receipt'
 $source=Get-Content -LiteralPath $wrapper -Raw -Encoding UTF8
 Assert-True ($source -match 'Invoke-XDailyZombieSchoolPosting\.ps1' -and $source -match '-Run' -and $source -match '-SinglePost') 'X delegate is exact daily runner Run SinglePost'
 Assert-True ($source -match 'Invoke-FacebookDailyZombieSchoolPosting\.ps1' -and $source -match 'AuthorizePublish' -and $source -match 'FullCycleResumeSafe') 'Facebook delegate exposes approved resume-safe authorized sequence'

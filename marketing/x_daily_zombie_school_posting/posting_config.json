@@ -2,9 +2,11 @@
   "campaign": "Escape! Zombie School daily X UI posting",
   "timezone": "Asia/Seoul",
   "schedule_times": [
-    "09:00",
-    "12:00",
-    "18:00"
+    "02:00",
+    "06:00",
+    "11:00",
+    "17:00",
+    "21:00"
   ],
   "boundary": {
     "posting_method": "browser_ui_only",

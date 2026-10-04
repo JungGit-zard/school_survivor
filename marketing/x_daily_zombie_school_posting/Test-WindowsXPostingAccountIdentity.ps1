@@ -26,6 +26,18 @@ function Assert-Order([string]$Before, [string]$After, [string]$Name) {
   Write-Output "PASS $Name"
 }
 
+Assert-Contains "function Navigate-XProfile" "profile navigation helper exists"
+Assert-Contains "X hides the Account menu inside the composer" "source comment preserves pre-compose account-check reason"
+Assert-Contains "Wait-XCondition { Assert-XAccount; return `$true } 'X account profile'" "pre-compose profile identity gate remains"
+Assert-Contains "function Assert-XComposer([string]`$Text)" "composer assertion helper exists"
+Assert-Contains "function Prepare-XPost([string]`$Text, [string]`$ImagePath)" "post preparation helper exists"
+$composerBody = [regex]::Match($source, 'function Assert-XComposer\([\s\S]*?\n}\r?\nfunction Prepare-XPost').Value
+$prepareBody = [regex]::Match($source, 'function Prepare-XPost\([\s\S]*?\n}\r?\nfunction Publish-XPost').Value
+if ([string]::IsNullOrWhiteSpace($composerBody) -or [string]::IsNullOrWhiteSpace($prepareBody)) { throw 'FAILED: could not isolate composer/preparation functions for source assertion' }
+if ($composerBody.Contains('Assert-XAccount') -or $composerBody.Contains('Account menu')) { throw 'FAILED: composer assertion must not probe account menu inside compose' }
+Write-Output 'PASS composer assertion has no in-composer account check'
+if ($prepareBody.Contains('Assert-XAccount') -or $prepareBody.Contains('Account menu')) { throw 'FAILED: post preparation must not probe account menu after navigating to compose' }
+Write-Output 'PASS post preparation has no in-composer account check'
 Assert-Contains "SwitchToThisWindow(IntPtr hWnd, bool fAltTab)" "native SwitchToThisWindow P/Invoke is declared"
 Assert-Contains "function Restore-XWindowFocus" "navigation boundary focus restore helper exists"
 Assert-Contains "Get-XWindowElement" "focus restore verifies exact target X Chrome window"

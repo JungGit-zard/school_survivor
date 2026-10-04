@@ -8,7 +8,7 @@ function Assert-True($Value, [string]$Name) { if (-not $Value) { throw "FAILED: 
 # The recovery deadline compares the live clock. Keep this no-sleep fixture's
 # slot end in the future instead of letting a historical date expire forever.
 $now = [DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9))
-$cycleId = $now.ToString('yyyy-MM-dd') + '-1800'
+$cycleId = $now.ToString('yyyy-MM-dd') + '-2100'
 $script:calls = @()
 $run = {
   param($id, $attempt)

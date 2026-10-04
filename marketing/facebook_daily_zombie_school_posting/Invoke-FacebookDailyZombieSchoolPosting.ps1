@@ -39,8 +39,7 @@ $pair = $null
 if($Action -eq 'SelectSourcePair'){
   . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingReceipt.ps1')
   . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
-  # Facebook has its own authorized 11:00/17:00 cadence; do not alter X config.
-  $config | Add-Member -Force -NotePropertyName schedule_times -NotePropertyValue @('11:00','17:00')
+  # Facebook and X share the five KST posting slots from posting_config.json.
   $selectedVariant=if([string]::IsNullOrWhiteSpace($VariantId)){Select-PostingVariant $config $Language $RunId $ReceiptDirectory}else{@(Get-PostingVariants $config $Language | Where-Object{$_.id -ceq $VariantId})}
   if(@($selectedVariant).Count -ne 1){throw "Unknown or ambiguous explicit Facebook variant '$VariantId'"}
   $pair=Get-FacebookPair $config $Language $selectedVariant.id
