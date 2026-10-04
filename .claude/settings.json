@@ -70,8 +70,12 @@
         ]
       },
       {
-        "matcher": "Bash|PowerShell|shell_command",
+        "matcher": "Bash|PowerShell|shell_command|terminal|exec_command",
         "hooks": [
+          {
+            "type": "command",
+            "command": "python \"D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\guards\\destructive_shell_deletion_guard.py\""
+          },
           {
             "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/Developer/agent_room/mandatory_precommand/check-required-documents.ps1\" -Profile \"${CLAUDE_AGENT_PROFILE:-madangsue}\" -Domain auto"

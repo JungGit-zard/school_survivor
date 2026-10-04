@@ -17,8 +17,12 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash|PowerShell|shell_command",
+        "matcher": "Bash|PowerShell|shell_command|terminal|exec_command",
         "hooks": [
+          {
+            "type": "command",
+            "command": "python \"D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\guards\\destructive_shell_deletion_guard.py\""
+          },
           {
             "type": "command",
             "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-stage2-boss-v2-gate.sh'"
