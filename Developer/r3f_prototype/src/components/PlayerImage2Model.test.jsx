@@ -12,7 +12,7 @@ describe('Player graphics rollback with comparison-only Image2 GLB', () => {
     const player = read('./Player.jsx')
 
     expect(player).toContain("import PlayerV9Model from './PlayerV9Model.jsx'")
-    expect(player).toContain('<PlayerV9Model movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />')
+    expect(player).toContain('<PlayerV9Model movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} gameplay={gameplay} />')
     expect(player).not.toContain('modelVariant="image2"')
   })
 

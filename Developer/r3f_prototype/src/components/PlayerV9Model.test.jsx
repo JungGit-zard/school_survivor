@@ -14,7 +14,7 @@ vi.mock('react', async (importOriginal) => ({
 vi.mock('@react-three/fiber', () => ({ useFrame: (frame) => { runtime.frame = frame }, useThree: () => ({}) }))
 vi.mock('@react-three/drei', () => ({ useGLTF: Object.assign(() => ({ scene: runtime.scene }), { preload: () => {} }) }))
 
-import PlayerV9Model from './PlayerV9Model.jsx'
+import PlayerV9Model, { PLAYER_V9_RAW_HEIGHT, PLAYER_V9_RAW_MIN_Y } from './PlayerV9Model.jsx'
 import StudioTunedGroup, { applySavedStudioPartTunings, applyStudioTuning, findStudioPartByKey } from './StudioTunedGroup.jsx'
 import { GRAPHICS_STUDIO_CATALOG } from '../lib/graphicsStudioConfig.js'
 
@@ -42,9 +42,9 @@ function mountGroups(element) {
   return group
 }
 
-function renderPlayer() {
+function renderPlayer(props = {}) {
   const groupRef = { current: null }
-  const root = mountGroups(PlayerV9Model({ groupRef, movingRef: { current: true } }))
+  const root = mountGroups(PlayerV9Model({ groupRef, movingRef: { current: true }, ...props }))
   return { root, groupRef, model: root.getObjectByName('player-v9-model'), studio: root.children[0] }
 }
 
@@ -73,6 +73,17 @@ const packageRoot = path.resolve(componentsDir, '../..')
 const read = (file) => readFileSync(new URL(file, import.meta.url), 'utf8')
 
 describe('Player v9 gameplay and Studio runtime model contract', () => {
+  it('uses exactly 90 percent gameplay size while preserving preview size and the foot anchor', () => {
+    const preview = renderPlayer().model
+    const gameplay = renderPlayer({ gameplay: true }).model
+    for (const axis of ['x', 'y', 'z']) expect(gameplay.scale[axis] / preview.scale[axis]).toBeCloseTo(0.9, 14)
+    expect(PLAYER_V9_RAW_HEIGHT * gameplay.scale.y).toBeCloseTo(0.89244 * 0.9, 14)
+    expect(gameplay.position.y + PLAYER_V9_RAW_MIN_Y * gameplay.scale.y).toBeCloseTo(-0.32, 14)
+    expect(preview.position.y + PLAYER_V9_RAW_MIN_Y * preview.scale.y).toBeCloseTo(-0.32, 14)
+    expect(preview.getObjectByName('Hair_crown_flat_round_skull_outline').scale.x).toBeCloseTo(1.08)
+    expect(gameplay.getObjectByName('Hair_crown_flat_round_skull_outline').scale.x).toBeCloseTo(1.16)
+  })
+
   it('draws hulls only outside the surface stencil and preserves source geometry and face material', () => {
     const original = runtime.scene.getObjectByName('Head_skin_broad_short_chin')
     const originalPositions = Array.from(original.geometry.attributes.position.array)

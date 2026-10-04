@@ -151,14 +151,14 @@ function PlayerHealEffect({ token = 0 }) {
   )
 }
 
-export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 0, healFlashToken = 0, showHealthBar = true, previewArmAction = null, visualPose = PLAYER_UPRIGHT_POSE, comparisonModel = null }) {
+export function PlayerVisual({ meshGroup, movingRef, hp, maxHp, hitFlashToken = 0, healFlashToken = 0, showHealthBar = true, previewArmAction = null, visualPose = PLAYER_UPRIGHT_POSE, comparisonModel = null, gameplay = false }) {
   return (
     <>
       <group position={visualPose.position} rotation={visualPose.rotation}>
         <group ref={meshGroup}>
           {import.meta.env.DEV && comparisonModel === 'legacy'
             ? <PlayerMesh movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />
-            : <PlayerV9Model movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} />}
+            : <PlayerV9Model movingRef={movingRef} hitFlashToken={hitFlashToken} previewArmAction={previewArmAction} gameplay={gameplay} />}
         </group>
       </group>
       <PlayerHealEffect token={healFlashToken} />
@@ -321,7 +321,7 @@ export default function Player() {
       colliders={false}
     >
       <CuboidCollider args={[0.136, 0.32, 0.136]} />
-      <PlayerVisual meshGroup={meshGroup} movingRef={movingRef} hp={hp} maxHp={maxHp} hitFlashToken={hitFlashToken} healFlashToken={healFlashToken} visualPose={visualPose} comparisonModel={comparisonModel} />
+      <PlayerVisual meshGroup={meshGroup} movingRef={movingRef} hp={hp} maxHp={maxHp} hitFlashToken={hitFlashToken} healFlashToken={healFlashToken} visualPose={visualPose} comparisonModel={comparisonModel} gameplay />
       {import.meta.env.DEV && comparisonModel && (
         <Html position={[0, 1.12, 0]} center style={{ pointerEvents: 'none', whiteSpace: 'nowrap', fontSize: 12, color: '#fff', background: '#111c', padding: '3px 6px', borderRadius: 4 }}>
           F8 · {comparisonModel === 'legacy' ? '이전 모델' : '이번 V9'}

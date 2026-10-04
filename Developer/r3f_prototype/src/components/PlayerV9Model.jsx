@@ -58,7 +58,7 @@ function cloneMaterial(material) {
   return cloned
 }
 
-function clonePlayerV9Scene(scene) {
+function clonePlayerV9Scene(scene, gameplay) {
   const cloned = scene.clone(true)
   cloned.traverse((object) => {
     if (!object.isMesh) return
@@ -70,7 +70,7 @@ function clonePlayerV9Scene(scene) {
       ? object.material.map(cloneMaterial)
       : cloneMaterial(object.material)
   })
-  addPlayerV9Outlines(cloned)
+  addPlayerV9Outlines(cloned, gameplay ? 1.08 : 1.04)
   return cloned
 }
 
@@ -152,9 +152,11 @@ function PlayerV9LanternModel() {
   )
 }
 
-export default function PlayerV9Model({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null }) {
+export default function PlayerV9Model({ groupRef, movingRef, hitFlashToken = 0, previewArmAction = null, gameplay = false }) {
+  const modelScale = PLAYER_V9_SCALE * (gameplay ? 0.9 : 1)
+  const floorY = -0.32 - PLAYER_V9_RAW_MIN_Y * modelScale
   const gltf = useGLTF(PLAYER_V9_MODEL_URL)
-  const scene = useMemo(() => clonePlayerV9Scene(gltf.scene), [gltf.scene])
+  const scene = useMemo(() => clonePlayerV9Scene(gltf.scene, gameplay), [gltf.scene, gameplay])
   const modelRef = useRef(null)
   const lanternRef = useRef(null)
   const parts = useRef({})
@@ -260,7 +262,7 @@ export default function PlayerV9Model({ groupRef, movingRef, hitFlashToken = 0, 
   return (
     <group ref={setRoot}>
       <StudioTunedGroup itemId="player-v9">
-        <group name="player-v9-model" ref={modelRef} position={[0, PLAYER_V9_FLOOR_Y, 0]} scale={[PLAYER_V9_SCALE, PLAYER_V9_SCALE, PLAYER_V9_SCALE]}>
+        <group name="player-v9-model" ref={modelRef} position={[0, floorY, 0]} scale={[modelScale, modelScale, modelScale]}>
           <PlayerV9Shadow />
           <primitive object={scene} />
           <group name="player-v9-lantern" ref={lanternRef} visible={false}>

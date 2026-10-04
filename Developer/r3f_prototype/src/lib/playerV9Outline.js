@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { inflateScale, outlineMat } from './toon.js'
 
 // Share the authored surface's silhouette stencil; never draw black inside it.
-export function addPlayerV9Outlines(root) {
+export function addPlayerV9Outlines(root, outlineScale = 1.04) {
   const surfaces = []
   root.traverse((object) => {
     if (object.isMesh && !object.userData.studioRenderOutline) surfaces.push(object)
@@ -27,7 +27,7 @@ export function addPlayerV9Outlines(root) {
     const hull = new THREE.Mesh(geometry, material)
     hull.name = `${surface.name}_outline`
     hull.position.copy(center)
-    hull.scale.setScalar(inflateScale(1.04))
+    hull.scale.setScalar(inflateScale(outlineScale))
     hull.renderOrder = 91
     hull.frustumCulled = false
     hull.userData.studioRenderOutline = true
