@@ -6,11 +6,15 @@ function Assert-True($Value, [string]$Name) { if (-not $Value) { throw "FAILED: 
 $config = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'posting_config.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 Assert-PostingVariants $config
 $temp = Join-Path ([IO.Path]::GetTempPath()) ('x-variants-test-' + [guid]::NewGuid().ToString('N'))
-$fixturePath = Join-Path $temp '2026-09-06-0900.json'
-$savedConfig = Join-Path $temp 'fixture-config.json'
+$tempFull = [IO.Path]::GetFullPath($temp)
+$systemTempFull = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
+Assert-True ($tempFull.StartsWith($systemTempFull, [StringComparison]::OrdinalIgnoreCase) -and ([IO.Path]::GetFileName($tempFull) -match '^x-variants-test-[0-9a-f]{32}$')) 'test temp path is scoped'
+$fixturePath = Join-Path $tempFull '2026-09-06-0900.json'
+$savedConfig = Join-Path $tempFull 'fixture-config.json'
 try {
   foreach ($lang in $config.language_order) {
     Assert-True (@($config.variants.$lang).Count -eq 3) "$lang has three extra pairs"
+    Assert-True (@($config.localized_social_image_pool.$lang.images).Count -eq 3) "$lang has three verified localized images"
     foreach ($variant in $config.variants.$lang) {
       Assert-True ((Get-XWeightedLength $variant.text) -le 280) "$lang/$($variant.id) fits weighted X limit"
       $variant.enabled = $false
@@ -66,6 +70,9 @@ try {
   Assert-True ($errors.Count -eq 0) 'PowerShell parses variant helper'
 } finally {
   foreach ($path in @($fixturePath, $savedConfig)) { if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path } }
-  if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Recurse -Force }
+  if (Test-Path -LiteralPath $tempFull -PathType Container) {
+    foreach ($file in @(Get-ChildItem -LiteralPath $tempFull -File -Filter '*.json')) { Remove-Item -LiteralPath $file.FullName }
+    Remove-Item -LiteralPath $tempFull
+  }
 }
 Write-Output 'VARIANT_TEST_OK'
