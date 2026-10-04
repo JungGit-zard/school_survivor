@@ -63,6 +63,30 @@ AI 후보의 **품질 상위**와 **이 PC에서 바로 실행할 실무 주력*
 - 일반 좀비는 같은 몸통과 리그를 공유하고, 머리·교복·가방·무기만 교체한다. 보스는 실루엣 차이를 먼저 만들고 세부면은 나중에 더한다.
 - 애니메이션으로 휘는 부위는 손가락/얇은 장식 대신 굵은 블록 파츠를 쓴다. 그러면 스킨 웨이트가 깨져도 읽히는 형태를 유지한다.
 
+### v8 저폴리 주인공 제작에서 보존할 실무 규칙
+
+상세 통합 매뉴얼은 [LOW_POLY_CHARACTER_MODELING_PLAYBOOK.md](LOW_POLY_CHARACTER_MODELING_PLAYBOOK.md)를 정본 플레이북으로 함께 본다.
+
+2026-10-04의 `09_v8_turnaround` 산출물은 게임/Studio에 연결하지 않은 viewer-only 검토 자산이다. 그래도 사용자 승인된 제작 방식은 다음 작업에 재사용한다.
+
+1. 정면·측면·후면의 큰 실루엣을 먼저 맞춘다. 회색 blockout 단계에서 FRONT/SIDE/BACK overlay와 scanline을 확인한 뒤 표면 디테일로 넘어간다.
+2. 삼각형은 숨은 면이나 임의 표면 조각이 아니라 큰 실루엣을 바꾸는 덩어리에 쓴다. 특히 두개골 볼륨, 단발머리 폭·깊이·아래선, 스커트 폭처럼 화면에서 형태를 바꾸는 mass가 우선이다.
+3. 눈·눈썹·입은 얼굴 앞면의 단일 UV 텍스처에 직접 그린다. 별도 floating eye plane, 중복 눈 메시, 피부 위 outline ink는 금지한다.
+4. 후보 판정 전 최소 검수는 회색 blockout F/S/B, 최종 8-view 회전 렌더, 얼굴 판독성, nonmanifold edge 0, negative signed volume 0, pivot/origin 무결성이다.
+5. viewer-only 산출물은 런타임·Graphics Studio·Firebase 승인과 다르다. `PlayerMesh.jsx`, `GraphicsStudio.jsx`, Firebase, Studio 정본에 연결하지 않는다.
+
+v8 실제 산출물과 측정값:
+
+- 작업 폴더: `Graphic_designer/game_resource_library/player_r3f_blender_20261003/09_v8_turnaround/`
+- 최종 blend: `final/PLAYER_v8_final.blend` — SHA-256 `0a5bc10c2574d0d350d985faf96959d08ff2c8411022d0ed6f2cc0a78a696c45`
+- 최종 GLB: `final/PLAYER_v8_final.glb` — SHA-256 `215b30262049c76c747a116d6fc455512bb4c9d4d57e8630ef28d6933af19a72`
+- 최종 contact: `final/PLAYER_v8_source_vs_model_contact.png` — SHA-256 `7bb7aef196e5db840635579d1af34e2e4a9a040d44c6c4786634eff4a4f90d78`
+- 8-view contact: `final/PLAYER_v8_360_contact.png` — SHA-256 `6859fbc22b350b70ca9aa1f5f01bbe9f0703bcf851d7145d1edb7e5b9cd55cc1`
+- 얼굴 UV 텍스처: `surface/PLAYER_v8_face_surface_uv.png` — SHA-256 `3c2815f6dd62e8590a29c996d23bda433c641a2fbfd5cd01709bc5b0a2bdbfb2`
+- `final/PLAYER_v8_final_qa.json`: structural triangles `3236`, export triangles `3244`, mesh parts `31`, blend `349910` bytes, GLB `363724` bytes, nonmanifold/negative-volume objects `{}`.
+- `blockout/PLAYER_v8_blockout_silhouette_metrics.json`: silhouette IoU front `0.9204`, side `0.8669`, back `0.9145`; width at 680h — front source/model `374/365`, side `276/266`, back `369/365`.
+- `blockout/PLAYER_v8_scanline_metrics.json`: row별 차이는 남아 있으며 특히 side row 320의 left delta `-31`, side row 550의 right delta `-30`처럼 다음 반복에서 옆모습 질량을 더 검토해야 하는 지점이 있다.
+
 ## 초기 예산(실측 전 가설)
 
 아래는 목표 예산이지 현행 성능 합격 수치가 아니다. 동일 카메라 거리·동시 등장 수·목표 기기에서 측정해 정한다.

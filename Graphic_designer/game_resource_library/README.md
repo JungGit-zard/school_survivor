@@ -31,5 +31,6 @@
 - `references/style_variants`: 기존 스타일 후보 이미지
 - `source-audio/stage-bgm-drafts`: 기존 BGM 초안
 - `tools/copy_existing_resources.py`: 동일 범위의 기존 파일 복사 및 CSV 매니페스트 재작성 도구. 저장소 루트에서 `python Graphic_designer/game_resource_library/tools/copy_existing_resources.py`로 실행하며, 스크립트 위치에서 저장소 루트를 찾아 동작합니다. 새로운 리소스를 만들지 않습니다.
+- [저폴리 캐릭터 모델링 플레이북](../LOW_POLY_CHARACTER_MODELING_PLAYBOOK.md): v8 viewer-only 제작 경험을 통합한 FRONT/SIDE/BACK/FACE 기준, 90도 side-depth 재구성, geometry/texture/8-way QA 실무 매뉴얼입니다.
 
 생성형으로 새 원화 시트는 만들지 않았습니다. 스타일 방향 선택도 보류 상태입니다.
