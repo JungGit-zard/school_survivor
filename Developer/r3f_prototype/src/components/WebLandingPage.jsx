@@ -2,117 +2,68 @@ import { useEffect, useRef, useState } from 'react'
 import TitleSceneCanvas from './TitleSceneCanvas.jsx'
 import '../assets/fonts/nanumMyeongjo.css'
 import { WEB_BACKGROUND_URLS, WEB_LANDING_ART_URLS, WEB_LANDING_COMIC_URLS, getSelectedWebBackgroundStyle } from '../lib/webBackgroundAssets.js'
+import { LANDING_COPY, LANDING_LANGUAGES } from './webLandingCopy.js'
 
 export const LANDING_HERO_VIDEO_URL = ''
 export const LANDING_FEATURE_VIDEO_URL = ''
 
 const TITLE_BGM_URL = new URL('../assets/audio/title_bgm.m4a', import.meta.url).href
 
-const FEATURE_FACTS = [
-  '3분 30초 생존',
-  '4개 스테이지',
-  '설치 없이 즉시 시작',
-]
-
-const GAMEPLAY_CARDS = [
-  {
-    title: '방과후 생존 액션',
-    body: '교실에서 시작해 복도, 급식실까지 이어지는 방과후 생존 액션. 자동 공격과 성장 선택으로 짧고 강한 한 판을 만든다.',
-    image: WEB_LANDING_ART_URLS.classroomSurvival,
-  },
-  {
-    title: '무기와 업그레이드',
-    body: '연필, 가방, 과학 플라스크처럼 학교 콘셉트 무기를 모아 좀비 무리를 밀어낸다.',
-    image: WEB_LANDING_ART_URLS.schoolSupplies,
-  },
-  {
-    title: '즉시 플레이',
-    body: '설치 없이 웹에서 바로 시작하고, 모바일에서도 큰 버튼과 읽기 쉬운 정보 위계로 진입한다.',
-    image: WEB_LANDING_ART_URLS.sunsetEscape,
-  },
-]
-
-const NEWS_ITEMS = [
-  ['웹에서 바로 시작', '설치 없이 게임 시작 버튼을 누르면 학교 탈출에 바로 도전할 수 있습니다.'],
-  ['생존 루트 안내', '이동, 자동 공격, 업그레이드 선택으로 이어지는 기본 흐름을 안내합니다.'],
-  ['미디어 아카이브', '게임 속 학교와 생존 장면을 공식 이미지로 확인할 수 있습니다.'],
-]
-
-const SURVIVAL_STEPS = [
-  '체육복을 챙길 틈도 없이 시작되는 교실 탈출',
-  '경험치를 모아 무기 카드를 고르고 생존 루트를 만든다',
-  '탈출구가 열릴 때까지 몰려오는 좀비와 선생님 보스를 버틴다',
-]
-
-const START_STEPS = [
-  '1. 웹에서 바로 플레이를 누른다',
-  '2. 방향키 또는 모바일 터치로 이동한다',
-  '3. 자동 공격과 업그레이드 선택으로 학교를 탈출한다',
-]
-
 const COMIC_EPISODES = [
   {
     id: 'attendance',
     image: WEB_LANDING_COMIC_URLS.attendance,
-    title: '출석부를 찾아라!',
     accent: '#16A34A',
-    summary: '출석부를 찾던 좀비들, 연필 한 번에 모범생 모드!',
-    beats: ['교실 문 앞 출석부 소동', '노란 연필 지휘봉으로 멈춤', '작은 별 반짝임과 어지럼', '손을 들고 출석 체크'],
   },
   {
     id: 'lunch-line',
     image: WEB_LANDING_COMIC_URLS.lunchLine,
-    title: '급식 줄은 한 줄로',
     accent: '#2563EB',
-    summary: '급식 줄도 연필처럼 반듯하게! 오늘의 메뉴는 질서 한 스푼.',
-    beats: ['지그재그 급식 줄', '연필 끝으로 방향 안내', '한 줄 정렬 성공', '반듯하게 식판 받기'],
   },
   {
     id: 'homework-wind',
     image: WEB_LANDING_COMIC_URLS.homeworkWind,
-    title: '바람아, 숙제는 이쪽!',
     accent: '#7C3AED',
-    summary: '날아간 숙제도 걱정 끝. 연필이 가리키는 곳이 제출함!',
-    beats: ['창문 바람에 과제 종이 휘날림', '연필 끝에 종이 한 장 포착', '교실 문 쪽으로 안전 유도', '교탁 위에 차곡차곡 정리'],
   },
   {
     id: 'gym-bounce',
     image: WEB_LANDING_COMIC_URLS.gymBounce,
-    title: '체육관의 슈퍼 바운드',
     accent: '#16A34A',
-    summary: '체육 시간도 안전 제일! 연필 지우개는 의외로 공 받기 명수.',
-    beats: ['농구공이 천장까지 통통', '연필을 안전 방망이처럼 들기', '매트로 부드럽게 방향 전환', '공손히 공을 건네기'],
   },
   {
     id: 'library-quiet',
     image: WEB_LANDING_COMIC_URLS.libraryQuiet,
-    title: '도서관의 쉿! 작전',
     accent: '#2563EB',
-    summary: '도서관에서는 조용히. 좀비도 연필 신호엔 독서 모드!',
-    beats: ['책장 사이 큰 입 소동', '연필로 조용한 신호', '작은 별과 함께 꾸벅', '거꾸로 든 책을 살짝 바로잡기'],
   },
 ]
 
-const VIDEO_PLACEHOLDERS = WEB_BACKGROUND_URLS.slice(0, 3).map((image, index) => ({
-  title: [`교실 생존 미리보기`, `학교 배경 둘러보기`, `탈출 루트 티저`][index],
-  image,
-}))
+const VIDEO_PLACEHOLDERS = WEB_BACKGROUND_URLS.slice(0, 3)
+const GAMEPLAY_IMAGES = [WEB_LANDING_ART_URLS.classroomSurvival, WEB_LANDING_ART_URLS.schoolSupplies, WEB_LANDING_ART_URLS.sunsetEscape]
 
 export default function WebLandingPage() {
+  const [language, setLanguage] = useState('ko')
+  const copy = LANDING_COPY[language]
   const [activeMedia, setActiveMedia] = useState(null)
   const [mediaScrollRequest, setMediaScrollRequest] = useState(0)
   const [isMusicPlaying, setIsMusicPlaying] = useState(false)
-  const [musicStatus, setMusicStatus] = useState('수동 재생 전용 · 아직 재생하지 않음')
+  const [musicStatus, setMusicStatus] = useState('musicIdle')
   const [selectedComicIndex, setSelectedComicIndex] = useState(null)
   const audioRef = useRef(null)
-  const selectedComic = selectedComicIndex === null ? null : COMIC_EPISODES[selectedComicIndex]
+  const selectedComic = selectedComicIndex === null ? null : { ...COMIC_EPISODES[selectedComicIndex], ...copy.comics[selectedComicIndex] }
+
+  useEffect(() => {
+    const previousLanguage = document.documentElement.lang
+    return () => { document.documentElement.lang = previousLanguage }
+  }, [])
+
+  useEffect(() => { document.documentElement.lang = language }, [language])
 
   const selectMedia = (media, shouldScrollToToolbar = false) => {
     if (media !== 'music' && audioRef.current) {
       audioRef.current.pause()
       audioRef.current.currentTime = 0
       setIsMusicPlaying(false)
-      setMusicStatus('수동 재생 전용 · 아직 재생하지 않음')
+      setMusicStatus('musicIdle')
     }
     setActiveMedia(media)
     if (shouldScrollToToolbar) setMediaScrollRequest((request) => request + 1)
@@ -146,24 +97,24 @@ export default function WebLandingPage() {
     if (isMusicPlaying) {
       audio.pause()
       setIsMusicPlaying(false)
-      setMusicStatus('일시정지됨')
+      setMusicStatus('musicPaused')
       return
     }
 
     try {
       await audio.play()
       setIsMusicPlaying(true)
-      setMusicStatus('타이틀 테마 재생 중')
+      setMusicStatus('musicPlaying')
     } catch {
       setIsMusicPlaying(false)
-      setMusicStatus('브라우저가 재생을 막았습니다. 버튼을 다시 눌러 주세요.')
+      setMusicStatus('musicBlocked')
     }
   }
 
   return (
-    <main className="web-landing" style={styles.viewport} aria-label="탈출! 좀비학교 공식 홈페이지">
+    <main className="web-landing" style={styles.viewport} aria-label={copy.homeAria} lang={language}>
       <style>{landingCss}</style>
-      <a className="web-landing__skip-link" href="#game-intro">본문으로 건너뛰기</a>
+      <a className="web-landing__skip-link" href="#game-intro">{copy.skip}</a>
       <section
         data-testid="web-landing-stage"
         className="web-landing__stage"
@@ -173,20 +124,26 @@ export default function WebLandingPage() {
         }}
       >
         <div className="web-landing__content">
-          <nav aria-label="공식 홈페이지 주요 탐색" className="web-landing__nav">
-            <a href="/" className="web-landing__brand web-landing__link" aria-label="탈출! 좀비학교 홈">
+          <nav aria-label={copy.navigation} className="web-landing__nav">
+            <a href="/" className="web-landing__brand web-landing__link" aria-label={copy.brandHome}>
               <span className="web-landing__brand-mark">!</span>
-              <span>공식 홈페이지</span>
+              <span>{copy.official}</span>
             </a>
             <div className="web-landing__nav-links">
-              <a href="#game-intro" className="web-landing__nav-link web-landing__link">게임 소개</a>
-              <a href="#section-start" className="web-landing__nav-link web-landing__link">플레이 방법</a>
-              <a href="#comics" className="web-landing__nav-link web-landing__link" onClick={openMediaLink('comics')}>4컷 만화 보기</a>
-              <a href="#music" className="web-landing__nav-link web-landing__link" onClick={openMediaLink('music')}>음악</a>
-              <a href="#videos" className="web-landing__nav-link web-landing__link" onClick={openMediaLink('videos')}>영상</a>
-              <a href="#news" className="web-landing__nav-link web-landing__link">새소식</a>
-              <a href="/game" className="web-landing__nav-cta web-landing__link">게임 시작</a>
+              <a href="#game-intro" className="web-landing__nav-link web-landing__link">{copy.intro}</a>
+              <a href="#section-start" className="web-landing__nav-link web-landing__link">{copy.howTo}</a>
+              <a href="#comics" className="web-landing__nav-link web-landing__link" onClick={openMediaLink('comics')}>{copy.comicNav}</a>
+              <a href="#music" className="web-landing__nav-link web-landing__link" onClick={openMediaLink('music')}>{copy.musicNav}</a>
+              <a href="#videos" className="web-landing__nav-link web-landing__link" onClick={openMediaLink('videos')}>{copy.videoNav}</a>
+              <a href="#news" className="web-landing__nav-link web-landing__link">{copy.news}</a>
+              <a href="/game" className="web-landing__nav-cta web-landing__link">{copy.startGame}</a>
             </div>
+            <label className="web-landing__language">
+              <span className="web-landing__visually-hidden">{copy.languageLabel}</span>
+              <select id="web-landing-language" aria-label={copy.languageLabel} value={language} onChange={(event) => setLanguage(event.target.value)}>
+                {LANDING_LANGUAGES.map(({ code, label }) => <option key={code} value={code}>{label}</option>)}
+              </select>
+            </label>
           </nav>
 
           <section className="web-landing__hero-shell" aria-labelledby="landing-title">
@@ -201,41 +158,41 @@ export default function WebLandingPage() {
             <div className="web-landing__hero-scrim" style={styles.scrim} aria-hidden="true" />
             <div className="web-landing__hero">
               <div className="web-landing__hero-copy">
-                <p className="web-landing__eyebrow">KOREAN SCHOOL SURVIVAL ACTION</p>
-                <h1 id="landing-title" className="web-landing__title">탈출! 좀비학교</h1>
-                <p className="web-landing__headline">종이 울리기 전에 탈출하자</p>
-                <p className="web-landing__support">3분 30초 동안 몰려오는 좀비를 버티고 잠긴 탈출구를 열어라.</p>
-                <div className="web-landing__hero-actions" aria-label="주요 행동">
-                  <a href="/game" className="web-landing__cta web-landing__link">웹에서 바로 플레이</a>
-                  <a href="#section-start" className="web-landing__ghost-link web-landing__link">플레이 방법 보기</a>
-                  <a href="#comics" className="web-landing__comic-link web-landing__link" onClick={openMediaLink('comics')}>4컷 만화 보기</a>
+                <p className="web-landing__eyebrow">{copy.eyebrow}</p>
+                <h1 id="landing-title" className="web-landing__title">{copy.title}</h1>
+                <p className="web-landing__headline">{copy.headline}</p>
+                <p className="web-landing__support">{copy.support}</p>
+                <div className="web-landing__hero-actions" aria-label={copy.mainActions}>
+                  <a href="/game" className="web-landing__cta web-landing__link">{copy.playWeb}</a>
+                  <a href="#section-start" className="web-landing__ghost-link web-landing__link">{copy.howToLink}</a>
+                  <a href="#comics" className="web-landing__comic-link web-landing__link" onClick={openMediaLink('comics')}>{copy.comicNav}</a>
                 </div>
               </div>
 
-              <aside className="web-landing__notice" aria-label="공식 안내">
-                <strong>공식 홈페이지</strong>
-                <span>게임에 들어가기 전, 만화·음악·영상을 둘러보세요.</span>
+              <aside className="web-landing__notice" aria-label={copy.officialNotice}>
+                <strong>{copy.official}</strong>
+                <span>{copy.notice}</span>
               </aside>
             </div>
           </section>
 
-          <ul aria-label="게임 특징" className="web-landing__facts">
-            {FEATURE_FACTS.map((fact) => (
+          <ul aria-label={copy.factsAria} className="web-landing__facts">
+            {copy.facts.map((fact) => (
               <li key={fact} className="web-landing__fact-card">{fact}</li>
             ))}
           </ul>
 
-          <a href="/game" className="web-landing__mobile-cta web-landing__link">모바일에서 바로 플레이</a>
+          <a href="/game" className="web-landing__mobile-cta web-landing__link">{copy.playMobile}</a>
 
           <section id="game-intro" aria-labelledby="section-gameplay-title" className="web-landing__panel web-landing__panel--wide" data-reveal>
             <div className="web-landing__section-heading">
-              <p>GAMEPLAY</p>
-              <h2 id="section-gameplay-title">게임 소개</h2>
+              <p>{copy.gameplayLabel}</p>
+              <h2 id="section-gameplay-title">{copy.intro}</h2>
             </div>
             <div className="web-landing__card-grid">
-              {GAMEPLAY_CARDS.map((card) => (
+              {copy.gameplay.map((card, index) => (
                 <article key={card.title} className="web-landing__info-card">
-                  <img src={card.image} loading="lazy" decoding="async" alt="" />
+                  <img src={GAMEPLAY_IMAGES[index]} loading="lazy" decoding="async" alt="" />
                   <h3>{card.title}</h3>
                   <p>{card.body}</p>
                 </article>
@@ -245,11 +202,11 @@ export default function WebLandingPage() {
 
           <section id="section-survival" aria-labelledby="section-survival-title" className="web-landing__panel web-landing__split-panel" data-reveal>
             <div className="web-landing__section-heading">
-              <p>SURVIVAL ROUTE</p>
-              <h2 id="section-survival-title">생존 포인트</h2>
+              <p>{copy.survivalLabel}</p>
+              <h2 id="section-survival-title">{copy.survivalTitle}</h2>
             </div>
             <ol className="web-landing__step-list">
-              {SURVIVAL_STEPS.map((step) => (
+              {copy.survival.map((step) => (
                 <li key={step}>{step}</li>
               ))}
             </ol>
@@ -257,40 +214,40 @@ export default function WebLandingPage() {
 
           <section id="section-start" aria-labelledby="section-start-title" className="web-landing__panel web-landing__split-panel" data-reveal>
             <div className="web-landing__section-heading">
-              <p>START GUIDE</p>
-              <h2 id="section-start-title">플레이 방법</h2>
+              <p>{copy.guideLabel}</p>
+              <h2 id="section-start-title">{copy.howTo}</h2>
             </div>
             <ol className="web-landing__start-list">
-              {START_STEPS.map((step) => (
+              {copy.guide.map((step) => (
                 <li key={step}>{step}</li>
               ))}
             </ol>
-            <a href="/game" className="web-landing__bottom-cta web-landing__link">지금 학교 탈출 시작</a>
+            <a href="/game" className="web-landing__bottom-cta web-landing__link">{copy.guideCta}</a>
           </section>
 
           <section id="media" aria-labelledby="section-media-controls-title" className="web-landing__panel web-landing__panel--wide" data-reveal>
             <div className="web-landing__section-heading">
-              <p>OFFICIAL MEDIA</p>
-              <h2 id="section-media-controls-title">만화 · 음악 · 동영상</h2>
+              <p>{copy.mediaLabel}</p>
+              <h2 id="section-media-controls-title">{copy.mediaTitle}</h2>
             </div>
-            <div className="web-landing__media-controls" aria-label="공식 미디어 선택">
-              <button type="button" aria-pressed={activeMedia === 'comics'} onClick={() => selectMedia('comics')}>만화 보기</button>
-              <button type="button" aria-pressed={activeMedia === 'music'} onClick={() => selectMedia('music')}>음악 듣기</button>
-              <button type="button" aria-pressed={activeMedia === 'videos'} onClick={() => selectMedia('videos')}>동영상 보기</button>
+            <div className="web-landing__media-controls" aria-label={copy.mediaControls}>
+              <button type="button" aria-pressed={activeMedia === 'comics'} onClick={() => selectMedia('comics')}>{copy.comicButton}</button>
+              <button type="button" aria-pressed={activeMedia === 'music'} onClick={() => selectMedia('music')}>{copy.musicButton}</button>
+              <button type="button" aria-pressed={activeMedia === 'videos'} onClick={() => selectMedia('videos')}>{copy.videoButton}</button>
             </div>
 
             {activeMedia === 'comics' ? (
               <section id="comics" aria-labelledby="section-comics-title" className="web-landing__media-panel">
                 <div className="web-landing__section-heading">
-                  <p>4-CUT COMICS</p>
-                  <h2 id="section-comics-title">연필 구조대의 학교 일지</h2>
+                  <p>{copy.comicsLabel}</p>
+                  <h2 id="section-comics-title">{copy.comicsTitle}</h2>
                 </div>
-                <p className="web-landing__media-intro">좀비 친구들이 기절 대신 제자리로 돌아오는, 가볍고 명랑한 다섯 편의 4컷 만화입니다.</p>
-                <div className="web-landing__comic-grid" aria-label="4컷 만화 5편 목록">
+                <p className="web-landing__media-intro">{copy.comicsIntro}</p>
+                <div className="web-landing__comic-grid" aria-label={copy.comicsList}>
                   {COMIC_EPISODES.map((comic, index) => (
-                    <a key={comic.id} className="web-landing__comic-feature" style={{ '--comic-accent': comic.accent }} href={comic.image} target="_blank" rel="noreferrer" aria-label={`${comic.title} 전체 만화 열기`} onClick={(event) => { event.preventDefault(); setSelectedComicIndex(index) }}>
-                      <div className="web-landing__comic-thumbnail"><img src={comic.image} loading="lazy" decoding="async" alt={`${comic.title} 썸네일`} /><span>{index + 1}화</span></div>
-                      <div className="web-landing__comic-copy"><h3>{comic.title}</h3><p>{comic.summary}</p><span className="web-landing__comic-action">전체 만화 보기 <span aria-hidden="true">→</span></span></div>
+                    <a key={comic.id} className="web-landing__comic-feature" style={{ '--comic-accent': comic.accent }} href={comic.image} target="_blank" rel="noreferrer" aria-label={`${copy.comics[index].title} ${copy.openComicAria}`} onClick={(event) => { event.preventDefault(); setSelectedComicIndex(index) }}>
+                      <div className="web-landing__comic-thumbnail"><img src={comic.image} loading="lazy" decoding="async" alt={`${copy.comics[index].title} ${copy.thumbnail}`} /><span>{language === 'ko' || language === 'ja' ? `${index + 1}${copy.episodeSuffix}` : `${copy.episodeSuffix} ${index + 1}`}</span></div>
+                      <div className="web-landing__comic-copy"><h3>{copy.comics[index].title}</h3><p>{copy.comics[index].summary}</p><span className="web-landing__comic-action">{copy.openComic} <span aria-hidden="true">→</span></span></div>
                     </a>
                   ))}
                 </div>
@@ -308,13 +265,13 @@ export default function WebLandingPage() {
               >
                 <div className="web-landing__comic-viewer-header">
                   <h2 id="comic-viewer-title">{selectedComic.title}</h2>
-                  <button type="button" onClick={() => setSelectedComicIndex(null)} aria-label="만화 뷰어 닫기">닫기</button>
+                  <button type="button" onClick={() => setSelectedComicIndex(null)} aria-label={copy.closeViewer}>{copy.close}</button>
                 </div>
-                <img src={selectedComic.image} alt={`${selectedComic.title} 전체 만화`} />
-                <div className="web-landing__comic-viewer-controls" aria-label="만화 편 이동">
-                  <button type="button" onClick={() => setSelectedComicIndex((index) => (index + COMIC_EPISODES.length - 1) % COMIC_EPISODES.length)}>이전 편</button>
+                <img src={selectedComic.image} alt={`${selectedComic.title} ${copy.fullComic}`} />
+                <div className="web-landing__comic-viewer-controls" aria-label={copy.comicNavigation}>
+                  <button type="button" onClick={() => setSelectedComicIndex((index) => (index + COMIC_EPISODES.length - 1) % COMIC_EPISODES.length)}>{copy.previous}</button>
                   <span>{selectedComicIndex + 1} / {COMIC_EPISODES.length}</span>
-                  <button type="button" onClick={() => setSelectedComicIndex((index) => (index + 1) % COMIC_EPISODES.length)}>다음 편</button>
+                  <button type="button" onClick={() => setSelectedComicIndex((index) => (index + 1) % COMIC_EPISODES.length)}>{copy.next}</button>
                 </div>
               </section>
             </div>
@@ -323,13 +280,13 @@ export default function WebLandingPage() {
           {activeMedia === 'music' ? (
           <section id="music" aria-labelledby="section-music-title" className="web-landing__media-panel">
             <div className="web-landing__section-heading">
-              <p>MUSIC PLAYER</p>
-              <h2 id="section-music-title">음악 듣기</h2>
+              <p>{copy.musicLabel}</p>
+              <h2 id="section-music-title">{copy.musicButton}</h2>
             </div>
             <div className="web-landing__music-card">
               <div>
-                <h3>타이틀 테마</h3>
-                <p>현재 게임에서 들을 수 있는 잠긴 정본 타이틀 BGM입니다. 수동 재생 전용이며 자동으로 시작하지 않습니다.</p>
+                <h3>{copy.musicTitle}</h3>
+                <p>{copy.musicDescription}</p>
               </div>
               <button
                 type="button"
@@ -338,22 +295,22 @@ export default function WebLandingPage() {
                 aria-describedby="music-status"
                 onClick={toggleMusic}
               >
-                {isMusicPlaying ? '일시정지' : '재생'}
+                {isMusicPlaying ? copy.pause : copy.play}
               </button>
               <audio
                 ref={audioRef}
                 src={TITLE_BGM_URL}
                 preload="metadata"
-                aria-label="타이틀 테마 재생기"
+                aria-label={copy.musicPlayer}
                 onPause={() => setIsMusicPlaying(false)}
                 onEnded={() => {
                   setIsMusicPlaying(false)
-                  setMusicStatus('재생이 끝났습니다')
+                  setMusicStatus('musicEnded')
                 }}
               >
                 <source src={TITLE_BGM_URL} type="audio/mp4" />
               </audio>
-              <p id="music-status" className="web-landing__music-status" aria-live="polite">{musicStatus}</p>
+              <p id="music-status" className="web-landing__music-status" aria-live="polite">{copy[musicStatus]}</p>
             </div>
           </section>
           ) : null}
@@ -361,30 +318,30 @@ export default function WebLandingPage() {
           {activeMedia === 'videos' ? (
           <section id="videos" aria-labelledby="section-video-title" className="web-landing__media-panel">
             <div className="web-landing__section-heading">
-              <p>VIDEO</p>
-              <h2 id="section-video-title">영상 보기</h2>
+              <p>{copy.videoLabel}</p>
+              <h2 id="section-video-title">{copy.videoButton}</h2>
             </div>
-            <p className="web-landing__media-intro"><strong>승인된 영상 URL 없음</strong> · 현재는 기존 승인 이미지로만 영상 자리를 안내합니다.</p>
+            <p className="web-landing__media-intro"><strong>{copy.noVideo}</strong> · {copy.videoIntro}</p>
             <div className="web-landing__video-grid">
-              {VIDEO_PLACEHOLDERS.map((video) => (
-                <article key={video.title} className="web-landing__video-card">
-                  <div style={{ backgroundImage: `url(${video.image})` }} aria-hidden="true" />
-                  <h3>{video.title}</h3>
-                  <p>공식 영상이 등록되면 이 카드에 수동 재생 플레이어가 연결됩니다.</p>
+              {VIDEO_PLACEHOLDERS.map((image, index) => (
+                <article key={image} className="web-landing__video-card">
+                  <div style={{ backgroundImage: `url(${image})` }} aria-hidden="true" />
+                  <h3>{copy.videos[index]}</h3>
+                  <p>{copy.videoFuture}</p>
                 </article>
               ))}
             </div>
-            {LANDING_FEATURE_VIDEO_URL ? <p className="web-landing__media-intro">승인 영상 슬롯이 활성화되었습니다.</p> : null}
+            {LANDING_FEATURE_VIDEO_URL ? <p className="web-landing__media-intro">{copy.videoActive}</p> : null}
           </section>
           ) : null}
           </section>
 
           <section aria-labelledby="section-media-title" className="web-landing__panel web-landing__panel--wide" data-reveal>
             <div className="web-landing__section-heading">
-              <p>MEDIA</p>
-              <h2 id="section-media-title">학교 배경 미리보기</h2>
+              <p>{copy.galleryLabel}</p>
+              <h2 id="section-media-title">{copy.galleryTitle}</h2>
             </div>
-            <div className="web-landing__gallery" aria-label="공식 배경 이미지">
+            <div className="web-landing__gallery" aria-label={copy.galleryAria}>
               {WEB_BACKGROUND_URLS.map((url) => (
                 <div
                   key={url}
@@ -394,16 +351,16 @@ export default function WebLandingPage() {
                 />
               ))}
             </div>
-            <a href="/game" className="web-landing__bottom-cta web-landing__link">배경 속 학교로 입장</a>
+            <a href="/game" className="web-landing__bottom-cta web-landing__link">{copy.galleryCta}</a>
           </section>
 
           <section id="news" aria-labelledby="section-news-title" className="web-landing__panel web-landing__panel--wide" data-reveal>
             <div className="web-landing__section-heading">
-              <p>NEWS</p>
-              <h2 id="section-news-title">새소식</h2>
+              <p>{copy.newsLabel}</p>
+              <h2 id="section-news-title">{copy.news}</h2>
             </div>
             <div className="web-landing__news-grid">
-              {NEWS_ITEMS.map(([title, body]) => (
+              {copy.newsItems.map(([title, body]) => (
                 <article key={title} className="web-landing__news-card">
                   <h3>{title}</h3>
                   <p>{body}</p>
@@ -412,19 +369,19 @@ export default function WebLandingPage() {
             </div>
           </section>
 
-          <section aria-label="게임 시작 안내" className="web-landing__final-cta" data-reveal>
-            <p>지금, 종이 울리기 전에</p>
-            <h2>학교 탈출을 시작하세요.</h2>
-            <a href="/game" className="web-landing__cta web-landing__link">게임 시작</a>
+          <section aria-label={copy.finalAria} className="web-landing__final-cta" data-reveal>
+            <p>{copy.finalEyebrow}</p>
+            <h2>{copy.finalTitle}</h2>
+            <a href="/game" className="web-landing__cta web-landing__link">{copy.startGame}</a>
           </section>
 
           <footer className="web-landing__footer">
-            <span>ESCAPE! ZOMBIE SCHOOL</span>
-            <span>공식 게임 홈페이지</span>
+            <span>{copy.footerBrand}</span>
+            <span>{copy.footer}</span>
           </footer>
         </div>
       </section>
-      {!selectedComic ? <a href="/game" className="web-landing__mobile-sticky-cta web-landing__link">게임 시작</a> : null}
+      {!selectedComic ? <a href="/game" className="web-landing__mobile-sticky-cta web-landing__link">{copy.startGame}</a> : null}
     </main>
   )
 }
@@ -558,6 +515,7 @@ const landingCss = `
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+  flex-wrap: wrap;
   font-size: clamp(12px, 0.95vw, 16px);
   font-weight: 900;
   letter-spacing: 0.04em;
@@ -593,6 +551,40 @@ const landingCss = `
   justify-content: flex-end;
   gap: clamp(8px, 1vw, 18px);
   flex-wrap: wrap;
+  flex: 1 1 auto;
+}
+
+.web-landing__language {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.web-landing__language select {
+  min-height: 44px;
+  max-width: 150px;
+  padding: 0 30px 0 12px;
+  border: 2px solid #2563EB;
+  border-radius: 12px;
+  background: #FFFFFF;
+  color: #172033;
+  font: inherit;
+  cursor: pointer;
+}
+
+.web-landing__language select:focus-visible {
+  outline: 3px solid #7C3AED;
+  outline-offset: 2px;
+}
+
+.web-landing__visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .web-landing__nav-link,
@@ -652,6 +644,15 @@ const landingCss = `
   paint-order: stroke fill;
   white-space: nowrap;
   text-shadow: 0 5px 22px rgba(37, 99, 235, 0.16);
+}
+
+.web-landing:lang(en) .web-landing__title,
+.web-landing:lang(ja) .web-landing__title,
+.web-landing:lang(vi) .web-landing__title {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.05;
+  font-size: clamp(36px, 4.8vw, 88px);
 }
 
 .web-landing__headline {
@@ -1332,7 +1333,18 @@ const landingCss = `
 
   .web-landing__nav {
     align-items: flex-start;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .web-landing__language {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .web-landing__nav-links {
+    grid-column: 1 / -1;
+    grid-row: 2;
   }
 
   .web-landing__nav-links,

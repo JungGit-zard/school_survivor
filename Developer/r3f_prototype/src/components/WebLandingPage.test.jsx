@@ -35,11 +35,14 @@ describe('WebLandingPage', () => {
     view.unmount()
   })
 
-  it('uses the confirmed Korean hero copy, outlined Nanum Myeongjo title, and real game CTAs', () => {
+  it('uses the confirmed Korean hero copy by default, outlined Nanum Myeongjo title, and real game CTAs', () => {
     const view = renderLanding()
     const gameLinks = Array.from(view.container.querySelectorAll('a[href="/game"]'))
     const navCta = view.container.querySelector('.web-landing__nav-cta')
     const heroCta = view.container.querySelector('.web-landing__hero-actions .web-landing__cta')
+    const languageSelect = view.container.querySelector('#web-landing-language')
+    expect(languageSelect.value).toBe('ko')
+    expect(Array.from(languageSelect.options, (option) => option.textContent)).toEqual(['한국어', 'English', '日本語', 'Tiếng Việt'])
     expect(view.container.querySelector('h1').textContent).toBe('탈출! 좀비학교')
     expect(view.container.textContent).toContain('종이 울리기 전에 탈출하자')
     expect(view.container.textContent).toContain('3분 30초 동안 몰려오는 좀비를 버티고 잠긴 탈출구를 열어라.')
@@ -57,6 +60,49 @@ describe('WebLandingPage', () => {
     expect(webLandingSource).toContain('.web-landing__nav-cta {\n    border-color: rgba(37, 99, 235, 0.45);')
     expect(webLandingSource).toContain('min-height: 44px')
     view.unmount()
+  })
+
+  it('switches every rendered homepage copy cluster and aria labels with no persistence', () => {
+    const previousLang = document.documentElement.lang
+    const view = renderLanding()
+    const languageSelect = view.container.querySelector('#web-landing-language')
+    expect(document.documentElement.lang).toBe('ko')
+    act(() => {
+      languageSelect.value = 'en'
+      languageSelect.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    expect(view.container.querySelector('main').getAttribute('aria-label')).toBe('Escape! Zombie School official website')
+    expect(document.documentElement.lang).toBe('en')
+    expect(view.container.querySelector('.web-landing__brand').getAttribute('aria-label')).toBe('Escape! Zombie School home')
+    expect(view.container.textContent).toContain('Escape before the bell rings')
+    expect(view.container.textContent).toContain('Play Instantly Online')
+    expect(view.container.textContent).toContain('4 stages')
+    expect(view.container.textContent).toContain('School Background Preview')
+    expect(view.container.textContent).not.toContain('종이 울리기 전에 탈출하자')
+    expect(view.container.textContent).not.toContain('웹에서 바로 플레이')
+    expect(view.container.textContent).not.toContain('학교 배경 미리보기')
+
+    act(() => {
+      languageSelect.value = 'ja'
+      languageSelect.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    expect(view.container.textContent).toContain('チャイムが鳴る前に脱出しよう')
+    expect(document.documentElement.lang).toBe('ja')
+    expect(view.container.textContent).toContain('4つのステージ')
+    expect(view.container.querySelector('.web-landing__media-controls').getAttribute('aria-label')).toBe('公式メディアを選択')
+
+    act(() => {
+      languageSelect.value = 'vi'
+      languageSelect.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    expect(view.container.textContent).toContain('Thoát ra trước khi chuông reo')
+    expect(document.documentElement.lang).toBe('vi')
+    expect(view.container.textContent).toContain('4 màn chơi')
+    expect(view.container.querySelector('.web-landing__final-cta a').textContent).toBe('Bắt đầu chơi')
+    expect(webLandingSource).not.toContain('localStorage')
+    expect(webLandingSource).not.toContain('sessionStorage')
+    view.unmount()
+    expect(document.documentElement.lang).toBe(previousLang)
   })
 
   it('keeps the three media panels collapsed until their single-row controls are selected', () => {
