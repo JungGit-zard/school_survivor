@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react'
 import { WEAPON_CATALOG, STARTER, getAllWeaponIds, evaluateUnlocks, isRuntimeCombinationWeapon, isStarter } from '../lib/weaponCatalog.js'
+import { getFirebaseProgressRuntimeSnapshot } from '../lib/firebaseProgress.js'
 import { isUnlocked as isWeaponUnlocked } from '../lib/weaponUnlocks.js'
-import { load as loadPlayerRecords } from '../lib/playerRecords.js'
+import { RECORD_KEYS, load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { schoolPanel, schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { t as translate, useT, weaponLabel } from '../lib/i18n.js'
 import pencilIconSrc from '../assets/weapon_icon/01_wea_pencil.png.webp'
 import rulerIconSrc from '../assets/weapon_icon/02_wea_30ruller.png.webp'
-import boxCutterIconSrc from '../assets/weapon_icon/13_wea_boxcutter.svg'
+import boxCutterIconSrc from '../assets/weapon_icon/13_wea_boxcutter.webp'
 import tumblerIconSrc from '../assets/weapon_icon/03_wea_tumbler.png.webp'
 import flaskIconSrc from '../assets/weapon_icon/04_wea_science.png.webp'
 import bellIconSrc from '../assets/weapon_icon/05_wea_bell.png.webp'
@@ -17,11 +18,12 @@ import starlinkIconSrc from '../assets/weapon_icon/09_wea_starlink.png.webp'
 import compassBladeIconSrc from '../assets/weapon_icon/10_wea_compass.png.webp'
 import umbrellaIconSrc from '../assets/weapon_icon/11_wea_umb.png.webp'
 import eraserIconSrc from '../assets/weapon_icon/12_wea_eraser.png.webp'
-import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.svg'
-import hanakoIconSrc from '../assets/weapon_icon/15_wea_hanako.svg'
-import bikittyCutterIconSrc from '../assets/weapon_icon/17_wea_bikitty_cutter.svg'
-import lineDrawIconSrc from '../assets/weapon_icon/18_wea_line_draw.svg'
-import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.svg'
+import chibikoIconSrc from '../assets/weapon_icon/14_wea_chibiko.webp'
+import hanakoIconSrc from '../assets/weapon_icon/15_wea_hanako.webp'
+import inuconIconSrc from '../assets/weapon_icon/19_wea_inucon.webp'
+import bikittyCutterIconSrc from '../assets/weapon_icon/17_wea_bikitty_cutter.webp'
+import lineDrawIconSrc from '../assets/weapon_icon/18_wea_line_draw.webp'
+import sharkMissileIconSrc from '../assets/weapon_icon/14_wea_shark_missile.webp'
 import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.webp'
 
 const panelTone = {
@@ -44,14 +46,15 @@ const WEAPON_ROW_ICON_SRC = {
   guidedMissile: missileIconSrc,
   starlink: starlinkIconSrc,
   compassBlade: compassBladeIconSrc,
-  umbrella: umbrellaIconSrc,
+  umbrellaGuard: umbrellaIconSrc,
   eraserBomb: eraserIconSrc,
   chibiko: chibikoIconSrc,
   hanako: hanakoIconSrc,
+  inucon: inuconIconSrc,
   bikittyCutter: bikittyCutterIconSrc,
   lineDraw: lineDrawIconSrc,
   sharkMissile: sharkMissileIconSrc,
-  lantern: lanternIconSrc,
+  studentLantern: lanternIconSrc,
 }
 
 function WeaponIconFrame({ entry, visible, style = null, imageStyle = null }) {
@@ -111,14 +114,38 @@ function describeCondition(cond, records) {
   return { text: `${label} ${target}${unit}`, ratio: 0, measurable: false }
 }
 
+function hasNoProgressAuthUser() {
+  return !getFirebaseProgressRuntimeSnapshot().uid
+}
+
+function isAccountWeaponUnlocked(id) {
+  try {
+    return isWeaponUnlocked(id)
+  } catch (error) {
+    if (error?.code === 'progress-not-hydrated' && hasNoProgressAuthUser()) return false
+    throw error
+  }
+}
+
 function isEntryUnlocked(id, unlockedByRecords) {
   if (isRuntimeCombinationWeapon(id)) return false
-  return isStarter(id) || isWeaponUnlocked(id) || unlockedByRecords.has(id)
+  return isStarter(id) || isAccountWeaponUnlocked(id) || unlockedByRecords.has(id)
+}
+
+const EMPTY_GUEST_RECORDS = Object.freeze(Object.fromEntries(RECORD_KEYS.map((key) => [key, 0])))
+
+function loadReadOnlyWeaponRecords() {
+  try {
+    return loadPlayerRecords()
+  } catch (error) {
+    if (error?.code === 'progress-not-hydrated' && hasNoProgressAuthUser()) return EMPTY_GUEST_RECORDS
+    throw error
+  }
 }
 
 export default function WeaponModal({ onClose, initialWeaponId = null, newlyUnlockedWeaponIds = [], playerRecords }) {
   const t = useT()
-  const records = playerRecords ?? loadPlayerRecords()
+  const records = playerRecords ?? loadReadOnlyWeaponRecords()
   const unlockedByRecords = evaluateUnlocks(records)
   const ids = getAllWeaponIds()
   const accountIds = ids.filter((id) => !isRuntimeCombinationWeapon(id))

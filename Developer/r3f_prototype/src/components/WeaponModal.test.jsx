@@ -4,8 +4,9 @@ import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { beforeEach, describe, expect, it } from 'vitest'
 import WeaponModal from './WeaponModal.jsx'
-import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
-import { _resetForTests as resetWeaponUnlocks } from '../lib/weaponUnlocks.js'
+import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests, setCloudProgressUser } from '../lib/firebaseProgress.js'
+import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
+import { _resetForTests as resetWeaponUnlocks, setUnlocked } from '../lib/weaponUnlocks.js'
 
 describe('WeaponModal encyclopedia', () => {
   beforeEach(() => {
@@ -54,6 +55,42 @@ describe('WeaponModal encyclopedia', () => {
     }
   })
 
+  it('renders the read-only guest catalog without hydrated Firebase progress', () => {
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      _resetFirebaseProgressForTests()
+      act(() => {
+        root.render(<WeaponModal onClose={() => {}} />)
+      })
+
+      expect(container.querySelector('[data-testid="weapon-filter-all"]')).not.toBeNull()
+      expect(container.querySelector('[data-testid="weapon-row-pencilThrow"]')).not.toBeNull()
+      expect(container.querySelector('[data-testid="weapon-icon-pencilThrow"]')).not.toBeNull()
+      expect(container.querySelector('[data-testid="weapon-account-unlock-count"]').textContent).toMatch(/^4\/17$/)
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+
+  it('does not mask signed-in account progress that has not hydrated yet', () => {
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      _resetFirebaseProgressForTests()
+      setCloudProgressUser({ uid: 'signed-in-but-loading' })
+      expect(() => {
+        act(() => {
+          root.render(<WeaponModal onClose={() => {}} />)
+        })
+      }).toThrow(/Firebase player progress is unavailable/)
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+
   it('shows real weapon icon assets for unlocked starter weapons instead of question marks', () => {
     const container = document.createElement('div')
     const root = createRoot(container)
@@ -72,6 +109,25 @@ describe('WeaponModal encyclopedia', () => {
       const lockedRow = container.querySelector('[data-testid="weapon-row-guidedMissile"]')
       expect(lockedRow.querySelector('[data-testid="weapon-icon-guidedMissile"]')).toBeNull()
       expect(lockedRow.textContent).toContain('?')
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+
+  it('renders an icon for every visible weapon catalog entry', () => {
+    const container = document.createElement('div')
+    const root = createRoot(container)
+
+    try {
+      Object.keys(WEAPON_CATALOG).forEach((id) => setUnlocked(id))
+      act(() => {
+        root.render(<WeaponModal onClose={() => {}} />)
+      })
+
+      expect(Object.keys(WEAPON_CATALOG)).toHaveLength(20)
+      for (const id of Object.keys(WEAPON_CATALOG)) {
+        expect(container.querySelector(`[data-testid="weapon-icon-${id}"]`), `${id} icon`).not.toBeNull()
+      }
     } finally {
       act(() => root.unmount())
     }
