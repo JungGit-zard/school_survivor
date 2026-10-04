@@ -1,5 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import GoogleAccountPanel from './components/GoogleAccountPanel.jsx'
+import WebLandingPage from './components/WebLandingPage.jsx'
 import {
   applyFirebaseStudioDatasets,
   hydrateFirebaseStudio,
@@ -95,6 +96,8 @@ export default function App() {
     && window.location.pathname.startsWith('/graphics-studio')
   const isAdminRoute = typeof window !== 'undefined'
     && window.location.pathname.startsWith('/admin')
+  const isLandingRoute = typeof window !== 'undefined'
+    && (window.location.pathname === '/' || window.location.pathname === '/landing')
 
   useEffect(() => {
     void initializeAuth()
@@ -364,6 +367,8 @@ export default function App() {
     )
   }
 
+  if (isLandingRoute) return <WebLandingPage />
+
   // ?쇰컲 寃뚯엫 二쇱냼??吏꾩엯 洹쒖튃:
 
   // Google 濡쒓렇?몄쑝濡?蹂대궦?? 濡쒓렇???깃났 ?ㅼ뿉??Firebase 吏꾪뻾??Studio 以鍮??ㅽ뙣媛 ?덉뼱??
@@ -514,5 +519,3 @@ const styles = {
     display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap',
   },
 }
-
-

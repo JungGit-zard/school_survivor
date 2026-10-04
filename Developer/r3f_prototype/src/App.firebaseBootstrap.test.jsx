@@ -66,6 +66,10 @@ vi.mock('./components/GoogleAccountPanel.jsx', () => ({
   default: () => <button type="button">Google login</button>,
 }))
 
+vi.mock('./components/WebLandingPage.jsx', () => ({
+  default: () => <main data-testid="web-landing-page">공식 홈페이지</main>,
+}))
+
 vi.mock('./components/ReadyGameApp.jsx', () => {
   mocks.readyGameModuleLoaded()
   return {
@@ -131,7 +135,7 @@ describe('App Firebase bootstrap boundary', () => {
     mocks.canonicalPublish.mockReset().mockResolvedValue({ status: 'forbidden' })
     mocks.inspectionSubscribe.mockReset().mockReturnValue(vi.fn())
     mocks.studioRuntimeReady = false
-    window.history.replaceState({}, '', '/')
+    window.history.replaceState({}, '', '/game')
   })
 
   afterEach(() => {
@@ -142,7 +146,31 @@ describe('App Firebase bootstrap boundary', () => {
     const view = await renderApp()
 
     expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
+    expect(mocks.readyGameProps.authStatus).toBe('signedOut')
     expect(mocks.canonicalHydrate).toHaveBeenCalledWith({})
+    view.unmount()
+  })
+
+  it.each(['/index.html', '/game'])(
+    'keeps the original title and login runtime reachable at %s',
+    async (pathname) => {
+      window.history.replaceState({}, '', pathname)
+
+      const view = await renderApp()
+
+      expect(view.container.querySelector('[data-testid="ready-game-app"]')).not.toBe(null)
+      expect(view.container.querySelector('[data-testid="web-landing-page"]')).toBe(null)
+      view.unmount()
+    },
+  )
+
+  it.each(['/', '/landing'])('shows the web landing page at %s', async (pathname) => {
+    window.history.replaceState({}, '', pathname)
+
+    const view = await renderApp()
+
+    expect(view.container.querySelector('[data-testid="web-landing-page"]')).not.toBe(null)
+    expect(view.container.querySelector('[data-testid="ready-game-app"]')).toBe(null)
     view.unmount()
   })
 
@@ -463,5 +491,3 @@ describe('App Firebase bootstrap boundary', () => {
     vi.useRealTimers()
   })
 })
-
-
