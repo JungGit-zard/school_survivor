@@ -1,0 +1,416 @@
+{
+  "url": "http://localhost:8788/Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/PLAYER_v9_standalone_viewer.html",
+  "generatedAt": "2026-10-04T11:33:10.103Z",
+  "assertions": [
+    {
+      "name": "html loaded over local server",
+      "pass": true,
+      "details": {
+        "status": 200
+      }
+    },
+    {
+      "name": "GLB is upright Y-up, not lying on side",
+      "pass": true,
+      "details": {
+        "bboxSize": [
+          1.6620327740094776,
+          3.0900000194087625,
+          1.2847305591157745
+        ]
+      }
+    },
+    {
+      "name": "camera up is Y axis",
+      "pass": true,
+      "details": {
+        "cameraUp": [
+          0,
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "name": "status is Korean and debug node list removed",
+      "pass": true,
+      "details": {
+        "status": "로드 완료: final/PLAYER_v9_final.glb\n좌표계: Three/GLB Y-up 그대로 표시, 정면은 +Z, 후면/가방은 -Z입니다.\n액션: 실제 게임 타이밍을 뷰어 전용 피벗으로 재현합니다. 거대한 노드명 오버레이는 표시하지 않습니다."
+      }
+    },
+    {
+      "name": "front snap uses +Z camera",
+      "pass": true,
+      "details": {
+        "cameraPosition": [
+          0,
+          1.7027000099513685,
+          6.766000036662444
+        ],
+        "target": [
+          0,
+          1.652700009951368,
+          0.12249999493360518
+        ]
+      }
+    },
+    {
+      "name": "front GLB projected box stays fully inside 1280x900 viewport",
+      "pass": true,
+      "details": {
+        "projectedBounds": {
+          "left": 446.0897152245351,
+          "right": 841.9573167191639,
+          "top": 105.24535452591985,
+          "bottom": 839.6969347399121,
+          "width": 395.86760149462884,
+          "height": 734.4515802139922,
+          "viewport": {
+            "width": 1280,
+            "height": 900
+          }
+        },
+        "margin": 28
+      }
+    },
+    {
+      "name": "front status overlay does not occlude projected GLB box",
+      "pass": true,
+      "details": {
+        "projectedBounds": {
+          "left": 446.0897152245351,
+          "right": 841.9573167191639,
+          "top": 105.24535452591985,
+          "bottom": 839.6969347399121,
+          "width": 395.86760149462884,
+          "height": 734.4515802139922,
+          "viewport": {
+            "width": 1280,
+            "height": 900
+          }
+        },
+        "statusRect": {
+          "left": 880,
+          "right": 1266,
+          "top": 14,
+          "bottom": 128.265625,
+          "width": 386,
+          "height": 114.265625
+        }
+      }
+    },
+    {
+      "name": "side snap uses X camera",
+      "pass": true,
+      "details": {
+        "cameraPosition": [
+          -6.643500041728839,
+          1.7027000099513685,
+          0.12249999493360558
+        ],
+        "target": [
+          0,
+          1.652700009951368,
+          0.12249999493360518
+        ]
+      }
+    },
+    {
+      "name": "side GLB projected box stays fully inside 1280x900 viewport",
+      "pass": true,
+      "details": {
+        "projectedBounds": {
+          "left": 482.021830851288,
+          "right": 797.1443733607371,
+          "top": 95.2884719174066,
+          "bottom": 851.5864245693912,
+          "width": 315.1225425094491,
+          "height": 756.2979526519846,
+          "viewport": {
+            "width": 1280,
+            "height": 900
+          }
+        },
+        "margin": 28
+      }
+    },
+    {
+      "name": "side status overlay does not occlude projected GLB box",
+      "pass": true,
+      "details": {
+        "projectedBounds": {
+          "left": 482.021830851288,
+          "right": 797.1443733607371,
+          "top": 95.2884719174066,
+          "bottom": 851.5864245693912,
+          "width": 315.1225425094491,
+          "height": 756.2979526519846,
+          "viewport": {
+            "width": 1280,
+            "height": 900
+          }
+        },
+        "statusRect": {
+          "left": 880,
+          "right": 1266,
+          "top": 14,
+          "bottom": 128.265625,
+          "width": 386,
+          "height": 114.265625
+        }
+      }
+    },
+    {
+      "name": "back snap uses -Z camera",
+      "pass": true,
+      "details": {
+        "cameraPosition": [
+          8.13594106123853e-16,
+          1.7027000099513685,
+          -6.521000046795233
+        ],
+        "target": [
+          0,
+          1.652700009951368,
+          0.12249999493360518
+        ]
+      }
+    },
+    {
+      "name": "back GLB projected box stays fully inside 1280x900 viewport",
+      "pass": true,
+      "details": {
+        "projectedBounds": {
+          "left": 437.92805120024155,
+          "right": 834.0203493165948,
+          "top": 105.05576680937644,
+          "bottom": 839.9233465738448,
+          "width": 396.0922981163532,
+          "height": 734.8675797644684,
+          "viewport": {
+            "width": 1280,
+            "height": 900
+          }
+        },
+        "margin": 28
+      }
+    },
+    {
+      "name": "back status overlay does not occlude projected GLB box",
+      "pass": true,
+      "details": {
+        "projectedBounds": {
+          "left": 437.92805120024155,
+          "right": 834.0203493165948,
+          "top": 105.05576680937644,
+          "bottom": 839.9233465738448,
+          "width": 396.0922981163532,
+          "height": 734.8675797644684,
+          "viewport": {
+            "width": 1280,
+            "height": 900
+          }
+        },
+        "statusRect": {
+          "left": 880,
+          "right": 1266,
+          "top": 14,
+          "bottom": 128.265625,
+          "width": 386,
+          "height": 114.265625
+        }
+      }
+    },
+    {
+      "name": "3/4 snap frames +X/+Z",
+      "pass": true,
+      "details": {
+        "cameraPosition": [
+          4.783320030044764,
+          1.8127000099513686,
+          4.90582002497837
+        ],
+        "target": [
+          0,
+          1.652700009951368,
+          0.12249999493360518
+        ]
+      }
+    },
+    {
+      "name": "threeq GLB projected box stays fully inside 1280x900 viewport",
+      "pass": true,
+      "details": {
+        "projectedBounds": {
+          "left": 425.81938329985417,
+          "right": 868.5477983004979,
+          "top": 91.42918719843615,
+          "bottom": 862.3478416723166,
+          "width": 442.72841500064374,
+          "height": 770.9186544738805,
+          "viewport": {
+            "width": 1280,
+            "height": 900
+          }
+        },
+        "margin": 28
+      }
+    },
+    {
+      "name": "threeq status overlay does not occlude projected GLB box",
+      "pass": true,
+      "details": {
+        "projectedBounds": {
+          "left": 425.81938329985417,
+          "right": 868.5477983004979,
+          "top": 91.42918719843615,
+          "bottom": 862.3478416723166,
+          "width": 442.72841500064374,
+          "height": 770.9186544738805,
+          "viewport": {
+            "width": 1280,
+            "height": 900
+          }
+        },
+        "statusRect": {
+          "left": 880,
+          "right": 1266,
+          "top": 14,
+          "bottom": 128.265625,
+          "width": 386,
+          "height": 114.265625
+        }
+      }
+    },
+    {
+      "name": "walk action loops with upright Y-up bbox",
+      "pass": true,
+      "details": {
+        "active": {
+          "type": "walk",
+          "start": 1849.300000011921,
+          "duration": 999999,
+          "loop": true
+        },
+        "bboxSize": [
+          1.682786570312273,
+          3.204444893295518,
+          1.3900659957713208
+        ]
+      }
+    },
+    {
+      "name": "box cutter action status is explicit Korean timing",
+      "pass": true,
+      "details": {
+        "status": "액션: 커터칼\nY-up 계약: 걷기 sin(8t), 커터칼 460ms, 가방/자 260ms, 연필은 팔 포즈 없이 투사체만, 피격은 -Z 넉백+점멸, 회복 760ms, 사망은 Z축으로 옆으로 넘어짐."
+      }
+    },
+    {
+      "name": "pencil action creates projectile-only object at Y-up hand height",
+      "pass": true,
+      "details": {
+        "pencil": {
+          "visible": true,
+          "position": [
+            0.2650191212242278,
+            1.48,
+            1.2316814707557797
+          ],
+          "rotation": [
+            0,
+            0.25,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "name": "hit knockback moves along depth Z, not vertical Y",
+      "pass": true,
+      "details": {
+        "rootPosition": [
+          0,
+          0,
+          -0.1099853656424602
+        ]
+      }
+    },
+    {
+      "name": "heal ring lies on XZ ground plane for Y-up",
+      "pass": true,
+      "details": {
+        "heal": {
+          "position": [
+            0,
+            0.05,
+            0
+          ],
+          "rotation": [
+            -1.5707963267948966,
+            0.6982499999999999,
+            0
+          ],
+          "scale": [
+            1.2023157894611358,
+            1.2023157894611358,
+            1.2023157894611358
+          ]
+        }
+      }
+    },
+    {
+      "name": "death falls sideways around Z while staying above ground",
+      "pass": true,
+      "details": {
+        "rootRotation": [
+          0,
+          0.07686,
+          -1.5707963267948966
+        ],
+        "rootPosition": [
+          0,
+          0.18,
+          0
+        ]
+      }
+    },
+    {
+      "name": "auto rotate changes root Y rotation, not Z",
+      "pass": true,
+      "details": {
+        "before": [
+          0,
+          0.07686,
+          0
+        ],
+        "after": [
+          0,
+          0.27295799998998643,
+          0
+        ]
+      }
+    },
+    {
+      "name": "no blocking browser page errors (favicon 404 ignored)",
+      "pass": true,
+      "details": {
+        "consoleMessages": [],
+        "blockingMessages": []
+      }
+    }
+  ],
+  "screenshots": [
+    "D:/JungSil/2.Minigame_project/school_survivor-integration/Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/qa_yup_screenshots/view_front.png",
+    "D:/JungSil/2.Minigame_project/school_survivor-integration/Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/qa_yup_screenshots/view_side.png",
+    "D:/JungSil/2.Minigame_project/school_survivor-integration/Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/qa_yup_screenshots/view_back.png",
+    "D:/JungSil/2.Minigame_project/school_survivor-integration/Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/qa_yup_screenshots/view_threeq.png",
+    "D:/JungSil/2.Minigame_project/school_survivor-integration/Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/qa_yup_screenshots/action_walk.png",
+    "D:/JungSil/2.Minigame_project/school_survivor-integration/Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/qa_yup_screenshots/action_blade.png",
+    "D:/JungSil/2.Minigame_project/school_survivor-integration/Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/qa_yup_screenshots/action_pencil.png",
+    "D:/JungSil/2.Minigame_project/school_survivor-integration/Graphic_designer/game_resource_library/player_r3f_blender_20261003/10_v9_backpack_viewer/qa_yup_screenshots/action_hit.png"
+  ],
+  "consoleMessages": [],
+  "pass": true,
+  "summary": "24/24 assertions passed"
+}

@@ -1,0 +1,46 @@
+{
+  "mode": "final",
+  "source": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\character_sheets\\PLAYER_front_side_back_face_v1.png",
+  "reference_landmarks_px": {
+    "height": 722,
+    "hair_width": 339,
+    "hair_depth_side": 294,
+    "hair_bottom_y": 365,
+    "fringe_bottom_y": 234,
+    "face_chin_y": 345,
+    "skirt_width": 247,
+    "skirt_bottom_y": 606
+  },
+  "triangle_count_structural": 3776,
+  "mesh_parts": 36,
+  "triangle_count_export_total": 3784,
+  "nonmanifold_edges_by_object": {},
+  "negative_signed_volume_by_object": {},
+  "reference_images_inside_blend": [
+    "FRONT",
+    "SIDE",
+    "BACK"
+  ],
+  "view_up_axis": "Blender +Z; renders not rotated in post-processing",
+  "renders": {
+    "front": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_final_front.png",
+    "side": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_final_side.png",
+    "back": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_final_back.png",
+    "threequarter": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_final_threequarter.png",
+    "turn_000": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_turn_000.png",
+    "turn_045": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_turn_045.png",
+    "turn_090": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_turn_090.png",
+    "turn_135": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_turn_135.png",
+    "turn_180": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_turn_180.png",
+    "turn_225": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_turn_225.png",
+    "turn_270": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_turn_270.png",
+    "turn_315": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_turn_315.png",
+    "pose_walk": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_pose_walk.png",
+    "pose_right_arm_swing": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_pose_right_arm_swing.png"
+  },
+  "blend": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_final.blend",
+  "glb": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_final.glb",
+  "blend_size_bytes": 355834,
+  "glb_size_bytes": 388988,
+  "runtime_integration": "not connected; PlayerMesh.jsx untouched"
+}

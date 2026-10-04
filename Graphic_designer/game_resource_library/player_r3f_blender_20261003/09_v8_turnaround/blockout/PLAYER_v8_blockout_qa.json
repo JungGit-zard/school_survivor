@@ -1,0 +1,36 @@
+{
+  "mode": "blockout",
+  "source": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\character_sheets\\PLAYER_front_side_back_face_v1.png",
+  "reference_landmarks_px": {
+    "height": 722,
+    "hair_width": 339,
+    "hair_depth_side": 294,
+    "hair_bottom_y": 365,
+    "fringe_bottom_y": 234,
+    "face_chin_y": 345,
+    "skirt_width": 247,
+    "skirt_bottom_y": 606
+  },
+  "triangle_count_structural": 2516,
+  "mesh_parts": 23,
+  "triangle_count_export_total": 2516,
+  "nonmanifold_edges_by_object": {},
+  "negative_signed_volume_by_object": {},
+  "reference_images_inside_blend": [
+    "FRONT",
+    "SIDE",
+    "BACK"
+  ],
+  "view_up_axis": "Blender +Z; renders not rotated in post-processing",
+  "renders": {
+    "front": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\09_v8_turnaround\\blockout\\PLAYER_v8_blockout_front.png",
+    "side": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\09_v8_turnaround\\blockout\\PLAYER_v8_blockout_side.png",
+    "back": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\09_v8_turnaround\\blockout\\PLAYER_v8_blockout_back.png",
+    "threequarter": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\09_v8_turnaround\\blockout\\PLAYER_v8_blockout_threequarter.png"
+  },
+  "blend": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\09_v8_turnaround\\blockout\\PLAYER_v8_blockout.blend",
+  "glb": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\09_v8_turnaround\\blockout\\PLAYER_v8_blockout.glb",
+  "blend_size_bytes": 135878,
+  "glb_size_bytes": 120500,
+  "runtime_integration": "not connected; PlayerMesh.jsx untouched"
+}

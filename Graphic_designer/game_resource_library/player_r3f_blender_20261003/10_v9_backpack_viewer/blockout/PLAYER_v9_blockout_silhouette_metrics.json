@@ -1,0 +1,53 @@
+{
+  "front": {
+    "reference_bbox_crop": [
+      6,
+      19,
+      399,
+      734
+    ],
+    "model_bbox_render": [
+      218,
+      56,
+      582,
+      734
+    ],
+    "source_width_at_680h": 374,
+    "model_width_at_680h": 365,
+    "silhouette_iou": 0.9204
+  },
+  "side": {
+    "reference_bbox_crop": [
+      4,
+      19,
+      293,
+      732
+    ],
+    "model_bbox_render": [
+      300,
+      56,
+      565,
+      734
+    ],
+    "source_width_at_680h": 276,
+    "model_width_at_680h": 266,
+    "silhouette_iou": 0.8669
+  },
+  "back": {
+    "reference_bbox_crop": [
+      4,
+      19,
+      391,
+      733
+    ],
+    "model_bbox_render": [
+      218,
+      56,
+      582,
+      734
+    ],
+    "source_width_at_680h": 369,
+    "model_width_at_680h": 365,
+    "silhouette_iou": 0.9145
+  }
+}

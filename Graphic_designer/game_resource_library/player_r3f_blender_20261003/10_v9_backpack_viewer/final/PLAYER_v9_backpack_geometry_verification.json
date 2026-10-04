@@ -1,0 +1,366 @@
+{
+  "purpose": "Independent QA verification: v9 backpack geometry, non-stale renders, v8/v9 comparison",
+  "axis_note": "Authored Blender is +Z up; front is -Y, back is +Y. BBox dims are X(width), Y(depth), Z(height).",
+  "blend_analysis": [
+    {
+      "label": "v8 actual final blend",
+      "blend": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\09_v8_turnaround\\final\\PLAYER_v8_final.blend",
+      "mesh_count": 35,
+      "triangle_count_total_meshes": 3244,
+      "pack_object_names": [
+        "Backpack_front_pocket",
+        "Backpack_main_rectangular",
+        "Backpack_strap_front_L",
+        "Backpack_strap_front_R",
+        "Backpack_strap_shoulder_L",
+        "Backpack_strap_shoulder_R",
+        "Decal_backpack_flap"
+      ],
+      "strap_object_names": [
+        "Backpack_strap_front_L",
+        "Backpack_strap_front_R",
+        "Backpack_strap_shoulder_L",
+        "Backpack_strap_shoulder_R"
+      ],
+      "side_rail_object_names": [],
+      "nonmanifold_edges_by_closed_object": {},
+      "negative_signed_volume_by_closed_object": {},
+      "expected_open_decal_nonmanifold_edges": {
+        "Decal_backpack_flap": 4,
+        "Decal_skirt_back_pleats": 4,
+        "Decal_skirt_front_pleats": 4,
+        "Decal_source_uniform_front": 4
+      },
+      "pack_union_bbox": {
+        "min": [
+          -0.3774999976158142,
+          -0.6225000023841858,
+          1.1949999332427979
+        ],
+        "max": [
+          0.3774999976158142,
+          0.3570000231266022,
+          1.9249999523162842
+        ],
+        "dims": [
+          0.7549999952316284,
+          0.979500025510788,
+          0.7300000190734863
+        ]
+      },
+      "backpack_main_bbox": {
+        "min": [
+          -0.3499999940395355,
+          -0.01000000536441803,
+          1.1949999332427979
+        ],
+        "max": [
+          0.3499999940395355,
+          0.3100000023841858,
+          1.9249999523162842
+        ],
+        "dims": [
+          0.699999988079071,
+          0.3200000077486038,
+          0.7300000190734863
+        ]
+      },
+      "torso_bbox": {
+        "min": [
+          -0.4449999928474426,
+          -0.5799999833106995,
+          1.2000000476837158
+        ],
+        "max": [
+          0.4449999928474426,
+          0.11999998986721039,
+          1.9500000476837158
+        ],
+        "dims": [
+          0.8899999856948853,
+          0.6999999731779099,
+          0.75
+        ]
+      },
+      "main_pack_front_to_torso_back_y_gap": -0.12999999523162842,
+      "strap_union_bbox": {
+        "min": [
+          -0.3774999976158142,
+          -0.6225000023841858,
+          1.475000023841858
+        ],
+        "max": [
+          0.3774999976158142,
+          0.1414075642824173,
+          1.9199752807617188
+        ],
+        "dims": [
+          0.7549999952316284,
+          0.7639075666666031,
+          0.44497525691986084
+        ]
+      },
+      "strap_y_overlap_with_torso": 0.6999999731779099,
+      "strap_y_overlap_with_main_pack": 0.15140756964683533
+    },
+    {
+      "label": "v9 actual final blend",
+      "blend": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_final.blend",
+      "mesh_count": 40,
+      "triangle_count_total_meshes": 3784,
+      "pack_object_names": [
+        "Backpack_front_pocket",
+        "Backpack_main_rectangular",
+        "Backpack_side_rail_L",
+        "Backpack_side_rail_R",
+        "Backpack_strap_front_L",
+        "Backpack_strap_front_R",
+        "Backpack_strap_shoulder_L",
+        "Backpack_strap_shoulder_R",
+        "Backpack_strap_side_L",
+        "Backpack_strap_side_R",
+        "Backpack_top_lid_band",
+        "Decal_backpack_flap"
+      ],
+      "strap_object_names": [
+        "Backpack_strap_front_L",
+        "Backpack_strap_front_R",
+        "Backpack_strap_shoulder_L",
+        "Backpack_strap_shoulder_R",
+        "Backpack_strap_side_L",
+        "Backpack_strap_side_R"
+      ],
+      "side_rail_object_names": [
+        "Backpack_side_rail_L",
+        "Backpack_side_rail_R"
+      ],
+      "nonmanifold_edges_by_closed_object": {},
+      "negative_signed_volume_by_closed_object": {},
+      "expected_open_decal_nonmanifold_edges": {
+        "Decal_backpack_flap": 4,
+        "Decal_skirt_back_pleats": 4,
+        "Decal_skirt_front_pleats": 4,
+        "Decal_source_uniform_front": 4
+      },
+      "pack_union_bbox": {
+        "min": [
+          -0.4424999952316284,
+          -0.625,
+          1.1299999952316284
+        ],
+        "max": [
+          0.4424999952316284,
+          0.49500003457069397,
+          1.954893946647644
+        ],
+        "dims": [
+          0.8849999904632568,
+          1.120000034570694,
+          0.8248939514160156
+        ]
+      },
+      "backpack_main_bbox": {
+        "min": [
+          -0.3799999952316284,
+          0.004999995231628418,
+          1.1299999952316284
+        ],
+        "max": [
+          0.3799999952316284,
+          0.4050000011920929,
+          1.9499999284744263
+        ],
+        "dims": [
+          0.7599999904632568,
+          0.4000000059604645,
+          0.8199999332427979
+        ]
+      },
+      "torso_bbox": {
+        "min": [
+          -0.4449999928474426,
+          -0.5799999833106995,
+          1.2000000476837158
+        ],
+        "max": [
+          0.4449999928474426,
+          0.11999998986721039,
+          1.9500000476837158
+        ],
+        "dims": [
+          0.8899999856948853,
+          0.6999999731779099,
+          0.75
+        ]
+      },
+      "main_pack_front_to_torso_back_y_gap": -0.11499999463558197,
+      "strap_union_bbox": {
+        "min": [
+          -0.4379918873310089,
+          -0.625,
+          1.4299999475479126
+        ],
+        "max": [
+          0.4379918873310089,
+          0.39807718992233276,
+          1.954893946647644
+        ],
+        "dims": [
+          0.8759837746620178,
+          1.0230771899223328,
+          0.5248939990997314
+        ]
+      },
+      "strap_y_overlap_with_torso": 0.6999999731779099,
+      "strap_y_overlap_with_main_pack": 0.39307719469070435
+    }
+  ],
+  "glb_analysis": [
+    {
+      "label": "v8 actual final glb",
+      "glb": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\09_v8_turnaround\\final\\PLAYER_v8_final.glb",
+      "load_ok": true,
+      "mesh_count": 35,
+      "triangle_count_total_meshes": 3244,
+      "pack_like_imported_meshes": [
+        "Backpack_front_pocket",
+        "Backpack_main_rectangular",
+        "Backpack_strap_front_L",
+        "Backpack_strap_front_R",
+        "Backpack_strap_shoulder_L",
+        "Backpack_strap_shoulder_R",
+        "Decal_backpack_flap"
+      ],
+      "raw_import_nonmanifold_edges_by_closed_object": {
+        "Arm_L_continuous_sleeve": 56,
+        "Arm_R_continuous_sleeve": 56,
+        "Backpack_front_pocket": 186,
+        "Backpack_main_rectangular": 172,
+        "Backpack_strap_front_L": 188,
+        "Backpack_strap_front_R": 188,
+        "Backpack_strap_shoulder_L": 194,
+        "Backpack_strap_shoulder_R": 194,
+        "Fringe_01": 84,
+        "Fringe_02": 84,
+        "Fringe_03": 84,
+        "Hair_bob_back": 304,
+        "Hair_bob_side_L": 140,
+        "Hair_bob_side_R": 140,
+        "Hair_crown_flat_round_skull": 144,
+        "Hand_L": 188,
+        "Hand_R": 188,
+        "Head_skin_broad_short_chin": 64,
+        "Leg_L_sock": 178,
+        "Leg_L_thigh": 134,
+        "Leg_R_sock": 178,
+        "Leg_R_thigh": 134,
+        "Neck_short": 188,
+        "Shoe_L": 140,
+        "Shoe_R": 140,
+        "Shoe_sole_L": 60,
+        "Shoe_sole_R": 60,
+        "Shoe_tongue_L": 200,
+        "Shoe_tongue_R": 200,
+        "Skirt_simple_closed_A_line": 48,
+        "Torso_short_school_jacket": 146
+      },
+      "raw_import_negative_signed_volume_by_closed_object": {},
+      "raw_import_expected_open_decal_nonmanifold_edges": {
+        "Decal_backpack_flap": 4,
+        "Decal_skirt_back_pleats": 4,
+        "Decal_skirt_front_pleats": 4,
+        "Decal_source_uniform_front": 4
+      },
+      "welded_1e_6_nonmanifold_edges_by_closed_object": {},
+      "welded_1e_6_negative_signed_volume_by_closed_object": {},
+      "welded_1e_6_expected_open_decal_nonmanifold_edges": {
+        "Decal_backpack_flap": 4,
+        "Decal_skirt_back_pleats": 4,
+        "Decal_skirt_front_pleats": 4,
+        "Decal_source_uniform_front": 4
+      }
+    },
+    {
+      "label": "v9 actual final glb",
+      "glb": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\final\\PLAYER_v9_final.glb",
+      "load_ok": true,
+      "mesh_count": 40,
+      "triangle_count_total_meshes": 3784,
+      "pack_like_imported_meshes": [
+        "Backpack_front_pocket",
+        "Backpack_main_rectangular",
+        "Backpack_side_rail_L",
+        "Backpack_side_rail_R",
+        "Backpack_strap_front_L",
+        "Backpack_strap_front_R",
+        "Backpack_strap_shoulder_L",
+        "Backpack_strap_shoulder_R",
+        "Backpack_strap_side_L",
+        "Backpack_strap_side_R",
+        "Backpack_top_lid_band",
+        "Decal_backpack_flap"
+      ],
+      "raw_import_nonmanifold_edges_by_closed_object": {
+        "Arm_L_continuous_sleeve": 56,
+        "Arm_R_continuous_sleeve": 56,
+        "Backpack_front_pocket": 164,
+        "Backpack_main_rectangular": 182,
+        "Backpack_side_rail_L": 194,
+        "Backpack_side_rail_R": 194,
+        "Backpack_strap_front_L": 188,
+        "Backpack_strap_front_R": 188,
+        "Backpack_strap_shoulder_L": 186,
+        "Backpack_strap_shoulder_R": 186,
+        "Backpack_strap_side_L": 178,
+        "Backpack_strap_side_R": 178,
+        "Backpack_top_lid_band": 172,
+        "Fringe_01": 84,
+        "Fringe_02": 84,
+        "Fringe_03": 84,
+        "Hair_bob_back": 304,
+        "Hair_bob_side_L": 140,
+        "Hair_bob_side_R": 140,
+        "Hair_crown_flat_round_skull": 144,
+        "Hand_L": 188,
+        "Hand_R": 188,
+        "Head_skin_broad_short_chin": 64,
+        "Leg_L_sock": 178,
+        "Leg_L_thigh": 134,
+        "Leg_R_sock": 178,
+        "Leg_R_thigh": 134,
+        "Neck_short": 188,
+        "Shoe_L": 140,
+        "Shoe_R": 140,
+        "Shoe_sole_L": 60,
+        "Shoe_sole_R": 60,
+        "Shoe_tongue_L": 200,
+        "Shoe_tongue_R": 200,
+        "Skirt_simple_closed_A_line": 48,
+        "Torso_short_school_jacket": 146
+      },
+      "raw_import_negative_signed_volume_by_closed_object": {},
+      "raw_import_expected_open_decal_nonmanifold_edges": {
+        "Decal_backpack_flap": 4,
+        "Decal_skirt_back_pleats": 4,
+        "Decal_skirt_front_pleats": 4,
+        "Decal_source_uniform_front": 4
+      },
+      "welded_1e_6_nonmanifold_edges_by_closed_object": {},
+      "welded_1e_6_negative_signed_volume_by_closed_object": {},
+      "welded_1e_6_expected_open_decal_nonmanifold_edges": {
+        "Decal_backpack_flap": 4,
+        "Decal_skirt_back_pleats": 4,
+        "Decal_skirt_front_pleats": 4,
+        "Decal_source_uniform_front": 4
+      }
+    }
+  ],
+  "v8_v9_backpack_delta": {
+    "main_width_x_delta": 0.06000000238418579,
+    "main_depth_y_delta": 0.07999999821186066,
+    "main_height_z_delta": 0.08999991416931152,
+    "pack_union_depth_y_delta": 0.140500009059906,
+    "pack_object_count_delta": 5,
+    "strap_object_count_delta": 2
+  }
+}

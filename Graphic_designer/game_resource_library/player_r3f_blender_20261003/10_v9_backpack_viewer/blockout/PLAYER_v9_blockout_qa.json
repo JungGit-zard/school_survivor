@@ -1,0 +1,33 @@
+{
+  "mode": "blockout",
+  "source": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\character_sheets\\PLAYER_front_side_back_face_v1.png",
+  "reference_landmarks_px": {
+    "height": 722,
+    "hair_width": 339,
+    "hair_depth_side": 294,
+    "hair_bottom_y": 365,
+    "fringe_bottom_y": 234,
+    "face_chin_y": 345,
+    "skirt_width": 247,
+    "skirt_bottom_y": 606
+  },
+  "triangle_count_structural": 2840,
+  "mesh_parts": 26,
+  "triangle_count_export_total": 2840,
+  "nonmanifold_edges_by_object": {},
+  "negative_signed_volume_by_object": {},
+  "reference_images_inside_blend": [
+    "FRONT",
+    "SIDE",
+    "BACK"
+  ],
+  "view_up_axis": "Blender +Z; renders not rotated in post-processing",
+  "renders": {
+    "skipped": "--no-render requested for export-only build"
+  },
+  "blend": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\blockout\\PLAYER_v9_blockout.blend",
+  "glb": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\game_resource_library\\player_r3f_blender_20261003\\10_v9_backpack_viewer\\blockout\\PLAYER_v9_blockout.glb",
+  "blend_size_bytes": 139642,
+  "glb_size_bytes": 137876,
+  "runtime_integration": "not connected; PlayerMesh.jsx untouched"
+}

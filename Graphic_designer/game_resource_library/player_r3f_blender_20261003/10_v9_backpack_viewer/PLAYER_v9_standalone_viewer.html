@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PLAYER v9 단독 GLB 뷰어 - Y-up 실제 액션 검증</title>
+  <link rel="icon" href="data:," />
+  <style>
+    html,body{margin:0;height:100%;overflow:hidden;background:#15161b;color:#f5f5f5;font:13px/1.42 system-ui,Segoe UI,sans-serif}
+    #ui{position:fixed;left:14px;top:14px;z-index:5;width:380px;max-height:calc(100vh - 40px);overflow:auto;background:rgba(15,17,23,.88);border:1px solid #3a3f4a;border-radius:14px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35);backdrop-filter:blur(6px)}
+    h1{font-size:16px;margin:0 0 8px}.row{display:grid;grid-template-columns:118px 1fr;gap:8px;align-items:center;margin:7px 0}.row label{color:#c8cfdd}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.buttons.actions{grid-template-columns:1fr 1fr 1fr}button,select,input{accent-color:#7cc6ff}button{background:#2a3345;color:#fff;border:1px solid #4b5a74;border-radius:8px;padding:7px;cursor:pointer}button:hover{background:#34405a}input[type=range]{width:100%}#status{position:fixed;right:14px;top:14px;z-index:5;max-width:360px;background:rgba(15,17,23,.86);border:1px solid #3a3f4a;border-radius:12px;padding:10px 12px;color:#cbd2df;white-space:pre-wrap}.warn{color:#ffcf66}.ok{color:#8effb3}canvas{display:block}.note{margin:10px 0 0;color:#98a3b7}.active{outline:2px solid #7cc6ff}
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <h1>PLAYER v9 단독 GLB 뷰어</h1>
+    <div class="row"><label>모델</label><select id="model"><option value="final/PLAYER_v9_final.glb">v9 최종</option><option value="blockout/PLAYER_v9_blockout.glb">v9 블록아웃</option></select></div>
+    <div class="row"><label>Y축 자동 회전</label><input id="auto" type="checkbox" checked></div>
+    <div class="row"><label>회전 속도</label><input id="speed" type="range" min="-1.5" max="1.5" step="0.01" value="0.42"></div>
+    <div class="row"><label>수동 걷기</label><input id="walk" type="range" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><label>수동 팔동작</label><input id="arm" type="range" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><label>가방 표시</label><input id="bag" type="checkbox" checked></div>
+    <div class="row"><label>와이어 표시</label><input id="wire" type="checkbox"></div>
+    <div class="buttons"><button id="front">정면</button><button id="back">후면/가방</button><button id="side">측면</button><button id="threeq">3/4</button></div>
+    <div class="buttons actions">
+      <button data-action="idle">대기/초기화</button>
+      <button data-action="walk">걷기 반복</button>
+      <button data-action="schoolBag">가방/자 260ms</button>
+      <button data-action="boxCutter">커터칼 460ms</button>
+      <button data-action="pencil">연필 투사체만</button>
+      <button data-action="guidedMissileThrow">미사일 던지기 360ms</button>
+      <button data-action="lanternAim">랜턴 조준</button>
+      <button data-action="lanternFlashlight">손전등 320ms</button>
+      <button data-action="hit">피격 점멸/넉백</button>
+      <button data-action="heal">회복 VFX 760ms</button>
+      <button data-action="death">마틸다 사망</button>
+      <button data-action="clear">액션 해제</button>
+    </div>
+    <p class="note">마우스 드래그 회전, 휠 줌. CDN 없음: 프로젝트의 로컬 installed Three.js를 상대경로로 import. 이 viewer는 GLB 리뷰 전용이며 game/Studio/title/Firebase를 수정하지 않는다.</p>
+  </div>
+  <div id="status">불러오는 중...</div>
+<script type="importmap">
+{"imports":{"three":"../../../../Developer/r3f_prototype/node_modules/three/build/three.module.js","three/addons/":"../../../../Developer/r3f_prototype/node_modules/three/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from '../../../../Developer/r3f_prototype/node_modules/three/build/three.module.js';
+import {OrbitControls} from '../../../../Developer/r3f_prototype/node_modules/three/examples/jsm/controls/OrbitControls.js';
+import {GLTFLoader} from '../../../../Developer/r3f_prototype/node_modules/three/examples/jsm/loaders/GLTFLoader.js';
+
+const status=document.getElementById('status');
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x15161b);
+const camera=new THREE.PerspectiveCamera(35,innerWidth/innerHeight,.01,100); camera.up.set(0,1,0); camera.position.set(3.8,2.6,4.6);
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(innerWidth,innerHeight); renderer.outputColorSpace=THREE.SRGBColorSpace; document.body.appendChild(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement); controls.target.set(0,1.45,0); controls.enableDamping=true; controls.dampingFactor=.08;
+scene.add(new THREE.HemisphereLight(0xffffff,0x303040,2.0)); const key=new THREE.DirectionalLight(0xffffff,2.2); key.position.set(4,-5,7); scene.add(key); const rim=new THREE.DirectionalLight(0x9ecbff,1.0); rim.position.set(-5,4,5); scene.add(rim);
+const grid=new THREE.GridHelper(4,16,0x3d4354,0x272b36); grid.position.y=0; scene.add(grid);
+const loader=new GLTFLoader(); let root=null, clock=new THREE.Clock(), groups={}, wireHelpers=[], base={}, baseMaterials=new Map(), pencilObj=null, healObj=null, autoYaw=0, snapDistance=6.6, flashMat=new THREE.MeshBasicMaterial({color:0xffffff});
+const active={type:null,start:0,duration:0,loop:false};
+const ACTIONS={boxCutter:460,guidedMissileThrow:360,lanternAim:320,lanternFlashlight:320,schoolBag:260,hit:520,heal:760,death:999999,pencil:900,walk:999999};
+const q=new URLSearchParams(location.search); if(q.get('model')) document.getElementById('model').value=q.get('model');
+function setStatus(text,cls=''){status.className=cls; status.textContent=text;}
+function clamp01(v){return Math.max(0,Math.min(1,v));}
+function smoothstep(t){t=clamp01(t); return t*t*(3-2*t);}
+function node(n){return groups[n]||null;}
+function saveBase(o){base[o.name]={pos:o.position.clone(),rot:o.rotation.clone(),scale:o.scale.clone(),visible:o.visible};}
+function restoreNode(n){const o=node(n), b=o&&base[o.name]; if(!o||!b)return; o.position.copy(b.pos); o.rotation.copy(b.rot); o.scale.copy(b.scale); o.visible=b.visible;}
+function loadModel(path){
+  if(root){scene.remove(root); root.traverse(o=>{if(o.geometry)o.geometry.dispose?.();}); root=null;} wireHelpers.forEach(o=>scene.remove(o)); wireHelpers=[]; groups={}; base={}; clearEffects();
+  setStatus('모델 로딩 중: '+path+' ...');
+  loader.load(path,(gltf)=>{
+    root=gltf.scene; scene.add(root); root.traverse(o=>{ if(o.name){groups[o.name]=o; saveBase(o);} if(o.isMesh){o.frustumCulled=false; o.castShadow=false; o.receiveShadow=false; baseMaterials.set(o,o.material);}});
+    frameObject(root); resetPose(); updateBag(); updateWire();
+    setStatus('로드 완료: '+path+'\n좌표계: Three/GLB Y-up 그대로 표시, 정면은 +Z, 후면/가방은 -Z입니다.\n액션: 실제 게임 타이밍을 뷰어 전용 피벗으로 재현합니다. 거대한 노드명 오버레이는 표시하지 않습니다.','ok');
+  },undefined,(err)=>setStatus('로드 실패: '+err.message+'\n저장소 루트에서 로컬 웹서버를 실행해야 상대경로 Three.js와 GLB가 로드됩니다.','warn'));
+}
+function frameObject(obj){const box=new THREE.Box3().setFromObject(obj); const size=box.getSize(new THREE.Vector3()); const center=box.getCenter(new THREE.Vector3()); controls.target.copy(center); controls.target.y=center.y+size.y*.03; const max=Math.max(size.x,size.y,size.z); snapDistance=Math.max(6.25,max*2.15); camera.position.set(center.x+max*.85, controls.target.y+max*.18, center.z+snapDistance*.92); camera.near=max/100; camera.far=max*120; camera.updateProjectionMatrix(); camera.lookAt(controls.target); controls.update();}
+function resetPose(){ if(!root)return; root.position.set(0,0,0); root.rotation.set(0,0,0); ['grp_body','grp_head','grp_armL','grp_armR','grp_legL','grp_legR','grp_pack','grp_hips','grp_skirt'].forEach(restoreNode); root.traverse(o=>{if(o.isMesh&&baseMaterials.has(o))o.material=baseMaterials.get(o);}); }
+function clearEffects(removeAction=true){ if(pencilObj){scene.remove(pencilObj); pencilObj=null;} if(healObj){scene.remove(healObj); healObj=null;} if(removeAction){active.type=null; active.start=0; active.duration=0; active.loop=false;} document.querySelectorAll('[data-action]').forEach(b=>b.classList.remove('active')); }
+const ACTION_LABELS={idle:'대기/초기화',clear:'액션 해제',walk:'걷기 반복',schoolBag:'가방/자 휘두르기',boxCutter:'커터칼',pencil:'연필 투사체만',guidedMissileThrow:'미사일 던지기',lanternAim:'랜턴 조준',lanternFlashlight:'손전등',hit:'피격 점멸/넉백',heal:'회복 VFX',death:'마틸다 사망'};
+function startAction(type){ resetPose(); if(type==='idle'||type==='clear'){clearEffects(); setStatus('대기/초기화: 뷰어 전용 액션 상태를 모두 해제했습니다.','ok'); return;} active.type=type; active.start=performance.now(); active.duration=ACTIONS[type]||500; active.loop=type==='walk'||type==='death'; document.querySelectorAll('[data-action]').forEach(b=>b.classList.toggle('active',b.dataset.action===type)); if(type==='pencil') makePencil(); if(type==='heal') makeHeal(); setStatus('액션: '+(ACTION_LABELS[type]||type)+'\nY-up 계약: 걷기 sin(8t), 커터칼 460ms, 가방/자 260ms, 연필은 팔 포즈 없이 투사체만, 피격은 -Z 넉백+점멸, 회복 760ms, 사망은 Z축으로 옆으로 넘어짐.','ok'); }
+function getBoxCutterPhases(p){const t1=Math.min(1,p/.22),t2=Math.min(1,Math.max(0,(p-.26)/.42)),settle=Math.min(1,Math.max(0,(p-.86)/.14)); return {thrust:1-(1-t1)*(1-t1),raise:smoothstep(t2),env:1-settle};}
+function applyArmAction(type,p,sw=0){const L=node('grp_armL'), R=node('grp_armR'); if(!L||!R)return; L.rotation.x=-sw*.55; R.rotation.x=sw*.55; if(type==='boxCutter'){const ph=getBoxCutterPhases(p); R.rotation.x=(-1.5*ph.thrust-1.25*ph.raise)*ph.env; R.rotation.y=(-.2*ph.thrust+.15*ph.raise)*ph.env; R.rotation.z=(-.45*ph.thrust+.3*ph.raise)*ph.env; L.rotation.x=-.2*ph.thrust*ph.env; L.rotation.z=.1*ph.thrust*ph.env;}
+  if(type==='schoolBag'){const swingPower=Math.sin(p*Math.PI), sweep=-1.25+p*2.5; R.rotation.x=-1.55*swingPower; R.rotation.y=-.35*swingPower; R.rotation.z=-.25-sweep*.78; L.rotation.x=-.35*swingPower; L.rotation.z=.24*swingPower;}
+  if(type==='guidedMissileThrow'){const power=Math.sin(p*Math.PI); R.rotation.x=-1.35*power; R.rotation.y=-.12*power; R.rotation.z=-.22*power; L.rotation.x=-.12*power; L.rotation.z=.06*power;}
+  if(type==='lanternAim'||type==='lanternFlashlight'){R.rotation.x=-1.5; R.rotation.y=-.04; L.rotation.x=-.2;}
+}
+function applyWalk(t,amount=1){const sw=Math.sin(t*8.0)*.45*amount; const bob=Math.abs(Math.sin(t*8.0))*.022*amount; const breathe=Math.sin(t*1.8)*.028*(1-amount); const b=bob+breathe; const lL=node('grp_legL'),lR=node('grp_legR'),head=node('grp_head'),L=node('grp_armL'),R=node('grp_armR'),pack=node('grp_pack'); if(lL)lL.rotation.x=sw; if(lR)lR.rotation.x=-sw; if(L)L.rotation.x=-sw*.55; if(R)R.rotation.x=sw*.55; if(head&&base.grp_head)head.position.y=base.grp_head.pos.y+b; if(pack)pack.rotation.x=Math.sin(t*5.5)*.035*amount; return sw;}
+function applyManual(){const walk=parseFloat(document.getElementById('walk').value), arm=parseFloat(document.getElementById('arm').value); if(walk>0)applyWalk(performance.now()*.001,walk); if(arm>0)applyArmAction('boxCutter',arm,0);}
+function makePencil(){ const g=new THREE.Group(); const yellow=new THREE.MeshToonMaterial({color:0xffcf24}), wood=new THREE.MeshToonMaterial({color:0xd89646}), dark=new THREE.MeshToonMaterial({color:0x1c1c22}); const body=new THREE.Mesh(new THREE.CylinderGeometry(.026,.026,.25,6),yellow); body.rotation.x=Math.PI/2; const tip=new THREE.Mesh(new THREE.ConeGeometry(.032,.095,6),wood); tip.rotation.x=Math.PI/2; tip.position.z=.17; const lead=new THREE.Mesh(new THREE.ConeGeometry(.016,.043,6),dark); lead.rotation.x=Math.PI/2; lead.position.z=.235; g.add(body,tip,lead); g.position.set(.18,1.48,.55); g.rotation.y=0; scene.add(g); pencilObj=g; }
+function makeHeal(){ const m=new THREE.MeshBasicMaterial({color:0x6cff99,transparent:true,opacity:.55,depthWrite:false}); healObj=new THREE.Mesh(new THREE.RingGeometry(.72,.78,48),m); healObj.rotation.x=-Math.PI/2; healObj.position.set(0,.05,0); scene.add(healObj); }
+function updateProjectile(p){ if(!pencilObj)return; const angle=.25, speed=12, age=p*.9, max=.9; const dist=Math.min(speed*age,2.25); pencilObj.position.set(Math.sin(angle)*.35+Math.sin(angle)*dist,1.48,Math.cos(angle)*.55+Math.cos(angle)*dist); pencilObj.rotation.y=angle; pencilObj.visible=p<max; }
+function updateBag(){const show=document.getElementById('bag').checked; if(!root)return; root.traverse(o=>{if(/Backpack|grp_pack|Decal_backpack/i.test(o.name))o.visible=show;});}
+function updateWire(){wireHelpers.forEach(o=>scene.remove(o)); wireHelpers=[]; if(!document.getElementById('wire').checked||!root)return; root.traverse(o=>{if(o.isMesh){const w=new THREE.WireframeGeometry(o.geometry); const m=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.12}); const l=new THREE.LineSegments(w,m); l.matrix.copy(o.matrixWorld); l.matrixAutoUpdate=false; scene.add(l); wireHelpers.push(l);}});}
+function snap(kind){const t=controls.target; const r=snapDistance; camera.up.set(0,1,0); if(kind==='front')camera.position.set(t.x,t.y+.05,t.z+r); if(kind==='back')camera.position.set(t.x,t.y+.05,t.z-r); if(kind==='side')camera.position.set(t.x-r,t.y+.05,t.z); if(kind==='threeq')camera.position.set(t.x+r*.72,t.y+.16,t.z+r*.72); camera.lookAt(t); controls.update();}
+['walk','arm'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{resetPose();applyManual();})); document.getElementById('bag').addEventListener('change',updateBag); document.getElementById('wire').addEventListener('change',updateWire); document.getElementById('model').addEventListener('change',e=>loadModel(e.target.value)); ['front','back','side','threeq'].forEach(id=>document.getElementById(id).onclick=()=>snap(id)); document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>startAction(b.dataset.action));
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight);});
+function projectedBoxBounds(obj){
+  if(!obj)return null;
+  const box=new THREE.Box3().setFromObject(obj);
+  const pts=[
+    new THREE.Vector3(box.min.x,box.min.y,box.min.z),new THREE.Vector3(box.min.x,box.min.y,box.max.z),
+    new THREE.Vector3(box.min.x,box.max.y,box.min.z),new THREE.Vector3(box.min.x,box.max.y,box.max.z),
+    new THREE.Vector3(box.max.x,box.min.y,box.min.z),new THREE.Vector3(box.max.x,box.min.y,box.max.z),
+    new THREE.Vector3(box.max.x,box.max.y,box.min.z),new THREE.Vector3(box.max.x,box.max.y,box.max.z)
+  ];
+  const rect=renderer.domElement.getBoundingClientRect();
+  const xs=[], ys=[];
+  for(const p of pts){p.project(camera); xs.push((p.x*.5+.5)*rect.width); ys.push((-p.y*.5+.5)*rect.height);}
+  return {left:Math.min(...xs),right:Math.max(...xs),top:Math.min(...ys),bottom:Math.max(...ys),width:Math.max(...xs)-Math.min(...xs),height:Math.max(...ys)-Math.min(...ys),viewport:{width:rect.width,height:rect.height}};
+}
+window.__PLAYER_V9_VIEWER_QA__={
+  state(){
+    const box=root?new THREE.Box3().setFromObject(root):null;
+    const size=box?box.getSize(new THREE.Vector3()):new THREE.Vector3();
+    const center=box?box.getCenter(new THREE.Vector3()):new THREE.Vector3();
+    return {
+      loaded:!!root,
+      active:{...active},
+      rootRotation:root?root.rotation.toArray().slice(0,3):null,
+      rootPosition:root?root.position.toArray():null,
+      cameraUp:camera.up.toArray(),
+      cameraPosition:camera.position.toArray(),
+      snapDistance,
+      target:controls.target.toArray(),
+      bboxSize:size.toArray(),
+      bboxCenter:center.toArray(),
+      projectedBounds:projectedBoxBounds(root),
+      pencil:pencilObj?{visible:pencilObj.visible,position:pencilObj.position.toArray(),rotation:pencilObj.rotation.toArray().slice(0,3)}:null,
+      heal:healObj?{position:healObj.position.toArray(),rotation:healObj.rotation.toArray().slice(0,3),scale:healObj.scale.toArray()}:null,
+      status:status.textContent
+    };
+  }
+};
+loadModel(document.getElementById('model').value);
+function animate(){requestAnimationFrame(animate); const dt=clock.getDelta(), now=performance.now(), t=now*.001; if(root){resetPose(); applyManual(); if(active.type){let p=(now-active.start)/active.duration; if(!active.loop&&p>=1){ if(active.type!=='lanternAim') active.type=null; p=1;} p=clamp01(p); if(active.type==='walk')applyWalk(t,1); if(['boxCutter','guidedMissileThrow','lanternAim','lanternFlashlight'].includes(active.type))applyArmAction(active.type,p,0); if(active.type==='schoolBag')applyArmAction('schoolBag',p,0); if(active.type==='pencil')updateProjectile(p); if(active.type==='hit'){ root.position.z=-Math.sin(Math.PI*p)*.11; const flashing=Math.floor((now-active.start)/80)%2===0; root.traverse(o=>{if(o.isMesh)o.material=flashing?flashMat:baseMaterials.get(o);}); } if(active.type==='heal'&&healObj){healObj.scale.setScalar(1+p*.8); healObj.material.opacity=.55*(1-p); healObj.rotation.y+=dt*3.5;} if(active.type==='death'){root.rotation.z=-Math.PI/2; root.position.y=.18;} } if(document.getElementById('auto').checked)autoYaw += parseFloat(document.getElementById('speed').value)*dt; root.rotation.y += autoYaw; } controls.update(); renderer.render(scene,camera);} animate();
+</script>
+</body>
+</html>
