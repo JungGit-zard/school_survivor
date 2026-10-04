@@ -1,0 +1,54 @@
+{
+  "session": "20260927_115344_0f5b22",
+  "bgm_plan_message_id": 47472,
+  "conversation_message_ids": [
+    47475,
+    47477,
+    47485,
+    47487,
+    47489
+  ],
+  "bgm_plan_lines_verified": 260,
+  "files": [
+    {
+      "file": "cdn_asset_delivery_plan_2026-09-23.md",
+      "bytes": 10210,
+      "sha256": "b90e6fc5d82be74b4d7cce5ea53d67d71f2fd9eac9430a0608a473dd7e8aa6d8"
+    },
+    {
+      "file": "cdn_document_index_2026-09-27.recovered.md",
+      "bytes": 2613,
+      "sha256": "9bb0d2b080f126dd1833614c45a247f030b2d977c93e78228f2fe9d6f76f74ee"
+    },
+    {
+      "file": "cdn_subdomain_guide_2026-09-27.recovered.md",
+      "bytes": 2734,
+      "sha256": "3ca0ed56473b444e37ff45bea60ca2aee37b8f3b25c6c437f986cc131455fff6"
+    },
+    {
+      "file": "eight_tracks_delivery_example_2026-09-27.recovered.md",
+      "bytes": 8976,
+      "sha256": "6c3ebefc38d1f15b0b87d5578f756cb259625de4903402c18d1466d4837fa7ce"
+    },
+    {
+      "file": "escape_zombie_school_bgm_external_delivery_implementation_plan_2026-09-12.recovered.md",
+      "bytes": 20098,
+      "sha256": "1b8343cff3db8376811b4fe742d87f8395c763af11746e1ba9ab80e51e8a4492"
+    },
+    {
+      "file": "r2_cost_estimate_2026-09-27.recovered.md",
+      "bytes": 3572,
+      "sha256": "f8f531b01a807192164eb45a7a993445fe5fb33fa2ae3c1e39e6c0c36ad2da3a"
+    },
+    {
+      "file": "r2_setup_checklist_2026-09-27.recovered.md",
+      "bytes": 8552,
+      "sha256": "f4881bf4f4a7ea8d7ce1122735ef253716d47aee28fb2fe8640e6327bd0271f4"
+    },
+    {
+      "file": "soundmini_better_minigame_bgm_research_and_implementation_plan_2026-08-05.md",
+      "bytes": 24910,
+      "sha256": "d4e82c91e3498c6988cda84bac27b16fe42e9a6cc731a498454b50a797da07c8"
+    }
+  ]
+}
