@@ -3,7 +3,7 @@
 - Worker: launchmini; Kanban: `escape-zombie-school / t_b5969d6f`.
 - Authority: user requires web updates to apply to the Android web app, without a new AAB. Advisor assigned exact successful-source restoration.
 - Source: `C:/Users/admin/.codex/sessions/2026/10/03/rollout-2026-10-03T11-07-00-01a0ff83-c417-79f3-bdaa-7bda858224ae.jsonl`.
-- Replayed only successful `item_completed / FileChange` records at 02:09:05, 02:10:08, 02:12:06, 02:14:18, 02:15:16, 02:17:43 UTC. Omitted already-absent `assert-web-landing-preservation.mjs` removal.
+- Replayed only successful `item_completed / FileChange` records at 02:09:05, 02:10:08, 02:12:06, 02:14:18, 02:15:16, 02:17:43 UTC. The source transcript also contains a successful 02:12:53 UTC removal of `node scripts/assert-web-landing-preservation.mjs` from `firebase.json`; the local recovery did not apply an additional edit for that record because the target line was already absent in the recovered file.
 
 ## Restored behavior
 

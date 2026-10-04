@@ -108,6 +108,38 @@ def test_unrelated_payload_allows_empty_json():
     assert guard.evaluate_payload({"tool_name": "Read", "tool_input": {"file_path": "AGENTS.md"}}) == {}
 
 
+def test_git_global_option_operands_cannot_bypass():
+    guard = load_guard()
+    for command in [
+        "git -C C:/work clean -fdx",
+        'git -C "C:/work tree" clean -fdx',
+        "git -C 'C:/work tree' -c core.bare=false clean -fdx",
+        "git --git-dir C:/work/.git --work-tree C:/work rm file.txt",
+        "git.exe -C C:/work -C nested clean -fdx",
+        "git -c core.bare=false rm file.txt",
+        'git -C "C:/work&tree" clean -fdx',
+        'git -C "C:/work;tree" clean -fdx',
+        "git -C 'C:/work&tree' clean -fdx",
+        "git -C 'C:/work;tree' clean -fdx",
+    ]:
+        assert guard.classify_command(command).blocked, command
+    for command in [
+        "git -C C:/work status", "git -C C:/work log", "git -c core.bare=false status",
+        'git -C "C:/work&tree" status', 'git -C "C:/work;tree" status',
+        "git -C 'C:/work&tree' status", "git -C 'C:/work;tree' status",
+    ]:
+        assert not guard.classify_command(command).blocked, command
+
+
+def test_eventless_exec_command_is_guarded():
+    guard = load_guard()
+    assert_official_deny_shapes(guard.evaluate_payload({
+        "tool_name": "exec_command", "tool_input": {"cmd": "git -C C:/work clean -fdx"},
+    }))
+    assert_official_deny_shapes(guard.evaluate_payload({"tool_name": "exec_command", "tool_input": {}}))
+    assert guard.evaluate_payload({"tool_name": "exec_command", "tool_input": {"cmd": "git status"}}) == {}
+
+
 if __name__ == "__main__":
     for test in [
         test_destructive_patterns_are_blocked,
@@ -115,6 +147,8 @@ if __name__ == "__main__":
         test_hook_payload_blocks_terminal_command_with_fail_closed_json,
         test_codex_claude_bash_payload_shape_blocks,
         test_unrelated_payload_allows_empty_json,
+        test_git_global_option_operands_cannot_bypass,
+        test_eventless_exec_command_is_guarded,
     ]:
         test()
         print(f"PASS {test.__name__}")

@@ -51,6 +51,7 @@ class Decision:
 
 
 SHELL_TOOL_NAMES = {
+    "exec_command",
     "terminal",
     "bash",
     "Bash",
@@ -91,10 +92,14 @@ def classify_command(command: str) -> Decision:
 
     # Git clean can delete untracked work and must never run from agents without the
     # user's explicit three-confirmation destructive-cleanup ceremony.
-    if re.search(r"(?:^|[;&|]\s*)[^;&|]*\bgit(?:\.exe)?\s+(?:-[^;&|\s]+\s+)*clean\b", text):
+    # Global Git options such as -C and -c take a separate operand, which can
+    # be quoted. Quoted operands can contain shell separators as literal path
+    # characters; only unquoted operands stop at those separators.
+    git_prefix = r'''(?:^|[;&|]\s*)[^;&|]*\bgit(?:\.exe)?\s+(?:-[^;&|\s]+\s+(?:(?:"[^"]*"|'[^']*'|[^\s;&|]+)\s+)?)*'''
+    if re.search(git_prefix + r"clean\b", text):
         return Decision(True, "git clean")
 
-    if re.search(r"(?:^|[;&|]\s*)[^;&|]*\bgit(?:\.exe)?\s+(?:-[^;&|\s]+\s+)*rm\b", text):
+    if re.search(git_prefix + r"rm\b", text):
         return Decision(True, "git rm deletion")
 
     # POSIX rm recursive+force family. Match combined flags and split flags first so
