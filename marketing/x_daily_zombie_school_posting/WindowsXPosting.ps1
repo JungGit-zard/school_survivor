@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 public static class XPostingNative {
  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+ [DllImport("user32.dll")] public static extern void SwitchToThisWindow(IntPtr hWnd, bool fAltTab);
  [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h, int cmd);
  [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
  [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
@@ -26,6 +27,15 @@ function Get-XValue($Element) {
   if ($Element.TryGetCurrentPattern([Windows.Automation.TextPattern]::Pattern, [ref]$pattern)) { return $pattern.DocumentRange.GetText(-1) }
   return ''
 }
+function Get-XWindowElement {
+  $window = [Windows.Automation.AutomationElement]::FromHandle([IntPtr]$script:XWindow)
+  if ($null -eq $window) { throw "Target X Chrome window handle is unavailable: $script:XWindow" }
+  if ($window.Current.NativeWindowHandle -ne $script:XWindow) { throw "Target X Chrome window handle mismatch: expected $script:XWindow found $($window.Current.NativeWindowHandle)" }
+  if ($window.Current.ClassName -ne 'Chrome_WidgetWin_1' -or $window.Current.Name -notmatch ' / X(?: - (?:Google )?Chrome)?$') { throw "Target X Chrome window no longer matches expected X/Chrome title: '$($window.Current.Name)'" }
+  $process = Get-Process -Id $window.Current.ProcessId
+  if ($process.ProcessName -ne 'chrome') { throw 'Target X window process is not Chrome' }
+  return $window
+}
 function Assert-XForeground {
   $foreground = [XPostingNative]::GetForegroundWindow()
   if ($foreground.ToInt64() -ne $script:XWindow) {
@@ -33,6 +43,27 @@ function Assert-XForeground {
     try { $title = [Windows.Automation.AutomationElement]::FromHandle($foreground).Current.Name } catch { }
     throw "Desktop focus changed to HWND $($foreground.ToInt64()) '$title'; no input sent"
   }
+}
+function Restore-XWindowFocus([string]$Reason = 'navigation boundary') {
+  $window = Get-XWindowElement
+  [XPostingNative]::ShowWindow([IntPtr]$script:XWindow, 9) | Out-Null
+  [XPostingNative]::SetForegroundWindow([IntPtr]$script:XWindow) | Out-Null
+  Start-Sleep -Milliseconds 250
+  if ([XPostingNative]::GetForegroundWindow().ToInt64() -ne $script:XWindow) {
+    [XPostingNative]::SwitchToThisWindow([IntPtr]$script:XWindow, $true)
+    Start-Sleep -Milliseconds 250
+  }
+  if ([XPostingNative]::GetForegroundWindow().ToInt64() -ne $script:XWindow) {
+    $rect = $window.Current.BoundingRectangle
+    if ($rect.Width -gt 0 -and $rect.Height -gt 0) {
+      [XPostingNative]::SetCursorPos([int]($rect.X + [Math]::Min(200, [Math]::Max(20, $rect.Width / 2))), [int]($rect.Y + 15)) | Out-Null
+      [XPostingNative]::mouse_event(2,0,0,0,[UIntPtr]::Zero)
+      [XPostingNative]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
+      Start-Sleep -Milliseconds 250
+    }
+  }
+  Assert-XForeground
+  return $window
 }
 function Click-XElement($Element) {
   Assert-XForeground
@@ -55,31 +86,49 @@ function Wait-XCondition([scriptblock]$Condition, [string]$Description, [int]$Se
 }
 function Initialize-XWindow([long]$RequestedWindowId) {
   $windows = @([Windows.Automation.AutomationElement]::RootElement.FindAll([Windows.Automation.TreeScope]::Children, [Windows.Automation.Condition]::TrueCondition) | Where-Object {
-    $_.Current.ClassName -eq 'Chrome_WidgetWin_1' -and $_.Current.Name -match ' / X(?: - Google Chrome)?$'
+    $_.Current.ClassName -eq 'Chrome_WidgetWin_1' -and $_.Current.Name -match ' / X(?: - (?:Google )?Chrome)?$'
   })
   if ($RequestedWindowId) { $windows = @($windows | Where-Object { $_.Current.NativeWindowHandle -eq $RequestedWindowId }) }
   if ($windows.Count -ne 1) { throw "Expected one existing Chrome X window, found $($windows.Count). Select -WindowId." }
   $process = Get-Process -Id $windows[0].Current.ProcessId
   if ($process.ProcessName -ne 'chrome') { throw 'Target is not Chrome' }
   $script:XWindow = [long]$windows[0].Current.NativeWindowHandle
-  [XPostingNative]::ShowWindow([IntPtr]$script:XWindow, 9) | Out-Null
-  [XPostingNative]::SetForegroundWindow([IntPtr]$script:XWindow) | Out-Null
-  Start-Sleep -Milliseconds 300
-  Assert-XForeground
+  Restore-XWindowFocus 'initial window selection' | Out-Null
+}
+function Test-XAuthDialogVisible($Root = (Get-XRoot)) {
+  $names = @((Get-XElements $Root) | Where-Object { -not $_.Current.IsOffscreen } | ForEach-Object { $_.Current.Name })
+  return (@($names | Where-Object { $_ -match '^(Sign in|Log in|Verify your identity|Use a passkey|Windows Security)$' }).Count -gt 0)
+}
+function Assert-XNoAuthDialog($Root = (Get-XRoot)) {
+  if (Test-XAuthDialogVisible $Root) { throw 'Authentication dialog visible' }
 }
 function Assert-XAccount {
   $root = Get-XRoot
+  Assert-XNoAuthDialog $root
   $menu = Find-XControl 'Account menu' 'Button' $root
-  $names = @($menu.Current.Name) + @((Get-XElements $menu) | ForEach-Object { $_.Current.Name })
-  if (-not ($names -contains '@jungsilx')) { throw 'Active Account menu does not identify @jungsilx' }
-  $names = @((Get-XElements $root) | Where-Object { -not $_.Current.IsOffscreen } | ForEach-Object { $_.Current.Name })
-  if (@($names | Where-Object { $_ -match '^(Sign in|Log in|Verify your identity|Use a passkey|Windows Security)$' }).Count) { throw 'Authentication dialog visible' }
+  Click-XElement $menu
+  try {
+    $script:XAccountAuthDialogVisible = $false
+    Wait-XCondition {
+      $root = Get-XRoot
+      if (Test-XAuthDialogVisible $root) { $script:XAccountAuthDialogVisible = $true; return $true }
+      $items = @((Get-XElements $root) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::MenuItem -and $_.Current.Name -ceq 'Log out @jungsilx' })
+      return ($items.Count -eq 1)
+    } 'opened Account menu identity'
+    if ($script:XAccountAuthDialogVisible) { throw 'Authentication dialog visible' }
+    $root = Get-XRoot
+    $logout = @((Get-XElements $root) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::MenuItem -and $_.Current.Name -ceq 'Log out @jungsilx' })
+    if ($logout.Count -ne 1) { throw "Active Account menu does not expose exact 'Log out @jungsilx' menu item" }
+  } finally {
+    Send-XKeys '{ESC}'
+    Start-Sleep -Milliseconds 150
+  }
+  Assert-XNoAuthDialog (Get-XRoot)
 }
 function Navigate-X([string]$Url) {
   # One reacquisition at a navigation boundary, never between typing/clicking.
   if ([XPostingNative]::GetForegroundWindow().ToInt64() -ne $script:XWindow) {
-    [XPostingNative]::SwitchToThisWindow([IntPtr]$script:XWindow, $true)
-    Start-Sleep -Milliseconds 250
+    Restore-XWindowFocus 'navigation boundary' | Out-Null
   }
   Assert-XForeground
   [Windows.Forms.Clipboard]::SetText($Url)
