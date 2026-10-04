@@ -180,7 +180,8 @@ Firebase 단일 저장 관련 작업에는 Claude Opus 4.8의 접근과 작업 �
 ## Git Workflow
 
 - Use `git status --short --branch` before and after meaningful work.
-- Do not commit unless the user asks for a commit.
+- Terry's 2026-10-04 standing instruction authorizes committing and pushing each completed Escape! zombie school task's verified repository changes to GitHub as part of that task; do not wait for a separate commit or push request.
+- Stage only the explicit files changed for that task. Before pushing, verify the current branch and that `origin` is `https://github.com/JungGit-zard/school_survivor.git` (currently `zombie_only`); if the destination is unknown or differs, ask Terry instead of guessing. Report a failed commit or push without claiming GitHub was updated.
 - If the user says `뻐꾸기`, interpret it as the combined workflow: pull, commit, and push, in that order when safe.
 - If the user says `오리`, interpret it as the combined workflow: commit and push, in that order when safe.
 - If the user says exactly `메기`, immediately close every Escape! zombie school game, Graphics Studio, and test-browser window or instance launched by agents, while leaving the port 5173 development server and its keep-alive/watchdog completely untouched and running; do not terminate unrelated user applications.
