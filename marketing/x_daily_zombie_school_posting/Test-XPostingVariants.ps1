@@ -17,12 +17,20 @@ try {
     }
     Assert-True ((Select-PostingVariant $config $lang '2026-09-06-1200' $temp).id -eq 'original') "$lang disabled sets not selected"
     foreach ($variant in $config.variants.$lang) { $variant.enabled = $true }
-    $previous = $null; $seen = @()
+    $previous = $null; $seen = @(); $previousImage = $null
     foreach ($cycle in @('2026-09-06-0900','2026-09-06-1200','2026-09-06-1800','2026-09-07-0900','2026-09-07-1200','2026-09-07-1800')) {
       $choice = Select-PostingVariant $config $lang $cycle $temp
       Assert-True ($choice.id -ne $previous) "$lang/$cycle has no adjacent repeat"
-      Assert-True ((Select-PostingVariant $config $lang $cycle $temp).id -eq $choice.id) "$lang/$cycle deterministic"
+      Assert-True ((Select-PostingVariant $config $lang $cycle $temp).id -eq $choice.id) "$lang/$cycle keeps deterministic text variant"
+      Assert-True (Test-Path -LiteralPath $choice.imagePath) "$lang/$cycle selected image exists"
+      Assert-True ($choice.imagePath -match "marketing_social_30_20261004[\\/]$lang[\\/]") "$lang/$cycle uses locale marketing image pool"
+      if ($null -ne $previousImage -and @($config.localized_social_image_pool.$lang.images).Count -gt 1) { Assert-True ($choice.imagePath -cne $previousImage) "$lang/$cycle has no adjacent image repeat" }
       $seen += $choice.id; $previous = $choice.id
+      $receipt = [pscustomobject]@{ schema=1; cycleId=$cycle; entries=[pscustomobject]@{} }
+      foreach ($receiptLang in $config.language_order) { $receipt.entries | Add-Member -NotePropertyName $receiptLang -NotePropertyValue $null }
+      $receipt.entries.$lang = [pscustomobject]@{ state='selected'; intent=[pscustomobject]@{ variantId=$choice.id; text=$choice.text; imagePath=$choice.imagePath } }
+      Save-CycleReceipt $receipt (Join-Path $temp ($cycle + '.json'))
+      $previousImage = $choice.imagePath
     }
     Assert-True (@($seen | Select-Object -Unique).Count -eq 4) "$lang rotates all four sets"
     $legacy = [pscustomobject]@{ text=$config.copy.$lang.text; imagePath=$config.image_pool.$lang.images[0] }
@@ -32,10 +40,11 @@ try {
     $saved.enabled = $false
     Assert-True ((Select-PostingVariant $config $lang '2026-09-06-0900' $temp $intent).id -eq 'supplies') "$lang retry keeps disabled saved pair"
     $saved.enabled = $true
-    $intent.imagePath = $config.image_pool.$lang.images[0]
+    $otherLang = @($config.language_order | Where-Object { $_ -cne $lang })[0]
+    $intent.imagePath = $config.localized_social_image_pool.$otherLang.images[0]
     $rejected = $false
     try { $null = Resolve-PostingIntentVariant $config $lang $intent } catch { $rejected = $true }
-    Assert-True $rejected "$lang mixed copy and image rejected"
+    Assert-True $rejected "$lang cross-language copy and image rejected"
   }
   $choice = $config.variants.ja[0]
   $receipt = [pscustomobject]@{ schema=1; cycleId='2026-09-06-0900'; entries=[pscustomobject]@{ ja=[pscustomobject]@{ state='selected'; intent=[pscustomobject]@{ variantId=$choice.id; text=$choice.text; imagePath=$choice.imagePath } }; en=$null; vi=$null; ko=$null } }
@@ -57,6 +66,6 @@ try {
   Assert-True ($errors.Count -eq 0) 'PowerShell parses variant helper'
 } finally {
   foreach ($path in @($fixturePath, $savedConfig)) { if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path } }
-  if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp }
+  if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Recurse -Force }
 }
 Write-Output 'VARIANT_TEST_OK'

@@ -224,5 +224,31 @@
       ]
     }
   },
+  "localized_social_image_pool": {
+    "ja": {
+      "source": "Graphic_designer/marketing_social_30_20261004/ja",
+      "images": [
+        "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/04_b02_teacher.png"
+      ]
+    },
+    "en": {
+      "source": "Graphic_designer/marketing_social_30_20261004/en",
+      "images": [
+        "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/04_b02_teacher.png"
+      ]
+    },
+    "vi": {
+      "source": "Graphic_designer/marketing_social_30_20261004/vi",
+      "images": [
+        "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/04_b02_teacher.png"
+      ]
+    },
+    "ko": {
+      "source": "Graphic_designer/marketing_social_30_20261004/ko",
+      "images": [
+        "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/04_b02_teacher.png"
+      ]
+    }
+  },
   "web_url": "https://escapezombie.com"
 }
