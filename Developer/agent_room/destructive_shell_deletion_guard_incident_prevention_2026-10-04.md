@@ -1,3 +1,9 @@
+# Latest amendment: THREE terminal reviews
+
+Terry superseded the ten-token Tk GUI with three simple terminal y/N questions.
+Reviews never authorize automatic deletion; raw shell/root-drive deny remains.
+The original ten-approval order below is historical, not the current UI.
+
 # Destructive shell deletion guard incident prevention · 2026-10-04
 
 ## Incident classification

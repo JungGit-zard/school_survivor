@@ -19,7 +19,7 @@
 
 - 반드시 에이전트 쉘에서 재귀 삭제·광범위 정리·루트/드라이브 대상 삭제 명령은 실행 전에 fail-closed로 차단한다.
 - 반드시 차단 대상에는 `cmd`/`cmd.exe` `rmdir`/`rd /s`, PowerShell `Remove-Item -Recurse`, `rm -rf`, `del /s`, `git clean`, `/`·`D:\` 같은 broad root/drive 삭제 대상이 포함된다.
-- 반드시 어떤 파괴적 cleanup도 실행하려면 Terry의 독립적 명시 승인 10회를 요구한다. 현재 Codex/Claude/Hermes hook에서 10회 프롬프트 자동화를 안전하게 보장하지 못하면 승인 구현을 주장하지 말고 즉시 거부한다.
+- 사용자 최신 지시로 기존 10회 코드 입력을 폐기하고 별도 터미널에서 `할 거예요? [y/N]`를 3회 묻는다. `y`/`yes`/`예`/`네`만 확인으로 받고 빈 입력·거절·창 닫기는 취소한다. 이는 검토 수집이며 자동 삭제 실행 권한이 아니다. 파괴적 쉘 차단과 루트/드라이브 절대 차단은 유지한다.
 - 절대로 hook 오류, `ask` 미지원, quoting 실패, nested shell, transcript replay, 자동 bypass, 테스트 편의, 캐시 정리 명목으로 위 차단을 우회하지 않는다.
 - 절대로 파괴적 probe를 실제 실행하지 않는다. 검증은 synthetic JSON/문자열 분류 테스트로만 수행한다.
 - 2026-10-03 23:17 KST 무단 삭제 영향은 치명적 내부 에이전트 안전 버그이자 hacking-class project impact, 즉 `해킹으로 분류`되는 프로젝트 영향으로 기록하되, 외부 공격자 존재의 증거로 단정하지 않는다.

@@ -4,103 +4,57 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
-import secrets
 import sys
-import time
-from dataclasses import dataclass, field
 
-@dataclass
-class Ceremony:
-    command: str
-    cwd: str
-    created: float = field(default_factory=time.monotonic)
-    count: int = 0
-    cancelled: bool = False
-    nonce: str = field(default_factory=lambda: secrets.token_hex(4))
-
-    @property
-    def fingerprint(self):
-        return hashlib.sha256(json.dumps([self.command, self.cwd], ensure_ascii=False).encode()).hexdigest()
-
-    @property
-    def expected(self):
-        return f'CONFIRM {self.count + 1}/10 {self.nonce}'
-
-    def confirm(self, text):
-        if self.cancelled or self.count >= 10 or time.monotonic() - self.created > 900:
-            return False
-        if text != self.expected:
-            return False
-        self.count += 1
-        self.nonce = secrets.token_hex(4)
-        return True
-
-    def cancel(self):
-        self.cancelled = True
+def collect_reviews(command, cwd, reader, writer):
+    writer(f"작업 경로: {cwd}\n명령 (아직 실행 안 됨): {command}")
+    writer("사람이 직접 답하세요. 검토용이며 자동 삭제하지 않습니다.")
+    try:
+        for step in range(1, 4):
+            if reader(f"[{step}/3] 할 거예요? [y/N]: ").strip().lower() not in {"y", "yes", "예", "네"}:
+                writer("취소. 삭제 차단 유지.")
+                return False
+    except (EOFError, KeyboardInterrupt):
+        writer("취소. 삭제 차단 유지.")
+        return False
+    writer("3회 확인 완료. 자동 삭제하지 않습니다. 차단 유지.")
+    return True
 
 
 def show_dialog(command, cwd):
-    import tkinter as tk
-    from tkinter import messagebox
-    state = Ceremony(command, cwd)
-    # One active dialog per exact command/cwd. Windows mutex is process-owned;
-    # no editable approval file and no filesystem cleanup is required.
-    mutex = None
-    if sys.platform == 'win32':
-        import ctypes
-        kernel = ctypes.WinDLL('kernel32', use_last_error=True)
-        kernel.CreateMutexW.argtypes = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_wchar_p]
-        kernel.CreateMutexW.restype = ctypes.c_void_p
-        kernel.CloseHandle.argtypes = [ctypes.c_void_p]
-        mutex = kernel.CreateMutexW(None, False, 'Local' + chr(92) + 'TerryCleanupReview_' + state.fingerprint)
-        if not mutex or ctypes.get_last_error() == 183:
-            if mutex:
-                kernel.CloseHandle(mutex)
-            return False
-    root = tk.Tk()
-    root.title('Terry: ten independent cleanup confirmations')
-    root.geometry('820x620')
-    tk.Label(root, text='BLOCKED cleanup attempt - HUMAN REVIEW ONLY', fg='red', font=('Arial', 16)).pack(pady=10)
-    tk.Label(root, text='No approval here permits raw shell execution. Do not let an agent answer for you.').pack()
-    details = tk.Text(root, height=12, wrap='word')
-    details.insert('1.0', chr(10).join([f'Working directory: {cwd}', 'Exact proposed command (NOT executed):', command, '', f'Request fingerprint: {state.fingerprint}']))
-    details.configure(state='disabled')
-    details.pack(fill='both', expand=True, padx=12, pady=12)
-    step = tk.StringVar()
-    token = tk.StringVar()
-    entry = tk.Entry(root, width=65)
-    tk.Label(root, textvariable=step, font=('Arial', 14)).pack()
-    tk.Label(root, text='Read the target and impact again, then type the exact fresh confirmation:').pack()
-    tk.Label(root, textvariable=token, font=('Consolas', 14)).pack(pady=8)
-    entry.pack(pady=8)
-    def refresh():
-        step.set(f'Confirmation {state.count + 1}/10')
-        token.set(state.expected)
-        entry.delete(0, 'end')
-        entry.focus_set()
-    def cancel():
-        state.cancel()
-        root.destroy()
-    def submit():
-        if not state.confirm(entry.get()):
-            messagebox.showwarning('Not confirmed', 'Wrong token, expired request, or cancelled ceremony. No execution is permitted.')
-            return
-        if state.count == 10:
-            messagebox.showinfo('Ten reviews collected', 'Ten separate confirmations were collected for this request only. The shell guard STILL DENIES execution. No permission token was issued.')
-            root.destroy()
-        else:
-            refresh()
-    tk.Button(root, text='Confirm this step only', command=submit).pack(pady=6)
-    tk.Button(root, text='Cancel - keep blocked', command=cancel).pack(pady=6)
-    root.protocol('WM_DELETE_WINDOW', cancel)
-    root.after(900000, cancel)
-    refresh()
-    try:
-        root.mainloop()
-    finally:
+    import os
+    if os.name != 'nt':
+        return sys.stdin.isatty() and collect_reviews(command, cwd, input, print)
+    import ctypes
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.CreateMutexW.argtypes = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_wchar_p]
+    kernel.CreateMutexW.restype = ctypes.c_void_p
+    kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+    digest = hashlib.sha256(json.dumps([command, cwd]).encode()).hexdigest()
+    mutex = kernel.CreateMutexW(None, False, 'Local' + chr(92) + 'TerryCleanupReview_' + digest)
+    if not mutex or ctypes.get_last_error() == 183:
         if mutex:
             kernel.CloseHandle(mutex)
-    return state.count == 10 and not state.cancelled
+        return False
+    try:
+        # Never take approval from JSON hook stdin, pipes or a persistent file.
+        with open('CONIN$', 'r', encoding='utf-8') as source, open('CONOUT$', 'w', encoding='utf-8') as target:
+            def writer(text):
+                print(text, file=target, flush=True)
+            def reader(prompt):
+                print(prompt, end='', file=target, flush=True)
+                answer = source.readline()
+                if not answer:
+                    raise EOFError
+                return answer
+            result = collect_reviews(command, cwd, reader, writer)
+            try:
+                reader('창을 닫으려면 Enter: ')
+            except (EOFError, KeyboardInterrupt):
+                pass
+            return result
+    finally:
+        kernel.CloseHandle(mutex)
 
 
 def main():

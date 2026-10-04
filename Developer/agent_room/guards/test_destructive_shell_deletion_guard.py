@@ -38,9 +38,9 @@ DESTRUCTIVE_CASES = [
     ("git rm", "git rm cached-file.txt", "git rm deletion"),
     ("drive root target", "cmd.exe /c rmdir /s /q D:\\", "broad root/drive target"),
     ("posix root target", "rm -rf /", "broad root/drive target"),
-    ("single file rm blocked by ten approval policy", "rm -f ./single-file.tmp", "rm deletion command"),
+    ("single file rm blocked by three review policy", "rm -f ./single-file.tmp", "rm deletion command"),
     (
-        "single file powershell remove item blocked by ten approval policy",
+        "single file powershell remove item blocked by three review policy",
         "Remove-Item -LiteralPath $env:TEMP\\single-file.tmp -Force -ErrorAction SilentlyContinue",
         "PowerShell Remove-Item deletion command",
     ),
@@ -89,7 +89,7 @@ def test_hook_payload_blocks_terminal_command_with_fail_closed_json():
     }
     result = guard.evaluate_payload(payload)
     assert_official_deny_shapes(result)
-    assert "TEN independent" in result["message"]
+    assert "THREE terminal" in result["message"]
 
 
 def test_codex_claude_bash_payload_shape_blocks():

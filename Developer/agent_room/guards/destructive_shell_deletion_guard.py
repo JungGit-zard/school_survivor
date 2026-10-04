@@ -2,7 +2,7 @@
 """Fail-closed guard for destructive shell deletion commands.
 
 This hook is intentionally conservative for agent shells. It denies first, can launch
-a separate human review dialog on Windows, and never auto-bypasses. If a command looks like deletion/cleanup, it returns deny JSON shapes
+a separate human review terminal on Windows, and never auto-bypasses. If a command looks like deletion/cleanup, it returns deny JSON shapes
 compatible with Codex/Claude-style PreToolUse and Hermes pre_tool_call.
 """
 
@@ -14,10 +14,9 @@ import re
 import sys
 from typing import Any
 
-TEN_CONFIRMATION_TEXT = (
-    'Destructive cleanup is blocked. Terry requires TEN independent user confirmations. '
-    'A Windows human review dialog may collect ten separate steps, but cannot establish '
-    'a trusted identity boundary against same-account agents; raw shell execution remains denied. '
+REVIEW_TEXT = (
+    'Destructive cleanup is blocked. Terry requests THREE terminal confirmations (y/N). '
+    'A separate terminal collects review only; raw shell execution remains denied. '
     'Broad root/drive targets are permanently denied. This is internal incident risk, '
     'not proof of an external attacker.'
 )
@@ -91,7 +90,7 @@ def classify_command(command: str) -> Decision:
         return Decision(False)
 
     # Git clean can delete untracked work and must never run from agents without the
-    # user's explicit ten-confirmation destructive-cleanup ceremony.
+    # user's explicit three-confirmation destructive-cleanup ceremony.
     if re.search(r"(?:^|[;&|]\s*)[^;&|]*\bgit(?:\.exe)?\s+(?:-[^;&|\s]+\s+)*clean\b", text):
         return Decision(True, "git clean")
 
@@ -105,8 +104,8 @@ def classify_command(command: str) -> Decision:
             return Decision(True, "broad root/drive target via rm -rf")
         return Decision(True, "rm -rf")
 
-    # Terry's policy is TEN approvals before ANY destructive cleanup. The hook cannot
-    # safely collect ten independent approvals, so direct deletion commands are blocked
+    # Terry's policy is THREE reviews before ANY destructive cleanup. The hook cannot
+    # safely collect three independent reviews, so direct deletion commands are blocked
     # even when they are single-file/non-recursive.
     if re.search(r"(?:^|[;&|]\s*)[^;&|]*\brm\b", text):
         if has_broad_root_target(text):
@@ -180,11 +179,11 @@ def evaluate_payload(payload: dict[str, Any]) -> dict[str, Any]:
         return {}
     command = extract_command(payload)
     if not command:
-        return deny_payload('BLOCKED: missing or invalid shell command. ' + TEN_CONFIRMATION_TEXT)
+        return deny_payload('BLOCKED: missing or invalid shell command. ' + REVIEW_TEXT)
     decision = classify_command(command)
     if not decision.blocked:
         return {}
-    message = f"BLOCKED destructive shell command ({decision.reason}). {TEN_CONFIRMATION_TEXT}"
+    message = f"BLOCKED destructive shell command ({decision.reason}). {REVIEW_TEXT}"
     return deny_payload(message)
 
 
@@ -206,7 +205,7 @@ def launch_human_review(payload: dict[str, Any]) -> bool:
             return False
         subprocess.Popen([sys.executable, str(dialog), encoded], stdin=subprocess.DEVNULL,
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                         creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0), shell=False)
+                         creationflags=getattr(subprocess, 'CREATE_NEW_CONSOLE', 0), shell=False)
         return True
     except Exception:
         return False
@@ -218,14 +217,14 @@ def main() -> int:
     except Exception:
         # Fail closed on malformed hook input. Hook failure can allow in some clients,
         # so emit explicit deny JSON and exit 0 instead of crashing.
-        print(json.dumps(deny_payload(f"BLOCKED: malformed hook input. {TEN_CONFIRMATION_TEXT}"), ensure_ascii=False))
+        print(json.dumps(deny_payload(f"BLOCKED: malformed hook input. {REVIEW_TEXT}"), ensure_ascii=False))
         return 0
 
     if not isinstance(payload, dict):
         print(json.dumps(deny_payload('BLOCKED: hook input must be an object.'), ensure_ascii=False))
         return 0
     result = evaluate_payload(payload)
-    # Emit the denial BEFORE starting any optional human interface. GUI failure,
+    # Emit the denial BEFORE starting any optional human interface. Console failure,
     # completion, cancellation, and forged approval fields can never unlock it.
     print(json.dumps(result, ensure_ascii=False), flush=True)
     if result.get('action') == 'block' and extract_command(payload):

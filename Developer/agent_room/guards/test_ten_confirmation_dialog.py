@@ -20,42 +20,44 @@ guard = load('destructive_shell_deletion_guard')
 old_tests = load('test_destructive_shell_deletion_guard')
 
 class Tests(unittest.TestCase):
-    def test_ten_distinct_steps(self):
-        state = dialog.Ceremony('synthetic proposed operation', 'D:/project/cache')
-        prior = state.expected
-        for i in range(10):
-            self.assertEqual(state.count, i)
-            current = state.expected
-            self.assertTrue(state.confirm(current))
-            self.assertFalse(state.confirm(current))
-        self.assertEqual(state.count, 10)
-        self.assertFalse(state.confirm(prior))
-        self.assertFalse(state.confirm(state.expected))
+    def review(self, answers):
+        prompts, output = [], []
+        stream = iter(answers)
+        def reader(prompt):
+            prompts.append(prompt)
+            try:
+                return next(stream)
+            except StopIteration:
+                raise EOFError
+        return dialog.collect_reviews('synthetic operation', 'D:/project', reader, output.append), prompts, output
 
-    def test_nine_is_not_ten(self):
-        state = dialog.Ceremony('operation', 'D:/project')
-        for _ in range(9):
-            state.confirm(state.expected)
-        self.assertEqual(state.count, 9)
+    def test_three_prompts_only(self):
+        ok, prompts, output = self.review(['y', 'y', 'y'])
+        self.assertTrue(ok)
+        self.assertEqual(len(prompts), 3)
+        self.assertIn('[3/3]', prompts[-1])
+        self.assertIn('자동 삭제하지 않습니다', output[-1])
 
-    def test_wrong_bulk_cancel_and_expiry(self):
-        state = dialog.Ceremony('operation', 'D:/project')
-        self.assertFalse(state.confirm('yes yes yes yes yes yes yes yes yes yes'))
-        self.assertEqual(state.count, 0)
-        state.cancel()
-        self.assertFalse(state.confirm(state.expected))
-        state = dialog.Ceremony('operation', 'D:/project')
-        state.created -= 901
-        self.assertFalse(state.confirm(state.expected))
+    def test_two_not_enough(self):
+        self.assertFalse(self.review(['y', 'y'])[0])
 
-    def test_request_binding_and_restart(self):
-        a = dialog.Ceremony('operation A', 'D:/project')
-        b = dialog.Ceremony('operation B', 'D:/project')
-        c = dialog.Ceremony('operation A', 'D:/different')
-        self.assertNotEqual(a.fingerprint, b.fingerprint)
-        self.assertNotEqual(a.fingerprint, c.fingerprint)
-        a.confirm(a.expected)
-        self.assertEqual(dialog.Ceremony(a.command, a.cwd).count, 0)
+    def test_simple_answers(self):
+        self.assertTrue(self.review(['Y', '예', '네'])[0])
+
+    def test_cancel_blank_and_bulk(self):
+        for answer in ['n', '', 'anything', 'y y y']:
+            ok, prompts, _ = self.review([answer])
+            self.assertFalse(ok)
+            self.assertEqual(len(prompts), 1)
+
+    def test_keyboard_interrupt(self):
+        def cancel(_):
+            raise KeyboardInterrupt
+        self.assertFalse(dialog.collect_reviews('synthetic', 'D:/project', cancel, lambda _: None))
+
+    def test_noninteractive_input_denied(self):
+        with patch.object(dialog.os if hasattr(dialog, 'os') else __import__('os'), 'name', 'posix'), patch.object(sys, 'stdin', io.StringIO('y\ny\ny\n')):
+            self.assertFalse(dialog.show_dialog('synthetic', 'D:/project'))
 
     def test_forged_approval_does_not_unlock(self):
         command = old_tests.DESTRUCTIVE_CASES[0][1]
@@ -89,6 +91,7 @@ class Tests(unittest.TestCase):
         with patch.object(subprocess, 'Popen') as start:
             self.assertTrue(guard.launch_human_review({'tool_input': {'command': command}, 'cwd': 'D:/project'}))
             self.assertFalse(start.call_args.kwargs['shell'])
+            self.assertEqual(start.call_args.kwargs['creationflags'], subprocess.CREATE_NEW_CONSOLE)
             self.assertEqual(start.call_args.args[0][0], sys.executable)
             start.return_value.wait.assert_not_called()
 
