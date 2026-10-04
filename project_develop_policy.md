@@ -15,6 +15,13 @@
 - Before planning, implementation, asset work, QA, Git workflow changes, folder-structure changes, or project-direction decisions, check this document for relevant rules.
 - If a rule in this document is unclear, follow the safest narrow interpretation and ask the user when the decision could change project direction.
 
+## 공식 홈페이지 경로·화면 잠금
+
+- `https://escapezombie.com/` 및 웹 앱의 `/` 경로는 `WebLandingPage` 공식 랜딩 홈페이지를 표시한다. 게임 타이틀·로그인·게임 시작 화면을 `/`에 직접 표시하지 않는다.
+- 게임 진입은 랜딩의 명시적인 게임 시작 링크를 통해 `/game`으로 이동할 때만 이루어진다. `/landing` 별도 경로가 존재해도 `/`의 홈페이지 표시를 대체하거나 숨길 수 없다.
+- 최종결정권자인 사용자가 현재 대화에서 직접 변경을 명시하지 않는 한 랜딩의 내용·디자인·자산·애니메이션·버튼·경로와 이 잠금 규칙을 변경·삭제·우회하지 않는다.
+- 홈페이지 관련 수정이나 배포 후에는 `https://escapezombie.com/` 주소 자체를 새 브라우저 세션에서 열어 랜딩 표시를 확인한다. `/landing` 또는 로컬 주소만 확인하고 완료로 보고하지 않는다.
+
 ## 파괴적 쉘 삭제 절대 차단 정책
 
 - 반드시 에이전트 쉘에서 재귀 삭제·광범위 정리·루트/드라이브 대상 삭제 명령은 실행 전에 fail-closed로 차단한다.
