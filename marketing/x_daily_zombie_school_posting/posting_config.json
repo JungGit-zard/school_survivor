@@ -33,7 +33,7 @@
         "JP"
       ],
       "hashtag": "#ゾンビ学校",
-      "text": "学校に取り残されたら、5分だけ生き残れ。『Escape! Zombie School』でゾンビだらけの校舎を突破しよう！\nhttps://escapezombie.com\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#ゾンビ学校"
+      "text": "学校に取り残されたら、5分だけ生き残れ。『Escape! Zombie School』でゾンビだらけの校舎を突破しよう！\nゲーム開始 ->\nhttps://escapezombie.com\nGoogle Play ストア ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#ゾンビ学校"
     },
     "en": {
       "label": "English",
@@ -48,7 +48,7 @@
         "IN"
       ],
       "hashtag": "#EscapeZombieSchool",
-      "text": "Trapped at school. Zombies everywhere. Survive the 5-minute chaos in Escape! Zombie School!\nhttps://escapezombie.com\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#EscapeZombieSchool"
+      "text": "Trapped at school. Zombies everywhere. Survive the 5-minute chaos in Escape! Zombie School!\nStart game ->\nhttps://escapezombie.com\nGoogle Play Store ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#EscapeZombieSchool"
     },
     "vi": {
       "label": "Vietnamese",
@@ -56,7 +56,7 @@
         "VN"
       ],
       "hashtag": "#TruongHocZombie",
-      "text": "Mắc kẹt trong trường học đầy zombie. Hãy sống sót 5 phút trong Escape! Zombie School!\nhttps://escapezombie.com\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#TruongHocZombie"
+      "text": "Mắc kẹt trong trường học đầy zombie. Hãy sống sót 5 phút trong Escape! Zombie School!\nBắt đầu trò chơi ->\nhttps://escapezombie.com\nCửa hàng Google Play ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#TruongHocZombie"
     },
     "ko": {
       "label": "Korean",
@@ -64,7 +64,7 @@
         "KR"
       ],
       "hashtag": "#좀비학교",
-      "text": "학교에 갇혔다면, 5분만 살아남아라. Escape! Zombie School에서 좀비로 가득한 교실을 뚫고 탈출하세요!\nhttps://escapezombie.com\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교"
+      "text": "학교에 갇혔다면, 5분만 살아남아라. 탈출!좀비학교에서 좀비로 가득한 교실을 뚫고 탈출하세요!\n게임시작 ->\nhttps://escapezombie.com\n구글플레이스토어 ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교"
     }
   },
   "variants": {
@@ -72,80 +72,80 @@
       {
         "id": "bell",
         "enabled": true,
-        "text": "チャイムが鳴ったら、1時間目はサバイバル！ゾンビだらけの学校から逃げ切れる？無料・広告なしで挑戦。\nhttps://escapezombie.com\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#ゾンビ学校",
-        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/x_jp/post_jp_01_bell_recovery_20261004.png"
+        "text": "チャイムが鳴ったら、1時間目はサバイバル！ゾンビだらけの学校から逃げ切れる？無料・広告なしで挑戦。\nゲーム開始 ->\nhttps://escapezombie.com\nGoogle Play ストア ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#ゾンビ学校",
+        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/01_bell_escape.png"
       },
       {
         "id": "supplies",
         "enabled": true,
-        "text": "今日の持ち物：鉛筆、カバン、生き残る勇気。いつもの学校がゾンビ騒動に！無料・広告なしで遊ぼう。\nhttps://escapezombie.com\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#ゾンビ学校",
-        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/x_jp/post_jp_02_supplies_recovery_20261004.png"
+        "text": "今日の持ち物：鉛筆、カバン、生き残る勇気。いつもの学校がゾンビ騒動に！無料・広告なしで遊ぼう。\nゲーム開始 ->\nhttps://escapezombie.com\nGoogle Play ストア ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#ゾンビ学校",
+        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/02_pencil_survival.png"
       },
       {
         "id": "escape",
         "enabled": true,
-        "text": "放課後なのに、帰り道はゾンビだらけ！夕焼けの向こうへ、生きて帰ろう。無料・広告なし。\nhttps://escapezombie.com\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#ゾンビ学校",
-        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/x_jp/post_jp_03_escape_recovery_20261004.png"
+        "text": "放課後なのに、帰り道はゾンビだらけ！夕焼けの向こうへ、生きて帰ろう。無料・広告なし。\nゲーム開始 ->\nhttps://escapezombie.com\nGoogle Play ストア ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#ゾンビ学校",
+        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/04_b02_teacher.png"
       }
     ],
     "en": [
       {
         "id": "bell",
         "enabled": true,
-        "text": "The bell rings. First lesson: survival! Can you escape a school full of zombies? Play free. No ads.\nhttps://escapezombie.com\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#EscapeZombieSchool",
-        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/x_en/post_eng_01_bell.png"
+        "text": "The bell rings. First lesson: survival! Can you escape a school full of zombies? Play free. No ads.\nStart game ->\nhttps://escapezombie.com\nGoogle Play Store ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#EscapeZombieSchool",
+        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/01_bell_escape.png"
       },
       {
         "id": "supplies",
         "enabled": true,
-        "text": "Pencils? Check. Backpack? Check. Zombies? Wait, WHAT?! Turn school-day chaos into your escape story. Free to play. No ads.\nhttps://escapezombie.com\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#EscapeZombieSchool",
-        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/x_en/post_eng_02_supplies.png"
+        "text": "Pencils? Check. Backpack? Check. Zombies? Wait, WHAT?! Turn school-day chaos into your escape story. Free to play. No ads.\nStart game ->\nhttps://escapezombie.com\nGoogle Play Store ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#EscapeZombieSchool",
+        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/02_pencil_survival.png"
       },
       {
         "id": "escape",
         "enabled": true,
-        "text": "School's out. The zombies aren't. Make your after-school escape before they catch up! Play free. No ads.\nhttps://escapezombie.com\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#EscapeZombieSchool",
-        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/x_en/post_eng_03_escape.png"
+        "text": "School's out. The zombies aren't. Make your after-school escape before they catch up! Play free. No ads.\nStart game ->\nhttps://escapezombie.com\nGoogle Play Store ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#EscapeZombieSchool",
+        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/04_b02_teacher.png"
       }
     ],
     "vi": [
       {
         "id": "bell",
         "enabled": true,
-        "text": "Chuông reo! Tiết đầu tiên: sinh tồn. Bạn có thoát khỏi ngôi trường đầy zombie? Chơi miễn phí, không quảng cáo!\nhttps://escapezombie.com\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#TruongHocZombie",
-        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/x_viet/post_viet_01_bell.png"
+        "text": "Chuông reo! Tiết đầu tiên: sinh tồn. Bạn có thoát khỏi ngôi trường đầy zombie? Chơi miễn phí, không quảng cáo!\nBắt đầu trò chơi ->\nhttps://escapezombie.com\nCửa hàng Google Play ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#TruongHocZombie",
+        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/01_bell_escape.png"
       },
       {
         "id": "supplies",
         "enabled": true,
-        "text": "Bút chì, ba lô... và cả zombie?! Một ngày đi học bỗng thành cuộc chạy trốn hỗn loạn. Chơi miễn phí, không quảng cáo!\nhttps://escapezombie.com\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#TruongHocZombie",
-        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/x_viet/post_viet_02_supplies.png"
+        "text": "Bút chì, ba lô... và cả zombie?! Một ngày đi học bỗng thành cuộc chạy trốn hỗn loạn. Chơi miễn phí, không quảng cáo!\nBắt đầu trò chơi ->\nhttps://escapezombie.com\nCửa hàng Google Play ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#TruongHocZombie",
+        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/02_pencil_survival.png"
       },
       {
         "id": "escape",
         "enabled": true,
-        "text": "Tan học rồi, nhưng zombie chưa chịu về! Bạn có tìm được lối thoát dưới ánh hoàng hôn? Miễn phí, không quảng cáo!\nhttps://escapezombie.com\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#TruongHocZombie",
-        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/x_viet/post_viet_03_escape.png"
+        "text": "Tan học rồi, nhưng zombie chưa chịu về! Bạn có tìm được lối thoát dưới ánh hoàng hôn? Miễn phí, không quảng cáo!\nBắt đầu trò chơi ->\nhttps://escapezombie.com\nCửa hàng Google Play ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#TruongHocZombie",
+        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/04_b02_teacher.png"
       }
     ],
     "ko": [
       {
         "id": "bell",
         "enabled": true,
-        "text": "종이 울렸다. 1교시는 생존 수업! 좀비로 가득한 학교, 무사히 빠져나갈 수 있을까요? 무료로, 광고 없이 도전하세요.\nhttps://escapezombie.com\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교",
-        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/x_ko/post_ko_01_bell.png"
+        "text": "학교에 갇혔다면, 5분만 살아남아라. 탈출!좀비학교에서 좀비로 가득한 교실을 뚫고 탈출하세요!\n게임시작 ->\nhttps://escapezombie.com\n구글플레이스토어 ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교",
+        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/01_bell_escape.png"
       },
       {
         "id": "supplies",
         "enabled": true,
-        "text": "연필 챙겼고, 가방 멨고… 잠깐, 좀비는 준비물에 없었는데?! 평범한 등교가 탈출 대소동으로! 무료·광고 없이 즐기세요.\nhttps://escapezombie.com\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교",
-        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/x_ko/post_ko_02_supplies.png"
+        "text": "학교에 갇혔다면, 5분만 살아남아라. 탈출!좀비학교에서 좀비로 가득한 교실을 뚫고 탈출하세요!\n게임시작 ->\nhttps://escapezombie.com\n구글플레이스토어 ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교",
+        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/02_pencil_survival.png"
       },
       {
         "id": "escape",
         "enabled": true,
-        "text": "수업은 끝났는데 좀비는 하교를 안 한다! 노을 지는 학교에서 오늘은 꼭 살아서 집에 가자. 무료로, 광고 없이 즐기세요.\nhttps://escapezombie.com\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교",
-        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/x_ko/post_ko_03_escape.png"
+        "text": "학교에 갇혔다면, 5분만 살아남아라. 탈출!좀비학교에서 좀비로 가득한 교실을 뚫고 탈출하세요!\n게임시작 ->\nhttps://escapezombie.com\n구글플레이스토어 ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교",
+        "imagePath": "D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/04_b02_teacher.png"
       }
     ]
   },

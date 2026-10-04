@@ -1,0 +1,1392 @@
+{
+  "task_id": "t_fab26de8",
+  "root": "Graphic_designer/marketing_social_30_20261004",
+  "expected_counts": {
+    "ko": 8,
+    "en": 8,
+    "ja": 7,
+    "vi": 7
+  },
+  "actual_counts": {
+    "ko": 8,
+    "en": 8,
+    "ja": 7,
+    "vi": 7
+  },
+  "total_pngs": 30,
+  "all_dimensions": [
+    "1448x1086"
+  ],
+  "all_modes": [
+    "RGB"
+  ],
+  "old_image_pool_count_for_provenance_compare": 50,
+  "notes": [
+    "Original PNGs were read only; this script created manifest/contact sheets only.",
+    "Text QA requires manual/vision pass; pending fields will be updated after contact-sheet review."
+  ],
+  "records": [
+    {
+      "language": "ko",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/ko/01_bell_escape.png",
+      "file_name": "01_bell_escape.png",
+      "stem": "01_bell_escape",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2397357,
+      "sha256": "d1dad7f448795c2f92854f9d40877ed23d146952d6f8d3efd26c957f74ccd7de",
+      "average_hash_8x8": "c2feefe0c0187d67",
+      "difference_hash_8x8": "e127b7767caa2634",
+      "perceptual_hash_8x8": "d3f5b75c629835a0",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/01_bell_escape.png",
+          "phash_distance": 2,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/01_bell_escape.png",
+          "phash_distance": 8,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/01_bell_escape.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "탈출! 좀비학교",
+        "headline": "종이 울렸다! 탈출하라!",
+        "badge": "완전 무료 · 광고 없음"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "ko",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/ko/02_pencil_survival.png",
+      "file_name": "02_pencil_survival.png",
+      "stem": "02_pencil_survival",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2435412,
+      "sha256": "92e3b8e99fc90b9a2821e34411ac96db2905257218b6a8dcc68baf27db9d72fc",
+      "average_hash_8x8": "c0fcfcec60054e66",
+      "difference_hash_8x8": "efaf666734763733",
+      "perceptual_hash_8x8": "d3f9952a645a32ec",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/02_pencil_survival.png",
+          "phash_distance": 4,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/02_pencil_survival.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "탈출! 좀비학교",
+        "headline": "연필 하나로 살아남아라!",
+        "badge": "완전 무료 · 광고 없음"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "ko",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/ko/03_locker_dash.png",
+      "file_name": "03_locker_dash.png",
+      "stem": "03_locker_dash",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2500322,
+      "sha256": "71d1066e05b4c48ba17b9180a18ac3561f2ddaaa3cadf647ee03cf08293fb4b7",
+      "average_hash_8x8": "d07c7e00c01c107d",
+      "difference_hash_8x8": "4d6e0b9b56c70b1a",
+      "perceptual_hash_8x8": "ccf1cc796f0d90e2",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/03_locker_dash.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/03_locker_dash.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/03_locker_dash.png",
+          "phash_distance": 8,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "탈출! 좀비학교",
+        "headline": "사물함 사이를 뚫어라!",
+        "badge": "완전 무료 · 광고 없음"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "ko",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/ko/04_b02_teacher.png",
+      "file_name": "04_b02_teacher.png",
+      "stem": "04_b02_teacher",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2289458,
+      "sha256": "037db562c8e76c208265846574da66360dfbac6f2a2a81f93420b9afed4aaa01",
+      "average_hash_8x8": "8c2df8dc98b14f37",
+      "difference_hash_8x8": "a226664e9e9c2589",
+      "perceptual_hash_8x8": "cbdab52f1e906c94",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/04_b02_teacher.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/04_b02_teacher.png",
+          "phash_distance": 8,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/04_b02_teacher.png",
+          "phash_distance": 8,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "탈출! 좀비학교",
+        "headline": "B02 선생님 추격!",
+        "badge": "완전 무료 · 광고 없음"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "ko",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/ko/05_gym_court.png",
+      "file_name": "05_gym_court.png",
+      "stem": "05_gym_court",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2536028,
+      "sha256": "0cddbb2accc15de755cc5cf4ebbbcd1f02afc73f64b0a442ce6c34a04dae06a3",
+      "average_hash_8x8": "8ffee6e02c05a0e7",
+      "difference_hash_8x8": "e423b7339692b2bb",
+      "perceptual_hash_8x8": "f791ed1ae0630c5b",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/05_gym_court.png",
+          "phash_distance": 4,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/05_gym_court.png",
+          "phash_distance": 2,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/05_gym_court.png",
+          "phash_distance": 10,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "탈출! 좀비학교",
+        "headline": "체육관에도 좀비가!",
+        "badge": "완전 무료 · 광고 없음"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "ko",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/ko/06_classroom_window.png",
+      "file_name": "06_classroom_window.png",
+      "stem": "06_classroom_window",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2492015,
+      "sha256": "24951293d5c915340a752d6fc365ebe98b6ef3b7da43c294d3175fbdf885675e",
+      "average_hash_8x8": "fcfceae0e40f1830",
+      "difference_hash_8x8": "de8fa53336c2861e",
+      "perceptual_hash_8x8": "d2f58c9a6269bec1",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/06_classroom_window.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/06_classroom_window.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/06_classroom_window.png",
+          "phash_distance": 4,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "탈출! 좀비학교",
+        "headline": "교실 끝까지 살아남아라!",
+        "badge": "완전 무료 · 광고 없음"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "ko",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/ko/07_stairwell_exit.png",
+      "file_name": "07_stairwell_exit.png",
+      "stem": "07_stairwell_exit",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2601867,
+      "sha256": "e65ad7d666cc55f63f4c511db12b24fa13473fb4bab20b11939d8ea097e0568f",
+      "average_hash_8x8": "06616cc7c30b6f47",
+      "difference_hash_8x8": "b336765179a92561",
+      "perceptual_hash_8x8": "b152152d74979dd6",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/07_stairwell_exit.png",
+          "phash_distance": 2,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/07_stairwell_exit.png",
+          "phash_distance": 4,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/07_stairwell_exit.png",
+          "phash_distance": 4,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "탈출! 좀비학교",
+        "headline": "계단 끝이 탈출구다!",
+        "badge": "완전 무료 · 광고 없음"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "ko",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/ko/08_school_gate.png",
+      "file_name": "08_school_gate.png",
+      "stem": "08_school_gate",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2392328,
+      "sha256": "69be2452ff87b8d1e0c7e00d9b1c49bd979b064e5a9e0166568a9cdb29c37379",
+      "average_hash_8x8": "0c7e6606c60e4677",
+      "difference_hash_8x8": "2723737363af6b13",
+      "perceptual_hash_8x8": "94d1cb1926675fe2",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/08_school_gate.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "탈출! 좀비학교",
+        "headline": "출구가 눈앞이다!",
+        "badge": "완전 무료 · 광고 없음"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "en",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/en/01_bell_escape.png",
+      "file_name": "01_bell_escape.png",
+      "stem": "01_bell_escape",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2394152,
+      "sha256": "be8104a2e8fe80ab7cc73e0e8d0536c303d1ee2720ddef7528d5a3f36ff6d7d2",
+      "average_hash_8x8": "c2feff60e0981d67",
+      "difference_hash_8x8": "e1a7b7367cca4634",
+      "perceptual_hash_8x8": "dbf5b75c629825a0",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/01_bell_escape.png",
+          "phash_distance": 2,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/01_bell_escape.png",
+          "phash_distance": 10,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/01_bell_escape.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "Escape! Zombie School",
+        "headline": "The bell rings. RUN!",
+        "badge": "FREE · NO ADS"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "en",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/en/02_pencil_survival.png",
+      "file_name": "02_pencil_survival.png",
+      "stem": "02_pencil_survival",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2456992,
+      "sha256": "7cb5be3fc12a52793ace9414472f45b94aad5612f3d7e9d0dc52fe06d79042a3",
+      "average_hash_8x8": "c0fcfc6c61054e66",
+      "difference_hash_8x8": "e7afc62734562733",
+      "perceptual_hash_8x8": "d3fb952a60583aec",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/02_pencil_survival.png",
+          "phash_distance": 4,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/02_pencil_survival.png",
+          "phash_distance": 10,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/02_pencil_survival.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "Escape! Zombie School",
+        "headline": "SURVIVE WITH A PENCIL!",
+        "badge": "FREE · NO ADS"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "en",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/en/03_locker_dash.png",
+      "file_name": "03_locker_dash.png",
+      "stem": "03_locker_dash",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2493622,
+      "sha256": "3a39e183434174579dc19930888d852bf2e24d7d989daa345f0211971716d56e",
+      "average_hash_8x8": "d07c7e00e40c507d",
+      "difference_hash_8x8": "cd0e0b9bd6470b1a",
+      "perceptual_hash_8x8": "ce79cc796e0591e2",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/03_locker_dash.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/03_locker_dash.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/03_locker_dash.png",
+          "phash_distance": 4,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "Escape! Zombie School",
+        "headline": "BREAK THROUGH THE LOCKERS!",
+        "badge": "FREE · NO ADS"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "en",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/en/04_b02_teacher.png",
+      "file_name": "04_b02_teacher.png",
+      "stem": "04_b02_teacher",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2316808,
+      "sha256": "7a9f7f1e2ea8c8727041a57b08e773ecb1ad0c8b20f515a2a8a717c0b2f1665b",
+      "average_hash_8x8": "9d2d78fc98f14f17",
+      "difference_hash_8x8": "a2a6664e9e9c6589",
+      "perceptual_hash_8x8": "9b5ab56f1e90e494",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/04_b02_teacher.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/04_b02_teacher.png",
+          "phash_distance": 10,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/04_b02_teacher.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "Escape! Zombie School",
+        "headline": "B02 TEACHER CHASE!",
+        "badge": "FREE · NO ADS"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "en",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/en/05_gym_court.png",
+      "file_name": "05_gym_court.png",
+      "stem": "05_gym_court",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2484086,
+      "sha256": "d9aa0b8e0b42fbb39722fb1b62995cfa0d3ca8a724eb84cd6c445709f08e946a",
+      "average_hash_8x8": "8ffea6e02c07a0e7",
+      "difference_hash_8x8": "a4a397339692b3bb",
+      "perceptual_hash_8x8": "f799ed1ae2610c1b",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/05_gym_court.png",
+          "phash_distance": 4,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/05_gym_court.png",
+          "phash_distance": 4,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/05_gym_court.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "Escape! Zombie School",
+        "headline": "ZOMBIES IN THE GYM!",
+        "badge": "FREE · NO ADS"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "en",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/en/06_classroom_window.png",
+      "file_name": "06_classroom_window.png",
+      "stem": "06_classroom_window",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2475697,
+      "sha256": "154f62d57dd9085148bdc25b316b5862163ec3c907c00c0d62fd20a99cf51cbd",
+      "average_hash_8x8": "fcbcaae0e40f1830",
+      "difference_hash_8x8": "de8fa53376e2061e",
+      "perceptual_hash_8x8": "d2fd8e9ae229b4c1",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/06_classroom_window.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/06_classroom_window.png",
+          "phash_distance": 8,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/06_classroom_window.png",
+          "phash_distance": 4,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "Escape! Zombie School",
+        "headline": "SURVIVE THE CLASSROOM!",
+        "badge": "FREE · NO ADS"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "en",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/en/07_stairwell_exit.png",
+      "file_name": "07_stairwell_exit.png",
+      "stem": "07_stairwell_exit",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2561170,
+      "sha256": "0a51284b0677c5d6f75546eb6711a4a8aed093447ed19d7e0026422e7d3bdacb",
+      "average_hash_8x8": "06616c47c30b6f47",
+      "difference_hash_8x8": "b336367179292561",
+      "perceptual_hash_8x8": "b15a152d749795d6",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/07_stairwell_exit.png",
+          "phash_distance": 2,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/07_stairwell_exit.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/07_stairwell_exit.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "Escape! Zombie School",
+        "headline": "THE EXIT IS DOWNSTAIRS!",
+        "badge": "FREE · NO ADS"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "en",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/en/08_school_gate.png",
+      "file_name": "08_school_gate.png",
+      "stem": "08_school_gate",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2372694,
+      "sha256": "7a187479f9f798515167bb668fbc08d4b52a0b145d610b2052201e58fdbb7c13",
+      "average_hash_8x8": "0e7e6646c60e4637",
+      "difference_hash_8x8": "87237373632f6b13",
+      "perceptual_hash_8x8": "94d3cf19266c4fe2",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/08_school_gate.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "Escape! Zombie School",
+        "headline": "THE EXIT IS IN SIGHT!",
+        "badge": "FREE · NO ADS"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "ja",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/ja/01_bell_escape.png",
+      "file_name": "01_bell_escape.png",
+      "stem": "01_bell_escape",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2386231,
+      "sha256": "2fee8db50f51d161a531e853d3f6b20ff909cecdee609817cf873ca3d3d89f95",
+      "average_hash_8x8": "c2febf60e0181d67",
+      "difference_hash_8x8": "e12797367c8a0634",
+      "perceptual_hash_8x8": "d3f5b058629a3fa4",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/01_bell_escape.png",
+          "phash_distance": 8,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/01_bell_escape.png",
+          "phash_distance": 10,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "脱出! ゾンビ学校",
+        "headline": "ベルが鳴った! 逃げろ!",
+        "badge": "完全無料・広告なし"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "ja",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/ja/02_pencil_survival.png",
+      "file_name": "02_pencil_survival.png",
+      "stem": "02_pencil_survival",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2453054,
+      "sha256": "f5bc57419bec09d5b7abc026ef73bbea350a95bbab50b431d8bb6468aa8aa8e0",
+      "average_hash_8x8": "c0fcbc6c60450e76",
+      "difference_hash_8x8": "e7af862774761733",
+      "perceptual_hash_8x8": "d3db9520605f3e4e",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/02_pencil_survival.png",
+          "phash_distance": 10,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/02_pencil_survival.png",
+          "phash_distance": 10,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "脱出! ゾンビ学校",
+        "headline": "鉛筆一本で生き残れ!",
+        "badge": "完全無料・広告なし"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "ja",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/ja/03_locker_dash.png",
+      "file_name": "03_locker_dash.png",
+      "stem": "03_locker_dash",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2472836,
+      "sha256": "7245e8bc93602f1c9fa00138069ae45e1e781ab74d3391691b08cf794df6c28f",
+      "average_hash_8x8": "d0fc3e00c40c107d",
+      "difference_hash_8x8": "4d6e1b9b56c70b1a",
+      "perceptual_hash_8x8": "cee1cc786e1d91e2",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/03_locker_dash.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/03_locker_dash.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/03_locker_dash.png",
+          "phash_distance": 10,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "脱出! ゾンビ学校",
+        "headline": "ロッカーを突破しろ!",
+        "badge": "完全無料・広告なし"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "ja",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/ja/04_b02_teacher.png",
+      "file_name": "04_b02_teacher.png",
+      "stem": "04_b02_teacher",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2325868,
+      "sha256": "684cae0d2fdd3af7bd4a8a5da348481443b7523c070bc24f507730844bba2a50",
+      "average_hash_8x8": "8d6d183c98b11f17",
+      "difference_hash_8x8": "a236860e9e9c2589",
+      "perceptual_hash_8x8": "8bdab56d1e902d1e",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/04_b02_teacher.png",
+          "phash_distance": 8,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/04_b02_teacher.png",
+          "phash_distance": 10,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/04_b02_teacher.png",
+          "phash_distance": 10,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "脱出! ゾンビ学校",
+        "headline": "B02 先生が追ってくる!",
+        "badge": "完全無料・広告なし"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "ja",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/ja/05_gym_court.png",
+      "file_name": "05_gym_court.png",
+      "stem": "05_gym_court",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2477674,
+      "sha256": "3bd9b649a72e37681f28e2897e6a82b41cc7214d2b2da9c8ba4d34fa53016270",
+      "average_hash_8x8": "8ffea6e22c05a0e7",
+      "difference_hash_8x8": "e42397339292b2bb",
+      "perceptual_hash_8x8": "f791ed1ae0630e1b",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/05_gym_court.png",
+          "phash_distance": 2,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/05_gym_court.png",
+          "phash_distance": 4,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/05_gym_court.png",
+          "phash_distance": 10,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "脱出! ゾンビ学校",
+        "headline": "体育館にもゾンビが!",
+        "badge": "完全無料・広告なし"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "ja",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/ja/06_classroom_window.png",
+      "file_name": "06_classroom_window.png",
+      "stem": "06_classroom_window",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2480837,
+      "sha256": "fe051330a7593572ba9cabe3f19bc796a6789c800475eab74ba180242f29b17e",
+      "average_hash_8x8": "fcfcaae0e40f1830",
+      "difference_hash_8x8": "decfa53376c28e1e",
+      "perceptual_hash_8x8": "d2f58cb86229b7c3",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/06_classroom_window.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/06_classroom_window.png",
+          "phash_distance": 8,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/06_classroom_window.png",
+          "phash_distance": 8,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "脱出! ゾンビ学校",
+        "headline": "教室の奥まで生き抜け!",
+        "badge": "完全無料・広告なし"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "ja",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/ja/07_stairwell_exit.png",
+      "file_name": "07_stairwell_exit.png",
+      "stem": "07_stairwell_exit",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2581107,
+      "sha256": "edafcfdde65c1d395cb041de48368cf74b03a0bb1af174e850b268868a375bf0",
+      "average_hash_8x8": "06612c47c30b2f47",
+      "difference_hash_8x8": "f336365179c92561",
+      "perceptual_hash_8x8": "b542952d74179dd6",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/07_stairwell_exit.png",
+          "phash_distance": 4,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/07_stairwell_exit.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/vi/07_stairwell_exit.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "脱出! ゾンビ学校",
+        "headline": "階段の先が出口だ!",
+        "badge": "完全無料・広告なし"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "vi",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/vi/01_bell_escape.png",
+      "file_name": "01_bell_escape.png",
+      "stem": "01_bell_escape",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2387606,
+      "sha256": "2ebae595a27287ac616df42ea45df0385c0d8ab23800a26ffe34f9fb67b58004",
+      "average_hash_8x8": "82beefe0c0185d67",
+      "difference_hash_8x8": "e187b7367c8a4630",
+      "perceptual_hash_8x8": "daf5b61c629835f0",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/01_bell_escape.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/01_bell_escape.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "Thoát Khỏi Trường Học Zombie",
+        "headline": "CHUÔNG REO RỒI, CHẠY!",
+        "badge": "MIỄN PHÍ · KHÔNG QUẢNG CÁO"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "vi",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/vi/02_pencil_survival.png",
+      "file_name": "02_pencil_survival.png",
+      "stem": "02_pencil_survival",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2436374,
+      "sha256": "f556aeea5b9be93ec1690be63d5961b7ed0f6cf1b783a2f3d6450a1c8ec3c21f",
+      "average_hash_8x8": "c0fcfc6c60056e66",
+      "difference_hash_8x8": "e7afa62734767733",
+      "perceptual_hash_8x8": "d3dbb522645932ec",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/02_pencil_survival.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/02_pencil_survival.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/02_pencil_survival.png",
+          "phash_distance": 10,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "Thoát Khỏi Trường Học Zombie",
+        "headline": "BÚT CHÌ CỨU MẠNG!",
+        "badge": "MIỄN PHÍ · KHÔNG QUẢNG CÁO"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "vi",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/vi/03_locker_dash.png",
+      "file_name": "03_locker_dash.png",
+      "stem": "03_locker_dash",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2468319,
+      "sha256": "e05effc05fd537a334bba1a262e744adbde149fbfaf19a46bcb2be8020dd9757",
+      "average_hash_8x8": "d0fc7e00c00c707d",
+      "difference_hash_8x8": "cd0e0b9b56474b1a",
+      "perceptual_hash_8x8": "c679cc396f0593e2",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/03_locker_dash.png",
+          "phash_distance": 8,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/03_locker_dash.png",
+          "phash_distance": 4,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/03_locker_dash.png",
+          "phash_distance": 10,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "Thoát Khỏi Trường Học Zombie",
+        "headline": "VƯỢT QUA DÃY TỦ ĐỒ!",
+        "badge": "MIỄN PHÍ · KHÔNG QUẢNG CÁO"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "vi",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/vi/04_b02_teacher.png",
+      "file_name": "04_b02_teacher.png",
+      "stem": "04_b02_teacher",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2303116,
+      "sha256": "d0fce3951e1efb652b426cd96ce71376f0b08146e91faf3656ac6a847d436d00",
+      "average_hash_8x8": "9d2d787c98b15f17",
+      "difference_hash_8x8": "82b6164e9e9c6589",
+      "perceptual_hash_8x8": "8b5bb57f1c906594",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/04_b02_teacher.png",
+          "phash_distance": 8,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/04_b02_teacher.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/04_b02_teacher.png",
+          "phash_distance": 10,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "Thoát Khỏi Trường Học Zombie",
+        "headline": "B02 GIÁO VIÊN TRUY ĐUỔI!",
+        "badge": "MIỄN PHÍ · KHÔNG QUẢNG CÁO"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "vi",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/vi/05_gym_court.png",
+      "file_name": "05_gym_court.png",
+      "stem": "05_gym_court",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2474671,
+      "sha256": "2d77bf1cdb4a58dfad5c9bb228c657e04a670467afbf91d52e9b69023648a34b",
+      "average_hash_8x8": "8ffeeee02c00a3e7",
+      "difference_hash_8x8": "a4a3b7339296b1bb",
+      "perceptual_hash_8x8": "f799ad1ae26148b3",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/05_gym_court.png",
+          "phash_distance": 10,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/05_gym_court.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/05_gym_court.png",
+          "phash_distance": 10,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "Thoát Khỏi Trường Học Zombie",
+        "headline": "ZOMBIE Ở NHÀ THỂ CHẤT!",
+        "badge": "MIỄN PHÍ · KHÔNG QUẢNG CÁO"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "vi",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/vi/06_classroom_window.png",
+      "file_name": "06_classroom_window.png",
+      "stem": "06_classroom_window",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2448286,
+      "sha256": "24791de85dda8cef681b52ea0239db0f30da9719a8b481e4f1c9e8f1e327d89c",
+      "average_hash_8x8": "f8fceae0e41f1870",
+      "difference_hash_8x8": "de87a53376c2261e",
+      "perceptual_hash_8x8": "d2fd8c9a6229bce1",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/06_classroom_window.png",
+          "phash_distance": 4,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/06_classroom_window.png",
+          "phash_distance": 4,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/06_classroom_window.png",
+          "phash_distance": 8,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "Thoát Khỏi Trường Học Zombie",
+        "headline": "SỐNG SÓT ĐẾN CUỐI LỚP!",
+        "badge": "MIỄN PHÍ · KHÔNG QUẢNG CÁO"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    },
+    {
+      "language": "vi",
+      "relative_path": "Graphic_designer/marketing_social_30_20261004/vi/07_stairwell_exit.png",
+      "file_name": "07_stairwell_exit.png",
+      "stem": "07_stairwell_exit",
+      "dimensions": {
+        "width": 1448,
+        "height": 1086
+      },
+      "mode": "RGB",
+      "bytes": 2564930,
+      "sha256": "f9d3ce2280750cb76f554bf5d152bba7fbdb3e2495c725931b572682f47a4b2a",
+      "average_hash_8x8": "06616c07830b6f47",
+      "difference_hash_8x8": "b3367651f9896561",
+      "perceptual_hash_8x8": "b152d42d74979cd6",
+      "visual_qa": "PASS: polished anime/comic school-zombie action scene; no obvious corruption, blank areas, or fallback/vector placeholder detected in contact-sheet vision review.",
+      "text_qa": "PASS: localized title/headline/badge legible; no garbled or wrong-language primary marketing text detected in contact-sheet vision review.",
+      "approval": "approved_for_base_set_QA",
+      "near_duplicate_candidates_within_set": [
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ko/07_stairwell_exit.png",
+          "phash_distance": 4,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/en/07_stairwell_exit.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        },
+        {
+          "path": "Graphic_designer/marketing_social_30_20261004/ja/07_stairwell_exit.png",
+          "phash_distance": 6,
+          "same_sha256": false
+        }
+      ],
+      "provenance_checks": {
+        "exact_sha256_matches_in_recovery_or_store_candidates": [],
+        "nearest_old_image_phash_matches": []
+      },
+      "visible_text_review": {
+        "title": "Thoát Khỏi Trường Học Zombie",
+        "headline": "CUỐI CẦU THANG LÀ LỐI RA!",
+        "badge": "MIỄN PHÍ · KHÔNG QUẢNG CÁO"
+      },
+      "duplicate_scene_note": "Expected near-duplicate localized counterpart(s) for the same campaign scene; sha256 differs and language text differs. No exact duplicate inside the 30-file set."
+    }
+  ],
+  "qa_summary": {
+    "status": "APPROVED_WITH_SCOPE_NOTE",
+    "approved_png_count": 30,
+    "flagged_text_errors": [],
+    "flagged_visual_errors": [],
+    "scope_note": "Base 30 only; later +40 request not included. Original PNGs were not overwritten.",
+    "contact_sheets": [
+      "Graphic_designer/marketing_social_30_20261004/contact_sheet_ko.png",
+      "Graphic_designer/marketing_social_30_20261004/contact_sheet_en.png",
+      "Graphic_designer/marketing_social_30_20261004/contact_sheet_ja.png",
+      "Graphic_designer/marketing_social_30_20261004/contact_sheet_vi.png",
+      "Graphic_designer/marketing_social_30_20261004/contact_sheet_all_30.png"
+    ],
+    "notes": [
+      "QA completed by machine metadata checks plus human/vision inspection of per-language contact sheets.",
+      "All 30 PNGs are 1448x1086 RGB and count matches required ko=8,en=8,ja=7,vi=7.",
+      "No exact sha256 matches were found against the 50-image recovery/store-candidate comparison pool.",
+      "Near-duplicate pHash hits are localized counterparts of the same scene across languages, not exact file duplicates; sha256 values differ.",
+      "No primary localized title/headline/free-no-ads badge was flagged as garbled or wrong-language in the vision pass.",
+      "Three_Mini git mutation guard prohibits direct git commit/push; these artifacts are ready for Advisor-scoped commit/push review only."
+    ]
+  }
+}
