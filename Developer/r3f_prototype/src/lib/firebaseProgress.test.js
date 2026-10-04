@@ -81,6 +81,7 @@ function remoteSnapshot(overrides = {}) {
 describe('firebase-only player progress runtime', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    for (const [key, value] of Object.entries(COMPLETE_ENV)) vi.stubEnv(key, value)
     _resetFirebaseProgressForTests()
   })
 
