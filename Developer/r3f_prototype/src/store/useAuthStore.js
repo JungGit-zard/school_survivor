@@ -66,6 +66,12 @@ export const useAuthStore = create((set, get) => ({
       try {
         const client = await getAuthClient()
         const user = await client.signInWithGoogle()
+        if (!user) {
+          // A web/TWA redirect has started. Authentication is finalized only
+          // after Firebase restores the returned account on the next page load.
+          set({ status: 'checking', user: null, signingIn: false, error: null })
+          return null
+        }
         syncCloudProgressUser(user)
         set({ status: 'signedIn', user, signingIn: false, error: null })
         return user

@@ -63,6 +63,21 @@ describe('useAuthStore cloud progress integration', () => {
     await vi.waitFor(() => expect(hydrateCloudProgress).toHaveBeenCalledWith(authUser))
   })
 
+  it('does not mark a redirect-start response as a signed-in null account', async () => {
+    authClient.signInWithGoogle.mockResolvedValueOnce(null)
+
+    await expect(useAuthStore.getState().signInWithGoogle()).resolves.toBeNull()
+
+    expect(useAuthStore.getState()).toMatchObject({
+      status: 'checking',
+      user: null,
+      signingIn: false,
+      error: null,
+    })
+    expect(setCloudProgressUser).not.toHaveBeenCalled()
+    expect(hydrateCloudProgress).not.toHaveBeenCalled()
+  })
+
   it('동시에 두 번 요청해도 실제 Google 클라이언트 로그인 호출은 한 번만 한다', async () => {
     let resolveSignIn
     authClient.signInWithGoogle.mockImplementationOnce(() => new Promise((resolve) => {
@@ -78,6 +93,31 @@ describe('useAuthStore cloud progress integration', () => {
     resolveSignIn(authUser)
     await expect(first).resolves.toEqual(authUser)
     await expect(second).resolves.toEqual(authUser)
+  })
+
+  it('isolates 100000 mocked Google login-start iterations without network Firebase or localStorage mutation', async () => {
+    let resolveSignIn
+    const setItem = vi.spyOn(Storage.prototype, 'setItem')
+    const removeItem = vi.spyOn(Storage.prototype, 'removeItem')
+    const clear = vi.spyOn(Storage.prototype, 'clear')
+    authClient.signInWithGoogle.mockImplementationOnce(() => new Promise((resolve) => {
+      resolveSignIn = resolve
+    }))
+
+    const starts = Array.from({ length: 100_000 }, () => useAuthStore.getState().signInWithGoogle())
+
+    expect(new Set(starts).size).toBe(1)
+    await vi.waitFor(() => expect(authClient.signInWithGoogle).toHaveBeenCalledTimes(1))
+    expect(setItem).not.toHaveBeenCalled()
+    expect(removeItem).not.toHaveBeenCalled()
+    expect(clear).not.toHaveBeenCalled()
+
+    resolveSignIn(authUser)
+    await expect(starts[0]).resolves.toEqual(authUser)
+    await vi.waitFor(() => expect(hydrateCloudProgress).toHaveBeenCalledWith(authUser))
+    expect(setItem).not.toHaveBeenCalled()
+    expect(removeItem).not.toHaveBeenCalled()
+    expect(clear).not.toHaveBeenCalled()
   })
 
   it('does not fabricate an account or progress snapshot while initializing auth', async () => {

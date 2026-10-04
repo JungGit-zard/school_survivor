@@ -7,6 +7,7 @@ import {
   setFirebaseAuthInMemoryPersistence,
   isFirebaseAuthConfigured,
   shouldUseNativeGoogleSignIn,
+  shouldUseWebRedirectGoogleSignIn,
   toAuthUser,
   createFirebaseAuthClient,
   isGraphicsStudioLocation,
@@ -149,6 +150,20 @@ describe('firebase auth configuration', () => {
     })).toBe(false)
   })
 
+  it('uses web redirect login for an Android TWA instead of opening a popup', () => {
+    const twaScope = {
+      location: { pathname: '/game', protocol: 'https:', href: 'https://escapezombie.com/game' },
+      navigator: { userAgent: 'Mozilla/5.0 (Linux; Android 15) Chrome/140 Mobile Safari/537.36' },
+    }
+
+    expect(shouldUseNativeGoogleSignIn(twaScope)).toBe(false)
+    expect(shouldUseWebRedirectGoogleSignIn(twaScope)).toBe(true)
+    expect(shouldUseWebRedirectGoogleSignIn({
+      location: { pathname: '/game', protocol: 'https:' },
+      navigator: { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+    })).toBe(false)
+  })
+
   it('redirects loopback dev URLs to the Firebase-authorized localhost origin', () => {
     expect(getLocalFirebaseAuthRedirect({ href: 'http://127.0.0.1:5175/?tab=audio#pencil' }, true))
       .toBe('http://localhost:5175/?tab=audio#pencil')
@@ -200,6 +215,31 @@ describe('firebase auth configuration', () => {
     expect(resolveFirebaseAppForRoute(firebaseAppModule, COMPLETE_ENV, gameScope)).toBe(defaultApp)
     expect(firebaseAppModule.getApp).toHaveBeenCalledWith()
     expect(firebaseAppModule.initializeApp).not.toHaveBeenCalled()
+  })
+
+  it('uses the verified custom domain as authDomain only for the hosted game route', () => {
+    const firebaseAppModule = {
+      getApps: vi.fn(() => []),
+      getApp: vi.fn(),
+      initializeApp: vi.fn((config) => ({ name: '[DEFAULT]', options: config })),
+    }
+
+    resolveFirebaseAppForRoute(firebaseAppModule, COMPLETE_ENV, {
+      location: { pathname: '/game', protocol: 'https:', hostname: 'escapezombie.com' },
+    })
+    expect(firebaseAppModule.initializeApp).toHaveBeenLastCalledWith({
+      ...getFirebaseConfig(COMPLETE_ENV),
+      authDomain: 'escapezombie.com',
+    })
+
+    firebaseAppModule.initializeApp.mockClear()
+    resolveFirebaseAppForRoute(firebaseAppModule, COMPLETE_ENV, {
+      location: { pathname: '/graphics-studio', protocol: 'https:', hostname: 'escapezombie.com' },
+    })
+    expect(firebaseAppModule.initializeApp).toHaveBeenLastCalledWith(
+      getFirebaseConfig(COMPLETE_ENV),
+      GRAPHICS_STUDIO_FIREBASE_APP_NAME,
+    )
   })
 
   it('recognizes graphics-studio paths with the route helper', () => {
@@ -259,6 +299,34 @@ describe('firebase auth configuration', () => {
       expect.anything(),
       firebaseAuthMock.auth.inMemoryPersistence,
     )
+  })
+
+  it('starts redirect directly on Android web/TWA and restores the returned Google account', async () => {
+    const returnedUser = {
+      uid: 'twa-user', displayName: 'TWA', email: 'twa@example.com', photoURL: '',
+      emailVerified: true, providerData: [{ providerId: 'google.com' }],
+    }
+    firebaseAuthMock.app.getApps.mockReturnValue([])
+    firebaseAuthMock.auth.getRedirectResult.mockReset().mockResolvedValueOnce({ user: returnedUser })
+    firebaseAuthMock.auth.onAuthStateChanged.mockReset().mockImplementationOnce((_auth, onChange) => {
+      onChange(null)
+      return vi.fn()
+    })
+    firebaseAuthMock.auth.signInWithPopup.mockReset()
+    firebaseAuthMock.auth.signInWithRedirect.mockReset().mockResolvedValueOnce()
+
+    const client = await createFirebaseAuthClient(COMPLETE_ENV, {
+      location: { pathname: '/game', protocol: 'https:', href: 'https://escapezombie.com/game' },
+      sessionStorage: {},
+      navigator: { userAgent: 'Mozilla/5.0 (Linux; Android 15) Chrome/140 Mobile Safari/537.36' },
+    })
+    let restoredUser = null
+    client.subscribe((user) => { restoredUser = user })
+
+    await expect(client.signInWithGoogle()).resolves.toBeNull()
+    expect(restoredUser).toMatchObject({ uid: 'twa-user', email: 'twa@example.com' })
+    expect(firebaseAuthMock.auth.signInWithPopup).not.toHaveBeenCalled()
+    expect(firebaseAuthMock.auth.signInWithRedirect).toHaveBeenCalledOnce()
   })
 
   it('uses only a native Google credential inside Capacitor without web popup or redirect calls', async () => {

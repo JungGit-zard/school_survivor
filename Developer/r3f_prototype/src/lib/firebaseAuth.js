@@ -19,7 +19,7 @@ export function isFirebaseAuthConfigured(env = getDefaultEnv()) {
   return REQUIRED_ENV_KEYS.every((key) => typeof env[key] === 'string' && env[key].trim().length > 0)
 }
 
-export function getFirebaseConfig(env = getDefaultEnv()) {
+export function getFirebaseConfig(env = getDefaultEnv(), globalScope = getDefaultGlobalScope()) {
   const config = {
     apiKey: readEnv(env, 'VITE_FIREBASE_API_KEY'),
     authDomain: readEnv(env, 'VITE_FIREBASE_AUTH_DOMAIN'),
@@ -30,6 +30,16 @@ export function getFirebaseConfig(env = getDefaultEnv()) {
   for (const [envKey, configKey] of Object.entries(OPTIONAL_ENV_KEY_MAP)) {
     const value = readEnv(env, envKey)
     if (value) config[configKey] = value
+  }
+
+  if (
+    !isGraphicsStudioLocation(globalScope?.location)
+    && globalScope?.location?.protocol === 'https:'
+    && globalScope?.location?.hostname === 'escapezombie.com'
+  ) {
+    // Firebase's redirect helper must be same-origin in modern Chrome/TWA.
+    // The OAuth allowlist contains this exact verified Hosting domain.
+    config.authDomain = 'escapezombie.com'
   }
 
   return config
@@ -57,6 +67,15 @@ export function shouldUseNativeGoogleSignIn(globalScope = getDefaultGlobalScope(
   return isNative || platform === 'android' || platform === 'ios' || globalScope?.location?.protocol === 'capacitor:'
 }
 
+export function shouldUseWebRedirectGoogleSignIn(
+  globalScope = getDefaultGlobalScope(),
+  capacitorBridge = Capacitor,
+) {
+  if (shouldUseNativeGoogleSignIn(globalScope, capacitorBridge)) return false
+  const userAgent = globalScope?.navigator?.userAgent ?? ''
+  return globalScope?.location?.protocol === 'https:' && /\bAndroid\b/i.test(userAgent)
+}
+
 export function getLocalFirebaseAuthRedirect(location = getDefaultGlobalScope()?.location, isDevelopment = import.meta.env?.DEV === true) {
   if (!isDevelopment || !location?.href) return null
   const url = new URL(location.href)
@@ -82,13 +101,14 @@ export function resolveFirebaseAppForRoute(
   if (isGraphicsStudioLocation(globalScope?.location)) {
     const studioApp = apps.find((app) => app.name === GRAPHICS_STUDIO_FIREBASE_APP_NAME)
     return studioApp ?? firebaseAppModule.initializeApp(
-      getFirebaseConfig(env),
+      getFirebaseConfig(env, globalScope),
       GRAPHICS_STUDIO_FIREBASE_APP_NAME,
     )
   }
+  const config = getFirebaseConfig(env, globalScope)
   return apps.length > 0
     ? firebaseAppModule.getApp()
-    : firebaseAppModule.initializeApp(getFirebaseConfig(env))
+    : firebaseAppModule.initializeApp(config)
 }
 
 export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScope = getDefaultGlobalScope()) {
@@ -122,13 +142,16 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
   const auth = authModule.getAuth(app)
   const isStudioRoute = isGraphicsStudioLocation(globalScope?.location)
   const useNativeGoogle = shouldUseNativeGoogleSignIn(globalScope)
+  const useWebRedirectGoogle = !isStudioRoute && shouldUseWebRedirectGoogleSignIn(globalScope)
   // Firebase Authentication is the sole auth source, and its session stays in memory only.
   // Do not copy credentials or persist browser login state anywhere else.
   await setFirebaseAuthInMemoryPersistence(authModule, auth)
   // A Capacitor shell must never consume a web redirect result: Android/iOS
   // sign-in is bridged exclusively through the native Google credential.
+  let pendingRedirectUser = null
   if (!isStudioRoute && !useNativeGoogle) {
-    await consumePendingRedirectResult(authModule, auth)
+    const redirectResult = await consumePendingRedirectResult(authModule, auth, globalScope)
+    pendingRedirectUser = toAuthUser(redirectResult?.user)
   }
   const provider = new authModule.GoogleAuthProvider()
   provider.setCustomParameters({ prompt: 'select_account' })
@@ -136,12 +159,22 @@ export async function createFirebaseAuthClient(env = getDefaultEnv(), globalScop
   return {
     configured: true,
     subscribe: (onChange) => {
-      const unsubscribe = authModule.onAuthStateChanged(auth, (user) => onChange(toAuthUser(user)))
+      let redirectUser = pendingRedirectUser
+      pendingRedirectUser = null
+      const unsubscribe = authModule.onAuthStateChanged(auth, (user) => {
+        const resolvedUser = toAuthUser(user) ?? redirectUser
+        redirectUser = null
+        onChange(resolvedUser)
+      })
       return unsubscribe
     },
     signInWithGoogle: async () => {
       if (useNativeGoogle) {
         return signInWithNativeGoogle(authModule, auth)
+      }
+      if (useWebRedirectGoogle) {
+        await authModule.signInWithRedirect(auth, provider)
+        return null
       }
       try {
         const credential = await authModule.signInWithPopup(auth, provider)
@@ -188,9 +221,9 @@ export async function setFirebaseAuthInMemoryPersistence(authModule, auth) {
   await authModule.setPersistence(auth, authModule.inMemoryPersistence)
 }
 
-async function consumePendingRedirectResult(authModule, auth) {
+async function consumePendingRedirectResult(authModule, auth, globalScope = getDefaultGlobalScope()) {
   if (typeof authModule?.getRedirectResult !== 'function') return null
-  if (typeof window === 'undefined' || typeof window.sessionStorage === 'undefined') return null
+  if (typeof globalScope?.sessionStorage === 'undefined') return null
   try {
     return await authModule.getRedirectResult(auth)
   } catch (error) {
