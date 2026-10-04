@@ -4,4 +4,5 @@
     <string name="title_activity_main">Escape Zombie School</string>
     <string name="package_name">com.jungyoon.zombieschool</string>
     <string name="custom_url_scheme">com.jungyoon.zombieschool</string>
+    <string name="asset_statements" translatable="false">[{&quot;relation&quot;:[&quot;delegate_permission/common.handle_all_urls&quot;],&quot;target&quot;:{&quot;namespace&quot;:&quot;web&quot;,&quot;site&quot;:&quot;https://escapezombie.com&quot;}}]</string>
 </resources>

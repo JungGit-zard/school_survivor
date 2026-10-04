@@ -5,11 +5,25 @@
   "hosting": {
     "public": "dist",
     "cleanUrls": true,
-    "ignore": ["**/.*"],
+    "ignore": [],
     "predeploy": [
       "node scripts/require-safe-hosting-promotion.mjs",
       "npm.cmd run build",
       "npm.cmd run build:legal"
+    ],
+    "headers": [
+      {
+        "source": "/game",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      },
+      {
+        "source": "/game/**",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      }
     ],
     "rewrites": [
       { "source": "**", "destination": "/index.html" }
