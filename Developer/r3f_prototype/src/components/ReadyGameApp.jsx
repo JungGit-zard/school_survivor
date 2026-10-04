@@ -7,6 +7,7 @@ import { isMobileJoystickEnvironment } from '../lib/mobileInput.js'
 import { initKeyboardInput } from '../lib/keyboardInput.js'
 import { applyLanguage, loadTitleSettings } from '../lib/titleSettings.js'
 import { t } from '../lib/i18n.js'
+import { clearPendingStartAfterLogin, hasPendingStartAfterLogin } from '../lib/loginContinuation.js'
 
 const TitleScreen = lazy(() => import('./TitleScreen.jsx'))
 const Lobby = lazy(() => import('./Lobby.jsx'))
@@ -27,10 +28,11 @@ function initializeRuntimeUtilities() {
 }
 
 export default function ReadyGameApp({
+  authStatus,
   authUser,
   progressStatus,
 }) {
-  const [screen, setScreen] = useState('title')
+  const [screen, setScreen] = useState(() => hasPendingStartAfterLogin() ? 'auth-return' : 'title')
   const [prevScreen, setPrevScreen] = useState('title')
   const [rankingStageId, setRankingStageId] = useState(null)
   const [mobileJoystickEnabled, setMobileJoystickEnabled] = useState(false)
@@ -43,6 +45,19 @@ export default function ReadyGameApp({
   useEffect(() => {
     initializeRuntimeUtilities()
   }, [])
+
+  useEffect(() => {
+    if (screen !== 'auth-return') return
+    if (authStatus === 'signedIn' && authUser?.uid) {
+      clearPendingStartAfterLogin()
+      setScreen('lobby')
+      return
+    }
+    if (['signedOut', 'unconfigured', 'error'].includes(authStatus)) {
+      clearPendingStartAfterLogin()
+      setScreen('title')
+    }
+  }, [authStatus, authUser?.uid, screen])
 
   useEffect(() => {
     const ready = progressStatus === 'ready' && isFirebaseProgressHydrated(authUser)
@@ -127,6 +142,7 @@ export default function ReadyGameApp({
         <Suspense fallback={null}><SfxLayer /></Suspense>
       </ErrorBoundary>
       <div ref={phoneFrameRef} style={styles.phoneFrame}>
+        {screen === 'auth-return' && <ScreenLoading label={t('loading.game')} />}
         {screen === 'title' && (
           <ErrorBoundary fallback={({ error, retry, reload }) => <ScreenFailure label={t('loading.game')} error={error} retry={retry} reload={reload} />}>
             <Suspense fallback={<ScreenLoading label={t('loading.game')} />}>

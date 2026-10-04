@@ -14,12 +14,16 @@ import {
 import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { useLocale, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
+import {
+  clearPendingStartAfterLogin,
+  consumePendingStartAfterLogin,
+  markPendingStartAfterLogin,
+} from '../lib/loginContinuation.js'
 import { Howl } from 'howler'
 import titleBgmUrl from '../assets/audio/title_bgm.m4a'
 
 const REVEAL_CHEATS_CODE = ['arrowup', 'arrowdown', 'arrowup', 'arrowdown', 'a', 's', 'd']
 const DEV_CHEATS_ENABLED = import.meta.env.DEV
-const PENDING_START_AFTER_LOGIN_KEY = 'eszs:pending-start-after-google-login'
 // 한국어 정본 슬램 배치. 문자 수·진입 벡터·순서를 그대로 보존한다.
 const TITLE_ACCENT_LETTERS = [
   { char: '탈', order: 0, x: '-110vw', y: '-5vh', rotation: '-18deg' },
@@ -60,28 +64,6 @@ function getTitleWords(locale, translate) {
   const accent = buildTitleLetters(accentWord, 0)
   const school = buildTitleLetters(schoolWord, accent.length)
   return { accent, school }
-}
-
-function markPendingStartAfterLogin() {
-  try {
-    window.sessionStorage?.setItem(PENDING_START_AFTER_LOGIN_KEY, '1')
-  } catch {}
-}
-
-function consumePendingStartAfterLogin() {
-  try {
-    const pending = window.sessionStorage?.getItem(PENDING_START_AFTER_LOGIN_KEY) === '1'
-    if (pending) window.sessionStorage?.removeItem(PENDING_START_AFTER_LOGIN_KEY)
-    return pending
-  } catch {
-    return false
-  }
-}
-
-function clearPendingStartAfterLogin() {
-  try {
-    window.sessionStorage?.removeItem(PENDING_START_AFTER_LOGIN_KEY)
-  } catch {}
 }
 
 function titleLetterDelayMs(order, total) {

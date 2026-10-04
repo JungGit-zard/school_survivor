@@ -14,7 +14,9 @@ const mocks = vi.hoisted(() => ({
   },
 }))
 
-vi.mock('./TitleScreen.jsx', () => ({ default: ({ onEnterLobby }) => <button onClick={onEnterLobby}>enter</button> }))
+vi.mock('./TitleScreen.jsx', () => ({
+  default: ({ onEnterLobby }) => <button data-testid="title-screen" onClick={onEnterLobby}>enter</button>,
+}))
 vi.mock('./Lobby.jsx', () => ({
   default: ({ devAllStagesUnlocked, onStartStage, weaponEncyclopediaRequest }) => (
     <>
@@ -83,13 +85,51 @@ async function renderReady(props) {
   return { container, render, unmount: () => act(() => { root.unmount(); container.remove() }) }
 }
 
+async function renderReadyWithoutEntering(props) {
+  const container = document.createElement('div')
+  document.body.appendChild(container)
+  const root = createRoot(container)
+  const render = async (nextProps) => {
+    await act(async () => {
+      root.render(<ReadyGameApp {...nextProps} />)
+      await vi.dynamicImportSettled()
+    })
+  }
+  await render(props)
+  return { container, render, unmount: () => act(() => { root.unmount(); container.remove() }) }
+}
+
 describe('ReadyGameApp stage bypass hydration', () => {
   afterEach(() => {
+    window.sessionStorage.removeItem('eszs:pending-start-after-google-login')
     mocks.hydrated = false
     mocks.titleCheat = false
     mocks.gameStore.phase = 'idle'
     mocks.gameStore.resetGame.mockClear()
     mocks.gameStore.startStage1Intro.mockClear()
+  })
+
+  it('does not render the login title for even one frame while a redirect account is restored', async () => {
+    window.sessionStorage.setItem('eszs:pending-start-after-google-login', '1')
+    const view = await renderReadyWithoutEntering({
+      authStatus: 'checking',
+      authUser: null,
+      progressStatus: 'idle',
+    })
+
+    expect(view.container.querySelector('[data-testid="title-screen"]')).toBeNull()
+    expect(view.container.querySelector('[data-testid="stage-bypass"]')).toBeNull()
+
+    await view.render({
+      authStatus: 'signedIn',
+      authUser: { uid: 'redirect-account' },
+      progressStatus: 'loading',
+    })
+
+    expect(view.container.querySelector('[data-testid="title-screen"]')).toBeNull()
+    expect(view.container.querySelector('[data-testid="stage-bypass"]')).not.toBeNull()
+    expect(window.sessionStorage.getItem('eszs:pending-start-after-google-login')).toBeNull()
+    view.unmount()
   })
 
   it('restores the saved bypass only after the signed-in user progress becomes ready', async () => {

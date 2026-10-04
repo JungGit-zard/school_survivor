@@ -372,6 +372,7 @@ export default function App() {
     <ErrorBoundary>
       <Suspense fallback={<div style={styles.routeLoading}>{t('loading.game')}</div>}>
         <ReadyGameApp
+          authStatus={authStatus}
           authUser={authUser}
           progressStatus={progressStatus}
         />
