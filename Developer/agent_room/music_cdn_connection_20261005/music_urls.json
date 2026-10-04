@@ -1,0 +1,31 @@
+{
+  "base_url": "https://music.escapezombie.com",
+  "bucket": "zombie-music",
+  "objects": [
+    {
+      "key": "candy_boy.mp3",
+      "url": "https://music.escapezombie.com/candy_boy.mp3"
+    },
+    {
+      "key": "candy_girl.mp3",
+      "url": "https://music.escapezombie.com/candy_girl.mp3"
+    },
+    {
+      "key": "zaombie_soft2.mp3",
+      "url": "https://music.escapezombie.com/zaombie_soft2.mp3"
+    },
+    {
+      "key": "zombie_2nd.mp3",
+      "url": "https://music.escapezombie.com/zombie_2nd.mp3"
+    },
+    {
+      "key": "zombie_3rd.mp3",
+      "url": "https://music.escapezombie.com/zombie_3rd.mp3"
+    },
+    {
+      "key": "zombie_soft1.mp3",
+      "url": "https://music.escapezombie.com/zombie_soft1.mp3"
+    }
+  ],
+  "purpose": "Public URL inventory only; not imported by game runtime"
+}

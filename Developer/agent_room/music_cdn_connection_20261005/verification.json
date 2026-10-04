@@ -1,0 +1,288 @@
+{
+  "verified_at_kst": "2026-10-05T02:59:20.224440+09:00",
+  "method": "Public Google DNS-over-HTTPS and curl HTTPS HEAD/range; no control-panel access during documentation",
+  "dns": {
+    "NS": {
+      "Status": 0,
+      "TC": false,
+      "RD": true,
+      "RA": true,
+      "AD": false,
+      "CD": false,
+      "Question": [
+        {
+          "name": "escapezombie.com.",
+          "type": 2
+        }
+      ],
+      "Answer": [
+        {
+          "name": "escapezombie.com.",
+          "type": 2,
+          "TTL": 21600,
+          "data": "lennon.ns.cloudflare.com."
+        },
+        {
+          "name": "escapezombie.com.",
+          "type": 2,
+          "TTL": 21600,
+          "data": "etta.ns.cloudflare.com."
+        }
+      ],
+      "Comment": "Response from 173.245.58.156."
+    },
+    "DS": {
+      "Status": 0,
+      "TC": false,
+      "RD": true,
+      "RA": true,
+      "AD": false,
+      "CD": false,
+      "Question": [
+        {
+          "name": "escapezombie.com.",
+          "type": 43
+        }
+      ],
+      "Authority": [
+        {
+          "name": "com.",
+          "type": 6,
+          "TTL": 900,
+          "data": "a.gtld-servers.net. nstld.verisign-grs.com. 1791136739 1800 900 604800 900"
+        }
+      ],
+      "Comment": "Response from 192.55.83.30."
+    },
+    "A": {
+      "Status": 0,
+      "TC": false,
+      "RD": true,
+      "RA": true,
+      "AD": false,
+      "CD": false,
+      "Question": [
+        {
+          "name": "escapezombie.com.",
+          "type": 1
+        }
+      ],
+      "Answer": [
+        {
+          "name": "escapezombie.com.",
+          "type": 1,
+          "TTL": 300,
+          "data": "199.36.158.100"
+        }
+      ],
+      "Comment": "Response from 173.245.58.156."
+    },
+    "AAAA": {
+      "Status": 0,
+      "TC": false,
+      "RD": true,
+      "RA": true,
+      "AD": false,
+      "CD": false,
+      "Question": [
+        {
+          "name": "escapezombie.com.",
+          "type": 28
+        }
+      ],
+      "Authority": [
+        {
+          "name": "escapezombie.com.",
+          "type": 6,
+          "TTL": 1800,
+          "data": "etta.ns.cloudflare.com. dns.cloudflare.com. 2416621943 10000 2400 604800 1800"
+        }
+      ],
+      "Comment": "Response from 108.162.195.165."
+    },
+    "MX": {
+      "Status": 0,
+      "TC": false,
+      "RD": true,
+      "RA": true,
+      "AD": false,
+      "CD": false,
+      "Question": [
+        {
+          "name": "escapezombie.com.",
+          "type": 15
+        }
+      ],
+      "Authority": [
+        {
+          "name": "escapezombie.com.",
+          "type": 6,
+          "TTL": 1800,
+          "data": "etta.ns.cloudflare.com. dns.cloudflare.com. 2416621943 10000 2400 604800 1800"
+        }
+      ],
+      "Comment": "Response from 108.162.195.165."
+    },
+    "TXT": {
+      "Status": 0,
+      "TC": false,
+      "RD": true,
+      "RA": true,
+      "AD": false,
+      "CD": false,
+      "Question": [
+        {
+          "name": "escapezombie.com.",
+          "type": 16
+        }
+      ],
+      "Answer": [
+        {
+          "name": "escapezombie.com.",
+          "type": 16,
+          "TTL": 300,
+          "data": "hosting-site=escape-zombie-school"
+        }
+      ],
+      "Comment": "Response from 108.162.192.156."
+    },
+    "CAA": {
+      "Status": 0,
+      "TC": false,
+      "RD": true,
+      "RA": true,
+      "AD": false,
+      "CD": false,
+      "Question": [
+        {
+          "name": "escapezombie.com.",
+          "type": 257
+        }
+      ],
+      "Authority": [
+        {
+          "name": "escapezombie.com.",
+          "type": 6,
+          "TTL": 1800,
+          "data": "etta.ns.cloudflare.com. dns.cloudflare.com. 2416621943 10000 2400 604800 1800"
+        }
+      ],
+      "Comment": "Response from 173.245.58.156."
+    },
+    "music_A": {
+      "Status": 0,
+      "TC": false,
+      "RD": true,
+      "RA": true,
+      "AD": false,
+      "CD": false,
+      "Question": [
+        {
+          "name": "music.escapezombie.com.",
+          "type": 1
+        }
+      ],
+      "Answer": [
+        {
+          "name": "music.escapezombie.com.",
+          "type": 1,
+          "TTL": 300,
+          "data": "172.67.216.111"
+        },
+        {
+          "name": "music.escapezombie.com.",
+          "type": 1,
+          "TTL": 300,
+          "data": "104.21.37.244"
+        }
+      ],
+      "Comment": "Response from 172.64.32.156."
+    },
+    "music_AAAA": {
+      "Status": 0,
+      "TC": false,
+      "RD": true,
+      "RA": true,
+      "AD": false,
+      "CD": false,
+      "Question": [
+        {
+          "name": "music.escapezombie.com.",
+          "type": 28
+        }
+      ],
+      "Answer": [
+        {
+          "name": "music.escapezombie.com.",
+          "type": 28,
+          "TTL": 300,
+          "data": "2606:4700:3034::6815:25f4"
+        },
+        {
+          "name": "music.escapezombie.com.",
+          "type": 28,
+          "TTL": 300,
+          "data": "2606:4700:3036::ac43:d86f"
+        }
+      ],
+      "Comment": "Response from 108.162.195.165."
+    },
+    "music_CNAME": {
+      "Status": 0,
+      "TC": false,
+      "RD": true,
+      "RA": true,
+      "AD": false,
+      "CD": false,
+      "Question": [
+        {
+          "name": "music.escapezombie.com.",
+          "type": 5
+        }
+      ],
+      "Authority": [
+        {
+          "name": "escapezombie.com.",
+          "type": 6,
+          "TTL": 1800,
+          "data": "etta.ns.cloudflare.com. dns.cloudflare.com. 2416621943 10000 2400 604800 1800"
+        }
+      ],
+      "Comment": "Response from 108.162.192.156."
+    }
+  },
+  "objects": [
+    {
+      "key": "candy_boy.mp3",
+      "url": "https://music.escapezombie.com/candy_boy.mp3",
+      "head_headers": "HTTP/1.1 200 OK\r\nDate: Sun, 04 Oct 2026 17:59:22 GMT\r\nContent-Type: audio/mpeg\r\nContent-Length: 5187885\r\nConnection: keep-alive\r\nAccept-Ranges: bytes\r\nETag: \"ca693fbcddd00b2cc5dcafcb267c074d\"\r\nLast-Modified: Sun, 04 Oct 2026 17:17:40 GMT\r\nServer: cloudflare\r\nCache-Control: max-age=14400\r\ncf-cache-status: MISS\r\nReport-To: {\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=cQU9Ilfx8GF3AzPaBBJLqNI7sNwXQlf6W5S7i9T0EUMRR1WSTH%2Ff0sThNGr2bWTF%2F%2FUK2SD25QQONRl9e7mQUJy6DfDyMx%2FzUczbD7eyGEkUBugAreqgaOb7J3oakMIRVSEVpbMRrvYv\"}]}\r\nNel: {\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}\r\nCF-RAY: a456147c5a71f553-NRT\r\n\r\n"
+    },
+    {
+      "key": "candy_girl.mp3",
+      "url": "https://music.escapezombie.com/candy_girl.mp3",
+      "head_headers": "HTTP/1.1 200 OK\r\nDate: Sun, 04 Oct 2026 17:59:22 GMT\r\nContent-Type: audio/mpeg\r\nContent-Length: 4849830\r\nConnection: keep-alive\r\nAccept-Ranges: bytes\r\nETag: \"c3a9b086b4636b892ef40335de32b850\"\r\nLast-Modified: Sun, 04 Oct 2026 17:17:40 GMT\r\nServer: cloudflare\r\nAge: 497\r\nCache-Control: max-age=14400\r\ncf-cache-status: HIT\r\nReport-To: {\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=A2kRk7QBhCy%2B6XnykAp8WsDvfmkKtGPd4hrQdR6ApMJ%2FV6LbGOcUFxgTzic5eytHLHEpf24X6uEd9ZOBKEOYOux6v1ZXwp8ChZHKtKt5Bn8kVvQSN5y2xh%2F1Lc7eGAEtLn5UOLgLYJWn\"}]}\r\nNel: {\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}\r\nCF-RAY: a456147c39080489-HKG\r\n\r\n"
+    },
+    {
+      "key": "zaombie_soft2.mp3",
+      "url": "https://music.escapezombie.com/zaombie_soft2.mp3",
+      "head_headers": "HTTP/1.1 200 OK\r\nDate: Sun, 04 Oct 2026 17:59:22 GMT\r\nContent-Type: audio/mpeg\r\nContent-Length: 659177\r\nConnection: keep-alive\r\nAccept-Ranges: bytes\r\nETag: \"5eb692605b206fbbcb15b1592fbc6a31\"\r\nLast-Modified: Sun, 04 Oct 2026 17:17:39 GMT\r\nServer: cloudflare\r\nAge: 496\r\nCache-Control: max-age=14400\r\ncf-cache-status: HIT\r\nReport-To: {\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=z6T3N7yoZZN8GpxxgnxbGUuwJWyIG7j4cCFenr7erNQfttf1aGvH2oqnGuKlTXfeouKr6YkmvGa%2FYu39Qk881QsSGG0jo6NdYKfNKvBy7SE5LyS1DOl9gliVHpwRs7YX5fecdXutmPOs\"}]}\r\nNel: {\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}\r\nCF-RAY: a456147c5f20db3e-HKG\r\n\r\n"
+    },
+    {
+      "key": "zombie_2nd.mp3",
+      "url": "https://music.escapezombie.com/zombie_2nd.mp3",
+      "head_headers": "HTTP/1.1 200 OK\r\nDate: Sun, 04 Oct 2026 17:59:22 GMT\r\nContent-Type: audio/mpeg\r\nContent-Length: 4073067\r\nConnection: keep-alive\r\nAccept-Ranges: bytes\r\nETag: \"f043babae0bdbc74635ee77cf19e9e42\"\r\nLast-Modified: Sun, 04 Oct 2026 17:17:39 GMT\r\nServer: cloudflare\r\nCache-Control: max-age=14400\r\ncf-cache-status: MISS\r\nReport-To: {\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=m3EAjcaFzvv%2B5Huz8JqcTlPY1XF7Vg02UEHCZYg7WKVcaDvc20r3dwEaqluBuH3QWwRzFmPK08y4g2p%2FQnNXf%2BXIW3uXtyXymRuapwz%2F0ni2U%2BWp25lrbQJLEn99tGQ6cG0qpLLoJq5K\"}]}\r\nNel: {\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}\r\nCF-RAY: a456147c4e9d0959-HKG\r\n\r\n"
+    },
+    {
+      "key": "zombie_3rd.mp3",
+      "url": "https://music.escapezombie.com/zombie_3rd.mp3",
+      "head_headers": "HTTP/1.1 200 OK\r\nDate: Sun, 04 Oct 2026 17:59:22 GMT\r\nContent-Type: audio/mpeg\r\nContent-Length: 4119464\r\nConnection: keep-alive\r\nAccept-Ranges: bytes\r\nETag: \"d4d2af1c7a899403518a7794e4349836\"\r\nLast-Modified: Sun, 04 Oct 2026 17:17:40 GMT\r\nServer: cloudflare\r\nAge: 495\r\nCache-Control: max-age=14400\r\ncf-cache-status: HIT\r\nReport-To: {\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=u%2FnLOcnReFal1HWeWJcDbD8xlfpM7NvaE2SBBLv3vL2D%2Fkj7dvxsxBScDX%2BRATP1jrBHoYqkaKvaNCxvwhHaCJaGfkJx%2FkLI%2FpHwUI%2B9K4lav7wls%2BoRVWmZVMwiIEQo1NQG1Nl06P%2Fe\"}]}\r\nNel: {\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}\r\nCF-RAY: a456147c29fb9c94-HKG\r\n\r\n"
+    },
+    {
+      "key": "zombie_soft1.mp3",
+      "url": "https://music.escapezombie.com/zombie_soft1.mp3",
+      "head_headers": "HTTP/1.1 200 OK\r\nDate: Sun, 04 Oct 2026 17:59:22 GMT\r\nContent-Type: audio/mpeg\r\nContent-Length: 699279\r\nConnection: keep-alive\r\nAccept-Ranges: bytes\r\nETag: \"7f7cda8730e002ba52b90685791e2a7b\"\r\nLast-Modified: Sun, 04 Oct 2026 17:17:39 GMT\r\nServer: cloudflare\r\nAge: 494\r\nCache-Control: max-age=14400\r\ncf-cache-status: HIT\r\nReport-To: {\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=CvwcVpXqQTnvDOj0lfFscmPPdy5Srb9OQi4TdwBQgDtFFstIUO77e3fDoj77lJgMj3vN67qgBqiSBiq59CURwv%2F%2FEQQtM5qSbe0rq5oax6VUzVZoECv%2FoCP6i9WZ2o%2Fwj5WqbL%2B9S2mu\"}]}\r\nNel: {\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}\r\nCF-RAY: a456147c6f3fcb79-HKG\r\n\r\n"
+    }
+  ],
+  "range_headers": "HTTP/1.1 206 Partial Content\r\nDate: Sun, 04 Oct 2026 17:59:25 GMT\r\nContent-Type: audio/mpeg\r\nContent-Length: 16\r\nConnection: keep-alive\r\nETag: \"7f7cda8730e002ba52b90685791e2a7b\"\r\nLast-Modified: Sun, 04 Oct 2026 17:17:39 GMT\r\nNel: {\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}\r\nServer: cloudflare\r\ncontent-range: bytes 0-15/699279\r\nCache-Control: max-age=14400\r\ncf-cache-status: MISS\r\nReport-To: {\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=kTUymj3MA9kJaduKYvdO813OAj9EWm0ASfLVpVORqx0oQUh4rWEoDlLd81dLy6%2FUIV78K3SlL%2F6%2BVKV8NvBIA2ObnOij8KKsMdXdVmE6P3Bdfu%2BaIMSLUf3Wdratuh%2BpW4zi2svIInUr\"}]}\r\nCF-RAY: a456148ed9421ca8-NRT\r\n\r\n",
+  "existing_website_head": "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Length: 1773\r\nCache-Control: no-cache, must-revalidate\r\nContent-Type: text/html; charset=utf-8\r\nEtag: \"b345a2a26e97676afcd21382309f3eda9a28037df4803e9f1f5241472bcd0623\"\r\nLast-Modified: Sun, 04 Oct 2026 15:34:43 GMT\r\nStrict-Transport-Security: max-age=31556926\r\nAccept-Ranges: bytes\r\nDate: Sun, 04 Oct 2026 17:59:25 GMT\r\nX-Served-By: cache-icn1450074-ICN\r\nX-Cache: MISS\r\nX-Cache-Hits: 0\r\nX-Timer: S1791136765.416144,VS0,VE99\r\nVary: x-fh-requested-host, accept-encoding\r\nalt-svc: h3=\":443\";ma=86400,h3-29=\":443\";ma=86400,h3-27=\":443\";ma=86400\r\n\r\n"
+}
