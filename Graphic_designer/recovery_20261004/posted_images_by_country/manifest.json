@@ -1,0 +1,625 @@
+{
+  "task_id": "t_b63a3fc1",
+  "created_at_utc": "2026-10-04T11:42:52Z",
+  "source_config": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\posting_config.json",
+  "audited_receipts": [
+    "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\receipts\\2026-10-04-2000-live.json",
+    "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\facebook_posting_receipts\\2026-10-04-1700-live.json",
+    "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\facebook_posting_receipts\\2026-10-04-1700.json"
+  ],
+  "output_root": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country",
+  "language_folders": [
+    "ko",
+    "en",
+    "ja",
+    "vi"
+  ],
+  "unique_local_source_images_found": 19,
+  "new_or_refreshed_copies_written": 14,
+  "missing_sources": [],
+  "live_verified_records": 1,
+  "unverified_local_records": 18,
+  "live_scrape_attempt": {
+    "facebook_permalink_http_fetch": "HTTP 200 HTML accessible via urllib without login; no direct image binary URL extracted, so receipt photoUrl retained as source_image_url for verified record.",
+    "x_receipts": "No verified X post URL evidence found in audited X receipt."
+  },
+  "exclusions": [
+    "Disabled boss_series and boss_localized_20261003 images excluded from posted-by-country copies because no X/Facebook receipt proved prior publication.",
+    "No new art generated, no posting/scheduler/Firebase/game/title mutation performed."
+  ],
+  "records": [
+    {
+      "language": "en",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_en\\post_eng.png",
+      "evidence": [
+        {
+          "platform": "config",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\posting_config.json",
+          "variantId": "base_image_pool",
+          "post_url": null,
+          "verification_status": "local_image_pool_not_live_verified",
+          "notes": "Listed in posting_config.image_pool; not proof of publication."
+        },
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_en",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        }
+      ],
+      "exists": true,
+      "sha256": "bc29e7ed4b0163ff946c1e4d1b55800baa3b4e850653e3d788235031225a8650",
+      "dimensions": "1254x1254",
+      "bytes": 1219851,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\en\\en_multi_unverified_country_folder_png_bc29e7ed4b01_post_eng.png",
+      "copy_sha256": "bc29e7ed4b0163ff946c1e4d1b55800baa3b4e850653e3d788235031225a8650",
+      "verification_status": "local_image_pool_not_live_verified"
+    },
+    {
+      "language": "en",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_en\\post_eng_01_bell.png",
+      "evidence": [
+        {
+          "platform": "config",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\posting_config.json",
+          "variantId": "bell",
+          "post_url": null,
+          "verification_status": "planned_config_enabled_not_live_verified",
+          "notes": "Enabled in posting_config.json; not proof of publication."
+        },
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_en",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        },
+        {
+          "platform": "x",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\receipts\\2026-10-04-2000-live.json",
+          "cycle_or_run_id": "2026-10-04-2000-live",
+          "variantId": "bell",
+          "post_url": null,
+          "source_image_url": null,
+          "verification_status": "receipt_selected_not_live_verified",
+          "receipt_state": "selected",
+          "notes": "Receipt has no verified publish evidence; copy preserved as local/unverified only."
+        }
+      ],
+      "exists": true,
+      "sha256": "db1200552bdf0c0169f24eb0a6c43b2c4b1e3e693699fc3ab0d0b236b4739d49",
+      "dimensions": "1254x1254",
+      "bytes": 81521,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\en\\en_multi_unverified_bell_db1200552bdf_post_eng_01_bell.png",
+      "copy_sha256": "db1200552bdf0c0169f24eb0a6c43b2c4b1e3e693699fc3ab0d0b236b4739d49",
+      "verification_status": "receipt_selected_not_live_verified"
+    },
+    {
+      "language": "en",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_en\\post_eng_02_supplies.png",
+      "evidence": [
+        {
+          "platform": "config",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\posting_config.json",
+          "variantId": "supplies",
+          "post_url": null,
+          "verification_status": "planned_config_enabled_not_live_verified",
+          "notes": "Enabled in posting_config.json; not proof of publication."
+        },
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_en",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        }
+      ],
+      "exists": true,
+      "sha256": "6bae181f8d23b480e3e66b1ec92328e71e0537f9bc4e14db2998b5392adf3b2c",
+      "dimensions": "1254x1254",
+      "bytes": 78462,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\en\\en_multi_unverified_supplies_6bae181f8d23_post_eng_02_supplies.png",
+      "copy_sha256": "6bae181f8d23b480e3e66b1ec92328e71e0537f9bc4e14db2998b5392adf3b2c",
+      "verification_status": "planned_config_enabled_not_live_verified"
+    },
+    {
+      "language": "en",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_en\\post_eng_03_escape.png",
+      "evidence": [
+        {
+          "platform": "config",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\posting_config.json",
+          "variantId": "escape",
+          "post_url": null,
+          "verification_status": "planned_config_enabled_not_live_verified",
+          "notes": "Enabled in posting_config.json; not proof of publication."
+        },
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_en",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        }
+      ],
+      "exists": true,
+      "sha256": "9797f58a8f7f7ce8c0f7dade9cf217cdb76df31cd34d830dd2906c5318fa196a",
+      "dimensions": "1254x1254",
+      "bytes": 94818,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\en\\en_multi_unverified_escape_9797f58a8f7f_post_eng_03_escape.png",
+      "copy_sha256": "9797f58a8f7f7ce8c0f7dade9cf217cdb76df31cd34d830dd2906c5318fa196a",
+      "verification_status": "planned_config_enabled_not_live_verified"
+    },
+    {
+      "language": "ja",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_jp\\post_jp.png",
+      "evidence": [
+        {
+          "platform": "config",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\posting_config.json",
+          "variantId": "base_image_pool",
+          "post_url": null,
+          "verification_status": "local_image_pool_not_live_verified",
+          "notes": "Listed in posting_config.image_pool; not proof of publication."
+        },
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_jp",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        }
+      ],
+      "exists": true,
+      "sha256": "3fa1824f7f342cc242ea2fc7c771692af1f73fd2bcbfb474f73ec8b094f73c9d",
+      "dimensions": "1254x1254",
+      "bytes": 1294353,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\ja\\ja_multi_unverified_country_folder_png_3fa1824f7f34_post_jp.png",
+      "copy_sha256": "3fa1824f7f342cc242ea2fc7c771692af1f73fd2bcbfb474f73ec8b094f73c9d",
+      "verification_status": "local_image_pool_not_live_verified"
+    },
+    {
+      "language": "ja",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_jp\\post_jp_01_bell.png",
+      "evidence": [
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_jp",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        },
+        {
+          "platform": "facebook",
+          "receipt_or_config": "Developer\\agent_room\\facebook_posting_receipts\\2026-10-04-1700.json",
+          "cycle_or_run_id": "2026-10-04-1700",
+          "variantId": "bell",
+          "post_url": null,
+          "source_image_url": null,
+          "verification_status": "receipt_selected_not_live_verified",
+          "receipt_state": "selected",
+          "notes": "Receipt has no verified publish evidence; copy preserved as local/unverified only."
+        }
+      ],
+      "exists": true,
+      "sha256": "cdf98ddc35470108bd6453976add12e977445fd09978d1b851a9893f7b6e666c",
+      "dimensions": "1254x1254",
+      "bytes": 80734,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\ja\\ja_multi_unverified_country_folder_png_cdf98ddc3547_post_jp_01_bell.png",
+      "copy_sha256": "cdf98ddc35470108bd6453976add12e977445fd09978d1b851a9893f7b6e666c",
+      "verification_status": "receipt_selected_not_live_verified"
+    },
+    {
+      "language": "ja",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_jp\\post_jp_01_bell_recovery_20261004.png",
+      "evidence": [
+        {
+          "platform": "config",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\posting_config.json",
+          "variantId": "bell",
+          "post_url": null,
+          "verification_status": "planned_config_enabled_not_live_verified",
+          "notes": "Enabled in posting_config.json; not proof of publication."
+        },
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_jp",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        },
+        {
+          "platform": "x",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\receipts\\2026-10-04-2000-live.json",
+          "cycle_or_run_id": "2026-10-04-2000-live",
+          "variantId": "bell",
+          "post_url": null,
+          "source_image_url": null,
+          "verification_status": "receipt_selected_not_live_verified",
+          "receipt_state": "selected",
+          "notes": "Receipt has no verified publish evidence; copy preserved as local/unverified only."
+        }
+      ],
+      "exists": true,
+      "sha256": "cf373a80dfe3f1087de3ad86c4113250efb133df856c1c5b490fbd9e43ab9a08",
+      "dimensions": "1254x1254",
+      "bytes": 1272892,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\ja\\ja_multi_unverified_bell_cf373a80dfe3_post_jp_01_bell_recovery_20261004.png",
+      "copy_sha256": "cf373a80dfe3f1087de3ad86c4113250efb133df856c1c5b490fbd9e43ab9a08",
+      "verification_status": "receipt_selected_not_live_verified"
+    },
+    {
+      "language": "ja",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_jp\\post_jp_02_supplies.png",
+      "evidence": [
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_jp",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        }
+      ],
+      "exists": true,
+      "sha256": "00fcd91d09f006919fcd212d7230c90b2cc701c65f5173e3508559d5a8cac46f",
+      "dimensions": "1254x1254",
+      "bytes": 73095,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\ja\\ja_local_image_pool_unverified_country_folder_png_00fcd91d09f0_post_jp_02_supplies.png",
+      "copy_sha256": "00fcd91d09f006919fcd212d7230c90b2cc701c65f5173e3508559d5a8cac46f",
+      "verification_status": "local_country_folder_not_live_verified"
+    },
+    {
+      "language": "ja",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_jp\\post_jp_02_supplies_recovery_20261004.png",
+      "evidence": [
+        {
+          "platform": "config",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\posting_config.json",
+          "variantId": "supplies",
+          "post_url": null,
+          "verification_status": "planned_config_enabled_not_live_verified",
+          "notes": "Enabled in posting_config.json; not proof of publication."
+        },
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_jp",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        },
+        {
+          "platform": "facebook",
+          "receipt_or_config": "Developer\\agent_room\\facebook_posting_receipts\\2026-10-04-1700-live.json",
+          "cycle_or_run_id": "2026-10-04-1700-live",
+          "variantId": "supplies",
+          "post_url": "https://www.facebook.com/hyunuk.jung.56/posts/pfbid0udqJ72afB7j9Y7z4LPfLQpPpakpNEZV5PTzuMeyopLvz6sXXSnFjpTvYwKenWyVMl",
+          "source_image_url": "https://www.facebook.com/photo/?fbid=4593748360845627&set=a.1377172969169865&__cft__[0]=AZhcPJzHYE0d16cFJ7mUp3dhXpe8hJmbTG2hkKMwgKnzFBZy-UMsb2C2fYaSS5HrMEvYjTR1kU90x96ZEDDQeNP5Z5h7OUP5E5eZopFjT41kXPOs2D0oTirS&__tn__=EH-R",
+          "verification_status": "verified_live_posted_receipt",
+          "receipt_state": "verified",
+          "notes": "Receipt evidence marks this live-posted."
+        }
+      ],
+      "exists": true,
+      "sha256": "d3cb51a940e7336160c78d2e08e7dcc6049e29283a38ee670c36f0f5e2549370",
+      "dimensions": "1254x1254",
+      "bytes": 1236483,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\ja\\ja_multi_verified_supplies_d3cb51a940e7_post_jp_02_supplies_recovery_20261004.png",
+      "copy_sha256": "d3cb51a940e7336160c78d2e08e7dcc6049e29283a38ee670c36f0f5e2549370",
+      "verification_status": "verified_live_posted_receipt"
+    },
+    {
+      "language": "ja",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_jp\\post_jp_03_escape.png",
+      "evidence": [
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_jp",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        }
+      ],
+      "exists": true,
+      "sha256": "d759aba28b29533a77cb7d5dd02c39caf1d2d4be59104d2c1e8ce0e188794035",
+      "dimensions": "1254x1254",
+      "bytes": 87654,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\ja\\ja_local_image_pool_unverified_country_folder_png_d759aba28b29_post_jp_03_escape.png",
+      "copy_sha256": "d759aba28b29533a77cb7d5dd02c39caf1d2d4be59104d2c1e8ce0e188794035",
+      "verification_status": "local_country_folder_not_live_verified"
+    },
+    {
+      "language": "ja",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_jp\\post_jp_03_escape_recovery_20261004.png",
+      "evidence": [
+        {
+          "platform": "config",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\posting_config.json",
+          "variantId": "escape",
+          "post_url": null,
+          "verification_status": "planned_config_enabled_not_live_verified",
+          "notes": "Enabled in posting_config.json; not proof of publication."
+        },
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_jp",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        }
+      ],
+      "exists": true,
+      "sha256": "c52f988bf41f3638b9072248a5a15d2588e3a13af238850d6472823f2f9d4e89",
+      "dimensions": "1254x1254",
+      "bytes": 1236138,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\ja\\ja_multi_unverified_escape_c52f988bf41f_post_jp_03_escape_recovery_20261004.png",
+      "copy_sha256": "c52f988bf41f3638b9072248a5a15d2588e3a13af238850d6472823f2f9d4e89",
+      "verification_status": "planned_config_enabled_not_live_verified"
+    },
+    {
+      "language": "ko",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_ko\\post_ko.png",
+      "evidence": [
+        {
+          "platform": "config",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\posting_config.json",
+          "variantId": "base_image_pool",
+          "post_url": null,
+          "verification_status": "local_image_pool_not_live_verified",
+          "notes": "Listed in posting_config.image_pool; not proof of publication."
+        },
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_ko",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        }
+      ],
+      "exists": true,
+      "sha256": "4408549068a901f08b5a8fc08cb1f68361c152c73cea212b66f6b4475e37e80e",
+      "dimensions": "1254x1254",
+      "bytes": 1225995,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\ko\\ko_multi_unverified_country_folder_png_4408549068a9_post_ko.png",
+      "copy_sha256": "4408549068a901f08b5a8fc08cb1f68361c152c73cea212b66f6b4475e37e80e",
+      "verification_status": "local_image_pool_not_live_verified"
+    },
+    {
+      "language": "ko",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_ko\\post_ko_01_bell.png",
+      "evidence": [
+        {
+          "platform": "config",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\posting_config.json",
+          "variantId": "bell",
+          "post_url": null,
+          "verification_status": "planned_config_enabled_not_live_verified",
+          "notes": "Enabled in posting_config.json; not proof of publication."
+        },
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_ko",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        },
+        {
+          "platform": "x",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\receipts\\2026-10-04-2000-live.json",
+          "cycle_or_run_id": "2026-10-04-2000-live",
+          "variantId": "bell",
+          "post_url": null,
+          "source_image_url": null,
+          "verification_status": "receipt_selected_not_live_verified",
+          "receipt_state": "selected",
+          "notes": "Receipt has no verified publish evidence; copy preserved as local/unverified only."
+        }
+      ],
+      "exists": true,
+      "sha256": "f05ae5d1fbda7b9fbae4b9b7d9c6bb79147cb198915d0fe02afb97339f051e06",
+      "dimensions": "1254x1254",
+      "bytes": 79391,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\ko\\ko_multi_unverified_bell_f05ae5d1fbda_post_ko_01_bell.png",
+      "copy_sha256": "f05ae5d1fbda7b9fbae4b9b7d9c6bb79147cb198915d0fe02afb97339f051e06",
+      "verification_status": "receipt_selected_not_live_verified"
+    },
+    {
+      "language": "ko",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_ko\\post_ko_02_supplies.png",
+      "evidence": [
+        {
+          "platform": "config",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\posting_config.json",
+          "variantId": "supplies",
+          "post_url": null,
+          "verification_status": "planned_config_enabled_not_live_verified",
+          "notes": "Enabled in posting_config.json; not proof of publication."
+        },
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_ko",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        }
+      ],
+      "exists": true,
+      "sha256": "b4b35e89548a3bda8da285fee702d834e0c3e59afb0bf016cf38c05be075fc76",
+      "dimensions": "1254x1254",
+      "bytes": 69583,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\ko\\ko_multi_unverified_supplies_b4b35e89548a_post_ko_02_supplies.png",
+      "copy_sha256": "b4b35e89548a3bda8da285fee702d834e0c3e59afb0bf016cf38c05be075fc76",
+      "verification_status": "planned_config_enabled_not_live_verified"
+    },
+    {
+      "language": "ko",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_ko\\post_ko_03_escape.png",
+      "evidence": [
+        {
+          "platform": "config",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\posting_config.json",
+          "variantId": "escape",
+          "post_url": null,
+          "verification_status": "planned_config_enabled_not_live_verified",
+          "notes": "Enabled in posting_config.json; not proof of publication."
+        },
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_ko",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        }
+      ],
+      "exists": true,
+      "sha256": "8271c59e183b0d414400f5002147288856315d06fad326561e66d0d33872b627",
+      "dimensions": "1254x1254",
+      "bytes": 88156,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\ko\\ko_multi_unverified_escape_8271c59e183b_post_ko_03_escape.png",
+      "copy_sha256": "8271c59e183b0d414400f5002147288856315d06fad326561e66d0d33872b627",
+      "verification_status": "planned_config_enabled_not_live_verified"
+    },
+    {
+      "language": "vi",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_viet\\post_viet.png",
+      "evidence": [
+        {
+          "platform": "config",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\posting_config.json",
+          "variantId": "base_image_pool",
+          "post_url": null,
+          "verification_status": "local_image_pool_not_live_verified",
+          "notes": "Listed in posting_config.image_pool; not proof of publication."
+        },
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_viet",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        }
+      ],
+      "exists": true,
+      "sha256": "a70979179d5cbb33aa5ef3fd09ce5fcadef6d7bb425516c5c36661b5a62b2b7b",
+      "dimensions": "1254x1254",
+      "bytes": 1336891,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\vi\\vi_multi_unverified_country_folder_png_a70979179d5c_post_viet.png",
+      "copy_sha256": "a70979179d5cbb33aa5ef3fd09ce5fcadef6d7bb425516c5c36661b5a62b2b7b",
+      "verification_status": "local_image_pool_not_live_verified"
+    },
+    {
+      "language": "vi",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_viet\\post_viet_01_bell.png",
+      "evidence": [
+        {
+          "platform": "config",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\posting_config.json",
+          "variantId": "bell",
+          "post_url": null,
+          "verification_status": "planned_config_enabled_not_live_verified",
+          "notes": "Enabled in posting_config.json; not proof of publication."
+        },
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_viet",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        },
+        {
+          "platform": "x",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\receipts\\2026-10-04-2000-live.json",
+          "cycle_or_run_id": "2026-10-04-2000-live",
+          "variantId": "bell",
+          "post_url": null,
+          "source_image_url": null,
+          "verification_status": "receipt_selected_not_live_verified",
+          "receipt_state": "selected",
+          "notes": "Receipt has no verified publish evidence; copy preserved as local/unverified only."
+        }
+      ],
+      "exists": true,
+      "sha256": "e43adba4b6517baccbb09b411653b78fa05b2079314844cc0a5a0bca6bdf4ee1",
+      "dimensions": "1254x1254",
+      "bytes": 84219,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\vi\\vi_multi_unverified_bell_e43adba4b651_post_viet_01_bell.png",
+      "copy_sha256": "e43adba4b6517baccbb09b411653b78fa05b2079314844cc0a5a0bca6bdf4ee1",
+      "verification_status": "receipt_selected_not_live_verified"
+    },
+    {
+      "language": "vi",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_viet\\post_viet_02_supplies.png",
+      "evidence": [
+        {
+          "platform": "config",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\posting_config.json",
+          "variantId": "supplies",
+          "post_url": null,
+          "verification_status": "planned_config_enabled_not_live_verified",
+          "notes": "Enabled in posting_config.json; not proof of publication."
+        },
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_viet",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        }
+      ],
+      "exists": true,
+      "sha256": "3eb391ca74a173b3e4e565085e558bc7e698c160e42ffaf7128a304576663f47",
+      "dimensions": "1254x1254",
+      "bytes": 75705,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\vi\\vi_multi_unverified_supplies_3eb391ca74a1_post_viet_02_supplies.png",
+      "copy_sha256": "3eb391ca74a173b3e4e565085e558bc7e698c160e42ffaf7128a304576663f47",
+      "verification_status": "planned_config_enabled_not_live_verified"
+    },
+    {
+      "language": "vi",
+      "source_local_path": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\x_viet\\post_viet_03_escape.png",
+      "evidence": [
+        {
+          "platform": "config",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\posting_config.json",
+          "variantId": "escape",
+          "post_url": null,
+          "verification_status": "planned_config_enabled_not_live_verified",
+          "notes": "Enabled in posting_config.json; not proof of publication."
+        },
+        {
+          "platform": "local_image_pool",
+          "receipt_or_config": "marketing\\x_daily_zombie_school_posting\\image_pool\\x_viet",
+          "variantId": "country_folder_png",
+          "post_url": null,
+          "verification_status": "local_country_folder_not_live_verified",
+          "notes": "Existing language image_pool PNG preserved as local original; not proof of publication."
+        }
+      ],
+      "exists": true,
+      "sha256": "294666af0c059069ee1b0c4bec5945b33787b85a288a80e0ca607a3b5ceb2c4a",
+      "dimensions": "1254x1254",
+      "bytes": 89501,
+      "copied_to": "D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Graphic_designer\\recovery_20261004\\posted_images_by_country\\vi\\vi_multi_unverified_escape_294666af0c05_post_viet_03_escape.png",
+      "copy_sha256": "294666af0c059069ee1b0c4bec5945b33787b85a288a80e0ca607a3b5ceb2c4a",
+      "verification_status": "planned_config_enabled_not_live_verified"
+    }
+  ]
+}
