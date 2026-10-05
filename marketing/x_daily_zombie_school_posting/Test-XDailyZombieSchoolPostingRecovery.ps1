@@ -60,6 +60,13 @@ try {
   $reportPath = Write-XDailyPostingReport -Recovery ([pscustomobject]@{cycleId=$cycleId;status='stopped_unsafe';attempts=1;output='X_POSTING_FAILED: Authentication dialog visible'}) -ReceiptDirectory (Join-Path $temp 'receipts') -ReportDirectory (Join-Path $temp 'reports')
   $report = Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8 | ConvertFrom-Json
   Assert-True ($report.complete -eq $false -and $report.verifiedPosts.Count -eq 2 -and $report.failedLanguage -eq 'ko') 'daily report records only verified URLs and actual failure'
+
+  $reportOnlyPath = Join-Path $temp 'report-only'
+  $reportOnlyOutput = & (Join-Path $PSHOME 'powershell.exe') -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'Invoke-XDailyZombieSchoolPostingRecovery.ps1') -ReportOnly -CycleId $cycleId -ReceiptDirectory (Join-Path $temp 'receipts') -ReportDirectory $reportOnlyPath 2>&1
+  $reportOnlyResult = ($reportOnlyOutput -join "`n") | ConvertFrom-Json
+  Assert-True ($LASTEXITCODE -eq 0 -and $reportOnlyResult.attempts -eq 0 -and $reportOnlyResult.status -eq 'incomplete') 'report-only reads receipt and exits without starting posting attempts'
+  $reportOnlyDocument = Get-Content -LiteralPath $reportOnlyResult.reportPath -Raw -Encoding UTF8 | ConvertFrom-Json
+  Assert-True ($reportOnlyDocument.cycleId -eq $cycleId -and $reportOnlyDocument.verifiedPosts.Count -eq 2 -and -not $reportOnlyDocument.complete) 'report-only preserves existing single-cycle report structure'
 } finally { if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Recurse } }
 
 Write-Output 'RECOVERY_TEST_OK'

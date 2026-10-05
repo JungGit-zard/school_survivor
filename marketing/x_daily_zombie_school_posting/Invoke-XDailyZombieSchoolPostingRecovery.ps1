@@ -6,7 +6,8 @@ param(
   [int]$MaxAttempts = 16,
   [int]$RetryDelaySeconds = 300,
   [int]$MaxRunMinutes = 75,
-  [switch]$TestOnly
+  [switch]$TestOnly,
+  [switch]$ReportOnly
 )
 
 Set-StrictMode -Version Latest
@@ -96,6 +97,26 @@ if ($TestOnly) { return }
 
 $config = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'posting_config.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 if ([string]::IsNullOrWhiteSpace($CycleId)) { $CycleId = Get-PostingCycleId ([DateTimeOffset]::UtcNow) $config.schedule_times }
+
+if ($ReportOnly) {
+  $receiptPath = Join-Path $ReceiptDirectory ($CycleId + '.json')
+  $complete = $false
+  if (Test-Path -LiteralPath $receiptPath) {
+    try { $complete = Test-CycleComplete (Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8 | ConvertFrom-Json) }
+    catch { $complete = $false }
+  }
+  $recovery = [pscustomobject]@{
+    status = if ($complete) { 'complete' } else { 'incomplete' }
+    cycleId = $CycleId
+    attempts = 0
+    output = $null
+  }
+  $reportPath = Write-XDailyPostingReport -Recovery $recovery -ReceiptDirectory $ReceiptDirectory -ReportDirectory $ReportDirectory
+  $recovery | Add-Member -NotePropertyName reportPath -NotePropertyValue $reportPath
+  $recovery | ConvertTo-Json -Depth 6 -Compress
+  return
+}
+
 $started = [DateTimeOffset]::Now.ToOffset([TimeSpan]::FromHours(9))
 $wrapper = Join-Path $PSScriptRoot 'Invoke-XDailyZombieSchoolPosting.ps1'
 $powershell = Join-Path $PSHOME 'powershell.exe'
