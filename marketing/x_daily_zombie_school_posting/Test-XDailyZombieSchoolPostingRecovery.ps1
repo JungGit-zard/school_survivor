@@ -49,6 +49,9 @@ $uncertain = Invoke-XPostingCycleRecovery -CycleId $cycleId -Now $now -MaxAttemp
 Assert-True ($uncertain.status -eq 'stopped_unsafe' -and $uncertain.reason -eq 'uncertain_publish') 'uncertain publish stops without another click'
 
 $temp = Join-Path ([IO.Path]::GetTempPath()) ('x-posting-recovery-test-' + [guid]::NewGuid().ToString('N'))
+$tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+$tempFull = [IO.Path]::GetFullPath($temp)
+if (-not $tempFull.StartsWith($tempRoot, [StringComparison]::OrdinalIgnoreCase) -or [IO.Path]::GetFileName($tempFull) -notmatch '^x-posting-recovery-test-[0-9a-f]{32}$') { throw "Refusing unexpected test cleanup path: $tempFull" }
 try {
   $receipt = [pscustomobject]@{ failedLanguage='ko'; entries=[pscustomobject]@{
     ja=[pscustomobject]@{state='verified';evidence=[pscustomobject]@{url='https://x.com/jungsilx/status/100'}}
@@ -67,6 +70,17 @@ try {
   Assert-True ($LASTEXITCODE -eq 0 -and $reportOnlyResult.attempts -eq 0 -and $reportOnlyResult.status -eq 'incomplete') 'report-only reads receipt and exits without starting posting attempts'
   $reportOnlyDocument = Get-Content -LiteralPath $reportOnlyResult.reportPath -Raw -Encoding UTF8 | ConvertFrom-Json
   Assert-True ($reportOnlyDocument.cycleId -eq $cycleId -and $reportOnlyDocument.verifiedPosts.Count -eq 2 -and -not $reportOnlyDocument.complete) 'report-only preserves existing single-cycle report structure'
-} finally { if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Recurse } }
+
+  $campaign = Join-Path $temp 'default-path-campaign'
+  New-Item -ItemType Directory -Path $campaign -Force | Out-Null
+  foreach ($file in @('Invoke-XDailyZombieSchoolPostingRecovery.ps1','PostingReceipt.ps1','posting_config.json')) {
+    Copy-Item -LiteralPath (Join-Path $PSScriptRoot $file) -Destination (Join-Path $campaign $file)
+  }
+  $defaultPathOutput = & (Join-Path $PSHOME 'powershell.exe') -NoProfile -ExecutionPolicy Bypass -File (Join-Path $campaign 'Invoke-XDailyZombieSchoolPostingRecovery.ps1') -ReportOnly 2>&1
+  $defaultPathResult = ($defaultPathOutput -join "`n") | ConvertFrom-Json
+  $expectedReports = Join-Path $campaign 'reports'
+  Assert-True ($LASTEXITCODE -eq 0 -and $defaultPathResult.attempts -eq 0 -and $defaultPathResult.reportPath.StartsWith($expectedReports,[StringComparison]::OrdinalIgnoreCase)) 'ReportOnly defaults resolve relative to the script when called without directory arguments'
+  Assert-True ((Test-Path -LiteralPath $defaultPathResult.reportPath) -and -not (Test-Path -LiteralPath (Join-Path $campaign 'receipts'))) 'default-path ReportOnly writes only its temporary report and does not create or change source receipts'
+} finally { if (Test-Path -LiteralPath $tempFull) { Remove-Item -LiteralPath $tempFull -Recurse } }
 
 Write-Output 'RECOVERY_TEST_OK'

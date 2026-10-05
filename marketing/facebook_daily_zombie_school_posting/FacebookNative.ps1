@@ -252,6 +252,9 @@ function Get-FacebookVisibleTabSnapshot($Window) {
 function Open-FacebookProfileNewTabNative([long]$WindowId=0) {
  $w=Get-FacebookChromeWindow $WindowId
  Focus-FacebookChromeWindow $w;Assert-FacebookForeground $w
+ $existingFacebookTabs=@((Get-FacebookVisibleTabSnapshot $w)|Where-Object{Test-FacebookTabName $_.name})
+ if($existingFacebookTabs.Count -gt 1){throw "Expected at most one exact Facebook tab before opening a profile tab; found $($existingFacebookTabs.Count)"}
+ if($existingFacebookTabs.Count -eq 1){return Open-FacebookProfileNative $WindowId}
  $beforeTabs=@(Get-FacebookVisibleTabSnapshot $w)
  $selectedBefore=@($beforeTabs|Where-Object{$_.selected}|Select-Object -ExpandProperty name)
  [Windows.Forms.Clipboard]::SetText($script:FacebookProfileUrl)
@@ -274,6 +277,34 @@ function Open-FacebookProfileNewTabNative([long]$WindowId=0) {
  Wait-FacebookProfileReady $w
  $afterTabs=@(Get-FacebookVisibleTabSnapshot $w)
  [pscustomobject]@{windowId=$w.Current.NativeWindowHandle;processId=$w.Current.ProcessId;openedNewTab=$true;profileUrl=$script:FacebookProfileUrl;selectedTabBefore=@($selectedBefore);visibleTabsBefore=@($beforeTabs|Select-Object -ExpandProperty name);visibleTabsAfter=@($afterTabs|Select-Object -ExpandProperty name);windowBounds=(Set-FacebookStableWindowBounds $w)}
+}
+function Close-FacebookDuplicateProfileTabNative([long]$WindowId=0) {
+ if($WindowId -le 0){throw 'CloseDuplicateProfileTab requires a fresh explicit WindowId'}
+ $w=Get-FacebookChromeWindow $WindowId
+ Focus-FacebookChromeWindow $w;Assert-FacebookForeground $w
+ $profileTabs=@((Get-FacebookUiAll $w)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::TabItem -and (Test-FacebookTabName $_.Current.Name)})
+ if($profileTabs.Count -ne 2){throw "Expected exactly two visible Facebook profile tabs; found $($profileTabs.Count)"}
+ $ownedTab=$profileTabs[-1];$selection=$null
+ if(-not $ownedTab.TryGetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern,[ref]$selection)){throw 'Newest trace-identified Facebook tab has no SelectionItemPattern'}
+ $selection.Select();Start-Sleep -Milliseconds 150
+ $facebookTabs=@((Get-FacebookVisibleTabSnapshot $w)|Where-Object{Test-FacebookTabName $_.name});$selected=@($facebookTabs|Where-Object{$_.selected})
+ if($facebookTabs.Count -ne 2 -or $selected.Count -ne 1 -or -not $facebookTabs[-1].selected){throw 'Trace-identified newest Facebook profile tab did not become the unique selected tab'}
+ Assert-FacebookProfileAddress $w;Assert-FacebookAccountMarker $w
+ $readiness=Get-FacebookExistingComposerReadiness $w
+ if($readiness.state -cne 'wait'){throw "Refusing to close selected Facebook tab while a composer exists (state '$($readiness.state)')"}
+ Assert-FacebookForeground $w
+ $freshFacebookTabs=@((Get-FacebookVisibleTabSnapshot $w)|Where-Object{Test-FacebookTabName $_.name});$freshSelected=@($freshFacebookTabs|Where-Object{$_.selected})
+ if($freshFacebookTabs.Count -ne 2 -or $freshSelected.Count -ne 1 -or -not $freshFacebookTabs[-1].selected){throw 'Trace-identified Facebook tab selection changed before the one close action; stopped'}
+ Assert-FacebookProfileAddress $w;Assert-FacebookAccountMarker $w
+ [Windows.Forms.SendKeys]::SendWait('^w')
+ $deadline=[DateTime]::UtcNow.AddSeconds(5);do{$afterFacebookTabs=@((Get-FacebookVisibleTabSnapshot $w)|Where-Object{Test-FacebookTabName $_.name});if($afterFacebookTabs.Count -eq 1){break};Start-Sleep -Milliseconds 150}while([DateTime]::UtcNow -lt $deadline)
+ if($afterFacebookTabs.Count -ne 1){throw "Expected exactly one Facebook profile tab after closing the selected duplicate; found $($afterFacebookTabs.Count)"}
+ if(-not (Select-FacebookProfileTab $w)){throw 'Remaining original Facebook profile tab could not be selected'}
+ $afterFacebookTabs=@((Get-FacebookVisibleTabSnapshot $w)|Where-Object{Test-FacebookTabName $_.name})
+ $afterSelected=@($afterFacebookTabs|Where-Object{$_.selected})
+ if($afterFacebookTabs.Count -ne 1 -or $afterSelected.Count -ne 1){throw 'Remaining Facebook profile tab is not the unique selected tab'}
+ Assert-FacebookProfileAddress $w;Assert-FacebookAccountMarker $w
+ [pscustomobject]@{status='closed_selected_duplicate_profile_tab';windowId=$WindowId;remainingFacebookTabs=@($afterFacebookTabs|Select-Object -ExpandProperty name);remainingSelectedTab=$afterSelected[0].name}
 }
 function Get-FacebookVisibleComposerButton($Window) { $names=@("What's on your mind?",'무슨 생각을 하고 계신가요?');$all=@((Get-FacebookUiAll $Window)|Where-Object{$_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -in $names});if($all.Count -ne 1){throw "Expected one exact Facebook composer button; found $($all.Count)"};if($all[0].Current.IsOffscreen){$scrollItem=$null;if(-not $all[0].TryGetCurrentPattern([Windows.Automation.ScrollItemPattern]::Pattern,[ref]$scrollItem)){throw 'Exact offscreen composer button has no ScrollItemPattern'};$scrollItem.ScrollIntoView();Start-Sleep -Milliseconds 150};$fresh=Find-FacebookUi -Names $names -ControlType 'Button' -Window $Window;$bounds=$fresh.Current.BoundingRectangle;if($bounds.IsEmpty -or $bounds.Width -lt 2 -or $bounds.Height -lt 2){throw 'Exact Facebook composer button has no usable visible frame'};$fresh }
 function Invoke-FacebookComposerButton($Button,$Window) { Assert-FacebookForeground $Window;$layout=Set-FacebookStableWindowBounds $Window;$name=$Button.Current.Name;$fresh=@((Get-FacebookUiAll $Window)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.IsEnabled -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -ceq $name});if($fresh.Count -ne 1){throw 'UI composer button changed before semantic invoke; input stopped'};if(-not (Test-FacebookVisiblePostingIdentity $Window)){throw 'Expected visible Facebook posting identity is absent; semantic composer invoke stopped'};$bounds=$fresh[0].Current.BoundingRectangle;if($bounds.IsEmpty -or $bounds.Width -lt 2 -or $bounds.Height -lt 2){throw 'Composer button has no usable visible frame; semantic invoke stopped'};$invoke=$null;if(-not $fresh[0].TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern,[ref]$invoke)){throw 'Exact composer button has no InvokePattern'};Assert-FacebookForeground $Window;$invoke.Invoke();Start-Sleep -Milliseconds 200;[pscustomobject]@{semanticInvoke=$true;x=[int][math]::Floor($bounds.X+($bounds.Width/2));y=[int][math]::Floor($bounds.Y+($bounds.Height/2));windowBounds=$layout} }

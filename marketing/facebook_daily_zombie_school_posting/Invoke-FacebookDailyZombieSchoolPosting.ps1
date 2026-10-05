@@ -1,6 +1,6 @@
 ﻿[CmdletBinding()]
 param(
-  [Parameter(Mandatory=$true)][ValidateSet('InspectPair','SelectSourcePair','DiscoverWindow','OpenProfile','OpenProfileNewTab','RecoverStorageWarning','ProfileReadinessDiagnostics','FeedCandidateDiagnostics','ReadState','OpenComposer','ResumeOwnDraft','TypeText','AttachImage','VerifyDraft','PublishOnce','OpenNewestPost','VerifyPost','ClosePost','CancelOwnDraft','FullCycleResumeSafe')][string]$Action,
+[Parameter(Mandatory=$true)][ValidateSet('InspectPair','SelectSourcePair','DiscoverWindow','OpenProfile','OpenProfileNewTab','CloseDuplicateProfileTab','RecoverStorageWarning','ProfileReadinessDiagnostics','FeedCandidateDiagnostics','ReadState','OpenComposer','ResumeOwnDraft','TypeText','AttachImage','VerifyDraft','PublishOnce','OpenNewestPost','VerifyPost','ClosePost','CancelOwnDraft','FullCycleResumeSafe')][string]$Action,
   [Parameter(Mandatory=$true)][string]$RunId,
   [ValidateSet('ja','en','vi','ko')][string]$Language,
   [string]$ReceiptDirectory,
@@ -54,6 +54,7 @@ switch ($Action) {
   'DiscoverWindow' { $w=Get-FacebookChromeWindow $WindowId; [pscustomobject]@{windowId=$w.Current.NativeWindowHandle;processId=$w.Current.ProcessId;title=$w.Current.Name}|ConvertTo-Json;exit 0 }
   'OpenProfile' { Open-FacebookProfileNative $WindowId|ConvertTo-Json;exit 0 }
   'OpenProfileNewTab' { Open-FacebookProfileNewTabNative $WindowId|ConvertTo-Json;exit 0 }
+  'CloseDuplicateProfileTab' { Close-FacebookDuplicateProfileTabNative $WindowId|ConvertTo-Json -Depth 5;exit 0 }
   'RecoverStorageWarning' { $w=Get-FacebookChromeWindow $WindowId;Close-FacebookChromeStorageWarningIfPresent $w|ConvertTo-Json;exit 0 }
   'ProfileReadinessDiagnostics' { $w=Get-FacebookChromeWindow $WindowId;Get-FacebookProfileReadinessDiagnostics $w|ConvertTo-Json -Depth 5;exit 0 }
   'FeedCandidateDiagnostics' { $entry=$receipt.entries.$Language;if($null -eq $entry){throw 'Feed diagnostics require a frozen receipt intent'};$w=Get-FacebookChromeWindow $WindowId;Get-FacebookFeedCandidateDiagnostics $entry.intent.text $w|ConvertTo-Json -Depth 8;exit 0 }

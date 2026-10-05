@@ -1,8 +1,8 @@
 ﻿[CmdletBinding()]
 param(
   [string]$CycleId,
-  [string]$ReceiptDirectory = (Join-Path $PSScriptRoot 'receipts'),
-  [string]$ReportDirectory = (Join-Path $PSScriptRoot 'reports'),
+  [string]$ReceiptDirectory = '',
+  [string]$ReportDirectory = '',
   [int]$MaxAttempts = 16,
   [int]$RetryDelaySeconds = 300,
   [int]$MaxRunMinutes = 75,
@@ -12,6 +12,8 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if ([string]::IsNullOrWhiteSpace($ReceiptDirectory)) { $ReceiptDirectory = Join-Path $PSScriptRoot 'receipts' }
+if ([string]::IsNullOrWhiteSpace($ReportDirectory)) { $ReportDirectory = Join-Path $PSScriptRoot 'reports' }
 . (Join-Path $PSScriptRoot 'PostingReceipt.ps1')
 
 function Get-XRecoveryStopReason([string]$Output) {

@@ -46,9 +46,10 @@ function Test-NewTaskReadback([string]$Name) {
   } | Sort-Object)
   if ($savedTriggers.Count -ne 5 -or ($savedTimes -join ',') -cne ($times -join ',')) { throw "Saved trigger times differ from $($times -join ',')." }
   $startWhenAvailable = $xml.SelectSingleNode('/t:Task/t:Settings/t:StartWhenAvailable', $ns)
+  $wakeToRun = $xml.SelectSingleNode('/t:Task/t:Settings/t:WakeToRun', $ns)
   $multiple = $xml.SelectSingleNode('/t:Task/t:Settings/t:MultipleInstancesPolicy', $ns)
   $enabledSetting = $xml.SelectSingleNode('/t:Task/t:Settings/t:Enabled', $ns)
-  if (($null -ne $startWhenAvailable -and $startWhenAvailable.InnerText -eq 'true') -or $null -eq $multiple -or $multiple.InnerText -ne 'IgnoreNew' -or ($null -ne $enabledSetting -and $enabledSetting.InnerText -eq 'false')) { throw 'Saved settings differ from enabled, no-backfill, IgnoreNew policy.' }
+  if (($null -ne $startWhenAvailable -and $startWhenAvailable.InnerText -eq 'true') -or $null -eq $wakeToRun -or $wakeToRun.InnerText -ne 'true' -or $null -eq $multiple -or $multiple.InnerText -ne 'IgnoreNew' -or ($null -ne $enabledSetting -and $enabledSetting.InnerText -eq 'false')) { throw 'Saved settings differ from enabled, wake-on-sleep, no-backfill, IgnoreNew policy.' }
   $logon = $xml.SelectSingleNode('/t:Task/t:Principals/t:Principal/t:LogonType', $ns)
   $user = $xml.SelectSingleNode('/t:Task/t:Principals/t:Principal/t:UserId', $ns)
   if ($null -eq $logon -or $null -eq $user -or $logon.InnerText -ne 'InteractiveToken' -or $user.InnerText -ne $userSid) { throw 'Saved principal is not the current InteractiveToken user.' }
@@ -68,6 +69,7 @@ try {
   $principal = New-ScheduledTaskPrincipal -UserId $userSid -LogonType Interactive -RunLevel Limited
   $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 180) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
   $settings.StartWhenAvailable = $false
+  $settings.WakeToRun = $true
   $settings.RestartCount = 0
   $settings.Enabled = $true
   Register-ScheduledTask -TaskName $TaskName -TaskPath $taskPath -Action $action -Trigger $triggers -Principal $principal -Settings $settings -Description $description -Force | Out-Null
