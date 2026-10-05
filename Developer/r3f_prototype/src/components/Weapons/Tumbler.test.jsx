@@ -34,8 +34,8 @@ describe('TumblerModel visual spec', () => {
   })
 
   it('adds a matched outline/body C-handle and straw with the requested geometry proportions', () => {
-    expect(source).toContain('const handleMat = useMemo(() => toonMat(0xe85d2a, 0.16), [])')
-    expect(source).toContain('const strawMat = useMemo(() => toonMat(0x3dc2c8, 0.12), [])')
+    expect(source).toContain('const handleMat = useMemo(() => toonMat(0x83eadc, 0.14), [])')
+    expect(source).toContain('const strawMat = useMemo(() => toonMat(0x83eadc, 0.12), [])')
     expect(source).toContain('position={[0.29, 0, 0]} rotation={[0, 0, -Math.PI * 0.7]}')
     expect(source).toContain('<torusGeometry args={[0.20, 0.035, 8, 24, Math.PI * 1.4]} />')
     expect(source).toContain('position={[-0.05, 0.56, 0]} rotation={[0, 0, Math.PI * 0.12]}')

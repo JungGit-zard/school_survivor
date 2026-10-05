@@ -41,39 +41,70 @@ function SharkPart({ args, position, rotation, material, outlineScale = [1.08, 1
   )
 }
 
+function SharkEllipsoidPart({ args, position, rotation, material, outlineScale = [1.08, 1.08, 1.08] }) {
+  const outMat = useMemo(() => outlineMat(0.96), [])
+  return (
+    <group position={position} rotation={rotation} scale={args}>
+      <mesh material={outMat} scale={inflateScale(outlineScale)}>
+        <sphereGeometry args={[1, 18, 10]} />
+      </mesh>
+      <mesh material={material}>
+        <sphereGeometry args={[1, 18, 10]} />
+      </mesh>
+    </group>
+  )
+}
+
+function SharkTriFinPart({ args, position, rotation, material, outlineScale = [1.08, 1.08, 1.08] }) {
+  const outMat = useMemo(() => outlineMat(0.96), [])
+  return (
+    <group position={position} rotation={rotation} scale={args}>
+      <mesh material={outMat} scale={inflateScale(outlineScale)}>
+        <coneGeometry args={[1, 1, 3]} />
+      </mesh>
+      <mesh material={material}>
+        <coneGeometry args={[1, 1, 3]} />
+      </mesh>
+    </group>
+  )
+}
+
 export function SharkMissileModel() {
-  const bodyMat = useMemo(() => toonMat(0x28486f, 0.18), [])
-  const topMat = useMemo(() => toonMat(0x4f78aa, 0.2), [])
-  const bellyMat = useMemo(() => toonMat(0xf0dfbd, 0.06), [])
-  const finMat = useMemo(() => toonMat(0x20385a, 0.16), [])
-  const engineMat = useMemo(() => toonMat(0x242424, 0.18), [])
-  const stripeMat = useMemo(() => toonMat(0xf4c524, 0.35), [])
+  const bodyMat = useMemo(() => toonMat(0x1f9af5, 0.18), [])
+  const topMat = useMemo(() => toonMat(0x38c7ff, 0.22), [])
+  const bellyMat = useMemo(() => toonMat(0xf4fbff, 0.06), [])
+  const finMat = useMemo(() => toonMat(0x1478ce, 0.16), [])
+  const engineMat = useMemo(() => toonMat(0xb8c2d6, 0.14), [])
+  const stripeMat = useMemo(() => toonMat(0xf5392f, 0.28), [])
   const toothMat = useMemo(() => toonMat(0xfff4db, 0.05), [])
   const eyeMat = useMemo(() => toonMat(0xfff7e8, 0.08), [])
   const pupilMat = useMemo(() => toonMat(0x151515, 0.0), [])
+  const smileMat = useMemo(() => toonMat(0x5b0f28, 0.04), [])
+  const tongueMat = useMemo(() => toonMat(0xff7a9e, 0.12), [])
+  const blushMat = useMemo(() => toonMat(0xff8aa8, 0.12), [])
   const outMat = useMemo(() => outlineMat(0.96), [])
 
   return (
     <StudioTunedGroup itemId="weapon-shark-missile">
       <group scale={[0.62, 0.62, 0.62]}>
-      <SharkPart args={[0.44, 0.28, 0.9]} position={[0, 0, 0.02]} material={bodyMat} />
-      <SharkPart args={[0.46, 0.12, 0.54]} position={[0, 0.09, 0.08]} material={topMat} outlineScale={[1.05, 1.12, 1.06]} />
-      <SharkPart args={[0.46, 0.13, 0.44]} position={[0, -0.12, 0.18]} material={bellyMat} outlineScale={[1.05, 1.1, 1.06]} />
+      <SharkEllipsoidPart args={[0.34, 0.28, 0.58]} position={[0, 0, 0.02]} material={bodyMat} />
+      <SharkEllipsoidPart args={[0.31, 0.1, 0.34]} position={[0, 0.12, 0.05]} material={topMat} outlineScale={[1.05, 1.12, 1.06]} />
+      <SharkEllipsoidPart args={[0.29, 0.15, 0.4]} position={[0, -0.13, 0.25]} material={bellyMat} outlineScale={[1.05, 1.1, 1.06]} />
 
-      <mesh material={outMat} scale={inflateScale([1.1, 1.1, 1.1])} position={[0, 0.01, 0.6]} rotation={[Math.PI / 2, 0, 0]}>
-        <coneGeometry args={[0.23, 0.28, 4]} />
-      </mesh>
-      <mesh material={bodyMat} position={[0, 0.01, 0.6]} rotation={[Math.PI / 2, 0, 0]}>
-        <coneGeometry args={[0.23, 0.28, 4]} />
-      </mesh>
+        <mesh material={outMat} position={[0, 0.005, 0.47]} scale={[0.264, 0.192, 0.24]}>
+          <sphereGeometry args={[1, 18, 8]} />
+        </mesh>
+        <mesh material={bodyMat} position={[0, 0.005, 0.47]} scale={[0.22, 0.16, 0.2]}>
+          <sphereGeometry args={[1, 18, 8]} />
+        </mesh>
 
-      <SharkPart args={[0.12, 0.42, 0.24]} position={[0, 0.29, -0.02]} rotation={[0.05, 0, Math.PI / 4]} material={finMat} outlineScale={[1.12, 1.08, 1.1]} />
-      <SharkPart args={[0.13, 0.3, 0.28]} position={[-0.3, -0.05, -0.04]} rotation={[0.25, 0.12, -0.65]} material={finMat} outlineScale={[1.1, 1.08, 1.1]} />
-      <SharkPart args={[0.13, 0.3, 0.28]} position={[0.3, -0.05, -0.04]} rotation={[0.25, -0.12, 0.65]} material={finMat} outlineScale={[1.1, 1.08, 1.1]} />
+      <SharkTriFinPart args={[0.065, 0.42, 0.24]} position={[0, 0.32, -0.08]} rotation={[0.05, 0, 0]} material={finMat} outlineScale={[1.12, 1.08, 1.1]} />
+      <SharkTriFinPart args={[0.085, 0.50, 0.24]} position={[-0.4, 0, 0.05]} rotation={[0.35, 0.18, 1.1]} material={finMat} outlineScale={[1.1, 1.08, 1.1]} />
+      <SharkTriFinPart args={[0.085, 0.50, 0.24]} position={[0.4, 0, 0.05]} rotation={[0.35, -0.18, -1.1]} material={finMat} outlineScale={[1.1, 1.08, 1.1]} />
 
-      <SharkPart args={[0.54, 0.3, 0.18]} position={[0, 0, -0.52]} material={engineMat} />
-      <SharkPart args={[0.58, 0.08, 0.19]} position={[0, 0.08, -0.44]} rotation={[0, 0, -0.55]} material={stripeMat} outlineScale={[1.03, 1.05, 1.04]} />
-      <SharkPart args={[0.58, 0.08, 0.19]} position={[0, -0.08, -0.44]} rotation={[0, 0, 0.55]} material={stripeMat} outlineScale={[1.03, 1.05, 1.04]} />
+      <SharkEllipsoidPart args={[0.3, 0.22, 0.12]} position={[0, 0, -0.5]} material={engineMat} />
+      <SharkPart args={[0.38, 0.055, 0.13]} position={[0, 0.075, -0.42]} rotation={[0, 0, -0.55]} material={stripeMat} outlineScale={[1.03, 1.05, 1.04]} />
+      <SharkPart args={[0.38, 0.055, 0.13]} position={[0, -0.075, -0.42]} rotation={[0, 0, 0.55]} material={stripeMat} outlineScale={[1.03, 1.05, 1.04]} />
 
       <mesh material={outMat} scale={inflateScale([1.08, 1.08, 1.08])} position={[0, 0, -0.76]} rotation={[-Math.PI / 2, 0, 0]}>
         <coneGeometry args={[0.23, 0.42, 4]} />
@@ -82,18 +113,40 @@ export function SharkMissileModel() {
         <coneGeometry args={[0.23, 0.42, 4]} />
       </mesh>
 
-      {[-0.16, 0, 0.16].map((x) => (
-        <mesh key={x} material={toothMat} position={[x, -0.13, 0.55]} rotation={[Math.PI, 0, 0]}>
-          <coneGeometry args={[0.045, 0.16, 3]} />
+      {[-0.085, 0, 0.085].map((x) => (
+        <mesh key={x} material={toothMat} position={[x, 0.006, 0.707]} rotation={[Math.PI, 0, 0]}>
+          <coneGeometry args={[0.022, 0.045, 3]} />
         </mesh>
       ))}
 
-      <mesh material={eyeMat} position={[-0.16, 0.05, 0.5]} rotation={[0, 0.25, 0]}>
-        <boxGeometry args={[0.12, 0.08, 0.025]} />
+      <mesh material={eyeMat} position={[-0.18, 0.105, 0.63]} rotation={[0, 0.35, 0]} scale={[0.10, 0.12, 0.024]}>
+        <sphereGeometry args={[1, 14, 8]} />
       </mesh>
-      <mesh material={pupilMat} position={[-0.19, 0.05, 0.515]} rotation={[0, 0.25, 0]}>
-        <boxGeometry args={[0.05, 0.035, 0.02]} />
+      <mesh material={pupilMat} position={[-0.19, 0.098, 0.656]} rotation={[0, 0.35, 0]} scale={[0.058, 0.07, 0.014]}>
+        <sphereGeometry args={[1, 10, 6]} />
       </mesh>
+      <mesh material={eyeMat} position={[0.18, 0.105, 0.63]} rotation={[0, -0.35, 0]} scale={[0.10, 0.12, 0.024]}>
+        <sphereGeometry args={[1, 14, 8]} />
+      </mesh>
+      <mesh material={pupilMat} position={[0.19, 0.098, 0.656]} rotation={[0, -0.35, 0]} scale={[0.058, 0.07, 0.014]}>
+        <sphereGeometry args={[1, 10, 6]} />
+      </mesh>
+      {[-0.205, 0.205].map((x) => (
+        <mesh key={`shark-eye-spark-${x}`} material={eyeMat} position={[x, 0.13, 0.674]} scale={[0.021, 0.024, 0.012]}>
+          <sphereGeometry args={[1, 8, 4]} />
+        </mesh>
+      ))}
+      <mesh material={smileMat} position={[0, -0.045, 0.675]} scale={[0.145, 0.082, 0.028]}>
+        <sphereGeometry args={[1, 18, 10]} />
+      </mesh>
+      <mesh material={tongueMat} position={[0.015, -0.079, 0.698]} scale={[0.075, 0.032, 0.014]}>
+        <sphereGeometry args={[1, 10, 5]} />
+      </mesh>
+      {[-0.24, 0.24].map((x) => (
+        <mesh key={`shark-blush-${x}`} material={blushMat} position={[x, -0.01, 0.61]} rotation={[0, x < 0 ? 0.32 : -0.32, 0]} scale={[0.035, 0.018, 0.01]}>
+          <sphereGeometry args={[1, 8, 4]} />
+        </mesh>
+      ))}
       </group>
     </StudioTunedGroup>
   )

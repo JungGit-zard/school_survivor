@@ -10,11 +10,11 @@ import { tumblerHitMultiplier } from '../../lib/tumblerFalloff.js'
 import StudioTunedGroup from '../StudioTunedGroup.jsx'
 
 export function TumblerModel() {
-  const bodyMat = useMemo(() => toonMat(0xff7a3d, 0.16), [])
-  const capMat = useMemo(() => toonMat(0xf4f4f4, 0.08), [])
+  const bodyMat = useMemo(() => toonMat(0x68d8ee, 0.15), [])
+  const capMat = useMemo(() => toonMat(0xf4fbff, 0.08), [])
   const outMat = useMemo(() => outlineMat(0.92), [])
-  const handleMat = useMemo(() => toonMat(0xe85d2a, 0.16), [])
-  const strawMat = useMemo(() => toonMat(0x3dc2c8, 0.12), [])
+  const handleMat = useMemo(() => toonMat(0x83eadc, 0.14), [])
+  const strawMat = useMemo(() => toonMat(0x83eadc, 0.12), [])
 
   return (
     <StudioTunedGroup itemId="weapon-tumbler">

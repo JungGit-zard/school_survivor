@@ -14,10 +14,15 @@ const DEFAULT_SPIN_DURATION_MS = 1200
 const DEFAULT_KNOCKBACK = 3.0
 const EXPLOSION_DURATION_MS = 420
 const UMBRELLA_COLORS = {
+  violet: 0x9c4fe8,
+  lilac: 0xd58cff,
+  rosyPink: 0xff6dc7,
+  petalWhite: 0xffefff,
+  deepMagenta: 0xc623a8,
+  blueDrop: 0x4cd7ff,
   cottonCandyPink: 0xff8fc4,
   babyBlue: 0x86c8ff,
   lime: 0x78ff62,
-  mintCream: 0x94f9b7,
   vanillaWhite: 0xffe4a8,
 }
 
@@ -25,17 +30,19 @@ let _umbrellaId = 0
 
 export function UmbrellaModel({ openProgress, spin = 0 }) {
   const panelMats = useMemo(() => [
-    toonMat(UMBRELLA_COLORS.cottonCandyPink, 0.16),
-    toonMat(UMBRELLA_COLORS.babyBlue, 0.14),
-    toonMat(UMBRELLA_COLORS.cottonCandyPink, 0.16),
-    toonMat(UMBRELLA_COLORS.lime, 0.18),
-    toonMat(UMBRELLA_COLORS.babyBlue, 0.14),
-    toonMat(UMBRELLA_COLORS.cottonCandyPink, 0.16),
-    toonMat(UMBRELLA_COLORS.mintCream, 0.10),
-    toonMat(UMBRELLA_COLORS.vanillaWhite, 0.12),
+    toonMat(UMBRELLA_COLORS.rosyPink, 0.16),
+    toonMat(UMBRELLA_COLORS.lilac, 0.14),
+    toonMat(UMBRELLA_COLORS.violet, 0.16),
+    toonMat(UMBRELLA_COLORS.rosyPink, 0.16),
+    toonMat(UMBRELLA_COLORS.lilac, 0.14),
+    toonMat(UMBRELLA_COLORS.violet, 0.16),
+    toonMat(UMBRELLA_COLORS.rosyPink, 0.16),
+    toonMat(UMBRELLA_COLORS.lilac, 0.14),
   ], [])
   const shaftMat = useMemo(() => toonMat(0xc8d0d0, 0.08), [])
-  const gripMat = useMemo(() => toonMat(UMBRELLA_COLORS.cottonCandyPink, 0.20), [])
+  const gripMat = useMemo(() => toonMat(UMBRELLA_COLORS.deepMagenta, 0.20), [])
+  const blossomMat = useMemo(() => toonMat(UMBRELLA_COLORS.petalWhite, 0.08), [])
+  const dropMat = useMemo(() => toonMat(UMBRELLA_COLORS.blueDrop, 0.18), [])
   const outMat = useMemo(() => outlineMat(0.94), [])
 
   const open = 0.18 + openProgress * 0.82
@@ -67,6 +74,32 @@ export function UmbrellaModel({ openProgress, spin = 0 }) {
       <mesh material={gripMat} position={[0.12, -0.67, 0]} rotation={[0, 0, Math.PI]}>
         <torusGeometry args={[0.12, 0.028, 8, 16, Math.PI * 1.25]} />
       </mesh>
+
+      {[1, 3, 5].map((index) => {
+        const angle = index * panelArc + panelArc * 0.48
+        const radial = 0.48 * open
+        const surfaceY = 0.245 + canopyScale[1] * Math.sqrt(Math.max(0, 0.782 ** 2 - (radial / (1.08 * open)) ** 2)) + 0.01
+        return (
+          <group key={`umbrella-blossom-${index}`} position={[Math.sin(angle) * radial, surfaceY, Math.cos(angle) * radial]} rotation={[0.3, angle, 0]}>
+            {Array.from({ length: 5 }, (_, petal) => (
+              <mesh key={petal} material={blossomMat} position={[Math.sin((petal * Math.PI * 2) / 5) * 0.035, 0, Math.cos((petal * Math.PI * 2) / 5) * 0.035]} scale={[0.026, 0.009, 0.042]}>
+                <sphereGeometry args={[1, 8, 4]} />
+              </mesh>
+            ))}
+          </group>
+        )
+      })}
+
+      {[0, 2, 4, 6].map((index) => {
+        const angle = index * panelArc + panelArc * 0.5
+        const radial = 0.34 * open
+        const surfaceY = 0.245 + canopyScale[1] * Math.sqrt(Math.max(0, 0.782 ** 2 - (radial / (1.08 * open)) ** 2)) + 0.012
+        return (
+          <mesh key={`umbrella-drop-${index}`} material={dropMat} position={[Math.sin(angle) * radial, surfaceY, Math.cos(angle) * radial]} rotation={[0.36, angle, 0]} scale={[0.035, 0.012, 0.06]}>
+            <sphereGeometry args={[1, 10, 5]} />
+          </mesh>
+        )
+      })}
       </group>
     </StudioTunedGroup>
   )
