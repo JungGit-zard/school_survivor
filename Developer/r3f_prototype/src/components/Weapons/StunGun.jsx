@@ -169,8 +169,8 @@ function StunBoltProjectile({ id, startX, startZ, sourceEndpoint, targetRb, targ
       if (hit) {
         emitSfx({
           id: 'stunGunHit',
-          volume: 0.1925, // 2026-09-06: 기존 0.385의 50%
-          rate: 0.64 * (1 + Math.min(chainDepth, 2) * 0.06),
+          volume: 0.09625, // 현재 0.1925의 50%
+          rate: 0.448 * (1 + Math.min(chainDepth, 2) * 0.06), // 현재 0.64의 70%
         })
       }
       onHit(id, tt.x, tt.z, targetRb, targetGeneration, sourceEndpoint, hitSet, chainsLeft, chainDepth)
@@ -245,7 +245,7 @@ export function StunGunWeapon() {
     const nearest = findClosestEnemy(STUN_GUN_TARGET_RANGE)
     if (!nearest) return
     lastFireRef.current = now
-    emitSfx({ id: 'stunGunFire' })
+    emitSfx({ id: 'stunGunFire', volume: 0.5, rate: 0.7 })
 
     const hitSet = createStunGunHitSet(nearest.rb, nearest.generation)
     setBolts([{

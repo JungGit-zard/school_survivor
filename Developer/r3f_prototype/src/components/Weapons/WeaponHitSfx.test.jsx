@@ -20,9 +20,10 @@ describe('direct weapon hit sound contracts', () => {
   it('stun gun emits depth-pitched hit sounds and never ghost-fires without a target', () => {
     const source = sourceOf('StunGun')
     expect(source).toContain("id: 'stunGunHit'")
-    expect(source).toContain('volume: 0.1925')
-    expect(source).toContain('rate: 0.64 * (1 + Math.min(chainDepth, 2) * 0.06)')
-    expect(source.indexOf('if (!nearestId) return')).toBeLessThan(source.indexOf("emitSfx({ id: 'stunGunFire' })"))
+    expect(source).toContain('volume: 0.09625')
+    expect(source).toContain('rate: 0.448 * (1 + Math.min(chainDepth, 2) * 0.06)')
+    expect(source).toContain("emitSfx({ id: 'stunGunFire', volume: 0.5, rate: 0.7 })")
+    expect(source.indexOf('if (!nearest) return')).toBeLessThan(source.indexOf("emitSfx({ id: 'stunGunFire',"))
   })
 
   it('onigiri emits one depth-pitched sound at each successful bounce hit', () => {

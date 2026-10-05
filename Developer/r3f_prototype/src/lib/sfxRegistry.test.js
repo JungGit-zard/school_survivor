@@ -114,6 +114,15 @@ describe('playSfx', () => {
     expect(howlVolume.mock.calls.reduce((sum, [volume]) => sum + volume, 0)).toBe(expectedGain)
   })
 
+  it('preserves the stun gun hit current-relative volume and pitch values below the default rate floor', async () => {
+    const { playSfx } = await import('./sfxRegistry.js')
+
+    playSfx('stunGunHit', 0.09625, { rate: 0.448 })
+
+    expect(howlVolume).toHaveBeenCalledWith(0.09625, 7)
+    expect(howlRate).toHaveBeenCalledWith(0.448, 7)
+  })
+
   it('registers dedicated Matilda dash and ho-ho laugh sounds', async () => {
     const { playSfx } = await import('./sfxRegistry.js')
 

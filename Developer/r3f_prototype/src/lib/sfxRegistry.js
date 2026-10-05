@@ -355,7 +355,8 @@ export function playSfx(id, volume = 1, options = {}) {
   if (!isSfxAllowedForAuthOverlay(id, options.authOverlayActive)) return
   const tuning = normalizeSfxTuning(options.tuningOverride ?? loadOptionalSfxTunings()[id])
   const tunedVolume = clamp(volume * tuning.volume, 0, 1)
-  const tunedRate = clamp((options.rate ?? 1) * tuning.rate, 0.5, 2)
+  const minimumRate = id === 'stunGunHit' ? 0.25 : 0.5
+  const tunedRate = clamp((options.rate ?? 1) * tuning.rate, minimumRate, 2)
   const protectedSfx = isProtectedSfx(id)
 
   if (!protectedSfx && _activeCombatVoices.size >= combatVoiceCapFor(id)) return
