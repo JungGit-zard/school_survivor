@@ -21,6 +21,8 @@ vi.mock('@react-three/fiber', () => ({
   Canvas: () => <div data-testid="stage-monster-canvas" />,
 }))
 
+vi.mock('./LobbyBgm.jsx', () => ({ default: () => null }))
+
 vi.mock('../lib/sfxRegistry.js', () => ({
   playSfx: vi.fn(),
 }))

@@ -25,7 +25,7 @@ describe('audio diagnostics catalog', () => {
     const catalog = getAudioDiagnosticCatalog()
     expect(catalog).toHaveLength(AUDIO_DIAGNOSTIC_EXPECTED_COUNT)
     expect(catalog.filter((entry) => entry.kind === 'sfx')).toHaveLength(AUDIO_DIAGNOSTIC_SFX_COUNT)
-    expect(catalog.map((entry) => entry.logicalId)).toEqual(expect.arrayContaining(['titleBgm']))
+    expect(catalog.find((entry) => entry.logicalId === 'titleBgm')?.url).toBe('https://music.escapezombie.com/zombie_openning.mp3')
     expect(validateAudioDiagnosticCatalog(catalog)).toMatchObject({
       valid: true,
       actualCount: AUDIO_DIAGNOSTIC_EXPECTED_COUNT,

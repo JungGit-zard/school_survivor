@@ -18,6 +18,7 @@ import { schoolButton, schoolPanel, uiBorders, uiPalette, uiShadows, uiType } fr
 import { stageTitle, t as translate, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
+import LobbyBgm from './LobbyBgm.jsx'
 import WeaponModal from './WeaponModal.jsx'
 import LobbySettingsModal from './LobbySettingsModal.jsx'
 import StageBossPreview from './StageBossPreview.jsx'
@@ -233,6 +234,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
 
   return (
     <div style={styles.root} onPointerDown={handleLobbyPointerDown}>
+      <LobbyBgm />
       {/* 배경 앰비언트 드리프트(콘텐츠 뒤, 클릭 방해 없음) */}
       <div
         ref={ambientDriftRef}

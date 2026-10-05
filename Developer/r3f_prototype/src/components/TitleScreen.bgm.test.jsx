@@ -62,7 +62,9 @@ describe('TitleScreen BGM', () => {
 
     expect(HowlMock).toHaveBeenCalledWith(expect.objectContaining({
       loop: true,
-      html5: false,
+      src: ['https://music.escapezombie.com/zombie_openning.mp3'],
+      format: ['mp3'],
+      html5: true,
       preload: false,
       volume: 0.5,
     }))

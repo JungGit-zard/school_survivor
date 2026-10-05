@@ -20,7 +20,7 @@ import {
   markPendingStartAfterLogin,
 } from '../lib/loginContinuation.js'
 import { Howl } from 'howler'
-import titleBgmUrl from '../assets/audio/title_bgm.m4a'
+import { TITLE_BGM_URL as titleBgmUrl } from '../lib/titleBgm.js'
 
 const REVEAL_CHEATS_CODE = ['arrowup', 'arrowdown', 'arrowup', 'arrowdown', 'a', 's', 'd']
 const DEV_CHEATS_ENABLED = import.meta.env.DEV
@@ -183,7 +183,9 @@ export default function TitleScreen({
       audio = new Howl({
         src: [titleBgmUrl],
         loop: true,
-        html5: false,
+        // Stream CDN audio without Web Audio's cross-origin fetch requirement.
+        format: ['mp3'],
+        html5: true,
         preload: false,
         volume: 0.5,
         onplay: () => handleSuccess(),

@@ -1,5 +1,5 @@
 import { SOUND_MAP } from './sfxRegistry.js'
-import titleBgmUrl from '../assets/audio/title_bgm.m4a'
+import { TITLE_BGM_URL as titleBgmUrl } from './titleBgm.js'
 
 // SFX를 추가하면 이 두 상수를 의도적으로 올려야 한다. 자동 파생이 아니라 tripwire다.
 // 2026-08-09: 78 → 81 (바이키티 커터칼 fire/snap/reload 3종).
@@ -12,7 +12,7 @@ export const AUDIO_DIAGNOSTIC_SFX_COUNT = 90
 export const AUDIO_DIAGNOSTIC_EXPECTED_COUNT = 91
 
 // This is intentionally derived from the runtime SFX authority plus the
-// canonical title BGM import. It is not a second audio manifest.
+// shared title BGM CDN URL. It is not a second audio manifest.
 export function getAudioDiagnosticCatalog() {
   return [
     ...Object.entries(SOUND_MAP).map(([logicalId, url]) => ({ logicalId, url, kind: 'sfx' })),
