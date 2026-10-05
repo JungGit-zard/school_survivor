@@ -211,7 +211,9 @@ export default function StageBossPreview({
 
   // 쇼타임(activeMotionToken)은 게이트 무시, 탭 리액션(touchMotionToken)만 게이트 적용.
   const motionEnabled = !interactive && (activeMotionToken > 0 || (touchMotionToken > 0 && motionAllowed()))
-  const staticPose = !interactive
+  // ZombieMesh의 기존 normal 보행을 재사용한다. ReactiveBoss가 루트 위치를
+  // 고정하므로 로비에서는 팔·다리 관절만 반복되고 모델은 제자리에 머문다.
+  const staticPose = false
 
   const updateFrame = (patch) => {
     if (!interactive || !onChange) return
@@ -282,12 +284,11 @@ export default function StageBossPreview({
         invalidateRef.current?.()
       }}
     >
-      {/* 로비 카드는 기본 정지 포즈 → demand로 상시 RAF/GPU 루프 제거(모바일 배터리·발열).
-          탭/포인터 상호작용 순간에만 invalidate()로 버스트 프레임을 그리고 settle되면 다시 정적.
-          animPhase='normal'은 sin(t) idle이라 t=0 정지 포즈 = 정상 rest 포즈로 안전.
-          framing 변경 시 R3F가 자동 invalidate → 스튜디오 실시간 sync 그대로 반영.
-          스튜디오 인터랙티브 프리뷰(interactive)만 상시 애니메이션 유지(탭/패럴랙스는 비인터랙티브 전용). */}
-      <Canvas frameloop={interactive ? 'always' : 'demand'} key={renderZoom} orthographic camera={{ position: [0, 2.2, 5.5], zoom: renderZoom }} dpr={[1, 1.5]}>
+      {/* 로비 B01~B04는 frameloop="always"에서 기존 normal 보행을 계속 재생한다.
+          ReactiveBoss가 루트 위치를 고정하므로 이동 없이 관절만 반복한다.
+          쇼타임 버스트는 이 보행과 별개인 바깥 래퍼 반응이며,
+          framing 변경은 기존처럼 스튜디오 실시간 sync를 그대로 반영한다. */}
+      <Canvas frameloop="always" key={renderZoom} orthographic camera={{ position: [0, 2.2, 5.5], zoom: renderZoom }} dpr={[1, 1.5]}>
         <ambientLight intensity={0.7} />
         <directionalLight position={[3, 5, 4]} intensity={2.6} />
         <ReactiveBoss

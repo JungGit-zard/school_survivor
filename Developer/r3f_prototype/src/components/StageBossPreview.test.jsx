@@ -42,7 +42,9 @@ function faceNdcY({ bossType, panY = 0, zoom = 100, width = 220, height = 144 })
 
 // Canvas???먯떇???뚮뜑?섏? ?딅뒗 鍮?div濡?mock ??ReactiveBoss??R3F ?낆? ?ㅽ뻾?섏? ?딅뒗??
 vi.mock('@react-three/fiber', () => ({
-  Canvas: ({ children }) => <div data-testid="stage-boss-preview-canvas">{children}</div>,
+  Canvas: ({ children, frameloop }) => (
+    <div data-testid="stage-boss-preview-canvas" data-frameloop={frameloop}>{children}</div>
+  ),
   useFrame: vi.fn(),
   useThree: (selector) => selector({ invalidate }),
 }))
@@ -102,14 +104,25 @@ describe('StageBossPreview ?⑤뵒留⑤뱶 紐⑥뀡', () => {
     expect(el.querySelector('[data-testid="stage-boss-preview"]').dataset.motionActive).toBe('true')
   })
 
-  it('forwards staticPose to the nested boss mesh while the lobby preview motion is inactive', () => {
-    const el = render(<StageBossPreview />)
-    expect(el.querySelector('[data-testid="stage-boss-preview-enemy"]').dataset.staticPose).toBe('true')
+  it('keeps every lobby stage boss on the existing walking animation loop', () => {
+    const el = render(
+      <div>
+        {['B01', 'B02', 'B03', 'B04'].map((bossType) => (
+          <StageBossPreview key={bossType} testId={`walking-preview-${bossType}`} bossType={bossType} />
+        ))}
+      </div>,
+    )
+
+    for (const bossType of ['B01', 'B02', 'B03', 'B04']) {
+      const preview = el.querySelector(`[data-testid="walking-preview-${bossType}"]`)
+      expect(preview.querySelector('[data-testid="stage-boss-preview-enemy"]').dataset.staticPose).toBe('false')
+      expect(preview.querySelector('[data-testid="stage-boss-preview-canvas"]').dataset.frameloop).toBe('always')
+    }
   })
 
-  it('keeps the nested boss mesh static during the short entry motion', () => {
+  it('keeps the walking loop active during the short entry motion', () => {
     const el = render(<StageBossPreview motionToken={1} />)
-    expect(el.querySelector('[data-testid="stage-boss-preview-enemy"]').dataset.staticPose).toBe('true')
+    expect(el.querySelector('[data-testid="stage-boss-preview-enemy"]').dataset.staticPose).toBe('false')
   })
 
   it('keeps the interactive Graphics Studio preview animation enabled', () => {
