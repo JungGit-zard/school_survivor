@@ -784,6 +784,8 @@ function normalizeZombieEncounterMap(value) {
 function normalizeTitleSettings(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return { ...DEFAULT_TITLE_SETTINGS }
   return {
+    ...(value.playerAppearance === 'v9' || value.playerAppearance === 'legacy'
+      ? { playerAppearance: value.playerAppearance } : {}),
     language: SUPPORTED_LANGUAGES.has(value.language) ? value.language : DEFAULT_TITLE_SETTINGS.language,
     vibration: typeof value.vibration === 'boolean' ? value.vibration : DEFAULT_TITLE_SETTINGS.vibration,
     reducedEffects: typeof value.reducedEffects === 'boolean' ? value.reducedEffects : DEFAULT_TITLE_SETTINGS.reducedEffects,

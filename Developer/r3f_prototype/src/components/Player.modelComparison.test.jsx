@@ -22,11 +22,14 @@ vi.mock('./MiniHealthBar.jsx', () => ({ default: ({ current }) => <div data-test
 
 import Player from './Player.jsx'
 import { playerFacing, playerPos } from '../lib/refs.js'
+import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests, buildCloudProgressSnapshot } from '../lib/firebaseProgress.js'
+import { saveTitleSettings } from '../lib/titleSettings.js'
 
 let container, root, originalFacing, originalPosition
 beforeEach(() => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true
   vi.stubEnv('DEV', true)
+  _resetFirebaseProgressForTests()
   originalFacing = playerFacing.clone()
   originalPosition = playerPos.clone()
   container = document.createElement('div')
@@ -42,6 +45,34 @@ afterEach(() => {
 })
 
 describe('local F8 model comparison', () => {
+  it.each(['v9', 'legacy'])('uses saved %s appearance in production without enabling F8', (appearance) => {
+    _seedHydratedFirebaseProgressForTests()
+    saveTitleSettings({ playerAppearance: appearance })
+    vi.stubEnv('DEV', false)
+    act(() => root.render(<Player />))
+    expect(container.querySelector(`[data-testid="${appearance}-model"]`)).not.toBeNull()
+    act(() => window.dispatchEvent(new KeyboardEvent('keydown', { code: 'F8' })))
+    expect(container.querySelector(`[data-testid="${appearance}-model"]`)).not.toBeNull()
+  })
+
+  it('renders the current model for guests before Firebase hydration', () => {
+    vi.stubEnv('DEV', false)
+    act(() => root.render(<Player />))
+    expect(container.querySelector('[data-testid="v9-model"]')).not.toBeNull()
+  })
+
+  it('starts the temporary F8 comparison from a saved legacy selection without changing settings', () => {
+    _seedHydratedFirebaseProgressForTests()
+    saveTitleSettings({ playerAppearance: 'legacy' })
+    const before = buildCloudProgressSnapshot()
+    act(() => root.render(<Player />))
+    const body = container.querySelector('[data-testid="rigid-body"]')
+    const group = container.querySelector('[data-testid="legacy-model"]').parentElement
+    act(() => window.dispatchEvent(new KeyboardEvent('keydown', { code: 'F8' })))
+    expect(container.querySelector('[data-testid="v9-model"]').parentElement).toBe(group)
+    expect(container.querySelector('[data-testid="rigid-body"]')).toBe(body)
+    expect(buildCloudProgressSnapshot().progress).toEqual(before.progress)
+  })
   it('swaps back and forth without remounting the facing group, physics body or game state', () => {
     act(() => root.render(<Player />))
     const facingGroup = container.querySelector('[data-testid="v9-model"]').parentElement

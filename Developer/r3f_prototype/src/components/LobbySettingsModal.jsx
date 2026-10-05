@@ -1,7 +1,7 @@
 // 로비 설정 모달. 타이틀에서 이관된 게임 환경 설정 + 닉네임 편집을 담당한다.
 // 설정 저장은 titleSettings(단일 저장 소스), 닉네임은 userNickname을 그대로 사용한다.
 import { useEffect, useState } from 'react'
-import { requestCloudProgressSave } from '../lib/firebaseProgress.js'
+import { getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated, requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
 import { applyHitCameraShake, applyLanguage, applyReducedEffects, applyScientificNotation, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
 import { schoolPanel, schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
@@ -40,9 +40,13 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   const [deleteStage, setDeleteStage] = useState('idle') // idle | confirm | deleting
   const [deleteError, setDeleteError] = useState(null)
   const [reauthBusy, setReauthBusy] = useState(false)
+  const [appearanceBusy, setAppearanceBusy] = useState(false)
+  const [appearanceError, setAppearanceError] = useState(false)
 
   useEffect(() => {
-    saveTitleSettings(settings)
+    // Appearance has its own confirmed cloud-save/rollback path.
+    const { playerAppearance: _appearance, ...otherSettings } = settings
+    saveTitleSettings(otherSettings)
     applyReducedEffects(settings.reducedEffects)
     applyHitCameraShake(settings.hitCameraShake)
     applyScientificNotation(settings.scientificNotation)
@@ -57,6 +61,28 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
       }
       return next
     })
+  }
+
+  const selectAppearance = async (playerAppearance) => {
+    if (appearanceBusy || playerAppearance === (settings.playerAppearance ?? 'v9')) return
+    const previous = settings.playerAppearance
+    const uid = getFirebaseProgressRuntimeSnapshot().uid
+    setAppearanceBusy(true)
+    setAppearanceError(false)
+    try {
+      saveTitleSettings({ playerAppearance })
+      setSettings((current) => ({ ...current, playerAppearance }))
+      if (!await requestCloudProgressSave()) throw new Error('save-failed')
+    } catch {
+      if (getFirebaseProgressRuntimeSnapshot().uid !== uid) return
+      if (isFirebaseProgressHydrated() && getFirebaseProgressRuntimeSnapshot().uid === uid) {
+        saveTitleSettings({ playerAppearance: previous })
+      }
+      setSettings((current) => ({ ...current, playerAppearance: previous }))
+      setAppearanceError(true)
+    } finally {
+      setAppearanceBusy(false)
+    }
   }
 
   const openNicknameEditor = () => {
@@ -122,11 +148,11 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
 
   return (
     <div style={styles.overlay}>
-      <button type="button" aria-label={t('settings.closeBackdropAria')} style={styles.scrim} onClick={onClose} />
+      <button type="button" aria-label={t('settings.closeBackdropAria')} style={styles.scrim} onClick={onClose} disabled={appearanceBusy} />
       <section role="dialog" aria-modal="true" aria-labelledby="lobby-settings-heading" style={styles.modal}>
         <div style={styles.modalHeader}>
           <h2 id="lobby-settings-heading" style={styles.modalTitle}>{t('settings.title')}</h2>
-          <button type="button" aria-label={t('common.close')} style={styles.closeButton} onClick={onClose}>×</button>
+          <button type="button" aria-label={t('common.close')} style={styles.closeButton} onClick={onClose} disabled={appearanceBusy}>×</button>
         </div>
 
         {nicknameOpen ? (
@@ -218,6 +244,21 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
             </button>
 
             <div style={styles.sectionLabel}>{t('settings.gameEnv')}</div>
+            <div style={styles.languageRow}>
+              <strong style={styles.rowTitle}>{t('settings.playerAppearance')}</strong>
+              <div style={styles.languageChoices} role="group" aria-label={t('settings.playerAppearance')} aria-busy={appearanceBusy}>
+                {['v9', 'legacy'].map((appearance) => (
+                  <button key={appearance} type="button"
+                    aria-pressed={(settings.playerAppearance ?? 'v9') === appearance}
+                    style={styles.languageButton((settings.playerAppearance ?? 'v9') === appearance)}
+                    disabled={appearanceBusy}
+                    onClick={() => selectAppearance(appearance)}>
+                    {t(appearance === 'v9' ? 'settings.playerAppearanceNew' : 'settings.playerAppearanceOld')}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {appearanceError && <p role="alert" style={styles.deleteErrorText}>{t('settings.playerAppearanceSaveFailed')}</p>}
             <div style={styles.languageRow}>
               <span style={styles.rowText}>
                 <strong style={styles.rowTitle}>{t('settings.language')}</strong>
@@ -350,10 +391,10 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
             )}
 
             <div style={styles.sectionLabel}>{t('settings.account')}</div>
-            <button type="button" style={styles.logoutButton} onClick={handleLogout} disabled={!authUser?.uid}>
+            <button type="button" style={styles.logoutButton} onClick={handleLogout} disabled={!authUser?.uid || appearanceBusy}>
               {t('settings.logout')}
             </button>
-            <button type="button" style={styles.deleteAccountButton} onClick={openDeleteConfirm} disabled={!authUser?.uid}>
+            <button type="button" style={styles.deleteAccountButton} onClick={openDeleteConfirm} disabled={!authUser?.uid || appearanceBusy}>
               {t('settings.deleteAccount')}
             </button>
           </>

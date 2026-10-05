@@ -4,10 +4,15 @@ import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import LobbySettingsModal from './LobbySettingsModal.jsx'
-import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
+import { _seedHydratedFirebaseProgressForTests, applyCloudProgressSnapshot, buildCloudProgressSnapshot, requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { TERMS_TEXT, TERMS_TITLE, PRIVACY_TEXT, PRIVACY_TITLE } from '../lib/legalDocuments.js'
-import { loadTitleSettings } from '../lib/titleSettings.js'
+import { loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
+
+vi.mock('../lib/firebaseProgress.js', async (importOriginal) => ({
+  ...await importOriginal(),
+  requestCloudProgressSave: vi.fn(async () => true),
+}))
 
 // vi.mock factory는 파일 최상단으로 호이스팅되므로 팩토리 내부에서 참조하는 바깥
 // 변수는 "mock" 접두사가 필요하다(이 저장소 관례).
@@ -25,12 +30,73 @@ describe('LobbySettingsModal', () => {
   beforeEach(() => {
     _seedHydratedFirebaseProgressForTests()
     vi.clearAllMocks()
+    requestCloudProgressSave.mockResolvedValue(true)
     mockDeleteResult = { ok: true, ranking: {} }
     mockReauthResult = true
     // 이전 테스트가 mockImplementation으로 동작을 덮어썼을 수 있으므로 매 테스트마다
     // 위 mockDeleteResult/mockReauthResult를 읽는 기본 구현으로 되돌린다.
     deleteAccountAndData.mockImplementation(async () => mockDeleteResult)
     reauthenticateForDeletion.mockImplementation(async () => mockReauthResult)
+  })
+
+  it('selects both appearances, reopens with the selection and round-trips Firebase data', async () => {
+    let view = renderSettings()
+    expect(buildCloudProgressSnapshot().progress.titleSettings).not.toHaveProperty('playerAppearance')
+    expect(getButtonByText(view.container, '신').getAttribute('aria-pressed')).toBe('true')
+    await clickButtonByText(view.container, '구')
+    expect(requestCloudProgressSave).toHaveBeenCalledTimes(1)
+    expect(loadTitleSettings().playerAppearance).toBe('legacy')
+    const saved = buildCloudProgressSnapshot()
+    view.unmount()
+    _seedHydratedFirebaseProgressForTests()
+    applyCloudProgressSnapshot(saved, { uid: 'test-user' })
+    view = renderSettings()
+    expect(getButtonByText(view.container, '구').getAttribute('aria-pressed')).toBe('true')
+    await clickButtonByText(view.container, '신')
+    expect(loadTitleSettings().playerAppearance).toBe('v9')
+    view.unmount()
+  })
+
+  it.each([undefined, 'v9', 'legacy'])('restores previous appearance %s after save failure', async (previous) => {
+    if (previous) saveTitleSettings({ playerAppearance: previous })
+    let completeSave
+    requestCloudProgressSave.mockImplementationOnce(() => new Promise((resolve) => { completeSave = resolve }))
+    const view = renderSettings()
+    await clickButtonByText(view.container, previous === 'legacy' ? '신' : '구')
+    expect(getButtonByText(view.container, '신').disabled).toBe(true)
+    expect(view.container.querySelector('button[aria-label="닫기"]').disabled).toBe(true)
+    expect(getButtonByText(view.container, '로그아웃').disabled).toBe(true)
+    // Another setting remains editable while the cloud appearance save is pending.
+    await clickButtonByLabel(view.container, '진동 끄기')
+    await act(async () => completeSave(false))
+    expect(loadTitleSettings().playerAppearance).toBe(previous)
+    expect(loadTitleSettings().vibration).toBe(false)
+    expect(view.container.querySelector('[role="alert"]').textContent).toContain('저장할 수 없습니다')
+    if (!previous) expect(buildCloudProgressSnapshot().progress.titleSettings).not.toHaveProperty('playerAppearance')
+    view.unmount()
+  })
+
+  it('does not roll an old account preference into a newly hydrated account', async () => {
+    let completeSave
+    requestCloudProgressSave.mockImplementationOnce(() => new Promise((resolve) => { completeSave = resolve }))
+    const view = renderSettings()
+    await clickButtonByText(view.container, '구')
+    _seedHydratedFirebaseProgressForTests({ uid: 'different-user' })
+    saveTitleSettings({ vibration: false, playerAppearance: 'v9' })
+    const before = buildCloudProgressSnapshot().progress
+    await act(async () => completeSave(false))
+    expect(buildCloudProgressSnapshot().progress).toEqual(before)
+    view.unmount()
+  })
+
+  it('handles a rejected save and restores the previous preference', async () => {
+    requestCloudProgressSave.mockRejectedValueOnce(new Error('offline'))
+    const view = renderSettings()
+    await clickButtonByText(view.container, '구')
+    expect(loadTitleSettings()).not.toHaveProperty('playerAppearance')
+    expect(getButtonByText(view.container, '신').disabled).toBe(false)
+    expect(view.container.querySelector('[role="alert"]')).not.toBeNull()
+    view.unmount()
   })
 
   it('signs out of Google and forces the title screen from settings', async () => {

@@ -106,6 +106,7 @@
             "$other": { ".validate": false }
           },
           "titleSettings": {
+            "playerAppearance": { ".validate": "newData.isString() && (newData.val() === 'v9' || newData.val() === 'legacy')" },
             ".validate": "newData.hasChildren(['vibration', 'reducedEffects', 'unlockAllWeaponsCheat', 'unlockAllStagesCheat'])",
             "language": { ".validate": "newData.val() == null || (newData.isString() && (newData.val() === 'ko' || newData.val() === 'en' || newData.val() === 'ja'))" },
             "vibration": { ".validate": "newData.isBoolean()" },

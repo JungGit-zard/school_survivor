@@ -21,6 +21,8 @@ export const DEFAULT_SETTINGS = {
 export function loadTitleSettings() {
   const settings = readFirebasePlayerProgress().titleSettings ?? DEFAULT_SETTINGS
   return {
+    ...(settings.playerAppearance === 'v9' || settings.playerAppearance === 'legacy'
+      ? { playerAppearance: settings.playerAppearance } : {}),
     language: isSupportedLocale(settings.language) ? settings.language : DEFAULT_SETTINGS.language,
     vibration: typeof settings.vibration === 'boolean' ? settings.vibration : DEFAULT_SETTINGS.vibration,
     reducedEffects: typeof settings.reducedEffects === 'boolean' ? settings.reducedEffects : DEFAULT_SETTINGS.reducedEffects,

@@ -79,6 +79,17 @@ function remoteSnapshot(overrides = {}) {
 }
 
 describe('firebase-only player progress runtime', () => {
+  it.each(['v9', 'legacy'])('preserves %s appearance through cloud snapshot normalization', (playerAppearance) => {
+    applyCloudProgressSnapshot(remoteSnapshot({ progress: { titleSettings: { playerAppearance } } }), USER)
+    expect(buildCloudProgressSnapshot().progress.titleSettings.playerAppearance).toBe(playerAppearance)
+  })
+
+  it('does not introduce an appearance key for old accounts or invalid input', () => {
+    for (const playerAppearance of [undefined, 'invalid']) {
+      applyCloudProgressSnapshot(remoteSnapshot({ progress: { titleSettings: { playerAppearance } } }), USER)
+      expect(buildCloudProgressSnapshot().progress.titleSettings).not.toHaveProperty('playerAppearance')
+    }
+  })
   beforeEach(() => {
     vi.clearAllMocks()
     for (const [key, value] of Object.entries(COMPLETE_ENV)) vi.stubEnv(key, value)
