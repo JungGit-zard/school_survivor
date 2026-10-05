@@ -1,0 +1,18 @@
+자료 안내 — 원화/아이콘/코드/현재 게임을 구별한다
+주인공: references/player/PLAYER_reference.png. 사용자 첨부 복구 원화. 얼굴, 머리, 교복, 체형, 책가방 유지.
+배경: references/backgrounds 의 교실/복도/체육관/급식실/탈출 장소 5종은 만화풍 참고 이미지. 실제 게임 캡처 아님. background_details 는 바닥/벽/소품.
+동료: references/weapons/14_wea_chibiko.webp, 15_wea_hanako.webp, 19_wea_inucon.webp는 아이콘. 전신·후면 원화 미발견. 실제 게임의 현재 전신 캡처 필요.
+좀비: E01 초록, E02 덩치, E03 달리기, E04 투척, E05 돌진, E06 거대, E07 웃는얼굴, E08 코인 몬스터, RZL/RZC/RZT/RZG가 코드에 등록. 독립 원화 미발견. 실제 게임 캡처 필요.
+보스: B01 수학 선생님, B04 주방장. references/enemies/texture_boss01.png, texture_boss04.png는 얼굴 텍스처이며 전신 원화가 아님. B02 구형 자료 제외.
+마틸다: references/enemies/matilda_authentic.jpg, matilda_conversation.png.
+
+무기 현행 목록 — Developer/r3f_prototype/src/lib/weaponCatalog.js
+연필, 30cm 자, 커터칼, 텀블러, 과학 플라스크, 벨, 전기, 오니기리, 치비코, 하나코, 이누콘, 보조배터리 미사일, 상어미사일, 고장난 스타링크, 오리요강, 우산 방어막, 지우개 폭탄, 랜턴, 바이키티 커터, 선긋기 등 20종.
+내부 id schoolBag 표시명은 30cm 자. 가방 공격으로 오해 금지.
+연필 투사체 / 자 근거리 휘두르기 / 텀블러 주변 궤도 회전 / 플라스크 착탄 후 화학 웅덩이.
+Developer/r3f_prototype/src/components/Weapons/Chibiko.jsx:313 — 연필 투사체 지원.
+Developer/r3f_prototype/src/components/Weapons/Hanako.jsx:165 — 회복 지원. 공격 마법 발명 금지.
+Developer/r3f_prototype/src/components/Weapons/Inucon.jsx:321 — 회복 지원. catalog damage 0; 붙은 좀비를 물고 끌어내기. 피해를 주는 필살기 발명 금지.
+무기 설정은 현재 catalog 우선. settings/weapon_icon_ai_prompts_20_korean.md는 기존 아이콘 생성 자료이며 이미지의 연출을 실제 게임 능력으로 해석하지 않는다.
+
+검색: game_resource_library, graphic_asset, A.graphic, Weapons 컴포넌트와 weaponCatalog, MODEL_SOURCE_INDEX. 중복 복구본은 대표 한 벌 선택. 폐기/실험 모델과 타이틀 QA 캡처를 현재 원화로 채택하지 않았다. 원화가 없다고 코드 색상이나 임의 그림을 Firebase 정본으로 주장하지 않는다.
