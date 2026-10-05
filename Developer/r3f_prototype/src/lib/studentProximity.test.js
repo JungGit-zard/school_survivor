@@ -125,6 +125,25 @@ describe('전 스테이지 공용 조사 대상', () => {
     expect(stagePoolLines('stage4').join(' ')).toMatch(/급식|조리|주방|쟁반/)
   })
 
+  it('keeps both Stage 3 quest students within the player contact radius', () => {
+    const movementBounds = getPlayerMovementBounds('stage3')
+    const stage3Students = getStageObjectPlacements('stage3')
+      .filter(({ id }) => [
+        'stage3-student-captain-west',
+        'stage3-student-facilities-east',
+      ].includes(id))
+    const byId = new Map(stage3Students.map((student) => [student.id, student]))
+
+    expect(byId.get('stage3-student-captain-west')?.position).toEqual([-5.25, 0, 0.2])
+    expect(byId.get('stage3-student-facilities-east')?.position).toEqual([5.25, 0, 7.3])
+
+    for (const { position: [x, , z] } of stage3Students) {
+      const dx = Math.max(movementBounds.minX - x, 0, x - movementBounds.maxX)
+      const dz = Math.max(movementBounds.minZ - z, 0, z - movementBounds.maxZ)
+      expect(Math.hypot(dx, dz)).toBeLessThanOrEqual(STUDENT_DIALOGUE_RADIUS)
+    }
+  })
+
   it('물체는 콜라이더 표면에 닿아야(접촉 margin 이내) 조사되고, 멀리서는 발동하지 않는다', () => {
     // 사물함 footprint half (0.67, 0.27). 표면까지 거리 ≤ OBJECT_CONTACT_MARGIN(0.25)에서만 발동.
     const target = { id: 'locker', position: [0, 0, 0], subjectType: 'locker', halfX: 0.67, halfZ: 0.27 }

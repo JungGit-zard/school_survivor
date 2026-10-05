@@ -442,7 +442,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage3-student-captain-west',
       type: 'unconsciousStudent',
-      position: [-6.35, 0, 0.2],
+      position: [-5.25, 0, 0.2],
       rotation: [0, Math.PI / 2, 0],
       scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
       props: { variant: 'sideRight' },
@@ -450,7 +450,7 @@ export const STAGE_OBJECT_PLACEMENTS = {
     {
       id: 'stage3-student-facilities-east',
       type: 'unconsciousStudent',
-      position: [6.15, 0, 7.3],
+      position: [5.25, 0, 7.3],
       rotation: [0, -Math.PI / 2, 0],
       scale: UNCONSCIOUS_STUDENT_PLAYER_SCALE,
       props: { variant: 'sideLeft' },

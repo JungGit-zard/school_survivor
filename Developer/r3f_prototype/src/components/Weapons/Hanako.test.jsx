@@ -43,7 +43,7 @@ describe('Hanako companion source contract', () => {
     expect(indexSource).toContain("export { HanakoWeapon }")
     expect(gameSource).toContain('HanakoWeapon')
     expect(gameSource).toContain('<HanakoWeapon />')
-    expect(studioConfigSource).toContain('15_wea_hanako.svg')
+    expect(studioConfigSource).toContain('15_wea_hanako.webp')
     expect(studioConfigSource).toContain("['weapon-hanako', 'Hanako', 'hanako'")
     expect(studioConfigSource).toContain("if (type === 'E07') return 'zombie-procedural-face-test'")
     expect(previewSource).toContain("import { HanakoModel } from './Weapons/Hanako.jsx'")

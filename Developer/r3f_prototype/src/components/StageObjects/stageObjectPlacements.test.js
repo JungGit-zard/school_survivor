@@ -303,6 +303,13 @@ describe('stage object placements', () => {
     ])
   })
 
+  it('keeps both Stage 3 quest students safely inside the player-reachable horizontal lane', () => {
+    const byId = new Map(getStageObjectPlacements('stage3').map((placement) => [placement.id, placement]))
+
+    expect(byId.get('stage3-student-captain-west').position).toEqual([-5.25, 0, 0.2])
+    expect(byId.get('stage3-student-facilities-east').position).toEqual([5.25, 0, 7.3])
+  })
+
   it('keeps Stage 3 authored props inside the gym bounds while preserving the center combat lane', () => {
     const { halfX, halfZ } = getStageBounds('stage3')
     const placements = getStageObjectPlacements('stage3')
