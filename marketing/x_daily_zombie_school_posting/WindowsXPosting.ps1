@@ -9,6 +9,9 @@ public static class XPostingNative {
  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
  [DllImport("user32.dll")] public static extern void SwitchToThisWindow(IntPtr hWnd, bool fAltTab);
  [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h, int cmd);
+ [DllImport("user32.dll", SetLastError=true)] public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+ [StructLayout(LayoutKind.Sequential)] public struct WindowRect { public int Left; public int Top; public int Right; public int Bottom; }
+ [DllImport("user32.dll", SetLastError=true)] public static extern bool GetWindowRect(IntPtr hWnd, out WindowRect rect);
  [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
  [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
 }
@@ -84,20 +87,80 @@ function Wait-XCondition([scriptblock]$Condition, [string]$Description, [int]$Se
   } while ([DateTime]::UtcNow -lt $end)
   throw "Timed out: $Description"
 }
-function Initialize-XWindow([long]$RequestedWindowId) {
-  $windows = @([Windows.Automation.AutomationElement]::RootElement.FindAll([Windows.Automation.TreeScope]::Children, [Windows.Automation.Condition]::TrueCondition) | Where-Object {
+function Get-XTopLevelWindows {
+  return @([Windows.Automation.AutomationElement]::RootElement.FindAll([Windows.Automation.TreeScope]::Children, [Windows.Automation.Condition]::TrueCondition) | Where-Object {
     $_.Current.ClassName -eq 'Chrome_WidgetWin_1' -and $_.Current.Name -match ' / X(?: - (?:Google )?Chrome)?$'
   })
-  if ($RequestedWindowId) { $windows = @($windows | Where-Object { $_.Current.NativeWindowHandle -eq $RequestedWindowId }) }
-  if ($windows.Count -ne 1) { throw "Expected one existing Chrome X window, found $($windows.Count). Select -WindowId." }
-  $process = Get-Process -Id $windows[0].Current.ProcessId
-  if ($process.ProcessName -ne 'chrome') { throw 'Target is not Chrome' }
+}
+function Get-XChromeExecutable {
+  $candidates = @(
+    $(if ($env:ProgramFiles) { Join-Path $env:ProgramFiles 'Google/Chrome/Application/chrome.exe' }),
+    $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'Google/Chrome/Application/chrome.exe' }),
+    $(if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA 'Google/Chrome/Application/chrome.exe' })
+  ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+  foreach ($candidate in $candidates) { if (Test-Path -LiteralPath $candidate -PathType Leaf) { return (Resolve-Path -LiteralPath $candidate).ProviderPath } }
+  $command = Get-Command chrome.exe -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ($null -ne $command -and (Test-Path -LiteralPath $command.Source -PathType Leaf)) { return $command.Source }
+  throw 'Chrome executable was not found in the standard installation paths or PATH.'
+}
+function Start-XChromeAtX {
+  $chrome = Get-XChromeExecutable
+  # No profile override: Chrome opens the user's normal visible profile.
+  Start-Process -FilePath $chrome -ArgumentList @('--new-window', 'https://x.com') | Out-Null
+}
+function Get-XChromeWindowBounds([long]$WindowId) {
+  $rect = [XPostingNative+WindowRect]::new()
+  if (-not [XPostingNative]::GetWindowRect([IntPtr]$WindowId, [ref]$rect)) {
+    $code = [Runtime.InteropServices.Marshal]::GetLastWin32Error()
+    throw "GetWindowRect failed for Chrome HWND $WindowId (Win32 $code)."
+  }
+  return [pscustomobject]@{ x=$rect.Left; y=$rect.Top; width=($rect.Right - $rect.Left); height=($rect.Bottom - $rect.Top) }
+}
+function Set-XChromeWindowBounds([long]$WindowId) {
+  [XPostingNative]::ShowWindow([IntPtr]$WindowId, 9) | Out-Null
+  # SWP_NOZORDER | SWP_NOACTIVATE: set the exact outer bounds without stealing focus.
+  if (-not [XPostingNative]::SetWindowPos([IntPtr]$WindowId, [IntPtr]::Zero, 0, 0, 1280, 900, 0x14)) {
+    $code = [Runtime.InteropServices.Marshal]::GetLastWin32Error()
+    throw "SetWindowPos failed for Chrome HWND $WindowId (Win32 $code)."
+  }
+  Start-Sleep -Milliseconds 100
+  return Get-XChromeWindowBounds $WindowId
+}
+function Initialize-XWindow([long]$RequestedWindowId) {
+  $windows = @(Get-XTopLevelWindows)
+  if ($RequestedWindowId) {
+    $windows = @($windows | Where-Object { $_.Current.NativeWindowHandle -eq $RequestedWindowId })
+    if ($windows.Count -ne 1) { throw "Requested Chrome X HWND $RequestedWindowId was not found." }
+  } elseif ($windows.Count -eq 0) {
+    $baselineHandles = @()
+    Start-XChromeAtX
+    $deadline = [DateTime]::UtcNow.AddSeconds(25)
+    do {
+      $windows = @(Get-XTopLevelWindows | Where-Object { $baselineHandles -notcontains [long]$_.Current.NativeWindowHandle })
+      if ($windows.Count -gt 1) { throw "Chrome launch produced multiple X windows ($($windows.Count)); refusing ambiguous selection." }
+      if ($windows.Count -eq 1) { break }
+      Start-Sleep -Milliseconds 350
+    } while ([DateTime]::UtcNow -lt $deadline)
+    if ($windows.Count -ne 1) { throw 'Timed out waiting up to 25 seconds for the visible Chrome X window after launch.' }
+  } elseif ($windows.Count -ne 1) {
+    throw "Expected one existing Chrome X window, found $($windows.Count). Select -WindowId."
+  }
   $script:XWindow = [long]$windows[0].Current.NativeWindowHandle
+  # Reacquire by HWND and verify its title and owning process before any UI input.
+  $null = Get-XWindowElement
+  Assert-XNoAuthDialog (Get-XRoot)
+  $bounds = Set-XChromeWindowBounds $script:XWindow
+  if ($bounds.x -ne 0 -or $bounds.y -ne 0 -or $bounds.width -ne 1280 -or $bounds.height -ne 900) {
+    throw "Chrome X window bounds differ from required 0,0 1280x900: $($bounds.x),$($bounds.y) $($bounds.width)x$($bounds.height)."
+  }
+  # Reacquire and verify HWND/title/process again after moving/resizing.
+  $null = Get-XWindowElement
+  Assert-XNoAuthDialog (Get-XRoot)
   Restore-XWindowFocus 'initial window selection' | Out-Null
 }
 function Test-XAuthDialogVisible($Root = (Get-XRoot)) {
   $names = @((Get-XElements $Root) | Where-Object { -not $_.Current.IsOffscreen } | ForEach-Object { $_.Current.Name })
-  return (@($names | Where-Object { $_ -match '^(Sign in|Log in|Verify your identity|Use a passkey|Windows Security)$' }).Count -gt 0)
+  return (@($names | Where-Object { $_ -match '^(Sign in|Log in|Verify your identity|Use a passkey|Windows Security|Security check|Security challenge|Challenge|Captcha)$' -or $_ -match '(?i)(verify you are human|unusual activity|suspicious activity|account is locked|two.factor authentication)' }).Count -gt 0)
 }
 function Assert-XNoAuthDialog($Root = (Get-XRoot)) {
   if (Test-XAuthDialogVisible $Root) { throw 'Authentication dialog visible' }
@@ -109,13 +172,17 @@ function Assert-XAccount {
   Click-XElement $menu
   try {
     $script:XAccountAuthDialogVisible = $false
+    $script:XWrongAccountVisible = $false
     Wait-XCondition {
       $root = Get-XRoot
       if (Test-XAuthDialogVisible $root) { $script:XAccountAuthDialogVisible = $true; return $true }
       $items = @((Get-XElements $root) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::MenuItem -and $_.Current.Name -ceq 'Log out @jungsilx' })
+      $otherAccounts = @((Get-XElements $root) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::MenuItem -and $_.Current.Name -match '^Log out @' -and $_.Current.Name -cne 'Log out @jungsilx' })
+      if ($otherAccounts.Count -gt 0) { $script:XWrongAccountVisible = $true; return $true }
       return ($items.Count -eq 1)
     } 'opened Account menu identity'
     if ($script:XAccountAuthDialogVisible) { throw 'Authentication dialog visible' }
+    if ($script:XWrongAccountVisible) { throw 'Unexpected account in active Account menu; expected @jungsilx.' }
     $root = Get-XRoot
     $logout = @((Get-XElements $root) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::MenuItem -and $_.Current.Name -ceq 'Log out @jungsilx' })
     if ($logout.Count -ne 1) { throw "Active Account menu does not expose exact 'Log out @jungsilx' menu item" }
