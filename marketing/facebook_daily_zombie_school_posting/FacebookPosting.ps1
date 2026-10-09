@@ -18,8 +18,9 @@ function Assert-FacebookRunId([string]$RunId) {
 function Test-FacebookUnderImageRoot([string]$Path) {
   if ([string]::IsNullOrWhiteSpace($Path)) { return $false }
   try {
+    . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
     $root = $script:FacebookImageRoot.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
-    $full = [IO.Path]::GetFullPath($Path)
+    $full = Resolve-PostingImagePath $Path
     return $full.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)
   } catch { return $false }
 }
@@ -56,7 +57,7 @@ function Test-FacebookIntent($Intent) {
 function Assert-FacebookFrozenIntent($Config,[string]$Language,$Intent) {
   if(-not (Test-FacebookIntent $Intent)){throw 'Receipt intent is structurally invalid'}
   . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
-  $match=@((Get-PostingVariants $Config $Language -IncludeDisabled)|Where-Object{$_.id -ceq $Intent.variantId -and $_.text -ceq $Intent.text -and $_.imagePath -ceq $Intent.imagePath})
+  $match=@((Get-PostingVariants $Config $Language -IncludeDisabled)|Where-Object{$_.id -ceq $Intent.variantId -and $_.text -ceq $Intent.text -and $_.imagePath -ceq (Resolve-PostingImagePath ([string]$Intent.imagePath))})
   if($match.Count -ne 1){throw 'Frozen receipt intent no longer equals one exact X config pair'}
 }
 function Test-FacebookEvidence($Intent, $Evidence) {

@@ -203,6 +203,28 @@ function Navigate-FacebookProfileInSelectedTab($Window) {
  do { try { Assert-FacebookProfileAddress $Window;return } catch { Start-Sleep -Milliseconds 200 } } while([DateTime]::UtcNow -lt $deadline)
  throw 'Selected Facebook tab did not navigate to the exact Hyun Uk Jung profile address'
 }
+function Test-FacebookExactPostUrl([string]$Permalink) {
+ $Permalink -cmatch '^https://www\.facebook\.com/hyunuk\.jung\.56/posts/(?:pfbid[A-Za-z0-9]+|[0-9]+)(?:\?[^#]*)?$'
+}
+function Test-FacebookExactPostDisplayAddress([string]$ObservedAddress,[string]$Permalink) {
+ if(-not (Test-FacebookExactPostUrl $Permalink)){return $false}
+ $displayAddress=$ObservedAddress;if($displayAddress -notmatch '^https?://'){$displayAddress="https://$displayAddress"}
+ $expectedUri=[uri]$Permalink;$actualUri=$null
+ [uri]::TryCreate($displayAddress,[UriKind]::Absolute,[ref]$actualUri) -and $actualUri.Scheme -ceq $expectedUri.Scheme -and $actualUri.Host -in @('facebook.com','www.facebook.com') -and $actualUri.AbsolutePath -ceq $expectedUri.AbsolutePath
+}
+function Open-FacebookExactPostNative([string]$Permalink,[long]$WindowId=0) {
+ if(-not (Test-FacebookExactPostUrl $Permalink)){throw 'Only an exact Hyun Uk Jung Facebook post permalink can be opened'}
+ $w=Get-FacebookChromeWindow $WindowId;Focus-FacebookChromeWindow $w;Wait-FacebookProfileReady $w;Assert-FacebookForeground $w
+ $readiness=Get-FacebookExistingComposerReadiness $w;if($readiness.state -notin @('wait','reuse_empty')){throw 'Existing composer is not empty; exact-post navigation stopped'}
+ Assert-FacebookProfileAddress $w;Assert-FacebookAccountMarker $w
+ $addressNames=@('Address and search bar','주소창 및 검색창');$addresses=@((Get-FacebookUiAll $w)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit -and $_.Current.Name -in $addressNames})
+ if($addresses.Count -ne 1){throw 'Expected one visible Chrome address bar for exact post navigation'}
+ $address=$addresses[0];$address.SetFocus();Start-Sleep -Milliseconds 50;$focused=[Windows.Automation.AutomationElement]::FocusedElement
+ if($null -eq $focused -or -not [Windows.Automation.Automation]::Compare($focused,$address)){throw 'Chrome address bar did not receive focus; exact-post navigation stopped'}
+ [Windows.Forms.Clipboard]::SetText($Permalink);[Windows.Forms.SendKeys]::SendWait('^a');[Windows.Forms.SendKeys]::SendWait('^v');[Windows.Forms.SendKeys]::SendWait('{ENTER}')
+ $deadline=[DateTime]::UtcNow.AddSeconds(15);do{try{$fresh=Get-FacebookChromeWindow $WindowId;Assert-FacebookForeground $fresh;$values=@((Get-FacebookUiAll $fresh)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit -and $_.Current.Name -in $addressNames}|ForEach-Object{Get-FacebookValue $_});foreach($value in $values){if(Test-FacebookExactPostDisplayAddress ([string]$value) $Permalink){return [pscustomobject]@{status='exact_permalink_opened';windowId=$fresh.Current.NativeWindowHandle;permalink=$Permalink}}}}catch{};Start-Sleep -Milliseconds 250}while([DateTime]::UtcNow -lt $deadline)
+ throw 'Exact post permalink did not become the visible Facebook address'
+}
 function Test-FacebookVisiblePostingIdentity($Window) {
  $accounts=@((Get-FacebookUiAll $Window)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.Name -ceq 'Hyun Uk Jung'})
  if($accounts.Count -ge 1){return $true}

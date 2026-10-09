@@ -36,6 +36,15 @@ try {
  Assert-True ($prepared.entries.en.state -ne 'publish_intent') 'refused publish leaves no publish intent'
   . (Join-Path $PSScriptRoot 'FacebookNative.ps1')
   $nativeSource=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'FacebookNative.ps1') -Raw -Encoding UTF8
+  Assert-True (Test-FacebookExactPostUrl 'https://www.facebook.com/hyunuk.jung.56/posts/pfbid0LHwaGf1mHjxKGzCgsh2zzzonSpDv8rtHJmBziMFyzBz12moLETn3efQwC6jr4fGel') 'exact-post navigation accepts the fixed profile post URL'
+  Assert-True (-not (Test-FacebookExactPostUrl 'https://www.facebook.com/other.user/posts/pfbid123')) 'exact-post navigation rejects another profile path'
+  Assert-True (-not (Test-FacebookExactPostUrl 'https://evil.example/hyunuk.jung.56/posts/pfbid123')) 'exact-post navigation rejects another host'
+  Assert-True (-not (Test-FacebookExactPostUrl 'https://www.facebook.com/hyunuk.jung.56/?q=/posts/pfbid123')) 'exact-post navigation rejects profile query paths'
+  Assert-True (Test-FacebookExactPostDisplayAddress 'facebook.com/hyunuk.jung.56/posts/pfbid0LHwaGf1mHjxKGzCgsh2zzzonSpDv8rtHJmBziMFyzBz12moLETn3efQwC6jr4fGel' 'https://www.facebook.com/hyunuk.jung.56/posts/pfbid0LHwaGf1mHjxKGzCgsh2zzzonSpDv8rtHJmBziMFyzBz12moLETn3efQwC6jr4fGel') 'exact-post readback normalizes Chrome scheme-less address display'
+  Assert-True (-not (Test-FacebookExactPostDisplayAddress 'evil.example/hyunuk.jung.56/posts/pfbid123' 'https://www.facebook.com/hyunuk.jung.56/posts/pfbid123')) 'exact-post readback rejects another host'
+  Assert-True (-not (Test-FacebookExactPostDisplayAddress 'facebook.com/hyunuk.jung.56/?q=/posts/pfbid123' 'https://www.facebook.com/hyunuk.jung.56/posts/pfbid123')) 'exact-post readback rejects a different path'
+  $invokeSource=Get-Content -LiteralPath $invoke -Raw -Encoding UTF8
+  Assert-True ($invokeSource -match "'OpenExactPost'" -and $invokeSource -match 'Open-FacebookExactPostNative \$Permalink \$WindowId') 'exact-post navigation is exposed only through the Facebook wrapper'
   Assert-True ($nativeSource -match "function Open-FacebookProfileNative" -and $nativeSource -match "Name -ceq 'Facebook'" -and $nativeSource -match 'Assert-FacebookProfileAddress' -and $nativeSource -notmatch 'Start-Process -FilePath ''chrome\.exe''') 'profile wrapper reuses only the exact existing Facebook tab and confirms the fixed profile address'
   Assert-True ($nativeSource -match 'function Wait-FacebookProfileReady' -and $nativeSource -match 'Assert-FacebookProfileAddress \$Window;Assert-FacebookAccountMarker \$Window' -and $nativeSource -match 'Open-FacebookComposerNative.*Wait-FacebookProfileReady \$w') 'profile and composer wait for the exact address and account marker to settle'
   Assert-True ($nativeSource -match 'function Test-FacebookVisiblePostingIdentity' -and $nativeSource -match "What's on your mind\?" -and $nativeSource -match 'one enabled own-profile composer button' -and $nativeSource -match 'Expected visible Facebook posting identity') 'offscreen profile-name duplicates do not block an otherwise visible exact own-profile composer'
