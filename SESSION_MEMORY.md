@@ -12682,3 +12682,18 @@ git push origin zombie_only
 ### Social image source migration completion (2026-10-09)
 
 - Parent source-location readback confirmed all 108 unique catalog source paths have zero image files left at their old locations; all 206 canonical catalog entries exist. Graphic_designer image bytes were moved to X paths, copied separately to Facebook paths, and old locations now retain README/manifest guidance only.
+
+### 로컬 위치 응답 형식 — 사용자 지정 (2026-10-09)
+
+- 사용자가 컴퓨터 안의 파일·폴더 위치를 달라고 하면, 파일 탐색기 주소창에 그대로 붙여넣을 수 있는 Windows 절대 경로를 코드 블록으로 제공한다. Markdown 링크나 /F:/ 형태로 대체하지 않는다. 위치 요청만으로 탐색기를 자동으로 열지 않으며, 직접 열어 달라는 요청은 별도로 따른다.
+
+### 사용자 확정 이미지 스타일 기준 (2026-10-09)
+
+- 사용자가 첨부한 준비물/생존도구 이미지에 대해 '딱 이정도'라고 지정했다. 기준 파일: marketing/x_daily_zombie_school_posting/image_pool/reference/style/approved_character_scale_20261009.png.
+- 이후 X/Facebook 모든 지역 이미지 제작은 이 이미지의 주인공 화면 점유율, 머리/몸 데포르메 비율, 선과 채색의 정교함을 기준으로 삼는다. 주인공을 점점 확대하거나 과하게 정교·사실적인 일러스트로 발전시키지 않는다. 장면별 포즈가 달라도 기준 이미지와 비교해 시각적 비중을 유지한다.
+- 이 파일은 스타일 참조이며 자동 게시 후보가 아니다. 다른 지역 이미지는 기존 현지어 제목·폰트 표현·홍보문구를 유지한다. 기존 이미지 수정 요청은 아니다.
+
+### 사용자 정정 — 캐릭터 등신 및 묘사 기준 (2026-10-09)
+
+- 바로 앞 스타일 메모의 화면 점유율/주인공 확대 금지 해석은 폐기한다. 사용자는 화면에서 차지하는 비율은 좋다고 명시했다. 문제는 캐릭터의 등신이 높아지는 것이다.
+- 첨부 기준 이미지처럼 머리가 크고 몸통·팔다리가 짧은 귀여운 넨드로이드 비율, 완전한 만화체로 그린다. 긴 몸과 팔다리, 높은 등신, 성인형 비례로 변하지 않도록 한다. 세부 묘사는 늘리지 않는다. 이 정정이 앞선 에이전트 해석보다 우선한다.

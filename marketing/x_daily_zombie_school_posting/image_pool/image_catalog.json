@@ -1443,6 +1443,14 @@
                        "collection":  "contact_sheets",
                        "path":  "reference/contact_sheets/contact_sheet_vi.png",
                        "source":  "Graphic_designer/marketing_social_30_20261004/contact_sheet_vi.png"
+                   },
+                   {
+                       "platform":  "reference",
+                       "locale":  "ko",
+                       "collection":  "approved_style",
+                       "path":  "reference/style/approved_character_scale_20261009.png",
+                       "source":  "User supplied reference image, 2026-10-09",
+                       "purpose":  "Style reference only; not an active posting candidate"
                    }
                ],
     "legacyPaths":  {

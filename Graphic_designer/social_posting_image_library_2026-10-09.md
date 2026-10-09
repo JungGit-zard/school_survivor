@@ -73,3 +73,9 @@ Each filename above identifies the exact parent path and locale subdirectory bef
 
 - Catalog/source readback: canonical 206/206 entries exist; localized assets are X 98 and Facebook 98; reference entries are 10; 108 unique source paths have 0 image files remaining at their old locations. Catalog also reports 0 missing paths, 0 duplicate platform paths, and 57 legacy mappings.
 - Implementation worker reports offline tests passed: `Test-XPostingVariants.ps1`, `Test-FacebookDailyZombieSchoolPosting.ps1`, and `Test-XDailyZombieSchoolPostingRecovery.ps1`. `Test-FacebookPostTree` standalone was not run because no historical UI fixture was available. No live-post verification is implied by these offline tests.
+
+### 사용자 확정 이미지 스타일 기준 (2026-10-09)
+
+- 사용자가 첨부한 준비물/생존도구 이미지에 대해 '딱 이정도'라고 지정했다. 기준 파일: marketing/x_daily_zombie_school_posting/image_pool/reference/style/approved_character_scale_20261009.png.
+- 사용자 정정: 화면을 차지하는 비율은 현재도 좋다. 문제는 몸이 길어지고 등신이 높아지는 경향이다. 이후 X/Facebook 모든 지역 이미지의 캐릭터는 첨부 기준처럼 머리가 크고 몸통과 팔다리가 짧은 귀여운 넨드로이드 비율의 완전한 만화체로 그린다. 성인형·긴 팔다리·높은 등신으로 바꾸지 않는다. 세부 묘사도 늘리지 않고 단순한 선과 면 중심으로 유지한다. 화면 점유율 축소를 요구한 것으로 해석하지 않는다.
+- 이 파일은 스타일 참조이며 자동 게시 후보가 아니다. 다른 지역 이미지는 기존 현지어 제목·폰트 표현·홍보문구를 유지한다. 기존 이미지 수정 요청은 아니다.
