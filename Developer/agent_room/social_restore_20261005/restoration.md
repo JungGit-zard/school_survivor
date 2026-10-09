@@ -38,6 +38,14 @@ No Git staging, commit, or push was performed. No X/Facebook publishing UI was u
 - Recovery test passed all 11 assertions. Running the exact registered action arguments returned exit 0; it wrote `marketing/x_daily_zombie_school_posting/reports/2026-10-05.json` for cycle `2026-10-05-2100` with `attempts=0`, `complete=false`, and 0 verified posts. The scheduled task was also started through Task Scheduler and read back as `Ready`, `LastTaskResult=0`, next run 2026-10-06 23:55 KST.
 - No posting UI was opened or invoked.
 
+## Latest verified posting audit — 2026-10-09
+
+- Latest confirmed successful posts overall: X Japanese, English, and Vietnamese under RunId `2026-10-05-2347-restore01`, verified 2026-10-05 23:50 KST. The Korean X entry for that run remains `publish_intent` and is not counted as verified.
+- Latest complete four-language X receipt: `Developer/agent_room/x_posting_receipts/manual-2026-10-05-1017-x4-01.json`, all four languages verified by 2026-10-05 10:20 KST.
+- Latest confirmed Facebook post in the available receipts: Korean under `Developer/agent_room/facebook_posting_receipts/2026-10-05-1100-tffb8204b-fbko1.json`, verified 2026-10-05 01:20 KST. The later Facebook English attempt remains uncertain and is not counted.
+- Most recent five-slot scheduler readback: `EscapeZombieSchool-SocialPostingFiveSlots` ran 2026-10-09 06:00:01 KST, `LastTaskResult=1`; receipt `Developer/agent_room/x_posting_receipts/2026-10-09-0600.json` says `Expected one existing Chrome X window, found 0`. Its X entries are `selected`, with no verified posts. The 02:00 X and Facebook receipts that day are also incomplete with selected entries only.
+- Most recent report-only scheduler run: 2026-10-08 23:55 KST, `LastTaskResult=0`; this reports receipts and does not mean posts succeeded.
+
 ## Five-slot sleep/wake audit — 2026-10-06 00:04 KST
 
 - Read back `EscapeZombieSchool-SocialPostingFiveSlots`: enabled/Ready; five daily KST triggers remain 02:00, 06:00, 11:00, 17:00, 21:00; next run 2026-10-06 02:00 KST. Principal is `InteractiveToken`; task action and working directory still point to this F: workspace.
