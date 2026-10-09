@@ -7,9 +7,22 @@ $invoke=Join-Path $PSScriptRoot 'Invoke-FacebookDailyZombieSchoolPosting.ps1'
 $config=Get-FacebookConfig
 foreach($lang in $script:FacebookLanguages){$pair=Get-FacebookPair $config $lang;Assert-True ($pair.attachmentCount -eq 1) "$lang exact pair has one image";Assert-True (Test-FacebookUnderImageRoot $pair.imagePath) "$lang image is allowlisted"}
 . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
-foreach($lang in $script:FacebookLanguages){foreach($bossId in @('boss-b01','boss-b02','boss-b03','boss-b04','boss-all')){ $pair=Get-FacebookPair $config $lang $bossId;Assert-True ($pair.attachmentCount -eq 1 -and $pair.variantId -ceq $bossId) "$lang/$bossId resolves one shared X/Facebook pair";Assert-True (Test-FacebookUnderImageRoot $pair.imagePath) "$lang/$bossId remains allowlisted";Assert-True ($pair.text.Contains($config.copy.$lang.hashtag)) "$lang/$bossId keeps the regional copy" }}
-$koBossB03=Get-FacebookPair $config ko 'boss-b03'
-Assert-True ($koBossB03.text -ceq $config.copy.ko.text -and $koBossB03.imagePath.EndsWith('boss_series\boss_b03_promotional.png')) 'Facebook resolves the legacy verified Korean boss-b03 pair exactly'
+foreach($lang in $script:FacebookLanguages){foreach($bossId in @('boss-b01','boss-b02','boss-b03','boss-b04','boss-all')){ $failed=$false;try{$null=Get-FacebookPair $config $lang $bossId}catch{$failed=$true};Assert-True $failed "$lang/$bossId shared reference is not a new localized Facebook pair" }}
+$legacyBossPath=[IO.Path]::GetFullPath((Join-Path (Split-Path $script:FacebookImageRoot -Parent) 'boss_series\boss_b03_promotional.png'))
+$koBossB03=[pscustomobject]@{language='ko';variantId='boss-b03';text=$config.copy.ko.text;textSha256=(Get-FacebookSha256 $config.copy.ko.text);imagePath=$legacyBossPath;attachmentCount=1}
+Assert-FacebookFrozenIntent $config ko $koBossB03
+Assert-True (Test-FacebookCanonicalIntent $config $koBossB03) 'explicit legacy boss receipt remains valid without creating a localized Facebook pair'
+Assert-True ((Resolve-FacebookAttachmentPath $legacyBossPath) -ceq [IO.Path]::GetFullPath((Join-Path $script:FacebookImageRoot '..\reference\boss_series\boss_b03_promotional.png'))) 'legacy attachment selection resolves to the shared reference file under guard'
+Assert-True ((Resolve-FacebookAttachmentPath (Get-FacebookPair $config ja 'bell').imagePath) -ceq (Get-FacebookPair $config ja 'bell').imagePath) 'new Facebook attachment selection resolves only its Facebook copy'
+$legacyJaImage=[IO.Path]::GetFullPath((Join-Path (Split-Path $script:FacebookImageRoot -Parent) 'marketing_social_30_20261004\ja\01_bell_escape.png'))
+$jaVariant=@((Get-PostingVariants $config ja -IncludeDisabled)|Where-Object{$_.id -ceq 'bell'})[0]
+$legacyJa=[pscustomobject]@{language='ja';variantId='bell';text=$jaVariant.text;textSha256=(Get-FacebookSha256 $jaVariant.text);imagePath=$legacyJaImage;attachmentCount=1}
+Assert-FacebookFrozenIntent $config ja $legacyJa
+Assert-True (Test-FacebookCanonicalIntent $config $legacyJa) 'legacy localized Facebook receipt remains canonical through its explicit X-path mapping'
+Assert-True ((Resolve-FacebookAttachmentPath $legacyJaImage) -ceq [IO.Path]::GetFullPath((Join-Path $script:FacebookImageRoot '..\x\ja\marketing_social_30_20261004\01_bell_escape.png'))) 'legacy localized attachment path resumes at the original X asset under explicit mapping'
+$xPairPath=(Get-FacebookPair $config ja 'bell').imagePath -replace '\\facebook\\','\\x\\'
+$crossPlatformRejected=$false;try{$null=Resolve-FacebookAttachmentPath $xPairPath}catch{$crossPlatformRejected=$true}
+Assert-True $crossPlatformRejected 'Facebook attachment resolver rejects an unregistered X path'
 Assert-True (-not (Test-FacebookUnderImageRoot (Join-Path $script:FacebookImageRoot '..\evil.png'))) 'path traversal rejected'
 Assert-True (-not (Test-FacebookUnderImageRoot 'C:\temp\evil.png')) 'outside path rejected'
 $tempRoot=[IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([IO.Path]::DirectorySeparatorChar,[IO.Path]::AltDirectorySeparatorChar)

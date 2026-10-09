@@ -124,14 +124,11 @@ function Assert-FacebookComposerTree([string]$Tree, [string]$ExpectedText = '', 
 function Test-FacebookCanonicalIntent($Config, $Intent) {
   try {
     if ($null -eq $Intent -or [string]::IsNullOrWhiteSpace([string]$Intent.language) -or [string]::IsNullOrWhiteSpace([string]$Intent.variantId)) { return $false }
-    . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
-    $matches = @(Get-PostingVariants $Config ([string]$Intent.language) -IncludeDisabled | Where-Object {
-      $_.id -ceq $Intent.variantId -and $_.text -ceq $Intent.text -and [IO.Path]::GetFullPath($_.imagePath) -ceq [IO.Path]::GetFullPath([string]$Intent.imagePath)
-    })
-    return $matches.Count -eq 1 -and (Get-FacebookSha256 ([string]$Intent.text)) -ceq [string]$Intent.textSha256 -and $Intent.attachmentCount -eq 1
+    Assert-FacebookFrozenIntent $Config ([string]$Intent.language) $Intent
+    return (Get-FacebookSha256 ([string]$Intent.text)) -ceq [string]$Intent.textSha256 -and $Intent.attachmentCount -eq 1
   } catch { return $false }
 }
 
 function Assert-FacebookCanonicalIntent($Config, $Intent) {
-  if (-not (Test-FacebookCanonicalIntent $Config $Intent)) { throw 'Frozen intent is not an exact X campaign language/variant/text/image pair' }
+  if (-not (Test-FacebookCanonicalIntent $Config $Intent)) { throw 'Frozen intent is not an exact Facebook pair or explicitly mapped legacy receipt' }
 }

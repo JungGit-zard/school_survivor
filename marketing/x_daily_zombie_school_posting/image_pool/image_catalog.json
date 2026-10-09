@@ -1,0 +1,1507 @@
+{
+    "schema":  1,
+    "root":  "marketing/x_daily_zombie_school_posting/image_pool",
+    "images":  [
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/en/marketing_social_30_20261004/01_bell_escape.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/01_bell_escape.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/en/marketing_social_30_20261004/01_bell_escape.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/01_bell_escape.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/en/marketing_social_30_20261004/02_pencil_survival.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/02_pencil_survival.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/en/marketing_social_30_20261004/02_pencil_survival.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/02_pencil_survival.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/en/marketing_social_30_20261004/04_b02_teacher.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/04_b02_teacher.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/en/marketing_social_30_20261004/04_b02_teacher.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/04_b02_teacher.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/en/marketing_social_30_20261004/05_cafeteria_escape.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/05_cafeteria_escape.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/en/marketing_social_30_20261004/05_cafeteria_escape.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/05_cafeteria_escape.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/en/marketing_social_30_20261004/06_science_lab.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/06_science_lab.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/en/marketing_social_30_20261004/06_science_lab.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/06_science_lab.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/en/marketing_social_30_20261004/07_school_bus.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/07_school_bus.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/en/marketing_social_30_20261004/07_school_bus.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/07_school_bus.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/en/marketing_social_30_20261004/08_locker_hall.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/08_locker_hall.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/en/marketing_social_30_20261004/08_locker_hall.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/08_locker_hall.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/en/marketing_social_30_20261004/09_bell_tower.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/09_bell_tower.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/en/marketing_social_30_20261004/09_bell_tower.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/en/09_bell_tower.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/ja/marketing_social_30_20261004/01_bell_escape.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/01_bell_escape.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/ja/marketing_social_30_20261004/01_bell_escape.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/01_bell_escape.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/ja/marketing_social_30_20261004/02_pencil_survival.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/02_pencil_survival.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/ja/marketing_social_30_20261004/02_pencil_survival.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/02_pencil_survival.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/ja/marketing_social_30_20261004/04_b02_teacher.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/04_b02_teacher.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/ja/marketing_social_30_20261004/04_b02_teacher.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/04_b02_teacher.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/ja/marketing_social_30_20261004/05_classroom_supplies.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/05_classroom_supplies.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/ja/marketing_social_30_20261004/05_classroom_supplies.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/05_classroom_supplies.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/ja/marketing_social_30_20261004/06_gym_escape.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/06_gym_escape.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/ja/marketing_social_30_20261004/06_gym_escape.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/06_gym_escape.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/ja/marketing_social_30_20261004/07_rooftop_escape.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/07_rooftop_escape.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/ja/marketing_social_30_20261004/07_rooftop_escape.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/07_rooftop_escape.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/ja/marketing_social_30_20261004/08_library_escape.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/08_library_escape.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/ja/marketing_social_30_20261004/08_library_escape.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/08_library_escape.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/ja/marketing_social_30_20261004/09_rainy_corridor.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/09_rainy_corridor.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/ja/marketing_social_30_20261004/09_rainy_corridor.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/09_rainy_corridor.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/ko/marketing_social_30_20261004/01_bell_escape.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/01_bell_escape.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/ko/marketing_social_30_20261004/01_bell_escape.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/01_bell_escape.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/ko/marketing_social_30_20261004/02_pencil_survival.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/02_pencil_survival.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/ko/marketing_social_30_20261004/02_pencil_survival.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/02_pencil_survival.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/ko/marketing_social_30_20261004/04_b02_teacher.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/04_b02_teacher.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/ko/marketing_social_30_20261004/04_b02_teacher.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/04_b02_teacher.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/ko/marketing_social_30_20261004/05_shoe_locker_hall.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/05_shoe_locker_hall.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/ko/marketing_social_30_20261004/05_shoe_locker_hall.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/05_shoe_locker_hall.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/ko/marketing_social_30_20261004/06_seoul_classroom.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/06_seoul_classroom.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/ko/marketing_social_30_20261004/06_seoul_classroom.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/06_seoul_classroom.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/ko/marketing_social_30_20261004/07_rooftop_stairs.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/07_rooftop_stairs.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/ko/marketing_social_30_20261004/07_rooftop_stairs.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/07_rooftop_stairs.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/ko/marketing_social_30_20261004/08_nurse_office.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/08_nurse_office.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/ko/marketing_social_30_20261004/08_nurse_office.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/08_nurse_office.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/ko/marketing_social_30_20261004/09_school_exterior.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/09_school_exterior.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/ko/marketing_social_30_20261004/09_school_exterior.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ko/09_school_exterior.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/vi/marketing_social_30_20261004/01_bell_escape.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/01_bell_escape.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/vi/marketing_social_30_20261004/01_bell_escape.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/01_bell_escape.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/vi/marketing_social_30_20261004/02_pencil_survival.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/02_pencil_survival.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/vi/marketing_social_30_20261004/02_pencil_survival.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/02_pencil_survival.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/vi/marketing_social_30_20261004/04_b02_teacher.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/04_b02_teacher.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/vi/marketing_social_30_20261004/04_b02_teacher.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/04_b02_teacher.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/vi/marketing_social_30_20261004/05_rainy_courtyard.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/05_rainy_courtyard.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/vi/marketing_social_30_20261004/05_rainy_courtyard.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/05_rainy_courtyard.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/vi/marketing_social_30_20261004/06_library_window.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/06_library_window.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/vi/marketing_social_30_20261004/06_library_window.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/06_library_window.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/vi/marketing_social_30_20261004/07_basketball_court.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/07_basketball_court.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/vi/marketing_social_30_20261004/07_basketball_court.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/07_basketball_court.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/vi/marketing_social_30_20261004/08_classroom_map.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/08_classroom_map.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/vi/marketing_social_30_20261004/08_classroom_map.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/08_classroom_map.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "x/vi/marketing_social_30_20261004/09_school_gate.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/09_school_gate.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004",
+                       "path":  "facebook/vi/marketing_social_30_20261004/09_school_gate.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/vi/09_school_gate.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/en/boss_localized_20261003/boss_all.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/en/boss_all.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/en/boss_localized_20261003/boss_all.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/en/boss_all.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/en/boss_localized_20261003/boss_b01.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/en/boss_b01.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/en/boss_localized_20261003/boss_b01.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/en/boss_b01.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/en/boss_localized_20261003/boss_b02.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/en/boss_b02.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/en/boss_localized_20261003/boss_b02.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/en/boss_b02.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/en/boss_localized_20261003/boss_b03.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/en/boss_b03.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/en/boss_localized_20261003/boss_b03.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/en/boss_b03.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/en/boss_localized_20261003/boss_b04.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/en/boss_b04.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/en/boss_localized_20261003/boss_b04.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/en/boss_b04.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/ja/boss_localized_20261003/boss_all.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ja/boss_all.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/ja/boss_localized_20261003/boss_all.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ja/boss_all.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/ja/boss_localized_20261003/boss_b01.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ja/boss_b01.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/ja/boss_localized_20261003/boss_b01.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ja/boss_b01.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/ja/boss_localized_20261003/boss_b02.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ja/boss_b02.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/ja/boss_localized_20261003/boss_b02.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ja/boss_b02.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/ja/boss_localized_20261003/boss_b03.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ja/boss_b03.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/ja/boss_localized_20261003/boss_b03.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ja/boss_b03.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/ja/boss_localized_20261003/boss_b04.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ja/boss_b04.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/ja/boss_localized_20261003/boss_b04.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ja/boss_b04.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/ko/boss_localized_20261003/boss_all.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ko/boss_all.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/ko/boss_localized_20261003/boss_all.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ko/boss_all.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/ko/boss_localized_20261003/boss_b01.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ko/boss_b01.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/ko/boss_localized_20261003/boss_b01.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ko/boss_b01.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/ko/boss_localized_20261003/boss_b02.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ko/boss_b02.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/ko/boss_localized_20261003/boss_b02.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ko/boss_b02.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/ko/boss_localized_20261003/boss_b03.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ko/boss_b03.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/ko/boss_localized_20261003/boss_b03.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ko/boss_b03.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/ko/boss_localized_20261003/boss_b04.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ko/boss_b04.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/ko/boss_localized_20261003/boss_b04.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/ko/boss_b04.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/vi/boss_localized_20261003/boss_all.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/vi/boss_all.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/vi/boss_localized_20261003/boss_all.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/vi/boss_all.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/vi/boss_localized_20261003/boss_b01.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/vi/boss_b01.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/vi/boss_localized_20261003/boss_b01.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/vi/boss_b01.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/vi/boss_localized_20261003/boss_b02.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/vi/boss_b02.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/vi/boss_localized_20261003/boss_b02.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/vi/boss_b02.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/vi/boss_localized_20261003/boss_b03.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/vi/boss_b03.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/vi/boss_localized_20261003/boss_b03.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/vi/boss_b03.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "x/vi/boss_localized_20261003/boss_b04.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/vi/boss_b04.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "boss_localized_20261003",
+                       "path":  "facebook/vi/boss_localized_20261003/boss_b04.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_localized_20261003/vi/boss_b04.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/en/marketing_social_30_20261004_source/01_bell_escape.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/en/01_bell_escape.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/en/marketing_social_30_20261004_source/01_bell_escape.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/en/01_bell_escape.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/en/marketing_social_30_20261004_source/02_pencil_survival.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/en/02_pencil_survival.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/en/marketing_social_30_20261004_source/02_pencil_survival.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/en/02_pencil_survival.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/en/marketing_social_30_20261004_source/03_locker_dash.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/en/03_locker_dash.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/en/marketing_social_30_20261004_source/03_locker_dash.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/en/03_locker_dash.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/en/marketing_social_30_20261004_source/04_b02_teacher.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/en/04_b02_teacher.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/en/marketing_social_30_20261004_source/04_b02_teacher.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/en/04_b02_teacher.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/en/marketing_social_30_20261004_source/05_gym_court.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/en/05_gym_court.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/en/marketing_social_30_20261004_source/05_gym_court.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/en/05_gym_court.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/en/marketing_social_30_20261004_source/06_classroom_window.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/en/06_classroom_window.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/en/marketing_social_30_20261004_source/06_classroom_window.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/en/06_classroom_window.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/en/marketing_social_30_20261004_source/07_stairwell_exit.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/en/07_stairwell_exit.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/en/marketing_social_30_20261004_source/07_stairwell_exit.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/en/07_stairwell_exit.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/en/marketing_social_30_20261004_source/08_school_gate.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/en/08_school_gate.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/en/marketing_social_30_20261004_source/08_school_gate.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/en/08_school_gate.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/ja/marketing_social_30_20261004_source/01_bell_escape.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ja/01_bell_escape.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/ja/marketing_social_30_20261004_source/01_bell_escape.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ja/01_bell_escape.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/ja/marketing_social_30_20261004_source/02_pencil_survival.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ja/02_pencil_survival.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/ja/marketing_social_30_20261004_source/02_pencil_survival.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ja/02_pencil_survival.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/ja/marketing_social_30_20261004_source/03_locker_dash.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ja/03_locker_dash.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/ja/marketing_social_30_20261004_source/03_locker_dash.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ja/03_locker_dash.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/ja/marketing_social_30_20261004_source/04_b02_teacher.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ja/04_b02_teacher.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/ja/marketing_social_30_20261004_source/04_b02_teacher.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ja/04_b02_teacher.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/ja/marketing_social_30_20261004_source/05_gym_court.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ja/05_gym_court.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/ja/marketing_social_30_20261004_source/05_gym_court.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ja/05_gym_court.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/ja/marketing_social_30_20261004_source/06_classroom_window.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ja/06_classroom_window.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/ja/marketing_social_30_20261004_source/06_classroom_window.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ja/06_classroom_window.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/ja/marketing_social_30_20261004_source/07_stairwell_exit.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ja/07_stairwell_exit.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/ja/marketing_social_30_20261004_source/07_stairwell_exit.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ja/07_stairwell_exit.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/ko/marketing_social_30_20261004_source/01_bell_escape.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ko/01_bell_escape.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/ko/marketing_social_30_20261004_source/01_bell_escape.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ko/01_bell_escape.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/ko/marketing_social_30_20261004_source/02_pencil_survival.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ko/02_pencil_survival.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/ko/marketing_social_30_20261004_source/02_pencil_survival.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ko/02_pencil_survival.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/ko/marketing_social_30_20261004_source/03_locker_dash.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ko/03_locker_dash.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/ko/marketing_social_30_20261004_source/03_locker_dash.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ko/03_locker_dash.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/ko/marketing_social_30_20261004_source/04_b02_teacher.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ko/04_b02_teacher.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/ko/marketing_social_30_20261004_source/04_b02_teacher.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ko/04_b02_teacher.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/ko/marketing_social_30_20261004_source/05_gym_court.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ko/05_gym_court.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/ko/marketing_social_30_20261004_source/05_gym_court.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ko/05_gym_court.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/ko/marketing_social_30_20261004_source/06_classroom_window.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ko/06_classroom_window.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/ko/marketing_social_30_20261004_source/06_classroom_window.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ko/06_classroom_window.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/ko/marketing_social_30_20261004_source/07_stairwell_exit.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ko/07_stairwell_exit.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/ko/marketing_social_30_20261004_source/07_stairwell_exit.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ko/07_stairwell_exit.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/ko/marketing_social_30_20261004_source/08_school_gate.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ko/08_school_gate.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/ko/marketing_social_30_20261004_source/08_school_gate.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/ko/08_school_gate.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/vi/marketing_social_30_20261004_source/01_bell_escape.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/vi/01_bell_escape.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/vi/marketing_social_30_20261004_source/01_bell_escape.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/vi/01_bell_escape.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/vi/marketing_social_30_20261004_source/02_pencil_survival.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/vi/02_pencil_survival.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/vi/marketing_social_30_20261004_source/02_pencil_survival.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/vi/02_pencil_survival.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/vi/marketing_social_30_20261004_source/03_locker_dash.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/vi/03_locker_dash.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/vi/marketing_social_30_20261004_source/03_locker_dash.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/vi/03_locker_dash.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/vi/marketing_social_30_20261004_source/04_b02_teacher.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/vi/04_b02_teacher.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/vi/marketing_social_30_20261004_source/04_b02_teacher.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/vi/04_b02_teacher.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/vi/marketing_social_30_20261004_source/05_gym_court.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/vi/05_gym_court.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/vi/marketing_social_30_20261004_source/05_gym_court.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/vi/05_gym_court.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/vi/marketing_social_30_20261004_source/06_classroom_window.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/vi/06_classroom_window.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/vi/marketing_social_30_20261004_source/06_classroom_window.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/vi/06_classroom_window.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "x/vi/marketing_social_30_20261004_source/07_stairwell_exit.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/vi/07_stairwell_exit.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_30_20261004_source",
+                       "path":  "facebook/vi/marketing_social_30_20261004_source/07_stairwell_exit.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/vi/07_stairwell_exit.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "x/en/marketing_social_add40_20261004/01_library_escape.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/en/01_library_escape.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "facebook/en/marketing_social_add40_20261004/01_library_escape.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/en/01_library_escape.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "x/en/marketing_social_add40_20261004/02_science_lab.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/en/02_science_lab.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "facebook/en/marketing_social_add40_20261004/02_science_lab.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/en/02_science_lab.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "x/ja/marketing_social_add40_20261004/01_library_escape.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ja/01_library_escape.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "facebook/ja/marketing_social_add40_20261004/01_library_escape.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ja/01_library_escape.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "x/ja/marketing_social_add40_20261004/02_science_lab.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ja/02_science_lab.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "facebook/ja/marketing_social_add40_20261004/02_science_lab.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ja/02_science_lab.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "x/ko/marketing_social_add40_20261004/01_library_escape.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/01_library_escape.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "facebook/ko/marketing_social_add40_20261004/01_library_escape.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/01_library_escape.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "x/ko/marketing_social_add40_20261004/02_science_lab.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/02_science_lab.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "facebook/ko/marketing_social_add40_20261004/02_science_lab.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/02_science_lab.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "x/ko/marketing_social_add40_20261004/03_cafeteria.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/03_cafeteria.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "facebook/ko/marketing_social_add40_20261004/03_cafeteria.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/03_cafeteria.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "x/ko/marketing_social_add40_20261004/04_school_yard.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/04_school_yard.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "facebook/ko/marketing_social_add40_20261004/04_school_yard.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/04_school_yard.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "x/ko/marketing_social_add40_20261004/05_broadcast_room.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/05_broadcast_room.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "facebook/ko/marketing_social_add40_20261004/05_broadcast_room.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/05_broadcast_room.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "x/ko/marketing_social_add40_20261004/06_nurse_office.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/06_nurse_office.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "facebook/ko/marketing_social_add40_20261004/06_nurse_office.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/06_nurse_office.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "x/ko/marketing_social_add40_20261004/07_school_lobby.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/07_school_lobby.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "facebook/ko/marketing_social_add40_20261004/07_school_lobby.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/07_school_lobby.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "x/ko/marketing_social_add40_20261004/08_art_room.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/08_art_room.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "facebook/ko/marketing_social_add40_20261004/08_art_room.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/08_art_room.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "x/ko/marketing_social_add40_20261004/09_computer_lab.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/09_computer_lab.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "facebook/ko/marketing_social_add40_20261004/09_computer_lab.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/09_computer_lab.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "x/ko/marketing_social_add40_20261004/10_bus_bay.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/10_bus_bay.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "facebook/ko/marketing_social_add40_20261004/10_bus_bay.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/ko/10_bus_bay.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "x/vi/marketing_social_add40_20261004/01_library_escape.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/vi/01_library_escape.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "facebook/vi/marketing_social_add40_20261004/01_library_escape.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/vi/01_library_escape.png"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "x/vi/marketing_social_add40_20261004/02_science_lab.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/vi/02_science_lab.png"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_add40_20261004",
+                       "path":  "facebook/vi/marketing_social_add40_20261004/02_science_lab.png",
+                       "source":  "Graphic_designer/marketing_social_add40_20261004/vi/02_science_lab.png"
+                   },
+                   {
+                       "platform":  "reference",
+                       "locale":  null,
+                       "collection":  "boss_series",
+                       "path":  "reference/boss_series/boss_all_promotional.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_series/boss_all_promotional.png"
+                   },
+                   {
+                       "platform":  "reference",
+                       "locale":  null,
+                       "collection":  "boss_series",
+                       "path":  "reference/boss_series/boss_b01_promotional.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_series/boss_b01_promotional.png"
+                   },
+                   {
+                       "platform":  "reference",
+                       "locale":  null,
+                       "collection":  "boss_series",
+                       "path":  "reference/boss_series/boss_b02_promotional.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_series/boss_b02_promotional.png"
+                   },
+                   {
+                       "platform":  "reference",
+                       "locale":  null,
+                       "collection":  "boss_series",
+                       "path":  "reference/boss_series/boss_b03_promotional.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_series/boss_b03_promotional.png"
+                   },
+                   {
+                       "platform":  "reference",
+                       "locale":  null,
+                       "collection":  "boss_series",
+                       "path":  "reference/boss_series/boss_b04_promotional.png",
+                       "source":  "marketing/x_daily_zombie_school_posting/image_pool/boss_series/boss_b04_promotional.png"
+                   },
+                   {
+                       "platform":  "reference",
+                       "locale":  null,
+                       "collection":  "contact_sheets",
+                       "path":  "reference/contact_sheets/contact_sheet_all_30.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/contact_sheet_all_30.png"
+                   },
+                   {
+                       "platform":  "reference",
+                       "locale":  null,
+                       "collection":  "contact_sheets",
+                       "path":  "reference/contact_sheets/contact_sheet_en.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/contact_sheet_en.png"
+                   },
+                   {
+                       "platform":  "reference",
+                       "locale":  null,
+                       "collection":  "contact_sheets",
+                       "path":  "reference/contact_sheets/contact_sheet_ja.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/contact_sheet_ja.png"
+                   },
+                   {
+                       "platform":  "reference",
+                       "locale":  null,
+                       "collection":  "contact_sheets",
+                       "path":  "reference/contact_sheets/contact_sheet_ko.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/contact_sheet_ko.png"
+                   },
+                   {
+                       "platform":  "reference",
+                       "locale":  null,
+                       "collection":  "contact_sheets",
+                       "path":  "reference/contact_sheets/contact_sheet_vi.png",
+                       "source":  "Graphic_designer/marketing_social_30_20261004/contact_sheet_vi.png"
+                   }
+               ],
+    "legacyPaths":  {
+                        "marketing_social_30_20261004/en/01_bell_escape.png":  "x/en/marketing_social_30_20261004/01_bell_escape.png",
+                        "marketing_social_30_20261004/en/02_pencil_survival.png":  "x/en/marketing_social_30_20261004/02_pencil_survival.png",
+                        "marketing_social_30_20261004/en/04_b02_teacher.png":  "x/en/marketing_social_30_20261004/04_b02_teacher.png",
+                        "marketing_social_30_20261004/en/05_cafeteria_escape.png":  "x/en/marketing_social_30_20261004/05_cafeteria_escape.png",
+                        "marketing_social_30_20261004/en/06_science_lab.png":  "x/en/marketing_social_30_20261004/06_science_lab.png",
+                        "marketing_social_30_20261004/en/07_school_bus.png":  "x/en/marketing_social_30_20261004/07_school_bus.png",
+                        "marketing_social_30_20261004/en/08_locker_hall.png":  "x/en/marketing_social_30_20261004/08_locker_hall.png",
+                        "marketing_social_30_20261004/en/09_bell_tower.png":  "x/en/marketing_social_30_20261004/09_bell_tower.png",
+                        "marketing_social_30_20261004/ja/01_bell_escape.png":  "x/ja/marketing_social_30_20261004/01_bell_escape.png",
+                        "marketing_social_30_20261004/ja/02_pencil_survival.png":  "x/ja/marketing_social_30_20261004/02_pencil_survival.png",
+                        "marketing_social_30_20261004/ja/04_b02_teacher.png":  "x/ja/marketing_social_30_20261004/04_b02_teacher.png",
+                        "marketing_social_30_20261004/ja/05_classroom_supplies.png":  "x/ja/marketing_social_30_20261004/05_classroom_supplies.png",
+                        "marketing_social_30_20261004/ja/06_gym_escape.png":  "x/ja/marketing_social_30_20261004/06_gym_escape.png",
+                        "marketing_social_30_20261004/ja/07_rooftop_escape.png":  "x/ja/marketing_social_30_20261004/07_rooftop_escape.png",
+                        "marketing_social_30_20261004/ja/08_library_escape.png":  "x/ja/marketing_social_30_20261004/08_library_escape.png",
+                        "marketing_social_30_20261004/ja/09_rainy_corridor.png":  "x/ja/marketing_social_30_20261004/09_rainy_corridor.png",
+                        "marketing_social_30_20261004/ko/01_bell_escape.png":  "x/ko/marketing_social_30_20261004/01_bell_escape.png",
+                        "marketing_social_30_20261004/ko/02_pencil_survival.png":  "x/ko/marketing_social_30_20261004/02_pencil_survival.png",
+                        "marketing_social_30_20261004/ko/04_b02_teacher.png":  "x/ko/marketing_social_30_20261004/04_b02_teacher.png",
+                        "marketing_social_30_20261004/ko/05_shoe_locker_hall.png":  "x/ko/marketing_social_30_20261004/05_shoe_locker_hall.png",
+                        "marketing_social_30_20261004/ko/06_seoul_classroom.png":  "x/ko/marketing_social_30_20261004/06_seoul_classroom.png",
+                        "marketing_social_30_20261004/ko/07_rooftop_stairs.png":  "x/ko/marketing_social_30_20261004/07_rooftop_stairs.png",
+                        "marketing_social_30_20261004/ko/08_nurse_office.png":  "x/ko/marketing_social_30_20261004/08_nurse_office.png",
+                        "marketing_social_30_20261004/ko/09_school_exterior.png":  "x/ko/marketing_social_30_20261004/09_school_exterior.png",
+                        "marketing_social_30_20261004/vi/01_bell_escape.png":  "x/vi/marketing_social_30_20261004/01_bell_escape.png",
+                        "marketing_social_30_20261004/vi/02_pencil_survival.png":  "x/vi/marketing_social_30_20261004/02_pencil_survival.png",
+                        "marketing_social_30_20261004/vi/04_b02_teacher.png":  "x/vi/marketing_social_30_20261004/04_b02_teacher.png",
+                        "marketing_social_30_20261004/vi/05_rainy_courtyard.png":  "x/vi/marketing_social_30_20261004/05_rainy_courtyard.png",
+                        "marketing_social_30_20261004/vi/06_library_window.png":  "x/vi/marketing_social_30_20261004/06_library_window.png",
+                        "marketing_social_30_20261004/vi/07_basketball_court.png":  "x/vi/marketing_social_30_20261004/07_basketball_court.png",
+                        "marketing_social_30_20261004/vi/08_classroom_map.png":  "x/vi/marketing_social_30_20261004/08_classroom_map.png",
+                        "marketing_social_30_20261004/vi/09_school_gate.png":  "x/vi/marketing_social_30_20261004/09_school_gate.png",
+                        "boss_localized_20261003/en/boss_all.png":  "x/en/boss_localized_20261003/boss_all.png",
+                        "boss_localized_20261003/en/boss_b01.png":  "x/en/boss_localized_20261003/boss_b01.png",
+                        "boss_localized_20261003/en/boss_b02.png":  "x/en/boss_localized_20261003/boss_b02.png",
+                        "boss_localized_20261003/en/boss_b03.png":  "x/en/boss_localized_20261003/boss_b03.png",
+                        "boss_localized_20261003/en/boss_b04.png":  "x/en/boss_localized_20261003/boss_b04.png",
+                        "boss_localized_20261003/ja/boss_all.png":  "x/ja/boss_localized_20261003/boss_all.png",
+                        "boss_localized_20261003/ja/boss_b01.png":  "x/ja/boss_localized_20261003/boss_b01.png",
+                        "boss_localized_20261003/ja/boss_b02.png":  "x/ja/boss_localized_20261003/boss_b02.png",
+                        "boss_localized_20261003/ja/boss_b03.png":  "x/ja/boss_localized_20261003/boss_b03.png",
+                        "boss_localized_20261003/ja/boss_b04.png":  "x/ja/boss_localized_20261003/boss_b04.png",
+                        "boss_localized_20261003/ko/boss_all.png":  "x/ko/boss_localized_20261003/boss_all.png",
+                        "boss_localized_20261003/ko/boss_b01.png":  "x/ko/boss_localized_20261003/boss_b01.png",
+                        "boss_localized_20261003/ko/boss_b02.png":  "x/ko/boss_localized_20261003/boss_b02.png",
+                        "boss_localized_20261003/ko/boss_b03.png":  "x/ko/boss_localized_20261003/boss_b03.png",
+                        "boss_localized_20261003/ko/boss_b04.png":  "x/ko/boss_localized_20261003/boss_b04.png",
+                        "boss_localized_20261003/vi/boss_all.png":  "x/vi/boss_localized_20261003/boss_all.png",
+                        "boss_localized_20261003/vi/boss_b01.png":  "x/vi/boss_localized_20261003/boss_b01.png",
+                        "boss_localized_20261003/vi/boss_b02.png":  "x/vi/boss_localized_20261003/boss_b02.png",
+                        "boss_localized_20261003/vi/boss_b03.png":  "x/vi/boss_localized_20261003/boss_b03.png",
+                        "boss_localized_20261003/vi/boss_b04.png":  "x/vi/boss_localized_20261003/boss_b04.png",
+                        "boss_series/boss_all_promotional.png":  "reference/boss_series/boss_all_promotional.png",
+                        "boss_series/boss_b01_promotional.png":  "reference/boss_series/boss_b01_promotional.png",
+                        "boss_series/boss_b02_promotional.png":  "reference/boss_series/boss_b02_promotional.png",
+                        "boss_series/boss_b03_promotional.png":  "reference/boss_series/boss_b03_promotional.png",
+                        "boss_series/boss_b04_promotional.png":  "reference/boss_series/boss_b04_promotional.png"
+                    }
+}

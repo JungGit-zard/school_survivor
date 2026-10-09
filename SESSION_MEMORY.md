@@ -12641,3 +12641,44 @@ git push origin zombie_only
 - 세션 7 종료.
 
 ---
+
+## Session 8 · Entry 0 (Bootstrap) · 2026-10-09 1508 KST
+
+### 확정된 소셜 포스팅 이미지 라이브러리 규칙
+
+- X/Facebook 포스팅 이미지는 한 저장소의 단일 정본 root `marketing/x_daily_zombie_school_posting/image_pool` 안에서 관리한다.
+- 파일은 플랫폼별로 독립 관리하고 각 플랫폼 아래에 지역언어 `ko`(한국어), `en`(영어권), `ja`(일본어), `vi`(베트남어)를 둔다. 확정 구조는 `x/<locale>/<collection>` 및 `facebook/<locale>/<collection>`이다.
+- 기존 지정 애니메이션/만화 스타일, 지역별 폰트, 제목과 홍보문구를 유지한다. 언어를 추정해 재분류하지 않는다.
+- X와 Facebook 파일 크기는 다를 수 있다. 어느 쪽에도 임의 리사이즈, 사이즈 강제 통일, 스타일 변경을 하지 않는다. 이후 추가 이미지도 같은 분류 규칙을 따른다.
+- 기존 원본과 receipt는 보존한다. 과거 경로는 정확한 legacy catalog mapping으로 읽고, 새 후보 collection을 자동으로 active 게시 후보로 올리지 않는다.
+- 이 프로젝트의 지속기억은 휘발성 대화 메모리가 아니라 프로젝트 파일 기반이다. 영구 규칙은 append-only `SESSION_MEMORY.md`와 세부 운영 문서에 기록한다.
+- 조사 문서: `Graphic_designer/social_posting_image_library_2026-10-09.md`. Kanban 카드 `t_2086183a`에서 이미지 라이브러리 통합 작업을 추적한다.
+
+### 현재 이미지 인벤토리 기준
+
+- 통합 전 image_pool에는 localized 52개(소셜 후보 32개 및 boss localized 20개), 언어 미분류 boss 이미지 5개가 있다. 별도 Graphic_designer source는 `marketing_social_30_20261004` 30개와 `marketing_social_add40_20261004` 16개다.
+- 확정된 구현 설계는 localized 98개를 플랫폼별 collection으로 보관하고, 기존 social 32개만 active로 남긴다. 미분류 boss 5개와 contact sheet 5개는 reference만 유지한다. 최종 실파일 수량은 구현 readback 결과로 조정한다.
+- 포스팅 README는 schedule 변경이 섞인 기존 diff 때문에 이번 기록 단계에서는 수정하지 않았다. Portable handoff는 이미지 경로/보존 규칙만 새 분류 설계에 맞춰 갱신했다.
+## Session 8 · Entry 0 보충 · 2026-10-09 1512 KST
+
+### 이미지 통합 수량과 분류 주의
+
+- 플랫폼별 localized 98개(기존 image_pool 52 + source 30 + add40 16)는 계획 수량이다. X/Facebook 두 플랫폼 합계는 196개 계획이며, source 사이 중복일 수 있는 12개를 추측으로 제거하지 않는다. 미분류 boss 5개와 contact sheet 5개, 총 10개는 게시 이미지 대신 reference로 둔다. 실제 inventory readback 후 수량을 확정한다.
+- 현재 active 32개만 active로 유지하고 나머지는 보관 후보로 둔다. 새 사이즈를 사용자 지정값처럼 만들어내거나 이미지 크기를 임의 변경하지 않는다.
+- 향후 템플릿은 각 ko/en/ja/vi 지역의 제목·헤드라인·무료 및 광고 없음 문구를 현지화하고 현존 스타일을 참고한다. PNG 글자는 rasterized copy이므로 문서나 UI에서 폰트명을 추정하지 않는다.
+
+### 이미지 규격/추가 인수인계 보충 (2026-10-09)
+
+- 사용자가 지정한 픽셀 규격은 현재 없다. X/Facebook의 원본 크기를 각각 보존하고 임의 리사이즈/공통 크기 지정은 하지 않는다.
+- 미래 추가 이미지는 저장 대상 플랫폼과 `ko/en/ja/vi` 지역언어를 정확히 선택해 그 플랫폼 폴더에 저장한다. 현지 제목·헤드라인·무료/광고 없음 문구와 기존 스타일을 유지하고, 다른 언어 파일을 공용 후보처럼 재사용하지 않는다.
+
+## Session 8 · Entry 0 카탈로그 readback 보충 · 2026-10-09
+
+- `marketing/x_daily_zombie_school_posting/image_pool/image_catalog.json` 최종 인벤토리 readback: 총 206 entries, localized image entries 196개(X 98 + Facebook 98), reference 10개. 언어별 플랫폼 수량은 각 플랫폼 ko 31, en 23, ja 22, vi 22다.
+- 플랫폼별 collection 수량은 `marketing_social_30_20261004` 32, `boss_localized_20261003` 20, `marketing_social_30_20261004_source` 30, `marketing_social_add40_20261004` 16이다. Reference는 `boss_series` 5개와 contact sheets 5개다.
+- 검증 readback: missing paths 0, duplicate platform paths 0, legacy path mappings 57. active/published selection은 X의 기존 32개 설정을 유지하고 Facebook은 기존 variant-selection 설정을 유지한다.
+- Graphic_designer 원본 위치에서 모든 이미지가 이동되어 안내/manifest만 남았는지 여부는 별도 source-location readback으로 확인하기 전까지 완료로 단정하지 않는다.
+
+### Social image source migration completion (2026-10-09)
+
+- Parent source-location readback confirmed all 108 unique catalog source paths have zero image files left at their old locations; all 206 canonical catalog entries exist. Graphic_designer image bytes were moved to X paths, copied separately to Facebook paths, and old locations now retain README/manifest guidance only.

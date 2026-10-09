@@ -7,8 +7,11 @@ $config = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'posting_config.json
 $config.schedule_times = @('09:00','12:00','18:00')
 Assert-PostingVariants $config
 $portableFixture = 'D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/01_bell_escape.png'
-$localFixture = Join-Path $PSScriptRoot 'image_pool/marketing_social_30_20261004/ja/01_bell_escape.png'
-Assert-True ((Resolve-PostingImagePath $portableFixture) -ceq [IO.Path]::GetFullPath($localFixture)) 'configured absolute roots resolve by the unchanged campaign-relative image_pool path on another PC'
+$localFixture = Join-Path $PSScriptRoot 'image_pool/x/ja/marketing_social_30_20261004/01_bell_escape.png'
+Assert-True ((Resolve-PostingImagePath $portableFixture) -ceq [IO.Path]::GetFullPath($localFixture)) 'explicit legacy receipt suffix maps to the canonical X locale collection'
+Assert-True ((Resolve-PostingImagePath 'image_pool/x/ja/marketing_social_30_20261004/01_bell_escape.png') -ceq [IO.Path]::GetFullPath($localFixture)) 'canonical X image path resolves'
+$facebookRejected=$false;try{$null=Resolve-PostingImagePath 'image_pool/facebook/ja/marketing_social_30_20261004/01_bell_escape.png'}catch{$facebookRejected=$true}
+Assert-True $facebookRejected 'X resolver rejects Facebook-owned assets'
 $escapedImageRejected=$false
 try {$null=Resolve-PostingImagePath 'D:/image_pool/../../outside.png'} catch {$escapedImageRejected=$true}
 Assert-True $escapedImageRejected 'portable image resolution cannot escape the approved image_pool root'
@@ -41,7 +44,7 @@ try {
       Assert-True ($choice.id -ne $previous) "$lang/$cycle has no adjacent repeat"
       Assert-True ((Select-PostingVariant $config $lang $cycle $temp).id -eq $choice.id) "$lang/$cycle keeps deterministic text variant"
       Assert-True (Test-Path -LiteralPath $choice.imagePath) "$lang/$cycle selected image exists"
-      Assert-True ($choice.imagePath -match "marketing_social_30_20261004[\\/]$lang[\\/]") "$lang/$cycle uses locale marketing image pool"
+      Assert-True ($choice.imagePath -match "[\\/]x[\\/]$lang[\\/]marketing_social_30_20261004[\\/]") "$lang/$cycle uses the X locale image pool"
       if ($null -ne $previousImage -and @($config.localized_social_image_pool.$lang.images).Count -gt 1) { Assert-True ($choice.imagePath -cne $previousImage) "$lang/$cycle has no adjacent image repeat" }
       $seen += $choice.id; $previous = $choice.id
       $receipt = [pscustomobject]@{ schema=1; cycleId=$cycle; entries=[pscustomobject]@{} }

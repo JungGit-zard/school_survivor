@@ -1,6 +1,6 @@
 ﻿# Facebook posting guardrails. Importing this file has no desktop or network side effects.
 Set-StrictMode -Version Latest
-$script:FacebookImageRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\image_pool'))
+$script:FacebookImageRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\image_pool\facebook'))
 $script:FacebookProfileUrl = 'https://www.facebook.com/hyunuk.jung.56/'
 $script:FacebookProfileId = '100006315245185'
 $script:FacebookPlayUrl = 'https://play.google.com/store/apps/details?id=com.jungyoon.zombieschool'
@@ -19,24 +19,45 @@ function Test-FacebookUnderImageRoot([string]$Path) {
   if ([string]::IsNullOrWhiteSpace($Path)) { return $false }
   try {
     . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
+    $full = Resolve-PostingImagePath $Path -Platform Facebook
     $root = $script:FacebookImageRoot.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
-    $full = Resolve-PostingImagePath $Path
-    return $full.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)
+    if ($full.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)) { return $true }
+    $normalized=$Path -replace '\\','/';$marker=[regex]::Match($normalized,'(?:^|/)image_pool/(.+)$',[Text.RegularExpressions.RegexOptions]::IgnoreCase)
+    $suffix=if($marker.Success){$marker.Groups[1].Value}else{$normalized.TrimStart('/')};$catalog=Get-PostingImageCatalog
+    return ($catalog.legacyPaths.PSObject.Properties.Name -contains $suffix)
   } catch { return $false }
 }
 function Assert-FacebookImagePath([string]$Path) {
-  if (-not (Test-FacebookUnderImageRoot $Path)) { throw 'Image path is outside the approved X image_pool root' }
+  if (-not (Test-FacebookUnderImageRoot $Path)) { throw 'Image path is outside the approved social image_pool root' }
+}
+function Resolve-FacebookAttachmentPath([string]$Path) {
+  Assert-FacebookImagePath $Path
+  . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
+  return Resolve-PostingImagePath $Path -Platform Facebook
 }
 function Get-FacebookConfig { Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\posting_config.json') -Raw -Encoding UTF8 | ConvertFrom-Json }
+function Resolve-FacebookPlatformImagePath([string]$Path, [ValidateSet('ja','en','vi','ko')][string]$Language) {
+  . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
+  $xImage = Resolve-PostingImagePath $Path -Platform X
+  $catalog=Get-PostingImageCatalog;$poolRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\image_pool'))
+  $relative=$xImage.Substring($poolRoot.Length+1).Replace('\','/')
+  $xRows=@($catalog.images|Where-Object{$_.platform -ceq 'X' -and $_.path -ceq $relative -and $_.locale -ceq $Language})
+  if($xRows.Count -ne 1){throw "No exact X catalog entry for $Language image"}
+  $fbRows=@($catalog.images|Where-Object{$_.platform -ceq 'Facebook' -and $_.locale -ceq $Language -and $_.collection -ceq $xRows[0].collection -and [IO.Path]::GetFileName($_.path) -ceq [IO.Path]::GetFileName($xRows[0].path)})
+  if($fbRows.Count -ne 1){throw "No explicit Facebook copy for $Language image; shared reference assets are not localized pairs"}
+  $facebookImage = Resolve-PostingImagePath ('image_pool/'+$fbRows[0].path) -Platform Facebook
+  Assert-FacebookImagePath $facebookImage
+  if (-not (Test-Path -LiteralPath $facebookImage -PathType Leaf)) { throw "Missing Facebook platform image for $Language" }
+  return $facebookImage
+}
 function Get-FacebookPair($Config, [ValidateSet('ja','en','vi','ko')][string]$Language, [string]$VariantId = 'escape') {
   . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
   $variant = @((Get-PostingVariants $Config $Language -IncludeDisabled) | Where-Object { $_.id -ceq $VariantId })
-  if ($variant.Count -ne 1) { throw "Unknown or ambiguous X config variant '$VariantId' for $Language" }
+  if ($variant.Count -ne 1) { throw "Unknown or ambiguous campaign config variant '$VariantId' for $Language" }
   $text = [string]$variant[0].text
-  $imagePath = [string]$variant[0].imagePath
-  if ([string]::IsNullOrWhiteSpace($text) -or [string]::IsNullOrWhiteSpace($imagePath)) { throw "Missing canonical X pair for $Language" }
+  $imagePath = Resolve-FacebookPlatformImagePath ([string]$variant[0].imagePath) $Language
+  if ([string]::IsNullOrWhiteSpace($text) -or [string]::IsNullOrWhiteSpace($imagePath)) { throw "Missing canonical Facebook pair for $Language" }
   if (-not $text.Contains($script:FacebookPlayUrl) -or -not $text.Contains([string]$Config.copy.$Language.hashtag)) { throw "Canonical $Language copy is missing its exact Play link or hashtag" }
-  Assert-FacebookImagePath $imagePath
   [pscustomobject]@{ language=$Language; variantId=$variant[0].id; text=$text; textSha256=(Get-FacebookSha256 $text); imagePath=[IO.Path]::GetFullPath($imagePath); attachmentCount=1 }
 }
 function Get-FacebookReceiptPath([string]$ReceiptDirectory, [string]$RunId) { Join-Path $ReceiptDirectory ($RunId + '.json') }
@@ -57,8 +78,14 @@ function Test-FacebookIntent($Intent) {
 function Assert-FacebookFrozenIntent($Config,[string]$Language,$Intent) {
   if(-not (Test-FacebookIntent $Intent)){throw 'Receipt intent is structurally invalid'}
   . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
-  $match=@((Get-PostingVariants $Config $Language -IncludeDisabled)|Where-Object{$_.id -ceq $Intent.variantId -and $_.text -ceq $Intent.text -and $_.imagePath -ceq (Resolve-PostingImagePath ([string]$Intent.imagePath))})
-  if($match.Count -ne 1){throw 'Frozen receipt intent no longer equals one exact X config pair'}
+  $intentPath=Resolve-PostingImagePath ([string]$Intent.imagePath) -Platform Facebook
+  $pairMatch=$false
+  try{$pair=Get-FacebookPair $Config $Language ([string]$Intent.variantId);$pairMatch=($pair.text -ceq $Intent.text -and $pair.imagePath -ceq $intentPath)}catch{}
+  if($pairMatch){return}
+  $normalized=[string]$Intent.imagePath -replace '\\','/';$marker=[regex]::Match($normalized,'(?:^|/)image_pool/(.+)$',[Text.RegularExpressions.RegexOptions]::IgnoreCase);$suffix=if($marker.Success){$marker.Groups[1].Value}else{$normalized.TrimStart('/')};$catalog=Get-PostingImageCatalog
+  if($catalog.legacyPaths.PSObject.Properties.Name -notcontains $suffix){throw 'Frozen receipt is neither a Facebook pair nor an explicitly mapped legacy image'}
+  $legacyMatch=@((Get-PostingVariants $Config $Language -IncludeDisabled)|Where-Object{$_.id -ceq $Intent.variantId -and $_.text -ceq $Intent.text -and $_.imagePath -ceq $intentPath})
+  if($legacyMatch.Count -ne 1){throw 'Legacy frozen receipt no longer equals one exact localized X config pair'}
 }
 function Test-FacebookEvidence($Intent, $Evidence) {
   if (-not (Test-FacebookIntent $Intent) -or $null -eq $Evidence) { return $false }

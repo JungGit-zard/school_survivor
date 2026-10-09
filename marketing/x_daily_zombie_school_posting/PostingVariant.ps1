@@ -1,17 +1,33 @@
 # Pure campaign pair selection; never opens UI or writes receipts.
-function Resolve-PostingImagePath([string]$Path) {
+function Get-PostingImageCatalog {
+  $path = Join-Path $PSScriptRoot 'image_pool/image_catalog.json'
+  if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw 'Social image catalog is missing.' }
+  return Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
+}
+function Resolve-PostingImagePath([string]$Path, [ValidateSet('X','Facebook')][string]$Platform = 'X') {
   if ([string]::IsNullOrWhiteSpace($Path)) { return $Path }
   $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'image_pool'))
   $rootPrefix = $root.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
-  $match = [regex]::Match($Path, '(?:^|[\\/])image_pool[\\/](.+)$', [Text.RegularExpressions.RegexOptions]::IgnoreCase)
-  if ($match.Success) {
-    $resolved = [IO.Path]::GetFullPath((Join-Path $root ($match.Groups[1].Value -replace '[\\/]', [IO.Path]::DirectorySeparatorChar)))
-    if (-not $resolved.StartsWith($rootPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Configured image path escapes the campaign image_pool root.' }
-    return $resolved
+  $normalized = $Path -replace '\\', '/'
+  $match = [regex]::Match($normalized, '(?:^|/)image_pool/(.+)$', [Text.RegularExpressions.RegexOptions]::IgnoreCase)
+  $suffix = if ($match.Success) { $match.Groups[1].Value } else { $normalized.TrimStart('/') }
+  $catalog = Get-PostingImageCatalog
+  if ($catalog.legacyPaths.PSObject.Properties.Name -contains $suffix) { $suffix = [string]$catalog.legacyPaths.$suffix }
+  elseif (-not $suffix.StartsWith('x/', [StringComparison]::OrdinalIgnoreCase) -and
+          -not $suffix.StartsWith('facebook/', [StringComparison]::OrdinalIgnoreCase) -and
+          -not $suffix.StartsWith('reference/', [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'Image path is not canonical and has no explicit legacy mapping.'
   }
-  $resolvedPath = if ([IO.Path]::IsPathRooted($Path)) { [IO.Path]::GetFullPath($Path) } else { [IO.Path]::GetFullPath((Join-Path $root ($Path -replace '[\\/]', [IO.Path]::DirectorySeparatorChar))) }
-  if (-not $resolvedPath.StartsWith($rootPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Configured image path must resolve within the campaign image_pool root.' }
-  return $resolvedPath
+  if ($suffix -match '(^|/)\.\.(/|$)' -or $suffix -match '^[A-Za-z]:') { throw 'Image path traversal or absolute suffix is forbidden.' }
+  $platformRoot = if ($Platform -eq 'Facebook') { 'facebook/' } else { 'x/' }
+  $isLegacy = $catalog.legacyPaths.PSObject.Properties.Name -contains $(if ($match.Success) { $match.Groups[1].Value } else { $normalized.TrimStart('/') })
+  if ($Platform -eq 'X' -and $suffix.StartsWith('facebook/', [StringComparison]::OrdinalIgnoreCase)) { throw 'X cannot resolve Facebook-owned images.' }
+  if ($Platform -eq 'Facebook' -and $suffix.StartsWith('x/', [StringComparison]::OrdinalIgnoreCase) -and -not $isLegacy) { throw 'Facebook cannot resolve X-owned images outside an explicit legacy receipt mapping.' }
+  if ($Platform -eq 'Facebook' -and -not $isLegacy -and -not $suffix.StartsWith($platformRoot, [StringComparison]::OrdinalIgnoreCase)) { throw 'Facebook images must be under the Facebook platform root.' }
+  if ($Platform -eq 'X' -and -not $suffix.StartsWith('x/', [StringComparison]::OrdinalIgnoreCase) -and -not $suffix.StartsWith('reference/', [StringComparison]::OrdinalIgnoreCase)) { throw 'X images must be under the X or shared-reference root.' }
+  $resolved = [IO.Path]::GetFullPath((Join-Path $root ($suffix -replace '/', [IO.Path]::DirectorySeparatorChar)))
+  if (-not $resolved.StartsWith($rootPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Configured image path escapes the campaign image_pool root.' }
+  return $resolved
 }
 function Get-PostingVariants($Config, [string]$Language, [switch]$IncludeDisabled) {
   [pscustomobject]@{ id='original'; enabled=$true; text=[string]$Config.copy.$Language.text; imagePath=(Resolve-PostingImagePath ([string]$Config.image_pool.$Language.images[0])) }
