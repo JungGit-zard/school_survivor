@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "tests": [
+    "file URL offline load",
+    "WebGL shader render",
+    "pause/resume",
+    "mouse orbit",
+    "wheel zoom",
+    "reset",
+    "base/glow toggle",
+    "view lookup toggle",
+    "surface scroll toggle",
+    "intensity control",
+    "wireframe control",
+    "PNG export",
+    "mobile layout",
+    "zero external requests"
+  ],
+  "geometry": {
+    "vertices": 72,
+    "faces": 38,
+    "triangles": 140
+  },
+  "errors": [],
+  "warnings": [],
+  "externalRequests": []
+}

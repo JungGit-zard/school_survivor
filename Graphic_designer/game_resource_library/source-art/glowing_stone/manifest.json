@@ -1,0 +1,26 @@
+{
+  "status": "owner-approved visual reference; not integrated",
+  "source": "C:\\Users\\admin\\AppData\\Local\\hermes\\output\\glowing-stone",
+  "files": [
+    {
+      "file": "glowing-stone.png",
+      "bytes": 138277,
+      "sha256": "5747f447420397cb1c4d6c23fcd23e16b660280f6923dcd1f3b8c64ef2dbc915"
+    },
+    {
+      "file": "stone-comparison.png",
+      "bytes": 226717,
+      "sha256": "86e2fc61af7dcbff62e3bca99cc0444306f82bd51204517183d3f1a7d91d827c"
+    },
+    {
+      "file": "glowing-stone.mp4",
+      "bytes": 1086272,
+      "sha256": "e32c63c1c4d2ae5077094a77e0204aca415ef5871c45580818fb6b9510be5521"
+    },
+    {
+      "file": "render_stone.py",
+      "bytes": 4893,
+      "sha256": "526d509c0d21df059eb1e731e94a31b58a79697b66079d58df164713d34736b6"
+    }
+  ]
+}

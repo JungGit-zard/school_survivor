@@ -1,0 +1,45 @@
+{
+  "scope": "standalone viewer and actual methodology; not runtime integration",
+  "files": [
+    {
+      "path": "Graphic_designer/game_resource_library/source-art/glowing_stone/glowing-stone-viewer.html",
+      "bytes": 1807267,
+      "sha256": "e98a0a73decba477d51fa2d620c91bcfcc54f4f1223579e62bc1fead49a03b95"
+    },
+    {
+      "path": "Developer/agent_room/glowing_stone_methodology.md",
+      "bytes": 20928,
+      "sha256": "289c0b4642236ba40a64e97f44d9d3ae4f4b8fb57bec1875b4097dac86de19ba"
+    },
+    {
+      "path": "Developer/prototypes/glowing_stone/build_viewer.py",
+      "bytes": 1049,
+      "sha256": "f2663be4a57f716789a6301c8fde160beaf4970f6891f14219ea6bd1084e594c"
+    },
+    {
+      "path": "Developer/prototypes/glowing_stone/make_geometry.py",
+      "bytes": 1526,
+      "sha256": "4ee4432443e9c3aad13d8c4345e0b2cf14692ac36072b42106ea4d009ab31dfe"
+    },
+    {
+      "path": "Developer/prototypes/glowing_stone/stone_geometry.json",
+      "bytes": 52226,
+      "sha256": "7f7d584a130c2014af097bc7a58de31b553eda036abb4888ea361c60567c665e"
+    },
+    {
+      "path": "Developer/prototypes/glowing_stone/THREE_LICENSE.txt",
+      "bytes": 1102,
+      "sha256": "f57eb9202058667d12aebd854fe8a86d6feaeab51078180df5615bfdbd5cff05"
+    },
+    {
+      "path": "Developer/prototypes/glowing_stone/viewer.js",
+      "bytes": 6449,
+      "sha256": "2e36db083533c8e78f252cf1f88f39f87a6df2f156116464fdaceac7e781873c"
+    },
+    {
+      "path": "Developer/prototypes/glowing_stone/viewer.template.html",
+      "bytes": 4820,
+      "sha256": "a14640680ae14a40efd2032599736a3b28d24d726d6eebfee2bd67748e3f59a8"
+    }
+  ]
+}
