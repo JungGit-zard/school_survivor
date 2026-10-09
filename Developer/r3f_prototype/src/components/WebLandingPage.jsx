@@ -49,6 +49,8 @@ export default function WebLandingPage() {
   const [musicStatus, setMusicStatus] = useState('musicIdle')
   const [selectedComicIndex, setSelectedComicIndex] = useState(null)
   const audioRef = useRef(null)
+  const heroActionsRef = useRef(null)
+  const [heroActionsPassed, setHeroActionsPassed] = useState(false)
   const selectedComic = selectedComicIndex === null ? null : { ...COMIC_EPISODES[selectedComicIndex], ...copy.comics[selectedComicIndex] }
 
   useEffect(() => {
@@ -57,6 +59,15 @@ export default function WebLandingPage() {
   }, [])
 
   useEffect(() => { document.documentElement.lang = language }, [language])
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return undefined
+    const observer = new IntersectionObserver(([entry]) => {
+      setHeroActionsPassed(!entry.isIntersecting && entry.boundingClientRect.bottom < 0)
+    })
+    observer.observe(heroActionsRef.current)
+    return () => observer.disconnect()
+  }, [])
 
   const selectMedia = (media, shouldScrollToToolbar = false) => {
     if (media !== 'music' && audioRef.current) {
@@ -162,7 +173,7 @@ export default function WebLandingPage() {
                 <h1 id="landing-title" className="web-landing__title">{copy.title}</h1>
                 <p className="web-landing__headline">{copy.headline}</p>
                 <p className="web-landing__support">{copy.support}</p>
-                <div className="web-landing__hero-actions" aria-label={copy.mainActions}>
+                <div ref={heroActionsRef} className="web-landing__hero-actions" aria-label={copy.mainActions}>
                   <a href="/game" className="web-landing__cta web-landing__link">{copy.playWeb}</a>
                   <a href="#section-start" className="web-landing__ghost-link web-landing__link">{copy.howToLink}</a>
                   <a href="#comics" className="web-landing__comic-link web-landing__link" onClick={openMediaLink('comics')}>{copy.comicNav}</a>
@@ -181,8 +192,6 @@ export default function WebLandingPage() {
               <li key={fact} className="web-landing__fact-card">{fact}</li>
             ))}
           </ul>
-
-          <a href="/game" className="web-landing__mobile-cta web-landing__link">{copy.playMobile}</a>
 
           <section id="game-intro" aria-labelledby="section-gameplay-title" className="web-landing__panel web-landing__panel--wide" data-reveal>
             <div className="web-landing__section-heading">
@@ -381,7 +390,7 @@ export default function WebLandingPage() {
           </footer>
         </div>
       </section>
-      {!selectedComic ? <a href="/game" className="web-landing__mobile-sticky-cta web-landing__link">{copy.startGame}</a> : null}
+      {heroActionsPassed && !selectedComic ? <a href="/game" className="web-landing__mobile-sticky-cta web-landing__link">{copy.startGame}</a> : null}
     </main>
   )
 }
@@ -414,7 +423,7 @@ const styles = {
     position: 'absolute',
     inset: 0,
     transform: 'translateX(28%) scale(1.08)',
-    opacity: 0.58,
+    opacity: 1,
     pointerEvents: 'none',
   },
   titleSceneCanvas: {
@@ -425,7 +434,7 @@ const styles = {
   scrim: {
     position: 'absolute',
     inset: 0,
-    background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 248, 255, 0.9) 38%, rgba(255, 255, 255, 0.3) 68%, rgba(246, 248, 255, 0.72) 100%)',
+    background: 'linear-gradient(90deg, #F6F8FF 0%, rgba(246, 248, 255, 0.96) 36%, rgba(246, 248, 255, 0.25) 68%, rgba(246, 248, 255, 0.06) 100%)',
     pointerEvents: 'none',
   },
 }
@@ -473,7 +482,7 @@ const landingCss = `
 .web-landing__hero-shell {
   position: relative;
   isolation: isolate;
-  min-height: clamp(410px, 48vw, 690px);
+  min-height: clamp(350px, 58vh, 500px);
   overflow: hidden;
   border: 1px solid rgba(37, 99, 235, 0.2);
   border-radius: 28px;
@@ -501,8 +510,9 @@ const landingCss = `
   overscroll-behavior: contain;
   display: grid;
   grid-template-rows: auto auto auto auto auto auto;
-  gap: clamp(18px, 2vw, 34px);
-  padding: clamp(24px, 3.6vw, 68px);
+  align-content: start;
+  gap: clamp(16px, 1.6vw, 26px);
+  padding: clamp(16px, 2vw, 36px);
 }
 
 .web-landing__nav {
@@ -514,7 +524,7 @@ const landingCss = `
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
+  gap: 12px;
   flex-wrap: wrap;
   font-size: clamp(12px, 0.95vw, 16px);
   font-weight: 900;
@@ -610,11 +620,11 @@ const landingCss = `
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: minmax(0, 820px) minmax(220px, 360px);
+  grid-template-columns: minmax(0, 1.35fr) minmax(180px, 0.65fr);
   align-items: center;
   min-height: inherit;
-  gap: clamp(18px, 3vw, 54px);
-  padding: clamp(24px, 4vw, 68px);
+  gap: 24px;
+  padding: clamp(22px, 2.4vw, 38px);
 }
 
 .web-landing__hero-copy {
@@ -635,7 +645,7 @@ const landingCss = `
 .web-landing__title {
   margin: 0;
   word-break: keep-all;
-  font-size: clamp(36px, 5.5vw, 106px);
+  font-size: clamp(36px, 4.7vw, 82px);
   line-height: 0.93;
   letter-spacing: -0.06em;
   color: #FFFFFF;
@@ -652,7 +662,7 @@ const landingCss = `
   white-space: normal;
   overflow-wrap: anywhere;
   line-height: 1.05;
-  font-size: clamp(36px, 4.8vw, 88px);
+  font-size: clamp(32px, 3.8vw, 68px);
 }
 
 .web-landing__headline {
@@ -680,9 +690,15 @@ const landingCss = `
   margin-top: clamp(4px, 0.8vw, 12px);
 }
 
+.web-landing__hero-actions .web-landing__comic-link {
+  min-height: 44px;
+  padding: 8px 16px;
+  border-width: 2px;
+  box-shadow: none;
+}
+
 .web-landing__cta,
 .web-landing__bottom-cta,
-.web-landing__mobile-cta,
 .web-landing__hero-mini-cta,
 .web-landing__comic-link,
 .web-landing__music-button {
@@ -1335,6 +1351,10 @@ const landingCss = `
     align-items: flex-start;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 8px;
+    background: rgba(246, 248, 255, 0.96);
+    border-radius: 16px;
+    padding: 6px 10px;
   }
 
   .web-landing__language {
@@ -1347,6 +1367,10 @@ const landingCss = `
     grid-row: 2;
   }
 
+  .web-landing [id] {
+    scroll-margin-top: 132px;
+  }
+
   .web-landing__nav-links,
   .web-landing__hero-actions,
   .web-landing__facts {
@@ -1355,6 +1379,16 @@ const landingCss = `
 
   .web-landing__nav-links {
     justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 12px;
+    padding: 4px;
+  }
+
+  .web-landing__nav-link {
+    flex: 0 0 auto;
+    min-width: 44px;
+    white-space: nowrap;
   }
 
   .web-landing__nav-link,
@@ -1375,18 +1409,51 @@ const landingCss = `
   }
 
   .web-landing__nav-cta {
-    border-color: rgba(37, 99, 235, 0.45);
-    background: transparent;
-    color: #2563EB;
+    display: none;
   }
 
   .web-landing__title {
     white-space: normal;
-    font-size: clamp(42px, 15vw, 68px);
+    font-size: clamp(38px, 11vw, 52px);
+    line-height: 1.05;
   }
 
   .web-landing__hero-shell {
-    min-height: 620px;
+    min-height: 0;
+  }
+
+  .web-landing__hero {
+    padding: 24px 20px;
+    gap: 22px;
+  }
+
+  .web-landing__hero-copy {
+    gap: 12px;
+  }
+
+  .web-landing__hero-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .web-landing__hero-actions .web-landing__cta {
+    grid-column: 1 / -1;
+  }
+
+  .web-landing__hero-actions .web-landing__ghost-link,
+  .web-landing__hero-actions .web-landing__comic-link {
+    font-size: 14px;
+    padding: 8px;
+    text-align: center;
+  }
+
+  .web-landing__notice {
+    padding: 16px;
+  }
+
+  .web-landing__hero-scrim {
+    background: linear-gradient(180deg, #F6F8FF 0%, rgba(246, 248, 255, 0.96) 45%, rgba(246, 248, 255, 0.25) 100%) !important;
   }
 
   .web-landing__facts {

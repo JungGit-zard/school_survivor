@@ -16,9 +16,36 @@ function renderLanding() {
   return { container, unmount: () => act(() => { root.unmount(); container.remove() }) }
 }
 
-afterEach(() => { vi.restoreAllMocks(); document.body.innerHTML = '' })
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); document.body.innerHTML = '' })
 
 describe('WebLandingPage', () => {
+  it('shows the sticky game link only after passing the hero actions and hides it when returning', () => {
+    let onVisibility
+    const disconnect = vi.fn()
+    const observe = vi.fn()
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(callback) { onVisibility = callback }
+      observe = observe
+      disconnect = disconnect
+    })
+    const view = renderLanding()
+    const sticky = () => view.container.querySelector('.web-landing__mobile-sticky-cta')
+    expect(sticky()).toBeNull()
+    expect(observe).toHaveBeenCalledWith(view.container.querySelector('.web-landing__hero-actions'))
+    act(() => onVisibility([{ isIntersecting: false, boundingClientRect: { bottom: 900 } }]))
+    expect(sticky()).toBeNull()
+    act(() => onVisibility([{ isIntersecting: false, boundingClientRect: { bottom: -1 } }]))
+    expect(sticky()?.getAttribute('href')).toBe('/game')
+    act(() => view.container.querySelector('.web-landing__media-controls button').click())
+    act(() => view.container.querySelector('#comics .web-landing__comic-feature').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })))
+    expect(sticky()).toBeNull()
+    act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })))
+    expect(sticky()).not.toBeNull()
+    act(() => onVisibility([{ isIntersecting: true, boundingClientRect: { bottom: 200 } }]))
+    expect(sticky()).toBeNull()
+    view.unmount()
+    expect(disconnect).toHaveBeenCalledOnce()
+  })
   it('keeps a 16:9 hero while the official homepage itself scrolls internally', () => {
     const view = renderLanding()
     const hero = view.container.querySelector('[data-testid="web-landing-stage"]')
@@ -48,17 +75,18 @@ describe('WebLandingPage', () => {
     expect(view.container.textContent).toContain('3분 30초 동안 몰려오는 좀비를 버티고 잠긴 탈출구를 열어라.')
     expect(view.container.textContent).toContain('4개 스테이지')
     expect(view.container.textContent).not.toContain('5개 스테이지')
-    expect(gameLinks.length).toBeGreaterThanOrEqual(4)
+    expect(gameLinks.length).toBeGreaterThanOrEqual(3)
     expect(navCta?.getAttribute('href')).toBe('/game')
     expect(heroCta?.getAttribute('href')).toBe('/game')
-    expect(gameLinks.some((link) => link.classList.contains('web-landing__mobile-cta'))).toBe(true)
+    expect(view.container.querySelector('.web-landing__mobile-cta')).toBeNull()
     expect(view.container.querySelector('.web-landing__nav-links a[href="/graphics-studio"]')).toBe(null)
     expect(webLandingSource).toContain("import '../assets/fonts/nanumMyeongjo.css'")
     expect(webLandingSource).toContain("font-family: 'Nanum Myeongjo', serif")
     expect(webLandingSource).toContain('-webkit-text-stroke: 2px #05070b')
     expect(webLandingSource).toContain('@media (max-width: 760px)')
-    expect(webLandingSource).toContain('.web-landing__nav-cta {\n    border-color: rgba(37, 99, 235, 0.45);')
+    expect(webLandingSource).toContain('.web-landing__nav-cta {\n    display: none;')
     expect(webLandingSource).toContain('min-height: 44px')
+    expect(webLandingSource).toContain('min-width: 44px')
     view.unmount()
   })
 
@@ -159,7 +187,7 @@ describe('WebLandingPage', () => {
     expect(view.container.querySelector('.web-landing__mobile-sticky-cta')).toBe(null)
     act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })))
     expect(view.container.querySelector('[role="dialog"]')).toBe(null)
-    expect(view.container.querySelector('.web-landing__mobile-sticky-cta')).not.toBe(null)
+    expect(view.container.querySelector('.web-landing__mobile-sticky-cta')).toBe(null)
     expect(webLandingSource).toContain('grid-template-columns: minmax(180px, 0.36fr) minmax(0, 1fr)')
     expect(webLandingSource).toContain('grid-template-columns: 132px minmax(0, 1fr)')
     expect(webLandingSource).toContain('height: 136px')
