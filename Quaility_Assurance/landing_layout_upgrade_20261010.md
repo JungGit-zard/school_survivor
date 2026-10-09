@@ -27,3 +27,14 @@ Temp 폴더 `C:/Users/admin/AppData/Local/Temp/`:
 ## 데이터 경계
 
 새 격리 브라우저에서 최초 사이트 방문 전 Firebase RTDB 두 도메인을 차단했다. 공개 홈페이지 DOM·링크·화면만 검사했고 실제 사용자 정본·revision 조회나 수정, 로그인, 게임 런 실행은 하지 않았다. 원격 데이터 테스트나 복구를 주장하지 않는다. 언어 변경은 해당 테스트 화면의 휘발성 상태이며 브라우저 세션을 닫았다. 기존5173 서버를 변경하지 않았다. 라이브 배포 후 검증은 이 기록 시점의 범위 밖이다.
+
+## 배포 후 확인
+
+Advisor 확인 배포 정보: Hosting version `89ed6c2c7738b083`, `2026-10-10 02:10:41 KST`. 실제 root HTML과 빌드 dist가 정확히 일치했다.
+
+소스 `0783235`의 safe deploy/live 승격 완료 통보 후 새 격리 세션에서 실제 `https://escapezombie.com/` 타이틀 → `홈페이지로` 클릭 → `/landing` → hero 주 플레이 버튼 클릭 → `/game` 타이틀 왕복을 확인했다. 첫 방문 전 Firebase RTDB 요청 차단을 적용했으며 로그인·사용자 데이터 쓰기는 하지 않았다.
+
+390×844 첫 화면 hero 버튼 영역 y372~481, 초기 sticky=false, 제거한 중복 mobile CTA=false, 주 링크 `/game`을 확인했다. 1280×720에서도 주 CTA가 첫 화면에 표시되고 중복 하단 띠 버튼은 없다. 두 화면 캡처를 직접 확인했으며 테스트 브라우저를 종료했다.
+
+- 라이브 모바일 캡처: `C:/Users/admin/AppData/Local/Temp/landing-live-mobile-20261010.png`.
+- 라이브 데스크톱 캡처: `C:/Users/admin/AppData/Local/Temp/landing-live-desktop-20261010.png`.
