@@ -25,6 +25,13 @@ Assert-True ($source.Contains('$script:XWindow = [long]$windows[0].Current.Nativ
 Assert-True ($source.Contains('Get-XWindowElement') -and $source.Contains('Target X window process is not Chrome')) 'reacquires and checks HWND, title, class, and Chrome process'
 Assert-True ($source.Contains('Security challenge') -and $source.Contains('verify you are human')) 'stops on security challenges'
 Assert-True ($source.Contains('Unexpected account in active Account menu')) 'stops on a wrong signed-in account'
+Assert-True ($source.Contains('function Restore-XAccountSession') -and $source.Contains('Set-XLoginField') -and $source.Contains('Test-XSecurityChallengeVisible')) 'credential recovery is restricted to visible X username/password fields and stops on security challenges'
+$vaultPath = Join-Path $PSScriptRoot 'XCredentialVault.ps1'
+$vaultSource = Get-Content -LiteralPath $vaultPath -Raw -Encoding UTF8
+Assert-True ($vaultSource.Contains("'EscapeZombieSchool-XPosting'") -and $vaultSource.Contains('CredReadW') -and $vaultSource.Contains('CredFree')) 'reads one named Windows Credential Manager entry at runtime and frees the native credential'
+foreach ($forbidden in @('CredWrite','WriteAllText','Set-Content','ConvertTo-SecureString','Write-Output $password')) { Assert-True (-not $vaultSource.Contains($forbidden)) "credential adapter does not $forbidden" }
+. $vaultPath
+Assert-True ($null -ne (Get-Command Get-XPostingVaultCredential -ErrorAction SilentlyContinue)) 'credential helper loads without reading or writing a credential'
 
 # Exercise Initialize-XWindow through its private adapter functions. This test
 # does not launch Chrome, access the desktop, or call any posting action.

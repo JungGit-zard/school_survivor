@@ -7,7 +7,9 @@ param(
   [int]$RetryDelaySeconds = 300,
   [int]$MaxRunMinutes = 75,
   [switch]$TestOnly,
-  [switch]$ReportOnly
+  [switch]$ReportOnly,
+  [switch]$ReconcileExistingPosts,
+  [switch]$CredentialRecovery
 )
 
 Set-StrictMode -Version Latest
@@ -18,7 +20,7 @@ if ([string]::IsNullOrWhiteSpace($ReportDirectory)) { $ReportDirectory = Join-Pa
 
 function Get-XRecoveryStopReason([string]$Output) {
   if ($Output -match '(?i)UNCERTAIN|No second click|publish clicked once') { return 'uncertain_publish' }
-  if ($Output -match '(?i)Authentication|Sign in|Log in|Verify your identity|passkey|Windows Security|signed-in @jungsilx|Unexpected account') { return 'authentication_or_security' }
+  if ($Output -match '(?i)Authentication|Sign in|Log in|Verify your identity|passkey|Windows Security|signed-in @jungsilx|Unexpected account|Credential Manager|X login|login form|account session') { return 'authentication_or_security' }
   if ($Output -match '(?i)Expected one existing Chrome X window|Target is not Chrome|invalid explicit HWND') { return 'unsafe_desktop_target' }
   return $null
 }
@@ -124,7 +126,10 @@ $wrapper = Join-Path $PSScriptRoot 'Invoke-XDailyZombieSchoolPosting.ps1'
 $powershell = Join-Path $PSHOME 'powershell.exe'
 $recovery = Invoke-XPostingCycleRecovery -CycleId $CycleId -Now $started -MaxAttempts $MaxAttempts -RetryDelaySeconds $RetryDelaySeconds -MaxRunMinutes $MaxRunMinutes -ScheduleTimes $config.schedule_times -RunCycle {
   param($id, $attempt)
-  $output = & $powershell -NoProfile -STA -ExecutionPolicy Bypass -File $wrapper -FullCycle -CycleId $id -ReceiptDirectory $ReceiptDirectory 2>&1 | Out-String
+  $runnerArgs = @('-NoProfile','-STA','-ExecutionPolicy','Bypass','-File',$wrapper,'-FullCycle','-CycleId',$id,'-ReceiptDirectory',$ReceiptDirectory)
+  if ($ReconcileExistingPosts) { $runnerArgs += '-ReconcileExistingPosts' }
+  if ($CredentialRecovery) { $runnerArgs += '-CredentialRecovery' }
+  $output = & $powershell @runnerArgs 2>&1 | Out-String
   [pscustomobject]@{ exitCode=$LASTEXITCODE; output=$output }
 } -TestComplete { param($id) Test-XRecoveryCompleteReceipt -CycleId $id -ReceiptDirectory $ReceiptDirectory }
 $reportPath = Write-XDailyPostingReport -Recovery $recovery -ReceiptDirectory $ReceiptDirectory -ReportDirectory $ReportDirectory

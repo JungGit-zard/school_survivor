@@ -4,7 +4,21 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'PostingVariant.ps1')
 function Assert-True($Value, [string]$Name) { if (-not $Value) { throw "FAILED: $Name" }; Write-Output "PASS $Name" }
 $config = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'posting_config.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+$config.schedule_times = @('09:00','12:00','18:00')
 Assert-PostingVariants $config
+$portableFixture = 'D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/marketing_social_30_20261004/ja/01_bell_escape.png'
+$localFixture = Join-Path $PSScriptRoot 'image_pool/marketing_social_30_20261004/ja/01_bell_escape.png'
+Assert-True ((Resolve-PostingImagePath $portableFixture) -ceq [IO.Path]::GetFullPath($localFixture)) 'configured absolute roots resolve by the unchanged campaign-relative image_pool path on another PC'
+$escapedImageRejected=$false
+try {$null=Resolve-PostingImagePath 'D:/image_pool/../../outside.png'} catch {$escapedImageRejected=$true}
+Assert-True $escapedImageRejected 'portable image resolution cannot escape the approved image_pool root'
+$outsideAbsolute = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\outside.png'))
+$outsideAbsoluteRejected=$false
+try {$null=Resolve-PostingImagePath $outsideAbsolute} catch {$outsideAbsoluteRejected=$true}
+Assert-True $outsideAbsoluteRejected 'absolute paths outside the campaign image_pool root are rejected'
+$relativeTraversalRejected=$false
+try {$null=Resolve-PostingImagePath '..\outside.png'} catch {$relativeTraversalRejected=$true}
+Assert-True $relativeTraversalRejected 'relative traversal outside the campaign image_pool root is rejected'
 $temp = Join-Path ([IO.Path]::GetTempPath()) ('x-variants-test-' + [guid]::NewGuid().ToString('N'))
 $tempFull = [IO.Path]::GetFullPath($temp)
 $systemTempFull = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
@@ -14,7 +28,7 @@ $savedConfig = Join-Path $tempFull 'fixture-config.json'
 try {
   foreach ($lang in $config.language_order) {
     Assert-True (@($config.variants.$lang).Count -eq 3) "$lang has three extra pairs"
-    Assert-True (@($config.localized_social_image_pool.$lang.images).Count -eq 3) "$lang has three verified localized images"
+    Assert-True (@(Get-PostingLocaleImageCandidates $config $lang).Count -eq 8) "$lang has eight verified localized images, including five additions"
     foreach ($variant in $config.variants.$lang) {
       Assert-True ((Get-XWeightedLength $variant.text) -le 280) "$lang/$($variant.id) fits weighted X limit"
       $variant.enabled = $false

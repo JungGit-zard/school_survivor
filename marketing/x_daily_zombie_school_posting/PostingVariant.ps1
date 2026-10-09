@@ -1,15 +1,31 @@
 # Pure campaign pair selection; never opens UI or writes receipts.
+function Resolve-PostingImagePath([string]$Path) {
+  if ([string]::IsNullOrWhiteSpace($Path)) { return $Path }
+  $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'image_pool'))
+  $rootPrefix = $root.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+  $match = [regex]::Match($Path, '(?:^|[\\/])image_pool[\\/](.+)$', [Text.RegularExpressions.RegexOptions]::IgnoreCase)
+  if ($match.Success) {
+    $resolved = [IO.Path]::GetFullPath((Join-Path $root ($match.Groups[1].Value -replace '[\\/]', [IO.Path]::DirectorySeparatorChar)))
+    if (-not $resolved.StartsWith($rootPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Configured image path escapes the campaign image_pool root.' }
+    return $resolved
+  }
+  $resolvedPath = if ([IO.Path]::IsPathRooted($Path)) { [IO.Path]::GetFullPath($Path) } else { [IO.Path]::GetFullPath((Join-Path $root ($Path -replace '[\\/]', [IO.Path]::DirectorySeparatorChar))) }
+  if (-not $resolvedPath.StartsWith($rootPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Configured image path must resolve within the campaign image_pool root.' }
+  return $resolvedPath
+}
 function Get-PostingVariants($Config, [string]$Language, [switch]$IncludeDisabled) {
-  [pscustomobject]@{ id='original'; enabled=$true; text=[string]$Config.copy.$Language.text; imagePath=[string]$Config.image_pool.$Language.images[0] }
+  [pscustomobject]@{ id='original'; enabled=$true; text=[string]$Config.copy.$Language.text; imagePath=(Resolve-PostingImagePath ([string]$Config.image_pool.$Language.images[0])) }
   if ($Config.PSObject.Properties.Name -contains 'variants') {
     foreach ($variant in @($Config.variants.$Language)) {
-      if ($IncludeDisabled -or $variant.enabled -eq $true) { $variant }
+      if ($IncludeDisabled -or $variant.enabled -eq $true) {
+        [pscustomobject]@{ id=[string]$variant.id; enabled=[bool]$variant.enabled; text=[string]$variant.text; imagePath=(Resolve-PostingImagePath ([string]$variant.imagePath)) }
+      }
     }
   }
   if ($Config.image_pool.PSObject.Properties.Name -contains 'boss_series') {
     foreach ($boss in @($Config.image_pool.boss_series.images)) {
       if ($IncludeDisabled -or $boss.enabled -eq $true) {
-        [pscustomobject]@{ id=[string]$boss.id; enabled=[bool]$boss.enabled; text=[string]$Config.copy.$Language.text; imagePath=[string]$boss.imagePath }
+        [pscustomobject]@{ id=[string]$boss.id; enabled=[bool]$boss.enabled; text=[string]$Config.copy.$Language.text; imagePath=(Resolve-PostingImagePath ([string]$boss.imagePath)) }
       }
     }
   }
@@ -25,7 +41,7 @@ function Get-PostingLocaleImageCandidates($Config, [string]$Language, [switch]$I
   foreach ($image in $images) {
     $path = [string]$image
     if ([string]::IsNullOrWhiteSpace($path)) { continue }
-    $full = [IO.Path]::GetFullPath($path)
+    $full = Resolve-PostingImagePath $path
     if (-not (Test-Path -LiteralPath $full -PathType Leaf)) { continue }
     if ($full -notmatch '\.(png|jpg|jpeg|webp)$') { continue }
     $null = Get-FileHash -LiteralPath $full -Algorithm SHA256
@@ -40,7 +56,7 @@ function Get-PostingPreviousImagePath($Config, [string]$Language, [string]$Cycle
     $prior = Get-Content -LiteralPath $previous.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
     $entry = $prior.entries.$Language
     if ($null -ne $entry -and $null -ne $entry.intent) {
-      $priorImage = [IO.Path]::GetFullPath([string]$entry.intent.imagePath)
+      $priorImage = Resolve-PostingImagePath ([string]$entry.intent.imagePath)
       if (@($Candidates | Where-Object { $_ -ceq $priorImage }).Count -eq 1) { return $priorImage }
     }
   }
@@ -48,7 +64,7 @@ function Get-PostingPreviousImagePath($Config, [string]$Language, [string]$Cycle
 }
 function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory) {
   $candidates = @(Get-PostingLocaleImageCandidates $Config $Language)
-  if ($candidates.Count -eq 0) { return [string]$Config.image_pool.$Language.images[0] }
+  if ($candidates.Count -eq 0) { return Resolve-PostingImagePath ([string]$Config.image_pool.$Language.images[0]) }
   $usable = @($candidates)
   $previous = Get-PostingPreviousImagePath $Config $Language $CycleId $ReceiptDirectory $candidates
   if ($usable.Count -gt 1 -and -not [string]::IsNullOrWhiteSpace($previous)) { $usable = @($usable | Where-Object { $_ -cne $previous }) }
@@ -88,18 +104,19 @@ function Assert-PostingVariants($Config) {
   }
 }
 function Resolve-PostingIntentVariant($Config, [string]$Language, $Intent) {
-  $intentImage = [IO.Path]::GetFullPath([string]$Intent.imagePath)
+  $intentImage = Resolve-PostingImagePath ([string]$Intent.imagePath)
   $allVariants = @(Get-PostingVariants $Config $Language -IncludeDisabled)
   if ($Intent.PSObject.Properties.Name -contains 'variantId' -and -not [string]::IsNullOrWhiteSpace([string]$Intent.variantId)) {
-    $matches = @($allVariants | Where-Object { $_.id -ceq [string]$Intent.variantId -and $_.text -ceq $Intent.text })
+    $matchingVariants = @($allVariants | Where-Object { $_.id -ceq [string]$Intent.variantId -and $_.text -ceq $Intent.text })
   } else {
-    $matches = @($allVariants | Where-Object { $_.text -ceq $Intent.text -and [IO.Path]::GetFullPath([string]$_.imagePath) -ceq $intentImage })
+    $matchingVariants = @($allVariants | Where-Object { $_.id -ceq 'original' -and $_.text -ceq $Intent.text -and (Resolve-PostingImagePath ([string]$_.imagePath)) -ceq $intentImage })
+    if ($matchingVariants.Count -eq 0) { $matchingVariants = @($allVariants | Where-Object { $_.text -ceq $Intent.text -and (Resolve-PostingImagePath ([string]$_.imagePath)) -ceq $intentImage }) }
   }
-  if ($matches.Count -ne 1) { throw "Receipt config mismatch for $Language" }
-  $allowedImages = @(Get-PostingLocaleImageCandidates $Config $Language -IncludeLegacy) + @($allVariants | ForEach-Object { [IO.Path]::GetFullPath([string]$_.imagePath) })
+  if ($matchingVariants.Count -ne 1) { throw "Receipt config mismatch for $Language" }
+  $allowedImages = @(Get-PostingLocaleImageCandidates $Config $Language -IncludeLegacy) + @($allVariants | ForEach-Object { Resolve-PostingImagePath ([string]$_.imagePath) })
   if (@($allowedImages | Select-Object -Unique | Where-Object { $_ -ceq $intentImage }).Count -ne 1) { throw "Receipt image is not in the verified $Language image pool" }
-  $matches[0].imagePath = $intentImage
-  return $matches[0]
+  $matchingVariants[0].imagePath = $intentImage
+  return $matchingVariants[0]
 }
 function Select-PostingVariant($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, $ExistingIntent = $null) {
   if ($null -ne $ExistingIntent) { return Resolve-PostingIntentVariant $Config $Language $ExistingIntent }

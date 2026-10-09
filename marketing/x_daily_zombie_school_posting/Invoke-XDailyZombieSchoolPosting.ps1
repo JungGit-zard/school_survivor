@@ -4,7 +4,8 @@ param(
   [string]$CycleId,
   [long]$WindowId = 0,
   [string]$ReceiptDirectory = (Join-Path $PSScriptRoot 'receipts'),
-  [switch]$DryRun, [switch]$ValidateOnly, [switch]$FullCycle, [switch]$Run, [switch]$PrepareOnly, [switch]$SinglePost
+  [switch]$DryRun, [switch]$ValidateOnly, [switch]$FullCycle, [switch]$Run, [switch]$PrepareOnly, [switch]$SinglePost,
+  [switch]$ReconcileExistingPosts, [switch]$CredentialRecovery
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -60,7 +61,7 @@ try {
       $receipt = [pscustomobject]@{ schema=1; cycleId=$CycleId; status='incomplete'; lastError=$null; failedLanguage=$null; entries=[pscustomobject]@{} }
       foreach ($lang in $config.language_order) { $receipt.entries | Add-Member -NotePropertyName $lang -NotePropertyValue $null }
     }
-    if (Test-CycleComplete $receipt) {
+    if ((Test-CycleComplete $receipt) -and -not $ReconcileExistingPosts) {
       foreach ($lang in $config.language_order) {
         $entry = $receipt.entries.$lang
         $null = Resolve-PostingIntentVariant $config $lang $entry.intent
@@ -83,15 +84,24 @@ try {
     # Freeze every pair before loading, discovering, or interacting with desktop UI.
     Save-CycleReceipt $receipt $receiptPath
     . (Join-Path $PSScriptRoot 'WindowsXPosting.ps1')
-    Initialize-XWindow -RequestedWindowId $WindowId
+    Initialize-XWindow -RequestedWindowId $WindowId -AllowSignedOut:$CredentialRecovery
+    if ($CredentialRecovery) { Restore-XAccountSession }
     foreach ($lang in $languages) {
       $activeLanguage = $lang
       $entry = $receipt.entries.$lang
       if ($null -ne $entry -and $entry.state -eq 'verified') {
         $null = Resolve-PostingIntentVariant $config $lang $entry.intent
         if (-not (Test-PublishedEvidence $entry.intent $entry.evidence)) { throw "Invalid verified receipt for $lang" }
+        if ($ReconcileExistingPosts) {
+          $liveEvidence = Find-XPublishedPost -Intent $entry.intent
+          if ($null -eq $liveEvidence -or $liveEvidence.url -cne $entry.evidence.url) { throw "UNSAFE $lang`: verified receipt does not reconcile to one matching live timeline post" }
+        }
         Write-Output "VERIFIED_SKIP $lang $($entry.evidence.url)"
         continue
+      }
+      if ($ReconcileExistingPosts -and $null -ne $entry -and $entry.state -in @('selected','prepared')) {
+        $visibleMatch = Find-XPublishedPost -Intent $entry.intent -AllowExistingVisible
+        if ($null -ne $visibleMatch) { throw "UNSAFE $lang`: an exact matching post is already visible in the timeline, but the receipt has no publish intent; no second post was created." }
       }
       if ($null -ne $entry -and $entry.state -eq 'publish_intent') {
         $evidence = Find-XPublishedPost -Intent $entry.intent
@@ -102,9 +112,9 @@ try {
       }
       $variant = Resolve-PostingIntentVariant $config $lang $entry.intent
       $text = [string]$entry.intent.text
-      $imagePath = [string]$entry.intent.imagePath
+      $imagePath = [string]$variant.imagePath
       if ($null -ne $entry -and $entry.state -eq 'prepared') {
-        if ($entry.intent.text -cne $text -or $entry.intent.imagePath -cne $imagePath -or $entry.intent.imageSha256 -cne (Get-FileHash -LiteralPath $imagePath -Algorithm SHA256).Hash.ToLowerInvariant()) { throw 'Prepared intent no longer matches canonical copy/image' }
+        if ($entry.intent.text -cne $text -or (Resolve-PostingImagePath ([string]$entry.intent.imagePath)) -cne $imagePath -or $entry.intent.imageSha256 -cne (Get-FileHash -LiteralPath $imagePath -Algorithm SHA256).Hash.ToLowerInvariant()) { throw 'Prepared intent no longer matches canonical copy/image' }
         Assert-XComposer $text
         $intent = $entry.intent
         $proof = $intent

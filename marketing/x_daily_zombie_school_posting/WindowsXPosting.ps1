@@ -126,7 +126,7 @@ function Set-XChromeWindowBounds([long]$WindowId) {
   Start-Sleep -Milliseconds 100
   return Get-XChromeWindowBounds $WindowId
 }
-function Initialize-XWindow([long]$RequestedWindowId) {
+function Initialize-XWindow([long]$RequestedWindowId, [switch]$AllowSignedOut) {
   $windows = @(Get-XTopLevelWindows)
   if ($RequestedWindowId) {
     $windows = @($windows | Where-Object { $_.Current.NativeWindowHandle -eq $RequestedWindowId })
@@ -148,22 +148,86 @@ function Initialize-XWindow([long]$RequestedWindowId) {
   $script:XWindow = [long]$windows[0].Current.NativeWindowHandle
   # Reacquire by HWND and verify its title and owning process before any UI input.
   $null = Get-XWindowElement
-  Assert-XNoAuthDialog (Get-XRoot)
+  if ($AllowSignedOut -and (Test-XLoginFormVisible)) { }
+  else { Assert-XNoAuthDialog (Get-XRoot) }
   $bounds = Set-XChromeWindowBounds $script:XWindow
   if ($bounds.x -ne 0 -or $bounds.y -ne 0 -or $bounds.width -ne 1280 -or $bounds.height -ne 900) {
     throw "Chrome X window bounds differ from required 0,0 1280x900: $($bounds.x),$($bounds.y) $($bounds.width)x$($bounds.height)."
   }
   # Reacquire and verify HWND/title/process again after moving/resizing.
   $null = Get-XWindowElement
-  Assert-XNoAuthDialog (Get-XRoot)
+  if ($AllowSignedOut -and (Test-XLoginFormVisible)) { }
+  else { Assert-XNoAuthDialog (Get-XRoot) }
   Restore-XWindowFocus 'initial window selection' | Out-Null
 }
 function Test-XAuthDialogVisible($Root = (Get-XRoot)) {
   $names = @((Get-XElements $Root) | Where-Object { -not $_.Current.IsOffscreen } | ForEach-Object { $_.Current.Name })
   return (@($names | Where-Object { $_ -match '^(Sign in|Log in|Verify your identity|Use a passkey|Windows Security|Security check|Security challenge|Challenge|Captcha)$' -or $_ -match '(?i)(verify you are human|unusual activity|suspicious activity|account is locked|two.factor authentication)' }).Count -gt 0)
 }
+function Test-XSecurityChallengeVisible($Root = (Get-XRoot)) {
+  $names = @((Get-XElements $Root) | Where-Object { -not $_.Current.IsOffscreen } | ForEach-Object { $_.Current.Name })
+  return (@($names | Where-Object { $_ -match '^(Verify your identity|Use a passkey|Windows Security|Security check|Security challenge|Challenge|Captcha)$' -or $_ -match '(?i)(verify you are human|unusual activity|suspicious activity|account is locked|two.factor authentication|captcha)' }).Count -gt 0)
+}
 function Assert-XNoAuthDialog($Root = (Get-XRoot)) {
   if (Test-XAuthDialogVisible $Root) { throw 'Authentication dialog visible' }
+}
+function Test-XLoginFormVisible {
+  $root = Get-XRoot
+  $address = @((Get-XElements $root) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit -and $_.Current.Name -in @('Address and search bar','주소창 및 검색창') })
+  if ($address.Count -ne 1) { return $false }
+  $url = Get-XValue $address[0]
+  if ($url -notmatch '^https://x\.com/(?:login|i/flow/login)(?:[/?#]|$)') { return $false }
+  $names = @((Get-XElements $root) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit } | ForEach-Object { $_.Current.Name })
+  return (@($names | Where-Object { $_ -in @('Phone, email, or username','Phone, email, username','Username','Password') }).Count -gt 0)
+}
+function Set-XLoginField($Element, [string]$Value, [string]$Label) {
+  if (-not $Element.Current.IsEnabled -or $Element.Current.IsOffscreen) { throw "$Label field is disabled or hidden." }
+  $pattern = $null
+  if (-not $Element.TryGetCurrentPattern([Windows.Automation.ValuePattern]::Pattern, [ref]$pattern)) { throw "$Label field does not expose a safe ValuePattern." }
+  $pattern.SetValue($Value)
+  if ((Get-XValue $Element) -cne $Value) { throw "$Label field did not confirm the supplied value." }
+}
+function Wait-XLoginCondition([scriptblock]$Condition, [string]$Description, [int]$Seconds = 20) {
+  $end = [DateTime]::UtcNow.AddSeconds($Seconds)
+  do {
+    Assert-XForeground
+    if (Test-XSecurityChallengeVisible) { throw "Authentication/security challenge while waiting for $Description." }
+    if (& $Condition) { return }
+    Start-Sleep -Milliseconds 350
+  } while ([DateTime]::UtcNow -lt $end)
+  throw "Timed out waiting for $Description."
+}
+function Restore-XAccountSession {
+  if (-not (Test-XLoginFormVisible)) { Assert-XNoAuthDialog (Get-XRoot);Assert-XAccount;return }
+  . (Join-Path $PSScriptRoot 'XCredentialVault.ps1')
+  $credentials = $null
+  Get-XPostingVaultCredential ([ref]$credentials)
+  $username = [string]$credentials.Username
+  $password = [string]$credentials.Password
+  try {
+    $root = Get-XRoot
+    $edits = @((Get-XElements $root) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.IsEnabled -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit })
+    $userFields = @($edits | Where-Object { $_.Current.Name -in @('Phone, email, or username','Phone, email, username','Username') })
+    $passwordFields = @($edits | Where-Object { $_.Current.Name -ceq 'Password' })
+    if ($userFields.Count -gt 1 -or $passwordFields.Count -gt 1) { throw 'Ambiguous X login fields; no credentials were entered.' }
+    if ($userFields.Count -eq 1) {
+      Set-XLoginField $userFields[0] $username 'X username'
+      if ($passwordFields.Count -eq 0) {
+        $next = @((Get-XElements) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.IsEnabled -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -ceq 'Next' })
+        if ($next.Count -ne 1) { throw 'X username step did not expose exactly one Next button.' }
+        Click-XElement $next[0]
+        Wait-XLoginCondition { @((Get-XElements) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.IsEnabled -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit -and $_.Current.Name -ceq 'Password' }).Count -eq 1 } 'X password login step'
+        $passwordFields = @((Get-XElements) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.IsEnabled -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit -and $_.Current.Name -ceq 'Password' })
+      }
+    }
+    if ($passwordFields.Count -ne 1) { throw 'X login page did not expose exactly one supported username/password form.' }
+    Set-XLoginField $passwordFields[0] $password 'X password'
+    $submit = @((Get-XElements) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.IsEnabled -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -in @('Log in','Sign in') })
+    if ($submit.Count -ne 1) { throw 'X login form did not expose exactly one Log in button.' }
+    Click-XElement $submit[0]
+    Wait-XLoginCondition { @((Get-XElements) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -ceq 'Account menu' }).Count -eq 1 } 'X account session after login'
+    Assert-XAccount
+  } finally { $username=$null;$password=$null;$credentials=$null }
 }
 function Assert-XAccount {
   $root = Get-XRoot
@@ -265,7 +329,7 @@ function Publish-XPost([string]$Text) {
   } while ([DateTime]::UtcNow -lt $deadline)
   throw 'UNCERTAIN: Post clicked once but composer still pending after 45 seconds; did not navigate or click again'
 }
-function Find-XPublishedPost($Intent) {
+function Find-XPublishedPost($Intent, [switch]$AllowExistingVisible) {
   Navigate-XProfile
   $firstLine = ($Intent.text -split '\r?\n')[0]
   $hashtag = ($Intent.text -split '\r?\n')[-1]
@@ -287,7 +351,7 @@ function Find-XPublishedPost($Intent) {
         $play = $name.Contains('play.google.com/store/apps/') -or @($children | Where-Object { $_.Current.Name -like '*play.google.com/store/apps/*' -or (Get-XValue $_) -eq $config.play_store_url }).Count -gt 0
         if (-not $play -or -not $photo) { continue }
         $evidence = [pscustomobject]@{ account='@jungsilx'; url=$url; text=$Intent.text; hasPhoto=$photo; imageSha256=$Intent.imageSha256; observedArticle=$name; verifiedUtc=[DateTimeOffset]::UtcNow.ToString('o'); imageEvidence='Same newly published status has photo/1; canonical image source recorded before click' }
-        if (Test-PublishedEvidence $Intent $evidence) { return $evidence }
+        if ($AllowExistingVisible -or (Test-PublishedEvidence $Intent $evidence)) { return $evidence }
       }
     }
     if ($attempt -lt 2) { Navigate-XProfile }
