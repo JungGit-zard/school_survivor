@@ -507,6 +507,9 @@ export default function TitleScreen({
           >
             로그인 없이 들어가기
           </button>
+          <a href="/landing" className="title-main-action" style={{ ...styles.homepageButton, ...styles.mainActionButton }}>
+            {t('title.homepage')}
+          </a>
         </div>
       </div>
 
@@ -803,6 +806,16 @@ const styles = {
     minHeight: 58,
     fontSize: 21,
     letterSpacing: 1,
+  },
+  homepageButton: {
+    ...schoolButton('paper'),
+    minHeight: 44,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxSizing: 'border-box',
+    textDecoration: 'none',
+    fontSize: 16,
   },
   cheatButtons: {
     display: 'grid',

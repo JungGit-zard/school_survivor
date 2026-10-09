@@ -151,7 +151,7 @@ describe('App Firebase bootstrap boundary', () => {
     view.unmount()
   })
 
-  it.each(['/index.html', '/game'])(
+  it.each(['/', '/index.html', '/game'])(
     'keeps the original title and login runtime reachable at %s',
     async (pathname) => {
       window.history.replaceState({}, '', pathname)
@@ -164,7 +164,7 @@ describe('App Firebase bootstrap boundary', () => {
     },
   )
 
-  it.each(['/', '/landing'])('shows the web landing page at %s', async (pathname) => {
+  it.each(['/landing'])('shows the web landing page at %s', async (pathname) => {
     window.history.replaceState({}, '', pathname)
 
     const view = await renderApp()

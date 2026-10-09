@@ -27,6 +27,7 @@ export default {
     'title.subtitle': '3分30秒後に開く脱出口から逃げ出せ',
     'title.gameplayGuide': '自動攻撃 · 画面をドラッグで移動 · レベルアップでカード選択',
     'title.start': 'ゲーム開始',
+    'title.homepage': 'ホームページへ',
   'title.cheatToast': 'チートが表示されました',
   'title.cheatButton': 'チート',
   'title.cheatOpenAria': 'チートメニューを開く',

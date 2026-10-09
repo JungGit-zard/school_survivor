@@ -74,6 +74,14 @@ afterEach(() => {
 })
 
 describe('TitleScreen lobby entry', () => {
+  it('renders a homepage link alongside game start', () => {
+    const { container, cleanup } = renderTitleScreen()
+    const homepage = container.querySelector('a[href="/landing"]')
+    expect(homepage?.textContent).toBe('홈페이지로')
+    expect(homepage?.style.minHeight).toBe('44px')
+    expect(container.querySelector('button.title-main-action')?.textContent).toBe('게임 시작')
+    cleanup()
+  })
   it('renders the game-start action without gameplay guide text', () => {
     const { container, cleanup } = renderTitleScreen()
 

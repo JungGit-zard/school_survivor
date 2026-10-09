@@ -27,6 +27,7 @@ export default {
     'title.subtitle': 'Escape through the exit that opens after 3:30',
     'title.gameplayGuide': 'Auto-attack · Drag to move · Pick a card on level up',
     'title.start': 'START GAME',
+    'title.homepage': 'Homepage',
   'title.cheatToast': 'Cheats are now visible',
   'title.cheatButton': 'Cheat',
   'title.cheatOpenAria': 'Open cheat menu',

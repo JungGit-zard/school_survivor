@@ -97,7 +97,7 @@ export default function App() {
   const isAdminRoute = typeof window !== 'undefined'
     && window.location.pathname.startsWith('/admin')
   const isLandingRoute = typeof window !== 'undefined'
-    && (window.location.pathname === '/' || window.location.pathname === '/landing')
+    && window.location.pathname === '/landing'
 
   useEffect(() => {
     void initializeAuth()

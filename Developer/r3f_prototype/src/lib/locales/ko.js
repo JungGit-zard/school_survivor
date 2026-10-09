@@ -24,6 +24,7 @@ export default {
     'title.subtitle': '3분 30초 후 열리는 탈출구로 탈출하라',
     'title.gameplayGuide': '자동 공격 · 화면을 드래그해 이동 · 레벨업 때 카드 선택',
     'title.start': '게임 시작',
+    'title.homepage': '홈페이지로',
   'title.cheatToast': '치트키가 보입니다',
   'title.cheatButton': '치트',
   'title.cheatOpenAria': '치트 메뉴 열기',
