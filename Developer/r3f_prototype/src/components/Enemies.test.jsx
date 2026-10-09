@@ -86,6 +86,7 @@ import {
   runPooledEnemyRuntimeSoak,
 } from './Enemies.jsx'
 
+import { advanceSpawnCatchUp, createSpawnCatchUpState } from '../lib/spawnCatchUp.js'
 import { CHEST_OPEN_DELAY_MS } from './TreasureChest.jsx'
 import { PLAYER_MESH_WORLD_HEIGHT } from '../lib/characterVisualScale.js'
 import { STAGE2_SPAWN_TELEGRAPHS, STAGE2_WAVE_PHASES, STAGE3_WAVE_PHASES, STAGE4_WAVE_PHASES } from '../lib/waveTimelines.js'
@@ -1599,7 +1600,20 @@ describe('nextPendingSpawnSec — 스폰 캐치업 점프 폭', () => {
 
 })
 
-describe('스폰 캐치업 배선 — 빈 화면 2초 상한', () => {
+describe('Stage 2 immediate low-density catch-up', () => {
+  it.each([0, 1, 2, 3])('pulls a real Stage 2 ordinary event on the first frame with %i visible enemies', (liveEnemyCount) => {
+    const events = getRuntimeSpawnEventsForStage('stage2')
+    const flags = Uint8Array.from(events, (event) => event.sec <= 30 ? 1 : 0)
+    const next = nextPendingSpawnSec(events, flags, new Int16Array(events.length).fill(-1), 30, 'stage2', -1)
+    const state = createSpawnCatchUpState()
+    expect(next).toBeGreaterThan(30)
+    expect(advanceSpawnCatchUp(state, { liveEnemyCount, spawnSec: 30, nextPendingSpawnSec: next })).toBeGreaterThan(0)
+    expect(30 + state.offsetSec).toBe(next)
+    expect(events.some((event) => !isBossType(event.type) && event.sec === next)).toBe(true)
+  })
+})
+
+describe('스폰 캐치업 배선 — 화면 3마리 이하 즉시 당겨오기', () => {
   const source = readFileSync(new URL('./Enemies.jsx', import.meta.url), 'utf8')
   const playingFrameBody = source.match(/usePlayingFrame\(\(_, delta\) => \{([\s\S]*?)\n  \}\)/)?.[1] ?? ''
 
@@ -1609,13 +1623,15 @@ describe('스폰 캐치업 배선 — 빈 화면 2초 상한', () => {
     expect(playingFrameBody).toContain('publishSpawnCatchUpOffsetSec(catchUp.offsetSec)')
   })
 
-  it('빈 화면 판정에 살아있는 적과 스폰 대기열을 모두 센다', () => {
+  it('화면에 보이는 적을 세고 생성 대기 중에는 연속 당겨오기를 막는다', () => {
     expect(playingFrameBody).toContain('const visibleEnemyCount = countVisiblePooledEnemies(enemyPool, screenBounds, playerPos.x, playerPos.z)')
     expect(playingFrameBody).toContain('+ countVisibleEnemyBodies(enemyBodies, screenBounds, playerPos.x, playerPos.z)')
     // 골드 스케줄은 좀비가 아니다 — 통짜 scheduleCount를 세면 빈 화면이 4초까지 늘어난다.
     expect(playingFrameBody).not.toContain('+ catchUpQueue.spawnDrain.count')
     // 도지도 HP를 가진 적이라 춤추는 동안 화면은 비어 있지 않다.
     expect(playingFrameBody).toContain('liveEnemyCount: visibleEnemyCount')
+    expect(playingFrameBody).toContain('nextPendingSpawnSec: visibleEnemyCount <= LOW_DENSITY_ENEMY_THRESHOLD')
+    expect(playingFrameBody).toContain('queuedEnemyCount: catchUpQueue.spawnDrain.count + countPendingZombieSchedules(catchUpQueue)')
   })
 
   it('스테이지 리셋에서 오프셋이 0으로 돌아간다', () => {

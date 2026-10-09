@@ -13,54 +13,25 @@ describe('spawnCatchUp', () => {
     publishSpawnCatchUpOffsetSec(0)
   })
 
-  it('fires on the exact 120th 60Hz empty frame', () => {
+  it.each([0, 1, 2, 3])('visible count %i pulls the next schedule immediately', (liveEnemyCount) => {
     const state = createSpawnCatchUpState()
-    let jump = 0
-    for (let frame = 0; frame < 120; frame += 1) {
-      jump = advanceSpawnCatchUp(state, {
-        deltaSec: 1 / 60,
-        liveEnemyCount: 0,
-        spawnSec: 10,
-        nextPendingSpawnSec: 30,
-      })
-      if (frame < 119) expect(jump).toBe(0)
-    }
-    expect(jump).toBeCloseTo(20)
+    expect(advanceSpawnCatchUp(state, { deltaSec: 0, liveEnemyCount, spawnSec: 10, nextPendingSpawnSec: 30 })).toBe(20)
+    expect(state.offsetSec).toBe(20)
   })
 
-  it('빈 화면 상한은 2초다', () => {
-    expect(EMPTY_ARENA_MAX_SEC).toBe(2)
-  })
-
-  it('적이 살아 있으면 오프셋이 움직이지 않고 빈 시간이 리셋된다', () => {
+  it('four visible enemies leave the schedule unchanged', () => {
     const state = createSpawnCatchUpState()
-    advanceSpawnCatchUp(state, { deltaSec: 1.5, liveEnemyCount: 0, spawnSec: 10, nextPendingSpawnSec: 30 })
-    expect(state.emptyForSec).toBeCloseTo(1.5)
-
-    const jump = advanceSpawnCatchUp(state, { deltaSec: 1.5, liveEnemyCount: 1, spawnSec: 11.5, nextPendingSpawnSec: 30 })
-    expect(jump).toBe(0)
-    expect(state.offsetSec).toBe(0)
-    expect(state.emptyForSec).toBe(0)
-  })
-
-  it('비어도 2초 미만이면 오프셋은 0이다', () => {
-    const state = createSpawnCatchUpState()
-    for (let i = 0; i < 19; i += 1) {
-      advanceSpawnCatchUp(state, { deltaSec: 0.1, liveEnemyCount: 0, spawnSec: 10, nextPendingSpawnSec: 30 })
-    }
-    expect(state.emptyForSec).toBeCloseTo(1.9)
+    expect(advanceSpawnCatchUp(state, { deltaSec: 10, liveEnemyCount: 4, spawnSec: 10, nextPendingSpawnSec: 30 })).toBe(0)
     expect(state.offsetSec).toBe(0)
   })
 
-  it('정확히 2초에 도달하면 다음 예정 스폰까지 스케줄 전체를 당긴다', () => {
+  it('pending enemies prevent successive schedule jumps until spawn drain completes', () => {
     const state = createSpawnCatchUpState()
-    advanceSpawnCatchUp(state, { deltaSec: 1.9, liveEnemyCount: 0, spawnSec: 10, nextPendingSpawnSec: 30 })
-    expect(state.offsetSec).toBe(0)
-
-    const jump = advanceSpawnCatchUp(state, { deltaSec: 0.1, liveEnemyCount: 0, spawnSec: 10, nextPendingSpawnSec: 30 })
-    expect(jump).toBeCloseTo(20)
-    expect(state.offsetSec).toBeCloseTo(20)
-    expect(state.emptyForSec).toBe(0)
+    const options = { liveEnemyCount: 3, spawnSec: 10, nextPendingSpawnSec: 30 }
+    expect(advanceSpawnCatchUp(state, { ...options, queuedEnemyCount: 1 })).toBe(0)
+    expect(advanceSpawnCatchUp(state, { ...options, queuedEnemyCount: 0 })).toBe(20)
+    expect(advanceSpawnCatchUp(state, { liveEnemyCount: 0, queuedEnemyCount: 6, spawnSec: 30, nextPendingSpawnSec: 60 })).toBe(0)
+    expect(state.offsetSec).toBe(20)
   })
 
   it('다음 예정 스폰이 없으면 오프셋은 불변이다 — 없는 스폰을 만들지 않는다', () => {

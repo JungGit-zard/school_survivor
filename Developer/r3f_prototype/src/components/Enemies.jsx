@@ -43,7 +43,7 @@ import {
   resetPooledEnemySpawnDrainQueue,
 } from '../lib/pooledEnemySpawnDrain.js'
 import { recordZombieEncounter } from '../lib/zombieEncyclopedia.js'
-import { BOSS_TELEGRAPH_LEAD_SEC, advanceSpawnCatchUp, createSpawnCatchUpState, publishSpawnCatchUpOffsetSec, resetSpawnCatchUpState } from '../lib/spawnCatchUp.js'
+import { BOSS_TELEGRAPH_LEAD_SEC, LOW_DENSITY_ENEMY_THRESHOLD, advanceSpawnCatchUp, createSpawnCatchUpState, publishSpawnCatchUpOffsetSec, resetSpawnCatchUpState } from '../lib/spawnCatchUp.js'
 import { createDominanceSwarmSpawnPlan, createDominanceSwarmState, evaluateDominanceSwarm, recordDominanceSwarmSpawn, recordEmptyField, recordEnemyKill, recordPlayerDamage, resetDominanceSwarmState } from '../lib/dominanceSwarmRespawn.js'
 
 // 황금 코인 시계 드랍: 4분에 약 10개 → 20–28s 무작위 간격 (5분 기준 ×0.8)
@@ -1837,8 +1837,8 @@ export default function Enemies() {
     if (!stageRuntime || stageRuntime.id !== currentStageId) return
 
     // ── 스폰 시계 캐치업 ───────────────────────────────────────────────────────────
-    // 화면이 완전히 비면(살아있는 적 0 + 스폰 대기열 0) 남은 스폰 스케줄 전체를 상대 간격 그대로
-    // 앞으로 당겨서 빈 화면이 2초를 넘지 않게 한다. 스폰 게이트만 spawnSec을 읽고,
+    // 화면 안 몹이 3마리 이하이고 생성 대기가 없으면 다음 일반 스폰을 즉시 당긴다.
+    // 남은 스케줄의 상대 간격은 유지한다. 스폰 게이트만 spawnSec을 읽고,
     // HUD 타이머·탈출 포탈·마틸다·적 AI(context.elapsedSec)는 실시간 sec 그대로다.
     const catchUpQueue = runtimeQueueRef.current
     // 살아 있는 도지도 센다 — HP를 가진 이벤트 적이라 춤추는 동안 화면은 비어 있지 않다.
@@ -1850,9 +1850,10 @@ export default function Enemies() {
     advanceSpawnCatchUp(catchUp, {
       deltaSec: delta,
       liveEnemyCount: visibleEnemyCount,
+      queuedEnemyCount: catchUpQueue.spawnDrain.count + countPendingZombieSchedules(catchUpQueue),
       spawnSec: pendingSpawnSec,
-      // 비어 있을 때만 계산한다 — 적이 있으면 캐치업이 이 값을 읽지 않는다.
-      nextPendingSpawnSec: visibleEnemyCount === 0
+      // 저밀도일 때만 다음 일반 스폰 후보를 계산한다.
+      nextPendingSpawnSec: visibleEnemyCount <= LOW_DENSITY_ENEMY_THRESHOLD
         ? nextPendingSpawnSec(
             stageRuntime.burstEvents,
             firedBurstsRef.current,
