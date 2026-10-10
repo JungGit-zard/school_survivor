@@ -74,9 +74,9 @@ const BLADE_HOT_COLOR = new THREE.Color(0xff3a1e)
 export function BikittyCutterModel({ segment = 0 }) {
   const blade = useMemo(() => bikittyBladeShape(segment), [segment])
 
-  const bodyMat = useMemo(() => toonMat(0xb6c0cc, 0.1), [])
-  const gripMat = useMemo(() => toonMat(0x1d2a44, 0.06), [])
-  const railMat = useMemo(() => toonMat(0x6f7c8f, 0.08), [])
+  const bodyMat = useMemo(() => toonMat(0xef3084, 0.1), [])
+  const gripMat = useMemo(() => toonMat(0xbc3b6b, 0.06), [])
+  const railMat = useMemo(() => toonMat(0xfe7db7, 0.08), [])
   const bladeMat = useMemo(() => toonMat(0xdce6ee, 0.06), [])
   const edgeMat = useMemo(() => toonMat(0xffffff, 0.12), [])
   // 날 끝 가열: 색은 은색→적열, emissive는 0.05→1.0.
@@ -110,7 +110,7 @@ export function BikittyCutterModel({ segment = 0 }) {
           <boxGeometry args={[0.28, 0.32, 0.34]} />
         </mesh>
 
-        {/* 그립 패널(짙은 남색) — 커터칼 노랑과 구분되는 색 */}
+        {/* 그립 패널 — 바이키티 아이콘의 진한 분홍색 */}
         <mesh material={gripMat} position={[0, 0.135, -0.28]}>
           <boxGeometry args={[0.22, 0.04, 0.5]} />
         </mesh>
