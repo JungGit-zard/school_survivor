@@ -7,6 +7,7 @@ import { isMobileJoystickEnvironment } from '../lib/mobileInput.js'
 import { initKeyboardInput } from '../lib/keyboardInput.js'
 import { applyLanguage, loadTitleSettings } from '../lib/titleSettings.js'
 import { t } from '../lib/i18n.js'
+import { getSelectedWebBackgroundStyle } from '../lib/webBackgroundAssets.js'
 import { clearPendingStartAfterLogin, hasPendingStartAfterLogin } from '../lib/loginContinuation.js'
 
 const TitleScreen = lazy(() => import('./TitleScreen.jsx'))
@@ -135,8 +136,13 @@ export default function ReadyGameApp({
     setScreen(nextScreen)
   }
 
+  const viewportStyle = {
+    ...styles.viewport,
+    ...getSelectedWebBackgroundStyle(),
+  }
+
   return (
-    <div style={styles.viewport}>
+    <div style={viewportStyle}>
       <ErrorBoundary fallback={null}>
         <TapFeedbackBurst />
         <Suspense fallback={null}><SfxLayer /></Suspense>
@@ -257,10 +263,12 @@ const styles = {
   viewport: {
     width: '100vw',
     height: '100vh',
-    background: '#0a0810',
+    maxHeight: '100dvh',
+    backgroundColor: '#0a0810',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   screenLoading: {
     position: 'absolute',
@@ -286,8 +294,17 @@ const styles = {
   },
   phoneFrame: {
     position: 'relative',
-    width: '100vw',
-    height: '100vh',
+
+    // 100dvh를 지원하는 프로젝트의 웹 지원 범위에서 동적 주소창 높이를 반영한다.
+    width: 'min(100vw, 720px, 56.25dvh)',
+    aspectRatio: '9 / 16',
+    height: 'auto',
+    maxHeight: 'min(100vh, 100dvh, 1280px)',
+    flex: '0 0 auto',
+    touchAction: 'none',
+    overscrollBehavior: 'none',
+    userSelect: 'none',
+    WebkitUserSelect: 'none',
     overflow: 'hidden',
     background: '#16121d',
   },

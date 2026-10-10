@@ -3,6 +3,7 @@ import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App, { handleStudioGameSyncMessage } from './App.jsx'
+import ReadyGameAppSource from './components/ReadyGameApp.jsx?raw'
 import { loadStageBossPreview, loadStudioTunings, loadTextureDecals, saveStudioTunings } from './lib/graphicsStudioConfig.js'
 import { loadSfxTunings } from './lib/sfxRegistry.js'
 import { loadStagePropPlacements, resetStagePropPlacementsCache, saveStagePropPlacements } from './lib/stagePropPlacements.js'
@@ -298,7 +299,7 @@ describe('App virtual joystick mounting', () => {
     }
   })
 
-  it('uses the full viewport width so narrow iPhone SE screens are not pillarboxed', async () => {
+  it('preserves the restored portrait frame on narrow iPhone SE screens', async () => {
     setInputEnvironment({
       maxTouchPoints: 5,
       userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile/15E148',
@@ -306,12 +307,12 @@ describe('App virtual joystick mounting', () => {
     })
 
     const view = await renderAppAndStart()
-    const viewport = view.container.firstElementChild
-    const phoneFrame = viewport.firstElementChild
+    const phoneFrame = view.container.querySelector('[data-testid="virtual-joystick-mounted"]').parentElement
 
-    expect(phoneFrame.style.width).toBe('100vw')
-    expect(phoneFrame.style.height).toBe('100vh')
-    expect(phoneFrame.style.aspectRatio).toBe('')
+    // jsdom does not parse min() with dvh; the browser QA checks computed width.
+    expect(ReadyGameAppSource).toContain("width: 'min(100vw, 720px, 56.25dvh)'")
+    expect(phoneFrame.style.height).toBe('auto')
+    expect(phoneFrame.style.aspectRatio).toBe('9 / 16')
     view.unmount()
   })
 

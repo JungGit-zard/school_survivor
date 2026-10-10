@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
+import ReadyGameAppSource from './ReadyGameApp.jsx?raw'
+import { WEB_BACKGROUND_URLS, selectedWebBackgroundUrl } from '../lib/webBackgroundAssets.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
@@ -100,6 +102,50 @@ async function renderReadyWithoutEntering(props) {
 }
 
 describe('ReadyGameApp stage bypass hydration', () => {
+  it('applies one external side-gutter background from the /game title screen onward and preserves the phoneFrame contract', async () => {
+    const view = await renderReadyWithoutEntering(
+      { authUser: { uid: 'first' }, progressStatus: 'ready' },
+    )
+    const viewport = view.container.firstElementChild
+
+    expect(WEB_BACKGROUND_URLS).toHaveLength(4)
+    expect(WEB_BACKGROUND_URLS).toEqual([
+      'https://escape-zombie-school-assets.web.app/web-side-gutters/v2/web_game_side_gutters_01.png',
+      'https://escape-zombie-school-assets.web.app/web-side-gutters/v1/web_game_side_gutters_02.png',
+      'https://escape-zombie-school-assets.web.app/web-side-gutters/v1/web_game_side_gutters_03.png',
+      'https://escape-zombie-school-assets.web.app/web-side-gutters/v1/web_game_side_gutters_04.png',
+    ])
+    expect(WEB_BACKGROUND_URLS).toContain(selectedWebBackgroundUrl)
+    expect(ReadyGameAppSource).not.toContain('../assets/backgrounds/web_game_side_gutters_16x9.png')
+    expect(ReadyGameAppSource).not.toContain('localStorage')
+    expect(ReadyGameAppSource).not.toContain('sessionStorage')
+    expect(viewport.style.backgroundColor).toBe('rgb(10, 8, 16)')
+    expect(viewport.style.backgroundImage).toContain(selectedWebBackgroundUrl)
+    expect(viewport.style.backgroundSize).toBe('cover')
+    expect(viewport.style.backgroundPosition).toBe('center center')
+    expect(viewport.style.backgroundRepeat).toBe('no-repeat')
+    expect(ReadyGameAppSource).toContain("width: 'min(100vw, 720px, 56.25dvh)'")
+    expect(ReadyGameAppSource).toContain("aspectRatio: '9 / 16'")
+    expect(ReadyGameAppSource).toContain("maxHeight: 'min(100vh, 100dvh, 1280px)'")
+
+    await act(async () => {
+      view.container.querySelector('button').click()
+      await vi.dynamicImportSettled()
+    })
+
+    await act(async () => {
+      view.container.querySelector('[data-testid="start-stage"]').click()
+      await vi.dynamicImportSettled()
+    })
+
+    expect(viewport.style.backgroundImage).toContain(selectedWebBackgroundUrl)
+    expect(viewport.style.backgroundColor).toBe('rgb(10, 8, 16)')
+    expect(ReadyGameAppSource).toContain("width: 'min(100vw, 720px, 56.25dvh)'")
+    expect(ReadyGameAppSource).toContain("aspectRatio: '9 / 16'")
+    expect(ReadyGameAppSource).toContain("maxHeight: 'min(100vh, 100dvh, 1280px)'")
+    view.unmount()
+  })
+
   afterEach(() => {
     window.sessionStorage.removeItem('eszs:pending-start-after-google-login')
     mocks.hydrated = false
