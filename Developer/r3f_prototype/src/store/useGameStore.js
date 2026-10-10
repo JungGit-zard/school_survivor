@@ -1083,8 +1083,16 @@ export const useGameStore = create(
 
     applyUpgrade: (key) => {
       const effect = UPGRADE_EFFECTS[key]
+      const pendingWeaponReplacement = get().pendingWeaponReplacement
 
-      if (get().pendingWeaponReplacement) return
+      if (pendingWeaponReplacement) {
+        const pendingState = get()
+        const isOwnedWeaponUpgrade = effect?.kind !== 'acquire'
+          && effect?.weapon
+          && pendingState.weapons[effect.weapon]?.active === true
+        if (!isOwnedWeaponUpgrade) return
+        set({ pendingWeaponReplacement: null })
+      }
 
       const recordUpgradeMissionState = () => {
         const state = get()

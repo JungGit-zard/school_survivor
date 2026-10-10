@@ -185,6 +185,41 @@ describe('useGameStore XP and reset behavior', () => {
     expect(useGameStore.getState().weapons.pencilThrow.damage).toBeCloseTo(beforeDamage + 1.2, 10)
   })
 
+  it('교체 대기 중 기존 보유 무기 업그레이드는 신규 획득 대기를 취소하고 기존 무기를 버리지 않는다', () => {
+    setUnlocked('starlink')
+    const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'guidedMissile', 'compassBlade']
+    useGameStore.setState((state) => ({
+      player: { ...state.player, level: 8 },
+      phase: 'levelup',
+      pendingLevelUps: 1,
+      weapons: Object.fromEntries(Object.entries(state.weapons).map(([id, weapon]) => [
+        id,
+        id === 'pencilThrow'
+          ? { ...weapon, active: true, level: 1, damage: 5 }
+          : { ...weapon, active: activeAtCap.includes(id), level: activeAtCap.includes(id) ? 1 : weapon.level },
+      ])),
+    }))
+    const beforeWeaponIds = Object.entries(useGameStore.getState().weapons)
+      .filter(([, weapon]) => weapon.active)
+      .map(([id]) => id)
+
+    useGameStore.getState().applyUpgrade('acquireStarlink')
+    expect(useGameStore.getState().pendingWeaponReplacement).toEqual({
+      upgradeKey: 'acquireStarlink',
+      weaponId: 'starlink',
+    })
+
+    useGameStore.getState().applyUpgrade('pencilDamage')
+
+    const state = useGameStore.getState()
+    expect(state.pendingWeaponReplacement).toBeNull()
+    expect(state.weapons.pencilThrow).toMatchObject({ active: true, level: 2, damage: 6.2 })
+    expect(state.weapons.starlink.active).toBe(false)
+    expect(Object.entries(state.weapons).filter(([, weapon]) => weapon.active).map(([id]) => id)).toEqual(beforeWeaponIds)
+    expect(state.pendingLevelUps).toBe(0)
+    expect(state.phase).toBe('playing')
+  })
+
   it('무기 교체 확정은 선택한 기존 무기를 초기화하고 신규 무기를 Lv.1로 넣은 뒤 레벨업을 소비한다', () => {
     setUnlocked('starlink')
     const activeAtCap = ['pencilThrow', 'schoolBag', 'boxCutter', 'tumbler', 'scienceFlask', 'bell', 'stunGun', 'onigiri', 'guidedMissile', 'compassBlade']

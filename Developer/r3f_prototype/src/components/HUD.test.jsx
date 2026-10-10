@@ -711,6 +711,7 @@ describe('level-up upgrade layout', () => {
         pendingLevelUps: 1,
         player: { ...state.player, level: 8 },
         levelUpChoiceSerial: state.levelUpChoiceSerial + 1,
+        pendingGuaranteedUpgradeChoiceKeys: ['bagDamage'],
         weapons: Object.fromEntries(Object.entries(state.weapons).map(([id, weapon]) => [
           id,
           activeWeaponIds.has(id)
@@ -726,6 +727,12 @@ describe('level-up upgrade layout', () => {
       act(() => {
         root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />)
       })
+      const readyEvent = new window.Event('webkitAnimationEnd', { bubbles: true })
+      Object.defineProperty(readyEvent, 'animationName', { value: 'levelupCardPop' })
+      act(() => {
+        const buttons = container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')
+        buttons[buttons.length - 1]?.dispatchEvent(readyEvent)
+      })
 
       const flaskChoice = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
         .find((choice) => choice.getAttribute('aria-label').includes('과학 플라스크 획득'))
@@ -738,6 +745,11 @@ describe('level-up upgrade layout', () => {
       expect(container.querySelector('[data-testid="weapon-replacement-prompt"]')).not.toBeNull()
       expect(useGameStore.getState().weapons.scienceFlask.active).toBe(false)
       expect(useGameStore.getState().pendingLevelUps).toBe(1)
+
+      const ownedUpgradeDuringReplacement = [...container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')]
+        .find((choice) => choice.getAttribute('aria-label').includes('30cm'))
+      expect(ownedUpgradeDuringReplacement).toBeTruthy()
+      expect(ownedUpgradeDuringReplacement.disabled).toBe(false)
 
       act(() => {
         container.querySelector('[data-testid="weapon-replacement-cancel"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))

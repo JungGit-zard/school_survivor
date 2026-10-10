@@ -982,6 +982,14 @@ export default function HUD({
   ])
   const [levelupChoicesReadySerial, setLevelupChoicesReadySerial] = useState(null)
   const levelupChoicesReady = phase === 'levelup' && levelupChoicesReadySerial === levelUpChoiceSerial
+  const isReplacementSafeOwnedWeaponUpgrade = (choice) => {
+    if (!pendingWeaponReplacement) return true
+    const effect = UPGRADE_EFFECTS[choice?.key]
+    return effect?.kind !== 'acquire'
+      && effect?.weapon
+      && weapons[effect.weapon]?.active === true
+  }
+  const isLevelupChoiceDisabled = (choice) => !levelupChoicesReady || !isReplacementSafeOwnedWeaponUpgrade(choice)
   const handleLevelupChoiceAnimationEnd = (event, index) => {
     if (index !== choices.length - 1) return
     if (event.target !== event.currentTarget) return
@@ -1528,7 +1536,7 @@ export default function HUD({
                     if (levelupChoicesReady) applyUpgrade(c.key)
                   }}
                   onAnimationEnd={(event) => handleLevelupChoiceAnimationEnd(event, i)}
-                  disabled={!levelupChoicesReady || !!pendingWeaponReplacement}
+                  disabled={isLevelupChoiceDisabled(c)}
                 >
                   <UpgradeIcon type={c.icon} />
                   <div className="levelup-choice-label" style={styles.choiceLabel}>{getUpgradeChoiceLabel(c, weapons)}</div>
