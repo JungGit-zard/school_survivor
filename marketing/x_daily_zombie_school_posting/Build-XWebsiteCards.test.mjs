@@ -4,6 +4,7 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
+import { fileURLToPath } from 'node:url'
 import { buildCards } from './Build-XWebsiteCards.mjs'
 
 test('buildCards emits static localized X cards for canonical, enabled variant, and active pool images', async (t) => {
@@ -107,4 +108,27 @@ test('buildCards rejects active X images without one matching X catalog entry', 
   await writeFile(path.join(pool, 'image_catalog.json'), JSON.stringify({ images: [] }))
 
   await assert.rejects(buildCards({ repoRoot, output: path.join(repoRoot, 'out') }), /Expected one X catalog row/)
+})
+
+test('Firebase Hosting predeploy invokes Node gates through npm scripts for Windows shell compatibility', async () => {
+  const campaignRoot = path.dirname(fileURLToPath(import.meta.url))
+  const repoRoot = path.resolve(campaignRoot, '..', '..')
+  const appRoot = path.join(repoRoot, 'Developer', 'r3f_prototype')
+  const packageJson = JSON.parse(await readFile(path.join(appRoot, 'package.json'), 'utf8'))
+  const firebaseJson = JSON.parse(await readFile(path.join(appRoot, 'firebase.json'), 'utf8'))
+
+  assert.equal(
+    packageJson.scripts['require:safe-hosting-promotion'],
+    'node scripts/require-safe-hosting-promotion.mjs',
+  )
+  assert.equal(
+    packageJson.scripts['build:x-website-cards'],
+    'node ../../marketing/x_daily_zombie_school_posting/Build-XWebsiteCards.mjs --output dist',
+  )
+  assert.ok(firebaseJson.hosting.predeploy.includes('npm.cmd run require:safe-hosting-promotion'))
+  assert.ok(firebaseJson.hosting.predeploy.includes('npm.cmd run build:x-website-cards'))
+  assert.ok(
+    !firebaseJson.hosting.predeploy.some((command) => command.startsWith('node ')),
+    'predeploy must not pass node commands with arguments directly to firebase-tools cross-spawn on Windows',
+  )
 })

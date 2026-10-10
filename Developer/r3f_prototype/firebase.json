@@ -7,10 +7,10 @@
     "cleanUrls": true,
     "ignore": [],
     "predeploy": [
-      "node scripts/require-safe-hosting-promotion.mjs",
+      "npm.cmd run require:safe-hosting-promotion",
       "npm.cmd run build",
       "npm.cmd run build:legal",
-      "node ../../marketing/x_daily_zombie_school_posting/Build-XWebsiteCards.mjs --output dist"
+      "npm.cmd run build:x-website-cards"
     ],
     "headers": [
       {
