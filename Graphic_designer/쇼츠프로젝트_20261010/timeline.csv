@@ -1,0 +1,17 @@
+start_seconds,end_seconds,duration_seconds,shot_id,source_type,asset,content
+0,3,3,A01,ILLUSTRATION,images/A01_뒤돌아보기.png,교실 뒤돌아보기
+3,5,2,A02,ILLUSTRATION,images/A02_연필투척.png,연필 투척
+5,7,2,G01,GAMEPLAY,footage/G01,실제 연필 명중
+7,9,2,A03,ILLUSTRATION,images/A03_자공격.png,자 공격
+9,12,3,G02,GAMEPLAY,footage/G02,실제 자·텀블러·플라스크
+12,13.5,1.5,A04,ILLUSTRATION,images/A04_치비코지원.png,치비코 지원
+13.5,14,0.5,G03,GAMEPLAY,footage/G03,실제 치비코
+14,15.5,1.5,A05,ILLUSTRATION,images/A05_하나코회복.png,하나코 회복
+15.5,16,0.5,G04,GAMEPLAY,footage/G04,실제 하나코
+16,17.5,1.5,A06,ILLUSTRATION,images/A06_이누콘구조.png,이누콘 구조
+17.5,18,0.5,G05,GAMEPLAY,footage/G05,실제 이누콘
+18,20,2,A07,ILLUSTRATION,images/A07_B01보스.png,B01 보스
+20,23,3,G06,GAMEPLAY,footage/G06,실제 보스전
+23,25,2,A08,ILLUSTRATION,images/A08_탈출질주.png,친구들과 탈출
+25,27,2,G07,GAMEPLAY,footage/G07,실제 포탈
+27,30,3,E01,END_CARD,images/E01_엔드카드배경.png,기존 로고 합성
