@@ -329,9 +329,3 @@ if(-not $NoNotify){try{$orcaWorktreeId=Update-OrcaStatusComment $data $repoRoot;
 $delivery=[pscustomobject]@{generatedAtKst=$data.generatedAtKst;notificationAttempted=(-not $NoNotify);notificationSent=$notificationSent;orcaCommentAttempted=(-not $NoNotify);orcaCommentUpdated=$orcaUpdated;orcaWorktreeId=$orcaWorktreeId;orcaUpdateError=$orcaError;summary=(Get-StatusSummary $data)}
 $deliveryPath=Join-Path $outputDirectory 'latest.delivery.json';Set-Content -LiteralPath $deliveryPath -Value ($delivery|ConvertTo-Json -Depth 6) -Encoding UTF8
 Write-Output ([pscustomobject]@{ status='written'; latestPath=$latestPath; timestampPath=$timestampPath; deliveryPath=$deliveryPath; notificationSent=$notificationSent; orcaCommentUpdated=$orcaUpdated; orcaWorktreeId=$orcaWorktreeId; orcaUpdateError=$orcaError } | ConvertTo-Json -Compress)
-
-
-
-
-
-

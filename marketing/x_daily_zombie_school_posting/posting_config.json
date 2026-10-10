@@ -237,7 +237,17 @@
         "image_pool/x/ja/marketing_social_30_20261004/06_gym_escape.png",
         "image_pool/x/ja/marketing_social_30_20261004/07_rooftop_escape.png",
         "image_pool/x/ja/marketing_social_30_20261004/08_library_escape.png",
-        "image_pool/x/ja/marketing_social_30_20261004/09_rainy_corridor.png"
+        "image_pool/x/ja/marketing_social_30_20261004/09_rainy_corridor.png",
+        "image_pool/x/ja/marketing_social_20261010_add10/01_classroom.png",
+        "image_pool/x/ja/marketing_social_20261010_add10/02_hallway.png",
+        "image_pool/x/ja/marketing_social_20261010_add10/03_cafeteria.png",
+        "image_pool/x/ja/marketing_social_20261010_add10/04_library.png",
+        "image_pool/x/ja/marketing_social_20261010_add10/05_gym.png",
+        "image_pool/x/ja/marketing_social_20261010_add10/06_nurse.png",
+        "image_pool/x/ja/marketing_social_20261010_add10/07_music.png",
+        "image_pool/x/ja/marketing_social_20261010_add10/08_art.png",
+        "image_pool/x/ja/marketing_social_20261010_add10/09_field.png",
+        "image_pool/x/ja/marketing_social_20261010_add10/10_gate.png"
       ]
     },
     "en": {
@@ -250,7 +260,17 @@
         "image_pool/x/en/marketing_social_30_20261004/06_science_lab.png",
         "image_pool/x/en/marketing_social_30_20261004/07_school_bus.png",
         "image_pool/x/en/marketing_social_30_20261004/08_locker_hall.png",
-        "image_pool/x/en/marketing_social_30_20261004/09_bell_tower.png"
+        "image_pool/x/en/marketing_social_30_20261004/09_bell_tower.png",
+        "image_pool/x/en/marketing_social_20261010_add10/01_classroom.png",
+        "image_pool/x/en/marketing_social_20261010_add10/02_corridor.png",
+        "image_pool/x/en/marketing_social_20261010_add10/03_cafeteria.png",
+        "image_pool/x/en/marketing_social_20261010_add10/04_library.png",
+        "image_pool/x/en/marketing_social_20261010_add10/05_gym.png",
+        "image_pool/x/en/marketing_social_20261010_add10/06_infirmary.png",
+        "image_pool/x/en/marketing_social_20261010_add10/07_music_room.png",
+        "image_pool/x/en/marketing_social_20261010_add10/08_art_room.png",
+        "image_pool/x/en/marketing_social_20261010_add10/09_playground.png",
+        "image_pool/x/en/marketing_social_20261010_add10/10_school_gate.png"
       ]
     },
     "vi": {
@@ -263,7 +283,17 @@
         "image_pool/x/vi/marketing_social_30_20261004/06_library_window.png",
         "image_pool/x/vi/marketing_social_30_20261004/07_basketball_court.png",
         "image_pool/x/vi/marketing_social_30_20261004/08_classroom_map.png",
-        "image_pool/x/vi/marketing_social_30_20261004/09_school_gate.png"
+        "image_pool/x/vi/marketing_social_30_20261004/09_school_gate.png",
+        "image_pool/x/vi/marketing_social_20261010_add10/01_classroom.png",
+        "image_pool/x/vi/marketing_social_20261010_add10/02_corridor.png",
+        "image_pool/x/vi/marketing_social_20261010_add10/03_cafeteria.png",
+        "image_pool/x/vi/marketing_social_20261010_add10/04_library.png",
+        "image_pool/x/vi/marketing_social_20261010_add10/05_gym.png",
+        "image_pool/x/vi/marketing_social_20261010_add10/06_infirmary.png",
+        "image_pool/x/vi/marketing_social_20261010_add10/07_music_room.png",
+        "image_pool/x/vi/marketing_social_20261010_add10/08_art_room.png",
+        "image_pool/x/vi/marketing_social_20261010_add10/09_playground.png",
+        "image_pool/x/vi/marketing_social_20261010_add10/10_school_gate.png"
       ]
     },
     "ko": {
@@ -276,7 +306,17 @@
         "image_pool/x/ko/marketing_social_30_20261004/06_seoul_classroom.png",
         "image_pool/x/ko/marketing_social_30_20261004/07_rooftop_stairs.png",
         "image_pool/x/ko/marketing_social_30_20261004/08_nurse_office.png",
-        "image_pool/x/ko/marketing_social_30_20261004/09_school_exterior.png"
+        "image_pool/x/ko/marketing_social_30_20261004/09_school_exterior.png",
+        "image_pool/x/ko/marketing_social_20261010_add10/01_classroom.png",
+        "image_pool/x/ko/marketing_social_20261010_add10/02_hallway.png",
+        "image_pool/x/ko/marketing_social_20261010_add10/03_cafeteria.png",
+        "image_pool/x/ko/marketing_social_20261010_add10/04_library.png",
+        "image_pool/x/ko/marketing_social_20261010_add10/05_gym.png",
+        "image_pool/x/ko/marketing_social_20261010_add10/06_nurse.png",
+        "image_pool/x/ko/marketing_social_20261010_add10/07_music.png",
+        "image_pool/x/ko/marketing_social_20261010_add10/08_art.png",
+        "image_pool/x/ko/marketing_social_20261010_add10/09_field.png",
+        "image_pool/x/ko/marketing_social_20261010_add10/10_gate.png"
       ]
     }
   },

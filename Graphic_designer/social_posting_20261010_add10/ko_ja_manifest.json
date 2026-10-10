@@ -1,0 +1,398 @@
+﻿{
+    "created_date":  "2026-10-10",
+    "generator":  "built-in image_gen",
+    "reference_image":  "marketing/x_daily_zombie_school_posting/image_pool/reference/style/approved_character_scale_20261009.png",
+    "style_constraints":  "Cute low-proportion nendoroid/chibi cartoon, oversized head, short body and limbs, pink bob-haired girl in red jacket and blue uniform, blocky zombies, simple flat shapes, restrained detail, no gloss or complex textures. Match reference landscape proportions.",
+    "languages":  [
+                      "ko",
+                      "ja"
+                  ],
+    "platforms":  [
+                      "x",
+                      "facebook"
+                  ],
+    "scene_order":  [
+                        "classroom",
+                        "hallway",
+                        "cafeteria",
+                        "library",
+                        "gym",
+                        "nurse",
+                        "music",
+                        "art",
+                        "field",
+                        "gate"
+                    ],
+    "copy":  {
+                 "ko":  {
+                            "title":  "탈출! 좀비학교",
+                            "badge":  "완전 무료 · 광고 없음"
+                        },
+                 "ja":  {
+                            "title":  "脱出！ゾンビ学校",
+                            "badge":  "無料・広告なし"
+                        }
+             },
+    "extra_drafts":  [
+                         "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_20261010_add10_drafts/duplicate_classroom_firstconfirmed.png"
+                     ],
+    "assets":  [
+                   {
+                       "platform":  "x",
+                       "language":  "ko",
+                       "scene":  "classroom",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_20261010_add10/01_classroom.png",
+                       "headline":  "교실에서 살아남아 탈출하라!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ko",
+                       "scene":  "classroom",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/marketing_social_20261010_add10/01_classroom.png",
+                       "headline":  "교실에서 살아남아 탈출하라!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ja",
+                       "scene":  "classroom",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/marketing_social_20261010_add10/01_classroom.png",
+                       "headline":  "ゾンビだらけの学校から脱出！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ja",
+                       "scene":  "classroom",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/01_classroom.png",
+                       "headline":  "走って、よけて、出口を目指せ！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ko",
+                       "scene":  "hallway",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_20261010_add10/02_hallway.png",
+                       "headline":  "복도 끝 출구를 향해 달려!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ko",
+                       "scene":  "hallway",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/marketing_social_20261010_add10/02_hallway.png",
+                       "headline":  "좀비를 피해 다음 교실로!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ja",
+                       "scene":  "hallway",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/marketing_social_20261010_add10/02_hallway.png",
+                       "headline":  "廊下の出口まで走り抜け！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ja",
+                       "scene":  "hallway",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/02_hallway.png",
+                       "headline":  "ゾンビをよけて出口へ！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ko",
+                       "scene":  "cafeteria",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_20261010_add10/03_cafeteria.png",
+                       "headline":  "급식실을 지나 출구로!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ko",
+                       "scene":  "cafeteria",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/marketing_social_20261010_add10/03_cafeteria.png",
+                       "headline":  "급식실에서 좀비를 따돌려!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ja",
+                       "scene":  "cafeteria",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/marketing_social_20261010_add10/03_cafeteria.png",
+                       "headline":  "食堂を抜けて出口へ！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ja",
+                       "scene":  "cafeteria",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/03_cafeteria.png",
+                       "headline":  "ゾンビをかわして食堂から脱出！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ko",
+                       "scene":  "library",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_20261010_add10/04_library.png",
+                       "headline":  "도서관 책장 사이로 탈출!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ko",
+                       "scene":  "library",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/marketing_social_20261010_add10/04_library.png",
+                       "headline":  "책장 뒤 좀비를 피해 달려!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ja",
+                       "scene":  "library",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/marketing_social_20261010_add10/04_library.png",
+                       "headline":  "本棚の間を抜けて脱出！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ja",
+                       "scene":  "library",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/04_library.png",
+                       "headline":  "ゾンビをよけて図書館から走れ！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ko",
+                       "scene":  "gym",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_20261010_add10/05_gym.png",
+                       "headline":  "체육관을 가로질러 탈출!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ko",
+                       "scene":  "gym",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/marketing_social_20261010_add10/05_gym.png",
+                       "headline":  "운동장으로 달려, 좀비가 쫓아와!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ja",
+                       "scene":  "gym",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/marketing_social_20261010_add10/05_gym.png",
+                       "headline":  "体育館を駆け抜けて脱出！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ja",
+                       "scene":  "gym",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/05_gym.png",
+                       "headline":  "ゾンビを振り切って出口へ！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ko",
+                       "scene":  "nurse",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_20261010_add10/06_nurse.png",
+                       "headline":  "보건실에서 좀비를 피해 탈출!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ko",
+                       "scene":  "nurse",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/marketing_social_20261010_add10/06_nurse.png",
+                       "headline":  "응급 처치 후, 출구로 달려!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ja",
+                       "scene":  "nurse",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/marketing_social_20261010_add10/06_nurse.png",
+                       "headline":  "保健室から脱出しよう！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ja",
+                       "scene":  "nurse",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/06_nurse.png",
+                       "headline":  "包帯を巻いて出口へ急げ！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ko",
+                       "scene":  "music",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_20261010_add10/07_music.png",
+                       "headline":  "음악실의 악보 사이로 탈출!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ko",
+                       "scene":  "music",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/marketing_social_20261010_add10/07_music.png",
+                       "headline":  "리듬에 맞춰 좀비를 피해!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ja",
+                       "scene":  "music",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/marketing_social_20261010_add10/07_music.png",
+                       "headline":  "音楽室を抜けて脱出！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ja",
+                       "scene":  "music",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/07_music.png",
+                       "headline":  "リズムに乗ってゾンビをかわそう！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ko",
+                       "scene":  "art",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_20261010_add10/08_art.png",
+                       "headline":  "미술실을 지나 학교 밖으로!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ko",
+                       "scene":  "art",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/marketing_social_20261010_add10/08_art.png",
+                       "headline":  "물감 자국을 따라 탈출구로!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ja",
+                       "scene":  "art",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/marketing_social_20261010_add10/08_art.png",
+                       "headline":  "美術室を抜けて校門へ！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ja",
+                       "scene":  "art",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/08_art.png",
+                       "headline":  "絵の具の跡をたどって出口へ！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ko",
+                       "scene":  "field",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_20261010_add10/09_field.png",
+                       "headline":  "운동장을 가로질러 정문으로!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ko",
+                       "scene":  "field",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/marketing_social_20261010_add10/09_field.png",
+                       "headline":  "종 치기 전에 학교를 탈출해!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ja",
+                       "scene":  "field",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/marketing_social_20261010_add10/09_field.png",
+                       "headline":  "校庭を走って校門を目指せ！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ja",
+                       "scene":  "field",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/09_field.png",
+                       "headline":  "チャイムが鳴る前に脱出！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ko",
+                       "scene":  "gate",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_20261010_add10/10_gate.png",
+                       "headline":  "학교 정문을 통과해 탈출!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ko",
+                       "scene":  "gate",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/marketing_social_20261010_add10/10_gate.png",
+                       "headline":  "마지막 출구까지 좀비를 피해!",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "x",
+                       "language":  "ja",
+                       "scene":  "gate",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/ja/marketing_social_20261010_add10/10_gate.png",
+                       "headline":  "校門をくぐって脱出しよう！",
+                       "status":  "saved"
+                   },
+                   {
+                       "platform":  "facebook",
+                       "language":  "ja",
+                       "scene":  "gate",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_20261010_add10/10_gate.png",
+                       "headline":  "最後の出口までゾンビをよけて！",
+                       "status":  "saved"
+                   },
+                   {
+                       "status":  "saved",
+                       "headline":  "Escape the school before the bell!",
+                       "language":  "en",
+                       "createdBy":  "parallel_worker_classroom",
+                       "platform":  "x",
+                       "scene":  "classroom",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/en/marketing_social_20261010_add10/01_classroom.png"
+                   },
+                   {
+                       "status":  "saved",
+                       "headline":  "Thoát khỏi trường học đầy zombie!",
+                       "language":  "vi",
+                       "createdBy":  "parallel_worker_classroom",
+                       "platform":  "x",
+                       "scene":  "classroom",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/x/vi/marketing_social_20261010_add10/01_classroom.png"
+                   },
+                   {
+                       "status":  "saved",
+                       "headline":  "Escape the school before the bell!",
+                       "language":  "en",
+                       "createdBy":  "parallel_worker_classroom",
+                       "platform":  "facebook",
+                       "scene":  "classroom",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/01_classroom.png"
+                   },
+                   {
+                       "status":  "saved",
+                       "headline":  "Thoát khỏi trường học đầy zombie!",
+                       "language":  "vi",
+                       "createdBy":  "parallel_worker_classroom",
+                       "platform":  "facebook",
+                       "scene":  "classroom",
+                       "file":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/01_classroom.png"
+                   }
+               ],
+    "remaining_work":  "KO/JA assets complete: 10 distinct scenes per platform and language. Four EN/VI classroom assets from parallel worker included; other EN/VI assets are tracked by that worker."
+}

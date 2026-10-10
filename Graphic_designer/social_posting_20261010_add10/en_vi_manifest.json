@@ -1,0 +1,421 @@
+﻿{
+    "campaign":  "social_posting_20261010_add10",
+    "provenance":  {
+                       "generator":  "OpenAI image_gen built-in tool",
+                       "generatedOn":  "2026-10-10",
+                       "reference":  "marketing/x_daily_zombie_school_posting/image_pool/reference/style/approved_character_scale_20261009.png",
+                       "promptBrief":  "Landscape cartoon campaign illustration; pink-bob chibi girl in red jacket and blue school uniform escaping zombies in the named school location; simple flat 2D shapes; no photorealism, glossy rendering, or intricate detail; platform-specific composition; embedded locale title, scene copy, and footer.",
+                       "platformComposition":  {
+                                                   "x":  "Compact left-aligned copy with character/action on the right",
+                                                   "facebook":  "Airier composition with character/action on the left and grouped copy on the right"
+                                               },
+                       "localeCopy":  {
+                                          "en":  {
+                                                     "title":  "Escape! Zombie School",
+                                                     "footer":  "Play free · No ads."
+                                                 },
+                                          "vi":  {
+                                                     "title":  "Thoát Khỏi Trường Zombie",
+                                                     "footer":  "Miễn phí · Không quảng cáo"
+                                                 }
+                                      }
+                   },
+    "assets":  [
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/en/marketing_social_20261010_add10/02_corridor.png",
+                       "platform":  "x",
+                       "locale":  "en",
+                       "scene":  "02_corridor",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "The hallway is crawling with zombies!",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/02_corridor.png",
+                       "platform":  "facebook",
+                       "locale":  "en",
+                       "scene":  "02_corridor",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "The hallway is crawling with zombies!",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/vi/marketing_social_20261010_add10/02_corridor.png",
+                       "platform":  "x",
+                       "locale":  "vi",
+                       "scene":  "02_corridor",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Hành lang đầy zombie rồi!",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/02_corridor.png",
+                       "platform":  "facebook",
+                       "locale":  "vi",
+                       "scene":  "02_corridor",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Hành lang đầy zombie rồi!",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/en/marketing_social_20261010_add10/03_cafeteria.png",
+                       "platform":  "x",
+                       "locale":  "en",
+                       "scene":  "03_cafeteria",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "Grab a snack and run!",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/03_cafeteria.png",
+                       "platform":  "facebook",
+                       "locale":  "en",
+                       "scene":  "03_cafeteria",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "Grab a snack and run!",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/vi/marketing_social_20261010_add10/03_cafeteria.png",
+                       "platform":  "x",
+                       "locale":  "vi",
+                       "scene":  "03_cafeteria",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Lấy đồ ăn rồi chạy thôi!",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/03_cafeteria.png",
+                       "platform":  "facebook",
+                       "locale":  "vi",
+                       "scene":  "03_cafeteria",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Lấy đồ ăn rồi chạy thôi!",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/en/marketing_social_20261010_add10/04_library.png",
+                       "platform":  "x",
+                       "locale":  "en",
+                       "scene":  "04_library",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "Keep quiet - they can hear you.",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/04_library.png",
+                       "platform":  "facebook",
+                       "locale":  "en",
+                       "scene":  "04_library",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "Keep quiet - they can hear you.",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/vi/marketing_social_20261010_add10/04_library.png",
+                       "platform":  "x",
+                       "locale":  "vi",
+                       "scene":  "04_library",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Im lặng nhé - chúng nghe thấy đấy.",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/04_library.png",
+                       "platform":  "facebook",
+                       "locale":  "vi",
+                       "scene":  "04_library",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Im lặng nhé - chúng nghe thấy đấy.",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/en/marketing_social_20261010_add10/05_gym.png",
+                       "platform":  "x",
+                       "locale":  "en",
+                       "scene":  "05_gym",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "Dodge, dash, survive!",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/05_gym.png",
+                       "platform":  "facebook",
+                       "locale":  "en",
+                       "scene":  "05_gym",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "Dodge, dash, survive!",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/vi/marketing_social_20261010_add10/05_gym.png",
+                       "platform":  "x",
+                       "locale":  "vi",
+                       "scene":  "05_gym",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Né nhanh, chạy thoát!",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/05_gym.png",
+                       "platform":  "facebook",
+                       "locale":  "vi",
+                       "scene":  "05_gym",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Né nhanh, chạy thoát!",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/en/marketing_social_20261010_add10/06_infirmary.png",
+                       "platform":  "x",
+                       "locale":  "en",
+                       "scene":  "06_infirmary",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "Patch up, then escape!",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/06_infirmary.png",
+                       "platform":  "facebook",
+                       "locale":  "en",
+                       "scene":  "06_infirmary",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "Patch up, then escape!",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/vi/marketing_social_20261010_add10/06_infirmary.png",
+                       "platform":  "x",
+                       "locale":  "vi",
+                       "scene":  "06_infirmary",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Băng bó xong rồi trốn thôi!",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/06_infirmary.png",
+                       "platform":  "facebook",
+                       "locale":  "vi",
+                       "scene":  "06_infirmary",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Băng bó xong rồi trốn thôi!",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/en/marketing_social_20261010_add10/07_music_room.png",
+                       "platform":  "x",
+                       "locale":  "en",
+                       "scene":  "07_music_room",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "Make noise somewhere else!",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/07_music_room.png",
+                       "platform":  "facebook",
+                       "locale":  "en",
+                       "scene":  "07_music_room",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "Make noise somewhere else!",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/vi/marketing_social_20261010_add10/07_music_room.png",
+                       "platform":  "x",
+                       "locale":  "vi",
+                       "scene":  "07_music_room",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Đánh lạc hướng chúng đi!",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/07_music_room.png",
+                       "platform":  "facebook",
+                       "locale":  "vi",
+                       "scene":  "07_music_room",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Đánh lạc hướng chúng đi!",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/en/marketing_social_20261010_add10/08_art_room.png",
+                       "platform":  "x",
+                       "locale":  "en",
+                       "scene":  "08_art_room",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "Draw your escape plan!",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/08_art_room.png",
+                       "platform":  "facebook",
+                       "locale":  "en",
+                       "scene":  "08_art_room",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "Draw your escape plan!",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/vi/marketing_social_20261010_add10/08_art_room.png",
+                       "platform":  "x",
+                       "locale":  "vi",
+                       "scene":  "08_art_room",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Vẽ kế hoạch trốn thoát!",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/08_art_room.png",
+                       "platform":  "facebook",
+                       "locale":  "vi",
+                       "scene":  "08_art_room",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Vẽ kế hoạch trốn thoát!",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/en/marketing_social_20261010_add10/09_playground.png",
+                       "platform":  "x",
+                       "locale":  "en",
+                       "scene":  "09_playground",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "The playground is no safe zone!",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/09_playground.png",
+                       "platform":  "facebook",
+                       "locale":  "en",
+                       "scene":  "09_playground",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "The playground is no safe zone!",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/vi/marketing_social_20261010_add10/09_playground.png",
+                       "platform":  "x",
+                       "locale":  "vi",
+                       "scene":  "09_playground",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Sân chơi cũng không an toàn!",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/09_playground.png",
+                       "platform":  "facebook",
+                       "locale":  "vi",
+                       "scene":  "09_playground",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Sân chơi cũng không an toàn!",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/en/marketing_social_20261010_add10/10_school_gate.png",
+                       "platform":  "x",
+                       "locale":  "en",
+                       "scene":  "10_school_gate",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "School is out - make it out alive!",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_20261010_add10/10_school_gate.png",
+                       "platform":  "facebook",
+                       "locale":  "en",
+                       "scene":  "10_school_gate",
+                       "embeddedText":  [
+                                            "Escape! Zombie School",
+                                            "School is out - make it out alive!",
+                                            "Play free · No ads."
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/x/vi/marketing_social_20261010_add10/10_school_gate.png",
+                       "platform":  "x",
+                       "locale":  "vi",
+                       "scene":  "10_school_gate",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Cổng trường ở ngay trước mắt!",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   },
+                   {
+                       "path":  "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_20261010_add10/10_school_gate.png",
+                       "platform":  "facebook",
+                       "locale":  "vi",
+                       "scene":  "10_school_gate",
+                       "embeddedText":  [
+                                            "Thoát Khỏi Trường Zombie",
+                                            "Cổng trường ở ngay trước mắt!",
+                                            "Miễn phí · Không quảng cáo"
+                                        ]
+                   }
+               ]
+}

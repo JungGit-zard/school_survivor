@@ -10,6 +10,15 @@ $portableFixture = 'D:/JungSil/2.Minigame_project/school_survivor-integration/ma
 $localFixture = Join-Path $PSScriptRoot 'image_pool/x/ja/marketing_social_30_20261004/01_bell_escape.png'
 Assert-True ((Resolve-PostingImagePath $portableFixture) -ceq [IO.Path]::GetFullPath($localFixture)) 'explicit legacy receipt suffix maps to the canonical X locale collection'
 Assert-True ((Resolve-PostingImagePath 'image_pool/x/ja/marketing_social_30_20261004/01_bell_escape.png') -ceq [IO.Path]::GetFullPath($localFixture)) 'canonical X image path resolves'
+$portableNewImage = 'D:/JungSil/2.Minigame_project/school_survivor-integration/marketing/x_daily_zombie_school_posting/image_pool/x/en/marketing_social_20261010_add10/01_classroom.png'
+$localNewImage = Join-Path $PSScriptRoot 'image_pool/x/en/marketing_social_20261010_add10/01_classroom.png'
+Assert-True ((Resolve-PostingImagePath $portableNewImage) -ceq [IO.Path]::GetFullPath($localNewImage)) 'new localized X image path resolves on a different checkout'
+$catalog = Get-PostingImageCatalog
+$newCatalogEntries = @($catalog.images | Where-Object { $_.collection -ceq 'marketing_social_20261010_add10' })
+Assert-True ($newCatalogEntries.Count -eq 80) 'catalog contains all 80 new platform and locale assets'
+foreach ($platform in @('X','Facebook')) { foreach ($locale in @('ko','en','ja','vi')) {
+  Assert-True (@($newCatalogEntries | Where-Object { $_.platform -ceq $platform -and $_.locale -ceq $locale }).Count -eq 10) "$platform/$locale catalog has ten new assets"
+} }
 $facebookRejected=$false;try{$null=Resolve-PostingImagePath 'image_pool/facebook/ja/marketing_social_30_20261004/01_bell_escape.png'}catch{$facebookRejected=$true}
 Assert-True $facebookRejected 'X resolver rejects Facebook-owned assets'
 $escapedImageRejected=$false
@@ -31,7 +40,7 @@ $savedConfig = Join-Path $tempFull 'fixture-config.json'
 try {
   foreach ($lang in $config.language_order) {
     Assert-True (@($config.variants.$lang).Count -eq 3) "$lang has three extra pairs"
-    Assert-True (@(Get-PostingLocaleImageCandidates $config $lang).Count -eq 8) "$lang has eight verified localized images, including five additions"
+    Assert-True (@(Get-PostingLocaleImageCandidates $config $lang).Count -eq 18) "$lang has eighteen verified localized images, including ten additions"
     foreach ($variant in $config.variants.$lang) {
       Assert-True ((Get-XWeightedLength $variant.text) -le 280) "$lang/$($variant.id) fits weighted X limit"
       $variant.enabled = $false
@@ -44,7 +53,7 @@ try {
       Assert-True ($choice.id -ne $previous) "$lang/$cycle has no adjacent repeat"
       Assert-True ((Select-PostingVariant $config $lang $cycle $temp).id -eq $choice.id) "$lang/$cycle keeps deterministic text variant"
       Assert-True (Test-Path -LiteralPath $choice.imagePath) "$lang/$cycle selected image exists"
-      Assert-True ($choice.imagePath -match "[\\/]x[\\/]$lang[\\/]marketing_social_30_20261004[\\/]") "$lang/$cycle uses the X locale image pool"
+      Assert-True ($choice.imagePath -match "[\\/]x[\\/]$lang[\\/](marketing_social_30_20261004|marketing_social_20261010_add10)[\\/]") "$lang/$cycle uses the X locale image pool"
       if ($null -ne $previousImage -and @($config.localized_social_image_pool.$lang.images).Count -gt 1) { Assert-True ($choice.imagePath -cne $previousImage) "$lang/$cycle has no adjacent image repeat" }
       $seen += $choice.id; $previous = $choice.id
       $receipt = [pscustomobject]@{ schema=1; cycleId=$cycle; entries=[pscustomobject]@{} }

@@ -49,6 +49,6 @@ Orca 자동화 `bbecc7e3-1787-4ad3-a4e9-a5bd35b6fe79`의 첫 두 시험 실행�
 
 이 저장소의 `포스팅/`와 `marketing/`가 프로그램 정본이다. 다른 PC에서는 clone 경로를 기준으로 정기 예약을 새로 설치한다. 현재 PC의 F:/D: 경로나 Temp 폴더를 코드 기본값으로 복사하지 않는다. Chrome 세션과 Windows Credential Manager는 대상 PC의 해당 사용자 환경에서 준비한다. 비밀번호는 Git에 넣지 않는다. 동일 캠페인은 한 PC에서만 실행한다.
 
-이미지 정본은 `marketing/x_daily_zombie_school_posting/image_pool/{x,facebook}/{ko,en,ja,vi}/`다. 새 제작 요청은 플랫폼별·언어별 10장씩 총 80장이다. collection 이름은 `marketing_social_20261010_add10`; 완성 및 등록 수량은 생성 완료 후 별도 기록한다. 이미지에는 현지어 제목·홍보 문구·무료/광고 없음 문구가 들어가며, 첨부 기준의 귀여운 넨드로이드 비율과 단순한 만화 묘사를 유지한다.
+이미지 정본은 `marketing/x_daily_zombie_school_posting/image_pool/{x,facebook}/{ko,en,ja,vi}/`다. 플랫폼 2개 × 언어 4개 × 각 10장으로 총 80장을 저장 완료했다. collection 이름은 `marketing_social_20261010_add10`; 상세 목록은 `Graphic_designer/social_posting_20261010_add10/README.md`를 참조한다. 카탈로그 80개 등록과 게시 후보 연결을 완료했다. 언어별 기존 8장에 새 10장을 더해 18장이며, Facebook은 같은 지역·collection·파일명의 전용 이미지로 연결한다. 이미지에는 현지어 제목·홍보 문구·무료/광고 없음 문구가 들어가며, 첨부 기준의 귀여운 넨드로이드 비율과 단순한 만화 묘사를 유지한다.
 
 이전 상세 배포 설명은 `social_posting_portable_automation_handoff_2026-10-09.md`를 참고하되, 일정·사후 조회·활성화 상태는 이 문서가 우선한다.

@@ -12699,3 +12699,24 @@ git push origin zombie_only
 - 첨부 기준 이미지처럼 머리가 크고 몸통·팔다리가 짧은 귀여운 넨드로이드 비율, 완전한 만화체로 그린다. 긴 몸과 팔다리, 높은 등신, 성인형 비례로 변하지 않도록 한다. 세부 묘사는 늘리지 않는다. 이 정정이 앞선 에이전트 해석보다 우선한다.
 
 - 추가 사용자 기준: AI 생성 특유의 티가 나지 않는 자연스럽고 일관된 만화체. 첨부한 귀여운 넨드로이드 비율을 유지하며 과한 광택, 복잡한 질감, 불필요한 장식과 과도한 세부 묘사를 피한다. 손·소품 형태와 현지어 글자의 어색함이 없도록 한다. 화면 점유율 축소가 아니라 낮은 등신과 단순한 묘사가 핵심이다.
+
+## Session 9 · Entry 0 (Bootstrap) · 2026-10-10 1227 KST
+
+### 포스팅 복원 및 무기한 보고
+- 정본 인수인계: Developer/agent_room/social_posting_operations_2026-10-10.md. 오늘 X/Facebook 각 4언어 게시 버튼 실행 총 8회, RunId 2026-10-10-0200. publish_intent 유지, 게시 후 확인은 사용자가 담당하며 재클릭하지 않는다.
+- 오늘 추가 예약 14:27/17:27/20:27/23:27 KST, 내일부터 매일 02:00/06:00/11:00/17:00/21:00. 실패 300초 재시도, 기존 게시 의도 건너뛰기. 실제 Windows 예약 활성화 완료.
+- EscapeZombieSchool-SocialPostingStatusReport는 종료일 없이 PT30M. 12:12:51 실제 예약 실행 exit 0, 12:12:53 delivery JSON notificationSent=true/orcaCommentUpdated=true. Windows 알림, Orca 작업공간 comment/unread, Markdown 보고서로 전달한다. 이 채팅 자동 발송은 아니다. 다음 보고 12:30.
+- 사용자 지정 스타일: 화면 점유율은 유지하고 낮은 넨드로이드 등신 비율, 귀여운 단순 만화체, 세부 묘사 절제. 현지어 홍보 문구 포함. 새 collection marketing_social_20261010_add10의 80장 저장 완료(X/Facebook × ko/en/ja/vi × 10). 등록 상세는 Graphic_designer/social_posting_20261010_add10/README.md.
+- 로컬 위치 요청에는 파일탐색기에 붙일 수 있는 원본 Windows 절대경로를 제공한다.
+
+### Git 및 검증
+- 공유 zombie_only 작업트리는 관련 없는 변경을 포함하므로 전체 staging/push 금지. 12:16 기준 ahead 7/behind 17. 별도 publish clone의 zombie_only에서 명시 경로만 커밋했다. 원격 https://github.com/JungGit-zard/school_survivor.git.
+- 225641a: 예약·재시도·당일 cutoff·Facebook 이미지 선택 복원. 3e600d7: 무기한 30분 상태 보고 프로그램/설치기/테스트/문서. 모두 원격 push 완료. 이미지 등록 및 최종 문서 커밋은 해당 경로 Git log 참조.
+- FiveSlot/Backlog/Facebook Daily/Facebook Window Discovery/X Launch 검사 통과. 상태 보고 fixture 테스트는 공유 및 publish clone에서 통과. 실제 예약 보고 전달도 검증했다. 게시 후 피드 조회는 하지 않았다.
+- 실행 명령 예: powershell.exe -NoProfile -ExecutionPolicy Bypass -File 'Developer/agent_room/Test-ZombieSchoolSocialPostingStatusReport.ps1' → SOCIAL_POSTING_STATUS_REPORT_TEST_OK. git push origin zombie_only → 225641a..3e600d7. 전체 원시 도구 호출은 작업 세션 기록 참조.
+- 게임/Firebase 정본 변경 없음. 인증 보안 챌린지는 우회하지 않는다. Windows 로그인 세션과 켜진 PC가 예약 실행의 전제다.
+
+### 다음 에이전트
+- 운영 인수인계와 최신 social_posting_status_reports/latest.md 및 latest.delivery.json을 읽는다. 기존 8개 publish_intent를 게시 성공 검증 상태로 변경하거나 중복 게시하지 않는다. 예약·보고 설정을 비활성화하지 않는다.
+
+---
