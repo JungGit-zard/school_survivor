@@ -1,0 +1,265 @@
+{
+  "project": "Escape! zombie school 30s Shorts dossier",
+  "task_id": "t_79747b5f",
+  "root": "Graphic_designer/쇼츠프로젝트_20261010",
+  "format": {
+    "aspect_ratio": "9:16",
+    "delivery_resolution": "1080x1920",
+    "duration_seconds": 30.0,
+    "frame_rate": "30fps recommended",
+    "language": "ko"
+  },
+  "rules": [
+    "A01-A08 and E01 are promotional illustrations, not real gameplay capture.",
+    "G01-G07 must be captured from the live game runtime only.",
+    "Do not fake gameplay, fake HUD, store UI, or runtime effects.",
+    "Do not alter project assets, runtime code, Firebase, or Graphics Studio values for this video dossier.",
+    "Use references/logo.png as an editor-composited overlay on E01; do not generate a new logo inside I2V."
+  ],
+  "source_stills": [
+    {
+      "id": "A01",
+      "asset": "images/A01_뒤돌아보기.png",
+      "sha256": "488147a10de79f2eb1098a7d705dbf64be27a30290f9dc565fa7dc52ec5ba141",
+      "dimensions": "941x1672",
+      "visible_description_ko": "교실에서 분홍 단발 주인공이 달리며 뒤돌아보고, 뒤에는 초록 블록형 좀비 학생들이 몰려온다."
+    },
+    {
+      "id": "A02",
+      "asset": "images/A02_연필투척.png",
+      "sha256": "af7a56e6e7f8631a66c0ac7a37ea7d95abe8c325a9b0fda577fbb6f7cc7c01de",
+      "dimensions": "941x1672",
+      "visible_description_ko": "큰 연필이 전경을 가로지르고, 주인공이 교실 중앙에서 던지는 자세를 취한다."
+    },
+    {
+      "id": "A03",
+      "asset": "images/A03_자공격.png",
+      "sha256": "66fd645ff7d348ef28c0aaa7fd5318da46ec68f3566fc96cccdba15d55ee571b",
+      "dimensions": "941x1672",
+      "visible_description_ko": "주인공이 30cm 자를 휘두르며 노란 궤적을 만들고, 주변에 좀비 학생들이 있다."
+    },
+    {
+      "id": "A04",
+      "asset": "images/A04_치비코지원.png",
+      "sha256": "a058eb462e5e02c6fcb89601f0d19f4f398f12abd9e7003a74262372a9af4c4d",
+      "dimensions": "941x1672",
+      "visible_description_ko": "작은 분홍 트윈테일 동료가 떠 있고 별·토끼 모양 분홍 효과가 퍼진다."
+    },
+    {
+      "id": "A05",
+      "asset": "images/A05_하나코회복.png",
+      "sha256": "b3d43c147215e7050ac19b15e4ef81bbfc98f0734e68f5f2f8941afef34a6b82",
+      "dimensions": "941x1672",
+      "visible_description_ko": "어두운 긴 머리 동료가 하트 오라 속에서 앉은 주인공에게 손을 내민다."
+    },
+    {
+      "id": "A06",
+      "asset": "images/A06_이누콘구조.png",
+      "sha256": "c9652cb388cab0c9d39741f93484eab1acc22745f1c4029647cf540467871de9",
+      "dimensions": "941x1672",
+      "visible_description_ko": "메달을 단 작은 강아지와 주인공이 복도를 달리고, 뒤에는 좀비와 종이가 보인다."
+    },
+    {
+      "id": "A07",
+      "asset": "images/A07_B01보스.png",
+      "sha256": "a1dce0b02e011370084e784a3c11833598e59f964a8029e47c508ebc898460cf",
+      "dimensions": "941x1672",
+      "visible_description_ko": "안경을 쓴 거대한 초록 블록형 좀비 보스와 작은 주인공이 대치한다."
+    },
+    {
+      "id": "A08",
+      "asset": "images/A08_탈출질주.png",
+      "sha256": "fa53446ea292596a396a2abb203c252c94fbb870057dfe0d23a65373c67fd8ea",
+      "dimensions": "941x1672",
+      "visible_description_ko": "주인공과 세 친구가 석양의 학교문과 포탈 빛을 향해 웃으며 달린다."
+    },
+    {
+      "id": "E01",
+      "asset": "images/E01_엔드카드배경.png",
+      "sha256": "c72e79df886baddd90ed776aeabb1a29485ef51c9f5e076adfe3fdcfc3928e90",
+      "dimensions": "941x1672",
+      "visible_description_ko": "인물과 글자 없는 석양 학교 입구 배경이며 오른쪽에 금빛 포탈 같은 테두리 빛이 있다."
+    }
+  ],
+  "references": {
+    "logo": "references/logo.png",
+    "player": "references/PLAYER_reference.png",
+    "stage1_classroom": "references/01_stage1_classroom.png",
+    "stage2_corridor": "references/02_stage2_corridor.png",
+    "school_exit": "references/05_school_exit_finale.png",
+    "pencil_icon": "references/01_wea_pencil.webp",
+    "ruler_icon": "references/02_wea_30ruller.webp",
+    "chibiko_icon": "references/14_wea_chibiko.webp",
+    "hanako_icon": "references/15_wea_hanako.webp",
+    "inucon_icon": "references/19_wea_inucon.webp",
+    "boss_face_texture": "references/texture_boss01.png"
+  },
+  "shots": [
+    {
+      "shot_id": "A01",
+      "start_seconds": 0.0,
+      "end_seconds": 3.0,
+      "duration_seconds": 3.0,
+      "source_type": "ILLUSTRATION_I2V",
+      "asset": "images/A01_뒤돌아보기.png",
+      "editor_action_ko": "전진 줌과 추격감, 종이·빛줄기 미세 움직임. 자막: 학교가 좀비로 가득?!",
+      "prompt_en": "Animate this vertical anime game promotional still while preserving the exact character design and composition. The pink-haired schoolgirl runs through a sunlit classroom and looks back over her shoulder as blocky green zombie students crowd behind her. Use a slow forward push-in with a slight handheld chase feeling. Add subtle movement only to loose papers, sunbeams, hair tips, skirt hem, and background zombie bobbing. Keep the girl’s red jacket, white shirt, yellow tie, blue skirt, blue backpack, red eyes, and short pink bob unchanged. Bright colorful Korean cartoon game style, exciting but not horror.",
+      "negative_prompt_en": "No gore, no scary realism, no new UI, no text, no logo, no extra protagonist, no change to the girl’s face, no change to the zombies into realistic monsters, no collapsing desks into chaos beyond the still, no extreme camera spin.\n\n---"
+    },
+    {
+      "shot_id": "A02",
+      "start_seconds": 3.0,
+      "end_seconds": 5.0,
+      "duration_seconds": 2.0,
+      "source_type": "ILLUSTRATION_I2V",
+      "asset": "images/A02_연필투척.png",
+      "editor_action_ko": "연필 방향 푸시 인, 속도선. 연필 형태 고정. 자막: 연필로 반격!",
+      "prompt_en": "Animate this still as a dynamic pencil-throw moment. Preserve the exact source composition: a huge yellow pencil crosses the foreground toward the viewer, the pink-haired schoolgirl stands in the classroom, and blocky green zombie students are behind her. Add a fast but clean camera push following the pencil tip, with bright speed lines and a small impact anticipation shimmer. Keep the pencil clearly shaped like a school pencil, not a weapon blade. Maintain the protagonist’s outfit, face, hair, backpack, and anime game art style.",
+      "negative_prompt_en": "No pencil morphing into a spear, bullet, sword, or missile; no fake gameplay HUD; no text; no new characters; no warped pencil tip; no changed costume; no gore; no realistic horror lighting.\n\n---"
+    },
+    {
+      "shot_id": "G01",
+      "start_seconds": 5.0,
+      "end_seconds": 7.0,
+      "duration_seconds": 2.0,
+      "source_type": "REAL_GAMEPLAY_CAPTURE",
+      "asset": "footage/G01",
+      "capture_instruction_ko": "실제 게임에서 연필 발사→명중→히트 피드백을 2초 안에 캡처."
+    },
+    {
+      "shot_id": "A03",
+      "start_seconds": 7.0,
+      "end_seconds": 9.0,
+      "duration_seconds": 2.0,
+      "source_type": "ILLUSTRATION_I2V",
+      "asset": "images/A03_자공격.png",
+      "editor_action_ko": "좌→우 패닝, 노란 궤적. 30cm 자가 칼처럼 보이지 않게 유지.",
+      "prompt_en": "Animate this still as a ruler swing action beat. Preserve the visible classroom-like environment with windows, desks, the pink-haired schoolgirl, the transparent yellow 30cm ruler, and blocky green zombie students. Add a short left-to-right camera pan following the ruler arc, with sparkling yellow impact stars and a clean cartoon motion trail. The ruler must remain a transparent measuring ruler with visible markings. Keep the action playful and school-themed, not violent.",
+      "negative_prompt_en": "No ruler turning into a knife, sword, metal blade, or weapon; no blood; no gore; no fake UI; no text; no costume change; no deformed hands; no extra ruler; no excessive blur hiding the ruler shape.\n\n---"
+    },
+    {
+      "shot_id": "G02",
+      "start_seconds": 9.0,
+      "end_seconds": 12.0,
+      "duration_seconds": 3.0,
+      "source_type": "REAL_GAMEPLAY_CAPTURE",
+      "asset": "footage/G02",
+      "capture_instruction_ko": "실제 게임에서 자·텀블러·플라스크 중 확인 가능한 무기 효과 2~3개를 캡처."
+    },
+    {
+      "shot_id": "A04",
+      "start_seconds": 12.0,
+      "end_seconds": 13.5,
+      "duration_seconds": 1.5,
+      "source_type": "ILLUSTRATION_I2V",
+      "asset": "images/A04_치비코지원.png",
+      "editor_action_ko": "분홍 별·토끼 파티클 반짝임. 자막: 지원 등장!",
+      "prompt_en": "Animate this still as a cheerful support magic moment. Preserve the visible scene: a small pink twin-tail companion floats near the protagonist in a classroom, with pink stars, bunny-shaped effects, papers, and blocky green zombie students around them. Add gentle upward floating motion for the companion, twinkling pink particles, and a soft burst of bunny/star light. Keep both characters’ faces, hairstyles, proportions, and costumes stable. Bright playful cooperative anime game mood.",
+      "negative_prompt_en": "No companion identity drift, no changing twin tails, no extra mascot, no text, no logo, no fake gameplay UI, no realistic magic smoke, no horror, no distorted face or hands, no replacing zombies with different monsters.\n\n---"
+    },
+    {
+      "shot_id": "G03",
+      "start_seconds": 13.5,
+      "end_seconds": 14.0,
+      "duration_seconds": 0.5,
+      "source_type": "REAL_GAMEPLAY_CAPTURE",
+      "asset": "footage/G03",
+      "capture_instruction_ko": "실제 게임에서 치비코 관련 효과가 확인되는 순간만 0.5초 사용."
+    },
+    {
+      "shot_id": "A05",
+      "start_seconds": 14.0,
+      "end_seconds": 15.5,
+      "duration_seconds": 1.5,
+      "source_type": "ILLUSTRATION_I2V",
+      "asset": "images/A05_하나코회복.png",
+      "editor_action_ko": "손 맞닿는 방향의 부드러운 줌, 하트 오라 펄스. 자막: 하트 회복!",
+      "prompt_en": "Animate this still as a warm healing support moment. Preserve the visible composition: a dark-haired girl companion in a glowing pink-purple heart aura reaches down to the seated pink-haired protagonist in a school corridor, with blocky green zombie students in the background. Add a slow soft zoom toward their joined hands, pulsing heart light, small floating hearts, and gentle rim light. Keep the scene kind, friendly, and non-horror. Maintain all character faces, hair, clothing, and hand positions.",
+      "negative_prompt_en": "No romantic exaggeration, no new text, no logo, no fake HUD, no warped fingers, no face melting, no costume changes, no realistic horror zombies, no blood, no aggressive attack motion.\n\n---"
+    },
+    {
+      "shot_id": "G04",
+      "start_seconds": 15.5,
+      "end_seconds": 16.0,
+      "duration_seconds": 0.5,
+      "source_type": "REAL_GAMEPLAY_CAPTURE",
+      "asset": "footage/G04",
+      "capture_instruction_ko": "실제 게임에서 하나코 회복/지원 효과가 확인되는 순간만 사용."
+    },
+    {
+      "shot_id": "A06",
+      "start_seconds": 16.0,
+      "end_seconds": 17.5,
+      "duration_seconds": 1.5,
+      "source_type": "ILLUSTRATION_I2V",
+      "asset": "images/A06_이누콘구조.png",
+      "editor_action_ko": "복도 전진감, 종이·귀·털 미세 움직임. 자막: 출구까지 달려!",
+      "prompt_en": "Animate this still as a rescue sprint through a bright school corridor. Preserve the visible corgi-like dog with a medallion running beside the pink-haired protagonist, papers flying, blue speed streaks, windows, and blocky green zombie students behind them. Add forward running energy with a mild camera pull-back, light ear and fur motion on the dog, fluttering papers, and subtle speed lines. Keep the dog cute and consistent, and keep the protagonist’s exact outfit and face.",
+      "negative_prompt_en": "No dog changing breed, no extra animals, no fake UI, no text, no logo, no stretched legs, no deformed paws, no costume change, no violent bite, no gore, no extreme motion blur.\n\n---"
+    },
+    {
+      "shot_id": "G05",
+      "start_seconds": 17.5,
+      "end_seconds": 18.0,
+      "duration_seconds": 0.5,
+      "source_type": "REAL_GAMEPLAY_CAPTURE",
+      "asset": "footage/G05",
+      "capture_instruction_ko": "실제 게임에서 이누콘 효과 또는 이누콘 표시가 명확한 순간만 사용."
+    },
+    {
+      "shot_id": "A07",
+      "start_seconds": 18.0,
+      "end_seconds": 20.0,
+      "duration_seconds": 2.0,
+      "source_type": "ILLUSTRATION_I2V",
+      "asset": "images/A07_B01보스.png",
+      "editor_action_ko": "낮은 시점 느린 줌, 보라 에너지 펄스. 자막: 보스 등장!",
+      "prompt_en": "Animate this still as a boss reveal. Preserve the visible composition: a giant blocky green school-uniform zombie boss with glasses dominates the classroom, while the small pink-haired protagonist faces it from below holding a ruler. Use a low-angle slow push-in toward the boss, with pulsing purple energy and slight dust/debris movement. Keep the boss blocky, cartoonish, and school-themed; keep the protagonist small but readable. Suspenseful, not gory.",
+      "negative_prompt_en": "No gore, no realistic monster face, no blood, no changing the boss into a different creature, no removing glasses, no fake gameplay UI, no text, no logo, no protagonist face close-up replacement, no ruler becoming a sword.\n\n---"
+    },
+    {
+      "shot_id": "G06",
+      "start_seconds": 20.0,
+      "end_seconds": 23.0,
+      "duration_seconds": 3.0,
+      "source_type": "REAL_GAMEPLAY_CAPTURE",
+      "asset": "footage/G06",
+      "capture_instruction_ko": "실제 B01 또는 현재 실제 보스전에서 회피·공격·위기 장면을 3초로 캡처."
+    },
+    {
+      "shot_id": "A08",
+      "start_seconds": 23.0,
+      "end_seconds": 25.0,
+      "duration_seconds": 2.0,
+      "source_type": "ILLUSTRATION_I2V",
+      "asset": "images/A08_탈출질주.png",
+      "editor_action_ko": "후진 트래킹 느낌, 포탈 빛과 노을 반짝임. 자막: 친구들과 함께 탈출!",
+      "prompt_en": "Animate this still as a triumphant escape run. Preserve the visible school gate at sunset, the pink-haired protagonist running with three smiling friends, and the bright portal-like rainbow light at the side. Add a gentle backward tracking camera as the group runs forward, warm sunset shimmer, hair and clothes flutter, and sparkling portal light. Keep the characters joyful and consistent, with no new people added. Victory, friendship, colorful anime game promotion.",
+      "negative_prompt_en": "No text, no logo, no fake UI, no extra characters, no changing friend faces, no warped legs or hands, no dark horror tone, no portal swallowing characters, no photorealistic style.\n\n---"
+    },
+    {
+      "shot_id": "G07",
+      "start_seconds": 25.0,
+      "end_seconds": 27.0,
+      "duration_seconds": 2.0,
+      "source_type": "REAL_GAMEPLAY_CAPTURE",
+      "asset": "footage/G07",
+      "capture_instruction_ko": "실제 게임의 포탈 접근·진입 또는 탈출/클리어 장면을 캡처."
+    },
+    {
+      "shot_id": "E01",
+      "start_seconds": 27.0,
+      "end_seconds": 30.0,
+      "duration_seconds": 3.0,
+      "source_type": "END_CARD_I2V_AND_EDITOR_COMPOSITE",
+      "asset": "images/E01_엔드카드배경.png",
+      "overlay_assets": [
+        "references/logo.png"
+      ],
+      "editor_action_ko": "배경은 느린 줌만 적용. 로고와 CTA는 편집에서 합성. 영상 생성 도구로 글자/로고 생성 금지.",
+      "prompt_en": "Animate this empty sunset school gate background as a calm end card plate. Preserve the scene with no characters, no text, and no logo generated inside the video. Add a very slow push-in, subtle warm sunset glow, light dust particles, and a soft shimmer along the golden portal-like edge light. Keep the center area clean and readable for later editor-composited logo and call-to-action text.",
+      "negative_prompt_en": "No characters, no zombies, no generated logo, no generated text, no store badge, no UI, no camera shake, no dark horror atmosphere, no extra objects covering the center, no flickering artifacts."
+    }
+  ],
+  "global_negative_prompt_en": "Do not add text, logos, watermarks, subtitles, fake HUD, fake gameplay UI, store badges, gore, blood, horror realism, photorealistic faces, live-action style, extra characters, extra limbs, deformed hands, warped face, changed hairstyle, changed costume colors, changed weapon shape, pencil becoming a sword, ruler becoming a blade, altered school uniform, altered backpack, broken perspective, heavy camera shake, excessive motion blur, frame interpolation artifacts, duplicated protagonist, melted background, unreadable symbols, low resolution, compression artifacts, flicker, identity drift."
+}
