@@ -59,6 +59,16 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\포스팅\Get-ZombieSc
 
 이 예약 경로는 `-AuthorizedHistoricalRun`을 전달하지 않으며 과거 슬롯을 계산하거나 추가하지 않습니다. 과거 누락분은 별도의 백로그 명령에 명시한 `-CycleIds`로만 실행합니다. 예약 작업은 이 문서 변경만으로 등록·활성화되지 않습니다.
 
+## 30분 운영 상태 보고
+
+`EscapeZombieSchool-SocialPostingStatusReport`는 종료 시각 없이 30분마다 receipt·예약·재시도 상태를 읽어 Markdown 보고서와 Windows 알림, Orca 현재 작업공간 comment/unread로 전달합니다. 게시 실행과 분리되어 있으며, `publish_intent`는 사용자 확인 대기로 기록하고 성공 검증으로 바꾸지 않습니다. 이 채팅에 자동 메시지가 전달되는 것은 보장되지 않습니다.
+
+보고기·테스트·설치기는 `Developer/agent_room/`에 있습니다. 다른 PC에서는 저장소 루트에서 다음 명령을 실행해 해당 clone 경로에 예약을 설치합니다.
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Developer\agent_room\Install-ZombieSchoolPostingStatusReportSchedule.ps1
+```
+
 ### 예약 트리거 큐와 순차 처리
 
 설치기는 5개의 task를 만듭니다. `EscapeZombieSchool-SocialPostingFiveSlots`는 02:00, 나머지는 `-0600`, `-1100`, `-1700`, `-2100` 접미사를 쓰며 각 task는 하루 한 번 자기 고정 `-ScheduledSlot` 값으로 intake를 시작합니다. `Parallel` 정책으로 active worker가 있어도 intake가 슬롯 ID를 `social_posting_scheduled_queue.json`에 먼저 기록합니다. 한 worker만 desktop mutex를 소유하고 큐의 정확한 ID를 시간순으로 처리합니다. 진행 중 새 슬롯 trigger가 발생하면 ID가 큐에 남아 현재 cycle이 완료되거나 안전 중단된 뒤 처리됩니다. 따라서 게시 시각은 앞선 cycle의 재시도 시간만큼 밀릴 수 있지만, trigger ID를 버리거나 과거 slot을 계산해 채우지 않습니다. 300초 무기한 재시도를 위해 Scheduled Task의 실행 제한은 무제한(PT0S)으로 검증합니다.

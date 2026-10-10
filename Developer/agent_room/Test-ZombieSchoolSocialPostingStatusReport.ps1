@@ -1,0 +1,56 @@
+﻿$ErrorActionPreference = 'Stop'
+$scriptPath = Join-Path $PSScriptRoot 'Write-ZombieSchoolPostingStatusReport.ps1'
+$tempRoot = Join-Path ([IO.Path]::GetTempPath()) ('social-posting-status-fixture-' + [guid]::NewGuid().ToString('N'))
+$fixturePath = Join-Path $tempRoot 'fixture.json'
+function Assert-True($value,[string]$message){if(-not $value){throw "FAILED: $message"}}
+try {
+  $today=([DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9))).ToString('yyyy-MM-dd')
+  $agentRoom=Join-Path $tempRoot 'Developer/agent_room'
+  $null=New-Item -ItemType Directory -Force -Path (Join-Path $agentRoom 'x_posting_receipts'),(Join-Path $agentRoom 'facebook_posting_receipts'),(Join-Path $agentRoom 'social_posting_scheduled_retries')
+  $todayQueue=[pscustomobject]@{cycles=@([pscustomobject]@{cycleId="$today-0600";status='submitted_with_unresolved_intents';attempts=1;lastError=$null})}
+  $todayQueue|ConvertTo-Json -Depth 8|Set-Content -LiteralPath (Join-Path $agentRoom "social_posting_today_override_queue_$today.json") -Encoding UTF8
+  '{malformed-queue'|Set-Content -LiteralPath (Join-Path $agentRoom 'social_posting_scheduled_queue.json') -Encoding UTF8
+  [pscustomobject]@{cycles=@([pscustomobject]@{cycleId='WRONG_QUEUE_SHOULD_NOT_LOAD';status='retry_wait';attempts=9;lastError='wrong file'})}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath (Join-Path $agentRoom 'social_posting_queue.json') -Encoding UTF8
+  $retry=[pscustomobject]@{entries=@([pscustomobject]@{cycleId="$today-0600";status='submitted_with_unresolved_intents';attempts=1;lastError='submitted' ;nextRetryUtc=$null},[pscustomobject]@{cycleId="$today-1100";status='retry_wait';attempts=3;lastError='focus_changed';nextRetryUtc='2026-10-10T03:20:00Z'})}
+  $retry|ConvertTo-Json -Depth 8|Set-Content -LiteralPath (Join-Path (Join-Path $agentRoom 'social_posting_scheduled_retries') "$today-1100.json") -Encoding UTF8
+  '{invalid-json'|Set-Content -LiteralPath (Join-Path (Join-Path $agentRoom 'x_posting_receipts') "$today-1200.json") -Encoding UTF8
+  $tasks=@(
+    [pscustomobject]@{taskName='EscapeZombieSchool-SocialPostingStatusReport';taskPath='\';state='Ready';enabled=$true;lastTaskResult=0;lastRunTime='2026-10-10 12:00:07 KST';nextRunTime='2026-10-10 12:30:00 KST'},
+    [pscustomobject]@{taskName='EscapeZombieSchool-SocialPostingFiveSlots-disabled';taskPath='\';state='Disabled';enabled=$false;lastTaskResult=0;lastRunTime='';nextRunTime='2026-10-10 12:45:00 KST'},
+    [pscustomobject]@{taskName='EscapeZombieSchool-SocialPostingFiveSlots';taskPath='\';state='Ready';enabled=$true;lastTaskResult=267011;lastRunTime='';nextRunTime='2026-10-10 14:00:00 KST'},
+    [pscustomobject]@{taskName='EscapeZombieSchool-SocialPostingToday-20261010-1427';taskPath='\';state='Ready';enabled=$true;lastTaskResult=1;lastRunTime='2026-10-10 11:00:00 KST';nextRunTime='2026-10-10 14:27:00 KST'}
+  )
+  [pscustomobject]@{repoRoot=$tempRoot;tasks=$tasks}|ConvertTo-Json -Depth 10|Set-Content -LiteralPath $fixturePath -Encoding UTF8
+  $output=(& $scriptPath -TestOnly -NoNotify -FixturePath $fixturePath|Out-String)
+  Assert-True ($output.Contains('SOCIAL_POSTING_STATUS_REPORT_TEST_SENTINEL') -eq $false) 'fixture report completed'
+  Assert-True ($output.Contains('미실행(실패 아님)') -and $output.Contains('오류 코드 1 (마지막 실행 2026-10-10 11:00:00 KST)')) 'task result interpretation includes last-run time and distinguishes not-run'
+  Assert-True ($output.Contains('상태 Disabled; 사용 아니요')) 'disabled task state is reported explicitly'
+  Assert-True ($output.Contains('EscapeZombieSchool-SocialPostingStatusReport') -and $output.Contains('상태 Ready; 사용 예')) 'status reporter task enabled/state is visible while being excluded only from next-post selection'
+  Assert-True ($output.Contains('가장 가까운 예약: 2026-10-10 14:00:00 KST — EscapeZombieSchool-SocialPostingFiveSlots')) 'disabled task and status-report task are excluded from the next posting reservation'
+  Assert-True (-not $output.Contains('WRONG_QUEUE_SHOULD_NOT_LOAD')) 'scheduled cycles use the durable scheduled queue filename'
+  Assert-True ($output.Contains('submitted_with_unresolved_intents') -and $output.Contains('완료 또는 제출 종료')) 'submitted with unresolved intents is reported as a terminal status, not retry wait'
+  Assert-True ($output.Contains('retry_wait') -and $output.Contains('focus_changed')) 'actual retry-wait state retains next retry time and reason'
+  Assert-True ($output.Contains('활성 실패 retry_wait: focus_changed') -and $output.Contains('다음 재시도 12:20 KST') -and $output.Contains('다음 게시 2026-10-10 14:00:00 KST')) 'notification-ready summary carries failure reason, retry time, and next enabled posting time'
+  Assert-True ($output.Contains('꺼진 작업 1: EscapeZombieSchool-SocialPostingFiveSlots-disabled') -and $output.Contains('영수증 JSON 파싱 실패') -and $output.Contains('대기열 JSON 파싱 실패')) 'summary includes disabled tasks and malformed receipt/queue JSON read warnings'
+  $nowKst=[DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9));$proofRoot=Join-Path $tempRoot 'future-proof';$proofRoom=Join-Path $proofRoot 'Developer/agent_room';New-Item -ItemType Directory -Force -Path $proofRoom|Out-Null
+  $futureNext=$nowKst.AddMinutes(15).ToString('o');@([pscustomobject]@{name='today-override-future';enabled=$true;state='Ready';next=$futureNext;runId="$today-0600"})|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $proofRoom "social_posting_today_schedule_$($nowKst.ToString('yyyyMMdd')).json") -Encoding UTF8
+  [pscustomobject]@{repoRoot=$proofRoot;tasks=$tasks}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath $fixturePath -Encoding UTF8;$futureOutput=(& $scriptPath -TestOnly -NoNotify -FixturePath $fixturePath|Out-String)
+  Assert-True (-not $futureOutput.Contains('예정시각경과·시작기록없음')) 'future today-override task does not create a missed-start warning from its old logical slot ID'
+  $fallbackRoot=Join-Path $tempRoot 'fallback-schedule';$fallbackRoom=Join-Path $fallbackRoot 'Developer/agent_room';$configDir=Join-Path $fallbackRoot 'marketing/x_daily_zombie_school_posting';$xReceipts=Join-Path $fallbackRoom 'x_posting_receipts';New-Item -ItemType Directory -Force -Path $xReceipts,$configDir|Out-Null
+  [pscustomobject]@{schedule_times=@('02:00','06:00','11:00','17:00','21:00')}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $configDir 'posting_config.json') -Encoding UTF8
+  $allSlots=@([pscustomobject]@{time='02:00';id='0200'},[pscustomobject]@{time='06:00';id='0600'},[pscustomobject]@{time='11:00';id='1100'},[pscustomobject]@{time='17:00';id='1700'},[pscustomobject]@{time='21:00';id='2100'});$dueSlots=@($allSlots|Where-Object{[TimeSpan]::Parse($_.time) -le $nowKst.TimeOfDay})
+  if($dueSlots.Count -gt 1){for($slotIndex=0;$slotIndex -lt ($dueSlots.Count-1);$slotIndex++){[pscustomobject]@{entries=@{}}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $xReceipts "$today-$($dueSlots[$slotIndex].id).json") -Encoding UTF8};$missingId="$today-$($dueSlots[-1].id)";[pscustomobject]@{repoRoot=$fallbackRoot;tasks=$tasks}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath $fixturePath -Encoding UTF8;$fallbackOutput=(& $scriptPath -TestOnly -NoNotify -FixturePath $fixturePath|Out-String);Assert-True ($fallbackOutput.Contains("예정시각경과·시작기록없음 $missingId")) 'configured due slot with no queue or receipt start record is reported as missed'}
+  $installer=Join-Path $PSScriptRoot 'Install-ZombieSchoolPostingStatusReportSchedule.ps1';$taskXmlText=(& $installer -TestOnly -TaskName 'EscapeZombieSchool-SocialPostingStatusReport-Test' -ReportScriptPath 'C:\campaign\Write-ZombieSchoolPostingStatusReport.ps1'|Out-String);[xml]$taskXml=$taskXmlText
+  $ns=[Xml.XmlNamespaceManager]::new($taskXml.NameTable);$ns.AddNamespace('t','http://schemas.microsoft.com/windows/2004/02/mit/task')
+  Assert-True ($taskXml.SelectSingleNode('//t:Repetition/t:Interval',$ns).InnerText -eq 'PT30M' -and $null -eq $taskXml.SelectSingleNode('//t:Repetition/t:Duration',$ns) -and $null -eq $taskXml.SelectSingleNode('//t:TimeTrigger/t:EndBoundary',$ns)) 'status reporter installer XML repeats every 30 minutes with no end boundary or duration'
+  Assert-True ($taskXml.SelectSingleNode('//t:MultipleInstancesPolicy',$ns).InnerText -eq 'IgnoreNew' -and $taskXml.SelectSingleNode('//t:ExecutionTimeLimit',$ns).InnerText -eq 'PT5M' -and $taskXml.SelectSingleNode('//t:WakeToRun',$ns).InnerText -eq 'true' -and $taskXml.SelectSingleNode('//t:StartWhenAvailable',$ns).InnerText -eq 'true') 'status reporter task XML retains requested scheduler safety and wake settings'
+  Assert-True ($taskXml.SelectSingleNode('//t:LogonType',$ns).InnerText -eq 'InteractiveToken' -and $taskXml.SelectSingleNode('//t:Hidden',$ns).InnerText -eq 'true' -and $taskXml.SelectSingleNode('//t:Arguments',$ns).InnerText -match '-WindowStyle Hidden' -and -not [string]::IsNullOrWhiteSpace($taskXml.SelectSingleNode('//t:WorkingDirectory',$ns).InnerText)) 'status reporter task runs hidden in the interactive desktop with an explicit working directory'
+  $defaultXmlText=(& $installer -TestOnly|Out-String);[xml]$defaultXml=$defaultXmlText
+  Assert-True ($defaultXml.SelectSingleNode('//t:Arguments',$ns).InnerText -match 'Developer\\agent_room\\Write-ZombieSchoolPostingStatusReport\.ps1') 'installer default entrypoint resolves its report script path after parameters without registering a task in TestOnly mode'
+  Assert-True ($output.Contains('영수증 JSON 파싱 실패')) 'malformed receipt JSON is surfaced as a read warning'
+  Write-Output 'SOCIAL_POSTING_STATUS_REPORT_TEST_OK'
+} finally {
+  $resolvedTempRoot=[IO.Path]::GetFullPath($tempRoot);$systemTemp=[IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([IO.Path]::DirectorySeparatorChar,[IO.Path]::AltDirectorySeparatorChar)+[IO.Path]::DirectorySeparatorChar
+  if(-not $resolvedTempRoot.StartsWith($systemTemp,[StringComparison]::OrdinalIgnoreCase) -or [IO.Path]::GetFileName($resolvedTempRoot) -notlike 'social-posting-status-fixture-*'){throw 'Refusing test cleanup outside its uniquely named system-temp fixture directory'}
+  if(Test-Path -LiteralPath $resolvedTempRoot){Remove-Item -LiteralPath $resolvedTempRoot -Recurse -Force}
+}

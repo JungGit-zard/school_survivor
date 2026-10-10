@@ -30,7 +30,20 @@
 
 사용자 지시: 종료일 없이 30분마다 계속 보고한다. 보고는 게시 실행기와 분리하고 예약 상태·오늘 영수증·재시도 상태만 읽는다. 비밀번호/토큰을 읽거나 보고서에 포함하지 않는다.
 
-Orca 자동화 `bbecc7e3-1787-4ad3-a4e9-a5bd35b6fe79`를 `*/30 * * * *`, Asia/Seoul로 등록했으나 첫 두 시험 실행은 Codex TUI 로그인 화면에서 `dispatch_failed`였다. CLI의 로그인 상태만으로 자동화 전달 성공을 주장하지 않는다. 후속 전달 경로의 설치/시험 결과를 이 문서에 기록해야 한다.
+Orca 자동화 `bbecc7e3-1787-4ad3-a4e9-a5bd35b6fe79`의 첫 두 시험 실행은 Codex TUI 로그인 화면에서 `dispatch_failed`였다. 이 실패 경로는 아래 Windows 보고 예약으로 교체한 뒤 비활성화했다. 시험 중 만든 로그인 대기 터미널 2개만 닫았으며 다른 작업 세션은 건드리지 않았다.
+
+- 실행 프로그램: `Developer/agent_room/Write-ZombieSchoolPostingStatusReport.ps1`. 별도 AI 로그인 없이 상태를 읽어 보고서를 저장하고 Windows 알림을 요청한다.
+- Windows task: `EscapeZombieSchool-SocialPostingStatusReport`. `PT30M` 반복, Duration/EndBoundary 없음, 활성화 상태. 숨김 PowerShell, 현재 사용자 대화형 실행, 깨우기/놓친 실행 재개, 겹침 방지, 5분 실행 제한을 적용했다.
+- 첫 실제 task 실행: 2026-10-10 12:00:07 KST, 종료 코드 0. `latest.md`가 12:00:09에 갱신됐다. 다음 예약은 12:30 KST이며 이후 매시 00/30분에 계속 실행한다.
+- 보고서: `Developer/agent_room/social_posting_status_reports/latest.md` 및 같은 폴더의 시각별 MD. Windows 알림 API 전송도 성공했다. 이 채팅에 자동 메시지가 도착한다는 뜻은 아니며 전달 표면은 Windows 알림과 저장 보고서다.
+
+### 최종 30분 보고 설치·전달 확인
+
+- 보고기 `Developer/agent_room/Write-ZombieSchoolPostingStatusReport.ps1`, 테스트 `Test-ZombieSchoolSocialPostingStatusReport.ps1`, 설치기 `Install-ZombieSchoolPostingStatusReportSchedule.ps1`은 모두 `Developer/agent_room/`에 있다.
+- 2026-10-10 12:12:51 KST 실제 task 실행은 exit 0으로 끝났다. 12:12:53 KST의 `social_posting_status_reports/latest.delivery.json`에서 `notificationSent=true`, `orcaCommentUpdated=true`를 확인했다. 요약은 활성 재시도 없음, 사용자 확인 대기 8건, 다음 게시 14:27 KST다.
+- `EscapeZombieSchool-SocialPostingStatusReport`는 종료 시각 없이 30분마다 실행한다. 다음 실행은 12:30 KST이며 이후에도 계속 반복한다.
+- 전달 위치는 `latest.md`와 시각별 Markdown 보고서, Windows 알림, Orca 현재 작업공간 comment/unread다. 이 채팅에 자동 메시지가 전달되는 것은 보장하지 않는다.
+- 다른 PC에서는 저장소 루트에서 다음 명령으로 그 PC의 현재 clone 경로를 기준으로 예약을 설치한다: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Developer\agent_room\Install-ZombieSchoolPostingStatusReportSchedule.ps1`.
 
 ## 다른 PC
 
