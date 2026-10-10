@@ -247,7 +247,8 @@
         "image_pool/x/ja/marketing_social_20261010_add10/07_music.png",
         "image_pool/x/ja/marketing_social_20261010_add10/08_art.png",
         "image_pool/x/ja/marketing_social_20261010_add10/09_field.png",
-        "image_pool/x/ja/marketing_social_20261010_add10/10_gate.png"
+        "image_pool/x/ja/marketing_social_20261010_add10/10_gate.png",
+        "image_pool/x/ja/marketing_social_cta_20261010/01_start.png"
       ]
     },
     "en": {
@@ -270,7 +271,8 @@
         "image_pool/x/en/marketing_social_20261010_add10/07_music_room.png",
         "image_pool/x/en/marketing_social_20261010_add10/08_art_room.png",
         "image_pool/x/en/marketing_social_20261010_add10/09_playground.png",
-        "image_pool/x/en/marketing_social_20261010_add10/10_school_gate.png"
+        "image_pool/x/en/marketing_social_20261010_add10/10_school_gate.png",
+        "image_pool/x/en/marketing_social_cta_20261010/01_start.png"
       ]
     },
     "vi": {
@@ -293,7 +295,8 @@
         "image_pool/x/vi/marketing_social_20261010_add10/07_music_room.png",
         "image_pool/x/vi/marketing_social_20261010_add10/08_art_room.png",
         "image_pool/x/vi/marketing_social_20261010_add10/09_playground.png",
-        "image_pool/x/vi/marketing_social_20261010_add10/10_school_gate.png"
+        "image_pool/x/vi/marketing_social_20261010_add10/10_school_gate.png",
+        "image_pool/x/vi/marketing_social_cta_20261010/01_start.png"
       ]
     },
     "ko": {
@@ -316,9 +319,14 @@
         "image_pool/x/ko/marketing_social_20261010_add10/07_music.png",
         "image_pool/x/ko/marketing_social_20261010_add10/08_art.png",
         "image_pool/x/ko/marketing_social_20261010_add10/09_field.png",
-        "image_pool/x/ko/marketing_social_20261010_add10/10_gate.png"
+        "image_pool/x/ko/marketing_social_20261010_add10/10_gate.png",
+        "image_pool/x/ko/marketing_social_cta_20261010/01_start.png"
       ]
     }
   },
-  "web_url": "https://escapezombie.com"
+  "web_url": "https://escapezombie.com",
+  "x_link_card": {
+    "enabled": true,
+    "base_url": "https://escapezombie.com"
+  }
 }

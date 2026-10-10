@@ -46,13 +46,35 @@ function Get-PostingVariants($Config, [string]$Language, [switch]$IncludeDisable
     }
   }
 }
-function Get-PostingLocaleImageCandidates($Config, [string]$Language, [switch]$IncludeLegacy) {
+function Get-PostingGameStartText([string]$Language) {
+  switch ($Language) {
+    'ko' { return (-join @(0xAC8C,0xC784,0xC2DC,0xC791 | ForEach-Object { [char]$_ })) }
+    'en' { return 'START GAME' }
+    'ja' { return (-join @(0x30B2,0x30FC,0x30E0,0x30B9,0x30BF,0x30FC,0x30C8 | ForEach-Object { [char]$_ })) }
+    'vi' { return (-join @(0x0042,0x1EAE,0x0054,0x0020,0x0110,0x1EA6,0x0055,0x0020,0x0043,0x0048,0x01A0,0x0049 | ForEach-Object { [char]$_ })) }
+    default { throw "Unsupported game-start CTA locale '$Language'" }
+  }
+}
+function Test-PostingImageGameStartText([string]$ImagePath, [ValidateSet('ko','en','ja','vi')][string]$Language, [ValidateSet('X','Facebook')][string]$Platform = 'X', $Catalog = $null) {
+  if ($null -eq $Catalog) { $Catalog = Get-PostingImageCatalog }
+  $full = Resolve-PostingImagePath $ImagePath -Platform $Platform
+  $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'image_pool'))
+  $relative = $full.Substring($root.Length + 1).Replace([string][char]92,'/')
+  $rows = @($Catalog.images | Where-Object { $_.platform -ceq $Platform -and $_.locale -ceq $Language -and $_.path -ceq $relative })
+  if ($rows.Count -ne 1 -or $rows[0].PSObject.Properties.Name -notcontains 'gameStartText') { return $false }
+  return ([string]$rows[0].gameStartText -ceq (Get-PostingGameStartText $Language))
+}
+function Assert-PostingImageGameStartText([string]$ImagePath, [ValidateSet('ko','en','ja','vi')][string]$Language, [ValidateSet('X','Facebook')][string]$Platform = 'X', $Catalog = $null) {
+  if (-not (Test-PostingImageGameStartText $ImagePath $Language $Platform $Catalog)) { throw "Image is not confirmed to contain the exact localized game-start CTA for $Platform/$Language; refusing to continue." }
+}
+function Get-PostingLocaleImageCandidates($Config, [string]$Language, [switch]$IncludeLegacy, [switch]$RequireGameStartText, $Catalog = $null) {
   $images = @()
   if ($IncludeLegacy) { $images += @($Config.image_pool.$Language.images) }
   if ($Config.PSObject.Properties.Name -contains 'localized_social_image_pool' -and
       $Config.localized_social_image_pool.PSObject.Properties.Name -contains $Language) {
     $images += @($Config.localized_social_image_pool.$Language.images)
   }
+  if ($RequireGameStartText -and $null -eq $Catalog) { $Catalog = Get-PostingImageCatalog }
   $valid = @()
   foreach ($image in $images) {
     $path = [string]$image
@@ -60,6 +82,7 @@ function Get-PostingLocaleImageCandidates($Config, [string]$Language, [switch]$I
     $full = Resolve-PostingImagePath $path
     if (-not (Test-Path -LiteralPath $full -PathType Leaf)) { continue }
     if ($full -notmatch '\.(png|jpg|jpeg|webp)$') { continue }
+    if ($RequireGameStartText -and -not (Test-PostingImageGameStartText $full $Language -Platform X -Catalog $Catalog)) { continue }
     $null = Get-FileHash -LiteralPath $full -Algorithm SHA256
     $valid += $full
   }
@@ -88,9 +111,9 @@ function Get-PostingPreviousImagePath($Config, [string]$Language, [string]$Cycle
   }
   return $null
 }
-function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, [ValidateSet('X','Facebook')][string]$Platform = 'X') {
-  $candidates = @(Get-PostingLocaleImageCandidates $Config $Language)
-  if ($candidates.Count -eq 0) { return Resolve-PostingImagePath ([string]$Config.image_pool.$Language.images[0]) }
+function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, [ValidateSet('X','Facebook')][string]$Platform = 'X', $Catalog = $null) {
+  $candidates = @(Get-PostingLocaleImageCandidates $Config $Language -RequireGameStartText -Catalog $Catalog)
+  if ($candidates.Count -eq 0) { throw "No confirmed localized game-start CTA images are eligible for $Platform/$Language." }
   $usable = @($candidates)
   $previous = Get-PostingPreviousImagePath $Config $Language $CycleId $ReceiptDirectory $candidates $Platform
   if ($usable.Count -gt 1 -and -not [string]::IsNullOrWhiteSpace($previous)) { $usable = @($usable | Where-Object { $_ -cne $previous }) }

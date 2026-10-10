@@ -1,0 +1,67 @@
+{
+  "date": "2026-10-10",
+  "reference": "marketing/x_daily_zombie_school_posting/image_pool/reference/style/approved_character_scale_20261009.png",
+  "editTarget": "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_20261010_add10/10_gate.png",
+  "aspectRatio": "3:2",
+  "verification": "All four source PNGs were opened and visually checked. The title, headline, free/no-ads badge, and exact CTA are visible. X and Facebook copies have identical SHA-256 per locale.",
+  "eligibilityRule": "Only the four new localized assets with exact, visually verified gameStartText are eligible for CTA posting. Preserve prior pools and existing link-card inventory, but exclude prior images from CTA eligibility.",
+  "promptTemplate": "Edit the approved Korean school-gate escape poster as reference. Preserve wide 3:2 landscape aspect ratio, school-gate composition, pink bob-haired schoolgirl in red jacket and blue uniform, blocky green zombies, cute low-chibi/nendoroid proportions with oversized head and short limbs, simple flat cartoon shading and restrained details. No glossy finish, complex textures, or extra decoration. Localize all visible copy to the exact language strings listed. Keep prominent rounded lower-right START button. No watermark.",
+  "assets": [
+    {
+      "locale": "ko",
+      "title": "탈출! 좀비학교",
+      "headline": "학교 정문을 통과해 탈출!",
+      "badge": "완전 무료 · 광고 없음",
+      "gameStartText": "게임시작",
+      "sha256": "19779f90da70c9163f25b2162a2a132b0ca97d9e6deb59c62f205c82c4ffadde",
+      "bytes": 1884552,
+      "generated": "C:/Users/admin/AppData/Roaming/orca/codex-runtime-home/home/generated_images/01a123a7-5888-70b2-b989-b8c53483026f/exec-d97fc7aa-d8d7-4daa-a6c9-9980ce858e4b.png",
+      "platformCopies": [
+        "marketing/x_daily_zombie_school_posting/image_pool/x/ko/marketing_social_cta_20261010/01_start.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ko/marketing_social_cta_20261010/01_start.png"
+      ]
+    },
+    {
+      "locale": "en",
+      "title": "Escape! Zombie School",
+      "headline": "Escape through the school gate!",
+      "badge": "Play free · No ads",
+      "gameStartText": "START GAME",
+      "sha256": "39075ffee51579d61704ee2b9c29b99933b274111b6798b0338f2bcc25f83395",
+      "bytes": 1839056,
+      "generated": "C:/Users/admin/AppData/Roaming/orca/codex-runtime-home/home/generated_images/01a123a7-5888-70b2-b989-b8c53483026f/exec-da59718e-fc52-43ab-be8b-94927d9364cd.png",
+      "platformCopies": [
+        "marketing/x_daily_zombie_school_posting/image_pool/x/en/marketing_social_cta_20261010/01_start.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/en/marketing_social_cta_20261010/01_start.png"
+      ]
+    },
+    {
+      "locale": "ja",
+      "title": "脱出！ゾンビ学校",
+      "headline": "校門を抜けて脱出！",
+      "badge": "無料・広告なし",
+      "gameStartText": "ゲームスタート",
+      "sha256": "b97b86056a27a0c0a6d3ebfa61c40c9804ffbac3814bf2d7e9f5978406bf2830",
+      "bytes": 1868612,
+      "generated": "C:/Users/admin/AppData/Roaming/orca/codex-runtime-home/home/generated_images/01a123a7-5888-70b2-b989-b8c53483026f/exec-996fcced-222c-47e3-97ec-c196d07e0364.png",
+      "platformCopies": [
+        "marketing/x_daily_zombie_school_posting/image_pool/x/ja/marketing_social_cta_20261010/01_start.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/ja/marketing_social_cta_20261010/01_start.png"
+      ]
+    },
+    {
+      "locale": "vi",
+      "title": "Thoát Khỏi Trường Zombie",
+      "headline": "Thoát qua cổng trường!",
+      "badge": "Miễn phí · Không quảng cáo",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "sha256": "964161004e3a7fba3d67791e587ea9a97f0ac240d8bb1be163dac5f4ce1fb2b6",
+      "bytes": 1851627,
+      "generated": "C:/Users/admin/AppData/Roaming/orca/codex-runtime-home/home/generated_images/01a123a7-5888-70b2-b989-b8c53483026f/exec-d87c992e-b7f4-404c-8f7f-dcf48777a607.png",
+      "platformCopies": [
+        "marketing/x_daily_zombie_school_posting/image_pool/x/vi/marketing_social_cta_20261010/01_start.png",
+        "marketing/x_daily_zombie_school_posting/image_pool/facebook/vi/marketing_social_cta_20261010/01_start.png"
+      ]
+    }
+  ]
+}

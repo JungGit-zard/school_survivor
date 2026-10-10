@@ -9,7 +9,8 @@
     "predeploy": [
       "node scripts/require-safe-hosting-promotion.mjs",
       "npm.cmd run build",
-      "npm.cmd run build:legal"
+      "npm.cmd run build:legal",
+      "node ../../marketing/x_daily_zombie_school_posting/Build-XWebsiteCards.mjs --output dist"
     ],
     "headers": [
       {

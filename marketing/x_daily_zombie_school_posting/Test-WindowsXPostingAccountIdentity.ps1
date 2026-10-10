@@ -29,8 +29,8 @@ function Assert-Order([string]$Before, [string]$After, [string]$Name) {
 Assert-Contains "function Navigate-XProfile" "profile navigation helper exists"
 Assert-Contains "X hides the Account menu inside the composer" "source comment preserves pre-compose account-check reason"
 Assert-Contains "Wait-XCondition { Assert-XAccount; return `$true } 'X account profile'" "pre-compose profile identity gate remains"
-Assert-Contains "function Assert-XComposer([string]`$Text)" "composer assertion helper exists"
-Assert-Contains "function Prepare-XPost([string]`$Text, [string]`$ImagePath)" "post preparation helper exists"
+Assert-Contains 'function Assert-XComposer([string]$Text, [switch]$WebsiteCardOnly' 'composer assertion helper supports frozen photo/card assertions'
+Assert-Contains 'function Prepare-XPost([string]$Text, [string]$ImagePath, [switch]$WebsiteCardOnly' 'post preparation helper supports frozen photo/card preparation'
 $composerBody = [regex]::Match($source, 'function Assert-XComposer\([\s\S]*?\n}\r?\nfunction Prepare-XPost').Value
 $prepareBody = [regex]::Match($source, 'function Prepare-XPost\([\s\S]*?\n}\r?\nfunction Publish-XPost').Value
 if ([string]::IsNullOrWhiteSpace($composerBody) -or [string]::IsNullOrWhiteSpace($prepareBody)) { throw 'FAILED: could not isolate composer/preparation functions for source assertion' }

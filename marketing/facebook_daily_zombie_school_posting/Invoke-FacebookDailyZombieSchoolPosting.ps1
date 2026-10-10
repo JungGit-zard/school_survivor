@@ -46,6 +46,11 @@ if($Action -eq 'SelectSourcePair'){
   if(@($selectedVariant).Count -ne 1){throw "Unknown or ambiguous explicit Facebook variant '$VariantId'"}
   $pair=Get-FacebookPairFromSelectedVariant $config $Language $selectedVariant
 }
+$selectedEntry=if($Language){$receipt.entries.$Language}else{$null}
+if($null -ne $selectedEntry -and $selectedEntry.state -in @('selected','prepared')){
+  . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
+  Assert-PostingImageGameStartText ([string]$selectedEntry.intent.imagePath) $Language -Platform Facebook
+}
 switch ($Action) {
   'InspectPair' { if([string]::IsNullOrWhiteSpace($VariantId)){$VariantId='escape'};Get-FacebookPair $config $Language $VariantId | ConvertTo-Json -Depth 5; exit 0 }
   'SelectSourcePair' {

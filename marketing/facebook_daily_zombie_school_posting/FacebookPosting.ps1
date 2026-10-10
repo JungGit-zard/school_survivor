@@ -63,7 +63,10 @@ function Get-FacebookPair($Config, [ValidateSet('ja','en','vi','ko')][string]$La
 }
 function Get-FacebookPairFromSelectedVariant($Config,[ValidateSet('ja','en','vi','ko')][string]$Language,$SelectedVariant) {
   if($null -eq $SelectedVariant -or [string]::IsNullOrWhiteSpace([string]$SelectedVariant.id) -or [string]::IsNullOrWhiteSpace([string]$SelectedVariant.imagePath)){throw 'Selected Facebook variant must contain its exact ID and selected X catalog image path'}
-  Get-FacebookPair $Config $Language ([string]$SelectedVariant.id) ([string]$SelectedVariant.imagePath)
+  $pair=Get-FacebookPair $Config $Language ([string]$SelectedVariant.id) ([string]$SelectedVariant.imagePath)
+  . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
+  Assert-PostingImageGameStartText ([string]$pair.imagePath) $Language -Platform Facebook
+  return $pair
 }
 function Get-FacebookReceiptPath([string]$ReceiptDirectory, [string]$RunId) { Join-Path $ReceiptDirectory ($RunId + '.json') }
 function Save-FacebookReceipt($Receipt, [string]$Path) {

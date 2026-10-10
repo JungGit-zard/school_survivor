@@ -2011,6 +2011,78 @@
                        "collection":  "marketing_social_20261010_add10",
                        "path":  "facebook/vi/marketing_social_20261010_add10/10_school_gate.png",
                        "source":  "Graphic_designer/social_posting_20261010_add10/en_vi_manifest.json"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_cta_20261010",
+                       "path":  "x/ko/marketing_social_cta_20261010/01_start.png",
+                       "source":  "Graphic_designer/social_posting_cta_20261010/manifest.json",
+                       "sha256":  "19779f90da70c9163f25b2162a2a132b0ca97d9e6deb59c62f205c82c4ffadde",
+                       "gameStartText":  "게임시작"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ko",
+                       "collection":  "marketing_social_cta_20261010",
+                       "path":  "facebook/ko/marketing_social_cta_20261010/01_start.png",
+                       "source":  "Graphic_designer/social_posting_cta_20261010/manifest.json",
+                       "sha256":  "19779f90da70c9163f25b2162a2a132b0ca97d9e6deb59c62f205c82c4ffadde",
+                       "gameStartText":  "게임시작"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "en",
+                       "collection":  "marketing_social_cta_20261010",
+                       "path":  "x/en/marketing_social_cta_20261010/01_start.png",
+                       "source":  "Graphic_designer/social_posting_cta_20261010/manifest.json",
+                       "sha256":  "39075ffee51579d61704ee2b9c29b99933b274111b6798b0338f2bcc25f83395",
+                       "gameStartText":  "START GAME"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "en",
+                       "collection":  "marketing_social_cta_20261010",
+                       "path":  "facebook/en/marketing_social_cta_20261010/01_start.png",
+                       "source":  "Graphic_designer/social_posting_cta_20261010/manifest.json",
+                       "sha256":  "39075ffee51579d61704ee2b9c29b99933b274111b6798b0338f2bcc25f83395",
+                       "gameStartText":  "START GAME"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_cta_20261010",
+                       "path":  "x/ja/marketing_social_cta_20261010/01_start.png",
+                       "source":  "Graphic_designer/social_posting_cta_20261010/manifest.json",
+                       "sha256":  "b97b86056a27a0c0a6d3ebfa61c40c9804ffbac3814bf2d7e9f5978406bf2830",
+                       "gameStartText":  "ゲームスタート"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "ja",
+                       "collection":  "marketing_social_cta_20261010",
+                       "path":  "facebook/ja/marketing_social_cta_20261010/01_start.png",
+                       "source":  "Graphic_designer/social_posting_cta_20261010/manifest.json",
+                       "sha256":  "b97b86056a27a0c0a6d3ebfa61c40c9804ffbac3814bf2d7e9f5978406bf2830",
+                       "gameStartText":  "ゲームスタート"
+                   },
+                   {
+                       "platform":  "X",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_cta_20261010",
+                       "path":  "x/vi/marketing_social_cta_20261010/01_start.png",
+                       "source":  "Graphic_designer/social_posting_cta_20261010/manifest.json",
+                       "sha256":  "964161004e3a7fba3d67791e587ea9a97f0ac240d8bb1be163dac5f4ce1fb2b6",
+                       "gameStartText":  "BẮT ĐẦU CHƠI"
+                   },
+                   {
+                       "platform":  "Facebook",
+                       "locale":  "vi",
+                       "collection":  "marketing_social_cta_20261010",
+                       "path":  "facebook/vi/marketing_social_cta_20261010/01_start.png",
+                       "source":  "Graphic_designer/social_posting_cta_20261010/manifest.json",
+                       "sha256":  "964161004e3a7fba3d67791e587ea9a97f0ac240d8bb1be163dac5f4ce1fb2b6",
+                       "gameStartText":  "BẮT ĐẦU CHƠI"
                    }
                ],
     "legacyPaths":  {

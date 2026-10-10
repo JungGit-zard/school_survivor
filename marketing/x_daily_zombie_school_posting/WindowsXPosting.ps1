@@ -1,5 +1,6 @@
 ﻿# Native desktop UI only. No browser protocol, page scripting, or HTTP transport.
 Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes, System.Windows.Forms, System.Drawing
+$script:XExpectedCardUrl = $null
 if (-not ('XPostingNative' -as [type])) {
   Add-Type -TypeDefinition @'
 using System;
@@ -76,6 +77,15 @@ function Click-XElement($Element) {
   [XPostingNative]::SetCursorPos([int]($rect.X + $rect.Width/2), [int]($rect.Y + $rect.Height/2)) | Out-Null
   [XPostingNative]::mouse_event(2,0,0,0,[UIntPtr]::Zero)
   [XPostingNative]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
+}
+function Invoke-XButton($Element) {
+  Assert-XForeground
+  if ($Element.Current.ControlType -ne [Windows.Automation.ControlType]::Button -or -not $Element.Current.IsEnabled -or $Element.Current.IsOffscreen) { throw 'UI Automation target is not one enabled, visible button' }
+  $pattern = $null
+  if (-not $Element.TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern, [ref]$pattern)) { throw 'Post button does not expose UI Automation InvokePattern; refusing coordinate fallback' }
+  Assert-XForeground
+  if (-not $Element.Current.IsEnabled -or $Element.Current.IsOffscreen) { throw 'Post button became disabled or offscreen before invocation' }
+  $pattern.Invoke()
 }
 function Send-XKeys([string]$Keys) { Assert-XForeground; [Windows.Forms.SendKeys]::SendWait($Keys) }
 function Wait-XCondition([scriptblock]$Condition, [string]$Description, [int]$Seconds = 20) {
@@ -290,19 +300,118 @@ function Get-XStatusUrls {
   }
 }
 function Get-XAttachmentCount { return @((Get-XElements) | Where-Object { $_.Current.Name -ceq 'Remove media' -and -not $_.Current.IsOffscreen }).Count }
-function Assert-XComposer([string]$Text) {
+function Get-XCardPreviewRemoveCount { return @((Get-XElements) | Where-Object { $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -ceq 'Remove card preview' -and -not $_.Current.IsOffscreen }).Count }
+function Test-XWebsiteCardEvidence([string[]]$LinkUrls, [int]$CardImageCount, [string]$CardUrl) {
+  return ($LinkUrls.Count -eq 1 -and $LinkUrls[0] -ceq $CardUrl -and $CardImageCount -ge 1 -and $CardUrl -match '^https://(escapezombie\.com|escape-zombie-school-assets\.web\.app)/share/x/(ko|en|ja|vi)/[0-9a-f]{16}$')
+}
+function Get-XWebsiteCardGroupName([string]$CardUrl) {
+  if ($CardUrl -notmatch '^https://escapezombie\.com/share/x/(ko|en|ja|vi)/[0-9a-f]{16}$') { return $null }
+  switch ($Matches[1]) {
+    'ko' { return 'escapezombie.com 탈출! 좀비학교' }
+    'en' { return 'escapezombie.com Escape! Zombie School' }
+    'ja' { return 'escapezombie.com 脱出！ゾンビ学校' }
+    'vi' { return 'escapezombie.com Thoát Khỏi Trường Zombie' }
+  }
+}
+function Test-XObservedWebsiteCardEvidence([string]$BoundCardUrl, [string]$CardUrl, [string]$EditorText, [string]$GroupName, [string]$ChildButtonName, [string]$SourceButtonName, [string]$RemoveButtonName, [double]$Width, [double]$Height, [bool]$SameDialog) {
+  $urlCount = [regex]::Matches($EditorText, [regex]::Escape($CardUrl)).Count
+  return ($SameDialog -and $BoundCardUrl -ceq $CardUrl -and $urlCount -eq 1 -and
+    $GroupName -ceq (Get-XWebsiteCardGroupName $CardUrl) -and $ChildButtonName -ceq $GroupName -and
+    $SourceButtonName -ceq 'From escapezombie.com' -and $RemoveButtonName -ceq 'Remove card preview' -and
+    $Width -ge 200 -and $Height -ge 100 -and
+    $CardUrl -match '^https://escapezombie\.com/share/x/(ko|en|ja|vi)/[0-9a-f]{16}$')
+}
+function Get-XWebsiteCardProof([string]$CardUrl) {
+  $elements = @(Get-XElements)
+  $editorText = [string](Get-XValue (Find-XControl 'Post text' 'Edit'))
+  $boundCardUrl = [string]$script:XExpectedCardUrl
+
+  if ($boundCardUrl -ceq $CardUrl -and [regex]::Matches($editorText, [regex]::Escape($CardUrl)).Count -eq 1) {
+    $groups = @($elements | Where-Object {
+      -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Group -and
+      $_.Current.Name -ceq (Get-XWebsiteCardGroupName $CardUrl) -and
+      $_.Current.BoundingRectangle.Width -ge 200 -and $_.Current.BoundingRectangle.Height -ge 100
+    })
+    $observedProofs = @()
+    foreach ($group in $groups) {
+      $dialog = $group
+      $dialogElements = @()
+      while ($null -ne $dialog) {
+        $dialogElements = @(Get-XElements $dialog)
+        $dialogEditors = @($dialogElements | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit -and $_.Current.Name -ceq 'Post text' })
+        if ($dialogEditors.Count -eq 1) { break }
+        $dialog = [Windows.Automation.TreeWalker]::ControlViewWalker.GetParent($dialog)
+      }
+      if ($null -eq $dialog -or $dialogEditors.Count -ne 1) { continue }
+      $groupChildren = @(Get-XElements $group)
+      $childButtons = @($groupChildren | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -ceq $group.Current.Name })
+      $fromButtons = @($dialogElements | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -ceq 'From escapezombie.com' })
+      $removeButtons = @($dialogElements | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -ceq 'Remove card preview' })
+      if ($childButtons.Count -ne 1 -or $fromButtons.Count -ne 1 -or $removeButtons.Count -ne 1) { continue }
+      $sameDialog = $true
+      if (Test-XObservedWebsiteCardEvidence $boundCardUrl $CardUrl $editorText $group.Current.Name $childButtons[0].Current.Name $fromButtons[0].Current.Name $removeButtons[0].Current.Name $group.Current.BoundingRectangle.Width $group.Current.BoundingRectangle.Height $sameDialog) {
+        $observedProofs += [pscustomobject]@{ cardUrl=$CardUrl; boundCardUrl=$boundCardUrl; proofMode='observed_x_card_group'; groupName=$group.Current.Name; groupWidth=$group.Current.BoundingRectangle.Width; groupHeight=$group.Current.BoundingRectangle.Height; childButtonName=$childButtons[0].Current.Name; fromButtonName=$fromButtons[0].Current.Name; removeControlName=$removeButtons[0].Current.Name }
+      }
+    }
+    if ($observedProofs.Count -eq 1) { return $observedProofs[0] }
+  }
+
+  $links = @($elements | Where-Object {
+    -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Hyperlink -and ((Get-XValue $_) -ceq $CardUrl -or $_.Current.Name -ceq $CardUrl)
+  })
+  if ($links.Count -ne 1) { return $null }
+  $ancestor = $links[0]
+  for ($depth = 0; $depth -lt 3 -and $null -ne $ancestor; $depth++) {
+    $containerElements = @(Get-XElements $ancestor)
+    $images = @($containerElements | Where-Object {
+      -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Image -and $_.Current.BoundingRectangle.Width -gt 0 -and $_.Current.BoundingRectangle.Height -gt 0 -and $_.Current.Name -notmatch '(?i)avatar|profile|account'
+    })
+    $removeCard = @($containerElements | Where-Object {
+      -not $_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -match '^(Remove card|Remove link preview|Remove preview|Remove media)$'
+    })
+    $containsEditor = @($containerElements | Where-Object { $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit -and $_.Current.Name -ceq 'Post text' }).Count -gt 0
+    if (-not $containsEditor -and $removeCard.Count -eq 1 -and (Test-XWebsiteCardEvidence -LinkUrls @($CardUrl) -CardImageCount $images.Count -CardUrl $CardUrl)) {
+      return [pscustomobject]@{ cardUrl=$CardUrl; linkName=$links[0].Current.Name; cardImageName=$images[0].Current.Name; cardImageAutomationId=$images[0].Current.AutomationId; removeControlName=$removeCard[0].Current.Name }
+    }
+    $ancestor = [Windows.Automation.TreeWalker]::ControlViewWalker.GetParent($ancestor)
+  }
+  return $null
+}
+function Assert-XComposer([string]$Text, [switch]$WebsiteCardOnly, [string]$CardUrl = '') {
   $editor = Find-XControl 'Post text' 'Edit'
   if ((Normalize-PostText (Get-XValue $editor)) -cne (Normalize-PostText $Text)) { throw 'Editor text does not match exact campaign copy' }
-  if ((Get-XAttachmentCount) -ne 1) { throw 'Expected exactly one attached campaign image' }
+  if ($WebsiteCardOnly) {
+    if ((Get-XAttachmentCount) -ne 0) { throw 'Website-card mode forbids a native image attachment' }
+    if ($null -eq (Get-XWebsiteCardProof $CardUrl)) { throw 'Website card was not proven by the frozen URL and its visible X card-preview controls' }
+  } elseif ((Get-XAttachmentCount) -ne 1) { throw 'Expected exactly one attached campaign image' }
   $post = Find-XControl 'Post' 'Button'
   if (-not $post.Current.IsEnabled) { throw 'Post button is disabled (length limit or upload pending)' }
 }
-function Prepare-XPost([string]$Text, [string]$ImagePath) {
+function Prepare-XPost([string]$Text, [string]$ImagePath, [switch]$WebsiteCardOnly, [string]$CardUrl = '', [ValidateSet('ko','en','ja','vi')][string]$CardLanguage = 'ja') {
   Navigate-X 'https://x.com/compose/post'
   Wait-XCondition { $null = Find-XControl 'Post text' 'Edit'; return $true } 'empty composer'
   $editor = Find-XControl 'Post text' 'Edit'
-  if (-not [string]::IsNullOrWhiteSpace((Get-XValue $editor)) -or (Get-XAttachmentCount) -ne 0) { throw 'Composer has an existing draft; preserving it' }
+  if (-not [string]::IsNullOrWhiteSpace((Get-XValue $editor)) -or (Get-XAttachmentCount) -ne 0 -or (Get-XCardPreviewRemoveCount) -ne 0) { throw 'Composer has an existing draft; preserving it' }
   Click-XElement $editor
+  if ($WebsiteCardOnly) {
+    $imageSha256 = (Get-FileHash -LiteralPath $ImagePath -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($CardUrl -notmatch ('^https://(escapezombie\.com|escape-zombie-school-assets\.web\.app)/share/x/' + $CardLanguage + '/' + $imageSha256.Substring(0,16) + '$')) { throw 'Card URL does not bind to the frozen locale and image hash' }
+    $script:XExpectedCardUrl = $CardUrl
+    $script:XPreparedCardProof = $null
+    [Windows.Forms.Clipboard]::SetText($CardUrl)
+    Send-XKeys '^a'
+    Send-XKeys '^v'
+    Wait-XCondition { (Normalize-PostText (Get-XValue (Find-XControl 'Post text' 'Edit'))) -ceq $CardUrl } 'pasted exact standalone card URL'
+    Wait-XCondition { $script:XPreparedCardProof = Get-XWebsiteCardProof $CardUrl; return ($null -ne $script:XPreparedCardProof) } 'exact website card URL and visible card image' 30
+    $editor = Find-XControl 'Post text' 'Edit'
+    Click-XElement $editor
+    [Windows.Forms.Clipboard]::SetText($Text)
+    Send-XKeys '^a'
+    Send-XKeys '^v'
+    Wait-XCondition { (Normalize-PostText (Get-XValue (Find-XControl 'Post text' 'Edit'))) -ceq (Normalize-PostText $Text) } 'replaced standalone card URL with exact campaign copy'
+    Assert-XComposer $Text -WebsiteCardOnly -CardUrl $CardUrl
+    return [pscustomobject]@{ imageSha256=$imageSha256; imagePath=$ImagePath; attachmentCount=0; postFormat='website_card'; cardUrl=$CardUrl; cardEvidence=$script:XPreparedCardProof; preparedUtc=[DateTimeOffset]::UtcNow.ToString('o'); textSha256=(Get-CopyDigest $Text) }
+  }
   [Windows.Forms.Clipboard]::SetText($Text)
   Send-XKeys '^v'
   Wait-XCondition { (Normalize-PostText (Get-XValue (Find-XControl 'Post text' 'Edit'))) -ceq (Normalize-PostText $Text) } 'pasted exact text'
@@ -314,9 +423,11 @@ function Prepare-XPost([string]$Text, [string]$ImagePath) {
   Wait-XCondition { Assert-XComposer $Text; return $true } 'complete composer and enabled Post' 30
   return [pscustomobject]@{ imageSha256=(Get-FileHash -LiteralPath $ImagePath -Algorithm SHA256).Hash.ToLowerInvariant(); attachmentCount=1; preparedUtc=[DateTimeOffset]::UtcNow.ToString('o'); textSha256=(Get-CopyDigest $Text); imageEvidence='Canonical file pasted into empty composer; one Remove media control observed' }
 }
-function Publish-XPost([string]$Text) {
-  Assert-XComposer $Text
-  Click-XElement (Find-XControl 'Post' 'Button')
+function Publish-XPost([string]$Text, [switch]$WebsiteCardOnly, [string]$CardUrl = '') {
+  Assert-XComposer $Text -WebsiteCardOnly:$WebsiteCardOnly -CardUrl $CardUrl
+  $postButton = Find-XControl 'Post' 'Button'
+  if ($WebsiteCardOnly) { Invoke-XButton $postButton }
+  else { Click-XElement $postButton }
   # Do not navigate away while X is sending: that can abort the request.
   $deadline = [DateTime]::UtcNow.AddSeconds(45)
   do {

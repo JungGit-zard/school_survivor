@@ -12720,3 +12720,19 @@ git push origin zombie_only
 - 운영 인수인계와 최신 social_posting_status_reports/latest.md 및 latest.delivery.json을 읽는다. 기존 8개 publish_intent를 게시 성공 검증 상태로 변경하거나 중복 게시하지 않는다. 예약·보고 설정을 비활성화하지 않는다.
 
 ---
+
+## Session 9 - Entry 1 - 2026-10-10 2323 KST
+
+### X website-card publication and localized CTA images
+- Safely promoted 72 X cards (18 per locale) while preserving baseline Hosting version 8e9519ae235dc93c and the 290 preexisting files. Existing 56 JavaScript files and all 72 card HTML/PNG+SHA checks passed.
+- On 2026-10-10 14:04:12Z, composer preparation succeeded with URL https://escapezombie.com/share/x/ko/b3b795b213eeda0a. Preview showed native 516x272 group, From, and Remove. Earlier coordinate click was uncertain; after the user's explicit repost instruction, PostButton.Invoke() returned POST_BUTTON_INVOKED and composerOpen=false/editorCount=0. No feed verification was done; status is published_unverified, no retry this cycle, user owns feed verification. No CTA image was posted.
+- Four localized CTA images were visually inspected and copied to X and Facebook paths (8 files). Visible exact labels: ko 게임시작, en START GAME, ja ゲームスタート, vi BẮT ĐẦU CHƠI. Catalog has 8 platform-locale entries with verified gameStartText and SHA-256; each localized config pool has one new X path appended without removing old entries. CTA eligibility must select only exact visually verified gameStartText entries. Evidence: Graphic_designer/social_posting_cta_20261010/manifest.json.
+- Safe CTA card deployment preserved baseline ca008e9ac31ddefa and 434 existing files/config; it added 8 HTML/PNG files, leaving the 144 previous card-file paths unchanged. Promoted version: 4cf0fa84de6c481f. 76 cards and 56 existing JS files validated. Preview: https://escape-zombie-school--x-cards-cta-20261010-nmdhft2e.web.app.
+- KR_LIVE_x64 was the title of a blocking game window, not the Korean X account. WebsiteCardOnly=true.
+
+### Scope and verification
+- Build-XWebsiteCards.mjs creates the existing link-card pages. firebase.json predeploy order remains nonce check -> game build -> legal page build -> card generation.
+- Only safe preview/validation/additive deployment preserving existing files is used. Main performed the additive Hosting promotion without a game build; this recorder did not deploy. Temporary output is not a production source.
+- Shared worktree contains unrelated edits; do not stage/push all files. Main handles only explicit paths.
+
+---
