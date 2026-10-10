@@ -65,24 +65,34 @@ function Get-PostingLocaleImageCandidates($Config, [string]$Language, [switch]$I
   }
   return @($valid | Select-Object -Unique)
 }
-function Get-PostingPreviousImagePath($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, $Candidates) {
+function Get-PostingPreviousImagePath($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, $Candidates, [ValidateSet('X','Facebook')][string]$Platform = 'X') {
   if (-not (Test-Path -LiteralPath $ReceiptDirectory)) { return $null }
   $previousReceipts = @(Get-ChildItem -LiteralPath $ReceiptDirectory -Filter '*.json' -File | Where-Object { $_.BaseName -match '^\d{4}-\d{2}-\d{2}-\d{4}$' -and $_.BaseName -clt $CycleId } | Sort-Object BaseName -Descending)
   foreach ($previous in $previousReceipts) {
     $prior = Get-Content -LiteralPath $previous.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
     $entry = $prior.entries.$Language
     if ($null -ne $entry -and $null -ne $entry.intent) {
-      $priorImage = Resolve-PostingImagePath ([string]$entry.intent.imagePath)
+      $priorImage = Resolve-PostingImagePath ([string]$entry.intent.imagePath) -Platform $Platform
+      if ($Platform -eq 'Facebook') {
+        $catalog=Get-PostingImageCatalog;$poolRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'image_pool'))
+        $relative=$priorImage.Substring($poolRoot.Length+1).Replace('\','/')
+        $facebookRows=@($catalog.images|Where-Object{$_.platform -ceq 'Facebook' -and $_.locale -ceq $Language -and $_.path -ceq $relative})
+        if($facebookRows.Count -ne 1){throw "Prior Facebook image is not uniquely catalogued for $Language"}
+        $filename=[IO.Path]::GetFileName($facebookRows[0].path)
+        $xRows=@($catalog.images|Where-Object{$_.platform -ceq 'X' -and $_.locale -ceq $Language -and $_.collection -ceq $facebookRows[0].collection -and [IO.Path]::GetFileName($_.path) -ceq $filename})
+        if($xRows.Count -ne 1){throw "Prior Facebook image has no unique X candidate mapping for $Language"}
+        $priorImage=Resolve-PostingImagePath ('image_pool/'+[string]$xRows[0].path) -Platform X
+      }
       if (@($Candidates | Where-Object { $_ -ceq $priorImage }).Count -eq 1) { return $priorImage }
     }
   }
   return $null
 }
-function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory) {
+function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, [ValidateSet('X','Facebook')][string]$Platform = 'X') {
   $candidates = @(Get-PostingLocaleImageCandidates $Config $Language)
   if ($candidates.Count -eq 0) { return Resolve-PostingImagePath ([string]$Config.image_pool.$Language.images[0]) }
   $usable = @($candidates)
-  $previous = Get-PostingPreviousImagePath $Config $Language $CycleId $ReceiptDirectory $candidates
+  $previous = Get-PostingPreviousImagePath $Config $Language $CycleId $ReceiptDirectory $candidates $Platform
   if ($usable.Count -gt 1 -and -not [string]::IsNullOrWhiteSpace($previous)) { $usable = @($usable | Where-Object { $_ -cne $previous }) }
   return [string]($usable | Get-Random -Count 1)
 }
@@ -134,7 +144,7 @@ function Resolve-PostingIntentVariant($Config, [string]$Language, $Intent) {
   $matchingVariants[0].imagePath = $intentImage
   return $matchingVariants[0]
 }
-function Select-PostingVariant($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, $ExistingIntent = $null) {
+function Select-PostingVariant($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, $ExistingIntent = $null, [ValidateSet('X','Facebook')][string]$Platform = 'X') {
   if ($null -ne $ExistingIntent) { return Resolve-PostingIntentVariant $Config $Language $ExistingIntent }
   $variants = @(Get-PostingVariants $Config $Language)
   $ordinal = 0L
@@ -163,6 +173,6 @@ function Select-PostingVariant($Config, [string]$Language, [string]$CycleId, [st
     }
   }
   $selected = $variants[$index]
-  $selected.imagePath = Select-PostingLocaleImagePath $Config $Language $CycleId $ReceiptDirectory
+  $selected.imagePath = Select-PostingLocaleImagePath $Config $Language $CycleId $ReceiptDirectory $Platform
   return $selected
 }

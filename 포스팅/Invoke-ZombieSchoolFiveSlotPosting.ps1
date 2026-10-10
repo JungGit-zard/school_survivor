@@ -67,6 +67,55 @@ function Test-TodayOnlyUnsafeFailure([string]$Message) {
   return $Message -match '(?i)UNCERTAIN|publish_intent|invalid receipt|unsupported immutable receipt state|malformed receipt'
 }
 
+function New-HiddenPowerShellStartInfo {
+  param([Parameter(Mandatory)][string]$ScriptPath,[Parameter(Mandatory)][object[]]$Arguments)
+  $ps = (Get-Command powershell.exe -ErrorAction SilentlyContinue).Source
+  if ([string]::IsNullOrWhiteSpace($ps)) { $ps = 'powershell' }
+  $startInfo = [Diagnostics.ProcessStartInfo]::new()
+  $startInfo.FileName = $ps
+  $invokeParts = @("'" + $ScriptPath.Replace("'","''") + "'")
+  for($i=0;$i -lt $Arguments.Count;$i++){
+    $token=[string]$Arguments[$i]
+    if($token -match '^-[A-Za-z][A-Za-z0-9]*$'){
+      $invokeParts += $token
+      if(($i+1) -lt $Arguments.Count -and [string]$Arguments[$i+1] -notmatch '^-[A-Za-z][A-Za-z0-9]*$'){
+        $value=[string]$Arguments[++$i]
+        $invokeParts += ("'" + $value.Replace("'","''") + "'")
+      }
+    } else {
+      $invokeParts += ("'" + $token.Replace("'","''") + "'")
+    }
+  }
+  $invokeExpression = '& ' + ($invokeParts -join ' ')
+  $bootstrap = '[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); ' + $invokeExpression + '; $runnerSucceeded = $?; $runnerExitCode = $LASTEXITCODE; if ($null -ne $runnerExitCode -and $runnerExitCode -ne 0) { exit $runnerExitCode }; if (-not $runnerSucceeded) { exit 1 }; exit 0'
+  $encodedCommand = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($bootstrap))
+  $startInfo.Arguments = "-NoProfile -STA -ExecutionPolicy Bypass -EncodedCommand $encodedCommand"
+  $startInfo.UseShellExecute = $false
+  $startInfo.CreateNoWindow = $true
+  $startInfo.WindowStyle = [Diagnostics.ProcessWindowStyle]::Hidden
+  $startInfo.RedirectStandardOutput = $true
+  $startInfo.RedirectStandardError = $true
+  $startInfo.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
+  $startInfo.StandardErrorEncoding = [Text.UTF8Encoding]::new($false)
+  return $startInfo
+}
+
+function Invoke-HiddenPowerShell {
+  param([Parameter(Mandatory)][string]$ScriptPath,[Parameter(Mandatory)][object[]]$Arguments)
+  $startInfo = New-HiddenPowerShellStartInfo -ScriptPath $ScriptPath -Arguments $Arguments
+  $process = [Diagnostics.Process]::new()
+  $process.StartInfo = $startInfo
+  try {
+    if (-not $process.Start()) { throw 'Child PowerShell process did not start.' }
+    $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+    $stderrTask = $process.StandardError.ReadToEndAsync()
+    $process.WaitForExit()
+    $stdout = $stdoutTask.GetAwaiter().GetResult()
+    $stderr = $stderrTask.GetAwaiter().GetResult()
+    return [pscustomobject]@{ exitCode=$process.ExitCode; output=$stdout.TrimEnd(); error=$stderr.TrimEnd(); noWindow=$startInfo.CreateNoWindow }
+  } finally { $process.Dispose() }
+}
+
 function Invoke-JsonRunner {
   param(
     [Parameter(Mandatory)][string]$ScriptPath,
@@ -74,12 +123,10 @@ function Invoke-JsonRunner {
     [Parameter(Mandatory)][string]$Name
   )
   if (-not (Test-Path -LiteralPath $ScriptPath -PathType Leaf)) { throw "$Name runner not found: $ScriptPath" }
-  $ps = (Get-Command powershell.exe -ErrorAction SilentlyContinue).Source
-  if ([string]::IsNullOrWhiteSpace($ps)) { $ps = 'powershell' }
-  $output = & $ps -NoProfile -STA -WindowStyle Hidden -ExecutionPolicy Bypass -File $ScriptPath @Arguments 2>&1
-  $exit = $LASTEXITCODE
-  if ($exit -ne 0) { throw "$Name runner failed (exit $exit): $($output -join "`n")" }
-  $lines = @($output | ForEach-Object { [string]$_ })
+  $child = Invoke-HiddenPowerShell -ScriptPath $ScriptPath -Arguments $Arguments
+  $exit = [int]$child.exitCode
+  if ($exit -ne 0) { throw "$Name runner failed (exit $exit): $($child.output)`n$($child.error)" }
+  $lines = @(([string]$child.output -split "`r?`n") | ForEach-Object { [string]$_ })
   $joined=($lines -join "`n").Trim()
   try { return ($joined | ConvertFrom-Json -ErrorAction Stop) } catch {}
   $starts=@();for($i=0;$i -lt $lines.Count;$i++){if($lines[$i].Trim().StartsWith('{') -or $lines[$i].Trim().StartsWith('[')){$starts+= $i}}
@@ -196,12 +243,12 @@ function Invoke-SerializedPublishOnlyCycle {
     if($null -ne $entry -and $entry.state -notin @('selected','prepared')){$errors += "UNSAFE Facebook $language has unsupported receipt state '$($entry.state)'";continue}
     $base=@('-RunId',$RunId,'-Language',$language,'-ReceiptDirectory',$fbRoot)
     try {
+      if($null -eq $entry){$null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','SelectSourcePair')+$base) -Name "Facebook $language frozen pair";$entry=(Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8|ConvertFrom-Json).entries.$language}
       $window=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','DiscoverWindow')+$base) -Name "Facebook $language window discovery"
       if($null -eq $window.windowId -or [long]$window.windowId -le 0){throw "UNSAFE Facebook $language did not resolve one window"}
       $windowArgs=$base+@('-WindowId',[string][long]$window.windowId)
       if(-not [string]::IsNullOrWhiteSpace($StopAtKst)){$windowArgs+=@('-StopAtKst',$StopAtKst)}
       $null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','OpenProfile')+$windowArgs) -Name "Facebook $language profile"
-      if($null -eq $entry){$null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action','SelectSourcePair')+$base) -Name "Facebook $language frozen pair";$entry=(Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8|ConvertFrom-Json).entries.$language}
       if($entry.state -eq 'selected'){
         foreach($action in @('OpenComposer','TypeText','AttachImage','VerifyDraft')){$null=Invoke-JsonRunner -ScriptPath $FacebookActionRunnerPath -Arguments (@('-Action',$action)+$windowArgs) -Name "Facebook $language $action"}
       } else {

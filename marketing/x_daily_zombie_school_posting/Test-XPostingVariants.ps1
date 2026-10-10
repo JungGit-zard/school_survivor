@@ -76,6 +76,23 @@ try {
     try { $null = Resolve-PostingIntentVariant $config $lang $intent } catch { $rejected = $true }
     Assert-True $rejected "$lang cross-language copy and image rejected"
   }
+  $historicFacebookReceiptPath=Join-Path $PSScriptRoot '..\..\Developer\agent_room\facebook_posting_receipts\2026-10-10-0600.json'
+  if(-not (Test-Path -LiteralPath $historicFacebookReceiptPath -PathType Leaf)){throw 'Historic Facebook 0600 fixture receipt is missing'}
+  $historicFacebookReceipt=Get-Content -LiteralPath $historicFacebookReceiptPath -Raw -Encoding UTF8|ConvertFrom-Json
+  $historicEntries=[ordered]@{}
+  foreach($lang in @('ja','en','vi','ko')){if($historicFacebookReceipt.entries.$lang.state -ne 'publish_intent' -or [string]::IsNullOrWhiteSpace([string]$historicFacebookReceipt.entries.$lang.intent.imagePath)){throw "Historic Facebook 0600 $lang intent is not available for the regression fixture"};$historicEntries[$lang]=$historicFacebookReceipt.entries.$lang}
+  $historicFixture=[pscustomobject]@{cycleId='2026-10-10-0600';entries=[pscustomobject]$historicEntries}
+  Save-CycleReceipt $historicFixture (Join-Path $tempFull '2026-10-10-0600.json')
+  $savedScheduleTimes=@($config.schedule_times);$config.schedule_times=@('06:00','11:00')
+  try {
+    foreach($lang in @('ja','en','vi','ko')){
+      $candidates=@(Get-PostingLocaleImageCandidates $config $lang)
+      $previousImage=Get-PostingPreviousImagePath $config $lang '2026-10-10-1100' $tempFull $candidates -Platform Facebook
+      Assert-True (@($candidates|Where-Object{$_ -ceq $previousImage}).Count -eq 1) "$lang historic Facebook receipt maps back to its exact X pool candidate"
+      $selected=Select-PostingVariant $config $lang '2026-10-10-1100' $tempFull -Platform Facebook
+      Assert-True ($selected.imagePath -cne $previousImage) "$lang next Facebook cycle avoids the image in the historic 0600 receipt without a platform-path exception"
+    }
+  } finally {$config.schedule_times=$savedScheduleTimes}
   $choice = $config.variants.ja[0]
   $receipt = [pscustomobject]@{ schema=1; cycleId='2026-09-06-0900'; entries=[pscustomobject]@{ ja=[pscustomobject]@{ state='selected'; intent=[pscustomobject]@{ variantId=$choice.id; text=$choice.text; imagePath=$choice.imagePath } }; en=$null; vi=$null; ko=$null } }
   Save-CycleReceipt $receipt $fixturePath

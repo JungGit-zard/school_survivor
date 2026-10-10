@@ -52,3 +52,10 @@ Orca 자동화 `bbecc7e3-1787-4ad3-a4e9-a5bd35b6fe79`의 첫 두 시험 실행�
 이미지 정본은 `marketing/x_daily_zombie_school_posting/image_pool/{x,facebook}/{ko,en,ja,vi}/`다. 플랫폼 2개 × 언어 4개 × 각 10장으로 총 80장을 저장 완료했다. collection 이름은 `marketing_social_20261010_add10`; 상세 목록은 `Graphic_designer/social_posting_20261010_add10/README.md`를 참조한다. 카탈로그 80개 등록과 게시 후보 연결을 완료했다. 언어별 기존 8장에 새 10장을 더해 18장이며, Facebook은 같은 지역·collection·파일명의 전용 이미지로 연결한다. 이미지에는 현지어 제목·홍보 문구·무료/광고 없음 문구가 들어가며, 첨부 기준의 귀여운 넨드로이드 비율과 단순한 만화 묘사를 유지한다.
 
 이전 상세 배포 설명은 `social_posting_portable_automation_handoff_2026-10-09.md`를 참고하되, 일정·사후 조회·활성화 상태는 이 문서가 우선한다.
+
+## 22:00 이후 반복 재시도 사건
+
+- 17:27 실행(논리 RunId `2026-10-10-1100`)에서 Facebook의 이전 영수증 이미지 경로가 X 이미지 resolver로 전달되어 `X cannot resolve Facebook-owned images` 오류가 났고, 16회 재시도가 발생했다. 기존 runner가 오프라인 pair 선택 전에 `OpenProfile`을 호출해 게시 실패가 확인되기 전 Facebook 창도 열었다.
+- 20:27 작업은 현재 중지 상태이며 예약 작업의 `Enabled` 값은 `true`다. PID 29052의 해당 runner만 종료했다. 다른 프로세스나 브라우저 창은 닫지 않았고, 영수증도 수정하지 않았다. 자동 재시도는 재개하지 않았다.
+- 사용자가 23:27 예약을 유지하고 불필요한 브라우저 실행을 원하지 않아, 다음 예약 시각까지 자동 재시도를 재개하지 않는다. Facebook 선택에 플랫폼을 명시하고, pair 선택을 UI 접근보다 먼저 실행하며, 자식 PowerShell을 CreateNoWindow로 실행하도록 수정했다. 한국어·일본어·베트남어 인자와 출력, 빈 인자, 이름 있는 매개변수와 switch, 오류 코드를 보존하는 오프라인 테스트를 통과했다.
+- X Chrome 창이 두 개 발견된 상태는 미해결이다. 어느 창도 임의로 종료하거나 선택하지 않았다. 다음 실행에서 창 개수 guard 때문에 실패할 수 있다.

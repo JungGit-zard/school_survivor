@@ -10,6 +10,7 @@ Assert-True ($source -match "'02:00','06:00','11:00','17:00','21:00'") 'orchestr
 Assert-True ($source -match "order = @\('facebook','x'\)") 'orchestrator records Facebook before X serial order'
 Assert-True ($source -match "facebook_posting_receipts" -and $source -match "x_posting_receipts") 'orchestrator uses distinct platform receipt directories'
 Assert-True ($source -notmatch 'WindowsXPosting\.ps1' -and $source -notmatch 'FacebookNative\.ps1' -and $source -notmatch 'FindAll\(') 'orchestrator does not duplicate platform UI posting logic'
+Assert-True ($source -match 'New-HiddenPowerShellStartInfo' -and $source -match 'CreateNoWindow = \$true' -and $source -match 'RedirectStandardOutput = \$true' -and $source -match 'RedirectStandardError = \$true') 'child runners are launched without a console window and both output streams are captured'
 $tokens=$null;$errors=$null
 [Management.Automation.Language.Parser]::ParseFile($runner,[ref]$tokens,[ref]$errors)|Out-Null
 Assert-True ($errors.Count -eq 0) 'orchestrator parses as PowerShell'
@@ -42,6 +43,33 @@ try {
   Set-Content -LiteralPath $compactRunner -Encoding UTF8 -Value "[pscustomobject]@{status='compact';nested=@{count=3}}|ConvertTo-Json -Depth 5 -Compress"
   $prettyResult=Invoke-JsonRunner -ScriptPath $prettyRunner -Arguments @('fixture') -Name 'pretty JSON fixture';$compactResult=Invoke-JsonRunner -ScriptPath $compactRunner -Arguments @('fixture') -Name 'compact JSON fixture'
   Assert-True ($prettyResult.status -eq 'pretty' -and $prettyResult.nested.count -eq 2 -and $compactResult.status -eq 'compact' -and $compactResult.nested.count -eq 3) 'child PowerShell JSON parser accepts both multiline and compact JSON results'
+  $hiddenInfo=New-HiddenPowerShellStartInfo -ScriptPath $prettyRunner -Arguments @('value with spaces')
+  Assert-True (-not $hiddenInfo.UseShellExecute -and $hiddenInfo.CreateNoWindow -and $hiddenInfo.WindowStyle -eq [Diagnostics.ProcessWindowStyle]::Hidden -and $hiddenInfo.RedirectStandardOutput -and $hiddenInfo.RedirectStandardError) 'PowerShell fixture start info is hidden, no-window, and captures both streams'
+  $spaceDirectory=Join-Path $tmp 'runner path with spaces';New-Item -ItemType Directory -Path $spaceDirectory|Out-Null
+  $streamRunner=Join-Path $spaceDirectory 'stream-json-runner.ps1'
+  Set-Content -LiteralPath $streamRunner -Encoding UTF8 -Value @'
+param([string]$Value,[string]$Empty)
+[pscustomobject]@{status='captured';value=$Value;emptyWasPreserved=($Empty -ceq '')}|ConvertTo-Json -Depth 5
+[Console]::Error.WriteLine('fixture stderr preserved')
+'@
+  $unicodeValue=-join [char[]]@(0xD55C,0xAE00,0x20,0xBB38,0xAD6C,0x20,0x00B7,0x20,0x30BE,0x30F3,0x30D3,0x20,0x00B7,0x20,0x0074,0x0069,0x1EBF,0x006E,0x0067,0x20,0x0056,0x0069,0x1EC7,0x0074)
+  $streamChild=Invoke-HiddenPowerShell -ScriptPath $streamRunner -Arguments @($unicodeValue,'')
+  $streamJson=$streamChild.output|ConvertFrom-Json
+  Assert-True ($streamChild.exitCode -eq 0 -and $streamChild.noWindow -and $streamJson.value -ceq $unicodeValue -and $streamJson.emptyWasPreserved -and $streamChild.error -match 'fixture stderr preserved') 'hidden child-process fixture preserves Unicode spaced arguments, empty arguments, pretty JSON, stderr, and exit code'
+  $namedRunner=Join-Path $spaceDirectory 'named-argument-runner.ps1'
+  Set-Content -LiteralPath $namedRunner -Encoding UTF8 -Value "param([string]`$Action,[string]`$RunId,[switch]`$AuthorizePublish);[pscustomobject]@{action=`$Action;runId=`$RunId;authorized=`$AuthorizePublish.IsPresent}|ConvertTo-Json -Compress"
+  $namedChild=Invoke-HiddenPowerShell -ScriptPath $namedRunner -Arguments @('-Action','PublishOnce','-RunId','fixture','-AuthorizePublish')
+  $namedJson=$namedChild.output|ConvertFrom-Json
+  Assert-True ($namedChild.exitCode -eq 0 -and $namedJson.action -eq 'PublishOnce' -and $namedJson.runId -eq 'fixture' -and $namedJson.authorized) 'hidden child-process fixture preserves named parameters and switch binding'
+  $failedRunner=Join-Path $tmp 'failed-json-runner.ps1'
+  Set-Content -LiteralPath $failedRunner -Encoding UTF8 -Value "[Console]::Error.WriteLine('fixture failure detail'); exit 23"
+  $failureCaptured=$false
+  try { $null=Invoke-JsonRunner -ScriptPath $failedRunner -Arguments @('fixture') -Name 'exit fixture' } catch { $failureCaptured=$_.Exception.Message -match 'exit 23' -and $_.Exception.Message -match 'fixture failure detail' }
+  Assert-True $failureCaptured 'nonzero child exit and stderr details remain visible to the scheduler'
+  $throwRunner=Join-Path $tmp 'throwing-json-runner.ps1'
+  Set-Content -LiteralPath $throwRunner -Encoding UTF8 -Value "throw 'fixture terminating failure'"
+  $throwChild=Invoke-HiddenPowerShell -ScriptPath $throwRunner -Arguments @('fixture')
+  Assert-True ($throwChild.exitCode -ne 0 -and $throwChild.error -match 'fixture terminating failure') 'terminating child runner errors stay nonzero and retain their failure message'
   $fixedTriggerTime=[DateTimeOffset]::Parse('2026-10-09T11:00:15+09:00')
   Assert-True ((Get-FiveSlotScheduledTriggerRunId -Slot '1100' -NowKst $fixedTriggerTime) -ceq '2026-10-09-1100') 'slot-specific trigger maps to its exact calendar date and RunId'
   $wrongTriggerRejected=$false
@@ -163,7 +191,7 @@ param([string]$CycleId,[string]$ReceiptDirectory,[switch]$CredentialRecovery,[sw
 param([string]$Action,[string]$RunId,[string]$Language,[string]$ReceiptDirectory,[long]$WindowId,[switch]$AuthorizePublish)
 $path=Join-Path $ReceiptDirectory ($RunId+'.json');[IO.Directory]::CreateDirectory($ReceiptDirectory)|Out-Null
 $r=if(Test-Path -LiteralPath $path){Get-Content -LiteralPath $path -Raw|ConvertFrom-Json}else{[pscustomobject]@{entries=[pscustomobject]@{ja=$null;en=$null;vi=$null;ko=$null}}}
-if($Action -eq 'DiscoverWindow'){[pscustomobject]@{windowId=1234}|ConvertTo-Json -Compress;exit 0}
+if($Action -eq 'DiscoverWindow'){"facebook/$Language/$Action"|Add-Content -LiteralPath $env:PUBLISH_ACTION_LOG -Encoding UTF8;[pscustomobject]@{windowId=1234}|ConvertTo-Json -Compress;exit 0}
 if($Action -eq 'SelectSourcePair'){$r.entries.$Language=[pscustomobject]@{state='selected';intent=@{language=$Language}}}
 if($Action -eq 'VerifyDraft'){$r.entries.$Language.state='prepared'}
 if($Action -eq 'PublishOnce'){if(-not $AuthorizePublish){throw 'missing authorize'};$r.entries.$Language.state='publish_intent'}
@@ -190,6 +218,8 @@ $r.entries.$Language=[pscustomobject]@{state='publish_intent';intent=@{language=
   $attemptSubmitted=New-ScheduledAttemptResult $todayResult
   Assert-True ($attemptSubmitted.exitCode -eq 0 -and (Test-ScheduledSuccessfulTerminal $attemptSubmitted.status)) 'scheduled attempt and outer task both treat submitted outcome as terminal success instead of retrying forever'
   $todayActions=Get-Content -LiteralPath $publishLog -Encoding UTF8
+  $selectIndex=[array]::IndexOf([string[]]$todayActions,'facebook/en/SelectSourcePair');$discoverIndex=[array]::IndexOf([string[]]$todayActions,'facebook/en/DiscoverWindow')
+  Assert-True ($selectIndex -ge 0 -and $discoverIndex -gt $selectIndex) 'Facebook source-pair resolution completes before the browser window is discovered'
   Assert-True (-not ($todayActions -contains 'facebook/ja/PublishOnce') -and -not ($todayActions -match '^x/en/')) 'pre-existing publish_intent entries are skipped without replay'
   Assert-True (@($todayActions|Where-Object{$_ -match '/PublishOnce$'}).Count -eq 3 -and @($todayActions|Where-Object{$_ -match '^x/.+/(True)/(True)$'}).Count -eq 3) 'fake cycle publishes only the six languages without prior intent and uses PublishOnly plus guarded recovery'
   $todayFbReceipt=Get-Content -LiteralPath (Join-Path $todayFbRoot ($todayOverrideId+'.json')) -Raw -Encoding UTF8|ConvertFrom-Json
