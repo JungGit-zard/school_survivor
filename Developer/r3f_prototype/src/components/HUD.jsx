@@ -1873,8 +1873,10 @@ export default function HUD({
                 <div style={styles.questDialogueName}>[{studentDialogue.subjectName ?? t('hud.tiredStudent')}]</div>
                 <div style={styles.questDialogueLine} aria-live="polite">{getDialogueText(studentDialogue.dialogueId)}</div>
                 <div style={styles.questDialogueDivider} />
-                <strong style={styles.questDialogueNotice}>{questToastMessage}</strong>
-                {questPopupNextAction && <small style={styles.questDialogueNextAction}>{questPopupNextAction}</small>}
+                <div style={styles.questDialoguePrimary}>
+                  <strong style={styles.questDialogueNotice}>{questToastMessage}</strong>
+                  {questPopupNextAction && <small style={styles.questDialogueNextAction}>{questPopupNextAction}</small>}
+                </div>
                 <div style={styles.questDialogueHint}>{t('hud.tapToContinue')}</div>
               </div>
             </div>
@@ -2593,8 +2595,10 @@ const styles = {
     top: '50%',
     transform: 'translate(-50%, -50%)',
     zIndex: 30,
-    width: 'min(92vw, 560px)',
-    maxWidth: 'min(92vw, 560px)',
+    width: 'min(calc(100vw - 24px), 560px)',
+    maxWidth: 'min(calc(100vw - 24px), 560px)',
+    maxHeight: 'calc(100dvh - 48px)',
+    overflowY: 'auto',
     boxSizing: 'border-box',
     justifyContent: 'flex-start',
     gap: 16,
@@ -2687,7 +2691,7 @@ const styles = {
   questItemNextAction: { fontSize: 15.6, lineHeight: 1.25 },
   questDialogueCatcher: {
     alignItems: 'center',
-    paddingBottom: '12vh',
+    paddingBottom: 'clamp(32px, 8dvh, 96px)',
   },
   questDialoguePopup: {
     alignItems: 'center',
@@ -2699,9 +2703,9 @@ const styles = {
     boxShadow: '0 6px 0 rgba(4, 6, 10, 0.7), 0 0 0 4px rgba(255, 243, 214, 0.14)',
   },
   questDialogueGiverProfile: {
-    flex: '0 0 76px',
-    width: 76,
-    height: 76,
+    flex: '0 0 clamp(56px, 18vw, 76px)',
+    width: 'clamp(56px, 18vw, 76px)',
+    height: 'clamp(56px, 18vw, 76px)',
     objectFit: 'cover',
     borderRadius: 10,
     border: '2px solid #fff3d6',
@@ -2711,12 +2715,12 @@ const styles = {
     flex: 1,
     minWidth: 0,
     display: 'grid',
-    gap: 8,
+    gap: 6,
     textAlign: 'left',
   },
   questDialogueName: {
     color: '#fff3d6',
-    fontSize: 14,
+    fontSize: 'clamp(12px, 3.4vw, 14px)',
     fontWeight: uiType.weightHeavy,
     letterSpacing: '-0.01em',
     textShadow: 'none',
@@ -2724,29 +2728,34 @@ const styles = {
   },
   questDialogueLine: {
     color: '#fff3d6',
-    fontSize: 14,
-    fontWeight: 800,
-    lineHeight: 1.42,
+    fontSize: 'clamp(12px, 3.5vw, 13px)',
+    fontWeight: 700,
+    lineHeight: 1.34,
     wordBreak: 'keep-all',
     overflowWrap: 'anywhere',
-    padding: '8px 10px',
+    padding: '6px 8px',
     borderRadius: 8,
     background: 'rgba(255, 243, 214, 0.1)',
     textShadow: 'none',
     WebkitTextStroke: '0 transparent',
   },
   questDialogueDivider: {
-    height: 2,
-    margin: '3px 0',
-    background: 'rgba(255, 243, 214, 0.34)',
+    height: 1,
+    margin: '1px 0 0',
+    background: 'rgba(255, 243, 214, 0.24)',
+  },
+  questDialoguePrimary: {
+    display: 'grid',
+    gap: 3,
+    textAlign: 'center',
   },
   questDialogueNotice: {
     display: 'block',
-    fontSize: 22,
-    lineHeight: 1.22,
+    fontSize: 'clamp(21px, 6vw, 25px)',
+    lineHeight: 1.16,
     textAlign: 'center',
     color: '#fff3d6',
-    padding: '8px 10px',
+    padding: '7px 9px',
     borderRadius: 10,
     background: 'rgba(255, 243, 214, 0.1)',
     boxShadow: 'inset 0 0 0 2px rgba(255, 243, 214, 0.2)',
@@ -2756,8 +2765,8 @@ const styles = {
   questDialogueNextAction: {
     display: 'block',
     color: '#fff3d6',
-    fontSize: 18,
-    lineHeight: 1.3,
+    fontSize: 'clamp(16px, 4.6vw, 19px)',
+    lineHeight: 1.24,
     fontFamily: "'Nanum Myeongjo', serif",
     fontWeight: 800,
     textAlign: 'center',

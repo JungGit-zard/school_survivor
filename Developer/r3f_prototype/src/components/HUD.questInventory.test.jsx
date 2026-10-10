@@ -251,6 +251,21 @@ describe('quest inventory HUD', () => {
       expect(startPopup.querySelector('small')?.style.textShadow).toBe('none')
       expect(container.querySelector('[data-testid="student-dialogue-catcher"]').style.alignItems).toBe('center')
 
+      const dialogueLine = startPopup.querySelector('div[aria-live="polite"]')
+      const questNotice = startPopup.querySelector('strong')
+      const nextAction = startPopup.querySelector('small')
+      const primaryBlock = questNotice?.parentElement
+      expect(primaryBlock?.style.display).toBe('grid')
+      expect(primaryBlock?.style.gap).toBe('3px')
+      expect([...primaryBlock.children]).toEqual([questNotice, nextAction])
+      expect(dialogueLine?.style.lineHeight).toBe('1.34')
+      expect(dialogueLine?.style.fontWeight).toBe('700')
+      expect(dialogueLine?.style.padding).toBe('6px 8px')
+      expect(questNotice?.style.lineHeight).toBe('1.16')
+      expect(questNotice?.style.padding).toBe('7px 9px')
+      expect(nextAction?.style.lineHeight).toBe('1.24')
+      expect(startPopup.style.overflowY).toBe('auto')
+
       act(() => {
         container.querySelector('[data-testid="student-dialogue-catcher"]')
           .dispatchEvent(new Event('pointerdown', { bubbles: true }))
