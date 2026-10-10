@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated, requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
-import { applyHitCameraShake, applyLanguage, applyReducedEffects, applyScientificNotation, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
+import { DEFAULT_SETTINGS, applyHitCameraShake, applyLanguage, applyReducedEffects, applyScientificNotation, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
 import { schoolPanel, schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
 import { LOCALE_OPTIONS, useLocale, useT } from '../lib/i18n.js'
 import { useAuthStore } from '../store/useAuthStore.js'
@@ -31,7 +31,8 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   const locale = useLocale()
   const authUser = useAuthStore((s) => s.user)
   const signOutOfGoogle = useAuthStore((s) => s.signOutOfGoogle)
-  const [settings, setSettings] = useState(loadTitleSettings)
+  const [settingsOwnerUid] = useState(() => authUser?.uid ?? null)
+  const [settings, setSettings] = useState(() => authUser?.uid ? loadTitleSettings() : { ...DEFAULT_SETTINGS })
   const [controlsOpen, setControlsOpen] = useState(false)
   const [nicknameOpen, setNicknameOpen] = useState(false)
   const [nicknameInput, setNicknameInput] = useState('')
@@ -46,12 +47,12 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   useEffect(() => {
     // Appearance has its own confirmed cloud-save/rollback path.
     const { playerAppearance: _appearance, ...otherSettings } = settings
-    saveTitleSettings(otherSettings)
+    if (settingsOwnerUid && settingsOwnerUid === authUser?.uid) saveTitleSettings(otherSettings)
     applyReducedEffects(settings.reducedEffects)
     applyHitCameraShake(settings.hitCameraShake)
     applyScientificNotation(settings.scientificNotation)
     applyLanguage(settings.language)
-  }, [settings])
+  }, [authUser?.uid, settings, settingsOwnerUid])
 
   const toggleSetting = (key) => {
     setSettings((current) => {
@@ -65,6 +66,10 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
 
   const selectAppearance = async (playerAppearance) => {
     if (appearanceBusy || playerAppearance === (settings.playerAppearance ?? 'v9')) return
+    if (!settingsOwnerUid || settingsOwnerUid !== authUser?.uid) {
+      setAppearanceError(true)
+      return
+    }
     const previous = settings.playerAppearance
     const uid = getFirebaseProgressRuntimeSnapshot().uid
     setAppearanceBusy(true)

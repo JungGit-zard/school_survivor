@@ -29,6 +29,7 @@ const { deleteAccountAndData, reauthenticateForDeletion } = await import('../lib
 describe('LobbySettingsModal', () => {
   beforeEach(() => {
     _seedHydratedFirebaseProgressForTests()
+    useAuthStore.setState({ status: 'signedIn', user: { uid: 'test-user' }, progressStatus: 'ready' })
     vi.clearAllMocks()
     requestCloudProgressSave.mockResolvedValue(true)
     mockDeleteResult = { ok: true, ranking: {} }

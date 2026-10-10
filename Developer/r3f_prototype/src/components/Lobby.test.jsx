@@ -9,11 +9,14 @@ import { playSfx } from '../lib/sfxRegistry.js'
 import {
   _resetFirebaseProgressForTests,
   _seedHydratedFirebaseProgressForTests,
+  buildCloudProgressSnapshot,
+  getFirebaseProgressRuntimeSnapshot,
   updateFirebasePlayerProgress,
 } from '../lib/firebaseProgress.js'
 import { commitFirebaseStudioRuntime } from '../lib/studioRuntimeState.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
+import { saveTitleSettings } from '../lib/titleSettings.js'
 
 const stageBossPreviewRenderState = vi.hoisted(() => ({ count: 0 }))
 
@@ -117,6 +120,32 @@ describe('Lobby', () => {
     expect(onOpenCoinShop).toHaveBeenCalledTimes(1)
 
     vi.useRealTimers()
+    view.unmount()
+  })
+
+  it('opens settings for a guest without requiring or writing Firebase progress', () => {
+    _resetFirebaseProgressForTests()
+    useAuthStore.setState({ status: 'signedOut', user: null, progressStatus: 'idle' })
+    const before = getFirebaseProgressRuntimeSnapshot()
+    const view = renderLobby({})
+
+    act(() => {
+      view.container.querySelector('[aria-label="설정 열기"]').click()
+    })
+
+    expect(view.container.querySelector('[role="dialog"]')).not.toBeNull()
+    const oldAppearance = Array.from(view.container.querySelectorAll('button'))
+      .find((button) => button.textContent === '구')
+    act(() => oldAppearance.click())
+    expect(view.container.querySelector('[role="alert"]')?.textContent).toContain('저장')
+    expect(getFirebaseProgressRuntimeSnapshot()).toEqual(before)
+
+    const user = { uid: 'newly-signed-in-user' }
+    _seedHydratedFirebaseProgressForTests(user)
+    saveTitleSettings({ vibration: false, playerAppearance: 'legacy' })
+    const accountProgress = buildCloudProgressSnapshot().progress
+    act(() => useAuthStore.setState({ status: 'signedIn', user, progressStatus: 'ready' }))
+    expect(buildCloudProgressSnapshot().progress).toEqual(accountProgress)
     view.unmount()
   })
 
