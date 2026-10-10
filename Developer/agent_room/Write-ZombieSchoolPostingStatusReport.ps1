@@ -64,7 +64,7 @@ function Get-StatusSummary($Data) {
   $activeFailures=@(@($Data.nextRetries)+@($Data.queuedCycles)|Where-Object{$_.status -in @('retry_wait','failed','partial_failed','stopped_unsafe','stopped_cutoff')})
   $missedStarts=@($Data.warnings|Where-Object{$_ -like '예정시각경과·시작기록없음 *'})
   $parts=[System.Collections.Generic.List[string]]::new()
-  if($activeFailures.Count){$failure=$activeFailures[0];$reason=ConvertTo-OneLine ([string]$failure.failureReason) 70;$when='';if($failure.nextRetryUtc){try{$when=' 다음 재시도 '+[DateTimeOffset]::Parse([string]$failure.nextRetryUtc).ToOffset([TimeSpan]::FromHours(9)).ToString("HH:mm 'KST'")}catch{}};$parts.Add(("활성 실패 {0}: {1}.{2}" -f $failure.status,$reason,$when))}else{$parts.Add('활성 재시도 없음')}
+  if($activeFailures.Count){$failure=$activeFailures[0];$reason=ConvertTo-OneLine ([string]$failure.failureReason) 70;$when='';$failureNextRetryUtc=Get-ObjectValue $failure 'nextRetryUtc';if($failureNextRetryUtc){try{$when=' 다음 재시도 '+[DateTimeOffset]::Parse([string]$failureNextRetryUtc).ToOffset([TimeSpan]::FromHours(9)).ToString("HH:mm 'KST'")}catch{}};$parts.Add(("활성 실패 {0}: {1}.{2}" -f $failure.status,$reason,$when))}else{$parts.Add('활성 재시도 없음')}
   if($missedStarts.Count){$parts.Add((ConvertTo-OneLine ([string]$missedStarts[0]) 100))}
   $intentCount=@($Data.postingStates|Where-Object rawState -eq 'publish_intent').Count;$parts.Add("사용자 확인 대기 $intentCount")
   $next=@($Data.tasks|Where-Object{$_.enabled -and $_.state -ne 'Disabled' -and $_.taskName -notmatch '(?i)StatusReport' -and $_.nextRunTime}|Sort-Object nextRunTime|Select-Object -First 1)
@@ -72,6 +72,14 @@ function Get-StatusSummary($Data) {
   $disabled=@($Data.tasks|Where-Object{-not $_.enabled -or $_.state -eq 'Disabled'});if($disabled.Count){$parts.Add("꺼진 작업 $($disabled.Count): $((@($disabled|Select-Object -ExpandProperty taskName)-join ', '))")}
   if(@($Data.warnings).Count){$parts.Add("읽기 경고 $(@($Data.warnings).Count): $(ConvertTo-OneLine ([string]$Data.warnings[0]) 60)")}
   ConvertTo-OneLine ($parts -join ' · ') 240
+}
+
+function Get-NotificationGate($Data, [switch]$NoNotify) {
+  $activeFailures=@(@($Data.nextRetries)+@($Data.queuedCycles)|Where-Object{$_.status -in @('retry_wait','failed','partial_failed','stopped_unsafe')})
+  $cutoffFailures=@(@($Data.nextRetries)+@($Data.queuedCycles)|Where-Object{$_.status -eq 'stopped_cutoff' -and -not [string]::IsNullOrWhiteSpace([string]$_.failureReason) -and [string]$_.failureReason -notmatch '(?i)cutoff|자정|종료 시각|마감 시각'})
+  $hasFailure=($activeFailures.Count -gt 0 -or $cutoffFailures.Count -gt 0 -or @($Data.warnings).Count -gt 0)
+  $suppressionReason=if($NoNotify){'NoNotify'}elseif(-not $hasFailure){'no_active_failure'}else{''}
+  [pscustomobject]@{hasActiveFailure=[bool]$hasFailure;notify=([bool]$hasFailure -and -not $NoNotify);suppressionReason=$suppressionReason}
 }
 
 function Format-StatusReport($Data) {
@@ -312,7 +320,8 @@ if ($FixturePath) {
 }
 
 $report = Format-StatusReport $data
-if ($TestOnly) { Write-Output $report; exit 0 }
+$notificationGate=Get-NotificationGate $data -NoNotify:$NoNotify
+if ($TestOnly) { Write-Output $report; Write-Output ('STATUS_NOTIFICATION_GATE_JSON=' + ($notificationGate|ConvertTo-Json -Compress)); exit 0 }
 
 $outputDirectory = Join-Path $PSScriptRoot 'social_posting_status_reports'
 New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
@@ -321,11 +330,11 @@ $timestampPath = Join-Path $outputDirectory ((Get-KstNow).ToString('yyyyMMdd-HHm
 Set-Content -LiteralPath $latestPath -Value $report -Encoding UTF8
 Set-Content -LiteralPath $timestampPath -Value $report -Encoding UTF8
 $notificationSent = $false
-if (-not $NoNotify) {
+if ($notificationGate.notify) {
   $notificationSent = [bool](Show-StatusToast (Get-StatusSummary $data))
 }
 $orcaUpdated=$false;$orcaWorktreeId='';$orcaError=''
-if(-not $NoNotify){try{$orcaWorktreeId=Update-OrcaStatusComment $data $repoRoot;$orcaUpdated=$true}catch{$orcaError=ConvertTo-OneLine $_.Exception.Message 240}}
-$delivery=[pscustomobject]@{generatedAtKst=$data.generatedAtKst;notificationAttempted=(-not $NoNotify);notificationSent=$notificationSent;orcaCommentAttempted=(-not $NoNotify);orcaCommentUpdated=$orcaUpdated;orcaWorktreeId=$orcaWorktreeId;orcaUpdateError=$orcaError;summary=(Get-StatusSummary $data)}
+if($notificationGate.notify){try{$orcaWorktreeId=Update-OrcaStatusComment $data $repoRoot;$orcaUpdated=$true}catch{$orcaError=ConvertTo-OneLine $_.Exception.Message 240}}
+$delivery=[pscustomobject]@{generatedAtKst=$data.generatedAtKst;hasActiveFailure=$notificationGate.hasActiveFailure;suppressionReason=$notificationGate.suppressionReason;notificationAttempted=$notificationGate.notify;notificationSent=$notificationSent;orcaCommentAttempted=$notificationGate.notify;orcaCommentUpdated=$orcaUpdated;orcaWorktreeId=$orcaWorktreeId;orcaUpdateError=$orcaError;summary=(Get-StatusSummary $data)}
 $deliveryPath=Join-Path $outputDirectory 'latest.delivery.json';Set-Content -LiteralPath $deliveryPath -Value ($delivery|ConvertTo-Json -Depth 6) -Encoding UTF8
-Write-Output ([pscustomobject]@{ status='written'; latestPath=$latestPath; timestampPath=$timestampPath; deliveryPath=$deliveryPath; notificationSent=$notificationSent; orcaCommentUpdated=$orcaUpdated; orcaWorktreeId=$orcaWorktreeId; orcaUpdateError=$orcaError } | ConvertTo-Json -Compress)
+Write-Output ([pscustomobject]@{ status='written'; latestPath=$latestPath; timestampPath=$timestampPath; deliveryPath=$deliveryPath; hasActiveFailure=$notificationGate.hasActiveFailure;suppressionReason=$notificationGate.suppressionReason;notificationAttempted=$notificationGate.notify;notificationSent=$notificationSent;orcaCommentAttempted=$notificationGate.notify;orcaCommentUpdated=$orcaUpdated; orcaWorktreeId=$orcaWorktreeId; orcaUpdateError=$orcaError } | ConvertTo-Json -Compress)

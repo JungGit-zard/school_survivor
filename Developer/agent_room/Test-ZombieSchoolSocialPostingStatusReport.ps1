@@ -3,11 +3,12 @@ $scriptPath = Join-Path $PSScriptRoot 'Write-ZombieSchoolPostingStatusReport.ps1
 $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ('social-posting-status-fixture-' + [guid]::NewGuid().ToString('N'))
 $fixturePath = Join-Path $tempRoot 'fixture.json'
 function Assert-True($value,[string]$message){if(-not $value){throw "FAILED: $message"}}
+function Get-TestNotificationGate([string]$Output){$line=@($Output -split "`r?`n"|Where-Object{$_ -like 'STATUS_NOTIFICATION_GATE_JSON=*'}|Select-Object -Last 1);if(-not $line.Count){throw 'Notification gate result missing from TestOnly output'};ConvertFrom-Json ($line[0].Substring('STATUS_NOTIFICATION_GATE_JSON='.Length))}
 try {
   $today=([DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9))).ToString('yyyy-MM-dd')
   $agentRoom=Join-Path $tempRoot 'Developer/agent_room'
   $null=New-Item -ItemType Directory -Force -Path (Join-Path $agentRoom 'x_posting_receipts'),(Join-Path $agentRoom 'facebook_posting_receipts'),(Join-Path $agentRoom 'social_posting_scheduled_retries')
-  $todayQueue=[pscustomobject]@{cycles=@([pscustomobject]@{cycleId="$today-0600";status='submitted_with_unresolved_intents';attempts=1;lastError=$null})}
+  $todayQueue=[pscustomobject]@{cycles=@([pscustomobject]@{cycleId="$today-0600";status='submitted_with_unresolved_intents';attempts=1;lastError=$null},[pscustomobject]@{cycleId="$today-1100";status='failed';attempts=2;lastError='click_guard'},[pscustomobject]@{cycleId="$today-1700";status='partial_failed';attempts=2;lastError='partial'},[pscustomobject]@{cycleId="$today-2100";status='stopped_unsafe';attempts=1;lastError='wrong_account'})}
   $todayQueue|ConvertTo-Json -Depth 8|Set-Content -LiteralPath (Join-Path $agentRoom "social_posting_today_override_queue_$today.json") -Encoding UTF8
   '{malformed-queue'|Set-Content -LiteralPath (Join-Path $agentRoom 'social_posting_scheduled_queue.json') -Encoding UTF8
   [pscustomobject]@{cycles=@([pscustomobject]@{cycleId='WRONG_QUEUE_SHOULD_NOT_LOAD';status='retry_wait';attempts=9;lastError='wrong file'})}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath (Join-Path $agentRoom 'social_posting_queue.json') -Encoding UTF8
@@ -21,7 +22,7 @@ try {
     [pscustomobject]@{taskName='EscapeZombieSchool-SocialPostingToday-20261010-1427';taskPath='\';state='Ready';enabled=$true;lastTaskResult=1;lastRunTime='2026-10-10 11:00:00 KST';nextRunTime='2026-10-10 14:27:00 KST'}
   )
   [pscustomobject]@{repoRoot=$tempRoot;tasks=$tasks}|ConvertTo-Json -Depth 10|Set-Content -LiteralPath $fixturePath -Encoding UTF8
-  $output=(& $scriptPath -TestOnly -NoNotify -FixturePath $fixturePath|Out-String)
+  $output=(& $scriptPath -TestOnly -FixturePath $fixturePath|Out-String)
   Assert-True ($output.Contains('SOCIAL_POSTING_STATUS_REPORT_TEST_SENTINEL') -eq $false) 'fixture report completed'
   Assert-True ($output.Contains('미실행(실패 아님)') -and $output.Contains('오류 코드 1 (마지막 실행 2026-10-10 11:00:00 KST)')) 'task result interpretation includes last-run time and distinguishes not-run'
   Assert-True ($output.Contains('상태 Disabled; 사용 아니요')) 'disabled task state is reported explicitly'
@@ -32,6 +33,17 @@ try {
   Assert-True ($output.Contains('retry_wait') -and $output.Contains('focus_changed')) 'actual retry-wait state retains next retry time and reason'
   Assert-True ($output.Contains('활성 실패 retry_wait: focus_changed') -and $output.Contains('다음 재시도 12:20 KST') -and $output.Contains('다음 게시 2026-10-10 14:00:00 KST')) 'notification-ready summary carries failure reason, retry time, and next enabled posting time'
   Assert-True ($output.Contains('꺼진 작업 1: EscapeZombieSchool-SocialPostingFiveSlots-disabled') -and $output.Contains('영수증 JSON 파싱 실패') -and $output.Contains('대기열 JSON 파싱 실패')) 'summary includes disabled tasks and malformed receipt/queue JSON read warnings'
+  $failedGate=Get-TestNotificationGate $output
+  Assert-True ($failedGate.hasActiveFailure -and $failedGate.notify -and [string]::IsNullOrEmpty($failedGate.suppressionReason)) 'retry_wait, failed, partial_failed, stopped_unsafe, and real read failures allow failure-only notifications'
+  $noNotifyOutput=(& $scriptPath -TestOnly -NoNotify -FixturePath $fixturePath|Out-String);$noNotifyGate=Get-TestNotificationGate $noNotifyOutput
+  Assert-True ($noNotifyGate.hasActiveFailure -and -not $noNotifyGate.notify -and $noNotifyGate.suppressionReason -eq 'NoNotify') '-NoNotify suppresses both notification channels even when failure is active'
+  $quietRoot=Join-Path $tempRoot 'quiet-state';$quietRoom=Join-Path $quietRoot 'Developer/agent_room';$quietX=Join-Path $quietRoom 'x_posting_receipts';$quietFacebook=Join-Path $quietRoom 'facebook_posting_receipts';New-Item -ItemType Directory -Force -Path $quietX,$quietFacebook|Out-Null
+  $quietId="$today-0200";$quietReceipt=[pscustomobject]@{cycleId=$quietId;entries=[pscustomobject]@{ja=[pscustomobject]@{state='publish_intent';publishIntentUtc=[DateTimeOffset]::UtcNow.ToString('o')}}};$quietReceipt|ConvertTo-Json -Depth 8|Set-Content -LiteralPath (Join-Path $quietX "$quietId.json") -Encoding UTF8;$quietReceipt|ConvertTo-Json -Depth 8|Set-Content -LiteralPath (Join-Path $quietFacebook "$quietId.json") -Encoding UTF8
+  $quietAgentRoom=Join-Path $quietRoot 'Developer/agent_room';$quietQueue=[pscustomobject]@{cycles=@([pscustomobject]@{cycleId="$today-0600";status='submitted_with_unresolved_intents';attempts=1;lastError=$null},[pscustomobject]@{cycleId="$today-1100";status='running';attempts=1;lastError=$null},[pscustomobject]@{cycleId="$today-1700";status='stopped_cutoff';attempts=1;lastError='KST cutoff reached'})};$quietQueue|ConvertTo-Json -Depth 8|Set-Content -LiteralPath (Join-Path $quietAgentRoom 'social_posting_scheduled_queue.json') -Encoding UTF8
+  $quietProof=@([pscustomobject]@{name='future-slot';enabled=$true;state='Ready';next=([DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)).AddMinutes(15).ToString('o'));runId="$today-0600"});$quietProof|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $quietAgentRoom "social_posting_today_schedule_$($today.Replace('-','')).json") -Encoding UTF8
+  [pscustomobject]@{repoRoot=$quietRoot;tasks=$tasks}|ConvertTo-Json -Depth 10|Set-Content -LiteralPath $fixturePath -Encoding UTF8;$quietOutput=(& $scriptPath -TestOnly -FixturePath $fixturePath|Out-String);$quietGate=Get-TestNotificationGate $quietOutput
+  Assert-True ($quietOutput.Contains('게시 의도 기록·사용자 확인 대기') -and $quietOutput.Contains('submitted_with_unresolved_intents') -and $quietOutput.Contains('running')) 'quiet fixture includes intent-only, submitted, and transient running states'
+  Assert-True (-not $quietGate.hasActiveFailure -and -not $quietGate.notify -and $quietGate.suppressionReason -eq 'no_active_failure') 'publish intent, terminal submission, transient running, midnight cutoff alone, and old task result errors suppress notification'
   $nowKst=[DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9));$proofRoot=Join-Path $tempRoot 'future-proof';$proofRoom=Join-Path $proofRoot 'Developer/agent_room';New-Item -ItemType Directory -Force -Path $proofRoom|Out-Null
   $futureNext=$nowKst.AddMinutes(15).ToString('o');@([pscustomobject]@{name='today-override-future';enabled=$true;state='Ready';next=$futureNext;runId="$today-0600"})|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $proofRoom "social_posting_today_schedule_$($nowKst.ToString('yyyyMMdd')).json") -Encoding UTF8
   [pscustomobject]@{repoRoot=$proofRoot;tasks=$tasks}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath $fixturePath -Encoding UTF8;$futureOutput=(& $scriptPath -TestOnly -NoNotify -FixturePath $fixturePath|Out-String)

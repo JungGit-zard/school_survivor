@@ -28,11 +28,11 @@
 
 ## 30분 상황보고
 
-사용자 지시: 종료일 없이 30분마다 계속 보고한다. 보고는 게시 실행기와 분리하고 예약 상태·오늘 영수증·재시도 상태만 읽는다. 비밀번호/토큰을 읽거나 보고서에 포함하지 않는다.
+사용자 지시: 종료일 없이 30분마다 상태를 읽고 Markdown 보고서를 갱신한다. Windows toast와 Orca comment/unread 알림은 미해결 `retry_wait`/`failed`/`partial_failed`/`stopped_unsafe`, 실제 누락 시작, 또는 상태 읽기 오류가 있을 때만 전송한다. 정상·일시 `running`·`publish_intent` 사용자 확인 대기·terminal 제출·자정 cutoff 단독·과거 task 결과 오류만 있으면 알림하지 않는다. 보고는 게시 실행기와 분리하고 예약 상태·오늘 영수증·재시도 상태만 읽는다. 비밀번호/토큰을 읽거나 보고서에 포함하지 않는다.
 
 Orca 자동화 `bbecc7e3-1787-4ad3-a4e9-a5bd35b6fe79`의 첫 두 시험 실행은 Codex TUI 로그인 화면에서 `dispatch_failed`였다. 이 실패 경로는 아래 Windows 보고 예약으로 교체한 뒤 비활성화했다. 시험 중 만든 로그인 대기 터미널 2개만 닫았으며 다른 작업 세션은 건드리지 않았다.
 
-- 실행 프로그램: `Developer/agent_room/Write-ZombieSchoolPostingStatusReport.ps1`. 별도 AI 로그인 없이 상태를 읽어 보고서를 저장하고 Windows 알림을 요청한다.
+- 실행 프로그램: `Developer/agent_room/Write-ZombieSchoolPostingStatusReport.ps1`. 별도 AI 로그인 없이 매 실행마다 상태 보고서를 저장하며, 실패 조건이 충족될 때만 Windows 알림과 Orca comment/unread를 요청한다. 정상 실행에서 `latest.delivery.json`에는 `hasActiveFailure=false`, `suppressionReason=no_active_failure`, 두 알림 시도 값 `false`가 기록된다.
 - Windows task: `EscapeZombieSchool-SocialPostingStatusReport`. `PT30M` 반복, Duration/EndBoundary 없음, 활성화 상태. 숨김 PowerShell, 현재 사용자 대화형 실행, 깨우기/놓친 실행 재개, 겹침 방지, 5분 실행 제한을 적용했다.
 - 첫 실제 task 실행: 2026-10-10 12:00:07 KST, 종료 코드 0. `latest.md`가 12:00:09에 갱신됐다. 다음 예약은 12:30 KST이며 이후 매시 00/30분에 계속 실행한다.
 - 보고서: `Developer/agent_room/social_posting_status_reports/latest.md` 및 같은 폴더의 시각별 MD. Windows 알림 API 전송도 성공했다. 이 채팅에 자동 메시지가 도착한다는 뜻은 아니며 전달 표면은 Windows 알림과 저장 보고서다.

@@ -61,7 +61,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\포스팅\Get-ZombieSc
 
 ## 30분 운영 상태 보고
 
-`EscapeZombieSchool-SocialPostingStatusReport`는 종료 시각 없이 30분마다 receipt·예약·재시도 상태를 읽어 Markdown 보고서와 Windows 알림, Orca 현재 작업공간 comment/unread로 전달합니다. 게시 실행과 분리되어 있으며, `publish_intent`는 사용자 확인 대기로 기록하고 성공 검증으로 바꾸지 않습니다. 이 채팅에 자동 메시지가 전달되는 것은 보장되지 않습니다.
+`EscapeZombieSchool-SocialPostingStatusReport`는 종료 시각 없이 30분마다 receipt·예약·재시도 상태를 읽어 Markdown 보고서를 갱신합니다. 미해결 `retry_wait`/`failed`/`partial_failed`/`stopped_unsafe`, 실제 누락 시작, 또는 상태 읽기 오류가 있을 때만 Windows 알림과 Orca 현재 작업공간 comment/unread를 보냅니다. 정상·일시 `running`·`publish_intent` 사용자 확인 대기·terminal 제출·자정 cutoff 단독·과거 task 결과 오류만 있으면 알림하지 않습니다. 게시 실행과 분리되어 있으며, `publish_intent`는 성공 검증으로 바꾸지 않습니다. 이 채팅에 자동 메시지가 전달되는 것은 보장되지 않습니다.
 
 보고기·테스트·설치기는 `Developer/agent_room/`에 있습니다. 다른 PC에서는 저장소 루트에서 다음 명령을 실행해 해당 clone 경로에 예약을 설치합니다.
 
