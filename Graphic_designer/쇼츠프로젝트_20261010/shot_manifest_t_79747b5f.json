@@ -104,7 +104,7 @@
       "asset": "images/A01_뒤돌아보기.png",
       "editor_action_ko": "전진 줌과 추격감, 종이·빛줄기 미세 움직임. 자막: 학교가 좀비로 가득?!",
       "prompt_en": "Animate this vertical anime game promotional still while preserving the exact character design and composition. The pink-haired schoolgirl runs through a sunlit classroom and looks back over her shoulder as blocky green zombie students crowd behind her. Use a slow forward push-in with a slight handheld chase feeling. Add subtle movement only to loose papers, sunbeams, hair tips, skirt hem, and background zombie bobbing. Keep the girl’s red jacket, white shirt, yellow tie, blue skirt, blue backpack, red eyes, and short pink bob unchanged. Bright colorful Korean cartoon game style, exciting but not horror.",
-      "negative_prompt_en": "No gore, no scary realism, no new UI, no text, no logo, no extra protagonist, no change to the girl’s face, no change to the zombies into realistic monsters, no collapsing desks into chaos beyond the still, no extreme camera spin.\n\n---"
+      "negative_prompt_en": "No gore, no scary realism, no new UI, no text, no logo, no extra protagonist, no change to the girl’s face, no change to the zombies into realistic monsters, no collapsing desks into chaos beyond the still, no extreme camera spin."
     },
     {
       "shot_id": "A02",
@@ -115,7 +115,7 @@
       "asset": "images/A02_연필투척.png",
       "editor_action_ko": "연필 방향 푸시 인, 속도선. 연필 형태 고정. 자막: 연필로 반격!",
       "prompt_en": "Animate this still as a dynamic pencil-throw moment. Preserve the exact source composition: a huge yellow pencil crosses the foreground toward the viewer, the pink-haired schoolgirl stands in the classroom, and blocky green zombie students are behind her. Add a fast but clean camera push following the pencil tip, with bright speed lines and a small impact anticipation shimmer. Keep the pencil clearly shaped like a school pencil, not a weapon blade. Maintain the protagonist’s outfit, face, hair, backpack, and anime game art style.",
-      "negative_prompt_en": "No pencil morphing into a spear, bullet, sword, or missile; no fake gameplay HUD; no text; no new characters; no warped pencil tip; no changed costume; no gore; no realistic horror lighting.\n\n---"
+      "negative_prompt_en": "No pencil morphing into a spear, bullet, sword, or missile; no fake gameplay HUD; no text; no new characters; no warped pencil tip; no changed costume; no gore; no realistic horror lighting."
     },
     {
       "shot_id": "G01",
@@ -124,7 +124,11 @@
       "duration_seconds": 2.0,
       "source_type": "REAL_GAMEPLAY_CAPTURE",
       "asset": "footage/G01",
-      "capture_instruction_ko": "실제 게임에서 연필 발사→명중→히트 피드백을 2초 안에 캡처."
+      "capture_instruction_ko": "목표: 연필 투척이 적에게 명중하는 순간. 촬영: Stage 1 교실/초반 구간에서 적 1~3마리가 보이도록 하고, 연필 발사→명중→히트 피드백까지 2초 안에 담는다. 편집: A02 연필 방향과 맞춰 컷 인. 타격음 1개. 실패 기준: 연필이 안 보이거나 명중이 불명확하면 재촬영.",
+      "capture_goal_ko": "연필 투척이 적에게 명중하는 순간.",
+      "capture_framing_ko": "Stage 1 교실/초반 구간에서 적 1~3마리가 보이도록 하고, 연필 발사→명중→히트 피드백까지 2초 안에 담는다.",
+      "capture_edit_ko": "A02 연필 방향과 맞춰 컷 인. 타격음 1개.",
+      "capture_failure_ko": "연필이 안 보이거나 명중이 불명확하면 재촬영."
     },
     {
       "shot_id": "A03",
@@ -135,7 +139,7 @@
       "asset": "images/A03_자공격.png",
       "editor_action_ko": "좌→우 패닝, 노란 궤적. 30cm 자가 칼처럼 보이지 않게 유지.",
       "prompt_en": "Animate this still as a ruler swing action beat. Preserve the visible classroom-like environment with windows, desks, the pink-haired schoolgirl, the transparent yellow 30cm ruler, and blocky green zombie students. Add a short left-to-right camera pan following the ruler arc, with sparkling yellow impact stars and a clean cartoon motion trail. The ruler must remain a transparent measuring ruler with visible markings. Keep the action playful and school-themed, not violent.",
-      "negative_prompt_en": "No ruler turning into a knife, sword, metal blade, or weapon; no blood; no gore; no fake UI; no text; no costume change; no deformed hands; no extra ruler; no excessive blur hiding the ruler shape.\n\n---"
+      "negative_prompt_en": "No ruler turning into a knife, sword, metal blade, or weapon; no blood; no gore; no fake UI; no text; no costume change; no deformed hands; no extra ruler; no excessive blur hiding the ruler shape."
     },
     {
       "shot_id": "G02",
@@ -144,7 +148,11 @@
       "duration_seconds": 3.0,
       "source_type": "REAL_GAMEPLAY_CAPTURE",
       "asset": "footage/G02",
-      "capture_instruction_ko": "실제 게임에서 자·텀블러·플라스크 중 확인 가능한 무기 효과 2~3개를 캡처."
+      "capture_instruction_ko": "목표: 30cm 자, 텀블러, 플라스크 중 실제 확인 가능한 무기 효과를 2~3개 빠르게 보여 준다. 촬영: 같은 플레이 세션에서 적이 충분히 모인 상태. 각 무기 효과가 화면 중앙 근처에서 발생하도록 이동. 편집: 3초 안에 0.7~1.0초 단위로 컷 분할 가능. 실패 기준: 무기 종류가 화면에서 구분되지 않으면 자막으로 과장 설명하지 말고 더 명확한 캡처를 사용.",
+      "capture_goal_ko": "30cm 자, 텀블러, 플라스크 중 실제 확인 가능한 무기 효과를 2~3개 빠르게 보여 준다.",
+      "capture_framing_ko": "같은 플레이 세션에서 적이 충분히 모인 상태. 각 무기 효과가 화면 중앙 근처에서 발생하도록 이동.",
+      "capture_edit_ko": "3초 안에 0.7~1.0초 단위로 컷 분할 가능.",
+      "capture_failure_ko": "무기 종류가 화면에서 구분되지 않으면 자막으로 과장 설명하지 말고 더 명확한 캡처를 사용."
     },
     {
       "shot_id": "A04",
@@ -155,7 +163,7 @@
       "asset": "images/A04_치비코지원.png",
       "editor_action_ko": "분홍 별·토끼 파티클 반짝임. 자막: 지원 등장!",
       "prompt_en": "Animate this still as a cheerful support magic moment. Preserve the visible scene: a small pink twin-tail companion floats near the protagonist in a classroom, with pink stars, bunny-shaped effects, papers, and blocky green zombie students around them. Add gentle upward floating motion for the companion, twinkling pink particles, and a soft burst of bunny/star light. Keep both characters’ faces, hairstyles, proportions, and costumes stable. Bright playful cooperative anime game mood.",
-      "negative_prompt_en": "No companion identity drift, no changing twin tails, no extra mascot, no text, no logo, no fake gameplay UI, no realistic magic smoke, no horror, no distorted face or hands, no replacing zombies with different monsters.\n\n---"
+      "negative_prompt_en": "No companion identity drift, no changing twin tails, no extra mascot, no text, no logo, no fake gameplay UI, no realistic magic smoke, no horror, no distorted face or hands, no replacing zombies with different monsters."
     },
     {
       "shot_id": "G03",
@@ -164,7 +172,11 @@
       "duration_seconds": 0.5,
       "source_type": "REAL_GAMEPLAY_CAPTURE",
       "asset": "footage/G03",
-      "capture_instruction_ko": "실제 게임에서 치비코 관련 효과가 확인되는 순간만 0.5초 사용."
+      "capture_instruction_ko": "목표: 치비코 관련 실제 런타임 효과를 0.5초로 짧게 확인. 촬영: 캐릭터/효과가 실제 게임에서 활성화된 상태만 사용. 편집: A04의 분홍 효과에서 실제 화면으로 매치 컷. 실패 기준: 현재 게임에서 치비코 효과를 재현할 수 없으면 빈 합성 금지.",
+      "capture_goal_ko": "치비코 관련 실제 런타임 효과를 0.5초로 짧게 확인.",
+      "capture_framing_ko": "캐릭터/효과가 실제 게임에서 활성화된 상태만 사용.",
+      "capture_edit_ko": "A04의 분홍 효과에서 실제 화면으로 매치 컷.",
+      "capture_failure_ko": "현재 게임에서 치비코 효과를 재현할 수 없으면 빈 합성 금지."
     },
     {
       "shot_id": "A05",
@@ -175,7 +187,7 @@
       "asset": "images/A05_하나코회복.png",
       "editor_action_ko": "손 맞닿는 방향의 부드러운 줌, 하트 오라 펄스. 자막: 하트 회복!",
       "prompt_en": "Animate this still as a warm healing support moment. Preserve the visible composition: a dark-haired girl companion in a glowing pink-purple heart aura reaches down to the seated pink-haired protagonist in a school corridor, with blocky green zombie students in the background. Add a slow soft zoom toward their joined hands, pulsing heart light, small floating hearts, and gentle rim light. Keep the scene kind, friendly, and non-horror. Maintain all character faces, hair, clothing, and hand positions.",
-      "negative_prompt_en": "No romantic exaggeration, no new text, no logo, no fake HUD, no warped fingers, no face melting, no costume changes, no realistic horror zombies, no blood, no aggressive attack motion.\n\n---"
+      "negative_prompt_en": "No romantic exaggeration, no new text, no logo, no fake HUD, no warped fingers, no face melting, no costume changes, no realistic horror zombies, no blood, no aggressive attack motion."
     },
     {
       "shot_id": "G04",
@@ -184,7 +196,11 @@
       "duration_seconds": 0.5,
       "source_type": "REAL_GAMEPLAY_CAPTURE",
       "asset": "footage/G04",
-      "capture_instruction_ko": "실제 게임에서 하나코 회복/지원 효과가 확인되는 순간만 사용."
+      "capture_instruction_ko": "목표: 하나코 관련 실제 회복/지원 효과를 0.5초로 확인. 촬영: 실제 HUD/효과가 확인되는 순간만 사용. 편집: A05의 하트/회복 색감에서 실제 화면으로 컷. 실패 기준: 회복 효과가 보이지 않으면 다른 실제 지원 효과로 대체 여부를 Advisor에게 보고.",
+      "capture_goal_ko": "하나코 관련 실제 회복/지원 효과를 0.5초로 확인.",
+      "capture_framing_ko": "실제 HUD/효과가 확인되는 순간만 사용.",
+      "capture_edit_ko": "A05의 하트/회복 색감에서 실제 화면으로 컷.",
+      "capture_failure_ko": "회복 효과가 보이지 않으면 다른 실제 지원 효과로 대체 여부를 Advisor에게 보고."
     },
     {
       "shot_id": "A06",
@@ -195,7 +211,7 @@
       "asset": "images/A06_이누콘구조.png",
       "editor_action_ko": "복도 전진감, 종이·귀·털 미세 움직임. 자막: 출구까지 달려!",
       "prompt_en": "Animate this still as a rescue sprint through a bright school corridor. Preserve the visible corgi-like dog with a medallion running beside the pink-haired protagonist, papers flying, blue speed streaks, windows, and blocky green zombie students behind them. Add forward running energy with a mild camera pull-back, light ear and fur motion on the dog, fluttering papers, and subtle speed lines. Keep the dog cute and consistent, and keep the protagonist’s exact outfit and face.",
-      "negative_prompt_en": "No dog changing breed, no extra animals, no fake UI, no text, no logo, no stretched legs, no deformed paws, no costume change, no violent bite, no gore, no extreme motion blur.\n\n---"
+      "negative_prompt_en": "No dog changing breed, no extra animals, no fake UI, no text, no logo, no stretched legs, no deformed paws, no costume change, no violent bite, no gore, no extreme motion blur."
     },
     {
       "shot_id": "G05",
@@ -204,7 +220,11 @@
       "duration_seconds": 0.5,
       "source_type": "REAL_GAMEPLAY_CAPTURE",
       "asset": "footage/G05",
-      "capture_instruction_ko": "실제 게임에서 이누콘 효과 또는 이누콘 표시가 명확한 순간만 사용."
+      "capture_instruction_ko": "목표: 이누콘 관련 실제 런타임 효과를 0.5초로 확인. 촬영: 이누콘이 실제로 보이거나 효과가 명확한 상태만 사용. 편집: A06의 도주 방향과 같은 화면 이동감 유지. 실패 기준: 강아지/효과를 실제로 확인할 수 없으면 생성 이미지로 대체하지 않음.",
+      "capture_goal_ko": "이누콘 관련 실제 런타임 효과를 0.5초로 확인.",
+      "capture_framing_ko": "이누콘이 실제로 보이거나 효과가 명확한 상태만 사용.",
+      "capture_edit_ko": "A06의 도주 방향과 같은 화면 이동감 유지.",
+      "capture_failure_ko": "강아지/효과를 실제로 확인할 수 없으면 생성 이미지로 대체하지 않음."
     },
     {
       "shot_id": "A07",
@@ -215,7 +235,7 @@
       "asset": "images/A07_B01보스.png",
       "editor_action_ko": "낮은 시점 느린 줌, 보라 에너지 펄스. 자막: 보스 등장!",
       "prompt_en": "Animate this still as a boss reveal. Preserve the visible composition: a giant blocky green school-uniform zombie boss with glasses dominates the classroom, while the small pink-haired protagonist faces it from below holding a ruler. Use a low-angle slow push-in toward the boss, with pulsing purple energy and slight dust/debris movement. Keep the boss blocky, cartoonish, and school-themed; keep the protagonist small but readable. Suspenseful, not gory.",
-      "negative_prompt_en": "No gore, no realistic monster face, no blood, no changing the boss into a different creature, no removing glasses, no fake gameplay UI, no text, no logo, no protagonist face close-up replacement, no ruler becoming a sword.\n\n---"
+      "negative_prompt_en": "No gore, no realistic monster face, no blood, no changing the boss into a different creature, no removing glasses, no fake gameplay UI, no text, no logo, no protagonist face close-up replacement, no ruler becoming a sword."
     },
     {
       "shot_id": "G06",
@@ -224,7 +244,11 @@
       "duration_seconds": 3.0,
       "source_type": "REAL_GAMEPLAY_CAPTURE",
       "asset": "footage/G06",
-      "capture_instruction_ko": "실제 B01 또는 현재 실제 보스전에서 회피·공격·위기 장면을 3초로 캡처."
+      "capture_instruction_ko": "목표: B01 또는 현재 실제 보스전에서 회피·공격·위기감을 3초로 보여 준다. 촬영: 보스가 화면에서 크게 보이고, 플레이어와 위험 패턴이 함께 보이는 구간. 편집: 1초 이하 컷 2~3개로 압축 가능. 과도한 확대는 실제 UI 판독성을 해치면 금지. 실패 기준: 보스가 확인되지 않는 일반 전투 컷은 사용하지 않음.",
+      "capture_goal_ko": "B01 또는 현재 실제 보스전에서 회피·공격·위기감을 3초로 보여 준다.",
+      "capture_framing_ko": "보스가 화면에서 크게 보이고, 플레이어와 위험 패턴이 함께 보이는 구간.",
+      "capture_edit_ko": "1초 이하 컷 2~3개로 압축 가능. 과도한 확대는 실제 UI 판독성을 해치면 금지.",
+      "capture_failure_ko": "보스가 확인되지 않는 일반 전투 컷은 사용하지 않음."
     },
     {
       "shot_id": "A08",
@@ -235,7 +259,7 @@
       "asset": "images/A08_탈출질주.png",
       "editor_action_ko": "후진 트래킹 느낌, 포탈 빛과 노을 반짝임. 자막: 친구들과 함께 탈출!",
       "prompt_en": "Animate this still as a triumphant escape run. Preserve the visible school gate at sunset, the pink-haired protagonist running with three smiling friends, and the bright portal-like rainbow light at the side. Add a gentle backward tracking camera as the group runs forward, warm sunset shimmer, hair and clothes flutter, and sparkling portal light. Keep the characters joyful and consistent, with no new people added. Victory, friendship, colorful anime game promotion.",
-      "negative_prompt_en": "No text, no logo, no fake UI, no extra characters, no changing friend faces, no warped legs or hands, no dark horror tone, no portal swallowing characters, no photorealistic style.\n\n---"
+      "negative_prompt_en": "No text, no logo, no fake UI, no extra characters, no changing friend faces, no warped legs or hands, no dark horror tone, no portal swallowing characters, no photorealistic style."
     },
     {
       "shot_id": "G07",
@@ -244,7 +268,11 @@
       "duration_seconds": 2.0,
       "source_type": "REAL_GAMEPLAY_CAPTURE",
       "asset": "footage/G07",
-      "capture_instruction_ko": "실제 게임의 포탈 접근·진입 또는 탈출/클리어 장면을 캡처."
+      "capture_instruction_ko": "목표: 포탈 접근·진입 또는 실제 클리어/탈출에 해당하는 런타임 장면. 촬영: 포탈/탈출 오브젝트와 플레이어 이동이 함께 보이는 구간. 편집: A08 포탈 색감에서 실제 포탈로 연결하고, E01 엔드카드로 밝기 매치. 실패 기준: 실제 포탈이 없는 상태에서 포탈을 합성하지 않음.",
+      "capture_goal_ko": "포탈 접근·진입 또는 실제 클리어/탈출에 해당하는 런타임 장면.",
+      "capture_framing_ko": "포탈/탈출 오브젝트와 플레이어 이동이 함께 보이는 구간.",
+      "capture_edit_ko": "A08 포탈 색감에서 실제 포탈로 연결하고, E01 엔드카드로 밝기 매치.",
+      "capture_failure_ko": "실제 포탈이 없는 상태에서 포탈을 합성하지 않음."
     },
     {
       "shot_id": "E01",

@@ -26,5 +26,6 @@
 4. `editor_instructions_ko_t_79747b5f.md` — 편집자가 그대로 따라 할 수 있는 한국어 작업 순서.
 5. `audio_cues.md` — 0–30초 음악·효과음·믹스 제안.
 6. `preview.html` — 장면 이미지 9장을 브라우저에서 한눈에 보는 미리보기.
+7. `storyboard_full.html` — 0–30초 16샷 전체를 시간순으로 보여 주는 독립 실행형 HTML 제작 시트. Windows Explorer에서 직접 열 수 있으며, A/E 샷의 I2V 프롬프트 복사 버튼과 G01–G07 실제 게임 캡처 placeholder 지시를 포함합니다.
 
 영상 생성 도구에는 각 `images/` 파일을 해당 ID의 입력 이미지로 넣고, JSON의 `prompt_en` 및 `global_negative_prompt_en` + `negative_prompt_en`을 사용합니다. G01–G07은 실제 게임 캡처가 들어오기 전까지 미완성 슬롯입니다. 따라서 이 패키지는 **생성·편집 지시와 일러스트 원본**을 갖췄지만 완성 MP4는 아닙니다.
