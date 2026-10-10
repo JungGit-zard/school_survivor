@@ -1,0 +1,66 @@
+﻿{
+    "schema":  1,
+    "platform":  "facebook",
+    "runId":  "2026-10-10-0600",
+    "status":  "incomplete",
+    "targetProfileUrl":  "https://www.facebook.com/hyunuk.jung.56/",
+    "author":  "Hyun Uk Jung",
+    "profileId":  "100006315245185",
+    "audience":  "Friends",
+    "sourceConfig":  "marketing/x_daily_zombie_school_posting/posting_config.json",
+    "createdUtc":  "2026-10-10T11:20:16.4673616+00:00",
+    "entries":  {
+                    "ja":  {
+                               "state":  "publish_intent",
+                               "intent":  {
+                                              "language":  "ja",
+                                              "variantId":  "escape",
+                                              "text":  "放課後なのに、帰り道はゾンビだらけ！夕焼けの向こうへ、生きて帰ろう。無料・広告なし。\nゲーム開始 -\u003e\nhttps://escapezombie.com\nGoogle Play ストア -\u003e\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#ゾンビ学校",
+                                              "textSha256":  "e0d99e237aa642f47ac0f176f798f249d297e1bee7b0c90cf7d5889c3c985a65",
+                                              "imagePath":  "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ja\\marketing_social_30_20261004\\04_b02_teacher.png",
+                                              "attachmentCount":  1
+                                          },
+                               "evidence":  null,
+                               "publishIntentUtc":  "2026-10-10T11:23:27.6307571+00:00"
+                           },
+                    "en":  {
+                               "state":  "publish_intent",
+                               "intent":  {
+                                              "language":  "en",
+                                              "variantId":  "escape",
+                                              "text":  "School\u0027s out. The zombies aren\u0027t. Make your after-school escape before they catch up! Play free. No ads.\nStart game -\u003e\nhttps://escapezombie.com\nGoogle Play Store -\u003e\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#EscapeZombieSchool",
+                                              "textSha256":  "a464fd4c92b1f896beb1efd3f1e6fbffc3a440833562d1e36609dfc67916316d",
+                                              "imagePath":  "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\en\\marketing_social_30_20261004\\04_b02_teacher.png",
+                                              "attachmentCount":  1
+                                          },
+                               "evidence":  null,
+                               "publishIntentUtc":  "2026-10-10T11:24:58.0395236+00:00"
+                           },
+                    "vi":  {
+                               "state":  "publish_intent",
+                               "intent":  {
+                                              "language":  "vi",
+                                              "variantId":  "escape",
+                                              "text":  "Tan học rồi, nhưng zombie chưa chịu về! Bạn có tìm được lối thoát dưới ánh hoàng hôn? Miễn phí, không quảng cáo!\nBắt đầu trò chơi -\u003e\nhttps://escapezombie.com\nCửa hàng Google Play -\u003e\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#TruongHocZombie",
+                                              "textSha256":  "c7c8a94e5f84f4a896cf19f55754a60b9af8ac66b96039bee6525e44d83d1f4c",
+                                              "imagePath":  "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\vi\\marketing_social_30_20261004\\04_b02_teacher.png",
+                                              "attachmentCount":  1
+                                          },
+                               "evidence":  null,
+                               "publishIntentUtc":  "2026-10-10T11:26:08.1634311+00:00"
+                           },
+                    "ko":  {
+                               "state":  "publish_intent",
+                               "intent":  {
+                                              "language":  "ko",
+                                              "variantId":  "escape",
+                                              "text":  "학교에 갇혔다면, 5분만 살아남아라. 탈출!좀비학교에서 좀비로 가득한 교실을 뚫고 탈출하세요!\n게임시작 -\u003e\nhttps://escapezombie.com\n구글플레이스토어 -\u003e\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교",
+                                              "textSha256":  "8c899b313be4e4c224ffb463445afa53a4134a5e98f488c46a029aa3611a0bb8",
+                                              "imagePath":  "F:\\From_SSD_D_20261005\\JungSil\\2.Minigame_project\\school_survivor-integration\\marketing\\x_daily_zombie_school_posting\\image_pool\\facebook\\ko\\marketing_social_30_20261004\\04_b02_teacher.png",
+                                              "attachmentCount":  1
+                                          },
+                               "evidence":  null,
+                               "publishIntentUtc":  "2026-10-10T11:26:58.9555695+00:00"
+                           }
+                }
+}

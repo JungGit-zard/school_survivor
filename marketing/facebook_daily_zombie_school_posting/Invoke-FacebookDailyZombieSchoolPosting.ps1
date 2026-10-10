@@ -7,10 +7,11 @@ param(
   [string]$StopAtKst = '',
   [string]$VariantId = '', [long]$WindowId = 0,
   [string]$ObservedText, [int]$ObservedAttachmentCount = -1, [string]$ObservedAudience,
-  [string]$Permalink, [switch]$AuthorizePublish, [switch]$NativeChooserAlreadyOpen, [string]$OrcaAppId, [switch]$IncludeTree
+  [string]$Permalink, [switch]$AuthorizePublish, [switch]$NativeChooserAlreadyOpen, [string]$OrcaAppId, [switch]$IncludeTree, [switch]$ForceReload
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if ($ForceReload -and $Action -ne 'OpenProfile') { throw '-ForceReload is supported only with -Action OpenProfile.' }
 . (Join-Path $PSScriptRoot 'FacebookPosting.ps1')
 . (Join-Path $PSScriptRoot 'FacebookTree.ps1')
 . (Join-Path $PSScriptRoot 'FacebookNative.ps1')
@@ -53,7 +54,7 @@ switch ($Action) {
     [pscustomobject]@{status='selected';runId=$RunId;language=$Language;receiptPath=$path;uiTouched=$false} | ConvertTo-Json; exit 0
   }
   'DiscoverWindow' { $w=if($WindowId){Get-FacebookChromeWindow $WindowId}else{Get-FacebookChromeWindowForDiscovery}; [pscustomobject]@{windowId=$w.Current.NativeWindowHandle;processId=$w.Current.ProcessId;title=$w.Current.Name}|ConvertTo-Json;exit 0 }
-  'OpenProfile' { Open-FacebookProfileNative $WindowId|ConvertTo-Json;exit 0 }
+  'OpenProfile' { Open-FacebookProfileNative $WindowId -ForceReload:$ForceReload|ConvertTo-Json;exit 0 }
   'OpenProfileNewTab' { Open-FacebookProfileNewTabNative $WindowId|ConvertTo-Json;exit 0 }
   'CloseDuplicateProfileTab' { Close-FacebookDuplicateProfileTabNative $WindowId|ConvertTo-Json -Depth 5;exit 0 }
   'RecoverStorageWarning' { $w=Get-FacebookChromeWindow $WindowId;Close-FacebookChromeStorageWarningIfPresent $w|ConvertTo-Json;exit 0 }

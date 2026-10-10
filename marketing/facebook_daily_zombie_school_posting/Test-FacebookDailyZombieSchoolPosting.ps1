@@ -18,6 +18,7 @@ $foreignLocaleCandidate=[string](Get-PostingLocaleImageCandidates $config en | S
 $foreignLocaleIntent=[pscustomobject]@{language='ja';variantId=$selectedPoolPair.variantId;text=$selectedPoolPair.text;textSha256=$selectedPoolPair.textSha256;imagePath=$foreignFacebookPath;attachmentCount=1}
 Assert-True (-not (Test-FacebookCanonicalIntent $config $foreignLocaleIntent)) 'selected-pool receipt rejects an image mapped to another locale'
 $wrapperSource=Get-Content -LiteralPath $invoke -Raw -Encoding UTF8
+Assert-True ($wrapperSource -match '\[switch\]\$ForceReload' -and $wrapperSource -match 'if \(\$ForceReload -and \$Action -ne ''OpenProfile''\)' -and $wrapperSource -match 'Open-FacebookProfileNative \$WindowId -ForceReload:\$ForceReload') 'ForceReload is routed only through OpenProfile and remains guarded for every other wrapper action'
 Assert-True ($wrapperSource -match 'Get-FacebookPairFromSelectedVariant \$config \$Language \$selectedVariant') 'SelectSourcePair passes the selected variant image path into Facebook image mapping'
 foreach($lang in $script:FacebookLanguages){foreach($bossId in @('boss-b01','boss-b02','boss-b03','boss-b04','boss-all')){ $failed=$false;try{$null=Get-FacebookPair $config $lang $bossId}catch{$failed=$true};Assert-True $failed "$lang/$bossId shared reference is not a new localized Facebook pair" }}
 $legacyBossPath=[IO.Path]::GetFullPath((Join-Path (Split-Path $script:FacebookImageRoot -Parent) 'boss_series\boss_b03_promotional.png'))
