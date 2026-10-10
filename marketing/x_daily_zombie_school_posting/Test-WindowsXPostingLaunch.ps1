@@ -26,6 +26,13 @@ Assert-True ($source.Contains('Get-XWindowElement') -and $source.Contains('Targe
 Assert-True ($source.Contains('Security challenge') -and $source.Contains('verify you are human')) 'stops on security challenges'
 Assert-True ($source.Contains('Unexpected account in active Account menu')) 'stops on a wrong signed-in account'
 Assert-True ($source.Contains('function Restore-XAccountSession') -and $source.Contains('Set-XLoginField') -and $source.Contains('Test-XSecurityChallengeVisible')) 'credential recovery is restricted to visible X username/password fields and stops on security challenges'
+$restoreBody=[regex]::Match($source,'function Restore-XAccountSession[\s\S]*?\r?\n}\r?\nfunction Assert-XAccount').Value
+$challengeGuard=$restoreBody.IndexOf('if (Test-XSecurityChallengeVisible) { throw')
+$vaultRead=$restoreBody.IndexOf("XCredentialVault.ps1")
+Assert-True ($challengeGuard -ge 0 -and $vaultRead -gt $challengeGuard) 'security challenge is checked before reading credentials or entering login fields'
+$publishRunnerPath=Join-Path $PSScriptRoot 'Invoke-XDailyZombieSchoolPosting.ps1';$publishRunnerSource=Get-Content -LiteralPath $publishRunnerPath -Raw -Encoding UTF8
+$publishClick=$publishRunnerSource.IndexOf('Publish-XPost -Text $text');$lastCutoffCheck=$publishRunnerSource.LastIndexOf('Assert-XBeforePublishCutoff $StopAtKst',$publishClick)
+Assert-True ($publishRunnerSource.Contains('[string]$StopAtKst') -and $lastCutoffCheck -ge 0) 'X PublishOnly accepts the same-day cutoff and checks it immediately before the post click'
 $vaultPath = Join-Path $PSScriptRoot 'XCredentialVault.ps1'
 $vaultSource = Get-Content -LiteralPath $vaultPath -Raw -Encoding UTF8
 Assert-True ($vaultSource.Contains("'EscapeZombieSchool-XPosting'") -and $vaultSource.Contains('CredReadW') -and $vaultSource.Contains('CredFree')) 'reads one named Windows Credential Manager entry at runtime and frees the native credential'

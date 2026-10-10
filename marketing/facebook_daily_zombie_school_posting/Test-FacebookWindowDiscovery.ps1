@@ -9,10 +9,17 @@ $unrelated=@((New-TestWindow 1 @('X')),(New-TestWindow 2 @('Google Search')),(Ne
 $oneFacebook=@($unrelated+(New-TestWindow 4 @('(2) Facebook')))
 Assert-True ((Resolve-FacebookWindowDescriptor $oneFacebook 0).windowId -eq 4) 'three unrelated Chrome windows plus one Facebook tab resolves only Facebook'
 Assert-True (Test-FacebookTabName 'Hyun Uk Jung | Facebook') 'Facebook profile-title tab is recognized'
+Assert-True (Test-FacebookTabName '정즴 (@hyunuk.jung.56) • Facebook') 'localized Chrome Facebook profile-title tab is recognized'
+Assert-True ((Resolve-FacebookDiscoveryPlan @((New-TestWindow 9 @('New Tab')))).openProfileNewTab) 'one Chrome window without a Facebook tab is selected for guarded profile-tab opening'
+Assert-Throws { Resolve-FacebookDiscoveryPlan @((New-TestWindow 9 @('New Tab')),(New-TestWindow 10 @('Google Search'))) } 'no Facebook tab across multiple Chrome windows refuses window guessing'
 Assert-Throws { Resolve-FacebookWindowDescriptor $unrelated 0 } 'no Facebook candidate stops clearly'
 Assert-Throws { Resolve-FacebookWindowDescriptor @((New-TestWindow 4 @('Facebook')),(New-TestWindow 5 @('Other | Facebook'))) 0 } 'two Facebook candidates stop without choosing an account'
 Assert-Throws { Resolve-FacebookWindowDescriptor $oneFacebook 99 } 'invalid explicit HWND is rejected'
 $nativeSource=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'FacebookNative.ps1') -Raw -Encoding UTF8
+$invokeSource=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'Invoke-FacebookDailyZombieSchoolPosting.ps1') -Raw -Encoding UTF8
+Assert-True ($invokeSource.Contains("'DiscoverWindow'") -and $invokeSource.Contains('Get-FacebookChromeWindowForDiscovery')) 'scheduled discovery opens a profile tab only through the strict no-tab single-window resolver'
+Assert-True ($invokeSource -match '\$readOnlyActions=@\([^\r\n]*\)' -and $invokeSource -notmatch '\$readOnlyActions=@\([^\r\n]*DiscoverWindow') 'Facebook discovery that can open a tab is protected by the profile mutex'
+Assert-True ($nativeSource -match 'function Get-FacebookChromeWindowForDiscovery' -and $nativeSource -match 'Open-FacebookProfileNewTabNative \$plan.windowId' -and $nativeSource -match 'multiple Chrome windows are present; refusing to guess') 'zero-tab fallback opens in the sole Chrome window and keeps ambiguous multi-window discovery blocked'
 Assert-True ($nativeSource -match "LocalizedControlType -match 'heading" -and $nativeSource -match '\$token -in @\(''edit'',''link''\)') 'native fallback preserves headings outside post text and limits Value serialization to parser-relevant controls'
 Assert-True ($nativeSource -match "source='native_uia'" -and $nativeSource -match 'Get-FacebookNativeTree \$window' -and $nativeSource -match 'Supplied Facebook PID does not own') 'native UIA tree is primary and revalidates exact PID/window scope'
 Assert-True ($nativeSource -match 'AutomationId -eq .1.' -and $nativeSource -match 'Invoke-FacebookNativeOpenButton') 'native chooser fallback requires one AutomationId 1 Open button with InvokePattern'

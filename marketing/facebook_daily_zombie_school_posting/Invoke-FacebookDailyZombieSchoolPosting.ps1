@@ -4,6 +4,7 @@ param(
   [Parameter(Mandatory=$true)][string]$RunId,
   [ValidateSet('ja','en','vi','ko')][string]$Language,
   [string]$ReceiptDirectory,
+  [string]$StopAtKst = '',
   [string]$VariantId = '', [long]$WindowId = 0,
   [string]$ObservedText, [int]$ObservedAttachmentCount = -1, [string]$ObservedAudience,
   [string]$Permalink, [switch]$AuthorizePublish, [switch]$NativeChooserAlreadyOpen, [string]$OrcaAppId, [switch]$IncludeTree
@@ -18,7 +19,7 @@ Assert-FacebookRunId $RunId
 if (($Action -notin @('FullCycleResumeSafe','ProfileReadinessDiagnostics')) -and [string]::IsNullOrWhiteSpace($Language)) { throw 'Language is required for this action' }
 $config = Get-FacebookConfig
 $path = Get-FacebookReceiptPath $ReceiptDirectory $RunId
-$readOnlyActions=@('InspectPair','DiscoverWindow','ProfileReadinessDiagnostics','FeedCandidateDiagnostics','ReadState','FullCycleResumeSafe')
+$readOnlyActions=@('InspectPair','ProfileReadinessDiagnostics','FeedCandidateDiagnostics','ReadState','FullCycleResumeSafe')
 $mutex=$null;$locked=$false
 if($Action -notin $readOnlyActions){
   $mutex=[Threading.Mutex]::new($false,'Local\EscapeZombieSchoolFacebookHyunUkJung')
@@ -42,7 +43,7 @@ if($Action -eq 'SelectSourcePair'){
   # Facebook and X share the five KST posting slots from posting_config.json.
   $selectedVariant=if([string]::IsNullOrWhiteSpace($VariantId)){Select-PostingVariant $config $Language $RunId $ReceiptDirectory}else{@(Get-PostingVariants $config $Language | Where-Object{$_.id -ceq $VariantId})}
   if(@($selectedVariant).Count -ne 1){throw "Unknown or ambiguous explicit Facebook variant '$VariantId'"}
-  $pair=Get-FacebookPair $config $Language $selectedVariant.id
+  $pair=Get-FacebookPairFromSelectedVariant $config $Language $selectedVariant
 }
 switch ($Action) {
   'InspectPair' { if([string]::IsNullOrWhiteSpace($VariantId)){$VariantId='escape'};Get-FacebookPair $config $Language $VariantId | ConvertTo-Json -Depth 5; exit 0 }
@@ -51,7 +52,7 @@ switch ($Action) {
     $receipt.entries.$Language = [pscustomobject]@{ state='selected'; intent=$pair; evidence=$null; selectedUtc=[DateTimeOffset]::UtcNow.ToString('o') }; Save-FacebookReceipt $receipt $path
     [pscustomobject]@{status='selected';runId=$RunId;language=$Language;receiptPath=$path;uiTouched=$false} | ConvertTo-Json; exit 0
   }
-  'DiscoverWindow' { $w=Get-FacebookChromeWindow $WindowId; [pscustomobject]@{windowId=$w.Current.NativeWindowHandle;processId=$w.Current.ProcessId;title=$w.Current.Name}|ConvertTo-Json;exit 0 }
+  'DiscoverWindow' { $w=if($WindowId){Get-FacebookChromeWindow $WindowId}else{Get-FacebookChromeWindowForDiscovery}; [pscustomobject]@{windowId=$w.Current.NativeWindowHandle;processId=$w.Current.ProcessId;title=$w.Current.Name}|ConvertTo-Json;exit 0 }
   'OpenProfile' { Open-FacebookProfileNative $WindowId|ConvertTo-Json;exit 0 }
   'OpenProfileNewTab' { Open-FacebookProfileNewTabNative $WindowId|ConvertTo-Json;exit 0 }
   'CloseDuplicateProfileTab' { Close-FacebookDuplicateProfileTabNative $WindowId|ConvertTo-Json -Depth 5;exit 0 }
@@ -75,12 +76,15 @@ switch ($Action) {
   'VerifyDraft' { $entry=$receipt.entries.$Language; if($null -eq $entry -or $entry.state -notin @('selected','prepared')){throw 'Select and freeze the source pair before draft verification'};Assert-FacebookCanonicalIntent $config $entry.intent;$w=Get-FacebookChromeWindow $WindowId;$state=Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree $entry.intent.text ([IO.Path]::GetFileName($entry.intent.imagePath));Assert-FacebookDraft $entry.intent $state.text $state.attachmentCount $state.audience;$entry.state='prepared';$entry | Add-Member -Force -NotePropertyName draftVerifiedUtc -NotePropertyValue ([DateTimeOffset]::UtcNow.ToString('o'));Save-FacebookReceipt $receipt $path;[pscustomobject]@{status='draft_verified';uiTouched=$false}|ConvertTo-Json;exit 0 }
   'PublishOnce' {
     if(-not $AuthorizePublish){throw 'Publish is a live external mutation: rerun only with explicit -AuthorizePublish'}
+    if(-not [string]::IsNullOrWhiteSpace($StopAtKst) -and [DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)) -ge [DateTimeOffset]::Parse($StopAtKst,[Globalization.CultureInfo]::InvariantCulture)){throw 'SCHEDULE_CUTOFF: KST cutoff reached before Facebook PublishOnce.'}
     # Reload under the profile lock: no stale receipt may authorize a second click.
     $receipt=Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
     $entry=$receipt.entries.$Language;if($null -eq $entry -or $entry.state -ne 'prepared'){throw 'Publish requires a persisted prepared draft'}
     Assert-FacebookCanonicalIntent $config $entry.intent
     $w=Get-FacebookChromeWindow $WindowId;$fresh=Assert-FacebookComposerTree (Get-FacebookOrcaTree $w.Current.ProcessId $WindowId).tree $entry.intent.text ([IO.Path]::GetFileName($entry.intent.imagePath));Assert-FacebookDraft $entry.intent $fresh.text $fresh.attachmentCount $fresh.audience
-    Add-FacebookPublishIntent $receipt $Language $entry.intent $path;Invoke-FacebookPublishNative $WindowId
+    Add-FacebookPublishIntent $receipt $Language $entry.intent $path
+    if(-not [string]::IsNullOrWhiteSpace($StopAtKst) -and [DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9)) -ge [DateTimeOffset]::Parse($StopAtKst,[Globalization.CultureInfo]::InvariantCulture)){throw 'SCHEDULE_CUTOFF: KST cutoff reached before Facebook native Publish click.'}
+    Invoke-FacebookPublishNative $WindowId
     [pscustomobject]@{status='uncertain_requires_VerifyPost';receiptPath=$path}|ConvertTo-Json
     exit 0
   }

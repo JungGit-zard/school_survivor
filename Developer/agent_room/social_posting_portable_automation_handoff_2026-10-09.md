@@ -1,5 +1,7 @@
 # Social posting automation: portable PC handoff
 
+> **2026-10-10 운영 변경:** 예약 활성화, 오늘 3시간 간격 실행, 사후 확인 생략, 30분 무기한 보고의 최신 상태는 [10월 10일 운영 인수인계](social_posting_operations_2026-10-10.md)를 따른다. 아래 `Current state on 2026-10-09`는 과거 기록이며 현재 예약 비활성 상태를 뜻하지 않는다.
+
 Date: 2026-10-09 (Asia/Seoul)
 Scope: X (`@jungsilx`) and Facebook campaign automation in this repository.
 

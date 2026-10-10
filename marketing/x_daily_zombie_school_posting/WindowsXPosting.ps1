@@ -198,6 +198,7 @@ function Wait-XLoginCondition([scriptblock]$Condition, [string]$Description, [in
   throw "Timed out waiting for $Description."
 }
 function Restore-XAccountSession {
+  if (Test-XSecurityChallengeVisible) { throw 'Authentication/security challenge visible; no credentials were entered.' }
   if (-not (Test-XLoginFormVisible)) { Assert-XNoAuthDialog (Get-XRoot);Assert-XAccount;return }
   . (Join-Path $PSScriptRoot 'XCredentialVault.ps1')
   $credentials = $null
@@ -211,8 +212,10 @@ function Restore-XAccountSession {
     $passwordFields = @($edits | Where-Object { $_.Current.Name -ceq 'Password' })
     if ($userFields.Count -gt 1 -or $passwordFields.Count -gt 1) { throw 'Ambiguous X login fields; no credentials were entered.' }
     if ($userFields.Count -eq 1) {
+      if (Test-XSecurityChallengeVisible) { throw 'Authentication/security challenge visible; no credentials were entered.' }
       Set-XLoginField $userFields[0] $username 'X username'
       if ($passwordFields.Count -eq 0) {
+        if (Test-XSecurityChallengeVisible) { throw 'Authentication/security challenge visible; no credentials were entered.' }
         $next = @((Get-XElements) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.IsEnabled -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -ceq 'Next' })
         if ($next.Count -ne 1) { throw 'X username step did not expose exactly one Next button.' }
         Click-XElement $next[0]
@@ -221,7 +224,9 @@ function Restore-XAccountSession {
       }
     }
     if ($passwordFields.Count -ne 1) { throw 'X login page did not expose exactly one supported username/password form.' }
+    if (Test-XSecurityChallengeVisible) { throw 'Authentication/security challenge visible; no credentials were entered.' }
     Set-XLoginField $passwordFields[0] $password 'X password'
+    if (Test-XSecurityChallengeVisible) { throw 'Authentication/security challenge visible; credentials will not be submitted.' }
     $submit = @((Get-XElements) | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.IsEnabled -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Button -and $_.Current.Name -in @('Log in','Sign in') })
     if ($submit.Count -ne 1) { throw 'X login form did not expose exactly one Log in button.' }
     Click-XElement $submit[0]

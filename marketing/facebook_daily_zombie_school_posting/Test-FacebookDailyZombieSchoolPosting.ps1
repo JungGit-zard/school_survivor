@@ -4,9 +4,21 @@ $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'FacebookTree.ps1')
 function Assert-True($Value,[string]$Name){if(-not $Value){throw "FAILED: $Name"};"PASS $Name"}
 $invoke=Join-Path $PSScriptRoot 'Invoke-FacebookDailyZombieSchoolPosting.ps1'
+$invokeSource=Get-Content -LiteralPath $invoke -Raw -Encoding UTF8
+Assert-True ($invokeSource.Contains('[string]$StopAtKst') -and $invokeSource.Contains('SCHEDULE_CUTOFF: KST cutoff reached before Facebook native Publish click.') -and $invokeSource.IndexOf('SCHEDULE_CUTOFF: KST cutoff reached before Facebook native Publish click.') -lt $invokeSource.IndexOf('Invoke-FacebookPublishNative $WindowId')) 'same-day cutoff is rechecked inside Facebook PublishOnce immediately before the native click'
 $config=Get-FacebookConfig
 foreach($lang in $script:FacebookLanguages){$pair=Get-FacebookPair $config $lang;Assert-True ($pair.attachmentCount -eq 1) "$lang exact pair has one image";Assert-True (Test-FacebookUnderImageRoot $pair.imagePath) "$lang image is allowlisted"}
 . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
+$selectionCandidates=@(Get-PostingLocaleImageCandidates $config ja);$selectedPoolPath=[string]$selectionCandidates[-1];$selectedPoolVariant=[pscustomobject]@{id='original';imagePath=$selectedPoolPath};$selectedPoolPair=Get-FacebookPairFromSelectedVariant $config ja $selectedPoolVariant
+$expectedSelectedFacebookPath=Resolve-FacebookPlatformImagePath $selectedPoolPath ja
+Assert-True ($selectedPoolPair.imagePath -ceq $expectedSelectedFacebookPath -and [IO.Path]::GetFileName($selectedPoolPair.imagePath) -ceq [IO.Path]::GetFileName($selectedPoolPath)) 'Facebook selected source pair preserves the selected locale-pool image and resolves its exact Facebook catalog copy'
+Assert-FacebookFrozenIntent $config ja $selectedPoolPair
+Assert-True (Test-FacebookCanonicalIntent $config $selectedPoolPair) 'selected locale-pool image remains canonical through frozen receipt validation'
+$foreignLocaleCandidate=[string](Get-PostingLocaleImageCandidates $config en | Select-Object -First 1);$foreignFacebookPath=Resolve-FacebookPlatformImagePath $foreignLocaleCandidate en
+$foreignLocaleIntent=[pscustomobject]@{language='ja';variantId=$selectedPoolPair.variantId;text=$selectedPoolPair.text;textSha256=$selectedPoolPair.textSha256;imagePath=$foreignFacebookPath;attachmentCount=1}
+Assert-True (-not (Test-FacebookCanonicalIntent $config $foreignLocaleIntent)) 'selected-pool receipt rejects an image mapped to another locale'
+$wrapperSource=Get-Content -LiteralPath $invoke -Raw -Encoding UTF8
+Assert-True ($wrapperSource -match 'Get-FacebookPairFromSelectedVariant \$config \$Language \$selectedVariant') 'SelectSourcePair passes the selected variant image path into Facebook image mapping'
 foreach($lang in $script:FacebookLanguages){foreach($bossId in @('boss-b01','boss-b02','boss-b03','boss-b04','boss-all')){ $failed=$false;try{$null=Get-FacebookPair $config $lang $bossId}catch{$failed=$true};Assert-True $failed "$lang/$bossId shared reference is not a new localized Facebook pair" }}
 $legacyBossPath=[IO.Path]::GetFullPath((Join-Path (Split-Path $script:FacebookImageRoot -Parent) 'boss_series\boss_b03_promotional.png'))
 $koBossB03=[pscustomobject]@{language='ko';variantId='boss-b03';text=$config.copy.ko.text;textSha256=(Get-FacebookSha256 $config.copy.ko.text);imagePath=$legacyBossPath;attachmentCount=1}

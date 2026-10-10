@@ -4,11 +4,18 @@ param(
   [string]$CycleId,
   [long]$WindowId = 0,
   [string]$ReceiptDirectory = (Join-Path $PSScriptRoot 'receipts'),
-  [switch]$DryRun, [switch]$ValidateOnly, [switch]$FullCycle, [switch]$Run, [switch]$PrepareOnly, [switch]$SinglePost,
-  [switch]$ReconcileExistingPosts, [switch]$CredentialRecovery
+  [switch]$DryRun, [switch]$ValidateOnly, [switch]$FullCycle, [switch]$Run, [switch]$PrepareOnly, [switch]$SinglePost, [switch]$PublishOnly,
+  [switch]$ReconcileExistingPosts, [switch]$CredentialRecovery, [string]$StopAtKst = ''
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+function Assert-XBeforePublishCutoff([string]$Value) {
+  if([string]::IsNullOrWhiteSpace($Value)){return}
+  try{$cutoff=[DateTimeOffset]::Parse($Value,[Globalization.CultureInfo]::InvariantCulture)}catch{throw 'Invalid -StopAtKst value; expected an ISO-8601 offset timestamp.'}
+  $now=[DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9))
+  if($now -ge $cutoff){throw 'SCHEDULE_CUTOFF: KST cutoff reached before a new X PublishOnly action.'}
+}
 . (Join-Path $PSScriptRoot 'PostingReceipt.ps1')
 . (Join-Path $PSScriptRoot 'PostingVariant.ps1')
 $receipt = $null
@@ -49,7 +56,9 @@ try {
   if ([string]::IsNullOrWhiteSpace($CycleId)) { $CycleId = Get-PostingCycleId ([DateTimeOffset]::UtcNow) $config.schedule_times }
   if ($CycleId -notmatch '^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$') { throw 'An explicit stable -CycleId is required; use the same ID on retry' }
   if ($SinglePost -and (-not $Run -or $FullCycle -or $PrepareOnly)) { throw '-SinglePost requires -Run and cannot be combined with -FullCycle or -PrepareOnly' }
+  if ($PublishOnly -and (-not $SinglePost -or -not $Run)) { throw '-PublishOnly requires -Run -SinglePost and leaves the receipt at publish_intent for user verification' }
   if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Start powershell with -STA' }
+  Assert-XBeforePublishCutoff $StopAtKst
   $mutex = [Threading.Mutex]::new($false, 'Local\EscapeZombieSchoolXPosting')
   $locked = $false
   try {
@@ -84,10 +93,12 @@ try {
     # Freeze every pair before loading, discovering, or interacting with desktop UI.
     Save-CycleReceipt $receipt $receiptPath
     . (Join-Path $PSScriptRoot 'WindowsXPosting.ps1')
+    Assert-XBeforePublishCutoff $StopAtKst
     Initialize-XWindow -RequestedWindowId $WindowId -AllowSignedOut:$CredentialRecovery
     if ($CredentialRecovery) { Restore-XAccountSession }
     foreach ($lang in $languages) {
       $activeLanguage = $lang
+      Assert-XBeforePublishCutoff $StopAtKst
       $entry = $receipt.entries.$lang
       if ($null -ne $entry -and $entry.state -eq 'verified') {
         $null = Resolve-PostingIntentVariant $config $lang $entry.intent
@@ -133,8 +144,14 @@ try {
       }
       $entry = [pscustomobject]@{ state='publish_intent'; intent=$intent; evidence=$null }
       $receipt.entries.$lang = $entry
+      Assert-XBeforePublishCutoff $StopAtKst
       Save-CycleReceipt $receipt $receiptPath
+      Assert-XBeforePublishCutoff $StopAtKst
       Publish-XPost -Text $text
+      if ($PublishOnly) {
+        [pscustomobject]@{ status='published_unverified'; published=1; language=$lang; cycleId=$CycleId; receiptPath=$receiptPath; receiptState='publish_intent' } | ConvertTo-Json -Compress
+        exit 0
+      }
       $evidence = Find-XPublishedPost -Intent $intent
       if ($null -eq $evidence) { throw "UNCERTAIN $lang`: publish clicked once; matching new status not verified" }
       $entry.state = 'verified'; $entry.evidence = $evidence

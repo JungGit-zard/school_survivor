@@ -34,7 +34,16 @@ $script:FacebookMouseLeftUp=0x0004
 $script:FacebookCoordinateCachePath=Join-Path ([IO.Path]::GetTempPath()) 'escape-zombie-school-facebook-coordinate-cache.json'
 function Get-FacebookUiAll($Root) { @($Root.FindAll([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.Condition]::TrueCondition)) }
 function Get-FacebookValue($Element) { $p=$null; if($Element.TryGetCurrentPattern([Windows.Automation.ValuePattern]::Pattern,[ref]$p)){return $p.Current.Value}; if($Element.TryGetCurrentPattern([Windows.Automation.TextPattern]::Pattern,[ref]$p)){return $p.DocumentRange.GetText(-1)}; '' }
-function Test-FacebookTabName([string]$Name) { return $Name -match '^(?:\(\d+\)\s+)?Facebook$|\| Facebook$' }
+function Test-FacebookTabName([string]$Name) { return $Name -match '^(?:\(\d+\)\s+)?Facebook$|(?:\| | • )Facebook$' }
+function Resolve-FacebookDiscoveryPlan($Descriptors) {
+ $windows=@($Descriptors|Where-Object{$_.isChrome})
+ if($windows.Count -eq 0){throw 'No visible Chrome window is available for Facebook discovery'}
+ $facebook=@($windows|Where-Object{@($_.tabNames|Where-Object{Test-FacebookTabName $_}).Count -gt 0})
+ if($facebook.Count -gt 1){throw "Expected one visible Facebook Chrome window; found $($facebook.Count)"}
+ if($facebook.Count -eq 1){return [pscustomobject]@{windowId=[long]$facebook[0].windowId;openProfileNewTab=$false}}
+ if($windows.Count -eq 1){return [pscustomobject]@{windowId=[long]$windows[0].windowId;openProfileNewTab=$true}}
+ throw 'No visible Facebook tab and multiple Chrome windows are present; refusing to guess a target window'
+}
 function Resolve-FacebookWindowDescriptor($Descriptors,[long]$WindowId=0) {
  $windows=@($Descriptors|Where-Object{$_.isChrome})
  if($WindowId){$exact=@($windows|Where-Object{$_.windowId -eq $WindowId});if($exact.Count -ne 1){throw "Expected one exact Chrome WindowId $WindowId; found $($exact.Count)"};return $exact[0]}
@@ -48,6 +57,15 @@ function Get-FacebookChromeWindow([long]$WindowId=0) {
  $descriptors=@(foreach($window in $windows){[pscustomobject]@{windowId=$window.Current.NativeWindowHandle;isChrome=$true;tabNames=@((Get-FacebookUiAll $window)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::TabItem}|ForEach-Object{$_.Current.Name});window=$window}})
  $selected=Resolve-FacebookWindowDescriptor $descriptors $WindowId
  $selected.window
+}
+function Get-FacebookChromeWindowForDiscovery {
+ $windows=Get-FacebookChromeWindows
+ $descriptors=@(foreach($window in $windows){[pscustomobject]@{windowId=$window.Current.NativeWindowHandle;isChrome=$true;tabNames=@((Get-FacebookUiAll $window)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::TabItem}|ForEach-Object{$_.Current.Name});window=$window}})
+ $plan=Resolve-FacebookDiscoveryPlan $descriptors
+ if($plan.openProfileNewTab){$null=Open-FacebookProfileNewTabNative $plan.windowId}
+ $fresh=Get-FacebookChromeWindow $plan.windowId
+ if((Get-Process -Id $fresh.Current.ProcessId -ErrorAction Stop).ProcessName -ne 'chrome'){throw 'Facebook discovery target is no longer owned by Chrome'}
+ $fresh
 }
 function Get-FacebookChromeWindows {
  @([Windows.Automation.AutomationElement]::RootElement.FindAll([Windows.Automation.TreeScope]::Children,[Windows.Automation.Condition]::TrueCondition) | Where-Object {$_.Current.ClassName -eq 'Chrome_WidgetWin_1' -and (Get-Process -Id $_.Current.ProcessId -ErrorAction SilentlyContinue).ProcessName -eq 'chrome'})
