@@ -239,6 +239,40 @@
           }
         }
       }
+    },
+    "zombieBoard": {
+      "v1": {
+        "posts": {
+          ".read": "query.orderByChild === 'createdAt' && query.limitToLast != null && query.limitToLast > 0 && query.limitToLast <= 50",
+          ".indexOn": ["createdAt"],
+          "$postId": {
+            ".write": "(auth != null && auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com') || (!data.exists() && newData.exists() && newData.hasChildren(['title', 'body', 'nickname', 'createdAt']))",
+            ".validate": "newData.hasChildren(['title', 'body', 'nickname', 'createdAt'])",
+            "title": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 120 && newData.val().replace(' ', '').replace('\\t', '').replace('\\n', '').replace('\\r', '').length > 0" },
+            "body": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 4000 && newData.val().replace(' ', '').replace('\\t', '').replace('\\n', '').replace('\\r', '').length > 0" },
+            "nickname": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 24 && newData.val().replace(' ', '').replace('\\t', '').replace('\\n', '').replace('\\r', '').length > 0" },
+            "createdAt": { ".validate": "newData.isNumber() && newData.val() >= now - 300000 && newData.val() <= now + 300000" },
+            "$other": { ".validate": false }
+          }
+        },
+        "comments": {
+          "$postId": {
+            ".read": "query.orderByChild === 'createdAt' && query.limitToLast != null && query.limitToLast > 0 && query.limitToLast <= 100",
+            ".indexOn": ["createdAt"],
+            ".write": "auth != null && auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com'",
+            "$commentId": {
+              ".write": "(auth != null && auth.token.email === 'zard5388@gmail.com' && auth.token.email_verified === true && auth.token.firebase.sign_in_provider === 'google.com') || (!data.exists() && newData.exists() && root.child('zombieBoard/v1/posts').child($postId).exists())",
+              ".validate": "newData.hasChildren(['body', 'nickname', 'createdAt'])",
+              "body": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 1000 && newData.val().replace(' ', '').replace('\\t', '').replace('\\n', '').replace('\\r', '').length > 0" },
+              "nickname": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 24 && newData.val().replace(' ', '').replace('\\t', '').replace('\\n', '').replace('\\r', '').length > 0" },
+              "createdAt": { ".validate": "newData.isNumber() && newData.val() >= now - 300000 && newData.val() <= now + 300000" },
+              "$other": { ".validate": false }
+            }
+          }
+        },
+        "$other": { ".validate": false }
+      },
+      "$other": { ".validate": false }
     }
   }
 }

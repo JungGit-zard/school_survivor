@@ -3,6 +3,8 @@ import TitleSceneCanvas from './TitleSceneCanvas.jsx'
 import '../assets/fonts/nanumMyeongjo.css'
 import { WEB_BACKGROUND_URLS, WEB_LANDING_ART_URLS, WEB_LANDING_COMIC_URLS, getSelectedWebBackgroundStyle } from '../lib/webBackgroundAssets.js'
 import { LANDING_COPY, LANDING_LANGUAGES } from './webLandingCopy.js'
+import ZombieBoard from './ZombieBoard.jsx'
+import { ZOMBIE_BOARD_COPY } from './zombieBoardCopy.js'
 
 export const LANDING_HERO_VIDEO_URL = ''
 export const LANDING_FEATURE_VIDEO_URL = ''
@@ -48,6 +50,7 @@ export default function WebLandingPage() {
   const [isMusicPlaying, setIsMusicPlaying] = useState(false)
   const [musicStatus, setMusicStatus] = useState('musicIdle')
   const [selectedComicIndex, setSelectedComicIndex] = useState(null)
+  const [isBoardOpen, setIsBoardOpen] = useState(false)
   const audioRef = useRef(null)
   const heroActionsRef = useRef(null)
   const [heroActionsPassed, setHeroActionsPassed] = useState(false)
@@ -86,6 +89,11 @@ export default function WebLandingPage() {
   const openMediaLink = (media) => (event) => {
     event.preventDefault()
     selectMedia(media, true)
+  }
+
+  const openBoard = (event) => {
+    event.preventDefault()
+    setIsBoardOpen(true)
   }
 
   useEffect(() => {
@@ -178,8 +186,10 @@ export default function WebLandingPage() {
                 <p className="web-landing__support">{copy.support}</p>
                 <div ref={heroActionsRef} className="web-landing__hero-actions" aria-label={copy.mainActions}>
                   <a href="/game" className="web-landing__cta web-landing__link">{copy.playWeb}</a>
-                  <a href="#section-start" className="web-landing__ghost-link web-landing__link">{copy.howToLink}</a>
-                  <a href="#comics" className="web-landing__comic-link web-landing__link" onClick={openMediaLink('comics')}>{copy.comicNav}</a>
+                  <a href="#comics" className="web-landing__cta web-landing__link" onClick={openMediaLink('comics')}>{copy.comicNav}</a>
+                  <a href="#music" className="web-landing__cta web-landing__link" onClick={openMediaLink('music')}>{copy.musicNav}</a>
+                  <a href="#videos" className="web-landing__cta web-landing__link" onClick={openMediaLink('videos')}>{copy.videoNav}</a>
+                  <a href="#zombie-board" className="web-landing__cta web-landing__link" onClick={openBoard}>{ZOMBIE_BOARD_COPY[language]?.action || ZOMBIE_BOARD_COPY.ko.action}</a>
                 </div>
               </div>
 
@@ -393,7 +403,13 @@ export default function WebLandingPage() {
           </footer>
         </div>
       </section>
-      {heroActionsPassed && !selectedComic ? <a href="/game" className="web-landing__mobile-sticky-cta web-landing__link">{copy.startGame}</a> : null}
+      {heroActionsPassed && !selectedComic && !isBoardOpen ? <a href="/game" className="web-landing__mobile-sticky-cta web-landing__link">{copy.startGame}</a> : null}
+      {isBoardOpen ? <ZombieBoard
+        open={isBoardOpen}
+        onClose={() => setIsBoardOpen(false)}
+        language={language}
+        copy={ZOMBIE_BOARD_COPY[language] || ZOMBIE_BOARD_COPY.ko}
+      /> : null}
     </main>
   )
 }
@@ -690,16 +706,22 @@ const landingCss = `
 }
 
 .web-landing__hero-actions {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  align-items: stretch;
   gap: 12px;
-  flex-wrap: wrap;
   margin-top: clamp(4px, 0.8vw, 12px);
+  width: min(100%, 960px);
 }
 
-.web-landing__hero-actions .web-landing__comic-link {
+.web-landing__hero-actions .web-landing__cta {
+  width: 100%;
   min-height: 44px;
   padding: 8px 16px;
   border-width: 2px;
   box-shadow: none;
+  text-align: center;
 }
 
 .web-landing__cta,
@@ -1442,11 +1464,8 @@ const landingCss = `
     gap: 10px;
   }
 
-  .web-landing__hero-actions .web-landing__cta {
-    grid-column: 1 / -1;
-  }
-
   .web-landing__hero-actions .web-landing__ghost-link,
+  .web-landing__hero-actions .web-landing__cta,
   .web-landing__hero-actions .web-landing__comic-link {
     font-size: 14px;
     padding: 8px;

@@ -8,6 +8,13 @@ import webLandingSource from './WebLandingPage.jsx?raw'
 import { WEB_BACKGROUND_URLS, WEB_LANDING_ART_URLS, WEB_LANDING_COMIC_URLS, selectedWebBackgroundUrl } from '../lib/webBackgroundAssets.js'
 
 vi.mock('./TitleSceneCanvas.jsx', () => ({ default: ({ style }) => <div data-testid="title-scene-canvas" style={style} /> }))
+vi.mock('./ZombieBoard.jsx', () => ({
+  default: ({ open, onClose, copy }) => open ? (
+    <section role="dialog" aria-label={copy.title} data-testid="zombie-board-mock">
+      <button type="button" aria-label={copy.close} onClick={onClose}>close</button>
+    </section>
+  ) : null,
+}))
 
 function renderLanding() {
   const container = document.createElement('div')
@@ -88,6 +95,20 @@ describe('WebLandingPage', () => {
     expect(webLandingSource).toContain('.web-landing__nav-cta {\n    display: none;')
     expect(webLandingSource).toContain('min-height: 44px')
     expect(webLandingSource).toContain('min-width: 44px')
+    view.unmount()
+  })
+
+  it('renders five uniform hero actions and opens the localized free board dialog', () => {
+    const view = renderLanding()
+    const actions = Array.from(view.container.querySelectorAll('.web-landing__hero-actions a'))
+    expect(actions).toHaveLength(5)
+    expect(actions.map((action) => action.textContent)).toEqual(['웹에서 바로 플레이', '4컷 만화 보기', '음악 듣기', '동영상 보기', '자유게시판'])
+    expect(actions.every((action) => action.classList.contains('web-landing__link'))).toBe(true)
+    expect(view.container.querySelector('[data-testid="zombie-board-mock"]')).toBeNull()
+    act(() => actions[4].dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })))
+    expect(view.container.querySelector('[data-testid="zombie-board-mock"]')?.getAttribute('aria-label')).toBe('🧟 좀비학교 자유게시판')
+    act(() => view.container.querySelector('[aria-label="게시판 닫기"]').click())
+    expect(view.container.querySelector('[data-testid="zombie-board-mock"]')).toBeNull()
     view.unmount()
   })
 

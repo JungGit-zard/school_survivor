@@ -10,7 +10,7 @@ export const LANDING_LANGUAGES = [
 export const LANDING_COPY = {
   ko: {
     languageLabel: '언어 선택', homeAria: '탈출! 좀비학교 공식 홈페이지', skip: '본문으로 건너뛰기', navigation: '공식 홈페이지 주요 탐색', brandHome: '탈출! 좀비학교 홈', official: '공식 홈페이지',
-    intro: '게임 소개', howTo: '플레이 방법', comicNav: '4컷 만화 보기', musicNav: '음악', videoNav: '영상', news: '새소식', startGame: '게임 시작',
+    intro: '게임 소개', howTo: '플레이 방법', comicNav: '4컷 만화 보기', musicNav: '음악 듣기', videoNav: '동영상 보기', news: '새소식', startGame: '게임 시작',
     eyebrow: 'KOREAN SCHOOL SURVIVAL ACTION', title: '탈출! 좀비학교', headline: '종이 울리기 전에 탈출하자', support: '3분 30초 동안 몰려오는 좀비를 버티고 잠긴 탈출구를 열어라.', mainActions: '주요 행동', playWeb: '웹에서 바로 플레이', howToLink: '플레이 방법 보기', officialNotice: '공식 안내', notice: '게임에 들어가기 전, 만화·음악·영상을 둘러보세요.', factsAria: '게임 특징', facts: ['3분 30초 생존', '4개 스테이지', '설치 없이 즉시 시작'], playMobile: '모바일에서 바로 플레이',
     gameplayLabel: 'GAMEPLAY', gameplay: [
       { title: '방과후 생존 액션', body: '교실에서 시작해 복도, 급식실까지 이어지는 방과후 생존 액션. 자동 공격과 성장 선택으로 짧고 강한 한 판을 만든다.' },
