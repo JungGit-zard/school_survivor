@@ -277,7 +277,7 @@ describe('student dialogue IDs', () => {
       const popup = container.querySelector('[data-testid="quest-start-popup"]')
       expect(popup).not.toBeNull()
       expect(popup.querySelector('[data-testid="quest-giver-profile"]')?.getAttribute('src')).toContain('laid_man')
-      expect(popup.querySelector('[data-testid="quest-reward"]')).toBeNull()
+      expect(popup.querySelector('[data-testid="quest-reward"]')).not.toBeNull()
       expect(popup.textContent).toContain('다음 행동')
       expect(popup.style.background).toContain('rgb(47, 52, 64)')
       expect(popup.style.color).toBe('rgb(255, 243, 214)')
