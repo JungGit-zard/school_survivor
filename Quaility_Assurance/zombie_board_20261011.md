@@ -1,5 +1,13 @@
 # Zombie Board targeted QA - 2026-10-11
 
+## Live release — 2026-10-11 20:20 KST
+- Implementation commits: 28b0a27b, d8eab444; merged remote comic-viewer work without conflicts (f10f492c). Explicit files committed and pushed to origin/zombie_only.
+- After merge, targeted homepage/comic/board checks: 17 passed, 8 unrelated skipped. Final production build and mandatory studio sync checks: 45 passed.
+- Firebase board rules deployed. Hosting channel zombie-board-20261011 passed all 57 remote JavaScript asset checks and was promoted to live successfully. Initial preview cached 404 cleared; final standard safe deployment exited 0.
+- Fresh production browser: root title → 홈페이지로 → /landing → 자유게시판 opened; live empty list read successfully, mobile 390×844 write form displayed, no browser errors. No production test post/comment was submitted.
+- Final 1280×720 action-row screenshot: C:/Users/admin/AppData/Local/Temp/zombie-board-live-home-final.png. Mobile form: C:/Users/admin/AppData/Local/Temp/zombie-board-live-write.png.
+- Real administrator OAuth remains untested; administrator deletion authorization was verified only with isolated emulator identities. Existing authentication implementation was reused unchanged.
+
 ## Final Advisor verification — 2026-10-11 20:10 KST
 - 아래 초안 FAIL 항목은 수정 후 재검증했다. flat comments 경로, 일반 로그인 사용자 작성, 일치하는 길이 제한, 입력 자동 잘림 제거, 현재 구독/화면 상태 보호, 이전 글/댓글 페이지 이동을 확인했다.
 - 직접 실행: backend 집중 검사 10/10, UI/홈페이지 관련 검사 15/15(무관한 10개 생략), 로컬 demo RTDB 규칙 검사 전체 통과.
