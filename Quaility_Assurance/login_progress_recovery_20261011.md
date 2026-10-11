@@ -1,5 +1,13 @@
 # 로그인 후 로비·설정 복구
 
+## 후속 플레이 중 오류 — 23:19 KST
+- 사용자 재현: 책 획득 순간. 제공된 HUD-CxZavvnQ.js:36068 → useGameStore-CqcoFjom.js:6326/6155는 HUD 레벨업 선택지의 isUnlocked → readRaw 호출로 직접 매핑했다.
+- 운영 자동 오류 수집은 playtestLogger의 DEV 조건으로 비활성화되어 있다. Firebase functions:log 최근 25개 조회도 No log entries found였다. 과거 서버 로그를 확보했다고 주장하지 않는다. 사용자 오류 스택이 원인 증거다.
+- 실제 HUD + 실제 store에 로그인 UID만 있고 원격 진행도가 없는 상태를 넣고 gainXp를 실행하자 같은 스택으로 실패했다. 직전 복구는 이 레벨업 경로를 누락했다.
+- weaponUnlocks.isUnlocked의 guest-only 조건 한 곳을 수정: 모든 미준비 상태에서 계정 전용 해금을 조회하지 않는다. Starter 판정과 도착 후 실제 해금 조회, 저장 경로는 그대로 유지한다.
+- 집중 검사 15개 통과. 게스트/로그인 미준비 상태 모두 책 XP → 4개 카드 표시 → 실제 카드 클릭 → playing 복귀를 확인했다. 전후 Firebase runtime snapshot 전체 동일, progress=null 유지. 운영 Firebase 데이터 쓰기 없음.
+- 실제 대상 기기의 OAuth 이후 플레이 확인은 아직 필요하다. 추가 기능과 일반 배포는 진행하지 않으며 이 변경은 최소 오류 복구다.
+
 - 사용자 증거: 로그인 없는 플레이는 정상, Google 로그인 후 게임 미표시. 스크린샷 FirebaseProgressError의 Lobby-MgQ1b8Vf.js:18074를 LobbySettingsModal의 loadTitleSettings 초기화로 직접 매핑했다.
 - Kanban backendmini: t_e2561741. 초기 작업의 도구 한도 후 동일 카드로 로비 수정 작업을 이어갔다.
 - 재현: signedIn + 원격 진행정보 미적용 상태에서 설정 마운트. 실제 Firebase progress/settings 모듈을 사용하는 격리 검사가 동일 메시지와 LobbySettingsModal.jsx:35 스택으로 실패했다.

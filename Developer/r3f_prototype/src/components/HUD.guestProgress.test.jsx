@@ -30,12 +30,19 @@ afterEach(() => {
 })
 
 describe('guest gameplay without account progress', () => {
-  it('opens level-up choices after XP gain without hydrating or replacing account progress', () => {
+  it.each(['guest', 'signed-in'])('opens level-up choices after XP gain for %s without replacing account progress', (mode) => {
+    if (mode === 'signed-in') setCloudProgressUser({ uid: 'waiting-for-remote-progress' })
     const before = getFirebaseProgressRuntimeSnapshot()
     act(() => root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} />))
     act(() => useGameStore.getState().gainXp(useGameStore.getState().player.xpToNext))
     expect(useGameStore.getState().phase).toBe('levelup')
     expect(container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')).toHaveLength(4)
+    const cards = container.querySelectorAll('[data-testid="levelup-upgrade-choice"]')
+    const animationEnd = new window.Event('webkitAnimationEnd', { bubbles: true })
+    Object.defineProperty(animationEnd, 'animationName', { value: 'levelupCardPop' })
+    act(() => cards[3].dispatchEvent(animationEnd))
+    act(() => cards[0].dispatchEvent(new MouseEvent('click', { bubbles: true })))
+    expect(useGameStore.getState().phase).toBe('playing')
     expect(getFirebaseProgressRuntimeSnapshot()).toEqual(before)
     expect(before.progress).toBeNull()
   })
@@ -46,8 +53,10 @@ describe('guest gameplay without account progress', () => {
     expect(getFirebaseProgressRuntimeSnapshot()).toEqual(before)
   })
 
-  it('does not treat a signed-in but unhydrated account as a guest', () => {
+  it('can evaluate an unhydrated account preview without reading or replacing remote progress', () => {
     setCloudProgressUser({ uid: 'waiting-for-remote-progress' })
-    expect(() => getNextUnlockPreview('gameover', useGameStore.getState().weapons)).toThrow(/Firebase player progress is unavailable/)
+    const before = getFirebaseProgressRuntimeSnapshot()
+    expect(() => getNextUnlockPreview('gameover', useGameStore.getState().weapons)).not.toThrow()
+    expect(getFirebaseProgressRuntimeSnapshot()).toEqual(before)
   })
 })
