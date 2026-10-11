@@ -8,6 +8,10 @@ import { BOSS_PASSIVE_ITEMS } from '../lib/bossPassiveItems.js'
 import { getStageQuestDefinitions } from '../lib/quests.js'
 import { useGameStore } from '../store/useGameStore.js'
 
+function fontSizeProp(element) {
+  return element[Object.keys(element).find((key) => key.startsWith('__reactProps'))].style.fontSize
+}
+
 function renderHud() {
   const container = document.createElement('div')
   document.body.append(container)
@@ -199,9 +203,12 @@ describe('quest inventory HUD', () => {
       const reward = popup.querySelector('[data-testid="quest-reward"]')
       const action = popup.querySelector('small')
       expect(reward).not.toBeNull()
-      expect(notice?.style.fontSize).toBe('18px')
+      // Inspect the delivered React style because jsdom drops clamp font sizes.
+      expect(fontSizeProp(notice)).toBe('clamp(13px, 3.6vw, 15px)')
+      expect(fontSizeProp(action)).toBe('clamp(22px, 6.4vw, 24px)')
       expect(notice?.style.lineHeight).toBe('1.25')
-      expect(action?.style.fontFamily).toContain('Nanum Myeongjo')
+      expect(notice?.style.fontFamily).toContain('Nanum Myeongjo')
+      expect(action?.style.fontFamily).not.toContain('Nanum Myeongjo')
       expect(action?.style.fontWeight).toBe('800')
       expect(action?.style.lineHeight).toBe('1.35')
       act(() => { vi.advanceTimersByTime(2000) })
@@ -339,10 +346,14 @@ describe('quest inventory HUD', () => {
       expect(startPopup.querySelector('div[aria-live="polite"]')?.style.color).toBe('rgb(255, 243, 214)')
       expect(startPopup.querySelector('div[aria-live="polite"]')?.style.webkitTextStroke).toBe('0 transparent')
       expect(startPopup.querySelector('div[aria-live="polite"]')?.style.textShadow).toBe('none')
-      expect(startPopup.querySelector('strong')?.style.color).toBe('rgb(255, 243, 214)')
+      expect(startPopup.style.top).toBe('50%')
+      expect(startPopup.style.transform).toBe('translate(-50%, -50%)')
+      expect(startPopup.querySelector('strong')?.style.color).toBe('rgb(203, 216, 255)')
+      expect(fontSizeProp(startPopup.querySelector('strong'))).toBe('clamp(13px, 3.6vw, 15px)')
+      expect(fontSizeProp(startPopup.querySelector('small'))).toBe('clamp(22px, 6.4vw, 24px)')
       expect(startPopup.querySelector('strong')?.style.webkitTextStroke).toBe('0 transparent')
-      expect(startPopup.querySelector('small')?.style.color).toBe('rgb(255, 243, 214)')
-      expect(startPopup.querySelector('small')?.style.fontFamily).toContain('Nanum Myeongjo')
+      expect(startPopup.querySelector('small')?.style.color).toBe('rgb(255, 255, 255)')
+      expect(startPopup.querySelector('small')?.style.fontFamily).not.toContain('Nanum Myeongjo')
       expect(startPopup.querySelector('small')?.style.webkitTextStroke).toBe('0 transparent')
       expect(container.querySelector('[data-testid="student-dialogue-catcher"]').style.alignItems).toBe('center')
 

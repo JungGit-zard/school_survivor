@@ -1676,10 +1676,10 @@ export default function HUD({
               />
               <span style={styles.questStartContent}>
                 <span style={styles.questStartHeader}>
-                  <strong style={styles.questStartTitle}>{questToastMessage}</strong>
+                  <strong style={{ ...styles.questStartTitle, ...styles.questAcceptanceNotice }}>{questToastMessage}</strong>
                   <strong data-testid="quest-reward" style={styles.questReward}>보상 · {questToastQuest?.rewardGold ?? 0} 골드</strong>
                 </span>
-                {questPopupNextAction && <small style={styles.questStartAction}>{questPopupNextAction}</small>}
+                {questPopupNextAction && <small style={{ ...styles.questStartAction, ...styles.questAcceptanceAction }}>{questPopupNextAction}</small>}
               </span>
             </>
           ) : questItemReceived && questToastQuest?.item
@@ -1904,8 +1904,8 @@ export default function HUD({
                 <div style={styles.questDialogueLine} aria-live="polite">{getDialogueText(studentDialogue.dialogueId)}</div>
                 <div style={styles.questDialogueDivider} />
                 <div style={styles.questDialoguePrimary}>
-                  <strong style={styles.questDialogueNotice}>{questToastMessage}</strong>
-                  {questPopupNextAction && <small style={styles.questDialogueNextAction}>{questPopupNextAction}</small>}
+                  <strong style={{ ...styles.questDialogueNotice, ...(questStarted ? styles.questAcceptanceNotice : null) }}>{questToastMessage}</strong>
+                  {questPopupNextAction && <small style={{ ...styles.questDialogueNextAction, ...(questStarted ? styles.questAcceptanceAction : null) }}>{questPopupNextAction}</small>}
                 </div>
                 <div style={styles.questDialogueHint}>{t('hud.tapToContinue')}</div>
               </div>
@@ -2672,6 +2672,18 @@ const styles = {
   questStartContent: { flex: 1, minWidth: 0, display: 'grid', gap: 12 },
   questStartHeader: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 },
   questStartTitle: { color: '#fff3d6', fontSize: 18, lineHeight: 1.25 },
+  questAcceptanceNotice: {
+    color: '#cbd8ff',
+    fontFamily: "'Nanum Myeongjo', serif",
+    fontSize: 'clamp(13px, 3.6vw, 15px)',
+  },
+  questAcceptanceAction: {
+    color: '#ffffff',
+    fontFamily: uiType.family,
+    fontSize: 'clamp(22px, 6.4vw, 24px)',
+    wordBreak: 'keep-all',
+    overflowWrap: 'anywhere',
+  },
   questReward: {
     flex: '0 0 auto',
     padding: '5px 8px',
