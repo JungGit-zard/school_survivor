@@ -2,7 +2,9 @@ export const LANDING_LANGUAGES = [
   { code: 'ko', label: '한국어' },
   { code: 'en', label: 'English' },
   { code: 'ja', label: '日本語' },
+  { code: 'zh-CN', label: '简体中文' },
   { code: 'vi', label: 'Tiếng Việt' },
+  { code: 'id', label: 'Bahasa Indonesia' },
 ]
 
 export const LANDING_COPY = {
@@ -93,6 +95,35 @@ export const LANDING_COPY = {
     ],
     finalAria: 'ゲーム開始の案内', finalEyebrow: 'さあ、チャイムが鳴る前に', finalTitle: '学校からの脱出を始めよう。', footerBrand: '脱出！ゾンビ学校', footer: '公式ゲームサイト',
   },
+  'zh-CN': {
+    languageLabel: '选择语言', homeAria: '《逃出！僵尸学校》官方网站', skip: '跳到正文', navigation: '官方网站主导航', brandHome: '《逃出！僵尸学校》主页', official: '官方网站',
+    intro: '游戏介绍', howTo: '玩法说明', comicNav: '查看四格漫画', musicNav: '音乐', videoNav: '视频', news: '最新消息', startGame: '开始游戏',
+    eyebrow: '韩国学校生存动作游戏', title: '逃出！僵尸学校', headline: '在上课铃响起前逃出去', support: '在 3 分 30 秒内抵挡涌来的僵尸，打开被锁住的出口。', mainActions: '主要操作', playWeb: '立即在网页游玩', howToLink: '查看玩法', officialNotice: '官方提示', notice: '进入游戏前，先看看漫画、音乐和视频。', factsAria: '游戏特色', facts: ['生存 3 分 30 秒', '4 个关卡', '无需安装，立即开始'], playMobile: '在手机上立即游玩',
+    gameplayLabel: '游戏玩法', gameplay: [
+      { title: '放学后的生存动作', body: '从教室一路冲到走廊和食堂。自动攻击与成长选择，带来短促又紧张的一局。' },
+      { title: '武器与升级', body: '收集铅笔、书包、科学烧瓶等校园主题武器，击退僵尸群。' },
+      { title: '立即开玩', body: '无需安装，直接在浏览器开始。手机上也有大按钮和清晰的信息层级。' },
+    ],
+    survivalLabel: '生存路线', survivalTitle: '生存要点', survival: ['还没来得及拿运动服，就从教室逃亡开始', '收集经验值，选择武器卡牌，规划生存路线', '坚持到出口打开，挡住僵尸和老师Boss'],
+    guideLabel: '入门指南', guide: ['1. 点击“立即在网页游玩”', '2. 用方向键或手机触控移动', '3. 通过自动攻击和升级选择逃出学校'], guideCta: '现在开始逃出学校',
+    mediaLabel: '官方媒体', mediaTitle: '漫画 · 音乐 · 视频', mediaControls: '选择官方媒体', comicButton: '看漫画', musicButton: '听音乐', videoButton: '看视频',
+    comicsLabel: '四格漫画', comicsTitle: '铅笔救援队的学校日记', comicsIntro: '五篇轻松明快的四格漫画：僵尸朋友不会倒下，只是回到原位。', comicsList: '5 篇四格漫画列表', episodeSuffix: '话', openComic: '查看完整漫画', openComicAria: '打开完整漫画', thumbnail: '缩略图', fullComic: '完整漫画', closeViewer: '关闭漫画查看器', close: '关闭', comicNavigation: '漫画篇章导航', previous: '上一篇', next: '下一篇',
+    comics: [
+      { title: '寻找点名簿！', summary: '寻找点名簿的僵尸们，被铅笔一挥就进入模范生模式！' },
+      { title: '午餐队伍排成一列', summary: '午餐队伍也像铅笔一样笔直！今天的菜单加一勺秩序。' },
+      { title: '风啊，作业在这边！', summary: '作业被吹走也别担心。铅笔指向的地方就是提交箱！' },
+      { title: '体育馆的超级弹跳', summary: '体育课安全第一！铅笔橡皮擦意外擅长接球。' },
+      { title: '图书馆“嘘！”作战', summary: '在图书馆要安静。僵尸也会在铅笔信号下进入阅读模式！' },
+    ],
+    musicLabel: '音乐播放器', musicTitle: '标题主题曲', musicDescription: '游戏中可听到的锁定官方标题 BGM。仅支持手动播放，不会自动开始。', musicPlayer: '标题主题曲播放器', play: '播放', pause: '暂停', musicIdle: '仅手动播放 · 尚未播放', musicPaused: '已暂停', musicPlaying: '正在播放标题主题曲', musicBlocked: '浏览器阻止了播放。请再次按下播放按钮。', musicEnded: '播放结束',
+    videoLabel: '视频', noVideo: '暂无已批准的视频 URL', videoIntro: '目前用已批准的现有图片展示视频区域。', videoFuture: '官方视频登记后，此卡片会连接手动播放播放器。', videoActive: '已批准的视频栏位已启用。', videos: ['教室生存预览', '学校背景导览', '逃脱路线预告'],
+    galleryLabel: '媒体', galleryTitle: '学校背景预览', galleryAria: '官方背景图片', galleryCta: '进入背景中的学校', newsLabel: '最新消息', newsItems: [
+      ['立即在网页开始', '无需安装，按下开始游戏即可挑战逃出学校。'],
+      ['生存路线指南', '介绍移动、自动攻击和升级选择的基本流程。'],
+      ['媒体档案', '通过官方图片查看游戏里的学校和生存场景。'],
+    ],
+    finalAria: '开始游戏引导', finalEyebrow: '现在，在铃声响起前', finalTitle: '开始逃出学校吧。', footerBrand: 'ESCAPE! ZOMBIE SCHOOL', footer: '官方游戏主页',
+  },
   vi: {
     languageLabel: 'Chọn ngôn ngữ', homeAria: 'Trang chính thức của Thoát khỏi Trường Zombie!', skip: 'Đến nội dung chính', navigation: 'Điều hướng trang chính thức', brandHome: 'Trang chủ Thoát khỏi Trường Zombie!', official: 'Trang chính thức',
     intro: 'Giới thiệu game', howTo: 'Cách chơi', comicNav: 'Xem truyện tranh 4 khung', musicNav: 'Âm nhạc', videoNav: 'Video', news: 'Tin mới', startGame: 'Bắt đầu chơi',
@@ -121,5 +152,34 @@ export const LANDING_COPY = {
       ['Kho nội dung', 'Xem hình ảnh chính thức về ngôi trường và những cảnh sinh tồn.'],
     ],
     finalAria: 'Lời mời bắt đầu game', finalEyebrow: 'Ngay bây giờ, trước khi chuông reo', finalTitle: 'Bắt đầu thoát khỏi trường.', footerBrand: 'THOÁT KHỎI TRƯỜNG ZOMBIE!', footer: 'Trang game chính thức',
+  },
+  id: {
+    languageLabel: 'Pilih bahasa', homeAria: 'Situs resmi Escape! Zombie School', skip: 'Lewati ke konten utama', navigation: 'Navigasi utama situs resmi', brandHome: 'Beranda Escape! Zombie School', official: 'Situs Resmi',
+    intro: 'Tentang Game', howTo: 'Cara Bermain', comicNav: 'Baca Komik 4 Panel', musicNav: 'Musik', videoNav: 'Video', news: 'Berita', startGame: 'Mulai Game',
+    eyebrow: 'AKSI BERTAHAN HIDUP DI SEKOLAH KOREA', title: 'Escape! Zombie School', headline: 'Kabur sebelum bel berbunyi', support: 'Bertahan selama 3 menit 30 detik dari serbuan zombie dan buka pintu keluar yang terkunci.', mainActions: 'Aksi utama', playWeb: 'Main Langsung di Web', howToLink: 'Lihat Cara Bermain', officialNotice: 'Info resmi', notice: 'Jelajahi komik, musik, dan video sebelum masuk ke game.', factsAria: 'Sorotan game', facts: ['Bertahan 3 menit 30 detik', '4 stage', 'Langsung main tanpa instalasi'], playMobile: 'Main Sekarang di Ponsel',
+    gameplayLabel: 'GAMEPLAY', gameplay: [
+      { title: 'Aksi Bertahan Sepulang Sekolah', body: 'Bertahan dari kelas menuju lorong hingga kantin. Serangan otomatis dan pilihan upgrade membuat setiap run singkat terasa intens.' },
+      { title: 'Senjata dan Upgrade', body: 'Kumpulkan senjata bertema sekolah seperti pensil, tas, dan labu sains untuk menahan gerombolan zombie.' },
+      { title: 'Langsung Dimainkan', body: 'Mulai langsung di browser tanpa instalasi. Tombol besar dan informasi yang mudah dibaca memudahkan bermain di ponsel.' },
+    ],
+    survivalLabel: 'RUTE BERTAHAN', survivalTitle: 'Poin Bertahan Hidup', survival: ['Pelarian dari kelas dimulai bahkan sebelum sempat mengambil seragam olahraga', 'Kumpulkan XP, pilih kartu senjata, dan bentuk rute bertahanmu', 'Tahan zombie dan boss guru sampai pintu keluar terbuka'],
+    guideLabel: 'PANDUAN MULAI', guide: ['1. Tekan Main Langsung di Web', '2. Bergerak dengan tombol panah atau kontrol sentuh ponsel', '3. Kabur dari sekolah dengan serangan otomatis dan pilihan upgrade'], guideCta: 'Mulai Kabur dari Sekolah',
+    mediaLabel: 'MEDIA RESMI', mediaTitle: 'Komik · Musik · Video', mediaControls: 'Pilih media resmi', comicButton: 'Baca Komik', musicButton: 'Dengarkan Musik', videoButton: 'Tonton Video',
+    comicsLabel: 'KOMIK 4 PANEL', comicsTitle: 'Diary Sekolah Tim Penyelamat Pensil', comicsIntro: 'Lima komik 4 panel yang ringan dan ceria, tempat teman-teman zombie kembali ke tempatnya alih-alih tumbang.', comicsList: 'Daftar 5 episode komik 4 panel', episodeSuffix: 'Episode', openComic: 'Baca Komik Lengkap', openComicAria: 'buka komik lengkap', thumbnail: 'thumbnail', fullComic: 'komik lengkap', closeViewer: 'Tutup penampil komik', close: 'Tutup', comicNavigation: 'Navigasi episode komik', previous: 'Sebelumnya', next: 'Berikutnya',
+    comics: [
+      { title: 'Temukan Buku Absensi!', summary: 'Para zombie mencari buku absen—sekali ayun pensil, sisi murid teladan mereka muncul!' },
+      { title: 'Antre Makan Siang Satu Baris', summary: 'Barisan makan siang lurus seperti pensil! Menu hari ini punya sesendok ketertiban.' },
+      { title: 'Angin, PR ke Sini!', summary: 'PR yang terbang? Tenang. Ikuti arah pensil menuju kotak pengumpulan!' },
+      { title: 'Pantulan Super di Gym', summary: 'Keselamatan nomor satu saat olahraga! Penghapus pensil ternyata jago menangkap bola.' },
+      { title: 'Operasi “Sst!” di Perpustakaan', summary: 'Tetap tenang di perpustakaan. Zombie pun masuk mode membaca saat ada sinyal pensil!' },
+    ],
+    musicLabel: 'PEMUTAR MUSIK', musicTitle: 'Tema Judul', musicDescription: 'BGM tema judul resmi yang ada di game. Pemutaran hanya manual dan tidak dimulai otomatis.', musicPlayer: 'Pemutar tema judul', play: 'Putar', pause: 'Jeda', musicIdle: 'Pemutaran manual · Belum diputar', musicPaused: 'Dijeda', musicPlaying: 'Memutar tema judul', musicBlocked: 'Browser memblokir pemutaran. Tekan tombol Putar lagi.', musicEnded: 'Pemutaran selesai',
+    videoLabel: 'VIDEO', noVideo: 'Belum ada URL video yang disetujui', videoIntro: 'Saat ini area video ditampilkan dengan gambar yang sudah disetujui.', videoFuture: 'Pemutar video manual akan terhubung di kartu ini setelah video resmi ditambahkan.', videoActive: 'Slot video yang disetujui sudah aktif.', videos: ['Pratinjau Bertahan di Kelas', 'Jelajahi Latar Sekolah', 'Teaser Rute Kabur'],
+    galleryLabel: 'MEDIA', galleryTitle: 'Pratinjau Latar Sekolah', galleryAria: 'Gambar latar resmi', galleryCta: 'Masuk ke Sekolah', newsLabel: 'BERITA', newsItems: [
+      ['Mulai Langsung di Web', 'Tekan Mulai Game untuk mencoba kabur dari sekolah tanpa instalasi.'],
+      ['Panduan Rute Bertahan', 'Pelajari alur dasar: bergerak, serangan otomatis, dan memilih upgrade.'],
+      ['Arsip Media', 'Lihat gambar resmi sekolah dan adegan bertahan hidup.'],
+    ],
+    finalAria: 'Ajakan mulai game', finalEyebrow: 'Sekarang, sebelum bel berbunyi', finalTitle: 'Mulai pelarianmu dari sekolah.', footerBrand: 'ESCAPE! ZOMBIE SCHOOL', footer: 'Situs Game Resmi',
   },
 }

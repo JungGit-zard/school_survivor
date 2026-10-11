@@ -3,6 +3,7 @@ import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import WebLandingPage, { LANDING_FEATURE_VIDEO_URL, LANDING_HERO_VIDEO_URL } from './WebLandingPage.jsx'
+import { LANDING_COPY, LANDING_LANGUAGES } from './webLandingCopy.js'
 import webLandingSource from './WebLandingPage.jsx?raw'
 import { WEB_BACKGROUND_URLS, WEB_LANDING_ART_URLS, WEB_LANDING_COMIC_URLS, selectedWebBackgroundUrl } from '../lib/webBackgroundAssets.js'
 
@@ -69,7 +70,7 @@ describe('WebLandingPage', () => {
     const heroCta = view.container.querySelector('.web-landing__hero-actions .web-landing__cta')
     const languageSelect = view.container.querySelector('#web-landing-language')
     expect(languageSelect.value).toBe('ko')
-    expect(Array.from(languageSelect.options, (option) => option.textContent)).toEqual(['한국어', 'English', '日本語', 'Tiếng Việt'])
+    expect(Array.from(languageSelect.options, (option) => option.textContent)).toEqual(['한국어', 'English', '日本語', '简体中文', 'Tiếng Việt', 'Bahasa Indonesia'])
     expect(view.container.querySelector('h1').textContent).toBe('탈출! 좀비학교')
     expect(view.container.textContent).toContain('종이 울리기 전에 탈출하자')
     expect(view.container.textContent).toContain('3분 30초 동안 몰려오는 좀비를 버티고 잠긴 탈출구를 열어라.')
@@ -120,6 +121,16 @@ describe('WebLandingPage', () => {
     expect(view.container.querySelector('.web-landing__media-controls').getAttribute('aria-label')).toBe('公式メディアを選択')
 
     act(() => {
+      languageSelect.value = 'zh-CN'
+      languageSelect.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    expect(view.container.querySelector('main').getAttribute('aria-label')).toBe('《逃出！僵尸学校》官方网站')
+    expect(document.documentElement.lang).toBe('zh-CN')
+    expect(view.container.textContent).toContain('在上课铃响起前逃出去')
+    expect(view.container.textContent).toContain('4 个关卡')
+    expect(view.container.querySelector('.web-landing__media-controls').getAttribute('aria-label')).toBe('选择官方媒体')
+
+    act(() => {
       languageSelect.value = 'vi'
       languageSelect.dispatchEvent(new Event('change', { bubbles: true }))
     })
@@ -127,10 +138,57 @@ describe('WebLandingPage', () => {
     expect(document.documentElement.lang).toBe('vi')
     expect(view.container.textContent).toContain('4 màn chơi')
     expect(view.container.querySelector('.web-landing__final-cta a').textContent).toBe('Bắt đầu chơi')
+
+    act(() => {
+      languageSelect.value = 'id'
+      languageSelect.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    expect(view.container.querySelector('main').getAttribute('aria-label')).toBe('Situs resmi Escape! Zombie School')
+    expect(document.documentElement.lang).toBe('id')
+    expect(view.container.textContent).toContain('Kabur sebelum bel berbunyi')
+    expect(view.container.textContent).toContain('4 stage')
+    expect(view.container.querySelector('.web-landing__final-cta a').textContent).toBe('Mulai Game')
     expect(webLandingSource).not.toContain('localStorage')
     expect(webLandingSource).not.toContain('sessionStorage')
     view.unmount()
     expect(document.documentElement.lang).toBe(previousLang)
+  })
+
+  it('keeps all six locale copy objects complete and renders their main labels without missing keys', () => {
+    const expectedCodes = ['ko', 'en', 'ja', 'zh-CN', 'vi', 'id']
+    expect(LANDING_LANGUAGES.map((language) => language.code)).toEqual(expectedCodes)
+    expect(LANDING_LANGUAGES.map((language) => language.label)).toEqual(['한국어', 'English', '日本語', '简体中文', 'Tiếng Việt', 'Bahasa Indonesia'])
+    const collectShape = (value) => {
+      if (Array.isArray(value)) return value.map((item) => collectShape(item))
+      if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, collectShape(item)]))
+      return typeof value
+    }
+    const baseShape = collectShape(LANDING_COPY.ko)
+    expectedCodes.forEach((code) => expect(collectShape(LANDING_COPY[code])).toEqual(baseShape))
+
+    const view = renderLanding()
+    const languageSelect = view.container.querySelector('#web-landing-language')
+    expectedCodes.forEach((code) => {
+      const copy = LANDING_COPY[code]
+      act(() => {
+        languageSelect.value = code
+        languageSelect.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+      expect(view.container.querySelector('main').getAttribute('aria-label')).toBe(copy.homeAria)
+      expect(view.container.querySelector('#web-landing-language').getAttribute('aria-label')).toBe(copy.languageLabel)
+      expect(view.container.textContent).toContain(copy.headline)
+      expect(view.container.textContent).toContain(copy.playWeb)
+      act(() => view.container.querySelectorAll('.web-landing__media-controls button')[0].click())
+      expect(view.container.textContent).toContain(copy.comicsTitle)
+      expect(view.container.textContent).toContain(copy.comics[0].title)
+      act(() => view.container.querySelectorAll('.web-landing__media-controls button')[1].click())
+      expect(view.container.textContent).toContain(copy.musicTitle)
+      expect(view.container.textContent).toContain(copy.musicIdle)
+      act(() => view.container.querySelectorAll('.web-landing__media-controls button')[2].click())
+      expect(view.container.textContent).toContain(copy.noVideo)
+      expect(view.container.textContent).toContain(copy.videos[0])
+    })
+    view.unmount()
   })
 
   it('keeps the three media panels collapsed until their single-row controls are selected', () => {

@@ -52,6 +52,9 @@ export default function WebLandingPage() {
   const heroActionsRef = useRef(null)
   const [heroActionsPassed, setHeroActionsPassed] = useState(false)
   const selectedComic = selectedComicIndex === null ? null : { ...COMIC_EPISODES[selectedComicIndex], ...copy.comics[selectedComicIndex] }
+  const formatEpisodeLabel = (index) => (language === 'ko' || language === 'ja' || language === 'zh-CN'
+    ? `${index + 1}${copy.episodeSuffix}`
+    : `${copy.episodeSuffix} ${index + 1}`)
 
   useEffect(() => {
     const previousLanguage = document.documentElement.lang
@@ -255,7 +258,7 @@ export default function WebLandingPage() {
                 <div className="web-landing__comic-grid" aria-label={copy.comicsList}>
                   {COMIC_EPISODES.map((comic, index) => (
                     <a key={comic.id} className="web-landing__comic-feature" style={{ '--comic-accent': comic.accent }} href={comic.image} target="_blank" rel="noreferrer" aria-label={`${copy.comics[index].title} ${copy.openComicAria}`} onClick={(event) => { event.preventDefault(); setSelectedComicIndex(index) }}>
-                      <div className="web-landing__comic-thumbnail"><img src={comic.image} loading="lazy" decoding="async" alt={`${copy.comics[index].title} ${copy.thumbnail}`} /><span>{language === 'ko' || language === 'ja' ? `${index + 1}${copy.episodeSuffix}` : `${copy.episodeSuffix} ${index + 1}`}</span></div>
+                      <div className="web-landing__comic-thumbnail"><img src={comic.image} loading="lazy" decoding="async" alt={`${copy.comics[index].title} ${copy.thumbnail}`} /><span>{formatEpisodeLabel(index)}</span></div>
                       <div className="web-landing__comic-copy"><h3>{copy.comics[index].title}</h3><p>{copy.comics[index].summary}</p><span className="web-landing__comic-action">{copy.openComic} <span aria-hidden="true">→</span></span></div>
                     </a>
                   ))}
@@ -571,7 +574,7 @@ const landingCss = `
 
 .web-landing__language select {
   min-height: 44px;
-  max-width: 150px;
+  max-width: 180px;
   padding: 0 30px 0 12px;
   border: 2px solid #2563EB;
   border-radius: 12px;
@@ -658,7 +661,9 @@ const landingCss = `
 
 .web-landing:lang(en) .web-landing__title,
 .web-landing:lang(ja) .web-landing__title,
-.web-landing:lang(vi) .web-landing__title {
+.web-landing:lang(zh-CN) .web-landing__title,
+.web-landing:lang(vi) .web-landing__title,
+.web-landing:lang(id) .web-landing__title {
   white-space: normal;
   overflow-wrap: anywhere;
   line-height: 1.05;
