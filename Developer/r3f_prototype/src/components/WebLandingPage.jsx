@@ -722,7 +722,8 @@ const landingCss = `
 .web-landing__hero-actions .web-landing__cta {
   width: 100%;
   min-height: 44px;
-  padding: 8px 16px;
+  padding: 8px;
+  word-break: keep-all;
   border-width: 2px;
   box-shadow: none;
   text-align: center;
