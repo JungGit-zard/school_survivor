@@ -222,6 +222,7 @@ describe('LobbySettingsModal', () => {
   })
 
   it('exposes a separate hit camera shake toggle and applies it to runtime dataset', async () => {
+    _seedHydratedFirebaseProgressForTests({ uid: 'hit-shake-settings-user' })
     useAuthStore.setState({
       status: 'signedIn',
       user: { uid: 'hit-shake-settings-user' },

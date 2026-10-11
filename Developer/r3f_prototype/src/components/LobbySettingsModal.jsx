@@ -1,6 +1,6 @@
 // 로비 설정 모달. 타이틀에서 이관된 게임 환경 설정 + 닉네임 편집을 담당한다.
 // 설정 저장은 titleSettings(단일 저장 소스), 닉네임은 userNickname을 그대로 사용한다.
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated, requestCloudProgressSave } from '../lib/firebaseProgress.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
 import { DEFAULT_SETTINGS, applyHitCameraShake, applyLanguage, applyReducedEffects, applyScientificNotation, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
@@ -30,9 +30,12 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   const t = useT()
   const locale = useLocale()
   const authUser = useAuthStore((s) => s.user)
+  const progressStatus = useAuthStore((s) => s.progressStatus)
   const signOutOfGoogle = useAuthStore((s) => s.signOutOfGoogle)
   const [settingsOwnerUid] = useState(() => authUser?.uid ?? null)
-  const [settings, setSettings] = useState(() => authUser?.uid ? loadTitleSettings() : { ...DEFAULT_SETTINGS })
+  const remoteSettingsReady = isRemoteSettingsReady(authUser, settingsOwnerUid, progressStatus)
+  const [settings, setSettings] = useState(() => remoteSettingsReady ? loadTitleSettings() : { ...DEFAULT_SETTINGS })
+  const remoteSettingsLoadedRef = useRef(remoteSettingsReady)
   const [controlsOpen, setControlsOpen] = useState(false)
   const [nicknameOpen, setNicknameOpen] = useState(false)
   const [nicknameInput, setNicknameInput] = useState('')
@@ -47,12 +50,22 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   useEffect(() => {
     // Appearance has its own confirmed cloud-save/rollback path.
     const { playerAppearance: _appearance, ...otherSettings } = settings
-    if (settingsOwnerUid && settingsOwnerUid === authUser?.uid) saveTitleSettings(otherSettings)
+    if (remoteSettingsReady && remoteSettingsLoadedRef.current) saveTitleSettings(otherSettings)
     applyReducedEffects(settings.reducedEffects)
     applyHitCameraShake(settings.hitCameraShake)
     applyScientificNotation(settings.scientificNotation)
     applyLanguage(settings.language)
-  }, [authUser?.uid, settings, settingsOwnerUid])
+  }, [remoteSettingsReady, settings])
+
+  useEffect(() => {
+    if (!remoteSettingsReady) {
+      remoteSettingsLoadedRef.current = false
+      return
+    }
+    if (remoteSettingsLoadedRef.current) return
+    setSettings(loadTitleSettings())
+    remoteSettingsLoadedRef.current = true
+  }, [remoteSettingsReady])
 
   const toggleSetting = (key) => {
     setSettings((current) => {
@@ -66,7 +79,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
 
   const selectAppearance = async (playerAppearance) => {
     if (appearanceBusy || playerAppearance === (settings.playerAppearance ?? 'v9')) return
-    if (!settingsOwnerUid || settingsOwnerUid !== authUser?.uid) {
+    if (!remoteSettingsReady) {
       setAppearanceError(true)
       return
     }
@@ -240,7 +253,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
         ) : (
           <>
             <div style={styles.sectionLabel}>{t('settings.profile')}</div>
-            <button type="button" style={styles.settingRow} onClick={openNicknameEditor} disabled={!authUser?.uid}>
+            <button type="button" style={styles.settingRow} onClick={openNicknameEditor} disabled={!remoteSettingsReady}>
               <span style={styles.rowText}>
                 <strong style={styles.rowTitle}>{t('settings.nickname')}</strong>
                 <span style={styles.rowDescription}>{getSavedNickname(authUser) || t('settings.notSet')}</span>
@@ -407,6 +420,12 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
       </section>
     </div>
   )
+}
+
+function isRemoteSettingsReady(authUser, settingsOwnerUid, progressStatus) {
+  if (!settingsOwnerUid || settingsOwnerUid !== authUser?.uid) return false
+  if (progressStatus !== 'ready' || !isFirebaseProgressHydrated(authUser)) return false
+  return getFirebaseProgressRuntimeSnapshot().uid === settingsOwnerUid
 }
 
 const styles = {

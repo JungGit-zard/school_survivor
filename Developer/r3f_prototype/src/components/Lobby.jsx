@@ -274,11 +274,13 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
 
       {/* 스테이지 리스트 */}
       <div style={styles.stageList} aria-label={t('lobby.stageListAria')}>
-        {records ? stageIds.map((stageId, index) => {
+        {records == null ? <div data-testid="lobby-records-pending" aria-busy="true" style={styles.recordsPending}>{t('loading.game')}</div> : null}
+        {stageIds.map((stageId, index) => {
           const stage = getStageConfig(stageId)
-          const unlocked = devAllStagesUnlocked || isStageUnlocked(stageId, records)
-          const bestSurvivalSec = records[stage.bestRecordKey] ?? 0
-          const cleared = (records[stage.clearRecordKey] ?? 0) > 0
+          const recordsReady = records != null
+          const unlocked = devAllStagesUnlocked || !recordsReady || isStageUnlocked(stageId, records)
+          const bestSurvivalSec = recordsReady ? (records[stage.bestRecordKey] ?? 0) : null
+          const cleared = recordsReady ? (records[stage.clearRecordKey] ?? 0) > 0 : false
           return (
             <StageCard
               key={stageId}
@@ -288,6 +290,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
               unlocked={unlocked}
               cleared={cleared}
               bestSurvivalSec={bestSurvivalSec}
+              recordsPending={!recordsReady}
               stageBossPreview={stageBossPreview}
               showtimeStageId={showtimeStageId}
               devAllStagesUnlocked={devAllStagesUnlocked}
@@ -297,7 +300,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
               onRanking={() => onOpenRanking?.(stageId)}
             />
           )
-        }) : <div data-testid="lobby-records-pending" aria-busy="true" style={styles.recordsPending}>{t('loading.game')}</div>}
+        })}
       </div>
 
       <nav aria-label={t('lobby.menuAria')} style={styles.bottomNav}>
@@ -327,7 +330,7 @@ function showtimeLabel(translateFn, bossType) {
   return translateFn(entry.labelKey, null, entry.label)
 }
 
-function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalSec, stageBossPreview, showtimeStageId, devAllStagesUnlocked = false, onBeginShowtime, onFinishShowtime, onStart, onRanking }) {
+function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalSec, recordsPending = false, stageBossPreview, showtimeStageId, devAllStagesUnlocked = false, onBeginShowtime, onFinishShowtime, onStart, onRanking }) {
   const t = useT()
   const localizedStageTitle = stageTitle(stageId, stage.title)
   const [showtimeToken, setShowtimeToken] = useState(0)
@@ -337,7 +340,11 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
   const showtimePendingRef = useRef(false)
   const lobbyBossType = stage.lobbyBossType ?? stage.bossType
   const playable = stage.playable !== false || devAllStagesUnlocked
-  const canStart = unlocked && playable
+  const unlockUnknown = recordsPending && !devAllStagesUnlocked && stageId !== 'stage1'
+  const canStart = unlocked && playable && !unlockUnknown
+  const bestRecordValue = bestSurvivalSec == null
+    ? t('loading.game')
+    : (bestSurvivalSec > 0 ? formatSurvivalTime(bestSurvivalSec) : t('lobby.noRecord'))
 
   useEffect(() => {
     return () => {
@@ -403,10 +410,10 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
               </span>
             </div>
             <div style={styles.previewBest}>
-              {t('lobby.bestRecord', { value: bestSurvivalSec > 0 ? formatSurvivalTime(bestSurvivalSec) : t('lobby.noRecord') })}
+              {t('lobby.bestRecord', { value: bestRecordValue })}
             </div>
           </div>
-          {playable ? (
+          {playable && !unlockUnknown ? (
             <>
               <button
                 type="button"
@@ -429,7 +436,7 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
                 style={{ ...styles.previewEnterButton, ...styles.previewDisabledButton }}
                 disabled
                 onClick={(event) => event.stopPropagation()}
-              >{t('lobby.comingSoon')}</button>
+              >{unlockUnknown ? t('loading.game') : t('lobby.comingSoon')}</button>
               <button
                 type="button"
                 style={{ ...styles.rankingButton, ...styles.previewDisabledButton }}
@@ -454,7 +461,7 @@ function StageCard({ index = 0, stageId, stage, unlocked, cleared, bestSurvivalS
               </span>
             </div>
             <div style={styles.previewBest}>
-              {t('lobby.bestRecord', { value: bestSurvivalSec > 0 ? formatSurvivalTime(bestSurvivalSec) : t('lobby.noRecord') })}
+              {t('lobby.bestRecord', { value: bestRecordValue })}
             </div>
           </div>
           <button

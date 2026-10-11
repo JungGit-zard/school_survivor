@@ -75,8 +75,8 @@ export function applyScientificNotation(scientific) {
 
 export function vibrateFeedback(pattern = 18) {
   if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return
-  // Guest clicks have no account vibration preference to read.
-  if (!isFirebaseProgressHydrated() && !getFirebaseProgressRuntimeSnapshot().uid) return
+  // Remote account settings are only readable after the authenticated snapshot is applied.
+  if (!isFirebaseProgressHydrated()) return
   if (!loadTitleSettings().vibration) return
   navigator.vibrate(pattern)
 }

@@ -193,12 +193,38 @@ describe('Lobby', () => {
     view.unmount()
   })
 
+  it('keeps Stage 1 playable while signed-in Firebase progress is still loading or errored', () => {
+    vi.useFakeTimers()
+    const onStartStage = vi.fn()
+    useAuthStore.setState({ progressStatus: 'loading', progressError: null })
+    const loadingView = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+
+    expect(loadingView.container.querySelector('[data-testid="lobby-records-pending"]')).not.toBeNull()
+    expect(loadingView.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(0)
+    expect(loadingView.container.querySelectorAll('[data-testid="stage-boss-preview"]')).toHaveLength(4)
+    expect(Array.from(loadingView.container.querySelectorAll('button')).filter((button) => button.textContent === '입장하기')).toHaveLength(1)
+    clickButtonByText(loadingView.container, '입장하기')
+    act(() => {
+      vi.advanceTimersByTime(1_000)
+    })
+    expect(onStartStage).toHaveBeenCalledWith('stage1')
+    loadingView.unmount()
+
+    useAuthStore.setState({ progressStatus: 'error', progressError: new Error('remote snapshot unavailable') })
+    const errorView = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
+    expect(errorView.container.querySelector('[data-testid="lobby-records-pending"]')).not.toBeNull()
+    expect(Array.from(errorView.container.querySelectorAll('button')).filter((button) => button.textContent === '입장하기')).toHaveLength(1)
+    errorView.unmount()
+    vi.useRealTimers()
+  })
+
   it('restores every cleared stage when the authenticated account progress arrives after the lobby mounts', () => {
     useAuthStore.setState({ progressStatus: 'loading' })
     const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
 
     expect(view.container.querySelector('[data-testid="lobby-records-pending"]')).not.toBeNull()
     expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(0)
+    expect(view.container.querySelectorAll('[data-testid="stage-boss-preview"]')).toHaveLength(4)
     expect(view.container.textContent).not.toContain('Stage 1 클리어 시 열림')
     expect(view.container.textContent).not.toContain('Stage 3 클리어 시 열림')
 
