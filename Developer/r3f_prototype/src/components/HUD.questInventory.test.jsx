@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import HUD from './HUD.jsx'
 import { getDialogueText } from '../dialogues/dialogueStore.js'
 import { BOSS_PASSIVE_ITEMS } from '../lib/bossPassiveItems.js'
@@ -28,6 +28,10 @@ function clickQuestBag(container) {
 beforeEach(() => {
   useGameStore.getState().resetGame('stage1')
   useGameStore.setState({ bossPassiveUnlocks: {} })
+})
+
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 describe('quest inventory HUD', () => {
@@ -168,7 +172,8 @@ describe('quest inventory HUD', () => {
     }
   })
 
-  it('orders quest item acquisition as a centered popup before the inventory panel opens', () => {
+  it('orders quest acceptance as a tappable centered card and transient quest notices as half-size top feedback', () => {
+    vi.useFakeTimers()
     const [quest] = getStageQuestDefinitions('stage1')
     const { container, root } = renderHud()
 
@@ -179,16 +184,28 @@ describe('quest inventory HUD', () => {
 
       const popup = container.querySelector('[data-testid="quest-start-popup"]')
       expect(popup).not.toBeNull()
+      expect(popup.textContent).toContain(getDialogueText(quest.startDialogueId))
       expect(popup.textContent).toContain(quest.title)
       expect(popup.style.top).toBe('50%')
       expect(popup.style.transform).toBe('translate(-50%, -50%)')
-      expect(popup.querySelector('small')?.style.color).toBe('rgb(255, 243, 214)')
-      expect(popup.querySelector('small')?.style.fontFamily).toContain('Nanum Myeongjo')
-      expect(popup.querySelector('small')?.style.webkitTextStroke).toBe('')
-      expect(popup.querySelector('small')?.style.textShadow).toBe('')
-      expect(popup.style.fontSize).toBe('19px')
-      expect(popup.style.pointerEvents).toBe('none')
+      expect(popup.style.borderRadius).toBe('0px')
+      expect(popup.style.pointerEvents).toBe('auto')
       expect(popup.getAttribute('aria-live')).toBe('assertive')
+      const portrait = popup.querySelector('[data-testid="quest-giver-profile"]')
+      expect(portrait).not.toBeNull()
+      const notice = popup.querySelector('strong:not([data-testid="quest-reward"])')
+      const action = popup.querySelector('small')
+      expect(notice?.style.fontFamily).toContain('Nanum Myeongjo')
+      expect(notice?.style.lineHeight).toBe('1.2')
+      expect(action?.style.fontFamily).not.toContain('Nanum Myeongjo')
+      expect(action?.style.fontWeight).toBe('1000')
+      expect(action?.style.lineHeight).toBe('1.12')
+      act(() => { vi.advanceTimersByTime(2000) })
+      expect(container.querySelector('[data-testid="quest-start-popup"]')).not.toBeNull()
+      act(() => {
+        popup.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+      })
+      expect(useGameStore.getState().questToast).toBeNull()
 
       act(() => {
         useGameStore.setState({ phase: 'playing', pauseSource: null, questToast: { type: 'item', questId: quest.id } })
@@ -197,16 +214,92 @@ describe('quest inventory HUD', () => {
       expect(itemPopup).not.toBeNull()
       expect(container.querySelector('[data-testid="quest-start-popup"]')).toBeNull()
       expect(container.querySelector('#quest-inventory-panel')).toBeNull()
-      expect(itemPopup.style.top).toBe('50%')
-      expect(itemPopup.style.transform).toBe('translate(-50%, -50%)')
+      expect(itemPopup.style.top).toBe('12px')
+      expect(itemPopup.style.transform).toBe('translateX(-50%) scale(0.5)')
+      expect(itemPopup.style.transformOrigin).toBe('top center')
       expect(itemPopup.style.zIndex).toBe('30')
       expect(itemPopup.getAttribute('aria-live')).toBe('polite')
+      act(() => { vi.advanceTimersByTime(999) })
+      expect(container.querySelector('[data-testid="quest-item-popup"]')).not.toBeNull()
+      expect(container.querySelector('#quest-inventory-panel')).toBeNull()
+      act(() => { vi.advanceTimersByTime(1) })
+      expect(useGameStore.getState().questToast).toBeNull()
+      expect(container.querySelector('#quest-inventory-panel')).toBeNull()
 
       act(() => {
         useGameStore.setState({ questToast: { type: 'completed', questId: quest.id } })
       })
-      expect(container.querySelector('[data-testid="quest-complete-popup"]')).not.toBeNull()
+      const completePopup = container.querySelector('[data-testid="quest-complete-popup"]')
+      expect(completePopup).not.toBeNull()
+      expect(completePopup.style.top).toBe('12px')
+      expect(completePopup.style.transform).toBe('translateX(-50%) scale(0.5)')
       expect(container.querySelector('[data-testid="quest-start-popup"]')).toBeNull()
+      act(() => { vi.advanceTimersByTime(1000) })
+      expect(useGameStore.getState().questToast).toBeNull()
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+
+  it('does not let an old item timer clear a replacement quest toast', () => {
+    vi.useFakeTimers()
+    const [firstQuest, secondQuest] = getStageQuestDefinitions('stage1')
+    const { container, root } = renderHud()
+
+    try {
+      act(() => {
+        useGameStore.setState({ phase: 'playing', pauseSource: null, questToast: { type: 'item', questId: firstQuest.id } })
+      })
+      expect(container.querySelector('[data-testid="quest-item-popup"]')).not.toBeNull()
+
+      act(() => { vi.advanceTimersByTime(500) })
+      act(() => {
+        useGameStore.setState({ questToast: { type: 'completed', questId: secondQuest.id } })
+      })
+
+      act(() => { vi.advanceTimersByTime(500) })
+      expect(useGameStore.getState().questToast).toMatchObject({ type: 'completed', questId: secondQuest.id })
+      expect(container.querySelector('[data-testid="quest-complete-popup"]')).not.toBeNull()
+
+      act(() => { vi.advanceTimersByTime(500) })
+      expect(useGameStore.getState().questToast).toBeNull()
+    } finally {
+      act(() => root.unmount())
+    }
+  })
+
+  it('auto-dismisses quest completion dialogue after the half-duration without touching quest acceptance dialogue', () => {
+    vi.useFakeTimers()
+    const [quest] = getStageQuestDefinitions('stage1')
+    const { container, root } = renderHud()
+
+    try {
+      act(() => {
+        expect(useGameStore.getState().startQuest(quest.id)).toBe(true)
+        useGameStore.getState().openStudentDialogue(quest.startDialogueId, null, {
+          subjectType: 'quest',
+          subjectName: quest.giver.name,
+        })
+      })
+      expect(container.querySelector('[data-testid="quest-dialogue-popup"]')).not.toBeNull()
+      act(() => { vi.advanceTimersByTime(2000) })
+      expect(useGameStore.getState().pauseSource).toBe('dialogue')
+      expect(useGameStore.getState().questToast).toMatchObject({ type: 'started', questId: quest.id })
+
+      act(() => {
+        useGameStore.getState().closeStudentDialogue()
+        useGameStore.setState({ questToast: { type: 'completed', questId: quest.id } })
+        useGameStore.getState().openStudentDialogue(quest.completionDialogueId, null, {
+          subjectType: 'quest',
+          subjectName: quest.completion.name,
+        })
+      })
+      expect(container.querySelector('[data-testid="quest-dialogue-popup"]')).not.toBeNull()
+      act(() => { vi.advanceTimersByTime(999) })
+      expect(useGameStore.getState().pauseSource).toBe('dialogue')
+      act(() => { vi.advanceTimersByTime(1) })
+      expect(useGameStore.getState().pauseSource).toBeNull()
+      expect(useGameStore.getState().questToast).toBeNull()
     } finally {
       act(() => root.unmount())
     }
@@ -234,36 +327,35 @@ describe('quest inventory HUD', () => {
       expect(startPopup.style.background).toContain('rgb(47, 52, 64)')
       expect(startPopup.style.color).toBe('rgb(255, 243, 214)')
       const startProfile = startPopup.querySelector('[data-testid="quest-dialogue-giver-profile"]')
-      const startContent = startProfile?.nextElementSibling
+      const startContent = startProfile?.parentElement?.nextElementSibling
       expect(startProfile).not.toBeNull()
-      expect(startContent?.style.textAlign).toBe('left')
-      expect(startPopup.style.flexDirection).toBe('row')
-      expect(startProfile.compareDocumentPosition(startContent) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+      expect(startProfile.parentElement?.style.display).toBe('flex')
+      expect(startProfile.parentElement?.style.gap).toBe('8px')
+      expect(startPopup.style.display).toBe('block')
+      expect(startContent?.tagName).toBe('STRONG')
       expect(startPopup.querySelector('div[aria-live="polite"]')?.style.color).toBe('rgb(255, 243, 214)')
       expect(startPopup.querySelector('div[aria-live="polite"]')?.style.webkitTextStroke).toBe('0 transparent')
       expect(startPopup.querySelector('div[aria-live="polite"]')?.style.textShadow).toBe('none')
-      expect(startPopup.querySelector('strong')?.style.color).toBe('rgb(255, 243, 214)')
+      expect(startPopup.querySelector('strong')?.style.color).toBe('rgb(203, 216, 255)')
       expect(startPopup.querySelector('strong')?.style.webkitTextStroke).toBe('0 transparent')
-      expect(startPopup.querySelector('strong')?.style.textShadow).toBe('none')
-      expect(startPopup.querySelector('small')?.style.color).toBe('rgb(255, 243, 214)')
-      expect(startPopup.querySelector('small')?.style.fontFamily).toContain('Nanum Myeongjo')
+      expect(startPopup.querySelector('small')?.style.color).toBe('rgb(255, 255, 255)')
+      expect(startPopup.querySelector('small')?.style.fontFamily).not.toContain('Nanum Myeongjo')
       expect(startPopup.querySelector('small')?.style.webkitTextStroke).toBe('0 transparent')
-      expect(startPopup.querySelector('small')?.style.textShadow).toBe('none')
       expect(container.querySelector('[data-testid="student-dialogue-catcher"]').style.alignItems).toBe('center')
 
       const dialogueLine = startPopup.querySelector('div[aria-live="polite"]')
       const questNotice = startPopup.querySelector('strong')
       const nextAction = startPopup.querySelector('small')
-      const primaryBlock = questNotice?.parentElement
-      expect(primaryBlock?.style.display).toBe('grid')
-      expect(primaryBlock?.style.gap).toBe('3px')
-      expect([...primaryBlock.children]).toEqual([questNotice, nextAction])
-      expect(dialogueLine?.style.lineHeight).toBe('1.34')
+      const contentBlock = questNotice?.parentElement
+      expect(contentBlock?.style.display).toBe('grid')
+      expect(contentBlock?.style.gap).toBe('8px')
+      expect([...contentBlock.children].slice(1, 3)).toEqual([questNotice, nextAction])
+      expect(dialogueLine?.style.lineHeight).toBe('1.32')
       expect(dialogueLine?.style.fontWeight).toBe('700')
-      expect(dialogueLine?.style.padding).toBe('6px 8px')
-      expect(questNotice?.style.lineHeight).toBe('1.16')
+      expect(questNotice?.style.lineHeight).toBe('1.2')
       expect(questNotice?.style.padding).toBe('7px 9px')
-      expect(nextAction?.style.lineHeight).toBe('1.24')
+      expect(nextAction?.style.lineHeight).toBe('1.12')
+      expect(nextAction?.style.fontWeight).toBe('1000')
       expect(startPopup.style.overflowY).toBe('auto')
 
       act(() => {
@@ -283,6 +375,8 @@ describe('quest inventory HUD', () => {
       const completionPopup = container.querySelector('[data-testid="quest-dialogue-popup"]')
       expect(completionPopup).not.toBeNull()
       expect(container.querySelector('[data-testid="quest-complete-popup"]')).toBeNull()
+      expect(completionPopup.style.top).toBe('12px')
+      expect(completionPopup.style.transform).toBe('translateX(-50%) scale(0.5)')
       expect(completionPopup.textContent.indexOf(getDialogueText(quest.completionDialogueId)))
         .toBeLessThan(completionPopup.textContent.indexOf(quest.title))
       expect(completionPopup.textContent).toContain(`${quest.rewardGold}G`)

@@ -71,6 +71,8 @@ import laidManPortraitSrc from '../assets/character/laid_man.webp'
 import matildaConversationPortraitSrc from '../assets/character/matilda_conversation.webp'
 
 const GAMEOVER_TRANSITION_MS = 1000
+const QUEST_TRANSIENT_BASE_MS = 2000
+const QUEST_TRANSIENT_HALF_MS = QUEST_TRANSIENT_BASE_MS / 2
 const MATILDA_COUNTDOWN_SECONDS = 5
 const MATILDA_DIALOGUE_NAME = '마틸다'
 
@@ -1295,21 +1297,40 @@ export default function HUD({
 
   useEffect(() => {
     if (!questItemReceived) return undefined
+    const activeToast = questToast
     const timer = setTimeout(() => {
-      clearQuestToast()
       const state = useGameStore.getState()
-      if (!(state.phase === 'paused' && state.pauseSource === 'quest')) {
-        state.toggleQuestInventory()
+      const currentToast = state.questToast
+      if (typeof activeToast === 'object'
+        && activeToast?.type === 'item'
+        && typeof currentToast === 'object'
+        && currentToast?.type === activeToast.type
+        && currentToast?.questId === activeToast.questId) {
+        clearQuestToast()
       }
-    }, 2000)
+    }, QUEST_TRANSIENT_HALF_MS)
     return () => clearTimeout(timer)
-  }, [clearQuestToast, questItemReceived])
+  }, [clearQuestToast, questItemReceived, questToast])
 
   useEffect(() => {
-    if (!questToast || questDialoguePopup || questItemReceived) return undefined
-    const timer = setTimeout(clearQuestToast, 2000)
+    if (!questToast || questItemReceived || questStarted) return undefined
+    const activeToast = questToast
+    const timer = setTimeout(() => {
+      const state = useGameStore.getState()
+      const currentToast = state.questToast
+      const sameToast = typeof activeToast === 'object'
+        ? typeof currentToast === 'object'
+          && currentToast?.type === activeToast.type
+          && currentToast?.questId === activeToast.questId
+        : currentToast === activeToast
+      if (!sameToast) return
+      clearQuestToast()
+      if (questDialoguePopup && questCompleted && state.pauseSource === 'dialogue') {
+        closeStudentDialogue()
+      }
+    }, QUEST_TRANSIENT_HALF_MS)
     return () => clearTimeout(timer)
-  }, [clearQuestToast, questDialoguePopup, questItemReceived, questToast])
+  }, [clearQuestToast, closeStudentDialogue, questCompleted, questDialoguePopup, questItemReceived, questStarted, questToast])
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -1635,43 +1656,48 @@ export default function HUD({
           role="status"
           aria-live={questStarted || questCompleted ? 'assertive' : 'polite'}
           data-testid={questStarted ? 'quest-start-popup' : questItemReceived ? 'quest-item-popup' : questCompleted ? 'quest-complete-popup' : 'quest-toast'}
+          onPointerDown={questStarted ? clearQuestToast : undefined}
           style={{
             ...styles.questToast,
             ...(questStarted || questItemReceived || questCompleted ? styles.questPopupCenter : null),
+            ...(questItemReceived || questCompleted ? styles.questTransientTopPopup : null),
             ...(questStarted ? styles.questStartPopup : null),
             ...(questItemReceived ? styles.questItemPopup : null),
           }}
         >
           {questStarted ? (
-            <>
-              <img
-                data-testid="quest-giver-profile"
-                src={laidManPortraitSrc}
-                alt={t('hud.laidStudentAlt')}
-                draggable={false}
-                style={styles.questGiverProfile}
-              />
-              <span style={styles.questStartContent}>
-                <span style={styles.questStartHeader}>
-                  <strong style={styles.questStartTitle}>{questToastMessage}</strong>
-                  <strong data-testid="quest-reward" style={styles.questReward}>보상 · {questToastQuest?.rewardGold ?? 0} 골드</strong>
-                </span>
-                {questPopupNextAction && <small style={styles.questStartAction}>{questPopupNextAction}</small>}
-              </span>
-            </>
+            <div style={styles.questStartContent}>
+              <div style={styles.questStartNpcRow}>
+                <img
+                  data-testid="quest-giver-profile"
+                  src={laidManPortraitSrc}
+                  alt={t('hud.laidStudentAlt')}
+                  draggable={false}
+                  style={styles.questGiverProfile}
+                />
+                <div style={styles.questStartNpcText}>
+                  <div style={styles.questStartNpcName}>[{questToastQuest ? translate(`quest.${questToastQuest.id}.giver`, null, questToastQuest.giver.name) : t('hud.tiredStudent')}]</div>
+                  <div style={styles.questStartDialogueLine}>{questToastQuest ? getDialogueText(questToastQuest.startDialogueId) : ''}</div>
+                </div>
+              </div>
+              <strong style={styles.questStartTitle}>{questToastMessage}</strong>
+              {questPopupNextAction && <small style={styles.questStartAction}>{questPopupNextAction}</small>}
+            </div>
           ) : questItemReceived && questToastQuest?.item
             ? <QuestItemPictureIcon visualKind={questToastQuest.item.visualKind} size={96} />
             : questCompleted && questToastQuest?.item
               ? <QuestItemPictureIcon visualKind={questToastQuest.item.visualKind} size={96} />
               : <QuestBagIcon size={questStarted || questCompleted ? 96 : 28} />}
-          <span style={{ ...styles.questPopupText, ...(questStarted || questItemReceived || questCompleted ? styles.questPopupCenterText : null), ...(questItemReceived ? styles.questItemToastText : null) }}>
-            <strong>{questToastMessage}</strong>
-            {questPopupNextAction && (
-              <small style={{ ...styles.questPopupNextAction, ...(questItemReceived ? styles.questItemNextAction : null) }}>
-                {questPopupNextAction}
-              </small>
-            )}
-          </span>
+          {!questStarted && (
+            <span style={{ ...styles.questPopupText, ...(questItemReceived || questCompleted ? styles.questPopupCenterText : null), ...(questItemReceived ? styles.questItemToastText : null) }}>
+              <strong>{questToastMessage}</strong>
+              {questPopupNextAction && (
+                <small style={{ ...styles.questPopupNextAction, ...(questItemReceived ? styles.questItemNextAction : null) }}>
+                  {questPopupNextAction}
+                </small>
+              )}
+            </span>
+          )}
         </div>
       )}
 
@@ -1858,27 +1884,56 @@ export default function HUD({
           {questDialoguePopup ? (
             <div
               data-testid="quest-dialogue-popup"
-              style={{ ...styles.questToast, ...styles.questPopupCenter, ...styles.questDialoguePopup }}
+              style={{
+                ...styles.questToast,
+                ...styles.questPopupCenter,
+                ...styles.questDialoguePopup,
+                ...(questStarted ? styles.questStartPopup : null),
+                ...(questCompleted ? styles.questTransientTopPopup : null),
+              }}
               role="dialog"
               aria-label={t('hud.investigateAria', { name: studentDialogue.subjectName ?? t('hud.defaultSubject') })}
             >
-              <img
-                data-testid="quest-dialogue-giver-profile"
-                src={laidManPortraitSrc}
-                alt={t('hud.laidStudentAlt')}
-                draggable={false}
-                style={styles.questDialogueGiverProfile}
-              />
-              <div style={styles.questDialogueContent}>
-                <div style={styles.questDialogueName}>[{studentDialogue.subjectName ?? t('hud.tiredStudent')}]</div>
-                <div style={styles.questDialogueLine} aria-live="polite">{getDialogueText(studentDialogue.dialogueId)}</div>
-                <div style={styles.questDialogueDivider} />
-                <div style={styles.questDialoguePrimary}>
-                  <strong style={styles.questDialogueNotice}>{questToastMessage}</strong>
-                  {questPopupNextAction && <small style={styles.questDialogueNextAction}>{questPopupNextAction}</small>}
+              {questStarted ? (
+                <div style={styles.questStartContent}>
+                  <div style={styles.questStartNpcRow}>
+                    <img
+                      data-testid="quest-dialogue-giver-profile"
+                      src={laidManPortraitSrc}
+                      alt={t('hud.laidStudentAlt')}
+                      draggable={false}
+                      style={styles.questGiverProfile}
+                    />
+                    <div style={styles.questStartNpcText}>
+                      <div style={styles.questStartNpcName}>[{studentDialogue.subjectName ?? t('hud.tiredStudent')}]</div>
+                      <div style={styles.questStartDialogueLine} aria-live="polite">{getDialogueText(studentDialogue.dialogueId)}</div>
+                    </div>
+                  </div>
+                  <strong style={styles.questStartTitle}>{questToastMessage}</strong>
+                  {questPopupNextAction && <small style={styles.questStartAction}>{questPopupNextAction}</small>}
+                  <div style={styles.questDialogueHint}>{t('hud.tapToContinue')}</div>
                 </div>
-                <div style={styles.questDialogueHint}>{t('hud.tapToContinue')}</div>
-              </div>
+              ) : (
+                <>
+                  <img
+                    data-testid="quest-dialogue-giver-profile"
+                    src={laidManPortraitSrc}
+                    alt={t('hud.laidStudentAlt')}
+                    draggable={false}
+                    style={styles.questDialogueGiverProfile}
+                  />
+                  <div style={styles.questDialogueContent}>
+                    <div style={styles.questDialogueName}>[{studentDialogue.subjectName ?? t('hud.tiredStudent')}]</div>
+                    <div style={styles.questDialogueLine} aria-live="polite">{getDialogueText(studentDialogue.dialogueId)}</div>
+                    <div style={styles.questDialogueDivider} />
+                    <div style={styles.questDialoguePrimary}>
+                      <strong style={styles.questDialogueNotice}>{questToastMessage}</strong>
+                      {questPopupNextAction && <small style={styles.questDialogueNextAction}>{questPopupNextAction}</small>}
+                    </div>
+                    <div style={styles.questDialogueHint}>{t('hud.tapToContinue')}</div>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <div style={styles.dialogueBox} role="dialog" aria-label={t('hud.investigateAria', { name: studentDialogue.subjectName ?? t('hud.defaultSubject') })}>
@@ -2595,8 +2650,8 @@ const styles = {
     top: '50%',
     transform: 'translate(-50%, -50%)',
     zIndex: 30,
-    width: 'min(calc(100vw - 24px), 560px)',
-    maxWidth: 'min(calc(100vw - 24px), 560px)',
+    width: 'min(calc(100% - 24px), calc(56.25dvh - 24px), 560px)',
+    maxWidth: 'min(calc(100% - 24px), calc(56.25dvh - 24px), 560px)',
     maxHeight: 'calc(100dvh - 48px)',
     overflowY: 'auto',
     boxSizing: 'border-box',
@@ -2612,47 +2667,84 @@ const styles = {
     lineHeight: 1.15,
     textAlign: 'left',
   },
+  questTransientTopPopup: {
+    top: 12,
+    transform: 'translateX(-50%) scale(0.5)',
+    transformOrigin: 'top center',
+    width: 'min(calc(100% - 24px), calc(56.25dvh - 24px), 560px)',
+    maxWidth: 'min(calc(100% - 24px), calc(56.25dvh - 24px), 560px)',
+    maxHeight: 'calc(100dvh - 48px)',
+  },
   questPopupText: { display: 'grid', gap: 3 },
   questPopupCenterText: { flex: 1, minWidth: 0, textAlign: 'center' },
   questStartPopup: {
-    gap: 12,
+    display: 'block',
+    pointerEvents: 'auto',
     border: '2px solid #c9b98d',
+    borderRadius: 0,
     background: 'linear-gradient(180deg, #2f3440 0%, #181d28 100%)',
     color: '#fff3d6',
-    boxShadow: '0 6px 0 rgba(4, 6, 10, 0.7), 0 0 0 4px rgba(255, 243, 214, 0.14)',
+    boxShadow: '0 6px 0 rgba(4, 6, 10, 0.7)',
   },
   questGiverProfile: {
-    flex: '0 0 76px',
-    width: 76,
-    height: 76,
+    flex: '0 0 clamp(46px, 14vw, 62px)',
+    width: 'clamp(46px, 14vw, 62px)',
+    height: 'clamp(46px, 14vw, 62px)',
     objectFit: 'cover',
-    borderRadius: 10,
+    borderRadius: 0,
     border: '2px solid #fff3d6',
     background: '#10141d',
   },
-  questStartContent: { flex: 1, minWidth: 0, display: 'grid', gap: 12 },
-  questStartHeader: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 },
-  questStartTitle: { color: '#fff3d6', fontSize: 18, lineHeight: 1.25 },
-  questReward: {
-    flex: '0 0 auto',
-    padding: '5px 8px',
-    borderRadius: 6,
-    background: '#4b3d1c',
+  questStartContent: { minWidth: 0, display: 'grid', gap: 8 },
+  questStartNpcRow: { display: 'flex', alignItems: 'stretch', gap: 8, minWidth: 0 },
+  questStartNpcText: { flex: 1, minWidth: 0, display: 'grid', alignContent: 'start', gap: 3, textAlign: 'left' },
+  questStartNpcName: {
     color: '#fff3d6',
-    fontSize: 13,
+    fontSize: 'clamp(12px, 3.4vw, 14px)',
+    fontWeight: uiType.weightHeavy,
+    lineHeight: 1.1,
+    textShadow: 'none',
+    WebkitTextStroke: '0 transparent',
+  },
+  questStartDialogueLine: {
+    color: '#fff3d6',
+    fontSize: 'clamp(12px, 3.4vw, 13px)',
+    fontWeight: 700,
+    lineHeight: 1.32,
+    wordBreak: 'keep-all',
+    overflowWrap: 'anywhere',
+    textShadow: 'none',
+    WebkitTextStroke: '0 transparent',
+  },
+  questStartTitle: {
+    display: 'block',
+    width: '100%',
+    boxSizing: 'border-box',
+    padding: '7px 9px',
+    background: 'rgba(122, 160, 255, 0.18)',
+    color: '#cbd8ff',
+    fontFamily: "'Nanum Myeongjo', serif",
+    fontSize: 'clamp(13px, 3.6vw, 15px)',
+    fontWeight: 800,
     lineHeight: 1.2,
-    whiteSpace: 'nowrap',
+    textAlign: 'center',
+    wordBreak: 'keep-all',
+    overflowWrap: 'anywhere',
+    textShadow: 'none',
+    WebkitTextStroke: '0 transparent',
   },
   questStartAction: {
     display: 'block',
-    padding: '9px 10px',
-    borderLeft: '3px solid #e7c66d',
-    background: 'rgba(255, 243, 214, 0.1)',
-    color: '#fff3d6',
-    fontFamily: "'Nanum Myeongjo', serif",
-    fontSize: 15,
-    fontWeight: 800,
-    lineHeight: 1.35,
+    color: '#ffffff',
+    fontFamily: uiType.family,
+    fontSize: 'clamp(22px, 6.4vw, 24px)',
+    fontWeight: uiType.weightHeavy,
+    lineHeight: 1.12,
+    textAlign: 'center',
+    wordBreak: 'keep-all',
+    overflowWrap: 'anywhere',
+    textShadow: 'none',
+    WebkitTextStroke: '0 transparent',
   },
   questItemPopup: {
     border: '2px solid #c9b98d',

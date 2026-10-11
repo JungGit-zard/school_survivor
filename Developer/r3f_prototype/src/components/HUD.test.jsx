@@ -264,7 +264,7 @@ describe('student dialogue IDs', () => {
     }
   })
 
-  it('shows a started quest with the giver profile, reward, and direct action in an ivory-on-dark popup', () => {
+  it('shows a started quest with the giver profile and short direct action notice, then dismisses on tap', () => {
     const container = document.createElement('div')
     const root = createRoot(container)
 
@@ -277,16 +277,21 @@ describe('student dialogue IDs', () => {
       const popup = container.querySelector('[data-testid="quest-start-popup"]')
       expect(popup).not.toBeNull()
       expect(popup.querySelector('[data-testid="quest-giver-profile"]')?.getAttribute('src')).toContain('laid_man')
-      expect(popup.querySelector('[data-testid="quest-reward"]')?.textContent).toContain('보상 · 2 골드')
+      expect(popup.querySelector('[data-testid="quest-reward"]')).toBeNull()
       expect(popup.textContent).toContain('다음 행동')
       expect(popup.style.background).toContain('rgb(47, 52, 64)')
       expect(popup.style.color).toBe('rgb(255, 243, 214)')
+
+      act(() => {
+        popup.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+      })
+      expect(container.querySelector('[data-testid="quest-start-popup"]')).toBeNull()
     } finally {
       act(() => { root.unmount() })
     }
   })
 
-  it('shows a quest item acquisition popup once, then opens the quest inventory', () => {
+  it('shows a quest item acquisition popup for 1000ms without auto-opening the quest inventory', () => {
     vi.useFakeTimers()
     const container = document.createElement('div')
     const root = createRoot(container)
@@ -303,10 +308,25 @@ describe('student dialogue IDs', () => {
       expect(popup.querySelector('svg')).not.toBeNull()
 
       act(() => {
-        vi.advanceTimersByTime(2000)
+        vi.advanceTimersByTime(999)
+      })
+      expect(container.querySelector('[data-testid="quest-item-popup"]')).not.toBeNull()
+      expect(useGameStore.getState()).toMatchObject({ phase: 'playing', pauseSource: null })
+      expect(container.querySelector('#quest-inventory-panel')).toBeNull()
+
+      act(() => {
+        vi.advanceTimersByTime(1)
       })
 
       expect(container.querySelector('[data-testid="quest-item-popup"]')).toBeNull()
+      expect(useGameStore.getState()).toMatchObject({ phase: 'playing', pauseSource: null })
+      expect(container.querySelector('#quest-inventory-panel')).toBeNull()
+
+      const questBagButton = container.querySelector('.hud-quest-bag-button')
+      expect(questBagButton).not.toBeNull()
+      act(() => {
+        questBagButton.click()
+      })
       expect(useGameStore.getState()).toMatchObject({ phase: 'paused', pauseSource: 'quest' })
       expect(container.querySelector('#quest-inventory-panel')).not.toBeNull()
     } finally {
