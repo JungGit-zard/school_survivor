@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import TitleSceneCanvas from './TitleSceneCanvas.jsx'
 import '../assets/fonts/nanumMyeongjo.css'
 import { WEB_BACKGROUND_URLS, WEB_LANDING_ART_URLS, WEB_LANDING_COMIC_URLS, getSelectedWebBackgroundStyle } from '../lib/webBackgroundAssets.js'
@@ -276,7 +277,7 @@ export default function WebLandingPage() {
               </section>
             ) : null}
 
-          {selectedComic ? (
+          {selectedComic && typeof document !== 'undefined' ? createPortal(
             <div className="web-landing__comic-viewer-backdrop" role="presentation" onMouseDown={() => setSelectedComicIndex(null)}>
               <section
                 className="web-landing__comic-viewer"
@@ -289,14 +290,17 @@ export default function WebLandingPage() {
                   <h2 id="comic-viewer-title">{selectedComic.title}</h2>
                   <button type="button" onClick={() => setSelectedComicIndex(null)} aria-label={copy.closeViewer}>{copy.close}</button>
                 </div>
-                <img src={selectedComic.image} alt={`${selectedComic.title} ${copy.fullComic}`} />
+                <div className="web-landing__comic-viewer-body">
+                  <img src={selectedComic.image} alt={`${selectedComic.title} ${copy.fullComic}`} />
+                </div>
                 <div className="web-landing__comic-viewer-controls" aria-label={copy.comicNavigation}>
                   <button type="button" onClick={() => setSelectedComicIndex((index) => (index + COMIC_EPISODES.length - 1) % COMIC_EPISODES.length)}>{copy.previous}</button>
                   <span>{selectedComicIndex + 1} / {COMIC_EPISODES.length}</span>
                   <button type="button" onClick={() => setSelectedComicIndex((index) => (index + 1) % COMIC_EPISODES.length)}>{copy.next}</button>
                 </div>
               </section>
-            </div>
+            </div>,
+            document.body,
           ) : null}
 
           {activeMedia === 'music' ? (
@@ -1062,10 +1066,14 @@ const landingCss = `
 }
 
 .web-landing__comic-viewer {
+  --comic-viewer-art-scale: 5;
+  --comic-viewer-source-ratio: 0.2546511628;
+  --comic-viewer-old-slot-height: calc(min(92dvh, 980px) - 136px);
+  --comic-viewer-old-artwork-width: min(100%, calc(var(--comic-viewer-old-slot-height) * var(--comic-viewer-source-ratio)));
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   width: min(100%, 920px);
-  max-height: min(92dvh, 980px);
+  height: min(92dvh, 980px);
   overflow: hidden;
   border: 3px solid #FFFFFF;
   border-radius: 20px;
@@ -1094,10 +1102,17 @@ const landingCss = `
   font-weight: 950;
 }
 
-.web-landing__comic-viewer img {
+.web-landing__comic-viewer-body {
+  overflow: auto;
+  background: #FFFFFF;
+  overscroll-behavior: contain;
+}
+
+.web-landing__comic-viewer-body img {
   display: block;
-  width: 100%;
-  max-height: calc(min(92dvh, 980px) - 136px);
+  width: calc(var(--comic-viewer-old-artwork-width) * var(--comic-viewer-art-scale));
+  max-width: none;
+  height: auto;
   object-fit: contain;
   background: #FFFFFF;
 }
