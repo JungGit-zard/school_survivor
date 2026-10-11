@@ -278,7 +278,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
         {stageIds.map((stageId, index) => {
           const stage = getStageConfig(stageId)
           const recordsReady = records != null
-          const unlocked = devAllStagesUnlocked || !recordsReady || isStageUnlocked(stageId, records)
+          const unlocked = devAllStagesUnlocked || (recordsReady ? isStageUnlocked(stageId, records) : stageId === 'stage1')
           const bestSurvivalSec = recordsReady ? (records[stage.bestRecordKey] ?? 0) : null
           const cleared = recordsReady ? (records[stage.clearRecordKey] ?? 0) > 0 : false
           return (

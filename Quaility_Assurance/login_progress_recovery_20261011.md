@@ -1,5 +1,12 @@
 # 로그인 후 로비·설정 복구
 
+## 자물쇠 복원 — 23:25 KST
+- 사용자 명시 병렬 요청으로 uimini t_5a64f716(복원)과 backendmini t_82161e0d(책 오류 독립 검토)를 동시에 실행했다.
+- 앞선 복구의 `!recordsReady` 전체 해제 표시를 제거하고, 미준비 상태에서는 Stage 1만 입장 가능하게 유지한다. 기존 StageLockPreview와 자산은 변경하지 않는다.
+- 직접 집중 검사 2개 통과(나머지 27개 생략): 데이터 loading/error에서도 Stage 1 실제 진입 callback 정상, Stage 2~4 자물쇠 3개 표시, 실제 모든 클리어 기록 도착 후 자물쇠 0개·기록·입장 버튼 4개 반영.
+- 기존 대량 반복 테스트의 기대값만 새로운 사용자 표시 요구에 맞췄으며 반복 테스트는 실행하지 않았다.
+- backendmini는 책 오류 경로의 변경과 저장 경계 보존을 별도로 검토했다. 실기기 Google 로그인 성공을 대신 검증한 것은 아니다.
+
 ## 후속 플레이 중 오류 — 23:19 KST
 - 사용자 재현: 책 획득 순간. 제공된 HUD-CxZavvnQ.js:36068 → useGameStore-CqcoFjom.js:6326/6155는 HUD 레벨업 선택지의 isUnlocked → readRaw 호출로 직접 매핑했다.
 - 운영 자동 오류 수집은 playtestLogger의 DEV 조건으로 비활성화되어 있다. Firebase functions:log 최근 25개 조회도 No log entries found였다. 과거 서버 로그를 확보했다고 주장하지 않는다. 사용자 오류 스택이 원인 증거다.

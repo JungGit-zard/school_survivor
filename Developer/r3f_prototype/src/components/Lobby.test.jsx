@@ -200,8 +200,8 @@ describe('Lobby', () => {
     const loadingView = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
 
     expect(loadingView.container.querySelector('[data-testid="lobby-records-pending"]')).not.toBeNull()
-    expect(loadingView.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(0)
-    expect(loadingView.container.querySelectorAll('[data-testid="stage-boss-preview"]')).toHaveLength(4)
+    expect(loadingView.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(3)
+    expect(loadingView.container.querySelectorAll('[data-testid="stage-boss-preview"]')).toHaveLength(1)
     expect(Array.from(loadingView.container.querySelectorAll('button')).filter((button) => button.textContent === '입장하기')).toHaveLength(1)
     clickButtonByText(loadingView.container, '입장하기')
     act(() => {
@@ -213,6 +213,8 @@ describe('Lobby', () => {
     useAuthStore.setState({ progressStatus: 'error', progressError: new Error('remote snapshot unavailable') })
     const errorView = renderLobby({ onStartStage, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
     expect(errorView.container.querySelector('[data-testid="lobby-records-pending"]')).not.toBeNull()
+    expect(errorView.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(3)
+    expect(errorView.container.querySelectorAll('[data-testid="stage-boss-preview"]')).toHaveLength(1)
     expect(Array.from(errorView.container.querySelectorAll('button')).filter((button) => button.textContent === '입장하기')).toHaveLength(1)
     errorView.unmount()
     vi.useRealTimers()
@@ -223,10 +225,10 @@ describe('Lobby', () => {
     const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
 
     expect(view.container.querySelector('[data-testid="lobby-records-pending"]')).not.toBeNull()
-    expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(0)
-    expect(view.container.querySelectorAll('[data-testid="stage-boss-preview"]')).toHaveLength(4)
-    expect(view.container.textContent).not.toContain('Stage 1 클리어 시 열림')
-    expect(view.container.textContent).not.toContain('Stage 3 클리어 시 열림')
+    expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(3)
+    expect(view.container.querySelectorAll('[data-testid="stage-boss-preview"]')).toHaveLength(1)
+    expect(view.container.textContent).toContain('Stage 1 클리어 시 열림')
+    expect(view.container.textContent).toContain('Stage 3 클리어 시 열림')
 
     seedPlayerRecords({
       stage1Clears: 1,
@@ -243,6 +245,8 @@ describe('Lobby', () => {
     })
 
     expect(view.container.querySelector('[data-testid="lobby-records-pending"]')).toBeNull()
+    expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]')).toHaveLength(0)
+    expect(view.container.querySelectorAll('[data-testid="stage-boss-preview"]')).toHaveLength(4)
     expect(Array.from(view.container.querySelectorAll('button')).filter((button) => button.textContent === '입장하기')).toHaveLength(4)
     expect(view.container.textContent).toContain('12:46')
     expect(view.container.textContent).toContain('6:06')
@@ -277,7 +281,8 @@ describe('Lobby', () => {
       const view = renderLobby({ onStartStage: () => {}, onOpenCoinShop: () => {}, onOpenRanking: () => {} })
 
       expect(view.container.querySelector('[data-testid="lobby-records-pending"]'), `attempt ${attempt}`).not.toBeNull()
-      expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]'), `attempt ${attempt}`).toHaveLength(0)
+      expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]'), `attempt ${attempt}`).toHaveLength(3)
+      expect(view.container.querySelectorAll('[data-testid="stage-boss-preview"]'), `attempt ${attempt}`).toHaveLength(1)
 
       act(() => {
         _seedHydratedFirebaseProgressForTests(account)
@@ -287,6 +292,7 @@ describe('Lobby', () => {
 
       expect(view.container.querySelector('[data-testid="lobby-records-pending"]'), `attempt ${attempt}`).toBeNull()
       expect(view.container.querySelectorAll('[data-testid="stage-lock-preview"]'), `attempt ${attempt}`).toHaveLength(0)
+      expect(view.container.querySelectorAll('[data-testid="stage-boss-preview"]'), `attempt ${attempt}`).toHaveLength(4)
       expect(view.container.textContent, `attempt ${attempt}`).not.toContain('기록 없음')
       expect(view.container.textContent, `attempt ${attempt}`).toContain('12:46')
       expect(view.container.textContent, `attempt ${attempt}`).toContain('6:06')
