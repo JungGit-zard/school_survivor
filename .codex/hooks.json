@@ -6,11 +6,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File 'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-today-resume-summary.ps1'"
+            "command": "task_repo_root=\"$(git rev-parse --show-toplevel)\" && CODEX_PROJECT_DIR=\"$task_repo_root\" powershell -NoProfile -ExecutionPolicy Bypass -File \"$task_repo_root/.codex/hooks/require-today-resume-summary.ps1\"",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& (Join-Path (git rev-parse --show-toplevel) 'Developer/agent_room/hooks/run-project-hook.ps1') -Hook resume\""
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File 'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\hooks\\require-advisor-worker-mode.ps1'"
+            "command": "task_repo_root=\"$(git rev-parse --show-toplevel)\" && CODEX_PROJECT_DIR=\"$task_repo_root\" powershell -NoProfile -ExecutionPolicy Bypass -File \"$task_repo_root/Developer/agent_room/hooks/require-advisor-worker-mode.ps1\"",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& (Join-Path (git rev-parse --show-toplevel) 'Developer/agent_room/hooks/run-project-hook.ps1') -Hook advisor\""
           }
         ]
       }
@@ -21,11 +23,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\Developer\\agent_room\\guards\\destructive_shell_deletion_guard.py\""
+            "command": "python \"$(git rev-parse --show-toplevel)/Developer/agent_room/guards/destructive_shell_deletion_guard.py\"",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& (Join-Path (git rev-parse --show-toplevel) 'Developer/agent_room/hooks/run-project-hook.ps1') -Hook deletion\""
           },
           {
             "type": "command",
-            "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-stage2-boss-v2-gate.sh'"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.codex/hooks/require-stage2-boss-v2-gate.sh\"",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& (Join-Path (git rev-parse --show-toplevel) 'Developer/agent_room/hooks/run-project-hook.ps1') -Hook stage2\""
           }
         ]
       },
@@ -34,7 +38,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-stage2-boss-v2-gate.sh'"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.codex/hooks/require-stage2-boss-v2-gate.sh\"",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& (Join-Path (git rev-parse --show-toplevel) 'Developer/agent_room/hooks/run-project-hook.ps1') -Hook stage2\""
           }
         ]
       },
@@ -43,7 +48,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-stage2-boss-v2-gate.sh'"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.codex/hooks/require-stage2-boss-v2-gate.sh\"",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& (Join-Path (git rev-parse --show-toplevel) 'Developer/agent_room/hooks/run-project-hook.ps1') -Hook stage2\""
           }
         ]
       },
@@ -52,7 +58,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\require-stage2-boss-v2-gate.sh'"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.codex/hooks/require-stage2-boss-v2-gate.sh\"",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& (Join-Path (git rev-parse --show-toplevel) 'Developer/agent_room/hooks/run-project-hook.ps1') -Hook stage2\""
           }
         ]
       },
@@ -61,7 +68,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "'D:\\JungSil\\2.Minigame_project\\school_survivor-integration\\.codex\\hooks\\check-gstack.sh'"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.codex/hooks/check-gstack.sh\"",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& (Join-Path (git rev-parse --show-toplevel) 'Developer/agent_room/hooks/run-project-hook.ps1') -Hook gstack\""
           }
         ]
       }
