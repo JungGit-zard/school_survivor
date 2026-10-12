@@ -2083,7 +2083,27 @@
                        "source":  "Graphic_designer/social_posting_cta_20261010/manifest.json",
                        "sha256":  "964161004e3a7fba3d67791e587ea9a97f0ac240d8bb1be163dac5f4ce1fb2b6",
                        "gameStartText":  "BẮT ĐẦU CHƠI"
-                   }
+                   },
+                   { "platform": "Facebook", "locale": "ko", "collection": "facebook_rotation_20261013", "path": "facebook/ko/facebook_rotation_20261013/01.png", "source": "imagegen/2026-10-13", "gameStartText": "게임시작" },
+                   { "platform": "Facebook", "locale": "ko", "collection": "facebook_rotation_20261013", "path": "facebook/ko/facebook_rotation_20261013/02.png", "source": "imagegen/2026-10-13", "gameStartText": "게임시작" },
+                   { "platform": "Facebook", "locale": "ko", "collection": "facebook_rotation_20261013", "path": "facebook/ko/facebook_rotation_20261013/03.png", "source": "imagegen/2026-10-13", "gameStartText": "게임시작" },
+                   { "platform": "Facebook", "locale": "ko", "collection": "facebook_rotation_20261013", "path": "facebook/ko/facebook_rotation_20261013/04.png", "source": "imagegen/2026-10-13", "gameStartText": "게임시작" },
+                   { "platform": "Facebook", "locale": "ko", "collection": "facebook_rotation_20261013", "path": "facebook/ko/facebook_rotation_20261013/05.png", "source": "imagegen/2026-10-13", "gameStartText": "게임시작" },
+                   { "platform": "Facebook", "locale": "en", "collection": "facebook_rotation_20261013", "path": "facebook/en/facebook_rotation_20261013/01.png", "source": "imagegen/2026-10-13", "gameStartText": "START GAME" },
+                   { "platform": "Facebook", "locale": "en", "collection": "facebook_rotation_20261013", "path": "facebook/en/facebook_rotation_20261013/02.png", "source": "imagegen/2026-10-13", "gameStartText": "START GAME" },
+                   { "platform": "Facebook", "locale": "en", "collection": "facebook_rotation_20261013", "path": "facebook/en/facebook_rotation_20261013/03.png", "source": "imagegen/2026-10-13", "gameStartText": "START GAME" },
+                   { "platform": "Facebook", "locale": "en", "collection": "facebook_rotation_20261013", "path": "facebook/en/facebook_rotation_20261013/04.png", "source": "imagegen/2026-10-13", "gameStartText": "START GAME" },
+                   { "platform": "Facebook", "locale": "en", "collection": "facebook_rotation_20261013", "path": "facebook/en/facebook_rotation_20261013/05.png", "source": "imagegen/2026-10-13", "gameStartText": "START GAME" },
+                   { "platform": "Facebook", "locale": "ja", "collection": "facebook_rotation_20261013", "path": "facebook/ja/facebook_rotation_20261013/01.png", "source": "imagegen/2026-10-13", "gameStartText": "ゲームスタート" },
+                   { "platform": "Facebook", "locale": "ja", "collection": "facebook_rotation_20261013", "path": "facebook/ja/facebook_rotation_20261013/02.png", "source": "imagegen/2026-10-13", "gameStartText": "ゲームスタート" },
+                   { "platform": "Facebook", "locale": "ja", "collection": "facebook_rotation_20261013", "path": "facebook/ja/facebook_rotation_20261013/03.png", "source": "imagegen/2026-10-13", "gameStartText": "ゲームスタート" },
+                   { "platform": "Facebook", "locale": "ja", "collection": "facebook_rotation_20261013", "path": "facebook/ja/facebook_rotation_20261013/04.png", "source": "imagegen/2026-10-13", "gameStartText": "ゲームスタート" },
+                   { "platform": "Facebook", "locale": "ja", "collection": "facebook_rotation_20261013", "path": "facebook/ja/facebook_rotation_20261013/05.png", "source": "imagegen/2026-10-13", "gameStartText": "ゲームスタート" },
+                   { "platform": "Facebook", "locale": "vi", "collection": "facebook_rotation_20261013", "path": "facebook/vi/facebook_rotation_20261013/01.png", "source": "imagegen/2026-10-13", "gameStartText": "BẮT ĐẦU CHƠI" },
+                   { "platform": "Facebook", "locale": "vi", "collection": "facebook_rotation_20261013", "path": "facebook/vi/facebook_rotation_20261013/02.png", "source": "imagegen/2026-10-13", "gameStartText": "BẮT ĐẦU CHƠI" },
+                   { "platform": "Facebook", "locale": "vi", "collection": "facebook_rotation_20261013", "path": "facebook/vi/facebook_rotation_20261013/03.png", "source": "imagegen/2026-10-13", "gameStartText": "BẮT ĐẦU CHƠI" },
+                   { "platform": "Facebook", "locale": "vi", "collection": "facebook_rotation_20261013", "path": "facebook/vi/facebook_rotation_20261013/04.png", "source": "imagegen/2026-10-13", "gameStartText": "BẮT ĐẦU CHƠI" },
+                   { "platform": "Facebook", "locale": "vi", "collection": "facebook_rotation_20261013", "path": "facebook/vi/facebook_rotation_20261013/05.png", "source": "imagegen/2026-10-13", "gameStartText": "BẮT ĐẦU CHƠI" }
                ],
     "legacyPaths":  {
                         "marketing_social_30_20261004/en/01_bell_escape.png":  "x/en/marketing_social_30_20261004/01_bell_escape.png",

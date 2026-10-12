@@ -67,10 +67,17 @@ function Test-PostingImageGameStartText([string]$ImagePath, [ValidateSet('ko','e
 function Assert-PostingImageGameStartText([string]$ImagePath, [ValidateSet('ko','en','ja','vi')][string]$Language, [ValidateSet('X','Facebook')][string]$Platform = 'X', $Catalog = $null) {
   if (-not (Test-PostingImageGameStartText $ImagePath $Language $Platform $Catalog)) { throw "Image is not confirmed to contain the exact localized game-start CTA for $Platform/$Language; refusing to continue." }
 }
-function Get-PostingLocaleImageCandidates($Config, [string]$Language, [switch]$IncludeLegacy, [switch]$RequireGameStartText, $Catalog = $null) {
+function Get-PostingLocaleImageCandidates($Config, [string]$Language, [switch]$IncludeLegacy, [switch]$RequireGameStartText, [ValidateSet('X','Facebook')][string]$Platform = 'X', $Catalog = $null) {
   $images = @()
+  if ($Platform -eq 'Facebook' -and $Config.PSObject.Properties.Name -contains 'facebook_rotation_image_pool' -and
+      $Config.facebook_rotation_image_pool.PSObject.Properties.Name -contains $Language) {
+    $images += @($Config.facebook_rotation_image_pool.$Language.images)
+  } elseif ($Platform -eq 'Facebook') {
+    if ($null -eq $Catalog) { $Catalog = Get-PostingImageCatalog }
+    $images += @($Catalog.images | Where-Object { $_.platform -ceq 'Facebook' -and $_.locale -ceq $Language -and $_.PSObject.Properties.Name -contains 'gameStartText' } | ForEach-Object { 'image_pool/' + [string]$_.path })
+  }
   if ($IncludeLegacy) { $images += @($Config.image_pool.$Language.images) }
-  if ($Config.PSObject.Properties.Name -contains 'localized_social_image_pool' -and
+  if ($Platform -eq 'X' -and $Config.PSObject.Properties.Name -contains 'localized_social_image_pool' -and
       $Config.localized_social_image_pool.PSObject.Properties.Name -contains $Language) {
     $images += @($Config.localized_social_image_pool.$Language.images)
   }
@@ -79,10 +86,10 @@ function Get-PostingLocaleImageCandidates($Config, [string]$Language, [switch]$I
   foreach ($image in $images) {
     $path = [string]$image
     if ([string]::IsNullOrWhiteSpace($path)) { continue }
-    $full = Resolve-PostingImagePath $path
+    $full = Resolve-PostingImagePath $path -Platform $Platform
     if (-not (Test-Path -LiteralPath $full -PathType Leaf)) { continue }
     if ($full -notmatch '\.(png|jpg|jpeg|webp)$') { continue }
-    if ($RequireGameStartText -and -not (Test-PostingImageGameStartText $full $Language -Platform X -Catalog $Catalog)) { continue }
+    if ($RequireGameStartText -and -not (Test-PostingImageGameStartText $full $Language -Platform $Platform -Catalog $Catalog)) { continue }
     $null = Get-FileHash -LiteralPath $full -Algorithm SHA256
     $valid += $full
   }
@@ -95,16 +102,27 @@ function Get-PostingPreviousImagePath($Config, [string]$Language, [string]$Cycle
     $prior = Get-Content -LiteralPath $previous.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
     $entry = $prior.entries.$Language
     if ($null -ne $entry -and $null -ne $entry.intent) {
-      $priorImage = Resolve-PostingImagePath ([string]$entry.intent.imagePath) -Platform $Platform
+      try {
+        $priorImage = Resolve-PostingImagePath ([string]$entry.intent.imagePath) -Platform $Platform
+      } catch {
+        # Old Facebook receipts can reference retired collections.  They are not
+        # eligible current assets and therefore cannot participate in rotation.
+        if ($Platform -eq 'Facebook') { continue }
+        throw
+      }
       if ($Platform -eq 'Facebook') {
         $catalog=Get-PostingImageCatalog;$poolRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'image_pool'))
         $relative=$priorImage.Substring($poolRoot.Length+1).Replace('\','/')
         $facebookRows=@($catalog.images|Where-Object{$_.platform -ceq 'Facebook' -and $_.locale -ceq $Language -and $_.path -ceq $relative})
-        if($facebookRows.Count -ne 1){throw "Prior Facebook image is not uniquely catalogued for $Language"}
-        $filename=[IO.Path]::GetFileName($facebookRows[0].path)
-        $xRows=@($catalog.images|Where-Object{$_.platform -ceq 'X' -and $_.locale -ceq $Language -and $_.collection -ceq $facebookRows[0].collection -and [IO.Path]::GetFileName($_.path) -ceq $filename})
-        if($xRows.Count -ne 1){throw "Prior Facebook image has no unique X candidate mapping for $Language"}
-        $priorImage=Resolve-PostingImagePath ('image_pool/'+[string]$xRows[0].path) -Platform X
+        # A legacy Facebook receipt can point at an image collection that was later
+        # removed from the active catalog.  It must not block a new, CTA-approved
+        # selection; simply skip rotation exclusion when no unique current mapping
+        # exists.
+        if($facebookRows.Count -eq 1){
+          $filename=[IO.Path]::GetFileName($facebookRows[0].path)
+          $xRows=@($catalog.images|Where-Object{$_.platform -ceq 'X' -and $_.locale -ceq $Language -and $_.collection -ceq $facebookRows[0].collection -and [IO.Path]::GetFileName($_.path) -ceq $filename})
+          if($xRows.Count -eq 1){$priorImage=Resolve-PostingImagePath ('image_pool/'+[string]$xRows[0].path) -Platform X}
+        }
       }
       if (@($Candidates | Where-Object { $_ -ceq $priorImage }).Count -eq 1) { return $priorImage }
     }
@@ -112,12 +130,23 @@ function Get-PostingPreviousImagePath($Config, [string]$Language, [string]$Cycle
   return $null
 }
 function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, [ValidateSet('X','Facebook')][string]$Platform = 'X', $Catalog = $null) {
-  $candidates = @(Get-PostingLocaleImageCandidates $Config $Language -RequireGameStartText -Catalog $Catalog)
+  $candidates = @(Get-PostingLocaleImageCandidates $Config $Language -RequireGameStartText -Platform $Platform -Catalog $Catalog)
   if ($candidates.Count -eq 0) { throw "No confirmed localized game-start CTA images are eligible for $Platform/$Language." }
-  $usable = @($candidates)
   $previous = Get-PostingPreviousImagePath $Config $Language $CycleId $ReceiptDirectory $candidates $Platform
-  if ($usable.Count -gt 1 -and -not [string]::IsNullOrWhiteSpace($previous)) { $usable = @($usable | Where-Object { $_ -cne $previous }) }
-  return [string]($usable | Get-Random -Count 1)
+  if ($candidates.Count -gt 1 -and -not [string]::IsNullOrWhiteSpace($previous)) {
+    $previousIndex = [array]::IndexOf([string[]]$candidates, [string]$previous)
+    if ($previousIndex -ge 0) { return [string]$candidates[(($previousIndex + 1) % $candidates.Count)] }
+  }
+  $ordinal = $null
+  if ($CycleId -match '^(\d{4}-\d{2}-\d{2})-(\d{4})$') {
+    $day = [datetime]::ParseExact($Matches[1], 'yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)
+    $slot = $Matches[2].Insert(2, ':')
+    $slots = @($Config.schedule_times | Sort-Object)
+    $index = [array]::IndexOf($slots, $slot)
+    if ($index -ge 0) { $ordinal = [long](($day - [datetime]'2026-09-06').TotalDays * $slots.Count + $index) }
+  }
+  if ($null -eq $ordinal) { $ordinal = [Convert]::ToInt64((Get-CopyDigest $CycleId).Substring(0, 12), 16) }
+  return [string]$candidates[($ordinal % $candidates.Count + $candidates.Count) % $candidates.Count]
 }
 function Get-XWeightedLength([string]$Text) {
   $withoutUrls = [regex]::Replace($Text, 'https?://[^\s]+', ('x' * 23))
@@ -182,18 +211,28 @@ function Select-PostingVariant($Config, [string]$Language, [string]$CycleId, [st
     $ordinal = [Convert]::ToInt64((Get-CopyDigest $CycleId).Substring(0, 12), 16)
   }
   $index = [int](($ordinal % $variants.Count + $variants.Count) % $variants.Count)
+  $previousOpening = $null
   # Respect the last actual selection too, including a missed slot or a newly enabled set.
   if ($variants.Count -gt 1 -and (Test-Path -LiteralPath $ReceiptDirectory)) {
     $previousReceipts = @(Get-ChildItem -LiteralPath $ReceiptDirectory -Filter '*.json' -File | Where-Object { $_.BaseName -match '^\d{4}-\d{2}-\d{2}-\d{4}$' -and $_.BaseName -clt $CycleId } | Sort-Object BaseName -Descending)
     foreach ($previous in $previousReceipts) {
       $prior = Get-Content -LiteralPath $previous.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
       $entry = $prior.entries.$Language
-      if ($null -ne $entry) {
+      if ($null -ne $entry -and $null -ne $entry.intent) {
         $priorId = [string]$entry.intent.variantId
+        $previousOpening = (([string]$entry.intent.text -split '\r?\n')[0]).Trim()
         if (-not [string]::IsNullOrWhiteSpace($priorId) -and @($variants | Where-Object { $_.id -ceq $priorId }).Count -eq 1 -and $variants[$index].id -ceq $priorId) { $index = ($index + 1) % $variants.Count }
         break
       }
     }
+  }
+  if (-not [string]::IsNullOrWhiteSpace($previousOpening)) {
+    for ($offset = 0; $offset -lt $variants.Count; $offset++) {
+      $candidateOpening = (([string]$variants[$index].text -split '\r?\n')[0]).Trim()
+      if ($candidateOpening -cne $previousOpening) { break }
+      $index = ($index + 1) % $variants.Count
+    }
+    if ((([string]$variants[$index].text -split '\r?\n')[0]).Trim() -ceq $previousOpening) { throw "No non-repeating opening copy is available for $Platform/$Language." }
   }
   $selected = $variants[$index]
   $selected.imagePath = Select-PostingLocaleImagePath $Config $Language $CycleId $ReceiptDirectory $Platform

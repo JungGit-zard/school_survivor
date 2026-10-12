@@ -38,8 +38,14 @@ function Resolve-FacebookAttachmentPath([string]$Path) {
 function Get-FacebookConfig { Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\posting_config.json') -Raw -Encoding UTF8 | ConvertFrom-Json }
 function Resolve-FacebookPlatformImagePath([string]$Path, [ValidateSet('ja','en','vi','ko')][string]$Language) {
   . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
-  $xImage = Resolve-PostingImagePath $Path -Platform X
   $catalog=Get-PostingImageCatalog;$poolRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\image_pool'))
+  try {
+    $facebookImage = Resolve-PostingImagePath $Path -Platform Facebook
+    $relative=$facebookImage.Substring($poolRoot.Length+1).Replace('\','/')
+    $facebookRows=@($catalog.images|Where-Object{$_.platform -ceq 'Facebook' -and $_.path -ceq $relative -and $_.locale -ceq $Language})
+    if($facebookRows.Count -eq 1){Assert-FacebookImagePath $facebookImage;if(-not(Test-Path -LiteralPath $facebookImage -PathType Leaf)){throw "Missing Facebook platform image for $Language"};return $facebookImage}
+  } catch {}
+  $xImage = Resolve-PostingImagePath $Path -Platform X
   $relative=$xImage.Substring($poolRoot.Length+1).Replace('\','/')
   $xRows=@($catalog.images|Where-Object{$_.platform -ceq 'X' -and $_.path -ceq $relative -and $_.locale -ceq $Language})
   if($xRows.Count -ne 1){throw "No exact X catalog entry for $Language image"}
