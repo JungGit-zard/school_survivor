@@ -426,6 +426,20 @@ describe('랭킹 제출 결과가 스토어 상태로 남는다', () => {
 
   const run = { stageId: 'stage2', score: 415, timeMs: 295_499, cleared: false }
 
+  it.each(['resolve', 'reject'])('늦게 끝난 이전 제출(%s)은 다음 스테이지의 누적 제출 상태를 덮어쓰지 않는다', async (oldOutcome) => {
+    let resolveOld
+    let rejectOld
+    ranking.submitRun.mockReturnValueOnce(new Promise((resolve, reject) => { resolveOld = resolve; rejectOld = reject }))
+    ranking.submitRun.mockResolvedValueOnce({ written: ['global'], skipped: [], failed: [] })
+    const oldPromise = useGameStore.getState().submitRunToRanking({ uid: 'me' }, run)
+    const nextRun = { stageId: 'stage3', score: 900, stageScore: 485, timeMs: 300000, globalTimeMs: 595499, cleared: false }
+    await useGameStore.getState().submitRunToRanking({ uid: 'me' }, nextRun)
+    if (oldOutcome === 'resolve') resolveOld({ written: ['old'], skipped: [], failed: [] })
+    else rejectOld(new Error('offline'))
+    await oldPromise
+    expect(useGameStore.getState().rankingSubmission).toMatchObject({ ...nextRun, status: 'recorded' })
+  })
+
   it('제출 중에는 pending, 새 최고점이 기록되면 recorded로 바뀐다', async () => {
     let resolveSubmit
     ranking.submitRun.mockReturnValue(new Promise((resolve) => { resolveSubmit = resolve }))
@@ -515,6 +529,8 @@ describe('랭킹 제출 결과가 스토어 상태로 남는다', () => {
       stageId: 'stage1',
       score: 1,
       timeMs: 0,
+      stageScore: 1,
+      globalTimeMs: 0,
       cleared: false,
     })
     await Promise.resolve()
@@ -536,6 +552,8 @@ describe('랭킹 제출 결과가 스토어 상태로 남는다', () => {
       stageId: 'stage1',
       score: 1,
       timeMs: 1_000,
+      stageScore: 1,
+      globalTimeMs: 1_000,
       cleared: false,
     })
     useAuthStore.setState({ user: null })

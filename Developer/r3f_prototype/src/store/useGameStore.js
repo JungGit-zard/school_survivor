@@ -100,9 +100,10 @@ function buildRankingRunSnapshot(state, elapsedMs, phaseName = 'playing') {
   // Marketing-critical rule: a player who actually achieved anything in a run must be visible.
   // Stage 1 can still have 0 survival score during the first second, so one kill promotes the
   // ranking checkpoint to score 1 instead of disappearing on back/force-close.
-  const score = Math.max(rawScore, state.runKills > 0 ? 1 : 0)
+  const stageScore = Math.max(rawScore, state.runKills > 0 ? 1 : 0)
+  const score = state.continuousScoreBase + stageScore
   return {
-    run: { stageId: state.currentStageId, score, timeMs: floorNonNegativeMs(elapsedMs), cleared },
+    run: { stageId: state.currentStageId, score, stageScore, timeMs: floorNonNegativeMs(elapsedMs), globalTimeMs: state.continuousTimeBase + floorNonNegativeMs(elapsedMs), cleared },
     survivalSeconds,
     bossBonus,
   }
@@ -297,6 +298,9 @@ export const useGameStore = create(
     matildaSpawned: false,
     deathCause: null,
     bossBonus: 0,
+    continuousScoreBase: 0,
+    continuousTimeBase: 0,
+    escapeResult: null,
     godMode: false,
     gameKey:     0,
     goldSession: 0,
@@ -614,6 +618,8 @@ export const useGameStore = create(
       const elapsedMs = getRuntimeElapsedMs(s.elapsedMs)
       const runSurvivalSeconds = Math.floor(elapsedMs / 1000)
       const stage = getStageConfig(s.currentStageId)
+      const { run, bossBonus } = buildRankingRunSnapshot(s, elapsedMs, phaseName)
+      if (s.bossBonus !== bossBonus) set({ bossBonus })
 
       // 1. 합본 (snapshot 전). bossKills는 mid-run에 이미 cumulative에 들어 있음.
       const progressReady = isFirebaseProgressHydrated()
@@ -665,7 +671,7 @@ export const useGameStore = create(
         // "기록을 세웠는데 보드가 비었다"의 원인 후보로 떠오르지도 못했다.
         set({
           newlyUnlockedWeaponIds: Object.freeze(diff),
-          rankingSubmission: { stageId: s.currentStageId, score: 0, timeMs: elapsedMs, cleared: phaseName === 'cleared', status: 'notSubmitted', reason: 'progressUnavailable' },
+          rankingSubmission: { ...run, status: 'notSubmitted', reason: 'progressUnavailable' },
         })
         void get().saveMissionProgress()
         return
@@ -696,8 +702,6 @@ export const useGameStore = create(
       void get().saveMissionProgress()
 
       // 랭킹 제출 — 로그인 상태 + Firebase 설정 시에만 동작 (실패해도 게임에 영향 없음).
-      const { run, bossBonus } = buildRankingRunSnapshot(s, elapsedMs, phaseName)
-      if (s.bossBonus !== bossBonus) set({ bossBonus })
       const user = useAuthStore.getState().user
       // 같은 런의 종료가 2회 발화해도 안전하다: 랭킹은 최고점(best-only) 모델이라 두 번째
       // 제출은 "기존 점수 >= 새 점수"로 스킵된다(합산이 아니다).
@@ -712,10 +716,15 @@ export const useGameStore = create(
     // 제출을 상태로 만든다. 결과를 버리면 실패가 console.warn에서 끝나 플레이어에게 안 보인다.
     // 게임 흐름은 절대 막지 않는다 — 이 함수는 await되지 않고 던지지도 않는다.
     submitRunToRanking: (user, run) => {
-      set({ rankingSubmission: { ...run, status: 'pending' } })
+      const pending = { ...run, status: 'pending' }
+      set({ rankingSubmission: pending })
       return submitRun(user, run)
-        .then((outcome) => { set({ rankingSubmission: { ...run, ...describeSubmission(outcome) } }) })
-        .catch(() => { set({ rankingSubmission: { ...run, status: 'failed', reason: 'network' } }) })
+        .then((outcome) => {
+          if (get().rankingSubmission === pending) set({ rankingSubmission: { ...run, ...describeSubmission(outcome) } })
+        })
+        .catch(() => {
+          if (get().rankingSubmission === pending) set({ rankingSubmission: { ...run, status: 'failed', reason: 'network' } })
+        })
     },
 
     // 살아 있는 런도 주기적으로 최고점 체크포인트를 랭킹에 올린다.
@@ -747,12 +756,12 @@ export const useGameStore = create(
       const pending = get().rankingSubmission
       if (!pending || pending.status !== 'failed') return Promise.resolve(false)
       const user = useAuthStore.getState().user
-      const { stageId, score, timeMs, cleared } = pending
+      const { stageId, score, stageScore, timeMs, globalTimeMs, cleared } = pending
       if (!user) {
         set({ rankingSubmission: { ...pending, status: 'notSubmitted', reason: 'signedOut' } })
         return Promise.resolve(false)
       }
-      return get().submitRunToRanking(user, { stageId, score, timeMs, cleared }).then(() => true)
+      return get().submitRunToRanking(user, { stageId, score, stageScore, timeMs, globalTimeMs, cleared }).then(() => true)
     },
 
     acknowledgeNewWeaponUnlocks: () => {
@@ -1268,27 +1277,31 @@ export const useGameStore = create(
     },
 
     clearStage: () => {
-      set({ phase: 'cleared', pauseSource: null })
-      emitSfx({ id: 'stageClear' })
-      get()._onRunEnd('cleared')
-    },
-
-    clearStageAndStartNext: () => {
       const s = get()
       if (s.phase !== 'playing') return false
-      const nextStageId = getNextStageId(s.currentStageId)
-      if (!nextStageId) {
-        get().clearStage()
-        return false
-      }
+      const { run, bossBonus } = buildRankingRunSnapshot(s, getRuntimeElapsedMs(s.elapsedMs), 'cleared')
+      set({ phase: 'cleared', pauseSource: null, bossBonus, escapeResult: {
+        stageId: run.stageId, stageScore: run.stageScore, totalScore: run.score,
+        timeMs: run.timeMs, totalTimeMs: run.globalTimeMs,
+      } })
       emitSfx({ id: 'stageClear' })
       get()._onRunEnd('cleared')
-      get().resetGame(nextStageId, { preserveQuestJourney: true })
       return true
     },
 
+    continueToNextStage: () => {
+      const s = get()
+      if (s.phase !== 'cleared' || !s.escapeResult) return false
+      const nextStageId = getNextStageId(s.currentStageId)
+      if (!nextStageId) return false
+      get().resetGame(nextStageId, { preserveQuestJourney: true, preserveContinuousScore: true })
+      return true
+    },
+
+    clearStageAndStartNext: () => get().continueToNextStage(),
+
     // 게임 리셋. gameKey를 올려 Physics 트리를 새로 마운트한다.
-    resetGame: (stageId = DEFAULT_STAGE_ID, { preserveQuestJourney = false } = {}) => {
+    resetGame: (stageId = DEFAULT_STAGE_ID, { preserveQuestJourney = false, preserveContinuousScore = false } = {}) => {
       const nextStageId = getStageConfig(stageId).id
       resetRuntimeRefs(getPlayerStartPosition(nextStageId))
       const progressReady = isFirebaseProgressHydrated()
@@ -1315,6 +1328,9 @@ export const useGameStore = create(
         matildaSpawned: false,
         deathCause: null,
         bossBonus: 0,
+        continuousScoreBase: preserveContinuousScore ? (s.escapeResult?.totalScore ?? s.continuousScoreBase) : 0,
+        continuousTimeBase: preserveContinuousScore ? (s.escapeResult?.totalTimeMs ?? s.continuousTimeBase) : 0,
+        escapeResult: null,
         godMode: false,
         gameKey:     s.gameKey + 1,
         goldSession: 0,

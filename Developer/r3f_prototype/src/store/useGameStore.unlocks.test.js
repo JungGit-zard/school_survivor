@@ -73,12 +73,14 @@ describe('useGameStore run-end unlock evaluator', () => {
     expect(records.stage1Clears).toBe(0)
   })
 
-  it('portal clear records Stage 1 then starts Stage 2 automatically', () => {
+  it('portal clear records Stage 1 and continues to Stage 2 only after the choice', () => {
     useGameStore.getState().resetGame('stage1')
     useGameStore.setState({ elapsedMs: 240_000, runKills: 80, goldSession: 12 })
     const beforeKey = useGameStore.getState().gameKey
 
-    expect(useGameStore.getState().clearStageAndStartNext()).toBe(true)
+    expect(useGameStore.getState().clearStage()).toBe(true)
+    expect(useGameStore.getState()).toMatchObject({ phase: 'cleared', currentStageId: 'stage1', gameKey: beforeKey })
+    expect(useGameStore.getState().continueToNextStage()).toBe(true)
 
     const s = useGameStore.getState()
     expect(s).toMatchObject({
@@ -103,7 +105,8 @@ describe('useGameStore run-end unlock evaluator', () => {
     useGameStore.setState({ elapsedMs: 240_000 })
     const beforeKey = useGameStore.getState().gameKey
 
-    expect(useGameStore.getState().clearStageAndStartNext()).toBe(false)
+    expect(useGameStore.getState().clearStage()).toBe(true)
+    expect(useGameStore.getState().continueToNextStage()).toBe(false)
 
     const s = useGameStore.getState()
     expect(s).toMatchObject({
@@ -273,7 +276,7 @@ describe('보스 격퇴 보너스와 포탈 클리어 분리', () => {
     expect(useGameStore.getState()).toMatchObject({ bossDefeated: true, bossBonus: 0 })
 
     expect(loadPlayerRecords().totalRuns).toBe(0)
-    expect(useGameStore.getState().clearStageAndStartNext()).toBe(true)
+    expect(useGameStore.getState().clearStage()).toBe(true)
     expect(loadPlayerRecords()).toMatchObject({ stage1Clears: 1, totalRuns: 1 })
   })
 

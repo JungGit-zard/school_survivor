@@ -1617,14 +1617,15 @@ describe('pause lobby return', () => {
 })
 
 describe('stage clear presentation', () => {
-  it('uses 다음 스테이지로 as the primary Stage 1 clear action', () => {
+  it('uses 다음 스테이지 계속 as the primary Stage 1 escape action', () => {
     useGameStore.getState().resetGame('stage1')
     useGameStore.setState({
-      phase: 'cleared',
+      phase: 'playing',
       elapsedMs: 240_000,
       goldSession: 12,
       goldTotal: 40,
     })
+    useGameStore.getState().clearStage()
     const container = document.createElement('div')
     const root = createRoot(container)
 
@@ -1633,10 +1634,10 @@ describe('stage clear presentation', () => {
         root.render(<HUD onOpenCoinShop={() => {}} onGoToTitle={() => {}} devCheatsVisible />)
       })
 
-      const buttons = [...container.querySelectorAll('button')]
-      expect(buttons[0].textContent.trim()).toBe('다음 스테이지로')
+      const buttons = [...container.querySelector('[data-testid="result-primary-actions"]').querySelectorAll('button')]
+      expect(buttons[0].textContent.trim()).toBe('다음 스테이지 계속')
 
-      clickButtonByText(container, '다음 스테이지로')
+      clickButtonByText(container, '다음 스테이지 계속')
 
       expect(useGameStore.getState()).toMatchObject({
         currentStageId: 'stage2',

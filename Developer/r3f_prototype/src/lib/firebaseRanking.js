@@ -88,7 +88,7 @@ function globalEntriesPath(seasonId, window, key) {
 // E2E 우회/미설정/시즌 밖이면 skip. 최고점(max) 모델 — 기존보다 낮은 점수는 규칙이 거른다.
 // 반환: { written[], skipped[], failed[], reason? }. skipped는 정상(기존 최고점이 더 높음),
 // failed는 최고점 유실(권한 거부·규칙 불일치·네트워크)이라 절대 같이 묶으면 안 된다.
-export async function submitRun(user, { stageId, score, timeMs, cleared } = {}) {
+export async function submitRun(user, { stageId, score, stageScore = score, timeMs, globalTimeMs = timeMs, cleared } = {}) {
   if (!user?.uid) return notSubmitted('signedOut')
   if (!isFirebaseRankingConfigured()) return notSubmitted('unconfigured')
   // E2E 우회 유저 점수는 실랭킹에 오염되지 않게 차단
@@ -126,12 +126,15 @@ export async function submitRun(user, { stageId, score, timeMs, cleared } = {}) 
   // 이번 점수가 주간 최고보다 낮아도 새 일일 버킷에는 최고일 수 있다. atomic이면
   // 주간 경로의 best-only 거부가 전체 쓰기를 롤백해 일일 기록까지 유실된다.
   // 버킷별로 기존 최고점을 읽어 더 높을 때만 쓰고, 규칙이 best-only의 최종 방어선이다.
-  const results = await Promise.all(paths.map(async (path) => {
+  const results = await Promise.all(paths.map(async (path, index) => {
+    const bucketEntry = index < 2
+      ? { ...entry, score: readScore(stageScore) }
+      : { ...entry, timeMs: readNonNegInt(globalTimeMs) }
     const entryRef = mod.ref(db, `${path}/${uid}`)
     try {
       const snap = await mod.get(entryRef)
-      if (snap?.exists?.() && readNonNegInt(snap.child('score').val()) >= entry.score) return { path, status: 'skipped' }
-      await mod.set(entryRef, entry)
+      if (snap?.exists?.() && readNonNegInt(snap.child('score').val()) >= bucketEntry.score) return { path, status: 'skipped' }
+      await mod.set(entryRef, bucketEntry)
       return { path, status: 'written' }
     } catch (error) {
       // 실패한 버킷만 failed로 남긴다 — 다른 버킷은 계속 진행한다.

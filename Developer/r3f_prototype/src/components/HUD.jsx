@@ -69,6 +69,7 @@ import lanternIconSrc from '../assets/weapon_icon/16_wea_lantern.webp'
 
 import laidManPortraitSrc from '../assets/character/laid_man.webp'
 import matildaConversationPortraitSrc from '../assets/character/matilda_conversation.webp'
+import escapeSuccessSrc from '../assets/escape_success.png'
 
 const GAMEOVER_TRANSITION_MS = 1000
 const QUEST_TRANSIENT_BASE_MS = 2000
@@ -776,7 +777,8 @@ export default function HUD({
     clearMilestone, applyUpgrade, recordLevelupAcquireExposure, recordLevelupWeaponCycle, recordLevelupOwnedWeaponCycle, consumeGuaranteedUpgradeChoices, discardUnavailableGuaranteedUpgradeChoices,
     confirmWeaponReplacement, cancelWeaponReplacement, discardPendingWeapon,
     cheatAcquireWeapon, resumeFromLevelup,
-    resetGame, togglePause, resumeGame, quitPausedRun, spawnMatilda,
+    resetGame, continueToNextStage, continuousScoreBase, escapeResult,
+    togglePause, resumeGame, quitPausedRun, spawnMatilda,
     closeStudentDialogue, advanceIntro, toggleQuestInventory, closeQuestInventory,
     clearQuestToast, markQuestInventorySeen,
     missionProgress,
@@ -822,6 +824,9 @@ export default function HUD({
     cheatAcquireWeapon:   s.cheatAcquireWeapon,
     resumeFromLevelup:    s.resumeFromLevelup,
     resetGame:            s.resetGame,
+    continueToNextStage:   s.continueToNextStage,
+    continuousScoreBase:   s.continuousScoreBase ?? 0,
+    escapeResult:         s.escapeResult,
     togglePause:          s.togglePause,
     resumeGame:           s.resumeGame,
     quitPausedRun:        s.quitPausedRun,
@@ -840,13 +845,20 @@ export default function HUD({
   const runClock = formatRunClock(elapsed)
   // 실시간 점수. 탈출구가 열린 뒤 "더 버틸까 / 지금 나갈까"를 저울질하려면 지금 점수가 보여야 한다.
   // 점수식은 복제하지 않고 랭킹과 같은 getRankingScore를 쓴다. 런 중에는 아직 미클리어다.
-  const liveScore = getRankingScore({
+  const liveScore = continuousScoreBase + getRankingScore({
     stageId: currentStageId,
     survivalSeconds: Math.floor(elapsed / 1000),
     cleared: false,
   })
   const stageConfig = getStageConfig(currentStageId)
   const nextStageId = getNextStageId(currentStageId)
+  const stageClearScore = escapeResult?.stageScore ?? getRankingScore({
+    stageId: currentStageId,
+    survivalSeconds: Math.floor(elapsed / 1000),
+    cleared: true,
+    bossBonus,
+  })
+  const clearTotalScore = escapeResult?.totalScore ?? continuousScoreBase + stageClearScore
   const showResultDevTools = devToolsVisible && getAdminOperationsConfig().cheatMenuButtonVisible && (phase === 'gameover' || phase === 'cleared')
   const questInventoryOpen = phase === 'paused' && pauseSource === 'quest'
   const stageQuests = useMemo(() => getStageQuestDefinitions(currentStageId), [currentStageId])
@@ -1810,9 +1822,26 @@ export default function HUD({
       )}
 
       {phase === 'cleared' && (
-        <div style={styles.overlay}>
-          <div style={styles.modal}>
-            <h2 style={{ ...styles.modalTitle, color: '#ffd040' }}>{currentStageId === 'stage2' ? 'STAGE 2 CLEAR!' : 'STAGE CLEAR!'}</h2>
+        <div data-testid="escape-success-screen" style={{ ...styles.overlay, ...styles.escapeOverlay }}>
+          <section style={styles.escapePanel} aria-labelledby="escape-success-title">
+            <img src={escapeSuccessSrc} alt="" style={styles.escapeImage} />
+            <div style={styles.escapeContent}>
+              <h2 id="escape-success-title" style={styles.escapeTitle}>{t('hud.escapeSuccess')}</h2>
+              <p data-testid="escape-total-score" style={styles.escapeScore}>{t('hud.continuousScore', { score: gameNumber(clearTotalScore) })}</p>
+              <p style={styles.escapeStageScore}>{t('hud.stageScore', { score: gameNumber(stageClearScore) })}</p>
+              <p style={styles.escapeHint}>{t(nextStageId ? 'hud.continueScoreHint' : 'hud.continuousRunComplete')}</p>
+              <div data-testid="result-primary-actions" style={styles.escapeActions}>
+                {nextStageId && (
+                  <button type="button" style={styles.escapeContinueBtn} onClick={continueToNextStage}>
+                    {t('hud.continueNextStage')}
+                  </button>
+                )}
+                <button type="button" style={styles.escapeChoiceBtn} onClick={onGoToLobby ?? onGoToTitle}>{t('hud.chooseOtherStage')}</button>
+                <button type="button" style={styles.escapeChoiceBtn} onClick={onGoToLobby ?? onGoToTitle}>{t('hud.restInLobby')}</button>
+              </div>
+              {onGoToRanking && <button type="button" style={styles.escapeRankingBtn} onClick={onGoToRanking}>{t('hud.rankingTrophy')}</button>}
+              <details style={styles.escapeDetails}>
+                <summary style={styles.escapeDetailsLabel}>{t('hud.escapeRewards')}</summary>
             <p style={{ color: '#ccc', marginBottom: 8 }}>{t('hud.clearTime', { time: runClock })}</p>
             {bossBonus > 0 && (
               <p style={{ color: '#ff88ff', marginBottom: 6, fontSize: 14 }}>
@@ -1851,18 +1880,10 @@ export default function HUD({
                 </div>
               </div>
             )}
-            <div data-testid="result-primary-actions" style={styles.resultButtons}>
-              {nextStageId && (
-                <button style={styles.nextStageBtn} onClick={() => resetGame(nextStageId)}>
-                  {t('hud.nextStage')}
-                </button>
-              )}
-              {onGoToRanking && <button style={{ ...styles.rankingBtn, ...styles.resultActionBtn }} onClick={onGoToRanking}>{t('hud.rankingTrophy')}</button>}
-              <button style={{ ...styles.titleBtn, ...styles.resultActionBtn }} onClick={onGoToTitle}>{t('hud.toTitle')}</button>
               <button style={{ ...styles.shopBtn, ...styles.resultActionBtn }} onClick={onOpenCoinShop}>{t('hud.coinShop')}</button>
-              <button style={{ ...styles.restartBtn, ...styles.resultActionBtn }} onClick={() => resetGame(currentStageId)}>{t('hud.restartSpaced')}</button>
+              </details>
             </div>
-          </div>
+          </section>
           {resultDevTools}
         </div>
       )}
@@ -2677,6 +2698,32 @@ const styles = {
     fontFamily: "'Nanum Myeongjo', serif",
     fontSize: 'clamp(13px, 3.6vw, 15px)',
   },
+  escapeOverlay: {
+    padding: 'max(12px, env(safe-area-inset-top, 0px)) 12px max(12px, env(safe-area-inset-bottom, 0px))',
+    boxSizing: 'border-box',
+    background: 'rgba(5,2,9,0.88)',
+    zIndex: 50,
+  },
+  escapePanel: {
+    ...schoolPanel('dark'),
+    width: '100%', maxWidth: 440, maxHeight: '100%', overflowY: 'auto',
+    boxSizing: 'border-box', textAlign: 'center',
+  },
+  escapeImage: {
+    display: 'block', width: '100%', height: 'clamp(100px, 24dvh, 220px)',
+    objectFit: 'cover', objectPosition: 'center 45%',
+  },
+  escapeContent: { padding: '12px 16px 16px' },
+  escapeTitle: { margin: '0 0 8px', color: uiPalette.reward, fontSize: 'clamp(28px, 7vw, 36px)', fontWeight: uiType.weightHeavy },
+  escapeScore: { margin: '0 0 4px', color: uiPalette.paperLight, fontSize: 'clamp(22px, 5vw, 28px)', fontWeight: uiType.weightHeavy },
+  escapeStageScore: { margin: 0, color: uiPalette.mutedChalk, fontSize: 13 },
+  escapeHint: { margin: '10px 0 14px', color: uiPalette.paperLight, fontSize: 14, lineHeight: 1.45, wordBreak: 'keep-all' },
+  escapeActions: { display: 'flex', flexDirection: 'column', gap: 10 },
+  escapeContinueBtn: { ...schoolButton('primary'), width: '100%', minHeight: 48, padding: '12px 10px', fontSize: 18 },
+  escapeChoiceBtn: { ...schoolButton('paper'), width: '100%', minHeight: 44, padding: '10px', fontSize: 16 },
+  escapeRankingBtn: { ...schoolButton('chalk'), marginTop: 12, minHeight: 40, padding: '8px 14px', fontSize: 14 },
+  escapeDetails: { marginTop: 12, color: uiPalette.mutedChalk, fontSize: 13 },
+  escapeDetailsLabel: { cursor: 'pointer', padding: '8px', minHeight: 28 },
   questAcceptanceAction: {
     color: '#ffffff',
     fontFamily: uiType.family,

@@ -75,6 +75,19 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
     expect(mod.set).not.toHaveBeenCalled()
   })
 
+  it('keeps stage scores local and global scores cumulative without adding persisted fields', async () => {
+    const { client, writes } = makeFakeClient()
+    _setFirebaseRankingClientForTests(client)
+    await submitRun({ uid: 'me' }, { stageId: 'stage2', score: 900, stageScore: 400,
+      timeMs: 300000, globalTimeMs: 540000, cleared: true })
+    for (const [path, entry] of Object.entries(writes)) {
+      expect(entry.score).toBe(path.includes('/global/') ? 900 : 400)
+      expect(entry.timeMs).toBe(path.includes('/global/') ? 540000 : 300000)
+      expect(entry).not.toHaveProperty('stageScore')
+      expect(entry).not.toHaveProperty('globalTimeMs')
+    }
+  })
+
   it('writes when the new score beats the existing entry', async () => {
     const { client, mod } = makeFakeClient({ existingScore: 50 })
     _setFirebaseRankingClientForTests(client)

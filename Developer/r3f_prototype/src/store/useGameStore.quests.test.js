@@ -144,7 +144,8 @@ describe('quest game state', () => {
       currentStageId: 'stage1',
     })
 
-    expect(useGameStore.getState().clearStageAndStartNext()).toBe(true)
+    expect(useGameStore.getState().clearStage()).toBe(true)
+    expect(useGameStore.getState().continueToNextStage()).toBe(true)
     expect(useGameStore.getState().currentStageId).toBe('stage2')
     expect(useGameStore.getState().questJourneyCompletedIds).toEqual(['stage1-talk-book'])
     expect(useGameStore.getState().questProgress).toEqual(createStageQuestProgress('stage2'))
