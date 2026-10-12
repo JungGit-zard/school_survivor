@@ -20,7 +20,7 @@ export const LANDING_COPY = {
     survivalLabel: 'SURVIVAL ROUTE', survivalTitle: '생존 포인트', survival: ['체육복을 챙길 틈도 없이 시작되는 교실 탈출', '경험치를 모아 무기 카드를 고르고 생존 루트를 만든다', '탈출구가 열릴 때까지 몰려오는 좀비와 선생님 보스를 버틴다'],
     guideLabel: 'START GUIDE', guide: ['1. 웹에서 바로 플레이를 누른다', '2. 방향키 또는 모바일 터치로 이동한다', '3. 자동 공격과 업그레이드 선택으로 학교를 탈출한다'], guideCta: '지금 학교 탈출 시작',
     mediaLabel: 'OFFICIAL MEDIA', mediaTitle: '만화 · 음악 · 동영상', mediaControls: '공식 미디어 선택', comicButton: '만화 보기', musicButton: '음악 듣기', videoButton: '동영상 보기',
-    comicsLabel: '4-CUT COMICS', comicsTitle: '연필 구조대의 학교 일지', comicsIntro: "학교에서 좀비 친구들과 벌어지는 작은 소동을 담은 다섯 편의 4컷 만화입니다.", comicsList: '4컷 만화 5편 목록', episodeSuffix: '화', openComic: '전체 만화 보기', openComicAria: '전체 만화 열기', thumbnail: '썸네일', fullComic: '전체 만화', closeViewer: '만화 뷰어 닫기', close: '닫기', comicNavigation: '만화 편 이동', previous: '이전 편', next: '다음 편',
+    comicsLabel: '4-CUT COMICS', comicsTitle: '연필 구조대의 학교 일지', comicsIntro: "학교에서 좀비 친구들과 벌어지는 작은 소동을 담은 4컷 만화입니다.", comicsList: '4컷 만화 목록', episodeSuffix: '화', openComic: '전체 만화 보기', openComicAria: '전체 만화 열기', thumbnail: '썸네일', fullComic: '전체 만화', closeViewer: '만화 뷰어 닫기', close: '닫기', comicNavigation: '만화 편 이동', previous: '이전 편', next: '다음 편',
     comics: [
       { title: "출석은 그르르!", summary: "출석을 부르는데, 이름이 달라도 대답은 모두 그르르!" },
       { title: "급식 줄 정리의 대가", summary: "엉킨 줄을 정리했더니 내 자리는 맨 뒤?" },
@@ -49,7 +49,7 @@ export const LANDING_COPY = {
     survivalLabel: 'SURVIVAL ROUTE', survivalTitle: 'Survival Highlights', survival: ['Escape the classroom before you can even grab your gym clothes', 'Collect XP, choose weapon cards, and build your survival route', 'Hold off zombies and teacher bosses until the exit opens'],
     guideLabel: 'START GUIDE', guide: ['1. Tap Play Instantly Online', '2. Move with the arrow keys or mobile touch controls', '3. Escape the school with auto-attacks and upgrade choices'], guideCta: 'Start Escaping the School',
     mediaLabel: 'OFFICIAL MEDIA', mediaTitle: 'Comics · Music · Videos', mediaControls: 'Choose official media', comicButton: 'Read Comics', musicButton: 'Listen to Music', videoButton: 'Watch Videos',
-    comicsLabel: '4-PANEL COMICS', comicsTitle: 'The Pencil Rescue Squad’s School Diary', comicsIntro: "Five lighthearted four-panel stories about everyday mishaps with zombie classmates.", comicsList: 'List of five 4-panel comics', episodeSuffix: 'Episode', openComic: 'Read Full Comic', openComicAria: 'open full comic', thumbnail: 'thumbnail', fullComic: 'full comic', closeViewer: 'Close comic viewer', close: 'Close', comicNavigation: 'Comic episode navigation', previous: 'Previous', next: 'Next',
+    comicsLabel: '4-PANEL COMICS', comicsTitle: 'The Pencil Rescue Squad’s School Diary', comicsIntro: "Lighthearted four-panel stories about everyday mishaps with zombie classmates.", comicsList: 'List of 4-panel comics', episodeSuffix: 'Episode', openComic: 'Read Full Comic', openComicAria: 'open full comic', thumbnail: 'thumbnail', fullComic: 'full comic', closeViewer: 'Close comic viewer', close: 'Close', comicNavigation: 'Comic episode navigation', previous: 'Previous', next: 'Next',
     comics: [
       { title: "Roll Call: Grrr!", summary: "Different names, but every zombie answers roll call with the same growl." },
       { title: "The Price of an Orderly Lunch Line", summary: "She straightens out the queue, then finds herself at the very back." },
@@ -78,7 +78,7 @@ export const LANDING_COPY = {
     survivalLabel: 'サバイバルルート', survivalTitle: '生き残るためのポイント', survival: ['体操服を手に取る暇もなく始まる教室からの脱出', '経験値を集めて武器カードを選び、生存ルートを作る', '出口が開くまでゾンビと先生ボスの猛攻に耐える'],
     guideLabel: 'スタートガイド', guide: ['1. 「ブラウザですぐ遊ぶ」を押す', '2. 矢印キーまたはスマホのタッチ操作で移動', '3. 自動攻撃とアップグレードで学校から脱出'], guideCta: '学校からの脱出を始める',
     mediaLabel: '公式メディア', mediaTitle: '漫画・音楽・動画', mediaControls: '公式メディアを選択', comicButton: '漫画を見る', musicButton: '音楽を聴く', videoButton: '動画を見る',
-    comicsLabel: '4コマ漫画', comicsTitle: '鉛筆救助隊の学校日誌', comicsIntro: "ゾンビのクラスメートと学校で起こる小さな騒動を描く、楽しい5本の4コマ漫画です。", comicsList: '4コマ漫画5話の一覧', episodeSuffix: '話', openComic: '漫画を全編見る', openComicAria: '漫画の全編を開く', thumbnail: 'サムネイル', fullComic: '漫画の全編', closeViewer: '漫画ビューアーを閉じる', close: '閉じる', comicNavigation: '漫画の話を切り替える', previous: '前の話', next: '次の話',
+    comicsLabel: '4コマ漫画', comicsTitle: '鉛筆救助隊の学校日誌', comicsIntro: "ゾンビのクラスメートと学校で起こる小さな騒動を描く、楽しい4コマ漫画です。", comicsList: '4コマ漫画の一覧', episodeSuffix: '話', openComic: '漫画を全編見る', openComicAria: '漫画の全編を開く', thumbnail: 'サムネイル', fullComic: '漫画の全編', closeViewer: '漫画ビューアーを閉じる', close: '閉じる', comicNavigation: '漫画の話を切り替える', previous: '前の話', next: '次の話',
     comics: [
       { title: "出席の返事はグルル！", summary: "名前は違っても、出席の返事はみんな同じうなり声！" },
       { title: "給食の列を整えた代償", summary: "乱れた列を整えたら、自分は最後尾に？" },
@@ -107,7 +107,7 @@ export const LANDING_COPY = {
     survivalLabel: '生存路线', survivalTitle: '生存要点', survival: ['还没来得及拿运动服，就从教室逃亡开始', '收集经验值，选择武器卡牌，规划生存路线', '坚持到出口打开，挡住僵尸和老师Boss'],
     guideLabel: '入门指南', guide: ['1. 点击“立即在网页游玩”', '2. 用方向键或手机触控移动', '3. 通过自动攻击和升级选择逃出学校'], guideCta: '现在开始逃出学校',
     mediaLabel: '官方媒体', mediaTitle: '漫画 · 音乐 · 视频', mediaControls: '选择官方媒体', comicButton: '看漫画', musicButton: '听音乐', videoButton: '看视频',
-    comicsLabel: '四格漫画', comicsTitle: '铅笔救援队的学校日记', comicsIntro: "五篇轻松的四格漫画，记录与僵尸同学在校园里发生的小插曲。", comicsList: '5 篇四格漫画列表', episodeSuffix: '话', openComic: '查看完整漫画', openComicAria: '打开完整漫画', thumbnail: '缩略图', fullComic: '完整漫画', closeViewer: '关闭漫画查看器', close: '关闭', comicNavigation: '漫画篇章导航', previous: '上一篇', next: '下一篇',
+    comicsLabel: '四格漫画', comicsTitle: '铅笔救援队的学校日记', comicsIntro: "轻松的四格漫画，记录与僵尸同学在校园里发生的小插曲。", comicsList: '四格漫画列表', episodeSuffix: '话', openComic: '查看完整漫画', openComicAria: '打开完整漫画', thumbnail: '缩略图', fullComic: '完整漫画', closeViewer: '关闭漫画查看器', close: '关闭', comicNavigation: '漫画篇章导航', previous: '上一篇', next: '下一篇',
     comics: [
       { title: "点名回答都是吼！", summary: "名字各不相同，点名时却都用同一声低吼回答！" },
       { title: "整理午餐队伍的代价", summary: "把乱糟糟的队伍排好了，自己却到了最后面？" },
@@ -136,7 +136,7 @@ export const LANDING_COPY = {
     survivalLabel: 'HÀNH TRÌNH SINH TỒN', survivalTitle: 'Bí quyết sống sót', survival: ['Cuộc trốn thoát khỏi lớp bắt đầu khi chưa kịp lấy đồ thể dục', 'Thu thập kinh nghiệm, chọn thẻ vũ khí và tạo lộ trình sống sót', 'Chống lại zombie và trùm giáo viên cho đến khi lối thoát mở ra'],
     guideLabel: 'HƯỚNG DẪN BẮT ĐẦU', guide: ['1. Nhấn Chơi ngay trên web', '2. Di chuyển bằng phím mũi tên hoặc điều khiển cảm ứng', '3. Thoát khỏi trường bằng đòn đánh tự động và các nâng cấp'], guideCta: 'Bắt đầu thoát khỏi trường',
     mediaLabel: 'NỘI DUNG CHÍNH THỨC', mediaTitle: 'Truyện tranh · Âm nhạc · Video', mediaControls: 'Chọn nội dung chính thức', comicButton: 'Xem truyện tranh', musicButton: 'Nghe nhạc', videoButton: 'Xem video',
-    comicsLabel: 'TRUYỆN TRANH 4 KHUNG', comicsTitle: 'Nhật ký trường học của Đội cứu hộ Bút Chì', comicsIntro: "Năm truyện tranh bốn khung vui nhộn về những chuyện nhỏ ở trường cùng các bạn zombie.", comicsList: 'Danh sách 5 tập truyện tranh 4 khung', episodeSuffix: 'Tập', openComic: 'Xem toàn bộ truyện', openComicAria: 'mở toàn bộ truyện', thumbnail: 'ảnh thu nhỏ', fullComic: 'toàn bộ truyện', closeViewer: 'Đóng trình xem truyện', close: 'Đóng', comicNavigation: 'Chuyển tập truyện', previous: 'Tập trước', next: 'Tập sau',
+    comicsLabel: 'TRUYỆN TRANH 4 KHUNG', comicsTitle: 'Nhật ký trường học của Đội cứu hộ Bút Chì', comicsIntro: "Truyện tranh bốn khung vui nhộn về những chuyện nhỏ ở trường cùng các bạn zombie.", comicsList: 'Danh sách truyện tranh 4 khung', episodeSuffix: 'Tập', openComic: 'Xem toàn bộ truyện', openComicAria: 'mở toàn bộ truyện', thumbnail: 'ảnh thu nhỏ', fullComic: 'toàn bộ truyện', closeViewer: 'Đóng trình xem truyện', close: 'Đóng', comicNavigation: 'Chuyển tập truyện', previous: 'Tập trước', next: 'Tập sau',
     comics: [
       { title: "Điểm danh: Gừ gừ!", summary: "Tên khác nhau, nhưng bạn zombie nào cũng đáp bằng một tiếng gừ gừ!" },
       { title: "Cái giá của hàng cơm ngay ngắn", summary: "Sắp xếp hàng ngay ngắn xong, cô bé lại đứng cuối hàng." },
@@ -165,7 +165,7 @@ export const LANDING_COPY = {
     survivalLabel: 'RUTE BERTAHAN', survivalTitle: 'Poin Bertahan Hidup', survival: ['Pelarian dari kelas dimulai bahkan sebelum sempat mengambil seragam olahraga', 'Kumpulkan XP, pilih kartu senjata, dan bentuk rute bertahanmu', 'Tahan zombie dan boss guru sampai pintu keluar terbuka'],
     guideLabel: 'PANDUAN MULAI', guide: ['1. Tekan Main Langsung di Web', '2. Bergerak dengan tombol panah atau kontrol sentuh ponsel', '3. Kabur dari sekolah dengan serangan otomatis dan pilihan upgrade'], guideCta: 'Mulai Kabur dari Sekolah',
     mediaLabel: 'MEDIA RESMI', mediaTitle: 'Komik · Musik · Video', mediaControls: 'Pilih media resmi', comicButton: 'Baca Komik', musicButton: 'Dengarkan Musik', videoButton: 'Tonton Video',
-    comicsLabel: 'KOMIK 4 PANEL', comicsTitle: 'Diary Sekolah Tim Penyelamat Pensil', comicsIntro: "Lima komik empat panel yang ceria tentang kejadian kecil di sekolah bersama teman-teman zombie.", comicsList: 'Daftar 5 episode komik 4 panel', episodeSuffix: 'Episode', openComic: 'Baca Komik Lengkap', openComicAria: 'buka komik lengkap', thumbnail: 'thumbnail', fullComic: 'komik lengkap', closeViewer: 'Tutup penampil komik', close: 'Tutup', comicNavigation: 'Navigasi episode komik', previous: 'Sebelumnya', next: 'Berikutnya',
+    comicsLabel: 'KOMIK 4 PANEL', comicsTitle: 'Diary Sekolah Tim Penyelamat Pensil', comicsIntro: "Komik empat panel yang ceria tentang kejadian kecil di sekolah bersama teman-teman zombie.", comicsList: 'Daftar komik 4 panel', episodeSuffix: 'Episode', openComic: 'Baca Komik Lengkap', openComicAria: 'buka komik lengkap', thumbnail: 'thumbnail', fullComic: 'komik lengkap', closeViewer: 'Tutup penampil komik', close: 'Tutup', comicNavigation: 'Navigasi episode komik', previous: 'Sebelumnya', next: 'Berikutnya',
     comics: [
       { title: "Absensi: Grrr!", summary: "Namanya berbeda, tetapi semua zombie menjawab absen dengan geraman yang sama!" },
       { title: "Harga Antrean Makan yang Rapi", summary: "Setelah merapikan antrean, ia malah mendapat tempat paling belakang." },

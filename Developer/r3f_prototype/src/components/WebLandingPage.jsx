@@ -4,6 +4,7 @@ import TitleSceneCanvas from './TitleSceneCanvas.jsx'
 import '../assets/fonts/nanumMyeongjo.css'
 import { WEB_BACKGROUND_URLS, WEB_LANDING_ART_URLS, WEB_LANDING_COMIC_URLS, getSelectedWebBackgroundStyle } from '../lib/webBackgroundAssets.js'
 import { LANDING_COPY, LANDING_LANGUAGES } from './webLandingCopy.js'
+import { dailyWebComics } from './dailyWebComics.js'
 import ZombieBoard from './ZombieBoard.jsx'
 import { ZOMBIE_BOARD_COPY } from './zombieBoardCopy.js'
 
@@ -38,6 +39,7 @@ const COMIC_EPISODES = [
     image: WEB_LANDING_COMIC_URLS.libraryQuiet,
     accent: '#2563EB',
   },
+  ...dailyWebComics,
 ]
 
 const VIDEO_PLACEHOLDERS = WEB_BACKGROUND_URLS.slice(0, 3)
@@ -55,7 +57,12 @@ export default function WebLandingPage() {
   const audioRef = useRef(null)
   const heroActionsRef = useRef(null)
   const [heroActionsPassed, setHeroActionsPassed] = useState(false)
-  const selectedComic = selectedComicIndex === null ? null : { ...COMIC_EPISODES[selectedComicIndex], ...copy.comics[selectedComicIndex] }
+  const comics = COMIC_EPISODES.map((comic, index) => ({
+    ...comic,
+    ...(comic.copy?.[language] ?? copy.comics[index]),
+    image: comic.images?.[language] ?? comic.image,
+  }))
+  const selectedComic = selectedComicIndex === null ? null : comics[selectedComicIndex]
   const formatEpisodeLabel = (index) => (language === 'ko' || language === 'ja' || language === 'zh-CN'
     ? `${index + 1}${copy.episodeSuffix}`
     : `${copy.episodeSuffix} ${index + 1}`)
@@ -267,10 +274,10 @@ export default function WebLandingPage() {
                 </div>
                 <p className="web-landing__media-intro">{copy.comicsIntro}</p>
                 <div className="web-landing__comic-grid" aria-label={copy.comicsList}>
-                  {COMIC_EPISODES.map((comic, index) => (
-                    <a key={comic.id} className="web-landing__comic-feature" style={{ '--comic-accent': comic.accent }} href={comic.image} target="_blank" rel="noreferrer" aria-label={`${copy.comics[index].title} ${copy.openComicAria}`} onClick={(event) => { event.preventDefault(); setSelectedComicIndex(index) }}>
-                      <div className="web-landing__comic-thumbnail"><img src={comic.image} loading="lazy" decoding="async" alt={`${copy.comics[index].title} ${copy.thumbnail}`} /><span>{formatEpisodeLabel(index)}</span></div>
-                      <div className="web-landing__comic-copy"><h3>{copy.comics[index].title}</h3><p>{copy.comics[index].summary}</p><span className="web-landing__comic-action">{copy.openComic} <span aria-hidden="true">→</span></span></div>
+                  {comics.map((comic, index) => (
+                    <a key={comic.id} className="web-landing__comic-feature" style={{ '--comic-accent': comic.accent }} href={comic.image} target="_blank" rel="noreferrer" aria-label={`${comic.title} ${copy.openComicAria}`} onClick={(event) => { event.preventDefault(); setSelectedComicIndex(index) }}>
+                      <div className="web-landing__comic-thumbnail"><img src={comic.image} loading="lazy" decoding="async" alt={`${comic.title} ${copy.thumbnail}`} /><span>{formatEpisodeLabel(index)}</span></div>
+                      <div className="web-landing__comic-copy"><h3>{comic.title}</h3><p>{comic.summary}</p><span className="web-landing__comic-action">{copy.openComic} <span aria-hidden="true">→</span></span></div>
                     </a>
                   ))}
                 </div>

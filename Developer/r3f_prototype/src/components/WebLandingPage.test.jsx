@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import WebLandingPage, { LANDING_FEATURE_VIDEO_URL, LANDING_HERO_VIDEO_URL } from './WebLandingPage.jsx'
 import { LANDING_COPY, LANDING_LANGUAGES } from './webLandingCopy.js'
+import { dailyWebComics } from './dailyWebComics.js'
 import webLandingSource from './WebLandingPage.jsx?raw'
 import { WEB_BACKGROUND_URLS, WEB_LANDING_ART_URLS, WEB_LANDING_COMIC_URLS, selectedWebBackgroundUrl } from '../lib/webBackgroundAssets.js'
 
@@ -27,6 +28,35 @@ function renderLanding() {
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); document.body.innerHTML = '' })
 
 describe('WebLandingPage', () => {
+  it('selects matching daily artwork and copy in all six languages and navigates the expanded catalog', () => {
+    const view = renderLanding()
+    act(() => view.container.querySelector('.web-landing__media-controls button').click())
+    const languageSelect = view.container.querySelector('#web-landing-language')
+    const daily = dailyWebComics.at(-1)
+    const lastIndex = 4 + dailyWebComics.length
+    for (const { code } of LANDING_LANGUAGES) {
+      act(() => {
+        languageSelect.value = code
+        languageSelect.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+      const card = view.container.querySelectorAll('#comics .web-landing__comic-feature')[lastIndex]
+      expect(card.querySelector('h3').textContent).toBe(daily.copy[code].title)
+      expect(card.querySelector('p').textContent).toBe(daily.copy[code].summary)
+      expect(card.querySelector('img').getAttribute('src')).toBe(daily.images[code])
+      act(() => card.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })))
+      expect(document.body.querySelector('#comic-viewer-title').textContent).toBe(daily.copy[code].title)
+      expect(document.body.querySelector('.web-landing__comic-viewer-body img').getAttribute('src')).toBe(daily.images[code])
+      const controls = document.body.querySelector('.web-landing__comic-viewer-controls')
+      expect(controls.querySelector('span').textContent).toBe(`${lastIndex + 1} / ${5 + dailyWebComics.length}`)
+      act(() => controls.querySelectorAll('button')[1].click())
+      expect(document.body.querySelector('.web-landing__comic-viewer-body img').getAttribute('src')).toBe(WEB_LANDING_COMIC_URLS.attendance)
+      act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' })))
+      expect(document.body.querySelector('.web-landing__comic-viewer-body img').getAttribute('src')).toBe(daily.images[code])
+      act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })))
+    }
+    view.unmount()
+  })
+
   it('shows the sticky game link only after passing the hero actions and hides it when returning', () => {
     let onVisibility
     const disconnect = vi.fn()
@@ -244,15 +274,15 @@ describe('WebLandingPage', () => {
     view.unmount()
   })
 
-  it('renders five full-width horizontal comic episode bars that open the approved full comics', () => {
+  it('renders legacy and daily full-width comic bars that open the approved full comics', () => {
     const view = renderLanding()
     expect(view.container.querySelector('a[href="#comics"]').textContent).toContain('4컷 만화 보기')
     act(() => view.container.querySelector('.web-landing__media-controls button').click())
     expect(view.container.querySelector('#comics')).not.toBe(null)
     const comics = view.container.querySelectorAll('#comics .web-landing__comic-feature')
-    expect(comics).toHaveLength(5)
+    expect(comics).toHaveLength(5 + dailyWebComics.length)
     expect(view.container.textContent).toContain('출석은 그르르!')
-    expect(view.container.querySelectorAll('#comics img')).toHaveLength(5)
+    expect(view.container.querySelectorAll('#comics img')).toHaveLength(5 + dailyWebComics.length)
     Object.values(WEB_LANDING_COMIC_URLS).forEach((url) => expect(view.container.innerHTML).toContain(url))
     comics.forEach((comic) => {
       expect(comic.tagName).toBe('A')
