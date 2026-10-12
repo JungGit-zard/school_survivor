@@ -17,11 +17,11 @@ export const WEB_LANDING_ART_URLS = Object.freeze({
   sunsetEscape: 'https://escape-zombie-school-assets.web.app/web-landing/v1/landing_sunset_escape.png',
 })
 export const WEB_LANDING_COMIC_URLS = Object.freeze({
-  attendance: 'https://escape-zombie-school-assets.web.app/web-comics/v2/comic_ep01_attendance_vertical_1x4_ko_dialogue_v2.png',
-  lunchLine: 'https://escape-zombie-school-assets.web.app/web-comics/v2/comic_ep02_lunch_line_vertical_1x4_ko_dialogue_v2.png',
-  homeworkWind: 'https://escape-zombie-school-assets.web.app/web-comics/v2/comic_ep03_homework_wind_vertical_1x4_ko_dialogue_v2.png',
-  gymBounce: 'https://escape-zombie-school-assets.web.app/web-comics/v2/comic_ep04_gym_bounce_vertical_1x4_ko_dialogue_v2.png',
-  libraryQuiet: 'https://escape-zombie-school-assets.web.app/web-comics/v2/comic_ep05_library_quiet_vertical_1x4_ko_dialogue_v2.png',
+  attendance: '/web-comics/v3/comic_ep01_attendance.png',
+  lunchLine: '/web-comics/v3/comic_ep02_lunch_line.png',
+  homeworkWind: '/web-comics/v3/comic_ep03_homework_wind.png',
+  gymBounce: '/web-comics/v3/comic_ep04_gym_bounce.png',
+  libraryQuiet: '/web-comics/v3/comic_ep05_library_quiet.png',
 })
 export const selectedWebBackgroundUrl = chooseOncePerPageLoad()
 

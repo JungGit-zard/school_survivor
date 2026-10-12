@@ -251,7 +251,7 @@ describe('WebLandingPage', () => {
     expect(view.container.querySelector('#comics')).not.toBe(null)
     const comics = view.container.querySelectorAll('#comics .web-landing__comic-feature')
     expect(comics).toHaveLength(5)
-    expect(view.container.textContent).toContain('출석부를 찾아라!')
+    expect(view.container.textContent).toContain('출석은 그르르!')
     expect(view.container.querySelectorAll('#comics img')).toHaveLength(5)
     Object.values(WEB_LANDING_COMIC_URLS).forEach((url) => expect(view.container.innerHTML).toContain(url))
     comics.forEach((comic) => {
