@@ -28,6 +28,31 @@ function renderLanding() {
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); document.body.innerHTML = '' })
 
 describe('WebLandingPage', () => {
+  it('selects localized artwork for all five legacy comics in all six homepage languages', () => {
+    const view = renderLanding()
+    act(() => view.container.querySelector('.web-landing__media-controls button').click())
+    const languageSelect = view.container.querySelector('#web-landing-language')
+    const originals = Object.values(WEB_LANDING_COMIC_URLS)
+    for (const { code } of LANDING_LANGUAGES) {
+      act(() => {
+        languageSelect.value = code
+        languageSelect.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+      const cards = view.container.querySelectorAll('#comics .web-landing__comic-feature')
+      originals.forEach((original, index) => {
+        const expected = code === 'ko' ? original : original.replace('/web-comics/v3/', `/web-comics/localized-v3/${code}/`)
+        expect(cards[index].getAttribute('href')).toBe(expected)
+        expect(cards[index].querySelector('img').getAttribute('src')).toBe(expected)
+        expect(cards[index].querySelector('h3').textContent).toBe(LANDING_COPY[code].comics[index].title)
+        act(() => cards[index].dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })))
+        expect(document.body.querySelector('.web-landing__comic-viewer-body img').getAttribute('src')).toBe(expected)
+        expect(document.body.querySelector('#comic-viewer-title').textContent).toBe(LANDING_COPY[code].comics[index].title)
+        act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })))
+      })
+    }
+    view.unmount()
+  })
+
   it('selects matching daily artwork and copy in all six languages and navigates the expanded catalog', () => {
     const view = renderLanding()
     act(() => view.container.querySelector('.web-landing__media-controls button').click())
@@ -49,7 +74,8 @@ describe('WebLandingPage', () => {
       const controls = document.body.querySelector('.web-landing__comic-viewer-controls')
       expect(controls.querySelector('span').textContent).toBe(`${lastIndex + 1} / ${5 + dailyWebComics.length}`)
       act(() => controls.querySelectorAll('button')[1].click())
-      expect(document.body.querySelector('.web-landing__comic-viewer-body img').getAttribute('src')).toBe(WEB_LANDING_COMIC_URLS.attendance)
+      const attendanceImage = code === 'ko' ? WEB_LANDING_COMIC_URLS.attendance : WEB_LANDING_COMIC_URLS.attendance.replace('/web-comics/v3/', `/web-comics/localized-v3/${code}/`)
+      expect(document.body.querySelector('.web-landing__comic-viewer-body img').getAttribute('src')).toBe(attendanceImage)
       act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' })))
       expect(document.body.querySelector('.web-landing__comic-viewer-body img').getAttribute('src')).toBe(daily.images[code])
       act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })))

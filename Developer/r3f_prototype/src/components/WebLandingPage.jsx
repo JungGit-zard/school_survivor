@@ -39,8 +39,13 @@ const COMIC_EPISODES = [
     image: WEB_LANDING_COMIC_URLS.libraryQuiet,
     accent: '#2563EB',
   },
-  ...dailyWebComics,
-]
+].map((comic) => ({
+  ...comic,
+  images: Object.fromEntries(LANDING_LANGUAGES.map(({ code }) => [
+    code,
+    code === 'ko' ? comic.image : comic.image.replace('/web-comics/v3/', `/web-comics/localized-v3/${code}/`),
+  ])),
+})).concat(dailyWebComics)
 
 const VIDEO_PLACEHOLDERS = WEB_BACKGROUND_URLS.slice(0, 3)
 const GAMEPLAY_IMAGES = [WEB_LANDING_ART_URLS.classroomSurvival, WEB_LANDING_ART_URLS.schoolSupplies, WEB_LANDING_ART_URLS.sunsetEscape]
