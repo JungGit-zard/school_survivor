@@ -4,12 +4,14 @@ $root=$PSScriptRoot;$runner=Join-Path $root 'Invoke-FacebookScheduledPosting.ps1
 $tmp=Join-Path ([IO.Path]::GetTempPath()) ('facebook-schedule-test-'+[guid]::NewGuid().ToString('N'));[IO.Directory]::CreateDirectory($tmp)|Out-Null
 try {
   $calls=[Collections.Generic.List[string]]::new()
+  $mockFailureAction=''
   $makeInvoker={
     param([string]$failureAction='')
+    Set-Variable -Scope 1 -Name mockFailureAction -Value $failureAction
     $invoker = {
       param($action,$language,$runId,$windowId,$extra)
       $calls.Add("$language/$action")
-      if($action -ceq $failureAction){throw "mock $action failure"}
+      if($action -ceq $mockFailureAction){throw "mock $action failure"}
       $path=Join-Path $tmp ($runId+'.json')
       if($action -eq 'SelectSourcePair'){
         $receipt=if(Test-Path -LiteralPath $path){Get-Content -Raw -LiteralPath $path -Encoding UTF8|ConvertFrom-Json}else{New-FacebookReceipt $runId};$receipt.entries.$language=[pscustomobject]@{state='selected';intent=(Get-FacebookPair (Get-FacebookConfig) $language);evidence=$null};Save-FacebookReceipt $receipt $path;return
@@ -21,7 +23,7 @@ try {
       if($action -eq 'OpenNewestPost'){return ([pscustomobject]@{permalink="https://www.facebook.com/hyunuk.jung.56/posts/mock-$language-$runId"}|ConvertTo-Json -Compress)}
       if($action -eq 'VerifyPost'){$entry.state='verified';$entry.evidence=[pscustomobject]@{permalink=$extra[1];text=$entry.intent.text;attachmentCount=1;audience='Friends'};Save-FacebookReceipt $receipt $path;return}
     }
-    return $invoker.GetNewClosure()
+    return $invoker
   }
   $allRun='2026-10-01-1200';$allInvoker=& $makeInvoker
   try{$all=& $runner -RunId $allRun -ReceiptDirectory $tmp -WrapperInvoker $allInvoker -TestBypassSlotCheck -ThrowOnFailure|ConvertFrom-Json}catch{throw "full mock calls: $($calls -join ','); $($_.Exception.Message)"}
