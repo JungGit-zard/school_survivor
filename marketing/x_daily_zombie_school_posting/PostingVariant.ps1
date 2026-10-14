@@ -97,7 +97,8 @@ function Get-PostingLocaleImageCandidates($Config, [string]$Language, [switch]$I
 }
 function Get-PostingPreviousImagePath($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, $Candidates, [ValidateSet('X','Facebook')][string]$Platform = 'X') {
   if (-not (Test-Path -LiteralPath $ReceiptDirectory)) { return $null }
-  $previousReceipts = @(Get-ChildItem -LiteralPath $ReceiptDirectory -Filter '*.json' -File | Where-Object { $_.BaseName -match '^\d{4}-\d{2}-\d{2}-\d{4}$' -and $_.BaseName -clt $CycleId } | Sort-Object BaseName -Descending)
+  $receiptPattern=if($Platform -eq 'Facebook'){'^\d{4}-\d{2}-\d{2}-\d{4}(?:-[a-z0-9][a-z0-9_-]{0,48})?$'}else{'^\d{4}-\d{2}-\d{2}-\d{4}$'}
+  $previousReceipts = @(Get-ChildItem -LiteralPath $ReceiptDirectory -Filter '*.json' -File | Where-Object { $_.BaseName -match $receiptPattern -and $_.BaseName -clt $CycleId } | Sort-Object BaseName -Descending)
   foreach ($previous in $previousReceipts) {
     $prior = Get-Content -LiteralPath $previous.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
     $entry = $prior.entries.$Language
@@ -120,8 +121,10 @@ function Get-PostingPreviousImagePath($Config, [string]$Language, [string]$Cycle
         # exists.
         if($facebookRows.Count -eq 1){
           $filename=[IO.Path]::GetFileName($facebookRows[0].path)
+          $facebookCandidate=Resolve-PostingImagePath ('image_pool/'+[string]$facebookRows[0].path) -Platform Facebook
+          if(@($Candidates|Where-Object{$_ -ceq $facebookCandidate}).Count -eq 1){$priorImage=$facebookCandidate}
           $xRows=@($catalog.images|Where-Object{$_.platform -ceq 'X' -and $_.locale -ceq $Language -and $_.collection -ceq $facebookRows[0].collection -and [IO.Path]::GetFileName($_.path) -ceq $filename})
-          if($xRows.Count -eq 1){$priorImage=Resolve-PostingImagePath ('image_pool/'+[string]$xRows[0].path) -Platform X}
+          if($xRows.Count -eq 1 -and @($Candidates|Where-Object{$_ -ceq $priorImage}).Count -ne 1){$priorImage=Resolve-PostingImagePath ('image_pool/'+[string]$xRows[0].path) -Platform X}
         }
       }
       if (@($Candidates | Where-Object { $_ -ceq $priorImage }).Count -eq 1) { return $priorImage }
@@ -214,7 +217,8 @@ function Select-PostingVariant($Config, [string]$Language, [string]$CycleId, [st
   $previousOpening = $null
   # Respect the last actual selection too, including a missed slot or a newly enabled set.
   if ($variants.Count -gt 1 -and (Test-Path -LiteralPath $ReceiptDirectory)) {
-    $previousReceipts = @(Get-ChildItem -LiteralPath $ReceiptDirectory -Filter '*.json' -File | Where-Object { $_.BaseName -match '^\d{4}-\d{2}-\d{2}-\d{4}$' -and $_.BaseName -clt $CycleId } | Sort-Object BaseName -Descending)
+    $receiptPattern=if($Platform -eq 'Facebook'){'^\d{4}-\d{2}-\d{2}-\d{4}(?:-[a-z0-9][a-z0-9_-]{0,48})?$'}else{'^\d{4}-\d{2}-\d{2}-\d{4}$'}
+    $previousReceipts = @(Get-ChildItem -LiteralPath $ReceiptDirectory -Filter '*.json' -File | Where-Object { $_.BaseName -match $receiptPattern -and $_.BaseName -clt $CycleId } | Sort-Object BaseName -Descending)
     foreach ($previous in $previousReceipts) {
       $prior = Get-Content -LiteralPath $previous.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
       $entry = $prior.entries.$Language

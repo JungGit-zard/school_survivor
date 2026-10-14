@@ -98,8 +98,8 @@ function Assert-FacebookFrozenIntent($Config,[string]$Language,$Intent) {
   if($pairMatch){return}
   $selectedVariant=@((Get-PostingVariants $Config $Language -IncludeDisabled)|Where-Object{$_.id -ceq [string]$Intent.variantId -and $_.text -ceq [string]$Intent.text})
   if($selectedVariant.Count -eq 1){
-    foreach($candidate in @(Get-PostingLocaleImageCandidates $Config $Language)){
-      try{$mappedFacebookPath=Resolve-FacebookPlatformImagePath ([string]$candidate) $Language;if($mappedFacebookPath -ceq $intentPath){return}}catch{}
+    foreach($candidate in @(Get-PostingLocaleImageCandidates $Config $Language -Platform Facebook)){
+      try{$mappedFacebookPath=Resolve-PostingImagePath ([string]$candidate) -Platform Facebook;if($mappedFacebookPath -ceq $intentPath){return}}catch{}
     }
   }
   $normalized=[string]$Intent.imagePath -replace '\\','/';$marker=[regex]::Match($normalized,'(?:^|/)image_pool/(.+)$',[Text.RegularExpressions.RegexOptions]::IgnoreCase);$suffix=if($marker.Success){$marker.Groups[1].Value}else{$normalized.TrimStart('/')};$catalog=Get-PostingImageCatalog

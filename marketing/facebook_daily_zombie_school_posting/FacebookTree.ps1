@@ -113,7 +113,10 @@ function Assert-FacebookComposerTree([string]$Tree, [string]$ExpectedText = '', 
   if (@($nodes | Where-Object { $_.raw -match '(?i)(?:(?:link|\uB9C1\uD06C)|(?:text|\uD14D\uC2A4\uD2B8))\s+Hyun Uk Jung(?:,|$)' }).Count -lt 1) { throw 'Composer lacks the fixed author' }
   $edit = @($nodes | Where-Object { $_.raw -match '(?i)(?:edit|\uD3B8\uC9D1)(?:\s|,|$)' -and (Normalize-FacebookText $_.value) -ceq (Normalize-FacebookText $ExpectedText) })
   if (-not [string]::IsNullOrWhiteSpace($ExpectedText) -and $edit.Count -ne 1) { throw "Composer requires one exact editor value; found $($edit.Count)" }
-  $files = @(if ([string]::IsNullOrWhiteSpace($ExpectedFileName)) { @() } else { @($nodes | Where-Object { $_.raw -cmatch [regex]::Escape($ExpectedFileName) }) })
+  $files = @(if ([string]::IsNullOrWhiteSpace($ExpectedFileName)) { @() } else {
+    $escapedFileName=[regex]::Escape($ExpectedFileName);$filePattern='(?i)(?:^|\s)'+$escapedFileName+'(?=$|[.\s])'
+    @($nodes | Where-Object { $_.raw -match '(?i)(?:graphic|image|picture|\uADF8\uB798\uD53D|\uC774\uBBF8\uC9C0)' -and ($_.raw -match $filePattern -or $_.value -match ('(?i)^'+$escapedFileName+'(?=$|[.\s])')) })
+  })
   $remove = @($nodes | Where-Object { $_.raw -match '(?i)(?:Remove post attachment|\uAC8C\uC2DC\uBB3C\s+\uCCA8\uBD80\s+\uD30C\uC77C\s+\uC81C\uAC70)' })
   if ((-not [string]::IsNullOrWhiteSpace($ExpectedFileName)) -and ($files.Count -ne 1 -or $remove.Count -ne 1)) { throw 'Composer requires exactly one expected filename and one remove marker' }
   $audience = @($nodes | Where-Object { $_.raw -match '(?i)(?:Shared with Your friends|Sharing with Your friends|\uCE5C\uAD6C\uC640\s+\uACF5\uC720)' })

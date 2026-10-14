@@ -42,7 +42,13 @@ if($Action -eq 'SelectSourcePair'){
   . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingReceipt.ps1')
   . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
   # Facebook and X share the five KST posting slots from posting_config.json.
-  $selectedVariant=if([string]::IsNullOrWhiteSpace($VariantId)){Select-PostingVariant $config $Language $RunId $ReceiptDirectory -Platform Facebook}else{@(Get-PostingVariants $config $Language | Where-Object{$_.id -ceq $VariantId})}
+  $selectedVariant=if([string]::IsNullOrWhiteSpace($VariantId)){
+    Select-PostingVariant $config $Language $RunId $ReceiptDirectory -Platform Facebook
+  }else{
+    $explicitVariant=@(Get-PostingVariants $config $Language | Where-Object{$_.id -ceq $VariantId})
+    if($explicitVariant.Count -eq 1){$explicitVariant[0].imagePath=Select-PostingLocaleImagePath $config $Language $RunId $ReceiptDirectory -Platform Facebook}
+    $explicitVariant
+  }
   if(@($selectedVariant).Count -ne 1){throw "Unknown or ambiguous explicit Facebook variant '$VariantId'"}
   $pair=Get-FacebookPairFromSelectedVariant $config $Language $selectedVariant
 }
