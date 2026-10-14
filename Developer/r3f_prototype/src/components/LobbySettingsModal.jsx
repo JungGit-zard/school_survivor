@@ -1,7 +1,8 @@
 // 로비 설정 모달. 타이틀에서 이관된 게임 환경 설정 + 닉네임 편집을 담당한다.
 // 설정 저장은 titleSettings(단일 저장 소스), 닉네임은 userNickname을 그대로 사용한다.
 import { useEffect, useRef, useState } from 'react'
-import { getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated, requestCloudProgressSave } from '../lib/firebaseProgress.js'
+import { getFirebaseProgressRuntimeSnapshot, isFirebaseProgressHydrated, requestCloudProgressSave, updateFirebasePlayerProfile } from '../lib/firebaseProgress.js'
+import { getGuestRankingNickname, getRankingUser, saveGuestRankingNickname } from '../lib/guestRankingIdentity.js'
 import { getSavedNickname, saveNicknameForUser, validateNickname } from '../lib/userNickname.js'
 import { DEFAULT_SETTINGS, applyHitCameraShake, applyLanguage, applyReducedEffects, applyScientificNotation, loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
 import { schoolPanel, schoolButton, uiBorders, uiPalette, uiShadows, uiType } from '../lib/uiStyle.js'
@@ -40,12 +41,25 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   const [nicknameOpen, setNicknameOpen] = useState(false)
   const [nicknameInput, setNicknameInput] = useState('')
   const [nicknameError, setNicknameError] = useState('')
+  const [nicknameBusy, setNicknameBusy] = useState(false)
+  const [guestNickname, setGuestNickname] = useState(getGuestRankingNickname)
+  const nicknameOwnerRef = useRef(authUser?.uid ?? null)
+  nicknameOwnerRef.current = authUser?.uid ?? null
   const [legalOpenId, setLegalOpenId] = useState(null)
   const [deleteStage, setDeleteStage] = useState('idle') // idle | confirm | deleting
   const [deleteError, setDeleteError] = useState(null)
   const [reauthBusy, setReauthBusy] = useState(false)
   const [appearanceBusy, setAppearanceBusy] = useState(false)
   const [appearanceError, setAppearanceError] = useState(false)
+
+  useEffect(() => {
+    if (authUser) return
+    let active = true
+    void getRankingUser(null).then(() => {
+      if (active) setGuestNickname(getGuestRankingNickname())
+    }).catch(() => {})
+    return () => { active = false }
+  }, [authUser?.uid])
 
   useEffect(() => {
     // Appearance has its own confirmed cloud-save/rollback path.
@@ -104,21 +118,52 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   }
 
   const openNicknameEditor = () => {
-    setNicknameInput(getSavedNickname(authUser) || '')
+    setNicknameInput(authUser ? getSavedNickname(authUser) || authUser.displayName || '' : getGuestRankingNickname())
     setNicknameError('')
     setNicknameOpen(true)
   }
 
-  const handleNicknameSubmit = (event) => {
+  const handleNicknameSubmit = async (event) => {
     event.preventDefault()
-    const result = saveNicknameForUser(authUser, nicknameInput)
-    if (!result.ok) {
-      setNicknameError(result.error)
+    if (nicknameBusy) return
+    const validation = validateNickname(nicknameInput)
+    if (!validation.ok) {
+      setNicknameError(validation.error)
       return
     }
-    setNicknameOpen(false)
-    requestCloudProgressSave()
-    onNicknameChange?.(result.nickname)
+    const owner = authUser?.uid ?? null
+    const previous = getSavedNickname(authUser)
+    setNicknameBusy(true)
+    setNicknameError('')
+    try {
+      let result
+      if (authUser) {
+        if (!remoteSettingsReady) throw new Error('progress-not-ready')
+        result = saveNicknameForUser(authUser, nicknameInput)
+        if (!await requestCloudProgressSave()) throw new Error('save-failed')
+      } else {
+        result = await saveGuestRankingNickname(nicknameInput)
+      }
+      if (nicknameOwnerRef.current !== owner) return
+      if (!authUser) {
+        setGuestNickname(getGuestRankingNickname())
+      }
+      if (!result.ok) {
+        if (!authUser) onNicknameChange?.(getGuestRankingNickname())
+        setNicknameError(result.error || t('settings.err.network'))
+        return
+      }
+      setNicknameOpen(false)
+      onNicknameChange?.(result.nickname)
+    } catch {
+      if (nicknameOwnerRef.current !== owner) return
+      if (authUser && isFirebaseProgressHydrated(authUser)) {
+        updateFirebasePlayerProfile((profile) => ({ ...profile, nickname: previous }))
+      }
+      setNicknameError(t('settings.err.network'))
+    } finally {
+      setNicknameBusy(false)
+    }
   }
 
   const handleLogout = async () => {
@@ -166,11 +211,11 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
 
   return (
     <div style={styles.overlay}>
-      <button type="button" aria-label={t('settings.closeBackdropAria')} style={styles.scrim} onClick={onClose} disabled={appearanceBusy} />
+      <button type="button" aria-label={t('settings.closeBackdropAria')} style={styles.scrim} onClick={onClose} disabled={appearanceBusy || nicknameBusy} />
       <section role="dialog" aria-modal="true" aria-labelledby="lobby-settings-heading" style={styles.modal}>
         <div style={styles.modalHeader}>
           <h2 id="lobby-settings-heading" style={styles.modalTitle}>{t('settings.title')}</h2>
-          <button type="button" aria-label={t('common.close')} style={styles.closeButton} onClick={onClose} disabled={appearanceBusy}>×</button>
+          <button type="button" aria-label={t('common.close')} style={styles.closeButton} onClick={onClose} disabled={appearanceBusy || nicknameBusy}>×</button>
         </div>
 
         {nicknameOpen ? (
@@ -180,6 +225,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               id="lobby-nickname-input"
               aria-label={t('settings.nicknameLabel')}
               value={nicknameInput}
+              disabled={nicknameBusy}
               maxLength={12}
               style={styles.nicknameInput}
               onChange={(event) => {
@@ -191,12 +237,12 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
               }}
               autoFocus
             />
-            <p style={nicknameError ? styles.nicknameError : styles.nicknameHint}>
+            <p role={nicknameError ? 'alert' : undefined} style={nicknameError ? styles.nicknameError : styles.nicknameHint}>
               {nicknameError || t('settings.nicknameHint')}
             </p>
             <div style={styles.nicknameActions}>
-              <button type="button" style={styles.nicknameCancel} onClick={() => setNicknameOpen(false)}>{t('common.cancel')}</button>
-              <button type="submit" style={styles.nicknameSave}>{t('common.save')}</button>
+              <button type="button" style={styles.nicknameCancel} onClick={() => setNicknameOpen(false)} disabled={nicknameBusy}>{t('common.cancel')}</button>
+              <button type="submit" style={styles.nicknameSave} disabled={nicknameBusy}>{t('common.save')}</button>
             </div>
           </form>
         ) : deleteStage !== 'idle' ? (
@@ -253,10 +299,10 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
         ) : (
           <>
             <div style={styles.sectionLabel}>{t('settings.profile')}</div>
-            <button type="button" style={styles.settingRow} onClick={openNicknameEditor} disabled={!remoteSettingsReady}>
+            <button type="button" style={styles.settingRow} onClick={openNicknameEditor} disabled={!!authUser && !remoteSettingsReady}>
               <span style={styles.rowText}>
                 <strong style={styles.rowTitle}>{t('settings.nickname')}</strong>
-                <span style={styles.rowDescription}>{getSavedNickname(authUser) || t('settings.notSet')}</span>
+                <span style={styles.rowDescription}>{(authUser ? getSavedNickname(authUser) || authUser.displayName : guestNickname) || t('settings.notSet')}</span>
               </span>
               <span style={styles.arrow}>›</span>
             </button>
@@ -269,7 +315,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
                   <button key={appearance} type="button"
                     aria-pressed={(settings.playerAppearance ?? 'v9') === appearance}
                     style={styles.languageButton((settings.playerAppearance ?? 'v9') === appearance)}
-                    disabled={appearanceBusy}
+                    disabled={appearanceBusy || nicknameBusy}
                     onClick={() => selectAppearance(appearance)}>
                     {t(appearance === 'v9' ? 'settings.playerAppearanceNew' : 'settings.playerAppearanceOld')}
                   </button>
@@ -409,10 +455,10 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
             )}
 
             <div style={styles.sectionLabel}>{t('settings.account')}</div>
-            <button type="button" style={styles.logoutButton} onClick={handleLogout} disabled={!authUser?.uid || appearanceBusy}>
+            <button type="button" style={styles.logoutButton} onClick={handleLogout} disabled={!authUser?.uid || appearanceBusy || nicknameBusy}>
               {t('settings.logout')}
             </button>
-            <button type="button" style={styles.deleteAccountButton} onClick={openDeleteConfirm} disabled={!authUser?.uid || appearanceBusy}>
+            <button type="button" style={styles.deleteAccountButton} onClick={openDeleteConfirm} disabled={!authUser?.uid || appearanceBusy || nicknameBusy}>
               {t('settings.deleteAccount')}
             </button>
           </>

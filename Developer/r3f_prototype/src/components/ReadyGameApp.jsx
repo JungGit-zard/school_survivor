@@ -42,6 +42,18 @@ export default function ReadyGameApp({
   const [showGameoverResultImmediately, setShowGameoverResultImmediately] = useState(false)
   const [weaponEncyclopediaRequest, setWeaponEncyclopediaRequest] = useState(null)
   const phoneFrameRef = useRef(null)
+  const rankingEntrantsRef = useRef(new Set())
+
+  useEffect(() => {
+    const identity = authUser?.uid ?? 'guest'
+    if (rankingEntrantsRef.current.has(identity)) return
+    rankingEntrantsRef.current.add(identity)
+    void import('../store/useGameStore.js').then(({ useGameStore }) => (
+      useGameStore.getState().submitRunToRanking(authUser ?? null, {
+        stageId: 'stage1', score: 0, stageScore: 0, timeMs: 0, globalTimeMs: 0, cleared: false,
+      })
+    )).catch(() => {})
+  }, [authUser?.uid])
 
   useEffect(() => {
     initializeRuntimeUtilities()

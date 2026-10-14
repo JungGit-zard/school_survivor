@@ -12,6 +12,7 @@ import {
 import { isFirebaseRankingConfigured, subscribeGlobalRanking } from '../lib/firebaseRanking.js'
 import { getAdminRankingSeasonConfig } from '../lib/adminConfig.js'
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
+import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { t as translate, useT } from '../lib/i18n.js'
 import RankingWindowTabs, { RANKING_WINDOWS } from './RankingWindowTabs.jsx'
 
@@ -28,11 +29,12 @@ const panelTone = {
 export default function UserRanking({ onBack, entries }) {
   const t = useT()
   const user = useAuthStore((s) => s.user)
+  const progressStatus = useAuthStore((s) => s.progressStatus)
   const submission = useGameStore((s) => s.rankingSubmission)
   const retrySubmission = useGameStore((s) => s.retryRankingSubmission)
-  const [activeWindow, setActiveWindow] = useState('daily')
-  const [cloudBoards, setCloudBoards] = useState({ daily: null, weekly: null })
-  const localRecords = useMemo(() => loadPlayerRecords(), [])
+  const [activeWindow, setActiveWindow] = useState('allTime')
+  const [cloudBoards, setCloudBoards] = useState({ allTime: null, daily: null, weekly: null })
+  const localRecords = useMemo(() => isFirebaseProgressHydrated() ? loadPlayerRecords() : {}, [user, progressStatus])
 
   const localEntry = useMemo(() => buildLocalPlayerRankingEntry(localRecords, user ?? {}), [localRecords, user])
   const totalRuns = localRecords.totalRuns ?? 0
@@ -43,9 +45,11 @@ export default function UserRanking({ onBack, entries }) {
     const subscribe = (window) => subscribeGlobalRanking(window, (rows) => {
       setCloudBoards((boards) => ({ ...boards, [window]: rows }))
     }, { limit: RANKING_LIMIT })
+    const unsubscribeAllTime = subscribe('allTime')
     const unsubscribeDaily = subscribe('daily')
     const unsubscribeWeekly = subscribe('weekly')
     return () => {
+      unsubscribeAllTime()
       unsubscribeDaily()
       unsubscribeWeekly()
     }
@@ -56,7 +60,7 @@ export default function UserRanking({ onBack, entries }) {
     if (providedEntries) return providedEntries
     const cloudEntries = cloudBoards[activeWindow]
     if (cloudEntries !== null) return cloudEntries
-    return loadLocalRankingEntries(user ?? {})
+    return isFirebaseRankingConfigured() || !isFirebaseProgressHydrated() ? [] : loadLocalRankingEntries(user ?? {})
   }, [entries, activeWindow, cloudBoards, user])
 
   const rows = useMemo(() => createRankingRows(rankingEntries), [rankingEntries])
@@ -76,7 +80,7 @@ export default function UserRanking({ onBack, entries }) {
         </div>
         <div style={styles.playerStats}>
           <span style={styles.playerStatChip}>{t('ranking.myRuns')} <strong>{totalRuns}</strong>{t('ranking.myRunsUnit')}</span>
-          <span style={styles.playerStatChip}>{t('ranking.myBest')} <strong>{formatRankScore(bestScore)}</strong></span>
+          {activeWindow !== 'allTime' && <span style={styles.playerStatChip}>{t('ranking.myBest')} <strong>{formatRankScore(bestScore)}</strong></span>}
         </div>
       </header>
 
@@ -109,11 +113,11 @@ export default function UserRanking({ onBack, entries }) {
         <span>{t('ranking.colScore')}</span>
       </div>
 
-      <section data-panel-state="special" style={styles.seasonPanel}>
+      {activeWindow !== 'allTime' && <section data-panel-state="special" style={styles.seasonPanel}>
         <span style={styles.seasonLabel}>{t('lobby.season')}</span>
         <strong style={styles.seasonName}>{season.seasonName}</strong>
         <span style={styles.seasonReward}>{rewardSummary}</span>
-      </section>
+      </section>}
 
       <ol style={styles.list} aria-label={t('ranking.listAria', { limit: RANKING_LIMIT })}>
         {rows.map((row) => (

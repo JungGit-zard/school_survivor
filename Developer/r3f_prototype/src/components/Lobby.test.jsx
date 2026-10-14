@@ -19,6 +19,11 @@ import { useGameStore } from '../store/useGameStore.js'
 import { saveTitleSettings } from '../lib/titleSettings.js'
 
 const stageBossPreviewRenderState = vi.hoisted(() => ({ count: 0 }))
+vi.mock('../lib/guestRankingIdentity.js', () => ({
+  getGuestRankingNickname: () => '게스트생존자',
+  getRankingUser: vi.fn(async () => ({ uid: 'guest', displayName: '게스트생존자' })),
+  saveGuestRankingNickname: vi.fn(async (nickname) => ({ ok: true, nickname })),
+}))
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: () => <div data-testid="stage-monster-canvas" />,
@@ -128,6 +133,8 @@ describe('Lobby', () => {
     useAuthStore.setState({ status: 'signedOut', user: null, progressStatus: 'idle' })
     const before = getFirebaseProgressRuntimeSnapshot()
     const view = renderLobby({})
+
+    expect(view.container.textContent).toContain('게스트생존자')
 
     act(() => {
       view.container.querySelector('[aria-label="설정 열기"]').click()

@@ -31,8 +31,21 @@ export function isFirebaseRankingConfigured() {
 // ponytail: singleton promise — same pattern as firebaseProgress.js
 let _clientPromise = null
 let _testClient = null
-async function getClient() {
+const guestWriteQueues = new Map()
+function enqueueGuestWrite(user, operation) {
+  const previous = guestWriteQueues.get(user.uid) ?? Promise.resolve()
+  const queued = previous.catch(() => {}).then(operation)
+  guestWriteQueues.set(user.uid, queued)
+  const cleanup = () => { if (guestWriteQueues.get(user.uid) === queued) guestWriteQueues.delete(user.uid) }
+  queued.then(cleanup, cleanup)
+  return queued
+}
+async function getClient(user) {
   if (_testClient) return _testClient
+  if (user?.isAnonymous) {
+    const { getGuestRankingClient } = await import('./guestRankingIdentity.js')
+    return getGuestRankingClient()
+  }
   if (!_clientPromise) _clientPromise = createClient()
   return _clientPromise
 }
@@ -66,10 +79,12 @@ export function getActiveSeason(nowMs = Date.now(), config = getAdminRankingSeas
 }
 
 function periodKey(window, nowMs) {
+  if (window === 'allTime') return 'all-time'
   return window === 'weekly' ? kstWeeklyKey(nowMs) : kstDailyKey(nowMs)
 }
 
 function normalizeWindow(window) {
+  if (window === 'allTime') return 'allTime'
   return window === 'weekly' ? 'weekly' : 'daily'
 }
 
@@ -89,12 +104,20 @@ function globalEntriesPath(seasonId, window, key) {
 // 반환: { written[], skipped[], failed[], reason? }. skipped는 정상(기존 최고점이 더 높음),
 // failed는 최고점 유실(권한 거부·규칙 불일치·네트워크)이라 절대 같이 묶으면 안 된다.
 export async function submitRun(user, { stageId, score, stageScore = score, timeMs, globalTimeMs = timeMs, cleared } = {}) {
+  const run = { stageId, score, stageScore, timeMs, globalTimeMs, cleared }
+  if (user?.isAnonymous) return enqueueGuestWrite(user, async () => {
+    const { getGuestRankingNicknameForUid } = await import('./guestRankingIdentity.js')
+    return submitRunNow({ ...user, displayName: getGuestRankingNicknameForUid(user.uid) || user.displayName }, run)
+  })
+  return submitRunNow(user, run)
+}
+
+async function submitRunNow(user, { stageId, score, stageScore = score, timeMs, globalTimeMs = timeMs, cleared } = {}) {
   if (!user?.uid) return notSubmitted('signedOut')
   if (!isFirebaseRankingConfigured()) return notSubmitted('unconfigured')
   // E2E 우회 유저 점수는 실랭킹에 오염되지 않게 차단
   const now = Date.now()
   const season = getActiveSeason(now)
-  if (!season.active) return notSubmitted('seasonOff')
 
   // 엔트리 키 = auth.uid (해시키 아님). 규칙이 "$uid === auth.uid"로 본인 쓰기만 강제하려면
   // 키가 opaque uid여야 검증 가능하기 때문. Firebase uid는 이메일이 아닌 불투명 식별자라
@@ -111,14 +134,18 @@ export async function submitRun(user, { stageId, score, stageScore = score, time
     submittedAt: now,
   }
 
-  const { db, mod } = await getClient()
+  const { db, mod } = await getClient(user)
   const dailyKey = kstDailyKey(now)
   const weeklyKey = kstWeeklyKey(now)
   const paths = [
+    ...(season.active ? [
     entriesPath(season.seasonId, sid, 'daily', dailyKey),
     entriesPath(season.seasonId, sid, 'weekly', weeklyKey),
     globalEntriesPath(season.seasonId, 'daily', dailyKey),
     globalEntriesPath(season.seasonId, 'weekly', weeklyKey),
+    ] : []),
+    entriesPath('all-time', sid, 'allTime', 'all-time'),
+    globalEntriesPath('all-time', 'allTime', 'all-time'),
   ]
 
   // 각 버킷을 독립적으로 기록한다. 멀티패스 atomic update는 쓰면 안 된다 —
@@ -126,8 +153,8 @@ export async function submitRun(user, { stageId, score, stageScore = score, time
   // 이번 점수가 주간 최고보다 낮아도 새 일일 버킷에는 최고일 수 있다. atomic이면
   // 주간 경로의 best-only 거부가 전체 쓰기를 롤백해 일일 기록까지 유실된다.
   // 버킷별로 기존 최고점을 읽어 더 높을 때만 쓰고, 규칙이 best-only의 최종 방어선이다.
-  const results = await Promise.all(paths.map(async (path, index) => {
-    const bucketEntry = index < 2
+  const results = await Promise.all(paths.map(async (path) => {
+    const bucketEntry = path.includes('/stage/')
       ? { ...entry, score: readScore(stageScore) }
       : { ...entry, timeMs: readNonNegInt(globalTimeMs) }
     const entryRef = mod.ref(db, `${path}/${uid}`)
@@ -196,7 +223,7 @@ export function describeSubmission(outcome) {
 const RANKING_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4'])
 
 // 계정 삭제 경로 전용. 활성 시즌의 "오늘 daily + 이번 주 weekly" 버킷에서 본인 엔트리를 제거한다.
-// 4스테이지 × 2윈도 + 글로벌 2윈도 = 10경로.
+// 현재 기간 10경로 + 영구 스테이지 4경로/글로벌 1경로 = 15경로.
 //
 // 한계(의도된 것이 아니라 구조적 제약): 클라이언트가 지울 수 있는 건 지금 계산 가능한
 // periodKey뿐이다. 과거 날짜/주의 periodKey와 과거 시즌 ID는 열거할 방법이 없다 —
@@ -205,26 +232,31 @@ const RANKING_STAGE_IDS = Object.freeze(['stage1', 'stage2', 'stage3', 'stage4']
 //
 // 각 경로는 독립적으로 시도하고(Promise.allSettled) 실패해도 나머지를 계속한다.
 // 호출자는 failed로 "남는 데이터"를 알 수 있다.
-export async function deleteRankingEntriesForUser(user) {
-  if (!user?.uid || !isFirebaseRankingConfigured()) return { attempted: 0, deleted: [], failed: [] }
-
+function knownRankingEntryPaths(uid) {
   const now = Date.now()
   // 삭제는 시즌 활성 여부와 무관하게 시도한다(비활성 시즌에도 데이터는 남아 있다).
   const { seasonId } = getActiveSeason(now)
   const dailyKey = kstDailyKey(now)
   const weeklyKey = kstWeeklyKey(now)
-  const paths = [
+  return [
     ...RANKING_STAGE_IDS.flatMap((stageId) => [
       entriesPath(seasonId, stageId, 'daily', dailyKey),
       entriesPath(seasonId, stageId, 'weekly', weeklyKey),
     ]),
     globalEntriesPath(seasonId, 'daily', dailyKey),
     globalEntriesPath(seasonId, 'weekly', weeklyKey),
-  ].map((path) => `${path}/${user.uid}`)
+    ...RANKING_STAGE_IDS.map((stageId) => entriesPath('all-time', stageId, 'allTime', 'all-time')),
+    globalEntriesPath('all-time', 'allTime', 'all-time'),
+  ].map((path) => `${path}/${uid}`)
+}
+
+export async function deleteRankingEntriesForUser(user) {
+  if (!user?.uid || !isFirebaseRankingConfigured()) return { attempted: 0, deleted: [], failed: [] }
+  const paths = knownRankingEntryPaths(user.uid)
 
   let client = null
   try {
-    client = await getClient()
+    client = await getClient(user)
   } catch {
     return { attempted: paths.length, deleted: [], failed: [...paths] }
   }
@@ -240,24 +272,59 @@ export async function deleteRankingEntriesForUser(user) {
   return { attempted: paths.length, deleted, failed }
 }
 
+export async function renameRankingEntriesForUser(user, nickname) {
+  if (user?.isAnonymous) return enqueueGuestWrite(user, () => renameRankingEntriesNow(user, nickname))
+  return renameRankingEntriesNow(user, nickname)
+}
+
+async function renameRankingEntriesNow(user, nickname) {
+  if (!user?.uid || !isFirebaseRankingConfigured()) return { attempted: 0, updated: [], failed: [], reason: 'unavailable' }
+  if (typeof nickname !== 'string' || nickname.length < 2 || nickname.length > 12 || !nickname.trim()) {
+    return { attempted: 0, updated: [], failed: [], reason: 'invalidNickname' }
+  }
+  const paths = knownRankingEntryPaths(user.uid)
+  let client
+  try {
+    client = await getClient(user)
+  } catch {
+    return { attempted: paths.length, updated: [], failed: [...paths] }
+  }
+  const { db, mod } = client
+  const results = await Promise.all(paths.map(async (path) => {
+    try {
+      const entryRef = mod.ref(db, path)
+      const snapshot = await mod.get(entryRef)
+      if (!snapshot.exists()) return { path, status: 'missing' }
+      await mod.update(entryRef, { displayName: nickname })
+      return { path, status: 'updated' }
+    } catch {
+      return { path, status: 'failed' }
+    }
+  }))
+  return { attempted: paths.length,
+    updated: results.filter((result) => result.status === 'updated').map((result) => result.path),
+    failed: results.filter((result) => result.status === 'failed').map((result) => result.path) }
+}
+
 // 랭킹 표시명: 저장된 닉네임 우선, 없으면 구글 표시명, 그래도 없으면 익명. 상한 40자(규칙과 일치).
 function readDisplayName(user) {
+  if (user?.isAnonymous) return (user.displayName?.trim() || t('ranking.anonymousSurvivor', null, '익명 생존자')).slice(0, MAX_DISPLAY_NAME)
   const nickname = typeof getSavedNickname() === 'string' ? getSavedNickname().trim() : ''
   const googleName = typeof user?.displayName === 'string' ? user.displayName.trim() : ''
   return (nickname || googleName || t('ranking.anonymousSurvivor', null, '익명 생존자')).slice(0, MAX_DISPLAY_NAME)
 }
 
-// 활성 시즌 현재 period의 스테이지별 top N (score 내림차순 + tie-break). window=daily|weekly.
+// 스테이지별 top N. window=daily|weekly|allTime; 영구 보드는 시즌과 무관하다.
 export async function fetchStageRanking(stageId, window, { limit = 100 } = {}) {
   if (!isFirebaseRankingConfigured()) return []
   const now = Date.now()
   const season = getActiveSeason(now)
-  if (!season.active) return []
   const win = normalizeWindow(window)
+  if (!season.active && win !== 'allTime') return []
   const key = periodKey(win, now)
   const { db, mod } = await getClient()
   const q = mod.query(
-    mod.ref(db, entriesPath(season.seasonId, readStageId(stageId), win, key)),
+    mod.ref(db, entriesPath(win === 'allTime' ? 'all-time' : season.seasonId, readStageId(stageId), win, key)),
     mod.orderByChild('score'),
     mod.limitToLast(limit),
   )
@@ -278,13 +345,13 @@ export async function fetchGlobalRanking(window, { limit = 100 } = {}) {
   if (!isFirebaseRankingConfigured()) return []
   const now = Date.now()
   const season = getActiveSeason(now)
-  if (!season.active) return []
   const win = normalizeWindow(window)
+  if (!season.active && win !== 'allTime') return []
   const key = periodKey(win, now)
   const { db, mod } = await getClient()
 
   const q = mod.query(
-    mod.ref(db, globalEntriesPath(season.seasonId, win, key)),
+    mod.ref(db, globalEntriesPath(win === 'allTime' ? 'all-time' : season.seasonId, win, key)),
     mod.orderByChild('score'),
     mod.limitToLast(limit),
   )
@@ -333,7 +400,8 @@ function subscribeRankingWindow(window, pathForWindow, onEntries, limit) {
     unsubscribe()
     const now = Date.now()
     const season = getActiveSeason(now)
-    if (!season.active) {
+    const win = normalizeWindow(window)
+    if (!season.active && win !== 'allTime') {
       onEntries([])
       return
     }
@@ -341,10 +409,9 @@ function subscribeRankingWindow(window, pathForWindow, onEntries, limit) {
     try {
       const { db, mod } = await getClient()
       if (closed) return
-      const win = normalizeWindow(window)
       const key = periodKey(win, now)
       const q = mod.query(
-        mod.ref(db, pathForWindow(season.seasonId, win, key)),
+        mod.ref(db, pathForWindow(win === 'allTime' ? 'all-time' : season.seasonId, win, key)),
         mod.orderByChild('score'),
         mod.limitToLast(limit),
       )
@@ -353,7 +420,7 @@ function subscribeRankingWindow(window, pathForWindow, onEntries, limit) {
         (snap) => onEntries(readRankingEntries(snap, limit)),
         () => onEntries([]),
       )
-      boundaryTimer = globalThis.setTimeout(subscribe, msUntilNextWindow(win, now))
+      if (win !== 'allTime') boundaryTimer = globalThis.setTimeout(subscribe, msUntilNextWindow(win, now))
     } catch {
       onEntries([])
     }

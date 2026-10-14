@@ -3,6 +3,7 @@ import { useT } from '../lib/i18n.js'
 // 일일/주간 랭킹 창은 스테이지 랭킹과 통합 랭킹 두 화면에 똑같이 나온다.
 // 같은 개념이 화면마다 다르게 생기면 안 되므로 목록과 버튼을 여기 한 곳에서만 정의한다.
 export const RANKING_WINDOWS = [
+  { id: 'allTime', labelKey: 'ranking.tab.allTime', noteKey: 'ranking.tab.allTimeNote' },
   { id: 'daily', labelKey: 'ranking.tab.daily', noteKey: 'ranking.tab.dailyNote' },
   { id: 'weekly', labelKey: 'ranking.tab.weekly', noteKey: 'ranking.tab.weeklyNote' },
 ]
@@ -37,6 +38,9 @@ export default function RankingWindowTabs({ ariaLabel, value, onChange }) {
 const tabBase = {
   // 44px는 모바일 터치 타깃 최소 권장치다. 42px이던 통합 랭킹 탭도 여기에 맞춰 올라간다.
   minHeight: 44,
+  minWidth: 0,
+  padding: 6,
+  overflowWrap: 'anywhere',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -46,13 +50,13 @@ const tabBase = {
   color: '#050209',
   fontFamily: 'inherit',
   fontSize: 14,
-  lineHeight: 1,
+  lineHeight: 1.2,
   fontWeight: 1000,
   cursor: 'pointer',
 }
 
 const styles = {
-  tabs: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 },
+  tabs: { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 },
   tab: {
     ...tabBase,
     background: '#f6ead0',

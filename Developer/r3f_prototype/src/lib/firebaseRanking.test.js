@@ -3,12 +3,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // season/E2E 게이트를 결정적으로 제어하기 위한 훅(hoisted — 팩토리가 참조해도 TDZ 안전).
 const gates = vi.hoisted(() => ({ seasonConfig: {} }))
+const guest = vi.hoisted(() => ({ getClient: vi.fn(), nickname: '' }))
 vi.mock('./adminConfig.js', () => ({ getAdminRankingSeasonConfig: () => gates.seasonConfig }))
+vi.mock('./guestRankingIdentity.js', () => ({ getGuestRankingClient: guest.getClient, getGuestRankingNicknameForUid: () => guest.nickname }))
 
 import {
   submitRun,
   describeSubmission,
   subscribeStageRanking,
+  subscribeGlobalRanking,
+  fetchGlobalRanking,
+  fetchStageRanking,
+  deleteRankingEntriesForUser,
+  renameRankingEntriesForUser,
   _setFirebaseRankingClientForTests,
 } from './firebaseRanking.js'
 
@@ -30,6 +37,7 @@ function makeFakeClient({ existingScore = null } = {}) {
 describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Function)', () => {
   beforeEach(() => {
     gates.seasonConfig = {}
+    guest.nickname = ''
     vi.stubEnv('VITE_FIREBASE_DATABASE_URL', 'https://x-default-rtdb.firebaseio.com')
   })
   afterEach(() => {
@@ -45,9 +53,9 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
     await submitRun({ uid: 'me', displayName: 'Neo' }, { stageId: 'stage2', score: 100, timeMs: 50000, cleared: true })
 
     // 각 버킷을 독립 set — atomic 멀티패스 update 아님.
-    expect(mod.set).toHaveBeenCalledTimes(4)
+    expect(mod.set).toHaveBeenCalledTimes(6)
     const keys = Object.keys(writes)
-    expect(keys).toHaveLength(4)
+    expect(keys).toHaveLength(6)
     expect(keys.every((key) => key.endsWith('/me'))).toBe(true)
     expect(keys.some((key) => key.includes('/stage/stage2/daily/'))).toBe(true)
     expect(keys.some((key) => key.includes('/stage/stage2/weekly/'))).toBe(true)
@@ -88,13 +96,122 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
     }
   })
 
+  it('writes zero at first entry, while an existing best score stays intact', async () => {
+    const empty = makeFakeClient()
+    _setFirebaseRankingClientForTests(empty.client)
+    await submitRun({ uid: 'me' }, { stageId: 'stage1', score: 0, timeMs: 0 })
+    expect(empty.mod.set).toHaveBeenCalledTimes(6)
+    const existing = makeFakeClient({ existingScore: 999999999 })
+    _setFirebaseRankingClientForTests(existing.client)
+    await submitRun({ uid: 'me' }, { stageId: 'stage1', score: 0, timeMs: 0 })
+    expect(existing.mod.set).not.toHaveBeenCalled()
+  })
+
+  it('uses the isolated anonymous client and chosen nickname for guest zero-score registration', async () => {
+    const { client, writes } = makeFakeClient()
+    _setFirebaseRankingClientForTests(null)
+    guest.getClient.mockResolvedValueOnce(client)
+    await submitRun({ uid: 'guest-uid', isAnonymous: true, displayName: '좀비학생' }, { stageId: 'stage1', score: 0, timeMs: 0 })
+    expect(guest.getClient).toHaveBeenCalled()
+    expect(Object.values(writes)).toHaveLength(6)
+    expect(Object.values(writes).every((entry) => entry.displayName === '좀비학생' && entry.uid === 'guest-uid' && entry.score === 0)).toBe(true)
+  })
+
+  it('keeps one permanent high-score path across day, week, and season changes', async () => {
+    const { client, writes } = makeFakeClient()
+    _setFirebaseRankingClientForTests(client)
+    const now = vi.spyOn(Date, 'now')
+    now.mockReturnValue(Date.parse('2026-10-01T12:00:00Z'))
+    await submitRun({ uid: 'me' }, { stageId: 'stage2', score: 999999999, stageScore: 888888888, timeMs: 200000, globalTimeMs: 400000 })
+    gates.seasonConfig = { seasonId: 'new-season' }
+    now.mockReturnValue(Date.parse('2026-11-01T12:00:00Z'))
+    await submitRun({ uid: 'me' }, { stageId: 'stage2', score: 999999999, stageScore: 888888888, timeMs: 200000, globalTimeMs: 400000 })
+    const permanent = Object.entries(writes).filter(([path]) => path.includes('/allTime/'))
+    expect(permanent).toHaveLength(2)
+    expect(permanent.every(([path]) => path.includes('/public/all-time/'))).toBe(true)
+    expect(permanent.find(([path]) => path.includes('/global/'))[1]).toMatchObject({ score: 999999999, timeMs: 400000 })
+    expect(permanent.find(([path]) => path.includes('/stage/'))[1]).toMatchObject({ score: 888888888, timeMs: 200000 })
+  })
+
+  it('deletes all five permanent entries along with the ten current-period entries', async () => {
+    const { client, mod } = makeFakeClient()
+    mod.remove = vi.fn(async () => {})
+    _setFirebaseRankingClientForTests(client)
+    const result = await deleteRankingEntriesForUser({ uid: 'me' })
+    expect(result).toMatchObject({ attempted: 15, failed: [] })
+    expect(result.deleted.filter((path) => path.includes('/allTime/all-time/'))).toHaveLength(5)
+    expect(result.deleted.every((path) => path.endsWith('/me'))).toBe(true)
+  })
+
+  it('renames only existing own entries including zero scores without changing any score or creating absent stages', async () => {
+    const { client, mod } = makeFakeClient()
+    const records = { global: { score: 999999999, timeMs: 900000, cleared: true }, stage: { score: 0, timeMs: 0, cleared: false } }
+    mod.get = vi.fn(async (ref) => ({ exists: () => ref.path.includes('/allTime/') && (ref.path.includes('/global/') || ref.path.includes('/stage/stage1/')) }))
+    mod.update = vi.fn(async (ref, patch) => { Object.assign(ref.path.includes('/global/') ? records.global : records.stage, patch) })
+    _setFirebaseRankingClientForTests(client)
+    const result = await renameRankingEntriesForUser({ uid: 'me', isAnonymous: true }, '새닉네임')
+    expect(result).toMatchObject({ attempted: 15, failed: [] })
+    expect(result.updated).toHaveLength(2)
+    expect(mod.set).not.toHaveBeenCalled()
+    expect(mod.update.mock.calls.every(([ref, patch]) => ref.path.endsWith('/me') && JSON.stringify(patch) === JSON.stringify({ displayName: '새닉네임' }))).toBe(true)
+    expect(records).toEqual({ global: { score: 999999999, timeMs: 900000, cleared: true, displayName: '새닉네임' }, stage: { score: 0, timeMs: 0, cleared: false, displayName: '새닉네임' } })
+  })
+
+  it('returns nickname-update failures rather than silently losing the update', async () => {
+    const { client, mod } = makeFakeClient({ existingScore: 0 })
+    mod.update = vi.fn(async () => { throw new Error('permission denied') })
+    _setFirebaseRankingClientForTests(client)
+    const result = await renameRankingEntriesForUser({ uid: 'me' }, '새닉네임')
+    expect(result.failed).toHaveLength(15)
+    expect(result.updated).toEqual([])
+  })
+
+  it('serializes delayed guest submissions and rename, then uses the confirmed name for stale later arguments', async () => {
+    const records = new Map()
+    let releaseWrites
+    const writesReleased = new Promise((resolve) => { releaseWrites = resolve })
+    let signalFirstWrite
+    const firstWrite = new Promise((resolve) => { signalFirstWrite = resolve })
+    let delay = true
+    const mod = { ref: (_db, path) => ({ path }),
+      get: vi.fn(async ({ path }) => ({ exists: () => records.has(path), child: (key) => ({ val: () => records.get(path)?.[key] }) })),
+      set: vi.fn(async ({ path }, entry) => { if (delay) { signalFirstWrite(); await writesReleased } records.set(path, entry) }),
+      update: vi.fn(async ({ path }, patch) => { records.set(path, { ...records.get(path), ...patch }) }) }
+    _setFirebaseRankingClientForTests({ db: {}, mod })
+    const staleUser = { uid: 'guest-race', isAnonymous: true, displayName: '옛이름' }
+    guest.nickname = '옛이름'
+    const pending = submitRun(staleUser, { stageId: 'stage1', score: 999999, timeMs: 500000 })
+    await firstWrite
+    guest.nickname = '새이름'
+    const rename = renameRankingEntriesForUser(staleUser, '새이름')
+    expect(mod.update).not.toHaveBeenCalled()
+    delay = false
+    releaseWrites()
+    await pending
+    await rename
+    expect([...records.values()].every((entry) => entry.displayName === '새이름' && entry.score === 999999 && entry.timeMs === 500000)).toBe(true)
+    await submitRun(staleUser, { stageId: 'stage2', score: 1000000, timeMs: 600000 })
+    expect([...records.values()].every((entry) => entry.displayName === '새이름')).toBe(true)
+  })
+
+  it('continues the guest write queue after a failed request', async () => {
+    _setFirebaseRankingClientForTests(null)
+    guest.getClient.mockRejectedValueOnce(new Error('offline'))
+    const user = { uid: 'guest-retry', isAnonymous: true, displayName: '학생이름' }
+    await expect(submitRun(user, { score: 0 })).rejects.toThrow('offline')
+    const { client, mod } = makeFakeClient()
+    _setFirebaseRankingClientForTests(client)
+    await submitRun(user, { stageId: 'stage1', score: 0, timeMs: 0 })
+    expect(mod.set).toHaveBeenCalledTimes(6)
+  })
+
   it('writes when the new score beats the existing entry', async () => {
     const { client, mod } = makeFakeClient({ existingScore: 50 })
     _setFirebaseRankingClientForTests(client)
 
     await submitRun({ uid: 'me' }, { stageId: 'stage1', score: 100, timeMs: 60000, cleared: false })
 
-    expect(mod.set).toHaveBeenCalledTimes(4)
+    expect(mod.set).toHaveBeenCalledTimes(6)
   })
 
   // 2026-08-25 랭킹 감사에서 나온 결함: 배포된 규칙이 클라 점수식보다 낡아 제출이 통째로
@@ -108,7 +225,7 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
 
     const outcome = await submitRun({ uid: 'me' }, { stageId: 'stage2', score: 4968, timeMs: 3600000, cleared: true })
 
-    expect(outcome.failed).toHaveLength(4)
+    expect(outcome.failed).toHaveLength(6)
     expect(outcome.written).toHaveLength(0)
     expect(outcome.skipped).toHaveLength(0)
     expect(warn).toHaveBeenCalled()
@@ -120,7 +237,7 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
 
     const outcome = await submitRun({ uid: 'me' }, { stageId: 'stage1', score: 100, timeMs: 60000, cleared: false })
 
-    expect(outcome.skipped).toHaveLength(4)
+    expect(outcome.skipped).toHaveLength(6)
     expect(outcome.failed).toHaveLength(0)
     expect(outcome.written).toHaveLength(0)
   })
@@ -137,8 +254,8 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
 
     const outcome = await submitRun({ uid: 'me' }, { stageId: 'stage3', score: 400, timeMs: 280000, cleared: false })
 
-    expect(outcome.written).toHaveLength(2)
-    expect(outcome.written.every((path) => path.includes('/daily/'))).toBe(true)
+    expect(outcome.written).toHaveLength(4)
+    expect(outcome.written.every((path) => !path.includes('/weekly/'))).toBe(true)
     expect(outcome.failed).toHaveLength(2)
   })
 
@@ -162,14 +279,14 @@ describe('firebaseRanking submitRun — direct RTDB write (Spark, no Cloud Funct
     expect(mod.set).not.toHaveBeenCalled()
   })
 
-  it('skips submission outside an active season window', async () => {
+  it('records only permanent boards outside an active season window', async () => {
     gates.seasonConfig = { endsAt: '2000-01-01' } // 과거 종료 → 비활성 시즌
     const { client, mod } = makeFakeClient()
     _setFirebaseRankingClientForTests(client)
 
     await submitRun({ uid: 'me' }, { stageId: 'stage1', score: 10, timeMs: 1000 })
 
-    expect(mod.set).not.toHaveBeenCalled()
+    expect(mod.set).toHaveBeenCalledTimes(2)
   })
 })
 
@@ -184,7 +301,7 @@ describe('firebaseRanking client contract', () => {
 
   it('writes directly to RTDB via independent per-bucket set keyed by uid (not atomic multi-path)', () => {
     expect(source).toContain('mod.set(')
-    expect(source).not.toContain('mod.update(')
+    expect(source.slice(source.indexOf('export async function submitRun('), source.indexOf('function summarize('))).not.toContain('mod.update(')
     expect(source).toContain('${path}/${uid}')
   })
 
@@ -266,14 +383,15 @@ describe('submitRun failureKind — 재시도가 의미 있는 실패인지 구�
     expect(describeSubmission(outcome)).toEqual({ status: 'failed', reason: 'network' })
   })
 
-  it('시즌 밖 제출은 failed가 아니라 seasonOff로 구분돼 나온다', async () => {
+  it('시즌 밖에도 영구 기록은 제출되고 기간 기록은 만들지 않는다', async () => {
     gates.seasonConfig = { endsAt: '2000-01-01' }
     const { client } = makeFakeClient()
     _setFirebaseRankingClientForTests(client)
 
     const outcome = await submitRun({ uid: 'me' }, { stageId: 'stage1', score: 500, timeMs: 400000, cleared: true })
 
-    expect(describeSubmission(outcome)).toEqual({ status: 'notSubmitted', reason: 'seasonOff' })
+    expect(outcome.written).toHaveLength(2)
+    expect(outcome.written.every((path) => path.includes('/allTime/all-time/'))).toBe(true)
   })
 })
 
@@ -326,5 +444,74 @@ describe('subscribeStageRanking — 1회성 조회가 아니라 실시간 구독
     expect(seen[0]).toEqual([])
     expect(seen[1][0]).toMatchObject({ uid: 'me', score: 415 })
     unsubscribe()
+  })
+
+  it('reads and subscribes to permanent boards outside seasons without rollover timers', async () => {
+    gates.seasonConfig = { endsAt: '2000-01-01', seasonId: 'expired' }
+    const snapshot = makeSnapshot([{ uid: 'me', score: 999999999, timeMs: 400000 }])
+    const mod = { ref: (_db, path) => ({ path }), query: (ref) => ref,
+      orderByChild: () => 'score', limitToLast: () => 100,
+      get: vi.fn(async () => snapshot), onValue: vi.fn(() => vi.fn()) }
+    _setFirebaseRankingClientForTests({ db: {}, mod })
+    const timer = vi.spyOn(globalThis, 'setTimeout')
+    expect((await fetchGlobalRanking('allTime'))[0].score).toBe(999999999)
+    expect((await fetchStageRanking('stage2', 'allTime'))[0].score).toBe(999999999)
+    const stopGlobal = subscribeGlobalRanking('allTime', vi.fn())
+    const stopStage = subscribeStageRanking('stage2', 'allTime', vi.fn())
+    await Promise.resolve()
+    await Promise.resolve()
+    expect(mod.onValue).toHaveBeenCalledTimes(2)
+    expect(mod.onValue.mock.calls.every(([q]) => q.path.includes('/public/all-time/') && q.path.includes('/allTime/all-time/'))).toBe(true)
+    expect(timer).not.toHaveBeenCalled()
+    stopGlobal()
+    stopStage()
+  })
+})
+
+describe('permanent ranking rules ownership and fixed namespace', () => {
+  const rules = JSON.parse(readFileSync(new URL('../../database.rules.json', import.meta.url), 'utf8')).rules.rankingService.v1.public.$seasonId
+  const global = rules.global.$window.$periodKey.entries
+  const stage = rules.stage.$stageId.$window.$periodKey.entries
+  function writeAllowed(node, { uid = 'me', authUid = 'me', season = 'all-time', period = 'all-time', window = 'allTime', stageId = 'stage2', score = 900, oldScore = 400, deleting = false } = {}) {
+    const oldData = { exists: () => true, child: () => ({ val: () => oldScore }) }
+    const newData = { exists: () => !deleting, child: (key) => ({ val: () => deleting ? null : key === 'stageId' ? stageId : score }) }
+    return Function('auth', '$uid', '$seasonId', '$periodKey', '$window', '$stageId', 'data', 'newData', `return (${node.$uid['.write']})`)(authUid == null ? null : { uid: authUid }, uid, season, period, window, stageId, oldData, newData)
+  }
+  it('allows only authenticated own best scores in the fixed permanent season and period', () => {
+    for (const node of [global, stage]) {
+      expect(writeAllowed(node)).toBe(true)
+      expect(writeAllowed(node, { authUid: null })).toBe(false)
+      expect(writeAllowed(node, { authUid: 'other' })).toBe(false)
+      expect(writeAllowed(node, { score: 399 })).toBe(false)
+      expect(writeAllowed(node, { season: 'new-season' })).toBe(false)
+      expect(writeAllowed(node, { period: '2026-10-14' })).toBe(false)
+      expect(node.$uid.$other['.validate']).toBe(false)
+    }
+    expect(writeAllowed(stage, { stageId: 'stage99' })).toBe(false)
+  })
+  it('allows account deletion of own null entries while rejecting deletion of another account', () => {
+    for (const node of [global, stage]) {
+      expect(writeAllowed(node, { deleting: true })).toBe(true)
+      expect(writeAllowed(node, { deleting: true, authUid: 'other' })).toBe(false)
+      expect(writeAllowed(node, { deleting: true, authUid: null })).toBe(false)
+    }
+    expect(writeAllowed(stage, { deleting: true, window: 'daily', season: 'season-001', period: '2026-10-14' })).toBe(true)
+    expect(writeAllowed(stage, { deleting: true, stageId: 'stage99' })).toBe(false)
+  })
+
+  it('keeps guest profiles private and nickname values restricted to strings of 2–12 characters', () => {
+    const profile = JSON.parse(readFileSync(new URL('../../database.rules.json', import.meta.url), 'utf8')).rules.rankingService.v1.guestProfiles.$uid
+    for (const operation of ['.read', '.write']) {
+      const allowed = Function('auth', '$uid', `return (${profile[operation]})`)
+      expect(allowed({ uid: 'me' }, 'me')).toBe(true)
+      expect(allowed({ uid: 'other' }, 'me')).toBe(false)
+      expect(allowed(null, 'me')).toBe(false)
+    }
+    const valid = (value) => Function('newData', `return (${profile.nickname['.validate']})`)({ isString: () => typeof value === 'string', val: () => value })
+    expect(valid('새닉네임')).toBe(true)
+    expect(valid('a')).toBe(false)
+    expect(valid('a'.repeat(13))).toBe(false)
+    expect(valid(123)).toBe(false)
+    expect(profile.$other['.validate']).toBe(false)
   })
 })

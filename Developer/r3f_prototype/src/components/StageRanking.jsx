@@ -18,6 +18,7 @@ const panelTone = {
 // 창마다 다른 문구. 일일과 주간은 리셋 주기가 달라서, 어느 보드를 보고 있는지와
 // 언제 초기화되는지를 같이 읽히게 해야 "내 기록이 왜 사라졌지"가 안 생긴다.
 const WINDOW_COPY = {
+  allTime: { topKey: 'ranking.allTimeFirst', windowKey: 'ranking.allTimeWindow', ariaKey: 'ranking.allTimeBoardAria' },
   daily: { topKey: 'ranking.todayFirst', windowKey: 'ranking.dailyWindow', ariaKey: 'ranking.dailyBoardAria' },
   weekly: { topKey: 'ranking.weekFirst', windowKey: 'ranking.weeklyWindow', ariaKey: 'ranking.weeklyBoardAria' },
 }
@@ -57,7 +58,7 @@ export default function StageRanking({ stageId = 'stage1', onBack }) {
         <TopWinner label={t(copy.topKey)} entry={rows[0]} />
       </section>
 
-      <div style={styles.seasonLine}>{season.name} · {t(copy.windowKey)}</div>
+      <div style={styles.seasonLine}>{activeWindow !== 'allTime' && `${season.name} · `}{t(copy.windowKey)}</div>
 
       <ol style={styles.list} aria-label={t(copy.ariaKey, { stage: stage.label })}>
         {rows.length > 0 ? rows.map((entry, index) => (

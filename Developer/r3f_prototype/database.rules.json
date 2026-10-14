@@ -188,16 +188,24 @@
     },
     "rankingService": {
       "v1": {
+        "guestProfiles": {
+          "$uid": {
+            ".read": "auth != null && auth.uid === $uid",
+            ".write": "auth != null && auth.uid === $uid",
+            "nickname": { ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 12" },
+            "$other": { ".validate": false }
+          }
+        },
         "public": {
           "$seasonId": {
             "global": {
               "$window": {
                 "$periodKey": {
                   "entries": {
-                    ".read": "$window === 'daily' || $window === 'weekly'",
+                    ".read": "$window === 'daily' || $window === 'weekly' || ($window === 'allTime' && $seasonId === 'all-time' && $periodKey === 'all-time')",
                     ".indexOn": ["score"],
                     "$uid": {
-                      ".write": "auth != null && $uid === auth.uid && ($window === 'daily' || $window === 'weekly') && (!newData.exists() || !data.exists() || newData.child('score').val() >= data.child('score').val())",
+                      ".write": "auth != null && $uid === auth.uid && ($window === 'daily' || $window === 'weekly' || ($window === 'allTime' && $seasonId === 'all-time' && $periodKey === 'all-time')) && (!newData.exists() || !data.exists() || newData.child('score').val() >= data.child('score').val())",
                       ".validate": "newData.hasChildren(['uid', 'displayName', 'score', 'timeMs', 'cleared', 'stageId', 'submittedAt'])",
                       "uid": { ".validate": "newData.isString() && newData.val() === $uid" },
                       "displayName": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
@@ -217,10 +225,10 @@
                 "$window": {
                   "$periodKey": {
                     "entries": {
-                      ".read": "($window === 'daily' || $window === 'weekly') && ($stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3' || $stageId === 'stage4')",
+                      ".read": "($window === 'daily' || $window === 'weekly' || ($window === 'allTime' && $seasonId === 'all-time' && $periodKey === 'all-time')) && ($stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3' || $stageId === 'stage4')",
                       ".indexOn": ["score"],
                       "$uid": {
-                        ".write": "auth != null && $uid === auth.uid && ($window === 'daily' || $window === 'weekly') && ($stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3' || $stageId === 'stage4') && newData.child('stageId').val() === $stageId && (!newData.exists() || !data.exists() || newData.child('score').val() >= data.child('score').val())",
+                        ".write": "auth != null && $uid === auth.uid && ($window === 'daily' || $window === 'weekly' || ($window === 'allTime' && $seasonId === 'all-time' && $periodKey === 'all-time')) && ($stageId === 'stage1' || $stageId === 'stage2' || $stageId === 'stage3' || $stageId === 'stage4') && (!newData.exists() || newData.child('stageId').val() === $stageId) && (!newData.exists() || !data.exists() || newData.child('score').val() >= data.child('score').val())",
                         ".validate": "newData.hasChildren(['uid', 'displayName', 'score', 'timeMs', 'cleared', 'stageId', 'submittedAt'])",
                         "uid": { ".validate": "newData.isString() && newData.val() === $uid" },
                         "displayName": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },

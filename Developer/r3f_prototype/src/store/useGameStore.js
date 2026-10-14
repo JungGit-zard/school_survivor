@@ -51,6 +51,7 @@ import {
 } from '../lib/missionProgress.js'
 import { getApprovedMissionRewardAllowlist, MISSION_BY_ID } from '../lib/missionCatalog.js'
 import { submitRun, describeSubmission } from '../lib/firebaseRanking.js'
+import { getRankingUser } from '../lib/guestRankingIdentity.js'
 import { isProjectMaster } from '../lib/projectAdmin.js'
 import { useAuthStore } from './useAuthStore.js'
 import { getBossClearBonus, getRankingScore, getRankingScorePolicy } from '../lib/rankingScorePolicy.js'
@@ -667,12 +668,11 @@ export const useGameStore = create(
 
       if (!progressReady) {
         if (phaseName === 'gameover') emitSfx({ id: 'gameOver' })
-        // 이 경로는 랭킹 제출까지 통째로 건너뛴다. 예전에는 그 사실이 어디에도 남지 않아
-        // "기록을 세웠는데 보드가 비었다"의 원인 후보로 떠오르지도 못했다.
+        // 계정 진행도 저장 준비와 랭킹 제출은 별개다.
         set({
           newlyUnlockedWeaponIds: Object.freeze(diff),
-          rankingSubmission: { ...run, status: 'notSubmitted', reason: 'progressUnavailable' },
         })
+        void get().submitRunToRanking(useAuthStore.getState().user, run)
         void get().saveMissionProgress()
         return
       }
@@ -701,30 +701,28 @@ export const useGameStore = create(
       saveRuntimeProgress()
       void get().saveMissionProgress()
 
-      // 랭킹 제출 — 로그인 상태 + Firebase 설정 시에만 동작 (실패해도 게임에 영향 없음).
+      // 게스트도 랭킹을 제출한다. 실패해도 게임 진행에는 영향이 없다.
       const user = useAuthStore.getState().user
       // 같은 런의 종료가 2회 발화해도 안전하다: 랭킹은 최고점(best-only) 모델이라 두 번째
       // 제출은 "기존 점수 >= 새 점수"로 스킵된다(합산이 아니다).
       // 여기서 만들던 runId는 미배포 Cloud Function 전용이었고 submitRun은 인자로 받지도
       // 않는다 — 존재하지 않는 서버 dedup을 약속하던 주석이라 함께 걷어냈다.
-      // 미로그인도 "조용히 아무 일 없음"이 아니라 하나의 결과로 남긴다. 예전에는 이 분기가
-      // 통째로 무음이라, 플레이어는 최고기록을 세우고도 빈 보드만 보고 이유를 알 수 없었다.
-      if (user) void get().submitRunToRanking(user, run)
-      else set({ rankingSubmission: { ...run, status: 'notSubmitted', reason: 'signedOut' } })
+      void get().submitRunToRanking(user, run)
     },
 
     // 제출을 상태로 만든다. 결과를 버리면 실패가 console.warn에서 끝나 플레이어에게 안 보인다.
     // 게임 흐름은 절대 막지 않는다 — 이 함수는 await되지 않고 던지지도 않는다.
-    submitRunToRanking: (user, run) => {
+    submitRunToRanking: async (user, run) => {
+      const gameKey = get().gameKey
       const pending = { ...run, status: 'pending' }
       set({ rankingSubmission: pending })
-      return submitRun(user, run)
-        .then((outcome) => {
-          if (get().rankingSubmission === pending) set({ rankingSubmission: { ...run, ...describeSubmission(outcome) } })
-        })
-        .catch(() => {
-          if (get().rankingSubmission === pending) set({ rankingSubmission: { ...run, status: 'failed', reason: 'network' } })
-        })
+      try {
+        const rankingUser = user ?? await getRankingUser(user)
+        const outcome = await submitRun(rankingUser, run)
+        if (get().gameKey === gameKey && get().rankingSubmission === pending) set({ rankingSubmission: { ...run, ...describeSubmission(outcome) } })
+      } catch {
+        if (get().gameKey === gameKey && get().rankingSubmission === pending) set({ rankingSubmission: { ...run, status: 'failed', reason: 'network' } })
+      }
     },
 
     // 살아 있는 런도 주기적으로 최고점 체크포인트를 랭킹에 올린다.
@@ -746,8 +744,7 @@ export const useGameStore = create(
 
       set({ rankingCheckpoint: { gameKey: s.gameKey, score: run.score, elapsedMs, reason } })
       const user = useAuthStore.getState().user
-      if (user) void get().submitRunToRanking(user, run)
-      else set({ rankingSubmission: { ...run, status: 'notSubmitted', reason: 'signedOut' } })
+      void get().submitRunToRanking(user, run)
       return true
     },
 
@@ -757,10 +754,6 @@ export const useGameStore = create(
       if (!pending || pending.status !== 'failed') return Promise.resolve(false)
       const user = useAuthStore.getState().user
       const { stageId, score, stageScore, timeMs, globalTimeMs, cleared } = pending
-      if (!user) {
-        set({ rankingSubmission: { ...pending, status: 'notSubmitted', reason: 'signedOut' } })
-        return Promise.resolve(false)
-      }
       return get().submitRunToRanking(user, { stageId, score, stageScore, timeMs, globalTimeMs, cleared }).then(() => true)
     },
 
@@ -1362,6 +1355,9 @@ export const useGameStore = create(
       get().recordMissionEvent({ type: 'stage_started', stageId: nextStageId })
       recordRuntimePlayActivity(nextStageId)
       saveRuntimeProgress()
+      void get().submitRunToRanking(useAuthStore.getState().user, {
+        stageId: nextStageId, score: 0, stageScore: 0, timeMs: 0, globalTimeMs: 0, cleared: false,
+      })
     },
   }))
 )

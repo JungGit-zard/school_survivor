@@ -10,6 +10,16 @@ import {
 import { saveNicknameForUser } from './userNickname.js'
 
 describe('user ranking helpers', () => {
+  it('retains explicit zero-score entrant rows and rejects missing or invalid zero-time records', () => {
+    const rows = createRankingRows([
+      { uid: 'guest', displayName: 'Guest', score: 0, timeMs: 0 },
+      { uid: 'google', displayName: 'Google', score: 0, timeMs: 0 },
+      {}, { uid: 'missing' }, { uid: 'negative', score: -1, timeMs: 0 },
+      { uid: 'invalid', score: NaN, timeMs: 0 },
+    ])
+    expect(rows.filter((row) => !row.empty)).toHaveLength(2)
+    expect(rows[0]).toMatchObject({ score: 0, survivalSeconds: 0, empty: false })
+  })
   it('sorts entries by survival score and fills ranks through 30', () => {
     const rows = createRankingRows([
       { displayName: '민수', survivalSeconds: 220, stageId: 'stage1', cleared: false },

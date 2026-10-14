@@ -134,7 +134,10 @@ function normalizeRankingEntry(entry, policy) {
   const stageId = readStageId(entry.stageId, entry.stageLabel)
   const stage = getStageConfig(stageId)
   const survivalSeconds = readScore(entry.survivalSeconds ?? entry.scoreSec ?? entry.bestSurvivalSeconds ?? Math.floor(readScore(entry.timeMs) / 1000))
-  if (survivalSeconds <= 0) return null
+  const explicitEntry = typeof entry.uid === 'string' && entry.uid.length > 0
+    && typeof entry.score === 'number' && Number.isFinite(entry.score) && entry.score >= 0
+    && typeof entry.timeMs === 'number' && Number.isFinite(entry.timeMs) && entry.timeMs >= 0
+  if (survivalSeconds <= 0 && !explicitEntry) return null
 
   const cleared = entry.cleared === true
   // entry.score가 null이면 Number(null)=0 으로 isFinite를 통과해 0점 오분류된다.

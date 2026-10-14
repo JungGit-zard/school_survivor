@@ -11,6 +11,8 @@ import { STAGE_CONFIGS, getStageConfig, isStageUnlocked } from '../lib/stageConf
 import { load as loadPlayerRecords } from '../lib/playerRecords.js'
 import { isFirebaseProgressHydrated } from '../lib/firebaseProgress.js'
 import { formatSurvivalTime } from '../lib/userRanking.js'
+import { getSavedNickname } from '../lib/userNickname.js'
+import { getGuestRankingNickname, getRankingUser } from '../lib/guestRankingIdentity.js'
 import { getActiveSeason } from '../lib/firebaseRanking.js'
 import { loadStageBossPreview, STAGE_BOSS_PREVIEW_EVENT } from '../lib/graphicsStudioConfig.js'
 import { playSfx } from '../lib/sfxRegistry.js'
@@ -71,6 +73,18 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
   const t = useT()
   const authUser = useAuthStore((s) => s.user)
   const progressStatus = useAuthStore((s) => s.progressStatus)
+  const [nickname, setNickname] = useState(() => authUser ? getSavedNickname(authUser) : getGuestRankingNickname())
+  useEffect(() => {
+    let active = true
+    if (authUser) setNickname(getSavedNickname(authUser))
+    else {
+      setNickname(getGuestRankingNickname())
+      void getRankingUser(null).then(() => {
+        if (active) setNickname(getGuestRankingNickname())
+      }).catch(() => {})
+    }
+    return () => { active = false }
+  }, [authUser?.uid, progressStatus])
   const goldTotal = useGameStore((s) => s.goldTotal)
   const [recordsRefreshVersion, setRecordsRefreshVersion] = useState(0)
   const [modal, setModal] = useState(() => weaponEncyclopediaRequest ? 'weapon' : null) // 'weapon' | 'settings' | null
@@ -251,7 +265,7 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
         <div style={styles.profileRow}>
           <div style={styles.profileBlock}>
             <span style={styles.profileEyebrow}>{t('lobby.player')}</span>
-            <strong style={styles.profileName}>{authUser?.displayName?.trim() || authUser?.email?.trim() || ''}</strong>
+            <strong style={styles.profileName}>{nickname || authUser?.displayName?.trim() || authUser?.email?.trim() || ''}</strong>
           </div>
           <div style={styles.coinBadge}>
             <span style={styles.coinDot} />
@@ -314,12 +328,8 @@ export default function Lobby({ onStartStage, onOpenCoinShop, onOpenRanking, onO
       </nav>
 
       {modal === 'weapon' && <WeaponModal onClose={closeWeaponModal} initialWeaponId={weaponModalInitialId} newlyUnlockedWeaponIds={newlyUnlockedWeaponIds} playerRecords={records ?? {}} />}
-      {/* onNicknameChange는 넘기지 않는다. 로비 이름은 authUser.displayName로 그리고(위 profileName),
-          닉네임은 saveNicknameForUser가 Firebase 프로필에 직접 쓴다 — 로비가 들고 있을 상태가 없다.
-          예전에 있던 setNickname 상태가 제거됐는데 이 prop만 남아 ReferenceError로 설정 화면이
-          통째로 죽었다(2026-08-11 v40 실기기 재현). */}
       {modal === 'settings' && (
-        <LobbySettingsModal onClose={closeModal} onLogoutToTitle={onLogoutToTitle} />
+        <LobbySettingsModal onClose={closeModal} onNicknameChange={setNickname} onLogoutToTitle={onLogoutToTitle} />
       )}
     </div>
   )

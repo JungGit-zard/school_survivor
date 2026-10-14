@@ -6,7 +6,7 @@ import { createRoot } from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
 import UserRanking from './UserRanking.jsx'
 import { saveAdminConfig } from '../lib/adminConfig.js'
-import { _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
+import { _resetFirebaseProgressForTests, _seedHydratedFirebaseProgressForTests } from '../lib/firebaseProgress.js'
 import { useAuthStore } from '../store/useAuthStore.js'
 import { useGameStore } from '../store/useGameStore.js'
 import { isFirebaseRankingConfigured, subscribeGlobalRanking } from '../lib/firebaseRanking.js'
@@ -21,6 +21,14 @@ vi.mock('../lib/firebaseRanking.js', async (importOriginal) => ({
 }))
 
 describe('UserRanking', () => {
+  it.each([false, true])('renders a guest without account progress hydration (configured=%s)', (configured) => {
+    _resetFirebaseProgressForTests()
+    isFirebaseRankingConfigured.mockReturnValue(configured)
+    expect(() => renderToStaticMarkup(<UserRanking />)).not.toThrow()
+    const html = renderToStaticMarkup(<UserRanking entries={[{ uid: 'guest', displayName: 'Guest zero', score: 0, timeMs: 0 }]} />)
+    expect(html).toContain('Guest zero')
+    expect(html).toContain('0점')
+  })
   beforeEach(() => {
     _seedHydratedFirebaseProgressForTests()
     useAuthStore.setState({ user: null })
@@ -41,7 +49,7 @@ describe('UserRanking', () => {
     expect(html).toContain('통합 랭킹')
     expect(html).toContain('일일랭킹')
     expect(html).toContain('주간랭킹')
-    expect(html).toContain('한국시간 당일 00:00:01 - 23:59:59')
+    expect(html).toContain('무제한 누적')
     expect(html).toContain('1위')
     expect(html).toContain('30위')
     expect(html).not.toContain('31위')
@@ -64,8 +72,8 @@ describe('UserRanking', () => {
 
     const html = renderToStaticMarkup(<UserRanking onBack={() => {}} entries={[]} />)
 
-    expect(html).toContain('방학 생존 시즌')
-    expect(html).toContain('1위 777G')
+    expect(html).not.toContain('방학 생존 시즌')
+    expect(html).not.toContain('1위 777G')
   })
 
   it('shows cumulative play and season best at the top of the ranking screen', () => {
@@ -84,8 +92,7 @@ describe('UserRanking', () => {
 
     expect(html).toContain('내 누적플레이')
     expect(html).toContain('411')
-    expect(html).toContain('내 시즌최고점')
-    expect(html).toContain('796')
+    expect(html).not.toContain('내 시즌최고점')
   })
 
   it('keeps the bottom back button above mobile system UI safe areas', () => {
@@ -111,7 +118,7 @@ describe('UserRanking', () => {
       root.render(<UserRanking onBack={() => {}} entries={[{ uid: 'local-user', displayName: 'Local Player', score: 321, survivalSeconds: 321, stageId: 'stage1', local: true }]} />)
     })
 
-    expect(container.querySelector('[data-panel-state="special"]')).not.toBeNull()
+    expect(container.querySelector('[data-panel-state="special"]')).toBeNull()
     expect(container.querySelector('[data-panel-state="local"]')?.textContent).toBe('ME')
 
     act(() => root.unmount())
@@ -151,6 +158,7 @@ describe('UserRanking', () => {
         <UserRanking
           onBack={() => {}}
           entries={{
+            allTime: [{ uid: 'guest-zero', displayName: '시작왕', score: 0, timeMs: 0, stageId: 'stage1' }],
             daily: [{ displayName: '오늘왕', score: 300, survivalSeconds: 300, stageId: 'stage1' }],
             weekly: [{ displayName: '주간왕', score: 900, survivalSeconds: 900, stageId: 'stage2' }],
           }}
@@ -158,7 +166,8 @@ describe('UserRanking', () => {
       )
     })
 
-    expect(container.textContent).toContain('오늘왕')
+    expect(container.textContent).toContain('시작왕')
+    expect(container.querySelector('ol li').textContent).toContain('0점')
     act(() => {
       Array.from(container.querySelectorAll('button'))
         .find((button) => button.textContent.includes('주간랭킹'))
@@ -182,7 +191,7 @@ describe('UserRanking', () => {
     })
     useAuthStore.setState({ user: { uid: 'local-user', displayName: 'Local lifetime' } })
     isFirebaseRankingConfigured.mockReturnValue(true)
-    const unsubscribers = { daily: vi.fn(), weekly: vi.fn() }
+    const unsubscribers = { allTime: vi.fn(), daily: vi.fn(), weekly: vi.fn() }
     subscribeGlobalRanking.mockImplementation((window, onRows) => {
       onRows([{
         uid: `cloud-${window}`,
@@ -201,7 +210,7 @@ describe('UserRanking', () => {
       root.render(<UserRanking onBack={() => {}} />)
     })
 
-    expect(container.textContent).toContain('Cloud daily')
+    expect(container.textContent).toContain('Cloud allTime')
     expect(container.textContent).not.toContain('Local lifetime')
     expect(subscribeGlobalRanking).toHaveBeenCalledWith('daily', expect.any(Function), { limit: 30 })
     expect(subscribeGlobalRanking).toHaveBeenCalledWith('weekly', expect.any(Function), { limit: 30 })

@@ -35,6 +35,14 @@ vi.mock('../lib/firebaseRanking.js', async () => {
 })
 
 describe('StageRanking', () => {
+  it('subscribes to the permanent board without season or reset copy', async () => {
+    const view = await renderStageRanking()
+    await view.clickTab('무제한 누적')
+    expect(subscribeStageRanking).toHaveBeenLastCalledWith('stage1', 'allTime', expect.any(Function), { limit: 30 })
+    expect(view.container.textContent).toContain('기간 제한 없는')
+    expect(view.container.textContent).not.toContain('첫 생존 시즌')
+    view.unmount()
+  })
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -47,7 +55,7 @@ describe('StageRanking', () => {
     expect(view.container.textContent).toContain('한국시간 당일 00:00:01 - 23:59:59')
     expect(view.container.textContent).toContain('실시간 일일왕')
     // 주간으로 바뀌는 게 아니라 두 버튼이 나란히 있어야 한다.
-    expect(view.tabLabels()).toEqual(['일일랭킹', '주간랭킹'])
+    expect(view.tabLabels()).toEqual(['무제한 누적', '일일랭킹', '주간랭킹'])
     expect(subscribeStageRanking).toHaveBeenCalledTimes(1)
     expect(subscribeStageRanking).toHaveBeenCalledWith('stage1', 'daily', expect.any(Function), { limit: 30 })
     expect(fetchStageRanking).not.toHaveBeenCalled()

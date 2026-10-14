@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
     gameKey: 0,
     phase: 'idle',
     resetGame: vi.fn(),
+    submitRunToRanking: vi.fn(async () => {}),
     startStage1Intro: vi.fn(),
   },
 }))
@@ -102,6 +103,20 @@ async function renderReadyWithoutEntering(props) {
 }
 
 describe('ReadyGameApp stage bypass hydration', () => {
+  it('registers zero immediately before pressing start, once per guest/account identity', async () => {
+    mocks.gameStore.submitRunToRanking.mockClear()
+    const props = { authStatus: 'checking', authUser: null, progressStatus: 'loading' }
+    const view = await renderReadyWithoutEntering(props)
+    expect(mocks.gameStore.submitRunToRanking).toHaveBeenCalledWith(null, {
+      stageId: 'stage1', score: 0, stageScore: 0, timeMs: 0, globalTimeMs: 0, cleared: false,
+    })
+    await view.render({ ...props, authStatus: 'signedOut' })
+    expect(mocks.gameStore.submitRunToRanking).toHaveBeenCalledTimes(1)
+    await view.render({ ...props, authUser: { uid: 'google' }, authStatus: 'signedIn' })
+    expect(mocks.gameStore.submitRunToRanking).toHaveBeenCalledTimes(2)
+    expect(mocks.gameStore.submitRunToRanking).toHaveBeenLastCalledWith({ uid: 'google' }, expect.objectContaining({ score: 0 }))
+    view.unmount()
+  })
   it('applies one external side-gutter background from the /game title screen onward and preserves the phoneFrame contract', async () => {
     const view = await renderReadyWithoutEntering(
       { authUser: { uid: 'first' }, progressStatus: 'ready' },

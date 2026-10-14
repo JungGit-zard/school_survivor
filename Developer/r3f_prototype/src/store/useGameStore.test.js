@@ -8,6 +8,8 @@ vi.mock('../lib/firebaseRanking.js', async (importOriginal) => ({
   submitRun: ranking.submitRun,
 }))
 
+vi.mock('../lib/guestRankingIdentity.js', () => ({ getRankingUser: vi.fn(async (user) => user ?? { uid: 'guest', displayName: 'Guest' }) }))
+
 import { useGameStore } from './useGameStore.js'
 import { WEAPON_CATALOG } from '../lib/weaponCatalog.js'
 import { useAuthStore } from './useAuthStore.js'
@@ -492,15 +494,15 @@ describe('랭킹 제출 결과가 스토어 상태로 남는다', () => {
     await useGameStore.getState().submitRunToRanking({ uid: 'me' }, run)
     expect(ranking.submitRun).toHaveBeenCalledTimes(1)
 
-    // 재시도할 유저가 없으면 signedOut으로 갈아끼우고 서버를 두드리지 않는다.
-    expect(await useGameStore.getState().retryRankingSubmission()).toBe(false)
-    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
-    expect(useGameStore.getState().rankingSubmission).toMatchObject({ status: 'notSubmitted', reason: 'signedOut' })
+    // Google 사용자가 없으면 게스트 식별자로 다시 제출한다.
+    expect(await useGameStore.getState().retryRankingSubmission()).toBe(true)
+    expect(ranking.submitRun).toHaveBeenCalledTimes(2)
+    expect(useGameStore.getState().rankingSubmission).toMatchObject({ status: 'failed', reason: 'network' })
 
     // 성공 상태에서는 재시도 자체가 no-op이다.
     useGameStore.setState({ rankingSubmission: { ...run, status: 'recorded' } })
     expect(await useGameStore.getState().retryRankingSubmission()).toBe(false)
-    expect(ranking.submitRun).toHaveBeenCalledTimes(1)
+    expect(ranking.submitRun).toHaveBeenCalledTimes(2)
   })
 
   it('재시도는 원래 런의 점수와 스테이지를 그대로 다시 보낸다', async () => {
@@ -521,6 +523,7 @@ describe('랭킹 제출 결과가 스토어 상태로 남는다', () => {
     _seedHydratedFirebaseProgressForTests()
     useAuthStore.setState({ user: { uid: 'me' } })
     useGameStore.getState().resetGame('stage1')
+    ranking.submitRun.mockClear()
 
     useGameStore.getState().recordKill()
 
@@ -543,6 +546,7 @@ describe('랭킹 제출 결과가 스토어 상태로 남는다', () => {
     _seedHydratedFirebaseProgressForTests()
     useAuthStore.setState({ user: { uid: 'me' } })
     useGameStore.getState().resetGame('stage1')
+    ranking.submitRun.mockClear()
 
     advanceRuntimeTime(1_000)
     expect(useGameStore.getState().publishRuntimeElapsedMs()).toBe(true)
@@ -564,6 +568,7 @@ describe('랭킹 제출 결과가 스토어 상태로 남는다', () => {
     _seedHydratedFirebaseProgressForTests()
     useAuthStore.setState({ user: { uid: 'me' } })
     useGameStore.getState().resetGame('stage1')
+    ranking.submitRun.mockClear()
     advanceRuntimeTime(1_000)
     useGameStore.getState().publishRuntimeElapsedMs()
     expect(ranking.submitRun).toHaveBeenCalledTimes(1)
@@ -577,24 +582,18 @@ describe('랭킹 제출 결과가 스토어 상태로 남는다', () => {
     useAuthStore.setState({ user: null })
   })
 
-  // 진행도가 하이드레이트되지 않은 런은 랭킹 제출을 통째로 건너뛴다. 예전에는 그 사실이
-  // 어디에도 남지 않아 "기록을 세웠는데 보드가 비었다"의 원인 후보로 떠오르지도 못했다.
-  it('진행도 미하이드레이트 런은 progressUnavailable로 남는다 — 침묵하지 않는다', () => {
-    // 로그인은 시켜둔다. 그래야 signedOut이 아니라 progressUnavailable에 걸리는 걸 확인할 수 있다 —
-    // 둘 다 아니면 어느 쪽 사유로 멈췄는지 이 테스트가 구분하지 못한다.
+  it('진행도 미하이드레이트 런도 랭킹을 제출한다', () => {
     useAuthStore.setState({ user: { uid: 'me' } })
     _resetFirebaseProgressForTests()
     useGameStore.getState().resetGame('stage1')
+    ranking.submitRun.mockClear()
     useGameStore.setState({ elapsedMs: 60_000, phase: 'playing' })
     advanceRuntimeTime(60_000)
 
     useGameStore.getState()._onRunEnd('gameover')
 
-    expect(ranking.submitRun).not.toHaveBeenCalled()
-    expect(useGameStore.getState().rankingSubmission).toMatchObject({
-      status: 'notSubmitted',
-      reason: 'progressUnavailable',
-    })
+    expect(ranking.submitRun).toHaveBeenCalledWith({ uid: 'me' }, expect.objectContaining({ score: 60 }))
+    expect(useGameStore.getState().rankingSubmission.status).toBe('pending')
     useAuthStore.setState({ user: null })
     _seedHydratedFirebaseProgressForTests()
   })

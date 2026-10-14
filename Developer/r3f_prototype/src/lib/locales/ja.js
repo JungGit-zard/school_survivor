@@ -878,4 +878,9 @@ export default {
 本プライバシーポリシーが変更される場合はゲーム内に告知し、重要な変更については改めて同意を得ます。
 
 施行日: ${EFFECTIVE_DATE}`,
+  'ranking.tab.allTime': '無期限累積',
+  'ranking.tab.allTimeNote': '連続プレイの累積最高得点を期限なしで保持します。別々のプレイの得点は合算しません。',
+  'ranking.allTimeFirst': '歴代1位',
+  'ranking.allTimeWindow': '期限なしの連続プレイ最高得点',
+  'ranking.allTimeBoardAria': '{stage} 無期限累積ランキング',
 }

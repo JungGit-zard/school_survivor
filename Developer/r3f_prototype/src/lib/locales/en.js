@@ -879,4 +879,9 @@ When processing the personal information of children under 14, the Game requires
 If this Privacy Policy changes, notice is given inside the Game, and consent is requested again for material changes.
 
 Effective date: ${EFFECTIVE_DATE}`,
+  'ranking.tab.allTime': 'All-time',
+  'ranking.tab.allTimeNote': 'Keeps your best continuous-run cumulative score without expiry. Separate runs are not added together.',
+  'ranking.allTimeFirst': 'All-time leader',
+  'ranking.allTimeWindow': 'Best continuous run · no expiry',
+  'ranking.allTimeBoardAria': '{stage} all-time ranking',
 }

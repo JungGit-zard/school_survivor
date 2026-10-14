@@ -382,4 +382,9 @@ export default {
   'hud.sendLogDone': '개발 로그 전송됨',
   'hud.copyLogDone': '전송 실패 — 로그 복사됨',
   'hud.copyLogFail': '개발 로그 전송/복사 실패',
+  'ranking.tab.allTime': '무제한 누적',
+  'ranking.tab.allTimeNote': '초기화 없이 연속 플레이 누적 최고점을 보존합니다. 서로 다른 게임의 점수를 합산하지 않습니다.',
+  'ranking.allTimeFirst': '역대 1위',
+  'ranking.allTimeWindow': '기간 제한 없는 연속 플레이 최고점',
+  'ranking.allTimeBoardAria': '{stage} 무제한 누적 랭킹',
 }

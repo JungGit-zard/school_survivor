@@ -8,6 +8,13 @@ import { _seedHydratedFirebaseProgressForTests, applyCloudProgressSnapshot, buil
 import { useAuthStore } from '../store/useAuthStore.js'
 import { TERMS_TEXT, TERMS_TITLE, PRIVACY_TEXT, PRIVACY_TITLE } from '../lib/legalDocuments.js'
 import { loadTitleSettings, saveTitleSettings } from '../lib/titleSettings.js'
+import { saveGuestRankingNickname } from '../lib/guestRankingIdentity.js'
+
+vi.mock('../lib/guestRankingIdentity.js', () => ({
+  getGuestRankingNickname: () => '자동생존자',
+  getRankingUser: vi.fn(async () => ({ uid: 'guest', displayName: '자동생존자' })),
+  saveGuestRankingNickname: vi.fn(async (nickname) => ({ ok: true, nickname })),
+}))
 
 vi.mock('../lib/firebaseProgress.js', async (importOriginal) => ({
   ...await importOriginal(),
@@ -27,6 +34,31 @@ vi.mock('../lib/accountDeletion.js', () => ({
 const { deleteAccountAndData, reauthenticateForDeletion } = await import('../lib/accountDeletion.js')
 
 describe('LobbySettingsModal', () => {
+  it.each([true, false])('edits a guest nickname without Google/progress and handles save outcome %s', async (ok) => {
+    useAuthStore.setState({ user: null, status: 'signedOut', progressStatus: 'idle' })
+    saveGuestRankingNickname.mockResolvedValueOnce(ok ? { ok: true, nickname: '새이름' } : { ok: false, error: '저장 실패' })
+    const onNicknameChange = vi.fn()
+    const view = renderSettings({ onNicknameChange })
+    await flushAsyncWork()
+    expect(view.container.textContent).toContain('자동생존자')
+    await clickButtonByText(view.container, '닉네임')
+    const input = view.container.querySelector('#lobby-nickname-input')
+    expect(input.value).toBe('자동생존자')
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, '새이름')
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    await clickButtonByText(view.container, '저장')
+    expect(saveGuestRankingNickname).toHaveBeenCalledWith('새이름')
+    if (ok) {
+      expect(onNicknameChange).toHaveBeenCalledWith('새이름')
+      expect(view.container.querySelector('#lobby-nickname-input')).toBeNull()
+    } else {
+      expect(view.container.textContent).toContain('저장 실패')
+      expect(view.container.querySelector('#lobby-nickname-input').value).toBe('새이름')
+    }
+    view.unmount()
+  })
   beforeEach(() => {
     _seedHydratedFirebaseProgressForTests()
     useAuthStore.setState({ status: 'signedIn', user: { uid: 'test-user' }, progressStatus: 'ready' })
