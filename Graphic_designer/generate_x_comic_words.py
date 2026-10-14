@@ -89,7 +89,7 @@ def main():
                 "locale": locale,
                 "collection": COLLECTION,
                 "path": f"x/{locale}/{COLLECTION}/{number:02d}.png",
-                "gameStartText": {"ko": "게임시작", "en": "Start game", "ja": "ゲーム開始", "vi": "Bắt đầu trò chơi"}[locale],
+                "gameStartText": {"ko": "게임시작", "en": "START GAME", "ja": "ゲームスタート", "vi": "BẮT ĐẦU CHƠI"}[locale],
                 "format": "four_panel_comic_with_localized_words",
                 "story": STORIES[number - 1],
                 "dialogueWords": captions,
