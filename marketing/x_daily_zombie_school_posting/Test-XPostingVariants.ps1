@@ -40,9 +40,9 @@ $savedConfig = Join-Path $tempFull 'fixture-config.json'
 try {
   foreach ($lang in $config.language_order) {
     $eligibleImages=@(Get-PostingLocaleImageCandidates $config $lang -RequireGameStartText)
-    Assert-True (@($config.variants.$lang).Count -eq 3) "$lang has three extra pairs"
-    Assert-True (@(Get-PostingLocaleImageCandidates $config $lang).Count -eq 19) "$lang keeps eighteen prior candidates and the appended CTA image"
-    Assert-True ($eligibleImages.Count -eq 1) "$lang selects only the single image with confirmed localized game-start text"
+    Assert-True (@($config.variants.$lang).Count -eq 4) "$lang has four extra pairs"
+    Assert-True (@(Get-PostingLocaleImageCandidates $config $lang).Count -eq 5) "$lang has five current comic candidates"
+    Assert-True ($eligibleImages.Count -eq 5) "$lang has five comics with confirmed localized game-start text"
     foreach ($variant in $config.variants.$lang) {
       Assert-True ((Get-XWeightedLength $variant.text) -le 280) "$lang/$($variant.id) fits weighted X limit"
       $variant.enabled = $false
@@ -55,7 +55,7 @@ try {
       Assert-True ($choice.id -ne $previous) "$lang/$cycle has no adjacent repeat"
       Assert-True ((Select-PostingVariant $config $lang $cycle $temp).id -eq $choice.id) "$lang/$cycle keeps deterministic text variant"
       Assert-True (Test-Path -LiteralPath $choice.imagePath) "$lang/$cycle selected image exists"
-      Assert-True ($choice.imagePath -match "[\\/]x[\\/]$lang[\\/](marketing_social_30_20261004|marketing_social_20261010_add10|marketing_social_cta_20261010)[\\/]") "$lang/$cycle uses the X locale image pool"
+      Assert-True ($choice.imagePath -match "[\\/]x[\\/]$lang[\\/]zombie_catch_comic_words_20261014[\\/]") "$lang/$cycle uses the current X comic pool"
       if ($null -ne $previousImage -and $eligibleImages.Count -gt 1) { Assert-True ($choice.imagePath -cne $previousImage) "$lang/$cycle has no adjacent image repeat" }
       $seen += $choice.id; $previous = $choice.id
       $receipt = [pscustomobject]@{ schema=1; cycleId=$cycle; entries=[pscustomobject]@{} }
@@ -64,7 +64,7 @@ try {
       Save-CycleReceipt $receipt (Join-Path $temp ($cycle + '.json'))
       $previousImage = $choice.imagePath
     }
-    Assert-True (@($seen | Select-Object -Unique).Count -eq 4) "$lang rotates all four sets"
+    Assert-True (@($seen | Select-Object -Unique).Count -eq 5) "$lang rotates all five sets"
     $legacy = [pscustomobject]@{ text=$config.copy.$lang.text; imagePath=$config.image_pool.$lang.images[0] }
     Assert-True ((Resolve-PostingIntentVariant $config $lang $legacy).id -eq 'original') "$lang legacy intent accepted after variants enabled"
     $saved = $config.variants.$lang[1]
@@ -89,11 +89,11 @@ try {
   $savedScheduleTimes=@($config.schedule_times);$config.schedule_times=@('06:00','11:00')
   try {
     foreach($lang in @('ja','en','vi','ko')){
-      $candidates=@(Get-PostingLocaleImageCandidates $config $lang)
+      $candidates=@(Get-PostingLocaleImageCandidates $config $lang -Platform Facebook)
       $previousImage=Get-PostingPreviousImagePath $config $lang '2026-10-10-1100' $historicTemp $candidates -Platform Facebook
-      Assert-True (@($candidates|Where-Object{$_ -ceq $previousImage}).Count -eq 1) "$lang historic Facebook receipt maps back to its exact X pool candidate"
+      Assert-True ($null -eq $previousImage) "$lang historic Facebook image outside the current pool does not block rotation"
       $selected=Select-PostingVariant $config $lang '2026-10-10-1100' $historicTemp -Platform Facebook
-      Assert-True ($selected.imagePath -cne $previousImage) "$lang next Facebook cycle avoids the image in the historic 0600 receipt without a platform-path exception"
+      Assert-True (@($candidates|Where-Object{$_ -ceq $selected.imagePath}).Count -eq 1) "$lang next Facebook cycle selects a current Facebook image"
     }
   } finally {$config.schedule_times=$savedScheduleTimes}
   $choice = $config.variants.ja[0]
@@ -133,7 +133,7 @@ try {
   $ctaFullPath=Resolve-PostingImagePath $ctaImagePath
   $ctaRelative=$ctaFullPath.Substring([IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'image_pool')).Length+1).Replace([string][char]92,'/')
   $ctaFixtureRows=@(foreach($row in $catalog.images){
-    $copy=[pscustomobject]@{platform=[string]$row.platform;locale=[string]$row.locale;collection=[string]$row.collection;path=[string]$row.path;source=[string]$row.source;gameStartText='NO CTA'}
+    $copy=[pscustomobject]@{platform=[string]$row.platform;locale=[string]$row.locale;collection=[string]$row.collection;path=[string]$row.path;gameStartText='NO CTA'}
     if($copy.platform -ceq 'X' -and $copy.locale -ceq 'en' -and $copy.path -ceq $ctaRelative){$copy.gameStartText=Get-PostingGameStartText en}
     $copy
   })

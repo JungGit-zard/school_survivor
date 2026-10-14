@@ -18,20 +18,20 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'FacebookPosting.ps1')
 . (Join-Path $PSScriptRoot 'FacebookTree.ps1')
-$slots=@('02:00','06:00','11:00','17:00','21:00');$slotPattern='(?:0200|0600|1100|1700|2100)';$kst=[DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9))
+$slots=@((Get-FacebookConfig).schedule_times);$slotPattern='(?:'+(($slots|ForEach-Object{[regex]::Escape($_.Replace(':',''))}) -join '|')+')';$kst=[DateTimeOffset]::UtcNow.ToOffset([TimeSpan]::FromHours(9))
 if([string]::IsNullOrWhiteSpace($RunId)){
   if($OnDemand){throw '-OnDemand requires an explicit current KST timestamp RunId'}
   $eligible=@($slots|Where-Object{[TimeSpan]::Parse($_) -le $kst.TimeOfDay});if($eligible.Count -eq 0){throw 'No current KST slot; never backfill'}
   $slot=$eligible[-1];$runId=$kst.ToString('yyyy-MM-dd-')+$slot.Replace(':','')
   $age=$kst-([DateTimeOffset]::ParseExact($kst.ToString('yyyy-MM-dd')+' '+$slot+' +09:00','yyyy-MM-dd HH:mm zzz',[Globalization.CultureInfo]::InvariantCulture));if($age.TotalMinutes -gt 30){throw 'Outside 30-minute schedule grace; never backfill'}
 }
+if($RunId -ceq '2026-10-03-1700' -and -not $ValidateOnly){throw 'Duplicate guard: eight manual Facebook photo posts were confirmed on 2026-10-03; no 17:00 automated post may run without reconciled immutable receipt evidence'}
 if($OnDemand){
   if($RunId -notmatch '^(\d{4}-\d{2}-\d{2})-(\d{4})-on-demand$'){throw '-OnDemand requires RunId YYYY-MM-DD-HHmm-on-demand'}
   $requestedOnDemand=[DateTimeOffset]::ParseExact($Matches[1]+'-'+$Matches[2]+' +09:00','yyyy-MM-dd-HHmm zzz',[Globalization.CultureInfo]::InvariantCulture)
   $onDemandAge=$kst-$requestedOnDemand
   if($onDemandAge.TotalMinutes -lt 0){throw '-OnDemand RunId cannot be in the future'}
-}elseif($RunId -notmatch ("^\d{4}-\d{2}-\d{2}-$slotPattern(?:-[a-z0-9_-]+)?$")){throw 'RunId must be a 02:00, 06:00, 11:00, 17:00, or 21:00 KST slot'}
-if($RunId -ceq '2026-10-03-1700' -and -not $ValidateOnly){throw 'Duplicate guard: eight manual Facebook photo posts were confirmed on 2026-10-03; no 17:00 automated post may run without reconciled immutable receipt evidence'}
+}elseif($RunId -notmatch ("^\d{4}-\d{2}-\d{2}-$slotPattern(?:-[a-z0-9_-]+)?$")){throw "RunId must use a configured KST slot: $($slots -join ', ')"}
 if($TestSinglePost -and [string]::IsNullOrWhiteSpace($Language)){throw 'TestSinglePost requires Language'}
 if($DraftOnly -and $TestSinglePost){throw 'DraftOnly always verifies all four languages; do not combine it with TestSinglePost'}
 if($DraftOnly -and -not [string]::IsNullOrWhiteSpace($Language)){throw 'DraftOnly does not accept Language; it verifies all four languages'}

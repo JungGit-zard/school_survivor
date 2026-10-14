@@ -7,9 +7,10 @@ $ErrorActionPreference = 'Stop'
 # This installer never starts a posting run or changes the old Orca automation.
 $taskName = 'EscapeZombieSchool-XPosting'
 $taskPath = '\'
-$description = 'EscapeZombieSchool X browser posting with bounded same-cycle recovery: 09:00,12:00,18:00 Asia/Seoul; interactive desktop required.'
-$previousDescription = 'EscapeZombieSchool X browser posting: 09:00,12:00,18:00 Asia/Seoul; interactive desktop required.'
-$times = @('09:00', '12:00', '18:00')
+$times = @((Get-Content -LiteralPath (Join-Path $PSScriptRoot 'posting_config.json') -Raw -Encoding UTF8 | ConvertFrom-Json).schedule_times)
+$description = "EscapeZombieSchool X browser posting with bounded same-cycle recovery: $($times -join ',') Asia/Seoul; interactive desktop required."
+$previousDescription = 'EscapeZombieSchool X browser posting with bounded same-cycle recovery: 09:00,12:00,18:00 Asia/Seoul; interactive desktop required.'
+$olderDescription = 'EscapeZombieSchool X browser posting: 09:00,12:00,18:00 Asia/Seoul; interactive desktop required.'
 $timezone = Get-TimeZone
 if ($timezone.Id -notin @('Korea Standard Time', 'Asia/Seoul')) {
     throw "Host timezone is '$($timezone.Id)'; Asia/Seoul (Korea Standard Time) is required. No schedule was changed."
@@ -21,7 +22,7 @@ $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 $userSid = $identity.User.Value
 $arguments = '-NoProfile -STA -WindowStyle Hidden -ExecutionPolicy Bypass -File "{0}"' -f $runner
 $existing = @(Get-ScheduledTask -TaskPath $taskPath | Where-Object { $_.TaskName -ceq $taskName })
-if ($existing.Count -gt 0 -and $existing[0].Description -cnotin @($description, $previousDescription)) {
+if ($existing.Count -gt 0 -and $existing[0].Description -cnotin @($description, $previousDescription, $olderDescription)) {
     throw "Task '$taskPath$taskName' exists without this campaign's ownership description; no task was changed."
 }
 
@@ -43,14 +44,14 @@ $proof = [ordered]@{
     startWhenAvailable = $false
     restartCount = 0
     recovery = 'Same cycle only; at most 16 attempts, 300 seconds apart, ending at the next KST slot or after 75 minutes. Authentication, security, ambiguous desktop and uncertain publish stop without retry.'
-    report = 'Writes an evidence-only daily report after each cycle; the 18:00 cycle is that day''s final scheduled update.'
+    report = "Writes an evidence-only daily report after each cycle; the $($times[-1]) cycle is that day's final scheduled update."
     desktopRequired = 'User must be signed in with an unlocked interactive desktop.'
     replacedExistingTask = ($existing.Count -eq 1)
     nextRunTime = $null
     postingStarted = $false
 }
 
-if (-not $PSCmdlet.ShouldProcess("$taskPath$taskName", 'Register 09:00,12:00,18:00 KST interactive-user campaign task')) {
+if (-not $PSCmdlet.ShouldProcess("$taskPath$taskName", "Register $($times -join ',') KST interactive-user campaign task")) {
     $proof | ConvertTo-Json -Depth 4
     return
 }
@@ -80,7 +81,7 @@ try {
         }
         ([datetime]::Parse($_.SelectSingleNode('t:StartBoundary', $ns).InnerText)).ToString('HH:mm')
     } | Sort-Object)
-    if ($savedTriggers.Count -ne 3 -or ($savedTimes -join ',') -cne ($times -join ',')) { throw 'Saved trigger times differ from 09:00,12:00,18:00.' }
+    if ($savedTriggers.Count -ne $times.Count -or ($savedTimes -join ',') -cne ($times -join ',')) { throw "Saved trigger times differ from $($times -join ',')." }
     $savedEnabled = $xml.SelectSingleNode('/t:Task/t:Settings/t:Enabled', $ns)
     $savedStartWhenAvailable = $xml.SelectSingleNode('/t:Task/t:Settings/t:StartWhenAvailable', $ns)
     $savedMultiple = $xml.SelectSingleNode('/t:Task/t:Settings/t:MultipleInstancesPolicy', $ns)

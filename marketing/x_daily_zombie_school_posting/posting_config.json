@@ -2,11 +2,10 @@
   "campaign": "Escape! Zombie School daily X UI posting",
   "timezone": "Asia/Seoul",
   "schedule_times": [
-    "02:00",
+    "00:00",
     "06:00",
-    "11:00",
-    "17:00",
-    "21:00"
+    "12:00",
+    "18:00"
   ],
   "boundary": {
     "posting_method": "browser_ui_only",
@@ -66,7 +65,7 @@
         "KR"
       ],
       "hashtag": "#좀비학교",
-      "text": "학교에 갇혔다면, 5분만 살아남아라. 탈출!좀비학교에서 좀비로 가득한 교실을 뚫고 탈출하세요!\n게임시작 ->\nhttps://escapezombie.com\n구글플레이스토어 ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교"
+      "text": "학교 문이 잠긴 순간, 평범한 하루는 좀비 탈출전이 됐습니다. 탈출!좀비학교에서 교실을 뚫고 탈출하세요!\n게임시작 ->\nhttps://escapezombie.com\n구글플레이스토어 ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교"
     }
   },
   "variants": {
@@ -88,6 +87,12 @@
         "enabled": true,
         "text": "放課後なのに、帰り道はゾンビだらけ！夕焼けの向こうへ、生きて帰ろう。無料・広告なし。\nゲーム開始 ->\nhttps://escapezombie.com\nGoogle Play ストア ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#ゾンビ学校",
         "imagePath": "image_pool/x/ja/marketing_social_30_20261004/04_b02_teacher.png"
+      },
+      {
+        "id": "alarm",
+        "enabled": true,
+        "text": "非常ベルが鳴る校舎で、出口まで走り抜けよう！『Escape! Zombie School』は無料・広告なし。\nゲーム開始 ->\nhttps://escapezombie.com\nGoogle Play ストア ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#ゾンビ学校",
+        "imagePath": "image_pool/x/ja/marketing_social_30_20261004/05_classroom_supplies.png"
       }
     ],
     "en": [
@@ -108,6 +113,12 @@
         "enabled": true,
         "text": "School's out. The zombies aren't. Make your after-school escape before they catch up! Play free. No ads.\nStart game ->\nhttps://escapezombie.com\nGoogle Play Store ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#EscapeZombieSchool",
         "imagePath": "image_pool/x/en/marketing_social_30_20261004/04_b02_teacher.png"
+      },
+      {
+        "id": "alarm",
+        "enabled": true,
+        "text": "The emergency bell is ringing—run for the exit before the zombies close in! Play Escape! Zombie School free, with no ads.\nStart game ->\nhttps://escapezombie.com\nGoogle Play Store ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#EscapeZombieSchool",
+        "imagePath": "image_pool/x/en/marketing_social_30_20261004/05_cafeteria_escape.png"
       }
     ],
     "vi": [
@@ -128,26 +139,38 @@
         "enabled": true,
         "text": "Tan học rồi, nhưng zombie chưa chịu về! Bạn có tìm được lối thoát dưới ánh hoàng hôn? Miễn phí, không quảng cáo!\nBắt đầu trò chơi ->\nhttps://escapezombie.com\nCửa hàng Google Play ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#TruongHocZombie",
         "imagePath": "image_pool/x/vi/marketing_social_30_20261004/04_b02_teacher.png"
+      },
+      {
+        "id": "alarm",
+        "enabled": true,
+        "text": "Chuông báo động vang lên—hãy chạy tới lối thoát trước khi zombie bao vây! Escape! Zombie School miễn phí, không quảng cáo.\nBắt đầu trò chơi ->\nhttps://escapezombie.com\nCửa hàng Google Play ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#TruongHocZombie",
+        "imagePath": "image_pool/x/vi/marketing_social_30_20261004/05_rainy_courtyard.png"
       }
     ],
     "ko": [
       {
         "id": "bell",
         "enabled": true,
-        "text": "학교에 갇혔다면, 5분만 살아남아라. 탈출!좀비학교에서 좀비로 가득한 교실을 뚫고 탈출하세요!\n게임시작 ->\nhttps://escapezombie.com\n구글플레이스토어 ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교",
+        "text": "마지막 종이 울렸지만, 교실 밖에는 좀비가 기다립니다. 탈출!좀비학교에서 교실을 뚫고 탈출하세요!\n게임시작 ->\nhttps://escapezombie.com\n구글플레이스토어 ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교",
         "imagePath": "image_pool/x/ko/marketing_social_30_20261004/01_bell_escape.png"
       },
       {
         "id": "supplies",
         "enabled": true,
-        "text": "학교에 갇혔다면, 5분만 살아남아라. 탈출!좀비학교에서 좀비로 가득한 교실을 뚫고 탈출하세요!\n게임시작 ->\nhttps://escapezombie.com\n구글플레이스토어 ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교",
+        "text": "오늘의 숙제는 단 하나, 좀비학교에서 탈출하기! 좀비로 가득한 교실을 뚫고 나가세요.\n게임시작 ->\nhttps://escapezombie.com\n구글플레이스토어 ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교",
         "imagePath": "image_pool/x/ko/marketing_social_30_20261004/02_pencil_survival.png"
       },
       {
         "id": "escape",
         "enabled": true,
-        "text": "학교에 갇혔다면, 5분만 살아남아라. 탈출!좀비학교에서 좀비로 가득한 교실을 뚫고 탈출하세요!\n게임시작 ->\nhttps://escapezombie.com\n구글플레이스토어 ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교",
+        "text": "복도 끝 비상구까지 5분, 좀비보다 먼저 도착하세요. 탈출!좀비학교에서 살아남아 탈출하세요!\n게임시작 ->\nhttps://escapezombie.com\n구글플레이스토어 ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교",
         "imagePath": "image_pool/x/ko/marketing_social_30_20261004/04_b02_teacher.png"
+      },
+      {
+        "id": "alarm",
+        "enabled": true,
+        "text": "비상벨이 울린 학교, 좀비에게 포위되기 전에 출구까지 달리세요! 탈출!좀비학교는 무료·광고 없음.\n게임시작 ->\nhttps://escapezombie.com\n구글플레이스토어 ->\nhttps://play.google.com/store/apps/details?id=com.jungyoon.zombieschool\n#좀비학교",
+        "imagePath": "image_pool/x/ko/marketing_social_30_20261004/05_shoe_locker_hall.png"
       }
     ]
   },

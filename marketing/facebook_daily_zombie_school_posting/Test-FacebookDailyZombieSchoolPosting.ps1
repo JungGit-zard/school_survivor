@@ -9,14 +9,14 @@ Assert-True ($invokeSource.Contains('[string]$StopAtKst') -and $invokeSource.Con
 $config=Get-FacebookConfig
 foreach($lang in $script:FacebookLanguages){$pair=Get-FacebookPair $config $lang;Assert-True ($pair.attachmentCount -eq 1) "$lang exact pair has one image";Assert-True (Test-FacebookUnderImageRoot $pair.imagePath) "$lang image is allowlisted"}
 . (Join-Path $PSScriptRoot '..\x_daily_zombie_school_posting\PostingVariant.ps1')
-$selectionCandidates=@(Get-PostingLocaleImageCandidates $config ja -RequireGameStartText);$selectedPoolPath=[string]$selectionCandidates[-1];$selectedPoolVariant=[pscustomobject]@{id='original';imagePath=$selectedPoolPath};$selectedPoolPair=Get-FacebookPairFromSelectedVariant $config ja $selectedPoolVariant
+$selectionCandidates=@(Get-PostingLocaleImageCandidates $config ja -RequireGameStartText -Platform Facebook);$selectedPoolPath=[string]$selectionCandidates[-1];$selectedPoolVariant=[pscustomobject]@{id='original';imagePath=$selectedPoolPath};$selectedPoolPair=Get-FacebookPairFromSelectedVariant $config ja $selectedPoolVariant
 $expectedSelectedFacebookPath=Resolve-FacebookPlatformImagePath $selectedPoolPath ja
-Assert-True ($selectedPoolPair.imagePath -ceq $expectedSelectedFacebookPath -and [IO.Path]::GetFileName($selectedPoolPair.imagePath) -ceq [IO.Path]::GetFileName($selectedPoolPath)) 'Facebook selected source pair preserves the selected locale-pool image and resolves its exact Facebook catalog copy'
+Assert-True ($selectedPoolPair.imagePath -ceq $expectedSelectedFacebookPath -and [IO.Path]::GetFileName($selectedPoolPair.imagePath) -ceq [IO.Path]::GetFileName($selectedPoolPath)) 'Facebook selected source pair preserves the selected Facebook locale-pool image'
 Assert-FacebookFrozenIntent $config ja $selectedPoolPair
 Assert-True (Test-FacebookCanonicalIntent $config $selectedPoolPair) 'selected locale-pool image remains canonical through frozen receipt validation'
 $nonCtaCandidate=@(Get-PostingLocaleImageCandidates $config ja | Where-Object { -not (Test-PostingImageGameStartText $_ ja X) } | Select-Object -First 1)
 if($nonCtaCandidate.Count -gt 0){$nonCtaVariant=[pscustomobject]@{id='original';imagePath=[string]$nonCtaCandidate[0]};$nonCtaRejected=$false;try{$null=Get-FacebookPairFromSelectedVariant $config ja $nonCtaVariant}catch{$nonCtaRejected=$_.Exception.Message -like '*game-start CTA*'};Assert-True $nonCtaRejected 'Facebook selection rejects an X image without localized CTA proof before saving an intent'}
-$foreignLocaleCandidate=[string](Get-PostingLocaleImageCandidates $config en | Select-Object -First 1);$foreignFacebookPath=Resolve-FacebookPlatformImagePath $foreignLocaleCandidate en
+$foreignLocaleCandidate=[string](Get-PostingLocaleImageCandidates $config en -Platform Facebook | Select-Object -First 1);$foreignFacebookPath=Resolve-FacebookPlatformImagePath $foreignLocaleCandidate en
 $foreignLocaleIntent=[pscustomobject]@{language='ja';variantId=$selectedPoolPair.variantId;text=$selectedPoolPair.text;textSha256=$selectedPoolPair.textSha256;imagePath=$foreignFacebookPath;attachmentCount=1}
 Assert-True (-not (Test-FacebookCanonicalIntent $config $foreignLocaleIntent)) 'selected-pool receipt rejects an image mapped to another locale'
 $wrapperSource=Get-Content -LiteralPath $invoke -Raw -Encoding UTF8
@@ -61,9 +61,9 @@ try {
   $legacyIntentState=& powershell -NoProfile -ExecutionPolicy Bypass -File $invoke -Action FullCycleResumeSafe -RunId $legacyIntentRun -ReceiptDirectory $temp 2>&1
   $legacyIntentResult=$legacyIntentState|ConvertFrom-Json
   Assert-True ($LASTEXITCODE -eq 0 -and $legacyIntentResult.status -eq 'uncertain_requires_manual_verification') 'pre-existing publish_intent remains readable without CTA migration or replay'
-  $rotated=& powershell -NoProfile -ExecutionPolicy Bypass -File $invoke -Action SelectSourcePair -RunId '2026-10-01-1100' -Language ja -ReceiptDirectory $temp 2>&1
+  $rotated=& powershell -NoProfile -ExecutionPolicy Bypass -File $invoke -Action SelectSourcePair -RunId '2026-10-01-1200' -Language ja -ReceiptDirectory $temp 2>&1
   Assert-True ($LASTEXITCODE -eq 0 -and (($rotated -join "`n") -match 'selected')) 'wrapper selects a rotated scheduled variant without an explicit VariantId'
-  $rotatedReceipt=Get-Content -LiteralPath (Get-FacebookReceiptPath $temp '2026-10-01-1100') -Raw -Encoding UTF8|ConvertFrom-Json
+  $rotatedReceipt=Get-Content -LiteralPath (Get-FacebookReceiptPath $temp '2026-10-01-1200') -Raw -Encoding UTF8|ConvertFrom-Json
   Assert-True (-not [string]::IsNullOrWhiteSpace([string]$rotatedReceipt.entries.ja.intent.variantId)) 'rotated scheduled selection freezes its variant ID'
   $savedPreference=$ErrorActionPreference;$ErrorActionPreference='Continue'
   try {$refused=& powershell -NoProfile -ExecutionPolicy Bypass -File $invoke -Action PublishOnce -RunId '2026-09-27-2149-wrappertest' -Language en -ReceiptDirectory $temp 2>&1} finally {$ErrorActionPreference=$savedPreference}
