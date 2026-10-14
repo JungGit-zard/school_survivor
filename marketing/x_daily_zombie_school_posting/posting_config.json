@@ -228,107 +228,83 @@
   },
   "localized_social_image_pool": {
     "ja": {
-      "source": "image_pool/x/ja/marketing_social_30_20261004_source",
+      "source": "image_pool/x/ja/zombie_catch_comic_words_20261014",
       "images": [
-        "image_pool/x/ja/marketing_social_30_20261004/01_bell_escape.png",
-        "image_pool/x/ja/marketing_social_30_20261004/02_pencil_survival.png",
-        "image_pool/x/ja/marketing_social_30_20261004/04_b02_teacher.png",
-        "image_pool/x/ja/marketing_social_30_20261004/05_classroom_supplies.png",
-        "image_pool/x/ja/marketing_social_30_20261004/06_gym_escape.png",
-        "image_pool/x/ja/marketing_social_30_20261004/07_rooftop_escape.png",
-        "image_pool/x/ja/marketing_social_30_20261004/08_library_escape.png",
-        "image_pool/x/ja/marketing_social_30_20261004/09_rainy_corridor.png",
-        "image_pool/x/ja/marketing_social_20261010_add10/01_classroom.png",
-        "image_pool/x/ja/marketing_social_20261010_add10/02_hallway.png",
-        "image_pool/x/ja/marketing_social_20261010_add10/03_cafeteria.png",
-        "image_pool/x/ja/marketing_social_20261010_add10/04_library.png",
-        "image_pool/x/ja/marketing_social_20261010_add10/05_gym.png",
-        "image_pool/x/ja/marketing_social_20261010_add10/06_nurse.png",
-        "image_pool/x/ja/marketing_social_20261010_add10/07_music.png",
-        "image_pool/x/ja/marketing_social_20261010_add10/08_art.png",
-        "image_pool/x/ja/marketing_social_20261010_add10/09_field.png",
-        "image_pool/x/ja/marketing_social_20261010_add10/10_gate.png",
-        "image_pool/x/ja/marketing_social_cta_20261010/01_start.png"
+        "image_pool/x/ja/zombie_catch_comic_words_20261014/01.png",
+        "image_pool/x/ja/zombie_catch_comic_words_20261014/02.png",
+        "image_pool/x/ja/zombie_catch_comic_words_20261014/03.png",
+        "image_pool/x/ja/zombie_catch_comic_words_20261014/04.png",
+        "image_pool/x/ja/zombie_catch_comic_words_20261014/05.png"
       ]
     },
     "en": {
-      "source": "image_pool/x/en/marketing_social_30_20261004_source",
+      "source": "image_pool/x/en/zombie_catch_comic_words_20261014",
       "images": [
-        "image_pool/x/en/marketing_social_30_20261004/01_bell_escape.png",
-        "image_pool/x/en/marketing_social_30_20261004/02_pencil_survival.png",
-        "image_pool/x/en/marketing_social_30_20261004/04_b02_teacher.png",
-        "image_pool/x/en/marketing_social_30_20261004/05_cafeteria_escape.png",
-        "image_pool/x/en/marketing_social_30_20261004/06_science_lab.png",
-        "image_pool/x/en/marketing_social_30_20261004/07_school_bus.png",
-        "image_pool/x/en/marketing_social_30_20261004/08_locker_hall.png",
-        "image_pool/x/en/marketing_social_30_20261004/09_bell_tower.png",
-        "image_pool/x/en/marketing_social_20261010_add10/01_classroom.png",
-        "image_pool/x/en/marketing_social_20261010_add10/02_corridor.png",
-        "image_pool/x/en/marketing_social_20261010_add10/03_cafeteria.png",
-        "image_pool/x/en/marketing_social_20261010_add10/04_library.png",
-        "image_pool/x/en/marketing_social_20261010_add10/05_gym.png",
-        "image_pool/x/en/marketing_social_20261010_add10/06_infirmary.png",
-        "image_pool/x/en/marketing_social_20261010_add10/07_music_room.png",
-        "image_pool/x/en/marketing_social_20261010_add10/08_art_room.png",
-        "image_pool/x/en/marketing_social_20261010_add10/09_playground.png",
-        "image_pool/x/en/marketing_social_20261010_add10/10_school_gate.png",
-        "image_pool/x/en/marketing_social_cta_20261010/01_start.png"
+        "image_pool/x/en/zombie_catch_comic_words_20261014/01.png",
+        "image_pool/x/en/zombie_catch_comic_words_20261014/02.png",
+        "image_pool/x/en/zombie_catch_comic_words_20261014/03.png",
+        "image_pool/x/en/zombie_catch_comic_words_20261014/04.png",
+        "image_pool/x/en/zombie_catch_comic_words_20261014/05.png"
       ]
     },
     "vi": {
-      "source": "image_pool/x/vi/marketing_social_30_20261004_source",
+      "source": "image_pool/x/vi/zombie_catch_comic_words_20261014",
       "images": [
-        "image_pool/x/vi/marketing_social_30_20261004/01_bell_escape.png",
-        "image_pool/x/vi/marketing_social_30_20261004/02_pencil_survival.png",
-        "image_pool/x/vi/marketing_social_30_20261004/04_b02_teacher.png",
-        "image_pool/x/vi/marketing_social_30_20261004/05_rainy_courtyard.png",
-        "image_pool/x/vi/marketing_social_30_20261004/06_library_window.png",
-        "image_pool/x/vi/marketing_social_30_20261004/07_basketball_court.png",
-        "image_pool/x/vi/marketing_social_30_20261004/08_classroom_map.png",
-        "image_pool/x/vi/marketing_social_30_20261004/09_school_gate.png",
-        "image_pool/x/vi/marketing_social_20261010_add10/01_classroom.png",
-        "image_pool/x/vi/marketing_social_20261010_add10/02_corridor.png",
-        "image_pool/x/vi/marketing_social_20261010_add10/03_cafeteria.png",
-        "image_pool/x/vi/marketing_social_20261010_add10/04_library.png",
-        "image_pool/x/vi/marketing_social_20261010_add10/05_gym.png",
-        "image_pool/x/vi/marketing_social_20261010_add10/06_infirmary.png",
-        "image_pool/x/vi/marketing_social_20261010_add10/07_music_room.png",
-        "image_pool/x/vi/marketing_social_20261010_add10/08_art_room.png",
-        "image_pool/x/vi/marketing_social_20261010_add10/09_playground.png",
-        "image_pool/x/vi/marketing_social_20261010_add10/10_school_gate.png",
-        "image_pool/x/vi/marketing_social_cta_20261010/01_start.png"
+        "image_pool/x/vi/zombie_catch_comic_words_20261014/01.png",
+        "image_pool/x/vi/zombie_catch_comic_words_20261014/02.png",
+        "image_pool/x/vi/zombie_catch_comic_words_20261014/03.png",
+        "image_pool/x/vi/zombie_catch_comic_words_20261014/04.png",
+        "image_pool/x/vi/zombie_catch_comic_words_20261014/05.png"
       ]
     },
     "ko": {
-      "source": "image_pool/x/ko/marketing_social_30_20261004_source",
+      "source": "image_pool/x/ko/zombie_catch_comic_words_20261014",
       "images": [
-        "image_pool/x/ko/marketing_social_30_20261004/01_bell_escape.png",
-        "image_pool/x/ko/marketing_social_30_20261004/02_pencil_survival.png",
-        "image_pool/x/ko/marketing_social_30_20261004/04_b02_teacher.png",
-        "image_pool/x/ko/marketing_social_30_20261004/05_shoe_locker_hall.png",
-        "image_pool/x/ko/marketing_social_30_20261004/06_seoul_classroom.png",
-        "image_pool/x/ko/marketing_social_30_20261004/07_rooftop_stairs.png",
-        "image_pool/x/ko/marketing_social_30_20261004/08_nurse_office.png",
-        "image_pool/x/ko/marketing_social_30_20261004/09_school_exterior.png",
-        "image_pool/x/ko/marketing_social_20261010_add10/01_classroom.png",
-        "image_pool/x/ko/marketing_social_20261010_add10/02_hallway.png",
-        "image_pool/x/ko/marketing_social_20261010_add10/03_cafeteria.png",
-        "image_pool/x/ko/marketing_social_20261010_add10/04_library.png",
-        "image_pool/x/ko/marketing_social_20261010_add10/05_gym.png",
-        "image_pool/x/ko/marketing_social_20261010_add10/06_nurse.png",
-        "image_pool/x/ko/marketing_social_20261010_add10/07_music.png",
-        "image_pool/x/ko/marketing_social_20261010_add10/08_art.png",
-        "image_pool/x/ko/marketing_social_20261010_add10/09_field.png",
-        "image_pool/x/ko/marketing_social_20261010_add10/10_gate.png",
-        "image_pool/x/ko/marketing_social_cta_20261010/01_start.png"
+        "image_pool/x/ko/zombie_catch_comic_words_20261014/01.png",
+        "image_pool/x/ko/zombie_catch_comic_words_20261014/02.png",
+        "image_pool/x/ko/zombie_catch_comic_words_20261014/03.png",
+        "image_pool/x/ko/zombie_catch_comic_words_20261014/04.png",
+        "image_pool/x/ko/zombie_catch_comic_words_20261014/05.png"
       ]
     }
   },
   "facebook_rotation_image_pool": {
-    "ko": { "images": ["image_pool/facebook/ko/facebook_rotation_20261013/01.png", "image_pool/facebook/ko/facebook_rotation_20261013/02.png", "image_pool/facebook/ko/facebook_rotation_20261013/03.png", "image_pool/facebook/ko/facebook_rotation_20261013/04.png", "image_pool/facebook/ko/facebook_rotation_20261013/05.png"] },
-    "en": { "images": ["image_pool/facebook/en/facebook_rotation_20261013/01.png", "image_pool/facebook/en/facebook_rotation_20261013/02.png", "image_pool/facebook/en/facebook_rotation_20261013/03.png", "image_pool/facebook/en/facebook_rotation_20261013/04.png", "image_pool/facebook/en/facebook_rotation_20261013/05.png"] },
-    "ja": { "images": ["image_pool/facebook/ja/facebook_rotation_20261013/01.png", "image_pool/facebook/ja/facebook_rotation_20261013/02.png", "image_pool/facebook/ja/facebook_rotation_20261013/03.png", "image_pool/facebook/ja/facebook_rotation_20261013/04.png", "image_pool/facebook/ja/facebook_rotation_20261013/05.png"] },
-    "vi": { "images": ["image_pool/facebook/vi/facebook_rotation_20261013/01.png", "image_pool/facebook/vi/facebook_rotation_20261013/02.png", "image_pool/facebook/vi/facebook_rotation_20261013/03.png", "image_pool/facebook/vi/facebook_rotation_20261013/04.png", "image_pool/facebook/vi/facebook_rotation_20261013/05.png"] }
+    "ko": {
+      "images": [
+        "image_pool/facebook/ko/zombie_catch_comic_20261014/01.png",
+        "image_pool/facebook/ko/zombie_catch_comic_20261014/02.png",
+        "image_pool/facebook/ko/zombie_catch_comic_20261014/03.png",
+        "image_pool/facebook/ko/zombie_catch_comic_20261014/04.png",
+        "image_pool/facebook/ko/zombie_catch_comic_20261014/05.png"
+      ]
+    },
+    "en": {
+      "images": [
+        "image_pool/facebook/en/zombie_catch_comic_20261014/01.png",
+        "image_pool/facebook/en/zombie_catch_comic_20261014/02.png",
+        "image_pool/facebook/en/zombie_catch_comic_20261014/03.png",
+        "image_pool/facebook/en/zombie_catch_comic_20261014/04.png",
+        "image_pool/facebook/en/zombie_catch_comic_20261014/05.png"
+      ]
+    },
+    "ja": {
+      "images": [
+        "image_pool/facebook/ja/zombie_catch_comic_20261014/01.png",
+        "image_pool/facebook/ja/zombie_catch_comic_20261014/02.png",
+        "image_pool/facebook/ja/zombie_catch_comic_20261014/03.png",
+        "image_pool/facebook/ja/zombie_catch_comic_20261014/04.png",
+        "image_pool/facebook/ja/zombie_catch_comic_20261014/05.png"
+      ]
+    },
+    "vi": {
+      "images": [
+        "image_pool/facebook/vi/zombie_catch_comic_20261014/01.png",
+        "image_pool/facebook/vi/zombie_catch_comic_20261014/02.png",
+        "image_pool/facebook/vi/zombie_catch_comic_20261014/03.png",
+        "image_pool/facebook/vi/zombie_catch_comic_20261014/04.png",
+        "image_pool/facebook/vi/zombie_catch_comic_20261014/05.png"
+      ]
+    }
   },
   "web_url": "https://escapezombie.com",
   "x_link_card": {
