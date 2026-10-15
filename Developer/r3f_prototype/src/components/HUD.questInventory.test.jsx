@@ -243,7 +243,7 @@ describe('quest inventory HUD', () => {
       const completePopup = container.querySelector('[data-testid="quest-complete-popup"]')
       expect(completePopup).not.toBeNull()
       expect(completePopup.style.top).toBe('12px')
-      expect(completePopup.style.transform).toBe('translateX(-50%) scale(0.5)')
+      expect(completePopup.style.transform).toBe('translateX(-50%)')
       expect(container.querySelector('[data-testid="quest-start-popup"]')).toBeNull()
       act(() => { vi.advanceTimersByTime(1000) })
       expect(useGameStore.getState().questToast).toBeNull()
@@ -371,6 +371,7 @@ describe('quest inventory HUD', () => {
       expect(nextAction?.style.lineHeight).toBe('1.24')
       expect(nextAction?.style.fontWeight).toBe('800')
       expect(startPopup.style.overflowY).toBe('auto')
+      const startPopupSize = [startPopup.style.width, startPopup.style.padding, startPopup.style.maxHeight]
 
       act(() => {
         container.querySelector('[data-testid="student-dialogue-catcher"]')
@@ -390,7 +391,9 @@ describe('quest inventory HUD', () => {
       expect(completionPopup).not.toBeNull()
       expect(container.querySelector('[data-testid="quest-complete-popup"]')).toBeNull()
       expect(completionPopup.style.top).toBe('12px')
-      expect(completionPopup.style.transform).toBe('translateX(-50%) scale(0.5)')
+      expect(completionPopup.style.transform).toBe('translateX(-50%)')
+      expect([completionPopup.style.width, completionPopup.style.padding, completionPopup.style.maxHeight]).toEqual(startPopupSize)
+      expect(completionPopup.style.overflowY).toBe('auto')
       expect(completionPopup.textContent.indexOf(getDialogueText(quest.completionDialogueId)))
         .toBeLessThan(completionPopup.textContent.indexOf(quest.title))
       expect(completionPopup.textContent).toContain(`${quest.rewardGold}G`)

@@ -1673,6 +1673,7 @@ export default function HUD({
             ...styles.questToast,
             ...(questStarted || questItemReceived || questCompleted ? styles.questPopupCenter : null),
             ...(questItemReceived || questCompleted ? styles.questTransientTopPopup : null),
+            ...(questCompleted ? { transform: 'translateX(-50%)' } : null),
             ...(questStarted ? styles.questStartPopup : null),
             ...(questItemReceived ? styles.questItemPopup : null),
           }}
@@ -1909,6 +1910,7 @@ export default function HUD({
                 ...styles.questPopupCenter,
                 ...styles.questDialoguePopup,
                 ...(questCompleted ? styles.questTransientTopPopup : null),
+                ...(questCompleted ? { transform: 'translateX(-50%)' } : null),
               }}
               role="dialog"
               aria-label={t('hud.investigateAria', { name: studentDialogue.subjectName ?? t('hud.defaultSubject') })}
