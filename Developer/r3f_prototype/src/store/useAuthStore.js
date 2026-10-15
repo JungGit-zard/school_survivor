@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { createFirebaseAuthClient, isFirebaseAuthConfigured } from '../lib/firebaseAuth.js'
-import { hydrateCloudProgress, isFirebaseProgressHydrated, setCloudProgressUser } from '../lib/firebaseProgress.js'
+import { flushCloudProgressBeforeSignOut, hydrateCloudProgress, isFirebaseProgressHydrated, setCloudProgressUser } from '../lib/firebaseProgress.js'
 
 let authClientPromise = null
 let unsubscribeAuth = null
@@ -91,8 +91,16 @@ export const useAuthStore = create((set, get) => ({
 
   signOutOfGoogle: async () => {
     set({ error: null })
+    const userAtRequest = get().user
     try {
       const client = await getAuthClient()
+      const saved = await flushCloudProgressBeforeSignOut(userAtRequest)
+      if (get().user?.uid !== userAtRequest?.uid) return false
+      if (!saved) {
+        const game = await import('./useGameStore.js')
+        game.useGameStore.setState({ progressSaveWarning: 'save-failed' })
+        return false
+      }
       await client.signOut()
       syncCloudProgressUser(null)
       set({ status: 'signedOut', user: null, signingIn: false, error: null })

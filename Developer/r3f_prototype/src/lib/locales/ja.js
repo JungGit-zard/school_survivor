@@ -114,6 +114,7 @@ export default {
   'settings.viewFull': '全文を見る',
   'settings.account': 'アカウント',
   'settings.logout': 'ログアウト',
+  'settings.logoutSaveFailed': '進行状況を保存できなかったため、ログアウトしていません。接続を確認してから、もう一度お試しください。',
   'settings.deleteAccount': 'アカウント削除',
   'settings.deleteHeading': 'アカウントを削除しますか？',
   'settings.deleteWarning': '進行データ、所持ゴールド、武器の永久強化、ランキング記録がすべて完全に削除され、復元できません。',

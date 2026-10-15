@@ -150,6 +150,19 @@ describe('LobbySettingsModal', () => {
     view.unmount()
   })
 
+  it('keeps settings and the current session when saving prevents logout', async () => {
+    const onLogoutToTitle = vi.fn()
+    const user = { uid: 'logout-save-failure', displayName: 'Player' }
+    useAuthStore.setState({ status: 'signedIn', user, signOutOfGoogle: vi.fn(async () => false) })
+    const view = renderSettings({ onLogoutToTitle })
+    await clickButtonByText(view.container, '로그아웃')
+    expect(onLogoutToTitle).not.toHaveBeenCalled()
+    expect(useAuthStore.getState().user).toEqual(user)
+    expect(view.container.textContent).toContain('로그아웃')
+    expect(view.container.querySelector('[role="alert"]').textContent).toBe('진행도를 저장하지 못해 로그아웃하지 않았습니다. 연결을 확인한 뒤 다시 시도해 주세요.')
+    view.unmount()
+  })
+
   it('requires a second explicit confirmation step before deleting the account', async () => {
     useAuthStore.setState({
       status: 'signedIn',

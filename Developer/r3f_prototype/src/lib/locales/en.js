@@ -114,6 +114,7 @@ export default {
   'settings.viewFull': 'Read in full',
   'settings.account': 'ACCOUNT',
   'settings.logout': 'Sign out',
+  'settings.logoutSaveFailed': 'Your progress could not be saved, so you have not been signed out. Check your connection and try again.',
   'settings.deleteAccount': 'Delete account',
   'settings.deleteHeading': 'Delete your account?',
   'settings.deleteWarning': 'Your progress, gold, permanent weapon upgrades and ranking records will be permanently deleted and cannot be restored.',

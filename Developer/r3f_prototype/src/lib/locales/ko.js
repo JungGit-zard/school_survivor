@@ -111,6 +111,7 @@ export default {
   'settings.viewFull': '전문 보기',
   'settings.account': '계정',
   'settings.logout': '로그아웃',
+  'settings.logoutSaveFailed': '진행도를 저장하지 못해 로그아웃하지 않았습니다. 연결을 확인한 뒤 다시 시도해 주세요.',
   'settings.deleteAccount': '계정 삭제',
   'settings.deleteHeading': '계정을 삭제할까요?',
   'settings.deleteWarning': '진행도, 보유 골드, 무기 영구 강화, 랭킹 기록이 모두 영구적으로 삭제되며 복구할 수 없습니다.',

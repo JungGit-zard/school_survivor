@@ -48,6 +48,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   const [legalOpenId, setLegalOpenId] = useState(null)
   const [deleteStage, setDeleteStage] = useState('idle') // idle | confirm | deleting
   const [deleteError, setDeleteError] = useState(null)
+  const [logoutError, setLogoutError] = useState(false)
   const [reauthBusy, setReauthBusy] = useState(false)
   const [appearanceBusy, setAppearanceBusy] = useState(false)
   const [appearanceError, setAppearanceError] = useState(false)
@@ -167,7 +168,11 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
   }
 
   const handleLogout = async () => {
-    await signOutOfGoogle()
+    setLogoutError(false)
+    if (await signOutOfGoogle() === false) {
+      setLogoutError(true)
+      return
+    }
     onLogoutToTitle?.()
   }
 
@@ -458,6 +463,7 @@ export default function LobbySettingsModal({ onClose, onNicknameChange, onLogout
             <button type="button" style={styles.logoutButton} onClick={handleLogout} disabled={!authUser?.uid || appearanceBusy || nicknameBusy}>
               {t('settings.logout')}
             </button>
+            {logoutError && <p role="alert" style={styles.deleteErrorText}>{t('settings.logoutSaveFailed')}</p>}
             <button type="button" style={styles.deleteAccountButton} onClick={openDeleteConfirm} disabled={!authUser?.uid || appearanceBusy || nicknameBusy}>
               {t('settings.deleteAccount')}
             </button>

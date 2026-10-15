@@ -134,6 +134,7 @@ export function buildCloudProgressSnapshot(now = Date.now()) {
 
 export async function hydrateCloudProgress(user = cloudUser) {
   setCloudProgressUser(user)
+  const runtimeAtRequest = runtime
   const requestedUid = readUserId(user)
   const path = getUserProgressPath(user)
   if (!path) throw new FirebaseProgressError('Firebase progress hydrate requires an authenticated uid.', 'unauthenticated')
@@ -143,6 +144,8 @@ export async function hydrateCloudProgress(user = cloudUser) {
     const client = await getProgressClient()
     const snapshot = await client.load(path)
     if (readUserId(cloudUser) !== requestedUid) return false
+    // A same-account refresh must not roll back progress earned while its read was in flight.
+    if (runtime !== runtimeAtRequest && isFirebaseProgressHydrated(user)) return true
     if (!snapshot) {
       runtime = createEmptyRuntime(requestedUid)
       throw new FirebaseProgressError(`Remote Firebase user snapshot is missing at ${path}.`, 'missing-remote')
@@ -158,6 +161,7 @@ export async function hydrateCloudProgress(user = cloudUser) {
     return true
   } catch (error) {
     if (readUserId(cloudUser) !== requestedUid) return false
+    if (runtime !== runtimeAtRequest && isFirebaseProgressHydrated(user)) return true
     if (!(error instanceof FirebaseProgressError)) {
       runtime = createEmptyRuntime()
     }
@@ -171,6 +175,18 @@ export async function loadCloudProgressFromCloud(user = cloudUser) {
 
 export async function saveLocalProgressToCloud(user = cloudUser) {
   return requestCloudProgressSave(user)
+}
+
+// Keep authentication alive until all earlier writes and the latest complete snapshot are saved.
+export async function flushCloudProgressBeforeSignOut(user = cloudUser) {
+  if (!isFirebaseProgressHydrated(user)) return true
+  while (isFirebaseProgressHydrated(user)) {
+    const runtimeAtSave = runtime
+    if (!await requestCloudProgressSave(user)) return false
+    if (!isFirebaseProgressHydrated(user)) return false
+    if (runtime === runtimeAtSave) return true
+  }
+  return false
 }
 
 // E2E의 메모리 전용 진행도를 hydrated 상태로 만들되, 가짜 uid를 Firebase 쓰기 대상으로
