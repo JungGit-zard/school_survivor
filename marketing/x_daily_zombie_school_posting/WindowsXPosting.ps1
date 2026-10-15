@@ -419,7 +419,9 @@ function Assert-XComposer([string]$Text, [switch]$WebsiteCardOnly, [string]$Card
   if (-not $post.Current.IsEnabled) { throw 'Post button is disabled (length limit or upload pending)' }
 }
 function Prepare-XPost([string]$Text, [string]$ImagePath, [switch]$WebsiteCardOnly, [string]$CardUrl = '', [ValidateSet('ko','en','ja','vi')][string]$CardLanguage = 'ja') {
-  Navigate-X 'https://x.com/compose/post'
+  Navigate-XProfile
+  Assert-XNavigationSafe
+  Click-XElement (Find-XControl 'Post' 'Hyperlink')
   Wait-XCondition { $null = Find-XControl 'Post text' 'Edit'; return $true } 'empty composer'
   $editor = Find-XControl 'Post text' 'Edit'
   if (-not [string]::IsNullOrWhiteSpace((Get-XValue $editor)) -or (Get-XAttachmentCount) -ne 0 -or (Get-XCardPreviewRemoveCount) -ne 0) { throw 'Composer has an existing draft; preserving it' }

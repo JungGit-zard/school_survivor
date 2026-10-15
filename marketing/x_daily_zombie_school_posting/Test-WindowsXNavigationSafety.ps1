@@ -47,4 +47,21 @@ Assert-Blocked { Assert-XNavigationSafe } 'existing leave-site dialog blocks nav
 $navigate = $ast.Find({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'Navigate-X' }, $true).Body.EndBlock.Statements[0].Extent.Text
 if ($navigate -cne 'Assert-XNavigationSafe') { throw 'FAILED: guard must run before focus/clipboard/address input' }
 Write-Output 'PASS navigation guard runs before all input'
+$prepare = $ast.Find({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'Prepare-XPost' }, $true)
+$opening = ($prepare.Body.EndBlock.Statements | Select-Object -First 3 | ForEach-Object { $_.Extent.Text }) -join "`n"
+$script:events = @()
+function Navigate-XProfile { $script:events += 'verified profile' }
+function Assert-XNavigationSafe { $script:events += 'draft guard' }
+function Find-XControl([string]$Name, [string]$Type) {
+  if ($Name -cne 'Post' -or $Type -cne 'Hyperlink') { throw 'FAILED: compose opener must be Post hyperlink' }
+  return 'compose hyperlink'
+}
+function Click-XElement($Element) {
+  if ($Element -cne 'compose hyperlink') { throw 'FAILED: unexpected compose opener' }
+  $script:events += 'clicked Post hyperlink'
+}
+& ([scriptblock]::Create($opening))
+if (($script:events -join ',') -cne 'verified profile,draft guard,clicked Post hyperlink') { throw 'FAILED: profile/guard/link sequence' }
+if ($prepare.Extent.Text.Contains("Navigate-X 'https://x.com/compose/post'")) { throw 'FAILED: direct compose URL navigation returned' }
+Write-Output 'PASS compose opens through verified profile Post hyperlink after draft guard'
 Write-Output 'NAVIGATION_SAFETY_TEST_OK'
