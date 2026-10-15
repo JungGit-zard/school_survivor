@@ -1,6 +1,7 @@
 ﻿# Native desktop UI only. No browser protocol, page scripting, or HTTP transport.
 Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes, System.Windows.Forms, System.Drawing
 $script:XExpectedCardUrl = $null
+$script:XOwnedDraft = $null
 if (-not ('XPostingNative' -as [type])) {
   Add-Type -TypeDefinition @'
 using System;
@@ -271,7 +272,37 @@ function Assert-XAccount {
   }
   Assert-XNoAuthDialog (Get-XRoot)
 }
+function Assert-XNavigationSafe {
+  $visible = @((Get-XElements) | Where-Object { -not $_.Current.IsOffscreen })
+  if (@($visible | Where-Object { $_.Current.Name -match '(?i)Leave site\?|Changes you made may not be saved|사이트에서 나가|변경사항이 저장되지' }).Count -gt 0) {
+    throw 'X navigation blocked: browser leave-site dialog is already open; preserving draft'
+  }
+  $editors = @($visible | Where-Object { $_.Current.Name -ceq 'Post text' -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit })
+  if (@($editors | Where-Object { -not [string]::IsNullOrWhiteSpace((Get-XValue $_)) }).Count -gt 0 -or (Get-XAttachmentCount) -gt 0 -or (Get-XCardPreviewRemoveCount) -gt 0) {
+    throw 'X navigation blocked: unsaved composer preserved; no address-bar input sent'
+  }
+}
+function Close-XDuplicateDraft([string]$Text) {
+  # Only the draft prepared in this process may be discarded, and only after
+  # the server explicitly rejected its sole publish click as a duplicate.
+  $owned = $script:XOwnedDraft
+  if ($null -eq $owned -or (Normalize-PostText $owned.text) -cne (Normalize-PostText $Text)) { throw 'Duplicate draft ownership is unknown; preserving it' }
+  $editor = Find-XControl 'Post text' 'Edit'
+  if ((Get-XValue $editor) -cne $owned.text -or (Get-XAttachmentCount) -ne $owned.attachments -or (Get-XCardPreviewRemoveCount) -ne $owned.cards) {
+    throw 'Duplicate draft changed since preparation; preserving it'
+  }
+  Click-XElement (Find-XControl 'Close' 'Button')
+  Wait-XCondition {
+    $dialog = Find-XControl 'Save post?'
+    $discard = Find-XControl 'Discard' 'Button' $dialog
+    Click-XElement $discard
+    return $true
+  } 'owned duplicate discard dialog' 5
+  $script:XOwnedDraft = $null
+  Wait-XCondition { Assert-XNavigationSafe; return $true } 'duplicate composer closed' 5
+}
 function Navigate-X([string]$Url) {
+  Assert-XNavigationSafe
   # One reacquisition at a navigation boundary, never between typing/clicking.
   if ([XPostingNative]::GetForegroundWindow().ToInt64() -ne $script:XWindow) {
     Restore-XWindowFocus 'navigation boundary' | Out-Null
@@ -410,6 +441,7 @@ function Prepare-XPost([string]$Text, [string]$ImagePath, [switch]$WebsiteCardOn
     Send-XKeys '^v'
     Wait-XCondition { (Normalize-PostText (Get-XValue (Find-XControl 'Post text' 'Edit'))) -ceq (Normalize-PostText $Text) } 'replaced standalone card URL with exact campaign copy'
     Assert-XComposer $Text -WebsiteCardOnly -CardUrl $CardUrl
+    $script:XOwnedDraft = [pscustomobject]@{ text=(Get-XValue (Find-XControl 'Post text' 'Edit')); attachments=0; cards=(Get-XCardPreviewRemoveCount) }
     return [pscustomobject]@{ imageSha256=$imageSha256; imagePath=$ImagePath; attachmentCount=0; postFormat='website_card'; cardUrl=$CardUrl; cardEvidence=$script:XPreparedCardProof; preparedUtc=[DateTimeOffset]::UtcNow.ToString('o'); textSha256=(Get-CopyDigest $Text) }
   }
   [Windows.Forms.Clipboard]::SetText($Text)
@@ -421,6 +453,7 @@ function Prepare-XPost([string]$Text, [string]$ImagePath, [switch]$WebsiteCardOn
   Send-XKeys '^v'
   Wait-XCondition { (Get-XAttachmentCount) -eq 1 } 'one uploaded image' 40
   Wait-XCondition { Assert-XComposer $Text; return $true } 'complete composer and enabled Post' 30
+  $script:XOwnedDraft = [pscustomobject]@{ text=(Get-XValue (Find-XControl 'Post text' 'Edit')); attachments=1; cards=(Get-XCardPreviewRemoveCount) }
   return [pscustomobject]@{ imageSha256=(Get-FileHash -LiteralPath $ImagePath -Algorithm SHA256).Hash.ToLowerInvariant(); attachmentCount=1; preparedUtc=[DateTimeOffset]::UtcNow.ToString('o'); textSha256=(Get-CopyDigest $Text); imageEvidence='Canonical file pasted into empty composer; one Remove media control observed' }
 }
 function Publish-XPost([string]$Text, [switch]$WebsiteCardOnly, [string]$CardUrl = '') {
@@ -436,7 +469,12 @@ function Publish-XPost([string]$Text, [switch]$WebsiteCardOnly, [string]$CardUrl
     $visible = @($elements | Where-Object { -not $_.Current.IsOffscreen })
     $sent = @($visible | Where-Object { $_.Current.Name -match '^Your post was sent(?:[ .!]|$)' })
     if ($sent.Count -gt 0) { return }
-    $errors = @($visible | Where-Object { $_.Current.Name -match '^(Something went wrong|You have already said that|Whoops|Your post could not be sent|You are over the daily limit|You have exceeded)' })
+    $duplicate = @($visible | Where-Object { $_.Current.Name -match "\bYou(?:['\u2019]ve| have)? already said that(?:[.!]|$)" })
+    if ($duplicate.Count -gt 0) {
+      Close-XDuplicateDraft $Text
+      throw 'X duplicate rejected after one click; owned draft discarded; do not retry publish intent'
+    }
+    $errors = @($visible | Where-Object { $_.Current.Name -match '^(Something went wrong|Whoops|Your post could not be sent|You are over the daily limit|You have exceeded)' })
     if ($errors.Count -gt 0) { throw ('X publish error after one click: ' + $errors[0].Current.Name) }
     $editors = @($visible | Where-Object { $_.Current.Name -ceq 'Post text' -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit })
     if ($editors.Count -eq 0) { return }
