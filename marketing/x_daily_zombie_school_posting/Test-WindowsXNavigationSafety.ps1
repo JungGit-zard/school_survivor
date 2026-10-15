@@ -64,4 +64,37 @@ function Click-XElement($Element) {
 if (($script:events -join ',') -cne 'verified profile,draft guard,clicked Post hyperlink') { throw 'FAILED: profile/guard/link sequence' }
 if ($prepare.Extent.Text.Contains("Navigate-X 'https://x.com/compose/post'")) { throw 'FAILED: direct compose URL navigation returned' }
 Write-Output 'PASS compose opens through verified profile Post hyperlink after draft guard'
+foreach ($name in @('Assert-XAddressFocused','Set-XAddressUrl')) {
+  $node = $ast.Find({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq $name }, $true)
+  . ([scriptblock]::Create($node.Extent.Text))
+}
+$script:events = @()
+$script:address = [pscustomobject]@{ Current=[pscustomobject]@{ HasKeyboardFocus=$false }; Value='' }
+$script:address | Add-Member ScriptMethod SetFocus { $script:events += 'focus address' }
+$script:address | Add-Member ScriptMethod GetRuntimeId { return @(1,2,3) }
+function Assert-XForeground {}
+function Get-XFocusedElement { return $script:address }
+function Set-XClipboardText([string]$Text) { $script:events += 'clipboard'; $script:clipboard=$Text }
+function Send-XKeys([string]$Keys) {
+  $script:events += $Keys
+  if ($Keys -eq '^v') { $script:address.Value=$script:clipboard }
+}
+Assert-Blocked { Set-XAddressUrl $script:address 'https://x.com/jungsilx' } 'unproven address focus sends no clipboard or keys'
+if (($script:events -join ',') -cne 'focus address') { throw 'FAILED: input sent before proven address focus' }
+$script:address.Current.HasKeyboardFocus=$true
+$script:events=@()
+Set-XAddressUrl $script:address 'https://x.com/jungsilx'
+if (($script:events -join ',') -cne 'focus address,clipboard,^a,^v,{ENTER}') { throw 'FAILED: proven address input order' }
+Write-Output 'PASS proven address focus selects/pastes/checks URL before Enter'
+function Get-XFocusedElement {
+  $other = [pscustomobject]@{}
+  $other | Add-Member ScriptMethod GetRuntimeId { return @(9,9,9) }
+  return $other
+}
+$script:events=@()
+Assert-Blocked { Set-XAddressUrl $script:address 'https://x.com/jungsilx' } 'different focused element sends no clipboard or keys'
+if (($script:events -join ',') -cne 'focus address') { throw 'FAILED: input sent to wrong focused element' }
+$navigationSource = $ast.Find({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'Navigate-X' }, $true).Extent.Text
+if ($navigationSource.Contains("Send-XKeys '^l'")) { throw 'FAILED: unverified Ctrl+L navigation returned' }
+Write-Output 'PASS navigation does not rely on Ctrl+L'
 Write-Output 'NAVIGATION_SAFETY_TEST_OK'

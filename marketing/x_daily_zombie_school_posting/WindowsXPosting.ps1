@@ -301,6 +301,27 @@ function Close-XDuplicateDraft([string]$Text) {
   $script:XOwnedDraft = $null
   Wait-XCondition { Assert-XNavigationSafe; return $true } 'duplicate composer closed' 5
 }
+function Get-XFocusedElement { return [Windows.Automation.AutomationElement]::FocusedElement }
+function Assert-XAddressFocused($Address) {
+  Assert-XForeground
+  $focused = Get-XFocusedElement
+  if ($null -eq $focused -or -not $Address.Current.HasKeyboardFocus -or
+      ($focused.GetRuntimeId() -join ',') -cne ($Address.GetRuntimeId() -join ',')) {
+    throw 'Chrome address bar focus was not proven; no navigation input sent'
+  }
+}
+function Set-XAddressUrl($Address, [string]$Url) {
+  $Address.SetFocus()
+  Assert-XAddressFocused $Address
+  Set-XClipboardText $Url
+  Assert-XAddressFocused $Address
+  Send-XKeys '^a'
+  Assert-XAddressFocused $Address
+  Send-XKeys '^v'
+  Assert-XAddressFocused $Address
+  if ((Get-XValue $Address) -cne $Url) { throw 'Chrome address bar URL mismatch; Enter not sent' }
+  Send-XKeys '{ENTER}'
+}
 function Navigate-X([string]$Url) {
   Assert-XNavigationSafe
   # One reacquisition at a navigation boundary, never between typing/clicking.
@@ -308,10 +329,13 @@ function Navigate-X([string]$Url) {
     Restore-XWindowFocus 'navigation boundary' | Out-Null
   }
   Assert-XForeground
-  [Windows.Forms.Clipboard]::SetText($Url)
-  Send-XKeys '^l'
-  Send-XKeys '^v'
-  Send-XKeys '{ENTER}'
+  $addresses = @((Get-XElements) | Where-Object {
+    -not $_.Current.IsOffscreen -and $_.Current.IsEnabled -and
+    $_.Current.ControlType -eq [Windows.Automation.ControlType]::Edit -and
+    $_.Current.Name -in @('Address and search bar','주소창 및 검색창')
+  })
+  if ($addresses.Count -ne 1) { throw 'Expected one visible Chrome address bar; no navigation input sent' }
+  Set-XAddressUrl $addresses[0] $Url
   Start-Sleep -Milliseconds 1600
 }
 function Navigate-XProfile {
