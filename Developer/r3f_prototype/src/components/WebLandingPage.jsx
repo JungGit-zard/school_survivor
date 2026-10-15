@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import TitleSceneCanvas from './TitleSceneCanvas.jsx'
 import '../assets/fonts/nanumMyeongjo.css'
-import { WEB_BACKGROUND_URLS, WEB_LANDING_ART_URLS, WEB_LANDING_COMIC_URLS, getSelectedWebBackgroundStyle } from '../lib/webBackgroundAssets.js'
-import { LANDING_COPY, LANDING_LANGUAGES } from './webLandingCopy.js'
+import { WEB_BACKGROUND_URLS, WEB_LANDING_ART_URLS, WEB_LANDING_COMIC_URLS, getSelectedWebBackgroundStyle, getWebBacklogComicUrl } from '../lib/webBackgroundAssets.js'
+import { BACKLOG_COMIC_COPY, LANDING_COPY, LANDING_LANGUAGES } from './webLandingCopy.js'
 import { dailyWebComics } from './dailyWebComics.js'
 import ZombieBoard from './ZombieBoard.jsx'
 import { ZOMBIE_BOARD_COPY } from './zombieBoardCopy.js'
@@ -45,7 +45,18 @@ const COMIC_EPISODES = [
     code,
     code === 'ko' ? comic.image : comic.image.replace('/web-comics/v3/', `/web-comics/localized-v3/${code}/`),
   ])),
-})).concat(dailyWebComics)
+})).concat(dailyWebComics, Array.from({ length: 10 }, (_, index) => {
+  const episodeNumber = index + 1
+  return {
+    id: `backlog-${String(episodeNumber).padStart(2, '0')}`,
+    backlogEpisode: episodeNumber,
+    images: Object.fromEntries(LANDING_LANGUAGES.map(({ code }) => [
+      code,
+      getWebBacklogComicUrl(['ko', 'en', 'ja', 'vi'].includes(code) ? code : 'ko', episodeNumber),
+    ])),
+    accent: index % 2 === 0 ? '#16A34A' : '#2563EB',
+  }
+}))
 
 const VIDEO_PLACEHOLDERS = WEB_BACKGROUND_URLS.slice(0, 3)
 const GAMEPLAY_IMAGES = [WEB_LANDING_ART_URLS.classroomSurvival, WEB_LANDING_ART_URLS.schoolSupplies, WEB_LANDING_ART_URLS.sunsetEscape]
@@ -64,7 +75,9 @@ export default function WebLandingPage() {
   const [heroActionsPassed, setHeroActionsPassed] = useState(false)
   const comics = COMIC_EPISODES.map((comic, index) => ({
     ...comic,
-    ...(comic.copy?.[language] ?? copy.comics[index]),
+    ...(comic.backlogEpisode
+      ? BACKLOG_COMIC_COPY[language][comic.backlogEpisode - 1]
+      : comic.copy?.[language] ?? copy.comics[index]),
     image: comic.images?.[language] ?? comic.image,
   }))
   const selectedComic = selectedComicIndex === null ? null : comics[selectedComicIndex]

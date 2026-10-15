@@ -6,7 +6,7 @@ import WebLandingPage, { LANDING_FEATURE_VIDEO_URL, LANDING_HERO_VIDEO_URL } fro
 import { LANDING_COPY, LANDING_LANGUAGES } from './webLandingCopy.js'
 import { dailyWebComics } from './dailyWebComics.js'
 import webLandingSource from './WebLandingPage.jsx?raw'
-import { WEB_BACKGROUND_URLS, WEB_LANDING_ART_URLS, WEB_LANDING_COMIC_URLS, selectedWebBackgroundUrl } from '../lib/webBackgroundAssets.js'
+import { WEB_BACKGROUND_URLS, WEB_LANDING_ART_URLS, WEB_LANDING_COMIC_URLS, getWebBacklogComicUrl, selectedWebBackgroundUrl } from '../lib/webBackgroundAssets.js'
 
 vi.mock('./TitleSceneCanvas.jsx', () => ({ default: ({ style }) => <div data-testid="title-scene-canvas" style={style} /> }))
 vi.mock('./ZombieBoard.jsx', () => ({
@@ -72,10 +72,10 @@ describe('WebLandingPage', () => {
       expect(document.body.querySelector('#comic-viewer-title').textContent).toBe(daily.copy[code].title)
       expect(document.body.querySelector('.web-landing__comic-viewer-body img').getAttribute('src')).toBe(daily.images[code])
       const controls = document.body.querySelector('.web-landing__comic-viewer-controls')
-      expect(controls.querySelector('span').textContent).toBe(`${lastIndex + 1} / ${5 + dailyWebComics.length}`)
+      expect(controls.querySelector('span').textContent).toBe(`${lastIndex + 1} / ${5 + dailyWebComics.length + 10}`)
       act(() => controls.querySelectorAll('button')[1].click())
-      const attendanceImage = code === 'ko' ? WEB_LANDING_COMIC_URLS.attendance : WEB_LANDING_COMIC_URLS.attendance.replace('/web-comics/v3/', `/web-comics/localized-v3/${code}/`)
-      expect(document.body.querySelector('.web-landing__comic-viewer-body img').getAttribute('src')).toBe(attendanceImage)
+      const backlogImageLanguage = ['ko', 'en', 'ja', 'vi'].includes(code) ? code : 'ko'
+      expect(document.body.querySelector('.web-landing__comic-viewer-body img').getAttribute('src')).toBe(getWebBacklogComicUrl(backlogImageLanguage, 1))
       act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' })))
       expect(document.body.querySelector('.web-landing__comic-viewer-body img').getAttribute('src')).toBe(daily.images[code])
       act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })))
@@ -306,10 +306,13 @@ describe('WebLandingPage', () => {
     act(() => view.container.querySelector('.web-landing__media-controls button').click())
     expect(view.container.querySelector('#comics')).not.toBe(null)
     const comics = view.container.querySelectorAll('#comics .web-landing__comic-feature')
-    expect(comics).toHaveLength(5 + dailyWebComics.length)
+    expect(comics).toHaveLength(5 + dailyWebComics.length + 10)
     expect(view.container.textContent).toContain('출석은 그르르!')
-    expect(view.container.querySelectorAll('#comics img')).toHaveLength(5 + dailyWebComics.length)
+    expect(view.container.querySelectorAll('#comics img')).toHaveLength(5 + dailyWebComics.length + 10)
     Object.values(WEB_LANDING_COMIC_URLS).forEach((url) => expect(view.container.innerHTML).toContain(url))
+    for (let episode = 1; episode <= 10; episode += 1) {
+      expect(view.container.innerHTML).toContain(getWebBacklogComicUrl('ko', episode))
+    }
     comics.forEach((comic) => {
       expect(comic.tagName).toBe('A')
       expect(comic.getAttribute('target')).toBe('_blank')
@@ -340,6 +343,27 @@ describe('WebLandingPage', () => {
     expect(webLandingSource).toContain('.web-landing__comic-copy p {\n    display: none;')
     expect(webLandingSource).toContain('white-space: nowrap')
     expect(webLandingSource).toContain('#16A34A')
+    view.unmount()
+  })
+
+  it('shows each backlog comic in its available image language and keeps every website locale', () => {
+    const view = renderLanding()
+    act(() => view.container.querySelector('.web-landing__media-controls button').click())
+    const languageSelect = view.container.querySelector('#web-landing-language')
+    for (const { code } of LANDING_LANGUAGES) {
+      act(() => {
+        languageSelect.value = code
+        languageSelect.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+      const comics = Array.from(view.container.querySelectorAll('#comics .web-landing__comic-feature'))
+      expect(comics).toHaveLength(5 + dailyWebComics.length + 10)
+      for (let episode = 1; episode <= 10; episode += 1) {
+        const backlogComic = comics[5 + dailyWebComics.length + episode - 1]
+        const availableImageLanguage = ['ko', 'en', 'ja', 'vi'].includes(code) ? code : 'ko'
+        expect(backlogComic.querySelector('img')?.getAttribute('src')).toBe(getWebBacklogComicUrl(availableImageLanguage, episode))
+        expect(backlogComic.querySelector('h3')?.textContent).not.toBe('')
+      }
+    }
     view.unmount()
   })
 

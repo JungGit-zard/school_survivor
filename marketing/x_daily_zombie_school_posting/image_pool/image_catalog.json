@@ -3203,6 +3203,1286 @@
         "XE ĐẨY!",
         "RẦM!"
       ]
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ko/backlog_comic_20261015/01.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "globe_cart_dodgeballs",
+      "title": "지구본 카트와 피구공 함정",
+      "dialogueWords": [
+        "어라?",
+        "빙글빙글!",
+        "공 폭탄!",
+        "잡았다!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ko/backlog_comic_20261015/02.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "science_magnet_lockers",
+      "title": "자석 사물함 소동",
+      "dialogueWords": [
+        "좀비다!",
+        "자석 ON!",
+        "철컥!",
+        "성공!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ko/backlog_comic_20261015/03.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "library_cart_books",
+      "title": "도서관 책수레 미끼",
+      "dialogueWords": [
+        "쉿!",
+        "수레 출발!",
+        "책 폭포!",
+        "잡았다!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ko/backlog_comic_20261015/04.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "music_room_rhythm",
+      "title": "음악실 드럼 리듬",
+      "dialogueWords": [
+        "쉿!",
+        "둥둥짝!",
+        "쿵!",
+        "앙코르?"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ko/backlog_comic_20261015/05.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "art_room_paper_roll",
+      "title": "미술실 종이말이 작전",
+      "dialogueWords": [
+        "어라?",
+        "돌돌돌!",
+        "종이 붕대!",
+        "완성!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ko/backlog_comic_20261015/06.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "cafeteria_gelatin_trays",
+      "title": "급식실 푸딩 트레이 소동",
+      "dialogueWords": [
+        "푸딩이다!",
+        "살금살금!",
+        "흔들흔들!",
+        "냠!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ko/backlog_comic_20261015/07.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "auditorium_curtain_call",
+      "title": "강당 커튼콜 작전",
+      "dialogueWords": [
+        "좀비 등장!",
+        "스포트라이트!",
+        "커튼 쾅!",
+        "앙코르!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ko/backlog_comic_20261015/08.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "greenhouse_sprinkler",
+      "title": "온실 스프링클러 대작전",
+      "dialogueWords": [
+        "좀비다!",
+        "물 뿌려!",
+        "빙글빙글!",
+        "새싹 성공!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ko/backlog_comic_20261015/09.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "gym_mat_maze",
+      "title": "체육관 매트 미로",
+      "dialogueWords": [
+        "코스 준비!",
+        "점프!",
+        "미로 완성!",
+        "완주!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ko/backlog_comic_20261015/10.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "planetarium_star_projector",
+      "title": "천문관 별빛 유인 작전",
+      "dialogueWords": [
+        "별이다!",
+        "달이 떴다!",
+        "빙글빙글!",
+        "우주 정복!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "x/en/backlog_comic_20261015/01.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "globe_cart_dodgeballs",
+      "title": "Globe Cart Dodgeball Trap",
+      "dialogueWords": [
+        "Huh?",
+        "Round and round!",
+        "Ball storm!",
+        "Gotcha!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "x/en/backlog_comic_20261015/02.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "science_magnet_lockers",
+      "title": "Magnet and Locker Mix-up",
+      "dialogueWords": [
+        "Zombies!",
+        "Magnet on!",
+        "Click!",
+        "Success!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "x/en/backlog_comic_20261015/03.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "library_cart_books",
+      "title": "Library Cart Lure",
+      "dialogueWords": [
+        "Shh!",
+        "Cart away!",
+        "Book avalanche!",
+        "Gotcha!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "x/en/backlog_comic_20261015/04.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "music_room_rhythm",
+      "title": "Music Room Drumroll",
+      "dialogueWords": [
+        "Shh!",
+        "Drumroll!",
+        "Boom!",
+        "Encore?"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "x/en/backlog_comic_20261015/05.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "art_room_paper_roll",
+      "title": "Art Room Paper Wrap",
+      "dialogueWords": [
+        "Uh-oh!",
+        "Roll, roll!",
+        "Paper wrap!",
+        "Ta-da!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "x/en/backlog_comic_20261015/06.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "cafeteria_gelatin_trays",
+      "title": "Cafeteria Wobble and Trays",
+      "dialogueWords": [
+        "Pudding!",
+        "Sneak away!",
+        "Wobble!",
+        "Yum!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "x/en/backlog_comic_20261015/07.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "auditorium_curtain_call",
+      "title": "Auditorium Curtain Call",
+      "dialogueWords": [
+        "Zombies!",
+        "Spotlight!",
+        "Curtain call!",
+        "Encore!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "x/en/backlog_comic_20261015/08.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "greenhouse_sprinkler",
+      "title": "Greenhouse Sprinkler Spin",
+      "dialogueWords": [
+        "Zombies!",
+        "Sprinkle!",
+        "Spin, spin!",
+        "Sprout!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "x/en/backlog_comic_20261015/09.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "gym_mat_maze",
+      "title": "Gym Mat Maze",
+      "dialogueWords": [
+        "Course set!",
+        "Hop!",
+        "Mat maze!",
+        "Finish!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "x/en/backlog_comic_20261015/10.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "planetarium_star_projector",
+      "title": "Planetarium Starry Distraction",
+      "dialogueWords": [
+        "Stars!",
+        "Big moon!",
+        "Round we go!",
+        "Space secured!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ja/backlog_comic_20261015/01.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "globe_cart_dodgeballs",
+      "title": "地球儀カートとドッジボール",
+      "dialogueWords": [
+        "あれ？",
+        "ぐるぐる！",
+        "ボールの嵐！",
+        "つかまえた！"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ja/backlog_comic_20261015/02.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "science_magnet_lockers",
+      "title": "磁石とロッカーの大騒ぎ",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "磁石ON！",
+        "ピタッ！",
+        "成功！"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ja/backlog_comic_20261015/03.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "library_cart_books",
+      "title": "図書カートの作戦",
+      "dialogueWords": [
+        "しーっ！",
+        "カート発進！",
+        "本の雪崩！",
+        "つかまえた！"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ja/backlog_comic_20261015/04.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "music_room_rhythm",
+      "title": "音楽室のドラムロール",
+      "dialogueWords": [
+        "しーっ！",
+        "ドンドン！",
+        "ドーン！",
+        "アンコール？"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ja/backlog_comic_20261015/05.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "art_room_paper_roll",
+      "title": "美術室の紙ぐるぐる作戦",
+      "dialogueWords": [
+        "あれ？",
+        "コロコロ！",
+        "紙ぐるぐる！",
+        "完成！"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ja/backlog_comic_20261015/06.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "cafeteria_gelatin_trays",
+      "title": "食堂プリンとトレー騒動",
+      "dialogueWords": [
+        "プリンだ！",
+        "そーっと！",
+        "ぷるぷる！",
+        "おいしい！"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ja/backlog_comic_20261015/07.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "auditorium_curtain_call",
+      "title": "講堂のカーテンコール作戦",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "ライトON！",
+        "幕がドーン！",
+        "アンコール！"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ja/backlog_comic_20261015/08.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "greenhouse_sprinkler",
+      "title": "温室スプリンクラー作戦",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "水まき！",
+        "ぐるぐる！",
+        "芽が出た！"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ja/backlog_comic_20261015/09.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "gym_mat_maze",
+      "title": "体育館マット迷路",
+      "dialogueWords": [
+        "コース完成！",
+        "ジャンプ！",
+        "マット迷路！",
+        "ゴール！"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "x/ja/backlog_comic_20261015/10.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "planetarium_star_projector",
+      "title": "プラネタリウム星空大作戦",
+      "dialogueWords": [
+        "星だ！",
+        "大きな月！",
+        "ぐるぐる！",
+        "宇宙制圧！"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "x/vi/backlog_comic_20261015/01.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "globe_cart_dodgeballs",
+      "title": "Xe địa cầu và bão bóng",
+      "dialogueWords": [
+        "Ơ kìa!",
+        "Quay vòng!",
+        "Bão bóng!",
+        "Tóm được rồi!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "x/vi/backlog_comic_20261015/02.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "science_magnet_lockers",
+      "title": "Nam châm và tủ đồ",
+      "dialogueWords": [
+        "Zombie kìa!",
+        "Bật nam châm!",
+        "Dính chặt!",
+        "Thành công!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "x/vi/backlog_comic_20261015/03.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "library_cart_books",
+      "title": "Mồi nhử xe sách",
+      "dialogueWords": [
+        "Suỵt!",
+        "Xe lăn đi!",
+        "Sách đổ ào!",
+        "Tóm được rồi!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "x/vi/backlog_comic_20261015/04.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "music_room_rhythm",
+      "title": "Nhịp trống phòng nhạc",
+      "dialogueWords": [
+        "Suỵt!",
+        "Tùng tùng!",
+        "Bùm!",
+        "Nữa nhé?"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "x/vi/backlog_comic_20261015/05.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "art_room_paper_roll",
+      "title": "Cuộn giấy phòng mỹ thuật",
+      "dialogueWords": [
+        "Ơ kìa!",
+        "Lăn nào!",
+        "Cuộn giấy!",
+        "Xong rồi!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "x/vi/backlog_comic_20261015/06.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "cafeteria_gelatin_trays",
+      "title": "Bánh flan và khay ăn",
+      "dialogueWords": [
+        "Bánh flan!",
+        "Đi nhẹ thôi!",
+        "Rung rinh!",
+        "Ngon quá!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "x/vi/backlog_comic_20261015/07.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "auditorium_curtain_call",
+      "title": "Màn sân khấu hội trường",
+      "dialogueWords": [
+        "Zombie kìa!",
+        "Đèn sân khấu!",
+        "Màn buông!",
+        "Diễn nữa!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "x/vi/backlog_comic_20261015/08.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "greenhouse_sprinkler",
+      "title": "Vòi phun nhà kính",
+      "dialogueWords": [
+        "Zombie kìa!",
+        "Tưới nước!",
+        "Quay vòng!",
+        "Nảy mầm!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "x/vi/backlog_comic_20261015/09.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "gym_mat_maze",
+      "title": "Mê cung nệm phòng thể chất",
+      "dialogueWords": [
+        "Sẵn sàng!",
+        "Nhảy nào!",
+        "Mê cung nệm!",
+        "Về đích!"
+      ]
+    },
+    {
+      "platform": "X",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "x/vi/backlog_comic_20261015/10.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "planetarium_star_projector",
+      "title": "Màn sao ở cung thiên văn",
+      "dialogueWords": [
+        "Sao kìa!",
+        "Trăng to quá!",
+        "Quay vòng!",
+        "Vũ trụ an toàn!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ko/backlog_comic_20261015/01.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "globe_cart_dodgeballs",
+      "title": "지구본 카트와 피구공 함정",
+      "dialogueWords": [
+        "어라?",
+        "빙글빙글!",
+        "공 폭탄!",
+        "잡았다!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ko/backlog_comic_20261015/02.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "science_magnet_lockers",
+      "title": "자석 사물함 소동",
+      "dialogueWords": [
+        "좀비다!",
+        "자석 ON!",
+        "철컥!",
+        "성공!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ko/backlog_comic_20261015/03.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "library_cart_books",
+      "title": "도서관 책수레 미끼",
+      "dialogueWords": [
+        "쉿!",
+        "수레 출발!",
+        "책 폭포!",
+        "잡았다!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ko/backlog_comic_20261015/04.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "music_room_rhythm",
+      "title": "음악실 드럼 리듬",
+      "dialogueWords": [
+        "쉿!",
+        "둥둥짝!",
+        "쿵!",
+        "앙코르?"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ko/backlog_comic_20261015/05.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "art_room_paper_roll",
+      "title": "미술실 종이말이 작전",
+      "dialogueWords": [
+        "어라?",
+        "돌돌돌!",
+        "종이 붕대!",
+        "완성!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ko/backlog_comic_20261015/06.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "cafeteria_gelatin_trays",
+      "title": "급식실 푸딩 트레이 소동",
+      "dialogueWords": [
+        "푸딩이다!",
+        "살금살금!",
+        "흔들흔들!",
+        "냠!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ko/backlog_comic_20261015/07.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "auditorium_curtain_call",
+      "title": "강당 커튼콜 작전",
+      "dialogueWords": [
+        "좀비 등장!",
+        "스포트라이트!",
+        "커튼 쾅!",
+        "앙코르!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ko/backlog_comic_20261015/08.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "greenhouse_sprinkler",
+      "title": "온실 스프링클러 대작전",
+      "dialogueWords": [
+        "좀비다!",
+        "물 뿌려!",
+        "빙글빙글!",
+        "새싹 성공!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ko/backlog_comic_20261015/09.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "gym_mat_maze",
+      "title": "체육관 매트 미로",
+      "dialogueWords": [
+        "코스 준비!",
+        "점프!",
+        "미로 완성!",
+        "완주!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ko",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ko/backlog_comic_20261015/10.png",
+      "gameStartText": "게임시작",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "planetarium_star_projector",
+      "title": "천문관 별빛 유인 작전",
+      "dialogueWords": [
+        "별이다!",
+        "달이 떴다!",
+        "빙글빙글!",
+        "우주 정복!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/en/backlog_comic_20261015/01.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "globe_cart_dodgeballs",
+      "title": "Globe Cart Dodgeball Trap",
+      "dialogueWords": [
+        "Huh?",
+        "Round and round!",
+        "Ball storm!",
+        "Gotcha!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/en/backlog_comic_20261015/02.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "science_magnet_lockers",
+      "title": "Magnet and Locker Mix-up",
+      "dialogueWords": [
+        "Zombies!",
+        "Magnet on!",
+        "Click!",
+        "Success!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/en/backlog_comic_20261015/03.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "library_cart_books",
+      "title": "Library Cart Lure",
+      "dialogueWords": [
+        "Shh!",
+        "Cart away!",
+        "Book avalanche!",
+        "Gotcha!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/en/backlog_comic_20261015/04.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "music_room_rhythm",
+      "title": "Music Room Drumroll",
+      "dialogueWords": [
+        "Shh!",
+        "Drumroll!",
+        "Boom!",
+        "Encore?"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/en/backlog_comic_20261015/05.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "art_room_paper_roll",
+      "title": "Art Room Paper Wrap",
+      "dialogueWords": [
+        "Uh-oh!",
+        "Roll, roll!",
+        "Paper wrap!",
+        "Ta-da!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/en/backlog_comic_20261015/06.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "cafeteria_gelatin_trays",
+      "title": "Cafeteria Wobble and Trays",
+      "dialogueWords": [
+        "Pudding!",
+        "Sneak away!",
+        "Wobble!",
+        "Yum!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/en/backlog_comic_20261015/07.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "auditorium_curtain_call",
+      "title": "Auditorium Curtain Call",
+      "dialogueWords": [
+        "Zombies!",
+        "Spotlight!",
+        "Curtain call!",
+        "Encore!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/en/backlog_comic_20261015/08.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "greenhouse_sprinkler",
+      "title": "Greenhouse Sprinkler Spin",
+      "dialogueWords": [
+        "Zombies!",
+        "Sprinkle!",
+        "Spin, spin!",
+        "Sprout!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/en/backlog_comic_20261015/09.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "gym_mat_maze",
+      "title": "Gym Mat Maze",
+      "dialogueWords": [
+        "Course set!",
+        "Hop!",
+        "Mat maze!",
+        "Finish!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "en",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/en/backlog_comic_20261015/10.png",
+      "gameStartText": "START GAME",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "planetarium_star_projector",
+      "title": "Planetarium Starry Distraction",
+      "dialogueWords": [
+        "Stars!",
+        "Big moon!",
+        "Round we go!",
+        "Space secured!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ja/backlog_comic_20261015/01.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "globe_cart_dodgeballs",
+      "title": "地球儀カートとドッジボール",
+      "dialogueWords": [
+        "あれ？",
+        "ぐるぐる！",
+        "ボールの嵐！",
+        "つかまえた！"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ja/backlog_comic_20261015/02.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "science_magnet_lockers",
+      "title": "磁石とロッカーの大騒ぎ",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "磁石ON！",
+        "ピタッ！",
+        "成功！"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ja/backlog_comic_20261015/03.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "library_cart_books",
+      "title": "図書カートの作戦",
+      "dialogueWords": [
+        "しーっ！",
+        "カート発進！",
+        "本の雪崩！",
+        "つかまえた！"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ja/backlog_comic_20261015/04.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "music_room_rhythm",
+      "title": "音楽室のドラムロール",
+      "dialogueWords": [
+        "しーっ！",
+        "ドンドン！",
+        "ドーン！",
+        "アンコール？"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ja/backlog_comic_20261015/05.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "art_room_paper_roll",
+      "title": "美術室の紙ぐるぐる作戦",
+      "dialogueWords": [
+        "あれ？",
+        "コロコロ！",
+        "紙ぐるぐる！",
+        "完成！"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ja/backlog_comic_20261015/06.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "cafeteria_gelatin_trays",
+      "title": "食堂プリンとトレー騒動",
+      "dialogueWords": [
+        "プリンだ！",
+        "そーっと！",
+        "ぷるぷる！",
+        "おいしい！"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ja/backlog_comic_20261015/07.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "auditorium_curtain_call",
+      "title": "講堂のカーテンコール作戦",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "ライトON！",
+        "幕がドーン！",
+        "アンコール！"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ja/backlog_comic_20261015/08.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "greenhouse_sprinkler",
+      "title": "温室スプリンクラー作戦",
+      "dialogueWords": [
+        "ゾンビだ！",
+        "水まき！",
+        "ぐるぐる！",
+        "芽が出た！"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ja/backlog_comic_20261015/09.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "gym_mat_maze",
+      "title": "体育館マット迷路",
+      "dialogueWords": [
+        "コース完成！",
+        "ジャンプ！",
+        "マット迷路！",
+        "ゴール！"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "ja",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/ja/backlog_comic_20261015/10.png",
+      "gameStartText": "ゲームスタート",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "planetarium_star_projector",
+      "title": "プラネタリウム星空大作戦",
+      "dialogueWords": [
+        "星だ！",
+        "大きな月！",
+        "ぐるぐる！",
+        "宇宙制圧！"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/vi/backlog_comic_20261015/01.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "globe_cart_dodgeballs",
+      "title": "Xe địa cầu và bão bóng",
+      "dialogueWords": [
+        "Ơ kìa!",
+        "Quay vòng!",
+        "Bão bóng!",
+        "Tóm được rồi!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/vi/backlog_comic_20261015/02.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "science_magnet_lockers",
+      "title": "Nam châm và tủ đồ",
+      "dialogueWords": [
+        "Zombie kìa!",
+        "Bật nam châm!",
+        "Dính chặt!",
+        "Thành công!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/vi/backlog_comic_20261015/03.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "library_cart_books",
+      "title": "Mồi nhử xe sách",
+      "dialogueWords": [
+        "Suỵt!",
+        "Xe lăn đi!",
+        "Sách đổ ào!",
+        "Tóm được rồi!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/vi/backlog_comic_20261015/04.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "music_room_rhythm",
+      "title": "Nhịp trống phòng nhạc",
+      "dialogueWords": [
+        "Suỵt!",
+        "Tùng tùng!",
+        "Bùm!",
+        "Nữa nhé?"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/vi/backlog_comic_20261015/05.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "art_room_paper_roll",
+      "title": "Cuộn giấy phòng mỹ thuật",
+      "dialogueWords": [
+        "Ơ kìa!",
+        "Lăn nào!",
+        "Cuộn giấy!",
+        "Xong rồi!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/vi/backlog_comic_20261015/06.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "cafeteria_gelatin_trays",
+      "title": "Bánh flan và khay ăn",
+      "dialogueWords": [
+        "Bánh flan!",
+        "Đi nhẹ thôi!",
+        "Rung rinh!",
+        "Ngon quá!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/vi/backlog_comic_20261015/07.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "auditorium_curtain_call",
+      "title": "Màn sân khấu hội trường",
+      "dialogueWords": [
+        "Zombie kìa!",
+        "Đèn sân khấu!",
+        "Màn buông!",
+        "Diễn nữa!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/vi/backlog_comic_20261015/08.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "greenhouse_sprinkler",
+      "title": "Vòi phun nhà kính",
+      "dialogueWords": [
+        "Zombie kìa!",
+        "Tưới nước!",
+        "Quay vòng!",
+        "Nảy mầm!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/vi/backlog_comic_20261015/09.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "gym_mat_maze",
+      "title": "Mê cung nệm phòng thể chất",
+      "dialogueWords": [
+        "Sẵn sàng!",
+        "Nhảy nào!",
+        "Mê cung nệm!",
+        "Về đích!"
+      ]
+    },
+    {
+      "platform": "Facebook",
+      "locale": "vi",
+      "collection": "backlog_comic_20261015",
+      "path": "facebook/vi/backlog_comic_20261015/10.png",
+      "gameStartText": "BẮT ĐẦU CHƠI",
+      "format": "four_panel_comic_with_localized_words",
+      "story": "planetarium_star_projector",
+      "title": "Màn sao ở cung thiên văn",
+      "dialogueWords": [
+        "Sao kìa!",
+        "Trăng to quá!",
+        "Quay vòng!",
+        "Vũ trụ an toàn!"
+      ]
     }
   ],
   "legacyPaths": {

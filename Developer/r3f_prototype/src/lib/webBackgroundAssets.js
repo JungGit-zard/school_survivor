@@ -23,6 +23,10 @@ export const WEB_LANDING_COMIC_URLS = Object.freeze({
   gymBounce: '/web-comics/v3/comic_ep04_gym_bounce.png',
   libraryQuiet: '/web-comics/v3/comic_ep05_library_quiet.png',
 })
+const WEB_BACKLOG_COMIC_URL = 'https://escapezombie.com/comics/backlog-20261015'
+export function getWebBacklogComicUrl(language, episodeNumber) {
+  return `${WEB_BACKLOG_COMIC_URL}/${language}/${String(episodeNumber).padStart(2, '0')}.png`
+}
 export const selectedWebBackgroundUrl = chooseOncePerPageLoad()
 
 export function getSelectedWebBackgroundStyle() {
@@ -33,4 +37,3 @@ export function getSelectedWebBackgroundStyle() {
     backgroundRepeat: 'no-repeat',
   }
 }
-
