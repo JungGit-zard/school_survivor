@@ -121,6 +121,7 @@ function TitleLetter({ config, total }) {
 // 코나미식 치트 시퀀스 + devCheatsVisible 치트 메뉴 노출 경로는 그대로 보존한다.
 export default function TitleScreen({
   onEnterLobby,
+  onOpenRosariRoom,
   devCheatsVisible = false,
   onRevealDevCheats,
   onUnlockAllStages,
@@ -507,6 +508,14 @@ export default function TitleScreen({
           >
             로그인 없이 들어가기
           </button>
+          <button
+            type="button"
+            className="title-main-action"
+            style={{ ...styles.rosariRoomButton, ...styles.mainActionButton }}
+            onClick={() => onOpenRosariRoom?.()}
+          >
+            로자리의 방
+          </button>
           <a href="/landing" className="title-main-action" style={{ ...styles.homepageButton, ...styles.mainActionButton }}>
             {t('title.homepage')}
           </a>
@@ -816,6 +825,14 @@ const styles = {
     boxSizing: 'border-box',
     textDecoration: 'none',
     fontSize: 16,
+  },
+  rosariRoomButton: {
+    ...schoolButton('paper'),
+    minHeight: 44,
+    background: 'linear-gradient(180deg, #ffd4e6 0%, #fff0c9 100%)',
+    color: '#5f2d58',
+    fontSize: 16,
+    letterSpacing: 0,
   },
   cheatButtons: {
     display: 'grid',

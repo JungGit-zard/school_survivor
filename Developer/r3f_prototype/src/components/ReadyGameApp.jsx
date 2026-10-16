@@ -10,6 +10,7 @@ import { t } from '../lib/i18n.js'
 import { getSelectedWebBackgroundStyle } from '../lib/webBackgroundAssets.js'
 import { clearPendingStartAfterLogin, hasPendingStartAfterLogin } from '../lib/loginContinuation.js'
 
+const RosariRoom = lazy(() => import('./RosariRoom.jsx'))
 const TitleScreen = lazy(() => import('./TitleScreen.jsx'))
 const Lobby = lazy(() => import('./Lobby.jsx'))
 const GameplayScreen = lazy(() => import('./GameplayScreen.jsx'))
@@ -166,10 +167,19 @@ export default function ReadyGameApp({
             <Suspense fallback={<ScreenLoading label={t('loading.game')} />}>
               <TitleScreen
                 onEnterLobby={() => setScreen('lobby')}
+                onOpenRosariRoom={() => setScreen('rosariRoom')}
                 devCheatsVisible={devCheatsVisible}
                 onRevealDevCheats={() => setDevCheatsVisible(true)}
                 onUnlockAllStages={() => setDevAllStagesUnlocked(true)}
               />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+
+        {screen === 'rosariRoom' && (
+          <ErrorBoundary fallback={({ error, retry, reload }) => <ScreenFailure label="로자리의 방" error={error} retry={retry} reload={reload} onBack={() => setScreen('title')} />}>
+            <Suspense fallback={<ScreenLoading label="로자리의 방" />}>
+              <RosariRoom onBack={() => setScreen('title')} />
             </Suspense>
           </ErrorBoundary>
         )}
