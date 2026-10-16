@@ -24,4 +24,23 @@ No login design, account data, gameplay progress, existing homepage/comics/audio
 - Developer/r3f_prototype/public/assets/rosari-room/PLAYER_wholebody_refined_t_efe49b7c.glb: a341578580d0e2afbefd7a673a8b32cff3a5d0c6ad2119f2d9a230e3df668f7d
 
 ## Release status
-Production build and preview verification in progress. Live promotion pending; do not report completion before actual room entry and return evidence.
+COMPLETE. No further promotion pending from this hotfix owner or checkout.
+
+## Completed preview-to-live evidence
+- Source commit: f4afd760a7d38fc03ee83cb54fb7943cfea80c0c
+- Preview: https://escape-zombie-school--rosari-hotfix-20261016-bjfqestc.web.app/game
+- Production: https://escapezombie.com/game
+- Preview and live Hosting version: d6b5abe3d7bb45aa; live releaseTime 2026-10-16T00:15:00.375Z.
+- Production build PASS (24.70s); prebuild gates and postbuild artifact verification PASS. Preview and live remote JavaScript verification: 62 assets PASS each.
+- Advisor independent preview: title button click -> room main/3D scene/movement/wardrobe displayed; screenshot visually confirmed room and character; back button returned to title with start/room/homepage. PASS.
+- Advisor independent fresh live browser at 390x844: same title button -> room and character visibly rendered -> back to title, start/room/homepage displayed. PASS.
+- Existing login/progress core, quest HUD, canonical title BGM bytes and accepted room/lib canonical bytes independently confirmed unchanged/preserved by Advisor.
+- Build-frozen title/route/room/lib/model hashes above rechecked after deployment: all unchanged. No persistent test config or source test-time edits.
+- Temporary config: Developer/r3f_prototype/firebase.rosari-hotfix-preview.temp.json, SHA256 2f0f3b6aeb66bbdbc17cd3504ef8102144b6f4a3c90ea330fcee913105ef2e27; removed after deployment. Original firebase.json/package.json unchanged. Only duplicate already-passed build command excluded; nonce guard, legal and 76 card predeploy generation all ran.
+- Only preview channel deploy and verified preview-to-live clone were performed. No database/auth/account mutation, AAB, or additional production promotion.
+- Source restore commit pushed to intended zombie_only origin. Evidence record/screenshots are separately committed below.
+- Owner completion UTC: 2026-10-16T00:17:27.198807+00:00
+
+## Visual evidence
+- Quaility_Assurance/rosari_urgent_restore_20261016/preview-room.png: 9fe6757313990620a79bbd9eb5abbbfd5a2758fabcb11df8802497a0e525aec7
+- Quaility_Assurance/rosari_urgent_restore_20261016/live-mobile-room.png: 3e6a7d7a61ac13d86a8f2cc8add4dadfb00d3308bcc4c9173116c1676b425027
