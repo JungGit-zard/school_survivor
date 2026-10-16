@@ -133,13 +133,42 @@ function Get-PostingPreviousImagePath($Config, [string]$Language, [string]$Cycle
   return $null
 }
 function Select-PostingLocaleImagePath($Config, [string]$Language, [string]$CycleId, [string]$ReceiptDirectory, [ValidateSet('X','Facebook')][string]$Platform = 'X', $Catalog = $null) {
-  $candidates = @(Get-PostingLocaleImageCandidates $Config $Language -RequireGameStartText -Platform $Platform -Catalog $Catalog)
+  $gatedCandidates = @(Get-PostingLocaleImageCandidates $Config $Language -RequireGameStartText -Platform $Platform -Catalog $Catalog)
+  $pool = if ($Platform -eq 'Facebook' -and $Config.PSObject.Properties.Name -contains 'facebook_rotation_image_pool' -and $Config.facebook_rotation_image_pool.PSObject.Properties.Name -contains $Language) { @($Config.facebook_rotation_image_pool.$Language.images) } elseif ($Platform -eq 'X' -and $Config.PSObject.Properties.Name -contains 'localized_social_image_pool' -and $Config.localized_social_image_pool.PSObject.Properties.Name -contains $Language) { @($Config.localized_social_image_pool.$Language.images) } else { @() }
+  $poolPaths = @($pool | ForEach-Object { Resolve-PostingImagePath ([string]$_) -Platform $Platform } | Select-Object -Unique)
+  $candidates = if ($poolPaths.Count -gt 0) { @($poolPaths | Where-Object { $gatedCandidates -ccontains $_ }) } else { $gatedCandidates }
   if ($candidates.Count -eq 0) { throw "No confirmed localized game-start CTA images are eligible for $Platform/$Language." }
-  $previous = Get-PostingPreviousImagePath $Config $Language $CycleId $ReceiptDirectory $candidates $Platform
-  if ($candidates.Count -gt 1 -and -not [string]::IsNullOrWhiteSpace($previous)) {
-    $previousIndex = [array]::IndexOf([string[]]$candidates, [string]$previous)
-    if ($previousIndex -ge 0) { return [string]$candidates[(($previousIndex + 1) % $candidates.Count)] }
+  $receiptDirectories = @($ReceiptDirectory)
+  if ($Platform -eq 'X') { $receiptDirectories += (Join-Path $PSScriptRoot 'receipts'); $receiptDirectories += (Join-Path $PSScriptRoot '..\..\Developer\agent_room\x_posting_receipts') }
+  $used = @{}
+  $latestImage = $null
+  $latestStamp = ''
+  foreach ($directory in @($receiptDirectories | Select-Object -Unique)) {
+    if (-not (Test-Path -LiteralPath $directory -PathType Container)) { continue }
+    foreach ($file in @(Get-ChildItem -LiteralPath $directory -Filter '*.json' -File)) {
+      try { $receipt = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8 | ConvertFrom-Json } catch { continue }
+      if ($null -eq $receipt -or $receipt.PSObject.Properties.Name -notcontains 'entries') { continue }
+      $entry = $receipt.entries.$Language
+      if ($null -eq $entry -or $entry.state -notin @('selected','prepared','publish_intent','verified') -or $null -eq $entry.intent) { continue }
+      try { $image = Resolve-PostingImagePath ([string]$entry.intent.imagePath) -Platform $Platform } catch { continue }
+      if (@($candidates | Where-Object { $_ -ceq $image }).Count -ne 1) { continue }
+      $stamp = if ($entry.intent.PSObject.Properties.Name -contains 'createdUtc') { [string]$entry.intent.createdUtc } else { '' }
+      if ([string]::IsNullOrWhiteSpace($stamp)) { $stamp = [string]$receipt.cycleId }
+      if ([string]::IsNullOrWhiteSpace($stamp)) { $stamp = $file.LastWriteTimeUtc.ToString('o') }
+      if ($stamp -ge $latestStamp) { $latestStamp = $stamp; $latestImage = $image }
+      if ($entry.state -in @('publish_intent','verified')) { $used[$image] = $true }
+    }
   }
+  if ($candidates.Count -gt 1) {
+    $start = if ($null -ne $latestImage) { ([array]::IndexOf([string[]]$candidates, [string]$latestImage) + 1) % $candidates.Count } else { 0 }
+    for ($offset = 0; $offset -lt $candidates.Count; $offset++) {
+      $candidate = [string]$candidates[($start + $offset) % $candidates.Count]
+      if (-not $used.ContainsKey($candidate)) { return $candidate }
+    }
+    return [string]$candidates[$start]
+  }
+  $previous = Get-PostingPreviousImagePath $Config $Language $CycleId $ReceiptDirectory $candidates $Platform
+  if ($null -ne $previous) { return [string]$previous }
   $ordinal = $null
   if ($CycleId -match '^(\d{4}-\d{2}-\d{2})-(\d{4})$') {
     $day = [datetime]::ParseExact($Matches[1], 'yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)
