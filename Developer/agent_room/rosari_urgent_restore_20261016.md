@@ -44,3 +44,6 @@ COMPLETE. No further promotion pending from this hotfix owner or checkout.
 ## Visual evidence
 - Quaility_Assurance/rosari_urgent_restore_20261016/preview-room.png: 9fe6757313990620a79bbd9eb5abbbfd5a2758fabcb11df8802497a0e525aec7
 - Quaility_Assurance/rosari_urgent_restore_20261016/live-mobile-room.png: 3e6a7d7a61ac13d86a8f2cc8add4dadfb00d3308bcc4c9173116c1676b425027
+
+- Additional Advisor live check PASS: https://escapezombie.com/ shows title and room button; homepage action opens https://escapezombie.com/landing with game/comic/music/video links.
+- Advisor closed only the rosari-hotfix-review verification browser; other preexisting user browsers preserved. Browser slot released; no further hotfix promotion pending.
