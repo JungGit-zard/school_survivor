@@ -12,6 +12,9 @@ Assert-True (Test-FacebookTabName 'Hyun Uk Jung | Facebook') 'Facebook profile-t
 Assert-True (Test-FacebookTabName '정즴 (@hyunuk.jung.56) • Facebook') 'localized Chrome Facebook profile-title tab is recognized'
 Assert-True ((Resolve-FacebookDiscoveryPlan @((New-TestWindow 9 @('New Tab')))).openProfileNewTab) 'one Chrome window without a Facebook tab is selected for guarded profile-tab opening'
 Assert-Throws { Resolve-FacebookDiscoveryPlan @((New-TestWindow 9 @('New Tab')),(New-TestWindow 10 @('Google Search'))) } 'no Facebook tab across multiple Chrome windows refuses window guessing'
+$titledFacebook=[pscustomobject]@{windowId=11;windowName='(5) Facebook - Chrome';isChrome=$true;tabNames=@()}
+Assert-True ((Resolve-FacebookDiscoveryPlan @((New-TestWindow 9 @('X')),$titledFacebook)).windowId -eq 11) 'one exact Facebook window title recovers discovery when tab accessibility is missing'
+Assert-Throws { Resolve-FacebookDiscoveryPlan @($titledFacebook,([pscustomobject]@{windowId=12;windowName='Facebook - Chrome';isChrome=$true;tabNames=@()})) } 'two titled Facebook windows remain ambiguous'
 Assert-Throws { Resolve-FacebookWindowDescriptor $unrelated 0 } 'no Facebook candidate stops clearly'
 Assert-Throws { Resolve-FacebookWindowDescriptor @((New-TestWindow 4 @('Facebook')),(New-TestWindow 5 @('Other | Facebook'))) 0 } 'two Facebook candidates stop without choosing an account'
 Assert-Throws { Resolve-FacebookWindowDescriptor $oneFacebook 99 } 'invalid explicit HWND is rejected'

@@ -41,6 +41,9 @@ function Resolve-FacebookDiscoveryPlan($Descriptors) {
  $facebook=@($windows|Where-Object{@($_.tabNames|Where-Object{Test-FacebookTabName $_}).Count -gt 0})
  if($facebook.Count -gt 1){throw "Expected one visible Facebook Chrome window; found $($facebook.Count)"}
  if($facebook.Count -eq 1){return [pscustomobject]@{windowId=[long]$facebook[0].windowId;openProfileNewTab=$false}}
+ $titled=@($windows|Where-Object{$_.PSObject.Properties['windowName'] -and $_.windowName -match '^(?:\(\d+\) )?Facebook - Chrome$'})
+ if($titled.Count -gt 1){throw "Expected one titled Facebook Chrome window; found $($titled.Count)"}
+ if($titled.Count -eq 1){return [pscustomobject]@{windowId=[long]$titled[0].windowId;openProfileNewTab=$false}}
  if($windows.Count -eq 1){return [pscustomobject]@{windowId=[long]$windows[0].windowId;openProfileNewTab=$true}}
  throw 'No visible Facebook tab and multiple Chrome windows are present; refusing to guess a target window'
 }
@@ -60,7 +63,7 @@ function Get-FacebookChromeWindow([long]$WindowId=0) {
 }
 function Get-FacebookChromeWindowForDiscovery {
  $windows=Get-FacebookChromeWindows
- $descriptors=@(foreach($window in $windows){[pscustomobject]@{windowId=$window.Current.NativeWindowHandle;isChrome=$true;tabNames=@((Get-FacebookUiAll $window)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::TabItem}|ForEach-Object{$_.Current.Name});window=$window}})
+ $descriptors=@(foreach($window in $windows){[pscustomobject]@{windowId=$window.Current.NativeWindowHandle;windowName=$window.Current.Name;isChrome=$true;tabNames=@((Get-FacebookUiAll $window)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.ControlType -eq [Windows.Automation.ControlType]::TabItem}|ForEach-Object{$_.Current.Name});window=$window}})
  $plan=Resolve-FacebookDiscoveryPlan $descriptors
  if($plan.openProfileNewTab){$null=Open-FacebookProfileNewTabNative $plan.windowId}
  $fresh=Get-FacebookChromeWindow $plan.windowId
